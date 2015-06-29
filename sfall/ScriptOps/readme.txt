@@ -1,0 +1,1 @@
+Code for all new scripting functions should go here (ASM code).

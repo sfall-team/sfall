@@ -1,0 +1,6 @@
+LIBRARY ddraw
+EXPORTS
+
+DirectDrawCreate=FakeDirectDrawCreate
+DirectDrawCreat2=FakeDirectDrawCreate2
+DirectInputCreateA=FakeDirectInputCreate

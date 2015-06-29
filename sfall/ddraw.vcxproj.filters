@@ -1,0 +1,335 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Headers">
+      <UniqueIdentifier>{25899f09-c740-49b7-b2ab-b8576c4df621}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source">
+      <UniqueIdentifier>{0e01fde3-77b4-4b8f-a0c5-71f211b14cf7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\win9x">
+      <UniqueIdentifier>{07dcfbfe-dd6b-4b88-8b9e-c512c333406a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Headers\ScriptOps">
+      <UniqueIdentifier>{34e14844-5e67-4d8c-8817-89d2d1c23639}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="AmmoMod.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Console.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="CRC.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Credits.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Criticals.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="DebugEditor.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Define.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Elevators.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="FileSystem.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Graphics.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="HeroAppearance.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="HookScripts.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="input.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="KillCounter.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Knockback.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="LoadGameHook.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="movies.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Perks.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Premade.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="QuestList.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Reputations.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="SafeWrite.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="ScriptExtender.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="sound.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Stats.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Tiles.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="timer.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="version.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="resource.h" />
+    <ClInclude Include="SuperSave.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Logging.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="BarBoxes.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="AnimationsAtOnceLimit.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="heads.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="main.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="skills.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Inventory.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="MainMenu.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="AI.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="PartyControl.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Explosions.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="BurstMods.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="ScriptOps\GraphicsOp.hpp">
+      <Filter>Headers\ScriptOps</Filter>
+    </ClInclude>
+    <ClInclude Include="ScriptOps\InterfaceOp.hpp">
+      <Filter>Headers\ScriptOps</Filter>
+    </ClInclude>
+    <ClInclude Include="ScriptOps\MemoryOp.hpp">
+      <Filter>Headers\ScriptOps</Filter>
+    </ClInclude>
+    <ClInclude Include="ScriptOps\ScriptArrays.hpp">
+      <Filter>Headers\ScriptOps</Filter>
+    </ClInclude>
+    <ClInclude Include="ScriptOps\ScriptUtils.hpp">
+      <Filter>Headers\ScriptOps</Filter>
+    </ClInclude>
+    <ClInclude Include="ScriptOps\StatsOp.hpp">
+      <Filter>Headers\ScriptOps</Filter>
+    </ClInclude>
+    <ClInclude Include="ScriptOps\FileSystemOps.hpp">
+      <Filter>Headers\ScriptOps</Filter>
+    </ClInclude>
+    <ClInclude Include="ScriptOps\PerksOp.hpp">
+      <Filter>Headers\ScriptOps</Filter>
+    </ClInclude>
+    <ClInclude Include="ScriptOps\ObjectsOps.hpp">
+      <Filter>Headers\ScriptOps</Filter>
+    </ClInclude>
+    <ClInclude Include="ScriptOps\WorldmapOps.hpp">
+      <Filter>Headers\ScriptOps</Filter>
+    </ClInclude>
+    <ClInclude Include="ScriptOps\MiscOps.hpp">
+      <Filter>Headers\ScriptOps</Filter>
+    </ClInclude>
+    <ClInclude Include="ScriptOps\AsmMacros.h">
+      <Filter>Headers\ScriptOps</Filter>
+    </ClInclude>
+    <ClInclude Include="ScriptOps\AnimOps.hpp">
+      <Filter>Headers\ScriptOps</Filter>
+    </ClInclude>
+    <ClInclude Include="Books.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Arrays.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="FalloutEngine.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="FalloutStructs.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="AmmoMod.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Console.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="CRC.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Credits.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Criticals.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="ddraw.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="ddraw2.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="DebugEditor.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="dinput.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Elevators.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="FileSystem.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="HeroAppearance.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="HookScripts.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="KillCounter.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Knockback.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="LoadGameHook.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="movies.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Perks.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Premade.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="QuestList.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Reputations.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="SafeWrite.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="ScriptExtender.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="sound.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Stats.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Tiles.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="timer.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="queue9x.cpp">
+      <Filter>Source\win9x</Filter>
+    </ClCompile>
+    <ClCompile Include="SuperSave.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="Logging.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="BarBoxes.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="AnimationsAtOnceLimit.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="heads.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="vector9x.cpp">
+      <Filter>Source\win9x</Filter>
+    </ClCompile>
+    <ClCompile Include="skills.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Inventory.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="MainMenu.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="AI.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="PartyControl.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Explosions.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="BurstMods.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Books.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Arrays.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="FalloutEngine.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="exports.def" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="version.rc" />
+  </ItemGroup>
+</Project>

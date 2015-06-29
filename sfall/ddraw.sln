@@ -1,0 +1,29 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ddraw", "ddraw.vcxproj", "{FB9023DA-CA5E-4704-B601-407810963EF0}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Release|Win32 = Release|Win32
+		Trace|Win32 = Trace|Win32
+		Win2K|Win32 = Win2K|Win32
+		Win2K_Trace|Win32 = Win2K_Trace|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{FB9023DA-CA5E-4704-B601-407810963EF0}.Debug|Win32.ActiveCfg = Debug|Win32
+		{FB9023DA-CA5E-4704-B601-407810963EF0}.Debug|Win32.Build.0 = Debug|Win32
+		{FB9023DA-CA5E-4704-B601-407810963EF0}.Release|Win32.ActiveCfg = Release|Win32
+		{FB9023DA-CA5E-4704-B601-407810963EF0}.Release|Win32.Build.0 = Release|Win32
+		{FB9023DA-CA5E-4704-B601-407810963EF0}.Trace|Win32.ActiveCfg = Trace|Win32
+		{FB9023DA-CA5E-4704-B601-407810963EF0}.Trace|Win32.Build.0 = Trace|Win32
+		{FB9023DA-CA5E-4704-B601-407810963EF0}.Win2K|Win32.ActiveCfg = Win2K|Win32
+		{FB9023DA-CA5E-4704-B601-407810963EF0}.Win2K|Win32.Build.0 = Win2K|Win32
+		{FB9023DA-CA5E-4704-B601-407810963EF0}.Win2K_Trace|Win32.ActiveCfg = Win2K_Trace|Win32
+		{FB9023DA-CA5E-4704-B601-407810963EF0}.Win2K_Trace|Win32.Build.0 = Win2K_Trace|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

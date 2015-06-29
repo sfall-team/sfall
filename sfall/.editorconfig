@@ -1,0 +1,15 @@
+; Top-most EditorConfig file
+root = true
+
+; 4-column tab indentation
+[*.cpp]
+indent_style = tab
+indent_size = 4
+
+[*.h]
+indent_style = tab
+indent_size = 4
+
+[*.hpp]
+indent_style = tab
+indent_size = 4
