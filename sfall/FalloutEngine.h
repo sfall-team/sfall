@@ -72,6 +72,7 @@ extern const DWORD obj_move_to_tile_;  // int aObj<eax>, int aTile<edx>, int aEl
 extern const DWORD obj_find_first_at_tile_; //  <eax>(int elevation<eax>, int tile<edx>)
 extern const DWORD obj_find_next_at_tile_; // no args
 extern const DWORD critter_is_dead_; // eax - critter
+extern const DWORD tile_coord_; // eax - tilenum, edx (int*) - x, ebx (int*) - y
 
 // Animation
 extern const DWORD tile_refresh_rect_; // (int elevation<edx>, unkown<ecx>)

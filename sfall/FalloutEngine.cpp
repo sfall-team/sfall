@@ -67,6 +67,7 @@ const DWORD obj_move_to_tile_ = 0x48A568;  // int aObj<eax>, int aTile<edx>, int
 const DWORD obj_find_first_at_tile_ = 0x48B5A8; //  <eax>(int elevation<eax>, int tile<edx>)
 const DWORD obj_find_next_at_tile_ = 0x48B608; // no args
 const DWORD critter_is_dead_ = 0x42DD18; // eax - critter
+const DWORD tile_coord_ = 0x4B1674; // eax - tilenum, edx (int*) - x, ebx (int*) - y
 
 // ANIMATION
 const DWORD tile_refresh_rect_ = 0x4B12C0; // (int elevation<edx>, unkown<ecx>)
