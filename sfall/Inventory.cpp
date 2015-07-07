@@ -566,6 +566,53 @@ skip:
 	}
 }
 
+static void __declspec(naked) SetDefaultAmmo() {
+	__asm {
+		push    eax
+		push    ebx
+		push    edx
+		xchg    eax, edx
+		mov     ebx, eax
+		call    item_get_type_
+		cmp     eax, 3 // is it item_type_weapon?
+		jne     end // no
+		cmp     dword ptr [ebx+0x3C], 0 // is there any ammo in the weapon?
+		jne     end // yes
+		sub     esp, 4
+		mov     edx, esp
+		mov     eax, [ebx+0x64] // eax = weapon pid
+		call    proto_ptr_
+		mov     edx, [esp]
+		mov     eax, [edx+0x5C] // eax = default ammo pid
+		mov     [ebx+0x40], eax // set current ammo proto
+		add     esp, 4
+end:
+		pop     edx
+		pop     ebx
+		pop     eax
+		retn
+	}
+}
+
+static const DWORD inven_action_cursor_hook_End = 0x4736CB;
+static void __declspec(naked) inven_action_cursor_hook() {
+	__asm {
+		mov     edx, [esp+0x1C]
+		call    SetDefaultAmmo
+		cmp     dword ptr [esp+0x18], 0
+		jmp     inven_action_cursor_hook_End
+	}
+}
+
+static const DWORD item_add_force_ = 0x4772B8;
+static void __declspec(naked) item_add_mult_hook() {
+	__asm {
+		call    SetDefaultAmmo
+		call    item_add_force_
+		retn
+	}
+}
+
 void InventoryInit() {
 	mode=GetPrivateProfileInt("Misc", "CritterInvSizeLimitMode", 0, ini);
 	invenapcost=GetPrivateProfileInt("Misc", "InventoryApCost", 4, ini);
@@ -612,6 +659,11 @@ void InventoryInit() {
 	}
 
 	ReloadWeaponKey = GetPrivateProfileInt("Input", "ReloadWeaponKey", 0, ini);
+
+	if(GetPrivateProfileIntA("Misc", "StackEmptyWeapons", 0, ini)) {
+		MakeCall(0x4736C6, &inven_action_cursor_hook, true);
+		HookCall(0x4772AA, &item_add_mult_hook);
+	}
 }
 void InventoryReset() {
 	invenapcost=GetPrivateProfileInt("Misc", "InventoryApCost", 4, ini);

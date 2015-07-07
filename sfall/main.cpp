@@ -581,7 +581,11 @@ static void __declspec(naked) IntfaceRotateNumbersHook() {
 		inc ebx;
 		jmp end;
 greater:
-		mov ebx, ecx;
+		cmp ebx, 0;
+		jg skip;
+		xor ebx, ebx;
+		inc ebx;
+skip:
 		dec ebx;
 end:
 		jmp IntfaceRotateNumbersRet;
@@ -828,6 +832,24 @@ static void __declspec(naked) objCanSeeObj_ShootThru_Fix() {//(EAX *objStruct, E
 	}
 }
 
+static const DWORD stat_level_ = 0x4AEF48;
+static const DWORD perk_level_ = 0x496B78;
+static void __declspec(naked) SharpshooterFix() {
+	__asm {
+		call    stat_level_ // Perception
+		cmp     edi, ds:[0x6610B8] // _obj_dude
+		jne     end
+		xchg    ecx, eax
+		mov     eax, edi // _obj_dude
+		mov     edx, 14 // PERK_sharpshooter
+		call    perk_level_ // Sharpshooter
+		shl     eax, 1
+		add     eax, ecx
+end:
+		retn
+	}
+}
+
 
 static void DllMain2() {
 	//SafeWrite8(0x4B15E8, 0xc3);
@@ -1016,11 +1038,8 @@ static void DllMain2() {
 
 	//if(GetPrivateProfileIntA("Misc", "SharpshooterFix", 0, ini)) {
 		dlog("Applying sharpshooter patch.", DL_INIT);
-		if(*((DWORD*)0x00424533) != 0xc003C003) {
-			SafeWrite32(0x00424533, 0xc003c003);
-			SafeWrite32(0x00424537, 0x04244429);
-			SafeWrite32(0x0042453b, 0x90909090);
-		}
+		HookCall(0x4244AB, &SharpshooterFix);
+		SafeWrite8(0x424527, 0xEB);
 		dlogr(" Done", DL_INIT);
 	//}
 
