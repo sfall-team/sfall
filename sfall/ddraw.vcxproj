@@ -98,10 +98,6 @@
     <GenerateManifest Condition="'$(Configuration)|$(Platform)'=='Trace|Win32'">true</GenerateManifest>
     <GenerateManifest Condition="'$(Configuration)|$(Platform)'=='Win2K|Win32'">false</GenerateManifest>
     <GenerateManifest Condition="'$(Configuration)|$(Platform)'=='Win2K_Trace|Win32'">false</GenerateManifest>
-    <IncludePath Condition="'$(Configuration)|$(Platform)'=='Win2K|Win32'">C:\DXSDK_Feb2010\Include;$(IncludePath)</IncludePath>
-    <LibraryPath Condition="'$(Configuration)|$(Platform)'=='Win2K|Win32'">C:\DXSDK_Feb2010\Lib\x86;$(LibraryPath)</LibraryPath>
-    <IncludePath Condition="'$(Configuration)|$(Platform)'=='Win2K_Trace|Win32'">C:\DXSDK_Feb2010\Include;$(IncludePath)</IncludePath>
-    <LibraryPath Condition="'$(Configuration)|$(Platform)'=='Win2K_Trace|Win32'">C:\DXSDK_Feb2010\Lib\x86;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -136,7 +132,7 @@
       <IgnoreSpecificDefaultLibraries>%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
     </Link>
     <PostBuildEvent>
-      <Command>copy "$(TargetPath)" "C:\games\fallout2\ddraw.dll"</Command>
+      <Command>"$(ProjectDir)postbuild.cmd" debug "$(TargetPath)"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -182,7 +178,7 @@
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
     </Link>
     <PostBuildEvent>
-      <Command>copy "$(TargetPath)" "C:\games\fallout2\ddraw.dll"</Command>
+      <Command>"$(ProjectDir)postbuild.cmd" release "$(TargetPath)"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Trace|Win32'">
@@ -228,7 +224,7 @@
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
     </Link>
     <PostBuildEvent>
-      <Command>copy "$(TargetPath)" "C:\games\fallout2\ddraw.dll"</Command>
+      <Command>"$(ProjectDir)postbuild.cmd" trace "$(TargetPath)"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Win2K|Win32'">
@@ -274,7 +270,7 @@
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
     </Link>
     <PostBuildEvent>
-      <Command>copy "$(TargetPath)" "C:\games\fallout2\ddraw.dll"</Command>
+      <Command>"$(ProjectDir)postbuild.cmd" win2k "$(TargetPath)"</Command>
     </PostBuildEvent>
     <ResourceCompile>
       <PreprocessorDefinitions>WIN2K;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -323,7 +319,7 @@
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
     </Link>
     <PostBuildEvent>
-      <Command>copy "$(TargetPath)" "C:\games\fallout2\ddraw.dll"</Command>
+      <Command>"$(ProjectDir)postbuild.cmd" win2k_trace "$(TargetPath)"</Command>
     </PostBuildEvent>
     <ResourceCompile>
       <PreprocessorDefinitions>WIN2K;%(PreprocessorDefinitions)</PreprocessorDefinitions>
