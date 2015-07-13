@@ -747,10 +747,10 @@ static void __declspec(naked) DodgyDoorsFix() {//checks if an attacked object is
 		mov ebx, dword ptr ss:[EAX+0x20] //objStruct->FID
 		and ebx, 0x0F000000
 		sar ebx, 0x18
-		cmp ebx, 1					   //check if object FID type flag is set to critter
-	  jne EndFunc						//if object not a critter leave jump condition flags set to skip dodge animation
+		cmp ebx, 1						//check if object FID type flag is set to critter
+		jne EndFunc						//if object not a critter leave jump condition flags set to skip dodge animation
 		test byte ptr ds:[eax+0x44], 0x03//(original code) check some flag?
-	  EndFunc:
+EndFunc:
 		ret
 	}
 }
@@ -1275,11 +1275,11 @@ static void DllMain2() {
 		SafeWrite8(0x004C06D8, 0xeb);
 	}*/
 
-	if(GetPrivateProfileIntA("Misc", "BlackSkilldexFix", 1, ini)) {
+	//if(GetPrivateProfileIntA("Misc", "BlackSkilldexFix", 1, ini)) {
 		dlog("Applying black skilldex patch.", DL_INIT);
 		HookCall(0x00497D0F, BlackSkilldexFix);
 		dlogr(" Done", DL_INIT);
-	}
+	//}
 
 	//if(GetPrivateProfileIntA("Misc", "PrintToFileFix", 0, ini)) {
 		dlog("Applying print to file patch.", DL_INIT);
@@ -1517,11 +1517,11 @@ static void DllMain2() {
 		dlogr(" Done", DL_INIT);
 	}
 
-	if(GetPrivateProfileIntA("Misc", "JetAntidoteFix", 1, ini)) {
+	//if(GetPrivateProfileIntA("Misc", "JetAntidoteFix", 1, ini)) {
 		dlog("Applying Jet Antidote fix.", DL_INIT);
 		MakeCall(0x47A015, &JetAntidoteFix, true);
 		dlogr(" Done", DL_INIT);
-	}
+	//}
 
 	if(GetPrivateProfileIntA("Misc", "RemoveCriticalTimelimits", 0, ini)) {
 		dlog("Removing critical time limits.", DL_INIT);
@@ -1579,12 +1579,12 @@ static void DllMain2() {
 		break;
 	}
 
-	if(GetPrivateProfileIntA("Misc", "DodgyDoorsFix", 1, ini)) {
+	//if(GetPrivateProfileIntA("Misc", "DodgyDoorsFix", 1, ini)) {
 		dlog("Applying Dodgy Door Fix.", DL_INIT);
 		SafeWrite16(0x4113D3, 0x9090);
 		MakeCall(0x4113D5, &DodgyDoorsFix, false);
 		dlogr(" Done", DL_INIT);
-	}
+	//}
 
 	if(GetPrivateProfileIntA("Misc", "BoostScriptDialogLimit", 0, ini)) {
 		const int scriptDialogCount=10000;
