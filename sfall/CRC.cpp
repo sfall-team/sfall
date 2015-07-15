@@ -67,8 +67,15 @@ void CRC(const char* filepath) {
 
 	bool matchedCRC = false;
 #ifdef TRACE
-	DWORD extraCRC = GetPrivateProfileIntA("Debugging", "ExtraCRC", 0, ".\\ddraw.ini");
-	if (crc == extraCRC) matchedCRC = true;
+	if (GetPrivateProfileStringA("Debugging", "ExtraCRC", "", buf, 512, ".\\ddraw.ini") > 0) {
+		char *TestCRC;
+		TestCRC = strtok(buf, ",");
+		while (TestCRC) {
+			DWORD extraCRC = strtoul(TestCRC, 0, 16);
+			if (crc == extraCRC) matchedCRC = true;
+			TestCRC = strtok(0, ",");
+		}
+	}
 #endif
 	for (int i=0; i < sizeof(ExpectedCRC)/4; i++) {
 		if (crc == ExpectedCRC[i]) matchedCRC = true;
