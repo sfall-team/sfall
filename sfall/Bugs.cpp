@@ -86,7 +86,7 @@ itsCar:
 		jne  skip
 noCar:
 		mov  eax, 0x49C38B
-		jmp  eax                                  // "Это ничего не даст."
+		jmp  eax                                  // "This does nothing."
 skip:
 		test eax, eax
 		jnz  end
@@ -100,9 +100,9 @@ end:
 static void __declspec(naked) obj_use_power_on_car_hook() {
 	__asm {
 		xor  eax, eax
-		cmp  ebx, 596                             // "Аккумулятор полностью заряжен."?
-		je   skip                                 // Да
-		inc  eax                                  // "Вы заряжаете автомобильный аккумулятор."
+		cmp  ebx, 596                             // "Battery is fully charged."?
+		je   skip                                 // Yes
+		inc  eax                                  // "You charge the car's battery."
 skip:
 		retn
 	}
@@ -114,19 +114,19 @@ skip:
 
 static void __declspec(naked) item_d_check_addict_hook() {
 	__asm {
-		mov  edx, 2                               // type = зависимость
-		cmp  eax, -1                              // Есть drug_pid?
-		je   skip                                 // Нет
+		mov  edx, 2                               // type = addiction
+		cmp  eax, -1                              // Has drug_pid?
+		je   skip                                 // No
 		xchg ebx, eax                             // ebx = drug_pid
 		mov  eax, esi                             // eax = who
 		call queue_find_first_
 loopQueue:
-		test eax, eax                             // Есть что в списке?
-		jz   end                                  // Нет
+		test eax, eax                             // Has something in the list?
+		jz   end                                  // No
 		cmp  ebx, dword ptr [eax+0x4]             // drug_pid == queue_addict.drug_pid?
-		je   end                                  // Есть конкретная зависимость
+		je   end                                  // Has specific addiction
 		mov  eax, esi                             // eax = who
-		mov  edx, 2                               // type = зависимость
+		mov  edx, 2                               // type = addiction
 		call queue_find_next_
 		jmp  loopQueue
 skip:
@@ -145,10 +145,10 @@ static void __declspec(naked) remove_jet_addict() {
 		cmp  dword ptr [edx+0x4], PID_JET         // queue_addict.drug_pid == PID_JET?
 		jne  end
 		xor  eax, eax
-		inc  eax                                  // Удалить из очереди
+		inc  eax                                  // Delete from queue
 		retn
 end:
-		xor  eax, eax                             // Не трогать
+		xor  eax, eax                             // Don't touch
 		retn
 	}
 }
@@ -156,13 +156,13 @@ end:
 static void __declspec(naked) item_d_take_drug_hook() {
 	__asm {
 		cmp  dword ptr [eax], 0                   // queue_addict.init
-		jne  skip                                 // Зависимость ещё не активна
+		jne  skip                                 // Addiction is not active yet
 		mov  edx, PERK_add_jet
 		mov  eax, esi
 		call perform_withdrawal_end_
 skip:
 		mov  dword ptr ds:[_wd_obj], esi
-		mov  eax, 2                               // type = зависимость
+		mov  eax, 2                               // type = addiction
 		mov  edx, offset remove_jet_addict
 		call queue_clear_type_
 		mov  eax, 0x479FD1
@@ -176,7 +176,7 @@ static void __declspec(naked) item_wd_process_hook() {
 		je   itsJet
 		retn
 itsJet:
-		pop  edx                                  // Уничтожаем адрес возврата
+		pop  edx                                  // Destroying the return address
 		xor  edx, edx                             // edx=init
 		mov  ecx, dword ptr [ebx+0x4]             // ecx=drug_pid
 		push ecx
@@ -242,7 +242,7 @@ nextArmor:
 		call inven_worn_
 		test eax, eax
 		jz   noArmor
-		and  byte ptr [eax+0x27], 0xFB            // Сбрасываем флаг одетой брони
+		and  byte ptr [eax+0x27], 0xFB            // Unset the flag of equipped armor 
 		jmp  nextArmor
 noArmor:
 		mov  eax, esi
@@ -267,10 +267,10 @@ static void __declspec(naked) partyMemberIncLevels_hook() {
 loopAddict:
 		mov  eax, dword ptr [edi]                 // eax = drug pid
 		call item_d_check_addict_
-		test eax, eax                             // Есть зависимость?
-		jz   noAddict                             // Нет
+		test eax, eax                             // Has addiction?
+		jz   noAddict                             // No
 		cmp  dword ptr [eax], 0                   // queue_addict.init
-		jne  noAddict                             // Зависимость ещё не активна
+		jne  noAddict                             // Addiction is not active yet
 		mov  edx, dword ptr [eax+0x8]             // queue_addict.perk
 		mov  eax, ebx
 		call perk_add_effect_
@@ -312,8 +312,8 @@ static void __declspec(naked) invenWieldFunc_hook() {
 		call item_remove_mult_
 nextWeapon:
 		mov  eax, esi
-		test cl, 0x2                              // Правая рука?
-		jz   leftHand                             // Нет
+		test cl, 0x2                              // Right hand?
+		jz   leftHand                             // No
 		call inven_right_hand_
 		jmp  removeFlag
 leftHand:
@@ -321,10 +321,10 @@ leftHand:
 removeFlag:
 		test eax, eax
 		jz   noWeapon
-		and  byte ptr [eax+0x27], 0xFC            // Сбрасываем флаг оружия в руке
+		and  byte ptr [eax+0x27], 0xFC            // Unset flag of a weapon in hand
 		jmp  nextWeapon
 noWeapon:
-		or   byte ptr [edi+0x27], cl              // Устанавливаем флаг оружия в руке
+		or   byte ptr [edi+0x27], cl              // Set flag of a weapon in hand
 		xchg esi, eax
 		mov  edx, edi
 		pop  ebx
@@ -377,7 +377,7 @@ noArmor:
 		test eax, eax
 		jnz  haveWeapon
 		cmp  dword ptr ds:[_dialog_target_is_party], eax
-		jne  end                                  // это собутыльник
+		jne  end                                  // This is a party member
 		mov  eax, [esp+0x18+0x4]
 		test eax, eax
 		jz   end
@@ -395,8 +395,8 @@ end:
 
 static void __declspec(naked) barter_attempt_transaction_hook() {
 	__asm {
-		call stat_level_                          // eax = Макс. груз
-		sub  eax, WeightOnBody                    // Учитываем вес одетой на цели брони и оружия
+		call stat_level_                          // eax = Max weight
+		sub  eax, WeightOnBody                    // Accounting for weight of target's equipped armor and weapon
 		retn
 	}
 }
@@ -413,10 +413,10 @@ static void __declspec(naked) move_inventory_hook() {
 
 static void __declspec(naked) item_add_mult_hook() {
 	__asm {
-		call stat_level_                          // eax = Макс. груз
+		call stat_level_                          // eax = Max weight
 		cmp  Looting, 0
 		je   end
-		sub  eax, WeightOnBody                    // Учитываем вес одетой на цели брони и оружия
+		sub  eax, WeightOnBody                    // Accounting for weight of target's equipped armor and weapon
 end:
 		retn
 	}
@@ -490,38 +490,38 @@ inRange:
 static void __declspec(naked) drop_ammo_into_weapon_hook() {
 	__asm {
 		dec  esi
-		test esi, esi                             // Одна коробка патронов?
-		jz   skip                                 // Да
+		test esi, esi                             // One box of ammo?
+		jz   skip                                 // Yes
 		xor  esi, esi
-		// Лишняя проверка на from_slot, но пусть будет
+		// Excess check for from_slot, but leave it be
 		mov  edx, [esp+0x24+4]                    // from_slot
-		cmp  edx, 1006                            // Руки?
-		jge  skip                                 // Да
+		cmp  edx, 1006                            // Hands?
+		jge  skip                                 // Yes
 		lea  edx, [eax+0x2C]                      // Inventory
 		mov  ecx, [edx]                           // itemsCount
-		jcxz skip                                 // инвентарь пустой (ещё лишняя проверка, но пусть будет)
+		jcxz skip                                 // inventory is empty (another excess check, but leave it)
 		mov  edx, [edx+8]                         // FirstItem
 nextItem:
-		cmp  ebp, [edx]                           // Наше оружие?
-		je   foundItem                            // Да
-		add  edx, 8                               // К следующему
+		cmp  ebp, [edx]                           // Our weapon?
+		je   foundItem                            // Yes
+		add  edx, 8                               // Go to the next
 		loop nextItem
-		jmp  skip                                 // Нашего оружия нет в инвентаре
+		jmp  skip                                 // Our weapon is not in inventory
 foundItem:
-		cmp  dword ptr [edx+4], 1                 // Оружие в единственном экземпляре?
-		jg   skip                                 // Нет
+		cmp  dword ptr [edx+4], 1                 // Only one weapon?
+		jg   skip                                 // No
 		mov  edx, [esp+0x24+4]                    // from_slot
 		lea  edx, [edx-1000]
-		add  edx, [esp+0x40+4+0x24+4]             // edx=порядковый номер слота с патронами
-		cmp  ecx, edx                             // Оружие после патронов?
-		jg   skip                                 // Да
-		inc  esi                                  // Нет, нужно менять from_slot
+		add  edx, [esp+0x40+4+0x24+4]             // edx = ordinal number of slot with ammo
+		cmp  ecx, edx                             // Weapon is after the ammo?
+		jg   skip                                 // Yes
+		inc  esi                                  // No, need to change from_slot
 skip:
 		mov  edx, ebp
 		call item_remove_mult_
-		test eax, eax                             // Удалили оружие из инвентаря?
-		jnz  end                                  // Нет
-		sub  [esp+0x24+4], esi                    // Да, корректируем from_slot
+		test eax, eax                             // Have weapon been deleted from inventory?
+		jnz  end                                  // No
+		sub  [esp+0x24+4], esi                    // Yes, correct from_slot
 end:
 		retn
 	}
@@ -604,52 +604,51 @@ void BugsInit()
 	// Check drug addiction fix
 	//MakeCall(0x47A644, &item_d_check_addict_hook, true);
 
-	// Исправления снятия зависимости к винту у нпс ?????????
+	// Fix for removal of jet addiction from NPCs ?????????
 	/*MakeCall(0x479FC5, &item_d_take_drug_hook, true);
 	MakeCall(0x47A3A4, &item_wd_process_hook, false);*/
 
-	// Исправление прокачки статов через употребление наркотиков после записи-загрузки
+	// Fix increasing stats via drug use after save-load
 	//MakeCall(0x47A243, &item_d_load_hook, false);
 
-	// Исправление краша при использовании стимпаков на жертве с последующим выходом с карты
+	// Fix crash when using stimpak on a victim and then exiting the map
 	//HookCall(0x4A27E7, &queue_clear_type_hook);
 
-	// Мерзкий баг! Если в инвентаре сопартийца есть броня такая же как на нём одета, то при
-	// получении уровня он теряет КБ равный значению получаемому от этой брони
+	// Evil bug! If party member has the same armor type in inventory as currently equipped, then
+	// on level up he loses Armor Class equal to the one received from this armor
 	//HookCall(0x495F3B, &partyMemberCopyLevelInfo_hook);
 
-	// Исправление неправильных статов при получении уровня сопартийцем когда он под наркотиками
+	// Fix of invalid stats when party member gains a level while being on drugs
 	//HookCall(0x495D5C, &partyMemberIncLevels_hook);
 
-	// 9 опций в диалоговом окне
+	// 9 options in a dialogue window
 	//MakeCall(0x44701C, &gdProcessUpdate_hook, true);
 
-	// Исправление "Unlimited Ammo bug"
+	// Fix for "Unlimited Ammo bug"
 	//HookCall(0x472957, &invenWieldFunc_hook);
 
-	// Исправление отображения отрицательных значений в окне навыков ("S")
+	// Fix for negative values in Skilldex window ("S")
 	//SafeWrite8(0x4AC377, 0x7F);                // jg
 
-	// Исправление ошибки неучёта веса одетых вещей
+	// Fix for not counting in weight of equipped items
 	/*MakeCall(0x473B4E, &loot_container_hook, false);
 	MakeCall(0x47588A, &barter_inventory_hook, false);
 	HookCall(0x474CB8, &barter_attempt_transaction_hook);
 	HookCall(0x4742AD, &move_inventory_hook);
 	HookCall(0x4771B5, &item_add_mult_hook);*/
 
-	// Ширина текста 64, а не 80 
+	// Text width 64, and not 80 
 	/*SafeWrite8(0x475541, 64);
 	SafeWrite8(0x475789, 64);*/
 
-	// Исправление ошибки обратного порядка в инвентаре игрока
+	// Fix for reverse order error in player's inventory
 	//MakeCall(0x470EC2, &inven_pickup_hook, true);
 
-	// Исправление ошибки в инвентаре игрока связанной с IFACE_BAR_MODE=1 из f2_res.ini, ну
-	// и ошибки обратного порядка
+	// Fix for error in player's inventory, related to IFACE_BAR_MODE=1 in f2_res.ini, and
+	// also for reverse order error
 	//MakeCall(0x47114A, &inven_pickup_hook1, true);
 
-	// Исправление ошибки использования только одной пачки патронов когда оружие находится перед
-	// патронами
+	// Fix for using only one pack of ammo, when the weapon is before the ammo
 	//HookCall(0x476598, &drop_ammo_into_weapon_hook);
 
 	dlog("Applying black skilldex patch.", DL_INIT);
