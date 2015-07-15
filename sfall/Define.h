@@ -1,3 +1,17 @@
+#pragma once
+
+// PIDS of some items
+#define PID_ACTIVE_GEIGER_COUNTER    207
+#define PID_ACTIVE_STEALTH_BOY       210
+#define PID_CAR_TRUNK                455
+
+#define PID_DRIVABLE_CAR             33555441
+#define PID_JET                      259
+#define PID_JESSE_CONTAINER          467
+#define PID_MOTION_SENSOR            59
+#define PID_Player                   16777216
+#define PID_SUPER_STIMPAK            144
+
 //XXXXXXXXXXXXXXXXXXXXX
 //XX Critter defines XX
 //XXXXXXXXXXXXXXXXXXXXX
@@ -8,127 +22,127 @@
 #define TRAIT_TRAIT  (2)
 
 // Perk Trait Types
-#define PERK_bonus_awareness      (0)
-#define PERK_bonus_hth_attacks    (1)
-#define PERK_bonus_hth_damage     (2)
-#define PERK_bonus_move           (3)
-#define PERK_bonus_ranged_damage  (4)
-#define PERK_bonus_rate_of_fire   (5)
-#define PERK_earlier_sequence     (6)
-#define PERK_faster_healing       (7)
-#define PERK_more_criticals       (8)
-#define PERK_night_vision         (9)
-#define PERK_presence            (10)
-#define PERK_rad_resistance      (11)
-#define PERK_toughness           (12)
-#define PERK_strong_back         (13)
-#define PERK_sharpshooter        (14)
-#define PERK_silent_running      (15)
-#define PERK_survivalist         (16)
-#define PERK_master_trader       (17)
-#define PERK_educated            (18)
-#define PERK_healer              (19)
-#define PERK_fortune_finder      (20)
-#define PERK_better_criticals    (21)
-#define PERK_empathy             (22)
-#define PERK_slayer              (23)
-#define PERK_sniper              (24)
-#define PERK_silent_death        (25)
-#define PERK_action_boy          (26)
+#define PERK_bonus_awareness                 (0)
+#define PERK_bonus_hth_attacks               (1)
+#define PERK_bonus_hth_damage                (2)
+#define PERK_bonus_move                      (3)
+#define PERK_bonus_ranged_damage             (4)
+#define PERK_bonus_rate_of_fire              (5)
+#define PERK_earlier_sequence                (6)
+#define PERK_faster_healing                  (7)
+#define PERK_more_criticals                  (8)
+#define PERK_night_vision                    (9)
+#define PERK_presence                        (10)
+#define PERK_rad_resistance                  (11)
+#define PERK_toughness                       (12)
+#define PERK_strong_back                     (13)
+#define PERK_sharpshooter                    (14)
+#define PERK_silent_running                  (15)
+#define PERK_survivalist                     (16)
+#define PERK_master_trader                   (17)
+#define PERK_educated                        (18)
+#define PERK_healer                          (19)
+#define PERK_fortune_finder                  (20)
+#define PERK_better_criticals                (21)
+#define PERK_empathy                         (22)
+#define PERK_slayer                          (23)
+#define PERK_sniper                          (24)
+#define PERK_silent_death                    (25)
+#define PERK_action_boy                      (26)
 ///#define PERK_mental_block        (27)  -- Disabled FO2
-#define PERK_lifegiver           (28)
-#define PERK_dodger              (29)
-#define PERK_snakeater           (30)
-#define PERK_mr_fixit            (31)
-#define PERK_medic               (32)
-#define PERK_master_thief        (33)
-#define PERK_speaker             (34)
-#define PERK_heave_ho            (35)
+#define PERK_lifegiver                       (28)
+#define PERK_dodger                          (29)
+#define PERK_snakeater                       (30)
+#define PERK_mr_fixit                        (31)
+#define PERK_medic                           (32)
+#define PERK_master_thief                    (33)
+#define PERK_speaker                         (34)
+#define PERK_heave_ho                        (35)
 ///#define PERK_friendly_foe        (36)  -- Disabled FO2
-#define PERK_pickpocket          (37)
-#define PERK_ghost               (38)
-#define PERK_cult_of_personality (39)
+#define PERK_pickpocket                      (37)
+#define PERK_ghost                           (38)
+#define PERK_cult_of_personality             (39)
 ///#define PERK_scrounger           (40)  -- Disabled FO2
-#define PERK_explorer            (41)
+#define PERK_explorer                        (41)
 ///#define PERK_flower_child        (42)  -- Disabled FO2
-#define PERK_pathfinder          (43)
+#define PERK_pathfinder                      (43)
 ///#define PERK_animal_friend       (44)  -- Disabled FO2
-#define PERK_scout               (45)
-#define PERK_mysterious_stranger (46)
-#define PERK_ranger              (47)
-#define PERK_quick_pockets       (48)
-#define PERK_smooth_talker       (49)
-#define PERK_swift_learner       (50)
-#define PERK_tag                 (51)
-#define PERK_mutate              (52)
-#define PERK_add_nuka            // Do NOT USE!  Engine ONLY!
-#define PERK_add_buffout         // Do NOT USE!  Engine ONLY!
-#define PERK_add_mentats         // Do NOT USE!  Engine ONLY!
-#define PERK_add_psycho          // Do NOT USE!  Engine ONLY!
-#define PERK_add_radaway         // Do NOT USE!  Engine ONLY!
-#define PERK_weapon_long_range   // Do NOT USE!  Engine ONLY!
-#define PERK_weapon_accurate     // Do NOT USE!  Engine ONLY!
-#define PERK_weapon_penetrate    // Do NOT USE!  Engine ONLY!
-#define PERK_weapon_knockback    // Do NOT USE!  Engine ONLY!
-#define PERK_armor_powered       // Do NOT USE!  Engine ONLY!
-#define PERK_armor_combat        // Do NOT USE!  Engine ONLY!
-// Note: Fallout 2: New Perks      // Do NOT USE!  Engine ONLY!
-#define PERK_weapon_scope_range  // Do NOT USE!  Engine ONLY!
-#define PERK_weapon_fast_reload  // Do NOT USE!  Engine ONLY!
-#define PERK_weapon_night_sight  // Do NOT USE!  Engine ONLY!
-#define PERK_weapon_flameboy     (67) // Do NOT USE!  Engine ONLY!
-#define PERK_armor_advanced_1    (68) // Do NOT USE!  Engine ONLY!
-#define PERK_armor_advanced_2    (69) // Do NOT USE!  Engine ONLY!
-#define PERK_add_jet             (70) // Do NOT USE!  Engine ONLY!
-#define PERK_add_tragic          (71) // Do NOT USE!  Engine ONLY!
-#define PERK_armor_charisma      (72) // Do NOT USE!  Engine ONLY!
-#define PERK_gecko_skinning_perk            (73)
-#define PERK_dermal_armor_perk              (74)
-#define PERK_dermal_enhancement_perk        (75)
-#define PERK_phoenix_armor_perk             (76)
-#define PERK_phoenix_enhancement_perk       (77)
-#define PERK_vault_city_inoculations_perk   (78)
-#define PERK_adrenaline_rush_perk           (79)
-#define PERK_cautious_nature_perk           (80)
-#define PERK_comprehension_perk             (81)
-#define PERK_demolition_expert_perk         (82)
-#define PERK_gambler_perk                   (83)
-#define PERK_gain_strength_perk             (84)
-#define PERK_gain_perception_perk           (85)
-#define PERK_gain_endurance_perk            (86)
-#define PERK_gain_charisma_perk             (87)
-#define PERK_gain_intelligence_perk         (88)
-#define PERK_gain_agility_perk              (89)
-#define PERK_gain_luck_perk                 (90)
-#define PERK_harmless_perk                  (91)
-#define PERK_here_and_now_perk              (92)
-#define PERK_hth_evade_perk                 (93)
-#define PERK_kama_sutra_perk                (94)
-#define PERK_karma_beacon_perk              (95)
-#define PERK_light_step_perk                (96)
-#define PERK_living_anatomy_perk            (97)
-#define PERK_magnetic_personality_perk      (98)
-#define PERK_negotiator_perk                (99)
-#define PERK_pack_rat_perk                 (100)
-#define PERK_pyromaniac_perk               (101)
-#define PERK_quick_recovery_perk           (102)
-#define PERK_salesman_perk                 (103)
-#define PERK_stonewall_perk                (104)
-#define PERK_thief_perk                    (105)
-#define PERK_weapon_handling_perk          (106)
-#define PERK_vault_city_training_perk      (107)
-#define PERK_alcohol_hp_bonus1_perk        (108)
-#define PERK_alcohol_hp_bonus2_perk        (109)
-#define PERK_alcohol_hp_neg1_perk          (110)
-#define PERK_alcohol_hp_neg2_perk          (111)
-#define PERK_autodoc_hp_bonus1_perk        (112)
-#define PERK_autodoc_hp_bonus2_perk        (113)
-#define PERK_autodoc_hp_neg1_perk          (114)
-#define PERK_autodoc_hp_neg2_perk          (115)
+#define PERK_scout                           (45)
+#define PERK_mysterious_stranger             (46)
+#define PERK_ranger                          (47)
+#define PERK_quick_pockets                   (48)
+#define PERK_smooth_talker                   (49)
+#define PERK_swift_learner                   (50)
+#define PERK_tag                             (51)
+#define PERK_mutate                          (52)
+#define PERK_add_nuka                        (53)
+#define PERK_add_buffout                     (54)
+#define PERK_add_mentats                     (55)
+#define PERK_add_psycho                      (56)
+#define PERK_add_radaway                     (57)
+#define PERK_weapon_long_range               (58)
+#define PERK_weapon_accurate                 (59)
+#define PERK_weapon_penetrate                (60)
+#define PERK_weapon_knockback                (61)
+#define PERK_armor_powered                   (62)
+#define PERK_armor_combat                    (63)
+// Note: Fallout 2: New Perks      
+#define PERK_weapon_scope_range              (64)
+#define PERK_weapon_fast_reload              (65)
+#define PERK_weapon_night_sight              (66)
+#define PERK_weapon_flameboy                 (67)
+#define PERK_armor_advanced_1                (68)
+#define PERK_armor_advanced_2                (69)
+#define PERK_add_jet                         (70)
+#define PERK_add_tragic                      (71)
+#define PERK_armor_charisma                  (72)
+#define PERK_gecko_skinning_perk             (73)
+#define PERK_dermal_armor_perk               (74)
+#define PERK_dermal_enhancement_perk         (75)
+#define PERK_phoenix_armor_perk              (76)
+#define PERK_phoenix_enhancement_perk        (77)
+#define PERK_vault_city_inoculations_perk    (78)
+#define PERK_adrenaline_rush_perk            (79)
+#define PERK_cautious_nature_perk            (80)
+#define PERK_comprehension_perk              (81)
+#define PERK_demolition_expert_perk          (82)
+#define PERK_gambler_perk                    (83)
+#define PERK_gain_strength_perk              (84)
+#define PERK_gain_perception_perk            (85)
+#define PERK_gain_endurance_perk             (86)
+#define PERK_gain_charisma_perk              (87)
+#define PERK_gain_intelligence_perk          (88)
+#define PERK_gain_agility_perk               (89)
+#define PERK_gain_luck_perk                  (90)
+#define PERK_harmless_perk                   (91)
+#define PERK_here_and_now_perk               (92)
+#define PERK_hth_evade_perk                  (93)
+#define PERK_kama_sutra_perk                 (94)
+#define PERK_karma_beacon_perk               (95)
+#define PERK_light_step_perk                 (96)
+#define PERK_living_anatomy_perk             (97)
+#define PERK_magnetic_personality_perk       (98)
+#define PERK_negotiator_perk                 (99)
+#define PERK_pack_rat_perk                   (100)
+#define PERK_pyromaniac_perk                 (101)
+#define PERK_quick_recovery_perk             (102)
+#define PERK_salesman_perk                   (103)
+#define PERK_stonewall_perk                  (104)
+#define PERK_thief_perk                      (105)
+#define PERK_weapon_handling_perk            (106)
+#define PERK_vault_city_training_perk        (107)
+#define PERK_alcohol_hp_bonus1_perk          (108)
+#define PERK_alcohol_hp_bonus2_perk          (109)
+#define PERK_alcohol_hp_neg1_perk            (110)
+#define PERK_alcohol_hp_neg2_perk            (111)
+#define PERK_autodoc_hp_bonus1_perk          (112)
+#define PERK_autodoc_hp_bonus2_perk          (113)
+#define PERK_autodoc_hp_neg1_perk            (114)
+#define PERK_autodoc_hp_neg2_perk            (115)
 #define PERK_expert_excrement_expediter_perk (116)
 #define PERK_weapon_knockout_perk            (117)
 #define PERK_jinxed_perk                     (118)
-#define PERK_count							 (119)
+#define PERK_count                           (119)
 
 // Trait Types
 #define TRAIT_fast_metabolism  (0)
@@ -251,3 +265,9 @@
 #define ITEM_SUBTYPE_KEY       (6)
 
 #define WEAPON_TWO_HANDED      (0x200)
+
+
+#define ROLL_CRITICAL_FAILURE (0)
+#define ROLL_FAILURE          (1)
+#define ROLL_SUCCESS          (2)
+#define ROLL_CRITICAL_SUCCESS (3)
