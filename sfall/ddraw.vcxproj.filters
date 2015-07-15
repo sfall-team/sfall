@@ -190,6 +190,9 @@
     <ClInclude Include="FalloutStructs.h">
       <Filter>Headers</Filter>
     </ClInclude>
+    <ClInclude Include="Bugs.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AmmoMod.cpp">
@@ -323,6 +326,9 @@
       <Filter>Source</Filter>
     </ClCompile>
     <ClCompile Include="FalloutEngine.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Bugs.cpp">
       <Filter>Source</Filter>
     </ClCompile>
   </ItemGroup>

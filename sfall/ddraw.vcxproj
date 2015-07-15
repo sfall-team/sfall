@@ -332,6 +332,7 @@
     <ClInclude Include="Arrays.h" />
     <ClInclude Include="BarBoxes.h" />
     <ClInclude Include="Books.h" />
+    <ClInclude Include="Bugs.h" />
     <ClInclude Include="BurstMods.h" />
     <ClInclude Include="Console.h" />
     <ClInclude Include="CRC.h" />
@@ -393,6 +394,7 @@
     <ClCompile Include="Arrays.cpp" />
     <ClCompile Include="BarBoxes.cpp" />
     <ClCompile Include="Books.cpp" />
+    <ClCompile Include="Bugs.cpp" />
     <ClCompile Include="BurstMods.cpp" />
     <ClCompile Include="Console.cpp" />
     <ClCompile Include="CRC.cpp" />

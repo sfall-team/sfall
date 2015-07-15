@@ -26,6 +26,7 @@
 #include "AnimationsAtOnceLimit.h"
 #include "BarBoxes.h"
 #include "Books.h"
+#include "Bugs.h"
 #include "BurstMods.h"
 #include "CRC.h"
 #include "Credits.h"
@@ -388,27 +389,7 @@ static void __declspec(naked) ViewportHook() {
 		retn;
 	}
 }
-static void __declspec(naked) BlackSkilldexFix() {
-	__asm {
-		push ecx;
-		mov ecx, 0x004998C0;
-		call ecx;
-		xor ecx, ecx;
-		mov dword ptr ds:[0x006644F8], ecx;
-		pop ecx;
-		retn;
-	}
-}
-static const DWORD AlcoholFixJmp=0x43186C;
-static void __declspec(naked) AlcoholFix() {
-	__asm {
-		test eax, eax;
-		jz end;
-		jmp AlcoholFixJmp;
-end:
-		retn;
-	}
-}
+
 HANDLE _stdcall FakeFindFirstFile(const char* str, WIN32_FIND_DATAA* data) {
 	HANDLE h=FindFirstFileA(str,data);
 	if(h==INVALID_HANDLE_VALUE) return h;
@@ -633,44 +614,6 @@ end:
 	}
 }
 
-static const DWORD inven_worn = 0x471C08;
-static const DWORD WieldObjCritterFixEnd = 0x456926;
-static void __declspec(naked) WieldObjCritterFix() {
-	__asm {
-		xor ebp,ebp;				// Set ebp=0 to skip adjust_ac() processing (assume not armor)
-		test eax,eax;				// Did item_get_type() return item_type_armor?
-		jnz lexit;				// Skip ahead if no
-		mov eax,dword ptr ds:[0x6610b8];
-		call inven_worn;			// Otherwise, get stats of armor worn
-		mov dword ptr ss:[esp+0x14],eax;	// Store pointer to armor worn (for adjust_ac())
-		inc ebp;				// Toggle flag to process adjust_ac() later in function
-lexit:
-		jmp WieldObjCritterFixEnd;
-	}
-}
-
-static const DWORD _adjust_ac = 0x4715F8;
-static const DWORD _intface_update_ac = 0x45EDA8;
-static void __declspec(naked) WieldObjCritterFix2() {
-	__asm {
-		call _adjust_ac;
-		xor ecx, ecx;
-		call _intface_update_ac;
-		retn;
-	}
-}
-
-static const DWORD JetAntidoteFixEnd=0x47A01A;
-static void __declspec(naked) JetAntidoteFix() {
-	__asm {
-		inc eax;			// set return value to 1 instead of 0
-		add esp,0x14;			// in order to trigger call to function
-		pop ebp;			// item_remove_mult in callee procedure
-		pop edi;
-		jmp JetAntidoteFixEnd;
-	}
-}
-
 static const DWORD mem_malloc = 0x4C5AD0;
 static const DWORD NPCStage6Fix1End = 0x493D16;
 static const DWORD NPCStage6Fix2End = 0x49423A;
@@ -739,21 +682,6 @@ ajmp:
 		jmp FastShotTraitFixEnd1;		// continue processing called shot attempt
 bjmp:
 		jmp FastShotTraitFixEnd2;		// clean up and exit function item_w_called_shot
-	}
-}
-
-
-static void __declspec(naked) DodgyDoorsFix() {//checks if an attacked object is a critter before attempting dodge animation
-	__asm {
-		mov eax, dword ptr ss:[EBP+0x20] //(original code) objStruct ptr
-		mov ebx, dword ptr ss:[EAX+0x20] //objStruct->FID
-		and ebx, 0x0F000000
-		sar ebx, 0x18
-		cmp ebx, 1						//check if object FID type flag is set to critter
-		jne EndFunc						//if object not a critter leave jump condition flags set to skip dodge animation
-		test byte ptr ds:[eax+0x44], 0x03//(original code) check some flag?
-EndFunc:
-		ret
 	}
 }
 
@@ -831,23 +759,6 @@ static void __declspec(naked) objCanSeeObj_ShootThru_Fix() {//(EAX *objStruct, E
 			pop edi
 			pop esi
 			ret 0x8
-	}
-}
-
-
-static void __declspec(naked) SharpshooterFix() {
-	__asm {
-		call    stat_level_ // Perception
-		cmp     edi, ds:[0x6610B8] // _obj_dude
-		jne     end
-		xchg    ecx, eax
-		mov     eax, edi // _obj_dude
-		mov     edx, 14 // PERK_sharpshooter
-		call    perk_level_ // Sharpshooter
-		shl     eax, 1
-		add     eax, ecx
-end:
-		retn
 	}
 }
 
@@ -1036,13 +947,6 @@ static void DllMain2() {
 		SafeWrite32(0x004BCF08, (DWORD)&ViewportHook - 0x4BCF0C);
 		dlogr(" Done", DL_INIT);
 	}
-
-	//if(GetPrivateProfileIntA("Misc", "SharpshooterFix", 0, ini)) {
-		dlog("Applying sharpshooter patch.", DL_INIT);
-		HookCall(0x4244AB, &SharpshooterFix);
-		SafeWrite8(0x424527, 0xEB);
-		dlogr(" Done", DL_INIT);
-	//}
 
 	//if(GetPrivateProfileIntA("Misc", "PathfinderFix", 0, ini)) {
 		dlog("Applying pathfinder patch.", DL_INIT);
@@ -1276,12 +1180,6 @@ static void DllMain2() {
 		SafeWrite8(0x004C06D8, 0xeb);
 	}*/
 
-	//if(GetPrivateProfileIntA("Misc", "BlackSkilldexFix", 1, ini)) {
-		dlog("Applying black skilldex patch.", DL_INIT);
-		HookCall(0x00497D0F, BlackSkilldexFix);
-		dlogr(" Done", DL_INIT);
-	//}
-
 	//if(GetPrivateProfileIntA("Misc", "PrintToFileFix", 0, ini)) {
 		dlog("Applying print to file patch.", DL_INIT);
 		SafeWrite32(0x006C0364, (DWORD)&FakeFindFirstFile);
@@ -1306,12 +1204,6 @@ static void DllMain2() {
 	}
 #endif
 
-	//if(GetPrivateProfileIntA("Misc", "FixWithdrawalPerkDescCrash", 0, ini)) {
-		dlog("Applying withdrawal perk description crash fix. ", DL_INIT);
-		HookCall(0x47A501, AlcoholFix);
-		dlogr(" Done", DL_INIT);
-	//}
-
 	CritInit();
 
 	int number_patch_loop=GetPrivateProfileInt("Misc", "NumberPatchLoop", -1, ini);
@@ -1334,12 +1226,6 @@ static void DllMain2() {
 		HookCall(0x455A6D, SetGlobalVarWrapper);
 		dlogr(" Done", DL_INIT);
 	}
-
-	//if(GetPrivateProfileInt("Misc", "ShivPatch", 0, ini)) {
-		dlog("Applying shiv patch. ", DL_INIT);
-		SafeWrite8(0x477B2B, 0xeb);
-		dlogr(" Done", DL_INIT);
-	//}
 
 	//if(GetPrivateProfileInt("Misc", "ImportedProcedureFix", 0, ini)) {
 		dlog("Applying imported procedure patch. ", DL_INIT);
@@ -1511,19 +1397,6 @@ static void DllMain2() {
 		dlogr(" Done", DL_INIT);
 	}
 
-	if(GetPrivateProfileIntA("Misc", "WieldObjCritterFix", 1, ini)) {
-		dlog("Applying wield_obj_critter fix.", DL_INIT);
-		MakeCall(0x45690F, &WieldObjCritterFix, true);
-		HookCall(0x45697F, &WieldObjCritterFix2);
-		dlogr(" Done", DL_INIT);
-	}
-
-	//if(GetPrivateProfileIntA("Misc", "JetAntidoteFix", 1, ini)) {
-		dlog("Applying Jet Antidote fix.", DL_INIT);
-		MakeCall(0x47A015, &JetAntidoteFix, true);
-		dlogr(" Done", DL_INIT);
-	//}
-
 	if(GetPrivateProfileIntA("Misc", "RemoveCriticalTimelimits", 0, ini)) {
 		dlog("Removing critical time limits.", DL_INIT);
 		SafeWrite8(0x42412B, 0x90);
@@ -1579,13 +1452,6 @@ static void DllMain2() {
 		dlogr(" Done", DL_INIT);
 		break;
 	}
-
-	//if(GetPrivateProfileIntA("Misc", "DodgyDoorsFix", 1, ini)) {
-		dlog("Applying Dodgy Door Fix.", DL_INIT);
-		SafeWrite16(0x4113D3, 0x9090);
-		MakeCall(0x4113D5, &DodgyDoorsFix, false);
-		dlogr(" Done", DL_INIT);
-	//}
 
 	if(GetPrivateProfileIntA("Misc", "BoostScriptDialogLimit", 0, ini)) {
 		const int scriptDialogCount=10000;
@@ -1673,6 +1539,10 @@ static void DllMain2() {
 	SimplePatch<WORD>(addrs, 2, "Misc", "CombatPanelAnimDelay", 1000, 0, 65535);
 	addrs[0] = 0x447DF4; addrs[1] = 0x447EB6;
 	SimplePatch<BYTE>(addrs, 2, "Misc", "DialogPanelAnimDelay", 33, 0, 255);
+
+	dlog("Running BugsInit.", DL_INIT);
+	BugsInit();
+	dlogr(" Done", DL_INIT);
 	dlogr("Leave DllMain2", DL_MAIN);  
 }
 
