@@ -889,7 +889,7 @@ loopObject:
 		mov  edx, 0x10                            // yellow
 		test byte ptr [ecx+0x25], dl              // NoHighlight_ flag is set (is this a container)?
 		jz   NoHighlight                          // No
-		cmp  HighlightContainers, eax         // Highlight containers?
+		cmp  HighlightContainers, eax             // Highlight containers?
 		je   nextObject                           // No
 		mov  edx, 0x4                             // light gray
 NoHighlight:
