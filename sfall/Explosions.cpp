@@ -18,9 +18,9 @@
 
 #include "main.h"
 
+#include "FalloutEngine.h"
 #include "Logging.h"
 #include "ScriptExtender.h"
-#include "FalloutEngine.h"
 
 static bool lightingEnabled = false;
 
@@ -42,7 +42,6 @@ static void __declspec(naked) ranged_attack_lighting_fix() {
 
 // misc functions from the engine..
 static const DWORD register_object_play_sfx = 0x41541C;
-static const DWORD gsnd_build_weapon_sfx_name_ = 0x451760;
 
 static const DWORD explosion_effect_hook_back = 0x411AB9;
 static DWORD explosion_effect_starting_dir = 0;

@@ -19,11 +19,12 @@
 #pragma once
 
 #include "main.h"
-#include "stats.h"
+
 #include "criticals.h"
-#include "skills.h"
 #include "Knockback.h"
 #include "ScriptExtender.h"
+#include "skills.h"
+#include "stats.h"
 
 // stat_funcs
 static void __declspec(naked) SetPCBaseStat() {
@@ -647,9 +648,7 @@ end:
 		retn;
 	}
 }
-#define COMBAT_FREE_MOVE_ADR	0x56D39C
-#define DUDE_OBJ_ADR			0x6610B8
-static const DWORD intface_update_move_points_ = 0x45EE0C;
+
 static void __declspec(naked) SetCritterAP() {
 	__asm {
 		//Store registers
@@ -676,11 +675,11 @@ static void __declspec(naked) SetCritterAP() {
 		cmp si, 0xC001;
 		jnz end;
 		mov [eax+0x40], ebx;
-		mov ecx, ds:[DUDE_OBJ_ADR];
+		mov ecx, ds:[_obj_dude]
 		cmp ecx, eax;
 		jne end;
 		mov eax, ebx;
-		mov edx, ds:[COMBAT_FREE_MOVE_ADR];
+		mov edx, ds:[_combat_free_move]
 		call intface_update_move_points_;
 end:
 		//Restore registers and return

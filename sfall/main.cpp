@@ -20,42 +20,44 @@
 
 #include <math.h>
 #include <stdio.h>
+
+#include "AI.h"
+#include "AmmoMod.h"
+#include "AnimationsAtOnceLimit.h"
+#include "BarBoxes.h"
+#include "Books.h"
+#include "BurstMods.h"
+#include "CRC.h"
+#include "Credits.h"
+#include "Criticals.h"
+#include "Define.h"
+#include "Elevators.h"
+#include "Explosions.h"
+#include "FalloutEngine.h"
+#include "FileSystem.h"
+#include "Graphics.h"
+#include "HeroAppearance.h"
+#include "Inventory.h"
+#include "KillCounter.h"
+#include "LoadGameHook.h"
+#include "Logging.h"
+#include "MainMenu.h"
+#include "PartyControl.h"
+#include "Premade.h"
+#include "QuestList.h"
+#include "Reputations.h"
+#include "ScriptExtender.h"
+#include "SuperSave.h"
+#include "Tiles.h"
+#include "console.h"
+#include "knockback.h"
+#include "movies.h"
+#include "perks.h"
+#include "skills.h"
+#include "sound.h"
+#include "stats.h"
 #include "timer.h"
 #include "version.h"
-#include "FalloutEngine.h"
-#include "Graphics.h"
-#include "LoadGameHook.h"
-#include "AmmoMod.h"
-#include "Logging.h"
-#include "ScriptExtender.h"
-#include "knockback.h"
-#include "perks.h"
-#include "KillCounter.h"
-#include "Elevators.h"
-#include "stats.h"
-#include "movies.h"
-#include "Criticals.h"
-#include "console.h"
-#include "FileSystem.h"
-#include "HeroAppearance.h"
-#include "Credits.h"
-#include "Tiles.h"
-#include "QuestList.h"
-#include "CRC.h"
-#include "Premade.h"
-#include "sound.h"
-#include "Reputations.h"
-#include "SuperSave.h"
-#include "BarBoxes.h"
-#include "AnimationsAtOnceLimit.h"
-#include "skills.h"
-#include "Inventory.h"
-#include "MainMenu.h"
-#include "AI.h"
-#include "PartyControl.h"
-#include "BurstMods.h"
-#include "Explosions.h"
-#include "Books.h"
 
 char ini[65];
 char translationIni[65];
@@ -832,8 +834,7 @@ static void __declspec(naked) objCanSeeObj_ShootThru_Fix() {//(EAX *objStruct, E
 	}
 }
 
-static const DWORD stat_level_ = 0x4AEF48;
-static const DWORD perk_level_ = 0x496B78;
+
 static void __declspec(naked) SharpshooterFix() {
 	__asm {
 		call    stat_level_ // Perception

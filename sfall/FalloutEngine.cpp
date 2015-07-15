@@ -34,54 +34,22 @@ DWORD* itemButtonItems = (DWORD*)(0x5970F8);
 	const names should end with underscore
 */
 
-// INVENTORY FUNCTIONS
-const DWORD inven_left_hand_ = 0x471BBC; // eax - object
-const DWORD inven_right_hand_ = 0x471B70; // eax - object
-
-// PROTO FUNCTIONS
-const DWORD proto_ptr_ = 0x4A2108; // eax - PID, edx - int** - pointer to a pointer to a proto struct
-const DWORD item_get_type_ = 0x477AFC; // eax - TGameObj* item
-const DWORD item_w_max_ammo_ = 0x478674; // eax - object
-const DWORD item_w_cur_ammo_ = 0x4786A0; // eax - object
 
 // AI FUNCTIONS
 const DWORD ai_can_use_weapon_ = 0x4298EC;  // (TGameObj *aCritter<eax>, int aWeapon<edx>, int a2Or3<ebx>) returns 1 or 0
 
 // UI FUNCTIONS
-const DWORD isPartyMember_ = 0x494FC4; // eax - object
-const DWORD intface_redraw_ = 0x45EB98;
 const DWORD interface_disable_ = 0x45EAFC;
 const DWORD interface_enable_ = 0x45EA64;
-const DWORD intface_toggle_items_ = 0x45F404;
-const unsigned int display_print_ = 0x43186C;
 const DWORD intface_item_reload_ = 0x460B20;
-const DWORD intface_toggle_item_state_ = 0x45F4E0;
-const DWORD intface_use_item_ = 0x45F5EC;
 
 // OBJECTS manipulation
-const DWORD obj_set_light_ = 0x48AC90; // <eax>(int aObj<eax>, signed int aDist<edx>, int a3<ecx>, int aIntensity<ebx>)
 const DWORD obj_new_ = 0x489A84;  // int aObj*<eax>, int aPid<ebx>
 const DWORD obj_turn_off_ = 0x48AE68;  // int aObj<eax>, int ???<edx>
 const DWORD obj_move_to_tile_ = 0x48A568;  // int aObj<eax>, int aTile<edx>, int aElev<ebx>
 
-const DWORD obj_find_first_at_tile_ = 0x48B5A8; //  <eax>(int elevation<eax>, int tile<edx>)
-const DWORD obj_find_next_at_tile_ = 0x48B608; // no args
-const DWORD critter_is_dead_ = 0x42DD18; // eax - critter
-const DWORD tile_coord_ = 0x4B1674; // eax - tilenum, edx (int*) - x, ebx (int*) - y
 
-// ANIMATION
-const DWORD tile_refresh_rect_ = 0x4B12C0; // (int elevation<edx>, unkown<ecx>)
-const DWORD register_object_animate_ = 0x4149D0;  // int aObj<eax>, int aAnim<edx>, int delay<ebx>
-const DWORD register_object_animate_and_hide_ = 0x414B7C;  // int aObj<eax>, int aAnim<edx>, int delay<ebx>
-const DWORD register_object_must_erase_ = 0x414E20;  // int aObj<eax>
-const DWORD register_object_change_fid_ = 0x41518C;  // int aObj<eax>, int aFid<edx>, int aDelay<ebx>
-const DWORD register_object_light_ = 0x415334; // <eax>(int aObj<eax>, int aRadius<edx>, int aDelay<ebx>)
-const DWORD register_object_funset_ = 0x4150A8; // int aObj<eax>, int ???<edx>, int aDelay<ebx> - not really sure what this does
-const DWORD register_object_take_out_ = 0x415238; // int aObj<eax>, int aHoldFrame<edx> - hold frame ID (1 - spear, 2 - club, etc.)
-const DWORD register_object_turn_towards_ = 0x414C50; // int aObj<eax>, int aTile<edx>
-
-
-// misc 
+// misc functions in alphabetical order
 const DWORD action_get_an_object_ = 0x412134;
 const DWORD action_loot_container_ = 0x4123E8;
 const DWORD action_use_an_item_on_object_ = 0x411F2C;
@@ -228,6 +196,7 @@ const DWORD item_total_cost_ = 0x477DAC;
 const DWORD item_total_weight_ = 0x477E98;
 const DWORD item_w_anim_code_ = 0x478DA8;
 const DWORD item_w_anim_weap_ = 0x47860C;
+const DWORD item_w_can_reload_ = 0x478874;
 const DWORD item_w_compute_ammo_cost_ = 0x4790AC;
 const DWORD item_w_cur_ammo_ = 0x4786A0;
 const DWORD item_w_dam_div_ = 0x479294;
@@ -326,7 +295,7 @@ const DWORD process_bk_ = 0x4C8BDC;
 const DWORD protinst_use_item_ = 0x49BF38;
 const DWORD protinst_use_item_on_ = 0x49C3CC;
 const DWORD proto_dude_update_gender_ = 0x49F984;
-const DWORD proto_ptr_ = 0x4A2108;
+const DWORD proto_ptr_ = 0x4A2108; // eax - PID, edx - int** - pointer to a pointer to a proto struct
 const DWORD pushLongStack_ = 0x46736C;
 const DWORD qsort_ = 0x4F05B6;
 const DWORD queue_clear_type_ = 0x4A2790;

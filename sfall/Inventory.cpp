@@ -17,12 +17,15 @@
  */
 
 #include "main.h"
-#include "Inventory.h"
-#include "HookScripts.h"
-#include "FalloutEngine.h"
-#include "LoadGameHook.h"
 
 #include <stdio.h>
+
+#include "Define.h"
+#include "FalloutEngine.h"
+#include "HookScripts.h"
+#include "Inventory.h"
+#include "LoadGameHook.h"
+
 
 static DWORD mode;
 static DWORD MaxItemSize;
@@ -86,8 +89,6 @@ void InventoryKeyPressedHook(DWORD dxKey, bool pressed, DWORD vKey) {
 	}
 }
 
-static const DWORD item_total_weight=0x477E98;
-static const DWORD item_size=0x477B68;
 
 /*static DWORD _stdcall item_total_size(void* critter) {
 	//TODO: Don't really want to be overwriting stuff like this after init. Rewrite properly.
@@ -111,9 +112,7 @@ static const DWORD item_size=0x477B68;
 	return result;
 }*/
 
-static const DWORD inven_right_hand=0x471B70;
-static const DWORD inven_left_hand=0x471BBC;
-static const DWORD inven_worn=0x471C08; //TODO: Do we actually want to include this in the limit anyway?
+//TODO: Do we actually want to include this in the limit anyway?
 static __declspec(naked) DWORD item_total_size(void* critter) {
 	__asm {
 		push    ebx;
@@ -135,7 +134,7 @@ static __declspec(naked) DWORD item_total_size(void* critter) {
 loc_477EB7:
 		mov     ecx, [edi+8];
 		mov     eax, [ecx+ebx];
-		call    item_size;
+		call    item_size_
 		imul    eax, [ecx+ebx+4];
 		add     ebx, 8;
 		inc     edx;
@@ -150,33 +149,33 @@ loc_477ED3:
 		cmp     eax, 1;
 		jnz     loc_477F31;
 		mov     eax, ebp;
-		call    inven_right_hand;
+		call    inven_right_hand_
 		mov     edx, eax;
 		test    eax, eax;
 		jz      loc_477EFD;
 		test    byte ptr [eax+27h], 2;
 		jnz     loc_477EFD;
-		call    item_size;
+		call    item_size_
 		add     esi, eax;
 loc_477EFD:
 		mov     eax, ebp;
-		call    inven_left_hand;
+		call    inven_left_hand_
 		test    eax, eax;
 		jz      loc_477F19;
 		cmp     edx, eax;
 		jz      loc_477F19;
 		test    byte ptr [eax+27h], 1;
 		jnz     loc_477F19;
-		call    item_size;
+		call    item_size_
 		add     esi, eax;
 loc_477F19:
 		mov     eax, ebp;
-		call    inven_worn;
+		call    inven_worn_
 		test    eax, eax;
 		jz      loc_477F31;
 		test    byte ptr [eax+27h], 4;
 		jnz     loc_477F31;
-		call    item_size;
+		call    item_size_
 		add     esi, eax;
 loc_477F31:
 		mov     eax, esi;
@@ -196,7 +195,7 @@ static const DWORD ObjPickupEnd=0x49B6F8;
 static const DWORD size_limit;
 static __declspec(naked) void  ObjPickupHook() {
 	__asm {
-		cmp edi, [0x6610B8];
+		cmp edi, ds:[_obj_dude];
 		jnz end;
 end:
 		lea edx, [esp+0x10];
@@ -212,7 +211,7 @@ static __declspec(naked) int CritterCheck() {
 		sub esp, 4;
 		mov ebx, eax;
 
-		cmp eax, dword ptr ds:[0x6610B8];
+		cmp eax, dword ptr ds:[_obj_dude];
 		je single;
 		test mode, 3;
 		jnz run;
@@ -273,7 +272,7 @@ static __declspec(naked) void ItemAddMultiHook1() {
 		jz end;
 		mov ebp, eax;
 		mov eax, esi;
-		call item_size;
+		call item_size_
 		mov edx, eax;
 		imul edx, ebx;
 		mov eax, ecx;
@@ -359,7 +358,7 @@ static const char* InvenFmt1="%s %d/%d  %s %d/%d";
 static const char* InvenFmt2="%s %d/%d";
 
 static const char* _stdcall GetInvenMsg() {
-	const char* tmp=MsgSearch(35, 0x59E814);
+	const char* tmp=MsgSearch(35, _inventry_message_file);
 	if(!tmp) return "S:";
 	else return tmp;
 }
@@ -418,19 +417,18 @@ static const char* _stdcall FmtSizeMsg(int size) {
 	return SizeMsgBuf;
 }
 
-static const DWORD InvenDisplayMsg=0x472D24;
 static __declspec(naked) void InvenObjExamineFuncHook() {
 	__asm {
-		call InvenDisplayMsg;
+		call inven_display_msg_
 		push edx;
 		push ecx;
 		mov eax, esi;
-		call item_size;
+		call item_size_
 		push eax;
 		call FmtSizeMsg;
 		pop ecx;
 		pop edx;
-		call InvenDisplayMsg;
+		call inven_display_msg_
 		retn;
 	}
 }
@@ -442,16 +440,15 @@ static int _stdcall SuperStimFix2(DWORD* item, DWORD* target) {
 	if((target_pid&0xff000000) != 0x01000000) return 0;
 	if((itm_pid&0xff000000) != 0) return 0;
 	if((itm_pid&0xffffff) != 144) return 0;
-	static const DWORD _stat_level=0x4AEF48;
 	DWORD curr_hp, max_hp;
 	__asm {
 		mov eax, target;
-		mov edx, 35;
-		call _stat_level;
+		mov edx, STAT_current_hp
+		call stat_level_
 		mov curr_hp, eax;
 		mov eax, target;
-		mov edx, 7;
-		call _stat_level;
+		mov edx, STAT_max_hit_points
+		call stat_level_
 		mov max_hp, eax;
 	}
 	if(curr_hp<max_hp) return 0;
@@ -502,7 +499,6 @@ static void __declspec(naked) inven_ap_cost_hook() {
 	}
 }
 
-static const DWORD item_w_compute_ammo_cost_ = 0x4790AC; // signed int aWeapon<eax>, int *aRoundsSpent<edx>
 static const DWORD add_check_for_item_ammo_cost_back = 0x4266EE;
 // adds check for weapons which require more than 1 ammo for single shot (super cattle prod & mega power fist)
 static void __declspec(naked) add_check_for_item_ammo_cost() {
@@ -574,7 +570,7 @@ static void __declspec(naked) SetDefaultAmmo() {
 		xchg    eax, edx
 		mov     ebx, eax
 		call    item_get_type_
-		cmp     eax, 3 // is it item_type_weapon?
+		cmp     eax, item_type_weapon // is it item_type_weapon?
 		jne     end // no
 		cmp     dword ptr [ebx+0x3C], 0 // is there any ammo in the weapon?
 		jne     end // yes
@@ -604,7 +600,6 @@ static void __declspec(naked) inven_action_cursor_hook() {
 	}
 }
 
-static const DWORD item_add_force_ = 0x4772B8;
 static void __declspec(naked) item_add_mult_hook() {
 	__asm {
 		call    SetDefaultAmmo

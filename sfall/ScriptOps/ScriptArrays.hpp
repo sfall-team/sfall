@@ -483,9 +483,6 @@ struct sList {
 	}
 };
 
-static const DWORD scr_find_first_at_ = 0x4A6524; // eax - elevation, returns spatial scriptID
-static const DWORD scr_find_next_at_ = 0x4A6564; // no args, returns spatial scriptID
-
 static void FillListVector(DWORD type, std::vector<DWORD>& vec) {
 	if (type == 6) {
 		DWORD scriptPtr, self_obj, programPtr;

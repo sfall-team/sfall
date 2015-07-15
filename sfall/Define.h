@@ -173,6 +173,7 @@
 #define STAT_ag              (5)
 #define STAT_lu              (6)
 #define STAT_max_hp          (7)
+#define STAT_max_hit_points  (7)
 ///  strength, perception, endurance, charisma, intelligence, agility,
 ///  luck,   // luck MUST be the last basic stat
 // derived stats
@@ -246,6 +247,15 @@
 //XXXXXXXXXXXXXXXXXXXX
 //XX Object defines XX
 //XXXXXXXXXXXXXXXXXXXX
+
+#define item_type_armor        (0)
+#define item_type_container    (1)
+#define item_type_drug         (2)
+#define item_type_weapon       (3)
+#define item_type_ammo         (4)
+#define item_type_misc_item    (5)
+#define item_type_key_item     (6)
+
 #define OBJFLAG_CAN_WEAR_ITEMS (0xf000000)
 
 #define OBJFLAG_HELD_IN_RIGHT (0x10000)
@@ -256,13 +266,6 @@
 #define CRITTER_BROKEN_LARM   (0x20)
 #define CRITTER_EYEDAMAGE     (0x40)
 
-#define ITEM_SUBTYPE_ARMOR     (0)
-#define ITEM_SUBTYPE_CONTAINER (1)
-#define ITEM_SUBTYPE_DRUG      (2)
-#define ITEM_SUBTYPE_WEAPON    (3)
-#define ITEM_SUBTYPE_AMMO      (4)
-#define ITEM_SUBTYPE_MISC      (5)
-#define ITEM_SUBTYPE_KEY       (6)
 
 #define WEAPON_TWO_HANDED      (0x200)
 

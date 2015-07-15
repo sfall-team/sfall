@@ -19,12 +19,12 @@
 #pragma once
 
 #include "main.h"
+
+#include "AI.h"
+#include "HeroAppearance.h"
 #include "KillCounter.h"
 #include "Knockback.h"
 #include "movies.h"
-#include "HeroAppearance.h"
-#include "AI.h"
-
 #include "ScriptExtender.h"
 
 /*
@@ -674,13 +674,12 @@ end:
 	}
 }
 static int _stdcall get_npc_level2(DWORD numMembers, DWORD maxMembers, DWORD* members, DWORD* pids, DWORD* words, const char* name) {
-	static const DWORD _critter_name=0x42D0A8;
 	for(DWORD i=0;i<numMembers;i++) {
 		const char* name2;
 		__asm {
 			mov eax, members;
 			mov eax, [eax];
-			call _critter_name;
+			call critter_name_
 			mov name2, eax;
 		}
 		if(_stricmp(name, name2)) {
@@ -1154,8 +1153,6 @@ static void __declspec(naked) GetApAcEBonus() {
 	}
 }
 
-static const DWORD CopyPalette=0x493B48;
-static const DWORD LoadPalette=0x4C78E4;
 static void __declspec(naked) SetPalette() {
 	__asm {
 		push ebx;
@@ -1172,13 +1169,13 @@ static void __declspec(naked) SetPalette() {
 		jnz end;
 next:
 		mov ebx, eax;
-		//mov eax, 0x663FD0;
-		//call CopyPalette;
+		//mov eax, _black_palette;
+		//call palette_set_to_;
 		mov eax, ecx;
 		call GetStringVar;
-		call LoadPalette;
-		mov eax, 0x51DF34;
-		call CopyPalette;
+  call loadColorTable_
+		mov eax, _cmap
+  call palette_set_to_
 end:
 		pop edx;
 		pop ecx;
@@ -1205,7 +1202,6 @@ static void __declspec(naked) NBCreateChar() {
 	}
 }
 
-static const DWORD proto_ptr=0x4A2108;
 static void __declspec(naked) get_proto_data() {
 	__asm {
 		pushad;
@@ -1226,7 +1222,7 @@ static void __declspec(naked) get_proto_data() {
 		cmp si, 0xc001;
 		jnz fail;
 		mov edx, esp;
-		call proto_ptr;
+		call proto_ptr_;
 		mov eax, [esp];
 		test eax, eax;
 		jz fail;
@@ -1274,7 +1270,7 @@ static void __declspec(naked) set_proto_data() {
 		jnz end;
 		//mov eax, [eax+0x64];
 		mov edx, esp;
-		call proto_ptr;
+		call proto_ptr_;
 		mov eax, [esp];
 		test eax, eax;
 		jz end;
@@ -1469,8 +1465,6 @@ end:
 	}
 }
 
-static const DWORD _tile_coord=0x4B1674;
-static const DWORD _square_num=0x4B1F04;
 static void __declspec(naked) get_tile_pid() {
 	__asm {
 		pushad;
@@ -1484,11 +1478,11 @@ static void __declspec(naked) get_tile_pid() {
 		sub esp, 8;
 		lea edx, [esp];
 		lea ebx, [esp+4];
-		call _tile_coord;
+		call tile_coord_;
 		mov eax, [esp];
 		mov edx, [esp+4];
-		call _square_num;
-		mov edx, ds:[0x631E40];
+		call square_num_;
+		mov edx, ds:[_square];
 		movzx edx, word ptr ds:[edx+eax*4];
 		add esp, 8;
 		jmp end;
@@ -1571,7 +1565,7 @@ static void __declspec(naked) mark_movie_played() {
 		jl end;
 		cmp eax, 0x11;
 		jge end;
-		mov byte ptr ds:[eax+0x596C78], 1;
+		mov byte ptr ds:[eax+_gmovie_played_list], 1;
 end:
 		pop edx;
 		pop ecx;
@@ -1647,8 +1641,6 @@ end:
 		retn;
 	}
 }
-static const DWORD _mouse_get_position=0x4CA9DC;
-static const DWORD _tile_num=0x4B1754;
 static void __declspec(naked) tile_under_cursor() {
 	__asm {
 		push edx;
@@ -1658,11 +1650,11 @@ static void __declspec(naked) tile_under_cursor() {
 		sub esp, 8;
 		lea edx, [esp];
 		lea eax, [esp+4];
-		call _mouse_get_position;
-		mov ebx, dword ptr ds:[0x519578];
+		call mouse_get_position_;
+		mov ebx, dword ptr ds:[_map_elevation];
 		mov edx, [esp];
 		mov eax, [esp+4];
-		call _tile_num;
+		call tile_num_;
 		mov edx, eax;
 		mov eax, ecx;
 		call SetResult;
@@ -1681,7 +1673,7 @@ static void __declspec(naked) gdialog_get_barter_mod() {
 		push edx;
 		push ecx;
 		mov ecx, eax;
-		mov edx, dword ptr ds:[0x51873C];
+		mov edx, dword ptr ds:[_gdBarterMod];
 		call SetResult;
 		mov eax, ecx;
 		mov edx, 0xc001;
@@ -1711,19 +1703,15 @@ end:
 	}
 }
 
-static const DWORD sneak_working = 0x56D77C; // DWORD var
 static void __declspec(naked) op_sneak_success() {
 	_OP_BEGIN(ebp)
 	__asm {
-		mov eax, sneak_working
-		mov eax, [eax]
+		mov eax, ds:[_sneak_working]
 	}
-	_RET_VAL_INT(ebp)
-	_OP_END
+ _RET_VAL_INT(ebp)
+ _OP_END
 }
 
-
-static const DWORD light_get_tile_ = 0x47A980; // aElev<eax>, aTilenum<edx>
 static void __declspec(naked) op_tile_light() {
 	_OP_BEGIN(ebp)
 	_GET_ARG_R32(ebp, ebx, edi)  // arg2 - tile

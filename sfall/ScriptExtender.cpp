@@ -21,18 +21,19 @@
 #include <string>
 
 #include "main.h"
-#include "FalloutEngine.h"
-#include "ScriptExtender.h"
 #include "Arrays.h"
+#include "BarBoxes.h"
+#include "Console.h"
+#include "Define.h"
+#include "Explosions.h"
+#include "FalloutEngine.h"
 #include "HookScripts.h"
 #include "input.h"
 #include "LoadGameHook.h"
-#include "version.h"
-#include "numbers.h"
 #include "Logging.h"
-#include "BarBoxes.h"
-#include "Console.h"
-#include "Explosions.h"
+#include "numbers.h"
+#include "ScriptExtender.h"
+#include "version.h"
 
 void _stdcall HandleMapUpdateForScripts(DWORD procId);
 
@@ -100,17 +101,6 @@ static const char* _stdcall GetOpArgStr(int num) {
 		: "";
 }
 
-// common useful functions offsets, related to scripting engine
-static const DWORD exec_script_proc_ = 0x4A4810; // unsigned int aScriptID<eax>, int aProcId<edx>
-static const DWORD scr_find_obj_from_program_ = 0x4A39AC; // eax - *program - finds self_obj by program pointer (has nice additional effect - creates fake object for a spatial script)
-static const DWORD loadProgram_ = 0x4A3B74; // loads script from scripts/ folder by file name and returns pointer to it: char* <eax> - file name (w/o extension)
-static const DWORD interpret_ = 0x46CCA4; // <eax> - programPtr, <edx> - ??? (-1)
-static const DWORD interpreFindProcedure_ = 0x46DCD0; // get proc number (different for each script) by name: *<eax> - scriptPtr, char* <edx> - proc name
-static const DWORD runProgram_ = 0x46E154; // eax - programPtr, called once for each program after first loaded - hooks program to game and UI events
-static const DWORD _procTableStrs = 0x51C758; // table of procId (from define.h) => procName map
-static const DWORD runProcedure_ = 0x46DD2C; // <eax> - programPtr, <edx> - procNumber
-static const DWORD interpretFreeProgram_ = 0x467614; // <eax> - program ptr, frees it from memory and from scripting engine
-
 #include "ScriptOps\AsmMacros.h"
 #include "ScriptOps\ScriptArrays.hpp"
 #include "ScriptOps\ScriptUtils.hpp"
@@ -132,6 +122,7 @@ typedef void (_stdcall *regOpcodeProc)(WORD opcode,void* ptr);
 static DWORD highlightingToggled=0;
 static DWORD MotionSensorMode;
 static BYTE toggleHighlightsKey;
+static DWORD HighlightContainers = 0;
 static int idle;
 static char HighlightFail1[128];
 static char HighlightFail2[128];
@@ -181,15 +172,13 @@ bool isGameLoading;
 
 TScript OverrideScriptStruct;
 
-static TGameObj** obj_dude_ptr = (TGameObj**)0x6610B8;
-
 //eax contains the script pointer, edx contains the opcode*4
 
-//To read a value, mov the script pointer to eax, call 0x4674F0, eax now contains the value type
-//mov the script pointer to eax, call 0x467500, eax now contains the value
+//To read a value, mov the script pointer to eax, call interpretPopShort_, eax now contains the value type
+//mov the script pointer to eax, call interpretPopLong_, eax now contains the value
 
-//To return a value, move it to edx, mov the script pointer to eax, call 0x4674DC
-//mov the value type to edx, mov the script pointer to eax, call 0x46748C
+//To return a value, move it to edx, mov the script pointer to eax, call interpretPushLong_
+//mov the value type to edx, mov the script pointer to eax, call interpretPushShort_
 
 
 
@@ -670,9 +659,9 @@ static void __declspec(naked) sfall_ver_build() {
 
 
 //END OF SCRIPT FUNCTIONS
-static const DWORD scr_find_sid_from_program=0x4A390C + 5;
-static const DWORD scr_ptr=0x4A5E34 + 5;
-static const DWORD scr_find_obj_from_program=0x4A39AC + 7;
+static const DWORD scr_find_sid_from_program=scr_find_sid_from_program_ + 5;
+static const DWORD scr_ptr=scr_ptr_ + 5;
+static const DWORD scr_find_obj_from_program=scr_find_obj_from_program_ + 7;
 
 DWORD _stdcall FindSidHook2(DWORD script) {
 	stdext::hash_map<DWORD, TGameObj*>::iterator overrideIt = selfOverrideMap.find(script);
@@ -747,8 +736,7 @@ static void __declspec(naked) MainGameLoopHook() {
 		push ebx;
 		push ecx;
 		push edx;
-		mov ebx, 0x004C8B78;
-		call ebx;
+		call get_input_
 		push eax;
 		call RunGlobalScripts1;
 		pop eax;
@@ -763,8 +751,7 @@ static void __declspec(naked) CombatLoopHook() {
 		pushad;
 		call RunGlobalScripts1;
 		popad;
-		mov ebx, 0x004C8B78;
-		jmp ebx;
+		jmp  get_input_
 	}
 }
 static void __declspec(naked) AfterCombatAttackHook() {
@@ -805,7 +792,6 @@ static DWORD __stdcall CreateGlobalExportedVar(DWORD scr, const char* name) {
 	globalExportedVars[str] = sExportedVar(); // add new
 	return 1;
 }
-static const DWORD findVar_ = 0x4410AC;
 /* 
 	when fetching/storing into exported variables, first search in our own hash table instead, then (if not found), resume normal search
 
@@ -880,6 +866,101 @@ static void __declspec(naked) FreeProgramHook() {
 	}
 }
 
+static void __declspec(naked) obj_outline_all_items_on_() {
+	__asm {
+		pushad
+		mov  eax, dword ptr ds:[_map_elevation]
+		call obj_find_first_at_
+		test eax, eax
+		jz   end
+loopObject:
+		cmp  eax, ds:[_outlined_object]
+		je   nextObject
+		xchg ecx, eax
+		mov  eax, [ecx+0x20]
+		and  eax, 0xF000000
+		sar  eax, 0x18
+		test eax, eax                             // This object is an item?
+		jnz  nextObject                           // No
+		cmp  dword ptr [ecx+0x7C], eax            // Owned by someone?
+		jnz  nextObject                           // Yes
+		test dword ptr [ecx+0x74], eax            // Already outlined?
+		jnz  nextObject                           // Yes
+		mov  edx, 0x10                            // yellow
+		test byte ptr [ecx+0x25], dl              // NoHighlight_ flag is set (is this a container)?
+		jz   NoHighlight                          // No
+		cmp  HighlightContainers, eax         // Highlight containers?
+		je   nextObject                           // No
+		mov  edx, 0x4                             // light gray
+NoHighlight:
+		mov  [ecx+0x74], edx
+nextObject:
+		call obj_find_next_at_
+		test eax, eax
+		jnz  loopObject
+end:
+		call tile_refresh_display_
+		popad
+		retn
+	}
+}
+
+static void __declspec(naked) obj_outline_all_items_off_() {
+	__asm {
+		pushad
+		mov  eax, dword ptr ds:[_map_elevation]
+		call obj_find_first_at_
+		test eax, eax
+		jz   end
+loopObject:
+		cmp  eax, ds:[_outlined_object]
+		je   nextObject
+		xchg ebx, eax
+		mov  eax, [ebx+0x20]
+		and  eax, 0xF000000
+		sar  eax, 0x18
+		test eax, eax                             // Is this an item?
+		jnz  nextObject                           // No
+		cmp  dword ptr [ebx+0x7C], eax            // Owned by someone?
+		jnz  nextObject                           // Yes
+		mov  dword ptr [ebx+0x74], eax
+nextObject:
+		call obj_find_next_at_
+		test eax, eax
+		jnz  loopObject
+end:
+		call tile_refresh_display_
+		popad
+		retn
+	}
+}
+
+static void __declspec(naked) gmouse_bk_process_hook() {
+	__asm {
+		test eax, eax
+		jz   end
+		test byte ptr [eax+0x25], 0x10            // NoHighlight_
+		jnz  end
+		mov  dword ptr [eax+0x74], 0
+end:
+		mov  edx, 0x40
+		jmp  obj_outline_object_
+	}
+}
+
+static void __declspec(naked) obj_remove_outline_hook() {
+	__asm {
+		call obj_remove_outline_
+		test eax, eax
+		jnz  end
+		cmp  highlightingToggled, 1
+		jne  end
+		mov  ds:[_outlined_object], eax
+		call obj_outline_all_items_on_
+end:
+		retn
+	}
+}
 
 void ScriptExtenderSetup() {
 #ifdef TRACE
@@ -887,8 +968,14 @@ void ScriptExtenderSetup() {
 #else
 	const bool AllowUnsafeScripting=false;
 #endif
-	toggleHighlightsKey=GetPrivateProfileIntA("Input", "ToggleItemHighlightsKey", 0, ini);
-	if(toggleHighlightsKey) MotionSensorMode=GetPrivateProfileIntA("Misc", "MotionScannerFlags", 1, ini);
+	toggleHighlightsKey = GetPrivateProfileIntA("Input", "ToggleItemHighlightsKey", 0, ini);
+	if (toggleHighlightsKey) {
+		MotionSensorMode = GetPrivateProfileIntA("Misc", "MotionScannerFlags", 1, ini);
+		HookCall(0x44B9BA, &gmouse_bk_process_hook);
+		HookCall(0x44BD1C, &obj_remove_outline_hook);
+		HookCall(0x44E559, &obj_remove_outline_hook);
+		HighlightContainers = GetPrivateProfileIntA("Input", "HighlightContainers", 0, ini);
+	}
 	GetPrivateProfileStringA("Sfall", "HighlightFail1", "You aren't carrying a motion sensor.", HighlightFail1, 128, translationIni);
 	GetPrivateProfileStringA("Sfall", "HighlightFail2", "Your motion sensor is out of charge.", HighlightFail2, 128, translationIni);
 
@@ -1221,7 +1308,7 @@ DWORD GetScriptProcByName(DWORD scriptPtr, const char* procName) {
 	__asm {
 		mov edx, procName;
 		mov eax, scriptPtr;
-		call interpreFindProcedure_;
+		call interpretFindProcedure_;
 		mov result, eax;
 	}
 	return result;
@@ -1353,7 +1440,7 @@ void RunScriptProcByNum(DWORD sptr, DWORD procNum) {
 	__asm {
 		mov edx, procNum;
 		mov eax, sptr;
-		call runProcedure_;
+		call executeProcedure_
 	}
 }
 void RunScriptProc(sScriptProgram* prog, const char* procName) {
@@ -1399,67 +1486,50 @@ void AfterAttackCleanup() {
 }
 
 static void RunGlobalScripts1() {
-	if(idle>-1) Sleep(idle);
-	if(toggleHighlightsKey) {
+	if (idle>-1) Sleep(idle);
+	if (toggleHighlightsKey) {
 		//0x48C294 to toggle
-		if(KeyDown(toggleHighlightsKey)) {
-			if(!highlightingToggled) {
-				if(MotionSensorMode&4) {
+		if (KeyDown(toggleHighlightsKey)) {
+			if (!highlightingToggled) {
+				if (MotionSensorMode&4) {
 					DWORD scanner;
-					static const DWORD _inven_pid_is_carried_ptr=0x471CA0;
-					static const DWORD _item_m_dec_charges=0x4795A4;
 					__asm {
-						mov eax, ds:[0x6610B8];
-						mov edx, 59;
-						call _inven_pid_is_carried_ptr;
+						mov eax, ds:[_obj_dude];
+						mov edx, PID_MOTION_SENSOR
+						call inven_pid_is_carried_ptr_
 						mov scanner, eax;
 					}
-					if(scanner) {
-						if(MotionSensorMode&2) {
+					if (scanner) {
+						if (MotionSensorMode&2) {
 							__asm {
 								mov eax, scanner;
-								call _item_m_dec_charges; //Returns -1 if the item has no charges
+								call item_m_dec_charges_ //Returns -1 if the item has no charges
 								inc eax;
 								mov highlightingToggled, eax;
 							}
-							if(!highlightingToggled) DisplayConsoleMessage(HighlightFail2);
+							if (!highlightingToggled) DisplayConsoleMessage(HighlightFail2);
 						} else highlightingToggled=1;
 					} else {
 						DisplayConsoleMessage(HighlightFail1);
 					}
-				} else highlightingToggled=1;
-				if(highlightingToggled) {
-					__asm {
-						mov eax, dword ptr ds:[0x519578];
-						xor ebx, ebx;
-						mov edx, 0x10;
-						mov ecx, 0x48C148;
-						call ecx;
-					}
-				} else {
-					highlightingToggled=2;
-				}
+				} else highlightingToggled = 1;
+				if (highlightingToggled) obj_outline_all_items_on_();
+				else highlightingToggled = 2;
 			}
 		} else if(highlightingToggled) {
-			if(highlightingToggled==1) {
-				__asm {
-					mov eax, dword ptr ds:[0x519578];
-					xor edx, edx;
-					mov ecx, 0x48C1E4;
-					call ecx;
-				}
-			}
+			if (highlightingToggled == 1) obj_outline_all_items_off_();
 			highlightingToggled=0;
 		}
 	}
-	for(DWORD d=0;d<globalScripts.size();d++) {
-		if(!globalScripts[d].repeat||(globalScripts[d].mode!=0&&globalScripts[d].mode!=3)) continue;
-		if(++globalScripts[d].count>=globalScripts[d].repeat) {
+	for (DWORD d=0; d<globalScripts.size(); d++) {
+		if (!globalScripts[d].repeat || (globalScripts[d].mode != 0 && globalScripts[d].mode != 3)) continue;
+		if (++globalScripts[d].count >= globalScripts[d].repeat) {
 			RunScript(&globalScripts[d]);
 		}
 	}
 	ResetStateAfterFrame();
 }
+
 void RunGlobalScripts2() {
 	if(idle>-1) Sleep(idle);
 	for(DWORD d=0;d<globalScripts.size();d++) {

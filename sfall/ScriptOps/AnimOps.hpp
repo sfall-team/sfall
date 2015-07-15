@@ -114,8 +114,6 @@ end:
 	_OP_END
 }
 
-static const DWORD tile_refresh_display_ = 0x4B12D8;  //
-
 static void __declspec(naked) op_reg_anim_change_fid() {
 	_OP_BEGIN(ebp)
 	_GET_ARG_R32(ebp, ebx, esi) // delay

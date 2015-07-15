@@ -119,7 +119,7 @@
 #define _partyMemberAIOptions       0x519DB8
 #define _partyMemberCount           0x519DAC
 #define _partyMemberLevelUpInfoList 0x519DBC
-#define _partyMemberList            0x519DA8
+#define _partyMemberList            0x519DA8 // each struct - 4 integers, first integer - objPtr
 #define _partyMemberMaxCount        0x519D9C
 #define _partyMemberPidList         0x519DA0
 #define _patches                    0x5193CC
@@ -133,7 +133,7 @@
 #define _pip_win                    0x6644C4
 #define _pipboy_message_file        0x664348
 #define _pipmesg                    0x664338
-#define _procTableStrs              0x51C758
+#define _procTableStrs              0x51C758  // table of procId (from define.h) => procName map
 #define _proto_main_msg_file        0x6647FC
 #define _ptable                     0x59E934
 #define _pud                        0x59E960
@@ -143,7 +143,7 @@
 #define _retvals                    0x43EA7C
 #define _skill_data                 0x51D118
 #define _slot_cursor                0x5193B8
-#define _sneak_working              0x56D77C
+#define _sneak_working              0x56D77C // DWORD var 
 #define _square                     0x631E40
 #define _squares                    0x66BE08
 #define _stack                      0x59E86C
@@ -221,7 +221,7 @@ extern const DWORD credits_get_next_line_;
 extern const DWORD critter_body_type_;
 extern const DWORD critter_can_obj_dude_rest_;
 extern const DWORD critter_compute_ap_from_distance_;
-extern const DWORD critter_is_dead_;
+extern const DWORD critter_is_dead_; // eax - critter
 extern const DWORD critter_kill_;
 extern const DWORD critter_kill_count_type_;
 extern const DWORD critter_name_;
@@ -249,7 +249,7 @@ extern const DWORD dbase_open_;
 extern const DWORD determine_to_hit_func_;
 extern const DWORD dialog_out_;
 extern const DWORD display_inventory_;
-extern const DWORD display_print_;
+extern const DWORD display_print_; // eax - char* to display
 extern const DWORD display_target_inventory_;
 extern const DWORD do_options_;
 extern const DWORD do_optionsFunc_;
@@ -263,8 +263,8 @@ extern const DWORD elapsed_time_;
 extern const DWORD elevator_end_;
 extern const DWORD elevator_start_;
 extern const DWORD endgame_slideshow_;
-extern const DWORD exec_script_proc_;
-extern const DWORD executeProcedure_;
+extern const DWORD exec_script_proc_; // unsigned int aScriptID<eax>, int aProcId<edx>
+extern const DWORD executeProcedure_; // <eax> - programPtr, <edx> - procNumber
 extern const DWORD fadeSystemPalette_;
 extern const DWORD findVar_;
 extern const DWORD folder_print_line_;
@@ -287,16 +287,16 @@ extern const DWORD gsound_play_sfx_file_;
 extern const DWORD handle_inventory_;
 extern const DWORD inc_game_time_;
 extern const DWORD insert_withdrawal_;
-extern const DWORD interpret_;
+extern const DWORD interpret_; // <eax> - programPtr, <edx> - ??? (-1)
 extern const DWORD interpretAddString_;
-extern const DWORD interpretFindProcedure_;
-extern const DWORD interpretFreeProgram_;
+extern const DWORD interpretFindProcedure_; // get proc number (different for each script) by name: *<eax> - scriptPtr, char* <edx> - proc name
+extern const DWORD interpretFreeProgram_; // <eax> - program ptr, frees it from memory and from scripting engine
 extern const DWORD interpretGetString_;
 extern const DWORD interpretPopLong_;
 extern const DWORD interpretPopShort_;
 extern const DWORD interpretPushLong_;
 extern const DWORD interpretPushShort_;
-extern const DWORD intface_redraw_;
+extern const DWORD intface_redraw_; // no args
 extern const DWORD intface_toggle_item_state_;
 extern const DWORD intface_toggle_items_;
 extern const DWORD intface_update_ac_;
@@ -312,7 +312,7 @@ extern const DWORD inven_unwield_;
 extern const DWORD inven_wield_;
 extern const DWORD inven_worn_;
 extern const DWORD is_within_perception_;
-extern const DWORD isPartyMember_;
+extern const DWORD isPartyMember_; // (<eax> - object) - bool result
 extern const DWORD item_add_force_;
 extern const DWORD item_c_curr_size_;
 extern const DWORD item_c_max_size_;
@@ -330,7 +330,8 @@ extern const DWORD item_total_cost_;
 extern const DWORD item_total_weight_;
 extern const DWORD item_w_anim_code_;
 extern const DWORD item_w_anim_weap_;
-extern const DWORD item_w_compute_ammo_cost_;
+extern const DWORD item_w_can_reload_;
+extern const DWORD item_w_compute_ammo_cost_; // signed int aWeapon<eax>, int *aRoundsSpent<edx>
 extern const DWORD item_w_cur_ammo_;
 extern const DWORD item_w_dam_div_;
 extern const DWORD item_w_dam_mult_;
@@ -342,19 +343,22 @@ extern const DWORD item_w_mp_cost_;
 extern const DWORD item_w_range_;
 extern const DWORD item_w_try_reload_;
 extern const DWORD item_weight_;
-extern const DWORD light_get_tile_;
+extern const DWORD light_get_tile_; // aElev<eax>, aTilenum<edx>
 extern const DWORD ListDrvdStats_;
 extern const DWORD ListSkills_;
 extern const DWORD ListTraits_;
 extern const DWORD loadColorTable_;
 extern const DWORD LoadGame_;
-extern const DWORD loadProgram_;
+extern const DWORD loadProgram_; // loads script from scripts/ folder by file name and returns pointer to it: char* <eax> - file name (w/o extension)
 extern const DWORD LoadSlot_;
 extern const DWORD main_game_loop_;
 extern const DWORD main_menu_hide_;
 extern const DWORD main_menu_loop_;
+// (int aObjFrom<eax>, int aTileFrom<edx>, char* aPathPtr<ecx>, int aTileTo<ebx>, int a5, int (__fastcall *a6)(_DWORD, _DWORD)) 
+// - path is saved in ecx as a sequence of tile directions (0..5) to move on each step,
+// - returns path length
 extern const DWORD make_path_func_;
-extern const DWORD make_straight_path_func_;
+extern const DWORD make_straight_path_func_; // (TGameObj *aObj<eax>, int aTileFrom<edx>, int a3<ecx>, signed int aTileTo<ebx>, TGameObj **aObjResult, int a5, int (*a6)(void))
 extern const DWORD map_disable_bk_processes_;
 extern const DWORD map_enable_bk_processes_;
 extern const DWORD mem_free_;
@@ -374,7 +378,7 @@ extern const DWORD mouse_show_;
 extern const DWORD move_inventory_;
 extern const DWORD NixHotLines_;
 extern const DWORD obj_ai_blocking_at_;
-extern const DWORD obj_blocking_at_;
+extern const DWORD obj_blocking_at_; // <eax>(int aExcludeObject<eax> /* can be 0 */, signed int aTile<edx>, int aElevation<ebx>)
 extern const DWORD obj_bound_;
 extern const DWORD obj_change_fid_;
 extern const DWORD obj_connect_;
@@ -382,16 +386,16 @@ extern const DWORD obj_destroy_;
 extern const DWORD obj_dist_;
 extern const DWORD obj_erase_object_;
 extern const DWORD obj_find_first_at_;
-extern const DWORD obj_find_first_at_tile_;
+extern const DWORD obj_find_first_at_tile_; //  <eax>(int elevation<eax>, int tile<edx>)
 extern const DWORD obj_find_next_at_;
-extern const DWORD obj_find_next_at_tile_;
+extern const DWORD obj_find_next_at_tile_; // no args
 extern const DWORD obj_new_sid_inst_;
 extern const DWORD obj_outline_object_;
 extern const DWORD obj_pid_new_;
 extern const DWORD obj_remove_outline_;
 extern const DWORD obj_save_dude_;
 extern const DWORD obj_scroll_blocking_at_;
-extern const DWORD obj_set_light_;
+extern const DWORD obj_set_light_; // <eax>(int aObj<eax>, signed int aDist<edx>, int a3<ecx>, int aIntensity<ebx>)
 extern const DWORD obj_shoot_blocking_at_;
 extern const DWORD obj_sight_blocking_at_;
 extern const DWORD obj_use_book_;
@@ -439,27 +443,27 @@ extern const DWORD refresh_box_bar_win_;
 extern const DWORD register_begin_;
 extern const DWORD register_clear_;
 extern const DWORD register_end_;
-extern const DWORD register_object_animate_;
-extern const DWORD register_object_animate_and_hide_;
-extern const DWORD register_object_change_fid_;
-extern const DWORD register_object_funset_;
-extern const DWORD register_object_light_;
-extern const DWORD register_object_must_erase_;
-extern const DWORD register_object_take_out_;
-extern const DWORD register_object_turn_towards_;
+extern const DWORD register_object_animate_; // int aObj<eax>, int aAnim<edx>, int delay<ebx>
+extern const DWORD register_object_animate_and_hide_; // int aObj<eax>, int aAnim<edx>, int delay<ebx>
+extern const DWORD register_object_change_fid_; // int aObj<eax>, int aFid<edx>, int aDelay<ebx>
+extern const DWORD register_object_funset_; // int aObj<eax>, int ???<edx>, int aDelay<ebx> - not really sure what this does
+extern const DWORD register_object_light_; // <eax>(int aObj<eax>, int aRadius<edx>, int aDelay<ebx>)
+extern const DWORD register_object_must_erase_; // int aObj<eax>
+extern const DWORD register_object_take_out_; // int aObj<eax>, int aHoldFrame<edx> - hold frame ID (1 - spear, 2 - club, etc.)
+extern const DWORD register_object_turn_towards_; // int aObj<eax>, int aTile<edx>
 extern const DWORD report_explosion_;
 extern const DWORD RestorePlayer_;
 extern const DWORD roll_random_;
-extern const DWORD runProgram_;
+extern const DWORD runProgram_; // eax - programPtr, called once for each program after first loaded - hooks program to game and UI events
 extern const DWORD SaveGame_;
 extern const DWORD SavePlayer_;
 extern const DWORD scr_exec_map_update_scripts_;
-extern const DWORD scr_find_first_at_;
-extern const DWORD scr_find_next_at_;
-extern const DWORD scr_find_obj_from_program_;
+extern const DWORD scr_find_first_at_; // eax - elevation, returns spatial scriptID
+extern const DWORD scr_find_next_at_; // no args, returns spatial scriptID
+extern const DWORD scr_find_obj_from_program_; // eax - *program - finds self_obj by program pointer (has nice additional effect - creates fake object for a spatial script)
 extern const DWORD scr_find_sid_from_program_;
-extern const DWORD scr_new_;
-extern const DWORD scr_ptr_;
+extern const DWORD scr_new_; // eax - script index from scripts lst, edx - type (0 - system, 1 - spatials, 2 - time, 3 - items, 4 - critters)
+extern const DWORD scr_ptr_; // eax - scriptId, edx - **TScript (where to store script pointer)
 extern const DWORD scr_remove_;
 extern const DWORD scr_set_ext_param_;
 extern const DWORD scr_set_objs_;
@@ -486,10 +490,10 @@ extern const DWORD switch_hand_;
 extern const DWORD talk_to_translucent_trans_buf_to_buf_;
 extern const DWORD text_font_;
 extern const DWORD text_object_create_;
-extern const DWORD tile_coord_;
+extern const DWORD tile_coord_; // eax - tilenum, edx (int*) - x, ebx (int*) - y
 extern const DWORD tile_num_;
 extern const DWORD tile_refresh_display_;
-extern const DWORD tile_refresh_rect_;
+extern const DWORD tile_refresh_rect_; // (int elevation<edx>, unkown<ecx>)
 extern const DWORD tile_scroll_to_;
 extern const DWORD trait_get_;
 extern const DWORD trait_init_;
@@ -551,36 +555,17 @@ extern const DWORD item_w_cur_ammo_; // eax - object
 
 
 // Interface
-extern const DWORD intface_redraw_; // no args
 extern const DWORD interface_disable_;
 extern const DWORD interface_enable_;
 extern const DWORD intface_toggle_items_;
-extern const unsigned int display_print_; // eax - char* to display
 extern const DWORD intface_item_reload_; // no args
 extern const DWORD intface_toggle_item_state_; // no args
 extern const DWORD intface_use_item_; // no args
 
 // objects
-extern const DWORD isPartyMember_; // (<eax> - object) - bool result
-extern const DWORD obj_set_light_; // <eax>(int aObj<eax>, signed int aDist<edx>, int a3<ecx>, int aIntensity<ebx>)
 extern const DWORD obj_new_;  // int aObj*<eax>, int aPid<ebx>
 extern const DWORD obj_turn_off_;  // int aObj<eax>, int ???<edx>
 extern const DWORD obj_move_to_tile_;  // int aObj<eax>, int aTile<edx>, int aElev<ebx>
-extern const DWORD obj_find_first_at_tile_; //  <eax>(int elevation<eax>, int tile<edx>)
-extern const DWORD obj_find_next_at_tile_; // no args
-extern const DWORD critter_is_dead_; // eax - critter
-extern const DWORD tile_coord_; // eax - tilenum, edx (int*) - x, ebx (int*) - y
-
-// Animation
-extern const DWORD tile_refresh_rect_; // (int elevation<edx>, unkown<ecx>)
-extern const DWORD register_object_animate_;  // int aObj<eax>, int aAnim<edx>, int delay<ebx>
-extern const DWORD register_object_animate_and_hide_;  // int aObj<eax>, int aAnim<edx>, int delay<ebx>
-extern const DWORD register_object_must_erase_;  // int aObj<eax>
-extern const DWORD register_object_change_fid_;  // int aObj<eax>, int aFid<edx>, int aDelay<ebx>
-extern const DWORD register_object_light_; // <eax>(int aObj<eax>, int aRadius<edx>, int aDelay<ebx>)
-extern const DWORD register_object_funset_; // int aObj<eax>, int ???<edx>, int aDelay<ebx>
-extern const DWORD register_object_take_out_; // int aObj<eax>, int aHoldFrame<edx> - hold frame ID (1 - spear, 2 - club, etc.)
-extern const DWORD register_object_turn_towards_; // int aObj<eax>, int aTile<edx>
 
 extern const DWORD art_exists_; // eax - frameID, used for critter FIDs
 
