@@ -222,7 +222,7 @@ end:
 		add  esp, 4
 		retn
 	}
-}
+}*/
 
 static void __declspec(naked) queue_clear_type_hook() {
 	__asm {
@@ -230,8 +230,6 @@ static void __declspec(naked) queue_clear_type_hook() {
 		jmp  mem_free_
 	}
 }
-
-*/
 
 /*
 
@@ -249,6 +247,7 @@ noArmor:
 		jmp  stat_level_
 	}
 }
+*/
 
 static void __declspec(naked) partyMemberIncLevels_hook() {
 	__asm {
@@ -283,6 +282,7 @@ end:
 	}
 }
 
+/*
 static void __declspec(naked) gdProcessUpdate_hook() {
 	__asm {
 		add  eax, esi
@@ -298,7 +298,6 @@ skip:
 }
 */
 
-/*
 static void __declspec(naked) invenWieldFunc_hook() {
 	__asm {
 		pushad
@@ -333,7 +332,7 @@ noWeapon:
 		jmp  item_get_type_
 	}
 }
-*/
+
 
 /*
 static void __declspec(naked) loot_container_hook() {
@@ -612,23 +611,23 @@ void BugsInit()
 	//MakeCall(0x47A243, &item_d_load_hook, false);
 
 	// Fix crash when using stimpak on a victim and then exiting the map
-	//HookCall(0x4A27E7, &queue_clear_type_hook);
+	HookCall(0x4A27E7, &queue_clear_type_hook);
 
 	// Evil bug! If party member has the same armor type in inventory as currently equipped, then
 	// on level up he loses Armor Class equal to the one received from this armor
 	//HookCall(0x495F3B, &partyMemberCopyLevelInfo_hook);
 
 	// Fix of invalid stats when party member gains a level while being on drugs
-	//HookCall(0x495D5C, &partyMemberIncLevels_hook);
+	HookCall(0x495D5C, &partyMemberIncLevels_hook);
 
 	// 9 options in a dialogue window
 	//MakeCall(0x44701C, &gdProcessUpdate_hook, true);
 
 	// Fix for "Unlimited Ammo bug"
-	//HookCall(0x472957, &invenWieldFunc_hook);
+	HookCall(0x472957, &invenWieldFunc_hook);
 
 	// Fix for negative values in Skilldex window ("S")
-	//SafeWrite8(0x4AC377, 0x7F);                // jg
+	SafeWrite8(0x4AC377, 0x7F);                // jg
 
 	// Fix for not counting in weight of equipped items
 	/*MakeCall(0x473B4E, &loot_container_hook, false);
