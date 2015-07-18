@@ -22,8 +22,8 @@ end:
 	}
 }
 
-/*
-static void __declspec(naked) pipboy_hook() {
+
+static void __declspec(naked) pipboy_hack() {
 	__asm {
 		cmp  ebx, 0x210                           // Back button?
 		je   end
@@ -36,7 +36,7 @@ end:
 	}
 }
 
-static void __declspec(naked) PipAlarm_hook() {
+static void __declspec(naked) PipAlarm_hack() {
 	__asm {
 		mov  ds:[_crnt_func], eax
 		mov  eax, 0x400
@@ -45,11 +45,9 @@ static void __declspec(naked) PipAlarm_hook() {
 		retn
 	}
 }
-*/
 
-/*
-
-static void __declspec(naked) scr_save_hook() {
+// corrects saving script blocks (to *.sav file) by properly accounting for actual number of scripts to be saved
+static void __declspec(naked) scr_write_ScriptNode_hook() {
 	__asm {
 		mov  ecx, 16
 		cmp  dword ptr [esp+0xEC+4], ecx          // number_of_scripts
@@ -71,6 +69,8 @@ skip:
 		retn
 	}
 }
+
+/*
 
 static void __declspec(naked) protinst_default_use_item_hook() {
 	__asm {
@@ -224,7 +224,7 @@ end:
 	}
 }*/
 
-static void __declspec(naked) queue_clear_type_hook() {
+static void __declspec(naked) queue_clear_type_mem_free_hook() {
 	__asm {
 		mov  ebx, [esi]
 		jmp  mem_free_
@@ -249,7 +249,7 @@ noArmor:
 }
 */
 
-static void __declspec(naked) partyMemberIncLevels_hook() {
+static void __declspec(naked) partyMemberCopyLevelInfo_hook() {
 	__asm {
 		push eax
 		call partyMemberCopyLevelInfo_
@@ -298,7 +298,8 @@ skip:
 }
 */
 
-static void __declspec(naked) invenWieldFunc_hook() {
+
+static void __declspec(naked) invenWieldFunc_item_get_type_hook() {
 	__asm {
 		pushad
 		mov  edx, esi
@@ -527,7 +528,7 @@ end:
 }
 */
 
-static void __declspec(naked) PipStatus_hook() {
+static void __declspec(naked) PipStatus_AddHotLines_hook() {
 	__asm {
 		call AddHotLines_
 		xor  eax, eax
@@ -536,7 +537,7 @@ static void __declspec(naked) PipStatus_hook() {
 	}
 }
 
-static void __declspec(naked) perform_withdrawal_start_hook() {
+static void __declspec(naked) perform_withdrawal_start_display_print_hook() {
 	__asm {
 		test eax, eax
 		jz   end
@@ -546,7 +547,7 @@ end:
 	}
 }
 
-static void __declspec(naked) item_d_take_drug_hook1() {
+static void __declspec(naked) item_d_take_drug_hack() {
 	__asm {
 		mov  eax, 0x47A168
 		jmp  eax
@@ -554,7 +555,7 @@ static void __declspec(naked) item_d_take_drug_hook1() {
 }
 
 // TODO: check if it's still needed
-static void __declspec(naked) op_wield_obj_critter_hook() {
+static void __declspec(naked) op_wield_obj_critter_adjust_ac_hook() {
 	__asm {
 		call adjust_ac_
 		xor  ecx, ecx
@@ -563,7 +564,7 @@ static void __declspec(naked) op_wield_obj_critter_hook() {
 }
 
 //checks if an attacked object is a critter before attempting dodge animation
-static void __declspec(naked) action_melee_hook() {
+static void __declspec(naked) action_melee_hack() {
 	__asm {
 		mov  eax, [ebp+0x20]                      // (original code) objStruct ptr
 		mov  ebx, [eax+0x20]                      // objStruct->FID
@@ -584,17 +585,26 @@ void BugsInit()
 	dlog("Applying sharpshooter patch.", DL_INIT);
 	// http://www.nma-fallout.com/showthread.php?178390-FO2-Engine-Tweaks&p=4050162&viewfull=1#post4050162
 	// by Slider2k
-	HookCall(0x4244AB, &SharpShooterFix);
-	SafeWrite8(0x424527, 0xEB);
+	HookCall(0x4244AB, &SharpShooterFix); // hooks stat_level_() call in detemine_to_hit_func_()
+	// // removes this line by making unconditional jump:
+	// if ( who == obj_dude ) 
+	//     dist -= 2 * perk_level_(obj_dude, PERK_sharpshooter);
+	SafeWrite8(0x424527, 0xEB);  // in detemine_to_hit_func_()
 	dlogr(" Done", DL_INIT);
 
 	// Fixes for clickability issues in PipBoy ??
-	/*MakeCall(0x4971C7, &pipboy_hook, false);
-	MakeCall(0x499530, &PipAlarm_hook, false);*/
+	dlog("Applying Fix PipBoy Rest exploit.", DL_INIT);
+	MakeCall(0x4971C7, &pipboy_hack, false);
+	MakeCall(0x499530, &PipAlarm_hack, false);
+	dlogr(" Done.", DL_INIT);
 
 	// Fix for "Too Many Items Bug"
-	/*HookCall(0x4A596A, &scr_save_hook);
-	HookCall(0x4A59C1, &scr_save_hook);*/
+	if (GetPrivateProfileIntA("Misc", "TooManyItemsBugFix", 1, ini)) {
+		dlog("Applying preventive patch for \"Too Many Items Bug\".", DL_INIT);
+		HookCall(0x4A596A, &scr_write_ScriptNode_hook);
+		HookCall(0x4A59C1, &scr_write_ScriptNode_hook);
+		dlogr(" Done.", DL_INIT);
+	}
 
 	// Fix "fueling" no_car and using fuel cells even when car is full
 	/*MakeCall(0x49C36D, &protinst_default_use_item_hook, true);
@@ -611,23 +621,31 @@ void BugsInit()
 	//MakeCall(0x47A243, &item_d_load_hook, false);
 
 	// Fix crash when using stimpak on a victim and then exiting the map
-	HookCall(0x4A27E7, &queue_clear_type_hook);
+	dlog("Applying Fix for \"using stimpak on a victim and exiting the map\" crash.", DL_INIT);
+	HookCall(0x4A27E7, &queue_clear_type_mem_free_hook); // hooks mem_free_()
+	dlogr(" Done.", DL_INIT);
 
 	// Evil bug! If party member has the same armor type in inventory as currently equipped, then
 	// on level up he loses Armor Class equal to the one received from this armor
 	//HookCall(0x495F3B, &partyMemberCopyLevelInfo_hook);
 
 	// Fix of invalid stats when party member gains a level while being on drugs
-	HookCall(0x495D5C, &partyMemberIncLevels_hook);
+	dlog("Applying Fix for addicted party member level up bug.", DL_INIT);
+	HookCall(0x495D5C, &partyMemberCopyLevelInfo_hook);
+	dlogr(" Done.", DL_INIT);
 
 	// 9 options in a dialogue window
 	//MakeCall(0x44701C, &gdProcessUpdate_hook, true);
 
 	// Fix for "Unlimited Ammo bug"
-	HookCall(0x472957, &invenWieldFunc_hook);
+	dlog("Applying Fix for Unlimited Ammo bug.", DL_INIT);
+	HookCall(0x472957, &invenWieldFunc_item_get_type_hook); // hooks item_get_type_()
+	dlogr(" Done.", DL_INIT);
 
 	// Fix for negative values in Skilldex window ("S")
+	dlog("Applying Fix for negative values in Skilldex window.", DL_INIT);
 	SafeWrite8(0x4AC377, 0x7F);                // jg
+	dlogr(" Done.", DL_INIT);
 
 	// Fix for not counting in weight of equipped items
 	/*MakeCall(0x473B4E, &loot_container_hook, false);
@@ -651,15 +669,15 @@ void BugsInit()
 	//HookCall(0x476598, &drop_ammo_into_weapon_hook);
 
 	dlog("Applying black skilldex patch.", DL_INIT);
-	HookCall(0x497D0F, &PipStatus_hook);
+	HookCall(0x497D0F, &PipStatus_AddHotLines_hook);
 	dlogr(" Done", DL_INIT);
 
 	dlog("Applying withdrawal perk description crash fix. ", DL_INIT);
-	HookCall(0x47A501, &perform_withdrawal_start_hook);
+	HookCall(0x47A501, &perform_withdrawal_start_display_print_hook);
 	dlogr(" Done", DL_INIT);
 
 	dlog("Applying Jet Antidote fix.", DL_INIT);
-	MakeCall(0x47A013, &item_d_take_drug_hook1, true);
+	MakeCall(0x47A013, &item_d_take_drug_hack, true);
 	dlogr(" Done", DL_INIT);
 
 	dlog("Applying shiv patch. ", DL_INIT);
@@ -669,12 +687,12 @@ void BugsInit()
 	if (GetPrivateProfileIntA("Misc", "WieldObjCritterFix", 1, ini)) {
 		dlog("Applying wield_obj_critter fix.", DL_INIT);
 		SafeWrite8(0x456912, 0x1E);
-		HookCall(0x45697F, &op_wield_obj_critter_hook);
+		HookCall(0x45697F, &op_wield_obj_critter_adjust_ac_hook);
 		dlogr(" Done", DL_INIT);
 	}
 
 	dlog("Applying Dodgy Door Fix.", DL_INIT);
-	MakeCall(0x4113D3, &action_melee_hook, true);
+	MakeCall(0x4113D3, &action_melee_hack, true);
 	dlogr(" Done", DL_INIT);
 
 }
