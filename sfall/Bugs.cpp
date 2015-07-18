@@ -421,8 +421,9 @@ end:
 		retn
 	}
 }
+*/
 
-static void __declspec(naked) inven_pickup_hook() {
+static void __declspec(naked) inven_pickup_hack() {
 	__asm {
 		mov  edx, ds:[_pud]
 		mov  edx, [edx]                           // itemsCount
@@ -434,9 +435,10 @@ static void __declspec(naked) inven_pickup_hook() {
 	}
 }
 
+
 static DWORD inven_pickup_loop=-1;
 static const DWORD inven_pickup_hook1_Loop = 0x471145;
-static void __declspec(naked) inven_pickup_hook1() {
+static void __declspec(naked) inven_pickup_hack2() {
 	__asm {
 		cmp  inven_pickup_loop, -1
 		jne  inLoop
@@ -487,6 +489,7 @@ inRange:
 	}
 }
 
+/*
 static void __declspec(naked) drop_ammo_into_weapon_hook() {
 	__asm {
 		dec  esi
@@ -664,12 +667,16 @@ void BugsInit()
 	/*SafeWrite8(0x475541, 64);
 	SafeWrite8(0x475789, 64);*/
 
-	// Fix for reverse order error in player's inventory
-	//MakeCall(0x470EC2, &inven_pickup_hook, true);
-
-	// Fix for error in player's inventory, related to IFACE_BAR_MODE=1 in f2_res.ini, and
-	// also for reverse order error
-	//MakeCall(0x47114A, &inven_pickup_hook1, true);
+	if (GetPrivateProfileIntA("Misc", "InventoryDragIssuesFix", 0, ini)) {
+		dlog("Applying inventory reverse order issues fix.", DL_INIT);
+		// Fix for minor visual glitch when picking up solo item from the top of inventory 
+		// and there is multiple item stack at the bottom of inventory
+		MakeCall(0x470EC2, &inven_pickup_hack, true);
+		// Fix for error in player's inventory, related to IFACE_BAR_MODE=1 in f2_res.ini, and
+		// also for reverse order error
+		MakeCall(0x47114A, &inven_pickup_hack2, true);
+		dlogr(" Done", DL_INIT);
+	}	
 
 	// Fix for using only one pack of ammo, when the weapon is before the ammo
 	//HookCall(0x476598, &drop_ammo_into_weapon_hook);
