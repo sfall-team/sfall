@@ -186,9 +186,9 @@ itsJet:
 		mov  eax, 0x47A3FB
 		jmp  eax
 	}
-}
+}*/
 
-static void __declspec(naked) item_d_load_hook() {
+static void __declspec(naked) item_d_load_hack() {
 	__asm {
 		sub  esp, 4
 		mov  [ebp], edi                           // edi->queue_drug
@@ -203,13 +203,13 @@ loopDrug:
 		mov  edx, [esp]
 		mov  eax, [edx+0x24]                      // drug.stat0
 		cmp  eax, [edi+0x4]                       // drug.stat0 == queue_drug.stat0?
-		jne  nextDrug                             // Нет
+		jne  nextDrug                             // No
 		mov  eax, [edx+0x28]                      // drug.stat1
 		cmp  eax, [edi+0x8]                       // drug.stat1 == queue_drug.stat1?
-		jne  nextDrug                             // Нет
+		jne  nextDrug                             // No
 		mov  eax, [edx+0x2C]                      // drug.stat2
 		cmp  eax, [edi+0xC]                       // drug.stat2 == queue_drug.stat2?
-		je   foundPid                             // Да
+		je   foundPid                             // Yes
 nextDrug:
 		add  esi, 12
 		loop loopDrug
@@ -222,7 +222,7 @@ end:
 		add  esp, 4
 		retn
 	}
-}*/
+}
 
 static void __declspec(naked) queue_clear_type_mem_free_hook() {
 	__asm {
@@ -282,8 +282,8 @@ end:
 	}
 }
 
-/*
-static void __declspec(naked) gdProcessUpdate_hook() {
+
+static void __declspec(naked) gdProcessUpdate_hack() {
 	__asm {
 		add  eax, esi
 		cmp  eax, dword ptr ds:[0x58ECCC]         // _optionRect.offy
@@ -296,7 +296,7 @@ skip:
 		jmp  esi
 	}
 }
-*/
+
 
 
 static void __declspec(naked) invenWieldFunc_item_get_type_hook() {
@@ -592,7 +592,7 @@ void BugsInit()
 	SafeWrite8(0x424527, 0xEB);  // in detemine_to_hit_func_()
 	dlogr(" Done", DL_INIT);
 
-	// Fixes for clickability issues in PipBoy ??
+	// Fixes for clickability issue in PipBoy and exploit that allows to rest in places where you shouldn't be able to rest
 	dlog("Applying Fix PipBoy Rest exploit.", DL_INIT);
 	MakeCall(0x4971C7, &pipboy_hack, false);
 	MakeCall(0x499530, &PipAlarm_hack, false);
@@ -617,8 +617,10 @@ void BugsInit()
 	/*MakeCall(0x479FC5, &item_d_take_drug_hook, true);
 	MakeCall(0x47A3A4, &item_wd_process_hook, false);*/
 
-	// Fix increasing stats via drug use after save-load
-	//MakeCall(0x47A243, &item_d_load_hook, false);
+	// Fix increasing stats more than two times via drug use after save-load
+	dlog("Applying save-load unlimited drug use exploit.", DL_INIT);
+	MakeCall(0x47A243, &item_d_load_hack, false);
+	dlogr(" Done.", DL_INIT);
 
 	// Fix crash when using stimpak on a victim and then exiting the map
 	dlog("Applying Fix for \"using stimpak on a victim and exiting the map\" crash.", DL_INIT);
@@ -634,8 +636,12 @@ void BugsInit()
 	HookCall(0x495D5C, &partyMemberCopyLevelInfo_hook);
 	dlogr(" Done.", DL_INIT);
 
-	// 9 options in a dialogue window
-	//MakeCall(0x44701C, &gdProcessUpdate_hook, true);
+	// Allow for 9 options (lines of text) to be displayed correctly in a dialog window
+	if (GetPrivateProfileIntA("Misc", "DialogOptions9Lines", 0, ini)) {
+		dlog("Applying 9 dialog options patch.", DL_INIT);
+		MakeCall(0x44701C, &gdProcessUpdate_hack, true);
+		dlogr(" Done.", DL_INIT);
+	}
 
 	// Fix for "Unlimited Ammo bug"
 	dlog("Applying Fix for Unlimited Ammo bug.", DL_INIT);
