@@ -595,6 +595,68 @@ end:
 }
 
 
+static void __declspec(naked) set_new_results_hack() {
+	__asm {
+		mov  ecx, 0x424FC6
+		test ah, 0x3                              // DAM_KNOCKED_OUT or DAM_KNOCKED_DOWN
+		jz   end                                  // Conscious and standing
+		xor  edx, edx
+		inc  edx                                  // type = knockout
+		test ah, 0x1                              // DAM_KNOCKED_OUT
+		jnz  knocked_out                          // Unconscious
+		mov  eax, esi
+		call queue_find_
+		test eax, eax                             // Has knockout in queue?
+		jnz  end                                  // Yes
+		mov  ecx, 0x424FAD
+		xchg edx, eax
+		jmp  ecx
+knocked_out:
+		mov  dword ptr ds:[_critterClearObj], esi
+		mov  eax, critterClearObjDrugs_
+		xchg edx, eax
+		call queue_clear_type_
+		mov  ecx, 0x424F93
+end:
+		jmp  ecx
+	}
+}
+
+static void __declspec(naked) critter_wake_clear_hack() {
+	__asm {
+		test dl, 0x80                             // DAM_DEAD
+		jnz  skip                                 // This is a corpse
+		push eax
+		mov  eax, esi
+		call isPartyMember_
+		test eax, eax                             // This is a party member?
+		pop  eax
+		jnz  end                                  // Yes
+		and  dl, 0xFE                             // Unset DAM_KNOCKED_OUT
+		or   dl, 0x2                              // Set DAM_KNOCKED_DOWN
+		mov  [esi+0x44], dl
+skip:
+		pop  eax                                  // Destroying return address
+		mov  eax, 1
+		pop  esi
+		pop  ecx
+		pop  ebx
+end:
+		retn
+	}
+}
+
+static void __declspec(naked) critter_wake_clear_hack1() {
+	__asm {
+		mov  eax, 1
+		pop  esi
+		pop  ecx
+		pop  ebx
+		retn
+	}
+}
+
+
 void BugsInit() 
 {
 	dlog("Applying sharpshooter patch.", DL_INIT);
@@ -731,4 +793,13 @@ void BugsInit()
 	MakeCall(0x4113D3, &action_melee_hack, true);
 	dlogr(" Done", DL_INIT);
 
+	// Corrects "NPC turns into a container"
+	if (GetPrivateProfileIntA("Misc", "NPCTurnsIntoContainerFix", 1, ini)) {
+		dlog("Applying Fix for NPC turns into a container.", DL_INIT);
+		MakeCall(0x424F8E, &set_new_results_hack, true);
+		SafeWrite16(0x42E44F, 0x03EB);             // jmps 0x42E454
+		MakeCall(0x42E476, &critter_wake_clear_hack, false);
+		MakeCall(0x42E4BA, &critter_wake_clear_hack1, true);
+		dlogr(" Done", DL_INIT);
+	}
 }
