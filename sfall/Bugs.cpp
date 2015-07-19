@@ -110,9 +110,7 @@ skip:
 
 */
 
-/*
-
-static void __declspec(naked) item_d_check_addict_hook() {
+static void __declspec(naked) item_d_check_addict_hack() {
 	__asm {
 		mov  edx, 2                               // type = addiction
 		cmp  eax, -1                              // Has drug_pid?
@@ -153,7 +151,7 @@ end:
 	}
 }
 
-static void __declspec(naked) item_d_take_drug_hook() {
+static void __declspec(naked) item_d_take_drug_hack() {
 	__asm {
 		cmp  dword ptr [eax], 0                   // queue_addict.init
 		jne  skip                                 // Addiction is not active yet
@@ -170,6 +168,7 @@ skip:
 	}
 }
 
+/*
 static void __declspec(naked) item_wd_process_hook() {
 	__asm {
 		cmp  esi, PERK_add_jet
@@ -231,9 +230,7 @@ static void __declspec(naked) queue_clear_type_mem_free_hook() {
 	}
 }
 
-/*
-
-static void __declspec(naked) partyMemberCopyLevelInfo_hook() {
+static void __declspec(naked) partyMemberCopyLevelInfo_stat_level_hook() {
 	__asm {
 nextArmor:
 		mov  eax, esi
@@ -247,7 +244,21 @@ noArmor:
 		jmp  stat_level_
 	}
 }
-*/
+
+static void __declspec(naked) correctFidForRemovedItem_adjust_ac_hook() {
+	__asm {
+		call adjust_ac_
+nextArmor:
+		mov  eax, esi
+		call inven_worn_
+		test eax, eax
+		jz   end
+		and  byte ptr [eax+0x27], 0xFB            // Unset flag of equipped armor
+		jmp  nextArmor
+end:
+		retn
+	}
+}
 
 static void __declspec(naked) partyMemberCopyLevelInfo_hook() {
 	__asm {
@@ -550,7 +561,7 @@ end:
 	}
 }
 
-static void __declspec(naked) item_d_take_drug_hack() {
+static void __declspec(naked) item_d_take_drug_hack1() {
 	__asm {
 		mov  eax, 0x47A168
 		jmp  eax
@@ -583,6 +594,7 @@ end:
 	}
 }
 
+
 void BugsInit() 
 {
 	dlog("Applying sharpshooter patch.", DL_INIT);
@@ -613,12 +625,8 @@ void BugsInit()
 	/*MakeCall(0x49C36D, &protinst_default_use_item_hook, true);
 	MakeCall(0x49BE70, &obj_use_power_on_car_hook, false);*/
 
-	// Check drug addiction fix
-	//MakeCall(0x47A644, &item_d_check_addict_hook, true);
-
-	// Fix for removal of jet addiction from NPCs ?????????
-	/*MakeCall(0x479FC5, &item_d_take_drug_hook, true);
-	MakeCall(0x47A3A4, &item_wd_process_hook, false);*/
+	// makes jet addiction eternal.. why?
+	//MakeCall(0x47A3A4, &item_wd_process_hook, false);
 
 	// Fix increasing stats more than two times via drug use after save-load
 	dlog("Applying save-load unlimited drug use exploit.", DL_INIT);
@@ -631,8 +639,14 @@ void BugsInit()
 	dlogr(" Done.", DL_INIT);
 
 	// Evil bug! If party member has the same armor type in inventory as currently equipped, then
-	// on level up he loses Armor Class equal to the one received from this armor
-	//HookCall(0x495F3B, &partyMemberCopyLevelInfo_hook);
+	// on level up he loses Armor Class equal to the one received from this armor.
+	// The same happens if you just order NPC to remove armor through dialog.
+	if (GetPrivateProfileIntA("Misc", "ArmorCorruptsNPCStatsFix", 1, ini)) {
+		dlog("Applying Fix for armor decreasing NPC stats when removed.", DL_INIT);
+		HookCall(0x495F3B, &partyMemberCopyLevelInfo_stat_level_hook);
+		HookCall(0x45419B, &correctFidForRemovedItem_adjust_ac_hook);
+		dlogr(" Done.", DL_INIT);
+	}
 
 	// Fix of invalid stats when party member gains a level while being on drugs
 	dlog("Applying Fix for addicted party member level up bug.", DL_INIT);
@@ -663,9 +677,9 @@ void BugsInit()
 	HookCall(0x4742AD, &move_inventory_hook);
 	HookCall(0x4771B5, &item_add_mult_hook);*/
 
-	// Text width 64, and not 80 
-	/*SafeWrite8(0x475541, 64);
-	SafeWrite8(0x475789, 64);*/
+	// Corrects "Weight of items" text element width to be 64 (and not 80), which matches container element width
+	SafeWrite8(0x475541, 64);
+	SafeWrite8(0x475789, 64);
 
 	if (GetPrivateProfileIntA("Misc", "InventoryDragIssuesFix", 0, ini)) {
 		dlog("Applying inventory reverse order issues fix.", DL_INIT);
@@ -690,8 +704,17 @@ void BugsInit()
 	dlogr(" Done", DL_INIT);
 
 	dlog("Applying Jet Antidote fix.", DL_INIT);
-	MakeCall(0x47A013, &item_d_take_drug_hack, true);
+	// the original jet antidote fix
+	MakeCall(0x47A013, &item_d_take_drug_hack1, true);
 	dlogr(" Done", DL_INIT);
+
+	if (GetPrivateProfileIntA("Misc", "NPCDrugAddictionFix", 1, ini)) {
+		dlog("Applying NPC's drug addiction fix.", DL_INIT);
+		// proper checks for NPC's addiction instead of always using global vars
+		MakeCall(0x47A644, &item_d_check_addict_hack, true);
+		MakeCall(0x479FC5, &item_d_take_drug_hack, true);
+		dlogr(" Done.", DL_INIT);
+	}
 
 	dlog("Applying shiv patch. ", DL_INIT);
 	SafeWrite8(0x477B2B, 0xEB);
