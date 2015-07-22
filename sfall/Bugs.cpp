@@ -580,17 +580,35 @@ static void __declspec(naked) op_wield_obj_critter_adjust_ac_hook() {
 //checks if an attacked object is a critter before attempting dodge animation
 static void __declspec(naked) action_melee_hack() {
 	__asm {
-		mov  eax, [ebp+0x20]                      // (original code) objStruct ptr
+		mov  edx, 0x4113DC
 		mov  ebx, [eax+0x20]                      // objStruct->FID
 		and  ebx, 0x0F000000
 		sar  ebx, 0x18
-		cmp  ebx, OBJ_TYPE_CRITTER                // check if object FID type flag is set to critter
+		cmp  ebx, ObjType_Critter                 // check if object FID type flag is set to critter
 		jne  end                                  // if object not a critter leave jump condition flags
 		// set to skip dodge animation
-		test byte ptr [eax+0x44], 3               // (original code) DAM_KNOCKED_OUT or DAM_KNOCKED_DOWN
+		test byte ptr [eax+0x44], 0x3             // (original code) DAM_KNOCKED_OUT or DAM_KNOCKED_DOWN
+		jnz  end
+		mov  edx, 0x4113FE
 end:
-		mov  ebx, 0x4113DA
-		jmp  ebx
+		jmp  edx
+	}
+}
+
+static void __declspec(naked) action_ranged_hack() {
+	__asm {
+		mov  edx, 0x411B6D
+		mov  ebx, [eax+0x20]                      // objStruct->FID
+		and  ebx, 0x0F000000
+		sar  ebx, 0x18
+		cmp  ebx, ObjType_Critter                 // check if object FID type flag is set to critter
+		jne  end                                  // if object not a critter leave jump condition flags
+		// set to skip dodge animation
+		test byte ptr [eax+0x44], 0x3             // (original code) DAM_KNOCKED_OUT or DAM_KNOCKED_DOWN
+		jnz  end
+		mov  edx, 0x411BD2
+end:
+		jmp  edx
 	}
 }
 
@@ -800,7 +818,8 @@ void BugsInit()
 	}
 
 	dlog("Applying Dodgy Door Fix.", DL_INIT);
-	MakeCall(0x4113D3, &action_melee_hack, true);
+	MakeCall(0x4113D6, &action_melee_hack, true);
+	MakeCall(0x411BCC, &action_ranged_hack, true);
 	dlogr(" Done", DL_INIT);
 
 	// Corrects "NPC turns into a container"
