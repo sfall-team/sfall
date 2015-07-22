@@ -597,62 +597,72 @@ end:
 
 static void __declspec(naked) set_new_results_hack() {
 	__asm {
-		mov  ecx, 0x424FC6
-		test ah, 0x3                              // DAM_KNOCKED_OUT or DAM_KNOCKED_DOWN
-		jz   end                                  // Conscious and standing
-		xor  edx, edx
-		inc  edx                                  // type = knockout
-		test ah, 0x1                              // DAM_KNOCKED_OUT
-		jnz  knocked_out                          // Unconscious
-		mov  eax, esi
-		call queue_find_
-		test eax, eax                             // Has knockout in queue?
-		jnz  end                                  // Yes
-		mov  ecx, 0x424FAD
-		xchg edx, eax
-		jmp  ecx
-knocked_out:
+		test ah, 0x1                              // DAM_KNOCKED_OUT?
+		jz   end                                  // No
 		mov  dword ptr ds:[_critterClearObj], esi
-		mov  eax, critterClearObjDrugs_
-		xchg edx, eax
-		call queue_clear_type_
-		mov  ecx, 0x424F93
+		mov  edx, critterClearObjDrugs_
+		xor  eax, eax
+		inc  eax                                  // type = knockout
+		call queue_clear_type_                    // Remove knockout from queue (if there is one)
+		retn
 end:
-		jmp  ecx
+		pop  eax                                  // Destroying return address
+		mov  eax, 0x424FC6
+		jmp  eax
 	}
 }
 
 static void __declspec(naked) critter_wake_clear_hack() {
 	__asm {
-		test dl, 0x80                             // DAM_DEAD
-		jnz  skip                                 // This is a corpse
-		push eax
-		mov  eax, esi
-		call isPartyMember_
-		test eax, eax                             // This is a party member?
-		pop  eax
-		jnz  end                                  // Yes
+		jne  end                                  // This is not a critter
+		mov  dl, [esi+0x44]
+		test dl, 0x80                             // DAM_DEAD?
+		jnz  end                                  // This is a corpse
 		and  dl, 0xFE                             // Unset DAM_KNOCKED_OUT
 		or   dl, 0x2                              // Set DAM_KNOCKED_DOWN
 		mov  [esi+0x44], dl
-skip:
-		pop  eax                                  // Destroying return address
-		mov  eax, 1
+end:
+		xor  eax, eax
+		inc  eax
 		pop  esi
 		pop  ecx
 		pop  ebx
-end:
-		retn
+	retn
 	}
 }
 
-static void __declspec(naked) critter_wake_clear_hack1() {
+static void __declspec(naked) obj_load_func_hack() {
 	__asm {
-		mov  eax, 1
-		pop  esi
-		pop  ecx
-		pop  ebx
-		retn
+		mov  edi, 0x488EF9
+		test byte ptr [eax+0x25], 0x4             // Temp_
+		jnz  end
+		mov  edi, [eax+0x64]
+		shr  edi, 0x18
+		cmp  edi, ObjType_Critter
+		jne  skip
+		test byte ptr [eax+0x44], 0x2             // DAM_KNOCKED_DOWN?
+		jz   clear                                // No
+		pushad
+		xor  ecx, ecx
+		inc  ecx
+		xor  ebx, ebx
+		xor  edx, edx
+		xchg edx, eax
+		call queue_add_
+		popad
+clear:
+		and  word ptr [eax+0x44], 0x7FFD          // not (DAM_LOSE_TURN or DAM_KNOCKED_DOWN)
+skip:
+		mov  edi, 0x488F14
+end:
+		jmp  edi
+	}
+}
+
+static void __declspec(naked) partyMemberPrepLoadInstance_hack() {
+	__asm {
+		and  word ptr [eax+0x44], 0x7FFD          // not (DAM_LOSE_TURN or DAM_KNOCKED_DOWN)
+		jmp  dude_stand_
 	}
 }
 
@@ -796,10 +806,10 @@ void BugsInit()
 	// Corrects "NPC turns into a container"
 	if (GetPrivateProfileIntA("Misc", "NPCTurnsIntoContainerFix", 1, ini)) {
 		dlog("Applying Fix for NPC turns into a container.", DL_INIT);
-		MakeCall(0x424F8E, &set_new_results_hack, true);
-		SafeWrite16(0x42E44F, 0x03EB);             // jmps 0x42E454
-		MakeCall(0x42E476, &critter_wake_clear_hack, false);
-		MakeCall(0x42E4BA, &critter_wake_clear_hack1, true);
+		MakeCall(0x424F8E, &set_new_results_hack, false);
+		MakeCall(0x42E46E, &critter_wake_clear_hack, true);
+		MakeCall(0x488EF3, &obj_load_func_hack, true);
+		HookCall(0x4949B2, &partyMemberPrepLoadInstance_hack);
 		dlogr(" Done", DL_INIT);
 	}
 }

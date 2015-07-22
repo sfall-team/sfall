@@ -256,6 +256,14 @@
 #define item_type_misc_item    (5)
 #define item_type_key_item     (6)
 
+#define ObjType_Item     (0)
+#define ObjType_Critter  (1)
+#define ObjType_Scenery  (2)
+#define ObjType_Wall     (3)
+#define ObjType_Tile     (4)
+#define ObjType_Misc     (5)
+#define ObjType_Intrface (6)
+
 #define OBJFLAG_CAN_WEAR_ITEMS (0xf000000)
 
 #define OBJFLAG_HELD_IN_RIGHT (0x10000)
