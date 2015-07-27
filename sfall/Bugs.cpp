@@ -584,10 +584,10 @@ static void __declspec(naked) action_melee_hack() {
 		mov  ebx, [eax+0x20]                      // objStruct->FID
 		and  ebx, 0x0F000000
 		sar  ebx, 0x18
-		cmp  ebx, ObjType_Critter                 // check if object FID type flag is set to critter
+		cmp  ebx, OBJ_TYPE_CRITTER                // check if object FID type flag is set to critter
 		jne  end                                  // if object not a critter leave jump condition flags
 		// set to skip dodge animation
-		test byte ptr [eax+0x44], 0x3             // (original code) DAM_KNOCKED_OUT or DAM_KNOCKED_DOWN
+		test byte ptr [eax+0x44], 3               // (original code) DAM_KNOCKED_OUT or DAM_KNOCKED_DOWN
 		jnz  end
 		mov  edx, 0x4113FE
 end:
@@ -601,10 +601,10 @@ static void __declspec(naked) action_ranged_hack() {
 		mov  ebx, [eax+0x20]                      // objStruct->FID
 		and  ebx, 0x0F000000
 		sar  ebx, 0x18
-		cmp  ebx, ObjType_Critter                 // check if object FID type flag is set to critter
+		cmp  ebx, OBJ_TYPE_CRITTER                // check if object FID type flag is set to critter
 		jne  end                                  // if object not a critter leave jump condition flags
 		// set to skip dodge animation
-		test byte ptr [eax+0x44], 0x3             // (original code) DAM_KNOCKED_OUT or DAM_KNOCKED_DOWN
+		test byte ptr [eax+0x44], 3               // (original code) DAM_KNOCKED_OUT or DAM_KNOCKED_DOWN
 		jnz  end
 		mov  edx, 0x411BD2
 end:
@@ -656,7 +656,7 @@ static void __declspec(naked) obj_load_func_hack() {
 		jnz  end
 		mov  edi, [eax+0x64]
 		shr  edi, 0x18
-		cmp  edi, ObjType_Critter
+		cmp  edi, OBJ_TYPE_CRITTER
 		jne  skip
 		test byte ptr [eax+0x44], 0x2             // DAM_KNOCKED_DOWN?
 		jz   clear                                // No
