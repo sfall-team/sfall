@@ -23,7 +23,7 @@
 #define VERSION_MAJOR 3
 #define VERSION_MINOR 6
 #define VERSION_BUILD 999
-#define VERSION_REV 5
+#define VERSION_REV 6
 #ifdef WIN2K
 #define VERSION_STRING "3.7 pre win2k"
 #else

@@ -123,9 +123,7 @@ static DWORD highlightingToggled=0;
 static DWORD MotionSensorMode;
 static BYTE toggleHighlightsKey;
 static DWORD HighlightContainers = 0;
-static DWORD Color_Items = 0x10; // yellow
-static DWORD Color_MouseOver = 0x10; // yellow
-static DWORD Color_Containers = 0x4; // light gray
+static DWORD Color_Containers = 0;
 static int idle;
 static char HighlightFail1[128];
 static char HighlightFail2[128];
@@ -889,12 +887,12 @@ loopObject:
 		jnz  nextObject                           // Yes
 		test dword ptr [ecx+0x74], eax            // Already outlined?
 		jnz  nextObject                           // Yes
-		mov  edx, Color_Items                     // yellow
+		mov  edx, 0x10                            // yellow
 		test byte ptr [ecx+0x25], dl              // NoHighlight_ flag is set (is this a container)?
 		jz   NoHighlight                          // No
 		cmp  HighlightContainers, eax             // Highlight containers?
 		je   nextObject                           // No
-		mov  edx, Color_Containers                // light gray
+		mov  edx, Color_Containers                // NR: should be set to yellow or purple later
 NoHighlight:
 		mov  [ecx+0x74], edx
 nextObject:
@@ -938,7 +936,7 @@ end:
 	}
 }
 
-static void __declspec(naked) gmouse_bk_process_hook() {
+/*static void __declspec(naked) gmouse_bk_process_hook() {  // NR: for changing mouse over highlight color. do we really need such fancy stuff?
 	__asm {
 		test eax, eax
 		jz   end
@@ -946,10 +944,10 @@ static void __declspec(naked) gmouse_bk_process_hook() {
 		jnz  end
 		mov  dword ptr [eax+0x74], 0
 end:
-		mov  edx, Color_MouseOver
+		mov  edx, 0x40
 		jmp  obj_outline_object_
 	}
-}
+}*/
 
 static void __declspec(naked) obj_remove_outline_hook() {
 	__asm {
@@ -972,14 +970,10 @@ void ScriptExtenderSetup() {
 	const bool AllowUnsafeScripting=false;
 #endif
 	toggleHighlightsKey = GetPrivateProfileIntA("Input", "ToggleItemHighlightsKey", 0, ini);
-
-	Color_Items = GetPrivateProfileIntA("Input", "HighlightColorItems", 0x10, ini);
-	Color_MouseOver = GetPrivateProfileIntA("Input", "HighlightColorMouseOver", 0x10, ini);
-	Color_Containers = GetPrivateProfileIntA("Input", "HighlightColorContainers", 0x4, ini);
-
+	Color_Containers = GetPrivateProfileIntA("Input", "HighlightContainersColor", 0x4, ini);
 	if (toggleHighlightsKey) {
 		MotionSensorMode = GetPrivateProfileIntA("Misc", "MotionScannerFlags", 1, ini);
-		HookCall(0x44B9BA, &gmouse_bk_process_hook);
+		//HookCall(0x44B9BA, &gmouse_bk_process_hook);
 		HookCall(0x44BD1C, &obj_remove_outline_hook);
 		HookCall(0x44E559, &obj_remove_outline_hook);
 		HighlightContainers = GetPrivateProfileIntA("Input", "HighlightContainers", 0, ini);
