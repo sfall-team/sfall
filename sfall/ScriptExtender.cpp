@@ -936,7 +936,7 @@ end:
 	}
 }
 
-/*static void __declspec(naked) gmouse_bk_process_hook() {  // NR: for changing mouse over highlight color. do we really need such fancy stuff?
+/*static void __declspec(naked) gmouse_bk_process_hook() {  // NR: for changing mouseover highlight color. do we really need such fancy stuff?
 	__asm {
 		test eax, eax
 		jz   end
@@ -970,13 +970,20 @@ void ScriptExtenderSetup() {
 	const bool AllowUnsafeScripting=false;
 #endif
 	toggleHighlightsKey = GetPrivateProfileIntA("Input", "ToggleItemHighlightsKey", 0, ini);
-	Color_Containers = GetPrivateProfileIntA("Input", "HighlightContainersColor", 0x4, ini);
 	if (toggleHighlightsKey) {
 		MotionSensorMode = GetPrivateProfileIntA("Misc", "MotionScannerFlags", 1, ini);
+		HighlightContainers = GetPrivateProfileIntA("Input", "HighlightContainers", 0, ini);
+		switch (HighlightContainers) {
+		case 1:
+			Color_Containers = 0x10; // yellow
+			break;
+		case 2:
+			Color_Containers = 0x40; // purple
+			break;
+		}
 		//HookCall(0x44B9BA, &gmouse_bk_process_hook);
 		HookCall(0x44BD1C, &obj_remove_outline_hook);
 		HookCall(0x44E559, &obj_remove_outline_hook);
-		HighlightContainers = GetPrivateProfileIntA("Input", "HighlightContainers", 0, ini);
 	}
 	GetPrivateProfileStringA("Sfall", "HighlightFail1", "You aren't carrying a motion sensor.", HighlightFail1, 128, translationIni);
 	GetPrivateProfileStringA("Sfall", "HighlightFail2", "Your motion sensor is out of charge.", HighlightFail2, 128, translationIni);
