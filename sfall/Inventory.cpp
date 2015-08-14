@@ -590,17 +590,17 @@ end:
 	}
 }
 
-static const DWORD inven_action_cursor_hook_End = 0x4736CB;
-static void __declspec(naked) inven_action_cursor_hook() {
+static const DWORD inven_action_cursor_hack_End = 0x4736CB;
+static void __declspec(naked) inven_action_cursor_hack() {
 	__asm {
 		mov     edx, [esp+0x1C]
 		call    SetDefaultAmmo
 		cmp     dword ptr [esp+0x18], 0
-		jmp     inven_action_cursor_hook_End
+		jmp     inven_action_cursor_hack_End
 	}
 }
 
-static void __declspec(naked) item_add_mult_hook() {
+static void __declspec(naked) item_add_mult_hack() {
 	__asm {
 		call    SetDefaultAmmo
 		call    item_add_force_
@@ -656,8 +656,8 @@ void InventoryInit() {
 	ReloadWeaponKey = GetPrivateProfileInt("Input", "ReloadWeaponKey", 0, ini);
 
 	if(GetPrivateProfileIntA("Misc", "StackEmptyWeapons", 0, ini)) {
-		MakeCall(0x4736C6, &inven_action_cursor_hook, true);
-		HookCall(0x4772AA, &item_add_mult_hook);
+		MakeCall(0x4736C6, &inven_action_cursor_hack, true);
+		HookCall(0x4772AA, &item_add_mult_hack);
 	}
 }
 void InventoryReset() {
