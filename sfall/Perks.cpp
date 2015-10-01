@@ -787,8 +787,9 @@ static int _stdcall trait_adjust_stat_override(DWORD statID) {
 			break;
 		case STAT_ac:
 			if(check_trait(TRAIT_kamikaze)) return -stat_get_base_direct(STAT_ac);
+			break;
 		case STAT_melee_dmg:
-			if(check_trait(TRAIT_heavy_handed)) result+=2;
+			if(check_trait(TRAIT_heavy_handed)) result+=4;
 			break;
 		case STAT_carry_amt:
 			if(check_trait(TRAIT_small_frame)) {
