@@ -808,6 +808,7 @@ void AmmoModInit() {
 			break;
 		case 5:
 			MakeCall(0x424995, &DamageFunction5, true);
+			break;
 		}
 	}
 	int BonusHtHDmgFix = GetPrivateProfileIntA("Misc", "BonusHtHDamageFix", 1, ini);
