@@ -791,7 +791,7 @@ end:
 }
 
 void AmmoModInit() {
-	int formula, BonusHtHDmgFix, DisplayBonusDmg;
+	int formula;
 	if (formula=GetPrivateProfileIntA("Misc", "DamageFormula", 0, ini)) {
 		switch (formula) {
 		case 1:
@@ -810,8 +810,8 @@ void AmmoModInit() {
 			MakeCall(0x424995, &DamageFunction5, true);
 		}
 	}
-	BonusHtHDmgFix = GetPrivateProfileIntA("Misc", "BonusHtHDamageFix", 1, ini);
-	DisplayBonusDmg = GetPrivateProfileIntA("Misc", "DisplayBonusDamage", 0, ini);
+	int BonusHtHDmgFix = GetPrivateProfileIntA("Misc", "BonusHtHDamageFix", 1, ini);
+	int DisplayBonusDmg = GetPrivateProfileIntA("Misc", "DisplayBonusDamage", 0, ini);
 	if (BonusHtHDmgFix) {
 		dlog("Applying Bonus HtH Damage Perk fix.", DL_INIT);
 		MakeCall(0x435C0C, &MeleeDmgDispFix, true);
