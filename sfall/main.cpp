@@ -60,6 +60,8 @@
 #include "timer.h"
 #include "version.h"
 
+bool IsDebug = false;
+
 char ini[65];
 char translationIni[65];
 
@@ -769,9 +771,7 @@ static void DllMain2() {
 	DWORD tmp;
 	dlogr("In DllMain2", DL_MAIN);
 
-	//BlockCall(0x4123BC);
-
-	if(GetPrivateProfileIntA("Speed", "Enable", 0, ini)) {
+	if (GetPrivateProfileIntA("Speed", "Enable", 0, ini)) {
 		dlog("Applying speed patch.", DL_INIT);
 		AddrGetTickCount = (DWORD)&FakeGetTickCount;
 		AddrGetLocalTime = (DWORD)&FakeGetLocalTime;
@@ -1116,23 +1116,23 @@ static void DllMain2() {
 		dlogr(" Done", DL_INIT);
 	}
 
-#ifdef TRACE
-	tmp=GetPrivateProfileIntA("Debugging", "DebugMode", 0, ini);
-	if(tmp) {
-		dlog("Applying debugmode patch.", DL_INIT);
-		//If the player is using an exe with the debug patch already applied, just skip this block without erroring
-		if(*((DWORD*)0x00444A64)!=0x082327e8) {
-			SafeWrite32(0x00444A64, 0x082327e8);
-			SafeWrite32(0x00444A68, 0x0120e900);
-			SafeWrite8(0x00444A6D, 0);
-			SafeWrite32(0x00444A6E, 0x90909090);
+	if (IsDebug) {
+		tmp = GetPrivateProfileIntA("Debugging", "DebugMode", 0, ".\\ddraw.ini");
+		if (tmp) {
+			dlog("Applying debugmode patch.", DL_INIT);
+			//If the player is using an exe with the debug patch already applied, just skip this block without erroring
+			if(*((DWORD*)0x00444A64)!=0x082327e8) {
+				SafeWrite32(0x00444A64, 0x082327e8);
+				SafeWrite32(0x00444A68, 0x0120e900);
+				SafeWrite8(0x00444A6D, 0);
+				SafeWrite32(0x00444A6E, 0x90909090);
+			}
+			SafeWrite8(0x004C6D9B, 0xb8);
+			if (tmp==1) SafeWrite32(0x004C6D9C, (DWORD)debugGnw);
+			else SafeWrite32(0x004C6D9C, (DWORD)debugLog);
+			dlogr(" Done", DL_INIT);
 		}
-		SafeWrite8(0x004C6D9B, 0xb8);
-		if(tmp==1) SafeWrite32(0x004C6D9C, (DWORD)debugGnw);
-		else SafeWrite32(0x004C6D9C, (DWORD)debugLog);
-		dlogr(" Done", DL_INIT);
 	}
-#endif
 
 	npcautolevel=GetPrivateProfileIntA("Misc", "NPCAutoLevel", 0, ini)!=0;
 	if(npcautolevel) {
@@ -1196,13 +1196,11 @@ static void DllMain2() {
 		dlogr(" Done", DL_INIT);
 	}
 
-#ifdef TRACE
-	if(GetPrivateProfileIntA("Debugging", "DontDeleteProtos", 0, ini)) {
+	if (IsDebug && GetPrivateProfileIntA("Debugging", "DontDeleteProtos", 0, ".\\ddraw.ini")) {
 		dlog("Applying permanent protos patch.", DL_INIT);
 		SafeWrite8(0x48007E, 0xeb);
 		dlogr(" Done", DL_INIT);
 	}
-#endif
 
 	CritInit();
 
@@ -1602,10 +1600,12 @@ static void CompatModeCheck(HKEY root, const char* filepath, int extra) {
 }
 
 bool _stdcall DllMain(HANDLE hDllHandle, DWORD dwReason, LPVOID  lpreserved) {
-	if(dwReason==DLL_PROCESS_ATTACH) {
-#ifdef TRACE
-		LoggingInit();
-#endif
+	if (dwReason == DLL_PROCESS_ATTACH) {
+		// enabling debugging features
+		IsDebug = (GetPrivateProfileIntA("Debugging", "Enable", 0, ".\\ddraw.ini") != 0);
+		if (IsDebug) {
+			LoggingInit();
+		}
 
 		HookCall(0x4DE7D2, &OnExitFunc);
 
@@ -1614,11 +1614,7 @@ bool _stdcall DllMain(HANDLE hDllHandle, DWORD dwReason, LPVOID  lpreserved) {
 
 		CRC(filepath);
 
-#ifdef TRACE
-		if(!GetPrivateProfileIntA("Debugging", "SkipCompatModeCheck", 0, ".\\ddraw.ini")) {
-#else
-		if(1) {
-#endif
+		if (!IsDebug || !GetPrivateProfileIntA("Debugging", "SkipCompatModeCheck", 0, ".\\ddraw.ini")) {
 			int is64bit;
 			typedef int (_stdcall *chk64bitproc)(HANDLE, int*);
 			HMODULE h=LoadLibrary("Kernel32.dll");
@@ -1631,10 +1627,10 @@ bool _stdcall DllMain(HANDLE hDllHandle, DWORD dwReason, LPVOID  lpreserved) {
 			CompatModeCheck(HKEY_LOCAL_MACHINE, filepath, is64bit?KEY_WOW64_64KEY:0);
 		}
 
-
-		bool cmdlineexists=false;
-		char* cmdline=GetCommandLineA();
-		if(GetPrivateProfileIntA("Main", "UseCommandLine", 0, ".\\ddraw.ini")) {
+		// ini file override
+		bool cmdlineexists = false;
+		char* cmdline = GetCommandLineA();
+		if (GetPrivateProfileIntA("Main", "UseCommandLine", 0, ".\\ddraw.ini")) {
 			while(cmdline[0]==' ') cmdline++;
 			bool InQuote=false;
 			int count=-1;
@@ -1656,11 +1652,11 @@ bool _stdcall DllMain(HANDLE hDllHandle, DWORD dwReason, LPVOID  lpreserved) {
 			}
 		}
 
-		if(cmdlineexists&&strlen(cmdline)) {
+		if (cmdlineexists && strlen(cmdline)) {
 			strcpy_s(ini, ".\\");
 			strcat_s(ini, cmdline);
 			HANDLE h = CreateFileA(cmdline, GENERIC_READ, 0, 0, OPEN_EXISTING, 0, 0);
-			if(h!=INVALID_HANDLE_VALUE) CloseHandle(h);
+			if (h!=INVALID_HANDLE_VALUE) CloseHandle(h);
 			else {
 				MessageBox(0, "You gave a command line argument to fallout, but it couldn't be matched to a file\n" \
 					"Using default ddraw.ini instead", "Warning", MB_TASKMODAL);

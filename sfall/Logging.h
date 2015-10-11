@@ -16,23 +16,21 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-//#define TRACE
-
 #define DL_MAIN      (0)
 #define DL_INIT      (1<<1)
 #define DL_HOOK      (1<<2)
 #define DL_SCRIPT    (1<<3)
 #define DL_CRITICALS (1<<4)
 
-#ifdef TRACE
+#ifndef NO_SFALL_DEBUG
 #include <stdio.h>
 
 void dlog(const char* msg, int type);
 void dlogr(const char* msg, int type);
+void dlog_f(const char *format, int type, ...);
 void LoggingInit();
 #else
 #define dlog(a,b)
 #define dlogr(a,b)
+#define dlog_f(a, b, ...)
 #endif
-
-void dlog_f(const char *format, int type, ...);

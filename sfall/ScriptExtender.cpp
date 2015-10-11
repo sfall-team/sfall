@@ -964,11 +964,9 @@ end:
 }
 
 void ScriptExtenderSetup() {
-#ifdef TRACE
-	bool AllowUnsafeScripting=GetPrivateProfileIntA("Debugging", "AllowUnsafeScripting", 0, ini)!=0;
-#else
-	const bool AllowUnsafeScripting=false;
-#endif
+	bool AllowUnsafeScripting = IsDebug 
+		&& GetPrivateProfileIntA("Debugging", "AllowUnsafeScripting", 0, ".\\ddraw.ini") != 0;
+
 	toggleHighlightsKey = GetPrivateProfileIntA("Input", "ToggleItemHighlightsKey", 0, ini);
 	if (toggleHighlightsKey) {
 		MotionSensorMode = GetPrivateProfileIntA("Misc", "MotionScannerFlags", 1, ini);

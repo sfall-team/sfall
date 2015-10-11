@@ -52,11 +52,11 @@ void CRC(const char* filepath) {
 	if (h == INVALID_HANDLE_VALUE) Fail("Cannot open fallout2.exe for CRC check");
 	DWORD size = GetFileSize(h, 0), crc;
 	bool sizeMatch = (size == ExpectedSize);
-#ifdef TRACE
-	if (!sizeMatch && GetPrivateProfileIntA("Debugging", "SkipSizeCheck", 0, ".\\ddraw.ini")) {
+
+	if (IsDebug && !sizeMatch && GetPrivateProfileIntA("Debugging", "SkipSizeCheck", 0, ".\\ddraw.ini")) {
 		sizeMatch = true;
 	}
-#endif
+
 	if (!sizeMatch) {
 		sprintf_s(buf, "You're trying to use sfall with an incompatible version of fallout\nWas expecting '" TARGETVERSION "'\n\nfallout2.exe was an unexpected size. Expected 0x%x but got 0x%x", ExpectedSize, size);
 		Fail(buf);
@@ -66,8 +66,8 @@ void CRC(const char* filepath) {
 	crc = crcInternal(bytes, size);
 
 	bool matchedCRC = false;
-#ifdef TRACE
-	if (GetPrivateProfileStringA("Debugging", "ExtraCRC", "", buf, 512, ".\\ddraw.ini") > 0) {
+
+	if (IsDebug && GetPrivateProfileStringA("Debugging", "ExtraCRC", "", buf, 512, ".\\ddraw.ini") > 0) {
 		char *TestCRC;
 		TestCRC = strtok(buf, ",");
 		while (TestCRC) {
@@ -76,7 +76,7 @@ void CRC(const char* filepath) {
 			TestCRC = strtok(0, ",");
 		}
 	}
-#endif
+
 	for (int i=0; i < sizeof(ExpectedCRC)/4; i++) {
 		if (crc == ExpectedCRC[i]) matchedCRC = true;
 	}

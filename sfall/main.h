@@ -23,6 +23,13 @@
 #include "SafeWrite.h"
 #include "Logging.h"
 
+// global flag, indicating that debugging features of Sfall are enabled
+#ifndef NO_SFALL_DEBUG
+	extern bool IsDebug;
+#else
+	#define IsDebug false
+#endif
+
 extern char ini[65];
 extern char translationIni[65];
 
@@ -31,12 +38,14 @@ extern char dfModelName[65];
 
 extern bool npcautolevel;
 
-template<typename T> T SimplePatch(DWORD addr, const char* iniSection, const char* iniKey, T defaultValue, T minValue = 0, T maxValue = INT_MAX)
+template<typename T> 
+T SimplePatch(DWORD addr, const char* iniSection, const char* iniKey, T defaultValue, T minValue = 0, T maxValue = INT_MAX)
 {
 	return SimplePatch<T>(&addr, 1, iniSection, iniKey, defaultValue, minValue, maxValue);
 }
 
-template<typename T> T SimplePatch(DWORD *addrs, int numAddrs, const char* iniSection, const char* iniKey, T defaultValue, T minValue = 0, T maxValue = INT_MAX)
+template<typename T> 
+T SimplePatch(DWORD *addrs, int numAddrs, const char* iniSection, const char* iniKey, T defaultValue, T minValue = 0, T maxValue = INT_MAX)
 {
 	T value;
 	char msg[255];

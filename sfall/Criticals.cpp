@@ -77,27 +77,27 @@ void _stdcall ResetCriticalTable(DWORD critter, DWORD bodypart, DWORD slot, DWOR
 }
 
 void CritLoad() {
-	if(!Inited) return;
+	if (!Inited) return;
 	CritStruct* defaultTable=(CritStruct*)0x510978;
-	if(mode==1) {
+	if (mode==1) {
 		char section[16];
 		dlogr("Setting up critical hit table using CriticalOverrides.ini", DL_CRITICALS);
 		memset(critTable, 0, CritTableSize*sizeof(CritStruct));
-		for(DWORD critter=0;critter<20;critter++) {
-			for(DWORD part=0;part<9;part++) {
-				for(DWORD crit=0;crit<6;crit++) {
+		for (DWORD critter=0;critter<20;critter++) {
+			for (DWORD part=0;part<9;part++) {
+				for (DWORD crit=0;crit<6;crit++) {
 					sprintf_s(section, "c_%02d_%d_%d", critter, part, crit);
 					int slot1=crit+part*6+critter*9*6;
 					int slot2=crit+part*6+((critter==19)?38:critter)*9*6;
-					for(int i=0;i<7;i++) {
+					for (int i=0;i<7;i++) {
 						critTable[slot2].values[i]=GetPrivateProfileIntA(section, CritNames[i], defaultTable[slot1].values[i], ".\\CriticalOverrides.ini");
-#ifdef TRACE
-						char logmsg[256];
-						if(critTable[slot2].values[i]!=defaultTable[slot1].values[i]) {
-							sprintf_s(logmsg, "Entry %s value %d changed from %d to %d", section, i, defaultTable[slot1].values[i], critTable[slot2].values[i]);
-							dlogr(logmsg, DL_CRITICALS);
+						if (IsDebug) {
+							char logmsg[256];
+							if(critTable[slot2].values[i]!=defaultTable[slot1].values[i]) {
+								sprintf_s(logmsg, "Entry %s value %d changed from %d to %d", section, i, defaultTable[slot1].values[i], critTable[slot2].values[i]);
+								dlogr(logmsg, DL_CRITICALS);
+							}
 						}
-#endif
 					}
 				}
 			}
@@ -108,22 +108,22 @@ void CritLoad() {
 		memset(&critTable[6*9*19], 0, 6*9*19*sizeof(CritStruct));
 		memcpy(playerCrit, (void*)0x5179B0, 6*9*sizeof(CritStruct));
 
-		if(mode==3) {
+		if (mode==3) {
 			char buf[32], buf2[32], buf3[32];
-			for(int critter=0;critter<CritTableCount;critter++) {
+			for (int critter=0;critter<CritTableCount;critter++) {
 				sprintf_s(buf, "c_%02d", critter);
 				int all;
 				if(!(all=GetPrivateProfileIntA(buf, "Enabled", 0, ".\\CriticalOverrides.ini"))) continue;
-				for(int part=0;part<9;part++) {
-					if(all<2) {
+				for (int part=0;part<9;part++) {
+					if (all<2) {
 						sprintf_s(buf2, "Part_%d", part);
-						if(!GetPrivateProfileIntA(buf, buf2, 0, ".\\CriticalOverrides.ini")) continue;
+						if (!GetPrivateProfileIntA(buf, buf2, 0, ".\\CriticalOverrides.ini")) continue;
 					}
 
 					sprintf_s(buf2, "c_%02d_%d", critter, part);
-					for(int crit=0;crit<6;crit++) {
+					for (int crit=0;crit<6;crit++) {
 						int slot=crit+part*6+critter*9*6;
-						for(int i=0;i<7;i++) {
+						for (int i=0;i<7;i++) {
 							sprintf_s(buf3, "e%d_%s", crit, CritNames[i]);
 							critTable[slot].values[i]=GetPrivateProfileIntA(buf2, buf3, critTable[slot].values[i], ".\\CriticalOverrides.ini");
 						}

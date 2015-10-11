@@ -123,9 +123,7 @@ static void _stdcall SaveGame2() {
 	char buf[MAX_PATH];
 	GetSavePath(buf, 0);
 
-#ifdef TRACE
 	dlog_f("Saving game: %s\r\n", DL_MAIN, buf);
-#endif
 
 	DWORD unused;
 	DWORD unused2=0;
@@ -216,9 +214,7 @@ static void _stdcall LoadGame2_After() {
 	char buf[MAX_PATH];
 	GetSavePath(buf, 0);
 
-#ifdef TRACE
 	dlog_f("Loading save game: %s\r\n", DL_MAIN, buf);
-#endif
 
 	ClearGlobals();
 	HANDLE h=CreateFileA(buf, GENERIC_READ, FILE_SHARE_READ, 0, OPEN_EXISTING, 0, 0);

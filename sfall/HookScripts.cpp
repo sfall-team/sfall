@@ -88,12 +88,8 @@ static void _stdcall RunSpecificHookScript(sHookScript *hook) {
 		RunScriptProc(&hook->prog, start_proc);
 }
 static void _stdcall RunHookScript(DWORD hook) {
-	if(hooks[hook].size()) {
-#ifdef TRACE
-	char buf[256];
-	sprintf_s(buf, "Running hook %d, which has %0d entries attached", hook, hooks[hook].size());
-	dlogr(buf, DL_HOOK);
-#endif
+	if (hooks[hook].size()) {
+		dlog_f("Running hook %d, which has %0d entries attached\r\n", DL_HOOK, hook, hooks[hook].size());
 		cRet=0;
 		for(int i=hooks[hook].size()-1;i>=0;i--) RunSpecificHookScript(&hooks[hook][i]);
 	} else {
@@ -998,9 +994,7 @@ void _stdcall RegisterHook( DWORD script, DWORD id, DWORD procNum )
 	}
 	sScriptProgram *prog = GetGlobalScriptProgram(script);
 	if (prog) {
-#ifdef TRACE
 		dlog_f( "Global script %8x registered as hook id %d ", DL_HOOK, script, id);
-#endif
 		sHookScript hook;
 		hook.prog = *prog;
 		hook.callback = procNum;
