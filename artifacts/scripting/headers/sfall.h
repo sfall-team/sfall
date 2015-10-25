@@ -41,6 +41,7 @@
 #define HOOK_STEAL           (22)
 #define HOOK_WITHINPERCEPTION (23)
 #define HOOK_INVENTORYMOVE    (24)
+#define HOOK_INVENWIELD		 (25)
 
 //Valid arguments to list_begin
 #define LIST_CRITTERS    (0)
