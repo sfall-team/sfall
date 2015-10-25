@@ -109,7 +109,7 @@ static void __declspec(naked) ToHitHook() {
 		call determine_to_hit_func_
 		mov args[0], eax;
 		pushad;
-		push 0;
+		push HOOK_TOHIT;
 		call RunHookScript;
 		popad;
 		cmp cRet, 1;
@@ -134,7 +134,7 @@ static void __declspec(naked) AfterHitRollHook() {
 		mov ebx, [esp+0x18];
 		mov args[16], ebx; //hit chance
 		pushad;
-		push 1;
+		push HOOK_AFTERHITROLL;
 		call RunHookScript;
 		popad;
 		cmp cRet, 1;
@@ -165,7 +165,7 @@ static void __declspec(naked) CalcApCostHook() {
 		call item_w_mp_cost_;
 		mov args[12], eax;
 		pushad;
-		push 2;
+		push HOOK_CALCAPCOST;
 		call RunHookScript;
 		popad;
 		cmp cRet, 1;
@@ -186,7 +186,7 @@ static void __declspec(naked) CalcApCostHook2() {
 		mov eax, 2; // vanilla value
 		mov args[12], eax;
 		pushad;
-		push 2;
+		push HOOK_CALCAPCOST;
 		call RunHookScript;
 		popad;
 		cmp cRet, 1;
@@ -217,7 +217,7 @@ weapend:
 		mov args[12], ecx;
 		mov args[20], 0;
 		pushad;
-		push 3;
+		push HOOK_DEATHANIM1;
 		call RunHookScript;
 		cmp cRet, 1;
 		jl end1;
@@ -245,7 +245,7 @@ end1:
 		mov eax, args[16];
 		mov ArgCount, 5;
 		pushad;
-		push 4;
+		push HOOK_DEATHANIM2;
 		call RunHookScript;
 		popad;
 		cmp cRet, 1;
@@ -279,7 +279,7 @@ static void __declspec(naked) CalcDeathAnimHook2() {
 		mov args[12], ebx; // dmgAmount
 		mov args[16], eax; // calculated animID
 		pushad;
-		push 4;
+		push HOOK_DEATHANIM2;
 		call RunHookScript;
 		popad;
 		cmp cRet, 1;
@@ -334,7 +334,7 @@ hookscript:
 		mov args[0x28], ebx;
 
 		pushad;
-		push 5;
+		push HOOK_COMBATDAMAGE;
 		call RunHookScript;
 		popad;
 
@@ -370,7 +370,7 @@ static void __declspec(naked) OnDeathHook() {
 		mov args[0], eax;
 		call critter_kill_
 		pushad;
-		push 6;
+		push HOOK_ONDEATH;
 		call RunHookScript;
 		popad;
 		hookend;
@@ -384,7 +384,7 @@ static void __declspec(naked) OnDeathHook2() {
 		mov args[0], esi;
 		call partyMemberRemove_
 		pushad;
-		push 6;
+		push HOOK_ONDEATH;
 		call RunHookScript;
 		popad;
 		hookend;
@@ -405,7 +405,7 @@ static void __declspec(naked) FindTargetHook() {
 		mov edi, [eax+12];
 		mov args[16], edi;
 		pushad;
-		push 7
+		push HOOK_FINDTARGET;
 		call RunHookScript;
 		popad;
 		cmp cRet, 4;
@@ -434,7 +434,7 @@ static void __declspec(naked) UseObjOnHook() {
 		mov args[4], eax; // user
 		mov args[8], ebx; // object
 		pushad;
-		push 8;
+		push HOOK_USEOBJON;
 		call RunHookScript;
 		popad;
 		cmp cRet, 1;
@@ -456,7 +456,7 @@ static void __declspec(naked) UseObjOnHook_item_d_take_drug() {
 		mov args[4], eax; // user
 		mov args[8], edx; // object
 		pushad;
-		push 8; // useobjon
+		push HOOK_USEOBJON; // useobjon
 		call RunHookScript;
 		popad;
 		cmp cRet, 1;
@@ -477,7 +477,7 @@ static void __declspec(naked) UseObjHook() {
 		mov args[0], eax; // user
 		mov args[4], edx; // object
 		pushad;
-		push 18;
+		push HOOK_USEOBJ;
 		call RunHookScript;
 		popad;
 		cmp cRet, 1;
@@ -505,7 +505,7 @@ static void __declspec(naked) RemoveObjHook() {
 		mov args[8], ebx;
 		mov args[12], ecx;
 		pushad;
-		push 9;
+		push HOOK_REMOVEINVENOBJ;
 		call RunHookScript;
 		popad;
 		hookend;
@@ -534,7 +534,7 @@ static void __declspec(naked) BarterPriceHook() {
 		mov args[20], eax;
 		mov eax, edx;
 		pushad;
-		push 10;
+		push HOOK_BARTERPRICE;
 		call RunHookScript;
 		popad;
 		cmp cRet, 1;
@@ -554,7 +554,7 @@ static void __declspec(naked) MoveCostHook() {
 		call critter_compute_ap_from_distance_
 		mov args[8], eax;
 		pushad;
-		push 11;
+		push HOOK_MOVECOST;
 		call RunHookScript;
 		popad;
 		cmp cRet, 1;
@@ -583,7 +583,7 @@ static void __declspec(naked) HexMBlockingHook() {
 next:
 		mov args[12], eax;
 		pushad;
-		push 12;
+		push HOOK_HEXMOVEBLOCKING;
 		call RunHookScript;
 		popad;
 		cmp cRet, 1;
@@ -604,7 +604,7 @@ static void __declspec(naked) HexABlockingHook() {
 		call obj_ai_blocking_at_
 		mov args[12], eax;
 		pushad;
-		push 13;
+		push HOOK_HEXAIBLOCKING;
 		call RunHookScript;
 		popad;
 		cmp cRet, 1;
@@ -625,7 +625,7 @@ static void __declspec(naked) HexShootBlockingHook() {
 		call obj_shoot_blocking_at_
 		mov args[12], eax;
 		pushad;
-		push 14;
+		push HOOK_HEXSHOOTBLOCKING;
 		call RunHookScript;
 		popad;
 		cmp cRet, 1;
@@ -646,7 +646,7 @@ static void __declspec(naked) HexSightBlockingHook() {
 		call obj_sight_blocking_at_
 		mov args[12], eax;
 		pushad;
-		push 15;
+		push HOOK_HEXSIGHTBLOCKING;
 		call RunHookScript;
 		popad;
 		cmp cRet, 1;
@@ -672,7 +672,7 @@ static void __declspec(naked) ItemDamageHook() {
 		add args[16], 8;
 skip:
 		pushad;
-		push 16;
+		push HOOK_ITEMDAMAGE;
 		call RunHookScript;
 		popad;
 		cmp cRet, 0;
@@ -701,7 +701,7 @@ static void __declspec(naked) AmmoCostHook_internal() {
 		mov ebx, [edx]
 		mov args[8], ebx; //rounds as computed by game
 
-		push 17;
+		push HOOK_AMMOCOST;
 		call RunHookScript;
 		popad;
 		cmp cRet, 0;
@@ -742,7 +742,7 @@ void _stdcall KeyPressHook( DWORD dxKey, bool pressed, DWORD vKey )
 	args[0] = (DWORD)pressed;
 	args[1] = dxKey;
 	args[2] = vKey;
-	RunHookScript(19);
+	RunHookScript(HOOK_KEYPRESS);
 	InventoryKeyPressedHook(dxKey, pressed, vKey);
 	EndHook();
 }
@@ -751,7 +751,7 @@ void _stdcall MouseClickHook(DWORD button, bool pressed) {
 	ArgCount = 2;
 	args[0] = (DWORD)pressed;
 	args[1] = button;
-	RunHookScript(20);
+	RunHookScript(HOOK_MOUSECLICK);
 	EndHook();
 }
 
@@ -763,7 +763,7 @@ static void __declspec(naked) UseSkillHook() {
 		mov args[8], ebx; // skill id
 		mov args[12], ecx; // skill bonus
 		pushad;
-		push 21;
+		push HOOK_USESKILL;
 		call RunHookScript;
 		popad;
 		cmp cRet, 1;
@@ -788,7 +788,7 @@ static void __declspec(naked) StealCheckHook() {
 		mov args[8], ebx; // item
 		mov args[12], ecx; // is planting
 		pushad;
-		push 22;
+		push HOOK_STEAL;
 		call RunHookScript;
 		popad;
 		cmp cRet, 1;
@@ -813,7 +813,7 @@ static void __declspec(naked) PerceptionRangeHook() {
 		call is_within_perception_
 		mov args[8], eax; // check result
 		pushad;
-		push 23;
+		push HOOK_WITHINPERCEPTION;
 		call RunHookScript;
 		popad;
 		cmp cRet, 1;
@@ -850,7 +850,7 @@ static int __stdcall SwitchHandHook2(TGameObj* item, TGameObj* itemReplaced, DWO
 	args[0] = (addr < 0x47136D) ? 1 : 2;
 	args[1] = (DWORD)item;
 	args[2] = (DWORD)itemReplaced;
-	RunHookScript(24); // moveinventory
+	RunHookScript(HOOK_INVENTORYMOVE); // moveinventory
 	tmp = PartyControl_SwitchHandHook(item);
 	if (tmp != -1) {
 		cRetTmp = 0;
@@ -899,7 +899,7 @@ static void _declspec(naked) UseArmorHack() {
   		mov eax, ds:[_i_worn]
 		mov args[8], eax;
 		pushad;
-		push 24;
+		push HOOK_INVENTORYMOVE;
 		call RunHookScript;
 		popad;
 		cmp cRet, 1;
@@ -922,7 +922,7 @@ static void _declspec(naked) MoveInventoryHook() {
 		mov args[4], edx;
 		mov args[8], 0; // no item being replaced here..
 		pushad;
-		push 24;
+		push HOOK_INVENTORYMOVE;
 		call RunHookScript;
 		popad;
 		cmp cRet, 1;
@@ -947,7 +947,7 @@ static void _declspec(naked) DropAmmoIntoWeaponHack() {
 		mov args[4], eax;
 		mov args[8], ebp;
 		pushad;
-		push 24;
+		push HOOK_INVENTORYMOVE;
 		call RunHookScript;
 		popad;
 		cmp cRet, 1;
