@@ -21,6 +21,7 @@
 #include <string>
 #include <vector>
 
+#include "Define.h"
 #include "FalloutEngine.h"
 #include "HookScripts.h"
 #include "Inventory.h"
@@ -30,7 +31,7 @@
 
 
 #define MAXDEPTH (8)
-static const int numHooks = 25;
+static const int numHooks = HOOK_COUNT;
 
 struct sHookScript {
 	sScriptProgram prog;
@@ -937,6 +938,99 @@ skipcall:
 	}
 }
 
+static void _declspec(naked) invenWieldFunc_Hook() {
+	__asm {
+		hookbegin(4);
+		mov args[0], eax; // critter
+		mov args[4], edx; // item
+		mov args[8], ebx; // slot
+		mov args[12], 1; // wield flag
+		pushad;
+		cmp ebx, 1; // right hand slot?
+		je skip;
+		mov eax, edx;
+		call item_get_type_;
+		cmp eax, item_type_armor;
+		jz skip;
+		mov args[8], 2; // INVEN_TYPE_LEFT_HAND
+skip:		
+		push HOOK_INVENWIELD;
+		call RunHookScript;
+		popad;
+		cmp cRet, 1;
+		jl	defaulthandler;
+		cmp rets[0], -1;
+		je defaulthandler;
+		jmp end
+defaulthandler:
+		call invenWieldFunc_
+end:
+		hookend;
+		retn;
+	}
+}
+
+// called when unwielding weapons
+static void _declspec(naked) invenUnwieldFunc_Hook() {
+	__asm {
+		hookbegin(4);
+		mov args[0], eax; // critter
+		mov args[4], 0; // item
+		mov args[8], edx; // slot
+		mov args[12], 0; // wield flag
+		cmp edx, 0; // left hand slot?
+		jne notlefthand;
+		mov args[8], 2; // left hand
+notlefthand:
+		pushad;
+		push HOOK_INVENWIELD;
+		call RunHookScript;
+		popad;
+		cmp cRet, 1;
+		jl	defaulthandler;
+		cmp rets[0], -1;
+		je defaulthandler;
+		jmp end
+defaulthandler:
+		call invenUnwieldFunc_;
+end:
+		hookend;
+		retn;
+	}
+}
+
+static void _declspec(naked) correctFidForRemovedItem_Hook() {
+	__asm {
+		hookbegin(4);
+		mov args[0], eax; // critter
+		mov args[4], edx; // item
+		mov args[8], 0; // slot
+		mov args[12], 0 // wield flag (armor by default)
+		test ebx, 0x02000000; // right hand slot?
+		jz notrighthand;
+		mov args[8], 1; // right hand
+notrighthand:
+		test ebx, 0x01000000; // left hand slot?
+		jz notlefthand;
+		mov args[8], 2; // left hand
+notlefthand:
+		pushad;
+		push HOOK_INVENWIELD;
+		call RunHookScript;
+		popad;
+		cmp cRet, 1;
+		jl	defaulthandler;
+		cmp rets[0], -1;
+		je defaulthandler;
+		jmp end
+defaulthandler:
+		call correctFidForRemovedItem_;
+end:
+		hookend;
+		retn;
+	}
+}
+
 static const DWORD DropAmmoIntoWeaponHack_back = 0x47658D; // proceed with reloading
 static const DWORD DropAmmoIntoWeaponHack_return = 0x476643;
 static void _declspec(naked) DropAmmoIntoWeaponHack() {
@@ -1165,6 +1259,15 @@ static void HookScriptInit2() {
 	//HookCall(0x4712C7, &DropAmmoIntoWeaponHook);
 	//HookCall(0x471351, &DropAmmoIntoWeaponHook);
 	MakeCall(0x476588, &DropAmmoIntoWeaponHack, true);
+
+	LoadHookScript("invenwield", HOOK_INVENWIELD);
+	HookCall(0x47275E, &invenWieldFunc_Hook);
+	HookCall(0x495FDF, &invenWieldFunc_Hook);
+	HookCall(0x45967D, &invenUnwieldFunc_Hook);
+	HookCall(0x472A5A, &invenUnwieldFunc_Hook);
+	HookCall(0x495F0B, &invenUnwieldFunc_Hook);
+	HookCall(0x45680C, &correctFidForRemovedItem_Hook);
+	HookCall(0x45C4EA, &correctFidForRemovedItem_Hook);
 
 	dlogr("Completed hook script init", DL_HOOK|DL_INIT);
 

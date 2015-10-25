@@ -216,6 +216,7 @@ extern const DWORD combat_input_;
 extern const DWORD combat_should_end_;
 extern const DWORD combat_turn_;
 extern const DWORD compute_damage_;
+extern const DWORD correctFidForRemovedItem_; // (int critter@<eax>, int oldArmor@<edx>, int removeSlotsFlags@<ebx>)
 extern const DWORD credits_;
 extern const DWORD credits_get_next_line_;
 extern const DWORD critter_body_type_;
@@ -305,6 +306,8 @@ extern const DWORD intface_update_hit_points_;
 extern const DWORD intface_update_items_;
 extern const DWORD intface_update_move_points_;
 extern const DWORD intface_use_item_;
+extern const DWORD invenUnwieldFunc_; // (int critter@<eax>, int slot@<edx>, int a3@<ebx>) - int result (-1 on error, 0 on success)
+extern const DWORD invenWieldFunc_; // (int who@<eax>, int item@<edx>, int a3@<ecx>, int slot@<ebx>) - int result (-1 on error, 0 on success)
 extern const DWORD inven_display_msg_;
 extern const DWORD inven_left_hand_;
 extern const DWORD inven_pid_is_carried_ptr_;
