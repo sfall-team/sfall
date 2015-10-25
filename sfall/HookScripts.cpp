@@ -1030,7 +1030,7 @@ static void _LoadHookScript(const char* path, int id) {
 static void HookScriptInit2() {
 	dlogr("Initing hook scripts", DL_HOOK|DL_INIT);
 
-	LoadHookScript("tohit", 0);
+	LoadHookScript("tohit", HOOK_TOHIT);
 	HookCall(0x421686, &ToHitHook);
 	HookCall(0x4231D9, &ToHitHook);
 	HookCall(0x42331F, &ToHitHook);
@@ -1040,10 +1040,10 @@ static void HookScriptInit2() {
 	HookCall(0x42439C, &ToHitHook);
 	HookCall(0x42679A, &ToHitHook);
 
-	LoadHookScript("afterhitroll", 1);
+	LoadHookScript("afterhitroll", HOOK_AFTERHITROLL);
 	MakeCall(0x423893, &AfterHitRollHook, true);
 
-	LoadHookScript("calcapcost", 2);
+	LoadHookScript("calcapcost", HOOK_CALCAPCOST);
 	HookCall(0x42307A, &CalcApCostHook);
 	HookCall(0x42669F, &CalcApCostHook);
 	HookCall(0x42687B, &CalcApCostHook);
@@ -1056,14 +1056,14 @@ static void HookScriptInit2() {
 	HookCall(0x47807B, &CalcApCostHook);
 	MakeCall(0x478083, &CalcApCostHook2, false);
 
-	LoadHookScript("deathanim1", 3);
-	LoadHookScript("deathanim2", 4);
+	LoadHookScript("deathanim1", HOOK_DEATHANIM1);
+	LoadHookScript("deathanim2", HOOK_DEATHANIM2);
 	HookCall(0x4109DE, &CalcDeathAnimHook);
 	HookCall(0x410981, &CalcDeathAnimHook2);
 	HookCall(0x4109A1, &CalcDeathAnimHook2);
 	HookCall(0x4109BF, &CalcDeathAnimHook2);
 
-	LoadHookScript("combatdamage", 5);
+	LoadHookScript("combatdamage", HOOK_COMBATDAMAGE);
 	HookCall(0x42326C, &CombatDamageHook); // check_ranged_miss()
 	HookCall(0x4233E3, &CombatDamageHook); // shoot_along_path() - for extra burst targets
 	HookCall(0x423AB7, &CombatDamageHook); // compute_attack()
@@ -1073,7 +1073,7 @@ static void HookScriptInit2() {
 	HookCall(0x424220, &CombatDamageHook); // attack_crit_failure()
 	HookCall(0x4242FB, &CombatDamageHook); // attack_crit_failure()
 
-	LoadHookScript("ondeath", 6);
+	LoadHookScript("ondeath", HOOK_ONDEATH);
 	HookCall(0x4130CC, &OnDeathHook);
 	HookCall(0x4130EF, &OnDeathHook);
 	HookCall(0x413603, &OnDeathHook);
@@ -1086,10 +1086,10 @@ static void HookScriptInit2() {
 	HookCall(0x4C14F9, &OnDeathHook);
 	HookCall(0x425161, &OnDeathHook2);
 
-	LoadHookScript("findtarget", 7);
+	LoadHookScript("findtarget", HOOK_FINDTARGET);
 	HookCall(0x429143, &FindTargetHook);
 
-	LoadHookScript("useobjon", 8);
+	LoadHookScript("useobjon", HOOK_USEOBJON);
 	HookCall(0x49C606, &UseObjOnHook);
 	HookCall(0x473619, &UseObjOnHook);
 	// the following hooks allows to catch drug use of AI and from action cursor
@@ -1098,22 +1098,22 @@ static void HookScriptInit2() {
 	HookCall(0x4287F8, &UseObjOnHook_item_d_take_drug); // ai_check_drugs
 	HookCall(0x473573, &UseObjOnHook_item_d_take_drug); // inven_action_cursor
 
-	LoadHookScript("removeinvenobj", 9);
+	LoadHookScript("removeinvenobj", HOOK_REMOVEINVENOBJ);
 	MakeCall(0x477490, &RemoveObjHook, true);
 
-	LoadHookScript("barterprice", 10);
+	LoadHookScript("barterprice", HOOK_BARTERPRICE);
 	HookCall(0x474D4C, &BarterPriceHook);
 	HookCall(0x475735, &BarterPriceHook);
 	HookCall(0x475762, &BarterPriceHook);
 
-	LoadHookScript("movecost", 11);
+	LoadHookScript("movecost", HOOK_MOVECOST);
 	HookCall(0x417665, &MoveCostHook);
 	HookCall(0x44B88A, &MoveCostHook);
 
-	LoadHookScript("hexmoveblocking", 12);
-	LoadHookScript("hexaiblocking", 13);
-	LoadHookScript("hexshootblocking", 14);
-	LoadHookScript("hexsightblocking", 15);
+	LoadHookScript("hexmoveblocking", HOOK_HEXMOVEBLOCKING);
+	LoadHookScript("hexaiblocking", HOOK_HEXAIBLOCKING);
+	LoadHookScript("hexshootblocking", HOOK_HEXSHOOTBLOCKING);
+	LoadHookScript("hexsightblocking", HOOK_HEXSIGHTBLOCKING);
 	SafeWrite32(0x413979, (DWORD)&HexSightBlockingHook);
 	SafeWrite32(0x4C1A88, (DWORD)&HexShootBlockingHook);
 	SafeWrite32(0x423178, (DWORD)&HexShootBlockingHook);
@@ -1124,29 +1124,29 @@ static void HookScriptInit2() {
 	SafeWrite32(0x42A0A4, (DWORD)&HexABlockingHook);
 	MakeCall(0x48B848, &HexMBlockingHook, true);
 
-	LoadHookScript("itemdamage", 16);
+	LoadHookScript("itemdamage", HOOK_ITEMDAMAGE);
 	HookCall(0x478560, &ItemDamageHook);
 
-	LoadHookScript("ammocost", 17);
+	LoadHookScript("ammocost", HOOK_AMMOCOST);
 	HookCall(0x423A7C, &AmmoCostHook);
 
-	LoadHookScript("useobj", 18);
+	LoadHookScript("useobj", HOOK_USEOBJ);
 	HookCall(0x42AEBF, &UseObjHook);
 	HookCall(0x473607, &UseObjHook);
 	HookCall(0x49C12E, &UseObjHook);
 
-	LoadHookScript("keypress", 19);
-	LoadHookScript("mouseclick", 20);
+	LoadHookScript("keypress", HOOK_KEYPRESS);
+	LoadHookScript("mouseclick", HOOK_MOUSECLICK);
 
-	LoadHookScript("useskill", 21);
+	LoadHookScript("useskill", HOOK_USESKILL);
 	HookCall(0x49C48F, &UseSkillHook);
 	HookCall(0x49D12E, &UseSkillHook);
 
-	LoadHookScript("steal", 22);
+	LoadHookScript("steal", HOOK_STEAL);
 	HookCall(0x4749A2, &StealCheckHook);
 	HookCall(0x474A69, &StealCheckHook);
 
-	LoadHookScript("withinperception", 23);
+	LoadHookScript("withinperception", HOOK_WITHINPERCEPTION);
 	HookCall(0x429157, &PerceptionRangeHook);
 	HookCall(0x42B4ED, &PerceptionRangeHook);
 	HookCall(0x42BC87, &PerceptionRangeHook);
@@ -1155,7 +1155,7 @@ static void HookScriptInit2() {
 	MakeCall(0x456BA2, &PerceptionRangeBonusHack, true);
 	HookCall(0x458403, &PerceptionRangeHook);
 
-	LoadHookScript("inventorymove", 24);
+	LoadHookScript("inventorymove", HOOK_INVENTORYMOVE);
 	HookCall(0x4712E3, &SwitchHandHook); // left slot
 	HookCall(0x47136D, &SwitchHandHook); // right slot
 	MakeCall(0x4713A3, &UseArmorHack, true);
