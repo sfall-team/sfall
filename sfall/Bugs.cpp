@@ -772,7 +772,7 @@ void BugsInit()
 	SafeWrite8(0x475541, 64);
 	SafeWrite8(0x475789, 64);
 
-	if (GetPrivateProfileIntA("Misc", "InventoryDragIssuesFix", 0, ini)) {
+	if (GetPrivateProfileIntA("Misc", "InventoryDragIssuesFix", 1, ini)) {
 		dlog("Applying inventory reverse order issues fix.", DL_INIT);
 		// Fix for minor visual glitch when picking up solo item from the top of inventory
 		// and there is multiple item stack at the bottom of inventory
