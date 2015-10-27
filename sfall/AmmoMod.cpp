@@ -408,7 +408,7 @@ end:
 	}
 }
 
-// Jim's Formula
+// Jim's Formula for the Mechanics Overhaul Mod
 static __declspec(naked) void DamageFunction4() {
 	__asm {
 		mov eax,dword ptr ds:[esi+0x8];		// Get pointer to critter's weapon

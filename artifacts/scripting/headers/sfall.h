@@ -41,7 +41,7 @@
 #define HOOK_STEAL           (22)
 #define HOOK_WITHINPERCEPTION (23)
 #define HOOK_INVENTORYMOVE    (24)
-#define HOOK_INVENWIELD		 (25)
+#define HOOK_INVENWIELD      (25)
 
 //Valid arguments to list_begin
 #define LIST_CRITTERS    (0)
@@ -89,7 +89,7 @@
 #define VALTYPE_FLOAT (2)
 #define VALTYPE_STR   (3)
 
-// Arrays defines
+//Arrays defines
 
 // create persistent list
 #define create_array_list(size)     (create_array(size, 0))
@@ -125,40 +125,40 @@
 #define key_pressed_vk(key)         (key_pressed(key bwor 0x80000000))
 
 #define set_attack_explosion_pattern(x, y)    metarule2_explosions(1, x, y)
-#define set_attack_explosion_art(x, y)        metarule2_explosions(2, x, y)  
-#define set_attack_explosion_radius(x)        metarule2_explosions(3, x, 0)  
-#define set_attack_is_explosion(x)            metarule2_explosions(4, x, 0)  
+#define set_attack_explosion_art(x, y)        metarule2_explosions(2, x, y)
+#define set_attack_explosion_radius(x)        metarule2_explosions(3, x, 0)
+#define set_attack_is_explosion(x)            metarule2_explosions(4, x, 0)
 #define set_attack_is_explosion_fire          set_attack_is_explosion(DMG_fire)
 
 
-#define GAME_MSG_COMBAT	       (0)
-#define GAME_MSG_AI		       (1)
-#define GAME_MSG_SCRNAME       (2)
-#define GAME_MSG_MISC	       (3)
-#define GAME_MSG_CUSTOM	       (4)
-#define GAME_MSG_INVENTRY      (5)
-#define GAME_MSG_ITEM	       (6)
-#define GAME_MSG_LSGAME	       (7)
-#define GAME_MSG_MAP	       (8)
-#define GAME_MSG_OPTIONS       (9)
-#define GAME_MSG_PERK	      (10)
-#define GAME_MSG_PIPBOY	      (11)
-#define GAME_MSG_QUESTS	      (12)
-#define GAME_MSG_PROTO	      (13)
-#define GAME_MSG_SCRIPT	      (14)
-#define GAME_MSG_SKILL	      (15)
-#define GAME_MSG_SKILLDEX     (16)
-#define GAME_MSG_STAT	      (17)
-#define GAME_MSG_TRAIT	      (18)
-#define GAME_MSG_WORLDMAP     (19)
-#define GAME_MSG_PRO_ITEM     (0x1000)
-#define GAME_MSG_PRO_CRIT     (0x1001)
-#define GAME_MSG_PRO_SCEN     (0x1002)
-#define GAME_MSG_PRO_WALL     (0x1003)
-#define GAME_MSG_PRO_TILE     (0x1004)
-#define GAME_MSG_PRO_MISC     (0x1005)
+#define GAME_MSG_COMBAT      (0)
+#define GAME_MSG_AI          (1)
+#define GAME_MSG_SCRNAME     (2)
+#define GAME_MSG_MISC        (3)
+#define GAME_MSG_CUSTOM      (4)
+#define GAME_MSG_INVENTRY    (5)
+#define GAME_MSG_ITEM        (6)
+#define GAME_MSG_LSGAME      (7)
+#define GAME_MSG_MAP         (8)
+#define GAME_MSG_OPTIONS     (9)
+#define GAME_MSG_PERK       (10)
+#define GAME_MSG_PIPBOY     (11)
+#define GAME_MSG_QUESTS     (12)
+#define GAME_MSG_PROTO      (13)
+#define GAME_MSG_SCRIPT     (14)
+#define GAME_MSG_SKILL      (15)
+#define GAME_MSG_SKILLDEX   (16)
+#define GAME_MSG_STAT       (17)
+#define GAME_MSG_TRAIT      (18)
+#define GAME_MSG_WORLDMAP   (19)
+#define GAME_MSG_PRO_ITEM   (0x1000)
+#define GAME_MSG_PRO_CRIT   (0x1001)
+#define GAME_MSG_PRO_SCEN   (0x1002)
+#define GAME_MSG_PRO_WALL   (0x1003)
+#define GAME_MSG_PRO_TILE   (0x1004)
+#define GAME_MSG_PRO_MISC   (0x1005)
 
-#define mstr_combat(x)      (message_str_game(GAME_MSG_COMBAT, x))	 
+#define mstr_combat(x)      (message_str_game(GAME_MSG_COMBAT, x))
 #define mstr_ai(x)          (message_str_game(GAME_MSG_AI, x))
 #define mstr_scrname(x)     (message_str_game(GAME_MSG_SCRNAME, x))
 #define mstr_misc(x)        (message_str_game(GAME_MSG_MISC, x))
@@ -180,11 +180,10 @@
 #define mstr_worldmap(x)    (message_str_game(GAME_MSG_WORLDMAP, x))
 
 
-#define BLOCKING_TYPE_BLOCK		(0)
-#define BLOCKING_TYPE_SHOOT		(1)   // use this for more realistic line-of-sight checks
-#define BLOCKING_TYPE_AI		(2)
-#define BLOCKING_TYPE_SIGHT		(3)   // not really useful (works not as you would expect), game uses this only when checking if you can talk to a person
+#define BLOCKING_TYPE_BLOCK     (0)
+#define BLOCKING_TYPE_SHOOT     (1)  // use this for more realistic line-of-sight checks
+#define BLOCKING_TYPE_AI        (2)
+#define BLOCKING_TYPE_SIGHT     (3)  // not really useful (works not as you would expect), game uses this only when checking if you can talk to a person
 
 #define party_member_list_critters      party_member_list(0)
 #define party_member_list_all           party_member_list(1)
-

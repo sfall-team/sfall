@@ -12,44 +12,44 @@
 #define ATTACK_MODE_BURST     7
 #define ATTACK_MODE_FLAME     8
 
-#define OBJ_TYPE_ITEM		  (0)
-#define OBJ_TYPE_CRITTER	  (1)
-#define OBJ_TYPE_SCENERY	  (2)
-#define OBJ_TYPE_WALL		  (3)
-#define OBJ_TYPE_TILE		  (4)
-#define OBJ_TYPE_MISC		  (5)
-#define OBJ_TYPE_SPATIAL	  (6)
+#define OBJ_TYPE_ITEM       (0)
+#define OBJ_TYPE_CRITTER    (1)
+#define OBJ_TYPE_SCENERY    (2)
+#define OBJ_TYPE_WALL       (3)
+#define OBJ_TYPE_TILE       (4)
+#define OBJ_TYPE_MISC       (5)
+#define OBJ_TYPE_SPATIAL    (6)
 
 /* Critter Flags */
-#define CFLG_BARTER			    2		//0x00000002 - Barter (can trade with)
-#define CFLG_NOSTEAL			   32		//0x00000020 - Steal (cannot steal from)
-#define CFLG_NODROP		      64		//0x00000040 - Drop (doesn't drop items)
-#define CFLG_NOLIMBS			  128		//0x00000080 - Limbs (can not lose limbs)
-#define CFLG_NOAGES	  	     256		//0x00000100 - Ages (dead body does not disappear)
-#define CFLG_NOHEAL		     512		//0x00000200 - Heal (damage is not cured with time)
-#define CFLG_INVULN			 1024		//0x00000400 - Invulnerable (cannot be hurt)
-#define CFLG_FLATTN			 2048		//0x00000800 - Flatten (leaves no dead body)
-#define CFLG_SPECIAL		    4096		//0x00001000 - Special (there is a special type of death)
-#define CFLG_RANGED			 8192		//0x00002000 - Range (melee attack is possible at a distance)
-#define CFLG_NOKNOCKDOWN   16384	   //0x00004000 - Knock (cannot be knocked down)
+#define CFLG_BARTER             2  //0x00000002 - Barter (can trade with)
+#define CFLG_NOSTEAL           32  //0x00000020 - Steal (cannot steal from)
+#define CFLG_NODROP            64  //0x00000040 - Drop (doesn't drop items)
+#define CFLG_NOLIMBS          128  //0x00000080 - Limbs (cannot lose limbs)
+#define CFLG_NOAGES           256  //0x00000100 - Ages (dead body does not disappear)
+#define CFLG_NOHEAL           512  //0x00000200 - Heal (damage is not cured with time)
+#define CFLG_INVULN          1024  //0x00000400 - Invulnerable (cannot be hurt)
+#define CFLG_FLATTN          2048  //0x00000800 - Flatten (leaves no dead body)
+#define CFLG_SPECIAL         4096  //0x00001000 - Special (there is a special type of death)
+#define CFLG_RANGED          8192  //0x00002000 - Range (melee attack is possible at a distance)
+#define CFLG_NOKNOCKDOWN    16384  //0x00004000 - Knock (cannot be knocked down)
 
 //remove inven obj defines
-#define RMOBJ_CONSUME_DRUG	      4666772
-#define RMOBJ_CONTAINER	          4683293  // same as RMOBJ_TRADE
-#define RMOBJ_USE_OBJ	          4666865
-#define RMOBJ_EQUIP_ARMOR	      4658121
-#define RMOBJ_EQUIP_WEAPON	      4658675
-#define RMOBJ_UNLOAD_WEAPON	      4667030
-//#definE RMOBJ_LOAD_WEAPON	      4831349 // same as RMOBJ_DROP
-#define RMOBJ_USE_DRUG_ON	      4834866
-#define RMOBJ_STEAL_VIEW	      4668206
-//#define RMOBJ_DROP_DYNAMITE	  4666865 // same as USE_OBJ 
-#define RMOBJ_ITEM_DESTROYED	  4543215
-#define RMOBJ_ITEM_REMOVED	      4548572
-#define RMOBJ_ARMOR_EQUIPED	      4651961
-#define RMOBJ_LEFT_HAND_EQUIPED	  4651899
+#define RMOBJ_CONSUME_DRUG        4666772
+#define RMOBJ_CONTAINER           4683293  // same as RMOBJ_TRADE
+#define RMOBJ_USE_OBJ             4666865
+#define RMOBJ_EQUIP_ARMOR         4658121
+#define RMOBJ_EQUIP_WEAPON        4658675
+#define RMOBJ_UNLOAD_WEAPON       4667030
+//#define RMOBJ_LOAD_WEAPON       4831349  // same as RMOBJ_DROP
+#define RMOBJ_USE_DRUG_ON         4834866
+#define RMOBJ_STEAL_VIEW          4668206
+//#define RMOBJ_DROP_DYNAMITE     4666865  // same as USE_OBJ
+#define RMOBJ_ITEM_DESTROYED      4543215
+#define RMOBJ_ITEM_REMOVED        4548572
+#define RMOBJ_ARMOR_EQUIPED       4651961
+#define RMOBJ_LEFT_HAND_EQUIPED   4651899
 #define RMOBJ_RIGHT_HAND_EQUIPED  4651934
-#define RMOBJ_RM_MULT_OBJS 	      4563866
+#define RMOBJ_RM_MULT_OBJS        4563866
 #define RMOBJ_REPLACE_WEAPON      4658526
 #define RMOBJ_THROW               4266040
 
@@ -139,7 +139,6 @@
 #define PROTO_DR_ADDICT_PERK     (96)
 #define PROTO_DR_ADDICT_DELAY   (100)
 
-
 // critters
 #define PROTO_CR_ACTION_FLAGS    (32)
 #define PROTO_CR_HEAD_FID        (40)
@@ -194,17 +193,17 @@
 #define PERK_add_tragic          (71)
 #define PERK_armor_charisma      (72)
 
-#define WPN_ANIM_NONE				(0x00) // (A)
-#define WPN_ANIM_KNIFE				(0x01) // (D) 
-#define WPN_ANIM_CLUB				(0x02) // (E) 
-#define WPN_ANIM_SLEDGEHAMMER	   (0x03) // (F) 
-#define WPN_ANIM_SPEAR				(0x04) // (G) 
-#define WPN_ANIM_PISTOL			   (0x05) // (H) 
-#define WPN_ANIM_SMG				   (0x06) // (I) 
-#define WPN_ANIM_RIFLE				(0x07) // (J) 
-#define WPN_ANIM_BIG_GUN			(0x08) // (K) 
-#define WPN_ANIM_MINIGUN			(0x09) // (L) 
-#define WPN_ANIM_ROCKET_LAUNCHER	(0x0A) // (M)
+#define WPN_ANIM_NONE               (0x00) // (A)
+#define WPN_ANIM_KNIFE              (0x01) // (D)
+#define WPN_ANIM_CLUB               (0x02) // (E)
+#define WPN_ANIM_SLEDGEHAMMER       (0x03) // (F)
+#define WPN_ANIM_SPEAR              (0x04) // (G)
+#define WPN_ANIM_PISTOL             (0x05) // (H)
+#define WPN_ANIM_SMG                (0x06) // (I)
+#define WPN_ANIM_RIFLE              (0x07) // (J)
+#define WPN_ANIM_BIG_GUN            (0x08) // (K)
+#define WPN_ANIM_MINIGUN            (0x09) // (L)
+#define WPN_ANIM_ROCKET_LAUNCHER    (0x0A) // (M)
 
 
 #endif // DEFINE_EXTRA_H

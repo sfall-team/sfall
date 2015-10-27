@@ -4,7 +4,7 @@
 #include "Define.h"
 #include "FalloutEngine.h"
 
-DWORD WeightOnBody = 0;
+//DWORD WeightOnBody = 0;
 
 static void __declspec(naked) SharpShooterFix() {
 	__asm {
@@ -70,23 +70,21 @@ skip:
 	}
 }
 
-/*
-
-static void __declspec(naked) protinst_default_use_item_hook() {
+static void __declspec(naked) protinst_default_use_item_hack() {
 	__asm {
 		mov  eax, dword ptr [edx+0x64]            // eax = target pid
 		cmp  eax, PID_DRIVABLE_CAR
-		je   itsCar
+		je   isCar
 		cmp  eax, PID_CAR_TRUNK
-		jne  noCar
-itsCar:
+		jne  notCar
+isCar:
 		mov  eax, ebx
 		call obj_use_power_on_car_
 		cmp  eax, -1
 		jne  skip
-noCar:
+notCar:
 		mov  eax, 0x49C38B
-		jmp  eax                                  // "This does nothing."
+		jmp  eax                                  // "That does nothing."
 skip:
 		test eax, eax
 		jnz  end
@@ -97,18 +95,16 @@ end:
 	}
 }
 
-static void __declspec(naked) obj_use_power_on_car_hook() {
+static void __declspec(naked) obj_use_power_on_car_hack() {
 	__asm {
 		xor  eax, eax
-		cmp  ebx, 596                             // "Battery is fully charged."?
+		cmp  ebx, 596                             // "The car is already full of power."?
 		je   skip                                 // Yes
-		inc  eax                                  // "You charge the car's battery."
+		inc  eax                                  // "You charge the car with more power."
 skip:
 		retn
 	}
 }
-
-*/
 
 static void __declspec(naked) item_d_check_addict_hack() {
 	__asm {
@@ -237,7 +233,7 @@ nextArmor:
 		call inven_worn_
 		test eax, eax
 		jz   noArmor
-		and  byte ptr [eax+0x27], 0xFB            // Unset the flag of equipped armor 
+		and  byte ptr [eax+0x27], 0xFB            // Unset the flag of equipped armor
 		jmp  nextArmor
 noArmor:
 		mov  eax, esi
@@ -685,61 +681,66 @@ static void __declspec(naked) partyMemberPrepLoadInstance_hack() {
 }
 
 
-void BugsInit() 
+void BugsInit()
 {
 	dlog("Applying sharpshooter patch.", DL_INIT);
 	// http://www.nma-fallout.com/showthread.php?178390-FO2-Engine-Tweaks&p=4050162&viewfull=1#post4050162
 	// by Slider2k
 	HookCall(0x4244AB, &SharpShooterFix); // hooks stat_level_() call in detemine_to_hit_func_()
 	// // removes this line by making unconditional jump:
-	// if ( who == obj_dude ) 
+	// if ( who == obj_dude )
 	//     dist -= 2 * perk_level_(obj_dude, PERK_sharpshooter);
 	SafeWrite8(0x424527, 0xEB);  // in detemine_to_hit_func_()
 	dlogr(" Done", DL_INIT);
 
-	// Fixes for clickability issue in PipBoy and exploit that allows to rest in places where you shouldn't be able to rest
-	dlog("Applying Fix PipBoy Rest exploit.", DL_INIT);
+	// Fixes for clickability issue in Pip-Boy and exploit that allows to rest in places where you shouldn't be able to rest
+	dlog("Applying fix for Pip-Boy rest exploit.", DL_INIT);
 	MakeCall(0x4971C7, &pipboy_hack, false);
 	MakeCall(0x499530, &PipAlarm_hack, false);
 	dlogr(" Done.", DL_INIT);
 
-	// Fix for "Too Many Items Bug"
+	// Fix for "Too Many Items" bug
 	if (GetPrivateProfileIntA("Misc", "TooManyItemsBugFix", 1, ini)) {
-		dlog("Applying preventive patch for \"Too Many Items Bug\".", DL_INIT);
+		dlog("Applying preventive patch for \"Too Many Items\" bug.", DL_INIT);
 		HookCall(0x4A596A, &scr_write_ScriptNode_hook);
 		HookCall(0x4A59C1, &scr_write_ScriptNode_hook);
 		dlogr(" Done.", DL_INIT);
 	}
 
-	// Fix "fueling" no_car and using fuel cells even when car is full
-	/*MakeCall(0x49C36D, &protinst_default_use_item_hook, true);
-	MakeCall(0x49BE70, &obj_use_power_on_car_hook, false);*/
+	// Fixes for being able to charge the car with using cells on scenary/critters
+	// and cells getting consumed even when the car is already fully charged
+	if (GetPrivateProfileIntA("Misc", "CarChargingFix", 1, ini)) {
+		dlog("Applying car charging issues fix.", DL_INIT);
+		MakeCall(0x49C36D, &protinst_default_use_item_hack, true);
+		MakeCall(0x49BE70, &obj_use_power_on_car_hack, false);
+		dlogr(" Done.", DL_INIT);
+	}
 
 	// makes jet addiction eternal.. why?
 	//MakeCall(0x47A3A4, &item_wd_process_hook, false);
 
-	// Fix increasing stats more than two times via drug use after save-load
-	dlog("Applying save-load unlimited drug use exploit.", DL_INIT);
+	// Fix for gaining stats from more than two doses of a specific chem after save-load
+	dlog("Applying fix for save-load unlimited drug use exploit.", DL_INIT);
 	MakeCall(0x47A243, &item_d_load_hack, false);
 	dlogr(" Done.", DL_INIT);
 
-	// Fix crash when using stimpak on a victim and then exiting the map
-	dlog("Applying Fix for \"using stimpak on a victim and exiting the map\" crash.", DL_INIT);
+	// Fix crash when leaving the map while waiting for someone to die of a super stimpak overdose
+	dlog("Applying fix for \"leaving the map while waiting for a super stimpak overdose death\" crash.", DL_INIT);
 	HookCall(0x4A27E7, &queue_clear_type_mem_free_hook); // hooks mem_free_()
 	dlogr(" Done.", DL_INIT);
 
 	// Evil bug! If party member has the same armor type in inventory as currently equipped, then
 	// on level up he loses Armor Class equal to the one received from this armor.
-	// The same happens if you just order NPC to remove armor through dialog.
+	// The same happens if you just order NPC to remove the armor through dialog.
 	if (GetPrivateProfileIntA("Misc", "ArmorCorruptsNPCStatsFix", 1, ini)) {
-		dlog("Applying Fix for armor decreasing NPC stats when removed.", DL_INIT);
+		dlog("Applying fix for armor reducing NPC original stats when removed.", DL_INIT);
 		HookCall(0x495F3B, &partyMemberCopyLevelInfo_stat_level_hook);
 		HookCall(0x45419B, &correctFidForRemovedItem_adjust_ac_hook);
 		dlogr(" Done.", DL_INIT);
 	}
 
 	// Fix of invalid stats when party member gains a level while being on drugs
-	dlog("Applying Fix for addicted party member level up bug.", DL_INIT);
+	dlog("Applying fix for addicted party member level up bug.", DL_INIT);
 	HookCall(0x495D5C, &partyMemberCopyLevelInfo_hook);
 	dlogr(" Done.", DL_INIT);
 
@@ -750,13 +751,13 @@ void BugsInit()
 		dlogr(" Done.", DL_INIT);
 	}
 
-	// Fix for "Unlimited Ammo bug"
-	dlog("Applying Fix for Unlimited Ammo bug.", DL_INIT);
+	// Fix for "Unlimited Ammo" bug
+	dlog("Applying fix for Unlimited Ammo bug.", DL_INIT);
 	HookCall(0x472957, &invenWieldFunc_item_get_type_hook); // hooks item_get_type_()
 	dlogr(" Done.", DL_INIT);
 
 	// Fix for negative values in Skilldex window ("S")
-	dlog("Applying Fix for negative values in Skilldex window.", DL_INIT);
+	dlog("Applying fix for negative values in Skilldex window.", DL_INIT);
 	SafeWrite8(0x4AC377, 0x7F);                // jg
 	dlogr(" Done.", DL_INIT);
 
@@ -773,14 +774,14 @@ void BugsInit()
 
 	if (GetPrivateProfileIntA("Misc", "InventoryDragIssuesFix", 0, ini)) {
 		dlog("Applying inventory reverse order issues fix.", DL_INIT);
-		// Fix for minor visual glitch when picking up solo item from the top of inventory 
+		// Fix for minor visual glitch when picking up solo item from the top of inventory
 		// and there is multiple item stack at the bottom of inventory
 		MakeCall(0x470EC2, &inven_pickup_hack, true);
 		// Fix for error in player's inventory, related to IFACE_BAR_MODE=1 in f2_res.ini, and
 		// also for reverse order error
 		MakeCall(0x47114A, &inven_pickup_hack2, true);
 		dlogr(" Done", DL_INIT);
-	}	
+	}
 
 	// Fix for using only one pack of ammo, when the weapon is before the ammo
 	//HookCall(0x476598, &drop_ammo_into_weapon_hook);
@@ -789,7 +790,7 @@ void BugsInit()
 	HookCall(0x497D0F, &PipStatus_AddHotLines_hook);
 	dlogr(" Done", DL_INIT);
 
-	dlog("Applying withdrawal perk description crash fix. ", DL_INIT);
+	dlog("Applying withdrawal perk description crash fix.", DL_INIT);
 	HookCall(0x47A501, &perform_withdrawal_start_display_print_hook);
 	dlogr(" Done", DL_INIT);
 
@@ -806,7 +807,7 @@ void BugsInit()
 		dlogr(" Done.", DL_INIT);
 	}
 
-	dlog("Applying shiv patch. ", DL_INIT);
+	dlog("Applying shiv patch.", DL_INIT);
 	SafeWrite8(0x477B2B, 0xEB);
 	dlogr(" Done", DL_INIT);
 
@@ -822,9 +823,9 @@ void BugsInit()
 	MakeCall(0x411BCC, &action_ranged_hack, true);
 	dlogr(" Done", DL_INIT);
 
-	// Corrects "NPC turns into a container"
+	// Fix for "NPC turns into a container"
 	if (GetPrivateProfileIntA("Misc", "NPCTurnsIntoContainerFix", 1, ini)) {
-		dlog("Applying Fix for NPC turns into a container.", DL_INIT);
+		dlog("Applying fix for \"NPC turns into a container\" bug.", DL_INIT);
 		MakeCall(0x424F8E, &set_new_results_hack, false);
 		MakeCall(0x42E46E, &critter_wake_clear_hack, true);
 		MakeCall(0x488EF3, &obj_load_func_hack, true);
