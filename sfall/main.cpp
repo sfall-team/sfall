@@ -764,6 +764,31 @@ static void __declspec(naked) objCanSeeObj_ShootThru_Fix() {//(EAX *objStruct, E
 	}
 }
 
+static void __declspec(naked) wmTownMapFunc_hack() {
+	__asm {
+		cmp  edx, 0x31
+		jl   end
+		cmp  edx, ecx
+		jge  end
+		push edx
+		sub  edx, 0x31
+		lea  eax, ds:0[edx*8]
+		sub  eax, edx
+		pop  edx
+		cmp  dword ptr [edi+eax*4+0x0], 0         // Visited
+		je   end
+		cmp  dword ptr [edi+eax*4+0x4], -1        // Xpos
+		je   end
+		cmp  dword ptr [edi+eax*4+0x8], -1        // Ypos
+		je   end
+		retn
+end:
+		pop  eax                                  // destroy the return address
+		mov  eax, 0x4C4976
+		jmp  eax
+	}
+}
+
 
 static void DllMain2() {
 	//SafeWrite8(0x4B15E8, 0xc3);
@@ -1537,6 +1562,19 @@ static void DllMain2() {
 	SimplePatch<WORD>(addrs, 2, "Misc", "CombatPanelAnimDelay", 1000, 0, 65535);
 	addrs[0] = 0x447DF4; addrs[1] = 0x447EB6;
 	SimplePatch<BYTE>(addrs, 2, "Misc", "DialogPanelAnimDelay", 33, 0, 255);
+
+	if (GetPrivateProfileIntA("Misc", "EnableMusicInDialogue", 0, ini)) {
+		dlog("Applying playing music in dialogue patch.", DL_INIT);
+		SafeWrite8(0x44525B, 0x00);
+		//BlockCall(0x450627);
+		dlogr(" Done", DL_INIT);
+	}
+
+	if (GetPrivateProfileIntA("Misc", "TownMapHotkeysFix", 1, ini)) {
+		dlog("Applying town map hotkeys patch.", DL_INIT);
+		MakeCall(0x4C4945, &wmTownMapFunc_hack, false);
+		dlogr(" Done", DL_INIT);
+	}
 
 	dlog("Running BugsInit.", DL_INIT);
 	BugsInit();

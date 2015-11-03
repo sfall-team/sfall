@@ -680,6 +680,28 @@ static void __declspec(naked) partyMemberPrepLoadInstance_hack() {
 	}
 }
 
+static void __declspec(naked) barter_attempt_transaction_hack() {
+	__asm {
+		cmp  dword ptr [eax+0x64], PID_ACTIVE_GEIGER_COUNTER
+		je   found
+		cmp  dword ptr [eax+0x64], PID_ACTIVE_STEALTH_BOY
+		je   found
+		mov  eax, 0x474D34
+		jmp  eax
+found:
+		call item_m_turn_off_
+		mov  eax, 0x474D17
+		jmp  eax                                  // Is there any other activated items among the ones being sold?
+	}
+}
+
+static void __declspec(naked) item_m_turn_off_hack() {
+	__asm {
+		and  byte ptr [eax+0x25], 0xDF            // Unset flag of activated items
+		jmp  queue_remove_this_
+	}
+}
+
 
 void BugsInit()
 {
@@ -731,7 +753,7 @@ void BugsInit()
 
 	// Evil bug! If party member has the same armor type in inventory as currently equipped, then
 	// on level up he loses Armor Class equal to the one received from this armor.
-	// The same happens if you just order NPC to remove the armor through dialog.
+	// The same happens if you just order NPC to remove the armor through dialogue.
 	if (GetPrivateProfileIntA("Misc", "ArmorCorruptsNPCStatsFix", 1, ini)) {
 		dlog("Applying fix for armor reducing NPC original stats when removed.", DL_INIT);
 		HookCall(0x495F3B, &partyMemberCopyLevelInfo_stat_level_hook);
@@ -744,8 +766,8 @@ void BugsInit()
 	HookCall(0x495D5C, &partyMemberCopyLevelInfo_hook);
 	dlogr(" Done.", DL_INIT);
 
-	// Allow for 9 options (lines of text) to be displayed correctly in a dialog window
-	if (GetPrivateProfileIntA("Misc", "DialogOptions9Lines", 0, ini)) {
+	// Allow 9 options (lines of text) to be displayed correctly in a dialog window
+	if (GetPrivateProfileIntA("Misc", "DialogOptions9Lines", 1, ini)) {
 		dlog("Applying 9 dialog options patch.", DL_INIT);
 		MakeCall(0x44701C, &gdProcessUpdate_hack, true);
 		dlogr(" Done.", DL_INIT);
@@ -811,25 +833,35 @@ void BugsInit()
 	SafeWrite8(0x477B2B, 0xEB);
 	dlogr(" Done", DL_INIT);
 
-	if (GetPrivateProfileIntA("Misc", "WieldObjCritterFix", 1, ini)) {
+	//if (GetPrivateProfileIntA("Misc", "WieldObjCritterFix", 1, ini)) {
 		dlog("Applying wield_obj_critter fix.", DL_INIT);
 		SafeWrite8(0x456912, 0x1E);
 		HookCall(0x45697F, &op_wield_obj_critter_adjust_ac_hook);
 		dlogr(" Done", DL_INIT);
-	}
+	//}
 
 	dlog("Applying Dodgy Door Fix.", DL_INIT);
 	MakeCall(0x4113D6, &action_melee_hack, true);
 	MakeCall(0x411BCC, &action_ranged_hack, true);
 	dlogr(" Done", DL_INIT);
 
-	// Fix for "NPC turns into a container"
+	// Fix for "NPC turns into a container" bug
 	if (GetPrivateProfileIntA("Misc", "NPCTurnsIntoContainerFix", 1, ini)) {
 		dlog("Applying fix for \"NPC turns into a container\" bug.", DL_INIT);
 		MakeCall(0x424F8E, &set_new_results_hack, false);
 		MakeCall(0x42E46E, &critter_wake_clear_hack, true);
 		MakeCall(0x488EF3, &obj_load_func_hack, true);
 		HookCall(0x4949B2, &partyMemberPrepLoadInstance_hack);
+		dlogr(" Done", DL_INIT);
+	}
+
+	// Fix for unable to sell used geiger counters or stealth boys
+	if (GetPrivateProfileIntA("Misc", "CanSellUsedGeiger", 1, ini)) {
+		dlog("Applying fix for unable to sell used geiger counters or stealth boys.", DL_INIT);
+		SafeWrite8(0x478115, 0xBA);
+		SafeWrite8(0x478138, 0xBA);
+		MakeCall(0x474D22, &barter_attempt_transaction_hack, true);
+		HookCall(0x4798B1, &item_m_turn_off_hack);
 		dlogr(" Done", DL_INIT);
 	}
 }
