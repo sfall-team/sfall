@@ -19,8 +19,9 @@
 #include "main.h"
 
 #include "Elevators.h"
+#include "FalloutEngine.h"
 
-static const int ElevatorCount=50;
+static const int ElevatorCount = 50;
 static char File[MAX_PATH];
 
 struct sElevator {
@@ -46,39 +47,36 @@ void SetElevator(DWORD id, DWORD index, DWORD value) {
 	*(DWORD*)(((DWORD)&Elevators[id])+index*4)=value;
 }
 
-static const DWORD GetMenuAddress=0x43F324;
 static void __declspec(naked) GetMenuHook() {
 	__asm {
 		push ebx;
 		lea ebx, Menus;
 		shl eax, 2;
 		mov eax, [ebx+eax];
-		call GetMenuAddress;
+		call elevator_start_;
 		pop ebx;
 		ret;
 	}
 }
 
-static const DWORD UnknownAddress=0x43F73C;
 static void __declspec(naked) UnknownHook() {
 	__asm {
 		push ebx;
 		lea ebx, Menus;
 		shl eax, 2;
 		mov eax, [ebx+eax];
-		call UnknownAddress;
+		call Check4Keys_;
 		pop ebx;
 		ret;
 	}
 }
-static const DWORD UnknownAddress2=0x43F6D0;
 static void __declspec(naked) UnknownHook2() {
 	__asm {
 		push ebx;
 		lea ebx, Menus;
 		shl eax, 2;
 		mov eax, [ebx+eax];
-		call UnknownAddress2;
+		call elevator_end_;
 		pop ebx;
 		ret;
 	}
@@ -88,7 +86,7 @@ static void __declspec(naked) GetNumButtonsHook1() {
 	__asm {
 		lea esi, Menus;
 		mov eax, [esi+edi*4];
-		mov eax, [0x43EA1C+eax*4];
+		mov eax, [_btncnt+eax*4];
 		mov esi, 0x43F064;
 		jmp esi;
 	}
@@ -97,7 +95,7 @@ static void __declspec(naked) GetNumButtonsHook2() {
 	__asm {
 		lea edx, Menus;
 		mov eax, [edx+edi*4];
-		mov eax, [0x43EA1C+eax*4];
+		mov eax, [_btncnt+eax*4];
 		mov edx, 0x43F18B;
 		jmp edx;
 	}
@@ -106,14 +104,14 @@ static void __declspec(naked) GetNumButtonsHook3() {
 	__asm {
 		lea eax, Menus;
 		mov eax, [eax+edi*4];
-		mov eax, [0x43EA1C+eax*4];
+		mov eax, [_btncnt+eax*4];
 		mov ebx, 0x43F1EB;
 		jmp ebx;
 	}
 }
 
 void ResetElevators() {
-	memcpy(Elevators, (void*)0x43EA7C, sizeof(sElevator)*24);
+	memcpy(Elevators, (void*)_retvals, sizeof(sElevator)*24);
 	memset(&Elevators[24], 0, sizeof(sElevator)*(ElevatorCount-24));
 	for(int i=0;i<24;i++) Menus[i]=i;
 	for(int i=24;i<ElevatorCount;i++) Menus[i]=0;

@@ -16,11 +16,11 @@
  *	along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "main.h"
+
 #include <hash_map>
 #include <set>
 #include <string>
-
-#include "main.h"
 #include "Arrays.h"
 #include "BarBoxes.h"
 #include "Console.h"
@@ -198,12 +198,10 @@ static void __declspec(naked) SetGlobalScriptRepeat() {
 		push ecx;
 		push edx;
 		mov ecx, eax;
-		mov ebx, 0x4674F0;
-		call ebx;
+		call interpretPopShort_;
 		mov edx, eax;
 		mov eax, ecx;
-		mov ebx, 0x467500;
-		call ebx;
+		call interpretPopLong_;
 		cmp dx, 0xC001;
 		jnz end;
 		push eax;
@@ -231,12 +229,10 @@ static void __declspec(naked) SetGlobalScriptType() {
 		push ecx;
 		push edx;
 		mov ecx, eax;
-		mov ebx, 0x4674F0;
-		call ebx;
+		call interpretPopShort_;
 		mov edx, eax;
 		mov eax, ecx;
-		mov ebx, 0x467500;
-		call ebx;
+		call interpretPopLong_;
 		cmp dx, 0xC001;
 		jnz end;
 		push eax;
@@ -256,12 +252,10 @@ static void __declspec(naked) GetGlobalScriptTypes() {
 		push edx;
 		mov edx, AvailableGlobalScriptTypes;
 		mov ecx, eax;
-		mov ebx, 0x4674DC;
-		call ebx;
+		call interpretPushLong_;
 		mov edx, 0xc001;
 		mov eax, ecx;
-		mov ebx, 0x46748C;
-		call ebx;
+		call interpretPushShort_;
 		pop edx;
 		pop ecx;
 		pop ebx;
@@ -291,19 +285,15 @@ static void __declspec(naked) SetGlobalVar() {
 		push edi;
 		push esi;
 		mov edi, eax;
-		mov ebx, 0x4674F0;
-		call ebx;
+		call interpretPopShort_;
 		mov eax, edi;
-		mov ebx, 0x467500;
-		call ebx;
+		call interpretPopLong_;
 		mov esi, eax;
 		mov eax, edi;
-		mov ebx, 0x4674F0;
-		call ebx;
+		call interpretPopShort_;
 		mov edx, eax;
 		mov eax, edi;
-		mov ebx, 0x467500;
-		call ebx;
+		call interpretPopLong_;
 		cmp dx, 0x9001;
 		jz next;
 		cmp dx, 0x9801;
@@ -317,8 +307,7 @@ static void __declspec(naked) SetGlobalVar() {
 next:
 		mov ebx, eax;
 		mov eax, edi;
-		mov ecx, 0x4678E0;
-		call ecx;
+		call interpretGetString_;
 		push esi;
 		push eax;
 		call SetGlobalVar2;
@@ -352,12 +341,10 @@ static void __declspec(naked) GetGlobalVarInt() {
 		push esi;
 		xor edx, edx;
 		mov edi, eax;
-		mov ebx, 0x4674F0;
-		call ebx;
+		call interpretPopShort_;
 		mov esi, eax;
 		mov eax, edi;
-		mov ebx, 0x467500;
-		call ebx;
+		call interpretPopLong_;
 		cmp si, 0x9001;
 		jz next;
 		cmp si, 0x9801;
@@ -372,19 +359,16 @@ next:
 		mov edx, esi;
 		mov ebx, eax;
 		mov eax, edi;
-		mov ecx, 0x4678E0;
-		call ecx;
+		call interpretGetString_;
 		push eax;
 		call GetGlobalVar2;
 		mov edx, eax;
 end:
 		mov eax, edi;
-		mov ebx, 0x4674DC;
-		call ebx;
+		call interpretPushLong_;
 		mov edx, 0xc001;
 		mov eax, edi;
-		mov ebx, 0x46748C;
-		call ebx;
+		call interpretPushShort_;
 		pop esi;
 		pop edi;
 		pop edx;
@@ -402,12 +386,10 @@ static void __declspec(naked) GetGlobalVarFloat() {
 		push esi;
 		xor edx, edx;
 		mov edi, eax;
-		mov ebx, 0x4674F0;
-		call ebx;
+		call interpretPopShort_;
 		mov esi, eax;
 		mov eax, edi;
-		mov ebx, 0x467500;
-		call ebx;
+		call interpretPopLong_;
 		cmp si, 0x9001;
 		jz next;
 		cmp si, 0x9801;
@@ -422,19 +404,16 @@ next:
 		mov edx, esi;
 		mov ebx, eax;
 		mov eax, edi;
-		mov ecx, 0x4678E0;
-		call ecx;
+		call interpretGetString_;
 		push eax;
 		call GetGlobalVar2;
 		mov edx, eax;
 end:
 		mov eax, edi;
-		mov ebx, 0x4674DC;
-		call ebx;
+		call interpretPushLong_;
 		mov edx, 0xa001;
 		mov eax, edi;
-		mov ebx, 0x46748C;
-		call ebx;
+		call interpretPushShort_;
 		pop esi;
 		pop edi;
 		pop edx;
@@ -444,8 +423,6 @@ end:
 	}
 }
 
-
-
 static void __declspec(naked) GetSfallArg() {
 	__asm {
 		pushad;
@@ -454,10 +431,10 @@ static void __declspec(naked) GetSfallArg() {
 		pop ecx;
 		mov edx, eax;
 		mov eax, ecx;
-		call SetResult;
+		call interpretPushLong_;
 		mov eax, ecx;
 		mov edx, 0xc001;
-		call SetResultType;
+		call interpretPushShort_;
 		popad;
 		retn;
 	}
@@ -477,10 +454,10 @@ static void __declspec(naked) GetSfallArgs() {
 		pop ecx;
 		mov edx, eax;
 		mov eax, ecx;
-		call SetResult;
+		call interpretPushLong_;
 		mov eax, ecx;
 		mov edx, 0xc001;
-		call SetResultType;
+		call interpretPushShort_;
 		popad;
 		retn;
 	}
@@ -489,16 +466,16 @@ static void __declspec(naked) SetSfallArg() {
 	__asm {
 		pushad;
 		mov ecx, eax;
-		call GetArgType;
+		call interpretPopShort_;
 		mov edi, eax;
 		mov eax, ecx;
-		call GetArg;
+		call interpretPopLong_;
 		mov edx, eax;
 		mov eax, ecx;
-		call GetArgType;
+		call interpretPopShort_;
 		mov esi, eax;
 		mov eax, ecx;
-		call GetArg;
+		call interpretPopLong_;
 		cmp di, 0xc001;
 		jnz end;
 		cmp si, 0xc001;
@@ -517,10 +494,10 @@ static void __declspec(naked) SetSfallReturn() {
 		push ecx;
 		push edx;
 		mov ecx, eax;
-		call GetArgType;
+		call interpretPopShort_;
 		mov edx, eax;
 		mov eax, ecx;
-		call GetArg;
+		call interpretPopLong_;
 		cmp dx, 0xc001;
 		jnz end;
 		push eax;
@@ -538,10 +515,10 @@ static void __declspec(naked) InitHook() {
 		push edx;
 		mov ecx, eax;
 		mov edx, InitingHookScripts;
-		call SetResult;
+		call interpretPushLong_;
 		mov eax, ecx;
 		mov edx, 0xc001;
-		call SetResultType;
+		call interpretPushShort_;
 		pop edx;
 		pop ecx;
 		retn;
@@ -562,10 +539,10 @@ static void __declspec(naked) set_self() {
 	__asm {
 		pushad;
 		mov ebp, eax;
-		call GetArgType;
+		call interpretPopShort_;
 		mov edi, eax;
 		mov eax, ebp;
-		call GetArg;
+		call interpretPopLong_;
 		cmp di, 0xc001;
 		jnz end;
 		push eax;
@@ -580,10 +557,10 @@ static void __declspec(naked) register_hook() {
 	__asm {
 		pushad;
 		mov ebp, eax;
-		call GetArgType;
+		call interpretPopShort_;
 		mov edi, eax;
 		mov eax, ebp;
-		call GetArg;
+		call interpretPopLong_;
 		cmp di, 0xc001;
 		jnz end;
 		push -1;
@@ -618,10 +595,10 @@ static void __declspec(naked) sfall_ver_major() {
 		push ecx;
 		mov edx, VERSION_MAJOR;
 		mov eax, ecx;
-		call SetResult;
+		call interpretPushLong_;
 		mov eax, ecx;
 		mov edx, 0xc001;
-		call SetResultType;
+		call interpretPushShort_;
 		pop ecx;
 		pop edx;
 		retn;
@@ -633,10 +610,10 @@ static void __declspec(naked) sfall_ver_minor() {
 		push ecx;
 		mov edx, VERSION_MINOR;
 		mov eax, ecx;
-		call SetResult;
+		call interpretPushLong_;
 		mov eax, ecx;
 		mov edx, 0xc001;
-		call SetResultType;
+		call interpretPushShort_;
 		pop ecx;
 		pop edx;
 		retn;
@@ -648,10 +625,10 @@ static void __declspec(naked) sfall_ver_build() {
 		push ecx;
 		mov edx, VERSION_BUILD;
 		mov eax, ecx;
-		call SetResult;
+		call interpretPushLong_;
 		mov eax, ecx;
 		mov edx, 0xc001;
-		call SetResultType;
+		call interpretPushShort_;
 		pop ecx;
 		pop edx;
 		retn;
@@ -872,9 +849,9 @@ static void __declspec(naked) obj_outline_all_items_on_() {
 		pushad
 		mov  eax, dword ptr ds:[_map_elevation]
 		call obj_find_first_at_
+loopObject:
 		test eax, eax
 		jz   end
-loopObject:
 		cmp  eax, ds:[_outlined_object]
 		je   nextObject
 		xchg ecx, eax
@@ -897,8 +874,7 @@ NoHighlight:
 		mov  [ecx+0x74], edx
 nextObject:
 		call obj_find_next_at_
-		test eax, eax
-		jnz  loopObject
+		jmp  loopObject
 end:
 		call tile_refresh_display_
 		popad
@@ -911,24 +887,23 @@ static void __declspec(naked) obj_outline_all_items_off_() {
 		pushad
 		mov  eax, dword ptr ds:[_map_elevation]
 		call obj_find_first_at_
+loopObject:
 		test eax, eax
 		jz   end
-loopObject:
 		cmp  eax, ds:[_outlined_object]
 		je   nextObject
-		xchg ebx, eax
-		mov  eax, [ebx+0x20]
+		xchg ecx, eax
+		mov  eax, [ecx+0x20]
 		and  eax, 0xF000000
 		sar  eax, 0x18
 		test eax, eax                             // Is this an item?
 		jnz  nextObject                           // No
-		cmp  dword ptr [ebx+0x7C], eax            // Owned by someone?
+		cmp  dword ptr [ecx+0x7C], eax            // Owned by someone?
 		jnz  nextObject                           // Yes
-		mov  dword ptr [ebx+0x74], eax
+		mov  dword ptr [ecx+0x74], eax
 nextObject:
 		call obj_find_next_at_
-		test eax, eax
-		jnz  loopObject
+		jmp  loopObject
 end:
 		call tile_refresh_display_
 		popad
@@ -1642,4 +1617,3 @@ void GetAppearanceGlobals(int *race, int *style) {
 	*race=GetGlobalVar2("HAp_Race");
 	*style=GetGlobalVar2("HApStyle");
 }
-

@@ -81,16 +81,7 @@ void AddProgramToMap(sScriptProgram &prog);
 sScriptProgram* GetGlobalScriptProgram(DWORD scriptPtr);
 
 char* _stdcall mysubstr(char* str, int pos, int length);
-// for script functions - functions
-static const DWORD GetArgType=0x4674F0;
-static const DWORD GetArg=0x467500;
-static const DWORD GetStringVar=0x4678E0; //eax = script ptr, edx = var type, ebx = var
-static const DWORD CreateStringVar=0x467A80; //edx = ptr to string, eax = script
-static const DWORD SetResult=0x4674DC;
-static const DWORD SetResultType=0x46748C;
-static const DWORD pushShortStack=0x46736C; // sometimes used instead of "SetResult"
 // variables
-static const DWORD combat_state = 0x510944; // DWORD global variable, use "test byte ptr ds:combat_state, 1" to check if combat is on
 static char reg_anim_combat_check = 1;
 extern DWORD isGlobalScriptLoading;
 

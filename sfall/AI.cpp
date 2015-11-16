@@ -18,8 +18,8 @@
 
 #include "main.h"
 #include "AI.h"
-#include "SafeWrite.h"
 #include "FalloutEngine.h"
+#include "SafeWrite.h"
 
 #include <hash_map>
 
@@ -45,8 +45,6 @@ static void _stdcall CombatAttackHook(DWORD source, DWORD target) {
 	targets[source]=target;
 }
 
-//static const DWORD _ai_attack=0x42A748;
-static const DWORD _combat_attack=0x422F3C;
 static void __declspec(naked) combat_attack_hook() {
 	_asm {
 		pushad;
@@ -54,7 +52,7 @@ static void __declspec(naked) combat_attack_hook() {
 		push eax;
 		call CombatAttackHook;
 		popad;
-		jmp _combat_attack;
+		jmp combat_attack_;
 	}
 }
 
@@ -82,7 +80,7 @@ end:
 
 static void __declspec(naked) BlockCombatHook2() {
 	__asm {
-		mov eax, dword ptr ds:[0x518F10];
+		mov eax, dword ptr ds:[_intfaceEnabled];
 		test eax, eax;
 		jz end;
 		mov eax, CombatDisabled;

@@ -22,16 +22,16 @@ static void __declspec(naked) create_array() {
 	__asm {
 		pushad;
 		mov edi, eax;
-		call GetArgType
+		call interpretPopShort_
 		mov ebx, eax;
 		mov eax, edi;
-		call GetArg;
+		call interpretPopLong_;
 		mov ecx, eax;
 		mov eax, edi;
-		call GetArgType;
+		call interpretPopShort_;
 		mov edx, eax;
 		mov eax, edi;
-		call GetArg;
+		call interpretPopLong_;
 		cmp bx, 0xc001;
 		jne fail;
 		cmp dx, 0xc001;
@@ -45,10 +45,10 @@ fail:
 		xor edx, edx;
 end:
 		mov eax, edi;
-		call SetResult;
+		call interpretPushLong_;
 		mov edx, 0xc001;
 		mov eax, edi;
-		call SetResultType;
+		call interpretPushShort_;
 		popad;
 		retn;
 	}
@@ -58,22 +58,22 @@ static void __declspec(naked) set_array() {
 		pushad;
 		mov ebp, eax;
 		//Get args
-		call GetArgType
+		call interpretPopShort_
 		mov edx, eax;
 		mov eax, ebp;
-		call GetArg;
+		call interpretPopLong_;
 		mov edi, eax; // value
 		mov eax, ebp;
-		call GetArgType
+		call interpretPopShort_
 		mov ecx, eax;
 		mov eax, ebp;
-		call GetArg;
+		call interpretPopLong_;
 		mov esi, eax; // key
 		mov eax, ebp;
-		call GetArgType
+		call interpretPopShort_
 		mov ebx, eax;
 		mov eax, ebp;
-		call GetArg;
+		call interpretPopLong_;
 		xchg eax, edi; // arrayID
 		//Error check:
 		cmp bx, 0xC001;
@@ -88,7 +88,7 @@ static void __declspec(naked) set_array() {
 next:
 		mov ebx, eax;
 		mov eax, ebp;
-		call GetStringVar;
+		call interpretGetString_;
 notstring:
 		push eax; // arg 4: value
 		// key:
@@ -100,7 +100,7 @@ next1:
 		mov edx, ecx;
 		mov ebx, esi;
 		mov eax, ebp;
-		call GetStringVar;
+		call interpretGetString_;
 		mov esi, eax;
 notstring1:
 		push ecx; // arg 3: key type
@@ -121,16 +121,16 @@ static void __declspec(naked) get_array() {
 		pushad;
 		mov ebp, eax;
 		//Get args
-		call GetArgType
+		call interpretPopShort_
 		mov ebx, eax;
 		mov eax, ebp;
-		call GetArg;
+		call interpretPopLong_;
 		mov edi, eax;
 		mov eax, ebp;
-		call GetArgType
+		call interpretPopShort_
 		mov ecx, eax;
 		mov eax, ebp;
-		call GetArg;
+		call interpretPopLong_;
 		mov esi, eax;
 		mov eax, ebp;
 		// check first argument type
@@ -146,7 +146,7 @@ callsubstr:
 		mov eax, ebp;
 		mov ebx, esi;
 		mov edx, ecx;
-		call GetStringVar;
+		call interpretGetString_;
 		push 1;
 		push edi;
 		push eax;
@@ -167,7 +167,7 @@ next1:
 		mov edx, ebx;
 		mov ebx, edi;
 		mov eax, ebp;
-		call GetStringVar;
+		call interpretGetString_;
 		mov edi, eax;
 		mov ebx, ecx;
 notstring1:
@@ -187,14 +187,14 @@ end:
 		cmp bx, 0x9801;
 		jne notstring;
 		mov eax, ebp;
-		call CreateStringVar;
+		call interpretAddString_;
 		mov edx, eax;
 notstring:
 		mov eax, ebp;
-		call SetResult;
+		call interpretPushLong_;
 		mov edx, ebx;
 		mov eax, ebp;
-		call SetResultType;
+		call interpretPushShort_;
 		popad;
 		retn;
 	}
@@ -203,10 +203,10 @@ static void __declspec(naked) free_array() {
 	__asm {
 		pushad;
 		mov edi, eax;
-		call GetArgType;
+		call interpretPopShort_;
 		mov ebx, eax;
 		mov eax, edi;
-		call GetArg;
+		call interpretPopLong_;
 		cmp bx, 0xc001;
 		jne end;
 		push eax;
@@ -220,10 +220,10 @@ static void __declspec(naked) len_array() {
 	__asm {
 		pushad;
 		mov edi, eax;
-		call GetArgType;
+		call interpretPopShort_;
 		mov ebx, eax;
 		mov eax, edi;
-		call GetArg;
+		call interpretPopLong_;
 		cmp bx, 0xc001;
 		jne fail;
 		push eax;
@@ -234,10 +234,10 @@ fail:
 		xor edx, edx;
 end:
 		mov eax, edi;
-		call SetResult;
+		call interpretPushLong_;
 		mov edx, 0xc001;
 		mov eax, edi;
-		call SetResultType;
+		call interpretPushShort_;
 		popad;
 		retn;
 	}
@@ -247,16 +247,16 @@ static void __declspec(naked) resize_array() {
 		pushad;
 		mov ebp, eax;
 		//Get args
-		call GetArgType
+		call interpretPopShort_
 		mov ebx, eax;
 		mov eax, ebp;
-		call GetArg;
+		call interpretPopLong_;
 		mov edi, eax;
 		mov eax, ebp;
-		call GetArgType
+		call interpretPopShort_
 		mov ecx, eax;
 		mov eax, ebp;
-		call GetArg;
+		call interpretPopLong_;
 		mov esi, eax;
 		mov eax, ebp;
 		//Error check
@@ -276,16 +276,16 @@ static void __declspec(naked) temp_array() {
 	__asm {
 		pushad;
 		mov edi, eax;
-		call GetArgType
+		call interpretPopShort_
 		mov ebx, eax;
 		mov eax, edi;
-		call GetArg;
+		call interpretPopLong_;
 		mov ecx, eax;
 		mov eax, edi;
-		call GetArgType;
+		call interpretPopShort_;
 		mov edx, eax;
 		mov eax, edi;
-		call GetArg;
+		call interpretPopLong_;
 		cmp bx, 0xc001;
 		jne fail;
 		cmp dx, 0xc001;
@@ -299,10 +299,10 @@ fail:
 		xor edx, edx;
 end:
 		mov eax, edi;
-		call SetResult;
+		call interpretPushLong_;
 		mov edx, 0xc001;
 		mov eax, edi;
-		call SetResultType;
+		call interpretPushShort_;
 		popad;
 		retn;
 	}
@@ -311,10 +311,10 @@ static void __declspec(naked) fix_array() {
 	__asm {
 		pushad;
 		mov edi, eax;
-		call GetArgType;
+		call interpretPopShort_;
 		mov ebx, eax;
 		mov eax, edi;
-		call GetArg;
+		call interpretPopLong_;
 		cmp bx, 0xc001;
 		jne end;
 		push eax;
@@ -329,16 +329,16 @@ static void __declspec(naked) scan_array() {
 		pushad;
 		mov ebp, eax;
 		//Get args
-		call GetArgType
+		call interpretPopShort_
 		mov edx, eax;
 		mov eax, ebp;
-		call GetArg;
+		call interpretPopLong_;
 		mov edi, eax; // value (needle)
 		mov eax, ebp;
-		call GetArgType
+		call interpretPopShort_
 		mov ecx, eax;
 		mov eax, ebp;
-		call GetArg;
+		call interpretPopLong_;
 		mov esi, eax; // arrayID (haystack)
 		mov eax, ebp;
 		//Error check
@@ -351,7 +351,7 @@ static void __declspec(naked) scan_array() {
 getstringvar:
 		mov ebx, edi;
 		mov eax, ebp;
-		call GetStringVar;
+		call interpretGetString_;
 		mov edi, eax;
 success:
 		push esp;
@@ -370,19 +370,18 @@ end:
 		cmp ebx, VAR_TYPE_STR;
 		jne resultnotstr;
 		mov eax, ebp;
-		call CreateStringVar;
+		call interpretAddString_;
 		mov edx, eax; // str ptr
 resultnotstr:
 		mov eax, ebp;
-		call SetResult;
+		call interpretPushLong_;
 		mov edx, ebx;
 		mov eax, ebp;
-		call SetResultType;
+		call interpretPushShort_;
 		popad;
 		retn;
 	}
 }
-
 
 static void __declspec(naked) op_save_array() {
 	_OP_BEGIN(ebp)
@@ -510,7 +509,7 @@ static void FillListVector(DWORD type, std::vector<DWORD>& vec) {
 			}
 		}
 	} else if (type == 4) {
-		DWORD** squares=(DWORD**)0x66BE08;
+		DWORD** squares=(DWORD**)_squares;
 		for(int elv=0;elv<2;elv++) {
 			DWORD* esquares=squares[elv];
 			for(int tile=0;tile<10000;tile++) {
@@ -567,10 +566,10 @@ static void __declspec(naked) list_begin() {
 	__asm {
 		pushad;
 		mov ebp, eax;
-		call GetArgType;
+		call interpretPopShort_;
 		mov edi, eax;
 		mov eax, ebp;
-		call GetArg;
+		call interpretPopLong_;
 		cmp di, 0xc001;
 		jnz fail;
 		push eax;
@@ -582,10 +581,10 @@ fail:
 		dec edx;
 end:
 		mov eax, ebp;
-		call SetResult;
+		call interpretPushLong_;
 		mov eax, ebp;
 		mov edx, 0xc001;
-		call SetResultType;
+		call interpretPushShort_;
 		popad;
 		retn;
 	}
@@ -594,10 +593,10 @@ static void __declspec(naked) list_as_array() {
 	__asm {
 		pushad;
 		mov ebp, eax;
-		call GetArgType;
+		call interpretPopShort_;
 		mov edi, eax;
 		mov eax, ebp;
-		call GetArg;
+		call interpretPopLong_;
 		cmp di, 0xc001;
 		jnz fail;
 		push eax;
@@ -609,10 +608,10 @@ fail:
 		dec edx;
 end:
 		mov eax, ebp;
-		call SetResult;
+		call interpretPushLong_;
 		mov eax, ebp;
 		mov edx, 0xc001;
-		call SetResultType;
+		call interpretPushShort_;
 		popad;
 		retn;
 	}
@@ -621,10 +620,10 @@ static void __declspec(naked) list_next() {
 	__asm {
 		pushad;
 		mov ebp, eax;
-		call GetArgType;
+		call interpretPopShort_;
 		mov edi, eax;
 		mov eax, ebp;
-		call GetArg;
+		call interpretPopLong_;
 		cmp di, 0xc001;
 		jnz fail;
 		push eax;
@@ -636,10 +635,10 @@ fail:
 		dec edx;
 end:
 		mov eax, ebp;
-		call SetResult;
+		call interpretPushLong_;
 		mov eax, ebp;
 		mov edx, 0xc001;
-		call SetResultType;
+		call interpretPushShort_;
 		popad;
 		retn;
 	}
@@ -648,10 +647,10 @@ static void __declspec(naked) list_end() {
 	__asm {
 		pushad;
 		mov ebp, eax;
-		call GetArgType;
+		call interpretPopShort_;
 		mov edi, eax;
 		mov eax, ebp;
-		call GetArg;
+		call interpretPopLong_;
 		cmp di, 0xc001;
 		jnz end;
 		push eax;

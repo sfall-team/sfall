@@ -18,10 +18,11 @@
 
 #include "main.h"
 
-#include "Tiles.h"
-#include <stdio.h>
-#include "FileSystem.h"
 #include <math.h>
+#include <stdio.h>
+#include "FalloutEngine.h"
+#include "FileSystem.h"
+#include "Tiles.h"
 
 struct sArt {
 	DWORD flags;
@@ -71,23 +72,12 @@ struct frm {
 static OverrideEntry** overrides;
 static DWORD origTileCount=0;
 
-static const DWORD _db_fopen=0x4C5EC8;
-static const DWORD _db_fgets=0x4C5F70;
-static const DWORD _db_fclose=0x4C5EB4;
-static const DWORD _db_freadByteCount=0x4C62FC;
-static const DWORD _db_freadShort=0x4C60F4;
-static const DWORD _db_freadInt=0x4C614C;
-static const DWORD _db_fseek=0x4C60C0;
-static const DWORD _db_fwriteByteCount=0x4C6464;
-static const DWORD _mem_realloc=0x4C5B50;
-static const DWORD _db_freadIntCount=0x4C63BC;
-
 static DWORD db_fopen(const char* path, const char* mode) {
 	DWORD result;
 	__asm {
 		mov eax, path;
 		mov edx, mode;
-		call _db_fopen;
+		call db_fopen_;
 		mov result, eax;
 	}
 	return result;
@@ -98,7 +88,7 @@ static char* db_fgets(char* buf, int max_count, DWORD file) {
 		mov eax, buf;
 		mov edx, max_count;
 		mov ebx, file;
-		call _db_fgets;
+		call db_fgets_;
 		mov result, eax;
 	}
 	return result;
@@ -106,7 +96,7 @@ static char* db_fgets(char* buf, int max_count, DWORD file) {
 static void db_fclose(DWORD file) {
 	__asm {
 		mov eax, file;
-		call _db_fclose;
+		call db_fclose_;
 	}
 }
 static short db_freadShort(DWORD file) {
@@ -114,7 +104,7 @@ static short db_freadShort(DWORD file) {
 	__asm {
 		mov eax, file;
 		lea edx, rout;
-		call _db_freadShort;
+		call db_freadShort_;
 	}
 	return rout;
 }
@@ -123,7 +113,7 @@ static void db_freadByteCount(DWORD file, void* cptr, int count) {
 		mov eax, file;
 		mov edx, cptr;
 		mov ebx, count;
-		call _db_freadByteCount;
+		call db_freadByteCount_;
 	}
 }
 static void db_fwriteByteCount(DWORD file, void* cptr, int count) {
@@ -131,7 +121,7 @@ static void db_fwriteByteCount(DWORD file, void* cptr, int count) {
 		mov eax, file;
 		mov edx, cptr;
 		mov ebx, count;
-		call _db_fwriteByteCount;
+		call db_fwriteByteCount_;
 	}
 }
 static void db_fseek(DWORD file, long pos/*, int origin*/) {
@@ -139,7 +129,7 @@ static void db_fseek(DWORD file, long pos/*, int origin*/) {
 		mov eax, file;
 		mov edx, pos;
 		xor ebx, ebx;
-		call _db_fseek;
+		call db_fseek_;
 	}
 }
 static void* mem_realloc(void* lpmem, DWORD msize) {
@@ -147,14 +137,14 @@ static void* mem_realloc(void* lpmem, DWORD msize) {
 	__asm {
 		mov eax, lpmem;
 		mov edx, msize;
-		call _mem_realloc;
+		call mem_realloc_;
 		mov result, eax;
 	}
 	return result;
 }
 
 typedef int (_stdcall *functype)();
-static const functype _art_init=(functype)0x418840;
+static const functype _art_init=(functype)art_init_;
 static BYTE* mask;
 static void CreateMask() {
 	mask=new BYTE[80*36];
@@ -225,7 +215,7 @@ static int _stdcall ArtInitHook2() {
 
 	CreateMask();
 
-	sArt* tiles=&((sArt*)0x510738)[4];
+	sArt* tiles=&((sArt*)_art)[4];
 	char buf[32];
 	DWORD listpos=tiles->total;
 	origTileCount=listpos;
@@ -260,13 +250,13 @@ static int _stdcall ArtInitHook2() {
 static void __declspec(naked) ArtInitHook() {
 	__asm {
 		pushad;
-		mov eax, dword ptr dS:[0x51DEEC];
+		mov eax, dword ptr ds:[_read_callback];
 		push eax;
 		xor eax, eax;
-		mov dword ptr ds:[0x51DEEC], eax;
+		mov dword ptr ds:[_read_callback], eax;
 		call ArtInitHook2;
 		pop eax;
-		mov dword ptr ds:[0x51DEEC], eax;
+		mov dword ptr ds:[_read_callback], eax;
 		popad;
 		xor eax, eax;
 		retn;
@@ -297,7 +287,7 @@ static void _stdcall SquareLoadCheck(tilestruct* data) {
 static void __declspec(naked) SquareLoadHook() {
 	__asm {
 		mov edi, edx;
-		call _db_freadIntCount;
+		call db_freadIntCount_;
 		test eax, eax;
 		jnz end;
 		pushad;

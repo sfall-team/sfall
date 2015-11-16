@@ -22,6 +22,7 @@
 #include <d3dx9.h>
 #include <stdio.h>
 #include <hash_map>
+#include "FalloutEngine.h"
 
 void _stdcall SetHeadTex(IDirect3DTexture9* tex, int width, int height, int xoff, int yoff);
 
@@ -70,14 +71,13 @@ struct Frame {
 };
 #pragma pack(pop)
 
-static const DWORD _frame_pointer=0x419880;
 static Frame* FramePointer(const Frm* frm, int frameno) {
 	Frame* result;
 	__asm {
 		mov eax, frm;
 		mov edx, frameno;
 		xor ebx, ebx;
-		call _frame_pointer;
+		call frame_ptr_;
 		mov result, eax;
 	}
 	return result;
@@ -170,12 +170,11 @@ label:
 	}
 }
 
-static const DWORD _talk_to_translucent_trans_buf_to_buf=0x44AC68;
 static void __declspec(naked) TransTalkHook() {
 	__asm {
 		cmp overridden, 0;
 		jne skip;
-		jmp _talk_to_translucent_trans_buf_to_buf;
+		jmp talk_to_translucent_trans_buf_to_buf_;
 skip:
 		retn 0x18;
 	}

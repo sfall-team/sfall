@@ -31,10 +31,10 @@
 #define _GET_ARG_R32(rscript, rtype, rval) __asm \
 {	\
 	__asm mov eax, rscript					\
-	__asm call GetArgType					\
+	__asm call interpretPopShort_			\
 	__asm mov rtype, eax					\
 	__asm mov eax, rscript					\
-	__asm call GetArg						\
+	__asm call interpretPopLong_			\
 	__asm mov rval, eax \
 }
 
@@ -68,7 +68,7 @@ __asm skipgetstr##num:					\
 	__asm mov edx, e##r16type			\
 	__asm mov ebx, rval					\
 	__asm mov eax, rscript				\
-	__asm call GetStringVar				\
+	__asm call interpretGetString_		\
 	__asm mov rval, eax	} \
 notstring##num:
 
@@ -81,7 +81,7 @@ notstring##num:
 	__asm mov edx, e##r16type			\
 	__asm mov ebx, rval					\
 	__asm mov eax, rscript				\
-	__asm call GetStringVar				\
+	__asm call interpretGetString_		\
 	__asm mov rval, eax	}
 
 
@@ -89,20 +89,20 @@ notstring##num:
 #define _RET_VAL_INT(rscript) __asm {		\
 	__asm mov edx, eax					\
 	__asm mov eax, rscript				\
-	__asm call SetResult				\
+	__asm call interpretPushLong_		\
 	__asm mov edx, VAR_TYPE_INT			\
 	__asm mov eax, rscript				\
-	__asm call SetResultType \
+	__asm call interpretPushShort_		\
 }
 
 // return value stored in EAX as float
 #define _RET_VAL_FLOAT(rscript) __asm {		\
 	__asm mov edx, eax					\
 	__asm mov eax, rscript				\
-	__asm call SetResult				\
+	__asm call interpretPushLong_		\
 	__asm mov edx, VAR_TYPE_FLOAT		\
 	__asm mov eax, rscript				\
-	__asm call SetResultType \
+	__asm call interpretPushShort_		\
 }
 
 /* 
@@ -117,15 +117,15 @@ notstring##num:
 	__asm jne resultnotstr##num			\
 	__asm mov edx, eax					\
 	__asm mov eax, rscript				\
-	__asm call CreateStringVar			\
+	__asm call interpretAddString_		\
 	__asm mov ecx, eax					\
 __asm resultnotstr##num:				\
 	__asm mov edx, ecx					\
 	__asm mov eax, rscript				\
-	__asm call SetResult				\
+	__asm call interpretPushLong_		\
 	__asm mov edx, type					\
 	__asm mov eax, rscript				\
-	__asm call SetResultType			\
+	__asm call interpretPushShort_		\
 }
 
 /* 
@@ -150,12 +150,12 @@ __asm loopbegin:					\
 	__asm jz loopend				\
 	__asm sub esi, 4				\
 	__asm mov eax, ebp				\
-	__asm call GetArgType			\
+	__asm call interpretPopShort_	\
 	__asm push eax					\
 	__asm call getSfallTypeByScriptType \
 	__asm mov opArgTypes[esi], eax	\
 	__asm mov eax, ebp				\
-	__asm call GetArg				\
+	__asm call interpretPopLong_	\
 	__asm mov opArgs[esi], eax		\
 	__asm jmp loopbegin				\
 __asm loopend:						\
@@ -170,14 +170,14 @@ __asm loopend:						\
 	__asm cmp ecx, VAR_TYPE_STR		\
 	__asm jne notstring				\
 	__asm mov eax, ebp				\
-	__asm call CreateStringVar		\
+	__asm call interpretAddString_	\
 	__asm mov edx, eax				\
 __asm notstring:					\
 	__asm mov eax, ebp				\
-	__asm call SetResult			\
+	__asm call interpretPushLong_	\
 	__asm mov edx, ecx				\
 	__asm mov eax, ebp				\
-	__asm call SetResultType		\
+	__asm call interpretPushShort_	\
 __asm end:							\
 	__asm popad						\
 	__asm retn						\

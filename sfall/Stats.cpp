@@ -18,14 +18,16 @@
 
 #include "main.h"
 
-#include "Stats.h"
 #include <math.h>
 #include <stdio.h>
+#include "Define.h"
+#include "FalloutEngine.h"
+#include "Stats.h"
 
-static DWORD StatMaximumsPC[0x23];
-static DWORD StatMinimumsPC[0x23];
-static DWORD StatMaximumsNPC[0x23];
-static DWORD StatMinimumsNPC[0x23];
+static DWORD StatMaximumsPC[STAT_max_stat];
+static DWORD StatMinimumsPC[STAT_max_stat];
+static DWORD StatMaximumsNPC[STAT_max_stat];
+static DWORD StatMinimumsNPC[STAT_max_stat];
 
 static DWORD cCritter;
 
@@ -47,7 +49,7 @@ static void __declspec(naked) GetCurrentStatHook2() {
 	__asm {
 		shl esi, 2;
 		mov eax, cCritter;
-		cmp eax, dword ptr ds:[0x006610B8];
+		cmp eax, dword ptr ds:[_obj_dude];
 		je pc;
 		cmp ecx, StatMinimumsNPC[esi];
 		jg npc1;
@@ -81,7 +83,7 @@ end:
 
 static void __declspec(naked) SetCurrentStatHook() {
 	__asm {
-		cmp esi, dword ptr ds:[0x006610B8];
+		cmp esi, dword ptr ds:[_obj_dude];
 		je pc;
 		cmp ebx, StatMinimumsNPC[ecx*4];
 		jl fail;
@@ -112,7 +114,7 @@ static void __declspec(naked) GetLevelXPHook() {
 }
 static void __declspec(naked) GetNextLevelXPHook() {
 	__asm {
-		mov eax, ds:[0x6681B0];
+		mov eax, ds:[_Level_];
 		jmp GetLevelXPHook;
 	}
 }
@@ -129,10 +131,9 @@ static void __declspec(naked) ApplyApAcBonus() {
 		xor edi, edi;
 		jmp standard;
 h2hEvade:
-		mov edx, 93;
-		mov eax, dword ptr ds:[0x6610B8];
-		mov edi, 0x496B78;
-		call edi;
+		mov edx, PERK_hth_evade_perk;
+		mov eax, dword ptr ds:[_obj_dude];
+		call perk_level_;
 		imul ax, ExtraApAcBonus;
 		imul ax, [ebx+0x40];
 		mov edi, eax;
@@ -147,8 +148,6 @@ standard:
 	}
 }
 
-static const DWORD stat_level=0x4AEF48;
-static const DWORD proto_ptr=0x4A2108;
 static int StatFormulas[33*2];
 static int StatShifts[33*7];
 static double StatMulti[33*7];
@@ -156,7 +155,7 @@ static int __declspec(naked) _stdcall StatLevel(void* critter, int id) {
 	__asm {
 		mov eax, [esp+4];
 		mov edx, [esp+8];
-		call stat_level;
+		call stat_level_;
 		retn 8;
 	}
 }
@@ -164,7 +163,7 @@ static void __declspec(naked) _stdcall ProtoPtr(DWORD pid, int** proto) {
 	__asm {
 		mov eax, [esp+4];
 		mov edx, [esp+8];
-		call proto_ptr;
+		call proto_ptr_;
 		retn 8;
 	}
 }
@@ -199,7 +198,7 @@ static void __declspec(naked) stat_recalc_derived() {
 }
 
 void StatsReset() {
-	for(int i=0;i<0x23;i++) {
+	for(int i=0;i<STAT_max_stat;i++) {
 		StatMaximumsPC[i]=StatMaximumsNPC[i]=*(DWORD*)(0x0051D54C + i*24);
 		StatMinimumsPC[i]=StatMinimumsNPC[i]=*(DWORD*)(0x0051D548 + i*24);
 	}
@@ -288,18 +287,18 @@ void StatsInit() {
 }
 
 void _stdcall SetPCStatMax(int stat, int i) {
-	if(stat<0||stat>=0x23) return;
+	if(stat<0||stat>=STAT_max_stat) return;
 	StatMaximumsPC[stat]=i;
 }
 void _stdcall SetPCStatMin(int stat, int i) {
-	if(stat<0||stat>=0x23) return;
+	if(stat<0||stat>=STAT_max_stat) return;
 	StatMinimumsPC[stat]=i;
 }
 void _stdcall SetNPCStatMax(int stat, int i) {
-	if(stat<0||stat>=0x23) return;
+	if(stat<0||stat>=STAT_max_stat) return;
 	StatMaximumsNPC[stat]=i;
 }
 void _stdcall SetNPCStatMin(int stat, int i) {
-	if(stat<0||stat>=0x23) return;
+	if(stat<0||stat>=STAT_max_stat) return;
 	StatMinimumsNPC[stat]=i;
 }

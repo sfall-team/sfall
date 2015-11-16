@@ -1,8 +1,8 @@
-#include "Numbers.h"
-#include "Imports.h"
 #include "Defines.h"
-#include "SafeWrite.h"
+#include "Imports.h"
 #include "Input.h"
+#include "Numbers.h"
+#include "SafeWrite.h"
 
 static void RunNumbers(DWORD load) {
 	if(!load) {
@@ -11,7 +11,6 @@ static void RunNumbers(DWORD load) {
 	exit(0);
 }
 
-static void NewGameRet=0x481A00;
 static void _declspec(naked) NewGameHook() {
 	_asm {
 		pushad;
@@ -25,7 +24,7 @@ static void _declspec(naked) NewGameHook() {
 		call RunNumbers();
 fail:
 		popad;
-		jmp NewGameRet;
+		jmp main_menu_hide_;
 	}
 }
 

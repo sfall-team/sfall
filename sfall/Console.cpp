@@ -60,10 +60,9 @@ void ConsoleExit() {
 
 
 
-/*  An attempt to make popup display function.. failed to make it work, though all arguments are there. 
+/*  An attempt to make popup display function.. failed to make it work, though all arguments are there.
 	I missed something...
 
-static const DWORD dialog_out_Addr = 0x41CF20;
 void DisplayAlertPopup(const char* msg, const char* line2) {
 	__asm {
 		push	1
@@ -78,6 +77,6 @@ void DisplayAlertPopup(const char* msg, const char* line2) {
 		mov		eax, line2
 		mov		esi, 0FFFFFFFFh
 		mov		edi, 2
-		call	dialog_out_Addr
-    }
+		call	dialog_out_
+	}
 }*/

@@ -26,11 +26,11 @@ static void __declspec(naked) GetPerkOwed() {
 	__asm {
 		pushad;
 		mov ecx, eax;
-		movzx edx, byte ptr ds:[0x570A29];
-		call SetResult;
+		movzx edx, byte ptr ds:[_free_perk];
+		call interpretPushLong_;
 		mov edx, 0xc001;
 		mov eax, ecx;
-		call SetResultType;
+		call interpretPushShort_;
 		popad;
 		retn;
 	}
@@ -39,16 +39,16 @@ static void __declspec(naked) SetPerkOwed() {
 	__asm {
 		pushad;
 		mov ecx, eax;
-		call GetArgType;
+		call interpretPopShort_;
 		mov edx, eax;
 		mov eax, ecx;
-		call GetArg;
+		call interpretPopLong_;
 		cmp dx, 0xC001;
 		jnz end;
 		and eax, 0xff;
 		cmp eax, 250;
 		jg end;
-		mov byte ptr ds:[0x570A29], al
+		mov byte ptr ds:[_free_perk], al
 end:
 		popad
 		retn;
@@ -58,10 +58,10 @@ static void __declspec(naked) set_perk_freq() {
 	__asm {
 		pushad;
 		mov ecx, eax;
-		call GetArgType;
+		call interpretPopShort_;
 		mov edx, eax;
 		mov eax, ecx;
-		call GetArg;
+		call interpretPopLong_;
 		cmp dx, 0xC001;
 		jnz end;
 		push eax;
@@ -75,28 +75,27 @@ static void __declspec(naked) GetPerkAvailable() {
 	__asm {
 		pushad;
 		mov ecx, eax;
-		call GetArgType;
+		call interpretPopShort_;
 		mov edx, eax;
 		mov eax, ecx;
-		call GetArg;
+		call interpretPopLong_;
 		cmp dx, 0xC001;
 		jnz fail;
-		cmp eax, 119;
+		cmp eax, PERK_count;
 		jge fail;
 		mov edx, eax;
-		mov eax, 0x006610B8;
-		mov ebx, 0x00496B44;
-		call ebx;
+		mov eax, ds:[_obj_dude];
+		call perk_make_list_;
 		mov edx, eax;
 		jmp end;
 fail:
 		xor edx, edx;
 end:
 		mov eax, ecx
-		call SetResult;
+		call interpretPushLong_;
 		mov edx, 0xc001;
 		mov eax, ecx;
-		call SetResultType;
+		call interpretPushShort_;
 		popad;
 		retn;
 	}
@@ -105,16 +104,16 @@ static void __declspec(naked) funcSetPerkName() {
 	__asm {
 		pushad;
 		mov ecx, eax;
-		call GetArgType;
+		call interpretPopShort_;
 		mov esi, eax;
 		mov eax, ecx;
-		call GetArg;
+		call interpretPopLong_;
 		mov edi, eax;
 		mov eax, ecx;
-		call GetArgType;
+		call interpretPopShort_;
 		mov edx, eax;
 		mov eax, ecx;
-		call GetArg;
+		call interpretPopLong_;
 		cmp dx, 0xC001;
 		jnz end;
 		cmp si, 0x9001;
@@ -126,8 +125,7 @@ next:
 		mov edx, esi;
 		mov esi, eax;
 		mov eax, ecx;
-		mov edi, 0x4678E0;
-		call edi;
+		call interpretGetString_;
 		push eax;
 		push esi;
 		call SetPerkName;
@@ -141,16 +139,16 @@ static void __declspec(naked) funcSetPerkDesc() {
 	__asm {
 		pushad;
 		mov ecx, eax;
-		call GetArgType;
+		call interpretPopShort_;
 		mov esi, eax;
 		mov eax, ecx;
-		call GetArg;
+		call interpretPopLong_;
 		mov edi, eax;
 		mov eax, ecx;
-		call GetArgType;
+		call interpretPopShort_;
 		mov edx, eax;
 		mov eax, ecx;
-		call GetArg;
+		call interpretPopLong_;
 		cmp dx, 0xC001;
 		jnz end;
 		cmp si, 0x9001;
@@ -162,8 +160,7 @@ next:
 		mov edx, esi;
 		mov esi, eax;
 		mov eax, ecx;
-		mov edi, 0x4678E0;
-		call edi;
+		call interpretGetString_;
 		push eax;
 		push esi;
 		call SetPerkDesc;
@@ -179,16 +176,16 @@ static void __declspec(naked) funcSetPerkValue() {
 		sub edx, 0x5e0-8; // offset of value into perk struct; edx = ((edx/4) - 0x178 + 0x8) * 4
 		push edx;
 		mov ecx, eax;
-		call GetArgType;
+		call interpretPopShort_;
 		mov esi, eax;
 		mov eax, ecx;
-		call GetArg;
+		call interpretPopLong_;
 		mov edi, eax;
 		mov eax, ecx;
-		call GetArgType;
+		call interpretPopShort_;
 		mov edx, eax;
 		mov eax, ecx;
-		call GetArg;
+		call interpretPopLong_;
 		cmp dx, 0xC001;
 		jnz fail;
 		cmp si, 0xC001;
@@ -209,28 +206,28 @@ static void __declspec(naked) fSetSelectablePerk() {
 	__asm {
 		pushad;
 		mov ecx, eax;
-		call GetArgType;
+		call interpretPopShort_;
 		push eax;
 		mov eax, ecx;
-		call GetArg;
+		call interpretPopLong_;
 		push eax;
 		mov eax, ecx;
-		call GetArgType;
+		call interpretPopShort_;
 		push eax;
 		mov eax, ecx;
-		call GetArg;
+		call interpretPopLong_;
 		push eax;
 		mov eax, ecx;
-		call GetArgType;
+		call interpretPopShort_;
 		push eax;
 		mov eax, ecx;
-		call GetArg;
+		call interpretPopLong_;
 		push eax;
 		mov eax, ecx;
-		call GetArgType;
+		call interpretPopShort_;
 		push eax;
 		mov eax, ecx;
-		call GetArg;
+		call interpretPopLong_;
 		push eax;
 
 		movzx eax, word ptr [esp+12];
@@ -254,7 +251,7 @@ next2:
 		mov eax, ecx;
 		mov edx, [esp+28];
 		mov ebx, [esp+24];
-		call GetStringVar;
+		call interpretGetString_;
 		push eax;
 		mov eax, [esp+20];
 		push eax;
@@ -263,7 +260,7 @@ next2:
 		mov eax, ecx;
 		mov edx, [esp+16];
 		mov ebx, [esp+12];
-		call GetStringVar;
+		call interpretGetString_;
 		push eax;
 
 		call SetSelectablePerk;
@@ -277,28 +274,28 @@ static void __declspec(naked) fSetFakePerk() {
 	__asm {
 		pushad;
 		mov ecx, eax;
-		call GetArgType;
+		call interpretPopShort_;
 		push eax;
 		mov eax, ecx;
-		call GetArg;
+		call interpretPopLong_;
 		push eax;
 		mov eax, ecx;
-		call GetArgType;
+		call interpretPopShort_;
 		push eax;
 		mov eax, ecx;
-		call GetArg;
+		call interpretPopLong_;
 		push eax;
 		mov eax, ecx;
-		call GetArgType;
+		call interpretPopShort_;
 		push eax;
 		mov eax, ecx;
-		call GetArg;
+		call interpretPopLong_;
 		push eax;
 		mov eax, ecx;
-		call GetArgType;
+		call interpretPopShort_;
 		push eax;
 		mov eax, ecx;
-		call GetArg;
+		call interpretPopLong_;
 		push eax;
 
 		movzx eax, word ptr [esp+12];
@@ -322,7 +319,7 @@ next2:
 		mov eax, ecx;
 		mov edx, [esp+28];
 		mov ebx, [esp+24];
-		call GetStringVar;
+		call interpretGetString_;
 		push eax;
 		mov eax, [esp+20];
 		push eax;
@@ -331,7 +328,7 @@ next2:
 		mov eax, ecx;
 		mov edx, [esp+16];
 		mov ebx, [esp+12];
-		call GetStringVar;
+		call interpretGetString_;
 		push eax;
 
 		call SetFakePerk;
@@ -349,28 +346,28 @@ static void __declspec(naked) fSetFakeTrait() {
 		push edi;
 		push esi;
 		mov ecx, eax;
-		call GetArgType;
+		call interpretPopShort_;
 		push eax;
 		mov eax, ecx;
-		call GetArg;
+		call interpretPopLong_;
 		push eax;
 		mov eax, ecx;
-		call GetArgType;
+		call interpretPopShort_;
 		push eax;
 		mov eax, ecx;
-		call GetArg;
+		call interpretPopLong_;
 		push eax;
 		mov eax, ecx;
-		call GetArgType;
+		call interpretPopShort_;
 		push eax;
 		mov eax, ecx;
-		call GetArg;
+		call interpretPopLong_;
 		push eax;
 		mov eax, ecx;
-		call GetArgType;
+		call interpretPopShort_;
 		push eax;
 		mov eax, ecx;
-		call GetArg;
+		call interpretPopLong_;
 		push eax;
 
 		movzx eax, word ptr [esp+12];
@@ -394,7 +391,7 @@ next2:
 		mov eax, ecx;
 		mov edx, [esp+28];
 		mov ebx, [esp+24];
-		call GetStringVar;
+		call interpretGetString_;
 		push eax;
 		mov eax, [esp+20];
 		push eax;
@@ -403,7 +400,7 @@ next2:
 		mov eax, ecx;
 		mov edx, [esp+16];
 		mov ebx, [esp+12];
-		call GetStringVar;
+		call interpretGetString_;
 		push eax;
 
 		call SetFakeTrait;
@@ -424,12 +421,10 @@ static void __declspec(naked) fSetPerkboxTitle() {
 		push edx;
 		push edi;
 		mov edi, eax;
-		mov ebx, 0x4674F0;
-		call ebx;
+		call interpretPopShort_;
 		mov edx, eax;
 		mov eax, edi;
-		mov ebx, 0x467500;
-		call ebx;
+		call interpretPopLong_;
 		cmp dx, 0x9001;
 		jz next;
 		cmp dx, 0x9801;
@@ -437,8 +432,7 @@ static void __declspec(naked) fSetPerkboxTitle() {
 next:
 		mov ebx, eax;
 		mov eax, edi;
-		mov ecx, GetStringVar;
-		call ecx;
+		call interpretGetString_;
 		push eax;
 		call SetPerkboxTitle;
 end:
@@ -492,10 +486,10 @@ static void __declspec(naked) fHasFakePerk() {
 		push edx;
 		push edi;
 		mov edi, eax;
-		call GetArgType;
+		call interpretPopShort_;
 		mov edx, eax;
 		mov eax, edi;
-		call GetArg;
+		call interpretPopLong_;
 		cmp dx, 0x9001;
 		jz next;
 		cmp dx, 0x9801;
@@ -503,17 +497,16 @@ static void __declspec(naked) fHasFakePerk() {
 next:
 		mov ebx, eax;
 		mov eax, edi;
-		mov ecx, GetStringVar;
-		call ecx;
+		call interpretGetString_;
 		push eax;
 		call HasFakePerk;
 end:
 		mov edx, eax;
 		mov eax, edi;
-		call SetResult;
+		call interpretPushLong_;
 		mov eax, edi;
 		mov edx, 0xc001;
-		call SetResultType;
+		call interpretPushShort_;
 		pop edi;
 		pop edx;
 		pop ecx;
@@ -528,11 +521,10 @@ static void __declspec(naked) fHasFakeTrait() {
 		push edx;
 		push edi;
 		mov edi, eax;
-		call GetArgType;
+		call interpretPopShort_;
 		mov edx, eax;
 		mov eax, edi;
-		mov ebx, 0x467500;
-		call GetArg;
+		call interpretPopLong_;
 		cmp dx, 0x9001;
 		jz next;
 		cmp dx, 0x9801;
@@ -540,17 +532,16 @@ static void __declspec(naked) fHasFakeTrait() {
 next:
 		mov ebx, eax;
 		mov eax, edi;
-		mov ecx, GetStringVar;
-		call ecx;
+		call interpretGetString_;
 		push eax;
 		call HasFakeTrait;
 end:
 		mov edx, eax;
 		mov eax, edi;
-		call SetResult;
+		call interpretPushLong_;
 		mov eax, edi;
 		mov edx, 0xc001;
-		call SetResultType;
+		call interpretPushShort_;
 		pop edi;
 		pop edx;
 		pop ecx;
@@ -564,12 +555,10 @@ static void __declspec(naked) fAddPerkMode() {
 		push ecx;
 		push edx;
 		mov ecx, eax;
-		mov ebx, 0x4674F0;
-		call ebx;
+		call interpretPopShort_;
 		mov edx, eax;
 		mov eax, ecx;
-		mov ebx, 0x467500;
-		call ebx;
+		call interpretPopLong_;
 		cmp dx, 0xC001;
 		jnz end;
 		push eax;
@@ -585,24 +574,24 @@ static void __declspec(naked) remove_trait() {
 	__asm {
 		pushad;
 		mov ebp, eax;
-		call GetArgType;
+		call interpretPopShort_;
 		mov edi, eax;
 		mov eax, ebp;
-		call GetArg;
+		call interpretPopLong_;
 		cmp di, 0xc001;
 		jnz end;
 		xor ebx, ebx;
 		dec ebx;
-		mov ecx, ds:[0x66BE44];
-		cmp eax, ds:[0x66BE40];
+		mov ecx, ds:[_pc_trait2];
+		cmp eax, ds:[_pc_trait];
 		jne next;
-		mov ds:[0x66BE40], ecx;
-		mov ds:[0x66BE44], ebx;
+		mov ds:[_pc_trait], ecx;
+		mov ds:[_pc_trait2], ebx;
 		jmp end;
 next:
-		cmp eax, ds:[0x66BE44];
+		cmp eax, ds:[_pc_trait2];
 		jne end;
-		mov ds:[0x66BE44], ebx;
+		mov ds:[_pc_trait2], ebx;
 end:
 		popad;
 		retn;
@@ -615,10 +604,10 @@ static void __declspec(naked) SetPyromaniacMod() {
 		push ecx;
 		push edx;
 		mov ecx, eax;
-		call GetArgType;
+		call interpretPopShort_;
 		mov edx, eax;
 		mov eax, ecx;
-		call GetArg;
+		call interpretPopLong_;
 		cmp dx, 0xC001;
 		jnz end;
 		push eax;
@@ -650,10 +639,10 @@ static void __declspec(naked) SetSwiftLearnerMod() {
 		push ecx;
 		push edx;
 		mov ecx, eax;
-		call GetArgType;
+		call interpretPopShort_;
 		mov edx, eax;
 		mov eax, ecx;
-		call GetArg;
+		call interpretPopLong_;
 		cmp dx, 0xC001;
 		jnz end;
 		push eax;

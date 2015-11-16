@@ -18,6 +18,7 @@
 
 #include "main.h"
 
+#include "FalloutEngine.h"
 #include "FileSystem.h"
 #include "vector9x.cpp"
 
@@ -51,7 +52,6 @@ struct sFile {
 	openFile* file;
 };
 
-static const DWORD ptr_xfclose=0x4DED6C;
 static void _stdcall xfclose(sFile* file) {
 	delete file->file;
 	delete file;
@@ -70,11 +70,10 @@ static void __declspec(naked) asm_xfclose(sFile* file) {
 		retn;
 end:
 		popad;
-		jmp ptr_xfclose;
+		jmp xfclose_;
 	}
 }
 
-static const DWORD ptr_xfopen=0x4DEE2C;
 static sFile* _stdcall xfopen(const char* path, const char* mode) {
 	for(DWORD i=0;i<files.size();i++) {
 		if(!_stricmp(path, files[i].name)) {
@@ -100,12 +99,11 @@ static __declspec(naked) sFile* asm_xfopen(const char* path, const char* mode) {
 		retn;
 end:
 		popad;
-		jmp ptr_xfopen;
+		jmp xfopen_;
 	}
 }
 
 //db_fprintf calls xvfprintf, not xfprintf
-static const DWORD ptr_xvfprintf=0x4DF1AC;
 static int _stdcall xvfprintf() {
 	return -1;
 }
@@ -122,10 +120,9 @@ static __declspec(naked) int asm_xvfprintf(sFile* file, const char* format, void
 		retn;
 end:
 		popad;
-		jmp ptr_xvfprintf;
+		jmp xvfprintf_;
 	}
 }
-static const DWORD ptr_xfgetc=0x4DF22C;
 static int _stdcall xfgetc(sFile* file) {
 	if(file->file->pos>=file->file->file->length) return -1;
 	return file->file->file->data[file->file->pos++];
@@ -144,11 +141,10 @@ static __declspec(naked) int asm_xfgetc(sFile* file) {
 		retn;
 end:
 		popad;
-		jmp ptr_xfgetc;
+		jmp xfgetc_;
 	}
 }
 
-static const DWORD ptr_xfgets=0x4DF280;
 static char* _stdcall xfgets(char* buf, int max_count, sFile* file) {
 	if(file->file->pos>=file->file->file->length) return 0;
 	for(int i=0;i<max_count;i++) {
@@ -179,10 +175,9 @@ static __declspec(naked) char* asm_xfgets(char* buf, int max_count, sFile* file)
 		retn;
 end:
 		popad;
-		jmp ptr_xfgets;
+		jmp xfgets_;
 	}
 }
-static const DWORD ptr_xfputc=0x4DF320;
 static int _stdcall xfputc(int c, sFile* file) {
 	return -1;
 }
@@ -201,10 +196,9 @@ static __declspec(naked) int asm_xfputc(int c, sFile* file) {
 		retn;
 end:
 		popad;
-		jmp ptr_xfputc;
+		jmp xfputc_;
 	}
 }
-static const DWORD ptr_xfputs=0x4DF380;
 static int _stdcall xfputs(const char* str, sFile* file) {
 	return -1;
 }
@@ -223,10 +217,9 @@ static __declspec(naked) int asm_xfputs(const char* str, sFile* file) {
 		retn;
 end:
 		popad;
-		jmp ptr_xfputs;
+		jmp xfputs_;
 	}
 }
-static const DWORD ptr_xfungetc=0x4DF3F4;
 static int _stdcall xfungetc(int c, sFile* file) {
 	if(file->file->pos==0) return -1;
 	if(file->file->file->data[file->file->pos-1]!=c) return -1;
@@ -248,10 +241,9 @@ static __declspec(naked) int asm_xfungetc(int c, sFile* file) {
 		retn;
 end:
 		popad;
-		jmp ptr_xfungetc;
+		jmp xungetc_;
 	}
 }
-static const DWORD ptr_xfread=0x4DF44C;
 static int _stdcall xfread(void* buf, int elsize, int count, sFile* file) {
 	for(int i=0;i<count;i++) {
 		if(file->file->pos+elsize>=file->file->file->length) return i;
@@ -277,10 +269,9 @@ static __declspec(naked) int asm_xfread(void* buf, int elsize, int count, sFile*
 		retn;
 end:
 		popad;
-		jmp ptr_xfread;
+		jmp xfread_;
 	}
 }
-static const DWORD ptr_xfwrite=0x4DF4E8;
 static int _stdcall xfwrite(const void* buf, int elsize, int count, sFile* file) {
 	return 0;
 }
@@ -301,10 +292,9 @@ static __declspec(naked) int asm_xfwrite(const void* buf, int elsize, int count,
 		retn;
 end:
 		popad;
-		jmp ptr_xfwrite;
+		jmp xfwrite_;
 	}
 }
-static const DWORD ptr_xfseek=0x4DF5D8;
 static int _stdcall xfseek(sFile* file, long pos, int origin) {
 	switch(origin) {
 		case 1:
@@ -335,10 +325,9 @@ static __declspec(naked) int asm_xfseek(sFile* file, long pos, int origin) {
 		retn;
 end:
 		popad;
-		jmp ptr_xfseek;
+		jmp xfseek_;
 	}
 }
-static const DWORD ptr_xftell=0x4DF690;
 static long _stdcall xftell(sFile* file) {
 	return file->file->pos;
 }
@@ -356,10 +345,9 @@ static __declspec(naked) long asm_xftell(sFile* file) {
 		retn;
 end:
 		popad;
-		jmp ptr_xftell;
+		jmp xftell_;
 	}
 }
-static const DWORD ptr_xfrewind=0x4DF6E4;
 static void _stdcall xfrewind(sFile* file) {
 	file->file->pos=0;
 }
@@ -377,10 +365,9 @@ static __declspec(naked) void asm_xfrewind(sFile* file) {
 		retn;
 end:
 		popad;
-		jmp ptr_xfrewind;
+		jmp xrewind_;
 	}
 }
-static const DWORD ptr_xfeof=0x4DF780;
 static int _stdcall xfeof(sFile* file) {
 	if(file->file->pos>=file->file->file->length) return 1;
 	else return 0;
@@ -399,10 +386,9 @@ static __declspec(naked) int asm_xfeof(sFile* file) {
 		retn;
 end:
 		popad;
-		jmp ptr_xfeof;
+		jmp xfeof_;
 	}
 }
-static const DWORD ptr_xfilelength=0x4DF828;
 static int _stdcall xfilelength(sFile* file) {
 	return file->file->file->length;
 }
@@ -420,7 +406,7 @@ static __declspec(naked) int asm_xfilelength(sFile* file) {
 		retn;
 end:
 		popad;
-		jmp ptr_xfilelength;
+		jmp xfilelength_;
 	}
 }
 
@@ -569,23 +555,22 @@ DWORD _stdcall FScopy(const char* path, const char* source) {
 	__asm {
 		mov eax, source;
 		mov edx, mode;
-		call ptr_xfopen;
+		call xfopen_;
 		mov file, eax;
 	}
 	if(!file) return -1;
 	__asm {
 		mov eax, file;
-		call ptr_xfilelength;
+		call xfilelength_;
 		mov fsize, eax;
 	}
 	char* fdata=new char[fsize];
 	__asm {
 		mov eax, file;
-		call ptr_xfclose;
+		call xfclose_;
 		mov eax, source;
 		mov edx, fdata;
-		mov ebx, 0x4C5DD4;
-		call ebx;
+		call db_read_to_buf_;
 	}
 	fsFile* fsfile=0;
 	for(DWORD i=0;i<files.size();i++) {

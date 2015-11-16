@@ -19,10 +19,10 @@
 #include "main.h"
 
 #include "BarBoxes.h"
+#include "FalloutEngine.h"
 
 static const DWORD DisplayBoxesRet1=0x4615A8;
 static const DWORD DisplayBoxesRet2=0x4615BE;
-static const DWORD _add_bar_box=0x4616F0;
 struct sBox {
 	DWORD msg;
 	DWORD colour;
@@ -39,7 +39,7 @@ start:
 		test eax, eax;
 		jz next;
 		lea eax, [ebx+5];
-		call _add_bar_box;
+		call add_bar_box_;
 		add esi, eax;
 next:
 		inc ebx;

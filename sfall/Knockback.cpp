@@ -19,6 +19,7 @@
 #include "main.h"
 
 #include <math.h>
+#include "FalloutEngine.h"
 #include "Knockback.h"
 #include "vector9x.cpp"
 
@@ -47,7 +48,6 @@ static ChanceModifier BaseHitChance;
 static ChanceModifier BasePickpocket;
 
 static bool hookedAimedShot;
-static const DWORD item_w_damage_type=0x478570;
 static const DWORD aimedShotRet1=0x478EE4;
 static const DWORD aimedShotRet2=0x478EEA;
 static vector<DWORD> disabledAS;
@@ -320,7 +320,7 @@ disable:
 realfunc:
 		pop edx;
 		pop eax;
-		jmp item_w_damage_type;
+		jmp item_w_damage_type_;
 	}
 }
 static void HookAimedShots() {

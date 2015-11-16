@@ -18,10 +18,11 @@
 
 #include "main.h"
 
-#include "DebugEditor.h"
-#include "ScriptExtender.h"
-#include "Arrays.h"
 #include <vector>
+#include "Arrays.h"
+#include "DebugEditor.h"
+#include "FalloutEngine.h"
+#include "ScriptExtender.h"
 
 #define CODE_EXIT (254)
 #define CODE_SET_GLOBAL  (0)
@@ -70,8 +71,6 @@ static bool InternalRecv(SOCKET s, void* _data, int size) {
 	}
 	return false;
 }
-static const DWORD obj_find_first_at_tile=0x48B5A8;
-static const DWORD obj_find_next_at_tile=0x48B608;
 static void RunEditorInternal(SOCKET &s) {
 	std::vector<DWORD*> vec = std::vector<DWORD*>();
 	for(int elv=0;elv<3;elv++) {
@@ -80,7 +79,7 @@ static void RunEditorInternal(SOCKET &s) {
 			__asm {
 				mov edx, tile;
 				mov eax, elv;
-				call obj_find_first_at_tile;
+				call obj_find_first_at_tile_;
 				mov obj, eax;
 			}
 			while(obj) {
@@ -88,7 +87,7 @@ static void RunEditorInternal(SOCKET &s) {
 				otype = (otype&0xff000000) >> 24;
 				if(otype==1) vec.push_back(obj);
 				__asm {
-					call obj_find_next_at_tile;
+					call obj_find_next_at_tile_;
 					mov obj, eax;
 				}
 			}
@@ -97,8 +96,8 @@ static void RunEditorInternal(SOCKET &s) {
 
 	int numCritters=vec.size();
 
-	int numGlobals=*(int*)0x5186C4;
-	int numMapVars=*(int*)0x519574;
+	int numGlobals=*(int*)_num_game_global_vars;
+	int numMapVars=*(int*)_num_map_global_vars;
 	int numSGlobals=GetNumGlobals();
 	int numArrays=GetNumArrays();
 	InternalSend(s, &numGlobals, 4);
@@ -112,8 +111,8 @@ static void RunEditorInternal(SOCKET &s) {
 	int* arrays=new int[numArrays*3];
 	GetArrays(arrays);
 
-	InternalSend(s, *(void**)0x5186C0, 4*numGlobals);
-	InternalSend(s, *(void**)0x51956C, 4*numMapVars);
+	InternalSend(s, *(void**)_game_global_vars, 4*numGlobals);
+	InternalSend(s, *(void**)_map_global_vars, 4*numMapVars);
 	InternalSend(s, sglobals, sizeof(sGlobalVar)*numSGlobals);
 	InternalSend(s, arrays, numArrays*3*4);
 	for(int i=0;i<numCritters;i++) InternalSend(s, &vec[i][25], 4);
@@ -127,12 +126,12 @@ static void RunEditorInternal(SOCKET &s) {
 			case 0:
 				InternalRecv(s, &id, 4);
 				InternalRecv(s, &val, 4);
-				(*(DWORD**)0x5186C0)[id]=val;
+				(*(DWORD**)_game_global_vars)[id]=val;
 				break;
 			case 1:
 				InternalRecv(s, &id, 4);
 				InternalRecv(s, &val, 4);
-				(*(DWORD**)0x51956C)[id]=val;
+				(*(DWORD**)_map_global_vars)[id]=val;
 				break;
 			case 2:
 				InternalRecv(s, &id, 4);

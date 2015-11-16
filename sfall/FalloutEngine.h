@@ -31,6 +31,7 @@
 #define _art_name                   0x56C9E4
 #define _art_vault_guy_num          0x5108A4
 #define _art_vault_person_nums      0x5108A8
+#define _bckgnd                     0x5707A4
 #define _black_palette              0x663FD0
 #define _bottom_line                0x664524
 #define _btable                     0x59E944
@@ -68,6 +69,7 @@
 #define _gIsSteal                   0x51D430
 #define _gmovie_played_list         0x596C78
 #define _GreenColor                 0x6A3CB0
+#define _gsound_initialized         0x518E30
 #define _hit_location_penalty       0x510954
 #define _holo_flag                  0x664529
 #define _holopages                  0x66445C
@@ -115,6 +117,8 @@
 #define _num_game_global_vars       0x5186C4
 #define _num_map_global_vars        0x519574
 #define _obj_dude                   0x6610B8
+#define _objItemOutlineState        0x519798
+#define _optionRect                 0x58ECC0
 #define _outlined_object            0x518D94
 #define _partyMemberAIOptions       0x519DB8
 #define _partyMemberCount           0x519DAC
@@ -127,8 +131,10 @@
 #define _pc_crit_succ_eff           0x5179B0
 #define _pc_kill_counts             0x56D780
 #define _pc_name                    0x56D75C
+#define _pc_proto                   0x51C370
 #define _pc_trait                   0x66BE40
 #define _pc_trait2                  0x66BE44
+#define _perk_data                  0x519DCC
 #define _perkLevelDataList          0x51C120
 #define _pip_win                    0x6644C4
 #define _pipboy_message_file        0x664348
@@ -165,6 +171,7 @@
 #define _text_width                 0x51E3C0
 #define _title_color                0x56D750
 #define _title_font                 0x56D748
+#define _trait_data                 0x51DB84
 #define _view_page                  0x664520
 #define _wd_obj                     0x59E98C
 #define _wmLastRndTime              0x51DEA0
@@ -489,6 +496,7 @@ extern const DWORD square_num_;
 extern const DWORD stat_get_base_direct_;
 extern const DWORD stat_get_bonus_;
 extern const DWORD stat_level_;
+extern const DWORD stat_pc_add_experience_;
 extern const DWORD stat_pc_get_;
 extern const DWORD stat_pc_set_;
 extern const DWORD strncpy_;

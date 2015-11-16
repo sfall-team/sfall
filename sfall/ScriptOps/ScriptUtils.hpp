@@ -32,10 +32,10 @@ static void __declspec(naked) funcSqrt() {
 		pushad;
 		sub esp, 4;
 		mov ecx, eax;
-		call GetArgType;
+		call interpretPopShort_;
 		mov ebx, eax;
 		mov eax, ecx;
-		call GetArg;
+		call interpretPopLong_;
 		cmp bx, 0xc001;
 		jnz arg1l2;
 		mov [esp], eax;
@@ -57,10 +57,10 @@ fail:
 		mov edx, [esp];
 end:
 		mov eax, ecx;
-		call SetResult;
+		call interpretPushLong_;
 		mov edx, 0xa001;
 		mov eax, ecx;
-		call SetResultType;
+		call interpretPushShort_;
 		add esp, 4;
 		popad;
 		retn;
@@ -71,10 +71,10 @@ static void __declspec(naked) funcAbs() {
 		pushad;
 		sub esp, 4;
 		mov ecx, eax;
-		call GetArgType;
+		call interpretPopShort_;
 		mov ebx, eax;
 		mov eax, ecx;
-		call GetArg;
+		call interpretPopLong_;
 		cmp bx, 0xc001;
 		jnz arg1l2;
 		mov [esp], eax;
@@ -96,10 +96,10 @@ fail:
 		mov edx, [esp];
 end:
 		mov eax, ecx;
-		call SetResult;
+		call interpretPushLong_;
 		mov edx, 0xa001;
 		mov eax, ecx;
-		call SetResultType;
+		call interpretPushShort_;
 		add esp, 4;
 		popad;
 		retn;
@@ -110,10 +110,10 @@ static void __declspec(naked) funcSin() {
 		pushad;
 		sub esp, 4;
 		mov ecx, eax;
-		call GetArgType;
+		call interpretPopShort_;
 		mov ebx, eax;
 		mov eax, ecx;
-		call GetArg;
+		call interpretPopLong_;
 		cmp bx, 0xc001;
 		jnz arg1l2;
 		mov [esp], eax;
@@ -135,10 +135,10 @@ fail:
 		mov edx, [esp];
 end:
 		mov eax, ecx;
-		call SetResult;
+		call interpretPushLong_;
 		mov edx, 0xa001;
 		mov eax, ecx;
-		call SetResultType;
+		call interpretPushShort_;
 		add esp, 4;
 		popad;
 		retn;
@@ -149,10 +149,10 @@ static void __declspec(naked) funcCos() {
 		pushad;
 		sub esp, 4;
 		mov ecx, eax;
-		call GetArgType;
+		call interpretPopShort_;
 		mov ebx, eax;
 		mov eax, ecx;
-		call GetArg;
+		call interpretPopLong_;
 		cmp bx, 0xc001;
 		jnz arg1l2;
 		mov [esp], eax;
@@ -174,10 +174,10 @@ fail:
 		mov edx, [esp];
 end:
 		mov eax, ecx;
-		call SetResult;
+		call interpretPushLong_;
 		mov edx, 0xa001;
 		mov eax, ecx;
-		call SetResultType;
+		call interpretPushShort_;
 		add esp, 4;
 		popad;
 		retn;
@@ -188,10 +188,10 @@ static void __declspec(naked) funcTan() {
 		pushad;
 		sub esp, 4;
 		mov ecx, eax;
-		call GetArgType;
+		call interpretPopShort_;
 		mov ebx, eax;
 		mov eax, ecx;
-		call GetArg;
+		call interpretPopLong_;
 		cmp bx, 0xc001;
 		jnz arg1l2;
 		mov [esp], eax;
@@ -214,10 +214,10 @@ fail:
 		mov edx, [esp];
 end:
 		mov eax, ecx;
-		call SetResult;
+		call interpretPushLong_;
 		mov edx, 0xa001;
 		mov eax, ecx;
-		call SetResultType;
+		call interpretPushShort_;
 		add esp, 4;
 		popad;
 		retn;
@@ -228,16 +228,16 @@ static void __declspec(naked) funcATan() {
 		pushad;
 		sub esp, 4;
 		mov ecx, eax;
-		call GetArgType;
+		call interpretPopShort_;
 		mov ebx, eax;
 		mov eax, ecx;
-		call GetArg;
+		call interpretPopLong_;
 		mov edi, eax;
 		mov eax, ecx;
-		call GetArgType;
+		call interpretPopShort_;
 		mov edx, eax;
 		mov eax, ecx;
-		call GetArg;
+		call interpretPopLong_;
 		cmp bx, 0xc001;
 		jnz arg1l2;
 		mov [esp], eax;
@@ -272,10 +272,10 @@ fail:
 		mov edx, [esp];
 end:
 		mov eax, ecx;
-		call SetResult;
+		call interpretPushLong_;
 		mov edx, 0xa001;
 		mov eax, ecx;
-		call SetResultType;
+		call interpretPushShort_;
 		add esp, 4;
 		popad;
 		retn;
@@ -315,16 +315,16 @@ static void __declspec(naked) string_split() {
 	__asm {
 		pushad;
 		mov ebp, eax;
-		call GetArgType;
+		call interpretPopShort_;
 		mov ebx, eax;
 		mov eax, ebp;
-		call GetArg;
+		call interpretPopLong_;
 		mov edi, eax;
 		mov eax, ebp;
-		call GetArgType;
+		call interpretPopShort_;
 		mov ecx, eax;
 		mov eax, ebp;
-		call GetArg;
+		call interpretPopLong_;
 		mov esi, eax;
 		cmp bx, 0x9001;
 		jz str1;
@@ -339,12 +339,12 @@ str2:
 		mov eax, ebp;
 		mov edx, ebx;
 		mov ebx, edi;
-		call GetStringVar;
+		call interpretGetString_;
 		mov edi, eax;
 		mov eax, ebp;
 		mov edx, ecx;
 		mov ebx, esi;
-		call GetStringVar;
+		call interpretGetString_;
 		push edi;
 		push eax;
 		call StringSplit;
@@ -354,10 +354,10 @@ fail:
 		xor edx, edx;
 end:
 		mov eax, ebp;
-		call SetResult;
+		call interpretPushLong_;
 		mov edx, 0xc001;
 		mov eax, ebp;
-		call SetResultType;
+		call interpretPushShort_;
 		popad;
 		retn;
 	}
@@ -373,10 +373,10 @@ static void __declspec(naked) str_to_int() {
 	__asm {
 		pushad;
 		mov ebp, eax;
-		call GetArgType;
+		call interpretPopShort_;
 		mov ebx, eax;
 		mov eax, ebp;
-		call GetArg;
+		call interpretPopLong_;
 		cmp bx, 0x9001;
 		jz str1;
 		cmp bx, 0x9801;
@@ -385,7 +385,7 @@ str1:
 		mov edx, ebx;
 		mov ebx, eax;
 		mov eax, ebp;
-		call GetStringVar;
+		call interpretGetString_;
 		push eax;
 		call str_to_int_internal;
 		mov edx, eax;
@@ -394,10 +394,10 @@ fail:
 		xor edx, edx;
 end:
 		mov eax, ebp;
-		call SetResult;
+		call interpretPushLong_;
 		mov edx, 0xc001;
 		mov eax, ebp;
-		call SetResultType;
+		call interpretPushShort_;
 		popad;
 		retn;
 	}
@@ -406,10 +406,10 @@ static void __declspec(naked) str_to_flt() {
 	__asm {
 		pushad;
 		mov ebp, eax;
-		call GetArgType;
+		call interpretPopShort_;
 		mov ebx, eax;
 		mov eax, ebp;
-		call GetArg;
+		call interpretPopLong_;
 		cmp bx, 0x9001;
 		jz str1;
 		cmp bx, 0x9801;
@@ -418,7 +418,7 @@ str1:
 		mov edx, ebx;
 		mov ebx, eax;
 		mov eax, ebp;
-		call GetStringVar;
+		call interpretGetString_;
 		push eax;
 		call str_to_flt_internal;
 		mov edx, eax;
@@ -427,10 +427,10 @@ fail:
 		xor edx, edx;
 end:
 		mov eax, ebp;
-		call SetResult;
+		call interpretPushLong_;
 		mov edx, 0xa001;
 		mov eax, ebp;
-		call SetResultType;
+		call interpretPushShort_;
 		popad;
 		retn;
 	}
@@ -519,7 +519,7 @@ static char* _stdcall mysprintf(char* format, DWORD value, DWORD valueType) {
 	} else {
 		buflen = j + 30; // numbers
 	}
-	if (sprintfbuf) 
+	if (sprintfbuf)
 		delete[] sprintfbuf;
 	sprintfbuf = new char[buflen+1];
 	if (valueType == VAR_TYPE_FLOAT) {
@@ -536,22 +536,22 @@ static void __declspec(naked) op_substr() {
 	__asm {
 		pushad;
 		mov edi, eax;
-		call GetArgType;
+		call interpretPopShort_;
 		push eax;
 		mov eax, edi;
-		call GetArg; // length
+		call interpretPopLong_; // length
 		push eax;
 		mov eax, edi;
-		call GetArgType;
+		call interpretPopShort_;
 		push eax;
 		mov eax, edi;
-		call GetArg; // position
+		call interpretPopLong_; // position
 		push eax;
 		mov eax, edi;
-		call GetArgType;
+		call interpretPopShort_;
 		push eax;
 		mov eax, edi;
-		call GetArg; // string
+		call interpretPopLong_; // string
 		push eax;
 
 		movzx eax, word ptr [esp+12];
@@ -569,7 +569,7 @@ next1:
 		mov eax, edi;
 		mov edx, [esp+4];
 		mov ebx, [esp];
-		call GetStringVar;
+		call interpretGetString_;
 		mov ebx, [esp+16];
 		mov edx, [esp+8];
 		push ebx;
@@ -578,21 +578,21 @@ next1:
 		call mysubstr;
 		mov edx, eax;
 		mov eax, edi;
-		call CreateStringVar;
+		call interpretAddString_;
 		mov edx, eax;
 		mov eax, edi;
-		call SetResult;
+		call interpretPushLong_;
 		mov edx, VAR_TYPE_STR;
 		mov eax, edi;
-		call SetResultType;
+		call interpretPushShort_;
 		jmp end;
 fail:
 		xor edx, edx;
 		mov eax, edi;
-		call SetResult;
+		call interpretPushLong_;
 		mov edx, VAR_TYPE_INT;
 		mov eax, edi;
-		call SetResultType;
+		call interpretPushShort_;
 end:
 		add esp, 24;
 		popad;
@@ -604,10 +604,10 @@ static void __declspec(naked) op_strlen() {
 	__asm {
 		pushad;
 		mov edi, eax;
-		call GetArgType;
+		call interpretPopShort_;
 		mov edx, eax;
 		mov eax, edi;
-		call GetArg; // string
+		call interpretPopLong_; // string
 		cmp dx, VAR_TYPE_STR2;
 		je next;
 		cmp dx, VAR_TYPE_STR;
@@ -615,7 +615,7 @@ static void __declspec(naked) op_strlen() {
 next:
 		mov ebx, eax;
 		mov eax, edi;
-		call GetStringVar;
+		call interpretGetString_;
 		push eax;
 		call mystrlen;
 		jmp end;
@@ -624,10 +624,10 @@ fail:
 end:
 		mov edx, eax;
 		mov eax, edi;
-		call SetResult;
+		call interpretPushLong_;
 		mov edx, VAR_TYPE_INT;
 		mov eax, edi;
-		call SetResultType;
+		call interpretPushShort_;
 		popad;
 		retn;
 	}
@@ -637,17 +637,17 @@ static void __declspec(naked) op_sprintf() {
 	__asm {
 		pushad;
 		mov edi, eax;
-		call GetArgType;
+		call interpretPopShort_;
 		mov edx, eax;
 		mov eax, edi;
-		call GetArg; // any value
+		call interpretPopLong_; // any value
 		mov ebx, eax;
 		mov eax, edi;
 
-		call GetArgType;
+		call interpretPopShort_;
 		mov ecx, eax;
 		mov eax, edi;
-		call GetArg; // format string
+		call interpretPopLong_; // format string
 		mov esi, eax;
 		// check types
 		cmp cx, 0x9001;
@@ -661,7 +661,7 @@ nextarg:
 		jne notstring;
 next2:
 		mov eax, edi;
-		call GetStringVar; // value string ptr
+		call interpretGetString_; // value string ptr
 		mov ebx, eax;
 notstring:
 		push edx; // arg 3 - valueType
@@ -670,19 +670,19 @@ notstring:
 		mov edx, ecx;
 		mov ebx, eax;
 		mov eax, edi;
-		call GetStringVar; // format string ptr
+		call interpretGetString_; // format string ptr
 		push esi; // arg 2 - value
 		push eax; // arg 1 - format str
 		call mysprintf;
 		mov edx, eax;
 		mov eax, edi;
-		call CreateStringVar;
+		call interpretAddString_;
 		mov edx, eax;
 		mov eax, edi;
-		call SetResult;
+		call interpretPushLong_;
 		mov edx, VAR_TYPE_STR;
 		mov eax, edi;
-		call SetResultType;
+		call interpretPushShort_;
 fail:
 		popad;
 		retn;
@@ -724,18 +724,18 @@ static void __declspec(naked) op_typeof() {
 	__asm {
 		pushad;
 		mov edi, eax;
-		call GetArgType;
+		call interpretPopShort_;
 		mov edx, eax;
 		mov eax, edi;
-		call GetArg; // call just in case (not used)
+		call interpretPopLong_; // call just in case (not used)
 		push edx;
 		call GetValueType;
 		mov edx, eax;
 		mov eax, edi;
-		call SetResult;
+		call interpretPushLong_;
 		mov edx, VAR_TYPE_INT;
 		mov eax, edi;
-		call SetResultType;
+		call interpretPushShort_;
 		popad;
 		retn;
 	}
@@ -755,12 +755,12 @@ static void __declspec(naked) NegateFixHook() {
 		fchs
 		fstp    [esp];
 		pop     ebx;
-		call    pushShortStack
+		call    pushLongStack_
 		mov     edx, VAR_TYPE_FLOAT
 		jmp     end
 notfloat:
 		neg     ebx
-		call    pushShortStack
+		call    pushLongStack_
 		mov     edx, VAR_TYPE_INT
 end:
 		mov     eax, ecx
@@ -835,26 +835,26 @@ static void __declspec(naked) funcRound() {
 
 */
 
-static const DWORD game_msg_files[] = 
-	{ 0x56D368     // COMBAT	
-	, 0x56D510     // AI		
+static const DWORD game_msg_files[] =
+	{ 0x56D368     // COMBAT
+	, 0x56D510     // AI
 	, 0x56D754     // SCRNAME
-	, 0x58E940     // MISC	
-	, 0x58EA98     // CUSTOM	
+	, 0x58E940     // MISC
+	, 0x58EA98     // CUSTOM
 	, 0x59E814     // INVENTRY
-	, 0x59E980     // ITEM	
-	, 0x613D28     // LSGAME	
-	, 0x631D48     // MAP	
+	, 0x59E980     // ITEM
+	, 0x613D28     // LSGAME
+	, 0x631D48     // MAP
 	, 0x6637E8     // OPTIONS
-	, 0x6642D4     // PERK	
-	, 0x664348     // PIPBOY	
-	, 0x664410     // QUESTS	
-	, 0x6647FC     // PROTO	
-	, 0x667724     // SCRIPT	
-	, 0x668080     // SKILL	
+	, 0x6642D4     // PERK
+	, 0x664348     // PIPBOY
+	, 0x664410     // QUESTS
+	, 0x6647FC     // PROTO
+	, 0x667724     // SCRIPT
+	, 0x668080     // SKILL
 	, 0x6680F8     // SKILLDEX
-	, 0x66817C     // STAT	
-	, 0x66BE38     // TRAIT	
+	, 0x66817C     // STAT
+	, 0x66BE38     // TRAIT
 	, 0x672FB0 };  // WORLDMAP
 
 static const DWORD* proto_msg_files = (DWORD*)0x006647AC;
@@ -866,7 +866,7 @@ static void _stdcall op_message_str_game2() {
 		const char* msg;
 		if (fileId < 20) { // main msg files
 			msg = GetMessageStr(game_msg_files[fileId], msgId);
-		} 
+		}
 		else if (fileId >= 0x1000 && fileId <= 0x1005) { // proto msg files
 			msg = GetMessageStr((DWORD)&proto_msg_files[2*(fileId - 0x1000)], msgId);
 		}

@@ -35,10 +35,7 @@ static std::vector<WORD> Chars;
 TGameObj* real_dude = NULL;
 DWORD real_traits[2];
 
-static const DWORD _combat_turn=0x42299C;
-static const DWORD _tile_refresh_display=0x4B12D8;
-
-static const DWORD* list_com = (DWORD*)0x56D394;
+static const DWORD* list_com = (DWORD*)_list_com;
 
 static bool _stdcall IsInPidList(TGameObj* obj) {
 	int pid = obj->pid & 0xFFFFFF;
@@ -83,7 +80,7 @@ static int _stdcall CombatWrapperInner(TGameObj* obj) {
 		__asm {
 			call intface_redraw_;
 			mov eax, obj;
-			call _combat_turn;
+			call combat_turn_;
 			mov turnResult, eax;
 		}
 		// restore state
@@ -106,7 +103,6 @@ static int _stdcall CombatWrapperInner(TGameObj* obj) {
 
 
 // this hook fixes NPCs art switched to main dude art after inventory screen closes
-static const DWORD _obj_change_fid=0x48AA3C;
 static void _declspec(naked) FidChangeHook() {
 	_asm {
 		cmp IsControllingNPC, 0;
@@ -118,13 +114,12 @@ static void _declspec(naked) FidChangeHook() {
 		or edx, eax; // only change one octet with weapon type
 		pop eax;
 skip:
-		call _obj_change_fid;
+		call obj_change_fid_;
 		retn;
 	}
 }
 
 /*
-static const DWORD item_add_force_ = 0x4772B8;
 static void _declspec(naked) ItemDropHook() {
 	_asm {
 		call item_add_force_;
@@ -183,7 +178,7 @@ combatend:
 		mov eax, -1; // don't continue combat, as the game was loaded
 		retn;
 gonormal:
-		jmp _combat_turn;
+		jmp combat_turn_;
 	}
 }
 

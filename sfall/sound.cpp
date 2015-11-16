@@ -1,18 +1,16 @@
 #include "main.h"
 
 //#include <vector>
+#include "FalloutEngine.h"
 
 static char attackerSnd[8];
 static char targetSnd[8];
-static const DWORD strncpy_ptr=0x4F014F;
-static const DWORD text_object_create=0x4B036C;
-static const DWORD gsound_play_sfx_file=0x4519A8;
 
 static void __declspec(naked) MsgCopy() {
 	__asm {
 		mov edi, [esp+0xc];
 		pushad;
-		cmp eax, 0x56D518;
+		cmp eax, _target_str;
 		jne attacker;
 		lea eax, targetSnd;
 		jmp end;
@@ -21,15 +19,15 @@ attacker:
 end:
 		mov edx, edi;
 		mov ebx, 8;
-		call strncpy_ptr;
+		call strncpy_;
 		popad;
-		jmp strncpy_ptr;
+		jmp strncpy_;
 	}
 }
 static void __declspec(naked) DisplayMsg() {
 	__asm {
 		pushad;
-		cmp edx, 0x56D518;
+		cmp edx, _target_str;
 		jne attacker;
 		lea eax, targetSnd;
 		jmp end;
@@ -39,17 +37,17 @@ end:
 		mov ebx, [eax];
 		test bl, bl;
 		jz skip;
-		call gsound_play_sfx_file;
+		call gsound_play_sfx_file_;
 skip:
 		popad;
-		jmp text_object_create;
+		jmp text_object_create_;
 	}
 }
 
 void PlaySfx(const char* name) {
 	__asm {
 		mov eax, name;
-		call gsound_play_sfx_file;
+		call gsound_play_sfx_file_;
 	}
 }
 

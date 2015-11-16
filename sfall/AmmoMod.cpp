@@ -663,7 +663,6 @@ static void __declspec(naked) DisplayBonusHtHDmg2() {
 	}
 }
 
-static const DWORD roll_random=0x4A30C0;
 static const DWORD UnarmedAttacksFixEnd=0x423A0D;
 static void __declspec(naked) UnarmedAttacksFix() {
 	__asm {
@@ -674,7 +673,7 @@ static void __declspec(naked) UnarmedAttacksFix() {
 PowKickHPunch:
 		mov edx,0x64;
 		mov eax,0x1;
-		call roll_random;
+		call roll_random_;
 		cmp eax,0x5;				// 5% chance of critical hit
 		jle CriticalHit;
 		jmp end;
@@ -687,7 +686,7 @@ HKickJabCheck:
 HKickJab:
 		mov edx,0x64;
 		mov eax,0x1;
-		call roll_random;
+		call roll_random_;
 		cmp eax,0xa;				// 10% chance of critical hit
 		jle CriticalHit;
 		jmp end;
@@ -696,7 +695,7 @@ Haymaker:
 		jnz PalmStrike;
 		mov edx,0x64;
 		mov eax,0x1;
-		call roll_random;
+		call roll_random_;
 		cmp eax,0xf;				// 15% chance of critical hit
 		jle CriticalHit;
 		jmp end;
@@ -705,7 +704,7 @@ PalmStrike:
 		jnz PiercingStrike;
 		mov edx,0x64;
 		mov eax,0x1;
-		call roll_random;
+		call roll_random_;
 		cmp eax,0x14;				// 20% chance of critical hit
 		jle CriticalHit;
 		jmp end;
@@ -714,7 +713,7 @@ PiercingStrike:
 		jnz PiercingKick;
 		mov edx,0x64;
 		mov eax,0x1;
-		call roll_random;
+		call roll_random_;
 		cmp eax,0x28;				// 40% chance of critical hit
 		jle CriticalHit;
 		jmp end;
@@ -723,7 +722,7 @@ PiercingKick:
 		jnz end;
 		mov edx,0x64;
 		mov eax,0x1;
-		call roll_random;
+		call roll_random_;
 		cmp eax,0x32;				// 50% chance of critical hit
 		jg end;
 CriticalHit:

@@ -30,10 +30,10 @@ static void __declspec(naked) RemoveScript() {
 		push ecx;
 		push edx;
 		mov ecx, eax;
-		call GetArgType;
+		call interpretPopShort_;
 		mov edx, eax;
 		mov eax, ecx;
-		call GetArg;
+		call interpretPopLong_;
 		cmp dx, 0xc001;
 		jnz end;
 		test eax, eax;
@@ -56,16 +56,16 @@ static void __declspec(naked) SetScript() {
 	__asm {
 		pushad;
 		mov ecx, eax;
-		call GetArgType;
+		call interpretPopShort_;
 		mov edx, eax;
 		mov eax, ecx;
-		call GetArg;
+		call interpretPopLong_;
 		mov ebx, eax;
 		mov eax, ecx;
-		call GetArgType;
+		call interpretPopShort_;
 		mov edi, eax;
 		mov eax, ecx;
-		call GetArg;
+		call interpretPopLong_;
 		cmp dx, 0xc001;
 		jnz end;
 		cmp di, 0xc001;
@@ -173,10 +173,10 @@ static void __declspec(naked) GetScript() {
 		pushad;
 		mov ecx, eax;
 		mov ecx, eax;
-		call GetArgType;
+		call interpretPopShort_;
 		mov edx, eax;
 		mov eax, ecx;
-		call GetArg;
+		call interpretPopLong_;
 		cmp dx, 0xc001;
 		jnz fail;
 		test eax, eax;
@@ -191,10 +191,10 @@ fail:
 		dec edx;
 end:
 		mov eax, ecx;
-		call SetResult;
+		call interpretPushLong_;
 		mov eax, ecx;
 		mov edx, 0xc001;
-		call SetResultType;
+		call interpretPushShort_;
 		popad;
 		retn;
 	}
@@ -204,16 +204,16 @@ static void __declspec(naked) set_critter_burst_disable() {
 	__asm {
 		pushad;
 		mov ebp, eax;
-		call GetArgType;
+		call interpretPopShort_;
 		mov edi, eax;
 		mov eax, ebp;
-		call GetArg;
+		call interpretPopLong_;
 		mov ecx, eax;
 		mov eax, ebp;
-		call GetArgType;
+		call interpretPopShort_;
 		mov esi, eax;
 		mov eax, ebp;
-		call GetArg;
+		call interpretPopLong_;
 		cmp di, 0xc001;
 		jnz end;
 		cmp si, 0xc001;
@@ -230,10 +230,10 @@ static void __declspec(naked) get_weapon_ammo_pid() {
 	__asm {
 		pushad;
 		mov ebp, eax;
-		call GetArgType;
+		call interpretPopShort_;
 		mov edi, eax;
 		mov eax, ebp;
-		call GetArg;
+		call interpretPopLong_;
 		cmp di, 0xc001;
 		jnz fail;
 		test eax, eax;
@@ -245,10 +245,10 @@ fail:
 		dec edx;
 end:
 		mov eax, ebp;
-		call SetResult;
+		call interpretPushLong_;
 		mov eax, ebp;
 		mov edx, 0xc001;
-		call SetResultType;
+		call interpretPushShort_;
 		popad;
 		retn;
 	}
@@ -257,16 +257,16 @@ static void __declspec(naked) set_weapon_ammo_pid() {
 	__asm {
 		pushad;
 		mov ebp, eax;
-		call GetArgType;
+		call interpretPopShort_;
 		mov edi, eax;
 		mov eax, ebp;
-		call GetArg;
+		call interpretPopLong_;
 		mov ecx, eax;
 		mov eax, ebp;
-		call GetArgType;
+		call interpretPopShort_;
 		mov esi, eax;
 		mov eax, ebp;
-		call GetArg;
+		call interpretPopLong_;
 		cmp di, 0xc001;
 		jnz end;
 		cmp si, 0xc001;
@@ -283,10 +283,10 @@ static void __declspec(naked) get_weapon_ammo_count() {
 	__asm {
 		pushad;
 		mov ebp, eax;
-		call GetArgType;
+		call interpretPopShort_;
 		mov edi, eax;
 		mov eax, ebp;
-		call GetArg;
+		call interpretPopLong_;
 		cmp di, 0xc001;
 		jnz fail;
 		test eax, eax;
@@ -298,10 +298,10 @@ fail:
 		dec edx;
 end:
 		mov eax, ebp;
-		call SetResult;
+		call interpretPushLong_;
 		mov eax, ebp;
 		mov edx, 0xc001;
-		call SetResultType;
+		call interpretPushShort_;
 		popad;
 		retn;
 	}
@@ -310,16 +310,16 @@ static void __declspec(naked) set_weapon_ammo_count() {
 	__asm {
 		pushad;
 		mov ebp, eax;
-		call GetArgType;
+		call interpretPopShort_;
 		mov edi, eax;
 		mov eax, ebp;
-		call GetArg;
+		call interpretPopLong_;
 		mov ecx, eax;
 		mov eax, ebp;
-		call GetArgType;
+		call interpretPopShort_;
 		mov esi, eax;
 		mov eax, ebp;
-		call GetArg;
+		call interpretPopLong_;
 		cmp di, 0xc001;
 		jnz end;
 		cmp si, 0xc001;
@@ -433,7 +433,6 @@ static void __declspec(naked) op_make_path() {
 	_WRAP_OPCODE(3, op_make_path2)
 }
 
-
 static void _stdcall op_obj_blocking_at2() {
 	DWORD tile = GetOpArgInt(0),
 		  elevation = GetOpArgInt(1),
@@ -504,7 +503,6 @@ static void _stdcall op_get_party_members2() {
 static void __declspec(naked) op_get_party_members() {
 	_WRAP_OPCODE(1, op_get_party_members2)
 }
-
 
 static void __declspec(naked) op_art_exists() {
 	_OP_BEGIN(ebp)

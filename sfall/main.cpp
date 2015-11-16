@@ -28,6 +28,7 @@
 #include "Books.h"
 #include "Bugs.h"
 #include "BurstMods.h"
+#include "console.h"
 #include "CRC.h"
 #include "Credits.h"
 #include "Criticals.h"
@@ -40,23 +41,22 @@
 #include "HeroAppearance.h"
 #include "Inventory.h"
 #include "KillCounter.h"
+#include "knockback.h"
 #include "LoadGameHook.h"
 #include "Logging.h"
 #include "MainMenu.h"
+#include "movies.h"
 #include "PartyControl.h"
+#include "perks.h"
 #include "Premade.h"
 #include "QuestList.h"
 #include "Reputations.h"
 #include "ScriptExtender.h"
-#include "SuperSave.h"
-#include "Tiles.h"
-#include "console.h"
-#include "knockback.h"
-#include "movies.h"
-#include "perks.h"
 #include "skills.h"
 #include "sound.h"
 #include "stats.h"
+#include "SuperSave.h"
+#include "Tiles.h"
 #include "timer.h"
 #include "version.h"
 
@@ -132,9 +132,8 @@ static __declspec(naked) void GetDateWrapper() {
 		push ecx;
 		push esi;
 		push ebx;
-		mov ecx, 0x004A3338;
-		call ecx;
-		mov ecx, ds:[0x51C3BC];
+		call game_time_date_;
+		mov ecx, ds:[_pc_proto + 0x4C];
 		pop esi;
 		test esi, esi;
 		jz end;
@@ -147,8 +146,8 @@ end:
 	}
 }
 static void TimerReset() {
-	*((DWORD*)0x51C720)=0;
-	*((DWORD*)0x51C3BC)+=13;
+	*((DWORD*)_fallout_game_time)=0;
+	*((DWORD*)_pc_proto + 0x4C)+=13;
 }
 
 static double TickFrac=0;
@@ -172,17 +171,13 @@ static DWORD _stdcall PathfinderFix2(DWORD perkLevel, DWORD ticks) {
 }
 static __declspec(naked) void PathfinderFix() {
 	__asm {
-		push ebx;
 		push eax;
-		mov eax, ds:[0x006610B8];
-		mov edx, 0x2b;
-		mov ebx, 0x00496B78;
-		call ebx;
+		mov eax, ds:[_obj_dude];
+		mov edx, PERK_pathfinder;
+		call perk_level_;
 		push eax;
 		call PathfinderFix2;
-		mov ebx, 0x004A34CC;
-		call ebx;
-		pop ebx;
+		call inc_game_time_;
 		retn;
 	}
 }
@@ -190,7 +185,6 @@ static __declspec(naked) void PathfinderFix() {
 static double FadeMulti;
 static __declspec(naked) void FadeHook() {
 	__asm {
-		push ecx;
 		pushf;
 		push ebx;
 		fild [esp];
@@ -198,9 +192,7 @@ static __declspec(naked) void FadeHook() {
 		fistp [esp];
 		pop ebx;
 		popf;
-		mov ecx, 0x004C7320;
-		call ecx;
-		pop ecx;
+		call fadeSystemPalette_;
 		retn;
 	}
 }
@@ -220,17 +212,13 @@ up:
 		test ebx, ebx;
 		jz end;
 run:
-		mov ebx, 0x004C219C;
-		call ebx;
+		call wmInterfaceScrollTabsStart_;
 end:
 		pop ebx;
 		retn;
 	}
 }
 
-static const DWORD wp_function_timer=0x4c9370;
-static const DWORD wp_function_difference=0x4c93e0;
-static const DWORD wp_function_event=0x4c8b78;
 static DWORD wp_delay;
 static void __declspec(naked) worldmap_patch() {
 	__asm {
@@ -238,45 +226,40 @@ static void __declspec(naked) worldmap_patch() {
 		call RunGlobalScripts3;
 		mov ecx, wp_delay;
 tck:
-		mov eax,ds:[0x50fb08];
-		call wp_function_difference;
-		cmp eax,ecx;
+		mov eax, ds:[0x50fb08];
+		call elapsed_time_;
+		cmp eax, ecx;
 		jl tck;
-		call wp_function_timer;
-		mov ds:[0x50fb08],eax;
+		call get_time_;
+		mov ds:[0x50fb08], eax;
 		popad;
-		jmp wp_function_event;
+		jmp get_input_;
 	}
 }
-static const DWORD WorldMapMoveFunc=0x004C1F90;
 static void __declspec(naked) WorldMapEncPatch1() {
 	__asm {
-		inc dword ptr ds:[0x51dea0]
-		call WorldMapMoveFunc;
+		inc dword ptr ds:[_wmLastRndTime]
+		call wmPartyWalkingStep_;
 		retn;
 	}
 }
 static void __declspec(naked) WorldMapEncPatch2() {
 	__asm {
-		mov dword ptr ds:[0x51dea0],0;
+		mov dword ptr ds:[_wmLastRndTime], 0;
 		retn;
 	}
 }
 static void __declspec(naked) WorldMapEncPatch3() {
 	__asm {
-		mov eax,ds:[0x51dea0];
+		mov eax,ds:[_wmLastRndTime];
 		retn;
 	}
 }
-static const DWORD Combat_p_procFixFunc0=0x4AEF48; //&GetCurrentStat(void* critter, int statID)
-static const DWORD Combat_p_procFixFunc1=0x4a3b0c;
-static const DWORD Combat_p_procFixFunc2=0x4a3b34;
-static const DWORD Combat_p_procFixFunc3=0x4a4810;
 static void __declspec(naked) Combat_p_procFix() {
 	__asm {
 		push eax;
 
-		mov eax,dword ptr ds:[0x510944];
+		mov eax,dword ptr ds:[_combat_state];
 		cmp eax,3;
 		jnz end_cppf;
 
@@ -284,37 +267,37 @@ static void __declspec(naked) Combat_p_procFix() {
 		push ebx;
 		push edx;
 
-		mov esi,0x56d2b0;
-		mov eax,[esi];
-		mov ebx,[esi+0x20];
-		xor edx,edx;
-		mov eax,[eax+0x78];
-		call Combat_p_procFixFunc1;
-		mov eax,[esi];
+		mov esi, _main_ctd;
+		mov eax, [esi];
+		mov ebx, [esi+0x20];
+		xor edx, edx;
+		mov eax, [eax+0x78];
+		call scr_set_objs_;
+		mov eax, [esi];
 
-		cmp dword ptr ds:[esi+0x2c],+0x0;
+		cmp dword ptr ds:[esi+0x2c], +0x0;
 		jng jmp1;
 
-		test byte ptr ds:[esi+0x15],0x1;
+		test byte ptr ds:[esi+0x15], 0x1;
 		jz jmp1;
-		mov edx,0x2;
+		mov edx, 0x2;
 		jmp jmp2;
 jmp1:
-		mov edx,0x1;
+		mov edx, 0x1;
 jmp2:
-		mov eax,[eax+0x78];
-		call Combat_p_procFixFunc2;
-		mov eax,[esi];
-		mov edx,0xd;
-		mov eax,[eax+0x78];
-		call Combat_p_procFixFunc3;
+		mov eax, [eax+0x78];
+		call scr_set_ext_param_;
+		mov eax, [esi];
+		mov edx, 0xd;
+		mov eax, [eax+0x78];
+		call exec_script_proc_;
 		pop edx;
 		pop ebx;
 		pop esi;
 
 end_cppf:
 		pop eax;
-		call Combat_p_procFixFunc0;
+		call stat_level_;
 
 		retn;
 	}
@@ -325,7 +308,6 @@ static bool wm_usingperf;
 static __int64 wm_perfadd;
 static __int64 wm_perfnext;
 static DWORD WorldMapLoopCount;
-static const DWORD WorldMapRealFunc=0x004C8B78;
 static void WorldMapSpeedPatch3() {
 	RunGlobalScripts3();
 	if(wm_usingperf) {
@@ -350,7 +332,7 @@ static void __declspec(naked) WorldMapSpeedPatch2() {
 		pushad;
 		call WorldMapSpeedPatch3;
 		popad;
-		call WorldMapRealFunc;
+		call get_input_;
 		retn;
 	}
 }
@@ -365,7 +347,7 @@ ls:
 		mov eax, eax;
 		loop ls;
 		pop ecx;
-		call WorldMapRealFunc;
+		call get_input_;
 		retn;
 	}
 }
@@ -375,19 +357,18 @@ static void WorldMapHook() {
 		pushad;
 		call RunGlobalScripts3;
 		popad;
-		call WorldMapRealFunc;
+		call get_input_;
 		retn;
 	}
 }
 
 static void __declspec(naked) ViewportHook() {
 	__asm {
-		mov eax, 0x004BD6B4;
-		call eax;
+		call wmWorldMapLoadTempData_;
 		mov eax, ViewportX;
-		mov ds:[0x51DE2C], eax
+		mov ds:[_wmWorldOffsetX], eax
 		mov eax, ViewportY;
-		mov ds:[0x51DE30], eax;
+		mov ds:[_wmWorldOffsetY], eax;
 		retn;
 	}
 }
@@ -411,31 +392,28 @@ int _stdcall FakeFindNextFile(HANDLE h, WIN32_FIND_DATAA* data) {
 	}
 	return i;
 }
-static const DWORD WeaponAnimAddr=0x419314;
 static void __declspec(naked) WeaponAnimHook() {
 	__asm {
 		cmp edx, 11;
 		je c11;
 		cmp edx, 15;
 		je c15;
-		jmp WeaponAnimAddr;
+		jmp art_get_code_;
 c11:
 		mov edx, 16;
-		jmp WeaponAnimAddr;
+		jmp art_get_code_;
 c15:
 		mov edx, 17;
-		jmp WeaponAnimAddr;
+		jmp art_get_code_;
 	}
 }
-static const DWORD SetGlobalVarAddr=0x443C98;
-static const DWORD GetGlobalVarAddr=0x443C68;
 static char KarmaGainMsg[128];
 static char KarmaLossMsg[128];
 static void _stdcall SetKarma(int value) {
 	int old;
 	__asm {
 		xor eax, eax;
-		call GetGlobalVarAddr;
+		call game_get_global_var_;
 		mov old, eax;
 	}
 	old=value-old;
@@ -457,34 +435,29 @@ static void __declspec(naked) SetGlobalVarWrapper() {
 		call SetKarma;
 		popad;
 end:
-		jmp SetGlobalVarAddr;
+		jmp game_set_global_var_;
 	}
 }
-static const DWORD PlaySfxInternal=0x4519A8;
-static const DWORD AnimClear=0x413C4C;
-static const DWORD AnimBegin=0x413AF4;
-static const DWORD AnimEnd=0x413CCC;
-static const DWORD RegAnim=0x4149D0;
 static void __declspec(naked) ReloadHook() {
 	__asm {
 		push eax;
 		push ebx;
 		push edx;
-		mov eax, dword ptr ds:[0x6610B8];
-		call AnimClear;
+		mov eax, dword ptr ds:[_obj_dude];
+		call register_clear_;
 		xor eax, eax;
 		inc eax;
-		call AnimBegin;
+		call register_begin_;
 		xor edx, edx;
 		xor ebx, ebx;
-		mov eax, dword ptr ds:[0x6610B8];
+		mov eax, dword ptr ds:[_obj_dude];
 		dec ebx;
-		call RegAnim;
-		call AnimEnd;
+		call register_object_animate_;
+		call register_end_;
 		pop edx;
 		pop ebx;
 		pop eax;
-		jmp PlaySfxInternal;
+		jmp gsound_play_sfx_file_;
 	}
 }
 static const DWORD CorpseHitFix2_continue_loop1 = 0x48B99B;
@@ -527,8 +500,6 @@ really_end:
 	}
 }
 
-static const DWORD _combat_ai=0x42B130;
-static const DWORD _process_bk=0x4C8BDC;
 static const DWORD RetryCombatRet=0x422BA9;
 static DWORD RetryCombatLastAP;
 static DWORD RetryCombatMinAP;
@@ -538,11 +509,11 @@ static void __declspec(naked) RetryCombatHook() {
 retry:
 		mov eax, esi;
 		xor edx, edx;
-		call _combat_ai;
+		call combat_ai_;
 process:
-		cmp dword ptr ds:[0x51093C], 0;
+		cmp dword ptr ds:[_combat_turn_running], 0;
 		jle next;
-		call _process_bk;
+		call process_bk_;
 		jmp process;
 next:
 		mov eax, [esi+0x40];
@@ -580,9 +551,8 @@ end:
 static DWORD KarmaFrmCount;
 static DWORD* KarmaFrms;
 static int* KarmaPoints;
-static const DWORD DrawCardAddr=0x43AAEC;
 static DWORD _stdcall DrawCardHook2() {
-	int rep=**(int**)0x5186C0;
+	int rep=**(int**)_game_global_vars;
 	for(DWORD i=0;i<KarmaFrmCount-1;i++) {
 		if(rep < KarmaPoints[i]) return KarmaFrms[i];
 	}
@@ -600,31 +570,29 @@ static void __declspec(naked) DrawCardHook() {
 		pop edx;
 		pop ecx;
 skip:
-		jmp DrawCardAddr;
+		jmp DrawCard_;
 	}
 }
 
-static const DWORD critter_kill_count_type=0x42D920;
 static void __declspec(naked) ScienceCritterCheckHook() {
 	__asm {
-		cmp esi, ds:[0x6610B8];
+		cmp esi, ds:[_obj_dude];
 		jne end;
 		mov eax, 10;
 		retn;
 end:
-		jmp critter_kill_count_type;
+		jmp critter_kill_count_type_;
 	}
 }
 
-static const DWORD mem_malloc = 0x4C5AD0;
 static const DWORD NPCStage6Fix1End = 0x493D16;
 static const DWORD NPCStage6Fix2End = 0x49423A;
 static void __declspec(naked) NPCStage6Fix1() {
 	__asm {
 		mov eax,0xcc;				// set record size to 204 bytes
 		imul eax,edx;				// multiply by number of NPC records in party.txt
-		call mem_malloc;			// malloc the necessary memory
-		mov edx,dword ptr ds:[0x519d9c];	// retrieve number of NPC records in party.txt
+		call mem_malloc_;			// malloc the necessary memory
+		mov edx,dword ptr ds:[_partyMemberMaxCount];	// retrieve number of NPC records in party.txt
 		mov ebx,0xcc;				// set record size to 204 bytes
 		imul ebx,edx;				// multiply by number of NPC records in party.txt
 		jmp NPCStage6Fix1End;			// call memset to set all malloc'ed memory to 0
@@ -635,7 +603,7 @@ static void __declspec(naked) NPCStage6Fix2() {
 	__asm {
 		mov eax,0xcc;				// record size is 204 bytes
 		imul edx,eax;				// multiply by NPC number as listed in party.txt
-		mov eax,dword ptr ds:[0x519db8];	// get starting offset of internal NPC table
+		mov eax,dword ptr ds:[_partyMemberAIOptions];	// get starting offset of internal NPC table
 		jmp NPCStage6Fix2End;			// eax+edx = offset of specific NPC record
 	}
 }
@@ -666,16 +634,15 @@ end:
 	}
 }
 
-static const DWORD item_w_range = 0x478A1C;
 static const DWORD FastShotTraitFixEnd1 = 0x478E7F;
 static const DWORD FastShotTraitFixEnd2 = 0x478E7B;
 static void __declspec(naked) FastShotTraitFix() {
 	__asm {
 		test eax,eax;				// does player have Fast Shot trait?
 		je ajmp;				// skip ahead if no
-		mov edx,ecx;				// argument for item_w_range: hit_mode
-		mov eax,ebx;				// argument for item_w_range: pointer to source_obj (always dude_obj due to code path)
-		call item_w_range;			// get weapon's range
+		mov edx,ecx;				// argument for item_w_range_: hit_mode
+		mov eax,ebx;				// argument for item_w_range_: pointer to source_obj (always dude_obj due to code path)
+		call item_w_range_;			// get weapon's range
 		cmp eax,0x2;				// is weapon range less than or equal 2 (i.e. melee/unarmed attack)?
 		jle ajmp;				// skip ahead if yes
 		xor eax,eax;				// otherwise, disallow called shot attempt
@@ -689,12 +656,11 @@ bjmp:
 
 static const DWORD ScannerHookRet=0x41BC1D;
 static const DWORD ScannerHookFail=0x41BC65;
-static const DWORD _inven_pid_is_carried_ptr=0x471CA0;
 static void __declspec(naked) ScannerAutomapHook() {
 	__asm {
-		mov eax, ds:[0x6610B8];
+		mov eax, ds:[_obj_dude];
 		mov edx, 59;
-		call _inven_pid_is_carried_ptr;
+		call inven_pid_is_carried_ptr_;
 		test eax, eax;
 		jz fail;
 		mov edx, eax;
@@ -704,8 +670,6 @@ fail:
 	}
 }
 
-static const DWORD obj_find_first_at_tile=0x48B5A8;
-static const DWORD obj_find_next_at_tile=0x48B608;
 static void _stdcall explosion_crash_fix_hook2() {
 	if(InCombat()) return;
 	for(int elv=0;elv<3;elv++) {
@@ -714,7 +678,7 @@ static void _stdcall explosion_crash_fix_hook2() {
 			__asm {
 				mov edx, tile;
 				mov eax, elv;
-				call obj_find_first_at_tile;
+				call obj_find_first_at_tile_;
 				mov obj, eax;
 			}
 			while(obj) {
@@ -726,41 +690,38 @@ static void _stdcall explosion_crash_fix_hook2() {
 					obj[0x10]=0;
 				}
 				__asm {
-					call obj_find_next_at_tile;
+					call obj_find_next_at_tile_;
 					mov obj, eax;
 				}
 			}
 		}
 	}
 }
-static const DWORD realfunc=0x413144;
+
 static void __declspec(naked) explosion_crash_fix_hook() {
 	__asm {
 		pushad;
 		call explosion_crash_fix_hook2;
 		popad;
-		jmp realfunc;
+		jmp report_explosion_;
 	}
 }
 
-static const DWORD lineOfSightSearch_func = 0x4163C8;
-///static const DWORD checkHexObjsIsBlocker_func=0x48B848; //(EAX *obj, EDX hexNum, EBX level)
-static const DWORD checkHexObjsIsBlockerShootThru_func = 0x48B930; //(EAX *obj, EDX hexNum, EBX level)
 static void __declspec(naked) objCanSeeObj_ShootThru_Fix() {//(EAX *objStruct, EDX hexNum1, EBX hexNum2, ECX ?, stack1 **ret_objStruct, stack2 flags)
 	__asm {
-			push esi
-			push edi
+		push esi
+		push edi
 
-			push checkHexObjsIsBlockerShootThru_func //arg3 check hex objects func pointer
-			mov esi, 0x20//arg2 flags, 0x20 = check shootthru
-			push esi
-			mov edi, dword ptr ss : [esp + 0x14] //arg1 **ret_objStruct
-			push edi
-			call lineOfSightSearch_func;//(EAX *objStruct, EDX hexNum1, EBX hexNum2, ECX ?, stack1 **ret_objStruct, stack2 flags, stack3 *check_hex_objs_func)
+		push obj_shoot_blocking_at_ //arg3 check hex objects func pointer
+		mov esi, 0x20//arg2 flags, 0x20 = check shootthru
+		push esi
+		mov edi, dword ptr ss : [esp + 0x14] //arg1 **ret_objStruct
+		push edi
+		call make_straight_path_func_;//(EAX *objStruct, EDX hexNum1, EBX hexNum2, ECX ?, stack1 **ret_objStruct, stack2 flags, stack3 *check_hex_objs_func)
 
-			pop edi
-			pop esi
-			ret 0x8
+		pop edi
+		pop esi
+		ret 0x8
 	}
 }
 
@@ -1412,7 +1373,6 @@ static void DllMain2() {
 	dlogr("Patching out ereg call.", DL_INIT);
 	BlockCall(0x4425E6);
 
-
 	tmp=GetPrivateProfileIntA("Misc", "AnimationsAtOnceLimit", 32, ini);
 	if((signed char)tmp>32) {
 		dlog("Applying AnimationsAtOnceLimit patch.", DL_INIT);
@@ -1589,13 +1549,12 @@ static void _stdcall OnExit() {
 	//SoundExit();
 }
 
-static const DWORD OnExitRet=0x4E3D3C;
 static void __declspec(naked) OnExitFunc() {
 	__asm {
 		pushad;
 		call OnExit;
 		popad;
-		jmp OnExitRet;
+		jmp DOSCmdLineDestroy_;
 	}
 }
 

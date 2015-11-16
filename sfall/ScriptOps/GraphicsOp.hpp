@@ -36,12 +36,10 @@ static void __declspec(naked) GraphicsFuncsAvailable() {
 		jle end;
 		inc edx;
 end:
-		mov ebx, 0x4674DC;
-		call ebx;
+		call interpretPushLong_;
 		mov edx, 0xc001;
 		mov eax, ecx;
-		mov ebx, 0x46748C;
-		call ebx;
+		call interpretPushShort_;
 		pop edx;
 		pop ecx;
 		pop ebx;
@@ -55,12 +53,10 @@ static void __declspec(naked) funcLoadShader() {
 		push edx;
 		push edi;
 		mov edi, eax;
-		mov ebx, 0x4674F0;
-		call ebx;
+		call interpretPopShort_;
 		mov edx, eax;
 		mov eax, edi;
-		mov ebx, 0x467500;
-		call ebx;
+		call interpretPopLong_;
 		cmp dx, 0x9001;
 		jz next;
 		cmp dx, 0x9801;
@@ -68,8 +64,7 @@ static void __declspec(naked) funcLoadShader() {
 next:
 		mov ebx, eax;
 		mov eax, edi;
-		mov ecx, 0x4678E0;
-		call ecx;
+		call interpretGetString_;
 		push eax;
 		call LoadShader;
 		mov edx, eax;
@@ -78,12 +73,10 @@ error:
 		mov edx, -1;
 result:
 		mov eax, edi;
-		mov ebx, 0x4674DC;
-		call ebx;
+		call interpretPushLong_;
 		mov edx, 0xC001;
 		mov eax, edi;
-		mov ebx, 0x46748C;
-		call ebx;
+		call interpretPushShort_;
 		pop edi;
 		pop edx;
 		pop ecx;
@@ -97,12 +90,10 @@ static void __declspec(naked) funcFreeShader() {
 		push ecx;
 		push edx;
 		mov ecx, eax;
-		mov ebx, 0x4674F0;
-		call ebx;
+		call interpretPopShort_;
 		mov edx, eax;
 		mov eax, ecx;
-		mov ebx, 0x467500;
-		call ebx;
+		call interpretPopLong_;
 		cmp dx, 0xC001;
 		jnz end;
 		push eax;
@@ -120,12 +111,10 @@ static void __declspec(naked) funcActivateShader() {
 		push ecx;
 		push edx;
 		mov ecx, eax;
-		mov ebx, 0x4674F0;
-		call ebx;
+		call interpretPopShort_;
 		mov edx, eax;
 		mov eax, ecx;
-		mov ebx, 0x467500;
-		call ebx;
+		call interpretPopLong_;
 		cmp dx, 0xC001;
 		jnz end;
 		push eax;
@@ -143,12 +132,10 @@ static void __declspec(naked) funcDeactivateShader() {
 		push ecx;
 		push edx;
 		mov ecx, eax;
-		mov ebx, 0x4674F0;
-		call ebx;
+		call interpretPopShort_;
 		mov edx, eax;
 		mov eax, ecx;
-		mov ebx, 0x467500;
-		call ebx;
+		call interpretPopLong_;
 		cmp dx, 0xC001;
 		jnz end;
 		push eax;
@@ -169,20 +156,16 @@ static void __declspec(naked) funcGetShaderTexture() {
 		push edi;
 		//Get function args
 		mov ecx, eax;
-		mov ebx, 0x4674F0;
-		call ebx;
+		call interpretPopShort_;
 		push eax
 		mov eax, ecx;
-		mov ebx, 0x467500;
-		call ebx;
+		call interpretPopLong_;
 		mov edi, eax;
 		mov eax, ecx;
-		mov ebx, 0x4674F0;
-		call ebx;
+		call interpretPopShort_;
 		push eax
 		mov eax, ecx;
-		mov ebx, 0x467500;
-		call ebx;
+		call interpretPopLong_;
 		mov ebx, [esp];
 		cmp bx, 0xC001;
 		jnz fail;
@@ -202,12 +185,10 @@ fail:
 end:
 		//Pass back the result
 		mov eax, ecx;
-		mov ebx, 0x4674DC;
-		call ebx;
+		call interpretPushLong_;
 		mov edx, 0xc001;
 		mov eax, ecx;
-		mov ebx, 0x46748C;
-		call ebx;
+		call interpretPushShort_;
 		//Restore registers and return
 		add esp, 8;
 		pop edi;
@@ -228,28 +209,22 @@ static void __declspec(naked) funcSetShaderInt() {
 		sub esp, 0xc;
 		mov ecx, eax;
 		//Get args
-		mov ebx, 0x4674F0;
-		call ebx;
+		call interpretPopShort_;
 		mov edi, eax;
 		mov eax, ecx;
-		mov ebx, 0x467500;
-		call ebx;
+		call interpretPopLong_;
 		mov [esp+8], eax;
 		mov eax, ecx;
-		mov ebx, 0x4674F0;
-		call ebx;
+		call interpretPopShort_;
 		mov edx, eax;
 		mov eax, ecx;
-		mov ebx, 0x467500;
-		call ebx;
+		call interpretPopLong_;
 		mov ebp, eax;
 		mov eax, ecx;
-		mov ebx, 0x4674F0;
-		call ebx;
+		call interpretPopShort_;
 		mov esi, eax;
 		mov eax, ecx;
-		mov ebx, 0x467500;
-		call ebx;
+		call interpretPopLong_;
 		mov [esp], eax;
 		//Error check
 		cmp di, 0xC001;
@@ -263,8 +238,7 @@ next:
 		jnz fail;
 		mov eax, ecx;
 		mov ebx, ebp;
-		mov edi, 0x4678E0;
-		call edi;
+		call interpretGetString_;
 		mov [esp+4], eax;
 		call SetShaderInt;
 		jmp end;
@@ -291,28 +265,22 @@ static void __declspec(naked) funcSetShaderTexture() {
 		sub esp, 0xc;
 		mov ecx, eax;
 		//Get args
-		mov ebx, 0x4674F0;
-		call ebx;
+		call interpretPopShort_;
 		mov edi, eax;
 		mov eax, ecx;
-		mov ebx, 0x467500;
-		call ebx;
+		call interpretPopLong_;
 		mov [esp+8], eax;
 		mov eax, ecx;
-		mov ebx, 0x4674F0;
-		call ebx;
+		call interpretPopShort_;
 		mov edx, eax;
 		mov eax, ecx;
-		mov ebx, 0x467500;
-		call ebx;
+		call interpretPopLong_;
 		mov ebp, eax;
 		mov eax, ecx;
-		mov ebx, 0x4674F0;
-		call ebx;
+		call interpretPopShort_;
 		mov esi, eax;
 		mov eax, ecx;
-		mov ebx, 0x467500;
-		call ebx;
+		call interpretPopLong_;
 		mov [esp], eax;
 		//Error check
 		cmp di, 0xC001;
@@ -326,8 +294,7 @@ next:
 		jnz fail;
 		mov eax, ecx;
 		mov ebx, ebp;
-		mov edi, 0x4678E0;
-		call edi;
+		call interpretGetString_;
 		mov [esp+4], eax;
 		call SetShaderTexture;
 		jmp end;
@@ -354,28 +321,22 @@ static void __declspec(naked) funcSetShaderFloat() {
 		sub esp, 0xc;
 		mov ecx, eax;
 		//Get args
-		mov ebx, 0x4674F0;
-		call ebx;
+		call interpretPopShort_;
 		mov edi, eax;
 		mov eax, ecx;
-		mov ebx, 0x467500;
-		call ebx;
+		call interpretPopLong_;
 		mov [esp+8], eax;
 		mov eax, ecx;
-		mov ebx, 0x4674F0;
-		call ebx;
+		call interpretPopShort_;
 		mov edx, eax;
 		mov eax, ecx;
-		mov ebx, 0x467500;
-		call ebx;
+		call interpretPopLong_;
 		mov ebp, eax;
 		mov eax, ecx;
-		mov ebx, 0x4674F0;
-		call ebx;
+		call interpretPopShort_;
 		mov esi, eax;
 		mov eax, ecx;
-		mov ebx, 0x467500;
-		call ebx;
+		call interpretPopLong_;
 		mov [esp], eax;
 		//Error check
 		cmp di, 0xa001;
@@ -394,8 +355,7 @@ next:
 		jnz fail;
 		mov eax, ecx;
 		mov ebx, ebp;
-		mov edi, 0x4678E0;
-		call edi;
+		call interpretGetString_;
 		mov [esp+4], eax;
 		call SetShaderFloat;
 		jmp end;
@@ -423,12 +383,10 @@ static void __declspec(naked) funcSetShaderVector() {
 		mov ecx, 6;
 argloopstart:
 		mov eax, ebp;
-		mov ebx, 0x4674F0;
-		call ebx;
+		call interpretPopShort_;
 		mov word ptr [esp+ecx*2+0x16], ax;
 		mov eax, ebp;
-		mov ebx, 0x467500;
-		call ebx;
+		call interpretPopLong_;
 		mov [esp+ecx*4-0x4], eax;
 		loop argloopstart;
 		//Error check
@@ -453,8 +411,7 @@ next:
 		mov ebx, [esp+4];
 		xor edx, edx;
 		mov dx, word ptr [esp+0x1a];
-		mov edi, 0x4678E0;
-		call edi;
+		call interpretGetString_;
 		mov [esp+4], eax;
 		call SetShaderVector;
 		add esp, 0x12;
@@ -479,12 +436,10 @@ static void __declspec(naked) funcGetShaderVersion() {
 		call GetShaderVersion;
 		mov edx, eax;
 		mov eax, edi;
-		mov ebx, 0x4674DC;
-		call ebx;
+		call interpretPushLong_;
 		mov edx, 0xc001;
 		mov eax, edi;
-		mov ebx, 0x46748C;
-		call ebx;
+		call interpretPushShort_;
 		pop edi;
 		pop edx;
 		pop ecx;
@@ -499,20 +454,16 @@ static void __declspec(naked) funcSetShaderMode() {
 		push edx;
 		push esi;
 		mov ecx, eax;
-		mov ebx, 0x4674F0;
-		call ebx;
+		call interpretPopShort_;
 		mov edx, eax;
 		mov eax, ecx;
-		mov ebx, 0x467500;
-		call ebx;
+		call interpretPopLong_;
 		push eax;
 		mov eax, ecx;
-		mov ebx, 0x4674F0;
-		call ebx;
+		call interpretPopShort_;
 		mov esi, eax;
 		mov eax, ecx;
-		mov ebx, 0x467500;
-		call ebx;
+		call interpretPopLong_;
 		cmp dx, 0xC001;
 		jnz fail;
 		cmp si, 0xC001;
@@ -536,12 +487,10 @@ static void __declspec(naked) funcForceGraphicsRefresh() {
 		push ecx;
 		push edx;
 		mov ecx, eax;
-		mov ebx, 0x4674F0;
-		call ebx;
+		call interpretPopShort_;
 		mov edx, eax;
 		mov eax, ecx;
-		mov ebx, 0x467500;
-		call ebx;
+		call interpretPopLong_;
 		cmp dx, 0xC001;
 		jnz end;
 		push eax;

@@ -37,20 +37,16 @@ static void __declspec(naked) SetPCBaseStat() {
 		push esi;
 		//Get function args
 		mov ecx, eax;
-		mov ebx, 0x4674F0;
-		call ebx;
+		call interpretPopShort_;
 		mov esi, eax;
 		mov eax, ecx;
-		mov ebx, 0x467500;
-		call ebx;
+		call interpretPopLong_;
 		mov edi, eax;
 		mov eax, ecx;
-		mov ebx, 0x4674F0;
-		call ebx;
+		call interpretPopShort_;
 		mov edx, eax;
 		mov eax, ecx;
-		mov ebx, 0x467500;
-		call ebx;
+		call interpretPopLong_;
 		//eax now contains the stat ID, edi contains its new value
 		//Check args are valid
 		cmp dx, 0xC001;
@@ -83,20 +79,16 @@ static void __declspec(naked) SetPCExtraStat() {
 		push esi;
 		//Get function args
 		mov ecx, eax;
-		mov ebx, 0x4674F0;
-		call ebx;
+		call interpretPopShort_;
 		mov esi, eax;
 		mov eax, ecx;
-		mov ebx, 0x467500;
-		call ebx;
+		call interpretPopLong_;
 		mov edi, eax;
 		mov eax, ecx;
-		mov ebx, 0x4674F0;
-		call ebx;
+		call interpretPopShort_;
 		mov edx, eax;
 		mov eax, ecx;
-		mov ebx, 0x467500;
-		call ebx;
+		call interpretPopLong_;
 		//eax now contains the stat ID, edi contains its new value
 		//Check args are valid
 		cmp dx, 0xC001;
@@ -127,12 +119,10 @@ static void __declspec(naked) GetPCBaseStat() {
 		push edx;
 		//Get function args
 		mov ecx, eax;
-		mov ebx, 0x4674F0;
-		call ebx;
+		call interpretPopShort_;
 		mov edx, eax;
 		mov eax, ecx;
-		mov ebx, 0x467500;
-		call ebx;
+		call interpretPopLong_;
 		//Check arg is valid
 		cmp dx, 0xC001;
 		jnz fail;
@@ -148,12 +138,10 @@ fail:
 end:
 		//Pass back the result
 		mov eax, ecx;
-		mov ebx, 0x4674DC;
-		call ebx;
+		call interpretPushLong_;
 		mov edx, 0xc001;
 		mov eax, ecx;
-		mov ebx, 0x46748C;
-		call ebx;
+		call interpretPushShort_;
 		//Restore registers and return
 		pop edx;
 		pop ecx;
@@ -169,12 +157,10 @@ static void __declspec(naked) GetPCExtraStat() {
 		push edx;
 		//Get function args
 		mov ecx, eax;
-		mov ebx, 0x4674F0;
-		call ebx;
+		call interpretPopShort_;
 		mov edx, eax;
 		mov eax, ecx;
-		mov ebx, 0x467500;
-		call ebx;
+		call interpretPopLong_;
 		//Check arg is valid
 		cmp dx, 0xC001;
 		jnz fail;
@@ -190,12 +176,10 @@ fail:
 end:
 		//Pass back the result
 		mov eax, ecx;
-		mov ebx, 0x4674DC;
-		call ebx;
+		call interpretPushLong_;
 		mov edx, 0xc001;
 		mov eax, ecx;
-		mov ebx, 0x46748C;
-		call ebx;
+		call interpretPushShort_;
 		//Restore registers and return
 		pop edx;
 		pop ecx;
@@ -213,28 +197,22 @@ static void __declspec(naked) SetCritterBaseStat() {
 		push esi;
 		//Get function args
 		mov ecx, eax;
-		mov ebx, 0x4674F0;
-		call ebx;
+		call interpretPopShort_;
 		push eax;
 		mov eax, ecx;
-		mov ebx, 0x467500;
-		call ebx;
+		call interpretPopLong_;
 		mov edi, eax;
 		mov eax, ecx;
-		mov ebx, 0x4674F0;
-		call ebx;
+		call interpretPopShort_;
 		push eax;
 		mov eax, ecx;
-		mov ebx, 0x467500;
-		call ebx;
+		call interpretPopLong_;
 		mov esi, eax;
 		mov eax, ecx;
-		mov ebx, 0x4674F0;
-		call ebx;
+		call interpretPopShort_;
 		push eax;
 		mov eax, ecx;
-		mov ebx, 0x467500;
-		call ebx;
+		call interpretPopLong_;
 		//eax now contains the critter ID, esi the stat ID, and edi the new value
 		//Check args are valid
 		mov ebx, [esp];
@@ -253,8 +231,7 @@ static void __declspec(naked) SetCritterBaseStat() {
 		//set the new value
 		mov edx, esp;
 		mov eax, [eax+0x64];
-		mov ebx, 0x4A2108;
-		call ebx;
+		call proto_ptr_;
 		mov eax, [esp];
 		add eax, 0x20;
 		mov ds:[eax + esi*4 + 4], edi;
@@ -279,28 +256,22 @@ static void __declspec(naked) SetCritterExtraStat() {
 		push esi;
 		//Get function args
 		mov ecx, eax;
-		mov ebx, 0x4674F0;
-		call ebx;
+		call interpretPopShort_;
 		push eax;
 		mov eax, ecx;
-		mov ebx, 0x467500;
-		call ebx;
+		call interpretPopLong_;
 		mov edi, eax;
 		mov eax, ecx;
-		mov ebx, 0x4674F0;
-		call ebx;
+		call interpretPopShort_;
 		push eax;
 		mov eax, ecx;
-		mov ebx, 0x467500;
-		call ebx;
+		call interpretPopLong_;
 		mov esi, eax;
 		mov eax, ecx;
-		mov ebx, 0x4674F0;
-		call ebx;
+		call interpretPopShort_;
 		push eax;
 		mov eax, ecx;
-		mov ebx, 0x467500;
-		call ebx;
+		call interpretPopLong_;
 		//eax now contains the critter ID, esi the stat ID, and edi the new value
 		//Check args are valid
 		mov ebx, [esp];
@@ -319,8 +290,7 @@ static void __declspec(naked) SetCritterExtraStat() {
 		//set the new value
 		mov edx, esp;
 		mov eax, [eax+0x64];
-		mov ebx, 0x4A2108;
-		call ebx;
+		call proto_ptr_;
 		mov eax, [esp];
 		add eax, 0x20;
 		mov ds:[eax + esi*4 + 0x90], edi;
@@ -344,20 +314,16 @@ static void __declspec(naked) GetCritterBaseStat() {
 		push edi;
 		//Get function args
 		mov ecx, eax;
-		mov ebx, 0x4674F0;
-		call ebx;
+		call interpretPopShort_;
 		push eax
 		mov eax, ecx;
-		mov ebx, 0x467500;
-		call ebx;
+		call interpretPopLong_;
 		mov edi, eax;
 		mov eax, ecx;
-		mov ebx, 0x4674F0;
-		call ebx;
+		call interpretPopShort_;
 		push eax
 		mov eax, ecx;
-		mov ebx, 0x467500;
-		call ebx;
+		call interpretPopLong_;
 		//eax contains the critter pointer, and edi contains the stat id
 		//Check args are valid
 		mov ebx, [esp];
@@ -373,8 +339,7 @@ static void __declspec(naked) GetCritterBaseStat() {
 		//set the new value
 		mov edx, esp;
 		mov eax, [eax+0x64];
-		mov ebx, 0x4A2108;
-		call ebx;
+		call proto_ptr_;
 		mov eax, [esp];
 		add eax, 0x20;
 		mov edx, ds:[eax + edi*4 + 4];
@@ -384,12 +349,10 @@ fail:
 end:
 		//Pass back the result
 		mov eax, ecx;
-		mov ebx, 0x4674DC;
-		call ebx;
+		call interpretPushLong_;
 		mov edx, 0xc001;
 		mov eax, ecx;
-		mov ebx, 0x46748C;
-		call ebx;
+		call interpretPushShort_;
 		//Restore registers and return
 		add esp, 8;
 		pop edi;
@@ -408,20 +371,16 @@ static void __declspec(naked) GetCritterExtraStat() {
 		push edi;
 		//Get function args
 		mov ecx, eax;
-		mov ebx, 0x4674F0;
-		call ebx;
+		call interpretPopShort_;
 		push eax
 		mov eax, ecx;
-		mov ebx, 0x467500;
-		call ebx;
+		call interpretPopLong_;
 		mov edi, eax;
 		mov eax, ecx;
-		mov ebx, 0x4674F0;
-		call ebx;
+		call interpretPopShort_;
 		push eax
 		mov eax, ecx;
-		mov ebx, 0x467500;
-		call ebx;
+		call interpretPopLong_;
 		//eax contains the critter pointer, and edi contains the stat id
 		//Check args are valid
 		mov ebx, [esp];
@@ -437,8 +396,7 @@ static void __declspec(naked) GetCritterExtraStat() {
 		//set the new value
 		mov edx, esp;
 		mov eax, [eax+0x64];
-		mov ebx, 0x4A2108;
-		call ebx;
+		call proto_ptr_;
 		mov eax, [esp];
 		add eax, 0x20;
 		mov edx, ds:[eax + edi*4 + 0x90];
@@ -448,12 +406,10 @@ fail:
 end:
 		//Pass back the result
 		mov eax, ecx;
-		mov ebx, 0x4674DC;
-		call ebx;
+		call interpretPushLong_;
 		mov edx, 0xc001;
 		mov eax, ecx;
-		mov ebx, 0x46748C;
-		call ebx;
+		call interpretPushShort_;
 		//Restore registers and return
 		add esp, 8;
 		pop edi;
@@ -468,22 +424,22 @@ static void __declspec(naked) set_critter_skill_points() {
 		pushad;
 		//Get function args
 		mov ecx, eax;
-		call GetArgType;
+		call interpretPopShort_;
 		push eax;
 		mov eax, ecx;
-		call GetArg;
+		call interpretPopLong_;
 		mov edi, eax;
 		mov eax, ecx;
-		call GetArgType;
+		call interpretPopShort_;
 		push eax;
 		mov eax, ecx;
-		call GetArg;
+		call interpretPopLong_;
 		mov esi, eax;
 		mov eax, ecx;
-		call GetArgType;
+		call interpretPopShort_;
 		push eax;
 		mov eax, ecx;
-		call GetArg;
+		call interpretPopLong_;
 		//eax now contains the critter ID, esi the skill ID, and edi the new value
 		//Check args are valid
 		mov ebx, [esp];
@@ -502,8 +458,7 @@ static void __declspec(naked) set_critter_skill_points() {
 		//set the new value
 		mov eax, [eax+0x64];
 		mov edx, esp;
-		mov ebx, 0x4A2108;
-		call ebx;
+		call proto_ptr_;
 		mov eax, [esp];
 		mov [eax+0x13c+esi*4], edi;
 end:
@@ -518,16 +473,16 @@ static void __declspec(naked) get_critter_skill_points() {
 		pushad;
 		//Get function args
 		mov ecx, eax;
-		call GetArgType;
+		call interpretPopShort_;
 		push eax;
 		mov eax, ecx;
-		call GetArg;
+		call interpretPopLong_;
 		mov esi, eax;
 		mov eax, ecx;
-		call GetArgType;
+		call interpretPopShort_;
 		push eax;
 		mov eax, ecx;
-		call GetArg;
+		call interpretPopLong_;
 		//eax now contains the critter ID, esi the skill ID
 		//Check args are valid
 		mov ebx, [esp];
@@ -543,8 +498,7 @@ static void __declspec(naked) get_critter_skill_points() {
 		//get the value
 		mov eax, [eax+0x64];
 		mov edx, esp;
-		mov ebx, 0x4A2108;
-		call ebx;
+		call proto_ptr_;
 		mov eax, [esp];
 		mov edx, [eax+0x13c+esi*4];
 		jmp end;
@@ -552,10 +506,10 @@ fail:
 		xor edx, edx;
 end:
 		mov eax, ecx;
-		call SetResult;
+		call interpretPushLong_;
 		mov edx, 0xc001;
 		mov eax, ecx;
-		call SetResultType;
+		call interpretPushShort_;
 		//Restore registers and return
 		add esp, 8;
 		popad
@@ -566,15 +520,14 @@ static void __declspec(naked) set_available_skill_points() {
 	__asm {
 		pushad;
 		mov ecx, eax;
-		call GetArgType;
+		call interpretPopShort_;
 		xchg eax, ecx;
-		call GetArg;
+		call interpretPopLong_;
 		cmp cx, 0xc001;
 		jnz end;
 		mov edx, eax;
 		xor eax, eax;
-		mov ecx, 0x4AF910;
-		call ecx; //_stat_pc_set
+		call stat_pc_set_;
 end:
 		popad;
 		retn;
@@ -584,11 +537,11 @@ static void __declspec(naked) get_available_skill_points() {
 	__asm {
 		pushad;
 		mov ecx, eax;
-		mov edx, dword ptr ds:[0x6681AC];
-		call SetResult;
+		mov edx, dword ptr ds:[_curr_pc_stat];
+		call interpretPushLong_;
 		mov edx, 0xc001;
 		mov eax, ecx;
-		call SetResultType
+		call interpretPushShort_
 		popad;
 		retn;
 	}
@@ -597,9 +550,9 @@ static void __declspec(naked) mod_skill_points_per_level() {
 	__asm {
 		pushad;
 		mov ecx, eax;
-		call GetArgType;
+		call interpretPopShort_;
 		xchg eax, ecx;
-		call GetArg;
+		call interpretPopLong_;
 		cmp cx, 0xc001;
 		jnz end;
 		cmp eax, 100;
@@ -623,10 +576,10 @@ static void __declspec(naked) GetCritterAP() {
 		push edi;
 		//Get function args
 		mov ecx, eax;
-		call GetArgType;
+		call interpretPopShort_;
 		mov edi, eax;
 		mov eax, ecx;
-		call GetArg;
+		call interpretPopLong_;
 		//Check args are valid
 		cmp di, 0xC001;
 		jnz fail;
@@ -637,10 +590,10 @@ fail:
 end:
 		//Pass back the result
 		mov eax, ecx;
-		call SetResult;
+		call interpretPushLong_;
 		mov edx, 0xc001;
 		mov eax, ecx;
-		call SetResultType;
+		call interpretPushShort_;
 		//Restore registers and return
 		pop edi;
 		pop edx;
@@ -659,16 +612,16 @@ static void __declspec(naked) SetCritterAP() {
 		push esi;
 		//Get function args
 		mov ecx, eax;
-		call GetArgType;
+		call interpretPopShort_;
 		mov edi, eax;
 		mov eax, ecx;
-		call GetArg;
+		call interpretPopLong_;
 		mov ebx, eax;
 		mov eax, ecx;
-		call GetArgType;
+		call interpretPopShort_;
 		mov esi, eax;
 		mov eax, ecx;
-		call GetArg;
+		call interpretPopLong_;
 		//Check args are valid
 		cmp di, 0xC001;
 		jnz end;
@@ -700,12 +653,10 @@ static void __declspec(naked) fSetPickpocketMax() {
 		push edx;
 		push edi;
 		mov ecx, eax;
-		mov ebx, 0x4674F0;
-		call ebx;
+		call interpretPopShort_;
 		mov edx, eax;
 		mov eax, ecx;
-		mov ebx, 0x467500;
-		call ebx;
+		call interpretPopLong_;
 		cmp dx, 0xC001;
 		jnz end;
 		and eax, 0xff;
@@ -730,12 +681,10 @@ static void __declspec(naked) fSetHitChanceMax() {
 		push edx;
 		push edi;
 		mov ecx, eax;
-		mov ebx, 0x4674F0;
-		call ebx;
+		call interpretPopShort_;
 		mov edx, eax;
 		mov eax, ecx;
-		mov ebx, 0x467500;
-		call ebx;
+		call interpretPopLong_;
 		cmp dx, 0xC001;
 		jnz end;
 		and eax, 0xff;
@@ -761,25 +710,25 @@ static void __declspec(naked) SetCritterHitChance() {
 		push edi;
 		mov edi, eax;
 		xor ebx, ebx
-		call GetArgType;
+		call interpretPopShort_;
 		cmp ax, 0xc001;
 		cmovne ebx, edi;
 		mov eax, edi;
-		call GetArg;
+		call interpretPopLong_;
 		mov ecx, eax;
 		mov eax, edi;
-		call GetArgType;
+		call interpretPopShort_;
 		cmp ax, 0xc001;
 		cmovne ebx, edi;
 		mov eax, edi;
-		call GetArg;
+		call interpretPopLong_;
 		mov edx, eax;
 		mov eax, edi;
-		call GetArgType;
+		call interpretPopShort_;
 		cmp ax, 0xc001;
 		cmovne ebx, edi;
 		mov eax, edi;
-		call GetArg;
+		call interpretPopLong_;
 		test ebx, ebx;
 		jnz end;
 		push ecx;
@@ -802,18 +751,18 @@ static void __declspec(naked) SetBaseHitChance() {
 		push edi;
 		mov edi, eax;
 		xor ebx, ebx
-		call GetArgType;
+		call interpretPopShort_;
 		cmp ax, 0xc001;
 		cmovne ebx, edi;
 		mov eax, edi;
-		call GetArg;
+		call interpretPopLong_;
 		mov ecx, eax;
 		mov eax, edi;
-		call GetArgType;
+		call interpretPopShort_;
 		cmp ax, 0xc001;
 		cmovne ebx, edi;
 		mov eax, edi;
-		call GetArg;
+		call interpretPopLong_;
 		test ebx, ebx;
 		jnz end;
 		push ecx;
@@ -836,25 +785,25 @@ static void __declspec(naked) SetCritterPickpocket() {
 		push edi;
 		mov edi, eax;
 		xor ebx, ebx
-		call GetArgType;
+		call interpretPopShort_;
 		cmp ax, 0xc001;
 		cmovne ebx, edi;
 		mov eax, edi;
-		call GetArg;
+		call interpretPopLong_;
 		mov ecx, eax;
 		mov eax, edi;
-		call GetArgType;
+		call interpretPopShort_;
 		cmp ax, 0xc001;
 		cmovne ebx, edi;
 		mov eax, edi;
-		call GetArg;
+		call interpretPopLong_;
 		mov edx, eax;
 		mov eax, edi;
-		call GetArgType;
+		call interpretPopShort_;
 		cmp ax, 0xc001;
 		cmovne ebx, edi;
 		mov eax, edi;
-		call GetArg;
+		call interpretPopLong_;
 		test ebx, ebx;
 		jnz end;
 		push ecx;
@@ -877,18 +826,18 @@ static void __declspec(naked) SetBasePickpocket() {
 		push edi;
 		mov edi, eax;
 		xor ebx, ebx
-		call GetArgType;
+		call interpretPopShort_;
 		cmp ax, 0xc001;
 		cmovne ebx, edi;
 		mov eax, edi;
-		call GetArg;
+		call interpretPopLong_;
 		mov ecx, eax;
 		mov eax, edi;
-		call GetArgType;
+		call interpretPopShort_;
 		cmp ax, 0xc001;
 		cmovne ebx, edi;
 		mov eax, edi;
-		call GetArg;
+		call interpretPopLong_;
 		test ebx, ebx;
 		jnz end;
 		push ecx;
@@ -911,18 +860,18 @@ static void __declspec(naked) SetCritterSkillMod() {
 		push edi;
 		mov edi, eax;
 		xor ebx, ebx
-		call GetArgType;
+		call interpretPopShort_;
 		cmp ax, 0xc001;
 		cmovne ebx, edi;
 		mov eax, edi;
-		call GetArg;
+		call interpretPopLong_;
 		mov ecx, eax;
 		mov eax, edi;
-		call GetArgType;
+		call interpretPopShort_;
 		cmp ax, 0xc001;
 		cmovne ebx, edi;
 		mov eax, edi;
-		call GetArg;
+		call interpretPopLong_;
 		test ebx, ebx;
 		jnz end;
 		push ecx;
@@ -944,11 +893,11 @@ static void __declspec(naked) SetBaseSkillMod() {
 		push edi;
 		mov edi, eax;
 		xor ebx, ebx
-		call GetArgType;
+		call interpretPopShort_;
 		cmp ax, 0xc001;
 		cmovne ebx, edi;
 		mov eax, edi;
-		call GetArg;
+		call interpretPopLong_;
 		mov ecx, eax;
 		test ebx, ebx;
 		jnz end;
@@ -970,12 +919,10 @@ static void __declspec(naked) fSetSkillMax() {
 		push edx;
 		push edi;
 		mov ecx, eax;
-		mov ebx, 0x4674F0;
-		call ebx;
+		call interpretPopShort_;
 		mov edx, eax;
 		mov eax, ecx;
-		mov ebx, 0x467500;
-		call ebx;
+		call interpretPopLong_;
 		cmp dx, 0xC001;
 		jnz end;
 		and eax, 0xffff;
@@ -1000,20 +947,16 @@ static void __declspec(naked) SetStatMax() {
 		push edi;
 		push esi;
 		mov ecx, eax;
-		mov ebx, 0x4674F0;
-		call ebx;
+		call interpretPopShort_;
 		mov esi, eax;
 		mov eax, ecx;
-		mov ebx, 0x467500;
-		call ebx;
+		call interpretPopLong_;
 		mov edi, eax;
 		mov eax, ecx;
-		mov ebx, 0x4674F0;
-		call ebx;
+		call interpretPopShort_;
 		mov edx, eax;
 		mov eax, ecx;
-		mov ebx, 0x467500;
-		call ebx;
+		call interpretPopLong_;
 		cmp dx, 0xC001;
 		jnz end;
 		cmp si, 0xC001;
@@ -1041,20 +984,16 @@ static void __declspec(naked) SetStatMin() {
 		push edi;
 		push esi;
 		mov ecx, eax;
-		mov ebx, 0x4674F0;
-		call ebx;
+		call interpretPopShort_;
 		mov esi, eax;
 		mov eax, ecx;
-		mov ebx, 0x467500;
-		call ebx;
+		call interpretPopLong_;
 		mov edi, eax;
 		mov eax, ecx;
-		mov ebx, 0x4674F0;
-		call ebx;
+		call interpretPopShort_;
 		mov edx, eax;
 		mov eax, ecx;
-		mov ebx, 0x467500;
-		call ebx;
+		call interpretPopLong_;
 		cmp dx, 0xC001;
 		jnz end;
 		cmp si, 0xC001;
@@ -1082,20 +1021,16 @@ static void __declspec(naked) fSetPCStatMax() {
 		push edi;
 		push esi;
 		mov ecx, eax;
-		mov ebx, 0x4674F0;
-		call ebx;
+		call interpretPopShort_;
 		mov esi, eax;
 		mov eax, ecx;
-		mov ebx, 0x467500;
-		call ebx;
+		call interpretPopLong_;
 		mov edi, eax;
 		mov eax, ecx;
-		mov ebx, 0x4674F0;
-		call ebx;
+		call interpretPopShort_;
 		mov edx, eax;
 		mov eax, ecx;
-		mov ebx, 0x467500;
-		call ebx;
+		call interpretPopLong_;
 		cmp dx, 0xC001;
 		jnz end;
 		cmp si, 0xC001;
@@ -1120,20 +1055,16 @@ static void __declspec(naked) fSetPCStatMin() {
 		push edi;
 		push esi;
 		mov ecx, eax;
-		mov ebx, 0x4674F0;
-		call ebx;
+		call interpretPopShort_;
 		mov esi, eax;
 		mov eax, ecx;
-		mov ebx, 0x467500;
-		call ebx;
+		call interpretPopLong_;
 		mov edi, eax;
 		mov eax, ecx;
-		mov ebx, 0x4674F0;
-		call ebx;
+		call interpretPopShort_;
 		mov edx, eax;
 		mov eax, ecx;
-		mov ebx, 0x467500;
-		call ebx;
+		call interpretPopLong_;
 		cmp dx, 0xC001;
 		jnz end;
 		cmp si, 0xC001;
@@ -1158,20 +1089,16 @@ static void __declspec(naked) fSetNPCStatMax() {
 		push edi;
 		push esi;
 		mov ecx, eax;
-		mov ebx, 0x4674F0;
-		call ebx;
+		call interpretPopShort_;
 		mov esi, eax;
 		mov eax, ecx;
-		mov ebx, 0x467500;
-		call ebx;
+		call interpretPopLong_;
 		mov edi, eax;
 		mov eax, ecx;
-		mov ebx, 0x4674F0;
-		call ebx;
+		call interpretPopShort_;
 		mov edx, eax;
 		mov eax, ecx;
-		mov ebx, 0x467500;
-		call ebx;
+		call interpretPopLong_;
 		cmp dx, 0xC001;
 		jnz end;
 		cmp si, 0xC001;
@@ -1196,20 +1123,16 @@ static void __declspec(naked) fSetNPCStatMin() {
 		push edi;
 		push esi;
 		mov ecx, eax;
-		mov ebx, 0x4674F0;
-		call ebx;
+		call interpretPopShort_;
 		mov esi, eax;
 		mov eax, ecx;
-		mov ebx, 0x467500;
-		call ebx;
+		call interpretPopLong_;
 		mov edi, eax;
 		mov eax, ecx;
-		mov ebx, 0x4674F0;
-		call ebx;
+		call interpretPopShort_;
 		mov edx, eax;
 		mov eax, ecx;
-		mov ebx, 0x467500;
-		call ebx;
+		call interpretPopLong_;
 		cmp dx, 0xC001;
 		jnz end;
 		cmp si, 0xC001;
@@ -1256,12 +1179,10 @@ static void __declspec(naked) SetXpMod() {
 		push edx;
 		push edi;
 		mov ecx, eax;
-		mov ebx, 0x4674F0;
-		call ebx;
+		call interpretPopShort_;
 		mov edx, eax;
 		mov eax, ecx;
-		mov ebx, 0x467500;
-		call ebx;
+		call interpretPopLong_;
 		cmp dx, 0xC001;
 		jnz end;
 		and eax, 0xffff;
@@ -1279,8 +1200,7 @@ static int PerkLevelMod;
 static void __declspec(naked) SetPerkLevelMod3() {
 	__asm {
 		push ebx;
-		mov ebx, 0x004AF8FC;
-		call ebx;
+		call stat_pc_get_;
 		pop ebx;
 		add eax, PerkLevelMod;
 		cmp eax, 0;
@@ -1302,12 +1222,10 @@ static void __declspec(naked) SetPerkLevelMod() {
 		push edx;
 		push edi;
 		mov ecx, eax;
-		mov ebx, 0x4674F0;
-		call ebx;
+		call interpretPopShort_;
 		mov edx, eax;
 		mov eax, ecx;
-		mov ebx, 0x467500;
-		call ebx;
+		call interpretPopLong_;
 		cmp dx, 0xC001;
 		jnz end;
 		push eax;
