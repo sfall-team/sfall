@@ -4,7 +4,7 @@
 #include "Define.h"
 #include "FalloutEngine.h"
 
-//DWORD WeightOnBody = 0;
+DWORD WeightOnBody = 0;
 
 static void __declspec(naked) SharpShooterFix() {
 	__asm {
@@ -21,7 +21,6 @@ end:
 		retn
 	}
 }
-
 
 static void __declspec(naked) pipboy_hack() {
 	__asm {
@@ -181,7 +180,8 @@ itsJet:
 		mov  eax, 0x47A3FB
 		jmp  eax
 	}
-}*/
+}
+*/
 
 static void __declspec(naked) item_d_load_hack() {
 	__asm {
@@ -293,7 +293,7 @@ end:
 static void __declspec(naked) gdProcessUpdate_hack() {
 	__asm {
 		add  eax, esi
-		cmp  eax, dword ptr ds:[0x58ECCC]         // _optionRect.offy
+		cmp  eax, dword ptr ds:[_optionRect + 0xC]         // _optionRect.offy
 		jge  skip
 		add  eax, 2
 		mov  esi, 0x44702D
@@ -303,8 +303,6 @@ skip:
 		jmp  esi
 	}
 }
-
-
 
 static void __declspec(naked) invenWieldFunc_item_get_type_hook() {
 	__asm {
@@ -341,9 +339,7 @@ noWeapon:
 	}
 }
 
-
-/*
-static void __declspec(naked) loot_container_hook() {
+static void __declspec(naked) loot_container_hack() {
 	__asm {
 		mov  eax, [esp+0x114+0x4]
 		test eax, eax
@@ -369,10 +365,8 @@ noArmor:
 		retn
 	}
 }
-*/
 
-/*
-static void __declspec(naked) barter_inventory_hook() {
+static void __declspec(naked) barter_inventory_hack() {
 	__asm {
 		mov  eax, [esp+0x20+0x4]
 		test eax, eax
@@ -396,9 +390,6 @@ end:
 		retn
 	}
 }
-*/
-
-/*
 
 static void __declspec(naked) barter_attempt_transaction_hook() {
 	__asm {
@@ -428,7 +419,6 @@ end:
 		retn
 	}
 }
-*/
 
 static void __declspec(naked) inven_pickup_hack() {
 	__asm {
@@ -442,9 +432,8 @@ static void __declspec(naked) inven_pickup_hack() {
 	}
 }
 
-
 static DWORD inven_pickup_loop=-1;
-static const DWORD inven_pickup_hook1_Loop = 0x471145;
+static const DWORD inven_pickup_hack2_Loop = 0x471145;
 static void __declspec(naked) inven_pickup_hack2() {
 	__asm {
 		cmp  inven_pickup_loop, -1
@@ -462,7 +451,7 @@ nextLoop:
 		add  edx, 35                              // y_start
 		mov  ecx, edx
 		add  ecx, 48                              // y_end
-		jmp  inven_pickup_hook1_Loop
+		jmp  inven_pickup_hack2_Loop
 inLoop:
 		test eax, eax
 		mov  eax, inven_pickup_loop
@@ -496,7 +485,6 @@ inRange:
 	}
 }
 
-/*
 static void __declspec(naked) drop_ammo_into_weapon_hook() {
 	__asm {
 		dec  esi
@@ -536,7 +524,6 @@ end:
 		retn
 	}
 }
-*/
 
 static void __declspec(naked) PipStatus_AddHotLines_hook() {
 	__asm {
@@ -583,7 +570,7 @@ static void __declspec(naked) action_melee_hack() {
 		cmp  ebx, OBJ_TYPE_CRITTER                // check if object FID type flag is set to critter
 		jne  end                                  // if object not a critter leave jump condition flags
 		// set to skip dodge animation
-		test byte ptr [eax+0x44], 3               // (original code) DAM_KNOCKED_OUT or DAM_KNOCKED_DOWN
+		test byte ptr [eax+0x44], 0x3             // (original code) DAM_KNOCKED_OUT or DAM_KNOCKED_DOWN
 		jnz  end
 		mov  edx, 0x4113FE
 end:
@@ -600,14 +587,13 @@ static void __declspec(naked) action_ranged_hack() {
 		cmp  ebx, OBJ_TYPE_CRITTER                // check if object FID type flag is set to critter
 		jne  end                                  // if object not a critter leave jump condition flags
 		// set to skip dodge animation
-		test byte ptr [eax+0x44], 3               // (original code) DAM_KNOCKED_OUT or DAM_KNOCKED_DOWN
+		test byte ptr [eax+0x44], 0x3             // (original code) DAM_KNOCKED_OUT or DAM_KNOCKED_DOWN
 		jnz  end
 		mov  edx, 0x411BD2
 end:
 		jmp  edx
 	}
 }
-
 
 static void __declspec(naked) set_new_results_hack() {
 	__asm {
@@ -695,9 +681,9 @@ found:
 	}
 }
 
-static void __declspec(naked) item_m_turn_off_hack() {
+static void __declspec(naked) item_m_turn_off_hook() {
 	__asm {
-		and  byte ptr [eax+0x25], 0xDF            // Unset flag of activated items
+		and  byte ptr [eax+0x25], 0xDF            // Rest flag of used items
 		jmp  queue_remove_this_
 	}
 }
@@ -705,15 +691,17 @@ static void __declspec(naked) item_m_turn_off_hack() {
 
 void BugsInit()
 {
-	dlog("Applying sharpshooter patch.", DL_INIT);
-	// http://www.nma-fallout.com/showthread.php?178390-FO2-Engine-Tweaks&p=4050162&viewfull=1#post4050162
-	// by Slider2k
-	HookCall(0x4244AB, &SharpShooterFix); // hooks stat_level_() call in detemine_to_hit_func_()
-	// // removes this line by making unconditional jump:
-	// if ( who == obj_dude )
-	//     dist -= 2 * perk_level_(obj_dude, PERK_sharpshooter);
-	SafeWrite8(0x424527, 0xEB);  // in detemine_to_hit_func_()
-	dlogr(" Done", DL_INIT);
+	//if (GetPrivateProfileIntA("Misc", "SharpshooterFix", 1, ini)) {
+		dlog("Applying sharpshooter patch.", DL_INIT);
+		// http://www.nma-fallout.com/showthread.php?178390-FO2-Engine-Tweaks&p=4050162&viewfull=1#post4050162
+		// by Slider2k
+		HookCall(0x4244AB, &SharpShooterFix); // hooks stat_level_() call in detemine_to_hit_func_()
+		// // removes this line by making unconditional jump:
+		// if ( who == obj_dude )
+		//     dist -= 2 * perk_level_(obj_dude, PERK_sharpshooter);
+		SafeWrite8(0x424527, 0xEB);  // in detemine_to_hit_func_()
+		dlogr(" Done", DL_INIT);
+	//}
 
 	// Fixes for clickability issue in Pip-Boy and exploit that allows to rest in places where you shouldn't be able to rest
 	dlog("Applying fix for Pip-Boy rest exploit.", DL_INIT);
@@ -783,12 +771,16 @@ void BugsInit()
 	SafeWrite8(0x4AC377, 0x7F);                // jg
 	dlogr(" Done.", DL_INIT);
 
-	// Fix for not counting in weight of equipped items
-	/*MakeCall(0x473B4E, &loot_container_hook, false);
-	MakeCall(0x47588A, &barter_inventory_hook, false);
-	HookCall(0x474CB8, &barter_attempt_transaction_hook);
-	HookCall(0x4742AD, &move_inventory_hook);
-	HookCall(0x4771B5, &item_add_mult_hook);*/
+	// Fix for not counting in the weight of equipped items on NPC when stealing or bartering
+	if (GetPrivateProfileIntA("Misc", "NPCWeightFix", 1, ini)) {
+		dlog("Applying fix for not counting in weight of equipped items on NPC.", DL_INIT);
+		MakeCall(0x473B4E, &loot_container_hack, false);
+		MakeCall(0x47588A, &barter_inventory_hack, false);
+		HookCall(0x474CB8, &barter_attempt_transaction_hook);
+		HookCall(0x4742AD, &move_inventory_hook);
+		HookCall(0x4771B5, &item_add_mult_hook);
+		dlogr(" Done.", DL_INIT);
+	}
 
 	// Corrects "Weight of items" text element width to be 64 (and not 80), which matches container element width
 	SafeWrite8(0x475541, 64);
@@ -802,24 +794,29 @@ void BugsInit()
 		// Fix for error in player's inventory, related to IFACE_BAR_MODE=1 in f2_res.ini, and
 		// also for reverse order error
 		MakeCall(0x47114A, &inven_pickup_hack2, true);
+		// Fix for using only one box of ammo when the weapon is before the ammo
+		HookCall(0x476598, &drop_ammo_into_weapon_hook);
 		dlogr(" Done", DL_INIT);
 	}
 
-	// Fix for using only one pack of ammo, when the weapon is before the ammo
-	//HookCall(0x476598, &drop_ammo_into_weapon_hook);
+	//if (GetPrivateProfileIntA("Misc", "BlackSkilldexFix", 1, ini)) {
+		dlog("Applying black skilldex patch.", DL_INIT);
+		HookCall(0x497D0F, &PipStatus_AddHotLines_hook);
+		dlogr(" Done", DL_INIT);
+	//}
 
-	dlog("Applying black skilldex patch.", DL_INIT);
-	HookCall(0x497D0F, &PipStatus_AddHotLines_hook);
-	dlogr(" Done", DL_INIT);
+	//if (GetPrivateProfileIntA("Misc", "FixWithdrawalPerkDescCrash", 1, ini)) {
+		dlog("Applying withdrawal perk description crash fix.", DL_INIT);
+		HookCall(0x47A501, &perform_withdrawal_start_display_print_hook);
+		dlogr(" Done", DL_INIT);
+	//}
 
-	dlog("Applying withdrawal perk description crash fix.", DL_INIT);
-	HookCall(0x47A501, &perform_withdrawal_start_display_print_hook);
-	dlogr(" Done", DL_INIT);
-
-	dlog("Applying Jet Antidote fix.", DL_INIT);
-	// the original jet antidote fix
-	MakeCall(0x47A013, &item_d_take_drug_hack1, true);
-	dlogr(" Done", DL_INIT);
+	//if (GetPrivateProfileIntA("Misc", "JetAntidoteFix", 1, ini)) {
+		dlog("Applying Jet Antidote fix.", DL_INIT);
+		// the original jet antidote fix
+		MakeCall(0x47A013, &item_d_take_drug_hack1, true);
+		dlogr(" Done", DL_INIT);
+	//}
 
 	if (GetPrivateProfileIntA("Misc", "NPCDrugAddictionFix", 1, ini)) {
 		dlog("Applying NPC's drug addiction fix.", DL_INIT);
@@ -829,9 +826,11 @@ void BugsInit()
 		dlogr(" Done.", DL_INIT);
 	}
 
-	dlog("Applying shiv patch.", DL_INIT);
-	SafeWrite8(0x477B2B, 0xEB);
-	dlogr(" Done", DL_INIT);
+	//if (GetPrivateProfileInt("Misc", "ShivPatch", 1, ini)) {
+		dlog("Applying shiv patch.", DL_INIT);
+		SafeWrite8(0x477B2B, 0xEB);
+		dlogr(" Done", DL_INIT);
+	//}
 
 	//if (GetPrivateProfileIntA("Misc", "WieldObjCritterFix", 1, ini)) {
 		dlog("Applying wield_obj_critter fix.", DL_INIT);
@@ -840,10 +839,12 @@ void BugsInit()
 		dlogr(" Done", DL_INIT);
 	//}
 
-	dlog("Applying Dodgy Door Fix.", DL_INIT);
-	MakeCall(0x4113D6, &action_melee_hack, true);
-	MakeCall(0x411BCC, &action_ranged_hack, true);
-	dlogr(" Done", DL_INIT);
+	//if (GetPrivateProfileIntA("Misc", "DodgyDoorsFix", 1, ini)) {
+		dlog("Applying Dodgy Door Fix.", DL_INIT);
+		MakeCall(0x4113D6, &action_melee_hack, true);
+		MakeCall(0x411BCC, &action_ranged_hack, true);
+		dlogr(" Done", DL_INIT);
+	//}
 
 	// Fix for "NPC turns into a container" bug
 	if (GetPrivateProfileIntA("Misc", "NPCTurnsIntoContainerFix", 1, ini)) {
@@ -861,7 +862,7 @@ void BugsInit()
 		SafeWrite8(0x478115, 0xBA);
 		SafeWrite8(0x478138, 0xBA);
 		MakeCall(0x474D22, &barter_attempt_transaction_hack, true);
-		HookCall(0x4798B1, &item_m_turn_off_hack);
+		HookCall(0x4798B1, &item_m_turn_off_hook);
 		dlogr(" Done", DL_INIT);
 	}
 }

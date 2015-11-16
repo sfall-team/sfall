@@ -18,8 +18,9 @@
 
 #include "main.h"
 
-#include "Version.h"
 #include <stdio.h>
+#include "FalloutEngine.h"
+#include "version.h"
 
 static DWORD InCredits=0;
 static DWORD CreditsLine=0;
@@ -77,8 +78,7 @@ static void _stdcall ShowCreditsHook() {
 	CreditsLine=0;
 	__asm {
 		mov eax, creditsFile;
-		mov ebx, 0x42C860;
-		call ebx;
+		call credits_;
 	}
 	InCredits=0;
 }
@@ -89,22 +89,21 @@ static DWORD _stdcall CreditsNextLine(char* buf, DWORD* font, DWORD* colour) {
 	if(strlen(line)) {
 		if(line[0]=='#') {
 			line++;
-			*font=*(DWORD*)0x56D74C;
+			*font=*(DWORD*)_name_font;
 			*colour=*(BYTE*)0x6A7F01;
 		} else if(line[0]=='@') {
 			line++;
-			*font=*(DWORD*)0x56D748;
-			*colour=*(DWORD*)0x56D750;
+			*font=*(DWORD*)_title_font;
+			*colour=*(DWORD*)_title_color;
 		} else {
-			*font=*(DWORD*)0x56D74C;
-			*colour=*(DWORD*)0x56D744;
+			*font=*(DWORD*)_name_font;
+			*colour=*(DWORD*)_name_color;
 		}
 	}
 	strcpy_s(buf, 256, line);
 	return 1;
 }
 
-static const DWORD _credits_get_next_line=0x42CE6C;
 static void __declspec(naked) CreditsNextLineHook() {
 	__asm {
 		pushad;
@@ -113,14 +112,13 @@ static void __declspec(naked) CreditsNextLineHook() {
 		push eax;
 		call CreditsNextLine;
 		test eax, eax;
-		jz fail;
 		popad;
+		jz fail;
 		xor eax, eax;
 		inc eax;
 		retn;
 fail:
-		popad;
-		jmp _credits_get_next_line;
+		jmp credits_get_next_line_;
 	}
 }
 
