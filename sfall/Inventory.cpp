@@ -37,14 +37,13 @@ struct sMessage {
 	char* audio;
 	char* message;
 };
-static const DWORD message_search=0x484C30;
 static const char* MsgSearch(int msgno, DWORD file) {
 	if(!file) return 0;
 	sMessage msg = { msgno, 0, 0, 0 };
 	__asm {
 		lea edx, msg;
 		mov eax, file;
-		call message_search;
+		call message_search_;
 	}
 	return msg.message;
 }
@@ -100,7 +99,7 @@ void InventoryKeyPressedHook(DWORD dxKey, bool pressed, DWORD vKey) {
 	DWORD result;
 	__asm {
 		mov eax, critter;
-		call item_total_weight;
+		call item_total_weight_;
 		mov result, eax;
 	}
 
@@ -373,13 +372,13 @@ static __declspec(naked) void DisplayStatsHook() {
 		call CritterCheck;
 		jz nolimit;
 		push eax;
-		mov eax, ds:[0x59E86C];
+		mov eax, ds:[_stack];
 		push ecx;
 		push InvenFmt1;
 		push offset InvenFmt;
 		call strcpy_wrapper;
 		pop ecx;
-		mov eax, ds:[0x59E86C];
+		mov eax, ds:[_stack];
 		call item_total_size;
 		push eax;
 		push ecx;
@@ -397,7 +396,7 @@ nolimit:
 		push eax;
 		push eax;
 end:
-		mov eax, ds:[0x59E86C];
+		mov eax, ds:[_stack];
 		mov edx, 0xc;
 		jmp DisplayStatsEnd;
 	}
@@ -406,11 +405,11 @@ end:
 static char SizeMsgBuf[32];
 static const char* _stdcall FmtSizeMsg(int size) {
 	if(size==1) {
-		const char* tmp=MsgSearch(543, 0x6647FC);
+		const char* tmp=MsgSearch(543, _proto_main_msg_file);
 		if(!tmp) strcpy(SizeMsgBuf, "It occupies 1 unit.");
 		else sprintf(SizeMsgBuf, tmp, size);
 	} else {
-		const char* tmp=MsgSearch(542, 0x6647FC);
+		const char* tmp=MsgSearch(542, _proto_main_msg_file);
 		if(!tmp) sprintf(SizeMsgBuf, "It occupies %d units.", size);
 		else sprintf(SizeMsgBuf, tmp, size);
 	}
@@ -514,7 +513,7 @@ static void __declspec(naked) add_check_for_item_ammo_cost() {
 		pushad
 		push    1 // hook type
 		call    AmmoCostHookWrapper
-		add		esp, 4
+		add     esp, 4
 		popad
 		mov     eax, [esp]
 		cmp     eax, ebx
@@ -544,7 +543,7 @@ static void __declspec(naked) divide_burst_rounds_by_ammo_cost() {
 		pushad
 		push    2
 		call    AmmoCostHookWrapper
-		add		esp, 4
+		add     esp, 4
 		popad
 		mov     edx, 0
 		mov     eax, ebp // rounds in burst
@@ -600,11 +599,10 @@ static void __declspec(naked) inven_action_cursor_hack() {
 	}
 }
 
-static void __declspec(naked) item_add_mult_hack() {
+static void __declspec(naked) item_add_mult_hook() {
 	__asm {
 		call    SetDefaultAmmo
-		call    item_add_force_
-		retn
+		jmp     item_add_force_
 	}
 }
 
@@ -655,10 +653,19 @@ void InventoryInit() {
 
 	ReloadWeaponKey = GetPrivateProfileInt("Input", "ReloadWeaponKey", 0, ini);
 
-	if(GetPrivateProfileIntA("Misc", "StackEmptyWeapons", 0, ini)) {
+	if (GetPrivateProfileIntA("Misc", "StackEmptyWeapons", 0, ini)) {
 		MakeCall(0x4736C6, &inven_action_cursor_hack, true);
-		HookCall(0x4772AA, &item_add_mult_hack);
+		HookCall(0x4772AA, &item_add_mult_hook);
 	}
+
+//Do not call the 'Move Items' window when using drap and drop to reload weapons in the inventory
+	int ReloadReserve = GetPrivateProfileIntA("Misc", "ReloadReserve", 1, ini);
+	if (ReloadReserve >= 0) {
+		SafeWrite32(0x47655F, ReloadReserve);     // mov  eax, ReloadReserve
+		SafeWrite32(0x476563, 0x097EC139);        // cmp  ecx, eax; jle  0x476570
+		SafeWrite16(0x476567, 0xC129);            // sub  ecx, eax
+		SafeWrite8(0x476569, 0x91);               // xchg ecx, eax
+	};
 }
 void InventoryReset() {
 	invenapcost=GetPrivateProfileInt("Misc", "InventoryApCost", 4, ini);
