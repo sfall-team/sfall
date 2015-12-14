@@ -277,7 +277,7 @@ ox816c - int  key_pressed(int dxScancode)
 0x8214 - void set_hero_race(int style)
 0x8215 - void set_hero_style(int style)
 
-0x8216 - void set_critter_burst_disable(int critter, int disable)
+0x8216 - void set_critter_burst_disable(objptr critter, int disable)
 
 0x8217 - int  get_weapon_ammo_pid(objptr weapon)
 0x8218 - void set_weapon_ammo_pid(objptr weapon, int pid)
