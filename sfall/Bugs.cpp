@@ -710,21 +710,21 @@ void BugsInit()
 	dlogr(" Done.", DL_INIT);
 
 	// Fix for "Too Many Items" bug
-	if (GetPrivateProfileIntA("Misc", "TooManyItemsBugFix", 1, ini)) {
+	//if (GetPrivateProfileIntA("Misc", "TooManyItemsBugFix", 1, ini)) {
 		dlog("Applying preventive patch for \"Too Many Items\" bug.", DL_INIT);
 		HookCall(0x4A596A, &scr_write_ScriptNode_hook);
 		HookCall(0x4A59C1, &scr_write_ScriptNode_hook);
 		dlogr(" Done.", DL_INIT);
-	}
+	//}
 
 	// Fixes for being able to charge the car with using cells on scenary/critters
 	// and cells getting consumed even when the car is already fully charged
-	if (GetPrivateProfileIntA("Misc", "CarChargingFix", 1, ini)) {
+	//if (GetPrivateProfileIntA("Misc", "CarChargingFix", 1, ini)) {
 		dlog("Applying car charging issues fix.", DL_INIT);
 		MakeCall(0x49C36D, &protinst_default_use_item_hack, true);
 		MakeCall(0x49BE70, &obj_use_power_on_car_hack, false);
 		dlogr(" Done.", DL_INIT);
-	}
+	//}
 
 	// makes jet addiction eternal.. why?
 	//MakeCall(0x47A3A4, &item_wd_process_hook, false);
@@ -742,12 +742,12 @@ void BugsInit()
 	// Evil bug! If party member has the same armor type in inventory as currently equipped, then
 	// on level up he loses Armor Class equal to the one received from this armor.
 	// The same happens if you just order NPC to remove the armor through dialogue.
-	if (GetPrivateProfileIntA("Misc", "ArmorCorruptsNPCStatsFix", 1, ini)) {
+	//if (GetPrivateProfileIntA("Misc", "ArmorCorruptsNPCStatsFix", 1, ini)) {
 		dlog("Applying fix for armor reducing NPC original stats when removed.", DL_INIT);
 		HookCall(0x495F3B, &partyMemberCopyLevelInfo_stat_level_hook);
 		HookCall(0x45419B, &correctFidForRemovedItem_adjust_ac_hook);
 		dlogr(" Done.", DL_INIT);
-	}
+	//}
 
 	// Fix of invalid stats when party member gains a level while being on drugs
 	dlog("Applying fix for addicted party member level up bug.", DL_INIT);
@@ -772,7 +772,7 @@ void BugsInit()
 	dlogr(" Done.", DL_INIT);
 
 	// Fix for not counting in the weight of equipped items on NPC when stealing or bartering
-	if (GetPrivateProfileIntA("Misc", "NPCWeightFix", 1, ini)) {
+	//if (GetPrivateProfileIntA("Misc", "NPCWeightFix", 1, ini)) {
 		dlog("Applying fix for not counting in weight of equipped items on NPC.", DL_INIT);
 		MakeCall(0x473B4E, &loot_container_hack, false);
 		MakeCall(0x47588A, &barter_inventory_hack, false);
@@ -780,13 +780,13 @@ void BugsInit()
 		HookCall(0x4742AD, &move_inventory_hook);
 		HookCall(0x4771B5, &item_add_mult_hook);
 		dlogr(" Done.", DL_INIT);
-	}
+	//}
 
 	// Corrects "Weight of items" text element width to be 64 (and not 80), which matches container element width
 	SafeWrite8(0x475541, 64);
 	SafeWrite8(0x475789, 64);
 
-	if (GetPrivateProfileIntA("Misc", "InventoryDragIssuesFix", 1, ini)) {
+	//if (GetPrivateProfileIntA("Misc", "InventoryDragIssuesFix", 1, ini)) {
 		dlog("Applying inventory reverse order issues fix.", DL_INIT);
 		// Fix for minor visual glitch when picking up solo item from the top of inventory
 		// and there is multiple item stack at the bottom of inventory
@@ -794,10 +794,10 @@ void BugsInit()
 		// Fix for error in player's inventory, related to IFACE_BAR_MODE=1 in f2_res.ini, and
 		// also for reverse order error
 		MakeCall(0x47114A, &inven_pickup_hack2, true);
-		// Fix for using only one box of ammo when the weapon is before the ammo
+		// Fix for using only one box of ammo when a weapon is above the ammo in the inventory list
 		HookCall(0x476598, &drop_ammo_into_weapon_hook);
 		dlogr(" Done", DL_INIT);
-	}
+	//}
 
 	//if (GetPrivateProfileIntA("Misc", "BlackSkilldexFix", 1, ini)) {
 		dlog("Applying black skilldex patch.", DL_INIT);
@@ -818,13 +818,13 @@ void BugsInit()
 		dlogr(" Done", DL_INIT);
 	//}
 
-	if (GetPrivateProfileIntA("Misc", "NPCDrugAddictionFix", 1, ini)) {
+	//if (GetPrivateProfileIntA("Misc", "NPCDrugAddictionFix", 1, ini)) {
 		dlog("Applying NPC's drug addiction fix.", DL_INIT);
 		// proper checks for NPC's addiction instead of always using global vars
 		MakeCall(0x47A644, &item_d_check_addict_hack, true);
 		MakeCall(0x479FC5, &item_d_take_drug_hack, true);
 		dlogr(" Done.", DL_INIT);
-	}
+	//}
 
 	//if (GetPrivateProfileInt("Misc", "ShivPatch", 1, ini)) {
 		dlog("Applying shiv patch.", DL_INIT);
@@ -847,14 +847,14 @@ void BugsInit()
 	//}
 
 	// Fix for "NPC turns into a container" bug
-	if (GetPrivateProfileIntA("Misc", "NPCTurnsIntoContainerFix", 1, ini)) {
+	//if (GetPrivateProfileIntA("Misc", "NPCTurnsIntoContainerFix", 1, ini)) {
 		dlog("Applying fix for \"NPC turns into a container\" bug.", DL_INIT);
 		MakeCall(0x424F8E, &set_new_results_hack, false);
 		MakeCall(0x42E46E, &critter_wake_clear_hack, true);
 		MakeCall(0x488EF3, &obj_load_func_hack, true);
 		HookCall(0x4949B2, &partyMemberPrepLoadInstance_hack);
 		dlogr(" Done", DL_INIT);
-	}
+	//}
 
 	// Fix for unable to sell used geiger counters or stealth boys
 	if (GetPrivateProfileIntA("Misc", "CanSellUsedGeiger", 1, ini)) {
