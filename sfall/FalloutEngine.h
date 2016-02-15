@@ -38,6 +38,7 @@
 #define _btncnt                     0x43EA1C
 #define _CarCurrArea                0x672E68
 #define _cmap                       0x51DF34
+#define _colorTable                 0x6A38D0
 #define _combat_free_move           0x56D39C
 #define _combat_list                0x56D390
 #define _combat_state               0x510944
@@ -62,11 +63,14 @@
 #define _folder_card_fid            0x5705B0
 #define _folder_card_title          0x5705B8
 #define _folder_card_title2         0x5705BC
+#define _frame_time                 0x5709C4
 #define _free_perk                  0x570A29
 #define _game_global_vars           0x5186C0
 #define _game_user_wants_to_quit    0x5186CC
 #define _gdBarterMod                0x51873C
 #define _gIsSteal                   0x51D430
+#define _glblmode                   0x5709D0
+#define _gmouse_current_cursor      0x518C0C
 #define _gmovie_played_list         0x596C78
 #define _GreenColor                 0x6A3CB0
 #define _gsound_initialized         0x518E30
@@ -223,12 +227,14 @@ extern const DWORD combat_input_;
 extern const DWORD combat_should_end_;
 extern const DWORD combat_turn_;
 extern const DWORD compute_damage_;
+extern const DWORD config_set_value_;
 extern const DWORD correctFidForRemovedItem_; // (int critter@<eax>, int oldArmor@<edx>, int removeSlotsFlags@<ebx>)
 extern const DWORD credits_;
 extern const DWORD credits_get_next_line_;
 extern const DWORD critter_body_type_;
 extern const DWORD critter_can_obj_dude_rest_;
 extern const DWORD critter_compute_ap_from_distance_;
+extern const DWORD critter_get_hits_;
 extern const DWORD critter_is_dead_; // eax - critter
 extern const DWORD critter_kill_;
 extern const DWORD critter_kill_count_type_;
@@ -254,6 +260,7 @@ extern const DWORD db_fwriteInt_;
 extern const DWORD db_read_to_buf_;
 extern const DWORD dbase_close_;
 extern const DWORD dbase_open_;
+extern const DWORD debug_register_env_;
 extern const DWORD determine_to_hit_func_;
 extern const DWORD dialog_out_;
 extern const DWORD display_inventory_;
@@ -481,6 +488,7 @@ extern const DWORD scr_remove_;
 extern const DWORD scr_set_ext_param_;
 extern const DWORD scr_set_objs_;
 extern const DWORD scr_write_ScriptNode_;
+extern const DWORD set_game_time_;
 extern const DWORD SexWindow_;
 extern const DWORD skill_check_stealing_;
 extern const DWORD skill_dec_point_;

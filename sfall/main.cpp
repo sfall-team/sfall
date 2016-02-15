@@ -527,24 +527,35 @@ end:
 		retn;
 	}
 }
-static const DWORD IntfaceRotateNumbersRet=0x460BA0;
-static void __declspec(naked) IntfaceRotateNumbersHook() {
+
+static DWORD SpeedInterfaceCounterAnims;
+static void __declspec(naked) intface_rotate_numbers_hack() {
 	__asm {
-		cmp ebx, ecx;
-		je end;
-		jg greater;
-		mov ebx, ecx;
-		inc ebx;
-		jmp end;
-greater:
-		cmp ebx, 0;
-		jg skip;
-		xor ebx, ebx;
-		inc ebx;
-skip:
-		dec ebx;
+		push edi
+		push ebp
+		sub  esp, 0x54
+		mov  edi, SpeedInterfaceCounterAnims
+// ebx=old value, ecx=new value
+		cmp  ebx, ecx
+		je   end
+		mov  ebx, ecx
+		jg   decrease
+		test edi, edi
+		jnz  end
+		dec  ebx
+		jmp  end
+decrease:
+		cmp  ecx, 0
+		jl   negative
+		test edi, edi
+		jnz  end
+		inc  ebx
+		jmp  end
+negative:
+		xor  ebx, ebx
 end:
-		jmp IntfaceRotateNumbersRet;
+		mov  esi, 0x460BA6
+		jmp  esi
 	}
 }
 
@@ -1315,11 +1326,11 @@ static void DllMain2() {
 		dlogr(" Done", DL_INIT);
 	}
 
-	if(GetPrivateProfileIntA("Misc", "SpeedInterfaceCounterAnims", 0, ini)) {
+	SpeedInterfaceCounterAnims = GetPrivateProfileIntA("Misc", "SpeedInterfaceCounterAnims", 0, ini);
+	if (SpeedInterfaceCounterAnims == 1 || SpeedInterfaceCounterAnims == 2) {
+		SpeedInterfaceCounterAnims--;
 		dlog("Applying SpeedInterfaceCounterAnims patch.", DL_INIT);
-		HookCall(0x45ED63, IntfaceRotateNumbersHook);
-		HookCall(0x45ED86, IntfaceRotateNumbersHook);
-		HookCall(0x45EDFA, IntfaceRotateNumbersHook);
+		MakeCall(0x460BA1, &intface_rotate_numbers_hack, true);
 		dlogr(" Done", DL_INIT);
 	}
 
