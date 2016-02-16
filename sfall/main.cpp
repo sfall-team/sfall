@@ -1,6 +1,6 @@
 /*
  *    sfall
- *    Copyright (C) 2008, 2009, 2010, 2011, 2012  The sfall team
+ *    Copyright (C) 2008-2016  The sfall team
  *
  *    This program is free software: you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
@@ -126,6 +126,14 @@ static DWORD AddrGetLocalTime;
 
 static DWORD ViewportX;
 static DWORD ViewportY;
+
+static const DWORD PutAwayWeapon[] = {
+	0x411EA2, // action_climb_ladder_
+	0x412046, // action_use_an_item_on_object_
+	0x41224A, // action_get_an_object_
+	0x4606A5, // intface_change_fid_animate_
+	0x472996, // invenWieldFunc_
+};
 
 static __declspec(naked) void GetDateWrapper() {
 	__asm {
@@ -761,6 +769,30 @@ end:
 	}
 }
 
+static void __declspec(naked) register_object_take_out_hack() {
+	__asm {
+		push ecx
+		push eax
+		mov  ecx, edx                             // ID1
+		mov  edx, [eax+0x1C]                      // cur_rot
+		inc  edx
+		push edx                                  // ID3
+		xor  ebx, ebx                             // ID2
+		mov  edx, [eax+0x20]                      // fid
+		and  edx, 0xFFF                           // Index
+		xor  eax, eax
+		inc  eax                                  // Obj_Type
+		call art_id_
+		xor  ebx, ebx
+		dec  ebx
+		xchg edx, eax
+		pop  eax
+		call register_object_change_fid_
+		pop  ecx
+		xor  eax, eax
+		retn
+	}
+}
 
 static void DllMain2() {
 	//SafeWrite8(0x4B15E8, 0xc3);
@@ -1533,6 +1565,8 @@ static void DllMain2() {
 	SimplePatch<WORD>(addrs, 2, "Misc", "CombatPanelAnimDelay", 1000, 0, 65535);
 	addrs[0] = 0x447DF4; addrs[1] = 0x447EB6;
 	SimplePatch<BYTE>(addrs, 2, "Misc", "DialogPanelAnimDelay", 33, 0, 255);
+	addrs[0] = 0x499B99; addrs[1] = 0x499DA8;
+	SimplePatch<BYTE>(addrs, 2, "Misc", "PipboyTimeAnimDelay", 50, 0, 127);
 
 	if (GetPrivateProfileIntA("Misc", "EnableMusicInDialogue", 0, ini)) {
 		dlog("Applying playing music in dialogue patch.", DL_INIT);
@@ -1544,6 +1578,19 @@ static void DllMain2() {
 	if (GetPrivateProfileIntA("Misc", "TownMapHotkeysFix", 1, ini)) {
 		dlog("Applying town map hotkeys patch.", DL_INIT);
 		MakeCall(0x4C4945, &wmTownMapFunc_hack, false);
+		dlogr(" Done", DL_INIT);
+	}
+
+	if (GetPrivateProfileIntA("Misc", "InstantWeaponEquip", 0, ini)) {
+	//Skip weapon equip/unequip animations
+		dlog("Applying InstantWeaponEquip patch.", DL_INIT);
+		for (int i = 0; i < sizeof(PutAwayWeapon)/4; i++) {
+			SafeWrite8(PutAwayWeapon[i], 0xEB);   // jmps
+		}
+		BlockCall(0x472AD5);                      //
+		BlockCall(0x472AE0);                      // invenUnwieldFunc_
+		BlockCall(0x472AF0);                      //
+		MakeCall(0x415238, &register_object_take_out_hack, true);
 		dlogr(" Done", DL_INIT);
 	}
 
