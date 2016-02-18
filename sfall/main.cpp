@@ -627,32 +627,6 @@ static void __declspec(naked) NPCStage6Fix2() {
 	}
 }
 
-static const DWORD MultiHexFix1End = 0x429024;
-static const DWORD MultiHexFix2End = 0x429175;
-static void __declspec(naked) MultiHexFix1() {
-	__asm {
-		xor ecx,ecx;				// argument value for make_path_func: ecx=0 (unknown arg)
-		test byte ptr ds:[ebx+0x25],0x08;	// is target multihex?
-		mov ebx,dword ptr ds:[ebx+0x4];		// argument value for make_path_func: target's tilenum (end_tile)
-		je end;					// skip if not multihex
-		inc ebx;				// otherwise, increase tilenum by 1
-end:
-		jmp MultiHexFix1End;			// call make_path_func
-	}
-}
-
-static void __declspec(naked) MultiHexFix2() {
-	__asm {
-		xor ecx,ecx;				// argument for make_path_func: ecx=0 (unknown arg)
-		test byte ptr ds:[ebx+0x25],0x08;	// is target multihex?
-		mov ebx,dword ptr ds:[ebx+0x4];		// argument for make_path_func: target's tilenum (end_tile)
-		je end;					// skip if not multihex
-		inc ebx;				// otherwise, increase tilenum by 1
-end:
-		jmp MultiHexFix2End;			// call make_path_func
-	}
-}
-
 static const DWORD FastShotTraitFixEnd1 = 0x478E7F;
 static const DWORD FastShotTraitFixEnd2 = 0x478E7B;
 static void __declspec(naked) FastShotTraitFix() {
@@ -1447,13 +1421,6 @@ static void DllMain2() {
 		SafeWrite8(0x494063, 0x06);		// loop should look for a potential 6th stage
 		SafeWrite8(0x4940BB, 0xCC);		// move pointer by 204 bytes instead of 200
 		MakeCall(0x494224, &NPCStage6Fix2, true);
-		dlogr(" Done", DL_INIT);
-	}
-
-	if(GetPrivateProfileIntA("Misc", "MultiHexPathingFix", 1, ini)) {
-		dlog("Applying MultiHex Pathing Fix.", DL_INIT);
-		MakeCall(0x42901F, &MultiHexFix1, true);
-		MakeCall(0x429170, &MultiHexFix2, true);
 		dlogr(" Done", DL_INIT);
 	}
 

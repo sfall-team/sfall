@@ -1,6 +1,6 @@
 /*
  *    sfall
- *    Copyright (C) 2008 - 2015  The sfall team
+ *    Copyright (C) 2008-2016  The sfall team
  *
  *    This program is free software: you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
@@ -22,12 +22,12 @@
 
 #define VERSION_MAJOR 3
 #define VERSION_MINOR 7
-#define VERSION_BUILD 1
+#define VERSION_BUILD 2
 #define VERSION_REV 0
 #ifdef WIN2K
-#define VERSION_STRING "3.7a win2k"
+#define VERSION_STRING "3.7b win2k"
 #else
-#define VERSION_STRING "3.7a"
+#define VERSION_STRING "3.7b"
 #endif
 
 #define CHECK_VAL  (4)
