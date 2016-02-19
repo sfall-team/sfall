@@ -86,46 +86,47 @@ static int* scriptDialog;
 
 //GetTickCount calls
 static const DWORD offsetsA[] = {
-	0x004c8d34,
-	0x004c9375,
-	0x004c9384,
-	0x004c93c0,
-	0x004c93e8,
-	0x004c9d2e,
-	0x004fe01e,
+	0x4C8D34, 0x4C9375, 0x4C9384, 0x4C93C0, 0x4C93E8, 0x4C9D2E, 0x4FE01E,
 };
 
 //Delayed GetTickCount calls
 static const DWORD offsetsB[] = {
-	0x004fdf64,
+	0x4FDF64,
 };
 
 //timeGetTime calls
 static const DWORD offsetsC[] = {
-	0x004a3179,
-	0x004a325d,
-	0x004f482b,
-	0x004f4e53,
-	0x004f5542,
-	0x004f56cc,
-	0x004f59c6,
-	0x004fe036,
+	0x4A3179, 0x4A325D, 0x4F482B, 0x4F4E53, 0x4F5542, 0x4F56CC, 0x4F59C6,
+	0x4FE036,
 };
 
-static const DWORD origFuncPosA=0x006c0200;
-static const DWORD origFuncPosB=0x006c03b0;
-static const DWORD origFuncPosC=0x006c0164;
+static const DWORD origFuncPosA = 0x6C0200;
+static const DWORD origFuncPosB = 0x6C03B0;
+static const DWORD origFuncPosC = 0x6C0164;
 
-static const DWORD getLocalTimePos=0x004fdf58;
+static const DWORD getLocalTimePos = 0x4FDF58;
 
-static const DWORD dinputPos=0x0050FB70;
-static const DWORD DDrawPos=0x0050FB5C;
+static const DWORD dinputPos = 0x50FB70;
+static const DWORD DDrawPos = 0x50FB5C;
 
 static DWORD AddrGetTickCount;
 static DWORD AddrGetLocalTime;
 
 static DWORD ViewportX;
 static DWORD ViewportY;
+
+static const DWORD FastShotFixF1[] = {
+	0x478BB8, 0x478BC7, 0x478BD6, 0x478BEA, 0x478BF9, 0x478C08, 0x478C2F,
+};
+
+static const DWORD script_dialog_msgs[] = {
+	0x4A50C2, 0x4A5169, 0x4A52FA, 0x4A5302, 0x4A6B86, 0x4A6BE0, 0x4A6C37,
+};
+
+static const DWORD EncounterTableSize[] = {
+	0x4BD1A3, 0x4BD1D9, 0x4BD270, 0x4BD604, 0x4BDA14, 0x4BDA44, 0x4BE707,
+	0x4C0815, 0x4C0D4A, 0x4C0FD4,
+};
 
 static const DWORD PutAwayWeapon[] = {
 	0x411EA2, // action_climb_ladder_
@@ -1433,15 +1434,9 @@ static void DllMain2() {
 	case 2:
 		dlog("Applying Fast Shot Trait Fix. (Fallout 1 version)", DL_INIT);
 		SafeWrite16(0x478C9F, 0x9090);
-#define hook(a) SafeWrite32(a+1, 0x478C7D - (a+5))
-		hook(0x478C2f);
-		hook(0x478C08);
-		hook(0x478BF9);
-		hook(0x478BEA);
-		hook(0x478BD6);
-		hook(0x478BC7);
-		hook(0x478BB8);
-#undef hook
+		for (int i = 0; i < sizeof(FastShotFixF1)/4; i++) {
+			HookCall(FastShotFixF1[i], (void*)0x478C7D);
+		}
 		dlogr(" Done", DL_INIT);
 		break;
 	}
@@ -1449,21 +1444,13 @@ static void DllMain2() {
 	if(GetPrivateProfileIntA("Misc", "BoostScriptDialogLimit", 0, ini)) {
 		const int scriptDialogCount=10000;
 		dlog("Applying script dialog limit patch.", DL_INIT);
-		scriptDialog=new int[scriptDialogCount*2]; //Because the msg structure is 8 bytes, not 4.
-		//scr_init
-		SafeWrite32(0x4A50C2, (DWORD)scriptDialog);
-		SafeWrite32(0x4A50E3, scriptDialogCount);
-		//scr_game_init
-		SafeWrite32(0x4A5169, (DWORD)scriptDialog);
-		SafeWrite32(0x4A519F, scriptDialogCount);
-		//scr_message_free
-		SafeWrite32(0x4A52FA, (DWORD)scriptDialog);
-		SafeWrite32(0x4A5302, (DWORD)scriptDialog);
-		SafeWrite32(0x4A534F, scriptDialogCount*8);
-		//scr_get_dialog_msg_file
-		SafeWrite32(0x4A6B86, (DWORD)scriptDialog);
-		SafeWrite32(0x4A6BE0, (DWORD)scriptDialog);
-		SafeWrite32(0x4A6C37, (DWORD)scriptDialog);
+		scriptDialog = new int[scriptDialogCount*2]; // Because the msg structure is 8 bytes, not 4.
+		SafeWrite32(0x4A50E3, scriptDialogCount); // scr_init
+		SafeWrite32(0x4A519F, scriptDialogCount); // scr_game_init
+		SafeWrite32(0x4A534F, scriptDialogCount*8); // scr_message_free
+		for (int i = 0; i < sizeof(script_dialog_msgs)/4; i++) {
+			SafeWrite32(script_dialog_msgs[i], (DWORD)scriptDialog); // scr_get_dialog_msg_file
+		}
 		dlogr(" Done", DL_INIT);
 	}
 
@@ -1478,19 +1465,12 @@ static void DllMain2() {
 		dlogr(" Done", DL_INIT);
 	}
 
-	if(tmp=GetPrivateProfileIntA("Misc", "EncounterTableSize", 0, ini) && tmp<=127) {
+	if (tmp = GetPrivateProfileIntA("Misc", "EncounterTableSize", 0, ini) && tmp <= 127) {
 		dlog("Applying EncounterTableSize patch.", DL_INIT);
-		DWORD nsize=(tmp+1)*180+0x50;
-		SafeWrite32(0x4BD1A3, nsize);
-		SafeWrite32(0x4BD1D9, nsize);
-		SafeWrite32(0x4BD270, nsize);
-		SafeWrite32(0x4BD604, nsize);
-		SafeWrite32(0x4BDA14, nsize);
-		SafeWrite32(0x4BDA44, nsize);
-		SafeWrite32(0x4BE707, nsize);
-		SafeWrite32(0x4C0815, nsize);
-		SafeWrite32(0x4C0D4a, nsize);
-		SafeWrite32(0x4C0FD4, nsize);
+		DWORD nsize = (tmp + 1) * 180 + 0x50;
+		for (int i = 0; i < sizeof(EncounterTableSize)/4; i++) {
+			SafeWrite32(EncounterTableSize[i], nsize);
+		}
 		SafeWrite8(0x4BDB17, (BYTE)tmp);
 		dlogr(" Done", DL_INIT);
 	}

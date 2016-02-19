@@ -359,6 +359,7 @@ extern const DWORD item_w_dr_adjust_;
 extern const DWORD item_w_max_ammo_;
 extern const DWORD item_w_mp_cost_;
 extern const DWORD item_w_range_;
+extern const DWORD item_w_rounds_;
 extern const DWORD item_w_try_reload_;
 extern const DWORD item_weight_;
 extern const DWORD light_get_tile_; // aElev<eax>, aTilenum<edx>
