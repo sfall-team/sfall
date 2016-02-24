@@ -560,29 +560,16 @@ static void __declspec(naked) op_wield_obj_critter_adjust_ac_hook() {
 	}
 }
 
-static const DWORD MultiHexFix1End = 0x429024;
-static const DWORD MultiHexFix2End = 0x429175;
-static void __declspec(naked) MultiHexFix1() {
+// Haenlomal
+static void __declspec(naked) MultiHexFix() {
 	__asm {
-		xor ecx,ecx;				// argument value for make_path_func: ecx=0 (unknown arg)
-		test byte ptr ds:[ebx+0x25],0x08;	// is target multihex?
-		mov ebx,dword ptr ds:[ebx+0x4];		// argument value for make_path_func: target's tilenum (end_tile)
-		je end;					// skip if not multihex
-		inc ebx;				// otherwise, increase tilenum by 1
+		xor  ecx, ecx;                      // argument value for make_path_func: ecx=0 (unknown arg)
+		test byte ptr ds:[ebx+0x25], 0x08;  // is target multihex?
+		mov  ebx, dword ptr ds:[ebx+0x4];   // argument value for make_path_func: target's tilenum (end_tile)
+		je   end;                           // skip if not multihex
+		inc  ebx;                           // otherwise, increase tilenum by 1
 end:
-		jmp MultiHexFix1End;			// call make_path_func
-	}
-}
-
-static void __declspec(naked) MultiHexFix2() {
-	__asm {
-		xor ecx,ecx;				// argument for make_path_func: ecx=0 (unknown arg)
-		test byte ptr ds:[ebx+0x25],0x08;	// is target multihex?
-		mov ebx,dword ptr ds:[ebx+0x4];		// argument for make_path_func: target's tilenum (end_tile)
-		je end;					// skip if not multihex
-		inc ebx;				// otherwise, increase tilenum by 1
-end:
-		jmp MultiHexFix2End;			// call make_path_func
+		retn;                               // call make_path_func (at 0x429024, 0x429175)
 	}
 }
 
@@ -865,10 +852,10 @@ void BugsInit()
 		dlogr(" Done", DL_INIT);
 	//}
 
-	//if(GetPrivateProfileIntA("Misc", "MultiHexPathingFix", 1, ini)) {
+	//if (GetPrivateProfileIntA("Misc", "MultiHexPathingFix", 1, ini)) {
 		dlog("Applying MultiHex Pathing Fix.", DL_INIT);
-		MakeCall(0x42901F, &MultiHexFix1, true);
-		MakeCall(0x429170, &MultiHexFix2, true);
+		MakeCall(0x42901F, &MultiHexFix, false);
+		MakeCall(0x429170, &MultiHexFix, false);
 		dlogr(" Done", DL_INIT);
 	//}
 
