@@ -433,7 +433,6 @@ static void __declspec(naked) inven_pickup_hack() {
 }
 
 static DWORD inven_pickup_loop=-1;
-static const DWORD inven_pickup_hack2_Loop = 0x471145;
 static void __declspec(naked) inven_pickup_hack2() {
 	__asm {
 		cmp  inven_pickup_loop, -1
@@ -446,12 +445,12 @@ startLoop:
 		xor  edx, edx
 		mov  inven_pickup_loop, edx
 nextLoop:
-		mov  eax, 124                             // x_start
 		mov  ebx, 188                             // x_end
 		add  edx, 35                              // y_start
 		mov  ecx, edx
 		add  ecx, 48                              // y_end
-		jmp  inven_pickup_hack2_Loop
+		mov  eax, 0x471140                        // x_start address
+		jmp  eax
 inLoop:
 		test eax, eax
 		mov  eax, inven_pickup_loop
@@ -806,7 +805,9 @@ void BugsInit()
 		MakeCall(0x470EC2, &inven_pickup_hack, true);
 		// Fix for error in player's inventory, related to IFACE_BAR_MODE=1 in f2_res.ini, and
 		// also for reverse order error
-		MakeCall(0x47114A, &inven_pickup_hack2, true);
+		if (*((DWORD*)0x471140) == 0x00007CB8) { // check for old (pre-3.0) versions of f2_res
+			MakeCall(0x47114A, &inven_pickup_hack2, true);
+		}
 		// Fix for using only one box of ammo when a weapon is above the ammo in the inventory list
 		HookCall(0x476598, &drop_ammo_into_weapon_hook);
 		dlogr(" Done", DL_INIT);
