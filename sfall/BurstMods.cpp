@@ -34,6 +34,10 @@ static void __declspec(naked) compute_spray_rounds_distribution() {
 		imul    ebx; // multiply eax by ebx and store result in edx:eax
 		mov     ebx, compute_spray_center_div; // divisor
 		idiv    ebx; // divide edx:eax by ebx and store result in eax (edx)
+		test    edx, edx; // if remainder (edx) is not 0
+		jz      divEnd1;
+		inc     eax; // round up
+divEnd1:
 		mov     [esp+16], eax; // roundsCenter
 		test    eax, eax; // if (roundsCenter == 0)
 		jnz     loc_42350F;
@@ -52,7 +56,10 @@ loc_42350F:
 		imul    ebx;
 		mov     ebx, compute_spray_target_div;
 		idiv    ebx;
-
+		test    edx, edx; // if remainder (edx) is not 0
+		jz      divEnd2;
+		inc     eax; // round up
+divEnd2:
 		mov     ebp, eax;
 		mov     ebx, [esp+16];
 		// at this point, eax should contain the same value as ebp (roundsMainTarget); ebx should contain value of roundsCenter

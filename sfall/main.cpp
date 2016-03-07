@@ -1514,6 +1514,7 @@ static void DllMain2() {
 	SimplePatch<BYTE>(addrs, 2, "Misc", "DialogPanelAnimDelay", 33, 0, 255);
 	addrs[0] = 0x499B99; addrs[1] = 0x499DA8;
 	SimplePatch<BYTE>(addrs, 2, "Misc", "PipboyTimeAnimDelay", 50, 0, 127);
+	SimplePatch<DWORD>(0x51D66C, "Misc", "CarryWeightLimit", 999);
 
 	if (GetPrivateProfileIntA("Misc", "EnableMusicInDialogue", 0, ini)) {
 		dlog("Applying playing music in dialogue patch.", DL_INIT);
