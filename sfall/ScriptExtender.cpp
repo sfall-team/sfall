@@ -590,49 +590,28 @@ static void __declspec(naked) register_hook_proc() {
 }
 
 static void __declspec(naked) sfall_ver_major() {
+	_OP_BEGIN(ebp)
 	__asm {
-		push edx;
-		push ecx;
-		mov edx, VERSION_MAJOR;
-		mov eax, ecx;
-		call interpretPushLong_;
-		mov eax, ecx;
-		mov edx, 0xc001;
-		call interpretPushShort_;
-		pop ecx;
-		pop edx;
-		retn;
+		mov eax, VERSION_MAJOR;
 	}
+	_RET_VAL_INT(ebp)
+	_OP_END
 }
 static void __declspec(naked) sfall_ver_minor() {
+	_OP_BEGIN(ebp)
 	__asm {
-		push edx;
-		push ecx;
-		mov edx, VERSION_MINOR;
-		mov eax, ecx;
-		call interpretPushLong_;
-		mov eax, ecx;
-		mov edx, 0xc001;
-		call interpretPushShort_;
-		pop ecx;
-		pop edx;
-		retn;
+		mov eax, VERSION_MINOR;
 	}
+	_RET_VAL_INT(ebp)
+	_OP_END
 }
 static void __declspec(naked) sfall_ver_build() {
+	_OP_BEGIN(ebp)
 	__asm {
-		push edx;
-		push ecx;
-		mov edx, VERSION_BUILD;
-		mov eax, ecx;
-		call interpretPushLong_;
-		mov eax, ecx;
-		mov edx, 0xc001;
-		call interpretPushShort_;
-		pop ecx;
-		pop edx;
-		retn;
+		mov eax, VERSION_BUILD;
 	}
+	_RET_VAL_INT(ebp)
+	_OP_END
 }
 
 
