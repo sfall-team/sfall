@@ -729,14 +729,15 @@ void BugsInit()
 		dlogr(" Done.", DL_INIT);
 	//}
 
-	// Fixes for being able to charge the car with using cells on scenary/critters
-	// and cells getting consumed even when the car is already fully charged
-	//if (GetPrivateProfileIntA("Misc", "CarChargingFix", 1, ini)) {
-		dlog("Applying car charging issues fix.", DL_INIT);
+	// Fix for cells getting consumed even when the car is already fully charged
+	MakeCall(0x49BE70, &obj_use_power_on_car_hack, false);
+
+	// Fix for being able to charge the car by using cells on other scenary/critters
+	if (GetPrivateProfileIntA("Misc", "CarChargingFix", 1, ini)) {
+		dlog("Applying car charging fix.", DL_INIT);
 		MakeCall(0x49C36D, &protinst_default_use_item_hack, true);
-		MakeCall(0x49BE70, &obj_use_power_on_car_hack, false);
 		dlogr(" Done.", DL_INIT);
-	//}
+	}
 
 	// makes jet addiction eternal.. why?
 	//MakeCall(0x47A3A4, &item_wd_process_hook, false);
