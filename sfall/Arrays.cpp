@@ -250,6 +250,7 @@ void LoadArrays(HANDLE h) {
 		if (nextarrayid == 0) nextarrayid++;
 		arrays.insert(array_pair(nextarrayid, arrayVar));
 		savedArrays[arrayVar.key] = nextarrayid++;
+		arrayVar.keyHash.clear();
 	}
 }
 
