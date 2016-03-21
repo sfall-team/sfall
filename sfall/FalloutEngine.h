@@ -393,8 +393,10 @@ extern const DWORD message_init_;
 extern const DWORD message_load_;
 extern const DWORD message_make_path_;
 extern const DWORD message_search_;
+extern const DWORD mouse_click_in_;
 extern const DWORD mouse_get_position_;
 extern const DWORD mouse_hide_;
+extern const DWORD mouse_in_;
 extern const DWORD mouse_show_;
 extern const DWORD move_inventory_;
 extern const DWORD NixHotLines_;
@@ -419,6 +421,7 @@ extern const DWORD obj_scroll_blocking_at_;
 extern const DWORD obj_set_light_; // <eax>(int aObj<eax>, signed int aDist<edx>, int a3<ecx>, int aIntensity<ebx>)
 extern const DWORD obj_shoot_blocking_at_;
 extern const DWORD obj_sight_blocking_at_;
+extern const DWORD obj_top_environment_;
 extern const DWORD obj_use_book_;
 extern const DWORD obj_use_power_on_car_;
 extern const DWORD OptionWindow_;
