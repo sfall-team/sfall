@@ -52,6 +52,7 @@ static const char* ExtraLines[]={
 	"Tehnokrat",
 	"Crafty",
 	"Slider2k",
+	"Vennor",
 	"",
 	"@Additional thanks to",
 	"Nirran",

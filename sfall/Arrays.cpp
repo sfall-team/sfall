@@ -250,6 +250,7 @@ void LoadArrays(HANDLE h) {
 		if (nextarrayid == 0) nextarrayid++;
 		arrays.insert(array_pair(nextarrayid, arrayVar));
 		savedArrays[arrayVar.key] = nextarrayid++;
+		arrayVar.keyHash.clear();
 	}
 }
 
@@ -437,9 +438,6 @@ void _stdcall SetArray(DWORD id, DWORD key, DWORD keyType, DWORD val, DWORD valT
 		if (valType == DATATYPE_INT && val == 0 && allowUnset) {
 			// after assigning zero to a key, no need to store it, because "get_array" returns 0 for non-existent keys: try unset
 			if (el >= 0) {
-				// remove key=>value pair from vector
-				arr.clearRange(el, el + 2);
-				arr.val.erase(arr.val.begin() + el, arr.val.begin() + (el + 2));
 				// remove from hashtable
 				arr.keyHash.erase(elIter);
 				// shift all keyHash references
@@ -447,6 +445,9 @@ void _stdcall SetArray(DWORD id, DWORD key, DWORD keyType, DWORD val, DWORD valT
 					if (elIter->second >= (DWORD)el)
 						elIter->second -= 2;
 				}
+				// remove key=>value pair from vector
+				arr.clearRange(el, el + 2);
+				arr.val.erase(arr.val.begin() + el, arr.val.begin() + (el + 2));
 			}
 		} else {
 			if (el == -1) {
