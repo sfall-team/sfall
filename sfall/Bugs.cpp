@@ -468,25 +468,19 @@ end:
 		mov  eax, 0x47125C
 		jmp  eax
 found:
+		mov  ebx, 0x4711DF
 		add  edx, [esp+0x40]                      // inventory_offset
 		mov  eax, ds:[_pud]
-		push eax
-		mov  eax, [eax]                           // itemsCount
-		test eax, eax
-		jz   skip
-		dec  eax
-		cmp  edx, eax
-		jbe  inRange
+		mov  ecx, [eax]                           // itemsCount
+		jecxz skip
+		dec  ecx
+		cmp  edx, ecx
+		ja   skip
+		sub  ecx, edx
+		mov  edx, ecx
+		mov  ebx, 0x471181
 skip:
-		pop  eax
-		mov  ebx, 0x4711DF
 		jmp  ebx
-inRange:
-		xchg edx, eax
-		sub  edx, eax
-		pop  eax
-		mov  ecx, 0x471181
-		jmp  ecx
 	}
 }
 

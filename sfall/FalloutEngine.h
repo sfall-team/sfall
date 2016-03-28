@@ -228,6 +228,7 @@ extern const DWORD combat_should_end_;
 extern const DWORD combat_turn_;
 extern const DWORD compute_damage_;
 extern const DWORD config_set_value_;
+extern const DWORD container_exit_;
 extern const DWORD correctFidForRemovedItem_; // (int critter@<eax>, int oldArmor@<edx>, int removeSlotsFlags@<ebx>)
 extern const DWORD credits_;
 extern const DWORD credits_get_next_line_;
@@ -266,6 +267,8 @@ extern const DWORD determine_to_hit_func_;
 extern const DWORD dialog_out_;
 extern const DWORD display_inventory_;
 extern const DWORD display_print_; // eax - char* to display
+extern const DWORD display_stats_;
+extern const DWORD display_table_inventories_;
 extern const DWORD display_target_inventory_;
 extern const DWORD do_options_;
 extern const DWORD do_optionsFunc_;
@@ -333,6 +336,7 @@ extern const DWORD inven_worn_;
 extern const DWORD is_within_perception_;
 extern const DWORD isPartyMember_; // (<eax> - object) - bool result
 extern const DWORD item_add_force_;
+extern const DWORD item_add_mult_;
 extern const DWORD item_c_curr_size_;
 extern const DWORD item_c_max_size_;
 extern const DWORD item_caps_total_;
