@@ -102,6 +102,7 @@
 #define _Lifegiver                  0x570854
 #define _list_com                   0x56D394
 #define _list_total                 0x56D37C
+#define _loadingGame                0x5194C4
 #define _LSData                     0x613D30
 #define _lsgwin                     0x6142C4
 #define _main_ctd                   0x56D2B0
@@ -121,6 +122,7 @@
 #define _num_game_global_vars       0x5186C4
 #define _num_map_global_vars        0x519574
 #define _obj_dude                   0x6610B8
+#define _objectTable                0x639DA0
 #define _objItemOutlineState        0x519798
 #define _optionRect                 0x58ECC0
 #define _outlined_object            0x518D94
@@ -143,10 +145,12 @@
 #define _pip_win                    0x6644C4
 #define _pipboy_message_file        0x664348
 #define _pipmesg                    0x664338
+#define _preload_list_index         0x519640
 #define _procTableStrs              0x51C758  // table of procId (from define.h) => procName map
 #define _proto_main_msg_file        0x6647FC
 #define _ptable                     0x59E934
 #define _pud                        0x59E960
+#define _queue                      0x6648C0
 #define _quick_done                 0x5193BC
 #define _read_callback              0x51DEEC
 #define _RedColor                   0x6AB4D0
@@ -158,6 +162,7 @@
 #define _squares                    0x66BE08
 #define _stack                      0x59E86C
 #define _stack_offset               0x59E844
+#define _stat_data                  0x51D53C
 #define _stat_flag                  0x66452A
 #define _Tag_                       0x5708B0
 #define _tag_skill                  0x668070

@@ -198,12 +198,12 @@ static void __declspec(naked) stat_recalc_derived() {
 }
 
 void StatsReset() {
-	for(int i=0;i<STAT_max_stat;i++) {
-		StatMaximumsPC[i]=StatMaximumsNPC[i]=*(DWORD*)(0x0051D54C + i*24);
-		StatMinimumsPC[i]=StatMinimumsNPC[i]=*(DWORD*)(0x0051D548 + i*24);
+	for(int i = 0; i < STAT_max_stat; i++) {
+		StatMaximumsPC[i] = StatMaximumsNPC[i] = *(DWORD*)(_stat_data + 16 + i*24);
+		StatMinimumsPC[i] = StatMinimumsNPC[i] = *(DWORD*)(_stat_data + 12 + i*24);
 	}
-	StandardApAcBonus=4;
-	ExtraApAcBonus=4;
+	StandardApAcBonus = 4;
+	ExtraApAcBonus = 4;
 }
 void StatsInit() {
 	StatsReset();
