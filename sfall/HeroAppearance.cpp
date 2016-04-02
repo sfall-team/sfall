@@ -23,6 +23,7 @@
 #include "FalloutEngine.h"
 #include "HeroAppearance.h"
 #include "ScriptExtender.h"
+#include "Message.h"
 
 bool AppModEnabled=false; //check if Appearance mod enabled for script fuctions
 
@@ -63,35 +64,6 @@ typedef struct LINENode {
 		offset=0;
 	}
 } LINENode;
-
-
-//for holding a message
-typedef struct MSGNode {
-	DWORD ref;
-	DWORD a;
-	char *msg1; //unused
-	char *msg2;
-
-	MSGNode() {
-		ref=0;
-		a=0;
-		msg1=NULL;
-		msg2=NULL;
-	}
-} MSGNode;
-
-
-//for holding msg array
-typedef struct MSGList {
-	long numMsgs;
-	void *MsgNodes;
-
-	MSGList() {
-		MsgNodes=NULL;
-		numMsgs=0;
-	}
-} MSGList;
-
 
 
 //structures for holding frms loaded with fallout2 functions
@@ -331,93 +303,6 @@ int FWriteDword(void *FileStream, DWORD bVal) {
 	}
 	return retVal;
 }
-
-
-/////////////////////////////////////////////////////////////////MESSAGE FUNCTIONS////////////////////////////////////////////////////////////////////////
-
-//--------------------------------------------------
-int LoadMsgList(MSGList *MsgList, char *MsgFilePath) {
-	int retVal;
-	__asm {
-		mov edx, MsgFilePath
-		mov eax, MsgList
-		call message_load_
-		mov retVal, eax
-	}
-	return retVal;
-}
-
-
-//-----------------------------------------
-int DestroyMsgList(MSGList *MsgList) {
-	int retVal;
-	__asm {
-		mov eax, MsgList
-		call message_exit_
-		mov retVal, eax
-	}
-	return retVal;
-}
-
-/*
-//-----------------------------------------------------------
-bool GetMsg(MSGList *MsgList, MSGNode *MsgNode, DWORD msgRef) {
-	bool retVal=FALSE;
-	MsgNode->ref=msgRef;
-
-	__asm {
-		mov edx, MsgNode
-		mov eax, MsgList
-		call message_search_
-		cmp eax, 1
-		jne EndFunc
-		mov retVal, 1
-EndFunc:
-	}
-	return retVal;
-}
-*/
-
-
-//----------------------------------------------------
-MSGNode *GetMsgNode(MSGList *MsgList, DWORD msgRef) {
-
-	if (MsgList == NULL) return NULL;
-	if (MsgList->numMsgs <= 0) return NULL;
-
-	MSGNode *MsgNode = (MSGNode*)MsgList->MsgNodes;
-
-	long last = MsgList->numMsgs - 1;
-	long first = 0;
-	long mid;
-
-	//Use Binary Search to find msg
-	while (first <= last) {
-		mid = (first + last) / 2;
-		if (msgRef > MsgNode[mid].ref)
-			first = mid + 1;
-		else if (msgRef < MsgNode[mid].ref)
-			last = mid - 1;
-		else
-			return &MsgNode[mid];
-	}
-
-	return NULL;
-}
-
-
-//--------------------------------------------------------
-char* GetMsg(MSGList *MsgList, DWORD msgRef, int msgNum) {
-	MSGNode *MsgNode = GetMsgNode(MsgList, msgRef);
-	if (MsgNode) {
-		if (msgNum == 2)
-			return MsgNode->msg2;
-		else if (msgNum == 1)
-			return MsgNode->msg1;
-	}
-	return NULL;
-}
-
 
 
 /////////////////////////////////////////////////////////////////MOUSE FUNCTIONS////////////////////////////////////////////////////////////////////////
