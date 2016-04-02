@@ -39,6 +39,7 @@
 #include "sound.h"
 #include "SuperSave.h"
 #include "version.h"
+#include "Message.h"
 
 #define MAX_GLOBAL_SIZE (MaxGlobalVars*12 + 4)
 
@@ -276,6 +277,45 @@ end:
 		retn;
 	}
 }
+
+void ReadExtraGameMsgFiles()
+{
+	int read;
+	std::string names;
+
+	names.resize(256);
+
+	while ((read = GetPrivateProfileStringA("Misc", "ExtraGameMsgFileList", "",
+		(LPSTR)names.data(), names.size(), ".\\ddraw.ini")) == names.size() - 1)
+		names.resize(names.size() + 256);
+
+	if (names.empty())
+		return;
+
+	names.resize(names.find_first_of('\0'));
+	names.append(",");
+
+	int begin = 0;
+	int end;
+	int length;
+
+	while ((end = names.find_first_of(',', begin)) != std::string::npos)
+	{
+		length = end - begin;
+
+		if (length > 0)
+		{
+			std::string path = "game\\" + names.substr(begin, length) + ".msg";
+			MSGList* list = new MSGList;
+
+			if (LoadMsgList(list, (char*)path.data()) == 1)
+				gExtraGameMsgLists.insert(std::make_pair(0x2000 + gExtraGameMsgLists.size(), list));
+		}
+
+		begin = end + 1;
+	}
+}
+
 static void NewGame2() {
 	ResetState(0);
 
@@ -297,6 +337,8 @@ static void NewGame2() {
 	if(GetPrivateProfileInt("Misc", "DisableHorrigan", 0, ini)) {
 		*(DWORD*)0x00672E04=1;
 	}
+
+	ReadExtraGameMsgFiles();
 
 	LoadGlobalScripts();
 	CritLoad();

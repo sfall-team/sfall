@@ -59,6 +59,7 @@
 #include "Tiles.h"
 #include "timer.h"
 #include "version.h"
+#include "Message.h"
 
 bool IsDebug = false;
 
@@ -1542,7 +1543,19 @@ static void DllMain2() {
 	dlogr("Leave DllMain2", DL_MAIN);  
 }
 
+void ClearExtraGameMsgFiles()
+{
+	std::unordered_map<int, MSGList*>::iterator it;
+
+	for (it = gExtraGameMsgLists.begin(); it != gExtraGameMsgLists.end(); ++it)
+	{
+		DestroyMsgList(it->second);
+		delete it->second;
+	}
+}
+
 static void _stdcall OnExit() {
+	ClearExtraGameMsgFiles();
 	ConsoleExit();
 	AnimationsAtOnceExit();
 	HeroAppearanceModExit();
