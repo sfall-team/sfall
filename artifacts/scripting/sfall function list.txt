@@ -43,7 +43,7 @@
 0x81ba - void set_npc_stat_min(int stat, int value)
 
 0x816b - int  input_funcs_available()
-ox816c - int  key_pressed(int dxScancode)
+0x816c - int  key_pressed(int dxScancode)
 0x8162 - void tap_key(int dxScancode)
 0x821c - int  get_mouse_x()
 0x821d - int  get_mouse_y()

@@ -193,6 +193,9 @@
     <ClInclude Include="Bugs.h">
       <Filter>Headers</Filter>
     </ClInclude>
+    <ClInclude Include="Message.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AmmoMod.cpp">
@@ -329,6 +332,9 @@
       <Filter>Source</Filter>
     </ClCompile>
     <ClCompile Include="Bugs.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Message.cpp">
       <Filter>Source</Filter>
     </ClCompile>
   </ItemGroup>

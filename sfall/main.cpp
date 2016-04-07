@@ -45,6 +45,7 @@
 #include "LoadGameHook.h"
 #include "Logging.h"
 #include "MainMenu.h"
+#include "Message.h"
 #include "movies.h"
 #include "PartyControl.h"
 #include "perks.h"
@@ -489,14 +490,14 @@ really_end:
 		retn;
 	}
 }
-static const DWORD CorpseHitFix2_continue_loop2 = 0x48BA0B; 
+static const DWORD CorpseHitFix2_continue_loop2 = 0x48BA0B;
 // same logic as above, for different loop
 static void __declspec(naked) CorpseHitFix2b() {
 	__asm {
 		mov eax, [edx];
 		call critter_is_dead_;
 		test eax, eax;
-		jz really_end; 
+		jz really_end;
 		jmp CorpseHitFix2_continue_loop2;
 
 really_end:
@@ -1545,7 +1546,7 @@ static void DllMain2() {
 	dlog("Running BugsInit.", DL_INIT);
 	BugsInit();
 	dlogr(" Done", DL_INIT);
-	dlogr("Leave DllMain2", DL_MAIN);  
+	dlogr("Leave DllMain2", DL_MAIN);
 }
 
 static void _stdcall OnExit() {

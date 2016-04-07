@@ -226,6 +226,7 @@
     <ClInclude Include="Knockback.h" />
     <ClInclude Include="LoadGameHook.h" />
     <ClInclude Include="MainMenu.h" />
+    <ClInclude Include="Message.h" />
     <ClInclude Include="movies.h" />
     <ClInclude Include="PartyControl.h" />
     <ClInclude Include="Perks.h" />
@@ -288,6 +289,7 @@
     <ClCompile Include="LoadGameHook.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="MainMenu.cpp" />
+    <ClCompile Include="Message.cpp" />
     <ClCompile Include="movies.cpp" />
     <ClCompile Include="PartyControl.cpp" />
     <ClCompile Include="Perks.cpp" />
