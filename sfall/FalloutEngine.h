@@ -109,6 +109,7 @@
 #define _main_window                0x5194F0
 #define _map_elevation              0x519578
 #define _map_global_vars            0x51956C
+#define _max                        0x56FB50
 #define _mouse_hotx                 0x6AC7D0
 #define _mouse_hoty                 0x6AC7CC
 #define _mouse_is_hidden            0x6AC790
@@ -272,6 +273,8 @@ extern const DWORD determine_to_hit_func_;
 extern const DWORD dialog_out_;
 extern const DWORD display_inventory_;
 extern const DWORD display_print_; // eax - char* to display
+extern const DWORD display_scroll_down_;
+extern const DWORD display_scroll_up_;
 extern const DWORD display_stats_;
 extern const DWORD display_table_inventories_;
 extern const DWORD display_target_inventory_;
@@ -299,6 +302,7 @@ extern const DWORD game_help_;
 extern const DWORD game_set_global_var_;
 extern const DWORD game_time_date_;
 extern const DWORD gdialog_barter_cleanup_tables_;
+extern const DWORD gdialogDisplayMsg_;
 extern const DWORD gdProcess_;
 extern const DWORD get_input_;
 extern const DWORD get_time_;
@@ -348,9 +352,11 @@ extern const DWORD item_caps_total_;
 extern const DWORD item_d_check_addict_;
 extern const DWORD item_d_take_drug_;
 extern const DWORD item_get_type_;
+extern const DWORD item_m_cell_pid_;
 extern const DWORD item_m_dec_charges_;
 extern const DWORD item_m_turn_off_;
 extern const DWORD item_move_all_;
+extern const DWORD item_move_force_;
 extern const DWORD item_mp_cost_;
 extern const DWORD item_remove_mult_;
 extern const DWORD item_size_;
