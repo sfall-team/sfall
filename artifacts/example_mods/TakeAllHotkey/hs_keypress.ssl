@@ -1,0 +1,16 @@
+procedure start;
+#include ".\HEADERS\dik.h"
+
+procedure start begin
+	variable event, keyDX;
+	if not init_hook then begin
+		event := get_sfall_arg;
+		keyDX := get_sfall_arg;
+
+		if ((event == 1) and (keyDX == DIK_SEMICOLON)) then begin
+			tap_key(DIK_CAPITAL);
+			tap_key(DIK_A);
+			tap_key(DIK_CAPITAL);
+		end
+	end
+end
