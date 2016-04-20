@@ -390,7 +390,7 @@ What you can do:
 - add AP costs for all inventory movement including reloading
 - apply or remove some special scripted effects depending on PC's armor
 
-int     arg1 - Target slot (0 - main backback, 1 - left hand, 2 - right hand, 3 - armor slot, 4 - weapon, when reloading it by dropping ammo)
+int     arg1 - Target slot (0 - main backpack, 1 - left hand, 2 - right hand, 3 - armor slot, 4 - weapon, when reloading it by dropping ammo)
 Item    arg2 - Item being moved
 Item    arg3 - Item being replaced or weapon being reloaded (can be 0)
 

@@ -1,7 +1,7 @@
 #ifndef H_DIK
 #define H_DIK
 
-// Listed are keyboard scan code constants (in decimal), taken from dinput.h 
+// Listed are keyboard scan code constants (in decimal), taken from dinput.h
 
 #define DIK_ESCAPE          1
 #define DIK_1               2
@@ -14,9 +14,9 @@
 #define DIK_8               9
 #define DIK_9               10
 #define DIK_0               11
-#define DIK_MINUS           12	/* - on main keyboard */
+#define DIK_MINUS           12    /* - on main keyboard */
 #define DIK_EQUALS          13
-#define DIK_BACK			14	/* backspace */
+#define DIK_BACK            14    /* backspace */
 #define DIK_TAB             15
 #define DIK_Q               16
 #define DIK_W               17
@@ -116,20 +116,20 @@
 #define DIK_RWIN            0xDC    /* Right Windows key */
 #define DIK_APPS            0xDD    /* AppMenu key */
 
-#define DIK_BACKSPACE       DIK_BACK            /* backspace */
-#define DIK_NUMPADSTAR      DIK_MULTIPLY        /* * on numeric keypad */
-#define DIK_LALT            DIK_LMENU           /* left Alt */
-#define DIK_CAPSLOCK        DIK_CAPITAL         /* CapsLock */
-#define DIK_NUMPADMINUS     DIK_SUBTRACT        /* - on numeric keypad */
-#define DIK_NUMPADPLUS      DIK_ADD             /* + on numeric keypad */
-#define DIK_NUMPADPERIOD    DIK_DECIMAL         /* . on numeric keypad */
-#define DIK_NUMPADSLASH     DIK_DIVIDE          /* / on numeric keypad */
-#define DIK_RALT            DIK_RMENU           /* right Alt */
-#define DIK_UPARROW         DIK_UP              /* UpArrow on arrow keypad */
-#define DIK_PGUP            DIK_PRIOR           /* PgUp on arrow keypad */
-#define DIK_LEFTARROW       DIK_LEFT            /* LeftArrow on arrow keypad */
-#define DIK_RIGHTARROW      DIK_RIGHT           /* RightArrow on arrow keypad */
-#define DIK_DOWNARROW       DIK_DOWN            /* DownArrow on arrow keypad */
-#define DIK_PGDN            DIK_NEXT            /* PgDn on arrow keypad */
+#define DIK_BACKSPACE       DIK_BACK        /* backspace */
+#define DIK_NUMPADSTAR      DIK_MULTIPLY    /* * on numeric keypad */
+#define DIK_LALT            DIK_LMENU       /* left Alt */
+#define DIK_CAPSLOCK        DIK_CAPITAL     /* CapsLock */
+#define DIK_NUMPADMINUS     DIK_SUBTRACT    /* - on numeric keypad */
+#define DIK_NUMPADPLUS      DIK_ADD         /* + on numeric keypad */
+#define DIK_NUMPADPERIOD    DIK_DECIMAL     /* . on numeric keypad */
+#define DIK_NUMPADSLASH     DIK_DIVIDE      /* / on numeric keypad */
+#define DIK_RALT            DIK_RMENU       /* right Alt */
+#define DIK_UPARROW         DIK_UP          /* UpArrow on arrow keypad */
+#define DIK_PGUP            DIK_PRIOR       /* PgUp on arrow keypad */
+#define DIK_LEFTARROW       DIK_LEFT        /* LeftArrow on arrow keypad */
+#define DIK_RIGHTARROW      DIK_RIGHT       /* RightArrow on arrow keypad */
+#define DIK_DOWNARROW       DIK_DOWN        /* DownArrow on arrow keypad */
+#define DIK_PGDN            DIK_NEXT        /* PgDn on arrow keypad */
 
 #endif
