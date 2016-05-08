@@ -871,20 +871,13 @@ static void _stdcall op_message_str_game2() {
 		else if (fileId >= 0x1000 && fileId <= 0x1005) { // proto msg files
 			msg = GetMessageStr((DWORD)&proto_msg_files[2*(fileId - 0x1000)], msgId);
 		}
-		else if (fileId >= 0x2000) // Extra game message files.
-		{
-			std::unordered_map<int, MSGList*>::iterator it
-				= gExtraGameMsgLists.find(fileId);
+		else if (fileId >= 0x2000) { // Extra game message files.
+			std::unordered_map<int, MSGList*>::iterator it = gExtraGameMsgLists.find(fileId);
 
 			if (it != gExtraGameMsgLists.end())
-			{
 				msg = GetMsg(it->second, msgId, 2);
-			}
 			else
-			{
 				msg = 0;
-				SetOpReturn(0, DATATYPE_INT);
-			}
 		}
 		if (msg != 0)
 			SetOpReturn(msg);
