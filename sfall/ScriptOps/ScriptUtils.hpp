@@ -872,7 +872,7 @@ static void _stdcall op_message_str_game2() {
 			msg = GetMessageStr((DWORD)&proto_msg_files[2*(fileId - 0x1000)], msgId);
 		}
 		else if (fileId >= 0x2000) { // Extra game message files.
-			std::unordered_map<int, MSGList*>::iterator it = gExtraGameMsgLists.find(fileId);
+			std::tr1::unordered_map<int, MSGList*>::iterator it = gExtraGameMsgLists.find(fileId);
 
 			if (it != gExtraGameMsgLists.end())
 				msg = GetMsg(it->second, msgId, 2);

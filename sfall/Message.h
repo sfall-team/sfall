@@ -47,7 +47,7 @@ typedef struct MSGList {
 	}
 } MSGList;
 
-extern std::unordered_map<int, MSGList*> gExtraGameMsgLists;
+extern std::tr1::unordered_map<int, MSGList*> gExtraGameMsgLists;
 
 int LoadMsgList(MSGList *MsgList, char *MsgFilePath);
 int DestroyMsgList(MSGList *MsgList);

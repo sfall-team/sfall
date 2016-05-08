@@ -19,7 +19,7 @@
 #include "Message.h"
 #include "FalloutEngine.h"
 
-std::unordered_map<int, MSGList*> gExtraGameMsgLists;
+std::tr1::unordered_map<int, MSGList*> gExtraGameMsgLists;
 
 int LoadMsgList(MSGList *MsgList, char *MsgFilePath) {
 	int retVal;

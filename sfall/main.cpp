@@ -1545,7 +1545,7 @@ static void DllMain2() {
 
 void ClearExtraGameMsgFiles()
 {
-	std::unordered_map<int, MSGList*>::iterator it;
+	std::tr1::unordered_map<int, MSGList*>::iterator it;
 
 	for (it = gExtraGameMsgLists.begin(); it != gExtraGameMsgLists.end(); ++it)
 	{
