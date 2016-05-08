@@ -94,8 +94,7 @@ char* GetMsg(MSGList *MsgList, DWORD msgRef, int msgNum) {
 	return NULL;
 }
 
-void ReadExtraGameMsgFiles()
-{
+void ReadExtraGameMsgFiles() {
 	int read;
 	std::string names;
 
@@ -115,12 +114,10 @@ void ReadExtraGameMsgFiles()
 	int end;
 	int length;
 
-	while ((end = names.find_first_of(',', begin)) != std::string::npos)
-	{
+	while ((end = names.find_first_of(',', begin)) != std::string::npos) {
 		length = end - begin;
 
-		if (length > 0)
-		{
+		if (length > 0) {
 			std::string path = "game\\" + names.substr(begin, length) + ".msg";
 			MSGList* list = new MSGList;
 
@@ -132,4 +129,15 @@ void ReadExtraGameMsgFiles()
 
 		begin = end + 1;
 	}
+}
+
+void ClearReadExtraGameMsgFiles() {
+	std::tr1::unordered_map<int, MSGList*>::iterator it;
+
+	for (it = gExtraGameMsgLists.begin(); it != gExtraGameMsgLists.end(); ++it) {
+		DestroyMsgList(it->second);
+		delete it->second;
+	}
+
+	gExtraGameMsgLists.clear();
 }

@@ -55,3 +55,4 @@ int DestroyMsgList(MSGList *MsgList);
 MSGNode *GetMsgNode(MSGList *MsgList, DWORD msgRef);
 char* GetMsg(MSGList *MsgList, DWORD msgRef, int msgNum);
 void ReadExtraGameMsgFiles();
+void ClearReadExtraGameMsgFiles();

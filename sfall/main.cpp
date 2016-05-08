@@ -1543,19 +1543,8 @@ static void DllMain2() {
 	dlogr("Leave DllMain2", DL_MAIN);  
 }
 
-void ClearExtraGameMsgFiles()
-{
-	std::tr1::unordered_map<int, MSGList*>::iterator it;
-
-	for (it = gExtraGameMsgLists.begin(); it != gExtraGameMsgLists.end(); ++it)
-	{
-		DestroyMsgList(it->second);
-		delete it->second;
-	}
-}
-
 static void _stdcall OnExit() {
-	ClearExtraGameMsgFiles();
+	ClearReadExtraGameMsgFiles();
 	ConsoleExit();
 	AnimationsAtOnceExit();
 	HeroAppearanceModExit();
