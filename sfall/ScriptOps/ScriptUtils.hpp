@@ -862,9 +862,10 @@ static const DWORD* proto_msg_files = (DWORD*)0x006647AC;
 
 static void _stdcall op_message_str_game2() {
 	DWORD fileId = opArgs[0];
+	const char* msg = 0;
+
 	if (IsOpArgInt(0) && IsOpArgInt(1)) {
 		int msgId = GetOpArgInt(1);
-		const char* msg;
 		if (fileId < 20) { // main msg files
 			msg = GetMessageStr(game_msg_files[fileId], msgId);
 		}
@@ -876,16 +877,13 @@ static void _stdcall op_message_str_game2() {
 
 			if (it != gExtraGameMsgLists.end())
 				msg = GetMsg(it->second, msgId, 2);
-			else
-				msg = 0;
 		}
-		if (msg != 0)
-			SetOpReturn(msg);
-		else
-			SetOpReturn(0, DATATYPE_INT);
-	} else {
-		SetOpReturn(0, DATATYPE_INT);
 	}
+	
+	if (msg == 0)
+		msg = "Error";
+
+	SetOpReturn(msg);
 }
 
 static void __declspec(naked) op_message_str_game() {
