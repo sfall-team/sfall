@@ -313,8 +313,7 @@ static void __declspec(naked) NewGame() {
 	}
 }
 
-static void ReadExtraGameMsgFilesIfNeeded()
-{
+static void ReadExtraGameMsgFilesIfNeeded() {
 	if (gExtraGameMsgLists.empty())
 		ReadExtraGameMsgFiles();
 }
