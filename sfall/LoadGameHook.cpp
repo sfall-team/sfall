@@ -31,6 +31,7 @@
 #include "Knockback.h"
 #include "LoadGameHook.h"
 #include "Logging.h"
+#include "Message.h"
 #include "movies.h"
 #include "PartyControl.h"
 #include "perks.h"
@@ -39,7 +40,6 @@
 #include "sound.h"
 #include "SuperSave.h"
 #include "version.h"
-#include "Message.h"
 
 #define MAX_GLOBAL_SIZE (MaxGlobalVars*12 + 4)
 

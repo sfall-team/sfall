@@ -1,10 +1,6 @@
 /*
  *    sfall
-<<<<<<< HEAD
  *    Copyright (C) 2008-2016  The sfall team
-=======
- *    Copyright (C) 2009, 2010  Mash (Matt Wells, mashw at bigpond dot net dot au)
->>>>>>> c3e489424351eadbc1d5f36772da89b586872eb9
  *
  *    This program is free software: you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
@@ -20,18 +16,13 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-<<<<<<< HEAD
+#include <string>
 #include "main.h"
 
 #include "FalloutEngine.h"
 #include "Message.h"
-=======
-#include <string>
-#include "Message.h"
-#include "FalloutEngine.h"
 
 std::tr1::unordered_map<int, MSGList*> gExtraGameMsgLists;
->>>>>>> c3e489424351eadbc1d5f36772da89b586872eb9
 
 int LoadMsgList(MSGList *MsgList, char *MsgFilePath) {
 	int retVal;
@@ -54,7 +45,6 @@ int DestroyMsgList(MSGList *MsgList) {
 	return retVal;
 }
 
-<<<<<<< HEAD
 /*
 bool GetMsg(MSGList *MsgList, MSGNode *MsgNode, DWORD msgRef) {
 	bool retVal=FALSE;
@@ -72,23 +62,6 @@ EndFunc:
 	return retVal;
 }
 */
-=======
-//bool GetMsg(MSGList *MsgList, MSGNode *MsgNode, DWORD msgRef) {
-//	bool retVal=FALSE;
-//	MsgNode->ref=msgRef;
-//
-//	__asm {
-//	mov edx, MsgNode
-//	mov eax, MsgList
-//	call message_search_
-//	cmp eax, 1
-//	jne EndFunc
-//	mov retVal, 1
-//	EndFunc:
-//	}
-//	return retVal;
-//}
->>>>>>> c3e489424351eadbc1d5f36772da89b586872eb9
 
 MSGNode *GetMsgNode(MSGList *MsgList, DWORD msgRef) {
 
@@ -125,8 +98,6 @@ char* GetMsg(MSGList *MsgList, DWORD msgRef, int msgNum) {
 	}
 	return NULL;
 }
-<<<<<<< HEAD
-=======
 
 void ReadExtraGameMsgFiles() {
 	int read;
@@ -175,4 +146,3 @@ void ClearReadExtraGameMsgFiles() {
 
 	gExtraGameMsgLists.clear();
 }
->>>>>>> c3e489424351eadbc1d5f36772da89b586872eb9

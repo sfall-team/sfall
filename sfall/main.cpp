@@ -60,7 +60,6 @@
 #include "Tiles.h"
 #include "timer.h"
 #include "version.h"
-#include "Message.h"
 
 bool IsDebug = false;
 
