@@ -39,6 +39,7 @@
 #include "sound.h"
 #include "SuperSave.h"
 #include "version.h"
+#include "Message.h"
 
 #define MAX_GLOBAL_SIZE (MaxGlobalVars*12 + 4)
 
@@ -276,6 +277,7 @@ end:
 		retn;
 	}
 }
+
 static void NewGame2() {
 	ResetState(0);
 
@@ -311,11 +313,17 @@ static void __declspec(naked) NewGame() {
 	}
 }
 
+static void ReadExtraGameMsgFilesIfNeeded() {
+	if (gExtraGameMsgLists.empty())
+		ReadExtraGameMsgFiles();
+}
+
 static void __declspec(naked) MainMenu() {
 	__asm {
 		pushad;
 		push 0;
 		call ResetState;
+		call ReadExtraGameMsgFilesIfNeeded;
 		call LoadHeroAppearance;
 		popad;
 		call main_menu_loop_;
