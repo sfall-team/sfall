@@ -277,6 +277,7 @@ Some utility/math functions are available:
 > string message_str_game(int fileId, int messageId)
 - works exactly the same as message_str, except you get messages from files in "text/english/game" folder
 - use GAME_MSG_* defines or mstr_* macros from sfall.h to use specific msg file
+- Additional game msg files added by ExtraGameMsgFileList setting will have consecutive fileIds assigned beginning from 0x2000. (e.g. if you set ExtraGameMsgFileList=foo,bar in ddraw.ini, foo.msg will be associated with 0x2000 and bar.msg with 0x2001.)
 
 > int sneak_success
 - returns 1 if last sneak attempt (roll against skill) was successful, 0 otherwise

@@ -26,6 +26,7 @@
 
 #include "FalloutStructs.h"
 
+#define _aiInfoList                 0x510948
 #define _ambient_light              0x51923C
 #define _art                        0x510738
 #define _art_name                   0x56C9E4
@@ -67,6 +68,7 @@
 #define _free_perk                  0x570A29
 #define _game_global_vars           0x5186C0
 #define _game_user_wants_to_quit    0x5186CC
+#define _gcsd                       0x51094C
 #define _gdBarterMod                0x51873C
 #define _gIsSteal                   0x51D430
 #define _glblmode                   0x5709D0
