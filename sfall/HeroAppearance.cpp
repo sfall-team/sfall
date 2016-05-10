@@ -24,7 +24,6 @@
 #include "HeroAppearance.h"
 #include "Message.h"
 #include "ScriptExtender.h"
-#include "Message.h"
 
 bool AppModEnabled=false; //check if Appearance mod enabled for script fuctions
 
