@@ -538,27 +538,21 @@ end:
 	}
 }
 
-static DWORD SpeedInterfaceCounterAnims;
 static void __declspec(naked) intface_rotate_numbers_hack() {
 	__asm {
 		push edi
 		push ebp
 		sub  esp, 0x54
-		mov  edi, SpeedInterfaceCounterAnims
 // ebx=old value, ecx=new value
 		cmp  ebx, ecx
 		je   end
 		mov  ebx, ecx
 		jg   decrease
-		test edi, edi
-		jnz  end
 		dec  ebx
 		jmp  end
 decrease:
-		cmp  ecx, 0
+		test ecx, ecx
 		jl   negative
-		test edi, edi
-		jnz  end
 		inc  ebx
 		jmp  end
 negative:
@@ -1334,12 +1328,17 @@ static void DllMain2() {
 		dlogr(" Done", DL_INIT);
 	}
 
-	SpeedInterfaceCounterAnims = GetPrivateProfileIntA("Misc", "SpeedInterfaceCounterAnims", 0, ini);
-	if (SpeedInterfaceCounterAnims == 1 || SpeedInterfaceCounterAnims == 2) {
-		SpeedInterfaceCounterAnims--;
+	switch (GetPrivateProfileIntA("Misc", "SpeedInterfaceCounterAnims", 0, ini)) {
+	case 1:
 		dlog("Applying SpeedInterfaceCounterAnims patch.", DL_INIT);
 		MakeCall(0x460BA1, &intface_rotate_numbers_hack, true);
 		dlogr(" Done", DL_INIT);
+		break;
+	case 2:
+		dlog("Applying SpeedInterfaceCounterAnims patch. (Instant)", DL_INIT);
+		SafeWrite32(0x460BB6, 0x90DB3190);
+		dlogr(" Done", DL_INIT);
+		break;
 	}
 
 	KarmaFrmCount=GetPrivateProfileIntA("Misc", "KarmaFRMsCount", 0, ini);

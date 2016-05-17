@@ -174,7 +174,7 @@ static void __declspec(naked) get_screen_width() {
 	  push ecx;
 	  push edx;
 	  mov ecx, eax;
-	  mov edx, ds:[0x4CAD6B];
+	  mov edx, ds:[_xres];
 	  call interpretPushLong_;
 	  mov eax, ecx;
 	  mov edx, 0xc001;
@@ -190,7 +190,7 @@ static void __declspec(naked) get_screen_height() {
 	  push ecx;
 	  push edx;
 	  mov ecx, eax;
-	  mov edx, ds:[0x4CAD66];
+	  mov edx, ds:[_yres];
 	  call interpretPushLong_;
 	  mov eax, ecx;
 	  mov edx, 0xc001;
