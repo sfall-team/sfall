@@ -163,26 +163,6 @@ skip:
 	}
 }
 
-/*
-static void __declspec(naked) item_wd_process_hook() {
-	__asm {
-		cmp  esi, PERK_add_jet
-		je   itsJet
-		retn
-itsJet:
-		pop  edx                                  // Destroying the return address
-		xor  edx, edx                             // edx=init
-		mov  ecx, dword ptr [ebx+0x4]             // ecx=drug_pid
-		push ecx
-		mov  ecx, esi                             // ecx=perk
-		mov  ebx, 2880                            // ebx=time
-		call insert_withdrawal_
-		mov  eax, 0x47A3FB
-		jmp  eax
-	}
-}
-*/
-
 static void __declspec(naked) item_d_load_hack() {
 	__asm {
 		sub  esp, 4
@@ -700,6 +680,38 @@ static void __declspec(naked) item_m_turn_off_hook() {
 	}
 }
 
+static void __declspec(naked) combat_hack() {
+	__asm {
+		mov  eax, [ecx+eax]                       // eax = source
+		test eax, eax
+		jz   end
+		push eax
+		mov  edx, STAT_max_move_points
+		call stat_level_
+		mov  edx, ds:[_gcsd]
+		test edx, edx
+		jz   skip
+		add  eax, [edx+0x8]                       // gcsd.free_move
+skip:
+		pop  edx
+		xchg edx, eax                             // eax = source, edx = Max action points
+		mov  [eax+0x40], edx                      // pobj.curr_mp
+		test byte ptr ds:[_combat_state], 1       // in combat?
+		jz   end                                  // No
+		mov  edx, [eax+0x68]                      // pobj.cid
+		cmp  edx, -1
+		je   end
+		push eax
+		mov  eax, ds:[_aiInfoList]
+		shl  edx, 4
+		mov  dword ptr [edx+eax+0xC], 0           // aiInfo.lastMove
+		pop  eax
+end:
+		mov  edx, edi                             // dude_turn
+		retn
+	}
+}
+
 
 void BugsInit()
 {
@@ -738,9 +750,6 @@ void BugsInit()
 		MakeCall(0x49C36D, &protinst_default_use_item_hack, true);
 		dlogr(" Done.", DL_INIT);
 	}
-
-	// makes jet addiction eternal.. why?
-	//MakeCall(0x47A3A4, &item_wd_process_hook, false);
 
 	// Fix for gaining stats from more than two doses of a specific chem after save-load
 	dlog("Applying fix for save-load unlimited drug use exploit.", DL_INIT);
@@ -885,4 +894,10 @@ void BugsInit()
 		HookCall(0x4798B1, &item_m_turn_off_hook);
 		dlogr(" Done", DL_INIT);
 	}
+
+	// Fix for incorrect initialization of action points at the beginning of each turn
+	dlog("Applying Action Points initialization fix.", DL_INIT);
+	BlockCall(0x422E02);
+	MakeCall(0x422E1B, &combat_hack, false);
+	dlogr(" Done", DL_INIT);
 }
