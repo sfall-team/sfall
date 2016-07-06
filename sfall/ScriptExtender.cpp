@@ -1422,7 +1422,7 @@ void RunScriptProc(sScriptProgram* prog, DWORD procId) {
 }
 static void RunScript(sGlobalScript* script) {
 	script->count=0;
-	RunScriptProc(&script->prog, start_proc); // run "start"
+	RunScriptProc(&script->prog, start); // run "start"
 }
 
 /**
