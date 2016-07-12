@@ -293,8 +293,10 @@ static void __declspec(naked) invenWieldFunc_item_get_type_hook() {
 		push ebx
 		mov  cl, byte ptr [edi+0x27]
 		and  cl, 0x3
-		xchg edx, eax                             // eax=who, edx=item
+		xchg edx, eax                             // eax = who, edx = item
 		call item_remove_mult_
+		pop  ebx
+		xchg ebp, eax
 nextWeapon:
 		mov  eax, esi
 		test cl, 0x2                              // Right hand?
@@ -310,10 +312,12 @@ removeFlag:
 		jmp  nextWeapon
 noWeapon:
 		or   byte ptr [edi+0x27], cl              // Set flag of a weapon in hand
+		inc  ebp
+		jz   skip
 		xchg esi, eax
 		mov  edx, edi
-		pop  ebx
 		call item_add_force_
+skip:
 		popad
 		jmp  item_get_type_
 	}
@@ -591,12 +595,10 @@ static void __declspec(naked) set_new_results_hack() {
 	__asm {
 		test ah, 0x1                              // DAM_KNOCKED_OUT?
 		jz   end                                  // No
-		mov  dword ptr ds:[_critterClearObj], esi
-		mov  edx, critterClearObjDrugs_
-		xor  eax, eax
-		inc  eax                                  // type = knockout
-		call queue_clear_type_                    // Remove knockout from queue (if there is one)
-		retn
+		mov  eax, esi
+		xor  edx, edx
+		inc  edx                                  // type = knockout
+		jmp  queue_remove_this_                   // Remove knockout from queue (if there is one)
 end:
 		pop  eax                                  // Destroying return address
 		mov  eax, 0x424FC6
@@ -619,7 +621,7 @@ end:
 		pop  esi
 		pop  ecx
 		pop  ebx
-	retn
+		retn
 	}
 }
 
