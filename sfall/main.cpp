@@ -659,28 +659,28 @@ fail:
 	}
 }
 
-static void _stdcall explosion_crash_fix_hook2() {
-	if(InCombat()) return;
-	for(int elv=0;elv<3;elv++) {
-		for(int tile=0;tile<40000;tile++) {
+/*static void _stdcall explosion_crash_fix_hook2() {
+	if (InCombat()) return;
+	for (int elv = 0; elv < 3; elv++) {
+		for (int tile = 0; tile < 40000; tile++) {
 			DWORD* obj;
 			__asm {
-				mov edx, tile;
-				mov eax, elv;
+				mov  edx, tile;
+				mov  eax, elv;
 				call obj_find_first_at_tile_;
-				mov obj, eax;
+				mov  obj, eax;
 			}
-			while(obj) {
+			while (obj) {
 				DWORD otype = obj[25];
 				otype = (otype&0xff000000) >> 24;
-				if(otype==1) {
-					obj[0x12]=0;
-					obj[0x15]=0;
-					obj[0x10]=0;
+				if (otype == 1) {
+					obj[0x12] = 0;
+					obj[0x15] = 0;
+					obj[0x10] = 0;
 				}
 				__asm {
 					call obj_find_next_at_tile_;
-					mov obj, eax;
+					mov  obj, eax;
 				}
 			}
 		}
@@ -692,9 +692,9 @@ static void __declspec(naked) explosion_crash_fix_hook() {
 		pushad;
 		call explosion_crash_fix_hook2;
 		popad;
-		jmp report_explosion_;
+		jmp  report_explosion_;
 	}
-}
+}*/
 
 static void __declspec(naked) objCanSeeObj_ShootThru_Fix() {//(EAX *objStruct, EDX hexNum1, EBX hexNum2, ECX ?, stack1 **ret_objStruct, stack2 flags)
 	__asm {
@@ -1491,8 +1491,8 @@ static void DllMain2() {
 	PartyControlInit();
 	dlogr(" Done", DL_INIT);
 
-	HookCall(0x413105, explosion_crash_fix_hook);//test for explosives
-	SafeWrite32(0x413034, (DWORD)&explosion_crash_fix_hook);
+	//HookCall(0x413105, explosion_crash_fix_hook);//test for explosives
+	//SafeWrite32(0x413034, (DWORD)&explosion_crash_fix_hook);
 
 	if (GetPrivateProfileIntA("Misc", "ObjCanSeeObj_ShootThru_Fix", 0, ini)) {
 		dlog("Applying ObjCanSeeObj ShootThru Fix.", DL_INIT);

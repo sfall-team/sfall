@@ -3,6 +3,7 @@
 #include "Bugs.h"
 #include "Define.h"
 #include "FalloutEngine.h"
+#include "ScriptExtender.h"
 
 DWORD WeightOnBody = 0;
 
@@ -660,6 +661,62 @@ static void __declspec(naked) partyMemberPrepLoadInstance_hack() {
 	}
 }
 
+static void __declspec(naked) combat_ctd_init_hack() {
+	__asm {
+		mov  [esi+0x24], eax                      // ctd.targetTile
+		mov  eax, [ebx+0x54]                      // pobj.who_hit_me
+		inc  eax
+		jnz  end
+		mov  [ebx+0x54], eax                      // pobj.who_hit_me
+end:
+		mov  eax, 0x422F11
+		jmp  eax
+	}
+}
+
+static void __declspec(naked) obj_save_hack() {
+	__asm {
+		inc  eax
+		jz   end
+		dec  eax
+		mov  edx, [esp+0x1C]                      // combat_data
+		mov  eax, [eax+0x68]                      // pobj.who_hit_me.cid
+		test byte ptr ds:[_combat_state], 1       // in combat?
+		jz   clear                                // No
+		cmp  dword ptr [edx], 0                   // in combat?
+		jne  skip                                 // Yes
+clear:
+		xor  eax, eax
+		dec  eax
+skip:
+		mov  [edx+0x18], eax                      // combat_data.who_hit_me
+end:
+		mov  eax, 0x489422
+		jmp  eax
+	}
+}
+
+static void __declspec(naked) action_explode_hack() {
+	__asm {
+		mov  edx, destroy_p_proc
+		mov  eax, [esi+0x78]                      // pobj.sid
+		call exec_script_proc_
+		xor  edx, edx
+		dec  edx
+		retn
+	}
+}
+
+static void __declspec(naked) action_explode_hack1() {
+	__asm {
+		push esi
+		mov  esi, [esi+0x40]                      // ctd.target#
+		call action_explode_hack
+		pop  esi
+		retn
+	}
+}
+
 static void __declspec(naked) barter_attempt_transaction_hack() {
 	__asm {
 		cmp  dword ptr [eax+0x64], PID_ACTIVE_GEIGER_COUNTER
@@ -719,7 +776,7 @@ void BugsInit()
 {
 	//if (GetPrivateProfileIntA("Misc", "SharpshooterFix", 1, ini)) {
 		dlog("Applying sharpshooter patch.", DL_INIT);
-		// http://www.nma-fallout.com/showthread.php?178390-FO2-Engine-Tweaks&p=4050162&viewfull=1#post4050162
+		// http://www.nma-fallout.com/threads/fo2-engine-tweaks-sfall.178390/page-119#post-4050162
 		// by Slider2k
 		HookCall(0x4244AB, &SharpShooterFix); // hooks stat_level_() call in detemine_to_hit_func_()
 		// // removes this line by making unconditional jump:
@@ -886,6 +943,15 @@ void BugsInit()
 		HookCall(0x4949B2, &partyMemberPrepLoadInstance_hack);
 		dlogr(" Done", DL_INIT);
 	//}
+
+	dlog("Applying fix for explosives bugs.", DL_INIT);
+	// Fix crashes when killing critters with explosives
+	MakeCall(0x422F05, &combat_ctd_init_hack, true);
+	MakeCall(0x489413, &obj_save_hack, true);
+	// Fix for destroy_p_proc not being called if the critter is killed by explosives when you leave the map
+	MakeCall(0x4130C3, &action_explode_hack, false);
+	MakeCall(0x4130E5, &action_explode_hack1, false);
+	dlogr(" Done", DL_INIT);
 
 	// Fix for unable to sell used geiger counters or stealth boys
 	if (GetPrivateProfileIntA("Misc", "CanSellUsedGeiger", 1, ini)) {
