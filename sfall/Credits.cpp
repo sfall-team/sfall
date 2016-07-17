@@ -106,7 +106,8 @@ static DWORD _stdcall CreditsNextLine(char* buf, DWORD* font, DWORD* colour) {
 	return 1;
 }
 
-static void __declspec(naked) CreditsNextLineHook() {
+// Additional lines will be at the top of CREDITS.TXT contents
+static void __declspec(naked) CreditsNextLineHook_Top() {
 	__asm {
 		pushad;
 		push ebx;
@@ -124,8 +125,33 @@ fail:
 	}
 }
 
+// Additional lines will be at the bottom of CREDITS.TXT contents
+static void __declspec(naked) CreditsNextLineHook_Bottom() {
+	__asm {
+		pushad;
+		call credits_get_next_line_;  // call default function
+		test eax, eax;                 
+		popad;
+		jnz morelines;				  // if not the end yet, skip custom code
+		pushad;
+		push ebx;
+		push edx;
+		push eax;
+		call CreditsNextLine;         // otherwise call out function
+		test eax, eax;                // if any extra lines left, return 1 (from function), 0 otherwise
+		popad;
+		jnz morelines;
+theend:
+		mov eax, 0x0;
+		retn;
+morelines:
+		mov eax, 0x1;
+		retn;
+	}
+}
+
 void CreditsInit() {
 	HookCall(0x480C49, &ShowCreditsHook);
 	HookCall(0x43F881, &ShowCreditsHook);
-	HookCall(0x42CB49, &CreditsNextLineHook);
+	HookCall(0x42CB49, &CreditsNextLineHook_Top);
 }
