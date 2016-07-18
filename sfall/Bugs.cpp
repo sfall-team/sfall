@@ -790,14 +790,14 @@ void BugsInit()
 	dlog("Applying fix for Pip-Boy rest exploit.", DL_INIT);
 	MakeCall(0x4971C7, &pipboy_hack, false);
 	MakeCall(0x499530, &PipAlarm_hack, false);
-	dlogr(" Done.", DL_INIT);
+	dlogr(" Done", DL_INIT);
 
 	// Fix for "Too Many Items" bug
 	//if (GetPrivateProfileIntA("Misc", "TooManyItemsBugFix", 1, ini)) {
 		dlog("Applying preventive patch for \"Too Many Items\" bug.", DL_INIT);
 		HookCall(0x4A596A, &scr_write_ScriptNode_hook);
 		HookCall(0x4A59C1, &scr_write_ScriptNode_hook);
-		dlogr(" Done.", DL_INIT);
+		dlogr(" Done", DL_INIT);
 	//}
 
 	// Fix for cells getting consumed even when the car is already fully charged
@@ -807,18 +807,18 @@ void BugsInit()
 	if (GetPrivateProfileIntA("Misc", "CarChargingFix", 1, ini)) {
 		dlog("Applying car charging fix.", DL_INIT);
 		MakeCall(0x49C36D, &protinst_default_use_item_hack, true);
-		dlogr(" Done.", DL_INIT);
+		dlogr(" Done", DL_INIT);
 	}
 
 	// Fix for gaining stats from more than two doses of a specific chem after save-load
 	dlog("Applying fix for save-load unlimited drug use exploit.", DL_INIT);
 	MakeCall(0x47A243, &item_d_load_hack, false);
-	dlogr(" Done.", DL_INIT);
+	dlogr(" Done", DL_INIT);
 
 	// Fix crash when leaving the map while waiting for someone to die of a super stimpak overdose
 	dlog("Applying fix for \"leaving the map while waiting for a super stimpak overdose death\" crash.", DL_INIT);
 	HookCall(0x4A27E7, &queue_clear_type_mem_free_hook); // hooks mem_free_()
-	dlogr(" Done.", DL_INIT);
+	dlogr(" Done", DL_INIT);
 
 	// Evil bug! If party member has the same armor type in inventory as currently equipped, then
 	// on level up he loses Armor Class equal to the one received from this armor.
@@ -827,30 +827,30 @@ void BugsInit()
 		dlog("Applying fix for armor reducing NPC original stats when removed.", DL_INIT);
 		HookCall(0x495F3B, &partyMemberCopyLevelInfo_stat_level_hook);
 		HookCall(0x45419B, &correctFidForRemovedItem_adjust_ac_hook);
-		dlogr(" Done.", DL_INIT);
+		dlogr(" Done", DL_INIT);
 	//}
 
 	// Fix of invalid stats when party member gains a level while being on drugs
 	dlog("Applying fix for addicted party member level up bug.", DL_INIT);
 	HookCall(0x495D5C, &partyMemberCopyLevelInfo_hook);
-	dlogr(" Done.", DL_INIT);
+	dlogr(" Done", DL_INIT);
 
 	// Allow 9 options (lines of text) to be displayed correctly in a dialog window
 	if (GetPrivateProfileIntA("Misc", "DialogOptions9Lines", 1, ini)) {
 		dlog("Applying 9 dialog options patch.", DL_INIT);
 		MakeCall(0x44701C, &gdProcessUpdate_hack, true);
-		dlogr(" Done.", DL_INIT);
+		dlogr(" Done", DL_INIT);
 	}
 
 	// Fix for "Unlimited Ammo" bug
 	dlog("Applying fix for Unlimited Ammo bug.", DL_INIT);
 	HookCall(0x472957, &invenWieldFunc_item_get_type_hook); // hooks item_get_type_()
-	dlogr(" Done.", DL_INIT);
+	dlogr(" Done", DL_INIT);
 
 	// Fix for negative values in Skilldex window ("S")
 	dlog("Applying fix for negative values in Skilldex window.", DL_INIT);
 	SafeWrite8(0x4AC377, 0x7F);                // jg
-	dlogr(" Done.", DL_INIT);
+	dlogr(" Done", DL_INIT);
 
 	// Fix for not counting in the weight of equipped items on NPC when stealing or bartering
 	//if (GetPrivateProfileIntA("Misc", "NPCWeightFix", 1, ini)) {
@@ -860,7 +860,7 @@ void BugsInit()
 		HookCall(0x474CB8, &barter_attempt_transaction_hook);
 		HookCall(0x4742AD, &move_inventory_hook);
 		HookCall(0x4771B5, &item_add_mult_hook);
-		dlogr(" Done.", DL_INIT);
+		dlogr(" Done", DL_INIT);
 	//}
 
 	// Corrects "Weight of items" text element width to be 64 (and not 80), which matches container element width
@@ -904,7 +904,7 @@ void BugsInit()
 		// proper checks for NPC's addiction instead of always using global vars
 		MakeCall(0x47A644, &item_d_check_addict_hack, true);
 		MakeCall(0x479FC5, &item_d_take_drug_hack, true);
-		dlogr(" Done.", DL_INIT);
+		dlogr(" Done", DL_INIT);
 	//}
 
 	//if (GetPrivateProfileInt("Misc", "ShivPatch", 1, ini)) {

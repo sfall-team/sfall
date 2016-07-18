@@ -1205,7 +1205,7 @@ static void DllMain2() {
 
 	int number_patch_loop=GetPrivateProfileInt("Misc", "NumberPatchLoop", -1, ini);
 	if(number_patch_loop>-1) {
-		dlog("Applying load multiple patches patch. ", DL_INIT);
+		dlog("Applying load multiple patches patch.", DL_INIT);
 		// Disable check
 		SafeWrite8(0x0444363, 0xE9);
 		SafeWrite32(0x0444364, 0xFFFFFFB9);
@@ -1217,7 +1217,7 @@ static void DllMain2() {
 	}
 
 	if(GetPrivateProfileInt("Misc", "DisplayKarmaChanges", 0, ini)) {
-		dlog("Applying display karma changes patch. ", DL_INIT);
+		dlog("Applying display karma changes patch.", DL_INIT);
 		GetPrivateProfileString("sfall", "KarmaGain", "You gained %d karma.", KarmaGainMsg, 128, translationIni);
 		GetPrivateProfileString("sfall", "KarmaLoss", "You lost %d karma.", KarmaLossMsg, 128, translationIni);
 		HookCall(0x455A6D, SetGlobalVarWrapper);
@@ -1225,7 +1225,7 @@ static void DllMain2() {
 	}
 
 	//if(GetPrivateProfileInt("Misc", "ImportedProcedureFix", 0, ini)) {
-		dlog("Applying imported procedure patch. ", DL_INIT);
+		dlog("Applying imported procedure patch.", DL_INIT);
 		SafeWrite16(0x46B35B, 0x1c60);
 		SafeWrite32(0x46B35D, 0x90909090);
 		SafeWrite8(0x46DBF1, 0xeb);
@@ -1235,34 +1235,33 @@ static void DllMain2() {
 	//}
 
 	if(GetPrivateProfileInt("Misc", "AlwaysReloadMsgs", 0, ini)) {
-		dlog("Applying always reload messages patch. ", DL_INIT);
+		dlog("Applying always reload messages patch.", DL_INIT);
 		SafeWrite8(0x4A6B8A, 0xff);
 		SafeWrite32(0x4A6B8B, 0x02eb0074);
 		dlogr(" Done", DL_INIT);
 	}
 
 	if(GetPrivateProfileInt("Misc", "PlayIdleAnimOnReload", 0, ini)) {
-		dlog("Applying idle anim on reload patch. ", DL_INIT);
+		dlog("Applying idle anim on reload patch.", DL_INIT);
 		HookCall(0x460B8C, ReloadHook);
 		dlogr(" Done", DL_INIT);
 	}
 
 	if (GetPrivateProfileInt("Misc", "CorpseLineOfFireFix", 0, ini)) {
-		dlog("Applying corpse line of fire patch. ", DL_INIT);
-
+		dlog("Applying corpse line of fire patch.", DL_INIT);
 		MakeCall(0x48B994, CorpseHitFix2, true);
 		MakeCall(0x48BA04, CorpseHitFix2b, true);
 		dlogr(" Done", DL_INIT);
 	}
 
 	if(GetPrivateProfileIntA("Misc", "EnableHeroAppearanceMod", 0, ini)) {
-		dlog("Setting up Appearance Char Screen buttons. ", DL_INIT);
+		dlog("Setting up Appearance Char Screen buttons.", DL_INIT);
 		EnableHeroAppearanceMod();
 		dlogr(" Done", DL_INIT);
 	}
 
 	if(GetPrivateProfileIntA("Misc", "SkipOpeningMovies", 0, ini)) {
-		dlog("Blocking opening movies. ", DL_INIT);
+		dlog("Blocking opening movies.", DL_INIT);
 		BlockCall(0x4809CB);
 		BlockCall(0x4809D4);
 		BlockCall(0x4809E0);
@@ -1271,12 +1270,12 @@ static void DllMain2() {
 
 	RetryCombatMinAP=GetPrivateProfileIntA("Misc", "NPCsTryToSpendExtraAP", 0, ini);
 	if(RetryCombatMinAP) {
-		dlog("Applying retry combat patch. ", DL_INIT);
+		dlog("Applying retry combat patch.", DL_INIT);
 		HookCall(0x422B94, &RetryCombatHook);
 		dlogr(" Done", DL_INIT);
 	}
 
-	dlog("Checking for changed skilldex images. ", DL_INIT);
+	dlog("Checking for changed skilldex images.", DL_INIT);
 	tmp=GetPrivateProfileIntA("Misc", "Lockpick", 293, ini);
 	if(tmp!=293) SafeWrite32(0x00518D54, tmp);
 	tmp=GetPrivateProfileIntA("Misc", "Steal", 293, ini);
