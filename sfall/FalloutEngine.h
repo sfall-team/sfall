@@ -71,6 +71,7 @@
 #define _game_user_wants_to_quit    0x5186CC
 #define _gcsd                       0x51094C
 #define _gdBarterMod                0x51873C
+#define _gdNumOptions               0x5186D8
 #define _gIsSteal                   0x51D430
 #define _glblmode                   0x5709D0
 #define _gmouse_current_cursor      0x518C0C

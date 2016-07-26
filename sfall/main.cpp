@@ -558,8 +558,8 @@ decrease:
 negative:
 		xor  ebx, ebx
 end:
-		mov  esi, 0x460BA6
-		jmp  esi
+		push 0x460BA6
+		retn
 	}
 }
 
@@ -734,8 +734,8 @@ static void __declspec(naked) wmTownMapFunc_hack() {
 		retn
 end:
 		pop  eax                                  // destroy the return address
-		mov  eax, 0x4C4976
-		jmp  eax
+		push 0x4C4976
+		retn
 	}
 }
 
@@ -760,6 +760,16 @@ static void __declspec(naked) register_object_take_out_hack() {
 		call register_object_change_fid_
 		pop  ecx
 		xor  eax, eax
+		retn
+	}
+}
+
+static void __declspec(naked) gdAddOptionStr_hack() {
+	__asm {
+		mov  ecx, ds:[_gdNumOptions]
+		add  ecx, '1'
+		push ecx
+		push 0x4458FA
 		retn
 	}
 }
@@ -1140,11 +1150,6 @@ static void DllMain2() {
 		SafeWrite32(0x00495D24, 0x90909090);
 		dlogr(" Done", DL_INIT);
 	}
-	//if(GetPrivateProfileIntA("Misc", "NPCLevelFix", 0, ini)) {
-		dlog("Applying NPCLevelFix.", DL_INIT);
-		HookCall(0x495BC9,  (void*)0x495E51);
-		dlogr(" Done", DL_INIT);
-	//}
 
 	if(GetPrivateProfileIntA("Misc", "SingleCore", 1, ini)) {
 		dlog("Applying single core patch.", DL_INIT);
@@ -1516,7 +1521,7 @@ static void DllMain2() {
 	SimplePatch<DWORD>(0x51D66C, "Misc", "CarryWeightLimit", 999);
 
 	if (GetPrivateProfileIntA("Misc", "EnableMusicInDialogue", 0, ini)) {
-		dlog("Applying playing music in dialogue patch.", DL_INIT);
+		dlog("Applying music in dialogue patch.", DL_INIT);
 		SafeWrite8(0x44525B, 0x00);
 		//BlockCall(0x450627);
 		dlogr(" Done", DL_INIT);
@@ -1530,7 +1535,7 @@ static void DllMain2() {
 
 	if (GetPrivateProfileIntA("Misc", "InstantWeaponEquip", 0, ini)) {
 	//Skip weapon equip/unequip animations
-		dlog("Applying InstantWeaponEquip patch.", DL_INIT);
+		dlog("Applying instant weapon equip patch.", DL_INIT);
 		for (int i = 0; i < sizeof(PutAwayWeapon)/4; i++) {
 			SafeWrite8(PutAwayWeapon[i], 0xEB);   // jmps
 		}
@@ -1538,6 +1543,19 @@ static void DllMain2() {
 		BlockCall(0x472AE0);                      // invenUnwieldFunc_
 		BlockCall(0x472AF0);                      //
 		MakeCall(0x415238, &register_object_take_out_hack, true);
+		dlogr(" Done", DL_INIT);
+	}
+
+	if (GetPrivateProfileIntA("Misc", "NumbersInDialogue", 0, ini)) {
+		dlog("Applying numbers in dialogue patch.", DL_INIT);
+		SafeWrite32(0x502C32, 0x2000202E);
+		SafeWrite8(0x446F3B, 0x35);
+		SafeWrite32(0x5029E2, 0x7325202E);
+		SafeWrite32(0x446F03, 0x2424448B);        // mov  eax, [esp+0x24]
+		SafeWrite8(0x446F07, 0x50);               // push eax
+		SafeWrite32(0x446FE0, 0x2824448B);        // mov  eax, [esp+0x28]
+		SafeWrite8(0x446FE4, 0x50);               // push eax
+		MakeCall(0x4458F5, &gdAddOptionStr_hack, true);
 		dlogr(" Done", DL_INIT);
 	}
 

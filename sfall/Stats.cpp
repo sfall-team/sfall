@@ -41,8 +41,8 @@ static void __declspec(naked) GetCurrentStatHook1() {
 		push esi;
 		push edi;
 		push ebp;
-		mov ebx, 0x004AEF4D;
-		jmp ebx;
+		push 0x4AEF4D;
+		retn;
 	}
 }
 static void __declspec(naked) GetCurrentStatHook2() {
@@ -76,8 +76,8 @@ pc1:
 pc2:
 		mov eax, ecx;
 end:
-		mov ebx, 0x004AF3D7;
-		jmp ebx;
+		push 0x4AF3D7;
+		retn;
 	}
 }
 
@@ -97,11 +97,11 @@ pc:
 		jg fail;
 		jmp end;
 fail:
-		mov eax, 0x004AF57E;
-		jmp eax;
+		push 0x4AF57E;
+		retn;
 end:
-		mov edx, 0x004AF59C;
-		jmp edx;
+		push 0x4AF59C;
+		retn;
 	}
 }
 

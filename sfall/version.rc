@@ -11,7 +11,7 @@ BEGIN
 		VALUE "FileDescription", "sfall, built for " TARGETVERSION
 		VALUE "FileVersion", VERSION_STRING
 		VALUE "InternalName", "sfall"
-		VALUE "LegalCopyright", "Copyright (C) 2006-2015, Timeslip"
+		VALUE "LegalCopyright", "Copyright (C) 2006-2016, Timeslip"
 		VALUE "ProductName", "sfall"
 		VALUE "ProductVersion", VERSION_STRING
 		END

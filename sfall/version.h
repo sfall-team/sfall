@@ -25,9 +25,9 @@
 #define VERSION_BUILD 3
 #define VERSION_REV 0
 #ifdef WIN2K
-#define VERSION_STRING "3.7c win2k"
+#define VERSION_STRING "3.7.3 win2k"
 #else
-#define VERSION_STRING "3.7c"
+#define VERSION_STRING "3.7.3"
 #endif
 
 #define CHECK_VAL  (4)

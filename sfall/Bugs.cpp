@@ -83,15 +83,15 @@ isCar:
 		cmp  eax, -1
 		jne  skip
 notCar:
-		mov  eax, 0x49C38B
-		jmp  eax                                  // "That does nothing."
+		push 0x49C38B
+		retn                                      // "That does nothing."
 skip:
 		test eax, eax
 		jnz  end
 		dec  eax
 end:
-		mov  esi, 0x49C3C5
-		jmp  esi
+		push 0x49C3C5
+		retn
 	}
 }
 
@@ -127,8 +127,8 @@ skip:
 		mov  eax, dword ptr ds:[_obj_dude]
 		call queue_find_first_
 end:
-		mov  esi, 0x47A6A1
-		jmp  esi
+		push 0x47A6A1
+		retn
 	}
 }
 
@@ -159,8 +159,8 @@ skip:
 		mov  eax, 2                               // type = addiction
 		mov  edx, offset remove_jet_addict
 		call queue_clear_type_
-		mov  eax, 0x479FD1
-		jmp  eax
+		push 0x479FD1
+		retn
 	}
 }
 
@@ -277,11 +277,11 @@ static void __declspec(naked) gdProcessUpdate_hack() {
 		cmp  eax, dword ptr ds:[_optionRect + 0xC]         // _optionRect.offy
 		jge  skip
 		add  eax, 2
-		mov  esi, 0x44702D
-		jmp  esi
+		push 0x44702D
+		retn
 skip:
-		mov  esi, 0x4470DB
-		jmp  esi
+		push 0x4470DB
+		retn
 	}
 }
 
@@ -412,8 +412,8 @@ static void __declspec(naked) inven_pickup_hack() {
 		dec  edx
 		sub  edx, eax
 		lea  edx, ds:0[edx*8]
-		mov  eax, 0x470EC9
-		jmp  eax
+		push 0x470EC9
+		retn
 	}
 }
 
@@ -450,8 +450,8 @@ next:
 		cmp  edx, 6
 		jb   next
 end:
-		mov  eax, 0x47125C
-		jmp  eax
+		push 0x47125C
+		retn
 found:
 		mov  ebx, 0x4711DF
 		add  edx, [esp+0x40]                      // inventory_offset
@@ -530,8 +530,8 @@ end:
 
 static void __declspec(naked) item_d_take_drug_hack1() {
 	__asm {
-		mov  eax, 0x47A168
-		jmp  eax
+		push 0x47A168
+		retn
 	}
 }
 
@@ -602,8 +602,8 @@ static void __declspec(naked) set_new_results_hack() {
 		jmp  queue_remove_this_                   // Remove knockout from queue (if there is one)
 end:
 		pop  eax                                  // Destroying return address
-		mov  eax, 0x424FC6
-		jmp  eax
+		push 0x424FC6
+		retn
 	}
 }
 
@@ -628,7 +628,6 @@ end:
 
 static void __declspec(naked) obj_load_func_hack() {
 	__asm {
-		mov  edi, 0x488EF9
 		test byte ptr [eax+0x25], 0x4             // Temp_
 		jnz  end
 		mov  edi, [eax+0x64]
@@ -648,9 +647,11 @@ static void __declspec(naked) obj_load_func_hack() {
 clear:
 		and  word ptr [eax+0x44], 0x7FFD          // not (DAM_LOSE_TURN or DAM_KNOCKED_DOWN)
 skip:
-		mov  edi, 0x488F14
+		push 0x488F14
+		retn
 end:
-		jmp  edi
+		push 0x488EF9
+		retn
 	}
 }
 
@@ -669,8 +670,8 @@ static void __declspec(naked) combat_ctd_init_hack() {
 		jnz  end
 		mov  [ebx+0x54], eax                      // pobj.who_hit_me
 end:
-		mov  eax, 0x422F11
-		jmp  eax
+		push 0x422F11
+		retn
 	}
 }
 
@@ -691,8 +692,8 @@ clear:
 skip:
 		mov  [edx+0x18], eax                      // combat_data.who_hit_me
 end:
-		mov  eax, 0x489422
-		jmp  eax
+		push 0x489422
+		retn
 	}
 }
 
@@ -877,6 +878,12 @@ void BugsInit()
 		MakeCall(0x47114A, &inven_pickup_hack2, true);
 		// Fix for using only one box of ammo when a weapon is above the ammo in the inventory list
 		HookCall(0x476598, &drop_ammo_into_weapon_hook);
+		dlogr(" Done", DL_INIT);
+	//}
+
+	//if(GetPrivateProfileIntA("Misc", "NPCLevelFix", 1, ini)) {
+		dlog("Applying NPC level fix.", DL_INIT);
+		HookCall(0x495BC9, (void*)0x495E51);
 		dlogr(" Done", DL_INIT);
 	//}
 
