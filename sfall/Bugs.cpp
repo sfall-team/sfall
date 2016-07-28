@@ -287,7 +287,6 @@ skip:
 
 static void __declspec(naked) invenWieldFunc_item_get_type_hook() {
 	__asm {
-		pushad
 		mov  edx, esi
 		xor  ebx, ebx
 		inc  ebx
@@ -296,8 +295,7 @@ static void __declspec(naked) invenWieldFunc_item_get_type_hook() {
 		and  cl, 0x3
 		xchg edx, eax                             // eax = who, edx = item
 		call item_remove_mult_
-		pop  ebx
-		xchg ebp, eax
+		xchg ebx, eax
 nextWeapon:
 		mov  eax, esi
 		test cl, 0x2                              // Right hand?
@@ -313,13 +311,14 @@ removeFlag:
 		jmp  nextWeapon
 noWeapon:
 		or   byte ptr [edi+0x27], cl              // Set flag of a weapon in hand
-		inc  ebp
+		inc  ebx
+		pop  ebx
 		jz   skip
-		xchg esi, eax
+		mov  eax, esi
 		mov  edx, edi
 		call item_add_force_
 skip:
-		popad
+		mov  eax, edi
 		jmp  item_get_type_
 	}
 }
@@ -535,11 +534,10 @@ static void __declspec(naked) item_d_take_drug_hack1() {
 	}
 }
 
-// TODO: check if it's still needed
 static void __declspec(naked) op_wield_obj_critter_adjust_ac_hook() {
 	__asm {
 		call adjust_ac_
-		xor  ecx, ecx
+		xor  eax, eax                       // not animated
 		jmp  intface_update_ac_
 	}
 }
@@ -843,8 +841,8 @@ void BugsInit()
 		dlogr(" Done", DL_INIT);
 	}
 
-	// Fix for "Unlimited Ammo" bug
-	dlog("Applying fix for Unlimited Ammo bug.", DL_INIT);
+	// Fix for "Unlimited Ammo" exploit
+	dlog("Applying fix for Unlimited Ammo exploit.", DL_INIT);
 	HookCall(0x472957, &invenWieldFunc_item_get_type_hook); // hooks item_get_type_()
 	dlogr(" Done", DL_INIT);
 

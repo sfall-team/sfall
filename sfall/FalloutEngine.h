@@ -52,7 +52,6 @@
 #define _curr_pc_stat               0x6681AC
 #define _curr_stack                 0x59E96C
 #define _cursor_line                0x664514
-#define _DARK_GREEN_Color           0x6A3A90
 #define _dialog_target              0x518848
 #define _dialog_target_is_party     0x51884C
 #define _drugInfoList               0x5191CC
@@ -87,7 +86,6 @@
 #define _i_rhand                    0x59E968
 #define _i_wid                      0x59E964
 #define _i_worn                     0x59E954
-#define _In_WorldMap                0x672E1C
 #define _info_line                  0x5707D0
 #define _interfaceWindow            0x519024
 #define _intfaceEnabled             0x518F10
@@ -109,8 +107,6 @@
 #define _list_total                 0x56D37C
 #define _loadingGame                0x5194C4
 #define _LSData                     0x613D30
-#define _lsgbuf                     0x614700
-#define _lsgmesg                    0x6142B0
 #define _lsgwin                     0x6142C4
 #define _main_ctd                   0x56D2B0
 #define _main_window                0x5194F0
@@ -163,6 +159,7 @@
 #define _read_callback              0x51DEEC
 #define _RedColor                   0x6AB4D0
 #define _retvals                    0x43EA7C
+#define _scr_size                   0x6AC9F0
 #define _skill_data                 0x51D118
 #define _slot_cursor                0x5193B8
 #define _sneak_working              0x56D77C // DWORD var 
@@ -172,7 +169,6 @@
 #define _stack_offset               0x59E844
 #define _stat_data                  0x51D53C
 #define _stat_flag                  0x66452A
-#define _str                        0x6145FC
 #define _Tag_                       0x5708B0
 #define _tag_skill                  0x668070
 #define _target_curr_stack          0x59E948
@@ -180,8 +176,6 @@
 #define _target_stack               0x59E81C
 #define _target_stack_offset        0x59E7EC
 #define _target_str                 0x56D518
-#define _target_xpos                0x672E20
-#define _target_ypos                0x672E24
 #define _text_char_width            0x51E3C4
 #define _text_height                0x51E3BC
 #define _text_max                   0x51E3D4
@@ -194,16 +188,11 @@
 #define _trait_data                 0x51DB84
 #define _view_page                  0x664520
 #define _wd_obj                     0x59E98C
-#define _wmAreaInfoList             0x51DDF8
 #define _wmLastRndTime              0x51DEA0
-#define _wmSphereData               0x672FF8
 #define _wmWorldOffsetX             0x51DE2C
 #define _wmWorldOffsetY             0x51DE30
 #define _world_xpos                 0x672E0C
 #define _world_ypos                 0x672E10
-#define _WorldMapCurrArea           0x672E08
-#define _xres                       0x672D7C
-#define _yres                       0x672D88
 #define _YellowColor                0x6AB8BB
 
 // variables
@@ -238,7 +227,6 @@ extern const DWORD art_ptr_lock_data_;
 extern const DWORD art_ptr_unlock_;
 extern const DWORD automap_;
 extern const DWORD barter_compute_value_;
-extern const DWORD buf_fill_;
 extern const DWORD buf_to_buf_;
 extern const DWORD check_death_;
 extern const DWORD Check4Keys_;
@@ -323,14 +311,12 @@ extern const DWORD gdProcess_;
 extern const DWORD get_input_;
 extern const DWORD get_time_;
 extern const DWORD getmsg_;
-extern const DWORD GetSlotList_;
 extern const DWORD gmouse_is_scrolling_;
 extern const DWORD gmouse_set_cursor_;
 extern const DWORD GNW_find_;
 extern const DWORD GNW95_process_message_;
 extern const DWORD gsnd_build_weapon_sfx_name_;
 extern const DWORD gsound_play_sfx_file_;
-extern const DWORD gsound_red_butt_press_;
 extern const DWORD handle_inventory_;
 extern const DWORD inc_game_time_;
 extern const DWORD insert_withdrawal_;
@@ -397,7 +383,6 @@ extern const DWORD item_w_rounds_;
 extern const DWORD item_w_try_reload_;
 extern const DWORD item_w_unload_;
 extern const DWORD item_weight_;
-extern const DWORD KillOldMaps_;
 extern const DWORD light_get_tile_; // aElev<eax>, aTilenum<edx>
 extern const DWORD ListDrvdStats_;
 extern const DWORD ListSkills_;
@@ -570,15 +555,12 @@ extern const DWORD win_draw_;
 extern const DWORD win_draw_rect_;
 extern const DWORD win_enable_button_;
 extern const DWORD win_get_buf_;
-extern const DWORD win_get_num_i_;
 extern const DWORD win_hide_;
 extern const DWORD win_line_;
 extern const DWORD win_print_;
 extern const DWORD win_register_button_;
 extern const DWORD win_register_button_disable_;
-extern const DWORD win_register_text_button_;
 extern const DWORD win_show_;
-extern const DWORD wmAreaSetWorldPos_;
 extern const DWORD wmInterfaceScrollTabsStart_;
 extern const DWORD wmPartyWalkingStep_;
 extern const DWORD wmWorldMapFunc_;

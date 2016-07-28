@@ -168,38 +168,41 @@ static void __declspec(naked) get_window_under_mouse() {
 	  retn;
    }
 }
+
 //Return screen width
 static void __declspec(naked) get_screen_width() {
-   __asm {
-	  push ecx;
-	  push edx;
-	  mov ecx, eax;
-	  mov edx, ds:[_xres];
-	  call interpretPushLong_;
-	  mov eax, ecx;
-	  mov edx, 0xc001;
-	  call interpretPushShort_
-	  pop edx;
-	  pop ecx;
-	  retn;
-   }
+	__asm {
+		push edx
+		push eax
+		mov  edx, ds:[_scr_size+8]                // _scr_size.offx
+		sub  edx, ds:[_scr_size]                  // _scr_size.x
+		inc  edx
+		call interpretPushLong_
+		pop  eax
+		mov  edx, 0xc001
+		call interpretPushShort_
+		pop  edx
+		retn
+	}
 }
+
 //Return screen height
 static void __declspec(naked) get_screen_height() {
-   __asm {
-	  push ecx;
-	  push edx;
-	  mov ecx, eax;
-	  mov edx, ds:[_yres];
-	  call interpretPushLong_;
-	  mov eax, ecx;
-	  mov edx, 0xc001;
-	  call interpretPushShort_
-	  pop edx;
-	  pop ecx;
-	  retn;
-   }
+	__asm {
+		push edx
+		push eax
+		mov  edx, ds:[_scr_size+12]               // _scr_size.offy
+		sub  edx, ds:[_scr_size+4]                // _scr_size.y
+		inc  edx
+		call interpretPushLong_
+		pop  eax
+		mov  edx, 0xc001
+		call interpretPushShort_
+		pop  edx
+		retn
+	}
 }
+
 //Stop game, the same effect as open charsscreen or inventory
 static void __declspec(naked) stop_game() {
    __asm {
