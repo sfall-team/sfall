@@ -22,7 +22,7 @@
 #include "FileSystem.h"
 #include "vector9x.cpp"
 
-extern void GetSavePath(char* buf, int type);
+extern void GetSavePath(char* buf, char* ftype);
 
 struct fsFile {
 	char* data;
@@ -440,7 +440,7 @@ void FileSystemSave(HANDLE h) {
 static void FileSystemLoad() {
 	FileSystemReset();
 	char buf[MAX_PATH];
-	GetSavePath(buf, 1);
+	GetSavePath(buf, "fs");
 
 	HANDLE h=CreateFileA(buf, GENERIC_READ, 0, 0, OPEN_EXISTING, 0, 0);
 	if(h!=INVALID_HANDLE_VALUE) {
@@ -454,8 +454,8 @@ static void FileSystemLoad() {
 				ReadFile(h, file.data, file.length, &read, 0);
 				if(UsingFileSystem) files.push_back(file);
 			}
-			CloseHandle(h);
 		}
+		CloseHandle(h);
 	}
 }
 static const DWORD LoadHookRetAddr=0x47CCEE;
