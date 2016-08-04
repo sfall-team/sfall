@@ -973,4 +973,8 @@ void BugsInit()
 	BlockCall(0x422E02);
 	MakeCall(0x422E1B, &combat_hack, false);
 	dlogr(" Done", DL_INIT);
+
+	// Fix for incorrect death animations being used when killing critters with kill_critter_type function
+	SafeWrite16(0x457E22, 0xDB31); // xor ebx, ebx
+	SafeWrite32(0x457C99, 0x30BE0075); // jnz loc_457C9B; mov esi, 48
 }
