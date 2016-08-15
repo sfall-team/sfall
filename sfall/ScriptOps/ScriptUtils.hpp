@@ -26,6 +26,7 @@
 #include "ScriptArrays.hpp"
 #include "FileSystem.h"
 #include "Arrays.h"
+#include "Message.h"
 
 static void __declspec(naked) funcSqrt() {
 	__asm {
@@ -861,22 +862,28 @@ static const DWORD* proto_msg_files = (DWORD*)0x006647AC;
 
 static void _stdcall op_message_str_game2() {
 	DWORD fileId = opArgs[0];
+	const char* msg = 0;
+
 	if (IsOpArgInt(0) && IsOpArgInt(1)) {
 		int msgId = GetOpArgInt(1);
-		const char* msg;
 		if (fileId < 20) { // main msg files
 			msg = GetMessageStr(game_msg_files[fileId], msgId);
 		}
 		else if (fileId >= 0x1000 && fileId <= 0x1005) { // proto msg files
 			msg = GetMessageStr((DWORD)&proto_msg_files[2*(fileId - 0x1000)], msgId);
 		}
-		if (msg != 0)
-			SetOpReturn(msg);
-		else
-			SetOpReturn(0, DATATYPE_INT);
-	} else {
-		SetOpReturn(0, DATATYPE_INT);
+		else if (fileId >= 0x2000) { // Extra game message files.
+			std::tr1::unordered_map<int, MSGList*>::iterator it = gExtraGameMsgLists.find(fileId);
+
+			if (it != gExtraGameMsgLists.end())
+				msg = GetMsg(it->second, msgId, 2);
+		}
 	}
+	
+	if (msg == 0)
+		msg = "Error";
+
+	SetOpReturn(msg);
 }
 
 static void __declspec(naked) op_message_str_game() {

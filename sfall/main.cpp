@@ -60,6 +60,7 @@
 #include "Tiles.h"
 #include "timer.h"
 #include "version.h"
+#include "Message.h"
 
 bool IsDebug = false;
 
@@ -1550,6 +1551,7 @@ static void DllMain2() {
 }
 
 static void _stdcall OnExit() {
+	ClearReadExtraGameMsgFiles();
 	ConsoleExit();
 	AnimationsAtOnceExit();
 	HeroAppearanceModExit();

@@ -1,6 +1,10 @@
 /*
  *    sfall
+<<<<<<< HEAD
  *    Copyright (C) 2008-2016  The sfall team
+=======
+ *    Copyright (C) 2009, 2010  Mash (Matt Wells, mashw at bigpond dot net dot au)
+>>>>>>> c3e489424351eadbc1d5f36772da89b586872eb9
  *
  *    This program is free software: you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
@@ -16,10 +20,18 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+<<<<<<< HEAD
 #include "main.h"
 
 #include "FalloutEngine.h"
 #include "Message.h"
+=======
+#include <string>
+#include "Message.h"
+#include "FalloutEngine.h"
+
+std::tr1::unordered_map<int, MSGList*> gExtraGameMsgLists;
+>>>>>>> c3e489424351eadbc1d5f36772da89b586872eb9
 
 int LoadMsgList(MSGList *MsgList, char *MsgFilePath) {
 	int retVal;
@@ -42,6 +54,7 @@ int DestroyMsgList(MSGList *MsgList) {
 	return retVal;
 }
 
+<<<<<<< HEAD
 /*
 bool GetMsg(MSGList *MsgList, MSGNode *MsgNode, DWORD msgRef) {
 	bool retVal=FALSE;
@@ -59,6 +72,23 @@ EndFunc:
 	return retVal;
 }
 */
+=======
+//bool GetMsg(MSGList *MsgList, MSGNode *MsgNode, DWORD msgRef) {
+//	bool retVal=FALSE;
+//	MsgNode->ref=msgRef;
+//
+//	__asm {
+//	mov edx, MsgNode
+//	mov eax, MsgList
+//	call message_search_
+//	cmp eax, 1
+//	jne EndFunc
+//	mov retVal, 1
+//	EndFunc:
+//	}
+//	return retVal;
+//}
+>>>>>>> c3e489424351eadbc1d5f36772da89b586872eb9
 
 MSGNode *GetMsgNode(MSGList *MsgList, DWORD msgRef) {
 
@@ -95,3 +125,54 @@ char* GetMsg(MSGList *MsgList, DWORD msgRef, int msgNum) {
 	}
 	return NULL;
 }
+<<<<<<< HEAD
+=======
+
+void ReadExtraGameMsgFiles() {
+	int read;
+	std::string names;
+
+	names.resize(256);
+
+	while ((read = GetPrivateProfileStringA("Misc", "ExtraGameMsgFileList", "",
+		(LPSTR)names.data(), names.size(), ".\\ddraw.ini")) == names.size() - 1)
+		names.resize(names.size() + 256);
+
+	if (names.empty())
+		return;
+
+	names.resize(names.find_first_of('\0'));
+	names.append(",");
+
+	int begin = 0;
+	int end;
+	int length;
+
+	while ((end = names.find_first_of(',', begin)) != std::string::npos) {
+		length = end - begin;
+
+		if (length > 0) {
+			std::string path = "game\\" + names.substr(begin, length) + ".msg";
+			MSGList* list = new MSGList;
+
+			if (LoadMsgList(list, (char*)path.data()) == 1)
+				gExtraGameMsgLists.insert(std::make_pair(0x2000 + gExtraGameMsgLists.size(), list));
+			else
+				delete list;
+		}
+
+		begin = end + 1;
+	}
+}
+
+void ClearReadExtraGameMsgFiles() {
+	std::tr1::unordered_map<int, MSGList*>::iterator it;
+
+	for (it = gExtraGameMsgLists.begin(); it != gExtraGameMsgLists.end(); ++it) {
+		DestroyMsgList(it->second);
+		delete it->second;
+	}
+
+	gExtraGameMsgLists.clear();
+}
+>>>>>>> c3e489424351eadbc1d5f36772da89b586872eb9
