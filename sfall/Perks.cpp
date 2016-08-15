@@ -342,36 +342,36 @@ static void __declspec(naked) PlayerHasPerkHook() {
 	__asm {
 		push ecx;
 		call HandleFakeTraits;
-		mov ecx, eax;
-		xor ebx, ebx;
+		mov  ecx, eax;
+		xor  ebx, ebx;
 oloop:
-		mov eax, ds:[_obj_dude];
-		mov edx, ebx;
+		mov  eax, ds:[_obj_dude];
+		mov  edx, ebx;
 		call perk_level_;
 		test eax, eax;
-		jnz win;
-		inc ebx;
-		cmp ebx, PERK_count;
-		jl oloop;
+		jnz  win;
+		inc  ebx;
+		cmp  ebx, PERK_count;
+		jl   oloop;
 		call HaveFakePerks;
 		test eax, eax;
-		jnz win;
-		mov ebx, 0x00434446;
-		jmp ebx;
+		jnz  win;
+		push 0x434446;
+		retn;
 win:
-		mov ebx, 0x0043438A;
-		jmp ebx;
+		push 0x43438A;
+		retn;
 	}
 }
 static void __declspec(naked) PlayerHasTraitHook() {
 	__asm {
 		call HaveFakeTraits;
 		test eax, eax;
-		jz end;
-		mov eax, 0x0043425B;
-		jmp eax;
+		jz   end;
+		push 0x43425B;
+		retn;
 end:
-		jmp PlayerHasPerkHook;
+		jmp  PlayerHasPerkHook;
 	}
 }
 
@@ -430,14 +430,14 @@ end:
 static void __declspec(naked) EndPerkLoopHook() {
 	__asm {
 		call HaveFakePerks;
-		add eax, PERK_count;
-		cmp ebx, eax;
-		jl end;
-		mov eax, 0x00434446;
-		jmp eax;
+		add  eax, PERK_count;
+		cmp  ebx, eax;
+		jl   end;
+		push 0x434446;
+		retn;
 end:
-		mov eax, 0x004343A5;
-		jmp eax;
+		push 0x4343A5;
+		retn;
 	}
 }
 
@@ -585,25 +585,25 @@ end2:
 
 static void __declspec(naked) HeaveHoHook() {
 	__asm {
-		xor edx, edx;
-		mov eax, ecx;
+		xor  edx, edx;
+		mov  eax, ecx;
 		call stat_level_;
-		lea ebx, [0+eax*4];
-		sub ebx, eax;
-		cmp ebx, esi;
-		jle lower;
-		mov ebx, esi;
+		lea  ebx, [0+eax*4];
+		sub  ebx, eax;
+		cmp  ebx, esi;
+		jle  lower;
+		mov  ebx, esi;
 lower:
-		mov eax, ecx;
-		mov edx, PERK_heave_ho;
+		mov  eax, ecx;
+		mov  edx, PERK_heave_ho;
 		call perk_level_;
-		lea ecx, [0+eax*8];
-		sub ecx, eax;
-		sub ecx, eax;
-		mov eax, ecx;
-		add eax, ebx;
-		mov edi, 0x478AFC;
-		jmp edi;
+		lea  ecx, [0+eax*8];
+		sub  ecx, eax;
+		sub  ecx, eax;
+		mov  eax, ecx;
+		add  eax, ebx;
+		push 0x478AFC;
+		retn;
 	}
 }
 void _stdcall ApplyHeaveHoFix() {

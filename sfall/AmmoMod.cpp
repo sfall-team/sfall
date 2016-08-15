@@ -658,8 +658,8 @@ static void __declspec(naked) DisplayBonusHtHDmg2() {
 		push eax
 		call sprintf_
 		add  esp, 4*5
-		mov  eax, 0x472569
-		jmp  eax
+		push 0x472569
+		retn
 	}
 }
 

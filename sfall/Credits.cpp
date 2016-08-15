@@ -22,10 +22,10 @@
 #include "FalloutEngine.h"
 #include "version.h"
 
-static DWORD InCredits=0;
-static DWORD CreditsLine=0;
+static DWORD InCredits = 0;
+static DWORD CreditsLine = 0;
 
-static const char* ExtraLines[]={
+static const char* ExtraLines[] = {
 	"#SFALL " VERSION_STRING,
 	"",
 	"sfall is free software, licensed under the GPL",
@@ -71,42 +71,43 @@ static const char* ExtraLines[]={
 	"#FALLOUT 2",
 	""
 };
-static DWORD ExtraLineCount=sizeof(ExtraLines)/4;
+static DWORD ExtraLineCount = sizeof(ExtraLines)/4;
 
-static const char* creditsFile="credits.txt";
+static const char* creditsFile = "credits.txt";
 
 static void _stdcall ShowCreditsHook() {
-	InCredits=1;
-	CreditsLine=0;
+	InCredits = 1;
+	CreditsLine = 0;
 	__asm {
-		mov eax, creditsFile;
+		mov  eax, creditsFile;
 		call credits_;
 	}
-	InCredits=0;
+	InCredits = 0;
 }
 
 static DWORD _stdcall CreditsNextLine(char* buf, DWORD* font, DWORD* colour) {
-	if(!InCredits||CreditsLine>=ExtraLineCount) return 0;
-	const char* line=ExtraLines[CreditsLine++];
-	if(strlen(line)) {
-		if(line[0]=='#') {
+	if (!InCredits || CreditsLine >= ExtraLineCount) return 0;
+	const char* line = ExtraLines[CreditsLine++];
+	if (strlen(line)) {
+		if (line[0] == '#') {
 			line++;
-			*font=*(DWORD*)_name_font;
-			*colour=*(BYTE*)0x6A7F01;
-		} else if(line[0]=='@') {
+			*font = *(DWORD*)_name_font;
+			*colour = *(BYTE*)0x6A7F01;
+		} else if (line[0] == '@') {
 			line++;
-			*font=*(DWORD*)_title_font;
-			*colour=*(DWORD*)_title_color;
+			*font = *(DWORD*)_title_font;
+			*colour = *(DWORD*)_title_color;
 		} else {
-			*font=*(DWORD*)_name_font;
-			*colour=*(DWORD*)_name_color;
+			*font = *(DWORD*)_name_font;
+			*colour = *(DWORD*)_name_color;
 		}
 	}
 	strcpy_s(buf, 256, line);
 	return 1;
 }
 
-static void __declspec(naked) CreditsNextLineHook() {
+// Additional lines will be at the top of CREDITS.TXT contents
+static void __declspec(naked) CreditsNextLineHook_Top() {
 	__asm {
 		pushad;
 		push ebx;
@@ -115,7 +116,7 @@ static void __declspec(naked) CreditsNextLineHook() {
 		call CreditsNextLine;
 		test eax, eax;
 		popad;
-		jz fail;
+		jz  fail;
 		xor eax, eax;
 		inc eax;
 		retn;
@@ -124,8 +125,36 @@ fail:
 	}
 }
 
+// Additional lines will be at the bottom of CREDITS.TXT contents
+static void __declspec(naked) CreditsNextLineHook_Bottom() {
+	__asm {
+		pushad;
+		call credits_get_next_line_;  // call default function
+		test eax, eax;
+		popad;
+		jnz  morelines;               // if not the end yet, skip custom code
+		pushad;
+		push ebx;
+		push edx;
+		push eax;
+		call CreditsNextLine;         // otherwise call out function
+		test eax, eax;                // if any extra lines left, return 1 (from function), 0 otherwise
+		popad;
+		jnz  morelines;
+theend:
+		mov  eax, 0x0;
+		retn;
+morelines:
+		mov  eax, 0x1;
+		retn;
+	}
+}
+
 void CreditsInit() {
 	HookCall(0x480C49, &ShowCreditsHook);
 	HookCall(0x43F881, &ShowCreditsHook);
-	HookCall(0x42CB49, &CreditsNextLineHook);
+	if (GetPrivateProfileIntA("Misc", "CreditsAtBottom", 0, ini))
+		HookCall(0x42CB49, &CreditsNextLineHook_Bottom);
+	else
+		HookCall(0x42CB49, &CreditsNextLineHook_Top);
 }

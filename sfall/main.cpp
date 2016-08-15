@@ -60,7 +60,6 @@
 #include "Tiles.h"
 #include "timer.h"
 #include "version.h"
-#include "Message.h"
 
 bool IsDebug = false;
 
@@ -539,34 +538,28 @@ end:
 	}
 }
 
-static DWORD SpeedInterfaceCounterAnims;
 static void __declspec(naked) intface_rotate_numbers_hack() {
 	__asm {
 		push edi
 		push ebp
 		sub  esp, 0x54
-		mov  edi, SpeedInterfaceCounterAnims
 // ebx=old value, ecx=new value
 		cmp  ebx, ecx
 		je   end
 		mov  ebx, ecx
 		jg   decrease
-		test edi, edi
-		jnz  end
 		dec  ebx
 		jmp  end
 decrease:
-		cmp  ecx, 0
+		test ecx, ecx
 		jl   negative
-		test edi, edi
-		jnz  end
 		inc  ebx
 		jmp  end
 negative:
 		xor  ebx, ebx
 end:
-		mov  esi, 0x460BA6
-		jmp  esi
+		push 0x460BA6
+		retn
 	}
 }
 
@@ -666,28 +659,28 @@ fail:
 	}
 }
 
-static void _stdcall explosion_crash_fix_hook2() {
-	if(InCombat()) return;
-	for(int elv=0;elv<3;elv++) {
-		for(int tile=0;tile<40000;tile++) {
+/*static void _stdcall explosion_crash_fix_hook2() {
+	if (InCombat()) return;
+	for (int elv = 0; elv < 3; elv++) {
+		for (int tile = 0; tile < 40000; tile++) {
 			DWORD* obj;
 			__asm {
-				mov edx, tile;
-				mov eax, elv;
+				mov  edx, tile;
+				mov  eax, elv;
 				call obj_find_first_at_tile_;
-				mov obj, eax;
+				mov  obj, eax;
 			}
-			while(obj) {
+			while (obj) {
 				DWORD otype = obj[25];
 				otype = (otype&0xff000000) >> 24;
-				if(otype==1) {
-					obj[0x12]=0;
-					obj[0x15]=0;
-					obj[0x10]=0;
+				if (otype == 1) {
+					obj[0x12] = 0;
+					obj[0x15] = 0;
+					obj[0x10] = 0;
 				}
 				__asm {
 					call obj_find_next_at_tile_;
-					mov obj, eax;
+					mov  obj, eax;
 				}
 			}
 		}
@@ -699,9 +692,9 @@ static void __declspec(naked) explosion_crash_fix_hook() {
 		pushad;
 		call explosion_crash_fix_hook2;
 		popad;
-		jmp report_explosion_;
+		jmp  report_explosion_;
 	}
-}
+}*/
 
 static void __declspec(naked) objCanSeeObj_ShootThru_Fix() {//(EAX *objStruct, EDX hexNum1, EBX hexNum2, ECX ?, stack1 **ret_objStruct, stack2 flags)
 	__asm {
@@ -741,8 +734,8 @@ static void __declspec(naked) wmTownMapFunc_hack() {
 		retn
 end:
 		pop  eax                                  // destroy the return address
-		mov  eax, 0x4C4976
-		jmp  eax
+		push 0x4C4976
+		retn
 	}
 }
 
@@ -767,6 +760,16 @@ static void __declspec(naked) register_object_take_out_hack() {
 		call register_object_change_fid_
 		pop  ecx
 		xor  eax, eax
+		retn
+	}
+}
+
+static void __declspec(naked) gdAddOptionStr_hack() {
+	__asm {
+		mov  ecx, ds:[_gdNumOptions]
+		add  ecx, '1'
+		push ecx
+		push 0x4458FA
 		retn
 	}
 }
@@ -1147,11 +1150,6 @@ static void DllMain2() {
 		SafeWrite32(0x00495D24, 0x90909090);
 		dlogr(" Done", DL_INIT);
 	}
-	//if(GetPrivateProfileIntA("Misc", "NPCLevelFix", 0, ini)) {
-		dlog("Applying NPCLevelFix.", DL_INIT);
-		HookCall(0x495BC9,  (void*)0x495E51);
-		dlogr(" Done", DL_INIT);
-	//}
 
 	if(GetPrivateProfileIntA("Misc", "SingleCore", 1, ini)) {
 		dlog("Applying single core patch.", DL_INIT);
@@ -1212,7 +1210,7 @@ static void DllMain2() {
 
 	int number_patch_loop=GetPrivateProfileInt("Misc", "NumberPatchLoop", -1, ini);
 	if(number_patch_loop>-1) {
-		dlog("Applying load multiple patches patch. ", DL_INIT);
+		dlog("Applying load multiple patches patch.", DL_INIT);
 		// Disable check
 		SafeWrite8(0x0444363, 0xE9);
 		SafeWrite32(0x0444364, 0xFFFFFFB9);
@@ -1224,7 +1222,7 @@ static void DllMain2() {
 	}
 
 	if(GetPrivateProfileInt("Misc", "DisplayKarmaChanges", 0, ini)) {
-		dlog("Applying display karma changes patch. ", DL_INIT);
+		dlog("Applying display karma changes patch.", DL_INIT);
 		GetPrivateProfileString("sfall", "KarmaGain", "You gained %d karma.", KarmaGainMsg, 128, translationIni);
 		GetPrivateProfileString("sfall", "KarmaLoss", "You lost %d karma.", KarmaLossMsg, 128, translationIni);
 		HookCall(0x455A6D, SetGlobalVarWrapper);
@@ -1232,7 +1230,7 @@ static void DllMain2() {
 	}
 
 	//if(GetPrivateProfileInt("Misc", "ImportedProcedureFix", 0, ini)) {
-		dlog("Applying imported procedure patch. ", DL_INIT);
+		dlog("Applying imported procedure patch.", DL_INIT);
 		SafeWrite16(0x46B35B, 0x1c60);
 		SafeWrite32(0x46B35D, 0x90909090);
 		SafeWrite8(0x46DBF1, 0xeb);
@@ -1242,34 +1240,33 @@ static void DllMain2() {
 	//}
 
 	if(GetPrivateProfileInt("Misc", "AlwaysReloadMsgs", 0, ini)) {
-		dlog("Applying always reload messages patch. ", DL_INIT);
+		dlog("Applying always reload messages patch.", DL_INIT);
 		SafeWrite8(0x4A6B8A, 0xff);
 		SafeWrite32(0x4A6B8B, 0x02eb0074);
 		dlogr(" Done", DL_INIT);
 	}
 
 	if(GetPrivateProfileInt("Misc", "PlayIdleAnimOnReload", 0, ini)) {
-		dlog("Applying idle anim on reload patch. ", DL_INIT);
+		dlog("Applying idle anim on reload patch.", DL_INIT);
 		HookCall(0x460B8C, ReloadHook);
 		dlogr(" Done", DL_INIT);
 	}
 
 	if (GetPrivateProfileInt("Misc", "CorpseLineOfFireFix", 0, ini)) {
-		dlog("Applying corpse line of fire patch. ", DL_INIT);
-
+		dlog("Applying corpse line of fire patch.", DL_INIT);
 		MakeCall(0x48B994, CorpseHitFix2, true);
 		MakeCall(0x48BA04, CorpseHitFix2b, true);
 		dlogr(" Done", DL_INIT);
 	}
 
 	if(GetPrivateProfileIntA("Misc", "EnableHeroAppearanceMod", 0, ini)) {
-		dlog("Setting up Appearance Char Screen buttons. ", DL_INIT);
+		dlog("Setting up Appearance Char Screen buttons.", DL_INIT);
 		EnableHeroAppearanceMod();
 		dlogr(" Done", DL_INIT);
 	}
 
 	if(GetPrivateProfileIntA("Misc", "SkipOpeningMovies", 0, ini)) {
-		dlog("Blocking opening movies. ", DL_INIT);
+		dlog("Blocking opening movies.", DL_INIT);
 		BlockCall(0x4809CB);
 		BlockCall(0x4809D4);
 		BlockCall(0x4809E0);
@@ -1278,12 +1275,12 @@ static void DllMain2() {
 
 	RetryCombatMinAP=GetPrivateProfileIntA("Misc", "NPCsTryToSpendExtraAP", 0, ini);
 	if(RetryCombatMinAP) {
-		dlog("Applying retry combat patch. ", DL_INIT);
+		dlog("Applying retry combat patch.", DL_INIT);
 		HookCall(0x422B94, &RetryCombatHook);
 		dlogr(" Done", DL_INIT);
 	}
 
-	dlog("Checking for changed skilldex images. ", DL_INIT);
+	dlog("Checking for changed skilldex images.", DL_INIT);
 	tmp=GetPrivateProfileIntA("Misc", "Lockpick", 293, ini);
 	if(tmp!=293) SafeWrite32(0x00518D54, tmp);
 	tmp=GetPrivateProfileIntA("Misc", "Steal", 293, ini);
@@ -1335,12 +1332,17 @@ static void DllMain2() {
 		dlogr(" Done", DL_INIT);
 	}
 
-	SpeedInterfaceCounterAnims = GetPrivateProfileIntA("Misc", "SpeedInterfaceCounterAnims", 0, ini);
-	if (SpeedInterfaceCounterAnims == 1 || SpeedInterfaceCounterAnims == 2) {
-		SpeedInterfaceCounterAnims--;
+	switch (GetPrivateProfileIntA("Misc", "SpeedInterfaceCounterAnims", 0, ini)) {
+	case 1:
 		dlog("Applying SpeedInterfaceCounterAnims patch.", DL_INIT);
 		MakeCall(0x460BA1, &intface_rotate_numbers_hack, true);
 		dlogr(" Done", DL_INIT);
+		break;
+	case 2:
+		dlog("Applying SpeedInterfaceCounterAnims patch. (Instant)", DL_INIT);
+		SafeWrite32(0x460BB6, 0x90DB3190);
+		dlogr(" Done", DL_INIT);
+		break;
 	}
 
 	KarmaFrmCount=GetPrivateProfileIntA("Misc", "KarmaFRMsCount", 0, ini);
@@ -1493,8 +1495,8 @@ static void DllMain2() {
 	PartyControlInit();
 	dlogr(" Done", DL_INIT);
 
-	HookCall(0x413105, explosion_crash_fix_hook);//test for explosives
-	SafeWrite32(0x413034, (DWORD)&explosion_crash_fix_hook);
+	//HookCall(0x413105, explosion_crash_fix_hook);//test for explosives
+	//SafeWrite32(0x413034, (DWORD)&explosion_crash_fix_hook);
 
 	if (GetPrivateProfileIntA("Misc", "ObjCanSeeObj_ShootThru_Fix", 0, ini)) {
 		dlog("Applying ObjCanSeeObj ShootThru Fix.", DL_INIT);
@@ -1519,7 +1521,7 @@ static void DllMain2() {
 	SimplePatch<DWORD>(0x51D66C, "Misc", "CarryWeightLimit", 999);
 
 	if (GetPrivateProfileIntA("Misc", "EnableMusicInDialogue", 0, ini)) {
-		dlog("Applying playing music in dialogue patch.", DL_INIT);
+		dlog("Applying music in dialogue patch.", DL_INIT);
 		SafeWrite8(0x44525B, 0x00);
 		//BlockCall(0x450627);
 		dlogr(" Done", DL_INIT);
@@ -1533,7 +1535,7 @@ static void DllMain2() {
 
 	if (GetPrivateProfileIntA("Misc", "InstantWeaponEquip", 0, ini)) {
 	//Skip weapon equip/unequip animations
-		dlog("Applying InstantWeaponEquip patch.", DL_INIT);
+		dlog("Applying instant weapon equip patch.", DL_INIT);
 		for (int i = 0; i < sizeof(PutAwayWeapon)/4; i++) {
 			SafeWrite8(PutAwayWeapon[i], 0xEB);   // jmps
 		}
@@ -1541,6 +1543,19 @@ static void DllMain2() {
 		BlockCall(0x472AE0);                      // invenUnwieldFunc_
 		BlockCall(0x472AF0);                      //
 		MakeCall(0x415238, &register_object_take_out_hack, true);
+		dlogr(" Done", DL_INIT);
+	}
+
+	if (GetPrivateProfileIntA("Misc", "NumbersInDialogue", 0, ini)) {
+		dlog("Applying numbers in dialogue patch.", DL_INIT);
+		SafeWrite32(0x502C32, 0x2000202E);
+		SafeWrite8(0x446F3B, 0x35);
+		SafeWrite32(0x5029E2, 0x7325202E);
+		SafeWrite32(0x446F03, 0x2424448B);        // mov  eax, [esp+0x24]
+		SafeWrite8(0x446F07, 0x50);               // push eax
+		SafeWrite32(0x446FE0, 0x2824448B);        // mov  eax, [esp+0x28]
+		SafeWrite8(0x446FE4, 0x50);               // push eax
+		MakeCall(0x4458F5, &gdAddOptionStr_hack, true);
 		dlogr(" Done", DL_INIT);
 	}
 

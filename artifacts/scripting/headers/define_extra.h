@@ -2,16 +2,6 @@
 #ifndef DEFINE_EXTRA_H
 #define DEFINE_EXTRA_H
 
-#define ATTACK_MODE_NONE      0
-#define ATTACK_MODE_PUNCH     1
-#define ATTACK_MODE_KICK      2
-#define ATTACK_MODE_SWING     3
-#define ATTACK_MODE_THRUST    4
-#define ATTACK_MODE_THROW     5
-#define ATTACK_MODE_SINGLE    6
-#define ATTACK_MODE_BURST     7
-#define ATTACK_MODE_FLAME     8
-
 #define OBJ_TYPE_ITEM       (0)
 #define OBJ_TYPE_CRITTER    (1)
 #define OBJ_TYPE_SCENERY    (2)
@@ -20,18 +10,47 @@
 #define OBJ_TYPE_MISC       (5)
 #define OBJ_TYPE_SPATIAL    (6)
 
+/* Item Common Flags */
+#define HIDDEN_ITEM     134217728  // 0x08000000 - Hidden Item
+
+#define ITEM_ACTION_USE      2048  // 0x00000800 - Use (can be used)
+#define ITEM_ACTION_USEON    4096  // 0x00001000 - Use On Smth (can be used on anything)
+#define ITEM_ACTION_PICKUP  32768  // 0x00008000 - PickUp
+
+#define WEAPON_BIGGUN         256  // 0x00000100 - Big Gun
+#define WEAPON_2HAND          512  // 0x00000200 - 2Hnd (weapon is two-handed)
+
+#define ATKMODE_PRI_NONE        0
+#define ATKMODE_PRI_PUNCH       1
+#define ATKMODE_PRI_KICK        2
+#define ATKMODE_PRI_SWING       3
+#define ATKMODE_PRI_THRUST      4
+#define ATKMODE_PRI_THROW       5
+#define ATKMODE_PRI_SINGLE      6
+#define ATKMODE_PRI_BURST       7
+#define ATKMODE_PRI_FLAME       8
+#define ATKMODE_SEC_NONE        0
+#define ATKMODE_SEC_PUNCH      16  // 0x00000010
+#define ATKMODE_SEC_KICK       32  // 0x00000020
+#define ATKMODE_SEC_SWING      48  // 0x00000030
+#define ATKMODE_SEC_THRUST     64  // 0x00000040
+#define ATKMODE_SEC_THROW      80  // 0x00000050
+#define ATKMODE_SEC_SINGLE     96  // 0x00000060
+#define ATKMODE_SEC_BURST     112  // 0x00000070
+#define ATKMODE_SEC_FLAME     128  // 0x00000080
+
 /* Critter Flags */
-#define CFLG_BARTER             2  //0x00000002 - Barter (can trade with)
-#define CFLG_NOSTEAL           32  //0x00000020 - Steal (cannot steal from)
-#define CFLG_NODROP            64  //0x00000040 - Drop (doesn't drop items)
-#define CFLG_NOLIMBS          128  //0x00000080 - Limbs (cannot lose limbs)
-#define CFLG_NOAGES           256  //0x00000100 - Ages (dead body does not disappear)
-#define CFLG_NOHEAL           512  //0x00000200 - Heal (damage is not cured with time)
-#define CFLG_INVULN          1024  //0x00000400 - Invulnerable (cannot be hurt)
-#define CFLG_FLATTN          2048  //0x00000800 - Flatten (leaves no dead body)
-#define CFLG_SPECIAL         4096  //0x00001000 - Special (there is a special type of death)
-#define CFLG_RANGED          8192  //0x00002000 - Range (melee attack is possible at a distance)
-#define CFLG_NOKNOCKDOWN    16384  //0x00004000 - Knock (cannot be knocked down)
+#define CFLG_BARTER             2  // 0x00000002 - Barter (can trade with)
+#define CFLG_NOSTEAL           32  // 0x00000020 - Steal (cannot steal from)
+#define CFLG_NODROP            64  // 0x00000040 - Drop (doesn't drop items)
+#define CFLG_NOLIMBS          128  // 0x00000080 - Limbs (cannot lose limbs)
+#define CFLG_NOAGES           256  // 0x00000100 - Ages (dead body does not disappear)
+#define CFLG_NOHEAL           512  // 0x00000200 - Heal (damage is not cured with time)
+#define CFLG_INVULN          1024  // 0x00000400 - Invulnerable (cannot be hurt)
+#define CFLG_FLATTN          2048  // 0x00000800 - Flatten (leaves no dead body)
+#define CFLG_SPECIAL         4096  // 0x00001000 - Special (there is a special type of death)
+#define CFLG_RANGED          8192  // 0x00002000 - Range (melee attack is possible at a distance)
+#define CFLG_NOKNOCKDOWN    16384  // 0x00004000 - Knock (cannot be knocked down)
 
 //remove inven obj defines
 #define RMOBJ_CONSUME_DRUG        4666772

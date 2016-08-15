@@ -84,29 +84,29 @@ static void __declspec(naked) UnknownHook2() {
 
 static void __declspec(naked) GetNumButtonsHook1() {
 	__asm {
-		lea esi, Menus;
-		mov eax, [esi+edi*4];
-		mov eax, [_btncnt+eax*4];
-		mov esi, 0x43F064;
-		jmp esi;
+		lea  esi, Menus;
+		mov  eax, [esi+edi*4];
+		mov  eax, [_btncnt+eax*4];
+		push 0x43F064;
+		retn;
 	}
 }
 static void __declspec(naked) GetNumButtonsHook2() {
 	__asm {
-		lea edx, Menus;
-		mov eax, [edx+edi*4];
-		mov eax, [_btncnt+eax*4];
-		mov edx, 0x43F18B;
-		jmp edx;
+		lea  edx, Menus;
+		mov  eax, [edx+edi*4];
+		mov  eax, [_btncnt+eax*4];
+		push 0x43F18B;
+		retn;
 	}
 }
 static void __declspec(naked) GetNumButtonsHook3() {
 	__asm {
-		lea eax, Menus;
-		mov eax, [eax+edi*4];
-		mov eax, [_btncnt+eax*4];
-		mov ebx, 0x43F1EB;
-		jmp ebx;
+		lea  eax, Menus;
+		mov  eax, [eax+edi*4];
+		mov  eax, [_btncnt+eax*4];
+		push 0x43F1EB;
+		retn;
 	}
 }
 

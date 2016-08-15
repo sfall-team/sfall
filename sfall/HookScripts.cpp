@@ -86,7 +86,7 @@ static void _stdcall RunSpecificHookScript(sHookScript *hook) {
 	if (hook->callback != -1)
 		RunScriptProcByNum(hook->prog.ptr, hook->callback);
 	else
-		RunScriptProc(&hook->prog, start_proc);
+		RunScriptProc(&hook->prog, start);
 }
 static void _stdcall RunHookScript(DWORD hook) {
 	if (hooks[hook].size()) {

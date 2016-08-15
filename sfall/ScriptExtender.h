@@ -30,7 +30,7 @@ struct sGlobalVar
 	int val;
 };
 
-#define SCRIPT_PROC_MAX		(27)
+#define SCRIPT_PROC_MAX (27)
 typedef struct  
 {
 	DWORD ptr;
@@ -86,12 +86,13 @@ static char reg_anim_combat_check = 1;
 extern DWORD isGlobalScriptLoading;
 
 // types for script variables
-#define VAR_TYPE_INT	(0xC001)
-#define VAR_TYPE_FLOAT	(0xA001)
-#define VAR_TYPE_STR	(0x9801)
-#define VAR_TYPE_STR2	(0x9001)
+#define VAR_TYPE_INT    (0xC001)
+#define VAR_TYPE_FLOAT  (0xA001)
+#define VAR_TYPE_STR    (0x9801)
+#define VAR_TYPE_STR2   (0x9001)
 
 // script procs
-#define start_proc			 (1)
-#define map_enter_p_proc	(15)
-#define map_update_proc		(23)
+#define start               (1)
+#define map_enter_p_proc    (15)
+#define destroy_p_proc      (18)
+#define map_update_p_proc   (23)

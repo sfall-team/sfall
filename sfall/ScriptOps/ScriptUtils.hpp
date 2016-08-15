@@ -879,7 +879,7 @@ static void _stdcall op_message_str_game2() {
 				msg = GetMsg(it->second, msgId, 2);
 		}
 	}
-	
+
 	if (msg == 0)
 		msg = "Error";
 

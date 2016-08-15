@@ -3,6 +3,7 @@
 #include "Bugs.h"
 #include "Define.h"
 #include "FalloutEngine.h"
+#include "ScriptExtender.h"
 
 DWORD WeightOnBody = 0;
 
@@ -82,15 +83,15 @@ isCar:
 		cmp  eax, -1
 		jne  skip
 notCar:
-		mov  eax, 0x49C38B
-		jmp  eax                                  // "That does nothing."
+		push 0x49C38B
+		retn                                      // "That does nothing."
 skip:
 		test eax, eax
 		jnz  end
 		dec  eax
 end:
-		mov  esi, 0x49C3C5
-		jmp  esi
+		push 0x49C3C5
+		retn
 	}
 }
 
@@ -126,8 +127,8 @@ skip:
 		mov  eax, dword ptr ds:[_obj_dude]
 		call queue_find_first_
 end:
-		mov  esi, 0x47A6A1
-		jmp  esi
+		push 0x47A6A1
+		retn
 	}
 }
 
@@ -158,30 +159,10 @@ skip:
 		mov  eax, 2                               // type = addiction
 		mov  edx, offset remove_jet_addict
 		call queue_clear_type_
-		mov  eax, 0x479FD1
-		jmp  eax
-	}
-}
-
-/*
-static void __declspec(naked) item_wd_process_hook() {
-	__asm {
-		cmp  esi, PERK_add_jet
-		je   itsJet
+		push 0x479FD1
 		retn
-itsJet:
-		pop  edx                                  // Destroying the return address
-		xor  edx, edx                             // edx=init
-		mov  ecx, dword ptr [ebx+0x4]             // ecx=drug_pid
-		push ecx
-		mov  ecx, esi                             // ecx=perk
-		mov  ebx, 2880                            // ebx=time
-		call insert_withdrawal_
-		mov  eax, 0x47A3FB
-		jmp  eax
 	}
 }
-*/
 
 static void __declspec(naked) item_d_load_hack() {
 	__asm {
@@ -296,25 +277,25 @@ static void __declspec(naked) gdProcessUpdate_hack() {
 		cmp  eax, dword ptr ds:[_optionRect + 0xC]         // _optionRect.offy
 		jge  skip
 		add  eax, 2
-		mov  esi, 0x44702D
-		jmp  esi
+		push 0x44702D
+		retn
 skip:
-		mov  esi, 0x4470DB
-		jmp  esi
+		push 0x4470DB
+		retn
 	}
 }
 
 static void __declspec(naked) invenWieldFunc_item_get_type_hook() {
 	__asm {
-		pushad
 		mov  edx, esi
 		xor  ebx, ebx
 		inc  ebx
 		push ebx
 		mov  cl, byte ptr [edi+0x27]
 		and  cl, 0x3
-		xchg edx, eax                             // eax=who, edx=item
+		xchg edx, eax                             // eax = who, edx = item
 		call item_remove_mult_
+		xchg ebx, eax
 nextWeapon:
 		mov  eax, esi
 		test cl, 0x2                              // Right hand?
@@ -330,11 +311,14 @@ removeFlag:
 		jmp  nextWeapon
 noWeapon:
 		or   byte ptr [edi+0x27], cl              // Set flag of a weapon in hand
-		xchg esi, eax
-		mov  edx, edi
+		inc  ebx
 		pop  ebx
+		jz   skip
+		mov  eax, esi
+		mov  edx, edi
 		call item_add_force_
-		popad
+skip:
+		mov  eax, edi
 		jmp  item_get_type_
 	}
 }
@@ -427,8 +411,8 @@ static void __declspec(naked) inven_pickup_hack() {
 		dec  edx
 		sub  edx, eax
 		lea  edx, ds:0[edx*8]
-		mov  eax, 0x470EC9
-		jmp  eax
+		push 0x470EC9
+		retn
 	}
 }
 
@@ -465,8 +449,8 @@ next:
 		cmp  edx, 6
 		jb   next
 end:
-		mov  eax, 0x47125C
-		jmp  eax
+		push 0x47125C
+		retn
 found:
 		mov  ebx, 0x4711DF
 		add  edx, [esp+0x40]                      // inventory_offset
@@ -545,16 +529,15 @@ end:
 
 static void __declspec(naked) item_d_take_drug_hack1() {
 	__asm {
-		mov  eax, 0x47A168
-		jmp  eax
+		push 0x47A168
+		retn
 	}
 }
 
-// TODO: check if it's still needed
 static void __declspec(naked) op_wield_obj_critter_adjust_ac_hook() {
 	__asm {
 		call adjust_ac_
-		xor  ecx, ecx
+		xor  eax, eax                       // not animated
 		jmp  intface_update_ac_
 	}
 }
@@ -611,16 +594,14 @@ static void __declspec(naked) set_new_results_hack() {
 	__asm {
 		test ah, 0x1                              // DAM_KNOCKED_OUT?
 		jz   end                                  // No
-		mov  dword ptr ds:[_critterClearObj], esi
-		mov  edx, critterClearObjDrugs_
-		xor  eax, eax
-		inc  eax                                  // type = knockout
-		call queue_clear_type_                    // Remove knockout from queue (if there is one)
-		retn
+		mov  eax, esi
+		xor  edx, edx
+		inc  edx                                  // type = knockout
+		jmp  queue_remove_this_                   // Remove knockout from queue (if there is one)
 end:
 		pop  eax                                  // Destroying return address
-		mov  eax, 0x424FC6
-		jmp  eax
+		push 0x424FC6
+		retn
 	}
 }
 
@@ -639,13 +620,12 @@ end:
 		pop  esi
 		pop  ecx
 		pop  ebx
-	retn
+		retn
 	}
 }
 
 static void __declspec(naked) obj_load_func_hack() {
 	__asm {
-		mov  edi, 0x488EF9
 		test byte ptr [eax+0x25], 0x4             // Temp_
 		jnz  end
 		mov  edi, [eax+0x64]
@@ -665,9 +645,11 @@ static void __declspec(naked) obj_load_func_hack() {
 clear:
 		and  word ptr [eax+0x44], 0x7FFD          // not (DAM_LOSE_TURN or DAM_KNOCKED_DOWN)
 skip:
-		mov  edi, 0x488F14
+		push 0x488F14
+		retn
 end:
-		jmp  edi
+		push 0x488EF9
+		retn
 	}
 }
 
@@ -675,6 +657,62 @@ static void __declspec(naked) partyMemberPrepLoadInstance_hack() {
 	__asm {
 		and  word ptr [eax+0x44], 0x7FFD          // not (DAM_LOSE_TURN or DAM_KNOCKED_DOWN)
 		jmp  dude_stand_
+	}
+}
+
+static void __declspec(naked) combat_ctd_init_hack() {
+	__asm {
+		mov  [esi+0x24], eax                      // ctd.targetTile
+		mov  eax, [ebx+0x54]                      // pobj.who_hit_me
+		inc  eax
+		jnz  end
+		mov  [ebx+0x54], eax                      // pobj.who_hit_me
+end:
+		push 0x422F11
+		retn
+	}
+}
+
+static void __declspec(naked) obj_save_hack() {
+	__asm {
+		inc  eax
+		jz   end
+		dec  eax
+		mov  edx, [esp+0x1C]                      // combat_data
+		mov  eax, [eax+0x68]                      // pobj.who_hit_me.cid
+		test byte ptr ds:[_combat_state], 1       // in combat?
+		jz   clear                                // No
+		cmp  dword ptr [edx], 0                   // in combat?
+		jne  skip                                 // Yes
+clear:
+		xor  eax, eax
+		dec  eax
+skip:
+		mov  [edx+0x18], eax                      // combat_data.who_hit_me
+end:
+		push 0x489422
+		retn
+	}
+}
+
+static void __declspec(naked) action_explode_hack() {
+	__asm {
+		mov  edx, destroy_p_proc
+		mov  eax, [esi+0x78]                      // pobj.sid
+		call exec_script_proc_
+		xor  edx, edx
+		dec  edx
+		retn
+	}
+}
+
+static void __declspec(naked) action_explode_hack1() {
+	__asm {
+		push esi
+		mov  esi, [esi+0x40]                      // ctd.target#
+		call action_explode_hack
+		pop  esi
+		retn
 	}
 }
 
@@ -700,12 +738,44 @@ static void __declspec(naked) item_m_turn_off_hook() {
 	}
 }
 
+static void __declspec(naked) combat_hack() {
+	__asm {
+		mov  eax, [ecx+eax]                       // eax = source
+		test eax, eax
+		jz   end
+		push eax
+		mov  edx, STAT_max_move_points
+		call stat_level_
+		mov  edx, ds:[_gcsd]
+		test edx, edx
+		jz   skip
+		add  eax, [edx+0x8]                       // gcsd.free_move
+skip:
+		pop  edx
+		xchg edx, eax                             // eax = source, edx = Max action points
+		mov  [eax+0x40], edx                      // pobj.curr_mp
+		test byte ptr ds:[_combat_state], 1       // in combat?
+		jz   end                                  // No
+		mov  edx, [eax+0x68]                      // pobj.cid
+		cmp  edx, -1
+		je   end
+		push eax
+		mov  eax, ds:[_aiInfoList]
+		shl  edx, 4
+		mov  dword ptr [edx+eax+0xC], 0           // aiInfo.lastMove
+		pop  eax
+end:
+		mov  edx, edi                             // dude_turn
+		retn
+	}
+}
+
 
 void BugsInit()
 {
 	//if (GetPrivateProfileIntA("Misc", "SharpshooterFix", 1, ini)) {
 		dlog("Applying sharpshooter patch.", DL_INIT);
-		// http://www.nma-fallout.com/showthread.php?178390-FO2-Engine-Tweaks&p=4050162&viewfull=1#post4050162
+		// http://www.nma-fallout.com/threads/fo2-engine-tweaks-sfall.178390/page-119#post-4050162
 		// by Slider2k
 		HookCall(0x4244AB, &SharpShooterFix); // hooks stat_level_() call in detemine_to_hit_func_()
 		// // removes this line by making unconditional jump:
@@ -719,14 +789,14 @@ void BugsInit()
 	dlog("Applying fix for Pip-Boy rest exploit.", DL_INIT);
 	MakeCall(0x4971C7, &pipboy_hack, false);
 	MakeCall(0x499530, &PipAlarm_hack, false);
-	dlogr(" Done.", DL_INIT);
+	dlogr(" Done", DL_INIT);
 
 	// Fix for "Too Many Items" bug
 	//if (GetPrivateProfileIntA("Misc", "TooManyItemsBugFix", 1, ini)) {
 		dlog("Applying preventive patch for \"Too Many Items\" bug.", DL_INIT);
 		HookCall(0x4A596A, &scr_write_ScriptNode_hook);
 		HookCall(0x4A59C1, &scr_write_ScriptNode_hook);
-		dlogr(" Done.", DL_INIT);
+		dlogr(" Done", DL_INIT);
 	//}
 
 	// Fix for cells getting consumed even when the car is already fully charged
@@ -736,21 +806,18 @@ void BugsInit()
 	if (GetPrivateProfileIntA("Misc", "CarChargingFix", 1, ini)) {
 		dlog("Applying car charging fix.", DL_INIT);
 		MakeCall(0x49C36D, &protinst_default_use_item_hack, true);
-		dlogr(" Done.", DL_INIT);
+		dlogr(" Done", DL_INIT);
 	}
-
-	// makes jet addiction eternal.. why?
-	//MakeCall(0x47A3A4, &item_wd_process_hook, false);
 
 	// Fix for gaining stats from more than two doses of a specific chem after save-load
 	dlog("Applying fix for save-load unlimited drug use exploit.", DL_INIT);
 	MakeCall(0x47A243, &item_d_load_hack, false);
-	dlogr(" Done.", DL_INIT);
+	dlogr(" Done", DL_INIT);
 
 	// Fix crash when leaving the map while waiting for someone to die of a super stimpak overdose
 	dlog("Applying fix for \"leaving the map while waiting for a super stimpak overdose death\" crash.", DL_INIT);
 	HookCall(0x4A27E7, &queue_clear_type_mem_free_hook); // hooks mem_free_()
-	dlogr(" Done.", DL_INIT);
+	dlogr(" Done", DL_INIT);
 
 	// Evil bug! If party member has the same armor type in inventory as currently equipped, then
 	// on level up he loses Armor Class equal to the one received from this armor.
@@ -759,30 +826,30 @@ void BugsInit()
 		dlog("Applying fix for armor reducing NPC original stats when removed.", DL_INIT);
 		HookCall(0x495F3B, &partyMemberCopyLevelInfo_stat_level_hook);
 		HookCall(0x45419B, &correctFidForRemovedItem_adjust_ac_hook);
-		dlogr(" Done.", DL_INIT);
+		dlogr(" Done", DL_INIT);
 	//}
 
 	// Fix of invalid stats when party member gains a level while being on drugs
 	dlog("Applying fix for addicted party member level up bug.", DL_INIT);
 	HookCall(0x495D5C, &partyMemberCopyLevelInfo_hook);
-	dlogr(" Done.", DL_INIT);
+	dlogr(" Done", DL_INIT);
 
 	// Allow 9 options (lines of text) to be displayed correctly in a dialog window
 	if (GetPrivateProfileIntA("Misc", "DialogOptions9Lines", 1, ini)) {
 		dlog("Applying 9 dialog options patch.", DL_INIT);
 		MakeCall(0x44701C, &gdProcessUpdate_hack, true);
-		dlogr(" Done.", DL_INIT);
+		dlogr(" Done", DL_INIT);
 	}
 
-	// Fix for "Unlimited Ammo" bug
-	dlog("Applying fix for Unlimited Ammo bug.", DL_INIT);
+	// Fix for "Unlimited Ammo" exploit
+	dlog("Applying fix for Unlimited Ammo exploit.", DL_INIT);
 	HookCall(0x472957, &invenWieldFunc_item_get_type_hook); // hooks item_get_type_()
-	dlogr(" Done.", DL_INIT);
+	dlogr(" Done", DL_INIT);
 
 	// Fix for negative values in Skilldex window ("S")
 	dlog("Applying fix for negative values in Skilldex window.", DL_INIT);
 	SafeWrite8(0x4AC377, 0x7F);                // jg
-	dlogr(" Done.", DL_INIT);
+	dlogr(" Done", DL_INIT);
 
 	// Fix for not counting in the weight of equipped items on NPC when stealing or bartering
 	//if (GetPrivateProfileIntA("Misc", "NPCWeightFix", 1, ini)) {
@@ -792,7 +859,7 @@ void BugsInit()
 		HookCall(0x474CB8, &barter_attempt_transaction_hook);
 		HookCall(0x4742AD, &move_inventory_hook);
 		HookCall(0x4771B5, &item_add_mult_hook);
-		dlogr(" Done.", DL_INIT);
+		dlogr(" Done", DL_INIT);
 	//}
 
 	// Corrects "Weight of items" text element width to be 64 (and not 80), which matches container element width
@@ -809,6 +876,12 @@ void BugsInit()
 		MakeCall(0x47114A, &inven_pickup_hack2, true);
 		// Fix for using only one box of ammo when a weapon is above the ammo in the inventory list
 		HookCall(0x476598, &drop_ammo_into_weapon_hook);
+		dlogr(" Done", DL_INIT);
+	//}
+
+	//if(GetPrivateProfileIntA("Misc", "NPCLevelFix", 1, ini)) {
+		dlog("Applying NPC level fix.", DL_INIT);
+		HookCall(0x495BC9, (void*)0x495E51);
 		dlogr(" Done", DL_INIT);
 	//}
 
@@ -836,7 +909,7 @@ void BugsInit()
 		// proper checks for NPC's addiction instead of always using global vars
 		MakeCall(0x47A644, &item_d_check_addict_hack, true);
 		MakeCall(0x479FC5, &item_d_take_drug_hack, true);
-		dlogr(" Done.", DL_INIT);
+		dlogr(" Done", DL_INIT);
 	//}
 
 	//if (GetPrivateProfileInt("Misc", "ShivPatch", 1, ini)) {
@@ -876,6 +949,15 @@ void BugsInit()
 		dlogr(" Done", DL_INIT);
 	//}
 
+	dlog("Applying fix for explosives bugs.", DL_INIT);
+	// Fix crashes when killing critters with explosives
+	MakeCall(0x422F05, &combat_ctd_init_hack, true);
+	MakeCall(0x489413, &obj_save_hack, true);
+	// Fix for destroy_p_proc not being called if the critter is killed by explosives when you leave the map
+	MakeCall(0x4130C3, &action_explode_hack, false);
+	MakeCall(0x4130E5, &action_explode_hack1, false);
+	dlogr(" Done", DL_INIT);
+
 	// Fix for unable to sell used geiger counters or stealth boys
 	if (GetPrivateProfileIntA("Misc", "CanSellUsedGeiger", 1, ini)) {
 		dlog("Applying fix for unable to sell used geiger counters or stealth boys.", DL_INIT);
@@ -885,4 +967,17 @@ void BugsInit()
 		HookCall(0x4798B1, &item_m_turn_off_hook);
 		dlogr(" Done", DL_INIT);
 	}
+
+	// Fix for incorrect initialization of action points at the beginning of each turn
+	dlog("Applying Action Points initialization fix.", DL_INIT);
+	BlockCall(0x422E02);
+	MakeCall(0x422E1B, &combat_hack, false);
+	dlogr(" Done", DL_INIT);
+
+	// Fix for incorrect death animations being used when killing critters with kill_critter_type function
+	SafeWrite16(0x457E22, 0xDB31); // xor ebx, ebx
+	SafeWrite32(0x457C99, 0x30BE0075); // jnz loc_457C9B; mov esi, 48
+
+	// Fix for checking the horizontal position on the y-axis instead of x when setting coordinates on the world map
+	SafeWrite8(0x4C4743, 0xC6); // cmp esi, eax
 }

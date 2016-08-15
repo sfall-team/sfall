@@ -26,6 +26,7 @@
 
 #include "FalloutStructs.h"
 
+#define _aiInfoList                 0x510948
 #define _ambient_light              0x51923C
 #define _art                        0x510738
 #define _art_name                   0x56C9E4
@@ -67,7 +68,9 @@
 #define _free_perk                  0x570A29
 #define _game_global_vars           0x5186C0
 #define _game_user_wants_to_quit    0x5186CC
+#define _gcsd                       0x51094C
 #define _gdBarterMod                0x51873C
+#define _gdNumOptions               0x5186D8
 #define _gIsSteal                   0x51D430
 #define _glblmode                   0x5709D0
 #define _gmouse_current_cursor      0x518C0C
@@ -156,6 +159,7 @@
 #define _read_callback              0x51DEEC
 #define _RedColor                   0x6AB4D0
 #define _retvals                    0x43EA7C
+#define _scr_size                   0x6AC9F0
 #define _skill_data                 0x51D118
 #define _slot_cursor                0x5193B8
 #define _sneak_working              0x56D77C // DWORD var 

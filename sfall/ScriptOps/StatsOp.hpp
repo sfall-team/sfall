@@ -1158,13 +1158,13 @@ static void __declspec(naked) SetXpMod3() {
 		push esi;
 		push edi;
 		push ebp;
-		mov xptmp, eax;
+		mov  xptmp, eax;
 		fild xptmp;
 		fmul xpmod;
 		fistp xptmp;
-		mov eax, xptmp;
-		mov ebx, 0x004AFABD;
-		jmp ebx;
+		mov  eax, xptmp;
+		push 0x4AFABD;
+		retn;
 	}
 }
 static void _stdcall SetXpMod2(DWORD percent) {

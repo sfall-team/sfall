@@ -570,8 +570,8 @@ static void __declspec(naked) IncNPCLevel3() {
 		push eax;
 		call IncNPCLevel4;
 		popad;
-		mov eax, 0x00495BF9;
-		jmp eax;
+		push 0x495BF9;
+		retn;
 	}
 }
 static void _stdcall IncNPCLevel2(char* npc) {

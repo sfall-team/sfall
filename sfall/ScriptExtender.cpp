@@ -716,9 +716,9 @@ static void __declspec(naked) AfterCombatAttackHook() {
 		pushad;
 		call AfterAttackCleanup;
 		popad;
-		mov eax, 1;
-		mov edx, 0x4230DA;
-		jmp edx;
+		mov  eax, 1;
+		push 0x4230DA;
+		retn;
 	}
 }
 static void __declspec(naked) ExecMapScriptsHook() {
@@ -729,8 +729,8 @@ static void __declspec(naked) ExecMapScriptsHook() {
 		push eax; // int procId
 		call HandleMapUpdateForScripts;
 		popad;
-		mov	ebx, 0x4A67F9; // jump back
-		jmp	ebx;
+		push 0x4A67F9; // jump back
+		retn;
 	}
 }
 static DWORD __stdcall GetGlobalExportedVarPtr(const char* name) {
@@ -1422,7 +1422,7 @@ void RunScriptProc(sScriptProgram* prog, DWORD procId) {
 }
 static void RunScript(sGlobalScript* script) {
 	script->count=0;
-	RunScriptProc(&script->prog, start_proc); // run "start"
+	RunScriptProc(&script->prog, start); // run "start"
 }
 
 /**

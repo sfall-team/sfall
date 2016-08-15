@@ -60,8 +60,8 @@ static void __declspec(naked) SkillHookA() {
 	push ecx;
 	push esi;
 	call SkillMaxHook2;
-	mov ebx, 0x004AA64B;
-	jmp ebx;
+	push 0x4AA64B;
+	retn;
 	}
 }
 static void __declspec(naked) SkillHookB() {
@@ -73,17 +73,17 @@ static void __declspec(naked) SkillHookB() {
 	push ecx;
 	push 0x7fffffff;
 	call SkillMaxHook2;
-	pop edx;
-	cmp edx, eax;
-	pop ebx;
-	pop ecx;
-	pop edx;
-	jl win;
-	mov eax, 0x4AA84E;
-	jmp eax;
+	pop  edx;
+	cmp  edx, eax;
+	pop  ebx;
+	pop  ecx;
+	pop  edx;
+	jl   win;
+	push 0x4AA84E;
+	retn;
 win:
-	mov eax, 0x4AA85C;
-	jmp eax;
+	push 0x4AA85C;
+	retn;
 	}
 }
 static const DWORD SkillHookWin=0x4AA738;
@@ -218,7 +218,7 @@ static void __declspec(naked) SkillLevelCostHook() {
 
 void SkillsInit() {
 	MakeCall(0x4AA63C, SkillHookA, true);
-	MakeCall(0x004AA847, SkillHookB, true);
+	MakeCall(0x4AA847, SkillHookB, true);
 	MakeCall(0x4AA725, SkillHookC, true);
 
 	char buf[512], key[16], file[64];
