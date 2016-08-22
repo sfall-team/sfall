@@ -296,7 +296,6 @@ static void __declspec(naked) invenWieldFunc_item_get_type_hook() {
 		xchg edx, eax                             // eax = who, edx = item
 		call item_remove_mult_
 		xchg ebx, eax
-nextWeapon:
 		mov  eax, esi
 		test cl, 0x2                              // Right hand?
 		jz   leftHand                             // No
@@ -308,7 +307,6 @@ removeFlag:
 		test eax, eax
 		jz   noWeapon
 		and  byte ptr [eax+0x27], 0xFC            // Unset flag of a weapon in hand
-		jmp  nextWeapon
 noWeapon:
 		or   byte ptr [edi+0x27], cl              // Set flag of a weapon in hand
 		inc  ebx
