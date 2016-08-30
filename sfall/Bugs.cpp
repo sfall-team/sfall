@@ -877,7 +877,7 @@ void BugsInit()
 		dlogr(" Done", DL_INIT);
 	//}
 
-	//if(GetPrivateProfileIntA("Misc", "NPCLevelFix", 1, ini)) {
+	//if (GetPrivateProfileIntA("Misc", "NPCLevelFix", 1, ini)) {
 		dlog("Applying NPC level fix.", DL_INIT);
 		HookCall(0x495BC9, (void*)0x495E51);
 		dlogr(" Done", DL_INIT);
@@ -913,6 +913,17 @@ void BugsInit()
 	//if (GetPrivateProfileInt("Misc", "ShivPatch", 1, ini)) {
 		dlog("Applying shiv patch.", DL_INIT);
 		SafeWrite8(0x477B2B, 0xEB);
+		dlogr(" Done", DL_INIT);
+	//}
+
+	//if (GetPrivateProfileInt("Misc", "ImportedProcedureFix", 0, ini)) {
+		dlog("Applying imported procedure patch.", DL_INIT);
+		// http://teamx.ru/site_arc/smf/index.php-topic=398.0.htm
+		SafeWrite16(0x46B35B, 0x1c60); // Fix problems with the temporary stack
+		SafeWrite32(0x46B35D, 0x90909090);
+		SafeWrite8(0x46DBF1, 0xeb); // Disable warnings
+		SafeWrite8(0x46DDC4, 0xeb); // Disable warnings
+		SafeWrite8(0x4415CC, 0x00); // Prevent crashes when re-exporting
 		dlogr(" Done", DL_INIT);
 	//}
 

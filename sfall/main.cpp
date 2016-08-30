@@ -1229,16 +1229,6 @@ static void DllMain2() {
 		dlogr(" Done", DL_INIT);
 	}
 
-	//if(GetPrivateProfileInt("Misc", "ImportedProcedureFix", 0, ini)) {
-		dlog("Applying imported procedure patch.", DL_INIT);
-		SafeWrite16(0x46B35B, 0x1c60);
-		SafeWrite32(0x46B35D, 0x90909090);
-		SafeWrite8(0x46DBF1, 0xeb);
-		SafeWrite8(0x46DDC4, 0xeb);
-		SafeWrite8(0x4415CC, 0x00);
-		dlogr(" Done", DL_INIT);
-	//}
-
 	if(GetPrivateProfileInt("Misc", "AlwaysReloadMsgs", 0, ini)) {
 		dlog("Applying always reload messages patch.", DL_INIT);
 		SafeWrite8(0x4A6B8A, 0xff);
