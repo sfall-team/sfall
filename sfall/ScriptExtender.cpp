@@ -1385,15 +1385,15 @@ void ClearGlobalScripts() {
 	//Stat ranges
 	StatsReset();
 	//Bodypart hit chances
-	*((DWORD*)0x510954)=GetPrivateProfileIntA("Misc", "BodypartHitMod0", 0xFFFFFFD8, ini);
-	*((DWORD*)0x510958)=GetPrivateProfileIntA("Misc", "BodypartHitMod1", 0xFFFFFFE2, ini);
-	*((DWORD*)0x51095C)=GetPrivateProfileIntA("Misc", "BodypartHitMod2", 0xFFFFFFE2, ini);
-	*((DWORD*)0x510960)=GetPrivateProfileIntA("Misc", "BodypartHitMod3", 0x00000000, ini);
-	*((DWORD*)0x510964)=GetPrivateProfileIntA("Misc", "BodypartHitMod4", 0xFFFFFFEC, ini);
-	*((DWORD*)0x510968)=GetPrivateProfileIntA("Misc", "BodypartHitMod5", 0xFFFFFFEC, ini);
-	*((DWORD*)0x51096C)=GetPrivateProfileIntA("Misc", "BodypartHitMod6", 0xFFFFFFC4, ini);
-	*((DWORD*)0x510970)=GetPrivateProfileIntA("Misc", "BodypartHitMod7", 0xFFFFFFE2, ini);
-	*((DWORD*)0x510974)=GetPrivateProfileIntA("Misc", "BodypartHitMod8", 0x00000000, ini);
+	*((DWORD*)0x510954) = GetPrivateProfileIntA("Misc", "BodyHit_Head",      0xFFFFFFD8, ini);
+	*((DWORD*)0x510958) = GetPrivateProfileIntA("Misc", "BodyHit_Left_Arm",  0xFFFFFFE2, ini);
+	*((DWORD*)0x51095C) = GetPrivateProfileIntA("Misc", "BodyHit_Right_Arm", 0xFFFFFFE2, ini);
+	*((DWORD*)0x510960) = GetPrivateProfileIntA("Misc", "BodyHit_Torso",     0x00000000, ini);
+	*((DWORD*)0x510964) = GetPrivateProfileIntA("Misc", "BodyHit_Right_Leg", 0xFFFFFFEC, ini);
+	*((DWORD*)0x510968) = GetPrivateProfileIntA("Misc", "BodyHit_Left_Leg",  0xFFFFFFEC, ini);
+	*((DWORD*)0x51096C) = GetPrivateProfileIntA("Misc", "BodyHit_Eyes",      0xFFFFFFC4, ini);
+	*((DWORD*)0x510970) = GetPrivateProfileIntA("Misc", "BodyHit_Groin",     0xFFFFFFE2, ini);
+	*((DWORD*)0x510974) = GetPrivateProfileIntA("Misc", "BodyHit_Uncalled",  0x00000000, ini);
 	//skillpoints per level mod
 	SafeWrite8(0x43C27a, 5);
 }
