@@ -86,6 +86,7 @@
 #define _i_rhand                    0x59E968
 #define _i_wid                      0x59E964
 #define _i_worn                     0x59E954
+#define _In_WorldMap                0x672E1C
 #define _info_line                  0x5707D0
 #define _interfaceWindow            0x519024
 #define _intfaceEnabled             0x518F10
@@ -176,6 +177,8 @@
 #define _target_stack               0x59E81C
 #define _target_stack_offset        0x59E7EC
 #define _target_str                 0x56D518
+#define _target_xpos                0x672E20
+#define _target_ypos                0x672E24
 #define _text_char_width            0x51E3C4
 #define _text_height                0x51E3BC
 #define _text_max                   0x51E3D4
@@ -188,11 +191,13 @@
 #define _trait_data                 0x51DB84
 #define _view_page                  0x664520
 #define _wd_obj                     0x59E98C
+#define _wmAreaInfoList             0x51DDF8
 #define _wmLastRndTime              0x51DEA0
 #define _wmWorldOffsetX             0x51DE2C
 #define _wmWorldOffsetY             0x51DE30
 #define _world_xpos                 0x672E0C
 #define _world_ypos                 0x672E10
+#define _WorldMapCurrArea           0x672E08
 #define _YellowColor                0x6AB8BB
 
 // variables

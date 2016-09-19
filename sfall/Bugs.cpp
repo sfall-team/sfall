@@ -768,6 +768,27 @@ end:
 	}
 }
 
+static void __declspec(naked) wmTeleportToArea_hack() {
+	__asm {
+		cmp  ebx, ds:[_WorldMapCurrArea]
+		je   end
+		mov  ds:[_WorldMapCurrArea], ebx
+		sub  eax, edx
+		add  eax, ds:[_wmAreaInfoList]
+		mov  edx, [eax+0x30]                      // wmAreaInfoList.world_posy
+		mov  ds:[_world_ypos], edx
+		mov  edx, [eax+0x2C]                      // wmAreaInfoList.world_posx
+		mov  ds:[_world_xpos], edx
+end:
+		xor  eax, eax
+		mov  ds:[_target_xpos], eax
+		mov  ds:[_target_ypos], eax
+		mov  ds:[_In_WorldMap], eax
+		push 0x4C5A77
+		retn
+	}
+}
+
 
 void BugsInit()
 {
@@ -984,9 +1005,18 @@ void BugsInit()
 	dlogr(" Done", DL_INIT);
 
 	// Fix for incorrect death animations being used when killing critters with kill_critter_type function
+	dlog("Applying kill_critter_type fix.", DL_INIT);
 	SafeWrite16(0x457E22, 0xDB31); // xor ebx, ebx
 	SafeWrite32(0x457C99, 0x30BE0075); // jnz loc_457C9B; mov esi, 48
+	dlogr(" Done", DL_INIT);
 
 	// Fix for checking the horizontal position on the y-axis instead of x when setting coordinates on the world map
 	SafeWrite8(0x4C4743, 0xC6); // cmp esi, eax
+
+	// Partial fix for incorrect positioning after exiting small locations (e.g. Ghost Farm)
+	//if (GetPrivateProfileIntA("Misc", "SmallLocExitFix", 1, ini)) {
+		dlog("Applying fix for incorrect positioning after exiting small locations.", DL_INIT);
+		MakeCall(0x4C5A41, &wmTeleportToArea_hack, true);
+		dlogr(" Done", DL_INIT);
+	//}
 }
