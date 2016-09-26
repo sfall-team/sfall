@@ -268,16 +268,17 @@ static void NewGame2() {
 		GainStatFix=0;
 	}
 
-	if(GetPrivateProfileInt("Misc", "PipBoyAvailableAtGameStart", 0, ini)) {
-		SafeWrite8(0x00596C7B, 1);
-	}
-	if(GetPrivateProfileInt("Misc", "DisableHorrigan", 0, ini)) {
-		*(DWORD*)0x00672E04=1;
+	/*if (GetPrivateProfileInt("Misc", "PipBoyAvailableAtGameStart", 0, ini)) {
+		SafeWrite8(0x596C7B, 1);
+	}*/
+	if (GetPrivateProfileInt("Misc", "DisableHorrigan", 0, ini)) {
+		*(DWORD*)0x672E04 = 1;
 	}
 
 	LoadGlobalScripts();
 	CritLoad();
 }
+
 static void __declspec(naked) NewGame() {
 	__asm {
 		pushad;
@@ -293,11 +294,14 @@ static void ReadExtraGameMsgFilesIfNeeded() {
 		ReadExtraGameMsgFiles();
 }
 
+static bool PipBoyAvailableAtGameStart = false;
 static void __declspec(naked) MainMenu() {
 	__asm {
 		pushad;
 		push 0;
 		call ResetState;
+		mov  al, PipBoyAvailableAtGameStart;
+		mov  ds:[_gmovie_played_list+3], al;
 		call ReadExtraGameMsgFilesIfNeeded;
 		call LoadHeroAppearance;
 		popad;
@@ -439,12 +443,21 @@ static void __declspec(naked) AutomapHook() {
 }
 
 void LoadGameHookInit() {
-	SaveInCombatFix=GetPrivateProfileInt("Misc", "SaveInCombatFix", 1, ini);
-	if(SaveInCombatFix>2) SaveInCombatFix=0;
-	if(SaveInCombatFix) {
+	SaveInCombatFix = GetPrivateProfileInt("Misc", "SaveInCombatFix", 1, ini);
+	if (SaveInCombatFix > 2) SaveInCombatFix = 0;
+	if (SaveInCombatFix) {
 		GetPrivateProfileString("sfall", "SaveInCombat", "Cannot save at this time", SaveFailMsg, 128, translationIni);
 	}
 	GetPrivateProfileString("sfall", "SaveSfallDataFail", "ERROR saving extended savegame information! Check if other programs interfere with savegame files/folders and try again!", SaveSfallDataFailMsg, 128, translationIni);
+
+	switch (GetPrivateProfileInt("Misc", "PipBoyAvailableAtGameStart", 0, ini)) {
+	case 1:
+		PipBoyAvailableAtGameStart = true;
+		break;
+	case 2:
+		SafeWrite8(0x497011, 0xEB); // skip the vault suit movie check
+		break;
+	}
 
 	HookCall(0x480AB3, NewGame);
 
