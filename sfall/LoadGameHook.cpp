@@ -270,19 +270,22 @@ static void NewGame2() {
 
 	/*if (GetPrivateProfileInt("Misc", "PipBoyAvailableAtGameStart", 0, ini)) {
 		SafeWrite8(0x596C7B, 1);
-	}*/
+	}
 	if (GetPrivateProfileInt("Misc", "DisableHorrigan", 0, ini)) {
 		*(DWORD*)0x672E04 = 1;
-	}
+	}*/
 
 	LoadGlobalScripts();
 	CritLoad();
 }
 
+static bool DisableHorrigan = false;
 static void __declspec(naked) NewGame() {
 	__asm {
 		pushad;
 		call NewGame2;
+		mov  al, DisableHorrigan;
+		mov  byte ptr ds:[_Meet_Frank_Horrigan], al;
 		popad;
 		call main_game_loop_;
 		retn;
@@ -301,7 +304,7 @@ static void __declspec(naked) MainMenu() {
 		push 0;
 		call ResetState;
 		mov  al, PipBoyAvailableAtGameStart;
-		mov  ds:[_gmovie_played_list+3], al;
+		mov  byte ptr ds:[_gmovie_played_list + 0x3], al;
 		call ReadExtraGameMsgFilesIfNeeded;
 		call LoadHeroAppearance;
 		popad;
@@ -457,6 +460,11 @@ void LoadGameHookInit() {
 	case 2:
 		SafeWrite8(0x497011, 0xEB); // skip the vault suit movie check
 		break;
+	}
+
+	if (GetPrivateProfileInt("Misc", "DisableHorrigan", 0, ini)) {
+		DisableHorrigan = true;
+		SafeWrite8(0x4C06D8, 0xEB); // skip the Horrigan encounter check
 	}
 
 	HookCall(0x480AB3, NewGame);

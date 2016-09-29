@@ -723,8 +723,7 @@ static void PerkSetup() {
 	MakeCall(0x4AFB2F, LevelUpHook, false);//replaces 'mov edx, ds:[PlayerLevel]
 	SafeWrite8(0x4AFB34, 0x90);
 
-	SafeWrite8(0x43C2E9, 0xeb); //jmp 0x2e
-	SafeWrite8(0x43C2EA, 0x2e); //replaces the block of code which checks if the player has gained a perk (now handled in level up code)
+	SafeWrite8(0x43C2EC, 0xEB); //skip the block of code which checks if the player has gained a perk (now handled in level up code)
 
 	SafeWrite8(0x43C362, 0xe8);                     //call sub_43401C, dec byte ptr ds:[0x00570A29]
 	SafeWrite32(0x43C363, 0x0043410C - 0x0043C367); //replaces call sub_43401C, mov byte ptr ds:[0x00570A29], 0

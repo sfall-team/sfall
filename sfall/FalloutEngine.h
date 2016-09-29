@@ -114,6 +114,7 @@
 #define _map_elevation              0x519578
 #define _map_global_vars            0x51956C
 #define _max                        0x56FB50
+#define _Meet_Frank_Horrigan        0x672E04
 #define _mouse_hotx                 0x6AC7D0
 #define _mouse_hoty                 0x6AC7CC
 #define _mouse_is_hidden            0x6AC790
