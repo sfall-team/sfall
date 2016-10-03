@@ -87,14 +87,11 @@ static void LoadFrm(Frm* frm) {
 	tex_citr itr=texMap.find(frm->key);
 	if(itr==texMap.end()) {
 		//Load textures
-		char buf[MAX_PATH], buf2[MAX_PATH];
-		strcpy(buf, "data\\art\\heads\\");
-		strncat(buf, frm->path, 8);
-		strcat(buf, "\\%d.png");
+		char buf[MAX_PATH];
 		IDirect3DTexture9** textures=new IDirect3DTexture9*[frm->frames];
-		for(int i=0;i<frm->frames;i++) {
-			sprintf(buf2, buf, i);
-			if(FAILED(D3DXCreateTextureFromFileExA(d3d9Device, buf2, 0, 0, 1, 0, D3DFMT_UNKNOWN, D3DPOOL_MANAGED, D3DX_DEFAULT, D3DX_DEFAULT, 0, 0, 0, &textures[i]))) {
+		for (int i = 0; i < frm->frames; i++) {
+			sprintf(buf, "%s\\art\\heads\\%s\\%d.png", *(char**)_patches, frm->path, i);
+			if (FAILED(D3DXCreateTextureFromFileExA(d3d9Device, buf, 0, 0, 1, 0, D3DFMT_UNKNOWN, D3DPOOL_MANAGED, D3DX_DEFAULT, D3DX_DEFAULT, 0, 0, 0, &textures[i]))) {
 				for(int j=0;j<i;j++) textures[j]->Release();
 				delete[] textures;
 				frm->broken=1;
@@ -181,9 +178,10 @@ skip:
 }
 
 void HeadsInit() {
-	if(!GetPrivateProfileInt("Graphics", "Use32BitHeadGraphics", 0, ini)) return;
-	HookCall(0x44AFB4, &TransTalkHook);
-	HookCall(0x44B00B, &TransTalkHook);
-	MakeCall(0x44AD01, &DrawFrmHook, true);
-	MakeCall(0x447294, &EndSpeechHook, true);
+	if (GetPrivateProfileInt("Graphics", "Use32BitHeadGraphics", 0, ini)) {
+		HookCall(0x44AFB4, &TransTalkHook);
+		HookCall(0x44B00B, &TransTalkHook);
+		MakeCall(0x44AD01, &DrawFrmHook, true);
+		MakeCall(0x447294, &EndSpeechHook, true);
+	}
 }

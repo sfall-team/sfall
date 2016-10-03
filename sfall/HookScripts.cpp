@@ -1096,17 +1096,19 @@ void _stdcall RegisterHook( DWORD script, DWORD id, DWORD procNum )
 		hooks[id].push_back(hook);
 	}
 }
-#define LoadHookScript(a,b) _LoadHookScript("data\\scripts\\hs_" a ".int", b)
-static void _LoadHookScript(const char* path, int id) {
-	if(id>=numHooks) return;
+
+static void LoadHookScript(const char* name, int id) {
+	if (id >= numHooks) return;
 	WIN32_FIND_DATA file;
 	HANDLE h;
 
-	h = FindFirstFileA(path, &file);
+	char buf[MAX_PATH];
+	sprintf(buf, "%s\\scripts\\hs_%s.int", *(char**)_patches, name);
+	h = FindFirstFileA(buf, &file);
 	if(h != INVALID_HANDLE_VALUE) {
 		sScriptProgram prog;
 		dlog("Loading hook script: ", DL_HOOK);
-		dlogr(path, DL_HOOK);
+		dlogr(buf, DL_HOOK);
 		char* fName = file.cFileName;
 		fName[strlen(fName) - 4] = 0;
 		LoadScriptProgram(prog, fName);

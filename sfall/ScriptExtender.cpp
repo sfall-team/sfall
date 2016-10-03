@@ -1325,7 +1325,9 @@ void LoadGlobalScripts() {
 	HookScriptInit();
 	dlogr("Loading global scripts", DL_SCRIPT);
 	WIN32_FIND_DATA file;
-	HANDLE h=FindFirstFileA("data\\scripts\\gl*.int", &file);
+	char buf[MAX_PATH];
+	sprintf(buf, "%s\\scripts\\gl*.int", *(char**)_patches);
+	HANDLE h = FindFirstFileA(buf, &file);
 	if (h != INVALID_HANDLE_VALUE) {
 		char* fName = file.cFileName;
 		// TODO: refactor script programs
@@ -1393,7 +1395,7 @@ void ClearGlobalScripts() {
 	*((DWORD*)0x510968) = GetPrivateProfileIntA("Misc", "BodyHit_Left_Leg",  0xFFFFFFEC, ini);
 	*((DWORD*)0x51096C) = GetPrivateProfileIntA("Misc", "BodyHit_Eyes",      0xFFFFFFC4, ini);
 	*((DWORD*)0x510970) = GetPrivateProfileIntA("Misc", "BodyHit_Groin",     0xFFFFFFE2, ini);
-	*((DWORD*)0x510974) = GetPrivateProfileIntA("Misc", "BodyHit_Uncalled",  0x00000000, ini);
+	*((DWORD*)0x510974) = GetPrivateProfileIntA("Misc", "BodyHit_Torso",     0x00000000, ini);
 	//skillpoints per level mod
 	SafeWrite8(0x43C27a, 5);
 }

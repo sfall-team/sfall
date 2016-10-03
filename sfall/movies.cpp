@@ -266,10 +266,14 @@ static void __declspec(naked) PlayFrameHook2() {
 static DWORD _stdcall PlayMovieHook2(DWORD id) {
 	//Get file path in unicode
 	wchar_t path[MAX_PATH];
-	wcscpy_s(path, L"data\\art\\cuts\\");
-	DWORD len=wcslen(path);
-	char* movie=&MoviePaths[id*65] - len;
-	while(movie[len]) { path[len]=movie[len]; len++; }
+	char* master_patches = *(char**)_patches;
+	DWORD len = 0;
+	while (master_patches[len]) { path[len] = master_patches[len]; len++; }
+	path[len] = 0;
+	wcscat_s(path, L"\\art\\cuts\\");
+	len = wcslen(path);
+	char* movie = &MoviePaths[id*65] - len;
+	while (movie[len]) { path[len] = movie[len]; len++; }
 	wcscpy_s(&path[len-3], 5, L"avi");
 
 	//Check for existance of file
