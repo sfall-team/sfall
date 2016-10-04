@@ -872,68 +872,77 @@ end:
 	}
 }
 
-
 static void __declspec(naked) GetBodypartHitModifier() {
 	__asm {
-		push ecx;
-		push edx;
-		mov ecx, eax;
-		call interpretPopShort_;
-		mov edx, eax;
-		mov eax, ecx;
-		call interpretPopLong_;
-		cmp dx, 0xC001;
-		jnz fail;
-		cmp eax, 9;
-		jg fail;
-		test eax, eax;
-		jl fail;
-		mov edx, ds:[_hit_location_penalty+eax*4];
-		jmp end;
+		push ecx
+		push edx
+		mov  ecx, eax
+		call interpretPopShort_
+		mov  edx, eax
+		mov  eax, ecx
+		call interpretPopLong_
+		cmp  dx, VAR_TYPE_INT
+		jnz  fail
+		cmp  eax, 8                               // Body_Uncalled?
+		jg   fail
+		test eax, eax
+		jl   fail
+		mov  edx, ds:[_hit_location_penalty+eax*4]
+		jmp  end
 fail:
-		xor edx, edx;
+		xor  edx, edx
 end:
-		mov eax, ecx;
-		call interpretPushLong_;
-		mov eax, ecx;
-		mov edx, 0xc001;
-		call interpretPushShort_;
-		pop edx;
-		pop ecx;
-		retn;
+		mov  eax, ecx
+		call interpretPushLong_
+		mov  eax, ecx
+		mov  edx, VAR_TYPE_INT
+		call interpretPushShort_
+		pop  edx
+		pop  ecx
+		retn
 	}
 }
+
 static void __declspec(naked) SetBodypartHitModifier() {
 	__asm {
-		push ebx;
-		push ecx;
-		push edx;
-		mov ecx, eax;
-		call interpretPopShort_;
-		mov edx, eax;
-		mov eax, ecx;
-		call interpretPopLong_;
-		mov ebx, eax;
-		mov eax, ecx;
-		call interpretPopShort_;
-		xchg eax, ecx;
-		call interpretPopLong_;
-		cmp dx, 0xC001;
-		jnz end;
-		cmp cx, 0xC001;
-		jnz end;
-		cmp eax, 9;
-		jg end;
-		test eax, eax;
-		jl end;
-		mov ds:[_hit_location_penalty+eax*4], ebx;
+		push ebx
+		push ecx
+		push edx
+		mov  ecx, eax
+		call interpretPopShort_
+		mov  edx, eax
+		mov  eax, ecx
+		call interpretPopLong_
+		mov  ebx, eax
+		mov  eax, ecx
+		call interpretPopShort_
+		xchg eax, ecx
+		call interpretPopLong_
+		cmp  dx, VAR_TYPE_INT
+		jnz  end
+		cmp  cx, VAR_TYPE_INT
+		jnz  end
+		cmp  eax, 8                               // Body_Uncalled?
+		jg   end
+		cmp  eax, 3                               // Body_Torso?
+		jne  skip                                 // No
+		add  eax, 5
+skip:
+		test eax, eax
+		jl   end
+		mov  ds:[_hit_location_penalty+eax*4], ebx
+		cmp  eax, 8                               // Body_Uncalled?
+		jne  end                                  // No
+		sub  eax, 5                               // Body_Torso
+		jmp  skip
 end:
-		pop edx;
-		pop ecx;
-		pop ebx;
-		retn;
+		pop  edx
+		pop  ecx
+		pop  ebx
+		retn
 	}
 }
+
 static void __declspec(naked) funcSetCriticalTable() {
 	__asm {
 		pushad;
