@@ -1208,16 +1208,10 @@ static void DllMain2() {
 
 	CritInit();
 
-	int number_patch_loop=GetPrivateProfileInt("Misc", "NumberPatchLoop", -1, ini);
-	if(number_patch_loop>-1) {
+	if (GetPrivateProfileInt("Misc", "MultiPatches", 0, ini)) {
 		dlog("Applying load multiple patches patch.", DL_INIT);
-		// Disable check
-		SafeWrite8(0x0444363, 0xE9);
-		SafeWrite32(0x0444364, 0xFFFFFFB9);
-		// New loop count
-		SafeWrite32(0x0444357, number_patch_loop);
-		// Change step from 2 to 1
-		SafeWrite8(0x0444354, 0x90);
+		SafeWrite8(0x444338, 0x90); // Change step from 2 to 1
+		SafeWrite32(0x444363, 0xEB909090); // Disable check
 		dlogr(" Done", DL_INIT);
 	}
 
