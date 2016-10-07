@@ -940,10 +940,10 @@ void BugsInit()
 	//if (GetPrivateProfileInt("Misc", "ImportedProcedureFix", 0, ini)) {
 		dlog("Applying imported procedure patch.", DL_INIT);
 		// http://teamx.ru/site_arc/smf/index.php-topic=398.0.htm
-		SafeWrite16(0x46B35B, 0x1c60); // Fix problems with the temporary stack
+		SafeWrite16(0x46B35B, 0x1C60); // Fix problems with the temporary stack
 		SafeWrite32(0x46B35D, 0x90909090);
-		SafeWrite8(0x46DBF1, 0xeb); // Disable warnings
-		SafeWrite8(0x46DDC4, 0xeb); // Disable warnings
+		SafeWrite8(0x46DBF1, 0xEB); // Disable warnings
+		SafeWrite8(0x46DDC4, 0xEB); // Disable warnings
 		SafeWrite8(0x4415CC, 0x00); // Prevent crashes when re-exporting
 		dlogr(" Done", DL_INIT);
 	//}

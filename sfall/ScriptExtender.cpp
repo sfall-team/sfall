@@ -823,7 +823,7 @@ static void __declspec(naked) FreeProgramHook() {
 	}
 }
 
-static void __declspec(naked) obj_outline_all_items_on_() {
+static void __declspec(naked) obj_outline_all_items_on() {
 	__asm {
 		pushad
 		mov  eax, dword ptr ds:[_map_elevation]
@@ -861,7 +861,7 @@ end:
 	}
 }
 
-static void __declspec(naked) obj_outline_all_items_off_() {
+static void __declspec(naked) obj_outline_all_items_off() {
 	__asm {
 		pushad
 		mov  eax, dword ptr ds:[_map_elevation]
@@ -890,19 +890,6 @@ end:
 	}
 }
 
-/*static void __declspec(naked) gmouse_bk_process_hook() {  // NR: for changing mouseover highlight color. do we really need such fancy stuff?
-	__asm {
-		test eax, eax
-		jz   end
-		test byte ptr [eax+0x25], 0x10            // NoHighlight_
-		jnz  end
-		mov  dword ptr [eax+0x74], 0
-end:
-		mov  edx, 0x40
-		jmp  obj_outline_object_
-	}
-}*/
-
 static void __declspec(naked) obj_remove_outline_hook() {
 	__asm {
 		call obj_remove_outline_
@@ -911,7 +898,7 @@ static void __declspec(naked) obj_remove_outline_hook() {
 		cmp  highlightingToggled, 1
 		jne  end
 		mov  ds:[_outlined_object], eax
-		call obj_outline_all_items_on_
+		call obj_outline_all_items_on
 end:
 		retn
 	}
@@ -1476,11 +1463,11 @@ static void RunGlobalScripts1() {
 						DisplayConsoleMessage(HighlightFail1);
 					}
 				} else highlightingToggled = 1;
-				if (highlightingToggled) obj_outline_all_items_on_();
+				if (highlightingToggled) obj_outline_all_items_on();
 				else highlightingToggled = 2;
 			}
 		} else if(highlightingToggled) {
-			if (highlightingToggled == 1) obj_outline_all_items_off_();
+			if (highlightingToggled == 1) obj_outline_all_items_off();
 			highlightingToggled=0;
 		}
 	}

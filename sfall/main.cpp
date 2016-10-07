@@ -1208,7 +1208,7 @@ static void DllMain2() {
 
 	CritInit();
 
-	if (GetPrivateProfileInt("Misc", "MultiPatches", 0, ini)) {
+	if (GetPrivateProfileIntA("Misc", "MultiPatches", 0, ini)) {
 		dlog("Applying load multiple patches patch.", DL_INIT);
 		SafeWrite8(0x444338, 0x90); // Change step from 2 to 1
 		SafeWrite32(0x444363, 0xEB909090); // Disable check
@@ -1505,7 +1505,7 @@ static void DllMain2() {
 
 	if (GetPrivateProfileIntA("Misc", "EnableMusicInDialogue", 0, ini)) {
 		dlog("Applying music in dialogue patch.", DL_INIT);
-		SafeWrite8(0x44525B, 0x00);
+		SafeWrite8(0x44525B, 0x0);
 		//BlockCall(0x450627);
 		dlogr(" Done", DL_INIT);
 	}
