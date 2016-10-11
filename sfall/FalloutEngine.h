@@ -46,6 +46,7 @@
 #define _combat_turn_running        0x51093C
 #define _combatNumTurns             0x510940
 #define _crit_succ_eff              0x510978
+#define _critter_db_handle          0x58E94C
 #define _critterClearObj            0x518438
 #define _crnt_func                  0x664508
 #define _curr_font_num              0x51E3B0
@@ -113,6 +114,7 @@
 #define _main_window                0x5194F0
 #define _map_elevation              0x519578
 #define _map_global_vars            0x51956C
+#define _master_db_handle           0x58E948
 #define _max                        0x56FB50
 #define _Meet_Frank_Horrigan        0x672E04
 #define _mouse_hotx                 0x6AC7D0
@@ -539,6 +541,7 @@ extern const DWORD stat_pc_add_experience_;
 extern const DWORD stat_pc_get_;
 extern const DWORD stat_pc_set_;
 extern const DWORD stat_set_bonus_;
+extern const DWORD stricmp_;
 extern const DWORD strncpy_;
 extern const DWORD switch_hand_;
 extern const DWORD talk_to_translucent_trans_buf_to_buf_;
@@ -583,6 +586,7 @@ extern const DWORD xfread_;
 extern const DWORD xfseek_;
 extern const DWORD xftell_;
 extern const DWORD xfwrite_;
+extern const DWORD xremovepath_;
 extern const DWORD xrewind_;
 extern const DWORD xungetc_;
 extern const DWORD xvfprintf_;

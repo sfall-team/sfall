@@ -170,9 +170,7 @@ void _stdcall SetShaderMode(DWORD d, DWORD mode) {
 }
 
 int _stdcall LoadShader(const char* path) {
-	if(GraphicsMode < 4) return -1;
-	if(strstr(path, "..")) return -1;
-	if(strstr(path, ":")) return -1;
+	if ((GraphicsMode < 4) || (strstr(path, "..")) || (strstr(path, ":"))) return -1;
 	char buf[MAX_PATH];
 	sprintf(buf, "%s\\shaders\\%s", *(char**)_patches, path);
 	for(DWORD d=0;d<shaders.size();d++) {
