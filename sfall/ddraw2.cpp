@@ -185,7 +185,6 @@ int _stdcall LoadShader(const char* path) {
 	shader.Effect->SetFloatArray("rcpres", rcpres, 2);
 
 	for(int i=1;i<128;i++) {
-		char buf[MAX_PATH];
 		const char* name;
 		IDirect3DTexture9* tex;
 

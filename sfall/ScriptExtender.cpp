@@ -96,7 +96,7 @@ static float _stdcall GetOpArgFloat(int num) {
 }
 
 static const char* _stdcall GetOpArgStr(int num) {
-	return (opArgTypes[num] == DATATYPE_STR) 
+	return (opArgTypes[num] == DATATYPE_STR)
 		? (const char*)opArgs[num]
 		: "";
 }
@@ -145,7 +145,7 @@ struct sGlobalScript {
 
 struct sExportedVar {
 	DWORD type; // in scripting engine terms, eg. VAR_TYPE_*
-	DWORD val;  
+	DWORD val;
 	sExportedVar() : val(0), type(VAR_TYPE_INT) {}
 };
 
@@ -634,7 +634,7 @@ DWORD _stdcall FindSidHook2(DWORD script) {
 		return -2; // override struct
 	}
 	// this will allow to use functions like roll_vs_skill, etc without calling set_self (they don't really need self object)
-	if (sfallProgsMap.find(script) != sfallProgsMap.end()) { 
+	if (sfallProgsMap.find(script) != sfallProgsMap.end()) {
 		OverrideScriptStruct.target_obj = OverrideScriptStruct.self_obj = 0;
 		return -2; // override struct
 	}
@@ -749,7 +749,7 @@ static DWORD __stdcall CreateGlobalExportedVar(DWORD scr, const char* name) {
 	globalExportedVars[str] = sExportedVar(); // add new
 	return 1;
 }
-/* 
+/*
 	when fetching/storing into exported variables, first search in our own hash table instead, then (if not found), resume normal search
 
 	reason for this: game frees all scripts and exported variables from memory when you exit map
@@ -905,7 +905,7 @@ end:
 }
 
 void ScriptExtenderSetup() {
-	bool AllowUnsafeScripting = IsDebug 
+	bool AllowUnsafeScripting = IsDebug
 		&& GetPrivateProfileIntA("Debugging", "AllowUnsafeScripting", 0, ".\\ddraw.ini") != 0;
 
 	toggleHighlightsKey = GetPrivateProfileIntA("Input", "ToggleItemHighlightsKey", 0, ini);
@@ -1299,6 +1299,7 @@ void InitScriptProgram(sScriptProgram &prog) {
 void AddProgramToMap(sScriptProgram &prog) {
 	sfallProgsMap[prog.ptr] = prog;
 }
+
 sScriptProgram* GetGlobalScriptProgram(DWORD scriptPtr) {
 	for (std::vector<sGlobalScript>::iterator it = globalScripts.begin(); it != globalScripts.end(); it++) {
 		if (it->prog.ptr == scriptPtr) return &it->prog;
@@ -1306,25 +1307,38 @@ sScriptProgram* GetGlobalScriptProgram(DWORD scriptPtr) {
 	return NULL;
 }
 
+bool _stdcall isGameScript(const char* filename) {
+	for (DWORD i = 0; i < *(DWORD*)_maxScriptNum; i++) {
+		if (strcmp(filename, (char*)(*(DWORD*)_scriptListInfo + i*20)) == 0) return true;
+	}
+	return false;
+}
+
 // this runs after the game was loaded/started
 void LoadGlobalScripts() {
 	isGameLoading = false;
 	HookScriptInit();
 	dlogr("Loading global scripts", DL_SCRIPT);
-	WIN32_FIND_DATA file;
-	char buf[MAX_PATH];
-	sprintf(buf, "%s\\scripts\\gl*.int", *(char**)_patches);
-	HANDLE h = FindFirstFileA(buf, &file);
-	if (h != INVALID_HANDLE_VALUE) {
-		char* fName = file.cFileName;
-		// TODO: refactor script programs
-		sScriptProgram prog;
-		DWORD found = 1;
-		while (found) {
-			fName[strlen(fName) - 4] = 0;
-			dlogr(fName, DL_SCRIPT);
+
+	char* name = "scripts\\gl*.int";
+	DWORD count, *filenames;
+	__asm {
+		xor  ebx, ebx
+		mov  eax, name
+		lea  edx, filenames
+		call db_get_file_list_
+		mov  count, eax
+	}
+
+	// TODO: refactor script programs
+	sScriptProgram prog;
+	for (DWORD i = 0; i < count; i++) {
+		name = _strlwr((char*)filenames[i]);
+		name[strlen(name) - 4] = 0;
+		if (!isGameScript(name)) {
+			dlog(name, DL_SCRIPT);
 			isGlobalScriptLoading = 1;
-			LoadScriptProgram(prog, fName);
+			LoadScriptProgram(prog, name);
 			if (prog.ptr) {
 				DWORD idx;
 				sGlobalScript gscript = sGlobalScript(prog);
@@ -1333,13 +1347,17 @@ void LoadGlobalScripts() {
 				AddProgramToMap(prog);
 				// initialize script (start proc will be executed for the first time) -- this needs to be after script is added to "globalScripts" array
 				InitScriptProgram(prog);
-			}
+				dlogr(" Done", DL_SCRIPT);
+			} else dlogr(" Error!", DL_SCRIPT);
 			isGlobalScriptLoading = 0;
-			found = FindNextFileA(h, &file);
 		}
-		FindClose(h);
 	}
-	dlogr("Finished loading global scripts", DL_SCRIPT);	
+	__asm {
+		xor  edx, edx
+		lea  eax, filenames
+		call db_free_file_list_
+	}
+	dlogr("Finished loading global scripts", DL_SCRIPT);
 	//ButtonsReload();
 }
 
@@ -1421,7 +1439,7 @@ static void RunScript(sGlobalScript* script) {
 */
 static void ResetStateAfterFrame() {
 	if (tempArrays.size()) {
- 		for (std::set<DWORD>::iterator it = tempArrays.begin(); it != tempArrays.end(); ++it) 
+ 		for (std::set<DWORD>::iterator it = tempArrays.begin(); it != tempArrays.end(); ++it)
 			FreeArray(*it);
 		tempArrays.clear();
 	}
@@ -1551,7 +1569,7 @@ void SaveGlobals(HANDLE h) {
 
 void ClearGlobals() {
 	globalVars.clear();
-	for (array_itr it = arrays.begin(); it != arrays.end(); ++it) 
+	for (array_itr it = arrays.begin(); it != arrays.end(); ++it)
 		it->second.clear();
 	arrays.clear();
 	savedArrays.clear();

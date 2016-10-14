@@ -1099,20 +1099,21 @@ void _stdcall RegisterHook( DWORD script, DWORD id, DWORD procNum )
 
 static void LoadHookScript(const char* name, int id) {
 	if (id >= numHooks) return;
-	WIN32_FIND_DATA file;
-	HANDLE h;
 
-	char buf[MAX_PATH];
-	sprintf(buf, "%s\\scripts\\hs_%s.int", *(char**)_patches, name);
-	h = FindFirstFileA(buf, &file);
-	if(h != INVALID_HANDLE_VALUE) {
+	char filename[MAX_PATH];
+	sprintf(filename, "scripts\\%s.int", name);
+	bool result;
+	__asm {
+		lea  eax, filename
+		call db_access_
+		mov  result, al
+	}
+
+	if (result && !isGameScript(name)) {
 		sScriptProgram prog;
 		dlog("Loading hook script: ", DL_HOOK);
-		dlogr(buf, DL_HOOK);
-		char* fName = file.cFileName;
-		fName[strlen(fName) - 4] = 0;
-		LoadScriptProgram(prog, fName);
-		FindClose(h);
+		dlog(filename, DL_HOOK);
+		LoadScriptProgram(prog, name);
 		if (prog.ptr) {
 			sHookScript hook;
 			hook.prog = prog;
@@ -1120,13 +1121,24 @@ static void LoadHookScript(const char* name, int id) {
 			hook.isGlobalScript = false;
 			hooks[id].push_back(hook);
 			AddProgramToMap(prog);
-		}
+			dlogr(" Done", DL_HOOK);
+		} else dlogr(" Error!", DL_HOOK);
 	}
 }
+
 static void HookScriptInit2() {
 	dlogr("Initing hook scripts", DL_HOOK|DL_INIT);
 
-	LoadHookScript("tohit", HOOK_TOHIT);
+	char* mask = "scripts\\hs_*.int";
+	DWORD *filenames;
+	__asm {
+		xor  ebx, ebx
+		mov  eax, mask
+		lea  edx, filenames
+		call db_get_file_list_
+	}
+
+	LoadHookScript("hs_tohit", HOOK_TOHIT);
 	HookCall(0x421686, &ToHitHook);
 	HookCall(0x4231D9, &ToHitHook);
 	HookCall(0x42331F, &ToHitHook);
@@ -1136,10 +1148,10 @@ static void HookScriptInit2() {
 	HookCall(0x42439C, &ToHitHook);
 	HookCall(0x42679A, &ToHitHook);
 
-	LoadHookScript("afterhitroll", HOOK_AFTERHITROLL);
+	LoadHookScript("hs_afterhitroll", HOOK_AFTERHITROLL);
 	MakeCall(0x423893, &AfterHitRollHook, true);
 
-	LoadHookScript("calcapcost", HOOK_CALCAPCOST);
+	LoadHookScript("hs_calcapcost", HOOK_CALCAPCOST);
 	HookCall(0x42307A, &CalcApCostHook);
 	HookCall(0x42669F, &CalcApCostHook);
 	HookCall(0x42687B, &CalcApCostHook);
@@ -1152,14 +1164,14 @@ static void HookScriptInit2() {
 	HookCall(0x47807B, &CalcApCostHook);
 	MakeCall(0x478083, &CalcApCostHook2, false);
 
-	LoadHookScript("deathanim1", HOOK_DEATHANIM1);
-	LoadHookScript("deathanim2", HOOK_DEATHANIM2);
+	LoadHookScript("hs_deathanim1", HOOK_DEATHANIM1);
+	LoadHookScript("hs_deathanim2", HOOK_DEATHANIM2);
 	HookCall(0x4109DE, &CalcDeathAnimHook);
 	HookCall(0x410981, &CalcDeathAnimHook2);
 	HookCall(0x4109A1, &CalcDeathAnimHook2);
 	HookCall(0x4109BF, &CalcDeathAnimHook2);
 
-	LoadHookScript("combatdamage", HOOK_COMBATDAMAGE);
+	LoadHookScript("hs_combatdamage", HOOK_COMBATDAMAGE);
 	HookCall(0x42326C, &CombatDamageHook); // check_ranged_miss()
 	HookCall(0x4233E3, &CombatDamageHook); // shoot_along_path() - for extra burst targets
 	HookCall(0x423AB7, &CombatDamageHook); // compute_attack()
@@ -1169,7 +1181,7 @@ static void HookScriptInit2() {
 	HookCall(0x424220, &CombatDamageHook); // attack_crit_failure()
 	HookCall(0x4242FB, &CombatDamageHook); // attack_crit_failure()
 
-	LoadHookScript("ondeath", HOOK_ONDEATH);
+	LoadHookScript("hs_ondeath", HOOK_ONDEATH);
 	HookCall(0x4130CC, &OnDeathHook);
 	HookCall(0x4130EF, &OnDeathHook);
 	HookCall(0x413603, &OnDeathHook);
@@ -1182,10 +1194,10 @@ static void HookScriptInit2() {
 	HookCall(0x4C14F9, &OnDeathHook);
 	HookCall(0x425161, &OnDeathHook2);
 
-	LoadHookScript("findtarget", HOOK_FINDTARGET);
+	LoadHookScript("hs_findtarget", HOOK_FINDTARGET);
 	HookCall(0x429143, &FindTargetHook);
 
-	LoadHookScript("useobjon", HOOK_USEOBJON);
+	LoadHookScript("hs_useobjon", HOOK_USEOBJON);
 	HookCall(0x49C606, &UseObjOnHook);
 	HookCall(0x473619, &UseObjOnHook);
 	// the following hooks allows to catch drug use of AI and from action cursor
@@ -1194,22 +1206,22 @@ static void HookScriptInit2() {
 	HookCall(0x4287F8, &UseObjOnHook_item_d_take_drug); // ai_check_drugs
 	HookCall(0x473573, &UseObjOnHook_item_d_take_drug); // inven_action_cursor
 
-	LoadHookScript("removeinvenobj", HOOK_REMOVEINVENOBJ);
+	LoadHookScript("hs_removeinvenobj", HOOK_REMOVEINVENOBJ);
 	MakeCall(0x477490, &RemoveObjHook, true);
 
-	LoadHookScript("barterprice", HOOK_BARTERPRICE);
+	LoadHookScript("hs_barterprice", HOOK_BARTERPRICE);
 	HookCall(0x474D4C, &BarterPriceHook);
 	HookCall(0x475735, &BarterPriceHook);
 	HookCall(0x475762, &BarterPriceHook);
 
-	LoadHookScript("movecost", HOOK_MOVECOST);
+	LoadHookScript("hs_movecost", HOOK_MOVECOST);
 	HookCall(0x417665, &MoveCostHook);
 	HookCall(0x44B88A, &MoveCostHook);
 
-	LoadHookScript("hexmoveblocking", HOOK_HEXMOVEBLOCKING);
-	LoadHookScript("hexaiblocking", HOOK_HEXAIBLOCKING);
-	LoadHookScript("hexshootblocking", HOOK_HEXSHOOTBLOCKING);
-	LoadHookScript("hexsightblocking", HOOK_HEXSIGHTBLOCKING);
+	LoadHookScript("hs_hexmoveblocking", HOOK_HEXMOVEBLOCKING);
+	LoadHookScript("hs_hexaiblocking", HOOK_HEXAIBLOCKING);
+	LoadHookScript("hs_hexshootblocking", HOOK_HEXSHOOTBLOCKING);
+	LoadHookScript("hs_hexsightblocking", HOOK_HEXSIGHTBLOCKING);
 	SafeWrite32(0x413979, (DWORD)&HexSightBlockingHook);
 	SafeWrite32(0x4C1A88, (DWORD)&HexShootBlockingHook);
 	SafeWrite32(0x423178, (DWORD)&HexShootBlockingHook);
@@ -1220,29 +1232,29 @@ static void HookScriptInit2() {
 	SafeWrite32(0x42A0A4, (DWORD)&HexABlockingHook);
 	MakeCall(0x48B848, &HexMBlockingHook, true);
 
-	LoadHookScript("itemdamage", HOOK_ITEMDAMAGE);
+	LoadHookScript("hs_itemdamage", HOOK_ITEMDAMAGE);
 	HookCall(0x478560, &ItemDamageHook);
 
-	LoadHookScript("ammocost", HOOK_AMMOCOST);
+	LoadHookScript("hs_ammocost", HOOK_AMMOCOST);
 	HookCall(0x423A7C, &AmmoCostHook);
 
-	LoadHookScript("useobj", HOOK_USEOBJ);
+	LoadHookScript("hs_useobj", HOOK_USEOBJ);
 	HookCall(0x42AEBF, &UseObjHook);
 	HookCall(0x473607, &UseObjHook);
 	HookCall(0x49C12E, &UseObjHook);
 
-	LoadHookScript("keypress", HOOK_KEYPRESS);
-	LoadHookScript("mouseclick", HOOK_MOUSECLICK);
+	LoadHookScript("hs_keypress", HOOK_KEYPRESS);
+	LoadHookScript("hs_mouseclick", HOOK_MOUSECLICK);
 
-	LoadHookScript("useskill", HOOK_USESKILL);
+	LoadHookScript("hs_useskill", HOOK_USESKILL);
 	HookCall(0x49C48F, &UseSkillHook);
 	HookCall(0x49D12E, &UseSkillHook);
 
-	LoadHookScript("steal", HOOK_STEAL);
+	LoadHookScript("hs_steal", HOOK_STEAL);
 	HookCall(0x4749A2, &StealCheckHook);
 	HookCall(0x474A69, &StealCheckHook);
 
-	LoadHookScript("withinperception", HOOK_WITHINPERCEPTION);
+	LoadHookScript("hs_withinperception", HOOK_WITHINPERCEPTION);
 	HookCall(0x429157, &PerceptionRangeHook);
 	HookCall(0x42B4ED, &PerceptionRangeHook);
 	HookCall(0x42BC87, &PerceptionRangeHook);
@@ -1251,7 +1263,7 @@ static void HookScriptInit2() {
 	MakeCall(0x456BA2, &PerceptionRangeBonusHack, true);
 	HookCall(0x458403, &PerceptionRangeHook);
 
-	LoadHookScript("inventorymove", HOOK_INVENTORYMOVE);
+	LoadHookScript("hs_inventorymove", HOOK_INVENTORYMOVE);
 	HookCall(0x4712E3, &SwitchHandHook); // left slot
 	HookCall(0x47136D, &SwitchHandHook); // right slot
 	MakeCall(0x4713A3, &UseArmorHack, true);
@@ -1262,7 +1274,7 @@ static void HookScriptInit2() {
 	//HookCall(0x471351, &DropAmmoIntoWeaponHook);
 	MakeCall(0x476588, &DropAmmoIntoWeaponHack, true);
 
-	LoadHookScript("invenwield", HOOK_INVENWIELD);
+	LoadHookScript("hs_invenwield", HOOK_INVENWIELD);
 	HookCall(0x47275E, &invenWieldFunc_Hook);
 	HookCall(0x495FDF, &invenWieldFunc_Hook);
 	HookCall(0x45967D, &invenUnwieldFunc_Hook);
@@ -1271,8 +1283,13 @@ static void HookScriptInit2() {
 	HookCall(0x45680C, &correctFidForRemovedItem_Hook);
 	HookCall(0x45C4EA, &correctFidForRemovedItem_Hook);
 
-	dlogr("Completed hook script init", DL_HOOK|DL_INIT);
+	__asm {
+		xor  edx, edx
+		lea  eax, filenames
+		call db_free_file_list_
+	}
 
+	dlogr("Completed hook script init", DL_HOOK|DL_INIT);
 }
 
 void HookScriptClear() {

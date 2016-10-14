@@ -116,6 +116,7 @@
 #define _map_global_vars            0x51956C
 #define _master_db_handle           0x58E948
 #define _max                        0x56FB50
+#define _maxScriptNum               0x51C7CC
 #define _Meet_Frank_Horrigan        0x672E04
 #define _mouse_hotx                 0x6AC7D0
 #define _mouse_hoty                 0x6AC7CC
@@ -164,6 +165,7 @@
 #define _RedColor                   0x6AB4D0
 #define _retvals                    0x43EA7C
 #define _scr_size                   0x6AC9F0
+#define _scriptListInfo             0x51C7C8
 #define _skill_data                 0x51D118
 #define _slot_cursor                0x5193B8
 #define _sneak_working              0x56D77C // DWORD var 
@@ -261,6 +263,7 @@ extern const DWORD critter_name_;
 extern const DWORD critter_pc_set_name_;
 extern const DWORD critterClearObjDrugs_;
 extern const DWORD critterIsOverloaded_;
+extern const DWORD db_access_;
 extern const DWORD db_dir_entry_;
 extern const DWORD db_fclose_;
 extern const DWORD db_fgetc_;
@@ -273,10 +276,12 @@ extern const DWORD db_freadInt_;
 extern const DWORD db_freadIntCount_;
 extern const DWORD db_freadShort_;
 extern const DWORD db_freadShortCount_;
+extern const DWORD db_free_file_list_;
 extern const DWORD db_fseek_;
 extern const DWORD db_fwriteByte_;
 extern const DWORD db_fwriteByteCount_;
 extern const DWORD db_fwriteInt_;
+extern const DWORD db_get_file_list_;
 extern const DWORD db_read_to_buf_;
 extern const DWORD dbase_close_;
 extern const DWORD dbase_open_;
