@@ -24,15 +24,13 @@
 #define DATATYPE_FLOAT (2)
 #define DATATYPE_STR   (3)
 
-struct sGlobalVar 
-{
+struct sGlobalVar {
 	__int64 id;
 	int val;
 };
 
 #define SCRIPT_PROC_MAX (27)
-typedef struct  
-{
+typedef struct {
 	DWORD ptr;
 	DWORD procLookup[SCRIPT_PROC_MAX+1];
 	char initialized;
@@ -56,7 +54,6 @@ void ClearGlobals();
 int GetNumGlobals();
 void GetGlobals(sGlobalVar* globals);
 void SetGlobals(sGlobalVar* globals);
-
 
 extern DWORD AddUnarmedStatToGetYear;
 extern DWORD AvailableGlobalScriptTypes;

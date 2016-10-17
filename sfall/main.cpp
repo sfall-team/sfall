@@ -383,12 +383,12 @@ static void __declspec(naked) ViewportHook() {
 	}
 }
 
-HANDLE _stdcall FakeFindFirstFile(const char* str, WIN32_FIND_DATAA* data) {
-	HANDLE h=FindFirstFileA(str,data);
-	if(h==INVALID_HANDLE_VALUE) return h;
-	while(strlen(data->cFileName)>12) {
-		int i=FindNextFileA(h, data);
-		if(i==0) {
+/*HANDLE _stdcall FakeFindFirstFile(const char* str, WIN32_FIND_DATAA* data) {
+	HANDLE h = FindFirstFileA(str,data);
+	if (h == INVALID_HANDLE_VALUE) return h;
+	while (strlen(data->cFileName) > 12) {
+		int i = FindNextFileA(h, data);
+		if(i == 0) {
 			FindClose(h);
 			return INVALID_HANDLE_VALUE;
 		}
@@ -396,12 +396,13 @@ HANDLE _stdcall FakeFindFirstFile(const char* str, WIN32_FIND_DATAA* data) {
 	return h;
 }
 int _stdcall FakeFindNextFile(HANDLE h, WIN32_FIND_DATAA* data) {
-	int i=FindNextFileA(h, data);
-	while(strlen(data->cFileName)>12&&i) {
-		i=FindNextFileA(h, data);
+	int i = FindNextFileA(h, data);
+	while (strlen(data->cFileName) > 12 && i) {
+		i = FindNextFileA(h, data);
 	}
 	return i;
-}
+}*/
+
 static void __declspec(naked) WeaponAnimHook() {
 	__asm {
 		cmp edx, 11;
@@ -848,6 +849,10 @@ static void DllMain2() {
 	DWORD tmp;
 	dlogr("In DllMain2", DL_MAIN);
 
+	dlog("Running BugsInit.", DL_INIT);
+	BugsInit();
+	dlogr(" Done", DL_INIT);
+
 	if (GetPrivateProfileIntA("Speed", "Enable", 0, ini)) {
 		dlog("Applying speed patch.", DL_INIT);
 		AddrGetTickCount = (DWORD)&FakeGetTickCount;
@@ -1246,18 +1251,12 @@ static void DllMain2() {
 		FileSystemInit();
 	}
 
-	/*DWORD horrigan=GetPrivateProfileIntA("Misc", "DisableHorrigan", 0, ini);
-	if(horrigan) {
-		if(*((BYTE*)0x004C06D8)!=0x75) return false;
-		SafeWrite8(0x004C06D8, 0xeb);
-	}*/
-
-	//if(GetPrivateProfileIntA("Misc", "PrintToFileFix", 0, ini)) {
+	/*if (GetPrivateProfileIntA("Misc", "PrintToFileFix", 0, ini)) {
 		dlog("Applying print to file patch.", DL_INIT);
-		SafeWrite32(0x006C0364, (DWORD)&FakeFindFirstFile);
-		SafeWrite32(0x006C0368, (DWORD)&FakeFindNextFile);
+		SafeWrite32(0x6C0364, (DWORD)&FakeFindFirstFile);
+		SafeWrite32(0x6C0368, (DWORD)&FakeFindNextFile);
 		dlogr(" Done", DL_INIT);
-	//}
+	}*/
 
 	if(GetPrivateProfileIntA("Misc", "AdditionalWeaponAnims", 0, ini)) {
 		dlog("Applying additional weapon animations patch.", DL_INIT);
@@ -1619,9 +1618,6 @@ static void DllMain2() {
 		dlogr(" Done", DL_INIT);
 	}
 
-	dlog("Running BugsInit.", DL_INIT);
-	BugsInit();
-	dlogr(" Done", DL_INIT);
 	dlogr("Leave DllMain2", DL_MAIN);
 }
 

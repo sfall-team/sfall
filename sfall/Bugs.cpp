@@ -789,6 +789,56 @@ end:
 	}
 }
 
+static void __declspec(naked) db_get_file_list_hack() {
+	__asm {
+		push edi
+		push edx
+		xchg edi, eax                             // edi = *filename
+		mov  eax, [eax+4]                         // file_lists.filenames
+		lea  esi, [eax+edx]
+		cld
+		push es
+		push ds
+		pop  es
+		xor  ecx, ecx
+		dec  ecx
+		mov  edx, ecx
+		mov  ebx, ecx
+		xor  eax, eax                             // searching for end of line
+		repne scasb
+		not  ecx
+		dec  ecx
+		xchg ebx, ecx                             // ebx = filename length
+		lea  edi, [esp+0x200+4*6]
+		repne scasb
+		not  ecx
+		xchg edx, ecx                             // edx = extension length +1 for "end of line"
+		mov  edi, [esi]
+		repne scasb
+		not  ecx                                  // ecx = buffer line length +1 for "end of line"
+		pop  es
+		lea  eax, [ebx+edx]                       // eax = new line length
+		cmp  eax, ecx                             // new line length <= buffer line length?
+		jbe  end                                  // Yes
+		mov  edx, [esi]
+		xchg edx, eax
+		call nrealloc_                            // eax = mem, edx = size
+		test eax, eax
+		jnz  skip
+		push 0x50B2F0                             // "Error: Ran out of memory!"
+		call debug_printf_
+		add  esp, 4
+		jmp  end
+skip:
+		mov  [esi], eax
+end:
+		xchg esi, eax
+		pop  edx
+		pop  edi
+		retn
+	}
+}
+
 
 void BugsInit()
 {
@@ -1017,6 +1067,12 @@ void BugsInit()
 	//if (GetPrivateProfileIntA("Misc", "SmallLocExitFix", 1, ini)) {
 		dlog("Applying fix for incorrect positioning after exiting small locations.", DL_INIT);
 		MakeCall(0x4C5A41, &wmTeleportToArea_hack, true);
+		dlogr(" Done", DL_INIT);
+	//}
+
+	//if (GetPrivateProfileIntA("Misc", "PrintToFileFix", 0, ini)) {
+		dlog("Applying print to file patch.", DL_INIT);
+		MakeCall(0x4C67D4, &db_get_file_list_hack, false);
 		dlogr(" Done", DL_INIT);
 	//}
 }

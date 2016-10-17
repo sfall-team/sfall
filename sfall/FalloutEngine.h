@@ -285,6 +285,7 @@ extern const DWORD db_get_file_list_;
 extern const DWORD db_read_to_buf_;
 extern const DWORD dbase_close_;
 extern const DWORD dbase_open_;
+extern const DWORD debug_printf_;
 extern const DWORD debug_register_env_;
 extern const DWORD determine_to_hit_func_;
 extern const DWORD dialog_out_;
@@ -432,6 +433,7 @@ extern const DWORD mouse_in_;
 extern const DWORD mouse_show_;
 extern const DWORD move_inventory_;
 extern const DWORD NixHotLines_;
+extern const DWORD nrealloc_;
 extern const DWORD obj_ai_blocking_at_;
 extern const DWORD obj_blocking_at_; // <eax>(int aExcludeObject<eax> /* can be 0 */, signed int aTile<edx>, int aElevation<ebx>)
 extern const DWORD obj_bound_;
