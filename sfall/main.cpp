@@ -427,7 +427,7 @@ static void __declspec(naked) removeDatabase() {
 		mov  ecx, ebx
 nextPath:
 		mov  edx, [esp+0x104+4+4]                 // path_patches
-		mov  eax, [ebx+0x0]                       // database.path
+		mov  eax, [ebx]                           // database.path
 		call stricmp_
 		test eax, eax                             // found path?
 		jz   skip                                 // Yes
@@ -459,7 +459,7 @@ static void __declspec(naked) game_init_databases_hack2() {
 		cmp  eax, -1
 		je   end
 		mov  eax, ds:[_master_db_handle]
-		mov  eax, [eax+0x0]                       // eax = master_patches.path
+		mov  eax, [eax]                           // eax = master_patches.path
 		call xremovepath_
 		dec  eax                                  // remove path (critter_patches == master_patches)?
 		jz   end                                  // Yes

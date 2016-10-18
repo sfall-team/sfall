@@ -1318,14 +1318,15 @@ bool _stdcall isGameScript(const char* filename) {
 void LoadGlobalScripts() {
 	isGameLoading = false;
 	HookScriptInit();
-	dlogr("Loading global scripts", DL_SCRIPT);
+	dlogr("Loading global scripts", DL_SCRIPT|DL_INIT);
 
 	char* name = "scripts\\gl*.int";
 	DWORD count, *filenames;
 	__asm {
+		xor  ecx, ecx
 		xor  ebx, ebx
-		mov  eax, name
 		lea  edx, filenames
+		mov  eax, name
 		call db_get_file_list_
 		mov  count, eax
 	}
@@ -1336,6 +1337,7 @@ void LoadGlobalScripts() {
 		name = _strlwr((char*)filenames[i]);
 		name[strlen(name) - 4] = 0;
 		if (!isGameScript(name)) {
+			dlog(">", DL_SCRIPT);
 			dlog(name, DL_SCRIPT);
 			isGlobalScriptLoading = 1;
 			LoadScriptProgram(prog, name);
@@ -1357,7 +1359,7 @@ void LoadGlobalScripts() {
 		lea  eax, filenames
 		call db_free_file_list_
 	}
-	dlogr("Finished loading global scripts", DL_SCRIPT);
+	dlogr("Finished loading global scripts", DL_SCRIPT|DL_INIT);
 	//ButtonsReload();
 }
 

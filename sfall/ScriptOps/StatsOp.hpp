@@ -1002,8 +1002,8 @@ static void __declspec(naked) SetStatMin() {
 		push eax;
 		push edi;
 		push eax;
-		call SetPCStatMax;
-		call SetNPCStatMax;
+		call SetPCStatMin;
+		call SetNPCStatMin;
 end:
 		pop esi;
 		pop edi;
@@ -1071,7 +1071,7 @@ static void __declspec(naked) fSetPCStatMin() {
 		jnz end;
 		push edi;
 		push eax;
-		call SetPCStatMax;
+		call SetPCStatMin;
 end:
 		pop esi;
 		pop edi;
@@ -1139,7 +1139,7 @@ static void __declspec(naked) fSetNPCStatMin() {
 		jnz end;
 		push edi;
 		push eax;
-		call SetNPCStatMax;
+		call SetNPCStatMin;
 end:
 		pop esi;
 		pop edi;
