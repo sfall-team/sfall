@@ -1342,6 +1342,7 @@ void LoadGlobalScripts() {
 			isGlobalScriptLoading = 1;
 			LoadScriptProgram(prog, name);
 			if (prog.ptr) {
+				dlogr(" Done", DL_SCRIPT);
 				DWORD idx;
 				sGlobalScript gscript = sGlobalScript(prog);
 				idx = globalScripts.size();
@@ -1349,7 +1350,6 @@ void LoadGlobalScripts() {
 				AddProgramToMap(prog);
 				// initialize script (start proc will be executed for the first time) -- this needs to be after script is added to "globalScripts" array
 				InitScriptProgram(prog);
-				dlogr(" Done", DL_SCRIPT);
 			} else dlogr(" Error!", DL_SCRIPT);
 			isGlobalScriptLoading = 0;
 		}

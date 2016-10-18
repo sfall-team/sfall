@@ -1088,7 +1088,7 @@ void _stdcall RegisterHook( DWORD script, DWORD id, DWORD procNum )
 	}
 	sScriptProgram *prog = GetGlobalScriptProgram(script);
 	if (prog) {
-		dlog_f(" (Global script %08x registered as hook id %d)", DL_HOOK, script, id);
+		dlog_f("Global script %08x registered as hook id %d\r\n", DL_HOOK, script, id);
 		sHookScript hook;
 		hook.prog = *prog;
 		hook.callback = procNum;
@@ -1115,13 +1115,13 @@ static void LoadHookScript(const char* name, int id) {
 		dlog(name, DL_HOOK);
 		LoadScriptProgram(prog, name);
 		if (prog.ptr) {
+			dlogr(" Done", DL_HOOK);
 			sHookScript hook;
 			hook.prog = prog;
 			hook.callback = -1;
 			hook.isGlobalScript = false;
 			hooks[id].push_back(hook);
 			AddProgramToMap(prog);
-			dlogr(" Done", DL_HOOK);
 		} else dlogr(" Error!", DL_HOOK);
 	}
 }
