@@ -380,3 +380,7 @@ void __stdcall PartyControlReset() {
 		RestoreRealDudeState();
 	}
 }
+
+bool IsNpcControlled() {
+	return IsControllingNPC != 0;
+}
