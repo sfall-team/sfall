@@ -330,7 +330,7 @@ extern DWORD* ptr_pc_kill_counts;
 extern char*  ptr_pc_name;
 extern DWORD* ptr_pc_proto;
 extern DWORD* ptr_perk_data;
-extern DWORD* ptr_perkLevelDataList; // limited to PERK_Count
+extern int**  ptr_perkLevelDataList; // limited to PERK_Count
 extern DWORD* ptr_pip_win;
 extern DWORD* ptr_pipboy_message_file;
 extern DWORD* ptr_pipmesg;

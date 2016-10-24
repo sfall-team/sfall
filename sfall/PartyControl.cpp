@@ -50,7 +50,7 @@ static DWORD real_itemButtonItems[6*2];
 static DWORD real_perkLevelDataList[PERK_count];
 //static DWORD real_drug_gvar[6];
 //static DWORD real_jet_gvar;
-static DWORD real_tag_skill[4];
+static int real_tag_skill[4];
 //static DWORD real_bbox_sneak;
 
 static const DWORD* list_com = (DWORD*)_list_com;
@@ -81,7 +81,7 @@ static void SaveRealDudeState() {
 	real_hand = *ptr_itemCurrentItem;
 	memcpy(real_itemButtonItems, ptr_itemButtonItems, sizeof(DWORD) * 6 * 2);
 	memcpy(real_traits, ptr_pc_traits, sizeof(DWORD) * 2);
-	memcpy(real_perkLevelDataList, ptr_perkLevelDataList, sizeof(DWORD) * PERK_count);
+	memcpy(real_perkLevelDataList, *ptr_perkLevelDataList, sizeof(DWORD) * PERK_count);
 	strcpy_s(real_pc_name, 32, ptr_pc_name);
 	real_Level = *ptr_Level_;
 	real_last_level = *ptr_last_level;
@@ -90,18 +90,11 @@ static void SaveRealDudeState() {
 	real_unspent_skill_points = ptr_curr_pc_stat[0];
 	//real_map_elevation = *ptr_map_elevation;
 	real_sneak_working = *ptr_sneak_working;
-	__asm {
-		mov eax, real_tag_skill
-	    call skill_get_tags_
-	}
+	SkillGetTags(real_tag_skill, 4);
 }
 
 // take control of the NPC
 static void TakeControlOfNPC(TGameObj* npc) {
-	// switch main dude_obj pointers
-	*ptr_obj_dude = npc;
-	*ptr_inven_dude = npc;
-
 	// remove skill tags
 	int tagSkill[4];
 	std::fill(std::begin(tagSkill), std::end(tagSkill), -1);
@@ -111,17 +104,22 @@ static void TakeControlOfNPC(TGameObj* npc) {
 	ptr_pc_traits[0] = ptr_pc_traits[1] = -1;
 
 	// reset perks
-	std::fill(std::begin(real_perkLevelDataList), std::begin(real_perkLevelDataList) + PERK_count, 0);
+	for (int i = 0; i < PERK_count; i++) {
+		(*ptr_perkLevelDataList)[i] = 0;
+	}
 
 	// change character name
 	CritterPcSetName(CritterName(npc));
 
+	// change level
 	int level = IsPartyMember(npc) 
 		? PartyMemberGetCurrentLevel(npc) 
 		: 0;
 
 	*ptr_Level_ = level;
 	*ptr_last_level = level;
+
+	// reset other stats
 	*ptr_Experience_ = 0;
 	*ptr_free_perk = 0;
 	ptr_curr_pc_stat[0] = 0;
@@ -134,6 +132,12 @@ static void TakeControlOfNPC(TGameObj* npc) {
 	} else {
 		*ptr_itemCurrentItem = 1;
 	}
+
+	*ptr_inven_pid = npc->pid;
+
+	// switch main dude_obj pointers - this should be done last!
+	*ptr_obj_dude = npc;
+	*ptr_inven_dude = npc;
 
 	IsControllingNPC = 1;
 	SetInventoryCheck(true);
@@ -149,7 +153,7 @@ static void RestoreRealDudeState() {
 	*ptr_itemCurrentItem = real_hand;
 	memcpy(ptr_itemButtonItems, real_itemButtonItems, sizeof(DWORD) * 6 * 2);
 	memcpy(ptr_pc_traits, real_traits, sizeof(DWORD) * 2);
-	memcpy(ptr_perkLevelDataList, real_perkLevelDataList, sizeof(DWORD) * PERK_count);
+	memcpy(*ptr_perkLevelDataList, real_perkLevelDataList, sizeof(DWORD) * PERK_count);
 	strcpy_s(ptr_pc_name, 32, real_pc_name);
 	*ptr_Level_ = real_Level;
 	*ptr_last_level = real_last_level;
@@ -158,10 +162,9 @@ static void RestoreRealDudeState() {
 	ptr_curr_pc_stat[0] = real_unspent_skill_points;
 	//real_map_elevation = *ptr_map_elevation; -- why save elevation?
 	*ptr_sneak_working = real_sneak_working;
-	__asm {
-		mov eax, real_tag_skill
-		call skill_set_tags_
-	}
+	SkillSetTags(real_tag_skill, 4);
+
+	*ptr_inven_pid = real_dude->pid;
 
 	InterfaceRedraw();
 
