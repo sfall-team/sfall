@@ -715,7 +715,7 @@ extern const DWORD square_num_;
 extern const DWORD stat_get_base_direct_;
 extern const DWORD stat_get_bonus_;
 extern const DWORD stat_level_;
-extern const DWORD stat_pc_add_experience_;
+extern const DWORD stat_pc_add_experience_; // eax - amount to add
 extern const DWORD stat_pc_get_;
 extern const DWORD stat_pc_set_;
 extern const DWORD stat_set_bonus_;

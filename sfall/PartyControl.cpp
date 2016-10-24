@@ -33,6 +33,7 @@
 static DWORD Mode;
 static int IsControllingNPC = 0;
 static std::vector<WORD> Chars;
+static int DelayedExperience;
 
 static TGameObj* real_dude = nullptr;
 static DWORD real_traits[2];
@@ -72,6 +73,13 @@ static void _stdcall SetInventoryCheck(bool skip) {
 	} else {
 		SafeWrite16(0x46E7CD, 0x850F); //Inventory check
 		SafeWrite32(0x46E7Cf, 0x4B1);
+	}
+}
+
+static void __stdcall StatPcAddExperience(int amount) {
+	__asm {
+		mov eax, amount
+		call stat_pc_add_experience_
 	}
 }
 
@@ -140,6 +148,7 @@ static void TakeControlOfNPC(TGameObj* npc) {
 	*ptr_inven_dude = npc;
 
 	IsControllingNPC = 1;
+	DelayedExperience = 0;
 	SetInventoryCheck(true);
 
 	InterfaceRedraw();
@@ -165,6 +174,10 @@ static void RestoreRealDudeState() {
 	SkillSetTags(real_tag_skill, 4);
 
 	*ptr_inven_pid = real_dude->pid;
+
+	if (DelayedExperience > 0) {
+		StatPcAddExperience(DelayedExperience);
+	}
 
 	InterfaceRedraw();
 
@@ -296,6 +309,19 @@ gonormal:
 	}
 }
 
+static void __declspec(naked) stat_pc_add_experience_hook() {
+	__asm {
+		xor  eax, eax
+		cmp  IsControllingNPC, eax
+		je   skip
+		add  DelayedExperience, esi
+		retn
+skip:
+		xchg esi, eax
+		jmp  stat_pc_add_experience_
+	}
+}
+
 void PartyControlInit() {
 	Mode = GetPrivateProfileIntA("Misc", "ControlCombat", 0, ini);
 	if (Mode > 2) 
@@ -321,11 +347,12 @@ void PartyControlInit() {
 		dlog_f(" Mode %d, Chars read: %d.", DL_INIT, Mode, Chars.size());
 
 		HookCall(0x46EBEE, &FidChangeHook);
-		//TODO: Change trait check.
 
 		MakeCall(0x422354, &CombatHack_add_noncoms_, true);
 		HookCall(0x422D87, &CombatWrapper_v2);
 		HookCall(0x422E20, &CombatWrapper_v2);
+
+		HookCall(0x454218, &stat_pc_add_experience_hook); // call inside op_give_exp_points_hook
 	} else
 		dlog(" Disabled.", DL_INIT);
 }
