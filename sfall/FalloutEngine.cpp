@@ -23,7 +23,7 @@
 #include "Logging.h"
 
 // global variables
-DWORD* ptr_pc_traits				  = reinterpret_cast<DWORD*>(0x66BE40); // 2 of them
+long* ptr_pc_traits					  = reinterpret_cast<long*>(_pc_trait); // 2 of them
 
 DWORD* ptr_aiInfoList                 = reinterpret_cast<DWORD*>(_aiInfoList);
 DWORD* ptr_ambient_light              = reinterpret_cast<DWORD*>(_ambient_light);
@@ -65,7 +65,7 @@ DWORD* ptr_folder_card_fid            = reinterpret_cast<DWORD*>(_folder_card_fi
 DWORD* ptr_folder_card_title          = reinterpret_cast<DWORD*>(_folder_card_title);
 DWORD* ptr_folder_card_title2         = reinterpret_cast<DWORD*>(_folder_card_title2);
 DWORD* ptr_frame_time                 = reinterpret_cast<DWORD*>(_frame_time);
-DWORD* ptr_free_perk                  = reinterpret_cast<DWORD*>(_free_perk);
+char* ptr_free_perk                   = reinterpret_cast<char*>(_free_perk);
 DWORD* ptr_game_global_vars           = reinterpret_cast<DWORD*>(_game_global_vars);
 DWORD* ptr_game_user_wants_to_quit    = reinterpret_cast<DWORD*>(_game_user_wants_to_quit);
 DWORD* ptr_gcsd                       = reinterpret_cast<DWORD*>(_gcsd);
@@ -144,7 +144,7 @@ DWORD* ptr_patches                    = reinterpret_cast<DWORD*>(_patches);
 DWORD* ptr_paths                      = reinterpret_cast<DWORD*>(_paths);
 DWORD* ptr_pc_crit_succ_eff           = reinterpret_cast<DWORD*>(_pc_crit_succ_eff);
 DWORD* ptr_pc_kill_counts             = reinterpret_cast<DWORD*>(_pc_kill_counts);
-DWORD* ptr_pc_name                    = reinterpret_cast<DWORD*>(_pc_name);
+char* ptr_pc_name                     = reinterpret_cast<char*>(_pc_name);
 DWORD* ptr_pc_proto                   = reinterpret_cast<DWORD*>(_pc_proto);
 DWORD* ptr_perk_data                  = reinterpret_cast<DWORD*>(_perk_data);
 DWORD* ptr_perkLevelDataList          = reinterpret_cast<DWORD*>(_perkLevelDataList);
@@ -610,29 +610,36 @@ const DWORD xvfprintf_ = 0x4DF1AC;
 
 int __stdcall ItemGetType(TGameObj* item) {
 	__asm {
-		mov eax, item;
-		call item_get_type_;
+		mov eax, item
+		call item_get_type_
 	}
 }
 
 int _stdcall IsPartyMember(TGameObj* obj) {
 	__asm {
-		mov eax, obj;
-		call isPartyMember_;
+		mov eax, obj
+		call isPartyMember_
 	}
 }
 
-TGameObj* GetInvenWeaponLeft(TGameObj* obj) {
+int _stdcall PartyMemberGetCurrentLevel(TGameObj* obj) {
 	__asm {
-		mov eax, obj;
-		call inven_left_hand_;
+		mov eax, obj
+		call partyMemberGetCurLevel_
 	}
 }
 
-TGameObj* GetInvenWeaponRight(TGameObj* obj) {
+TGameObj* __stdcall GetInvenWeaponLeft(TGameObj* obj) {
 	__asm {
-		mov eax, obj;
-		call inven_right_hand_;
+		mov eax, obj
+		call inven_left_hand_
+	}
+}
+
+TGameObj* __stdcall GetInvenWeaponRight(TGameObj* obj) {
+	__asm {
+		mov eax, obj
+		call inven_right_hand_
 	}
 }
 
@@ -640,9 +647,9 @@ TGameObj* GetInvenWeaponRight(TGameObj* obj) {
 char* GetProtoPtr(DWORD pid) {
 	char* proto;
 	__asm {
-		mov eax, pid;
-		lea edx, proto;
-		call proto_ptr_;
+		mov eax, pid
+		lea edx, proto
+		call proto_ptr_
 	}
 	return proto;
 }
@@ -657,11 +664,10 @@ char AnimCodeByWeapon(TGameObj* weapon) {
 	return 0;
 }
 
-
 void DisplayConsoleMessage(const char* msg) {
 	__asm {
-		mov eax, msg;
-		call display_print_;
+		mov eax, msg
+		call display_print_
 	}
 }
 
@@ -678,4 +684,49 @@ const char* _stdcall GetMessageStr(DWORD fileAddr, DWORD messageId)
 		mov result, eax
 	}
 	return result;
+}
+
+// Change the name of playable character
+void CritterPcSetName(const char* newName) {
+	__asm {
+		mov eax, newName
+		call critter_pc_set_name_
+	}
+}
+
+// Returns the name of the critter
+const char* __stdcall CritterName(TGameObj* critter) {
+	__asm {
+		mov eax, critter
+		call critter_name_
+	}
+}
+
+void SkillGetTags(int* result, DWORD num) {
+	if (num > 4) {
+		num = 4;
+	}
+	__asm {
+		mov eax, result
+		mov edx, num
+		call skill_get_tags_
+	}
+}
+
+void SkillSetTags(int* tags, DWORD num) {
+	if (num > 4) {
+		num = 4;
+	}
+	__asm {
+		mov eax, tags
+		mov edx, num
+		call skill_set_tags_
+	}
+}
+
+// redraws the main game interface windows (useful after changing some data like active hand, etc.)
+void InterfaceRedraw() {
+	__asm {
+		call intface_redraw_
+	}
 }

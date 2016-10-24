@@ -147,6 +147,8 @@
 #define _pc_kill_counts             0x56D780
 #define _pc_name                    0x56D75C
 #define _pc_proto                   0x51C370
+#define _pc_trait                   0x66BE40
+#define _pc_trait2                  0x66BE44
 #define _perk_data                  0x519DCC
 #define _perkLevelDataList          0x51C120
 #define _pip_win                    0x6644C4
@@ -204,7 +206,7 @@
 #define _YellowColor                0x6AB8BB
 
 // variables
-extern DWORD* ptr_pc_traits; // 2 of them
+extern long* ptr_pc_traits; // 2 of them
 
 extern DWORD* ptr_aiInfoList;
 extern DWORD* ptr_ambient_light;
@@ -246,7 +248,7 @@ extern DWORD* ptr_folder_card_fid;
 extern DWORD* ptr_folder_card_title;
 extern DWORD* ptr_folder_card_title2;
 extern DWORD* ptr_frame_time;
-extern DWORD* ptr_free_perk;
+extern char*  ptr_free_perk;
 extern DWORD* ptr_game_global_vars;
 extern DWORD* ptr_game_user_wants_to_quit;
 extern DWORD* ptr_gcsd;
@@ -325,7 +327,7 @@ extern DWORD* ptr_patches;
 extern DWORD* ptr_paths;
 extern DWORD* ptr_pc_crit_succ_eff;
 extern DWORD* ptr_pc_kill_counts;
-extern DWORD* ptr_pc_name;
+extern char*  ptr_pc_name;
 extern DWORD* ptr_pc_proto;
 extern DWORD* ptr_perk_data;
 extern DWORD* ptr_perkLevelDataList; // limited to PERK_Count
@@ -701,11 +703,11 @@ extern const DWORD set_game_time_;
 extern const DWORD SexWindow_;
 extern const DWORD skill_check_stealing_;
 extern const DWORD skill_dec_point_;
-extern const DWORD skill_get_tags_;
+extern const DWORD skill_get_tags_; // eax - pointer to array DWORD, edx - number of elements to read
 extern const DWORD skill_inc_point_;
 extern const DWORD skill_level_;
 extern const DWORD skill_points_;
-extern const DWORD skill_set_tags_;
+extern const DWORD skill_set_tags_; // eax - pointer to array DWORD, edx - number of elements to write
 extern const DWORD skill_use_;
 extern const DWORD skilldex_select_;
 extern const DWORD sprintf_;
@@ -828,10 +830,24 @@ extern const DWORD getmsg_; // eax - msg file addr, ebx - message ID, edx - int[
 
 // WRAPPERS:
 int _stdcall IsPartyMember(TGameObj* obj);
-TGameObj* GetInvenWeaponLeft(TGameObj* obj);
-TGameObj* GetInvenWeaponRight(TGameObj* obj);
+int _stdcall PartyMemberGetCurrentLevel(TGameObj* obj);
+TGameObj* __stdcall GetInvenWeaponLeft(TGameObj* obj);
+TGameObj* __stdcall GetInvenWeaponRight(TGameObj* obj);
 char* GetProtoPtr(DWORD pid);
 char AnimCodeByWeapon(TGameObj* weapon);
+// Displays message in main UI console window
 void DisplayConsoleMessage(const char* msg);
 const char* _stdcall GetMessageStr(DWORD fileAddr, DWORD messageId);
 int __stdcall ItemGetType(TGameObj* item);
+
+// Change the name of playable character
+void CritterPcSetName(const char* newName);
+
+// Returns the name of the critter
+const char* __stdcall CritterName(TGameObj* critter);
+
+void SkillGetTags(int* result, DWORD num);
+void SkillSetTags(int* tags, DWORD num);
+
+// redraws the main game interface windows (useful after changing some data like active hand, etc.)
+void InterfaceRedraw();

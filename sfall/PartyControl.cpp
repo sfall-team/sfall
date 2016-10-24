@@ -20,9 +20,9 @@
 /*
 	KNOWN ISSUES with party control
 	- doesn't work with NPC's wearing armor mod, armor won't change when you change it from critter's inventory
-	- shows perks and some other info for the main dude in character screen
 */
 
+#include <algorithm>
 #include <vector>
 
 #include "main.h"
@@ -34,24 +34,24 @@ static DWORD Mode;
 static int IsControllingNPC = 0;
 static std::vector<WORD> Chars;
 
-static TGameObj* real_dude = NULL;
+static TGameObj* real_dude = nullptr;
 static DWORD real_traits[2];
 static char real_pc_name[32];
 static DWORD real_last_level;
 static DWORD real_Level;
 static DWORD real_Experience;
-static DWORD real_free_perk;
+static char real_free_perk;
 static DWORD real_unspent_skill_points;
-static DWORD real_map_elevation;
+//static DWORD real_map_elevation;
 static DWORD real_sneak_working;
-static DWORD real_sneak_queue_time;
+//static DWORD real_sneak_queue_time;
 static DWORD real_hand;
 static DWORD real_itemButtonItems[6*2];
 static DWORD real_perkLevelDataList[PERK_count];
-static DWORD real_drug_gvar[6];
-static DWORD real_jet_gvar;
+//static DWORD real_drug_gvar[6];
+//static DWORD real_jet_gvar;
 static DWORD real_tag_skill[4];
-static DWORD real_bbox_sneak;
+//static DWORD real_bbox_sneak;
 
 static const DWORD* list_com = (DWORD*)_list_com;
 
@@ -75,44 +75,121 @@ static void _stdcall SetInventoryCheck(bool skip) {
 	}
 }
 
+// saves the state of PC before moving control to NPC
+static void SaveRealDudeState() {
+	real_dude = *ptr_obj_dude;
+	real_hand = *ptr_itemCurrentItem;
+	memcpy(real_itemButtonItems, ptr_itemButtonItems, sizeof(DWORD) * 6 * 2);
+	memcpy(real_traits, ptr_pc_traits, sizeof(DWORD) * 2);
+	memcpy(real_perkLevelDataList, ptr_perkLevelDataList, sizeof(DWORD) * PERK_count);
+	strcpy_s(real_pc_name, 32, ptr_pc_name);
+	real_Level = *ptr_Level_;
+	real_last_level = *ptr_last_level;
+	real_Experience = *ptr_Experience_;
+	real_free_perk = *ptr_free_perk;
+	real_unspent_skill_points = ptr_curr_pc_stat[0];
+	//real_map_elevation = *ptr_map_elevation;
+	real_sneak_working = *ptr_sneak_working;
+	__asm {
+		mov eax, real_tag_skill
+	    call skill_get_tags_
+	}
+}
+
+// take control of the NPC
+static void TakeControlOfNPC(TGameObj* npc) {
+	// switch main dude_obj pointers
+	*ptr_obj_dude = npc;
+	*ptr_inven_dude = npc;
+
+	// remove skill tags
+	int tagSkill[4];
+	std::fill(std::begin(tagSkill), std::end(tagSkill), -1);
+	SkillSetTags(tagSkill, 4);
+
+	// reset traits
+	ptr_pc_traits[0] = ptr_pc_traits[1] = -1;
+
+	// reset perks
+	std::fill(std::begin(real_perkLevelDataList), std::begin(real_perkLevelDataList) + PERK_count, 0);
+
+	// change character name
+	CritterPcSetName(CritterName(npc));
+
+	int level = IsPartyMember(npc) 
+		? PartyMemberGetCurrentLevel(npc) 
+		: 0;
+
+	*ptr_Level_ = level;
+	*ptr_last_level = level;
+	*ptr_Experience_ = 0;
+	*ptr_free_perk = 0;
+	ptr_curr_pc_stat[0] = 0;
+	*ptr_sneak_working = 0;
+
+	// deduce active hand by weapon anim code
+	char critterAnim = (npc->artFID & 0xF000) >> 12; // current weapon as seen in hands
+	if (AnimCodeByWeapon(GetInvenWeaponLeft(npc)) == critterAnim) { // definitely left hand..
+		*ptr_itemCurrentItem = 0;
+	} else {
+		*ptr_itemCurrentItem = 1;
+	}
+
+	IsControllingNPC = 1;
+	SetInventoryCheck(true);
+
+	InterfaceRedraw();
+}
+
+// restores the real dude state
+static void RestoreRealDudeState() {
+	*ptr_obj_dude = real_dude;
+	*ptr_inven_dude = real_dude;
+
+	*ptr_itemCurrentItem = real_hand;
+	memcpy(ptr_itemButtonItems, real_itemButtonItems, sizeof(DWORD) * 6 * 2);
+	memcpy(ptr_pc_traits, real_traits, sizeof(DWORD) * 2);
+	memcpy(ptr_perkLevelDataList, real_perkLevelDataList, sizeof(DWORD) * PERK_count);
+	strcpy_s(ptr_pc_name, 32, real_pc_name);
+	*ptr_Level_ = real_Level;
+	*ptr_last_level = real_last_level;
+	*ptr_Experience_ = real_Experience;
+	*ptr_free_perk = real_free_perk;
+	ptr_curr_pc_stat[0] = real_unspent_skill_points;
+	//real_map_elevation = *ptr_map_elevation; -- why save elevation?
+	*ptr_sneak_working = real_sneak_working;
+	__asm {
+		mov eax, real_tag_skill
+		call skill_set_tags_
+	}
+
+	InterfaceRedraw();
+
+	SetInventoryCheck(false);
+	IsControllingNPC = 0;
+	real_dude = nullptr;
+}
+
+static int __stdcall CombatTurn(TGameObj* obj) {
+	__asm {
+		mov eax, obj;
+		call combat_turn_;
+	}
+}
+
 // return values: 0 - use vanilla handler, 1 - skip vanilla handler, return 0 (normal status), -1 - skip vanilla, return -1 (game ended)
 static int _stdcall CombatWrapperInner(TGameObj* obj) {
 	if ((obj != *ptr_obj_dude) && (Chars.size() == 0 || IsInPidList(obj)) && (Mode == 1 || IsPartyMember(obj))) {
-		// transfer control to NPC
-		IsControllingNPC = 1;
-		SetInventoryCheck(true);
-		char dudeWeaponSlot = (char)*ptr_itemCurrentItem;
 		// save "real" dude state
-		real_dude = *ptr_obj_dude;
-		*ptr_obj_dude = obj;
-		*ptr_inven_dude = obj;
-		memcpy(real_traits, ptr_pc_traits, sizeof(DWORD)*2);
+		SaveRealDudeState();
+		TakeControlOfNPC(obj);
+		
+		// Do combat turn
+		int turnResult = CombatTurn(obj);
 
-		// deduce active hand by weapon anim code
-		char critterAnim = (obj->artFID & 0xF000) >> 12; // current weapon as seen in hands
-		if (AnimCodeByWeapon(GetInvenWeaponLeft(obj)) == critterAnim) { // definitely left hand..
-			*ptr_itemCurrentItem = 0;
-		} else {
-			*ptr_itemCurrentItem = 1;
-		}
-		int turnResult;
-		__asm {
-			call intface_redraw_;
-			mov eax, obj;
-			call combat_turn_;
-			mov turnResult, eax;
-		}
 		// restore state
 		if (IsControllingNPC) { // if game was loaded during turn, PartyControlReset() was called and already restored state
-			*ptr_itemCurrentItem = dudeWeaponSlot;
-			memcpy(ptr_pc_traits, real_traits, sizeof(DWORD)*2);
-			*ptr_obj_dude = real_dude;
-			*ptr_inven_dude = real_dude;
-			__asm {
-				call intface_redraw_;
-			}
-			SetInventoryCheck(false);
-			IsControllingNPC = 0;
+			RestoreRealDudeState();
 		}
 		// -1 means that combat ended during turn
 		return (turnResult == -1) ? -1 : 1;
@@ -251,12 +328,7 @@ void PartyControlInit() {
 }
 
 void __stdcall PartyControlReset() {
-	if (real_dude != NULL && IsControllingNPC > 0) {
-		memcpy(ptr_pc_traits, real_traits, sizeof(DWORD)*2);
-		*ptr_obj_dude = real_dude;
-		*ptr_inven_dude = real_dude;
-		IsControllingNPC = 0;
+	if (real_dude != nullptr && IsControllingNPC > 0) {
+		RestoreRealDudeState();
 	}
-	real_dude = NULL;
-	SetInventoryCheck(false);
 }
