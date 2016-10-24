@@ -23,13 +23,7 @@
 #include "Logging.h"
 
 // global variables
-TGameObj** obj_dude_ptr			= reinterpret_cast<TGameObj**>(0x6610B8);
-TGameObj** inven_dude_ptr		= reinterpret_cast<TGameObj**>(0x519058);
-DWORD* activeUIHand_ptr			= reinterpret_cast<DWORD*>(0x518F78); // 0 - left, 1 - right
-DWORD* dude_traits				= reinterpret_cast<DWORD*>(0x66BE40); // 2 of them
-DWORD* itemCurrentItem			= reinterpret_cast<DWORD*>(0x518F78); 
-DWORD* itemButtonItems			= reinterpret_cast<DWORD*>(0x5970F8);
-DWORD* perkLevelDataList		= reinterpret_cast<DWORD*>(_perkLevelDataList);
+DWORD* ptr_pc_traits				  = reinterpret_cast<DWORD*>(0x66BE40); // 2 of them
 
 DWORD* ptr_aiInfoList                 = reinterpret_cast<DWORD*>(_aiInfoList);
 DWORD* ptr_ambient_light              = reinterpret_cast<DWORD*>(_ambient_light);
@@ -97,13 +91,13 @@ DWORD* ptr_info_line                  = reinterpret_cast<DWORD*>(_info_line);
 DWORD* ptr_interfaceWindow            = reinterpret_cast<DWORD*>(_interfaceWindow);
 DWORD* ptr_intfaceEnabled             = reinterpret_cast<DWORD*>(_intfaceEnabled);
 DWORD* ptr_intotal                    = reinterpret_cast<DWORD*>(_intotal);
-DWORD* ptr_inven_dude                 = reinterpret_cast<DWORD*>(_inven_dude);
+TGameObj** ptr_inven_dude             = reinterpret_cast<TGameObj**>(_inven_dude);
 DWORD* ptr_inven_pid                  = reinterpret_cast<DWORD*>(_inven_pid);
 DWORD* ptr_inven_scroll_dn_bid        = reinterpret_cast<DWORD*>(_inven_scroll_dn_bid);
 DWORD* ptr_inven_scroll_up_bid        = reinterpret_cast<DWORD*>(_inven_scroll_up_bid);
 DWORD* ptr_inventry_message_file      = reinterpret_cast<DWORD*>(_inventry_message_file);
 DWORD* ptr_itemButtonItems            = reinterpret_cast<DWORD*>(_itemButtonItems);
-DWORD* ptr_itemCurrentItem            = reinterpret_cast<DWORD*>(_itemCurrentItem);
+DWORD* ptr_itemCurrentItem            = reinterpret_cast<DWORD*>(_itemCurrentItem); // 0 - left, 1 - right
 DWORD* ptr_kb_lock_flags              = reinterpret_cast<DWORD*>(_kb_lock_flags);
 DWORD* ptr_last_buttons               = reinterpret_cast<DWORD*>(_last_buttons);
 DWORD* ptr_last_button_winID          = reinterpret_cast<DWORD*>(_last_button_winID);
@@ -135,7 +129,7 @@ DWORD* ptr_name_font                  = reinterpret_cast<DWORD*>(_name_font);
 DWORD* ptr_name_sort_list             = reinterpret_cast<DWORD*>(_name_sort_list);
 DWORD* ptr_num_game_global_vars       = reinterpret_cast<DWORD*>(_num_game_global_vars);
 DWORD* ptr_num_map_global_vars        = reinterpret_cast<DWORD*>(_num_map_global_vars);
-DWORD* ptr_obj_dude                   = reinterpret_cast<DWORD*>(_obj_dude);
+TGameObj** ptr_obj_dude               = reinterpret_cast<TGameObj**>(_obj_dude);
 DWORD* ptr_objectTable                = reinterpret_cast<DWORD*>(_objectTable);
 DWORD* ptr_objItemOutlineState        = reinterpret_cast<DWORD*>(_objItemOutlineState);
 DWORD* ptr_optionRect                 = reinterpret_cast<DWORD*>(_optionRect);
@@ -152,8 +146,6 @@ DWORD* ptr_pc_crit_succ_eff           = reinterpret_cast<DWORD*>(_pc_crit_succ_e
 DWORD* ptr_pc_kill_counts             = reinterpret_cast<DWORD*>(_pc_kill_counts);
 DWORD* ptr_pc_name                    = reinterpret_cast<DWORD*>(_pc_name);
 DWORD* ptr_pc_proto                   = reinterpret_cast<DWORD*>(_pc_proto);
-DWORD* ptr_pc_trait                   = reinterpret_cast<DWORD*>(_pc_trait);
-DWORD* ptr_pc_trait2                  = reinterpret_cast<DWORD*>(_pc_trait2);
 DWORD* ptr_perk_data                  = reinterpret_cast<DWORD*>(_perk_data);
 DWORD* ptr_perkLevelDataList          = reinterpret_cast<DWORD*>(_perkLevelDataList);
 DWORD* ptr_pip_win                    = reinterpret_cast<DWORD*>(_pip_win);

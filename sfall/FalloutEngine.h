@@ -147,8 +147,6 @@
 #define _pc_kill_counts             0x56D780
 #define _pc_name                    0x56D75C
 #define _pc_proto                   0x51C370
-#define _pc_trait                   0x66BE40
-#define _pc_trait2                  0x66BE44
 #define _perk_data                  0x519DCC
 #define _perkLevelDataList          0x51C120
 #define _pip_win                    0x6644C4
@@ -206,14 +204,8 @@
 #define _YellowColor                0x6AB8BB
 
 // variables
-extern TGameObj** obj_dude_ptr;
-extern TGameObj** inven_dude_ptr;
-extern DWORD* activeUIHand_ptr; // 0 - left, 1 - right
-extern DWORD* dude_traits; // 2 of them
-extern DWORD* itemCurrentItem;
-extern DWORD* itemButtonItems;
+extern DWORD* ptr_pc_traits; // 2 of them
 
-// more variables
 extern DWORD* ptr_aiInfoList;
 extern DWORD* ptr_ambient_light;
 extern DWORD* ptr_art;
@@ -280,13 +272,13 @@ extern DWORD* ptr_info_line;
 extern DWORD* ptr_interfaceWindow;
 extern DWORD* ptr_intfaceEnabled;
 extern DWORD* ptr_intotal;
-//extern TGameObj** ptr_inven_dude;
+extern TGameObj** ptr_inven_dude;
 extern DWORD* ptr_inven_pid;
 extern DWORD* ptr_inven_scroll_dn_bid;
 extern DWORD* ptr_inven_scroll_up_bid;
 extern DWORD* ptr_inventry_message_file;
 extern DWORD* ptr_itemButtonItems;
-extern DWORD* ptr_itemCurrentItem;
+extern DWORD* ptr_itemCurrentItem; // 0 - left, 1 - right
 extern DWORD* ptr_kb_lock_flags;
 extern DWORD* ptr_last_buttons;
 extern DWORD* ptr_last_button_winID;
@@ -318,7 +310,7 @@ extern DWORD* ptr_name_font;
 extern DWORD* ptr_name_sort_list;
 extern DWORD* ptr_num_game_global_vars;
 extern DWORD* ptr_num_map_global_vars;
-//extern TGameObj** ptr_obj_dude;
+extern TGameObj** ptr_obj_dude;
 extern DWORD* ptr_objectTable;
 extern DWORD* ptr_objItemOutlineState;
 extern DWORD* ptr_optionRect;
@@ -335,8 +327,6 @@ extern DWORD* ptr_pc_crit_succ_eff;
 extern DWORD* ptr_pc_kill_counts;
 extern DWORD* ptr_pc_name;
 extern DWORD* ptr_pc_proto;
-extern DWORD* ptr_pc_trait;
-extern DWORD* ptr_pc_trait2;
 extern DWORD* ptr_perk_data;
 extern DWORD* ptr_perkLevelDataList; // limited to PERK_Count
 extern DWORD* ptr_pip_win;

@@ -23,17 +23,35 @@
 	- shows perks and some other info for the main dude in character screen
 */
 
+#include <vector>
+
 #include "main.h"
+#include "Define.h"
 #include "FalloutEngine.h"
 #include "PartyControl.h"
-#include <vector>
 
 static DWORD Mode;
 static int IsControllingNPC = 0;
 static std::vector<WORD> Chars;
 
-TGameObj* real_dude = NULL;
-DWORD real_traits[2];
+static TGameObj* real_dude = NULL;
+static DWORD real_traits[2];
+static char real_pc_name[32];
+static DWORD real_last_level;
+static DWORD real_Level;
+static DWORD real_Experience;
+static DWORD real_free_perk;
+static DWORD real_unspent_skill_points;
+static DWORD real_map_elevation;
+static DWORD real_sneak_working;
+static DWORD real_sneak_queue_time;
+static DWORD real_hand;
+static DWORD real_itemButtonItems[6*2];
+static DWORD real_perkLevelDataList[PERK_count];
+static DWORD real_drug_gvar[6];
+static DWORD real_jet_gvar;
+static DWORD real_tag_skill[4];
+static DWORD real_bbox_sneak;
 
 static const DWORD* list_com = (DWORD*)_list_com;
 
@@ -59,22 +77,23 @@ static void _stdcall SetInventoryCheck(bool skip) {
 
 // return values: 0 - use vanilla handler, 1 - skip vanilla handler, return 0 (normal status), -1 - skip vanilla, return -1 (game ended)
 static int _stdcall CombatWrapperInner(TGameObj* obj) {
-	if ((obj != *obj_dude_ptr) && (Chars.size() == 0 || IsInPidList(obj)) && (Mode == 1 || IsPartyMember(obj))) {
+	if ((obj != *ptr_obj_dude) && (Chars.size() == 0 || IsInPidList(obj)) && (Mode == 1 || IsPartyMember(obj))) {
+		// transfer control to NPC
 		IsControllingNPC = 1;
 		SetInventoryCheck(true);
-		char dudeWeaponSlot = (char)*activeUIHand_ptr;
+		char dudeWeaponSlot = (char)*ptr_itemCurrentItem;
 		// save "real" dude state
-		real_dude = *obj_dude_ptr;
-		*obj_dude_ptr = obj;
-		*inven_dude_ptr = obj;
-		memcpy(real_traits, dude_traits, sizeof(DWORD)*2);
+		real_dude = *ptr_obj_dude;
+		*ptr_obj_dude = obj;
+		*ptr_inven_dude = obj;
+		memcpy(real_traits, ptr_pc_traits, sizeof(DWORD)*2);
 
 		// deduce active hand by weapon anim code
 		char critterAnim = (obj->artFID & 0xF000) >> 12; // current weapon as seen in hands
 		if (AnimCodeByWeapon(GetInvenWeaponLeft(obj)) == critterAnim) { // definitely left hand..
-			*activeUIHand_ptr = 0;
+			*ptr_itemCurrentItem = 0;
 		} else {
-			*activeUIHand_ptr = 1;
+			*ptr_itemCurrentItem = 1;
 		}
 		int turnResult;
 		__asm {
@@ -85,10 +104,10 @@ static int _stdcall CombatWrapperInner(TGameObj* obj) {
 		}
 		// restore state
 		if (IsControllingNPC) { // if game was loaded during turn, PartyControlReset() was called and already restored state
-			*activeUIHand_ptr = dudeWeaponSlot;
-			memcpy(dude_traits, real_traits, sizeof(DWORD)*2);
-			*obj_dude_ptr = real_dude;
-			*inven_dude_ptr = real_dude;
+			*ptr_itemCurrentItem = dudeWeaponSlot;
+			memcpy(ptr_pc_traits, real_traits, sizeof(DWORD)*2);
+			*ptr_obj_dude = real_dude;
+			*ptr_inven_dude = real_dude;
 			__asm {
 				call intface_redraw_;
 			}
@@ -141,7 +160,7 @@ int __stdcall PartyControl_SwitchHandHook(TGameObj* item) {
 			call ai_can_use_weapon_;
 			mov canUse, eax;
 		}*/
-		int fId = (*obj_dude_ptr)->artFID;
+		int fId = (*ptr_obj_dude)->artFID;
 		char weaponCode = AnimCodeByWeapon(item);
 		fId = (fId & 0xffff0fff) | (weaponCode << 12);
 		// check if art with this weapon exists
@@ -203,7 +222,7 @@ void PartyControlInit() {
 		Mode = 0;
 	if (Mode > 0) {
 		char pidbuf[512];
-		pidbuf[511]=0;
+		pidbuf[511] = 0;
 		if (GetPrivateProfileStringA("Misc", "ControlCombatPIDList", "", pidbuf, 511, ini)) {
 			char* ptr = pidbuf;
 			char* comma;
@@ -231,12 +250,11 @@ void PartyControlInit() {
 		dlog(" Disabled.", DL_INIT);
 }
 
-void __stdcall PartyControlReset()
-{
+void __stdcall PartyControlReset() {
 	if (real_dude != NULL && IsControllingNPC > 0) {
-		memcpy(dude_traits, real_traits, sizeof(DWORD)*2);
-		*obj_dude_ptr = real_dude;
-		*inven_dude_ptr = real_dude;
+		memcpy(ptr_pc_traits, real_traits, sizeof(DWORD)*2);
+		*ptr_obj_dude = real_dude;
+		*ptr_inven_dude = real_dude;
 		IsControllingNPC = 0;
 	}
 	real_dude = NULL;
