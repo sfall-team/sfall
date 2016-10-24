@@ -240,6 +240,10 @@ static void _declspec(naked) ItemDropHook() {
 }
 */
 
+static void __stdcall DisplayCantDoThat() {
+	DisplayConsoleMessage(GetMessageStr(MSG_FILE_PROTO, 675)); // I Can't do that
+}
+
 // 1 skip handler, -1 don't skip
 int __stdcall PartyControl_SwitchHandHook(TGameObj* item) {
 	if (ItemGetType(item) == 3 && IsControllingNPC > 0) {
@@ -263,7 +267,7 @@ int __stdcall PartyControl_SwitchHandHook(TGameObj* item) {
 			mov canUse, eax;
 		}
 		if (!canUse) {
-			DisplayConsoleMessage(GetMessageStr(MSG_FILE_PROTO, 675)); // I can't do that
+			DisplayCantDoThat();
 			return 1;
 		}
 	}
@@ -322,6 +326,18 @@ skip:
 	}
 }
 
+static void __declspec(naked) pc_flag_toggle_hook() {
+	__asm {
+		cmp  IsControllingNPC, 0
+		je   end
+		call DisplayCantDoThat
+		retn
+end:
+		call  pc_flag_toggle_
+		retn
+	}
+}
+
 void PartyControlInit() {
 	Mode = GetPrivateProfileIntA("Misc", "ControlCombat", 0, ini);
 	if (Mode > 2) 
@@ -353,6 +369,8 @@ void PartyControlInit() {
 		HookCall(0x422E20, &CombatWrapper_v2);
 
 		HookCall(0x454218, &stat_pc_add_experience_hook); // call inside op_give_exp_points_hook
+		HookCall(0x4124F1, &pc_flag_toggle_hook);
+		HookCall(0x41279A, &pc_flag_toggle_hook);
 	} else
 		dlog(" Disabled.", DL_INIT);
 }
