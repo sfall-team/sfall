@@ -206,6 +206,7 @@
     <ClInclude Include="Bugs.h" />
     <ClInclude Include="BurstMods.h" />
     <ClInclude Include="Console.h" />
+    <ClInclude Include="Cpp11_emu.h" />
     <ClInclude Include="CRC.h" />
     <ClInclude Include="Credits.h" />
     <ClInclude Include="Criticals.h" />

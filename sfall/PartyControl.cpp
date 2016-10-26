@@ -29,6 +29,9 @@
 #include "Define.h"
 #include "FalloutEngine.h"
 #include "PartyControl.h"
+#if (_MSC_VER < 1600)
+#include "Cpp11_emu.h"
+#endif
 
 static DWORD Mode;
 static int IsControllingNPC = 0;
@@ -105,7 +108,11 @@ static void SaveRealDudeState() {
 static void TakeControlOfNPC(TGameObj* npc) {
 	// remove skill tags
 	int tagSkill[4];
+#if (_MSC_VER < 1600)
+	std::fill(std_begin(tagSkill), std_end(tagSkill), -1);
+#else
 	std::fill(std::begin(tagSkill), std::end(tagSkill), -1);
+#endif
 	SkillSetTags(tagSkill, 4);
 
 	// reset traits
@@ -326,6 +333,7 @@ skip:
 	}
 }
 
+// prevents using sneak when controlling NPCs
 static void __declspec(naked) pc_flag_toggle_hook() {
 	__asm {
 		cmp  IsControllingNPC, 0
