@@ -31,7 +31,6 @@
 #include "input.h"
 #include "LoadGameHook.h"
 #include "Logging.h"
-#include "numbers.h"
 #include "ScriptExtender.h"
 #include "version.h"
 
@@ -115,7 +114,7 @@ static const char* _stdcall GetOpArgStr(int num) {
 #include "ScriptOps\ObjectsOps.hpp"
 #include "ScriptOps\AnimOps.hpp"
 #include "ScriptOps\MiscOps.hpp"
-
+#include "ScriptOps\MetaruleOp.hpp"
 
 typedef void (_stdcall *regOpcodeProc)(WORD opcode,void* ptr);
 
@@ -1248,6 +1247,7 @@ void ScriptExtenderSetup() {
 	opcodes[0x273]=op_create_spatial;
 	opcodes[0x274]=op_art_exists;
 	opcodes[0x275]=op_obj_is_carrying_obj;
+	opcodes[0x276]=op_sfall_metatule3;
 }
 
 

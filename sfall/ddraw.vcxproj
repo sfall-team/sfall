@@ -243,6 +243,7 @@
     <ClInclude Include="ScriptOps\GraphicsOp.hpp" />
     <ClInclude Include="ScriptOps\InterfaceOp.hpp" />
     <ClInclude Include="ScriptOps\MemoryOp.hpp" />
+    <ClInclude Include="ScriptOps\MetaruleOp.hpp" />
     <ClInclude Include="ScriptOps\MiscOps.hpp" />
     <ClInclude Include="ScriptOps\ObjectsOps.hpp" />
     <ClInclude Include="ScriptOps\PerksOp.hpp" />
