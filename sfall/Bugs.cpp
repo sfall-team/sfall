@@ -1071,7 +1071,7 @@ void BugsInit()
 	//}
 
 	//if (GetPrivateProfileIntA("Misc", "PrintToFileFix", 0, ini)) {
-		dlog("Applying print to file patch.", DL_INIT);
+		dlog("Applying print to file fix.", DL_INIT);
 		MakeCall(0x4C67D4, &db_get_file_list_hack, false);
 		dlogr(" Done", DL_INIT);
 	//}

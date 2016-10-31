@@ -849,7 +849,7 @@ static void DllMain2() {
 	DWORD tmp;
 	dlogr("In DllMain2", DL_MAIN);
 
-	dlog("Running BugsInit.", DL_INIT);
+	dlogr("Running BugsInit.", DL_INIT);
 	BugsInit();
 	dlogr(" Done", DL_INIT);
 
@@ -1277,8 +1277,8 @@ static void DllMain2() {
 
 	if (GetPrivateProfileIntA("Misc", "MultiPatches", 0, ini)) {
 		dlog("Applying load multiple patches patch.", DL_INIT);
-		SafeWrite8(0x444338, 0x90); // Change step from 2 to 1
-		SafeWrite32(0x444363, 0xEB909090); // Disable check
+		SafeWrite8(0x444354, 0x90); // Change step from 2 to 1
+		SafeWrite8(0x44435C, 0xC4); // Disable check
 		dlogr(" Done", DL_INIT);
 	}
 
