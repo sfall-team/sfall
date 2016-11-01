@@ -18,37 +18,100 @@
 
 #pragma once
 
+#include <sstream>
 #include <unordered_map>
 
 #include "main.h"
 #include "ScriptExtender.h"
 
-static std::unordered_map<const char*, void(*)()> sfall_metarule_table;
+// Metarule is a universal opcode(s) for all kinds of new sfall scripting functions.
+// Prefix all function handlers with sf_ and add them to sfall_metarule_table.
+// DO NOT add arguments and/or return values to function handlers!
+// Use functions GetOpArgXXX(), IsOpArgXXX() inside handler function to read arguments, but argument 0 is always function name.
+// Use SetOpReturn() to set return value.
+// If you want to call user-defined procedures in your handler, use RunScriptProc().
 
+typedef std::tr1::unordered_map<const char*, void(*)()> MetaruleTableType;
+
+static MetaruleTableType metaruleTable;
+
+static std::string sf_test_stringBuf;
+
+// Example handler. Feel free to add handlers in other files.
 static void sf_test() {
-	DisplayConsoleMessage("Testing 1 2 3!");
+	std::ostringstream sstream;
+	sstream << "sfall_func(\"test\"";
+	for (DWORD i = 1; i < opArgCount; i++) {
+		sstream << ", ";
+		switch (opArgTypes[i]) {
+			case DATATYPE_INT:
+				sstream << GetOpArgInt(i);
+				break;
+			case DATATYPE_FLOAT:
+				sstream << GetOpArgFloat(i);
+				break;
+			case DATATYPE_STR:
+				sstream << '"' << GetOpArgStr(i) << '"';
+				break;
+			default:
+				sstream << "???";
+				break;
+		}
+	}
+	sstream << ");";
+	
+	sf_test_stringBuf = sstream.str();
+	SetOpReturn(sf_test_stringBuf.c_str());
+}
+
+// returns current contents of metarule table
+static void sf_get_metarule_table() {
+	DWORD arr = TempArray(metaruleTable.size(), 0);
+	int i = 0;
+	for (MetaruleTableType::iterator it = metaruleTable.begin(); it != metaruleTable.end(); it++) {
+		arrays[arr].val[i].set(it->first);
+		i++;
+	}
+	SetOpReturn(arr, DATATYPE_INT);
 }
 
 static void InitMetaruleTable() {
-	sfall_metarule_table["test"] = sf_test;
+	metaruleTable["test"] = sf_test;
+	metaruleTable["get_metarule_table"] = sf_get_metarule_table;
 }
 
-static void _stdcall op_sfall_metatule3_handler() {
-	DWORD num = 0;
+static void _stdcall op_sfall_metarule_handler() {
 	if (IsOpArgStr(0)) {
-		auto name = GetOpArgStr(0);
-		auto lookup = sfall_metarule_table.find(name);
-		if (lookup != sfall_metarule_table.end()) {
+		const char* name = GetOpArgStr(0);
+		MetaruleTableType::iterator lookup = metaruleTable.find(name);
+		if (lookup != metaruleTable.end()) {
 			lookup->second();
 		} else {
-			dlog_f("sfall_metarule3(name, a, b, c) - name '%s' is unknown.", DL_INIT, name);
+			dlog_f("sfall_metaruleX(name, ...) - name '%s' is unknown.", DL_INIT, name);
 		}
 	} else {		
-		dlog("sfall_metarule3(name, a, b, c) - name must be string.", DL_INIT);
+		dlog("sfall_metaruleX(name, ...) - name must be string.", DL_INIT);
 	}
-	SetOpReturn(num, DATATYPE_INT);
+	// Force return value, because metarule opcode is an expression.
+	if (opRetType == DATATYPE_NONE) {
+		SetOpReturn(0, DATATYPE_INT);
+	}
 }
 
-static void __declspec(naked) op_sfall_metatule3() {
-	_WRAP_OPCODE(4, op_sfall_metatule3_handler)
-}
+// TODO: replace _WRAP_OPCODE with C++ equivalent
+// TODO: handle string arguments
+
+#define metaruleOpcode(numArg, numArgPlusOne) \
+	static void __declspec(naked) op_sfall_metarule##numArg() {\
+		_WRAP_OPCODE(numArgPlusOne, op_sfall_metarule_handler)\
+	}
+
+metaruleOpcode(0, 1)
+metaruleOpcode(1, 2)
+metaruleOpcode(2, 3)
+metaruleOpcode(3, 4)
+metaruleOpcode(4, 5)
+metaruleOpcode(5, 6)
+metaruleOpcode(6, 7)
+
+#undef metaruleOpcode

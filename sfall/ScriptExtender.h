@@ -64,6 +64,8 @@ void GetAppearanceGlobals(int *race, int *style);
 void _stdcall RegAnimCombatCheck(DWORD newValue);
 
 DWORD _stdcall ScriptHasLoaded(DWORD script);
+// finds procedure ID for given script program pointer and procedure name
+DWORD GetScriptProcByName(DWORD scriptPtr, const char* procName);
 // loads script from .int file into scripting engine, fill scriptPtr and proc table
 void LoadScriptProgram(sScriptProgram &prog, const char* fileName);
 // init program after load, needs to be called once

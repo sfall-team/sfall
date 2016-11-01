@@ -1247,7 +1247,14 @@ void ScriptExtenderSetup() {
 	opcodes[0x273]=op_create_spatial;
 	opcodes[0x274]=op_art_exists;
 	opcodes[0x275]=op_obj_is_carrying_obj;
-	opcodes[0x276]=op_sfall_metatule3;
+	// universal opcodes
+	opcodes[0x276]=op_sfall_metarule0;
+	opcodes[0x277]=op_sfall_metarule1;
+	opcodes[0x278]=op_sfall_metarule2;
+	opcodes[0x279]=op_sfall_metarule3;
+	opcodes[0x27a]=op_sfall_metarule4;
+	opcodes[0x27b]=op_sfall_metarule5;
+	opcodes[0x27c]=op_sfall_metarule6; // if you need more arguments - use arrays
 }
 
 
