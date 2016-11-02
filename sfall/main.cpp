@@ -60,6 +60,9 @@
 #include "Tiles.h"
 #include "timer.h"
 #include "version.h"
+#if (_MSC_VER < 1600)
+#include "Cpp11_emu.h"
+#endif
 
 bool IsDebug = false;
 
@@ -83,7 +86,7 @@ static const char* musicOverridePath="data\\sound\\music\\";
 
 bool npcautolevel;
 
-static int* scriptDialog;
+static int* scriptDialog = nullptr;
 
 //GetTickCount calls
 static const DWORD offsetsA[] = {
@@ -1622,6 +1625,9 @@ static void DllMain2() {
 }
 
 static void _stdcall OnExit() {
+	if (scriptDialog != nullptr) {
+		delete[] scriptDialog;
+	}
 	ClearReadExtraGameMsgFiles();
 	ConsoleExit();
 	AnimationsAtOnceExit();
