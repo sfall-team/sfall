@@ -18,9 +18,11 @@
 
 #include "main.h"
 
+#include <cassert>
 #include <hash_map>
 #include <set>
 #include <string>
+
 #include "Arrays.h"
 #include "BarBoxes.h"
 #include "Console.h"
@@ -37,9 +39,12 @@
 void _stdcall HandleMapUpdateForScripts(DWORD procId);
 
 // variables for new opcodes
+#define OP_MAX_ARGUMENTS	(10)
+
+static TProgram* opProgram;
 static DWORD opArgCount = 0;
-static DWORD opArgs[5];
-static DWORD opArgTypes[5];
+static DWORD opArgs[OP_MAX_ARGUMENTS];
+static DWORD opArgTypes[OP_MAX_ARGUMENTS];
 static DWORD opRet;
 static DWORD opRetType;
 
@@ -72,6 +77,10 @@ static bool _stdcall IsOpArgStr(int num) {
 	return (opArgTypes[num] == DATATYPE_STR);
 }
 
+static int _stdcall GetOpArgCount() {
+	return opArgCount;
+}
+
 static int _stdcall GetOpArgInt(int num) {
 	switch (opArgTypes[num]) {
 	case DATATYPE_FLOAT:
@@ -98,6 +107,40 @@ static const char* _stdcall GetOpArgStr(int num) {
 	return (opArgTypes[num] == DATATYPE_STR)
 		? (const char*)opArgs[num]
 		: "";
+}
+
+// Handle opcodes
+static void __stdcall HandleOpcode(TProgram* scriptPtr, int argNum, void(*func)()) {
+	assert(argNum < OP_MAX_ARGUMENTS);
+
+	opProgram = scriptPtr;
+
+	// process arguments on stack (reverse order)
+	opArgCount = argNum;
+	for (int i = argNum - 1; i >= 0; i--) {
+		DWORD rawValueType = InterpretPopShort(scriptPtr);
+		DWORD rawValue = InterpretPopLong(scriptPtr);
+		opArgTypes[i] = getSfallTypeByScriptType(rawValueType);
+		// retrieve string argument
+		if (opArgTypes[i] == DATATYPE_STR) {
+			opArgs[i] = reinterpret_cast<DWORD>(InterpretGetString(scriptPtr, rawValue, rawValueType));
+		} else {
+			opArgs[i] = rawValue;
+		}
+	}
+
+	// call opcode handler
+	func();
+
+	// process return value
+	if (opRetType != DATATYPE_NONE) {
+		DWORD rawResult = opRet;
+		if (opRetType == DATATYPE_STR) {
+			rawResult = InterpretAddString(scriptPtr, reinterpret_cast<const char*>(opRet));
+		}
+		InterpretPushLong(scriptPtr, rawResult);
+		InterpretPushShort(scriptPtr, getScriptTypeBySfallType(opRetType));
+	}
 }
 
 #include "ScriptOps\AsmMacros.h"

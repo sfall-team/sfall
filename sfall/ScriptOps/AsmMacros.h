@@ -140,6 +140,17 @@ __asm resultnotstr##num:				\
 */
 #define _WRAP_OPCODE(argnum, func) __asm { \
 	__asm pushad					\
+	__asm push func					\
+	__asm push argnum				\
+	__asm push eax					\
+	__asm call HandleOpcode			\
+	__asm popad						\
+	__asm retn						\
+}
+
+// Old wrapping macros.. does not support string arguments
+#define _WRAP_OPCODE_OLD(argnum, func) __asm { \
+	__asm pushad					\
 	__asm mov ebp, eax				\
 	__asm mov esi, argnum			\
 	__asm shl esi, 2				\

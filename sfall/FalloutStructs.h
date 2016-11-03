@@ -139,7 +139,7 @@ enum ObjectTypes
 #pragma pack(push, 1)
 struct TProgram
 {
-	char gap_0[4];
+	const char* fileName;
 	int *codeStackPtr;
 	char gap_8[8];
 	int *codePtr;

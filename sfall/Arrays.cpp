@@ -313,7 +313,7 @@ void DESetArray(int id, const DWORD* types, const void* data) {
 	Array manipulation functions for script operators
 */
 DWORD _stdcall getSfallTypeByScriptType(DWORD varType) {
-	varType&=0xffff;
+	varType &= 0xffff;
 	switch (varType) {
 		case VAR_TYPE_STR:
 		case VAR_TYPE_STR2:

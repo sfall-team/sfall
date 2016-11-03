@@ -351,6 +351,7 @@ const DWORD interpretPopLong_ = 0x467500;
 const DWORD interpretPopShort_ = 0x4674F0;
 const DWORD interpretPushLong_ = 0x4674DC;
 const DWORD interpretPushShort_ = 0x46748C;
+const DWORD interpretError_ = 0x4671F0;
 const DWORD intface_redraw_ = 0x45EB98;
 const DWORD intface_toggle_item_state_ = 0x45F4E0;
 const DWORD intface_toggle_items_ = 0x45F404;
@@ -672,8 +673,7 @@ void DisplayConsoleMessage(const char* msg) {
 }
 
 static DWORD mesg_buf[4] = {0, 0, 0, 0};
-const char* _stdcall GetMessageStr(DWORD fileAddr, DWORD messageId)
-{
+const char* _stdcall GetMessageStr(DWORD fileAddr, DWORD messageId) {
 	DWORD buf = (DWORD)mesg_buf;
 	const char* result;
 	__asm {
@@ -728,5 +728,68 @@ void SkillSetTags(int* tags, DWORD num) {
 void InterfaceRedraw() {
 	__asm {
 		call intface_redraw_
+	}
+}
+
+// pops value type from Data stack (must be followed by InterpretPopLong)
+DWORD __stdcall InterpretPopShort(TProgram* scriptPtr) {
+	__asm {
+		mov eax, scriptPtr
+		call interpretPopShort_
+	}
+}
+
+// pops value from Data stack (must be preceded by InterpretPopShort)
+DWORD __stdcall InterpretPopLong(TProgram* scriptPtr) {
+	__asm {
+		mov eax, scriptPtr
+		call interpretPopLong_
+	}
+}
+
+// pushes value to Data stack (must be followed by InterpretPushShort)
+void __stdcall InterpretPushLong(TProgram* scriptPtr, DWORD val) {
+	__asm {
+		mov edx, val
+		mov eax, scriptPtr
+		call interpretPushLong_
+	}
+}
+
+// pushes value type to Data stack (must be preceded by InterpretPushLong)
+void __stdcall InterpretPushShort(TProgram* scriptPtr, DWORD valType) {
+	__asm {
+		mov edx, valType
+		mov eax, scriptPtr
+		call interpretPushShort_
+	}
+}
+
+DWORD __stdcall InterpretAddString(TProgram* scriptPtr, const char* str) {
+	__asm {
+		mov edx, str
+		mov eax, scriptPtr
+		call interpretAddString_
+	}
+}
+
+const char* __stdcall InterpretGetString(TProgram* scriptPtr, DWORD strId, DWORD dataType) {
+	__asm {
+		mov edx, dataType
+		mov ebx, strId
+		mov eax, scriptPtr
+		call interpretGetString_
+	}
+}
+
+void __declspec(naked) InterpretError(const char* fmt, ...) {
+	__asm {
+		jmp interpretError_
+	}
+}
+
+void __declspec(naked) DebugPrintf(const char* fmt, ...) {
+	__asm {
+		jmp debug_printf_
 	}
 }

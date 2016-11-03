@@ -334,19 +334,15 @@ end:
 }
 
 static DWORD _stdcall obj_blocking_at_wrapper(DWORD obj, DWORD tile, DWORD elevation, DWORD func) {
-	DWORD retval;
 	__asm {
 		mov eax, obj;
 		mov edx, tile;
 		mov ebx, elevation;
 		call func;
-		mov retval, eax;
 	}
-	return retval;
 }
 
 static DWORD _stdcall make_straight_path_func_wrapper(DWORD obj, DWORD tileFrom, DWORD a3, DWORD tileTo, DWORD* result, DWORD a6, DWORD func) {
-	DWORD retval;
 	__asm {
 		mov eax, obj;
 		mov edx, tileFrom;
@@ -356,9 +352,7 @@ static DWORD _stdcall make_straight_path_func_wrapper(DWORD obj, DWORD tileFrom,
 		push a6;
 		push result;
 		call make_straight_path_func_;
-		mov retval, eax;
 	}
-	return retval;
 }
 
 #define BLOCKING_TYPE_BLOCK		(0)
