@@ -46,7 +46,11 @@ void dlog_f(const char *fmt, int type, ...) {
 		va_list args;
 		va_start(args, type);
 		char buf[4096];
-		vsnprintf_s(buf, sizeof buf, fmt, args);
+#if (_MSC_VER < 1600)
+		vsnprintf_s(buf, sizeof buf, _TRUNCATE, fmt, args);
+#else
+		vsnprintf_s(buf, sizeof buf, fmt, args); // C11 standard
+#endif
 		Log << buf;
 		Log.flush();
 		va_end(args);
