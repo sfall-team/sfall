@@ -319,6 +319,7 @@ const DWORD elevator_start_ = 0x43F324;
 const DWORD endgame_slideshow_ = 0x43F788;
 const DWORD exec_script_proc_ = 0x4A4810;
 const DWORD executeProcedure_ = 0x46DD2C;
+const DWORD findCurrentProc_ = 0x467160;
 const DWORD fadeSystemPalette_ = 0x4C7320;
 const DWORD findVar_ = 0x4410AC;
 const DWORD folder_print_line_ = 0x43E3D8;
@@ -765,9 +766,9 @@ void __stdcall InterpretPushShort(TProgram* scriptPtr, DWORD valType) {
 	}
 }
 
-DWORD __stdcall InterpretAddString(TProgram* scriptPtr, const char* str) {
+DWORD __stdcall InterpretAddString(TProgram* scriptPtr, const char* strval) {
 	__asm {
-		mov edx, str
+		mov edx, strval
 		mov eax, scriptPtr
 		call interpretAddString_
 	}
@@ -791,5 +792,12 @@ void __declspec(naked) InterpretError(const char* fmt, ...) {
 void __declspec(naked) DebugPrintf(const char* fmt, ...) {
 	__asm {
 		jmp debug_printf_
+	}
+}
+
+const char* __stdcall FindCurrentProc(TProgram* program) {
+	__asm {
+		mov eax, program
+		call findCurrentProc_
 	}
 }

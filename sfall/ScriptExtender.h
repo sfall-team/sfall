@@ -19,6 +19,7 @@
 #pragma once
 #include "main.h"
 
+// TODO: replace with enum class
 #define DATATYPE_NONE  (0)
 #define DATATYPE_INT   (1)
 #define DATATYPE_FLOAT (2)

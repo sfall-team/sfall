@@ -18,6 +18,7 @@
 
 #pragma once
 
+#include <string>
 #include <sstream>
 #include <unordered_map>
 
@@ -31,7 +32,7 @@
 // Use SetOpReturn() to set return value.
 // If you want to call user-defined procedures in your handler, use RunScriptProc().
 
-typedef std::tr1::unordered_map<const char*, void(*)()> MetaruleTableType;
+typedef std::tr1::unordered_map<std::string, void(*)()> MetaruleTableType;
 
 static MetaruleTableType metaruleTable;
 
@@ -40,10 +41,10 @@ static std::string sf_test_stringBuf;
 // Example handler. Feel free to add handlers in other files.
 static void sf_test() {
 	std::ostringstream sstream;
-	sstream << "sfall_func(\"test\"";
+	sstream << "sfall_funcX(\"test\"";
 	for (DWORD i = 1; i < opArgCount; i++) {
 		sstream << ", ";
-		switch (opArgTypes[i]) {
+		switch (opArgs[i].type) {
 			case DATATYPE_INT:
 				sstream << GetOpArgInt(i);
 				break;
@@ -58,7 +59,7 @@ static void sf_test() {
 				break;
 		}
 	}
-	sstream << ");";
+	sstream << ")";
 	
 	sf_test_stringBuf = sstream.str();
 	SetOpReturn(sf_test_stringBuf.c_str());
@@ -69,7 +70,7 @@ static void sf_get_metarule_table() {
 	DWORD arr = TempArray(metaruleTable.size(), 0);
 	int i = 0;
 	for (MetaruleTableType::iterator it = metaruleTable.begin(); it != metaruleTable.end(); it++) {
-		arrays[arr].val[i].set(it->first);
+		arrays[arr].val[i].set(it->first.c_str());
 		i++;
 	}
 	SetOpReturn(arr, DATATYPE_INT);
@@ -87,23 +88,16 @@ static void _stdcall op_sfall_metarule_handler() {
 		if (lookup != metaruleTable.end()) {
 			lookup->second();
 		} else {
-			dlog_f("sfall_metaruleX(name, ...) - name '%s' is unknown.", DL_INIT, name);
+			PrintOpcodeError("sfall_funcX(name, ...) - name '%s' is unknown.", name);
 		}
 	} else {		
-		dlog("sfall_metaruleX(name, ...) - name must be string.", DL_INIT);
-	}
-	// Force return value, because metarule opcode is an expression.
-	if (opRetType == DATATYPE_NONE) {
-		SetOpReturn(0, DATATYPE_INT);
+		PrintOpcodeError("sfall_funcX(name, ...) - name must be string.");
 	}
 }
 
-// TODO: replace _WRAP_OPCODE with C++ equivalent
-// TODO: handle string arguments
-
 #define metaruleOpcode(numArg, numArgPlusOne) \
 	static void __declspec(naked) op_sfall_metarule##numArg() {\
-		_WRAP_OPCODE(numArgPlusOne, op_sfall_metarule_handler)\
+		_WRAP_OPCODE(op_sfall_metarule_handler, numArgPlusOne, 1)\
 	}
 
 metaruleOpcode(0, 1)

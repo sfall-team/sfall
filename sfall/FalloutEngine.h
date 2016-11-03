@@ -877,7 +877,11 @@ const char* __stdcall InterpretGetString(TProgram* scriptPtr, DWORD strId, DWORD
 DWORD __stdcall InterpretAddString(TProgram* scriptPtr, const char* str);
 
 // prints scripting error in debug.log and stops current script execution by performing longjmp
+// USE WITH CAUTION
 void __declspec() InterpretError(const char* fmt, ...);
 
 // prints message to debug.log file
 void __declspec() DebugPrintf(const char* fmt, ...);
+
+// returns the name of current procedure by program pointer
+const char* __stdcall FindCurrentProc(TProgram* program);

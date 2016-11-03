@@ -770,9 +770,6 @@ end:
 }
 
 static void funcPow2() {
-	/*char buf[1024];
-	sprintf(buf, "Pow! %d %d %d %d", opArgs[0], opArgTypes[0], opArgs[1], opArgTypes[1]);
-	DisplayConsoleMessage(buf);*/
 	float base, result = 0.0;
 	if (!IsOpArgStr(0) && !IsOpArgStr(1)) {
 		base = GetOpArgFloat(0);
@@ -792,7 +789,7 @@ static void funcPow2() {
 }
 
 static void __declspec(naked) funcPow() {
-	_WRAP_OPCODE(2, funcPow2)
+	_WRAP_OPCODE(funcPow2, 2, 1)
 }
 
 static void funcLog2() {
@@ -800,7 +797,7 @@ static void funcLog2() {
 }
 
 static void __declspec(naked) funcLog() {
-	_WRAP_OPCODE(1, funcLog2)
+	_WRAP_OPCODE(funcLog2, 1, 1)
 }
 
 static void funcExp2() {
@@ -808,7 +805,7 @@ static void funcExp2() {
 }
 
 static void __declspec(naked) funcExp() {
-	_WRAP_OPCODE(1, funcExp2)
+	_WRAP_OPCODE(funcExp2, 1, 1)
 }
 
 static void funcCeil2() {
@@ -816,7 +813,7 @@ static void funcCeil2() {
 }
 
 static void __declspec(naked) funcCeil() {
-	_WRAP_OPCODE(1, funcCeil2)
+	_WRAP_OPCODE(funcCeil2, 1, 1)
 }
 
 static void funcRound2() {
@@ -829,7 +826,7 @@ static void funcRound2() {
 }
 
 static void __declspec(naked) funcRound() {
-	_WRAP_OPCODE(1, funcRound2)
+	_WRAP_OPCODE(funcRound2, 1, 1)
 }
 
 /*
@@ -861,10 +858,10 @@ static const DWORD game_msg_files[] =
 static const DWORD* proto_msg_files = (DWORD*)0x006647AC;
 
 static void _stdcall op_message_str_game2() {
-	DWORD fileId = opArgs[0];
 	const char* msg = 0;
 
 	if (IsOpArgInt(0) && IsOpArgInt(1)) {
+		int fileId = GetOpArgInt(0);
 		int msgId = GetOpArgInt(1);
 		if (fileId < 20) { // main msg files
 			msg = GetMessageStr(game_msg_files[fileId], msgId);
@@ -875,8 +872,9 @@ static void _stdcall op_message_str_game2() {
 		else if (fileId >= 0x2000) { // Extra game message files.
 			std::tr1::unordered_map<int, MSGList*>::iterator it = gExtraGameMsgLists.find(fileId);
 
-			if (it != gExtraGameMsgLists.end())
+			if (it != gExtraGameMsgLists.end()) {
 				msg = GetMsg(it->second, msgId, 2);
+			}
 		}
 	}
 
@@ -887,5 +885,5 @@ static void _stdcall op_message_str_game2() {
 }
 
 static void __declspec(naked) op_message_str_game() {
-	_WRAP_OPCODE(2, op_message_str_game2)
+	_WRAP_OPCODE(op_message_str_game2, 2, 1)
 }

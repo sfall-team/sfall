@@ -135,13 +135,15 @@ __asm resultnotstr##num:				\
 	- use opArgs, opArgTypes to access arguments
 	- use opRet, opRetType to set return value
 
-	argnum - number of arguments
 	func - C-function to call (should not have arguments)
+	argnum - number of opcode arguments
+	isExpression - 1 if opcode has return value, 0 otherwise
 */
-#define _WRAP_OPCODE(argnum, func) __asm { \
+#define _WRAP_OPCODE(func, argnum, isExpression) __asm { \
 	__asm pushad					\
-	__asm push func					\
+	__asm push isExpression			\
 	__asm push argnum				\
+	__asm push func					\
 	__asm push eax					\
 	__asm call HandleOpcode			\
 	__asm popad						\

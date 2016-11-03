@@ -152,7 +152,7 @@ static void _stdcall op_create_spatial2() {
 }
 
 static void __declspec(naked) op_create_spatial() {
-	_WRAP_OPCODE(4, op_create_spatial2)
+	_WRAP_OPCODE(op_create_spatial2, 4, 1)
 }
 static void __declspec(naked) op_spatial_radius() {
 	_OP_BEGIN(ebp)
@@ -388,7 +388,7 @@ static void _stdcall op_make_straight_path2() {
 }
 
 static void __declspec(naked) op_make_straight_path() {
-	_WRAP_OPCODE(3, op_make_straight_path2)
+	_WRAP_OPCODE(op_make_straight_path2, 3, 1)
 }
 
 static void _stdcall op_make_path2() {
@@ -424,7 +424,7 @@ static void _stdcall op_make_path2() {
 }
 
 static void __declspec(naked) op_make_path() {
-	_WRAP_OPCODE(3, op_make_path2)
+	_WRAP_OPCODE(op_make_path2, 3, 1)
 }
 
 static void _stdcall op_obj_blocking_at2() {
@@ -441,7 +441,7 @@ static void _stdcall op_obj_blocking_at2() {
 }
 
 static void __declspec(naked) op_obj_blocking_at() {
-	_WRAP_OPCODE(3, op_obj_blocking_at2)
+	_WRAP_OPCODE(op_obj_blocking_at2, 3, 1)
 }
 
 static void _stdcall op_tile_get_objects2() {
@@ -466,7 +466,7 @@ static void _stdcall op_tile_get_objects2() {
 }
 
 static void __declspec(naked) op_tile_get_objects() {
-	_WRAP_OPCODE(2, op_tile_get_objects2)
+	_WRAP_OPCODE(op_tile_get_objects2, 2, 1)
 }
 
 static void _stdcall op_get_party_members2() {
@@ -495,7 +495,7 @@ static void _stdcall op_get_party_members2() {
 }
 
 static void __declspec(naked) op_get_party_members() {
-	_WRAP_OPCODE(1, op_get_party_members2)
+	_WRAP_OPCODE(op_get_party_members2, 1, 1)
 }
 
 static void __declspec(naked) op_art_exists() {
@@ -531,5 +531,5 @@ static void _stdcall op_obj_is_carrying_obj2() {
 }
 
 static void __declspec(naked) op_obj_is_carrying_obj() {
-	_WRAP_OPCODE(2, op_obj_is_carrying_obj2)
+	_WRAP_OPCODE(op_obj_is_carrying_obj2, 2, 1)
 }
