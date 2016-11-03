@@ -128,11 +128,11 @@ static void _stdcall PrintOpcodeError(const char* fmt, ...) {
 	va_list args;
 	va_start(args, fmt);
 	char msg[1024];
-	vsnprintf_s(msg, 1024, fmt, args);
+	vsnprintf_s(msg, sizeof msg, _TRUNCATE, fmt, args);
 	va_end(args);
 
 	const char* procName = FindCurrentProc(opProgram);
-	DebugPrintf("\nOPCODE ERROR: %s\nCurrent script: %s, procedure %s.", msg, opProgram->fileName, procName);
+	DebugPrintf("\nOPCODE ERROR: %s\n   Current script: %s, procedure %s.", msg, opProgram->fileName, procName);
 }
 
 // Handle opcodes
