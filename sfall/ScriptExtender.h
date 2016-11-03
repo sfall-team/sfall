@@ -20,10 +20,12 @@
 #include "main.h"
 
 // TODO: replace with enum class
-#define DATATYPE_NONE  (0)
-#define DATATYPE_INT   (1)
-#define DATATYPE_FLOAT (2)
-#define DATATYPE_STR   (3)
+enum SfallDataType {
+	DATATYPE_NONE = 0,
+	DATATYPE_INT,
+	DATATYPE_FLOAT,
+	DATATYPE_STR
+};
 
 struct sGlobalVar {
 	__int64 id;

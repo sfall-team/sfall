@@ -311,7 +311,24 @@ void DESetArray(int id, const DWORD* types, const void* data) {
 
 /*
 	Array manipulation functions for script operators
+	TODO: move somewhere else
 */
+
+const char* _stdcall GetSfallTypeName(DWORD dataType) {
+	switch (dataType) {
+		case DATATYPE_NONE:
+			return "(none)";
+		case DATATYPE_STR:
+			return "string";
+		case DATATYPE_FLOAT:
+			return "float";
+		case DATATYPE_INT:
+			return "integer";
+		default:
+			return "(unknown)";
+	}
+}
+
 DWORD _stdcall getSfallTypeByScriptType(DWORD varType) {
 	varType &= 0xffff;
 	switch (varType) {

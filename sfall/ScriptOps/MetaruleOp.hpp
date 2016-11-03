@@ -32,7 +32,24 @@
 // Use SetOpReturn() to set return value.
 // If you want to call user-defined procedures in your handler, use RunScriptProc().
 
-typedef std::tr1::unordered_map<std::string, void(*)()> MetaruleTableType;
+struct SfallMetarule {
+	// function name
+	const char* name;
+	// pointer to handler function
+	void(*func)();
+	// mininum number of arguments
+	int minArgs;
+	// maximum number of arguments
+	int maxArgs;
+	// type masks of arguments DATATYPE_MASK_* (use bitwise OR to combine, use 0 to disable type validation)
+	int argTypeMasks[6]; 
+};
+
+#define DATATYPE_MASK_INT		(1 << DATATYPE_INT)
+#define DATATYPE_MASK_FLOAT		(1 << DATATYPE_FLOAT)
+#define DATATYPE_MASK_STR		(1 << DATATYPE_STR)
+
+typedef std::tr1::unordered_map<std::string, const SfallMetarule*> MetaruleTableType;
 
 static MetaruleTableType metaruleTable;
 
@@ -76,9 +93,45 @@ static void sf_get_metarule_table() {
 	SetOpReturn(arr, DATATYPE_INT);
 }
 
+static const SfallMetarule metaruleArray[] = {
+	{"test", sf_test, 0, 6, {}},
+	{"get_metarule_table", sf_get_metarule_table, 0, 0, {}},
+	{"validate_test", sf_test, 2, 5, {DATATYPE_MASK_INT, DATATYPE_MASK_INT | DATATYPE_MASK_FLOAT, DATATYPE_MASK_STR, DATATYPE_NONE}}
+};
+
 static void InitMetaruleTable() {
-	metaruleTable["test"] = sf_test;
-	metaruleTable["get_metarule_table"] = sf_get_metarule_table;
+	int length = sizeof(metaruleArray) / sizeof(SfallMetarule);
+	for (int i = 0; i < length; ++i) {
+		metaruleTable[metaruleArray[i].name] = &metaruleArray[i];
+	}
+}
+
+// Validates arguments against metarule specification.
+// On error prints to debug.log and returns false.
+static bool ValidateOpcodeArguments(const SfallMetarule* metaruleInfo) {
+	int argCount = GetOpArgCount() - 1; // don't count function name
+	if (argCount < metaruleInfo->minArgs || argCount > metaruleInfo->maxArgs) {
+		PrintOpcodeError(
+			"sfall_funcX(\"%s\", ...) - invalid number of arguments (%d), must be from %d to %d.", 
+			metaruleInfo->name, 
+			argCount,
+			metaruleInfo->minArgs,
+			metaruleInfo->maxArgs);
+
+		return false;
+	} else {
+		for (int i = 0; i < argCount; i++) {
+			if (metaruleInfo->argTypeMasks[i] != 0 && ((1 << opArgs[i + 1].type) & metaruleInfo->argTypeMasks[i]) == 0) {
+				PrintOpcodeError(
+					"sfall_funcX(\"%s\", ...) - argument #%d has invalid type: %s.", 
+					metaruleInfo->name, 
+					i + 1,
+					GetSfallTypeName(opArgs[i + 1].type));
+				return false;
+			}
+		}
+	}
+	return true;
 }
 
 static void _stdcall op_sfall_metarule_handler() {
@@ -86,7 +139,10 @@ static void _stdcall op_sfall_metarule_handler() {
 		const char* name = GetOpArgStr(0);
 		MetaruleTableType::iterator lookup = metaruleTable.find(name);
 		if (lookup != metaruleTable.end()) {
-			lookup->second();
+			const SfallMetarule* metaruleInfo = lookup->second;
+			if (ValidateOpcodeArguments(metaruleInfo)) {
+				metaruleInfo->func();
+			}
 		} else {
 			PrintOpcodeError("sfall_funcX(name, ...) - name '%s' is unknown.", name);
 		}
