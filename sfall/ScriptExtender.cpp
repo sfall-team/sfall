@@ -149,6 +149,9 @@ static void _stdcall PrintOpcodeError(const char* fmt, ...) {
 }
 
 // Handle opcodes
+// scriptPtr - pointer to script program (from the engine)
+// func - opcode handler
+// hasReturn - true if opcode has return value (is expression)
 static void __stdcall HandleOpcode(TProgram* scriptPtr, void(*func)(), int argNum, bool hasReturn) {
 	assert(argNum < OP_MAX_ARGUMENTS);
 

@@ -361,6 +361,9 @@ const DWORD intface_update_hit_points_ = 0x45EBD8;
 const DWORD intface_update_items_ = 0x45EFEC;
 const DWORD intface_update_move_points_ = 0x45EE0C;
 const DWORD intface_use_item_ = 0x45F5EC;
+const DWORD intface_show_ = 0x45EA10;
+const DWORD intface_hide_ = 0x45E9E0;
+const DWORD intface_is_hidden_ = 0x45EA5C;
 const DWORD invenUnwieldFunc_ = 0x472A64;
 const DWORD invenWieldFunc_ = 0x472768;
 const DWORD inven_display_msg_ = 0x472D24;
@@ -735,9 +738,7 @@ int __stdcall ScrPtr(int scriptId, TScript** scriptPtr) {
 
 // redraws the main game interface windows (useful after changing some data like active hand, etc.)
 void InterfaceRedraw() {
-	__asm {
-		call intface_redraw_
-	}
+	__asm call intface_redraw_
 }
 
 // pops value type from Data stack (must be followed by InterpretPopLong)

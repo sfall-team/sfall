@@ -440,3 +440,24 @@ end:
 		retn;
 	}
 }
+
+static void sf_intface_redraw() {
+	InterfaceRedraw();
+}
+
+static void sf_intface_show() {
+	__asm call intface_show_
+}
+
+static void sf_intface_hide() {
+	__asm call intface_hide_
+}
+
+static void sf_intface_is_hidden() {
+	int isHidden;
+	__asm {
+		call intface_is_hidden_
+		mov isHidden, eax;
+	}
+	SetOpReturn(isHidden);
+}

@@ -113,6 +113,11 @@ static const SfallMetarule metaruleArray[] = {
 	{"validate_test", sf_test, 2, 5, {DATATYPE_MASK_INT, DATATYPE_MASK_INT | DATATYPE_MASK_FLOAT, DATATYPE_MASK_STR, DATATYPE_NONE}},
 	{"spatial_radius", sf_spatial_radius, 1, 1, {DATATYPE_MASK_VALID_OBJ}},
 	{"critter_inven_obj2", sf_critter_inven_obj2, 2, 2, {DATATYPE_MASK_VALID_OBJ, DATATYPE_MASK_INT}},
+	{"intface_redraw", sf_intface_redraw, 0, 0, {}},
+	{"intface_show", sf_intface_show, 0, 0, {}},
+	{"intface_hide", sf_intface_hide, 0, 0, {}},
+	{"intface_is_hidden", sf_intface_is_hidden, 0, 0, {}},
+	{"exec_map_update_scripts", sf_exec_map_update_scripts, 0, 0, {}},
 };
 
 static void InitMetaruleTable() {
