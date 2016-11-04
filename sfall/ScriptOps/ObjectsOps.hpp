@@ -115,10 +115,10 @@ end:
 
 // TODO: rewrite, remove all ASM
 static void _stdcall op_create_spatial2() {
-	DWORD scriptIndex = GetOpArgInt(0),
-		  tile = GetOpArgInt(1),
-		  elevation = GetOpArgInt(2),
-		  radius = GetOpArgInt(3), 
+	DWORD scriptIndex	= opHandler.arg(0).asInt(),
+		  tile			= opHandler.arg(1).asInt(),
+		  elevation		= opHandler.arg(2).asInt(),
+		  radius		= opHandler.arg(3).asInt(),
 		  scriptId, tmp, objectPtr,
 		  scriptPtr;
 	__asm {
@@ -151,7 +151,7 @@ static void _stdcall op_create_spatial2() {
 		call scr_find_obj_from_program_;
 		mov objectPtr, eax;
 	}
-	SetOpReturn((int)objectPtr);
+	opHandler.setReturn((int)objectPtr);
 }
 
 static void __declspec(naked) op_create_spatial() {
@@ -159,10 +159,10 @@ static void __declspec(naked) op_create_spatial() {
 }
 
 static void sf_spatial_radius() {
-	TGameObj* spatialObj = GetOpArgObj(1);
+	TGameObj* spatialObj = opHandler.arg(1).asObject();
 	TScript* script;
 	if (ScrPtr(spatialObj->scriptID, &script) != -1) {
-		SetOpReturn(script->spatial_radius);
+		opHandler.setReturn(script->spatial_radius);
 	}
 }
 
@@ -376,13 +376,13 @@ static DWORD getBlockingFunc(DWORD type) {
 }
 
 static void _stdcall op_make_straight_path2() {
-	DWORD objFrom = GetOpArgInt(0),
-		  tileTo = GetOpArgInt(1),
-		  type = GetOpArgInt(2),
+	DWORD objFrom	= opHandler.arg(0).asInt(),
+		  tileTo	= opHandler.arg(1).asInt(),
+		  type		= opHandler.arg(2).asInt(),
 		  resultObj, arg6;
 	arg6 = (type == BLOCKING_TYPE_SHOOT) ? 32 : 0;
 	make_straight_path_func_wrapper(objFrom, *(DWORD*)(objFrom + 4), 0, tileTo, &resultObj, arg6, getBlockingFunc(type));
-	SetOpReturn(resultObj, DATATYPE_INT);
+	opHandler.setReturn(resultObj, DATATYPE_INT);
 }
 
 static void __declspec(naked) op_make_straight_path() {
@@ -390,15 +390,15 @@ static void __declspec(naked) op_make_straight_path() {
 }
 
 static void _stdcall op_make_path2() {
-	DWORD objFrom = GetOpArgInt(0),
+	DWORD objFrom = opHandler.arg(0).asInt(),
 		tileFrom = 0,
-		tileTo = GetOpArgInt(1),
-		type = GetOpArgInt(2),
+		tileTo = opHandler.arg(1).asInt(),
+		type = opHandler.arg(2).asInt(),
 		func = getBlockingFunc(type),
 		arr;
 	long pathLength, a5 = 1;
 	if (!objFrom) {
-		SetOpReturn(0, DATATYPE_INT);
+		opHandler.setReturn(0, DATATYPE_INT);
 		return;
 	}
 	tileFrom = *(DWORD*)(objFrom + 4);
@@ -418,7 +418,7 @@ static void _stdcall op_make_path2() {
 	for (int i=0; i < pathLength; i++) {
 		arrays[arr].val[i].set((long)pathData[i]);
 	}
-	SetOpReturn(arr, DATATYPE_INT);
+	opHandler.setReturn(arr, DATATYPE_INT);
 }
 
 static void __declspec(naked) op_make_path() {
@@ -426,16 +426,16 @@ static void __declspec(naked) op_make_path() {
 }
 
 static void _stdcall op_obj_blocking_at2() {
-	DWORD tile = GetOpArgInt(0),
-		  elevation = GetOpArgInt(1),
-		  type = GetOpArgInt(2), 
+	DWORD tile = opHandler.arg(0).asInt(),
+		  elevation = opHandler.arg(1).asInt(),
+		  type = opHandler.arg(2).asInt(), 
 		  resultObj;
 	resultObj = obj_blocking_at_wrapper(0, tile, elevation, getBlockingFunc(type));
 	if (resultObj && type == BLOCKING_TYPE_SHOOT && (*(DWORD*)(resultObj + 39) & 0x80)) { // don't know what this flag means, copy-pasted from the engine code
 		// this check was added because the engine always does exactly this when using shoot blocking checks
 		resultObj = 0;
 	}
-	SetOpReturn(resultObj, DATATYPE_INT);
+	opHandler.setReturn(resultObj, DATATYPE_INT);
 }
 
 static void __declspec(naked) op_obj_blocking_at() {
@@ -443,8 +443,8 @@ static void __declspec(naked) op_obj_blocking_at() {
 }
 
 static void _stdcall op_tile_get_objects2() {
-	DWORD tile = GetOpArgInt(0),
-		elevation = GetOpArgInt(1), 
+	DWORD tile = opHandler.arg(0).asInt(),
+		elevation = opHandler.arg(1).asInt(), 
 		obj;
 	DWORD arrayId = TempArray(0, 4);
 	__asm {
@@ -460,7 +460,7 @@ static void _stdcall op_tile_get_objects2() {
 			mov obj, eax;
 		}
 	}
-	SetOpReturn(arrayId, DATATYPE_INT);
+	opHandler.setReturn(arrayId, DATATYPE_INT);
 }
 
 static void __declspec(naked) op_tile_get_objects() {
@@ -468,7 +468,7 @@ static void __declspec(naked) op_tile_get_objects() {
 }
 
 static void _stdcall op_get_party_members2() {
-	DWORD obj, mode = GetOpArgInt(0), isDead;
+	DWORD obj, mode = opHandler.arg(0).asInt(), isDead;
 	int i, actualCount = *(DWORD*)_partyMemberCount;
 	DWORD arrayId = TempArray(0, 4);
 	DWORD* partyMemberList = *(DWORD**)_partyMemberList;
@@ -489,7 +489,7 @@ static void _stdcall op_get_party_members2() {
 		}
 		arrays[arrayId].push_back((long)obj);
 	}
-	SetOpReturn(arrayId, DATATYPE_INT);
+	opHandler.setReturn(arrayId, DATATYPE_INT);
 }
 
 static void __declspec(naked) op_get_party_members() {
@@ -512,11 +512,14 @@ end:
 }
 
 static void _stdcall op_obj_is_carrying_obj2() {
-	DWORD num = 0;
-	if (IsOpArgInt(0) && IsOpArgInt(1)) {
-		TGameObj *invenObj = (TGameObj*)GetOpArgInt(0),
-				 *itemObj = (TGameObj*)GetOpArgInt(1);
-		if (invenObj && itemObj) {
+	int num = 0;
+	const ScriptValue &invenObjArg = opHandler.arg(0),
+					  &itemObjArg = opHandler.arg(1);
+
+	if (invenObjArg.isInt() && itemObjArg.isInt()) {
+		TGameObj *invenObj = (TGameObj*)invenObjArg.asObject(),
+				 *itemObj = (TGameObj*)itemObjArg.asObject();
+		if (invenObj != nullptr && itemObj != nullptr) {
 			for (int i = 0; i < invenObj->invenCount; i++) {
 				if (invenObj->invenTablePtr[i].object == itemObj) {
 					num = invenObj->invenTablePtr[i].count;
@@ -525,7 +528,7 @@ static void _stdcall op_obj_is_carrying_obj2() {
 			}
 		}
 	}
-	SetOpReturn(num, DATATYPE_INT);
+	opHandler.setReturn(num);
 }
 
 static void __declspec(naked) op_obj_is_carrying_obj() {
@@ -533,20 +536,20 @@ static void __declspec(naked) op_obj_is_carrying_obj() {
 }
 
 static void sf_critter_inven_obj2() {
-	TGameObj* critter = GetOpArgObj(1);
-	int slot = GetOpArgInt(2);
+	TGameObj* critter = opHandler.arg(1).asObject();
+	int slot = opHandler.arg(2).asInt();
 	switch (slot) {
 	case 0:
-		SetOpReturn(InvenWorn(critter));
+		opHandler.setReturn(InvenWorn(critter));
 		break;
 	case 1:
-		SetOpReturn(InvenRightHand(critter));
+		opHandler.setReturn(InvenRightHand(critter));
 		break;
 	case 2:
-		SetOpReturn(InvenLeftHand(critter));
+		opHandler.setReturn(InvenLeftHand(critter));
 		break;
 	case -2:
-		SetOpReturn(critter->invenCount);
+		opHandler.setReturn(critter->invenCount);
 		break;
 	default:
 		PrintOpcodeError("critter_inven_obj2() - invalid type.");

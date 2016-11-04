@@ -145,53 +145,9 @@ __asm resultnotstr##num:				\
 	__asm push argnum				\
 	__asm push func					\
 	__asm push eax					\
-	__asm call HandleOpcode			\
+	__asm lea ecx, opHandler		\
+	__asm call OpcodeHandler::HandleOpcode	\
 	__asm popad						\
 	__asm retn						\
 }
 
-// Old wrapping macros.. does not support string arguments
-#define _WRAP_OPCODE_OLD(argnum, func) __asm { \
-	__asm pushad					\
-	__asm mov ebp, eax				\
-	__asm mov esi, argnum			\
-	__asm shl esi, 2				\
-	__asm mov opArgCount, argnum	\
-	__asm mov opRetType, 0			\
-__asm loopbegin:					\
-	__asm test esi, esi				\
-	__asm jz loopend				\
-	__asm sub esi, 4				\
-	__asm mov eax, ebp				\
-	__asm call interpretPopShort_	\
-	__asm push eax					\
-	__asm call getSfallTypeByScriptType \
-	__asm mov opArgTypes[esi], eax	\
-	__asm mov eax, ebp				\
-	__asm call interpretPopLong_	\
-	__asm mov opArgs[esi], eax		\
-	__asm jmp loopbegin				\
-__asm loopend:						\
-	__asm call func					\
-	__asm mov eax, opRetType		\
-	__asm test eax, eax				\
-	__asm jz end					\
-	__asm push eax					\
-	__asm call getScriptTypeBySfallType \
-	__asm mov ecx, eax				\
-	__asm mov edx, opRet			\
-	__asm cmp ecx, VAR_TYPE_STR		\
-	__asm jne notstring				\
-	__asm mov eax, ebp				\
-	__asm call interpretAddString_	\
-	__asm mov edx, eax				\
-__asm notstring:					\
-	__asm mov eax, ebp				\
-	__asm call interpretPushLong_	\
-	__asm mov edx, ecx				\
-	__asm mov eax, ebp				\
-	__asm call interpretPushShort_	\
-__asm end:							\
-	__asm popad						\
-	__asm retn						\
-}

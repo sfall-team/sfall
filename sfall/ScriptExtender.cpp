@@ -41,6 +41,104 @@ void _stdcall HandleMapUpdateForScripts(DWORD procId);
 // variables for new opcodes
 #define OP_MAX_ARGUMENTS	(10)
 
+class ScriptValue {
+public:
+	ScriptValue(SfallDataType type, DWORD value) {
+		_val.dw = value;
+		_type = type;
+	}
+
+	ScriptValue() {
+		_val.dw = 0;
+		_type = DATATYPE_NONE;
+	}
+
+	ScriptValue(const char* strval) {
+		_val.str = strval;
+		_type = DATATYPE_STR;
+	}
+
+	ScriptValue(int val) {
+		_val.i = val;
+		_type = DATATYPE_INT;
+	}
+
+	ScriptValue(float strval) {
+		_val.f = strval;
+		_type = DATATYPE_FLOAT;
+	}
+
+	ScriptValue(TGameObj* obj) {
+		_val.gObj = obj;
+		_type = DATATYPE_INT;
+	}
+
+	bool isInt() const {
+		return _type == DATATYPE_INT;
+	}
+
+	bool isFloat() const {
+		return _type == DATATYPE_FLOAT;
+	}
+
+	bool isString() const {
+		return _type == DATATYPE_STR;
+	}
+
+	DWORD rawValue() const {
+		return _val.dw;
+	}
+
+	int asInt() const {
+		switch (_type) {
+		case DATATYPE_FLOAT:
+			return static_cast<int>(_val.f);
+		case DATATYPE_INT:
+			return _val.i;
+		default:
+			return 0;
+		}
+	}
+
+	float asFloat() const {
+		switch (_type) {
+		case DATATYPE_FLOAT:
+			return _val.f;
+		case DATATYPE_INT:
+			return static_cast<float>(_val.i);
+		default:
+			return 0.0;
+		}
+	}
+
+	const char* asString() const {
+		return (_type == DATATYPE_STR)
+			? _val.str
+			: "";
+	}
+
+	TGameObj* asObject() const {
+		return (_type == DATATYPE_INT)
+			? _val.gObj
+			: nullptr;
+	}
+
+	SfallDataType type() const {
+		return _type;
+	}
+
+private:
+	union Value {
+		DWORD dw;
+		int i;
+		float f;
+		const char* str;
+		TGameObj* gObj;
+	} _val;
+
+	SfallDataType _type; // TODO: replace with enum class
+} ;
+
 typedef struct {
 	union Value {
 		DWORD dw;
@@ -50,93 +148,99 @@ typedef struct {
 		TGameObj* gObj;
 	} val;
 	DWORD type; // TODO: replace with enum class
-} ScriptValue;
+} ScriptValue1;
 
-static TProgram* opProgram;
-static DWORD opArgCount = 0;
-static ScriptValue opArgs[OP_MAX_ARGUMENTS];
-static ScriptValue opRet;
-
-static void _stdcall SetOpReturn(DWORD value, DWORD type) {
-	opRet.val.dw = value;
-	opRet.type = type;
-}
-
-static void _stdcall SetOpReturn(int value) {
-	opRet.val.i = value;
-	opRet.type = DATATYPE_INT;
-}
-
-static void _stdcall SetOpReturn(float value) {
-	opRet.val.f = value;
-	opRet.type = DATATYPE_FLOAT;
-}
-
-static void _stdcall SetOpReturn(const char* value) {
-	opRet.val.str = value;
-	opRet.type = DATATYPE_STR;
-}
-
-static void _stdcall SetOpReturn(TGameObj* value) {
-	opRet.val.gObj = value;
-	opRet.type = DATATYPE_INT;
-}
-
-
-// TODO: replace these functions with proper ScriptValue class (encapsulation...)
-static bool _stdcall IsOpArgInt(int num) {
-	return (opArgs[num].type == DATATYPE_INT);
-}
-
-static bool _stdcall IsOpArgFloat(int num) {
-	return (opArgs[num].type == DATATYPE_FLOAT);
-}
-
-static bool _stdcall IsOpArgStr(int num) {
-	return (opArgs[num].type == DATATYPE_STR);
-}
-
-static int _stdcall GetOpArgCount() {
-	return opArgCount;
-}
-
-static int _stdcall GetOpArgInt(int num) {
-	switch (opArgs[num].type) {
-	case DATATYPE_FLOAT:
-		return static_cast<int>(opArgs[num].val.f);
-	case DATATYPE_INT:
-		return opArgs[num].val.i;
-	default:
-		return 0;
+class OpcodeHandler {
+public:
+	// number of arguments
+	int numArgs() const {
+		return _args.size();
 	}
-}
 
-static float _stdcall GetOpArgFloat(int num) {
-	switch (opArgs[num].type) {
-	case DATATYPE_FLOAT:
-		return opArgs[num].val.f;
-	case DATATYPE_INT:
-		return static_cast<float>(opArgs[num].val.i);
-	default:
-		return 0.0;
+	// returns argument with given index
+	const ScriptValue& arg(int index) const {
+		return _args.at(index);
 	}
-}
+	
+	// current return value
+	const ScriptValue& returnValue() const {
+		return _ret;
+	}
 
-static const char* _stdcall GetOpArgStr(int num) {
-	return (opArgs[num].type == DATATYPE_STR)
-		? opArgs[num].val.str
-		: "";
-}
+	// current script program
+	TProgram* program() const {
+		return _program;
+	}
+	
+	// set return value for current opcode
+	void setReturn(DWORD value, SfallDataType type) {
+		_ret = ScriptValue(type, value);
+	}
+	
+	// set return value for current opcode
+	void setReturn(const ScriptValue& val) {
+		_ret = val;
+	}
 
-static TGameObj* _stdcall GetOpArgObj(int num) {
-	return (opArgs[num].type == DATATYPE_INT)
-		? opArgs[num].val.gObj
-		: nullptr;
-}
+	// Handle opcodes
+	// scriptPtr - pointer to script program (from the engine)
+	// func - opcode handler
+	// hasReturn - true if opcode has return value (is expression)
+	void __thiscall HandleOpcode(TProgram* scriptPtr, void(*func)(), int argNum, bool hasReturn) {
+		assert(argNum < OP_MAX_ARGUMENTS);
+
+		_program = scriptPtr;
+
+		// reset return value
+		_ret = ScriptValue();
+
+		// process arguments on stack (reverse order)
+		_args.resize(0);
+		for (int i = argNum - 1; i >= 0; i--) {
+			// get argument from stack
+			DWORD rawValueType = InterpretPopShort(scriptPtr);
+			DWORD rawValue = InterpretPopLong(scriptPtr);
+			SfallDataType type = static_cast<SfallDataType>(getSfallTypeByScriptType(rawValueType));
+
+			// retrieve string argument
+			if (type == DATATYPE_STR) {
+				_args.push_back(InterpretGetString(scriptPtr, rawValue, rawValueType));
+			} else {
+				_args.push_back(ScriptValue(type, rawValue));
+			}
+		}
+
+		// call opcode handler
+		func();
+
+		// process return value
+		if (hasReturn) {
+			if (_ret.type() == DATATYPE_NONE) {
+				// if no value was set in handler, force return 0 to avoid stack error
+				_ret = ScriptValue(0);
+			}
+			DWORD rawResult = _ret.rawValue();
+			if (_ret.type() == DATATYPE_STR) {
+				rawResult = InterpretAddString(scriptPtr, _ret.asString());
+			}
+			InterpretPushLong(scriptPtr, rawResult);
+			InterpretPushShort(scriptPtr, getScriptTypeBySfallType(_ret.type()));
+		}
+	}
+
+private:
+	TProgram* _program;
+
+	int _argCount;
+	std::vector<ScriptValue> _args;
+	ScriptValue _ret;
+};
+
+static OpcodeHandler opHandler;
 
 // writes error message to debug.log along with the name of script & procedure
 static void _stdcall PrintOpcodeError(const char* fmt, ...) {
-	assert(opProgram != nullptr);
+	assert(opHandler.program() != nullptr);
 
 	va_list args;
 	va_start(args, fmt);
@@ -144,62 +248,10 @@ static void _stdcall PrintOpcodeError(const char* fmt, ...) {
 	vsnprintf_s(msg, sizeof msg, _TRUNCATE, fmt, args);
 	va_end(args);
 
-	const char* procName = FindCurrentProc(opProgram);
-	DebugPrintf("\nOPCODE ERROR: %s\n   Current script: %s, procedure %s.", msg, opProgram->fileName, procName);
+	const char* procName = FindCurrentProc(opHandler.program());
+	DebugPrintf("\nOPCODE ERROR: %s\n   Current script: %s, procedure %s.", msg, opHandler.program()->fileName, procName);
 }
 
-// Handle opcodes
-// scriptPtr - pointer to script program (from the engine)
-// func - opcode handler
-// hasReturn - true if opcode has return value (is expression)
-static void __stdcall HandleOpcode(TProgram* scriptPtr, void(*func)(), int argNum, bool hasReturn) {
-	assert(argNum < OP_MAX_ARGUMENTS);
-
-	opProgram = scriptPtr;
-
-	// reset return value
-	opRet.type = DATATYPE_NONE;
-	opRet.val.dw = 0;
-
-	// process arguments on stack (reverse order)
-	opArgCount = argNum;
-	for (int i = OP_MAX_ARGUMENTS - 1; i >= 0; i--) {
-		if (i < argNum) {
-			// get argument from stack
-			DWORD rawValueType = InterpretPopShort(scriptPtr);
-			DWORD rawValue = InterpretPopLong(scriptPtr);
-			opArgs[i].type = getSfallTypeByScriptType(rawValueType);
-
-			// retrieve string argument
-			if (opArgs[i].type == DATATYPE_STR) {
-				opArgs[i].val.str = InterpretGetString(scriptPtr, rawValue, rawValueType);
-			} else {
-				opArgs[i].val.dw = rawValue;
-			}
-		} else {
-			// reset other arguments
-			opArgs[i].val.dw = 0;
-			opArgs[i].type = DATATYPE_NONE;
-		}
-	}
-
-	// call opcode handler
-	func();
-
-	// process return value
-	if (hasReturn) {
-		if (opRet.type == DATATYPE_NONE) {
-			// if no value was set in handler, force return 0 to avoid stack error
-			SetOpReturn(0, DATATYPE_INT);
-		}
-		DWORD rawResult = opRet.val.dw;
-		if (opRet.type == DATATYPE_STR) {
-			rawResult = InterpretAddString(scriptPtr, opRet.val.str);
-		}
-		InterpretPushLong(scriptPtr, rawResult);
-		InterpretPushShort(scriptPtr, getScriptTypeBySfallType(opRet.type));
-	}
-}
 
 #include "ScriptOps\AsmMacros.h"
 #include "ScriptOps\ScriptArrays.hpp"

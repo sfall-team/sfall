@@ -770,21 +770,22 @@ end:
 }
 
 static void funcPow2() {
-	float base, result = 0.0;
-	if (!IsOpArgStr(0) && !IsOpArgStr(1)) {
-		base = GetOpArgFloat(0);
-		if (IsOpArgFloat(1))
-			result = pow(base, GetOpArgFloat(1));
+	const ScriptValue &base = opHandler.arg(0),
+					  &power = opHandler.arg(1);
+	float result = 0.0;
+	if (!base.isString() && !power.isString()) {
+		if (power.isFloat())
+			result = pow(base.asFloat(), power.asFloat());
 		else
-			result = pow(base, GetOpArgInt(1));
+			result = pow(base.asFloat(), power.asInt());
 
-		if (IsOpArgInt(0) && IsOpArgInt(1)) {
-			SetOpReturn((DWORD)(int)result, DATATYPE_INT);
+		if (base.isInt() && power.isInt()) {
+			opHandler.setReturn(static_cast<int>(result));
 		} else {
-			SetOpReturn(result);
+			opHandler.setReturn(result);
 		}
 	} else {
-		SetOpReturn(0, DATATYPE_INT);
+		opHandler.setReturn(0);
 	}
 }
 
@@ -793,7 +794,7 @@ static void __declspec(naked) funcPow() {
 }
 
 static void funcLog2() {
-	SetOpReturn(log(GetOpArgFloat(0)));
+	opHandler.setReturn(log(opHandler.arg(0).asFloat()));
 }
 
 static void __declspec(naked) funcLog() {
@@ -801,7 +802,7 @@ static void __declspec(naked) funcLog() {
 }
 
 static void funcExp2() {
-	SetOpReturn(exp(GetOpArgFloat(0)));
+	opHandler.setReturn(exp(opHandler.arg(0).asFloat()));
 }
 
 static void __declspec(naked) funcExp() {
@@ -809,7 +810,7 @@ static void __declspec(naked) funcExp() {
 }
 
 static void funcCeil2() {
-	SetOpReturn((int)ceil(GetOpArgFloat(0)), DATATYPE_INT);
+	opHandler.setReturn(static_cast<int>(ceil(opHandler.arg(0).asFloat())));
 }
 
 static void __declspec(naked) funcCeil() {
@@ -817,12 +818,13 @@ static void __declspec(naked) funcCeil() {
 }
 
 static void funcRound2() {
-	float arg = GetOpArgFloat(0);
-	int argI = (int)arg;
-	float mod = arg - (float)argI;
-	if (abs(mod) >= 0.5)
+	float arg = opHandler.arg(0).asFloat();
+	int argI = static_cast<int>(arg);
+	float mod = arg - static_cast<float>(argI);
+	if (abs(mod) >= 0.5) {
 		argI += (mod > 0 ? 1 : -1);
-	SetOpReturn(argI, DATATYPE_INT);
+	}
+	opHandler.setReturn(argI);
 }
 
 static void __declspec(naked) funcRound() {
@@ -833,6 +835,7 @@ static void __declspec(naked) funcRound() {
 
 */
 
+// TODO: move to FalloutEngine module
 static const DWORD game_msg_files[] =
 	{ 0x56D368     // COMBAT
 	, 0x56D510     // AI
@@ -855,14 +858,16 @@ static const DWORD game_msg_files[] =
 	, 0x66BE38     // TRAIT
 	, 0x672FB0 };  // WORLDMAP
 
+// TODO: move to FalloutEngine
 static const DWORD* proto_msg_files = (DWORD*)0x006647AC;
 
 static void _stdcall op_message_str_game2() {
 	const char* msg = 0;
-
-	if (IsOpArgInt(0) && IsOpArgInt(1)) {
-		int fileId = GetOpArgInt(0);
-		int msgId = GetOpArgInt(1);
+	const ScriptValue &fileIdArg = opHandler.arg(0),
+					  &msgIdArg = opHandler.arg(1);
+	if (fileIdArg.isInt() && msgIdArg.isInt()) {
+		int fileId = fileIdArg.asInt();
+		int msgId = msgIdArg.asInt();
 		if (fileId < 20) { // main msg files
 			msg = GetMessageStr(game_msg_files[fileId], msgId);
 		}
@@ -877,11 +882,10 @@ static void _stdcall op_message_str_game2() {
 			}
 		}
 	}
-
-	if (msg == 0)
+	if (msg == 0) {
 		msg = "Error";
-
-	SetOpReturn(msg);
+	}
+	opHandler.setReturn(msg);
 }
 
 static void __declspec(naked) op_message_str_game() {

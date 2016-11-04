@@ -459,5 +459,5 @@ static void sf_intface_is_hidden() {
 		call intface_is_hidden_
 		mov isHidden, eax;
 	}
-	SetOpReturn(isHidden);
+	opHandler.setReturn(isHidden);
 }
