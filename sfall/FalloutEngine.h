@@ -854,6 +854,10 @@ void CritterPcSetName(const char* newName);
 // Returns the name of the critter
 const char* __stdcall CritterName(TGameObj* critter);
 
+// Saves pointer to script object into scriptPtr using scriptID. 
+// Returns 0 on success, -1 on failure.
+int __stdcall ScrPtr(int scriptId, TScript** scriptPtr);
+
 void SkillGetTags(int* result, DWORD num);
 void SkillSetTags(int* tags, DWORD num);
 
@@ -885,3 +889,12 @@ void __declspec() DebugPrintf(const char* fmt, ...);
 
 // returns the name of current procedure by program pointer
 const char* __stdcall FindCurrentProc(TProgram* program);
+
+// critter worn item (armor)
+TGameObj* __stdcall InvenWorn(TGameObj* critter);
+
+// item in critter's left hand slot
+TGameObj* __stdcall InvenLeftHand(TGameObj* critter);
+
+// item in critter's right hand slot
+TGameObj* __stdcall InvenRightHand(TGameObj* critter);

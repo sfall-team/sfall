@@ -34,7 +34,7 @@ struct TInvenRec
 };
 #pragma pack(pop)
 
-/*    8 */
+/* 15 */
 #pragma pack(push, 1)
 struct TGameObj
 {
@@ -52,7 +52,7 @@ struct TGameObj
 	TInvenRec *invenTablePtr;
 	char gap_38[4];
 	int itemCharges;
-	int movePoints;
+	int critterAP_weaponAmmoPid;
 	char gap_44[16];
 	int lastTarget;
 	char gap_58[12];

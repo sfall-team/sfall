@@ -725,6 +725,14 @@ void SkillSetTags(int* tags, DWORD num) {
 	}
 }
 
+int __stdcall ScrPtr(int scriptId, TScript** scriptPtr) {
+	__asm {
+		mov eax, scriptId;
+		mov edx, scriptPtr;
+		call scr_ptr_;
+	}
+}
+
 // redraws the main game interface windows (useful after changing some data like active hand, etc.)
 void InterfaceRedraw() {
 	__asm {
@@ -800,4 +808,19 @@ const char* __stdcall FindCurrentProc(TProgram* program) {
 		mov eax, program
 		call findCurrentProc_
 	}
+}
+
+TGameObj* __stdcall InvenWorn(TGameObj* critter) {
+	__asm mov eax, critter
+	__asm call inven_worn_
+}
+
+TGameObj* __stdcall InvenLeftHand(TGameObj* critter) {
+	__asm mov eax, critter
+	__asm call inven_left_hand_
+}
+
+TGameObj* __stdcall InvenRightHand(TGameObj* critter) {
+	__asm mov eax, critter
+	__asm call inven_right_hand_
 }

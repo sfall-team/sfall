@@ -24,6 +24,7 @@
 
 //script control functions
 
+// TODO: rewrite
 static void __declspec(naked) RemoveScript() {
 	__asm {
 		push ebx;
@@ -52,6 +53,7 @@ end:
 	}
 }
 
+// TODO: rewrite 
 static void __declspec(naked) SetScript() {
 	__asm {
 		pushad;
@@ -111,6 +113,7 @@ end:
 	}
 }
 
+// TODO: rewrite, remove all ASM
 static void _stdcall op_create_spatial2() {
 	DWORD scriptIndex = GetOpArgInt(0),
 		  tile = GetOpArgInt(1),
@@ -154,18 +157,13 @@ static void _stdcall op_create_spatial2() {
 static void __declspec(naked) op_create_spatial() {
 	_WRAP_OPCODE(op_create_spatial2, 4, 1)
 }
-static void __declspec(naked) op_spatial_radius() {
-	_OP_BEGIN(ebp)
-	_GET_ARG_R32(ebp, ecx, eax)
-	_CHECK_ARG_INT(cx, fail)
-	__asm {
-		test eax, eax;
-		js fail;
-		mov eax, [eax+0xC];
-fail:
+
+static void sf_spatial_radius() {
+	TGameObj* spatialObj = GetOpArgObj(1);
+	TScript* script;
+	if (ScrPtr(spatialObj->scriptID, &script) != -1) {
+		SetOpReturn(script->spatial_radius);
 	}
-	_RET_VAL_INT(ebp)
-	_OP_END
 }
 
 static void __declspec(naked) GetScript() {
@@ -532,4 +530,25 @@ static void _stdcall op_obj_is_carrying_obj2() {
 
 static void __declspec(naked) op_obj_is_carrying_obj() {
 	_WRAP_OPCODE(op_obj_is_carrying_obj2, 2, 1)
+}
+
+static void sf_critter_inven_obj2() {
+	TGameObj* critter = GetOpArgObj(1);
+	int slot = GetOpArgInt(2);
+	switch (slot) {
+	case 0:
+		SetOpReturn(InvenWorn(critter));
+		break;
+	case 1:
+		SetOpReturn(InvenRightHand(critter));
+		break;
+	case 2:
+		SetOpReturn(InvenLeftHand(critter));
+		break;
+	case -2:
+		SetOpReturn(critter->invenCount);
+		break;
+	default:
+		PrintOpcodeError("critter_inven_obj2() - invalid type.");
+	}
 }

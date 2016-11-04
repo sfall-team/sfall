@@ -48,6 +48,8 @@ struct SfallMetarule {
 #define DATATYPE_MASK_INT		(1 << DATATYPE_INT)
 #define DATATYPE_MASK_FLOAT		(1 << DATATYPE_FLOAT)
 #define DATATYPE_MASK_STR		(1 << DATATYPE_STR)
+#define DATATYPE_MASK_NOT_NULL	(0x00010000)
+#define DATATYPE_MASK_VALID_OBJ	(DATATYPE_MASK_INT | DATATYPE_MASK_NOT_NULL)
 
 typedef std::tr1::unordered_map<std::string, const SfallMetarule*> MetaruleTableType;
 
@@ -93,10 +95,24 @@ static void sf_get_metarule_table() {
 	SetOpReturn(arr, DATATYPE_INT);
 }
 
+/*
+	Metarule array.
+
+	Add your custom scripting functions here.
+
+	Format is as follows:
+	{ name, handler, minArgs, maxArgs, {MASK1, MASK2, ...} }
+		- name - name of function that will be used to call it from scripts,
+		- handler - pointer to handler function (see examples above),
+		- minArgs/maxArgs - minimum and maximum number of arguments allowed for this function,
+		- MASK1, MASK2, ... - validation parameters for each argument as bit masks (see DATATYPE_MASK_* defines)
+*/
 static const SfallMetarule metaruleArray[] = {
 	{"test", sf_test, 0, 6, {}},
 	{"get_metarule_table", sf_get_metarule_table, 0, 0, {}},
-	{"validate_test", sf_test, 2, 5, {DATATYPE_MASK_INT, DATATYPE_MASK_INT | DATATYPE_MASK_FLOAT, DATATYPE_MASK_STR, DATATYPE_NONE}}
+	{"validate_test", sf_test, 2, 5, {DATATYPE_MASK_INT, DATATYPE_MASK_INT | DATATYPE_MASK_FLOAT, DATATYPE_MASK_STR, DATATYPE_NONE}},
+	{"spatial_radius", sf_spatial_radius, 1, 1, {DATATYPE_MASK_VALID_OBJ}},
+	{"critter_inven_obj2", sf_critter_inven_obj2, 2, 2, {DATATYPE_MASK_VALID_OBJ, DATATYPE_MASK_INT}},
 };
 
 static void InitMetaruleTable() {
@@ -121,12 +137,22 @@ static bool ValidateOpcodeArguments(const SfallMetarule* metaruleInfo) {
 		return false;
 	} else {
 		for (int i = 0; i < argCount; i++) {
-			if (metaruleInfo->argTypeMasks[i] != 0 && ((1 << opArgs[i + 1].type) & metaruleInfo->argTypeMasks[i]) == 0) {
+			int typeMask = metaruleInfo->argTypeMasks[i];
+			ScriptValue arg = opArgs[i + 1];
+			if (typeMask != 0 && ((1 << arg.type) & typeMask) == 0) {
 				PrintOpcodeError(
 					"sfall_funcX(\"%s\", ...) - argument #%d has invalid type: %s.", 
 					metaruleInfo->name, 
 					i + 1,
-					GetSfallTypeName(opArgs[i + 1].type));
+					GetSfallTypeName(arg.type));
+
+				return false;
+			} else if ((typeMask & DATATYPE_MASK_NOT_NULL) && arg.val.dw == 0) {
+				PrintOpcodeError(
+					"sfall_funcX(\"%s\", ...) - argument #%d is null.", 
+					metaruleInfo->name, 
+					i + 1);
+
 				return false;
 			}
 		}

@@ -47,6 +47,7 @@ typedef struct {
 		int i;
 		float f;
 		const char* str;
+		TGameObj* gObj;
 	} val;
 	DWORD type; // TODO: replace with enum class
 } ScriptValue;
@@ -75,6 +76,12 @@ static void _stdcall SetOpReturn(const char* value) {
 	opRet.val.str = value;
 	opRet.type = DATATYPE_STR;
 }
+
+static void _stdcall SetOpReturn(TGameObj* value) {
+	opRet.val.gObj = value;
+	opRet.type = DATATYPE_INT;
+}
+
 
 // TODO: replace these functions with proper ScriptValue class (encapsulation...)
 static bool _stdcall IsOpArgInt(int num) {
@@ -119,6 +126,12 @@ static const char* _stdcall GetOpArgStr(int num) {
 	return (opArgs[num].type == DATATYPE_STR)
 		? opArgs[num].val.str
 		: "";
+}
+
+static TGameObj* _stdcall GetOpArgObj(int num) {
+	return (opArgs[num].type == DATATYPE_INT)
+		? opArgs[num].val.gObj
+		: nullptr;
 }
 
 // writes error message to debug.log along with the name of script & procedure
