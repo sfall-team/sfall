@@ -264,7 +264,6 @@
     <ClInclude Include="Modules\SuperSave.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="FalloutEngine\Fallout2.cpp" />
     <ClCompile Include="FalloutEngine\Functions.cpp" />
     <ClCompile Include="FalloutEngine\Variables.cpp" />
     <ClCompile Include="FalloutEngine\Wrappers.cpp" />

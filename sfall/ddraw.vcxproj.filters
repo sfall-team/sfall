@@ -321,9 +321,6 @@
     <ClCompile Include="Modules\ScriptExtender.cpp">
       <Filter>Modules</Filter>
     </ClCompile>
-    <ClCompile Include="FalloutEngine\Fallout2.cpp">
-      <Filter>FalloutEngine</Filter>
-    </ClCompile>
     <ClCompile Include="InputFuncs.cpp" />
     <ClCompile Include="Modules\Scripting\Arrays.cpp">
       <Filter>Modules\Scripting</Filter>
