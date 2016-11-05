@@ -334,7 +334,7 @@ Some utility/math functions are available:
 > int sfall_func1("spatial_radius", Object object)
 - return radius of spatial script, associated with given dummy-object (returned by create_spatial)
 
-> Object sfall_func2("critter_inven_obj2" Object invenObj, int type)
+> Object sfall_func2("critter_inven_obj2", Object invenObj, int type)
 - works just like vanilla critter_inven_obj, but correctly reports item in player's inactive hand slot
 
 > void sfall_func0("intface_redraw")
