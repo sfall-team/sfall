@@ -18,9 +18,9 @@
 
 #include "..\main.h"
 
+#include <vector> // should be above DX SDK includes to avoid warning 4995
 #include <d3d9.h>
 #include <dshow.h>
-#include <vector>
 #include <Vmr9.h>
 
 #include "..\FalloutEngine\Fallout2.h"
