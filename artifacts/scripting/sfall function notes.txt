@@ -77,6 +77,22 @@ force_aimed_shots and disable_aimed_shots allow overriding the normal rules rega
 get/set_critter_skill_points will get/set the number of additional points a critter has in a skill, on top of whatever they have from their stats and other bonuses. Note that skill points are part of the proto, so calling set_skill_points on a critter will affect all critters that share the same proto.
 
 
+
+------------------------------
+------ TYPES REFERENCE -------
+------------------------------
+
+> Data types mentioned in this document:
+
+void - means opcode does not return any value
+any - any type
+int - integer number
+float - floating point number
+string - string (text) value
+object - pointer to game object (actually an integer)
+array - array ID to be used with array-related functions (actually an integer)
+
+
 ----------------------------------------------
 ------ FUNCTION REFERENCE (incomplete) -------
 ----------------------------------------------
@@ -129,15 +145,15 @@ get/set_critter_skill_points will get/set the number of additional points a crit
 - adjusts how fast time passes while you're on the world map. It takes a single float as an argument, where 1 is the normal speed.
 - This function works in addition to the WorldMapTimeMod setting in ddraw.ini and the pathfinder perk, rather than overriding it, so calling set_map_time_multi(0.5) when the player has 2 levels of pathfinder would result in time passing at 25% the normal speed on the world map.
 
-> void remove_script(objptr)
+> void remove_script(object)
 - accepts a pointer to an object and will remove the script from that object.
 
-> void set_script(objptr, int scriptid)
+> void set_script(object, int scriptid)
 - accepts a pointer to an object and scriptID, and applies the given script to an object (scriptID accept the same values as create_object_sid from sfall 3.6)
 - If used on an object that is already scripted, it will remove the existing script first; you cannot have multiple scripts attached to a single object. Calling set_script on self_obj will have all sorts of wacky side effects, and should be avoided.
 - if you add 0x80000000 to the sid when calling set_script, map_enter_p_proc will be SKIPPED. The start proc will always be run.
 
-> int get_script(objptr)
+> int get_script(object)
 - accepts a pointer to an object and returns it's scriptID (line number in scripts.lst), or -1 if the object is unscripted.
 
 > void set_self(int obj)
@@ -159,9 +175,9 @@ get/set_critter_skill_points will get/set the number of additional points a crit
 - It is not saved into the save game, so needs to be called once per reload.
 - Be careful not to let the player obtain a perk when no perks are available to pick, or the game may crash.
 
-> Object get_last_target(objptr)
+> object get_last_target(object)
 - will return the last critter to be deliberately attacked
-> Object get_last_attacker(objptr)
+> object get_last_attacker(object)
 - will return the last critter to deliberately launch an attack against the argument critter.
 - If a critter has not launched/recieved an attack, it will return 0. This is only stored for the duration of combat, and outside of combat both functions will always return 0.
 
@@ -170,7 +186,7 @@ get/set_critter_skill_points will get/set the number of additional points a crit
 - "max" will replace 95% success chance cap (so you can set 100% maximum chance, for instance)
 - "mod" will add this much percent to each success chance. for example if your chance is 50% and "mod" is 20, you will get 70% actual success rate
 
-> void set_critter_pickpocket_mod(CritterPtr, int max, int mod)
+> void set_critter_pickpocket_mod(object, int max, int mod)
 - the same as above, but applies only to specific critter
 
 > void reg_anim_combat_check
@@ -222,17 +238,17 @@ Some utility/math functions are available:
 > string substr(string, start, length)
 - cuts a substring from a string starting at "start" up to "length" characters. If start is negative - it indicates starting position from the end of the string (for example substr("test", -2, 2) will return last 2 charactes: "st"). If length is negative - it means so many characters will be omitted from the end of string (example: substr("test", 0, -2) will return string without last 2 characters: "te")
 
-> int strlen(char* string)
+> int strlen(string string)
 - returns string length
 
-> string sprintf(char* format, any value)
+> string sprintf(string format, any value)
 - formats given value using standart syntax of C printf function (google "printf" for format details). However it is limited to formatting only 1 value.
 - can be used to get character by ASCII code ("%c")
 
 > int typeof(any value)
 - returns type of the given value: VALTYPE_INT, VALTYPE_FLOAT or VALTYPE_STR.
 
-> int charcode(char* string)
+> int charcode(string string)
 - returns ASCII code for the first character in given string
 
 > ^ operator (exponentiation)
@@ -286,12 +302,12 @@ Some utility/math functions are available:
 > int tile_light(int elevation, int tileNum)
 - returns light intensity at the given tile in range from 0 to 65535
 
-> Object obj_blocking_line(Object objFrom, int tileTo, int blockingType)
+> object obj_blocking_line(object objFrom, int tileTo, int blockingType)
 - returns first object which blocks direct linear path from objFrom to tileTo using selected blocking function (see BLOCKING_TYPE_* constants in sfall.h)
 - if path is clear (no blocker was encountered by selected function) - returns 0
 - objFrom is always excluded from calculations, but is required to be a valid object
 
-> Object obj_blocking_tile(int tileNum, int elevation, int blockingType)
+> object obj_blocking_tile(int tileNum, int elevation, int blockingType)
 - returns first object blocking given tile using given blocking function or 0 if tile is clear
 
 > array tile_get_objs(int tileNum, int elevation)
@@ -301,23 +317,23 @@ Some utility/math functions are available:
 > array party_member_list(int includeHidden)
 - returns array of all current party members (0 - only critter-type, alive and visible will be returned, 1 - all object, including Trunk, etc.)
 
-> array path_find_to(Object objFrom, int tileTo, int blockingType)
+> array path_find_to(object objFrom, int tileTo, int blockingType)
 - returns the shortest path to a given tile using given blocking function as an array of tile directions (0..5) to move on each step
 - array length equals to a number of steps
 - empty array means that specified target cannot be reached
 
-> Object create_spatial(int scriptID, int tile, int elevation, int radius)
+> object create_spatial(int scriptID, int tile, int elevation, int radius)
 - creates new spatial script with given SID, at given tile, and radius
 
 > int art_exists(int artFID)
 - checks if given artFID exists in the game
 - useful when you want to check if critter can use specific weapon: art_exists((artFid bwand 0xffff0fff) bwor (weaponAnim * 0x1000))
 
-> int obj_is_carrying_obj(Object invenObj, Object itemObj)
+> int obj_is_carrying_obj(object invenObj, object itemObj)
 - returns number of itemObj inside invenObj's inventory, note that both arguments are object pointers
 - useful when dealing with different stacks of same item (obj_is_carrying_obj_pid just returns total for all stacks of the same PID)
 
-> any sfall_funcX(char* funcName, ...)
+> any sfall_funcX(string funcName, ...)
 - these opcodes allows to use additional scripting functions, that do not require new opcode
 - first argument is always function name (string)
 - there are 7 versions of this opcode for different number of additional arguments (for convenience)
@@ -328,13 +344,13 @@ Some utility/math functions are available:
 ------ sfall_funcX functions -------
 ------------------------------------
 
-> Array sfall_func0("get_metarule_table")
+> array sfall_func0("get_metarule_table")
 - returns names of all currently available scripting functions (via sfall_funcX)
 
-> int sfall_func1("spatial_radius", Object object)
+> int sfall_func1("spatial_radius", object object)
 - return radius of spatial script, associated with given dummy-object (returned by create_spatial)
 
-> Object sfall_func2("critter_inven_obj2", Object invenObj, int type)
+> object sfall_func2("critter_inven_obj2", object invenObj, int type)
 - works just like vanilla critter_inven_obj, but correctly reports item in player's inactive hand slot
 
 > void sfall_func0("intface_redraw")
