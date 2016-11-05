@@ -64,7 +64,7 @@ void InventoryKeyPressedHook(DWORD dxKey, bool pressed, DWORD vKey) {
 			call item_w_max_ammo_;
 			mov maxAmmo, eax;
 			mov eax, item;
-			call item_w_cur_ammo_;
+			call item_w_curr_ammo_;
 			mov curAmmo, eax;
 		}
 		if (maxAmmo != curAmmo) {
@@ -504,7 +504,7 @@ static void __declspec(naked) add_check_for_item_ammo_cost() {
 		push    edx
 		push    ebx
 		sub     esp, 4
-		call    item_w_cur_ammo_
+		call    item_w_curr_ammo_
 		mov     ebx, eax
 		mov     eax, ecx // weapon
 		mov     edx, esp

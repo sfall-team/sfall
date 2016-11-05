@@ -192,6 +192,15 @@
     <ClInclude Include="Modules\Scripting\WorldmapOps.hpp">
       <Filter>Modules\Scripting</Filter>
     </ClInclude>
+    <ClInclude Include="FalloutEngine\Wrappers.h">
+      <Filter>FalloutEngine</Filter>
+    </ClInclude>
+    <ClInclude Include="FalloutEngine\Functions.h">
+      <Filter>FalloutEngine</Filter>
+    </ClInclude>
+    <ClInclude Include="FalloutEngine\Variables.h">
+      <Filter>FalloutEngine</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
@@ -318,6 +327,15 @@
     <ClCompile Include="InputFuncs.cpp" />
     <ClCompile Include="Modules\Scripting\Arrays.cpp">
       <Filter>Modules\Scripting</Filter>
+    </ClCompile>
+    <ClCompile Include="FalloutEngine\Functions.cpp">
+      <Filter>FalloutEngine</Filter>
+    </ClCompile>
+    <ClCompile Include="FalloutEngine\Variables.cpp">
+      <Filter>FalloutEngine</Filter>
+    </ClCompile>
+    <ClCompile Include="FalloutEngine\Wrappers.cpp">
+      <Filter>FalloutEngine</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
