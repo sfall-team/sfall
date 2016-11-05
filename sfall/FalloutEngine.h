@@ -26,6 +26,9 @@
 
 #include "FalloutStructs.h"
 
+// Global variable offsets
+// TODO: probably need to hide these by moving inside implementation file
+
 #define _aiInfoList                 0x510948
 #define _ambient_light              0x51923C
 #define _art                        0x510738
@@ -206,6 +209,8 @@
 #define _YellowColor                0x6AB8BB
 
 // variables
+// TODO: move to separate namespace
+
 extern long* ptr_pc_traits; // 2 of them
 
 extern DWORD* ptr_aiInfoList;
@@ -385,7 +390,8 @@ extern DWORD* ptr_world_ypos;
 extern DWORD* ptr_WorldMapCurrArea;
 extern DWORD* ptr_YellowColor;
 
-// misc. offsets from engine
+// engine function offsets
+// TODO: move to separate namespace
 extern const DWORD action_get_an_object_;
 extern const DWORD action_loot_container_;
 extern const DWORD action_use_an_item_on_object_;
@@ -514,6 +520,7 @@ extern const DWORD interpretPopLong_;
 extern const DWORD interpretPopShort_;
 extern const DWORD interpretPushLong_;
 extern const DWORD interpretPushShort_;
+extern const DWORD interpretError_; 
 extern const DWORD intface_redraw_; // no args
 extern const DWORD intface_toggle_item_state_;
 extern const DWORD intface_toggle_items_;
@@ -522,6 +529,9 @@ extern const DWORD intface_update_hit_points_;
 extern const DWORD intface_update_items_;
 extern const DWORD intface_update_move_points_;
 extern const DWORD intface_use_item_;
+extern const DWORD intface_show_;
+extern const DWORD intface_hide_;
+extern const DWORD intface_is_hidden_;
 extern const DWORD invenUnwieldFunc_; // (int critter@<eax>, int slot@<edx>, int a3@<ebx>) - int result (-1 on error, 0 on success)
 extern const DWORD invenWieldFunc_; // (int who@<eax>, int item@<edx>, int a3@<ecx>, int slot@<ebx>) - int result (-1 on error, 0 on success)
 extern const DWORD inven_display_msg_;
@@ -829,6 +839,7 @@ extern const DWORD getmsg_; // eax - msg file addr, ebx - message ID, edx - int[
 #define MSG_FILE_WORLDMAP	(0x672FB0)
 
 // WRAPPERS:
+// TODO: move these to different namespace
 int _stdcall IsPartyMember(TGameObj* obj);
 int _stdcall PartyMemberGetCurrentLevel(TGameObj* obj);
 TGameObj* __stdcall GetInvenWeaponLeft(TGameObj* obj);
@@ -846,8 +857,47 @@ void CritterPcSetName(const char* newName);
 // Returns the name of the critter
 const char* __stdcall CritterName(TGameObj* critter);
 
+// Saves pointer to script object into scriptPtr using scriptID. 
+// Returns 0 on success, -1 on failure.
+int __stdcall ScrPtr(int scriptId, TScript** scriptPtr);
+
 void SkillGetTags(int* result, DWORD num);
 void SkillSetTags(int* tags, DWORD num);
 
 // redraws the main game interface windows (useful after changing some data like active hand, etc.)
 void InterfaceRedraw();
+
+// critter worn item (armor)
+TGameObj* __stdcall InvenWorn(TGameObj* critter);
+
+// item in critter's left hand slot
+TGameObj* __stdcall InvenLeftHand(TGameObj* critter);
+
+// item in critter's right hand slot
+TGameObj* __stdcall InvenRightHand(TGameObj* critter);
+
+// pops value type from Data stack (must be followed by InterpretPopLong)
+DWORD __stdcall InterpretPopShort(TProgram* scriptPtr);
+
+// pops value from Data stack (must be preceded by InterpretPopShort)
+DWORD __stdcall InterpretPopLong(TProgram* scriptPtr);
+
+// pushes value to Data stack (must be followed by InterpretPushShort)
+void __stdcall InterpretPushLong(TProgram* scriptPtr, DWORD val);
+
+// pushes value type to Data stack (must be preceded by InterpretPushLong)
+void __stdcall InterpretPushShort(TProgram* scriptPtr, DWORD valType);
+
+const char* __stdcall InterpretGetString(TProgram* scriptPtr, DWORD strId, DWORD dataType);
+
+DWORD __stdcall InterpretAddString(TProgram* scriptPtr, const char* str);
+
+// prints scripting error in debug.log and stops current script execution by performing longjmp
+// USE WITH CAUTION
+void __declspec() InterpretError(const char* fmt, ...);
+
+// prints message to debug.log file
+void __declspec() DebugPrintf(const char* fmt, ...);
+
+// returns the name of current procedure by program pointer
+const char* __stdcall FindCurrentProc(TProgram* program);

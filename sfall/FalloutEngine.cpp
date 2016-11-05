@@ -319,6 +319,7 @@ const DWORD elevator_start_ = 0x43F324;
 const DWORD endgame_slideshow_ = 0x43F788;
 const DWORD exec_script_proc_ = 0x4A4810;
 const DWORD executeProcedure_ = 0x46DD2C;
+const DWORD findCurrentProc_ = 0x467160;
 const DWORD fadeSystemPalette_ = 0x4C7320;
 const DWORD findVar_ = 0x4410AC;
 const DWORD folder_print_line_ = 0x43E3D8;
@@ -351,6 +352,7 @@ const DWORD interpretPopLong_ = 0x467500;
 const DWORD interpretPopShort_ = 0x4674F0;
 const DWORD interpretPushLong_ = 0x4674DC;
 const DWORD interpretPushShort_ = 0x46748C;
+const DWORD interpretError_ = 0x4671F0;
 const DWORD intface_redraw_ = 0x45EB98;
 const DWORD intface_toggle_item_state_ = 0x45F4E0;
 const DWORD intface_toggle_items_ = 0x45F404;
@@ -359,6 +361,9 @@ const DWORD intface_update_hit_points_ = 0x45EBD8;
 const DWORD intface_update_items_ = 0x45EFEC;
 const DWORD intface_update_move_points_ = 0x45EE0C;
 const DWORD intface_use_item_ = 0x45F5EC;
+const DWORD intface_show_ = 0x45EA10;
+const DWORD intface_hide_ = 0x45E9E0;
+const DWORD intface_is_hidden_ = 0x45EA5C;
 const DWORD invenUnwieldFunc_ = 0x472A64;
 const DWORD invenWieldFunc_ = 0x472768;
 const DWORD inven_display_msg_ = 0x472D24;
@@ -672,8 +677,7 @@ void DisplayConsoleMessage(const char* msg) {
 }
 
 static DWORD mesg_buf[4] = {0, 0, 0, 0};
-const char* _stdcall GetMessageStr(DWORD fileAddr, DWORD messageId)
-{
+const char* _stdcall GetMessageStr(DWORD fileAddr, DWORD messageId) {
 	DWORD buf = (DWORD)mesg_buf;
 	const char* result;
 	__asm {
@@ -724,9 +728,100 @@ void SkillSetTags(int* tags, DWORD num) {
 	}
 }
 
+int __stdcall ScrPtr(int scriptId, TScript** scriptPtr) {
+	__asm {
+		mov eax, scriptId;
+		mov edx, scriptPtr;
+		call scr_ptr_;
+	}
+}
+
 // redraws the main game interface windows (useful after changing some data like active hand, etc.)
 void InterfaceRedraw() {
+	__asm call intface_redraw_
+}
+
+// pops value type from Data stack (must be followed by InterpretPopLong)
+DWORD __stdcall InterpretPopShort(TProgram* scriptPtr) {
 	__asm {
-		call intface_redraw_
+		mov eax, scriptPtr
+		call interpretPopShort_
 	}
+}
+
+// pops value from Data stack (must be preceded by InterpretPopShort)
+DWORD __stdcall InterpretPopLong(TProgram* scriptPtr) {
+	__asm {
+		mov eax, scriptPtr
+		call interpretPopLong_
+	}
+}
+
+// pushes value to Data stack (must be followed by InterpretPushShort)
+void __stdcall InterpretPushLong(TProgram* scriptPtr, DWORD val) {
+	__asm {
+		mov edx, val
+		mov eax, scriptPtr
+		call interpretPushLong_
+	}
+}
+
+// pushes value type to Data stack (must be preceded by InterpretPushLong)
+void __stdcall InterpretPushShort(TProgram* scriptPtr, DWORD valType) {
+	__asm {
+		mov edx, valType
+		mov eax, scriptPtr
+		call interpretPushShort_
+	}
+}
+
+DWORD __stdcall InterpretAddString(TProgram* scriptPtr, const char* strval) {
+	__asm {
+		mov edx, strval
+		mov eax, scriptPtr
+		call interpretAddString_
+	}
+}
+
+const char* __stdcall InterpretGetString(TProgram* scriptPtr, DWORD strId, DWORD dataType) {
+	__asm {
+		mov edx, dataType
+		mov ebx, strId
+		mov eax, scriptPtr
+		call interpretGetString_
+	}
+}
+
+void __declspec(naked) InterpretError(const char* fmt, ...) {
+	__asm {
+		jmp interpretError_
+	}
+}
+
+void __declspec(naked) DebugPrintf(const char* fmt, ...) {
+	__asm {
+		jmp debug_printf_
+	}
+}
+
+const char* __stdcall FindCurrentProc(TProgram* program) {
+	__asm {
+		mov eax, program
+		call findCurrentProc_
+	}
+}
+
+TGameObj* __stdcall InvenWorn(TGameObj* critter) {
+	__asm mov eax, critter
+	__asm call inven_worn_
+}
+
+TGameObj* __stdcall InvenLeftHand(TGameObj* critter) {
+	__asm mov eax, critter
+	__asm call inven_left_hand_
+}
+
+TGameObj* __stdcall InvenRightHand(TGameObj* critter) {
+	__asm mov eax, critter
+	__asm call inven_right_hand_
 }

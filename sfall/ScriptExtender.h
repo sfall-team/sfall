@@ -19,10 +19,13 @@
 #pragma once
 #include "main.h"
 
-#define DATATYPE_NONE  (0)
-#define DATATYPE_INT   (1)
-#define DATATYPE_FLOAT (2)
-#define DATATYPE_STR   (3)
+// TODO: replace with enum class
+enum SfallDataType {
+	DATATYPE_NONE = 0,
+	DATATYPE_INT,
+	DATATYPE_FLOAT,
+	DATATYPE_STR
+};
 
 struct sGlobalVar {
 	__int64 id;
@@ -64,6 +67,8 @@ void GetAppearanceGlobals(int *race, int *style);
 void _stdcall RegAnimCombatCheck(DWORD newValue);
 
 DWORD _stdcall ScriptHasLoaded(DWORD script);
+// finds procedure ID for given script program pointer and procedure name
+DWORD GetScriptProcByName(DWORD scriptPtr, const char* procName);
 // loads script from .int file into scripting engine, fill scriptPtr and proc table
 void LoadScriptProgram(sScriptProgram &prog, const char* fileName);
 // init program after load, needs to be called once
