@@ -304,8 +304,6 @@
     <ClCompile Include="Modules\Stats.cpp" />
     <ClCompile Include="Modules\Tiles.cpp" />
     <ClCompile Include="Modules\Timer.cpp" />
-    <ClCompile Include="win9x\queue9x.cpp" />
-    <ClCompile Include="win9x\vector9x.cpp" />
     <ClCompile Include="Logging.cpp" />
     <ClCompile Include="Modules\SuperSave.cpp" />
   </ItemGroup>

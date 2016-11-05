@@ -288,12 +288,6 @@
     <ClCompile Include="Modules\Tiles.cpp">
       <Filter>Modules</Filter>
     </ClCompile>
-    <ClCompile Include="win9x\queue9x.cpp">
-      <Filter>win9x</Filter>
-    </ClCompile>
-    <ClCompile Include="win9x\vector9x.cpp">
-      <Filter>win9x</Filter>
-    </ClCompile>
     <ClCompile Include="ddraw.cpp" />
     <ClCompile Include="Logging.cpp" />
     <ClCompile Include="SafeWrite.cpp" />
