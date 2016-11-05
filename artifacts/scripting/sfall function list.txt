@@ -337,16 +337,25 @@
 
 0x8262 - void register_hook_proc(int hook, procedure proc)
 
-0x8266 - char* message_str_game(int fileId, int messageId)
-0x8267 - int sneak_success
-0x8268 - int tile_light(int elevation, int tileNum)
-0x8269 - ObjectPtr obj_blocking_line(ObjectPtr objFrom, int tileTo, int blockingType)
-0x826a - ObjectPtr obj_blocking_tile(int tileNum, int elevation, int blockingType)
-0x826b - array tile_get_objs(int tileNum, int elevation)
-0x826c - array party_member_list(int includeHidden)
-0x826d - array path_find_to(ObjectPtr objFrom, int tileTo, int blockingType)
-0x826e - ObjectPtr create_spatial(int scriptID, int tile, int elevation, int radius)
-0x826f - int art_exists(int artFID)
-0x8270 - int obj_is_carrying_obj(ObjectPtr invenObj, ObjectPtr itemObj)
+0x826b - char* message_str_game(int fileId, int messageId)
+0x826c - int sneak_success
+0x826d - int tile_light(int elevation, int tileNum)
+0x826e - ObjectPtr obj_blocking_line(ObjectPtr objFrom, int tileTo, int blockingType)
+0x826f - ObjectPtr obj_blocking_tile(int tileNum, int elevation, int blockingType)
+0x8270 - array tile_get_objs(int tileNum, int elevation)
+0x8271 - array party_member_list(int includeHidden)
+0x8272 - array path_find_to(ObjectPtr objFrom, int tileTo, int blockingType)
+0x8273 - ObjectPtr create_spatial(int scriptID, int tile, int elevation, int radius)
+0x8274 - int art_exists(int artFID)
+0x8275 - int obj_is_carrying_obj(ObjectPtr invenObj, ObjectPtr itemObj)
+
+0x8276 - any sfall_func0(char* funcName)
+0x8277 - any sfall_func1(char* funcName, arg1)
+0x8278 - any sfall_func2(char* funcName, arg1, arg2)
+0x8279 - any sfall_func3(char* funcName, arg1, arg2, arg3)
+0x827a - any sfall_func4(char* funcName, arg1, arg2, arg3, arg4)
+0x827b - any sfall_func5(char* funcName, arg1, arg2, arg3, arg4, arg5)
+0x827c - any sfall_func6(char* funcName, arg1, arg2, arg3, arg4, arg5, arg6)
+
 
 * These functions require AllowUnsafeScripting to be enabled in ddraw.ini
