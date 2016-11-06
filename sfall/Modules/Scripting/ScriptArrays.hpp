@@ -22,16 +22,16 @@ static void __declspec(naked) create_array() {
 	__asm {
 		pushad;
 		mov edi, eax;
-		call interpretPopShort_
+		call FuncOffs::interpretPopShort_
 		mov ebx, eax;
 		mov eax, edi;
-		call interpretPopLong_;
+		call FuncOffs::interpretPopLong_;
 		mov ecx, eax;
 		mov eax, edi;
-		call interpretPopShort_;
+		call FuncOffs::interpretPopShort_;
 		mov edx, eax;
 		mov eax, edi;
-		call interpretPopLong_;
+		call FuncOffs::interpretPopLong_;
 		cmp bx, 0xc001;
 		jne fail;
 		cmp dx, 0xc001;
@@ -45,10 +45,10 @@ fail:
 		xor edx, edx;
 end:
 		mov eax, edi;
-		call interpretPushLong_;
+		call FuncOffs::interpretPushLong_;
 		mov edx, 0xc001;
 		mov eax, edi;
-		call interpretPushShort_;
+		call FuncOffs::interpretPushShort_;
 		popad;
 		retn;
 	}
@@ -58,22 +58,22 @@ static void __declspec(naked) set_array() {
 		pushad;
 		mov ebp, eax;
 		//Get args
-		call interpretPopShort_
+		call FuncOffs::interpretPopShort_
 		mov edx, eax;
 		mov eax, ebp;
-		call interpretPopLong_;
+		call FuncOffs::interpretPopLong_;
 		mov edi, eax; // value
 		mov eax, ebp;
-		call interpretPopShort_
+		call FuncOffs::interpretPopShort_
 		mov ecx, eax;
 		mov eax, ebp;
-		call interpretPopLong_;
+		call FuncOffs::interpretPopLong_;
 		mov esi, eax; // key
 		mov eax, ebp;
-		call interpretPopShort_
+		call FuncOffs::interpretPopShort_
 		mov ebx, eax;
 		mov eax, ebp;
-		call interpretPopLong_;
+		call FuncOffs::interpretPopLong_;
 		xchg eax, edi; // arrayID
 		//Error check:
 		cmp bx, 0xC001;
@@ -88,7 +88,7 @@ static void __declspec(naked) set_array() {
 next:
 		mov ebx, eax;
 		mov eax, ebp;
-		call interpretGetString_;
+		call FuncOffs::interpretGetString_;
 notstring:
 		push eax; // arg 4: value
 		// key:
@@ -100,7 +100,7 @@ next1:
 		mov edx, ecx;
 		mov ebx, esi;
 		mov eax, ebp;
-		call interpretGetString_;
+		call FuncOffs::interpretGetString_;
 		mov esi, eax;
 notstring1:
 		push ecx; // arg 3: key type
@@ -121,16 +121,16 @@ static void __declspec(naked) get_array() {
 		pushad;
 		mov ebp, eax;
 		//Get args
-		call interpretPopShort_
+		call FuncOffs::interpretPopShort_
 		mov ebx, eax;
 		mov eax, ebp;
-		call interpretPopLong_;
+		call FuncOffs::interpretPopLong_;
 		mov edi, eax;
 		mov eax, ebp;
-		call interpretPopShort_
+		call FuncOffs::interpretPopShort_
 		mov ecx, eax;
 		mov eax, ebp;
-		call interpretPopLong_;
+		call FuncOffs::interpretPopLong_;
 		mov esi, eax;
 		mov eax, ebp;
 		// check first argument type
@@ -146,7 +146,7 @@ callsubstr:
 		mov eax, ebp;
 		mov ebx, esi;
 		mov edx, ecx;
-		call interpretGetString_;
+		call FuncOffs::interpretGetString_;
 		push 1;
 		push edi;
 		push eax;
@@ -167,7 +167,7 @@ next1:
 		mov edx, ebx;
 		mov ebx, edi;
 		mov eax, ebp;
-		call interpretGetString_;
+		call FuncOffs::interpretGetString_;
 		mov edi, eax;
 		mov ebx, ecx;
 notstring1:
@@ -187,14 +187,14 @@ end:
 		cmp bx, 0x9801;
 		jne notstring;
 		mov eax, ebp;
-		call interpretAddString_;
+		call FuncOffs::interpretAddString_;
 		mov edx, eax;
 notstring:
 		mov eax, ebp;
-		call interpretPushLong_;
+		call FuncOffs::interpretPushLong_;
 		mov edx, ebx;
 		mov eax, ebp;
-		call interpretPushShort_;
+		call FuncOffs::interpretPushShort_;
 		popad;
 		retn;
 	}
@@ -203,10 +203,10 @@ static void __declspec(naked) free_array() {
 	__asm {
 		pushad;
 		mov edi, eax;
-		call interpretPopShort_;
+		call FuncOffs::interpretPopShort_;
 		mov ebx, eax;
 		mov eax, edi;
-		call interpretPopLong_;
+		call FuncOffs::interpretPopLong_;
 		cmp bx, 0xc001;
 		jne end;
 		push eax;
@@ -220,10 +220,10 @@ static void __declspec(naked) len_array() {
 	__asm {
 		pushad;
 		mov edi, eax;
-		call interpretPopShort_;
+		call FuncOffs::interpretPopShort_;
 		mov ebx, eax;
 		mov eax, edi;
-		call interpretPopLong_;
+		call FuncOffs::interpretPopLong_;
 		cmp bx, 0xc001;
 		jne fail;
 		push eax;
@@ -234,10 +234,10 @@ fail:
 		xor edx, edx;
 end:
 		mov eax, edi;
-		call interpretPushLong_;
+		call FuncOffs::interpretPushLong_;
 		mov edx, 0xc001;
 		mov eax, edi;
-		call interpretPushShort_;
+		call FuncOffs::interpretPushShort_;
 		popad;
 		retn;
 	}
@@ -247,16 +247,16 @@ static void __declspec(naked) resize_array() {
 		pushad;
 		mov ebp, eax;
 		//Get args
-		call interpretPopShort_
+		call FuncOffs::interpretPopShort_
 		mov ebx, eax;
 		mov eax, ebp;
-		call interpretPopLong_;
+		call FuncOffs::interpretPopLong_;
 		mov edi, eax;
 		mov eax, ebp;
-		call interpretPopShort_
+		call FuncOffs::interpretPopShort_
 		mov ecx, eax;
 		mov eax, ebp;
-		call interpretPopLong_;
+		call FuncOffs::interpretPopLong_;
 		mov esi, eax;
 		mov eax, ebp;
 		//Error check
@@ -276,16 +276,16 @@ static void __declspec(naked) temp_array() {
 	__asm {
 		pushad;
 		mov edi, eax;
-		call interpretPopShort_
+		call FuncOffs::interpretPopShort_
 		mov ebx, eax;
 		mov eax, edi;
-		call interpretPopLong_;
+		call FuncOffs::interpretPopLong_;
 		mov ecx, eax;
 		mov eax, edi;
-		call interpretPopShort_;
+		call FuncOffs::interpretPopShort_;
 		mov edx, eax;
 		mov eax, edi;
-		call interpretPopLong_;
+		call FuncOffs::interpretPopLong_;
 		cmp bx, 0xc001;
 		jne fail;
 		cmp dx, 0xc001;
@@ -299,10 +299,10 @@ fail:
 		xor edx, edx;
 end:
 		mov eax, edi;
-		call interpretPushLong_;
+		call FuncOffs::interpretPushLong_;
 		mov edx, 0xc001;
 		mov eax, edi;
-		call interpretPushShort_;
+		call FuncOffs::interpretPushShort_;
 		popad;
 		retn;
 	}
@@ -311,10 +311,10 @@ static void __declspec(naked) fix_array() {
 	__asm {
 		pushad;
 		mov edi, eax;
-		call interpretPopShort_;
+		call FuncOffs::interpretPopShort_;
 		mov ebx, eax;
 		mov eax, edi;
-		call interpretPopLong_;
+		call FuncOffs::interpretPopLong_;
 		cmp bx, 0xc001;
 		jne end;
 		push eax;
@@ -329,16 +329,16 @@ static void __declspec(naked) scan_array() {
 		pushad;
 		mov ebp, eax;
 		//Get args
-		call interpretPopShort_
+		call FuncOffs::interpretPopShort_
 		mov edx, eax;
 		mov eax, ebp;
-		call interpretPopLong_;
+		call FuncOffs::interpretPopLong_;
 		mov edi, eax; // value (needle)
 		mov eax, ebp;
-		call interpretPopShort_
+		call FuncOffs::interpretPopShort_
 		mov ecx, eax;
 		mov eax, ebp;
-		call interpretPopLong_;
+		call FuncOffs::interpretPopLong_;
 		mov esi, eax; // arrayID (haystack)
 		mov eax, ebp;
 		//Error check
@@ -351,7 +351,7 @@ static void __declspec(naked) scan_array() {
 getstringvar:
 		mov ebx, edi;
 		mov eax, ebp;
-		call interpretGetString_;
+		call FuncOffs::interpretGetString_;
 		mov edi, eax;
 success:
 		push esp;
@@ -370,14 +370,14 @@ end:
 		cmp ebx, VAR_TYPE_STR;
 		jne resultnotstr;
 		mov eax, ebp;
-		call interpretAddString_;
+		call FuncOffs::interpretAddString_;
 		mov edx, eax; // str ptr
 resultnotstr:
 		mov eax, ebp;
-		call interpretPushLong_;
+		call FuncOffs::interpretPushLong_;
 		mov edx, ebx;
 		mov eax, ebp;
-		call interpretPushShort_;
+		call FuncOffs::interpretPushShort_;
 		popad;
 		retn;
 	}
@@ -488,7 +488,7 @@ static void FillListVector(DWORD type, std::vector<DWORD>& vec) {
 		for (int elev=0; elev<=2; elev++) {
 			__asm {
 				mov eax, elev;
-				call scr_find_first_at_;
+				call FuncOffs::scr_find_first_at_;
 				mov scriptPtr, eax;
 			}
 			while (scriptPtr != 0) {
@@ -497,13 +497,13 @@ static void FillListVector(DWORD type, std::vector<DWORD>& vec) {
 					programPtr = *(DWORD*)(scriptPtr + 0x18);
 					__asm {
 						mov eax, programPtr;
-						call scr_find_obj_from_program_;
+						call FuncOffs::scr_find_obj_from_program_;
 						mov self_obj, eax;
 					}
 				}
 				vec.push_back(self_obj);
 				__asm {
-					call scr_find_next_at_;
+					call FuncOffs::scr_find_next_at_;
 					mov scriptPtr, eax;
 				}
 			}
@@ -523,7 +523,7 @@ static void FillListVector(DWORD type, std::vector<DWORD>& vec) {
 				__asm {
 					mov edx, tile;
 					mov eax, elv;
-					call obj_find_first_at_tile_;
+					call FuncOffs::obj_find_first_at_tile_;
 					mov obj, eax;
 				}
 				while(obj) {
@@ -531,7 +531,7 @@ static void FillListVector(DWORD type, std::vector<DWORD>& vec) {
 					otype = (otype&0xff000000) >> 24;
 					if(type==9 || (type==0&&otype==1) || (type==1&&otype==0) || (type>=2&&type<=5&&type==otype)) vec.push_back(obj);
 					__asm {
-						call obj_find_next_at_tile_;
+						call FuncOffs::obj_find_next_at_tile_;
 						mov obj, eax;
 					}
 				}
@@ -566,10 +566,10 @@ static void __declspec(naked) list_begin() {
 	__asm {
 		pushad;
 		mov ebp, eax;
-		call interpretPopShort_;
+		call FuncOffs::interpretPopShort_;
 		mov edi, eax;
 		mov eax, ebp;
-		call interpretPopLong_;
+		call FuncOffs::interpretPopLong_;
 		cmp di, 0xc001;
 		jnz fail;
 		push eax;
@@ -581,10 +581,10 @@ fail:
 		dec edx;
 end:
 		mov eax, ebp;
-		call interpretPushLong_;
+		call FuncOffs::interpretPushLong_;
 		mov eax, ebp;
 		mov edx, 0xc001;
-		call interpretPushShort_;
+		call FuncOffs::interpretPushShort_;
 		popad;
 		retn;
 	}
@@ -593,10 +593,10 @@ static void __declspec(naked) list_as_array() {
 	__asm {
 		pushad;
 		mov ebp, eax;
-		call interpretPopShort_;
+		call FuncOffs::interpretPopShort_;
 		mov edi, eax;
 		mov eax, ebp;
-		call interpretPopLong_;
+		call FuncOffs::interpretPopLong_;
 		cmp di, 0xc001;
 		jnz fail;
 		push eax;
@@ -608,10 +608,10 @@ fail:
 		dec edx;
 end:
 		mov eax, ebp;
-		call interpretPushLong_;
+		call FuncOffs::interpretPushLong_;
 		mov eax, ebp;
 		mov edx, 0xc001;
-		call interpretPushShort_;
+		call FuncOffs::interpretPushShort_;
 		popad;
 		retn;
 	}
@@ -620,10 +620,10 @@ static void __declspec(naked) list_next() {
 	__asm {
 		pushad;
 		mov ebp, eax;
-		call interpretPopShort_;
+		call FuncOffs::interpretPopShort_;
 		mov edi, eax;
 		mov eax, ebp;
-		call interpretPopLong_;
+		call FuncOffs::interpretPopLong_;
 		cmp di, 0xc001;
 		jnz fail;
 		push eax;
@@ -635,10 +635,10 @@ fail:
 		dec edx;
 end:
 		mov eax, ebp;
-		call interpretPushLong_;
+		call FuncOffs::interpretPushLong_;
 		mov eax, ebp;
 		mov edx, 0xc001;
-		call interpretPushShort_;
+		call FuncOffs::interpretPushShort_;
 		popad;
 		retn;
 	}
@@ -647,10 +647,10 @@ static void __declspec(naked) list_end() {
 	__asm {
 		pushad;
 		mov ebp, eax;
-		call interpretPopShort_;
+		call FuncOffs::interpretPopShort_;
 		mov edi, eax;
 		mov eax, ebp;
-		call interpretPopLong_;
+		call FuncOffs::interpretPopLong_;
 		cmp di, 0xc001;
 		jnz end;
 		push eax;

@@ -29,7 +29,7 @@ int LoadMsgList(MSGList *MsgList, char *MsgFilePath) {
 	__asm {
 		mov edx, MsgFilePath
 		mov eax, MsgList
-		call message_load_
+		call FuncOffs::message_load_
 		mov retVal, eax
 	}
 	return retVal;
@@ -39,7 +39,7 @@ int DestroyMsgList(MSGList *MsgList) {
 	int retVal;
 	__asm {
 		mov eax, MsgList
-		call message_exit_
+		call FuncOffs::message_exit_
 		mov retVal, eax
 	}
 	return retVal;
@@ -53,7 +53,7 @@ bool GetMsg(MSGList *MsgList, MSGNode *MsgNode, DWORD msgRef) {
 	__asm {
 		mov edx, MsgNode
 		mov eax, MsgList
-		call message_search_
+		call FuncOffs::message_search_
 		cmp eax, 1
 		jne EndFunc
 		mov retVal, 1

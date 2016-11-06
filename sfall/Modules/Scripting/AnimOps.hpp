@@ -60,7 +60,7 @@ static void __declspec(naked) op_reg_anim_destroy() {
 	_CHECK_COMBAT_MODE(al, end1)
 	__asm {
 		mov eax, esi // object
-		call register_object_must_erase_;
+		call FuncOffs::register_object_must_erase_;
 	}
 end1:
 	_OP_END
@@ -79,7 +79,7 @@ static void __declspec(naked) op_reg_anim_animate_and_hide() {
 		_CHECK_COMBAT_MODE(bl, end)
 		mov ebx, esi // delay
 		mov edx, edi // animID
-		call register_object_animate_and_hide_;
+		call FuncOffs::register_object_animate_and_hide_;
 	}
 end:
 	_OP_END
@@ -108,7 +108,7 @@ dontfixMax:
 		_CHECK_COMBAT_MODE(bl, end)
 		mov ebx, esi // delay
 		mov edx, edi // light radius
-		call register_object_light_;
+		call FuncOffs::register_object_light_;
 	}
 end:
 	_OP_END
@@ -127,7 +127,7 @@ static void __declspec(naked) op_reg_anim_change_fid() {
 		_CHECK_COMBAT_MODE(bl, end)
 		mov ebx, esi // delay
 		mov edx, edi // FID
-		call register_object_change_fid_
+		call FuncOffs::register_object_change_fid_
 	}
 end:
 	_OP_END
@@ -146,7 +146,7 @@ static void __declspec(naked) op_reg_anim_take_out() {
 		_CHECK_COMBAT_MODE(bl, end)
 		//mov ebx, esi // delay - not used
 		mov edx, edi // holdFrame
-		call register_object_take_out_;
+		call FuncOffs::register_object_take_out_;
 	}
 end:
 	_OP_END
@@ -165,7 +165,7 @@ static void __declspec(naked) op_reg_anim_turn_towards() {
 		_CHECK_COMBAT_MODE(bl, end)
 		// mov ebx, esi // delay - not used
 		mov edx, edi // tile
-		call register_object_turn_towards_;
+		call FuncOffs::register_object_turn_towards_;
 	}
 end:
 	_OP_END

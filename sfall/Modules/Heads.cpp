@@ -77,7 +77,7 @@ static Frame* FramePointer(const Frm* frm, int frameno) {
 		mov eax, frm;
 		mov edx, frameno;
 		xor ebx, ebx;
-		call frame_ptr_;
+		call FuncOffs::frame_ptr_;
 		mov result, eax;
 	}
 	return result;
@@ -171,7 +171,7 @@ static void __declspec(naked) TransTalkHook() {
 	__asm {
 		cmp overridden, 0;
 		jne skip;
-		jmp talk_to_translucent_trans_buf_to_buf_;
+		jmp FuncOffs::talk_to_translucent_trans_buf_to_buf_;
 skip:
 		retn 0x18;
 	}

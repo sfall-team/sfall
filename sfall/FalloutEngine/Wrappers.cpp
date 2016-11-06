@@ -22,35 +22,35 @@
 int __stdcall ItemGetType(TGameObj* item) {
 	__asm {
 		mov eax, item
-		call item_get_type_
+		call FuncOffs::item_get_type_
 	}
 }
 
 int _stdcall IsPartyMember(TGameObj* obj) {
 	__asm {
 		mov eax, obj
-		call isPartyMember_
+		call FuncOffs::isPartyMember_
 	}
 }
 
 int _stdcall PartyMemberGetCurrentLevel(TGameObj* obj) {
 	__asm {
 		mov eax, obj
-		call partyMemberGetCurLevel_
+		call FuncOffs::partyMemberGetCurLevel_
 	}
 }
 
 TGameObj* __stdcall GetInvenWeaponLeft(TGameObj* obj) {
 	__asm {
 		mov eax, obj
-		call inven_left_hand_
+		call FuncOffs::inven_left_hand_
 	}
 }
 
 TGameObj* __stdcall GetInvenWeaponRight(TGameObj* obj) {
 	__asm {
 		mov eax, obj
-		call inven_right_hand_
+		call FuncOffs::inven_right_hand_
 	}
 }
 
@@ -60,7 +60,7 @@ char* GetProtoPtr(DWORD pid) {
 	__asm {
 		mov eax, pid
 		lea edx, proto
-		call proto_ptr_
+		call FuncOffs::proto_ptr_
 	}
 	return proto;
 }
@@ -80,7 +80,7 @@ char AnimCodeByWeapon(TGameObj* weapon) {
 void DisplayConsoleMessage(const char* msg) {
 	__asm {
 		mov eax, msg
-		call display_print_
+		call FuncOffs::display_print_
 	}
 }
 
@@ -92,7 +92,7 @@ const char* _stdcall GetMessageStr(DWORD fileAddr, DWORD messageId) {
 		mov eax, fileAddr
 		mov ebx, messageId
 		mov edx, buf
-		call getmsg_
+		call FuncOffs::getmsg_
 		mov result, eax
 	}
 	return result;
@@ -102,7 +102,7 @@ const char* _stdcall GetMessageStr(DWORD fileAddr, DWORD messageId) {
 void CritterPcSetName(const char* newName) {
 	__asm {
 		mov eax, newName
-		call critter_pc_set_name_
+		call FuncOffs::critter_pc_set_name_
 	}
 }
 
@@ -110,7 +110,7 @@ void CritterPcSetName(const char* newName) {
 const char* __stdcall CritterName(TGameObj* critter) {
 	__asm {
 		mov eax, critter
-		call critter_name_
+		call FuncOffs::critter_name_
 	}
 }
 
@@ -121,7 +121,7 @@ void SkillGetTags(int* result, DWORD num) {
 	__asm {
 		mov eax, result
 		mov edx, num
-		call skill_get_tags_
+		call FuncOffs::skill_get_tags_
 	}
 }
 
@@ -132,7 +132,7 @@ void SkillSetTags(int* tags, DWORD num) {
 	__asm {
 		mov eax, tags
 		mov edx, num
-		call skill_set_tags_
+		call FuncOffs::skill_set_tags_
 	}
 }
 
@@ -142,20 +142,20 @@ int __stdcall ScrPtr(int scriptId, TScript** scriptPtr) {
 	__asm {
 		mov eax, scriptId;
 		mov edx, scriptPtr;
-		call scr_ptr_;
+		call FuncOffs::scr_ptr_;
 	}
 }
 
 // redraws the main game interface windows (useful after changing some data like active hand, etc.)
 void InterfaceRedraw() {
-	__asm call intface_redraw_
+	__asm call FuncOffs::intface_redraw_
 }
 
 // pops value type from Data stack (must be followed by InterpretPopLong)
 DWORD __stdcall InterpretPopShort(TProgram* scriptPtr) {
 	__asm {
 		mov eax, scriptPtr
-		call interpretPopShort_
+		call FuncOffs::interpretPopShort_
 	}
 }
 
@@ -163,7 +163,7 @@ DWORD __stdcall InterpretPopShort(TProgram* scriptPtr) {
 DWORD __stdcall InterpretPopLong(TProgram* scriptPtr) {
 	__asm {
 		mov eax, scriptPtr
-		call interpretPopLong_
+		call FuncOffs::interpretPopLong_
 	}
 }
 
@@ -172,7 +172,7 @@ void __stdcall InterpretPushLong(TProgram* scriptPtr, DWORD val) {
 	__asm {
 		mov edx, val
 		mov eax, scriptPtr
-		call interpretPushLong_
+		call FuncOffs::interpretPushLong_
 	}
 }
 
@@ -181,7 +181,7 @@ void __stdcall InterpretPushShort(TProgram* scriptPtr, DWORD valType) {
 	__asm {
 		mov edx, valType
 		mov eax, scriptPtr
-		call interpretPushShort_
+		call FuncOffs::interpretPushShort_
 	}
 }
 
@@ -189,7 +189,7 @@ DWORD __stdcall InterpretAddString(TProgram* scriptPtr, const char* strval) {
 	__asm {
 		mov edx, strval
 		mov eax, scriptPtr
-		call interpretAddString_
+		call FuncOffs::interpretAddString_
 	}
 }
 
@@ -198,41 +198,41 @@ const char* __stdcall InterpretGetString(TProgram* scriptPtr, DWORD strId, DWORD
 		mov edx, dataType
 		mov ebx, strId
 		mov eax, scriptPtr
-		call interpretGetString_
+		call FuncOffs::interpretGetString_
 	}
 }
 
 // prints scripting error in debug.log and stops current script execution by performing longjmp
 // USE WITH CAUTION
 void __declspec(naked) InterpretError(const char* fmt, ...) {
-	__asm jmp interpretError_
+	__asm jmp FuncOffs::interpretError_
 }
 
 // prints message to debug.log file
 void __declspec(naked) DebugPrintf(const char* fmt, ...) {
-	__asm jmp debug_printf_
+	__asm jmp FuncOffs::debug_printf_
 }
 
 // returns the name of current procedure by program pointer
 const char* __stdcall FindCurrentProc(TProgram* program) {
 	__asm mov eax, program
-	__asm call findCurrentProc_
+	__asm call FuncOffs::findCurrentProc_
 }
 
 // critter worn item (armor)
 TGameObj* __stdcall InvenWorn(TGameObj* critter) {
 	__asm mov eax, critter
-	__asm call inven_worn_
+	__asm call FuncOffs::inven_worn_
 }
 
 // item in critter's left hand slot
 TGameObj* __stdcall InvenLeftHand(TGameObj* critter) {
 	__asm mov eax, critter
-	__asm call inven_left_hand_
+	__asm call FuncOffs::inven_left_hand_
 }
 
 // item in critter's right hand slot
 TGameObj* __stdcall InvenRightHand(TGameObj* critter) {
 	__asm mov eax, critter
-	__asm call inven_right_hand_
+	__asm call FuncOffs::inven_right_hand_
 }

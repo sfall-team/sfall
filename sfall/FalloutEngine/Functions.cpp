@@ -22,7 +22,7 @@
 
 #include "Functions.h"
 
-namespace Offset
+namespace FuncOffs
 {
 
 #define FUNC_DEFN extern const unsigned long

@@ -28,10 +28,10 @@ static void __declspec(naked) ReadByte() {
 		push ecx;
 		push edx;
 		mov ecx, eax;
-		call interpretPopShort_;
+		call FuncOffs::interpretPopShort_;
 		mov edx, eax;
 		mov eax, ecx;
-		call interpretPopLong_;
+		call FuncOffs::interpretPopLong_;
 		cmp dx, 0xC001;
 		jnz error;
 		movzx edx, byte ptr ds:[eax];
@@ -40,10 +40,10 @@ error:
 		mov edx, 0;
 result:
 		mov eax, ecx;
-		call interpretPushLong_;
+		call FuncOffs::interpretPushLong_;
 		mov edx, 0xc001;
 		mov eax, ecx;
-		call interpretPushShort_;
+		call FuncOffs::interpretPushShort_;
 		pop edx;
 		pop ecx;
 		pop ebx;
@@ -56,10 +56,10 @@ static void __declspec(naked) ReadShort() {
 		push ecx;
 		push edx;
 		mov ecx, eax;
-		call interpretPopShort_;
+		call FuncOffs::interpretPopShort_;
 		mov edx, eax;
 		mov eax, ecx;
-		call interpretPopLong_;
+		call FuncOffs::interpretPopLong_;
 		cmp dx, 0xC001;
 		jnz error;
 		movzx edx, word ptr ds:[eax];
@@ -68,10 +68,10 @@ error:
 		mov edx, 0;
 result:
 		mov eax, ecx;
-		call interpretPushLong_;
+		call FuncOffs::interpretPushLong_;
 		mov edx, 0xc001;
 		mov eax, ecx;
-		call interpretPushShort_;
+		call FuncOffs::interpretPushShort_;
 		pop edx;
 		pop ecx;
 		pop ebx;
@@ -84,10 +84,10 @@ static void __declspec(naked) ReadInt() {
 		push ecx;
 		push edx;
 		mov ecx, eax;
-		call interpretPopShort_;
+		call FuncOffs::interpretPopShort_;
 		mov edx, eax;
 		mov eax, ecx;
-		call interpretPopLong_;
+		call FuncOffs::interpretPopLong_;
 		cmp dx, 0xC001;
 		jnz error;
 		mov edx, dword ptr ds:[eax];
@@ -96,10 +96,10 @@ error:
 		mov edx, 0;
 result:
 		mov eax, ecx;
-		call interpretPushLong_;
+		call FuncOffs::interpretPushLong_;
 		mov edx, 0xc001;
 		mov eax, ecx;
-		call interpretPushShort_;
+		call FuncOffs::interpretPushShort_;
 		pop edx;
 		pop ecx;
 		pop ebx;
@@ -112,10 +112,10 @@ static void __declspec(naked) ReadString() {
 		push ecx;
 		push edx;
 		mov ecx, eax;
-		call interpretPopShort_;
+		call FuncOffs::interpretPopShort_;
 		mov edx, eax;
 		mov eax, ecx;
-		call interpretPopLong_;
+		call FuncOffs::interpretPopLong_;
 		cmp dx, 0xC001;
 		jnz error;
 		mov edx, eax;
@@ -124,10 +124,10 @@ error:
 		mov edx, 0;
 result:
 		mov eax, ecx;
-		call interpretPushLong_;
+		call FuncOffs::interpretPushLong_;
 		mov edx, 0x9801;
 		mov eax, ecx;
-		call interpretPushShort_;
+		call FuncOffs::interpretPushShort_;
 		pop edx;
 		pop ecx;
 		pop ebx;
@@ -138,16 +138,16 @@ static void __declspec(naked) WriteByte() {
 	__asm {
 		pushad
 		mov ecx, eax;
-		call interpretPopShort_;
+		call FuncOffs::interpretPopShort_;
 		mov esi, eax;
 		mov eax, ecx;
-		call interpretPopLong_;
+		call FuncOffs::interpretPopLong_;
 		mov edx, eax;
 		mov eax, ecx;
-		call interpretPopShort_;
+		call FuncOffs::interpretPopShort_;
 		mov edi, eax;
 		mov eax, ecx;
-		call interpretPopLong_;
+		call FuncOffs::interpretPopLong_;
 		cmp di, 0xC001;
 		jnz end;
 		cmp si, 0xC001;
@@ -166,16 +166,16 @@ static void __declspec(naked) WriteShort() {
 	__asm {
 		pushad;
 		mov ecx, eax;
-		call interpretPopShort_;
+		call FuncOffs::interpretPopShort_;
 		mov esi, eax;
 		mov eax, ecx;
-		call interpretPopLong_;
+		call FuncOffs::interpretPopLong_;
 		mov edx, eax;
 		mov eax, ecx;
-		call interpretPopShort_;
+		call FuncOffs::interpretPopShort_;
 		mov edi, eax;
 		mov eax, ecx;
-		call interpretPopLong_;
+		call FuncOffs::interpretPopLong_;
 		cmp di, 0xC001;
 		jnz end;
 		cmp si, 0xC001;
@@ -194,16 +194,16 @@ static void __declspec(naked) WriteInt() {
 	__asm {
 		pushad
 		mov ecx, eax;
-		call interpretPopShort_;
+		call FuncOffs::interpretPopShort_;
 		mov esi, eax;
 		mov eax, ecx;
-		call interpretPopLong_;
+		call FuncOffs::interpretPopLong_;
 		mov edx, eax;
 		mov eax, ecx;
-		call interpretPopShort_;
+		call FuncOffs::interpretPopShort_;
 		mov edi, eax;
 		mov eax, ecx;
-		call interpretPopLong_;
+		call FuncOffs::interpretPopLong_;
 		cmp di, 0xC001;
 		jnz end;
 		cmp si, 0xC001;
@@ -232,16 +232,16 @@ static void __declspec(naked) WriteString() {
 	__asm {
 		pushad;
 		mov ecx, eax;
-		call interpretPopShort_;
+		call FuncOffs::interpretPopShort_;
 		mov esi, eax;
 		mov eax, ecx;
-		call interpretPopLong_;
+		call FuncOffs::interpretPopLong_;
 		mov edi, eax;
 		mov eax, ecx;
-		call interpretPopShort_;
+		call FuncOffs::interpretPopShort_;
 		mov edx, eax;
 		mov eax, ecx;
-		call interpretPopLong_;
+		call FuncOffs::interpretPopLong_;
 		cmp dx, 0xC001;
 		jnz end;
 		cmp si, 0x9001;
@@ -253,7 +253,7 @@ next:
 		mov edx, esi;
 		mov esi, eax;
 		mov eax, ecx;
-		call interpretGetString_;
+		call FuncOffs::interpretGetString_;
 		push esi;
 		push eax;
 		call WriteStringInternal;
@@ -272,13 +272,13 @@ static void _stdcall CallOffsetInternal(DWORD func, DWORD script) {
 	for(int i=argcount*4;i>=0;i-=4) {
 		__asm {
 			mov eax, script;
-			call interpretPopShort_;
+			call FuncOffs::interpretPopShort_;
 			cmp ax, 0xc001;
 			jz legal;
 			inc illegalarg;
 legal:
 			mov eax, script;
-			call interpretPopLong_;
+			call FuncOffs::interpretPopLong_;
 			lea ecx, args;
 			add ecx, i;
 			mov [ecx], eax;
@@ -302,10 +302,10 @@ legal:
 		__asm {
 			mov eax, script;
 			mov edx, args[0];
-			call interpretPushLong_;
+			call FuncOffs::interpretPushLong_;
 			mov eax, script;
 			mov edx, 0xc001;
-			call interpretPushShort_;
+			call FuncOffs::interpretPushShort_;
 		}
 	}
 }

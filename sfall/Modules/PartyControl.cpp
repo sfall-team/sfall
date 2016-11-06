@@ -82,7 +82,7 @@ static void _stdcall SetInventoryCheck(bool skip) {
 static void __stdcall StatPcAddExperience(int amount) {
 	__asm {
 		mov eax, amount
-		call stat_pc_add_experience_
+		call FuncOffs::stat_pc_add_experience_
 	}
 }
 
@@ -196,7 +196,7 @@ static void RestoreRealDudeState() {
 static int __stdcall CombatTurn(TGameObj* obj) {
 	__asm {
 		mov eax, obj;
-		call combat_turn_;
+		call FuncOffs::combat_turn_;
 	}
 }
 
@@ -233,7 +233,7 @@ static void _declspec(naked) FidChangeHook() {
 		or edx, eax; // only change one octet with weapon type
 		pop eax;
 skip:
-		call obj_change_fid_;
+		call FuncOffs::obj_change_fid_;
 		retn;
 	}
 }
@@ -241,7 +241,7 @@ skip:
 /*
 static void _declspec(naked) ItemDropHook() {
 	_asm {
-		call item_add_force_;
+		call FuncOffs::item_add_force_;
 		retn;
 	}
 }
@@ -261,7 +261,7 @@ int __stdcall PartyControl_SwitchHandHook(TGameObj* item) {
 			mov eax, obj_dude_ptr;
 			mov eax, [eax];
 			mov ebx, 2;
-			call ai_can_use_weapon_;
+			call FuncOffs::ai_can_use_weapon_;
 			mov canUse, eax;
 		}*/
 		int fId = (*ptr_obj_dude)->artFID;
@@ -270,7 +270,7 @@ int __stdcall PartyControl_SwitchHandHook(TGameObj* item) {
 		// check if art with this weapon exists
 		__asm {
 			mov eax, fId;
-			call art_exists_;
+			call FuncOffs::art_exists_;
 			mov canUse, eax;
 		}
 		if (!canUse) {
@@ -301,7 +301,7 @@ combatend:
 		mov eax, -1; // don't continue combat, as the game was loaded
 		retn;
 gonormal:
-		jmp combat_turn_;
+		jmp FuncOffs::combat_turn_;
 	}
 }
 
@@ -329,7 +329,7 @@ static void __declspec(naked) stat_pc_add_experience_hook() {
 		retn
 skip:
 		xchg esi, eax
-		jmp  stat_pc_add_experience_
+		jmp  FuncOffs::stat_pc_add_experience_
 	}
 }
 
@@ -341,7 +341,7 @@ static void __declspec(naked) pc_flag_toggle_hook() {
 		call DisplayCantDoThat
 		retn
 end:
-		call  pc_flag_toggle_
+		call  FuncOffs::pc_flag_toggle_
 		retn
 	}
 }

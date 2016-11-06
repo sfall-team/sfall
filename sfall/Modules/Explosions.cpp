@@ -35,7 +35,7 @@ static void __declspec(naked) ranged_attack_lighting_fix() {
 		mov     ebx, [ecx+0x10]; // light intensity - 4th arg
 		//mov     ebx, 0x10000; // light intensity - 4th arg
 		xor     ecx, ecx; // unknown(0) - 3rd argument
-		call    obj_set_light_;
+		call    FuncOffs::obj_set_light_;
 		jmp     ranged_attack_lighting_fix_back; // jump back
 	}
 }
@@ -51,11 +51,11 @@ static void __declspec(naked) explosion_effect_hook() {
 		test    bl, bl
 		jz      usevanilla
 		xor     ebx, ebx
-		call    register_object_animate_
+		call    FuncOffs::register_object_animate_
 		jmp     next
 usevanilla:
 		xor     ebx, ebx
-		call    register_object_animate_and_hide_
+		call    FuncOffs::register_object_animate_and_hide_
 next:
 		mov     al, lightingEnabled
 		test    al, al
@@ -63,7 +63,7 @@ next:
 		mov     eax, [esp+40]; // projectile ptr - 1st arg
 		mov     edx, 0xFFFF0008; // maximum radius + intensity (see anim_set_check__light_fix)
 		mov     ebx, 0
-		call    register_object_light_;
+		call    FuncOffs::register_object_light_;
 skiplight:
 		mov     edi, explosion_effect_starting_dir; // starting direction
 		jmp     explosion_effect_hook_back; // jump back
@@ -77,17 +77,17 @@ static void __declspec(naked) explosion_lighting_fix2() {
 		mov     eax, [esp+24]
 		mov     edx, 1 // turn on
 		mov     ebx, 0
-		call    register_object_funset_
+		call    FuncOffs::register_object_funset_
 
 		mov     eax, [esp+24]; // explosion obj ptr
 		mov     edx, 0xFFFF0008; // maximum radius + intensity (see anim_set_check__light_fix)
 		mov     ebx, 0
-		call    register_object_light_;
+		call    FuncOffs::register_object_light_;
 
 		mov     eax, [esp+24]
 		xor     edx, edx
 		mov     ebx, 0
-		call    register_object_animate_
+		call    FuncOffs::register_object_animate_
 
 		jmp     explosion_lighting_fix2_back; // jump back
 	}
@@ -129,15 +129,15 @@ static void __declspec(naked) fire_dance_lighting_fix1() {
 		mov     eax, esi; // projectile ptr - 1st arg
 		mov     edx, 0xFFFF0002; // maximum radius + intensity (see anim_set_check__light_fix)
 		mov     ebx, 0
-		call    register_object_light_;
+		call    FuncOffs::register_object_light_;
 		mov     eax, esi;
 		pop     ebx;
 		pop     edx;
-		call    register_object_animate_; // overwritten call
+		call    FuncOffs::register_object_animate_; // overwritten call
 		mov     eax, esi; // projectile ptr - 1st arg
 		mov     edx, 0x00010000; // maximum radius + intensity (see anim_set_check__light_fix)
 		mov     ebx, -1
-		call    register_object_light_;
+		call    FuncOffs::register_object_light_;
 
 		jmp     fire_dance_lighting_back; // jump back
 	}

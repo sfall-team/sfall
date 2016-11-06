@@ -164,7 +164,7 @@ void* FOpenFile(char *FileName, char *flags) {
 	__asm {
 		mov edx, flags
 		mov eax, FileName
-		call xfopen_
+		call FuncOffs::xfopen_
 		mov retVal, eax
 	}
 	return retVal;
@@ -176,7 +176,7 @@ int FCloseFile(void *FileStream) {
 	__asm {
 
 		mov eax, FileStream
-		call db_fclose_
+		call FuncOffs::db_fclose_
 		mov retVal, eax
 	}
 	return retVal;
@@ -190,7 +190,7 @@ int Ffseek(void *FileStream, long fOffset, int origin) {
 		mov ebx, origin
 		mov edx, fOffset
 		mov eax, FileStream
-		call xfseek_
+		call FuncOffs::xfseek_
 		mov retVal, eax
 	}
 	return retVal;
@@ -203,7 +203,7 @@ int FReadByte(void *FileStream, BYTE *toMem) {
 	__asm {
 		mov edx, toMem
 		mov eax, FileStream
-		call db_freadByte_
+		call FuncOffs::db_freadByte_
 		mov retVal, eax
 	}
 	return retVal;
@@ -216,7 +216,7 @@ int FReadWord(void *FileStream, WORD *toMem) {
 	__asm {
 		mov edx, toMem
 		mov eax, FileStream
-		call db_freadShort_
+		call FuncOffs::db_freadShort_
 		mov retVal, eax
 	}
 	return retVal;
@@ -228,7 +228,7 @@ int FReadDword(void *FileStream, DWORD *toMem) {
 	__asm {
 		mov edx, toMem
 		mov eax, FileStream
-		call db_freadInt_
+		call FuncOffs::db_freadInt_
 		mov retVal, eax
 	}
 	return retVal;
@@ -241,7 +241,7 @@ int FReadWordArray(void *FileStream, WORD *toMem, DWORD NumElements) {
 		mov ebx, NumElements
 		mov edx, toMem
 		mov eax, FileStream
-		call db_freadShortCount_
+		call FuncOffs::db_freadShortCount_
 		mov retVal, eax
 	}
 	return retVal;
@@ -255,7 +255,7 @@ int FReadDwordArray(void *FileStream, DWORD *toMem, DWORD NumElements) {
 		mov ebx, NumElements
 		mov edx, toMem
 		mov eax, FileStream
-		call db_freadIntCount_
+		call FuncOffs::db_freadIntCount_
 		mov retVal, eax
 	}
 	return retVal;
@@ -270,7 +270,7 @@ int FReadString(void *FileStream, char *toMem, DWORD charLength, DWORD NumString
 		mov ebx, NumStrings
 		mov edx, charLength
 		mov eax, toMem
-		call db_fread_
+		call FuncOffs::db_fread_
 		mov retVal, eax
 	}
 	return retVal;
@@ -284,7 +284,7 @@ int FWriteByte(void *FileStream, BYTE bVal) {
 		xor edx, edx
 		mov dl, bVal
 		mov eax, FileStream
-		call db_fwriteByte_
+		call FuncOffs::db_fwriteByte_
 		mov retVal, eax
 	}
 	return retVal;
@@ -297,7 +297,7 @@ int FWriteDword(void *FileStream, DWORD bVal) {
 	__asm {
 		mov edx, bVal
 		mov eax, FileStream
-		call db_fwriteInt_
+		call FuncOffs::db_fwriteInt_
 		mov retVal, eax
 	}
 	return retVal;
@@ -317,7 +317,7 @@ int SetMousePic(int picNum) {
 
 	__asm {
 		mov eax, picNum
-		call gmouse_set_cursor_
+		call FuncOffs::gmouse_set_cursor_
 		mov picNum, eax
 	}
 return picNum; //0 = success, -1 = fail
@@ -331,7 +331,7 @@ void GetMousePos(int *x_out, int *y_out) {
 		push esi
 		mov edx, y_out
 		mov eax, x_out
-		call mouse_get_position_
+		call FuncOffs::mouse_get_position_
 		pop esi
 	}
 }
@@ -340,7 +340,7 @@ void GetMousePos(int *x_out, int *y_out) {
 void ShowMouse() {
 
 	__asm {
-		call mouse_show_
+		call FuncOffs::mouse_show_
 	}
 }
 
@@ -349,7 +349,7 @@ void ShowMouse() {
 void HideMouse() {
 
 	__asm {
-		call mouse_hide_
+		call FuncOffs::mouse_hide_
 	}
 }
 
@@ -374,7 +374,7 @@ DWORD LoadFrm(DWORD LstRef, DWORD LstNum) {
 		xor ebx, ebx
 		mov edx, LstNum
 		mov eax, LstRef
-		call art_id_
+		call FuncOffs::art_id_
 		mov FrmID, eax
 	}
 	return FrmID;
@@ -386,7 +386,7 @@ void UnloadFrm(DWORD FrmObj) {
 
 	__asm {
 		mov eax, FrmObj
-		call art_ptr_unlock_
+		call FuncOffs::art_ptr_unlock_
 	}
 }
 
@@ -399,7 +399,7 @@ BYTE* GetFrmSurface(DWORD FrmID, DWORD FrameNum, DWORD Ori, DWORD *FrmObj_out) {
 		mov ebx, Ori
 		mov edx, FrameNum
 		mov eax, FrmID
-		call art_ptr_lock_data_
+		call FuncOffs::art_ptr_lock_data_
 		mov Surface,eax
 	}
 	return Surface;
@@ -415,7 +415,7 @@ BYTE* GetFrmSurface2(DWORD FrmID, DWORD *FrmObj_out, DWORD *frmWidth_out, DWORD 
 		mov ebx, frmWidth_out
 		mov edx, FrmObj_out //0x518F4C
 		mov eax, FrmID
-		call art_lock_
+		call FuncOffs::art_lock_
 		mov Surface,eax
 	}
 	return Surface;
@@ -428,7 +428,7 @@ FRMhead* GetFrm(DWORD FrmID, DWORD *FrmObj_out) {
 	__asm {
 		mov edx, FrmObj_out
 		mov eax, FrmID
-		call art_ptr_lock_
+		call FuncOffs::art_ptr_lock_
 		mov Frm, eax
 	}
 	return Frm;
@@ -442,7 +442,7 @@ DWORD GetFrmFrameWidth(FRMhead* Frm, DWORD FrameNum, DWORD Ori) {
 		mov ebx, Ori //0-5
 		mov edx, FrameNum
 		mov eax, Frm
-		call art_frame_width_
+		call FuncOffs::art_frame_width_
 		mov Width,eax
 	}
 	return Width;
@@ -457,7 +457,7 @@ DWORD GetFrmFrameHeight(FRMhead* Frm, DWORD FrameNum, DWORD Ori) {
 		mov ebx, Ori //0-5
 		mov edx, FrameNum
 		mov eax, Frm
-		call art_frame_length_
+		call FuncOffs::art_frame_length_
 		mov Height,eax
 	}
 	return Height;
@@ -472,7 +472,7 @@ BYTE* GetFrmFrameSurface(FRMhead* Frm,  DWORD FrameNum, DWORD Ori) {
 		mov ebx, Ori //0-5
 		mov edx, FrameNum
 		mov eax, Frm
-		call art_frame_data_
+		call FuncOffs::art_frame_data_
 		mov Surface,eax
 	}
 	return Surface;
@@ -581,7 +581,7 @@ int CreateWin(DWORD x, DWORD y, DWORD width, DWORD height, DWORD BGColourIndex, 
 		mov ebx, width
 		mov edx, y
 		mov eax, x
-		call win_add_
+		call FuncOffs::win_add_
 		mov WinRef, eax
 	}
 	return WinRef;
@@ -593,7 +593,7 @@ void DestroyWin(int WinRef) {
 
 	__asm {
 		mov eax, WinRef
-		call win_delete_
+		call FuncOffs::win_delete_
 	}
 }
 
@@ -605,7 +605,7 @@ WINinfo *GetWinStruct(int WinRef) {
 	__asm {
 		push edx
 		mov eax, WinRef
-		call GNW_find_
+		call FuncOffs::GNW_find_
 		mov winStruct, eax
 		pop edx
 	}
@@ -620,7 +620,7 @@ BYTE* GetWinSurface(int WinRef) {
 
 	__asm {
 		mov eax, WinRef
-		call win_get_buf_
+		call FuncOffs::win_get_buf_
 		mov surface, eax
 	}
 	return surface;
@@ -631,7 +631,7 @@ void ShowWin(int WinRef) {
 
 	__asm {
 		mov eax, WinRef
-		call win_show_
+		call FuncOffs::win_show_
 	}
 }
 /*
@@ -640,7 +640,7 @@ void HideWin(int WinRef) {
 
 	__asm {
 		mov eax, WinRef
-		call win_hide_
+		call FuncOffs::win_hide_
 	}
 }
 */
@@ -649,7 +649,7 @@ void RedrawWin(int WinRef) {
 
 	__asm {
 		mov eax, WinRef
-		call win_draw_
+		call FuncOffs::win_draw_
 	}
 }
 
@@ -675,7 +675,7 @@ int CreateButton(int WinRef, DWORD Xpos, DWORD Ypos, DWORD Width, DWORD Height, 
 		mov edx, Xpos
 		mov ebx, Ypos
 		mov eax, WinRef
-		call win_register_button_
+		call FuncOffs::win_register_button_
 		mov ret_val, eax
 	}
 	return ret_val;
@@ -686,7 +686,7 @@ int check_buttons(void) {
 int key_code;
 
 	__asm {
-		call get_input_
+		call FuncOffs::get_input_
 		mov key_code, eax
 	}
 	return key_code;
@@ -699,7 +699,7 @@ void SetFont(int ref) {
 
 	__asm {
 		mov eax, ref
-		call text_font_
+		call FuncOffs::text_font_
 	}
 }
 
@@ -804,7 +804,7 @@ void* LoadDat(char*FileName) {
 	void *dat=NULL;
 	__asm {
 		mov eax, FileName
-		call dbase_open_
+		call FuncOffs::dbase_open_
 		mov dat, eax
 	}
 	return dat;
@@ -816,7 +816,7 @@ void UnloadDat(void *dat) {
 
 	__asm {
 		mov eax, dat
-		call dbase_close_
+		call FuncOffs::dbase_close_
 	}
 }
 
@@ -836,7 +836,7 @@ void DrawLineX(int WinRef, DWORD XStartPos, DWORD XEndPos, DWORD Ypos, BYTE Colo
 		mov edx, XStartPos
 		mov eax, WinRef
 
-		call win_line_
+		call FuncOffs::win_line_
 	}
 }
 */
@@ -848,7 +848,7 @@ void PlayAcm(char *AcmName) {
 
 	__asm {
 		mov eax, AcmName
-		call gsound_play_sfx_file_
+		call FuncOffs::gsound_play_sfx_file_
 	}
 }
 
@@ -857,7 +857,7 @@ void PlayAcm(char *AcmName) {
 //------------------------------
 void _stdcall RefreshArtCache(void) {
 	__asm {
-		call art_flush_
+		call FuncOffs::art_flush_
 	}
 }
 
@@ -871,7 +871,7 @@ int retVal = 0;
 	__asm {
 		mov edx, size_out
 		mov eax, FileName
-		call db_dir_entry_
+		call FuncOffs::db_dir_entry_
 		mov retVal, eax
 	}
 	return retVal;
@@ -887,7 +887,7 @@ char _stdcall GetSex(void) {
 	__asm {
 		mov edx, STAT_gender //sex stat ref
 		mov eax, dword ptr ds:[_obj_dude] //hero state structure
-		call stat_level_ //get Player stat val
+		call FuncOffs::stat_level_ //get Player stat val
 		test eax, eax //male=0, female=1
 		jne Female
 		mov sex, 'M'
@@ -1038,7 +1038,7 @@ static void __declspec(naked) AdjustHeroArmorArt() {
 		mov dword ptr ss:[esp], ebx //reinsert ret addr in old (push 0)
 		xor ebx, ebx
 		push 0
-		call art_id_ //call load frm func
+		call FuncOffs::art_id_ //call load frm func
 		mov dx, ax
 		and dh, 0xFF00 //mask out current weapon flag
 		cmp edx, critterListSize //check if critter art in PC range
@@ -1095,7 +1095,7 @@ static void __declspec(naked) SavCritNumFix() {
 		pop eax
 
 		push ebx
-		call obj_save_dude_ //save current hero state structure fuction
+		call FuncOffs::obj_save_dude_ //save current hero state structure fuction
 		pop ebx
 
 		push eax
@@ -1197,12 +1197,12 @@ void DrawPC(void) {
 		*/
 		lea edx, critRect //out critter RECT*
 		mov eax, dword ptr ds:[_obj_dude] //dude critter struct
-		call obj_bound_ //get critter rect func
+		call FuncOffs::obj_bound_ //get critter rect func
 
 		mov edx, dword ptr ds:[_obj_dude] //dude critter struct
 		lea eax, critRect //RECT*
 		mov edx, dword ptr ds:[edx + 0x28] //map level the dude is on
-		call tile_refresh_rect_ //draw rect area func
+		call FuncOffs::tile_refresh_rect_ //draw rect area func
 	}
 }
 
@@ -1213,7 +1213,7 @@ void _stdcall RefreshPCArt() {
 //and setup matching FrmID for PC
 	__asm{
 
-		call proto_dude_update_gender_ //refresh PC base model art
+		call FuncOffs::proto_dude_update_gender_ //refresh PC base model art
 
 
 		mov eax, dword ptr ds:[_obj_dude] //PC state struct
@@ -1267,13 +1267,13 @@ LoopStart:
 
 
 		//inventory function - setup pc FrmID and store at address _i_fid
-		call adjust_fid_
+		call FuncOffs::adjust_fid_
 
 		//copy new FrmID to hero state struct
 		mov edx, dword ptr ds:[_i_fid]
 		mov eax, dword ptr ds:[_inven_dude]
 		mov dword ptr ds:[eax + 0x20], edx
-		//call obj_change_fid_
+		//call FuncOffs::obj_change_fid_
 
 
 		xor eax,eax
@@ -1424,7 +1424,7 @@ int WordWrap(char *TextMsg, DWORD lineLength, WORD *lineNum, WORD *lineOffsets) 
 		mov ecx, lineNum
 		mov edx, lineLength
 		mov eax, TextMsg
-		call _word_wrap_
+		call FuncOffs::_word_wrap_
 		mov retVal, eax
 	}
 	return retVal;
@@ -1624,7 +1624,7 @@ void DrawCharNote(DWORD LstNum, char *TitleTxt, char *AltTitleTxt, char *Message
 		MOV EBX,AltTitleTxt//DWORD PTR DS:[_folder_card_title2]
 		MOV EDX,TitleTxt//DWORD PTR DS:[_folder_card_title]
 		MOV EAX,LstNum//11//LstNum//DWORD PTR DS:[_folder_card_fid]
-		CALL DrawCard_
+		CALL FuncOffs::DrawCard_
 	}
 }
 */
@@ -1898,20 +1898,20 @@ void FixTextHighLight() {
 		mov eax, 7
 		xor ebx, ebx
 		xor edx, edx
-		call PrintBasicStat_
+		call FuncOffs::PrintBasicStat_
 		//redraw trait options text
-		call ListTraits_
+		call FuncOffs::ListTraits_
 		//redraw skills text
 		xor eax, eax
-		call ListSkills_
+		call FuncOffs::ListSkills_
 		//redraw level text
-		call PrintLevelWin_
+		call FuncOffs::PrintLevelWin_
 		//redraw perks, karma, kill text
-		call DrawFolder_
+		call FuncOffs::DrawFolder_
 		//redraw hit points to crit chance text
-		call ListDrvdStats_
+		call FuncOffs::ListDrvdStats_
 		//redraw note pad area text
-		//call DrawInfoWin_
+		//call FuncOffs::DrawInfoWin_
 	}
 }
 
@@ -2097,12 +2097,12 @@ static void __declspec(naked) SexScrnEnd(void) {
 		pushad
 		mov edx, STAT_gender
 		mov eax, dword ptr ds:[_obj_dude]
-		call stat_level_ //get PC stat current gender
+		call FuncOffs::stat_level_ //get PC stat current gender
 		mov ecx, eax
-		call SexWindow_ //call gender selection window
+		call FuncOffs::SexWindow_ //call gender selection window
 		mov edx, STAT_gender
 		mov eax, dword ptr ds:[_obj_dude]
-		call stat_level_ //get PC stat current gender
+		call FuncOffs::stat_level_ //get PC stat current gender
 		cmp ecx, eax //check if gender has been changed
 		je EndFunc
 
@@ -2121,7 +2121,7 @@ ChangeSex:
 		call AdjustHeroBaseArt
 		//mov dword ptr ds:[_art_vault_guy_num], eax //current base dude model
 		mov eax, dword ptr ds:[_obj_dude] //dude state structure
-		call inven_worn_
+		call FuncOffs::inven_worn_
 		mov CurrentRaceVal, 0 //reset race and style to defaults
 		mov CurrentStyleVal, 0
 

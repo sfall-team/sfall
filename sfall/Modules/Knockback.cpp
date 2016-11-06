@@ -321,7 +321,7 @@ disable:
 realfunc:
 		pop edx;
 		pop eax;
-		jmp item_w_damage_type_;
+		jmp FuncOffs::item_w_damage_type_;
 	}
 }
 static void HookAimedShots() {

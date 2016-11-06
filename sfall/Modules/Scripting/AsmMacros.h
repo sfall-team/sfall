@@ -31,10 +31,10 @@
 #define _GET_ARG_R32(rscript, rtype, rval) __asm \
 {	\
 	__asm mov eax, rscript					\
-	__asm call interpretPopShort_			\
+	__asm call FuncOffs::interpretPopShort_			\
 	__asm mov rtype, eax					\
 	__asm mov eax, rscript					\
-	__asm call interpretPopLong_			\
+	__asm call FuncOffs::interpretPopLong_			\
 	__asm mov rval, eax \
 }
 
@@ -68,7 +68,7 @@ __asm skipgetstr##num:					\
 	__asm mov edx, e##r16type			\
 	__asm mov ebx, rval					\
 	__asm mov eax, rscript				\
-	__asm call interpretGetString_		\
+	__asm call FuncOffs::interpretGetString_		\
 	__asm mov rval, eax	} \
 notstring##num:
 
@@ -81,7 +81,7 @@ notstring##num:
 	__asm mov edx, e##r16type			\
 	__asm mov ebx, rval					\
 	__asm mov eax, rscript				\
-	__asm call interpretGetString_		\
+	__asm call FuncOffs::interpretGetString_		\
 	__asm mov rval, eax	}
 
 
@@ -89,20 +89,20 @@ notstring##num:
 #define _RET_VAL_INT(rscript) __asm {		\
 	__asm mov edx, eax					\
 	__asm mov eax, rscript				\
-	__asm call interpretPushLong_		\
+	__asm call FuncOffs::interpretPushLong_		\
 	__asm mov edx, VAR_TYPE_INT			\
 	__asm mov eax, rscript				\
-	__asm call interpretPushShort_		\
+	__asm call FuncOffs::interpretPushShort_		\
 }
 
 // return value stored in EAX as float
 #define _RET_VAL_FLOAT(rscript) __asm {		\
 	__asm mov edx, eax					\
 	__asm mov eax, rscript				\
-	__asm call interpretPushLong_		\
+	__asm call FuncOffs::interpretPushLong_		\
 	__asm mov edx, VAR_TYPE_FLOAT		\
 	__asm mov eax, rscript				\
-	__asm call interpretPushShort_		\
+	__asm call FuncOffs::interpretPushShort_		\
 }
 
 /* 
@@ -117,15 +117,15 @@ notstring##num:
 	__asm jne resultnotstr##num			\
 	__asm mov edx, eax					\
 	__asm mov eax, rscript				\
-	__asm call interpretAddString_		\
+	__asm call FuncOffs::interpretAddString_		\
 	__asm mov ecx, eax					\
 __asm resultnotstr##num:				\
 	__asm mov edx, ecx					\
 	__asm mov eax, rscript				\
-	__asm call interpretPushLong_		\
+	__asm call FuncOffs::interpretPushLong_		\
 	__asm mov edx, type					\
 	__asm mov eax, rscript				\
-	__asm call interpretPushShort_		\
+	__asm call FuncOffs::interpretPushShort_		\
 }
 
 /* 

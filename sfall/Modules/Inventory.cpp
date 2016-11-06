@@ -42,7 +42,7 @@ static const char* MsgSearch(int msgno, DWORD file) {
 	__asm {
 		lea edx, msg;
 		mov eax, file;
-		call message_search_;
+		call FuncOffs::message_search_;
 	}
 	return msg.message;
 }
@@ -61,10 +61,10 @@ void InventoryKeyPressedHook(DWORD dxKey, bool pressed, DWORD vKey) {
 		TGameObj* item = GetActiveItem();
 		__asm {
 			mov eax, item;
-			call item_w_max_ammo_;
+			call FuncOffs::item_w_max_ammo_;
 			mov maxAmmo, eax;
 			mov eax, item;
-			call item_w_curr_ammo_;
+			call FuncOffs::item_w_curr_ammo_;
 			mov curAmmo, eax;
 		}
 		if (maxAmmo != curAmmo) {
@@ -72,7 +72,7 @@ void InventoryKeyPressedHook(DWORD dxKey, bool pressed, DWORD vKey) {
 			DWORD previusMode = currentMode;
 			currentMode = 5; // reload mode
 			__asm {
-				call intface_use_item_;
+				call FuncOffs::intface_use_item_;
 			}
 			if (previusMode != 5) {
 				// return to previous active item mode (if it wasn't "reload")
@@ -80,7 +80,7 @@ void InventoryKeyPressedHook(DWORD dxKey, bool pressed, DWORD vKey) {
 				if (currentMode < 0)
 					currentMode = 4;
 				__asm {
-					call intface_toggle_item_state_;
+					call FuncOffs::intface_toggle_item_state_;
 				}
 			}
 		}
@@ -98,7 +98,7 @@ void InventoryKeyPressedHook(DWORD dxKey, bool pressed, DWORD vKey) {
 	DWORD result;
 	__asm {
 		mov eax, critter;
-		call item_total_weight_;
+		call FuncOffs::item_total_weight_;
 		mov result, eax;
 	}
 
@@ -132,7 +132,7 @@ static __declspec(naked) DWORD item_total_size(void* critter) {
 loc_477EB7:
 		mov     ecx, [edi+8];
 		mov     eax, [ecx+ebx];
-		call    item_size_
+		call    FuncOffs::item_size_
 		imul    eax, [ecx+ebx+4];
 		add     ebx, 8;
 		inc     edx;
@@ -147,33 +147,33 @@ loc_477ED3:
 		cmp     eax, 1;
 		jnz     loc_477F31;
 		mov     eax, ebp;
-		call    inven_right_hand_
+		call    FuncOffs::inven_right_hand_
 		mov     edx, eax;
 		test    eax, eax;
 		jz      loc_477EFD;
 		test    byte ptr [eax+27h], 2;
 		jnz     loc_477EFD;
-		call    item_size_
+		call    FuncOffs::item_size_
 		add     esi, eax;
 loc_477EFD:
 		mov     eax, ebp;
-		call    inven_left_hand_
+		call    FuncOffs::inven_left_hand_
 		test    eax, eax;
 		jz      loc_477F19;
 		cmp     edx, eax;
 		jz      loc_477F19;
 		test    byte ptr [eax+27h], 1;
 		jnz     loc_477F19;
-		call    item_size_
+		call    FuncOffs::item_size_
 		add     esi, eax;
 loc_477F19:
 		mov     eax, ebp;
-		call    inven_worn_
+		call    FuncOffs::inven_worn_
 		test    eax, eax;
 		jz      loc_477F31;
 		test    byte ptr [eax+27h], 4;
 		jnz     loc_477F31;
-		call    item_size_
+		call    FuncOffs::item_size_
 		add     esi, eax;
 loc_477F31:
 		mov     eax, esi;
@@ -215,7 +215,7 @@ static __declspec(naked) int CritterCheck() {
 		jnz run;
 		test mode, 2;
 		jz fail;
-		call isPartyMember_;
+		call FuncOffs::isPartyMember_;
 		test eax, eax;
 		jz end;
 run:
@@ -223,7 +223,7 @@ run:
 		jz single;
 		mov edx, esp;
 		mov eax, ebx;
-		call proto_ptr_;
+		call FuncOffs::proto_ptr_;
 		mov eax, [esp];
 		mov eax, [eax + 0xB0 + 40]; //The unused stat in the extra block
 		jmp end;
@@ -270,7 +270,7 @@ static __declspec(naked) void ItemAddMultiHook1() {
 		jz end;
 		mov ebp, eax;
 		mov eax, esi;
-		call item_size_
+		call FuncOffs::item_size_
 		mov edx, eax;
 		imul edx, ebx;
 		mov eax, ecx;
@@ -417,16 +417,16 @@ static const char* _stdcall FmtSizeMsg(int size) {
 
 static __declspec(naked) void InvenObjExamineFuncHook() {
 	__asm {
-		call inven_display_msg_
+		call FuncOffs::inven_display_msg_
 		push edx;
 		push ecx;
 		mov eax, esi;
-		call item_size_
+		call FuncOffs::item_size_
 		push eax;
 		call FmtSizeMsg;
 		pop ecx;
 		pop edx;
-		call inven_display_msg_
+		call FuncOffs::inven_display_msg_
 		retn;
 	}
 }
@@ -442,11 +442,11 @@ static int _stdcall SuperStimFix2(DWORD* item, DWORD* target) {
 	__asm {
 		mov eax, target;
 		mov edx, STAT_current_hp
-		call stat_level_
+		call FuncOffs::stat_level_
 		mov curr_hp, eax;
 		mov eax, target;
 		mov edx, STAT_max_hit_points
-		call stat_level_
+		call FuncOffs::stat_level_
 		mov max_hp, eax;
 	}
 	if(curr_hp<max_hp) return 0;
@@ -504,7 +504,7 @@ static void __declspec(naked) add_check_for_item_ammo_cost() {
 		push    edx
 		push    ebx
 		sub     esp, 4
-		call    item_w_curr_ammo_
+		call    FuncOffs::item_w_curr_ammo_
 		mov     ebx, eax
 		mov     eax, ecx // weapon
 		mov     edx, esp
@@ -567,7 +567,7 @@ static void __declspec(naked) SetDefaultAmmo() {
 		push    edx
 		xchg    eax, edx
 		mov     ebx, eax
-		call    item_get_type_
+		call    FuncOffs::item_get_type_
 		cmp     eax, item_type_weapon // is it item_type_weapon?
 		jne     end // no
 		cmp     dword ptr [ebx+0x3C], 0 // is there any ammo in the weapon?
@@ -575,7 +575,7 @@ static void __declspec(naked) SetDefaultAmmo() {
 		sub     esp, 4
 		mov     edx, esp
 		mov     eax, [ebx+0x64] // eax = weapon pid
-		call    proto_ptr_
+		call    FuncOffs::proto_ptr_
 		mov     edx, [esp]
 		mov     eax, [edx+0x5C] // eax = default ammo pid
 		mov     [ebx+0x40], eax // set current ammo proto
@@ -601,7 +601,7 @@ static void __declspec(naked) inven_action_cursor_hack() {
 static void __declspec(naked) item_add_mult_hook() {
 	__asm {
 		call    SetDefaultAmmo
-		jmp     item_add_force_
+		jmp     FuncOffs::item_add_force_
 	}
 }
 

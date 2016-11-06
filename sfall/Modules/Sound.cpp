@@ -19,9 +19,9 @@ attacker:
 end:
 		mov edx, edi;
 		mov ebx, 8;
-		call strncpy_;
+		call FuncOffs::strncpy_;
 		popad;
-		jmp strncpy_;
+		jmp FuncOffs::strncpy_;
 	}
 }
 static void __declspec(naked) DisplayMsg() {
@@ -37,17 +37,17 @@ end:
 		mov ebx, [eax];
 		test bl, bl;
 		jz skip;
-		call gsound_play_sfx_file_;
+		call FuncOffs::gsound_play_sfx_file_;
 skip:
 		popad;
-		jmp text_object_create_;
+		jmp FuncOffs::text_object_create_;
 	}
 }
 
 void PlaySfx(const char* name) {
 	__asm {
 		mov eax, name;
-		call gsound_play_sfx_file_;
+		call FuncOffs::gsound_play_sfx_file_;
 	}
 }
 

@@ -28,10 +28,10 @@ static void __declspec(naked) GetPerkOwed() {
 		pushad;
 		mov ecx, eax;
 		movzx edx, byte ptr ds:[_free_perk];
-		call interpretPushLong_;
+		call FuncOffs::interpretPushLong_;
 		mov edx, 0xc001;
 		mov eax, ecx;
-		call interpretPushShort_;
+		call FuncOffs::interpretPushShort_;
 		popad;
 		retn;
 	}
@@ -40,10 +40,10 @@ static void __declspec(naked) SetPerkOwed() {
 	__asm {
 		pushad;
 		mov ecx, eax;
-		call interpretPopShort_;
+		call FuncOffs::interpretPopShort_;
 		mov edx, eax;
 		mov eax, ecx;
-		call interpretPopLong_;
+		call FuncOffs::interpretPopLong_;
 		cmp dx, 0xC001;
 		jnz end;
 		and eax, 0xff;
@@ -59,10 +59,10 @@ static void __declspec(naked) set_perk_freq() {
 	__asm {
 		pushad;
 		mov ecx, eax;
-		call interpretPopShort_;
+		call FuncOffs::interpretPopShort_;
 		mov edx, eax;
 		mov eax, ecx;
-		call interpretPopLong_;
+		call FuncOffs::interpretPopLong_;
 		cmp dx, 0xC001;
 		jnz end;
 		push eax;
@@ -76,27 +76,27 @@ static void __declspec(naked) GetPerkAvailable() {
 	__asm {
 		pushad;
 		mov ecx, eax;
-		call interpretPopShort_;
+		call FuncOffs::interpretPopShort_;
 		mov edx, eax;
 		mov eax, ecx;
-		call interpretPopLong_;
+		call FuncOffs::interpretPopLong_;
 		cmp dx, 0xC001;
 		jnz fail;
 		cmp eax, PERK_count;
 		jge fail;
 		mov edx, eax;
 		mov eax, ds:[_obj_dude];
-		call perk_make_list_;
+		call FuncOffs::perk_make_list_;
 		mov edx, eax;
 		jmp end;
 fail:
 		xor edx, edx;
 end:
 		mov eax, ecx
-		call interpretPushLong_;
+		call FuncOffs::interpretPushLong_;
 		mov edx, 0xc001;
 		mov eax, ecx;
-		call interpretPushShort_;
+		call FuncOffs::interpretPushShort_;
 		popad;
 		retn;
 	}
@@ -105,16 +105,16 @@ static void __declspec(naked) funcSetPerkName() {
 	__asm {
 		pushad;
 		mov ecx, eax;
-		call interpretPopShort_;
+		call FuncOffs::interpretPopShort_;
 		mov esi, eax;
 		mov eax, ecx;
-		call interpretPopLong_;
+		call FuncOffs::interpretPopLong_;
 		mov edi, eax;
 		mov eax, ecx;
-		call interpretPopShort_;
+		call FuncOffs::interpretPopShort_;
 		mov edx, eax;
 		mov eax, ecx;
-		call interpretPopLong_;
+		call FuncOffs::interpretPopLong_;
 		cmp dx, 0xC001;
 		jnz end;
 		cmp si, 0x9001;
@@ -126,7 +126,7 @@ next:
 		mov edx, esi;
 		mov esi, eax;
 		mov eax, ecx;
-		call interpretGetString_;
+		call FuncOffs::interpretGetString_;
 		push eax;
 		push esi;
 		call SetPerkName;
@@ -140,16 +140,16 @@ static void __declspec(naked) funcSetPerkDesc() {
 	__asm {
 		pushad;
 		mov ecx, eax;
-		call interpretPopShort_;
+		call FuncOffs::interpretPopShort_;
 		mov esi, eax;
 		mov eax, ecx;
-		call interpretPopLong_;
+		call FuncOffs::interpretPopLong_;
 		mov edi, eax;
 		mov eax, ecx;
-		call interpretPopShort_;
+		call FuncOffs::interpretPopShort_;
 		mov edx, eax;
 		mov eax, ecx;
-		call interpretPopLong_;
+		call FuncOffs::interpretPopLong_;
 		cmp dx, 0xC001;
 		jnz end;
 		cmp si, 0x9001;
@@ -161,7 +161,7 @@ next:
 		mov edx, esi;
 		mov esi, eax;
 		mov eax, ecx;
-		call interpretGetString_;
+		call FuncOffs::interpretGetString_;
 		push eax;
 		push esi;
 		call SetPerkDesc;
@@ -177,16 +177,16 @@ static void __declspec(naked) funcSetPerkValue() {
 		sub edx, 0x5e0-8; // offset of value into perk struct; edx = ((edx/4) - 0x178 + 0x8) * 4
 		push edx;
 		mov ecx, eax;
-		call interpretPopShort_;
+		call FuncOffs::interpretPopShort_;
 		mov esi, eax;
 		mov eax, ecx;
-		call interpretPopLong_;
+		call FuncOffs::interpretPopLong_;
 		mov edi, eax;
 		mov eax, ecx;
-		call interpretPopShort_;
+		call FuncOffs::interpretPopShort_;
 		mov edx, eax;
 		mov eax, ecx;
-		call interpretPopLong_;
+		call FuncOffs::interpretPopLong_;
 		cmp dx, 0xC001;
 		jnz fail;
 		cmp si, 0xC001;
@@ -207,28 +207,28 @@ static void __declspec(naked) fSetSelectablePerk() {
 	__asm {
 		pushad;
 		mov ecx, eax;
-		call interpretPopShort_;
+		call FuncOffs::interpretPopShort_;
 		push eax;
 		mov eax, ecx;
-		call interpretPopLong_;
+		call FuncOffs::interpretPopLong_;
 		push eax;
 		mov eax, ecx;
-		call interpretPopShort_;
+		call FuncOffs::interpretPopShort_;
 		push eax;
 		mov eax, ecx;
-		call interpretPopLong_;
+		call FuncOffs::interpretPopLong_;
 		push eax;
 		mov eax, ecx;
-		call interpretPopShort_;
+		call FuncOffs::interpretPopShort_;
 		push eax;
 		mov eax, ecx;
-		call interpretPopLong_;
+		call FuncOffs::interpretPopLong_;
 		push eax;
 		mov eax, ecx;
-		call interpretPopShort_;
+		call FuncOffs::interpretPopShort_;
 		push eax;
 		mov eax, ecx;
-		call interpretPopLong_;
+		call FuncOffs::interpretPopLong_;
 		push eax;
 
 		movzx eax, word ptr [esp+12];
@@ -252,7 +252,7 @@ next2:
 		mov eax, ecx;
 		mov edx, [esp+28];
 		mov ebx, [esp+24];
-		call interpretGetString_;
+		call FuncOffs::interpretGetString_;
 		push eax;
 		mov eax, [esp+20];
 		push eax;
@@ -261,7 +261,7 @@ next2:
 		mov eax, ecx;
 		mov edx, [esp+16];
 		mov ebx, [esp+12];
-		call interpretGetString_;
+		call FuncOffs::interpretGetString_;
 		push eax;
 
 		call SetSelectablePerk;
@@ -275,28 +275,28 @@ static void __declspec(naked) fSetFakePerk() {
 	__asm {
 		pushad;
 		mov ecx, eax;
-		call interpretPopShort_;
+		call FuncOffs::interpretPopShort_;
 		push eax;
 		mov eax, ecx;
-		call interpretPopLong_;
+		call FuncOffs::interpretPopLong_;
 		push eax;
 		mov eax, ecx;
-		call interpretPopShort_;
+		call FuncOffs::interpretPopShort_;
 		push eax;
 		mov eax, ecx;
-		call interpretPopLong_;
+		call FuncOffs::interpretPopLong_;
 		push eax;
 		mov eax, ecx;
-		call interpretPopShort_;
+		call FuncOffs::interpretPopShort_;
 		push eax;
 		mov eax, ecx;
-		call interpretPopLong_;
+		call FuncOffs::interpretPopLong_;
 		push eax;
 		mov eax, ecx;
-		call interpretPopShort_;
+		call FuncOffs::interpretPopShort_;
 		push eax;
 		mov eax, ecx;
-		call interpretPopLong_;
+		call FuncOffs::interpretPopLong_;
 		push eax;
 
 		movzx eax, word ptr [esp+12];
@@ -320,7 +320,7 @@ next2:
 		mov eax, ecx;
 		mov edx, [esp+28];
 		mov ebx, [esp+24];
-		call interpretGetString_;
+		call FuncOffs::interpretGetString_;
 		push eax;
 		mov eax, [esp+20];
 		push eax;
@@ -329,7 +329,7 @@ next2:
 		mov eax, ecx;
 		mov edx, [esp+16];
 		mov ebx, [esp+12];
-		call interpretGetString_;
+		call FuncOffs::interpretGetString_;
 		push eax;
 
 		call SetFakePerk;
@@ -347,28 +347,28 @@ static void __declspec(naked) fSetFakeTrait() {
 		push edi;
 		push esi;
 		mov ecx, eax;
-		call interpretPopShort_;
+		call FuncOffs::interpretPopShort_;
 		push eax;
 		mov eax, ecx;
-		call interpretPopLong_;
+		call FuncOffs::interpretPopLong_;
 		push eax;
 		mov eax, ecx;
-		call interpretPopShort_;
+		call FuncOffs::interpretPopShort_;
 		push eax;
 		mov eax, ecx;
-		call interpretPopLong_;
+		call FuncOffs::interpretPopLong_;
 		push eax;
 		mov eax, ecx;
-		call interpretPopShort_;
+		call FuncOffs::interpretPopShort_;
 		push eax;
 		mov eax, ecx;
-		call interpretPopLong_;
+		call FuncOffs::interpretPopLong_;
 		push eax;
 		mov eax, ecx;
-		call interpretPopShort_;
+		call FuncOffs::interpretPopShort_;
 		push eax;
 		mov eax, ecx;
-		call interpretPopLong_;
+		call FuncOffs::interpretPopLong_;
 		push eax;
 
 		movzx eax, word ptr [esp+12];
@@ -392,7 +392,7 @@ next2:
 		mov eax, ecx;
 		mov edx, [esp+28];
 		mov ebx, [esp+24];
-		call interpretGetString_;
+		call FuncOffs::interpretGetString_;
 		push eax;
 		mov eax, [esp+20];
 		push eax;
@@ -401,7 +401,7 @@ next2:
 		mov eax, ecx;
 		mov edx, [esp+16];
 		mov ebx, [esp+12];
-		call interpretGetString_;
+		call FuncOffs::interpretGetString_;
 		push eax;
 
 		call SetFakeTrait;
@@ -422,10 +422,10 @@ static void __declspec(naked) fSetPerkboxTitle() {
 		push edx;
 		push edi;
 		mov edi, eax;
-		call interpretPopShort_;
+		call FuncOffs::interpretPopShort_;
 		mov edx, eax;
 		mov eax, edi;
-		call interpretPopLong_;
+		call FuncOffs::interpretPopLong_;
 		cmp dx, 0x9001;
 		jz next;
 		cmp dx, 0x9801;
@@ -433,7 +433,7 @@ static void __declspec(naked) fSetPerkboxTitle() {
 next:
 		mov ebx, eax;
 		mov eax, edi;
-		call interpretGetString_;
+		call FuncOffs::interpretGetString_;
 		push eax;
 		call SetPerkboxTitle;
 end:
@@ -487,10 +487,10 @@ static void __declspec(naked) fHasFakePerk() {
 		push edx;
 		push edi;
 		mov edi, eax;
-		call interpretPopShort_;
+		call FuncOffs::interpretPopShort_;
 		mov edx, eax;
 		mov eax, edi;
-		call interpretPopLong_;
+		call FuncOffs::interpretPopLong_;
 		cmp dx, 0x9001;
 		jz next;
 		cmp dx, 0x9801;
@@ -498,16 +498,16 @@ static void __declspec(naked) fHasFakePerk() {
 next:
 		mov ebx, eax;
 		mov eax, edi;
-		call interpretGetString_;
+		call FuncOffs::interpretGetString_;
 		push eax;
 		call HasFakePerk;
 end:
 		mov edx, eax;
 		mov eax, edi;
-		call interpretPushLong_;
+		call FuncOffs::interpretPushLong_;
 		mov eax, edi;
 		mov edx, 0xc001;
-		call interpretPushShort_;
+		call FuncOffs::interpretPushShort_;
 		pop edi;
 		pop edx;
 		pop ecx;
@@ -522,10 +522,10 @@ static void __declspec(naked) fHasFakeTrait() {
 		push edx;
 		push edi;
 		mov edi, eax;
-		call interpretPopShort_;
+		call FuncOffs::interpretPopShort_;
 		mov edx, eax;
 		mov eax, edi;
-		call interpretPopLong_;
+		call FuncOffs::interpretPopLong_;
 		cmp dx, 0x9001;
 		jz next;
 		cmp dx, 0x9801;
@@ -533,16 +533,16 @@ static void __declspec(naked) fHasFakeTrait() {
 next:
 		mov ebx, eax;
 		mov eax, edi;
-		call interpretGetString_;
+		call FuncOffs::interpretGetString_;
 		push eax;
 		call HasFakeTrait;
 end:
 		mov edx, eax;
 		mov eax, edi;
-		call interpretPushLong_;
+		call FuncOffs::interpretPushLong_;
 		mov eax, edi;
 		mov edx, 0xc001;
-		call interpretPushShort_;
+		call FuncOffs::interpretPushShort_;
 		pop edi;
 		pop edx;
 		pop ecx;
@@ -556,10 +556,10 @@ static void __declspec(naked) fAddPerkMode() {
 		push ecx;
 		push edx;
 		mov ecx, eax;
-		call interpretPopShort_;
+		call FuncOffs::interpretPopShort_;
 		mov edx, eax;
 		mov eax, ecx;
-		call interpretPopLong_;
+		call FuncOffs::interpretPopLong_;
 		cmp dx, 0xC001;
 		jnz end;
 		push eax;
@@ -575,10 +575,10 @@ static void __declspec(naked) remove_trait() {
 	__asm {
 		pushad;
 		mov ebp, eax;
-		call interpretPopShort_;
+		call FuncOffs::interpretPopShort_;
 		mov edi, eax;
 		mov eax, ebp;
-		call interpretPopLong_;
+		call FuncOffs::interpretPopLong_;
 		cmp di, 0xc001;
 		jnz end;
 		xor ebx, ebx;
@@ -605,10 +605,10 @@ static void __declspec(naked) SetPyromaniacMod() {
 		push ecx;
 		push edx;
 		mov ecx, eax;
-		call interpretPopShort_;
+		call FuncOffs::interpretPopShort_;
 		mov edx, eax;
 		mov eax, ecx;
-		call interpretPopLong_;
+		call FuncOffs::interpretPopLong_;
 		cmp dx, 0xC001;
 		jnz end;
 		push eax;
@@ -640,10 +640,10 @@ static void __declspec(naked) SetSwiftLearnerMod() {
 		push ecx;
 		push edx;
 		mov ecx, eax;
-		call interpretPopShort_;
+		call FuncOffs::interpretPopShort_;
 		mov edx, eax;
 		mov eax, ecx;
-		call interpretPopLong_;
+		call FuncOffs::interpretPopLong_;
 		cmp dx, 0xC001;
 		jnz end;
 		push eax;

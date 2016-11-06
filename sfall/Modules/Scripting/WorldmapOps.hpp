@@ -62,10 +62,10 @@ static void __declspec(naked) ForceEncounter() {
 		push ecx;
 		push edx;
 		mov ecx, eax;
-		call interpretPopShort_;
+		call FuncOffs::interpretPopShort_;
 		mov edx, eax;
 		mov eax, ecx;
-		call interpretPopLong_;
+		call FuncOffs::interpretPopLong_;
 		cmp dx, 0xC001;
 		jnz end;
 		push 0;
@@ -82,16 +82,16 @@ static void __declspec(naked) ForceEncounterWithFlags() {
 	__asm {
 		pushad
 		mov ecx, eax;
-		call interpretPopShort_;
+		call FuncOffs::interpretPopShort_;
 		mov edx, eax;
 		mov eax, ecx;
-		call interpretPopLong_;
+		call FuncOffs::interpretPopLong_;
 		mov ebx, eax;
 		mov eax, ecx;
-		call interpretPopShort_;
+		call FuncOffs::interpretPopShort_;
 		mov edi, eax;
 		mov eax, ecx;
-		call interpretPopLong_;
+		call FuncOffs::interpretPopLong_;
 		cmp dx, 0xC001;
 		jnz end;
 		cmp di, 0xc001;
@@ -116,10 +116,10 @@ static void __declspec(naked) funcInWorldMap() {
 		call InWorldMap;
 		mov edx, eax;
 		mov eax, esi;
-		call interpretPushLong_;
+		call FuncOffs::interpretPushLong_;
 		mov edx, 0xc001;
 		mov eax, esi;
-		call interpretPushShort_;
+		call FuncOffs::interpretPushShort_;
 		pop esi;
 		pop edx;
 		pop ecx;
@@ -134,10 +134,10 @@ static void __declspec(naked) GetGameMode() {
 		call GetCurrentLoops;
 		mov edx, eax;
 		mov eax, edi;
-		call interpretPushLong_;
+		call FuncOffs::interpretPushLong_;
 		mov edx, 0xc001;
 		mov eax, edi;
-		call interpretPushShort_;
+		call FuncOffs::interpretPushShort_;
 		popad;
 		retn;
 	}
@@ -149,10 +149,10 @@ static void __declspec(naked) GetWorldMapXPos() {
 		push edx;
 		mov ecx, eax;
 		mov edx, ds:[_world_xpos];
-		call interpretPushLong_;
+		call FuncOffs::interpretPushLong_;
 		mov edx, 0xc001;
 		mov eax, ecx;
-		call interpretPushShort_;
+		call FuncOffs::interpretPushShort_;
 		pop edx;
 		pop ecx;
 		pop ebx;
@@ -166,10 +166,10 @@ static void __declspec(naked) GetWorldMapYPos() {
 		push edx;
 		mov ecx, eax;
 		mov edx, ds:[_world_ypos];
-		call interpretPushLong_;
+		call FuncOffs::interpretPushLong_;
 		mov edx, 0xc001;
 		mov eax, ecx;
-		call interpretPushShort_;
+		call FuncOffs::interpretPushShort_;
 		pop edx;
 		pop ecx;
 		pop ebx;
@@ -184,16 +184,16 @@ static void __declspec(naked) SetWorldMapPos() {
 		push edi;
 		push esi;
 		mov ecx, eax;
-		call interpretPopShort_;
+		call FuncOffs::interpretPopShort_;
 		mov esi, eax;
 		mov eax, ecx;
-		call interpretPopLong_;
+		call FuncOffs::interpretPopLong_;
 		mov edi, eax;
 		mov eax, ecx;
-		call interpretPopShort_;
+		call FuncOffs::interpretPopShort_;
 		mov edx, eax;
 		mov eax, ecx;
-		call interpretPopLong_;
+		call FuncOffs::interpretPopLong_;
 		cmp dx, 0xC001;
 		jnz end;
 		cmp si, 0xC001;

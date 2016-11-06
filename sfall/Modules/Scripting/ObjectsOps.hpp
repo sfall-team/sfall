@@ -31,10 +31,10 @@ static void __declspec(naked) RemoveScript() {
 		push ecx;
 		push edx;
 		mov ecx, eax;
-		call interpretPopShort_;
+		call FuncOffs::interpretPopShort_;
 		mov edx, eax;
 		mov eax, ecx;
-		call interpretPopLong_;
+		call FuncOffs::interpretPopLong_;
 		cmp dx, 0xc001;
 		jnz end;
 		test eax, eax;
@@ -43,7 +43,7 @@ static void __declspec(naked) RemoveScript() {
 		mov eax, [eax+0x78];
 		cmp eax, 0xffffffff;
 		jz end;
-		call scr_remove_
+		call FuncOffs::scr_remove_
 		mov dword ptr [edx+0x78], 0xffffffff;
 end:
 		pop edx;
@@ -58,16 +58,16 @@ static void __declspec(naked) SetScript() {
 	__asm {
 		pushad;
 		mov ecx, eax;
-		call interpretPopShort_;
+		call FuncOffs::interpretPopShort_;
 		mov edx, eax;
 		mov eax, ecx;
-		call interpretPopLong_;
+		call FuncOffs::interpretPopLong_;
 		mov ebx, eax;
 		mov eax, ecx;
-		call interpretPopShort_;
+		call FuncOffs::interpretPopShort_;
 		mov edi, eax;
 		mov eax, ecx;
-		call interpretPopLong_;
+		call FuncOffs::interpretPopLong_;
 		cmp dx, 0xc001;
 		jnz end;
 		cmp di, 0xc001;
@@ -79,7 +79,7 @@ static void __declspec(naked) SetScript() {
 		jz newscript
 		push eax;
 		mov eax, esi;
-		call scr_remove_
+		call FuncOffs::scr_remove_
 		pop eax;
 		mov dword ptr [eax+0x78], 0xffffffff;
 newscript:
@@ -98,15 +98,15 @@ execMapEnter:
 		inc edx; // 4 - "critter" type script
 notCritter:
 		dec ebx;
-		call obj_new_sid_inst_
+		call FuncOffs::obj_new_sid_inst_
 		mov eax, [ecx+0x78];
 		mov edx, 1; // start
-		call exec_script_proc_
+		call FuncOffs::exec_script_proc_
 		cmp esi, 1; // run map enter?
 		jnz end;
 		mov eax, [ecx+0x78];
 		mov edx, 0xf; // map_enter_p_proc
-		call exec_script_proc_
+		call FuncOffs::exec_script_proc_
 end:
 		popad;
 		retn;
@@ -124,7 +124,7 @@ static void _stdcall op_create_spatial2() {
 	__asm {
 		lea eax, scriptId;
 		mov edx, 1;
-		call scr_new_;
+		call FuncOffs::scr_new_;
 		mov tmp, eax;
 	}
 	if (tmp == -1)
@@ -132,7 +132,7 @@ static void _stdcall op_create_spatial2() {
 	__asm {
 		mov eax, scriptId;
 		lea edx, scriptPtr;
-		call scr_ptr_;
+		call FuncOffs::scr_ptr_;
 		mov tmp, eax;
 	}
 	if (tmp == -1)
@@ -145,10 +145,10 @@ static void _stdcall op_create_spatial2() {
 	__asm {
 		mov eax, scriptId;
 		mov edx, 1; // start_p_proc
-		call exec_script_proc_; 
+		call FuncOffs::exec_script_proc_; 
 		mov eax, scriptPtr;
 		mov eax, [eax + 0x18]; // program pointer
-		call scr_find_obj_from_program_;
+		call FuncOffs::scr_find_obj_from_program_;
 		mov objectPtr, eax;
 	}
 	opHandler.setReturn((int)objectPtr);
@@ -171,10 +171,10 @@ static void __declspec(naked) GetScript() {
 		pushad;
 		mov ecx, eax;
 		mov ecx, eax;
-		call interpretPopShort_;
+		call FuncOffs::interpretPopShort_;
 		mov edx, eax;
 		mov eax, ecx;
-		call interpretPopLong_;
+		call FuncOffs::interpretPopLong_;
 		cmp dx, 0xc001;
 		jnz fail;
 		test eax, eax;
@@ -189,10 +189,10 @@ fail:
 		dec edx;
 end:
 		mov eax, ecx;
-		call interpretPushLong_;
+		call FuncOffs::interpretPushLong_;
 		mov eax, ecx;
 		mov edx, 0xc001;
-		call interpretPushShort_;
+		call FuncOffs::interpretPushShort_;
 		popad;
 		retn;
 	}
@@ -202,16 +202,16 @@ static void __declspec(naked) set_critter_burst_disable() {
 	__asm {
 		pushad;
 		mov ebp, eax;
-		call interpretPopShort_;
+		call FuncOffs::interpretPopShort_;
 		mov edi, eax;
 		mov eax, ebp;
-		call interpretPopLong_;
+		call FuncOffs::interpretPopLong_;
 		mov ecx, eax;
 		mov eax, ebp;
-		call interpretPopShort_;
+		call FuncOffs::interpretPopShort_;
 		mov esi, eax;
 		mov eax, ebp;
-		call interpretPopLong_;
+		call FuncOffs::interpretPopLong_;
 		cmp di, 0xc001;
 		jnz end;
 		cmp si, 0xc001;
@@ -228,10 +228,10 @@ static void __declspec(naked) get_weapon_ammo_pid() {
 	__asm {
 		pushad;
 		mov ebp, eax;
-		call interpretPopShort_;
+		call FuncOffs::interpretPopShort_;
 		mov edi, eax;
 		mov eax, ebp;
-		call interpretPopLong_;
+		call FuncOffs::interpretPopLong_;
 		cmp di, 0xc001;
 		jnz fail;
 		test eax, eax;
@@ -243,10 +243,10 @@ fail:
 		dec edx;
 end:
 		mov eax, ebp;
-		call interpretPushLong_;
+		call FuncOffs::interpretPushLong_;
 		mov eax, ebp;
 		mov edx, 0xc001;
-		call interpretPushShort_;
+		call FuncOffs::interpretPushShort_;
 		popad;
 		retn;
 	}
@@ -255,16 +255,16 @@ static void __declspec(naked) set_weapon_ammo_pid() {
 	__asm {
 		pushad;
 		mov ebp, eax;
-		call interpretPopShort_;
+		call FuncOffs::interpretPopShort_;
 		mov edi, eax;
 		mov eax, ebp;
-		call interpretPopLong_;
+		call FuncOffs::interpretPopLong_;
 		mov ecx, eax;
 		mov eax, ebp;
-		call interpretPopShort_;
+		call FuncOffs::interpretPopShort_;
 		mov esi, eax;
 		mov eax, ebp;
-		call interpretPopLong_;
+		call FuncOffs::interpretPopLong_;
 		cmp di, 0xc001;
 		jnz end;
 		cmp si, 0xc001;
@@ -281,10 +281,10 @@ static void __declspec(naked) get_weapon_ammo_count() {
 	__asm {
 		pushad;
 		mov ebp, eax;
-		call interpretPopShort_;
+		call FuncOffs::interpretPopShort_;
 		mov edi, eax;
 		mov eax, ebp;
-		call interpretPopLong_;
+		call FuncOffs::interpretPopLong_;
 		cmp di, 0xc001;
 		jnz fail;
 		test eax, eax;
@@ -296,10 +296,10 @@ fail:
 		dec edx;
 end:
 		mov eax, ebp;
-		call interpretPushLong_;
+		call FuncOffs::interpretPushLong_;
 		mov eax, ebp;
 		mov edx, 0xc001;
-		call interpretPushShort_;
+		call FuncOffs::interpretPushShort_;
 		popad;
 		retn;
 	}
@@ -308,16 +308,16 @@ static void __declspec(naked) set_weapon_ammo_count() {
 	__asm {
 		pushad;
 		mov ebp, eax;
-		call interpretPopShort_;
+		call FuncOffs::interpretPopShort_;
 		mov edi, eax;
 		mov eax, ebp;
-		call interpretPopLong_;
+		call FuncOffs::interpretPopLong_;
 		mov ecx, eax;
 		mov eax, ebp;
-		call interpretPopShort_;
+		call FuncOffs::interpretPopShort_;
 		mov esi, eax;
 		mov eax, ebp;
-		call interpretPopLong_;
+		call FuncOffs::interpretPopLong_;
 		cmp di, 0xc001;
 		jnz end;
 		cmp si, 0xc001;
@@ -349,7 +349,7 @@ static DWORD _stdcall make_straight_path_func_wrapper(DWORD obj, DWORD tileFrom,
 		push func;
 		push a6;
 		push result;
-		call make_straight_path_func_;
+		call FuncOffs::make_straight_path_func_;
 	}
 }
 
@@ -362,13 +362,13 @@ static DWORD _stdcall make_straight_path_func_wrapper(DWORD obj, DWORD tileFrom,
 static DWORD getBlockingFunc(DWORD type) {
 	switch (type) {
 		case BLOCKING_TYPE_BLOCK: default: 
-			return obj_blocking_at_;
+			return FuncOffs::obj_blocking_at_;
 		case BLOCKING_TYPE_SHOOT: 
-			return obj_shoot_blocking_at_;
+			return FuncOffs::obj_shoot_blocking_at_;
 		case BLOCKING_TYPE_AI: 
-			return obj_ai_blocking_at_;
+			return FuncOffs::obj_ai_blocking_at_;
 		case BLOCKING_TYPE_SIGHT: 
-			return obj_sight_blocking_at_;
+			return FuncOffs::obj_sight_blocking_at_;
 		//case 4: 
 		//	return obj_scroll_blocking_at_;
 			
@@ -411,7 +411,7 @@ static void _stdcall op_make_path2() {
 		mov ebx, tileTo;
 		push func;
 		push a5;
-		call make_path_func_;
+		call FuncOffs::make_path_func_;
 		mov pathLength, eax;
 	}
 	arr = TempArray(pathLength, 0);
@@ -450,13 +450,13 @@ static void _stdcall op_tile_get_objects2() {
 	__asm {
 		mov eax, elevation;
 		mov edx, tile;
-		call obj_find_first_at_tile_;
+		call FuncOffs::obj_find_first_at_tile_;
 		mov obj, eax;
 	}
 	while (obj) {
 		arrays[arrayId].push_back((long)obj);
 		__asm {
-			call obj_find_next_at_tile_;
+			call FuncOffs::obj_find_next_at_tile_;
 			mov obj, eax;
 		}
 	}
@@ -479,7 +479,7 @@ static void _stdcall op_get_party_members2() {
 				continue;
 			__asm {
 				mov eax, obj;
-				call critter_is_dead_;
+				call FuncOffs::critter_is_dead_;
 				mov isDead, eax;
 			}
 			if (isDead)
@@ -501,7 +501,7 @@ static void __declspec(naked) op_art_exists() {
 	_GET_ARG_R32(ebp, ecx, eax)
 	_CHECK_ARG_INT(cx, fail)
 	__asm {
-		call art_exists_;
+		call FuncOffs::art_exists_;
 		jmp end;
 fail:
 		xor eax, eax;

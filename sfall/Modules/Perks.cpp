@@ -115,7 +115,7 @@ static void __declspec(naked) LevelUpHook() {
 		test ecx, ecx;
 		jnz afterskilled;
 		mov eax, TRAIT_skilled;
-		call trait_level_; //Check if the player has the skilled trait
+		call FuncOffs::trait_level_; //Check if the player has the skilled trait
 		test eax, eax;
 		jz notskilled;
 		push TRAIT_skilled;
@@ -333,7 +333,7 @@ static DWORD _stdcall HandleFakeTraits(int i2) {
 		DWORD a=(DWORD)fakeTraits[i].Name;
 		__asm {
 			mov eax, a;
-			call folder_print_line_;
+			call FuncOffs::folder_print_line_;
 			mov a, eax;
 		}
 		if(a&&!i2) {
@@ -356,7 +356,7 @@ static void __declspec(naked) PlayerHasPerkHook() {
 oloop:
 		mov  eax, ds:[_obj_dude];
 		mov  edx, ebx;
-		call perk_level_;
+		call FuncOffs::perk_level_;
 		test eax, eax;
 		jnz  win;
 		inc  ebx;
@@ -393,7 +393,7 @@ static void __declspec(naked) GetPerkLevelHook() {
 		mov eax, ds:[eax];
 		ret;
 end:
-		jmp perk_level_;
+		jmp FuncOffs::perk_level_;
 	}
 }
 
@@ -406,7 +406,7 @@ static void __declspec(naked) GetPerkImageHook() {
 		mov eax, ds:[eax+4];
 		ret;
 end:
-		jmp perk_skilldex_fid_;
+		jmp FuncOffs::perk_skilldex_fid_;
 	}
 }
 
@@ -419,7 +419,7 @@ static void __declspec(naked) GetPerkNameHook() {
 		lea eax, ds:[eax+8];
 		ret;
 end:
-		jmp perk_name_;
+		jmp FuncOffs::perk_name_;
 	}
 }
 
@@ -432,7 +432,7 @@ static void __declspec(naked) GetPerkDescHook() {
 		lea eax, ds:[eax+72];
 		ret;
 end:
-		jmp perk_description_
+		jmp FuncOffs::perk_description_
 	}
 }
 
@@ -465,7 +465,7 @@ static void __declspec(naked) GetAvailablePerksHook() {
 		mov ebx, IgnoringDefaultPerks;
 		test ebx, ebx;
 		jnz skipdefaults;
-		call perk_make_list_;
+		call FuncOffs::perk_make_list_;
 		jmp next;
 skipdefaults:
 		xor eax, eax;
@@ -485,7 +485,7 @@ static void __declspec(naked) GetPerkSLevelHook() {
 		call GetFakeSPerkLevel;
 		ret;
 end:
-		jmp perk_level_;
+		jmp FuncOffs::perk_level_;
 	}
 }
 static void __declspec(naked) GetPerkSImageHook() {
@@ -497,7 +497,7 @@ static void __declspec(naked) GetPerkSImageHook() {
 		mov eax, ds:[eax+4];
 		ret;
 end:
-		jmp perk_skilldex_fid_;
+		jmp FuncOffs::perk_skilldex_fid_;
 	}
 }
 
@@ -510,7 +510,7 @@ static void __declspec(naked) GetPerkSNameHook() {
 		lea eax, ds:[eax+8];
 		ret;
 end:
-		jmp perk_name_;
+		jmp FuncOffs::perk_name_;
 	}
 }
 
@@ -523,7 +523,7 @@ static void __declspec(naked) GetPerkSDescHook() {
 		lea eax, ds:[eax+72];
 		ret;
 end:
-		jmp perk_description_;
+		jmp FuncOffs::perk_description_;
 	}
 }
 
@@ -575,7 +575,7 @@ static void __declspec(naked) AddPerkHook() {
 		ret;
 end:
 		push edx;
-		call perk_add_;
+		call FuncOffs::perk_add_;
 		pop edx;
 		test eax, eax;
 		jnz end2;
@@ -593,7 +593,7 @@ static void __declspec(naked) HeaveHoHook() {
 	__asm {
 		xor  edx, edx;
 		mov  eax, ecx;
-		call stat_level_;
+		call FuncOffs::stat_level_;
 		lea  ebx, [0+eax*4];
 		sub  ebx, eax;
 		cmp  ebx, esi;
@@ -602,7 +602,7 @@ static void __declspec(naked) HeaveHoHook() {
 lower:
 		mov  eax, ecx;
 		mov  edx, PERK_heave_ho;
-		call perk_level_;
+		call FuncOffs::perk_level_;
 		lea  ecx, [0+eax*8];
 		sub  ecx, eax;
 		sub  ecx, eax;
@@ -743,7 +743,7 @@ static int _stdcall stat_get_base_direct(DWORD statID) {
 	__asm {
 		mov edx, statID;
 		mov eax, dword ptr ds:[_obj_dude];
-		call stat_get_base_direct_;
+		call FuncOffs::stat_get_base_direct_;
 		mov result, eax;
 	}
 	return result;
@@ -958,7 +958,7 @@ static void TraitSetup() {
 }
 static __declspec(naked) void PerkInitWrapper() {
 	__asm {
-		call perk_init_;
+		call FuncOffs::perk_init_;
 		pushad;
 		call PerkSetup;
 		popad;
@@ -967,7 +967,7 @@ static __declspec(naked) void PerkInitWrapper() {
 }
 static __declspec(naked) void TraitInitWrapper() {
 	__asm {
-		call trait_init_;
+		call FuncOffs::trait_init_;
 		pushad;
 		call TraitSetup;
 		popad;

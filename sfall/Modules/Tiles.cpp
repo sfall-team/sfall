@@ -77,7 +77,7 @@ static DWORD db_fopen(const char* path, const char* mode) {
 	__asm {
 		mov eax, path;
 		mov edx, mode;
-		call db_fopen_;
+		call FuncOffs::db_fopen_;
 		mov result, eax;
 	}
 	return result;
@@ -88,7 +88,7 @@ static char* db_fgets(char* buf, int max_count, DWORD file) {
 		mov eax, buf;
 		mov edx, max_count;
 		mov ebx, file;
-		call db_fgets_;
+		call FuncOffs::db_fgets_;
 		mov result, eax;
 	}
 	return result;
@@ -96,7 +96,7 @@ static char* db_fgets(char* buf, int max_count, DWORD file) {
 static void db_fclose(DWORD file) {
 	__asm {
 		mov eax, file;
-		call db_fclose_;
+		call FuncOffs::db_fclose_;
 	}
 }
 static short db_freadShort(DWORD file) {
@@ -104,7 +104,7 @@ static short db_freadShort(DWORD file) {
 	__asm {
 		mov eax, file;
 		lea edx, rout;
-		call db_freadShort_;
+		call FuncOffs::db_freadShort_;
 	}
 	return rout;
 }
@@ -113,7 +113,7 @@ static void db_freadByteCount(DWORD file, void* cptr, int count) {
 		mov eax, file;
 		mov edx, cptr;
 		mov ebx, count;
-		call db_freadByteCount_;
+		call FuncOffs::db_freadByteCount_;
 	}
 }
 static void db_fwriteByteCount(DWORD file, void* cptr, int count) {
@@ -121,7 +121,7 @@ static void db_fwriteByteCount(DWORD file, void* cptr, int count) {
 		mov eax, file;
 		mov edx, cptr;
 		mov ebx, count;
-		call db_fwriteByteCount_;
+		call FuncOffs::db_fwriteByteCount_;
 	}
 }
 static void db_fseek(DWORD file, long pos/*, int origin*/) {
@@ -129,7 +129,7 @@ static void db_fseek(DWORD file, long pos/*, int origin*/) {
 		mov eax, file;
 		mov edx, pos;
 		xor ebx, ebx;
-		call db_fseek_;
+		call FuncOffs::db_fseek_;
 	}
 }
 static void* mem_realloc(void* lpmem, DWORD msize) {
@@ -137,14 +137,14 @@ static void* mem_realloc(void* lpmem, DWORD msize) {
 	__asm {
 		mov eax, lpmem;
 		mov edx, msize;
-		call mem_realloc_;
+		call FuncOffs::mem_realloc_;
 		mov result, eax;
 	}
 	return result;
 }
 
 typedef int (_stdcall *functype)();
-static const functype _art_init=(functype)art_init_;
+static const functype _art_init = (functype)FuncOffs::art_init_;
 static BYTE* mask;
 static void CreateMask() {
 	mask=new BYTE[80*36];
@@ -287,7 +287,7 @@ static void _stdcall SquareLoadCheck(tilestruct* data) {
 static void __declspec(naked) SquareLoadHook() {
 	__asm {
 		mov edi, edx;
-		call db_freadIntCount_;
+		call FuncOffs::db_freadIntCount_;
 		test eax, eax;
 		jnz end;
 		pushad;

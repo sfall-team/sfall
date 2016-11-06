@@ -39,7 +39,7 @@ start:
 		test eax, eax;
 		jz next;
 		lea eax, [ebx+5];
-		call add_bar_box_;
+		call FuncOffs::add_bar_box_;
 		add esi, eax;
 next:
 		inc ebx;

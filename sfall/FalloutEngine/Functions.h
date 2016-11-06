@@ -30,7 +30,7 @@
 * 2) Call _stdcall functions from (1), write those entirely in C++ (with little ASM blocks only to call engine functions, when you are too lazy to add wrapper)
 */
 
-namespace Offset
+namespace FuncOffs
 {
 
 #define FUNC_DECL extern const unsigned long

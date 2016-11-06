@@ -238,7 +238,7 @@ DWORD CreateDSGraph(wchar_t* path,IDirect3DTexture9** tex,sDSTexture* result) {
 static DWORD PlayFrameHook3() {
 	__asm {
 		xor eax, eax;
-		call GNW95_process_message_; //windows message pump
+		call FuncOffs::GNW95_process_message_; //windows message pump
 	}
 	PlayMovieFrame();
 	if(GetAsyncKeyState(VK_ESCAPE)) return 0;

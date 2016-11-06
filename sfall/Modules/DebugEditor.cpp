@@ -80,7 +80,7 @@ static void RunEditorInternal(SOCKET &s) {
 			__asm {
 				mov edx, tile;
 				mov eax, elv;
-				call obj_find_first_at_tile_;
+				call FuncOffs::obj_find_first_at_tile_;
 				mov obj, eax;
 			}
 			while(obj) {
@@ -88,7 +88,7 @@ static void RunEditorInternal(SOCKET &s) {
 				otype = (otype&0xff000000) >> 24;
 				if(otype==1) vec.push_back(obj);
 				__asm {
-					call obj_find_next_at_tile_;
+					call FuncOffs::obj_find_next_at_tile_;
 					mov obj, eax;
 				}
 			}

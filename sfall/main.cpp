@@ -145,7 +145,7 @@ static __declspec(naked) void GetDateWrapper() {
 		push ecx;
 		push esi;
 		push ebx;
-		call game_time_date_;
+		call FuncOffs::game_time_date_;
 		mov ecx, ds:[_pc_proto + 0x4C];
 		pop esi;
 		test esi, esi;
@@ -187,10 +187,10 @@ static __declspec(naked) void PathfinderFix() {
 		push eax;
 		mov eax, ds:[_obj_dude];
 		mov edx, PERK_pathfinder;
-		call perk_level_;
+		call FuncOffs::perk_level_;
 		push eax;
 		call PathfinderFix2;
-		call inc_game_time_;
+		call FuncOffs::inc_game_time_;
 		retn;
 	}
 }
@@ -205,7 +205,7 @@ static __declspec(naked) void FadeHook() {
 		fistp [esp];
 		pop ebx;
 		popf;
-		call fadeSystemPalette_;
+		call FuncOffs::fadeSystemPalette_;
 		retn;
 	}
 }
@@ -225,7 +225,7 @@ up:
 		test ebx, ebx;
 		jz end;
 run:
-		call wmInterfaceScrollTabsStart_;
+		call FuncOffs::wmInterfaceScrollTabsStart_;
 end:
 		pop ebx;
 		retn;
@@ -240,19 +240,19 @@ static void __declspec(naked) worldmap_patch() {
 		mov ecx, wp_delay;
 tck:
 		mov eax, ds:[0x50fb08];
-		call elapsed_time_;
+		call FuncOffs::elapsed_time_;
 		cmp eax, ecx;
 		jl tck;
-		call get_time_;
+		call FuncOffs::get_time_;
 		mov ds:[0x50fb08], eax;
 		popad;
-		jmp get_input_;
+		jmp FuncOffs::get_input_;
 	}
 }
 static void __declspec(naked) WorldMapEncPatch1() {
 	__asm {
 		inc dword ptr ds:[_wmLastRndTime]
-		call wmPartyWalkingStep_;
+		call FuncOffs::wmPartyWalkingStep_;
 		retn;
 	}
 }
@@ -285,7 +285,7 @@ static void __declspec(naked) Combat_p_procFix() {
 		mov ebx, [esi+0x20];
 		xor edx, edx;
 		mov eax, [eax+0x78];
-		call scr_set_objs_;
+		call FuncOffs::scr_set_objs_;
 		mov eax, [esi];
 
 		cmp dword ptr ds:[esi+0x2c], +0x0;
@@ -299,18 +299,18 @@ jmp1:
 		mov edx, 0x1;
 jmp2:
 		mov eax, [eax+0x78];
-		call scr_set_ext_param_;
+		call FuncOffs::scr_set_ext_param_;
 		mov eax, [esi];
 		mov edx, 0xd;
 		mov eax, [eax+0x78];
-		call exec_script_proc_;
+		call FuncOffs::exec_script_proc_;
 		pop edx;
 		pop ebx;
 		pop esi;
 
 end_cppf:
 		pop eax;
-		call stat_level_;
+		call FuncOffs::stat_level_;
 
 		retn;
 	}
@@ -345,7 +345,7 @@ static void __declspec(naked) WorldMapSpeedPatch2() {
 		pushad;
 		call WorldMapSpeedPatch3;
 		popad;
-		call get_input_;
+		call FuncOffs::get_input_;
 		retn;
 	}
 }
@@ -360,7 +360,7 @@ ls:
 		mov eax, eax;
 		loop ls;
 		pop ecx;
-		call get_input_;
+		call FuncOffs::get_input_;
 		retn;
 	}
 }
@@ -370,14 +370,14 @@ static void WorldMapHook() {
 		pushad;
 		call RunGlobalScripts3;
 		popad;
-		call get_input_;
+		call FuncOffs::get_input_;
 		retn;
 	}
 }
 
 static void __declspec(naked) ViewportHook() {
 	__asm {
-		call wmWorldMapLoadTempData_;
+		call FuncOffs::wmWorldMapLoadTempData_;
 		mov eax, ViewportX;
 		mov ds:[_wmWorldOffsetX], eax
 		mov eax, ViewportY;
@@ -412,13 +412,13 @@ static void __declspec(naked) WeaponAnimHook() {
 		je c11;
 		cmp edx, 15;
 		je c15;
-		jmp art_get_code_;
+		jmp FuncOffs::art_get_code_;
 c11:
 		mov edx, 16;
-		jmp art_get_code_;
+		jmp FuncOffs::art_get_code_;
 c15:
 		mov edx, 17;
-		jmp art_get_code_;
+		jmp FuncOffs::art_get_code_;
 	}
 }
 
@@ -431,7 +431,7 @@ static void __declspec(naked) removeDatabase() {
 nextPath:
 		mov  edx, [esp+0x104+4+4]                 // path_patches
 		mov  eax, [ebx]                           // database.path
-		call stricmp_
+		call FuncOffs::stricmp_
 		test eax, eax                             // found path?
 		jz   skip                                 // Yes
 		mov  ecx, ebx
@@ -463,7 +463,7 @@ static void __declspec(naked) game_init_databases_hack2() {
 		je   end
 		mov  eax, ds:[_master_db_handle]
 		mov  eax, [eax]                           // eax = master_patches.path
-		call xremovepath_
+		call FuncOffs::xremovepath_
 		dec  eax                                  // remove path (critter_patches == master_patches)?
 		jz   end                                  // Yes
 		inc  eax
@@ -495,7 +495,7 @@ static void _stdcall SetKarma(int value) {
 	int old;
 	__asm {
 		xor eax, eax;
-		call game_get_global_var_;
+		call FuncOffs::game_get_global_var_;
 		mov old, eax;
 	}
 	old=value-old;
@@ -517,7 +517,7 @@ static void __declspec(naked) SetGlobalVarWrapper() {
 		call SetKarma;
 		popad;
 end:
-		jmp game_set_global_var_;
+		jmp FuncOffs::game_set_global_var_;
 	}
 }
 static void __declspec(naked) ReloadHook() {
@@ -526,20 +526,20 @@ static void __declspec(naked) ReloadHook() {
 		push ebx;
 		push edx;
 		mov eax, dword ptr ds:[_obj_dude];
-		call register_clear_;
+		call FuncOffs::register_clear_;
 		xor eax, eax;
 		inc eax;
-		call register_begin_;
+		call FuncOffs::register_begin_;
 		xor edx, edx;
 		xor ebx, ebx;
 		mov eax, dword ptr ds:[_obj_dude];
 		dec ebx;
-		call register_object_animate_;
-		call register_end_;
+		call FuncOffs::register_object_animate_;
+		call FuncOffs::register_end_;
 		pop edx;
 		pop ebx;
 		pop eax;
-		jmp gsound_play_sfx_file_;
+		jmp FuncOffs::gsound_play_sfx_file_;
 	}
 }
 static const DWORD CorpseHitFix2_continue_loop1 = 0x48B99B;
@@ -547,7 +547,7 @@ static void __declspec(naked) CorpseHitFix2() {
 	__asm {
 		push eax;
 		mov eax, [eax];
-		call critter_is_dead_; // found some object, check if it's a dead critter
+		call FuncOffs::critter_is_dead_; // found some object, check if it's a dead critter
 		test eax, eax;
 		pop eax;
 		jz really_end; // if not, allow breaking the loop (will return this object)
@@ -562,12 +562,13 @@ really_end:
 		retn;
 	}
 }
+
 static const DWORD CorpseHitFix2_continue_loop2 = 0x48BA0B;
 // same logic as above, for different loop
 static void __declspec(naked) CorpseHitFix2b() {
 	__asm {
 		mov eax, [edx];
-		call critter_is_dead_;
+		call FuncOffs::critter_is_dead_;
 		test eax, eax;
 		jz really_end;
 		jmp CorpseHitFix2_continue_loop2;
@@ -591,11 +592,11 @@ static void __declspec(naked) RetryCombatHook() {
 retry:
 		mov eax, esi;
 		xor edx, edx;
-		call combat_ai_;
+		call FuncOffs::combat_ai_;
 process:
 		cmp dword ptr ds:[_combat_turn_running], 0;
 		jle next;
-		call process_bk_;
+		call FuncOffs::process_bk_;
 		jmp process;
 next:
 		mov eax, [esi+0x40];
@@ -657,7 +658,7 @@ static void __declspec(naked) DrawCardHook() {
 		pop edx;
 		pop ecx;
 skip:
-		jmp DrawCard_;
+		jmp FuncOffs::DrawCard_;
 	}
 }
 
@@ -668,7 +669,7 @@ static void __declspec(naked) ScienceCritterCheckHook() {
 		mov eax, 10;
 		retn;
 end:
-		jmp critter_kill_count_type_;
+		jmp FuncOffs::critter_kill_count_type_;
 	}
 }
 
@@ -678,7 +679,7 @@ static void __declspec(naked) NPCStage6Fix1() {
 	__asm {
 		mov eax,0xcc;				// set record size to 204 bytes
 		imul eax,edx;				// multiply by number of NPC records in party.txt
-		call mem_malloc_;			// malloc the necessary memory
+		call FuncOffs::mem_malloc_;			// malloc the necessary memory
 		mov edx,dword ptr ds:[_partyMemberMaxCount];	// retrieve number of NPC records in party.txt
 		mov ebx,0xcc;				// set record size to 204 bytes
 		imul ebx,edx;				// multiply by number of NPC records in party.txt
@@ -703,7 +704,7 @@ static void __declspec(naked) FastShotTraitFix() {
 		je ajmp;				// skip ahead if no
 		mov edx,ecx;				// argument for item_w_range_: hit_mode
 		mov eax,ebx;				// argument for item_w_range_: pointer to source_obj (always dude_obj due to code path)
-		call item_w_range_;			// get weapon's range
+		call FuncOffs::item_w_range_;			// get weapon's range
 		cmp eax,0x2;				// is weapon range less than or equal 2 (i.e. melee/unarmed attack)?
 		jle ajmp;				// skip ahead if yes
 		xor eax,eax;				// otherwise, disallow called shot attempt
@@ -721,7 +722,7 @@ static void __declspec(naked) ScannerAutomapHook() {
 	__asm {
 		mov eax, ds:[_obj_dude];
 		mov edx, 59;
-		call inven_pid_is_carried_ptr_;
+		call FuncOffs::inven_pid_is_carried_ptr_;
 		test eax, eax;
 		jz fail;
 		mov edx, eax;
@@ -739,7 +740,7 @@ fail:
 			__asm {
 				mov  edx, tile;
 				mov  eax, elv;
-				call obj_find_first_at_tile_;
+				call FuncOffs::obj_find_first_at_tile_;
 				mov  obj, eax;
 			}
 			while (obj) {
@@ -751,7 +752,7 @@ fail:
 					obj[0x10] = 0;
 				}
 				__asm {
-					call obj_find_next_at_tile_;
+					call FuncOffs::obj_find_next_at_tile_;
 					mov  obj, eax;
 				}
 			}
@@ -773,12 +774,12 @@ static void __declspec(naked) objCanSeeObj_ShootThru_Fix() {//(EAX *objStruct, E
 		push esi
 		push edi
 
-		push obj_shoot_blocking_at_ //arg3 check hex objects func pointer
+		push FuncOffs::obj_shoot_blocking_at_ //arg3 check hex objects func pointer
 		mov esi, 0x20//arg2 flags, 0x20 = check shootthru
 		push esi
 		mov edi, dword ptr ss : [esp + 0x14] //arg1 **ret_objStruct
 		push edi
-		call make_straight_path_func_;//(EAX *objStruct, EDX hexNum1, EBX hexNum2, ECX ?, stack1 **ret_objStruct, stack2 flags, stack3 *check_hex_objs_func)
+		call FuncOffs::make_straight_path_func_;//(EAX *objStruct, EDX hexNum1, EBX hexNum2, ECX ?, stack1 **ret_objStruct, stack2 flags, stack3 *check_hex_objs_func)
 
 		pop edi
 		pop esi
@@ -824,12 +825,12 @@ static void __declspec(naked) register_object_take_out_hack() {
 		and  edx, 0xFFF                           // Index
 		xor  eax, eax
 		inc  eax                                  // Obj_Type
-		call art_id_
+		call FuncOffs::art_id_
 		xor  ebx, ebx
 		dec  ebx
 		xchg edx, eax
 		pop  eax
-		call register_object_change_fid_
+		call FuncOffs::register_object_change_fid_
 		pop  ecx
 		xor  eax, eax
 		retn
@@ -1640,7 +1641,7 @@ static void __declspec(naked) OnExitFunc() {
 		pushad;
 		call OnExit;
 		popad;
-		jmp DOSCmdLineDestroy_;
+		jmp FuncOffs::DOSCmdLineDestroy_;
 	}
 }
 

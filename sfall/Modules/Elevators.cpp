@@ -53,7 +53,7 @@ static void __declspec(naked) GetMenuHook() {
 		lea ebx, Menus;
 		shl eax, 2;
 		mov eax, [ebx+eax];
-		call elevator_start_;
+		call FuncOffs::elevator_start_;
 		pop ebx;
 		ret;
 	}
@@ -65,7 +65,7 @@ static void __declspec(naked) UnknownHook() {
 		lea ebx, Menus;
 		shl eax, 2;
 		mov eax, [ebx+eax];
-		call Check4Keys_;
+		call FuncOffs::Check4Keys_;
 		pop ebx;
 		ret;
 	}
@@ -76,7 +76,7 @@ static void __declspec(naked) UnknownHook2() {
 		lea ebx, Menus;
 		shl eax, 2;
 		mov eax, [ebx+eax];
-		call elevator_end_;
+		call FuncOffs::elevator_end_;
 		pop ebx;
 		ret;
 	}

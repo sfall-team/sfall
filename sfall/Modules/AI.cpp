@@ -53,7 +53,7 @@ static void __declspec(naked) combat_attack_hook() {
 		push eax;
 		call CombatAttackHook;
 		popad;
-		jmp combat_attack_;
+		jmp FuncOffs::combat_attack_;
 	}
 }
 

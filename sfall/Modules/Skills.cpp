@@ -131,7 +131,7 @@ static int __declspec(naked) _stdcall stat_level(void* critter, int stat) {
 		push edx;
 		mov eax, [esp+8];
 		mov edx, [esp+12];
-		call stat_level_;
+		call FuncOffs::stat_level_;
 		pop edx;
 		ret 8;
 	}
@@ -172,7 +172,7 @@ static void __declspec(naked) SkillIncCostHook() {
 		jz next;
 		mov edx, ebx;
 		mov eax, esi;
-		call skill_points_;
+		call FuncOffs::skill_points_;
 next:
 		mov edx, ebx;
 		shl edx, 9;
@@ -192,7 +192,7 @@ static void __declspec(naked) SkillDecCostHook() {
 		jz next;
 		mov edx, ebx;
 		mov eax, edi;
-		call skill_points_;
+		call FuncOffs::skill_points_;
 next:
 		lea ecx, [eax-1];
 		mov edx, ebx;
@@ -289,7 +289,7 @@ void SkillsInit() {
 		HookCall(0x4AA9E1, &SkillLevelCostHook);
 		HookCall(0x4AA9F1, &SkillLevelCostHook);
 		basedOnPoints=GetPrivateProfileIntA("Skills", "BasedOnPoints", 0, file);
-		if(basedOnPoints) HookCall(0x4AA9EC, (void*)skill_points_);
+		if(basedOnPoints) HookCall(0x4AA9EC, (void*)FuncOffs::skill_points_);
 	}
 }
 
