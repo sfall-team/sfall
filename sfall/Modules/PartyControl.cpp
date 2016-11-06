@@ -310,7 +310,7 @@ static void _declspec(naked) CombatHack_add_noncoms_() {
 		call CombatWrapper_v2;
 		cmp eax, -1;
 		jne gonormal;
-		mov eax, VarPtr::list_com;
+		mov eax, VARPTR_list_com;
 		mov [eax], 0;
 		mov ecx, [esp];
 gonormal:

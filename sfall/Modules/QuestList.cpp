@@ -34,7 +34,7 @@ static void __declspec(naked) newhookpress() {
 		mov wait_flag, 0;
 		mov total_quests, 0;
 		pop eax;
-		mov edx,ds:[VarPtr::crnt_func];
+		mov edx,ds:[VARPTR_crnt_func];
 		retn;
 		}
 }
@@ -187,7 +187,7 @@ smpj1:
 		mov ebx, ds:[0x6642E4];
 		push -0x1;
 		mov ecx, ds:[0x6642E0];
-		mov eax, ds:[VarPtr::pip_win];
+		mov eax, ds:[VARPTR_pip_win];
 		push ebx;
 		mov edx, 0x35;
 		mov ebx, edi;
@@ -280,7 +280,7 @@ smpj4:
 		mov ebx, 0xE;
 		push -0x1;
 		mov ecx, 0xB;
-		mov eax, ds:[VarPtr::pip_win];
+		mov eax, ds:[VARPTR_pip_win];
 		push ebx;
 		mov edx, 0x8B;
 		mov ebx, edi;
@@ -307,7 +307,7 @@ smpj16:
 		mov ebx, 0xE;
 		push -0x1;
 		mov ecx, 0xB;
-		mov eax, ds:[VarPtr::pip_win];
+		mov eax, ds:[VARPTR_pip_win];
 		push ebx;
 		mov edx, 0x8B;
 		mov ebx, edi;

@@ -115,10 +115,10 @@ static DWORD _stdcall combatSaveTest() {
 		DWORD bonusmove;
 		__asm {
 			mov edx, 8;
-			mov eax, ds:[VarPtr::obj_dude];
+			mov eax, ds:[VARPTR_obj_dude];
 			call FuncOffs::stat_level_;
 			mov ap, eax;
-			mov eax, ds:[VarPtr::obj_dude];
+			mov eax, ds:[VARPTR_obj_dude];
 			mov edx, 3;
 			call FuncOffs::perk_level_;
 			mov bonusmove, eax;
@@ -250,7 +250,7 @@ static void __declspec(naked) NewGame() {
 		pushad;
 		call NewGame2;
 		mov  al, DisableHorrigan;
-		mov  byte ptr ds:[VarPtr::Meet_Frank_Horrigan], al;
+		mov  byte ptr ds:[VARPTR_Meet_Frank_Horrigan], al;
 		popad;
 		call FuncOffs::main_game_loop_;
 		retn;
@@ -269,7 +269,7 @@ static void __declspec(naked) MainMenu() {
 		push 0;
 		call ResetState;
 		mov  al, PipBoyAvailableAtGameStart;
-		mov  byte ptr ds:[VarPtr::gmovie_played_list + 0x3], al;
+		mov  byte ptr ds:[VARPTR_gmovie_played_list + 0x3], al;
 		call ReadExtraGameMsgFilesIfNeeded;
 		call LoadHeroAppearance;
 		popad;

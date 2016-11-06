@@ -48,7 +48,7 @@ static void __declspec(naked) GetCurrentStatHook2() {
 	__asm {
 		shl esi, 2;
 		mov eax, cCritter;
-		cmp eax, dword ptr ds:[VarPtr::obj_dude];
+		cmp eax, dword ptr ds:[VARPTR_obj_dude];
 		je pc;
 		cmp ecx, StatMinimumsNPC[esi];
 		jg npc1;
@@ -82,7 +82,7 @@ end:
 
 static void __declspec(naked) SetCurrentStatHook() {
 	__asm {
-		cmp esi, dword ptr ds:[VarPtr::obj_dude];
+		cmp esi, dword ptr ds:[VARPTR_obj_dude];
 		je pc;
 		cmp ebx, StatMinimumsNPC[ecx*4];
 		jl fail;
@@ -113,7 +113,7 @@ static void __declspec(naked) GetLevelXPHook() {
 }
 static void __declspec(naked) GetNextLevelXPHook() {
 	__asm {
-		mov eax, ds:[VarPtr::Level_];
+		mov eax, ds:[VARPTR_Level_];
 		jmp GetLevelXPHook;
 	}
 }
@@ -131,7 +131,7 @@ static void __declspec(naked) ApplyApAcBonus() {
 		jmp standard;
 h2hEvade:
 		mov edx, PERK_hth_evade_perk;
-		mov eax, dword ptr ds:[VarPtr::obj_dude];
+		mov eax, dword ptr ds:[VARPTR_obj_dude];
 		call FuncOffs::perk_level_;
 		imul ax, ExtraApAcBonus;
 		imul ax, [ebx+0x40];

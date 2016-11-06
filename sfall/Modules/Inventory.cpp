@@ -176,7 +176,7 @@ static const DWORD ObjPickupEnd=0x49B6F8;
 static const DWORD size_limit;
 static __declspec(naked) void  ObjPickupHook() {
 	__asm {
-		cmp edi, ds:[VarPtr::obj_dude];
+		cmp edi, ds:[VARPTR_obj_dude];
 		jnz end;
 end:
 		lea edx, [esp+0x10];
@@ -192,7 +192,7 @@ static __declspec(naked) int CritterCheck() {
 		sub esp, 4;
 		mov ebx, eax;
 
-		cmp eax, dword ptr ds:[VarPtr::obj_dude];
+		cmp eax, dword ptr ds:[VARPTR_obj_dude];
 		je single;
 		test mode, 3;
 		jnz run;
@@ -354,13 +354,13 @@ static __declspec(naked) void DisplayStatsHook() {
 		call CritterCheck;
 		jz nolimit;
 		push eax;
-		mov eax, ds:[VarPtr::stack];
+		mov eax, ds:[VARPTR_stack];
 		push ecx;
 		push InvenFmt1;
 		push offset InvenFmt;
 		call strcpy_wrapper;
 		pop ecx;
-		mov eax, ds:[VarPtr::stack];
+		mov eax, ds:[VARPTR_stack];
 		call item_total_size;
 		push eax;
 		push ecx;
@@ -378,7 +378,7 @@ nolimit:
 		push eax;
 		push eax;
 end:
-		mov eax, ds:[VarPtr::stack];
+		mov eax, ds:[VARPTR_stack];
 		mov edx, 0xc;
 		jmp DisplayStatsEnd;
 	}

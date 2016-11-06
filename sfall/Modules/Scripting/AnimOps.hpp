@@ -50,7 +50,7 @@ end1:
 // checks if combat mode is enabled (using R8 8-bit register) and jumps to GOTOFAIL if it is (does nothing if reg_anim_combat_check is 0)
 #define _CHECK_COMBAT_MODE(R8, GOTOFAIL) __asm { \
 	__asm mov R8, reg_anim_combat_check   \
-	__asm test byte ptr VarPtr::combat_state, R8		\
+	__asm test byte ptr ds:VARPTR_combat_state, R8		\
 	__asm jnz GOTOFAIL }
 
 static void __declspec(naked) op_reg_anim_destroy() {

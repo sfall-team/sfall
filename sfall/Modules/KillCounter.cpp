@@ -36,7 +36,7 @@ static DWORD __declspec(naked) ReadKillCounter(DWORD killtype) {
 		ret;
 func:
 		push ebx;
-		lea ebx, ds:[VarPtr::pc_kill_counts+eax*2];
+		lea ebx, ds:[VARPTR_pc_kill_counts+eax*2];
 		xor eax,eax;
 		mov ax, word ptr [ebx]
 		pop ebx;
@@ -53,7 +53,7 @@ static void __declspec(naked) IncKillCounter(DWORD killtype) {
 		ret;
 func:
 		push ebx;
-		lea ebx, ds:[VarPtr::pc_kill_counts+eax*2];
+		lea ebx, ds:[VARPTR_pc_kill_counts+eax*2];
 		xor eax, eax;
 		mov ax, word ptr [ebx];
 		inc ax;

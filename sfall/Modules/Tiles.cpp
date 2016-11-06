@@ -236,13 +236,13 @@ static int _stdcall ArtInitHook2() {
 static void __declspec(naked) ArtInitHook() {
 	__asm {
 		pushad;
-		mov eax, dword ptr ds:[VarPtr::read_callback];
+		mov eax, dword ptr ds:[VARPTR_read_callback];
 		push eax;
 		xor eax, eax;
-		mov dword ptr ds:[VarPtr::read_callback], eax;
+		mov dword ptr ds:[VARPTR_read_callback], eax;
 		call ArtInitHook2;
 		pop eax;
-		mov dword ptr ds:[VarPtr::read_callback], eax;
+		mov dword ptr ds:[VARPTR_read_callback], eax;
 		popad;
 		xor eax, eax;
 		retn;

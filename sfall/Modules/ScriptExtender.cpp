@@ -1089,12 +1089,12 @@ static void __declspec(naked) FreeProgramHook() {
 static void __declspec(naked) obj_outline_all_items_on() {
 	__asm {
 		pushad
-		mov  eax, dword ptr ds:[VarPtr::map_elevation]
+		mov  eax, dword ptr ds:[VARPTR_map_elevation]
 		call FuncOffs::obj_find_first_at_
 loopObject:
 		test eax, eax
 		jz   end
-		cmp  eax, ds:[VarPtr::outlined_object]
+		cmp  eax, ds:[VARPTR_outlined_object]
 		je   nextObject
 		xchg ecx, eax
 		mov  eax, [ecx+0x20]
@@ -1127,12 +1127,12 @@ end:
 static void __declspec(naked) obj_outline_all_items_off() {
 	__asm {
 		pushad
-		mov  eax, dword ptr ds:[VarPtr::map_elevation]
+		mov  eax, dword ptr ds:[VARPTR_map_elevation]
 		call FuncOffs::obj_find_first_at_
 loopObject:
 		test eax, eax
 		jz   end
-		cmp  eax, ds:[VarPtr::outlined_object]
+		cmp  eax, ds:[VARPTR_outlined_object]
 		je   nextObject
 		xchg ecx, eax
 		mov  eax, [ecx+0x20]
@@ -1160,7 +1160,7 @@ static void __declspec(naked) obj_remove_outline_hook() {
 		jnz  end
 		cmp  highlightingToggled, 1
 		jne  end
-		mov  ds:[VarPtr::outlined_object], eax
+		mov  ds:[VARPTR_outlined_object], eax
 		call obj_outline_all_items_on
 end:
 		retn
@@ -1739,7 +1739,7 @@ static void RunGlobalScripts1() {
 				if (MotionSensorMode&4) {
 					DWORD scanner;
 					__asm {
-						mov eax, ds:[VarPtr::obj_dude];
+						mov eax, ds:[VARPTR_obj_dude];
 						mov edx, PID_MOTION_SENSOR
 						call FuncOffs::inven_pid_is_carried_ptr_
 						mov scanner, eax;

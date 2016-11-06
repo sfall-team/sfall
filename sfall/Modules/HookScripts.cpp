@@ -523,13 +523,13 @@ static void __declspec(naked) BarterPriceHook() {
 		mov args[0], eax;
 		mov args[4], edx;
 		call FuncOffs::barter_compute_value_
-		mov edx, ds:[VarPtr::btable]
+		mov edx, ds:[VARPTR_btable]
 		mov args[8], eax;
 		mov args[12], edx;
 		xchg eax, edx;
 		call FuncOffs::item_caps_total_
 		mov args[16], eax;
-		mov eax, ds:[VarPtr::btable]
+		mov eax, ds:[VARPTR_btable]
 		call FuncOffs::item_total_cost_
 		mov args[20], eax;
 		mov eax, edx;
@@ -896,7 +896,7 @@ static void _declspec(naked) UseArmorHack() {
 		mov args[0], 3;
 		mov eax, [esp+24]; // item
 		mov args[4], eax;
-  		mov eax, ds:[VarPtr::i_worn]
+  		mov eax, ds:[VARPTR_i_worn]
 		mov args[8], eax;
 		pushad;
 		push HOOK_INVENTORYMOVE;

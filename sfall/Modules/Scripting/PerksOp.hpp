@@ -27,7 +27,7 @@ static void __declspec(naked) GetPerkOwed() {
 	__asm {
 		pushad;
 		mov ecx, eax;
-		movzx edx, byte ptr ds:[VarPtr::free_perk];
+		movzx edx, byte ptr ds:[VARPTR_free_perk];
 		call FuncOffs::interpretPushLong_;
 		mov edx, 0xc001;
 		mov eax, ecx;
@@ -49,7 +49,7 @@ static void __declspec(naked) SetPerkOwed() {
 		and eax, 0xff;
 		cmp eax, 250;
 		jg end;
-		mov byte ptr ds:[VarPtr::free_perk], al
+		mov byte ptr ds:[VARPTR_free_perk], al
 end:
 		popad
 		retn;
@@ -85,7 +85,7 @@ static void __declspec(naked) GetPerkAvailable() {
 		cmp eax, PERK_count;
 		jge fail;
 		mov edx, eax;
-		mov eax, ds:[VarPtr::obj_dude];
+		mov eax, ds:[VARPTR_obj_dude];
 		call FuncOffs::perk_make_list_;
 		mov edx, eax;
 		jmp end;
@@ -583,16 +583,16 @@ static void __declspec(naked) remove_trait() {
 		jnz end;
 		xor ebx, ebx;
 		dec ebx;
-		mov ecx, ds:[VarPtr::pc_trait + 4];
-		cmp eax, ds:[VarPtr::pc_trait];
+		mov ecx, ds:[VARPTR_pc_trait + 4];
+		cmp eax, ds:[VARPTR_pc_trait];
 		jne next;
-		mov ds:[VarPtr::pc_trait], ecx;
-		mov ds:[VarPtr::pc_trait + 4], ebx;
+		mov ds:[VARPTR_pc_trait], ecx;
+		mov ds:[VARPTR_pc_trait + 4], ebx;
 		jmp end;
 next:
-		cmp eax, ds:[VarPtr::pc_trait + 4];
+		cmp eax, ds:[VARPTR_pc_trait + 4];
 		jne end;
-		mov ds:[VarPtr::pc_trait + 4], ebx;
+		mov ds:[VARPTR_pc_trait + 4], ebx;
 end:
 		popad;
 		retn;

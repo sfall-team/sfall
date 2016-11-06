@@ -164,7 +164,7 @@ static void __declspec(naked) GetYear() {
 		mov eax, AddUnarmedStatToGetYear;
 		test eax, eax;
 		jz end;
-		add edx, ds:[VarPtr::pc_proto + 0x4C];
+		add edx, ds:[VARPTR_pc_proto + 0x4C];
 end:
 		mov eax, edi;
 		call FuncOffs::interpretPushLong_;
@@ -247,7 +247,7 @@ static void __declspec(naked) SetPipBoyAvailable() {
 		jl end;
 		cmp eax, 1;
 		jg end;
-		mov byte ptr ds:[VarPtr::gmovie_played_list + 0x3], al;
+		mov byte ptr ds:[VARPTR_gmovie_played_list + 0x3], al;
 end:
 		pop edx;
 		pop ecx;
@@ -273,7 +273,7 @@ static void __declspec(naked) GetKillCounter() {
 		jnz fail;
 		cmp eax, 19;
 		jge fail;
-		mov edx, ds:[VarPtr::pc_kill_counts+eax*4];
+		mov edx, ds:[VARPTR_pc_kill_counts+eax*4];
 		jmp end;
 fail:
 
@@ -314,7 +314,7 @@ static void __declspec(naked) ModKillCounter() {
 		jnz end;
 		cmp eax, 19;
 		jge end;
-		add ds:[VarPtr::pc_kill_counts+eax*4], edi;
+		add ds:[VARPTR_pc_kill_counts+eax*4], edi;
 end:
 		pop esi;
 		pop edi;
@@ -443,7 +443,7 @@ static void __declspec(naked) GetKillCounter2() {
 		jnz fail;
 		cmp eax, 38;
 		jge fail;
-		movzx edx, word ptr ds:[VarPtr::pc_kill_counts+eax*2];
+		movzx edx, word ptr ds:[VARPTR_pc_kill_counts+eax*2];
 		jmp end;
 fail:
 		xor edx, edx;
@@ -483,7 +483,7 @@ static void __declspec(naked) ModKillCounter2() {
 		jnz end;
 		cmp eax, 38;
 		jge end;
-		add word ptr ds:[VarPtr::pc_kill_counts+eax*2], di;
+		add word ptr ds:[VARPTR_pc_kill_counts+eax*2], di;
 end:
 		pop esi;
 		pop edi;
@@ -500,7 +500,7 @@ static void __declspec(naked) GetActiveHand() {
 		push ecx;
 		push edx;
 		mov ecx, eax;
-		mov edx, dword ptr ds:[VarPtr::itemCurrentItem];
+		mov edx, dword ptr ds:[VARPTR_itemCurrentItem];
 		call FuncOffs::interpretPushLong_;
 		mov edx, 0xc001;
 		mov eax, ecx;
@@ -671,11 +671,11 @@ next:
 		mov eax, edi;
 		call FuncOffs::interpretGetString_;
 		push eax;
-		push ds:[VarPtr::partyMemberLevelUpInfoList];
-		push ds:[VarPtr::partyMemberPidList];
-		push ds:[VarPtr::partyMemberList];
-		push ds:[VarPtr::partyMemberMaxCount];
-		push ds:[VarPtr::partyMemberCount];
+		push ds:[VARPTR_partyMemberLevelUpInfoList];
+		push ds:[VARPTR_partyMemberPidList];
+		push ds:[VARPTR_partyMemberList];
+		push ds:[VARPTR_partyMemberMaxCount];
+		push ds:[VARPTR_partyMemberCount];
 		call get_npc_level2;
 		mov edx, eax;
 		jmp end;
@@ -839,7 +839,7 @@ static void __declspec(naked) SetCarTown() {
 		call FuncOffs::interpretPopLong_;
 		cmp dx, 0xC001;
 		jnz end;
-		mov ds:[VarPtr::CarCurrArea], eax;
+		mov ds:[VARPTR_CarCurrArea], eax;
 end:
 		pop edi;
 		pop edx;
@@ -887,7 +887,7 @@ static void __declspec(naked) GetBodypartHitModifier() {
 		jg   fail
 		test eax, eax
 		jl   fail
-		mov  edx, ds:[VarPtr::hit_location_penalty+eax*4]
+		mov  edx, ds:[VARPTR_hit_location_penalty+eax*4]
 		jmp  end
 fail:
 		xor  edx, edx
@@ -930,7 +930,7 @@ static void __declspec(naked) SetBodypartHitModifier() {
 skip:
 		test eax, eax
 		jl   end
-		mov  ds:[VarPtr::hit_location_penalty+eax*4], ebx
+		mov  ds:[VARPTR_hit_location_penalty+eax*4], ebx
 		cmp  eax, 8                               // Body_Uncalled?
 		jne  end                                  // No
 		sub  eax, 5                               // Body_Torso
@@ -1125,7 +1125,7 @@ next:
 		mov eax, ecx;
 		call FuncOffs::interpretGetString_;
   call FuncOffs::loadColorTable_
-		mov eax, VarPtr::cmap
+		mov eax, VARPTR_cmap
   call FuncOffs::palette_set_to_
 end:
 		pop edx;
@@ -1316,7 +1316,7 @@ static void __declspec(naked) get_light_level() {
 	__asm {
 		pushad;
 		mov ecx, eax;
-		mov edx, ds:[VarPtr::ambient_light];
+		mov edx, ds:[VARPTR_ambient_light];
 		call FuncOffs::interpretPushLong_
 		mov edx, 0xc001;
 		mov eax, ecx;
@@ -1342,7 +1342,7 @@ static void __declspec(naked) get_attack_type() {
 		push edx;
 		push ecx;
 		mov ecx, eax;
-		mov edx, ds:[VarPtr::main_ctd + 0x4];
+		mov edx, ds:[VARPTR_main_ctd + 0x4];
 		call FuncOffs::interpretPushLong_;
 		mov eax, ecx;
 		mov edx, 0xc001;
@@ -1427,7 +1427,7 @@ static void __declspec(naked) get_tile_pid() {
 		mov eax, [esp];
 		mov edx, [esp+4];
 		call FuncOffs::square_num_;
-		mov edx, ds:[VarPtr::square];
+		mov edx, ds:[VARPTR_square];
 		movzx edx, word ptr ds:[edx+eax*4];
 		add esp, 8;
 		jmp end;
@@ -1510,7 +1510,7 @@ static void __declspec(naked) mark_movie_played() {
 		jl end;
 		cmp eax, 0x11;
 		jge end;
-		mov byte ptr ds:[eax + VarPtr::gmovie_played_list], 1;
+		mov byte ptr ds:[eax + VARPTR_gmovie_played_list], 1;
 end:
 		pop edx;
 		pop ecx;
@@ -1596,7 +1596,7 @@ static void __declspec(naked) tile_under_cursor() {
 		lea edx, [esp];
 		lea eax, [esp+4];
 		call FuncOffs::mouse_get_position_;
-		mov ebx, dword ptr ds:[VarPtr::map_elevation];
+		mov ebx, dword ptr ds:[VARPTR_map_elevation];
 		mov edx, [esp];
 		mov eax, [esp+4];
 		call FuncOffs::tile_num_;
@@ -1618,7 +1618,7 @@ static void __declspec(naked) gdialog_get_barter_mod() {
 		push edx;
 		push ecx;
 		mov ecx, eax;
-		mov edx, dword ptr ds:[VarPtr::gdBarterMod];
+		mov edx, dword ptr ds:[VARPTR_gdBarterMod];
 		call FuncOffs::interpretPushLong_;
 		mov eax, ecx;
 		mov edx, 0xc001;
@@ -1651,7 +1651,7 @@ end:
 static void __declspec(naked) op_sneak_success() {
 	_OP_BEGIN(ebp)
 	__asm {
-		mov eax, ds:[VarPtr::sneak_working]
+		mov eax, ds:[VARPTR_sneak_working]
 	}
 	_RET_VAL_INT(ebp)
 	_OP_END
