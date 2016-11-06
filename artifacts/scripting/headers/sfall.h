@@ -187,3 +187,12 @@
 
 #define party_member_list_critters      party_member_list(0)
 #define party_member_list_all           party_member_list(1)
+
+
+#define spatial_radius(obj)                   sfall_func1("spatial_radius", obj)
+#define critter_inven_obj2(obj, type)         sfall_func2("critter_inven_obj2", obj, type)
+#define intface_redraw                        sfall_func0("intface_redraw")
+#define intface_hide                          sfall_func0("intface_hide")
+#define intface_show                          sfall_func0("intface_show")
+#define intface_is_hidden                     sfall_func0("intface_is_hidden")
+#define exec_map_update_scripts               sfall_func0("exec_map_update_scripts")

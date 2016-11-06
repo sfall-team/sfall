@@ -159,7 +159,7 @@ static void __declspec(naked) op_create_spatial() {
 }
 
 static void sf_spatial_radius() {
-	TGameObj* spatialObj = opHandler.arg(1).asObject();
+	TGameObj* spatialObj = opHandler.arg(0).asObject();
 	TScript* script;
 	if (ScrPtr(spatialObj->scriptID, &script) != -1) {
 		opHandler.setReturn(script->spatial_radius);
@@ -536,8 +536,8 @@ static void __declspec(naked) op_obj_is_carrying_obj() {
 }
 
 static void sf_critter_inven_obj2() {
-	TGameObj* critter = opHandler.arg(1).asObject();
-	int slot = opHandler.arg(2).asInt();
+	TGameObj* critter = opHandler.arg(0).asObject();
+	int slot = opHandler.arg(1).asInt();
 	switch (slot) {
 	case 0:
 		opHandler.setReturn(InvenWorn(critter));
@@ -552,6 +552,6 @@ static void sf_critter_inven_obj2() {
 		opHandler.setReturn(critter->invenCount);
 		break;
 	default:
-		PrintOpcodeError("critter_inven_obj2() - invalid type.");
+		opHandler.printOpcodeError("critter_inven_obj2() - invalid type.");
 	}
 }

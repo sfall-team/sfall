@@ -146,7 +146,7 @@ __asm resultnotstr##num:				\
 	__asm push func					\
 	__asm push eax					\
 	__asm lea ecx, opHandler		\
-	__asm call OpcodeHandler::HandleOpcode	\
+	__asm call OpcodeHandler::handleOpcode	\
 	__asm popad						\
 	__asm retn						\
 }
