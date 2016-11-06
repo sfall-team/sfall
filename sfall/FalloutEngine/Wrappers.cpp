@@ -61,6 +61,14 @@ void display_print(const char* msg) {
 	}
 }
 
+void executeProcedure(TProgram* sptr, int procNum) {
+	__asm {
+		mov edx, procNum;
+		mov eax, sptr;
+		call FuncOffs::executeProcedure_
+	}
+}
+
 const char* _stdcall getmsg(DWORD fileAddr, int messageId, sMessage* result) {
 	__asm {
 		mov eax, fileAddr
@@ -121,6 +129,14 @@ int __stdcall scr_ptr(int scriptId, TScript** scriptPtr) {
 // redraws the main game interface windows (useful after changing some data like active hand, etc.)
 void intface_redraw() {
 	__asm call FuncOffs::intface_redraw_
+}
+
+int __stdcall interpretFindProcedure(TProgram* scriptPtr, const char* procName) {
+	__asm {
+		mov edx, procName;
+		mov eax, scriptPtr;
+		call FuncOffs::interpretFindProcedure_;
+	}
 }
 
 // pops value type from Data stack (must be followed by InterpretPopLong)
@@ -214,6 +230,13 @@ int __stdcall message_search(DWORD* file, sMessage* msg) {
 		mov edx, msg;
 		mov eax, file;
 		call FuncOffs::message_search_;
+	}
+}
+
+DWORD* __stdcall runProgram(TProgram* progPtr) {
+	__asm {
+		mov eax, progPtr;
+		call FuncOffs::runProgram_;
 	}
 }
 

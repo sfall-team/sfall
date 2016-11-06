@@ -83,7 +83,7 @@ static void _stdcall RunSpecificHookScript(sHookScript *hook) {
 	cArg=0;
 	cRetTmp=0;
 	if (hook->callback != -1)
-		RunScriptProcByNum(hook->prog.ptr, hook->callback);
+		Wrapper::executeProcedure(hook->prog.ptr, hook->callback);
 	else
 		RunScriptProc(&hook->prog, start);
 }
@@ -1076,7 +1076,7 @@ void _stdcall SetHSReturn(DWORD d) {
 	if (cRetTmp > cRet)
 		cRet = cRetTmp;
 }
-void _stdcall RegisterHook( DWORD script, DWORD id, DWORD procNum )
+void _stdcall RegisterHook(TProgram* script, int id, int procNum )
 {
 	if (id >= numHooks) return;
 	for (std::vector<sHookScript>::iterator it = hooks[id].begin(); it != hooks[id].end(); ++it) {
@@ -1108,7 +1108,7 @@ static void LoadHookScript(const char* name, int id) {
 		mov  fileExist, al
 	}
 
-	if (fileExist && !isGameScript(name)) {
+	if (fileExist && !IsGameScript(name)) {
 		sScriptProgram prog;
 		dlog(">", DL_HOOK);
 		dlog(name, DL_HOOK);

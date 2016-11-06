@@ -21,11 +21,14 @@
 #include "..\..\main.h"
 
 #include "..\AI.h"
+#include "..\Criticals.h"
 #include "..\HeroAppearance.h"
+#include "..\Inventory.h"
 #include "..\KillCounter.h"
 #include "..\Knockback.h"
 #include "..\Movies.h"
 #include "..\ScriptExtender.h"
+#include "..\Stats.h"
 
 /*
  *	Misc operators
@@ -972,6 +975,7 @@ end:
 		retn;
 	}
 }
+
 static void __declspec(naked) funcGetCriticalTable() {
 	__asm {
 		pushad;

@@ -222,9 +222,12 @@
     <ClInclude Include="Modules\Scripting\MetaruleOp.hpp" />
     <ClInclude Include="Modules\Scripting\MiscOps.hpp" />
     <ClInclude Include="Modules\Scripting\ObjectsOps.hpp" />
+    <ClInclude Include="Modules\Scripting\OpcodeHandler.h" />
+    <ClInclude Include="Modules\Scripting\Opcodes.hpp" />
     <ClInclude Include="Modules\Scripting\PerksOp.hpp" />
     <ClInclude Include="Modules\Scripting\ScriptArrays.hpp" />
     <ClInclude Include="Modules\Scripting\ScriptUtils.hpp" />
+    <ClInclude Include="Modules\Scripting\ScriptValue.h" />
     <ClInclude Include="Modules\Scripting\StatsOp.hpp" />
     <ClInclude Include="Modules\Scripting\WorldmapOps.hpp" />
     <ClInclude Include="win9x\Cpp11_emu.h" />
@@ -305,6 +308,8 @@
     <ClCompile Include="Modules\QuestList.cpp" />
     <ClCompile Include="Modules\Reputations.cpp" />
     <ClCompile Include="Modules\Scripting\Arrays.cpp" />
+    <ClCompile Include="Modules\Scripting\OpcodeHandler.cpp" />
+    <ClCompile Include="Modules\Scripting\ScriptValue.cpp" />
     <ClCompile Include="SafeWrite.cpp" />
     <ClCompile Include="Modules\Skills.cpp" />
     <ClCompile Include="Modules\Sound.cpp" />

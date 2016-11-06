@@ -38,6 +38,9 @@ char* proto_ptr(DWORD pid);
 // Displays message in main UI console window
 void display_print(const char* msg);
 
+// execute script proc by internal proc number (from script's proc table, basically a sequential number of a procedure as defined in code, starting from 1)
+void executeProcedure(TProgram* sptr, int procNum);
+
 int __stdcall item_get_type(TGameObj* item);
 
 // Change the name of playable character
@@ -68,6 +71,9 @@ TGameObj* __stdcall inven_left_hand(TGameObj* critter);
 // item in critter's right hand slot
 TGameObj* __stdcall inven_right_hand(TGameObj* critter);
 
+// finds procedure ID for given script program pointer and procedure name
+int __stdcall interpretFindProcedure(TProgram* scriptPtr, const char* procName);
+
 // pops value type from Data stack (must be followed by InterpretPopLong)
 DWORD __stdcall interpretPopShort(TProgram* scriptPtr);
 
@@ -95,5 +101,7 @@ void __declspec() debug_printf(const char* fmt, ...);
 const char* __stdcall findCurrentProc(TProgram* program);
 
 int __stdcall message_search(DWORD* file, sMessage* msg);
+
+DWORD* __stdcall runProgram(TProgram* progPtr);
 
 }

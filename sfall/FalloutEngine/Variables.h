@@ -218,6 +218,7 @@ namespace VarPtr
 #define VARDECL(type, name)	\
 	extern type* const name;
 
+// TODO: assign appropriate types (arrays, structs, strings, etc.) for all variables
 
 VARDECL(long, pc_trait) // 2 of them
 VARDECL(DWORD, aiInfoList)

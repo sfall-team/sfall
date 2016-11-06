@@ -135,16 +135,8 @@ static bool ValidateMetaruleArguments(const SfallMetarule* metaruleInfo) {
 
 		return false;
 	} else {
-		// check if metadata is available for this handler
-		OpcodeMetaTableType::iterator it = opcodeMetaTable.find(metaruleInfo->func);
-		if (it != opcodeMetaTable.end()) {
-			const SfallOpcodeMetadata* meta = it->second;
-
-			// automatically validate argument types
-			return opHandler.validateArguments(meta->argTypeMasks, argCount, metaruleInfo->name);
-		}
+		return opHandler.validateArguments(metaruleInfo->func, argCount);
 	}
-	return true;
 }
 
 static void _stdcall op_sfall_metarule_handler() {

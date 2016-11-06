@@ -204,6 +204,15 @@
     <ClInclude Include="FalloutEngine\Utils.h">
       <Filter>FalloutEngine</Filter>
     </ClInclude>
+    <ClInclude Include="Modules\Scripting\OpcodeHandler.h">
+      <Filter>Modules\Scripting</Filter>
+    </ClInclude>
+    <ClInclude Include="Modules\Scripting\ScriptValue.h">
+      <Filter>Modules\Scripting</Filter>
+    </ClInclude>
+    <ClInclude Include="Modules\Scripting\Opcodes.hpp">
+      <Filter>Modules\Scripting</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
@@ -339,6 +348,12 @@
     </ClCompile>
     <ClCompile Include="FalloutEngine\Utils.cpp">
       <Filter>FalloutEngine</Filter>
+    </ClCompile>
+    <ClCompile Include="Modules\Scripting\OpcodeHandler.cpp">
+      <Filter>Modules\Scripting</Filter>
+    </ClCompile>
+    <ClCompile Include="Modules\Scripting\ScriptValue.cpp">
+      <Filter>Modules\Scripting</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

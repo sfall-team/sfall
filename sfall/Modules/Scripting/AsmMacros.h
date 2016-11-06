@@ -10,6 +10,15 @@
 	- use this macros outside of other __asm {} blocks (obviously)
 */
 
+//eax contains the script pointer, edx contains the opcode*4
+
+//To read a value, mov the script pointer to eax, call interpretPopShort_, eax now contains the value type
+//mov the script pointer to eax, call interpretPopLong_, eax now contains the value
+
+//To return a value, move it to edx, mov the script pointer to eax, call FuncOffs::interpretPushLong_
+//mov the value type to edx, mov the script pointer to eax, call FuncOffs::interpretPushShort_
+
+
 // rscript - 32-bit register where script pointer will be put (it is used for several related functions)
 #define _OP_BEGIN(rscript) __asm \
 {							\

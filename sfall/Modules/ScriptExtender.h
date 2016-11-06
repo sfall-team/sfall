@@ -17,15 +17,9 @@
  */
 
 #pragma once
-#include "..\main.h"
 
-// TODO: replace with enum class
-enum SfallDataType {
-	DATATYPE_NONE = 0,
-	DATATYPE_INT,
-	DATATYPE_FLOAT,
-	DATATYPE_STR
-};
+#include "..\main.h"
+#include "..\FalloutEngine\Structs.h"
 
 struct sGlobalVar {
 	__int64 id;
@@ -34,13 +28,13 @@ struct sGlobalVar {
 
 #define SCRIPT_PROC_MAX (27)
 typedef struct {
-	DWORD ptr;
-	DWORD procLookup[SCRIPT_PROC_MAX+1];
+	TProgram* ptr;
+	int procLookup[SCRIPT_PROC_MAX+1];
 	char initialized;
 } sScriptProgram;
 
 void ScriptExtenderSetup();
-bool _stdcall isGameScript(const char* filename);
+bool _stdcall IsGameScript(const char* filename);
 void LoadGlobalScripts();
 void ClearGlobalScripts();
 
@@ -66,22 +60,18 @@ void GetAppearanceGlobals(int *race, int *style);
 
 void _stdcall RegAnimCombatCheck(DWORD newValue);
 
-DWORD _stdcall ScriptHasLoaded(DWORD script);
-// finds procedure ID for given script program pointer and procedure name
-DWORD GetScriptProcByName(DWORD scriptPtr, const char* procName);
+bool _stdcall ScriptHasLoaded(TProgram* script);
 // loads script from .int file into scripting engine, fill scriptPtr and proc table
 void LoadScriptProgram(sScriptProgram &prog, const char* fileName);
 // init program after load, needs to be called once
 void InitScriptProgram(sScriptProgram &prog);
-// execute script proc by internal proc number (from script's proc table, basically a sequential number of a procedure as defined in code, starting from 1)
-void RunScriptProcByNum(DWORD sptr, DWORD procNum);
 // execute script by specific proc name
 void RunScriptProc(sScriptProgram* prog, const char* procName);
 // execute script proc by procId from define.h
-void RunScriptProc(sScriptProgram* prog, DWORD procId);
+void RunScriptProc(sScriptProgram* prog, int procId);
 
 void AddProgramToMap(sScriptProgram &prog);
-sScriptProgram* GetGlobalScriptProgram(DWORD scriptPtr);
+sScriptProgram* GetGlobalScriptProgram(TProgram* scriptPtr);
 
 char* _stdcall mysubstr(char* str, int pos, int length);
 // variables

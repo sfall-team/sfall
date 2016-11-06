@@ -1,8 +1,11 @@
 #include <set>
 #include <algorithm>
 
-#include "Arrays.h"
 #include "..\ScriptExtender.h"
+#include "..\Scripting\ScriptValue.h"
+#include "..\Scripting\OpcodeHandler.h"
+
+#include "Arrays.h"
 
 /*
 	GLOBAL variable for arrays
@@ -314,47 +317,6 @@ void DESetArray(int id, const DWORD* types, const void* data) {
 	TODO: move somewhere else
 */
 
-const char* _stdcall GetSfallTypeName(DWORD dataType) {
-	switch (dataType) {
-		case DATATYPE_NONE:
-			return "(none)";
-		case DATATYPE_STR:
-			return "string";
-		case DATATYPE_FLOAT:
-			return "float";
-		case DATATYPE_INT:
-			return "integer";
-		default:
-			return "(unknown)";
-	}
-}
-
-DWORD _stdcall getSfallTypeByScriptType(DWORD varType) {
-	varType &= 0xffff;
-	switch (varType) {
-		case VAR_TYPE_STR:
-		case VAR_TYPE_STR2:
-			return DATATYPE_STR;
-		case VAR_TYPE_FLOAT:
-			return DATATYPE_FLOAT;
-		case VAR_TYPE_INT:
-		default:
-			return DATATYPE_INT;
-	}
-}
-
-DWORD _stdcall getScriptTypeBySfallType(DWORD dataType) {
-	switch (dataType) {
-		case DATATYPE_STR:
-			return VAR_TYPE_STR;
-		case DATATYPE_FLOAT:
-			return VAR_TYPE_FLOAT;
-		case DATATYPE_INT:
-		default:
-			return VAR_TYPE_INT;
-	}
-}
-
 DWORD _stdcall CreateArray(int len, DWORD nothing) {
 	sArrayVar var;
 	if (len < 0) var.flags |= ARRAYFLAG_ASSOC;
@@ -419,7 +381,7 @@ DWORD _stdcall GetArray(DWORD id, DWORD key, DWORD keyType, DWORD* resultType) {
 	int el;
 	sArrayVar &arr = arrays[id];
 	if (arr.isAssoc()) {
-		ArrayKeysMap::iterator it = arr.keyHash.find(sArrayElement(key, getSfallTypeByScriptType(keyType)));
+		ArrayKeysMap::iterator it = arr.keyHash.find(sArrayElement(key, OpcodeHandler::getSfallTypeByScriptType(keyType)));
 		if (it != arr.keyHash.end())
 			el = it->second + 1;
 		else
@@ -443,8 +405,8 @@ DWORD _stdcall GetArray(DWORD id, DWORD key, DWORD keyType, DWORD* resultType) {
 	return 0;
 }
 void _stdcall SetArray(DWORD id, DWORD key, DWORD keyType, DWORD val, DWORD valType, DWORD allowUnset) {
-	keyType = getSfallTypeByScriptType(keyType);
-	valType = getSfallTypeByScriptType(valType);
+	keyType = OpcodeHandler::getSfallTypeByScriptType(keyType);
+	valType = OpcodeHandler::getSfallTypeByScriptType(valType);
 	if(arrays.find(id)==arrays.end()) return;
 	int el;
 	sArrayVar &arr = arrays[id];
@@ -536,7 +498,7 @@ void _stdcall FixArray(DWORD id) {
 }
 int _stdcall ScanArray(DWORD id, DWORD val, DWORD datatype, DWORD* resultType) {
 	*resultType = VAR_TYPE_INT;
-	datatype = getSfallTypeByScriptType(datatype);
+	datatype = OpcodeHandler::getSfallTypeByScriptType(datatype);
 	if (arrays.find(id) == arrays.end()) return -1;
 	char step = arrays[id].isAssoc() ? 2 : 1;
 	for (DWORD i = 0; i < arrays[id].val.size(); i += step) {
@@ -545,7 +507,7 @@ int _stdcall ScanArray(DWORD id, DWORD val, DWORD datatype, DWORD* resultType) {
 			 if ((datatype != DATATYPE_STR && *(DWORD*)&(el.intVal) == val) ||
 				 (datatype == DATATYPE_STR && strcmp(el.strVal, (char*)val) == 0)) {
 				 if (arrays[id].isAssoc()) { // return key instead of index for associative arrays
-					 *resultType = getScriptTypeBySfallType(arrays[id].val[i].type);
+					 *resultType = OpcodeHandler::getScriptTypeBySfallType(arrays[id].val[i].type);
 					 return *(DWORD *)&arrays[id].val[i].intVal;
 				 } else {
 					 return i;
@@ -557,7 +519,7 @@ int _stdcall ScanArray(DWORD id, DWORD val, DWORD datatype, DWORD* resultType) {
 }
 
 DWORD _stdcall LoadArray(DWORD key, DWORD keyType) {
-	int dataType = getSfallTypeByScriptType(keyType);
+	int dataType = OpcodeHandler::getSfallTypeByScriptType(keyType);
 	if (dataType != DATATYPE_INT || key != 0) { // returns arrayId by it's key (ignoring int(0) because it is used to "unsave" array)
 		sArrayElement keyEl = sArrayElement(key, dataType);
 		if (keyEl.type == DATATYPE_STR && strcmp(keyEl.strVal, get_all_arrays_special_key) == 0) { // this is a special case to get temp array containing all saved arrays
@@ -583,7 +545,7 @@ DWORD _stdcall LoadArray(DWORD key, DWORD keyType) {
 
 void _stdcall SaveArray(DWORD key, DWORD keyType, DWORD id) {
 	array_itr it = arrays.find(id), it2;
-	int dataType = getSfallTypeByScriptType(keyType);
+	int dataType = OpcodeHandler::getSfallTypeByScriptType(keyType);
 	if (it != arrays.end()) {
 		if (dataType != DATATYPE_INT || key != 0) {
 			// make array permanent

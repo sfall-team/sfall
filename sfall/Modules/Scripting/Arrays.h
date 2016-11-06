@@ -143,9 +143,6 @@ void GetArrays(int* arrays);
 void DEGetArray(int id, DWORD* types, void* data);
 void DESetArray(int id, const DWORD* types, const void* data);
 
-const char* _stdcall GetSfallTypeName(DWORD dataType);
-DWORD _stdcall getSfallTypeByScriptType(DWORD varType);
-DWORD _stdcall getScriptTypeBySfallType(DWORD dataType);
 // creates new normal (persistent) array. len == -1 specifies associative array (map)
 DWORD _stdcall CreateArray(int len, DWORD nothing);
 // same as CreateArray, but creates temporary array instead (will die at the end of the frame)
