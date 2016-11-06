@@ -45,15 +45,12 @@ struct SfallMetarule {
 	int argTypeMasks[6]; 
 };
 
-#define DATATYPE_MASK_INT		(1 << DATATYPE_INT)
-#define DATATYPE_MASK_FLOAT		(1 << DATATYPE_FLOAT)
-#define DATATYPE_MASK_STR		(1 << DATATYPE_STR)
-#define DATATYPE_MASK_NOT_NULL	(0x00010000)
-#define DATATYPE_MASK_VALID_OBJ	(DATATYPE_MASK_INT | DATATYPE_MASK_NOT_NULL)
-
 typedef std::tr1::unordered_map<std::string, const SfallMetarule*> MetaruleTableType;
 
 static MetaruleTableType metaruleTable;
+
+// currently executed metarule
+static const SfallMetarule* currentMetarule;
 
 static std::string sf_test_stringBuf;
 
@@ -130,10 +127,10 @@ static void InitMetaruleTable() {
 
 // Validates arguments against metarule specification.
 // On error prints to debug.log and returns false.
-static bool ValidateOpcodeArguments(const SfallMetarule* metaruleInfo) {
-	int argCount = opHandler.numArgs() - 1; // don't count function name
+static bool ValidateMetaruleArguments(const SfallMetarule* metaruleInfo) {
+	int argCount = opHandler.numArgs();
 	if (argCount < metaruleInfo->minArgs || argCount > metaruleInfo->maxArgs) {
-		PrintOpcodeError(
+		opHandler.printOpcodeError(
 			"sfall_funcX(\"%s\", ...) - invalid number of arguments (%d), must be from %d to %d.", 
 			metaruleInfo->name, 
 			argCount,
@@ -142,28 +139,8 @@ static bool ValidateOpcodeArguments(const SfallMetarule* metaruleInfo) {
 
 		return false;
 	} else {
-		for (int i = 0; i < argCount; i++) {
-			int typeMask = metaruleInfo->argTypeMasks[i];
-			const ScriptValue &arg = opHandler.arg(i + 1);
-			if (typeMask != 0 && ((1 << arg.type()) & typeMask) == 0) {
-				PrintOpcodeError(
-					"sfall_funcX(\"%s\", ...) - argument #%d has invalid type: %s.", 
-					metaruleInfo->name, 
-					i + 1,
-					GetSfallTypeName(arg.type()));
-
-				return false;
-			} else if ((typeMask & DATATYPE_MASK_NOT_NULL) && arg.rawValue() == 0) {
-				PrintOpcodeError(
-					"sfall_funcX(\"%s\", ...) - argument #%d is null.", 
-					metaruleInfo->name, 
-					i + 1);
-
-				return false;
-			}
-		}
+		return opHandler.validateArguments(metaruleInfo->argTypeMasks, argCount, metaruleInfo->name);
 	}
-	return true;
 }
 
 static void _stdcall op_sfall_metarule_handler() {
@@ -172,15 +149,18 @@ static void _stdcall op_sfall_metarule_handler() {
 		const char* name = nameArg.asString();
 		MetaruleTableType::iterator lookup = metaruleTable.find(name);
 		if (lookup != metaruleTable.end()) {
-			const SfallMetarule* metaruleInfo = lookup->second;
-			if (ValidateOpcodeArguments(metaruleInfo)) {
-				metaruleInfo->func();
+			currentMetarule = lookup->second;
+			// shift function name away, so argument #0 will correspond to actual first argument of function
+			// this allows to use the same handlers for opcodes and metarule functions
+			opHandler.setArgShift(1);
+			if (ValidateMetaruleArguments(currentMetarule)) {
+				currentMetarule->func();
 			}
 		} else {
-			PrintOpcodeError("sfall_funcX(name, ...) - name '%s' is unknown.", name);
+			opHandler.printOpcodeError("sfall_funcX(name, ...) - name '%s' is unknown.", name);
 		}
 	} else {		
-		PrintOpcodeError("sfall_funcX(name, ...) - name must be string.");
+		opHandler.printOpcodeError("sfall_funcX(name, ...) - name must be string.");
 	}
 }
 

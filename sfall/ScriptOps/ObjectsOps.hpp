@@ -552,6 +552,6 @@ static void sf_critter_inven_obj2() {
 		opHandler.setReturn(critter->invenCount);
 		break;
 	default:
-		PrintOpcodeError("critter_inven_obj2() - invalid type.");
+		opHandler.printOpcodeError("critter_inven_obj2() - invalid type.");
 	}
 }

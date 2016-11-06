@@ -41,6 +41,22 @@ void _stdcall HandleMapUpdateForScripts(DWORD procId);
 // variables for new opcodes
 #define OP_MAX_ARGUMENTS	(10)
 
+// masks for argument validation
+#define DATATYPE_MASK_INT		(1 << DATATYPE_INT)
+#define DATATYPE_MASK_FLOAT		(1 << DATATYPE_FLOAT)
+#define DATATYPE_MASK_STR		(1 << DATATYPE_STR)
+#define DATATYPE_MASK_NOT_NULL	(0x00010000)
+#define DATATYPE_MASK_VALID_OBJ	(DATATYPE_MASK_INT | DATATYPE_MASK_NOT_NULL)
+
+struct SfallOpcodeMetadata {
+	void (*handler)();
+	int argTypeMasks[OP_MAX_ARGUMENTS];
+};
+
+typedef std::tr1::unordered_map<void(*)(), const SfallOpcodeMetadata*> OpcodeMetaTableType;
+
+static OpcodeMetaTableType opcodeMetaTable;
+
 class ScriptValue {
 public:
 	ScriptValue(SfallDataType type, DWORD value) {
@@ -152,14 +168,32 @@ typedef struct {
 
 class OpcodeHandler {
 public:
-	// number of arguments
-	int numArgs() const {
-		return _args.size();
+	OpcodeHandler() {
+		_argShift = 0;
+		_args.reserve(OP_MAX_ARGUMENTS);
 	}
 
-	// returns argument with given index
+	// number of arguments, possibly reduced by argShift
+	int numArgs() const {
+		return _args.size() - _argShift;
+	}
+
+	// returns current argument shift, default is 0
+	int argShift() const {
+		return _argShift;
+	}
+
+	// sets shift value for arguments
+	// for example if shift value is 2, then subsequent calls to arg(i) will return arg(i+2) instead, etc.
+	void setArgShift(int shift) {
+		assert(shift >= 0);
+
+		_argShift = shift;
+	}
+
+	// returns argument with given index, possible shifted by argShift
 	const ScriptValue& arg(int index) const {
-		return _args.at(index);
+		return _args.at(index + _argShift);
 	}
 	
 	// current return value
@@ -182,29 +216,78 @@ public:
 		_ret = val;
 	}
 
+	// resets the state of handler
+	void resetState(TProgram* program = nullptr) {
+		_program = program;
+		
+		// reset return value
+		_ret = ScriptValue();
+		// reset argument list
+		_args.resize(0);
+		// reset arg shift
+		_argShift = 0;
+	}
+	
+	// writes error message to debug.log along with the name of script & procedure
+	void printOpcodeError(const char* fmt, ...) const {
+		assert(_program != nullptr);
+
+		va_list args;
+		va_start(args, fmt);
+		char msg[1024];
+		vsnprintf_s(msg, sizeof msg, _TRUNCATE, fmt, args);
+		va_end(args);
+
+		const char* procName = FindCurrentProc(_program);
+		DebugPrintf("\nOPCODE ERROR: %s\n   Current script: %s, procedure %s.", msg, _program->fileName, procName);
+	}
+
+	// Validate opcode arguments against type masks
+	// if validation pass, returns true, otherwise writes error to debug.log and returns false
+	bool validateArguments(const int argTypeMasks[], int argCount, const char* opcodeName) const {
+		for (int i = 0; i < argCount; i++) {
+			int typeMask = argTypeMasks[i];
+			const ScriptValue &argI = arg(i);
+			if (typeMask != 0 && ((1 << argI.type()) & typeMask) == 0) {
+				printOpcodeError(
+					"%s() - argument #%d has invalid type: %s.", 
+					opcodeName, 
+					i,
+					GetSfallTypeName(argI.type()));
+
+				return false;
+			} else if ((typeMask & DATATYPE_MASK_NOT_NULL) && argI.rawValue() == 0) {
+				printOpcodeError(
+					"%s() - argument #%d is null.", 
+					opcodeName, 
+					i);
+
+				return false;
+			}
+		}
+		return true;
+	}
+
 	// Handle opcodes
 	// scriptPtr - pointer to script program (from the engine)
 	// func - opcode handler
 	// hasReturn - true if opcode has return value (is expression)
-	void __thiscall HandleOpcode(TProgram* scriptPtr, void(*func)(), int argNum, bool hasReturn) {
+	void __thiscall handleOpcode(TProgram* program, void(*func)(), int argNum, bool hasReturn) {
 		assert(argNum < OP_MAX_ARGUMENTS);
 
-		_program = scriptPtr;
-
-		// reset return value
-		_ret = ScriptValue();
+		// reset state after previous
+		resetState(program);
 
 		// process arguments on stack (reverse order)
-		_args.resize(0);
 		for (int i = argNum - 1; i >= 0; i--) {
 			// get argument from stack
-			DWORD rawValueType = InterpretPopShort(scriptPtr);
-			DWORD rawValue = InterpretPopLong(scriptPtr);
+			DWORD rawValueType = InterpretPopShort(program);
+			DWORD rawValue = InterpretPopLong(program);
 			SfallDataType type = static_cast<SfallDataType>(getSfallTypeByScriptType(rawValueType));
 
 			// retrieve string argument
 			if (type == DATATYPE_STR) {
-				_args.push_back(InterpretGetString(scriptPtr, rawValue, rawValueType));
+				_args.push_back(InterpretGetString(program, rawValue, rawValueType));
 			} else {
 				_args.push_back(ScriptValue(type, rawValue));
 			}
@@ -221,36 +304,23 @@ public:
 			}
 			DWORD rawResult = _ret.rawValue();
 			if (_ret.type() == DATATYPE_STR) {
-				rawResult = InterpretAddString(scriptPtr, _ret.asString());
+				rawResult = InterpretAddString(program, _ret.asString());
 			}
-			InterpretPushLong(scriptPtr, rawResult);
-			InterpretPushShort(scriptPtr, getScriptTypeBySfallType(_ret.type()));
+			InterpretPushLong(program, rawResult);
+			InterpretPushShort(program, getScriptTypeBySfallType(_ret.type()));
 		}
 	}
 
 private:
 	TProgram* _program;
 
-	int _argCount;
+	int _argShift;
 	std::vector<ScriptValue> _args;
 	ScriptValue _ret;
 };
 
 static OpcodeHandler opHandler;
 
-// writes error message to debug.log along with the name of script & procedure
-static void _stdcall PrintOpcodeError(const char* fmt, ...) {
-	assert(opHandler.program() != nullptr);
-
-	va_list args;
-	va_start(args, fmt);
-	char msg[1024];
-	vsnprintf_s(msg, sizeof msg, _TRUNCATE, fmt, args);
-	va_end(args);
-
-	const char* procName = FindCurrentProc(opHandler.program());
-	DebugPrintf("\nOPCODE ERROR: %s\n   Current script: %s, procedure %s.", msg, opHandler.program()->fileName, procName);
-}
 
 
 #include "ScriptOps\AsmMacros.h"
@@ -268,6 +338,18 @@ static void _stdcall PrintOpcodeError(const char* fmt, ...) {
 #include "ScriptOps\AnimOps.hpp"
 #include "ScriptOps\MiscOps.hpp"
 #include "ScriptOps\MetaruleOp.hpp"
+
+
+static const SfallOpcodeMetadata opcodeMetaArray[] = {
+	{op_message_str_game, {}}
+};
+
+static void InitOpcodeMetaTable() {
+	int length = sizeof(opcodeMetaArray) / sizeof(SfallOpcodeMetadata);
+	for (int i = 0; i < length; ++i) {
+		opcodeMetaTable[opcodeMetaArray[i].handler] = &opcodeMetaArray[i];
+	}
+}
 
 typedef void (_stdcall *regOpcodeProc)(WORD opcode,void* ptr);
 
@@ -1409,6 +1491,7 @@ void ScriptExtenderSetup() {
 	opcodes[0x27b]=op_sfall_metarule5;
 	opcodes[0x27c]=op_sfall_metarule6; // if you need more arguments - use arrays
 
+	InitOpcodeMetaTable();
 	InitMetaruleTable();
 }
 
