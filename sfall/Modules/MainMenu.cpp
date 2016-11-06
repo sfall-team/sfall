@@ -37,7 +37,7 @@ static void __declspec(naked) MainMenuButtonYHook() {
 static void __declspec(naked) MainMenuTextYHook() {
 	__asm {
 		add eax, MainMenuTextOffset;
-		jmp dword ptr ds:[_text_to_buf];
+		jmp dword ptr ds:[VarPtr::text_to_buf];
 	}
 }
 
@@ -75,7 +75,7 @@ static void __declspec(naked) MainMenuTextHook() {
 		dec ecx; //xpos
 		add edi, 12;
 		push edi; //ypos
-		mov eax, dword ptr ds:[_main_window];//winptr
+		mov eax, dword ptr ds:[VarPtr::main_window];//winptr
 		call FuncOffs::win_print_;
 		jmp MainMenuTextRet;
 	}

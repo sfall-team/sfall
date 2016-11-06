@@ -86,7 +86,7 @@ static void __declspec(naked) GetNumButtonsHook1() {
 	__asm {
 		lea  esi, Menus;
 		mov  eax, [esi+edi*4];
-		mov  eax, [_btncnt+eax*4];
+		mov  eax, [VarPtr::btncnt + eax*4];
 		push 0x43F064;
 		retn;
 	}
@@ -95,7 +95,7 @@ static void __declspec(naked) GetNumButtonsHook2() {
 	__asm {
 		lea  edx, Menus;
 		mov  eax, [edx+edi*4];
-		mov  eax, [_btncnt+eax*4];
+		mov  eax, [VarPtr::btncnt + eax*4];
 		push 0x43F18B;
 		retn;
 	}
@@ -104,14 +104,14 @@ static void __declspec(naked) GetNumButtonsHook3() {
 	__asm {
 		lea  eax, Menus;
 		mov  eax, [eax+edi*4];
-		mov  eax, [_btncnt+eax*4];
+		mov  eax, [VarPtr::btncnt+eax*4];
 		push 0x43F1EB;
 		retn;
 	}
 }
 
 void ResetElevators() {
-	memcpy(Elevators, (void*)_retvals, sizeof(sElevator)*24);
+	memcpy(Elevators, (void*)VarPtr::retvals, sizeof(sElevator)*24);
 	memset(&Elevators[24], 0, sizeof(sElevator)*(ElevatorCount-24));
 	for(int i=0;i<24;i++) Menus[i]=i;
 	for(int i=24;i<ElevatorCount;i++) Menus[i]=0;

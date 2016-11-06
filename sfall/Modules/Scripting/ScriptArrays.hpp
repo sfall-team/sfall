@@ -509,7 +509,7 @@ static void FillListVector(DWORD type, std::vector<DWORD>& vec) {
 			}
 		}
 	} else if (type == 4) {
-		DWORD** squares=(DWORD**)_squares;
+		DWORD** squares = VarPtr::squares;
 		for(int elv=0;elv<2;elv++) {
 			DWORD* esquares=squares[elv];
 			for(int tile=0;tile<10000;tile++) {

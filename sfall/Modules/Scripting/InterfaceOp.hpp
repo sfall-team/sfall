@@ -106,8 +106,8 @@ static void __declspec(naked) get_mouse_x() {
 	  push ecx;
 	  push edx;
 	  mov ecx, eax;
-	  mov edx, ds:[_mouse_x_];
-	  add edx, ds:[_mouse_hotx];
+	  mov edx, ds:[VarPtr::mouse_x_];
+	  add edx, ds:[VarPtr::mouse_hotx];
 	  call FuncOffs::interpretPushLong_;
 	  mov eax, ecx;
 	  mov edx, 0xc001;
@@ -124,8 +124,8 @@ static void __declspec(naked) get_mouse_y() {
 	  push ecx;
 	  push edx;
 	  mov ecx, eax;
-	  mov edx, ds:[_mouse_y_];
-	  add edx, ds:[_mouse_hoty];
+	  mov edx, ds:[VarPtr::mouse_y_];
+	  add edx, ds:[VarPtr::mouse_hoty];
 	  call FuncOffs::interpretPushLong_;
 	  mov eax, ecx;
 	  mov edx, 0xc001;
@@ -142,7 +142,7 @@ static void __declspec(naked) get_mouse_buttons() {
 	  push ecx;
 	  push edx;
 	  mov ecx, eax;
-	  mov edx, ds:[_last_buttons];
+	  mov edx, ds:[VarPtr::last_buttons];
 	  call FuncOffs::interpretPushLong_;
 	  mov eax, ecx;
 	  mov edx, 0xc001;
@@ -159,7 +159,7 @@ static void __declspec(naked) get_window_under_mouse() {
 	  push ecx;
 	  push edx;
 	  mov ecx, eax;
-	  mov edx, ds:[_last_button_winID];
+	  mov edx, ds:[VarPtr::last_button_winID];
 	  call FuncOffs::interpretPushLong_;
 	  mov eax, ecx;
 	  mov edx, 0xc001;
@@ -175,8 +175,8 @@ static void __declspec(naked) get_screen_width() {
 	__asm {
 		push edx
 		push eax
-		mov  edx, ds:[_scr_size+8]                // _scr_size.offx
-		sub  edx, ds:[_scr_size]                  // _scr_size.x
+		mov  edx, ds:[VarPtr::scr_size+8]                // _scr_size.offx
+		sub  edx, ds:[VarPtr::scr_size]                  // _scr_size.x
 		inc  edx
 		call FuncOffs::interpretPushLong_
 		pop  eax
@@ -192,8 +192,8 @@ static void __declspec(naked) get_screen_height() {
 	__asm {
 		push edx
 		push eax
-		mov  edx, ds:[_scr_size+12]               // _scr_size.offy
-		sub  edx, ds:[_scr_size+4]                // _scr_size.y
+		mov  edx, ds:[VarPtr::scr_size+12]               // _scr_size.offy
+		sub  edx, ds:[VarPtr::scr_size+4]                // _scr_size.y
 		inc  edx
 		call FuncOffs::interpretPushLong_
 		pop  eax
@@ -230,7 +230,7 @@ static void __declspec(naked) resume_game() {
 static void __declspec(naked) create_message_window() {
    __asm {
 	  pushad
-	  mov ebx, dword ptr ds:[_curr_font_num];
+	  mov ebx, dword ptr ds:[VarPtr::curr_font_num];
 	  cmp ebx, 0x65;
 	  je end;
 
@@ -275,7 +275,7 @@ static void __declspec(naked) GetViewportX() {
 		push ecx;
 		push edx;
 		mov ecx, eax;
-		mov edx, ds:[_wmWorldOffsetX];
+		mov edx, ds:[VarPtr::wmWorldOffsetX];
 		call FuncOffs::interpretPushLong_;
 		mov edx, 0xc001;
 		mov eax, ecx;
@@ -292,7 +292,7 @@ static void __declspec(naked) GetViewportY() {
 		push ecx;
 		push edx;
 		mov ecx, eax;
-		mov edx, ds:[_wmWorldOffsetY];
+		mov edx, ds:[VarPtr::wmWorldOffsetY];
 		call FuncOffs::interpretPushLong_;
 		mov edx, 0xc001;
 		mov eax, ecx;
@@ -315,7 +315,7 @@ static void __declspec(naked) SetViewportX() {
 		call FuncOffs::interpretPopLong_;
 		cmp dx, 0xC001;
 		jnz end;
-		mov ds:[_wmWorldOffsetX], eax
+		mov ds:[VarPtr::wmWorldOffsetX], eax
 end:
 		pop edx;
 		pop ecx;
@@ -335,7 +335,7 @@ static void __declspec(naked) SetViewportY() {
 		call FuncOffs::interpretPopLong_;
 		cmp dx, 0xC001;
 		jnz end;
-		mov ds:[_wmWorldOffsetY], eax
+		mov ds:[VarPtr::wmWorldOffsetY], eax
 end:
 		pop edx;
 		pop ecx;
@@ -415,7 +415,7 @@ static void __declspec(naked) IsIfaceTagActive() {
 		jmp end;
 falloutfunc:
 		mov ecx, eax;
-		mov eax, dword ptr ds:[_obj_dude];
+		mov eax, dword ptr ds:[VarPtr::obj_dude];
 		mov edx, esp;
 		mov eax, [eax+0x64];
 		call FuncOffs::proto_ptr_;

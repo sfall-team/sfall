@@ -48,7 +48,7 @@ static void __declspec(naked) GetCurrentStatHook2() {
 	__asm {
 		shl esi, 2;
 		mov eax, cCritter;
-		cmp eax, dword ptr ds:[_obj_dude];
+		cmp eax, dword ptr ds:[VarPtr::obj_dude];
 		je pc;
 		cmp ecx, StatMinimumsNPC[esi];
 		jg npc1;
@@ -82,7 +82,7 @@ end:
 
 static void __declspec(naked) SetCurrentStatHook() {
 	__asm {
-		cmp esi, dword ptr ds:[_obj_dude];
+		cmp esi, dword ptr ds:[VarPtr::obj_dude];
 		je pc;
 		cmp ebx, StatMinimumsNPC[ecx*4];
 		jl fail;
@@ -113,7 +113,7 @@ static void __declspec(naked) GetLevelXPHook() {
 }
 static void __declspec(naked) GetNextLevelXPHook() {
 	__asm {
-		mov eax, ds:[_Level_];
+		mov eax, ds:[VarPtr::Level_];
 		jmp GetLevelXPHook;
 	}
 }
@@ -131,7 +131,7 @@ static void __declspec(naked) ApplyApAcBonus() {
 		jmp standard;
 h2hEvade:
 		mov edx, PERK_hth_evade_perk;
-		mov eax, dword ptr ds:[_obj_dude];
+		mov eax, dword ptr ds:[VarPtr::obj_dude];
 		call FuncOffs::perk_level_;
 		imul ax, ExtraApAcBonus;
 		imul ax, [ebx+0x40];
@@ -198,8 +198,8 @@ static void __declspec(naked) stat_recalc_derived() {
 
 void StatsReset() {
 	for(int i = 0; i < STAT_max_stat; i++) {
-		StatMaximumsPC[i] = StatMaximumsNPC[i] = *(DWORD*)(_stat_data + 16 + i*24);
-		StatMinimumsPC[i] = StatMinimumsNPC[i] = *(DWORD*)(_stat_data + 12 + i*24);
+		StatMaximumsPC[i] = StatMaximumsNPC[i] = *(VarPtr::stat_data + 4 + i*6);
+		StatMinimumsPC[i] = StatMinimumsNPC[i] = *(VarPtr::stat_data + 3 + i*6);
 	}
 	StandardApAcBonus = 4;
 	ExtraApAcBonus = 4;

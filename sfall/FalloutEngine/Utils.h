@@ -28,3 +28,5 @@ const char* _stdcall GetMessageStr(DWORD fileAddr, int messageId);
 
 // returns weapon animation code
 char AnimCodeByWeapon(TGameObj* weapon);
+
+const char* MsgSearch(int msgno, DWORD* file);

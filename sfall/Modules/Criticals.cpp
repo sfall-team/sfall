@@ -38,20 +38,6 @@ static const char* CritNames[] = {
 	"FailMessage",
 };
 
-struct CritStruct {
-	union {
-		struct {
-			DWORD DamageMultiplier;
-			DWORD EffectFlags;
-			DWORD StatCheck;
-			DWORD StatMod;
-			DWORD FailureEffect;
-			DWORD Message;
-			DWORD FailMessage;
-		};
-		DWORD values[7];
-	};
-};
 
 static CritStruct* critTable;
 static CritStruct* playerCrit;
@@ -73,13 +59,13 @@ void _stdcall ResetCriticalTable(DWORD critter, DWORD bodypart, DWORD slot, DWOR
 	//It's been a long time since we worried about win9x compatibility, so just sprintf it for goodness sake...
 	char section[16];
 	sprintf_s(section, "c_%02d_%d_%d", critter, bodypart, slot);
-	CritStruct* defaultTable=(CritStruct*)_crit_succ_eff;
-	critTable[slot].values[element]=critTable[slot].DamageMultiplier=GetPrivateProfileIntA(section, CritNames[element], defaultTable[slot].values[element], ".\\CriticalOverrides.ini");
+	CritStruct* defaultTable = VarPtr::crit_succ_eff;
+	critTable[slot].values[element] = critTable[slot].DamageMultiplier=GetPrivateProfileIntA(section, CritNames[element], defaultTable[slot].values[element], ".\\CriticalOverrides.ini");
 }
 
 void CritLoad() {
 	if (!Inited) return;
-	CritStruct* defaultTable=(CritStruct*)_crit_succ_eff;
+	CritStruct* defaultTable = VarPtr::crit_succ_eff;
 	if (mode==1) {
 		char section[16];
 		dlogr("Setting up critical hit table using CriticalOverrides.ini", DL_CRITICALS);
@@ -107,7 +93,7 @@ void CritLoad() {
 		dlogr("Setting up critical hit table using RP fixes", DL_CRITICALS);
 		memcpy(critTable, defaultTable, 6*9*19*sizeof(CritStruct));
 		memset(&critTable[6*9*19], 0, 6*9*19*sizeof(CritStruct));
-		memcpy(playerCrit, (void*)_pc_crit_succ_eff, 6*9*sizeof(CritStruct));
+		memcpy(playerCrit, (void*)VarPtr::pc_crit_succ_eff, 6*9*sizeof(CritStruct));
 
 		if (mode==3) {
 			char buf[32], buf2[32], buf3[32];
@@ -151,7 +137,7 @@ void CritInit() {
 	dlog(". ", DL_INIT);
 
 	if(mode==2 || mode==3) {
-		CritStruct* defaultTable=(CritStruct*)_crit_succ_eff;
+		CritStruct* defaultTable = VarPtr::crit_succ_eff;
 
 		SetEntry(2,4,1,4,0);
 		SetEntry(2,4,1,5,5216);

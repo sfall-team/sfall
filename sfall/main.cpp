@@ -146,7 +146,7 @@ static __declspec(naked) void GetDateWrapper() {
 		push esi;
 		push ebx;
 		call FuncOffs::game_time_date_;
-		mov ecx, ds:[_pc_proto + 0x4C];
+		mov ecx, ds:[VarPtr::pc_proto + 0x4C];
 		pop esi;
 		test esi, esi;
 		jz end;
@@ -159,8 +159,8 @@ end:
 	}
 }
 static void TimerReset() {
-	*((DWORD*)_fallout_game_time)=0;
-	*((DWORD*)_pc_proto + 0x4C)+=13;
+	*VarPtr::fallout_game_time = 0;
+	*(VarPtr::pc_proto + 0x4C) += 13;
 }
 
 static double TickFrac=0;
@@ -185,7 +185,7 @@ static DWORD _stdcall PathfinderFix2(DWORD perkLevel, DWORD ticks) {
 static __declspec(naked) void PathfinderFix() {
 	__asm {
 		push eax;
-		mov eax, ds:[_obj_dude];
+		mov eax, ds:[VarPtr::obj_dude];
 		mov edx, PERK_pathfinder;
 		call FuncOffs::perk_level_;
 		push eax;
@@ -251,20 +251,20 @@ tck:
 }
 static void __declspec(naked) WorldMapEncPatch1() {
 	__asm {
-		inc dword ptr ds:[_wmLastRndTime]
+		inc dword ptr ds:[VarPtr::wmLastRndTime]
 		call FuncOffs::wmPartyWalkingStep_;
 		retn;
 	}
 }
 static void __declspec(naked) WorldMapEncPatch2() {
 	__asm {
-		mov dword ptr ds:[_wmLastRndTime], 0;
+		mov dword ptr ds:[VarPtr::wmLastRndTime], 0;
 		retn;
 	}
 }
 static void __declspec(naked) WorldMapEncPatch3() {
 	__asm {
-		mov eax,ds:[_wmLastRndTime];
+		mov eax,ds:[VarPtr::wmLastRndTime];
 		retn;
 	}
 }
@@ -272,7 +272,7 @@ static void __declspec(naked) Combat_p_procFix() {
 	__asm {
 		push eax;
 
-		mov eax,dword ptr ds:[_combat_state];
+		mov eax,dword ptr ds:[VarPtr::combat_state];
 		cmp eax,3;
 		jnz end_cppf;
 
@@ -280,7 +280,7 @@ static void __declspec(naked) Combat_p_procFix() {
 		push ebx;
 		push edx;
 
-		mov esi, _main_ctd;
+		mov esi, VarPtr::main_ctd;
 		mov eax, [esi];
 		mov ebx, [esi+0x20];
 		xor edx, edx;
@@ -379,9 +379,9 @@ static void __declspec(naked) ViewportHook() {
 	__asm {
 		call FuncOffs::wmWorldMapLoadTempData_;
 		mov eax, ViewportX;
-		mov ds:[_wmWorldOffsetX], eax
+		mov ds:[VarPtr::wmWorldOffsetX], eax
 		mov eax, ViewportY;
-		mov ds:[_wmWorldOffsetY], eax;
+		mov ds:[VarPtr::wmWorldOffsetY], eax;
 		retn;
 	}
 }
@@ -426,7 +426,7 @@ static void __declspec(naked) removeDatabase() {
 	__asm {
 		cmp  eax, -1
 		je   end
-		mov  ebx, ds:[_paths]
+		mov  ebx, ds:[VarPtr::paths]
 		mov  ecx, ebx
 nextPath:
 		mov  edx, [esp+0x104+4+4]                 // path_patches
@@ -443,7 +443,7 @@ skip:
 		xchg ebx, eax
 		cmp  eax, ecx
 		jne  end
-		mov  ds:[_paths], ebx
+		mov  ds:[VarPtr::paths], ebx
 end:
 		retn
 	}
@@ -452,7 +452,7 @@ end:
 static void __declspec(naked) game_init_databases_hack1() {
 	__asm {
 		call removeDatabase
-		mov  ds:[_master_db_handle], eax
+		mov  ds:[VarPtr::master_db_handle], eax
 		retn
 	}
 }
@@ -461,7 +461,7 @@ static void __declspec(naked) game_init_databases_hack2() {
 	__asm {
 		cmp  eax, -1
 		je   end
-		mov  eax, ds:[_master_db_handle]
+		mov  eax, ds:[VarPtr::master_db_handle]
 		mov  eax, [eax]                           // eax = master_patches.path
 		call FuncOffs::xremovepath_
 		dec  eax                                  // remove path (critter_patches == master_patches)?
@@ -469,7 +469,7 @@ static void __declspec(naked) game_init_databases_hack2() {
 		inc  eax
 		call removeDatabase
 end:
-		mov  ds:[_critter_db_handle], eax
+		mov  ds:[VarPtr::critter_db_handle], eax
 		retn
 	}
 }
@@ -477,14 +477,14 @@ end:
 static void __declspec(naked) game_init_databases_hook() {
 // eax = _master_db_handle
 	__asm {
-		mov  ecx, ds:[_critter_db_handle]
-		mov  edx, ds:[_paths]
+		mov  ecx, ds:[VarPtr::critter_db_handle]
+		mov  edx, ds:[VarPtr::paths]
 		jecxz skip
 		mov  [ecx+0xC], edx                       // critter_patches.next->_paths
 		mov  edx, ecx
 skip:
 		mov  [eax+0xC], edx                       // master_patches.next
-		mov  ds:[_paths], eax
+		mov  ds:[VarPtr::paths], eax
 		retn
 	}
 }
@@ -525,14 +525,14 @@ static void __declspec(naked) ReloadHook() {
 		push eax;
 		push ebx;
 		push edx;
-		mov eax, dword ptr ds:[_obj_dude];
+		mov eax, dword ptr ds:[VarPtr::obj_dude];
 		call FuncOffs::register_clear_;
 		xor eax, eax;
 		inc eax;
 		call FuncOffs::register_begin_;
 		xor edx, edx;
 		xor ebx, ebx;
-		mov eax, dword ptr ds:[_obj_dude];
+		mov eax, dword ptr ds:[VarPtr::obj_dude];
 		dec ebx;
 		call FuncOffs::register_object_animate_;
 		call FuncOffs::register_end_;
@@ -594,7 +594,7 @@ retry:
 		xor edx, edx;
 		call FuncOffs::combat_ai_;
 process:
-		cmp dword ptr ds:[_combat_turn_running], 0;
+		cmp dword ptr ds:[VarPtr::combat_turn_running], 0;
 		jle next;
 		call FuncOffs::process_bk_;
 		jmp process;
@@ -639,13 +639,15 @@ end:
 static DWORD KarmaFrmCount;
 static DWORD* KarmaFrms;
 static int* KarmaPoints;
+
 static DWORD _stdcall DrawCardHook2() {
-	int rep=**(int**)_game_global_vars;
-	for(DWORD i=0;i<KarmaFrmCount-1;i++) {
-		if(rep < KarmaPoints[i]) return KarmaFrms[i];
+	int reputation = (*VarPtr::game_global_vars)[0];
+	for (DWORD i = 0; i < KarmaFrmCount - 1; i++) {
+		if (reputation < KarmaPoints[i]) return KarmaFrms[i];
 	}
-	return KarmaFrms[KarmaFrmCount-1];
+	return KarmaFrms[KarmaFrmCount - 1];
 }
+
 static void __declspec(naked) DrawCardHook() {
 	__asm {
 		cmp ds:[0x5707D0], 10;
@@ -664,7 +666,7 @@ skip:
 
 static void __declspec(naked) ScienceCritterCheckHook() {
 	__asm {
-		cmp esi, ds:[_obj_dude];
+		cmp esi, ds:[VarPtr::obj_dude];
 		jne end;
 		mov eax, 10;
 		retn;
@@ -680,7 +682,7 @@ static void __declspec(naked) NPCStage6Fix1() {
 		mov eax,0xcc;				// set record size to 204 bytes
 		imul eax,edx;				// multiply by number of NPC records in party.txt
 		call FuncOffs::mem_malloc_;			// malloc the necessary memory
-		mov edx,dword ptr ds:[_partyMemberMaxCount];	// retrieve number of NPC records in party.txt
+		mov edx,dword ptr ds:[VarPtr::partyMemberMaxCount];	// retrieve number of NPC records in party.txt
 		mov ebx,0xcc;				// set record size to 204 bytes
 		imul ebx,edx;				// multiply by number of NPC records in party.txt
 		jmp NPCStage6Fix1End;			// call memset to set all malloc'ed memory to 0
@@ -691,7 +693,7 @@ static void __declspec(naked) NPCStage6Fix2() {
 	__asm {
 		mov eax,0xcc;				// record size is 204 bytes
 		imul edx,eax;				// multiply by NPC number as listed in party.txt
-		mov eax,dword ptr ds:[_partyMemberAIOptions];	// get starting offset of internal NPC table
+		mov eax,dword ptr ds:[VarPtr::partyMemberAIOptions];	// get starting offset of internal NPC table
 		jmp NPCStage6Fix2End;			// eax+edx = offset of specific NPC record
 	}
 }
@@ -720,7 +722,7 @@ static const DWORD ScannerHookRet=0x41BC1D;
 static const DWORD ScannerHookFail=0x41BC65;
 static void __declspec(naked) ScannerAutomapHook() {
 	__asm {
-		mov eax, ds:[_obj_dude];
+		mov eax, ds:[VarPtr::obj_dude];
 		mov edx, 59;
 		call FuncOffs::inven_pid_is_carried_ptr_;
 		test eax, eax;
@@ -839,7 +841,7 @@ static void __declspec(naked) register_object_take_out_hack() {
 
 static void __declspec(naked) gdAddOptionStr_hack() {
 	__asm {
-		mov  ecx, ds:[_gdNumOptions]
+		mov  ecx, ds:[VarPtr::gdNumOptions]
 		add  ecx, '1'
 		push ecx
 		push 0x4458FA

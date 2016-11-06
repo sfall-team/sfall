@@ -31,9 +31,8 @@ static char tName[64*TRAIT_count];
 static char tDesc[1024*TRAIT_count];
 static char perksFile[260];
 static BYTE disableTraits[TRAIT_count];
-static DWORD* pc_trait=(DWORD*)_pc_trait;
 
-#define check_trait(a) !disableTraits[a]&&(pc_trait[0]==a||pc_trait[1]==a)
+#define check_trait(a) !disableTraits[a]&&(VarPtr::pc_trait[0] == a || VarPtr::pc_trait[1] == a)
 
 static DWORD addPerkMode=2;
 
@@ -127,17 +126,17 @@ static void __declspec(naked) LevelUpHook() {
 notskilled:
 		mov ecx, 3;
 afterskilled:
-		mov eax, ds:[_Level_]; //Get players level
+		mov eax, ds:[VarPtr::Level_]; //Get players level
 		inc eax;
 		xor edx, edx;
 		div ecx;
 		test edx, edx;
 		jnz end;
-		inc byte ptr ds:[_free_perk]; //Increment the number of perks owed
+		inc byte ptr ds:[VarPtr::free_perk]; //Increment the number of perks owed
 end:
 		pop ebx;
 		pop ecx;
-		mov edx, ds:[_Level_];
+		mov edx, ds:[VarPtr::Level_];
 		retn;
 	}
 }
@@ -338,10 +337,10 @@ static DWORD _stdcall HandleFakeTraits(int i2) {
 		}
 		if(a&&!i2) {
 			i2=1;
-			*(DWORD*)_folder_card_fid = fakeTraits[i].Image;
-			*(DWORD*)_folder_card_title = (DWORD)fakeTraits[i].Name;
-			*(DWORD*)_folder_card_title2 = 0;
-			*(DWORD*)_folder_card_desc = (DWORD)fakeTraits[i].Desc;
+			*VarPtr::folder_card_fid = fakeTraits[i].Image;
+			*VarPtr::folder_card_title = (DWORD)fakeTraits[i].Name;
+			*VarPtr::folder_card_title2 = 0;
+			*VarPtr::folder_card_desc = (DWORD)fakeTraits[i].Desc;
 		}
 	}
 	return i2;
@@ -354,7 +353,7 @@ static void __declspec(naked) PlayerHasPerkHook() {
 		mov  ecx, eax;
 		xor  ebx, ebx;
 oloop:
-		mov  eax, ds:[_obj_dude];
+		mov  eax, ds:[VarPtr::obj_dude];
 		mov  edx, ebx;
 		call FuncOffs::perk_level_;
 		test eax, eax;
@@ -583,7 +582,7 @@ end:
 		jl end2;
 		cmp edx, 90;
 		jg end2;
-		inc ds:[edx*4 + (_pc_proto + 0x24 - PERK_gain_strength_perk*4)]; // base_stat_srength
+		inc ds:[edx*4 + (VarPtr::pc_proto + 0x24 - PERK_gain_strength_perk*4)]; // base_stat_srength
 end2:
 		retn;
 	}
@@ -656,7 +655,7 @@ static void PerkSetup() {
 
 	memset(Name, 0, sizeof(Name));
 	memset(Desc, 0, sizeof(Desc));
-	memcpy(Perks, (void*)_perk_data, sizeof(PerkStruct)*PERK_count);
+	memcpy(Perks, (void*)VarPtr::perk_data, sizeof(PerkStruct)*PERK_count);
 
 	SafeWrite32(0x00496669, (DWORD)Perks);
 	SafeWrite32(0x00496837, (DWORD)Perks);
@@ -738,21 +737,23 @@ static void PerkSetup() {
 	SafeWrite32(0x43C36a, 0x00570A29);
 	SafeWrite8(0x43C36e, 0x90);
 }
+
 static int _stdcall stat_get_base_direct(DWORD statID) {
 	DWORD result;
 	__asm {
 		mov edx, statID;
-		mov eax, dword ptr ds:[_obj_dude];
+		mov eax, dword ptr ds:[VarPtr::obj_dude];
 		call FuncOffs::stat_get_base_direct_;
 		mov result, eax;
 	}
 	return result;
 }
+
 static int _stdcall trait_adjust_stat_override(DWORD statID) {
 	if(statID>STAT_max_derived) return 0;
 	int result=0;
-	if(pc_trait[0]!=-1) result+=TraitStatBonuses[statID*TRAIT_count+pc_trait[0]];
-	if(pc_trait[1]!=-1) result+=TraitStatBonuses[statID*TRAIT_count+pc_trait[1]];
+	if (VarPtr::pc_trait[0] != -1) result+=TraitStatBonuses[statID*TRAIT_count + VarPtr::pc_trait[0]];
+	if (VarPtr::pc_trait[1] != -1) result+=TraitStatBonuses[statID*TRAIT_count + VarPtr::pc_trait[1]];
 	switch(statID) {
 		case STAT_st:
 			if(check_trait(TRAIT_gifted)) result++;
@@ -826,11 +827,11 @@ static void __declspec(naked) TraitAdjustStatHook() {
 }
 static int _stdcall trait_adjust_skill_override(DWORD skillID) {
 	int result=0;
-	if(pc_trait[0]!=-1) result+=TraitSkillBonuses[skillID*TRAIT_count+pc_trait[0]];
-	if(pc_trait[1]!=-1) result+=TraitSkillBonuses[skillID*TRAIT_count+pc_trait[1]];
-	if(check_trait(TRAIT_gifted)) result-=10;
-	if(check_trait(TRAIT_good_natured)) {
-		if(skillID<=SKILL_THROWING) result-=10;
+	if (VarPtr::pc_trait[0] != -1) result += TraitSkillBonuses[skillID*TRAIT_count + VarPtr::pc_trait[0]];
+	if (VarPtr::pc_trait[1] != -1) result += TraitSkillBonuses[skillID*TRAIT_count + VarPtr::pc_trait[1]];
+	if (check_trait(TRAIT_gifted)) result-=10;
+	if (check_trait(TRAIT_good_natured)) {
+		if (skillID<=SKILL_THROWING) result-=10;
 		else if(skillID==SKILL_FIRST_AID||skillID==SKILL_DOCTOR||skillID==SKILL_CONVERSANT||skillID==SKILL_BARTER) result+=15;
 	}
 	return result;
@@ -858,7 +859,7 @@ static void TraitSetup() {
 
 	memset(tName, 0, sizeof(tName));
 	memset(tDesc, 0, sizeof(tDesc));
-	memcpy(Traits, (void*)_trait_data, sizeof(TraitStruct)*TRAIT_count);
+	memcpy(Traits, (void*)VarPtr::trait_data, sizeof(TraitStruct)*TRAIT_count);
 	memset(TraitStatBonuses, 0, sizeof(TraitStatBonuses));
 	memset(TraitSkillBonuses, 0, sizeof(TraitSkillBonuses));
 

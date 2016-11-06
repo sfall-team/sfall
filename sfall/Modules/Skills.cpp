@@ -25,17 +25,6 @@
 #include "..\FalloutEngine\Fallout2.h"
 #include "Knockback.h"
 
-struct SkillInfo {
-	DWORD a, b, c; //Not interested in these at the moment
-	DWORD image;
-	DWORD base;
-	DWORD statMulti;
-	int statA;
-	int statB;
-	DWORD skillPointMulti;
-	DWORD e, f; //nor these
-};
-
 struct ChanceModifier {
 	DWORD id;
 	int maximum;
@@ -223,7 +212,7 @@ void SkillsInit() {
 
 	char buf[512], key[16], file[64];
 	if(GetPrivateProfileStringA("Misc", "SkillsFile", "", buf, 62, ini)>0) {
-		SkillInfo *skills=(SkillInfo*)_skill_data;
+		SkillInfo *skills = VarPtr::skill_data;
 
 		sprintf(file, ".\\%s", buf);
 		multipliers=new double[7*SKILL_count];

@@ -167,3 +167,52 @@ struct sMessage
   char* message;
 };
 #pragma pack(pop)
+
+struct sArt {
+	int flags;
+	char path[16];
+	char* names;
+	int d18;
+	int total;
+};
+
+struct CritStruct {
+	union {
+		struct {
+			int DamageMultiplier;
+			int EffectFlags;
+			int StatCheck;
+			int StatMod;
+			int FailureEffect;
+			int Message;
+			int FailMessage;
+		};
+		int values[7];
+	};
+};
+
+#pragma pack(push, 1)
+struct SkillInfo
+{
+  int name;
+  int desc;
+  int attr;
+  int image;
+  int base;
+  int statMulti;
+  int statA;
+  int statB;
+  int skillPointMulti;
+  int Exp;
+  int f;
+};
+#pragma pack(pop)
+
+//fallout2 path node structure
+struct sPath {
+	char* path;
+	void* pDat;
+	int isDat;
+	sPath* next;
+};
+

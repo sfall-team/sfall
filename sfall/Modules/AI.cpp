@@ -81,7 +81,7 @@ end:
 
 static void __declspec(naked) BlockCombatHook2() {
 	__asm {
-		mov eax, dword ptr ds:[_intfaceEnabled];
+		mov eax, dword ptr ds:[VarPtr::intfaceEnabled];
 		test eax, eax;
 		jz end;
 		mov eax, CombatDisabled;

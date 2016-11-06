@@ -9,7 +9,7 @@ DWORD WeightOnBody = 0;
 static void __declspec(naked) SharpShooterFix() {
 	__asm {
 		call FuncOffs::stat_level_                          // Perception
-		cmp  edi, dword ptr ds:[_obj_dude]
+		cmp  edi, dword ptr ds:[VarPtr::obj_dude]
 		jne  end
 		xchg ecx, eax
 		mov  eax, edi                             // _obj_dude
@@ -26,18 +26,18 @@ static void __declspec(naked) pipboy_hack() {
 	__asm {
 		cmp  ebx, 0x210                           // Back button?
 		je   end
-		cmp  byte ptr ds:[_holo_flag], 0
+		cmp  byte ptr ds:[VarPtr::holo_flag], 0
 		jne  end
 		xor  ebx, ebx                             // No man, no problem (c) :-p
 end:
-		mov  eax, ds:[_crnt_func]
+		mov  eax, ds:[VarPtr::crnt_func]
 		retn
 	}
 }
 
 static void __declspec(naked) PipAlarm_hack() {
 	__asm {
-		mov  ds:[_crnt_func], eax
+		mov  ds:[VarPtr::crnt_func], eax
 		mov  eax, 0x400
 		call FuncOffs::PipStatus_
 		mov  eax, 0x50CC04                        // 'iisxxxx1'
@@ -123,7 +123,7 @@ loopQueue:
 		call FuncOffs::queue_find_next_
 		jmp  loopQueue
 skip:
-		mov  eax, dword ptr ds:[_obj_dude]
+		mov  eax, dword ptr ds:[VarPtr::obj_dude]
 		call FuncOffs::queue_find_first_
 end:
 		push 0x47A6A1
@@ -133,7 +133,7 @@ end:
 
 static void __declspec(naked) remove_jet_addict() {
 	__asm {
-		cmp  eax, dword ptr ds:[_wd_obj]
+		cmp  eax, dword ptr ds:[VarPtr::wd_obj]
 		jne  end
 		cmp  dword ptr [edx+0x4], PID_JET         // queue_addict.drug_pid == PID_JET?
 		jne  end
@@ -154,7 +154,7 @@ static void __declspec(naked) item_d_take_drug_hack() {
 		mov  eax, esi
 		call FuncOffs::perform_withdrawal_end_
 skip:
-		mov  dword ptr ds:[_wd_obj], esi
+		mov  dword ptr ds:[VarPtr::wd_obj], esi
 		mov  eax, 2                               // type = addiction
 		mov  edx, offset remove_jet_addict
 		call FuncOffs::queue_clear_type_
@@ -168,7 +168,7 @@ static void __declspec(naked) item_d_load_hack() {
 		sub  esp, 4
 		mov  [ebp], edi                           // edi->queue_drug
 		mov  ecx, 7
-		mov  esi, _drugInfoList+12
+		mov  esi, VarPtr::drugInfoList + 12
 loopDrug:
 		cmp  dword ptr [esi+8], 0                 // drugInfoList.numeffects
 		je   nextDrug
@@ -244,11 +244,11 @@ static void __declspec(naked) partyMemberCopyLevelInfo_hook() {
 		cmp  eax, -1
 		je   end
 		pushad
-		mov  dword ptr ds:[_critterClearObj], ebx
+		mov  dword ptr ds:[VarPtr::critterClearObj], ebx
 		mov  edx, FuncOffs::critterClearObjDrugs_
 		call FuncOffs::queue_clear_type_
 		mov  ecx, 8
-		mov  edi, _drugInfoList
+		mov  edi, VarPtr::drugInfoList
 		mov  esi, ebx
 loopAddict:
 		mov  eax, dword ptr [edi]                 // eax = drug pid
@@ -273,7 +273,7 @@ end:
 static void __declspec(naked) gdProcessUpdate_hack() {
 	__asm {
 		add  eax, esi
-		cmp  eax, dword ptr ds:[_optionRect + 0xC]         // _optionRect.offy
+		cmp  eax, dword ptr ds:[VarPtr::optionRect + 0xC]         // _optionRect.offy
 		jge  skip
 		add  eax, 2
 		push 0x44702D
@@ -358,7 +358,7 @@ noArmor:
 		mov  eax, [esp+0x1C+0x4]
 		test eax, eax
 		jnz  haveWeapon
-		cmp  dword ptr ds:[_dialog_target_is_party], eax
+		cmp  dword ptr ds:[VarPtr::dialog_target_is_party], eax
 		jne  end                                  // This is a party member
 		mov  eax, [esp+0x18+0x4]
 		test eax, eax
@@ -403,7 +403,7 @@ end:
 
 static void __declspec(naked) inven_pickup_hack() {
 	__asm {
-		mov  edx, ds:[_pud]
+		mov  edx, ds:[VarPtr::pud]
 		mov  edx, [edx]                           // itemsCount
 		dec  edx
 		sub  edx, eax
@@ -417,7 +417,7 @@ static void __declspec(naked) inven_pickup_hack2() {
 	__asm {
 		test eax, eax
 		jz   end
-		mov  eax, ds:[_i_wid]
+		mov  eax, ds:[VarPtr::i_wid]
 		call FuncOffs::GNW_find_
 		mov  ecx, [eax+0x8+0x4]                   // ecx = _i_wid.rect.y
 		mov  eax, [eax+0x8+0x0]                   // eax = _i_wid.rect.x
@@ -451,7 +451,7 @@ end:
 found:
 		mov  ebx, 0x4711DF
 		add  edx, [esp+0x40]                      // inventory_offset
-		mov  eax, ds:[_pud]
+		mov  eax, ds:[VarPtr::pud]
 		mov  ecx, [eax]                           // itemsCount
 		jecxz skip
 		dec  ecx
@@ -509,7 +509,7 @@ static void __declspec(naked) PipStatus_AddHotLines_hook() {
 	__asm {
 		call FuncOffs::AddHotLines_
 		xor  eax, eax
-		mov  dword ptr ds:[_hot_line_count], eax
+		mov  dword ptr ds:[VarPtr::hot_line_count], eax
 		retn
 	}
 }
@@ -677,7 +677,7 @@ static void __declspec(naked) obj_save_hack() {
 		dec  eax
 		mov  edx, [esp+0x1C]                      // combat_data
 		mov  eax, [eax+0x68]                      // pobj.who_hit_me.cid
-		test byte ptr ds:[_combat_state], 1       // in combat?
+		test byte ptr ds:[VarPtr::combat_state], 1       // in combat?
 		jz   clear                                // No
 		cmp  dword ptr [edx], 0                   // in combat?
 		jne  skip                                 // Yes
@@ -743,7 +743,7 @@ static void __declspec(naked) combat_hack() {
 		push eax
 		mov  edx, STAT_max_move_points
 		call FuncOffs::stat_level_
-		mov  edx, ds:[_gcsd]
+		mov  edx, ds:[VarPtr::gcsd]
 		test edx, edx
 		jz   skip
 		add  eax, [edx+0x8]                       // gcsd.free_move
@@ -751,13 +751,13 @@ skip:
 		pop  edx
 		xchg edx, eax                             // eax = source, edx = Max action points
 		mov  [eax+0x40], edx                      // pobj.curr_mp
-		test byte ptr ds:[_combat_state], 1       // in combat?
+		test byte ptr ds:[VarPtr::combat_state], 1       // in combat?
 		jz   end                                  // No
 		mov  edx, [eax+0x68]                      // pobj.cid
 		cmp  edx, -1
 		je   end
 		push eax
-		mov  eax, ds:[_aiInfoList]
+		mov  eax, ds:[VarPtr::aiInfoList]
 		shl  edx, 4
 		mov  dword ptr [edx+eax+0xC], 0           // aiInfo.lastMove
 		pop  eax
@@ -769,20 +769,20 @@ end:
 
 static void __declspec(naked) wmTeleportToArea_hack() {
 	__asm {
-		cmp  ebx, ds:[_WorldMapCurrArea]
+		cmp  ebx, ds:[VarPtr::WorldMapCurrArea]
 		je   end
-		mov  ds:[_WorldMapCurrArea], ebx
+		mov  ds:[VarPtr::WorldMapCurrArea], ebx
 		sub  eax, edx
-		add  eax, ds:[_wmAreaInfoList]
+		add  eax, ds:[VarPtr::wmAreaInfoList]
 		mov  edx, [eax+0x30]                      // wmAreaInfoList.world_posy
-		mov  ds:[_world_ypos], edx
+		mov  ds:[VarPtr::world_ypos], edx
 		mov  edx, [eax+0x2C]                      // wmAreaInfoList.world_posx
-		mov  ds:[_world_xpos], edx
+		mov  ds:[VarPtr::world_xpos], edx
 end:
 		xor  eax, eax
-		mov  ds:[_target_xpos], eax
-		mov  ds:[_target_ypos], eax
-		mov  ds:[_In_WorldMap], eax
+		mov  ds:[VarPtr::target_xpos], eax
+		mov  ds:[VarPtr::target_ypos], eax
+		mov  ds:[VarPtr::In_WorldMap], eax
 		push 0x4C5A77
 		retn
 	}

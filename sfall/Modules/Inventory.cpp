@@ -30,23 +30,12 @@ static DWORD mode;
 static DWORD MaxItemSize;
 static DWORD ReloadWeaponKey = 0;
 
-static const char* MsgSearch(int msgno, DWORD file) {
-	if(!file) return 0;
-	sMessage msg = { msgno, 0, 0, 0 };
-	__asm {
-		lea edx, msg;
-		mov eax, file;
-		call FuncOffs::message_search_;
-	}
-	return msg.message;
-}
-
 DWORD& GetActiveItemMode() {
-	return ptr_itemButtonItems[(*ptr_itemCurrentItem * 6) + 4];
+	return VarPtr::itemButtonItems[(*VarPtr::itemCurrentItem * 6) + 4];
 }
 
 TGameObj* GetActiveItem() {
-	return (TGameObj*)ptr_itemButtonItems[*ptr_itemCurrentItem * 6];
+	return (TGameObj*)VarPtr::itemButtonItems[*VarPtr::itemCurrentItem * 6];
 }
 
 void InventoryKeyPressedHook(DWORD dxKey, bool pressed, DWORD vKey) {
@@ -187,7 +176,7 @@ static const DWORD ObjPickupEnd=0x49B6F8;
 static const DWORD size_limit;
 static __declspec(naked) void  ObjPickupHook() {
 	__asm {
-		cmp edi, ds:[_obj_dude];
+		cmp edi, ds:[VarPtr::obj_dude];
 		jnz end;
 end:
 		lea edx, [esp+0x10];
@@ -203,7 +192,7 @@ static __declspec(naked) int CritterCheck() {
 		sub esp, 4;
 		mov ebx, eax;
 
-		cmp eax, dword ptr ds:[_obj_dude];
+		cmp eax, dword ptr ds:[VarPtr::obj_dude];
 		je single;
 		test mode, 3;
 		jnz run;
@@ -350,7 +339,7 @@ static const char* InvenFmt1="%s %d/%d  %s %d/%d";
 static const char* InvenFmt2="%s %d/%d";
 
 static const char* _stdcall GetInvenMsg() {
-	const char* tmp=MsgSearch(35, _inventry_message_file);
+	const char* tmp = MsgSearch(35, VarPtr::inventry_message_file);
 	if(!tmp) return "S:";
 	else return tmp;
 }
@@ -365,13 +354,13 @@ static __declspec(naked) void DisplayStatsHook() {
 		call CritterCheck;
 		jz nolimit;
 		push eax;
-		mov eax, ds:[_stack];
+		mov eax, ds:[VarPtr::stack];
 		push ecx;
 		push InvenFmt1;
 		push offset InvenFmt;
 		call strcpy_wrapper;
 		pop ecx;
-		mov eax, ds:[_stack];
+		mov eax, ds:[VarPtr::stack];
 		call item_total_size;
 		push eax;
 		push ecx;
@@ -389,7 +378,7 @@ nolimit:
 		push eax;
 		push eax;
 end:
-		mov eax, ds:[_stack];
+		mov eax, ds:[VarPtr::stack];
 		mov edx, 0xc;
 		jmp DisplayStatsEnd;
 	}
@@ -398,11 +387,11 @@ end:
 static char SizeMsgBuf[32];
 static const char* _stdcall FmtSizeMsg(int size) {
 	if(size==1) {
-		const char* tmp=MsgSearch(543, _proto_main_msg_file);
+		const char* tmp = MsgSearch(543, VarPtr::proto_main_msg_file);
 		if(!tmp) strcpy(SizeMsgBuf, "It occupies 1 unit.");
 		else sprintf(SizeMsgBuf, tmp, size);
 	} else {
-		const char* tmp=MsgSearch(542, _proto_main_msg_file);
+		const char* tmp = MsgSearch(542, VarPtr::proto_main_msg_file);
 		if(!tmp) sprintf(SizeMsgBuf, "It occupies %d units.", size);
 		else sprintf(SizeMsgBuf, tmp, size);
 	}

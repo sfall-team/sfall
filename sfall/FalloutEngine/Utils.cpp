@@ -36,3 +36,11 @@ char AnimCodeByWeapon(TGameObj* weapon) {
 	}
 	return 0;
 }
+
+const char* MsgSearch(int msgno, DWORD* file) {
+	if(!file) return 0;
+	sMessage msg = { msgno, 0, 0, 0 };
+	Wrapper::message_search(file, &msg);
+	return msg.message;
+}
+

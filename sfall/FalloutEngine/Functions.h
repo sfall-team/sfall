@@ -4120,4 +4120,8 @@ FUNC_DECL zero_vid_mem_;
 FUNC_DECL zlibVersion_;
 FUNC_DECL zupstr_;
 
+
+#undef FUNC_DECL
+
 }
+

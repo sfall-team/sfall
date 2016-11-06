@@ -25,7 +25,7 @@
 namespace FuncOffs
 {
 
-#define FUNC_DEFN extern const unsigned long
+#define FUNC_DEFN const unsigned long
 
 FUNC_DEFN AM_ReadEntry_                  = 0x41C8CC;
 FUNC_DEFN AM_ReadMainHeader_             = 0x41CB50;

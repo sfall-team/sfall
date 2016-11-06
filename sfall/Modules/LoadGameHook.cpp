@@ -69,7 +69,7 @@ static void _stdcall ResetState(DWORD onLoad) {
 }
 
 void GetSavePath(char* buf, char* ftype) {
-	sprintf(buf, "%s\\savegame\\slot%.2d\\sfall%s.sav", *(char**)_patches, *(DWORD*)_slot_cursor + 1 + LSPageOffset, ftype); //add SuperSave Page offset
+	sprintf(buf, "%s\\savegame\\slot%.2d\\sfall%s.sav", *VarPtr::patches, *VarPtr::slot_cursor + 1 + LSPageOffset, ftype); //add SuperSave Page offset
 }
 
 static char SaveSfallDataFailMsg[128];
@@ -115,15 +115,15 @@ static DWORD _stdcall combatSaveTest() {
 		DWORD bonusmove;
 		__asm {
 			mov edx, 8;
-			mov eax, ds:[_obj_dude];
+			mov eax, ds:[VarPtr::obj_dude];
 			call FuncOffs::stat_level_;
 			mov ap, eax;
-			mov eax, ds:[_obj_dude];
+			mov eax, ds:[VarPtr::obj_dude];
 			mov edx, 3;
 			call FuncOffs::perk_level_;
 			mov bonusmove, eax;
 		}
-		if (*(DWORD*)(*(DWORD*)_obj_dude + 0x40) != ap || bonusmove * 2 != *(DWORD*)_combat_free_move) {
+		if (*(DWORD*)(*VarPtr::obj_dude + 0x40) != ap || bonusmove * 2 != *VarPtr::combat_free_move) {
 			Wrapper::display_print(SaveFailMsg);
 			return 0;
 		}
@@ -250,7 +250,7 @@ static void __declspec(naked) NewGame() {
 		pushad;
 		call NewGame2;
 		mov  al, DisableHorrigan;
-		mov  byte ptr ds:[_Meet_Frank_Horrigan], al;
+		mov  byte ptr ds:[VarPtr::Meet_Frank_Horrigan], al;
 		popad;
 		call FuncOffs::main_game_loop_;
 		retn;
@@ -269,7 +269,7 @@ static void __declspec(naked) MainMenu() {
 		push 0;
 		call ResetState;
 		mov  al, PipBoyAvailableAtGameStart;
-		mov  byte ptr ds:[_gmovie_played_list + 0x3], al;
+		mov  byte ptr ds:[VarPtr::gmovie_played_list + 0x3], al;
 		call ReadExtraGameMsgFilesIfNeeded;
 		call LoadHeroAppearance;
 		popad;

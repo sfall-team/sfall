@@ -40,17 +40,9 @@ int CurrentRaceVal=0, CurrentStyleVal=0; //holds Appearance values to restore af
 DWORD critterListSize=0, critterArraySize=0; //Critter art list size
 
 
-//fallout2 path node structure
-struct sPath {
-	char* path;
-	void* pDat;
-	DWORD isDat;
-	sPath* next;
-};
-
-sPath **TempPathPtr=(sPath**)_paths;
-sPath *HeroPathPtr=NULL;
-sPath *RacePathPtr=NULL;
+sPath **TempPathPtr = VarPtr::paths;
+sPath *HeroPathPtr = NULL;
+sPath *RacePathPtr = NULL;
 
 
 //for word wrapping
@@ -357,7 +349,7 @@ void HideMouse() {
 //-------------------------------------------------------
 //returns 0 if mouse is hidden
 int IsMouseHidden() {
-	return *(DWORD*)_mouse_is_hidden;
+	return *VarPtr::mouse_is_hidden;
 }
 
 
@@ -705,7 +697,7 @@ void SetFont(int ref) {
 
 //-----------------------
 int GetFont(void) {
-	return *(DWORD*)_curr_font_num;
+	return *VarPtr::curr_font_num;
 }
 
 
@@ -722,7 +714,7 @@ void PrintText(char *DisplayText, BYTE ColourIndex, DWORD Xpos, DWORD Ypos, DWOR
 		mov ecx, ToWidth
 		mov eax, ToSurface
 		add eax, posOffset
-		call dword ptr ds:[_text_to_buf]
+		call dword ptr ds:[VarPtr::text_to_buf]
 	}
 }
 
@@ -731,7 +723,7 @@ void PrintText(char *DisplayText, BYTE ColourIndex, DWORD Xpos, DWORD Ypos, DWOR
 DWORD GetTextHeight() {
 	DWORD TxtHeight;
 	__asm {
-		call dword ptr ds:[_text_height] //get text height
+		call dword ptr ds:[VarPtr::text_height] //get text height
 		mov TxtHeight, eax
 	}
 	return TxtHeight;
@@ -743,7 +735,7 @@ DWORD GetTextWidth(char *TextMsg) {
 	DWORD TxtWidth;
 	__asm {
 		mov eax, TextMsg
-		call dword ptr ds:[_text_width] //get text width
+		call dword ptr ds:[VarPtr::text_width] //get text width
 		mov TxtWidth, eax
 	}
 	return TxtWidth;
@@ -755,7 +747,7 @@ DWORD GetCharWidth(char CharVal) {
 	DWORD charWidth;
 	__asm {
 		mov al, CharVal
-		call dword ptr ds:[_text_char_width]
+		call dword ptr ds:[VarPtr::text_char_width]
 		mov charWidth, eax
 	}
 	return charWidth;
@@ -767,7 +759,7 @@ DWORD GetMaxTextWidth(char *TextMsg) {
 	DWORD msgWidth;
 	__asm {
 		mov eax, TextMsg
-		call dword ptr ds:[_text_mono_width]
+		call dword ptr ds:[VarPtr::text_mono_width]
 		mov msgWidth, eax
 	}
 	return msgWidth;
@@ -778,7 +770,7 @@ DWORD GetMaxTextWidth(char *TextMsg) {
 DWORD GetCharGapWidth() {
 	DWORD gapWidth;
 	__asm {
-		call dword ptr ds:[_text_spacing]
+		call dword ptr ds:[VarPtr::text_spacing]
 		mov gapWidth, eax
 	}
 	return gapWidth;
@@ -789,7 +781,7 @@ DWORD GetCharGapWidth() {
 DWORD GetMaxCharWidth() {
 	DWORD charWidth = 0;
 	__asm {
-		call dword ptr ds:[_text_max]
+		call dword ptr ds:[VarPtr::text_max]
 		mov charWidth, eax
 	}
 	return charWidth;
@@ -886,7 +878,7 @@ char _stdcall GetSex(void) {
 	char sex;
 	__asm {
 		mov edx, STAT_gender //sex stat ref
-		mov eax, dword ptr ds:[_obj_dude] //hero state structure
+		mov eax, dword ptr ds:[VarPtr::obj_dude] //hero state structure
 		call FuncOffs::stat_level_ //get Player stat val
 		test eax, eax //male=0, female=1
 		jne Female
@@ -926,7 +918,7 @@ int _stdcall LoadHeroDat(unsigned int Race, unsigned int Style) {
 	}
 
 	TempPathPtr = &HeroPathPtr; //set path for selected appearance
-	HeroPathPtr->next = *(sPath**)_paths;
+	HeroPathPtr->next = VarPtr::paths[0];
 
 	if (Style != 0){
 		sprintf_s(RacePathPtr->path, 64, "Appearance\\h%cR%02dS%02d.dat\0", GetSex(), Race, 0);
@@ -939,7 +931,7 @@ int _stdcall LoadHeroDat(unsigned int Race, unsigned int Style) {
 
 		if (GetFileAttributes(RacePathPtr->path) != INVALID_FILE_ATTRIBUTES) { //check if folder/Dat exists for selected race base appearance
 			HeroPathPtr->next = RacePathPtr; //set path for selected race base appearance
-			RacePathPtr->next = *(sPath**)_paths;
+			RacePathPtr->next = VarPtr::paths[0];
 		}
 
 	}
@@ -955,7 +947,7 @@ static void __declspec(naked) LoadNewHeroArt() {
 	__asm {
 		cmp byte ptr ds:[esi], 'r'
 		je isReading
-		mov ecx, _paths
+		mov ecx, VarPtr::paths
 		jmp setPath
 isReading:
 		mov ecx, TempPathPtr
@@ -992,7 +984,7 @@ static void __declspec(naked) CheckHeroExist() {
 		sub esp, 0x4
 		lea ebx, [esp]
 		push ebx
-		push _art_name //critter art file name address
+		push VarPtr::art_name //critter art file name address
 		//call CheckHeroFile//check if art file exists
 		call CheckFile
 		add esp, 0xC
@@ -1008,7 +1000,7 @@ static void __declspec(naked) CheckHeroExist() {
 		jmp eax
 EndFunc:
 		//popad
-		mov eax, _art_name
+		mov eax, VarPtr::art_name
 		ret
 	}
 }
@@ -1023,7 +1015,7 @@ static void __declspec(naked) AdjustHeroBaseArt() {
 		// jg EndFunc
 		add eax, critterListSize
 //EndFunc:
-		mov dword ptr ds:[_art_vault_guy_num],eax
+		mov dword ptr ds:[VarPtr::art_vault_guy_num],eax
 		ret
 	}
 }
@@ -1045,7 +1037,7 @@ static void __declspec(naked) AdjustHeroArmorArt() {
 		jg EndFunc
 		add eax, critterListSize //shift critter art index up into hero range
 EndFunc:
-		//mov dword ptr ds:[_i_fid],eax
+		//mov dword ptr ds:[VarPtr::i_fid],eax
 		ret
 	}
 }
@@ -1055,7 +1047,7 @@ EndFunc:
 void _stdcall SetHeroArt(int NewArtFlag) {
 
 	__asm {
-		mov eax, dword ptr ds:[_obj_dude] //hero state struct
+		mov eax, dword ptr ds:[VarPtr::obj_dude] //hero state struct
 		mov eax, dword ptr ds:[eax + 0x20] //get hero FrmID
 		xor edx, edx
 		mov dx, ax
@@ -1073,7 +1065,7 @@ IsHero:
 SetArt:
 		mov ebx, 0 //SomePtr
 		mov edx, eax
-		mov eax, dword ptr ds:[_obj_dude] //hero state struct
+		mov eax, dword ptr ds:[VarPtr::obj_dude] //hero state struct
 		mov dword ptr ds:[eax + 0x20],edx //copy new FrmID to hero state struct
 		//call obj_change_fid_ // set critter FrmID function
 EndFunc:
@@ -1152,7 +1144,7 @@ static void __declspec(naked) AddHeroCritNames() {
 
 	__asm {
 		call FixCritList //insert names for hero critters
-		mov eax, dword ptr ds:[_art + 0x3C]
+		mov eax, dword ptr ds:[VarPtr::art + 0x3C]
 		ret
 	}
 }
@@ -1191,15 +1183,15 @@ void DrawPC(void) {
 	__asm {
 		/*
 		lea ebx, //-out- RECT*
-		mov eax, dword ptr ds:[_obj_dude] //critter struct
+		mov eax, dword ptr ds:[VarPtr::obj_dude] //critter struct
 		mov edx, dword ptr ds:[eax + 0x20] // new frmId
 		call obj_change_fid_ //set new critt FrmID func
 		*/
 		lea edx, critRect //out critter RECT*
-		mov eax, dword ptr ds:[_obj_dude] //dude critter struct
+		mov eax, dword ptr ds:[VarPtr::obj_dude] //dude critter struct
 		call FuncOffs::obj_bound_ //get critter rect func
 
-		mov edx, dword ptr ds:[_obj_dude] //dude critter struct
+		mov edx, dword ptr ds:[VarPtr::obj_dude] //dude critter struct
 		lea eax, critRect //RECT*
 		mov edx, dword ptr ds:[edx + 0x28] //map level the dude is on
 		call FuncOffs::tile_refresh_rect_ //draw rect area func
@@ -1216,11 +1208,11 @@ void _stdcall RefreshPCArt() {
 		call FuncOffs::proto_dude_update_gender_ //refresh PC base model art
 
 
-		mov eax, dword ptr ds:[_obj_dude] //PC state struct
-		mov dword ptr ds:[_inven_dude], eax //inventory temp pointer to PC state struct
-		mov eax, dword ptr ds:[_inven_dude]
+		mov eax, dword ptr ds:[VarPtr::obj_dude] //PC state struct
+		mov dword ptr ds:[VarPtr::inven_dude], eax //inventory temp pointer to PC state struct
+		mov eax, dword ptr ds:[VarPtr::inven_dude]
 		lea edx, dword ptr ds:[eax + 0x2C]
-		mov dword ptr ds:[_pud], edx //PC inventory
+		mov dword ptr ds:[VarPtr::pud], edx //PC inventory
 
 
 		xor eax, eax
@@ -1228,9 +1220,9 @@ void _stdcall RefreshPCArt() {
 		xor ebx, ebx //itemNum
 
 
-		mov dword ptr ds:[_i_rhand], eax //item2
-		mov dword ptr ds:[_i_worn], eax //armor
-		mov dword ptr ds:[_i_lhand], eax //item1
+		mov dword ptr ds:[VarPtr::i_rhand], eax //item2
+		mov dword ptr ds:[VarPtr::i_worn], eax //armor
+		mov dword ptr ds:[VarPtr::i_lhand], eax //item1
 		jmp LoopStart
 
 CheckNextItem:
@@ -1246,22 +1238,22 @@ CheckNextItem:
 		jmp SetNextItem
 
 IsItem1:
-		mov dword ptr ds:[_i_lhand], eax //set item1
+		mov dword ptr ds:[VarPtr::i_lhand], eax //set item1
 		test byte ptr ds:[eax + 0x27], 2 //check if same item type also in item2 slot
 		jz SetNextItem
 
 IsItem2:
-		mov dword ptr ds:[_i_rhand], eax //set item2
+		mov dword ptr ds:[VarPtr::i_rhand], eax //set item2
 		jmp SetNextItem
 
 IsArmor:
-		mov dword ptr ds:[_i_worn], eax //set armor
+		mov dword ptr ds:[VarPtr::i_worn], eax //set armor
 
 SetNextItem:
 		inc ebx //itemNum++
 		add edx, 0x8 //itemListOffset + itemsize
 LoopStart:
-		mov eax, dword ptr ds:[_pud] //PC inventory
+		mov eax, dword ptr ds:[VarPtr::pud] //PC inventory
 		cmp ebx, dword ptr ds:[eax] //size of item list
 		jl CheckNextItem
 
@@ -1270,16 +1262,16 @@ LoopStart:
 		call FuncOffs::adjust_fid_
 
 		//copy new FrmID to hero state struct
-		mov edx, dword ptr ds:[_i_fid]
-		mov eax, dword ptr ds:[_inven_dude]
+		mov edx, dword ptr ds:[VarPtr::i_fid]
+		mov eax, dword ptr ds:[VarPtr::inven_dude]
 		mov dword ptr ds:[eax + 0x20], edx
 		//call FuncOffs::obj_change_fid_
 
 
 		xor eax,eax
-		mov dword ptr ds:[_i_rhand], eax //item2
-		mov dword ptr ds:[_i_worn], eax //armor
-		mov dword ptr ds:[_i_lhand], eax //item1
+		mov dword ptr ds:[VarPtr::i_rhand], eax //item2
+		mov dword ptr ds:[VarPtr::i_worn], eax //armor
+		mov dword ptr ds:[VarPtr::i_lhand], eax //item1
 	}
 
 
@@ -1459,7 +1451,7 @@ void DrawPCConsole() {
 		else CharRotOri = 0;
 
 
-		int WinRef = *(DWORD*)_edit_win; //char screen window ref
+		int WinRef = *VarPtr::edit_win; //char screen window ref
 		//BYTE *WinSurface = GetWinSurface(WinRef);
 		WINinfo *WinInfo = GetWinStruct(WinRef);
 
@@ -1468,8 +1460,8 @@ void DrawPCConsole() {
 		sub_draw(70, 102, 640, 480, 338, 78, CharScrnBackSurface, 70, 102, 0, 0, ConSurface, 0);
 		//sub_draw(70, 102, widthBG, heightBG, xPosBG, yPosBG, BGSurface, 70, 102, 0, 0, ConSurface, 0);
 
-		//DWORD CritNum = *(DWORD*)_art_vault_guy_num; //pointer to current base hero critter FrmId
-		DWORD CritNum = *(DWORD*)(*(DWORD*)_obj_dude + 0x20); //pointer to current armored hero critter FrmId
+		//DWORD CritNum = *VarPtr::art_vault_guy_num; //pointer to current base hero critter FrmId
+		DWORD CritNum = *(DWORD*)(*VarPtr::obj_dude + 0x20); //pointer to current armored hero critter FrmId
 		DWORD CritFrmObj;
 		FRMhead *CritFrm;
 		//DWORD PcCritOri = 0;
@@ -1484,13 +1476,13 @@ void DrawPCConsole() {
 
 		sub_draw(CritWidth, CritHeight, CritWidth, CritHeight, 0, 0, CritSurface, 70, 102, 35-CritWidth/2, 51-CritHeight/2, ConSurface, 0);
 
-		BYTE ConsoleGreen = *(BYTE*)_GreenColor; //palette offset stored in mem - text colour
-		BYTE ConsoleGold = *(BYTE*)_YellowColor; //palette offset stored in mem - text colour
+		BYTE ConsoleGreen = *VarPtr::GreenColor; //palette offset stored in mem - text colour
+		BYTE ConsoleGold = *VarPtr::YellowColor; //palette offset stored in mem - text colour
 
 		BYTE styleColour = ConsoleGreen, raceColour = ConsoleGreen;
-		if (*(DWORD*)_info_line == 0x501)
+		if (*VarPtr::info_line == 0x501)
 			raceColour = ConsoleGold;
-		else if (*(DWORD*)_info_line == 0x502)
+		else if (*VarPtr::info_line == 0x502)
 			styleColour = ConsoleGold;
 /*
 		int oldFont = GetFont(); //store current font
@@ -1612,7 +1604,7 @@ void DrawCharNote(bool Style, int WinRef, DWORD xPosWin, DWORD yPosWin, BYTE *BG
 	WinInfo = NULL;
 	SetFont(oldFont); //restore previous font
 	DestroyMsgList(&MsgList);
-	//RedrawWin(*(DWORD*)_edit_win);
+	//RedrawWin(*VarPtr::edit_win);
 }
 
 
@@ -1620,10 +1612,10 @@ void DrawCharNote(bool Style, int WinRef, DWORD xPosWin, DWORD yPosWin, BYTE *BG
 void DrawCharNote(DWORD LstNum, char *TitleTxt, char *AltTitleTxt, char *Message) {
 
 	__asm {
-		MOV ECX,Message//100//DWORD PTR DS:[_folder_card_desc]
-		MOV EBX,AltTitleTxt//DWORD PTR DS:[_folder_card_title2]
-		MOV EDX,TitleTxt//DWORD PTR DS:[_folder_card_title]
-		MOV EAX,LstNum//11//LstNum//DWORD PTR DS:[_folder_card_fid]
+		MOV ECX,Message//100//DWORD PTR ds:[VarPtr::folder_card_desc]
+		MOV EBX,AltTitleTxt//DWORD PTR ds:[VarPtr::folder_card_title2]
+		MOV EDX,TitleTxt//DWORD PTR ds:[VarPtr::folder_card_title]
+		MOV EAX,LstNum//11//LstNum//DWORD PTR ds:[VarPtr::folder_card_fid]
 		CALL FuncOffs::DrawCard_
 	}
 }
@@ -1744,11 +1736,11 @@ void _stdcall HeroSelectWindow(int RaceStyleFlag) {
 
 	DWORD NewTick = 0, OldTick = 0;
 
-	textColour = *(BYTE*)_GreenColor; //ConsoleGreen colour -palette offset stored in mem
+	textColour = *VarPtr::GreenColor; //ConsoleGreen colour -palette offset stored in mem
 	SetFont(0x65);
 
-	DWORD CritNum = *(DWORD*)_art_vault_guy_num; //pointer to current base hero critter FrmID
-	//DWORD CritNum = *(DWORD*)(*(DWORD*)_obj_dude+0x20); //pointer to current armored hero critter FrmID
+	DWORD CritNum = *VarPtr::art_vault_guy_num; //pointer to current base hero critter FrmID
+	//DWORD CritNum = *(DWORD*)(*VarPtr::obj_dude+0x20); //pointer to current armored hero critter FrmID
 	FRMhead *CritFrm;
 	DWORD CritFrmObj = 0, CritOri = 0, CritWidth = 0, CritHeight = 0;
 	BYTE *CritSurface = NULL;
@@ -1917,7 +1909,7 @@ void FixTextHighLight() {
 
 //-------------------------------------------
 void _stdcall DrawCharNoteNewChar(bool Style) {
-	DrawCharNote(Style, *(DWORD*)_edit_win, 348, 272, CharScrnBackSurface, 348, 272, 640, 480);
+	DrawCharNote(Style, *VarPtr::edit_win, 348, 272, CharScrnBackSurface, 348, 272, 640, 480);
 }
 
 //-------------------------------------------------------------------
@@ -1930,24 +1922,24 @@ int _stdcall CheckCharButtons() {
 
 	int drawFlag = -1;
 
-	if (*(DWORD*)_info_line == 0x503) button = 0x501;
-	else if (*(DWORD*)_info_line == 0x504) button = 0x502;
-	else if (*(DWORD*)_info_line == 0x501 || *(DWORD*)_info_line == 0x502) {
+	if (*VarPtr::info_line == 0x503) button = 0x501;
+	else if (*VarPtr::info_line == 0x504) button = 0x502;
+	else if (*VarPtr::info_line == 0x501 || *VarPtr::info_line == 0x502) {
 		switch(button) {
 			case 0x14B: //button =left
 			case 0x14D: //button =right
 				if (*(DWORD*)0x5709D0 == 1) { //if in char creation scrn
-					if (*(DWORD*)_info_line == 0x501)
+					if (*VarPtr::info_line == 0x501)
 						button = button + 0x3C6;
-					else if (*(DWORD*)_info_line == 0x502)
+					else if (*VarPtr::info_line == 0x502)
 						button = button + 0x3C6 + 1;
 				}
 			break;
 			case 0x148: //button =up
 			case 0x150: //button =down
-				if (*(DWORD*)_info_line == 0x501)
+				if (*VarPtr::info_line == 0x501)
 					button = 0x502;
-				else if (*(DWORD*)_info_line == 0x502)
+				else if (*VarPtr::info_line == 0x502)
 					button = 0x501;
 			break;
 			case 0x0D: //button =return
@@ -1958,10 +1950,10 @@ int _stdcall CheckCharButtons() {
 			case 0x1F6: //button =cancel
 			case 'c': //button =cancel
 			case 'C': //button =cancel
-			if (*(DWORD*)_info_line == 0x501) //for redrawing note when reentering char screen
-				*(DWORD*)_info_line = 0x503;
+			if (*VarPtr::info_line == 0x501) //for redrawing note when reentering char screen
+				*VarPtr::info_line = 0x503;
 			else
-				*(DWORD*)_info_line = 0x504;
+				*VarPtr::info_line = 0x504;
 			break;
 
 			default:
@@ -1972,7 +1964,7 @@ int _stdcall CheckCharButtons() {
 
 	switch(button) {
 		case 0x9: //tab button pushed
-			if (*(DWORD*)_info_line >= 0x3D && *(DWORD*)_info_line < 0x4F) //if menu ref in last menu go to race
+			if (*VarPtr::info_line >= 0x3D && *VarPtr::info_line < 0x4F) //if menu ref in last menu go to race
 				button = 0x501, drawFlag = 0;
 		break;
 		case 0x501: //race button pushed
@@ -2034,20 +2026,20 @@ int _stdcall CheckCharButtons() {
 
 	if (drawFlag == 1) {
 		PlayAcm("ib3p1xx1");
-		*(DWORD*)_info_line = 0x502;
+		*VarPtr::info_line = 0x502;
 		FixTextHighLight();
 		DrawCharNoteNewChar(1);
-		//DrawCharNote(1, *(DWORD*)_edit_win, 348, 272, CharScrnBackSurface, 348, 272, 640, 480);
+		//DrawCharNote(1, *VarPtr::edit_win, 348, 272, CharScrnBackSurface, 348, 272, 640, 480);
 	}
 	else if (drawFlag==0) {
 		PlayAcm("ib3p1xx1");
-		*(DWORD*)_info_line = 0x501;
+		*VarPtr::info_line = 0x501;
 		FixTextHighLight();
 		DrawCharNoteNewChar(0);
-		//DrawCharNote(0, *(DWORD*)_edit_win, 348, 272, CharScrnBackSurface, 348, 272, 640, 480);
+		//DrawCharNote(0, *VarPtr::edit_win, 348, 272, CharScrnBackSurface, 348, 272, 640, 480);
 	}
 
-	DrawPCConsole(); //(*(DWORD*)_edit_win, 338, 78, CharScrnBackSurface, 338, 78, 640, 480);
+	DrawPCConsole(); //(*VarPtr::edit_win, 338, 78, CharScrnBackSurface, 338, 78, 640, 480);
 
 	return button;
 }
@@ -2084,7 +2076,7 @@ static void __declspec(naked) CharScrnEnd(void) {
 		pushad
 		call DeleteCharSurfaces
 		popad
-		mov ebp, dword ptr ds:[_info_line]
+		mov ebp, dword ptr ds:[VarPtr::info_line]
 		retn
 	}
 }
@@ -2096,31 +2088,31 @@ static void __declspec(naked) SexScrnEnd(void) {
 	__asm {
 		pushad
 		mov edx, STAT_gender
-		mov eax, dword ptr ds:[_obj_dude]
+		mov eax, dword ptr ds:[VarPtr::obj_dude]
 		call FuncOffs::stat_level_ //get PC stat current gender
 		mov ecx, eax
 		call FuncOffs::SexWindow_ //call gender selection window
 		mov edx, STAT_gender
-		mov eax, dword ptr ds:[_obj_dude]
+		mov eax, dword ptr ds:[VarPtr::obj_dude]
 		call FuncOffs::stat_level_ //get PC stat current gender
 		cmp ecx, eax //check if gender has been changed
 		je EndFunc
 
 		xor ebx, ebx
-		//cmp byte ptr ds:[_gmovie_played_list + 0x3],1 //check if wearing vault suit
+		//cmp byte ptr ds:[VarPtr::gmovie_played_list + 0x3],1 //check if wearing vault suit
 		//jne NoVaultSuit
 		//mov ebx, 0x8
 //NoVaultSuit:
 		test eax, eax //check if male 0
 		jnz IsFemale
-		mov eax, dword ptr ds:[ebx + _art_vault_person_nums] //base male model
+		mov eax, dword ptr ds:[ebx + VarPtr::art_vault_person_nums] //base male model
 		jmp ChangeSex
 IsFemale:
 		mov eax, dword ptr ds:[ebx + 0x5108AC] //base female model
 ChangeSex:
 		call AdjustHeroBaseArt
-		//mov dword ptr ds:[_art_vault_guy_num], eax //current base dude model
-		mov eax, dword ptr ds:[_obj_dude] //dude state structure
+		//mov dword ptr ds:[VarPtr::art_vault_guy_num], eax //current base dude model
+		mov eax, dword ptr ds:[VarPtr::obj_dude] //dude state structure
 		call FuncOffs::inven_worn_
 		mov CurrentRaceVal, 0 //reset race and style to defaults
 		mov CurrentStyleVal, 0
@@ -2130,12 +2122,12 @@ ChangeSex:
 		call LoadHeroDat
 		call RefreshPCArt
 		//Check If Race or Style selected to redraw info note
-		cmp dword ptr ds:[_info_line], 0x501
+		cmp dword ptr ds:[VarPtr::info_line], 0x501
 		jne CheckIfStyle
 		push 0
 		call DrawCharNoteNewChar
 CheckIfStyle:
-		cmp dword ptr ds:[_info_line], 0x502
+		cmp dword ptr ds:[VarPtr::info_line], 0x502
 		jne EndFunc
 		push 1
 		call DrawCharNoteNewChar
@@ -2158,7 +2150,7 @@ static void __declspec(naked) AddCharScrnButtons(void) {
 	}
 
 	int WinRef;
-	WinRef=*(DWORD*)_edit_win; //char screen window ref
+	WinRef=*VarPtr::edit_win; //char screen window ref
 
 	//race and style buttons
 	CreateButton(WinRef, 332, 0, 82, 32, -1, -1, 0x501, -1, 0, 0, 0);
@@ -2224,7 +2216,7 @@ static void __declspec(naked) AddCharScrnButtons(void) {
 static void __declspec(naked) FixCharScrnBack(void) {
 //00432B92  |. A3 A4075700    MOV DWORD PTR DS:[5707A4],EAX
 	__asm {
-		mov dword ptr ds:[_bckgnd], eax //surface ptr for char scrn back
+		mov dword ptr ds:[VarPtr::bckgnd], eax //surface ptr for char scrn back
 		test eax, eax //check if frm loaded ok
 		je EndFunc
 
@@ -2240,7 +2232,7 @@ static void __declspec(naked) FixCharScrnBack(void) {
 		CharScrnBackSurface = new BYTE [640*480];
 
 		BYTE *OldCharScrnBackSurface;
-		OldCharScrnBackSurface = *(BYTE**)_bckgnd; //char screen background frm surface
+		OldCharScrnBackSurface = *reinterpret_cast<BYTE**>(VarPtr::bckgnd); //char screen background frm surface
 
 		//CharScrnBackSurface = *(BYTE**)_bckgnd; //char screen background frm surface
 
@@ -2329,7 +2321,7 @@ static void __declspec(naked) FixCharScrnBack(void) {
 		pop ebp
 		mov eax, CharScrnBackSurface
 EndFunc:
-		mov dword ptr ds:[_bckgnd], eax //surface ptr for char scrn back
+		mov dword ptr ds:[VarPtr::bckgnd], eax //surface ptr for char scrn back
 		retn
 	}
 }

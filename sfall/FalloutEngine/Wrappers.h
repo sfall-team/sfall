@@ -93,4 +93,7 @@ void __declspec() debug_printf(const char* fmt, ...);
 
 // returns the name of current procedure by program pointer
 const char* __stdcall findCurrentProc(TProgram* program);
+
+int __stdcall message_search(DWORD* file, sMessage* msg);
+
 }

@@ -469,9 +469,9 @@ static void __declspec(naked) op_tile_get_objects() {
 
 static void _stdcall op_get_party_members2() {
 	DWORD obj, mode = opHandler.arg(0).asInt(), isDead;
-	int i, actualCount = *(DWORD*)_partyMemberCount;
+	int i, actualCount = *VarPtr::partyMemberCount;
 	DWORD arrayId = TempArray(0, 4);
-	DWORD* partyMemberList = *(DWORD**)_partyMemberList;
+	DWORD* partyMemberList = *VarPtr::partyMemberList;
 	for (i = 0; i < actualCount; i++) {
 		obj = partyMemberList[i*4];
 		if (mode == 0) { // mode 0 will act just like op_party_member_count in fallout2

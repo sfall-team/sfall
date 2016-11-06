@@ -267,7 +267,7 @@ static void __declspec(naked) PlayFrameHook2() {
 static DWORD _stdcall PlayMovieHook2(DWORD id) {
 	//Get file path in unicode
 	wchar_t path[MAX_PATH];
-	char* master_patches = *(char**)_patches;
+	char* master_patches = *VarPtr::patches;
 	DWORD len = 0;
 	while (master_patches[len]) { path[len] = master_patches[len]; len++; }
 	path[len] = 0;

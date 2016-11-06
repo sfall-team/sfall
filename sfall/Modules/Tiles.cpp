@@ -24,21 +24,7 @@
 #include "FileSystem.h"
 #include "Tiles.h"
 
-struct sArt {
-	DWORD flags;
-	char path[16];
-	char* names;
-	int d18;
-	int total;
 
-	sArt(char* str) {
-		flags=0;
-		strncpy_s(path, str, 16);
-		names=0;
-		d18=0;
-		total=0;
-	}
-};
 struct OverrideEntry {
 	//DWORD id;
 	DWORD xtiles;
@@ -215,7 +201,7 @@ static int _stdcall ArtInitHook2() {
 
 	CreateMask();
 
-	sArt* tiles=&((sArt*)_art)[4];
+	sArt* tiles = &VarPtr::art[4];
 	char buf[32];
 	DWORD listpos=tiles->total;
 	origTileCount=listpos;
@@ -250,13 +236,13 @@ static int _stdcall ArtInitHook2() {
 static void __declspec(naked) ArtInitHook() {
 	__asm {
 		pushad;
-		mov eax, dword ptr ds:[_read_callback];
+		mov eax, dword ptr ds:[VarPtr::read_callback];
 		push eax;
 		xor eax, eax;
-		mov dword ptr ds:[_read_callback], eax;
+		mov dword ptr ds:[VarPtr::read_callback], eax;
 		call ArtInitHook2;
 		pop eax;
-		mov dword ptr ds:[_read_callback], eax;
+		mov dword ptr ds:[VarPtr::read_callback], eax;
 		popad;
 		xor eax, eax;
 		retn;

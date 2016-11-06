@@ -209,4 +209,12 @@ TGameObj* __stdcall inven_right_hand(TGameObj* critter) {
 	__asm call FuncOffs::inven_right_hand_
 }
 
+int __stdcall message_search(DWORD* file, sMessage* msg) {
+	__asm {
+		mov edx, msg;
+		mov eax, file;
+		call FuncOffs::message_search_;
+	}
+}
+
 }

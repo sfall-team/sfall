@@ -148,7 +148,7 @@ static void __declspec(naked) GetWorldMapXPos() {
 		push ecx;
 		push edx;
 		mov ecx, eax;
-		mov edx, ds:[_world_xpos];
+		mov edx, ds:[VarPtr::world_xpos];
 		call FuncOffs::interpretPushLong_;
 		mov edx, 0xc001;
 		mov eax, ecx;
@@ -165,7 +165,7 @@ static void __declspec(naked) GetWorldMapYPos() {
 		push ecx;
 		push edx;
 		mov ecx, eax;
-		mov edx, ds:[_world_ypos];
+		mov edx, ds:[VarPtr::world_ypos];
 		call FuncOffs::interpretPushLong_;
 		mov edx, 0xc001;
 		mov eax, ecx;
@@ -198,8 +198,8 @@ static void __declspec(naked) SetWorldMapPos() {
 		jnz end;
 		cmp si, 0xC001;
 		jnz end;
-		mov ds:[_world_xpos], eax;
-		mov ds:[_world_ypos], edi;
+		mov ds:[VarPtr::world_xpos], eax;
+		mov ds:[VarPtr::world_ypos], edi;
 end:
 		pop esi;
 		pop edi;
