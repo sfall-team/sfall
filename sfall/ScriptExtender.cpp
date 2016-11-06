@@ -49,7 +49,13 @@ void _stdcall HandleMapUpdateForScripts(DWORD procId);
 #define DATATYPE_MASK_VALID_OBJ	(DATATYPE_MASK_INT | DATATYPE_MASK_NOT_NULL)
 
 struct SfallOpcodeMetadata {
+	// opcode handler, will be used as key
 	void (*handler)();
+
+	// opcode name, only used for logging
+	const char* name;
+
+	// argument validation masks
 	int argTypeMasks[OP_MAX_ARGUMENTS];
 };
 
@@ -216,14 +222,14 @@ public:
 		_ret = val;
 	}
 
-	// resets the state of handler
-	void resetState(TProgram* program = nullptr) {
+	// resets the state of handler for new opcode invocation
+	void resetState(TProgram* program, int argNum) {
 		_program = program;
 		
 		// reset return value
 		_ret = ScriptValue();
 		// reset argument list
-		_args.resize(0);
+		_args.resize(argNum);
 		// reset arg shift
 		_argShift = 0;
 	}
@@ -276,7 +282,7 @@ public:
 		assert(argNum < OP_MAX_ARGUMENTS);
 
 		// reset state after previous
-		resetState(program);
+		resetState(program, argNum);
 
 		// process arguments on stack (reverse order)
 		for (int i = argNum - 1; i >= 0; i--) {
@@ -287,14 +293,27 @@ public:
 
 			// retrieve string argument
 			if (type == DATATYPE_STR) {
-				_args.push_back(InterpretGetString(program, rawValue, rawValueType));
+				_args.at(i) = InterpretGetString(program, rawValue, rawValueType);
 			} else {
-				_args.push_back(ScriptValue(type, rawValue));
+				_args.at(i) = ScriptValue(type, rawValue);
 			}
 		}
+		// flag that arguments passed are valid
+		bool argumentsValid = true;
 
-		// call opcode handler
-		func();
+		// check if metadata is available
+		OpcodeMetaTableType::iterator it = opcodeMetaTable.find(func);
+		if (it != opcodeMetaTable.end()) {
+			const SfallOpcodeMetadata* meta = it->second;
+
+			// automatically validate argument types
+			argumentsValid = validateArguments(meta->argTypeMasks, argNum, meta->name);
+		}
+
+		// call opcode handler if arguments are valid (or no automatic validation was done)
+		if (argumentsValid) {
+			func();
+		}
 
 		// process return value
 		if (hasReturn) {
@@ -339,9 +358,20 @@ static OpcodeHandler opHandler;
 #include "ScriptOps\MiscOps.hpp"
 #include "ScriptOps\MetaruleOp.hpp"
 
+/*
+	Array for opcodes metadata.
 
+	This is completely optional, added for convenience only.
+
+	By adding opcode to this array, Sfall will automatically validate it's arguments using provided info.
+	On fail, errors will be printed to debug.log and opcode will not be executed.
+	If you don't include opcode in this array, you should take care of all argument validation inside handler itself.
+*/
 static const SfallOpcodeMetadata opcodeMetaArray[] = {
-	{op_message_str_game, {}}
+	{sf_test, "validate_test", {DATATYPE_MASK_INT, DATATYPE_MASK_INT | DATATYPE_MASK_FLOAT, DATATYPE_MASK_STR, DATATYPE_NONE}},
+	{sf_spatial_radius, "spatial_radius", {DATATYPE_MASK_VALID_OBJ}},
+	{sf_critter_inven_obj2, "critter_inven_obj2", {DATATYPE_MASK_VALID_OBJ, DATATYPE_MASK_INT}},
+	//{op_message_str_game, {}}
 };
 
 static void InitOpcodeMetaTable() {

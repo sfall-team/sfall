@@ -28,8 +28,8 @@
 // Metarule is a universal opcode(s) for all kinds of new sfall scripting functions.
 // Prefix all function handlers with sf_ and add them to sfall_metarule_table.
 // DO NOT add arguments and/or return values to function handlers!
-// Use functions GetOpArgXXX(), IsOpArgXXX() inside handler function to read arguments, but argument 0 is always function name.
-// Use opHandler.setReturn() to set return value.
+// Use opHandler.arg(i), inside handler function to access arguments.
+// Use opHandler.setReturn(x) to set return value.
 // If you want to call user-defined procedures in your handler, use RunScriptProc().
 
 struct SfallMetarule {
@@ -41,8 +41,6 @@ struct SfallMetarule {
 	int minArgs;
 	// maximum number of arguments
 	int maxArgs;
-	// type masks of arguments DATATYPE_MASK_* (use bitwise OR to combine, use 0 to disable type validation)
-	int argTypeMasks[6]; 
 };
 
 typedef std::tr1::unordered_map<std::string, const SfallMetarule*> MetaruleTableType;
@@ -58,7 +56,7 @@ static std::string sf_test_stringBuf;
 static void sf_test() {
 	std::ostringstream sstream;
 	sstream << "sfall_funcX(\"test\"";
-	for (int i = 1; i < opHandler.numArgs(); i++) {
+	for (int i = 0; i < opHandler.numArgs(); i++) {
 		const ScriptValue &arg = opHandler.arg(i);
 		sstream << ", ";
 		switch (arg.type()) {
@@ -99,23 +97,21 @@ static void sf_get_metarule_table() {
 	Add your custom scripting functions here.
 
 	Format is as follows:
-	{ name, handler, minArgs, maxArgs, {MASK1, MASK2, ...} }
+	{ name, handler, minArgs, maxArgs }
 		- name - name of function that will be used to call it from scripts,
-		- handler - pointer to handler function (see examples above),
-		- minArgs/maxArgs - minimum and maximum number of arguments allowed for this function,
-		- MASK1, MASK2, ... - validation parameters for each argument as bit masks (see DATATYPE_MASK_* defines)
+		- handler - pointer to handler function (see examples below),
+		- minArgs/maxArgs - minimum and maximum number of arguments allowed for this function
 */
 static const SfallMetarule metaruleArray[] = {
-	{"test", sf_test, 0, 6, {}},
-	{"get_metarule_table", sf_get_metarule_table, 0, 0, {}},
-	{"validate_test", sf_test, 2, 5, {DATATYPE_MASK_INT, DATATYPE_MASK_INT | DATATYPE_MASK_FLOAT, DATATYPE_MASK_STR, DATATYPE_NONE}},
-	{"spatial_radius", sf_spatial_radius, 1, 1, {DATATYPE_MASK_VALID_OBJ}},
-	{"critter_inven_obj2", sf_critter_inven_obj2, 2, 2, {DATATYPE_MASK_VALID_OBJ, DATATYPE_MASK_INT}},
-	{"intface_redraw", sf_intface_redraw, 0, 0, {}},
-	{"intface_show", sf_intface_show, 0, 0, {}},
-	{"intface_hide", sf_intface_hide, 0, 0, {}},
-	{"intface_is_hidden", sf_intface_is_hidden, 0, 0, {}},
-	{"exec_map_update_scripts", sf_exec_map_update_scripts, 0, 0, {}},
+	{"get_metarule_table", sf_get_metarule_table, 0, 0},
+	{"validate_test", sf_test, 2, 5},
+	{"spatial_radius", sf_spatial_radius, 1, 1},
+	{"critter_inven_obj2", sf_critter_inven_obj2, 2, 2},
+	{"intface_redraw", sf_intface_redraw, 0, 0},
+	{"intface_show", sf_intface_show, 0, 0},
+	{"intface_hide", sf_intface_hide, 0, 0},
+	{"intface_is_hidden", sf_intface_is_hidden, 0, 0},
+	{"exec_map_update_scripts", sf_exec_map_update_scripts, 0, 0},
 };
 
 static void InitMetaruleTable() {
@@ -139,8 +135,16 @@ static bool ValidateMetaruleArguments(const SfallMetarule* metaruleInfo) {
 
 		return false;
 	} else {
-		return opHandler.validateArguments(metaruleInfo->argTypeMasks, argCount, metaruleInfo->name);
+		// check if metadata is available for this handler
+		OpcodeMetaTableType::iterator it = opcodeMetaTable.find(metaruleInfo->func);
+		if (it != opcodeMetaTable.end()) {
+			const SfallOpcodeMetadata* meta = it->second;
+
+			// automatically validate argument types
+			return opHandler.validateArguments(meta->argTypeMasks, argCount, metaruleInfo->name);
+		}
 	}
+	return true;
 }
 
 static void _stdcall op_sfall_metarule_handler() {
