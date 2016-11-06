@@ -18,17 +18,193 @@
 
 #pragma once
 
-// PIDS of some items
-#define PID_ACTIVE_GEIGER_COUNTER    207
-#define PID_ACTIVE_STEALTH_BOY       210
-#define PID_CAR_TRUNK                455
+enum Animation
+{
+	ANIM_stand = 0,
+	ANIM_walk = 1,
+	ANIM_jump_begin = 2,
+	ANIM_jump_end = 3,
+	ANIM_climb_ladder = 4,
+	ANIM_falling = 5,
+	ANIM_up_stairs_right = 6,
+	ANIM_up_stairs_left = 7,
+	ANIM_down_stairs_right = 8,
+	ANIM_down_stairs_left = 9,
+	ANIM_magic_hands_ground = 10,
+	ANIM_magic_hands_middle = 11,
+	ANIM_magic_hands_up = 12,
+	ANIM_dodge_anim = 13,
+	ANIM_hit_from_front = 14,
+	ANIM_hit_from_back = 15,
+	ANIM_throw_punch = 16,
+	ANIM_kick_leg = 17,
+	ANIM_throw_anim = 18,
+	ANIM_running = 19,
+	ANIM_fall_back = 20,
+	ANIM_fall_front = 21,
+	ANIM_bad_landing = 22,
+	ANIM_big_hole = 23,
+	ANIM_charred_body = 24,
+	ANIM_chunks_of_flesh = 25,
+	ANIM_dancing_autofire = 26,
+	ANIM_electrify = 27,
+	ANIM_sliced_in_half = 28,
+	ANIM_burned_to_nothing = 29,
+	ANIM_electrified_to_nothing = 30,
+	ANIM_exploded_to_nothing = 31,
+	ANIM_melted_to_nothing = 32,
+	ANIM_fire_dance = 33,
+	ANIM_fall_back_blood = 34,
+	ANIM_fall_front_blood = 35,
+	ANIM_prone_to_standing = 36,
+	ANIM_back_to_standing = 37,
+	ANIM_take_out = 38,
+	ANIM_put_away = 39,
+	ANIM_parry_anim = 40,
+	ANIM_thrust_anim = 41,
+	ANIM_swing_anim = 42,
+	ANIM_point = 43,
+	ANIM_unpoint = 44,
+	ANIM_fire_single = 45,
+	ANIM_fire_burst = 46,
+	ANIM_fire_continuous = 47,
+	ANIM_fall_back_sf = 48,
+	ANIM_fall_front_sf = 49,
+	ANIM_bad_landing_sf = 50,
+	ANIM_big_hole_sf = 51,
+	ANIM_charred_body_sf = 52,
+	ANIM_chunks_of_flesh_sf = 53,
+	ANIM_dancing_autofire_sf = 54,
+	ANIM_electrify_sf = 55,
+	ANIM_sliced_in_half_sf = 56,
+	ANIM_burned_to_nothing_sf = 57,
+	ANIM_electrified_to_nothing_sf = 58,
+	ANIM_exploded_to_nothing_sf = 59,
+	ANIM_melted_to_nothing_sf = 60,
+	ANIM_fire_dance_sf = 61,
+	ANIM_fall_back_blood_sf = 62,
+	ANIM_fall_front_blood_sf = 63,
+	ANIM_called_shot_pic = 64,
+};
 
-#define PID_DRIVABLE_CAR             33555441
-#define PID_JET                      259
-#define PID_JESSE_CONTAINER          467
-#define PID_MOTION_SENSOR            59
-#define PID_Player                   16777216
-#define PID_SUPER_STIMPAK            144
+enum DamageFlag
+{
+	DAM_KNOCKED_OUT = 0x1,
+	DAM_KNOCKED_DOWN = 0x2,
+	DAM_CRIP_LEG_LEFT = 0x4,
+	DAM_CRIP_LEG_RIGHT = 0x8,
+	DAM_CRIP_ARM_LEFT = 0x10,
+	DAM_CRIP_ARM_RIGHT = 0x20,
+	DAM_BLIND = 0x40,
+	DAM_DEAD = 0x80,
+	DAM_HIT = 0x100,
+	DAM_CRITICAL = 0x200,
+	DAM_ON_FIRE = 0x400,
+	DAM_BYPASS = 0x800,
+	DAM_EXPLODE = 0x1000,
+	DAM_DESTROY = 0x2000,
+	DAM_DROP = 0x4000,
+	DAM_LOSE_TURN = 0x8000,
+	DAM_HIT_SELF = 0x10000,
+	DAM_LOSE_AMMO = 0x20000,
+	DAM_DUD = 0x40000,
+	DAM_HURT_SELF = 0x80000,
+	DAM_RANDOM_HIT = 0x100000,
+	DAM_CRIP_RANDOM = 0x200000,
+	DAM_BACKWASH = 0x400000,
+	DAM_PERFORM_REVERSE = 0x800000,
+};
+
+enum DamageType
+{
+	DMG_normal = 0,
+	DMG_laser = 1,
+	DMG_fire = 2,
+	DMG_plasma = 3,
+	DMG_electrical = 4,
+	DMG_emp = 5,
+	DMG_explosion = 6,
+	DMG_BYPASS_ARMOR = 256,
+	DMG_NOANIMATE = 512,
+};
+
+enum Gender
+{
+	GENDER_MALE = 0,
+	GENDER_FEMALE = 1,
+};
+
+// Some global variables referenced by engine
+enum GlobalVar
+{
+	GVAR_ENEMY_ARROYO = 7,
+	GVAR_PLAYER_GOT_CAR = 18,
+	GVAR_NUKA_COLA_ADDICT = 21,
+	GVAR_BUFF_OUT_ADDICT = 22,
+	GVAR_MENTATS_ADDICT = 23,
+	GVAR_PSYCHO_ADDICT = 24,
+	GVAR_RADAWAY_ADDICT = 25,
+	GVAR_ALCOHOL_ADDICT = 26,
+	GVAR_LOAD_MAP_INDEX = 27,
+	GVAR_TOWN_REP_ARROYO = 47,
+	GVAR_ADDICT_TRAGIC = 295,
+	GVAR_ADDICT_JET = 296,
+	GVAR_CAR_BLOWER = 439,
+	GVAR_CAR_UPGRADE_FUEL_CELL_REGULATOR = 453,
+	GVAR_NEW_RENO_CAR_UPGRADE = 455,
+	GVAR_NEW_RENO_SUPER_CAR = 456,
+	GVAR_MODOC_SHITTY_DEATH = 491,
+	GVAR_FALLOUT_2 = 494,
+};
+
+// Some FO2 PIDs possibly used by engine
+enum ProtoId
+{
+	PID_ROCK = 19,
+	PID_SMALL_ENERGY_CELL = 38,
+	PID_MICRO_FUSION_CELL = 39,
+	PID_STIMPAK = 40,
+	PID_BOTTLE_CAPS = 41,
+	PID_FIRST_AID_KIT = 47,
+	PID_ANTIDOTE = 49,
+	PID_DYNAMITE = 51,
+	PID_GEIGER_COUNTER = 52,
+	PID_MENTATS = 53,
+	PID_STEALTH_BOY = 54,
+	PID_WATER_CHIP = 55,
+	PID_HOLODISK = 58,
+	PID_MOTION_SENSOR = 59,
+	PID_MUTATED_FRUIT = 71,
+	PID_BIG_BOOK_OF_SCIENCE = 73,
+	PID_DEANS_ELECTRONICS = 76,
+	PID_FLARE = 79,
+	PID_FIRST_AID_BOOK = 80,
+	PID_PLASTIC_EXPLOSIVES = 85,
+	PID_SCOUT_HANDBOOK = 86,
+	PID_BUFFOUT = 87,
+	PID_DOCTORS_BAG = 91,
+	PID_PUMP_PARTS = 98,
+	PID_GUNS_AND_BULLETS = 102,
+	PID_NUKA_COLA = 106,
+	PID_RAD_X = 109,
+	PID_PSYCHO = 110,
+	PID_SUPER_STIMPAK = 144,
+	PID_ACTIVE_FLARE = 205,
+	PID_ACTIVE_DYNAMITE = 206,
+	PID_ACTIVE_GEIGER_COUNTER = 207,
+	PID_ACTIVE_MOTION_SENSOR = 208,
+	PID_ACTIVE_PLASTIC_EXPLOSIVE = 209,
+	PID_ACTIVE_STEALTH_BOY = 210,
+	PID_TECHNICAL_MANUAL = 228,
+	PID_CHEMISTRY_MANUAL = 237,
+	PID_JET = 259,
+	PID_JET_ANTIDOTE = 260,
+	PID_GECK = 366,
+	PID_CAR_TRUNK = 455,
+	PID_JESSE_CONTAINER = 467,
+	PID_Player = 16777216,
+	PID_DRIVABLE_CAR = 33555441
+};
 
 //XXXXXXXXXXXXXXXXXXXXX
 //XX Critter defines XX
@@ -39,240 +215,254 @@
 #define TRAIT_OBJECT (1)
 #define TRAIT_TRAIT  (2)
 
-// Perk Trait Types
-#define PERK_bonus_awareness                 (0)
-#define PERK_bonus_hth_attacks               (1)
-#define PERK_bonus_hth_damage                (2)
-#define PERK_bonus_move                      (3)
-#define PERK_bonus_ranged_damage             (4)
-#define PERK_bonus_rate_of_fire              (5)
-#define PERK_earlier_sequence                (6)
-#define PERK_faster_healing                  (7)
-#define PERK_more_criticals                  (8)
-#define PERK_night_vision                    (9)
-#define PERK_presence                        (10)
-#define PERK_rad_resistance                  (11)
-#define PERK_toughness                       (12)
-#define PERK_strong_back                     (13)
-#define PERK_sharpshooter                    (14)
-#define PERK_silent_running                  (15)
-#define PERK_survivalist                     (16)
-#define PERK_master_trader                   (17)
-#define PERK_educated                        (18)
-#define PERK_healer                          (19)
-#define PERK_fortune_finder                  (20)
-#define PERK_better_criticals                (21)
-#define PERK_empathy                         (22)
-#define PERK_slayer                          (23)
-#define PERK_sniper                          (24)
-#define PERK_silent_death                    (25)
-#define PERK_action_boy                      (26)
-///#define PERK_mental_block        (27)  -- Disabled FO2
-#define PERK_lifegiver                       (28)
-#define PERK_dodger                          (29)
-#define PERK_snakeater                       (30)
-#define PERK_mr_fixit                        (31)
-#define PERK_medic                           (32)
-#define PERK_master_thief                    (33)
-#define PERK_speaker                         (34)
-#define PERK_heave_ho                        (35)
-///#define PERK_friendly_foe        (36)  -- Disabled FO2
-#define PERK_pickpocket                      (37)
-#define PERK_ghost                           (38)
-#define PERK_cult_of_personality             (39)
-///#define PERK_scrounger           (40)  -- Disabled FO2
-#define PERK_explorer                        (41)
-///#define PERK_flower_child        (42)  -- Disabled FO2
-#define PERK_pathfinder                      (43)
-///#define PERK_animal_friend       (44)  -- Disabled FO2
-#define PERK_scout                           (45)
-#define PERK_mysterious_stranger             (46)
-#define PERK_ranger                          (47)
-#define PERK_quick_pockets                   (48)
-#define PERK_smooth_talker                   (49)
-#define PERK_swift_learner                   (50)
-#define PERK_tag                             (51)
-#define PERK_mutate                          (52)
-#define PERK_add_nuka                        (53)
-#define PERK_add_buffout                     (54)
-#define PERK_add_mentats                     (55)
-#define PERK_add_psycho                      (56)
-#define PERK_add_radaway                     (57)
-#define PERK_weapon_long_range               (58)
-#define PERK_weapon_accurate                 (59)
-#define PERK_weapon_penetrate                (60)
-#define PERK_weapon_knockback                (61)
-#define PERK_armor_powered                   (62)
-#define PERK_armor_combat                    (63)
-// Note: Fallout 2: New Perks      
-#define PERK_weapon_scope_range              (64)
-#define PERK_weapon_fast_reload              (65)
-#define PERK_weapon_night_sight              (66)
-#define PERK_weapon_flameboy                 (67)
-#define PERK_armor_advanced_1                (68)
-#define PERK_armor_advanced_2                (69)
-#define PERK_add_jet                         (70)
-#define PERK_add_tragic                      (71)
-#define PERK_armor_charisma                  (72)
-#define PERK_gecko_skinning_perk             (73)
-#define PERK_dermal_armor_perk               (74)
-#define PERK_dermal_enhancement_perk         (75)
-#define PERK_phoenix_armor_perk              (76)
-#define PERK_phoenix_enhancement_perk        (77)
-#define PERK_vault_city_inoculations_perk    (78)
-#define PERK_adrenaline_rush_perk            (79)
-#define PERK_cautious_nature_perk            (80)
-#define PERK_comprehension_perk              (81)
-#define PERK_demolition_expert_perk          (82)
-#define PERK_gambler_perk                    (83)
-#define PERK_gain_strength_perk              (84)
-#define PERK_gain_perception_perk            (85)
-#define PERK_gain_endurance_perk             (86)
-#define PERK_gain_charisma_perk              (87)
-#define PERK_gain_intelligence_perk          (88)
-#define PERK_gain_agility_perk               (89)
-#define PERK_gain_luck_perk                  (90)
-#define PERK_harmless_perk                   (91)
-#define PERK_here_and_now_perk               (92)
-#define PERK_hth_evade_perk                  (93)
-#define PERK_kama_sutra_perk                 (94)
-#define PERK_karma_beacon_perk               (95)
-#define PERK_light_step_perk                 (96)
-#define PERK_living_anatomy_perk             (97)
-#define PERK_magnetic_personality_perk       (98)
-#define PERK_negotiator_perk                 (99)
-#define PERK_pack_rat_perk                   (100)
-#define PERK_pyromaniac_perk                 (101)
-#define PERK_quick_recovery_perk             (102)
-#define PERK_salesman_perk                   (103)
-#define PERK_stonewall_perk                  (104)
-#define PERK_thief_perk                      (105)
-#define PERK_weapon_handling_perk            (106)
-#define PERK_vault_city_training_perk        (107)
-#define PERK_alcohol_hp_bonus1_perk          (108)
-#define PERK_alcohol_hp_bonus2_perk          (109)
-#define PERK_alcohol_hp_neg1_perk            (110)
-#define PERK_alcohol_hp_neg2_perk            (111)
-#define PERK_autodoc_hp_bonus1_perk          (112)
-#define PERK_autodoc_hp_bonus2_perk          (113)
-#define PERK_autodoc_hp_neg1_perk            (114)
-#define PERK_autodoc_hp_neg2_perk            (115)
-#define PERK_expert_excrement_expediter_perk (116)
-#define PERK_weapon_knockout_perk            (117)
-#define PERK_jinxed_perk                     (118)
-#define PERK_count                           (119)
 
-// Trait Types
-#define TRAIT_fast_metabolism  (0)
-#define TRAIT_bruiser          (1)
-#define TRAIT_small_frame      (2)
-#define TRAIT_one_hander       (3)
-#define TRAIT_finesse          (4)
-#define TRAIT_kamikaze         (5)
-#define TRAIT_heavy_handed     (6)
-#define TRAIT_fast_shot        (7)
-#define TRAIT_bloody_mess      (8)
-#define TRAIT_jinxed           (9)
-#define TRAIT_good_natured    (10)
-#define TRAIT_drug_addict     (11)
-#define TRAIT_drug_resistant  (12)
-#define TRAIT_sex_appeal      (13)
-#define TRAIT_skilled         (14)
-#define TRAIT_gifted          (15)
-#define TRAIT_count           (16)
+enum Perk
+{
+	PERK_bonus_awareness = 0,
+	PERK_bonus_hth_attacks = 1,
+	PERK_bonus_hth_damage = 2,
+	PERK_bonus_move = 3,
+	PERK_bonus_ranged_damage = 4,
+	PERK_bonus_rate_of_fire = 5,
+	PERK_earlier_sequence = 6,
+	PERK_faster_healing = 7,
+	PERK_more_criticals = 8,
+	PERK_night_vision = 9,
+	PERK_presence = 10,
+	PERK_rad_resistance = 11,
+	PERK_toughness = 12,
+	PERK_strong_back = 13,
+	PERK_sharpshooter = 14,
+	PERK_silent_running = 15,
+	PERK_survivalist = 16,
+	PERK_master_trader = 17,
+	PERK_educated = 18,
+	PERK_healer = 19,
+	PERK_fortune_finder = 20,
+	PERK_better_criticals = 21,
+	PERK_empathy = 22,
+	PERK_slayer = 23,
+	PERK_sniper = 24,
+	PERK_silent_death = 25,
+	PERK_action_boy = 26,
+	PERK_mental_block = 27,
+	PERK_lifegiver = 28,
+	PERK_dodger = 29,
+	PERK_snakeater = 30,
+	PERK_mr_fixit = 31,
+	PERK_medic = 32,
+	PERK_master_thief = 33,
+	PERK_speaker = 34,
+	PERK_heave_ho = 35,
+	PERK_friendly_foe = 36,
+	PERK_pickpocket = 37,
+	PERK_ghost = 38,
+	PERK_cult_of_personality = 39,
+	PERK_scrounger = 40,
+	PERK_explorer = 41,
+	PERK_flower_child = 42,
+	PERK_pathfinder = 43,
+	PERK_animal_friend = 44,
+	PERK_scout = 45,
+	PERK_mysterious_stranger = 46,
+	PERK_ranger = 47,
+	PERK_quick_pockets = 48,
+	PERK_smooth_talker = 49,
+	PERK_swift_learner = 50,
+	PERK_tag = 51,
+	PERK_mutate = 52,
+	PERK_add_nuka = 53,
+	PERK_add_buffout = 54,
+	PERK_add_mentats = 55,
+	PERK_add_psycho = 56,
+	PERK_add_radaway = 57,
+	PERK_weapon_long_range = 58,
+	PERK_weapon_accurate = 59,
+	PERK_weapon_penetrate = 60,
+	PERK_weapon_knockback = 61,
+	PERK_armor_powered = 62,
+	PERK_armor_combat = 63,
+	PERK_weapon_scope_range = 64,
+	PERK_weapon_fast_reload = 65,
+	PERK_weapon_night_sight = 66,
+	PERK_weapon_flameboy = 67,
+	PERK_armor_advanced_1 = 68,
+	PERK_armor_advanced_2 = 69,
+	PERK_add_jet = 70,
+	PERK_add_tragic = 71,
+	PERK_armor_charisma = 72,
+	PERK_gecko_skinning_perk = 73,
+	PERK_dermal_armor_perk = 74,
+	PERK_dermal_enhancement_perk = 75,
+	PERK_phoenix_armor_perk = 76,
+	PERK_phoenix_enhancement_perk = 77,
+	PERK_vault_city_inoculations_perk = 78,
+	PERK_adrenaline_rush_perk = 79,
+	PERK_cautious_nature_perk = 80,
+	PERK_comprehension_perk = 81,
+	PERK_demolition_expert_perk = 82,
+	PERK_gambler_perk = 83,
+	PERK_gain_strength_perk = 84,
+	PERK_gain_perception_perk = 85,
+	PERK_gain_endurance_perk = 86,
+	PERK_gain_charisma_perk = 87,
+	PERK_gain_intelligence_perk = 88,
+	PERK_gain_agility_perk = 89,
+	PERK_gain_luck_perk = 90,
+	PERK_harmless_perk = 91,
+	PERK_here_and_now_perk = 92,
+	PERK_hth_evade_perk = 93,
+	PERK_kama_sutra_perk = 94,
+	PERK_karma_beacon_perk = 95,
+	PERK_light_step_perk = 96,
+	PERK_living_anatomy_perk = 97,
+	PERK_magnetic_personality_perk = 98,
+	PERK_negotiator_perk = 99,
+	PERK_pack_rat_perk = 100,
+	PERK_pyromaniac_perk = 101,
+	PERK_quick_recovery_perk = 102,
+	PERK_salesman_perk = 103,
+	PERK_stonewall_perk = 104,
+	PERK_thief_perk = 105,
+	PERK_weapon_handling_perk = 106,
+	PERK_vault_city_training_perk = 107,
+	PERK_alcohol_hp_bonus1_perk = 108,
+	PERK_alcohol_hp_bonus2_perk = 109,
+	PERK_alcohol_hp_neg1_perk = 110,
+	PERK_alcohol_hp_neg2_perk = 111,
+	PERK_autodoc_hp_bonus1_perk = 112,
+	PERK_autodoc_hp_bonus2_perk = 113,
+	PERK_autodoc_hp_neg1_perk = 114,
+	PERK_autodoc_hp_neg2_perk = 115,
+	PERK_expert_excrement_expediter_perk = 116,
+	PERK_weapon_knockout_perk = 117,
+	PERK_jinxed_perk = 118,
+	PERK_count = 119
+};
+
+enum Trait
+{
+	TRAIT_fast_metabolism = 0,
+	TRAIT_bruiser = 1,
+	TRAIT_small_frame = 2,
+	TRAIT_one_hander = 3,
+	TRAIT_finesse = 4,
+	TRAIT_kamikaze = 5,
+	TRAIT_heavy_handed = 6,
+	TRAIT_fast_shot = 7,
+	TRAIT_bloody_mess = 8,
+	TRAIT_jinxed = 9,
+	TRAIT_good_natured = 10,
+	TRAIT_drug_addict = 11,
+	TRAIT_drug_resistant = 12,
+	TRAIT_sex_appeal = 13,
+	TRAIT_skilled = 14,
+	TRAIT_gifted = 15,
+	TRAIT_count = 16,
+};
 
 // proto.h: stats //
-// SPECIAL System stats
-#define STAT_st              (0)
-#define STAT_pe              (1)
-#define STAT_en              (2)
-#define STAT_ch              (3)
-#define STAT_iq              (4)
-#define STAT_ag              (5)
-#define STAT_lu              (6)
-#define STAT_max_hp          (7)
-#define STAT_max_hit_points  (7)
-///  strength, perception, endurance, charisma, intelligence, agility,
-///  luck,   // luck MUST be the last basic stat
-// derived stats
-#define STAT_max_ap             (8)
-#define STAT_max_move_points    (8)
-#define STAT_ac                 (9)
-///#define STAT_unarmed_dmg        (10)
-#define STAT_unused             (10)
-#define STAT_melee_dmg          (11)
-#define STAT_carry_amt          (12)
-#define STAT_sequence           (13)
-#define STAT_heal_rate          (14)
-#define STAT_crit_chance        (15)
-#define STAT_better_crit        (16)
-#define STAT_dmg_thresh         (17)
-#define STAT_dmg_thresh_laser   (18)
-#define STAT_dmg_thresh_fire    (19)
-#define STAT_dmg_thresh_plasma  (20)
-#define STAT_dmg_thresh_electrical (21)
-#define STAT_dmg_thresh_emp        (22)
-#define STAT_dmg_thresh_explosion  (23)
-#define STAT_dmg_resist            (24)
-#define STAT_dmg_resist_laser      (25)
-#define STAT_dmg_resist_fire       (26)
-#define STAT_dmg_resist_plasma     (27)
-#define STAT_dmg_resist_electrical (28)
-#define STAT_dmg_resist_emp        (29)
-#define STAT_dmg_resist_explosion  (30)
-#define STAT_rad_resist            (31)
-#define STAT_poison_resist         (32)
+
+enum Stat
+{
+	STAT_st = 0,
+	STAT_pe = 1,
+	STAT_en = 2,
+	STAT_ch = 3,
+	STAT_iq = 4,
+	STAT_ag = 5,
+	STAT_lu = 6,
+	///  strength, perception, endurance, charisma, intelligence, agility,
+	///  luck,   // luck MUST be the last basic stat
+	// derived stats
+	STAT_max_hit_points = 7,
+	STAT_max_move_points = 8,
+	STAT_ac = 9,
+	STAT_unused = 10,
+	STAT_melee_dmg = 11,
+	STAT_carry_amt = 12,
+	STAT_sequence = 13,
+	STAT_heal_rate = 14,
+	STAT_crit_chance = 15,
+	STAT_better_crit = 16,
+	STAT_dmg_thresh = 17,
+	STAT_dmg_thresh_laser = 18,
+	STAT_dmg_thresh_fire = 19,
+	STAT_dmg_thresh_plasma = 20,
+	STAT_dmg_thresh_electrical = 21,
+	STAT_dmg_thresh_emp = 22,
+	STAT_dmg_thresh_explosion = 23,
+	STAT_dmg_resist = 24,
+	STAT_dmg_resist_laser = 25,
+	STAT_dmg_resist_fire = 26,
+	STAT_dmg_resist_plasma = 27,
+	STAT_dmg_resist_electrical = 28,
+	STAT_dmg_resist_emp = 29,
+	STAT_dmg_resist_explosion = 30,
+	STAT_rad_resist = 31,
+	STAT_poison_resist = 32,
+	// poison_resist MUST be the last derived stat
+	// nonderived stats
+	STAT_age = 33,
+	STAT_gender = 34,
+	// gender MUST be the last nonderived stat
+	STAT_current_hp = 35,
+	STAT_current_poison = 36,
+	STAT_current_rad = 37,
+	STAT_real_max_stat = 38
+};
+
 #define STAT_max_derived   STAT_poison_resist
-// poison_resist MUST be the last derived stat
-// nonderived stats
-#define STAT_age                   (33)
-#define STAT_gender                (34)
-// gender MUST be the last nonderived stat
-#define STAT_current_hp            (35)
-#define STAT_current_poison        (36)
-#define STAT_current_rad           (37)
-#define STAT_real_max_stat         (38)
-// extra stat-like values that are treated specially
 #define STAT_max_stat  STAT_current_hp
 
-#define PCSTAT_unspent_skill_points (0)
-#define PCSTAT_level                (1)
-#define PCSTAT_experience           (2)
-#define PCSTAT_reputation           (3)
-#define PCSTAT_karma                (4)
-#define PCSTAT_max_pc_stat          (5)
+// extra stat-like values that are treated specially
+enum PCStat
+{
+	PCSTAT_unspent_skill_points = 0,
+	PCSTAT_level = 1,
+	PCSTAT_experience = 2,
+	PCSTAT_reputation = 3,
+	PCSTAT_karma = 4,
+	PCSTAT_max_pc_stat = 5,
+};
 
-#define SKILL_SMALL_GUNS       (0)
-#define SKILL_BIG_GUNS         (1)
-#define SKILL_ENERGY_WEAPONS   (2)
-#define SKILL_UNARMED_COMBAT   (3)
-#define SKILL_MELEE            (4)
-#define SKILL_THROWING         (5)
-#define SKILL_FIRST_AID        (6)
-#define SKILL_DOCTOR           (7)
-#define SKILL_SNEAK            (8)
-#define SKILL_LOCKPICK         (9)
-#define SKILL_STEAL            (10)
-#define SKILL_TRAPS            (11)
-#define SKILL_SCIENCE          (12)
-#define SKILL_REPAIR           (13)
-#define SKILL_CONVERSANT       (14)
-#define SKILL_BARTER           (15)
-#define SKILL_GAMBLING         (16)
-#define SKILL_OUTDOORSMAN      (17)
-#define SKILL_count            (18)
+enum Skill
+{
+	SKILL_SMALL_GUNS = 0,
+	SKILL_BIG_GUNS = 1,
+	SKILL_ENERGY_WEAPONS = 2,
+	SKILL_UNARMED_COMBAT = 3,
+	SKILL_MELEE = 4,
+	SKILL_THROWING = 5,
+	SKILL_FIRST_AID = 6,
+	SKILL_DOCTOR = 7,
+	SKILL_SNEAK = 8,
+	SKILL_LOCKPICK = 9,
+	SKILL_STEAL = 10,
+	SKILL_TRAPS = 11,
+	SKILL_SCIENCE = 12,
+	SKILL_REPAIR = 13,
+	SKILL_CONVERSANT = 14,
+	SKILL_BARTER = 15,
+	SKILL_GAMBLING = 16,
+	SKILL_OUTDOORSMAN = 17,
+	SKILL_count = 18
+};
 
 //XXXXXXXXXXXXXXXXXXXX
 //XX Object defines XX
 //XXXXXXXXXXXXXXXXXXXX
 
-#define item_type_armor        (0)
-#define item_type_container    (1)
-#define item_type_drug         (2)
-#define item_type_weapon       (3)
-#define item_type_ammo         (4)
-#define item_type_misc_item    (5)
-#define item_type_key_item     (6)
+enum ItemType
+{
+	item_type_armor = 0,
+	item_type_container = 1,
+	item_type_drug = 2,
+	item_type_weapon = 3,
+	item_type_ammo = 4,
+	item_type_misc_item = 5,
+	item_type_key = 6,
+};
 
 #define OBJFLAG_CAN_WEAR_ITEMS (0xf000000)
 
@@ -287,8 +477,10 @@
 
 #define WEAPON_TWO_HANDED      (0x200)
 
-
-#define ROLL_CRITICAL_FAILURE (0)
-#define ROLL_FAILURE          (1)
-#define ROLL_SUCCESS          (2)
-#define ROLL_CRITICAL_SUCCESS (3)
+enum RollResult
+{
+	ROLL_CRITICAL_FAILURE = 0x0,
+	ROLL_FAILURE = 0x1,
+	ROLL_SUCCESS = 0x2,
+	ROLL_CRITICAL_SUCCESS = 0x3,
+};
