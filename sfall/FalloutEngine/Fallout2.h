@@ -22,8 +22,6 @@
 *
 */
 
-#include <Windows.h>
-
 #include "Enums.h"
 #include "Functions.h"
 #include "Structs.h"
