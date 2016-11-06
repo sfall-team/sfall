@@ -243,8 +243,8 @@ public:
 		vsnprintf_s(msg, sizeof msg, _TRUNCATE, fmt, args);
 		va_end(args);
 
-		const char* procName = FindCurrentProc(_program);
-		DebugPrintf("\nOPCODE ERROR: %s\n   Current script: %s, procedure %s.", msg, _program->fileName, procName);
+		const char* procName = Wrapper::findCurrentProc(_program);
+		Wrapper::debug_printf("\nOPCODE ERROR: %s\n   Current script: %s, procedure %s.", msg, _program->fileName, procName);
 	}
 
 	// Validate opcode arguments against type masks
@@ -286,13 +286,13 @@ public:
 		// process arguments on stack (reverse order)
 		for (int i = argNum - 1; i >= 0; i--) {
 			// get argument from stack
-			DWORD rawValueType = InterpretPopShort(program);
-			DWORD rawValue = InterpretPopLong(program);
+			DWORD rawValueType = Wrapper::interpretPopShort(program);
+			DWORD rawValue = Wrapper::interpretPopLong(program);
 			SfallDataType type = static_cast<SfallDataType>(getSfallTypeByScriptType(rawValueType));
 
 			// retrieve string argument
 			if (type == DATATYPE_STR) {
-				_args.at(i) = InterpretGetString(program, rawValue, rawValueType);
+				_args.at(i) = Wrapper::interpretGetString(program, rawValue, rawValueType);
 			} else {
 				_args.at(i) = ScriptValue(type, rawValue);
 			}
@@ -322,10 +322,10 @@ public:
 			}
 			DWORD rawResult = _ret.rawValue();
 			if (_ret.type() == DATATYPE_STR) {
-				rawResult = InterpretAddString(program, _ret.asString());
+				rawResult = Wrapper::interpretAddString(program, _ret.asString());
 			}
-			InterpretPushLong(program, rawResult);
-			InterpretPushShort(program, getScriptTypeBySfallType(_ret.type()));
+			Wrapper::interpretPushLong(program, rawResult);
+			Wrapper::interpretPushShort(program, getScriptTypeBySfallType(_ret.type()));
 		}
 	}
 
@@ -880,7 +880,7 @@ static void __declspec(naked) sfall_ver_build() {
 
 //END OF SCRIPT FUNCTIONS
 static const DWORD scr_find_sid_from_program = FuncOffs::scr_find_sid_from_program_ + 5;
-static const DWORD scr_ptr = FuncOffs::scr_ptr_ + 5;
+static const DWORD scr_ptr_back = FuncOffs::scr_ptr_ + 5;
 static const DWORD scr_find_obj_from_program = FuncOffs::scr_find_obj_from_program_ + 7;
 
 DWORD _stdcall FindSidHook2(DWORD script) {
@@ -947,7 +947,7 @@ end:
 		push esi;
 		push edi;
 		push ebp;
-		jmp scr_ptr;
+		jmp scr_ptr_back;
 	}
 }
 
@@ -1752,10 +1752,10 @@ static void RunGlobalScripts1() {
 								inc eax;
 								mov highlightingToggled, eax;
 							}
-							if (!highlightingToggled) DisplayConsoleMessage(HighlightFail2);
+							if (!highlightingToggled) Wrapper::display_print(HighlightFail2);
 						} else highlightingToggled=1;
 					} else {
-						DisplayConsoleMessage(HighlightFail1);
+						Wrapper::display_print(HighlightFail1);
 					}
 				} else highlightingToggled = 1;
 				if (highlightingToggled) obj_outline_all_items_on();

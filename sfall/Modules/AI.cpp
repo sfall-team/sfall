@@ -61,7 +61,7 @@ static DWORD CombatDisabled;
 static char CombatBlockedMessage[128];
 
 static void _stdcall CombatBlocked() {
-	DisplayConsoleMessage(CombatBlockedMessage);
+	Wrapper::display_print(CombatBlockedMessage);
 }
 
 static const DWORD BlockCombatHook1Ret1=0x45F6B4;

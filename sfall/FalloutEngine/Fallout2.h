@@ -25,6 +25,7 @@
 #include "Enums.h"
 #include "Functions.h"
 #include "Structs.h"
+#include "Utils.h"
 #include "Variables.h"
 #include "Wrappers.h"
 

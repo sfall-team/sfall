@@ -201,6 +201,9 @@
     <ClInclude Include="FalloutEngine\Variables.h">
       <Filter>FalloutEngine</Filter>
     </ClInclude>
+    <ClInclude Include="FalloutEngine\Utils.h">
+      <Filter>FalloutEngine</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
@@ -332,6 +335,9 @@
       <Filter>FalloutEngine</Filter>
     </ClCompile>
     <ClCompile Include="FalloutEngine\Wrappers.cpp">
+      <Filter>FalloutEngine</Filter>
+    </ClCompile>
+    <ClCompile Include="FalloutEngine\Utils.cpp">
       <Filter>FalloutEngine</Filter>
     </ClCompile>
   </ItemGroup>

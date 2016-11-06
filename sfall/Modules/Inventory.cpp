@@ -30,12 +30,6 @@ static DWORD mode;
 static DWORD MaxItemSize;
 static DWORD ReloadWeaponKey = 0;
 
-struct sMessage {
-	DWORD number;
-	DWORD flags;
-	char* audio;
-	char* message;
-};
 static const char* MsgSearch(int msgno, DWORD file) {
 	if(!file) return 0;
 	sMessage msg = { msgno, 0, 0, 0 };
@@ -450,7 +444,7 @@ static int _stdcall SuperStimFix2(DWORD* item, DWORD* target) {
 		mov max_hp, eax;
 	}
 	if(curr_hp<max_hp) return 0;
-	DisplayConsoleMessage(SuperStimMsg);
+	Wrapper::display_print(SuperStimMsg);
 	return 1;
 }
 

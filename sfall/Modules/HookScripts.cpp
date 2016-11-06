@@ -842,7 +842,7 @@ nevermind:
 
 static int __stdcall SwitchHandHook2(TGameObj* item, TGameObj* itemReplaced, DWORD addr) {
 	int tmp;
-	if (itemReplaced && ItemGetType(itemReplaced) == 3 && ItemGetType(item) == 4) {
+	if (itemReplaced && Wrapper::item_get_type(itemReplaced) == 3 && Wrapper::item_get_type(item) == 4) {
 		return -1; // to prevent inappropriate hook call after dropping ammo on weapon
 	}
 	BeginHook();

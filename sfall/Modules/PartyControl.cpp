@@ -101,7 +101,7 @@ static void SaveRealDudeState() {
 	real_unspent_skill_points = ptr_curr_pc_stat[0];
 	//real_map_elevation = *ptr_map_elevation;
 	real_sneak_working = *ptr_sneak_working;
-	SkillGetTags(real_tag_skill, 4);
+	Wrapper::skill_get_tags(real_tag_skill, 4);
 }
 
 // take control of the NPC
@@ -113,7 +113,7 @@ static void TakeControlOfNPC(TGameObj* npc) {
 #else
 	std::fill(std::begin(tagSkill), std::end(tagSkill), -1);
 #endif
-	SkillSetTags(tagSkill, 4);
+	Wrapper::skill_set_tags(tagSkill, 4);
 
 	// reset traits
 	ptr_pc_traits[0] = ptr_pc_traits[1] = -1;
@@ -124,11 +124,11 @@ static void TakeControlOfNPC(TGameObj* npc) {
 	}
 
 	// change character name
-	CritterPcSetName(CritterName(npc));
+	Wrapper::critter_pc_set_name(Wrapper::critter_name(npc));
 
 	// change level
-	int level = IsPartyMember(npc) 
-		? PartyMemberGetCurrentLevel(npc) 
+	int level = Wrapper::isPartyMember(npc) 
+		? Wrapper::partyMemberGetCurLevel(npc) 
 		: 0;
 
 	*ptr_Level_ = level;
@@ -142,7 +142,7 @@ static void TakeControlOfNPC(TGameObj* npc) {
 
 	// deduce active hand by weapon anim code
 	char critterAnim = (npc->artFID & 0xF000) >> 12; // current weapon as seen in hands
-	if (AnimCodeByWeapon(GetInvenWeaponLeft(npc)) == critterAnim) { // definitely left hand..
+	if (AnimCodeByWeapon(Wrapper::inven_left_hand(npc)) == critterAnim) { // definitely left hand..
 		*ptr_itemCurrentItem = 0;
 	} else {
 		*ptr_itemCurrentItem = 1;
@@ -158,7 +158,7 @@ static void TakeControlOfNPC(TGameObj* npc) {
 	DelayedExperience = 0;
 	SetInventoryCheck(true);
 
-	InterfaceRedraw();
+	Wrapper::intface_redraw();
 }
 
 // restores the real dude state
@@ -178,7 +178,7 @@ static void RestoreRealDudeState() {
 	ptr_curr_pc_stat[0] = real_unspent_skill_points;
 	//real_map_elevation = *ptr_map_elevation; -- why save elevation?
 	*ptr_sneak_working = real_sneak_working;
-	SkillSetTags(real_tag_skill, 4);
+	Wrapper::skill_set_tags(real_tag_skill, 4);
 
 	*ptr_inven_pid = real_dude->pid;
 
@@ -186,7 +186,7 @@ static void RestoreRealDudeState() {
 		StatPcAddExperience(DelayedExperience);
 	}
 
-	InterfaceRedraw();
+	Wrapper::intface_redraw();
 
 	SetInventoryCheck(false);
 	IsControllingNPC = 0;
@@ -202,7 +202,7 @@ static int __stdcall CombatTurn(TGameObj* obj) {
 
 // return values: 0 - use vanilla handler, 1 - skip vanilla handler, return 0 (normal status), -1 - skip vanilla, return -1 (game ended)
 static int _stdcall CombatWrapperInner(TGameObj* obj) {
-	if ((obj != *ptr_obj_dude) && (Chars.size() == 0 || IsInPidList(obj)) && (Mode == 1 || IsPartyMember(obj))) {
+	if ((obj != *ptr_obj_dude) && (Chars.size() == 0 || IsInPidList(obj)) && (Mode == 1 || Wrapper::isPartyMember(obj))) {
 		// save "real" dude state
 		SaveRealDudeState();
 		TakeControlOfNPC(obj);
@@ -248,12 +248,12 @@ static void _declspec(naked) ItemDropHook() {
 */
 
 static void __stdcall DisplayCantDoThat() {
-	DisplayConsoleMessage(GetMessageStr(MSG_FILE_PROTO, 675)); // I Can't do that
+	Wrapper::display_print(GetMessageStr(MSG_FILE_PROTO, 675)); // I Can't do that
 }
 
 // 1 skip handler, -1 don't skip
 int __stdcall PartyControl_SwitchHandHook(TGameObj* item) {
-	if (ItemGetType(item) == 3 && IsControllingNPC > 0) {
+	if (Wrapper::item_get_type(item) == 3 && IsControllingNPC > 0) {
 		int canUse;
 		/* check below uses AI packets and skills to check if weapon is usable
 		__asm {

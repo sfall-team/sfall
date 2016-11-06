@@ -23,6 +23,7 @@
 /* FALLOUT2.EXE structs should be placed here  */
 /******************************************************************************/
 
+// TODO: make consistent naming for all FO structs
 
 struct TGameObj;
 
@@ -154,5 +155,15 @@ struct TProgram
 	int *stringRefPtr;
 	char gap_34[4];
 	int *procTablePtr;
+};
+#pragma pack(pop)
+
+#pragma pack(push, 1)
+struct sMessage
+{
+  int number;
+  int flags;
+  char* audio;
+  char* message;
 };
 #pragma pack(pop)

@@ -19,43 +19,31 @@
 #include "Functions.h"
 #include "Wrappers.h"
 
-int __stdcall ItemGetType(TGameObj* item) {
+namespace Wrapper
+{
+
+int __stdcall item_get_type(TGameObj* item) {
 	__asm {
 		mov eax, item
 		call FuncOffs::item_get_type_
 	}
 }
 
-int _stdcall IsPartyMember(TGameObj* obj) {
+int _stdcall isPartyMember(TGameObj* obj) {
 	__asm {
 		mov eax, obj
 		call FuncOffs::isPartyMember_
 	}
 }
 
-int _stdcall PartyMemberGetCurrentLevel(TGameObj* obj) {
+int _stdcall partyMemberGetCurLevel(TGameObj* obj) {
 	__asm {
 		mov eax, obj
 		call FuncOffs::partyMemberGetCurLevel_
 	}
 }
 
-TGameObj* __stdcall GetInvenWeaponLeft(TGameObj* obj) {
-	__asm {
-		mov eax, obj
-		call FuncOffs::inven_left_hand_
-	}
-}
-
-TGameObj* __stdcall GetInvenWeaponRight(TGameObj* obj) {
-	__asm {
-		mov eax, obj
-		call FuncOffs::inven_right_hand_
-	}
-}
-
-
-char* GetProtoPtr(DWORD pid) {
+char* proto_ptr(DWORD pid) {
 	char* proto;
 	__asm {
 		mov eax, pid
@@ -65,41 +53,25 @@ char* GetProtoPtr(DWORD pid) {
 	return proto;
 }
 
-// TODO: this is not wrapper, move it
-char AnimCodeByWeapon(TGameObj* weapon) {
-	if (weapon != nullptr) {
-		char* proto = GetProtoPtr(weapon->pid);
-		if (proto && *(int*)(proto + 32) == 3) {
-			return (char)(*(int*)(proto + 36)); 
-		}
-	}
-	return 0;
-}
-
 // Displays message in main UI console window
-void DisplayConsoleMessage(const char* msg) {
+void display_print(const char* msg) {
 	__asm {
 		mov eax, msg
 		call FuncOffs::display_print_
 	}
 }
 
-static DWORD mesg_buf[4] = {0, 0, 0, 0};
-const char* _stdcall GetMessageStr(DWORD fileAddr, DWORD messageId) {
-	DWORD buf = (DWORD)mesg_buf;
-	const char* result;
+const char* _stdcall getmsg(DWORD fileAddr, int messageId, sMessage* result) {
 	__asm {
 		mov eax, fileAddr
 		mov ebx, messageId
-		mov edx, buf
+		mov edx, result
 		call FuncOffs::getmsg_
-		mov result, eax
 	}
-	return result;
 }
 
 // Change the name of playable character
-void CritterPcSetName(const char* newName) {
+void critter_pc_set_name(const char* newName) {
 	__asm {
 		mov eax, newName
 		call FuncOffs::critter_pc_set_name_
@@ -107,14 +79,14 @@ void CritterPcSetName(const char* newName) {
 }
 
 // Returns the name of the critter
-const char* __stdcall CritterName(TGameObj* critter) {
+const char* __stdcall critter_name(TGameObj* critter) {
 	__asm {
 		mov eax, critter
 		call FuncOffs::critter_name_
 	}
 }
 
-void SkillGetTags(int* result, DWORD num) {
+void skill_get_tags(int* result, DWORD num) {
 	if (num > 4) {
 		num = 4;
 	}
@@ -125,7 +97,7 @@ void SkillGetTags(int* result, DWORD num) {
 	}
 }
 
-void SkillSetTags(int* tags, DWORD num) {
+void skill_set_tags(int* tags, DWORD num) {
 	if (num > 4) {
 		num = 4;
 	}
@@ -138,7 +110,7 @@ void SkillSetTags(int* tags, DWORD num) {
 
 // Saves pointer to script object into scriptPtr using scriptID. 
 // Returns 0 on success, -1 on failure.
-int __stdcall ScrPtr(int scriptId, TScript** scriptPtr) {
+int __stdcall scr_ptr(int scriptId, TScript** scriptPtr) {
 	__asm {
 		mov eax, scriptId;
 		mov edx, scriptPtr;
@@ -147,12 +119,12 @@ int __stdcall ScrPtr(int scriptId, TScript** scriptPtr) {
 }
 
 // redraws the main game interface windows (useful after changing some data like active hand, etc.)
-void InterfaceRedraw() {
+void intface_redraw() {
 	__asm call FuncOffs::intface_redraw_
 }
 
 // pops value type from Data stack (must be followed by InterpretPopLong)
-DWORD __stdcall InterpretPopShort(TProgram* scriptPtr) {
+DWORD __stdcall interpretPopShort(TProgram* scriptPtr) {
 	__asm {
 		mov eax, scriptPtr
 		call FuncOffs::interpretPopShort_
@@ -160,7 +132,7 @@ DWORD __stdcall InterpretPopShort(TProgram* scriptPtr) {
 }
 
 // pops value from Data stack (must be preceded by InterpretPopShort)
-DWORD __stdcall InterpretPopLong(TProgram* scriptPtr) {
+DWORD __stdcall interpretPopLong(TProgram* scriptPtr) {
 	__asm {
 		mov eax, scriptPtr
 		call FuncOffs::interpretPopLong_
@@ -168,7 +140,7 @@ DWORD __stdcall InterpretPopLong(TProgram* scriptPtr) {
 }
 
 // pushes value to Data stack (must be followed by InterpretPushShort)
-void __stdcall InterpretPushLong(TProgram* scriptPtr, DWORD val) {
+void __stdcall interpretPushLong(TProgram* scriptPtr, DWORD val) {
 	__asm {
 		mov edx, val
 		mov eax, scriptPtr
@@ -177,7 +149,7 @@ void __stdcall InterpretPushLong(TProgram* scriptPtr, DWORD val) {
 }
 
 // pushes value type to Data stack (must be preceded by InterpretPushLong)
-void __stdcall InterpretPushShort(TProgram* scriptPtr, DWORD valType) {
+void __stdcall interpretPushShort(TProgram* scriptPtr, DWORD valType) {
 	__asm {
 		mov edx, valType
 		mov eax, scriptPtr
@@ -185,7 +157,7 @@ void __stdcall InterpretPushShort(TProgram* scriptPtr, DWORD valType) {
 	}
 }
 
-DWORD __stdcall InterpretAddString(TProgram* scriptPtr, const char* strval) {
+DWORD __stdcall interpretAddString(TProgram* scriptPtr, const char* strval) {
 	__asm {
 		mov edx, strval
 		mov eax, scriptPtr
@@ -193,7 +165,7 @@ DWORD __stdcall InterpretAddString(TProgram* scriptPtr, const char* strval) {
 	}
 }
 
-const char* __stdcall InterpretGetString(TProgram* scriptPtr, DWORD strId, DWORD dataType) {
+const char* __stdcall interpretGetString(TProgram* scriptPtr, DWORD strId, DWORD dataType) {
 	__asm {
 		mov edx, dataType
 		mov ebx, strId
@@ -204,35 +176,37 @@ const char* __stdcall InterpretGetString(TProgram* scriptPtr, DWORD strId, DWORD
 
 // prints scripting error in debug.log and stops current script execution by performing longjmp
 // USE WITH CAUTION
-void __declspec(naked) InterpretError(const char* fmt, ...) {
+void __declspec(naked) interpretError(const char* fmt, ...) {
 	__asm jmp FuncOffs::interpretError_
 }
 
 // prints message to debug.log file
-void __declspec(naked) DebugPrintf(const char* fmt, ...) {
+void __declspec(naked) debug_printf(const char* fmt, ...) {
 	__asm jmp FuncOffs::debug_printf_
 }
 
 // returns the name of current procedure by program pointer
-const char* __stdcall FindCurrentProc(TProgram* program) {
+const char* __stdcall findCurrentProc(TProgram* program) {
 	__asm mov eax, program
 	__asm call FuncOffs::findCurrentProc_
 }
 
 // critter worn item (armor)
-TGameObj* __stdcall InvenWorn(TGameObj* critter) {
+TGameObj* __stdcall inven_worn(TGameObj* critter) {
 	__asm mov eax, critter
 	__asm call FuncOffs::inven_worn_
 }
 
 // item in critter's left hand slot
-TGameObj* __stdcall InvenLeftHand(TGameObj* critter) {
+TGameObj* __stdcall inven_left_hand(TGameObj* critter) {
 	__asm mov eax, critter
 	__asm call FuncOffs::inven_left_hand_
 }
 
 // item in critter's right hand slot
-TGameObj* __stdcall InvenRightHand(TGameObj* critter) {
+TGameObj* __stdcall inven_right_hand(TGameObj* critter) {
 	__asm mov eax, critter
 	__asm call FuncOffs::inven_right_hand_
+}
+
 }

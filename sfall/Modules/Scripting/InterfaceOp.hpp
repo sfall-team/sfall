@@ -443,7 +443,7 @@ end:
 }
 
 static void sf_intface_redraw() {
-	InterfaceRedraw();
+	Wrapper::intface_redraw();
 }
 
 static void sf_intface_show() {

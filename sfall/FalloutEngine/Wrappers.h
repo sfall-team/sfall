@@ -22,66 +22,75 @@
 
 #define DWORD unsigned long
 
-// WRAPPERS:
-// TODO: move these to different namespace
-int _stdcall IsPartyMember(TGameObj* obj);
-int _stdcall PartyMemberGetCurrentLevel(TGameObj* obj);
-TGameObj* __stdcall GetInvenWeaponLeft(TGameObj* obj);
-TGameObj* __stdcall GetInvenWeaponRight(TGameObj* obj);
-char* GetProtoPtr(DWORD pid);
-char AnimCodeByWeapon(TGameObj* weapon);
+// 
+// WRAPPERS for FO engine functions. 
+// Use those as you would if there were source code for the engine...
+//
+namespace Wrapper
+{
+
+int _stdcall isPartyMember(TGameObj* obj);
+
+int _stdcall partyMemberGetCurLevel(TGameObj* obj);
+
+char* proto_ptr(DWORD pid);
+
 // Displays message in main UI console window
-void DisplayConsoleMessage(const char* msg);
-const char* _stdcall GetMessageStr(DWORD fileAddr, DWORD messageId);
-int __stdcall ItemGetType(TGameObj* item);
+void display_print(const char* msg);
+
+int __stdcall item_get_type(TGameObj* item);
 
 // Change the name of playable character
-void CritterPcSetName(const char* newName);
+void critter_pc_set_name(const char* newName);
 
 // Returns the name of the critter
-const char* __stdcall CritterName(TGameObj* critter);
+const char* __stdcall critter_name(TGameObj* critter);
+
+// searches for message ID in given message file and places result in @result
+const char* _stdcall getmsg(DWORD fileAddr, int messageId, sMessage* result);
 
 // Saves pointer to script object into scriptPtr using scriptID. 
 // Returns 0 on success, -1 on failure.
-int __stdcall ScrPtr(int scriptId, TScript** scriptPtr);
+int __stdcall scr_ptr(int scriptId, TScript** scriptPtr);
 
-void SkillGetTags(int* result, DWORD num);
-void SkillSetTags(int* tags, DWORD num);
+void skill_get_tags(int* result, DWORD num);
+void skill_set_tags(int* tags, DWORD num);
 
 // redraws the main game interface windows (useful after changing some data like active hand, etc.)
-void InterfaceRedraw();
+void intface_redraw();
 
 // critter worn item (armor)
-TGameObj* __stdcall InvenWorn(TGameObj* critter);
+TGameObj* __stdcall inven_worn(TGameObj* critter);
 
 // item in critter's left hand slot
-TGameObj* __stdcall InvenLeftHand(TGameObj* critter);
+TGameObj* __stdcall inven_left_hand(TGameObj* critter);
 
 // item in critter's right hand slot
-TGameObj* __stdcall InvenRightHand(TGameObj* critter);
+TGameObj* __stdcall inven_right_hand(TGameObj* critter);
 
 // pops value type from Data stack (must be followed by InterpretPopLong)
-DWORD __stdcall InterpretPopShort(TProgram* scriptPtr);
+DWORD __stdcall interpretPopShort(TProgram* scriptPtr);
 
 // pops value from Data stack (must be preceded by InterpretPopShort)
-DWORD __stdcall InterpretPopLong(TProgram* scriptPtr);
+DWORD __stdcall interpretPopLong(TProgram* scriptPtr);
 
 // pushes value to Data stack (must be followed by InterpretPushShort)
-void __stdcall InterpretPushLong(TProgram* scriptPtr, DWORD val);
+void __stdcall interpretPushLong(TProgram* scriptPtr, DWORD val);
 
 // pushes value type to Data stack (must be preceded by InterpretPushLong)
-void __stdcall InterpretPushShort(TProgram* scriptPtr, DWORD valType);
+void __stdcall interpretPushShort(TProgram* scriptPtr, DWORD valType);
 
-const char* __stdcall InterpretGetString(TProgram* scriptPtr, DWORD strId, DWORD dataType);
+const char* __stdcall interpretGetString(TProgram* scriptPtr, DWORD strId, DWORD dataType);
 
-DWORD __stdcall InterpretAddString(TProgram* scriptPtr, const char* str);
+DWORD __stdcall interpretAddString(TProgram* scriptPtr, const char* str);
 
 // prints scripting error in debug.log and stops current script execution by performing longjmp
 // USE WITH CAUTION
-void __declspec() InterpretError(const char* fmt, ...);
+void __declspec() interpretError(const char* fmt, ...);
 
 // prints message to debug.log file
-void __declspec() DebugPrintf(const char* fmt, ...);
+void __declspec() debug_printf(const char* fmt, ...);
 
 // returns the name of current procedure by program pointer
-const char* __stdcall FindCurrentProc(TProgram* program);
+const char* __stdcall findCurrentProc(TProgram* program);
+}

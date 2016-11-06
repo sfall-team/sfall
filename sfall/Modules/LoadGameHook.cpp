@@ -92,7 +92,7 @@ static void _stdcall SaveGame2() {
 		CloseHandle(h);
 	} else {
 		dlogr("ERROR creating sfallgv!", DL_MAIN);
-		DisplayConsoleMessage(SaveSfallDataFailMsg);
+		Wrapper::display_print(SaveSfallDataFailMsg);
 		PlaySfx("IISXXXX1");
 	}
 	GetSavePath(buf, "fs");
@@ -108,7 +108,7 @@ static DWORD _stdcall combatSaveTest() {
 	if (!SaveInCombatFix && !IsNpcControlled()) return 1;
 	if (InLoop & COMBAT) {
 		if (SaveInCombatFix == 2 || IsNpcControlled() || !(InLoop & PCOMBAT)) {
-			DisplayConsoleMessage(SaveFailMsg);
+			Wrapper::display_print(SaveFailMsg);
 			return 0;
 		}
 		DWORD ap;
@@ -124,7 +124,7 @@ static DWORD _stdcall combatSaveTest() {
 			mov bonusmove, eax;
 		}
 		if (*(DWORD*)(*(DWORD*)_obj_dude + 0x40) != ap || bonusmove * 2 != *(DWORD*)_combat_free_move) {
-			DisplayConsoleMessage(SaveFailMsg);
+			Wrapper::display_print(SaveFailMsg);
 			return 0;
 		}
 	}

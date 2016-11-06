@@ -506,7 +506,7 @@ static void _stdcall SetKarma(int value) {
 	} else {
 		sprintf_s(buf, KarmaLossMsg, -old);
 	}
-	DisplayConsoleMessage(buf);
+	Wrapper::display_print(buf);
 }
 static void __declspec(naked) SetGlobalVarWrapper() {
 	__asm {

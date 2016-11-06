@@ -161,7 +161,7 @@ static void __declspec(naked) op_create_spatial() {
 static void sf_spatial_radius() {
 	TGameObj* spatialObj = opHandler.arg(0).asObject();
 	TScript* script;
-	if (ScrPtr(spatialObj->scriptID, &script) != -1) {
+	if (Wrapper::scr_ptr(spatialObj->scriptID, &script) != -1) {
 		opHandler.setReturn(script->spatial_radius);
 	}
 }
@@ -540,13 +540,13 @@ static void sf_critter_inven_obj2() {
 	int slot = opHandler.arg(1).asInt();
 	switch (slot) {
 	case 0:
-		opHandler.setReturn(InvenWorn(critter));
+		opHandler.setReturn(Wrapper::inven_worn(critter));
 		break;
 	case 1:
-		opHandler.setReturn(InvenRightHand(critter));
+		opHandler.setReturn(Wrapper::inven_right_hand(critter));
 		break;
 	case 2:
-		opHandler.setReturn(InvenLeftHand(critter));
+		opHandler.setReturn(Wrapper::inven_left_hand(critter));
 		break;
 	case -2:
 		opHandler.setReturn(critter->invenCount);
