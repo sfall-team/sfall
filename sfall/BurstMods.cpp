@@ -69,7 +69,7 @@ divEnd2:
 
 
 void ComputeSprayModInit() {
-	if (GetPrivateProfileIntA("Misc", "ComputeSprayMod", 1, ini)) {
+	if (GetPrivateProfileIntA("Misc", "ComputeSprayMod", 0, ini)) {
 		dlog("Applying ComputeSpray changes.", DL_INIT);
 		compute_spray_center_mult = GetPrivateProfileIntA("Misc", "ComputeSpray_CenterMult", 1, ini);
 		compute_spray_center_div =  GetPrivateProfileIntA("Misc", "ComputeSpray_CenterDiv", 3, ini);

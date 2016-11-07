@@ -35,6 +35,9 @@
 #include "Logging.h"
 #include "ScriptExtender.h"
 #include "version.h"
+#if (_MSC_VER < 1600)
+#include "Cpp11_emu.h"
+#endif
 
 void _stdcall HandleMapUpdateForScripts(DWORD procId);
 

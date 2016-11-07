@@ -16,14 +16,15 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <math.h>
+#include <vector>
+
 #include "main.h"
 
-#include <math.h>
 #include "FalloutEngine.h"
 #include "Knockback.h"
-#include "vector9x.cpp"
 
-static vector<DWORD> NoBursts;
+static std::vector<DWORD> NoBursts;
 
 struct KnockbackModifier {
 	DWORD id;
@@ -31,9 +32,9 @@ struct KnockbackModifier {
 	double value;
 };
 
-static vector<KnockbackModifier> mTargets;
-static vector<KnockbackModifier> mAttackers;
-static vector<KnockbackModifier> mWeapons;
+static std::vector<KnockbackModifier> mTargets;
+static std::vector<KnockbackModifier> mAttackers;
+static std::vector<KnockbackModifier> mWeapons;
 
 struct ChanceModifier {
 	DWORD id;
@@ -41,8 +42,8 @@ struct ChanceModifier {
 	int mod;
 };
 
-static vector<ChanceModifier> HitChanceMods;
-static vector<ChanceModifier> PickpocketMods;
+static std::vector<ChanceModifier> HitChanceMods;
+static std::vector<ChanceModifier> PickpocketMods;
 
 static ChanceModifier BaseHitChance;
 static ChanceModifier BasePickpocket;
@@ -50,10 +51,10 @@ static ChanceModifier BasePickpocket;
 static bool hookedAimedShot;
 static const DWORD aimedShotRet1=0x478EE4;
 static const DWORD aimedShotRet2=0x478EEA;
-static vector<DWORD> disabledAS;
-static vector<DWORD> forcedAS;
+static std::vector<DWORD> disabledAS;
+static std::vector<DWORD> forcedAS;
 
-static double ApplyModifiers(vector<KnockbackModifier>* mods, DWORD id, double val) {
+static double ApplyModifiers(std::vector<KnockbackModifier>* mods, DWORD id, double val) {
 	for(DWORD i=0;i<mods->size();i++) {
 		if((*mods)[i].id==id) {
 			KnockbackModifier* mod=&(*mods)[i];
@@ -207,7 +208,7 @@ void Knockback_OnGameLoad() {
 }
 
 void _stdcall KnockbackSetMod(DWORD id, DWORD type, float val, DWORD on) {
-	vector<KnockbackModifier>* mods;
+	std::vector<KnockbackModifier>* mods;
 	switch(on) {
 		case 0: mods=&mWeapons; break;
 		case 1: mods=&mTargets; break;
@@ -225,7 +226,7 @@ void _stdcall KnockbackSetMod(DWORD id, DWORD type, float val, DWORD on) {
 }
 
 void _stdcall KnockbackRemoveMod(DWORD id, DWORD on) {
-	vector<KnockbackModifier>* mods;
+	std::vector<KnockbackModifier>* mods;
 	switch(on) {
 		case 0: mods=&mWeapons; break;
 		case 1: mods=&mTargets; break;
@@ -234,7 +235,7 @@ void _stdcall KnockbackRemoveMod(DWORD id, DWORD on) {
 	}
 	for(DWORD i=0;i<mods->size();i++) {
 		if((*mods)[i].id==id) {
-			mods->remove_at(i);
+			mods->erase(mods->begin() + i);
 			return;
 		}
 	}
@@ -287,7 +288,7 @@ void _stdcall SetNoBurstMode(DWORD critter, DWORD on) {
 	} else {
 		for(DWORD i=0;i<NoBursts.size();i++) {
 			if(NoBursts[i]==critter) {
-				NoBursts.remove_at(i);
+				NoBursts.erase(NoBursts.begin() + i);
 				return;
 			}
 		}
@@ -329,13 +330,13 @@ static void HookAimedShots() {
 }
 void _stdcall DisableAimedShots(DWORD pid) {
 	if(!hookedAimedShot) HookAimedShots();
-	for(DWORD i=0;i<forcedAS.size();i++) if(forcedAS[i]==pid) forcedAS.remove_at(i--);
+	for(DWORD i=0;i<forcedAS.size();i++) if(forcedAS[i]==pid) forcedAS.erase(forcedAS.begin() + (i--));
 	for(DWORD i=0;i<disabledAS.size();i++) if(disabledAS[i]==pid) return;
 	disabledAS.push_back(pid);
 }
 void _stdcall ForceAimedShots(DWORD pid) {
 	if(!hookedAimedShot) HookAimedShots();
-	for(DWORD i=0;i<disabledAS.size();i++) if(disabledAS[i]==pid) disabledAS.remove_at(i--);
+	for(DWORD i=0;i<disabledAS.size();i++) if(disabledAS[i]==pid) disabledAS.erase(disabledAS.begin() + (i--));
 	for(DWORD i=0;i<forcedAS.size();i++) if(forcedAS[i]==pid) return;
 	forcedAS.push_back(pid);
 }

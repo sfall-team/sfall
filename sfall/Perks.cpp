@@ -16,12 +16,13 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <vector>
+
 #include "main.h"
 
 #include "Define.h"
 #include "FalloutEngine.h"
 #include "Perks.h"
-#include "vector9x.cpp"
 
 //static const BYTE PerksUsed=121;
 
@@ -74,9 +75,9 @@ struct FakePerk {
 	char Desc[1024];
 };
 
-vector<FakePerk> fakeTraits;
-vector<FakePerk> fakePerks;
-vector<FakePerk> fakeSelectablePerks;
+std::vector<FakePerk> fakeTraits;
+std::vector<FakePerk> fakePerks;
+std::vector<FakePerk> fakeSelectablePerks;
 
 static DWORD RemoveTraitID;
 static DWORD RemovePerkID;
@@ -163,7 +164,7 @@ void _stdcall SetSelectablePerk(char* name, int level, int image, char* desc) {
 	if(level==0) {
 		for(DWORD i=0;i<fakeSelectablePerks.size();i++) {
 			if(!strcmp(name,fakeSelectablePerks[i].Name)) {
-				fakeSelectablePerks.remove_at(i);
+				fakeSelectablePerks.erase(fakeSelectablePerks.begin() + i);
 				return;
 			}
 		}
@@ -190,7 +191,7 @@ void _stdcall SetFakePerk(char* name, int level, int image, char* desc) {
 	if(level==0) {
 		for(DWORD i=0;i<fakePerks.size();i++) {
 			if(!strcmp(name,fakePerks[i].Name)) {
-				fakePerks.remove_at(i);
+				fakePerks.erase(fakePerks.begin() + i);
 				return;
 			}
 		}
@@ -217,7 +218,7 @@ void _stdcall SetFakeTrait(char* name, int level, int image, char* desc) {
 	if(level==0) {
 		for(DWORD i=0;i<fakeTraits.size();i++) {
 			if(!strcmp(name,fakeTraits[i].Name)) {
-				fakeTraits.remove_at(i);
+				fakeTraits.erase(fakeTraits.begin() + i);
 				return;
 			}
 		}
@@ -1083,12 +1084,12 @@ void PerksEnterCharScreen() {
 }
 void PerksCancelCharScreen() {
 	if(RemoveTraitID!=-1) {
-		fakeTraits.remove_at(RemoveTraitID);
+		fakeTraits.erase(fakeTraits.begin() + RemoveTraitID);
 	}
 	if(RemovePerkID!=-1) {
-		if(!--fakePerks[RemovePerkID].Level) fakePerks.remove_at(RemovePerkID);
+		if(!--fakePerks[RemovePerkID].Level) fakePerks.erase(fakePerks.begin() + RemovePerkID);
 	}
 }
 void PerksAcceptCharScreen() {
-	if(RemoveSelectableID!=-1) fakeSelectablePerks.remove_at(RemoveSelectableID);
+	if(RemoveSelectableID!=-1) fakeSelectablePerks.erase(fakeSelectablePerks.begin() + RemoveSelectableID);
 }

@@ -21,13 +21,13 @@
 #define TARGETVERSION "Fallout 2 v1.02 US"
 
 #define VERSION_MAJOR 3
-#define VERSION_MINOR 7
-#define VERSION_BUILD 4
+#define VERSION_MINOR 8
+#define VERSION_BUILD 0
 #define VERSION_REV 0
 #ifdef WIN2K
-#define VERSION_STRING "3.7.4 win2k"
+#define VERSION_STRING "3.8 win2k"
 #else
-#define VERSION_STRING "3.7.4"
+#define VERSION_STRING "3.8"
 #endif
 
 #define CHECK_VAL  (4)

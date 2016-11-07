@@ -304,8 +304,6 @@
     <ClCompile Include="Stats.cpp" />
     <ClCompile Include="Tiles.cpp" />
     <ClCompile Include="timer.cpp" />
-    <ClCompile Include="queue9x.cpp" />
-    <ClCompile Include="vector9x.cpp" />
     <ClCompile Include="Logging.cpp" />
     <ClCompile Include="SuperSave.cpp" />
   </ItemGroup>

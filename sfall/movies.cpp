@@ -18,14 +18,15 @@
 
 #include "main.h"
 
+#include <vector> // should be above DX SDK includes to avoid warning 4995
 #include <d3d9.h>
 #include <dshow.h>
 #include <Vmr9.h>
+
 #include "FalloutEngine.h"
 #include "Graphics.h"
 #include "Logging.h"
 #include "movies.h"
-#include "vector9x.cpp"
 
 static DWORD MoviePtrs[MaxMovies];
 char MoviePaths[MaxMovies*65];
@@ -331,8 +332,8 @@ fail:
 	}
 }
 
-static vector<sDSSound*> playingSounds;
-static vector<sDSSound*> loopingSounds;
+static std::vector<sDSSound*> playingSounds;
+static std::vector<sDSSound*> loopingSounds;
 DWORD playID=0;
 DWORD loopID=0;
 static HWND soundwindow=0;
@@ -384,7 +385,7 @@ LRESULT CALLBACK SoundWndProc(HWND wnd, UINT msg, WPARAM w, LPARAM l) {
 					for(DWORD i=0;i<playingSounds.size();i++) {
 						if(playingSounds[i]==dssound) {
 							FreeSound(dssound);
-							playingSounds.remove_at(i);
+							playingSounds.erase(playingSounds.begin() + i);
 							return 0;
 						}
 					}
@@ -466,7 +467,7 @@ void _stdcall StopSfallSound(void* _ptr) {
 	for(DWORD i=0;i<loopingSounds.size();i++) {
 		if(loopingSounds[i]==ptr) {
 			FreeSound(ptr);
-			loopingSounds.remove_at(i);
+			loopingSounds.erase(loopingSounds.begin() + i);
 			return;
 		}
 	}

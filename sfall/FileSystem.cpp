@@ -16,11 +16,12 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <vector>
+
 #include "main.h"
 
 #include "FalloutEngine.h"
 #include "FileSystem.h"
-#include "vector9x.cpp"
 
 extern void GetSavePath(char* buf, char* ftype);
 
@@ -31,7 +32,7 @@ struct fsFile {
 	DWORD wpos;
 };
 
-vector<fsFile> files;
+std::vector<fsFile> files;
 
 static DWORD loadedtiles=0;
 static DWORD retval;
@@ -417,7 +418,7 @@ void FileSystemReset() {
 	}
 	if(!loadedtiles) files.clear();
 	else {
-		for(DWORD i=files.size()-1;i>=loadedtiles;i--) files.remove_at(i);
+		for(DWORD i=files.size()-1;i>=loadedtiles;i--) files.erase(files.begin() + i);
 	}
 }
 void FileSystemSave(HANDLE h) {

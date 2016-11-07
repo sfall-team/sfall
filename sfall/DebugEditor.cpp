@@ -16,9 +16,10 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <vector>
+
 #include "main.h"
 
-#include <vector>
 #include "Arrays.h"
 #include "DebugEditor.h"
 #include "FalloutEngine.h"

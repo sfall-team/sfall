@@ -18,6 +18,8 @@
 
 #pragma once
 
+#include <cstddef>
+
 // https://en.wikibooks.org/wiki/More_C%2B%2B_Idioms/nullptr
 const // It is a const object...
 class nullptr_t {
