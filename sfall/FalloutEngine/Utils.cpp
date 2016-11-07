@@ -16,6 +16,8 @@
 * along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <cassert>
+
 #include "Wrappers.h"
 #include "Structs.h"
 
@@ -24,17 +26,32 @@
 static sMessage message_buf;
 
 const char* _stdcall GetMessageStr(DWORD fileAddr, int messageId) {
-	return Wrapper::getmsg(fileAddr, messageId, &message_buf);
+	return Wrapper::getmsg(fileAddr, &message_buf, messageId);
 }
 
 char AnimCodeByWeapon(TGameObj* weapon) {
 	if (weapon != nullptr) {
-		char* proto = Wrapper::proto_ptr(weapon->pid);
-		if (proto && *(int*)(proto + 32) == 3) {
-			return (char)(*(int*)(proto + 36)); 
+		sProtoItem* proto = GetItemProto(weapon->pid);
+		if (proto != nullptr && proto->type == item_type_weapon) {
+			// TODO: find better way to cast into specific item type proto
+			return static_cast<char>(reinterpret_cast<sProtoWeapon*>(proto)->animation_code);
 		}
 	}
 	return 0;
+}
+
+sProtoItem* GetItemProto(int pid) {
+	assert((pid >> 24) == OBJ_TYPE_ITEM);
+
+	return reinterpret_cast<sProtoItem*>(GetProto(pid));
+}
+
+sProtoBase* GetProto(int pid) {
+	sProtoBase* protoPtr;
+	if (Wrapper::proto_ptr(pid, &protoPtr) != -1) {
+		return protoPtr;
+	}
+	return nullptr;
 }
 
 const char* MsgSearch(int msgno, DWORD* file) {
@@ -44,3 +61,16 @@ const char* MsgSearch(int msgno, DWORD* file) {
 	return msg.message;
 }
 
+void SkillGetTags(int* result, long num) {
+	if (num > 4) {
+		num = 4;
+	}
+	Wrapper::skill_get_tags(result, num);
+}
+
+void SkillSetTags(int* tags, long num) {
+	if (num > 4) {
+		num = 4;
+	}
+	Wrapper::skill_set_tags(tags, num);
+}

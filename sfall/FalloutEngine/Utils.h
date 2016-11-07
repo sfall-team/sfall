@@ -23,10 +23,21 @@
 
 #define DWORD unsigned long
 
-// returns message string from given file
-const char* _stdcall GetMessageStr(DWORD fileAddr, int messageId);
-
 // returns weapon animation code
 char AnimCodeByWeapon(TGameObj* weapon);
 
+// returns message string from given file
+const char* _stdcall GetMessageStr(DWORD fileAddr, int messageId);
+
+// returns pointer to prototype by PID, or nullptr on failure
+sProtoBase* GetProto(int pid);
+
+sProtoItem* GetItemProto(int pid);
+
 const char* MsgSearch(int msgno, DWORD* file);
+
+// wrapper for skill_get_tags with bounds checking
+void SkillGetTags(int* result, long num);
+
+// wrapper for skill_set_tags with bounds checking
+void SkillSetTags(int* tags, long num);

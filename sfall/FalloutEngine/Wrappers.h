@@ -20,7 +20,10 @@
 
 #include "Structs.h"
 
-#define DWORD unsigned long
+// TODO: place this somewhere centralized...
+#ifndef DWORD
+	#define DWORD unsigned long
+#endif
 
 // 
 // WRAPPERS for FO engine functions. 
@@ -57,7 +60,7 @@ int _stdcall isPartyMember(TGameObj* obj);
 int __stdcall item_get_type(TGameObj* item);
 
 // searches for message ID in given message file and places result in @result
-const char* _stdcall getmsg(DWORD fileAddr, int messageId, sMessage* result);
+const char* _stdcall getmsg(DWORD fileAddr, sMessage* result, int messageId);
 
 // redraws the main game interface windows (useful after changing some data like active hand, etc.)
 void intface_redraw();
@@ -79,7 +82,7 @@ void __stdcall interpretPushLong(TProgram* scriptPtr, DWORD val);
 // pushes value type to Data stack (must be preceded by InterpretPushLong)
 void __stdcall interpretPushShort(TProgram* scriptPtr, DWORD valType);
 
-const char* __stdcall interpretGetString(TProgram* scriptPtr, DWORD strId, DWORD dataType);
+const char* __stdcall interpretGetString(TProgram* scriptPtr, DWORD dataType, DWORD strId);
 
 DWORD __stdcall interpretAddString(TProgram* scriptPtr, const char* str);
 
@@ -110,7 +113,8 @@ int __stdcall message_search(DWORD* file, sMessage* msg);
 
 int _stdcall partyMemberGetCurLevel(TGameObj* obj);
 
-char* proto_ptr(DWORD pid);
+// places pointer to a prototype structure into ptrPtr and returns 0 on success or -1 on failure
+int proto_ptr(int pid, sProtoBase* *ptrPtr);
 
 DWORD* __stdcall runProgram(TProgram* progPtr);
 
@@ -118,7 +122,7 @@ DWORD* __stdcall runProgram(TProgram* progPtr);
 // Returns 0 on success, -1 on failure.
 int __stdcall scr_ptr(int scriptId, TScript** scriptPtr);
 
-void skill_get_tags(int* result, DWORD num);
-void skill_set_tags(int* tags, DWORD num);
+void skill_get_tags(int* result, int num);
+void skill_set_tags(int* tags, int num);
 
 }

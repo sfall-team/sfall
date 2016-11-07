@@ -18,7 +18,7 @@
 
 #pragma once
 
-enum Animation
+enum Animation : __int32
 {
 	ANIM_stand = 0,
 	ANIM_walk = 1,
@@ -87,7 +87,7 @@ enum Animation
 	ANIM_called_shot_pic = 64,
 };
 
-enum DamageFlag
+enum DamageFlag : __int32
 {
 	DAM_KNOCKED_OUT = 0x1,
 	DAM_KNOCKED_DOWN = 0x2,
@@ -135,7 +135,7 @@ enum Gender
 };
 
 // Some global variables referenced by engine
-enum GlobalVar
+enum GlobalVar : __int32
 {
 	GVAR_ENEMY_ARROYO = 7,
 	GVAR_PLAYER_GOT_CAR = 18,
@@ -157,8 +157,19 @@ enum GlobalVar
 	GVAR_FALLOUT_2 = 494,
 };
 
+enum ObjType : __int8
+{
+	OBJ_TYPE_ITEM = 0,
+	OBJ_TYPE_CRITTER = 1,
+	OBJ_TYPE_SCENERY = 2,
+	OBJ_TYPE_WALL = 3,
+	OBJ_TYPE_TILE = 4,
+	OBJ_TYPE_MISC = 5,
+	OBJ_TYPE_SPATIAL = 6
+};
+
 // Some FO2 PIDs possibly used by engine
-enum ProtoId
+enum ProtoId : __int32
 {
 	PID_ROCK = 19,
 	PID_SMALL_ENERGY_CELL = 38,
@@ -216,7 +227,7 @@ enum ProtoId
 #define TRAIT_TRAIT  (2)
 
 
-enum Perk
+enum Perk : __int32
 {
 	PERK_bonus_awareness = 0,
 	PERK_bonus_hth_attacks = 1,
@@ -340,7 +351,7 @@ enum Perk
 	PERK_count = 119
 };
 
-enum Trait
+enum Trait : __int32
 {
 	TRAIT_fast_metabolism = 0,
 	TRAIT_bruiser = 1,
@@ -361,9 +372,18 @@ enum Trait
 	TRAIT_count = 16,
 };
 
+enum ScriptTypes
+{
+	SCRIPT_SYSTEM = 0,
+	SCRIPT_SPATIAL = 1,
+	SCRIPT_TIME = 2,
+	SCRIPT_ITEM = 3,
+	SCRIPT_CRITTER = 4,
+};
+
 // proto.h: stats //
 
-enum Stat
+enum Stat : __int32
 {
 	STAT_st = 0,
 	STAT_pe = 1,
@@ -416,7 +436,7 @@ enum Stat
 #define STAT_max_stat  STAT_current_hp
 
 // extra stat-like values that are treated specially
-enum PCStat
+enum PCStat : __int32
 {
 	PCSTAT_unspent_skill_points = 0,
 	PCSTAT_level = 1,
@@ -426,7 +446,7 @@ enum PCStat
 	PCSTAT_max_pc_stat = 5,
 };
 
-enum Skill
+enum Skill : __int32
 {
 	SKILL_SMALL_GUNS = 0,
 	SKILL_BIG_GUNS = 1,
@@ -453,7 +473,7 @@ enum Skill
 //XX Object defines XX
 //XXXXXXXXXXXXXXXXXXXX
 
-enum ItemType
+enum ItemType : __int32
 {
 	item_type_armor = 0,
 	item_type_container = 1,

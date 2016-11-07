@@ -99,7 +99,7 @@ static void SaveRealDudeState() {
 	real_unspent_skill_points = VarPtr::curr_pc_stat[0];
 	//real_map_elevation = *VarPtr::map_elevation;
 	real_sneak_working = *VarPtr::sneak_working;
-	Wrapper::skill_get_tags(real_tag_skill, 4);
+	SkillGetTags(real_tag_skill, 4);
 }
 
 // take control of the NPC
@@ -111,7 +111,7 @@ static void TakeControlOfNPC(TGameObj* npc) {
 #else
 	std::fill(std::begin(tagSkill), std::end(tagSkill), -1);
 #endif
-	Wrapper::skill_set_tags(tagSkill, 4);
+	SkillSetTags(tagSkill, 4);
 
 	// reset traits
 	VarPtr::pc_trait[0] = VarPtr::pc_trait[1] = -1;
@@ -176,7 +176,7 @@ static void RestoreRealDudeState() {
 	VarPtr::curr_pc_stat[0] = real_unspent_skill_points;
 	//real_map_elevation = *VarPtr::map_elevation; -- why save elevation?
 	*VarPtr::sneak_working = real_sneak_working;
-	Wrapper::skill_set_tags(real_tag_skill, 4);
+	SkillSetTags(real_tag_skill, 4);
 
 	*VarPtr::inven_pid = real_dude->pid;
 

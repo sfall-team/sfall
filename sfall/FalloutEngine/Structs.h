@@ -18,6 +18,8 @@
 
 #pragma once
 
+#include "Enums.h"
+
 
 /******************************************************************************/
 /* FALLOUT2.EXE structs should be placed here  */
@@ -32,7 +34,7 @@ struct TGameObj;
 struct TInvenRec
 {
 	TGameObj *object;
-	int count;
+	__int32 count;
 };
 #pragma pack(pop)
 
@@ -40,29 +42,29 @@ struct TInvenRec
 #pragma pack(push, 1)
 struct TGameObj
 {
-	int ID;
-	int tile;
+	__int32 ID;
+	__int32 tile;
 	char gap_8[2];
 	char field_A;
 	char gap_B[17];
-	int rotation;
-	int artFID;
+	__int32 rotation;
+	__int32 artFID;
 	char gap_24[4];
-	int elevation;
-	int invenCount;
-	int field_30;
+	__int32 elevation;
+	__int32 invenCount;
+	__int32 field_30;
 	TInvenRec *invenTablePtr;
 	char gap_38[4];
-	int itemCharges;
-	int critterAP_weaponAmmoPid;
+	__int32 itemCharges;
+	__int32 critterAP_weaponAmmoPid;
 	char gap_44[16];
-	int lastTarget;
+	__int32 lastTarget;
 	char gap_58[12];
-	int pid;
+	__int32 pid;
 	char gap_68[16];
-	int scriptID;
+	__int32 scriptID;
 	char gap_7C[4];
-	int script_index;
+	__int32 script_index;
 	char gap_84[7];
 	char field_0;
 };
@@ -76,16 +78,16 @@ struct TComputeAttack
 	char gap_4[4];
 	TGameObj *weapon;
 	char gap_C[4];
-	int damageAttacker;
-	int flagsAttacker;
-	int rounds;
+	__int32 damageAttacker;
+	__int32 flagsAttacker;
+	__int32 rounds;
 	char gap_1C[4];
 	TGameObj *target;
-	int targetTile;
-	int bodyPart;
-	int damageTarget;
-	int flagsTarget;
-	int knockbackValue;
+	__int32 targetTile;
+	__int32 bodyPart;
+	__int32 damageTarget;
+	__int32 flagsTarget;
+	__int32 knockbackValue;
 };
 #pragma pack(pop)
 
@@ -94,117 +96,97 @@ struct TComputeAttack
 #pragma pack(push, 1)
 struct TScript
 {
-	int script_id;
+	__int32 script_id;
 	char gap_4[4];
-	int elevation_and_tile;
-	int spatial_radius;
+	__int32 elevation_and_tile;
+	__int32 spatial_radius;
 	char gap_10[4];
-	int script_index;
-	int program_ptr;
-	int self_obj_id;
+	__int32 script_index;
+	__int32 program_ptr;
+	__int32 self_obj_id;
 	char gap_20[8];
-	int scr_return;
+	__int32 scr_return;
 	char gap_2C[4];
-	int fixed_param;
+	__int32 fixed_param;
 	TGameObj *self_obj;
 	TGameObj *source_obj;
 	TGameObj *target_obj;
-	int script_overrides;
+	__int32 script_overrides;
 	char field_44;
 	char gap_45[15];
-	int procedure_table[28];
+	__int32 procedure_table[28];
 };
 #pragma pack(pop)
 
-enum ScriptTypes
-{
-	SCRIPT_SYSTEM = 0,
-	SCRIPT_SPATIAL = 1,
-	SCRIPT_TIME = 2,
-	SCRIPT_ITEM = 3,
-	SCRIPT_CRITTER = 4,
-};
-
-/*   24 */
-enum ObjectTypes
-{
-	OBJ_TYPE_ITEM = 0,
-	OBJ_TYPE_CRITTER = 1,
-	OBJ_TYPE_SCENERY = 2,
-	OBJ_TYPE_WALL = 3,
-	OBJ_TYPE_TILE = 4,
-	OBJ_TYPE_MISC = 5,
-	OBJ_TYPE_SPATIAL = 6,
-};
 
 /*   25 */
 #pragma pack(push, 1)
 struct TProgram
 {
 	const char* fileName;
-	int *codeStackPtr;
+	__int32 *codeStackPtr;
 	char gap_8[8];
-	int *codePtr;
-	int field_14;
+	__int32 *codePtr;
+	__int32 field_14;
 	char gap_18[4];
-	int *dStackPtr;
-	int *aStackPtr;
-	int *dStackOffs;
-	int *aStackOffs;
+	__int32 *dStackPtr;
+	__int32 *aStackPtr;
+	__int32 *dStackOffs;
+	__int32 *aStackOffs;
 	char gap_2C[4];
-	int *stringRefPtr;
+	__int32 *stringRefPtr;
 	char gap_34[4];
-	int *procTablePtr;
+	__int32 *procTablePtr;
 };
 #pragma pack(pop)
 
 #pragma pack(push, 1)
 struct sMessage
 {
-  int number;
-  int flags;
+  __int32 number;
+  __int32 flags;
   char* audio;
   char* message;
 };
 #pragma pack(pop)
 
 struct sArt {
-	int flags;
+	__int32 flags;
 	char path[16];
 	char* names;
-	int d18;
-	int total;
+	__int32 d18;
+	__int32 total;
 };
 
 struct CritStruct {
 	union {
 		struct {
-			int DamageMultiplier;
-			int EffectFlags;
-			int StatCheck;
-			int StatMod;
-			int FailureEffect;
-			int Message;
-			int FailMessage;
+			__int32 DamageMultiplier;
+			__int32 EffectFlags;
+			__int32 StatCheck;
+			__int32 StatMod;
+			__int32 FailureEffect;
+			__int32 Message;
+			__int32 FailMessage;
 		};
-		int values[7];
+		__int32 values[7];
 	};
 };
 
 #pragma pack(push, 1)
 struct SkillInfo
 {
-  int name;
-  int desc;
-  int attr;
-  int image;
-  int base;
-  int statMulti;
-  int statA;
-  int statB;
-  int skillPointMulti;
-  int Exp;
-  int f;
+  __int32 name;
+  __int32 desc;
+  __int32 attr;
+  __int32 image;
+  __int32 base;
+  __int32 statMulti;
+  __int32 statA;
+  __int32 statB;
+  __int32 skillPointMulti;
+  __int32 Exp;
+  __int32 f;
 };
 #pragma pack(pop)
 
@@ -212,7 +194,63 @@ struct SkillInfo
 struct sPath {
 	char* path;
 	void* pDat;
-	int isDat;
+	__int32 isDat;
 	sPath* next;
 };
 
+struct sProtoBase {
+	__int32 pid;
+	__int32 message_num;
+	__int32 fid;
+};
+
+struct sProtoTile {
+	sProtoBase base;	
+	__int32 flags;
+	__int32 flags_ext;
+	__int32 material;
+	__int32 field_18;
+};
+
+struct sProtoObj {
+	sProtoBase base;
+	__int32 light_distance;
+	__int32 light_intensity;
+	__int32 flags;
+};
+
+struct sProtoItem {
+	sProtoObj obj;	
+	__int32 flags_ext;
+	__int32 sid;
+	ItemType type;
+};
+
+struct sProtoWeapon
+{
+	sProtoItem item;
+	__int32 animation_code;
+	__int32 min_damage;
+	__int32 max_damage;
+	__int32 dt;
+	__int32 max_range1;
+	__int32 max_range2;
+	__int32 proj_pid;
+	__int32 min_st;
+	__int32 mp_cost1;
+	__int32 mp_cost2;
+	__int32 crit_fail_table;
+	__int32 perk;
+	__int32 rounds;
+	__int32 caliber;
+	__int32 ammo_type_pid;
+	__int32 max_ammo;
+	__int32 sound_id;
+	__int32 field_68;
+	__int32 material;
+	__int32 size;
+	__int32 weight;
+	__int32 cost;
+	__int32 inv_fid;
+	__int8 SndID;
+};

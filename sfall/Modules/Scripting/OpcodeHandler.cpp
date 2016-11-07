@@ -136,7 +136,7 @@ void __thiscall OpcodeHandler::handleOpcode(TProgram* program, void(*func)(), in
 
 		// retrieve string argument
 		if (type == DATATYPE_STR) {
-			_args.at(i) = Wrapper::interpretGetString(program, rawValue, rawValueType);
+			_args.at(i) = Wrapper::interpretGetString(program, rawValueType, rawValue);
 		} else {
 			_args.at(i) = ScriptValue(type, rawValue);
 		}
