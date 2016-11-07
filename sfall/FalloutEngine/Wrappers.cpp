@@ -22,35 +22,43 @@
 namespace Wrapper
 {
 
-int __stdcall item_get_type(TGameObj* item) {
+// Returns the name of the critter
+const char* __stdcall critter_name(TGameObj* critter) {
 	__asm {
-		mov eax, item
-		call FuncOffs::item_get_type_
+		mov eax, critter
+		call FuncOffs::critter_name_
 	}
 }
 
-int _stdcall isPartyMember(TGameObj* obj) {
+// Change the name of playable character
+void critter_pc_set_name(const char* newName) {
 	__asm {
-		mov eax, obj
-		call FuncOffs::isPartyMember_
+		mov eax, newName
+		call FuncOffs::critter_pc_set_name_
 	}
 }
 
-int _stdcall partyMemberGetCurLevel(TGameObj* obj) {
+void __stdcall db_free_file_list(const char* * *fileList, DWORD arg2) {
 	__asm {
-		mov eax, obj
-		call FuncOffs::partyMemberGetCurLevel_
+		mov  edx, arg2
+		mov  eax, fileList
+		call FuncOffs::db_free_file_list_
 	}
 }
 
-char* proto_ptr(DWORD pid) {
-	char* proto;
+int __stdcall db_get_file_list(const char* searchMask, const char* * *fileList, DWORD arg3, DWORD arg4) {
 	__asm {
-		mov eax, pid
-		lea edx, proto
-		call FuncOffs::proto_ptr_
+		mov  ecx, arg4
+		mov  ebx, arg3
+		mov  edx, fileList
+		mov  eax, searchMask
+		call FuncOffs::db_get_file_list_
 	}
-	return proto;
+}
+
+// prints message to debug.log file
+void __declspec(naked) debug_printf(const char* fmt, ...) {
+	__asm jmp FuncOffs::debug_printf_
 }
 
 // Displays message in main UI console window
@@ -69,6 +77,12 @@ void executeProcedure(TProgram* sptr, int procNum) {
 	}
 }
 
+// returns the name of current procedure by program pointer
+const char* __stdcall findCurrentProc(TProgram* program) {
+	__asm mov eax, program
+	__asm call FuncOffs::findCurrentProc_
+}
+
 const char* _stdcall getmsg(DWORD fileAddr, int messageId, sMessage* result) {
 	__asm {
 		mov eax, fileAddr
@@ -77,58 +91,17 @@ const char* _stdcall getmsg(DWORD fileAddr, int messageId, sMessage* result) {
 		call FuncOffs::getmsg_
 	}
 }
-
-// Change the name of playable character
-void critter_pc_set_name(const char* newName) {
-	__asm {
-		mov eax, newName
-		call FuncOffs::critter_pc_set_name_
-	}
-}
-
-// Returns the name of the critter
-const char* __stdcall critter_name(TGameObj* critter) {
-	__asm {
-		mov eax, critter
-		call FuncOffs::critter_name_
-	}
-}
-
-void skill_get_tags(int* result, DWORD num) {
-	if (num > 4) {
-		num = 4;
-	}
-	__asm {
-		mov eax, result
-		mov edx, num
-		call FuncOffs::skill_get_tags_
-	}
-}
-
-void skill_set_tags(int* tags, DWORD num) {
-	if (num > 4) {
-		num = 4;
-	}
-	__asm {
-		mov eax, tags
-		mov edx, num
-		call FuncOffs::skill_set_tags_
-	}
-}
-
-// Saves pointer to script object into scriptPtr using scriptID. 
-// Returns 0 on success, -1 on failure.
-int __stdcall scr_ptr(int scriptId, TScript** scriptPtr) {
-	__asm {
-		mov eax, scriptId;
-		mov edx, scriptPtr;
-		call FuncOffs::scr_ptr_;
-	}
-}
-
 // redraws the main game interface windows (useful after changing some data like active hand, etc.)
 void intface_redraw() {
 	__asm call FuncOffs::intface_redraw_
+}
+
+int __stdcall interpret(TProgram* program, int arg2) {
+	__asm {
+		mov edx, arg2
+		mov eax, progPtr
+		call FuncOffs::interpret_
+	}
 }
 
 int __stdcall interpretFindProcedure(TProgram* scriptPtr, const char* procName) {
@@ -196,15 +169,33 @@ void __declspec(naked) interpretError(const char* fmt, ...) {
 	__asm jmp FuncOffs::interpretError_
 }
 
-// prints message to debug.log file
-void __declspec(naked) debug_printf(const char* fmt, ...) {
-	__asm jmp FuncOffs::debug_printf_
+int _stdcall isPartyMember(TGameObj* obj) {
+	__asm {
+		mov eax, obj
+		call FuncOffs::isPartyMember_
+	}
 }
 
-// returns the name of current procedure by program pointer
-const char* __stdcall findCurrentProc(TProgram* program) {
-	__asm mov eax, program
-	__asm call FuncOffs::findCurrentProc_
+int __stdcall item_get_type(TGameObj* item) {
+	__asm {
+		mov eax, item
+		call FuncOffs::item_get_type_
+	}
+}
+
+int __stdcall item_m_dec_charges(TGameObj* item) {
+	__asm {
+		mov eax, item
+		call FuncOffs::item_m_dec_charges_ //Returns -1 if the item has no charges
+	}
+}
+
+TGameObj* __stdcall inven_pid_is_carried_ptr(TGameObj* invenObj, int pid) {
+	__asm {
+		mov edx, pid
+		mov eax, invenObj
+		call FuncOffs::inven_pid_is_carried_ptr_
+	}
 }
 
 // critter worn item (armor)
@@ -225,6 +216,13 @@ TGameObj* __stdcall inven_right_hand(TGameObj* critter) {
 	__asm call FuncOffs::inven_right_hand_
 }
 
+TProgram* __stdcall loadProgram(const char* fileName) {
+	__asm {
+		mov eax, fileName;
+		call FuncOffs::loadProgram_;
+	}
+}
+
 int __stdcall message_search(DWORD* file, sMessage* msg) {
 	__asm {
 		mov edx, msg;
@@ -233,11 +231,61 @@ int __stdcall message_search(DWORD* file, sMessage* msg) {
 	}
 }
 
+int _stdcall partyMemberGetCurLevel(TGameObj* obj) {
+	__asm {
+		mov eax, obj
+		call FuncOffs::partyMemberGetCurLevel_
+	}
+}
+
+char* proto_ptr(DWORD pid) {
+	char* proto;
+	__asm {
+		mov eax, pid
+		lea edx, proto
+		call FuncOffs::proto_ptr_
+	}
+	return proto;
+}
+
 DWORD* __stdcall runProgram(TProgram* progPtr) {
 	__asm {
 		mov eax, progPtr;
 		call FuncOffs::runProgram_;
 	}
 }
+
+// Saves pointer to script object into scriptPtr using scriptID. 
+// Returns 0 on success, -1 on failure.
+int __stdcall scr_ptr(int scriptId, TScript** scriptPtr) {
+	__asm {
+		mov eax, scriptId;
+		mov edx, scriptPtr;
+		call FuncOffs::scr_ptr_;
+	}
+}
+
+void skill_get_tags(int* result, DWORD num) {
+	if (num > 4) {
+		num = 4;
+	}
+	__asm {
+		mov eax, result
+		mov edx, num
+		call FuncOffs::skill_get_tags_
+	}
+}
+
+void skill_set_tags(int* tags, DWORD num) {
+	if (num > 4) {
+		num = 4;
+	}
+	__asm {
+		mov eax, tags
+		mov edx, num
+		call FuncOffs::skill_set_tags_
+	}
+}
+
 
 }

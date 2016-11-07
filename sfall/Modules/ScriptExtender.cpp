@@ -32,9 +32,10 @@
 #include "HookScripts.h"
 #include "LoadGameHook.h"
 #include "..\Logging.h"
-#include "ScriptExtender.h"
 #include "Scripting\Arrays.h"
 #include "Scripting\OpcodeHandler.h"
+
+#include "ScriptExtender.h"
 
 
 void _stdcall HandleMapUpdateForScripts(DWORD procId);
@@ -173,6 +174,7 @@ end:
 		jmp scr_find_sid_from_program;
 	}
 }
+
 static void __declspec(naked) ScrPtrHook() {
 	__asm {
 		cmp eax, -2;
@@ -204,6 +206,7 @@ static void __declspec(naked) MainGameLoopHook() {
 		retn;
 	}
 }
+
 static void __declspec(naked) CombatLoopHook() {
 	__asm {
 		pushad;
@@ -212,6 +215,7 @@ static void __declspec(naked) CombatLoopHook() {
 		jmp  FuncOffs::get_input_
 	}
 }
+
 static void __declspec(naked) AfterCombatAttackHook() {
 	__asm {
 		pushad;
@@ -222,6 +226,7 @@ static void __declspec(naked) AfterCombatAttackHook() {
 		retn;
 	}
 }
+
 static void __declspec(naked) ExecMapScriptsHook() {
 	__asm {
 		sub esp, 32;
@@ -234,6 +239,7 @@ static void __declspec(naked) ExecMapScriptsHook() {
 		retn;
 	}
 }
+
 static DWORD __stdcall GetGlobalExportedVarPtr(const char* name) {
 	std::string str(name);
 	ExportedVarsMap::iterator it = globalExportedVars.find(str);
@@ -244,12 +250,14 @@ static DWORD __stdcall GetGlobalExportedVarPtr(const char* name) {
 	}
 	return 0;
 }
+
 static DWORD __stdcall CreateGlobalExportedVar(DWORD scr, const char* name) {
 	//dlog_f("\nTrying to export variable %s (%d)\r\n", DL_MAIN, name, isGlobalScriptLoading);
 	std::string str(name);
 	globalExportedVars[str] = sExportedVar(); // add new
 	return 1;
 }
+
 /*
 	when fetching/storing into exported variables, first search in our own hash table instead, then (if not found), resume normal search
 
@@ -284,6 +292,7 @@ static void __declspec(naked) Export_FetchOrStore_FindVar_Hook() {
 		retn
 	}
 }
+
 static const DWORD Export_Export_FindVar_back1 = 0x4414CD;
 static const DWORD Export_Export_FindVar_back2 = 0x4414AC;
 static void __declspec(naked) Export_Export_FindVar_Hook() {
@@ -314,6 +323,7 @@ static void _stdcall FreeProgramHook2(TProgram* progPtr) {
 		}
 	}
 }
+
 static void __declspec(naked) FreeProgramHook() {
 	__asm {
 		pushad;
@@ -433,7 +443,9 @@ void ScriptExtenderSetup() {
 	if (arraysBehavior > 0) {
 		arraysBehavior = 1; // only 1 and 0 allowed at this time
 		dlogr("New arrays behavior enabled.", DL_SCRIPT);
-	} else dlogr("Arrays in backward-compatiblity mode.", DL_SCRIPT);
+	} else {
+		dlogr("Arrays in backward-compatiblity mode.", DL_SCRIPT);
+	}
 	
 	HookCall(0x480E7B, MainGameLoopHook); //hook the main game loop
 	HookCall(0x422845, CombatLoopHook); //hook the combat loop
@@ -468,17 +480,9 @@ void ScriptExtenderSetup() {
 }
 
 
-
-
 // loads script from .int file into a sScriptProgram struct, filling script pointer and proc lookup table
-// TODO: use Wrappers
 void LoadScriptProgram(sScriptProgram &prog, const char* fileName) {
-	TProgram* scriptPtr;
-	__asm {
-		mov eax, fileName;
-		call FuncOffs::loadProgram_;
-		mov scriptPtr, eax;
-	}
+	TProgram* scriptPtr = Wrapper::loadProgram(fileName);
 	if (scriptPtr) {
 		const char** procTable = VarPtr::procTableStrs;
 		prog.ptr = scriptPtr;
@@ -492,17 +496,11 @@ void LoadScriptProgram(sScriptProgram &prog, const char* fileName) {
 	}
 }
 
-// TODO: use wrappers
 void InitScriptProgram(sScriptProgram &prog) {
 	TProgram* progPtr = prog.ptr;
 	if (prog.initialized == 0) {
-		__asm {
-			mov eax, progPtr;
-			call FuncOffs::runProgram_;
-			mov edx, -1;
-			mov eax, progPtr;
-			call FuncOffs::interpret_;
-		}
+		Wrapper::runProgram(progPtr);
+		Wrapper::interpret(proPtr, -1);
 		prog.initialized = 1;
 	}
 }
@@ -515,7 +513,7 @@ sScriptProgram* GetGlobalScriptProgram(TProgram* scriptPtr) {
 	for (std::vector<sGlobalScript>::iterator it = globalScripts.begin(); it != globalScripts.end(); it++) {
 		if (it->prog.ptr == scriptPtr) return &it->prog;
 	}
-	return NULL;
+	return nullptr;
 }
 
 bool _stdcall IsGameScript(const char* filename) {
@@ -532,20 +530,13 @@ void LoadGlobalScripts() {
 	dlogr("Loading global scripts", DL_SCRIPT|DL_INIT);
 
 	char* name = "scripts\\gl*.int";
-	DWORD count, *filenames;
-	__asm {
-		xor  ecx, ecx
-		xor  ebx, ebx
-		lea  edx, filenames
-		mov  eax, name
-		call FuncOffs::db_get_file_list_
-		mov  count, eax
-	}
+	const char* *filenames;
+	int count = Wrapper::db_get_file_list(name, &filenames, 0, 0);
 
 	// TODO: refactor script programs
 	sScriptProgram prog;
-	for (DWORD i = 0; i < count; i++) {
-		name = _strlwr((char*)filenames[i]);
+	for (int i = 0; i < count; i++) {
+		name = _strlwr(filenames[i]);
 		name[strlen(name) - 4] = 0;
 		if (!IsGameScript(name)) {
 			dlog(">", DL_SCRIPT);
@@ -561,15 +552,13 @@ void LoadGlobalScripts() {
 				AddProgramToMap(prog);
 				// initialize script (start proc will be executed for the first time) -- this needs to be after script is added to "globalScripts" array
 				InitScriptProgram(prog);
-			} else dlogr(" Error!", DL_SCRIPT);
+			} else {
+				dlogr(" Error!", DL_SCRIPT);
+			}
 			isGlobalScriptLoading = 0;
 		}
 	}
-	__asm {
-		xor  edx, edx
-		lea  eax, filenames
-		call FuncOffs::db_free_file_list_
-	}
+	Wrapper::db_free_file_list(&filenames, 0);
 	dlogr("Finished loading global scripts", DL_SCRIPT|DL_INIT);
 	//ButtonsReload();
 }
@@ -667,39 +656,37 @@ void AfterAttackCleanup() {
 }
 
 static void RunGlobalScripts1() {
-	if (idle>-1) Sleep(idle);
+	if (idle >- 1) Sleep(idle);
 	if (toggleHighlightsKey) {
 		//0x48C294 to toggle
 		if (KeyDown(toggleHighlightsKey)) {
 			if (!highlightingToggled) {
 				if (MotionSensorMode&4) {
-					DWORD scanner;
-					__asm {
-						mov eax, ds:[VARPTR_obj_dude];
-						mov edx, PID_MOTION_SENSOR
-						call FuncOffs::inven_pid_is_carried_ptr_
-						mov scanner, eax;
-					}
-					if (scanner) {
-						if (MotionSensorMode&2) {
-							__asm {
-								mov eax, scanner;
-								call FuncOffs::item_m_dec_charges_ //Returns -1 if the item has no charges
-								inc eax;
-								mov highlightingToggled, eax;
+					TGameObj* scanner = Wrapper::inven_pid_is_carried_ptr(*VarPtr::obj_dude, PID_MOTION_SENSOR);
+					if (scanner != nullptr) {
+						if (MotionSensorMode & 2) {
+							highlightingToggled = Wrapper::item_m_dec_charges(scanner) + 1;
+							if (!highlightingToggled) {
+								Wrapper::display_print(HighlightFail2);
 							}
-							if (!highlightingToggled) Wrapper::display_print(HighlightFail2);
-						} else highlightingToggled=1;
+						} else highlightingToggled = 1;
 					} else {
 						Wrapper::display_print(HighlightFail1);
 					}
-				} else highlightingToggled = 1;
-				if (highlightingToggled) obj_outline_all_items_on();
-				else highlightingToggled = 2;
+				} else {
+					highlightingToggled = 1;
+				}
+				if (highlightingToggled) {
+					obj_outline_all_items_on();
+				} else {
+					highlightingToggled = 2;
+				}
 			}
 		} else if (highlightingToggled) {
-			if (highlightingToggled == 1) obj_outline_all_items_off();
-			highlightingToggled=0;
+			if (highlightingToggled == 1) {
+				obj_outline_all_items_off();  
+			} 
+			highlightingToggled = 0;
 		}
 	}
 	for (DWORD d=0; d<globalScripts.size(); d++) {
@@ -712,20 +699,25 @@ static void RunGlobalScripts1() {
 }
 
 void RunGlobalScripts2() {
-	if (idle>-1) Sleep(idle);
-	for (DWORD d=0;d<globalScripts.size();d++) {
-		if (!globalScripts[d].repeat||globalScripts[d].mode!=1) continue;
-		if (++globalScripts[d].count>=globalScripts[d].repeat) {
+	if (idle >- 1) {
+		Sleep(idle);
+	}
+	for (size_t d = 0; d < globalScripts.size(); d++) {
+		if (!globalScripts[d].repeat || globalScripts[d].mode != 1) continue;
+		if (++globalScripts[d].count >= globalScripts[d].repeat) {
 			RunScript(&globalScripts[d]);
 		}
 	}
 	ResetStateAfterFrame();
 }
+
 void RunGlobalScripts3() {
-	if (idle>-1) Sleep(idle);
-	for (DWORD d=0;d<globalScripts.size();d++) {
-		if (!globalScripts[d].repeat||(globalScripts[d].mode!=2&&globalScripts[d].mode!=3)) continue;
-		if (++globalScripts[d].count>=globalScripts[d].repeat) {
+	if (idle >- 1) {
+		Sleep(idle);
+	}
+	for (size_t d=0; d < globalScripts.size(); d++) {
+		if (!globalScripts[d].repeat || (globalScripts[d].mode != 2 && globalScripts[d].mode != 3)) continue;
+		if (++globalScripts[d].count >= globalScripts[d].repeat) {
 			RunScript(&globalScripts[d]);
 		}
 	}
@@ -756,7 +748,7 @@ void LoadGlobals(HANDLE h) {
 	ReadFile(h, &count, 4, &unused, 0);
 	if (unused!=4) return;
 	sGlobalVar var;
-	for (DWORD i=0;i<count;i++) {
+	for (DWORD i = 0; i<count; i++) {
 		ReadFile(h, &var, sizeof(sGlobalVar), &unused, 0);
 		globalVars.insert(glob_pair(var.id, var.val));
 	}
@@ -764,13 +756,13 @@ void LoadGlobals(HANDLE h) {
 
 void SaveGlobals(HANDLE h) {
 	DWORD count, unused;
-	count=globalVars.size();
+	count = globalVars.size();
 	WriteFile(h, &count, 4, &unused, 0);
 	sGlobalVar var;
-	glob_citr itr=globalVars.begin();
-	while(itr!=globalVars.end()) {
-		var.id=itr->first;
-		var.val=itr->second;
+	glob_citr itr = globalVars.begin();
+	while (itr != globalVars.end()) {
+		var.id = itr->first;
+		var.val = itr->second;
 		WriteFile(h, &var, sizeof(sGlobalVar), &unused, 0);
 		itr++;
 	}
@@ -778,26 +770,32 @@ void SaveGlobals(HANDLE h) {
 
 void ClearGlobals() {
 	globalVars.clear();
-	for (array_itr it = arrays.begin(); it != arrays.end(); ++it)
+	for (array_itr it = arrays.begin(); it != arrays.end(); ++it) {
 		it->second.clear();
+	}
 	arrays.clear();
 	savedArrays.clear();
 }
-int GetNumGlobals() { return globalVars.size(); }
+
+int GetNumGlobals() { 
+	return globalVars.size(); 
+}
+
 void GetGlobals(sGlobalVar* globals) {
-	glob_citr itr=globalVars.begin();
-	int i=0;
-	while(itr!=globalVars.end()) {
-		globals[i].id=itr->first;
-		globals[i++].val=itr->second;
+	glob_citr itr = globalVars.begin();
+	int i = 0;
+	while (itr != globalVars.end()) {
+		globals[i].id = itr->first;
+		globals[i++].val = itr->second;
 		itr++;
 	}
 }
+
 void SetGlobals(sGlobalVar* globals) {
-	glob_itr itr=globalVars.begin();
-	int i=0;
-	while(itr!=globalVars.end()) {
-		itr->second=globals[i++].val;
+	glob_itr itr = globalVars.begin();
+	int i = 0;
+	while(itr != globalVars.end()) {
+		itr->second = globals[i++].val;
 		itr++;
 	}
 }

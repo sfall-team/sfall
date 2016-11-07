@@ -29,11 +29,22 @@
 namespace Wrapper
 {
 
-int _stdcall isPartyMember(TGameObj* obj);
+// Returns the name of the critter
+const char* __stdcall critter_name(TGameObj* critter);
 
-int _stdcall partyMemberGetCurLevel(TGameObj* obj);
+// Change the name of playable character
+void critter_pc_set_name(const char* newName);
 
-char* proto_ptr(DWORD pid);
+// destroys filelist array created by db_get_file_list
+void __stdcall db_free_file_list(const char* * *fileList, DWORD arg2);
+
+// searches files in DB by given path/filename mask and stores result in fileList
+// fileList is a pointer to a variable, that will be assigned with an address of an array of char* strings
+// returns number of elements in *fileList
+int __stdcall db_get_file_list(const char* searchMask, const char* * *fileList, DWORD arg3, DWORD arg4) 
+
+// prints message to debug.log file
+void __declspec() debug_printf(const char* fmt, ...);
 
 // Displays message in main UI console window
 void display_print(const char* msg);
@@ -41,35 +52,17 @@ void display_print(const char* msg);
 // execute script proc by internal proc number (from script's proc table, basically a sequential number of a procedure as defined in code, starting from 1)
 void executeProcedure(TProgram* sptr, int procNum);
 
+int _stdcall isPartyMember(TGameObj* obj);
+
 int __stdcall item_get_type(TGameObj* item);
-
-// Change the name of playable character
-void critter_pc_set_name(const char* newName);
-
-// Returns the name of the critter
-const char* __stdcall critter_name(TGameObj* critter);
 
 // searches for message ID in given message file and places result in @result
 const char* _stdcall getmsg(DWORD fileAddr, int messageId, sMessage* result);
 
-// Saves pointer to script object into scriptPtr using scriptID. 
-// Returns 0 on success, -1 on failure.
-int __stdcall scr_ptr(int scriptId, TScript** scriptPtr);
-
-void skill_get_tags(int* result, DWORD num);
-void skill_set_tags(int* tags, DWORD num);
-
 // redraws the main game interface windows (useful after changing some data like active hand, etc.)
 void intface_redraw();
 
-// critter worn item (armor)
-TGameObj* __stdcall inven_worn(TGameObj* critter);
-
-// item in critter's left hand slot
-TGameObj* __stdcall inven_left_hand(TGameObj* critter);
-
-// item in critter's right hand slot
-TGameObj* __stdcall inven_right_hand(TGameObj* critter);
+int __stdcall interpret(TProgram* program, int arg2);
 
 // finds procedure ID for given script program pointer and procedure name
 int __stdcall interpretFindProcedure(TProgram* scriptPtr, const char* procName);
@@ -94,14 +87,38 @@ DWORD __stdcall interpretAddString(TProgram* scriptPtr, const char* str);
 // USE WITH CAUTION
 void __declspec() interpretError(const char* fmt, ...);
 
-// prints message to debug.log file
-void __declspec() debug_printf(const char* fmt, ...);
+// Returns 0 on success, -1 if the item has no charges
+int __stdcall item_m_dec_charges(TGameObj* item);
+
+TGameObj* __stdcall inven_pid_is_carried_ptr(TGameObj* invenObj, int pid);
+
+// critter worn item (armor)
+TGameObj* __stdcall inven_worn(TGameObj* critter);
+
+// item in critter's left hand slot
+TGameObj* __stdcall inven_left_hand(TGameObj* critter);
+
+// item in critter's right hand slot
+TGameObj* __stdcall inven_right_hand(TGameObj* critter);
 
 // returns the name of current procedure by program pointer
 const char* __stdcall findCurrentProc(TProgram* program);
 
+TProgram* __stdcall loadProgram(const char* fileName);
+
 int __stdcall message_search(DWORD* file, sMessage* msg);
 
+int _stdcall partyMemberGetCurLevel(TGameObj* obj);
+
+char* proto_ptr(DWORD pid);
+
 DWORD* __stdcall runProgram(TProgram* progPtr);
+
+// Saves pointer to script object into scriptPtr using scriptID. 
+// Returns 0 on success, -1 on failure.
+int __stdcall scr_ptr(int scriptId, TScript** scriptPtr);
+
+void skill_get_tags(int* result, DWORD num);
+void skill_set_tags(int* tags, DWORD num);
 
 }
