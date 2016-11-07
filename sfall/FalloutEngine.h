@@ -90,6 +90,7 @@
 #define _i_rhand                    0x59E968
 #define _i_wid                      0x59E964
 #define _i_worn                     0x59E954
+#define _idle_func                  0x51E234
 #define _In_WorldMap                0x672E1C
 #define _info_line                  0x5707D0
 #define _interfaceWindow            0x519024

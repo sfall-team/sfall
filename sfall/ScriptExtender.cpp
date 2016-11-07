@@ -1,19 +1,19 @@
 /*
- *	sfall
- *	Copyright (C) 2008, 2009, 2010, 2011, 2012  The sfall team
+ *    sfall
+ *    Copyright (C) 2008-2016  The sfall team
  *
- *	This program is free software: you can redistribute it and/or modify
- *	it under the terms of the GNU General Public License as published by
- *	the Free Software Foundation, either version 3 of the License, or
- *	(at your option) any later version.
+ *    This program is free software: you can redistribute it and/or modify
+ *    it under the terms of the GNU General Public License as published by
+ *    the Free Software Foundation, either version 3 of the License, or
+ *    (at your option) any later version.
  *
- *	This program is distributed in the hope that it will be useful,
- *	but WITHOUT ANY WARRANTY; without even the implied warranty of
- *	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *	GNU General Public License for more details.
+ *    This program is distributed in the hope that it will be useful,
+ *    but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *    GNU General Public License for more details.
  *
- *	You should have received a copy of the GNU General Public License
- *	along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *    You should have received a copy of the GNU General Public License
+ *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 #include "main.h"
@@ -391,7 +391,7 @@ static DWORD MotionSensorMode;
 static BYTE toggleHighlightsKey;
 static DWORD HighlightContainers;
 static DWORD Color_Containers;
-static int idle;
+static signed char idle;
 static char HighlightFail1[128];
 static char HighlightFail2[128];
 
@@ -1194,8 +1194,13 @@ void ScriptExtenderSetup() {
 	GetPrivateProfileStringA("Sfall", "HighlightFail1", "You aren't carrying a motion sensor.", HighlightFail1, 128, translationIni);
 	GetPrivateProfileStringA("Sfall", "HighlightFail2", "Your motion sensor is out of charge.", HighlightFail2, 128, translationIni);
 
-	idle=GetPrivateProfileIntA("Misc", "ProcessorIdle", -1, ini);
-	modifiedIni=GetPrivateProfileIntA("Main", "ModifiedIni", 0, ini);
+	idle = GetPrivateProfileIntA("Misc", "ProcessorIdle", -1, ini);
+	if (idle > -1) {
+		SafeWrite32(_idle_func, (DWORD)Sleep);
+		SafeWrite8(0x4C9F12, 0x6A); // push
+		SafeWrite8(0x4C9F13, idle);
+	}
+	modifiedIni = GetPrivateProfileIntA("Main", "ModifiedIni", 0, ini);
 
 	dlogr("Adding additional opcodes", DL_SCRIPT);
 	if(AllowUnsafeScripting) dlogr("  Unsafe opcodes enabled", DL_SCRIPT);
@@ -1735,7 +1740,7 @@ void AfterAttackCleanup() {
 }
 
 static void RunGlobalScripts1() {
-	if (idle>-1) Sleep(idle);
+	if (idle > -1) Sleep(idle);
 	if (toggleHighlightsKey) {
 		//0x48C294 to toggle
 		if (KeyDown(toggleHighlightsKey)) {
@@ -1757,7 +1762,7 @@ static void RunGlobalScripts1() {
 								mov highlightingToggled, eax;
 							}
 							if (!highlightingToggled) DisplayConsoleMessage(HighlightFail2);
-						} else highlightingToggled=1;
+						} else highlightingToggled = 1;
 					} else {
 						DisplayConsoleMessage(HighlightFail1);
 					}
@@ -1767,10 +1772,10 @@ static void RunGlobalScripts1() {
 			}
 		} else if(highlightingToggled) {
 			if (highlightingToggled == 1) obj_outline_all_items_off();
-			highlightingToggled=0;
+			highlightingToggled = 0;
 		}
 	}
-	for (DWORD d=0; d<globalScripts.size(); d++) {
+	for (DWORD d = 0; d < globalScripts.size(); d++) {
 		if (!globalScripts[d].repeat || (globalScripts[d].mode != 0 && globalScripts[d].mode != 3)) continue;
 		if (++globalScripts[d].count >= globalScripts[d].repeat) {
 			RunScript(&globalScripts[d]);
@@ -1780,20 +1785,20 @@ static void RunGlobalScripts1() {
 }
 
 void RunGlobalScripts2() {
-	if(idle>-1) Sleep(idle);
-	for(DWORD d=0;d<globalScripts.size();d++) {
-		if(!globalScripts[d].repeat||globalScripts[d].mode!=1) continue;
-		if(++globalScripts[d].count>=globalScripts[d].repeat) {
+	if (idle > -1) Sleep(idle);
+	for (DWORD d = 0; d < globalScripts.size(); d++) {
+		if (!globalScripts[d].repeat || globalScripts[d].mode != 1) continue;
+		if (++globalScripts[d].count >= globalScripts[d].repeat) {
 			RunScript(&globalScripts[d]);
 		}
 	}
 	ResetStateAfterFrame();
 }
 void RunGlobalScripts3() {
-	if(idle>-1) Sleep(idle);
-	for(DWORD d=0;d<globalScripts.size();d++) {
-		if(!globalScripts[d].repeat||(globalScripts[d].mode!=2&&globalScripts[d].mode!=3)) continue;
-		if(++globalScripts[d].count>=globalScripts[d].repeat) {
+	if (idle > -1) Sleep(idle);
+	for (DWORD d = 0; d < globalScripts.size(); d++) {
+		if (!globalScripts[d].repeat || (globalScripts[d].mode != 2 && globalScripts[d].mode != 3)) continue;
+		if (++globalScripts[d].count >= globalScripts[d].repeat) {
 			RunScript(&globalScripts[d]);
 		}
 	}
