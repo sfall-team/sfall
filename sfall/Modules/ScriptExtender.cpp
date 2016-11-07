@@ -497,10 +497,9 @@ void LoadScriptProgram(sScriptProgram &prog, const char* fileName) {
 }
 
 void InitScriptProgram(sScriptProgram &prog) {
-	TProgram* progPtr = prog.ptr;
 	if (prog.initialized == 0) {
-		Wrapper::runProgram(progPtr);
-		Wrapper::interpret(proPtr, -1);
+		Wrapper::runProgram(prog.ptr);
+		Wrapper::interpret(prog.ptr, -1);
 		prog.initialized = 1;
 	}
 }
@@ -530,7 +529,7 @@ void LoadGlobalScripts() {
 	dlogr("Loading global scripts", DL_SCRIPT|DL_INIT);
 
 	char* name = "scripts\\gl*.int";
-	const char* *filenames;
+	char* *filenames;
 	int count = Wrapper::db_get_file_list(name, &filenames, 0, 0);
 
 	// TODO: refactor script programs

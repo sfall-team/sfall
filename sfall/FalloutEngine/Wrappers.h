@@ -36,12 +36,12 @@ const char* __stdcall critter_name(TGameObj* critter);
 void critter_pc_set_name(const char* newName);
 
 // destroys filelist array created by db_get_file_list
-void __stdcall db_free_file_list(const char* * *fileList, DWORD arg2);
+void __stdcall db_free_file_list(char* * *fileList, DWORD arg2);
 
 // searches files in DB by given path/filename mask and stores result in fileList
 // fileList is a pointer to a variable, that will be assigned with an address of an array of char* strings
 // returns number of elements in *fileList
-int __stdcall db_get_file_list(const char* searchMask, const char* * *fileList, DWORD arg3, DWORD arg4) 
+int __stdcall db_get_file_list(const char* searchMask, char* * *fileList, DWORD arg3, DWORD arg4);
 
 // prints message to debug.log file
 void __declspec() debug_printf(const char* fmt, ...);

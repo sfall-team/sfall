@@ -38,7 +38,7 @@ void critter_pc_set_name(const char* newName) {
 	}
 }
 
-void __stdcall db_free_file_list(const char* * *fileList, DWORD arg2) {
+void __stdcall db_free_file_list(char* * *fileList, DWORD arg2) {
 	__asm {
 		mov  edx, arg2
 		mov  eax, fileList
@@ -46,7 +46,7 @@ void __stdcall db_free_file_list(const char* * *fileList, DWORD arg2) {
 	}
 }
 
-int __stdcall db_get_file_list(const char* searchMask, const char* * *fileList, DWORD arg3, DWORD arg4) {
+int __stdcall db_get_file_list(const char* searchMask, char* * *fileList, DWORD arg3, DWORD arg4) {
 	__asm {
 		mov  ecx, arg4
 		mov  ebx, arg3
@@ -99,7 +99,7 @@ void intface_redraw() {
 int __stdcall interpret(TProgram* program, int arg2) {
 	__asm {
 		mov edx, arg2
-		mov eax, progPtr
+		mov eax, program
 		call FuncOffs::interpret_
 	}
 }
