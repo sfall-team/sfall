@@ -6,7 +6,7 @@ This folder contains documentation about sfall scripting extensions.
         dik.h - DX scancodes constants for use with key_pressed function and HOOK_KEYPRESS 
     
     sfall function notes.txt - incomplete reference for new opcodes
-    sfall function list.txt - list of all sfall opcodes (w/o descriptions)
+    sfall opcode list.txt - list of all sfall opcodes (w/o descriptions)
     hookscripts.txt - detailed manual for using hook scripts to modify engine behavior
     arrays.txt - manual for sfall arrays
     
