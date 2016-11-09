@@ -23,9 +23,9 @@
 
 #include "Utils.h"
 
-static sMessage message_buf;
+static MessageNode message_buf;
 
-const char* _stdcall GetMessageStr(DWORD fileAddr, int messageId) {
+const char* _stdcall GetMessageStr(const MessageList* fileAddr, int messageId) {
 	return Wrapper::getmsg(fileAddr, &message_buf, messageId);
 }
 
@@ -52,13 +52,6 @@ sProtoBase* GetProto(int pid) {
 		return protoPtr;
 	}
 	return nullptr;
-}
-
-const char* MsgSearch(int msgno, DWORD* file) {
-	if(!file) return 0;
-	sMessage msg = { msgno, 0, 0, 0 };
-	Wrapper::message_search(file, &msg);
-	return msg.message;
 }
 
 void SkillGetTags(int* result, long num) {

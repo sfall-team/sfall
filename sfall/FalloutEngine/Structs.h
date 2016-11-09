@@ -140,15 +140,33 @@ struct TProgram
 };
 #pragma pack(pop)
 
-#pragma pack(push, 1)
-struct sMessage
+
+struct MessageNode
 {
-  __int32 number;
-  __int32 flags;
-  char* audio;
-  char* message;
+	__int32 number;
+	__int32 flags;
+	char* audio;
+	char* message;
+
+	MessageNode() {
+		number = 0;
+		flags = 0;
+		audio = nullptr;
+		message = nullptr;
+	}
 };
-#pragma pack(pop)
+
+//for holding msg array
+typedef struct MessageList {
+	__int32 numMsgs;
+	MessageNode *nodes;
+
+	MessageList() {
+		nodes = nullptr;
+		numMsgs = 0;
+	}
+} MessageList;
+
 
 struct sArt {
 	__int32 flags;

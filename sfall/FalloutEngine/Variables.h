@@ -156,6 +156,7 @@
 #define VARPTR_pipmesg                    0x664338
 #define VARPTR_preload_list_index         0x519640
 #define VARPTR_procTableStrs              0x51C758  // table of procId (from define.h) => procName map
+#define VARPTR_proto_msg_files            0x6647AC
 #define VARPTR_proto_main_msg_file        0x6647FC
 #define VARPTR_ptable                     0x59E934
 #define VARPTR_pud                        0x59E960
@@ -291,7 +292,7 @@ VARDECL(TGameObj*, inven_dude)
 VARDECL(DWORD, inven_pid)
 VARDECL(DWORD, inven_scroll_dn_bid)
 VARDECL(DWORD, inven_scroll_up_bid)
-VARDECL(DWORD, inventry_message_file)
+VARDECL(MessageList, inventry_message_file)
 VARDECL(DWORD, itemButtonItems)
 VARDECL(DWORD, itemCurrentItem) // 0 - left, 1 - right
 VARDECL(DWORD, kb_lock_flags)
@@ -349,7 +350,8 @@ VARDECL(DWORD, pipboy_message_file)
 VARDECL(DWORD, pipmesg)
 VARDECL(DWORD, preload_list_index)
 VARDECL(const char*, procTableStrs)  // table of procId (from define.h) => procName map
-VARDECL(DWORD, proto_main_msg_file)
+VARDECL(MessageList, proto_main_msg_file)
+VARDECL(MessageList, proto_msg_files) // array of 6 elements
 VARDECL(DWORD, ptable)
 VARDECL(DWORD, pud)
 VARDECL(DWORD, queue)

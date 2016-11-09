@@ -17,84 +17,45 @@
  */
 
 #include <string>
-#include "..\main.h"
+#include <memory>
 
+#include "..\main.h"
 #include "..\FalloutEngine\Fallout2.h"
+
 #include "Message.h"
 
-std::tr1::unordered_map<int, MSGList*> gExtraGameMsgLists;
 
-int LoadMsgList(MSGList *MsgList, char *MsgFilePath) {
-	int retVal;
-	__asm {
-		mov edx, MsgFilePath
-		mov eax, MsgList
-		call FuncOffs::message_load_
-		mov retVal, eax
+ExtraGameMessageListsMap gExtraGameMsgLists;
+
+MessageNode *GetMsgNode(MessageList *msgList, int msgRef) {
+	if (msgList != nullptr && msgList->numMsgs > 0) {
+		MessageNode *msgNode = msgList->nodes;
+		long last = msgList->numMsgs - 1;
+		long first = 0;
+		long mid;
+
+		//Use Binary Search to find msg
+		while (first <= last) {
+			mid = (first + last) / 2;
+			if (msgRef > msgNode[mid].number)
+				first = mid + 1;
+			else if (msgRef < msgNode[mid].number)
+				last = mid - 1;
+			else
+				return &msgNode[mid];
+		}
 	}
-	return retVal;
+	return nullptr;
 }
 
-int DestroyMsgList(MSGList *MsgList) {
-	int retVal;
-	__asm {
-		mov eax, MsgList
-		call FuncOffs::message_exit_
-		mov retVal, eax
-	}
-	return retVal;
-}
-
-/*
-bool GetMsg(MSGList *MsgList, MSGNode *MsgNode, DWORD msgRef) {
-	bool retVal=FALSE;
-	MsgNode->ref=msgRef;
-
-	__asm {
-		mov edx, MsgNode
-		mov eax, MsgList
-		call FuncOffs::message_search_
-		cmp eax, 1
-		jne EndFunc
-		mov retVal, 1
-EndFunc:
-	}
-	return retVal;
-}
-*/
-
-MSGNode *GetMsgNode(MSGList *MsgList, DWORD msgRef) {
-
-	if (MsgList == NULL) return NULL;
-	if (MsgList->numMsgs <= 0) return NULL;
-
-	MSGNode *MsgNode = (MSGNode*)MsgList->MsgNodes;
-
-	long last = MsgList->numMsgs - 1;
-	long first = 0;
-	long mid;
-
-	//Use Binary Search to find msg
-	while (first <= last) {
-		mid = (first + last) / 2;
-		if (msgRef > MsgNode[mid].ref)
-			first = mid + 1;
-		else if (msgRef < MsgNode[mid].ref)
-			last = mid - 1;
-		else
-			return &MsgNode[mid];
-	}
-
-	return NULL;
-}
-
-char* GetMsg(MSGList *MsgList, DWORD msgRef, int msgNum) {
-	MSGNode *MsgNode = GetMsgNode(MsgList, msgRef);
-	if (MsgNode) {
-		if (msgNum == 2)
-			return MsgNode->msg2;
-		else if (msgNum == 1)
-			return MsgNode->msg1;
+char* GetMsg(MessageList *msgList, int msgRef, int msgNum) {
+	MessageNode *msgNode = GetMsgNode(msgList, msgRef);
+	if (msgNode) {
+		if (msgNum == 2) {
+			return msgNode->message;
+		} else if (msgNum == 1) {
+			return msgNode->audio;
+		}
 	}
 	return NULL;
 }
@@ -106,11 +67,13 @@ void ReadExtraGameMsgFiles() {
 	names.resize(256);
 
 	while ((read = GetPrivateProfileStringA("Misc", "ExtraGameMsgFileList", "",
-		(LPSTR)names.data(), names.size(), ".\\ddraw.ini")) == names.size() - 1)
+		(LPSTR)names.data(), names.size(), ".\\ddraw.ini")) == names.size() - 1) {
 		names.resize(names.size() + 256);
+	}
 
-	if (names.empty())
+	if (names.empty()) {
 		return;
+	}
 
 	names.resize(names.find_first_of('\0'));
 	names.append(",");
@@ -124,12 +87,12 @@ void ReadExtraGameMsgFiles() {
 
 		if (length > 0) {
 			std::string path = "game\\" + names.substr(begin, length) + ".msg";
-			MSGList* list = new MSGList;
-
-			if (LoadMsgList(list, (char*)path.data()) == 1)
+			MessageList* list = new MessageList();
+			if (Wrapper::message_load(list, (char*)path.data()) == 1) {
 				gExtraGameMsgLists.insert(std::make_pair(0x2000 + gExtraGameMsgLists.size(), list));
-			else
+			} else {
 				delete list;
+			}
 		}
 
 		begin = end + 1;
@@ -137,11 +100,10 @@ void ReadExtraGameMsgFiles() {
 }
 
 void ClearReadExtraGameMsgFiles() {
-	std::tr1::unordered_map<int, MSGList*>::iterator it;
+	ExtraGameMessageListsMap::iterator it;
 
 	for (it = gExtraGameMsgLists.begin(); it != gExtraGameMsgLists.end(); ++it) {
-		DestroyMsgList(it->second);
-		delete it->second;
+		Wrapper::message_exit(it->second.get());
 	}
 
 	gExtraGameMsgLists.clear();

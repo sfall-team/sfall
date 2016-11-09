@@ -92,7 +92,7 @@ const char* __stdcall findCurrentProc(TProgram* program) {
 	_WRAP_WATCOM_CALL1(findCurrentProc_, program)
 }
 
-const char* _stdcall getmsg(DWORD fileAddr, sMessage* result, int messageId) {
+const char* _stdcall getmsg(const MessageList* fileAddr, MessageNode* result, int messageId) {
 	_WRAP_WATCOM_CALL3(getmsg_, fileAddr, result, messageId)
 }
 
@@ -178,8 +178,16 @@ TProgram* __stdcall loadProgram(const char* fileName) {
 	_WRAP_WATCOM_CALL1(loadProgram_, fileName)
 }
 
-int __stdcall message_search(DWORD* file, sMessage* msg) {
+int __stdcall message_search(MessageList* file, MessageNode* msg) {
 	_WRAP_WATCOM_CALL2(message_search_, file, msg)
+}
+
+int __stdcall message_load(MessageList *msgList, char *msgFilePath) {
+	_WRAP_WATCOM_CALL2(message_load_, msgList, msgFilePath)
+}
+
+int __stdcall message_exit(MessageList *msgList) {
+	_WRAP_WATCOM_CALL1(message_exit_, msgList)
 }
 
 TGameObj* __stdcall obj_find_first_at_tile(int elevation, int tileNum) {
@@ -195,7 +203,7 @@ int _stdcall partyMemberGetCurLevel(TGameObj* obj) {
 }
 
 int _stdcall perk_level(TGameObj* critter, int perkId) {
-	_WRAP_WATCOM_CALL2(perk_level, critter, perkId)
+	_WRAP_WATCOM_CALL2(perk_level_, critter, perkId)
 }
 
 int proto_ptr(int pid, sProtoBase* *ptrPtr) {

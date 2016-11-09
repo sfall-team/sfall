@@ -246,7 +246,7 @@ static void _declspec(naked) ItemDropHook() {
 */
 
 static void __stdcall DisplayCantDoThat() {
-	Wrapper::display_print(GetMessageStr(MSG_FILE_PROTO, 675)); // I Can't do that
+	Wrapper::display_print(GetMessageStr(VarPtr::proto_main_msg_file, 675)); // I Can't do that
 }
 
 // 1 skip handler, -1 don't skip

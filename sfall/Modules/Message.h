@@ -21,38 +21,10 @@
 #include <unordered_map>
 #include "..\main.h"
 
-//for holding a message
-typedef struct MSGNode {
-	DWORD ref;
-	DWORD a;
-	char *msg1; //unused
-	char *msg2;
+typedef std::tr1::unordered_map<int, std::unique_ptr<MessageList>> ExtraGameMessageListsMap;
+extern ExtraGameMessageListsMap gExtraGameMsgLists;
 
-	MSGNode() {
-		ref = 0;
-		a = 0;
-		msg1 = NULL;
-		msg2 = NULL;
-	}
-} MSGNode;
-
-//for holding msg array
-typedef struct MSGList {
-	long numMsgs;
-	void *MsgNodes;
-
-	MSGList() {
-		MsgNodes = NULL;
-		numMsgs = 0;
-	}
-} MSGList;
-
-extern std::tr1::unordered_map<int, MSGList*> gExtraGameMsgLists;
-
-int LoadMsgList(MSGList *MsgList, char *MsgFilePath);
-int DestroyMsgList(MSGList *MsgList);
-//bool GetMsg(MSGList *MsgList, MSGNode *MsgNode, DWORD msgRef);
-MSGNode *GetMsgNode(MSGList *MsgList, DWORD msgRef);
-char* GetMsg(MSGList *MsgList, DWORD msgRef, int msgNum);
+MessageNode *GetMsgNode(MessageList *msgList, int msgRef);
+char* GetMsg(MessageList *MsgList, int msgRef, int msgNum);
 void ReadExtraGameMsgFiles();
 void ClearReadExtraGameMsgFiles();

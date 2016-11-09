@@ -63,7 +63,7 @@ int _stdcall isPartyMember(TGameObj* obj);
 int __stdcall item_get_type(TGameObj* item);
 
 // searches for message ID in given message file and places result in @result
-const char* _stdcall getmsg(DWORD fileAddr, sMessage* result, int messageId);
+const char* _stdcall getmsg(const MessageList* fileAddr, MessageNode* result, int messageId);
 
 // redraws the main game interface windows (useful after changing some data like active hand, etc.)
 void intface_redraw();
@@ -112,7 +112,13 @@ const char* __stdcall findCurrentProc(TProgram* program);
 
 TProgram* __stdcall loadProgram(const char* fileName);
 
-int __stdcall message_search(DWORD* file, sMessage* msg);
+int __stdcall message_search(MessageList* file, MessageNode* msg);
+
+// loads MSG file into given MessageList
+int __stdcall message_load(MessageList *msgList, char *msgFilePath);
+
+// destroys message list
+int __stdcall message_exit(MessageList *msgList);
 
 TGameObj* __stdcall obj_find_first_at_tile(int elevation, int tileNum);
 

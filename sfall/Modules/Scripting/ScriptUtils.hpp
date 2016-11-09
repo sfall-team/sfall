@@ -836,53 +836,53 @@ static void __declspec(naked) funcRound() {
 */
 
 // TODO: move to FalloutEngine module
-static const DWORD game_msg_files[] =
-	{ 0x56D368     // COMBAT
-	, 0x56D510     // AI
-	, 0x56D754     // SCRNAME
-	, 0x58E940     // MISC
-	, 0x58EA98     // CUSTOM
-	, 0x59E814     // INVENTRY
-	, 0x59E980     // ITEM
-	, 0x613D28     // LSGAME
-	, 0x631D48     // MAP
-	, 0x6637E8     // OPTIONS
-	, 0x6642D4     // PERK
-	, 0x664348     // PIPBOY
-	, 0x664410     // QUESTS
-	, 0x6647FC     // PROTO
-	, 0x667724     // SCRIPT
-	, 0x668080     // SKILL
-	, 0x6680F8     // SKILLDEX
-	, 0x66817C     // STAT
-	, 0x66BE38     // TRAIT
-	, 0x672FB0 };  // WORLDMAP
-
-// TODO: move to FalloutEngine
-static const DWORD* proto_msg_files = (DWORD*)0x006647AC;
+#define _castmsg(adr) reinterpret_cast<MessageList*>(adr)
+static const MessageList* gameMsgFiles[] =
+	{ _castmsg(0x56D368)     // COMBAT
+	, _castmsg(0x56D510)     // AI
+	, _castmsg(0x56D754)     // SCRNAME
+	, _castmsg(0x58E940)     // MISC
+	, _castmsg(0x58EA98)     // CUSTOM
+	, _castmsg(0x59E814)     // INVENTRY
+	, _castmsg(0x59E980)     // ITEM
+	, _castmsg(0x613D28)     // LSGAME
+	, _castmsg(0x631D48)     // MAP
+	, _castmsg(0x6637E8)     // OPTIONS
+	, _castmsg(0x6642D4)     // PERK
+	, _castmsg(0x664348)     // PIPBOY
+	, _castmsg(0x664410)     // QUESTS
+	, _castmsg(0x6647FC)     // PROTO
+	, _castmsg(0x667724)     // SCRIPT
+	, _castmsg(0x668080)     // SKILL
+	, _castmsg(0x6680F8)     // SKILLDEX
+	, _castmsg(0x66817C)     // STAT
+	, _castmsg(0x66BE38)     // TRAIT
+	, _castmsg(0x672FB0) };  // WORLDMAP
+#undef _castmsg
 
 static void _stdcall op_message_str_game2() {
-	const char* msg = 0;
+	const char* msg = nullptr;
 	const ScriptValue &fileIdArg = opHandler.arg(0),
 					  &msgIdArg = opHandler.arg(1);
+
 	if (fileIdArg.isInt() && msgIdArg.isInt()) {
 		int fileId = fileIdArg.asInt();
 		int msgId = msgIdArg.asInt();
 		if (fileId < 20) { // main msg files
-			msg = GetMessageStr(game_msg_files[fileId], msgId);
+			msg = GetMessageStr(gameMsgFiles[fileId], msgId);
 		}
 		else if (fileId >= 0x1000 && fileId <= 0x1005) { // proto msg files
-			msg = GetMessageStr((DWORD)&proto_msg_files[2*(fileId - 0x1000)], msgId);
+			msg = GetMessageStr(&VarPtr::proto_msg_files[fileId - 0x1000], msgId);
 		}
 		else if (fileId >= 0x2000) { // Extra game message files.
-			std::tr1::unordered_map<int, MSGList*>::iterator it = gExtraGameMsgLists.find(fileId);
+			ExtraGameMessageListsMap::iterator it = gExtraGameMsgLists.find(fileId);
 
 			if (it != gExtraGameMsgLists.end()) {
-				msg = GetMsg(it->second, msgId, 2);
+				msg = GetMsg(it->second.get(), msgId, 2);
 			}
 		}
 	}
-	if (msg == 0) {
+	if (msg == nullptr) {
 		msg = "Error";
 	}
 	opHandler.setReturn(msg);

@@ -1434,7 +1434,7 @@ void DrawPCConsole() {
 //------------------------------------------------------------------------------------------------------------------------------------------------
 void DrawCharNote(bool Style, int WinRef, DWORD xPosWin, DWORD yPosWin, BYTE *BGSurface, DWORD xPosBG, DWORD yPosBG, DWORD widthBG, DWORD heightBG) {
 
-	MSGList MsgList;
+	MessageList MsgList;
 	char *TitleMsg = NULL;
 	char *InfoMsg = NULL;
 
@@ -1443,7 +1443,7 @@ void DrawCharNote(bool Style, int WinRef, DWORD xPosWin, DWORD yPosWin, BYTE *BG
 	if (!Style) MsgFileName = "game\\AppRace.msg";
 	else MsgFileName = "game\\AppStyle.msg";
 
-	if (LoadMsgList(&MsgList, MsgFileName) == 1) {
+	if (Wrapper::message_load(&MsgList, MsgFileName) == 1) {
 		TitleMsg = GetMsg(&MsgList, 100, 2);
 		InfoMsg = GetMsg(&MsgList, 101, 2);
 	}
@@ -1520,7 +1520,7 @@ void DrawCharNote(bool Style, int WinRef, DWORD xPosWin, DWORD yPosWin, BYTE *BG
 	delete[]PadSurface;
 	WinInfo = NULL;
 	SetFont(oldFont); //restore previous font
-	DestroyMsgList(&MsgList);
+	Wrapper::message_exit(&MsgList);
 	//RedrawWin(*VarPtr::edit_win);
 }
 

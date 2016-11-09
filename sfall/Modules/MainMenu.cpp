@@ -24,7 +24,7 @@
 static DWORD MainMenuYOffset;
 static DWORD MainMenuTextOffset;
 
-static const DWORD MainMenuButtonYHookRet=0x48184A;
+static const DWORD MainMenuButtonYHookRet = 0x48184A;
 static void __declspec(naked) MainMenuButtonYHook() {
 	__asm {
 		xor edi, edi;
@@ -41,7 +41,7 @@ static void __declspec(naked) MainMenuTextYHook() {
 	}
 }
 
-static const DWORD MainMenuTextRet=0x4817B0;
+static const DWORD MainMenuTextRet = 0x4817B0;
 static const char* VerString1 = "SFALL " VERSION_STRING;
 static DWORD OverrideColour;
 static void __declspec(naked) FontColour() {
@@ -56,6 +56,7 @@ skip:
 		retn;
 	}
 }
+
 static void __declspec(naked) MainMenuTextHook() {
 	__asm {
 		mov edi, [esp];
