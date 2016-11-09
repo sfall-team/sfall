@@ -135,6 +135,28 @@ struct TProgram {
 };
 #pragma pack(pop)
 
+struct PerkInfo {
+	char* Name;
+	char* Desc;
+	__int32 Image;
+	__int32 Ranks;
+	__int32 Level;
+	__int32 Stat;
+	__int32 StatMag;
+	__int32 Skill1;
+	__int32 Skill1Mag;
+	__int32 Type;
+	__int32 Skill2;
+	__int32 Skill2Mag;
+	__int32 Str;
+	__int32 Per;
+	__int32 End;
+	__int32 Chr;
+	__int32 Int;
+	__int32 Agl;
+	__int32 Lck;
+};
+
 struct DBFile {
 	__int32 fileType;
 	void* handle;
@@ -205,6 +227,13 @@ struct SkillInfo
   __int32 f;
 };
 #pragma pack(pop)
+
+
+struct TraitInfo {
+	char* Name;
+	char* Desc;
+	__int32 Image;
+};
 
 //fallout2 path node structure
 struct sPath {

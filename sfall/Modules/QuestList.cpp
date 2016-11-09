@@ -98,6 +98,7 @@ smpfhj:
 		retn;
 	}
 }
+
 static void __declspec(naked) newhookresetvalue() {
 	__asm {
 		push eax;

@@ -50,7 +50,7 @@ static DWORD real_unspent_skill_points;
 static DWORD real_sneak_working;
 //static DWORD real_sneak_queue_time;
 static DWORD real_hand;
-static DWORD real_itemButtonItems[6*2];
+static DWORD real_itemButtonItems[6 * 2];
 static DWORD real_perkLevelDataList[PERK_count];
 //static DWORD real_drug_gvar[6];
 //static DWORD real_jet_gvar;
@@ -346,8 +346,9 @@ end:
 
 void PartyControlInit() {
 	Mode = GetPrivateProfileIntA("Misc", "ControlCombat", 0, ini);
-	if (Mode > 2) 
+	if (Mode > 2) {
 		Mode = 0;
+	}
 	if (Mode > 0) {
 		char pidbuf[512];
 		pidbuf[511] = 0;
@@ -363,8 +364,9 @@ void PartyControlInit() {
 					Chars.push_back((WORD)strtoul(ptr, 0, 0));
 				ptr = comma + 1;
 			}
-			if (strlen(ptr) > 0)
+			if (strlen(ptr) > 0) {
 				Chars.push_back((WORD)strtoul(ptr, 0, 0));
+			}
 		}
 		dlog_f(" Mode %d, Chars read: %d.", DL_INIT, Mode, Chars.size());
 
@@ -377,8 +379,9 @@ void PartyControlInit() {
 		HookCall(0x454218, &stat_pc_add_experience_hook); // call inside op_give_exp_points_hook
 		HookCall(0x4124F1, &pc_flag_toggle_hook);
 		HookCall(0x41279A, &pc_flag_toggle_hook);
-	} else
+	} else {
 		dlog(" Disabled.", DL_INIT);
+	}
 }
 
 void __stdcall PartyControlReset() {
