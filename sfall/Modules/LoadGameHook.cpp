@@ -99,7 +99,7 @@ static void _stdcall SaveGame2() {
 	} else {
 		dlogr("ERROR creating sfallgv!", DL_MAIN);
 		Wrapper::display_print(SaveSfallDataFailMsg);
-		PlaySfx("IISXXXX1");
+		Wrapper::gsound_play_sfx_file("IISXXXX1");
 	}
 	GetSavePath(buf, "fs");
 	h = CreateFileA(buf, GENERIC_WRITE, 0, 0, CREATE_ALWAYS, 0, 0);

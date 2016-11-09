@@ -99,6 +99,10 @@ int __stdcall db_freadByte(DBFile* file, __int8* _out) {
 	_WRAP_WATCOM_CALL2(db_freadByte_, file, _out)
 }
 
+int __stdcall db_freadByteCount(DBFile* file, void* cptr, int count) {
+	_WRAP_WATCOM_CALL3(db_freadByteCount_, file, cptr, count)
+}
+
 int __stdcall db_freadShort(DBFile* file, __int16* _out) {
 	_WRAP_WATCOM_CALL2(db_freadShort_, file, _out)
 }
@@ -109,6 +113,10 @@ int __stdcall db_freadInt(DBFile* file, __int32* _out) {
 
 void __stdcall db_free_file_list(char* * *fileList, DWORD arg2) {
 	_WRAP_WATCOM_CALL2(db_free_file_list_, fileList, arg2)
+}
+
+int __stdcall db_fwriteByteCount(DBFile* file, void* cptr, int count) {
+	_WRAP_WATCOM_CALL3(db_fwriteByteCount_, file, cptr, count)
 }
 
 int __stdcall db_get_file_list(const char* searchMask, char* * *fileList, DWORD arg3, DWORD arg4) {
@@ -140,6 +148,10 @@ const char* __stdcall findCurrentProc(TProgram* program) {
 
 const char* _stdcall getmsg(const MessageList* fileAddr, MessageNode* result, int messageId) {
 	_WRAP_WATCOM_CALL3(getmsg_, fileAddr, result, messageId)
+}
+
+void __stdcall gsound_play_sfx_file(const char* name) {
+	_WRAP_WATCOM_CALL1(gsound_play_sfx_file_, name)
 }
 
 // redraws the main game interface windows (useful after changing some data like active hand, etc.)
@@ -224,6 +236,10 @@ TProgram* __stdcall loadProgram(const char* fileName) {
 	_WRAP_WATCOM_CALL1(loadProgram_, fileName)
 }
 
+void* __stdcall mem_realloc(void* lpmem, DWORD msize) {
+	_WRAP_WATCOM_CALL2(mem_realloc_, lpmem, msize)
+}
+
 int __stdcall message_add(MessageList* file, MessageNode* msg) {
 	_WRAP_WATCOM_CALL2(message_add_, file, msg)
 }
@@ -288,6 +304,25 @@ void skill_set_tags(int* tags, int num) {
 
 int __stdcall stat_level(TGameObj* critter, int statId) {
 	_WRAP_WATCOM_CALL2(stat_level_, critter, statId)
+}
+
+int __stdcall win_register_button(DWORD winRef, int xPos, int yPos, int width, int height, int hoverOn, int hoverOff, int buttonDown, int buttonUp, int pictureUp, int pictureDown, int arg12, int buttonType) {
+	__asm {
+		push buttonType
+		push arg12
+		push pictureDown
+		push pictureUp
+		push buttonUp
+		push buttonDown
+		push hoverOff
+		push hoverOn
+		push height
+		mov ecx, width
+		mov ebx, yPos
+		mov edx, xPos
+		mov eax, winRef
+		call FuncOffs::win_register_button_
+	}
 }
 
 }

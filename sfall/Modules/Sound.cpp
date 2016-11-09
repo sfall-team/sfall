@@ -45,13 +45,6 @@ skip:
 	}
 }
 
-void PlaySfx(const char* name) {
-	__asm {
-		mov eax, name;
-		call FuncOffs::gsound_play_sfx_file_;
-	}
-}
-
 /*struct ChangedReg {
 
 };
@@ -69,17 +62,17 @@ static void SetupSoundAcceleration(int level) {
 */
 void SoundInit() {
 	int tmp;
-	if(tmp=GetPrivateProfileIntA("Sound", "NumSoundBuffers", 0, ini)) {
+	if (tmp = GetPrivateProfileIntA("Sound", "NumSoundBuffers", 0, ini)) {
 		SafeWrite8(0x451129, (BYTE)tmp);
 	}
 
-	if(GetPrivateProfileIntA("Sound", "AllowSoundForFloats", 0, ini)) {
+	if (GetPrivateProfileIntA("Sound", "AllowSoundForFloats", 0, ini)) {
 		HookCall(0x42B7C7, MsgCopy);
 		HookCall(0x42B849, DisplayMsg);
 	}
 
 	//Yes, I did leave this in on purpose. Will be of use to anyone trying to add in the sound effects
-	if(GetPrivateProfileIntA("Sound", "Test_ForceFloats", 0, ini)) {
+	if (GetPrivateProfileIntA("Sound", "Test_ForceFloats", 0, ini)) {
 		SafeWrite8(0x42B772, 0xeb);
 	}
 

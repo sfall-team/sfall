@@ -56,12 +56,16 @@ int __stdcall db_fseek(DBFile* file, long pos, int origin);
 
 int __stdcall db_freadByte(DBFile* file, __int8* _out);
 
+int __stdcall db_freadByteCount(DBFile* file, void* cptr, int count);
+
 int __stdcall db_freadShort(DBFile* file, __int16* _out);
 
 int __stdcall db_freadInt(DBFile* file, __int32* _out);
 
 // destroys filelist array created by db_get_file_list
 void __stdcall db_free_file_list(char* * *fileList, DWORD arg2);
+
+int __stdcall db_fwriteByteCount(DBFile* file, void* cptr, int count);
 
 // searches files in DB by given path/filename mask and stores result in fileList
 // fileList is a pointer to a variable, that will be assigned with an address of an array of char* strings
@@ -85,6 +89,9 @@ int __stdcall item_get_type(TGameObj* item);
 
 // searches for message ID in given message file and places result in @result
 const char* _stdcall getmsg(const MessageList* fileAddr, MessageNode* result, int messageId);
+
+// plays SFX sound with given name 
+void __stdcall gsound_play_sfx_file(const char* name);
 
 // redraws the main game interface windows (useful after changing some data like active hand, etc.)
 void intface_redraw();
@@ -133,6 +140,8 @@ const char* __stdcall findCurrentProc(TProgram* program);
 
 TProgram* __stdcall loadProgram(const char* fileName);
 
+void* __stdcall mem_realloc(void* lpmem, DWORD msize);
+
 int __stdcall message_add(MessageList* file, MessageNode* msg);
 
 int __stdcall message_filter(MessageList* file);
@@ -168,5 +177,7 @@ void skill_get_tags(int* result, int num);
 void skill_set_tags(int* tags, int num);
 
 int __stdcall stat_level(TGameObj* critter, int statId);
+
+int __stdcall win_register_button(DWORD winRef, int xPos, int yPos, int width, int height, int hoverOn, int hoverOff, int buttonDown, int buttonUp, int pictureUp, int pictureDown, int arg12, int buttonType);
 
 }

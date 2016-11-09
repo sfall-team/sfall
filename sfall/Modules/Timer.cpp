@@ -38,44 +38,47 @@ static int ToggleKey;
 
 DWORD _stdcall FakeGetTickCount() {
 	//Keyboard control
-	if(!ModKey||(ModKey>0&&KeyDown(ModKey))
-		||(ModKey==-1&&(KeyDown(DIK_LCONTROL)||KeyDown(DIK_RCONTROL)))
-		||(ModKey==-2&&(KeyDown(DIK_LMENU)||KeyDown(DIK_RMENU)))
-		||(ModKey==-3&&(KeyDown(DIK_LSHIFT)||KeyDown(DIK_RSHIFT)))
+	if (!ModKey || (ModKey > 0 && KeyDown(ModKey))
+		|| (ModKey == -1 && (KeyDown(DIK_LCONTROL) || KeyDown(DIK_RCONTROL)))
+		|| (ModKey == -2 && (KeyDown(DIK_LMENU) || KeyDown(DIK_RMENU)))
+		|| (ModKey == -3 && (KeyDown(DIK_LSHIFT) || KeyDown(DIK_RSHIFT)))
 		) {
 
-		for(int i=0;i<10;i++) if(Keys[i]&&KeyDown(Keys[i]))
-			Multi=Multipliers[i];
+		for (int i = 0; i < 10; i++) if (Keys[i] && KeyDown(Keys[i])) {
+			Multi = Multipliers[i];
+		}
 
-		if(ToggleKey&&KeyDown(ToggleKey)) {
-			if(!Toggled) {
-				Toggled=true;
-				Enabled=!Enabled;
+		if (ToggleKey&&KeyDown(ToggleKey)) {
+			if (!Toggled) {
+				Toggled = true;
+				Enabled = !Enabled;
 			}
-		} else Toggled=false;
+		} else {
+			Toggled = false;
+		}
 	}
 
-    DWORD NewTickCount=GetTickCount();
+	DWORD NewTickCount = GetTickCount();
 	//Just in case someone's been running their computer for 49 days straight
-	if(NewTickCount<LastTickCount) {
-		NewTickCount=LastTickCount;
+	if (NewTickCount < LastTickCount) {
+		NewTickCount = LastTickCount;
 		return StoredTickCount;
 	}
 
 	//Multiply the tick count difference by the multiplier
-	double add=(double)(NewTickCount-LastTickCount)*(Enabled?Multi:1.0);
-    LastTickCount=NewTickCount;
-    TickCountFraction+=modf(add,&add);
-    StoredTickCount+=(DWORD)add;
-    if(TickCountFraction>1) {
-        TickCountFraction-=1;
-        StoredTickCount++;
-    }
-    return StoredTickCount;
+	double add = (double)(NewTickCount - LastTickCount)*(Enabled ? Multi : 1.0);
+	LastTickCount = NewTickCount;
+	TickCountFraction += modf(add, &add);
+	StoredTickCount += (DWORD)add;
+	if (TickCountFraction > 1) {
+		TickCountFraction -= 1;
+		StoredTickCount++;
+	}
+	return StoredTickCount;
 }
 
 void _stdcall FakeGetLocalTime(LPSYSTEMTIME time) {
-	__int64 CurrentTime=StartTime + StoredTickCount*10000;
+	__int64 CurrentTime = StartTime + StoredTickCount * 10000;
 	FileTimeToSystemTime((FILETIME*)&CurrentTime, time);
 }
 
@@ -89,28 +92,28 @@ MMRESULT _stdcall fTimeKillEvent(UINT id) {
 }*/
 
 void TimerInit() {
-	StoredTickCount=0;
-    LastTickCount=GetTickCount();
-    TickCountFraction=0;
-	Multi=(double)GetPrivateProfileInt("Speed", "SpeedMultiInitial", 100, ini)/100.0;
-	Enabled=true;
-	Toggled=false;
-	
+	StoredTickCount = 0;
+	LastTickCount = GetTickCount();
+	TickCountFraction = 0;
+	Multi = (double)GetPrivateProfileInt("Speed", "SpeedMultiInitial", 100, ini) / 100.0;
+	Enabled = true;
+	Toggled = false;
+
 	SYSTEMTIME time;
 	GetLocalTime(&time);
 	SystemTimeToFileTime(&time, (FILETIME*)&StartTime);
 
-	ModKey=GetPrivateProfileInt("Input", "SpeedModKey", -1, ini);
-	ToggleKey=GetPrivateProfileInt("Input", "SpeedToggleKey", 0, ini);
+	ModKey = GetPrivateProfileInt("Input", "SpeedModKey", -1, ini);
+	ToggleKey = GetPrivateProfileInt("Input", "SpeedToggleKey", 0, ini);
 	char c[2];
 	char key[12];
-	for(int i=0;i<10;i++) {
+	for (int i = 0; i < 10; i++) {
 		_itoa_s(i, c, 10);
 		strcpy_s(key, "SpeedKey");
 		strcat_s(key, c);
-		Keys[i]=GetPrivateProfileInt("Input", key, 0, ini);
+		Keys[i] = GetPrivateProfileInt("Input", key, 0, ini);
 		strcpy_s(key, "SpeedMulti");
 		strcat_s(key, c);
-		Multipliers[i]=GetPrivateProfileInt("Speed", key, 0x00, ini)/100.0;
+		Multipliers[i] = GetPrivateProfileInt("Speed", key, 0x00, ini) / 100.0;
 	}
 }

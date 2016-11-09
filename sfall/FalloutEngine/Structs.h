@@ -18,6 +18,8 @@
 
 #pragma once
 
+#include <Windows.h>
+
 #include "Enums.h"
 
 
@@ -162,6 +164,24 @@ struct DBFile {
 	void* handle;
 };
 
+#pragma pack(push, 1)
+struct FRM {
+	__int32 id;			//0x00
+	__int32 unused;		//0x04
+	__int16 frames;		//0x08
+	__int16 xshift[6];		//0x0a
+	__int16 yshift[6];		//0x16
+	__int32 framestart[6];//0x22
+	__int32 size;			//0x3a
+	__int16 width;			//0x3e
+	__int16 height;		//0x40
+	__int32 frmsize;		//0x42
+	__int16 xoffset;		//0x46
+	__int16 yoffset;		//0x48
+	unsigned char pixels[80 * 36];	//0x4a
+};
+#pragma pack(pop)
+
 struct MessageNode {
 	__int32 number;
 	__int32 flags;
@@ -298,4 +318,22 @@ struct sProtoWeapon
 	__int32 cost;
 	__int32 inv_fid;
 	__int8 SndID;
+};
+
+//for holding window info
+struct WINinfo {
+	__int32 ref;
+	__int32 flags;
+	RECT wRect;
+	unsigned __int32 width;
+	unsigned __int32 height;
+	__int32 clearColour;
+	__int32 unknown2;
+	__int32 unknown3;
+	unsigned char *surface;         // bytes frame data ref to palette
+	__int32 buttonListP;
+	__int32 unknown5;//buttonptr?
+	__int32 unknown6;
+	__int32 unknown7;
+	__int32 drawFuncP;
 };

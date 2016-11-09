@@ -639,18 +639,6 @@ int CreateButton(int WinRef, DWORD Xpos, DWORD Ypos, DWORD Width, DWORD Height, 
 	return ret_val;
 }
 
-//-----------------------------
-// TODO: wrapper
-int check_buttons(void) {
-	int key_code;
-	__asm {
-		call FuncOffs::get_input_
-		mov key_code, eax
-	}
-	return key_code;
-}
-
-
 /////////////////////////////////////////////////////////////////TEXT FUNCTIONS////////////////////////////////////////////////////////////////////////
 //-------------------------
 void SetFont(int ref) {
@@ -1702,7 +1690,7 @@ void _stdcall HeroSelectWindow(int RaceStyleFlag) {
 			RedrawWin(WinRef);
 		}
 
-		button = check_buttons();
+		button = Wrapper::get_input();
 		if (button == 0x148) { //previous style/race -up arrow button pushed
 			drawFlag = TRUE;
 			PlayAcm("ib1p1xx1");
@@ -1812,7 +1800,7 @@ void _stdcall DrawCharNoteNewChar(bool Style) {
 
 //-------------------------------------------------------------------
 int _stdcall CheckCharButtons() {
-	int button = check_buttons();
+	int button = Wrapper::get_input();
 
 	int raceVal = CurrentRaceVal;
 	int styleVal = CurrentStyleVal;
