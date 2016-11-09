@@ -178,6 +178,14 @@ int __stdcall message_search(DWORD* file, sMessage* msg) {
 	_WRAP_WATCOM_CALL2(message_search_, file, msg)
 }
 
+TGameObj* __stdcall obj_find_first_at_tile(int elevation, int tileNum) {
+	_WRAP_WATCOM_CALL2(obj_find_first_at_tile_, elevation, tileNum)
+}
+
+TGameObj* __stdcall obj_find_next_at_tile() {
+	_WRAP_WATCOM_CALL0(obj_find_next_at_tile_)
+}
+
 int _stdcall partyMemberGetCurLevel(TGameObj* obj) {
 	_WRAP_WATCOM_CALL1(partyMemberGetCurLevel_, obj)
 }

@@ -84,52 +84,52 @@ static Frame* FramePointer(const Frm* frm, int frameno) {
 }
 
 static void LoadFrm(Frm* frm) {
-	tex_citr itr=texMap.find(frm->key);
-	if(itr==texMap.end()) {
+	tex_citr itr = texMap.find(frm->key);
+	if (itr == texMap.end()) {
 		//Load textures
 		char buf[MAX_PATH];
-		IDirect3DTexture9** textures=new IDirect3DTexture9*[frm->frames];
+		IDirect3DTexture9** textures = new IDirect3DTexture9*[frm->frames];
 		for (int i = 0; i < frm->frames; i++) {
 			sprintf(buf, "%s\\art\\heads\\%s\\%d.png", *VarPtr::patches, frm->path, i);
 			if (FAILED(D3DXCreateTextureFromFileExA(d3d9Device, buf, 0, 0, 1, 0, D3DFMT_UNKNOWN, D3DPOOL_MANAGED, D3DX_DEFAULT, D3DX_DEFAULT, 0, 0, 0, &textures[i]))) {
-				for(int j=0;j<i;j++) textures[j]->Release();
+				for (int j = 0; j < i; j++) textures[j]->Release();
 				delete[] textures;
-				frm->broken=1;
+				frm->broken = 1;
 				return;
 			}
 		}
-		frm->textures=textures;
-		texMap[frm->key]=textures;
+		frm->textures = textures;
+		texMap[frm->key] = textures;
 	} else {
 		//Use preloaded textures
-		frm->textures=itr->second;
+		frm->textures = itr->second;
 	}
 	//mask image
-	for(int i=0;i<frm->frames;i++) {
-		Frame* frame=FramePointer(frm, i);
-		if(frm->bakedBackground) {
+	for (int i = 0; i < frm->frames; i++) {
+		Frame* frame = FramePointer(frm, i);
+		if (frm->bakedBackground) {
 			memset(frame->data, 0x30, frame->size);
 		} else {
-			for(DWORD j=0;j<frame->size;j++) {
-				if(frame->data[j]) frame->data[j]=0x30;
+			for (DWORD j = 0; j < frame->size; j++) {
+				if (frame->data[j]) frame->data[j] = 0x30;
 			}
 		}
 	}
-	frm->loaded=1;
+	frm->loaded = 1;
 }
 
 static void _stdcall DrawFrmHookInternal(Frm* frm, int frameno) {
-	if(!frm) return;
-	if(frm->magic==0xabcd&&!frm->broken) {
-		if(!frm->loaded) LoadFrm(frm);
-		if(frm->broken) return;
-		Frame* frame=FramePointer(frm, frameno);
-		SetHeadTex(frm->textures[frameno], frame->width, frame->height, frame->xoffset+frm->xshift, frame->yoffset+frm->yshift);
-		overridden=!frm->showHighlights;
-	} else overridden=0;
+	if (!frm) return;
+	if (frm->magic == 0xabcd && !frm->broken) {
+		if (!frm->loaded) LoadFrm(frm);
+		if (frm->broken) return;
+		Frame* frame = FramePointer(frm, frameno);
+		SetHeadTex(frm->textures[frameno], frame->width, frame->height, frame->xoffset + frm->xshift, frame->yoffset + frm->yshift);
+		overridden = !frm->showHighlights;
+	} else overridden = 0;
 }
 
-static const DWORD gdDisplayFrameRet=0x44AD06;
+static const DWORD gdDisplayFrameRet = 0x44AD06;
 static void __declspec(naked) DrawFrmHook() {
 	__asm {
 		push edx;

@@ -93,7 +93,6 @@ static void __declspec(naked) explosion_lighting_fix2() {
 	}
 }
 
-
 DWORD _stdcall LogThis(DWORD value1, DWORD value2, DWORD value3) {
 	dlog_f("anim_set_check__light_fix: object 0x%X, something 0x%X, radius 0x%X", DL_MAIN, value1, value2, value3);
 	return value1;
@@ -144,7 +143,6 @@ static void __declspec(naked) fire_dance_lighting_fix1() {
 }
 
 
-
 static const DWORD explosion_dmg_check_adr[] = {0x411709, 0x4119FC, 0x411C08, 0x4517C1, 0x423BC8};
 static const DWORD explosion_art_adr[] = {0x411A19, 0x411A29, 0x411A35, 0x411A3C};
 static const DWORD explosion_art_defaults[] = {10, 2, 31, 29};
@@ -190,14 +188,14 @@ void ResetExplosionSettings() {
 	explosion_effect_starting_dir = 0;
 	SafeWrite8(0x411B54, 6); // last direction
 	// explosion art
-	for (i=0; i<4; i++) {
+	for (i = 0; i < 4; i++) {
 		SafeWrite32(explosion_art_adr[i], explosion_art_defaults[i]);
 	}
 	// explosion radiuses
 	SafeWrite32(explosion_radius_grenade, 2);
 	SafeWrite32(explosion_radius_rocket, 3);
 	// explosion dmgtype
-	for (i=0; i<4; i++) {
+	for (i = 0; i < 4; i++) {
 		SafeWrite8(explosion_dmg_check_adr[i], 6);
 	}
 }

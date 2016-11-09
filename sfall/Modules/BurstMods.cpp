@@ -72,17 +72,21 @@ void ComputeSprayModInit() {
 	if (GetPrivateProfileIntA("Misc", "ComputeSprayMod", 1, ini)) {
 		dlog("Applying ComputeSpray changes.", DL_INIT);
 		compute_spray_center_mult = GetPrivateProfileIntA("Misc", "ComputeSpray_CenterMult", 1, ini);
-		compute_spray_center_div =  GetPrivateProfileIntA("Misc", "ComputeSpray_CenterDiv", 3, ini);
-		if (compute_spray_center_div < 1)
+		compute_spray_center_div  = GetPrivateProfileIntA("Misc", "ComputeSpray_CenterDiv", 3, ini);
+		if (compute_spray_center_div < 1) {
 			compute_spray_center_div = 1;
-		if (compute_spray_center_mult > compute_spray_center_div)
+		}
+		if (compute_spray_center_mult > compute_spray_center_div) {
 			compute_spray_center_mult = compute_spray_center_div;
+		}
 		compute_spray_target_mult = GetPrivateProfileIntA("Misc", "ComputeSpray_TargetMult", 1, ini);
-		compute_spray_target_div =  GetPrivateProfileIntA("Misc", "ComputeSpray_TargetDiv", 2, ini);
-		if (compute_spray_target_div < 1)
+		compute_spray_target_div  = GetPrivateProfileIntA("Misc", "ComputeSpray_TargetDiv", 2, ini);
+		if (compute_spray_target_div < 1) {
 			compute_spray_target_div = 1;
-		if (compute_spray_target_mult > compute_spray_target_div)
+		}
+		if (compute_spray_target_mult > compute_spray_target_div) {
 			compute_spray_target_mult = compute_spray_target_div;
+		}
 		MakeCall(0x4234F1, &compute_spray_rounds_distribution, true);
 		dlogr(" Done", DL_INIT);
 	}

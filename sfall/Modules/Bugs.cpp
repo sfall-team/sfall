@@ -870,7 +870,7 @@ void BugsInit()
 	// Fix for cells getting consumed even when the car is already fully charged
 	MakeCall(0x49BE70, &obj_use_power_on_car_hack, false);
 
-	// Fix for being able to charge the car by using cells on other scenary/critters
+	// Fix for being able to charge the car by using cells on other scenery/critters
 	if (GetPrivateProfileIntA("Misc", "CarChargingFix", 1, ini)) {
 		dlog("Applying car charging fix.", DL_INIT);
 		MakeCall(0x49C36D, &protinst_default_use_item_hack, true);

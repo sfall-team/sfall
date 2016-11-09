@@ -111,6 +111,10 @@ TProgram* __stdcall loadProgram(const char* fileName);
 
 int __stdcall message_search(DWORD* file, sMessage* msg);
 
+TGameObj* __stdcall obj_find_first_at_tile(int elevation, int tileNum);
+
+TGameObj* __stdcall obj_find_next_at_tile();
+
 int _stdcall partyMemberGetCurLevel(TGameObj* obj);
 
 // places pointer to a prototype structure into ptrPtr and returns 0 on success or -1 on failure

@@ -39,63 +39,57 @@
 #define CODE_SET_ARRAY   (10)
 
 static bool SetBlocking(SOCKET s, bool block) {
-	DWORD d=!block;
+	DWORD d = !block;
 	ioctlsocket(s, FIONBIO, &d);
 }
+
 static bool InternalSend(SOCKET s, const void* _data, int size) {
-	const char* data=(const char*) _data;
-	int upto=0;
+	const char* data = (const char*)_data;
+	int upto = 0;
 	int tmp;
 	DWORD d;
-	while(upto<size) {
-		tmp=send(s, &data[upto], size-upto, 0);
-		if(tmp>0) upto+=tmp;
+	while (upto < size) {
+		tmp = send(s, &data[upto], size - upto, 0);
+		if (tmp > 0) upto += tmp;
 		else {
-			d=WSAGetLastError();
-			if(d!=WSAEWOULDBLOCK && d!=WSAENOBUFS) return true;
+			d = WSAGetLastError();
+			if (d != WSAEWOULDBLOCK && d != WSAENOBUFS) return true;
 		}
 	}
 	return false;
 }
+
 static bool InternalRecv(SOCKET s, void* _data, int size) {
-	char* data=(char*)_data;
-	int upto=0;
+	char* data = (char*)_data;
+	int upto = 0;
 	int tmp;
 	DWORD d;
-	while(upto<size) {
-		tmp=recv(s, &data[upto], size-upto, 0);
-		if(tmp>0) upto+=tmp;
+	while (upto < size) {
+		tmp = recv(s, &data[upto], size - upto, 0);
+		if (tmp > 0) upto += tmp;
 		else {
-			d=WSAGetLastError();
-			if(d!=WSAEWOULDBLOCK && d!=WSAENOBUFS) return true;
+			d = WSAGetLastError();
+			if (d != WSAEWOULDBLOCK && d != WSAENOBUFS) return true;
 		}
 	}
 	return false;
 }
+
 static void RunEditorInternal(SOCKET &s) {
 	std::vector<DWORD*> vec = std::vector<DWORD*>();
-	for(int elv=0;elv<3;elv++) {
-		for(int tile=0;tile<40000;tile++) {
-			DWORD* obj;
-			__asm {
-				mov edx, tile;
-				mov eax, elv;
-				call FuncOffs::obj_find_first_at_tile_;
-				mov obj, eax;
-			}
-			while(obj) {
-				DWORD otype = obj[25];
-				otype = (otype&0xff000000) >> 24;
-				if(otype==1) vec.push_back(obj);
-				__asm {
-					call FuncOffs::obj_find_next_at_tile_;
-					mov obj, eax;
+	for (int elv = 0; elv < 3; elv++) {
+		for (int tile = 0; tile < 40000; tile++) {
+			TGameObj* obj = Wrapper::obj_find_first_at_tile(elv, tile);
+			while (obj) {
+				if ((obj->pid >> 24) == OBJ_TYPE_CRITTER) {
+					vec.push_back(reinterpret_cast<DWORD*>(obj));
 				}
+				obj = Wrapper::obj_find_next_at_tile();
 			}
 		}
 	}
 
-	int numCritters=vec.size();
+	int numCritters = vec.size();
 
 	int numGlobals = *VarPtr::num_game_global_vars;
 	int numMapVars = *VarPtr::num_map_global_vars;
@@ -107,67 +101,67 @@ static void RunEditorInternal(SOCKET &s) {
 	InternalSend(s, &numArrays, 4);
 	InternalSend(s, &numCritters, 4);
 
-	sGlobalVar* sglobals=new sGlobalVar[numSGlobals];
+	sGlobalVar* sglobals = new sGlobalVar[numSGlobals];
 	GetGlobals(sglobals);
-	int* arrays=new int[numArrays*3];
+	int* arrays = new int[numArrays * 3];
 	GetArrays(arrays);
 
-	InternalSend(s, *reinterpret_cast<void**>(VarPtr::game_global_vars), 4*numGlobals);
-	InternalSend(s, *reinterpret_cast<void**>(VarPtr::map_global_vars), 4*numMapVars);
+	InternalSend(s, *reinterpret_cast<void**>(VarPtr::game_global_vars), 4 * numGlobals);
+	InternalSend(s, *reinterpret_cast<void**>(VarPtr::map_global_vars), 4 * numMapVars);
 	InternalSend(s, sglobals, sizeof(sGlobalVar)*numSGlobals);
-	InternalSend(s, arrays, numArrays*3*4);
-	for(int i=0;i<numCritters;i++) InternalSend(s, &vec[i][25], 4);
+	InternalSend(s, arrays, numArrays * 3 * 4);
+	for (int i = 0; i < numCritters; i++) InternalSend(s, &vec[i][25], 4);
 
-	while(true) {
+	while (true) {
 		BYTE code;
 		InternalRecv(s, &code, 1);
-		if(code==CODE_EXIT) break;
+		if (code == CODE_EXIT) break;
 		int id, val;
-		switch(code) {
-			case 0:
-				InternalRecv(s, &id, 4);
-				InternalRecv(s, &val, 4);
-				(*VarPtr::game_global_vars)[id] = val;
-				break;
-			case 1:
-				InternalRecv(s, &id, 4);
-				InternalRecv(s, &val, 4);
-				(*VarPtr::map_global_vars)[id] = val;
-				break;
-			case 2:
-				InternalRecv(s, &id, 4);
-				InternalSend(s, vec[id], 0x74);
-				break;
-			case 3:
-				InternalRecv(s, &id, 4);
-				InternalRecv(s, vec[id], 0x74);
-				break;
-			case 4:
-				InternalRecv(s, &id, 4);
-				InternalRecv(s, &val, 4);
-				sglobals[id].val=val;
-				break;
-			case 9:
-				{
-				InternalRecv(s, &id, 4);
-				DWORD *types=new DWORD[arrays[id*3+1]];
-				char *data=new char[arrays[id*3+1]*arrays[id*3+2]];
-				DEGetArray(arrays[id*3], types, data);
-				InternalSend(s, types, arrays[id*3+1]*4);
-				InternalSend(s, data, arrays[id*3+1]*arrays[id*3+2]);
-				delete[] data;
-				delete[] types;
-				}
-				break;
-			case 10:
-				{
-				InternalRecv(s, &id, 4);
-				char *data=new char[arrays[id*3+1]*arrays[id*3+2]];
-				InternalRecv(s, data, arrays[id*3+1]*arrays[id*3+2]);
-				DESetArray(arrays[id*3], 0, data);
-				delete[] data;
-				}
-				break;
+		switch (code) {
+		case 0:
+			InternalRecv(s, &id, 4);
+			InternalRecv(s, &val, 4);
+			(*VarPtr::game_global_vars)[id] = val;
+			break;
+		case 1:
+			InternalRecv(s, &id, 4);
+			InternalRecv(s, &val, 4);
+			(*VarPtr::map_global_vars)[id] = val;
+			break;
+		case 2:
+			InternalRecv(s, &id, 4);
+			InternalSend(s, vec[id], 0x74);
+			break;
+		case 3:
+			InternalRecv(s, &id, 4);
+			InternalRecv(s, vec[id], 0x74);
+			break;
+		case 4:
+			InternalRecv(s, &id, 4);
+			InternalRecv(s, &val, 4);
+			sglobals[id].val = val;
+			break;
+		case 9:
+		{
+			InternalRecv(s, &id, 4);
+			DWORD *types = new DWORD[arrays[id * 3 + 1]];
+			char *data = new char[arrays[id * 3 + 1] * arrays[id * 3 + 2]];
+			DEGetArray(arrays[id * 3], types, data);
+			InternalSend(s, types, arrays[id * 3 + 1] * 4);
+			InternalSend(s, data, arrays[id * 3 + 1] * arrays[id * 3 + 2]);
+			delete[] data;
+			delete[] types;
+		}
+		break;
+		case 10:
+		{
+			InternalRecv(s, &id, 4);
+			char *data = new char[arrays[id * 3 + 1] * arrays[id * 3 + 2]];
+			InternalRecv(s, data, arrays[id * 3 + 1] * arrays[id * 3 + 2]);
+			DESetArray(arrays[id * 3], 0, data);
+			delete[] data;
+		}
+		break;
 		}
 	}
 
@@ -180,10 +174,10 @@ void RunDebugEditor() {
 	WSADATA wsaData;
 	SOCKET sock, client;
 
-	if(WSAStartup(MAKEWORD(2,2), &wsaData) != NO_ERROR) return;
+	if (WSAStartup(MAKEWORD(2, 2), &wsaData) != NO_ERROR) return;
 	//create the socket
-	sock=socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-	if(sock == INVALID_SOCKET) {
+	sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+	if (sock == INVALID_SOCKET) {
 		WSACleanup();
 		return;
 	}
@@ -193,12 +187,12 @@ void RunDebugEditor() {
 	service.sin_addr.s_addr = inet_addr("127.0.0.1");
 	service.sin_port = htons(4245);
 
-	if(bind(sock, (SOCKADDR*)&service, sizeof(service)) == SOCKET_ERROR) {
+	if (bind(sock, (SOCKADDR*)&service, sizeof(service)) == SOCKET_ERROR) {
 		closesocket(sock);
 		WSACleanup();
 		return;
 	}
-	if(listen(sock, 4) == SOCKET_ERROR) {
+	if (listen(sock, 4) == SOCKET_ERROR) {
 		closesocket(sock);
 		WSACleanup();
 		return;
@@ -211,9 +205,9 @@ void RunDebugEditor() {
 	memset(&si, 0, sizeof(si));
 	memset(&pi, 0, sizeof(pi));
 
-	si.cb=sizeof(si);
+	si.cb = sizeof(si);
 
-	if(!CreateProcessA("FalloutClient.exe", "FalloutClient.exe -debugedit", 0, 0, false, 0, 0, 0, &si, &pi)) {
+	if (!CreateProcessA("FalloutClient.exe", "FalloutClient.exe -debugedit", 0, 0, false, 0, 0, 0, &si, &pi)) {
 		closesocket(sock);
 		WSACleanup();
 		return;
@@ -223,8 +217,8 @@ void RunDebugEditor() {
 	CloseHandle(pi.hProcess);
 
 	//Connect to the editor
-	client=accept(sock, 0, 0);
-	if(client == SOCKET_ERROR) {
+	client = accept(sock, 0, 0);
+	if (client == SOCKET_ERROR) {
 		closesocket(sock);
 		WSACleanup();
 		return;

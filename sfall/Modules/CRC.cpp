@@ -63,11 +63,11 @@ static const DWORD CRC_table[256] = {
 };
 
 static DWORD crcInternal(BYTE* data, DWORD size) {
-	DWORD crc=0xffffffff;
-	for (DWORD i = 0;i < size;i++) {
+	DWORD crc = 0xffffffff;
+	for (DWORD i = 0; i < size; i++) {
 		crc = CRC_table[(((BYTE)(crc)) ^ data[i])] ^ (crc >> 8);
 	}
-	return crc^0xffffffff;
+	return crc ^ 0xffffffff;
 }
 
 void CRC(const char* filepath) {
@@ -101,7 +101,7 @@ void CRC(const char* filepath) {
 		}
 	}
 
-	for (int i=0; i < sizeof(ExpectedCRC)/4; i++) {
+	for (int i = 0; i < sizeof(ExpectedCRC) / 4; i++) {
 		if (crc == ExpectedCRC[i]) matchedCRC = true;
 	}
 	if (!matchedCRC) {

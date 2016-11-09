@@ -21,8 +21,8 @@
 
 #include "Books.h"
 
-static int BooksCount=0;
-static const int BooksMax=30;
+static int BooksCount = 0;
+static const int BooksMax = 30;
 static char iniBooks[MAX_PATH];
 
 struct sBook {
@@ -34,7 +34,7 @@ struct sBook {
 static sBook books[BooksMax];
 
 static sBook* _stdcall FindBook(DWORD pid) {
-	for (int i=0; i<BooksCount; i++) {
+	for (int i = 0; i < BooksCount; i++) {
 		if (books[i].bookPid == pid) {
 			return &books[i];
 		}
@@ -45,15 +45,15 @@ static sBook* _stdcall FindBook(DWORD pid) {
 static const DWORD obj_use_book_hook_back = 0x49BA5A;
 static void __declspec(naked) obj_use_book_hook() {
 	__asm {
-		push eax
+		push eax;
 		call FindBook;
-		test eax, eax
-		jnz found
-		mov edi, -1
+		test eax, eax;
+		jnz found;
+		mov edi, -1;
 		jmp end;
 found:
-		mov edi, [eax+4];
-		mov ecx, [eax+8];
+		mov edi, [eax + 4];
+		mov ecx, [eax + 8];
 end:
 		jmp obj_use_book_hook_back;
 	}
@@ -62,35 +62,35 @@ end:
 void LoadVanillaBooks() {
 	int i = BooksCount;
 	// book of science
-	books[i+0].bookPid = 73;
-	books[i+0].msgID = 802;
-	books[i+0].skill = 12;
+	books[i + 0].bookPid = 73;
+	books[i + 0].msgID = 802;
+	books[i + 0].skill = 12;
 	// Dean's electronics
-	books[i+1].bookPid = 76;
-	books[i+1].msgID = 803;
-	books[i+1].skill = 13;
+	books[i + 1].bookPid = 76;
+	books[i + 1].msgID = 803;
+	books[i + 1].skill = 13;
 	// First Aid
-	books[i+2].bookPid = 80;
-	books[i+2].msgID = 804;
-	books[i+2].skill = 6;
+	books[i + 2].bookPid = 80;
+	books[i + 2].msgID = 804;
+	books[i + 2].skill = 6;
 	// Guns & Bullets
-	books[i+3].bookPid = 102;
-	books[i+3].msgID = 805;
-	books[i+3].skill = 0;
+	books[i + 3].bookPid = 102;
+	books[i + 3].msgID = 805;
+	books[i + 3].skill = 0;
 	// Scouts Handbook
-	books[i+4].bookPid = 86;
-	books[i+4].msgID = 806;
-	books[i+4].skill = 17;
+	books[i + 4].bookPid = 86;
+	books[i + 4].msgID = 806;
+	books[i + 4].skill = 17;
 	BooksCount += 5;
 }
 
 void BooksInit() {
-	char buf[MAX_PATH-3];
+	char buf[MAX_PATH - 3];
 	GetPrivateProfileString("Misc", "BooksFile", "", buf, MAX_PATH, ini);
-	if (strlen(buf)>0) {
+	if (strlen(buf) > 0) {
 		sprintf(iniBooks, ".\\%s", buf);
 		dlog("Applying books patch... ", DL_INIT);
-		memset(books,0,sizeof(sBook)*BooksCount);
+		memset(books, 0, sizeof(sBook)*BooksCount);
 
 		int i, n = 0, count;
 		if (GetPrivateProfileIntA("main", "overrideVanilla", 0, iniBooks) == 0) {
@@ -99,7 +99,7 @@ void BooksInit() {
 		count = GetPrivateProfileIntA("main", "count", 0, iniBooks);
 
 		char section[4];
-		for (i=1; i<=count; i++) {
+		for (i = 1; i <= count; i++) {
 			_itoa_s(i, section, 10);
 			if (BooksCount >= BooksMax) break;
 			if (books[BooksCount].bookPid = GetPrivateProfileIntA(section, "PID", 0, iniBooks)) {
@@ -109,7 +109,7 @@ void BooksInit() {
 				BooksCount++;
 			}
 		}
-		
+
 		MakeCall(0x49B9FB, &obj_use_book_hook, true);
 		dlog_f(" (%d/%d books) Done\r\n", DL_INIT, n, count);
 	}
