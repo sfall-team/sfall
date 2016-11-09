@@ -65,6 +65,48 @@ bool __stdcall db_access(const char* fileName) {
 	_WRAP_WATCOM_CALL1(db_access_, fileName)
 }
 
+int __stdcall db_fclose(DBFile* file) {
+	int result;
+	_asm {
+		mov eax, file;
+		call FuncOffs::db_fclose_;
+		mov result, eax;
+	}
+	return result;
+}
+
+DBFile* __stdcall db_fopen(const char* path, const char* mode) {
+	_WRAP_WATCOM_CALL2(db_fopen_, path, mode)
+}
+
+int __stdcall db_fgetc(DBFile* file) {
+	_WRAP_WATCOM_CALL1(db_fgetc_, file)
+}
+
+char* __stdcall db_fgets(char* buf, int max_count, DBFile* file) {
+	_WRAP_WATCOM_CALL3(db_fgets_, buf, max_count, file)
+}
+
+int __stdcall db_fread(void* buf, int elsize, int count, DBFile* file) {
+	_WRAP_WATCOM_CALL4(db_fread_, buf, elsize, count, file)
+}
+
+int __stdcall db_fseek(DBFile* file, long pos, int origin) {
+	_WRAP_WATCOM_CALL3(db_fseek_, file, pos, origin)
+}
+
+int __stdcall db_freadByte(DBFile* file, __int8* _out) {
+	_WRAP_WATCOM_CALL2(db_freadByte_, file, _out)
+}
+
+int __stdcall db_freadShort(DBFile* file, __int16* _out) {
+	_WRAP_WATCOM_CALL2(db_freadShort_, file, _out)
+}
+
+int __stdcall db_freadInt(DBFile* file, __int32* _out) {
+	_WRAP_WATCOM_CALL2(db_freadInt_, file, _out)
+}
+
 void __stdcall db_free_file_list(char* * *fileList, DWORD arg2) {
 	_WRAP_WATCOM_CALL2(db_free_file_list_, fileList, arg2)
 }
@@ -85,6 +127,10 @@ void display_print(const char* msg) {
 
 void executeProcedure(TProgram* sptr, int procNum) {
 	_WRAP_WATCOM_CALL2(executeProcedure_, sptr, procNum)
+}
+
+int __stdcall get_input() {
+	_WRAP_WATCOM_CALL0(get_input_)
 }
 
 // returns the name of current procedure by program pointer
@@ -178,6 +224,18 @@ TProgram* __stdcall loadProgram(const char* fileName) {
 	_WRAP_WATCOM_CALL1(loadProgram_, fileName)
 }
 
+int __stdcall message_add(MessageList* file, MessageNode* msg) {
+	_WRAP_WATCOM_CALL2(message_add_, file, msg)
+}
+
+int __stdcall message_filter(MessageList* file) {
+	_WRAP_WATCOM_CALL1(message_filter_, file)
+}
+
+int __stdcall message_make_path(char* outpath, char* path) {
+	_WRAP_WATCOM_CALL2(message_make_path_, outpath, path)
+}
+
 int __stdcall message_search(MessageList* file, MessageNode* msg) {
 	_WRAP_WATCOM_CALL2(message_search_, file, msg)
 }
@@ -227,7 +285,6 @@ void skill_get_tags(int* result, int num) {
 void skill_set_tags(int* tags, int num) {
 	_WRAP_WATCOM_CALL2(skill_set_tags_, tags, num)
 }
-
 
 int __stdcall stat_level(TGameObj* critter, int statId) {
 	_WRAP_WATCOM_CALL2(stat_level_, critter, statId)

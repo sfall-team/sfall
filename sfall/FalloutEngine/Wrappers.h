@@ -41,6 +41,25 @@ void critter_pc_set_name(const char* newName);
 // Checks if given file exist in DB
 bool __stdcall db_access(const char* fileName);
 
+int __stdcall db_fclose(DBFile* file);
+
+DBFile* __stdcall db_fopen(const char* path, const char* mode);
+
+int __stdcall db_fgetc(DBFile* file);
+
+char* __stdcall db_fgets(char* buf, int max_count, DBFile* file);
+
+//int db_ungetc(int c, DBFile* file);
+int __stdcall db_fread(void* buf, int elsize, int count, DBFile* file);
+
+int __stdcall db_fseek(DBFile* file, long pos, int origin);
+
+int __stdcall db_freadByte(DBFile* file, __int8* _out);
+
+int __stdcall db_freadShort(DBFile* file, __int16* _out);
+
+int __stdcall db_freadInt(DBFile* file, __int32* _out);
+
 // destroys filelist array created by db_get_file_list
 void __stdcall db_free_file_list(char* * *fileList, DWORD arg2);
 
@@ -57,6 +76,8 @@ void display_print(const char* msg);
 
 // execute script proc by internal proc number (from script's proc table, basically a sequential number of a procedure as defined in code, starting from 1)
 void executeProcedure(TProgram* sptr, int procNum);
+
+int __stdcall get_input();
 
 int _stdcall isPartyMember(TGameObj* obj);
 
@@ -111,6 +132,12 @@ TGameObj* __stdcall inven_right_hand(TGameObj* critter);
 const char* __stdcall findCurrentProc(TProgram* program);
 
 TProgram* __stdcall loadProgram(const char* fileName);
+
+int __stdcall message_add(MessageList* file, MessageNode* msg);
+
+int __stdcall message_filter(MessageList* file);
+
+int __stdcall message_make_path(char* outpath, char* path);
 
 int __stdcall message_search(MessageList* file, MessageNode* msg);
 

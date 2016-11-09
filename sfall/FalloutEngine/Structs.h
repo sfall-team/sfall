@@ -31,8 +31,7 @@ struct TGameObj;
 
 /*   26 */
 #pragma pack(push, 1)
-struct TInvenRec
-{
+struct TInvenRec {
 	TGameObj *object;
 	__int32 count;
 };
@@ -40,8 +39,7 @@ struct TInvenRec
 
 /* 15 */
 #pragma pack(push, 1)
-struct TGameObj
-{
+struct TGameObj {
 	__int32 ID;
 	__int32 tile;
 	char gap_8[2];
@@ -72,8 +70,7 @@ struct TGameObj
 
 /*    9 */
 #pragma pack(push, 1)
-struct TComputeAttack
-{
+struct TComputeAttack {
 	TGameObj *attacker;
 	char gap_4[4];
 	TGameObj *weapon;
@@ -94,8 +91,7 @@ struct TComputeAttack
 
 /*   22 */
 #pragma pack(push, 1)
-struct TScript
-{
+struct TScript {
 	__int32 script_id;
 	char gap_4[4];
 	__int32 elevation_and_tile;
@@ -121,8 +117,7 @@ struct TScript
 
 /*   25 */
 #pragma pack(push, 1)
-struct TProgram
-{
+struct TProgram {
 	const char* fileName;
 	__int32 *codeStackPtr;
 	char gap_8[8];
@@ -140,9 +135,12 @@ struct TProgram
 };
 #pragma pack(pop)
 
+struct DBFile {
+	__int32 fileType;
+	void* handle;
+};
 
-struct MessageNode
-{
+struct MessageNode {
 	__int32 number;
 	__int32 flags;
 	char* audio;
