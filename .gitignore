@@ -46,6 +46,8 @@ nb-configuration.xml
 *.user
 *.userosscache
 *.sln.docstates
+*.VC.db
+*.VC.opendb
 
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
