@@ -362,5 +362,8 @@
   <ItemGroup>
     <None Include="exports.def" />
     <None Include="postbuild.cmd.template" />
+    <None Include="FalloutEngine\Variables_def.h">
+      <Filter>FalloutEngine</Filter>
+    </None>
   </ItemGroup>
 </Project>
