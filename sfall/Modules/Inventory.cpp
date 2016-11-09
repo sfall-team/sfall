@@ -223,7 +223,7 @@ end:
 	}
 }
 
-static const DWORD IsOverloadedEnd=0x42E68D;
+static const DWORD IsOverloadedEnd = 0x42E68D;
 static __declspec(naked) void CritterIsOverloadedHook() {
 	__asm {
 		and eax, 0xff;
@@ -242,8 +242,8 @@ end:
 	}
 }
 
-static const DWORD ItemAddMultiRet=0x4772A6;
-static const DWORD ItemAddMultiFail=0x4771C7;
+static const DWORD ItemAddMultiRet = 0x4772A6;
+static const DWORD ItemAddMultiFail = 0x4771C7;
 static __declspec(naked) void ItemAddMultiHook1() {
 	__asm {
 		push ebp;
@@ -281,8 +281,8 @@ fail:
 	}
 }
 
-static const DWORD BarterAttemptTransactionHook1Fail=0x474C81;
-static const DWORD BarterAttemptTransactionHook1End=0x474CA8;
+static const DWORD BarterAttemptTransactionHook1Fail = 0x474C81;
+static const DWORD BarterAttemptTransactionHook1End = 0x474CA8;
 static __declspec(naked) void BarterAttemptTransactionHook1() {
 	__asm {
 		cmp eax, edx;
@@ -307,8 +307,8 @@ end:
 	}
 }
 
-static const DWORD BarterAttemptTransactionHook2Fail=0x474CD8;
-static const DWORD BarterAttemptTransactionHook2End=0x474D01;
+static const DWORD BarterAttemptTransactionHook2Fail = 0x474CD8;
+static const DWORD BarterAttemptTransactionHook2End = 0x474D01;
 static __declspec(naked) void BarterAttemptTransactionHook2() {
 	__asm {
 		cmp eax, edx;
@@ -335,8 +335,8 @@ end:
 
 static char SizeStr[16];
 static char InvenFmt[32];
-static const char* InvenFmt1="%s %d/%d  %s %d/%d";
-static const char* InvenFmt2="%s %d/%d";
+static const char* InvenFmt1 = "%s %d/%d  %s %d/%d";
+static const char* InvenFmt2 = "%s %d/%d";
 
 static const char* _stdcall GetInvenMsg() {
 	const char* tmp = MsgSearch(35, VarPtr::inventry_message_file);
@@ -348,7 +348,7 @@ static void _stdcall strcpy_wrapper(char* buf, const char* str) {
 	strcpy(buf, str);
 }
 
-static const DWORD DisplayStatsEnd=0x4725E5;
+static const DWORD DisplayStatsEnd = 0x4725E5;
 static __declspec(naked) void DisplayStatsHook() {
 	__asm {
 		call CritterCheck;
@@ -416,28 +416,28 @@ static __declspec(naked) void InvenObjExamineFuncHook() {
 
 static char SuperStimMsg[128];
 static int _stdcall SuperStimFix2(DWORD* item, DWORD* target) {
-	if(!item || !target) return 0;
-	DWORD itm_pid=item[0x64/4], target_pid=target[0x64/4];
-	if((target_pid&0xff000000) != 0x01000000) return 0;
-	if((itm_pid&0xff000000) != 0) return 0;
-	if((itm_pid&0xffffff) != 144) return 0;
+	if (!item || !target) return 0;
+	DWORD itm_pid = item[0x64 / 4], target_pid = target[0x64 / 4];
+	if ((target_pid & 0xff000000) != 0x01000000) return 0;
+	if ((itm_pid & 0xff000000) != 0) return 0;
+	if ((itm_pid & 0xffffff) != 144) return 0;
 	DWORD curr_hp, max_hp;
 	__asm {
 		mov eax, target;
 		mov edx, STAT_current_hp
-		call FuncOffs::stat_level_
-		mov curr_hp, eax;
+			call FuncOffs::stat_level_
+			mov curr_hp, eax;
 		mov eax, target;
 		mov edx, STAT_max_hit_points
-		call FuncOffs::stat_level_
-		mov max_hp, eax;
+			call FuncOffs::stat_level_
+			mov max_hp, eax;
 	}
-	if(curr_hp<max_hp) return 0;
+	if (curr_hp < max_hp) return 0;
 	Wrapper::display_print(SuperStimMsg);
 	return 1;
 }
 
-static const DWORD UseItemHookRet=0x49C3D3;
+static const DWORD UseItemHookRet = 0x49C3D3;
 static void __declspec(naked) SuperStimFix() {
 	__asm {
 		push eax;
@@ -467,8 +467,10 @@ end:
 
 static int invenapcost;
 static char invenapqpreduction;
-void _stdcall SetInvenApCost(int a) { invenapcost=a; }
-static const DWORD inven_ap_cost_hook_ret=0x46E816;
+void _stdcall SetInvenApCost(int a) {
+	invenapcost = a;
+}
+static const DWORD inven_ap_cost_hook_ret = 0x46E816;
 static void __declspec(naked) inven_ap_cost_hook() {
 	_asm {
 		movzx ebx, byte ptr invenapqpreduction;
@@ -589,17 +591,19 @@ static void __declspec(naked) item_add_mult_hook() {
 }
 
 void InventoryInit() {
-	mode=GetPrivateProfileInt("Misc", "CritterInvSizeLimitMode", 0, ini);
-	invenapcost=GetPrivateProfileInt("Misc", "InventoryApCost", 4, ini);
-	invenapqpreduction=GetPrivateProfileInt("Misc", "QuickPocketsApCostReduction", 2, ini);
+	mode = GetPrivateProfileInt("Misc", "CritterInvSizeLimitMode", 0, ini);
+	invenapcost = GetPrivateProfileInt("Misc", "InventoryApCost", 4, ini);
+	invenapqpreduction = GetPrivateProfileInt("Misc", "QuickPocketsApCostReduction", 2, ini);
 	MakeCall(0x46E80B, inven_ap_cost_hook, true);
-	if(mode>7) mode=0;
-	if(mode>=4) {
-		mode-=4;
+	if (mode > 7) {
+		mode = 0;
+	}
+	if (mode >= 4) {
+		mode -= 4;
 		SafeWrite8(0x477EB3, 0xeb);
 	}
-	if(mode) {
-		MaxItemSize=GetPrivateProfileInt("Misc", "CritterInvSizeLimit", 100, ini);
+	if (mode) {
+		MaxItemSize = GetPrivateProfileInt("Misc", "CritterInvSizeLimit", 100, ini);
 
 		//Check item_add_multi (picking stuff from the floor, etc.)
 		HookCall(0x4771BD, &ItemAddMultiHook1);
@@ -614,8 +618,8 @@ void InventoryInit() {
 		SafeWrite32(0x4725FF, (DWORD)&InvenFmt);
 		MakeCall(0x4725E0, &DisplayStatsHook, true);
 		SafeWrite8(0x47260F, 0x20);
-		SafeWrite32(0x4725F9, 0x9c+0xc);
-		SafeWrite8(0x472606, 0x10+0xc);
+		SafeWrite32(0x4725F9, 0x9c + 0xc);
+		SafeWrite8(0x472606, 0x10 + 0xc);
 		SafeWrite32(0x472632, 150);
 		SafeWrite8(0x472638, 0);
 
@@ -623,12 +627,12 @@ void InventoryInit() {
 		HookCall(0x472FFE, &InvenObjExamineFuncHook);
 	}
 
-	if(GetPrivateProfileInt("Misc", "SuperStimExploitFix", 0, ini)) {
+	if (GetPrivateProfileInt("Misc", "SuperStimExploitFix", 0, ini)) {
 		GetPrivateProfileString("sfall", "SuperStimExploitMsg", "You cannot use a super stim on someone who is not injured!", SuperStimMsg, 128, translationIni);
 		MakeCall(0x49C3CC, SuperStimFix, true);
 	}
 
-	if(GetPrivateProfileInt("Misc", "CheckWeaponAmmoCost", 0, ini)) {
+	if (GetPrivateProfileInt("Misc", "CheckWeaponAmmoCost", 0, ini)) {
 		MakeCall(0x4266E9, &add_check_for_item_ammo_cost, true);
 		MakeCall(0x4234B3, &divide_burst_rounds_by_ammo_cost, true);
 	}
@@ -640,7 +644,7 @@ void InventoryInit() {
 		HookCall(0x4772AA, &item_add_mult_hook);
 	}
 
-//Do not call the 'Move Items' window when using drap and drop to reload weapons in the inventory
+	//Do not call the 'Move Items' window when using drap and drop to reload weapons in the inventory
 	int ReloadReserve = GetPrivateProfileIntA("Misc", "ReloadReserve", 1, ini);
 	if (ReloadReserve >= 0) {
 		SafeWrite32(0x47655F, ReloadReserve);     // mov  eax, ReloadReserve
@@ -649,6 +653,7 @@ void InventoryInit() {
 		SafeWrite8(0x476569, 0x91);               // xchg ecx, eax
 	};
 }
+
 void InventoryReset() {
-	invenapcost=GetPrivateProfileInt("Misc", "InventoryApCost", 4, ini);
+	invenapcost = GetPrivateProfileInt("Misc", "InventoryApCost", 4, ini);
 }

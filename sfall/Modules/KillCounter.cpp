@@ -22,7 +22,7 @@
 #include "..\Version.h"
 
 static int usingExtraKillTypes;
-bool UsingExtraKillTypes() { return usingExtraKillTypes!=0; }
+bool UsingExtraKillTypes() { return usingExtraKillTypes != 0; }
 
 //Fallout's idea of _fastcall seems to be different to VS2005's.
 //Might as well do this in asm, or the custom prolog code would end up being longer than the function
@@ -64,11 +64,11 @@ func:
 }
 
 void KillCounterInit(bool use) {
-	if(!use) {
-		usingExtraKillTypes=0;
+	if (!use) {
+		usingExtraKillTypes = 0;
 		return;
 	}
-	usingExtraKillTypes=1;
+	usingExtraKillTypes = 1;
 
 	//Overwrite the function that reads the kill counter with my own
 	SafeWrite32(0x004344C0, ((DWORD)&ReadKillCounter) - 0x004344C4);

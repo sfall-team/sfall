@@ -61,6 +61,10 @@ void critter_pc_set_name(const char* newName) {
 	_WRAP_WATCOM_CALL1(critter_pc_set_name_, newName)
 }
 
+bool __stdcall db_access(const char* fileName) {
+	_WRAP_WATCOM_CALL1(db_access_, fileName)
+}
+
 void __stdcall db_free_file_list(char* * *fileList, DWORD arg2) {
 	_WRAP_WATCOM_CALL2(db_free_file_list_, fileList, arg2)
 }
@@ -190,6 +194,10 @@ int _stdcall partyMemberGetCurLevel(TGameObj* obj) {
 	_WRAP_WATCOM_CALL1(partyMemberGetCurLevel_, obj)
 }
 
+int _stdcall perk_level(TGameObj* critter, int perkId) {
+	_WRAP_WATCOM_CALL2(perk_level, critter, perkId)
+}
+
 int proto_ptr(int pid, sProtoBase* *ptrPtr) {
 	_WRAP_WATCOM_CALL2(proto_ptr_, pid, ptrPtr)
 }
@@ -212,5 +220,9 @@ void skill_set_tags(int* tags, int num) {
 	_WRAP_WATCOM_CALL2(skill_set_tags_, tags, num)
 }
 
+
+int __stdcall stat_level(TGameObj* critter, int statId) {
+	_WRAP_WATCOM_CALL2(stat_level_, critter, statId)
+}
 
 }

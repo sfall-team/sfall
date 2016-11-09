@@ -516,6 +516,7 @@ sScriptProgram* GetGlobalScriptProgram(TProgram* scriptPtr) {
 }
 
 bool _stdcall IsGameScript(const char* filename) {
+	// TODO: write better solution
 	for (DWORD i = 0; i < *VarPtr::maxScriptNum; i++) {
 		if (strcmp(filename, (char*)(*VarPtr::scriptListInfo + i*20)) == 0) return true;
 	}

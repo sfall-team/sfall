@@ -38,6 +38,9 @@ const char* __stdcall critter_name(TGameObj* critter);
 // Change the name of playable character
 void critter_pc_set_name(const char* newName);
 
+// Checks if given file exist in DB
+bool __stdcall db_access(const char* fileName);
+
 // destroys filelist array created by db_get_file_list
 void __stdcall db_free_file_list(char* * *fileList, DWORD arg2);
 
@@ -117,6 +120,8 @@ TGameObj* __stdcall obj_find_next_at_tile();
 
 int _stdcall partyMemberGetCurLevel(TGameObj* obj);
 
+int _stdcall perk_level(TGameObj* critter, int perkId);
+
 // places pointer to a prototype structure into ptrPtr and returns 0 on success or -1 on failure
 int proto_ptr(int pid, sProtoBase* *ptrPtr);
 
@@ -128,5 +133,7 @@ int __stdcall scr_ptr(int scriptId, TScript** scriptPtr);
 
 void skill_get_tags(int* result, int num);
 void skill_set_tags(int* tags, int num);
+
+int __stdcall stat_level(TGameObj* critter, int statId);
 
 }

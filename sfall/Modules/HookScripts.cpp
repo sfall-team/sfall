@@ -28,7 +28,6 @@
 #include "PartyControl.h"
 #include "ScriptExtender.h"
 
-
 #define MAXDEPTH (8)
 static const int numHooks = HOOK_COUNT;
 
@@ -42,16 +41,17 @@ static std::vector<sHookScript> hooks[numHooks];
 
 DWORD InitingHookScripts;
 
+// TODO: maybe use ScriptValue for arguments and return values?
 static DWORD args[16]; // current hook arguments
-static DWORD oldargs[8*MAXDEPTH];
+static DWORD oldargs[8 * MAXDEPTH];
 static DWORD* argPtr;
 static DWORD rets[16]; // current hook return values
 
-static DWORD firstArg=0;
+static DWORD firstArg = 0;
 static DWORD callDepth;
 static DWORD lastCount[MAXDEPTH];
 
-static DWORD ArgCount; 
+static DWORD ArgCount;
 static DWORD cArg; // how many arguments were taken by current hook script
 static DWORD cRet; // how many return values were set by current hook script
 static DWORD cRetTmp; // how many return values were set by specific hook script (when using register_hook)
@@ -60,41 +60,45 @@ static DWORD cRetTmp; // how many return values were set by specific hook script
 #define hookend __asm pushad __asm call EndHook __asm popad
 
 static void _stdcall BeginHook() {
-	if(callDepth <= MAXDEPTH) {
-		if(callDepth) {
-			lastCount[callDepth-1]=ArgCount;
-			memcpy(&oldargs[8*(callDepth-1)], args, 8*sizeof(DWORD));
+	if (callDepth <= MAXDEPTH) {
+		if (callDepth) {
+			lastCount[callDepth - 1] = ArgCount;
+			memcpy(&oldargs[8 * (callDepth - 1)], args, 8 * sizeof(DWORD));
 		}
-		argPtr=args;
-		for(DWORD i=0;i<callDepth;i++) argPtr+=lastCount[i];
+		argPtr = args;
+		for (DWORD i = 0; i < callDepth; i++) argPtr += lastCount[i];
 	}
 	callDepth++;
 }
 
 static void _stdcall EndHook() {
 	callDepth--;
-	if(callDepth && callDepth <= MAXDEPTH) {
-		ArgCount=lastCount[callDepth-1];
-		memcpy(args, &oldargs[8*(callDepth-1)], 8*sizeof(DWORD));
+	if (callDepth && callDepth <= MAXDEPTH) {
+		ArgCount = lastCount[callDepth - 1];
+		memcpy(args, &oldargs[8 * (callDepth - 1)], 8 * sizeof(DWORD));
 	}
 }
 
 static void _stdcall RunSpecificHookScript(sHookScript *hook) {
-	cArg=0;
-	cRetTmp=0;
-	if (hook->callback != -1)
+	cArg = 0;
+	cRetTmp = 0;
+	if (hook->callback != -1) {
 		Wrapper::executeProcedure(hook->prog.ptr, hook->callback);
-	else
+	} else {
 		RunScriptProc(&hook->prog, start);
+	}
 }
+
 static void _stdcall RunHookScript(DWORD hook) {
 	if (hooks[hook].size()) {
 		dlog_f("Running hook %d, which has %0d entries attached\r\n", DL_HOOK, hook, hooks[hook].size());
-		cRet=0;
-		for(int i=hooks[hook].size()-1;i>=0;i--) RunSpecificHookScript(&hooks[hook][i]);
+		cRet = 0;
+		for (int i = hooks[hook].size() - 1; i >= 0; i--) {
+			RunSpecificHookScript(&hooks[hook][i]);
+		}
 	} else {
-		cArg=0;
-		cRet=0;
+		cArg = 0;
+		cRet = 0;
 	}
 }
 
@@ -120,7 +124,8 @@ end:
 		retn 8;
 	}
 }
-static const DWORD AfterHitRollAddr=0x423898;
+
+static const DWORD AfterHitRollAddr = 0x423898;
 static void __declspec(naked) AfterHitRollHook() {
 	__asm {
 		hookbegin(5);
@@ -176,6 +181,7 @@ end:
 		retn;
 	}
 }
+
 // this is for using non-weapon items, always 2 AP in vanilla
 static void __declspec(naked) CalcApCostHook2() {
 	__asm {
@@ -267,6 +273,7 @@ aend:
 		retn 8;
 	}
 }
+
 static void __declspec(naked) CalcDeathAnimHook2() {
 	__asm {
 		hookbegin(5);
@@ -292,6 +299,7 @@ skip:
 		retn;
 	}
 }
+
 static void __declspec(naked) CombatDamageHook() {
 	__asm {
 		push edx;
@@ -494,7 +502,7 @@ end:
 	}
 }
 
-static const DWORD RemoveObjHookRet=0x477497;
+static const DWORD RemoveObjHookRet = 0x477497;
 static void __declspec(naked) RemoveObjHook() {
 	__asm {
 		push ecx;
@@ -717,6 +725,7 @@ end:
 		retn;
 	}
 }
+
 static void __declspec(naked) AmmoCostHook() {
 	__asm {
 		hookbegin(4);
@@ -724,6 +733,7 @@ static void __declspec(naked) AmmoCostHook() {
 		jmp AmmoCostHook_internal;
 	}
 }
+
 void __declspec(naked) AmmoCostHookWrapper() {
 	__asm {
 		hookbegin(4);
@@ -735,6 +745,7 @@ void __declspec(naked) AmmoCostHookWrapper() {
 		retn;
 	}
 }
+
 void _stdcall KeyPressHook( DWORD dxKey, bool pressed, DWORD vKey )
 {
 	BeginHook();
@@ -746,6 +757,7 @@ void _stdcall KeyPressHook( DWORD dxKey, bool pressed, DWORD vKey )
 	InventoryKeyPressedHook(dxKey, pressed, vKey);
 	EndHook();
 }
+
 void _stdcall MouseClickHook(DWORD button, bool pressed) {
 	BeginHook();
 	ArgCount = 2;
@@ -1061,21 +1073,29 @@ donothing:
 DWORD _stdcall GetHSArgCount() {
 	return ArgCount;
 }
+
 DWORD _stdcall GetHSArg() {
-	if(cArg==ArgCount) return 0;
+	if (cArg == ArgCount) return 0;
 	else return args[cArg++];
 }
+
 void _stdcall SetHSArg(DWORD id, DWORD value) {
 	if(id<ArgCount) args[id]=value;
 }
+
 DWORD* _stdcall GetHSArgs() {
 	return args;
 }
+
 void _stdcall SetHSReturn(DWORD d) {
-	if (cRetTmp < 8) rets[cRetTmp++]=d;
-	if (cRetTmp > cRet)
+	if (cRetTmp < 8) {
+		rets[cRetTmp++] = d;
+	}
+	if (cRetTmp > cRet) {
 		cRet = cRetTmp;
+	}
 }
+
 void _stdcall RegisterHook(TProgram* script, int id, int procNum )
 {
 	if (id >= numHooks) return;
@@ -1101,14 +1121,7 @@ static void LoadHookScript(const char* name, int id) {
 
 	char filename[MAX_PATH];
 	sprintf(filename, "scripts\\%s.int", name);
-	bool fileExist;
-	__asm {
-		lea  eax, filename
-		call FuncOffs::db_access_
-		mov  fileExist, al
-	}
-
-	if (fileExist && !IsGameScript(name)) {
+	if (Wrapper::db_access(filename) && !IsGameScript(name)) {
 		sScriptProgram prog;
 		dlog(">", DL_HOOK);
 		dlog(name, DL_HOOK);
@@ -1121,22 +1134,14 @@ static void LoadHookScript(const char* name, int id) {
 			hook.isGlobalScript = false;
 			hooks[id].push_back(hook);
 			AddProgramToMap(prog);
-		} else dlogr(" Error!", DL_HOOK);
+		} else {
+			dlogr(" Error!", DL_HOOK);
+		}
 	}
 }
 
 static void HookScriptInit2() {
 	dlogr("Loading hook scripts", DL_HOOK|DL_INIT);
-
-	char* mask = "scripts\\hs_*.int";
-	DWORD *filenames;
-	__asm {
-		xor  ecx, ecx
-		xor  ebx, ebx
-		lea  edx, filenames
-		mov  eax, mask
-		call FuncOffs::db_get_file_list_
-	}
 
 	LoadHookScript("hs_tohit", HOOK_TOHIT);
 	HookCall(0x421686, &ToHitHook);
@@ -1282,12 +1287,6 @@ static void HookScriptInit2() {
 	HookCall(0x495F0B, &invenUnwieldFunc_Hook);
 	HookCall(0x45680C, &correctFidForRemovedItem_Hook);
 	HookCall(0x45C4EA, &correctFidForRemovedItem_Hook);
-
-	__asm {
-		xor  edx, edx
-		lea  eax, filenames
-		call FuncOffs::db_free_file_list_
-	}
 
 	dlogr("Finished loading hook scripts", DL_HOOK|DL_INIT);
 }

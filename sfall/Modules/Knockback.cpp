@@ -55,23 +55,24 @@ static std::vector<DWORD> disabledAS;
 static std::vector<DWORD> forcedAS;
 
 static double ApplyModifiers(std::vector<KnockbackModifier>* mods, DWORD id, double val) {
-	for(DWORD i=0;i<mods->size();i++) {
-		if((*mods)[i].id==id) {
-			KnockbackModifier* mod=&(*mods)[i];
-			switch(mod->type) {
-				case 0: val=mod->value; break;
-				case 1: val*=mod->value; break;
+	for (DWORD i = 0; i < mods->size(); i++) {
+		if ((*mods)[i].id == id) {
+			KnockbackModifier* mod = &(*mods)[i];
+			switch (mod->type) {
+			case 0: val = mod->value; break;
+			case 1: val *= mod->value; break;
 			}
 			break;
 		}
 	}
 	return val;
 }
-static DWORD _stdcall CalcKnockback(int flags, int damage,DWORD target,DWORD attacker,DWORD weapon) {
-	double result=(double)damage/(flags==0x3d?5.0:10.0);
-	result=ApplyModifiers(&mWeapons, weapon, result);
-	result=ApplyModifiers(&mAttackers, attacker, result);
-	result=ApplyModifiers(&mTargets, target, result);
+
+static DWORD _stdcall CalcKnockback(int flags, int damage, DWORD target, DWORD attacker, DWORD weapon) {
+	double result = (double)damage / (flags == 0x3d ? 5.0 : 10.0);
+	result = ApplyModifiers(&mWeapons, weapon, result);
+	result = ApplyModifiers(&mAttackers, attacker, result);
+	result = ApplyModifiers(&mTargets, target, result);
 	return (DWORD)floor(result);
 }
 
@@ -112,16 +113,16 @@ static void __declspec(naked) KnockbackHook2() {
 	}
 }
 
-static const DWORD KnockbackAddr=(DWORD)&KnockbackHook;
-
+static const DWORD KnockbackAddr = (DWORD)&KnockbackHook;
 static int _stdcall PickpocketHook2(int base, DWORD critter) {
-	for(DWORD i=0;i<PickpocketMods.size();i++) {
-		if(critter==PickpocketMods[i].id) {
+	for (DWORD i = 0; i < PickpocketMods.size(); i++) {
+		if (critter == PickpocketMods[i].id) {
 			return min(base + PickpocketMods[i].mod, PickpocketMods[i].maximum);
 		}
 	}
 	return min(base + BasePickpocket.mod, BasePickpocket.maximum);
 }
+
 static void __declspec(naked) PickpocketHook() {
 	__asm {
 		push edx;
@@ -133,19 +134,21 @@ static void __declspec(naked) PickpocketHook() {
 		pop  ebx;
 		pop  ecx;
 		pop  edx;
-		mov  [esp+84], eax;
+		mov[esp + 84], eax;
 		push 0x4ABC6F;
 		retn;
 	}
 }
+
 static int _stdcall HitChanceHook2(int base, DWORD critter) {
-	for(DWORD i=0;i<HitChanceMods.size();i++) {
-		if(critter==HitChanceMods[i].id) {
+	for (DWORD i = 0; i < HitChanceMods.size(); i++) {
+		if (critter == HitChanceMods[i].id) {
 			return min(base + HitChanceMods[i].mod, HitChanceMods[i].maximum);
 		}
 	}
 	return min(base + BaseHitChance.mod, BaseHitChance.maximum);
 }
+
 static void __declspec(naked) HitChanceHook() {
 	__asm {
 		push edi;
@@ -158,16 +161,17 @@ static void __declspec(naked) HitChanceHook() {
 }
 
 static DWORD BurstTestResult;
-static const DWORD BurstHookRet=0x429E4A;
+static const DWORD BurstHookRet = 0x429E4A;
 static void _stdcall BurstTest(DWORD critter) {
-	BurstTestResult=0;
-	for(DWORD i=0;i<NoBursts.size();i++) {
-		if(NoBursts[i]==critter) {
-			BurstTestResult=1;
+	BurstTestResult = 0;
+	for (DWORD i = 0; i < NoBursts.size(); i++) {
+		if (NoBursts[i] == critter) {
+			BurstTestResult = 1;
 			return;
 		}
 	}
 }
+
 static void __declspec(naked) BurstHook() {
 	__asm {
 		pushad;
@@ -184,6 +188,7 @@ fail:
 		jmp BurstHookRet;
 	}
 }
+
 void KnockbackInit() {
 	SafeWrite16(0x424B61, 0x25ff);
 	SafeWrite32(0x424B63, (DWORD)&KnockbackAddr);
@@ -192,16 +197,17 @@ void KnockbackInit() {
 	MakeCall(0x4ABC62, PickpocketHook, true);
 	MakeCall(0x429E44, BurstHook, true);
 }
+
 void Knockback_OnGameLoad() {
 	mTargets.clear();
 	mAttackers.clear();
 	mWeapons.clear();
 	HitChanceMods.clear();
-	BaseHitChance.maximum=95;
-	BaseHitChance.mod=0;
+	BaseHitChance.maximum = 95;
+	BaseHitChance.mod = 0;
 	PickpocketMods.clear();
-	BasePickpocket.maximum=95;
-	BasePickpocket.mod=0;
+	BasePickpocket.maximum = 95;
+	BasePickpocket.mod = 0;
 	NoBursts.clear();
 	disabledAS.clear();
 	forcedAS.clear();
@@ -209,15 +215,15 @@ void Knockback_OnGameLoad() {
 
 void _stdcall KnockbackSetMod(DWORD id, DWORD type, float val, DWORD on) {
 	std::vector<KnockbackModifier>* mods;
-	switch(on) {
-		case 0: mods=&mWeapons; break;
-		case 1: mods=&mTargets; break;
-		case 2: mods=&mAttackers; break;
-		default: return;
+	switch (on) {
+	case 0: mods = &mWeapons; break;
+	case 1: mods = &mTargets; break;
+	case 2: mods = &mAttackers; break;
+	default: return;
 	}
 	KnockbackModifier mod = { id, type, (double)val };
-	for(DWORD i=0;i<mods->size();i++) {
-		if((*mods)[i].id==id) {
+	for (DWORD i = 0; i < mods->size(); i++) {
+		if ((*mods)[i].id == id) {
 			(*mods)[i] = mod;
 			return;
 		}
@@ -227,14 +233,14 @@ void _stdcall KnockbackSetMod(DWORD id, DWORD type, float val, DWORD on) {
 
 void _stdcall KnockbackRemoveMod(DWORD id, DWORD on) {
 	std::vector<KnockbackModifier>* mods;
-	switch(on) {
-		case 0: mods=&mWeapons; break;
-		case 1: mods=&mTargets; break;
-		case 2: mods=&mAttackers; break;
-		default: return;
+	switch (on) {
+	case 0: mods = &mWeapons; break;
+	case 1: mods = &mTargets; break;
+	case 2: mods = &mAttackers; break;
+	default: return;
 	}
-	for(DWORD i=0;i<mods->size();i++) {
-		if((*mods)[i].id==id) {
+	for (DWORD i = 0; i < mods->size(); i++) {
+		if ((*mods)[i].id == id) {
 			mods->erase(mods->begin() + i);
 			return;
 		}
@@ -242,52 +248,54 @@ void _stdcall KnockbackRemoveMod(DWORD id, DWORD on) {
 }
 
 void _stdcall SetHitChanceMax(DWORD critter, DWORD maximum, DWORD mod) {
-	if(critter==-1) {
-		BaseHitChance.maximum=maximum;
-		BaseHitChance.mod=mod;
+	if (critter == -1) {
+		BaseHitChance.maximum = maximum;
+		BaseHitChance.mod = mod;
 		return;
 	}
-	for(DWORD i=0;i<HitChanceMods.size();i++) {
-		if(critter==HitChanceMods[i].id) {
-			HitChanceMods[i].maximum=maximum;
-			HitChanceMods[i].mod=mod;
+	for (DWORD i = 0; i < HitChanceMods.size(); i++) {
+		if (critter == HitChanceMods[i].id) {
+			HitChanceMods[i].maximum = maximum;
+			HitChanceMods[i].mod = mod;
 			return;
 		}
 	}
 	ChanceModifier cm;
-	cm.id=critter;
-	cm.maximum=maximum;
-	cm.mod=mod;
+	cm.id = critter;
+	cm.maximum = maximum;
+	cm.mod = mod;
 	HitChanceMods.push_back(cm);
 }
+
 void _stdcall SetPickpocketMax(DWORD critter, DWORD maximum, DWORD mod) {
-	if(critter==-1) {
-		BasePickpocket.maximum=maximum;
-		BasePickpocket.mod=mod;
+	if (critter == -1) {
+		BasePickpocket.maximum = maximum;
+		BasePickpocket.mod = mod;
 		return;
 	}
-	for(DWORD i=0;i<PickpocketMods.size();i++) {
-		if(critter==PickpocketMods[i].id) {
-			PickpocketMods[i].maximum=maximum;
-			PickpocketMods[i].mod=mod;
+	for (DWORD i = 0; i < PickpocketMods.size(); i++) {
+		if (critter == PickpocketMods[i].id) {
+			PickpocketMods[i].maximum = maximum;
+			PickpocketMods[i].mod = mod;
 			return;
 		}
 	}
 	ChanceModifier cm;
-	cm.id=critter;
-	cm.maximum=maximum;
-	cm.mod=mod;
+	cm.id = critter;
+	cm.maximum = maximum;
+	cm.mod = mod;
 	PickpocketMods.push_back(cm);
 }
+
 void _stdcall SetNoBurstMode(DWORD critter, DWORD on) {
-	if(on) {
-		for(DWORD i=0;i<NoBursts.size();i++) {
-			if(NoBursts[i]==critter) return;
+	if (on) {
+		for (DWORD i = 0; i < NoBursts.size(); i++) {
+			if (NoBursts[i] == critter) return;
 		}
 		NoBursts.push_back(critter);
 	} else {
-		for(DWORD i=0;i<NoBursts.size();i++) {
-			if(NoBursts[i]==critter) {
+		for (DWORD i = 0; i < NoBursts.size(); i++) {
+			if (NoBursts[i] == critter) {
 				NoBursts.erase(NoBursts.begin() + i);
 				return;
 			}
@@ -296,10 +304,11 @@ void _stdcall SetNoBurstMode(DWORD critter, DWORD on) {
 }
 
 static int _stdcall AimedShotTest(DWORD pid) {
-	for(DWORD i=0;i<disabledAS.size();i++) if(disabledAS[i]==pid) return -1;
-	for(DWORD i=0;i<forcedAS.size();i++) if(forcedAS[i]==pid) return 1;
+	for (DWORD i = 0; i < disabledAS.size(); i++) if (disabledAS[i] == pid) return -1;
+	for (DWORD i = 0; i < forcedAS.size(); i++) if (forcedAS[i] == pid) return 1;
 	return 0;
 }
+
 static void __declspec(naked) AimedShotHook() {
 	__asm {
 		push eax;
@@ -324,19 +333,22 @@ realfunc:
 		jmp FuncOffs::item_w_damage_type_;
 	}
 }
+
 static void HookAimedShots() {
 	HookCall(0x478EC6, &AimedShotHook);
-	hookedAimedShot=true;
+	hookedAimedShot = true;
 }
+
 void _stdcall DisableAimedShots(DWORD pid) {
-	if(!hookedAimedShot) HookAimedShots();
-	for(DWORD i=0;i<forcedAS.size();i++) if(forcedAS[i]==pid) forcedAS.erase(forcedAS.begin() + (i--));
-	for(DWORD i=0;i<disabledAS.size();i++) if(disabledAS[i]==pid) return;
+	if (!hookedAimedShot) HookAimedShots();
+	for (DWORD i = 0; i < forcedAS.size(); i++) if (forcedAS[i] == pid) forcedAS.erase(forcedAS.begin() + (i--));
+	for (DWORD i = 0; i < disabledAS.size(); i++) if (disabledAS[i] == pid) return;
 	disabledAS.push_back(pid);
 }
+
 void _stdcall ForceAimedShots(DWORD pid) {
-	if(!hookedAimedShot) HookAimedShots();
-	for(DWORD i=0;i<disabledAS.size();i++) if(disabledAS[i]==pid) disabledAS.erase(disabledAS.begin() + (i--));
-	for(DWORD i=0;i<forcedAS.size();i++) if(forcedAS[i]==pid) return;
+	if (!hookedAimedShot) HookAimedShots();
+	for (DWORD i = 0; i < disabledAS.size(); i++) if (disabledAS[i] == pid) disabledAS.erase(disabledAS.begin() + (i--));
+	for (DWORD i = 0; i < forcedAS.size(); i++) if (forcedAS[i] == pid) return;
 	forcedAS.push_back(pid);
 }

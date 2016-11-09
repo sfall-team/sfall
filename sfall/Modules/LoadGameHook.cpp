@@ -42,25 +42,31 @@
 #include "Sound.h"
 #include "SuperSave.h"
 
-#define MAX_GLOBAL_SIZE (MaxGlobalVars*12 + 4)
+#define MAX_GLOBAL_SIZE (MaxGlobalVars * 12 + 4)
 
-static DWORD InLoop=0;
+static DWORD InLoop = 0;
 static DWORD SaveInCombatFix;
 
-DWORD InWorldMap() { return (InLoop&WORLDMAP)?1:0; }
-DWORD InCombat()   { return (InLoop&COMBAT)?1:0;   }
-DWORD GetCurrentLoops() { return InLoop; }
+DWORD InWorldMap() {
+	return (InLoop&WORLDMAP) ? 1 : 0;
+}
+DWORD InCombat() {
+	return (InLoop&COMBAT) ? 1 : 0;
+}
+DWORD GetCurrentLoops() {
+	return InLoop;
+}
 
 static void _stdcall ResetState(DWORD onLoad) {
-	if(!onLoad) FileSystemReset();
+	if (!onLoad) FileSystemReset();
 	ClearGlobalScripts();
 	ClearGlobals();
 	ForceGraphicsRefresh(0);
 	WipeSounds();
-	if(GraphicsMode>3) graphics_OnGameLoad();
+	if (GraphicsMode > 3) graphics_OnGameLoad();
 	Knockback_OnGameLoad();
 	Skills_OnGameLoad();
-	InLoop=0;
+	InLoop = 0;
 	PerksReset();
 	InventoryReset();
 	RegAnimCombatCheck(1);
@@ -111,18 +117,9 @@ static DWORD _stdcall combatSaveTest() {
 			Wrapper::display_print(SaveFailMsg);
 			return 0;
 		}
-		DWORD ap;
-		DWORD bonusmove;
-		__asm {
-			mov edx, 8;
-			mov eax, ds:[VARPTR_obj_dude];
-			call FuncOffs::stat_level_;
-			mov ap, eax;
-			mov eax, ds:[VARPTR_obj_dude];
-			mov edx, 3;
-			call FuncOffs::perk_level_;
-			mov bonusmove, eax;
-		}
+		int ap = Wrapper::stat_level(*VarPtr::obj_dude, STAT_max_move_points);
+		int bonusmove = Wrapper::perk_level(*VarPtr::obj_dude, PERK_bonus_move);
+		// TODO: investigate field at 0x40
 		if (*(DWORD*)(*VarPtr::obj_dude + 0x40) != ap || bonusmove * 2 != *VarPtr::combat_free_move) {
 			Wrapper::display_print(SaveFailMsg);
 			return 0;
@@ -277,6 +274,7 @@ static void __declspec(naked) MainMenu() {
 		retn;
 	}
 }
+
 static void __declspec(naked) WorldMapHook() {
 	__asm {
 		or InLoop, WORLDMAP;
@@ -286,6 +284,7 @@ static void __declspec(naked) WorldMapHook() {
 		retn;
 	}
 }
+
 static void __declspec(naked) WorldMapHook2() {
 	__asm {
 		or InLoop, WORLDMAP;
@@ -294,6 +293,7 @@ static void __declspec(naked) WorldMapHook2() {
 		retn;
 	}
 }
+
 static void __declspec(naked) CombatHook() {
 	__asm {
 		pushad;
@@ -308,6 +308,7 @@ static void __declspec(naked) CombatHook() {
 		retn;
 	}
 }
+
 static void __declspec(naked) PlayerCombatHook() {
 	__asm {
 		or InLoop, PCOMBAT;
@@ -316,6 +317,7 @@ static void __declspec(naked) PlayerCombatHook() {
 		retn;
 	}
 }
+
 static void __declspec(naked) EscMenuHook() {
 	__asm {
 		or InLoop, ESCMENU;
@@ -324,6 +326,7 @@ static void __declspec(naked) EscMenuHook() {
 		retn;
 	}
 }
+
 static void __declspec(naked) EscMenuHook2() {
 	//Bloody stupid watcom compiler optimizations...
 	__asm {
@@ -333,6 +336,7 @@ static void __declspec(naked) EscMenuHook2() {
 		retn;
 	}
 }
+
 static void __declspec(naked) OptionsMenuHook() {
 	__asm {
 		or InLoop, OPTIONS;
@@ -341,6 +345,7 @@ static void __declspec(naked) OptionsMenuHook() {
 		retn;
 	}
 }
+
 static void __declspec(naked) HelpMenuHook() {
 	__asm {
 		or InLoop, HELP;
@@ -349,6 +354,7 @@ static void __declspec(naked) HelpMenuHook() {
 		retn;
 	}
 }
+
 static void __declspec(naked) CharacterHook() {
 	__asm {
 		or InLoop, CHARSCREEN;
@@ -369,6 +375,7 @@ end:
 		retn;
 	}
 }
+
 static void __declspec(naked) DialogHook() {
 	__asm {
 		or InLoop, DIALOG;
@@ -377,6 +384,7 @@ static void __declspec(naked) DialogHook() {
 		retn;
 	}
 }
+
 static void __declspec(naked) PipboyHook() {
 	__asm {
 		or InLoop, PIPBOY;
@@ -385,6 +393,7 @@ static void __declspec(naked) PipboyHook() {
 		retn;
 	}
 }
+
 static void __declspec(naked) SkilldexHook() {
 	__asm {
 		or InLoop, SKILLDEX;
@@ -393,6 +402,7 @@ static void __declspec(naked) SkilldexHook() {
 		retn;
 	}
 }
+
 static void __declspec(naked) InventoryHook() {
 	__asm {
 		or InLoop, INVENTORY;
@@ -401,6 +411,7 @@ static void __declspec(naked) InventoryHook() {
 		retn;
 	}
 }
+
 static void __declspec(naked) AutomapHook() {
 	__asm {
 		or InLoop, AUTOMAP;
