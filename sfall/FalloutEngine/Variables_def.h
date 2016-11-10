@@ -93,7 +93,7 @@ _VAR_(map_elevation,              DWORD)
 _VAR_(map_global_vars,            long*)  // array
 _VAR_(master_db_handle,           DWORD)
 _VAR_(max,                        DWORD)
-_VAR_(maxScriptNum,               DWORD)
+_VAR_(maxScriptNum,               long)
 _VAR_(Meet_Frank_Horrigan,        DWORD)
 _VAR_(mouse_hotx,                 DWORD)
 _VAR_(mouse_hoty,                 DWORD)
