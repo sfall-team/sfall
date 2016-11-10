@@ -213,6 +213,9 @@
     <ClInclude Include="Modules\Scripting\Opcodes.hpp">
       <Filter>Modules\Scripting</Filter>
     </ClInclude>
+    <ClInclude Include="Modules\Misc.h">
+      <Filter>Modules</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
@@ -354,6 +357,9 @@
     </ClCompile>
     <ClCompile Include="Modules\Scripting\ScriptValue.cpp">
       <Filter>Modules\Scripting</Filter>
+    </ClCompile>
+    <ClCompile Include="Modules\Misc.cpp">
+      <Filter>Modules</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

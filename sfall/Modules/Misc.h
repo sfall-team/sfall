@@ -17,7 +17,45 @@
 */
 #pragma once
 
-void PartyControlInit();
-void __stdcall PartyControlReset();
-int __stdcall PartyControl_SwitchHandHook(TGameObj* item);
-bool IsNpcControlled();
+
+void ApplyCombatProcFix();
+
+void ApplySpeedPatch();
+
+void ApplyInputPatch();
+
+void ApplyGraphicsPatch();
+
+void ApplyWorldmapFpsPatch();
+
+void ApplyStartingStatePatches();
+
+void ApplyWorldLimitsPatches();
+
+void ApplyTimeLimitPatch();
+
+void ApplyDebugModePatch();
+
+void ApplyNPCAutoLevelPatch();
+
+void ApplyAdditionalWeaponAnimsPatch();
+
+void ApplySkilldexImagesPatch();
+
+void ApplyKarmaFRMsPatch();
+
+void ApplySpeedInterfaceCounterAnimsPatch();
+
+void ApplyScienceOnCrittersPatch();
+
+void ApplyFashShotTraitFix();
+
+void ApplyBoostScriptDialogLimitPatch();
+
+void ApplyPathfinderFix();
+
+void ApplyNumbersInDialoguePatch();
+
+void ApplyInstantWeaponEquipPatch();
+
+void MiscReset();
