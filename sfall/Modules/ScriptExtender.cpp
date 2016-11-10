@@ -1,20 +1,20 @@
 /*
- *	sfall
- *	Copyright (C) 2008, 2009, 2010, 2011, 2012  The sfall team
- *
- *	This program is free software: you can redistribute it and/or modify
- *	it under the terms of the GNU General Public License as published by
- *	the Free Software Foundation, either version 3 of the License, or
- *	(at your option) any later version.
- *
- *	This program is distributed in the hope that it will be useful,
- *	but WITHOUT ANY WARRANTY; without even the implied warranty of
- *	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *	GNU General Public License for more details.
- *
- *	You should have received a copy of the GNU General Public License
- *	along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
+*    sfall
+*    Copyright (C) 2008-2016  The sfall team
+*
+*    This program is free software: you can redistribute it and/or modify
+*    it under the terms of the GNU General Public License as published by
+*    the Free Software Foundation, either version 3 of the License, or
+*    (at your option) any later version.
+*
+*    This program is distributed in the hope that it will be useful,
+*    but WITHOUT ANY WARRANTY; without even the implied warranty of
+*    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+*    GNU General Public License for more details.
+*
+*    You should have received a copy of the GNU General Public License
+*    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
 
 #include "..\main.h"
 
@@ -46,7 +46,7 @@ static DWORD MotionSensorMode;
 static BYTE toggleHighlightsKey;
 static DWORD HighlightContainers;
 static DWORD Color_Containers;
-static int idle;
+static char idle;
 static char HighlightFail1[128];
 static char HighlightFail2[128];
 
@@ -436,8 +436,13 @@ void ScriptExtenderSetup() {
 	GetPrivateProfileStringA("Sfall", "HighlightFail1", "You aren't carrying a motion sensor.", HighlightFail1, 128, translationIni);
 	GetPrivateProfileStringA("Sfall", "HighlightFail2", "Your motion sensor is out of charge.", HighlightFail2, 128, translationIni);
 
-	idle=GetPrivateProfileIntA("Misc", "ProcessorIdle", -1, ini);
-	modifiedIni=GetPrivateProfileIntA("Main", "ModifiedIni", 0, ini);
+	idle = GetPrivateProfileIntA("Misc", "ProcessorIdle", -1, ini);
+	if (idle > -1) {
+		VarPtr::idle_func = reinterpret_cast<DWORD>(Sleep);
+		SafeWrite8(0x4C9F12, 0x6A); // push
+		SafeWrite8(0x4C9F13, idle);
+	}
+	modifiedIni = GetPrivateProfileIntA("Main", "ModifiedIni", 0, ini);
 	
 	arraysBehavior = GetPrivateProfileIntA("Misc", "arraysBehavior", 1, ini);
 	if (arraysBehavior > 0) {

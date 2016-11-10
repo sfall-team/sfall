@@ -89,6 +89,7 @@
 #define VARPTR_i_rhand                    0x59E968
 #define VARPTR_i_wid                      0x59E964
 #define VARPTR_i_worn                     0x59E954
+#define VARPTR_idle_func                  0x51E234
 #define VARPTR_In_WorldMap                0x672E1C
 #define VARPTR_info_line                  0x5707D0
 #define VARPTR_interfaceWindow            0x519024
