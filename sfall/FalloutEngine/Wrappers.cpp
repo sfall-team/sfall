@@ -29,26 +29,32 @@ namespace Wrapper
 	__asm call FuncOffs::offs
 
 #define _WRAP_WATCOM_CALL1(offs, arg1) \
-	__asm mov eax, arg1				   \
-	__asm call FuncOffs::offs
+	__asm mov eax, arg1				\
+	_WRAP_WATCOM_CALL0(offs)
 
 #define _WRAP_WATCOM_CALL2(offs, arg1, arg2) \
-	__asm mov edx, arg2				   \
-	__asm mov eax, arg1				   \
-	__asm call FuncOffs::offs
+	__asm mov edx, arg2				\
+	_WRAP_WATCOM_CALL1(offs, arg1)
 
 #define _WRAP_WATCOM_CALL3(offs, arg1, arg2, arg3) \
-	__asm mov ebx, arg3				   \
-	__asm mov edx, arg2				   \
-	__asm mov eax, arg1				   \
-	__asm call FuncOffs::offs
+	__asm mov ebx, arg3				\
+	_WRAP_WATCOM_CALL2(offs, arg1, arg2)
 
 #define _WRAP_WATCOM_CALL4(offs, arg1, arg2, arg3, arg4) \
-	__asm mov ecx, arg4				   \
-	__asm mov ebx, arg3				   \
-	__asm mov edx, arg2				   \
-	__asm mov eax, arg1				   \
-	__asm call FuncOffs::offs
+	__asm mov ecx, arg4						\
+	_WRAP_WATCOM_CALL3(offs, arg1, arg2, arg3)
+
+#define _WRAP_WATCOM_CALL5(offs, arg1, arg2, arg3, arg4, arg5) \
+	push arg5				\
+	_WRAP_WATCOM_CALL4(offs, arg1, arg2, arg3, arg4)
+
+#define _WRAP_WATCOM_CALL6(offs, arg1, arg2, arg3, arg4, arg5, arg6) \
+	push arg6				\
+	_WRAP_WATCOM_CALL5(offs, arg1, arg2, arg3, arg4, arg5)
+
+#define _WRAP_WATCOM_CALL7(offs, arg1, arg2, arg3, arg4, arg5, arg6, arg7) \
+	push arg7				\
+	_WRAP_WATCOM_CALL6(offs, arg1, arg2, arg3, arg4, arg5, arg6)
 
 
 // Returns the name of the critter
@@ -66,13 +72,7 @@ bool __stdcall db_access(const char* fileName) {
 }
 
 int __stdcall db_fclose(DBFile* file) {
-	int result;
-	_asm {
-		mov eax, file;
-		call FuncOffs::db_fclose_;
-		mov result, eax;
-	}
-	return result;
+	_WRAP_WATCOM_CALL1(db_fclose_, file)
 }
 
 DBFile* __stdcall db_fopen(const char* path, const char* mode) {
