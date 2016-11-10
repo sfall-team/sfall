@@ -18,7 +18,6 @@
 
 #include "main.h"
 
-#include <math.h>
 #include <stdio.h>
 
 #include "FalloutEngine\Fallout2.h"
