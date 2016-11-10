@@ -4,7 +4,7 @@
 #include <unordered_map>
 #include <set>
 
-#define ARRAY_MAX_STRING	   (1024)  // maximum length of string to be stored as array key or value
+#define ARRAY_MAX_STRING	    (255)  // maximum length of string to be stored as array key or value
 #define ARRAY_MAX_SIZE		 (100000)  // maximum number of array elements, 
 									   // so total maximum memory/disk footprint of one array is: 16 + (ARRAY_MAX_STRING + 8) * ARRAY_MAX_SIZE
 
@@ -16,6 +16,7 @@
 
 extern char get_all_arrays_special_key[];
 
+// TODO: rewrite
 class sArrayElement 
 {
 public:
@@ -79,6 +80,8 @@ typedef std::tr1::unordered_map<sArrayElement, DWORD, sArrayElement_HashFunc, sA
 /**
 	This class represents sfall array
 	It can be both list (normal array) and map (associative)
+
+	TODO: rewrite for better interface (especially associate arrays)
 */
 class sArrayVar 
 {
@@ -139,6 +142,7 @@ void GetArrays(int* arrays);
 void DEGetArray(int id, DWORD* types, void* data);
 void DESetArray(int id, const DWORD* types, const void* data);
 
+const char* _stdcall GetSfallTypeName(DWORD dataType);
 DWORD _stdcall getSfallTypeByScriptType(DWORD varType);
 DWORD _stdcall getScriptTypeBySfallType(DWORD dataType);
 // creates new normal (persistent) array. len == -1 specifies associative array (map)

@@ -21,9 +21,13 @@
 #include "main.h"
 #include "Inventory.h"
 #include "ScriptExtender.h"
+#if (_MSC_VER < 1600)
+#include "Cpp11_emu.h"
+#endif
 
 //script control functions
 
+// TODO: rewrite
 static void __declspec(naked) RemoveScript() {
 	__asm {
 		push ebx;
@@ -52,6 +56,7 @@ end:
 	}
 }
 
+// TODO: rewrite 
 static void __declspec(naked) SetScript() {
 	__asm {
 		pushad;
@@ -111,11 +116,12 @@ end:
 	}
 }
 
+// TODO: rewrite, remove all ASM
 static void _stdcall op_create_spatial2() {
-	DWORD scriptIndex = GetOpArgInt(0),
-		  tile = GetOpArgInt(1),
-		  elevation = GetOpArgInt(2),
-		  radius = GetOpArgInt(3), 
+	DWORD scriptIndex	= opHandler.arg(0).asInt(),
+		  tile			= opHandler.arg(1).asInt(),
+		  elevation		= opHandler.arg(2).asInt(),
+		  radius		= opHandler.arg(3).asInt(),
 		  scriptId, tmp, objectPtr,
 		  scriptPtr;
 	__asm {
@@ -148,24 +154,19 @@ static void _stdcall op_create_spatial2() {
 		call scr_find_obj_from_program_;
 		mov objectPtr, eax;
 	}
-	SetOpReturn((int)objectPtr);
+	opHandler.setReturn((int)objectPtr);
 }
 
 static void __declspec(naked) op_create_spatial() {
-	_WRAP_OPCODE(4, op_create_spatial2)
+	_WRAP_OPCODE(op_create_spatial2, 4, 1)
 }
-static void __declspec(naked) op_spatial_radius() {
-	_OP_BEGIN(ebp)
-	_GET_ARG_R32(ebp, ecx, eax)
-	_CHECK_ARG_INT(cx, fail)
-	__asm {
-		test eax, eax;
-		js fail;
-		mov eax, [eax+0xC];
-fail:
+
+static void sf_spatial_radius() {
+	TGameObj* spatialObj = opHandler.arg(0).asObject();
+	TScript* script;
+	if (ScrPtr(spatialObj->scriptID, &script) != -1) {
+		opHandler.setReturn(script->spatial_radius);
 	}
-	_RET_VAL_INT(ebp)
-	_OP_END
 }
 
 static void __declspec(naked) GetScript() {
@@ -334,19 +335,15 @@ end:
 }
 
 static DWORD _stdcall obj_blocking_at_wrapper(DWORD obj, DWORD tile, DWORD elevation, DWORD func) {
-	DWORD retval;
 	__asm {
 		mov eax, obj;
 		mov edx, tile;
 		mov ebx, elevation;
 		call func;
-		mov retval, eax;
 	}
-	return retval;
 }
 
 static DWORD _stdcall make_straight_path_func_wrapper(DWORD obj, DWORD tileFrom, DWORD a3, DWORD tileTo, DWORD* result, DWORD a6, DWORD func) {
-	DWORD retval;
 	__asm {
 		mov eax, obj;
 		mov edx, tileFrom;
@@ -356,9 +353,7 @@ static DWORD _stdcall make_straight_path_func_wrapper(DWORD obj, DWORD tileFrom,
 		push a6;
 		push result;
 		call make_straight_path_func_;
-		mov retval, eax;
 	}
-	return retval;
 }
 
 #define BLOCKING_TYPE_BLOCK		(0)
@@ -384,29 +379,29 @@ static DWORD getBlockingFunc(DWORD type) {
 }
 
 static void _stdcall op_make_straight_path2() {
-	DWORD objFrom = GetOpArgInt(0),
-		  tileTo = GetOpArgInt(1),
-		  type = GetOpArgInt(2),
+	DWORD objFrom	= opHandler.arg(0).asInt(),
+		  tileTo	= opHandler.arg(1).asInt(),
+		  type		= opHandler.arg(2).asInt(),
 		  resultObj, arg6;
 	arg6 = (type == BLOCKING_TYPE_SHOOT) ? 32 : 0;
 	make_straight_path_func_wrapper(objFrom, *(DWORD*)(objFrom + 4), 0, tileTo, &resultObj, arg6, getBlockingFunc(type));
-	SetOpReturn(resultObj, DATATYPE_INT);
+	opHandler.setReturn(resultObj, DATATYPE_INT);
 }
 
 static void __declspec(naked) op_make_straight_path() {
-	_WRAP_OPCODE(3, op_make_straight_path2)
+	_WRAP_OPCODE(op_make_straight_path2, 3, 1)
 }
 
 static void _stdcall op_make_path2() {
-	DWORD objFrom = GetOpArgInt(0),
+	DWORD objFrom = opHandler.arg(0).asInt(),
 		tileFrom = 0,
-		tileTo = GetOpArgInt(1),
-		type = GetOpArgInt(2),
+		tileTo = opHandler.arg(1).asInt(),
+		type = opHandler.arg(2).asInt(),
 		func = getBlockingFunc(type),
 		arr;
 	long pathLength, a5 = 1;
 	if (!objFrom) {
-		SetOpReturn(0, DATATYPE_INT);
+		opHandler.setReturn(0, DATATYPE_INT);
 		return;
 	}
 	tileFrom = *(DWORD*)(objFrom + 4);
@@ -426,33 +421,33 @@ static void _stdcall op_make_path2() {
 	for (int i=0; i < pathLength; i++) {
 		arrays[arr].val[i].set((long)pathData[i]);
 	}
-	SetOpReturn(arr, DATATYPE_INT);
+	opHandler.setReturn(arr, DATATYPE_INT);
 }
 
 static void __declspec(naked) op_make_path() {
-	_WRAP_OPCODE(3, op_make_path2)
+	_WRAP_OPCODE(op_make_path2, 3, 1)
 }
 
 static void _stdcall op_obj_blocking_at2() {
-	DWORD tile = GetOpArgInt(0),
-		  elevation = GetOpArgInt(1),
-		  type = GetOpArgInt(2), 
+	DWORD tile = opHandler.arg(0).asInt(),
+		  elevation = opHandler.arg(1).asInt(),
+		  type = opHandler.arg(2).asInt(), 
 		  resultObj;
 	resultObj = obj_blocking_at_wrapper(0, tile, elevation, getBlockingFunc(type));
 	if (resultObj && type == BLOCKING_TYPE_SHOOT && (*(DWORD*)(resultObj + 39) & 0x80)) { // don't know what this flag means, copy-pasted from the engine code
 		// this check was added because the engine always does exactly this when using shoot blocking checks
 		resultObj = 0;
 	}
-	SetOpReturn(resultObj, DATATYPE_INT);
+	opHandler.setReturn(resultObj, DATATYPE_INT);
 }
 
 static void __declspec(naked) op_obj_blocking_at() {
-	_WRAP_OPCODE(3, op_obj_blocking_at2)
+	_WRAP_OPCODE(op_obj_blocking_at2, 3, 1)
 }
 
 static void _stdcall op_tile_get_objects2() {
-	DWORD tile = GetOpArgInt(0),
-		elevation = GetOpArgInt(1), 
+	DWORD tile = opHandler.arg(0).asInt(),
+		elevation = opHandler.arg(1).asInt(), 
 		obj;
 	DWORD arrayId = TempArray(0, 4);
 	__asm {
@@ -468,15 +463,15 @@ static void _stdcall op_tile_get_objects2() {
 			mov obj, eax;
 		}
 	}
-	SetOpReturn(arrayId, DATATYPE_INT);
+	opHandler.setReturn(arrayId, DATATYPE_INT);
 }
 
 static void __declspec(naked) op_tile_get_objects() {
-	_WRAP_OPCODE(2, op_tile_get_objects2)
+	_WRAP_OPCODE(op_tile_get_objects2, 2, 1)
 }
 
 static void _stdcall op_get_party_members2() {
-	DWORD obj, mode = GetOpArgInt(0), isDead;
+	DWORD obj, mode = opHandler.arg(0).asInt(), isDead;
 	int i, actualCount = *(DWORD*)_partyMemberCount;
 	DWORD arrayId = TempArray(0, 4);
 	DWORD* partyMemberList = *(DWORD**)_partyMemberList;
@@ -497,11 +492,11 @@ static void _stdcall op_get_party_members2() {
 		}
 		arrays[arrayId].push_back((long)obj);
 	}
-	SetOpReturn(arrayId, DATATYPE_INT);
+	opHandler.setReturn(arrayId, DATATYPE_INT);
 }
 
 static void __declspec(naked) op_get_party_members() {
-	_WRAP_OPCODE(1, op_get_party_members2)
+	_WRAP_OPCODE(op_get_party_members2, 1, 1)
 }
 
 static void __declspec(naked) op_art_exists() {
@@ -520,11 +515,14 @@ end:
 }
 
 static void _stdcall op_obj_is_carrying_obj2() {
-	DWORD num = 0;
-	if (IsOpArgInt(0) && IsOpArgInt(1)) {
-		TGameObj *invenObj = (TGameObj*)GetOpArgInt(0),
-				 *itemObj = (TGameObj*)GetOpArgInt(1);
-		if (invenObj && itemObj) {
+	int num = 0;
+	const ScriptValue &invenObjArg = opHandler.arg(0),
+					  &itemObjArg = opHandler.arg(1);
+
+	if (invenObjArg.isInt() && itemObjArg.isInt()) {
+		TGameObj *invenObj = (TGameObj*)invenObjArg.asObject(),
+				 *itemObj = (TGameObj*)itemObjArg.asObject();
+		if (invenObj != nullptr && itemObj != nullptr) {
 			for (int i = 0; i < invenObj->invenCount; i++) {
 				if (invenObj->invenTablePtr[i].object == itemObj) {
 					num = invenObj->invenTablePtr[i].count;
@@ -533,9 +531,30 @@ static void _stdcall op_obj_is_carrying_obj2() {
 			}
 		}
 	}
-	SetOpReturn(num, DATATYPE_INT);
+	opHandler.setReturn(num);
 }
 
 static void __declspec(naked) op_obj_is_carrying_obj() {
-	_WRAP_OPCODE(2, op_obj_is_carrying_obj2)
+	_WRAP_OPCODE(op_obj_is_carrying_obj2, 2, 1)
+}
+
+static void sf_critter_inven_obj2() {
+	TGameObj* critter = opHandler.arg(0).asObject();
+	int slot = opHandler.arg(1).asInt();
+	switch (slot) {
+	case 0:
+		opHandler.setReturn(InvenWorn(critter));
+		break;
+	case 1:
+		opHandler.setReturn(InvenRightHand(critter));
+		break;
+	case 2:
+		opHandler.setReturn(InvenLeftHand(critter));
+		break;
+	case -2:
+		opHandler.setReturn(critter->invenCount);
+		break;
+	default:
+		opHandler.printOpcodeError("critter_inven_obj2() - invalid type.");
+	}
 }

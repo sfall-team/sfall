@@ -1088,7 +1088,7 @@ void _stdcall RegisterHook( DWORD script, DWORD id, DWORD procNum )
 	}
 	sScriptProgram *prog = GetGlobalScriptProgram(script);
 	if (prog) {
-		dlog_f( "Global script %8x registered as hook id %d ", DL_HOOK, script, id);
+		dlog_f("Global script %08x registered as hook id %d\r\n", DL_HOOK, script, id);
 		sHookScript hook;
 		hook.prog = *prog;
 		hook.callback = procNum;
@@ -1102,39 +1102,40 @@ static void LoadHookScript(const char* name, int id) {
 
 	char filename[MAX_PATH];
 	sprintf(filename, "scripts\\%s.int", name);
-	bool result;
+	bool fileExist;
 	__asm {
 		lea  eax, filename
 		call db_access_
-		mov  result, al
+		mov  fileExist, al
 	}
 
-	if (result && !isGameScript(name)) {
+	if (fileExist && !isGameScript(name)) {
 		sScriptProgram prog;
-		dlog("Loading hook script: ", DL_HOOK);
-		dlog(filename, DL_HOOK);
+		dlog(">", DL_HOOK);
+		dlog(name, DL_HOOK);
 		LoadScriptProgram(prog, name);
 		if (prog.ptr) {
+			dlogr(" Done", DL_HOOK);
 			sHookScript hook;
 			hook.prog = prog;
 			hook.callback = -1;
 			hook.isGlobalScript = false;
 			hooks[id].push_back(hook);
 			AddProgramToMap(prog);
-			dlogr(" Done", DL_HOOK);
 		} else dlogr(" Error!", DL_HOOK);
 	}
 }
 
 static void HookScriptInit2() {
-	dlogr("Initing hook scripts", DL_HOOK|DL_INIT);
+	dlogr("Loading hook scripts", DL_HOOK|DL_INIT);
 
 	char* mask = "scripts\\hs_*.int";
 	DWORD *filenames;
 	__asm {
+		xor  ecx, ecx
 		xor  ebx, ebx
-		mov  eax, mask
 		lea  edx, filenames
+		mov  eax, mask
 		call db_get_file_list_
 	}
 
@@ -1289,7 +1290,7 @@ static void HookScriptInit2() {
 		call db_free_file_list_
 	}
 
-	dlogr("Completed hook script init", DL_HOOK|DL_INIT);
+	dlogr("Finished loading hook scripts", DL_HOOK|DL_INIT);
 }
 
 void HookScriptClear() {

@@ -141,7 +141,6 @@ static void __declspec(naked) CreditsNextLineHook_Bottom() {
 		test eax, eax;                // if any extra lines left, return 1 (from function), 0 otherwise
 		popad;
 		jnz  morelines;
-theend:
 		mov  eax, 0x0;
 		retn;
 morelines:

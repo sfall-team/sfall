@@ -60,6 +60,9 @@
 #include "Tiles.h"
 #include "timer.h"
 #include "version.h"
+#if (_MSC_VER < 1600)
+#include "Cpp11_emu.h"
+#endif
 
 bool IsDebug = false;
 
@@ -83,7 +86,7 @@ static const char* musicOverridePath="data\\sound\\music\\";
 
 bool npcautolevel;
 
-static int* scriptDialog;
+static int* scriptDialog = nullptr;
 
 //GetTickCount calls
 static const DWORD offsetsA[] = {
@@ -383,12 +386,12 @@ static void __declspec(naked) ViewportHook() {
 	}
 }
 
-HANDLE _stdcall FakeFindFirstFile(const char* str, WIN32_FIND_DATAA* data) {
-	HANDLE h=FindFirstFileA(str,data);
-	if(h==INVALID_HANDLE_VALUE) return h;
-	while(strlen(data->cFileName)>12) {
-		int i=FindNextFileA(h, data);
-		if(i==0) {
+/*HANDLE _stdcall FakeFindFirstFile(const char* str, WIN32_FIND_DATAA* data) {
+	HANDLE h = FindFirstFileA(str,data);
+	if (h == INVALID_HANDLE_VALUE) return h;
+	while (strlen(data->cFileName) > 12) {
+		int i = FindNextFileA(h, data);
+		if(i == 0) {
 			FindClose(h);
 			return INVALID_HANDLE_VALUE;
 		}
@@ -396,12 +399,13 @@ HANDLE _stdcall FakeFindFirstFile(const char* str, WIN32_FIND_DATAA* data) {
 	return h;
 }
 int _stdcall FakeFindNextFile(HANDLE h, WIN32_FIND_DATAA* data) {
-	int i=FindNextFileA(h, data);
-	while(strlen(data->cFileName)>12&&i) {
-		i=FindNextFileA(h, data);
+	int i = FindNextFileA(h, data);
+	while (strlen(data->cFileName) > 12 && i) {
+		i = FindNextFileA(h, data);
 	}
 	return i;
-}
+}*/
+
 static void __declspec(naked) WeaponAnimHook() {
 	__asm {
 		cmp edx, 11;
@@ -426,7 +430,7 @@ static void __declspec(naked) removeDatabase() {
 		mov  ecx, ebx
 nextPath:
 		mov  edx, [esp+0x104+4+4]                 // path_patches
-		mov  eax, [ebx+0x0]                       // database.path
+		mov  eax, [ebx]                           // database.path
 		call stricmp_
 		test eax, eax                             // found path?
 		jz   skip                                 // Yes
@@ -458,7 +462,7 @@ static void __declspec(naked) game_init_databases_hack2() {
 		cmp  eax, -1
 		je   end
 		mov  eax, ds:[_master_db_handle]
-		mov  eax, [eax+0x0]                       // eax = master_patches.path
+		mov  eax, [eax]                           // eax = master_patches.path
 		call xremovepath_
 		dec  eax                                  // remove path (critter_patches == master_patches)?
 		jz   end                                  // Yes
@@ -847,6 +851,10 @@ static void DllMain2() {
 	//SafeWrite8(0x4B30C4, 0xc3); //this is the one I need to override for bigger tiles
 	DWORD tmp;
 	dlogr("In DllMain2", DL_MAIN);
+
+	dlogr("Running BugsInit.", DL_INIT);
+	BugsInit();
+	dlogr(" Done", DL_INIT);
 
 	if (GetPrivateProfileIntA("Speed", "Enable", 0, ini)) {
 		dlog("Applying speed patch.", DL_INIT);
@@ -1246,18 +1254,12 @@ static void DllMain2() {
 		FileSystemInit();
 	}
 
-	/*DWORD horrigan=GetPrivateProfileIntA("Misc", "DisableHorrigan", 0, ini);
-	if(horrigan) {
-		if(*((BYTE*)0x004C06D8)!=0x75) return false;
-		SafeWrite8(0x004C06D8, 0xeb);
-	}*/
-
-	//if(GetPrivateProfileIntA("Misc", "PrintToFileFix", 0, ini)) {
+	/*if (GetPrivateProfileIntA("Misc", "PrintToFileFix", 0, ini)) {
 		dlog("Applying print to file patch.", DL_INIT);
-		SafeWrite32(0x006C0364, (DWORD)&FakeFindFirstFile);
-		SafeWrite32(0x006C0368, (DWORD)&FakeFindNextFile);
+		SafeWrite32(0x6C0364, (DWORD)&FakeFindFirstFile);
+		SafeWrite32(0x6C0368, (DWORD)&FakeFindNextFile);
 		dlogr(" Done", DL_INIT);
-	//}
+	}*/
 
 	if(GetPrivateProfileIntA("Misc", "AdditionalWeaponAnims", 0, ini)) {
 		dlog("Applying additional weapon animations patch.", DL_INIT);
@@ -1278,8 +1280,8 @@ static void DllMain2() {
 
 	if (GetPrivateProfileIntA("Misc", "MultiPatches", 0, ini)) {
 		dlog("Applying load multiple patches patch.", DL_INIT);
-		SafeWrite8(0x444338, 0x90); // Change step from 2 to 1
-		SafeWrite32(0x444363, 0xEB909090); // Disable check
+		SafeWrite8(0x444354, 0x90); // Change step from 2 to 1
+		SafeWrite8(0x44435C, 0xC4); // Disable check
 		dlogr(" Done", DL_INIT);
 	}
 
@@ -1619,13 +1621,13 @@ static void DllMain2() {
 		dlogr(" Done", DL_INIT);
 	}
 
-	dlog("Running BugsInit.", DL_INIT);
-	BugsInit();
-	dlogr(" Done", DL_INIT);
 	dlogr("Leave DllMain2", DL_MAIN);
 }
 
 static void _stdcall OnExit() {
+	if (scriptDialog != nullptr) {
+		delete[] scriptDialog;
+	}
 	ClearReadExtraGameMsgFiles();
 	ConsoleExit();
 	AnimationsAtOnceExit();

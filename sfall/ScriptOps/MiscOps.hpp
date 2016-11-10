@@ -1674,3 +1674,8 @@ end:
 	_RET_VAL_INT(ebp)
 	_OP_END
 }
+
+
+static void sf_exec_map_update_scripts() {
+	__asm call scr_exec_map_update_scripts_
+}

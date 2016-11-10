@@ -1,26 +1,28 @@
 /*
- *	sfall
- *	Copyright (C) 2008, 2009, 2010, 2011, 2012  The sfall team
+ *    sfall
+ *    Copyright (C) 2008-2016  The sfall team
  *
- *	This program is free software: you can redistribute it and/or modify
- *	it under the terms of the GNU General Public License as published by
- *	the Free Software Foundation, either version 3 of the License, or
- *	(at your option) any later version.
+ *    This program is free software: you can redistribute it and/or modify
+ *    it under the terms of the GNU General Public License as published by
+ *    the Free Software Foundation, either version 3 of the License, or
+ *    (at your option) any later version.
  *
- *	This program is distributed in the hope that it will be useful,
- *	but WITHOUT ANY WARRANTY; without even the implied warranty of
- *	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *	GNU General Public License for more details.
+ *    This program is distributed in the hope that it will be useful,
+ *    but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *    GNU General Public License for more details.
  *
- *	You should have received a copy of the GNU General Public License
- *	along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *    You should have received a copy of the GNU General Public License
+ *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 #include "main.h"
 
+#include <cassert>
 #include <hash_map>
 #include <set>
 #include <string>
+
 #include "Arrays.h"
 #include "BarBoxes.h"
 #include "Console.h"
@@ -31,75 +33,317 @@
 #include "input.h"
 #include "LoadGameHook.h"
 #include "Logging.h"
-#include "numbers.h"
 #include "ScriptExtender.h"
 #include "version.h"
+#if (_MSC_VER < 1600)
+#include "Cpp11_emu.h"
+#endif
 
 void _stdcall HandleMapUpdateForScripts(DWORD procId);
 
 // variables for new opcodes
-static DWORD opArgCount = 0;
-static DWORD opArgs[5];
-static DWORD opArgTypes[5];
-static DWORD opRet;
-static DWORD opRetType;
+#define OP_MAX_ARGUMENTS	(10)
 
-static void _stdcall SetOpReturn(DWORD value, DWORD type) {
-	opRet = value;
-	opRetType = type;
-}
+// masks for argument validation
+#define DATATYPE_MASK_INT		(1 << DATATYPE_INT)
+#define DATATYPE_MASK_FLOAT		(1 << DATATYPE_FLOAT)
+#define DATATYPE_MASK_STR		(1 << DATATYPE_STR)
+#define DATATYPE_MASK_NOT_NULL	(0x00010000)
+#define DATATYPE_MASK_VALID_OBJ	(DATATYPE_MASK_INT | DATATYPE_MASK_NOT_NULL)
 
-static void _stdcall SetOpReturn(int value) {
-	SetOpReturn((DWORD)value, DATATYPE_INT);
-}
+struct SfallOpcodeMetadata {
+	// opcode handler, will be used as key
+	void (*handler)();
 
-static void _stdcall SetOpReturn(float value) {
-	SetOpReturn(*(DWORD*)&value, DATATYPE_FLOAT);
-}
+	// opcode name, only used for logging
+	const char* name;
 
-static void _stdcall SetOpReturn(const char* value) {
-	SetOpReturn((DWORD)value, DATATYPE_STR);
-}
+	// argument validation masks
+	int argTypeMasks[OP_MAX_ARGUMENTS];
+};
 
-static bool _stdcall IsOpArgInt(int num) {
-	return (opArgTypes[num] == DATATYPE_INT);
-}
+typedef std::tr1::unordered_map<void(*)(), const SfallOpcodeMetadata*> OpcodeMetaTableType;
 
-static bool _stdcall IsOpArgFloat(int num) {
-	return (opArgTypes[num] == DATATYPE_FLOAT);
-}
+static OpcodeMetaTableType opcodeMetaTable;
 
-static bool _stdcall IsOpArgStr(int num) {
-	return (opArgTypes[num] == DATATYPE_STR);
-}
-
-static int _stdcall GetOpArgInt(int num) {
-	switch (opArgTypes[num]) {
-	case DATATYPE_FLOAT:
-		return (int)*(float*)&opArgs[num];
-	case DATATYPE_INT:
-		return (int)opArgs[num];
-	default:
-		return 0;
+class ScriptValue {
+public:
+	ScriptValue(SfallDataType type, DWORD value) {
+		_val.dw = value;
+		_type = type;
 	}
-}
 
-static float _stdcall GetOpArgFloat(int num) {
-	switch (opArgTypes[num]) {
-	case DATATYPE_FLOAT:
-		return *(float*)&opArgs[num];
-	case DATATYPE_INT:
-		return (float)(int)opArgs[num];
-	default:
-		return 0.0;
+	ScriptValue() {
+		_val.dw = 0;
+		_type = DATATYPE_NONE;
 	}
-}
 
-static const char* _stdcall GetOpArgStr(int num) {
-	return (opArgTypes[num] == DATATYPE_STR)
-		? (const char*)opArgs[num]
-		: "";
-}
+	ScriptValue(const char* strval) {
+		_val.str = strval;
+		_type = DATATYPE_STR;
+	}
+
+	ScriptValue(int val) {
+		_val.i = val;
+		_type = DATATYPE_INT;
+	}
+
+	ScriptValue(float strval) {
+		_val.f = strval;
+		_type = DATATYPE_FLOAT;
+	}
+
+	ScriptValue(TGameObj* obj) {
+		_val.gObj = obj;
+		_type = DATATYPE_INT;
+	}
+
+	bool isInt() const {
+		return _type == DATATYPE_INT;
+	}
+
+	bool isFloat() const {
+		return _type == DATATYPE_FLOAT;
+	}
+
+	bool isString() const {
+		return _type == DATATYPE_STR;
+	}
+
+	DWORD rawValue() const {
+		return _val.dw;
+	}
+
+	int asInt() const {
+		switch (_type) {
+		case DATATYPE_FLOAT:
+			return static_cast<int>(_val.f);
+		case DATATYPE_INT:
+			return _val.i;
+		default:
+			return 0;
+		}
+	}
+
+	float asFloat() const {
+		switch (_type) {
+		case DATATYPE_FLOAT:
+			return _val.f;
+		case DATATYPE_INT:
+			return static_cast<float>(_val.i);
+		default:
+			return 0.0;
+		}
+	}
+
+	const char* asString() const {
+		return (_type == DATATYPE_STR)
+			? _val.str
+			: "";
+	}
+
+	TGameObj* asObject() const {
+		return (_type == DATATYPE_INT)
+			? _val.gObj
+			: nullptr;
+	}
+
+	SfallDataType type() const {
+		return _type;
+	}
+
+private:
+	union Value {
+		DWORD dw;
+		int i;
+		float f;
+		const char* str;
+		TGameObj* gObj;
+	} _val;
+
+	SfallDataType _type; // TODO: replace with enum class
+} ;
+
+typedef struct {
+	union Value {
+		DWORD dw;
+		int i;
+		float f;
+		const char* str;
+		TGameObj* gObj;
+	} val;
+	DWORD type; // TODO: replace with enum class
+} ScriptValue1;
+
+class OpcodeHandler {
+public:
+	OpcodeHandler() {
+		_argShift = 0;
+		_args.reserve(OP_MAX_ARGUMENTS);
+	}
+
+	// number of arguments, possibly reduced by argShift
+	int numArgs() const {
+		return _args.size() - _argShift;
+	}
+
+	// returns current argument shift, default is 0
+	int argShift() const {
+		return _argShift;
+	}
+
+	// sets shift value for arguments
+	// for example if shift value is 2, then subsequent calls to arg(i) will return arg(i+2) instead, etc.
+	void setArgShift(int shift) {
+		assert(shift >= 0);
+
+		_argShift = shift;
+	}
+
+	// returns argument with given index, possible shifted by argShift
+	const ScriptValue& arg(int index) const {
+		return _args.at(index + _argShift);
+	}
+	
+	// current return value
+	const ScriptValue& returnValue() const {
+		return _ret;
+	}
+
+	// current script program
+	TProgram* program() const {
+		return _program;
+	}
+	
+	// set return value for current opcode
+	void setReturn(DWORD value, SfallDataType type) {
+		_ret = ScriptValue(type, value);
+	}
+	
+	// set return value for current opcode
+	void setReturn(const ScriptValue& val) {
+		_ret = val;
+	}
+
+	// resets the state of handler for new opcode invocation
+	void resetState(TProgram* program, int argNum) {
+		_program = program;
+		
+		// reset return value
+		_ret = ScriptValue();
+		// reset argument list
+		_args.resize(argNum);
+		// reset arg shift
+		_argShift = 0;
+	}
+	
+	// writes error message to debug.log along with the name of script & procedure
+	void printOpcodeError(const char* fmt, ...) const {
+		assert(_program != nullptr);
+
+		va_list args;
+		va_start(args, fmt);
+		char msg[1024];
+		vsnprintf_s(msg, sizeof msg, _TRUNCATE, fmt, args);
+		va_end(args);
+
+		const char* procName = FindCurrentProc(_program);
+		DebugPrintf("\nOPCODE ERROR: %s\n   Current script: %s, procedure %s.", msg, _program->fileName, procName);
+	}
+
+	// Validate opcode arguments against type masks
+	// if validation pass, returns true, otherwise writes error to debug.log and returns false
+	bool validateArguments(const int argTypeMasks[], int argCount, const char* opcodeName) const {
+		for (int i = 0; i < argCount; i++) {
+			int typeMask = argTypeMasks[i];
+			const ScriptValue &argI = arg(i);
+			if (typeMask != 0 && ((1 << argI.type()) & typeMask) == 0) {
+				printOpcodeError(
+					"%s() - argument #%d has invalid type: %s.", 
+					opcodeName, 
+					i,
+					GetSfallTypeName(argI.type()));
+
+				return false;
+			} else if ((typeMask & DATATYPE_MASK_NOT_NULL) && argI.rawValue() == 0) {
+				printOpcodeError(
+					"%s() - argument #%d is null.", 
+					opcodeName, 
+					i);
+
+				return false;
+			}
+		}
+		return true;
+	}
+
+	// Handle opcodes
+	// scriptPtr - pointer to script program (from the engine)
+	// func - opcode handler
+	// hasReturn - true if opcode has return value (is expression)
+	void __thiscall handleOpcode(TProgram* program, void(*func)(), int argNum, bool hasReturn) {
+		assert(argNum < OP_MAX_ARGUMENTS);
+
+		// reset state after previous
+		resetState(program, argNum);
+
+		// process arguments on stack (reverse order)
+		for (int i = argNum - 1; i >= 0; i--) {
+			// get argument from stack
+			DWORD rawValueType = InterpretPopShort(program);
+			DWORD rawValue = InterpretPopLong(program);
+			SfallDataType type = static_cast<SfallDataType>(getSfallTypeByScriptType(rawValueType));
+
+			// retrieve string argument
+			if (type == DATATYPE_STR) {
+				_args.at(i) = InterpretGetString(program, rawValue, rawValueType);
+			} else {
+				_args.at(i) = ScriptValue(type, rawValue);
+			}
+		}
+		// flag that arguments passed are valid
+		bool argumentsValid = true;
+
+		// check if metadata is available
+		OpcodeMetaTableType::iterator it = opcodeMetaTable.find(func);
+		if (it != opcodeMetaTable.end()) {
+			const SfallOpcodeMetadata* meta = it->second;
+
+			// automatically validate argument types
+			argumentsValid = validateArguments(meta->argTypeMasks, argNum, meta->name);
+		}
+
+		// call opcode handler if arguments are valid (or no automatic validation was done)
+		if (argumentsValid) {
+			func();
+		}
+
+		// process return value
+		if (hasReturn) {
+			if (_ret.type() == DATATYPE_NONE) {
+				// if no value was set in handler, force return 0 to avoid stack error
+				_ret = ScriptValue(0);
+			}
+			DWORD rawResult = _ret.rawValue();
+			if (_ret.type() == DATATYPE_STR) {
+				rawResult = InterpretAddString(program, _ret.asString());
+			}
+			InterpretPushLong(program, rawResult);
+			InterpretPushShort(program, getScriptTypeBySfallType(_ret.type()));
+		}
+	}
+
+private:
+	TProgram* _program;
+
+	int _argShift;
+	std::vector<ScriptValue> _args;
+	ScriptValue _ret;
+};
+
+static OpcodeHandler opHandler;
+
+
 
 #include "ScriptOps\AsmMacros.h"
 #include "ScriptOps\ScriptArrays.hpp"
@@ -115,7 +359,30 @@ static const char* _stdcall GetOpArgStr(int num) {
 #include "ScriptOps\ObjectsOps.hpp"
 #include "ScriptOps\AnimOps.hpp"
 #include "ScriptOps\MiscOps.hpp"
+#include "ScriptOps\MetaruleOp.hpp"
 
+/*
+	Array for opcodes metadata.
+
+	This is completely optional, added for convenience only.
+
+	By adding opcode to this array, Sfall will automatically validate it's arguments using provided info.
+	On fail, errors will be printed to debug.log and opcode will not be executed.
+	If you don't include opcode in this array, you should take care of all argument validation inside handler itself.
+*/
+static const SfallOpcodeMetadata opcodeMetaArray[] = {
+	{sf_test, "validate_test", {DATATYPE_MASK_INT, DATATYPE_MASK_INT | DATATYPE_MASK_FLOAT, DATATYPE_MASK_STR, DATATYPE_NONE}},
+	{sf_spatial_radius, "spatial_radius", {DATATYPE_MASK_VALID_OBJ}},
+	{sf_critter_inven_obj2, "critter_inven_obj2", {DATATYPE_MASK_VALID_OBJ, DATATYPE_MASK_INT}},
+	//{op_message_str_game, {}}
+};
+
+static void InitOpcodeMetaTable() {
+	int length = sizeof(opcodeMetaArray) / sizeof(SfallOpcodeMetadata);
+	for (int i = 0; i < length; ++i) {
+		opcodeMetaTable[opcodeMetaArray[i].handler] = &opcodeMetaArray[i];
+	}
+}
 
 typedef void (_stdcall *regOpcodeProc)(WORD opcode,void* ptr);
 
@@ -124,7 +391,7 @@ static DWORD MotionSensorMode;
 static BYTE toggleHighlightsKey;
 static DWORD HighlightContainers;
 static DWORD Color_Containers;
-static int idle;
+static signed char idle;
 static char HighlightFail1[128];
 static char HighlightFail2[128];
 
@@ -927,8 +1194,13 @@ void ScriptExtenderSetup() {
 	GetPrivateProfileStringA("Sfall", "HighlightFail1", "You aren't carrying a motion sensor.", HighlightFail1, 128, translationIni);
 	GetPrivateProfileStringA("Sfall", "HighlightFail2", "Your motion sensor is out of charge.", HighlightFail2, 128, translationIni);
 
-	idle=GetPrivateProfileIntA("Misc", "ProcessorIdle", -1, ini);
-	modifiedIni=GetPrivateProfileIntA("Main", "ModifiedIni", 0, ini);
+	idle = GetPrivateProfileIntA("Misc", "ProcessorIdle", -1, ini);
+	if (idle > -1) {
+		SafeWrite32(_idle_func, (DWORD)Sleep);
+		SafeWrite8(0x4C9F12, 0x6A); // push
+		SafeWrite8(0x4C9F13, idle);
+	}
+	modifiedIni = GetPrivateProfileIntA("Main", "ModifiedIni", 0, ini);
 
 	dlogr("Adding additional opcodes", DL_SCRIPT);
 	if(AllowUnsafeScripting) dlogr("  Unsafe opcodes enabled", DL_SCRIPT);
@@ -1248,6 +1520,17 @@ void ScriptExtenderSetup() {
 	opcodes[0x273]=op_create_spatial;
 	opcodes[0x274]=op_art_exists;
 	opcodes[0x275]=op_obj_is_carrying_obj;
+	// universal opcodes
+	opcodes[0x276]=op_sfall_metarule0;
+	opcodes[0x277]=op_sfall_metarule1;
+	opcodes[0x278]=op_sfall_metarule2;
+	opcodes[0x279]=op_sfall_metarule3;
+	opcodes[0x27a]=op_sfall_metarule4;
+	opcodes[0x27b]=op_sfall_metarule5;
+	opcodes[0x27c]=op_sfall_metarule6; // if you need more arguments - use arrays
+
+	InitOpcodeMetaTable();
+	InitMetaruleTable();
 }
 
 
@@ -1261,6 +1544,7 @@ DWORD GetScriptProcByName(DWORD scriptPtr, const char* procName) {
 	}
 	return result;
 }
+
 // loads script from .int file into a sScriptProgram struct, filling script pointer and proc lookup table
 void LoadScriptProgram(sScriptProgram &prog, const char* fileName) {
 	DWORD scriptPtr;
@@ -1318,14 +1602,15 @@ bool _stdcall isGameScript(const char* filename) {
 void LoadGlobalScripts() {
 	isGameLoading = false;
 	HookScriptInit();
-	dlogr("Loading global scripts", DL_SCRIPT);
+	dlogr("Loading global scripts", DL_SCRIPT|DL_INIT);
 
 	char* name = "scripts\\gl*.int";
 	DWORD count, *filenames;
 	__asm {
+		xor  ecx, ecx
 		xor  ebx, ebx
-		mov  eax, name
 		lea  edx, filenames
+		mov  eax, name
 		call db_get_file_list_
 		mov  count, eax
 	}
@@ -1336,10 +1621,12 @@ void LoadGlobalScripts() {
 		name = _strlwr((char*)filenames[i]);
 		name[strlen(name) - 4] = 0;
 		if (!isGameScript(name)) {
+			dlog(">", DL_SCRIPT);
 			dlog(name, DL_SCRIPT);
 			isGlobalScriptLoading = 1;
 			LoadScriptProgram(prog, name);
 			if (prog.ptr) {
+				dlogr(" Done", DL_SCRIPT);
 				DWORD idx;
 				sGlobalScript gscript = sGlobalScript(prog);
 				idx = globalScripts.size();
@@ -1347,7 +1634,6 @@ void LoadGlobalScripts() {
 				AddProgramToMap(prog);
 				// initialize script (start proc will be executed for the first time) -- this needs to be after script is added to "globalScripts" array
 				InitScriptProgram(prog);
-				dlogr(" Done", DL_SCRIPT);
 			} else dlogr(" Error!", DL_SCRIPT);
 			isGlobalScriptLoading = 0;
 		}
@@ -1357,7 +1643,7 @@ void LoadGlobalScripts() {
 		lea  eax, filenames
 		call db_free_file_list_
 	}
-	dlogr("Finished loading global scripts", DL_SCRIPT);
+	dlogr("Finished loading global scripts", DL_SCRIPT|DL_INIT);
 	//ButtonsReload();
 }
 
@@ -1454,7 +1740,7 @@ void AfterAttackCleanup() {
 }
 
 static void RunGlobalScripts1() {
-	if (idle>-1) Sleep(idle);
+	if (idle > -1) Sleep(idle);
 	if (toggleHighlightsKey) {
 		//0x48C294 to toggle
 		if (KeyDown(toggleHighlightsKey)) {
@@ -1476,7 +1762,7 @@ static void RunGlobalScripts1() {
 								mov highlightingToggled, eax;
 							}
 							if (!highlightingToggled) DisplayConsoleMessage(HighlightFail2);
-						} else highlightingToggled=1;
+						} else highlightingToggled = 1;
 					} else {
 						DisplayConsoleMessage(HighlightFail1);
 					}
@@ -1486,10 +1772,10 @@ static void RunGlobalScripts1() {
 			}
 		} else if(highlightingToggled) {
 			if (highlightingToggled == 1) obj_outline_all_items_off();
-			highlightingToggled=0;
+			highlightingToggled = 0;
 		}
 	}
-	for (DWORD d=0; d<globalScripts.size(); d++) {
+	for (DWORD d = 0; d < globalScripts.size(); d++) {
 		if (!globalScripts[d].repeat || (globalScripts[d].mode != 0 && globalScripts[d].mode != 3)) continue;
 		if (++globalScripts[d].count >= globalScripts[d].repeat) {
 			RunScript(&globalScripts[d]);
@@ -1499,20 +1785,20 @@ static void RunGlobalScripts1() {
 }
 
 void RunGlobalScripts2() {
-	if(idle>-1) Sleep(idle);
-	for(DWORD d=0;d<globalScripts.size();d++) {
-		if(!globalScripts[d].repeat||globalScripts[d].mode!=1) continue;
-		if(++globalScripts[d].count>=globalScripts[d].repeat) {
+	if (idle > -1) Sleep(idle);
+	for (DWORD d = 0; d < globalScripts.size(); d++) {
+		if (!globalScripts[d].repeat || globalScripts[d].mode != 1) continue;
+		if (++globalScripts[d].count >= globalScripts[d].repeat) {
 			RunScript(&globalScripts[d]);
 		}
 	}
 	ResetStateAfterFrame();
 }
 void RunGlobalScripts3() {
-	if(idle>-1) Sleep(idle);
-	for(DWORD d=0;d<globalScripts.size();d++) {
-		if(!globalScripts[d].repeat||(globalScripts[d].mode!=2&&globalScripts[d].mode!=3)) continue;
-		if(++globalScripts[d].count>=globalScripts[d].repeat) {
+	if (idle > -1) Sleep(idle);
+	for (DWORD d = 0; d < globalScripts.size(); d++) {
+		if (!globalScripts[d].repeat || (globalScripts[d].mode != 2 && globalScripts[d].mode != 3)) continue;
+		if (++globalScripts[d].count >= globalScripts[d].repeat) {
 			RunScript(&globalScripts[d]);
 		}
 	}

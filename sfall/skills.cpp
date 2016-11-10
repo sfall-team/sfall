@@ -16,14 +16,15 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "main.h"
-
 #include <math.h>
 #include <stdio.h>
+#include <vector>
+
+#include "main.h"
+
 #include "Define.h"
 #include "FalloutEngine.h"
 #include "Knockback.h"
-#include "vector9x.cpp"
 
 struct SkillInfo {
 	DWORD a, b, c; //Not interested in these at the moment
@@ -42,7 +43,7 @@ struct ChanceModifier {
 	int mod;
 };
 
-static vector<ChanceModifier> SkillMaxMods;
+static std::vector<ChanceModifier> SkillMaxMods;
 static ChanceModifier BaseSkillMax;
 static BYTE skillCosts[512*SKILL_count];
 static DWORD basedOnPoints;

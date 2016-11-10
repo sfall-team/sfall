@@ -16,12 +16,13 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#define DIRECTINPUT_VERSION         0x0700
+#include <math.h>
+#include <dinput.h>
+#include <queue>
+
 #include "main.h"
 
-#define DIRECTINPUT_VERSION         0x0700
-#include <dinput.h>
-#include "queue9x.cpp"
-#include <math.h>
 #include "graphics.h"
 #include "ScriptExtender.h"
 #include "HookScripts.h"
@@ -67,7 +68,7 @@ static int MPMouseY;
 #define kDeviceType_KEYBOARD 0
 #define kDeviceType_MOUSE 1
 
-static queue<DIDEVICEOBJECTDATA> bufferedPresses;
+static std::queue<DIDEVICEOBJECTDATA> bufferedPresses;
 
 static HKL keyboardLayout;
 

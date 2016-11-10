@@ -104,9 +104,9 @@ static void _stdcall SaveGame2() {
 
 static char SaveFailMsg[128];
 static DWORD _stdcall combatSaveTest() {
-	if(!SaveInCombatFix) return 1;
-	if(InLoop&COMBAT) {
-		if(SaveInCombatFix==2 || !(InLoop&PCOMBAT)) {
+	if (!SaveInCombatFix && !IsNpcControlled()) return 1;
+	if (InLoop & COMBAT) {
+		if (SaveInCombatFix == 2 || IsNpcControlled() || !(InLoop & PCOMBAT)) {
 			DisplayConsoleMessage(SaveFailMsg);
 			return 0;
 		}
@@ -122,13 +122,14 @@ static DWORD _stdcall combatSaveTest() {
 			call perk_level_;
 			mov bonusmove, eax;
 		}
-		if(*(DWORD*)(*(DWORD*)_obj_dude + 0x40) != ap || bonusmove*2!=*(DWORD*)_combat_free_move) {
+		if (*(DWORD*)(*(DWORD*)_obj_dude + 0x40) != ap || bonusmove * 2 != *(DWORD*)_combat_free_move) {
 			DisplayConsoleMessage(SaveFailMsg);
 			return 0;
 		}
 	}
 	return 1;
 }
+
 static void __declspec(naked) SaveGame() {
 	__asm {
 		push ebx;
@@ -411,9 +412,7 @@ static void __declspec(naked) AutomapHook() {
 void LoadGameHookInit() {
 	SaveInCombatFix = GetPrivateProfileInt("Misc", "SaveInCombatFix", 1, ini);
 	if (SaveInCombatFix > 2) SaveInCombatFix = 0;
-	if (SaveInCombatFix) {
-		GetPrivateProfileString("sfall", "SaveInCombat", "Cannot save at this time", SaveFailMsg, 128, translationIni);
-	}
+	GetPrivateProfileString("sfall", "SaveInCombat", "Cannot save at this time", SaveFailMsg, 128, translationIni);
 	GetPrivateProfileString("sfall", "SaveSfallDataFail", "ERROR saving extended savegame information! Check if other programs interfere with savegame files/folders and try again!", SaveSfallDataFailMsg, 128, translationIni);
 
 	switch (GetPrivateProfileInt("Misc", "PipBoyAvailableAtGameStart", 0, ini)) {

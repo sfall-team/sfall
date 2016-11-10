@@ -16,19 +16,6 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "main.h"
-
-#include <stdio.h>
-#include "ddraw.h"
-#include "FalloutEngine.h"
-#include "Graphics.h"
-#include "Version.h"
-#include "input.h"
-#include "math.h"
-#include "vector9x.cpp"
-#include "LoadGameHook.h"
-#include "heads.h"
-
 #ifdef _DEBUG
 #define D3D_DEBUG_INFO
 #define DEBUGMESS(a) OutputDebugStringA(a)
@@ -38,6 +25,19 @@
 
 #include <d3d9.h>
 #include <d3dx9.h>
+#include <ddraw.h>
+#include <math.h>
+#include <stdio.h>
+#include <vector>
+
+#include "main.h"
+
+#include "FalloutEngine.h"
+#include "Graphics.h"
+#include "heads.h"
+#include "input.h"
+#include "LoadGameHook.h"
+#include "Version.h"
 
 typedef HRESULT (_stdcall *DDrawCreateProc)(void*, IDirectDraw**, void*);
 typedef IDirect3D9* (_stdcall *D3DCreateProc)(UINT version);
@@ -141,8 +141,8 @@ struct sShader {
 		mode2=0;
 	}
 };
-static vector<sShader> shaders;
-static vector<IDirect3DTexture9*> shaderTextures;
+static std::vector<sShader> shaders;
+static std::vector<IDirect3DTexture9*> shaderTextures;
 
 #define MYVERTEXFORMAT D3DFVF_XYZRHW|D3DFVF_TEX1
 struct MyVertex {

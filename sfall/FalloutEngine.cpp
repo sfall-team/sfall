@@ -18,16 +18,189 @@
 
 #include "main.h"
 
-#include "Logging.h"
+#include "Define.h"
 #include "FalloutEngine.h"
+#include "Logging.h"
 
 // global variables
-TGameObj** obj_dude_ptr = (TGameObj**)(0x6610B8);
-TGameObj** inven_dude_ptr = (TGameObj**)(0x519058);
-DWORD* activeUIHand_ptr = (DWORD*)(0x518F78); // 0 - left, 1 - right
-DWORD* dude_traits = (DWORD*)(0x66BE40); // 2 of them
-DWORD* itemCurrentItem = (DWORD*)(0x518F78); 
-DWORD* itemButtonItems = (DWORD*)(0x5970F8);
+long* ptr_pc_traits					  = reinterpret_cast<long*>(_pc_trait); // 2 of them
+
+DWORD* ptr_aiInfoList                 = reinterpret_cast<DWORD*>(_aiInfoList);
+DWORD* ptr_ambient_light              = reinterpret_cast<DWORD*>(_ambient_light);
+DWORD* ptr_art                        = reinterpret_cast<DWORD*>(_art);
+DWORD* ptr_art_name                   = reinterpret_cast<DWORD*>(_art_name);
+DWORD* ptr_art_vault_guy_num          = reinterpret_cast<DWORD*>(_art_vault_guy_num);
+DWORD* ptr_art_vault_person_nums      = reinterpret_cast<DWORD*>(_art_vault_person_nums);
+DWORD* ptr_bckgnd                     = reinterpret_cast<DWORD*>(_bckgnd);
+DWORD* ptr_black_palette              = reinterpret_cast<DWORD*>(_black_palette);
+DWORD* ptr_bottom_line                = reinterpret_cast<DWORD*>(_bottom_line);
+DWORD* ptr_btable                     = reinterpret_cast<DWORD*>(_btable);
+DWORD* ptr_btncnt                     = reinterpret_cast<DWORD*>(_btncnt);
+DWORD* ptr_CarCurrArea                = reinterpret_cast<DWORD*>(_CarCurrArea);
+DWORD* ptr_cmap                       = reinterpret_cast<DWORD*>(_cmap);
+DWORD* ptr_colorTable                 = reinterpret_cast<DWORD*>(_colorTable);
+DWORD* ptr_combat_free_move           = reinterpret_cast<DWORD*>(_combat_free_move);
+DWORD* ptr_combat_list                = reinterpret_cast<DWORD*>(_combat_list);
+DWORD* ptr_combat_state               = reinterpret_cast<DWORD*>(_combat_state);
+DWORD* ptr_combat_turn_running        = reinterpret_cast<DWORD*>(_combat_turn_running);
+DWORD* ptr_combatNumTurns             = reinterpret_cast<DWORD*>(_combatNumTurns);
+DWORD* ptr_crit_succ_eff              = reinterpret_cast<DWORD*>(_crit_succ_eff);
+DWORD* ptr_critter_db_handle          = reinterpret_cast<DWORD*>(_critter_db_handle);
+DWORD* ptr_critterClearObj            = reinterpret_cast<DWORD*>(_critterClearObj);
+DWORD* ptr_crnt_func                  = reinterpret_cast<DWORD*>(_crnt_func);
+DWORD* ptr_curr_font_num              = reinterpret_cast<DWORD*>(_curr_font_num);
+DWORD* ptr_curr_pc_stat               = reinterpret_cast<DWORD*>(_curr_pc_stat);
+DWORD* ptr_curr_stack                 = reinterpret_cast<DWORD*>(_curr_stack);
+DWORD* ptr_cursor_line                = reinterpret_cast<DWORD*>(_cursor_line);
+DWORD* ptr_dialog_target              = reinterpret_cast<DWORD*>(_dialog_target);
+DWORD* ptr_dialog_target_is_party     = reinterpret_cast<DWORD*>(_dialog_target_is_party);
+DWORD* ptr_drugInfoList               = reinterpret_cast<DWORD*>(_drugInfoList);
+DWORD* ptr_edit_win                   = reinterpret_cast<DWORD*>(_edit_win);
+DWORD* ptr_Educated                   = reinterpret_cast<DWORD*>(_Educated);
+DWORD* ptr_Experience_                = reinterpret_cast<DWORD*>(_Experience_);
+DWORD* ptr_fallout_game_time          = reinterpret_cast<DWORD*>(_fallout_game_time);
+DWORD* ptr_flptr                      = reinterpret_cast<DWORD*>(_flptr);
+DWORD* ptr_folder_card_desc           = reinterpret_cast<DWORD*>(_folder_card_desc);
+DWORD* ptr_folder_card_fid            = reinterpret_cast<DWORD*>(_folder_card_fid);
+DWORD* ptr_folder_card_title          = reinterpret_cast<DWORD*>(_folder_card_title);
+DWORD* ptr_folder_card_title2         = reinterpret_cast<DWORD*>(_folder_card_title2);
+DWORD* ptr_frame_time                 = reinterpret_cast<DWORD*>(_frame_time);
+char* ptr_free_perk                   = reinterpret_cast<char*>(_free_perk);
+DWORD* ptr_game_global_vars           = reinterpret_cast<DWORD*>(_game_global_vars);
+DWORD* ptr_game_user_wants_to_quit    = reinterpret_cast<DWORD*>(_game_user_wants_to_quit);
+DWORD* ptr_gcsd                       = reinterpret_cast<DWORD*>(_gcsd);
+DWORD* ptr_gdBarterMod                = reinterpret_cast<DWORD*>(_gdBarterMod);
+DWORD* ptr_gdNumOptions               = reinterpret_cast<DWORD*>(_gdNumOptions);
+DWORD* ptr_gIsSteal                   = reinterpret_cast<DWORD*>(_gIsSteal);
+DWORD* ptr_glblmode                   = reinterpret_cast<DWORD*>(_glblmode);
+DWORD* ptr_gmouse_current_cursor      = reinterpret_cast<DWORD*>(_gmouse_current_cursor);
+DWORD* ptr_gmovie_played_list         = reinterpret_cast<DWORD*>(_gmovie_played_list);
+DWORD* ptr_GreenColor                 = reinterpret_cast<DWORD*>(_GreenColor);
+DWORD* ptr_gsound_initialized         = reinterpret_cast<DWORD*>(_gsound_initialized);
+DWORD* ptr_hit_location_penalty       = reinterpret_cast<DWORD*>(_hit_location_penalty);
+DWORD* ptr_holo_flag                  = reinterpret_cast<DWORD*>(_holo_flag);
+DWORD* ptr_holopages                  = reinterpret_cast<DWORD*>(_holopages);
+DWORD* ptr_hot_line_count             = reinterpret_cast<DWORD*>(_hot_line_count);
+DWORD* ptr_i_fid                      = reinterpret_cast<DWORD*>(_i_fid);
+DWORD* ptr_i_lhand                    = reinterpret_cast<DWORD*>(_i_lhand);
+DWORD* ptr_i_rhand                    = reinterpret_cast<DWORD*>(_i_rhand);
+DWORD* ptr_i_wid                      = reinterpret_cast<DWORD*>(_i_wid);
+DWORD* ptr_i_worn                     = reinterpret_cast<DWORD*>(_i_worn);
+DWORD* ptr_In_WorldMap                = reinterpret_cast<DWORD*>(_In_WorldMap);
+DWORD* ptr_info_line                  = reinterpret_cast<DWORD*>(_info_line);
+DWORD* ptr_interfaceWindow            = reinterpret_cast<DWORD*>(_interfaceWindow);
+DWORD* ptr_intfaceEnabled             = reinterpret_cast<DWORD*>(_intfaceEnabled);
+DWORD* ptr_intotal                    = reinterpret_cast<DWORD*>(_intotal);
+TGameObj** ptr_inven_dude             = reinterpret_cast<TGameObj**>(_inven_dude);
+DWORD* ptr_inven_pid                  = reinterpret_cast<DWORD*>(_inven_pid);
+DWORD* ptr_inven_scroll_dn_bid        = reinterpret_cast<DWORD*>(_inven_scroll_dn_bid);
+DWORD* ptr_inven_scroll_up_bid        = reinterpret_cast<DWORD*>(_inven_scroll_up_bid);
+DWORD* ptr_inventry_message_file      = reinterpret_cast<DWORD*>(_inventry_message_file);
+DWORD* ptr_itemButtonItems            = reinterpret_cast<DWORD*>(_itemButtonItems);
+DWORD* ptr_itemCurrentItem            = reinterpret_cast<DWORD*>(_itemCurrentItem); // 0 - left, 1 - right
+DWORD* ptr_kb_lock_flags              = reinterpret_cast<DWORD*>(_kb_lock_flags);
+DWORD* ptr_last_buttons               = reinterpret_cast<DWORD*>(_last_buttons);
+DWORD* ptr_last_button_winID          = reinterpret_cast<DWORD*>(_last_button_winID);
+DWORD* ptr_last_level                 = reinterpret_cast<DWORD*>(_last_level);
+DWORD* ptr_Level_                     = reinterpret_cast<DWORD*>(_Level_);
+DWORD* ptr_Lifegiver                  = reinterpret_cast<DWORD*>(_Lifegiver);
+DWORD* ptr_list_com                   = reinterpret_cast<DWORD*>(_list_com);
+DWORD* ptr_list_total                 = reinterpret_cast<DWORD*>(_list_total);
+DWORD* ptr_loadingGame                = reinterpret_cast<DWORD*>(_loadingGame);
+DWORD* ptr_LSData                     = reinterpret_cast<DWORD*>(_LSData);
+DWORD* ptr_lsgwin                     = reinterpret_cast<DWORD*>(_lsgwin);
+DWORD* ptr_main_ctd                   = reinterpret_cast<DWORD*>(_main_ctd);
+DWORD* ptr_main_window                = reinterpret_cast<DWORD*>(_main_window);
+DWORD* ptr_map_elevation              = reinterpret_cast<DWORD*>(_map_elevation);
+DWORD* ptr_map_global_vars            = reinterpret_cast<DWORD*>(_map_global_vars);
+DWORD* ptr_master_db_handle           = reinterpret_cast<DWORD*>(_master_db_handle);
+DWORD* ptr_max                        = reinterpret_cast<DWORD*>(_max);
+DWORD* ptr_maxScriptNum               = reinterpret_cast<DWORD*>(_maxScriptNum);
+DWORD* ptr_Meet_Frank_Horrigan        = reinterpret_cast<DWORD*>(_Meet_Frank_Horrigan);
+DWORD* ptr_mouse_hotx                 = reinterpret_cast<DWORD*>(_mouse_hotx);
+DWORD* ptr_mouse_hoty                 = reinterpret_cast<DWORD*>(_mouse_hoty);
+DWORD* ptr_mouse_is_hidden            = reinterpret_cast<DWORD*>(_mouse_is_hidden);
+DWORD* ptr_mouse_x_                   = reinterpret_cast<DWORD*>(_mouse_x_);
+DWORD* ptr_mouse_y                    = reinterpret_cast<DWORD*>(_mouse_y);
+DWORD* ptr_mouse_y_                   = reinterpret_cast<DWORD*>(_mouse_y_);
+DWORD* ptr_Mutate_                    = reinterpret_cast<DWORD*>(_Mutate_);
+DWORD* ptr_name_color                 = reinterpret_cast<DWORD*>(_name_color);
+DWORD* ptr_name_font                  = reinterpret_cast<DWORD*>(_name_font);
+DWORD* ptr_name_sort_list             = reinterpret_cast<DWORD*>(_name_sort_list);
+DWORD* ptr_num_game_global_vars       = reinterpret_cast<DWORD*>(_num_game_global_vars);
+DWORD* ptr_num_map_global_vars        = reinterpret_cast<DWORD*>(_num_map_global_vars);
+TGameObj** ptr_obj_dude               = reinterpret_cast<TGameObj**>(_obj_dude);
+DWORD* ptr_objectTable                = reinterpret_cast<DWORD*>(_objectTable);
+DWORD* ptr_objItemOutlineState        = reinterpret_cast<DWORD*>(_objItemOutlineState);
+DWORD* ptr_optionRect                 = reinterpret_cast<DWORD*>(_optionRect);
+DWORD* ptr_outlined_object            = reinterpret_cast<DWORD*>(_outlined_object);
+DWORD* ptr_partyMemberAIOptions       = reinterpret_cast<DWORD*>(_partyMemberAIOptions);
+DWORD* ptr_partyMemberCount           = reinterpret_cast<DWORD*>(_partyMemberCount);
+DWORD* ptr_partyMemberLevelUpInfoList = reinterpret_cast<DWORD*>(_partyMemberLevelUpInfoList);
+DWORD* ptr_partyMemberList            = reinterpret_cast<DWORD*>(_partyMemberList); // each struct - 4 integers, first integer - objPtr
+DWORD* ptr_partyMemberMaxCount        = reinterpret_cast<DWORD*>(_partyMemberMaxCount);
+DWORD* ptr_partyMemberPidList         = reinterpret_cast<DWORD*>(_partyMemberPidList);
+DWORD* ptr_patches                    = reinterpret_cast<DWORD*>(_patches);
+DWORD* ptr_paths                      = reinterpret_cast<DWORD*>(_paths);
+DWORD* ptr_pc_crit_succ_eff           = reinterpret_cast<DWORD*>(_pc_crit_succ_eff);
+DWORD* ptr_pc_kill_counts             = reinterpret_cast<DWORD*>(_pc_kill_counts);
+char* ptr_pc_name                     = reinterpret_cast<char*>(_pc_name);
+DWORD* ptr_pc_proto                   = reinterpret_cast<DWORD*>(_pc_proto);
+DWORD* ptr_perk_data                  = reinterpret_cast<DWORD*>(_perk_data);
+int** ptr_perkLevelDataList           = reinterpret_cast<int**>(_perkLevelDataList);
+DWORD* ptr_pip_win                    = reinterpret_cast<DWORD*>(_pip_win);
+DWORD* ptr_pipboy_message_file        = reinterpret_cast<DWORD*>(_pipboy_message_file);
+DWORD* ptr_pipmesg                    = reinterpret_cast<DWORD*>(_pipmesg);
+DWORD* ptr_preload_list_index         = reinterpret_cast<DWORD*>(_preload_list_index);
+DWORD* ptr_procTableStrs              = reinterpret_cast<DWORD*>(_procTableStrs);  // table of procId (from define.h) => procName map
+DWORD* ptr_proto_main_msg_file        = reinterpret_cast<DWORD*>(_proto_main_msg_file);
+DWORD* ptr_ptable                     = reinterpret_cast<DWORD*>(_ptable);
+DWORD* ptr_pud                        = reinterpret_cast<DWORD*>(_pud);
+DWORD* ptr_queue                      = reinterpret_cast<DWORD*>(_queue);
+DWORD* ptr_quick_done                 = reinterpret_cast<DWORD*>(_quick_done);
+DWORD* ptr_read_callback              = reinterpret_cast<DWORD*>(_read_callback);
+DWORD* ptr_RedColor                   = reinterpret_cast<DWORD*>(_RedColor);
+DWORD* ptr_retvals                    = reinterpret_cast<DWORD*>(_retvals);
+DWORD* ptr_scr_size                   = reinterpret_cast<DWORD*>(_scr_size);
+DWORD* ptr_scriptListInfo             = reinterpret_cast<DWORD*>(_scriptListInfo);
+DWORD* ptr_skill_data                 = reinterpret_cast<DWORD*>(_skill_data);
+DWORD* ptr_slot_cursor                = reinterpret_cast<DWORD*>(_slot_cursor);
+DWORD* ptr_sneak_working              = reinterpret_cast<DWORD*>(_sneak_working); // DWORD var 
+DWORD* ptr_square                     = reinterpret_cast<DWORD*>(_square);
+DWORD* ptr_squares                    = reinterpret_cast<DWORD*>(_squares);
+DWORD* ptr_stack                      = reinterpret_cast<DWORD*>(_stack);
+DWORD* ptr_stack_offset               = reinterpret_cast<DWORD*>(_stack_offset);
+DWORD* ptr_stat_data                  = reinterpret_cast<DWORD*>(_stat_data);
+DWORD* ptr_stat_flag                  = reinterpret_cast<DWORD*>(_stat_flag);
+DWORD* ptr_Tag_                       = reinterpret_cast<DWORD*>(_Tag_);
+DWORD* ptr_tag_skill                  = reinterpret_cast<DWORD*>(_tag_skill);
+DWORD* ptr_target_curr_stack          = reinterpret_cast<DWORD*>(_target_curr_stack);
+DWORD* ptr_target_pud                 = reinterpret_cast<DWORD*>(_target_pud);
+DWORD* ptr_target_stack               = reinterpret_cast<DWORD*>(_target_stack);
+DWORD* ptr_target_stack_offset        = reinterpret_cast<DWORD*>(_target_stack_offset);
+DWORD* ptr_target_str                 = reinterpret_cast<DWORD*>(_target_str);
+DWORD* ptr_target_xpos                = reinterpret_cast<DWORD*>(_target_xpos);
+DWORD* ptr_target_ypos                = reinterpret_cast<DWORD*>(_target_ypos);
+DWORD* ptr_text_char_width            = reinterpret_cast<DWORD*>(_text_char_width);
+DWORD* ptr_text_height                = reinterpret_cast<DWORD*>(_text_height);
+DWORD* ptr_text_max                   = reinterpret_cast<DWORD*>(_text_max);
+DWORD* ptr_text_mono_width            = reinterpret_cast<DWORD*>(_text_mono_width);
+DWORD* ptr_text_spacing               = reinterpret_cast<DWORD*>(_text_spacing);
+DWORD* ptr_text_to_buf                = reinterpret_cast<DWORD*>(_text_to_buf);
+DWORD* ptr_text_width                 = reinterpret_cast<DWORD*>(_text_width);
+DWORD* ptr_title_color                = reinterpret_cast<DWORD*>(_title_color);
+DWORD* ptr_title_font                 = reinterpret_cast<DWORD*>(_title_font);
+DWORD* ptr_trait_data                 = reinterpret_cast<DWORD*>(_trait_data);
+DWORD* ptr_view_page                  = reinterpret_cast<DWORD*>(_view_page);
+DWORD* ptr_wd_obj                     = reinterpret_cast<DWORD*>(_wd_obj);
+DWORD* ptr_wmAreaInfoList             = reinterpret_cast<DWORD*>(_wmAreaInfoList);
+DWORD* ptr_wmLastRndTime              = reinterpret_cast<DWORD*>(_wmLastRndTime);
+DWORD* ptr_wmWorldOffsetX             = reinterpret_cast<DWORD*>(_wmWorldOffsetX);
+DWORD* ptr_wmWorldOffsetY             = reinterpret_cast<DWORD*>(_wmWorldOffsetY);
+DWORD* ptr_world_xpos                 = reinterpret_cast<DWORD*>(_world_xpos);
+DWORD* ptr_world_ypos                 = reinterpret_cast<DWORD*>(_world_ypos);
+DWORD* ptr_WorldMapCurrArea           = reinterpret_cast<DWORD*>(_WorldMapCurrArea);
+DWORD* ptr_YellowColor                = reinterpret_cast<DWORD*>(_YellowColor);
 
 /**
 	ENGINE FUNCTIONS OFFSETS
@@ -120,6 +293,7 @@ const DWORD db_get_file_list_ = 0x4C6628;
 const DWORD db_read_to_buf_ = 0x4C5DD4;
 const DWORD dbase_close_ = 0x4E5270;
 const DWORD dbase_open_ = 0x4E4F58;
+const DWORD debug_printf_ = 0x4C6F48;
 const DWORD debug_register_env_ = 0x4C6D90;
 const DWORD determine_to_hit_func_ = 0x4243A8;
 const DWORD dialog_out_ = 0x41CF20;
@@ -145,6 +319,7 @@ const DWORD elevator_start_ = 0x43F324;
 const DWORD endgame_slideshow_ = 0x43F788;
 const DWORD exec_script_proc_ = 0x4A4810;
 const DWORD executeProcedure_ = 0x46DD2C;
+const DWORD findCurrentProc_ = 0x467160;
 const DWORD fadeSystemPalette_ = 0x4C7320;
 const DWORD findVar_ = 0x4410AC;
 const DWORD folder_print_line_ = 0x43E3D8;
@@ -177,6 +352,7 @@ const DWORD interpretPopLong_ = 0x467500;
 const DWORD interpretPopShort_ = 0x4674F0;
 const DWORD interpretPushLong_ = 0x4674DC;
 const DWORD interpretPushShort_ = 0x46748C;
+const DWORD interpretError_ = 0x4671F0;
 const DWORD intface_redraw_ = 0x45EB98;
 const DWORD intface_toggle_item_state_ = 0x45F4E0;
 const DWORD intface_toggle_items_ = 0x45F404;
@@ -185,6 +361,9 @@ const DWORD intface_update_hit_points_ = 0x45EBD8;
 const DWORD intface_update_items_ = 0x45EFEC;
 const DWORD intface_update_move_points_ = 0x45EE0C;
 const DWORD intface_use_item_ = 0x45F5EC;
+const DWORD intface_show_ = 0x45EA10;
+const DWORD intface_hide_ = 0x45E9E0;
+const DWORD intface_is_hidden_ = 0x45EA5C;
 const DWORD invenUnwieldFunc_ = 0x472A64;
 const DWORD invenWieldFunc_ = 0x472768;
 const DWORD inven_display_msg_ = 0x472D24;
@@ -264,6 +443,7 @@ const DWORD mouse_in_ = 0x4CA8C8;
 const DWORD mouse_show_ = 0x4CA34C;
 const DWORD move_inventory_ = 0x474708;
 const DWORD NixHotLines_ = 0x4999C0;
+const DWORD nrealloc_ = 0x4F1669;
 const DWORD obj_ai_blocking_at_ = 0x48BA20;
 const DWORD obj_blocking_at_ = 0x48B848; // (EAX *obj, EDX hexNum, EBX level)
 const DWORD obj_bound_ = 0x48B66C;
@@ -435,29 +615,36 @@ const DWORD xvfprintf_ = 0x4DF1AC;
 
 int __stdcall ItemGetType(TGameObj* item) {
 	__asm {
-		mov eax, item;
-		call item_get_type_;
+		mov eax, item
+		call item_get_type_
 	}
 }
 
 int _stdcall IsPartyMember(TGameObj* obj) {
 	__asm {
-		mov eax, obj;
-		call isPartyMember_;
+		mov eax, obj
+		call isPartyMember_
 	}
 }
 
-TGameObj* GetInvenWeaponLeft(TGameObj* obj) {
+int _stdcall PartyMemberGetCurrentLevel(TGameObj* obj) {
 	__asm {
-		mov eax, obj;
-		call inven_left_hand_;
+		mov eax, obj
+		call partyMemberGetCurLevel_
 	}
 }
 
-TGameObj* GetInvenWeaponRight(TGameObj* obj) {
+TGameObj* __stdcall GetInvenWeaponLeft(TGameObj* obj) {
 	__asm {
-		mov eax, obj;
-		call inven_right_hand_;
+		mov eax, obj
+		call inven_left_hand_
+	}
+}
+
+TGameObj* __stdcall GetInvenWeaponRight(TGameObj* obj) {
+	__asm {
+		mov eax, obj
+		call inven_right_hand_
 	}
 }
 
@@ -465,9 +652,9 @@ TGameObj* GetInvenWeaponRight(TGameObj* obj) {
 char* GetProtoPtr(DWORD pid) {
 	char* proto;
 	__asm {
-		mov eax, pid;
-		lea edx, proto;
-		call proto_ptr_;
+		mov eax, pid
+		lea edx, proto
+		call proto_ptr_
 	}
 	return proto;
 }
@@ -482,17 +669,15 @@ char AnimCodeByWeapon(TGameObj* weapon) {
 	return 0;
 }
 
-
 void DisplayConsoleMessage(const char* msg) {
 	__asm {
-		mov eax, msg;
-		call display_print_;
+		mov eax, msg
+		call display_print_
 	}
 }
 
 static DWORD mesg_buf[4] = {0, 0, 0, 0};
-const char* _stdcall GetMessageStr(DWORD fileAddr, DWORD messageId)
-{
+const char* _stdcall GetMessageStr(DWORD fileAddr, DWORD messageId) {
 	DWORD buf = (DWORD)mesg_buf;
 	const char* result;
 	__asm {
@@ -503,4 +688,140 @@ const char* _stdcall GetMessageStr(DWORD fileAddr, DWORD messageId)
 		mov result, eax
 	}
 	return result;
+}
+
+// Change the name of playable character
+void CritterPcSetName(const char* newName) {
+	__asm {
+		mov eax, newName
+		call critter_pc_set_name_
+	}
+}
+
+// Returns the name of the critter
+const char* __stdcall CritterName(TGameObj* critter) {
+	__asm {
+		mov eax, critter
+		call critter_name_
+	}
+}
+
+void SkillGetTags(int* result, DWORD num) {
+	if (num > 4) {
+		num = 4;
+	}
+	__asm {
+		mov eax, result
+		mov edx, num
+		call skill_get_tags_
+	}
+}
+
+void SkillSetTags(int* tags, DWORD num) {
+	if (num > 4) {
+		num = 4;
+	}
+	__asm {
+		mov eax, tags
+		mov edx, num
+		call skill_set_tags_
+	}
+}
+
+int __stdcall ScrPtr(int scriptId, TScript** scriptPtr) {
+	__asm {
+		mov eax, scriptId;
+		mov edx, scriptPtr;
+		call scr_ptr_;
+	}
+}
+
+// redraws the main game interface windows (useful after changing some data like active hand, etc.)
+void InterfaceRedraw() {
+	__asm call intface_redraw_
+}
+
+// pops value type from Data stack (must be followed by InterpretPopLong)
+DWORD __stdcall InterpretPopShort(TProgram* scriptPtr) {
+	__asm {
+		mov eax, scriptPtr
+		call interpretPopShort_
+	}
+}
+
+// pops value from Data stack (must be preceded by InterpretPopShort)
+DWORD __stdcall InterpretPopLong(TProgram* scriptPtr) {
+	__asm {
+		mov eax, scriptPtr
+		call interpretPopLong_
+	}
+}
+
+// pushes value to Data stack (must be followed by InterpretPushShort)
+void __stdcall InterpretPushLong(TProgram* scriptPtr, DWORD val) {
+	__asm {
+		mov edx, val
+		mov eax, scriptPtr
+		call interpretPushLong_
+	}
+}
+
+// pushes value type to Data stack (must be preceded by InterpretPushLong)
+void __stdcall InterpretPushShort(TProgram* scriptPtr, DWORD valType) {
+	__asm {
+		mov edx, valType
+		mov eax, scriptPtr
+		call interpretPushShort_
+	}
+}
+
+DWORD __stdcall InterpretAddString(TProgram* scriptPtr, const char* strval) {
+	__asm {
+		mov edx, strval
+		mov eax, scriptPtr
+		call interpretAddString_
+	}
+}
+
+const char* __stdcall InterpretGetString(TProgram* scriptPtr, DWORD strId, DWORD dataType) {
+	__asm {
+		mov edx, dataType
+		mov ebx, strId
+		mov eax, scriptPtr
+		call interpretGetString_
+	}
+}
+
+void __declspec(naked) InterpretError(const char* fmt, ...) {
+	__asm {
+		jmp interpretError_
+	}
+}
+
+void __declspec(naked) DebugPrintf(const char* fmt, ...) {
+	__asm {
+		jmp debug_printf_
+	}
+}
+
+const char* __stdcall FindCurrentProc(TProgram* program) {
+	__asm {
+		mov eax, program
+		call findCurrentProc_
+	}
+}
+
+TGameObj* __stdcall InvenWorn(TGameObj* critter) {
+	__asm mov eax, critter
+	__asm call inven_worn_
+}
+
+TGameObj* __stdcall InvenLeftHand(TGameObj* critter) {
+	__asm mov eax, critter
+	__asm call inven_left_hand_
+}
+
+TGameObj* __stdcall InvenRightHand(TGameObj* critter) {
+	__asm mov eax, critter
+	__asm call inven_right_hand_
 }

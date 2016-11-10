@@ -18,17 +18,27 @@
 
 #pragma once
 
-#define TARGETVERSION "Fallout 2 v1.02 US"
+#include <cstddef>
 
-#define VERSION_MAJOR 3
-#define VERSION_MINOR 8
-#define VERSION_BUILD 0
-#define VERSION_REV 0
-#ifdef WIN2K
-#define VERSION_STRING "3.8 win2k"
-#else
-#define VERSION_STRING "3.8"
-#endif
+// https://en.wikibooks.org/wiki/More_C%2B%2B_Idioms/nullptr
+const // It is a const object...
+class nullptr_t {
+	public:
+		template<class T>
+		inline operator T*() const // convertible to any type of null non-member pointer...
+		{ return 0; }
 
-#define CHECK_VAL  (4)
+		template<class C, class T>
+		inline operator T C::*() const // or any type of null member pointer...
+		{ return 0; }
 
+	private:
+		void operator&() const; // Can't take address of nullptr
+} nullptr = {};
+
+// http://stackoverflow.com/questions/33026118/c-stdbeginc-for-vs-2008
+template<typename T, std::size_t N>
+T* std_begin(T (&a)[N]) { return a; }
+
+template<typename T, std::size_t N>
+T* std_end(T (&a)[N]) { return a + N; }

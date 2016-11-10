@@ -7,9 +7,6 @@
     <Filter Include="Source">
       <UniqueIdentifier>{0e01fde3-77b4-4b8f-a0c5-71f211b14cf7}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source\win9x">
-      <UniqueIdentifier>{07dcfbfe-dd6b-4b88-8b9e-c512c333406a}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Headers\ScriptOps">
       <UniqueIdentifier>{34e14844-5e67-4d8c-8817-89d2d1c23639}</UniqueIdentifier>
     </Filter>
@@ -196,6 +193,12 @@
     <ClInclude Include="Message.h">
       <Filter>Headers</Filter>
     </ClInclude>
+    <ClInclude Include="ScriptOps\MetaruleOp.hpp">
+      <Filter>Headers\ScriptOps</Filter>
+    </ClInclude>
+    <ClInclude Include="Cpp11_emu.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AmmoMod.cpp">
@@ -279,9 +282,6 @@
     <ClCompile Include="timer.cpp">
       <Filter>Source</Filter>
     </ClCompile>
-    <ClCompile Include="queue9x.cpp">
-      <Filter>Source\win9x</Filter>
-    </ClCompile>
     <ClCompile Include="SuperSave.cpp">
       <Filter>Source</Filter>
     </ClCompile>
@@ -297,9 +297,6 @@
     </ClCompile>
     <ClCompile Include="heads.cpp">
       <Filter>Source</Filter>
-    </ClCompile>
-    <ClCompile Include="vector9x.cpp">
-      <Filter>Source\win9x</Filter>
     </ClCompile>
     <ClCompile Include="skills.cpp">
       <Filter>Source</Filter>

@@ -26,6 +26,9 @@
 
 #include "FalloutStructs.h"
 
+// Global variable offsets
+// TODO: probably need to hide these by moving inside implementation file
+
 #define _aiInfoList                 0x510948
 #define _ambient_light              0x51923C
 #define _art                        0x510738
@@ -87,6 +90,7 @@
 #define _i_rhand                    0x59E968
 #define _i_wid                      0x59E964
 #define _i_worn                     0x59E954
+#define _idle_func                  0x51E234
 #define _In_WorldMap                0x672E1C
 #define _info_line                  0x5707D0
 #define _interfaceWindow            0x519024
@@ -206,15 +210,189 @@
 #define _YellowColor                0x6AB8BB
 
 // variables
-extern TGameObj** obj_dude_ptr;
-extern TGameObj** inven_dude_ptr;
-extern DWORD* activeUIHand_ptr; // 0 - left, 1 - right
-extern DWORD* dude_traits; // 2 of them
-extern DWORD* itemCurrentItem;
-extern DWORD* itemButtonItems;
+// TODO: move to separate namespace
 
+extern long* ptr_pc_traits; // 2 of them
 
-// misc. offsets from engine
+extern DWORD* ptr_aiInfoList;
+extern DWORD* ptr_ambient_light;
+extern DWORD* ptr_art;
+extern DWORD* ptr_art_name;
+extern DWORD* ptr_art_vault_guy_num;
+extern DWORD* ptr_art_vault_person_nums;
+extern DWORD* ptr_bckgnd;
+extern DWORD* ptr_black_palette;
+extern DWORD* ptr_bottom_line;
+extern DWORD* ptr_btable;
+extern DWORD* ptr_btncnt;
+extern DWORD* ptr_CarCurrArea;
+extern DWORD* ptr_cmap;
+extern DWORD* ptr_colorTable;
+extern DWORD* ptr_combat_free_move;
+extern DWORD* ptr_combat_list;
+extern DWORD* ptr_combat_state;
+extern DWORD* ptr_combat_turn_running;
+extern DWORD* ptr_combatNumTurns;
+extern DWORD* ptr_crit_succ_eff;
+extern DWORD* ptr_critter_db_handle;
+extern DWORD* ptr_critterClearObj;
+extern DWORD* ptr_crnt_func;
+extern DWORD* ptr_curr_font_num;
+extern DWORD* ptr_curr_pc_stat;
+extern DWORD* ptr_curr_stack;
+extern DWORD* ptr_cursor_line;
+extern DWORD* ptr_dialog_target;
+extern DWORD* ptr_dialog_target_is_party;
+extern DWORD* ptr_drugInfoList;
+extern DWORD* ptr_edit_win;
+extern DWORD* ptr_Educated;
+extern DWORD* ptr_Experience_;
+extern DWORD* ptr_fallout_game_time;
+extern DWORD* ptr_flptr;
+extern DWORD* ptr_folder_card_desc;
+extern DWORD* ptr_folder_card_fid;
+extern DWORD* ptr_folder_card_title;
+extern DWORD* ptr_folder_card_title2;
+extern DWORD* ptr_frame_time;
+extern char*  ptr_free_perk;
+extern DWORD* ptr_game_global_vars;
+extern DWORD* ptr_game_user_wants_to_quit;
+extern DWORD* ptr_gcsd;
+extern DWORD* ptr_gdBarterMod;
+extern DWORD* ptr_gdNumOptions;
+extern DWORD* ptr_gIsSteal;
+extern DWORD* ptr_glblmode;
+extern DWORD* ptr_gmouse_current_cursor;
+extern DWORD* ptr_gmovie_played_list;
+extern DWORD* ptr_GreenColor;
+extern DWORD* ptr_gsound_initialized;
+extern DWORD* ptr_hit_location_penalty;
+extern DWORD* ptr_holo_flag;
+extern DWORD* ptr_holopages;
+extern DWORD* ptr_hot_line_count;
+extern DWORD* ptr_i_fid;
+extern DWORD* ptr_i_lhand;
+extern DWORD* ptr_i_rhand;
+extern DWORD* ptr_i_wid;
+extern DWORD* ptr_i_worn;
+extern DWORD* ptr_In_WorldMap;
+extern DWORD* ptr_info_line;
+extern DWORD* ptr_interfaceWindow;
+extern DWORD* ptr_intfaceEnabled;
+extern DWORD* ptr_intotal;
+extern TGameObj** ptr_inven_dude;
+extern DWORD* ptr_inven_pid;
+extern DWORD* ptr_inven_scroll_dn_bid;
+extern DWORD* ptr_inven_scroll_up_bid;
+extern DWORD* ptr_inventry_message_file;
+extern DWORD* ptr_itemButtonItems;
+extern DWORD* ptr_itemCurrentItem; // 0 - left, 1 - right
+extern DWORD* ptr_kb_lock_flags;
+extern DWORD* ptr_last_buttons;
+extern DWORD* ptr_last_button_winID;
+extern DWORD* ptr_last_level;
+extern DWORD* ptr_Level_;
+extern DWORD* ptr_Lifegiver;
+extern DWORD* ptr_list_com;
+extern DWORD* ptr_list_total;
+extern DWORD* ptr_loadingGame;
+extern DWORD* ptr_LSData;
+extern DWORD* ptr_lsgwin;
+extern DWORD* ptr_main_ctd;
+extern DWORD* ptr_main_window;
+extern DWORD* ptr_map_elevation;
+extern DWORD* ptr_map_global_vars;
+extern DWORD* ptr_master_db_handle;
+extern DWORD* ptr_max;
+extern DWORD* ptr_maxScriptNum;
+extern DWORD* ptr_Meet_Frank_Horrigan;
+extern DWORD* ptr_mouse_hotx;
+extern DWORD* ptr_mouse_hoty;
+extern DWORD* ptr_mouse_is_hidden;
+extern DWORD* ptr_mouse_x_;
+extern DWORD* ptr_mouse_y;
+extern DWORD* ptr_mouse_y_;
+extern DWORD* ptr_Mutate_;
+extern DWORD* ptr_name_color;
+extern DWORD* ptr_name_font;
+extern DWORD* ptr_name_sort_list;
+extern DWORD* ptr_num_game_global_vars;
+extern DWORD* ptr_num_map_global_vars;
+extern TGameObj** ptr_obj_dude;
+extern DWORD* ptr_objectTable;
+extern DWORD* ptr_objItemOutlineState;
+extern DWORD* ptr_optionRect;
+extern DWORD* ptr_outlined_object;
+extern DWORD* ptr_partyMemberAIOptions;
+extern DWORD* ptr_partyMemberCount;
+extern DWORD* ptr_partyMemberLevelUpInfoList;
+extern DWORD* ptr_partyMemberList; // each struct - 4 integers, first integer - objPtr
+extern DWORD* ptr_partyMemberMaxCount;
+extern DWORD* ptr_partyMemberPidList;
+extern DWORD* ptr_patches;
+extern DWORD* ptr_paths;
+extern DWORD* ptr_pc_crit_succ_eff;
+extern DWORD* ptr_pc_kill_counts;
+extern char*  ptr_pc_name;
+extern DWORD* ptr_pc_proto;
+extern DWORD* ptr_perk_data;
+extern int**  ptr_perkLevelDataList; // limited to PERK_Count
+extern DWORD* ptr_pip_win;
+extern DWORD* ptr_pipboy_message_file;
+extern DWORD* ptr_pipmesg;
+extern DWORD* ptr_preload_list_index;
+extern DWORD* ptr_procTableStrs;  // table of procId (from define.h) => procName map
+extern DWORD* ptr_proto_main_msg_file;
+extern DWORD* ptr_ptable;
+extern DWORD* ptr_pud;
+extern DWORD* ptr_queue;
+extern DWORD* ptr_quick_done;
+extern DWORD* ptr_read_callback;
+extern DWORD* ptr_RedColor;
+extern DWORD* ptr_retvals;
+extern DWORD* ptr_scr_size;
+extern DWORD* ptr_scriptListInfo;
+extern DWORD* ptr_skill_data;
+extern DWORD* ptr_slot_cursor;
+extern DWORD* ptr_sneak_working; // DWORD var 
+extern DWORD* ptr_square;
+extern DWORD* ptr_squares;
+extern DWORD* ptr_stack;
+extern DWORD* ptr_stack_offset;
+extern DWORD* ptr_stat_data;
+extern DWORD* ptr_stat_flag;
+extern DWORD* ptr_Tag_;
+extern DWORD* ptr_tag_skill;
+extern DWORD* ptr_target_curr_stack;
+extern DWORD* ptr_target_pud;
+extern DWORD* ptr_target_stack;
+extern DWORD* ptr_target_stack_offset;
+extern DWORD* ptr_target_str;
+extern DWORD* ptr_target_xpos;
+extern DWORD* ptr_target_ypos;
+extern DWORD* ptr_text_char_width;
+extern DWORD* ptr_text_height;
+extern DWORD* ptr_text_max;
+extern DWORD* ptr_text_mono_width;
+extern DWORD* ptr_text_spacing;
+extern DWORD* ptr_text_to_buf;
+extern DWORD* ptr_text_width;
+extern DWORD* ptr_title_color;
+extern DWORD* ptr_title_font;
+extern DWORD* ptr_trait_data;
+extern DWORD* ptr_view_page;
+extern DWORD* ptr_wd_obj;
+extern DWORD* ptr_wmAreaInfoList;
+extern DWORD* ptr_wmLastRndTime;
+extern DWORD* ptr_wmWorldOffsetX;
+extern DWORD* ptr_wmWorldOffsetY;
+extern DWORD* ptr_world_xpos;
+extern DWORD* ptr_world_ypos;
+extern DWORD* ptr_WorldMapCurrArea;
+extern DWORD* ptr_YellowColor;
+
+// engine function offsets
+// TODO: move to separate namespace
 extern const DWORD action_get_an_object_;
 extern const DWORD action_loot_container_;
 extern const DWORD action_use_an_item_on_object_;
@@ -285,6 +463,7 @@ extern const DWORD db_get_file_list_;
 extern const DWORD db_read_to_buf_;
 extern const DWORD dbase_close_;
 extern const DWORD dbase_open_;
+extern const DWORD debug_printf_;
 extern const DWORD debug_register_env_;
 extern const DWORD determine_to_hit_func_;
 extern const DWORD dialog_out_;
@@ -342,6 +521,7 @@ extern const DWORD interpretPopLong_;
 extern const DWORD interpretPopShort_;
 extern const DWORD interpretPushLong_;
 extern const DWORD interpretPushShort_;
+extern const DWORD interpretError_; 
 extern const DWORD intface_redraw_; // no args
 extern const DWORD intface_toggle_item_state_;
 extern const DWORD intface_toggle_items_;
@@ -350,6 +530,9 @@ extern const DWORD intface_update_hit_points_;
 extern const DWORD intface_update_items_;
 extern const DWORD intface_update_move_points_;
 extern const DWORD intface_use_item_;
+extern const DWORD intface_show_;
+extern const DWORD intface_hide_;
+extern const DWORD intface_is_hidden_;
 extern const DWORD invenUnwieldFunc_; // (int critter@<eax>, int slot@<edx>, int a3@<ebx>) - int result (-1 on error, 0 on success)
 extern const DWORD invenWieldFunc_; // (int who@<eax>, int item@<edx>, int a3@<ecx>, int slot@<ebx>) - int result (-1 on error, 0 on success)
 extern const DWORD inven_display_msg_;
@@ -432,6 +615,7 @@ extern const DWORD mouse_in_;
 extern const DWORD mouse_show_;
 extern const DWORD move_inventory_;
 extern const DWORD NixHotLines_;
+extern const DWORD nrealloc_;
 extern const DWORD obj_ai_blocking_at_;
 extern const DWORD obj_blocking_at_; // <eax>(int aExcludeObject<eax> /* can be 0 */, signed int aTile<edx>, int aElevation<ebx>)
 extern const DWORD obj_bound_;
@@ -530,11 +714,11 @@ extern const DWORD set_game_time_;
 extern const DWORD SexWindow_;
 extern const DWORD skill_check_stealing_;
 extern const DWORD skill_dec_point_;
-extern const DWORD skill_get_tags_;
+extern const DWORD skill_get_tags_; // eax - pointer to array DWORD, edx - number of elements to read
 extern const DWORD skill_inc_point_;
 extern const DWORD skill_level_;
 extern const DWORD skill_points_;
-extern const DWORD skill_set_tags_;
+extern const DWORD skill_set_tags_; // eax - pointer to array DWORD, edx - number of elements to write
 extern const DWORD skill_use_;
 extern const DWORD skilldex_select_;
 extern const DWORD sprintf_;
@@ -542,7 +726,7 @@ extern const DWORD square_num_;
 extern const DWORD stat_get_base_direct_;
 extern const DWORD stat_get_bonus_;
 extern const DWORD stat_level_;
-extern const DWORD stat_pc_add_experience_;
+extern const DWORD stat_pc_add_experience_; // eax - amount to add
 extern const DWORD stat_pc_get_;
 extern const DWORD stat_pc_set_;
 extern const DWORD stat_set_bonus_;
@@ -656,11 +840,65 @@ extern const DWORD getmsg_; // eax - msg file addr, ebx - message ID, edx - int[
 #define MSG_FILE_WORLDMAP	(0x672FB0)
 
 // WRAPPERS:
+// TODO: move these to different namespace
 int _stdcall IsPartyMember(TGameObj* obj);
-TGameObj* GetInvenWeaponLeft(TGameObj* obj);
-TGameObj* GetInvenWeaponRight(TGameObj* obj);
+int _stdcall PartyMemberGetCurrentLevel(TGameObj* obj);
+TGameObj* __stdcall GetInvenWeaponLeft(TGameObj* obj);
+TGameObj* __stdcall GetInvenWeaponRight(TGameObj* obj);
 char* GetProtoPtr(DWORD pid);
 char AnimCodeByWeapon(TGameObj* weapon);
+// Displays message in main UI console window
 void DisplayConsoleMessage(const char* msg);
 const char* _stdcall GetMessageStr(DWORD fileAddr, DWORD messageId);
 int __stdcall ItemGetType(TGameObj* item);
+
+// Change the name of playable character
+void CritterPcSetName(const char* newName);
+
+// Returns the name of the critter
+const char* __stdcall CritterName(TGameObj* critter);
+
+// Saves pointer to script object into scriptPtr using scriptID. 
+// Returns 0 on success, -1 on failure.
+int __stdcall ScrPtr(int scriptId, TScript** scriptPtr);
+
+void SkillGetTags(int* result, DWORD num);
+void SkillSetTags(int* tags, DWORD num);
+
+// redraws the main game interface windows (useful after changing some data like active hand, etc.)
+void InterfaceRedraw();
+
+// critter worn item (armor)
+TGameObj* __stdcall InvenWorn(TGameObj* critter);
+
+// item in critter's left hand slot
+TGameObj* __stdcall InvenLeftHand(TGameObj* critter);
+
+// item in critter's right hand slot
+TGameObj* __stdcall InvenRightHand(TGameObj* critter);
+
+// pops value type from Data stack (must be followed by InterpretPopLong)
+DWORD __stdcall InterpretPopShort(TProgram* scriptPtr);
+
+// pops value from Data stack (must be preceded by InterpretPopShort)
+DWORD __stdcall InterpretPopLong(TProgram* scriptPtr);
+
+// pushes value to Data stack (must be followed by InterpretPushShort)
+void __stdcall InterpretPushLong(TProgram* scriptPtr, DWORD val);
+
+// pushes value type to Data stack (must be preceded by InterpretPushLong)
+void __stdcall InterpretPushShort(TProgram* scriptPtr, DWORD valType);
+
+const char* __stdcall InterpretGetString(TProgram* scriptPtr, DWORD strId, DWORD dataType);
+
+DWORD __stdcall InterpretAddString(TProgram* scriptPtr, const char* str);
+
+// prints scripting error in debug.log and stops current script execution by performing longjmp
+// USE WITH CAUTION
+void __declspec() InterpretError(const char* fmt, ...);
+
+// prints message to debug.log file
+void __declspec() DebugPrintf(const char* fmt, ...);
+
+// returns the name of current procedure by program pointer
+const char* __stdcall FindCurrentProc(TProgram* program);

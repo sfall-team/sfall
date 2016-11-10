@@ -76,7 +76,6 @@
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
-      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <AdditionalDependencies>kernel32.lib;user32.lib;d3d9.lib;d3dx9d.lib;Strmiids.lib;dinput.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -206,6 +205,7 @@
     <ClInclude Include="Bugs.h" />
     <ClInclude Include="BurstMods.h" />
     <ClInclude Include="Console.h" />
+    <ClInclude Include="Cpp11_emu.h" />
     <ClInclude Include="CRC.h" />
     <ClInclude Include="Credits.h" />
     <ClInclude Include="Criticals.h" />
@@ -242,6 +242,7 @@
     <ClInclude Include="ScriptOps\GraphicsOp.hpp" />
     <ClInclude Include="ScriptOps\InterfaceOp.hpp" />
     <ClInclude Include="ScriptOps\MemoryOp.hpp" />
+    <ClInclude Include="ScriptOps\MetaruleOp.hpp" />
     <ClInclude Include="ScriptOps\MiscOps.hpp" />
     <ClInclude Include="ScriptOps\ObjectsOps.hpp" />
     <ClInclude Include="ScriptOps\PerksOp.hpp" />
@@ -303,8 +304,6 @@
     <ClCompile Include="Stats.cpp" />
     <ClCompile Include="Tiles.cpp" />
     <ClCompile Include="timer.cpp" />
-    <ClCompile Include="queue9x.cpp" />
-    <ClCompile Include="vector9x.cpp" />
     <ClCompile Include="Logging.cpp" />
     <ClCompile Include="SuperSave.cpp" />
   </ItemGroup>

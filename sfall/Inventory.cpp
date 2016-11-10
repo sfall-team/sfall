@@ -49,11 +49,11 @@ static const char* MsgSearch(int msgno, DWORD file) {
 }
 
 DWORD& GetActiveItemMode() {
-	return itemButtonItems[(*itemCurrentItem * 6) + 4];
+	return ptr_itemButtonItems[(*ptr_itemCurrentItem * 6) + 4];
 }
 
 TGameObj* GetActiveItem() {
-	return (TGameObj*)itemButtonItems[*itemCurrentItem * 6];
+	return (TGameObj*)ptr_itemButtonItems[*ptr_itemCurrentItem * 6];
 }
 
 void InventoryKeyPressedHook(DWORD dxKey, bool pressed, DWORD vKey) {

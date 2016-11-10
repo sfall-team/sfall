@@ -2,12 +2,12 @@
 *0x8156 - int   read_byte(int address)
 *0x8157 - int   read_short(int address)
 *0x8158 - int   read_int(int address)
-*0x8159 - char* read_string(int address)
+*0x8159 - string read_string(int address)
 
 *0x81cf - void  write_byte(int address, int value)
 *0x81d0 - void  write_short(int address, int value)
 *0x81d1 - void  write_int(int address, int value)
-*0x821b - void  write_string(int address, char* value)
+*0x821b - void  write_string(int address, string value)
 
 *0x81d2 - void  call_offset_v0(int address)
 *0x81d3 - void  call_offset_v1(int address, int arg1)
@@ -25,10 +25,10 @@
 0x815c - int  get_pc_base_stat(int StatID)
 0x815d - int  get_pc_extra_stat(int StatID)
 
-0x815e - void set_critter_base_stat(CritterPtr, int StatID, int value)
-0x815f - void set_critter_extra_stat(CritterPtr, int StatID, int value)
-0x8160 - int  get_critter_base_stat(CritterPtr, int StatID)
-0x8161 - int  get_critter_extra_stat(CritterPtr, int StatID)
+0x815e - void set_critter_base_stat(object, int StatID, int value)
+0x815f - void set_critter_extra_stat(object, int StatID, int value)
+0x8160 - int  get_critter_base_stat(object, int StatID)
+0x8161 - int  get_critter_extra_stat(object, int StatID)
 0x8242 - void set_critter_skill_points(int critter, int skill, int value)
 0x8243 - int  get_critter_skill_points(int critter, int skill)
 0x8244 - void set_available_skill_points(int value)
@@ -55,18 +55,18 @@
 0x8164 - bool game_loaded()
 
 0x8165 - bool graphics_funcs_available()
-0x8166 - int  load_shader(char* path)
+0x8166 - int  load_shader(string path)
 0x8167 - void free_shader(int ID)
 0x8168 - void activate_shader(int ID)
 0x8169 - void deactivate_shader(int ID)
-0x816d - void set_shader_int(int ID, char* param, int value)
-0x816e - void set_shader_float(int ID, char* param, float value)
-0x816f - void set_shader_vector(int ID, char* param, float f1, float f2, float f3, float f4)
+0x816d - void set_shader_int(int ID, string param, int value)
+0x816e - void set_shader_float(int ID, string param, float value)
+0x816f - void set_shader_vector(int ID, string param, float f1, float f2, float f3, float f4)
 0x81ad - int get_shader_version()
 0x81ae - void set_shader_mode(int mode)
 0x81b0 - void force_graphics_refresh(bool enabled)
 0x81b1 - int get_shader_texture(int ID, int texture)
-0x81b2 - void set_shader_texture(int ID, char* param, int texID)
+0x81b2 - void set_shader_texture(int ID, string param, int texID)
 
 0x816a - void set_global_script_repeat(int frames)
 0x819b - void set_global_script_type(int type)
@@ -82,9 +82,9 @@
 0x8173 - int get_world_map_x_pos()
 0x8174 - int get_world_map_y_pos()
 
-0x8175 - void set_dm_model(char* name)
-0x8176 - void set_df_model(char* name)
-0x8177 - void set_movie_path(char* filename, int movieid)
+0x8175 - void set_dm_model(string name)
+0x8176 - void set_df_model(string name)
+0x8177 - void set_movie_path(string filename, int movieid)
 
 0x8178 - void set_perk_image(int perkID, int value)
 0x8179 - void set_perk_ranks(int perkID, int value)
@@ -103,8 +103,8 @@
 0x8196 - void set_perk_int(int perkID, int value)
 0x8187 - void set_perk_agl(int perkID, int value)
 0x8188 - void set_perk_lck(int perkID, int value)
-0x8189 - void set_perk_name(int perkID, char* value)
-0x818a - void set_perk_desc(int perkID, char* value)
+0x8189 - void set_perk_name(int perkID, string value)
+0x818a - void set_perk_desc(int perkID, string value)
 0x8247 - void set_perk_freq(int value)
 
 0x818b - void set_pipboy_available(int available)
@@ -116,18 +116,18 @@
 0x818f - void set_perk_owed(int value)
 0x8190 - int get_perk_available(int perk)
 
-0x8191 - int get_critter_current_ap(CritterPtr)
-0x8192 - void set_critter_current_ap(CritterPtr, int ap)
+0x8191 - int get_critter_current_ap(object critter)
+0x8192 - void set_critter_current_ap(object critter, int ap)
 
 0x8193 - int  active_hand()
 0x8194 - void toggle_active_hand()
 
-0x8195 - void set_weapon_knockback(WeaponPtr, int type, float value)
-0x8196 - void set_target_knockback(CritterPtr, int type, float value)
-0x8197 - void set_attacker_knockback(CritterPtr, int type, float value)
-0x8198 - void remove_weapon_knockback(WeaponPtr)
-0x8199 - void remove_target_knockback(CritterPtr)
-0x819a - void remove_attacker_knockback(CritterPtr)
+0x8195 - void set_weapon_knockback(object weapon, int type, float value)
+0x8196 - void set_target_knockback(object critter, int type, float value)
+0x8197 - void set_attacker_knockback(object critter, int type, float value)
+0x8198 - void remove_weapon_knockback(object weapon)
+0x8199 - void remove_target_knockback(object critter)
+0x819a - void remove_attacker_knockback(object critter)
 
 0x819d - void  set_sfall_global(string/int varname, int/float value)
 0x819e - int   get_sfall_global_int(string/int varname)
@@ -152,26 +152,26 @@
 0x81aa - void set_xp_mod(int percentage)
 0x81ab - void set_perk_level_mod(int levels)
 
-0x81c5 - void set_critter_hit_chance_mod(CritterPtr, int max, int mod)
+0x81c5 - void set_critter_hit_chance_mod(object, int max, int mod)
 0x81c6 - void set_base_hit_chance_mod(int max, int mod)
-0x81c7 - void set_critter_skill_mod(CritterPtr, int max)
+0x81c7 - void set_critter_skill_mod(object, int max)
 0x81c8 - void set_base_skill_mod(int max)
-0x81c9 - void set_critter_pickpocket_mod(CritterPtr, int max, int mod)
+0x81c9 - void set_critter_pickpocket_mod(object, int max, int mod)
 0x81ca - void set_base_pickpocket_mod(int max, int mod)
 
 0x81a3 - int  eax_available()
 0x81a4 - void set_eax_environment(int environment)
 
-0x81a5 - void inc_npc_level(char* npc)
-0x8241 - int  get_npc_level(char* npc)
+0x81a5 - void inc_npc_level(string npc)
+0x8241 - int  get_npc_level(string npc)
 
 0x81a6 - int get_viewport_x()
 0x81a7 - int get_viewport_y()
 0x81a8 - void set_viewport_x(int view_x)
 0x81a9 - void set_viewport_y(int view_y)
 
-0x81ac - int   get_ini_setting(char* setting)
-0x81eb - char* get_ini_string(char* setting)
+0x81ac - int   get_ini_setting(string setting)
+0x81eb - string get_ini_string(string setting)
 
 0x81af - int get_game_mode()
 
@@ -179,14 +179,14 @@
 
 0x81b6 - void set_car_current_town(int town)
 
-0x81bb - void set_fake_perk(char* name, int level, int image, char* desc)
-0x81bc - void set_fake_trait(char* name, int active, int image, char* desc)
-0x81bd - void set_selectable_perk(char* name, int active, int image, char* desc)
-0x81be - void set_perkbox_title(char* title)
+0x81bb - void set_fake_perk(string name, int level, int image, string desc)
+0x81bc - void set_fake_trait(string name, int active, int image, string desc)
+0x81bd - void set_selectable_perk(string name, int active, int image, string desc)
+0x81be - void set_perkbox_title(string title)
 0x81bf - void hide_real_perks()
 0x81c0 - void show_real_perks()
-0x81c1 - int has_fake_perk(char* name)
-0x81c2 - int has_fake_trait(char* name)
+0x81c1 - int has_fake_perk(string name)
+0x81c2 - int has_fake_trait(string name)
 0x81c3 - void perk_add_mode(int type)
 0x81c4 - void clear_selectable_perks()
 0x8225 - void remove_trait(int traitID)
@@ -231,11 +231,11 @@
 0x8266 - int ceil(float)
 0x8267 - int round(float)
 
-0x81f2 - void set_palette(char* path)
+0x81f2 - void set_palette(string path)
 
-0x81f3 - void remove_script(objptr)
-0x81f4 - void set_script(objptr, int scriptid)
-0x81f5 - int get_script(objptr)
+0x81f3 - void remove_script(object)
+0x81f4 - void set_script(object, int scriptid)
+0x81f5 - int get_script(object)
 
 0x81f6 - int nb_create_char()
 
@@ -258,10 +258,10 @@
 0x8202 - void  fs_seek(int id, int pos)
 0x8203 - void  fs_resize(int id, int size)
 
-0x8204 - int  get_proto_data(objptr, int offset)
-0x8205 - void set_proto_data(objptr, int offset, int value)
+0x8204 - int  get_proto_data(object, int offset)
+0x8205 - void set_proto_data(object, int offset, int value)
 
-0x8206 - void set_self(objptr)
+0x8206 - void set_self(object)
 0x8207 - void register_hook(int hook)
 
 0x820d - int   list_begin(int type)
@@ -277,19 +277,19 @@
 0x8214 - void set_hero_race(int style)
 0x8215 - void set_hero_style(int style)
 
-0x8216 - void set_critter_burst_disable(objptr critter, int disable)
+0x8216 - void set_critter_burst_disable(object critter, int disable)
 
-0x8217 - int  get_weapon_ammo_pid(objptr weapon)
-0x8218 - void set_weapon_ammo_pid(objptr weapon, int pid)
-0x8219 - int  get_weapon_ammo_count(objptr weapon)
-0x821a - void set_weapon_ammo_count(objptr weapon, int count)
+0x8217 - int  get_weapon_ammo_pid(object weapon)
+0x8218 - void set_weapon_ammo_pid(object weapon, int pid)
+0x8219 - int  get_weapon_ammo_count(object weapon)
+0x821a - void set_weapon_ammo_count(object weapon, int count)
 
 0x8220 - int get_screen_width()
 0x8221 - int get_screen_height()
 
 0x8222 - void stop_game()
 0x8223 - void resume_game()
-0x8224 - void create_message_window(char* message)
+0x8224 - void create_message_window(string message)
 
 0x8226 - int get_light_level()
 
@@ -297,16 +297,16 @@
 
 0x8228 - int get_attack_type
 
-0x822b - int  play_sfall_sound(char* file, int loop)
+0x822b - int  play_sfall_sound(string file, int loop)
 0x822c - void stop_sfall_sound(int ptr)
 
-0x8235 - array string_split(char* string, char* split)
-0x8237 - int   atoi(char* string)
-0x8238 - float atof(char* string)
-0x824e - char* substr(char* string, int start, int length)
-0x824f - int   strlen(char* string)
-0x8250 - char* sprintf(char* format, any value)
-0x8251 - int   charcode(char* string)
+0x8235 - array string_split(string string, string split)
+0x8237 - int   atoi(string string)
+0x8238 - float atof(string string)
+0x824e - string substr(string string, int start, int length)
+0x824f - int   strlen(string string)
+0x8250 - string sprintf(string format, any value)
+0x8251 - int   charcode(string string)
 0x8253 - int   typeof(any value)
 
 0x823a - int get_tile_fid(int tile)
@@ -318,35 +318,45 @@
 
 0x8240 - void mark_movie_played(int id)
 
-0x8248 - objptr get_last_target(objptr critter)
-0x8249 - objptr get_last_attacker(objptr critter)
+0x8248 - object get_last_target(object critter)
+0x8249 - object get_last_attacker(object critter)
 
 0x824b - int tile_under_cursor
 0x824c - int gdialog_get_barter_mod
 0x824d - void set_inven_ap_cost
 
 0x825c - void reg_anim_combat_check(int enable)
-0x825a - void reg_anim_destroy(objptr object)
-0x825b - void reg_anim_animate_and_hide(objptr object, int animID, int delay)
-0x825d - void reg_anim_light(objptr object, int radius, int delay)
-0x825e - void reg_anim_change_fid(objptr object, int FID, int delay)
-0x825f - void reg_anim_take_out(objptr object, int holdFrameID, int delay)
-0x8260 - void reg_anim_turn_towards(objptr object, int tile/targetObj, int delay)
+0x825a - void reg_anim_destroy(object object)
+0x825b - void reg_anim_animate_and_hide(object object, int animID, int delay)
+0x825d - void reg_anim_light(object object, int radius, int delay)
+0x825e - void reg_anim_change_fid(object object, int FID, int delay)
+0x825f - void reg_anim_take_out(object object, int holdFrameID, int delay)
+0x8260 - void reg_anim_turn_towards(object object, int tile/targetObj, int delay)
 
-0x8261 - int metarule2_explosions(objptr object)
+0x8261 - int metarule2_explosions(object object)
 
 0x8262 - void register_hook_proc(int hook, procedure proc)
 
-0x8266 - char* message_str_game(int fileId, int messageId)
-0x8267 - int sneak_success
-0x8268 - int tile_light(int elevation, int tileNum)
-0x8269 - ObjectPtr obj_blocking_line(ObjectPtr objFrom, int tileTo, int blockingType)
-0x826a - ObjectPtr obj_blocking_tile(int tileNum, int elevation, int blockingType)
-0x826b - array tile_get_objs(int tileNum, int elevation)
-0x826c - array party_member_list(int includeHidden)
-0x826d - array path_find_to(ObjectPtr objFrom, int tileTo, int blockingType)
-0x826e - ObjectPtr create_spatial(int scriptID, int tile, int elevation, int radius)
-0x826f - int art_exists(int artFID)
-0x8270 - int obj_is_carrying_obj(ObjectPtr invenObj, ObjectPtr itemObj)
+0x826b - string message_str_game(int fileId, int messageId)
+0x826c - int sneak_success
+0x826d - int tile_light(int elevation, int tileNum)
+0x826e - object obj_blocking_line(object objFrom, int tileTo, int blockingType)
+0x826f - object obj_blocking_tile(int tileNum, int elevation, int blockingType)
+0x8270 - array tile_get_objs(int tileNum, int elevation)
+0x8271 - array party_member_list(int includeHidden)
+0x8272 - array path_find_to(object objFrom, int tileTo, int blockingType)
+0x8273 - object create_spatial(int scriptID, int tile, int elevation, int radius)
+0x8274 - int art_exists(int artFID)
+0x8275 - int obj_is_carrying_obj(object invenObj, object itemObj)
+
+0x8276 - any sfall_func0(string funcName)
+0x8277 - any sfall_func1(string funcName, arg1)
+0x8278 - any sfall_func2(string funcName, arg1, arg2)
+0x8279 - any sfall_func3(string funcName, arg1, arg2, arg3)
+0x827a - any sfall_func4(string funcName, arg1, arg2, arg3, arg4)
+0x827b - any sfall_func5(string funcName, arg1, arg2, arg3, arg4, arg5)
+0x827c - any sfall_func6(string funcName, arg1, arg2, arg3, arg4, arg5, arg6)
+
 
 * These functions require AllowUnsafeScripting to be enabled in ddraw.ini
+
