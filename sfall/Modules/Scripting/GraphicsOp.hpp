@@ -46,6 +46,7 @@ end:
 		retn;
 	}
 }
+
 static void __declspec(naked) funcLoadShader() {
 	__asm {
 		push ebx;
@@ -84,6 +85,7 @@ result:
 		retn;
 	}
 }
+
 static void __declspec(naked) funcFreeShader() {
 	__asm {
 		push ebx;
@@ -105,6 +107,7 @@ end:
 		retn;
 	}
 }
+
 static void __declspec(naked) funcActivateShader() {
 	__asm {
 		push ebx;
@@ -126,6 +129,7 @@ end:
 		retn;
 	}
 }
+
 static void __declspec(naked) funcDeactivateShader() {
 	__asm {
 		push ebx;
@@ -147,6 +151,7 @@ end:
 		retn;
 	}
 }
+
 static void __declspec(naked) funcGetShaderTexture() {
 	__asm {
 		//Store registers
@@ -198,6 +203,7 @@ end:
 		retn;
 	}
 }
+
 static void __declspec(naked) funcSetShaderInt() {
 	__asm {
 		push ebx;
@@ -254,6 +260,7 @@ end:
 		retn;
 	}
 }
+
 static void __declspec(naked) funcSetShaderTexture() {
 	__asm {
 		push ebx;
@@ -310,6 +317,7 @@ end:
 		retn;
 	}
 }
+
 static void __declspec(naked) funcSetShaderFloat() {
 	__asm {
 		push ebx;
@@ -371,6 +379,7 @@ end:
 		retn;
 	}
 }
+
 static void __declspec(naked) funcSetShaderVector() {
 	__asm {
 		push ebx;
@@ -426,6 +435,7 @@ end:
 		retn;
 	}
 }
+
 static void __declspec(naked) funcGetShaderVersion() {
 	__asm {
 		push ebx;
@@ -447,6 +457,7 @@ static void __declspec(naked) funcGetShaderVersion() {
 		retn;
 	}
 }
+
 static void __declspec(naked) funcSetShaderMode() {
 	__asm {
 		push ebx;
@@ -481,6 +492,7 @@ end:
 		retn;
 	}
 }
+
 static void __declspec(naked) funcForceGraphicsRefresh() {
 	__asm {
 		push ebx;

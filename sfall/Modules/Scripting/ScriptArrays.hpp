@@ -53,6 +53,7 @@ end:
 		retn;
 	}
 }
+
 static void __declspec(naked) set_array() {
 	__asm {
 		pushad;
@@ -112,6 +113,7 @@ end:
 		retn;
 	}
 }
+
 /*
 	used in place of [] operator when compiling in sslc
 	so it works as get_array if first argument is int and as substr(x, y, 1) if first argument is string
@@ -199,6 +201,7 @@ notstring:
 		retn;
 	}
 }
+
 static void __declspec(naked) free_array() {
 	__asm {
 		pushad;
@@ -216,6 +219,7 @@ end:
 		retn;
 	}
 }
+
 static void __declspec(naked) len_array() {
 	__asm {
 		pushad;
@@ -242,6 +246,7 @@ end:
 		retn;
 	}
 }
+
 static void __declspec(naked) resize_array() {
 	__asm {
 		pushad;
@@ -272,6 +277,7 @@ end:
 		retn;
 	}
 }
+
 static void __declspec(naked) temp_array() {
 	__asm {
 		pushad;
@@ -307,6 +313,7 @@ end:
 		retn;
 	}
 }
+
 static void __declspec(naked) fix_array() {
 	__asm {
 		pushad;
@@ -324,6 +331,7 @@ end:
 		retn;
 	}
 }
+
 static void __declspec(naked) scan_array() {
 		__asm {
 		pushad;
@@ -470,43 +478,36 @@ static void __declspec(naked) op_stack_array() {
 // object LISTS
 
 struct sList {
-	DWORD* obj;
+	TGameObj** obj;
 	DWORD len;
 	DWORD pos;
 
-	sList(const std::vector<DWORD>* vec) {
-		len=vec->size();
-		obj=new DWORD[len];
-		for(DWORD i=0;i<len;i++) obj[i]=(*vec)[i];
-		pos=0;
+	sList(const std::vector<TGameObj*>* vec) {
+		len = vec->size();
+		obj = new TGameObj*[len];
+		for (size_t i = 0; i < len; i++) {
+			obj[i] = (*vec)[i];
+		}
+		pos = 0;
 	}
 };
 
-static void FillListVector(DWORD type, std::vector<DWORD>& vec) {
+static void FillListVector(DWORD type, std::vector<TGameObj*>& vec) {
 	// TODO: fix style, use wrappers
 	if (type == 6) {
-		DWORD scriptPtr, self_obj, programPtr;
-		for (int elev=0; elev<=2; elev++) {
-			__asm {
-				mov eax, elev;
-				call FuncOffs::scr_find_first_at_;
-				mov scriptPtr, eax;
-			}
-			while (scriptPtr != 0) {
-				self_obj = *(DWORD*)(scriptPtr + 0x34);
-				if (self_obj == 0) {
-					programPtr = *(DWORD*)(scriptPtr + 0x18);
-					__asm {
-						mov eax, programPtr;
-						call FuncOffs::scr_find_obj_from_program_;
-						mov self_obj, eax;
-					}
+		TScript* scriptPtr;
+		TGameObj* self_obj;
+		TProgram* programPtr;
+		for (int elev = 0; elev <= 2; elev++) {
+			scriptPtr = Wrapper::scr_find_first_at(elev);
+			while (scriptPtr != nullptr) {
+				self_obj = scriptPtr->self_obj;
+				if (self_obj == nullptr) {
+					programPtr = scriptPtr->program_ptr;
+					self_obj = Wrapper::scr_find_obj_from_program(programPtr);
 				}
 				vec.push_back(self_obj);
-				__asm {
-					call FuncOffs::scr_find_next_at_;
-					mov scriptPtr, eax;
-				}
+				scriptPtr = Wrapper::scr_find_next_at();
 			}
 		}
 	} else if (type == 4) {
@@ -520,51 +521,48 @@ static void FillListVector(DWORD type, std::vector<DWORD>& vec) {
 		}*/
 		
 	} else {
-		for(int elv=0;elv<3;elv++) {
-			for(int tile=0;tile<40000;tile++) {
-				DWORD obj;
-				__asm {
-					mov edx, tile;
-					mov eax, elv;
-					call FuncOffs::obj_find_first_at_tile_;
-					mov obj, eax;
-				}
-				while(obj) {
-					DWORD otype = ((DWORD*)obj)[25];
-					otype = (otype&0xff000000) >> 24;
-					if(type==9 || (type==0&&otype==1) || (type==1&&otype==0) || (type>=2&&type<=5&&type==otype)) vec.push_back(obj);
-					__asm {
-						call FuncOffs::obj_find_next_at_tile_;
-						mov obj, eax;
+		for (int elv = 0; elv < 3; elv++) {
+			for (int tile = 0; tile < 40000; tile++) {
+				TGameObj* obj = Wrapper::obj_find_first_at_tile(elv, tile);
+				while (obj) {
+					DWORD otype = (obj->pid & 0xff000000) >> 24;
+					if (type == 9 || (type == 0 && otype == 1) || (type == 1 && otype == 0) || (type >= 2 && type <= 5 && type == otype)) {
+						vec.push_back(obj);
 					}
+					obj = Wrapper::obj_find_next_at_tile();
 				}
 			}
 		}
 	}
 }
+
 static void* _stdcall list_begin2(DWORD type) {
-	std::vector<DWORD> vec = std::vector<DWORD>();
+	std::vector<TGameObj*> vec = std::vector<TGameObj*>();
 	FillListVector(type, vec);
-	sList* list=new sList(&vec);
+	sList* list = new sList(&vec);
 	return list;
 }
+
 static DWORD _stdcall list_as_array2(DWORD type) {
-	std::vector<DWORD> vec = std::vector<DWORD>();
+	std::vector<TGameObj*> vec = std::vector<TGameObj*>();
 	FillListVector(type, vec);
-	DWORD id=TempArray(vec.size(), 4);
-	for(DWORD i=0;i<vec.size();i++) {
+	DWORD id = TempArray(vec.size(), 4);
+	for (DWORD i = 0; i < vec.size(); i++) {
 		arrays[id].val[i].set((long)vec[i]);
 	}
 	return id;
 }
-static DWORD _stdcall list_next2(sList* list) {
-	if(list->pos==list->len) return 0;
+
+static TGameObj* _stdcall list_next2(sList* list) {
+	if (list->pos == list->len) return 0;
 	else return list->obj[list->pos++];
 }
+
 static void _stdcall list_end2(sList* list) {
 	delete[] list->obj;
 	delete list;
 }
+
 static void __declspec(naked) list_begin() {
 	__asm {
 		pushad;
@@ -592,6 +590,7 @@ end:
 		retn;
 	}
 }
+
 static void __declspec(naked) list_as_array() {
 	__asm {
 		pushad;
@@ -619,6 +618,7 @@ end:
 		retn;
 	}
 }
+
 static void __declspec(naked) list_next() {
 	__asm {
 		pushad;
@@ -646,6 +646,7 @@ end:
 		retn;
 	}
 }
+
 static void __declspec(naked) list_end() {
 	__asm {
 		pushad;

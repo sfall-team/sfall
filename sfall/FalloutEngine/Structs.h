@@ -30,6 +30,8 @@
 // TODO: make consistent naming for all FO structs
 
 struct TGameObj;
+struct TProgram;
+struct TScript;
 
 /*   26 */
 #pragma pack(push, 1)
@@ -102,7 +104,7 @@ struct TScript {
 	__int32 spatial_radius;
 	char gap_10[4];
 	__int32 script_index;
-	__int32 program_ptr;
+	TProgram *program_ptr;
 	__int32 self_obj_id;
 	char gap_20[8];
 	__int32 scr_return;

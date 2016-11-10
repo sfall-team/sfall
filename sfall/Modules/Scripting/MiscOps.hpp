@@ -43,6 +43,7 @@ static DWORD MovieNamesPtr=(DWORD)MoviePaths;
 static void _stdcall strcpy_p(char* to, const char* from) {
 	strcpy_s(to, 64, from);
 }
+
 static void __declspec(naked) SetDMModel() {
 	__asm {
 		push ebx;
@@ -73,6 +74,7 @@ end:
 		retn;
 	}
 }
+
 static void __declspec(naked) SetDFModel() {
 	__asm {
 		push ebx;
@@ -103,6 +105,7 @@ end:
 		retn;
 	}
 }
+
 static void __declspec(naked) SetMoviePath() {
 	__asm {
 		push ebx;
@@ -151,6 +154,7 @@ end:
 		retn;
 	}
 }
+
 static void __declspec(naked) GetYear() {
 	__asm {
 		push ebx;
@@ -182,6 +186,7 @@ end:
 		retn;
 	}
 }
+
 static void __declspec(naked) GameLoaded() {
 	__asm {
 		push ebx;
@@ -234,6 +239,7 @@ fail:
 		retn;
 	}
 }
+
 static void __declspec(naked) SetPipBoyAvailable() {
 	__asm {
 		push ebx;
@@ -293,6 +299,7 @@ end:
 		retn;
 	}
 }
+
 static void __declspec(naked) ModKillCounter() {
 	__asm {
 		push ebx;
@@ -371,6 +378,7 @@ end:
 		retn;
 	}
 }
+
 static void __declspec(naked) SetWeaponKnockback() {
 	__asm {
 		pushad;
@@ -378,6 +386,7 @@ static void __declspec(naked) SetWeaponKnockback() {
 		jmp SetKnockback;
 	}
 }
+
 static void __declspec(naked) SetTargetKnockback() {
 	__asm {
 		pushad;
@@ -385,6 +394,7 @@ static void __declspec(naked) SetTargetKnockback() {
 		jmp SetKnockback;
 	}
 }
+
 static void __declspec(naked) SetAttackerKnockback() {
 	__asm {
 		pushad;
@@ -392,6 +402,7 @@ static void __declspec(naked) SetAttackerKnockback() {
 		jmp SetKnockback;
 	}
 }
+
 static void __declspec(naked) RemoveKnockback() {
 	__asm {
 		mov ecx, eax;
@@ -411,6 +422,7 @@ end:
 		retn;
 	}
 }
+
 static void __declspec(naked) RemoveWeaponKnockback() {
 	__asm {
 		pushad;
@@ -418,6 +430,7 @@ static void __declspec(naked) RemoveWeaponKnockback() {
 		jmp RemoveKnockback;
 	}
 }
+
 static void __declspec(naked) RemoveTargetKnockback() {
 	__asm {
 		pushad;
@@ -425,6 +438,7 @@ static void __declspec(naked) RemoveTargetKnockback() {
 		jmp RemoveKnockback;
 	}
 }
+
 static void __declspec(naked) RemoveAttackerKnockback() {
 	__asm {
 		pushad;
@@ -432,6 +446,7 @@ static void __declspec(naked) RemoveAttackerKnockback() {
 		jmp RemoveKnockback;
 	}
 }
+
 static void __declspec(naked) GetKillCounter2() {
 	__asm {
 		push ebx;
@@ -462,6 +477,7 @@ end:
 		retn;
 	}
 }
+
 static void __declspec(naked) ModKillCounter2() {
 	__asm {
 		push ebx;
@@ -514,6 +530,7 @@ static void __declspec(naked) GetActiveHand() {
 		retn;
 	}
 }
+
 static void __declspec(naked) ToggleActiveHand() {
 	__asm {
 		push ebx;
@@ -544,9 +561,10 @@ static void __declspec(naked) EaxAvailable() {
 		retn;
 	}
 }
+
 static char* NPCToInc;
 static void _stdcall IncNPCLevel4(char* npc) {
-	if(_stricmp(npc, NPCToInc)) {
+	if (_stricmp(npc, NPCToInc)) {
 		SafeWrite8(0x00495C50, 0xe9);
 		SafeWrite32(0x00495C51, 0x000001fc);
 	} else {
@@ -561,12 +579,13 @@ static void _stdcall IncNPCLevel4(char* npc) {
 		//SafeWrite32(0x00495C8E, 0x90909090);
 		SafeWrite16(0x00495CEC, 0x9090);	//Check that the npc hasn't already levelled up recently
 		SafeWrite32(0x00495CEE, 0x90909090);
-		if(!npcautolevel) {
+		if (!npcautolevel) {
 			SafeWrite16(0x00495D22, 0x9090);//Random element
 			SafeWrite32(0x00495D24, 0x90909090);
 		}
 	}
 }
+
 static void __declspec(naked) IncNPCLevel3() {
 	__asm {
 		pushad;
@@ -577,8 +596,9 @@ static void __declspec(naked) IncNPCLevel3() {
 		retn;
 	}
 }
+
 static void _stdcall IncNPCLevel2(char* npc) {
-	NPCToInc=npc;
+	NPCToInc = npc;
 	SafeWrite8(0x00495BEB, 0xe9);	//Replace the debug output with a jmp
 	SafeWrite32(0x00495BEC, ((DWORD)&IncNPCLevel3) - 0x00495BF0);
 	__asm {
@@ -592,11 +612,12 @@ static void _stdcall IncNPCLevel2(char* npc) {
 	//SafeWrite32(0x00495C8E, 0x000001bf);
 	SafeWrite16(0x00495CEC, 0x850f);
 	SafeWrite32(0x00495CEE, 0x00000130);
-	if(!npcautolevel) {
+	if (!npcautolevel) {
 		SafeWrite16(0x00495D22, 0x8f0f);
 		SafeWrite32(0x00495D24, 0x00000129);
 	}
 }
+
 static void __declspec(naked) IncNPCLevel() {
 	__asm {
 		push ebx;
@@ -626,34 +647,36 @@ end:
 		retn;
 	}
 }
+
 static int _stdcall get_npc_level2(DWORD numMembers, DWORD maxMembers, DWORD* members, DWORD* pids, DWORD* words, const char* name) {
-	for(DWORD i=0;i<numMembers;i++) {
+	for (DWORD i = 0; i < numMembers; i++) {
 		const char* name2;
 		__asm {
 			mov eax, members;
 			mov eax, [eax];
 			call FuncOffs::critter_name_
-			mov name2, eax;
+				mov name2, eax;
 		}
-		if(_stricmp(name, name2)) {
-			members+=4;
+		if (_stricmp(name, name2)) {
+			members += 4;
 			continue;
 		}
 
-		DWORD pid=((DWORD*)members[0])[25];
-		DWORD id=-1;
-		for(DWORD j=0;j<maxMembers;j++) {
-			if(pids[j]==pid) {
-				id=j;
+		DWORD pid = ((DWORD*)members[0])[25];
+		DWORD id = -1;
+		for (DWORD j = 0; j < maxMembers; j++) {
+			if (pids[j] == pid) {
+				id = j;
 				break;
 			}
 		}
-		if(id==-1) break;
+		if (id == -1) break;
 
-		return words[id*3];
+		return words[id * 3];
 	}
 	return 0;
 }
+
 static void __declspec(naked) get_npc_level() {
 	__asm {
 		push ebx;
@@ -700,34 +723,35 @@ end:
 
 static char IniStrBuffer[128];
 static DWORD _stdcall GetIniSetting2(const char* c, DWORD string) {
-	const char* key=strstr(c, "|");
-	if(!key) return -1;
-	DWORD filelen=(DWORD)key - (DWORD)c;
-	if(filelen>=64) return -1;
-	key=strstr(key+1, "|");
-	if(!key) return -1;
-	DWORD seclen=(DWORD)key - ((DWORD)c + filelen + 1);
-	if(seclen>32) return -1;
+	const char* key = strstr(c, "|");
+	if (!key) return -1;
+	DWORD filelen = (DWORD)key - (DWORD)c;
+	if (filelen >= 64) return -1;
+	key = strstr(key + 1, "|");
+	if (!key) return -1;
+	DWORD seclen = (DWORD)key - ((DWORD)c + filelen + 1);
+	if (seclen > 32) return -1;
 
 	char file[67];
-	file[0]='.';
-	file[1]='\\';
+	file[0] = '.';
+	file[1] = '\\';
 	memcpy(&file[2], c, filelen);
-	file[filelen+2]=0;
+	file[filelen + 2] = 0;
 
 	char section[33];
-	memcpy(section, &c[filelen+1], seclen);
-	section[seclen]=0;
+	memcpy(section, &c[filelen + 1], seclen);
+	section[seclen] = 0;
 
 	key++;
-	if(string) {
-		IniStrBuffer[0]=0;
+	if (string) {
+		IniStrBuffer[0] = 0;
 		GetPrivateProfileStringA(section, key, "", IniStrBuffer, 128, file);
 		return (DWORD)&IniStrBuffer[0];
 	} else {
 		return GetPrivateProfileIntA(section, key, -1, file);
 	}
 }
+
 static void __declspec(naked) GetIniSetting() {
 	__asm {
 		push ebx;
@@ -767,6 +791,7 @@ result:
 		retn;
 	}
 }
+
 static void __declspec(naked) GetIniString() {
 	__asm {
 		push ebx;
@@ -814,6 +839,7 @@ result:
 static DWORD _stdcall GetTickCount2() {
 	return GetTickCount();
 }
+
 static void __declspec(naked) funcGetTickCount() {
 	__asm {
 		pushad;
@@ -829,6 +855,7 @@ static void __declspec(naked) funcGetTickCount() {
 		retn;
 	}
 }
+
 static void __declspec(naked) SetCarTown() {
 	__asm {
 		push ebx;
@@ -1012,6 +1039,7 @@ end:
 		retn;
 	}
 }
+
 static void __declspec(naked) funcResetCriticalTable() {
 	__asm {
 		pushad;
@@ -1041,6 +1069,7 @@ end:
 		retn;
 	}
 }
+
 static void __declspec(naked) SetApAcBonus() {
 	__asm {
 		push ecx;
@@ -1059,6 +1088,7 @@ end:
 		retn;
 	}
 }
+
 static void __declspec(naked) GetApAcBonus() {
 	__asm {
 		push ecx;
@@ -1074,6 +1104,7 @@ static void __declspec(naked) GetApAcBonus() {
 		retn;
 	}
 }
+
 static void __declspec(naked) SetApAcEBonus() {
 	__asm {
 		push ecx;
@@ -1092,6 +1123,7 @@ end:
 		retn;
 	}
 }
+
 static void __declspec(naked) GetApAcEBonus() {
 	__asm {
 		push ecx;
@@ -1197,6 +1229,7 @@ end:
 		retn;
 	}
 }
+
 static void __declspec(naked) set_proto_data() {
 	__asm {
 		pushad;
@@ -1263,6 +1296,7 @@ end:
 		retn;
 	}
 }
+
 static void __declspec(naked) funcSetHeroStyle() {//for setting the hero style/appearance takes an 1 int
 	__asm {
 		push ebx;
@@ -1289,6 +1323,7 @@ end:
 		retn;
 	}
 }
+
 static void __declspec(naked) funcSetHeroRace() {// for setting the hero race takes an 1 int
 	__asm {
 		push ebx;
@@ -1329,6 +1364,7 @@ static void __declspec(naked) get_light_level() {
 		retn;
 	}
 }
+
 static void __declspec(naked) refresh_pc_art() {
 	__asm {
 		push ebx;
@@ -1341,6 +1377,7 @@ static void __declspec(naked) refresh_pc_art() {
 		retn;
 	}
 }
+
 static void __declspec(naked) get_attack_type() {
 	__asm {
 		push edx;
@@ -1356,6 +1393,7 @@ static void __declspec(naked) get_attack_type() {
 		retn;
 	}
 }
+
 static void __declspec(naked) play_sfall_sound() {
 	__asm {
 		pushad
@@ -1396,6 +1434,7 @@ end:
 		retn;
 	}
 }
+
 static void __declspec(naked) stop_sfall_sound() {
 	__asm {
 		pushad;
@@ -1461,6 +1500,7 @@ static void __declspec(naked) modified_ini() {
 		retn;
 	}
 }
+
 static void __declspec(naked) force_aimed_shots() {
 	__asm {
 		push ecx;
@@ -1480,6 +1520,7 @@ end:
 		retn;
 	}
 }
+
 static void __declspec(naked) disable_aimed_shots() {
 	__asm {
 		push ecx;
@@ -1499,6 +1540,7 @@ end:
 		retn;
 	}
 }
+
 static void __declspec(naked) mark_movie_played() {
 	__asm {
 		push ecx;
@@ -1521,6 +1563,7 @@ end:
 		retn;
 	}
 }
+
 static void __declspec(naked) get_last_attacker() {
 	__asm {
 		pushad;
@@ -1547,6 +1590,7 @@ end:
 		retn;
 	}
 }
+
 static void __declspec(naked) get_last_target() {
 	__asm {
 		pushad;
@@ -1573,6 +1617,7 @@ end:
 		retn;
 	}
 }
+
 static void __declspec(naked) block_combat() {
 	__asm {
 		pushad;
@@ -1590,6 +1635,7 @@ end:
 		retn;
 	}
 }
+
 static void __declspec(naked) tile_under_cursor() {
 	__asm {
 		push edx;
@@ -1617,6 +1663,7 @@ static void __declspec(naked) tile_under_cursor() {
 		retn;
 	}
 }
+
 static void __declspec(naked) gdialog_get_barter_mod() {
 	__asm {
 		push edx;
@@ -1632,6 +1679,7 @@ static void __declspec(naked) gdialog_get_barter_mod() {
 		retn;
 	}
 }
+
 static void __declspec(naked) set_inven_ap_cost() {
 	__asm {
 		push ecx;

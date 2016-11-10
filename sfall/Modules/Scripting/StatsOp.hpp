@@ -69,6 +69,7 @@ end:
 		retn;
 	}
 }
+
 static void __declspec(naked) SetPCExtraStat() {
 	__asm {
 		//Store registers
@@ -111,6 +112,7 @@ end:
 		retn;
 	}
 }
+
 static void __declspec(naked) GetPCBaseStat() {
 	__asm {
 		//Store registers
@@ -149,6 +151,7 @@ end:
 		retn;
 	}
 }
+
 static void __declspec(naked) GetPCExtraStat() {
 	__asm {
 		//Store registers
@@ -187,6 +190,7 @@ end:
 		retn;
 	}
 }
+
 static void __declspec(naked) SetCritterBaseStat() {
 	__asm {
 		//Store registers
@@ -246,6 +250,7 @@ end:
 		retn;
 	}
 }
+
 static void __declspec(naked) SetCritterExtraStat() {
 	__asm {
 		//Store registers
@@ -305,6 +310,7 @@ end:
 		retn;
 	}
 }
+
 static void __declspec(naked) GetCritterBaseStat() {
 	__asm {
 		//Store registers
@@ -362,6 +368,7 @@ end:
 		retn;
 	}
 }
+
 static void __declspec(naked) GetCritterExtraStat() {
 	__asm {
 		//Store registers
@@ -419,6 +426,7 @@ end:
 		retn;
 	}
 }
+
 static void __declspec(naked) set_critter_skill_points() {
 	__asm {
 		pushad;
@@ -468,6 +476,7 @@ end:
 		retn;
 	}
 }
+
 static void __declspec(naked) get_critter_skill_points() {
 	__asm {
 		pushad;
@@ -516,6 +525,7 @@ end:
 		retn;
 	}
 }
+
 static void __declspec(naked) set_available_skill_points() {
 	__asm {
 		pushad;
@@ -533,6 +543,7 @@ end:
 		retn;
 	}
 }
+
 static void __declspec(naked) get_available_skill_points() {
 	__asm {
 		pushad;
@@ -546,6 +557,7 @@ static void __declspec(naked) get_available_skill_points() {
 		retn;
 	}
 }
+
 static void __declspec(naked) mod_skill_points_per_level() {
 	__asm {
 		pushad;
@@ -568,6 +580,7 @@ end:
 		retn;
 	}
 }
+
 static void __declspec(naked) GetCritterAP() {
 	__asm {
 		//Store registers
@@ -674,6 +687,7 @@ end:
 		retn;
 	}
 }
+
 static void __declspec(naked) fSetHitChanceMax() {
 	__asm {
 		push ebx;
@@ -702,6 +716,7 @@ end:
 		retn;
 	}
 }
+
 static void __declspec(naked) SetCritterHitChance() {
 	__asm {
 		push ebx;
@@ -743,6 +758,7 @@ end:
 		retn;
 	}
 }
+
 static void __declspec(naked) SetBaseHitChance() {
 	__asm {
 		push ebx;
@@ -777,6 +793,7 @@ end:
 		retn;
 	}
 }
+
 static void __declspec(naked) SetCritterPickpocket() {
 	__asm {
 		push ebx;
@@ -818,6 +835,7 @@ end:
 		retn;
 	}
 }
+
 static void __declspec(naked) SetBasePickpocket() {
 	__asm {
 		push ebx;
@@ -852,6 +870,7 @@ end:
 		retn;
 	}
 }
+
 static void __declspec(naked) SetCritterSkillMod() {
 	__asm {
 		push ebx;
@@ -885,6 +904,7 @@ end:
 		retn;
 	}
 }
+
 static void __declspec(naked) SetBaseSkillMod() {
 	__asm {
 		push ebx;
@@ -912,6 +932,7 @@ end:
 		retn;
 	}
 }
+
 static void __declspec(naked) fSetSkillMax() {
 	__asm {
 		push ebx;
@@ -939,6 +960,7 @@ end:
 		retn;
 	}
 }
+
 static void __declspec(naked) SetStatMax() {
 	__asm {
 		push ebx;
@@ -976,6 +998,7 @@ end:
 		retn;
 	}
 }
+
 static void __declspec(naked) SetStatMin() {
 	__asm {
 		push ebx;
@@ -1013,6 +1036,7 @@ end:
 		retn;
 	}
 }
+
 static void __declspec(naked) fSetPCStatMax() {
 	__asm {
 		push ebx;
@@ -1047,6 +1071,7 @@ end:
 		retn;
 	}
 }
+
 static void __declspec(naked) fSetPCStatMin() {
 	__asm {
 		push ebx;
@@ -1081,6 +1106,7 @@ end:
 		retn;
 	}
 }
+
 static void __declspec(naked) fSetNPCStatMax() {
 	__asm {
 		push ebx;
@@ -1115,6 +1141,7 @@ end:
 		retn;
 	}
 }
+
 static void __declspec(naked) fSetNPCStatMin() {
 	__asm {
 		push ebx;
@@ -1149,6 +1176,7 @@ end:
 		retn;
 	}
 }
+
 static float xpmod;
 static DWORD xptmp;
 static void __declspec(naked) SetXpMod3() {
@@ -1167,11 +1195,13 @@ static void __declspec(naked) SetXpMod3() {
 		retn;
 	}
 }
+
 static void _stdcall SetXpMod2(DWORD percent) {
 	SafeWrite8(0x004AFAB8, 0xe9);
 	SafeWrite32(0x004AFAB9, (DWORD)&SetXpMod3 - 0x004AFABD);
 	xpmod=(float)percent/100.0f;
 }
+
 static void __declspec(naked) SetXpMod() {
 	__asm {
 		push ebx;
@@ -1196,6 +1226,7 @@ end:
 		retn;
 	}
 }
+
 static int PerkLevelMod;
 static void __declspec(naked) SetPerkLevelMod3() {
 	__asm {
@@ -1210,11 +1241,13 @@ end:
 		retn;
 	}
 }
+
 static void _stdcall SetPerkLevelMod2(int mod) {
-	if(mod<-25||mod>25) return;
-	PerkLevelMod=mod;
+	if (mod < -25 || mod>25) return;
+	PerkLevelMod = mod;
 	SafeWrite32(0x00496880, (DWORD)&SetPerkLevelMod3 - 0x00496884);
 }
+
 static void __declspec(naked) SetPerkLevelMod() {
 	__asm {
 		push ebx;

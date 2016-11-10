@@ -50,6 +50,7 @@ result:
 		retn;
 	}
 }
+
 static void __declspec(naked) ReadShort() {
 	__asm {
 		push ebx;
@@ -78,6 +79,7 @@ result:
 		retn;
 	}
 }
+
 static void __declspec(naked) ReadInt() {
 	__asm {
 		push ebx;
@@ -106,6 +108,7 @@ result:
 		retn;
 	}
 }
+
 static void __declspec(naked) ReadString() {
 	__asm {
 		push ebx;
@@ -134,6 +137,7 @@ result:
 		retn;
 	}
 }
+
 static void __declspec(naked) WriteByte() {
 	__asm {
 		pushad
@@ -162,6 +166,7 @@ end:
 		retn;
 	}
 }
+
 static void __declspec(naked) WriteShort() {
 	__asm {
 		pushad;
@@ -190,6 +195,7 @@ end:
 		retn;
 	}
 }
+
 static void __declspec(naked) WriteInt() {
 	__asm {
 		pushad
@@ -217,17 +223,19 @@ end:
 		retn;
 	}
 }
+
 static void _stdcall WriteStringInternal(const char* str, char* addr) {
-	bool hitnull=false;
-	while(*str) {
-		if(!*addr) hitnull=true;
-		if(hitnull&&addr[1]) break;
-		*addr=*str;
+	bool hitnull = false;
+	while (*str) {
+		if (!*addr) hitnull = true;
+		if (hitnull&&addr[1]) break;
+		*addr = *str;
 		addr++;
 		str++;
 	}
-	*addr=0;
+	*addr = 0;
 }
+
 static void __declspec(naked) WriteString() {
 	__asm {
 		pushad;
@@ -263,13 +271,14 @@ end:
 		retn;
 	}
 }
+
 static void _stdcall CallOffsetInternal(DWORD func, DWORD script) {
-	func=(func>>2) - 0x1d2;
-	bool ret=func>=5;
-	int argcount=func%5;
+	func = (func >> 2) - 0x1d2;
+	bool ret = func >= 5;
+	int argcount = func % 5;
 	DWORD args[5];
-	DWORD illegalarg=0;
-	for(int i=argcount*4;i>=0;i-=4) {
+	DWORD illegalarg = 0;
+	for (int i = argcount * 4; i >= 0; i -= 4) {
 		__asm {
 			mov eax, script;
 			call FuncOffs::interpretPopShort_;
@@ -281,12 +290,12 @@ legal:
 			call FuncOffs::interpretPopLong_;
 			lea ecx, args;
 			add ecx, i;
-			mov [ecx], eax;
+			mov[ecx], eax;
 		}
 	}
 
-	if(illegalarg) {
-		args[0]=0;
+	if (illegalarg) {
+		args[0] = 0;
 	} else {
 		__asm {
 			mov eax, args[1];
@@ -298,7 +307,7 @@ legal:
 			mov args[0], eax;
 		}
 	}
-	if(ret) {
+	if (ret) {
 		__asm {
 			mov eax, script;
 			mov edx, args[0];
@@ -309,6 +318,7 @@ legal:
 		}
 	}
 }
+
 static void __declspec(naked) CallOffset() {
 	__asm {
 		pushad;

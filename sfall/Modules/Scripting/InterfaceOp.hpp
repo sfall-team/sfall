@@ -42,6 +42,7 @@ static void __declspec(naked) InputFuncsAvailable() {
 		retn;
 	}
 }
+
 static void __declspec(naked) KeyPressed() {
 	__asm {
 		push ebx;
@@ -74,6 +75,7 @@ end:
 		retn;
 	}
 }
+
 static void __declspec(naked) funcTapKey() {
 	__asm {
 		push ebx;
@@ -286,6 +288,7 @@ static void __declspec(naked) GetViewportX() {
 		retn;
 	}
 }
+
 static void __declspec(naked) GetViewportY() {
 	__asm {
 		push ebx;
@@ -303,6 +306,7 @@ static void __declspec(naked) GetViewportY() {
 		retn;
 	}
 }
+
 static void __declspec(naked) SetViewportX() {
 	__asm {
 		push ebx;
@@ -323,6 +327,7 @@ end:
 		retn;
 	}
 }
+
 static void __declspec(naked) SetViewportY() {
 	__asm {
 		push ebx;
@@ -369,6 +374,7 @@ end:
 		retn;
 	}
 }
+
 static void __declspec(naked) HideIfaceTag() {
 	__asm {
 		pushad;
@@ -394,6 +400,7 @@ end:
 		retn;
 	}
 }
+
 static void __declspec(naked) IsIfaceTagActive() {
 	__asm {
 		pushad;

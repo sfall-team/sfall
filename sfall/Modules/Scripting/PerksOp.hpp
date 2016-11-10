@@ -36,6 +36,7 @@ static void __declspec(naked) GetPerkOwed() {
 		retn;
 	}
 }
+
 static void __declspec(naked) SetPerkOwed() {
 	__asm {
 		pushad;
@@ -55,6 +56,7 @@ end:
 		retn;
 	}
 }
+
 static void __declspec(naked) set_perk_freq() {
 	__asm {
 		pushad;
@@ -72,6 +74,7 @@ end:
 		retn;
 	}
 }
+
 static void __declspec(naked) GetPerkAvailable() {
 	__asm {
 		pushad;
@@ -101,6 +104,7 @@ end:
 		retn;
 	}
 }
+
 static void __declspec(naked) funcSetPerkName() {
 	__asm {
 		pushad;
@@ -136,6 +140,7 @@ end:
 		retn;
 	}
 }
+
 static void __declspec(naked) funcSetPerkDesc() {
 	__asm {
 		pushad;
@@ -171,6 +176,7 @@ end:
 		retn;
 	}
 }
+
 static void __declspec(naked) funcSetPerkValue() {
 	__asm {
 		pushad;
@@ -271,6 +277,7 @@ fail:
 		retn;
 	}
 }
+
 static void __declspec(naked) fSetFakePerk() {
 	__asm {
 		pushad;
@@ -339,6 +346,7 @@ fail:
 		retn;
 	}
 }
+
 static void __declspec(naked) fSetFakeTrait() {
 	__asm {
 		push ebx;
@@ -415,6 +423,7 @@ fail:
 		retn;
 	}
 }
+
 static void __declspec(naked) fSetPerkboxTitle() {
 	__asm {
 		push ebx;
@@ -444,6 +453,7 @@ end:
 		retn;
 	}
 }
+
 static void __declspec(naked) fIgnoreDefaultPerks() {
 	__asm {
 		push ebx;
@@ -456,6 +466,7 @@ static void __declspec(naked) fIgnoreDefaultPerks() {
 		retn;
 	}
 }
+
 static void __declspec(naked) fRestoreDefaultPerks() {
 	__asm {
 		push ebx;
@@ -468,6 +479,7 @@ static void __declspec(naked) fRestoreDefaultPerks() {
 		retn;
 	}
 }
+
 static void __declspec(naked) fClearSelectablePerks() {
 	__asm {
 		push ebx;
@@ -480,6 +492,7 @@ static void __declspec(naked) fClearSelectablePerks() {
 		retn;
 	}
 }
+
 static void __declspec(naked) fHasFakePerk() {
 	__asm {
 		push ebx;
@@ -515,6 +528,7 @@ end:
 		retn;
 	}
 }
+
 static void __declspec(naked) fHasFakeTrait() {
 	__asm {
 		push ebx;
@@ -550,6 +564,7 @@ end:
 		retn;
 	}
 }
+
 static void __declspec(naked) fAddPerkMode() {
 	__asm {
 		push ebx;
@@ -571,6 +586,7 @@ end:
 		retn;
 	}
 }
+
 static void __declspec(naked) remove_trait() {
 	__asm {
 		pushad;
@@ -634,6 +650,7 @@ static void __declspec(naked) fApplyHeaveHoFix() {
 		retn;
 	}
 }
+
 static void __declspec(naked) SetSwiftLearnerMod() {
 	__asm {
 		push ebx;

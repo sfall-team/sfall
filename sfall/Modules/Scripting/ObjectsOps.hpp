@@ -224,6 +224,7 @@ end:
 		retn;
 	}
 }
+
 static void __declspec(naked) get_weapon_ammo_pid() {
 	__asm {
 		pushad;
@@ -251,6 +252,7 @@ end:
 		retn;
 	}
 }
+
 static void __declspec(naked) set_weapon_ammo_pid() {
 	__asm {
 		pushad;
@@ -277,6 +279,7 @@ end:
 		retn;
 	}
 }
+
 static void __declspec(naked) get_weapon_ammo_count() {
 	__asm {
 		pushad;

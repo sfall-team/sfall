@@ -288,6 +288,18 @@ DWORD* __stdcall runProgram(TProgram* progPtr) {
 	_WRAP_WATCOM_CALL1(runProgram_, progPtr)
 }
 
+TScript* __stdcall scr_find_first_at(int elevation) {
+	_WRAP_WATCOM_CALL1(scr_find_first_at_, elevation)
+}
+
+TScript* __stdcall scr_find_next_at() {
+	_WRAP_WATCOM_CALL0(scr_find_next_at_)
+}
+
+TGameObj* __stdcall scr_find_obj_from_program(TProgram* program) {
+	_WRAP_WATCOM_CALL1(scr_find_obj_from_program_, program)
+}
+
 // Saves pointer to script object into scriptPtr using scriptID. 
 // Returns 0 on success, -1 on failure.
 int __stdcall scr_ptr(int scriptId, TScript** scriptPtr) {

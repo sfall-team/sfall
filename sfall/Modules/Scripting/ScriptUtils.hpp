@@ -67,6 +67,7 @@ end:
 		retn;
 	}
 }
+
 static void __declspec(naked) funcAbs() {
 	__asm {
 		pushad;
@@ -106,6 +107,7 @@ end:
 		retn;
 	}
 }
+
 static void __declspec(naked) funcSin() {
 	__asm {
 		pushad;
@@ -145,6 +147,7 @@ end:
 		retn;
 	}
 }
+
 static void __declspec(naked) funcCos() {
 	__asm {
 		pushad;
@@ -184,6 +187,7 @@ end:
 		retn;
 	}
 }
+
 static void __declspec(naked) funcTan() {
 	__asm {
 		pushad;
@@ -224,6 +228,7 @@ end:
 		retn;
 	}
 }
+
 static void __declspec(naked) funcATan() {
 	__asm {
 		pushad;
@@ -285,33 +290,34 @@ end:
 
 static int _stdcall StringSplit(const char* str, const char* split) {
 	int id;
-	if(strlen(split)==0) {
-		id=TempArray(strlen(str), 4);
-		for(DWORD i=0;i<strlen(str);i++) {
+	if (strlen(split) == 0) {
+		id = TempArray(strlen(str), 4);
+		for (DWORD i = 0; i < strlen(str); i++) {
 			arrays[id].val[i].set(&str[i], 1);
 		}
 	} else {
-		int count=1;
-		const char *ptr=str, *newptr;
-		while(true) {
-			newptr=strstr(ptr, split);
-			if(!newptr) break;
+		int count = 1;
+		const char *ptr = str, *newptr;
+		while (true) {
+			newptr = strstr(ptr, split);
+			if (!newptr) break;
 			count++;
-			ptr=newptr+strlen(split);
+			ptr = newptr + strlen(split);
 		}
-		id=TempArray(count, 0);
-		ptr=str;
-		count =0;
-		while(true) {
-			newptr=strstr(ptr, split);
-			int len=newptr?newptr-ptr:strlen(ptr);
+		id = TempArray(count, 0);
+		ptr = str;
+		count = 0;
+		while (true) {
+			newptr = strstr(ptr, split);
+			int len = newptr ? newptr - ptr : strlen(ptr);
 			arrays[id].val[count++].set(ptr, len);
-			if(!newptr) break;
-			ptr=newptr+strlen(split);
+			if (!newptr) break;
+			ptr = newptr + strlen(split);
 		}
 	}
 	return id;
 }
+
 static void __declspec(naked) string_split() {
 	__asm {
 		pushad;
@@ -363,13 +369,16 @@ end:
 		retn;
 	}
 }
+
 static int _stdcall str_to_int_internal(const char* str) {
 	return (int)strtol(str, (char**)NULL, 0); // auto-determine radix
 }
+
 static DWORD _stdcall str_to_flt_internal(const char* str) {
 	float f=(float)atof(str);
 	return *(DWORD*)&f;
 }
+
 static void __declspec(naked) str_to_int() {
 	__asm {
 		pushad;
@@ -403,6 +412,7 @@ end:
 		retn;
 	}
 }
+
 static void __declspec(naked) str_to_flt() {
 	__asm {
 		pushad;
@@ -436,6 +446,7 @@ end:
 		retn;
 	}
 }
+
 char* _stdcall mysubstr(char* str, int pos, int length) {
 	char* newstr;
 	int srclen;
@@ -458,22 +469,23 @@ char* _stdcall mysubstr(char* str, int pos, int length) {
 static DWORD _stdcall mystrlen(char* str) {
 	return strlen(str);
 }
+
 static char* sprintfbuf = NULL;
 static char* _stdcall mysprintf(char* format, DWORD value, DWORD valueType) {
 	valueType = valueType & 0xFFFF; // use lower 2 bytes
 	int fmtlen = strlen(format);
 	int buflen = fmtlen + 1;
-	for (int i=0; i<fmtlen; i++) {
+	for (int i = 0; i < fmtlen; i++) {
 		if (format[i] == '%')
 			buflen++; // will possibly be escaped, need space for that
 	}
 	// parse format to make it safe
 	char* newfmt = new char[buflen];
 	byte mode = 0;
-	int j=0;
+	int j = 0;
 	char c, specifier;
 	bool hasDigits = false;
-	for (int i=0; i<fmtlen; i++) {
+	for (int i = 0; i < fmtlen; i++) {
 		c = format[i];
 		switch (mode) {
 		case 0: // prefix
@@ -502,7 +514,7 @@ static char* _stdcall mysprintf(char* format, DWORD value, DWORD valueType) {
 		default:
 			if (c == '%') { // don't allow more than one specifier
 				newfmt[j++] = '%'; // escape it
-				if (format[i+1] == '%')
+				if (format[i + 1] == '%')
 					i++; // skip already escaped
 			}
 			break;
@@ -522,7 +534,7 @@ static char* _stdcall mysprintf(char* format, DWORD value, DWORD valueType) {
 	}
 	if (sprintfbuf)
 		delete[] sprintfbuf;
-	sprintfbuf = new char[buflen+1];
+	sprintfbuf = new char[buflen + 1];
 	if (valueType == VAR_TYPE_FLOAT) {
 		_snprintf(sprintfbuf, buflen, newfmt, *(float*)(&value));
 	} else {

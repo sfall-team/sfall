@@ -66,6 +66,7 @@ end:
 		retn;
 	}
 }
+
 static void __declspec(naked) fs_copy() {
 	__asm {
 		pushad;
@@ -116,6 +117,7 @@ end:
 		retn;
 	}
 }
+
 static void __declspec(naked) fs_find() {
 	__asm {
 		pushad;
@@ -150,6 +152,7 @@ end:
 		retn;
 	}
 }
+
 static void __declspec(naked) fs_write_byte() {
 	__asm {
 		pushad;
@@ -176,6 +179,7 @@ end:
 		retn;
 	}
 }
+
 static void __declspec(naked) fs_write_short() {
 	__asm {
 		pushad;
@@ -202,6 +206,7 @@ end:
 		retn;
 	}
 }
+
 static void __declspec(naked) fs_write_int() {
 	__asm {
 		pushad;
@@ -231,6 +236,7 @@ end:
 		retn;
 	}
 }
+
 static void __declspec(naked) fs_write_string() {
 	__asm {
 		pushad;
@@ -265,6 +271,7 @@ end:
 		retn;
 	}
 }
+
 static void __declspec(naked) fs_write_bstring() {
 	__asm {
 		pushad;
@@ -299,6 +306,7 @@ end:
 		retn;
 	}
 }
+
 static void __declspec(naked) fs_read_byte() {
 	__asm {
 		pushad;
@@ -326,6 +334,7 @@ end:
 		retn;
 	}
 }
+
 static void __declspec(naked) fs_read_short() {
 	__asm {
 		pushad;
@@ -353,6 +362,7 @@ end:
 		retn;
 	}
 }
+
 static void __declspec(naked) fs_read_int() {
 	__asm {
 		pushad;
@@ -380,6 +390,7 @@ end:
 		retn;
 	}
 }
+
 static void __declspec(naked) fs_read_float() {
 	__asm {
 		pushad;
@@ -407,6 +418,7 @@ end:
 		retn;
 	}
 }
+
 static void __declspec(naked) fs_delete() {
 	__asm {
 		pushad;
@@ -424,6 +436,7 @@ end:
 		retn;
 	}
 }
+
 static void __declspec(naked) fs_size() {
 	__asm {
 		pushad;
@@ -451,6 +464,7 @@ end:
 		retn;
 	}
 }
+
 static void __declspec(naked) fs_pos() {
 	__asm {
 		pushad;
@@ -478,6 +492,7 @@ end:
 		retn;
 	}
 }
+
 static void __declspec(naked) fs_seek() {
 	__asm {
 		pushad;
@@ -504,6 +519,7 @@ end:
 		retn;
 	}
 }
+
 static void __declspec(naked) fs_resize() {
 	__asm {
 		pushad;

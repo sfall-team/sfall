@@ -24,13 +24,14 @@
 
 static DWORD EncounteredHorrigan;
 static void _stdcall ForceEncounter4() {
-	*(DWORD*)0x00672E04=EncounteredHorrigan;
+	*(DWORD*)0x00672E04 = EncounteredHorrigan;
 	SafeWrite32(0x004C070E, 0x95);
 	SafeWrite32(0x004C0718, 0x95);
 	SafeWrite32(0x004C06D1, 0x2E043D83);
 	SafeWrite32(0x004C071D, 0xFFFC2413);
 	SafeWrite8(0x4C0706, 0x75);
 }
+
 static void __declspec(naked) ForceEncounter3() {
 	__asm {
 		push eax;
@@ -48,14 +49,16 @@ static void __declspec(naked) ForceEncounter3() {
 		retn;
 	}
 }
+
 static void _stdcall ForceEncounter2(DWORD mapID, DWORD flags) {
-	EncounteredHorrigan=*(DWORD*)0x00672E04;
+	EncounteredHorrigan = *(DWORD*)0x00672E04;
 	SafeWrite32(0x004C070E, mapID);
 	SafeWrite32(0x004C0718, mapID);
 	SafeWrite32(0x004C06D1, 0x18EBD231); //xor edx, edx / jmp 0x18
 	SafeWrite32(0x004C071D, ((DWORD)&ForceEncounter3) - 0x004C0721);
-	if(flags&1) SafeWrite8(0x4C0706, 0xeb);
+	if (flags & 1) SafeWrite8(0x4C0706, 0xeb);
 }
+
 static void __declspec(naked) ForceEncounter() {
 	__asm {
 		push ebx;
@@ -78,6 +81,7 @@ end:
 		retn;
 	}
 }
+
 static void __declspec(naked) ForceEncounterWithFlags() {
 	__asm {
 		pushad
@@ -127,6 +131,7 @@ static void __declspec(naked) funcInWorldMap() {
 		retn;
 	}
 }
+
 static void __declspec(naked) GetGameMode() {
 	__asm {
 		pushad;
@@ -142,6 +147,7 @@ static void __declspec(naked) GetGameMode() {
 		retn;
 	}
 }
+
 static void __declspec(naked) GetWorldMapXPos() {
 	__asm {
 		push ebx;
@@ -159,6 +165,7 @@ static void __declspec(naked) GetWorldMapXPos() {
 		retn;
 	}
 }
+
 static void __declspec(naked) GetWorldMapYPos() {
 	__asm {
 		push ebx;
@@ -176,6 +183,7 @@ static void __declspec(naked) GetWorldMapYPos() {
 		retn;
 	}
 }
+
 static void __declspec(naked) SetWorldMapPos() {
 	__asm {
 		push ebx;

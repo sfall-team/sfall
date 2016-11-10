@@ -137,6 +137,7 @@ enum Gender
 // Some global variables referenced by engine
 enum GlobalVar : __int32
 {
+	GVAR_PLAYER_REPUTATION = 0,
 	GVAR_ENEMY_ARROYO = 7,
 	GVAR_PLAYER_GOT_CAR = 18,
 	GVAR_NUKA_COLA_ADDICT = 21,

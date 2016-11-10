@@ -169,6 +169,12 @@ int proto_ptr(int pid, sProtoBase* *ptrPtr);
 
 DWORD* __stdcall runProgram(TProgram* progPtr);
 
+TScript* __stdcall scr_find_first_at(int elevation);
+
+TScript* __stdcall scr_find_next_at();
+
+TGameObj* __stdcall scr_find_obj_from_program(TProgram* program);
+
 // Saves pointer to script object into scriptPtr using scriptID. 
 // Returns 0 on success, -1 on failure.
 int __stdcall scr_ptr(int scriptId, TScript** scriptPtr);
