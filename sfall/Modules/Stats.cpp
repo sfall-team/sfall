@@ -201,8 +201,8 @@ static void __declspec(naked) stat_recalc_derived() {
 
 void StatsReset() {
 	for (int i = 0; i < STAT_max_stat; i++) {
-		StatMaximumsPC[i] = StatMaximumsNPC[i] = *(&VarPtr::stat_data + 4 + i * 6);
-		StatMinimumsPC[i] = StatMinimumsNPC[i] = *(&VarPtr::stat_data + 3 + i * 6);
+		StatMaximumsPC[i] = StatMaximumsNPC[i] = VarPtr::stat_data[i].maxValue;
+		StatMinimumsPC[i] = StatMinimumsNPC[i] = VarPtr::stat_data[i].minValue;
 	}
 	StandardApAcBonus = 4;
 	ExtraApAcBonus = 4;

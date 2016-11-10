@@ -1371,7 +1371,7 @@ void DrawPCConsole() {
 		//sub_draw(70, 102, widthBG, heightBG, xPosBG, yPosBG, BGSurface, 70, 102, 0, 0, ConSurface, 0);
 
 		//DWORD CritNum = VarPtr::art_vault_guy_num; //pointer to current base hero critter FrmId
-		DWORD CritNum = *(DWORD*)(VarPtr::obj_dude + 0x20); //pointer to current armored hero critter FrmId
+		DWORD CritNum = VarPtr::obj_dude->artFID //pointer to current armored hero critter FrmId
 		DWORD CritFrmObj;
 		FRMhead *CritFrm;
 		//DWORD PcCritOri = 0;
@@ -1636,7 +1636,7 @@ void _stdcall HeroSelectWindow(int RaceStyleFlag) {
 	SetFont(0x65);
 
 	DWORD CritNum = VarPtr::art_vault_guy_num; //pointer to current base hero critter FrmID
-	//DWORD CritNum = *(DWORD*)(VarPtr::obj_dude+0x20); //pointer to current armored hero critter FrmID
+	//DWORD CritNum = VarPtr::obj_dude->artFID; //pointer to current armored hero critter FrmID
 	FRMhead *CritFrm;
 	DWORD CritFrmObj = 0, CritOri = 0, CritWidth = 0, CritHeight = 0;
 	BYTE *CritSurface = NULL;

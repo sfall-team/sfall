@@ -123,7 +123,7 @@ _VAR_(paths,                      sPath*)  // array
 _VAR2(pc_crit_succ_eff,           CritStruct, 9, 6)  // 9 body parts, 6 effects
 _VAR_(pc_kill_counts,             DWORD)
 _VARA(pc_name,                    char, 32)
-_VAR_(pc_proto,                   DWORD)
+_VAR_(pc_proto,                   sProtoCritter)
 _VARA(pc_trait,                   long, 2)  // 2 of them
 _VARA(perk_data,                  PerkInfo, PERK_count)
 _VAR_(perkLevelDataList,          long*) // dynamic array, limited to PERK_Count
@@ -142,7 +142,7 @@ _VAR_(read_callback,              DWORD)
 _VAR_(RedColor,                   BYTE)
 _VARA(retvals,                    sElevator, 24)
 _VAR_(scr_size,                   DWORD)
-_VAR_(scriptListInfo,             DWORD)
+_VAR_(scriptListInfo,             ScriptListInfoItem*)  // dynamic array
 _VARA(skill_data,                 SkillInfo, SKILL_count)
 _VAR_(slot_cursor,                DWORD)
 _VAR_(sneak_working,              DWORD) // DWORD var 
@@ -150,7 +150,7 @@ _VAR_(square,                     DWORD)
 _VAR_(squares,                    DWORD*)
 _VAR_(stack,                      DWORD)
 _VAR_(stack_offset,               DWORD)
-_VAR_(stat_data,                  DWORD)
+_VARA(stat_data,                  StatInfo, STAT_real_max_stat) // dynamic array
 _VAR_(stat_flag,                  DWORD)
 _VAR_(Tag_,                       DWORD)
 _VAR_(tag_skill,                  DWORD)

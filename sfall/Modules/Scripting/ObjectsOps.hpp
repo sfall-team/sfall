@@ -521,8 +521,8 @@ static void _stdcall op_obj_is_carrying_obj2() {
 				 *itemObj = (TGameObj*)itemObjArg.asObject();
 		if (invenObj != nullptr && itemObj != nullptr) {
 			for (int i = 0; i < invenObj->invenCount; i++) {
-				if (invenObj->invenTablePtr[i].object == itemObj) {
-					num = invenObj->invenTablePtr[i].count;
+				if (invenObj->invenTable[i].object == itemObj) {
+					num = invenObj->invenTable[i].count;
 					break;
 				}
 			}

@@ -160,7 +160,8 @@ end:
 }
 static void TimerReset() {
 	VarPtr::fallout_game_time = 0;
-	*(&VarPtr::pc_proto + 0x4C) += 13;
+	// used as additional years indicator
+	VarPtr::pc_proto.base_stat_unarmed_damage += 13;
 }
 
 static double TickFrac=0;

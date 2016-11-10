@@ -44,16 +44,18 @@ struct TInvenRec {
 struct TGameObj {
 	__int32 ID;
 	__int32 tile;
-	char gap_8[2];
-	char field_A;
-	char gap_B[17];
+	__int32 x;
+	__int32 y;
+	__int32 sx;
+	__int32 sy;
+	__int32 currentFrm;
 	__int32 rotation;
-	__int32 artFID;
-	char gap_24[4];
+	unsigned __int32 artFID;
+	__int32 flags;
 	__int32 elevation;
 	__int32 invenCount;
-	__int32 field_30;
-	TInvenRec *invenTablePtr;
+	__int32 invenMax;
+	TInvenRec *invenTable;
 	char gap_38[4];
 	__int32 itemCharges;
 	__int32 critterAP_weaponAmmoPid;
@@ -258,8 +260,8 @@ struct CritStruct {
 #pragma pack(push, 1)
 struct SkillInfo
 {
-  __int32 name;
-  __int32 desc;
+  char* name;
+  char* desc;
   __int32 attr;
   __int32 image;
   __int32 base;
@@ -272,6 +274,14 @@ struct SkillInfo
 };
 #pragma pack(pop)
 
+struct StatInfo {
+	char* dame;
+	char* description;
+	__int32 image;
+	__int32 minValue;
+	__int32 maxValue;
+	__int32 defaultValue;
+};
 
 struct TraitInfo {
 	char* Name;
@@ -342,6 +352,114 @@ struct sProtoWeapon
 	__int32 cost;
 	__int32 inv_fid;
 	__int8 SndID;
+};
+
+struct sProtoCritter {
+	sProtoObj obj;
+	__int32 flags_ext;
+	__int32 sid;
+	__int32 critter_flags;
+	__int32 base_stat_srength;
+	__int32 base_stat_prception;
+	__int32 base_stat_endurance;
+	__int32 base_stat_charisma;
+	__int32 base_stat_intelligence;
+	__int32 base_stat_agility;
+	__int32 base_stat_luck;
+	__int32 base_stat_hp;
+	__int32 base_stat_ap;
+	__int32 base_stat_ac;
+	// not used by engine
+	__int32 base_stat_unarmed_damage;
+	__int32 base_stat_melee_damage;
+	__int32 base_stat_carry_weight;
+	__int32 base_stat_sequence;
+	__int32 base_stat_healing_rate;
+	__int32 base_stat_critical_chance;
+	__int32 base_stat_better_criticals;
+	__int32 base_dt_normal;
+	__int32 base_dt_laser;
+	__int32 base_dt_fire;
+	__int32 base_dt_plasma;
+	__int32 base_dt_electrical;
+	__int32 base_dt_emp;
+	__int32 base_dt_explode;
+	__int32 base_dr_normal;
+	__int32 base_dr_laser;
+	__int32 base_dr_fire;
+	__int32 base_dr_plasma;
+	__int32 base_dr_electrical;
+	__int32 base_dr_emp;
+	__int32 base_dr_explode;
+	__int32 base_dr_radiation;
+	__int32 base_dr_poison;
+	__int32 base_age;
+	__int32 base_gender;
+	__int32 bonus_stat_srength;
+	__int32 bonus_stat_prception;
+	__int32 bonus_stat_endurance;
+	__int32 bonus_stat_charisma;
+	__int32 bonus_stat_intelligence;
+	__int32 bonus_stat_agility;
+	__int32 bonus_stat_luck;
+	__int32 bonus_stat_hp;
+	__int32 bonus_stat_ap;
+	__int32 bonus_stat_ac;
+	__int32 bonus_stat_unarmed_damage;
+	__int32 bonus_stat_melee_damage;
+	__int32 bonus_stat_carry_weight;
+	__int32 bonus_stat_sequence;
+	__int32 bonus_stat_healing_rate;
+	__int32 bonus_stat_critical_chance;
+	__int32 bonus_stat_better_criticals;
+	__int32 bonus_dt_normal;
+	__int32 bonus_dt_laser;
+	__int32 bonus_dt_fire;
+	__int32 bonus_dt_plasma;
+	__int32 bonus_dt_electrical;
+	__int32 bonus_dt_emp;
+	__int32 bonus_dt_explode;
+	__int32 bonus_dr_normal;
+	__int32 bonus_dr_laser;
+	__int32 bonus_dr_fire;
+	__int32 bonus_dr_plasma;
+	__int32 bonus_dr_electrical;
+	__int32 bonus_dr_emp;
+	__int32 bonus_dr_explode;
+	__int32 bonus_dr_radiation;
+	__int32 bonus_dr_poison;
+	__int32 bonus_age;
+	__int32 bonus_gender;
+	__int32 skill_small_guns;
+	__int32 skill_big_guns;
+	__int32 skill_energy_weapons;
+	__int32 skill_unarmed;
+	__int32 skill_melee_weapons;
+	__int32 skill_throwing;
+	__int32 skill_first_aid;
+	__int32 skill_doctor;
+	__int32 skill_sneak;
+	__int32 skill_lockpick;
+	__int32 skill_steal;
+	__int32 skill_traps;
+	__int32 skill_science;
+	__int32 skill_repair;
+	__int32 skill_speech;
+	__int32 skill_barter;
+	__int32 skill_gambling;
+	__int32 skill_outdoorsman;
+	__int32 body_type;
+	__int32 exp_val;
+	__int32 kill_type;
+	__int32 damage_type;
+	__int32 head_fid;
+	__int32 ai_packet;
+	__int32 team_num;
+};
+
+struct ScriptListInfoItem {
+	char fileName[16];
+	__int32 numLocalVars;
 };
 
 //for holding window info
