@@ -30,12 +30,12 @@ static DWORD mode;
 static DWORD MaxItemSize;
 static DWORD ReloadWeaponKey = 0;
 
-DWORD& GetActiveItemMode() {
-	return VarPtr::itemButtonItems[(*VarPtr::itemCurrentItem * 6) + 4];
+int& GetActiveItemMode() {
+	return VarPtr::itemButtonItems[VarPtr::itemCurrentItem].mode;
 }
 
 TGameObj* GetActiveItem() {
-	return (TGameObj*)VarPtr::itemButtonItems[*VarPtr::itemCurrentItem * 6];
+	return VarPtr::itemButtonItems[VarPtr::itemCurrentItem].item;
 }
 
 void InventoryKeyPressedHook(DWORD dxKey, bool pressed, DWORD vKey) {
@@ -51,8 +51,8 @@ void InventoryKeyPressedHook(DWORD dxKey, bool pressed, DWORD vKey) {
 			mov curAmmo, eax;
 		}
 		if (maxAmmo != curAmmo) {
-			DWORD &currentMode = GetActiveItemMode();
-			DWORD previusMode = currentMode;
+			int &currentMode = GetActiveItemMode();
+			long previusMode = currentMode;
 			currentMode = 5; // reload mode
 			__asm {
 				call FuncOffs::intface_use_item_;
@@ -339,7 +339,7 @@ static const char* InvenFmt1 = "%s %d/%d  %s %d/%d";
 static const char* InvenFmt2 = "%s %d/%d";
 
 static const char* _stdcall GetInvenMsg() {
-	const char* tmp = GetMessageStr(VarPtr::inventry_message_file, 35);
+	const char* tmp = GetMessageStr(&VarPtr::inventry_message_file, 35);
 	if (!tmp) return "S:";
 	else return tmp;
 }
@@ -387,11 +387,11 @@ end:
 static char SizeMsgBuf[32];
 static const char* _stdcall FmtSizeMsg(int size) {
 	if(size==1) {
-		const char* tmp = GetMessageStr(VarPtr::proto_main_msg_file, 543);
+		const char* tmp = GetMessageStr(&VarPtr::proto_main_msg_file, 543);
 		if(!tmp) strcpy(SizeMsgBuf, "It occupies 1 unit.");
 		else sprintf(SizeMsgBuf, tmp, size);
 	} else {
-		const char* tmp = GetMessageStr(VarPtr::proto_main_msg_file, 542);
+		const char* tmp = GetMessageStr(&VarPtr::proto_main_msg_file, 542);
 		if(!tmp) sprintf(SizeMsgBuf, "It occupies %d units.", size);
 		else sprintf(SizeMsgBuf, tmp, size);
 	}

@@ -39,8 +39,8 @@ static std::vector<WORD> Chars;
 static int DelayedExperience;
 
 static TGameObj* real_dude = nullptr;
-static DWORD real_traits[2];
-static char real_pc_name[32];
+static long real_traits[2];
+static char real_pc_name[sizeof(VarPtr::pc_name)];
 static DWORD real_last_level;
 static DWORD real_Level;
 static DWORD real_Experience;
@@ -50,8 +50,8 @@ static DWORD real_unspent_skill_points;
 static DWORD real_sneak_working;
 //static DWORD real_sneak_queue_time;
 static DWORD real_hand;
-static DWORD real_itemButtonItems[6 * 2];
-static DWORD real_perkLevelDataList[PERK_count];
+static ItemButtonItem real_itemButtonItems[2];
+static int real_perkLevelDataList[PERK_count];
 //static DWORD real_drug_gvar[6];
 //static DWORD real_jet_gvar;
 static int real_tag_skill[4];
@@ -86,19 +86,19 @@ static void __stdcall StatPcAddExperience(int amount) {
 
 // saves the state of PC before moving control to NPC
 static void SaveRealDudeState() {
-	real_dude = VarPtr::ref_obj_dude;
-	real_hand = *VarPtr::itemCurrentItem;
-	memcpy(real_itemButtonItems, VarPtr::itemButtonItems, sizeof(DWORD) * 6 * 2);
-	memcpy(real_traits, VarPtr::pc_trait, sizeof(DWORD) * 2);
-	memcpy(real_perkLevelDataList, *VarPtr::perkLevelDataList, sizeof(DWORD) * PERK_count);
-	strcpy_s(real_pc_name, 32, VarPtr::pc_name);
-	real_Level = *VarPtr::Level_;
-	real_last_level = *VarPtr::last_level;
-	real_Experience = *VarPtr::Experience_;
-	real_free_perk = *VarPtr::free_perk;
+	real_dude = VarPtr::obj_dude;
+	real_hand = VarPtr::itemCurrentItem;
+	memcpy(real_itemButtonItems, VarPtr::itemButtonItems, sizeof(ItemButtonItem) * 2);
+	memcpy(real_traits, VarPtr::pc_trait, sizeof(long) * 2);
+	memcpy(real_perkLevelDataList, VarPtr::perkLevelDataList, sizeof(DWORD) * PERK_count);
+	strcpy_s(real_pc_name, sizeof(VarPtr::pc_name), VarPtr::pc_name);
+	real_Level = VarPtr::Level_;
+	real_last_level = VarPtr::last_level;
+	real_Experience = VarPtr::Experience_;
+	real_free_perk = VarPtr::free_perk;
 	real_unspent_skill_points = VarPtr::curr_pc_stat[0];
-	//real_map_elevation = *VarPtr::map_elevation;
-	real_sneak_working = *VarPtr::sneak_working;
+	//real_map_elevation = VarPtr::map_elevation;
+	real_sneak_working = VarPtr::sneak_working;
 	SkillGetTags(real_tag_skill, 4);
 }
 
@@ -118,7 +118,7 @@ static void TakeControlOfNPC(TGameObj* npc) {
 
 	// reset perks
 	for (int i = 0; i < PERK_count; i++) {
-		(*VarPtr::perkLevelDataList)[i] = 0;
+		VarPtr::perkLevelDataList[i] = 0;
 	}
 
 	// change character name
@@ -129,28 +129,28 @@ static void TakeControlOfNPC(TGameObj* npc) {
 		? Wrapper::partyMemberGetCurLevel(npc) 
 		: 0;
 
-	*VarPtr::Level_ = level;
-	*VarPtr::last_level = level;
+	VarPtr::Level_ = level;
+	VarPtr::last_level = level;
 
 	// reset other stats
-	*VarPtr::Experience_ = 0;
-	*VarPtr::free_perk = 0;
+	VarPtr::Experience_ = 0;
+	VarPtr::free_perk = 0;
 	VarPtr::curr_pc_stat[0] = 0;
-	*VarPtr::sneak_working = 0;
+	VarPtr::sneak_working = 0;
 
 	// deduce active hand by weapon anim code
 	char critterAnim = (npc->artFID & 0xF000) >> 12; // current weapon as seen in hands
 	if (AnimCodeByWeapon(Wrapper::inven_left_hand(npc)) == critterAnim) { // definitely left hand..
-		*VarPtr::itemCurrentItem = 0;
+		VarPtr::itemCurrentItem = 0;
 	} else {
-		*VarPtr::itemCurrentItem = 1;
+		VarPtr::itemCurrentItem = 1;
 	}
 
-	*VarPtr::inven_pid = npc->pid;
+	VarPtr::inven_pid = npc->pid;
 
 	// switch main dude_obj pointers - this should be done last!
-	*VarPtr::obj_dude = npc;
-	*VarPtr::inven_dude = npc;
+	VarPtr::obj_dude = npc;
+	VarPtr::inven_dude = npc;
 
 	IsControllingNPC = 1;
 	DelayedExperience = 0;
@@ -161,24 +161,24 @@ static void TakeControlOfNPC(TGameObj* npc) {
 
 // restores the real dude state
 static void RestoreRealDudeState() {
-	*VarPtr::obj_dude = real_dude;
-	*VarPtr::inven_dude = real_dude;
+	VarPtr::obj_dude = real_dude;
+	VarPtr::inven_dude = real_dude;
 
-	*VarPtr::itemCurrentItem = real_hand;
+	VarPtr::itemCurrentItem = real_hand;
 	memcpy(VarPtr::itemButtonItems, real_itemButtonItems, sizeof(DWORD) * 6 * 2);
-	memcpy(VarPtr::pc_trait, real_traits, sizeof(DWORD) * 2);
-	memcpy(*VarPtr::perkLevelDataList, real_perkLevelDataList, sizeof(DWORD) * PERK_count);
-	strcpy_s(VarPtr::pc_name, 32, real_pc_name);
-	*VarPtr::Level_ = real_Level;
-	*VarPtr::last_level = real_last_level;
-	*VarPtr::Experience_ = real_Experience;
-	*VarPtr::free_perk = real_free_perk;
+	memcpy(VarPtr::pc_trait, real_traits, sizeof(long) * 2);
+	memcpy(VarPtr::perkLevelDataList, real_perkLevelDataList, sizeof(DWORD) * PERK_count);
+	strcpy_s(VarPtr::pc_name, sizeof(VarPtr::pc_name), real_pc_name);
+	VarPtr::Level_ = real_Level;
+	VarPtr::last_level = real_last_level;
+	VarPtr::Experience_ = real_Experience;
+	VarPtr::free_perk = real_free_perk;
 	VarPtr::curr_pc_stat[0] = real_unspent_skill_points;
-	//real_map_elevation = *VarPtr::map_elevation; -- why save elevation?
-	*VarPtr::sneak_working = real_sneak_working;
+	//real_map_elevation = VarPtr::map_elevation; -- why save elevation?
+	VarPtr::sneak_working = real_sneak_working;
 	SkillSetTags(real_tag_skill, 4);
 
-	*VarPtr::inven_pid = real_dude->pid;
+	VarPtr::inven_pid = real_dude->pid;
 
 	if (DelayedExperience > 0) {
 		StatPcAddExperience(DelayedExperience);
@@ -200,7 +200,7 @@ static int __stdcall CombatTurn(TGameObj* obj) {
 
 // return values: 0 - use vanilla handler, 1 - skip vanilla handler, return 0 (normal status), -1 - skip vanilla, return -1 (game ended)
 static int _stdcall CombatWrapperInner(TGameObj* obj) {
-	if ((obj != *VarPtr::obj_dude) && (Chars.size() == 0 || IsInPidList(obj)) && (Mode == 1 || Wrapper::isPartyMember(obj))) {
+	if ((obj != VarPtr::obj_dude) && (Chars.size() == 0 || IsInPidList(obj)) && (Mode == 1 || Wrapper::isPartyMember(obj))) {
 		// save "real" dude state
 		SaveRealDudeState();
 		TakeControlOfNPC(obj);
@@ -246,7 +246,7 @@ static void _declspec(naked) ItemDropHook() {
 */
 
 static void __stdcall DisplayCantDoThat() {
-	Wrapper::display_print(GetMessageStr(VarPtr::proto_main_msg_file, 675)); // I Can't do that
+	Wrapper::display_print(GetMessageStr(&VarPtr::proto_main_msg_file, 675)); // I Can't do that
 }
 
 // 1 skip handler, -1 don't skip
@@ -262,7 +262,7 @@ int __stdcall PartyControl_SwitchHandHook(TGameObj* item) {
 			call FuncOffs::ai_can_use_weapon_;
 			mov canUse, eax;
 		}*/
-		int fId = (*VarPtr::obj_dude)->artFID;
+		int fId = (VarPtr::obj_dude)->artFID;
 		char weaponCode = AnimCodeByWeapon(item);
 		fId = (fId & 0xffff0fff) | (weaponCode << 12);
 		// check if art with this weapon exists

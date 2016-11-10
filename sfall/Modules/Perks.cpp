@@ -329,10 +329,10 @@ static DWORD _stdcall HandleFakeTraits(int i2) {
 		}
 		if (a && !i2) {
 			i2 = 1;
-			*VarPtr::folder_card_fid = fakeTraits[i].Image;
-			*VarPtr::folder_card_title = (DWORD)fakeTraits[i].Name;
-			*VarPtr::folder_card_title2 = 0;
-			*VarPtr::folder_card_desc = (DWORD)fakeTraits[i].Desc;
+			VarPtr::folder_card_fid = fakeTraits[i].Image;
+			VarPtr::folder_card_title = (DWORD)fakeTraits[i].Name;
+			VarPtr::folder_card_title2 = 0;
+			VarPtr::folder_card_desc = (DWORD)fakeTraits[i].Desc;
 		}
 	}
 	return i2;

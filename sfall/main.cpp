@@ -159,8 +159,8 @@ end:
 	}
 }
 static void TimerReset() {
-	*VarPtr::fallout_game_time = 0;
-	*(VarPtr::pc_proto + 0x4C) += 13;
+	VarPtr::fallout_game_time = 0;
+	*(&VarPtr::pc_proto + 0x4C) += 13;
 }
 
 static double TickFrac=0;
@@ -641,7 +641,7 @@ static DWORD* KarmaFrms;
 static int* KarmaPoints;
 
 static DWORD _stdcall DrawCardHook2() {
-	int reputation = (*VarPtr::game_global_vars)[0];
+	int reputation = VarPtr::game_global_vars[0];
 	for (DWORD i = 0; i < KarmaFrmCount - 1; i++) {
 		if (reputation < KarmaPoints[i]) return KarmaFrms[i];
 	}
@@ -1688,7 +1688,7 @@ static void CompatModeCheck(HKEY root, const char* filepath, int extra) {
 bool _stdcall DllMain(HANDLE hDllHandle, DWORD dwReason, LPVOID  lpreserved) {
 	if (dwReason == DLL_PROCESS_ATTACH) {
 		// enabling debugging features
-		IsDebug = (GetPrivateProfileIntA("Debugging", "Enable", 0, ".\\ddraw.ini") != 0);
+ 		IsDebug = (GetPrivateProfileIntA("Debugging", "Enable", 0, ".\\ddraw.ini") != 0);
 		if (IsDebug) {
 			LoggingInit();
 		}

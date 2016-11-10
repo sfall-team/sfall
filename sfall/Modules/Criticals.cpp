@@ -24,8 +24,7 @@
 #include "..\Logging.h"
 
 static const DWORD CritTableCount = 2 * 19 + 1;              //Number of species in new critical table
-//static const DWORD origCritTableSize = 6*9*20;         //Number of entries in original table
-static const DWORD CritTableSize = 6 * 9 * CritTableCount; //Number of entries in new critical table
+
 static DWORD mode;
 
 static const char* CritNames[] = {
@@ -38,20 +37,20 @@ static const char* CritNames[] = {
 	"FailMessage",
 };
 
-static CritStruct* critTable;
-static CritStruct* playerCrit;
+static CritStruct critTable[CritTableCount][9][6];
+static CritStruct (*playerCrit)[9][6];
 static bool Inited=false;
 
 void _stdcall SetCriticalTable(DWORD critter, DWORD bodypart, DWORD slot, DWORD element, DWORD value) {
 	if (!Inited) return;
 	if (critter >= CritTableCount || bodypart >= 9 || slot >= 6 || element >= 7) return;
-	critTable[critter * 9 * 6 + bodypart * 6 + slot].values[element] = value;
+	critTable[critter][bodypart][slot].values[element] = value;
 }
 
 DWORD _stdcall GetCriticalTable(DWORD critter, DWORD bodypart, DWORD slot, DWORD element) {
 	if (!Inited) return 0;
 	if (critter >= CritTableCount || bodypart >= 9 || slot >= 6 || element >= 7) return 0;
-	return critTable[critter * 9 * 6 + bodypart * 6 + slot].values[element];
+	return critTable[critter][bodypart][slot].values[element];
 }
 
 void _stdcall ResetCriticalTable(DWORD critter, DWORD bodypart, DWORD slot, DWORD element) {
@@ -60,29 +59,29 @@ void _stdcall ResetCriticalTable(DWORD critter, DWORD bodypart, DWORD slot, DWOR
 	//It's been a long time since we worried about win9x compatibility, so just sprintf it for goodness sake...
 	char section[16];
 	sprintf_s(section, "c_%02d_%d_%d", critter, bodypart, slot);
-	CritStruct* defaultTable = VarPtr::crit_succ_eff;
-	critTable[slot].values[element] = critTable[slot].DamageMultiplier = GetPrivateProfileIntA(section, CritNames[element], defaultTable[slot].values[element], ".\\CriticalOverrides.ini");
+	CritStruct& defaultEffect = VarPtr::crit_succ_eff[critter][bodypart][slot];
+	critTable[critter][bodypart][slot].values[element] = critTable[critter][bodypart][slot].DamageMultiplier = GetPrivateProfileIntA(section, CritNames[element], defaultEffect.values[element], ".\\CriticalOverrides.ini");
 }
 
 void CritLoad() {
 	if (!Inited) return;
-	CritStruct* defaultTable = VarPtr::crit_succ_eff;
 	if (mode == 1) {
 		char section[16];
 		dlogr("Setting up critical hit table using CriticalOverrides.ini", DL_CRITICALS);
-		memset(critTable, 0, CritTableSize * sizeof(CritStruct));
+		memset(critTable, 0, sizeof(critTable));
 		for (DWORD critter = 0; critter < 20; critter++) {
 			for (DWORD part = 0; part < 9; part++) {
 				for (DWORD crit = 0; crit < 6; crit++) {
 					sprintf_s(section, "c_%02d_%d_%d", critter, part, crit);
-					int slot1 = crit + part * 6 + critter * 9 * 6;
-					int slot2 = crit + part * 6 + ((critter == 19) ? 38 : critter) * 9 * 6;
+					DWORD newCritter = (critter == 19) ? 38 : critter;
+					CritStruct& newEffect = critTable[newCritter][part][crit];
+					CritStruct& defaultEffect = VarPtr::crit_succ_eff[critter][part][crit];
 					for (int i = 0; i < 7; i++) {
-						critTable[slot2].values[i] = GetPrivateProfileIntA(section, CritNames[i], defaultTable[slot1].values[i], ".\\CriticalOverrides.ini");
+						newEffect.values[i] = GetPrivateProfileIntA(section, CritNames[i], defaultEffect.values[i], ".\\CriticalOverrides.ini");
 						if (IsDebug) {
 							char logmsg[256];
-							if (critTable[slot2].values[i] != defaultTable[slot1].values[i]) {
-								sprintf_s(logmsg, "Entry %s value %d changed from %d to %d", section, i, defaultTable[slot1].values[i], critTable[slot2].values[i]);
+							if (newEffect.values[i] != defaultEffect.values[i]) {
+								sprintf_s(logmsg, "Entry %s value %d changed from %d to %d", section, i, defaultEffect.values[i], newEffect.values[i]);
 								dlogr(logmsg, DL_CRITICALS);
 							}
 						}
@@ -92,9 +91,9 @@ void CritLoad() {
 		}
 	} else {
 		dlogr("Setting up critical hit table using RP fixes", DL_CRITICALS);
-		memcpy(critTable, defaultTable, 6 * 9 * 19 * sizeof(CritStruct));
-		memset(&critTable[6 * 9 * 19], 0, 6 * 9 * 19 * sizeof(CritStruct));
-		memcpy(playerCrit, (void*)VarPtr::pc_crit_succ_eff, 6 * 9 * sizeof(CritStruct));
+		memcpy(critTable, VarPtr::crit_succ_eff, sizeof(critTable));
+		memset(&critTable[19], 0, 6 * 9 * 19 * sizeof(CritStruct));
+		memcpy(playerCrit, &VarPtr::pc_crit_succ_eff, 6 * 9 * sizeof(CritStruct));
 
 		if (mode == 3) {
 			char buf[32], buf2[32], buf3[32];
@@ -110,10 +109,10 @@ void CritLoad() {
 
 					sprintf_s(buf2, "c_%02d_%d", critter, part);
 					for (int crit = 0; crit < 6; crit++) {
-						int slot = crit + part * 6 + critter * 9 * 6;
+						CritStruct& effect = critTable[critter][part][crit];
 						for (int i = 0; i < 7; i++) {
 							sprintf_s(buf3, "e%d_%s", crit, CritNames[i]);
-							critTable[slot].values[i] = GetPrivateProfileIntA(buf2, buf3, critTable[slot].values[i], ".\\CriticalOverrides.ini");
+							effect.values[i] = GetPrivateProfileIntA(buf2, buf3, effect.values[i], ".\\CriticalOverrides.ini");
 						}
 					}
 				}
@@ -123,7 +122,7 @@ void CritLoad() {
 	dlogr("Completed critical hit table", DL_CRITICALS);
 }
 
-#define SetEntry(a,b,c,d,e) defaultTable[a*9*6 + b*6 + c].values[d] = e;
+#define SetEntry(a,b,c,d,e) VarPtr::crit_succ_eff[a][b][c].values[d] = e;
 void CritInit() {
 	mode = GetPrivateProfileIntA("Misc", "OverrideCriticalTable", 2, ini);
 	if (mode < 0 || mode > 3) mode = 0;
@@ -131,15 +130,12 @@ void CritInit() {
 	if (!mode) return;
 
 	dlog("Initilizing critical table override.", DL_INIT);
-	critTable = new CritStruct[CritTableSize];
-	playerCrit = &critTable[6 * 9 * 38];
+	playerCrit = &critTable[38];
 	SafeWrite32(0x423F96, (DWORD)playerCrit);
 	SafeWrite32(0x423FB3, (DWORD)critTable);
 	dlog(". ", DL_INIT);
 
 	if (mode == 2 || mode == 3) {
-		CritStruct* defaultTable = VarPtr::crit_succ_eff;
-
 		SetEntry(2, 4, 1, 4, 0);
 		SetEntry(2, 4, 1, 5, 5216);
 		SetEntry(2, 4, 1, 6, 5000);

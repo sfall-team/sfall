@@ -91,15 +91,15 @@ static DWORD _stdcall CreditsNextLine(char* buf, DWORD* font, DWORD* colour) {
 	if (strlen(line)) {
 		if (line[0] == '#') {
 			line++;
-			*font = *VarPtr::name_font;
+			*font = VarPtr::name_font;
 			*colour = *(BYTE*)0x6A7F01;
 		} else if (line[0] == '@') {
 			line++;
-			*font = *VarPtr::title_font;
-			*colour = *VarPtr::title_color;
+			*font = VarPtr::title_font;
+			*colour = VarPtr::title_color;
 		} else {
-			*font = *VarPtr::name_font;
-			*colour = *VarPtr::name_color;
+			*font = VarPtr::name_font;
+			*colour = VarPtr::name_color;
 		}
 	}
 	strcpy_s(buf, 256, line);

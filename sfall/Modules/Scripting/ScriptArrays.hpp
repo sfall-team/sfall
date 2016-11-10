@@ -483,6 +483,7 @@ struct sList {
 };
 
 static void FillListVector(DWORD type, std::vector<DWORD>& vec) {
+	// TODO: fix style, use wrappers
 	if (type == 6) {
 		DWORD scriptPtr, self_obj, programPtr;
 		for (int elev=0; elev<=2; elev++) {
@@ -509,13 +510,15 @@ static void FillListVector(DWORD type, std::vector<DWORD>& vec) {
 			}
 		}
 	} else if (type == 4) {
-		DWORD** squares = VarPtr::squares;
-		for(int elv=0;elv<2;elv++) {
-			DWORD* esquares=squares[elv];
+		// TODO: verify code correctness
+
+		/*for(int elv=0;elv<2;elv++) {
+			DWORD* esquares = &VarPtr::squares[elv];
 			for(int tile=0;tile<10000;tile++) {
 				esquares[tile]=0x8f000002;
 			}
-		}
+		}*/
+		
 	} else {
 		for(int elv=0;elv<3;elv++) {
 			for(int tile=0;tile<40000;tile++) {

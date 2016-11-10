@@ -91,8 +91,8 @@ static void RunEditorInternal(SOCKET &s) {
 
 	int numCritters = vec.size();
 
-	int numGlobals = *VarPtr::num_game_global_vars;
-	int numMapVars = *VarPtr::num_map_global_vars;
+	int numGlobals = VarPtr::num_game_global_vars;
+	int numMapVars = VarPtr::num_map_global_vars;
 	int numSGlobals = GetNumGlobals();
 	int numArrays = GetNumArrays();
 	InternalSend(s, &numGlobals, 4);
@@ -106,8 +106,8 @@ static void RunEditorInternal(SOCKET &s) {
 	int* arrays = new int[numArrays * 3];
 	GetArrays(arrays);
 
-	InternalSend(s, *reinterpret_cast<void**>(VarPtr::game_global_vars), 4 * numGlobals);
-	InternalSend(s, *reinterpret_cast<void**>(VarPtr::map_global_vars), 4 * numMapVars);
+	InternalSend(s, reinterpret_cast<void*>(VarPtr::game_global_vars), 4 * numGlobals);
+	InternalSend(s, reinterpret_cast<void*>(VarPtr::map_global_vars), 4 * numMapVars);
 	InternalSend(s, sglobals, sizeof(sGlobalVar)*numSGlobals);
 	InternalSend(s, arrays, numArrays * 3 * 4);
 	for (int i = 0; i < numCritters; i++) InternalSend(s, &vec[i][25], 4);
@@ -121,12 +121,12 @@ static void RunEditorInternal(SOCKET &s) {
 		case 0:
 			InternalRecv(s, &id, 4);
 			InternalRecv(s, &val, 4);
-			(*VarPtr::game_global_vars)[id] = val;
+			VarPtr::game_global_vars[id] = val;
 			break;
 		case 1:
 			InternalRecv(s, &id, 4);
 			InternalRecv(s, &val, 4);
-			(*VarPtr::map_global_vars)[id] = val;
+			VarPtr::map_global_vars[id] = val;
 			break;
 		case 2:
 			InternalRecv(s, &id, 4);

@@ -24,20 +24,6 @@
 static const int ElevatorCount = 50;
 static char File[MAX_PATH];
 
-struct sElevator {
-	DWORD ID1;
-	DWORD Elevation1;
-	DWORD Tile1;
-	DWORD ID2;
-	DWORD Elevation2;
-	DWORD Tile2;
-	DWORD ID3;
-	DWORD Elevation3;
-	DWORD Tile3;
-	DWORD ID4;
-	DWORD Elevation4;
-	DWORD Tile4;
-};
 
 static sElevator Elevators[ElevatorCount];
 static DWORD Menus[ElevatorCount];
@@ -114,7 +100,7 @@ static void __declspec(naked) GetNumButtonsHook3() {
 }
 
 void ResetElevators() {
-	memcpy(Elevators, (void*)VarPtr::retvals, sizeof(sElevator) * 24);
+	memcpy(Elevators, VarPtr::retvals, sizeof(sElevator) * 24);
 	memset(&Elevators[24], 0, sizeof(sElevator)*(ElevatorCount - 24));
 	for (int i = 0; i < 24; i++) Menus[i] = i;
 	for (int i = 24; i < ElevatorCount; i++) Menus[i] = 0;

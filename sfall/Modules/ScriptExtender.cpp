@@ -517,8 +517,8 @@ sScriptProgram* GetGlobalScriptProgram(TProgram* scriptPtr) {
 
 bool _stdcall IsGameScript(const char* filename) {
 	// TODO: write better solution
-	for (DWORD i = 0; i < *VarPtr::maxScriptNum; i++) {
-		if (strcmp(filename, (char*)(*VarPtr::scriptListInfo + i*20)) == 0) return true;
+	for (DWORD i = 0; i < VarPtr::maxScriptNum; i++) {
+		if (strcmp(filename, (char*)(VarPtr::scriptListInfo + i*20)) == 0) return true;
 	}
 	return false;
 }
@@ -662,7 +662,7 @@ static void RunGlobalScripts1() {
 		if (KeyDown(toggleHighlightsKey)) {
 			if (!highlightingToggled) {
 				if (MotionSensorMode&4) {
-					TGameObj* scanner = Wrapper::inven_pid_is_carried_ptr(*VarPtr::obj_dude, PID_MOTION_SENSOR);
+					TGameObj* scanner = Wrapper::inven_pid_is_carried_ptr(VarPtr::obj_dude, PID_MOTION_SENSOR);
 					if (scanner != nullptr) {
 						if (MotionSensorMode & 2) {
 							highlightingToggled = Wrapper::item_m_dec_charges(scanner) + 1;

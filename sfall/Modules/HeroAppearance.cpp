@@ -39,7 +39,7 @@ int CurrentRaceVal = 0, CurrentStyleVal = 0; //holds Appearance values to restor
 DWORD critterListSize = 0, critterArraySize = 0; //Critter art list size
 
 
-sPath **TempPathPtr = VarPtr::paths;
+sPath **TempPathPtr = &VarPtr::paths;
 sPath *HeroPathPtr = NULL;
 sPath *RacePathPtr = NULL;
 
@@ -335,7 +335,7 @@ void HideMouse() {
 //-------------------------------------------------------
 //returns 0 if mouse is hidden
 int IsMouseHidden() {
-	return *VarPtr::mouse_is_hidden;
+	return VarPtr::mouse_is_hidden;
 }
 
 /////////////////////////////////////////////////////////////////FRM FUNCTIONS////////////////////////////////////////////////////////////////////////
@@ -650,7 +650,7 @@ void SetFont(int ref) {
 
 //-----------------------
 int GetFont(void) {
-	return *VarPtr::curr_font_num;
+	return VarPtr::curr_font_num;
 }
 
 
@@ -860,7 +860,7 @@ int _stdcall LoadHeroDat(unsigned int Race, unsigned int Style) {
 	}
 
 	TempPathPtr = &HeroPathPtr; //set path for selected appearance
-	HeroPathPtr->next = VarPtr::paths[0];
+	HeroPathPtr->next = &VarPtr::paths[0];
 
 	if (Style != 0){
 		sprintf_s(RacePathPtr->path, 64, "Appearance\\h%cR%02dS%02d.dat\0", GetSex(), Race, 0);
@@ -873,7 +873,7 @@ int _stdcall LoadHeroDat(unsigned int Race, unsigned int Style) {
 
 		if (GetFileAttributes(RacePathPtr->path) != INVALID_FILE_ATTRIBUTES) { //check if folder/Dat exists for selected race base appearance
 			HeroPathPtr->next = RacePathPtr; //set path for selected race base appearance
-			RacePathPtr->next = VarPtr::paths[0];
+			RacePathPtr->next = &VarPtr::paths[0];
 		}
 	}
 	return 0;
@@ -1361,7 +1361,7 @@ void DrawPCConsole() {
 		else CharRotOri = 0;
 
 
-		int WinRef = *VarPtr::edit_win; //char screen window ref
+		int WinRef = VarPtr::edit_win; //char screen window ref
 		//BYTE *WinSurface = GetWinSurface(WinRef);
 		WINinfo *WinInfo = GetWinStruct(WinRef);
 
@@ -1370,8 +1370,8 @@ void DrawPCConsole() {
 		sub_draw(70, 102, 640, 480, 338, 78, CharScrnBackSurface, 70, 102, 0, 0, ConSurface, 0);
 		//sub_draw(70, 102, widthBG, heightBG, xPosBG, yPosBG, BGSurface, 70, 102, 0, 0, ConSurface, 0);
 
-		//DWORD CritNum = *VarPtr::art_vault_guy_num; //pointer to current base hero critter FrmId
-		DWORD CritNum = *(DWORD*)(*VarPtr::obj_dude + 0x20); //pointer to current armored hero critter FrmId
+		//DWORD CritNum = VarPtr::art_vault_guy_num; //pointer to current base hero critter FrmId
+		DWORD CritNum = *(DWORD*)(VarPtr::obj_dude + 0x20); //pointer to current armored hero critter FrmId
 		DWORD CritFrmObj;
 		FRMhead *CritFrm;
 		//DWORD PcCritOri = 0;
@@ -1386,13 +1386,13 @@ void DrawPCConsole() {
 
 		sub_draw(CritWidth, CritHeight, CritWidth, CritHeight, 0, 0, CritSurface, 70, 102, 35-CritWidth/2, 51-CritHeight/2, ConSurface, 0);
 
-		BYTE ConsoleGreen = *VarPtr::GreenColor; //palette offset stored in mem - text colour
-		BYTE ConsoleGold = *VarPtr::YellowColor; //palette offset stored in mem - text colour
+		BYTE ConsoleGreen = VarPtr::GreenColor; //palette offset stored in mem - text colour
+		BYTE ConsoleGold = VarPtr::YellowColor; //palette offset stored in mem - text colour
 
 		BYTE styleColour = ConsoleGreen, raceColour = ConsoleGreen;
-		if (*VarPtr::info_line == 0x501)
+		if (VarPtr::info_line == 0x501)
 			raceColour = ConsoleGold;
-		else if (*VarPtr::info_line == 0x502)
+		else if (VarPtr::info_line == 0x502)
 			styleColour = ConsoleGold;
 /*
 		int oldFont = GetFont(); //store current font
@@ -1509,7 +1509,7 @@ void DrawCharNote(bool Style, int WinRef, DWORD xPosWin, DWORD yPosWin, BYTE *BG
 	WinInfo = NULL;
 	SetFont(oldFont); //restore previous font
 	Wrapper::message_exit(&MsgList);
-	//RedrawWin(*VarPtr::edit_win);
+	//RedrawWin(VarPtr::edit_win);
 }
 
 /*
@@ -1632,11 +1632,11 @@ void _stdcall HeroSelectWindow(int RaceStyleFlag) {
 
 	DWORD NewTick = 0, OldTick = 0;
 
-	textColour = *VarPtr::GreenColor; //ConsoleGreen colour -palette offset stored in mem
+	textColour = VarPtr::GreenColor; //ConsoleGreen colour -palette offset stored in mem
 	SetFont(0x65);
 
-	DWORD CritNum = *VarPtr::art_vault_guy_num; //pointer to current base hero critter FrmID
-	//DWORD CritNum = *(DWORD*)(*VarPtr::obj_dude+0x20); //pointer to current armored hero critter FrmID
+	DWORD CritNum = VarPtr::art_vault_guy_num; //pointer to current base hero critter FrmID
+	//DWORD CritNum = *(DWORD*)(VarPtr::obj_dude+0x20); //pointer to current armored hero critter FrmID
 	FRMhead *CritFrm;
 	DWORD CritFrmObj = 0, CritOri = 0, CritWidth = 0, CritHeight = 0;
 	BYTE *CritSurface = NULL;
@@ -1795,7 +1795,7 @@ void FixTextHighLight() {
 
 //-------------------------------------------
 void _stdcall DrawCharNoteNewChar(bool Style) {
-	DrawCharNote(Style, *VarPtr::edit_win, 348, 272, CharScrnBackSurface, 348, 272, 640, 480);
+	DrawCharNote(Style, VarPtr::edit_win, 348, 272, CharScrnBackSurface, 348, 272, 640, 480);
 }
 
 //-------------------------------------------------------------------
@@ -1807,26 +1807,26 @@ int _stdcall CheckCharButtons() {
 
 	int drawFlag = -1;
 
-	if (*VarPtr::info_line == 0x503) {
+	if (VarPtr::info_line == 0x503) {
 		button = 0x501;
-	} else if (*VarPtr::info_line == 0x504) {
+	} else if (VarPtr::info_line == 0x504) {
 		button = 0x502;
-	} else if (*VarPtr::info_line == 0x501 || *VarPtr::info_line == 0x502) {
+	} else if (VarPtr::info_line == 0x501 || VarPtr::info_line == 0x502) {
 		switch (button) {
 			case 0x14B: //button =left
 			case 0x14D: //button =right
 				if (*(DWORD*)0x5709D0 == 1) { //if in char creation scrn
-					if (*VarPtr::info_line == 0x501)
+					if (VarPtr::info_line == 0x501)
 						button = button + 0x3C6;
-					else if (*VarPtr::info_line == 0x502)
+					else if (VarPtr::info_line == 0x502)
 						button = button + 0x3C6 + 1;
 				}
 			break;
 			case 0x148: //button =up
 			case 0x150: //button =down
-				if (*VarPtr::info_line == 0x501)
+				if (VarPtr::info_line == 0x501)
 					button = 0x502;
-				else if (*VarPtr::info_line == 0x502)
+				else if (VarPtr::info_line == 0x502)
 					button = 0x501;
 			break;
 			case 0x0D: //button =return
@@ -1837,10 +1837,10 @@ int _stdcall CheckCharButtons() {
 			case 0x1F6: //button =cancel
 			case 'c': //button =cancel
 			case 'C': //button =cancel
-			if (*VarPtr::info_line == 0x501) //for redrawing note when reentering char screen
-				*VarPtr::info_line = 0x503;
+			if (VarPtr::info_line == 0x501) //for redrawing note when reentering char screen
+				VarPtr::info_line = 0x503;
 			else
-				*VarPtr::info_line = 0x504;
+				VarPtr::info_line = 0x504;
 			break;
 
 			default:
@@ -1850,7 +1850,7 @@ int _stdcall CheckCharButtons() {
 
 	switch(button) {
 		case 0x9: //tab button pushed
-			if (*VarPtr::info_line >= 0x3D && *VarPtr::info_line < 0x4F) //if menu ref in last menu go to race
+			if (VarPtr::info_line >= 0x3D && VarPtr::info_line < 0x4F) //if menu ref in last menu go to race
 				button = 0x501, drawFlag = 0;
 		break;
 		case 0x501: //race button pushed
@@ -1909,20 +1909,20 @@ int _stdcall CheckCharButtons() {
 
 	if (drawFlag == 1) {
 		PlayAcm("ib3p1xx1");
-		*VarPtr::info_line = 0x502;
+		VarPtr::info_line = 0x502;
 		FixTextHighLight();
 		DrawCharNoteNewChar(1);
-		//DrawCharNote(1, *VarPtr::edit_win, 348, 272, CharScrnBackSurface, 348, 272, 640, 480);
+		//DrawCharNote(1, VarPtr::edit_win, 348, 272, CharScrnBackSurface, 348, 272, 640, 480);
 	}
 	else if (drawFlag==0) {
 		PlayAcm("ib3p1xx1");
-		*VarPtr::info_line = 0x501;
+		VarPtr::info_line = 0x501;
 		FixTextHighLight();
 		DrawCharNoteNewChar(0);
-		//DrawCharNote(0, *VarPtr::edit_win, 348, 272, CharScrnBackSurface, 348, 272, 640, 480);
+		//DrawCharNote(0, VarPtr::edit_win, 348, 272, CharScrnBackSurface, 348, 272, 640, 480);
 	}
 
-	DrawPCConsole(); //(*VarPtr::edit_win, 338, 78, CharScrnBackSurface, 338, 78, 640, 480);
+	DrawPCConsole(); //(VarPtr::edit_win, 338, 78, CharScrnBackSurface, 338, 78, 640, 480);
 
 	return button;
 }
@@ -2026,7 +2026,7 @@ static void __declspec(naked) AddCharScrnButtons(void) {
 	}
 
 	int WinRef;
-	WinRef = *VarPtr::edit_win; //char screen window ref
+	WinRef = VarPtr::edit_win; //char screen window ref
 
 	//race and style buttons
 	CreateButton(WinRef, 332, 0, 82, 32, -1, -1, 0x501, -1, 0, 0, 0);
@@ -2102,11 +2102,8 @@ static void __declspec(naked) FixCharScrnBack(void) {
 	if (CharScrnBackSurface == NULL) {
 		CharScrnBackSurface = new BYTE [640*480];
 
-		BYTE *OldCharScrnBackSurface;
-		OldCharScrnBackSurface = *reinterpret_cast<BYTE**>(VarPtr::bckgnd); //char screen background frm surface
-
-		//CharScrnBackSurface = *(BYTE**)_bckgnd; //char screen background frm surface
-
+		BYTE *OldCharScrnBackSurface = VarPtr::bckgnd; //char screen background frm surface
+		
 		//copy old charscrn surface to new
 		sub_draw(640, 480, 640, 480, 0, 0, OldCharScrnBackSurface, 640, 480, 0, 0, CharScrnBackSurface, 0);
 

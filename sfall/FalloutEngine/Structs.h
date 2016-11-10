@@ -137,6 +137,15 @@ struct TProgram {
 };
 #pragma pack(pop)
 
+struct ItemButtonItem {
+	TGameObj* item;
+	__int32 field_2;
+	__int32 field_3;
+	__int32 field_4;
+	__int32 mode;
+	__int32 field_6;
+};
+
 struct PerkInfo {
 	char* Name;
 	char* Desc;
@@ -162,6 +171,21 @@ struct PerkInfo {
 struct DBFile {
 	__int32 fileType;
 	void* handle;
+};
+
+struct sElevator {
+	__int32 ID1;
+	__int32 Elevation1;
+	__int32 Tile1;
+	__int32 ID2;
+	__int32 Elevation2;
+	__int32 Tile2;
+	__int32 ID3;
+	__int32 Elevation3;
+	__int32 Tile3;
+	__int32 ID4;
+	__int32 Elevation4;
+	__int32 Tile4;
 };
 
 #pragma pack(push, 1)

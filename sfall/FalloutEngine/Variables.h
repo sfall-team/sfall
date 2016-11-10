@@ -211,16 +211,48 @@
 //
 // Global variable pointers.
 //
-// In normal CPP code use: VarPtr::var_name, or *VarPtr::var_name to dereference it (read it's value).
+// In normal CPP code use: VarPtr::var_name to read/write value or &VarPtr::var_name to use as pointer.
 //
 namespace VarPtr
 {
 
-// defines const pointer to a variable (pointer is constant, but value can be changed)
-// TODO: move references to different namespace
-#define _VAR(name, type)	\
-	extern type* const name; \
-	extern type& ref_##name; \
+template <typename T, int Size>
+struct ArrayWrapper {
+	T vals[Size];
+
+	T& operator[] (int idx) {
+		assert(idx >= 0 && idx < Size);
+		return vals[idx];
+	}
+
+	operator T* () {
+		return static_cast<T*>(vals);
+	}
+
+	operator const void* () {
+		return static_cast<const void*>(this);
+	}
+};
+
+// defines reference to an engine variable 
+#define _VAR_(name, type)	\
+	extern type& name;
+
+// defines reference to static array
+#define _VARA(name, type, size)	\
+	extern ArrayWrapper<type, size> &name;
+
+// defines reference to static 2-dimensional array
+#define _VAR2(name, type, size1, size2)	\
+	extern ArrayWrapper<ArrayWrapper<type, size2>, size1> &name;
+
+// defines reference to static 3-dimensional array
+#define _VAR3(name, type, size1, size2, size3)	\
+	extern ArrayWrapper<ArrayWrapper<ArrayWrapper<type, size3>, size2>, size1> &name;
+
+// defines const pointer to variable (useful for static arrays, when exact size is unknown)
+#define _VARP(name, type)	\
+	extern type* const name;
 
 // TODO: assign appropriate types (arrays, structs, strings, etc.) for all variables
 #include "Variables_def.h"

@@ -90,7 +90,7 @@ static void LoadFrm(Frm* frm) {
 		char buf[MAX_PATH];
 		IDirect3DTexture9** textures = new IDirect3DTexture9*[frm->frames];
 		for (int i = 0; i < frm->frames; i++) {
-			sprintf(buf, "%s\\art\\heads\\%s\\%d.png", *VarPtr::patches, frm->path, i);
+			sprintf(buf, "%s\\art\\heads\\%s\\%d.png", VarPtr::patches, frm->path, i);
 			if (FAILED(D3DXCreateTextureFromFileExA(d3d9Device, buf, 0, 0, 1, 0, D3DFMT_UNKNOWN, D3DPOOL_MANAGED, D3DX_DEFAULT, D3DX_DEFAULT, 0, 0, 0, &textures[i]))) {
 				for (int j = 0; j < i; j++) textures[j]->Release();
 				delete[] textures;

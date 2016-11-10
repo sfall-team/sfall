@@ -37,10 +37,10 @@ void SavePageOffsets() {
 
 	char buffer[6];
 
-  strcpy_s(SavePath, MAX_PATH, *VarPtr::patches);
+  strcpy_s(SavePath, MAX_PATH, VarPtr::patches);
   strcat_s(SavePath, MAX_PATH, "savegame\\SLOTDAT.ini");
 
-  _itoa_s(*VarPtr::slot_cursor, buffer, 10);
+  _itoa_s(VarPtr::slot_cursor, buffer, 10);
   WritePrivateProfileString("POSITION", "ListNum", buffer, SavePath);
   _itoa_s(LSPageOffset, buffer, 10);
   WritePrivateProfileString("POSITION", "PageOffset", buffer, SavePath);
@@ -62,11 +62,11 @@ static void __declspec(naked) save_page_offsets(void) {
 void LoadPageOffsets() {
   char LoadPath[MAX_PATH];
 
-  strcpy_s(LoadPath, MAX_PATH, *VarPtr::patches);
+  strcpy_s(LoadPath, MAX_PATH, VarPtr::patches);
   strcat_s(LoadPath, MAX_PATH, "savegame\\SLOTDAT.ini");
 
-  *VarPtr::slot_cursor = GetPrivateProfileInt("POSITION", "ListNum", 0, LoadPath);
-  if (*VarPtr::slot_cursor > 9)*VarPtr::slot_cursor = 9;
+  VarPtr::slot_cursor = GetPrivateProfileInt("POSITION", "ListNum", 0, LoadPath);
+  if (VarPtr::slot_cursor > 9)VarPtr::slot_cursor = 9;
 
   LSPageOffset = GetPrivateProfileInt("POSITION", "PageOffset", 0, LoadPath);
   if (LSPageOffset > 9990) {
@@ -172,12 +172,12 @@ static void __declspec(naked) create_page_buttons(void) {
 
 //------------------------------------------------------
 void SetPageNum() {
-	int WinRef = *VarPtr::lsgwin; //load/save winref
+	int WinRef = VarPtr::lsgwin; //load/save winref
 	if (WinRef == NULL)return;
 	WINinfo *SaveLoadWin = GetWinStruct(WinRef);
 	if (SaveLoadWin->surface == NULL)return;
 
-	BYTE ConsoleGold = *VarPtr::YellowColor;//palette offset stored in mem - text colour
+	BYTE ConsoleGold = VarPtr::YellowColor;//palette offset stored in mem - text colour
 
 	char TempText[32];
 	unsigned int TxtMaxWidth = GetMaxCharWidth() * 8;//GetTextWidth(TempText);
@@ -351,7 +351,7 @@ EndFunc:
 //------------------------------------------
 void DrawPageText() {
 
-	int WinRef = *VarPtr::lsgwin; //load/save winref
+	int WinRef = VarPtr::lsgwin; //load/save winref
 	if (WinRef == NULL) {
 		return;
 	}
@@ -363,8 +363,8 @@ void DrawPageText() {
 		memset(SaveLoadWin->surface + 50 + y, 0xCF, 240);
 	}
 
-	BYTE ConsoleGreen = *VarPtr::GreenColor; //palette offset stored in mem - text colour
-	BYTE ConsoleGold = *VarPtr::YellowColor; //palette offset stored in mem - text colour
+	BYTE ConsoleGreen = VarPtr::GreenColor; //palette offset stored in mem - text colour
+	BYTE ConsoleGold = VarPtr::YellowColor; //palette offset stored in mem - text colour
 	BYTE Colour = ConsoleGreen;
 
 	char TempText[32];

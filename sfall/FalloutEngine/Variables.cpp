@@ -23,10 +23,25 @@
 namespace VarPtr
 {
 
-// defines const pointer to a variable (pointer is constant, but value can be changed)
-#define _VAR(name, type)	\
-	type* const name = reinterpret_cast<type*>(VARPTR_##name); \
-	type& ref_##name = *name; 
+// defines reference to a variable (pointer is constant, but value can be changed)
+#define _VAR_(name, type)	\
+	type &name = *reinterpret_cast<type*>(VARPTR_##name);
+
+// defines reference to static array
+#define _VARA(name, type, size)	\
+	ArrayWrapper<type, size> &name = *reinterpret_cast<ArrayWrapper<type, size>*>(VARPTR_##name);
+
+// defines reference to static 2-dimensional array
+#define _VAR2(name, type, size1, size2)	\
+	ArrayWrapper<ArrayWrapper<type, size2>, size1> &name = *reinterpret_cast<ArrayWrapper<ArrayWrapper<type, size2>, size1>*>(VARPTR_##name);
+
+// defines reference to static 3-dimensional array
+#define _VAR3(name, type, size1, size2, size3)	\
+	ArrayWrapper<ArrayWrapper<ArrayWrapper<type, size3>, size2>, size1> &name = *reinterpret_cast<ArrayWrapper<ArrayWrapper<ArrayWrapper<type, size3>, size2>, size1>*>(VARPTR_##name);
+
+// defines const pointer to variable (useful for static arrays, when exact size is unknown)
+#define _VARP(name, type)	\
+	type* const name = reinterpret_cast<type*>(VARPTR_##name);
 
 // X-Macros pattern
 #include "Variables_def.h"

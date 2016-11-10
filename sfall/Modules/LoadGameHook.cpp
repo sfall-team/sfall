@@ -75,7 +75,7 @@ static void _stdcall ResetState(DWORD onLoad) {
 }
 
 void GetSavePath(char* buf, char* ftype) {
-	sprintf(buf, "%s\\savegame\\slot%.2d\\sfall%s.sav", *VarPtr::patches, *VarPtr::slot_cursor + 1 + LSPageOffset, ftype); //add SuperSave Page offset
+	sprintf(buf, "%s\\savegame\\slot%.2d\\sfall%s.sav", VarPtr::patches, VarPtr::slot_cursor + 1 + LSPageOffset, ftype); //add SuperSave Page offset
 }
 
 static char SaveSfallDataFailMsg[128];
@@ -117,10 +117,10 @@ static DWORD _stdcall combatSaveTest() {
 			Wrapper::display_print(SaveFailMsg);
 			return 0;
 		}
-		int ap = Wrapper::stat_level(*VarPtr::obj_dude, STAT_max_move_points);
-		int bonusmove = Wrapper::perk_level(*VarPtr::obj_dude, PERK_bonus_move);
+		int ap = Wrapper::stat_level(VarPtr::obj_dude, STAT_max_move_points);
+		int bonusmove = Wrapper::perk_level(VarPtr::obj_dude, PERK_bonus_move);
 		// TODO: investigate field at 0x40
-		if (*(DWORD*)(*VarPtr::obj_dude + 0x40) != ap || bonusmove * 2 != *VarPtr::combat_free_move) {
+		if (*(DWORD*)(VarPtr::obj_dude + 0x40) != ap || bonusmove * 2 != VarPtr::combat_free_move) {
 			Wrapper::display_print(SaveFailMsg);
 			return 0;
 		}
