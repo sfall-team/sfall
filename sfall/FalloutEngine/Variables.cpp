@@ -25,7 +25,8 @@ namespace VarPtr
 
 // defines const pointer to a variable (pointer is constant, but value can be changed)
 #define _VAR(name, type)	\
-	type* const name = reinterpret_cast<type*>(VARPTR_##name);
+	type* const name = reinterpret_cast<type*>(VARPTR_##name); \
+	type& ref_##name = *name; 
 
 // X-Macros pattern
 #include "Variables_def.h"

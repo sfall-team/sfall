@@ -217,8 +217,10 @@ namespace VarPtr
 {
 
 // defines const pointer to a variable (pointer is constant, but value can be changed)
+// TODO: move references to different namespace
 #define _VAR(name, type)	\
-	extern type* const name;
+	extern type* const name; \
+	extern type& ref_##name; \
 
 // TODO: assign appropriate types (arrays, structs, strings, etc.) for all variables
 #include "Variables_def.h"

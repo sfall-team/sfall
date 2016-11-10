@@ -86,7 +86,7 @@ static void __stdcall StatPcAddExperience(int amount) {
 
 // saves the state of PC before moving control to NPC
 static void SaveRealDudeState() {
-	real_dude = *VarPtr::obj_dude;
+	real_dude = VarPtr::ref_obj_dude;
 	real_hand = *VarPtr::itemCurrentItem;
 	memcpy(real_itemButtonItems, VarPtr::itemButtonItems, sizeof(DWORD) * 6 * 2);
 	memcpy(real_traits, VarPtr::pc_trait, sizeof(DWORD) * 2);
