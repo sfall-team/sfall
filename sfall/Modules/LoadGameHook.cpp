@@ -132,10 +132,10 @@ static void __declspec(naked) SaveGame() {
 		push ebx;
 		push ecx;
 		push edx;
-
-		mov edx, eax;
+		push eax; // save Mode parameter
 		call combatSaveTest;
 		test eax, eax;
+		pop edx; // recall Mode parameter
 		jz end;
 		mov eax, edx;
 
