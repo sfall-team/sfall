@@ -140,8 +140,7 @@ static void __declspec(naked) SaveGame() {
 		mov eax, edx;
 
 		or InLoop, SAVEGAME;
-		mov ebx, 0x0047B88C;
-		call ebx;
+		call FuncOffs::SaveGame_;
 		and InLoop, (-1^SAVEGAME);
 		cmp eax, 1;
 		jne end;

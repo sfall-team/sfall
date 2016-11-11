@@ -533,11 +533,8 @@ static void __declspec(naked) GetActiveHand() {
 
 static void __declspec(naked) ToggleActiveHand() {
 	__asm {
-		push ebx;
 		mov eax, 1;
-		mov ebx, FuncOffs::intface_toggle_items_;
-		call ebx;
-		pop ebx;
+		call FuncOffs::intface_toggle_items_;
 		retn;
 	}
 }
