@@ -35,7 +35,7 @@ static void _stdcall SetGlobalScriptRepeat2(TProgram* script, int frames) {
 	}
 }
 
-static void __declspec(naked) SetGlobalScriptRepeat() {
+static void __declspec(naked) op_set_global_script_repeat() {
 	__asm {
 		push ebx;
 		push ecx;
@@ -69,7 +69,7 @@ static void _stdcall SetGlobalScriptType2(TProgram* script, int type) {
 	}
 }
 
-static void __declspec(naked) SetGlobalScriptType() {
+static void __declspec(naked) op_set_global_script_type() {
 	__asm {
 		push ebx;
 		push ecx;
@@ -92,7 +92,7 @@ end:
 	}
 }
 
-static void __declspec(naked) GetGlobalScriptTypes() {
+static void __declspec(naked) op_available_global_script_types() {
 	__asm {
 		push ebx;
 		push ecx;
@@ -134,7 +134,7 @@ static void _stdcall SetGlobalVar2Int(DWORD var, int val) {
 	SetGlobalVarInternal(var, val);
 }
 
-static void __declspec(naked) SetGlobalVar() {
+static void __declspec(naked) op_set_sfall_global() {
 	__asm {
 		push ebx;
 		push ecx;
@@ -198,7 +198,7 @@ static DWORD _stdcall GetGlobalVar2Int(DWORD var) {
 	return GetGlobalVarInternal(var);
 }
 
-static void __declspec(naked) GetGlobalVarInt() {
+static void __declspec(naked) op_get_sfall_global_int() {
 	__asm {
 		push ebx;
 		push ecx;
@@ -244,7 +244,7 @@ end:
 	}
 }
 
-static void __declspec(naked) GetGlobalVarFloat() {
+static void __declspec(naked) op_get_sfall_global_float() {
 	__asm {
 		push ebx;
 		push ecx;
@@ -290,7 +290,7 @@ end:
 	}
 }
 
-static void __declspec(naked) GetSfallArg() {
+static void __declspec(naked) op_get_sfall_arg() {
 	__asm {
 		pushad;
 		push eax;
@@ -317,7 +317,7 @@ static DWORD _stdcall GetSfallArgs2() {
 	return id;
 }
 
-static void __declspec(naked) GetSfallArgs() {
+static void __declspec(naked) op_get_sfall_args() {
 	__asm {
 		pushad;
 		push eax;
@@ -334,7 +334,7 @@ static void __declspec(naked) GetSfallArgs() {
 	}
 }
 
-static void __declspec(naked) SetSfallArg() {
+static void __declspec(naked) op_set_sfall_arg() {
 	__asm {
 		pushad;
 		mov ecx, eax;
@@ -361,7 +361,7 @@ end:
 	}
 }
 
-static void __declspec(naked) SetSfallReturn() {
+static void __declspec(naked) op_set_sfall_return() {
 	__asm {
 		push ebx;
 		push ecx;
@@ -383,7 +383,7 @@ end:
 	}
 }
 
-static void __declspec(naked) InitHook() {
+static void __declspec(naked) op_init_hook() {
 	__asm {
 		push ecx;
 		push edx;
@@ -410,7 +410,7 @@ static void _stdcall set_self2(TProgram* script, TGameObj* obj) {
 	}
 }
 
-static void __declspec(naked) set_self() {
+static void __declspec(naked) op_set_self() {
 	__asm {
 		pushad;
 		mov ebp, eax;
@@ -439,7 +439,7 @@ static void sf_register_hook() {
 	RegisterHook(opHandler.program(), id, proc);
 }
 
-static void __declspec(naked) register_hook() {
+static void __declspec(naked) op_register_hook() {
 	_WRAP_OPCODE(sf_register_hook, 1, 0)
 }
 
@@ -447,7 +447,7 @@ static void __declspec(naked) register_hook_proc() {
 	_WRAP_OPCODE(sf_register_hook, 2, 0)
 }
 
-static void __declspec(naked) sfall_ver_major() {
+static void __declspec(naked) op_sfall_ver_major() {
 	_OP_BEGIN(ebp)
 	__asm {
 		mov eax, VERSION_MAJOR;
@@ -456,7 +456,7 @@ static void __declspec(naked) sfall_ver_major() {
 	_OP_END
 }
 
-static void __declspec(naked) sfall_ver_minor() {
+static void __declspec(naked) op_sfall_ver_minor() {
 	_OP_BEGIN(ebp)
 	__asm {
 		mov eax, VERSION_MINOR;
@@ -465,7 +465,7 @@ static void __declspec(naked) sfall_ver_minor() {
 	_OP_END
 }
 
-static void __declspec(naked) sfall_ver_build() {
+static void __declspec(naked) op_sfall_ver_build() {
 	_OP_BEGIN(ebp)
 	__asm {
 		mov eax, VERSION_BUILD;
@@ -492,243 +492,243 @@ void InitNewOpcodes() {
 	SafeWrite32(0x46e390, (DWORD)opcodes);	//mov that writes to the opcode
 
 	if (AllowUnsafeScripting) {
-		opcodes[0x156] = ReadByte;
-		opcodes[0x157] = ReadShort;
-		opcodes[0x158] = ReadInt;
-		opcodes[0x159] = ReadString;
+		opcodes[0x156] = op_read_byte;
+		opcodes[0x157] = op_read_short;
+		opcodes[0x158] = op_read_int;
+		opcodes[0x159] = op_read_string;
 	}
-	opcodes[0x15a] = SetPCBaseStat;
-	opcodes[0x15b] = SetPCExtraStat;
-	opcodes[0x15c] = GetPCBaseStat;
-	opcodes[0x15d] = GetPCExtraStat;
-	opcodes[0x15e] = SetCritterBaseStat;
-	opcodes[0x15f] = SetCritterExtraStat;
-	opcodes[0x160] = GetCritterBaseStat;
-	opcodes[0x161] = GetCritterExtraStat;
-	opcodes[0x162] = funcTapKey;
-	opcodes[0x163] = GetYear;
-	opcodes[0x164] = GameLoaded;
-	opcodes[0x165] = GraphicsFuncsAvailable;
-	opcodes[0x166] = funcLoadShader;
-	opcodes[0x167] = funcFreeShader;
-	opcodes[0x168] = funcActivateShader;
-	opcodes[0x169] = funcDeactivateShader;
-	opcodes[0x16a] = SetGlobalScriptRepeat;
-	opcodes[0x16b] = InputFuncsAvailable;
-	opcodes[0x16c] = KeyPressed;
-	opcodes[0x16d] = funcSetShaderInt;
-	opcodes[0x16e] = funcSetShaderFloat;
-	opcodes[0x16f] = funcSetShaderVector;
-	opcodes[0x170] = funcInWorldMap;
-	opcodes[0x171] = ForceEncounter;
-	opcodes[0x172] = SetWorldMapPos;
-	opcodes[0x173] = GetWorldMapXPos;
-	opcodes[0x174] = GetWorldMapYPos;
-	opcodes[0x175] = SetDMModel;
-	opcodes[0x176] = SetDFModel;
-	opcodes[0x177] = SetMoviePath;
+	opcodes[0x15a] = op_set_pc_base_stat;
+	opcodes[0x15b] = op_set_pc_extra_stat;
+	opcodes[0x15c] = op_get_pc_base_stat;
+	opcodes[0x15d] = op_get_pc_extra_stat;
+	opcodes[0x15e] = op_set_critter_base_stat;
+	opcodes[0x15f] = op_set_critter_extra_stat;
+	opcodes[0x160] = op_get_critter_base_stat;
+	opcodes[0x161] = op_get_critter_extra_stat;
+	opcodes[0x162] = op_tap_key;
+	opcodes[0x163] = op_get_year;
+	opcodes[0x164] = op_game_loaded;
+	opcodes[0x165] = op_graphics_funcs_available;
+	opcodes[0x166] = op_load_shader;
+	opcodes[0x167] = op_free_shader;
+	opcodes[0x168] = op_activate_shader;
+	opcodes[0x169] = op_deactivate_shader;
+	opcodes[0x16a] = op_set_global_script_repeat;
+	opcodes[0x16b] = op_input_funcs_available;
+	opcodes[0x16c] = op_key_pressed;
+	opcodes[0x16d] = op_set_shader_int;
+	opcodes[0x16e] = op_set_shader_float;
+	opcodes[0x16f] = op_set_shader_vector;
+	opcodes[0x170] = op_in_world_map;
+	opcodes[0x171] = op_force_encounter;
+	opcodes[0x172] = op_set_world_map_pos;
+	opcodes[0x173] = op_get_world_map_x_pos;
+	opcodes[0x174] = op_get_world_map_y_pos;
+	opcodes[0x175] = op_set_dm_model;
+	opcodes[0x176] = op_set_df_model;
+	opcodes[0x177] = op_set_movie_path;
 	for (int i = 0x178; i < 0x189; i++) {
-		opcodes[i] = funcSetPerkValue;
+		opcodes[i] = op_set_perk_value;
 	}
-	opcodes[0x189] = funcSetPerkName;
-	opcodes[0x18a] = funcSetPerkDesc;
-	opcodes[0x18b] = SetPipBoyAvailable;
+	opcodes[0x189] = op_set_perk_name;
+	opcodes[0x18a] = op_set_perk_desc;
+	opcodes[0x18b] = op_set_pipboy_available;
 	if (UsingExtraKillTypes()) {
-		opcodes[0x18c] = GetKillCounter2;
-		opcodes[0x18d] = ModKillCounter2;
+		opcodes[0x18c] = op_get_kill_counter2;
+		opcodes[0x18d] = op_mod_kill_counter2;
 	} else {
-		opcodes[0x18c] = GetKillCounter;
-		opcodes[0x18d] = ModKillCounter;
+		opcodes[0x18c] = op_get_kill_counter;
+		opcodes[0x18d] = op_mod_kill_counter;
 	}
-	opcodes[0x18e] = GetPerkOwed;
-	opcodes[0x18f] = SetPerkOwed;
-	opcodes[0x190] = GetPerkAvailable;
-	opcodes[0x191] = GetCritterAP;
-	opcodes[0x192] = SetCritterAP;
-	opcodes[0x193] = GetActiveHand;
-	opcodes[0x194] = ToggleActiveHand;
-	opcodes[0x195] = SetWeaponKnockback;
-	opcodes[0x196] = SetTargetKnockback;
-	opcodes[0x197] = SetAttackerKnockback;
-	opcodes[0x198] = RemoveWeaponKnockback;
-	opcodes[0x199] = RemoveTargetKnockback;
-	opcodes[0x19a] = RemoveAttackerKnockback;
-	opcodes[0x19b] = SetGlobalScriptType;
-	opcodes[0x19c] = GetGlobalScriptTypes;
-	opcodes[0x19d] = SetGlobalVar;
-	opcodes[0x19e] = GetGlobalVarInt;
-	opcodes[0x19f] = GetGlobalVarFloat;
-	opcodes[0x1a0] = fSetPickpocketMax;
-	opcodes[0x1a1] = fSetHitChanceMax;
-	opcodes[0x1a2] = fSetSkillMax;
-	opcodes[0x1a3] = EaxAvailable;
-	//opcodes[0x1a4]=SetEaxEnvironmentFunc;
-	opcodes[0x1a5] = IncNPCLevel;
-	opcodes[0x1a6] = GetViewportX;
-	opcodes[0x1a7] = GetViewportY;
-	opcodes[0x1a8] = SetViewportX;
-	opcodes[0x1a9] = SetViewportY;
-	opcodes[0x1aa] = SetXpMod;
-	opcodes[0x1ab] = SetPerkLevelMod;
-	opcodes[0x1ac] = GetIniSetting;
-	opcodes[0x1ad] = funcGetShaderVersion;
-	opcodes[0x1ae] = funcSetShaderMode;
-	opcodes[0x1af] = GetGameMode;
-	opcodes[0x1b0] = funcForceGraphicsRefresh;
-	opcodes[0x1b1] = funcGetShaderTexture;
-	opcodes[0x1b2] = funcSetShaderTexture;
-	opcodes[0x1b3] = funcGetTickCount;
-	opcodes[0x1b4] = SetStatMax;
-	opcodes[0x1b5] = SetStatMin;
-	opcodes[0x1b6] = SetCarTown;
-	opcodes[0x1b7] = fSetPCStatMax;
-	opcodes[0x1b8] = fSetPCStatMin;
-	opcodes[0x1b9] = fSetNPCStatMax;
-	opcodes[0x1ba] = fSetNPCStatMin;
-	opcodes[0x1bb] = fSetFakePerk;
-	opcodes[0x1bc] = fSetFakeTrait;
-	opcodes[0x1bd] = fSetSelectablePerk;
-	opcodes[0x1be] = fSetPerkboxTitle;
-	opcodes[0x1bf] = fIgnoreDefaultPerks;
-	opcodes[0x1c0] = fRestoreDefaultPerks;
-	opcodes[0x1c1] = fHasFakePerk;
-	opcodes[0x1c2] = fHasFakeTrait;
-	opcodes[0x1c3] = fAddPerkMode;
-	opcodes[0x1c4] = fClearSelectablePerks;
-	opcodes[0x1c5] = SetCritterHitChance;
-	opcodes[0x1c6] = SetBaseHitChance;
-	opcodes[0x1c7] = SetCritterSkillMod;
-	opcodes[0x1c8] = SetBaseSkillMod;
-	opcodes[0x1c9] = SetCritterPickpocket;
-	opcodes[0x1ca] = SetBasePickpocket;
-	opcodes[0x1cb] = SetPyromaniacMod;
-	opcodes[0x1cc] = fApplyHeaveHoFix;
-	opcodes[0x1cd] = SetSwiftLearnerMod;
-	opcodes[0x1ce] = SetLevelHPMod;
+	opcodes[0x18e] = op_get_perk_owed;
+	opcodes[0x18f] = op_set_perk_owed;
+	opcodes[0x190] = op_get_perk_available;
+	opcodes[0x191] = op_get_critter_current_ap;
+	opcodes[0x192] = op_set_critter_current_ap;
+	opcodes[0x193] = op_active_hand;
+	opcodes[0x194] = op_toggle_active_hand;
+	opcodes[0x195] = op_set_weapon_knockback;
+	opcodes[0x196] = op_set_target_knockback;
+	opcodes[0x197] = op_set_attacker_knockback;
+	opcodes[0x198] = op_remove_weapon_knockback;
+	opcodes[0x199] = op_remove_target_knockback;
+	opcodes[0x19a] = op_remove_attacker_knockback;
+	opcodes[0x19b] = op_set_global_script_type;
+	opcodes[0x19c] = op_available_global_script_types;
+	opcodes[0x19d] = op_set_sfall_global;
+	opcodes[0x19e] = op_get_sfall_global_int;
+	opcodes[0x19f] = op_get_sfall_global_float;
+	opcodes[0x1a0] = op_set_pickpocket_max;
+	opcodes[0x1a1] = op_set_hit_chance_max;
+	opcodes[0x1a2] = op_set_skill_max;
+	opcodes[0x1a3] = op_eax_available;
+	//opcodes[0x1a4] = op_set_eax_environment;
+	opcodes[0x1a5] = op_inc_npc_level;
+	opcodes[0x1a6] = op_get_viewport_x;
+	opcodes[0x1a7] = op_get_viewport_y;
+	opcodes[0x1a8] = op_set_viewport_x;
+	opcodes[0x1a9] = op_set_viewport_y;
+	opcodes[0x1aa] = op_set_xp_mod;
+	opcodes[0x1ab] = op_set_perk_level_mod;
+	opcodes[0x1ac] = op_get_ini_setting;
+	opcodes[0x1ad] = op_get_shader_version;
+	opcodes[0x1ae] = op_set_shader_mode;
+	opcodes[0x1af] = op_get_game_mode;
+	opcodes[0x1b0] = op_force_graphics_refresh;
+	opcodes[0x1b1] = op_get_shader_texture;
+	opcodes[0x1b2] = op_set_shader_texture;
+	opcodes[0x1b3] = op_get_uptime;
+	opcodes[0x1b4] = op_set_stat_max;
+	opcodes[0x1b5] = op_set_stat_min;
+	opcodes[0x1b6] = op_set_car_current_town;
+	opcodes[0x1b7] = op_set_pc_stat_max;
+	opcodes[0x1b8] = op_set_pc_stat_min;
+	opcodes[0x1b9] = op_set_npc_stat_max;
+	opcodes[0x1ba] = op_set_npc_stat_min;
+	opcodes[0x1bb] = op_set_fake_perk;
+	opcodes[0x1bc] = op_set_fake_trait;
+	opcodes[0x1bd] = op_set_selectable_perk;
+	opcodes[0x1be] = op_set_perkbox_title;
+	opcodes[0x1bf] = op_hide_real_perks;
+	opcodes[0x1c0] = op_show_real_perks;
+	opcodes[0x1c1] = op_has_fake_perk;
+	opcodes[0x1c2] = op_has_fake_trait;
+	opcodes[0x1c3] = op_perk_add_mode;
+	opcodes[0x1c4] = op_clear_selectable_perks;
+	opcodes[0x1c5] = op_set_critter_hit_chance_mod;
+	opcodes[0x1c6] = op_set_base_hit_chance_mod;
+	opcodes[0x1c7] = op_set_critter_skill_mod;
+	opcodes[0x1c8] = op_set_base_skill_mod;
+	opcodes[0x1c9] = op_set_critter_pickpocket_mod;
+	opcodes[0x1ca] = op_set_base_pickpocket_mod;
+	opcodes[0x1cb] = op_set_pyromaniac_mod;
+	opcodes[0x1cc] = op_apply_heaveho_fix;
+	opcodes[0x1cd] = op_set_swiftlearner_mod;
+	opcodes[0x1ce] = op_set_hp_per_level_mod;
 	if (AllowUnsafeScripting) {
-		opcodes[0x1cf] = WriteByte;
-		opcodes[0x1d0] = WriteShort;
-		opcodes[0x1d1] = WriteInt;
+		opcodes[0x1cf] = op_write_byte;
+		opcodes[0x1d0] = op_write_short;
+		opcodes[0x1d1] = op_write_int;
 		for (int i = 0x1d2; i < 0x1dc; i++) {
-			opcodes[i] = CallOffset;
+			opcodes[i] = op_call_offset;
 		}
 	}
-	opcodes[0x1dc] = ShowIfaceTag;
-	opcodes[0x1dd] = HideIfaceTag;
-	opcodes[0x1de] = IsIfaceTagActive;
-	opcodes[0x1df] = GetBodypartHitModifier;
-	opcodes[0x1e0] = SetBodypartHitModifier;
-	opcodes[0x1e1] = funcSetCriticalTable;
-	opcodes[0x1e2] = funcGetCriticalTable;
-	opcodes[0x1e3] = funcResetCriticalTable;
-	opcodes[0x1e4] = GetSfallArg;
-	opcodes[0x1e5] = SetSfallReturn;
-	opcodes[0x1e6] = SetApAcBonus;
-	opcodes[0x1e7] = GetApAcBonus;
-	opcodes[0x1e8] = SetApAcEBonus;
-	opcodes[0x1e9] = GetApAcEBonus;
-	opcodes[0x1ea] = InitHook;
-	opcodes[0x1eb] = GetIniString;
-	opcodes[0x1ec] = funcSqrt;
-	opcodes[0x1ed] = funcAbs;
-	opcodes[0x1ee] = funcSin;
-	opcodes[0x1ef] = funcCos;
-	opcodes[0x1f0] = funcTan;
-	opcodes[0x1f1] = funcATan;
-	opcodes[0x1f2] = SetPalette;
-	opcodes[0x1f3] = RemoveScript;
-	opcodes[0x1f4] = SetScript;
-	opcodes[0x1f5] = GetScript;
-	opcodes[0x1f6] = NBCreateChar;
-	opcodes[0x1f7] = fs_create;
-	opcodes[0x1f8] = fs_copy;
-	opcodes[0x1f9] = fs_find;
-	opcodes[0x1fa] = fs_write_byte;
-	opcodes[0x1fb] = fs_write_short;
-	opcodes[0x1fc] = fs_write_int;
-	opcodes[0x1fd] = fs_write_int;
-	opcodes[0x1fe] = fs_write_string;
-	opcodes[0x1ff] = fs_delete;
-	opcodes[0x200] = fs_size;
-	opcodes[0x201] = fs_pos;
-	opcodes[0x202] = fs_seek;
-	opcodes[0x203] = fs_resize;
-	opcodes[0x204] = get_proto_data;
-	opcodes[0x205] = set_proto_data;
-	opcodes[0x206] = set_self;
-	opcodes[0x207] = register_hook;
-	opcodes[0x208] = fs_write_bstring;
-	opcodes[0x209] = fs_read_byte;
-	opcodes[0x20a] = fs_read_short;
-	opcodes[0x20b] = fs_read_int;
-	opcodes[0x20c] = fs_read_float;
-	opcodes[0x20d] = list_begin;
-	opcodes[0x20e] = list_next;
-	opcodes[0x20f] = list_end;
-	opcodes[0x210] = sfall_ver_major;
-	opcodes[0x211] = sfall_ver_minor;
-	opcodes[0x212] = sfall_ver_build;
-	opcodes[0x213] = funcHeroSelectWin;
-	opcodes[0x214] = funcSetHeroRace;
-	opcodes[0x215] = funcSetHeroStyle;
-	opcodes[0x216] = set_critter_burst_disable;
-	opcodes[0x217] = get_weapon_ammo_pid;
-	opcodes[0x218] = set_weapon_ammo_pid;
-	opcodes[0x219] = get_weapon_ammo_count;
-	opcodes[0x21a] = set_weapon_ammo_count;
+	opcodes[0x1dc] = op_show_iface_tag;
+	opcodes[0x1dd] = op_hide_iface_tag;
+	opcodes[0x1de] = op_is_iface_tag_active;
+	opcodes[0x1df] = op_get_bodypart_hit_modifier;
+	opcodes[0x1e0] = op_set_bodypart_hit_modifier;
+	opcodes[0x1e1] = op_set_critical_table;
+	opcodes[0x1e2] = op_get_critical_table;
+	opcodes[0x1e3] = op_reset_critical_table;
+	opcodes[0x1e4] = op_get_sfall_arg;
+	opcodes[0x1e5] = op_set_sfall_return;
+	opcodes[0x1e6] = op_set_unspent_ap_bonus;
+	opcodes[0x1e7] = op_get_unspent_ap_bonus;
+	opcodes[0x1e8] = op_set_unspent_ap_perk_bonus;
+	opcodes[0x1e9] = op_get_unspent_ap_perk_bonus;
+	opcodes[0x1ea] = op_init_hook;
+	opcodes[0x1eb] = op_get_ini_string;
+	opcodes[0x1ec] = op_sqrt;
+	opcodes[0x1ed] = op_abs;
+	opcodes[0x1ee] = op_sin;
+	opcodes[0x1ef] = op_cos;
+	opcodes[0x1f0] = op_tan;
+	opcodes[0x1f1] = op_arctan;
+	opcodes[0x1f2] = op_set_palette;
+	opcodes[0x1f3] = op_remove_script;
+	opcodes[0x1f4] = op_set_script;
+	opcodes[0x1f5] = op_get_script;
+	opcodes[0x1f6] = op_nb_create_char;
+	opcodes[0x1f7] = op_fs_create;
+	opcodes[0x1f8] = op_fs_copy;
+	opcodes[0x1f9] = op_fs_find;
+	opcodes[0x1fa] = op_fs_write_byte;
+	opcodes[0x1fb] = op_fs_write_short;
+	opcodes[0x1fc] = op_fs_write_int;
+	opcodes[0x1fd] = op_fs_write_int;
+	opcodes[0x1fe] = op_fs_write_string;
+	opcodes[0x1ff] = op_fs_delete;
+	opcodes[0x200] = op_fs_size;
+	opcodes[0x201] = op_fs_pos;
+	opcodes[0x202] = op_fs_seek;
+	opcodes[0x203] = op_fs_resize;
+	opcodes[0x204] = op_get_proto_data;
+	opcodes[0x205] = op_set_proto_data;
+	opcodes[0x206] = op_set_self;
+	opcodes[0x207] = op_register_hook;
+	opcodes[0x208] = op_fs_write_bstring;
+	opcodes[0x209] = op_fs_read_byte;
+	opcodes[0x20a] = op_fs_read_short;
+	opcodes[0x20b] = op_fs_read_int;
+	opcodes[0x20c] = op_fs_read_float;
+	opcodes[0x20d] = op_list_begin;
+	opcodes[0x20e] = op_list_next;
+	opcodes[0x20f] = op_list_end;
+	opcodes[0x210] = op_sfall_ver_major;
+	opcodes[0x211] = op_sfall_ver_minor;
+	opcodes[0x212] = op_sfall_ver_build;
+	opcodes[0x213] = op_hero_select_win;
+	opcodes[0x214] = op_set_hero_race;
+	opcodes[0x215] = op_set_hero_style;
+	opcodes[0x216] = op_set_critter_burst_disable;
+	opcodes[0x217] = op_get_weapon_ammo_pid;
+	opcodes[0x218] = op_set_weapon_ammo_pid;
+	opcodes[0x219] = op_get_weapon_ammo_count;
+	opcodes[0x21a] = op_set_weapon_ammo_count;
 	if (AllowUnsafeScripting) {
-		opcodes[0x21b] = WriteString;
+		opcodes[0x21b] = op_write_string;
 	}
-	opcodes[0x21c] = get_mouse_x;
-	opcodes[0x21d] = get_mouse_y;
-	opcodes[0x21e] = get_mouse_buttons;
-	opcodes[0x21f] = get_window_under_mouse;
-	opcodes[0x220] = get_screen_width;
-	opcodes[0x221] = get_screen_height;
-	opcodes[0x222] = stop_game;
-	opcodes[0x223] = resume_game;
-	opcodes[0x224] = create_message_window;
-	opcodes[0x225] = remove_trait;
-	opcodes[0x226] = get_light_level;
-	opcodes[0x227] = refresh_pc_art;
-	opcodes[0x228] = get_attack_type;
-	opcodes[0x229] = ForceEncounterWithFlags;
-	opcodes[0x22a] = set_map_time_multi;
-	opcodes[0x22b] = play_sfall_sound;
-	opcodes[0x22c] = stop_sfall_sound;
-	opcodes[0x22d] = create_array;
-	opcodes[0x22e] = set_array;
-	opcodes[0x22f] = get_array;
-	opcodes[0x230] = free_array;
-	opcodes[0x231] = len_array;
-	opcodes[0x232] = resize_array;
-	opcodes[0x233] = temp_array;
-	opcodes[0x234] = fix_array;
-	opcodes[0x235] = string_split;
-	opcodes[0x236] = list_as_array;
-	opcodes[0x237] = str_to_int;
-	opcodes[0x238] = str_to_flt;
-	opcodes[0x239] = scan_array;
-	opcodes[0x23a] = get_tile_pid;
-	opcodes[0x23b] = modified_ini;
-	opcodes[0x23c] = GetSfallArgs;
-	opcodes[0x23d] = SetSfallArg;
-	opcodes[0x23e] = force_aimed_shots;
-	opcodes[0x23f] = disable_aimed_shots;
-	opcodes[0x240] = mark_movie_played;
-	opcodes[0x241] = get_npc_level;
-	opcodes[0x242] = set_critter_skill_points;
-	opcodes[0x243] = get_critter_skill_points;
-	opcodes[0x244] = set_available_skill_points;
-	opcodes[0x245] = get_available_skill_points;
-	opcodes[0x246] = mod_skill_points_per_level;
-	opcodes[0x247] = set_perk_freq;
-	opcodes[0x248] = get_last_attacker;
-	opcodes[0x249] = get_last_target;
-	opcodes[0x24a] = block_combat;
-	opcodes[0x24b] = tile_under_cursor;
-	opcodes[0x24c] = gdialog_get_barter_mod;
-	opcodes[0x24d] = set_inven_ap_cost;
+	opcodes[0x21c] = op_get_mouse_x;
+	opcodes[0x21d] = op_get_mouse_y;
+	opcodes[0x21e] = op_get_mouse_buttons;
+	opcodes[0x21f] = op_get_window_under_mouse;
+	opcodes[0x220] = op_get_screen_width;
+	opcodes[0x221] = op_get_screen_height;
+	opcodes[0x222] = op_stop_game;
+	opcodes[0x223] = op_resume_game;
+	opcodes[0x224] = op_create_message_window;
+	opcodes[0x225] = op_remove_trait;
+	opcodes[0x226] = op_get_light_level;
+	opcodes[0x227] = op_refresh_pc_art;
+	opcodes[0x228] = op_get_attack_type;
+	opcodes[0x229] = op_force_encounter_with_flags;
+	opcodes[0x22a] = op_set_map_time_multi;
+	opcodes[0x22b] = op_play_sfall_sound;
+	opcodes[0x22c] = op_stop_sfall_sound;
+	opcodes[0x22d] = op_create_array;
+	opcodes[0x22e] = op_set_array;
+	opcodes[0x22f] = op_get_array;
+	opcodes[0x230] = op_free_array;
+	opcodes[0x231] = op_len_array;
+	opcodes[0x232] = op_resize_array;
+	opcodes[0x233] = op_temp_array;
+	opcodes[0x234] = op_fix_array;
+	opcodes[0x235] = op_string_split;
+	opcodes[0x236] = op_list_as_array;
+	opcodes[0x237] = op_atoi;
+	opcodes[0x238] = op_atof;
+	opcodes[0x239] = op_scan_array;
+	opcodes[0x23a] = op_get_tile_fid;
+	opcodes[0x23b] = op_modified_ini;
+	opcodes[0x23c] = op_get_sfall_args;
+	opcodes[0x23d] = op_set_sfall_arg;
+	opcodes[0x23e] = op_force_aimed_shots;
+	opcodes[0x23f] = op_disable_aimed_shots;
+	opcodes[0x240] = op_mark_movie_played;
+	opcodes[0x241] = op_get_npc_level;
+	opcodes[0x242] = op_set_critter_skill_points;
+	opcodes[0x243] = op_get_critter_skill_points;
+	opcodes[0x244] = op_set_available_skill_points;
+	opcodes[0x245] = op_get_available_skill_points;
+	opcodes[0x246] = op_mod_skill_points_per_level;
+	opcodes[0x247] = op_set_perk_freq;
+	opcodes[0x248] = op_get_last_attacker;
+	opcodes[0x249] = op_get_last_target;
+	opcodes[0x24a] = op_block_combat;
+	opcodes[0x24b] = op_tile_under_cursor;
+	opcodes[0x24c] = op_gdialog_get_barter_mod;
+	opcodes[0x24d] = op_set_inven_ap_cost;
 	opcodes[0x24e] = op_substr;
 	opcodes[0x24f] = op_strlen;
 	opcodes[0x250] = op_sprintf;
@@ -750,11 +750,11 @@ void InitNewOpcodes() {
 	opcodes[0x260] = op_reg_anim_turn_towards;
 	opcodes[0x261] = op_explosions_metarule;
 	opcodes[0x262] = register_hook_proc;
-	opcodes[0x263] = funcPow;
-	opcodes[0x264] = funcLog;
-	opcodes[0x265] = funcExp;
-	opcodes[0x266] = funcCeil;
-	opcodes[0x267] = funcRound;
+	opcodes[0x263] = op_power;
+	opcodes[0x264] = op_log;
+	opcodes[0x265] = op_exponent;
+	opcodes[0x266] = op_ceil;
+	opcodes[0x267] = op_round;
 	// opcodes[0x268]= RESERVED
 	// opcodes[0x269]= RESERVED
 	// opcodes[0x26a]=op_game_ui_redraw;

@@ -18,7 +18,7 @@
 
 #pragma once
 
-static void __declspec(naked) create_array() {
+static void __declspec(naked) op_create_array() {
 	__asm {
 		pushad;
 		mov edi, eax;
@@ -54,7 +54,7 @@ end:
 	}
 }
 
-static void __declspec(naked) set_array() {
+static void __declspec(naked) op_set_array() {
 	__asm {
 		pushad;
 		mov ebp, eax;
@@ -118,7 +118,7 @@ end:
 	used in place of [] operator when compiling in sslc
 	so it works as get_array if first argument is int and as substr(x, y, 1) if first argument is string
 */
-static void __declspec(naked) get_array() {
+static void __declspec(naked) op_get_array() {
 	__asm {
 		pushad;
 		mov ebp, eax;
@@ -202,7 +202,7 @@ notstring:
 	}
 }
 
-static void __declspec(naked) free_array() {
+static void __declspec(naked) op_free_array() {
 	__asm {
 		pushad;
 		mov edi, eax;
@@ -220,7 +220,7 @@ end:
 	}
 }
 
-static void __declspec(naked) len_array() {
+static void __declspec(naked) op_len_array() {
 	__asm {
 		pushad;
 		mov edi, eax;
@@ -247,7 +247,7 @@ end:
 	}
 }
 
-static void __declspec(naked) resize_array() {
+static void __declspec(naked) op_resize_array() {
 	__asm {
 		pushad;
 		mov ebp, eax;
@@ -278,7 +278,7 @@ end:
 	}
 }
 
-static void __declspec(naked) temp_array() {
+static void __declspec(naked) op_temp_array() {
 	__asm {
 		pushad;
 		mov edi, eax;
@@ -314,7 +314,7 @@ end:
 	}
 }
 
-static void __declspec(naked) fix_array() {
+static void __declspec(naked) op_fix_array() {
 	__asm {
 		pushad;
 		mov edi, eax;
@@ -332,7 +332,7 @@ end:
 	}
 }
 
-static void __declspec(naked) scan_array() {
+static void __declspec(naked) op_scan_array() {
 		__asm {
 		pushad;
 		mov ebp, eax;
@@ -563,7 +563,7 @@ static void _stdcall list_end2(sList* list) {
 	delete list;
 }
 
-static void __declspec(naked) list_begin() {
+static void __declspec(naked) op_list_begin() {
 	__asm {
 		pushad;
 		mov ebp, eax;
@@ -591,7 +591,7 @@ end:
 	}
 }
 
-static void __declspec(naked) list_as_array() {
+static void __declspec(naked) op_list_as_array() {
 	__asm {
 		pushad;
 		mov ebp, eax;
@@ -619,7 +619,7 @@ end:
 	}
 }
 
-static void __declspec(naked) list_next() {
+static void __declspec(naked) op_list_next() {
 	__asm {
 		pushad;
 		mov ebp, eax;
@@ -647,7 +647,7 @@ end:
 	}
 }
 
-static void __declspec(naked) list_end() {
+static void __declspec(naked) op_list_end() {
 	__asm {
 		pushad;
 		mov ebp, eax;

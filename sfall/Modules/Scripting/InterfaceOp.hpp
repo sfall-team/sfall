@@ -25,7 +25,7 @@
 
 
 // input_functions
-static void __declspec(naked) InputFuncsAvailable() {
+static void __declspec(naked) op_input_funcs_available() {
 	__asm {
 		push ebx;
 		push ecx;
@@ -43,7 +43,7 @@ static void __declspec(naked) InputFuncsAvailable() {
 	}
 }
 
-static void __declspec(naked) KeyPressed() {
+static void __declspec(naked) op_key_pressed() {
 	__asm {
 		push ebx;
 		push ecx;
@@ -76,7 +76,7 @@ end:
 	}
 }
 
-static void __declspec(naked) funcTapKey() {
+static void __declspec(naked) op_tap_key() {
 	__asm {
 		push ebx;
 		push ecx;
@@ -103,7 +103,7 @@ end:
 }
 
 //// *** From helios *** ////
-static void __declspec(naked) get_mouse_x() {
+static void __declspec(naked) op_get_mouse_x() {
    __asm {
 	  push ecx;
 	  push edx;
@@ -121,7 +121,7 @@ static void __declspec(naked) get_mouse_x() {
 }
 
 //Return mouse y position
-static void __declspec(naked) get_mouse_y() {
+static void __declspec(naked) op_get_mouse_y() {
    __asm {
 	  push ecx;
 	  push edx;
@@ -139,7 +139,7 @@ static void __declspec(naked) get_mouse_y() {
 }
 
 //Return pressed mouse button (1=left, 2=right, 3=left+right)
-static void __declspec(naked) get_mouse_buttons() {
+static void __declspec(naked) op_get_mouse_buttons() {
    __asm {
 	  push ecx;
 	  push edx;
@@ -156,7 +156,7 @@ static void __declspec(naked) get_mouse_buttons() {
 }
 
 //Return the window number under the mous
-static void __declspec(naked) get_window_under_mouse() {
+static void __declspec(naked) op_get_window_under_mouse() {
    __asm {
 	  push ecx;
 	  push edx;
@@ -173,7 +173,7 @@ static void __declspec(naked) get_window_under_mouse() {
 }
 
 //Return screen width
-static void __declspec(naked) get_screen_width() {
+static void __declspec(naked) op_get_screen_width() {
 	__asm {
 		push edx
 		push eax
@@ -190,7 +190,7 @@ static void __declspec(naked) get_screen_width() {
 }
 
 //Return screen height
-static void __declspec(naked) get_screen_height() {
+static void __declspec(naked) op_get_screen_height() {
 	__asm {
 		push edx
 		push eax
@@ -207,7 +207,7 @@ static void __declspec(naked) get_screen_height() {
 }
 
 //Stop game, the same effect as open charsscreen or inventory
-static void __declspec(naked) stop_game() {
+static void __declspec(naked) op_stop_game() {
 	__asm {
 		call FuncOffs::map_disable_bk_processes_;
 		retn;
@@ -215,7 +215,7 @@ static void __declspec(naked) stop_game() {
 }
 
 //Resume the game when it is stopped
-static void __declspec(naked) resume_game() {
+static void __declspec(naked) op_resume_game() {
 	__asm {
 		call FuncOffs::map_enable_bk_processes_;
 		retn;
@@ -223,7 +223,7 @@ static void __declspec(naked) resume_game() {
 }
 
 //Create a message window with given string
-static void __declspec(naked) create_message_window() {
+static void __declspec(naked) op_create_message_window() {
 	__asm {
 		pushad
 		mov ebx, dword ptr ds : [VARPTR_curr_font_num];
@@ -265,7 +265,7 @@ end:
 	}
 }
 
-static void __declspec(naked) GetViewportX() {
+static void __declspec(naked) op_get_viewport_x() {
 	__asm {
 		push ebx;
 		push ecx;
@@ -283,7 +283,7 @@ static void __declspec(naked) GetViewportX() {
 	}
 }
 
-static void __declspec(naked) GetViewportY() {
+static void __declspec(naked) op_get_viewport_y() {
 	__asm {
 		push ebx;
 		push ecx;
@@ -301,7 +301,7 @@ static void __declspec(naked) GetViewportY() {
 	}
 }
 
-static void __declspec(naked) SetViewportX() {
+static void __declspec(naked) op_set_viewport_x() {
 	__asm {
 		push ebx;
 		push ecx;
@@ -322,7 +322,7 @@ end:
 	}
 }
 
-static void __declspec(naked) SetViewportY() {
+static void __declspec(naked) op_set_viewport_y() {
 	__asm {
 		push ebx;
 		push ecx;
@@ -343,7 +343,7 @@ end:
 	}
 }
 
-static void __declspec(naked) ShowIfaceTag() {
+static void __declspec(naked) op_show_iface_tag() {
 	__asm {
 		pushad;
 		mov ecx, eax;
@@ -369,7 +369,7 @@ end:
 	}
 }
 
-static void __declspec(naked) HideIfaceTag() {
+static void __declspec(naked) op_hide_iface_tag() {
 	__asm {
 		pushad;
 		mov ecx, eax;
@@ -395,7 +395,7 @@ end:
 	}
 }
 
-static void __declspec(naked) IsIfaceTagActive() {
+static void __declspec(naked) op_is_iface_tag_active() {
 	__asm {
 		pushad;
 		sub esp, 4;

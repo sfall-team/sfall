@@ -28,7 +28,7 @@
 #include "..\FileSystem.h"
 #include "..\Message.h"
 
-static void __declspec(naked) funcSqrt() {
+static void __declspec(naked) op_sqrt() {
 	__asm {
 		pushad;
 		sub esp, 4;
@@ -68,7 +68,7 @@ end:
 	}
 }
 
-static void __declspec(naked) funcAbs() {
+static void __declspec(naked) op_abs() {
 	__asm {
 		pushad;
 		sub esp, 4;
@@ -108,7 +108,7 @@ end:
 	}
 }
 
-static void __declspec(naked) funcSin() {
+static void __declspec(naked) op_sin() {
 	__asm {
 		pushad;
 		sub esp, 4;
@@ -148,7 +148,7 @@ end:
 	}
 }
 
-static void __declspec(naked) funcCos() {
+static void __declspec(naked) op_cos() {
 	__asm {
 		pushad;
 		sub esp, 4;
@@ -188,7 +188,7 @@ end:
 	}
 }
 
-static void __declspec(naked) funcTan() {
+static void __declspec(naked) op_tan() {
 	__asm {
 		pushad;
 		sub esp, 4;
@@ -229,7 +229,7 @@ end:
 	}
 }
 
-static void __declspec(naked) funcATan() {
+static void __declspec(naked) op_arctan() {
 	__asm {
 		pushad;
 		sub esp, 4;
@@ -318,7 +318,7 @@ static int _stdcall StringSplit(const char* str, const char* split) {
 	return id;
 }
 
-static void __declspec(naked) string_split() {
+static void __declspec(naked) op_string_split() {
 	__asm {
 		pushad;
 		mov ebp, eax;
@@ -379,7 +379,7 @@ static DWORD _stdcall str_to_flt_internal(const char* str) {
 	return *(DWORD*)&f;
 }
 
-static void __declspec(naked) str_to_int() {
+static void __declspec(naked) op_atoi() {
 	__asm {
 		pushad;
 		mov ebp, eax;
@@ -413,7 +413,7 @@ end:
 	}
 }
 
-static void __declspec(naked) str_to_flt() {
+static void __declspec(naked) op_atof() {
 	__asm {
 		pushad;
 		mov ebp, eax;
@@ -801,7 +801,7 @@ static void funcPow2() {
 	}
 }
 
-static void __declspec(naked) funcPow() {
+static void __declspec(naked) op_power() {
 	_WRAP_OPCODE(funcPow2, 2, 1)
 }
 
@@ -809,7 +809,7 @@ static void funcLog2() {
 	opHandler.setReturn(log(opHandler.arg(0).asFloat()));
 }
 
-static void __declspec(naked) funcLog() {
+static void __declspec(naked) op_log() {
 	_WRAP_OPCODE(funcLog2, 1, 1)
 }
 
@@ -817,7 +817,7 @@ static void funcExp2() {
 	opHandler.setReturn(exp(opHandler.arg(0).asFloat()));
 }
 
-static void __declspec(naked) funcExp() {
+static void __declspec(naked) op_exponent() {
 	_WRAP_OPCODE(funcExp2, 1, 1)
 }
 
@@ -825,7 +825,7 @@ static void funcCeil2() {
 	opHandler.setReturn(static_cast<int>(ceil(opHandler.arg(0).asFloat())));
 }
 
-static void __declspec(naked) funcCeil() {
+static void __declspec(naked) op_ceil() {
 	_WRAP_OPCODE(funcCeil2, 1, 1)
 }
 
@@ -839,7 +839,7 @@ static void funcRound2() {
 	opHandler.setReturn(argI);
 }
 
-static void __declspec(naked) funcRound() {
+static void __declspec(naked) op_round() {
 	_WRAP_OPCODE(funcRound2, 1, 1)
 }
 

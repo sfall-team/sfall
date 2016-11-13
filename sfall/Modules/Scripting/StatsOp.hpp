@@ -27,7 +27,7 @@
 #include "..\Stats.h"
 
 // stat_funcs
-static void __declspec(naked) SetPCBaseStat() {
+static void __declspec(naked) op_set_pc_base_stat() {
 	__asm {
 		//Store registers
 		push ebx;
@@ -70,7 +70,7 @@ end:
 	}
 }
 
-static void __declspec(naked) SetPCExtraStat() {
+static void __declspec(naked) op_set_pc_extra_stat() {
 	__asm {
 		//Store registers
 		push ebx;
@@ -113,7 +113,7 @@ end:
 	}
 }
 
-static void __declspec(naked) GetPCBaseStat() {
+static void __declspec(naked) op_get_pc_base_stat() {
 	__asm {
 		//Store registers
 		push ebx;
@@ -152,7 +152,7 @@ end:
 	}
 }
 
-static void __declspec(naked) GetPCExtraStat() {
+static void __declspec(naked) op_get_pc_extra_stat() {
 	__asm {
 		//Store registers
 		push ebx;
@@ -191,7 +191,7 @@ end:
 	}
 }
 
-static void __declspec(naked) SetCritterBaseStat() {
+static void __declspec(naked) op_set_critter_base_stat() {
 	__asm {
 		//Store registers
 		push ebx;
@@ -251,7 +251,7 @@ end:
 	}
 }
 
-static void __declspec(naked) SetCritterExtraStat() {
+static void __declspec(naked) op_set_critter_extra_stat() {
 	__asm {
 		//Store registers
 		push ebx;
@@ -311,7 +311,7 @@ end:
 	}
 }
 
-static void __declspec(naked) GetCritterBaseStat() {
+static void __declspec(naked) op_get_critter_base_stat() {
 	__asm {
 		//Store registers
 		push ebx;
@@ -369,7 +369,7 @@ end:
 	}
 }
 
-static void __declspec(naked) GetCritterExtraStat() {
+static void __declspec(naked) op_get_critter_extra_stat() {
 	__asm {
 		//Store registers
 		push ebx;
@@ -427,7 +427,7 @@ end:
 	}
 }
 
-static void __declspec(naked) set_critter_skill_points() {
+static void __declspec(naked) op_set_critter_skill_points() {
 	__asm {
 		pushad;
 		//Get function args
@@ -477,7 +477,7 @@ end:
 	}
 }
 
-static void __declspec(naked) get_critter_skill_points() {
+static void __declspec(naked) op_get_critter_skill_points() {
 	__asm {
 		pushad;
 		//Get function args
@@ -526,7 +526,7 @@ end:
 	}
 }
 
-static void __declspec(naked) set_available_skill_points() {
+static void __declspec(naked) op_set_available_skill_points() {
 	__asm {
 		pushad;
 		mov ecx, eax;
@@ -544,7 +544,7 @@ end:
 	}
 }
 
-static void __declspec(naked) get_available_skill_points() {
+static void __declspec(naked) op_get_available_skill_points() {
 	__asm {
 		pushad;
 		mov ecx, eax;
@@ -558,7 +558,7 @@ static void __declspec(naked) get_available_skill_points() {
 	}
 }
 
-static void __declspec(naked) mod_skill_points_per_level() {
+static void __declspec(naked) op_mod_skill_points_per_level() {
 	__asm {
 		pushad;
 		mov ecx, eax;
@@ -581,7 +581,7 @@ end:
 	}
 }
 
-static void __declspec(naked) GetCritterAP() {
+static void __declspec(naked) op_get_critter_current_ap() {
 	__asm {
 		//Store registers
 		push ecx;
@@ -615,7 +615,7 @@ end:
 	}
 }
 
-static void __declspec(naked) SetCritterAP() {
+static void __declspec(naked) op_set_critter_current_ap() {
 	__asm {
 		//Store registers
 		push ebx;
@@ -659,7 +659,7 @@ end:
 }
 
 
-static void __declspec(naked) fSetPickpocketMax() {
+static void __declspec(naked) op_set_pickpocket_max() {
 	__asm {
 		push ebx;
 		push ecx;
@@ -688,7 +688,7 @@ end:
 	}
 }
 
-static void __declspec(naked) fSetHitChanceMax() {
+static void __declspec(naked) op_set_hit_chance_max() {
 	__asm {
 		push ebx;
 		push ecx;
@@ -717,7 +717,7 @@ end:
 	}
 }
 
-static void __declspec(naked) SetCritterHitChance() {
+static void __declspec(naked) op_set_critter_hit_chance_mod() {
 	__asm {
 		push ebx;
 		push ecx;
@@ -759,7 +759,7 @@ end:
 	}
 }
 
-static void __declspec(naked) SetBaseHitChance() {
+static void __declspec(naked) op_set_base_hit_chance_mod() {
 	__asm {
 		push ebx;
 		push ecx;
@@ -794,7 +794,7 @@ end:
 	}
 }
 
-static void __declspec(naked) SetCritterPickpocket() {
+static void __declspec(naked) op_set_critter_pickpocket_mod() {
 	__asm {
 		push ebx;
 		push ecx;
@@ -836,7 +836,7 @@ end:
 	}
 }
 
-static void __declspec(naked) SetBasePickpocket() {
+static void __declspec(naked) op_set_base_pickpocket_mod() {
 	__asm {
 		push ebx;
 		push ecx;
@@ -871,7 +871,7 @@ end:
 	}
 }
 
-static void __declspec(naked) SetCritterSkillMod() {
+static void __declspec(naked) op_set_critter_skill_mod() {
 	__asm {
 		push ebx;
 		push ecx;
@@ -905,7 +905,7 @@ end:
 	}
 }
 
-static void __declspec(naked) SetBaseSkillMod() {
+static void __declspec(naked) op_set_base_skill_mod() {
 	__asm {
 		push ebx;
 		push ecx;
@@ -933,7 +933,7 @@ end:
 	}
 }
 
-static void __declspec(naked) fSetSkillMax() {
+static void __declspec(naked) op_set_skill_max() {
 	__asm {
 		push ebx;
 		push ecx;
@@ -961,7 +961,7 @@ end:
 	}
 }
 
-static void __declspec(naked) SetStatMax() {
+static void __declspec(naked) op_set_stat_max() {
 	__asm {
 		push ebx;
 		push ecx;
@@ -999,7 +999,7 @@ end:
 	}
 }
 
-static void __declspec(naked) SetStatMin() {
+static void __declspec(naked) op_set_stat_min() {
 	__asm {
 		push ebx;
 		push ecx;
@@ -1037,7 +1037,7 @@ end:
 	}
 }
 
-static void __declspec(naked) fSetPCStatMax() {
+static void __declspec(naked) op_set_pc_stat_max() {
 	__asm {
 		push ebx;
 		push ecx;
@@ -1072,7 +1072,7 @@ end:
 	}
 }
 
-static void __declspec(naked) fSetPCStatMin() {
+static void __declspec(naked) op_set_pc_stat_min() {
 	__asm {
 		push ebx;
 		push ecx;
@@ -1107,7 +1107,7 @@ end:
 	}
 }
 
-static void __declspec(naked) fSetNPCStatMax() {
+static void __declspec(naked) op_set_npc_stat_max() {
 	__asm {
 		push ebx;
 		push ecx;
@@ -1142,7 +1142,7 @@ end:
 	}
 }
 
-static void __declspec(naked) fSetNPCStatMin() {
+static void __declspec(naked) op_set_npc_stat_min() {
 	__asm {
 		push ebx;
 		push ecx;
@@ -1202,7 +1202,7 @@ static void _stdcall SetXpMod2(DWORD percent) {
 	xpmod=(float)percent/100.0f;
 }
 
-static void __declspec(naked) SetXpMod() {
+static void __declspec(naked) op_set_xp_mod() {
 	__asm {
 		push ebx;
 		push ecx;
@@ -1248,7 +1248,7 @@ static void _stdcall SetPerkLevelMod2(int mod) {
 	SafeWrite32(0x00496880, (DWORD)&SetPerkLevelMod3 - 0x00496884);
 }
 
-static void __declspec(naked) SetPerkLevelMod() {
+static void __declspec(naked) op_set_perk_level_mod() {
 	__asm {
 		push ebx;
 		push ecx;

@@ -23,7 +23,7 @@
 #include "..\Perks.h"
 #include "..\ScriptExtender.h"
 
-static void __declspec(naked) GetPerkOwed() {
+static void __declspec(naked) op_get_perk_owed() {
 	__asm {
 		pushad;
 		mov ecx, eax;
@@ -37,7 +37,7 @@ static void __declspec(naked) GetPerkOwed() {
 	}
 }
 
-static void __declspec(naked) SetPerkOwed() {
+static void __declspec(naked) op_set_perk_owed() {
 	__asm {
 		pushad;
 		mov ecx, eax;
@@ -57,7 +57,7 @@ end:
 	}
 }
 
-static void __declspec(naked) set_perk_freq() {
+static void __declspec(naked) op_set_perk_freq() {
 	__asm {
 		pushad;
 		mov ecx, eax;
@@ -75,7 +75,7 @@ end:
 	}
 }
 
-static void __declspec(naked) GetPerkAvailable() {
+static void __declspec(naked) op_get_perk_available() {
 	__asm {
 		pushad;
 		mov ecx, eax;
@@ -105,7 +105,7 @@ end:
 	}
 }
 
-static void __declspec(naked) funcSetPerkName() {
+static void __declspec(naked) op_set_perk_name() {
 	__asm {
 		pushad;
 		mov ecx, eax;
@@ -141,7 +141,7 @@ end:
 	}
 }
 
-static void __declspec(naked) funcSetPerkDesc() {
+static void __declspec(naked) op_set_perk_desc() {
 	__asm {
 		pushad;
 		mov ecx, eax;
@@ -177,7 +177,7 @@ end:
 	}
 }
 
-static void __declspec(naked) funcSetPerkValue() {
+static void __declspec(naked) op_set_perk_value() {
 	__asm {
 		pushad;
 		sub edx, 0x5e0-8; // offset of value into perk struct; edx = ((edx/4) - 0x178 + 0x8) * 4
@@ -209,7 +209,7 @@ end:
 	}
 }
 
-static void __declspec(naked) fSetSelectablePerk() {
+static void __declspec(naked) op_set_selectable_perk() {
 	__asm {
 		pushad;
 		mov ecx, eax;
@@ -278,7 +278,7 @@ fail:
 	}
 }
 
-static void __declspec(naked) fSetFakePerk() {
+static void __declspec(naked) op_set_fake_perk() {
 	__asm {
 		pushad;
 		mov ecx, eax;
@@ -347,7 +347,7 @@ fail:
 	}
 }
 
-static void __declspec(naked) fSetFakeTrait() {
+static void __declspec(naked) op_set_fake_trait() {
 	__asm {
 		push ebx;
 		push ecx;
@@ -424,7 +424,7 @@ fail:
 	}
 }
 
-static void __declspec(naked) fSetPerkboxTitle() {
+static void __declspec(naked) op_set_perkbox_title() {
 	__asm {
 		push ebx;
 		push ecx;
@@ -454,7 +454,7 @@ end:
 	}
 }
 
-static void __declspec(naked) fIgnoreDefaultPerks() {
+static void __declspec(naked) op_hide_real_perks() {
 	__asm {
 		push ebx;
 		push ecx;
@@ -467,7 +467,7 @@ static void __declspec(naked) fIgnoreDefaultPerks() {
 	}
 }
 
-static void __declspec(naked) fRestoreDefaultPerks() {
+static void __declspec(naked) op_show_real_perks() {
 	__asm {
 		push ebx;
 		push ecx;
@@ -480,7 +480,7 @@ static void __declspec(naked) fRestoreDefaultPerks() {
 	}
 }
 
-static void __declspec(naked) fClearSelectablePerks() {
+static void __declspec(naked) op_clear_selectable_perks() {
 	__asm {
 		push ebx;
 		push ecx;
@@ -493,7 +493,7 @@ static void __declspec(naked) fClearSelectablePerks() {
 	}
 }
 
-static void __declspec(naked) fHasFakePerk() {
+static void __declspec(naked) op_has_fake_perk() {
 	__asm {
 		push ebx;
 		push ecx;
@@ -529,7 +529,7 @@ end:
 	}
 }
 
-static void __declspec(naked) fHasFakeTrait() {
+static void __declspec(naked) op_has_fake_trait() {
 	__asm {
 		push ebx;
 		push ecx;
@@ -565,7 +565,7 @@ end:
 	}
 }
 
-static void __declspec(naked) fAddPerkMode() {
+static void __declspec(naked) op_perk_add_mode() {
 	__asm {
 		push ebx;
 		push ecx;
@@ -587,7 +587,7 @@ end:
 	}
 }
 
-static void __declspec(naked) remove_trait() {
+static void __declspec(naked) op_remove_trait() {
 	__asm {
 		pushad;
 		mov ebp, eax;
@@ -615,7 +615,7 @@ end:
 	}
 }
 
-static void __declspec(naked) SetPyromaniacMod() {
+static void __declspec(naked) op_set_pyromaniac_mod() {
 	__asm {
 		push ebx;
 		push ecx;
@@ -638,7 +638,7 @@ end:
 	}
 }
 
-static void __declspec(naked) fApplyHeaveHoFix() {
+static void __declspec(naked) op_apply_heaveho_fix() {
 	__asm {
 		push ebx;
 		push ecx;
@@ -651,7 +651,7 @@ static void __declspec(naked) fApplyHeaveHoFix() {
 	}
 }
 
-static void __declspec(naked) SetSwiftLearnerMod() {
+static void __declspec(naked) op_set_swiftlearner_mod() {
 	__asm {
 		push ebx;
 		push ecx;

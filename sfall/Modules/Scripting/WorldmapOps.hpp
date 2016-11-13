@@ -59,7 +59,7 @@ static void _stdcall ForceEncounter2(DWORD mapID, DWORD flags) {
 	if (flags & 1) SafeWrite8(0x4C0706, 0xeb);
 }
 
-static void __declspec(naked) ForceEncounter() {
+static void __declspec(naked) op_force_encounter() {
 	__asm {
 		push ebx;
 		push ecx;
@@ -82,7 +82,7 @@ end:
 	}
 }
 
-static void __declspec(naked) ForceEncounterWithFlags() {
+static void __declspec(naked) op_force_encounter_with_flags() {
 	__asm {
 		pushad
 		mov ecx, eax;
@@ -110,7 +110,7 @@ end:
 }
 
 // world_map_functions
-static void __declspec(naked) funcInWorldMap() {
+static void __declspec(naked) op_in_world_map() {
 	__asm {
 		push ebx;
 		push ecx;
@@ -132,7 +132,7 @@ static void __declspec(naked) funcInWorldMap() {
 	}
 }
 
-static void __declspec(naked) GetGameMode() {
+static void __declspec(naked) op_get_game_mode() {
 	__asm {
 		pushad;
 		mov edi, eax;
@@ -148,7 +148,7 @@ static void __declspec(naked) GetGameMode() {
 	}
 }
 
-static void __declspec(naked) GetWorldMapXPos() {
+static void __declspec(naked) op_get_world_map_x_pos() {
 	__asm {
 		push ebx;
 		push ecx;
@@ -166,7 +166,7 @@ static void __declspec(naked) GetWorldMapXPos() {
 	}
 }
 
-static void __declspec(naked) GetWorldMapYPos() {
+static void __declspec(naked) op_get_world_map_y_pos() {
 	__asm {
 		push ebx;
 		push ecx;
@@ -184,7 +184,7 @@ static void __declspec(naked) GetWorldMapYPos() {
 	}
 }
 
-static void __declspec(naked) SetWorldMapPos() {
+static void __declspec(naked) op_set_world_map_pos() {
 	__asm {
 		push ebx;
 		push ecx;

@@ -24,7 +24,7 @@
 #include "..\ScriptExtender.h"
 
 //file system functions
-static void __declspec(naked) fs_create() {
+static void __declspec(naked) op_fs_create() {
 	__asm {
 		pushad;
 		mov edi, eax;
@@ -67,7 +67,7 @@ end:
 	}
 }
 
-static void __declspec(naked) fs_copy() {
+static void __declspec(naked) op_fs_copy() {
 	__asm {
 		pushad;
 		mov ebp, eax;
@@ -118,7 +118,7 @@ end:
 	}
 }
 
-static void __declspec(naked) fs_find() {
+static void __declspec(naked) op_fs_find() {
 	__asm {
 		pushad;
 		mov ebp, eax;
@@ -153,7 +153,7 @@ end:
 	}
 }
 
-static void __declspec(naked) fs_write_byte() {
+static void __declspec(naked) op_fs_write_byte() {
 	__asm {
 		pushad;
 		mov ebp, eax;
@@ -180,7 +180,7 @@ end:
 	}
 }
 
-static void __declspec(naked) fs_write_short() {
+static void __declspec(naked) op_fs_write_short() {
 	__asm {
 		pushad;
 		mov ebp, eax;
@@ -207,7 +207,7 @@ end:
 	}
 }
 
-static void __declspec(naked) fs_write_int() {
+static void __declspec(naked) op_fs_write_int() {
 	__asm {
 		pushad;
 		mov ebp, eax;
@@ -237,7 +237,7 @@ end:
 	}
 }
 
-static void __declspec(naked) fs_write_string() {
+static void __declspec(naked) op_fs_write_string() {
 	__asm {
 		pushad;
 		mov edi, eax;
@@ -272,7 +272,7 @@ end:
 	}
 }
 
-static void __declspec(naked) fs_write_bstring() {
+static void __declspec(naked) op_fs_write_bstring() {
 	__asm {
 		pushad;
 		mov edi, eax;
@@ -307,7 +307,7 @@ end:
 	}
 }
 
-static void __declspec(naked) fs_read_byte() {
+static void __declspec(naked) op_fs_read_byte() {
 	__asm {
 		pushad;
 		mov ebp, eax;
@@ -335,7 +335,7 @@ end:
 	}
 }
 
-static void __declspec(naked) fs_read_short() {
+static void __declspec(naked) op_fs_read_short() {
 	__asm {
 		pushad;
 		mov ebp, eax;
@@ -363,7 +363,7 @@ end:
 	}
 }
 
-static void __declspec(naked) fs_read_int() {
+static void __declspec(naked) op_fs_read_int() {
 	__asm {
 		pushad;
 		mov ebp, eax;
@@ -391,7 +391,7 @@ end:
 	}
 }
 
-static void __declspec(naked) fs_read_float() {
+static void __declspec(naked) op_fs_read_float() {
 	__asm {
 		pushad;
 		mov ebp, eax;
@@ -419,7 +419,7 @@ end:
 	}
 }
 
-static void __declspec(naked) fs_delete() {
+static void __declspec(naked) op_fs_delete() {
 	__asm {
 		pushad;
 		mov ebp, eax;
@@ -437,7 +437,7 @@ end:
 	}
 }
 
-static void __declspec(naked) fs_size() {
+static void __declspec(naked) op_fs_size() {
 	__asm {
 		pushad;
 		mov ebp, eax;
@@ -465,7 +465,7 @@ end:
 	}
 }
 
-static void __declspec(naked) fs_pos() {
+static void __declspec(naked) op_fs_pos() {
 	__asm {
 		pushad;
 		mov ebp, eax;
@@ -493,7 +493,7 @@ end:
 	}
 }
 
-static void __declspec(naked) fs_seek() {
+static void __declspec(naked) op_fs_seek() {
 	__asm {
 		pushad;
 		mov ebp, eax;
@@ -520,7 +520,7 @@ end:
 	}
 }
 
-static void __declspec(naked) fs_resize() {
+static void __declspec(naked) op_fs_resize() {
 	__asm {
 		pushad;
 		mov ebp, eax;

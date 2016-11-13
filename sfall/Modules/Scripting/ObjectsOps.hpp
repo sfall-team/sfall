@@ -29,7 +29,7 @@
 //script control functions
 
 // TODO: rewrite
-static void __declspec(naked) RemoveScript() {
+static void __declspec(naked) op_remove_script() {
 	__asm {
 		push ebx;
 		push ecx;
@@ -58,7 +58,7 @@ end:
 }
 
 // TODO: rewrite 
-static void __declspec(naked) SetScript() {
+static void __declspec(naked) op_set_script() {
 	__asm {
 		pushad;
 		mov ecx, eax;
@@ -170,7 +170,7 @@ static void sf_spatial_radius() {
 	}
 }
 
-static void __declspec(naked) GetScript() {
+static void __declspec(naked) op_get_script() {
 	__asm {
 		pushad;
 		mov ecx, eax;
@@ -202,7 +202,7 @@ end:
 	}
 }
 
-static void __declspec(naked) set_critter_burst_disable() {
+static void __declspec(naked) op_set_critter_burst_disable() {
 	__asm {
 		pushad;
 		mov ebp, eax;
@@ -229,7 +229,7 @@ end:
 	}
 }
 
-static void __declspec(naked) get_weapon_ammo_pid() {
+static void __declspec(naked) op_get_weapon_ammo_pid() {
 	__asm {
 		pushad;
 		mov ebp, eax;
@@ -257,7 +257,7 @@ end:
 	}
 }
 
-static void __declspec(naked) set_weapon_ammo_pid() {
+static void __declspec(naked) op_set_weapon_ammo_pid() {
 	__asm {
 		pushad;
 		mov ebp, eax;
@@ -284,7 +284,7 @@ end:
 	}
 }
 
-static void __declspec(naked) get_weapon_ammo_count() {
+static void __declspec(naked) op_get_weapon_ammo_count() {
 	__asm {
 		pushad;
 		mov ebp, eax;
@@ -311,7 +311,7 @@ end:
 		retn;
 	}
 }
-static void __declspec(naked) set_weapon_ammo_count() {
+static void __declspec(naked) op_set_weapon_ammo_count() {
 	__asm {
 		pushad;
 		mov ebp, eax;
