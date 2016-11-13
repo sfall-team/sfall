@@ -21,8 +21,6 @@
 // Various utility functions, based on FO engine functions
 //
 
-#define DWORD unsigned long
-
 // returns weapon animation code
 char AnimCodeByWeapon(TGameObj* weapon);
 

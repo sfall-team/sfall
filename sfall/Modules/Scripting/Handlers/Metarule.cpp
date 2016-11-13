@@ -1,6 +1,6 @@
 /*
  *    sfall
- *    Copyright (C) 2008, 2009, 2010, 2012  The sfall team
+ *    Copyright (C) 2008-2016  The sfall team
  *
  *    This program is free software: you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
@@ -16,14 +16,16 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#pragma once
+#include "..\..\..\FalloutEngine\Fallout2.h"
+#include "..\..\ScriptExtender.h"
+#include "..\Arrays.h"
+#include "..\OpcodeHandler.h"
+#include "AsmMacros.h"
+#include "Interface.h"
+#include "Misc.h"
+#include "Objects.h"
 
-#include <string>
-#include <sstream>
-#include <unordered_map>
-
-#include "..\..\main.h"
-#include "..\ScriptExtender.h"
+#include "Metarule.h"
 
 // Metarule is a universal opcode(s) for all kinds of new sfall scripting functions.
 // Prefix all function handlers with sf_ and add them to sfall_metarule_table.
@@ -52,8 +54,7 @@ static const SfallMetarule* currentMetarule;
 
 static std::string sf_test_stringBuf;
 
-// Example handler. Feel free to add handlers in other files.
-static void sf_test() {
+void sf_test() {
 	std::ostringstream sstream;
 	sstream << "sfall_funcX(\"test\"";
 	for (int i = 0; i < opHandler.numArgs(); i++) {
@@ -81,7 +82,7 @@ static void sf_test() {
 }
 
 // returns current contents of metarule table
-static void sf_get_metarule_table() {
+void sf_get_metarule_table() {
 	DWORD arr = TempArray(metaruleTable.size(), 0);
 	int i = 0;
 	for (MetaruleTableType::iterator it = metaruleTable.begin(); it != metaruleTable.end(); it++) {
@@ -114,7 +115,7 @@ static const SfallMetarule metaruleArray[] = {
 	{"exec_map_update_scripts", sf_exec_map_update_scripts, 0, 0},
 };
 
-static void InitMetaruleTable() {
+void InitMetaruleTable() {
 	int length = sizeof(metaruleArray) / sizeof(SfallMetarule);
 	for (int i = 0; i < length; ++i) {
 		metaruleTable[metaruleArray[i].name] = &metaruleArray[i];
@@ -139,7 +140,7 @@ static bool ValidateMetaruleArguments(const SfallMetarule* metaruleInfo) {
 	}
 }
 
-static void _stdcall op_sfall_metarule_handler() {
+static void _stdcall HandleMetarule() {
 	const ScriptValue &nameArg = opHandler.arg(0);
 	if (nameArg.isString()) {
 		const char* name = nameArg.asString();
@@ -161,8 +162,8 @@ static void _stdcall op_sfall_metarule_handler() {
 }
 
 #define metaruleOpcode(numArg, numArgPlusOne) \
-	static void __declspec(naked) op_sfall_metarule##numArg() {\
-		_WRAP_OPCODE(op_sfall_metarule_handler, numArgPlusOne, 1)\
+	void __declspec(naked) op_sfall_metarule##numArg() {\
+		_WRAP_OPCODE(HandleMetarule, numArgPlusOne, 1)\
 	}
 
 metaruleOpcode(0, 1)

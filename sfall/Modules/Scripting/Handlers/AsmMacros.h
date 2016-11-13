@@ -1,5 +1,7 @@
 #pragma once
 
+#include "..\OpcodeHandler.h"
+
 /*
 	MACROS for operators assembly code
 

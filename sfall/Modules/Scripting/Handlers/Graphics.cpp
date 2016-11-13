@@ -1,6 +1,6 @@
 /*
  *    sfall
- *    Copyright (C) 2008, 2009, 2010, 2012  The sfall team
+ *    Copyright (C) 2008-2016  The sfall team
  *
  *    This program is free software: you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
@@ -16,15 +16,15 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#pragma once
+#include "..\..\..\main.h"
+#include "..\..\..\InputFuncs.h"
+#include "..\..\..\FalloutEngine\Fallout2.h"
+#include "..\..\Graphics.h"
+#include "..\..\ScriptExtender.h"
 
-#include "..\..\main.h"
-#include "..\..\InputFuncs.h"
-#include "..\Graphics.h"
-#include "..\ScriptExtender.h"
+#include "Graphics.h"
 
-// graphics_functions
-static void __declspec(naked) op_graphics_funcs_available() {
+void __declspec(naked) op_graphics_funcs_available() {
 	__asm {
 		push ebx;
 		push ecx;
@@ -47,7 +47,7 @@ end:
 	}
 }
 
-static void __declspec(naked) op_load_shader() {
+void __declspec(naked) op_load_shader() {
 	__asm {
 		push ebx;
 		push ecx;
@@ -86,7 +86,7 @@ result:
 	}
 }
 
-static void __declspec(naked) op_free_shader() {
+void __declspec(naked) op_free_shader() {
 	__asm {
 		push ebx;
 		push ecx;
@@ -108,7 +108,7 @@ end:
 	}
 }
 
-static void __declspec(naked) op_activate_shader() {
+void __declspec(naked) op_activate_shader() {
 	__asm {
 		push ebx;
 		push ecx;
@@ -130,7 +130,7 @@ end:
 	}
 }
 
-static void __declspec(naked) op_deactivate_shader() {
+void __declspec(naked) op_deactivate_shader() {
 	__asm {
 		push ebx;
 		push ecx;
@@ -152,7 +152,7 @@ end:
 	}
 }
 
-static void __declspec(naked) op_get_shader_texture() {
+void __declspec(naked) op_get_shader_texture() {
 	__asm {
 		//Store registers
 		push ebx;
@@ -162,19 +162,19 @@ static void __declspec(naked) op_get_shader_texture() {
 		//Get function args
 		mov ecx, eax;
 		call FuncOffs::interpretPopShort_;
-		push eax
+		push eax;
 		mov eax, ecx;
 		call FuncOffs::interpretPopLong_;
 		mov edi, eax;
 		mov eax, ecx;
 		call FuncOffs::interpretPopShort_;
-		push eax
+		push eax;
 		mov eax, ecx;
 		call FuncOffs::interpretPopLong_;
 		mov ebx, [esp];
 		cmp bx, 0xC001;
 		jnz fail;
-		mov ebx, [esp+4];
+		mov ebx, [esp + 4];
 		cmp bx, 0xc001;
 		jnz fail;
 		//set the new value
@@ -186,7 +186,7 @@ static void __declspec(naked) op_get_shader_texture() {
 		pop ecx;
 		jmp end;
 fail:
-		mov edx, -1
+		mov edx, -1;
 end:
 		//Pass back the result
 		mov eax, ecx;
@@ -204,7 +204,7 @@ end:
 	}
 }
 
-static void __declspec(naked) op_set_shader_int() {
+void __declspec(naked) op_set_shader_int() {
 	__asm {
 		push ebx;
 		push ecx;
@@ -219,7 +219,7 @@ static void __declspec(naked) op_set_shader_int() {
 		mov edi, eax;
 		mov eax, ecx;
 		call FuncOffs::interpretPopLong_;
-		mov [esp+8], eax;
+		mov[esp + 8], eax;
 		mov eax, ecx;
 		call FuncOffs::interpretPopShort_;
 		mov edx, eax;
@@ -231,7 +231,7 @@ static void __declspec(naked) op_set_shader_int() {
 		mov esi, eax;
 		mov eax, ecx;
 		call FuncOffs::interpretPopLong_;
-		mov [esp], eax;
+		mov[esp], eax;
 		//Error check
 		cmp di, 0xC001;
 		jnz fail;
@@ -245,7 +245,7 @@ next:
 		mov eax, ecx;
 		mov ebx, ebp;
 		call FuncOffs::interpretGetString_;
-		mov [esp+4], eax;
+		mov[esp + 4], eax;
 		call SetShaderInt;
 		jmp end;
 fail:
@@ -261,7 +261,7 @@ end:
 	}
 }
 
-static void __declspec(naked) op_set_shader_texture() {
+void __declspec(naked) op_set_shader_texture() {
 	__asm {
 		push ebx;
 		push ecx;
@@ -276,7 +276,7 @@ static void __declspec(naked) op_set_shader_texture() {
 		mov edi, eax;
 		mov eax, ecx;
 		call FuncOffs::interpretPopLong_;
-		mov [esp+8], eax;
+		mov[esp + 8], eax;
 		mov eax, ecx;
 		call FuncOffs::interpretPopShort_;
 		mov edx, eax;
@@ -288,7 +288,7 @@ static void __declspec(naked) op_set_shader_texture() {
 		mov esi, eax;
 		mov eax, ecx;
 		call FuncOffs::interpretPopLong_;
-		mov [esp], eax;
+		mov[esp], eax;
 		//Error check
 		cmp di, 0xC001;
 		jnz fail;
@@ -302,7 +302,7 @@ next:
 		mov eax, ecx;
 		mov ebx, ebp;
 		call FuncOffs::interpretGetString_;
-		mov [esp+4], eax;
+		mov[esp + 4], eax;
 		call SetShaderTexture;
 		jmp end;
 fail:
@@ -318,7 +318,7 @@ end:
 	}
 }
 
-static void __declspec(naked) op_set_shader_float() {
+void __declspec(naked) op_set_shader_float() {
 	__asm {
 		push ebx;
 		push ecx;
@@ -333,7 +333,7 @@ static void __declspec(naked) op_set_shader_float() {
 		mov edi, eax;
 		mov eax, ecx;
 		call FuncOffs::interpretPopLong_;
-		mov [esp+8], eax;
+		mov[esp + 8], eax;
 		mov eax, ecx;
 		call FuncOffs::interpretPopShort_;
 		mov edx, eax;
@@ -345,14 +345,14 @@ static void __declspec(naked) op_set_shader_float() {
 		mov esi, eax;
 		mov eax, ecx;
 		call FuncOffs::interpretPopLong_;
-		mov [esp], eax;
+		mov[esp], eax;
 		//Error check
 		cmp di, 0xa001;
 		jz paramWasFloat;
 		cmp di, 0xc001;
 		jnz fail;
-		fild [esp+8];
-		fstp [esp+8];
+		fild[esp + 8];
+		fstp[esp + 8];
 paramWasFloat:
 		cmp dx, 0x9001;
 		jz next;
@@ -364,7 +364,7 @@ next:
 		mov eax, ecx;
 		mov ebx, ebp;
 		call FuncOffs::interpretGetString_;
-		mov [esp+4], eax;
+		mov[esp + 4], eax;
 		call SetShaderFloat;
 		jmp end;
 fail:
@@ -380,7 +380,7 @@ end:
 	}
 }
 
-static void __declspec(naked) op_set_shader_vector() {
+void __declspec(naked) op_set_shader_vector() {
 	__asm {
 		push ebx;
 		push ecx;
@@ -393,35 +393,35 @@ static void __declspec(naked) op_set_shader_vector() {
 argloopstart:
 		mov eax, ebp;
 		call FuncOffs::interpretPopShort_;
-		mov word ptr [esp+ecx*2+0x16], ax;
+		mov word ptr[esp + ecx * 2 + 0x16], ax;
 		mov eax, ebp;
 		call FuncOffs::interpretPopLong_;
-		mov [esp+ecx*4-0x4], eax;
+		mov[esp + ecx * 4 - 0x4], eax;
 		loop argloopstart;
 		//Error check
 		mov ecx, 4;
 checkloopstart:
-		cmp word ptr [esp+ecx*2+0x1a], 0xa001;
+		cmp word ptr[esp + ecx * 2 + 0x1a], 0xa001;
 		jz paramWasFloat;
-		cmp word ptr [esp+ecx*2+0x1a], 0xc001;
+		cmp word ptr[esp + ecx * 2 + 0x1a], 0xc001;
 		jnz fail;
-		fild [esp+ecx*4+0x4];
-		fstp [esp+ecx*4+0x4];
+		fild[esp + ecx * 4 + 0x4];
+		fstp[esp + ecx * 4 + 0x4];
 paramWasFloat:
 		loop checkloopstart;
-		cmp word ptr [esp+0x1a], 0x9001;
+		cmp word ptr[esp + 0x1a], 0x9001;
 		jz next;
-		cmp word ptr [esp+0x1a], 0x9801;
+		cmp word ptr[esp + 0x1a], 0x9801;
 		jnz fail;
 next:
-		cmp word ptr [esp+0x18], 0xc001;
+		cmp word ptr[esp + 0x18], 0xc001;
 		jnz fail;
 		mov eax, ebp;
-		mov ebx, [esp+4];
+		mov ebx, [esp + 4];
 		xor edx, edx;
-		mov dx, word ptr [esp+0x1a];
+		mov dx, word ptr[esp + 0x1a];
 		call FuncOffs::interpretGetString_;
-		mov [esp+4], eax;
+		mov[esp + 4], eax;
 		call SetShaderVector;
 		add esp, 0x12;
 		jmp end;
@@ -436,7 +436,7 @@ end:
 	}
 }
 
-static void __declspec(naked) op_get_shader_version() {
+void __declspec(naked) op_get_shader_version() {
 	__asm {
 		push ebx;
 		push ecx;
@@ -458,7 +458,7 @@ static void __declspec(naked) op_get_shader_version() {
 	}
 }
 
-static void __declspec(naked) op_set_shader_mode() {
+void __declspec(naked) op_set_shader_mode() {
 	__asm {
 		push ebx;
 		push ecx;
@@ -481,7 +481,7 @@ static void __declspec(naked) op_set_shader_mode() {
 		jnz fail;
 		push eax;
 		call SetShaderMode;
-		jmp end
+		jmp end;
 fail:
 		pop eax;
 end:
@@ -493,7 +493,7 @@ end:
 	}
 }
 
-static void __declspec(naked) op_force_graphics_refresh() {
+void __declspec(naked) op_force_graphics_refresh() {
 	__asm {
 		push ebx;
 		push ecx;

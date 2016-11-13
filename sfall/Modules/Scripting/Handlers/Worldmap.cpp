@@ -1,6 +1,6 @@
 /*
  *    sfall
- *    Copyright (C) 2008, 2009, 2010, 2012  The sfall team
+ *    Copyright (C) 2008-2016  The sfall team
  *
  *    This program is free software: you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
@@ -16,11 +16,14 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#pragma once
 
-#include "..\..\main.h"
-#include "..\ScriptExtender.h"
+#include "..\..\..\CommonTypes.h"
+#include "..\..\..\FalloutEngine\Fallout2.h"
+#include "..\..\..\SafeWrite.h"
+#include "..\..\LoadGameHook.h"
+#include "..\..\ScriptExtender.h"
 
+#include "Worldmap.h"
 
 static DWORD EncounteredHorrigan;
 static void _stdcall ForceEncounter4() {
@@ -38,9 +41,9 @@ static void __declspec(naked) ForceEncounter3() {
 		push ebx;
 		push ecx;
 		push edx;
-		mov eax, [esp+0x10];
+		mov eax, [esp + 0x10];
 		sub eax, 5;
-		mov [esp+0x10], eax;
+		mov[esp + 0x10], eax;
 		call ForceEncounter4;
 		pop edx;
 		pop ecx;
@@ -59,7 +62,7 @@ static void _stdcall ForceEncounter2(DWORD mapID, DWORD flags) {
 	if (flags & 1) SafeWrite8(0x4C0706, 0xeb);
 }
 
-static void __declspec(naked) op_force_encounter() {
+void __declspec(naked) op_force_encounter() {
 	__asm {
 		push ebx;
 		push ecx;
@@ -82,7 +85,7 @@ end:
 	}
 }
 
-static void __declspec(naked) op_force_encounter_with_flags() {
+void __declspec(naked) op_force_encounter_with_flags() {
 	__asm {
 		pushad
 		mov ecx, eax;
@@ -105,12 +108,12 @@ static void __declspec(naked) op_force_encounter_with_flags() {
 		call ForceEncounter2;
 end:
 		popad
-		retn;
+			retn;
 	}
 }
 
 // world_map_functions
-static void __declspec(naked) op_in_world_map() {
+void __declspec(naked) op_in_world_map() {
 	__asm {
 		push ebx;
 		push ecx;
@@ -132,7 +135,7 @@ static void __declspec(naked) op_in_world_map() {
 	}
 }
 
-static void __declspec(naked) op_get_game_mode() {
+void __declspec(naked) op_get_game_mode() {
 	__asm {
 		pushad;
 		mov edi, eax;
@@ -148,7 +151,7 @@ static void __declspec(naked) op_get_game_mode() {
 	}
 }
 
-static void __declspec(naked) op_get_world_map_x_pos() {
+void __declspec(naked) op_get_world_map_x_pos() {
 	__asm {
 		push ebx;
 		push ecx;
@@ -166,7 +169,7 @@ static void __declspec(naked) op_get_world_map_x_pos() {
 	}
 }
 
-static void __declspec(naked) op_get_world_map_y_pos() {
+void __declspec(naked) op_get_world_map_y_pos() {
 	__asm {
 		push ebx;
 		push ecx;
@@ -184,7 +187,7 @@ static void __declspec(naked) op_get_world_map_y_pos() {
 	}
 }
 
-static void __declspec(naked) op_set_world_map_pos() {
+void __declspec(naked) op_set_world_map_pos() {
 	__asm {
 		push ebx;
 		push ecx;
@@ -206,8 +209,8 @@ static void __declspec(naked) op_set_world_map_pos() {
 		jnz end;
 		cmp si, 0xC001;
 		jnz end;
-		mov ds:[VARPTR_world_xpos], eax;
-		mov ds:[VARPTR_world_ypos], edi;
+		mov ds : [VARPTR_world_xpos], eax;
+		mov ds : [VARPTR_world_ypos], edi;
 end:
 		pop esi;
 		pop edi;
@@ -217,3 +220,4 @@ end:
 		retn;
 	}
 }
+

@@ -1,6 +1,6 @@
 /*
  *    sfall
- *    Copyright (C) 2008, 2009, 2010, 2012  The sfall team
+ *    Copyright (C) 2008-2016  The sfall team
  *
  *    This program is free software: you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
@@ -16,20 +16,15 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#pragma once
+#include "..\..\..\FalloutEngine\Fallout2.h"
+#include "..\..\Knockback.h"
+#include "..\..\ScriptExtender.h"
+#include "..\Arrays.h"
+#include "AsmMacros.h"
 
-#if (_MSC_VER < 1600)
-#include "..\..\win9x\Cpp11_emu.h"
-#endif
+#include "Objects.h"
 
-#include "..\..\main.h"
-#include "..\Inventory.h"
-#include "..\ScriptExtender.h"
-
-//script control functions
-
-// TODO: rewrite
-static void __declspec(naked) op_remove_script() {
+void __declspec(naked) op_remove_script() {
 	__asm {
 		push ebx;
 		push ecx;
@@ -44,11 +39,11 @@ static void __declspec(naked) op_remove_script() {
 		test eax, eax;
 		jz end;
 		mov edx, eax;
-		mov eax, [eax+0x78];
+		mov eax, [eax + 0x78];
 		cmp eax, 0xffffffff;
 		jz end;
-		call FuncOffs::scr_remove_
-		mov dword ptr [edx+0x78], 0xffffffff;
+		call FuncOffs::scr_remove_;
+		mov dword ptr[edx + 0x78], 0xffffffff;
 end:
 		pop edx;
 		pop ecx;
@@ -57,8 +52,7 @@ end:
 	}
 }
 
-// TODO: rewrite 
-static void __declspec(naked) op_set_script() {
+void __declspec(naked) op_set_script() {
 	__asm {
 		pushad;
 		mov ecx, eax;
@@ -78,14 +72,14 @@ static void __declspec(naked) op_set_script() {
 		jnz end;
 		test eax, eax;
 		jz end;
-		mov esi, [eax+0x78];
+		mov esi, [eax + 0x78];
 		cmp esi, 0xffffffff;
-		jz newscript
+		jz newscript;
 		push eax;
 		mov eax, esi;
-		call FuncOffs::scr_remove_
+		call FuncOffs::scr_remove_;
 		pop eax;
-		mov dword ptr [eax+0x78], 0xffffffff;
+		mov dword ptr[eax + 0x78], 0xffffffff;
 newscript:
 		mov esi, 1;
 		test ebx, 0x80000000;
@@ -95,36 +89,35 @@ newscript:
 execMapEnter:
 		mov ecx, eax;
 		mov edx, 3; // script_type_item
-		mov edi, [eax+0x64];
+		mov edi, [eax + 0x64];
 		shr edi, 24;
 		cmp edi, 1;
 		jnz notCritter;
 		inc edx; // 4 - "critter" type script
 notCritter:
 		dec ebx;
-		call FuncOffs::obj_new_sid_inst_
-		mov eax, [ecx+0x78];
+		call FuncOffs::obj_new_sid_inst_;
+		mov eax, [ecx + 0x78];
 		mov edx, 1; // start
-		call FuncOffs::exec_script_proc_
+		call FuncOffs::exec_script_proc_;
 		cmp esi, 1; // run map enter?
 		jnz end;
-		mov eax, [ecx+0x78];
+		mov eax, [ecx + 0x78];
 		mov edx, 0xf; // map_enter_p_proc
-		call FuncOffs::exec_script_proc_
+		call FuncOffs::exec_script_proc_;
 end:
 		popad;
 		retn;
 	}
 }
 
-// TODO: rewrite, remove all ASM
-static void _stdcall op_create_spatial2() {
-	DWORD scriptIndex	= opHandler.arg(0).asInt(),
-		  tile			= opHandler.arg(1).asInt(),
-		  elevation		= opHandler.arg(2).asInt(),
-		  radius		= opHandler.arg(3).asInt(),
-		  scriptId, tmp, objectPtr,
-		  scriptPtr;
+void _stdcall CreateSpatial() {
+	DWORD scriptIndex = opHandler.arg(0).asInt(),
+		tile = opHandler.arg(1).asInt(),
+		elevation = opHandler.arg(2).asInt(),
+		radius = opHandler.arg(3).asInt(),
+		scriptId, tmp, objectPtr,
+		scriptPtr;
 	__asm {
 		lea eax, scriptId;
 		mov edx, 1;
@@ -149,7 +142,7 @@ static void _stdcall op_create_spatial2() {
 	__asm {
 		mov eax, scriptId;
 		mov edx, 1; // start_p_proc
-		call FuncOffs::exec_script_proc_; 
+		call FuncOffs::exec_script_proc_;
 		mov eax, scriptPtr;
 		mov eax, [eax + 0x18]; // program pointer
 		call FuncOffs::scr_find_obj_from_program_;
@@ -158,11 +151,11 @@ static void _stdcall op_create_spatial2() {
 	opHandler.setReturn((int)objectPtr);
 }
 
-static void __declspec(naked) op_create_spatial() {
-	_WRAP_OPCODE(op_create_spatial2, 4, 1)
+void __declspec(naked) op_create_spatial() {
+	_WRAP_OPCODE(CreateSpatial, 4, 1)
 }
 
-static void sf_spatial_radius() {
+void sf_spatial_radius() {
 	TGameObj* spatialObj = opHandler.arg(0).asObject();
 	TScript* script;
 	if (Wrapper::scr_ptr(spatialObj->scriptID, &script) != -1) {
@@ -170,7 +163,7 @@ static void sf_spatial_radius() {
 	}
 }
 
-static void __declspec(naked) op_get_script() {
+void __declspec(naked) op_get_script() {
 	__asm {
 		pushad;
 		mov ecx, eax;
@@ -183,7 +176,7 @@ static void __declspec(naked) op_get_script() {
 		jnz fail;
 		test eax, eax;
 		jz fail;
-		mov edx, [eax+0x80];
+		mov edx, [eax + 0x80];
 		cmp edx, -1;
 		jz fail;
 		inc edx;
@@ -202,7 +195,7 @@ end:
 	}
 }
 
-static void __declspec(naked) op_set_critter_burst_disable() {
+void __declspec(naked) op_set_critter_burst_disable() {
 	__asm {
 		pushad;
 		mov ebp, eax;
@@ -229,7 +222,7 @@ end:
 	}
 }
 
-static void __declspec(naked) op_get_weapon_ammo_pid() {
+void __declspec(naked) op_get_weapon_ammo_pid() {
 	__asm {
 		pushad;
 		mov ebp, eax;
@@ -241,7 +234,7 @@ static void __declspec(naked) op_get_weapon_ammo_pid() {
 		jnz fail;
 		test eax, eax;
 		jz fail;
-		mov edx, [eax+0x40];
+		mov edx, [eax + 0x40];
 		jmp end;
 fail:
 		xor edx, edx;
@@ -257,7 +250,7 @@ end:
 	}
 }
 
-static void __declspec(naked) op_set_weapon_ammo_pid() {
+void __declspec(naked) op_set_weapon_ammo_pid() {
 	__asm {
 		pushad;
 		mov ebp, eax;
@@ -277,14 +270,14 @@ static void __declspec(naked) op_set_weapon_ammo_pid() {
 		jnz end;
 		test eax, eax;
 		jz end;
-		mov [eax+0x40], ecx;
+		mov[eax + 0x40], ecx;
 end:
 		popad;
 		retn;
 	}
 }
 
-static void __declspec(naked) op_get_weapon_ammo_count() {
+void __declspec(naked) op_get_weapon_ammo_count() {
 	__asm {
 		pushad;
 		mov ebp, eax;
@@ -296,7 +289,7 @@ static void __declspec(naked) op_get_weapon_ammo_count() {
 		jnz fail;
 		test eax, eax;
 		jz fail;
-		mov edx, [eax+0x3c];
+		mov edx, [eax + 0x3c];
 		jmp end;
 fail:
 		xor edx, edx;
@@ -311,7 +304,8 @@ end:
 		retn;
 	}
 }
-static void __declspec(naked) op_set_weapon_ammo_count() {
+
+void __declspec(naked) op_set_weapon_ammo_count() {
 	__asm {
 		pushad;
 		mov ebp, eax;
@@ -331,12 +325,13 @@ static void __declspec(naked) op_set_weapon_ammo_count() {
 		jnz end;
 		test eax, eax;
 		jz end;
-		mov [eax+0x3c], ecx;
+		mov[eax + 0x3c], ecx;
 end:
 		popad;
 		retn;
 	}
 }
+
 
 static DWORD _stdcall obj_blocking_at_wrapper(DWORD obj, DWORD tile, DWORD elevation, DWORD func) {
 	__asm {
@@ -368,35 +363,35 @@ static DWORD _stdcall make_straight_path_func_wrapper(DWORD obj, DWORD tileFrom,
 
 static DWORD getBlockingFunc(DWORD type) {
 	switch (type) {
-		case BLOCKING_TYPE_BLOCK: default: 
-			return FuncOffs::obj_blocking_at_;
-		case BLOCKING_TYPE_SHOOT: 
-			return FuncOffs::obj_shoot_blocking_at_;
-		case BLOCKING_TYPE_AI: 
-			return FuncOffs::obj_ai_blocking_at_;
-		case BLOCKING_TYPE_SIGHT: 
-			return FuncOffs::obj_sight_blocking_at_;
-		//case 4: 
-		//	return obj_scroll_blocking_at_;
-			
+	case BLOCKING_TYPE_BLOCK: default:
+		return FuncOffs::obj_blocking_at_;
+	case BLOCKING_TYPE_SHOOT:
+		return FuncOffs::obj_shoot_blocking_at_;
+	case BLOCKING_TYPE_AI:
+		return FuncOffs::obj_ai_blocking_at_;
+	case BLOCKING_TYPE_SIGHT:
+		return FuncOffs::obj_sight_blocking_at_;
+	//case 4: 
+	//	return obj_scroll_blocking_at_;
+
 	}
 }
 
-static void _stdcall op_make_straight_path2() {
-	DWORD objFrom	= opHandler.arg(0).asInt(),
-		  tileTo	= opHandler.arg(1).asInt(),
-		  type		= opHandler.arg(2).asInt(),
-		  resultObj, arg6;
+void _stdcall sf_make_straight_path() {
+	DWORD objFrom = opHandler.arg(0).asInt(),
+		tileTo = opHandler.arg(1).asInt(),
+		type = opHandler.arg(2).asInt(),
+		resultObj, arg6;
 	arg6 = (type == BLOCKING_TYPE_SHOOT) ? 32 : 0;
 	make_straight_path_func_wrapper(objFrom, *(DWORD*)(objFrom + 4), 0, tileTo, &resultObj, arg6, getBlockingFunc(type));
 	opHandler.setReturn(resultObj, DATATYPE_INT);
 }
 
-static void __declspec(naked) op_make_straight_path() {
-	_WRAP_OPCODE(op_make_straight_path2, 3, 1)
+void __declspec(naked) op_make_straight_path() {
+	_WRAP_OPCODE(sf_make_straight_path, 3, 1)
 }
 
-static void _stdcall op_make_path2() {
+static void _stdcall sf_make_path() {
 	DWORD objFrom = opHandler.arg(0).asInt(),
 		tileFrom = 0,
 		tileTo = opHandler.arg(1).asInt(),
@@ -422,21 +417,21 @@ static void _stdcall op_make_path2() {
 		mov pathLength, eax;
 	}
 	arr = TempArray(pathLength, 0);
-	for (int i=0; i < pathLength; i++) {
+	for (int i = 0; i < pathLength; i++) {
 		arrays[arr].val[i].set((long)pathData[i]);
 	}
 	opHandler.setReturn(arr, DATATYPE_INT);
 }
 
-static void __declspec(naked) op_make_path() {
-	_WRAP_OPCODE(op_make_path2, 3, 1)
+void __declspec(naked) op_make_path() {
+	_WRAP_OPCODE(sf_make_path, 3, 1)
 }
 
-static void _stdcall op_obj_blocking_at2() {
+static void _stdcall sf_obj_blocking_at() {
 	DWORD tile = opHandler.arg(0).asInt(),
-		  elevation = opHandler.arg(1).asInt(),
-		  type = opHandler.arg(2).asInt(), 
-		  resultObj;
+		elevation = opHandler.arg(1).asInt(),
+		type = opHandler.arg(2).asInt(),
+		resultObj;
 	resultObj = obj_blocking_at_wrapper(0, tile, elevation, getBlockingFunc(type));
 	if (resultObj && type == BLOCKING_TYPE_SHOOT && (*(DWORD*)(resultObj + 39) & 0x80)) { // don't know what this flag means, copy-pasted from the engine code
 		// this check was added because the engine always does exactly this when using shoot blocking checks
@@ -445,13 +440,13 @@ static void _stdcall op_obj_blocking_at2() {
 	opHandler.setReturn(resultObj, DATATYPE_INT);
 }
 
-static void __declspec(naked) op_obj_blocking_at() {
-	_WRAP_OPCODE(op_obj_blocking_at2, 3, 1)
+void __declspec(naked) op_obj_blocking_at() {
+	_WRAP_OPCODE(sf_obj_blocking_at, 3, 1)
 }
 
-static void _stdcall op_tile_get_objects2() {
+static void _stdcall sf_tile_get_objects() {
 	DWORD tile = opHandler.arg(0).asInt(),
-		elevation = opHandler.arg(1).asInt(), 
+		elevation = opHandler.arg(1).asInt(),
 		obj;
 	DWORD arrayId = TempArray(0, 4);
 	__asm {
@@ -470,17 +465,17 @@ static void _stdcall op_tile_get_objects2() {
 	opHandler.setReturn(arrayId, DATATYPE_INT);
 }
 
-static void __declspec(naked) op_tile_get_objects() {
-	_WRAP_OPCODE(op_tile_get_objects2, 2, 1)
+void __declspec(naked) op_tile_get_objects() {
+	_WRAP_OPCODE(sf_tile_get_objects, 2, 1)
 }
 
-static void _stdcall op_get_party_members2() {
+static void _stdcall sf_get_party_members() {
 	DWORD obj, mode = opHandler.arg(0).asInt(), isDead;
 	int i, actualCount = VarPtr::partyMemberCount;
 	DWORD arrayId = TempArray(0, 4);
 	DWORD* partyMemberList = VarPtr::partyMemberList;
 	for (i = 0; i < actualCount; i++) {
-		obj = partyMemberList[i*4];
+		obj = partyMemberList[i * 4];
 		if (mode == 0) { // mode 0 will act just like op_party_member_count in fallout2
 			if ((*(DWORD*)(obj + 100) >> 24) != OBJ_TYPE_CRITTER)  // obj type != critter
 				continue;
@@ -499,11 +494,12 @@ static void _stdcall op_get_party_members2() {
 	opHandler.setReturn(arrayId, DATATYPE_INT);
 }
 
-static void __declspec(naked) op_get_party_members() {
-	_WRAP_OPCODE(op_get_party_members2, 1, 1)
+void __declspec(naked) op_get_party_members() {
+	_WRAP_OPCODE(sf_get_party_members, 1, 1)
 }
 
-static void __declspec(naked) op_art_exists() {
+// TODO: rewrite
+void __declspec(naked) op_art_exists() {
 	_OP_BEGIN(ebp)
 	_GET_ARG_R32(ebp, ecx, eax)
 	_CHECK_ARG_INT(cx, fail)
@@ -518,14 +514,14 @@ end:
 	_OP_END
 }
 
-static void _stdcall op_obj_is_carrying_obj2() {
+static void _stdcall sf_obj_is_carrying_obj() {
 	int num = 0;
 	const ScriptValue &invenObjArg = opHandler.arg(0),
-					  &itemObjArg = opHandler.arg(1);
+		&itemObjArg = opHandler.arg(1);
 
 	if (invenObjArg.isInt() && itemObjArg.isInt()) {
 		TGameObj *invenObj = (TGameObj*)invenObjArg.asObject(),
-				 *itemObj = (TGameObj*)itemObjArg.asObject();
+			*itemObj = (TGameObj*)itemObjArg.asObject();
 		if (invenObj != nullptr && itemObj != nullptr) {
 			for (int i = 0; i < invenObj->invenCount; i++) {
 				if (invenObj->invenTable[i].object == itemObj) {
@@ -538,11 +534,11 @@ static void _stdcall op_obj_is_carrying_obj2() {
 	opHandler.setReturn(num);
 }
 
-static void __declspec(naked) op_obj_is_carrying_obj() {
-	_WRAP_OPCODE(op_obj_is_carrying_obj2, 2, 1)
+void __declspec(naked) op_obj_is_carrying_obj() {
+	_WRAP_OPCODE(sf_obj_is_carrying_obj, 2, 1)
 }
 
-static void sf_critter_inven_obj2() {
+void sf_critter_inven_obj2() {
 	TGameObj* critter = opHandler.arg(0).asObject();
 	int slot = opHandler.arg(1).asInt();
 	switch (slot) {

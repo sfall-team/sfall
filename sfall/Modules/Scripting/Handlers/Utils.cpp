@@ -1,6 +1,6 @@
 /*
  *    sfall
- *    Copyright (C) 2008, 2009, 2010, 2011, 2012  The sfall team
+ *    Copyright (C) 2008-2016  The sfall team
  *
  *    This program is free software: you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
@@ -16,19 +16,19 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#pragma once
-
 #include <cmath>
 
-#include "..\..\main.h"
+#include "..\..\..\FalloutEngine\Fallout2.h"
+#include "..\..\ScriptExtender.h"
+#include "..\..\FileSystem.h"
+#include "..\..\Message.h"
+#include "..\Arrays.h"
+#include "..\ScriptValue.h"
+#include "AsmMacros.h"
 
-#include "Arrays.h"
-#include "ScriptArrays.hpp"
-#include "..\ScriptExtender.h"
-#include "..\FileSystem.h"
-#include "..\Message.h"
+#include "Utils.h"
 
-static void __declspec(naked) op_sqrt() {
+void __declspec(naked) op_sqrt() {
 	__asm {
 		pushad;
 		sub esp, 4;
@@ -39,22 +39,22 @@ static void __declspec(naked) op_sqrt() {
 		call FuncOffs::interpretPopLong_;
 		cmp bx, 0xc001;
 		jnz arg1l2;
-		mov [esp], eax;
-		fild [esp];
+		mov[esp], eax;
+		fild[esp];
 		jmp calc;
 arg1l2:
 		cmp bx, 0xa001;
 		jnz fail;
-		mov [esp], eax;
-		fld [esp];
+		mov[esp], eax;
+		fld[esp];
 calc:
 		fsqrt;
-		fstp [esp];
+		fstp[esp];
 		mov edx, [esp];
 		jmp end;
 fail:
 		fldz;
-		fstp [esp];
+		fstp[esp];
 		mov edx, [esp];
 end:
 		mov eax, ecx;
@@ -68,7 +68,7 @@ end:
 	}
 }
 
-static void __declspec(naked) op_abs() {
+void __declspec(naked) op_abs() {
 	__asm {
 		pushad;
 		sub esp, 4;
@@ -79,22 +79,22 @@ static void __declspec(naked) op_abs() {
 		call FuncOffs::interpretPopLong_;
 		cmp bx, 0xc001;
 		jnz arg1l2;
-		mov [esp], eax;
-		fild [esp];
+		mov[esp], eax;
+		fild[esp];
 		jmp calc;
 arg1l2:
 		cmp bx, 0xa001;
 		jnz fail;
-		mov [esp], eax;
-		fld [esp];
+		mov[esp], eax;
+		fld[esp];
 calc:
 		fabs;
-		fstp [esp];
+		fstp[esp];
 		mov edx, [esp];
 		jmp end;
 fail:
 		fldz;
-		fstp [esp];
+		fstp[esp];
 		mov edx, [esp];
 end:
 		mov eax, ecx;
@@ -108,7 +108,7 @@ end:
 	}
 }
 
-static void __declspec(naked) op_sin() {
+void __declspec(naked) op_sin() {
 	__asm {
 		pushad;
 		sub esp, 4;
@@ -119,22 +119,22 @@ static void __declspec(naked) op_sin() {
 		call FuncOffs::interpretPopLong_;
 		cmp bx, 0xc001;
 		jnz arg1l2;
-		mov [esp], eax;
-		fild [esp];
+		mov[esp], eax;
+		fild[esp];
 		jmp calc;
 arg1l2:
 		cmp bx, 0xa001;
 		jnz fail;
-		mov [esp], eax;
-		fld [esp];
+		mov[esp], eax;
+		fld[esp];
 calc:
 		fsin;
-		fstp [esp];
+		fstp[esp];
 		mov edx, [esp];
 		jmp end;
 fail:
 		fldz;
-		fstp [esp];
+		fstp[esp];
 		mov edx, [esp];
 end:
 		mov eax, ecx;
@@ -148,7 +148,7 @@ end:
 	}
 }
 
-static void __declspec(naked) op_cos() {
+void __declspec(naked) op_cos() {
 	__asm {
 		pushad;
 		sub esp, 4;
@@ -159,22 +159,22 @@ static void __declspec(naked) op_cos() {
 		call FuncOffs::interpretPopLong_;
 		cmp bx, 0xc001;
 		jnz arg1l2;
-		mov [esp], eax;
-		fild [esp];
+		mov[esp], eax;
+		fild[esp];
 		jmp calc;
 arg1l2:
 		cmp bx, 0xa001;
 		jnz fail;
-		mov [esp], eax;
-		fld [esp];
+		mov[esp], eax;
+		fld[esp];
 calc:
 		fcos;
-		fstp [esp];
+		fstp[esp];
 		mov edx, [esp];
 		jmp end;
 fail:
 		fldz;
-		fstp [esp];
+		fstp[esp];
 		mov edx, [esp];
 end:
 		mov eax, ecx;
@@ -188,7 +188,7 @@ end:
 	}
 }
 
-static void __declspec(naked) op_tan() {
+void __declspec(naked) op_tan() {
 	__asm {
 		pushad;
 		sub esp, 4;
@@ -199,23 +199,23 @@ static void __declspec(naked) op_tan() {
 		call FuncOffs::interpretPopLong_;
 		cmp bx, 0xc001;
 		jnz arg1l2;
-		mov [esp], eax;
-		fild [esp];
+		mov[esp], eax;
+		fild[esp];
 		jmp calc;
 arg1l2:
 		cmp bx, 0xa001;
 		jnz fail;
-		mov [esp], eax;
-		fld [esp];
+		mov[esp], eax;
+		fld[esp];
 calc:
 		fptan;
-		fstp [esp];
-		fstp [esp];
+		fstp[esp];
+		fstp[esp];
 		mov edx, [esp];
 		jmp end;
 fail:
 		fldz;
-		fstp [esp];
+		fstp[esp];
 		mov edx, [esp];
 end:
 		mov eax, ecx;
@@ -229,7 +229,7 @@ end:
 	}
 }
 
-static void __declspec(naked) op_arctan() {
+void __declspec(naked) op_arctan() {
 	__asm {
 		pushad;
 		sub esp, 4;
@@ -246,35 +246,35 @@ static void __declspec(naked) op_arctan() {
 		call FuncOffs::interpretPopLong_;
 		cmp bx, 0xc001;
 		jnz arg1l2;
-		mov [esp], eax;
-		fild [esp];
+		mov[esp], eax;
+		fild[esp];
 		jmp arg2l1;
 arg1l2:
 		cmp bx, 0xa001;
 		jnz fail;
-		mov [esp], eax;
-		fld [esp];
+		mov[esp], eax;
+		fld[esp];
 arg2l1:
 		cmp dx, 0xc001;
 		jnz arg2l2;
-		mov [esp], edi;
-		fild [esp];
+		mov[esp], edi;
+		fild[esp];
 		jmp calc;
 arg2l2:
 		cmp dx, 0xa001;
 		jnz fail2;
-		mov [esp], edi;
-		fld [esp];
+		mov[esp], edi;
+		fld[esp];
 calc:
 		fpatan;
-		fstp [esp];
+		fstp[esp];
 		mov edx, [esp];
 		jmp end;
 fail2:
-		fstp [esp];
+		fstp[esp];
 fail:
 		fldz;
-		fstp [esp];
+		fstp[esp];
 		mov edx, [esp];
 end:
 		mov eax, ecx;
@@ -318,7 +318,7 @@ static int _stdcall StringSplit(const char* str, const char* split) {
 	return id;
 }
 
-static void __declspec(naked) op_string_split() {
+void __declspec(naked) op_string_split() {
 	__asm {
 		pushad;
 		mov ebp, eax;
@@ -375,11 +375,11 @@ static int _stdcall str_to_int_internal(const char* str) {
 }
 
 static DWORD _stdcall str_to_flt_internal(const char* str) {
-	float f=(float)atof(str);
+	float f = (float)atof(str);
 	return *(DWORD*)&f;
 }
 
-static void __declspec(naked) op_atoi() {
+void __declspec(naked) op_atoi() {
 	__asm {
 		pushad;
 		mov ebp, eax;
@@ -413,7 +413,7 @@ end:
 	}
 }
 
-static void __declspec(naked) op_atof() {
+void __declspec(naked) op_atof() {
 	__asm {
 		pushad;
 		mov ebp, eax;
@@ -447,6 +447,7 @@ end:
 	}
 }
 
+
 char* _stdcall mysubstr(char* str, int pos, int length) {
 	char* newstr;
 	int srclen;
@@ -457,9 +458,9 @@ char* _stdcall mysubstr(char* str, int pos, int length) {
 		length = srclen - pos + length;
 	if (pos >= srclen)
 		length = 0;
-	else if (length+pos > srclen)
-		length = srclen-pos;
-	newstr = new char[length+1];
+	else if (length + pos > srclen)
+		length = srclen - pos;
+	newstr = new char[length + 1];
 	if (length > 0)
 		memcpy(newstr, &str[pos], length);
 	newstr[length] = '\0';
@@ -545,7 +546,7 @@ static char* _stdcall mysprintf(char* format, DWORD value, DWORD valueType) {
 	return sprintfbuf;
 }
 
-static void __declspec(naked) op_substr() {
+void __declspec(naked) op_substr() {
 	__asm {
 		pushad;
 		mov edi, eax;
@@ -567,24 +568,24 @@ static void __declspec(naked) op_substr() {
 		call FuncOffs::interpretPopLong_; // string
 		push eax;
 
-		movzx eax, word ptr [esp+12];
+		movzx eax, word ptr[esp + 12];
 		cmp eax, VAR_TYPE_INT;
 		jne fail;
-		movzx eax, word ptr [esp+20];
+		movzx eax, word ptr[esp + 20];
 		cmp eax, VAR_TYPE_INT;
 		jne fail;
-		movzx eax, word ptr [esp+4];
+		movzx eax, word ptr[esp + 4];
 		cmp eax, VAR_TYPE_STR2;
 		je next1;
 		cmp eax, VAR_TYPE_STR;
 		jne fail;
 next1:
 		mov eax, edi;
-		mov edx, [esp+4];
+		mov edx, [esp + 4];
 		mov ebx, [esp];
 		call FuncOffs::interpretGetString_;
-		mov ebx, [esp+16];
-		mov edx, [esp+8];
+		mov ebx, [esp + 16];
+		mov edx, [esp + 8];
 		push ebx;
 		push edx;
 		push eax;
@@ -613,7 +614,7 @@ end:
 	}
 }
 
-static void __declspec(naked) op_strlen() {
+void __declspec(naked) op_strlen() {
 	__asm {
 		pushad;
 		mov edi, eax;
@@ -646,7 +647,7 @@ end:
 	}
 }
 
-static void __declspec(naked) op_sprintf() {
+void __declspec(naked) op_sprintf() {
 	__asm {
 		pushad;
 		mov edi, eax;
@@ -702,25 +703,26 @@ fail:
 	}
 }
 
-static void __declspec(naked) op_ord() {
+void __declspec(naked) op_ord() {
 	_OP_BEGIN(ebp)
-	_GET_ARG_R32(ebp, ebx, esi)
-	_PARSE_STR_ARG(1, ebp, bx, esi, notstring)
-	__asm {
+		_GET_ARG_R32(ebp, ebx, esi)
+		_PARSE_STR_ARG(1, ebp, bx, esi, notstring)
+		__asm {
 		mov eax, 0;
 		mov al, [esi]; // first character
 		jmp done;
 notstring:
 		mov eax, 0;
-	done:
+done:
 	}
 	_RET_VAL_INT(ebp)
-	_OP_END
+		_OP_END
 }
 
+// TODO: replace with OpcodeHandler function
 static DWORD _stdcall GetValueType(DWORD datatype) {
-	datatype&=0xffff;
-	switch(datatype) {
+	datatype &= 0xffff;
+	switch (datatype) {
 	case VAR_TYPE_STR:
 	case VAR_TYPE_STR2:
 		return DATATYPE_STR;
@@ -733,7 +735,7 @@ static DWORD _stdcall GetValueType(DWORD datatype) {
 	}
 }
 
-static void __declspec(naked) op_typeof() {
+void __declspec(naked) op_typeof() {
 	__asm {
 		pushad;
 		mov edi, eax;
@@ -756,32 +758,32 @@ static void __declspec(naked) op_typeof() {
 
 // fix for vanilla negate operator not working on floats
 static const DWORD NegateFixHook_Back = 0x46AB79;
-static void __declspec(naked) NegateFixHook() {
+void __declspec(naked) NegateFixHook() {
 	__asm {
 		mov     ebx, edi;
-		lea     edx, [ecx+36];
-		mov     eax, [ecx+28];
+		lea     edx, [ecx + 36];
+		mov     eax, [ecx + 28];
 		cmp     si, VAR_TYPE_FLOAT;
 		jne     notfloat;
 		push    ebx;
-		fld     [esp];
-		fchs
-		fstp    [esp];
+		fld[esp];
+		fchs;
+		fstp[esp];
 		pop     ebx;
-		call    FuncOffs::pushLongStack_
-		mov     edx, VAR_TYPE_FLOAT
-		jmp     end
+		call    FuncOffs::pushLongStack_;
+		mov     edx, VAR_TYPE_FLOAT;
+		jmp     end;
 notfloat:
 		neg     ebx
-		call    FuncOffs::pushLongStack_
-		mov     edx, VAR_TYPE_INT
+		call    FuncOffs::pushLongStack_;
+		mov     edx, VAR_TYPE_INT;
 end:
-		mov     eax, ecx
+		mov     eax, ecx;
 		jmp     NegateFixHook_Back;
 	}
 }
 
-static void funcPow2() {
+void sf_power() {
 	const ScriptValue &base = opHandler.arg(0),
 					  &power = opHandler.arg(1);
 	float result = 0.0;
@@ -801,35 +803,35 @@ static void funcPow2() {
 	}
 }
 
-static void __declspec(naked) op_power() {
-	_WRAP_OPCODE(funcPow2, 2, 1)
+void __declspec(naked) op_power() {
+	_WRAP_OPCODE(sf_power, 2, 1)
 }
 
-static void funcLog2() {
+void sf_log() {
 	opHandler.setReturn(log(opHandler.arg(0).asFloat()));
 }
 
-static void __declspec(naked) op_log() {
-	_WRAP_OPCODE(funcLog2, 1, 1)
+void __declspec(naked) op_log() {
+	_WRAP_OPCODE(sf_log, 1, 1)
 }
 
-static void funcExp2() {
+void sf_exponent() {
 	opHandler.setReturn(exp(opHandler.arg(0).asFloat()));
 }
 
-static void __declspec(naked) op_exponent() {
-	_WRAP_OPCODE(funcExp2, 1, 1)
+void __declspec(naked) op_exponent() {
+	_WRAP_OPCODE(sf_exponent, 1, 1)
 }
 
-static void funcCeil2() {
+void sf_ceil() {
 	opHandler.setReturn(static_cast<int>(ceil(opHandler.arg(0).asFloat())));
 }
 
-static void __declspec(naked) op_ceil() {
-	_WRAP_OPCODE(funcCeil2, 1, 1)
+void __declspec(naked) op_ceil() {
+	_WRAP_OPCODE(sf_ceil, 1, 1)
 }
 
-static void funcRound2() {
+void sf_round() {
 	float arg = opHandler.arg(0).asFloat();
 	int argI = static_cast<int>(arg);
 	float mod = arg - static_cast<float>(argI);
@@ -839,54 +841,48 @@ static void funcRound2() {
 	opHandler.setReturn(argI);
 }
 
-static void __declspec(naked) op_round() {
-	_WRAP_OPCODE(funcRound2, 1, 1)
+void __declspec(naked) op_round() {
+	_WRAP_OPCODE(sf_round, 1, 1)
 }
-
-/*
-
-*/
 
 // TODO: move to FalloutEngine module
 #define _castmsg(adr) reinterpret_cast<MessageList*>(adr)
 static const MessageList* gameMsgFiles[] =
-	{ _castmsg(0x56D368)     // COMBAT
-	, _castmsg(0x56D510)     // AI
-	, _castmsg(0x56D754)     // SCRNAME
-	, _castmsg(0x58E940)     // MISC
-	, _castmsg(0x58EA98)     // CUSTOM
-	, _castmsg(0x59E814)     // INVENTRY
-	, _castmsg(0x59E980)     // ITEM
-	, _castmsg(0x613D28)     // LSGAME
-	, _castmsg(0x631D48)     // MAP
-	, _castmsg(0x6637E8)     // OPTIONS
-	, _castmsg(0x6642D4)     // PERK
-	, _castmsg(0x664348)     // PIPBOY
-	, _castmsg(0x664410)     // QUESTS
-	, _castmsg(0x6647FC)     // PROTO
-	, _castmsg(0x667724)     // SCRIPT
-	, _castmsg(0x668080)     // SKILL
-	, _castmsg(0x6680F8)     // SKILLDEX
-	, _castmsg(0x66817C)     // STAT
-	, _castmsg(0x66BE38)     // TRAIT
-	, _castmsg(0x672FB0) };  // WORLDMAP
+{ _castmsg(0x56D368)     // COMBAT
+, _castmsg(0x56D510)     // AI
+, _castmsg(0x56D754)     // SCRNAME
+, _castmsg(0x58E940)     // MISC
+, _castmsg(0x58EA98)     // CUSTOM
+, _castmsg(0x59E814)     // INVENTRY
+, _castmsg(0x59E980)     // ITEM
+, _castmsg(0x613D28)     // LSGAME
+, _castmsg(0x631D48)     // MAP
+, _castmsg(0x6637E8)     // OPTIONS
+, _castmsg(0x6642D4)     // PERK
+, _castmsg(0x664348)     // PIPBOY
+, _castmsg(0x664410)     // QUESTS
+, _castmsg(0x6647FC)     // PROTO
+, _castmsg(0x667724)     // SCRIPT
+, _castmsg(0x668080)     // SKILL
+, _castmsg(0x6680F8)     // SKILLDEX
+, _castmsg(0x66817C)     // STAT
+, _castmsg(0x66BE38)     // TRAIT
+, _castmsg(0x672FB0) };  // WORLDMAP
 #undef _castmsg
 
-static void _stdcall op_message_str_game2() {
+void _stdcall sf_message_str_game() {
 	const char* msg = nullptr;
 	const ScriptValue &fileIdArg = opHandler.arg(0),
-					  &msgIdArg = opHandler.arg(1);
+		&msgIdArg = opHandler.arg(1);
 
 	if (fileIdArg.isInt() && msgIdArg.isInt()) {
 		int fileId = fileIdArg.asInt();
 		int msgId = msgIdArg.asInt();
 		if (fileId < 20) { // main msg files
 			msg = GetMessageStr(gameMsgFiles[fileId], msgId);
-		}
-		else if (fileId >= 0x1000 && fileId <= 0x1005) { // proto msg files
+		} else if (fileId >= 0x1000 && fileId <= 0x1005) { // proto msg files
 			msg = GetMessageStr(&VarPtr::proto_msg_files[fileId - 0x1000], msgId);
-		}
-		else if (fileId >= 0x2000) { // Extra game message files.
+		} else if (fileId >= 0x2000) { // Extra game message files.
 			ExtraGameMessageListsMap::iterator it = gExtraGameMsgLists.find(fileId);
 
 			if (it != gExtraGameMsgLists.end()) {
@@ -900,6 +896,6 @@ static void _stdcall op_message_str_game2() {
 	opHandler.setReturn(msg);
 }
 
-static void __declspec(naked) op_message_str_game() {
-	_WRAP_OPCODE(op_message_str_game2, 2, 1)
+void __declspec(naked) op_message_str_game() {
+	_WRAP_OPCODE(sf_message_str_game, 2, 1)
 }

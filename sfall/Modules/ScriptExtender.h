@@ -20,6 +20,8 @@
 
 #include "..\main.h"
 #include "..\FalloutEngine\Structs.h"
+// TODO: remove this
+#include "Scripting\OpcodeHandler.h"
 
 struct sGlobalVar {
 	__int64 id;
@@ -73,10 +75,12 @@ void RunScriptProc(sScriptProgram* prog, int procId);
 void AddProgramToMap(sScriptProgram &prog);
 sScriptProgram* GetGlobalScriptProgram(TProgram* scriptPtr);
 
-char* _stdcall mysubstr(char* str, int pos, int length);
 // variables
 static char reg_anim_combat_check = 1;
 extern DWORD isGlobalScriptLoading;
+
+// TODO: get rid of this global variable
+extern OpcodeHandler opHandler;
 
 // types for script variables
 #define VAR_TYPE_INT    (0xC001)

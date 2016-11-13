@@ -1,6 +1,6 @@
 /*
  *    sfall
- *    Copyright (C) 2008, 2009, 2010, 2012  The sfall team
+ *    Copyright (C) 2008-2016  The sfall team
  *
  *    This program is free software: you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
@@ -16,15 +16,13 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#pragma once
+#include "..\..\..\FalloutEngine\Fallout2.h"
+#include "..\..\ScriptExtender.h"
+#include "..\..\FileSystem.h"
 
-#include "..\..\main.h"
+#include "FileSystem.h"
 
-#include "..\FileSystem.h"
-#include "..\ScriptExtender.h"
-
-//file system functions
-static void __declspec(naked) op_fs_create() {
+void __declspec(naked) op_fs_create() {
 	__asm {
 		pushad;
 		mov edi, eax;
@@ -67,7 +65,7 @@ end:
 	}
 }
 
-static void __declspec(naked) op_fs_copy() {
+void __declspec(naked) op_fs_copy() {
 	__asm {
 		pushad;
 		mov ebp, eax;
@@ -118,7 +116,7 @@ end:
 	}
 }
 
-static void __declspec(naked) op_fs_find() {
+void __declspec(naked) op_fs_find() {
 	__asm {
 		pushad;
 		mov ebp, eax;
@@ -153,7 +151,7 @@ end:
 	}
 }
 
-static void __declspec(naked) op_fs_write_byte() {
+void __declspec(naked) op_fs_write_byte() {
 	__asm {
 		pushad;
 		mov ebp, eax;
@@ -180,7 +178,7 @@ end:
 	}
 }
 
-static void __declspec(naked) op_fs_write_short() {
+void __declspec(naked) op_fs_write_short() {
 	__asm {
 		pushad;
 		mov ebp, eax;
@@ -207,7 +205,7 @@ end:
 	}
 }
 
-static void __declspec(naked) op_fs_write_int() {
+void __declspec(naked) op_fs_write_int() {
 	__asm {
 		pushad;
 		mov ebp, eax;
@@ -237,7 +235,7 @@ end:
 	}
 }
 
-static void __declspec(naked) op_fs_write_string() {
+void __declspec(naked) op_fs_write_string() {
 	__asm {
 		pushad;
 		mov edi, eax;
@@ -272,7 +270,7 @@ end:
 	}
 }
 
-static void __declspec(naked) op_fs_write_bstring() {
+void __declspec(naked) op_fs_write_bstring() {
 	__asm {
 		pushad;
 		mov edi, eax;
@@ -307,7 +305,7 @@ end:
 	}
 }
 
-static void __declspec(naked) op_fs_read_byte() {
+void __declspec(naked) op_fs_read_byte() {
 	__asm {
 		pushad;
 		mov ebp, eax;
@@ -335,7 +333,7 @@ end:
 	}
 }
 
-static void __declspec(naked) op_fs_read_short() {
+void __declspec(naked) op_fs_read_short() {
 	__asm {
 		pushad;
 		mov ebp, eax;
@@ -363,7 +361,7 @@ end:
 	}
 }
 
-static void __declspec(naked) op_fs_read_int() {
+void __declspec(naked) op_fs_read_int() {
 	__asm {
 		pushad;
 		mov ebp, eax;
@@ -391,7 +389,7 @@ end:
 	}
 }
 
-static void __declspec(naked) op_fs_read_float() {
+void __declspec(naked) op_fs_read_float() {
 	__asm {
 		pushad;
 		mov ebp, eax;
@@ -419,7 +417,7 @@ end:
 	}
 }
 
-static void __declspec(naked) op_fs_delete() {
+void __declspec(naked) op_fs_delete() {
 	__asm {
 		pushad;
 		mov ebp, eax;
@@ -429,7 +427,7 @@ static void __declspec(naked) op_fs_delete() {
 		call FuncOffs::interpretPopLong_;
 		cmp di, 0xc001;
 		jnz end
-		push eax;
+			push eax;
 		call FSdelete;
 end:
 		popad;
@@ -437,7 +435,7 @@ end:
 	}
 }
 
-static void __declspec(naked) op_fs_size() {
+void __declspec(naked) op_fs_size() {
 	__asm {
 		pushad;
 		mov ebp, eax;
@@ -465,7 +463,7 @@ end:
 	}
 }
 
-static void __declspec(naked) op_fs_pos() {
+void __declspec(naked) op_fs_pos() {
 	__asm {
 		pushad;
 		mov ebp, eax;
@@ -493,7 +491,7 @@ end:
 	}
 }
 
-static void __declspec(naked) op_fs_seek() {
+void __declspec(naked) op_fs_seek() {
 	__asm {
 		pushad;
 		mov ebp, eax;
@@ -520,7 +518,7 @@ end:
 	}
 }
 
-static void __declspec(naked) op_fs_resize() {
+void __declspec(naked) op_fs_resize() {
 	__asm {
 		pushad;
 		mov ebp, eax;

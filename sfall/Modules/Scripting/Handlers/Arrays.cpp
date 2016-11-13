@@ -1,6 +1,6 @@
 /*
  *    sfall
- *    Copyright (C) 2008, 2009, 2010, 2012  The sfall team
+ *    Copyright (C) 2008-2016  The sfall team
  *
  *    This program is free software: you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
@@ -16,13 +16,19 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#pragma once
+#include "..\..\..\FalloutEngine\Fallout2.h"
+#include "..\..\ScriptExtender.h"
+#include "..\Arrays.h"
+#include "AsmMacros.h"
+#include "Utils.h"
 
-static void __declspec(naked) op_create_array() {
+#include "Arrays.h"
+
+void __declspec(naked) op_create_array() {
 	__asm {
 		pushad;
 		mov edi, eax;
-		call FuncOffs::interpretPopShort_
+		call FuncOffs::interpretPopShort_;
 		mov ebx, eax;
 		mov eax, edi;
 		call FuncOffs::interpretPopLong_;
@@ -54,24 +60,24 @@ end:
 	}
 }
 
-static void __declspec(naked) op_set_array() {
+void __declspec(naked) op_set_array() {
 	__asm {
 		pushad;
 		mov ebp, eax;
 		//Get args
-		call FuncOffs::interpretPopShort_
+		call FuncOffs::interpretPopShort_;
 		mov edx, eax;
 		mov eax, ebp;
 		call FuncOffs::interpretPopLong_;
 		mov edi, eax; // value
 		mov eax, ebp;
-		call FuncOffs::interpretPopShort_
+		call FuncOffs::interpretPopShort_;
 		mov ecx, eax;
 		mov eax, ebp;
 		call FuncOffs::interpretPopLong_;
 		mov esi, eax; // key
 		mov eax, ebp;
-		call FuncOffs::interpretPopShort_
+		call FuncOffs::interpretPopShort_;
 		mov ebx, eax;
 		mov eax, ebp;
 		call FuncOffs::interpretPopLong_;
@@ -107,29 +113,25 @@ notstring1:
 		push ecx; // arg 3: key type
 		push esi; // arg 2: key
 		push edi; // arg 1: arrayID
-		call SetArray
+		call SetArray;
 end:
 		popad;
 		retn;
 	}
 }
 
-/*
-	used in place of [] operator when compiling in sslc
-	so it works as get_array if first argument is int and as substr(x, y, 1) if first argument is string
-*/
-static void __declspec(naked) op_get_array() {
+void __declspec(naked) op_get_array() {
 	__asm {
 		pushad;
 		mov ebp, eax;
 		//Get args
-		call FuncOffs::interpretPopShort_
+		call FuncOffs::interpretPopShort_;
 		mov ebx, eax;
 		mov eax, ebp;
 		call FuncOffs::interpretPopLong_;
 		mov edi, eax;
 		mov eax, ebp;
-		call FuncOffs::interpretPopShort_
+		call FuncOffs::interpretPopShort_;
 		mov ecx, eax;
 		mov eax, ebp;
 		call FuncOffs::interpretPopLong_;
@@ -202,7 +204,7 @@ notstring:
 	}
 }
 
-static void __declspec(naked) op_free_array() {
+void __declspec(naked) op_free_array() {
 	__asm {
 		pushad;
 		mov edi, eax;
@@ -220,7 +222,7 @@ end:
 	}
 }
 
-static void __declspec(naked) op_len_array() {
+void __declspec(naked) op_len_array() {
 	__asm {
 		pushad;
 		mov edi, eax;
@@ -247,18 +249,18 @@ end:
 	}
 }
 
-static void __declspec(naked) op_resize_array() {
+void __declspec(naked) op_resize_array() {
 	__asm {
 		pushad;
 		mov ebp, eax;
 		//Get args
-		call FuncOffs::interpretPopShort_
+		call FuncOffs::interpretPopShort_;
 		mov ebx, eax;
 		mov eax, ebp;
 		call FuncOffs::interpretPopLong_;
 		mov edi, eax;
 		mov eax, ebp;
-		call FuncOffs::interpretPopShort_
+		call FuncOffs::interpretPopShort_;
 		mov ecx, eax;
 		mov eax, ebp;
 		call FuncOffs::interpretPopLong_;
@@ -278,11 +280,11 @@ end:
 	}
 }
 
-static void __declspec(naked) op_temp_array() {
+void __declspec(naked) op_temp_array() {
 	__asm {
 		pushad;
 		mov edi, eax;
-		call FuncOffs::interpretPopShort_
+		call FuncOffs::interpretPopShort_;
 		mov ebx, eax;
 		mov eax, edi;
 		call FuncOffs::interpretPopLong_;
@@ -314,7 +316,7 @@ end:
 	}
 }
 
-static void __declspec(naked) op_fix_array() {
+void __declspec(naked) op_fix_array() {
 	__asm {
 		pushad;
 		mov edi, eax;
@@ -332,18 +334,18 @@ end:
 	}
 }
 
-static void __declspec(naked) op_scan_array() {
-		__asm {
+void __declspec(naked) op_scan_array() {
+	__asm {
 		pushad;
 		mov ebp, eax;
 		//Get args
-		call FuncOffs::interpretPopShort_
+		call FuncOffs::interpretPopShort_;
 		mov edx, eax;
 		mov eax, ebp;
 		call FuncOffs::interpretPopLong_;
 		mov edi, eax; // value (needle)
 		mov eax, ebp;
-		call FuncOffs::interpretPopShort_
+		call FuncOffs::interpretPopShort_;
 		mov ecx, eax;
 		mov eax, ebp;
 		call FuncOffs::interpretPopLong_;
@@ -391,18 +393,18 @@ resultnotstr:
 	}
 }
 
-static void __declspec(naked) op_save_array() {
+void __declspec(naked) op_save_array() {
 	_OP_BEGIN(ebp)
 		// Get args
-	_GET_ARG_R32(ebp, ebx, edi)
-	_GET_ARG_R32(ebp, edx, ecx)
-	__asm {
-		// arg check:
+		_GET_ARG_R32(ebp, ebx, edi)
+		_GET_ARG_R32(ebp, edx, ecx)
+		__asm {
+			// arg check:
 		cmp bx, VAR_TYPE_INT
 		jne end
 	}
 	_CHECK_PARSE_STR(1, ebp, dx, ecx)
-	__asm {
+		__asm {
 		push edi // arg 3: arrayID
 		push edx // arg 2: keyType
 		push ecx // arg 1: key
@@ -412,7 +414,7 @@ end:
 	_OP_END
 }
 
-static void __declspec(naked) op_load_array() {
+void __declspec(naked) op_load_array() {
 	_OP_BEGIN(ebp)
 	_GET_ARG_R32(ebp, edx, ecx)
 	_CHECK_PARSE_STR(1, ebp, dx, ecx)
@@ -425,12 +427,12 @@ static void __declspec(naked) op_load_array() {
 	_OP_END
 }
 
-static void __declspec(naked) op_get_array_key() {
+void __declspec(naked) op_get_array_key() {
 	_OP_BEGIN(ebp)
 	_GET_ARG_R32(ebp, edx, ecx) // index
 	_GET_ARG_R32(ebp, ebx, edi) // arrayID
 	__asm {
-		// arg check:
+			// arg check:
 		cmp bx, VAR_TYPE_INT;
 		jne wrongarg;
 		cmp dx, VAR_TYPE_INT;
@@ -441,17 +443,17 @@ static void __declspec(naked) op_get_array_key() {
 		call GetArrayKey;
 	}
 	_RET_VAL_POSSIBLY_STR(1, ebp, [esp])
-	goto end;
+		goto end;
 	__asm {
 wrongarg:
 		xor eax, eax; // return 0 on wrong arguments
 	}
 	_RET_VAL_INT(ebp)
-end:
+		end:
 	_OP_END
 }
 
-static void __declspec(naked) op_stack_array() {
+void __declspec(naked) op_stack_array() {
 	_OP_BEGIN(ebp)
 	_GET_ARG_R32(ebp, edx, esi) // value
 	_GET_ARG_R32(ebp, ebx, edi) // key
@@ -460,12 +462,12 @@ static void __declspec(naked) op_stack_array() {
 		push ebx
 	}
 	_CHECK_PARSE_STR(1, ebp, dx, esi)
-	__asm {
+		__asm {
 		pop ebx
 		mov ecx, ebx
 	}
 	_CHECK_PARSE_STR(2, ebp, bx, edi)
-	__asm {
+		__asm {
 		push esi // arg 3: value
 		push ecx // arg 2: keyType
 		push edi // arg 1: key
@@ -474,6 +476,8 @@ static void __declspec(naked) op_stack_array() {
 	_RET_VAL_INT(ebp)
 	_OP_END
 }
+
+
 
 // object LISTS
 
@@ -493,7 +497,6 @@ struct sList {
 };
 
 static void FillListVector(DWORD type, std::vector<TGameObj*>& vec) {
-	// TODO: fix style, use wrappers
 	if (type == 6) {
 		TScript* scriptPtr;
 		TGameObj* self_obj;
@@ -563,7 +566,8 @@ static void _stdcall list_end2(sList* list) {
 	delete list;
 }
 
-static void __declspec(naked) op_list_begin() {
+
+void __declspec(naked) op_list_begin() {
 	__asm {
 		pushad;
 		mov ebp, eax;
@@ -591,7 +595,7 @@ end:
 	}
 }
 
-static void __declspec(naked) op_list_as_array() {
+void __declspec(naked) op_list_as_array() {
 	__asm {
 		pushad;
 		mov ebp, eax;
@@ -619,7 +623,7 @@ end:
 	}
 }
 
-static void __declspec(naked) op_list_next() {
+void __declspec(naked) op_list_next() {
 	__asm {
 		pushad;
 		mov ebp, eax;
@@ -647,7 +651,7 @@ end:
 	}
 }
 
-static void __declspec(naked) op_list_end() {
+void __declspec(naked) op_list_end() {
 	__asm {
 		pushad;
 		mov ebp, eax;

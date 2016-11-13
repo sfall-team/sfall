@@ -18,12 +18,8 @@
 
 #pragma once
 
+#include "..\CommonTypes.h"
 #include "Structs.h"
-
-// TODO: place this somewhere centralized...
-#ifndef DWORD
-	#define DWORD unsigned long
-#endif
 
 // 
 // WRAPPERS for FO engine functions. 

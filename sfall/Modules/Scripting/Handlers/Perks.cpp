@@ -1,6 +1,6 @@
 /*
  *    sfall
- *    Copyright (C) 2008, 2009, 2010, 2012  The sfall team
+ *    Copyright (C) 2008-2016  The sfall team
  *
  *    This program is free software: you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
@@ -16,18 +16,17 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#pragma once
+#include "..\..\..\FalloutEngine\Fallout2.h"
+#include "..\..\Perks.h"
+#include "..\..\ScriptExtender.h"
 
-#include "..\..\main.h"
+#include "Perks.h"
 
-#include "..\Perks.h"
-#include "..\ScriptExtender.h"
-
-static void __declspec(naked) op_get_perk_owed() {
+void __declspec(naked) op_get_perk_owed() {
 	__asm {
 		pushad;
 		mov ecx, eax;
-		movzx edx, byte ptr ds:[VARPTR_free_perk];
+		movzx edx, byte ptr ds : [VARPTR_free_perk];
 		call FuncOffs::interpretPushLong_;
 		mov edx, 0xc001;
 		mov eax, ecx;
@@ -37,7 +36,7 @@ static void __declspec(naked) op_get_perk_owed() {
 	}
 }
 
-static void __declspec(naked) op_set_perk_owed() {
+void __declspec(naked) op_set_perk_owed() {
 	__asm {
 		pushad;
 		mov ecx, eax;
@@ -50,14 +49,14 @@ static void __declspec(naked) op_set_perk_owed() {
 		and eax, 0xff;
 		cmp eax, 250;
 		jg end;
-		mov byte ptr ds:[VARPTR_free_perk], al
-end:
+		mov byte ptr ds : [VARPTR_free_perk], al
+			end :
 		popad
-		retn;
+			retn;
 	}
 }
 
-static void __declspec(naked) op_set_perk_freq() {
+void __declspec(naked) op_set_perk_freq() {
 	__asm {
 		pushad;
 		mov ecx, eax;
@@ -71,11 +70,11 @@ static void __declspec(naked) op_set_perk_freq() {
 		call SetPerkFreq;
 end:
 		popad
-		retn;
+			retn;
 	}
 }
 
-static void __declspec(naked) op_get_perk_available() {
+void __declspec(naked) op_get_perk_available() {
 	__asm {
 		pushad;
 		mov ecx, eax;
@@ -95,7 +94,7 @@ static void __declspec(naked) op_get_perk_available() {
 fail:
 		xor edx, edx;
 end:
-		mov eax, ecx
+		mov eax, ecx;
 		call FuncOffs::interpretPushLong_;
 		mov edx, 0xc001;
 		mov eax, ecx;
@@ -105,7 +104,7 @@ end:
 	}
 }
 
-static void __declspec(naked) op_set_perk_name() {
+void __declspec(naked) op_set_perk_name() {
 	__asm {
 		pushad;
 		mov ecx, eax;
@@ -141,7 +140,7 @@ end:
 	}
 }
 
-static void __declspec(naked) op_set_perk_desc() {
+void __declspec(naked) op_set_perk_desc() {
 	__asm {
 		pushad;
 		mov ecx, eax;
@@ -177,10 +176,10 @@ end:
 	}
 }
 
-static void __declspec(naked) op_set_perk_value() {
+void __declspec(naked) op_set_perk_value() {
 	__asm {
 		pushad;
-		sub edx, 0x5e0-8; // offset of value into perk struct; edx = ((edx/4) - 0x178 + 0x8) * 4
+		sub edx, 0x5e0 - 8; // offset of value into perk struct; edx = ((edx/4) - 0x178 + 0x8) * 4
 		push edx;
 		mov ecx, eax;
 		call FuncOffs::interpretPopShort_;
@@ -209,7 +208,7 @@ end:
 	}
 }
 
-static void __declspec(naked) op_set_selectable_perk() {
+void __declspec(naked) op_set_selectable_perk() {
 	__asm {
 		pushad;
 		mov ecx, eax;
@@ -237,36 +236,36 @@ static void __declspec(naked) op_set_selectable_perk() {
 		call FuncOffs::interpretPopLong_;
 		push eax;
 
-		movzx eax, word ptr [esp+12];
+		movzx eax, word ptr[esp + 12];
 		cmp eax, 0xc001;
 		jne fail;
-		movzx eax, word ptr [esp+20];
+		movzx eax, word ptr[esp + 20];
 		cmp eax, 0xc001;
 		jne fail;
-		movzx eax, word ptr ds:[esp+4];
+		movzx eax, word ptr ds : [esp + 4];
 		cmp eax, 0x9001;
 		je next1;
 		cmp eax, 0x9801;
 		jne fail;
 next1:
-		movzx eax, word ptr ds:[esp+28];
+		movzx eax, word ptr ds : [esp + 28];
 		cmp eax, 0x9001;
 		je next2;
 		cmp eax, 0x9801;
 		jne fail;
 next2:
 		mov eax, ecx;
-		mov edx, [esp+28];
-		mov ebx, [esp+24];
+		mov edx, [esp + 28];
+		mov ebx, [esp + 24];
 		call FuncOffs::interpretGetString_;
 		push eax;
-		mov eax, [esp+20];
+		mov eax, [esp + 20];
 		push eax;
-		mov eax, [esp+16];
+		mov eax, [esp + 16];
 		push eax;
 		mov eax, ecx;
-		mov edx, [esp+16];
-		mov ebx, [esp+12];
+		mov edx, [esp + 16];
+		mov ebx, [esp + 12];
 		call FuncOffs::interpretGetString_;
 		push eax;
 
@@ -278,7 +277,7 @@ fail:
 	}
 }
 
-static void __declspec(naked) op_set_fake_perk() {
+void __declspec(naked) op_set_fake_perk() {
 	__asm {
 		pushad;
 		mov ecx, eax;
@@ -306,36 +305,36 @@ static void __declspec(naked) op_set_fake_perk() {
 		call FuncOffs::interpretPopLong_;
 		push eax;
 
-		movzx eax, word ptr [esp+12];
+		movzx eax, word ptr[esp + 12];
 		cmp eax, 0xc001;
 		jne fail;
-		movzx eax, word ptr [esp+20];
+		movzx eax, word ptr[esp + 20];
 		cmp eax, 0xc001;
 		jne fail;
-		movzx eax, word ptr ds:[esp+4];
+		movzx eax, word ptr ds : [esp + 4];
 		cmp eax, 0x9001;
 		je next1;
 		cmp eax, 0x9801;
 		jne fail;
 next1:
-		movzx eax, word ptr ds:[esp+28];
+		movzx eax, word ptr ds : [esp + 28];
 		cmp eax, 0x9001;
 		je next2;
 		cmp eax, 0x9801;
 		jne fail;
 next2:
 		mov eax, ecx;
-		mov edx, [esp+28];
-		mov ebx, [esp+24];
+		mov edx, [esp + 28];
+		mov ebx, [esp + 24];
 		call FuncOffs::interpretGetString_;
 		push eax;
-		mov eax, [esp+20];
+		mov eax, [esp + 20];
 		push eax;
-		mov eax, [esp+16];
+		mov eax, [esp + 16];
 		push eax;
 		mov eax, ecx;
-		mov edx, [esp+16];
-		mov ebx, [esp+12];
+		mov edx, [esp + 16];
+		mov ebx, [esp + 12];
 		call FuncOffs::interpretGetString_;
 		push eax;
 
@@ -347,7 +346,7 @@ fail:
 	}
 }
 
-static void __declspec(naked) op_set_fake_trait() {
+void __declspec(naked) op_set_fake_trait() {
 	__asm {
 		push ebx;
 		push ecx;
@@ -379,36 +378,36 @@ static void __declspec(naked) op_set_fake_trait() {
 		call FuncOffs::interpretPopLong_;
 		push eax;
 
-		movzx eax, word ptr [esp+12];
+		movzx eax, word ptr[esp + 12];
 		cmp eax, 0xc001;
 		jne fail;
-		movzx eax, word ptr [esp+20];
+		movzx eax, word ptr[esp + 20];
 		cmp eax, 0xc001;
 		jne fail;
-		movzx eax, word ptr ds:[esp+4];
+		movzx eax, word ptr ds : [esp + 4];
 		cmp eax, 0x9001;
 		je next1;
 		cmp eax, 0x9801;
 		jne fail;
 next1:
-		movzx eax, word ptr ds:[esp+28];
+		movzx eax, word ptr ds : [esp + 28];
 		cmp eax, 0x9001;
 		je next2;
 		cmp eax, 0x9801;
 		jne fail;
 next2:
 		mov eax, ecx;
-		mov edx, [esp+28];
-		mov ebx, [esp+24];
+		mov edx, [esp + 28];
+		mov ebx, [esp + 24];
 		call FuncOffs::interpretGetString_;
 		push eax;
-		mov eax, [esp+20];
+		mov eax, [esp + 20];
 		push eax;
-		mov eax, [esp+16];
+		mov eax, [esp + 16];
 		push eax;
 		mov eax, ecx;
-		mov edx, [esp+16];
-		mov ebx, [esp+12];
+		mov edx, [esp + 16];
+		mov ebx, [esp + 12];
 		call FuncOffs::interpretGetString_;
 		push eax;
 
@@ -424,7 +423,7 @@ fail:
 	}
 }
 
-static void __declspec(naked) op_set_perkbox_title() {
+void __declspec(naked) op_set_perkbox_title() {
 	__asm {
 		push ebx;
 		push ecx;
@@ -454,7 +453,7 @@ end:
 	}
 }
 
-static void __declspec(naked) op_hide_real_perks() {
+void __declspec(naked) op_hide_real_perks() {
 	__asm {
 		push ebx;
 		push ecx;
@@ -467,7 +466,7 @@ static void __declspec(naked) op_hide_real_perks() {
 	}
 }
 
-static void __declspec(naked) op_show_real_perks() {
+void __declspec(naked) op_show_real_perks() {
 	__asm {
 		push ebx;
 		push ecx;
@@ -480,7 +479,7 @@ static void __declspec(naked) op_show_real_perks() {
 	}
 }
 
-static void __declspec(naked) op_clear_selectable_perks() {
+void __declspec(naked) op_clear_selectable_perks() {
 	__asm {
 		push ebx;
 		push ecx;
@@ -493,7 +492,7 @@ static void __declspec(naked) op_clear_selectable_perks() {
 	}
 }
 
-static void __declspec(naked) op_has_fake_perk() {
+void __declspec(naked) op_has_fake_perk() {
 	__asm {
 		push ebx;
 		push ecx;
@@ -529,7 +528,7 @@ end:
 	}
 }
 
-static void __declspec(naked) op_has_fake_trait() {
+void __declspec(naked) op_has_fake_trait() {
 	__asm {
 		push ebx;
 		push ecx;
@@ -565,7 +564,7 @@ end:
 	}
 }
 
-static void __declspec(naked) op_perk_add_mode() {
+void __declspec(naked) op_perk_add_mode() {
 	__asm {
 		push ebx;
 		push ecx;
@@ -587,7 +586,7 @@ end:
 	}
 }
 
-static void __declspec(naked) op_remove_trait() {
+void __declspec(naked) op_remove_trait() {
 	__asm {
 		pushad;
 		mov ebp, eax;
@@ -602,20 +601,20 @@ static void __declspec(naked) op_remove_trait() {
 		mov ecx, ds:[VARPTR_pc_trait + 4];
 		cmp eax, ds:[VARPTR_pc_trait];
 		jne next;
-		mov ds:[VARPTR_pc_trait], ecx;
-		mov ds:[VARPTR_pc_trait + 4], ebx;
+		mov ds : [VARPTR_pc_trait], ecx;
+		mov ds : [VARPTR_pc_trait + 4], ebx;
 		jmp end;
 next:
-		cmp eax, ds:[VARPTR_pc_trait + 4];
+		cmp eax, ds : [VARPTR_pc_trait + 4];
 		jne end;
-		mov ds:[VARPTR_pc_trait + 4], ebx;
+		mov ds : [VARPTR_pc_trait + 4], ebx;
 end:
 		popad;
 		retn;
 	}
 }
 
-static void __declspec(naked) op_set_pyromaniac_mod() {
+void __declspec(naked) op_set_pyromaniac_mod() {
 	__asm {
 		push ebx;
 		push ecx;
@@ -638,7 +637,7 @@ end:
 	}
 }
 
-static void __declspec(naked) op_apply_heaveho_fix() {
+void __declspec(naked) op_apply_heaveho_fix() {
 	__asm {
 		push ebx;
 		push ecx;
@@ -651,7 +650,7 @@ static void __declspec(naked) op_apply_heaveho_fix() {
 	}
 }
 
-static void __declspec(naked) op_set_swiftlearner_mod() {
+void __declspec(naked) op_set_swiftlearner_mod() {
 	__asm {
 		push ebx;
 		push ecx;

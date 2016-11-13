@@ -59,3 +59,5 @@ void ApplyNumbersInDialoguePatch();
 void ApplyInstantWeaponEquipPatch();
 
 void MiscReset();
+
+void _stdcall SetMapMulti(float d);

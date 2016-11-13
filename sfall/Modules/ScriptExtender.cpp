@@ -32,6 +32,7 @@
 #include "HookScripts.h"
 #include "LoadGameHook.h"
 #include "..\Logging.h"
+#include "Stats.h"
 #include "Scripting\Arrays.h"
 #include "Scripting\OpcodeHandler.h"
 
@@ -96,24 +97,8 @@ bool isGameLoading;
 TScript OverrideScriptStruct;
 
 // handler for all new sfall opcodes
-static OpcodeHandler opHandler;
+OpcodeHandler opHandler;
 
-#include "Scripting\AsmMacros.h"
-
-#include "Scripting\AnimOps.hpp"
-#include "Scripting\FileSystemOps.hpp"
-#include "Scripting\GraphicsOp.hpp"
-#include "Scripting\InterfaceOp.hpp"
-#include "Scripting\MemoryOp.hpp"
-#include "Scripting\MiscOps.hpp"
-#include "Scripting\ObjectsOps.hpp"
-#include "Scripting\PerksOp.hpp"
-#include "Scripting\StatsOp.hpp"
-#include "Scripting\ScriptArrays.hpp"
-#include "Scripting\ScriptUtils.hpp"
-#include "Scripting\WorldmapOps.hpp"
-
-#include "Scripting\MetaruleOp.hpp"
 #include "Scripting\Opcodes.hpp"
 
 //END OF SCRIPT FUNCTIONS
@@ -568,7 +553,7 @@ void LoadGlobalScripts() {
 	//ButtonsReload();
 }
 
-static bool _stdcall ScriptHasLoaded(TProgram* script) {
+bool _stdcall ScriptHasLoaded(TProgram* script) {
 	for (size_t d = 0; d < checkedScripts.size(); d++) {
 		if (checkedScripts[d] == script) {
 			return 0;
@@ -576,6 +561,21 @@ static bool _stdcall ScriptHasLoaded(TProgram* script) {
 	}
 	checkedScripts.push_back(script);
 	return 1;
+}
+
+void _stdcall RegAnimCombatCheck(DWORD newValue) {
+	char oldValue = reg_anim_combat_check;
+	reg_anim_combat_check = (newValue > 0);
+	if (oldValue != reg_anim_combat_check) {
+		SafeWrite8(0x459C97, reg_anim_combat_check); // reg_anim_func
+		SafeWrite8(0x459D4B, reg_anim_combat_check); // reg_anim_animate
+		SafeWrite8(0x459E3B, reg_anim_combat_check); // reg_anim_animate_reverse
+		SafeWrite8(0x459EEB, reg_anim_combat_check); // reg_anim_obj_move_to_obj
+		SafeWrite8(0x459F9F, reg_anim_combat_check); // reg_anim_obj_run_to_obj
+		SafeWrite8(0x45A053, reg_anim_combat_check); // reg_anim_obj_move_to_tile
+		SafeWrite8(0x45A105, reg_anim_combat_check); // reg_anim_obj_run_to_tile
+		SafeWrite8(0x45AE53, reg_anim_combat_check); // reg_anim_animate_forever
+	}
 }
 
 // this runs before actually loading/starting the game

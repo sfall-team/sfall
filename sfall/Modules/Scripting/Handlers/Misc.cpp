@@ -1,6 +1,6 @@
 /*
  *    sfall
- *    Copyright (C) 2008, 2009, 2010, 2012  The sfall team
+ *    Copyright (C) 2008-2016  The sfall team
  *
  *    This program is free software: you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
@@ -16,23 +16,20 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#pragma once
+#include "..\..\..\FalloutEngine\Fallout2.h"
+#include "..\..\AI.h"
+#include "..\..\Criticals.h"
+#include "..\..\HeroAppearance.h"
+#include "..\..\Inventory.h"
+#include "..\..\KillCounter.h"
+#include "..\..\Knockback.h"
+#include "..\..\Misc.h"
+#include "..\..\Movies.h"
+#include "..\..\ScriptExtender.h"
+#include "..\..\Stats.h"
+#include "AsmMacros.h"
 
-#include "..\..\main.h"
-
-#include "..\AI.h"
-#include "..\Criticals.h"
-#include "..\HeroAppearance.h"
-#include "..\Inventory.h"
-#include "..\KillCounter.h"
-#include "..\Knockback.h"
-#include "..\Movies.h"
-#include "..\ScriptExtender.h"
-#include "..\Stats.h"
-
-/*
- *	Misc operators
- */
+#include "Misc.h"
 
 static DWORD dmModelNamePtr=(DWORD)dmModelName;
 static DWORD dfModelNamePtr=(DWORD)dfModelName;
@@ -44,7 +41,7 @@ static void _stdcall strcpy_p(char* to, const char* from) {
 	strcpy_s(to, 64, from);
 }
 
-static void __declspec(naked) op_set_dm_model() {
+void __declspec(naked) op_set_dm_model() {
 	__asm {
 		push ebx;
 		push ecx;
@@ -75,7 +72,7 @@ end:
 	}
 }
 
-static void __declspec(naked) op_set_df_model() {
+void __declspec(naked) op_set_df_model() {
 	__asm {
 		push ebx;
 		push ecx;
@@ -106,7 +103,7 @@ end:
 	}
 }
 
-static void __declspec(naked) op_set_movie_path() {
+void __declspec(naked) op_set_movie_path() {
 	__asm {
 		push ebx;
 		push ecx;
@@ -155,7 +152,7 @@ end:
 	}
 }
 
-static void __declspec(naked) op_get_year() {
+void __declspec(naked) op_get_year() {
 	__asm {
 		push ebx;
 		push ecx;
@@ -187,7 +184,7 @@ end:
 	}
 }
 
-static void __declspec(naked) op_game_loaded() {
+void __declspec(naked) op_game_loaded() {
 	__asm {
 		push ebx;
 		push ecx;
@@ -209,8 +206,7 @@ static void __declspec(naked) op_game_loaded() {
 	}
 }
 
-void _stdcall SetMapMulti(float d);
-static void __declspec(naked) op_set_map_time_multi() {
+void __declspec(naked) op_set_map_time_multi() {
 	__asm {
 		push ebx;
 		push ecx;
@@ -240,7 +236,7 @@ fail:
 	}
 }
 
-static void __declspec(naked) op_set_pipboy_available() {
+void __declspec(naked) op_set_pipboy_available() {
 	__asm {
 		push ebx;
 		push ecx;
@@ -266,9 +262,8 @@ end:
 }
 
 
-
 // Kill counters
-static void __declspec(naked) op_get_kill_counter() {
+void __declspec(naked) op_get_kill_counter() {
 	__asm {
 		push ebx;
 		push ecx;
@@ -300,7 +295,7 @@ end:
 	}
 }
 
-static void __declspec(naked) op_mod_kill_counter() {
+void __declspec(naked) op_mod_kill_counter() {
 	__asm {
 		push ebx;
 		push ecx;
@@ -334,8 +329,9 @@ end:
 		retn;
 	}
 }
+
 //Knockback
-static void __declspec(naked) SetKnockback() {
+void __declspec(naked) SetKnockback() {
 	__asm {
 		sub esp, 0xc;
 		mov ecx, eax;
@@ -379,7 +375,7 @@ end:
 	}
 }
 
-static void __declspec(naked) op_set_weapon_knockback() {
+void __declspec(naked) op_set_weapon_knockback() {
 	__asm {
 		pushad;
 		push 0;
@@ -387,7 +383,7 @@ static void __declspec(naked) op_set_weapon_knockback() {
 	}
 }
 
-static void __declspec(naked) op_set_target_knockback() {
+void __declspec(naked) op_set_target_knockback() {
 	__asm {
 		pushad;
 		push 1;
@@ -395,7 +391,7 @@ static void __declspec(naked) op_set_target_knockback() {
 	}
 }
 
-static void __declspec(naked) op_set_attacker_knockback() {
+void __declspec(naked) op_set_attacker_knockback() {
 	__asm {
 		pushad;
 		push 2;
@@ -423,7 +419,7 @@ end:
 	}
 }
 
-static void __declspec(naked) op_remove_weapon_knockback() {
+void __declspec(naked) op_remove_weapon_knockback() {
 	__asm {
 		pushad;
 		push 0;
@@ -431,7 +427,7 @@ static void __declspec(naked) op_remove_weapon_knockback() {
 	}
 }
 
-static void __declspec(naked) op_remove_target_knockback() {
+void __declspec(naked) op_remove_target_knockback() {
 	__asm {
 		pushad;
 		push 1;
@@ -439,7 +435,7 @@ static void __declspec(naked) op_remove_target_knockback() {
 	}
 }
 
-static void __declspec(naked) op_remove_attacker_knockback() {
+void __declspec(naked) op_remove_attacker_knockback() {
 	__asm {
 		pushad;
 		push 2;
@@ -447,7 +443,7 @@ static void __declspec(naked) op_remove_attacker_knockback() {
 	}
 }
 
-static void __declspec(naked) op_get_kill_counter2() {
+void __declspec(naked) op_get_kill_counter2() {
 	__asm {
 		push ebx;
 		push ecx;
@@ -478,7 +474,7 @@ end:
 	}
 }
 
-static void __declspec(naked) op_mod_kill_counter2() {
+void __declspec(naked) op_mod_kill_counter2() {
 	__asm {
 		push ebx;
 		push ecx;
@@ -513,7 +509,7 @@ end:
 	}
 }
 
-static void __declspec(naked) op_active_hand() {
+void __declspec(naked) op_active_hand() {
 	__asm {
 		push ebx;
 		push ecx;
@@ -531,7 +527,7 @@ static void __declspec(naked) op_active_hand() {
 	}
 }
 
-static void __declspec(naked) op_toggle_active_hand() {
+void __declspec(naked) op_toggle_active_hand() {
 	__asm {
 		mov eax, 1;
 		call FuncOffs::intface_toggle_items_;
@@ -539,7 +535,7 @@ static void __declspec(naked) op_toggle_active_hand() {
 	}
 }
 
-static void __declspec(naked) op_eax_available() {
+void __declspec(naked) op_eax_available() {
 	__asm {
 		push ebx;
 		push eax;
@@ -615,7 +611,7 @@ static void _stdcall IncNPCLevel2(char* npc) {
 	}
 }
 
-static void __declspec(naked) op_inc_npc_level() {
+void __declspec(naked) op_inc_npc_level() {
 	__asm {
 		push ebx;
 		push ecx;
@@ -674,7 +670,7 @@ static int _stdcall get_npc_level2(DWORD numMembers, DWORD maxMembers, DWORD* me
 	return 0;
 }
 
-static void __declspec(naked) op_get_npc_level() {
+void __declspec(naked) op_get_npc_level() {
 	__asm {
 		push ebx;
 		push ecx;
@@ -749,7 +745,7 @@ static DWORD _stdcall GetIniSetting2(const char* c, DWORD string) {
 	}
 }
 
-static void __declspec(naked) op_get_ini_setting() {
+void __declspec(naked) op_get_ini_setting() {
 	__asm {
 		push ebx;
 		push ecx;
@@ -789,7 +785,7 @@ result:
 	}
 }
 
-static void __declspec(naked) op_get_ini_string() {
+void __declspec(naked) op_get_ini_string() {
 	__asm {
 		push ebx;
 		push ecx;
@@ -833,11 +829,12 @@ result:
 		retn;
 	}
 }
+
 static DWORD _stdcall GetTickCount2() {
 	return GetTickCount();
 }
 
-static void __declspec(naked) op_get_uptime() {
+void __declspec(naked) op_get_uptime() {
 	__asm {
 		pushad;
 		mov edi, eax;
@@ -853,7 +850,7 @@ static void __declspec(naked) op_get_uptime() {
 	}
 }
 
-static void __declspec(naked) op_set_car_current_town() {
+void __declspec(naked) op_set_car_current_town() {
 	__asm {
 		push ebx;
 		push ecx;
@@ -876,7 +873,7 @@ end:
 	}
 }
 
-static void __declspec(naked) op_set_hp_per_level_mod() {
+void __declspec(naked) op_set_hp_per_level_mod() {
 	__asm {
 		push ebx;
 		push ecx;
@@ -899,7 +896,7 @@ end:
 	}
 }
 
-static void __declspec(naked) op_get_bodypart_hit_modifier() {
+void __declspec(naked) op_get_bodypart_hit_modifier() {
 	__asm {
 		push ecx
 		push edx
@@ -930,7 +927,7 @@ end:
 	}
 }
 
-static void __declspec(naked) op_set_bodypart_hit_modifier() {
+void __declspec(naked) op_set_bodypart_hit_modifier() {
 	__asm {
 		push ebx
 		push ecx
@@ -970,7 +967,7 @@ end:
 	}
 }
 
-static void __declspec(naked) op_set_critical_table() {
+void __declspec(naked) op_set_critical_table() {
 	__asm {
 		pushad;
 		mov ecx, eax;
@@ -1000,7 +997,7 @@ end:
 	}
 }
 
-static void __declspec(naked) op_get_critical_table() {
+void __declspec(naked) op_get_critical_table() {
 	__asm {
 		pushad;
 		mov edi, eax;
@@ -1037,7 +1034,7 @@ end:
 	}
 }
 
-static void __declspec(naked) op_reset_critical_table() {
+void __declspec(naked) op_reset_critical_table() {
 	__asm {
 		pushad;
 		mov ecx, eax;
@@ -1067,7 +1064,7 @@ end:
 	}
 }
 
-static void __declspec(naked) op_set_unspent_ap_bonus() {
+void __declspec(naked) op_set_unspent_ap_bonus() {
 	__asm {
 		push ecx;
 		push edx;
@@ -1086,7 +1083,7 @@ end:
 	}
 }
 
-static void __declspec(naked) op_get_unspent_ap_bonus() {
+void __declspec(naked) op_get_unspent_ap_bonus() {
 	__asm {
 		push ecx;
 		push edx;
@@ -1102,7 +1099,7 @@ static void __declspec(naked) op_get_unspent_ap_bonus() {
 	}
 }
 
-static void __declspec(naked) op_set_unspent_ap_perk_bonus() {
+void __declspec(naked) op_set_unspent_ap_perk_bonus() {
 	__asm {
 		push ecx;
 		push edx;
@@ -1121,7 +1118,7 @@ end:
 	}
 }
 
-static void __declspec(naked) op_get_unspent_ap_perk_bonus() {
+void __declspec(naked) op_get_unspent_ap_perk_bonus() {
 	__asm {
 		push ecx;
 		push edx;
@@ -1137,7 +1134,7 @@ static void __declspec(naked) op_get_unspent_ap_perk_bonus() {
 	}
 }
 
-static void __declspec(naked) op_set_palette() {
+void __declspec(naked) op_set_palette() {
 	__asm {
 		push ebx;
 		push ecx;
@@ -1157,9 +1154,9 @@ next:
 		//call FuncOffs::palette_set_to_;
 		mov eax, ecx;
 		call FuncOffs::interpretGetString_;
-  call FuncOffs::loadColorTable_
-		mov eax, VARPTR_cmap
-  call FuncOffs::palette_set_to_
+		call FuncOffs::loadColorTable_;
+		mov eax, VARPTR_cmap;
+		call FuncOffs::palette_set_to_;
 end:
 		pop edx;
 		pop ecx;
@@ -1169,7 +1166,7 @@ end:
 }
 
 //numbers subgame functions
-static void __declspec(naked) op_nb_create_char() {
+void __declspec(naked) op_nb_create_char() {
 	__asm {
 		/*pushad;
 		push eax;
@@ -1186,7 +1183,7 @@ static void __declspec(naked) op_nb_create_char() {
 	}
 }
 
-static void __declspec(naked) op_get_proto_data() {
+void __declspec(naked) op_get_proto_data() {
 	__asm {
 		pushad;
 		sub esp, 4;
@@ -1227,7 +1224,7 @@ end:
 	}
 }
 
-static void __declspec(naked) op_set_proto_data() {
+void __declspec(naked) op_set_proto_data() {
 	__asm {
 		pushad;
 		sub esp, 4;
@@ -1267,7 +1264,7 @@ end:
 	}
 }
 
-static void __declspec(naked) op_hero_select_win() {//for opening the appearance selection window
+void __declspec(naked) op_hero_select_win() {//for opening the appearance selection window
 	__asm {
 		push ebx;
 		push ecx;
@@ -1294,7 +1291,7 @@ end:
 	}
 }
 
-static void __declspec(naked) op_set_hero_style() {//for setting the hero style/appearance takes an 1 int
+void __declspec(naked) op_set_hero_style() {//for setting the hero style/appearance takes an 1 int
 	__asm {
 		push ebx;
 		push ecx;
@@ -1321,7 +1318,7 @@ end:
 	}
 }
 
-static void __declspec(naked) op_set_hero_race() {// for setting the hero race takes an 1 int
+void __declspec(naked) op_set_hero_race() {// for setting the hero race takes an 1 int
 	__asm {
 		push ebx;
 		push ecx;
@@ -1348,7 +1345,7 @@ end:
 	}
 }
 
-static void __declspec(naked) op_get_light_level() {
+void __declspec(naked) op_get_light_level() {
 	__asm {
 		pushad;
 		mov ecx, eax;
@@ -1362,7 +1359,7 @@ static void __declspec(naked) op_get_light_level() {
 	}
 }
 
-static void __declspec(naked) op_refresh_pc_art() {
+void __declspec(naked) op_refresh_pc_art() {
 	__asm {
 		push ebx;
 		push ecx;
@@ -1375,7 +1372,7 @@ static void __declspec(naked) op_refresh_pc_art() {
 	}
 }
 
-static void __declspec(naked) op_get_attack_type() {
+void __declspec(naked) op_get_attack_type() {
 	__asm {
 		push edx;
 		push ecx;
@@ -1391,7 +1388,7 @@ static void __declspec(naked) op_get_attack_type() {
 	}
 }
 
-static void __declspec(naked) op_play_sfall_sound() {
+void __declspec(naked) op_play_sfall_sound() {
 	__asm {
 		pushad
 		mov edi, eax;
@@ -1432,7 +1429,7 @@ end:
 	}
 }
 
-static void __declspec(naked) op_stop_sfall_sound() {
+void __declspec(naked) op_stop_sfall_sound() {
 	__asm {
 		pushad;
 		mov ebp, eax;
@@ -1450,7 +1447,7 @@ end:
 	}
 }
 
-static void __declspec(naked) op_get_tile_fid() {
+void __declspec(naked) op_get_tile_fid() {
 	__asm {
 		pushad;
 		mov ebp, eax;
@@ -1483,8 +1480,9 @@ end:
 		retn;
 	}
 }
-static DWORD modifiedIni;
-static void __declspec(naked) op_modified_ini() {
+
+DWORD modifiedIni;
+void __declspec(naked) op_modified_ini() {
 	__asm {
 		pushad;
 		mov edx, modifiedIni;
@@ -1498,7 +1496,7 @@ static void __declspec(naked) op_modified_ini() {
 	}
 }
 
-static void __declspec(naked) op_force_aimed_shots() {
+void __declspec(naked) op_force_aimed_shots() {
 	__asm {
 		push ecx;
 		push edx;
@@ -1518,7 +1516,7 @@ end:
 	}
 }
 
-static void __declspec(naked) op_disable_aimed_shots() {
+void __declspec(naked) op_disable_aimed_shots() {
 	__asm {
 		push ecx;
 		push edx;
@@ -1538,7 +1536,7 @@ end:
 	}
 }
 
-static void __declspec(naked) op_mark_movie_played() {
+void __declspec(naked) op_mark_movie_played() {
 	__asm {
 		push ecx;
 		push edx;
@@ -1561,7 +1559,7 @@ end:
 	}
 }
 
-static void __declspec(naked) op_get_last_attacker() {
+void __declspec(naked) op_get_last_attacker() {
 	__asm {
 		pushad;
 		mov ebp, eax;
@@ -1588,7 +1586,7 @@ end:
 	}
 }
 
-static void __declspec(naked) op_get_last_target() {
+void __declspec(naked) op_get_last_target() {
 	__asm {
 		pushad;
 		mov ebp, eax;
@@ -1615,7 +1613,7 @@ end:
 	}
 }
 
-static void __declspec(naked) op_block_combat() {
+void __declspec(naked) op_block_combat() {
 	__asm {
 		pushad;
 		mov ecx, eax;
@@ -1633,7 +1631,7 @@ end:
 	}
 }
 
-static void __declspec(naked) op_tile_under_cursor() {
+void __declspec(naked) op_tile_under_cursor() {
 	__asm {
 		push edx;
 		push ecx;
@@ -1661,7 +1659,7 @@ static void __declspec(naked) op_tile_under_cursor() {
 	}
 }
 
-static void __declspec(naked) op_gdialog_get_barter_mod() {
+void __declspec(naked) op_gdialog_get_barter_mod() {
 	__asm {
 		push edx;
 		push ecx;
@@ -1677,7 +1675,7 @@ static void __declspec(naked) op_gdialog_get_barter_mod() {
 	}
 }
 
-static void __declspec(naked) op_set_inven_ap_cost() {
+void __declspec(naked) op_set_inven_ap_cost() {
 	__asm {
 		push ecx;
 		push edx;
@@ -1697,7 +1695,7 @@ end:
 	}
 }
 
-static void __declspec(naked) op_sneak_success() {
+void __declspec(naked) op_sneak_success() {
 	_OP_BEGIN(ebp)
 	__asm {
 		mov eax, ds:[VARPTR_sneak_working]
@@ -1706,7 +1704,7 @@ static void __declspec(naked) op_sneak_success() {
 	_OP_END
 }
 
-static void __declspec(naked) op_tile_light() {
+void __declspec(naked) op_tile_light() {
 	_OP_BEGIN(ebp)
 	_GET_ARG_R32(ebp, ebx, edi)  // arg2 - tile
 	_GET_ARG_R32(ebp, ecx, esi)  // arg1 - elevation
@@ -1725,6 +1723,6 @@ end:
 }
 
 
-static void sf_exec_map_update_scripts() {
+void sf_exec_map_update_scripts() {
 	__asm call FuncOffs::scr_exec_map_update_scripts_
 }

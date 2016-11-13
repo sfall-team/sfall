@@ -1,6 +1,6 @@
 /*
  *    sfall
- *    Copyright (C) 2008, 2009, 2010, 2012  The sfall team
+ *    Copyright (C) 2008-2016  The sfall team
  *
  *    This program is free software: you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
@@ -16,16 +16,14 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#pragma once
+#include "..\..\..\FalloutEngine\Fallout2.h"
+#include "..\..\..\InputFuncs.h"
+#include "..\..\BarBoxes.h"
+#include "..\..\ScriptExtender.h"
 
-#include "..\..\main.h"
+#include "Interface.h"
 
-#include "..\InputFuncs.h"
-#include "..\ScriptExtender.h"
-
-
-// input_functions
-static void __declspec(naked) op_input_funcs_available() {
+void __declspec(naked) op_input_funcs_available() {
 	__asm {
 		push ebx;
 		push ecx;
@@ -43,7 +41,7 @@ static void __declspec(naked) op_input_funcs_available() {
 	}
 }
 
-static void __declspec(naked) op_key_pressed() {
+void __declspec(naked) op_key_pressed() {
 	__asm {
 		push ebx;
 		push ecx;
@@ -76,7 +74,7 @@ end:
 	}
 }
 
-static void __declspec(naked) op_tap_key() {
+void __declspec(naked) op_tap_key() {
 	__asm {
 		push ebx;
 		push ecx;
@@ -102,83 +100,78 @@ end:
 	}
 }
 
-//// *** From helios *** ////
-static void __declspec(naked) op_get_mouse_x() {
-   __asm {
-	  push ecx;
-	  push edx;
-	  mov ecx, eax;
-	  mov edx, ds:[VARPTR_mouse_x_];
-	  add edx, ds:[VARPTR_mouse_hotx];
-	  call FuncOffs::interpretPushLong_;
-	  mov eax, ecx;
-	  mov edx, 0xc001;
-	  call FuncOffs::interpretPushShort_
-	  pop edx;
-	  pop ecx;
-	  retn;
-   }
+void __declspec(naked) op_get_mouse_x() {
+	__asm {
+		push ecx;
+		push edx;
+		mov ecx, eax;
+		mov edx, ds:[VARPTR_mouse_x_];
+		add edx, ds:[VARPTR_mouse_hotx];
+		call FuncOffs::interpretPushLong_;
+		mov eax, ecx;
+		mov edx, 0xc001;
+		call FuncOffs::interpretPushShort_
+			pop edx;
+		pop ecx;
+		retn;
+	}
 }
 
-//Return mouse y position
-static void __declspec(naked) op_get_mouse_y() {
-   __asm {
-	  push ecx;
-	  push edx;
-	  mov ecx, eax;
-	  mov edx, ds:[VARPTR_mouse_y_];
-	  add edx, ds:[VARPTR_mouse_hoty];
-	  call FuncOffs::interpretPushLong_;
-	  mov eax, ecx;
-	  mov edx, 0xc001;
-	  call FuncOffs::interpretPushShort_
-	  pop edx;
-	  pop ecx;
-	  retn;
-   }
+void __declspec(naked) op_get_mouse_y() {
+	__asm {
+		push ecx;
+		push edx;
+		mov ecx, eax;
+		mov edx, ds:[VARPTR_mouse_y_];
+		add edx, ds:[VARPTR_mouse_hoty];
+		call FuncOffs::interpretPushLong_;
+		mov eax, ecx;
+		mov edx, 0xc001;
+		call FuncOffs::interpretPushShort_
+			pop edx;
+		pop ecx;
+		retn;
+	}
 }
 
-//Return pressed mouse button (1=left, 2=right, 3=left+right)
-static void __declspec(naked) op_get_mouse_buttons() {
-   __asm {
-	  push ecx;
-	  push edx;
-	  mov ecx, eax;
-	  mov edx, ds:[VARPTR_last_buttons];
-	  call FuncOffs::interpretPushLong_;
-	  mov eax, ecx;
-	  mov edx, 0xc001;
-	  call FuncOffs::interpretPushShort_
-	  pop edx;
-	  pop ecx;
-	  retn;
-   }
+void __declspec(naked) op_get_mouse_buttons() {
+	__asm {
+		push ecx;
+		push edx;
+		mov ecx, eax;
+		mov edx, ds:[VARPTR_last_buttons];
+		call FuncOffs::interpretPushLong_;
+		mov eax, ecx;
+		mov edx, 0xc001;
+		call FuncOffs::interpretPushShort_
+			pop edx;
+		pop ecx;
+		retn;
+	}
 }
 
-//Return the window number under the mous
-static void __declspec(naked) op_get_window_under_mouse() {
-   __asm {
-	  push ecx;
-	  push edx;
-	  mov ecx, eax;
-	  mov edx, ds:[VARPTR_last_button_winID];
-	  call FuncOffs::interpretPushLong_;
-	  mov eax, ecx;
-	  mov edx, 0xc001;
-	  call FuncOffs::interpretPushShort_
-	  pop edx;
-	  pop ecx;
-	  retn;
-   }
+void __declspec(naked) op_get_window_under_mouse() {
+	__asm {
+		push ecx;
+		push edx;
+		mov ecx, eax;
+		mov edx, ds:[VARPTR_last_button_winID];
+		call FuncOffs::interpretPushLong_;
+		mov eax, ecx;
+		mov edx, 0xc001;
+		call FuncOffs::interpretPushShort_
+			pop edx;
+		pop ecx;
+		retn;
+	}
 }
 
-//Return screen width
-static void __declspec(naked) op_get_screen_width() {
+void __declspec(naked) op_get_screen_width() {
 	__asm {
 		push edx
 		push eax
-		mov  edx, ds:[VARPTR_scr_size+8]                // _scr_size.offx
-		sub  edx, ds:[VARPTR_scr_size]                  // _scr_size.x
+		mov  edx, ds:[VARPTR_scr_size + 8]                // _scr_size.offx
+		sub  edx, ds : [VARPTR_scr_size]                  // _scr_size.x
 		inc  edx
 		call FuncOffs::interpretPushLong_
 		pop  eax
@@ -189,13 +182,12 @@ static void __declspec(naked) op_get_screen_width() {
 	}
 }
 
-//Return screen height
-static void __declspec(naked) op_get_screen_height() {
+void __declspec(naked) op_get_screen_height() {
 	__asm {
 		push edx
 		push eax
-		mov  edx, ds:[VARPTR_scr_size+12]               // _scr_size.offy
-		sub  edx, ds:[VARPTR_scr_size+4]                // _scr_size.y
+		mov  edx, ds:[VARPTR_scr_size + 12]               // _scr_size.offy
+		sub  edx, ds : [VARPTR_scr_size + 4]                // _scr_size.y
 		inc  edx
 		call FuncOffs::interpretPushLong_
 		pop  eax
@@ -206,24 +198,21 @@ static void __declspec(naked) op_get_screen_height() {
 	}
 }
 
-//Stop game, the same effect as open charsscreen or inventory
-static void __declspec(naked) op_stop_game() {
+void __declspec(naked) op_stop_game() {
 	__asm {
 		call FuncOffs::map_disable_bk_processes_;
 		retn;
 	}
 }
 
-//Resume the game when it is stopped
-static void __declspec(naked) op_resume_game() {
+void __declspec(naked) op_resume_game() {
 	__asm {
 		call FuncOffs::map_enable_bk_processes_;
 		retn;
 	}
 }
 
-//Create a message window with given string
-static void __declspec(naked) op_create_message_window() {
+void __declspec(naked) op_create_message_window() {
 	__asm {
 		pushad
 		mov ebx, dword ptr ds : [VARPTR_curr_font_num];
@@ -265,7 +254,7 @@ end:
 	}
 }
 
-static void __declspec(naked) op_get_viewport_x() {
+void __declspec(naked) op_get_viewport_x() {
 	__asm {
 		push ebx;
 		push ecx;
@@ -283,7 +272,7 @@ static void __declspec(naked) op_get_viewport_x() {
 	}
 }
 
-static void __declspec(naked) op_get_viewport_y() {
+void __declspec(naked) op_get_viewport_y() {
 	__asm {
 		push ebx;
 		push ecx;
@@ -301,7 +290,7 @@ static void __declspec(naked) op_get_viewport_y() {
 	}
 }
 
-static void __declspec(naked) op_set_viewport_x() {
+void __declspec(naked) op_set_viewport_x() {
 	__asm {
 		push ebx;
 		push ecx;
@@ -313,8 +302,8 @@ static void __declspec(naked) op_set_viewport_x() {
 		call FuncOffs::interpretPopLong_;
 		cmp dx, 0xC001;
 		jnz end;
-		mov ds:[VARPTR_wmWorldOffsetX], eax
-end:
+		mov ds : [VARPTR_wmWorldOffsetX], eax
+			end :
 		pop edx;
 		pop ecx;
 		pop ebx;
@@ -322,7 +311,7 @@ end:
 	}
 }
 
-static void __declspec(naked) op_set_viewport_y() {
+void __declspec(naked) op_set_viewport_y() {
 	__asm {
 		push ebx;
 		push ecx;
@@ -334,8 +323,8 @@ static void __declspec(naked) op_set_viewport_y() {
 		call FuncOffs::interpretPopLong_;
 		cmp dx, 0xC001;
 		jnz end;
-		mov ds:[VARPTR_wmWorldOffsetY], eax
-end:
+		mov ds : [VARPTR_wmWorldOffsetY], eax
+			end :
 		pop edx;
 		pop ecx;
 		pop ebx;
@@ -343,7 +332,7 @@ end:
 	}
 }
 
-static void __declspec(naked) op_show_iface_tag() {
+void __declspec(naked) op_show_iface_tag() {
 	__asm {
 		pushad;
 		mov ecx, eax;
@@ -369,7 +358,7 @@ end:
 	}
 }
 
-static void __declspec(naked) op_hide_iface_tag() {
+void __declspec(naked) op_hide_iface_tag() {
 	__asm {
 		pushad;
 		mov ecx, eax;
@@ -395,7 +384,7 @@ end:
 	}
 }
 
-static void __declspec(naked) op_is_iface_tag_active() {
+void __declspec(naked) op_is_iface_tag_active() {
 	__asm {
 		pushad;
 		sub esp, 4;
@@ -416,14 +405,14 @@ static void __declspec(naked) op_is_iface_tag_active() {
 		jmp end;
 falloutfunc:
 		mov ecx, eax;
-		mov eax, dword ptr ds:[VARPTR_obj_dude];
+		mov eax, dword ptr ds : [VARPTR_obj_dude];
 		mov edx, esp;
-		mov eax, [eax+0x64];
+		mov eax, [eax + 0x64];
 		call FuncOffs::proto_ptr_;
 		mov edx, 1;
 		shl edx, cl;
 		mov ecx, [esp];
-		mov eax, [ecx+0x20];
+		mov eax, [ecx + 0x20];
 		and eax, edx;
 		jz fail;
 		xor edx, edx;
@@ -443,19 +432,19 @@ end:
 	}
 }
 
-static void sf_intface_redraw() {
+void sf_intface_redraw() {
 	Wrapper::intface_redraw();
 }
 
-static void sf_intface_show() {
+void sf_intface_show() {
 	__asm call FuncOffs::intface_show_
 }
 
-static void sf_intface_hide() {
+void sf_intface_hide() {
 	__asm call FuncOffs::intface_hide_
 }
 
-static void sf_intface_is_hidden() {
+void sf_intface_is_hidden() {
 	int isHidden;
 	__asm {
 		call FuncOffs::intface_is_hidden_

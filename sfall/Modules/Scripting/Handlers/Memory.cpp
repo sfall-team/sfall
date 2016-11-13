@@ -1,6 +1,6 @@
 /*
  *    sfall
- *    Copyright (C) 2008, 2009, 2010, 2012  The sfall team
+ *    Copyright (C) 2008-2016  The sfall team
  *
  *    This program is free software: you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
@@ -16,13 +16,14 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#pragma once
+#include "..\..\..\FalloutEngine\Fallout2.h"
+#include "..\..\..\SafeWrite.h"
+#include "..\..\ScriptExtender.h"
 
-#include "..\..\main.h"
-#include "..\ScriptExtender.h"
+#include "Memory.h"
 
-// memory_reading_funcs
-static void __declspec(naked) op_read_byte() {
+
+void __declspec(naked) op_read_byte() {
 	__asm {
 		push ebx;
 		push ecx;
@@ -34,7 +35,7 @@ static void __declspec(naked) op_read_byte() {
 		call FuncOffs::interpretPopLong_;
 		cmp dx, 0xC001;
 		jnz error;
-		movzx edx, byte ptr ds:[eax];
+		movzx edx, byte ptr ds : [eax];
 		jmp result;
 error:
 		mov edx, 0;
@@ -51,7 +52,7 @@ result:
 	}
 }
 
-static void __declspec(naked) op_read_short() {
+void __declspec(naked) op_read_short() {
 	__asm {
 		push ebx;
 		push ecx;
@@ -63,7 +64,7 @@ static void __declspec(naked) op_read_short() {
 		call FuncOffs::interpretPopLong_;
 		cmp dx, 0xC001;
 		jnz error;
-		movzx edx, word ptr ds:[eax];
+		movzx edx, word ptr ds : [eax];
 		jmp result;
 error:
 		mov edx, 0;
@@ -80,7 +81,7 @@ result:
 	}
 }
 
-static void __declspec(naked) op_read_int() {
+void __declspec(naked) op_read_int() {
 	__asm {
 		push ebx;
 		push ecx;
@@ -92,7 +93,7 @@ static void __declspec(naked) op_read_int() {
 		call FuncOffs::interpretPopLong_;
 		cmp dx, 0xC001;
 		jnz error;
-		mov edx, dword ptr ds:[eax];
+		mov edx, dword ptr ds : [eax];
 		jmp result;
 error:
 		mov edx, 0;
@@ -109,7 +110,7 @@ result:
 	}
 }
 
-static void __declspec(naked) op_read_string() {
+void __declspec(naked) op_read_string() {
 	__asm {
 		push ebx;
 		push ecx;
@@ -138,7 +139,7 @@ result:
 	}
 }
 
-static void __declspec(naked) op_write_byte() {
+void __declspec(naked) op_write_byte() {
 	__asm {
 		pushad
 		mov ecx, eax;
@@ -167,7 +168,7 @@ end:
 	}
 }
 
-static void __declspec(naked) op_write_short() {
+void __declspec(naked) op_write_short() {
 	__asm {
 		pushad;
 		mov ecx, eax;
@@ -196,7 +197,7 @@ end:
 	}
 }
 
-static void __declspec(naked) op_write_int() {
+void __declspec(naked) op_write_int() {
 	__asm {
 		pushad
 		mov ecx, eax;
@@ -220,7 +221,7 @@ static void __declspec(naked) op_write_int() {
 		call SafeWrite32;
 end:
 		popad
-		retn;
+			retn;
 	}
 }
 
@@ -236,7 +237,7 @@ static void _stdcall WriteStringInternal(const char* str, char* addr) {
 	*addr = 0;
 }
 
-static void __declspec(naked) op_write_string() {
+void __declspec(naked) op_write_string() {
 	__asm {
 		pushad;
 		mov ecx, eax;
@@ -319,7 +320,7 @@ legal:
 	}
 }
 
-static void __declspec(naked) op_call_offset() {
+void __declspec(naked) op_call_offset() {
 	__asm {
 		pushad;
 		push eax;

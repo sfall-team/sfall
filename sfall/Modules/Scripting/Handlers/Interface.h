@@ -1,0 +1,75 @@
+/*
+ *    sfall
+ *    Copyright (C) 2008-2016  The sfall team
+ *
+ *    This program is free software: you can redistribute it and/or modify
+ *    it under the terms of the GNU General Public License as published by
+ *    the Free Software Foundation, either version 3 of the License, or
+ *    (at your option) any later version.
+ *
+ *    This program is distributed in the hope that it will be useful,
+ *    but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *    GNU General Public License for more details.
+ *
+ *    You should have received a copy of the GNU General Public License
+ *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#pragma once
+
+// input_functions
+void __declspec() op_input_funcs_available();
+
+void __declspec() op_key_pressed();
+
+void __declspec() op_tap_key();
+
+//// *** From helios *** ////
+void __declspec() op_get_mouse_x();
+
+//Return mouse y position
+void __declspec() op_get_mouse_y();
+
+//Return pressed mouse button (1=left, 2=right, 3=left+right)
+void __declspec() op_get_mouse_buttons();
+
+//Return the window number under the mous
+void __declspec() op_get_window_under_mouse();
+
+//Return screen width
+void __declspec() op_get_screen_width();
+
+//Return screen height
+void __declspec() op_get_screen_height();
+
+//Stop game, the same effect as open charsscreen or inventory
+void __declspec() op_stop_game();
+
+//Resume the game when it is stopped
+void __declspec() op_resume_game();
+
+//Create a message window with given string
+void __declspec() op_create_message_window();
+
+void __declspec() op_get_viewport_x();
+
+void __declspec() op_get_viewport_y();
+
+void __declspec() op_set_viewport_x();
+
+void __declspec() op_set_viewport_y();
+
+void __declspec() op_show_iface_tag();
+
+void __declspec() op_hide_iface_tag();
+
+void __declspec() op_is_iface_tag_active();
+
+void sf_intface_redraw();
+
+void sf_intface_show();
+
+void sf_intface_hide();
+
+void sf_intface_is_hidden();

@@ -20,6 +20,22 @@
 // Everything related to new sfall opcodes.
 //
 
+#include "..\KillCounter.h"
+
+#include "Handlers\AsmMacros.h"
+#include "Handlers\Anims.h"
+#include "Handlers\Arrays.h"
+#include "Handlers\FileSystem.h"
+#include "Handlers\Graphics.h"
+#include "Handlers\Interface.h"
+#include "Handlers\Memory.h"
+#include "Handlers\Misc.h"
+#include "Handlers\Objects.h"
+#include "Handlers\Perks.h"
+#include "Handlers\Stats.h"
+#include "Handlers\Utils.h"
+#include "Handlers\Worldmap.h"
+#include "Handlers\Metarule.h"
 
 // TODO: move global-script related code into separate file
 static void _stdcall SetGlobalScriptRepeat2(TProgram* script, int frames) {

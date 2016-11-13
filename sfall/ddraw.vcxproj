@@ -76,6 +76,8 @@
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
+      <AssemblerListingLocation>$(IntDir)/%(RelativeDir)/</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)/%(RelativeDir)/</ObjectFileName>
     </ClCompile>
     <Link>
       <AdditionalDependencies>kernel32.lib;user32.lib;d3d9.lib;d3dx9d.lib;Strmiids.lib;dinput.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -122,6 +124,8 @@
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <CallingConvention>Cdecl</CallingConvention>
+      <AssemblerListingLocation>$(IntDir)/%(RelativeDir)/</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)/%(RelativeDir)/</ObjectFileName>
     </ClCompile>
     <Link>
       <AdditionalDependencies>kernel32.lib;user32.lib;d3d9.lib;d3dx9.lib;Strmiids.lib;dinput.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -168,6 +172,8 @@
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <CallingConvention>Cdecl</CallingConvention>
+      <AssemblerListingLocation>$(IntDir)/%(RelativeDir)/</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)/%(RelativeDir)/</ObjectFileName>
     </ClCompile>
     <Link>
       <AdditionalDependencies>kernel32.lib;user32.lib;d3d9.lib;d3dx9.lib;Strmiids.lib;dinput.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -213,24 +219,25 @@
     <ClInclude Include="Modules\Bugs.h" />
     <ClInclude Include="Modules\BurstMods.h" />
     <ClInclude Include="Modules\Console.h" />
-    <ClInclude Include="Modules\Scripting\AnimOps.hpp" />
+    <ClInclude Include="Modules\Scripting\Handlers\Anims.h" />
     <ClInclude Include="Modules\Scripting\Arrays.h" />
-    <ClInclude Include="Modules\Scripting\AsmMacros.h" />
-    <ClInclude Include="Modules\Scripting\FileSystemOps.hpp" />
-    <ClInclude Include="Modules\Scripting\GraphicsOp.hpp" />
-    <ClInclude Include="Modules\Scripting\InterfaceOp.hpp" />
-    <ClInclude Include="Modules\Scripting\MemoryOp.hpp" />
-    <ClInclude Include="Modules\Scripting\MetaruleOp.hpp" />
-    <ClInclude Include="Modules\Scripting\MiscOps.hpp" />
-    <ClInclude Include="Modules\Scripting\ObjectsOps.hpp" />
+    <ClInclude Include="Modules\Scripting\Handlers\AsmMacros.h" />
+    <ClInclude Include="CommonTypes.h" />
+    <ClInclude Include="Modules\Scripting\Handlers\FileSystem.h" />
+    <ClInclude Include="Modules\Scripting\Handlers\Graphics.h" />
+    <ClInclude Include="Modules\Scripting\Handlers\Interface.h" />
+    <ClInclude Include="Modules\Scripting\Handlers\Memory.h" />
+    <ClInclude Include="Modules\Scripting\Handlers\Metarule.h" />
+    <ClInclude Include="Modules\Scripting\Handlers\Misc.h" />
+    <ClInclude Include="Modules\Scripting\Handlers\Objects.h" />
     <ClInclude Include="Modules\Scripting\OpcodeHandler.h" />
     <ClInclude Include="Modules\Scripting\Opcodes.hpp" />
-    <ClInclude Include="Modules\Scripting\PerksOp.hpp" />
-    <ClInclude Include="Modules\Scripting\ScriptArrays.hpp" />
-    <ClInclude Include="Modules\Scripting\ScriptUtils.hpp" />
+    <ClInclude Include="Modules\Scripting\Handlers\Perks.h" />
+    <ClInclude Include="Modules\Scripting\Handlers\Arrays.h" />
+    <ClInclude Include="Modules\Scripting\Handlers\Utils.h" />
     <ClInclude Include="Modules\Scripting\ScriptValue.h" />
-    <ClInclude Include="Modules\Scripting\StatsOp.hpp" />
-    <ClInclude Include="Modules\Scripting\WorldmapOps.hpp" />
+    <ClInclude Include="Modules\Scripting\Handlers\Stats.h" />
+    <ClInclude Include="Modules\Scripting\Handlers\Worldmap.h" />
     <ClInclude Include="win9x\Cpp11_emu.h" />
     <ClInclude Include="Modules\CRC.h" />
     <ClInclude Include="Modules\Credits.h" />
@@ -310,6 +317,19 @@
     <ClCompile Include="Modules\QuestList.cpp" />
     <ClCompile Include="Modules\Reputations.cpp" />
     <ClCompile Include="Modules\Scripting\Arrays.cpp" />
+    <ClCompile Include="Modules\Scripting\Handlers\Anims.cpp" />
+    <ClCompile Include="Modules\Scripting\Handlers\Arrays.cpp" />
+    <ClCompile Include="Modules\Scripting\Handlers\FileSystem.cpp" />
+    <ClCompile Include="Modules\Scripting\Handlers\Graphics.cpp" />
+    <ClCompile Include="Modules\Scripting\Handlers\Interface.cpp" />
+    <ClCompile Include="Modules\Scripting\Handlers\Memory.cpp" />
+    <ClCompile Include="Modules\Scripting\Handlers\Metarule.cpp" />
+    <ClCompile Include="Modules\Scripting\Handlers\Misc.cpp" />
+    <ClCompile Include="Modules\Scripting\Handlers\Objects.cpp" />
+    <ClCompile Include="Modules\Scripting\Handlers\Perks.cpp" />
+    <ClCompile Include="Modules\Scripting\Handlers\Stats.cpp" />
+    <ClCompile Include="Modules\Scripting\Handlers\Utils.cpp" />
+    <ClCompile Include="Modules\Scripting\Handlers\Worldmap.cpp" />
     <ClCompile Include="Modules\Scripting\OpcodeHandler.cpp" />
     <ClCompile Include="Modules\Scripting\ScriptValue.cpp" />
     <ClCompile Include="SafeWrite.cpp" />

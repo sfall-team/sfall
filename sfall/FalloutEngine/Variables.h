@@ -18,10 +18,10 @@
 
 #pragma once
 
-#include "Structs.h"
+#include <cassert>
 
-#define DWORD unsigned long
-#define BYTE unsigned char
+#include "..\CommonTypes.h"
+#include "Structs.h"
 
 // Global variable constants
 
