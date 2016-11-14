@@ -34,7 +34,7 @@
 #include "..\Logging.h"
 #include "Stats.h"
 #include "Scripting\Arrays.h"
-#include "Scripting\OpcodeHandler.h"
+#include "Scripting\OpcodeContext.h"
 
 #include "ScriptExtender.h"
 

@@ -21,51 +21,51 @@
 #include "..\..\FalloutEngine\Fallout2.h"
 #include "..\ScriptExtender.h"
 
-#include "OpcodeHandler.h"
+#include "OpcodeContext.h"
 
 
-OpcodeHandler OpcodeHandler::_defaultInstance;
+OpcodeContext OpcodeContext::_defaultInstance;
 
-OpcodeHandler::OpcodeHandler() {
+OpcodeContext::OpcodeContext() {
 	_argShift = 0;
 	_args.reserve (OP_MAX_ARGUMENTS);
 }
 
-int OpcodeHandler::numArgs() const {
+int OpcodeContext::numArgs() const {
 	return _args.size() - _argShift;
 }
 
-int OpcodeHandler::argShift() const {
+int OpcodeContext::argShift() const {
 	return _argShift;
 }
 
-void OpcodeHandler::setArgShift (int shift) {
+void OpcodeContext::setArgShift (int shift) {
 	assert(shift >= 0);
 
 	_argShift = shift;
 }
 
-const ScriptValue& OpcodeHandler::arg(int index) const {
+const ScriptValue& OpcodeContext::arg(int index) const {
 	return _args.at(index + _argShift);
 }
 
-const ScriptValue& OpcodeHandler::returnValue() const {
+const ScriptValue& OpcodeContext::returnValue() const {
 	return _ret;
 }
 
-TProgram* OpcodeHandler::program() const {
+TProgram* OpcodeContext::program() const {
 	return _program;
 }
 
-void OpcodeHandler::setReturn(unsigned long value, SfallDataType type) {
+void OpcodeContext::setReturn(unsigned long value, SfallDataType type) {
 	_ret = ScriptValue(type, value);
 }
 
-void OpcodeHandler::setReturn(const ScriptValue& val) {
+void OpcodeContext::setReturn(const ScriptValue& val) {
 	_ret = val;
 }
 
-void OpcodeHandler::resetState(TProgram* program, int argNum) {
+void OpcodeContext::resetState(TProgram* program, int argNum) {
 	_program = program;
 
 	// reset return value
@@ -76,7 +76,7 @@ void OpcodeHandler::resetState(TProgram* program, int argNum) {
 	_argShift = 0;
 }
 
-void OpcodeHandler::printOpcodeError(const char* fmt, ...) const {
+void OpcodeContext::printOpcodeError(const char* fmt, ...) const {
 	assert(_program != nullptr);
 
 	va_list args;
@@ -89,7 +89,7 @@ void OpcodeHandler::printOpcodeError(const char* fmt, ...) const {
 	Wrapper::debug_printf("\nOPCODE ERROR: %s\n   Current script: %s, procedure %s.", msg, _program->fileName, procName);
 }
 
-bool OpcodeHandler::validateArguments(ScriptingFunctionHandler func, int argNum) const {
+bool OpcodeContext::validateArguments(ScriptingFunctionHandler func, int argNum) const {
 	OpcodeMetaTableType::const_iterator it = _opcodeMetaTable.find(func);
 	if (it != _opcodeMetaTable.end()) {
 		const SfallOpcodeMetadata* meta = it->second;
@@ -100,7 +100,7 @@ bool OpcodeHandler::validateArguments(ScriptingFunctionHandler func, int argNum)
 	return true;
 }
 
-bool OpcodeHandler::validateArguments(const int argTypeMasks[], int argCount, const char* opcodeName) const {
+bool OpcodeContext::validateArguments(const int argTypeMasks[], int argCount, const char* opcodeName) const {
 	for (int i = 0; i < argCount; i++) {
 		int typeMask = argTypeMasks[i];
 		const ScriptValue &argI = arg(i);
@@ -124,7 +124,7 @@ bool OpcodeHandler::validateArguments(const int argTypeMasks[], int argCount, co
 	return true;
 }
 
-void OpcodeHandler::handleOpcode(TProgram* program, ScriptingFunctionHandler func, int argNum, bool hasReturn) {
+void OpcodeContext::handleOpcode(TProgram* program, ScriptingFunctionHandler func, int argNum, bool hasReturn) {
 	assert(argNum < OP_MAX_ARGUMENTS);
 
 	// reset state after previous
@@ -165,19 +165,19 @@ void OpcodeHandler::handleOpcode(TProgram* program, ScriptingFunctionHandler fun
 	}
 }
 
-OpcodeHandler& OpcodeHandler::defaultInstance() {
+OpcodeContext& OpcodeContext::defaultInstance() {
 	return _defaultInstance;
 }
 
-void __stdcall OpcodeHandler::handleOpcodeStatic(TProgram* program, ScriptingFunctionHandler func, int argNum, bool hasReturn) {
+void __stdcall OpcodeContext::handleOpcodeStatic(TProgram* program, ScriptingFunctionHandler func, int argNum, bool hasReturn) {
 	defaultInstance().handleOpcode(program, func, argNum, hasReturn);
 }
 
-void OpcodeHandler::addOpcodeMetaData(const SfallOpcodeMetadata* data) {
+void OpcodeContext::addOpcodeMetaData(const SfallOpcodeMetadata* data) {
 	_opcodeMetaTable[data->handler] = data;
 }
 
-const char* OpcodeHandler::getSfallTypeName(DWORD dataType) {
+const char* OpcodeContext::getSfallTypeName(DWORD dataType) {
 	switch (dataType) {
 		case DATATYPE_NONE:
 			return "(none)";
@@ -192,7 +192,7 @@ const char* OpcodeHandler::getSfallTypeName(DWORD dataType) {
 	}
 }
 
-DWORD OpcodeHandler::getSfallTypeByScriptType(DWORD varType) {
+DWORD OpcodeContext::getSfallTypeByScriptType(DWORD varType) {
 	varType &= 0xffff;
 	switch (varType) {
 		case VAR_TYPE_STR:
@@ -206,7 +206,7 @@ DWORD OpcodeHandler::getSfallTypeByScriptType(DWORD varType) {
 	}
 }
 
-DWORD OpcodeHandler::getScriptTypeBySfallType(DWORD dataType) {
+DWORD OpcodeContext::getScriptTypeBySfallType(DWORD dataType) {
 	switch (dataType) {
 		case DATATYPE_STR:
 			return VAR_TYPE_STR;

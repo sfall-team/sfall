@@ -446,7 +446,7 @@ end:
 }
 
 // used for both register_hook and register_hook_proc
-static void sf_register_hook(OpcodeHandler& opHandler) {
+static void sf_register_hook(OpcodeContext& opHandler) {
 	int id = opHandler.arg(0).asInt();
 	int proc = (opHandler.numArgs() > 1)
 		? opHandler.arg(1).asInt()
@@ -814,7 +814,7 @@ static const SfallOpcodeMetadata opcodeMetaArray[] = {
 
 static void InitOpcodeMetaTable() {
 	int length = sizeof(opcodeMetaArray) / sizeof(SfallOpcodeMetadata);
-	OpcodeHandler& opHandler = OpcodeHandler::defaultInstance();
+	OpcodeContext& opHandler = OpcodeContext::defaultInstance();
 	for (int i = 0; i < length; ++i) {
 		opHandler.addOpcodeMetaData(&opcodeMetaArray[i]);
 	}

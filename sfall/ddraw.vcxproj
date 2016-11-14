@@ -230,7 +230,7 @@
     <ClInclude Include="Modules\Scripting\Handlers\Metarule.h" />
     <ClInclude Include="Modules\Scripting\Handlers\Misc.h" />
     <ClInclude Include="Modules\Scripting\Handlers\Objects.h" />
-    <ClInclude Include="Modules\Scripting\OpcodeHandler.h" />
+    <ClInclude Include="Modules\Scripting\OpcodeContext.h" />
     <ClInclude Include="Modules\Scripting\Opcodes.hpp" />
     <ClInclude Include="Modules\Scripting\Handlers\Perks.h" />
     <ClInclude Include="Modules\Scripting\Handlers\Arrays.h" />
@@ -330,7 +330,7 @@
     <ClCompile Include="Modules\Scripting\Handlers\Stats.cpp" />
     <ClCompile Include="Modules\Scripting\Handlers\Utils.cpp" />
     <ClCompile Include="Modules\Scripting\Handlers\Worldmap.cpp" />
-    <ClCompile Include="Modules\Scripting\OpcodeHandler.cpp" />
+    <ClCompile Include="Modules\Scripting\OpcodeContext.cpp" />
     <ClCompile Include="Modules\Scripting\ScriptValue.cpp" />
     <ClCompile Include="SafeWrite.cpp" />
     <ClCompile Include="Modules\Skills.cpp" />

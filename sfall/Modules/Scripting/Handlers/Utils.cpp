@@ -783,9 +783,9 @@ end:
 	}
 }
 
-void sf_power(OpcodeHandler& opHandler) {
-	const ScriptValue &base = opHandler.arg(0),
-					  &power = opHandler.arg(1);
+void sf_power(OpcodeContext& ctx) {
+	const ScriptValue &base = ctx.arg(0),
+					  &power = ctx.arg(1);
 	float result = 0.0;
 	if (!base.isString() && !power.isString()) {
 		if (power.isFloat())
@@ -794,12 +794,12 @@ void sf_power(OpcodeHandler& opHandler) {
 			result = pow(base.asFloat(), power.asInt());
 
 		if (base.isInt() && power.isInt()) {
-			opHandler.setReturn(static_cast<int>(result));
+			ctx.setReturn(static_cast<int>(result));
 		} else {
-			opHandler.setReturn(result);
+			ctx.setReturn(result);
 		}
 	} else {
-		opHandler.setReturn(0);
+		ctx.setReturn(0);
 	}
 }
 
@@ -807,38 +807,38 @@ void __declspec(naked) op_power() {
 	_WRAP_OPCODE(sf_power, 2, 1)
 }
 
-void sf_log(OpcodeHandler& opHandler) {
-	opHandler.setReturn(log(opHandler.arg(0).asFloat()));
+void sf_log(OpcodeContext& ctx) {
+	ctx.setReturn(log(ctx.arg(0).asFloat()));
 }
 
 void __declspec(naked) op_log() {
 	_WRAP_OPCODE(sf_log, 1, 1)
 }
 
-void sf_exponent(OpcodeHandler& opHandler) {
-	opHandler.setReturn(exp(opHandler.arg(0).asFloat()));
+void sf_exponent(OpcodeContext& ctx) {
+	ctx.setReturn(exp(ctx.arg(0).asFloat()));
 }
 
 void __declspec(naked) op_exponent() {
 	_WRAP_OPCODE(sf_exponent, 1, 1)
 }
 
-void sf_ceil(OpcodeHandler& opHandler) {
-	opHandler.setReturn(static_cast<int>(ceil(opHandler.arg(0).asFloat())));
+void sf_ceil(OpcodeContext& ctx) {
+	ctx.setReturn(static_cast<int>(ceil(ctx.arg(0).asFloat())));
 }
 
 void __declspec(naked) op_ceil() {
 	_WRAP_OPCODE(sf_ceil, 1, 1)
 }
 
-void sf_round(OpcodeHandler& opHandler) {
-	float arg = opHandler.arg(0).asFloat();
+void sf_round(OpcodeContext& ctx) {
+	float arg = ctx.arg(0).asFloat();
 	int argI = static_cast<int>(arg);
 	float mod = arg - static_cast<float>(argI);
 	if (abs(mod) >= 0.5) {
 		argI += (mod > 0 ? 1 : -1);
 	}
-	opHandler.setReturn(argI);
+	ctx.setReturn(argI);
 }
 
 void __declspec(naked) op_round() {
@@ -870,10 +870,10 @@ static const MessageList* gameMsgFiles[] =
 , _castmsg(0x672FB0) };  // WORLDMAP
 #undef _castmsg
 
-void sf_message_str_game(OpcodeHandler& opHandler) {
+void sf_message_str_game(OpcodeContext& ctx) {
 	const char* msg = nullptr;
-	const ScriptValue &fileIdArg = opHandler.arg(0),
-		&msgIdArg = opHandler.arg(1);
+	const ScriptValue &fileIdArg = ctx.arg(0),
+		&msgIdArg = ctx.arg(1);
 
 	if (fileIdArg.isInt() && msgIdArg.isInt()) {
 		int fileId = fileIdArg.asInt();
@@ -893,7 +893,7 @@ void sf_message_str_game(OpcodeHandler& opHandler) {
 	if (msg == nullptr) {
 		msg = "Error";
 	}
-	opHandler.setReturn(msg);
+	ctx.setReturn(msg);
 }
 
 void __declspec(naked) op_message_str_game() {

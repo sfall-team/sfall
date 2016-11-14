@@ -1723,6 +1723,6 @@ end:
 }
 
 
-void sf_exec_map_update_scripts(OpcodeHandler& ctx) {
+void sf_exec_map_update_scripts(OpcodeContext& ctx) {
 	__asm call FuncOffs::scr_exec_map_update_scripts_
 }

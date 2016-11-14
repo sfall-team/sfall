@@ -34,9 +34,9 @@
 #define DATATYPE_MASK_NOT_NULL	(0x00010000)
 #define DATATYPE_MASK_VALID_OBJ	(DATATYPE_MASK_INT | DATATYPE_MASK_NOT_NULL)
 
-class OpcodeHandler;
+class OpcodeContext;
 
-typedef void(*ScriptingFunctionHandler)(OpcodeHandler&);
+typedef void(*ScriptingFunctionHandler)(OpcodeContext&);
 
 struct SfallOpcodeMetadata {
 	// opcode handler, will be used as key
@@ -51,9 +51,9 @@ struct SfallOpcodeMetadata {
 
 typedef std::tr1::unordered_map<ScriptingFunctionHandler, const SfallOpcodeMetadata*> OpcodeMetaTableType;
 
-class OpcodeHandler {
+class OpcodeContext {
 public:
-	OpcodeHandler();
+	OpcodeContext();
 
 	void addOpcodeMetaData(const SfallOpcodeMetadata* data);
 
@@ -102,7 +102,7 @@ public:
 	// hasReturn - true if opcode has return value (is expression)
 	void handleOpcode(TProgram* program, ScriptingFunctionHandler func, int argNum, bool hasReturn);
 
-	static OpcodeHandler& defaultInstance();
+	static OpcodeContext& defaultInstance();
 
 	// handles opcode using default instance
 	static void __stdcall handleOpcodeStatic(TProgram* program, ScriptingFunctionHandler func, int argNum, bool hasReturn);
@@ -121,5 +121,5 @@ private:
 	ScriptValue _ret;
 	OpcodeMetaTableType _opcodeMetaTable;
 
-	static OpcodeHandler _defaultInstance;
+	static OpcodeContext _defaultInstance;
 };

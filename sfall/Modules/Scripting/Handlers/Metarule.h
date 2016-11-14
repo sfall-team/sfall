@@ -27,10 +27,10 @@
 
 
 // Example handler. Feel free to add handlers in other files.
-void sf_test(OpcodeHandler&);
+void sf_test(OpcodeContext&);
 
 // returns current contents of metarule table
-void sf_get_metarule_table(OpcodeHandler&);
+void sf_get_metarule_table(OpcodeContext&);
 
 void InitMetaruleTable();
 

@@ -21,7 +21,7 @@
 #include "..\main.h"
 #include "..\FalloutEngine\Structs.h"
 // TODO: remove this
-#include "Scripting\OpcodeHandler.h"
+#include "Scripting\OpcodeContext.h"
 
 struct sGlobalVar {
 	__int64 id;

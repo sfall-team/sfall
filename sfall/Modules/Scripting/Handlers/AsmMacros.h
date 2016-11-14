@@ -1,6 +1,6 @@
 #pragma once
 
-#include "..\OpcodeHandler.h"
+#include "..\OpcodeContext.h"
 
 /*
 	MACROS for operators assembly code
@@ -164,7 +164,7 @@ __asm resultnotstr##num:				\
 	__asm push argnum				\
 	__asm push func					\
 	__asm push eax					\
-	__asm call OpcodeHandler::handleOpcodeStatic \
+	__asm call OpcodeContext::handleOpcodeStatic \
 	__asm popad						\
 	__asm retn						\
 }

@@ -3,7 +3,7 @@
 
 #include "..\ScriptExtender.h"
 #include "..\Scripting\ScriptValue.h"
-#include "..\Scripting\OpcodeHandler.h"
+#include "..\Scripting\OpcodeContext.h"
 
 #include "Arrays.h"
 
@@ -381,7 +381,7 @@ DWORD _stdcall GetArray(DWORD id, DWORD key, DWORD keyType, DWORD* resultType) {
 	int el;
 	sArrayVar &arr = arrays[id];
 	if (arr.isAssoc()) {
-		ArrayKeysMap::iterator it = arr.keyHash.find(sArrayElement(key, OpcodeHandler::getSfallTypeByScriptType(keyType)));
+		ArrayKeysMap::iterator it = arr.keyHash.find(sArrayElement(key, OpcodeContext::getSfallTypeByScriptType(keyType)));
 		if (it != arr.keyHash.end())
 			el = it->second + 1;
 		else
@@ -405,8 +405,8 @@ DWORD _stdcall GetArray(DWORD id, DWORD key, DWORD keyType, DWORD* resultType) {
 	return 0;
 }
 void _stdcall SetArray(DWORD id, DWORD key, DWORD keyType, DWORD val, DWORD valType, DWORD allowUnset) {
-	keyType = OpcodeHandler::getSfallTypeByScriptType(keyType);
-	valType = OpcodeHandler::getSfallTypeByScriptType(valType);
+	keyType = OpcodeContext::getSfallTypeByScriptType(keyType);
+	valType = OpcodeContext::getSfallTypeByScriptType(valType);
 	if(arrays.find(id)==arrays.end()) return;
 	int el;
 	sArrayVar &arr = arrays[id];
@@ -498,7 +498,7 @@ void _stdcall FixArray(DWORD id) {
 }
 int _stdcall ScanArray(DWORD id, DWORD val, DWORD datatype, DWORD* resultType) {
 	*resultType = VAR_TYPE_INT;
-	datatype = OpcodeHandler::getSfallTypeByScriptType(datatype);
+	datatype = OpcodeContext::getSfallTypeByScriptType(datatype);
 	if (arrays.find(id) == arrays.end()) return -1;
 	char step = arrays[id].isAssoc() ? 2 : 1;
 	for (DWORD i = 0; i < arrays[id].val.size(); i += step) {
@@ -507,7 +507,7 @@ int _stdcall ScanArray(DWORD id, DWORD val, DWORD datatype, DWORD* resultType) {
 			 if ((datatype != DATATYPE_STR && *(DWORD*)&(el.intVal) == val) ||
 				 (datatype == DATATYPE_STR && strcmp(el.strVal, (char*)val) == 0)) {
 				 if (arrays[id].isAssoc()) { // return key instead of index for associative arrays
-					 *resultType = OpcodeHandler::getScriptTypeBySfallType(arrays[id].val[i].type);
+					 *resultType = OpcodeContext::getScriptTypeBySfallType(arrays[id].val[i].type);
 					 return *(DWORD *)&arrays[id].val[i].intVal;
 				 } else {
 					 return i;
@@ -519,7 +519,7 @@ int _stdcall ScanArray(DWORD id, DWORD val, DWORD datatype, DWORD* resultType) {
 }
 
 DWORD _stdcall LoadArray(DWORD key, DWORD keyType) {
-	int dataType = OpcodeHandler::getSfallTypeByScriptType(keyType);
+	int dataType = OpcodeContext::getSfallTypeByScriptType(keyType);
 	if (dataType != DATATYPE_INT || key != 0) { // returns arrayId by it's key (ignoring int(0) because it is used to "unsave" array)
 		sArrayElement keyEl = sArrayElement(key, dataType);
 		if (keyEl.type == DATATYPE_STR && strcmp(keyEl.strVal, get_all_arrays_special_key) == 0) { // this is a special case to get temp array containing all saved arrays
@@ -545,7 +545,7 @@ DWORD _stdcall LoadArray(DWORD key, DWORD keyType) {
 
 void _stdcall SaveArray(DWORD key, DWORD keyType, DWORD id) {
 	array_itr it = arrays.find(id), it2;
-	int dataType = OpcodeHandler::getSfallTypeByScriptType(keyType);
+	int dataType = OpcodeContext::getSfallTypeByScriptType(keyType);
 	if (it != arrays.end()) {
 		if (dataType != DATATYPE_INT || key != 0) {
 			// make array permanent
