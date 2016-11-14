@@ -432,23 +432,23 @@ end:
 	}
 }
 
-void sf_intface_redraw() {
+void sf_intface_redraw(OpcodeHandler& ctx) {
 	Wrapper::intface_redraw();
 }
 
-void sf_intface_show() {
+void sf_intface_show(OpcodeHandler& ctx) {
 	__asm call FuncOffs::intface_show_
 }
 
-void sf_intface_hide() {
+void sf_intface_hide(OpcodeHandler& ctx) {
 	__asm call FuncOffs::intface_hide_
 }
 
-void sf_intface_is_hidden() {
+void sf_intface_is_hidden(OpcodeHandler& ctx) {
 	int isHidden;
 	__asm {
 		call FuncOffs::intface_is_hidden_
 		mov isHidden, eax;
 	}
-	opHandler.setReturn(isHidden);
+	ctx.setReturn(isHidden);
 }

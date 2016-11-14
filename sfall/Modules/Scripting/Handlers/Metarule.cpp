@@ -38,7 +38,7 @@ struct SfallMetarule {
 	// function name
 	const char* name;
 	// pointer to handler function
-	void(*func)();
+	ScriptingFunctionHandler func;
 	// mininum number of arguments
 	int minArgs;
 	// maximum number of arguments
@@ -54,7 +54,7 @@ static const SfallMetarule* currentMetarule;
 
 static std::string sf_test_stringBuf;
 
-void sf_test() {
+void sf_test(OpcodeHandler& opHandler) {
 	std::ostringstream sstream;
 	sstream << "sfall_funcX(\"test\"";
 	for (int i = 0; i < opHandler.numArgs(); i++) {
@@ -82,14 +82,14 @@ void sf_test() {
 }
 
 // returns current contents of metarule table
-void sf_get_metarule_table() {
+void sf_get_metarule_table(OpcodeHandler& ctx) {
 	DWORD arr = TempArray(metaruleTable.size(), 0);
 	int i = 0;
 	for (MetaruleTableType::iterator it = metaruleTable.begin(); it != metaruleTable.end(); it++) {
 		arrays[arr].val[i].set(it->first.c_str());
 		i++;
 	}
-	opHandler.setReturn(arr, DATATYPE_INT);
+	ctx.setReturn(arr, DATATYPE_INT);
 }
 
 /*
@@ -124,7 +124,7 @@ void InitMetaruleTable() {
 
 // Validates arguments against metarule specification.
 // On error prints to debug.log and returns false.
-static bool ValidateMetaruleArguments(const SfallMetarule* metaruleInfo) {
+static bool ValidateMetaruleArguments(OpcodeHandler& opHandler, const SfallMetarule* metaruleInfo) {
 	int argCount = opHandler.numArgs();
 	if (argCount < metaruleInfo->minArgs || argCount > metaruleInfo->maxArgs) {
 		opHandler.printOpcodeError(
@@ -140,7 +140,7 @@ static bool ValidateMetaruleArguments(const SfallMetarule* metaruleInfo) {
 	}
 }
 
-static void _stdcall HandleMetarule() {
+static void HandleMetarule(OpcodeHandler& opHandler) {
 	const ScriptValue &nameArg = opHandler.arg(0);
 	if (nameArg.isString()) {
 		const char* name = nameArg.asString();
@@ -150,13 +150,13 @@ static void _stdcall HandleMetarule() {
 			// shift function name away, so argument #0 will correspond to actual first argument of function
 			// this allows to use the same handlers for opcodes and metarule functions
 			opHandler.setArgShift(1);
-			if (ValidateMetaruleArguments(currentMetarule)) {
-				currentMetarule->func();
+			if (ValidateMetaruleArguments(opHandler, currentMetarule)) {
+				currentMetarule->func(opHandler);
 			}
 		} else {
 			opHandler.printOpcodeError("sfall_funcX(name, ...) - name '%s' is unknown.", name);
 		}
-	} else {		
+	} else {
 		opHandler.printOpcodeError("sfall_funcX(name, ...) - name must be string.");
 	}
 }

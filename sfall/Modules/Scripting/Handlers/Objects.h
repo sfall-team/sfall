@@ -34,7 +34,7 @@ void __declspec() op_set_script();
 
 void __declspec() op_create_spatial();
 
-void sf_spatial_radius();
+void sf_spatial_radius(OpcodeHandler& opHandler);
 
 void __declspec() op_get_script();
 
@@ -62,4 +62,4 @@ void __declspec() op_art_exists();
 
 void __declspec() op_obj_is_carrying_obj();
 
-void sf_critter_inven_obj2();
+void sf_critter_inven_obj2(OpcodeHandler& opHandler);

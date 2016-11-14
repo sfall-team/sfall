@@ -79,9 +79,6 @@ sScriptProgram* GetGlobalScriptProgram(TProgram* scriptPtr);
 static char reg_anim_combat_check = 1;
 extern DWORD isGlobalScriptLoading;
 
-// TODO: get rid of this global variable
-extern OpcodeHandler opHandler;
-
 // types for script variables
 #define VAR_TYPE_INT    (0xC001)
 #define VAR_TYPE_FLOAT  (0xA001)

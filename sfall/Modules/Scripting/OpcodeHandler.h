@@ -1,20 +1,20 @@
 /*
-* sfall
-* Copyright (C) 2008-2016 The sfall team
-*
-* This program is free software: you can redistribute it and/or modify
-* it under the terms of the GNU General Public License as published by
-* the Free Software Foundation, either version 3 of the License, or
-* (at your option) any later version.
-*
-* This program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-* GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License
-* along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
+ *    sfall
+ *    Copyright (C) 2008-2016  The sfall team
+ *
+ *    This program is free software: you can redistribute it and/or modify
+ *    it under the terms of the GNU General Public License as published by
+ *    the Free Software Foundation, either version 3 of the License, or
+ *    (at your option) any later version.
+ *
+ *    This program is distributed in the hope that it will be useful,
+ *    but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *    GNU General Public License for more details.
+ *
+ *    You should have received a copy of the GNU General Public License
+ *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 
 #pragma once
 
@@ -34,11 +34,13 @@
 #define DATATYPE_MASK_NOT_NULL	(0x00010000)
 #define DATATYPE_MASK_VALID_OBJ	(DATATYPE_MASK_INT | DATATYPE_MASK_NOT_NULL)
 
+class OpcodeHandler;
 
+typedef void(*ScriptingFunctionHandler)(OpcodeHandler&);
 
 struct SfallOpcodeMetadata {
 	// opcode handler, will be used as key
-	void (*handler)();
+	ScriptingFunctionHandler handler;
 
 	// opcode name, only used for logging
 	const char* name;
@@ -47,7 +49,7 @@ struct SfallOpcodeMetadata {
 	int argTypeMasks[OP_MAX_ARGUMENTS];
 };
 
-typedef std::tr1::unordered_map<void(*)(), const SfallOpcodeMetadata*> OpcodeMetaTableType;
+typedef std::tr1::unordered_map<ScriptingFunctionHandler, const SfallOpcodeMetadata*> OpcodeMetaTableType;
 
 class OpcodeHandler {
 public:
@@ -91,16 +93,24 @@ public:
 	bool validateArguments(const int argTypeMasks[], int argCount, const char* opcodeName) const;
 
 	// validate opcode arguments given opcode handler function and actual number of arguments
-	bool validateArguments(void (*func)(), int argNum) const;
+	bool validateArguments(ScriptingFunctionHandler func, int argNum) const;
 
 	// Handle opcodes
-	// scriptPtr - pointer to script program (from the engine)
+	// program - pointer to script program (from the engine)
 	// func - opcode handler
+	// argNum - number of arguments
 	// hasReturn - true if opcode has return value (is expression)
-	void __thiscall handleOpcode(TProgram* program, void(*func)(), int argNum, bool hasReturn);
+	void handleOpcode(TProgram* program, ScriptingFunctionHandler func, int argNum, bool hasReturn);
+
+	static OpcodeHandler& defaultInstance();
+
+	// handles opcode using default instance
+	static void __stdcall handleOpcodeStatic(TProgram* program, ScriptingFunctionHandler func, int argNum, bool hasReturn);
 
 	static const char* getSfallTypeName(DWORD dataType);
+
 	static DWORD getSfallTypeByScriptType(DWORD varType);
+
 	static DWORD getScriptTypeBySfallType(DWORD dataType);
 
 private:
@@ -110,4 +120,6 @@ private:
 	std::vector<ScriptValue> _args;
 	ScriptValue _ret;
 	OpcodeMetaTableType _opcodeMetaTable;
+
+	static OpcodeHandler _defaultInstance;
 };

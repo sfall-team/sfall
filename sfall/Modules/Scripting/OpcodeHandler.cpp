@@ -23,6 +23,9 @@
 
 #include "OpcodeHandler.h"
 
+
+OpcodeHandler OpcodeHandler::_defaultInstance;
+
 OpcodeHandler::OpcodeHandler() {
 	_argShift = 0;
 	_args.reserve (OP_MAX_ARGUMENTS);
@@ -54,7 +57,7 @@ TProgram* OpcodeHandler::program() const {
 	return _program;
 }
 
-void OpcodeHandler::setReturn(DWORD value, SfallDataType type) {
+void OpcodeHandler::setReturn(unsigned long value, SfallDataType type) {
 	_ret = ScriptValue(type, value);
 }
 
@@ -86,7 +89,7 @@ void OpcodeHandler::printOpcodeError(const char* fmt, ...) const {
 	Wrapper::debug_printf("\nOPCODE ERROR: %s\n   Current script: %s, procedure %s.", msg, _program->fileName, procName);
 }
 
-bool OpcodeHandler::validateArguments(void (*func)(), int argNum) const {
+bool OpcodeHandler::validateArguments(ScriptingFunctionHandler func, int argNum) const {
 	OpcodeMetaTableType::const_iterator it = _opcodeMetaTable.find(func);
 	if (it != _opcodeMetaTable.end()) {
 		const SfallOpcodeMetadata* meta = it->second;
@@ -121,7 +124,7 @@ bool OpcodeHandler::validateArguments(const int argTypeMasks[], int argCount, co
 	return true;
 }
 
-void __thiscall OpcodeHandler::handleOpcode(TProgram* program, void(*func)(), int argNum, bool hasReturn) {
+void OpcodeHandler::handleOpcode(TProgram* program, ScriptingFunctionHandler func, int argNum, bool hasReturn) {
 	assert(argNum < OP_MAX_ARGUMENTS);
 
 	// reset state after previous
@@ -144,7 +147,7 @@ void __thiscall OpcodeHandler::handleOpcode(TProgram* program, void(*func)(), in
 
 	// call opcode handler if arguments are valid (or no automatic validation was done)
 	if (validateArguments(func, argNum)) {
-		func();
+		func(*this);
 	}
 
 	// process return value
@@ -160,6 +163,14 @@ void __thiscall OpcodeHandler::handleOpcode(TProgram* program, void(*func)(), in
 		Wrapper::interpretPushLong(program, rawResult);
 		Wrapper::interpretPushShort(program, getScriptTypeBySfallType(_ret.type()));
 	}
+}
+
+OpcodeHandler& OpcodeHandler::defaultInstance() {
+	return _defaultInstance;
+}
+
+void __stdcall OpcodeHandler::handleOpcodeStatic(TProgram* program, ScriptingFunctionHandler func, int argNum, bool hasReturn) {
+	defaultInstance().handleOpcode(program, func, argNum, hasReturn);
 }
 
 void OpcodeHandler::addOpcodeMetaData(const SfallOpcodeMetadata* data) {

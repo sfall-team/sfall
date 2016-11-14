@@ -148,4 +148,4 @@ void __declspec() op_sneak_success();
 
 void __declspec() op_tile_light();
 
-void sf_exec_map_update_scripts();
+void sf_exec_map_update_scripts(OpcodeHandler&);

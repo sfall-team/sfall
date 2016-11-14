@@ -111,7 +111,7 @@ end:
 	}
 }
 
-void _stdcall CreateSpatial() {
+void sf_create_spatial(OpcodeHandler& opHandler) {
 	DWORD scriptIndex = opHandler.arg(0).asInt(),
 		tile = opHandler.arg(1).asInt(),
 		elevation = opHandler.arg(2).asInt(),
@@ -152,10 +152,10 @@ void _stdcall CreateSpatial() {
 }
 
 void __declspec(naked) op_create_spatial() {
-	_WRAP_OPCODE(CreateSpatial, 4, 1)
+	_WRAP_OPCODE(sf_create_spatial, 4, 1)
 }
 
-void sf_spatial_radius() {
+void sf_spatial_radius(OpcodeHandler& opHandler) {
 	TGameObj* spatialObj = opHandler.arg(0).asObject();
 	TScript* script;
 	if (Wrapper::scr_ptr(spatialObj->scriptID, &script) != -1) {
@@ -377,7 +377,7 @@ static DWORD getBlockingFunc(DWORD type) {
 	}
 }
 
-void _stdcall sf_make_straight_path() {
+void sf_make_straight_path(OpcodeHandler& opHandler) {
 	DWORD objFrom = opHandler.arg(0).asInt(),
 		tileTo = opHandler.arg(1).asInt(),
 		type = opHandler.arg(2).asInt(),
@@ -391,7 +391,7 @@ void __declspec(naked) op_make_straight_path() {
 	_WRAP_OPCODE(sf_make_straight_path, 3, 1)
 }
 
-static void _stdcall sf_make_path() {
+static void sf_make_path(OpcodeHandler& opHandler) {
 	DWORD objFrom = opHandler.arg(0).asInt(),
 		tileFrom = 0,
 		tileTo = opHandler.arg(1).asInt(),
@@ -427,7 +427,7 @@ void __declspec(naked) op_make_path() {
 	_WRAP_OPCODE(sf_make_path, 3, 1)
 }
 
-static void _stdcall sf_obj_blocking_at() {
+static void sf_obj_blocking_at(OpcodeHandler& opHandler) {
 	DWORD tile = opHandler.arg(0).asInt(),
 		elevation = opHandler.arg(1).asInt(),
 		type = opHandler.arg(2).asInt(),
@@ -444,7 +444,7 @@ void __declspec(naked) op_obj_blocking_at() {
 	_WRAP_OPCODE(sf_obj_blocking_at, 3, 1)
 }
 
-static void _stdcall sf_tile_get_objects() {
+static void sf_tile_get_objects(OpcodeHandler& opHandler) {
 	DWORD tile = opHandler.arg(0).asInt(),
 		elevation = opHandler.arg(1).asInt(),
 		obj;
@@ -469,7 +469,7 @@ void __declspec(naked) op_tile_get_objects() {
 	_WRAP_OPCODE(sf_tile_get_objects, 2, 1)
 }
 
-static void _stdcall sf_get_party_members() {
+static void sf_get_party_members(OpcodeHandler& opHandler) {
 	DWORD obj, mode = opHandler.arg(0).asInt(), isDead;
 	int i, actualCount = VarPtr::partyMemberCount;
 	DWORD arrayId = TempArray(0, 4);
@@ -514,7 +514,7 @@ end:
 	_OP_END
 }
 
-static void _stdcall sf_obj_is_carrying_obj() {
+static void sf_obj_is_carrying_obj(OpcodeHandler& opHandler) {
 	int num = 0;
 	const ScriptValue &invenObjArg = opHandler.arg(0),
 		&itemObjArg = opHandler.arg(1);
@@ -538,7 +538,7 @@ void __declspec(naked) op_obj_is_carrying_obj() {
 	_WRAP_OPCODE(sf_obj_is_carrying_obj, 2, 1)
 }
 
-void sf_critter_inven_obj2() {
+void sf_critter_inven_obj2(OpcodeHandler& opHandler) {
 	TGameObj* critter = opHandler.arg(0).asObject();
 	int slot = opHandler.arg(1).asInt();
 	switch (slot) {

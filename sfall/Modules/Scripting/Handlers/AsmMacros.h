@@ -142,13 +142,21 @@ __asm resultnotstr##num:				\
 /* 
 	better way of handling new opcodes: 
 	- no ASM code required
-	- all type checks should be done in the wrapped C-function
+	- all type checks should be done in the wrapped C-function (or optionally using OpcodeMetaArray)
 	- use opArgs, opArgTypes to access arguments
 	- use opRet, opRetType to set return value
 
 	func - C-function to call (should not have arguments)
 	argnum - number of opcode arguments
 	isExpression - 1 if opcode has return value, 0 otherwise
+
+
+	TODO: get rid of this, there is even better way:
+	- single ASM handler for all new opcodes
+	- it will check opcode ID against OpcodeMetaArray: validate arguments if necessary, call sf_* handler
+	Benefits:
+	- each opcode will be defined in single place along with validation info and other data
+	- no need for ASM handlers for each opcode (op_* functions)
 */
 #define _WRAP_OPCODE(func, argnum, isExpression) __asm { \
 	__asm pushad					\
@@ -156,8 +164,7 @@ __asm resultnotstr##num:				\
 	__asm push argnum				\
 	__asm push func					\
 	__asm push eax					\
-	__asm lea ecx, opHandler		\
-	__asm call OpcodeHandler::handleOpcode	\
+	__asm call OpcodeHandler::handleOpcodeStatic \
 	__asm popad						\
 	__asm retn						\
 }
