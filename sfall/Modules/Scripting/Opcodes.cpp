@@ -1,30 +1,28 @@
 /*
-	* sfall
-	* Copyright (C) 2008-2016 The sfall team
-	*
-	* This program is free software: you can redistribute it and/or modify
-	* it under the terms of the GNU General Public License as published by
-	* the Free Software Foundation, either version 3 of the License, or
-	* (at your option) any later version.
-	*
-	* This program is distributed in the hope that it will be useful,
-	* but WITHOUT ANY WARRANTY; without even the implied warranty of
-	* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-	* GNU General Public License for more details.
-	*
-	* You should have received a copy of the GNU General Public License
-	* along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
+ *    sfall
+ *    Copyright (C) 2008-2016  The sfall team
+ *
+ *    This program is free software: you can redistribute it and/or modify
+ *    it under the terms of the GNU General Public License as published by
+ *    the Free Software Foundation, either version 3 of the License, or
+ *    (at your option) any later version.
+ *
+ *    This program is distributed in the hope that it will be useful,
+ *    but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *    GNU General Public License for more details.
+ *
+ *    You should have received a copy of the GNU General Public License
+ *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 
-//
-// Everything related to new sfall opcodes.
-//
 
 #include "..\KillCounter.h"
 
 #include "Handlers\AsmMacros.h"
 #include "Handlers\Anims.h"
 #include "Handlers\Arrays.h"
+#include "Handlers\Core.h"
 #include "Handlers\FileSystem.h"
 #include "Handlers\Graphics.h"
 #include "Handlers\Interface.h"
@@ -37,464 +35,40 @@
 #include "Handlers\Worldmap.h"
 #include "Handlers\Metarule.h"
 
-// TODO: move global-script related code into separate file
-static void _stdcall SetGlobalScriptRepeat2(TProgram* script, int frames) {
-	for (DWORD d = 0; d < globalScripts.size(); d++) {
-		if (globalScripts[d].prog.ptr == script) {
-			if (frames == -1) {
-				globalScripts[d].mode = !globalScripts[d].mode;
-			} else {
-				globalScripts[d].repeat = frames;
-			}
-			break;
-		}
+#include "Opcodes.h"
+
+
+static void* opcodes[0x300];
+
+/*
+	Array for opcodes metadata.
+
+	This is completely optional, added for convenience only.
+
+	By adding opcode to this array, Sfall will automatically validate it's arguments using provided info.
+	On fail, errors will be printed to debug.log and opcode will not be executed.
+	If you don't include opcode in this array, you should take care of all argument validation inside handler itself.
+*/
+static const SfallOpcodeMetadata opcodeMetaArray[] = {
+	{sf_register_hook, "register_hook[_proc]", {DATATYPE_MASK_INT, DATATYPE_MASK_INT}},
+	{sf_test, "validate_test", {DATATYPE_MASK_INT, DATATYPE_MASK_INT | DATATYPE_MASK_FLOAT, DATATYPE_MASK_STR, DATATYPE_NONE}},
+	{sf_spatial_radius, "spatial_radius", {DATATYPE_MASK_VALID_OBJ}},
+	{sf_critter_inven_obj2, "critter_inven_obj2", {DATATYPE_MASK_VALID_OBJ, DATATYPE_MASK_INT}},
+	//{op_message_str_game, {}}
+};
+
+void InitOpcodeMetaTable() {
+	int length = sizeof(opcodeMetaArray) / sizeof(SfallOpcodeMetadata);
+	OpcodeContext& opHandler = OpcodeContext::defaultInstance();
+	for (int i = 0; i < length; ++i) {
+		opHandler.addOpcodeMetaData(&opcodeMetaArray[i]);
 	}
 }
-
-static void __declspec(naked) op_set_global_script_repeat() {
-	__asm {
-		push ebx;
-		push ecx;
-		push edx;
-		mov ecx, eax;
-		call FuncOffs::interpretPopShort_;
-		mov edx, eax;
-		mov eax, ecx;
-		call FuncOffs::interpretPopLong_;
-		cmp dx, 0xC001;
-		jnz end;
-		push eax;
-		push ecx;
-		call SetGlobalScriptRepeat2;
-end:
-		pop edx;
-		pop ecx;
-		pop ebx;
-		retn;
-	}
-}
-
-static void _stdcall SetGlobalScriptType2(TProgram* script, int type) {
-	if (type <= 3) {
-		for (size_t d = 0; d < globalScripts.size(); d++) {
-			if (globalScripts[d].prog.ptr == script) {
-				globalScripts[d].mode = type;
-				break;
-			}
-		}
-	}
-}
-
-static void __declspec(naked) op_set_global_script_type() {
-	__asm {
-		push ebx;
-		push ecx;
-		push edx;
-		mov ecx, eax;
-		call FuncOffs::interpretPopShort_;
-		mov edx, eax;
-		mov eax, ecx;
-		call FuncOffs::interpretPopLong_;
-		cmp dx, 0xC001;
-		jnz end;
-		push eax;
-		push ecx;
-		call SetGlobalScriptType2;
-end:
-		pop edx;
-		pop ecx;
-		pop ebx;
-		retn;
-	}
-}
-
-static void __declspec(naked) op_available_global_script_types() {
-	__asm {
-		push ebx;
-		push ecx;
-		push edx;
-		mov edx, AvailableGlobalScriptTypes;
-		mov ecx, eax;
-		call FuncOffs::interpretPushLong_;
-		mov edx, 0xc001;
-		mov eax, ecx;
-		call FuncOffs::interpretPushShort_;
-		pop edx;
-		pop ecx;
-		pop ebx;
-		retn;
-	}
-}
-
-static void SetGlobalVarInternal(__int64 var, int val) {
-	glob_itr itr = globalVars.find(var);
-	if (itr == globalVars.end()) {
-		globalVars.insert(glob_pair(var, val));
-	} else {
-		if (val == 0) {
-			globalVars.erase(itr);    // applies for both float 0.0 and integer 0
-		} else {
-			itr->second = val;
-		}
-	}
-}
-
-static void _stdcall SetGlobalVar2(const char* var, int val) {
-	if (strlen(var) != 8) {
-		return;
-	}
-	SetGlobalVarInternal(*(__int64*)var, val);
-}
-
-static void _stdcall SetGlobalVar2Int(DWORD var, int val) {
-	SetGlobalVarInternal(var, val);
-}
-
-static void __declspec(naked) op_set_sfall_global() {
-	__asm {
-		push ebx;
-		push ecx;
-		push edx;
-		push edi;
-		push esi;
-		mov edi, eax;
-		call FuncOffs::interpretPopShort_;
-		mov eax, edi;
-		call FuncOffs::interpretPopLong_;
-		mov esi, eax;
-		mov eax, edi;
-		call FuncOffs::interpretPopShort_;
-		mov edx, eax;
-		mov eax, edi;
-		call FuncOffs::interpretPopLong_;
-		cmp dx, 0x9001;
-		jz next;
-		cmp dx, 0x9801;
-		jz next;
-		cmp dx, 0xc001;
-		jnz end;
-		push esi;
-		push eax;
-		call SetGlobalVar2Int;
-		jmp end;
-next:
-		mov ebx, eax;
-		mov eax, edi;
-		call FuncOffs::interpretGetString_;
-		push esi;
-		push eax;
-		call SetGlobalVar2;
-end:
-		pop esi;
-		pop edi;
-		pop edx;
-		pop ecx;
-		pop ebx;
-		retn;
-	}
-}
-
-static DWORD GetGlobalVarInternal(__int64 val) {
-	glob_citr itr = globalVars.find(val);
-	if (itr == globalVars.end()) {
-		return 0;
-	} else {
-		return itr->second;
-	}
-}
-
-static DWORD _stdcall GetGlobalVar2(const char* var) {
-	if (strlen(var) != 8) {
-		return 0;
-	}
-	return GetGlobalVarInternal(*(__int64*)var);
-}
-
-static DWORD _stdcall GetGlobalVar2Int(DWORD var) {
-	return GetGlobalVarInternal(var);
-}
-
-static void __declspec(naked) op_get_sfall_global_int() {
-	__asm {
-		push ebx;
-		push ecx;
-		push edx;
-		push edi;
-		push esi;
-		xor edx, edx;
-		mov edi, eax;
-		call FuncOffs::interpretPopShort_;
-		mov esi, eax;
-		mov eax, edi;
-		call FuncOffs::interpretPopLong_;
-		cmp si, 0x9001;
-		jz next;
-		cmp si, 0x9801;
-		jz next;
-		cmp si, 0xc001;
-		jnz end;
-		push eax;
-		call GetGlobalVar2Int;
-		mov edx, eax;
-		jmp end;
-next:
-		mov edx, esi;
-		mov ebx, eax;
-		mov eax, edi;
-		call FuncOffs::interpretGetString_;
-		push eax;
-		call GetGlobalVar2;
-		mov edx, eax;
-end:
-		mov eax, edi;
-		call FuncOffs::interpretPushLong_;
-		mov edx, 0xc001;
-		mov eax, edi;
-		call FuncOffs::interpretPushShort_;
-		pop esi;
-		pop edi;
-		pop edx;
-		pop ecx;
-		pop ebx;
-		retn;
-	}
-}
-
-static void __declspec(naked) op_get_sfall_global_float() {
-	__asm {
-		push ebx;
-		push ecx;
-		push edx;
-		push edi;
-		push esi;
-		xor edx, edx;
-		mov edi, eax;
-		call FuncOffs::interpretPopShort_;
-		mov esi, eax;
-		mov eax, edi;
-		call FuncOffs::interpretPopLong_;
-		cmp si, 0x9001;
-		jz next;
-		cmp si, 0x9801;
-		jz next;
-		cmp si, 0xc001;
-		jnz end;
-		push eax;
-		call GetGlobalVar2Int;
-		mov edx, eax;
-		jmp end;
-next:
-		mov edx, esi;
-		mov ebx, eax;
-		mov eax, edi;
-		call FuncOffs::interpretGetString_;
-		push eax;
-		call GetGlobalVar2;
-		mov edx, eax;
-end:
-		mov eax, edi;
-		call FuncOffs::interpretPushLong_;
-		mov edx, 0xa001;
-		mov eax, edi;
-		call FuncOffs::interpretPushShort_;
-		pop esi;
-		pop edi;
-		pop edx;
-		pop ecx;
-		pop ebx;
-		retn;
-	}
-}
-
-static void __declspec(naked) op_get_sfall_arg() {
-	__asm {
-		pushad;
-		push eax;
-		call GetHSArg;
-		pop ecx;
-		mov edx, eax;
-		mov eax, ecx;
-		call FuncOffs::interpretPushLong_;
-		mov eax, ecx;
-		mov edx, 0xc001;
-		call FuncOffs::interpretPushShort_;
-		popad;
-		retn;
-	}
-}
-
-static DWORD _stdcall GetSfallArgs2() {
-	DWORD argCount = GetHSArgCount();
-	DWORD id = TempArray(argCount, 4);
-	DWORD* args = GetHSArgs();
-	for (DWORD i = 0; i < argCount; i++) {
-		arrays[id].val[i].set(*(long*)&args[i]);
-	}
-	return id;
-}
-
-static void __declspec(naked) op_get_sfall_args() {
-	__asm {
-		pushad;
-		push eax;
-		call GetSfallArgs2;
-		pop ecx;
-		mov edx, eax;
-		mov eax, ecx;
-		call FuncOffs::interpretPushLong_;
-		mov eax, ecx;
-		mov edx, 0xc001;
-		call FuncOffs::interpretPushShort_;
-		popad;
-		retn;
-	}
-}
-
-static void __declspec(naked) op_set_sfall_arg() {
-	__asm {
-		pushad;
-		mov ecx, eax;
-		call FuncOffs::interpretPopShort_;
-		mov edi, eax;
-		mov eax, ecx;
-		call FuncOffs::interpretPopLong_;
-		mov edx, eax;
-		mov eax, ecx;
-		call FuncOffs::interpretPopShort_;
-		mov esi, eax;
-		mov eax, ecx;
-		call FuncOffs::interpretPopLong_;
-		cmp di, 0xc001;
-		jnz end;
-		cmp si, 0xc001;
-		jnz end;
-		push edx;
-		push eax;
-		call SetHSArg;
-end:
-		popad;
-		retn;
-	}
-}
-
-static void __declspec(naked) op_set_sfall_return() {
-	__asm {
-		push ebx;
-		push ecx;
-		push edx;
-		mov ecx, eax;
-		call FuncOffs::interpretPopShort_;
-		mov edx, eax;
-		mov eax, ecx;
-		call FuncOffs::interpretPopLong_;
-		cmp dx, 0xc001;
-		jnz end;
-		push eax;
-		call SetHSReturn;
-end:
-		pop edx;
-		pop ecx;
-		pop ebx;
-		retn;
-	}
-}
-
-static void __declspec(naked) op_init_hook() {
-	__asm {
-		push ecx;
-		push edx;
-		mov ecx, eax;
-		mov edx, InitingHookScripts;
-		call FuncOffs::interpretPushLong_;
-		mov eax, ecx;
-		mov edx, 0xc001;
-		call FuncOffs::interpretPushShort_;
-		pop edx;
-		pop ecx;
-		retn;
-	}
-}
-
-static void _stdcall set_self2(TProgram* script, TGameObj* obj) {
-	if (obj) {
-		selfOverrideMap[script] = obj;
-	} else {
-		stdext::hash_map<TProgram*, TGameObj*>::iterator it = selfOverrideMap.find(script);
-		if (it != selfOverrideMap.end()) {
-			selfOverrideMap.erase(it);
-		}
-	}
-}
-
-static void __declspec(naked) op_set_self() {
-	__asm {
-		pushad;
-		mov ebp, eax;
-		call FuncOffs::interpretPopShort_;
-		mov edi, eax;
-		mov eax, ebp;
-		call FuncOffs::interpretPopLong_;
-		cmp di, 0xc001;
-		jnz end;
-		push eax;
-		push ebp;
-		call set_self2;
-end:
-		popad;
-		retn;
-	}
-}
-
-// used for both register_hook and register_hook_proc
-static void sf_register_hook(OpcodeContext& opHandler) {
-	int id = opHandler.arg(0).asInt();
-	int proc = (opHandler.numArgs() > 1)
-		? opHandler.arg(1).asInt()
-		: -1;
-
-	RegisterHook(opHandler.program(), id, proc);
-}
-
-static void __declspec(naked) op_register_hook() {
-	_WRAP_OPCODE(sf_register_hook, 1, 0)
-}
-
-static void __declspec(naked) register_hook_proc() {
-	_WRAP_OPCODE(sf_register_hook, 2, 0)
-}
-
-static void __declspec(naked) op_sfall_ver_major() {
-	_OP_BEGIN(ebp)
-	__asm {
-		mov eax, VERSION_MAJOR;
-	}
-	_RET_VAL_INT(ebp)
-	_OP_END
-}
-
-static void __declspec(naked) op_sfall_ver_minor() {
-	_OP_BEGIN(ebp)
-	__asm {
-		mov eax, VERSION_MINOR;
-	}
-	_RET_VAL_INT(ebp)
-	_OP_END
-}
-
-static void __declspec(naked) op_sfall_ver_build() {
-	_OP_BEGIN(ebp)
-	__asm {
-		mov eax, VERSION_BUILD;
-	}
-	_RET_VAL_INT(ebp)
-	_OP_END
-}
-
 
 void InitNewOpcodes() {
 	bool AllowUnsafeScripting = IsDebug
 		&& GetPrivateProfileIntA("Debugging", "AllowUnsafeScripting", 0, ".\\ddraw.ini") != 0;
-	
+
 	dlogr("Adding additional opcodes", DL_SCRIPT);
 	if (AllowUnsafeScripting) {
 		dlogr("  Unsafe opcodes enabled", DL_SCRIPT);
@@ -765,7 +339,7 @@ void InitNewOpcodes() {
 	opcodes[0x25f] = op_reg_anim_take_out;
 	opcodes[0x260] = op_reg_anim_turn_towards;
 	opcodes[0x261] = op_explosions_metarule;
-	opcodes[0x262] = register_hook_proc;
+	opcodes[0x262] = op_register_hook_proc;
 	opcodes[0x263] = op_power;
 	opcodes[0x264] = op_log;
 	opcodes[0x265] = op_exponent;
@@ -793,29 +367,6 @@ void InitNewOpcodes() {
 	opcodes[0x27a] = op_sfall_metarule4;
 	opcodes[0x27b] = op_sfall_metarule5;
 	opcodes[0x27c] = op_sfall_metarule6; // if you need more arguments - use arrays
-}
 
-/*
-	Array for opcodes metadata.
-
-	This is completely optional, added for convenience only.
-
-	By adding opcode to this array, Sfall will automatically validate it's arguments using provided info.
-	On fail, errors will be printed to debug.log and opcode will not be executed.
-	If you don't include opcode in this array, you should take care of all argument validation inside handler itself.
-*/
-static const SfallOpcodeMetadata opcodeMetaArray[] = {
-	{sf_register_hook, "register_hook[_proc]", {DATATYPE_MASK_INT, DATATYPE_MASK_INT}},
-	{sf_test, "validate_test", {DATATYPE_MASK_INT, DATATYPE_MASK_INT | DATATYPE_MASK_FLOAT, DATATYPE_MASK_STR, DATATYPE_NONE}},
-	{sf_spatial_radius, "spatial_radius", {DATATYPE_MASK_VALID_OBJ}},
-	{sf_critter_inven_obj2, "critter_inven_obj2", {DATATYPE_MASK_VALID_OBJ, DATATYPE_MASK_INT}},
-	//{op_message_str_game, {}}
-};
-
-static void InitOpcodeMetaTable() {
-	int length = sizeof(opcodeMetaArray) / sizeof(SfallOpcodeMetadata);
-	OpcodeContext& opHandler = OpcodeContext::defaultInstance();
-	for (int i = 0; i < length; ++i) {
-		opHandler.addOpcodeMetaData(&opcodeMetaArray[i]);
-	}
+	InitOpcodeMetaTable();
 }

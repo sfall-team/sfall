@@ -1481,7 +1481,6 @@ end:
 	}
 }
 
-DWORD modifiedIni;
 void __declspec(naked) op_modified_ini() {
 	__asm {
 		pushad;

@@ -35,6 +35,8 @@ typedef struct {
 	char initialized;
 } sScriptProgram;
 
+void _stdcall SetGlobalScriptRepeat(TProgram* script, int frames);
+void _stdcall SetGlobalScriptType(TProgram* script, int type);
 void ScriptExtenderSetup();
 bool _stdcall IsGameScript(const char* filename);
 void LoadGlobalScripts();
@@ -53,6 +55,13 @@ void ClearGlobals();
 int GetNumGlobals();
 void GetGlobals(sGlobalVar* globals);
 void SetGlobals(sGlobalVar* globals);
+
+void _stdcall SetGlobalVar(const char* var, int val);
+void _stdcall SetGlobalVarInt(DWORD var, int val);
+DWORD _stdcall GetGlobalVar(const char* var);
+DWORD _stdcall GetGlobalVarInt(DWORD var);
+
+void _stdcall SetSelfObject(TProgram* script, TGameObj* obj);
 
 extern DWORD AddUnarmedStatToGetYear;
 extern DWORD AvailableGlobalScriptTypes;
@@ -78,6 +87,7 @@ sScriptProgram* GetGlobalScriptProgram(TProgram* scriptPtr);
 // variables
 static char reg_anim_combat_check = 1;
 extern DWORD isGlobalScriptLoading;
+extern DWORD modifiedIni;
 
 // types for script variables
 #define VAR_TYPE_INT    (0xC001)

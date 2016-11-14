@@ -168,9 +168,6 @@
     <ClInclude Include="Modules\Scripting\ScriptValue.h">
       <Filter>Modules\Scripting</Filter>
     </ClInclude>
-    <ClInclude Include="Modules\Scripting\Opcodes.hpp">
-      <Filter>Modules\Scripting</Filter>
-    </ClInclude>
     <ClInclude Include="Modules\Misc.h">
       <Filter>Modules</Filter>
     </ClInclude>
@@ -218,6 +215,12 @@
     </ClInclude>
     <ClInclude Include="CommonTypes.h" />
     <ClInclude Include="Modules\Scripting\OpcodeContext.h">
+      <Filter>Modules\Scripting</Filter>
+    </ClInclude>
+    <ClInclude Include="Modules\Scripting\Handlers\Core.h">
+      <Filter>Modules\Scripting\Handlers</Filter>
+    </ClInclude>
+    <ClInclude Include="Modules\Scripting\Opcodes.h">
       <Filter>Modules\Scripting</Filter>
     </ClInclude>
   </ItemGroup>
@@ -404,6 +407,8 @@
     <ClCompile Include="Modules\Scripting\OpcodeContext.cpp">
       <Filter>Modules\Scripting</Filter>
     </ClCompile>
+    <ClCompile Include="Modules\Scripting\Handlers\Core.cpp" />
+    <ClCompile Include="Modules\Scripting\Opcodes.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="version.rc" />

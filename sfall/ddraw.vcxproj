@@ -223,6 +223,7 @@
     <ClInclude Include="Modules\Scripting\Arrays.h" />
     <ClInclude Include="Modules\Scripting\Handlers\AsmMacros.h" />
     <ClInclude Include="CommonTypes.h" />
+    <ClInclude Include="Modules\Scripting\Handlers\Core.h" />
     <ClInclude Include="Modules\Scripting\Handlers\FileSystem.h" />
     <ClInclude Include="Modules\Scripting\Handlers\Graphics.h" />
     <ClInclude Include="Modules\Scripting\Handlers\Interface.h" />
@@ -231,7 +232,7 @@
     <ClInclude Include="Modules\Scripting\Handlers\Misc.h" />
     <ClInclude Include="Modules\Scripting\Handlers\Objects.h" />
     <ClInclude Include="Modules\Scripting\OpcodeContext.h" />
-    <ClInclude Include="Modules\Scripting\Opcodes.hpp" />
+    <ClInclude Include="Modules\Scripting\Opcodes.h" />
     <ClInclude Include="Modules\Scripting\Handlers\Perks.h" />
     <ClInclude Include="Modules\Scripting\Handlers\Arrays.h" />
     <ClInclude Include="Modules\Scripting\Handlers\Utils.h" />
@@ -319,6 +320,7 @@
     <ClCompile Include="Modules\Scripting\Arrays.cpp" />
     <ClCompile Include="Modules\Scripting\Handlers\Anims.cpp" />
     <ClCompile Include="Modules\Scripting\Handlers\Arrays.cpp" />
+    <ClCompile Include="Modules\Scripting\Handlers\Core.cpp" />
     <ClCompile Include="Modules\Scripting\Handlers\FileSystem.cpp" />
     <ClCompile Include="Modules\Scripting\Handlers\Graphics.cpp" />
     <ClCompile Include="Modules\Scripting\Handlers\Interface.cpp" />
@@ -331,6 +333,7 @@
     <ClCompile Include="Modules\Scripting\Handlers\Utils.cpp" />
     <ClCompile Include="Modules\Scripting\Handlers\Worldmap.cpp" />
     <ClCompile Include="Modules\Scripting\OpcodeContext.cpp" />
+    <ClCompile Include="Modules\Scripting\Opcodes.cpp" />
     <ClCompile Include="Modules\Scripting\ScriptValue.cpp" />
     <ClCompile Include="SafeWrite.cpp" />
     <ClCompile Include="Modules\Skills.cpp" />

@@ -18,8 +18,6 @@
 
 #pragma once
 
-extern DWORD modifiedIni;
-
 /*
  *	Misc operators
  */
