@@ -224,6 +224,22 @@ static void __declspec(naked) WorldMapEncPatch3() {
 	}
 }
 
+static DWORD WorldMapEncounterRate;
+static void __declspec(naked) wmWorldMapFunc_hook() {
+	__asm {
+		inc  dword ptr ds:[VARPTR_wmLastRndTime];
+		jmp  FuncOffs::wmPartyWalkingStep_;
+	}
+}
+
+static void __declspec(naked) wmRndEncounterOccurred_hack() {
+	__asm {
+		xor  ecx, ecx;
+		cmp  edx, WorldMapEncounterRate;
+		retn;
+	}
+}
+
 static void __declspec(naked) Combat_p_procFix() {
 	__asm {
 		push eax;
@@ -590,13 +606,10 @@ void ApplyWorldmapFpsPatch() {
 		}
 		if (GetPrivateProfileIntA("Misc", "WorldMapEncounterFix", 0, ini)) {
 			dlog("Applying world map encounter patch.", DL_INIT);
-			SafeWrite32(0x004bfee1, ((DWORD)&WorldMapEncPatch1) - 0x004bfee5);
-			SafeWrite32(0x004c0663, ((DWORD)&WorldMapEncPatch3) - 0x004c0667);//replaces 'call Difference(GetTickCount(), TicksSinceLastEncounter)'
-			SafeWrite16(0x004c0668, GetPrivateProfileIntA("Misc", "WorldMapEncounterRate", 5, ini)); //replaces cmp eax, 0x5dc with cmp eax, <rate>
-			SafeWrite16(0x004c0677, 0xE890); //nop, call relative. Replaces 'mov TicksSinceLastEncounter, ecx'
-			SafeWrite32(0x004c0679, ((DWORD)&WorldMapEncPatch2) - 0x004c067D);
-			SafeWrite8(0x004c232d, 0xb8);	//'mov eax, 0', replaces 'mov eax, GetTickCount()'
-			SafeWrite32(0x004c232e, 0);
+			WorldMapEncounterRate = GetPrivateProfileIntA("Misc", "WorldMapEncounterRate", 5, ini);
+			SafeWrite32(0x4C232D, 0x01EBC031);        // xor eax, eax; jmps 0x4C2332
+			HookCall(0x4BFEE0, &wmWorldMapFunc_hook);
+			MakeCall(0x4C0667, &wmRndEncounterOccurred_hack, false);
 			dlogr(" Done", DL_INIT);
 		}
 	}
