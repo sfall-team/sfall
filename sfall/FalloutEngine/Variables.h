@@ -55,6 +55,8 @@
 #define VARPTR_curr_pc_stat               0x6681AC
 #define VARPTR_curr_stack                 0x59E96C
 #define VARPTR_cursor_line                0x664514
+#define VARPTR_dialogue_state             0x518714
+#define VARPTR_dialogue_switch_mode       0x518718
 #define VARPTR_dialog_target              0x518848
 #define VARPTR_dialog_target_is_party     0x51884C
 #define VARPTR_drugInfoList               0x5191CC

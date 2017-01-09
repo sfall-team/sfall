@@ -838,6 +838,25 @@ end:
 	}
 }
 
+static void __declspec(naked) gdActivateBarter_hook() {
+	__asm {
+		call FuncOffs::gdialog_barter_pressed_
+		cmp  ds:[VARPTR_dialogue_state], ecx
+		jne  skip
+		cmp  ds:[VARPTR_dialogue_switch_mode], esi
+		je   end
+skip:
+		push ecx
+		push esi
+		push edi
+		push ebp
+		sub  esp, 0x18
+		push 0x44A5CC
+end:
+		retn
+	}
+}
+
 
 void BugsInit()
 {
@@ -1069,9 +1088,16 @@ void BugsInit()
 		dlogr(" Done", DL_INIT);
 	//}
 
-	//if (GetPrivateProfileIntA("Misc", "PrintToFileFix", 0, ini)) {
+	//if (GetPrivateProfileIntA("Misc", "PrintToFileFix", 1, ini)) {
 		dlog("Applying print to file fix.", DL_INIT);
 		MakeCall(0x4C67D4, &db_get_file_list_hack, false);
 		dlogr(" Done", DL_INIT);
 	//}
+
+	// Fix for display issues when calling gdialog_mod_barter with critters with no "Barter" flag set
+	if (GetPrivateProfileIntA("Misc", "gdBarterDispFix", 1, ini)) {
+		dlog("Applying gdialog_mod_barter display fix.", DL_INIT);
+		HookCall(0x448250, &gdActivateBarter_hook);
+		dlogr(" Done", DL_INIT);
+	}
 }
