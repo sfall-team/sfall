@@ -41,25 +41,31 @@
 #include "SuperSave.h"
 #include "version.h"
 
-#define MAX_GLOBAL_SIZE (MaxGlobalVars*12 + 4)
+#define MAX_GLOBAL_SIZE (MaxGlobalVars * 12 + 4)
 
-static DWORD InLoop=0;
+static DWORD InLoop = 0;
 static DWORD SaveInCombatFix;
 
-DWORD InWorldMap() { return (InLoop&WORLDMAP)?1:0; }
-DWORD InCombat()   { return (InLoop&COMBAT)?1:0;   }
-DWORD GetCurrentLoops() { return InLoop; }
+DWORD InWorldMap() {
+	return (InLoop&WORLDMAP) ? 1 : 0;
+}
+DWORD InCombat() {
+	return (InLoop&COMBAT) ? 1 : 0;
+}
+DWORD GetCurrentLoops() {
+	return InLoop;
+}
 
 static void _stdcall ResetState(DWORD onLoad) {
-	if(!onLoad) FileSystemReset();
+	if (!onLoad) FileSystemReset();
 	ClearGlobalScripts();
 	ClearGlobals();
 	ForceGraphicsRefresh(0);
 	WipeSounds();
-	if(GraphicsMode>3) graphics_OnGameLoad();
+	if (GraphicsMode > 3) graphics_OnGameLoad();
 	Knockback_OnGameLoad();
 	Skills_OnGameLoad();
-	InLoop=0;
+	InLoop = 0;
 	PerksReset();
 	InventoryReset();
 	RegAnimCombatCheck(1);
@@ -143,8 +149,7 @@ static void __declspec(naked) SaveGame() {
 		mov eax, edx;
 
 		or InLoop, SAVEGAME;
-		mov ebx, 0x0047B88C;
-		call ebx;
+		call SaveGame_;
 		and InLoop, (-1^SAVEGAME);
 		cmp eax, 1;
 		jne end;
@@ -161,7 +166,7 @@ end:
 // should be called before savegame is loaded
 static void _stdcall LoadGame2_Before() {
 	ResetState(1);
-	
+
 	char buf[MAX_PATH];
 	GetSavePath(buf, "gv");
 
@@ -276,6 +281,7 @@ static void __declspec(naked) MainMenu() {
 		retn;
 	}
 }
+
 static void __declspec(naked) WorldMapHook() {
 	__asm {
 		or InLoop, WORLDMAP;
@@ -285,6 +291,7 @@ static void __declspec(naked) WorldMapHook() {
 		retn;
 	}
 }
+
 static void __declspec(naked) WorldMapHook2() {
 	__asm {
 		or InLoop, WORLDMAP;
@@ -293,6 +300,7 @@ static void __declspec(naked) WorldMapHook2() {
 		retn;
 	}
 }
+
 static void __declspec(naked) CombatHook() {
 	__asm {
 		pushad;
@@ -307,6 +315,7 @@ static void __declspec(naked) CombatHook() {
 		retn;
 	}
 }
+
 static void __declspec(naked) PlayerCombatHook() {
 	__asm {
 		or InLoop, PCOMBAT;
@@ -315,6 +324,7 @@ static void __declspec(naked) PlayerCombatHook() {
 		retn;
 	}
 }
+
 static void __declspec(naked) EscMenuHook() {
 	__asm {
 		or InLoop, ESCMENU;
@@ -323,6 +333,7 @@ static void __declspec(naked) EscMenuHook() {
 		retn;
 	}
 }
+
 static void __declspec(naked) EscMenuHook2() {
 	//Bloody stupid watcom compiler optimizations...
 	__asm {
@@ -332,6 +343,7 @@ static void __declspec(naked) EscMenuHook2() {
 		retn;
 	}
 }
+
 static void __declspec(naked) OptionsMenuHook() {
 	__asm {
 		or InLoop, OPTIONS;
@@ -340,6 +352,7 @@ static void __declspec(naked) OptionsMenuHook() {
 		retn;
 	}
 }
+
 static void __declspec(naked) HelpMenuHook() {
 	__asm {
 		or InLoop, HELP;
@@ -348,6 +361,7 @@ static void __declspec(naked) HelpMenuHook() {
 		retn;
 	}
 }
+
 static void __declspec(naked) CharacterHook() {
 	__asm {
 		or InLoop, CHARSCREEN;
@@ -368,6 +382,7 @@ end:
 		retn;
 	}
 }
+
 static void __declspec(naked) DialogHook() {
 	__asm {
 		or InLoop, DIALOG;
@@ -376,6 +391,7 @@ static void __declspec(naked) DialogHook() {
 		retn;
 	}
 }
+
 static void __declspec(naked) PipboyHook() {
 	__asm {
 		or InLoop, PIPBOY;
@@ -384,6 +400,7 @@ static void __declspec(naked) PipboyHook() {
 		retn;
 	}
 }
+
 static void __declspec(naked) SkilldexHook() {
 	__asm {
 		or InLoop, SKILLDEX;
@@ -392,6 +409,7 @@ static void __declspec(naked) SkilldexHook() {
 		retn;
 	}
 }
+
 static void __declspec(naked) InventoryHook() {
 	__asm {
 		or InLoop, INVENTORY;
@@ -400,6 +418,7 @@ static void __declspec(naked) InventoryHook() {
 		retn;
 	}
 }
+
 static void __declspec(naked) AutomapHook() {
 	__asm {
 		or InLoop, AUTOMAP;
@@ -440,7 +459,7 @@ void LoadGameHookInit() {
 	HookCall(0x443AAC, SaveGame);
 	HookCall(0x443B1C, SaveGame);
 	HookCall(0x48FCFF, SaveGame);
-	
+
 	HookCall(0x480A28, MainMenu);
 
 	HookCall(0x483668, WorldMapHook);
