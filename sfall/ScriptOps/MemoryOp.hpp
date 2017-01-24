@@ -289,11 +289,11 @@ legal:
 		args[0]=0;
 	} else {
 		__asm {
-			mov eax, args[1];
-			mov edx, args[2];
-			mov ebx, args[3];
-			mov ecx, args[4];
-			mov edi, args[0];
+			mov eax, args[4];  // args[1]
+			mov edx, args[8];  // args[2]
+			mov ebx, args[12]; // args[3]
+			mov ecx, args[16]; // args[4]
+			mov edi, args[0];  // args[0]
 			call edi;
 			mov args[0], eax;
 		}
