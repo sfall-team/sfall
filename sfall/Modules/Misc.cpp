@@ -617,19 +617,19 @@ void ApplyWorldmapFpsPatch() {
 
 void ApplyStartingStatePatches() {
 	int date = GetPrivateProfileInt("Misc", "StartYear", -1, ini);
-	if (date != -1) {
+	if (date > 0) {
 		dlog("Applying starting year patch.", DL_INIT);
 		SafeWrite32(0x4A336C, date);
 		dlogr(" Done", DL_INIT);
 	}
 	date = GetPrivateProfileInt("Misc", "StartMonth", -1, ini);
-	if (date != -1) {
+	if (date >= 0 && date < 12) {
 		dlog("Applying starting month patch.", DL_INIT);
 		SafeWrite32(0x4A3382, date);
 		dlogr(" Done", DL_INIT);
 	}
 	date = GetPrivateProfileInt("Misc", "StartDay", -1, ini);
-	if (date != -1) {
+	if (date >= 0 && date < 31) {
 		dlog("Applying starting day patch.", DL_INIT);
 		SafeWrite8(0x4A3356, date);
 		dlogr(" Done", DL_INIT);
