@@ -976,12 +976,14 @@ static void DllMain2() {
 		SafeWrite32(0x4A336C, date);
 		dlogr(" Done", DL_INIT);
 	}
+
 	date = GetPrivateProfileInt("Misc", "StartMonth", -1, ini);
 	if (date >= 0 && date < 12) {
 		dlog("Applying starting month patch.", DL_INIT);
 		SafeWrite32(0x4A3382, date);
 		dlogr(" Done", DL_INIT);
 	}
+
 	date = GetPrivateProfileInt("Misc", "StartDay", -1, ini);
 	if (date >= 0 && date < 31) {
 		dlog("Applying starting day patch.", DL_INIT);
@@ -989,45 +991,49 @@ static void DllMain2() {
 		dlogr(" Done", DL_INIT);
 	}
 
-	date=GetPrivateProfileInt("Misc", "LocalMapXLimit", 0, ini);
-	if(date) {
+	date = GetPrivateProfileInt("Misc", "LocalMapXLimit", 0, ini);
+	if (date) {
 		dlog("Applying local map x limit patch.", DL_INIT);
-		SafeWrite32(0x004B13B9, date);
-		dlogr(" Done", DL_INIT);
-	}
-	date=GetPrivateProfileInt("Misc", "LocalMapYLimit", 0, ini);
-	if(date) {
-		dlog("Applying local map y limit patch.", DL_INIT);
-		SafeWrite32(0x004B13C7, date);
+		SafeWrite32(0x4B13B9, date);
 		dlogr(" Done", DL_INIT);
 	}
 
-	date=GetPrivateProfileInt("Misc", "StartXPos", -1, ini);
-	if(date!=-1) {
+	date = GetPrivateProfileInt("Misc", "LocalMapYLimit", 0, ini);
+	if (date) {
+		dlog("Applying local map y limit patch.", DL_INIT);
+		SafeWrite32(0x4B13C7, date);
+		dlogr(" Done", DL_INIT);
+	}
+
+	date = GetPrivateProfileInt("Misc", "StartXPos", -1, ini);
+	if (date != -1) {
 		dlog("Applying starting x position patch.", DL_INIT);
 		SafeWrite32(0x4BC990, date);
 		SafeWrite32(0x4BCC08, date);
 		dlogr(" Done", DL_INIT);
 	}
-	date=GetPrivateProfileInt("Misc", "StartYPos", -1, ini);
-	if(date!=-1) {
+
+	date = GetPrivateProfileInt("Misc", "StartYPos", -1, ini);
+	if(date != -1) {
 		dlog("Applying starting y position patch.", DL_INIT);
 		SafeWrite32(0x4BC995, date);
 		SafeWrite32(0x4BCC0D, date);
 		dlogr(" Done", DL_INIT);
 	}
-	ViewportX=GetPrivateProfileInt("Misc", "ViewXPos", -1, ini);
-	if(ViewportX!=-1) {
+
+	ViewportX = GetPrivateProfileInt("Misc", "ViewXPos", -1, ini);
+	if (ViewportX != -1) {
 		dlog("Applying starting x view patch.", DL_INIT);
-		SafeWrite32(0x51DE2C, ViewportX);
-		SafeWrite32(0x004BCF08, (DWORD)&ViewportHook - 0x4BCF0C);
+		SafeWrite32(_wmWorldOffsetX, ViewportX);
+		HookCall(0x4BCF07, &ViewportHook);
 		dlogr(" Done", DL_INIT);
 	}
-	ViewportY=GetPrivateProfileInt("Misc", "ViewYPos", -1, ini);
-	if(ViewportY!=-1) {
+
+	ViewportY = GetPrivateProfileInt("Misc", "ViewYPos", -1, ini);
+	if (ViewportY != -1) {
 		dlog("Applying starting y view patch.", DL_INIT);
-		SafeWrite32(0x51DE30, ViewportY);
-		SafeWrite32(0x004BCF08, (DWORD)&ViewportHook - 0x4BCF0C);
+		SafeWrite32(_wmWorldOffsetY, ViewportY);
+		HookCall(0x4BCF07, &ViewportHook);
 		dlogr(" Done", DL_INIT);
 	}
 
