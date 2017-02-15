@@ -857,6 +857,32 @@ end:
 	}
 }
 
+/*static void __declspec(naked) switch_hand_hack() {
+	__asm {
+		mov  eax, ds:[_inven_dude]
+		push eax
+		mov  [edi], ebp
+		inc  ecx
+		jz   skip
+		xor  ebx, ebx
+		inc  ebx
+		mov  edx, ebp
+		call item_remove_mult_
+skip:
+		pop  edx
+		mov  eax, ebp
+		call item_get_type_
+		cmp  eax, item_type_container
+		jne  end
+		mov  [ebp+0x7C], edx                      // iobj.owner = _inven_dude
+end:
+		pop  ebp
+		pop  edi
+		pop  esi
+		retn
+	}
+}*/
+
 
 void BugsInit()
 {
@@ -1095,9 +1121,16 @@ void BugsInit()
 	//}
 
 	// Fix for display issues when calling gdialog_mod_barter with critters with no "Barter" flag set
-	if (GetPrivateProfileIntA("Misc", "gdBarterDispFix", 1, ini)) {
+	//if (GetPrivateProfileIntA("Misc", "gdBarterDispFix", 1, ini)) {
 		dlog("Applying gdialog_mod_barter display fix.", DL_INIT);
 		HookCall(0x448250, &gdActivateBarter_hook);
 		dlogr(" Done", DL_INIT);
+	//}
+
+	if (GetPrivateProfileIntA("Misc", "BagBackpackFix", 1, ini)) {
+		// Fix for losing items from inventory when you try to drag them to bag/backpack in the inventory list and are overloaded
+		HookCall(0x4764FC, (void*)item_add_force_);
+		//
+		//MakeCall(0x4715DB, &switch_hand_hack, true);
 	}
 }
