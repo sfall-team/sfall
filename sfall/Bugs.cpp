@@ -884,6 +884,38 @@ end:
 	}
 }*/
 
+static void __declspec(naked) inven_item_wearing() {
+	__asm {
+		mov  esi, ds:[_inven_dude]
+		xchg ebx, eax                             // ebx = source
+		mov  eax, [esi+0x20]
+		and  eax, 0xF000000
+		sar  eax, 0x18
+		test eax, eax                             // check if object FID type flag is set to item
+		jnz  skip                                 // No
+		mov  eax, esi
+		call item_get_type_
+		cmp  eax, item_type_container             // Bag/Backpack?
+		jne  skip                                 // No
+		mov  eax, esi
+		call obj_top_environment_
+		test eax, eax                             // has an owner?
+		jz   skip                                 // No
+		mov  ecx, [eax+0x20]
+		and  ecx, 0xF000000
+		sar  ecx, 0x18
+		cmp  ecx, OBJ_TYPE_CRITTER                // check if object FID type flag is set to critter
+		jne  skip                                 // No
+		cmp  eax, ebx                             // the owner of the bag == source?
+		je   end                                  // Yes
+skip:
+		xchg ebx, eax
+		cmp  eax, esi
+end:
+		retn
+	}
+}
+
 
 void BugsInit()
 {
@@ -1133,5 +1165,12 @@ void BugsInit()
 		HookCall(0x4764FC, (void*)item_add_force_);
 		//
 		//MakeCall(0x4715DB, &switch_hand_hack, true);
+		// Fix to ignore player's equipped items when opening bag/backpack
+		MakeCall(0x471B7F, &inven_item_wearing, false); // inven_right_hand_
+		SafeWrite8(0x471B84, 0x90); // nop
+		MakeCall(0x471BCB, &inven_item_wearing, false); // inven_left_hand_
+		SafeWrite8(0x471BD0, 0x90); // nop
+		MakeCall(0x471C17, &inven_item_wearing, false); // inven_worn_
+		SafeWrite8(0x471C1C, 0x90); // nop
 	}
 }
