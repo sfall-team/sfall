@@ -684,6 +684,9 @@ void InventoryInit() {
 	// Move items out of bag/backpack and back into the main inventory list by dragging them to character's image
 	// (similar to Fallout 1 behavior)
 	HookCall(0x471457, &inven_pickup_hook);
+
+	// Move items to player's main inventory instead of the opened bag/backpack when confirming a trade
+	SafeWrite32(0x475CF2, _stack);
 }
 
 void InventoryReset() {

@@ -915,6 +915,18 @@ end:
 	}
 }
 
+static void __declspec(naked) inven_action_cursor_hack() {
+	__asm {
+		cmp  dword ptr [esp+0x44+0x4], item_type_container
+		jne  end
+		cmp  eax, ds:[_stack]
+		je   end
+		cmp  eax, ds:[_target_stack]
+end:
+		retn
+	}
+}
+
 
 void BugsInit()
 {
@@ -1171,5 +1183,7 @@ void BugsInit()
 		SafeWrite8(0x471BD0, 0x90); // nop
 		MakeCall(0x471C17, &inven_item_wearing, false); // inven_worn_
 		SafeWrite8(0x471C1C, 0x90); // nop
+		// Fix crash when trying to open bag/backpack on the table in the bartering interface
+		MakeCall(0x473191, &inven_action_cursor_hack, false);
 	}
 }
