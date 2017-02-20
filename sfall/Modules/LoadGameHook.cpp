@@ -253,8 +253,9 @@ static void __declspec(naked) NewGame() {
 }
 
 static void ReadExtraGameMsgFilesIfNeeded() {
-	if (gExtraGameMsgLists.empty())
+	if (gExtraGameMsgLists.empty()) {
 		ReadExtraGameMsgFiles();
+	}
 }
 
 static bool PipBoyAvailableAtGameStart = false;
