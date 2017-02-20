@@ -407,8 +407,10 @@
     <ClCompile Include="Modules\Scripting\OpcodeContext.cpp">
       <Filter>Modules\Scripting</Filter>
     </ClCompile>
-    <ClCompile Include="Modules\Scripting\Handlers\Core.cpp" />
     <ClCompile Include="Modules\Scripting\Opcodes.cpp" />
+    <ClCompile Include="Modules\Scripting\Handlers\Core.cpp">
+      <Filter>Modules\Scripting\Handlers</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="version.rc" />

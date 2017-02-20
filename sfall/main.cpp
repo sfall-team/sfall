@@ -323,7 +323,7 @@ static const DWORD ScannerHookFail=0x41BC65;
 static void __declspec(naked) ScannerAutomapHook() {
 	__asm {
 		mov eax, ds:[VARPTR_obj_dude];
-		mov edx, 59;
+		mov edx, PID_MOTION_SENSOR;
 		call FuncOffs::inven_pid_is_carried_ptr_;
 		test eax, eax;
 		jz fail;
