@@ -666,11 +666,11 @@ static void DllMain2() {
 	}
 
 	if (tmp = GetPrivateProfileIntA("Sound", "OverrideMusicDir", 0, ini)) {
-		SafeWrite32(0x4449C2, (DWORD)&musicOverridePath);
-		SafeWrite32(0x4449DB, (DWORD)&musicOverridePath);
+		SafeWrite32(0x4449C2, (DWORD)musicOverridePath);
+		SafeWrite32(0x4449DB, (DWORD)musicOverridePath);
 		if (tmp == 2) {
-			SafeWrite32(0x518E78, (DWORD)&musicOverridePath);
-			SafeWrite32(0x518E7C, (DWORD)&musicOverridePath);
+			SafeWrite32(0x518E78, (DWORD)musicOverridePath);
+			SafeWrite32(0x518E7C, (DWORD)musicOverridePath);
 		}
 	}
 

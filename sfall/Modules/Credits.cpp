@@ -29,7 +29,7 @@ static const char* ExtraLines[] = {
 	"#SFALL " VERSION_STRING,
 	"",
 	"sfall is free software, licensed under the GPL",
-	"Copyright 2008-2016  The sfall team",
+	"Copyright 2008-2017  The sfall team",
 	"",
 	"@Author",
 	"Timeslip",
