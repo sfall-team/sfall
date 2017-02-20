@@ -267,7 +267,6 @@ really_end:
 	}
 }
 
-static const DWORD RetryCombatRet = 0x422BA9;
 static DWORD RetryCombatLastAP;
 static DWORD RetryCombatMinAP;
 static void __declspec(naked) RetryCombatHook() {
@@ -586,7 +585,7 @@ static void DllMain2() {
 	}
 
 	RetryCombatMinAP = GetPrivateProfileIntA("Misc", "NPCsTryToSpendExtraAP", 0, ini);
-	if (RetryCombatMinAP) {
+	if (RetryCombatMinAP > 0) {
 		dlog("Applying retry combat patch.", DL_INIT);
 		HookCall(0x422B94, &RetryCombatHook);
 		dlogr(" Done", DL_INIT);
@@ -698,15 +697,18 @@ static void DllMain2() {
 		dlogr(" Done", DL_INIT);
 	}
 
-	if (tmp = GetPrivateProfileIntA("Misc", "EncounterTableSize", 0, ini) && tmp <= 127) {
+	tmp = GetPrivateProfileIntA("Misc", "EncounterTableSize", 0, ini);
+	if (tmp > 40 && tmp <= 127) {
 		dlog("Applying EncounterTableSize patch.", DL_INIT);
+		SafeWrite8(0x4BDB17, (BYTE)tmp);
 		DWORD nsize = (tmp + 1) * 180 + 0x50;
-		for (int i = 0; i < sizeof(EncounterTableSize)/4; i++) {
+		for (int i = 0; i < sizeof(EncounterTableSize) / 4; i++) {
 			SafeWrite32(EncounterTableSize[i], nsize);
 		}
 		SafeWrite8(0x4BDB17, (BYTE)tmp);
 		dlogr(" Done", DL_INIT);
 	}
+
 
 	dlog("Initing main menu patches.", DL_INIT);
 	MainMenuInit();
