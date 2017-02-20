@@ -18,7 +18,6 @@
 
 
 #include "..\KillCounter.h"
-
 #include "Handlers\AsmMacros.h"
 #include "Handlers\Anims.h"
 #include "Handlers\Arrays.h"
@@ -34,9 +33,9 @@
 #include "Handlers\Utils.h"
 #include "Handlers\Worldmap.h"
 #include "Handlers\Metarule.h"
+#include "OpcodeContext.h"
 
 #include "Opcodes.h"
-
 
 static void* opcodes[0x300];
 
@@ -59,9 +58,8 @@ static const SfallOpcodeMetadata opcodeMetaArray[] = {
 
 void InitOpcodeMetaTable() {
 	int length = sizeof(opcodeMetaArray) / sizeof(SfallOpcodeMetadata);
-	OpcodeContext& opHandler = OpcodeContext::defaultInstance();
 	for (int i = 0; i < length; ++i) {
-		opHandler.addOpcodeMetaData(&opcodeMetaArray[i]);
+		OpcodeContext::addOpcodeMetaData(&opcodeMetaArray[i]);
 	}
 }
 
@@ -367,6 +365,8 @@ void InitNewOpcodes() {
 	opcodes[0x27a] = op_sfall_metarule4;
 	opcodes[0x27b] = op_sfall_metarule5;
 	opcodes[0x27c] = op_sfall_metarule6; // if you need more arguments - use arrays
+	
+	// see opcodeMetaArray above for additional scripting functions via "metarule"
 
 	InitOpcodeMetaTable();
 }

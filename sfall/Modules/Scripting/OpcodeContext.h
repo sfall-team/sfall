@@ -18,8 +18,8 @@
 
 #pragma once
 
+#include <array>
 #include <unordered_map>
-#include <vector>
 
 #include "..\..\FalloutEngine\Structs.h"
 #include "ScriptValue.h"
@@ -51,14 +51,19 @@ struct SfallOpcodeMetadata {
 
 typedef std::tr1::unordered_map<ScriptingFunctionHandler, const SfallOpcodeMetadata*> OpcodeMetaTableType;
 
+// A context for handling opcodes. Opcode handlers can retrieve arguments and set opcode return value via context.
 class OpcodeContext {
 public:
-	OpcodeContext();
-
-	void addOpcodeMetaData(const SfallOpcodeMetadata* data);
+	// program - pointer to script program (from the engine)
+	// argNum - number of arguments for this opcode
+	// hasReturn - true if opcode has return value (is expression)
+	OpcodeContext(TProgram* program, int argNum, bool hasReturn);
 
 	// number of arguments, possibly reduced by argShift
 	int numArgs() const;
+
+	// true if the current opcode is supposed to return some value
+	bool hasReturn() const;
 
 	// returns current argument shift, default is 0
 	int argShift() const;
@@ -81,28 +86,22 @@ public:
 	
 	// set return value for current opcode
 	void setReturn(const ScriptValue& val);
-
-	// resets the state of handler for new opcode invocation
-	void resetState(TProgram* program, int argNum);
 	
 	// writes error message to debug.log along with the name of script & procedure
 	void printOpcodeError(const char* fmt, ...) const;
 
 	// Validate opcode arguments against type masks
 	// if validation pass, returns true, otherwise writes error to debug.log and returns false
-	bool validateArguments(const int argTypeMasks[], int argCount, const char* opcodeName) const;
+	bool validateArguments(const int argTypeMasks[], const char* opcodeName) const;
 
 	// validate opcode arguments given opcode handler function and actual number of arguments
-	bool validateArguments(ScriptingFunctionHandler func, int argNum) const;
+	bool validateArguments(ScriptingFunctionHandler func) const;
 
 	// Handle opcodes
-	// program - pointer to script program (from the engine)
 	// func - opcode handler
-	// argNum - number of arguments
-	// hasReturn - true if opcode has return value (is expression)
-	void handleOpcode(TProgram* program, ScriptingFunctionHandler func, int argNum, bool hasReturn);
+	void handleOpcode(ScriptingFunctionHandler func);
 
-	static OpcodeContext& defaultInstance();
+	static void addOpcodeMetaData(const SfallOpcodeMetadata* data);
 
 	// handles opcode using default instance
 	static void __stdcall handleOpcodeStatic(TProgram* program, ScriptingFunctionHandler func, int argNum, bool hasReturn);
@@ -116,10 +115,11 @@ public:
 private:
 	TProgram* _program;
 
+	int _numArgs;
+	bool _hasReturn;
 	int _argShift;
-	std::vector<ScriptValue> _args;
+	std::array<ScriptValue, OP_MAX_ARGUMENTS> _args;
 	ScriptValue _ret;
-	OpcodeMetaTableType _opcodeMetaTable;
 
-	static OpcodeContext _defaultInstance;
+	static OpcodeMetaTableType _opcodeMetaTable;
 };

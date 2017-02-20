@@ -24,15 +24,24 @@
 #include "OpcodeContext.h"
 
 
-OpcodeContext OpcodeContext::_defaultInstance;
+OpcodeMetaTableType OpcodeContext::_opcodeMetaTable;
 
-OpcodeContext::OpcodeContext() {
+OpcodeContext::OpcodeContext(TProgram* program, int argNum, bool hasReturn) {
+	assert(argNum < OP_MAX_ARGUMENTS);
+
+	_program = program;
+
+	_numArgs = argNum;
+	_hasReturn = hasReturn;
 	_argShift = 0;
-	_args.reserve (OP_MAX_ARGUMENTS);
 }
 
 int OpcodeContext::numArgs() const {
-	return _args.size() - _argShift;
+	return _numArgs - _argShift;
+}
+
+bool OpcodeContext::hasReturn() const {
+	return _hasReturn;
 }
 
 int OpcodeContext::argShift() const {
@@ -65,17 +74,6 @@ void OpcodeContext::setReturn(const ScriptValue& val) {
 	_ret = val;
 }
 
-void OpcodeContext::resetState(TProgram* program, int argNum) {
-	_program = program;
-
-	// reset return value
-	_ret = ScriptValue();
-	// reset argument list
-	_args.resize(argNum);
-	// reset arg shift
-	_argShift = 0;
-}
-
 void OpcodeContext::printOpcodeError(const char* fmt, ...) const {
 	assert(_program != nullptr);
 
@@ -89,19 +87,19 @@ void OpcodeContext::printOpcodeError(const char* fmt, ...) const {
 	Wrapper::debug_printf("\nOPCODE ERROR: %s\n   Current script: %s, procedure %s.", msg, _program->fileName, procName);
 }
 
-bool OpcodeContext::validateArguments(ScriptingFunctionHandler func, int argNum) const {
+bool OpcodeContext::validateArguments(ScriptingFunctionHandler func) const {
 	OpcodeMetaTableType::const_iterator it = _opcodeMetaTable.find(func);
 	if (it != _opcodeMetaTable.end()) {
 		const SfallOpcodeMetadata* meta = it->second;
 
 		// automatically validate argument types
-		return validateArguments(meta->argTypeMasks, argNum, meta->name);
+		return validateArguments(meta->argTypeMasks, meta->name);
 	}
 	return true;
 }
 
-bool OpcodeContext::validateArguments(const int argTypeMasks[], int argCount, const char* opcodeName) const {
-	for (int i = 0; i < argCount; i++) {
+bool OpcodeContext::validateArguments(const int argTypeMasks[], const char* opcodeName) const {
+	for (int i = 0; i < _numArgs; i++) {
 		int typeMask = argTypeMasks[i];
 		const ScriptValue &argI = arg(i);
 		if (typeMask != 0 && ((1 << argI.type()) & typeMask) == 0) {
@@ -124,53 +122,47 @@ bool OpcodeContext::validateArguments(const int argTypeMasks[], int argCount, co
 	return true;
 }
 
-void OpcodeContext::handleOpcode(TProgram* program, ScriptingFunctionHandler func, int argNum, bool hasReturn) {
-	assert(argNum < OP_MAX_ARGUMENTS);
-
-	// reset state after previous
-	resetState(program, argNum);
-
+void OpcodeContext::handleOpcode(ScriptingFunctionHandler func) {
 	// process arguments on stack (reverse order)
-	for (int i = argNum - 1; i >= 0; i--) {
+	for (int i = _numArgs - 1; i >= 0; i--) {
 		// get argument from stack
-		DWORD rawValueType = Wrapper::interpretPopShort(program);
-		DWORD rawValue = Wrapper::interpretPopLong(program);
+		DWORD rawValueType = Wrapper::interpretPopShort(_program);
+		DWORD rawValue = Wrapper::interpretPopLong(_program);
 		SfallDataType type = static_cast<SfallDataType>(getSfallTypeByScriptType(rawValueType));
 
 		// retrieve string argument
 		if (type == DATATYPE_STR) {
-			_args.at(i) = Wrapper::interpretGetString(program, rawValueType, rawValue);
+			_args.at(i) = Wrapper::interpretGetString(_program, rawValueType, rawValue);
 		} else {
 			_args.at(i) = ScriptValue(type, rawValue);
 		}
 	}
 
 	// call opcode handler if arguments are valid (or no automatic validation was done)
-	if (validateArguments(func, argNum)) {
+	if (validateArguments(func)) {
 		func(*this);
 	}
 
 	// process return value
-	if (hasReturn) {
+	if (_hasReturn) {
 		if (_ret.type() == DATATYPE_NONE) {
 			// if no value was set in handler, force return 0 to avoid stack error
 			_ret = ScriptValue(0);
 		}
 		DWORD rawResult = _ret.rawValue();
 		if (_ret.type() == DATATYPE_STR) {
-			rawResult = Wrapper::interpretAddString(program, _ret.asString());
+			rawResult = Wrapper::interpretAddString(_program, _ret.asString());
 		}
-		Wrapper::interpretPushLong(program, rawResult);
-		Wrapper::interpretPushShort(program, getScriptTypeBySfallType(_ret.type()));
+		Wrapper::interpretPushLong(_program, rawResult);
+		Wrapper::interpretPushShort(_program, getScriptTypeBySfallType(_ret.type()));
 	}
 }
 
-OpcodeContext& OpcodeContext::defaultInstance() {
-	return _defaultInstance;
-}
-
 void __stdcall OpcodeContext::handleOpcodeStatic(TProgram* program, ScriptingFunctionHandler func, int argNum, bool hasReturn) {
-	defaultInstance().handleOpcode(program, func, argNum, hasReturn);
+	// for each opcode create new context on stack (no allocations at this point)
+	OpcodeContext currentContext(program, argNum, hasReturn);
+	// handle the opcode using provided handler
+	currentContext.handleOpcode(func);
 }
 
 void OpcodeContext::addOpcodeMetaData(const SfallOpcodeMetadata* data) {

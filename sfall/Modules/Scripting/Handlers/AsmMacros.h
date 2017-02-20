@@ -149,14 +149,6 @@ __asm resultnotstr##num:				\
 	func - C-function to call (should not have arguments)
 	argnum - number of opcode arguments
 	isExpression - 1 if opcode has return value, 0 otherwise
-
-
-	TODO: get rid of this, there is even better way:
-	- single ASM handler for all new opcodes
-	- it will check opcode ID against OpcodeMetaArray: validate arguments if necessary, call sf_* handler
-	Benefits:
-	- each opcode will be defined in single place along with validation info and other data
-	- no need for ASM handlers for each opcode (op_* functions)
 */
 #define _WRAP_OPCODE(func, argnum, isExpression) __asm { \
 	__asm pushad					\

@@ -136,7 +136,7 @@ static bool ValidateMetaruleArguments(OpcodeContext& ctx, const SfallMetarule* m
 
 		return false;
 	} else {
-		return ctx.validateArguments(metaruleInfo->func, argCount);
+		return ctx.validateArguments(metaruleInfo->func);
 	}
 }
 
