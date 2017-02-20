@@ -157,9 +157,7 @@ end:
 // should be called before savegame is loaded
 static void _stdcall LoadGame2_Before() {
 	ResetState(1);
-}
-
-static void _stdcall LoadGame2_After() {
+	
 	char buf[MAX_PATH];
 	GetSavePath(buf, "gv");
 
@@ -179,7 +177,9 @@ static void _stdcall LoadGame2_After() {
 	} else {
 		dlogr("Cannot read sfallgv.sav - assuming non-sfall save.", DL_MAIN);
 	}
+}
 
+static void _stdcall LoadGame2_After() {
 	LoadGlobalScripts();
 	CritLoad();
 	LoadHeroAppearance();
