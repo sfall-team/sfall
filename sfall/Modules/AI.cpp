@@ -16,7 +16,7 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <hash_map>
+#include <unordered_map>
 
 #include "..\main.h"
 
@@ -24,10 +24,10 @@
 #include "..\FalloutEngine\Fallout2.h"
 #include "..\SafeWrite.h"
 
-typedef stdext::hash_map<DWORD, DWORD> :: const_iterator iter;
+typedef std::unordered_map<DWORD, DWORD> :: const_iterator iter;
 
-static stdext::hash_map<DWORD,DWORD> targets;
-static stdext::hash_map<DWORD,DWORD> sources;
+static std::unordered_map<DWORD,DWORD> targets;
+static std::unordered_map<DWORD,DWORD> sources;
 
 DWORD _stdcall AIGetLastAttacker(DWORD target) {
 	iter itr=sources.find(target);

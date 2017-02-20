@@ -19,9 +19,9 @@
 #include "..\main.h"
 
 #include <cassert>
-#include <hash_map>
 #include <set>
 #include <string>
+#include <unordered_map>
 
 #include "..\FalloutEngine\Fallout2.h"
 #include "..\InputFuncs.h"
@@ -77,19 +77,19 @@ struct sExportedVar {
 static std::vector<TProgram*> checkedScripts;
 static std::vector<sGlobalScript> globalScripts;
 // a map of all sfall programs (global and hook scripts) by thier scriptPtr
-typedef stdext::hash_map<TProgram*, sScriptProgram> SfallProgsMap;
+typedef std::unordered_map<TProgram*, sScriptProgram> SfallProgsMap;
 static SfallProgsMap sfallProgsMap;
 // a map scriptPtr => self_obj  to override self_obj for all script types using set_self
-stdext::hash_map<TProgram*, TGameObj*> selfOverrideMap;
+std::unordered_map<TProgram*, TGameObj*> selfOverrideMap;
 
 typedef std::tr1::unordered_map<std::string, sExportedVar> ExportedVarsMap;
 static ExportedVarsMap globalExportedVars;
 DWORD isGlobalScriptLoading = 0;
 DWORD modifiedIni;
 
-stdext::hash_map<__int64, int> globalVars;
-typedef stdext::hash_map<__int64, int> :: iterator glob_itr;
-typedef stdext::hash_map<__int64, int> :: const_iterator glob_citr;
+std::unordered_map<__int64, int> globalVars;
+typedef std::unordered_map<__int64, int> :: iterator glob_itr;
+typedef std::unordered_map<__int64, int> :: const_iterator glob_citr;
 typedef std::pair<__int64, int> glob_pair;
 
 DWORD AddUnarmedStatToGetYear = 0;
@@ -103,7 +103,7 @@ static const DWORD scr_ptr_back = FuncOffs::scr_ptr_ + 5;
 static const DWORD scr_find_obj_from_program = FuncOffs::scr_find_obj_from_program_ + 7;
 
 DWORD _stdcall FindSidHook2(TProgram* script) {
-	stdext::hash_map<TProgram*, TGameObj*>::iterator overrideIt = selfOverrideMap.find(script);
+	std::unordered_map<TProgram*, TGameObj*>::iterator overrideIt = selfOverrideMap.find(script);
 	if (overrideIt != selfOverrideMap.end()) {
 		DWORD scriptId = overrideIt->second->scriptID;
 		if (scriptId != -1) {
@@ -467,7 +467,7 @@ void _stdcall SetSelfObject(TProgram* script, TGameObj* obj) {
 	if (obj) {
 		selfOverrideMap[script] = obj;
 	} else {
-		stdext::hash_map<TProgram*, TGameObj*>::iterator it = selfOverrideMap.find(script);
+		std::unordered_map<TProgram*, TGameObj*>::iterator it = selfOverrideMap.find(script);
 		if (it != selfOverrideMap.end()) {
 			selfOverrideMap.erase(it);
 		}

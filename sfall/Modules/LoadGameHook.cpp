@@ -202,12 +202,7 @@ static void __declspec(naked) LoadGame() {
 		push edx;
 		or InLoop, LOADGAME;
 		call FuncOffs::LoadGame_;
-		/*push eax;
-		push 0x0000101f;
-		push 0x0045E949;
-		call SafeWrite32;*/
 		and InLoop, (-1^LOADGAME);
-		//pop eax;
 		cmp eax, 1;
 		jne end;
 		call LoadGame2_After;

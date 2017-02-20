@@ -21,15 +21,16 @@
 #include <d3d9.h>
 #include <d3dx9.h>
 #include <stdio.h>
-#include <hash_map>
+#include <unordered_map>
+
 #include "..\FalloutEngine\Fallout2.h"
 
 void _stdcall SetHeadTex(IDirect3DTexture9* tex, int width, int height, int xoff, int yoff);
 
 extern IDirect3DDevice9* d3d9Device;
-static stdext::hash_map<__int64, IDirect3DTexture9**> texMap;
-typedef stdext::hash_map<__int64, IDirect3DTexture9**> :: iterator tex_itr;
-typedef stdext::hash_map<__int64, IDirect3DTexture9**> :: const_iterator tex_citr;
+static std::unordered_map<__int64, IDirect3DTexture9**> texMap;
+typedef std::unordered_map<__int64, IDirect3DTexture9**> :: iterator tex_itr;
+typedef std::unordered_map<__int64, IDirect3DTexture9**> :: const_iterator tex_citr;
 static BYTE overridden=0;
 
 #pragma pack(push, 1)
