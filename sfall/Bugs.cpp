@@ -858,7 +858,7 @@ end:
 	}
 }
 
-/*static void __declspec(naked) switch_hand_hack() {
+static void __declspec(naked) switch_hand_hack() {
 	__asm {
 		mov  eax, ds:[_inven_dude]
 		push eax
@@ -882,7 +882,7 @@ end:
 		pop  esi
 		retn
 	}
-}*/
+}
 
 static void __declspec(naked) inven_item_wearing() {
 	__asm {
@@ -1172,11 +1172,12 @@ void BugsInit()
 		dlogr(" Done", DL_INIT);
 	//}
 
-	if (GetPrivateProfileIntA("Misc", "BagBackpackFix", 1, ini)) {
-		// Fix for losing items from inventory when you try to drag them to bag/backpack in the inventory list and are overloaded
+	//if (GetPrivateProfileIntA("Misc", "BagBackpackFix", 1, ini)) {
+		// Fix for items disappearing from inventory when you try to drag them to bag/backpack in the inventory list
+		// and are overloaded
 		HookCall(0x4764FC, (void*)item_add_force_);
-		//
-		//MakeCall(0x4715DB, &switch_hand_hack, true);
+		// Fix for the engine not checking player's inventory properly when putting items into the bag/backpack in the hands
+		MakeCall(0x4715DB, &switch_hand_hack, true);
 		// Fix to ignore player's equipped items when opening bag/backpack
 		MakeCall(0x471B7F, &inven_item_wearing, false); // inven_right_hand_
 		SafeWrite8(0x471B84, 0x90); // nop
@@ -1186,5 +1187,5 @@ void BugsInit()
 		SafeWrite8(0x471C1C, 0x90); // nop
 		// Fix crash when trying to open bag/backpack on the table in the bartering interface
 		MakeCall(0x473191, &inven_action_cursor_hack, false);
-	}
+	//}
 }
