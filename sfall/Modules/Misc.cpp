@@ -653,15 +653,15 @@ void ApplyStartingStatePatches() {
 	ViewportX = GetPrivateProfileInt("Misc", "ViewXPos", -1, ini);
 	if (ViewportX != -1) {
 		dlog("Applying starting x view patch.", DL_INIT);
-		SafeWrite32(0x51DE2C, ViewportX);
-		SafeWrite32(0x004BCF08, (DWORD)&ViewportHook - 0x4BCF0C);
+		SafeWrite32(VARPTR_wmWorldOffsetX, ViewportX);
+		HookCall(0x4BCF07, &ViewportHook);
 		dlogr(" Done", DL_INIT);
 	}
 	ViewportY = GetPrivateProfileInt("Misc", "ViewYPos", -1, ini);
 	if (ViewportY != -1) {
 		dlog("Applying starting y view patch.", DL_INIT);
-		SafeWrite32(0x51DE30, ViewportY);
-		SafeWrite32(0x004BCF08, (DWORD)&ViewportHook - 0x4BCF0C);
+		SafeWrite32(VARPTR_wmWorldOffsetY, ViewportY);
+		HookCall(0x4BCF07, &ViewportHook);
 		dlogr(" Done", DL_INIT);
 	}
 }
