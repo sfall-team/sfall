@@ -19,7 +19,7 @@
 #include "..\..\..\FalloutEngine\Fallout2.h"
 #include "..\..\ScriptExtender.h"
 #include "..\Arrays.h"
-#include "..\OpcodeHandler.h"
+#include "..\OpcodeContext.h"
 #include "AsmMacros.h"
 #include "Interface.h"
 #include "Misc.h"
@@ -30,15 +30,15 @@
 // Metarule is a universal opcode(s) for all kinds of new sfall scripting functions.
 // Prefix all function handlers with sf_ and add them to sfall_metarule_table.
 // DO NOT add arguments and/or return values to function handlers!
-// Use opHandler.arg(i), inside handler function to access arguments.
-// Use opHandler.setReturn(x) to set return value.
+// Use ctx.arg(i), inside handler function to access arguments.
+// Use ctx.setReturn(x) to set return value.
 // If you want to call user-defined procedures in your handler, use RunScriptProc().
 
 struct SfallMetarule {
 	// function name
 	const char* name;
 	// pointer to handler function
-	void(*func)();
+	ScriptingFunctionHandler func;
 	// mininum number of arguments
 	int minArgs;
 	// maximum number of arguments
@@ -54,11 +54,11 @@ static const SfallMetarule* currentMetarule;
 
 static std::string sf_test_stringBuf;
 
-void sf_test() {
+void sf_test(OpcodeContext& ctx) {
 	std::ostringstream sstream;
 	sstream << "sfall_funcX(\"test\"";
-	for (int i = 0; i < opHandler.numArgs(); i++) {
-		const ScriptValue &arg = opHandler.arg(i);
+	for (int i = 0; i < ctx.numArgs(); i++) {
+		const ScriptValue &arg = ctx.arg(i);
 		sstream << ", ";
 		switch (arg.type()) {
 			case DATATYPE_INT:
@@ -78,18 +78,18 @@ void sf_test() {
 	sstream << ")";
 	
 	sf_test_stringBuf = sstream.str();
-	opHandler.setReturn(sf_test_stringBuf.c_str());
+	ctx.setReturn(sf_test_stringBuf.c_str());
 }
 
 // returns current contents of metarule table
-void sf_get_metarule_table() {
+void sf_get_metarule_table(OpcodeContext& ctx) {
 	DWORD arr = TempArray(metaruleTable.size(), 0);
 	int i = 0;
 	for (MetaruleTableType::iterator it = metaruleTable.begin(); it != metaruleTable.end(); it++) {
 		arrays[arr].val[i].set(it->first.c_str());
 		i++;
 	}
-	opHandler.setReturn(arr, DATATYPE_INT);
+	ctx.setReturn(arr, DATATYPE_INT);
 }
 
 /*
@@ -124,10 +124,10 @@ void InitMetaruleTable() {
 
 // Validates arguments against metarule specification.
 // On error prints to debug.log and returns false.
-static bool ValidateMetaruleArguments(const SfallMetarule* metaruleInfo) {
-	int argCount = opHandler.numArgs();
+static bool ValidateMetaruleArguments(OpcodeContext& ctx, const SfallMetarule* metaruleInfo) {
+	int argCount = ctx.numArgs();
 	if (argCount < metaruleInfo->minArgs || argCount > metaruleInfo->maxArgs) {
-		opHandler.printOpcodeError(
+		ctx.printOpcodeError(
 			"sfall_funcX(\"%s\", ...) - invalid number of arguments (%d), must be from %d to %d.", 
 			metaruleInfo->name, 
 			argCount,
@@ -136,12 +136,12 @@ static bool ValidateMetaruleArguments(const SfallMetarule* metaruleInfo) {
 
 		return false;
 	} else {
-		return opHandler.validateArguments(metaruleInfo->func, argCount);
+		return ctx.validateArguments(metaruleInfo->func);
 	}
 }
 
-static void _stdcall HandleMetarule() {
-	const ScriptValue &nameArg = opHandler.arg(0);
+static void HandleMetarule(OpcodeContext& ctx) {
+	const ScriptValue &nameArg = ctx.arg(0);
 	if (nameArg.isString()) {
 		const char* name = nameArg.asString();
 		MetaruleTableType::iterator lookup = metaruleTable.find(name);
@@ -149,15 +149,15 @@ static void _stdcall HandleMetarule() {
 			currentMetarule = lookup->second;
 			// shift function name away, so argument #0 will correspond to actual first argument of function
 			// this allows to use the same handlers for opcodes and metarule functions
-			opHandler.setArgShift(1);
-			if (ValidateMetaruleArguments(currentMetarule)) {
-				currentMetarule->func();
+			ctx.setArgShift(1);
+			if (ValidateMetaruleArguments(ctx, currentMetarule)) {
+				currentMetarule->func(ctx);
 			}
 		} else {
-			opHandler.printOpcodeError("sfall_funcX(name, ...) - name '%s' is unknown.", name);
+			ctx.printOpcodeError("sfall_funcX(name, ...) - name '%s' is unknown.", name);
 		}
-	} else {		
-		opHandler.printOpcodeError("sfall_funcX(name, ...) - name must be string.");
+	} else {
+		ctx.printOpcodeError("sfall_funcX(name, ...) - name must be string.");
 	}
 }
 

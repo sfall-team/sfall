@@ -1,20 +1,20 @@
 /*
-*    sfall
-*    Copyright (C) 2008-2016  The sfall team
-*
-*    This program is free software: you can redistribute it and/or modify
-*    it under the terms of the GNU General Public License as published by
-*    the Free Software Foundation, either version 3 of the License, or
-*    (at your option) any later version.
-*
-*    This program is distributed in the hope that it will be useful,
-*    but WITHOUT ANY WARRANTY; without even the implied warranty of
-*    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-*    GNU General Public License for more details.
-*
-*    You should have received a copy of the GNU General Public License
-*    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
+ *    sfall
+ *    Copyright (C) 2008-2016  The sfall team
+ *
+ *    This program is free software: you can redistribute it and/or modify
+ *    it under the terms of the GNU General Public License as published by
+ *    the Free Software Foundation, either version 3 of the License, or
+ *    (at your option) any later version.
+ *
+ *    This program is distributed in the hope that it will be useful,
+ *    but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *    GNU General Public License for more details.
+ *
+ *    You should have received a copy of the GNU General Public License
+ *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 
 #include "..\main.h"
 
@@ -34,7 +34,9 @@
 #include "..\Logging.h"
 #include "Stats.h"
 #include "Scripting\Arrays.h"
-#include "Scripting\OpcodeHandler.h"
+#include "Scripting\Opcodes.h"
+#include "Scripting\OpcodeContext.h"
+#include "Scripting\Handlers\Utils.h"
 
 #include "ScriptExtender.h"
 
@@ -83,25 +85,18 @@ stdext::hash_map<TProgram*, TGameObj*> selfOverrideMap;
 typedef std::tr1::unordered_map<std::string, sExportedVar> ExportedVarsMap;
 static ExportedVarsMap globalExportedVars;
 DWORD isGlobalScriptLoading = 0;
+DWORD modifiedIni;
 
 stdext::hash_map<__int64, int> globalVars;
 typedef stdext::hash_map<__int64, int> :: iterator glob_itr;
 typedef stdext::hash_map<__int64, int> :: const_iterator glob_citr;
 typedef std::pair<__int64, int> glob_pair;
 
-static void* opcodes[0x300];
 DWORD AddUnarmedStatToGetYear = 0;
 DWORD AvailableGlobalScriptTypes = 0;
 bool isGameLoading;
 
 TScript OverrideScriptStruct;
-
-// handler for all new sfall opcodes
-OpcodeHandler opHandler;
-
-#include "Scripting\Opcodes.hpp"
-
-//END OF SCRIPT FUNCTIONS
 
 static const DWORD scr_find_sid_from_program = FuncOffs::scr_find_sid_from_program_ + 5;
 static const DWORD scr_ptr_back = FuncOffs::scr_ptr_ + 5;
@@ -400,6 +395,85 @@ end:
 	}
 }
 
+void _stdcall SetGlobalScriptRepeat(TProgram* script, int frames) {
+	for (DWORD d = 0; d < globalScripts.size(); d++) {
+		if (globalScripts[d].prog.ptr == script) {
+			if (frames == -1) {
+				globalScripts[d].mode = !globalScripts[d].mode;
+			} else {
+				globalScripts[d].repeat = frames;
+			}
+			break;
+		}
+	}
+}
+
+void _stdcall SetGlobalScriptType(TProgram* script, int type) {
+	if (type <= 3) {
+		for (size_t d = 0; d < globalScripts.size(); d++) {
+			if (globalScripts[d].prog.ptr == script) {
+				globalScripts[d].mode = type;
+				break;
+			}
+		}
+	}
+}
+
+static void SetGlobalVarInternal(__int64 var, int val) {
+	glob_itr itr = globalVars.find(var);
+	if (itr == globalVars.end()) {
+		globalVars.insert(glob_pair(var, val));
+	} else {
+		if (val == 0) {
+			globalVars.erase(itr);    // applies for both float 0.0 and integer 0
+		} else {
+			itr->second = val;
+		}
+	}
+}
+
+void _stdcall SetGlobalVarInt(DWORD var, int val) {
+	SetGlobalVarInternal(var, val);
+}
+
+void _stdcall SetGlobalVar(const char* var, int val) {
+	if (strlen(var) != 8) {
+		return;
+	}
+	SetGlobalVarInternal(*(__int64*)var, val);
+}
+
+static DWORD GetGlobalVarInternal(__int64 val) {
+	glob_citr itr = globalVars.find(val);
+	if (itr == globalVars.end()) {
+		return 0;
+	} else {
+		return itr->second;
+	}
+}
+
+DWORD _stdcall GetGlobalVar(const char* var) {
+	if (strlen(var) != 8) {
+		return 0;
+	}
+	return GetGlobalVarInternal(*(__int64*)var);
+}
+
+DWORD _stdcall GetGlobalVarInt(DWORD var) {
+	return GetGlobalVarInternal(var);
+}
+
+void _stdcall SetSelfObject(TProgram* script, TGameObj* obj) {
+	if (obj) {
+		selfOverrideMap[script] = obj;
+	} else {
+		stdext::hash_map<TProgram*, TGameObj*>::iterator it = selfOverrideMap.find(script);
+		if (it != selfOverrideMap.end()) {
+			selfOverrideMap.erase(it);
+		}
+	}
+}
+
 void ScriptExtenderSetup() {
 
 	toggleHighlightsKey = GetPrivateProfileIntA("Input", "ToggleItemHighlightsKey", 0, ini);
@@ -465,8 +539,6 @@ void ScriptExtenderSetup() {
 	HookCall(0x46E141, FreeProgramHook);
 	
 	InitNewOpcodes();
-	InitOpcodeMetaTable();
-	InitMetaruleTable();
 }
 
 
@@ -807,11 +879,11 @@ void SetGlobals(sGlobalVar* globals) {
 
 //fuctions to load and save appearance globals
 void SetAppearanceGlobals(int race, int style) {
-	SetGlobalVar2("HAp_Race", race);
-	SetGlobalVar2("HApStyle", style);
+	SetGlobalVar("HAp_Race", race);
+	SetGlobalVar("HApStyle", style);
 }
 
 void GetAppearanceGlobals(int *race, int *style) {
-	*race=GetGlobalVar2("HAp_Race");
-	*style=GetGlobalVar2("HApStyle");
+	*race=GetGlobalVar("HAp_Race");
+	*style=GetGlobalVar("HApStyle");
 }

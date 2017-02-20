@@ -47,27 +47,28 @@ void __declspec() op_ord();
 void __declspec() op_typeof();
 
 void __declspec() NegateFixHook();
-void sf_power();
+
+void sf_power(OpcodeContext&);
 
 void __declspec() op_power();
 
-void sf_log();
+void sf_log(OpcodeContext&);
 
 void __declspec() op_log();
 
-void sf_exponent();
+void sf_exponent(OpcodeContext&);
 
 void __declspec() op_exponent();
 
-void sf_ceil();
+void sf_ceil(OpcodeContext&);
 
 void __declspec() op_ceil();
 
-void sf_round();
+void sf_round(OpcodeContext&);
 
 void __declspec() op_round();
 
-void _stdcall sf_message_str_game();
+void sf_message_str_game(OpcodeContext&);
 
 void __declspec() op_message_str_game();
 

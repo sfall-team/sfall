@@ -1,25 +1,25 @@
 /*
-* sfall
-* Copyright (C) 2008-2016 The sfall team
-*
-* This program is free software: you can redistribute it and/or modify
-* it under the terms of the GNU General Public License as published by
-* the Free Software Foundation, either version 3 of the License, or
-* (at your option) any later version.
-*
-* This program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-* GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License
-* along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
+ *    sfall
+ *    Copyright (C) 2008-2016  The sfall team
+ *
+ *    This program is free software: you can redistribute it and/or modify
+ *    it under the terms of the GNU General Public License as published by
+ *    the Free Software Foundation, either version 3 of the License, or
+ *    (at your option) any later version.
+ *
+ *    This program is distributed in the hope that it will be useful,
+ *    but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *    GNU General Public License for more details.
+ *
+ *    You should have received a copy of the GNU General Public License
+ *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 
 #pragma once
 
+#include <array>
 #include <unordered_map>
-#include <vector>
 
 #include "..\..\FalloutEngine\Structs.h"
 #include "ScriptValue.h"
@@ -34,11 +34,13 @@
 #define DATATYPE_MASK_NOT_NULL	(0x00010000)
 #define DATATYPE_MASK_VALID_OBJ	(DATATYPE_MASK_INT | DATATYPE_MASK_NOT_NULL)
 
+class OpcodeContext;
 
+typedef void(*ScriptingFunctionHandler)(OpcodeContext&);
 
 struct SfallOpcodeMetadata {
 	// opcode handler, will be used as key
-	void (*handler)();
+	ScriptingFunctionHandler handler;
 
 	// opcode name, only used for logging
 	const char* name;
@@ -47,16 +49,21 @@ struct SfallOpcodeMetadata {
 	int argTypeMasks[OP_MAX_ARGUMENTS];
 };
 
-typedef std::tr1::unordered_map<void(*)(), const SfallOpcodeMetadata*> OpcodeMetaTableType;
+typedef std::tr1::unordered_map<ScriptingFunctionHandler, const SfallOpcodeMetadata*> OpcodeMetaTableType;
 
-class OpcodeHandler {
+// A context for handling opcodes. Opcode handlers can retrieve arguments and set opcode return value via context.
+class OpcodeContext {
 public:
-	OpcodeHandler();
-
-	void addOpcodeMetaData(const SfallOpcodeMetadata* data);
+	// program - pointer to script program (from the engine)
+	// argNum - number of arguments for this opcode
+	// hasReturn - true if opcode has return value (is expression)
+	OpcodeContext(TProgram* program, int argNum, bool hasReturn);
 
 	// number of arguments, possibly reduced by argShift
 	int numArgs() const;
+
+	// true if the current opcode is supposed to return some value
+	bool hasReturn() const;
 
 	// returns current argument shift, default is 0
 	int argShift() const;
@@ -79,35 +86,40 @@ public:
 	
 	// set return value for current opcode
 	void setReturn(const ScriptValue& val);
-
-	// resets the state of handler for new opcode invocation
-	void resetState(TProgram* program, int argNum);
 	
 	// writes error message to debug.log along with the name of script & procedure
 	void printOpcodeError(const char* fmt, ...) const;
 
 	// Validate opcode arguments against type masks
 	// if validation pass, returns true, otherwise writes error to debug.log and returns false
-	bool validateArguments(const int argTypeMasks[], int argCount, const char* opcodeName) const;
+	bool validateArguments(const int argTypeMasks[], const char* opcodeName) const;
 
 	// validate opcode arguments given opcode handler function and actual number of arguments
-	bool validateArguments(void (*func)(), int argNum) const;
+	bool validateArguments(ScriptingFunctionHandler func) const;
 
 	// Handle opcodes
-	// scriptPtr - pointer to script program (from the engine)
 	// func - opcode handler
-	// hasReturn - true if opcode has return value (is expression)
-	void __thiscall handleOpcode(TProgram* program, void(*func)(), int argNum, bool hasReturn);
+	void handleOpcode(ScriptingFunctionHandler func);
+
+	static void addOpcodeMetaData(const SfallOpcodeMetadata* data);
+
+	// handles opcode using default instance
+	static void __stdcall handleOpcodeStatic(TProgram* program, ScriptingFunctionHandler func, int argNum, bool hasReturn);
 
 	static const char* getSfallTypeName(DWORD dataType);
+
 	static DWORD getSfallTypeByScriptType(DWORD varType);
+
 	static DWORD getScriptTypeBySfallType(DWORD dataType);
 
 private:
 	TProgram* _program;
 
+	int _numArgs;
+	bool _hasReturn;
 	int _argShift;
-	std::vector<ScriptValue> _args;
+	std::array<ScriptValue, OP_MAX_ARGUMENTS> _args;
 	ScriptValue _ret;
-	OpcodeMetaTableType _opcodeMetaTable;
+
+	static OpcodeMetaTableType _opcodeMetaTable;
 };

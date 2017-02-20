@@ -1481,7 +1481,6 @@ end:
 	}
 }
 
-DWORD modifiedIni;
 void __declspec(naked) op_modified_ini() {
 	__asm {
 		pushad;
@@ -1723,6 +1722,6 @@ end:
 }
 
 
-void sf_exec_map_update_scripts() {
+void sf_exec_map_update_scripts(OpcodeContext& ctx) {
 	__asm call FuncOffs::scr_exec_map_update_scripts_
 }

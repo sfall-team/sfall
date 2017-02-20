@@ -66,10 +66,10 @@ void __declspec() op_hide_iface_tag();
 
 void __declspec() op_is_iface_tag_active();
 
-void sf_intface_redraw();
+void sf_intface_redraw(OpcodeContext&);
 
-void sf_intface_show();
+void sf_intface_show(OpcodeContext&);
 
-void sf_intface_hide();
+void sf_intface_hide(OpcodeContext&);
 
-void sf_intface_is_hidden();
+void sf_intface_is_hidden(OpcodeContext&);

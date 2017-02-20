@@ -16,33 +16,9 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#pragma once
+//
+// Everything related to new sfall opcodes.
+//
 
-#include <string>
-#include <sstream>
-#include <unordered_map>
+void InitNewOpcodes();
 
-#include "..\..\..\main.h"
-#include "..\..\ScriptExtender.h"
-
-
-// Example handler. Feel free to add handlers in other files.
-void sf_test(OpcodeContext&);
-
-// returns current contents of metarule table
-void sf_get_metarule_table(OpcodeContext&);
-
-void InitMetaruleTable();
-
-#define metaruleOpcode(numArg, numArgPlusOne) \
-	void __declspec() op_sfall_metarule##numArg();
-
-metaruleOpcode(0, 1)
-metaruleOpcode(1, 2)
-metaruleOpcode(2, 3)
-metaruleOpcode(3, 4)
-metaruleOpcode(4, 5)
-metaruleOpcode(5, 6)
-metaruleOpcode(6, 7)
-
-#undef metaruleOpcode

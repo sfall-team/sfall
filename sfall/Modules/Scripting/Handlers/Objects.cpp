@@ -111,11 +111,11 @@ end:
 	}
 }
 
-void _stdcall CreateSpatial() {
-	DWORD scriptIndex = opHandler.arg(0).asInt(),
-		tile = opHandler.arg(1).asInt(),
-		elevation = opHandler.arg(2).asInt(),
-		radius = opHandler.arg(3).asInt(),
+void sf_create_spatial(OpcodeContext& ctx) {
+	DWORD scriptIndex = ctx.arg(0).asInt(),
+		tile = ctx.arg(1).asInt(),
+		elevation = ctx.arg(2).asInt(),
+		radius = ctx.arg(3).asInt(),
 		scriptId, tmp, objectPtr,
 		scriptPtr;
 	__asm {
@@ -148,18 +148,18 @@ void _stdcall CreateSpatial() {
 		call FuncOffs::scr_find_obj_from_program_;
 		mov objectPtr, eax;
 	}
-	opHandler.setReturn((int)objectPtr);
+	ctx.setReturn((int)objectPtr);
 }
 
 void __declspec(naked) op_create_spatial() {
-	_WRAP_OPCODE(CreateSpatial, 4, 1)
+	_WRAP_OPCODE(sf_create_spatial, 4, 1)
 }
 
-void sf_spatial_radius() {
-	TGameObj* spatialObj = opHandler.arg(0).asObject();
+void sf_spatial_radius(OpcodeContext& ctx) {
+	TGameObj* spatialObj = ctx.arg(0).asObject();
 	TScript* script;
 	if (Wrapper::scr_ptr(spatialObj->scriptID, &script) != -1) {
-		opHandler.setReturn(script->spatial_radius);
+		ctx.setReturn(script->spatial_radius);
 	}
 }
 
@@ -377,30 +377,30 @@ static DWORD getBlockingFunc(DWORD type) {
 	}
 }
 
-void _stdcall sf_make_straight_path() {
-	DWORD objFrom = opHandler.arg(0).asInt(),
-		tileTo = opHandler.arg(1).asInt(),
-		type = opHandler.arg(2).asInt(),
+void sf_make_straight_path(OpcodeContext& ctx) {
+	DWORD objFrom = ctx.arg(0).asInt(),
+		tileTo = ctx.arg(1).asInt(),
+		type = ctx.arg(2).asInt(),
 		resultObj, arg6;
 	arg6 = (type == BLOCKING_TYPE_SHOOT) ? 32 : 0;
 	make_straight_path_func_wrapper(objFrom, *(DWORD*)(objFrom + 4), 0, tileTo, &resultObj, arg6, getBlockingFunc(type));
-	opHandler.setReturn(resultObj, DATATYPE_INT);
+	ctx.setReturn(resultObj, DATATYPE_INT);
 }
 
 void __declspec(naked) op_make_straight_path() {
 	_WRAP_OPCODE(sf_make_straight_path, 3, 1)
 }
 
-static void _stdcall sf_make_path() {
-	DWORD objFrom = opHandler.arg(0).asInt(),
+static void sf_make_path(OpcodeContext& ctx) {
+	DWORD objFrom = ctx.arg(0).asInt(),
 		tileFrom = 0,
-		tileTo = opHandler.arg(1).asInt(),
-		type = opHandler.arg(2).asInt(),
+		tileTo = ctx.arg(1).asInt(),
+		type = ctx.arg(2).asInt(),
 		func = getBlockingFunc(type),
 		arr;
 	long pathLength, a5 = 1;
 	if (!objFrom) {
-		opHandler.setReturn(0, DATATYPE_INT);
+		ctx.setReturn(0, DATATYPE_INT);
 		return;
 	}
 	tileFrom = *(DWORD*)(objFrom + 4);
@@ -420,33 +420,33 @@ static void _stdcall sf_make_path() {
 	for (int i = 0; i < pathLength; i++) {
 		arrays[arr].val[i].set((long)pathData[i]);
 	}
-	opHandler.setReturn(arr, DATATYPE_INT);
+	ctx.setReturn(arr, DATATYPE_INT);
 }
 
 void __declspec(naked) op_make_path() {
 	_WRAP_OPCODE(sf_make_path, 3, 1)
 }
 
-static void _stdcall sf_obj_blocking_at() {
-	DWORD tile = opHandler.arg(0).asInt(),
-		elevation = opHandler.arg(1).asInt(),
-		type = opHandler.arg(2).asInt(),
+static void sf_obj_blocking_at(OpcodeContext& ctx) {
+	DWORD tile = ctx.arg(0).asInt(),
+		elevation = ctx.arg(1).asInt(),
+		type = ctx.arg(2).asInt(),
 		resultObj;
 	resultObj = obj_blocking_at_wrapper(0, tile, elevation, getBlockingFunc(type));
 	if (resultObj && type == BLOCKING_TYPE_SHOOT && (*(DWORD*)(resultObj + 39) & 0x80)) { // don't know what this flag means, copy-pasted from the engine code
 		// this check was added because the engine always does exactly this when using shoot blocking checks
 		resultObj = 0;
 	}
-	opHandler.setReturn(resultObj, DATATYPE_INT);
+	ctx.setReturn(resultObj, DATATYPE_INT);
 }
 
 void __declspec(naked) op_obj_blocking_at() {
 	_WRAP_OPCODE(sf_obj_blocking_at, 3, 1)
 }
 
-static void _stdcall sf_tile_get_objects() {
-	DWORD tile = opHandler.arg(0).asInt(),
-		elevation = opHandler.arg(1).asInt(),
+static void sf_tile_get_objects(OpcodeContext& ctx) {
+	DWORD tile = ctx.arg(0).asInt(),
+		elevation = ctx.arg(1).asInt(),
 		obj;
 	DWORD arrayId = TempArray(0, 4);
 	__asm {
@@ -462,15 +462,15 @@ static void _stdcall sf_tile_get_objects() {
 			mov obj, eax;
 		}
 	}
-	opHandler.setReturn(arrayId, DATATYPE_INT);
+	ctx.setReturn(arrayId, DATATYPE_INT);
 }
 
 void __declspec(naked) op_tile_get_objects() {
 	_WRAP_OPCODE(sf_tile_get_objects, 2, 1)
 }
 
-static void _stdcall sf_get_party_members() {
-	DWORD obj, mode = opHandler.arg(0).asInt(), isDead;
+static void sf_get_party_members(OpcodeContext& ctx) {
+	DWORD obj, mode = ctx.arg(0).asInt(), isDead;
 	int i, actualCount = VarPtr::partyMemberCount;
 	DWORD arrayId = TempArray(0, 4);
 	DWORD* partyMemberList = VarPtr::partyMemberList;
@@ -491,7 +491,7 @@ static void _stdcall sf_get_party_members() {
 		}
 		arrays[arrayId].push_back((long)obj);
 	}
-	opHandler.setReturn(arrayId, DATATYPE_INT);
+	ctx.setReturn(arrayId, DATATYPE_INT);
 }
 
 void __declspec(naked) op_get_party_members() {
@@ -514,10 +514,10 @@ end:
 	_OP_END
 }
 
-static void _stdcall sf_obj_is_carrying_obj() {
+static void sf_obj_is_carrying_obj(OpcodeContext& ctx) {
 	int num = 0;
-	const ScriptValue &invenObjArg = opHandler.arg(0),
-		&itemObjArg = opHandler.arg(1);
+	const ScriptValue &invenObjArg = ctx.arg(0),
+		&itemObjArg = ctx.arg(1);
 
 	if (invenObjArg.isInt() && itemObjArg.isInt()) {
 		TGameObj *invenObj = (TGameObj*)invenObjArg.asObject(),
@@ -531,30 +531,30 @@ static void _stdcall sf_obj_is_carrying_obj() {
 			}
 		}
 	}
-	opHandler.setReturn(num);
+	ctx.setReturn(num);
 }
 
 void __declspec(naked) op_obj_is_carrying_obj() {
 	_WRAP_OPCODE(sf_obj_is_carrying_obj, 2, 1)
 }
 
-void sf_critter_inven_obj2() {
-	TGameObj* critter = opHandler.arg(0).asObject();
-	int slot = opHandler.arg(1).asInt();
+void sf_critter_inven_obj2(OpcodeContext& ctx) {
+	TGameObj* critter = ctx.arg(0).asObject();
+	int slot = ctx.arg(1).asInt();
 	switch (slot) {
 	case 0:
-		opHandler.setReturn(Wrapper::inven_worn(critter));
+		ctx.setReturn(Wrapper::inven_worn(critter));
 		break;
 	case 1:
-		opHandler.setReturn(Wrapper::inven_right_hand(critter));
+		ctx.setReturn(Wrapper::inven_right_hand(critter));
 		break;
 	case 2:
-		opHandler.setReturn(Wrapper::inven_left_hand(critter));
+		ctx.setReturn(Wrapper::inven_left_hand(critter));
 		break;
 	case -2:
-		opHandler.setReturn(critter->invenCount);
+		ctx.setReturn(critter->invenCount);
 		break;
 	default:
-		opHandler.printOpcodeError("critter_inven_obj2() - invalid type.");
+		ctx.printOpcodeError("critter_inven_obj2() - invalid type.");
 	}
 }

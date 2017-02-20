@@ -28,6 +28,9 @@ enum SfallDataType {
 	DATATYPE_STR
 };
 
+/*
+	Represents value passed to/from scripting engine.
+*/
 class ScriptValue {
 public:
 	ScriptValue(SfallDataType type, unsigned long value);
@@ -50,12 +53,16 @@ public:
 
 	unsigned long rawValue() const;
 
+	// returns value as integer, converting if needed
 	int asInt() const;
 
+	// returns value as float, converting if needed
 	float asFloat() const;
 
+	// returns string value or empty string if value is not string type
 	const char* asString() const;
 
+	// returns value as object pointer or nullptr if value is not integer
 	TGameObj* asObject() const;
 
 	SfallDataType type() const;

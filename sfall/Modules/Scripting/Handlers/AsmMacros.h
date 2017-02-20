@@ -1,6 +1,6 @@
 #pragma once
 
-#include "..\OpcodeHandler.h"
+#include "..\OpcodeContext.h"
 
 /*
 	MACROS for operators assembly code
@@ -142,7 +142,7 @@ __asm resultnotstr##num:				\
 /* 
 	better way of handling new opcodes: 
 	- no ASM code required
-	- all type checks should be done in the wrapped C-function
+	- all type checks should be done in the wrapped C-function (or optionally using OpcodeMetaArray)
 	- use opArgs, opArgTypes to access arguments
 	- use opRet, opRetType to set return value
 
@@ -156,8 +156,7 @@ __asm resultnotstr##num:				\
 	__asm push argnum				\
 	__asm push func					\
 	__asm push eax					\
-	__asm lea ecx, opHandler		\
-	__asm call OpcodeHandler::handleOpcode	\
+	__asm call OpcodeContext::handleOpcodeStatic \
 	__asm popad						\
 	__asm retn						\
 }
