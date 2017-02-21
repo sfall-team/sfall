@@ -155,6 +155,7 @@ __asm resultnotstr##num:				\
 	__asm push isExpression			\
 	__asm push argnum				\
 	__asm push func					\
+	__asm push edx					\
 	__asm push eax					\
 	__asm call OpcodeContext::handleOpcodeStatic \
 	__asm popad						\

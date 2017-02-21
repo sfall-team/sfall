@@ -369,4 +369,5 @@ void InitNewOpcodes() {
 	// see opcodeMetaArray above for additional scripting functions via "metarule"
 
 	InitOpcodeMetaTable();
+	InitMetaruleTable();
 }

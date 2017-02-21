@@ -26,10 +26,11 @@
 
 OpcodeMetaTableType OpcodeContext::_opcodeMetaTable;
 
-OpcodeContext::OpcodeContext(TProgram* program, int argNum, bool hasReturn) {
+OpcodeContext::OpcodeContext(TProgram* program, DWORD opcode, int argNum, bool hasReturn) {
 	assert(argNum < OP_MAX_ARGUMENTS);
 
 	_program = program;
+	_opcode = opcode;
 
 	_numArgs = argNum;
 	_hasReturn = hasReturn;
@@ -64,6 +65,10 @@ const ScriptValue& OpcodeContext::returnValue() const {
 
 TProgram* OpcodeContext::program() const {
 	return _program;
+}
+
+DWORD OpcodeContext::opcode() const {
+	return _opcode;
 }
 
 void OpcodeContext::setReturn(unsigned long value, SfallDataType type) {
@@ -158,9 +163,9 @@ void OpcodeContext::handleOpcode(ScriptingFunctionHandler func) {
 	}
 }
 
-void __stdcall OpcodeContext::handleOpcodeStatic(TProgram* program, ScriptingFunctionHandler func, int argNum, bool hasReturn) {
+void __stdcall OpcodeContext::handleOpcodeStatic(TProgram* program, DWORD opcodeOffset, ScriptingFunctionHandler func, int argNum, bool hasReturn) {
 	// for each opcode create new context on stack (no allocations at this point)
-	OpcodeContext currentContext(program, argNum, hasReturn);
+	OpcodeContext currentContext(program, opcodeOffset / 4, argNum, hasReturn);
 	// handle the opcode using provided handler
 	currentContext.handleOpcode(func);
 }

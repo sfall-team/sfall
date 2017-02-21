@@ -55,9 +55,10 @@ typedef std::tr1::unordered_map<ScriptingFunctionHandler, const SfallOpcodeMetad
 class OpcodeContext {
 public:
 	// program - pointer to script program (from the engine)
+	// opcode - opcode number
 	// argNum - number of arguments for this opcode
 	// hasReturn - true if opcode has return value (is expression)
-	OpcodeContext(TProgram* program, int argNum, bool hasReturn);
+	OpcodeContext(TProgram* program, DWORD opcode, int argNum, bool hasReturn);
 
 	// number of arguments, possibly reduced by argShift
 	int numArgs() const;
@@ -80,6 +81,9 @@ public:
 
 	// current script program
 	TProgram* program() const;
+
+	// current opcode number
+	DWORD opcode() const;
 	
 	// set return value for current opcode
 	void setReturn(unsigned long value, SfallDataType type);
@@ -104,7 +108,7 @@ public:
 	static void addOpcodeMetaData(const SfallOpcodeMetadata* data);
 
 	// handles opcode using default instance
-	static void __stdcall handleOpcodeStatic(TProgram* program, ScriptingFunctionHandler func, int argNum, bool hasReturn);
+	static void __stdcall handleOpcodeStatic(TProgram* program, DWORD opcodeOffset, ScriptingFunctionHandler func, int argNum, bool hasReturn);
 
 	static const char* getSfallTypeName(DWORD dataType);
 
@@ -114,6 +118,7 @@ public:
 
 private:
 	TProgram* _program;
+	DWORD _opcode;
 
 	int _numArgs;
 	bool _hasReturn;
