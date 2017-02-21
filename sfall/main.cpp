@@ -1237,7 +1237,7 @@ static void DllMain2() {
 
 	if (GetPrivateProfileIntA("Misc", "OverrideArtCacheSize", 0, ini)) {
 		dlog("Applying override art cache size patch.", DL_INIT);
-		SafeWrite8(0x41886A, 0x0);
+		SafeWrite32(0x418867, 0x90909090);
 		SafeWrite32(0x418872, 256);
 		dlogr(" Done", DL_INIT);
 	}
