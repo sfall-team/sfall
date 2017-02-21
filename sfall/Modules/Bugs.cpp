@@ -859,7 +859,7 @@ end:
 
 static void __declspec(naked) switch_hand_hack() {
 	__asm {
-		mov  eax, ds:[_inven_dude]
+		mov  eax, ds:[VARPTR_inven_dude]
 		push eax
 		mov  [edi], ebp
 		inc  ecx
@@ -867,11 +867,11 @@ static void __declspec(naked) switch_hand_hack() {
 		xor  ebx, ebx
 		inc  ebx
 		mov  edx, ebp
-		call item_remove_mult_
+		call FuncOffs::item_remove_mult_
 skip:
 		pop  edx
 		mov  eax, ebp
-		call item_get_type_
+		call FuncOffs::item_get_type_
 		cmp  eax, item_type_container
 		jne  end
 		mov  [ebp+0x7C], edx                      // iobj.owner = _inven_dude
@@ -885,7 +885,7 @@ end:
 
 static void __declspec(naked) inven_item_wearing() {
 	__asm {
-		mov  esi, ds:[_inven_dude]
+		mov  esi, ds:[VARPTR_inven_dude]
 		xchg ebx, eax                             // ebx = source
 		mov  eax, [esi+0x20]
 		and  eax, 0xF000000
@@ -893,11 +893,11 @@ static void __declspec(naked) inven_item_wearing() {
 		test eax, eax                             // check if object FID type flag is set to item
 		jnz  skip                                 // No
 		mov  eax, esi
-		call item_get_type_
+		call FuncOffs::item_get_type_
 		cmp  eax, item_type_container             // Bag/Backpack?
 		jne  skip                                 // No
 		mov  eax, esi
-		call obj_top_environment_
+		call FuncOffs::obj_top_environment_
 		test eax, eax                             // has an owner?
 		jz   skip                                 // No
 		mov  ecx, [eax+0x20]
@@ -919,9 +919,9 @@ static void __declspec(naked) inven_action_cursor_hack() {
 	__asm {
 		cmp  dword ptr [esp+0x44+0x4], item_type_container
 		jne  end
-		cmp  eax, ds:[_stack]
+		cmp  eax, ds:[VARPTR_stack]
 		je   end
-		cmp  eax, ds:[_target_stack]
+		cmp  eax, ds:[VARPTR_target_stack]
 end:
 		retn
 	}
@@ -1174,7 +1174,7 @@ void BugsInit()
 	//if (GetPrivateProfileIntA("Misc", "BagBackpackFix", 1, ini)) {
 		// Fix for items disappearing from inventory when you try to drag them to bag/backpack in the inventory list
 		// and are overloaded
-		HookCall(0x4764FC, (void*)item_add_force_);
+		HookCall(0x4764FC, (void*)FuncOffs::item_add_force_);
 		// Fix for the engine not checking player's inventory properly when putting items into the bag/backpack in the hands
 		MakeCall(0x4715DB, &switch_hand_hack, true);
 		// Fix to ignore player's equipped items when opening bag/backpack
