@@ -30,8 +30,9 @@
 	__asm test byte ptr ds:VARPTR_combat_state, R8		\
 	__asm jnz GOTOFAIL }
 
+// true if combat mode is active and combat check was not disabled
 bool checkCombatMode() {
-	return reg_anim_combat_check == 0 || VarPtr::combat_state == 0;
+	return (reg_anim_combat_check & VarPtr::combat_state) != 0;
 }
 
 void sf_reg_anim_combat_check(OpcodeContext& ctx) {
@@ -39,32 +40,24 @@ void sf_reg_anim_combat_check(OpcodeContext& ctx) {
 }
 
 void sf_reg_anim_destroy(OpcodeContext& ctx) {
-	if (checkCombatMode()) {
+	if (!checkCombatMode()) {
 		auto obj = ctx.arg(0).asObject();
-		__asm {
-			mov eax, obj; // object
-			call FuncOffs::register_object_must_erase_;
-		}
+		Wrapper::register_object_must_erase(obj);
 	}
 }
 
 void sf_reg_anim_animate_and_hide(OpcodeContext& ctx) {
-	if (checkCombatMode()) {
+	if (!checkCombatMode()) {
 		auto obj = ctx.arg(0).asObject();
 		int animId = ctx.arg(1).asInt(),
 			delay = ctx.arg(2).asInt();
 
-		__asm {
-			mov ebx, delay;
-			mov edx, animId;
-			mov eax, obj;
-			call FuncOffs::register_object_animate_and_hide_;
-		}
+		Wrapper::register_object_animate_and_hide(obj, animId, delay);
 	}
 }
 
 void sf_reg_anim_light(OpcodeContext& ctx) {
-	if (checkCombatMode()) {
+	if (!checkCombatMode()) {
 		auto obj = ctx.arg(0).asObject();
 		int radius = ctx.arg(1).asInt(),
 			delay = ctx.arg(2).asInt();
@@ -74,57 +67,37 @@ void sf_reg_anim_light(OpcodeContext& ctx) {
 		} else if (radius > 8) {
 			radius = 8;
 		}
-		__asm {
-			mov ebx, delay;
-			mov edx, radius;
-			mov eax, obj;
-			call FuncOffs::register_object_light_;
-		}
+		Wrapper::register_object_light(obj, radius, delay);
 	}
 }
 
 void sf_reg_anim_change_fid(OpcodeContext& ctx) {
-	if (checkCombatMode()) {
+	if (!checkCombatMode()) {
 		auto obj = ctx.arg(0).asObject();
 		int fid = ctx.arg(1).asInt(),
 			delay = ctx.arg(2).asInt();
 
-		__asm {
-			mov ebx, delay;
-			mov edx, fid;
-			mov eax, obj;
-			call FuncOffs::register_object_change_fid_;
-		}
+		Wrapper::register_object_change_fid(obj, fid, delay);
 	}
 }
 
 void sf_reg_anim_take_out(OpcodeContext& ctx) {
-	if (checkCombatMode()) {
+	if (!checkCombatMode()) {
 		auto obj = ctx.arg(0).asObject();
 		int holdFrame = ctx.arg(1).asInt(),
-			delay = ctx.arg(2).asInt();
+			nothing = ctx.arg(2).asInt(); // not used by engine
 
-		__asm {
-			//mov ebx, esi // delay - not used
-			mov edx, holdFrame;
-			mov eax, obj;
-			call FuncOffs::register_object_take_out_;
-		}
+		Wrapper::register_object_take_out(obj, holdFrame, nothing);
 	}
 }
 
 void sf_reg_anim_turn_towards(OpcodeContext& ctx) {
-	if (checkCombatMode()) {
+	if (!checkCombatMode()) {
 		auto obj = ctx.arg(0).asObject();
 		int tile = ctx.arg(1).asInt(),
-			delay = ctx.arg(2).asInt();
+			nothing = ctx.arg(2).asInt();
 
-		__asm {
-			// mov ebx, esi // delay - not used
-			mov edx, tile;
-			mov eax, obj;
-			call FuncOffs::register_object_turn_towards_;
-		}
+		Wrapper::register_object_turn_towards(obj, tile, nothing);
 	}
 }
 

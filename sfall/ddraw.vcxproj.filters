@@ -223,6 +223,9 @@
     <ClInclude Include="Modules\Scripting\Opcodes.h">
       <Filter>Modules\Scripting</Filter>
     </ClInclude>
+    <ClInclude Include="FalloutEngine\Wrappers_def.h">
+      <Filter>FalloutEngine</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
