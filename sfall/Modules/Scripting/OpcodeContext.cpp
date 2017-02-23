@@ -125,6 +125,9 @@ void OpcodeContext::handleOpcode(ScriptingFunctionHandler func, const OpcodeArgu
 
 	if (validateArguments(argTypes, opcodeName)) {
 		func(*this);
+	} else if (_hasReturn) {
+		// is a common practice to return -1 in case of errors in fallout engine
+		setReturn(-1);
 	}
 
 	_pushReturnValue();

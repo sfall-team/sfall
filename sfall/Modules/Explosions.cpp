@@ -148,36 +148,44 @@ static const DWORD explosion_art_adr[] = {0x411A19, 0x411A29, 0x411A35, 0x411A3C
 static const DWORD explosion_art_defaults[] = {10, 2, 31, 29};
 static const DWORD explosion_radius_grenade = 0x479183;
 static const DWORD explosion_radius_rocket  = 0x47918B;
-#define EXPL_FORCE_EXPLOSION_PATTERN	(1)
-#define EXPL_FORCE_EXPLOSION_ART		(2)
-#define EXPL_FORCE_EXPLOSION_RADIUS		(3)
-#define EXPL_FORCE_EXPLOSION_DMGTYPE	(4)
-DWORD _stdcall ExplosionsMetaruleFunc(DWORD mode, DWORD arg1, DWORD arg2) {
-	int i;
+
+static const size_t numArtChecks = sizeof(explosion_art_adr) / sizeof(explosion_art_adr[0]);
+static const size_t numDmgChecks = sizeof(explosion_dmg_check_adr) / sizeof(explosion_dmg_check_adr[0]);
+
+enum MetaruleExplosionsMode {
+	EXPL_FORCE_EXPLOSION_PATTERN = 1,
+	EXPL_FORCE_EXPLOSION_ART = 2,
+	EXPL_FORCE_EXPLOSION_RADIUS = 3,
+	EXPL_FORCE_EXPLOSION_DMGTYPE = 4
+};
+
+int _stdcall ExplosionsMetaruleFunc(int mode, int arg1, int arg2) {
 	switch (mode) {
-	case EXPL_FORCE_EXPLOSION_PATTERN:
-		if (arg1) {
-			explosion_effect_starting_dir = 2; // bottom-right
-			SafeWrite8(0x411B54, 4); // bottom-left + 1
-		} else {
-			explosion_effect_starting_dir = 0;
-			SafeWrite8(0x411B54, 6); // last direction
+		case EXPL_FORCE_EXPLOSION_PATTERN:
+			if (arg1) {
+				explosion_effect_starting_dir = 2; // bottom-right
+				SafeWrite8(0x411B54, 4); // bottom-left + 1
+			} else {
+				explosion_effect_starting_dir = 0;
+				SafeWrite8(0x411B54, 6); // last direction
+			}
+			break;
+		case EXPL_FORCE_EXPLOSION_ART: {
+			for (int i = 0; i < numArtChecks; i++) {
+				SafeWrite32(explosion_art_adr[i], (BYTE)arg1);
+			}
+			break;
 		}
-		break;
-	case EXPL_FORCE_EXPLOSION_ART:
-		for (i=0; i<4; i++) {
-			SafeWrite32(explosion_art_adr[i], (BYTE)arg1);
+		case EXPL_FORCE_EXPLOSION_RADIUS:
+			SafeWrite32(explosion_radius_grenade, arg1);
+			SafeWrite32(explosion_radius_rocket, arg1);
+			break;
+		case EXPL_FORCE_EXPLOSION_DMGTYPE: {
+			for (int i = 0; i < numDmgChecks; i++) {
+				SafeWrite8(explosion_dmg_check_adr[i], (BYTE)arg1);
+			}
+			break;
 		}
-		break;
-	case EXPL_FORCE_EXPLOSION_RADIUS:
-		SafeWrite32(explosion_radius_grenade, arg1);
-		SafeWrite32(explosion_radius_rocket, arg1);
-		break;
-	case EXPL_FORCE_EXPLOSION_DMGTYPE:
-		for (i=0; i<4; i++) {
-			SafeWrite8(explosion_dmg_check_adr[i], (BYTE)arg1);
-		}
-		break;
 	}
 	return 0;
 }

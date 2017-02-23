@@ -19,21 +19,15 @@
 #pragma once
 
 
-
 // new reg_anim functions (all using existing engine code)
 
-void __declspec() op_reg_anim_combat_check();
+class OpcodeContext;
 
-void __declspec() op_reg_anim_destroy();
-
-void __declspec() op_reg_anim_animate_and_hide();
-
-void __declspec() op_reg_anim_light();
-
-void __declspec() op_reg_anim_change_fid();
-
-void __declspec() op_reg_anim_take_out();
-
-void __declspec() op_reg_anim_turn_towards();
-
-void __declspec() op_explosions_metarule();
+void sf_reg_anim_combat_check(OpcodeContext&);
+void sf_reg_anim_destroy(OpcodeContext&);
+void sf_reg_anim_animate_and_hide(OpcodeContext&);
+void sf_reg_anim_light(OpcodeContext&);
+void sf_reg_anim_change_fid(OpcodeContext&);
+void sf_reg_anim_take_out(OpcodeContext&);
+void sf_reg_anim_turn_towards(OpcodeContext&);
+void sf_explosions_metarule(OpcodeContext&);

@@ -42,6 +42,9 @@
 static const short sfallOpcodeStart = 0x156;
 static const short opcodeCount = 0x300;
 
+// "Raw" opcode table. Each value points to a "raw" handler function that is called directly by engine.
+// First half is filled with vanilla opcodes by engine itself.
+// Other half is filled by sfall here.
 static void* opcodes[opcodeCount];
 
 typedef std::tr1::unordered_map<int, const SfallOpcodeInfo*> OpcodeInfoMapType;
@@ -64,6 +67,14 @@ static SfallOpcodeInfo opcodeInfoArray[] = {
 	{0x218, "set_weapon_ammo_pid", sf_set_weapon_ammo_pid, 2, false, {ARG_OBJECT, ARG_INT}},
 	{0x219, "get_weapon_ammo_count", sf_get_weapon_ammo_count, 1, true, {ARG_OBJECT}},
 	{0x21a, "set_weapon_ammo_count", sf_set_weapon_ammo_count, 2, false, {ARG_OBJECT, ARG_INT}},
+	{0x25a, "reg_anim_destroy", sf_reg_anim_destroy, 1, false, {ARG_OBJECT}},
+	{0x25b, "reg_anim_animate_and_hide", sf_reg_anim_animate_and_hide, 3, false, {ARG_OBJECT, ARG_INT, ARG_INT}},
+	{0x25c, "reg_anim_combat_check", sf_reg_anim_combat_check, 1, false, {ARG_INT}},
+	{0x25d, "reg_anim_light", sf_reg_anim_light, 3, false, {ARG_OBJECT, ARG_INT, ARG_INT}},
+	{0x25e, "reg_anim_change_fid", sf_reg_anim_change_fid, 3, false, {ARG_OBJECT, ARG_INT, ARG_INT}},
+	{0x25f, "reg_anim_take_out", sf_reg_anim_take_out, 3, false, {ARG_OBJECT, ARG_INT, ARG_INT}},
+	{0x260, "reg_anim_turn_towards", sf_reg_anim_turn_towards, 3, false, {ARG_OBJECT, ARG_INT, ARG_INT}},
+	{0x261, "metarule2_explosions", sf_explosions_metarule, 3, true, {ARG_INT, ARG_INT, ARG_INT}},
 	{0x262, "register_hook_proc", sf_register_hook, 2, false, {ARG_INT, ARG_INT}},
 	{0x26e, "obj_blocking_line", sf_make_straight_path, 3, true},
 	{0x26f, "obj_blocking_tile", sf_obj_blocking_at, 3, true},
@@ -83,7 +94,8 @@ static SfallOpcodeInfo opcodeInfoArray[] = {
 	{0x27c, "sfall_func6", HandleMetarule, 7, true},  // if you need more arguments - use arrays
 };
 
-// initialized at run time from the array above
+// A hash-table for opcode info, indexed by opcode.
+// Initialized at run time from the array above.
 OpcodeInfoMapType opcodeInfoMap;
 
 // Initializes the opcode info table.
@@ -380,14 +392,6 @@ void InitNewOpcodes() {
 	opcodes[0x257] = op_stack_array;
 	// opcodes[0x258]= RESERVED for arrays
 	// opcodes[0x259]= RESERVED for arrays
-	opcodes[0x25a] = op_reg_anim_destroy;
-	opcodes[0x25b] = op_reg_anim_animate_and_hide;
-	opcodes[0x25c] = op_reg_anim_combat_check;
-	opcodes[0x25d] = op_reg_anim_light;
-	opcodes[0x25e] = op_reg_anim_change_fid;
-	opcodes[0x25f] = op_reg_anim_take_out;
-	opcodes[0x260] = op_reg_anim_turn_towards;
-	opcodes[0x261] = op_explosions_metarule;
 	opcodes[0x263] = op_power;
 	opcodes[0x264] = op_log;
 	opcodes[0x265] = op_exponent;

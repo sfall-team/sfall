@@ -19,5 +19,5 @@
 #pragma once
 
 void ExplosionLightingInit();
-DWORD _stdcall ExplosionsMetaruleFunc(DWORD mode, DWORD arg1, DWORD arg2);
+int _stdcall ExplosionsMetaruleFunc(int mode, int arg1, int arg2);
 void ResetExplosionSettings();

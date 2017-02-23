@@ -30,158 +30,108 @@
 	__asm test byte ptr ds:VARPTR_combat_state, R8		\
 	__asm jnz GOTOFAIL }
 
-
-void __declspec(naked) op_reg_anim_combat_check() {
-	_OP_BEGIN(ebp)
-		_GET_ARG_R32(ebp, ecx, edx) // new value
-		_CHECK_ARG_INT(cx, end1)
-		__asm {
-		push edx
-		call RegAnimCombatCheck
-	}
-end1:
-	_OP_END
+bool checkCombatMode() {
+	return reg_anim_combat_check == 0 || VarPtr::combat_state == 0;
 }
 
-void __declspec(naked) op_reg_anim_destroy() {
-	_OP_BEGIN(ebp)
-		_GET_ARG_R32(ebp, edx, esi) // object
-		_CHECK_ARG_INT(dx, end1)
-		_CHECK_COMBAT_MODE(al, end1)
-		__asm {
-		mov eax, esi // object
-		call FuncOffs::register_object_must_erase_;
-	}
-end1:
-	_OP_END
+void sf_reg_anim_combat_check(OpcodeContext& ctx) {
+	RegAnimCombatCheck(ctx.arg(0).asInt());
 }
 
-void __declspec(naked) op_reg_anim_animate_and_hide() {
-	_OP_BEGIN(ebp)
-		_GET_ARG_R32(ebp, ebx, esi) // delay
-		_GET_ARG_R32(ebp, ecx, edi) // animID
-		_GET_ARG_R32(ebp, edx, eax) // object
-		// eax should not change until function call
-		_CHECK_ARG_INT(bx, end)
-		_CHECK_ARG_INT(cx, end)
-		_CHECK_ARG_INT(dx, end)
+void sf_reg_anim_destroy(OpcodeContext& ctx) {
+	if (checkCombatMode()) {
+		auto obj = ctx.arg(0).asObject();
 		__asm {
-		_CHECK_COMBAT_MODE(bl, end)
-		mov ebx, esi // delay
-		mov edx, edi // animID
-		call FuncOffs::register_object_animate_and_hide_;
+			mov eax, obj; // object
+			call FuncOffs::register_object_must_erase_;
+		}
 	}
-end:
-	_OP_END
 }
 
-void __declspec(naked) op_reg_anim_light() {
-	_OP_BEGIN(ebp)
-		_GET_ARG_R32(ebp, ebx, esi) // delay
-		_GET_ARG_R32(ebp, ecx, edi) // light radius
-		_GET_ARG_R32(ebp, edx, eax) // object
-		// eax should not change until function call
-		_CHECK_ARG_INT(bx, end)
-		_CHECK_ARG_INT(cx, end)
-		_CHECK_ARG_INT(dx, end)
+void sf_reg_anim_animate_and_hide(OpcodeContext& ctx) {
+	if (checkCombatMode()) {
+		auto obj = ctx.arg(0).asObject();
+		int animId = ctx.arg(1).asInt(),
+			delay = ctx.arg(2).asInt();
+
 		__asm {
-			// check for valid radius
-		cmp di, 0
-		jge dontfixMin
-		mov di, 0
-		jmp dontfixMax
-		dontfixMin :
-		cmp di, 8
-			jle dontfixMax
-			mov di, 8
-			dontfixMax :
-			_CHECK_COMBAT_MODE(bl, end)
-			mov ebx, esi // delay
-			mov edx, edi // light radius
+			mov ebx, delay;
+			mov edx, animId;
+			mov eax, obj;
+			call FuncOffs::register_object_animate_and_hide_;
+		}
+	}
+}
+
+void sf_reg_anim_light(OpcodeContext& ctx) {
+	if (checkCombatMode()) {
+		auto obj = ctx.arg(0).asObject();
+		int radius = ctx.arg(1).asInt(),
+			delay = ctx.arg(2).asInt();
+
+		if (radius < 0) {
+			radius = 0;
+		} else if (radius > 8) {
+			radius = 8;
+		}
+		__asm {
+			mov ebx, delay;
+			mov edx, radius;
+			mov eax, obj;
 			call FuncOffs::register_object_light_;
+		}
 	}
-end:
-	_OP_END
 }
 
-void __declspec(naked) op_reg_anim_change_fid() {
-	_OP_BEGIN(ebp)
-		_GET_ARG_R32(ebp, ebx, esi) // delay
-		_GET_ARG_R32(ebp, ecx, edi) // FID
-		_GET_ARG_R32(ebp, edx, eax) // object
-		// eax should not change until function call
-		_CHECK_ARG_INT(bx, end)
-		_CHECK_ARG_INT(cx, end)
-		_CHECK_ARG_INT(dx, end)
+void sf_reg_anim_change_fid(OpcodeContext& ctx) {
+	if (checkCombatMode()) {
+		auto obj = ctx.arg(0).asObject();
+		int fid = ctx.arg(1).asInt(),
+			delay = ctx.arg(2).asInt();
+
 		__asm {
-		_CHECK_COMBAT_MODE(bl, end)
-		mov ebx, esi // delay
-		mov edx, edi // FID
-		call FuncOffs::register_object_change_fid_
+			mov ebx, delay;
+			mov edx, fid;
+			mov eax, obj;
+			call FuncOffs::register_object_change_fid_;
+		}
 	}
-end:
-	_OP_END
 }
 
-void __declspec(naked) op_reg_anim_take_out() {
-	_OP_BEGIN(ebp)
-		_GET_ARG_R32(ebp, ebx, esi) // delay - not used
-		_GET_ARG_R32(ebp, ecx, edi) // weapon hold frame ID
-		_GET_ARG_R32(ebp, edx, eax) // object
-		// eax should not change until function call
-		_CHECK_ARG_INT(bx, end)
-		_CHECK_ARG_INT(cx, end)
-		_CHECK_ARG_INT(dx, end)
+void sf_reg_anim_take_out(OpcodeContext& ctx) {
+	if (checkCombatMode()) {
+		auto obj = ctx.arg(0).asObject();
+		int holdFrame = ctx.arg(1).asInt(),
+			delay = ctx.arg(2).asInt();
+
 		__asm {
-		_CHECK_COMBAT_MODE(bl, end)
-		//mov ebx, esi // delay - not used
-		mov edx, edi // holdFrame
-		call FuncOffs::register_object_take_out_;
+			//mov ebx, esi // delay - not used
+			mov edx, holdFrame;
+			mov eax, obj;
+			call FuncOffs::register_object_take_out_;
+		}
 	}
-end:
-	_OP_END
 }
 
-void __declspec(naked) op_reg_anim_turn_towards() {
-	_OP_BEGIN(ebp)
-		_GET_ARG_R32(ebp, ebx, esi) // delay - not used
-		_GET_ARG_R32(ebp, ecx, edi) // tile
-		_GET_ARG_R32(ebp, edx, eax) // object
-		// eax should not change until function call
-		_CHECK_ARG_INT(bx, end)
-		_CHECK_ARG_INT(cx, end)
-		_CHECK_ARG_INT(dx, end)
+void sf_reg_anim_turn_towards(OpcodeContext& ctx) {
+	if (checkCombatMode()) {
+		auto obj = ctx.arg(0).asObject();
+		int tile = ctx.arg(1).asInt(),
+			delay = ctx.arg(2).asInt();
+
 		__asm {
-		_CHECK_COMBAT_MODE(bl, end)
-		// mov ebx, esi // delay - not used
-		mov edx, edi // tile
-		call FuncOffs::register_object_turn_towards_;
+			// mov ebx, esi // delay - not used
+			mov edx, tile;
+			mov eax, obj;
+			call FuncOffs::register_object_turn_towards_;
+		}
 	}
-end:
-	_OP_END
 }
 
-void __declspec(naked)op_explosions_metarule() {
-	_OP_BEGIN(ebp)
-		_GET_ARG_R32(ebp, ebx, esi) // arg3
-		_GET_ARG_R32(ebp, ecx, edi) // arg2
-		_GET_ARG_R32(ebp, edx, eax) // arg1
-		// eax should not change until function call
-		_CHECK_ARG_INT(bx, fail)
-		_CHECK_ARG_INT(cx, fail)
-		_CHECK_ARG_INT(dx, fail)
-		__asm {
-		push esi
-		push edi
-		push eax
-		call ExplosionsMetaruleFunc;
-		jmp end;
-	}
-fail:
-	__asm {
-		mov eax, -1
-	}
-end:
-	_RET_VAL_INT(ebp)
-		_OP_END
+void sf_explosions_metarule(OpcodeContext& ctx) {
+	int mode = ctx.arg(0).asInt(),
+		arg1 = ctx.arg(1).asInt(),
+		arg2 = ctx.arg(2).asInt();
+
+	ctx.setReturn(ExplosionsMetaruleFunc(mode, arg1, arg2));
 }
