@@ -20,11 +20,9 @@
 
 #include "..\..\FalloutEngine\Fallout2.h"
 #include "..\ScriptExtender.h"
+#include "OpcodeInfo.h"
 
 #include "OpcodeContext.h"
-
-
-OpcodeMetadataMapType OpcodeContext::_opcodeMetaTable;
 
 OpcodeContext::OpcodeContext(TProgram* program, DWORD opcode, int argNum, bool hasReturn) {
 	assert(argNum < OP_MAX_ARGUMENTS);
@@ -92,22 +90,11 @@ void OpcodeContext::printOpcodeError(const char* fmt, ...) const {
 	Wrapper::debug_printf("\nOPCODE ERROR: %s\n   Current script: %s, procedure %s.", msg, _program->fileName, procName);
 }
 
-bool OpcodeContext::validateArguments(ScriptingFunctionHandler func) const {
-	OpcodeMetadataMapType::const_iterator it = _opcodeMetaTable.find(func);
-	if (it != _opcodeMetaTable.end()) {
-		const SfallOpcodeMetadata* meta = it->second;
-
-		// automatically validate argument types
-		return validateArguments(meta->argTypeMasks, meta->name);
-	}
-	return true;
-}
-
-bool OpcodeContext::validateArguments(const int argTypeMasks[], const char* opcodeName) const {
+bool OpcodeContext::validateArguments(const OpcodeArgumentInfo argInfo[], const char* opcodeName) const {
 	for (int i = 0; i < _numArgs; i++) {
-		int typeMask = argTypeMasks[i];
+		OpcodeArgumentInfo info = argInfo[i];
 		const ScriptValue &argI = arg(i);
-		if (typeMask != 0 && ((1 << argI.type()) & typeMask) == 0) {
+		if (info.type != DATATYPE_NONE && info.type != argI.type()) {
 			printOpcodeError(
 				"%s() - argument #%d has invalid type: %s.", 
 				opcodeName, 
@@ -115,7 +102,7 @@ bool OpcodeContext::validateArguments(const int argTypeMasks[], const char* opco
 				getSfallTypeName(argI.type()));
 
 			return false;
-		} else if ((typeMask & DATATYPE_MASK_NOT_NULL) && argI.rawValue() == 0) {
+		} else if (info.notNull && argI.rawValue() == 0) {
 			printOpcodeError(
 				"%s() - argument #%d is null.", 
 				opcodeName, 
@@ -128,39 +115,21 @@ bool OpcodeContext::validateArguments(const int argTypeMasks[], const char* opco
 }
 
 void OpcodeContext::handleOpcode(ScriptingFunctionHandler func) {
-	// process arguments on stack (reverse order)
-	for (int i = _numArgs - 1; i >= 0; i--) {
-		// get argument from stack
-		DWORD rawValueType = Wrapper::interpretPopShort(_program);
-		DWORD rawValue = Wrapper::interpretPopLong(_program);
-		SfallDataType type = static_cast<SfallDataType>(getSfallTypeByScriptType(rawValueType));
+	_popArguments();
 
-		// retrieve string argument
-		if (type == DATATYPE_STR) {
-			_args.at(i) = Wrapper::interpretGetString(_program, rawValueType, rawValue);
-		} else {
-			_args.at(i) = ScriptValue(type, rawValue);
-		}
-	}
+	func(*this);
 
-	// call opcode handler if arguments are valid (or no automatic validation was done)
-	if (validateArguments(func)) {
+	_pushReturnValue();
+}
+
+void OpcodeContext::handleOpcode(ScriptingFunctionHandler func, const OpcodeArgumentInfo argTypes[], const char* opcodeName) {
+	_popArguments();
+
+	if (validateArguments(argTypes, opcodeName)) {
 		func(*this);
 	}
 
-	// process return value
-	if (_hasReturn) {
-		if (_ret.type() == DATATYPE_NONE) {
-			// if no value was set in handler, force return 0 to avoid stack error
-			_ret = ScriptValue(0);
-		}
-		DWORD rawResult = _ret.rawValue();
-		if (_ret.type() == DATATYPE_STR) {
-			rawResult = Wrapper::interpretAddString(_program, _ret.asString());
-		}
-		Wrapper::interpretPushLong(_program, rawResult);
-		Wrapper::interpretPushShort(_program, getScriptTypeBySfallType(_ret.type()));
-	}
+	_pushReturnValue();
 }
 
 void __stdcall OpcodeContext::handleOpcodeStatic(TProgram* program, DWORD opcodeOffset, ScriptingFunctionHandler func, int argNum, bool hasReturn) {
@@ -168,10 +137,6 @@ void __stdcall OpcodeContext::handleOpcodeStatic(TProgram* program, DWORD opcode
 	OpcodeContext currentContext(program, opcodeOffset / 4, argNum, hasReturn);
 	// handle the opcode using provided handler
 	currentContext.handleOpcode(func);
-}
-
-void OpcodeContext::addOpcodeMetaData(const SfallOpcodeMetadata* data) {
-	_opcodeMetaTable[data->handler] = data;
 }
 
 const char* OpcodeContext::getSfallTypeName(DWORD dataType) {
@@ -212,5 +177,37 @@ DWORD OpcodeContext::getScriptTypeBySfallType(DWORD dataType) {
 		case DATATYPE_INT:
 		default:
 			return VAR_TYPE_INT;
+	}
+}
+
+void OpcodeContext::_popArguments() {	
+	// process arguments on stack (reverse order)
+	for (int i = _numArgs - 1; i >= 0; i--) {
+		// get argument from stack
+		DWORD rawValueType = Wrapper::interpretPopShort(_program);
+		DWORD rawValue = Wrapper::interpretPopLong(_program);
+		SfallDataType type = static_cast<SfallDataType>(getSfallTypeByScriptType(rawValueType));
+
+		// retrieve string argument
+		if (type == DATATYPE_STR) {
+			_args.at(i) = Wrapper::interpretGetString(_program, rawValueType, rawValue);
+		} else {
+			_args.at(i) = ScriptValue(type, rawValue);
+		}
+	}
+}
+
+void OpcodeContext::_pushReturnValue() {
+	if (_hasReturn) {
+		if (_ret.type() == DATATYPE_NONE) {
+			// if no value was set in handler, force return 0 to avoid stack error
+			_ret = ScriptValue(0);
+		}
+		DWORD rawResult = _ret.rawValue();
+		if (_ret.type() == DATATYPE_STR) {
+			rawResult = Wrapper::interpretAddString(_program, _ret.asString());
+		}
+		Wrapper::interpretPushLong(_program, rawResult);
+		Wrapper::interpretPushShort(_program, getScriptTypeBySfallType(_ret.type()));
 	}
 }

@@ -239,6 +239,7 @@
     <ClInclude Include="Modules\Scripting\ScriptValue.h" />
     <ClInclude Include="Modules\Scripting\Handlers\Stats.h" />
     <ClInclude Include="Modules\Scripting\Handlers\Worldmap.h" />
+    <ClInclude Include="Modules\Scripting\OpcodeInfo.h" />
     <ClInclude Include="win9x\Cpp11_emu.h" />
     <ClInclude Include="Modules\CRC.h" />
     <ClInclude Include="Modules\Credits.h" />

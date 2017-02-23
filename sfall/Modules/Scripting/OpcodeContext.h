@@ -27,29 +27,10 @@
 // variables for new opcodes
 #define OP_MAX_ARGUMENTS	(10)
 
-// masks for argument validation
-#define DATATYPE_MASK_INT		(1 << DATATYPE_INT)
-#define DATATYPE_MASK_FLOAT		(1 << DATATYPE_FLOAT)
-#define DATATYPE_MASK_STR		(1 << DATATYPE_STR)
-#define DATATYPE_MASK_NOT_NULL	(0x00010000)
-#define DATATYPE_MASK_VALID_OBJ	(DATATYPE_MASK_INT | DATATYPE_MASK_NOT_NULL)
-
 class OpcodeContext;
+struct OpcodeArgumentInfo;
 
 typedef void(*ScriptingFunctionHandler)(OpcodeContext&);
-
-struct SfallOpcodeMetadata {
-	// opcode handler, will be used as key
-	ScriptingFunctionHandler handler;
-
-	// opcode name, only used for logging
-	const char* name;
-
-	// argument validation masks
-	int argTypeMasks[OP_MAX_ARGUMENTS];
-};
-
-typedef std::tr1::unordered_map<ScriptingFunctionHandler, const SfallOpcodeMetadata*> OpcodeMetadataMapType;
 
 // A context for handling opcodes. Opcode handlers can retrieve arguments and set opcode return value via context.
 class OpcodeContext {
@@ -94,18 +75,19 @@ public:
 	// writes error message to debug.log along with the name of script & procedure
 	void printOpcodeError(const char* fmt, ...) const;
 
-	// Validate opcode arguments against type masks
+	// Validate opcode arguments against type specification
 	// if validation pass, returns true, otherwise writes error to debug.log and returns false
-	bool validateArguments(const int argTypeMasks[], const char* opcodeName) const;
-
-	// validate opcode arguments given opcode handler function and actual number of arguments
-	bool validateArguments(ScriptingFunctionHandler func) const;
+	bool validateArguments(const OpcodeArgumentInfo argInfo[], const char* opcodeName) const;
 
 	// Handle opcodes
 	// func - opcode handler
 	void handleOpcode(ScriptingFunctionHandler func);
 
-	static void addOpcodeMetaData(const SfallOpcodeMetadata* data);
+	// Handle opcodes with argument validation
+	// func - opcode handler
+	// argTypes - argument types for validation
+	// opcodeName - name of a function (for logging)
+	void handleOpcode(ScriptingFunctionHandler func, const OpcodeArgumentInfo argTypes[], const char* opcodeName);
 
 	// handles opcode using default instance
 	static void __stdcall handleOpcodeStatic(TProgram* program, DWORD opcodeOffset, ScriptingFunctionHandler func, int argNum, bool hasReturn);
@@ -117,6 +99,11 @@ public:
 	static DWORD getScriptTypeBySfallType(DWORD dataType);
 
 private:
+	// pops arguments from data stack
+	void _popArguments();
+	// pushes return value to data stack
+	void _pushReturnValue();
+
 	TProgram* _program;
 	DWORD _opcode;
 
@@ -125,6 +112,4 @@ private:
 	int _argShift;
 	std::array<ScriptValue, OP_MAX_ARGUMENTS> _args;
 	ScriptValue _ret;
-
-	static OpcodeMetadataMapType _opcodeMetaTable;
 };

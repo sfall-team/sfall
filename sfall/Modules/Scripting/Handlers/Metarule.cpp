@@ -20,6 +20,7 @@
 #include "..\..\ScriptExtender.h"
 #include "..\Arrays.h"
 #include "..\OpcodeContext.h"
+#include "..\OpcodeInfo.h"
 #include "AsmMacros.h"
 #include "Interface.h"
 #include "Misc.h"
@@ -37,12 +38,18 @@
 struct SfallMetarule {
 	// function name
 	const char* name;
+
 	// pointer to handler function
 	ScriptingFunctionHandler func;
-	// mininum number of arguments
+
+	// minimum number of arguments
 	int minArgs;
+
 	// maximum number of arguments
 	int maxArgs;
+	
+	// argument validation settings
+	OpcodeArgumentInfo argValidation[OP_MAX_ARGUMENTS];
 };
 
 typedef std::tr1::unordered_map<std::string, const SfallMetarule*> MetaruleTableType;
@@ -102,12 +109,13 @@ void sf_get_metarule_table(OpcodeContext& ctx) {
 		- name - name of function that will be used to call it from scripts,
 		- handler - pointer to handler function (see examples below),
 		- minArgs/maxArgs - minimum and maximum number of arguments allowed for this function
+		- argument types for validation
 */
 static const SfallMetarule metaruleArray[] = {
 	{"get_metarule_table", sf_get_metarule_table, 0, 0},
-	{"validate_test", sf_test, 2, 5},
-	{"spatial_radius", sf_spatial_radius, 1, 1},
-	{"critter_inven_obj2", sf_critter_inven_obj2, 2, 2},
+	{"validate_test", sf_test, 2, 5, {ARG_INT, ARG_FLOAT, ARG_STRING, ARG_ANY}},
+	{"spatial_radius", sf_spatial_radius, 1, 1, {ARG_OBJECT}},
+	{"critter_inven_obj2", sf_critter_inven_obj2, 2, 2, {ARG_OBJECT, ARG_INT}},
 	{"intface_redraw", sf_intface_redraw, 0, 0},
 	{"intface_show", sf_intface_show, 0, 0},
 	{"intface_hide", sf_intface_hide, 0, 0},
@@ -136,7 +144,7 @@ static bool ValidateMetaruleArguments(OpcodeContext& ctx, const SfallMetarule* m
 
 		return false;
 	} else {
-		return ctx.validateArguments(metaruleInfo->func);
+		return ctx.validateArguments(metaruleInfo->argValidation, metaruleInfo->name);
 	}
 }
 

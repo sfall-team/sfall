@@ -365,14 +365,6 @@ void sf_register_hook(OpcodeContext& ctx) {
 	RegisterHook(ctx.program(), id, proc);
 }
 
-void __declspec(naked) op_register_hook() {
-	_WRAP_OPCODE(sf_register_hook, 1, 0)
-}
-
-void __declspec(naked) op_register_hook_proc() {
-	_WRAP_OPCODE(sf_register_hook, 2, 0)
-}
-
 void __declspec(naked) op_sfall_ver_major() {
 	_OP_BEGIN(ebp)
 	__asm {

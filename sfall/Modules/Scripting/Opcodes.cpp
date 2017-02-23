@@ -36,6 +36,7 @@
 #include "Handlers\Worldmap.h"
 #include "Handlers\Metarule.h"
 #include "OpcodeContext.h"
+#include "OpcodeInfo.h"
 
 #include "Opcodes.h"
 
@@ -43,26 +44,6 @@ static const short sfallOpcodeStart = 0x156;
 static const short opcodeCount = 0x300;
 
 static void* opcodes[opcodeCount];
-
-typedef struct SfallOpcodeInfo {
-	// opcode number
-	int opcode;
-
-	// opcode name
-	const char name[32];
-
-	// opcode handler
-	ScriptingFunctionHandler handler;
-
-	// number of arguments
-	int argNum;
-
-	// has return value or not
-	bool hasReturn;
-
-	// argument validation masks
-	int argTypeMasks[OP_MAX_ARGUMENTS];
-} SfallOpcodeInfo;
 
 typedef std::tr1::unordered_map<int, const SfallOpcodeInfo*> OpcodeInfoMapType;
 
@@ -73,16 +54,18 @@ typedef std::tr1::unordered_map<int, const SfallOpcodeInfo*> OpcodeInfoMapType;
 //    function handler,
 //    number of arguments,
 //    has return value,
-//    type masks for each argument (for validation)
+//    { argument 1 type, argument 2 type, ...}
 // }
 static SfallOpcodeInfo opcodeInfoArray[] = {
 	{0x16c, "key_pressed", sf_key_pressed, 1, true},
 	{0x1f5, "get_script", sf_get_script, 1, true},
+	{0x207, "register_hook", sf_register_hook, 1, false, {ARG_INT}},
 	{0x216, "set_critter_burst_disable", sf_set_critter_burst_disable, 2, false},
-	{0x217, "get_weapon_ammo_pid", sf_get_weapon_ammo_pid, 1, true},
-	{0x218, "set_weapon_ammo_pid", sf_set_weapon_ammo_pid, 2, false, {DATATYPE_INT, DATATYPE_INT}},
-	{0x219, "get_weapon_ammo_count", sf_get_weapon_ammo_count, 1, true},
-	{0x21a, "set_weapon_ammo_count", sf_set_weapon_ammo_count, 2, false, {DATATYPE_INT, DATATYPE_INT}},
+	{0x217, "get_weapon_ammo_pid", sf_get_weapon_ammo_pid, 1, true, {ARG_OBJECT}},
+	{0x218, "set_weapon_ammo_pid", sf_set_weapon_ammo_pid, 2, false, {ARG_OBJECT, ARG_INT}},
+	{0x219, "get_weapon_ammo_count", sf_get_weapon_ammo_count, 1, true, {ARG_OBJECT}},
+	{0x21a, "set_weapon_ammo_count", sf_set_weapon_ammo_count, 2, false, {ARG_OBJECT, ARG_INT}},
+	{0x262, "register_hook_proc", sf_register_hook, 2, false, {ARG_INT, ARG_INT}},
 	{0x26e, "obj_blocking_line", sf_make_straight_path, 3, true},
 	{0x26f, "obj_blocking_tile", sf_obj_blocking_at, 3, true},
 	{0x270, "tile_get_objs", sf_tile_get_objects, 2, true},
@@ -104,35 +87,11 @@ static SfallOpcodeInfo opcodeInfoArray[] = {
 // initialized at run time from the array above
 OpcodeInfoMapType opcodeInfoMap;
 
-/*
-	Array for opcodes metadata.
-
-	This is completely optional, added for convenience only.
-
-	By adding opcode to this array, Sfall will automatically validate it's arguments using provided info.
-	On fail, errors will be printed to debug.log and opcode will not be executed.
-	If you don't include opcode in this array, you should take care of all argument validation inside handler itself.
-*/
-static const SfallOpcodeMetadata opcodeMetaArray[] = {
-	{sf_register_hook, "register_hook[_proc]", {DATATYPE_MASK_INT, DATATYPE_MASK_INT}},
-	{sf_test, "validate_test", {DATATYPE_MASK_INT, DATATYPE_MASK_INT | DATATYPE_MASK_FLOAT, DATATYPE_MASK_STR, DATATYPE_NONE}},
-	{sf_spatial_radius, "spatial_radius", {DATATYPE_MASK_VALID_OBJ}},
-	{sf_critter_inven_obj2, "critter_inven_obj2", {DATATYPE_MASK_VALID_OBJ, DATATYPE_MASK_INT}},
-	//{op_message_str_game, {}}
-};
-
 // Initializes the opcode info table.
 void InitOpcodeInfoTable() {
 	int length = sizeof(opcodeInfoArray) / sizeof(opcodeInfoArray[0]);
 	for (int i = 0; i < length; ++i) {
 		opcodeInfoMap[opcodeInfoArray[i].opcode] = &opcodeInfoArray[i];
-	}
-}
-
-void InitOpcodeMetaTable() {
-	int length = sizeof(opcodeMetaArray) / sizeof(opcodeMetaArray[0]);
-	for (int i = 0; i < length; ++i) {
-		OpcodeContext::addOpcodeMetaData(&opcodeMetaArray[i]);
 	}
 }
 
@@ -144,7 +103,7 @@ void __stdcall defaultOpcodeHandlerStdcall(TProgram* program, DWORD opcodeOffset
 	if (iter != opcodeInfoMap.end()) {
 		auto info = iter->second;
 		OpcodeContext ctx(program, opcode, info->argNum, info->hasReturn);
-		ctx.handleOpcode(info->handler);
+		ctx.handleOpcode(info->handler, info->argValidation, info->name);
 	} else {
 		Wrapper::interpretError("Unknown opcode: %d", opcode);
 	}
@@ -343,7 +302,6 @@ void InitNewOpcodes() {
 	opcodes[0x204] = op_get_proto_data;
 	opcodes[0x205] = op_set_proto_data;
 	opcodes[0x206] = op_set_self;
-	opcodes[0x207] = op_register_hook;
 	opcodes[0x208] = op_fs_write_bstring;
 	opcodes[0x209] = op_fs_read_byte;
 	opcodes[0x20a] = op_fs_read_short;
@@ -431,7 +389,6 @@ void InitNewOpcodes() {
 	opcodes[0x25f] = op_reg_anim_take_out;
 	opcodes[0x260] = op_reg_anim_turn_towards;
 	opcodes[0x261] = op_explosions_metarule;
-	opcodes[0x262] = op_register_hook_proc;
 	opcodes[0x263] = op_power;
 	opcodes[0x264] = op_log;
 	opcodes[0x265] = op_exponent;
@@ -454,6 +411,5 @@ void InitNewOpcodes() {
 	// see opcodeMetaArray above for additional scripting functions via "metarule"
 
 	InitOpcodeInfoTable();
-	InitOpcodeMetaTable();
 	InitMetaruleTable();
 }
