@@ -628,11 +628,11 @@ void LoadGlobalScripts() {
 bool _stdcall ScriptHasLoaded(TProgram* script) {
 	for (size_t d = 0; d < checkedScripts.size(); d++) {
 		if (checkedScripts[d] == script) {
-			return 0;
+			return false;
 		}
 	}
 	checkedScripts.push_back(script);
-	return 1;
+	return true;
 }
 
 void _stdcall RegAnimCombatCheck(DWORD newValue) {

@@ -192,7 +192,8 @@ void __declspec(naked) op_game_loaded() {
 		push eax;
 		push eax;
 		call ScriptHasLoaded;
-		mov edx, eax;
+		xor edx, edx;
+		mov dl, al;
 		pop eax;
 		mov ecx, eax;
 		call FuncOffs::interpretPushLong_;
