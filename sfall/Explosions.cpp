@@ -176,7 +176,7 @@ DWORD _stdcall ExplosionsMetaruleFunc(DWORD mode, DWORD arg1, DWORD arg2) {
 		SafeWrite32(explosion_radius_rocket, arg1);
 		break;
 	case EXPL_FORCE_EXPLOSION_DMGTYPE:
-		for (i=0; i<4; i++) {
+		for (i=0; i<5; i++) {
 			SafeWrite8(explosion_dmg_check_adr[i], (BYTE)arg1);
 		}
 		break;
