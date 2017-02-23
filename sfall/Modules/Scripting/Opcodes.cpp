@@ -36,7 +36,6 @@
 #include "Handlers\Worldmap.h"
 #include "Handlers\Metarule.h"
 #include "OpcodeContext.h"
-#include "OpcodeInfo.h"
 
 #include "Opcodes.h"
 

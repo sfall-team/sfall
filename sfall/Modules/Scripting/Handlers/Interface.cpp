@@ -20,6 +20,7 @@
 #include "..\..\..\InputFuncs.h"
 #include "..\..\BarBoxes.h"
 #include "..\..\ScriptExtender.h"
+#include "..\OpcodeContext.h"
 
 #include "Interface.h"
 

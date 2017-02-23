@@ -18,6 +18,8 @@
 
 #pragma once
 
+class OpcodeContext;
+
 // input_functions
 void __declspec() op_input_funcs_available();
 

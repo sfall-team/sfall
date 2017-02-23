@@ -223,9 +223,6 @@
     <ClInclude Include="Modules\Scripting\Opcodes.h">
       <Filter>Modules\Scripting</Filter>
     </ClInclude>
-    <ClInclude Include="Modules\Scripting\OpcodeInfo.h">
-      <Filter>Modules\Scripting</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />

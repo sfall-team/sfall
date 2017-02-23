@@ -24,13 +24,41 @@
 #include "..\..\FalloutEngine\Structs.h"
 #include "ScriptValue.h"
 
-// variables for new opcodes
 #define OP_MAX_ARGUMENTS	(10)
 
 class OpcodeContext;
-struct OpcodeArgumentInfo;
 
 typedef void(*ScriptingFunctionHandler)(OpcodeContext&);
+
+// The type of argument, not the same as actual data type. Useful for validation.
+enum OpcodeArgumentType {
+	ARG_ANY = 0, // no validation
+	ARG_INT,	// integer only
+	ARG_NUMBER, // float OR integer
+	ARG_STRING, // string only
+	ARG_OBJECT // integer that is not 0
+};
+
+typedef struct SfallOpcodeInfo {
+	// opcode number
+	int opcode;
+
+	// opcode name
+	const char name[32];
+
+	// opcode handler
+	ScriptingFunctionHandler handler;
+
+	// number of arguments
+	int argNum;
+
+	// has return value or not
+	bool hasReturn;
+
+	// argument validation settings
+	OpcodeArgumentType argValidation[OP_MAX_ARGUMENTS];
+} SfallOpcodeInfo;
+
 
 // A context for handling opcodes. Opcode handlers can retrieve arguments and set opcode return value via context.
 class OpcodeContext {
@@ -77,7 +105,7 @@ public:
 
 	// Validate opcode arguments against type specification
 	// if validation pass, returns true, otherwise writes error to debug.log and returns false
-	bool validateArguments(const OpcodeArgumentInfo argInfo[], const char* opcodeName) const;
+	bool validateArguments(const OpcodeArgumentType argInfo[], const char* opcodeName) const;
 
 	// Handle opcodes
 	// func - opcode handler
@@ -87,7 +115,7 @@ public:
 	// func - opcode handler
 	// argTypes - argument types for validation
 	// opcodeName - name of a function (for logging)
-	void handleOpcode(ScriptingFunctionHandler func, const OpcodeArgumentInfo argTypes[], const char* opcodeName);
+	void handleOpcode(ScriptingFunctionHandler func, const OpcodeArgumentType argTypes[], const char* opcodeName);
 
 	// handles opcode using default instance
 	static void __stdcall handleOpcodeStatic(TProgram* program, DWORD opcodeOffset, ScriptingFunctionHandler func, int argNum, bool hasReturn);

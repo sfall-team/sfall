@@ -20,7 +20,6 @@
 
 #include "..\..\FalloutEngine\Fallout2.h"
 #include "..\ScriptExtender.h"
-#include "OpcodeInfo.h"
 
 #include "OpcodeContext.h"
 
@@ -90,24 +89,23 @@ void OpcodeContext::printOpcodeError(const char* fmt, ...) const {
 	Wrapper::debug_printf("\nOPCODE ERROR: %s\n   Current script: %s, procedure %s.", msg, _program->fileName, procName);
 }
 
-bool OpcodeContext::validateArguments(const OpcodeArgumentInfo argInfo[], const char* opcodeName) const {
+bool OpcodeContext::validateArguments(const OpcodeArgumentType argTypes[], const char* opcodeName) const {
 	for (int i = 0; i < _numArgs; i++) {
-		OpcodeArgumentInfo info = argInfo[i];
-		const ScriptValue &argI = arg(i);
-		if (info.type != DATATYPE_NONE && info.type != argI.type()) {
-			printOpcodeError(
-				"%s() - argument #%d has invalid type: %s.", 
-				opcodeName, 
-				i,
-				getSfallTypeName(argI.type()));
-
+		auto argType = argTypes[i];
+		auto actualType = arg(i).type();
+		// display invalid type error if type is set and differs from actual type
+		// exception is when type set to 
+		if ((argType == ARG_INT || argType == ARG_OBJECT) && !(actualType == DATATYPE_INT)) {
+			printOpcodeError("%s() - argument #%d is not an integer.", opcodeName, i);
 			return false;
-		} else if (info.notNull && argI.rawValue() == 0) {
-			printOpcodeError(
-				"%s() - argument #%d is null.", 
-				opcodeName, 
-				i);
-
+		} else if (argType == ARG_NUMBER && !(actualType == DATATYPE_INT || actualType == DATATYPE_FLOAT)) {
+			printOpcodeError("%s() - argument #%d is not a number.", opcodeName, i);
+			return false;
+		} else if (argType == ARG_STRING && !(actualType == DATATYPE_STR)) {
+			printOpcodeError("%s() - argument #%d is not a string.", opcodeName, i);
+			return false;
+		} else if (argType == ARG_OBJECT && arg(i).rawValue() == 0) {
+			printOpcodeError("%s() - argument #%d is null.", opcodeName, i);
 			return false;
 		}
 	}
@@ -122,7 +120,7 @@ void OpcodeContext::handleOpcode(ScriptingFunctionHandler func) {
 	_pushReturnValue();
 }
 
-void OpcodeContext::handleOpcode(ScriptingFunctionHandler func, const OpcodeArgumentInfo argTypes[], const char* opcodeName) {
+void OpcodeContext::handleOpcode(ScriptingFunctionHandler func, const OpcodeArgumentType argTypes[], const char* opcodeName) {
 	_popArguments();
 
 	if (validateArguments(argTypes, opcodeName)) {
