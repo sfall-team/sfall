@@ -57,6 +57,10 @@ namespace Wrapper
 	_WRAP_WATCOM_CALL6(offs, arg1, arg2, arg3, arg4, arg5, arg6)
 
 
+bool __stdcall art_exists(int artFid) {
+	_WRAP_WATCOM_CALL1(art_exists_, artFid)
+}
+
 // Returns the name of the critter
 const char* __stdcall critter_name(TGameObj* critter) {
 	_WRAP_WATCOM_CALL1(critter_name_, critter)

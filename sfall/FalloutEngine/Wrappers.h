@@ -28,6 +28,8 @@
 namespace Wrapper
 {
 
+bool __stdcall art_exists(int artFid);
+
 // Returns the name of the critter
 const char* __stdcall critter_name(TGameObj* critter);
 

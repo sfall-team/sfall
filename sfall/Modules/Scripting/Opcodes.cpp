@@ -49,7 +49,7 @@ typedef struct SfallOpcodeInfo {
 	int opcode;
 
 	// opcode name
-	const char name[20];
+	const char name[32];
 
 	// opcode handler
 	ScriptingFunctionHandler handler;
@@ -67,9 +67,30 @@ typedef struct SfallOpcodeInfo {
 typedef std::tr1::unordered_map<int, const SfallOpcodeInfo*> OpcodeInfoMapType;
 
 // Opcode Table. Add additional (sfall) opcodes here.
-// Format: {opcode, handler function, number of arguments, has return value}
+// Format: {
+//    opcode number,
+//    function name,
+//    function handler,
+//    number of arguments,
+//    has return value,
+//    type masks for each argument (for validation)
+// }
 static SfallOpcodeInfo opcodeInfoArray[] = {
 	{0x16c, "key_pressed", sf_key_pressed, 1, true},
+	{0x1f5, "get_script", sf_get_script, 1, true},
+	{0x216, "set_critter_burst_disable", sf_set_critter_burst_disable, 2, false},
+	{0x217, "get_weapon_ammo_pid", sf_get_weapon_ammo_pid, 1, true},
+	{0x218, "set_weapon_ammo_pid", sf_set_weapon_ammo_pid, 2, false, {DATATYPE_INT, DATATYPE_INT}},
+	{0x219, "get_weapon_ammo_count", sf_get_weapon_ammo_count, 1, true},
+	{0x21a, "set_weapon_ammo_count", sf_set_weapon_ammo_count, 2, false, {DATATYPE_INT, DATATYPE_INT}},
+	{0x26e, "obj_blocking_line", sf_make_straight_path, 3, true},
+	{0x26f, "obj_blocking_tile", sf_obj_blocking_at, 3, true},
+	{0x270, "tile_get_objs", sf_tile_get_objects, 2, true},
+	{0x271, "party_member_list", sf_get_party_members, 1, true},
+	{0x272, "path_find_to", sf_make_path, 3, true},
+	{0x273, "create_spatial", sf_create_spatial, 4, true},
+	{0x274, "art_exists", sf_art_exists, 1, true},
+	{0x275, "obj_is_carrying_obj", sf_obj_is_carrying_obj, 2, true},
 	// universal opcodes:
 	{0x276, "sfall_func0", HandleMetarule, 1, true}, 
 	{0x277, "sfall_func1", HandleMetarule, 2, true},
@@ -304,7 +325,7 @@ void InitNewOpcodes() {
 	opcodes[0x1f2] = op_set_palette;
 	opcodes[0x1f3] = op_remove_script;
 	opcodes[0x1f4] = op_set_script;
-	opcodes[0x1f5] = op_get_script;
+
 	opcodes[0x1f6] = op_nb_create_char;
 	opcodes[0x1f7] = op_fs_create;
 	opcodes[0x1f8] = op_fs_copy;
@@ -337,11 +358,6 @@ void InitNewOpcodes() {
 	opcodes[0x213] = op_hero_select_win;
 	opcodes[0x214] = op_set_hero_race;
 	opcodes[0x215] = op_set_hero_style;
-	opcodes[0x216] = op_set_critter_burst_disable;
-	opcodes[0x217] = op_get_weapon_ammo_pid;
-	opcodes[0x218] = op_set_weapon_ammo_pid;
-	opcodes[0x219] = op_get_weapon_ammo_count;
-	opcodes[0x21a] = op_set_weapon_ammo_count;
 	if (AllowUnsafeScripting) {
 		opcodes[0x21b] = op_write_string;
 	}
@@ -427,14 +443,6 @@ void InitNewOpcodes() {
 	opcodes[0x26b] = op_message_str_game;
 	opcodes[0x26c] = op_sneak_success;
 	opcodes[0x26d] = op_tile_light;
-	opcodes[0x26e] = op_make_straight_path;
-	opcodes[0x26f] = op_obj_blocking_at;
-	opcodes[0x270] = op_tile_get_objects;
-	opcodes[0x271] = op_get_party_members;
-	opcodes[0x272] = op_make_path;
-	opcodes[0x273] = op_create_spatial;
-	opcodes[0x274] = op_art_exists;
-	opcodes[0x275] = op_obj_is_carrying_obj;
 
 	// configure default opcode handler
 	for (int i = sfallOpcodeStart; i < opcodeCount; i++) {

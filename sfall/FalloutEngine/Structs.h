@@ -65,9 +65,12 @@ struct TGameObj {
 	__int32 lastTarget;
 	char gap_58[12];
 	__int32 pid;
-	char gap_68[16];
+	__int32 cid;
+	__int32 lightDistance;
+	__int32 lightIntensity;
+	char outline[4];
 	__int32 scriptID;
-	char gap_7C[4];
+	TGameObj* owner;
 	__int32 script_index;
 	char gap_84[7];
 	char field_0;

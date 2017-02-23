@@ -151,187 +151,56 @@ void sf_create_spatial(OpcodeContext& ctx) {
 	ctx.setReturn((int)objectPtr);
 }
 
-void __declspec(naked) op_create_spatial() {
-	_WRAP_OPCODE(sf_create_spatial, 4, 1)
-}
-
 void sf_spatial_radius(OpcodeContext& ctx) {
-	TGameObj* spatialObj = ctx.arg(0).asObject();
+	auto spatialObj = ctx.arg(0).asObject();
 	TScript* script;
 	if (Wrapper::scr_ptr(spatialObj->scriptID, &script) != -1) {
 		ctx.setReturn(script->spatial_radius);
 	}
 }
 
-void __declspec(naked) op_get_script() {
-	__asm {
-		pushad;
-		mov ecx, eax;
-		mov ecx, eax;
-		call FuncOffs::interpretPopShort_;
-		mov edx, eax;
-		mov eax, ecx;
-		call FuncOffs::interpretPopLong_;
-		cmp dx, 0xc001;
-		jnz fail;
-		test eax, eax;
-		jz fail;
-		mov edx, [eax + 0x80];
-		cmp edx, -1;
-		jz fail;
-		inc edx;
-		jmp end;
-fail:
-		xor edx, edx;
-		dec edx;
-end:
-		mov eax, ecx;
-		call FuncOffs::interpretPushLong_;
-		mov eax, ecx;
-		mov edx, 0xc001;
-		call FuncOffs::interpretPushShort_;
-		popad;
-		retn;
+void sf_get_script(OpcodeContext& ctx) {
+	if (ctx.arg(0).isInt()) {
+		auto obj = ctx.arg(0).asObject();
+		ctx.setReturn(obj->script_index);
+	} else {
+		ctx.setReturn(-1);
 	}
 }
 
-void __declspec(naked) op_set_critter_burst_disable() {
-	__asm {
-		pushad;
-		mov ebp, eax;
-		call FuncOffs::interpretPopShort_;
-		mov edi, eax;
-		mov eax, ebp;
-		call FuncOffs::interpretPopLong_;
-		mov ecx, eax;
-		mov eax, ebp;
-		call FuncOffs::interpretPopShort_;
-		mov esi, eax;
-		mov eax, ebp;
-		call FuncOffs::interpretPopLong_;
-		cmp di, 0xc001;
-		jnz end;
-		cmp si, 0xc001;
-		jnz end;
-		push ecx;
-		push eax;
-		call SetNoBurstMode;
-end:
-		popad;
-		retn;
+void sf_set_critter_burst_disable(OpcodeContext& ctx) {
+	if (ctx.arg(0).isInt() && ctx.arg(0).isInt()) {
+		SetNoBurstMode(ctx.arg(0).asObject(), ctx.arg(1).asBool());
 	}
 }
 
-void __declspec(naked) op_get_weapon_ammo_pid() {
-	__asm {
-		pushad;
-		mov ebp, eax;
-		call FuncOffs::interpretPopShort_;
-		mov edi, eax;
-		mov eax, ebp;
-		call FuncOffs::interpretPopLong_;
-		cmp di, 0xc001;
-		jnz fail;
-		test eax, eax;
-		jz fail;
-		mov edx, [eax + 0x40];
-		jmp end;
-fail:
-		xor edx, edx;
-		dec edx;
-end:
-		mov eax, ebp;
-		call FuncOffs::interpretPushLong_;
-		mov eax, ebp;
-		mov edx, 0xc001;
-		call FuncOffs::interpretPushShort_;
-		popad;
-		retn;
+void sf_get_weapon_ammo_pid(OpcodeContext& ctx) {
+	if (ctx.arg(0).isInt()) {
+		auto obj = ctx.arg(0).asObject();
+		ctx.setReturn(obj->critterAP_weaponAmmoPid);
+	} else {
+		ctx.setReturn(-1);
 	}
 }
 
-void __declspec(naked) op_set_weapon_ammo_pid() {
-	__asm {
-		pushad;
-		mov ebp, eax;
-		call FuncOffs::interpretPopShort_;
-		mov edi, eax;
-		mov eax, ebp;
-		call FuncOffs::interpretPopLong_;
-		mov ecx, eax;
-		mov eax, ebp;
-		call FuncOffs::interpretPopShort_;
-		mov esi, eax;
-		mov eax, ebp;
-		call FuncOffs::interpretPopLong_;
-		cmp di, 0xc001;
-		jnz end;
-		cmp si, 0xc001;
-		jnz end;
-		test eax, eax;
-		jz end;
-		mov[eax + 0x40], ecx;
-end:
-		popad;
-		retn;
+void sf_set_weapon_ammo_pid(OpcodeContext& ctx) {
+	auto obj = ctx.arg(0).asObject();
+	obj->critterAP_weaponAmmoPid = ctx.arg(1).asInt();
+}
+
+void sf_get_weapon_ammo_count(OpcodeContext& ctx) {
+	if (ctx.arg(0).isInt()) {
+		auto obj = ctx.arg(0).asObject();
+		ctx.setReturn(obj->itemCharges);
+	} else {
+		ctx.setReturn(-1);
 	}
 }
 
-void __declspec(naked) op_get_weapon_ammo_count() {
-	__asm {
-		pushad;
-		mov ebp, eax;
-		call FuncOffs::interpretPopShort_;
-		mov edi, eax;
-		mov eax, ebp;
-		call FuncOffs::interpretPopLong_;
-		cmp di, 0xc001;
-		jnz fail;
-		test eax, eax;
-		jz fail;
-		mov edx, [eax + 0x3c];
-		jmp end;
-fail:
-		xor edx, edx;
-		dec edx;
-end:
-		mov eax, ebp;
-		call FuncOffs::interpretPushLong_;
-		mov eax, ebp;
-		mov edx, 0xc001;
-		call FuncOffs::interpretPushShort_;
-		popad;
-		retn;
-	}
+void sf_set_weapon_ammo_count(OpcodeContext& ctx) {
+	auto obj = ctx.arg(0).asObject();
+	obj->itemCharges = ctx.arg(1).asInt();
 }
-
-void __declspec(naked) op_set_weapon_ammo_count() {
-	__asm {
-		pushad;
-		mov ebp, eax;
-		call FuncOffs::interpretPopShort_;
-		mov edi, eax;
-		mov eax, ebp;
-		call FuncOffs::interpretPopLong_;
-		mov ecx, eax;
-		mov eax, ebp;
-		call FuncOffs::interpretPopShort_;
-		mov esi, eax;
-		mov eax, ebp;
-		call FuncOffs::interpretPopLong_;
-		cmp di, 0xc001;
-		jnz end;
-		cmp si, 0xc001;
-		jnz end;
-		test eax, eax;
-		jz end;
-		mov[eax + 0x3c], ecx;
-end:
-		popad;
-		retn;
-	}
-}
-
 
 static DWORD _stdcall obj_blocking_at_wrapper(DWORD obj, DWORD tile, DWORD elevation, DWORD func) {
 	__asm {
@@ -387,11 +256,7 @@ void sf_make_straight_path(OpcodeContext& ctx) {
 	ctx.setReturn(resultObj, DATATYPE_INT);
 }
 
-void __declspec(naked) op_make_straight_path() {
-	_WRAP_OPCODE(sf_make_straight_path, 3, 1)
-}
-
-static void sf_make_path(OpcodeContext& ctx) {
+void sf_make_path(OpcodeContext& ctx) {
 	DWORD objFrom = ctx.arg(0).asInt(),
 		tileFrom = 0,
 		tileTo = ctx.arg(1).asInt(),
@@ -423,11 +288,7 @@ static void sf_make_path(OpcodeContext& ctx) {
 	ctx.setReturn(arr, DATATYPE_INT);
 }
 
-void __declspec(naked) op_make_path() {
-	_WRAP_OPCODE(sf_make_path, 3, 1)
-}
-
-static void sf_obj_blocking_at(OpcodeContext& ctx) {
+void sf_obj_blocking_at(OpcodeContext& ctx) {
 	DWORD tile = ctx.arg(0).asInt(),
 		elevation = ctx.arg(1).asInt(),
 		type = ctx.arg(2).asInt(),
@@ -440,11 +301,7 @@ static void sf_obj_blocking_at(OpcodeContext& ctx) {
 	ctx.setReturn(resultObj, DATATYPE_INT);
 }
 
-void __declspec(naked) op_obj_blocking_at() {
-	_WRAP_OPCODE(sf_obj_blocking_at, 3, 1)
-}
-
-static void sf_tile_get_objects(OpcodeContext& ctx) {
+void sf_tile_get_objects(OpcodeContext& ctx) {
 	DWORD tile = ctx.arg(0).asInt(),
 		elevation = ctx.arg(1).asInt(),
 		obj;
@@ -465,11 +322,7 @@ static void sf_tile_get_objects(OpcodeContext& ctx) {
 	ctx.setReturn(arrayId, DATATYPE_INT);
 }
 
-void __declspec(naked) op_tile_get_objects() {
-	_WRAP_OPCODE(sf_tile_get_objects, 2, 1)
-}
-
-static void sf_get_party_members(OpcodeContext& ctx) {
+void sf_get_party_members(OpcodeContext& ctx) {
 	DWORD obj, mode = ctx.arg(0).asInt(), isDead;
 	int i, actualCount = VarPtr::partyMemberCount;
 	DWORD arrayId = TempArray(0, 4);
@@ -494,27 +347,11 @@ static void sf_get_party_members(OpcodeContext& ctx) {
 	ctx.setReturn(arrayId, DATATYPE_INT);
 }
 
-void __declspec(naked) op_get_party_members() {
-	_WRAP_OPCODE(sf_get_party_members, 1, 1)
+void sf_art_exists(OpcodeContext& ctx) {
+	ctx.setReturn(Wrapper::art_exists(ctx.arg(0).asInt()));
 }
 
-// TODO: rewrite
-void __declspec(naked) op_art_exists() {
-	_OP_BEGIN(ebp)
-	_GET_ARG_R32(ebp, ecx, eax)
-	_CHECK_ARG_INT(cx, fail)
-	__asm {
-		call FuncOffs::art_exists_;
-		jmp end;
-fail:
-		xor eax, eax;
-end:
-	}
-	_RET_VAL_INT(ebp)
-	_OP_END
-}
-
-static void sf_obj_is_carrying_obj(OpcodeContext& ctx) {
+void sf_obj_is_carrying_obj(OpcodeContext& ctx) {
 	int num = 0;
 	const ScriptValue &invenObjArg = ctx.arg(0),
 		&itemObjArg = ctx.arg(1);
@@ -532,10 +369,6 @@ static void sf_obj_is_carrying_obj(OpcodeContext& ctx) {
 		}
 	}
 	ctx.setReturn(num);
-}
-
-void __declspec(naked) op_obj_is_carrying_obj() {
-	_WRAP_OPCODE(sf_obj_is_carrying_obj, 2, 1)
 }
 
 void sf_critter_inven_obj2(OpcodeContext& ctx) {

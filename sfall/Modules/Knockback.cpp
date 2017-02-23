@@ -24,7 +24,7 @@
 #include "..\FalloutEngine\Fallout2.h"
 #include "Knockback.h"
 
-static std::vector<DWORD> NoBursts;
+static std::vector<TGameObj*> NoBursts;
 
 struct KnockbackModifier {
 	DWORD id;
@@ -49,8 +49,8 @@ static ChanceModifier BaseHitChance;
 static ChanceModifier BasePickpocket;
 
 static bool hookedAimedShot;
-static const DWORD aimedShotRet1=0x478EE4;
-static const DWORD aimedShotRet2=0x478EEA;
+static const DWORD aimedShotRet1 = 0x478EE4;
+static const DWORD aimedShotRet2 = 0x478EEA;
 static std::vector<DWORD> disabledAS;
 static std::vector<DWORD> forcedAS;
 
@@ -162,9 +162,9 @@ static void __declspec(naked) HitChanceHook() {
 
 static DWORD BurstTestResult;
 static const DWORD BurstHookRet = 0x429E4A;
-static void _stdcall BurstTest(DWORD critter) {
+static void _stdcall BurstTest(TGameObj* critter) {
 	BurstTestResult = 0;
-	for (DWORD i = 0; i < NoBursts.size(); i++) {
+	for (size_t i = 0; i < NoBursts.size(); i++) {
 		if (NoBursts[i] == critter) {
 			BurstTestResult = 1;
 			return;
@@ -287,14 +287,14 @@ void _stdcall SetPickpocketMax(DWORD critter, DWORD maximum, DWORD mod) {
 	PickpocketMods.push_back(cm);
 }
 
-void _stdcall SetNoBurstMode(DWORD critter, DWORD on) {
+void _stdcall SetNoBurstMode(TGameObj* critter, bool on) {
 	if (on) {
-		for (DWORD i = 0; i < NoBursts.size(); i++) {
+		for (size_t i = 0; i < NoBursts.size(); i++) {
 			if (NoBursts[i] == critter) return;
 		}
 		NoBursts.push_back(critter);
 	} else {
-		for (DWORD i = 0; i < NoBursts.size(); i++) {
+		for (size_t i = 0; i < NoBursts.size(); i++) {
 			if (NoBursts[i] == critter) {
 				NoBursts.erase(NoBursts.begin() + i);
 				return;
