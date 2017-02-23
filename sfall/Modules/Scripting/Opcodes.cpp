@@ -16,8 +16,10 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-
+#include "..\..\FalloutEngine\Fallout2.h"
+#include "..\..\InputFuncs.h"
 #include "..\KillCounter.h"
+
 #include "Handlers\AsmMacros.h"
 #include "Handlers\Anims.h"
 #include "Handlers\Arrays.h"
@@ -37,7 +39,49 @@
 
 #include "Opcodes.h"
 
-static void* opcodes[0x300];
+static const short sfallOpcodeStart = 0x156;
+static const short opcodeCount = 0x300;
+
+static void* opcodes[opcodeCount];
+
+typedef struct SfallOpcodeInfo {
+	// opcode number
+	int opcode;
+
+	// opcode name
+	const char name[20];
+
+	// opcode handler
+	ScriptingFunctionHandler handler;
+
+	// number of arguments
+	int argNum;
+
+	// has return value or not
+	bool hasReturn;
+
+	// argument validation masks
+	int argTypeMasks[OP_MAX_ARGUMENTS];
+} SfallOpcodeInfo;
+
+typedef std::tr1::unordered_map<int, const SfallOpcodeInfo*> OpcodeInfoMapType;
+
+// Opcode Table. Add additional (sfall) opcodes here.
+// Format: {opcode, handler function, number of arguments, has return value}
+static SfallOpcodeInfo opcodeInfoArray[] = {
+	{0x16c, "key_pressed", sf_key_pressed, 1, true},
+	// universal opcodes:
+	{0x276, "sfall_func0", HandleMetarule, 1, true}, 
+	{0x277, "sfall_func1", HandleMetarule, 2, true},
+	{0x278, "sfall_func2", HandleMetarule, 3, true},
+	{0x279, "sfall_func3", HandleMetarule, 4, true},
+	{0x27a, "sfall_func4", HandleMetarule, 5, true},
+	{0x27b, "sfall_func5", HandleMetarule, 6, true},
+	{0x27c, "sfall_func6", HandleMetarule, 7, true},  // if you need more arguments - use arrays
+};
+
+// initialized at run time from the array above
+OpcodeInfoMapType opcodeInfoMap;
 
 /*
 	Array for opcodes metadata.
@@ -56,10 +100,44 @@ static const SfallOpcodeMetadata opcodeMetaArray[] = {
 	//{op_message_str_game, {}}
 };
 
+// Initializes the opcode info table.
+void InitOpcodeInfoTable() {
+	int length = sizeof(opcodeInfoArray) / sizeof(opcodeInfoArray[0]);
+	for (int i = 0; i < length; ++i) {
+		opcodeInfoMap[opcodeInfoArray[i].opcode] = &opcodeInfoArray[i];
+	}
+}
+
 void InitOpcodeMetaTable() {
-	int length = sizeof(opcodeMetaArray) / sizeof(SfallOpcodeMetadata);
+	int length = sizeof(opcodeMetaArray) / sizeof(opcodeMetaArray[0]);
 	for (int i = 0; i < length; ++i) {
 		OpcodeContext::addOpcodeMetaData(&opcodeMetaArray[i]);
+	}
+}
+
+// Default handler for Sfall Opcodes. 
+// Searches current opcode in Opcode Info table and executes the appropriate handler.
+void __stdcall defaultOpcodeHandlerStdcall(TProgram* program, DWORD opcodeOffset) {
+	int opcode = opcodeOffset / 4;
+	auto iter = opcodeInfoMap.find(opcode);
+	if (iter != opcodeInfoMap.end()) {
+		auto info = iter->second;
+		OpcodeContext ctx(program, opcode, info->argNum, info->hasReturn);
+		ctx.handleOpcode(info->handler);
+	} else {
+		Wrapper::interpretError("Unknown opcode: %d", opcode);
+	}
+}
+
+// Default handler for Sfall opcodes (naked function for integration with the engine).
+void __declspec(naked) defaultOpcodeHandler() {
+	__asm {
+		pushad;
+		push edx;
+		push eax;
+		call defaultOpcodeHandlerStdcall;
+		popad;
+		retn;
 	}
 }
 
@@ -74,7 +152,7 @@ void InitNewOpcodes() {
 		dlogr("  Unsafe opcodes disabled", DL_SCRIPT);
 	}
 
-	SafeWrite32(0x46E370, 0x300);	//Maximum number of allowed opcodes
+	SafeWrite32(0x46E370, opcodeCount);	//Maximum number of allowed opcodes
 	SafeWrite32(0x46ce34, (DWORD)opcodes);	//cmp check to make sure opcode exists
 	SafeWrite32(0x46ce6c, (DWORD)opcodes);	//call that actually jumps to the opcode
 	SafeWrite32(0x46e390, (DWORD)opcodes);	//mov that writes to the opcode
@@ -103,7 +181,7 @@ void InitNewOpcodes() {
 	opcodes[0x169] = op_deactivate_shader;
 	opcodes[0x16a] = op_set_global_script_repeat;
 	opcodes[0x16b] = op_input_funcs_available;
-	opcodes[0x16c] = op_key_pressed;
+	opcodes[0x16c] = defaultOpcodeHandler;
 	opcodes[0x16d] = op_set_shader_int;
 	opcodes[0x16e] = op_set_shader_float;
 	opcodes[0x16f] = op_set_shader_vector;
@@ -357,17 +435,17 @@ void InitNewOpcodes() {
 	opcodes[0x273] = op_create_spatial;
 	opcodes[0x274] = op_art_exists;
 	opcodes[0x275] = op_obj_is_carrying_obj;
-	// universal opcodes
-	opcodes[0x276] = op_sfall_metarule0;
-	opcodes[0x277] = op_sfall_metarule1;
-	opcodes[0x278] = op_sfall_metarule2;
-	opcodes[0x279] = op_sfall_metarule3;
-	opcodes[0x27a] = op_sfall_metarule4;
-	opcodes[0x27b] = op_sfall_metarule5;
-	opcodes[0x27c] = op_sfall_metarule6; // if you need more arguments - use arrays
-	
+
+	// configure default opcode handler
+	for (int i = sfallOpcodeStart; i < opcodeCount; i++) {
+		if (opcodes[i] == nullptr) {
+			opcodes[i] = defaultOpcodeHandler;
+		}
+	}
+
 	// see opcodeMetaArray above for additional scripting functions via "metarule"
 
+	InitOpcodeInfoTable();
 	InitOpcodeMetaTable();
 	InitMetaruleTable();
 }

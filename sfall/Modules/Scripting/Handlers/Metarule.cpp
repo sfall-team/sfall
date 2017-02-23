@@ -85,7 +85,7 @@ void sf_test(OpcodeContext& ctx) {
 void sf_get_metarule_table(OpcodeContext& ctx) {
 	DWORD arr = TempArray(metaruleTable.size(), 0);
 	int i = 0;
-	for (MetaruleTableType::iterator it = metaruleTable.begin(); it != metaruleTable.end(); it++) {
+	for (auto it = metaruleTable.begin(); it != metaruleTable.end(); it++) {
 		arrays[arr].val[i].set(it->first.c_str());
 		i++;
 	}
@@ -140,7 +140,7 @@ static bool ValidateMetaruleArguments(OpcodeContext& ctx, const SfallMetarule* m
 	}
 }
 
-static void HandleMetarule(OpcodeContext& ctx) {
+void HandleMetarule(OpcodeContext& ctx) {
 	const ScriptValue &nameArg = ctx.arg(0);
 	if (nameArg.isString()) {
 		const char* name = nameArg.asString();
@@ -160,18 +160,3 @@ static void HandleMetarule(OpcodeContext& ctx) {
 		ctx.printOpcodeError("sfall_funcX(name, ...) - name must be string.");
 	}
 }
-
-#define metaruleOpcode(numArg, numArgPlusOne) \
-	void __declspec(naked) op_sfall_metarule##numArg() {\
-		_WRAP_OPCODE(HandleMetarule, numArgPlusOne, 1)\
-	}
-
-metaruleOpcode(0, 1)
-metaruleOpcode(1, 2)
-metaruleOpcode(2, 3)
-metaruleOpcode(3, 4)
-metaruleOpcode(4, 5)
-metaruleOpcode(5, 6)
-metaruleOpcode(6, 7)
-
-#undef metaruleOpcode

@@ -49,7 +49,7 @@ struct SfallOpcodeMetadata {
 	int argTypeMasks[OP_MAX_ARGUMENTS];
 };
 
-typedef std::tr1::unordered_map<ScriptingFunctionHandler, const SfallOpcodeMetadata*> OpcodeMetaTableType;
+typedef std::tr1::unordered_map<ScriptingFunctionHandler, const SfallOpcodeMetadata*> OpcodeMetadataMapType;
 
 // A context for handling opcodes. Opcode handlers can retrieve arguments and set opcode return value via context.
 class OpcodeContext {
@@ -126,5 +126,5 @@ private:
 	std::array<ScriptValue, OP_MAX_ARGUMENTS> _args;
 	ScriptValue _ret;
 
-	static OpcodeMetaTableType _opcodeMetaTable;
+	static OpcodeMetadataMapType _opcodeMetaTable;
 };

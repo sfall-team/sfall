@@ -24,7 +24,7 @@
 #include "OpcodeContext.h"
 
 
-OpcodeMetaTableType OpcodeContext::_opcodeMetaTable;
+OpcodeMetadataMapType OpcodeContext::_opcodeMetaTable;
 
 OpcodeContext::OpcodeContext(TProgram* program, DWORD opcode, int argNum, bool hasReturn) {
 	assert(argNum < OP_MAX_ARGUMENTS);
@@ -93,7 +93,7 @@ void OpcodeContext::printOpcodeError(const char* fmt, ...) const {
 }
 
 bool OpcodeContext::validateArguments(ScriptingFunctionHandler func) const {
-	OpcodeMetaTableType::const_iterator it = _opcodeMetaTable.find(func);
+	OpcodeMetadataMapType::const_iterator it = _opcodeMetaTable.find(func);
 	if (it != _opcodeMetaTable.end()) {
 		const SfallOpcodeMetadata* meta = it->second;
 

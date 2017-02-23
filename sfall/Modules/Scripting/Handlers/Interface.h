@@ -21,7 +21,7 @@
 // input_functions
 void __declspec() op_input_funcs_available();
 
-void __declspec() op_key_pressed();
+void sf_key_pressed(OpcodeContext& ctx);
 
 void __declspec() op_tap_key();
 
