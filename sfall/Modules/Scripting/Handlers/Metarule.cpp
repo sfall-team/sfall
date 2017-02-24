@@ -20,7 +20,6 @@
 #include "..\..\ScriptExtender.h"
 #include "..\Arrays.h"
 #include "..\OpcodeContext.h"
-#include "AsmMacros.h"
 #include "Interface.h"
 #include "Misc.h"
 #include "Objects.h"
@@ -37,12 +36,18 @@
 struct SfallMetarule {
 	// function name
 	const char* name;
+
 	// pointer to handler function
 	ScriptingFunctionHandler func;
-	// mininum number of arguments
+
+	// minimum number of arguments
 	int minArgs;
+
 	// maximum number of arguments
 	int maxArgs;
+	
+	// argument validation settings
+	OpcodeArgumentType argValidation[OP_MAX_ARGUMENTS];
 };
 
 typedef std::tr1::unordered_map<std::string, const SfallMetarule*> MetaruleTableType;
@@ -85,7 +90,7 @@ void sf_test(OpcodeContext& ctx) {
 void sf_get_metarule_table(OpcodeContext& ctx) {
 	DWORD arr = TempArray(metaruleTable.size(), 0);
 	int i = 0;
-	for (MetaruleTableType::iterator it = metaruleTable.begin(); it != metaruleTable.end(); it++) {
+	for (auto it = metaruleTable.begin(); it != metaruleTable.end(); it++) {
 		arrays[arr].val[i].set(it->first.c_str());
 		i++;
 	}
@@ -102,12 +107,13 @@ void sf_get_metarule_table(OpcodeContext& ctx) {
 		- name - name of function that will be used to call it from scripts,
 		- handler - pointer to handler function (see examples below),
 		- minArgs/maxArgs - minimum and maximum number of arguments allowed for this function
+		- argument types for validation
 */
 static const SfallMetarule metaruleArray[] = {
 	{"get_metarule_table", sf_get_metarule_table, 0, 0},
-	{"validate_test", sf_test, 2, 5},
-	{"spatial_radius", sf_spatial_radius, 1, 1},
-	{"critter_inven_obj2", sf_critter_inven_obj2, 2, 2},
+	{"validate_test", sf_test, 2, 5, {ARG_INT, ARG_NUMBER, ARG_STRING, ARG_OBJECT, ARG_ANY}},
+	{"spatial_radius", sf_spatial_radius, 1, 1, {ARG_OBJECT}},
+	{"critter_inven_obj2", sf_critter_inven_obj2, 2, 2, {ARG_OBJECT, ARG_INT}},
 	{"intface_redraw", sf_intface_redraw, 0, 0},
 	{"intface_show", sf_intface_show, 0, 0},
 	{"intface_hide", sf_intface_hide, 0, 0},
@@ -136,11 +142,11 @@ static bool ValidateMetaruleArguments(OpcodeContext& ctx, const SfallMetarule* m
 
 		return false;
 	} else {
-		return ctx.validateArguments(metaruleInfo->func);
+		return ctx.validateArguments(metaruleInfo->argValidation, metaruleInfo->name);
 	}
 }
 
-static void HandleMetarule(OpcodeContext& ctx) {
+void HandleMetarule(OpcodeContext& ctx) {
 	const ScriptValue &nameArg = ctx.arg(0);
 	if (nameArg.isString()) {
 		const char* name = nameArg.asString();
@@ -160,18 +166,3 @@ static void HandleMetarule(OpcodeContext& ctx) {
 		ctx.printOpcodeError("sfall_funcX(name, ...) - name must be string.");
 	}
 }
-
-#define metaruleOpcode(numArg, numArgPlusOne) \
-	void __declspec(naked) op_sfall_metarule##numArg() {\
-		_WRAP_OPCODE(HandleMetarule, numArgPlusOne, 1)\
-	}
-
-metaruleOpcode(0, 1)
-metaruleOpcode(1, 2)
-metaruleOpcode(2, 3)
-metaruleOpcode(3, 4)
-metaruleOpcode(4, 5)
-metaruleOpcode(5, 6)
-metaruleOpcode(6, 7)
-
-#undef metaruleOpcode

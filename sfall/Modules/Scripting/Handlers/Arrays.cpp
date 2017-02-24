@@ -19,465 +19,101 @@
 #include "..\..\..\FalloutEngine\Fallout2.h"
 #include "..\..\ScriptExtender.h"
 #include "..\Arrays.h"
-#include "AsmMacros.h"
+#include "..\OpcodeContext.h"
 #include "Utils.h"
 
 #include "Arrays.h"
 
-void __declspec(naked) op_create_array() {
-	__asm {
-		pushad;
-		mov edi, eax;
-		call FuncOffs::interpretPopShort_;
-		mov ebx, eax;
-		mov eax, edi;
-		call FuncOffs::interpretPopLong_;
-		mov ecx, eax;
-		mov eax, edi;
-		call FuncOffs::interpretPopShort_;
-		mov edx, eax;
-		mov eax, edi;
-		call FuncOffs::interpretPopLong_;
-		cmp bx, 0xc001;
-		jne fail;
-		cmp dx, 0xc001;
-		jne fail;
-		push ecx;
-		push eax;
-		call CreateArray;
-		mov edx, eax;
-		jmp end;
-fail:
-		xor edx, edx;
-end:
-		mov eax, edi;
-		call FuncOffs::interpretPushLong_;
-		mov edx, 0xc001;
-		mov eax, edi;
-		call FuncOffs::interpretPushShort_;
-		popad;
-		retn;
+
+void sf_create_array(OpcodeContext& ctx) {
+	auto arrayId = CreateArray(ctx.arg(0).asInt(), ctx.arg(1).asInt());
+	ctx.setReturn(
+		ScriptValue(DATATYPE_INT, arrayId)
+	);
+}
+
+void sf_set_array(OpcodeContext& ctx) {
+	SetArray(
+		ctx.arg(0).asInt(),
+		ctx.arg(1),
+		ctx.arg(2),
+		true
+	);
+}
+
+/*
+	used in place of [] operator when compiling in sslc
+	so it works as get_array if first argument is int and as substr(x, y, 1) if first argument is string
+*/
+void sf_get_array(OpcodeContext& ctx) {
+	if  (ctx.arg(0).isInt()) {
+		ctx.setReturn(
+			GetArray(ctx.arg(0).asInt(), ctx.arg(1))
+		);
+	} else if (ctx.arg(0).isString()) {
+		if (ctx.arg(1).isInt()) {
+			auto str = Substring(ctx.arg(0).asString(), ctx.arg(1).asInt(), 1);
+			ctx.setReturn(str);
+		} else {
+			ctx.printOpcodeError("get_array - index must be numeric when used on a string.");
+		}
+	} else {
+		ctx.printOpcodeError("get-array - argument 0 must be an array ID or a string.");
 	}
 }
 
-void __declspec(naked) op_set_array() {
-	__asm {
-		pushad;
-		mov ebp, eax;
-		//Get args
-		call FuncOffs::interpretPopShort_;
-		mov edx, eax;
-		mov eax, ebp;
-		call FuncOffs::interpretPopLong_;
-		mov edi, eax; // value
-		mov eax, ebp;
-		call FuncOffs::interpretPopShort_;
-		mov ecx, eax;
-		mov eax, ebp;
-		call FuncOffs::interpretPopLong_;
-		mov esi, eax; // key
-		mov eax, ebp;
-		call FuncOffs::interpretPopShort_;
-		mov ebx, eax;
-		mov eax, ebp;
-		call FuncOffs::interpretPopLong_;
-		xchg eax, edi; // arrayID
-		//Error check:
-		cmp bx, 0xC001;
-		jne end;
-		push 1; // arg 6: allow unset
-		push edx; // arg 5: value type
-		// value:
-		cmp dx, 0x9001;
-		jz next;
-		cmp dx, 0x9801;
-		jnz notstring;
-next:
-		mov ebx, eax;
-		mov eax, ebp;
-		call FuncOffs::interpretGetString_;
-notstring:
-		push eax; // arg 4: value
-		// key:
-		cmp cx, 0x9001;
-		jz next1;
-		cmp cx, 0x9801;
-		jnz notstring1;
-next1:
-		mov edx, ecx;
-		mov ebx, esi;
-		mov eax, ebp;
-		call FuncOffs::interpretGetString_;
-		mov esi, eax;
-notstring1:
-		push ecx; // arg 3: key type
-		push esi; // arg 2: key
-		push edi; // arg 1: arrayID
-		call SetArray;
-end:
-		popad;
-		retn;
-	}
+void sf_free_array(OpcodeContext& ctx) {
+	FreeArray(ctx.arg(0).asInt());
 }
 
-void __declspec(naked) op_get_array() {
-	__asm {
-		pushad;
-		mov ebp, eax;
-		//Get args
-		call FuncOffs::interpretPopShort_;
-		mov ebx, eax;
-		mov eax, ebp;
-		call FuncOffs::interpretPopLong_;
-		mov edi, eax;
-		mov eax, ebp;
-		call FuncOffs::interpretPopShort_;
-		mov ecx, eax;
-		mov eax, ebp;
-		call FuncOffs::interpretPopLong_;
-		mov esi, eax;
-		mov eax, ebp;
-		// check first argument type
-		cmp cx, VAR_TYPE_STR;
-		je callsubstr;
-		cmp cx, VAR_TYPE_STR2;
-		jne proceedgetarray;
-callsubstr:
-		// use substr instead of get_array when used on string
-		// in this case, check for second argument to be numeric
-		cmp bx, VAR_TYPE_INT;
-		jne fail;
-		mov eax, ebp;
-		mov ebx, esi;
-		mov edx, ecx;
-		call FuncOffs::interpretGetString_;
-		push 1;
-		push edi;
-		push eax;
-		call mysubstr;
-		mov edx, eax; // result substring
-		mov ebx, VAR_TYPE_STR; // result type
-		jmp end;
-
-proceedgetarray:
-		cmp cx, VAR_TYPE_INT; // only int is allowed for arrayID in this case
-		jne fail;
-		cmp bx, VAR_TYPE_STR;
-		je next1;
-		cmp bx, VAR_TYPE_STR2;
-		jne notstring1;
-next1:
-		mov ecx, ebx;
-		mov edx, ebx;
-		mov ebx, edi;
-		mov eax, ebp;
-		call FuncOffs::interpretGetString_;
-		mov edi, eax;
-		mov ebx, ecx;
-notstring1:
-		mov eax, esp; // ptr to resultType (will be changed in GetArray)
-		push eax;
-		push ebx;
-		push edi;
-		push esi;
-		call GetArray;
-		mov edx, eax; // result data
-		mov ebx, [esp]; // resultType
-		jmp end;
-fail:
-		xor edx, edx;
-		mov ebx, 0xc001;
-end:
-		cmp bx, 0x9801;
-		jne notstring;
-		mov eax, ebp;
-		call FuncOffs::interpretAddString_;
-		mov edx, eax;
-notstring:
-		mov eax, ebp;
-		call FuncOffs::interpretPushLong_;
-		mov edx, ebx;
-		mov eax, ebp;
-		call FuncOffs::interpretPushShort_;
-		popad;
-		retn;
-	}
+void sf_len_array(OpcodeContext& ctx) {
+	ctx.setReturn(
+		LenArray(ctx.arg(0).asInt())
+	);
 }
 
-void __declspec(naked) op_free_array() {
-	__asm {
-		pushad;
-		mov edi, eax;
-		call FuncOffs::interpretPopShort_;
-		mov ebx, eax;
-		mov eax, edi;
-		call FuncOffs::interpretPopLong_;
-		cmp bx, 0xc001;
-		jne end;
-		push eax;
-		call FreeArray;
-end:
-		popad;
-		retn;
-	}
+void sf_resize_array(OpcodeContext& ctx) {
+	ResizeArray(ctx.arg(0).asInt(), ctx.arg(1).asInt());
 }
 
-void __declspec(naked) op_len_array() {
-	__asm {
-		pushad;
-		mov edi, eax;
-		call FuncOffs::interpretPopShort_;
-		mov ebx, eax;
-		mov eax, edi;
-		call FuncOffs::interpretPopLong_;
-		cmp bx, 0xc001;
-		jne fail;
-		push eax;
-		call LenArray;
-		mov edx, eax;
-		jmp end;
-fail:
-		xor edx, edx;
-end:
-		mov eax, edi;
-		call FuncOffs::interpretPushLong_;
-		mov edx, 0xc001;
-		mov eax, edi;
-		call FuncOffs::interpretPushShort_;
-		popad;
-		retn;
-	}
+void sf_temp_array(OpcodeContext& ctx) {
+	auto arrayId = TempArray(ctx.arg(0).asInt(), ctx.arg(1).asInt());
+	ctx.setReturn(
+		ScriptValue(DATATYPE_INT, arrayId)
+	);
 }
 
-void __declspec(naked) op_resize_array() {
-	__asm {
-		pushad;
-		mov ebp, eax;
-		//Get args
-		call FuncOffs::interpretPopShort_;
-		mov ebx, eax;
-		mov eax, ebp;
-		call FuncOffs::interpretPopLong_;
-		mov edi, eax;
-		mov eax, ebp;
-		call FuncOffs::interpretPopShort_;
-		mov ecx, eax;
-		mov eax, ebp;
-		call FuncOffs::interpretPopLong_;
-		mov esi, eax;
-		mov eax, ebp;
-		//Error check
-		cmp bx, 0xc001;
-		jne end;
-		cmp cx, 0xc001;
-		jne end;
-		push edi;
-		push esi;
-		call ResizeArray;
-end:
-		popad;
-		retn;
-	}
+void sf_fix_array(OpcodeContext& ctx) {
+	FixArray(ctx.arg(0).asInt());
 }
 
-void __declspec(naked) op_temp_array() {
-	__asm {
-		pushad;
-		mov edi, eax;
-		call FuncOffs::interpretPopShort_;
-		mov ebx, eax;
-		mov eax, edi;
-		call FuncOffs::interpretPopLong_;
-		mov ecx, eax;
-		mov eax, edi;
-		call FuncOffs::interpretPopShort_;
-		mov edx, eax;
-		mov eax, edi;
-		call FuncOffs::interpretPopLong_;
-		cmp bx, 0xc001;
-		jne fail;
-		cmp dx, 0xc001;
-		jne fail;
-		push ecx;
-		push eax;
-		call TempArray;
-		mov edx, eax;
-		jmp end;
-fail:
-		xor edx, edx;
-end:
-		mov eax, edi;
-		call FuncOffs::interpretPushLong_;
-		mov edx, 0xc001;
-		mov eax, edi;
-		call FuncOffs::interpretPushShort_;
-		popad;
-		retn;
-	}
+void sf_scan_array(OpcodeContext& ctx) {
+	ctx.setReturn(
+		ScanArray(ctx.arg(0).asInt(), ctx.arg(1))
+	);
 }
 
-void __declspec(naked) op_fix_array() {
-	__asm {
-		pushad;
-		mov edi, eax;
-		call FuncOffs::interpretPopShort_;
-		mov ebx, eax;
-		mov eax, edi;
-		call FuncOffs::interpretPopLong_;
-		cmp bx, 0xc001;
-		jne end;
-		push eax;
-		call FixArray;
-end:
-		popad;
-		retn;
-	}
+void sf_save_array(OpcodeContext& ctx) {
+	SaveArray(ctx.arg(0), ctx.arg(1).asInt());
 }
 
-void __declspec(naked) op_scan_array() {
-	__asm {
-		pushad;
-		mov ebp, eax;
-		//Get args
-		call FuncOffs::interpretPopShort_;
-		mov edx, eax;
-		mov eax, ebp;
-		call FuncOffs::interpretPopLong_;
-		mov edi, eax; // value (needle)
-		mov eax, ebp;
-		call FuncOffs::interpretPopShort_;
-		mov ecx, eax;
-		mov eax, ebp;
-		call FuncOffs::interpretPopLong_;
-		mov esi, eax; // arrayID (haystack)
-		mov eax, ebp;
-		//Error check
-		cmp cx, VAR_TYPE_INT;
-		jne fail;
-		cmp dx, VAR_TYPE_STR;
-		je getstringvar;
-		cmp dx, VAR_TYPE_STR2;
-		jne success;
-getstringvar:
-		mov ebx, edi;
-		mov eax, ebp;
-		call FuncOffs::interpretGetString_;
-		mov edi, eax;
-success:
-		push esp;
-		push edx;
-		push edi;
-		push esi;
-		call ScanArray;
-		mov edx, eax; // result
-		mov ebx, [esp]; // resultType
-		jmp end;
-fail:
-		mov ebx, VAR_TYPE_INT;
-		xor edx, edx;
-		dec edx; // returns -1
-end:
-		cmp ebx, VAR_TYPE_STR;
-		jne resultnotstr;
-		mov eax, ebp;
-		call FuncOffs::interpretAddString_;
-		mov edx, eax; // str ptr
-resultnotstr:
-		mov eax, ebp;
-		call FuncOffs::interpretPushLong_;
-		mov edx, ebx;
-		mov eax, ebp;
-		call FuncOffs::interpretPushShort_;
-		popad;
-		retn;
-	}
+void sf_load_array(OpcodeContext& ctx) {
+	ctx.setReturn(
+		static_cast<int>(LoadArray(ctx.arg(0)))
+	);
 }
 
-void __declspec(naked) op_save_array() {
-	_OP_BEGIN(ebp)
-		// Get args
-		_GET_ARG_R32(ebp, ebx, edi)
-		_GET_ARG_R32(ebp, edx, ecx)
-		__asm {
-			// arg check:
-		cmp bx, VAR_TYPE_INT
-		jne end
-	}
-	_CHECK_PARSE_STR(1, ebp, dx, ecx)
-		__asm {
-		push edi // arg 3: arrayID
-		push edx // arg 2: keyType
-		push ecx // arg 1: key
-		call SaveArray
-	}
-end:
-	_OP_END
+void sf_get_array_key(OpcodeContext& ctx) {
+	ctx.setReturn(
+		GetArrayKey(ctx.arg(0).asInt(), ctx.arg(1).asInt())
+	);
 }
 
-void __declspec(naked) op_load_array() {
-	_OP_BEGIN(ebp)
-	_GET_ARG_R32(ebp, edx, ecx)
-	_CHECK_PARSE_STR(1, ebp, dx, ecx)
-	__asm {
-		push edx; // arg 2: keyType
-		push ecx; // arg 1: key
-		call LoadArray;
-	}
-	_RET_VAL_INT(ebp)
-	_OP_END
+void sf_stack_array(OpcodeContext& ctx) {
+	ctx.setReturn(
+		static_cast<int>(StackArray(ctx.arg(0), ctx.arg(1)))
+	);
 }
-
-void __declspec(naked) op_get_array_key() {
-	_OP_BEGIN(ebp)
-	_GET_ARG_R32(ebp, edx, ecx) // index
-	_GET_ARG_R32(ebp, ebx, edi) // arrayID
-	__asm {
-			// arg check:
-		cmp bx, VAR_TYPE_INT;
-		jne wrongarg;
-		cmp dx, VAR_TYPE_INT;
-		jne wrongarg;
-		push esp; // arg 3: *resultType
-		push ecx; // arg 2: index
-		push edi; // arg 1: arrayID
-		call GetArrayKey;
-	}
-	_RET_VAL_POSSIBLY_STR(1, ebp, [esp])
-		goto end;
-	__asm {
-wrongarg:
-		xor eax, eax; // return 0 on wrong arguments
-	}
-	_RET_VAL_INT(ebp)
-		end:
-	_OP_END
-}
-
-void __declspec(naked) op_stack_array() {
-	_OP_BEGIN(ebp)
-	_GET_ARG_R32(ebp, edx, esi) // value
-	_GET_ARG_R32(ebp, ebx, edi) // key
-	__asm {
-		push edx // arg 4: valueType
-		push ebx
-	}
-	_CHECK_PARSE_STR(1, ebp, dx, esi)
-		__asm {
-		pop ebx
-		mov ecx, ebx
-	}
-	_CHECK_PARSE_STR(2, ebp, bx, edi)
-		__asm {
-		push esi // arg 3: value
-		push ecx // arg 2: keyType
-		push edi // arg 1: key
-		call StackArray
-	}
-	_RET_VAL_INT(ebp)
-	_OP_END
-}
-
-
 
 // object LISTS
 
@@ -539,14 +175,14 @@ static void FillListVector(DWORD type, std::vector<TGameObj*>& vec) {
 	}
 }
 
-static void* _stdcall list_begin2(DWORD type) {
+static void* _stdcall ListBegin(DWORD type) {
 	std::vector<TGameObj*> vec = std::vector<TGameObj*>();
 	FillListVector(type, vec);
 	sList* list = new sList(&vec);
 	return list;
 }
 
-static DWORD _stdcall list_as_array2(DWORD type) {
+static DWORD _stdcall ListAsArray(DWORD type) {
 	std::vector<TGameObj*> vec = std::vector<TGameObj*>();
 	FillListVector(type, vec);
 	DWORD id = TempArray(vec.size(), 4);
@@ -556,115 +192,40 @@ static DWORD _stdcall list_as_array2(DWORD type) {
 	return id;
 }
 
-static TGameObj* _stdcall list_next2(sList* list) {
+static TGameObj* _stdcall ListNext(sList* list) {
 	if (list->pos == list->len) return 0;
 	else return list->obj[list->pos++];
 }
 
-static void _stdcall list_end2(sList* list) {
+static void _stdcall ListEnd(sList* list) {
 	delete[] list->obj;
 	delete list;
 }
 
-
-void __declspec(naked) op_list_begin() {
-	__asm {
-		pushad;
-		mov ebp, eax;
-		call FuncOffs::interpretPopShort_;
-		mov edi, eax;
-		mov eax, ebp;
-		call FuncOffs::interpretPopLong_;
-		cmp di, 0xc001;
-		jnz fail;
-		push eax;
-		call list_begin2;
-		mov edx, eax;
-		jmp end;
-fail:
-		xor edx, edx;
-		dec edx;
-end:
-		mov eax, ebp;
-		call FuncOffs::interpretPushLong_;
-		mov eax, ebp;
-		mov edx, 0xc001;
-		call FuncOffs::interpretPushShort_;
-		popad;
-		retn;
-	}
+void sf_list_begin(OpcodeContext& ctx) {
+	auto list = ListBegin(ctx.arg(0).asInt());
+	ctx.setReturn(
+		ScriptValue(DATATYPE_INT, reinterpret_cast<DWORD>(list))
+	);
 }
 
-void __declspec(naked) op_list_as_array() {
-	__asm {
-		pushad;
-		mov ebp, eax;
-		call FuncOffs::interpretPopShort_;
-		mov edi, eax;
-		mov eax, ebp;
-		call FuncOffs::interpretPopLong_;
-		cmp di, 0xc001;
-		jnz fail;
-		push eax;
-		call list_as_array2;
-		mov edx, eax;
-		jmp end;
-fail:
-		xor edx, edx;
-		dec edx;
-end:
-		mov eax, ebp;
-		call FuncOffs::interpretPushLong_;
-		mov eax, ebp;
-		mov edx, 0xc001;
-		call FuncOffs::interpretPushShort_;
-		popad;
-		retn;
-	}
+void sf_list_as_array(OpcodeContext& ctx) {
+	auto arrayId = ListAsArray(ctx.arg(0).asInt());
+	ctx.setReturn(
+		ScriptValue(DATATYPE_INT, arrayId)
+	);
 }
 
-void __declspec(naked) op_list_next() {
-	__asm {
-		pushad;
-		mov ebp, eax;
-		call FuncOffs::interpretPopShort_;
-		mov edi, eax;
-		mov eax, ebp;
-		call FuncOffs::interpretPopLong_;
-		cmp di, 0xc001;
-		jnz fail;
-		push eax;
-		call list_next2;
-		mov edx, eax;
-		jmp end;
-fail:
-		xor edx, edx;
-		dec edx;
-end:
-		mov eax, ebp;
-		call FuncOffs::interpretPushLong_;
-		mov eax, ebp;
-		mov edx, 0xc001;
-		call FuncOffs::interpretPushShort_;
-		popad;
-		retn;
-	}
+void sf_list_next(OpcodeContext& ctx) {
+	// TODO: make it safer
+	auto list = reinterpret_cast<sList*>(ctx.arg(0).rawValue());
+	ctx.setReturn(
+		ListNext(list)
+	);
 }
 
-void __declspec(naked) op_list_end() {
-	__asm {
-		pushad;
-		mov ebp, eax;
-		call FuncOffs::interpretPopShort_;
-		mov edi, eax;
-		mov eax, ebp;
-		call FuncOffs::interpretPopLong_;
-		cmp di, 0xc001;
-		jnz end;
-		push eax;
-		call list_end2;
-end:
-		popad;
-		retn;
-	}
+void sf_list_end(OpcodeContext& ctx) {
+	// TODO: make it safer
+	auto list = reinterpret_cast<sList*>(ctx.arg(0).rawValue());
+	ListEnd(list);
 }

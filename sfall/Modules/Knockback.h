@@ -24,6 +24,6 @@ void _stdcall KnockbackSetMod(DWORD id, DWORD type, float val, DWORD on);
 void _stdcall KnockbackRemoveMod(DWORD id, DWORD on);
 void KnockbackInit();
 void Knockback_OnGameLoad();
-void _stdcall SetNoBurstMode(DWORD critter, DWORD on);
+void _stdcall SetNoBurstMode(TGameObj* critter, bool on);
 void _stdcall DisableAimedShots(DWORD pid);
 void _stdcall ForceAimedShots(DWORD pid);

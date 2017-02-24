@@ -210,9 +210,6 @@
     <ClInclude Include="Modules\Scripting\Handlers\Worldmap.h">
       <Filter>Modules\Scripting\Handlers</Filter>
     </ClInclude>
-    <ClInclude Include="Modules\Scripting\Handlers\AsmMacros.h">
-      <Filter>Modules\Scripting\Handlers</Filter>
-    </ClInclude>
     <ClInclude Include="CommonTypes.h" />
     <ClInclude Include="Modules\Scripting\OpcodeContext.h">
       <Filter>Modules\Scripting</Filter>
@@ -222,6 +219,9 @@
     </ClInclude>
     <ClInclude Include="Modules\Scripting\Opcodes.h">
       <Filter>Modules\Scripting</Filter>
+    </ClInclude>
+    <ClInclude Include="FalloutEngine\Wrappers_def.h">
+      <Filter>FalloutEngine</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -407,9 +407,11 @@
     <ClCompile Include="Modules\Scripting\OpcodeContext.cpp">
       <Filter>Modules\Scripting</Filter>
     </ClCompile>
-    <ClCompile Include="Modules\Scripting\Opcodes.cpp" />
     <ClCompile Include="Modules\Scripting\Handlers\Core.cpp">
       <Filter>Modules\Scripting\Handlers</Filter>
+    </ClCompile>
+    <ClCompile Include="Modules\Scripting\Opcodes.cpp">
+      <Filter>Modules\Scripting</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

@@ -22,6 +22,8 @@
  *	Misc operators
  */
 
+class OpcodeContext;
+
 void __declspec() op_set_dm_model();
 
 void __declspec() op_set_df_model();
@@ -142,8 +144,8 @@ void __declspec() op_gdialog_get_barter_mod();
 
 void __declspec() op_set_inven_ap_cost();
 
-void __declspec() op_sneak_success();
+void sf_sneak_success(OpcodeContext& ctx);
 
-void __declspec() op_tile_light();
+void sf_tile_light(OpcodeContext& ctx);
 
 void sf_exec_map_update_scripts(OpcodeContext&);

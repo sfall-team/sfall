@@ -28,38 +28,40 @@
 
 //script control functions
 
+class OpcodeContext;
+
 void __declspec() op_remove_script();
 
 void __declspec() op_set_script();
 
-void __declspec() op_create_spatial();
+void sf_create_spatial(OpcodeContext&);
 
 void sf_spatial_radius(OpcodeContext&);
 
-void __declspec() op_get_script();
+void sf_get_script(OpcodeContext&);
 
-void __declspec() op_set_critter_burst_disable();
+void sf_set_critter_burst_disable(OpcodeContext&);
 
-void __declspec() op_get_weapon_ammo_pid();
+void sf_get_weapon_ammo_pid(OpcodeContext&);
 
-void __declspec() op_set_weapon_ammo_pid();
+void sf_set_weapon_ammo_pid(OpcodeContext&);
 
-void __declspec() op_get_weapon_ammo_count();
+void sf_get_weapon_ammo_count(OpcodeContext&);
 
-void __declspec() op_set_weapon_ammo_count();
+void sf_set_weapon_ammo_count(OpcodeContext&);
 
-void __declspec() op_make_straight_path();
+void sf_make_straight_path(OpcodeContext&);
 
-void __declspec() op_make_path();
+void sf_make_path(OpcodeContext&);
 
-void __declspec() op_obj_blocking_at();
+void sf_obj_blocking_at(OpcodeContext&);
 
-void __declspec() op_tile_get_objects();
+void sf_tile_get_objects(OpcodeContext&);
 
-void __declspec() op_get_party_members();
+void sf_get_party_members(OpcodeContext&);
 
-void __declspec() op_art_exists();
+void sf_art_exists(OpcodeContext&);
 
-void __declspec() op_obj_is_carrying_obj();
+void sf_obj_is_carrying_obj(OpcodeContext&);
 
 void sf_critter_inven_obj2(OpcodeContext&);

@@ -56,6 +56,9 @@ namespace Wrapper
 	push arg7				\
 	_WRAP_WATCOM_CALL6(offs, arg1, arg2, arg3, arg4, arg5, arg6)
 
+bool __stdcall art_exists(int artFid) {
+	_WRAP_WATCOM_CALL1(art_exists_, artFid)
+}
 
 // Returns the name of the critter
 const char* __stdcall critter_name(TGameObj* critter) {
@@ -336,5 +339,39 @@ int __stdcall win_register_button(DWORD winRef, int xPos, int yPos, int width, i
 		call FuncOffs::win_register_button_
 	}
 }
+
+
+
+#define _WRAP_WATCOM_FUNC0(retType, name) \
+	retType __stdcall name() { \
+		_WRAP_WATCOM_CALL0(name##_) \
+	}
+
+#define _WRAP_WATCOM_FUNC1(retType, name, arg1t, arg1) \
+	retType __stdcall name(arg1t arg1) { \
+		_WRAP_WATCOM_CALL1(name##_, arg1) \
+	}
+
+#define _WRAP_WATCOM_FUNC2(retType, name, arg1t, arg1, arg2t, arg2) \
+	retType __stdcall name(arg1t arg1, arg2t arg2) { \
+		_WRAP_WATCOM_CALL2(name##_, arg1, arg2) \
+	}
+
+#define _WRAP_WATCOM_FUNC3(retType, name, arg1t, arg1, arg2t, arg2, arg3t, arg3) \
+	retType __stdcall name(arg1t arg1, arg2t arg2, arg3t arg3) { \
+		_WRAP_WATCOM_CALL3(name##_, arg1, arg2, arg3) \
+	}
+
+#define _WRAP_WATCOM_FUNC4(retType, name, arg1t, arg1, arg2t, arg2, arg3t, arg3, arg4t, arg4) \
+	retType __stdcall name(arg1t arg1, arg2t arg2, arg3t arg3, arg4t, arg4) { \
+		_WRAP_WATCOM_CALL4(name##_, arg1, arg2, arg3, arg4) \
+	}
+
+#define _WRAP_WATCOM_FUNC5(retType, name, arg1t, arg1, arg2t, arg2, arg3t, arg3, arg4t, arg4, arg5t, arg5) \
+	retType __stdcall name(arg1t arg1, arg2t arg2, arg3t arg3, arg4t, arg4, arg5t, arg5) { \
+		_WRAP_WATCOM_CALL5(name##_, arg1, arg2, arg3, arg4, arg5) \
+	}
+
+#include "Wrappers_def.h"
 
 }

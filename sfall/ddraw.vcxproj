@@ -209,6 +209,7 @@
     <ClInclude Include="FalloutEngine\Utils.h" />
     <ClInclude Include="FalloutEngine\Variables.h" />
     <ClInclude Include="FalloutEngine\Wrappers.h" />
+    <ClInclude Include="FalloutEngine\Wrappers_def.h" />
     <ClInclude Include="Modules\AI.h" />
     <ClInclude Include="Modules\AmmoMod.h" />
     <ClInclude Include="Modules\AnimationsAtOnceLimit.h" />
@@ -221,7 +222,6 @@
     <ClInclude Include="Modules\Console.h" />
     <ClInclude Include="Modules\Scripting\Handlers\Anims.h" />
     <ClInclude Include="Modules\Scripting\Arrays.h" />
-    <ClInclude Include="Modules\Scripting\Handlers\AsmMacros.h" />
     <ClInclude Include="CommonTypes.h" />
     <ClInclude Include="Modules\Scripting\Handlers\Core.h" />
     <ClInclude Include="Modules\Scripting\Handlers\FileSystem.h" />

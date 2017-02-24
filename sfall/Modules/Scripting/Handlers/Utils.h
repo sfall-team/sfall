@@ -18,58 +18,54 @@
 
 #pragma once
 
-void __declspec() op_sqrt();
+class OpcodeContext;
 
-void __declspec() op_abs();
+void sf_sqrt(OpcodeContext&);
 
-void __declspec() op_sin();
+void sf_abs(OpcodeContext&);
 
-void __declspec() op_cos();
+void sf_sin(OpcodeContext&);
 
-void __declspec() op_tan();
+void sf_cos(OpcodeContext&);
 
-void __declspec() op_arctan();
+void sf_tan(OpcodeContext&);
 
-void __declspec() op_string_split();
+void sf_arctan(OpcodeContext&);
 
-void __declspec() op_atoi();
+void sf_string_split(OpcodeContext&);
 
-void __declspec() op_atof();
+void sf_atoi(OpcodeContext&);
 
-void __declspec() op_substr();
+void sf_atof(OpcodeContext&);
 
-void __declspec() op_strlen();
+void sf_substr(OpcodeContext&);
 
-void __declspec() op_sprintf();
+void sf_strlen(OpcodeContext&);
 
-void __declspec() op_ord();
+void sf_sprintf(OpcodeContext&);
 
-void __declspec() op_typeof();
+void sf_ord(OpcodeContext&);
+
+void sf_typeof(OpcodeContext&);
 
 void __declspec() NegateFixHook();
 
 void sf_power(OpcodeContext&);
 
-void __declspec() op_power();
+void sf_power(OpcodeContext&);
 
 void sf_log(OpcodeContext&);
 
-void __declspec() op_log();
+void sf_exponent(OpcodeContext&);
 
 void sf_exponent(OpcodeContext&);
 
-void __declspec() op_exponent();
+void sf_ceil(OpcodeContext&);
 
 void sf_ceil(OpcodeContext&);
 
-void __declspec() op_ceil();
-
 void sf_round(OpcodeContext&);
-
-void __declspec() op_round();
 
 void sf_message_str_game(OpcodeContext&);
 
-void __declspec() op_message_str_game();
-
-char* _stdcall mysubstr(char* str, int pos, int length);
+char* _stdcall Substring(const char* str, int pos, int length);

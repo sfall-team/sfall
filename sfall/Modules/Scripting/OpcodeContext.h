@@ -24,40 +24,50 @@
 #include "..\..\FalloutEngine\Structs.h"
 #include "ScriptValue.h"
 
-// variables for new opcodes
 #define OP_MAX_ARGUMENTS	(10)
-
-// masks for argument validation
-#define DATATYPE_MASK_INT		(1 << DATATYPE_INT)
-#define DATATYPE_MASK_FLOAT		(1 << DATATYPE_FLOAT)
-#define DATATYPE_MASK_STR		(1 << DATATYPE_STR)
-#define DATATYPE_MASK_NOT_NULL	(0x00010000)
-#define DATATYPE_MASK_VALID_OBJ	(DATATYPE_MASK_INT | DATATYPE_MASK_NOT_NULL)
 
 class OpcodeContext;
 
 typedef void(*ScriptingFunctionHandler)(OpcodeContext&);
 
-struct SfallOpcodeMetadata {
-	// opcode handler, will be used as key
-	ScriptingFunctionHandler handler;
-
-	// opcode name, only used for logging
-	const char* name;
-
-	// argument validation masks
-	int argTypeMasks[OP_MAX_ARGUMENTS];
+// The type of argument, not the same as actual data type. Useful for validation.
+enum OpcodeArgumentType {
+	ARG_ANY = 0, // no validation
+	ARG_INT,	// integer only
+	ARG_NUMBER, // float OR integer
+	ARG_STRING, // string only
+	ARG_OBJECT // integer that is not 0
 };
 
-typedef std::tr1::unordered_map<ScriptingFunctionHandler, const SfallOpcodeMetadata*> OpcodeMetaTableType;
+typedef struct SfallOpcodeInfo {
+	// opcode number
+	int opcode;
+
+	// opcode name
+	const char name[32];
+
+	// opcode handler
+	ScriptingFunctionHandler handler;
+
+	// number of arguments
+	int argNum;
+
+	// has return value or not
+	bool hasReturn;
+
+	// argument validation settings
+	OpcodeArgumentType argValidation[OP_MAX_ARGUMENTS];
+} SfallOpcodeInfo;
+
 
 // A context for handling opcodes. Opcode handlers can retrieve arguments and set opcode return value via context.
 class OpcodeContext {
 public:
 	// program - pointer to script program (from the engine)
+	// opcode - opcode number
 	// argNum - number of arguments for this opcode
 	// hasReturn - true if opcode has return value (is expression)
-	OpcodeContext(TProgram* program, int argNum, bool hasReturn);
+	OpcodeContext(TProgram* program, DWORD opcode, int argNum, bool hasReturn);
 
 	// number of arguments, possibly reduced by argShift
 	int numArgs() const;
@@ -80,6 +90,9 @@ public:
 
 	// current script program
 	TProgram* program() const;
+
+	// current opcode number
+	DWORD opcode() const;
 	
 	// set return value for current opcode
 	void setReturn(unsigned long value, SfallDataType type);
@@ -90,21 +103,22 @@ public:
 	// writes error message to debug.log along with the name of script & procedure
 	void printOpcodeError(const char* fmt, ...) const;
 
-	// Validate opcode arguments against type masks
+	// Validate opcode arguments against type specification
 	// if validation pass, returns true, otherwise writes error to debug.log and returns false
-	bool validateArguments(const int argTypeMasks[], const char* opcodeName) const;
-
-	// validate opcode arguments given opcode handler function and actual number of arguments
-	bool validateArguments(ScriptingFunctionHandler func) const;
+	bool validateArguments(const OpcodeArgumentType argInfo[], const char* opcodeName) const;
 
 	// Handle opcodes
 	// func - opcode handler
 	void handleOpcode(ScriptingFunctionHandler func);
 
-	static void addOpcodeMetaData(const SfallOpcodeMetadata* data);
+	// Handle opcodes with argument validation
+	// func - opcode handler
+	// argTypes - argument types for validation
+	// opcodeName - name of a function (for logging)
+	void handleOpcode(ScriptingFunctionHandler func, const OpcodeArgumentType argTypes[], const char* opcodeName);
 
 	// handles opcode using default instance
-	static void __stdcall handleOpcodeStatic(TProgram* program, ScriptingFunctionHandler func, int argNum, bool hasReturn);
+	static void __stdcall handleOpcodeStatic(TProgram* program, DWORD opcodeOffset, ScriptingFunctionHandler func, int argNum, bool hasReturn);
 
 	static const char* getSfallTypeName(DWORD dataType);
 
@@ -113,13 +127,17 @@ public:
 	static DWORD getScriptTypeBySfallType(DWORD dataType);
 
 private:
+	// pops arguments from data stack
+	void _popArguments();
+	// pushes return value to data stack
+	void _pushReturnValue();
+
 	TProgram* _program;
+	DWORD _opcode;
 
 	int _numArgs;
 	bool _hasReturn;
 	int _argShift;
 	std::array<ScriptValue, OP_MAX_ARGUMENTS> _args;
 	ScriptValue _ret;
-
-	static OpcodeMetaTableType _opcodeMetaTable;
 };

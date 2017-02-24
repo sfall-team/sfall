@@ -27,7 +27,7 @@
 #include "..\..\Movies.h"
 #include "..\..\ScriptExtender.h"
 #include "..\..\Stats.h"
-#include "AsmMacros.h"
+#include "..\OpcodeContext.h"
 
 #include "Misc.h"
 
@@ -192,7 +192,8 @@ void __declspec(naked) op_game_loaded() {
 		push eax;
 		push eax;
 		call ScriptHasLoaded;
-		mov edx, eax;
+		xor edx, edx;
+		mov dl, al;
 		pop eax;
 		mov ecx, eax;
 		call FuncOffs::interpretPushLong_;
@@ -1694,33 +1695,14 @@ end:
 	}
 }
 
-void __declspec(naked) op_sneak_success() {
-	_OP_BEGIN(ebp)
-	__asm {
-		mov eax, ds:[VARPTR_sneak_working]
-	}
-	_RET_VAL_INT(ebp)
-	_OP_END
+void sf_sneak_success(OpcodeContext& ctx) {
+	ctx.setReturn(static_cast<int>(VarPtr::sneak_working));
 }
 
-void __declspec(naked) op_tile_light() {
-	_OP_BEGIN(ebp)
-	_GET_ARG_R32(ebp, ebx, edi)  // arg2 - tile
-	_GET_ARG_R32(ebp, ecx, esi)  // arg1 - elevation
-	_CHECK_ARG_INT(bx, fail)
-	__asm {
-		mov eax, esi
-		mov edx, edi
-		call FuncOffs::light_get_tile_
-		jmp end
-fail:
-		mov eax, 0
-end:
-	}
-	_RET_VAL_INT(ebp)
-	_OP_END
+void sf_tile_light(OpcodeContext& ctx) {
+	int lightLevel = Wrapper::light_get_tile(ctx.arg(0).asInt(), ctx.arg(1).asInt());
+	ctx.setReturn(lightLevel);
 }
-
 
 void sf_exec_map_update_scripts(OpcodeContext& ctx) {
 	__asm call FuncOffs::scr_exec_map_update_scripts_

@@ -40,9 +40,14 @@ ScriptValue::ScriptValue(int val) {
 	_type = DATATYPE_INT;
 }
 
-ScriptValue::ScriptValue(float strval) {
-	_val.f = strval;
+ScriptValue::ScriptValue(float val) {
+	_val.f = val;
 	_type = DATATYPE_FLOAT;
+}
+
+ScriptValue::ScriptValue(bool val) {
+	_val.i = val ? 1 : 0;
+	_type = DATATYPE_INT;
 }
 
 ScriptValue::ScriptValue(TGameObj* obj) {
@@ -75,6 +80,17 @@ int ScriptValue::asInt() const {
 		return _val.i;
 	default:
 		return 0;
+	}
+}
+
+bool ScriptValue::asBool() const {
+	switch (_type) {
+	case DATATYPE_FLOAT:
+		return static_cast<int>(_val.f) != 0;
+	case DATATYPE_INT:
+		return _val.i != 0;
+	default:
+		return true;
 	}
 }
 

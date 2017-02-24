@@ -14,7 +14,7 @@ DWORD arraysBehavior = 1; // 0 - backward compatible with pre-3.4, 1 - permanent
 // arrays map: arrayId => arrayVar
 ArraysMap arrays;
 // auto-incremented ID
-DWORD nextarrayid=1;
+DWORD nextarrayid = 1;
 // temp arrays: set of arrayId
 std::set<DWORD> tempArrays;
 // saved arrays: arrayKey => arrayId
@@ -291,6 +291,7 @@ void SaveArrays(HANDLE h) {
 int GetNumArrays() {
 	return arrays.size();
 }
+
 void GetArrays(int* _arrays) {
 	int pos=0;
 	array_citr itr=arrays.begin();
@@ -301,11 +302,13 @@ void GetArrays(int* _arrays) {
 		itr++;
 	}
 }
+
 // those too are not really used yet in FalloutClient (AFAIK) -- phobos2077
 void DEGetArray(int id, DWORD* types, void* data) {
 	//memcpy(types, arrays[id].types, arrays[id].len*4);
 	//memcpy(data, arrays[id].data, arrays[id].len*arrays[id].datalen);
 }
+
 void DESetArray(int id, const DWORD* types, const void* data) {
 	//if(types) memcpy(arrays[id].types, types, arrays[id].len*4);
 	//memcpy(arrays[id].data, data, arrays[id].len*arrays[id].datalen);
@@ -334,11 +337,13 @@ DWORD _stdcall CreateArray(int len, DWORD nothing) {
 	arrays[nextarrayid]=var;
 	return nextarrayid++;
 }
+
 DWORD _stdcall TempArray(DWORD len, DWORD nothing) {
 	DWORD id=CreateArray(len, nothing);
 	tempArrays.insert(id);
 	return id;
 }
+
 void _stdcall FreeArray(DWORD id) {
 	array_itr it = arrays.find(id);
 	if (it != arrays.end()) {
@@ -348,73 +353,77 @@ void _stdcall FreeArray(DWORD id) {
 	}
 }
 
-DWORD _stdcall GetArrayKey(DWORD id, int index, DWORD* resultType) {
-	*resultType = VAR_TYPE_INT;
-	if (arrays.find(id) == arrays.end() || index < -1 || index > arrays[id].size()) return 0;
-	if (index == -1) // special index to indicate if array is associative
-		return (DWORD)arrays[id].isAssoc();
+ScriptValue _stdcall GetArrayKey(DWORD id, int index) {
+	if (arrays.find(id) == arrays.end() || index < -1 || index > arrays[id].size()) {
+		return ScriptValue(0);
+	}
+	if (index == -1) { // special index to indicate if array is associative
+		return ScriptValue(arrays[id].isAssoc());
+	}
 	if (arrays[id].isAssoc()) {
 		index *= 2;
 		// for associative array - return key at the specified index
 		switch(arrays[id].val[index].type) {
 		case DATATYPE_INT:
-			return *(DWORD *)&arrays[id].val[index].intVal;
+			return ScriptValue(arrays[id].val[index].intVal);
 		case DATATYPE_FLOAT:
-			*resultType = VAR_TYPE_FLOAT;
-			return *(DWORD *)&arrays[id].val[index].intVal;
+			return ScriptValue(arrays[id].val[index].floatVal);
 		case DATATYPE_STR:
-			*resultType = VAR_TYPE_STR;
-			return (DWORD)arrays[id].val[index].strVal;
+			return ScriptValue(arrays[id].val[index].strVal);
 		case DATATYPE_NONE:
 		default:
-			return 0;
+			return ScriptValue(0);
 		}
 	} else {
 		// just return index for normal array..
-		return index;
+		return ScriptValue(index);
 	}
 }
 
-DWORD _stdcall GetArray(DWORD id, DWORD key, DWORD keyType, DWORD* resultType) {
-	*resultType = VAR_TYPE_INT;
-	if(arrays.find(id)==arrays.end()) return 0;
+ScriptValue _stdcall GetArray(DWORD id, const ScriptValue& key) {
+	if (arrays.find(id) == arrays.end()) {
+		return 0;
+	}
 	int el;
 	sArrayVar &arr = arrays[id];
 	if (arr.isAssoc()) {
-		ArrayKeysMap::iterator it = arr.keyHash.find(sArrayElement(key, OpcodeContext::getSfallTypeByScriptType(keyType)));
+		ArrayKeysMap::iterator it = arr.keyHash.find(sArrayElement(key.rawValue(), key.type()));
 		if (it != arr.keyHash.end())
 			el = it->second + 1;
 		else
 			return 0;
 	} else {
-		el = key;
+		el = key.asInt();
 		// check for invalid index
-		if (el < 0 || el >= arr.size()) return 0;
+		if (el < 0 || el >= arr.size()) {
+			return 0;
+		}
 	}
-	switch(arr.val[el].type) {
-	case DATATYPE_NONE:  return 0;
+	switch (arr.val[el].type) {
+	case DATATYPE_NONE:  return ScriptValue();
 	case DATATYPE_INT:
-		return *(DWORD *)&arr.val[el].intVal;
+		return ScriptValue(arr.val[el].intVal);
 	case DATATYPE_FLOAT:
-		*resultType = VAR_TYPE_FLOAT;
-		return *(DWORD *)&arr.val[el].intVal;
+		return ScriptValue(arr.val[el].floatVal);
 	case DATATYPE_STR:
-		*resultType = VAR_TYPE_STR;
-		return (DWORD)arr.val[el].strVal;
+		return ScriptValue(arr.val[el].strVal);
 	}
-	return 0;
+	return ScriptValue(0);
 }
-void _stdcall SetArray(DWORD id, DWORD key, DWORD keyType, DWORD val, DWORD valType, DWORD allowUnset) {
-	keyType = OpcodeContext::getSfallTypeByScriptType(keyType);
-	valType = OpcodeContext::getSfallTypeByScriptType(valType);
-	if(arrays.find(id)==arrays.end()) return;
+
+void _stdcall SetArray(DWORD id, const ScriptValue& key, const ScriptValue& val, bool allowUnset) {
+	if (arrays.find(id) == arrays.end()) {
+		return;
+	}
 	int el;
 	sArrayVar &arr = arrays[id];
 	if (arrays[id].isAssoc()) {
-		sArrayElement sEl(key, keyType);
+		sArrayElement sEl(key.rawValue(), key.type());
 		ArrayKeysMap::iterator elIter = arr.keyHash.find(sEl);
-		el = (elIter != arr.keyHash.end()) ? elIter->second : -1;
-		if (valType == DATATYPE_INT && val == 0 && allowUnset) {
+		el = (elIter != arr.keyHash.end()) 
+			? elIter->second 
+			: -1;
+		if (val.isInt() && val.asInt() == 0 && allowUnset) {
 			// after assigning zero to a key, no need to store it, because "get_array" returns 0 for non-existent keys: try unset
 			if (el >= 0) {
 				// remove from hashtable
@@ -435,23 +444,25 @@ void _stdcall SetArray(DWORD id, DWORD key, DWORD keyType, DWORD val, DWORD valT
 				// add pair
 				el = arr.val.size();
 				arr.val.resize(el + 2);
-				arr.val[el].setByType(key, keyType); // copy data
+				arr.val[el].setByType(key.rawValue(), key.type()); // copy data
 				arr.keyHash[arr.val[el]] = el;
 			}
-			arr.val[el+1].setByType(val, valType);
+			arr.val[el+1].setByType(val.rawValue(), val.type());
 		}
 	} else {
 		// only update normal array if key is an integer and within array size
-		el = key;
-		if (keyType == DATATYPE_INT && arr.size() > el) {
-			arr.val[el].setByType(val, valType);
+		el = key.asInt();
+		if (key.isInt() && arr.size() > el) {
+			arr.val[el].setByType(val.rawValue(), val.type());
 		}
 	}
 }
+
 int _stdcall LenArray(DWORD id) {
 	if(arrays.find(id)==arrays.end()) return -1;
 	else return arrays[id].size();
 }
+
 void _stdcall ResizeArray(DWORD id, int newlen) {
 	if (arrays.find(id) == arrays.end() || arrays[id].size() == newlen) return;
 	sArrayVar &arr = arrays[id];
@@ -493,35 +504,38 @@ void _stdcall ResizeArray(DWORD id, int newlen) {
 		}
 	}
 }
+
 void _stdcall FixArray(DWORD id) {
 	tempArrays.erase(id);
 }
-int _stdcall ScanArray(DWORD id, DWORD val, DWORD datatype, DWORD* resultType) {
-	*resultType = VAR_TYPE_INT;
-	datatype = OpcodeContext::getSfallTypeByScriptType(datatype);
-	if (arrays.find(id) == arrays.end()) return -1;
+
+ScriptValue _stdcall ScanArray(DWORD id, const ScriptValue& val) {
+	if (arrays.find(id) == arrays.end()) {
+		return ScriptValue(-1);
+	}
 	char step = arrays[id].isAssoc() ? 2 : 1;
-	for (DWORD i = 0; i < arrays[id].val.size(); i += step) {
+	for (size_t i = 0; i < arrays[id].val.size(); i += step) {
 		sArrayElement &el = arrays[id].val[i + step - 1];
-		if (el.type == datatype) {
-			 if ((datatype != DATATYPE_STR && *(DWORD*)&(el.intVal) == val) ||
-				 (datatype == DATATYPE_STR && strcmp(el.strVal, (char*)val) == 0)) {
+		if (el.type == val.type()) {
+			 if ((!val.isString() && static_cast<DWORD>(el.intVal) == val.rawValue()) ||
+				 (val.isString() && strcmp(el.strVal, val.asString()) == 0)) {
 				 if (arrays[id].isAssoc()) { // return key instead of index for associative arrays
-					 *resultType = OpcodeContext::getScriptTypeBySfallType(arrays[id].val[i].type);
-					 return *(DWORD *)&arrays[id].val[i].intVal;
+					 return ScriptValue(
+						 static_cast<SfallDataType>(arrays[id].val[i].type), 
+						 static_cast<DWORD>(arrays[id].val[i].intVal)
+					 );
 				 } else {
-					 return i;
+					 return ScriptValue(static_cast<int>(i));
 				 }
 			 }
 		}
 	}
-	return -1;
+	return ScriptValue(-1);
 }
 
-DWORD _stdcall LoadArray(DWORD key, DWORD keyType) {
-	int dataType = OpcodeContext::getSfallTypeByScriptType(keyType);
-	if (dataType != DATATYPE_INT || key != 0) { // returns arrayId by it's key (ignoring int(0) because it is used to "unsave" array)
-		sArrayElement keyEl = sArrayElement(key, dataType);
+DWORD _stdcall LoadArray(const ScriptValue& key) {
+	if (!key.isInt() || key.asInt() != 0) { // returns arrayId by it's key (ignoring int(0) because it is used to "unsave" array)
+		sArrayElement keyEl = sArrayElement(key.rawValue(), key.type());
 		if (keyEl.type == DATATYPE_STR && strcmp(keyEl.strVal, get_all_arrays_special_key) == 0) { // this is a special case to get temp array containing all saved arrays
 			DWORD tmpArrId = TempArray(savedArrays.size(), 0);
 			if (tmpArrId > 0) {
@@ -536,26 +550,26 @@ DWORD _stdcall LoadArray(DWORD key, DWORD keyType) {
 			}
 		} else {
 			ArrayKeysMap::iterator it = savedArrays.find(keyEl);
-			if (it != savedArrays.end())
+			if (it != savedArrays.end()) {
 				return it->second;
+			}
 		}
 	}
 	return 0; // not found
 }
 
-void _stdcall SaveArray(DWORD key, DWORD keyType, DWORD id) {
+void _stdcall SaveArray(const ScriptValue& key, DWORD id) {
 	array_itr it = arrays.find(id), it2;
-	int dataType = OpcodeContext::getSfallTypeByScriptType(keyType);
 	if (it != arrays.end()) {
-		if (dataType != DATATYPE_INT || key != 0) {
+		if (!key.isInt() || key.asInt() != 0) {
 			// make array permanent
 			FixArray(it->first);
 			// if another array is saved under the same key, clear it
-			ArrayKeysMap::iterator sIt = savedArrays.find(sArrayElement(key, dataType));
+			ArrayKeysMap::iterator sIt = savedArrays.find(sArrayElement(key.rawValue(), key.type()));
 			if (sIt != savedArrays.end() && sIt->second != id && (it2 = arrays.find(sIt->second)) != arrays.end()) {
 				it2->second.key.unset();
 			}
-			it->second.key.setByType(key, dataType);
+			it->second.key.setByType(key.rawValue(), key.type());
 			savedArrays[it->second.key] = id;
 		} else { // int(0) is used to "unsave" array without destroying it
 			int num = savedArrays.erase(it->second.key);
@@ -574,13 +588,15 @@ void _stdcall SaveArray(DWORD key, DWORD keyType, DWORD id) {
 
 	Should always return 0!
 */
-DWORD _stdcall StackArray(DWORD key, DWORD keyType, DWORD val, DWORD valType) {
+DWORD _stdcall StackArray(const ScriptValue& key, const ScriptValue& val) {
 	DWORD id = stackArrayId;
-	if (id == 0 || arrays.find(id) == arrays.end()) return 0;
+	if (id == 0 || arrays.find(id) == arrays.end()) {
+		return 0;
+	}
 	if (!arrays[id].isAssoc()) {
 		// automatically resize array to fit one new element
 		ResizeArray(id, arrays[id].size() + 1);
 	}
-	SetArray(id, key, keyType, val, valType, 0);
+	SetArray(id, key, val, 0);
 	return 0;
 }

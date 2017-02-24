@@ -628,11 +628,11 @@ void LoadGlobalScripts() {
 bool _stdcall ScriptHasLoaded(TProgram* script) {
 	for (size_t d = 0; d < checkedScripts.size(); d++) {
 		if (checkedScripts[d] == script) {
-			return 0;
+			return false;
 		}
 	}
 	checkedScripts.push_back(script);
-	return 1;
+	return true;
 }
 
 void _stdcall RegAnimCombatCheck(DWORD newValue) {
@@ -645,7 +645,7 @@ void _stdcall RegAnimCombatCheck(DWORD newValue) {
 		SafeWrite8(0x459EEB, reg_anim_combat_check); // reg_anim_obj_move_to_obj
 		SafeWrite8(0x459F9F, reg_anim_combat_check); // reg_anim_obj_run_to_obj
 		SafeWrite8(0x45A053, reg_anim_combat_check); // reg_anim_obj_move_to_tile
-		SafeWrite8(0x45A105, reg_anim_combat_check); // reg_anim_obj_run_to_tile
+		SafeWrite8(0x45A10B, reg_anim_combat_check); // reg_anim_obj_run_to_tile
 		SafeWrite8(0x45AE53, reg_anim_combat_check); // reg_anim_animate_forever
 	}
 }

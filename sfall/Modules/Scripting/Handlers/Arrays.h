@@ -18,40 +18,40 @@
 
 #pragma once
 
-void __declspec() op_create_array();
+void sf_create_array(OpcodeContext&);
 
-void __declspec() op_set_array();
+void sf_set_array(OpcodeContext&);
 
 /*
 	used in place of [] operator when compiling in sslc
 	so it works as get_array if first argument is int and as substr(x, y, 1) if first argument is string
 */
-void __declspec() op_get_array();
+void sf_get_array(OpcodeContext&);
 
-void __declspec() op_free_array();
+void sf_free_array(OpcodeContext&);
 
-void __declspec() op_len_array();
+void sf_len_array(OpcodeContext&);
 
-void __declspec() op_resize_array();
+void sf_resize_array(OpcodeContext&);
 
-void __declspec() op_temp_array();
+void sf_temp_array(OpcodeContext&);
 
-void __declspec() op_fix_array();
+void sf_fix_array(OpcodeContext&);
 
-void __declspec() op_scan_array();
+void sf_scan_array(OpcodeContext&);
 
-void __declspec() op_save_array();
+void sf_save_array(OpcodeContext&);
 
-void __declspec() op_load_array();
+void sf_load_array(OpcodeContext&);
 
-void __declspec() op_get_array_key();
+void sf_get_array_key(OpcodeContext&);
 
-void __declspec() op_stack_array();
+void sf_stack_array(OpcodeContext&);
 
-void __declspec() op_list_begin();
+void sf_list_begin(OpcodeContext&);
 
-void __declspec() op_list_as_array();
+void sf_list_as_array(OpcodeContext&);
 
-void __declspec() op_list_next();
+void sf_list_next(OpcodeContext&);
 
-void __declspec() op_list_end();
+void sf_list_end(OpcodeContext&);

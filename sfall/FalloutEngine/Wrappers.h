@@ -28,6 +28,8 @@
 namespace Wrapper
 {
 
+bool __stdcall art_exists(int artFid);
+
 // Returns the name of the critter
 const char* __stdcall critter_name(TGameObj* critter);
 
@@ -181,5 +183,36 @@ void skill_set_tags(int* tags, int num);
 int __stdcall stat_level(TGameObj* critter, int statId);
 
 int __stdcall win_register_button(DWORD winRef, int xPos, int yPos, int width, int height, int hoverOn, int hoverOff, int buttonDown, int buttonUp, int pictureUp, int pictureDown, int arg12, int buttonType);
+
+
+
+#define _WRAP_WATCOM_FUNC0(retType, name) \
+	retType __stdcall name();
+
+#define _WRAP_WATCOM_FUNC1(retType, name, arg1t, arg1) \
+	retType __stdcall name(arg1t arg1);
+
+#define _WRAP_WATCOM_FUNC2(retType, name, arg1t, arg1, arg2t, arg2) \
+	retType __stdcall name(arg1t arg1, arg2t arg2);
+
+#define _WRAP_WATCOM_FUNC3(retType, name, arg1t, arg1, arg2t, arg2, arg3t, arg3) \
+	retType __stdcall name(arg1t arg1, arg2t arg2, arg3t arg3);
+
+#define _WRAP_WATCOM_FUNC4(retType, name, arg1t, arg1, arg2t, arg2, arg3t, arg3, arg4t, arg4) \
+	retType __stdcall name(arg1t arg1, arg2t arg2, arg3t arg3, arg4t, arg4);
+
+#define _WRAP_WATCOM_FUNC5(retType, name, arg1t, arg1, arg2t, arg2, arg3t, arg3, arg4t, arg4, arg5t, arg5) \
+	retType __stdcall name(arg1t arg1, arg2t arg2, arg3t arg3, arg4t, arg4, arg5t, arg5);
+
+#include "Wrappers_def.h"
+
+#undef _WRAP_WATCOM_FUNC0
+#undef _WRAP_WATCOM_FUNC1
+#undef _WRAP_WATCOM_FUNC2
+#undef _WRAP_WATCOM_FUNC3
+#undef _WRAP_WATCOM_FUNC4
+#undef _WRAP_WATCOM_FUNC5
+//#undef _WRAP_WATCOM_FUNC6
+//#undef _WRAP_WATCOM_FUNC7
 
 }

@@ -20,6 +20,7 @@
 #include "..\..\..\InputFuncs.h"
 #include "..\..\BarBoxes.h"
 #include "..\..\ScriptExtender.h"
+#include "..\OpcodeContext.h"
 
 #include "Interface.h"
 
@@ -41,36 +42,9 @@ void __declspec(naked) op_input_funcs_available() {
 	}
 }
 
-void __declspec(naked) op_key_pressed() {
-	__asm {
-		push ebx;
-		push ecx;
-		push edx;
-		mov ecx, eax;
-		call FuncOffs::interpretPopShort_;
-		mov edx, eax;
-		mov eax, ecx;
-		call FuncOffs::interpretPopLong_;
-		cmp dx, 0xC001;
-		jnz fail;
-		push ecx;
-		push eax;
-		call KeyDown;
-		mov edx, eax;
-		pop ecx;
-		jmp end;
-fail:
-		xor edx, edx;
-end:
-		mov eax, ecx;
-		call FuncOffs::interpretPushLong_;
-		mov edx, 0xc001;
-		mov eax, ecx;
-		call FuncOffs::interpretPushShort_;
-		pop edx;
-		pop ecx;
-		pop ebx;
-		retn;
+void sf_key_pressed(OpcodeContext& ctx) {
+	if (ctx.arg(0).isInt()) {
+		ctx.setReturn(static_cast<int>(KeyDown(ctx.arg(0).asInt())));
 	}
 }
 

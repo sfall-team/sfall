@@ -16,9 +16,10 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-
+#include "..\..\FalloutEngine\Fallout2.h"
+#include "..\..\InputFuncs.h"
 #include "..\KillCounter.h"
-#include "Handlers\AsmMacros.h"
+
 #include "Handlers\Anims.h"
 #include "Handlers\Arrays.h"
 #include "Handlers\Core.h"
@@ -37,29 +38,147 @@
 
 #include "Opcodes.h"
 
-static void* opcodes[0x300];
+static const short sfallOpcodeStart = 0x156;
+static const short opcodeCount = 0x300;
 
-/*
-	Array for opcodes metadata.
+// "Raw" opcode table. Each value points to a "raw" handler function that is called directly by engine.
+// First half is filled with vanilla opcodes by engine itself.
+// Other half is filled by sfall here.
+static void* opcodes[opcodeCount];
 
-	This is completely optional, added for convenience only.
+typedef std::tr1::unordered_map<int, const SfallOpcodeInfo*> OpcodeInfoMapType;
 
-	By adding opcode to this array, Sfall will automatically validate it's arguments using provided info.
-	On fail, errors will be printed to debug.log and opcode will not be executed.
-	If you don't include opcode in this array, you should take care of all argument validation inside handler itself.
-*/
-static const SfallOpcodeMetadata opcodeMetaArray[] = {
-	{sf_register_hook, "register_hook[_proc]", {DATATYPE_MASK_INT, DATATYPE_MASK_INT}},
-	{sf_test, "validate_test", {DATATYPE_MASK_INT, DATATYPE_MASK_INT | DATATYPE_MASK_FLOAT, DATATYPE_MASK_STR, DATATYPE_NONE}},
-	{sf_spatial_radius, "spatial_radius", {DATATYPE_MASK_VALID_OBJ}},
-	{sf_critter_inven_obj2, "critter_inven_obj2", {DATATYPE_MASK_VALID_OBJ, DATATYPE_MASK_INT}},
-	//{op_message_str_game, {}}
+// Opcode Table. Add additional (sfall) opcodes here.
+// Format: {
+//    opcode number,
+//    function name,
+//    function handler,
+//    number of arguments,
+//    has return value,
+//    { argument 1 type, argument 2 type, ...}
+// }
+static SfallOpcodeInfo opcodeInfoArray[] = {
+	{0x16c, "key_pressed", sf_key_pressed, 1, true},
+	{0x1ec, "sqrt", sf_sqrt, 1, true, {ARG_NUMBER}},
+	{0x1ed, "abs", sf_abs, 1, true, {ARG_NUMBER}},
+	{0x1ee, "sin", sf_sin, 1, true, {ARG_NUMBER}},
+	{0x1ef, "cos", sf_cos, 1, true, {ARG_NUMBER}},
+	{0x1f0, "tan", sf_tan, 1, true, {ARG_NUMBER}},
+	{0x1f1, "arctan", sf_arctan, 2, true, {ARG_NUMBER, ARG_NUMBER}},
+	{0x1f5, "get_script", sf_get_script, 1, true},
+	{0x207, "register_hook", sf_register_hook, 1, false, {ARG_INT}},
+	{0x20d, "list_begin", sf_list_begin, 1, true, {ARG_INT}},
+	{0x20e, "list_next", sf_list_next, 1, true, {ARG_INT}},
+	{0x20f, "list_end", sf_list_end, 1, false, {ARG_INT}},
+	{0x210, "sfall_ver_major", sf_sfall_ver_major, 0, true},
+	{0x211, "sfall_ver_minor", sf_sfall_ver_minor, 0, true},
+	{0x212, "sfall_ver_build", sf_sfall_ver_build, 0, true},
+	{0x216, "set_critter_burst_disable", sf_set_critter_burst_disable, 2, false},
+	{0x217, "get_weapon_ammo_pid", sf_get_weapon_ammo_pid, 1, true, {ARG_OBJECT}},
+	{0x218, "set_weapon_ammo_pid", sf_set_weapon_ammo_pid, 2, false, {ARG_OBJECT, ARG_INT}},
+	{0x219, "get_weapon_ammo_count", sf_get_weapon_ammo_count, 1, true, {ARG_OBJECT}},
+	{0x21a, "set_weapon_ammo_count", sf_set_weapon_ammo_count, 2, false, {ARG_OBJECT, ARG_INT}},
+
+	{0x22d, "create_array", sf_create_array, 2, true, {ARG_INT, ARG_INT}},
+	{0x22e, "set_array", sf_set_array, 3, false, {ARG_OBJECT, ARG_ANY, ARG_ANY}},
+	{0x22f, "get_array", sf_get_array, 2, true, {ARG_ANY, ARG_ANY}}, // can also be used on strings
+	{0x230, "free_array", sf_free_array, 1, false, {ARG_OBJECT}},
+	{0x231, "len_array", sf_len_array, 1, true, {ARG_OBJECT}},
+	{0x232, "resize_array", sf_resize_array, 2, false, {ARG_OBJECT, ARG_INT}},
+	{0x233, "temp_array", sf_temp_array, 2, true, {ARG_INT, ARG_INT}},
+	{0x234, "fix_array", sf_fix_array, 1, false, {ARG_INT}},
+	{0x235, "string_split", sf_string_split, 2, true, {ARG_STRING, ARG_STRING}},
+	{0x236, "list_as_array", sf_list_as_array, 1, true, {ARG_INT}},
+	{0x237, "atoi", sf_atoi, 1, true, {ARG_STRING}},
+	{0x238, "atof", sf_atof, 1, true, {ARG_STRING}},
+	{0x239, "scan_array", sf_scan_array, 2, true, {ARG_OBJECT, ARG_ANY}},
+	
+	{0x24e, "substr", sf_substr, 3, true, {ARG_STRING, ARG_INT, ARG_INT}},
+	{0x24f, "strlen", sf_strlen, 1, true, {ARG_STRING}},
+	{0x250, "sprintf", sf_sprintf, 2, true, {ARG_STRING, ARG_ANY}},
+	{0x251, "charcode", sf_ord, 1, true, {ARG_STRING}},
+	// 0x252 // RESERVED
+	{0x253, "typeof", sf_typeof, 1, true},
+
+	{0x254, "save_array", sf_save_array, 2, false, {ARG_ANY, ARG_OBJECT}},
+	{0x255, "load_array", sf_load_array, 1, true, {ARG_ANY}},
+	{0x256, "array_key", sf_get_array_key, 2, true, {ARG_INT, ARG_INT}},
+	{0x257, "arrayexpr", sf_stack_array, 2, true, {ARG_ANY, ARG_ANY}},
+	// 0x258 // RESERVED for arrays
+	// 0x259 // RESERVED for arrays
+
+	{0x25a, "reg_anim_destroy", sf_reg_anim_destroy, 1, false, {ARG_OBJECT}},
+	{0x25b, "reg_anim_animate_and_hide", sf_reg_anim_animate_and_hide, 3, false, {ARG_OBJECT, ARG_INT, ARG_INT}},
+	{0x25c, "reg_anim_combat_check", sf_reg_anim_combat_check, 1, false, {ARG_INT}},
+	{0x25d, "reg_anim_light", sf_reg_anim_light, 3, false, {ARG_OBJECT, ARG_INT, ARG_INT}},
+	{0x25e, "reg_anim_change_fid", sf_reg_anim_change_fid, 3, false, {ARG_OBJECT, ARG_INT, ARG_INT}},
+	{0x25f, "reg_anim_take_out", sf_reg_anim_take_out, 3, false, {ARG_OBJECT, ARG_INT, ARG_INT}},
+	{0x260, "reg_anim_turn_towards", sf_reg_anim_turn_towards, 3, false, {ARG_OBJECT, ARG_INT, ARG_INT}},
+
+	{0x261, "metarule2_explosions", sf_explosions_metarule, 3, true, {ARG_INT, ARG_INT, ARG_INT}},
+	{0x262, "register_hook_proc", sf_register_hook, 2, false, {ARG_INT, ARG_INT}},
+	{0x263, "power", sf_power, 2, true, {ARG_NUMBER, ARG_NUMBER}},
+	{0x264, "log", sf_log, 1, true, {ARG_NUMBER}},
+	{0x265, "exponent", sf_exponent, 1, true, {ARG_NUMBER}},
+	{0x266, "ceil", sf_ceil, 1, true, {ARG_NUMBER}},
+	{0x267, "round", sf_round, 1, true, {ARG_NUMBER}},
+	{0x26b, "message_str_game", sf_message_str_game, 2, true, {ARG_INT, ARG_INT}},
+	{0x26c, "sneak_success", sf_sneak_success, 0, true},
+	{0x26d, "tile_light", sf_tile_light, 2, true, {ARG_INT, ARG_INT}},
+	{0x26e, "obj_blocking_line", sf_make_straight_path, 3, true},
+	{0x26f, "obj_blocking_tile", sf_obj_blocking_at, 3, true},
+	{0x270, "tile_get_objs", sf_tile_get_objects, 2, true},
+	{0x271, "party_member_list", sf_get_party_members, 1, true},
+	{0x272, "path_find_to", sf_make_path, 3, true},
+	{0x273, "create_spatial", sf_create_spatial, 4, true},
+	{0x274, "art_exists", sf_art_exists, 1, true},
+	{0x275, "obj_is_carrying_obj", sf_obj_is_carrying_obj, 2, true},
+
+	// universal opcodes:
+	{0x276, "sfall_func0", HandleMetarule, 1, true}, 
+	{0x277, "sfall_func1", HandleMetarule, 2, true},
+	{0x278, "sfall_func2", HandleMetarule, 3, true},
+	{0x279, "sfall_func3", HandleMetarule, 4, true},
+	{0x27a, "sfall_func4", HandleMetarule, 5, true},
+	{0x27b, "sfall_func5", HandleMetarule, 6, true},
+	{0x27c, "sfall_func6", HandleMetarule, 7, true},  // if you need more arguments - use arrays
 };
 
-void InitOpcodeMetaTable() {
-	int length = sizeof(opcodeMetaArray) / sizeof(SfallOpcodeMetadata);
+// A hash-table for opcode info, indexed by opcode.
+// Initialized at run time from the array above.
+OpcodeInfoMapType opcodeInfoMap;
+
+// Initializes the opcode info table.
+void InitOpcodeInfoTable() {
+	int length = sizeof(opcodeInfoArray) / sizeof(opcodeInfoArray[0]);
 	for (int i = 0; i < length; ++i) {
-		OpcodeContext::addOpcodeMetaData(&opcodeMetaArray[i]);
+		opcodeInfoMap[opcodeInfoArray[i].opcode] = &opcodeInfoArray[i];
+	}
+}
+
+// Default handler for Sfall Opcodes. 
+// Searches current opcode in Opcode Info table and executes the appropriate handler.
+void __stdcall defaultOpcodeHandlerStdcall(TProgram* program, DWORD opcodeOffset) {
+	int opcode = opcodeOffset / 4;
+	auto iter = opcodeInfoMap.find(opcode);
+	if (iter != opcodeInfoMap.end()) {
+		auto info = iter->second;
+		OpcodeContext ctx(program, opcode, info->argNum, info->hasReturn);
+		ctx.handleOpcode(info->handler, info->argValidation, info->name);
+	} else {
+		Wrapper::interpretError("Unknown opcode: %d", opcode);
+	}
+}
+
+// Default handler for Sfall opcodes (naked function for integration with the engine).
+void __declspec(naked) defaultOpcodeHandler() {
+	__asm {
+		pushad;
+		push edx;
+		push eax;
+		call defaultOpcodeHandlerStdcall;
+		popad;
+		retn;
 	}
 }
 
@@ -74,7 +193,7 @@ void InitNewOpcodes() {
 		dlogr("  Unsafe opcodes disabled", DL_SCRIPT);
 	}
 
-	SafeWrite32(0x46E370, 0x300);	//Maximum number of allowed opcodes
+	SafeWrite32(0x46E370, opcodeCount);	//Maximum number of allowed opcodes
 	SafeWrite32(0x46ce34, (DWORD)opcodes);	//cmp check to make sure opcode exists
 	SafeWrite32(0x46ce6c, (DWORD)opcodes);	//call that actually jumps to the opcode
 	SafeWrite32(0x46e390, (DWORD)opcodes);	//mov that writes to the opcode
@@ -103,7 +222,7 @@ void InitNewOpcodes() {
 	opcodes[0x169] = op_deactivate_shader;
 	opcodes[0x16a] = op_set_global_script_repeat;
 	opcodes[0x16b] = op_input_funcs_available;
-	opcodes[0x16c] = op_key_pressed;
+	opcodes[0x16c] = defaultOpcodeHandler;
 	opcodes[0x16d] = op_set_shader_int;
 	opcodes[0x16e] = op_set_shader_float;
 	opcodes[0x16f] = op_set_shader_vector;
@@ -217,16 +336,10 @@ void InitNewOpcodes() {
 	opcodes[0x1e9] = op_get_unspent_ap_perk_bonus;
 	opcodes[0x1ea] = op_init_hook;
 	opcodes[0x1eb] = op_get_ini_string;
-	opcodes[0x1ec] = op_sqrt;
-	opcodes[0x1ed] = op_abs;
-	opcodes[0x1ee] = op_sin;
-	opcodes[0x1ef] = op_cos;
-	opcodes[0x1f0] = op_tan;
-	opcodes[0x1f1] = op_arctan;
 	opcodes[0x1f2] = op_set_palette;
 	opcodes[0x1f3] = op_remove_script;
 	opcodes[0x1f4] = op_set_script;
-	opcodes[0x1f5] = op_get_script;
+
 	opcodes[0x1f6] = op_nb_create_char;
 	opcodes[0x1f7] = op_fs_create;
 	opcodes[0x1f8] = op_fs_copy;
@@ -244,26 +357,14 @@ void InitNewOpcodes() {
 	opcodes[0x204] = op_get_proto_data;
 	opcodes[0x205] = op_set_proto_data;
 	opcodes[0x206] = op_set_self;
-	opcodes[0x207] = op_register_hook;
 	opcodes[0x208] = op_fs_write_bstring;
 	opcodes[0x209] = op_fs_read_byte;
 	opcodes[0x20a] = op_fs_read_short;
 	opcodes[0x20b] = op_fs_read_int;
 	opcodes[0x20c] = op_fs_read_float;
-	opcodes[0x20d] = op_list_begin;
-	opcodes[0x20e] = op_list_next;
-	opcodes[0x20f] = op_list_end;
-	opcodes[0x210] = op_sfall_ver_major;
-	opcodes[0x211] = op_sfall_ver_minor;
-	opcodes[0x212] = op_sfall_ver_build;
 	opcodes[0x213] = op_hero_select_win;
 	opcodes[0x214] = op_set_hero_race;
 	opcodes[0x215] = op_set_hero_style;
-	opcodes[0x216] = op_set_critter_burst_disable;
-	opcodes[0x217] = op_get_weapon_ammo_pid;
-	opcodes[0x218] = op_set_weapon_ammo_pid;
-	opcodes[0x219] = op_get_weapon_ammo_count;
-	opcodes[0x21a] = op_set_weapon_ammo_count;
 	if (AllowUnsafeScripting) {
 		opcodes[0x21b] = op_write_string;
 	}
@@ -284,19 +385,7 @@ void InitNewOpcodes() {
 	opcodes[0x22a] = op_set_map_time_multi;
 	opcodes[0x22b] = op_play_sfall_sound;
 	opcodes[0x22c] = op_stop_sfall_sound;
-	opcodes[0x22d] = op_create_array;
-	opcodes[0x22e] = op_set_array;
-	opcodes[0x22f] = op_get_array;
-	opcodes[0x230] = op_free_array;
-	opcodes[0x231] = op_len_array;
-	opcodes[0x232] = op_resize_array;
-	opcodes[0x233] = op_temp_array;
-	opcodes[0x234] = op_fix_array;
-	opcodes[0x235] = op_string_split;
-	opcodes[0x236] = op_list_as_array;
-	opcodes[0x237] = op_atoi;
-	opcodes[0x238] = op_atof;
-	opcodes[0x239] = op_scan_array;
+
 	opcodes[0x23a] = op_get_tile_fid;
 	opcodes[0x23b] = op_modified_ini;
 	opcodes[0x23c] = op_get_sfall_args;
@@ -317,56 +406,20 @@ void InitNewOpcodes() {
 	opcodes[0x24b] = op_tile_under_cursor;
 	opcodes[0x24c] = op_gdialog_get_barter_mod;
 	opcodes[0x24d] = op_set_inven_ap_cost;
-	opcodes[0x24e] = op_substr;
-	opcodes[0x24f] = op_strlen;
-	opcodes[0x250] = op_sprintf;
-	opcodes[0x251] = op_ord;
-	// opcodes[0x252]=  RESERVED
-	opcodes[0x253] = op_typeof;
-	opcodes[0x254] = op_save_array;
-	opcodes[0x255] = op_load_array;
-	opcodes[0x256] = op_get_array_key;
-	opcodes[0x257] = op_stack_array;
-	// opcodes[0x258]= RESERVED for arrays
-	// opcodes[0x259]= RESERVED for arrays
-	opcodes[0x25a] = op_reg_anim_destroy;
-	opcodes[0x25b] = op_reg_anim_animate_and_hide;
-	opcodes[0x25c] = op_reg_anim_combat_check;
-	opcodes[0x25d] = op_reg_anim_light;
-	opcodes[0x25e] = op_reg_anim_change_fid;
-	opcodes[0x25f] = op_reg_anim_take_out;
-	opcodes[0x260] = op_reg_anim_turn_towards;
-	opcodes[0x261] = op_explosions_metarule;
-	opcodes[0x262] = op_register_hook_proc;
-	opcodes[0x263] = op_power;
-	opcodes[0x264] = op_log;
-	opcodes[0x265] = op_exponent;
-	opcodes[0x266] = op_ceil;
-	opcodes[0x267] = op_round;
+
 	// opcodes[0x268]= RESERVED
 	// opcodes[0x269]= RESERVED
 	// opcodes[0x26a]=op_game_ui_redraw;
-	opcodes[0x26b] = op_message_str_game;
-	opcodes[0x26c] = op_sneak_success;
-	opcodes[0x26d] = op_tile_light;
-	opcodes[0x26e] = op_make_straight_path;
-	opcodes[0x26f] = op_obj_blocking_at;
-	opcodes[0x270] = op_tile_get_objects;
-	opcodes[0x271] = op_get_party_members;
-	opcodes[0x272] = op_make_path;
-	opcodes[0x273] = op_create_spatial;
-	opcodes[0x274] = op_art_exists;
-	opcodes[0x275] = op_obj_is_carrying_obj;
-	// universal opcodes
-	opcodes[0x276] = op_sfall_metarule0;
-	opcodes[0x277] = op_sfall_metarule1;
-	opcodes[0x278] = op_sfall_metarule2;
-	opcodes[0x279] = op_sfall_metarule3;
-	opcodes[0x27a] = op_sfall_metarule4;
-	opcodes[0x27b] = op_sfall_metarule5;
-	opcodes[0x27c] = op_sfall_metarule6; // if you need more arguments - use arrays
-	
+
+	// configure default opcode handler
+	for (int i = sfallOpcodeStart; i < opcodeCount; i++) {
+		if (opcodes[i] == nullptr) {
+			opcodes[i] = defaultOpcodeHandler;
+		}
+	}
+
 	// see opcodeMetaArray above for additional scripting functions via "metarule"
 
-	InitOpcodeMetaTable();
+	InitOpcodeInfoTable();
+	InitMetaruleTable();
 }

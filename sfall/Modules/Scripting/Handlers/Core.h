@@ -49,12 +49,8 @@ void __declspec() op_set_self();
 // used for both register_hook and register_hook_proc
 void sf_register_hook(OpcodeContext&);
 
-void __declspec() op_register_hook();
+void sf_sfall_ver_major(OpcodeContext&);
 
-void __declspec() op_register_hook_proc();
+void sf_sfall_ver_minor(OpcodeContext&);
 
-void __declspec() op_sfall_ver_major();
-
-void __declspec() op_sfall_ver_minor();
-
-void __declspec() op_sfall_ver_build();
+void sf_sfall_ver_build(OpcodeContext&);

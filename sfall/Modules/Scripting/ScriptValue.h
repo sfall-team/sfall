@@ -41,7 +41,9 @@ public:
 
 	ScriptValue(int val);
 
-	ScriptValue(float strval);
+	ScriptValue(float val);
+
+	ScriptValue(bool val);
 
 	ScriptValue(TGameObj* obj);
 
@@ -55,6 +57,9 @@ public:
 
 	// returns value as integer, converting if needed
 	int asInt() const;
+
+	// returns value converted as boolean (there is no real boolean type in SSL, 1 or 0 are used instead)
+	bool asBool() const;
 
 	// returns value as float, converting if needed
 	float asFloat() const;
