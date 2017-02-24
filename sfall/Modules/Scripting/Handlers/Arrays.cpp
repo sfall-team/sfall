@@ -154,7 +154,7 @@ callsubstr:
 		push 1;
 		push edi;
 		push eax;
-		call mysubstr;
+		call Substring;
 		mov edx, eax; // result substring
 		mov ebx, VAR_TYPE_STR; // result type
 		jmp end;

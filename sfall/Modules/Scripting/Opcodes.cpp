@@ -60,6 +60,12 @@ typedef std::tr1::unordered_map<int, const SfallOpcodeInfo*> OpcodeInfoMapType;
 // }
 static SfallOpcodeInfo opcodeInfoArray[] = {
 	{0x16c, "key_pressed", sf_key_pressed, 1, true},
+	{0x1ec, "sqrt", sf_sqrt, 1, true, {ARG_NUMBER}},
+	{0x1ed, "abs", sf_abs, 1, true, {ARG_NUMBER}},
+	{0x1ee, "sin", sf_sin, 1, true, {ARG_NUMBER}},
+	{0x1ef, "cos", sf_cos, 1, true, {ARG_NUMBER}},
+	{0x1f0, "tan", sf_tan, 1, true, {ARG_NUMBER}},
+	{0x1f1, "arctan", sf_arctan, 2, true, {ARG_NUMBER, ARG_NUMBER}},
 	{0x1f5, "get_script", sf_get_script, 1, true},
 	{0x207, "register_hook", sf_register_hook, 1, false, {ARG_INT}},
 	{0x216, "set_critter_burst_disable", sf_set_critter_burst_disable, 2, false},
@@ -67,6 +73,17 @@ static SfallOpcodeInfo opcodeInfoArray[] = {
 	{0x218, "set_weapon_ammo_pid", sf_set_weapon_ammo_pid, 2, false, {ARG_OBJECT, ARG_INT}},
 	{0x219, "get_weapon_ammo_count", sf_get_weapon_ammo_count, 1, true, {ARG_OBJECT}},
 	{0x21a, "set_weapon_ammo_count", sf_set_weapon_ammo_count, 2, false, {ARG_OBJECT, ARG_INT}},
+	{0x235, "string_split", sf_string_split, 2, true, {ARG_STRING, ARG_STRING}},
+	{0x237, "atoi", sf_atoi, 1, true, {ARG_STRING}},
+	{0x238, "atof", sf_atof, 1, true, {ARG_STRING}},
+	
+	{0x24e, "substr", sf_substr, 3, true, {ARG_STRING, ARG_INT, ARG_INT}},
+	{0x24f, "strlen", sf_strlen, 1, true, {ARG_STRING}},
+	{0x250, "sprintf", sf_sprintf, 2, true, {ARG_STRING, ARG_ANY}},
+	{0x251, "charcode", sf_ord, 1, true, {ARG_STRING}},
+	// 0x252 // reserved
+	{0x253, "typeof", sf_typeof, 1, true},
+
 	{0x25a, "reg_anim_destroy", sf_reg_anim_destroy, 1, false, {ARG_OBJECT}},
 	{0x25b, "reg_anim_animate_and_hide", sf_reg_anim_animate_and_hide, 3, false, {ARG_OBJECT, ARG_INT, ARG_INT}},
 	{0x25c, "reg_anim_combat_check", sf_reg_anim_combat_check, 1, false, {ARG_INT}},
@@ -76,6 +93,14 @@ static SfallOpcodeInfo opcodeInfoArray[] = {
 	{0x260, "reg_anim_turn_towards", sf_reg_anim_turn_towards, 3, false, {ARG_OBJECT, ARG_INT, ARG_INT}},
 	{0x261, "metarule2_explosions", sf_explosions_metarule, 3, true, {ARG_INT, ARG_INT, ARG_INT}},
 	{0x262, "register_hook_proc", sf_register_hook, 2, false, {ARG_INT, ARG_INT}},
+	
+	{0x263, "power", sf_power, 2, true, {ARG_NUMBER, ARG_NUMBER}},
+	{0x264, "log", sf_log, 1, true, {ARG_NUMBER}},
+	{0x265, "exponent", sf_exponent, 1, true, {ARG_NUMBER}},
+	{0x266, "ceil", sf_ceil, 1, true, {ARG_NUMBER}},
+	{0x267, "round", sf_round, 1, true, {ARG_NUMBER}},
+	{0x26b, "message_str_game", sf_message_str_game, 2, true, {ARG_INT, ARG_INT}},
+
 	{0x26e, "obj_blocking_line", sf_make_straight_path, 3, true},
 	{0x26f, "obj_blocking_tile", sf_obj_blocking_at, 3, true},
 	{0x270, "tile_get_objs", sf_tile_get_objects, 2, true},
@@ -286,12 +311,6 @@ void InitNewOpcodes() {
 	opcodes[0x1e9] = op_get_unspent_ap_perk_bonus;
 	opcodes[0x1ea] = op_init_hook;
 	opcodes[0x1eb] = op_get_ini_string;
-	opcodes[0x1ec] = op_sqrt;
-	opcodes[0x1ed] = op_abs;
-	opcodes[0x1ee] = op_sin;
-	opcodes[0x1ef] = op_cos;
-	opcodes[0x1f0] = op_tan;
-	opcodes[0x1f1] = op_arctan;
 	opcodes[0x1f2] = op_set_palette;
 	opcodes[0x1f3] = op_remove_script;
 	opcodes[0x1f4] = op_set_script;
@@ -355,10 +374,7 @@ void InitNewOpcodes() {
 	opcodes[0x232] = op_resize_array;
 	opcodes[0x233] = op_temp_array;
 	opcodes[0x234] = op_fix_array;
-	opcodes[0x235] = op_string_split;
 	opcodes[0x236] = op_list_as_array;
-	opcodes[0x237] = op_atoi;
-	opcodes[0x238] = op_atof;
 	opcodes[0x239] = op_scan_array;
 	opcodes[0x23a] = op_get_tile_fid;
 	opcodes[0x23b] = op_modified_ini;
@@ -380,27 +396,16 @@ void InitNewOpcodes() {
 	opcodes[0x24b] = op_tile_under_cursor;
 	opcodes[0x24c] = op_gdialog_get_barter_mod;
 	opcodes[0x24d] = op_set_inven_ap_cost;
-	opcodes[0x24e] = op_substr;
-	opcodes[0x24f] = op_strlen;
-	opcodes[0x250] = op_sprintf;
-	opcodes[0x251] = op_ord;
-	// opcodes[0x252]=  RESERVED
-	opcodes[0x253] = op_typeof;
+
 	opcodes[0x254] = op_save_array;
 	opcodes[0x255] = op_load_array;
 	opcodes[0x256] = op_get_array_key;
 	opcodes[0x257] = op_stack_array;
 	// opcodes[0x258]= RESERVED for arrays
 	// opcodes[0x259]= RESERVED for arrays
-	opcodes[0x263] = op_power;
-	opcodes[0x264] = op_log;
-	opcodes[0x265] = op_exponent;
-	opcodes[0x266] = op_ceil;
-	opcodes[0x267] = op_round;
 	// opcodes[0x268]= RESERVED
 	// opcodes[0x269]= RESERVED
 	// opcodes[0x26a]=op_game_ui_redraw;
-	opcodes[0x26b] = op_message_str_game;
 	opcodes[0x26c] = op_sneak_success;
 	opcodes[0x26d] = op_tile_light;
 

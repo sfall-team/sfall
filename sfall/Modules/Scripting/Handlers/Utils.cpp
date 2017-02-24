@@ -28,264 +28,57 @@
 
 #include "Utils.h"
 
-void __declspec(naked) op_sqrt() {
-	__asm {
-		pushad;
-		sub esp, 4;
-		mov ecx, eax;
-		call FuncOffs::interpretPopShort_;
-		mov ebx, eax;
-		mov eax, ecx;
-		call FuncOffs::interpretPopLong_;
-		cmp bx, 0xc001;
-		jnz arg1l2;
-		mov[esp], eax;
-		fild[esp];
-		jmp calc;
-arg1l2:
-		cmp bx, 0xa001;
-		jnz fail;
-		mov[esp], eax;
-		fld[esp];
-calc:
-		fsqrt;
-		fstp[esp];
-		mov edx, [esp];
-		jmp end;
-fail:
-		fldz;
-		fstp[esp];
-		mov edx, [esp];
-end:
-		mov eax, ecx;
-		call FuncOffs::interpretPushLong_;
-		mov edx, 0xa001;
-		mov eax, ecx;
-		call FuncOffs::interpretPushShort_;
-		add esp, 4;
-		popad;
-		retn;
-	}
+void sf_sqrt(OpcodeContext& ctx) {
+	ctx.setReturn(sqrt(ctx.arg(0).asFloat()));
 }
 
-void __declspec(naked) op_abs() {
-	__asm {
-		pushad;
-		sub esp, 4;
-		mov ecx, eax;
-		call FuncOffs::interpretPopShort_;
-		mov ebx, eax;
-		mov eax, ecx;
-		call FuncOffs::interpretPopLong_;
-		cmp bx, 0xc001;
-		jnz arg1l2;
-		mov[esp], eax;
-		fild[esp];
-		jmp calc;
-arg1l2:
-		cmp bx, 0xa001;
-		jnz fail;
-		mov[esp], eax;
-		fld[esp];
-calc:
-		fabs;
-		fstp[esp];
-		mov edx, [esp];
-		jmp end;
-fail:
-		fldz;
-		fstp[esp];
-		mov edx, [esp];
-end:
-		mov eax, ecx;
-		call FuncOffs::interpretPushLong_;
-		mov edx, 0xa001;
-		mov eax, ecx;
-		call FuncOffs::interpretPushShort_;
-		add esp, 4;
-		popad;
-		retn;
-	}
+void sf_abs(OpcodeContext& ctx) {
+	ctx.setReturn(abs(ctx.arg(0).asFloat()));
 }
 
-void __declspec(naked) op_sin() {
-	__asm {
-		pushad;
-		sub esp, 4;
-		mov ecx, eax;
-		call FuncOffs::interpretPopShort_;
-		mov ebx, eax;
-		mov eax, ecx;
-		call FuncOffs::interpretPopLong_;
-		cmp bx, 0xc001;
-		jnz arg1l2;
-		mov[esp], eax;
-		fild[esp];
-		jmp calc;
-arg1l2:
-		cmp bx, 0xa001;
-		jnz fail;
-		mov[esp], eax;
-		fld[esp];
-calc:
-		fsin;
-		fstp[esp];
-		mov edx, [esp];
-		jmp end;
-fail:
-		fldz;
-		fstp[esp];
-		mov edx, [esp];
-end:
-		mov eax, ecx;
-		call FuncOffs::interpretPushLong_;
-		mov edx, 0xa001;
-		mov eax, ecx;
-		call FuncOffs::interpretPushShort_;
-		add esp, 4;
-		popad;
-		retn;
-	}
+void sf_sin(OpcodeContext& ctx) {
+	ctx.setReturn(sin(ctx.arg(0).asFloat()));
 }
 
-void __declspec(naked) op_cos() {
-	__asm {
-		pushad;
-		sub esp, 4;
-		mov ecx, eax;
-		call FuncOffs::interpretPopShort_;
-		mov ebx, eax;
-		mov eax, ecx;
-		call FuncOffs::interpretPopLong_;
-		cmp bx, 0xc001;
-		jnz arg1l2;
-		mov[esp], eax;
-		fild[esp];
-		jmp calc;
-arg1l2:
-		cmp bx, 0xa001;
-		jnz fail;
-		mov[esp], eax;
-		fld[esp];
-calc:
-		fcos;
-		fstp[esp];
-		mov edx, [esp];
-		jmp end;
-fail:
-		fldz;
-		fstp[esp];
-		mov edx, [esp];
-end:
-		mov eax, ecx;
-		call FuncOffs::interpretPushLong_;
-		mov edx, 0xa001;
-		mov eax, ecx;
-		call FuncOffs::interpretPushShort_;
-		add esp, 4;
-		popad;
-		retn;
-	}
+void sf_cos(OpcodeContext& ctx) {
+	ctx.setReturn(cos(ctx.arg(0).asFloat()));
 }
 
-void __declspec(naked) op_tan() {
-	__asm {
-		pushad;
-		sub esp, 4;
-		mov ecx, eax;
-		call FuncOffs::interpretPopShort_;
-		mov ebx, eax;
-		mov eax, ecx;
-		call FuncOffs::interpretPopLong_;
-		cmp bx, 0xc001;
-		jnz arg1l2;
-		mov[esp], eax;
-		fild[esp];
-		jmp calc;
-arg1l2:
-		cmp bx, 0xa001;
-		jnz fail;
-		mov[esp], eax;
-		fld[esp];
-calc:
-		fptan;
-		fstp[esp];
-		fstp[esp];
-		mov edx, [esp];
-		jmp end;
-fail:
-		fldz;
-		fstp[esp];
-		mov edx, [esp];
-end:
-		mov eax, ecx;
-		call FuncOffs::interpretPushLong_;
-		mov edx, 0xa001;
-		mov eax, ecx;
-		call FuncOffs::interpretPushShort_;
-		add esp, 4;
-		popad;
-		retn;
-	}
+void sf_tan(OpcodeContext& ctx) {	
+	ctx.setReturn(tan(ctx.arg(0).asFloat()));
 }
 
-void __declspec(naked) op_arctan() {
-	__asm {
-		pushad;
-		sub esp, 4;
-		mov ecx, eax;
-		call FuncOffs::interpretPopShort_;
-		mov ebx, eax;
-		mov eax, ecx;
-		call FuncOffs::interpretPopLong_;
-		mov edi, eax;
-		mov eax, ecx;
-		call FuncOffs::interpretPopShort_;
-		mov edx, eax;
-		mov eax, ecx;
-		call FuncOffs::interpretPopLong_;
-		cmp bx, 0xc001;
-		jnz arg1l2;
-		mov[esp], eax;
-		fild[esp];
-		jmp arg2l1;
-arg1l2:
-		cmp bx, 0xa001;
-		jnz fail;
-		mov[esp], eax;
-		fld[esp];
-arg2l1:
-		cmp dx, 0xc001;
-		jnz arg2l2;
-		mov[esp], edi;
-		fild[esp];
-		jmp calc;
-arg2l2:
-		cmp dx, 0xa001;
-		jnz fail2;
-		mov[esp], edi;
-		fld[esp];
-calc:
-		fpatan;
-		fstp[esp];
-		mov edx, [esp];
-		jmp end;
-fail2:
-		fstp[esp];
-fail:
-		fldz;
-		fstp[esp];
-		mov edx, [esp];
-end:
-		mov eax, ecx;
-		call FuncOffs::interpretPushLong_;
-		mov edx, 0xa001;
-		mov eax, ecx;
-		call FuncOffs::interpretPushShort_;
-		add esp, 4;
-		popad;
-		retn;
-	}
+void sf_arctan(OpcodeContext& ctx) {	
+	ctx.setReturn(atan2(ctx.arg(0).asFloat(), ctx.arg(1).asFloat()));
+}
+
+void sf_strlen(OpcodeContext& ctx) {
+	ctx.setReturn(
+		static_cast<int>(strlen(ctx.arg(0).asString()))
+	);
+}
+
+void sf_atoi(OpcodeContext& ctx) {
+	auto str = ctx.arg(0).asString();
+	ctx.setReturn(
+		static_cast<int>(strtol(str, (char**)NULL, 0)) // auto-determine radix
+	);
+}
+
+void sf_atof(OpcodeContext& ctx) {	
+	auto str = ctx.arg(0).asString();
+	ctx.setReturn(
+		static_cast<float>(atof(str))
+	);
+}
+
+void sf_ord(OpcodeContext& ctx) {
+	char firstChar = ctx.arg(0).asString()[0];
+	ctx.setReturn(static_cast<int>(firstChar));
+}
+
+void sf_typeof(OpcodeContext& ctx) {
+	ctx.setReturn(static_cast<int>(ctx.arg(0).type()));
 }
 
 static int _stdcall StringSplit(const char* str, const char* split) {
@@ -318,137 +111,11 @@ static int _stdcall StringSplit(const char* str, const char* split) {
 	return id;
 }
 
-void __declspec(naked) op_string_split() {
-	__asm {
-		pushad;
-		mov ebp, eax;
-		call FuncOffs::interpretPopShort_;
-		mov ebx, eax;
-		mov eax, ebp;
-		call FuncOffs::interpretPopLong_;
-		mov edi, eax;
-		mov eax, ebp;
-		call FuncOffs::interpretPopShort_;
-		mov ecx, eax;
-		mov eax, ebp;
-		call FuncOffs::interpretPopLong_;
-		mov esi, eax;
-		cmp bx, 0x9001;
-		jz str1;
-		cmp bx, 0x9801;
-		jnz fail;
-str1:
-		cmp cx, 0x9001;
-		jz str2;
-		cmp cx, 0x9801;
-		jnz fail;
-str2:
-		mov eax, ebp;
-		mov edx, ebx;
-		mov ebx, edi;
-		call FuncOffs::interpretGetString_;
-		mov edi, eax;
-		mov eax, ebp;
-		mov edx, ecx;
-		mov ebx, esi;
-		call FuncOffs::interpretGetString_;
-		push edi;
-		push eax;
-		call StringSplit;
-		mov edx, eax;
-		jmp end;
-fail:
-		xor edx, edx;
-end:
-		mov eax, ebp;
-		call FuncOffs::interpretPushLong_;
-		mov edx, 0xc001;
-		mov eax, ebp;
-		call FuncOffs::interpretPushShort_;
-		popad;
-		retn;
-	}
+void sf_string_split(OpcodeContext& ctx) {
+	ctx.setReturn(StringSplit(ctx.arg(0).asString(), ctx.arg(1).asString()));
 }
 
-static int _stdcall str_to_int_internal(const char* str) {
-	return (int)strtol(str, (char**)NULL, 0); // auto-determine radix
-}
-
-static DWORD _stdcall str_to_flt_internal(const char* str) {
-	float f = (float)atof(str);
-	return *(DWORD*)&f;
-}
-
-void __declspec(naked) op_atoi() {
-	__asm {
-		pushad;
-		mov ebp, eax;
-		call FuncOffs::interpretPopShort_;
-		mov ebx, eax;
-		mov eax, ebp;
-		call FuncOffs::interpretPopLong_;
-		cmp bx, 0x9001;
-		jz str1;
-		cmp bx, 0x9801;
-		jnz fail;
-str1:
-		mov edx, ebx;
-		mov ebx, eax;
-		mov eax, ebp;
-		call FuncOffs::interpretGetString_;
-		push eax;
-		call str_to_int_internal;
-		mov edx, eax;
-		jmp end;
-fail:
-		xor edx, edx;
-end:
-		mov eax, ebp;
-		call FuncOffs::interpretPushLong_;
-		mov edx, 0xc001;
-		mov eax, ebp;
-		call FuncOffs::interpretPushShort_;
-		popad;
-		retn;
-	}
-}
-
-void __declspec(naked) op_atof() {
-	__asm {
-		pushad;
-		mov ebp, eax;
-		call FuncOffs::interpretPopShort_;
-		mov ebx, eax;
-		mov eax, ebp;
-		call FuncOffs::interpretPopLong_;
-		cmp bx, 0x9001;
-		jz str1;
-		cmp bx, 0x9801;
-		jnz fail;
-str1:
-		mov edx, ebx;
-		mov ebx, eax;
-		mov eax, ebp;
-		call FuncOffs::interpretGetString_;
-		push eax;
-		call str_to_flt_internal;
-		mov edx, eax;
-		jmp end;
-fail:
-		xor edx, edx;
-end:
-		mov eax, ebp;
-		call FuncOffs::interpretPushLong_;
-		mov edx, 0xa001;
-		mov eax, ebp;
-		call FuncOffs::interpretPushShort_;
-		popad;
-		retn;
-	}
-}
-
-
-char* _stdcall mysubstr(char* str, int pos, int length) {
+char* _stdcall Substring(const char* str, int pos, int length) {
 	char* newstr;
 	int srclen;
 	srclen = strlen(str);
@@ -467,13 +134,15 @@ char* _stdcall mysubstr(char* str, int pos, int length) {
 	return newstr;
 }
 
-static DWORD _stdcall mystrlen(char* str) {
-	return strlen(str);
+void sf_substr(OpcodeContext& ctx) {
+	ctx.setReturn(
+		Substring(ctx.arg(0).asString(), ctx.arg(1).asInt(), ctx.arg(2).asInt())
+	);
 }
 
 static char* sprintfbuf = NULL;
-static char* _stdcall mysprintf(char* format, DWORD value, DWORD valueType) {
-	valueType = valueType & 0xFFFF; // use lower 2 bytes
+// A safer version of sprintf for using in user scripts.
+static char* _stdcall sprintf_lite(const char* format, ScriptValue value) {
 	int fmtlen = strlen(format);
 	int buflen = fmtlen + 1;
 	for (int i = 0; i < fmtlen; i++) {
@@ -496,12 +165,14 @@ static char* _stdcall mysprintf(char* format, DWORD value, DWORD valueType) {
 			break;
 		case 1: // definition
 			if ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z')) {
-				if (c == 'h' || c == 'l' || c == 'j' || c == 'z' || c == 't' || c == 'L')  // ignore sub-specifiers
+				if (c == 'h' || c == 'l' || c == 'j' || c == 'z' || c == 't' || c == 'L') { // ignore sub-specifiers
 					continue;
-				if (c == 's' && valueType != VAR_TYPE_STR2 && valueType != VAR_TYPE_STR) // don't allow to treat non-string values as string pointers
+				}
+				if (c == 's' && !value.isString()) { // don't allow to treat non-string values as string pointers
 					c = 'd';
-				else if (c == 'n') // don't allow "n" specifier
+				} else if (c == 'n') { // don't allow "n" specifier
 					c = 'd';
+				}
 				specifier = c;
 				mode = 2;
 			} else if (c == '%') {
@@ -515,8 +186,9 @@ static char* _stdcall mysprintf(char* format, DWORD value, DWORD valueType) {
 		default:
 			if (c == '%') { // don't allow more than one specifier
 				newfmt[j++] = '%'; // escape it
-				if (format[i + 1] == '%')
+				if (format[i + 1] == '%') {
 					i++; // skip already escaped
+				}
 			}
 			break;
 		}
@@ -529,231 +201,28 @@ static char* _stdcall mysprintf(char* format, DWORD value, DWORD valueType) {
 	} else if (specifier == 'c') {
 		buflen = j;
 	} else if (specifier == 's') {
-		buflen = j + strlen((char*)value);
+		buflen = j + strlen(value.asString());
 	} else {
 		buflen = j + 30; // numbers
 	}
-	if (sprintfbuf)
+	if (sprintfbuf) {
 		delete[] sprintfbuf;
+	}
 	sprintfbuf = new char[buflen + 1];
-	if (valueType == VAR_TYPE_FLOAT) {
-		_snprintf(sprintfbuf, buflen, newfmt, *(float*)(&value));
+	if (value.isFloat()) {
+		_snprintf(sprintfbuf, buflen, newfmt, value.asFloat());
 	} else {
-		_snprintf(sprintfbuf, buflen, newfmt, value);
+		_snprintf(sprintfbuf, buflen, newfmt, value.rawValue());
 	}
 	sprintfbuf[buflen] = '\0'; // just in case
 	delete[] newfmt;
 	return sprintfbuf;
 }
 
-void __declspec(naked) op_substr() {
-	__asm {
-		pushad;
-		mov edi, eax;
-		call FuncOffs::interpretPopShort_;
-		push eax;
-		mov eax, edi;
-		call FuncOffs::interpretPopLong_; // length
-		push eax;
-		mov eax, edi;
-		call FuncOffs::interpretPopShort_;
-		push eax;
-		mov eax, edi;
-		call FuncOffs::interpretPopLong_; // position
-		push eax;
-		mov eax, edi;
-		call FuncOffs::interpretPopShort_;
-		push eax;
-		mov eax, edi;
-		call FuncOffs::interpretPopLong_; // string
-		push eax;
-
-		movzx eax, word ptr[esp + 12];
-		cmp eax, VAR_TYPE_INT;
-		jne fail;
-		movzx eax, word ptr[esp + 20];
-		cmp eax, VAR_TYPE_INT;
-		jne fail;
-		movzx eax, word ptr[esp + 4];
-		cmp eax, VAR_TYPE_STR2;
-		je next1;
-		cmp eax, VAR_TYPE_STR;
-		jne fail;
-next1:
-		mov eax, edi;
-		mov edx, [esp + 4];
-		mov ebx, [esp];
-		call FuncOffs::interpretGetString_;
-		mov ebx, [esp + 16];
-		mov edx, [esp + 8];
-		push ebx;
-		push edx;
-		push eax;
-		call mysubstr;
-		mov edx, eax;
-		mov eax, edi;
-		call FuncOffs::interpretAddString_;
-		mov edx, eax;
-		mov eax, edi;
-		call FuncOffs::interpretPushLong_;
-		mov edx, VAR_TYPE_STR;
-		mov eax, edi;
-		call FuncOffs::interpretPushShort_;
-		jmp end;
-fail:
-		xor edx, edx;
-		mov eax, edi;
-		call FuncOffs::interpretPushLong_;
-		mov edx, VAR_TYPE_INT;
-		mov eax, edi;
-		call FuncOffs::interpretPushShort_;
-end:
-		add esp, 24;
-		popad;
-		retn;
-	}
-}
-
-void __declspec(naked) op_strlen() {
-	__asm {
-		pushad;
-		mov edi, eax;
-		call FuncOffs::interpretPopShort_;
-		mov edx, eax;
-		mov eax, edi;
-		call FuncOffs::interpretPopLong_; // string
-		cmp dx, VAR_TYPE_STR2;
-		je next;
-		cmp dx, VAR_TYPE_STR;
-		jne fail;
-next:
-		mov ebx, eax;
-		mov eax, edi;
-		call FuncOffs::interpretGetString_;
-		push eax;
-		call mystrlen;
-		jmp end;
-fail:
-		xor eax, eax; // return 0
-end:
-		mov edx, eax;
-		mov eax, edi;
-		call FuncOffs::interpretPushLong_;
-		mov edx, VAR_TYPE_INT;
-		mov eax, edi;
-		call FuncOffs::interpretPushShort_;
-		popad;
-		retn;
-	}
-}
-
-void __declspec(naked) op_sprintf() {
-	__asm {
-		pushad;
-		mov edi, eax;
-		call FuncOffs::interpretPopShort_;
-		mov edx, eax;
-		mov eax, edi;
-		call FuncOffs::interpretPopLong_; // any value
-		mov ebx, eax;
-		mov eax, edi;
-
-		call FuncOffs::interpretPopShort_;
-		mov ecx, eax;
-		mov eax, edi;
-		call FuncOffs::interpretPopLong_; // format string
-		mov esi, eax;
-		// check types
-		cmp cx, 0x9001;
-		je nextarg;
-		cmp cx, VAR_TYPE_STR;
-		jne fail;
-nextarg:
-		cmp dx, 0x9001;
-		je next2;
-		cmp dx, VAR_TYPE_STR;
-		jne notstring;
-next2:
-		mov eax, edi;
-		call FuncOffs::interpretGetString_; // value string ptr
-		mov ebx, eax;
-notstring:
-		push edx; // arg 3 - valueType
-		mov eax, esi;
-		mov esi, ebx;
-		mov edx, ecx;
-		mov ebx, eax;
-		mov eax, edi;
-		call FuncOffs::interpretGetString_; // format string ptr
-		push esi; // arg 2 - value
-		push eax; // arg 1 - format str
-		call mysprintf;
-		mov edx, eax;
-		mov eax, edi;
-		call FuncOffs::interpretAddString_;
-		mov edx, eax;
-		mov eax, edi;
-		call FuncOffs::interpretPushLong_;
-		mov edx, VAR_TYPE_STR;
-		mov eax, edi;
-		call FuncOffs::interpretPushShort_;
-fail:
-		popad;
-		retn;
-	}
-}
-
-void __declspec(naked) op_ord() {
-	_OP_BEGIN(ebp)
-		_GET_ARG_R32(ebp, ebx, esi)
-		_PARSE_STR_ARG(1, ebp, bx, esi, notstring)
-		__asm {
-		mov eax, 0;
-		mov al, [esi]; // first character
-		jmp done;
-notstring:
-		mov eax, 0;
-done:
-	}
-	_RET_VAL_INT(ebp)
-		_OP_END
-}
-
-// TODO: replace with OpcodeHandler function
-static DWORD _stdcall GetValueType(DWORD datatype) {
-	datatype &= 0xffff;
-	switch (datatype) {
-	case VAR_TYPE_STR:
-	case VAR_TYPE_STR2:
-		return DATATYPE_STR;
-	case VAR_TYPE_INT:
-		return DATATYPE_INT;
-	case VAR_TYPE_FLOAT:
-		return DATATYPE_FLOAT;
-	default:
-		return DATATYPE_NONE; // just in case
-	}
-}
-
-void __declspec(naked) op_typeof() {
-	__asm {
-		pushad;
-		mov edi, eax;
-		call FuncOffs::interpretPopShort_;
-		mov edx, eax;
-		mov eax, edi;
-		call FuncOffs::interpretPopLong_; // call just in case (not used)
-		push edx;
-		call GetValueType;
-		mov edx, eax;
-		mov eax, edi;
-		call FuncOffs::interpretPushLong_;
-		mov edx, VAR_TYPE_INT;
-		mov eax, edi;
-		call FuncOffs::interpretPushShort_;
-		popad;
-		retn;
-	}
+void sf_sprintf(OpcodeContext& ctx) {
+	ctx.setReturn(
+		sprintf_lite(ctx.arg(0).asString(), ctx.arg(1))
+	);
 }
 
 // fix for vanilla negate operator not working on floats
@@ -787,48 +256,28 @@ void sf_power(OpcodeContext& ctx) {
 	const ScriptValue &base = ctx.arg(0),
 					  &power = ctx.arg(1);
 	float result = 0.0;
-	if (!base.isString() && !power.isString()) {
-		if (power.isFloat())
-			result = pow(base.asFloat(), power.asFloat());
-		else
-			result = pow(base.asFloat(), power.asInt());
+	if (power.isFloat())
+		result = pow(base.asFloat(), power.asFloat());
+	else
+		result = pow(base.asFloat(), power.asInt());
 
-		if (base.isInt() && power.isInt()) {
-			ctx.setReturn(static_cast<int>(result));
-		} else {
-			ctx.setReturn(result);
-		}
+	if (base.isInt() && power.isInt()) {
+		ctx.setReturn(static_cast<int>(result));
 	} else {
-		ctx.setReturn(0);
+		ctx.setReturn(result);
 	}
-}
-
-void __declspec(naked) op_power() {
-	_WRAP_OPCODE(sf_power, 2, 1)
 }
 
 void sf_log(OpcodeContext& ctx) {
 	ctx.setReturn(log(ctx.arg(0).asFloat()));
 }
 
-void __declspec(naked) op_log() {
-	_WRAP_OPCODE(sf_log, 1, 1)
-}
-
 void sf_exponent(OpcodeContext& ctx) {
 	ctx.setReturn(exp(ctx.arg(0).asFloat()));
 }
 
-void __declspec(naked) op_exponent() {
-	_WRAP_OPCODE(sf_exponent, 1, 1)
-}
-
 void sf_ceil(OpcodeContext& ctx) {
 	ctx.setReturn(static_cast<int>(ceil(ctx.arg(0).asFloat())));
-}
-
-void __declspec(naked) op_ceil() {
-	_WRAP_OPCODE(sf_ceil, 1, 1)
 }
 
 void sf_round(OpcodeContext& ctx) {
@@ -839,10 +288,6 @@ void sf_round(OpcodeContext& ctx) {
 		argI += (mod > 0 ? 1 : -1);
 	}
 	ctx.setReturn(argI);
-}
-
-void __declspec(naked) op_round() {
-	_WRAP_OPCODE(sf_round, 1, 1)
 }
 
 // TODO: move to FalloutEngine module
@@ -875,27 +320,22 @@ void sf_message_str_game(OpcodeContext& ctx) {
 	const ScriptValue &fileIdArg = ctx.arg(0),
 		&msgIdArg = ctx.arg(1);
 
-	if (fileIdArg.isInt() && msgIdArg.isInt()) {
-		int fileId = fileIdArg.asInt();
-		int msgId = msgIdArg.asInt();
-		if (fileId < 20) { // main msg files
-			msg = GetMessageStr(gameMsgFiles[fileId], msgId);
-		} else if (fileId >= 0x1000 && fileId <= 0x1005) { // proto msg files
-			msg = GetMessageStr(&VarPtr::proto_msg_files[fileId - 0x1000], msgId);
-		} else if (fileId >= 0x2000) { // Extra game message files.
-			ExtraGameMessageListsMap::iterator it = gExtraGameMsgLists.find(fileId);
+	int fileId = fileIdArg.asInt();
+	int msgId = msgIdArg.asInt();
+	if (fileId < 20) { // main msg files
+		msg = GetMessageStr(gameMsgFiles[fileId], msgId);
+	} else if (fileId >= 0x1000 && fileId <= 0x1005) { // proto msg files
+		msg = GetMessageStr(&VarPtr::proto_msg_files[fileId - 0x1000], msgId);
+	} else if (fileId >= 0x2000) { // Extra game message files.
+		ExtraGameMessageListsMap::iterator it = gExtraGameMsgLists.find(fileId);
 
-			if (it != gExtraGameMsgLists.end()) {
-				msg = GetMsg(it->second.get(), msgId, 2);
-			}
+		if (it != gExtraGameMsgLists.end()) {
+			msg = GetMsg(it->second.get(), msgId, 2);
 		}
 	}
+
 	if (msg == nullptr) {
 		msg = "Error";
 	}
 	ctx.setReturn(msg);
-}
-
-void __declspec(naked) op_message_str_game() {
-	_WRAP_OPCODE(sf_message_str_game, 2, 1)
 }
