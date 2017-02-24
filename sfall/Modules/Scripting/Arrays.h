@@ -17,7 +17,9 @@
 
 extern char get_all_arrays_special_key[];
 
-// TODO: rewrite
+class ScriptValue;
+
+// TODO: rewrite (or replace with ScriptValue)
 class sArrayElement 
 {
 public:
@@ -82,7 +84,8 @@ typedef std::tr1::unordered_map<sArrayElement, DWORD, sArrayElement_HashFunc, sA
 	This class represents sfall array
 	It can be both list (normal array) and map (associative)
 
-	TODO: rewrite for better interface (especially associate arrays)
+	TODO: rewrite for better interface (especially associate arrays), get rid of ad-hoc solutions
+		Maybe use unordered_map with vector to track insertion order?
 */
 class sArrayVar 
 {
@@ -152,11 +155,11 @@ void _stdcall FreeArray(DWORD id);
 /*
 	op_get_array_key can be used to iterate over all keys in associative array
 */
-DWORD _stdcall GetArrayKey(DWORD id, int index, DWORD* resultType);
+ScriptValue _stdcall GetArrayKey(DWORD id, int index);
 // get array element by index (list) or key (map)
-DWORD _stdcall GetArray(DWORD id, DWORD key, DWORD keyType, DWORD* resultType);
+ScriptValue _stdcall GetArray(DWORD id, const ScriptValue& key);
 // set array element by index or key
-void _stdcall SetArray(DWORD id, DWORD key, DWORD keyType, DWORD val, DWORD valType, DWORD allowUnset);
+void _stdcall SetArray(DWORD id, const ScriptValue& key, const ScriptValue& val, bool allowUnset);
 // number of elements in list or pairs in map
 int _stdcall LenArray(DWORD id);
 // change array size (only works with list)
@@ -164,12 +167,10 @@ void _stdcall ResizeArray(DWORD id, int newlen);
 // make temporary array persistent 
 void _stdcall FixArray(DWORD id);
 // searches for a given element in array and returns it's index (for list) or key (for map) or int(-1) if not found
-int _stdcall ScanArray(DWORD id, DWORD val, DWORD datatype, DWORD* resultType);
+ScriptValue _stdcall ScanArray(DWORD id, const ScriptValue& val);
 // get saved array by it's key
-DWORD _stdcall LoadArray(DWORD key, DWORD keyType);
+DWORD _stdcall LoadArray(const ScriptValue& key);
 // make array saved into the savegame with associated key
-void _stdcall SaveArray(DWORD key, DWORD keyType, DWORD id);
-// return keys of all saved arrays as a temp list
-DWORD _stdcall SavedArrays();
+void _stdcall SaveArray(const ScriptValue& key, DWORD id);
 // special function that powers array expressions
-DWORD _stdcall StackArray(DWORD key, DWORD keyType, DWORD val, DWORD valType);
+DWORD _stdcall StackArray(const ScriptValue& key, const ScriptValue& val);

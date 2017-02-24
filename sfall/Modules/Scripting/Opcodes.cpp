@@ -68,21 +68,43 @@ static SfallOpcodeInfo opcodeInfoArray[] = {
 	{0x1f1, "arctan", sf_arctan, 2, true, {ARG_NUMBER, ARG_NUMBER}},
 	{0x1f5, "get_script", sf_get_script, 1, true},
 	{0x207, "register_hook", sf_register_hook, 1, false, {ARG_INT}},
+	{0x20d, "list_begin", sf_list_begin, 1, true, {ARG_INT}},
+	{0x20e, "list_next", sf_list_next, 1, true, {ARG_INT}},
+	{0x20f, "list_end", sf_list_end, 1, false, {ARG_INT}},
 	{0x216, "set_critter_burst_disable", sf_set_critter_burst_disable, 2, false},
 	{0x217, "get_weapon_ammo_pid", sf_get_weapon_ammo_pid, 1, true, {ARG_OBJECT}},
 	{0x218, "set_weapon_ammo_pid", sf_set_weapon_ammo_pid, 2, false, {ARG_OBJECT, ARG_INT}},
 	{0x219, "get_weapon_ammo_count", sf_get_weapon_ammo_count, 1, true, {ARG_OBJECT}},
 	{0x21a, "set_weapon_ammo_count", sf_set_weapon_ammo_count, 2, false, {ARG_OBJECT, ARG_INT}},
+	
+	{0x22d, "create_array", sf_create_array, 2, true, {ARG_INT, ARG_INT}},
+	{0x22e, "set_array", sf_set_array, 3, false, {ARG_OBJECT, ARG_ANY, ARG_ANY}},
+	{0x22f, "get_array", sf_get_array, 2, true, {ARG_ANY, ARG_ANY}}, // can also be used on strings
+	{0x230, "free_array", sf_free_array, 1, false, {ARG_OBJECT}},
+	{0x231, "len_array", sf_len_array, 1, true, {ARG_OBJECT}},
+	{0x232, "resize_array", sf_resize_array, 2, false, {ARG_OBJECT, ARG_INT}},
+	{0x233, "temp_array", sf_temp_array, 2, true, {ARG_INT, ARG_INT}},
+	{0x234, "fix_array", sf_fix_array, 1, false, {ARG_INT}},
+
 	{0x235, "string_split", sf_string_split, 2, true, {ARG_STRING, ARG_STRING}},
+	{0x236, "list_as_array", sf_list_as_array, 1, true, {ARG_INT}},
 	{0x237, "atoi", sf_atoi, 1, true, {ARG_STRING}},
 	{0x238, "atof", sf_atof, 1, true, {ARG_STRING}},
+	{0x239, "scan_array", sf_scan_array, 2, true, {ARG_OBJECT, ARG_ANY}},
 	
 	{0x24e, "substr", sf_substr, 3, true, {ARG_STRING, ARG_INT, ARG_INT}},
 	{0x24f, "strlen", sf_strlen, 1, true, {ARG_STRING}},
 	{0x250, "sprintf", sf_sprintf, 2, true, {ARG_STRING, ARG_ANY}},
 	{0x251, "charcode", sf_ord, 1, true, {ARG_STRING}},
-	// 0x252 // reserved
+	// 0x252 // RESERVED
 	{0x253, "typeof", sf_typeof, 1, true},
+
+	{0x254, "save_array", sf_save_array, 2, false, {ARG_ANY, ARG_OBJECT}},
+	{0x255, "load_array", sf_load_array, 1, true, {ARG_ANY}},
+	{0x256, "array_key", sf_get_array_key, 2, true, {ARG_INT, ARG_INT}},
+	{0x257, "arrayexpr", sf_stack_array, 2, true, {ARG_ANY, ARG_ANY}},
+	// 0x258 // RESERVED for arrays
+	// 0x259 // RESERVED for arrays
 
 	{0x25a, "reg_anim_destroy", sf_reg_anim_destroy, 1, false, {ARG_OBJECT}},
 	{0x25b, "reg_anim_animate_and_hide", sf_reg_anim_animate_and_hide, 3, false, {ARG_OBJECT, ARG_INT, ARG_INT}},
@@ -337,9 +359,6 @@ void InitNewOpcodes() {
 	opcodes[0x20a] = op_fs_read_short;
 	opcodes[0x20b] = op_fs_read_int;
 	opcodes[0x20c] = op_fs_read_float;
-	opcodes[0x20d] = op_list_begin;
-	opcodes[0x20e] = op_list_next;
-	opcodes[0x20f] = op_list_end;
 	opcodes[0x210] = op_sfall_ver_major;
 	opcodes[0x211] = op_sfall_ver_minor;
 	opcodes[0x212] = op_sfall_ver_build;
@@ -366,16 +385,7 @@ void InitNewOpcodes() {
 	opcodes[0x22a] = op_set_map_time_multi;
 	opcodes[0x22b] = op_play_sfall_sound;
 	opcodes[0x22c] = op_stop_sfall_sound;
-	opcodes[0x22d] = op_create_array;
-	opcodes[0x22e] = op_set_array;
-	opcodes[0x22f] = op_get_array;
-	opcodes[0x230] = op_free_array;
-	opcodes[0x231] = op_len_array;
-	opcodes[0x232] = op_resize_array;
-	opcodes[0x233] = op_temp_array;
-	opcodes[0x234] = op_fix_array;
-	opcodes[0x236] = op_list_as_array;
-	opcodes[0x239] = op_scan_array;
+
 	opcodes[0x23a] = op_get_tile_fid;
 	opcodes[0x23b] = op_modified_ini;
 	opcodes[0x23c] = op_get_sfall_args;
@@ -397,12 +407,6 @@ void InitNewOpcodes() {
 	opcodes[0x24c] = op_gdialog_get_barter_mod;
 	opcodes[0x24d] = op_set_inven_ap_cost;
 
-	opcodes[0x254] = op_save_array;
-	opcodes[0x255] = op_load_array;
-	opcodes[0x256] = op_get_array_key;
-	opcodes[0x257] = op_stack_array;
-	// opcodes[0x258]= RESERVED for arrays
-	// opcodes[0x259]= RESERVED for arrays
 	// opcodes[0x268]= RESERVED
 	// opcodes[0x269]= RESERVED
 	// opcodes[0x26a]=op_game_ui_redraw;
