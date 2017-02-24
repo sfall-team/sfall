@@ -23,7 +23,7 @@
 #include "..\..\HookScripts.h"
 #include "..\..\ScriptExtender.h"
 #include "..\Arrays.h"
-#include "AsmMacros.h"
+#include "..\OpcodeContext.h"
 
 #include "Core.h"
 
@@ -365,31 +365,14 @@ void sf_register_hook(OpcodeContext& ctx) {
 	RegisterHook(ctx.program(), id, proc);
 }
 
-void __declspec(naked) op_sfall_ver_major() {
-	_OP_BEGIN(ebp)
-	__asm {
-		mov eax, VERSION_MAJOR;
-	}
-	_RET_VAL_INT(ebp)
-	_OP_END
+void sf_sfall_ver_major(OpcodeContext& ctx) {
+	ctx.setReturn(VERSION_MAJOR);
 }
 
-void __declspec(naked) op_sfall_ver_minor() {
-	_OP_BEGIN(ebp)
-	__asm {
-		mov eax, VERSION_MINOR;
-	}
-	_RET_VAL_INT(ebp)
-	_OP_END
+void sf_sfall_ver_minor(OpcodeContext& ctx) {
+	ctx.setReturn(VERSION_MINOR);
 }
 
-void __declspec(naked) op_sfall_ver_build() {
-	_OP_BEGIN(ebp)
-	__asm {
-		mov eax, VERSION_BUILD;
-	}
-	_RET_VAL_INT(ebp)
-	_OP_END
+void sf_sfall_ver_build(OpcodeContext& ctx) {
+	ctx.setReturn(VERSION_BUILD);
 }
-
-

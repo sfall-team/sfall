@@ -20,7 +20,7 @@
 #include "..\..\Knockback.h"
 #include "..\..\ScriptExtender.h"
 #include "..\Arrays.h"
-#include "AsmMacros.h"
+#include "..\OpcodeContext.h"
 
 #include "Objects.h"
 

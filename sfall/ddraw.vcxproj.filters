@@ -210,9 +210,6 @@
     <ClInclude Include="Modules\Scripting\Handlers\Worldmap.h">
       <Filter>Modules\Scripting\Handlers</Filter>
     </ClInclude>
-    <ClInclude Include="Modules\Scripting\Handlers\AsmMacros.h">
-      <Filter>Modules\Scripting\Handlers</Filter>
-    </ClInclude>
     <ClInclude Include="CommonTypes.h" />
     <ClInclude Include="Modules\Scripting\OpcodeContext.h">
       <Filter>Modules\Scripting</Filter>

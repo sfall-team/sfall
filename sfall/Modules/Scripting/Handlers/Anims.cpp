@@ -20,7 +20,7 @@
 #include "..\..\..\SafeWrite.h"
 #include "..\..\Explosions.h"
 #include "..\..\ScriptExtender.h"
-#include "AsmMacros.h"
+#include "..\OpcodeContext.h"
 
 #include "Anims.h"
 

@@ -20,7 +20,6 @@
 #include "..\..\InputFuncs.h"
 #include "..\KillCounter.h"
 
-#include "Handlers\AsmMacros.h"
 #include "Handlers\Anims.h"
 #include "Handlers\Arrays.h"
 #include "Handlers\Core.h"
@@ -71,12 +70,15 @@ static SfallOpcodeInfo opcodeInfoArray[] = {
 	{0x20d, "list_begin", sf_list_begin, 1, true, {ARG_INT}},
 	{0x20e, "list_next", sf_list_next, 1, true, {ARG_INT}},
 	{0x20f, "list_end", sf_list_end, 1, false, {ARG_INT}},
+	{0x210, "sfall_ver_major", sf_sfall_ver_major, 0, true},
+	{0x211, "sfall_ver_minor", sf_sfall_ver_minor, 0, true},
+	{0x212, "sfall_ver_build", sf_sfall_ver_build, 0, true},
 	{0x216, "set_critter_burst_disable", sf_set_critter_burst_disable, 2, false},
 	{0x217, "get_weapon_ammo_pid", sf_get_weapon_ammo_pid, 1, true, {ARG_OBJECT}},
 	{0x218, "set_weapon_ammo_pid", sf_set_weapon_ammo_pid, 2, false, {ARG_OBJECT, ARG_INT}},
 	{0x219, "get_weapon_ammo_count", sf_get_weapon_ammo_count, 1, true, {ARG_OBJECT}},
 	{0x21a, "set_weapon_ammo_count", sf_set_weapon_ammo_count, 2, false, {ARG_OBJECT, ARG_INT}},
-	
+
 	{0x22d, "create_array", sf_create_array, 2, true, {ARG_INT, ARG_INT}},
 	{0x22e, "set_array", sf_set_array, 3, false, {ARG_OBJECT, ARG_ANY, ARG_ANY}},
 	{0x22f, "get_array", sf_get_array, 2, true, {ARG_ANY, ARG_ANY}}, // can also be used on strings
@@ -85,7 +87,6 @@ static SfallOpcodeInfo opcodeInfoArray[] = {
 	{0x232, "resize_array", sf_resize_array, 2, false, {ARG_OBJECT, ARG_INT}},
 	{0x233, "temp_array", sf_temp_array, 2, true, {ARG_INT, ARG_INT}},
 	{0x234, "fix_array", sf_fix_array, 1, false, {ARG_INT}},
-
 	{0x235, "string_split", sf_string_split, 2, true, {ARG_STRING, ARG_STRING}},
 	{0x236, "list_as_array", sf_list_as_array, 1, true, {ARG_INT}},
 	{0x237, "atoi", sf_atoi, 1, true, {ARG_STRING}},
@@ -113,16 +114,17 @@ static SfallOpcodeInfo opcodeInfoArray[] = {
 	{0x25e, "reg_anim_change_fid", sf_reg_anim_change_fid, 3, false, {ARG_OBJECT, ARG_INT, ARG_INT}},
 	{0x25f, "reg_anim_take_out", sf_reg_anim_take_out, 3, false, {ARG_OBJECT, ARG_INT, ARG_INT}},
 	{0x260, "reg_anim_turn_towards", sf_reg_anim_turn_towards, 3, false, {ARG_OBJECT, ARG_INT, ARG_INT}},
+
 	{0x261, "metarule2_explosions", sf_explosions_metarule, 3, true, {ARG_INT, ARG_INT, ARG_INT}},
 	{0x262, "register_hook_proc", sf_register_hook, 2, false, {ARG_INT, ARG_INT}},
-	
 	{0x263, "power", sf_power, 2, true, {ARG_NUMBER, ARG_NUMBER}},
 	{0x264, "log", sf_log, 1, true, {ARG_NUMBER}},
 	{0x265, "exponent", sf_exponent, 1, true, {ARG_NUMBER}},
 	{0x266, "ceil", sf_ceil, 1, true, {ARG_NUMBER}},
 	{0x267, "round", sf_round, 1, true, {ARG_NUMBER}},
 	{0x26b, "message_str_game", sf_message_str_game, 2, true, {ARG_INT, ARG_INT}},
-
+	{0x26c, "sneak_success", sf_sneak_success, 0, true},
+	{0x26d, "tile_light", sf_tile_light, 2, true, {ARG_INT, ARG_INT}},
 	{0x26e, "obj_blocking_line", sf_make_straight_path, 3, true},
 	{0x26f, "obj_blocking_tile", sf_obj_blocking_at, 3, true},
 	{0x270, "tile_get_objs", sf_tile_get_objects, 2, true},
@@ -131,6 +133,7 @@ static SfallOpcodeInfo opcodeInfoArray[] = {
 	{0x273, "create_spatial", sf_create_spatial, 4, true},
 	{0x274, "art_exists", sf_art_exists, 1, true},
 	{0x275, "obj_is_carrying_obj", sf_obj_is_carrying_obj, 2, true},
+
 	// universal opcodes:
 	{0x276, "sfall_func0", HandleMetarule, 1, true}, 
 	{0x277, "sfall_func1", HandleMetarule, 2, true},
@@ -359,9 +362,6 @@ void InitNewOpcodes() {
 	opcodes[0x20a] = op_fs_read_short;
 	opcodes[0x20b] = op_fs_read_int;
 	opcodes[0x20c] = op_fs_read_float;
-	opcodes[0x210] = op_sfall_ver_major;
-	opcodes[0x211] = op_sfall_ver_minor;
-	opcodes[0x212] = op_sfall_ver_build;
 	opcodes[0x213] = op_hero_select_win;
 	opcodes[0x214] = op_set_hero_race;
 	opcodes[0x215] = op_set_hero_style;
@@ -410,8 +410,6 @@ void InitNewOpcodes() {
 	// opcodes[0x268]= RESERVED
 	// opcodes[0x269]= RESERVED
 	// opcodes[0x26a]=op_game_ui_redraw;
-	opcodes[0x26c] = op_sneak_success;
-	opcodes[0x26d] = op_tile_light;
 
 	// configure default opcode handler
 	for (int i = sfallOpcodeStart; i < opcodeCount; i++) {

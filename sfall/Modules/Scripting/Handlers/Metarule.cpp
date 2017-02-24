@@ -20,7 +20,6 @@
 #include "..\..\ScriptExtender.h"
 #include "..\Arrays.h"
 #include "..\OpcodeContext.h"
-#include "AsmMacros.h"
 #include "Interface.h"
 #include "Misc.h"
 #include "Objects.h"

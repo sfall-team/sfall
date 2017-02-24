@@ -23,3 +23,4 @@ _WRAP_WATCOM_FUNC1(int, register_object_must_erase, TGameObj*, object)
 // _WRAP_WATCOM_FUNC3(int, register_object_run_to_tile_, TGameObj*, object;
 _WRAP_WATCOM_FUNC3(int, register_object_take_out, TGameObj*, object, int, holdFrameId, int, nothing)
 _WRAP_WATCOM_FUNC3(int, register_object_turn_towards, TGameObj*, object, int, tileNum, int, nothing)
+_WRAP_WATCOM_FUNC2(int, light_get_tile, int, elevation, int, tileNum)

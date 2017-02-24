@@ -18,6 +18,8 @@
 
 #pragma once
 
+class OpcodeContext;
+
 void sf_sqrt(OpcodeContext&);
 
 void sf_abs(OpcodeContext&);

@@ -28,6 +28,8 @@
 
 //script control functions
 
+class OpcodeContext;
+
 void __declspec() op_remove_script();
 
 void __declspec() op_set_script();

@@ -23,8 +23,8 @@
 #include "..\..\FileSystem.h"
 #include "..\..\Message.h"
 #include "..\Arrays.h"
+#include "..\OpcodeContext.h"
 #include "..\ScriptValue.h"
-#include "AsmMacros.h"
 
 #include "Utils.h"
 
