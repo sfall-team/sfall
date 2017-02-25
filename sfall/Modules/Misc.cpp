@@ -23,7 +23,7 @@
 #include "..\FalloutEngine\Fallout2.h"
 #include "Graphics.h"
 #include "ScriptExtender.h"
-#include "Timer.h"
+//#include "Timer.h"
 
 #include "Misc.h"
 
@@ -39,22 +39,6 @@ static const char* debugGnw = "GNW";
 
 static int* scriptDialog = nullptr;
 
-//GetTickCount calls
-static const DWORD offsetsA[] = {
-	0x4C8D34, 0x4C9375, 0x4C9384, 0x4C93C0, 0x4C93E8, 0x4C9D2E, 0x4FE01E,
-};
-
-//Delayed GetTickCount calls
-static const DWORD offsetsB[] = {
-	0x4FDF64,
-};
-
-//timeGetTime calls
-static const DWORD offsetsC[] = {
-	0x4A3179, 0x4A325D, 0x4F482B, 0x4F4E53, 0x4F5542, 0x4F56CC, 0x4F59C6,
-	0x4FE036,
-};
-
 static const DWORD PutAwayWeapon[] = {
 	0x411EA2, // action_climb_ladder_
 	0x412046, // action_use_an_item_on_object_
@@ -63,21 +47,8 @@ static const DWORD PutAwayWeapon[] = {
 	0x472996, // invenWieldFunc_
 };
 
-static const DWORD origFuncPosA = 0x6C0200;
-static const DWORD origFuncPosB = 0x6C03B0;
-static const DWORD origFuncPosC = 0x6C0164;
-
-static const DWORD getLocalTimePos = 0x4FDF58;
-
 static const DWORD dinputPos = 0x50FB70;
 static const DWORD DDrawPos = 0x50FB5C;
-
-static DWORD AddrGetTickCount;
-static DWORD AddrGetLocalTime;
-
-static DWORD KarmaFrmCount;
-static DWORD* KarmaFrms;
-static int* KarmaPoints;
 
 static const DWORD FastShotFixF1[] = {
 	0x478BB8, 0x478BC7, 0x478BD6, 0x478BEA, 0x478BF9, 0x478C08, 0x478C2F,
@@ -223,30 +194,6 @@ static void __declspec(naked) gdAddOptionStr_hack() {
 		push ecx
 		push 0x4458FA
 		retn
-	}
-}
-
-static DWORD _stdcall DrawCardHook2() {
-	int reputation = VarPtr::game_global_vars[GVAR_PLAYER_REPUTATION];
-	for (DWORD i = 0; i < KarmaFrmCount - 1; i++) {
-		if (reputation < KarmaPoints[i]) return KarmaFrms[i];
-	}
-	return KarmaFrms[KarmaFrmCount - 1];
-}
-
-static void __declspec(naked) DrawCardHook() {
-	__asm {
-		cmp ds : [VARPTR_info_line], 10;
-		jne skip;
-		cmp eax, 0x30;
-		jne skip;
-		push ecx;
-		push edx;
-		call DrawCardHook2;
-		pop edx;
-		pop ecx;
-skip:
-		jmp FuncOffs::DrawCard_;
 	}
 }
 
@@ -440,31 +387,6 @@ char DefaultMaleModelName[65];
 static char StartFemaleModelName[65];
 char DefaultFemaleModelName[65];
 
-void ApplySpeedPatch() {
-	if (GetPrivateProfileIntA("Speed", "Enable", 0, ini)) {
-		dlog("Applying speed patch.", DL_INIT);
-		AddrGetTickCount = (DWORD)&FakeGetTickCount;
-		AddrGetLocalTime = (DWORD)&FakeGetLocalTime;
-
-		for (int i = 0; i < sizeof(offsetsA) / 4; i++) {
-			SafeWrite32(offsetsA[i], (DWORD)&AddrGetTickCount);
-		}
-		dlog(".", DL_INIT);
-		for (int i = 0; i < sizeof(offsetsB) / 4; i++) {
-			SafeWrite32(offsetsB[i], (DWORD)&AddrGetTickCount);
-		}
-		dlog(".", DL_INIT);
-		for (int i = 0; i < sizeof(offsetsC) / 4; i++) {
-			SafeWrite32(offsetsC[i], (DWORD)&AddrGetTickCount);
-		}
-		dlog(".", DL_INIT);
-
-		SafeWrite32(getLocalTimePos, (DWORD)&AddrGetLocalTime);
-		TimerInit();
-		dlogr(" Done", DL_INIT);
-	}
-}
-
 void ApplyInputPatch() {
 	//if(GetPrivateProfileIntA("Input", "Enable", 0, ini)) {
 		dlog("Applying input patch.", DL_INIT);
@@ -627,36 +549,6 @@ void ApplySkilldexImagesPatch() {
 		SafeWrite32(0x00518D64, tmp);
 	}
 	dlogr(" Done", DL_INIT);
-}
-
-void ApplyKarmaFRMsPatch() {
-	KarmaFrmCount = GetPrivateProfileIntA("Misc", "KarmaFRMsCount", 0, ini);
-	if (KarmaFrmCount) {
-		KarmaFrms = new DWORD[KarmaFrmCount];
-		KarmaPoints = new int[KarmaFrmCount - 1];
-		dlog("Applying karma frm patch.", DL_INIT);
-		char buf[512];
-		GetPrivateProfileStringA("Misc", "KarmaFRMs", "", buf, 512, ini);
-		char *ptr = buf, *ptr2;
-		for (DWORD i = 0; i < KarmaFrmCount - 1; i++) {
-			ptr2 = strchr(ptr, ',');
-			*ptr2 = '\0';
-			KarmaFrms[i] = atoi(ptr);
-			ptr = ptr2 + 1;
-		}
-		KarmaFrms[KarmaFrmCount - 1] = atoi(ptr);
-		GetPrivateProfileStringA("Misc", "KarmaPoints", "", buf, 512, ini);
-		ptr = buf;
-		for (DWORD i = 0; i < KarmaFrmCount - 2; i++) {
-			ptr2 = strchr(ptr, ',');
-			*ptr2 = '\0';
-			KarmaPoints[i] = atoi(ptr);
-			ptr = ptr2 + 1;
-		}
-		KarmaPoints[KarmaFrmCount - 2] = atoi(ptr);
-		HookCall(0x4367A9, DrawCardHook);
-		dlogr(" Done", DL_INIT);
-	}
 }
 
 void ApplySpeedInterfaceCounterAnimsPatch() {

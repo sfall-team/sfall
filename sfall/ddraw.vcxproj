@@ -215,8 +215,9 @@
     <ClInclude Include="Modules\AmmoMod.h" />
     <ClInclude Include="Modules\AnimationsAtOnceLimit.h" />
     <ClInclude Include="Modules\Misc.h" />
-    <ClInclude Include="Modules\Patches\DisplayKarmaChanges.h" />
+    <ClInclude Include="Modules\Patches\Karma.h" />
     <ClInclude Include="Modules\Patches\LoadOrder.h" />
+    <ClInclude Include="Modules\Patches\SpeedPatch.h" />
     <ClInclude Include="Modules\Patches\Worldmap.h" />
     <ClInclude Include="Modules\ScriptExtender.h" />
     <ClInclude Include="Modules\BarBoxes.h" />
@@ -289,8 +290,9 @@
     <ClCompile Include="Modules\AmmoMod.cpp" />
     <ClCompile Include="Modules\AnimationsAtOnceLimit.cpp" />
     <ClCompile Include="Modules\Misc.cpp" />
-    <ClCompile Include="Modules\Patches\DisplayKarmaChange.cpp" />
+    <ClCompile Include="Modules\Patches\Karma.cpp" />
     <ClCompile Include="Modules\Patches\LoadOrder.cpp" />
+    <ClCompile Include="Modules\Patches\SpeedPatch.cpp" />
     <ClCompile Include="Modules\Patches\Worldmap.cpp" />
     <ClCompile Include="Modules\ScriptExtender.cpp" />
     <ClCompile Include="Modules\BarBoxes.cpp" />

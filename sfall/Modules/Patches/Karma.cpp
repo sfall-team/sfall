@@ -22,7 +22,35 @@
 #include "..\..\main.h"
 #include "..\..\FalloutEngine\Fallout2.h"
 
-#include "DisplayKarmaChanges.h"
+#include "Karma.h"
+
+static DWORD KarmaFrmCount;
+static DWORD* KarmaFrms;
+static int* KarmaPoints;
+
+static DWORD _stdcall DrawCardHook2() {
+	int reputation = VarPtr::game_global_vars[GVAR_PLAYER_REPUTATION];
+	for (DWORD i = 0; i < KarmaFrmCount - 1; i++) {
+		if (reputation < KarmaPoints[i]) return KarmaFrms[i];
+	}
+	return KarmaFrms[KarmaFrmCount - 1];
+}
+
+static void __declspec(naked) DrawCardHook() {
+	__asm {
+		cmp ds : [VARPTR_info_line], 10;
+		jne skip;
+		cmp eax, 0x30;
+		jne skip;
+		push ecx;
+		push edx;
+		call DrawCardHook2;
+		pop edx;
+		pop ecx;
+skip:
+		jmp FuncOffs::DrawCard_;
+	}
+}
 
 static char KarmaGainMsg[128];
 static char KarmaLossMsg[128];
@@ -62,3 +90,32 @@ void ApplyDisplayKarmaChangesPatch() {
 	}
 }
 
+void ApplyKarmaFRMsPatch() {
+	KarmaFrmCount = GetPrivateProfileIntA("Misc", "KarmaFRMsCount", 0, ini);
+	if (KarmaFrmCount) {
+		KarmaFrms = new DWORD[KarmaFrmCount];
+		KarmaPoints = new int[KarmaFrmCount - 1];
+		dlog("Applying karma frm patch.", DL_INIT);
+		char buf[512];
+		GetPrivateProfileStringA("Misc", "KarmaFRMs", "", buf, 512, ini);
+		char *ptr = buf, *ptr2;
+		for (DWORD i = 0; i < KarmaFrmCount - 1; i++) {
+			ptr2 = strchr(ptr, ',');
+			*ptr2 = '\0';
+			KarmaFrms[i] = atoi(ptr);
+			ptr = ptr2 + 1;
+		}
+		KarmaFrms[KarmaFrmCount - 1] = atoi(ptr);
+		GetPrivateProfileStringA("Misc", "KarmaPoints", "", buf, 512, ini);
+		ptr = buf;
+		for (DWORD i = 0; i < KarmaFrmCount - 2; i++) {
+			ptr2 = strchr(ptr, ',');
+			*ptr2 = '\0';
+			KarmaPoints[i] = atoi(ptr);
+			ptr = ptr2 + 1;
+		}
+		KarmaPoints[KarmaFrmCount - 2] = atoi(ptr);
+		HookCall(0x4367A9, DrawCardHook);
+		dlogr(" Done", DL_INIT);
+	}
+}

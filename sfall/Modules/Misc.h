@@ -22,8 +22,6 @@ extern char DefaultFemaleModelName[65];
 
 void ApplyCombatProcFix();
 
-void ApplySpeedPatch();
-
 void ApplyInputPatch();
 
 void ApplyGraphicsPatch();
@@ -37,8 +35,6 @@ void ApplyNPCAutoLevelPatch();
 void ApplyAdditionalWeaponAnimsPatch();
 
 void ApplySkilldexImagesPatch();
-
-void ApplyKarmaFRMsPatch();
 
 void ApplySpeedInterfaceCounterAnimsPatch();
 
