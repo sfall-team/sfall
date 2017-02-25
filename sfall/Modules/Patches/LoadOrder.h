@@ -18,15 +18,4 @@
 
 #pragma once
 
-
-void ApplyPathfinderFix();
-
-void ApplyStartingStatePatches();
-
-void ApplyTimeLimitPatch();
-
-void ApplyTownMapsHotkeyFix();
-
-void ApplyWorldLimitsPatches();
-
-void ApplyWorldmapFpsPatch();
+void ApplyDataLoadOrderPatch();

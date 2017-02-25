@@ -52,8 +52,6 @@ void ApplyNumbersInDialoguePatch();
 
 void ApplyInstantWeaponEquipPatch();
 
-void ApplyDataLoadOrderPatch();
-
 void ApplyDisplayKarmaChangesPatch();
 
 void ApplyMultiPatchesPatch();

@@ -232,6 +232,9 @@
     <ClInclude Include="Modules\Patches\Worldmap.h">
       <Filter>Modules\Patches</Filter>
     </ClInclude>
+    <ClInclude Include="Modules\Patches\LoadOrder.h">
+      <Filter>Modules\Patches</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
@@ -423,6 +426,9 @@
       <Filter>Modules\Scripting</Filter>
     </ClCompile>
     <ClCompile Include="Modules\Patches\Worldmap.cpp">
+      <Filter>Modules\Patches</Filter>
+    </ClCompile>
+    <ClCompile Include="Modules\Patches\LoadOrder.cpp">
       <Filter>Modules\Patches</Filter>
     </ClCompile>
   </ItemGroup>

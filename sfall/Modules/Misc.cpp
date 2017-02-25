@@ -281,73 +281,6 @@ bjmp:
 	}
 }
 
-static void __declspec(naked) removeDatabase() {
-	__asm {
-		cmp  eax, -1
-		je   end
-		mov  ebx, ds:[VARPTR_paths]
-		mov  ecx, ebx
-nextPath:
-		mov  edx, [esp+0x104+4+4]                 // path_patches
-		mov  eax, [ebx]                           // database.path
-		call FuncOffs::stricmp_
-		test eax, eax                             // found path?
-		jz   skip                                 // Yes
-		mov  ecx, ebx
-		mov  ebx, [ebx+0xC]                       // database.next
-		jmp  nextPath
-skip:
-		mov  eax, [ebx+0xC]                       // database.next
-		mov  [ecx+0xC], eax                       // database.next
-		xchg ebx, eax
-		cmp  eax, ecx
-		jne  end
-		mov  ds:[VARPTR_paths], ebx
-end:
-		retn
-	}
-}
-
-static void __declspec(naked) game_init_databases_hack1() {
-	__asm {
-		call removeDatabase
-		mov  ds:[VARPTR_master_db_handle], eax
-		retn
-	}
-}
-
-static void __declspec(naked) game_init_databases_hack2() {
-	__asm {
-		cmp  eax, -1
-		je   end
-		mov  eax, ds:[VARPTR_master_db_handle]
-		mov  eax, [eax]                           // eax = master_patches.path
-		call FuncOffs::xremovepath_
-		dec  eax                                  // remove path (critter_patches == master_patches)?
-		jz   end                                  // Yes
-		inc  eax
-		call removeDatabase
-end:
-		mov  ds:[VARPTR_critter_db_handle], eax
-		retn
-	}
-}
-
-static void __declspec(naked) game_init_databases_hook() {
-// eax = _master_db_handle
-	__asm {
-		mov  ecx, ds:[VARPTR_critter_db_handle]
-		mov  edx, ds:[VARPTR_paths]
-		jecxz skip
-		mov  [ecx+0xC], edx                       // critter_patches.next->_paths
-		mov  edx, ecx
-skip:
-		mov  [eax+0xC], edx                       // master_patches.next
-		mov  ds:[VARPTR_paths], eax
-		retn
-	}
-}
-
 static void __declspec(naked) ReloadHook() {
 	__asm {
 		push eax;
@@ -850,17 +783,6 @@ void ApplyCombatProcFix() {
 		SafeWrite32(0x0424dbd, 0x00000034);
 		dlogr(" Done", DL_INIT);
 	//}
-}
-
-void ApplyDataLoadOrderPatch() {
-	if (GetPrivateProfileIntA("Misc", "DataLoadOrderPatch", 0, ini)) {
-		dlog("Applying data load order patch.", DL_INIT);
-		MakeCall(0x444259, &game_init_databases_hack1, false);
-		MakeCall(0x4442F1, &game_init_databases_hack2, false);
-		HookCall(0x44436D, &game_init_databases_hook);
-		SafeWrite8(0x4DFAEC, 0x1D); // error correction
-		dlogr(" Done", DL_INIT);
-	}
 }
 
 void ApplyDisplayKarmaChangesPatch() {

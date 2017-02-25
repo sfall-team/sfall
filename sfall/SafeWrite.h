@@ -1,5 +1,7 @@
 #pragma once
 
+#include <Windows.h>
+
 template<typename T> void _stdcall SafeWrite(DWORD addr, T data) {
 	DWORD	oldProtect;
 	VirtualProtect((void *)addr, 1, PAGE_EXECUTE_READWRITE, &oldProtect);
