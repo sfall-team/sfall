@@ -52,8 +52,6 @@ void ApplyNumbersInDialoguePatch();
 
 void ApplyInstantWeaponEquipPatch();
 
-void ApplyDisplayKarmaChangesPatch();
-
 void ApplyMultiPatchesPatch();
 
 void ApplyPlayIdleAnimOnReloadPatch();

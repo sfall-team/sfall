@@ -235,6 +235,9 @@
     <ClInclude Include="Modules\Patches\LoadOrder.h">
       <Filter>Modules\Patches</Filter>
     </ClInclude>
+    <ClInclude Include="Modules\Patches\DisplayKarmaChanges.h">
+      <Filter>Modules\Patches</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
@@ -429,6 +432,9 @@
       <Filter>Modules\Patches</Filter>
     </ClCompile>
     <ClCompile Include="Modules\Patches\LoadOrder.cpp">
+      <Filter>Modules\Patches</Filter>
+    </ClCompile>
+    <ClCompile Include="Modules\Patches\DisplayKarmaChange.cpp">
       <Filter>Modules\Patches</Filter>
     </ClCompile>
   </ItemGroup>

@@ -59,6 +59,7 @@
 #include "Modules\SuperSave.h"
 #include "Modules\Tiles.h"
 #include "Modules\Timer.h"
+#include "Modules\Patches\DisplayKarmaChanges.h"
 #include "Modules\Patches\LoadOrder.h"
 #include "Modules\Patches\Worldmap.h"
 

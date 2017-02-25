@@ -430,34 +430,6 @@ static void __declspec(naked) objCanSeeObj_ShootThru_Fix() {//(EAX *objStruct, E
 	}
 }
 
-static char KarmaGainMsg[128];
-static char KarmaLossMsg[128];
-static void _stdcall SetKarma(int value) {
-	int old = VarPtr::game_global_vars[GVAR_PLAYER_REPUTATION];
-	old = value - old;
-	char buf[64];
-	if (old == 0) return;
-	if (old > 0) {
-		sprintf_s(buf, KarmaGainMsg, old);
-	} else {
-		sprintf_s(buf, KarmaLossMsg, -old);
-	}
-	Wrapper::display_print(buf);
-}
-
-static void __declspec(naked) SetGlobalVarWrapper() {
-	__asm {
-		test eax, eax;
-		jnz end;
-		pushad;
-		push edx;
-		call SetKarma;
-		popad;
-end:
-		jmp FuncOffs::game_set_global_var_;
-	}
-}
-
 static const DWORD EncounterTableSize[] = {
 	0x4BD1A3, 0x4BD1D9, 0x4BD270, 0x4BD604, 0x4BDA14, 0x4BDA44, 0x4BE707,
 	0x4C0815, 0x4C0D4A, 0x4C0FD4,
@@ -783,16 +755,6 @@ void ApplyCombatProcFix() {
 		SafeWrite32(0x0424dbd, 0x00000034);
 		dlogr(" Done", DL_INIT);
 	//}
-}
-
-void ApplyDisplayKarmaChangesPatch() {
-	if (GetPrivateProfileInt("Misc", "DisplayKarmaChanges", 0, ini)) {
-		dlog("Applying display karma changes patch.", DL_INIT);
-		GetPrivateProfileString("sfall", "KarmaGain", "You gained %d karma.", KarmaGainMsg, 128, translationIni);
-		GetPrivateProfileString("sfall", "KarmaLoss", "You lost %d karma.", KarmaLossMsg, 128, translationIni);
-		HookCall(0x455A6D, SetGlobalVarWrapper);
-		dlogr(" Done", DL_INIT);
-	}
 }
 
 void ApplyMultiPatchesPatch() {
