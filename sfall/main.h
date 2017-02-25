@@ -33,10 +33,7 @@
 extern char ini[65];
 extern char translationIni[65];
 
-extern char dmModelName[65];
-extern char dfModelName[65];
-
-extern bool npcautolevel;
+extern bool NpcAutoLevelEnabled;
 
 template<typename T> 
 T SimplePatch(DWORD addr, const char* iniSection, const char* iniKey, T defaultValue, T minValue = 0, T maxValue = INT_MAX)

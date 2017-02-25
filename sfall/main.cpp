@@ -19,8 +19,10 @@
 #include "main.h"
 
 #include <stdio.h>
+#include <memory>
 
 #include "FalloutEngine\Fallout2.h"
+#include "Modules\Module.h"
 #include "Modules\AI.h"
 #include "Modules\AmmoMod.h"
 #include "Modules\AnimationsAtOnceLimit.h"
@@ -64,320 +66,16 @@
 #include "Cpp11_emu.h"
 #endif
 
+static std::vector<std::unique_ptr<Module>> modules;
+
 bool IsDebug = false;
 
 char ini[65];
 char translationIni[65];
 
-static char mapName[65];
-static char configName[65];
-static char patchName[65];
-static char versionString[65];
-
-static char smModelName[65];
-char dmModelName[65];
-static char sfModelName[65];
-char dfModelName[65];
-
-bool npcautolevel;
-
-static const char* musicOverridePath = "data\\sound\\music\\";
-
-static const DWORD EncounterTableSize[] = {
-	0x4BD1A3, 0x4BD1D9, 0x4BD270, 0x4BD604, 0x4BDA14, 0x4BDA44, 0x4BE707,
-	0x4C0815, 0x4C0D4A, 0x4C0FD4,
-};
-
-/*HANDLE _stdcall FakeFindFirstFile(const char* str, WIN32_FIND_DATAA* data) {
-	HANDLE h = FindFirstFileA(str,data);
-	if (h == INVALID_HANDLE_VALUE) return h;
-	while (strlen(data->cFileName) > 12) {
-		int i = FindNextFileA(h, data);
-		if(i == 0) {
-			FindClose(h);
-			return INVALID_HANDLE_VALUE;
-		}
-	}
-	return h;
-}
-int _stdcall FakeFindNextFile(HANDLE h, WIN32_FIND_DATAA* data) {
-	int i = FindNextFileA(h, data);
-	while (strlen(data->cFileName) > 12 && i) {
-		i = FindNextFileA(h, data);
-	}
-	return i;
-}*/
-
-static void __declspec(naked) removeDatabase() {
-	__asm {
-		cmp  eax, -1
-		je   end
-		mov  ebx, ds:[VARPTR_paths]
-		mov  ecx, ebx
-nextPath:
-		mov  edx, [esp+0x104+4+4]                 // path_patches
-		mov  eax, [ebx]                           // database.path
-		call FuncOffs::stricmp_
-		test eax, eax                             // found path?
-		jz   skip                                 // Yes
-		mov  ecx, ebx
-		mov  ebx, [ebx+0xC]                       // database.next
-		jmp  nextPath
-skip:
-		mov  eax, [ebx+0xC]                       // database.next
-		mov  [ecx+0xC], eax                       // database.next
-		xchg ebx, eax
-		cmp  eax, ecx
-		jne  end
-		mov  ds:[VARPTR_paths], ebx
-end:
-		retn
-	}
-}
-
-static void __declspec(naked) game_init_databases_hack1() {
-	__asm {
-		call removeDatabase
-		mov  ds:[VARPTR_master_db_handle], eax
-		retn
-	}
-}
-
-static void __declspec(naked) game_init_databases_hack2() {
-	__asm {
-		cmp  eax, -1
-		je   end
-		mov  eax, ds:[VARPTR_master_db_handle]
-		mov  eax, [eax]                           // eax = master_patches.path
-		call FuncOffs::xremovepath_
-		dec  eax                                  // remove path (critter_patches == master_patches)?
-		jz   end                                  // Yes
-		inc  eax
-		call removeDatabase
-end:
-		mov  ds:[VARPTR_critter_db_handle], eax
-		retn
-	}
-}
-
-static void __declspec(naked) game_init_databases_hook() {
-// eax = _master_db_handle
-	__asm {
-		mov  ecx, ds:[VARPTR_critter_db_handle]
-		mov  edx, ds:[VARPTR_paths]
-		jecxz skip
-		mov  [ecx+0xC], edx                       // critter_patches.next->_paths
-		mov  edx, ecx
-skip:
-		mov  [eax+0xC], edx                       // master_patches.next
-		mov  ds:[VARPTR_paths], eax
-		retn
-	}
-}
-
-static char KarmaGainMsg[128];
-static char KarmaLossMsg[128];
-static void _stdcall SetKarma(int value) {
-	int old = VarPtr::game_global_vars[GVAR_PLAYER_REPUTATION];
-	old = value - old;
-	char buf[64];
-	if (old == 0) return;
-	if (old > 0) {
-		sprintf_s(buf, KarmaGainMsg, old);
-	} else {
-		sprintf_s(buf, KarmaLossMsg, -old);
-	}
-	Wrapper::display_print(buf);
-}
-
-static void __declspec(naked) SetGlobalVarWrapper() {
-	__asm {
-		test eax, eax;
-		jnz end;
-		pushad;
-		push edx;
-		call SetKarma;
-		popad;
-end:
-		jmp FuncOffs::game_set_global_var_;
-	}
-}
-
-static void __declspec(naked) ReloadHook() {
-	__asm {
-		push eax;
-		push ebx;
-		push edx;
-		mov eax, dword ptr ds:[VARPTR_obj_dude];
-		call FuncOffs::register_clear_;
-		xor eax, eax;
-		inc eax;
-		call FuncOffs::register_begin_;
-		xor edx, edx;
-		xor ebx, ebx;
-		mov eax, dword ptr ds:[VARPTR_obj_dude];
-		dec ebx;
-		call FuncOffs::register_object_animate_;
-		call FuncOffs::register_end_;
-		pop edx;
-		pop ebx;
-		pop eax;
-		jmp FuncOffs::gsound_play_sfx_file_;
-	}
-}
-
-static const DWORD CorpseHitFix2_continue_loop1 = 0x48B99B;
-static void __declspec(naked) CorpseHitFix2() {
-	__asm {
-		push eax;
-		mov eax, [eax];
-		call FuncOffs::critter_is_dead_; // found some object, check if it's a dead critter
-		test eax, eax;
-		pop eax;
-		jz really_end; // if not, allow breaking the loop (will return this object)
-		jmp CorpseHitFix2_continue_loop1; // otherwise continue searching
-
-really_end:
-		mov     eax, [eax];
-		pop     ebp;
-		pop     edi;
-		pop     esi;
-		pop     ecx;
-		retn;
-	}
-}
-
-static const DWORD CorpseHitFix2_continue_loop2 = 0x48BA0B;
-// same logic as above, for different loop
-static void __declspec(naked) CorpseHitFix2b() {
-	__asm {
-		mov eax, [edx];
-		call FuncOffs::critter_is_dead_;
-		test eax, eax;
-		jz really_end;
-		jmp CorpseHitFix2_continue_loop2;
-
-really_end:
-		mov     eax, [edx];
-		pop     ebp;
-		pop     edi;
-		pop     esi;
-		pop     ecx;
-		retn;
-	}
-}
-
-static DWORD RetryCombatLastAP;
-static DWORD RetryCombatMinAP;
-static void __declspec(naked) RetryCombatHook() {
-	__asm {
-		mov RetryCombatLastAP, 0;
-retry:
-		mov eax, esi;
-		xor edx, edx;
-		call FuncOffs::combat_ai_;
-process:
-		cmp dword ptr ds:[VARPTR_combat_turn_running], 0;
-		jle next;
-		call FuncOffs::process_bk_;
-		jmp process;
-next:
-		mov eax, [esi+0x40];
-		cmp eax, RetryCombatMinAP;
-		jl end;
-		cmp eax, RetryCombatLastAP;
-		je end;
-		mov RetryCombatLastAP, eax;
-		jmp retry;
-end:
-		retn;
-	}
-}
-
-static const DWORD NPCStage6Fix1End = 0x493D16;
-static const DWORD NPCStage6Fix2End = 0x49423A;
-static void __declspec(naked) NPCStage6Fix1() {
-	__asm {
-		mov eax,0xcc;				// set record size to 204 bytes
-		imul eax,edx;				// multiply by number of NPC records in party.txt
-		call FuncOffs::mem_malloc_;			// malloc the necessary memory
-		mov edx,dword ptr ds:[VARPTR_partyMemberMaxCount];	// retrieve number of NPC records in party.txt
-		mov ebx,0xcc;				// set record size to 204 bytes
-		imul ebx,edx;				// multiply by number of NPC records in party.txt
-		jmp NPCStage6Fix1End;			// call memset to set all malloc'ed memory to 0
-	}
-}
-
-static void __declspec(naked) NPCStage6Fix2() {
-	__asm {
-		mov eax,0xcc;				// record size is 204 bytes
-		imul edx,eax;				// multiply by NPC number as listed in party.txt
-		mov eax,dword ptr ds:[VARPTR_partyMemberAIOptions];	// get starting offset of internal NPC table
-		jmp NPCStage6Fix2End;			// eax+edx = offset of specific NPC record
-	}
-}
-
-static const DWORD ScannerHookRet=0x41BC1D;
-static const DWORD ScannerHookFail=0x41BC65;
-static void __declspec(naked) ScannerAutomapHook() {
-	__asm {
-		mov eax, ds:[VARPTR_obj_dude];
-		mov edx, PID_MOTION_SENSOR;
-		call FuncOffs::inven_pid_is_carried_ptr_;
-		test eax, eax;
-		jz fail;
-		mov edx, eax;
-		jmp ScannerHookRet;
-fail:
-		jmp ScannerHookFail;
-	}
-}
-
-static void __declspec(naked) objCanSeeObj_ShootThru_Fix() {//(EAX *objStruct, EDX hexNum1, EBX hexNum2, ECX ?, stack1 **ret_objStruct, stack2 flags)
-	__asm {
-		push esi
-		push edi
-
-		push FuncOffs::obj_shoot_blocking_at_ //arg3 check hex objects func pointer
-		mov esi, 0x20//arg2 flags, 0x20 = check shootthru
-		push esi
-		mov edi, dword ptr ss : [esp + 0x14] //arg1 **ret_objStruct
-		push edi
-		call FuncOffs::make_straight_path_func_;//(EAX *objStruct, EDX hexNum1, EBX hexNum2, ECX ?, stack1 **ret_objStruct, stack2 flags, stack3 *check_hex_objs_func)
-
-		pop edi
-		pop esi
-		ret 0x8
-	}
-}
-
-static void __declspec(naked) wmTownMapFunc_hack() {
-	__asm {
-		cmp  edx, 0x31
-		jl   end
-		cmp  edx, ecx
-		jge  end
-		push edx
-		sub  edx, 0x31
-		lea  eax, ds:0[edx*8]
-		sub  eax, edx
-		pop  edx
-		cmp  dword ptr [edi+eax*4+0x0], 0         // Visited
-		je   end
-		cmp  dword ptr [edi+eax*4+0x4], -1        // Xpos
-		je   end
-		cmp  dword ptr [edi+eax*4+0x8], -1        // Ypos
-		je   end
-		retn
-end:
-		pop  eax                                  // destroy the return address
-		push 0x4C4976
-		retn
-	}
-}
+bool NpcAutoLevelEnabled;
 
 void ApplyScriptExtenderPatches() {
-	//if(GetPrivateProfileIntA("Misc", "ScriptExtender", 0, ini)) {
 	dlog("Applying script extender patch.", DL_INIT);
 	StatsInit();
 	dlog(".", DL_INIT);
@@ -398,6 +96,8 @@ static void DllMain2() {
 	//SafeWrite8(0x4B30C4, 0xc3); //this is the one I need to override for bigger tiles
 	dlogr("In DllMain2", DL_MAIN);
 
+	modules.emplace_back(std::unique_ptr<HeroAppearanceModule>(new HeroAppearanceModule()));
+
 	dlogr("Running BugsInit.", DL_INIT);
 	BugsInit();
 	dlogr(" Done", DL_INIT);
@@ -410,60 +110,7 @@ static void DllMain2() {
 	AmmoModInit();
 	MoviesInit();
 
-	mapName[64] = 0;
-	if (GetPrivateProfileString("Misc", "StartingMap", "", mapName, 64, ini)) {
-		dlog("Applying starting map patch.", DL_INIT);
-		SafeWrite32(0x00480AAA, (DWORD)&mapName);
-		dlogr(" Done", DL_INIT);
-	}
-
-	versionString[64] = 0;
-	if (GetPrivateProfileString("Misc", "VersionString", "", versionString, 64, ini)) {
-		dlog("Applying version string patch.", DL_INIT);
-		SafeWrite32(0x004B4588, (DWORD)&versionString);
-		dlogr(" Done", DL_INIT);
-	}
-
-	configName[64] = 0;
-	if (GetPrivateProfileString("Misc", "ConfigFile", "", configName, 64, ini)) {
-		dlog("Applying config file patch.", DL_INIT);
-		SafeWrite32(0x00444BA5, (DWORD)&configName);
-		SafeWrite32(0x00444BCA, (DWORD)&configName);
-		dlogr(" Done", DL_INIT);
-	}
-
-	patchName[64] = 0;
-	if (GetPrivateProfileString("Misc", "PatchFile", "", patchName, 64, ini)) {
-		dlog("Applying patch file patch.", DL_INIT);
-		SafeWrite32(0x00444323, (DWORD)&patchName);
-		dlogr(" Done", DL_INIT);
-	}
-
-	smModelName[64] = 0;
-	if (GetPrivateProfileString("Misc", "MaleStartModel", "", smModelName, 64, ini)) {
-		dlog("Applying male start model patch.", DL_INIT);
-		SafeWrite32(0x00418B88, (DWORD)&smModelName);
-		dlogr(" Done", DL_INIT);
-	}
-
-	sfModelName[64] = 0;
-	if (GetPrivateProfileString("Misc", "FemaleStartModel", "", sfModelName, 64, ini)) {
-		dlog("Applying female start model patch.", DL_INIT);
-		SafeWrite32(0x00418BAB, (DWORD)&sfModelName);
-		dlogr(" Done", DL_INIT);
-	}
-
-	dmModelName[64] = 0;
-	GetPrivateProfileString("Misc", "MaleDefaultModel", "hmjmps", dmModelName, 64, ini);
-	dlog("Applying male model patch.", DL_INIT);
-	SafeWrite32(0x00418B50, (DWORD)&dmModelName);
-	dlogr(" Done", DL_INIT);
-
-	dfModelName[64] = 0;
-	GetPrivateProfileString("Misc", "FemaleDefaultModel", "hfjmps", dfModelName, 64, ini);
-	dlog("Applying female model patch.", DL_INIT);
-	SafeWrite32(0x00418B6D, (DWORD)&dfModelName);
-	dlogr(" Done", DL_INIT);
+	ApplyPlayerModelPatches();
 
 	ApplyStartingStatePatches();
 
@@ -526,29 +173,11 @@ static void DllMain2() {
 
 	CritInit();
 
-	if (GetPrivateProfileIntA("Misc", "MultiPatches", 0, ini)) {
-		dlog("Applying load multiple patches patch.", DL_INIT);
-		SafeWrite8(0x444354, 0x90); // Change step from 2 to 1
-		SafeWrite8(0x44435C, 0xC4); // Disable check
-		dlogr(" Done", DL_INIT);
-	}
+	ApplyMultiPatchesPatch();
 
-	if (GetPrivateProfileIntA("Misc", "DataLoadOrderPatch", 0, ini)) {
-		dlog("Applying data load order patch.", DL_INIT);
-		MakeCall(0x444259, &game_init_databases_hack1, false);
-		MakeCall(0x4442F1, &game_init_databases_hack2, false);
-		HookCall(0x44436D, &game_init_databases_hook);
-		SafeWrite8(0x4DFAEC, 0x1D); // error correction
-		dlogr(" Done", DL_INIT);
-	}
+	ApplyDataLoadOrderPatch();
 
-	if (GetPrivateProfileInt("Misc", "DisplayKarmaChanges", 0, ini)) {
-		dlog("Applying display karma changes patch.", DL_INIT);
-		GetPrivateProfileString("sfall", "KarmaGain", "You gained %d karma.", KarmaGainMsg, 128, translationIni);
-		GetPrivateProfileString("sfall", "KarmaLoss", "You lost %d karma.", KarmaLossMsg, 128, translationIni);
-		HookCall(0x455A6D, SetGlobalVarWrapper);
-		dlogr(" Done", DL_INIT);
-	}
+	ApplyDisplayKarmaChangesPatch();
 
 	if (GetPrivateProfileInt("Misc", "AlwaysReloadMsgs", 0, ini)) {
 		dlog("Applying always reload messages patch.", DL_INIT);
@@ -557,24 +186,9 @@ static void DllMain2() {
 		dlogr(" Done", DL_INIT);
 	}
 
-	if (GetPrivateProfileInt("Misc", "PlayIdleAnimOnReload", 0, ini)) {
-		dlog("Applying idle anim on reload patch.", DL_INIT);
-		HookCall(0x460B8C, ReloadHook);
-		dlogr(" Done", DL_INIT);
-	}
+	ApplyPlayIdleAnimOnReloadPatch();
 
-	if (GetPrivateProfileInt("Misc", "CorpseLineOfFireFix", 0, ini)) {
-		dlog("Applying corpse line of fire patch.", DL_INIT);
-		MakeCall(0x48B994, CorpseHitFix2, true);
-		MakeCall(0x48BA04, CorpseHitFix2b, true);
-		dlogr(" Done", DL_INIT);
-	}
-
-	if (GetPrivateProfileIntA("Misc", "EnableHeroAppearanceMod", 0, ini)) {
-		dlog("Setting up Appearance Char Screen buttons.", DL_INIT);
-		EnableHeroAppearanceMod();
-		dlogr(" Done", DL_INIT);
-	}
+	ApplyCorpseLineOfFireFix();
 
 	if (GetPrivateProfileIntA("Misc", "SkipOpeningMovies", 0, ini)) {
 		dlog("Blocking opening movies.", DL_INIT);
@@ -584,12 +198,7 @@ static void DllMain2() {
 		dlogr(" Done", DL_INIT);
 	}
 
-	RetryCombatMinAP = GetPrivateProfileIntA("Misc", "NPCsTryToSpendExtraAP", 0, ini);
-	if (RetryCombatMinAP > 0) {
-		dlog("Applying retry combat patch.", DL_INIT);
-		HookCall(0x422B94, &RetryCombatHook);
-		dlogr(" Done", DL_INIT);
-	}
+	ApplyNpcExtraApPatch();
 
 	ApplySkilldexImagesPatch();
 
@@ -664,23 +273,9 @@ static void DllMain2() {
 		dlogr(" Done", DL_INIT);
 	}
 
-	if (tmp = GetPrivateProfileIntA("Sound", "OverrideMusicDir", 0, ini)) {
-		SafeWrite32(0x4449C2, (DWORD)musicOverridePath);
-		SafeWrite32(0x4449DB, (DWORD)musicOverridePath);
-		if (tmp == 2) {
-			SafeWrite32(0x518E78, (DWORD)musicOverridePath);
-			SafeWrite32(0x518E7C, (DWORD)musicOverridePath);
-		}
-	}
+	ApplyOverrideMusicDirPatch();
 
-	if (GetPrivateProfileIntA("Misc", "NPCStage6Fix", 0, ini)) {
-		dlog("Applying NPC Stage 6 Fix.", DL_INIT);
-		MakeCall(0x493CE9, &NPCStage6Fix1, true);
-		SafeWrite8(0x494063, 0x06);		// loop should look for a potential 6th stage
-		SafeWrite8(0x4940BB, 0xCC);		// move pointer by 204 bytes instead of 200
-		MakeCall(0x494224, &NPCStage6Fix2, true);
-		dlogr(" Done", DL_INIT);
-	}
+	ApplyNpcStage6Fix();
 
 	ApplyFashShotTraitFix();
 
@@ -690,25 +285,9 @@ static void DllMain2() {
 	InventoryInit();
 	dlogr(" Done", DL_INIT);
 
-	if (tmp = GetPrivateProfileIntA("Misc", "MotionScannerFlags", 1, ini)) {
-		dlog("Applying MotionScannerFlags patch.", DL_INIT);
-		if (tmp & 1) MakeCall(0x41BBE9, &ScannerAutomapHook, true);
-		if (tmp & 2) BlockCall(0x41BC3C);
-		dlogr(" Done", DL_INIT);
-	}
+	ApplyMotionScannerFlagsPatch();
 
-	tmp = GetPrivateProfileIntA("Misc", "EncounterTableSize", 0, ini);
-	if (tmp > 40 && tmp <= 127) {
-		dlog("Applying EncounterTableSize patch.", DL_INIT);
-		SafeWrite8(0x4BDB17, (BYTE)tmp);
-		DWORD nsize = (tmp + 1) * 180 + 0x50;
-		for (int i = 0; i < sizeof(EncounterTableSize) / 4; i++) {
-			SafeWrite32(EncounterTableSize[i], nsize);
-		}
-		SafeWrite8(0x4BDB17, (BYTE)tmp);
-		dlogr(" Done", DL_INIT);
-	}
-
+	ApplyEncounterTableSizePatch();
 
 	dlog("Initing main menu patches.", DL_INIT);
 	MainMenuInit();
@@ -726,14 +305,7 @@ static void DllMain2() {
 	PartyControlInit();
 	dlogr(" Done", DL_INIT);
 
-	//HookCall(0x413105, explosion_crash_fix_hook);//test for explosives
-	//SafeWrite32(0x413034, (DWORD)&explosion_crash_fix_hook);
-
-	if (GetPrivateProfileIntA("Misc", "ObjCanSeeObj_ShootThru_Fix", 0, ini)) {
-		dlog("Applying ObjCanSeeObj ShootThru Fix.", DL_INIT);
-		SafeWrite32(0x456BC7, (DWORD)&objCanSeeObj_ShootThru_Fix - 0x456BCB);
-		dlogr(" Done", DL_INIT);
-	}
+	ApplyObjCanSeeShootThroughPatch();
 
 	// phobos2077:
 	ComputeSprayModInit();
@@ -757,11 +329,7 @@ static void DllMain2() {
 		dlogr(" Done", DL_INIT);
 	}
 
-	if (GetPrivateProfileIntA("Misc", "TownMapHotkeysFix", 1, ini)) {
-		dlog("Applying town map hotkeys patch.", DL_INIT);
-		MakeCall(0x4C4945, &wmTownMapFunc_hack, false);
-		dlogr(" Done", DL_INIT);
-	}
+	ApplyTownMapsHotkeyFix();
 
 	ApplyInstantWeaponEquipPatch();	
 

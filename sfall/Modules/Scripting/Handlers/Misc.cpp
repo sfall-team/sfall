@@ -31,9 +31,9 @@
 
 #include "Misc.h"
 
-static DWORD dmModelNamePtr=(DWORD)dmModelName;
-static DWORD dfModelNamePtr=(DWORD)dfModelName;
-static DWORD MovieNamesPtr=(DWORD)MoviePaths;
+static DWORD defaultMaleModelNamePtr = (DWORD)DefaultMaleModelName;
+static DWORD defaultFemaleModelNamePtr = (DWORD)DefaultFemaleModelName;
+static DWORD movieNamesPtr = (DWORD)MoviePaths;
 
 
 //// *** End Helios *** ///
@@ -61,7 +61,7 @@ next:
 		mov eax, edi;
 		call FuncOffs::interpretGetString_;
 		push eax;
-		push dmModelNamePtr;
+		push defaultMaleModelNamePtr;
 		call strcpy_p;
 end:
 		pop edi;
@@ -92,7 +92,7 @@ next:
 		mov eax, edi;
 		call FuncOffs::interpretGetString_;
 		push eax;
-		push dfModelNamePtr;
+		push defaultFemaleModelNamePtr;
 		call strcpy_p;
 end:
 		pop edi;
@@ -139,7 +139,7 @@ next:
 		mov eax, esi;
 		mov esi, 65;
 		mul si;
-		add eax, MovieNamesPtr;
+		add eax, movieNamesPtr;
 		push eax;
 		call strcpy_p;
 end:
@@ -573,7 +573,7 @@ static void _stdcall IncNPCLevel4(char* npc) {
 		//SafeWrite32(0x00495C8E, 0x90909090);
 		SafeWrite16(0x00495CEC, 0x9090);	//Check that the npc hasn't already levelled up recently
 		SafeWrite32(0x00495CEE, 0x90909090);
-		if (!npcautolevel) {
+		if (!NpcAutoLevelEnabled) {
 			SafeWrite16(0x00495D22, 0x9090);//Random element
 			SafeWrite32(0x00495D24, 0x90909090);
 		}
@@ -606,7 +606,7 @@ static void _stdcall IncNPCLevel2(char* npc) {
 	//SafeWrite32(0x00495C8E, 0x000001bf);
 	SafeWrite16(0x00495CEC, 0x850f);
 	SafeWrite32(0x00495CEE, 0x00000130);
-	if (!npcautolevel) {
+	if (!NpcAutoLevelEnabled) {
 		SafeWrite16(0x00495D22, 0x8f0f);
 		SafeWrite32(0x00495D24, 0x00000129);
 	}

@@ -24,6 +24,8 @@
 
 class OpcodeContext;
 
+// TODO: rewrite all op_* functions using OpcodeContext
+
 void __declspec() op_set_dm_model();
 
 void __declspec() op_set_df_model();

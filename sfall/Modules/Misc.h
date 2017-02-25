@@ -17,6 +17,8 @@
 */
 #pragma once
 
+extern char DefaultMaleModelName[65];
+extern char DefaultFemaleModelName[65];
 
 void ApplyCombatProcFix();
 
@@ -29,6 +31,8 @@ void ApplyGraphicsPatch();
 void ApplyWorldmapFpsPatch();
 
 void ApplyStartingStatePatches();
+
+void ApplyPlayerModelPatches();
 
 void ApplyWorldLimitsPatches();
 
@@ -57,6 +61,32 @@ void ApplyPathfinderFix();
 void ApplyNumbersInDialoguePatch();
 
 void ApplyInstantWeaponEquipPatch();
+
+void ApplyDataLoadOrderPatch();
+
+void ApplyDisplayKarmaChangesPatch();
+
+void ApplyMultiPatchesPatch();
+
+void ApplyPlayIdleAnimOnReloadPatch();
+
+void ApplyCorpseLineOfFireFix();
+
+void ApplyNpcExtraApPatch();
+
+void ApplyNpcStage6Fix();
+
+void ApplyMotionScannerFlagsPatch();
+
+void ApplyEncounterTableSizePatch();
+
+void ApplyObjCanSeeShootThroughPatch();
+
+void ApplyTownMapsHotkeyFix();
+
+void ApplyOverrideMusicDirPatch();
+
+void ApplyMiscPatches();
 
 void MiscReset();
 
