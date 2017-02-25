@@ -18,6 +18,14 @@
 
 #pragma once
 
+#include "Module.h"
+
+class HeroAppearanceModule : public Module {
+	void Init() override;
+
+	void Exit() override;
+};
+
 WINinfo *GetWinStruct(int WinRef);
 void RedrawWin(int WinRef);
 void PrintText(char *DisplayText, BYTE ColourIndex, DWORD Xpos, DWORD Ypos, DWORD TxtWidth, DWORD ToWidth, BYTE *ToSurface);

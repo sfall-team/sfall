@@ -223,6 +223,9 @@
     <ClInclude Include="FalloutEngine\Wrappers_def.h">
       <Filter>FalloutEngine</Filter>
     </ClInclude>
+    <ClInclude Include="Modules\Module.h">
+      <Filter>Modules</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />

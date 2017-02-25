@@ -210,6 +210,7 @@
     <ClInclude Include="FalloutEngine\Variables.h" />
     <ClInclude Include="FalloutEngine\Wrappers.h" />
     <ClInclude Include="FalloutEngine\Wrappers_def.h" />
+    <ClInclude Include="Modules\Module.h" />
     <ClInclude Include="Modules\AI.h" />
     <ClInclude Include="Modules\AmmoMod.h" />
     <ClInclude Include="Modules\AnimationsAtOnceLimit.h" />
