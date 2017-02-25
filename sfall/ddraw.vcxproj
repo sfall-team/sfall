@@ -215,6 +215,7 @@
     <ClInclude Include="Modules\AmmoMod.h" />
     <ClInclude Include="Modules\AnimationsAtOnceLimit.h" />
     <ClInclude Include="Modules\Misc.h" />
+    <ClInclude Include="Modules\Patches\Worldmap.h" />
     <ClInclude Include="Modules\ScriptExtender.h" />
     <ClInclude Include="Modules\BarBoxes.h" />
     <ClInclude Include="Modules\Books.h" />
@@ -286,6 +287,7 @@
     <ClCompile Include="Modules\AmmoMod.cpp" />
     <ClCompile Include="Modules\AnimationsAtOnceLimit.cpp" />
     <ClCompile Include="Modules\Misc.cpp" />
+    <ClCompile Include="Modules\Patches\Worldmap.cpp" />
     <ClCompile Include="Modules\ScriptExtender.cpp" />
     <ClCompile Include="Modules\BarBoxes.cpp" />
     <ClCompile Include="Modules\Books.cpp" />

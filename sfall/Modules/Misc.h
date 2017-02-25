@@ -28,15 +28,7 @@ void ApplyInputPatch();
 
 void ApplyGraphicsPatch();
 
-void ApplyWorldmapFpsPatch();
-
-void ApplyStartingStatePatches();
-
 void ApplyPlayerModelPatches();
-
-void ApplyWorldLimitsPatches();
-
-void ApplyTimeLimitPatch();
 
 void ApplyDebugModePatch();
 
@@ -55,8 +47,6 @@ void ApplyScienceOnCrittersPatch();
 void ApplyFashShotTraitFix();
 
 void ApplyBoostScriptDialogLimitPatch();
-
-void ApplyPathfinderFix();
 
 void ApplyNumbersInDialoguePatch();
 
@@ -81,8 +71,6 @@ void ApplyMotionScannerFlagsPatch();
 void ApplyEncounterTableSizePatch();
 
 void ApplyObjCanSeeShootThroughPatch();
-
-void ApplyTownMapsHotkeyFix();
 
 void ApplyOverrideMusicDirPatch();
 

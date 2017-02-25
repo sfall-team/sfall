@@ -16,6 +16,9 @@
     <Filter Include="Modules\Scripting\Handlers">
       <UniqueIdentifier>{bd51bc83-6a88-45c3-a4ae-a4a2808281ab}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Modules\Patches">
+      <UniqueIdentifier>{864bba05-5201-4f37-a3de-0e18684c79c7}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="main.h" />
@@ -226,6 +229,9 @@
     <ClInclude Include="Modules\Module.h">
       <Filter>Modules</Filter>
     </ClInclude>
+    <ClInclude Include="Modules\Patches\Worldmap.h">
+      <Filter>Modules\Patches</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
@@ -415,6 +421,9 @@
     </ClCompile>
     <ClCompile Include="Modules\Scripting\Opcodes.cpp">
       <Filter>Modules\Scripting</Filter>
+    </ClCompile>
+    <ClCompile Include="Modules\Patches\Worldmap.cpp">
+      <Filter>Modules\Patches</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
