@@ -58,6 +58,8 @@
 #define _cursor_line                0x664514
 #define _dialog_target              0x518848
 #define _dialog_target_is_party     0x51884C
+#define _dialogue_state             0x518714
+#define _dialogue_switch_mode       0x518718
 #define _drugInfoList               0x5191CC
 #define _edit_win                   0x57060C
 #define _Educated                   0x57082C
@@ -498,6 +500,7 @@ extern const DWORD game_help_;
 extern const DWORD game_set_global_var_;
 extern const DWORD game_time_date_;
 extern const DWORD gdialog_barter_cleanup_tables_;
+extern const DWORD gdialog_barter_pressed_;
 extern const DWORD gdialogDisplayMsg_;
 extern const DWORD gdProcess_;
 extern const DWORD get_input_;

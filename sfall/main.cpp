@@ -79,10 +79,10 @@ char dmModelName[65];
 static char sfModelName[65];
 char dfModelName[65];
 
-static const char* debugLog="LOG";
-static const char* debugGnw="GNW";
+static const char* debugLog = "LOG";
+static const char* debugGnw = "GNW";
 
-static const char* musicOverridePath="data\\sound\\music\\";
+static const char* musicOverridePath = "data\\sound\\music\\";
 
 bool npcautolevel;
 
@@ -159,14 +159,14 @@ end:
 	}
 }
 static void TimerReset() {
-	*((DWORD*)_fallout_game_time)=0;
-	*((DWORD*)_pc_proto + 0x4C)+=13;
+	*((DWORD*)_fallout_game_time) = 0;
+	*((DWORD*)_pc_proto + 0x4C) += 13;
 }
 
-static double TickFrac=0;
-static double MapMulti=1;
-static double MapMulti2=1;
-void _stdcall SetMapMulti(float d) { MapMulti2=d; }
+static double TickFrac = 0;
+static double MapMulti = 1;
+static double MapMulti2 = 1;
+void _stdcall SetMapMulti(float d) { MapMulti2 = d; }
 static __declspec(naked) void PathfinderFix3() {
 	__asm {
 		xor eax, eax;
@@ -174,11 +174,11 @@ static __declspec(naked) void PathfinderFix3() {
 	}
 }
 static DWORD _stdcall PathfinderFix2(DWORD perkLevel, DWORD ticks) {
-	double d = MapMulti*MapMulti2;
-	if(perkLevel==1) d*=0.75;
-	else if(perkLevel==2) d*=0.5;
-	else if(perkLevel==3) d*=0.25;
-	d=((double)ticks)*d + TickFrac;
+	double d = MapMulti * MapMulti2;
+	if (perkLevel == 1) d *= 0.75;
+	else if (perkLevel == 2) d *= 0.5;
+	else if (perkLevel == 3) d *= 0.25;
+	d = ((double)ticks) * d + TickFrac;
 	TickFrac = modf(d, &d);
 	return (DWORD)d;
 }
@@ -249,31 +249,29 @@ tck:
 		jmp get_input_;
 	}
 }
-static void __declspec(naked) WorldMapEncPatch1() {
+
+static DWORD WorldMapEncounterRate;
+static void __declspec(naked) wmWorldMapFunc_hook() {
 	__asm {
-		inc dword ptr ds:[_wmLastRndTime]
-		call wmPartyWalkingStep_;
+		inc  dword ptr ds:[_wmLastRndTime];
+		jmp  wmPartyWalkingStep_;
+	}
+}
+
+static void __declspec(naked) wmRndEncounterOccurred_hack() {
+	__asm {
+		xor  ecx, ecx;
+		cmp  edx, WorldMapEncounterRate;
 		retn;
 	}
 }
-static void __declspec(naked) WorldMapEncPatch2() {
-	__asm {
-		mov dword ptr ds:[_wmLastRndTime], 0;
-		retn;
-	}
-}
-static void __declspec(naked) WorldMapEncPatch3() {
-	__asm {
-		mov eax,ds:[_wmLastRndTime];
-		retn;
-	}
-}
+
 static void __declspec(naked) Combat_p_procFix() {
 	__asm {
 		push eax;
 
-		mov eax,dword ptr ds:[_combat_state];
-		cmp eax,3;
+		mov eax, dword ptr ds:[_combat_state];
+		cmp eax, 3;
 		jnz end_cppf;
 
 		push esi;
@@ -323,21 +321,21 @@ static __int64 wm_perfnext;
 static DWORD WorldMapLoopCount;
 static void WorldMapSpeedPatch3() {
 	RunGlobalScripts3();
-	if(wm_usingperf) {
+	if (wm_usingperf) {
 		__int64 timer;
-		while(true) {
+		while (true) {
 			QueryPerformanceCounter((LARGE_INTEGER*)&timer);
-			if(timer>wm_perfnext) break;
+			if (timer > wm_perfnext) break;
 			Sleep(0);
 		}
-		if(wm_perfnext+wm_perfadd < timer) wm_perfnext = timer+wm_perfadd;
-		else wm_perfnext+=wm_perfadd;
+		if (wm_perfnext + wm_perfadd < timer) wm_perfnext = timer + wm_perfadd;
+		else wm_perfnext += wm_perfadd;
 	} else {
 		DWORD tick;
-		DWORD nexttick=(DWORD)wm_nexttick;
-		while((tick=GetTickCount())<nexttick) Sleep(0);
-		if(nexttick+wm_wait < tick) wm_nexttick = tick + wm_wait;
-		else wm_nexttick+=wm_wait;
+		DWORD nexttick = (DWORD)wm_nexttick;
+		while ((tick = GetTickCount()) < nexttick) Sleep(0);
+		if (nexttick + wm_wait < tick) wm_nexttick = tick + wm_wait;
+		else wm_nexttick += wm_wait;
 	}
 }
 static void __declspec(naked) WorldMapSpeedPatch2() {
@@ -391,7 +389,7 @@ static void __declspec(naked) ViewportHook() {
 	if (h == INVALID_HANDLE_VALUE) return h;
 	while (strlen(data->cFileName) > 12) {
 		int i = FindNextFileA(h, data);
-		if(i == 0) {
+		if (i == 0) {
 			FindClose(h);
 			return INVALID_HANDLE_VALUE;
 		}
@@ -500,8 +498,8 @@ static void _stdcall SetKarma(int value) {
 	}
 	old=value-old;
 	char buf[64];
-	if(old==0) return;
-	if(old>0) {
+	if (old==0) return;
+	if (old > 0) {
 		sprintf_s(buf, KarmaGainMsg, old);
 	} else {
 		sprintf_s(buf, KarmaLossMsg, -old);
@@ -582,7 +580,6 @@ really_end:
 	}
 }
 
-static const DWORD RetryCombatRet=0x422BA9;
 static DWORD RetryCombatLastAP;
 static DWORD RetryCombatMinAP;
 static void __declspec(naked) RetryCombatHook() {
@@ -639,11 +636,11 @@ static DWORD KarmaFrmCount;
 static DWORD* KarmaFrms;
 static int* KarmaPoints;
 static DWORD _stdcall DrawCardHook2() {
-	int rep=**(int**)_game_global_vars;
-	for(DWORD i=0;i<KarmaFrmCount-1;i++) {
-		if(rep < KarmaPoints[i]) return KarmaFrms[i];
+	int rep = **(int**)_game_global_vars;
+	for (DWORD i = 0; i < KarmaFrmCount - 1; i++) {
+		if (rep < KarmaPoints[i]) return KarmaFrms[i];
 	}
-	return KarmaFrms[KarmaFrmCount-1];
+	return KarmaFrms[KarmaFrmCount - 1];
 }
 static void __declspec(naked) DrawCardHook() {
 	__asm {
@@ -676,21 +673,21 @@ static const DWORD NPCStage6Fix1End = 0x493D16;
 static const DWORD NPCStage6Fix2End = 0x49423A;
 static void __declspec(naked) NPCStage6Fix1() {
 	__asm {
-		mov eax,0xcc;				// set record size to 204 bytes
-		imul eax,edx;				// multiply by number of NPC records in party.txt
+		mov eax, 0xcc;				// set record size to 204 bytes
+		imul eax, edx;				// multiply by number of NPC records in party.txt
 		call mem_malloc_;			// malloc the necessary memory
-		mov edx,dword ptr ds:[_partyMemberMaxCount];	// retrieve number of NPC records in party.txt
-		mov ebx,0xcc;				// set record size to 204 bytes
-		imul ebx,edx;				// multiply by number of NPC records in party.txt
+		mov edx, dword ptr ds:[_partyMemberMaxCount];	// retrieve number of NPC records in party.txt
+		mov ebx, 0xcc;				// set record size to 204 bytes
+		imul ebx, edx;				// multiply by number of NPC records in party.txt
 		jmp NPCStage6Fix1End;			// call memset to set all malloc'ed memory to 0
 	}
 }
 
 static void __declspec(naked) NPCStage6Fix2() {
 	__asm {
-		mov eax,0xcc;				// record size is 204 bytes
-		imul edx,eax;				// multiply by NPC number as listed in party.txt
-		mov eax,dword ptr ds:[_partyMemberAIOptions];	// get starting offset of internal NPC table
+		mov eax, 0xcc;				// record size is 204 bytes
+		imul edx, eax;				// multiply by NPC number as listed in party.txt
+		mov eax, dword ptr ds:[_partyMemberAIOptions];	// get starting offset of internal NPC table
 		jmp NPCStage6Fix2End;			// eax+edx = offset of specific NPC record
 	}
 }
@@ -699,14 +696,14 @@ static const DWORD FastShotTraitFixEnd1 = 0x478E7F;
 static const DWORD FastShotTraitFixEnd2 = 0x478E7B;
 static void __declspec(naked) FastShotTraitFix() {
 	__asm {
-		test eax,eax;				// does player have Fast Shot trait?
+		test eax, eax;				// does player have Fast Shot trait?
 		je ajmp;				// skip ahead if no
-		mov edx,ecx;				// argument for item_w_range_: hit_mode
-		mov eax,ebx;				// argument for item_w_range_: pointer to source_obj (always dude_obj due to code path)
+		mov edx, ecx;				// argument for item_w_range_: hit_mode
+		mov eax, ebx;				// argument for item_w_range_: pointer to source_obj (always dude_obj due to code path)
 		call item_w_range_;			// get weapon's range
-		cmp eax,0x2;				// is weapon range less than or equal 2 (i.e. melee/unarmed attack)?
+		cmp eax, 0x2;				// is weapon range less than or equal 2 (i.e. melee/unarmed attack)?
 		jle ajmp;				// skip ahead if yes
-		xor eax,eax;				// otherwise, disallow called shot attempt
+		xor eax, eax;				// otherwise, disallow called shot attempt
 		jmp bjmp;
 ajmp:
 		jmp FastShotTraitFixEnd1;		// continue processing called shot attempt
@@ -720,7 +717,7 @@ static const DWORD ScannerHookFail=0x41BC65;
 static void __declspec(naked) ScannerAutomapHook() {
 	__asm {
 		mov eax, ds:[_obj_dude];
-		mov edx, 59;
+		mov edx, PID_MOTION_SENSOR;
 		call inven_pid_is_carried_ptr_;
 		test eax, eax;
 		jz fail;
@@ -861,15 +858,15 @@ static void DllMain2() {
 		AddrGetTickCount = (DWORD)&FakeGetTickCount;
 		AddrGetLocalTime = (DWORD)&FakeGetLocalTime;
 
-		for(int i=0;i<sizeof(offsetsA)/4;i++) {
+		for (int i = 0; i < sizeof(offsetsA) / 4; i++) {
 			SafeWrite32(offsetsA[i], (DWORD)&AddrGetTickCount);
 		}
 		dlog(".", DL_INIT);
-		for(int i=0;i<sizeof(offsetsB)/4;i++) {
+		for (int i = 0; i < sizeof(offsetsB) / 4; i++) {
 			SafeWrite32(offsetsB[i], (DWORD)&AddrGetTickCount);
 		}
 		dlog(".", DL_INIT);
-		for(int i=0;i<sizeof(offsetsC)/4;i++) {
+		for (int i = 0; i < sizeof(offsetsC) / 4; i++) {
 			SafeWrite32(offsetsC[i], (DWORD)&AddrGetTickCount);
 		}
 		dlog(".", DL_INIT);
@@ -879,24 +876,24 @@ static void DllMain2() {
 		dlogr(" Done", DL_INIT);
 	}
 
-	//if(GetPrivateProfileIntA("Input", "Enable", 0, ini)) {
+	//if (GetPrivateProfileIntA("Input", "Enable", 0, ini)) {
 		dlog("Applying input patch.", DL_INIT);
 		SafeWriteStr(dinputPos, "ddraw.dll");
-		AvailableGlobalScriptTypes|=1;
+		AvailableGlobalScriptTypes |= 1;
 		dlogr(" Done", DL_INIT);
 	//}
 
-	GraphicsMode=GetPrivateProfileIntA("Graphics", "Mode", 0, ini);
-	if(GraphicsMode!=4&&GraphicsMode!=5) GraphicsMode=0;
-	if(GraphicsMode==4||GraphicsMode==5) {
+	GraphicsMode = GetPrivateProfileIntA("Graphics", "Mode", 0, ini);
+	if (GraphicsMode != 4 && GraphicsMode != 5) GraphicsMode = 0;
+	if (GraphicsMode == 4 || GraphicsMode == 5) {
 		dlog("Applying dx9 graphics patch.", DL_INIT);
 #ifdef WIN2K
-		HMODULE h=LoadLibraryEx("d3dx9_42.dll", 0, LOAD_LIBRARY_AS_DATAFILE);
-		if(!h) {
+		HMODULE h = LoadLibraryEx("d3dx9_42.dll", 0, LOAD_LIBRARY_AS_DATAFILE);
+		if (!h) {
 			MessageBoxA(0, "You have selected graphics mode 4 or 5, but d3dx9_42.dll is missing\nSwitch back to mode 0, or install an up to date version of DirectX", "Error", 0);
 #else
-		HMODULE h=LoadLibraryEx("d3dx9_43.dll", 0, LOAD_LIBRARY_AS_DATAFILE);
-		if(!h) {
+		HMODULE h = LoadLibraryEx("d3dx9_43.dll", 0, LOAD_LIBRARY_AS_DATAFILE);
+		if (!h) {
 			MessageBoxA(0, "You have selected graphics mode 4 or 5, but d3dx9_43.dll is missing\nSwitch back to mode 0, or install an up to date version of DirectX", "Error", 0);
 #endif
 			ExitProcess(-1);
@@ -906,209 +903,213 @@ static void DllMain2() {
 		SafeWrite8(0x0050FB6B, '2');
 		dlogr(" Done", DL_INIT);
 	}
-	tmp=GetPrivateProfileIntA("Graphics", "FadeMultiplier", 100, ini);
-	if(tmp!=100) {
+	tmp = GetPrivateProfileIntA("Graphics", "FadeMultiplier", 100, ini);
+	if (tmp != 100) {
 		dlog("Applying fade patch.", DL_INIT);
 		SafeWrite32(0x00493B17, ((DWORD)&FadeHook) - 0x00493B1b);
-		FadeMulti=((double)tmp)/100.0;
+		FadeMulti = ((double)tmp) / 100.0;
 		dlogr(" Done", DL_INIT);
 	}
 
 	AmmoModInit();
 	MoviesInit();
 
-	mapName[64]=0;
-	if(GetPrivateProfileString("Misc", "StartingMap", "", mapName, 64, ini)) {
+	mapName[64] = 0;
+	if (GetPrivateProfileString("Misc", "StartingMap", "", mapName, 64, ini)) {
 		dlog("Applying starting map patch.", DL_INIT);
 		SafeWrite32(0x00480AAA, (DWORD)&mapName);
 		dlogr(" Done", DL_INIT);
 	}
 
-	versionString[64]=0;
-	if(GetPrivateProfileString("Misc", "VersionString", "", versionString, 64, ini)) {
+	versionString[64] = 0;
+	if (GetPrivateProfileString("Misc", "VersionString", "", versionString, 64, ini)) {
 		dlog("Applying version string patch.", DL_INIT);
 		SafeWrite32(0x004B4588, (DWORD)&versionString);
 		dlogr(" Done", DL_INIT);
 	}
 
-	configName[64]=0;
-	if(GetPrivateProfileString("Misc", "ConfigFile", "", configName, 64, ini)) {
+	configName[64] = 0;
+	if (GetPrivateProfileString("Misc", "ConfigFile", "", configName, 64, ini)) {
 		dlog("Applying config file patch.", DL_INIT);
 		SafeWrite32(0x00444BA5, (DWORD)&configName);
 		SafeWrite32(0x00444BCA, (DWORD)&configName);
 		dlogr(" Done", DL_INIT);
 	}
 
-	patchName[64]=0;
-	if(GetPrivateProfileString("Misc", "PatchFile", "", patchName, 64, ini)) {
+	patchName[64] = 0;
+	if (GetPrivateProfileString("Misc", "PatchFile", "", patchName, 64, ini)) {
 		dlog("Applying patch file patch.", DL_INIT);
 		SafeWrite32(0x00444323, (DWORD)&patchName);
 		dlogr(" Done", DL_INIT);
 	}
 
-	smModelName[64]=0;
-	if(GetPrivateProfileString("Misc", "MaleStartModel", "", smModelName, 64, ini)) {
+	smModelName[64] = 0;
+	if (GetPrivateProfileString("Misc", "MaleStartModel", "", smModelName, 64, ini)) {
 		dlog("Applying male start model patch.", DL_INIT);
 		SafeWrite32(0x00418B88, (DWORD)&smModelName);
 		dlogr(" Done", DL_INIT);
 	}
 
-	sfModelName[64]=0;
-	if(GetPrivateProfileString("Misc", "FemaleStartModel", "", sfModelName, 64, ini)) {
+	sfModelName[64] = 0;
+	if (GetPrivateProfileString("Misc", "FemaleStartModel", "", sfModelName, 64, ini)) {
 		dlog("Applying female start model patch.", DL_INIT);
 		SafeWrite32(0x00418BAB, (DWORD)&sfModelName);
 		dlogr(" Done", DL_INIT);
 	}
 
-	dmModelName[64]=0;
+	dmModelName[64] = 0;
 	GetPrivateProfileString("Misc", "MaleDefaultModel", "hmjmps", dmModelName, 64, ini);
 	dlog("Applying male model patch.", DL_INIT);
 	SafeWrite32(0x00418B50, (DWORD)&dmModelName);
 	dlogr(" Done", DL_INIT);
 
-	dfModelName[64]=0;
+	dfModelName[64] = 0;
 	GetPrivateProfileString("Misc", "FemaleDefaultModel", "hfjmps", dfModelName, 64, ini);
 	dlog("Applying female model patch.", DL_INIT);
 	SafeWrite32(0x00418B6D, (DWORD)&dfModelName);
 	dlogr(" Done", DL_INIT);
 
-	int date=GetPrivateProfileInt("Misc", "StartYear", -1, ini);
-	if(date!=-1) {
+	int date = GetPrivateProfileInt("Misc", "StartYear", -1, ini);
+	if (date >= 0) {
 		dlog("Applying starting year patch.", DL_INIT);
 		SafeWrite32(0x4A336C, date);
 		dlogr(" Done", DL_INIT);
 	}
-	date=GetPrivateProfileInt("Misc", "StartMonth", -1, ini);
-	if(date!=-1) {
+
+	date = GetPrivateProfileInt("Misc", "StartMonth", -1, ini);
+	if (date >= 0 && date < 12) {
 		dlog("Applying starting month patch.", DL_INIT);
 		SafeWrite32(0x4A3382, date);
 		dlogr(" Done", DL_INIT);
 	}
-	date=GetPrivateProfileInt("Misc", "StartDay", -1, ini);
-	if(date!=-1) {
+
+	date = GetPrivateProfileInt("Misc", "StartDay", -1, ini);
+	if (date >= 0 && date < 31) {
 		dlog("Applying starting day patch.", DL_INIT);
 		SafeWrite8(0x4A3356, date);
 		dlogr(" Done", DL_INIT);
 	}
 
-	date=GetPrivateProfileInt("Misc", "LocalMapXLimit", 0, ini);
-	if(date) {
+	date = GetPrivateProfileInt("Misc", "LocalMapXLimit", 0, ini);
+	if (date) {
 		dlog("Applying local map x limit patch.", DL_INIT);
-		SafeWrite32(0x004B13B9, date);
-		dlogr(" Done", DL_INIT);
-	}
-	date=GetPrivateProfileInt("Misc", "LocalMapYLimit", 0, ini);
-	if(date) {
-		dlog("Applying local map y limit patch.", DL_INIT);
-		SafeWrite32(0x004B13C7, date);
+		SafeWrite32(0x4B13B9, date);
 		dlogr(" Done", DL_INIT);
 	}
 
-	date=GetPrivateProfileInt("Misc", "StartXPos", -1, ini);
-	if(date!=-1) {
+	date = GetPrivateProfileInt("Misc", "LocalMapYLimit", 0, ini);
+	if (date) {
+		dlog("Applying local map y limit patch.", DL_INIT);
+		SafeWrite32(0x4B13C7, date);
+		dlogr(" Done", DL_INIT);
+	}
+
+	date = GetPrivateProfileInt("Misc", "StartXPos", -1, ini);
+	if (date != -1) {
 		dlog("Applying starting x position patch.", DL_INIT);
 		SafeWrite32(0x4BC990, date);
 		SafeWrite32(0x4BCC08, date);
 		dlogr(" Done", DL_INIT);
 	}
-	date=GetPrivateProfileInt("Misc", "StartYPos", -1, ini);
-	if(date!=-1) {
+
+	date = GetPrivateProfileInt("Misc", "StartYPos", -1, ini);
+	if (date != -1) {
 		dlog("Applying starting y position patch.", DL_INIT);
 		SafeWrite32(0x4BC995, date);
 		SafeWrite32(0x4BCC0D, date);
 		dlogr(" Done", DL_INIT);
 	}
-	ViewportX=GetPrivateProfileInt("Misc", "ViewXPos", -1, ini);
-	if(ViewportX!=-1) {
+
+	ViewportX = GetPrivateProfileInt("Misc", "ViewXPos", -1, ini);
+	if (ViewportX != -1) {
 		dlog("Applying starting x view patch.", DL_INIT);
-		SafeWrite32(0x51DE2C, ViewportX);
-		SafeWrite32(0x004BCF08, (DWORD)&ViewportHook - 0x4BCF0C);
-		dlogr(" Done", DL_INIT);
-	}
-	ViewportY=GetPrivateProfileInt("Misc", "ViewYPos", -1, ini);
-	if(ViewportY!=-1) {
-		dlog("Applying starting y view patch.", DL_INIT);
-		SafeWrite32(0x51DE30, ViewportY);
-		SafeWrite32(0x004BCF08, (DWORD)&ViewportHook - 0x4BCF0C);
+		SafeWrite32(_wmWorldOffsetX, ViewportX);
+		HookCall(0x4BCF07, &ViewportHook);
 		dlogr(" Done", DL_INIT);
 	}
 
-	//if(GetPrivateProfileIntA("Misc", "PathfinderFix", 0, ini)) {
+	ViewportY = GetPrivateProfileInt("Misc", "ViewYPos", -1, ini);
+	if (ViewportY != -1) {
+		dlog("Applying starting y view patch.", DL_INIT);
+		SafeWrite32(_wmWorldOffsetY, ViewportY);
+		HookCall(0x4BCF07, &ViewportHook);
+		dlogr(" Done", DL_INIT);
+	}
+
+	//if (GetPrivateProfileIntA("Misc", "PathfinderFix", 0, ini)) {
 		dlog("Applying pathfinder patch.", DL_INIT);
 		SafeWrite32(0x004C1FF2, ((DWORD)&PathfinderFix3) - 0x004c1ff6);
 		SafeWrite32(0x004C1C79, ((DWORD)&PathfinderFix) - 0x004c1c7d);
-		MapMulti=(double)GetPrivateProfileIntA("Misc", "WorldMapTimeMod", 100, ini)/100.0;
+		MapMulti = (double)GetPrivateProfileIntA("Misc", "WorldMapTimeMod", 100, ini) / 100.0;
 		dlogr(" Done", DL_INIT);
 	//}
 
-	if(GetPrivateProfileInt("Misc", "WorldMapFPSPatch", 0, ini)) {
+	if (GetPrivateProfileInt("Misc", "WorldMapFPSPatch", 0, ini)) {
 		dlog("Applying world map fps patch.", DL_INIT);
-		if(*(DWORD*)0x004BFE5E != 0x8d16) {
+		if (*(DWORD*)0x004BFE5E != 0x8d16) {
 			dlogr(" Failed", DL_INIT);
 		} else {
-			wp_delay=GetPrivateProfileInt("Misc", "WorldMapDelay2", 66, ini);
+			wp_delay = GetPrivateProfileInt("Misc", "WorldMapDelay2", 66, ini);
 			HookCall(0x004BFE5D, worldmap_patch);
 			dlogr(" Done", DL_INIT);
 		}
 	} else {
-		tmp=GetPrivateProfileIntA("Misc", "WorldMapFPS", 0, ini);
-		if(tmp) {
+		tmp = GetPrivateProfileIntA("Misc", "WorldMapFPS", 0, ini);
+		if (tmp) {
 			dlog("Applying world map fps patch.", DL_INIT);
-			if(*((WORD*)0x004CAFB9)==0x0000) {
-				AvailableGlobalScriptTypes|=2;
+			if (*((WORD*)0x004CAFB9) == 0x0000) {
+				AvailableGlobalScriptTypes |= 2;
 				SafeWrite32(0x004BFE5E, ((DWORD)&WorldMapSpeedPatch2) - 0x004BFE62);
-				if(GetPrivateProfileIntA("Misc", "ForceLowResolutionTimer", 0, ini)||!QueryPerformanceFrequency((LARGE_INTEGER*)&wm_perfadd)||wm_perfadd<=1000) {
-					wm_wait=1000.0/(double)tmp;
-					wm_nexttick=GetTickCount();
-					wm_usingperf=false;
+				if (GetPrivateProfileIntA("Misc", "ForceLowResolutionTimer", 0, ini) || !QueryPerformanceFrequency((LARGE_INTEGER*)&wm_perfadd) || wm_perfadd <= 1000) {
+					wm_wait = 1000.0 / (double)tmp;
+					wm_nexttick = GetTickCount();
+					wm_usingperf = false;
 				} else {
-					wm_usingperf=true;
-					wm_perfadd/=tmp;
-					wm_perfnext=0;
+					wm_usingperf = true;
+					wm_perfadd /= tmp;
+					wm_perfnext = 0;
 				}
 			}
 			dlogr(" Done", DL_INIT);
 		} else {
-			tmp=GetPrivateProfileIntA("Misc", "WorldMapDelay", 0, ini);
-			if(tmp) {
-				if(*((WORD*)0x004CAFB9)==0x3d40)
+			tmp = GetPrivateProfileIntA("Misc", "WorldMapDelay", 0, ini);
+			if (tmp) {
+				if (*((WORD*)0x004CAFB9) == 0x3d40)
 					SafeWrite32(0x004CAFBB, tmp);
-				else if(*((WORD*)0x004CAFB9)==0x0000) {
+				else if (*((WORD*)0x004CAFB9) == 0x0000) {
 					SafeWrite32(0x004BFE5E, ((DWORD)&WorldMapSpeedPatch) - 0x004BFE62);
-					WorldMapLoopCount=tmp;
+					WorldMapLoopCount = tmp;
 				}
 			} else {
-				if(*(DWORD*)0x004BFE5E==0x0000d816) {
+				if (*(DWORD*)0x004BFE5E == 0x0000d816) {
 					SafeWrite32(0x004BFE5E, ((DWORD)&WorldMapHook) - 0x004BFE62);
 				}
 			}
 		}
-		if(GetPrivateProfileIntA("Misc", "WorldMapEncounterFix", 0, ini)) {
-			dlog("Applying world map encounter patch.", DL_INIT);
-			SafeWrite32(0x004bfee1, ((DWORD)&WorldMapEncPatch1) - 0x004bfee5);
-			SafeWrite32(0x004c0663, ((DWORD)&WorldMapEncPatch3) - 0x004c0667);//replaces 'call Difference(GetTickCount(), TicksSinceLastEncounter)'
-			SafeWrite16(0x004c0668, GetPrivateProfileIntA("Misc", "WorldMapEncounterRate", 5, ini)); //replaces cmp eax, 0x5dc with cmp eax, <rate>
-			SafeWrite16(0x004c0677, 0xE890); //nop, call relative. Replaces 'mov TicksSinceLastEncounter, ecx'
-			SafeWrite32(0x004c0679, ((DWORD)&WorldMapEncPatch2) - 0x004c067D);
-			SafeWrite8(0x004c232d, 0xb8);	//'mov eax, 0', replaces 'mov eax, GetTickCount()'
-			SafeWrite32(0x004c232e, 0);
-			dlogr(" Done", DL_INIT);
-		}
 	}
 
-	if(GetPrivateProfileIntA("Misc", "DialogueFix", 1, ini)) {
+	if (GetPrivateProfileIntA("Misc", "WorldMapEncounterFix", 0, ini)) {
+		dlog("Applying world map encounter patch.", DL_INIT);
+		WorldMapEncounterRate = GetPrivateProfileIntA("Misc", "WorldMapEncounterRate", 5, ini);
+		SafeWrite32(0x4C232D, 0x01EBC031);        // xor eax, eax; jmps 0x4C2332
+		HookCall(0x4BFEE0, &wmWorldMapFunc_hook);
+		MakeCall(0x4C0667, &wmRndEncounterOccurred_hack, false);
+		dlogr(" Done", DL_INIT);
+	}
+
+	if (GetPrivateProfileIntA("Misc", "DialogueFix", 1, ini)) {
 		dlog("Applying dialogue patch.", DL_INIT);
 		SafeWrite8(0x00446848, 0x31);
 		dlogr(" Done", DL_INIT);
 	}
 
-	if(GetPrivateProfileIntA("Misc", "ExtraKillTypes", 0, ini)) {
+	if (GetPrivateProfileIntA("Misc", "ExtraKillTypes", 0, ini)) {
 		dlog("Applying extra kill types patch.", DL_INIT);
 		KillCounterInit(true);
 		dlogr(" Done", DL_INIT);
 	} else KillCounterInit(false);
 
-	//if(GetPrivateProfileIntA("Misc", "ScriptExtender", 0, ini)) {
+	//if (GetPrivateProfileIntA("Misc", "ScriptExtender", 0, ini)) {
 		dlog("Applying script extender patch.", DL_INIT);
 		StatsInit();
 		dlog(".", DL_INIT);
@@ -1130,7 +1131,7 @@ static void DllMain2() {
 		dlogr(" Done", DL_INIT);
 	//}
 
-	//if(GetPrivateProfileIntA("Misc", "WorldMapCitiesListFix", 0, ini)) {
+	//if (GetPrivateProfileIntA("Misc", "WorldMapCitiesListFix", 0, ini)) {
 		dlog("Applying world map cities list patch.", DL_INIT);
 
 		SafeWrite32(0x004C04BA, ((DWORD)&ScrollCityListHook) - 0x004C04BE);
@@ -1140,33 +1141,33 @@ static void DllMain2() {
 		dlogr(" Done", DL_INIT);
 	//}
 
-	//if(GetPrivateProfileIntA("Misc", "CitiesLimitFix", 0, ini)) {
+	//if (GetPrivateProfileIntA("Misc", "CitiesLimitFix", 0, ini)) {
 		dlog("Applying cities limit patch.", DL_INIT);
-		if(*((BYTE*)0x004BF3BB)!=0xeb) {
-			SafeWrite8(0x004BF3BB, 0xeb);
+		if (*((BYTE*)0x004BF3BB) != 0xEB) {
+			SafeWrite8(0x004BF3BB, 0xEB);
 		}
 		dlogr(" Done", DL_INIT);
 	//}
 
-	tmp=GetPrivateProfileIntA("Misc", "WorldMapSlots", 0, ini);
-	if(tmp&&tmp<128) {
+	tmp = GetPrivateProfileIntA("Misc", "WorldMapSlots", 0, ini);
+	if (tmp && tmp < 128) {
 		dlog("Applying world map slots patch.", DL_INIT);
-		if(tmp<7) tmp=7;
-		mapSlotsScrollMax = (tmp-7)*27;
-		if(tmp<25) SafeWrite32(0x004C21FD, 230 - (tmp-17)*27);
+		if (tmp < 7) tmp = 7;
+		mapSlotsScrollMax = (tmp - 7) * 27;
+		if (tmp < 25) SafeWrite32(0x004C21FD, 230 - (tmp - 17) * 27);
 		else {
 			SafeWrite8(0x004C21FC, 0xC2);
-			SafeWrite32(0x004C21FD, 2 + 27*(tmp-26));
+			SafeWrite32(0x004C21FD, 2 + 27 * (tmp - 26));
 		}
 		dlogr(" Done", DL_INIT);
 	}
 
-	int limit=GetPrivateProfileIntA("Misc", "TimeLimit", 13, ini);
-	if(limit==-2) limit=14;
-	if(limit==-3) {
+	int limit = GetPrivateProfileIntA("Misc", "TimeLimit", 13, ini);
+	if (limit == -2) limit = 14;
+	if (limit == -3) {
 		dlog("Applying time limit patch (-3).", DL_INIT);
-		limit=-1;
-		AddUnarmedStatToGetYear=1;
+		limit = -1;
+		AddUnarmedStatToGetYear = 1;
 
 		SafeWrite32(0x004392F9, ((DWORD)&GetDateWrapper) - 0x004392Fd);
 		SafeWrite32(0x00443809, ((DWORD)&GetDateWrapper) - 0x0044380d);
@@ -1177,9 +1178,9 @@ static void DllMain2() {
 		SafeWrite32(0x004C3CB6, ((DWORD)&GetDateWrapper) - 0x004C3CBa);
 		dlogr(" Done", DL_INIT);
 	}
-	if(limit<=14&&limit>=-1&&limit!=13) {
+	if (limit <= 14 && limit >= -1 && limit != 13) {
 		dlog("Applying time limit patch.", DL_INIT);
-		if(limit==-1) {
+		if (limit == -1) {
 			SafeWrite32(0x004A34Fa, ((DWORD)&TimerReset) - 0x004A34Fe);
 			SafeWrite32(0x004A3552, ((DWORD)&TimerReset) - 0x004A3556);
 
@@ -1206,51 +1207,50 @@ static void DllMain2() {
 		if (tmp) {
 			dlog("Applying debugmode patch.", DL_INIT);
 			//If the player is using an exe with the debug patch already applied, just skip this block without erroring
-			if(*((DWORD*)0x00444A64)!=0x082327e8) {
+			if (*((DWORD*)0x00444A64) != 0x082327e8) {
 				SafeWrite32(0x00444A64, 0x082327e8);
 				SafeWrite32(0x00444A68, 0x0120e900);
 				SafeWrite8(0x00444A6D, 0);
 				SafeWrite32(0x00444A6E, 0x90909090);
 			}
 			SafeWrite8(0x004C6D9B, 0xb8);
-			if (tmp==1) SafeWrite32(0x004C6D9C, (DWORD)debugGnw);
+			if (tmp == 1) SafeWrite32(0x004C6D9C, (DWORD)debugGnw);
 			else SafeWrite32(0x004C6D9C, (DWORD)debugLog);
 			dlogr(" Done", DL_INIT);
 		}
 	}
 
-	npcautolevel=GetPrivateProfileIntA("Misc", "NPCAutoLevel", 0, ini)!=0;
-	if(npcautolevel) {
+	npcautolevel = GetPrivateProfileIntA("Misc", "NPCAutoLevel", 0, ini) != 0;
+	if (npcautolevel) {
 		dlog("Applying npc autolevel patch.", DL_INIT);
-		SafeWrite16(0x00495D22, 0x9090);
-		SafeWrite32(0x00495D24, 0x90909090);
+		SafeWrite8(0x495CFB, 0xEB);               // jmps 0x495D28 (skip random check)
 		dlogr(" Done", DL_INIT);
 	}
 
-	if(GetPrivateProfileIntA("Misc", "SingleCore", 1, ini)) {
+	if (GetPrivateProfileIntA("Misc", "SingleCore", 1, ini)) {
 		dlog("Applying single core patch.", DL_INIT);
-		HANDLE process=GetCurrentProcess();
+		HANDLE process = GetCurrentProcess();
 		SetProcessAffinityMask(process, 1);
 		CloseHandle(process);
 		dlogr(" Done", DL_INIT);
 	}
 
-	if(GetPrivateProfileIntA("Misc", "OverrideArtCacheSize", 0, ini)) {
+	if (GetPrivateProfileIntA("Misc", "OverrideArtCacheSize", 0, ini)) {
 		dlog("Applying override art cache size patch.", DL_INIT);
-		SafeWrite32(0x00418867, 0x90909090);
-		SafeWrite32(0x00418872, 256);
+		SafeWrite32(0x418867, 0x90909090);
+		SafeWrite32(0x418872, 256);
 		dlogr(" Done", DL_INIT);
 	}
 
 	char elevPath[MAX_PATH];
 	GetPrivateProfileString("Misc", "ElevatorsFile", "", elevPath, MAX_PATH, ini);
-	if(strlen(elevPath)>0) {
+	if (strlen(elevPath) > 0) {
 		dlog("Applying elevator patch.", DL_INIT);
 		ElevatorsInit(elevPath);
 		dlogr(" Done", DL_INIT);
 	}
 
-	if(GetPrivateProfileIntA("Misc", "UseFileSystemOverride", 0, ini)) {
+	if (GetPrivateProfileIntA("Misc", "UseFileSystemOverride", 0, ini)) {
 		FileSystemInit();
 	}
 
@@ -1261,7 +1261,7 @@ static void DllMain2() {
 		dlogr(" Done", DL_INIT);
 	}*/
 
-	if(GetPrivateProfileIntA("Misc", "AdditionalWeaponAnims", 0, ini)) {
+	if (GetPrivateProfileIntA("Misc", "AdditionalWeaponAnims", 0, ini)) {
 		dlog("Applying additional weapon animations patch.", DL_INIT);
 		SafeWrite8(0x419320, 0x12);
 		HookCall(0x4194CC, WeaponAnimHook);
@@ -1272,7 +1272,7 @@ static void DllMain2() {
 
 	if (IsDebug && GetPrivateProfileIntA("Debugging", "DontDeleteProtos", 0, ".\\ddraw.ini")) {
 		dlog("Applying permanent protos patch.", DL_INIT);
-		SafeWrite8(0x48007E, 0xeb);
+		SafeWrite8(0x48007E, 0xEB);
 		dlogr(" Done", DL_INIT);
 	}
 
@@ -1294,7 +1294,7 @@ static void DllMain2() {
 		dlogr(" Done", DL_INIT);
 	}
 
-	if(GetPrivateProfileInt("Misc", "DisplayKarmaChanges", 0, ini)) {
+	if (GetPrivateProfileInt("Misc", "DisplayKarmaChanges", 0, ini)) {
 		dlog("Applying display karma changes patch.", DL_INIT);
 		GetPrivateProfileString("sfall", "KarmaGain", "You gained %d karma.", KarmaGainMsg, 128, translationIni);
 		GetPrivateProfileString("sfall", "KarmaLoss", "You lost %d karma.", KarmaLossMsg, 128, translationIni);
@@ -1302,14 +1302,13 @@ static void DllMain2() {
 		dlogr(" Done", DL_INIT);
 	}
 
-	if(GetPrivateProfileInt("Misc", "AlwaysReloadMsgs", 0, ini)) {
+	if (GetPrivateProfileInt("Misc", "AlwaysReloadMsgs", 0, ini)) {
 		dlog("Applying always reload messages patch.", DL_INIT);
-		SafeWrite8(0x4A6B8A, 0xff);
-		SafeWrite32(0x4A6B8B, 0x02eb0074);
+		SafeWrite8(0x4A6B8D, 0x0);
 		dlogr(" Done", DL_INIT);
 	}
 
-	if(GetPrivateProfileInt("Misc", "PlayIdleAnimOnReload", 0, ini)) {
+	if (GetPrivateProfileInt("Misc", "PlayIdleAnimOnReload", 0, ini)) {
 		dlog("Applying idle anim on reload patch.", DL_INIT);
 		HookCall(0x460B8C, ReloadHook);
 		dlogr(" Done", DL_INIT);
@@ -1322,47 +1321,44 @@ static void DllMain2() {
 		dlogr(" Done", DL_INIT);
 	}
 
-	if(GetPrivateProfileIntA("Misc", "EnableHeroAppearanceMod", 0, ini)) {
+	if (GetPrivateProfileIntA("Misc", "EnableHeroAppearanceMod", 0, ini)) {
 		dlog("Setting up Appearance Char Screen buttons.", DL_INIT);
 		EnableHeroAppearanceMod();
 		dlogr(" Done", DL_INIT);
 	}
 
-	if(GetPrivateProfileIntA("Misc", "SkipOpeningMovies", 0, ini)) {
-		dlog("Blocking opening movies.", DL_INIT);
-		BlockCall(0x4809CB);
-		BlockCall(0x4809D4);
-		BlockCall(0x4809E0);
+	if (GetPrivateProfileIntA("Misc", "SkipOpeningMovies", 0, ini)) {
+		dlog("Skipping opening movies.", DL_INIT);
+		SafeWrite16(0x4809C7, 0x1CEB);            // jmps 0x4809E5
 		dlogr(" Done", DL_INIT);
 	}
 
-	RetryCombatMinAP=GetPrivateProfileIntA("Misc", "NPCsTryToSpendExtraAP", 0, ini);
-	if(RetryCombatMinAP) {
+	RetryCombatMinAP = GetPrivateProfileIntA("Misc", "NPCsTryToSpendExtraAP", 0, ini);
+	if (RetryCombatMinAP > 0) {
 		dlog("Applying retry combat patch.", DL_INIT);
 		HookCall(0x422B94, &RetryCombatHook);
 		dlogr(" Done", DL_INIT);
 	}
 
 	dlog("Checking for changed skilldex images.", DL_INIT);
-	tmp=GetPrivateProfileIntA("Misc", "Lockpick", 293, ini);
-	if(tmp!=293) SafeWrite32(0x00518D54, tmp);
-	tmp=GetPrivateProfileIntA("Misc", "Steal", 293, ini);
-	if(tmp!=293) SafeWrite32(0x00518D58, tmp);
-	tmp=GetPrivateProfileIntA("Misc", "Traps", 293, ini);
-	if(tmp!=293) SafeWrite32(0x00518D5C, tmp);
-	tmp=GetPrivateProfileIntA("Misc", "FirstAid", 293, ini);
-	if(tmp!=293) SafeWrite32(0x00518D4C, tmp);
-	tmp=GetPrivateProfileIntA("Misc", "Doctor", 293, ini);
-	if(tmp!=293) SafeWrite32(0x00518D50, tmp);
-	tmp=GetPrivateProfileIntA("Misc", "Science", 293, ini);
-	if(tmp!=293) SafeWrite32(0x00518D60, tmp);
-	tmp=GetPrivateProfileIntA("Misc", "Repair", 293, ini);
-	if(tmp!=293) SafeWrite32(0x00518D64, tmp);
+	tmp = GetPrivateProfileIntA("Misc", "Lockpick", 293, ini);
+	if (tmp != 293) SafeWrite32(0x00518D54, tmp);
+	tmp = GetPrivateProfileIntA("Misc", "Steal", 293, ini);
+	if (tmp != 293) SafeWrite32(0x00518D58, tmp);
+	tmp = GetPrivateProfileIntA("Misc", "Traps", 293, ini);
+	if (tmp != 293) SafeWrite32(0x00518D5C, tmp);
+	tmp = GetPrivateProfileIntA("Misc", "FirstAid", 293, ini);
+	if (tmp != 293) SafeWrite32(0x00518D4C, tmp);
+	tmp = GetPrivateProfileIntA("Misc", "Doctor", 293, ini);
+	if (tmp != 293) SafeWrite32(0x00518D50, tmp);
+	tmp = GetPrivateProfileIntA("Misc", "Science", 293, ini);
+	if (tmp != 293) SafeWrite32(0x00518D60, tmp);
+	tmp = GetPrivateProfileIntA("Misc", "Repair", 293, ini);
+	if (tmp != 293) SafeWrite32(0x00518D64, tmp);
 	dlogr(" Done", DL_INIT);
 
-	if(GetPrivateProfileIntA("Misc", "RemoveWindowRounding", 0, ini)) {
-		SafeWrite32(0x4B8090, 0x90909090);
-		SafeWrite16(0x4B8094, 0x9090);
+	if (GetPrivateProfileIntA("Misc", "RemoveWindowRounding", 0, ini)) {
+		SafeWrite16(0x4B8090, 0x04EB);            // jmps 0x4B8096
 	}
 
 	dlogr("Running TilesInit().", DL_INIT);
@@ -1371,7 +1367,7 @@ static void DllMain2() {
 	dlogr("Applying main menu text patch", DL_INIT);
 	CreditsInit();
 
-	if(GetPrivateProfileIntA("Misc", "UseScrollingQuestsList", 0, ini)) {
+	if (GetPrivateProfileIntA("Misc", "UseScrollingQuestsList", 0, ini)) {
 		dlog("Applying quests list patch ", DL_INIT);
 		QuestListInit();
 		dlogr(" Done", DL_INIT);
@@ -1389,7 +1385,7 @@ static void DllMain2() {
 	dlogr("Running ConsoleInit().", DL_INIT);
 	ConsoleInit();
 
-	if(GetPrivateProfileIntA("Misc", "ExtraSaveSlots", 0, ini)) {
+	if (GetPrivateProfileIntA("Misc", "ExtraSaveSlots", 0, ini)) {
 		dlog("Running EnableSuperSaving()", DL_INIT);
 		EnableSuperSaving();
 		dlogr(" Done", DL_INIT);
@@ -1408,45 +1404,45 @@ static void DllMain2() {
 		break;
 	}
 
-	KarmaFrmCount=GetPrivateProfileIntA("Misc", "KarmaFRMsCount", 0, ini);
-	if(KarmaFrmCount) {
-		KarmaFrms=new DWORD[KarmaFrmCount];
-		KarmaPoints=new int[KarmaFrmCount-1];
+	KarmaFrmCount = GetPrivateProfileIntA("Misc", "KarmaFRMsCount", 0, ini);
+	if (KarmaFrmCount) {
+		KarmaFrms = new DWORD[KarmaFrmCount];
+		KarmaPoints = new int[KarmaFrmCount - 1];
 		dlog("Applying karma frm patch.", DL_INIT);
 		char buf[512];
 		GetPrivateProfileStringA("Misc", "KarmaFRMs", "", buf, 512, ini);
-		char *ptr=buf, *ptr2;
-		for(DWORD i=0;i<KarmaFrmCount-1;i++) {
-			ptr2=strchr(ptr, ',');
-			*ptr2='\0';
-			KarmaFrms[i]=atoi(ptr);
-			ptr=ptr2+1;
+		char *ptr = buf, *ptr2;
+		for (DWORD i = 0; i < KarmaFrmCount - 1; i++) {
+			ptr2 = strchr(ptr, ',');
+			*ptr2 = '\0';
+			KarmaFrms[i] = atoi(ptr);
+			ptr = ptr2 + 1;
 		}
-		KarmaFrms[KarmaFrmCount-1]=atoi(ptr);
+		KarmaFrms[KarmaFrmCount - 1] = atoi(ptr);
 		GetPrivateProfileStringA("Misc", "KarmaPoints", "", buf, 512, ini);
-		ptr=buf;
-		for(DWORD i=0;i<KarmaFrmCount-2;i++) {
-			ptr2=strchr(ptr, ',');
-			*ptr2='\0';
-			KarmaPoints[i]=atoi(ptr);
-			ptr=ptr2+1;
+		ptr = buf;
+		for (DWORD i = 0; i < KarmaFrmCount - 2; i++) {
+			ptr2 = strchr(ptr, ',');
+			*ptr2 = '\0';
+			KarmaPoints[i] = atoi(ptr);
+			ptr = ptr2 + 1;
 		}
-		KarmaPoints[KarmaFrmCount-2]=atoi(ptr);
+		KarmaPoints[KarmaFrmCount - 2] = atoi(ptr);
 		HookCall(0x4367A9, DrawCardHook);
 		dlogr(" Done", DL_INIT);
 	}
 
-	switch(GetPrivateProfileIntA("Misc", "ScienceOnCritters", 0, ini)) {
+	switch (GetPrivateProfileIntA("Misc", "ScienceOnCritters", 0, ini)) {
 	case 1:
 		HookCall(0x41276E, ScienceCritterCheckHook);
 		break;
 	case 2:
-		SafeWrite8(0x41276A, 0xeb);
+		SafeWrite8(0x41276A, 0xEB);
 		break;
 	}
 
-	tmp=GetPrivateProfileIntA("Misc", "SpeedInventoryPCRotation", 166, ini);
-	if(tmp!=166 && tmp<=1000) {
+	tmp = GetPrivateProfileIntA("Misc", "SpeedInventoryPCRotation", 166, ini);
+	if (tmp != 166 && tmp <= 1000) {
 		dlog("Applying SpeedInventoryPCRotation patch.", DL_INIT);
 		SafeWrite32(0x47066B, tmp);
 		dlogr(" Done", DL_INIT);
@@ -1458,41 +1454,40 @@ static void DllMain2() {
 	dlogr("Patching out ereg call.", DL_INIT);
 	BlockCall(0x4425E6);
 
-	tmp=GetPrivateProfileIntA("Misc", "AnimationsAtOnceLimit", 32, ini);
-	if((signed char)tmp>32) {
+	tmp = GetPrivateProfileIntA("Misc", "AnimationsAtOnceLimit", 32, ini);
+	if ((signed char)tmp > 32) {
 		dlog("Applying AnimationsAtOnceLimit patch.", DL_INIT);
 		AnimationsAtOnceInit((signed char)tmp);
 		dlogr(" Done", DL_INIT);
 	}
 
-	if(GetPrivateProfileIntA("Misc", "RemoveCriticalTimelimits", 0, ini)) {
+	if (GetPrivateProfileIntA("Misc", "RemoveCriticalTimelimits", 0, ini)) {
 		dlog("Removing critical time limits.", DL_INIT);
-		SafeWrite8(0x42412B, 0x90);
-		BlockCall(0x42412C);
+		SafeWrite8(0x424118, 0xEB);               // jmps 0x424131
 		SafeWrite16(0x4A3052, 0x9090);
 		SafeWrite16(0x4A3093, 0x9090);
 		dlogr(" Done", DL_INIT);
 	}
 
-	if(tmp=GetPrivateProfileIntA("Sound", "OverrideMusicDir", 0, ini)) {
-		SafeWrite32(0x4449C2, (DWORD)&musicOverridePath);
-		SafeWrite32(0x4449DB, (DWORD)&musicOverridePath);
-		if(tmp==2) {
-			SafeWrite32(0x518E78, (DWORD)&musicOverridePath);
-			SafeWrite32(0x518E7C, (DWORD)&musicOverridePath);
+	if (tmp = GetPrivateProfileIntA("Sound", "OverrideMusicDir", 0, ini)) {
+		SafeWrite32(0x4449C2, (DWORD)musicOverridePath);
+		SafeWrite32(0x4449DB, (DWORD)musicOverridePath);
+		if (tmp == 2) {
+			SafeWrite32(0x518E78, (DWORD)musicOverridePath);
+			SafeWrite32(0x518E7C, (DWORD)musicOverridePath);
 		}
 	}
 
-	if(GetPrivateProfileIntA("Misc", "NPCStage6Fix", 0, ini)) {
+	if (GetPrivateProfileIntA("Misc", "NPCStage6Fix", 0, ini)) {
 		dlog("Applying NPC Stage 6 Fix.", DL_INIT);
 		MakeCall(0x493CE9, &NPCStage6Fix1, true);
-		SafeWrite8(0x494063, 0x06);		// loop should look for a potential 6th stage
-		SafeWrite8(0x4940BB, 0xCC);		// move pointer by 204 bytes instead of 200
+		SafeWrite8(0x494063, 0x06); // loop should look for a potential 6th stage
+		SafeWrite8(0x4940BB, 0xCC); // move pointer by 204 bytes instead of 200
 		MakeCall(0x494224, &NPCStage6Fix2, true);
 		dlogr(" Done", DL_INIT);
 	}
 
-	switch(GetPrivateProfileIntA("Misc", "FastShotFix", 1, ini)) {
+	switch (GetPrivateProfileIntA("Misc", "FastShotFix", 1, ini)) {
 	case 1:
 		dlog("Applying Fast Shot Trait Fix.", DL_INIT);
 		MakeCall(0x478E75, &FastShotTraitFix, true);
@@ -1501,21 +1496,21 @@ static void DllMain2() {
 	case 2:
 		dlog("Applying Fast Shot Trait Fix. (Fallout 1 version)", DL_INIT);
 		SafeWrite16(0x478C9F, 0x9090);
-		for (int i = 0; i < sizeof(FastShotFixF1)/4; i++) {
+		for (int i = 0; i < sizeof(FastShotFixF1) / 4; i++) {
 			HookCall(FastShotFixF1[i], (void*)0x478C7D);
 		}
 		dlogr(" Done", DL_INIT);
 		break;
 	}
 
-	if(GetPrivateProfileIntA("Misc", "BoostScriptDialogLimit", 0, ini)) {
-		const int scriptDialogCount=10000;
+	if (GetPrivateProfileIntA("Misc", "BoostScriptDialogLimit", 0, ini)) {
+		const int scriptDialogCount = 10000;
 		dlog("Applying script dialog limit patch.", DL_INIT);
-		scriptDialog = new int[scriptDialogCount*2]; // Because the msg structure is 8 bytes, not 4.
+		scriptDialog = new int[scriptDialogCount * 2]; // Because the msg structure is 8 bytes, not 4.
 		SafeWrite32(0x4A50E3, scriptDialogCount); // scr_init
 		SafeWrite32(0x4A519F, scriptDialogCount); // scr_game_init
-		SafeWrite32(0x4A534F, scriptDialogCount*8); // scr_message_free
-		for (int i = 0; i < sizeof(script_dialog_msgs)/4; i++) {
+		SafeWrite32(0x4A534F, scriptDialogCount * 8); // scr_message_free
+		for (int i = 0; i < sizeof(script_dialog_msgs) / 4; i++) {
 			SafeWrite32(script_dialog_msgs[i], (DWORD)scriptDialog); // scr_get_dialog_msg_file
 		}
 		dlogr(" Done", DL_INIT);
@@ -1525,20 +1520,21 @@ static void DllMain2() {
 	InventoryInit();
 	dlogr(" Done", DL_INIT);
 
-	if(tmp=GetPrivateProfileIntA("Misc", "MotionScannerFlags", 1, ini)) {
+	if (tmp = GetPrivateProfileIntA("Misc", "MotionScannerFlags", 1, ini)) {
 		dlog("Applying MotionScannerFlags patch.", DL_INIT);
-		if(tmp&1) MakeCall(0x41BBE9, &ScannerAutomapHook, true);
-		if(tmp&2) BlockCall(0x41BC3C);
+		if (tmp & 1) MakeCall(0x41BBE9, &ScannerAutomapHook, true);
+		if (tmp & 2) BlockCall(0x41BC3C);
 		dlogr(" Done", DL_INIT);
 	}
 
-	if (tmp = GetPrivateProfileIntA("Misc", "EncounterTableSize", 0, ini) && tmp <= 127) {
+	tmp = GetPrivateProfileIntA("Misc", "EncounterTableSize", 0, ini);
+	if (tmp > 40 && tmp <= 127) {
 		dlog("Applying EncounterTableSize patch.", DL_INIT);
+		SafeWrite8(0x4BDB17, (BYTE)tmp);
 		DWORD nsize = (tmp + 1) * 180 + 0x50;
-		for (int i = 0; i < sizeof(EncounterTableSize)/4; i++) {
+		for (int i = 0; i < sizeof(EncounterTableSize) / 4; i++) {
 			SafeWrite32(EncounterTableSize[i], nsize);
 		}
-		SafeWrite8(0x4BDB17, (BYTE)tmp);
 		dlogr(" Done", DL_INIT);
 	}
 
@@ -1546,7 +1542,7 @@ static void DllMain2() {
 	MainMenuInit();
 	dlogr(" Done", DL_INIT);
 
-	if(GetPrivateProfileIntA("Misc", "DisablePipboyAlarm", 0, ini)) {
+	if (GetPrivateProfileIntA("Misc", "DisablePipboyAlarm", 0, ini)) {
 		SafeWrite8(0x499518, 0xc3);
 	}
 
@@ -1598,7 +1594,7 @@ static void DllMain2() {
 	if (GetPrivateProfileIntA("Misc", "InstantWeaponEquip", 0, ini)) {
 	//Skip weapon equip/unequip animations
 		dlog("Applying instant weapon equip patch.", DL_INIT);
-		for (int i = 0; i < sizeof(PutAwayWeapon)/4; i++) {
+		for (int i = 0; i < sizeof(PutAwayWeapon) / 4; i++) {
 			SafeWrite8(PutAwayWeapon[i], 0xEB);   // jmps
 		}
 		BlockCall(0x472AD5);                      //
@@ -1647,15 +1643,15 @@ static void __declspec(naked) OnExitFunc() {
 static void CompatModeCheck(HKEY root, const char* filepath, int extra) {
 	HKEY key;
 	char buf[MAX_PATH];
-	DWORD size=MAX_PATH;
+	DWORD size = MAX_PATH;
 	DWORD type;
-	if(!(type=RegOpenKeyEx(root, "Software\\Microsoft\\Windows NT\\CurrentVersion\\AppCompatFlags\\Layers", 0, extra|STANDARD_RIGHTS_READ|KEY_QUERY_VALUE, &key))) {
-		if(!RegQueryValueEx(key, filepath, 0, &type, (BYTE*)buf, &size)) {
-			if(size&&(type==REG_EXPAND_SZ||type==REG_MULTI_SZ||type==REG_SZ)) {
-				if(strstr(buf, "256COLOR")||strstr(buf, "640X480")||strstr(buf, "WIN")) {
+	if (!(type = RegOpenKeyEx(root, "Software\\Microsoft\\Windows NT\\CurrentVersion\\AppCompatFlags\\Layers", 0, extra | STANDARD_RIGHTS_READ | KEY_QUERY_VALUE, &key))) {
+		if (!RegQueryValueEx(key, filepath, 0, &type, (BYTE*)buf, &size)) {
+			if (size && (type == REG_EXPAND_SZ || type == REG_MULTI_SZ || type == REG_SZ)) {
+				if (strstr(buf, "256COLOR") || strstr(buf, "640X480") || strstr(buf, "WIN")) {
 					RegCloseKey(key);
-					/*if(!RegOpenKeyEx(root, "Software\\Microsoft\\Windows NT\\CurrentVersion\\AppCompatFlags\\Layers", 0, extra|KEY_READ|KEY_WRITE, &key)) {
-						if((type=RegDeleteValueA(key, filepath))==ERROR_SUCCESS) {
+					/*if (!RegOpenKeyEx(root, "Software\\Microsoft\\Windows NT\\CurrentVersion\\AppCompatFlags\\Layers", 0, extra|KEY_READ|KEY_WRITE, &key)) {
+						if ((type=RegDeleteValueA(key, filepath))==ERROR_SUCCESS) {
 							MessageBoxA(0, "Fallout was set to run in compatibility mode.\n"
 								"Please restart fallout to ensure it runs correctly.", "Error", 0);
 							RegCloseKey(key);
@@ -1699,39 +1695,39 @@ bool _stdcall DllMain(HANDLE hDllHandle, DWORD dwReason, LPVOID  lpreserved) {
 
 		if (!IsDebug || !GetPrivateProfileIntA("Debugging", "SkipCompatModeCheck", 0, ".\\ddraw.ini")) {
 			int is64bit;
-			typedef int (_stdcall *chk64bitproc)(HANDLE, int*);
-			HMODULE h=LoadLibrary("Kernel32.dll");
+			typedef int (_stdcall * chk64bitproc)(HANDLE, int*);
+			HMODULE h = LoadLibrary("Kernel32.dll");
 			chk64bitproc proc = (chk64bitproc)GetProcAddress(h, "IsWow64Process");
-			if(proc) proc(GetCurrentProcess(), &is64bit);
-			else is64bit=0;
+			if (proc) proc(GetCurrentProcess(), &is64bit);
+			else is64bit = 0;
 			FreeLibrary(h);
 
-			CompatModeCheck(HKEY_CURRENT_USER, filepath, is64bit?KEY_WOW64_64KEY:0);
-			CompatModeCheck(HKEY_LOCAL_MACHINE, filepath, is64bit?KEY_WOW64_64KEY:0);
+			CompatModeCheck(HKEY_CURRENT_USER, filepath, is64bit ? KEY_WOW64_64KEY : 0);
+			CompatModeCheck(HKEY_LOCAL_MACHINE, filepath, is64bit ? KEY_WOW64_64KEY : 0);
 		}
 
 		// ini file override
 		bool cmdlineexists = false;
 		char* cmdline = GetCommandLineA();
 		if (GetPrivateProfileIntA("Main", "UseCommandLine", 0, ".\\ddraw.ini")) {
-			while(cmdline[0]==' ') cmdline++;
-			bool InQuote=false;
-			int count=-1;
+			while (cmdline[0] == ' ') cmdline++;
+			bool InQuote = false;
+			int count = -1;
 
-			while(true) {
+			while (true) {
 				count++;
-				if(cmdline[count]==0) break;;
-				if(cmdline[count]==' '&&!InQuote) break;
-				if(cmdline[count]=='"') {
-					InQuote=!InQuote;
-					if(!InQuote) break;
+				if (cmdline[count] == 0) break;;
+				if (cmdline[count] == ' ' && !InQuote) break;
+				if (cmdline[count] == '"') {
+					InQuote = !InQuote;
+					if (!InQuote) break;
 				}
 			}
-			if(cmdline[count]!=0) {
+			if (cmdline[count] != 0) {
 				count++;
-				while(cmdline[count]==' ') count++;
-				cmdline=&cmdline[count];
-				cmdlineexists=true;
+				while (cmdline[count] == ' ') count++;
+				cmdline = &cmdline[count];
+				cmdlineexists = true;
 			}
 		}
 
@@ -1739,7 +1735,7 @@ bool _stdcall DllMain(HANDLE hDllHandle, DWORD dwReason, LPVOID  lpreserved) {
 			strcpy_s(ini, ".\\");
 			strcat_s(ini, cmdline);
 			HANDLE h = CreateFileA(cmdline, GENERIC_READ, 0, 0, OPEN_EXISTING, 0, 0);
-			if (h!=INVALID_HANDLE_VALUE) CloseHandle(h);
+			if (h != INVALID_HANDLE_VALUE) CloseHandle(h);
 			else {
 				MessageBox(0, "You gave a command line argument to fallout, but it couldn't be matched to a file\n" \
 					"Using default ddraw.ini instead", "Warning", MB_TASKMODAL);

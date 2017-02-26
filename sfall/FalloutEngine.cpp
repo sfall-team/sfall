@@ -23,7 +23,7 @@
 #include "Logging.h"
 
 // global variables
-long* ptr_pc_traits					  = reinterpret_cast<long*>(_pc_trait); // 2 of them
+long* ptr_pc_traits                   = reinterpret_cast<long*>(_pc_trait); // 2 of them
 
 DWORD* ptr_aiInfoList                 = reinterpret_cast<DWORD*>(_aiInfoList);
 DWORD* ptr_ambient_light              = reinterpret_cast<DWORD*>(_ambient_light);
@@ -329,6 +329,7 @@ const DWORD game_help_ = 0x443F74;
 const DWORD game_set_global_var_ = 0x443C98;
 const DWORD game_time_date_ = 0x4A3338;
 const DWORD gdialog_barter_cleanup_tables_ = 0x448660;
+const DWORD gdialog_barter_pressed_ = 0x44A52C;
 const DWORD gdialogDisplayMsg_ = 0x445448;
 const DWORD gdProcess_ = 0x4465C0;
 const DWORD get_input_ = 0x4C8B78;

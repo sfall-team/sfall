@@ -606,6 +606,34 @@ static void __declspec(naked) item_add_mult_hook() {
 	}
 }
 
+static void __declspec(naked) inven_pickup_hook() {
+	__asm {
+		mov  eax, ds:[_i_wid]
+		call GNW_find_
+		mov  ebx, [eax+0x8+0x0]                   // ebx = _i_wid.rect.x
+		mov  ecx, [eax+0x8+0x4]                   // ecx = _i_wid.rect.y
+		mov  eax, 176
+		add  eax, ebx                             // x_start
+		add  ebx, 176+60                          // x_end
+		mov  edx, 37
+		add  edx, ecx                             // y_start
+		add  ecx, 37+100                          // y_end
+		call mouse_click_in_
+		test eax, eax
+		jz   end
+		mov  edx, ds:[_curr_stack]
+		test edx, edx
+		jnz  end
+		cmp  edi, 1006                            // Hands?
+		jae  skip                                 // Yes
+skip:
+		xor  eax, eax
+end:
+		retn
+	}
+}
+
+
 void InventoryInit() {
 	mode=GetPrivateProfileInt("Misc", "CritterInvSizeLimitMode", 0, ini);
 	invenapcost=GetPrivateProfileInt("Misc", "InventoryApCost", 4, ini);
@@ -658,7 +686,7 @@ void InventoryInit() {
 		HookCall(0x4772AA, &item_add_mult_hook);
 	}
 
-//Do not call the 'Move Items' window when using drap and drop to reload weapons in the inventory
+	// Do not call the 'Move Items' window when using drap and drop to reload weapons in the inventory
 	int ReloadReserve = GetPrivateProfileIntA("Misc", "ReloadReserve", 1, ini);
 	if (ReloadReserve >= 0) {
 		SafeWrite32(0x47655F, ReloadReserve);     // mov  eax, ReloadReserve
@@ -666,6 +694,13 @@ void InventoryInit() {
 		SafeWrite16(0x476567, 0xC129);            // sub  ecx, eax
 		SafeWrite8(0x476569, 0x91);               // xchg ecx, eax
 	};
+
+	// Move items out of bag/backpack and back into the main inventory list by dragging them to character's image
+	// (similar to Fallout 1 behavior)
+	HookCall(0x471457, &inven_pickup_hook);
+
+	// Move items to player's main inventory instead of the opened bag/backpack when confirming a trade
+	SafeWrite32(0x475CF2, _stack);
 }
 void InventoryReset() {
 	invenapcost=GetPrivateProfileInt("Misc", "InventoryApCost", 4, ini);

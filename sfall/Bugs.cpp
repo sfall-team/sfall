@@ -839,6 +839,95 @@ end:
 	}
 }
 
+static void __declspec(naked) gdActivateBarter_hook() {
+	__asm {
+		call gdialog_barter_pressed_
+		cmp  ds:[_dialogue_state], ecx
+		jne  skip
+		cmp  ds:[_dialogue_switch_mode], esi
+		je   end
+skip:
+		push ecx
+		push esi
+		push edi
+		push ebp
+		sub  esp, 0x18
+		push 0x44A5CC
+end:
+		retn
+	}
+}
+
+static void __declspec(naked) switch_hand_hack() {
+	__asm {
+		mov  eax, ds:[_inven_dude]
+		push eax
+		mov  [edi], ebp
+		inc  ecx
+		jz   skip
+		xor  ebx, ebx
+		inc  ebx
+		mov  edx, ebp
+		call item_remove_mult_
+skip:
+		pop  edx
+		mov  eax, ebp
+		call item_get_type_
+		cmp  eax, item_type_container
+		jne  end
+		mov  [ebp+0x7C], edx                      // iobj.owner = _inven_dude
+end:
+		pop  ebp
+		pop  edi
+		pop  esi
+		retn
+	}
+}
+
+static void __declspec(naked) inven_item_wearing() {
+	__asm {
+		mov  esi, ds:[_inven_dude]
+		xchg ebx, eax                             // ebx = source
+		mov  eax, [esi+0x20]
+		and  eax, 0xF000000
+		sar  eax, 0x18
+		test eax, eax                             // check if object FID type flag is set to item
+		jnz  skip                                 // No
+		mov  eax, esi
+		call item_get_type_
+		cmp  eax, item_type_container             // Bag/Backpack?
+		jne  skip                                 // No
+		mov  eax, esi
+		call obj_top_environment_
+		test eax, eax                             // has an owner?
+		jz   skip                                 // No
+		mov  ecx, [eax+0x20]
+		and  ecx, 0xF000000
+		sar  ecx, 0x18
+		cmp  ecx, OBJ_TYPE_CRITTER                // check if object FID type flag is set to critter
+		jne  skip                                 // No
+		cmp  eax, ebx                             // the owner of the bag == source?
+		je   end                                  // Yes
+skip:
+		xchg ebx, eax
+		cmp  eax, esi
+end:
+		retn
+	}
+}
+
+static void __declspec(naked) inven_action_cursor_hack() {
+	__asm {
+		cmp  dword ptr [esp+0x44+0x4], item_type_container
+		jne  end
+		cmp  eax, ds:[_stack]
+		je   end
+		cmp  eax, ds:[_target_stack]
+end:
+		retn
+	}
+}
+
 
 void BugsInit()
 {
@@ -1070,9 +1159,33 @@ void BugsInit()
 		dlogr(" Done", DL_INIT);
 	//}
 
-	//if (GetPrivateProfileIntA("Misc", "PrintToFileFix", 0, ini)) {
+	//if (GetPrivateProfileIntA("Misc", "PrintToFileFix", 1, ini)) {
 		dlog("Applying print to file fix.", DL_INIT);
 		MakeCall(0x4C67D4, &db_get_file_list_hack, false);
 		dlogr(" Done", DL_INIT);
+	//}
+
+	// Fix for display issues when calling gdialog_mod_barter with critters with no "Barter" flag set
+	//if (GetPrivateProfileIntA("Misc", "gdBarterDispFix", 1, ini)) {
+		dlog("Applying gdialog_mod_barter display fix.", DL_INIT);
+		HookCall(0x448250, &gdActivateBarter_hook);
+		dlogr(" Done", DL_INIT);
+	//}
+
+	//if (GetPrivateProfileIntA("Misc", "BagBackpackFix", 1, ini)) {
+		// Fix for items disappearing from inventory when you try to drag them to bag/backpack in the inventory list
+		// and are overloaded
+		HookCall(0x4764FC, (void*)item_add_force_);
+		// Fix for the engine not checking player's inventory properly when putting items into the bag/backpack in the hands
+		MakeCall(0x4715DB, &switch_hand_hack, true);
+		// Fix to ignore player's equipped items when opening bag/backpack
+		MakeCall(0x471B7F, &inven_item_wearing, false); // inven_right_hand_
+		SafeWrite8(0x471B84, 0x90); // nop
+		MakeCall(0x471BCB, &inven_item_wearing, false); // inven_left_hand_
+		SafeWrite8(0x471BD0, 0x90); // nop
+		MakeCall(0x471C17, &inven_item_wearing, false); // inven_worn_
+		SafeWrite8(0x471C1C, 0x90); // nop
+		// Fix crash when trying to open bag/backpack on the table in the bartering interface
+		MakeCall(0x473191, &inven_action_cursor_hack, false);
 	//}
 }
