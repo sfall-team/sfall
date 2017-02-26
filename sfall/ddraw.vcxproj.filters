@@ -4,9 +4,6 @@
     <Filter Include="Modules">
       <UniqueIdentifier>{4851975c-0bb8-4a32-8e2c-5e688aa2db5b}</UniqueIdentifier>
     </Filter>
-    <Filter Include="win9x">
-      <UniqueIdentifier>{07dcfbfe-dd6b-4b88-8b9e-c512c333406a}</UniqueIdentifier>
-    </Filter>
     <Filter Include="FalloutEngine">
       <UniqueIdentifier>{1b253470-d2b8-4cba-bf4b-56cfda37b152}</UniqueIdentifier>
     </Filter>
@@ -105,9 +102,6 @@
     </ClInclude>
     <ClInclude Include="Modules\Tiles.h">
       <Filter>Modules</Filter>
-    </ClInclude>
-    <ClInclude Include="win9x\Cpp11_emu.h">
-      <Filter>win9x</Filter>
     </ClInclude>
     <ClInclude Include="resource.h" />
     <ClInclude Include="Logging.h" />

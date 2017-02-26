@@ -68,9 +68,6 @@
 
 #include "Logging.h"
 #include "Version.h"
-#if (_MSC_VER < 1600)
-#include "Cpp11_emu.h"
-#endif
 
 bool IsDebug = false;
 

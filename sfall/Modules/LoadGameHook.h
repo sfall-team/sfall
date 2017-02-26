@@ -20,11 +20,17 @@
 
 #include "Module.h"
 
-// #include "..\Delegate.h"
+#include "..\Delegate.h"
 
 class LoadGameHook : public Module {
+public:
 	const char* name() { return "LoadGameHook"; }
 	void init();
+
+	static Delegate<> OnBeforeLoadGame;
+	static Delegate<> OnAfterLoadGame;
+	static Delegate<> OnAfterNewGame;
+	static Delegate<> OnGameStart;
 };
 
 DWORD InWorldMap();

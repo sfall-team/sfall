@@ -29,10 +29,6 @@
 #include "..\FalloutEngine\Fallout2.h"
 #include "PartyControl.h"
 
-#if (_MSC_VER < 1600)
-#include "..\win9x\Cpp11_emu.h"
-#endif
-
 static DWORD Mode;
 static int IsControllingNPC = 0;
 static std::vector<WORD> Chars;

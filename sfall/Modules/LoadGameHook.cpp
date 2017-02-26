@@ -44,8 +44,10 @@
 #include "Sound.h"
 #include "ExtraSaveSlots.h"
 
-static Delegate<> OnBeforeLoadGame;
-//static Delegate OnAfterLoadGame;
+Delegate<> LoadGameHook::OnBeforeLoadGame;
+Delegate<> LoadGameHook::OnAfterLoadGame;
+Delegate<> LoadGameHook::OnAfterNewGame;
+Delegate<> LoadGameHook::OnGameStart;
 
 #define MAX_GLOBAL_SIZE (MaxGlobalVars * 12 + 4)
 
@@ -164,6 +166,7 @@ end:
 
 // should be called before savegame is loaded
 static void _stdcall LoadGame2_Before() {
+	LoadGameHook::OnBeforeLoadGame.invoke();
 	ResetState(1);
 	
 	char buf[MAX_PATH];
@@ -191,6 +194,9 @@ static void _stdcall LoadGame2_After() {
 	LoadGlobalScripts();
 	CritLoad();
 	LoadHeroAppearance();
+
+	LoadGameHook::OnAfterLoadGame.invoke();
+	LoadGameHook::OnGameStart.invoke();
 }
 
 static void __declspec(naked) LoadSlot() {
@@ -225,6 +231,9 @@ end:
 }
 
 static void NewGame2() {
+	LoadGameHook::OnAfterNewGame.invoke();
+	LoadGameHook::OnGameStart.invoke();
+
 	ResetState(0);
 
 	dlogr("Starting new game", DL_MAIN);
@@ -262,7 +271,7 @@ static void ReadExtraGameMsgFilesIfNeeded() {
 }
 
 static bool PipBoyAvailableAtGameStart = false;
-static void __declspec(naked) MainMenu() {
+static void __declspec(naked) MainMenuHook() {
 	__asm {
 		pushad;
 		push 0;
@@ -455,7 +464,7 @@ void LoadGameHook::init() {
 	HookCall(0x443B1C, SaveGame);
 	HookCall(0x48FCFF, SaveGame);
 	
-	HookCall(0x480A28, MainMenu);
+	HookCall(0x480A28, MainMenuHook);
 
 	HookCall(0x483668, WorldMapHook);
 	HookCall(0x4A4073, WorldMapHook);
