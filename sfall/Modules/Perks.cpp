@@ -997,7 +997,7 @@ void _stdcall SetPerkDesc(int id, char* value) {
 	Perks[id].Desc = &Desc[1024 * id];
 }
 
-void PerksInit() {
+void Perks::init() {
 	for (int i = STAT_st; i <= STAT_lu; i++) SafeWrite8(GainStatPerks[i][0], (BYTE)GainStatPerks[i][1]);
 
 	HookCall(0x442729, &PerkInitWrapper);

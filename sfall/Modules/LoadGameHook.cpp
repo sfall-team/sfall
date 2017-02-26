@@ -41,7 +41,7 @@
 #include "Scripting\Arrays.h"
 #include "Skills.h"
 #include "Sound.h"
-#include "SuperSave.h"
+#include "ExtraSaveSlots.h"
 
 //static Delegate OnBeforeLoadGame;
 //static Delegate OnAfterLoadGame;
@@ -422,7 +422,7 @@ static void __declspec(naked) AutomapHook() {
 	}
 }
 
-void LoadGameHookInit() {
+void LoadGameHook::init() {
 	SaveInCombatFix = GetPrivateProfileInt("Misc", "SaveInCombatFix", 1, ini);
 	if (SaveInCombatFix > 2) SaveInCombatFix = 0;
 	GetPrivateProfileString("sfall", "SaveInCombat", "Cannot save at this time", SaveFailMsg, 128, translationIni);

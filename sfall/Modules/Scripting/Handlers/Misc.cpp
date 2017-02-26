@@ -25,6 +25,7 @@
 #include "..\..\Knockback.h"
 #include "..\..\MiscPatches.h"
 #include "..\..\Movies.h"
+#include "..\..\PlayerModel.h"
 #include "..\..\ScriptExtender.h"
 #include "..\..\Stats.h"
 #include "..\OpcodeContext.h"

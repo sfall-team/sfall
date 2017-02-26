@@ -217,14 +217,15 @@
     <ClInclude Include="Modules\AmmoMod.h" />
     <ClInclude Include="Modules\AnimationsAtOnceLimit.h" />
     <ClInclude Include="Modules\MiscPatches.h" />
-    <ClInclude Include="Modules\Patches\Karma.h" />
-    <ClInclude Include="Modules\Patches\LoadOrder.h" />
-    <ClInclude Include="Modules\Patches\SpeedPatch.h" />
-    <ClInclude Include="Modules\Patches\Worldmap.h" />
+    <ClInclude Include="Modules\Karma.h" />
+    <ClInclude Include="Modules\LoadOrder.h" />
+    <ClInclude Include="Modules\PlayerModel.h" />
+    <ClInclude Include="Modules\SpeedPatch.h" />
+    <ClInclude Include="Modules\Worldmap.h" />
     <ClInclude Include="Modules\ScriptExtender.h" />
     <ClInclude Include="Modules\BarBoxes.h" />
     <ClInclude Include="Modules\Books.h" />
-    <ClInclude Include="Modules\Bugs.h" />
+    <ClInclude Include="Modules\BugFixes.h" />
     <ClInclude Include="Modules\BurstMods.h" />
     <ClInclude Include="Modules\Console.h" />
     <ClInclude Include="Modules\Scripting\Handlers\Anims.h" />
@@ -256,7 +257,7 @@
     <ClInclude Include="Modules\Explosions.h" />
     <ClInclude Include="Modules\FileSystem.h" />
     <ClInclude Include="Modules\Graphics.h" />
-    <ClInclude Include="Modules\Heads.h" />
+    <ClInclude Include="Modules\TalkingHeads.h" />
     <ClInclude Include="Modules\HeroAppearance.h" />
     <ClInclude Include="Modules\HookScripts.h" />
     <ClInclude Include="InputFuncs.h" />
@@ -278,11 +279,10 @@
     <ClInclude Include="Modules\Sound.h" />
     <ClInclude Include="Modules\Stats.h" />
     <ClInclude Include="Modules\Tiles.h" />
-    <ClInclude Include="Modules\Timer.h" />
     <ClInclude Include="Version.h" />
     <ClInclude Include="Logging.h" />
     <ClInclude Include="resource.h" />
-    <ClInclude Include="Modules\SuperSave.h" />
+    <ClInclude Include="Modules\ExtraSaveSlots.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="FalloutEngine\Functions.cpp" />
@@ -294,14 +294,15 @@
     <ClCompile Include="Modules\AmmoMod.cpp" />
     <ClCompile Include="Modules\AnimationsAtOnceLimit.cpp" />
     <ClCompile Include="Modules\MiscPatches.cpp" />
-    <ClCompile Include="Modules\Patches\Karma.cpp" />
-    <ClCompile Include="Modules\Patches\LoadOrder.cpp" />
-    <ClCompile Include="Modules\Patches\SpeedPatch.cpp" />
-    <ClCompile Include="Modules\Patches\Worldmap.cpp" />
+    <ClCompile Include="Modules\Karma.cpp" />
+    <ClCompile Include="Modules\LoadOrder.cpp" />
+    <ClCompile Include="Modules\PlayerModel.cpp" />
+    <ClCompile Include="Modules\SpeedPatch.cpp" />
+    <ClCompile Include="Modules\Worldmap.cpp" />
     <ClCompile Include="Modules\ScriptExtender.cpp" />
     <ClCompile Include="Modules\BarBoxes.cpp" />
     <ClCompile Include="Modules\Books.cpp" />
-    <ClCompile Include="Modules\Bugs.cpp" />
+    <ClCompile Include="Modules\BugFixes.cpp" />
     <ClCompile Include="Modules\BurstMods.cpp" />
     <ClCompile Include="Modules\Console.cpp" />
     <ClCompile Include="Modules\CRC.cpp" />
@@ -314,7 +315,7 @@
     <ClCompile Include="Modules\Elevators.cpp" />
     <ClCompile Include="Modules\Explosions.cpp" />
     <ClCompile Include="Modules\FileSystem.cpp" />
-    <ClCompile Include="Modules\Heads.cpp" />
+    <ClCompile Include="Modules\TalkingHeads.cpp" />
     <ClCompile Include="Modules\HeroAppearance.cpp" />
     <ClCompile Include="Modules\HookScripts.cpp" />
     <ClCompile Include="Modules\Inventory.cpp" />
@@ -353,9 +354,8 @@
     <ClCompile Include="Modules\Sound.cpp" />
     <ClCompile Include="Modules\Stats.cpp" />
     <ClCompile Include="Modules\Tiles.cpp" />
-    <ClCompile Include="Modules\Timer.cpp" />
     <ClCompile Include="Logging.cpp" />
-    <ClCompile Include="Modules\SuperSave.cpp" />
+    <ClCompile Include="Modules\ExtraSaveSlots.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="exports.def" />

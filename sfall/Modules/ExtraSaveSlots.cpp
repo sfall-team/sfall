@@ -21,7 +21,7 @@
 #include <stdio.h>
 #include "..\FalloutEngine\Fallout2.h"
 #include "HeroAppearance.h"
-#include "SuperSave.h"
+#include "ExtraSaveSlots.h"
 
 //extern
 DWORD LSPageOffset = 0;
@@ -586,4 +586,12 @@ void EnableSuperSaving() {
 	SafeWrite8(0x47E756, 0xE8);
 	SafeWrite32(0x47E757, (DWORD)&AddPageOffset03 - 0x47E75B);
 
+}
+
+void ExtraSaveSlots::init() {
+	if (GetPrivateProfileIntA("Misc", "ExtraSaveSlots", 0, ini)) {
+		dlog("Running EnableSuperSaving()", DL_INIT);
+		EnableSuperSaving();
+		dlogr(" Done", DL_INIT);
+	}
 }

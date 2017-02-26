@@ -18,5 +18,11 @@
 
 #pragma once
 
-void KillCounterInit(bool use);
+#include "Module.h"
+
+class KillCounter : public Module {
+	const char* name() { return "KillCounter"; }
+	void init();
+};
+
 bool UsingExtraKillTypes();

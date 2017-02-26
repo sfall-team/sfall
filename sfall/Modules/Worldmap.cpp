@@ -18,9 +18,9 @@
 
 #include <math.h>
 
-#include "..\..\main.h"
-#include "..\..\FalloutEngine\Fallout2.h"
-#include "..\ScriptExtender.h"
+#include "..\main.h"
+#include "..\FalloutEngine\Fallout2.h"
+#include "ScriptExtender.h"
 
 #include "Worldmap.h"
 
@@ -478,4 +478,13 @@ void ApplyStartingStatePatches() {
 		HookCall(0x4BCF07, &ViewportHook);
 		dlogr(" Done", DL_INIT);
 	}
+}
+
+void Worldmap::init() {
+	ApplyPathfinderFix();
+	ApplyStartingStatePatches();
+	ApplyTimeLimitPatch();
+	ApplyTownMapsHotkeyFix();
+	ApplyWorldLimitsPatches();
+	ApplyWorldmapFpsPatch();
 }

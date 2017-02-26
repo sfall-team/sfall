@@ -532,7 +532,7 @@ less:
 	}
 }
 
-void MoviesInit() {
+void Movies::init() {
 	dlog("Applying movie patch.", DL_INIT);
 	if (*((DWORD*)0x00518DA0) != 0x00503300) {
 		dlog("Error!", DL_INIT);

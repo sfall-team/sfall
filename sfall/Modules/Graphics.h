@@ -18,6 +18,13 @@
 
 #pragma once
 
+#include "Module.h"
+
+class Graphics : public Module {
+	const char* name() { return "Graphics"; }
+	void init();
+};
+
 extern DWORD GraphicsMode;
 void graphics_OnGameLoad();
 

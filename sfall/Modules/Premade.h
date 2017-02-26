@@ -16,4 +16,9 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-void PremadeInit();
+#include "Module.h"
+
+class Premade : public Module {
+	const char* name() { return "Premade"; }
+	void init();
+};

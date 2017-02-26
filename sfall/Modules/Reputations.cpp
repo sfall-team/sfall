@@ -18,6 +18,8 @@
 
 #include "..\main.h"
 
+#include "Reputations.h"
+
 struct CityRep {
 	DWORD globalID;
 	DWORD cityID;
@@ -25,7 +27,7 @@ struct CityRep {
 
 static CityRep* repList;
 
-void ReputationsInit() {
+void Reputations::init() {
 	int count;
 	if (count = GetPrivateProfileIntA("Misc", "CityRepsCount", 0, ini)) {
 		repList = new CityRep[count];

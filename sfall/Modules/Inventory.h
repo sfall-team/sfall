@@ -18,7 +18,16 @@
 
 #pragma once
 
+#include "Module.h"
+
+class Inventory : public Module {
+	const char* name() { return "Inventory"; }
+	void init();
+};
+
 void _stdcall SetInvenApCost(int a);
-void InventoryInit();
+
+// TODO: move
 void InventoryReset();
+// TODO: move
 void InventoryKeyPressedHook(DWORD dxKey, bool pressed, DWORD vKey);

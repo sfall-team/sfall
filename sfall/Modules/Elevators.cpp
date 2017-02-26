@@ -147,3 +147,12 @@ void ElevatorsInit(char* file) {
 	HookCall(0x43F1E4, GetNumButtonsHook3);
 	ResetElevators();
 }
+
+void Elevators::init() {
+	char elevPath[MAX_PATH];
+	GetPrivateProfileString("Misc", "ElevatorsFile", "", elevPath, MAX_PATH, ini);
+	if (strlen(elevPath) > 0) {
+		dlogr("Applying elevator patch.", DL_INIT);
+		ElevatorsInit(elevPath);
+	}
+}

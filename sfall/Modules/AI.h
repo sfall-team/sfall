@@ -16,7 +16,14 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-void AIInit();
+#include "Module.h"
+
+class AI : public Module {
+	const char* name() { return "AI"; }
+	void init();
+};
+
+// TODO: use subscription instead
 void _stdcall AICombatStart();
 void _stdcall AICombatEnd();
 

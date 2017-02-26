@@ -740,3 +740,9 @@ void _stdcall FSresize(DWORD id, DWORD size) {
 	files[id].wpos = 0;
 	delete[] buf;
 }
+
+void FileSystem::init() {
+	if (GetPrivateProfileIntA("Misc", "UseFileSystemOverride", 0, ini)) {
+		FileSystemInit();
+	}
+}

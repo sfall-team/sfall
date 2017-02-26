@@ -18,4 +18,10 @@
 
 #pragma once
 
-void ApplySpeedPatch();
+#include "Module.h"
+
+class Worldmap : public Module {
+	const char* name() { return "Worldmap"; }
+	void init();
+};
+

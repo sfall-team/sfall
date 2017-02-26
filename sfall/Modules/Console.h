@@ -18,6 +18,12 @@
 
 #pragma once
 
-void ConsoleExit();
-void ConsoleInit();
+#include "Module.h"
+
+class Console : public Module {
+	const char* name() { return "Console"; }
+	void init();
+	void exit() override;
+};
+
 //void DisplayAlertPopup(const char* msg, const char* line2);

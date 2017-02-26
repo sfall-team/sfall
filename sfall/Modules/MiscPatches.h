@@ -17,8 +17,13 @@
 */
 #pragma once
 
-extern char DefaultMaleModelName[65];
-extern char DefaultFemaleModelName[65];
+#include "Module.h"
+
+class MiscPatches : public Module {
+	const char* name() { return "MiscPatches"; }
+	void init();
+	void exit() override;
+};
 
 extern bool NpcAutoLevelEnabled;
 
@@ -27,8 +32,6 @@ void ApplyCombatProcFix();
 void ApplyInputPatch();
 
 void ApplyGraphicsPatch();
-
-void ApplyPlayerModelPatches();
 
 void ApplyDebugModePatch();
 
@@ -67,9 +70,5 @@ void ApplyEncounterTableSizePatch();
 void ApplyObjCanSeeShootThroughPatch();
 
 void ApplyOverrideMusicDirPatch();
-
-void ApplyMiscPatches();
-
-void MiscReset();
 
 void _stdcall SetMapMulti(float d);

@@ -104,7 +104,7 @@ void _stdcall AIBlockCombat(DWORD i) {
 	else CombatDisabled=0;
 }
 
-void AIInit() {
+void AI::init() {
 	//HookCall(0x42AE1D, ai_attack_hook);
 	//HookCall(0x42AE5C, ai_attack_hook);
 	HookCall(0x426A95, combat_attack_hook);

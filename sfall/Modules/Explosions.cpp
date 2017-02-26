@@ -20,7 +20,10 @@
 
 #include "..\FalloutEngine\Fallout2.h"
 #include "..\Logging.h"
+#include "..\SimplePatch.h"
 #include "ScriptExtender.h"
+
+#include "Explosions.h"
 
 static bool lightingEnabled = false;
 
@@ -208,7 +211,7 @@ void ResetExplosionSettings() {
 	}
 }
 
-void ExplosionLightingInit() {
+void Explosions::init() {
 	MakeCall(0x411AB4, &explosion_effect_hook, true); // required for explosions_metarule
 
 	if (GetPrivateProfileIntA("Misc", "ExplosionsEmitLight", 0, ini)) {
@@ -220,4 +223,10 @@ void ExplosionLightingInit() {
 
 		dlogr(" Done", DL_INIT);
 	}
+	
+	DWORD tmp;
+	tmp = SimplePatch<DWORD>(0x4A2873, "Misc", "Dynamite_DmgMax", 50, 0, 9999);
+	SimplePatch<DWORD>(0x4A2878, "Misc", "Dynamite_DmgMin", 30, 0, tmp);
+	tmp = SimplePatch<DWORD>(0x4A287F, "Misc", "PlasticExplosive_DmgMax", 80, 0, 9999);
+	SimplePatch<DWORD>(0x4A2884, "Misc", "PlasticExplosive_DmgMin", 40, 0, tmp);
 }

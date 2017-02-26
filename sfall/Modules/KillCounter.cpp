@@ -21,6 +21,8 @@
 #include "..\FalloutEngine\Fallout2.h"
 #include "..\Version.h"
 
+#include "KillCounter.h"
+
 static int usingExtraKillTypes;
 bool UsingExtraKillTypes() { return usingExtraKillTypes != 0; }
 
@@ -113,4 +115,14 @@ void KillCounterInit(bool use) {
 
 	SafeWrite32(0x0042D8F6, COUNTERS);
 	SafeWrite32(0x0042D8FB, (DWORD)KillCounters);*/
+}
+
+void KillCounter::init() {
+	if (GetPrivateProfileIntA("Misc", "ExtraKillTypes", 0, ini)) {
+		dlog("Applying extra kill types patch.", DL_INIT);
+		KillCounterInit(true);
+		dlogr(" Done", DL_INIT);
+	} else {
+		KillCounterInit(false);
+	}
 }

@@ -22,6 +22,8 @@
 #include "..\FalloutEngine\Fallout2.h"
 #include "..\Version.h"
 
+#include "Credits.h"
+
 static DWORD InCredits = 0;
 static DWORD CreditsLine = 0;
 
@@ -149,7 +151,7 @@ morelines:
 	}
 }
 
-void CreditsInit() {
+void Credits::init() {
 	HookCall(0x480C49, &ShowCreditsHook);
 	HookCall(0x43F881, &ShowCreditsHook);
 	if (GetPrivateProfileIntA("Misc", "CreditsAtBottom", 0, ini)) {

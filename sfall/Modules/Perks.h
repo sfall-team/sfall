@@ -18,7 +18,14 @@
 
 #pragma once
 
-void PerksInit();
+#include "Module.h"
+
+class Perks : public Module {
+	const char* name() { return "Perks"; }
+	void init();
+};
+
+// TODO: move
 void PerksReset();
 void PerksSave(HANDLE file);
 bool PerksLoad(HANDLE file);

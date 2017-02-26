@@ -45,7 +45,7 @@ static void __declspec(naked) ConsoleHook() {
 	}
 }
 
-void ConsoleInit() {
+void Console::init() {
 	char path[MAX_PATH];
 	GetPrivateProfileString("Misc", "ConsoleOutputPath", "", path, MAX_PATH, ini);
 	if (strlen(path) > 0) {
@@ -56,7 +56,7 @@ void ConsoleInit() {
 	}
 }
 
-void ConsoleExit() {
+void Console::exit() {
 	if (consolefile.is_open()) {
 		consolefile.close();
 	}

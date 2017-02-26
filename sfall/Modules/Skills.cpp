@@ -25,6 +25,8 @@
 #include "..\FalloutEngine\Fallout2.h"
 #include "Knockback.h"
 
+#include "Skills.h"
+
 struct ChanceModifier {
 	DWORD id;
 	int maximum;
@@ -210,7 +212,7 @@ static void __declspec(naked) SkillLevelCostHook() {
 	}
 }
 
-void SkillsInit() {
+void Skills::init() {
 	MakeCall(0x4AA63C, SkillHookA, true);
 	MakeCall(0x4AA847, SkillHookB, true);
 	MakeCall(0x4AA725, SkillHookC, true);

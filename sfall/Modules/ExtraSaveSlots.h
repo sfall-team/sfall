@@ -1,6 +1,6 @@
 /*
  *    sfall
- *    Copyright (C) 2008, 2009  The sfall team
+ *    Copyright (C) 2009  Mash (Matt Wells, mashw at bigpond dot net dot au)
  *
  *    This program is free software: you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
@@ -18,6 +18,11 @@
 
 #pragma once
 
-DWORD _stdcall FakeGetTickCount();
-void _stdcall FakeGetLocalTime(LPSYSTEMTIME);
-void TimerInit();
+#include "Module.h"
+
+extern DWORD LSPageOffset;
+
+class ExtraSaveSlots : public Module {
+	const char* name() { return "SuperSave"; }
+	void init();
+};

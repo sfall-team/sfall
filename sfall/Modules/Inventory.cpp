@@ -618,7 +618,7 @@ end:
 }
 
 
-void InventoryInit() {
+void Inventory::init() {
 	mode = GetPrivateProfileInt("Misc", "CritterInvSizeLimitMode", 0, ini);
 	invenapcost = GetPrivateProfileInt("Misc", "InventoryApCost", 4, ini);
 	invenapqpreduction = GetPrivateProfileInt("Misc", "QuickPocketsApCostReduction", 2, ini);

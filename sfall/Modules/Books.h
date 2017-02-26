@@ -18,4 +18,9 @@
 
 #pragma once
 
-void BooksInit();
+#include "Module.h"
+
+class Books : public Module {
+	const char* name() { return "Books"; }
+	void init();
+};

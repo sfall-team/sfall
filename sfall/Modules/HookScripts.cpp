@@ -1297,7 +1297,7 @@ void HookScriptClear() {
 	}
 }
 
-void HookScriptInit() {
+void LoadHookScripts() {
 	isGlobalScriptLoading = 1; // this should allow to register global exported variables
 	HookScriptInit2();
 	InitingHookScripts = 1;
@@ -1319,3 +1319,5 @@ void _stdcall RunHookScriptsAtProc(DWORD procId) {
 	}
 }
 
+void HookScripts::init() {
+}

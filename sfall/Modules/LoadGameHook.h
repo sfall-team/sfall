@@ -18,9 +18,14 @@
 
 #pragma once
 
+#include "Module.h"
+
 // #include "..\Delegate.h"
 
-void LoadGameHookInit();
+class LoadGameHook : public Module {
+	const char* name() { return "LoadGameHook"; }
+	void init();
+};
 
 DWORD InWorldMap();
 DWORD InCombat();

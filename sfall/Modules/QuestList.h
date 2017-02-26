@@ -16,4 +16,9 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-void QuestListInit();
+#include "Module.h"
+
+class QuestList : public Module {
+	const char* name() { return "QuestList"; }
+	void init();
+};

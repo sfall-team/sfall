@@ -123,13 +123,7 @@ void CritLoad() {
 }
 
 #define SetEntry(a,b,c,d,e) VarPtr::crit_succ_eff[a][b][c].values[d] = e;
-void CritInit() {
-	mode = GetPrivateProfileIntA("Misc", "OverrideCriticalTable", 2, ini);
-	if (mode < 0 || mode > 3) mode = 0;
-
-	if (!mode) return;
-
-	dlog("Initilizing critical table override.", DL_INIT);
+void CriticalTableOverride() {dlog("Initilizing critical table override.", DL_INIT);
 	playerCrit = &critTable[38];
 	SafeWrite32(0x423F96, (DWORD)playerCrit);
 	SafeWrite32(0x423FB3, (DWORD)critTable);
@@ -234,4 +228,26 @@ void CritInit() {
 
 	Inited = true;
 	dlogr(" Done", DL_INIT);
+}
+#undef SetEntry
+
+void RemoveCriticalTimeLimitsPatch() {
+	if (GetPrivateProfileIntA("Misc", "RemoveCriticalTimelimits", 0, ini)) {
+		dlog("Removing critical time limits.", DL_INIT);
+		SafeWrite8(0x42412B, 0x90);
+		BlockCall(0x42412C);
+		SafeWrite16(0x4A3052, 0x9090);
+		SafeWrite16(0x4A3093, 0x9090);
+		dlogr(" Done", DL_INIT);
+	}
+}
+
+void Criticals::init() {
+	mode = GetPrivateProfileIntA("Misc", "OverrideCriticalTable", 2, ini);
+	if (mode < 0 || mode > 3) mode = 0;
+	if (mode) {
+		CriticalTableOverride();
+	}
+
+	RemoveCriticalTimeLimitsPatch();
 }

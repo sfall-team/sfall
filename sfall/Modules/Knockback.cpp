@@ -189,7 +189,7 @@ fail:
 	}
 }
 
-void KnockbackInit() {
+void Knockback::init() {
 	SafeWrite16(0x424B61, 0x25ff);
 	SafeWrite32(0x424B63, (DWORD)&KnockbackAddr);
 	MakeCall(0x4136D3, &KnockbackHook2, true); // for op_critter_dmg

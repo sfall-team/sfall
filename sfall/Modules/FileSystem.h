@@ -18,8 +18,16 @@
 
 #pragma once
 
-void FileSystemInit();
+#include "Module.h"
+
+class FileSystem : public Module {
+	const char* name() { return "FileSystem"; }
+	void init();
+};
+
+// TODO: move
 void FileSystemReset();
+// TODO: move
 void FileSystemSave(HANDLE h);
 
 DWORD _stdcall FScreate(const char* path, int size);

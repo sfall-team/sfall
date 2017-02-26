@@ -344,7 +344,7 @@ end:
 	}
 }
 
-void PartyControlInit() {
+void PartyControl::init() {
 	Mode = GetPrivateProfileIntA("Misc", "ControlCombat", 0, ini);
 	if (Mode > 2) {
 		Mode = 0;

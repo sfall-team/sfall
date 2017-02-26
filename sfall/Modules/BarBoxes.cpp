@@ -53,7 +53,7 @@ fail:
 	}
 }
 
-void BarBoxesInit() {
+void BarBoxes::init() {
 	SafeWrite32(0x461266, (DWORD)boxes + 8);
 	SafeWrite32(0x4612AC, (DWORD)boxes + 8);
 	SafeWrite32(0x4612FE, (DWORD)boxes + 4);

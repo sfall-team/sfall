@@ -21,6 +21,13 @@
 #include "..\main.h"
 #include "..\FalloutEngine\Structs.h"
 
+#include "Module.h"
+
+class ScriptExtender : public Module {
+	const char* name() { return "ScriptExtender"; }
+	void init();
+};
+
 struct sGlobalVar {
 	__int64 id;
 	int val;

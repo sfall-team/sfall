@@ -1,6 +1,6 @@
 #include "..\main.h"
 
-#include "Bugs.h"
+#include "BugFixes.h"
 #include "..\FalloutEngine\Fallout2.h"
 #include "ScriptExtender.h"
 
@@ -928,7 +928,7 @@ end:
 }
 
 
-void BugsInit()
+void BugFixes::init()
 {
 	//if (GetPrivateProfileIntA("Misc", "SharpshooterFix", 1, ini)) {
 		dlog("Applying sharpshooter patch.", DL_INIT);

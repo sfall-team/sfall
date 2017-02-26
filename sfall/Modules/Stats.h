@@ -18,8 +18,16 @@
 
 #pragma once
 
+#include "Module.h"
+
+class Stats : public Module {
+	const char* name() { return "Stats"; }
+	void init();
+};
+
+// TODO: move
 void StatsReset();
-void StatsInit();
+
 void _stdcall SetPCStatMax(int stat, int i);
 void _stdcall SetPCStatMin(int stat, int i);
 void _stdcall SetNPCStatMax(int stat, int i);

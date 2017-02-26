@@ -37,7 +37,6 @@
 #include "..\Version.h"
 
 #include "Graphics.h"
-#include "Heads.h"
 #include "LoadGameHook.h"
 
 
@@ -891,8 +890,6 @@ public:
 		if (!d3d9Device) {
 			ResetDevice(true);
 			CoInitialize(0);
-
-			if (GPUBlt) HeadsInit();
 		}
 
 		if (GraphicsMode == 5) {
@@ -960,4 +957,8 @@ HRESULT _stdcall FakeDirectDrawCreate2(void*, IDirectDraw** b, void*) {
 
 	*b = (IDirectDraw*)new FakeDirectDraw2();
 	return DD_OK;
+}
+
+void Graphics::init() {
+
 }

@@ -18,6 +18,14 @@
 
 #pragma once
 
+#include "Module.h"
+
+class Skills : public Module {
+	const char* name() { return "Skills"; }
+	void init();
+};
+
 void _stdcall SetSkillMax(DWORD critter, DWORD maximum);
-void SkillsInit();
+
+// TODO: move
 void Skills_OnGameLoad();

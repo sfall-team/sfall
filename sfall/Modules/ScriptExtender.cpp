@@ -474,7 +474,7 @@ void _stdcall SetSelfObject(TProgram* script, TGameObj* obj) {
 	}
 }
 
-void ScriptExtenderSetup() {
+void ScriptExtender::init() {
 
 	toggleHighlightsKey = GetPrivateProfileIntA("Input", "ToggleItemHighlightsKey", 0, ini);
 	if (toggleHighlightsKey) {
@@ -588,7 +588,7 @@ bool _stdcall IsGameScript(const char* filename) {
 // this runs after the game was loaded/started
 void LoadGlobalScripts() {
 	isGameLoading = false;
-	HookScriptInit();
+	LoadHookScripts();
 	dlogr("Loading global scripts", DL_SCRIPT|DL_INIT);
 
 	char* name = "scripts\\gl*.int";

@@ -384,11 +384,6 @@ static const DWORD EncounterTableSize[] = {
 	0x4C0815, 0x4C0D4A, 0x4C0FD4,
 };
 
-static char StartMaleModelName[65];
-char DefaultMaleModelName[65];
-static char StartFemaleModelName[65];
-char DefaultFemaleModelName[65];
-
 void ApplyInputPatch() {
 	//if(GetPrivateProfileIntA("Input", "Enable", 0, ini)) {
 		dlog("Applying input patch.", DL_INIT);
@@ -429,34 +424,6 @@ void ApplyGraphicsPatch() {
 		FadeMulti = ((double)fadeMulti) / 100.0;
 		dlogr(" Done", DL_INIT);
 	}
-}
-
-void ApplyPlayerModelPatches() {
-	StartMaleModelName[64] = 0;
-	if (GetPrivateProfileString("Misc", "MaleStartModel", "", StartMaleModelName, 64, ini)) {
-		dlog("Applying male start model patch.", DL_INIT);
-		SafeWrite32(0x00418B88, (DWORD)&StartMaleModelName);
-		dlogr(" Done", DL_INIT);
-	}
-
-	StartFemaleModelName[64] = 0;
-	if (GetPrivateProfileString("Misc", "FemaleStartModel", "", StartFemaleModelName, 64, ini)) {
-		dlog("Applying female start model patch.", DL_INIT);
-		SafeWrite32(0x00418BAB, (DWORD)&StartFemaleModelName);
-		dlogr(" Done", DL_INIT);
-	}
-
-	DefaultMaleModelName[64] = 0;
-	GetPrivateProfileString("Misc", "MaleDefaultModel", "hmjmps", DefaultMaleModelName, 64, ini);
-	dlog("Applying male model patch.", DL_INIT);
-	SafeWrite32(0x00418B50, (DWORD)&DefaultMaleModelName);
-	dlogr(" Done", DL_INIT);
-
-	DefaultFemaleModelName[64] = 0;
-	GetPrivateProfileString("Misc", "FemaleDefaultModel", "hfjmps", DefaultFemaleModelName, 64, ini);
-	dlog("Applying female model patch.", DL_INIT);
-	SafeWrite32(0x00418B6D, (DWORD)&DefaultFemaleModelName);
-	dlogr(" Done", DL_INIT);
 }
 
 void ApplyDebugModePatch() {
@@ -742,7 +709,76 @@ void ApplyOverrideMusicDirPatch() {
 	}
 }
 
-void ApplyMiscPatches() {
+void ApplyDialogueFix() {
+	if (GetPrivateProfileIntA("Misc", "DialogueFix", 1, ini)) {
+		dlog("Applying dialogue patch.", DL_INIT);
+		SafeWrite8(0x00446848, 0x31);
+		dlogr(" Done", DL_INIT);
+	}
+}
+
+void ApplyDontDeleteProtosPatch() {	
+	if (IsDebug && GetPrivateProfileIntA("Debugging", "DontDeleteProtos", 0, ".\\ddraw.ini")) {
+		dlog("Applying permanent protos patch.", DL_INIT);
+		SafeWrite8(0x48007E, 0xeb);
+		dlogr(" Done", DL_INIT);
+	}
+}
+
+void ApplyAlwaysReloadMsgs() {
+	if (GetPrivateProfileInt("Misc", "AlwaysReloadMsgs", 0, ini)) {
+		dlog("Applying always reload messages patch.", DL_INIT);
+		SafeWrite8(0x4A6B8A, 0xff);
+		SafeWrite32(0x4A6B8B, 0x02eb0074);
+		dlogr(" Done", DL_INIT);
+	}
+}
+
+void SkipOpeningMoviesPatch() {	
+	if (GetPrivateProfileIntA("Misc", "SkipOpeningMovies", 0, ini)) {
+		dlog("Blocking opening movies.", DL_INIT);
+		BlockCall(0x4809CB);
+		BlockCall(0x4809D4);
+		BlockCall(0x4809E0);
+		dlogr(" Done", DL_INIT);
+	}
+}
+
+void RemoveWindowRoundingPatch() {
+	if(GetPrivateProfileIntA("Misc", "RemoveWindowRounding", 0, ini)) {
+		SafeWrite32(0x4B8090, 0x90909090);
+		SafeWrite16(0x4B8094, 0x9090);
+	}
+}
+
+void InventoryCharacterRotationSpeedPatch() {
+	DWORD setting = GetPrivateProfileIntA("Misc", "SpeedInventoryPCRotation", 166, ini);
+	if (setting != 166 && setting <= 1000) {
+		dlog("Applying SpeedInventoryPCRotation patch.", DL_INIT);
+		SafeWrite32(0x47066B, setting);
+		dlogr(" Done", DL_INIT);
+	}
+}
+
+void UIAnimationSpeedPatch() {
+	DWORD addrs[2] = {0x45F9DE, 0x45FB33};
+	SimplePatch<WORD>(addrs, 2, "Misc", "CombatPanelAnimDelay", 1000, 0, 65535);
+	addrs[0] = 0x447DF4; addrs[1] = 0x447EB6;
+	SimplePatch<BYTE>(addrs, 2, "Misc", "DialogPanelAnimDelay", 33, 0, 255);
+	addrs[0] = 0x499B99; addrs[1] = 0x499DA8;
+	SimplePatch<BYTE>(addrs, 2, "Misc", "PipboyTimeAnimDelay", 50, 0, 127);
+}
+
+void MusicInDialoguePatch() {
+	if (GetPrivateProfileIntA("Misc", "EnableMusicInDialogue", 0, ini)) {
+		dlog("Applying music in dialogue patch.", DL_INIT);
+		SafeWrite8(0x44525B, 0x0);
+		//BlockCall(0x450627);
+		dlogr(" Done", DL_INIT);
+	}
+}
+
+void MiscPatches::init() {
 	mapName[64] = 0;
 	if (GetPrivateProfileString("Misc", "StartingMap", "", mapName, 64, ini)) {
 		dlog("Applying starting map patch.", DL_INIT);
@@ -771,9 +807,52 @@ void ApplyMiscPatches() {
 		SafeWrite32(0x00444323, (DWORD)&patchName);
 		dlogr(" Done", DL_INIT);
 	}
+
+	ApplyInputPatch();
+	ApplyCombatProcFix();
+	ApplyDebugModePatch();
+	ApplyNPCAutoLevelPatch();
+	ApplyDialogueFix();
+	ApplyDontDeleteProtosPatch();
+	ApplyAdditionalWeaponAnimsPatch();
+	ApplyMultiPatchesPatch();
+	ApplyAlwaysReloadMsgs();
+	ApplyPlayIdleAnimOnReloadPatch();
+	ApplyCorpseLineOfFireFix();
+	SkipOpeningMoviesPatch();
+
+	ApplyNpcExtraApPatch();
+
+	ApplySkilldexImagesPatch();
+	RemoveWindowRoundingPatch();
+	
+	ApplySpeedInterfaceCounterAnimsPatch();
+	ApplyScienceOnCrittersPatch();
+	InventoryCharacterRotationSpeedPatch();
+
+	dlogr("Patching out ereg call.", DL_INIT);
+	BlockCall(0x4425E6);
+
+	ApplyOverrideMusicDirPatch();
+	ApplyNpcStage6Fix();
+	ApplyFashShotTraitFix();
+	ApplyBoostScriptDialogLimitPatch();
+	ApplyMotionScannerFlagsPatch();
+	ApplyEncounterTableSizePatch();
+
+	if (GetPrivateProfileIntA("Misc", "DisablePipboyAlarm", 0, ini)) {
+		SafeWrite8(0x499518, 0xc3);
+	}
+
+	ApplyObjCanSeeShootThroughPatch();
+	UIAnimationSpeedPatch();
+	MusicInDialoguePatch();
+
+	ApplyInstantWeaponEquipPatch();
+	ApplyNumbersInDialoguePatch();
 }
 
-void MiscReset() {
+void MiscPatches::exit() {
 	if (scriptDialog != nullptr) {
 		delete[] scriptDialog;
 	}
