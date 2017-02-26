@@ -21,11 +21,11 @@
 
 #include "..\main.h"
 #include "..\FalloutEngine\Fallout2.h"
+#include "..\SimplePatch.h"
 #include "Graphics.h"
 #include "ScriptExtender.h"
-//#include "Timer.h"
 
-#include "Misc.h"
+#include "MiscPatches.h"
 
 // TODO: split this into smaller files
 
@@ -38,6 +38,8 @@ static const char* debugLog = "LOG";
 static const char* debugGnw = "GNW";
 
 static int* scriptDialog = nullptr;
+
+bool NpcAutoLevelEnabled;
 
 static const DWORD PutAwayWeapon[] = {
 	0x411EA2, // action_climb_ladder_

@@ -171,9 +171,6 @@
     <ClInclude Include="Modules\Scripting\ScriptValue.h">
       <Filter>Modules\Scripting</Filter>
     </ClInclude>
-    <ClInclude Include="Modules\Misc.h">
-      <Filter>Modules</Filter>
-    </ClInclude>
     <ClInclude Include="Modules\Scripting\Handlers\Arrays.h">
       <Filter>Modules\Scripting\Handlers</Filter>
     </ClInclude>
@@ -241,6 +238,12 @@
     <ClInclude Include="Modules\Patches\Karma.h">
       <Filter>Modules\Patches</Filter>
     </ClInclude>
+    <ClInclude Include="Modules\MiscPatches.h">
+      <Filter>Modules</Filter>
+    </ClInclude>
+    <ClInclude Include="SimplePatch.h" />
+    <ClInclude Include="ModuleManager.h" />
+    <ClInclude Include="Delegate.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
@@ -380,9 +383,6 @@
     <ClCompile Include="Modules\Scripting\ScriptValue.cpp">
       <Filter>Modules\Scripting</Filter>
     </ClCompile>
-    <ClCompile Include="Modules\Misc.cpp">
-      <Filter>Modules</Filter>
-    </ClCompile>
     <ClCompile Include="Modules\Scripting\Handlers\Arrays.cpp">
       <Filter>Modules\Scripting\Handlers</Filter>
     </ClCompile>
@@ -443,6 +443,10 @@
     <ClCompile Include="Modules\Patches\Karma.cpp">
       <Filter>Modules\Patches</Filter>
     </ClCompile>
+    <ClCompile Include="Modules\MiscPatches.cpp">
+      <Filter>Modules</Filter>
+    </ClCompile>
+    <ClCompile Include="ModuleManager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="version.rc" />

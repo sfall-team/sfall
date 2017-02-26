@@ -202,6 +202,7 @@
     </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Delegate.h" />
     <ClInclude Include="FalloutEngine\Enums.h" />
     <ClInclude Include="FalloutEngine\Fallout2.h" />
     <ClInclude Include="FalloutEngine\Functions.h" />
@@ -210,11 +211,12 @@
     <ClInclude Include="FalloutEngine\Variables.h" />
     <ClInclude Include="FalloutEngine\Wrappers.h" />
     <ClInclude Include="FalloutEngine\Wrappers_def.h" />
+    <ClInclude Include="ModuleManager.h" />
     <ClInclude Include="Modules\Module.h" />
     <ClInclude Include="Modules\AI.h" />
     <ClInclude Include="Modules\AmmoMod.h" />
     <ClInclude Include="Modules\AnimationsAtOnceLimit.h" />
-    <ClInclude Include="Modules\Misc.h" />
+    <ClInclude Include="Modules\MiscPatches.h" />
     <ClInclude Include="Modules\Patches\Karma.h" />
     <ClInclude Include="Modules\Patches\LoadOrder.h" />
     <ClInclude Include="Modules\Patches\SpeedPatch.h" />
@@ -244,6 +246,7 @@
     <ClInclude Include="Modules\Scripting\ScriptValue.h" />
     <ClInclude Include="Modules\Scripting\Handlers\Stats.h" />
     <ClInclude Include="Modules\Scripting\Handlers\Worldmap.h" />
+    <ClInclude Include="SimplePatch.h" />
     <ClInclude Include="win9x\Cpp11_emu.h" />
     <ClInclude Include="Modules\CRC.h" />
     <ClInclude Include="Modules\Credits.h" />
@@ -286,10 +289,11 @@
     <ClCompile Include="FalloutEngine\Utils.cpp" />
     <ClCompile Include="FalloutEngine\Variables.cpp" />
     <ClCompile Include="FalloutEngine\Wrappers.cpp" />
+    <ClCompile Include="ModuleManager.cpp" />
     <ClCompile Include="Modules\AI.cpp" />
     <ClCompile Include="Modules\AmmoMod.cpp" />
     <ClCompile Include="Modules\AnimationsAtOnceLimit.cpp" />
-    <ClCompile Include="Modules\Misc.cpp" />
+    <ClCompile Include="Modules\MiscPatches.cpp" />
     <ClCompile Include="Modules\Patches\Karma.cpp" />
     <ClCompile Include="Modules\Patches\LoadOrder.cpp" />
     <ClCompile Include="Modules\Patches\SpeedPatch.cpp" />

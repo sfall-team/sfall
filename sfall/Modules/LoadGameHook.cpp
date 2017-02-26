@@ -21,6 +21,7 @@
 #include "..\FalloutEngine\Fallout2.h"
 #include "..\InputFuncs.h"
 #include "..\Logging.h"
+#include "..\ModuleManager.h"
 #include "..\version.h"
 
 #include "AI.h"
@@ -42,6 +43,9 @@
 #include "Sound.h"
 #include "SuperSave.h"
 
+//static Delegate OnBeforeLoadGame;
+//static Delegate OnAfterLoadGame;
+
 #define MAX_GLOBAL_SIZE (MaxGlobalVars * 12 + 4)
 
 static DWORD InLoop = 0;
@@ -58,6 +62,7 @@ DWORD GetCurrentLoops() {
 }
 
 static void _stdcall ResetState(DWORD onLoad) {
+	// TODO: remove direct references to other modules
 	if (!onLoad) FileSystemReset();
 	ClearGlobalScripts();
 	ClearGlobals();
@@ -72,6 +77,8 @@ static void _stdcall ResetState(DWORD onLoad) {
 	RegAnimCombatCheck(1);
 	AfterAttackCleanup();
 	PartyControlReset();
+
+	//OnBeforeLoadGame.invoke();
 }
 
 void GetSavePath(char* buf, char* ftype) {

@@ -23,7 +23,7 @@
 #include "..\..\Inventory.h"
 #include "..\..\KillCounter.h"
 #include "..\..\Knockback.h"
-#include "..\..\Misc.h"
+#include "..\..\MiscPatches.h"
 #include "..\..\Movies.h"
 #include "..\..\ScriptExtender.h"
 #include "..\..\Stats.h"

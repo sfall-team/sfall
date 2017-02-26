@@ -22,6 +22,7 @@
 #include <memory>
 
 #include "FalloutEngine\Fallout2.h"
+#include "ModuleManager.h"
 #include "Modules\Module.h"
 #include "Modules\AI.h"
 #include "Modules\AmmoMod.h"
@@ -45,7 +46,7 @@
 #include "Modules\LoadGameHook.h"
 #include "Modules\MainMenu.h"
 #include "Modules\Message.h"
-#include "Modules\Misc.h"
+#include "Modules\MiscPatches.h"
 #include "Modules\Movies.h"
 #include "Modules\PartyControl.h"
 #include "Modules\Perks.h"
@@ -63,6 +64,7 @@
 #include "Modules\Patches\LoadOrder.h"
 #include "Modules\Patches\SpeedPatch.h"
 #include "Modules\Patches\Worldmap.h"
+#include "SimplePatch.h"
 
 #include "Logging.h"
 #include "Version.h"
@@ -70,14 +72,10 @@
 #include "Cpp11_emu.h"
 #endif
 
-static std::vector<std::unique_ptr<Module>> modules;
-
 bool IsDebug = false;
 
 char ini[65];
 char translationIni[65];
-
-bool NpcAutoLevelEnabled;
 
 void ApplyScriptExtenderPatches() {
 	dlog("Applying script extender patch.", DL_INIT);
@@ -96,11 +94,14 @@ void ApplyScriptExtenderPatches() {
 }
 
 static void DllMain2() {
-	//SafeWrite8(0x4B15E8, 0xc3);
-	//SafeWrite8(0x4B30C4, 0xc3); //this is the one I need to override for bigger tiles
 	dlogr("In DllMain2", DL_MAIN);
 
-	modules.emplace_back(std::unique_ptr<HeroAppearanceModule>(new HeroAppearanceModule()));
+	auto& manager = ModuleManager::getInstance();
+
+	// initialize all modules
+	manager.add<HeroAppearance>();
+
+	manager.initAll();
 
 	dlogr("Running BugsInit.", DL_INIT);
 	BugsInit();
@@ -261,12 +262,7 @@ static void DllMain2() {
 	dlogr("Patching out ereg call.", DL_INIT);
 	BlockCall(0x4425E6);
 
-	tmp = GetPrivateProfileIntA("Misc", "AnimationsAtOnceLimit", 32, ini);
-	if ((signed char)tmp > 32) {
-		dlog("Applying AnimationsAtOnceLimit patch.", DL_INIT);
-		AnimationsAtOnceInit((signed char)tmp);
-		dlogr(" Done", DL_INIT);
-	}
+	AnimationsAtOnceInit();
 
 	if (GetPrivateProfileIntA("Misc", "RemoveCriticalTimelimits", 0, ini)) {
 		dlog("Removing critical time limits.", DL_INIT);
@@ -342,13 +338,12 @@ static void DllMain2() {
 	dlogr("Leave DllMain2", DL_MAIN);
 }
 
+// TODO: remove
 static void _stdcall OnExit() {
 	MiscReset();
 	ClearReadExtraGameMsgFiles();
 	ConsoleExit();
 	AnimationsAtOnceExit();
-	HeroAppearanceModExit();
-	//SoundExit();
 }
 
 static void __declspec(naked) OnExitFunc() {
@@ -370,31 +365,17 @@ static void CompatModeCheck(HKEY root, const char* filepath, int extra) {
 			if (size && (type == REG_EXPAND_SZ || type == REG_MULTI_SZ || type == REG_SZ)) {
 				if (strstr(buf, "256COLOR") || strstr(buf, "640X480") || strstr(buf, "WIN")) {
 					RegCloseKey(key);
-					/*if(!RegOpenKeyEx(root, "Software\\Microsoft\\Windows NT\\CurrentVersion\\AppCompatFlags\\Layers", 0, extra|KEY_READ|KEY_WRITE, &key)) {
-						if((type=RegDeleteValueA(key, filepath))==ERROR_SUCCESS) {
-							MessageBoxA(0, "Fallout was set to run in compatibility mode.\n"
-								"Please restart fallout to ensure it runs correctly.", "Error", 0);
-							RegCloseKey(key);
-							ExitProcess(-1);
-						} else {
-							//FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM, 0, type, 0, buf, 260, 0);
-							//MessageBoxA(0, buf, "", 0);
-						}
-					}*/
 
 					MessageBoxA(0, "Fallout appears to be running in compatibility mode.\n" //, and sfall was not able to disable it.\n"
 								"Please check the compatibility tab of fallout2.exe, and ensure that the following settings are unchecked.\n"
 								"Run this program in compatibility mode for..., run in 256 colours, and run in 640x480 resolution.\n"
 								"If these options are disabled, click the 'change settings for all users' button and see if that enables them.", "Error", 0);
-							//RegCloseKey(key);
+
 					ExitProcess(-1);
 				}
 			}
 		}
 		RegCloseKey(key);
-	} else {
-		//FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM, 0, type, 0, buf, 260, 0);
-		//MessageBoxA(0, buf, "", 0);
 	}
 }
 

@@ -18,6 +18,8 @@
 
 #pragma once
 
+// #include "..\Delegate.h"
+
 void LoadGameHookInit();
 
 DWORD InWorldMap();
@@ -41,3 +43,6 @@ DWORD InCombat();
 #define RESERVED   (1<<31)
 
 DWORD GetCurrentLoops();
+
+//extern Delegate OnBeforeLoadGame;
+//extern Delegate OnAfterLoadGame;

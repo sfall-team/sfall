@@ -143,8 +143,7 @@ static const DWORD sad_28[] = {
 	0x4173CE, 0x4174C1, 0x4175F1, 0x417730,
 };
 
-void AnimationsAtOnceInit(signed char aniMax) {
-
+void ApplyAnimationsAtOncePatches(signed char aniMax) {
 	if (aniMax <= 32) return;
 
 	AniLimitFixActive = true;
@@ -299,4 +298,13 @@ void AnimationsAtOnceExit() {
 	if (!AniLimitFixActive) return;
 	delete[] anim_set;
 	delete[] sad;
+}
+
+void AnimationsAtOnceInit() {
+	DWORD setting = GetPrivateProfileIntA("Misc", "AnimationsAtOnceLimit", 32, ini);
+	if ((signed char)setting > 32) {
+		dlog("Applying AnimationsAtOnceLimit patch.", DL_INIT);
+		ApplyAnimationsAtOncePatches((signed char)setting);
+		dlogr(" Done", DL_INIT);
+	}
 }

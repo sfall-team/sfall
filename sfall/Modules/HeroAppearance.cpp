@@ -2438,7 +2438,7 @@ void EnableHeroAppearanceMod() {
 	//SafeWrite32(0x423A93, 0x90909090);
 }
 
-void HeroAppearanceModule::Init() {
+void HeroAppearance::init() {
 	if (GetPrivateProfileIntA("Misc", "EnableHeroAppearanceMod", 0, ini)) {
 		dlog("Setting up Appearance Char Screen buttons.", DL_INIT);
 		EnableHeroAppearanceMod();
@@ -2446,6 +2446,6 @@ void HeroAppearanceModule::Init() {
 	}
 }
 
-void HeroAppearanceModule::Exit() {
+void HeroAppearance::exit() {
 	HeroAppearanceModExit();
 }

@@ -24,6 +24,7 @@
 #include <Vmr9.h>
 
 #include "..\FalloutEngine\Fallout2.h"
+#include "..\SimplePatch.h"
 #include "..\Logging.h"
 #include "Graphics.h"
 #include "Movies.h"

@@ -20,10 +20,10 @@
 
 #include "Module.h"
 
-class HeroAppearanceModule : public Module {
-	void Init() override;
+class HeroAppearance : public Module {
+	void init() override;
 
-	void Exit() override;
+	void exit() override;
 };
 
 WINinfo *GetWinStruct(int WinRef);
@@ -31,10 +31,6 @@ void RedrawWin(int WinRef);
 void PrintText(char *DisplayText, BYTE ColourIndex, DWORD Xpos, DWORD Ypos, DWORD TxtWidth, DWORD ToWidth, BYTE *ToSurface);
 DWORD GetTextWidth(char *TextMsg);
 DWORD GetMaxCharWidth();
-
-
-void EnableHeroAppearanceMod();
-void HeroAppearanceModExit();
 
 void _stdcall HeroSelectWindow(int RaceStyleFlag);
 void _stdcall SetHeroStyle(int newStyleVal);

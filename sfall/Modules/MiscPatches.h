@@ -20,6 +20,8 @@
 extern char DefaultMaleModelName[65];
 extern char DefaultFemaleModelName[65];
 
+extern bool NpcAutoLevelEnabled;
+
 void ApplyCombatProcFix();
 
 void ApplyInputPatch();

@@ -24,11 +24,11 @@ public:
 	Module() {
 	}
 
-	virtual void Init() = 0;
+	// Called on starting the game
+	virtual void init() = 0;
 
-	virtual void Reset() {}
-
-	virtual void Exit() {}
+	// Called on exit
+	virtual void exit() {}
 
 	~Module() {
 	}
