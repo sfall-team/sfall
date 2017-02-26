@@ -18,6 +18,7 @@
 
 #include "..\main.h"
 
+#include "..\Delegate.h"
 #include "..\FalloutEngine\Fallout2.h"
 #include "..\InputFuncs.h"
 #include "..\Logging.h"
@@ -43,7 +44,7 @@
 #include "Sound.h"
 #include "ExtraSaveSlots.h"
 
-//static Delegate OnBeforeLoadGame;
+static Delegate<> OnBeforeLoadGame;
 //static Delegate OnAfterLoadGame;
 
 #define MAX_GLOBAL_SIZE (MaxGlobalVars * 12 + 4)

@@ -20,6 +20,8 @@
 
 #define TARGETVERSION "Fallout 2 v1.02 US"
 
+#define LEGAL_COPYRIGHT "Copyright (C) 2006-2017, sfall team"
+
 #define VERSION_MAJOR 4
 #define VERSION_MINOR 0
 #define VERSION_BUILD 0

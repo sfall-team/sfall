@@ -3,63 +3,62 @@
 #include <functional>
 #include <vector>
 
-
-typedef std::function<void()> Functor; // std::function<void(ArgT...)>
-typedef std::vector<Functor> FunctorCollection;
-
-// template <typename ...ArgT>
+template <typename ...ArgT>
 class Delegate {
 public:
-    Delegate() : _functors() {} // Delegate<ArgT...>()
+	using Functor = std::function<void(ArgT...)>;
+	using FunctorCollection = std::vector<Functor>;
 
-    void add(Functor func) {
-        _functors.emplace_back(std::move(func));
-    }
+	Delegate<ArgT...>() {}
 
-    /*void add(const Delegate<ArgT...>& other)
-    {
-        for (auto& func : other.functors())
-        {
-            add(func);
-        }
-    }*/
+	void add(Functor func) {
+		_functors.emplace_back(std::move(func));
+	}
 
-    void clear() {
-        _functors.clear();
-    }
+	void add(const Delegate<ArgT...>& other)
+	{
+		for (auto& func : other.functors())
+		{
+			add(func);
+		}
+	}
 
-    void invoke() { // invoke(ArgT... args)
-        for (auto it = _functors.begin(); it != _functors.end(); ++it) {
-            (*it)();  // args...
-        }
-    }
+	void clear() {
+		_functors.clear();
+	}
 
-    const FunctorCollection& functors() const {
-        return _functors;
-    }
+	void invoke(ArgT... args) {
+		for (auto& func : _functors) {
+			func(args...);
+		}
+	}
 
-    Delegate operator =(Functor func) {
-        clear();
-        add(std::move(func));
-        return *this;
-    }
+	const FunctorCollection& functors() const {
+		return _functors;
+	}
 
-    Delegate operator=(std::nullptr_t) {
-        clear();
-        return *this;
-    }
+	Delegate operator =(Functor func) {
+		clear();
+		add(std::move(func));
+		return *this;
+	}
 
-    Delegate operator +=(Functor func) {
-        add(std::move(func));
-        return *this;
-    }
+	Delegate operator=(std::nullptr_t) {
+		clear();
+		return *this;
+	}
 
-    Delegate operator +=(const Delegate other) {
-        add(other);
-        return *this;
-    }
+	Delegate operator +=(Functor func) {
+		add(std::move(func));
+		return *this;
+	}
+
+	Delegate operator +=(const Delegate other) {
+		add(other);
+		return *this;
+	}
 
 private:
-    FunctorCollection _functors;
+	FunctorCollection _functors;
 
 };
