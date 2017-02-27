@@ -617,6 +617,29 @@ end:
 	}
 }
 
+int __stdcall ItemCountFixStdcall(TGameObj* who, TGameObj* item) {
+	int count = 0;
+	for (int i = 0; i < who->invenCount; i++) {
+		auto tableItem = &who->invenTable[i];
+		if (tableItem->object == item) {
+			count += tableItem->count;
+		} else if (Wrapper::item_get_type(tableItem->object) == item_type_container) {
+			count += ItemCountFixStdcall(tableItem->object, item);
+		}
+	}
+	return count;
+}
+
+void __declspec(naked) ItemCountFix() {
+	__asm {
+		push ebx; push ecx; push edx; // save state
+		push edx; // item
+		push eax; // container-object
+		call ItemCountFixStdcall;
+		pop edx; pop ecx; pop ebx; // restore
+		retn;
+	}
+}
 
 void Inventory::init() {
 	mode = GetPrivateProfileInt("Misc", "CritterInvSizeLimitMode", 0, ini);
@@ -651,8 +674,11 @@ void Inventory::init() {
 		SafeWrite32(0x472632, 150);
 		SafeWrite8(0x472638, 0);
 
-		//Display item weight when examening
+		//Display item weight when examining
 		HookCall(0x472FFE, &InvenObjExamineFuncHook);
+
+		// Fix item_count function returning incorrect value when there is a container-item inside
+		MakeCall(0x47808C, ItemCountFix, true);
 	}
 
 	if (GetPrivateProfileInt("Misc", "SuperStimExploitFix", 0, ini)) {
