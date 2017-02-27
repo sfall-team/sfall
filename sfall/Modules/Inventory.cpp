@@ -676,9 +676,6 @@ void Inventory::init() {
 
 		//Display item weight when examining
 		HookCall(0x472FFE, &InvenObjExamineFuncHook);
-
-		// Fix item_count function returning incorrect value when there is a container-item inside
-		MakeCall(0x47808C, ItemCountFix, true);
 	}
 
 	if (GetPrivateProfileInt("Misc", "SuperStimExploitFix", 0, ini)) {
@@ -713,6 +710,9 @@ void Inventory::init() {
 
 	// Move items to player's main inventory instead of the opened bag/backpack when confirming a trade
 	SafeWrite32(0x475CF2, VARPTR_stack);
+
+	// Fix item_count function returning incorrect value when there is a container-item inside
+	MakeCall(0x47808C, ItemCountFix, true); // replacing item_count_ function
 }
 
 void InventoryReset() {
