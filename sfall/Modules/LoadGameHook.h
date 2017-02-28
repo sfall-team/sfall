@@ -27,10 +27,17 @@ public:
 	const char* name() { return "LoadGameHook"; }
 	void init();
 
-	static Delegate<> OnBeforeLoadGame;
-	static Delegate<> OnAfterLoadGame;
-	static Delegate<> OnAfterNewGame;
-	static Delegate<> OnGameStart;
+	// Invoked before game is being loaded (new game or saved game)
+	static Delegate<> OnBeforeGameLoad;
+
+	// Invoked after game has been loaded (new game or saved game)
+	static Delegate<> OnAfterGameLoaded;
+
+	// Invoked after new game has been started
+	//static Delegate<> OnAfterNewGame;
+
+	// Invoked after game has started (right after loading a save or starting a new game)
+	//static Delegate<> OnGameStart;
 };
 
 DWORD InWorldMap();

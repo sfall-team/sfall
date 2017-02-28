@@ -44,15 +44,17 @@
 #include "Sound.h"
 #include "ExtraSaveSlots.h"
 
-Delegate<> LoadGameHook::OnBeforeLoadGame;
-Delegate<> LoadGameHook::OnAfterLoadGame;
-Delegate<> LoadGameHook::OnAfterNewGame;
-Delegate<> LoadGameHook::OnGameStart;
+Delegate<> LoadGameHook::OnBeforeGameLoad;
+Delegate<> LoadGameHook::OnAfterGameLoaded;
+//Delegate<> LoadGameHook::OnAfterNewGame;
+//Delegate<> LoadGameHook::OnGameStart;
 
 #define MAX_GLOBAL_SIZE (MaxGlobalVars * 12 + 4)
 
 static DWORD InLoop = 0;
 static DWORD SaveInCombatFix;
+static bool DisableHorrigan = false;
+static bool PipBoyAvailableAtGameStart = false;
 
 DWORD InWorldMap() {
 	return (InLoop&WORLDMAP) ? 1 : 0;
@@ -80,8 +82,6 @@ static void _stdcall ResetState(DWORD onLoad) {
 	RegAnimCombatCheck(1);
 	AfterAttackCleanup();
 	PartyControlReset();
-
-	//OnBeforeLoadGame.invoke();
 }
 
 void GetSavePath(char* buf, char* ftype) {
@@ -164,9 +164,9 @@ end:
 	}
 }
 
-// should be called before savegame is loaded
-static void _stdcall LoadGame2_Before() {
-	LoadGameHook::OnBeforeLoadGame.invoke();
+// Called right before savegame slot is being loaded
+static void _stdcall LoadGame_Before() {
+	LoadGameHook::OnBeforeGameLoad.invoke();
 	ResetState(1);
 	
 	char buf[MAX_PATH];
@@ -190,19 +190,19 @@ static void _stdcall LoadGame2_Before() {
 	}
 }
 
-static void _stdcall LoadGame2_After() {
+// Called after game was loaded from a save
+static void _stdcall LoadGame_After() {
 	LoadGlobalScripts();
 	CritLoad();
 	LoadHeroAppearance();
 
-	LoadGameHook::OnAfterLoadGame.invoke();
-	LoadGameHook::OnGameStart.invoke();
+	LoadGameHook::OnAfterGameLoaded.invoke();
 }
 
 static void __declspec(naked) LoadSlot() {
 	__asm {
 		pushad;
-		call LoadGame2_Before;
+		call LoadGame_Before;
 		popad;
 		call FuncOffs::LoadSlot_;
 		retn;
@@ -219,10 +219,9 @@ static void __declspec(naked) LoadGame() {
 		and InLoop, (-1^LOADGAME);
 		cmp eax, 1;
 		jne end;
-		call LoadGame2_After;
+		call LoadGame_After;
 		mov eax, 1;
 end:
-
 		pop edx;
 		pop ecx;
 		pop ebx;
@@ -230,58 +229,35 @@ end:
 	}
 }
 
-static void NewGame2() {
-	LoadGameHook::OnAfterNewGame.invoke();
-	LoadGameHook::OnGameStart.invoke();
+static void __stdcall NewGame_Before() {
+	LoadGameHook::OnBeforeGameLoad.invoke();
+}
+
+static void __stdcall NewGame_After() {
+	// TODO: Move this hack out
+	VarPtr::Meet_Frank_Horrigan = DisableHorrigan;
+	VarPtr::gmovie_played_list[3] = PipBoyAvailableAtGameStart;
+	
+	LoadGameHook::OnAfterGameLoaded.invoke();
 
 	ResetState(0);
 
-	dlogr("Starting new game", DL_MAIN);
+	dlogr("New Game started.", DL_MAIN);
 
 	SetNewCharAppearanceGlobals();
 
-	/*if (GetPrivateProfileInt("Misc", "PipBoyAvailableAtGameStart", 0, ini)) {
-		SafeWrite8(0x596C7B, 1);
-	}
-	if (GetPrivateProfileInt("Misc", "DisableHorrigan", 0, ini)) {
-		*(DWORD*)0x672E04 = 1;
-	}*/
-
 	LoadGlobalScripts();
 	CritLoad();
+	LoadHeroAppearance();
 }
 
-static bool DisableHorrigan = false;
-static void __declspec(naked) NewGame() {
+static void __declspec(naked) main_load_new_hook() {
 	__asm {
 		pushad;
-		call NewGame2;
-		mov  al, DisableHorrigan;
-		mov  byte ptr ds:[VARPTR_Meet_Frank_Horrigan], al;
+		call NewGame_Before;
+		call FuncOffs::main_load_new_;
+		call NewGame_After;
 		popad;
-		call FuncOffs::main_game_loop_;
-		retn;
-	}
-}
-
-static void ReadExtraGameMsgFilesIfNeeded() {
-	if (gExtraGameMsgLists.empty()) {
-		ReadExtraGameMsgFiles();
-	}
-}
-
-static bool PipBoyAvailableAtGameStart = false;
-static void __declspec(naked) MainMenuHook() {
-	__asm {
-		pushad;
-		push 0;
-		call ResetState;
-		mov  al, PipBoyAvailableAtGameStart;
-		mov  byte ptr ds:[VARPTR_gmovie_played_list + 0x3], al;
-		call ReadExtraGameMsgFilesIfNeeded;
-		call LoadHeroAppearance;
-		popad;
-		call FuncOffs::main_menu_loop_;
 		retn;
 	}
 }
@@ -438,6 +414,7 @@ void LoadGameHook::init() {
 	GetPrivateProfileString("sfall", "SaveInCombat", "Cannot save at this time", SaveFailMsg, 128, translationIni);
 	GetPrivateProfileString("sfall", "SaveSfallDataFail", "ERROR saving extended savegame information! Check if other programs interfere with savegame files/folders and try again!", SaveSfallDataFailMsg, 128, translationIni);
 
+	// TODO: move these patches someplace else
 	switch (GetPrivateProfileInt("Misc", "PipBoyAvailableAtGameStart", 0, ini)) {
 	case 1:
 		PipBoyAvailableAtGameStart = true;
@@ -452,7 +429,7 @@ void LoadGameHook::init() {
 		SafeWrite8(0x4C06D8, 0xEB); // skip the Horrigan encounter check
 	}
 
-	HookCall(0x480AB3, NewGame);
+	HookCall(0x480AAE, main_load_new_hook);
 
 	HookCall(0x47C72C, LoadSlot);
 	HookCall(0x47D1C9, LoadSlot);
@@ -463,8 +440,6 @@ void LoadGameHook::init() {
 	HookCall(0x443AAC, SaveGame);
 	HookCall(0x443B1C, SaveGame);
 	HookCall(0x48FCFF, SaveGame);
-	
-	HookCall(0x480A28, MainMenuHook);
 
 	HookCall(0x483668, WorldMapHook);
 	HookCall(0x4A4073, WorldMapHook);

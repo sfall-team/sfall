@@ -34,8 +34,5 @@ class Message : public Module {
 	void exit() override;
 };
 
-// TODO: move out
-void ReadExtraGameMsgFiles();
-
 MessageNode *GetMsgNode(MessageList *msgList, int msgRef);
 char* GetMsg(MessageList *MsgList, int msgRef, int msgNum);

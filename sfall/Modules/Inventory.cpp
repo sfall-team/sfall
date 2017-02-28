@@ -70,29 +70,6 @@ void InventoryKeyPressedHook(DWORD dxKey, bool pressed, DWORD vKey) {
 	}
 }
 
-
-/*static DWORD _stdcall item_total_size(void* critter) {
-	//TODO: Don't really want to be overwriting stuff like this after init. Rewrite properly.
-	HookCall(0x477EBD, (void*)0x477B68);
-	HookCall(0x477EF6, (void*)0x477B68);
-	HookCall(0x477F12, (void*)0x477B68);
-	HookCall(0x477F2A, (void*)0x477B68);
-
-	DWORD result;
-	__asm {
-		mov eax, critter;
-		call FuncOffs::item_total_weight_;
-		mov result, eax;
-	}
-
-	HookCall(0x477EBD, (void*)0x477B88);
-	HookCall(0x477EF6, (void*)0x477B88);
-	HookCall(0x477F12, (void*)0x477B88);
-	HookCall(0x477F2A, (void*)0x477B88);
-
-	return result;
-}*/
-
 //TODO: Do we actually want to include this in the limit anyway?
 static __declspec(naked) DWORD item_total_size(void* critter) {
 	__asm {

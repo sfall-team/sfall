@@ -110,7 +110,7 @@ void ClearReadExtraGameMsgFiles() {
 }
 
 void Message::init() {
-
+	ReadExtraGameMsgFiles();
 }
 
 void Message::exit() {

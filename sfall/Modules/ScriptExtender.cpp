@@ -884,6 +884,6 @@ void SetAppearanceGlobals(int race, int style) {
 }
 
 void GetAppearanceGlobals(int *race, int *style) {
-	*race=GetGlobalVar("HAp_Race");
-	*style=GetGlobalVar("HApStyle");
+	*race = GetGlobalVar("HAp_Race");
+	*style = GetGlobalVar("HApStyle");
 }
