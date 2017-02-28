@@ -928,6 +928,30 @@ end:
 	}
 }
 
+int __stdcall ItemCountFixStdcall(TGameObj* who, TGameObj* item) {
+	int count = 0;
+	for (int i = 0; i < who->invenCount; i++) {
+		TInvenRec* tableItem = &who->invenTablePtr[i];
+		if (tableItem->object == item) {
+			count += tableItem->count;
+		} else if (ItemGetType(tableItem->object) == item_type_container) {
+			count += ItemCountFixStdcall(tableItem->object, item);
+		}
+	}
+	return count;
+}
+
+void __declspec(naked) ItemCountFix() {
+	__asm {
+		push ebx; push ecx; push edx; // save state
+		push edx; // item
+		push eax; // container-object
+		call ItemCountFixStdcall;
+		pop edx; pop ecx; pop ebx; // restore
+		retn;
+	}
+}
+
 
 void BugsInit()
 {
@@ -1188,4 +1212,7 @@ void BugsInit()
 		// Fix crash when trying to open bag/backpack on the table in the bartering interface
 		MakeCall(0x473191, &inven_action_cursor_hack, false);
 	//}
+
+	// Fix item_count function returning incorrect value when there is a container-item inside
+	MakeCall(0x47808C, ItemCountFix, true); // replacing item_count_ function
 }

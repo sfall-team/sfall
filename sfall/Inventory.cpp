@@ -665,7 +665,7 @@ void InventoryInit() {
 		SafeWrite32(0x472632, 150);
 		SafeWrite8(0x472638, 0);
 
-		//Display item weight when examening
+		//Display item weight when examining
 		HookCall(0x472FFE, &InvenObjExamineFuncHook);
 	}
 
