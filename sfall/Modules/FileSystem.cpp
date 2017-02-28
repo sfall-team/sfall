@@ -21,6 +21,8 @@
 #include "..\main.h"
 
 #include "..\FalloutEngine\Fallout2.h"
+#include "LoadGameHook.h"
+
 #include "FileSystem.h"
 
 extern void GetSavePath(char* buf, char* ftype);
@@ -744,5 +746,7 @@ void _stdcall FSresize(DWORD id, DWORD size) {
 void FileSystem::init() {
 	if (GetPrivateProfileIntA("Misc", "UseFileSystemOverride", 0, ini)) {
 		FileSystemInit();
+
+		//LoadGameHook::
 	}
 }

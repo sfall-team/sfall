@@ -218,7 +218,7 @@ void SetPageNum() {
 			}
 
 			//fill over text area with consol black colour
-			for (unsigned int y = SaveLoadWin->width * 52; y < SaveLoadWin->width * 82; y = y + SaveLoadWin->width) {
+			for (int y = SaveLoadWin->width * 52; y < SaveLoadWin->width * 82; y = y + SaveLoadWin->width) {
 				memset(SaveLoadWin->surface + y + 170 - TxtMaxWidth / 2, 0xCF, TxtMaxWidth);
 			}
 
@@ -359,7 +359,7 @@ void DrawPageText() {
 	if (SaveLoadWin->surface == NULL) return;
 
 	//fill over text area with consol black colour
-	for (unsigned int y = SaveLoadWin->width * 52; y < SaveLoadWin->width * 82; y = y + SaveLoadWin->width) {
+	for (int y = SaveLoadWin->width * 52; y < SaveLoadWin->width * 82; y = y + SaveLoadWin->width) {
 		memset(SaveLoadWin->surface + 50 + y, 0xCF, 240);
 	}
 

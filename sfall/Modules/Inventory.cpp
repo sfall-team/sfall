@@ -30,7 +30,7 @@ static DWORD mode;
 static DWORD MaxItemSize;
 static DWORD ReloadWeaponKey = 0;
 
-int& GetActiveItemMode() {
+long& GetActiveItemMode() {
 	return VarPtr::itemButtonItems[VarPtr::itemCurrentItem].mode;
 }
 
@@ -51,7 +51,7 @@ void InventoryKeyPressedHook(DWORD dxKey, bool pressed, DWORD vKey) {
 			mov curAmmo, eax;
 		}
 		if (maxAmmo != curAmmo) {
-			int &currentMode = GetActiveItemMode();
+			long &currentMode = GetActiveItemMode();
 			long previusMode = currentMode;
 			currentMode = 5; // reload mode
 			__asm {

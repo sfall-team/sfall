@@ -122,7 +122,7 @@ void GetMouse(int* x, int* y);
 #define DIK_NOCONVERT       0x7B    /* (Japanese keyboard)            */
 #define DIK_YEN             0x7D    /* (Japanese keyboard)            */
 #define DIK_NUMPADEQUALS    0x8D    /* = on numeric keypad (NEC PC98) */
-#define DIK_CIRCUMFLEX      0x90    /* (Japanese keyboard)            */
+//#define DIK_CIRCUMFLEX      0x90    /* (Japanese keyboard)            */
 #define DIK_AT              0x91    /*                     (NEC PC98) */
 #define DIK_COLON           0x92    /*                     (NEC PC98) */
 #define DIK_UNDERLINE       0x93    /*                     (NEC PC98) */

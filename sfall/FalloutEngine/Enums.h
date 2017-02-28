@@ -18,7 +18,7 @@
 
 #pragma once
 
-enum Animation : __int32
+enum Animation : long
 {
 	ANIM_stand = 0,
 	ANIM_walk = 1,
@@ -87,7 +87,7 @@ enum Animation : __int32
 	ANIM_called_shot_pic = 64,
 };
 
-enum DamageFlag : __int32
+enum DamageFlag : long
 {
 	DAM_KNOCKED_OUT = 0x1,
 	DAM_KNOCKED_DOWN = 0x2,
@@ -135,7 +135,7 @@ enum Gender
 };
 
 // Some global variables referenced by engine
-enum GlobalVar : __int32
+enum GlobalVar : long
 {
 	GVAR_PLAYER_REPUTATION = 0,
 	GVAR_ENEMY_ARROYO = 7,
@@ -158,7 +158,7 @@ enum GlobalVar : __int32
 	GVAR_FALLOUT_2 = 494,
 };
 
-enum ObjType : __int8
+enum ObjType : char
 {
 	OBJ_TYPE_ITEM = 0,
 	OBJ_TYPE_CRITTER = 1,
@@ -170,7 +170,7 @@ enum ObjType : __int8
 };
 
 // Some FO2 PIDs possibly used by engine
-enum ProtoId : __int32
+enum ProtoId : long
 {
 	PID_ROCK = 19,
 	PID_SMALL_ENERGY_CELL = 38,
@@ -228,7 +228,7 @@ enum ProtoId : __int32
 #define TRAIT_TRAIT  (2)
 
 
-enum Perk : __int32
+enum Perk : long
 {
 	PERK_bonus_awareness = 0,
 	PERK_bonus_hth_attacks = 1,
@@ -352,7 +352,7 @@ enum Perk : __int32
 	PERK_count = 119
 };
 
-enum Trait : __int32
+enum Trait : long
 {
 	TRAIT_fast_metabolism = 0,
 	TRAIT_bruiser = 1,
@@ -384,7 +384,7 @@ enum ScriptTypes
 
 // proto.h: stats //
 
-enum Stat : __int32
+enum Stat : long
 {
 	STAT_st = 0,
 	STAT_pe = 1,
@@ -435,7 +435,7 @@ enum Stat : __int32
 
 namespace ScriptProc // workaround while enum class is not supported
 {
-enum ScriptProc : __int32 {
+enum ScriptProc : long {
 	no_p_proc = 0,
 	start = 1,
 	spatial_p_proc = 2,
@@ -472,7 +472,7 @@ enum ScriptProc : __int32 {
 #define STAT_max_stat  STAT_current_hp
 
 // extra stat-like values that are treated specially
-enum PCStat : __int32
+enum PCStat : long
 {
 	PCSTAT_unspent_skill_points = 0,
 	PCSTAT_level = 1,
@@ -482,7 +482,7 @@ enum PCStat : __int32
 	PCSTAT_max_pc_stat = 5,
 };
 
-enum Skill : __int32
+enum Skill : long
 {
 	SKILL_SMALL_GUNS = 0,
 	SKILL_BIG_GUNS = 1,
@@ -509,7 +509,7 @@ enum Skill : __int32
 //XX Object defines XX
 //XXXXXXXXXXXXXXXXXXXX
 
-enum ItemType : __int32
+enum ItemType : long
 {
 	item_type_armor = 0,
 	item_type_container = 1,
