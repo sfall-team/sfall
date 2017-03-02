@@ -16,15 +16,15 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "..\main.h"
-
 #include <stdio.h>
 
+#include "..\main.h"
 #include "..\FalloutEngine\Fallout2.h"
+#include "..\InputFuncs.h"
 #include "HookScripts.h"
-#include "Inventory.h"
 #include "LoadGameHook.h"
 
+#include "Inventory.h"
 
 static DWORD mode;
 static DWORD MaxItemSize;
@@ -39,7 +39,7 @@ TGameObj* GetActiveItem() {
 }
 
 void InventoryKeyPressedHook(DWORD dxKey, bool pressed, DWORD vKey) {
-	if (pressed && ReloadWeaponKey && dxKey == ReloadWeaponKey && (GetCurrentLoops() & ~(COMBAT | PCOMBAT)) == 0) {
+	if (pressed && ReloadWeaponKey && dxKey == ReloadWeaponKey && IsMapLoaded() && (GetCurrentLoops() & ~(COMBAT | PCOMBAT)) == 0) {
 		DWORD maxAmmo, curAmmo;
 		TGameObj* item = GetActiveItem();
 		__asm {
@@ -619,6 +619,8 @@ void __declspec(naked) ItemCountFix() {
 }
 
 void Inventory::init() {
+	onKeyPressed += InventoryKeyPressedHook;
+
 	mode = GetPrivateProfileInt("Misc", "CritterInvSizeLimitMode", 0, ini);
 	invenapcost = GetPrivateProfileInt("Misc", "InventoryApCost", 4, ini);
 	invenapqpreduction = GetPrivateProfileInt("Misc", "QuickPocketsApCostReduction", 2, ini);

@@ -16,17 +16,18 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "..\main.h"
-
 #include <string>
 #include <vector>
 
+#include "..\main.h"
 #include "..\FalloutEngine\Fallout2.h"
-#include "HookScripts.h"
-#include "Inventory.h"
+#include "..\InputFuncs.h"
 #include "..\Logging.h"
+#include "Inventory.h"
 #include "PartyControl.h"
 #include "ScriptExtender.h"
+
+#include "HookScripts.h"
 
 #define MAXDEPTH (8)
 static const int numHooks = HOOK_COUNT;
@@ -754,7 +755,6 @@ void _stdcall KeyPressHook( DWORD dxKey, bool pressed, DWORD vKey )
 	args[1] = dxKey;
 	args[2] = vKey;
 	RunHookScript(HOOK_KEYPRESS);
-	InventoryKeyPressedHook(dxKey, pressed, vKey);
 	EndHook();
 }
 
@@ -1320,4 +1320,5 @@ void _stdcall RunHookScriptsAtProc(DWORD procId) {
 }
 
 void HookScripts::init() {
+	onKeyPressed += KeyPressHook;
 }

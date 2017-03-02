@@ -474,74 +474,6 @@ void _stdcall SetSelfObject(TProgram* script, TGameObj* obj) {
 	}
 }
 
-void ScriptExtender::init() {
-
-	toggleHighlightsKey = GetPrivateProfileIntA("Input", "ToggleItemHighlightsKey", 0, ini);
-	if (toggleHighlightsKey) {
-		MotionSensorMode = GetPrivateProfileIntA("Misc", "MotionScannerFlags", 1, ini);
-		HighlightContainers = GetPrivateProfileIntA("Input", "HighlightContainers", 0, ini);
-		switch (HighlightContainers) {
-		case 1:
-			Color_Containers = 0x10; // yellow
-			break;
-		case 2:
-			Color_Containers = 0x40; // purple
-			break;
-		}
-		//HookCall(0x44B9BA, &gmouse_bk_process_hook);
-		HookCall(0x44BD1C, &obj_remove_outline_hook);
-		HookCall(0x44E559, &obj_remove_outline_hook);
-	}
-	GetPrivateProfileStringA("Sfall", "HighlightFail1", "You aren't carrying a motion sensor.", HighlightFail1, 128, translationIni);
-	GetPrivateProfileStringA("Sfall", "HighlightFail2", "Your motion sensor is out of charge.", HighlightFail2, 128, translationIni);
-
-	idle = GetPrivateProfileIntA("Misc", "ProcessorIdle", -1, ini);
-	if (idle > -1) {
-		VarPtr::idle_func = reinterpret_cast<DWORD>(Sleep);
-		SafeWrite8(0x4C9F12, 0x6A); // push
-		SafeWrite8(0x4C9F13, idle);
-	}
-	modifiedIni = GetPrivateProfileIntA("Main", "ModifiedIni", 0, ini);
-	
-	arraysBehavior = GetPrivateProfileIntA("Misc", "arraysBehavior", 1, ini);
-	if (arraysBehavior > 0) {
-		arraysBehavior = 1; // only 1 and 0 allowed at this time
-		dlogr("New arrays behavior enabled.", DL_SCRIPT);
-	} else {
-		dlogr("Arrays in backward-compatiblity mode.", DL_SCRIPT);
-	}
-	
-	HookCall(0x480E7B, MainGameLoopHook); //hook the main game loop
-	HookCall(0x422845, CombatLoopHook); //hook the combat loop
-
-	MakeCall(0x4A390C, &FindSidHook, true);
-	MakeCall(0x4A5E34, &ScrPtrHook, true);
-	memset(&OverrideScriptStruct, 0, sizeof(TScript));
-
-	MakeCall(0x4230D5, &AfterCombatAttackHook, true);
-	MakeCall(0x4A67F2, &ExecMapScriptsHook, true);
-
-	// this patch makes it possible to export variables from sfall global scripts
-	MakeCall(0x4414C8, &Export_Export_FindVar_Hook, true);
-	HookCall(0x441285, &Export_FetchOrStore_FindVar_Hook); // store
-	HookCall(0x4413D9, &Export_FetchOrStore_FindVar_Hook); // fetch
-
-	// fix vanilla negate operator on float values
-	MakeCall(0x46AB63, &NegateFixHook, true);
-	// fix incorrect int-to-float conversion
-	// op_mult:
-	SafeWrite16(0x46A3F4, 0x04DB); // replace operator to "fild 32bit"
-	SafeWrite16(0x46A3A8, 0x04DB);
-	// op_div:
-	SafeWrite16(0x46A566, 0x04DB);
-	SafeWrite16(0x46A4E7, 0x04DB);
-
-	HookCall(0x46E141, FreeProgramHook);
-	
-	InitNewOpcodes();
-}
-
-
 // loads script from .int file into a sScriptProgram struct, filling script pointer and proc lookup table
 void LoadScriptProgram(sScriptProgram &prog, const char* fileName) {
 	TProgram* scriptPtr = Wrapper::loadProgram(fileName);
@@ -878,12 +810,80 @@ void SetGlobals(sGlobalVar* globals) {
 }
 
 //fuctions to load and save appearance globals
+// TODO: move to HeroAppearance mod
 void SetAppearanceGlobals(int race, int style) {
 	SetGlobalVar("HAp_Race", race);
 	SetGlobalVar("HApStyle", style);
 }
-
 void GetAppearanceGlobals(int *race, int *style) {
 	*race = GetGlobalVar("HAp_Race");
 	*style = GetGlobalVar("HApStyle");
+}
+
+void ScriptExtender::init() {
+	LoadGameHook::onAfterGameStarted += LoadGlobalScripts;
+
+	toggleHighlightsKey = GetPrivateProfileIntA("Input", "ToggleItemHighlightsKey", 0, ini);
+	if (toggleHighlightsKey) {
+		MotionSensorMode = GetPrivateProfileIntA("Misc", "MotionScannerFlags", 1, ini);
+		HighlightContainers = GetPrivateProfileIntA("Input", "HighlightContainers", 0, ini);
+		switch (HighlightContainers) {
+		case 1:
+			Color_Containers = 0x10; // yellow
+			break;
+		case 2:
+			Color_Containers = 0x40; // purple
+			break;
+		}
+		//HookCall(0x44B9BA, &gmouse_bk_process_hook);
+		HookCall(0x44BD1C, &obj_remove_outline_hook);
+		HookCall(0x44E559, &obj_remove_outline_hook);
+	}
+	GetPrivateProfileStringA("Sfall", "HighlightFail1", "You aren't carrying a motion sensor.", HighlightFail1, 128, translationIni);
+	GetPrivateProfileStringA("Sfall", "HighlightFail2", "Your motion sensor is out of charge.", HighlightFail2, 128, translationIni);
+
+	idle = GetPrivateProfileIntA("Misc", "ProcessorIdle", -1, ini);
+	if (idle > -1) {
+		VarPtr::idle_func = reinterpret_cast<DWORD>(Sleep);
+		SafeWrite8(0x4C9F12, 0x6A); // push
+		SafeWrite8(0x4C9F13, idle);
+	}
+	modifiedIni = GetPrivateProfileIntA("Main", "ModifiedIni", 0, ini);
+	
+	arraysBehavior = GetPrivateProfileIntA("Misc", "arraysBehavior", 1, ini);
+	if (arraysBehavior > 0) {
+		arraysBehavior = 1; // only 1 and 0 allowed at this time
+		dlogr("New arrays behavior enabled.", DL_SCRIPT);
+	} else {
+		dlogr("Arrays in backward-compatiblity mode.", DL_SCRIPT);
+	}
+	
+	HookCall(0x480E7B, MainGameLoopHook); //hook the main game loop
+	HookCall(0x422845, CombatLoopHook); //hook the combat loop
+
+	MakeCall(0x4A390C, &FindSidHook, true);
+	MakeCall(0x4A5E34, &ScrPtrHook, true);
+	memset(&OverrideScriptStruct, 0, sizeof(TScript));
+
+	MakeCall(0x4230D5, &AfterCombatAttackHook, true);
+	MakeCall(0x4A67F2, &ExecMapScriptsHook, true);
+
+	// this patch makes it possible to export variables from sfall global scripts
+	MakeCall(0x4414C8, &Export_Export_FindVar_Hook, true);
+	HookCall(0x441285, &Export_FetchOrStore_FindVar_Hook); // store
+	HookCall(0x4413D9, &Export_FetchOrStore_FindVar_Hook); // fetch
+
+	// fix vanilla negate operator on float values
+	MakeCall(0x46AB63, &NegateFixHook, true);
+	// fix incorrect int-to-float conversion
+	// op_mult:
+	SafeWrite16(0x46A3F4, 0x04DB); // replace operator to "fild 32bit"
+	SafeWrite16(0x46A3A8, 0x04DB);
+	// op_div:
+	SafeWrite16(0x46A566, 0x04DB);
+	SafeWrite16(0x46A4E7, 0x04DB);
+
+	HookCall(0x46E141, FreeProgramHook);
+	
+	InitNewOpcodes();
 }

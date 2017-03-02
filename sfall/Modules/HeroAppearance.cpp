@@ -16,13 +16,15 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "..\main.h"
-
 #include <stdio.h>
+
+#include "..\main.h"
 #include "..\FalloutEngine\Fallout2.h"
-#include "HeroAppearance.h"
+#include "LoadGameHook.h"
 #include "Message.h"
 #include "ScriptExtender.h"
+
+#include "HeroAppearance.h"
 
 bool AppModEnabled = false; //check if Appearance mod enabled for script functions
 
@@ -2443,6 +2445,9 @@ void HeroAppearance::init() {
 		dlog("Setting up Appearance Char Screen buttons.", DL_INIT);
 		EnableHeroAppearanceMod();
 		dlogr(" Done", DL_INIT);
+		
+		LoadGameHook::onAfterNewGame += SetNewCharAppearanceGlobals;
+		LoadGameHook::onAfterGameStarted += LoadHeroAppearance;
 	}
 }
 

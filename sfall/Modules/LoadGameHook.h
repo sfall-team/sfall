@@ -28,19 +28,21 @@ public:
 	void init();
 
 	// Invoked before game is being loaded (new game or saved game)
-	static Delegate<> OnBeforeGameLoad;
+	static Delegate<> onBeforeGameStart;
 
 	// Invoked after game has been loaded (new game or saved game)
-	static Delegate<> OnAfterGameLoaded;
+	static Delegate<> onAfterGameStarted;
 
-	// Invoked after new game has been started
-	//static Delegate<> OnAfterNewGame;
-
-	// Invoked after game has started (right after loading a save or starting a new game)
-	//static Delegate<> OnGameStart;
+	// Invoked after new game has started
+	static Delegate<> onAfterNewGame;
 };
 
+// True if some map was loaded at least once
+// TODO: set to false if game was loaded and then quit back to main menu
+bool IsMapLoaded();
+
 DWORD InWorldMap();
+
 DWORD InCombat();
 
 #define WORLDMAP   (1<<0) //0x1

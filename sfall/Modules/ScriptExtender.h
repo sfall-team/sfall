@@ -44,7 +44,6 @@ void _stdcall SetGlobalScriptRepeat(TProgram* script, int frames);
 void _stdcall SetGlobalScriptType(TProgram* script, int type);
 void ScriptExtenderSetup();
 bool _stdcall IsGameScript(const char* filename);
-void LoadGlobalScripts();
 void ClearGlobalScripts();
 
 void RunGlobalScripts1();

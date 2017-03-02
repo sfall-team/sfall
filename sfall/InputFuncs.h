@@ -18,12 +18,16 @@
 
 #pragma once
 
+#include "Delegate.h"
+
 void SetMPMode(bool active);
 void SetMDown(bool down, bool right);
 void SetMPos(int x, int y);
 
 DWORD _stdcall KeyDown(DWORD key);
 void _stdcall TapKey(DWORD key);
+
+extern Delegate<DWORD, bool, DWORD> onKeyPressed;
 
 void GetMouse(int* x, int* y);
 

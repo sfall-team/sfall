@@ -16,12 +16,14 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "..\main.h"
-
 #include <stdio.h>
-#include "Criticals.h"
+
+#include "..\main.h"
 #include "..\FalloutEngine\Fallout2.h"
 #include "..\Logging.h"
+#include "LoadGameHook.h"
+
+#include "Criticals.h"
 
 static const DWORD CritTableCount = 2 * 19 + 1;              //Number of species in new critical table
 
@@ -243,6 +245,8 @@ void RemoveCriticalTimeLimitsPatch() {
 }
 
 void Criticals::init() {
+	LoadGameHook::onAfterGameStarted += CritLoad;
+
 	mode = GetPrivateProfileIntA("Misc", "OverrideCriticalTable", 2, ini);
 	if (mode < 0 || mode > 3) mode = 0;
 	if (mode) {

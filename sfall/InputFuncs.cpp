@@ -77,6 +77,8 @@ static std::queue<DIDEVICEOBJECTDATA> bufferedPresses;
 
 static HKL keyboardLayout;
 
+Delegate<DWORD, bool, DWORD> onKeyPressed;
+
 void SetMDown(bool down, bool right) {
 	if (right) RMouse = down ? 0x80 : 0;
 	else LMouse = down ? 0x80 : 0;
@@ -249,7 +251,7 @@ public:
 			if (FAILED(hr) || !b || !(*c)) return hr;
 			for (DWORD i = 0; i < *c; i++) {
 				KeysDown[b[i].dwOfs] = b[i].dwData & 0x80;
-				KeyPressHook(b[i].dwOfs, (b[i].dwData & 0x80) > 0, MapVirtualKeyEx(b[i].dwOfs, MAPVK_VSC_TO_VK, keyboardLayout));
+				onKeyPressed.invoke(b[i].dwOfs, (b[i].dwData & 0x80) > 0, MapVirtualKeyEx(b[i].dwOfs, MAPVK_VSC_TO_VK, keyboardLayout));
 			}
 			if (KeysDown[DebugEditorKey]) RunDebugEditor();
 			return hr;

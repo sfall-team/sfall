@@ -44,26 +44,30 @@
 #include "Sound.h"
 #include "ExtraSaveSlots.h"
 
-Delegate<> LoadGameHook::OnBeforeGameLoad;
-Delegate<> LoadGameHook::OnAfterGameLoaded;
-//Delegate<> LoadGameHook::OnAfterNewGame;
-//Delegate<> LoadGameHook::OnGameStart;
+Delegate<> LoadGameHook::onBeforeGameStart;
+Delegate<> LoadGameHook::onAfterGameStarted;
+Delegate<> LoadGameHook::onAfterNewGame;
 
-#define MAX_GLOBAL_SIZE (MaxGlobalVars * 12 + 4)
+static DWORD inLoop = 0;
+static DWORD saveInCombatFix;
+static bool disableHorrigan = false;
+static bool pipBoyAvailableAtGameStart = false;
+static bool mapLoaded = false;
 
-static DWORD InLoop = 0;
-static DWORD SaveInCombatFix;
-static bool DisableHorrigan = false;
-static bool PipBoyAvailableAtGameStart = false;
+bool IsMapLoaded() {
+	return mapLoaded;
+}
 
 DWORD InWorldMap() {
-	return (InLoop&WORLDMAP) ? 1 : 0;
+	return (inLoop&WORLDMAP) ? 1 : 0;
 }
+
 DWORD InCombat() {
-	return (InLoop&COMBAT) ? 1 : 0;
+	return (inLoop&COMBAT) ? 1 : 0;
 }
+
 DWORD GetCurrentLoops() {
-	return InLoop;
+	return inLoop;
 }
 
 static void _stdcall ResetState(DWORD onLoad) {
@@ -76,7 +80,7 @@ static void _stdcall ResetState(DWORD onLoad) {
 	if (GraphicsMode > 3) graphics_OnGameLoad();
 	Knockback_OnGameLoad();
 	Skills_OnGameLoad();
-	InLoop = 0;
+	inLoop = 0;
 	PerksReset();
 	InventoryReset();
 	RegAnimCombatCheck(1);
@@ -121,9 +125,9 @@ static void _stdcall SaveGame2() {
 
 static char SaveFailMsg[128];
 static DWORD _stdcall combatSaveTest() {
-	if (!SaveInCombatFix && !IsNpcControlled()) return 1;
-	if (InLoop & COMBAT) {
-		if (SaveInCombatFix == 2 || IsNpcControlled() || !(InLoop & PCOMBAT)) {
+	if (!saveInCombatFix && !IsNpcControlled()) return 1;
+	if (inLoop & COMBAT) {
+		if (saveInCombatFix == 2 || IsNpcControlled() || !(inLoop & PCOMBAT)) {
 			Wrapper::display_print(SaveFailMsg);
 			return 0;
 		}
@@ -149,9 +153,9 @@ static void __declspec(naked) SaveGame() {
 		jz end;
 		mov eax, edx;
 
-		or InLoop, SAVEGAME;
+		or inLoop, SAVEGAME;
 		call FuncOffs::SaveGame_;
-		and InLoop, (-1^SAVEGAME);
+		and inLoop, (-1^SAVEGAME);
 		cmp eax, 1;
 		jne end;
 		call SaveGame2;
@@ -166,7 +170,7 @@ end:
 
 // Called right before savegame slot is being loaded
 static void _stdcall LoadGame_Before() {
-	LoadGameHook::OnBeforeGameLoad.invoke();
+	LoadGameHook::onBeforeGameStart.invoke();
 	ResetState(1);
 	
 	char buf[MAX_PATH];
@@ -192,11 +196,8 @@ static void _stdcall LoadGame_Before() {
 
 // Called after game was loaded from a save
 static void _stdcall LoadGame_After() {
-	LoadGlobalScripts();
-	CritLoad();
-	LoadHeroAppearance();
-
-	LoadGameHook::OnAfterGameLoaded.invoke();
+	LoadGameHook::onAfterGameStarted.invoke();
+	mapLoaded = true;
 }
 
 static void __declspec(naked) LoadSlot() {
@@ -214,9 +215,9 @@ static void __declspec(naked) LoadGame() {
 		push ebx;
 		push ecx;
 		push edx;
-		or InLoop, LOADGAME;
+		or inLoop, LOADGAME;
 		call FuncOffs::LoadGame_;
-		and InLoop, (-1^LOADGAME);
+		and inLoop, (-1^LOADGAME);
 		cmp eax, 1;
 		jne end;
 		call LoadGame_After;
@@ -230,31 +231,30 @@ end:
 }
 
 static void __stdcall NewGame_Before() {
-	LoadGameHook::OnBeforeGameLoad.invoke();
+	LoadGameHook::onBeforeGameStart.invoke();
+
+	ResetState(0);
 }
 
 static void __stdcall NewGame_After() {
 	// TODO: Move this hack out
-	VarPtr::Meet_Frank_Horrigan = DisableHorrigan;
-	VarPtr::gmovie_played_list[3] = PipBoyAvailableAtGameStart;
+	VarPtr::Meet_Frank_Horrigan = disableHorrigan;
+	VarPtr::gmovie_played_list[3] = pipBoyAvailableAtGameStart;
 	
-	LoadGameHook::OnAfterGameLoaded.invoke();
-
-	ResetState(0);
+	LoadGameHook::onAfterNewGame.invoke();
+	LoadGameHook::onAfterGameStarted.invoke();
 
 	dlogr("New Game started.", DL_MAIN);
-
-	SetNewCharAppearanceGlobals();
-
-	LoadGlobalScripts();
-	CritLoad();
-	LoadHeroAppearance();
+	
+	mapLoaded = true;
 }
 
 static void __declspec(naked) main_load_new_hook() {
 	__asm {
 		pushad;
+		push eax;
 		call NewGame_Before;
+		pop eax;
 		call FuncOffs::main_load_new_;
 		call NewGame_After;
 		popad;
@@ -264,19 +264,19 @@ static void __declspec(naked) main_load_new_hook() {
 
 static void __declspec(naked) WorldMapHook() {
 	__asm {
-		or InLoop, WORLDMAP;
+		or inLoop, WORLDMAP;
 		xor eax, eax;
 		call FuncOffs::wmWorldMapFunc_;
-		and InLoop, (-1^WORLDMAP);
+		and inLoop, (-1^WORLDMAP);
 		retn;
 	}
 }
 
 static void __declspec(naked) WorldMapHook2() {
 	__asm {
-		or InLoop, WORLDMAP;
+		or inLoop, WORLDMAP;
 		call FuncOffs::wmWorldMapFunc_;
-		and InLoop, (-1^WORLDMAP);
+		and inLoop, (-1^WORLDMAP);
 		retn;
 	}
 }
@@ -286,30 +286,30 @@ static void __declspec(naked) CombatHook() {
 		pushad;
 		call AICombatStart;
 		popad
-		or InLoop, COMBAT;
+		or inLoop, COMBAT;
 		call FuncOffs::combat_;
 		pushad;
 		call AICombatEnd;
 		popad
-		and InLoop, (-1^COMBAT);
+		and inLoop, (-1^COMBAT);
 		retn;
 	}
 }
 
 static void __declspec(naked) PlayerCombatHook() {
 	__asm {
-		or InLoop, PCOMBAT;
+		or inLoop, PCOMBAT;
 		call FuncOffs::combat_input_;
-		and InLoop, (-1^PCOMBAT);
+		and inLoop, (-1^PCOMBAT);
 		retn;
 	}
 }
 
 static void __declspec(naked) EscMenuHook() {
 	__asm {
-		or InLoop, ESCMENU;
+		or inLoop, ESCMENU;
 		call FuncOffs::do_optionsFunc_;
-		and InLoop, (-1^ESCMENU);
+		and inLoop, (-1^ESCMENU);
 		retn;
 	}
 }
@@ -317,34 +317,34 @@ static void __declspec(naked) EscMenuHook() {
 static void __declspec(naked) EscMenuHook2() {
 	//Bloody stupid watcom compiler optimizations...
 	__asm {
-		or InLoop, ESCMENU;
+		or inLoop, ESCMENU;
 		call FuncOffs::do_options_;
-		and InLoop, (-1^ESCMENU);
+		and inLoop, (-1^ESCMENU);
 		retn;
 	}
 }
 
 static void __declspec(naked) OptionsMenuHook() {
 	__asm {
-		or InLoop, OPTIONS;
+		or inLoop, OPTIONS;
 		call FuncOffs::do_prefscreen_;
-		and InLoop, (-1^OPTIONS);
+		and inLoop, (-1^OPTIONS);
 		retn;
 	}
 }
 
 static void __declspec(naked) HelpMenuHook() {
 	__asm {
-		or InLoop, HELP;
+		or inLoop, HELP;
 		call FuncOffs::game_help_;
-		and InLoop, (-1^HELP);
+		and inLoop, (-1^HELP);
 		retn;
 	}
 }
 
 static void __declspec(naked) CharacterHook() {
 	__asm {
-		or InLoop, CHARSCREEN;
+		or inLoop, CHARSCREEN;
 		pushad;
 		call PerksEnterCharScreen;
 		popad;
@@ -358,66 +358,66 @@ success:
 		call PerksAcceptCharScreen;
 end:
 		popad;
-		and InLoop, (-1^CHARSCREEN);
+		and inLoop, (-1^CHARSCREEN);
 		retn;
 	}
 }
 
 static void __declspec(naked) DialogHook() {
 	__asm {
-		or InLoop, DIALOG;
+		or inLoop, DIALOG;
 		call FuncOffs::gdProcess_;
-		and InLoop, (-1^DIALOG);
+		and inLoop, (-1^DIALOG);
 		retn;
 	}
 }
 
 static void __declspec(naked) PipboyHook() {
 	__asm {
-		or InLoop, PIPBOY;
+		or inLoop, PIPBOY;
 		call FuncOffs::pipboy_;
-		and InLoop, (-1^PIPBOY);
+		and inLoop, (-1^PIPBOY);
 		retn;
 	}
 }
 
 static void __declspec(naked) SkilldexHook() {
 	__asm {
-		or InLoop, SKILLDEX;
+		or inLoop, SKILLDEX;
 		call FuncOffs::skilldex_select_;
-		and InLoop, (-1^SKILLDEX);
+		and inLoop, (-1^SKILLDEX);
 		retn;
 	}
 }
 
 static void __declspec(naked) InventoryHook() {
 	__asm {
-		or InLoop, INVENTORY;
+		or inLoop, INVENTORY;
 		call FuncOffs::handle_inventory_;
-		and InLoop, (-1^INVENTORY);
+		and inLoop, (-1^INVENTORY);
 		retn;
 	}
 }
 
 static void __declspec(naked) AutomapHook() {
 	__asm {
-		or InLoop, AUTOMAP;
+		or inLoop, AUTOMAP;
 		call FuncOffs::automap_;
-		and InLoop, (-1^AUTOMAP);
+		and inLoop, (-1^AUTOMAP);
 		retn;
 	}
 }
 
 void LoadGameHook::init() {
-	SaveInCombatFix = GetPrivateProfileInt("Misc", "SaveInCombatFix", 1, ini);
-	if (SaveInCombatFix > 2) SaveInCombatFix = 0;
+	saveInCombatFix = GetPrivateProfileInt("Misc", "SaveInCombatFix", 1, ini);
+	if (saveInCombatFix > 2) saveInCombatFix = 0;
 	GetPrivateProfileString("sfall", "SaveInCombat", "Cannot save at this time", SaveFailMsg, 128, translationIni);
 	GetPrivateProfileString("sfall", "SaveSfallDataFail", "ERROR saving extended savegame information! Check if other programs interfere with savegame files/folders and try again!", SaveSfallDataFailMsg, 128, translationIni);
 
 	// TODO: move these patches someplace else
 	switch (GetPrivateProfileInt("Misc", "PipBoyAvailableAtGameStart", 0, ini)) {
 	case 1:
-		PipBoyAvailableAtGameStart = true;
+		pipBoyAvailableAtGameStart = true;
 		break;
 	case 2:
 		SafeWrite8(0x497011, 0xEB); // skip the vault suit movie check
@@ -425,7 +425,7 @@ void LoadGameHook::init() {
 	}
 
 	if (GetPrivateProfileInt("Misc", "DisableHorrigan", 0, ini)) {
-		DisableHorrigan = true;
+		disableHorrigan = true;
 		SafeWrite8(0x4C06D8, 0xEB); // skip the Horrigan encounter check
 	}
 
