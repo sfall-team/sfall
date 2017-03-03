@@ -20,6 +20,7 @@
 
 void LoadGameHookInit();
 
+bool IsMapLoaded();
 DWORD InWorldMap();
 DWORD InCombat();
 

@@ -57,7 +57,7 @@ TGameObj* GetActiveItem() {
 }
 
 void InventoryKeyPressedHook(DWORD dxKey, bool pressed, DWORD vKey) {
-	if (pressed && ReloadWeaponKey && dxKey == ReloadWeaponKey && (GetCurrentLoops() & ~(COMBAT | PCOMBAT)) == 0) {
+	if (pressed && ReloadWeaponKey && dxKey == ReloadWeaponKey && IsMapLoaded() && (GetCurrentLoops() & ~(COMBAT | PCOMBAT)) == 0) {
 		DWORD maxAmmo, curAmmo;
 		TGameObj* item = GetActiveItem();
 		__asm {

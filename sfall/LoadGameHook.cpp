@@ -45,13 +45,20 @@
 
 static DWORD InLoop = 0;
 static DWORD SaveInCombatFix;
+static bool mapLoaded = false;
+
+bool IsMapLoaded() {
+	return mapLoaded;
+}
 
 DWORD InWorldMap() {
 	return (InLoop&WORLDMAP) ? 1 : 0;
 }
+
 DWORD InCombat() {
 	return (InLoop&COMBAT) ? 1 : 0;
 }
+
 DWORD GetCurrentLoops() {
 	return InLoop;
 }
@@ -192,6 +199,7 @@ static void _stdcall LoadGame2_After() {
 	LoadGlobalScripts();
 	CritLoad();
 	LoadHeroAppearance();
+	mapLoaded = true;
 }
 
 static void __declspec(naked) LoadSlot() {
@@ -241,6 +249,7 @@ static void NewGame2() {
 
 	LoadGlobalScripts();
 	CritLoad();
+	mapLoaded = true;
 }
 
 static bool DisableHorrigan = false;
