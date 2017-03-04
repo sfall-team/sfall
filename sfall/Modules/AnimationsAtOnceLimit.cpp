@@ -291,20 +291,19 @@ void ApplyAnimationsAtOncePatches(signed char aniMax) {
 	for (i = 0; i < sizeof(sad_28) / 4; i++) {
 		SafeWrite32(sad_28[i], 40 + (DWORD)sad);
 	}
-
 }
 
-void AnimationsAtOnceExit() {
-	if (!AniLimitFixActive) return;
-	delete[] anim_set;
-	delete[] sad;
-}
-
-void AnimationsAtOnceInit() {
+void AnimationsAtOnce::init() {
 	DWORD setting = GetPrivateProfileIntA("Misc", "AnimationsAtOnceLimit", 32, ini);
 	if ((signed char)setting > 32) {
 		dlog("Applying AnimationsAtOnceLimit patch.", DL_INIT);
 		ApplyAnimationsAtOncePatches((signed char)setting);
 		dlogr(" Done", DL_INIT);
 	}
+}
+
+void AnimationsAtOnce::exit() {
+	if (!AniLimitFixActive) return;
+	delete[] anim_set;
+	delete[] sad;
 }

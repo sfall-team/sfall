@@ -18,8 +18,12 @@
 
 #pragma once
 
-void CritInit();
-void CritLoad();
+#include "Module.h"
+
+class Criticals : public Module {
+	const char* name() { return "Criticals"; }
+	void init();
+};
 
 void _stdcall SetCriticalTable(DWORD critter, DWORD bodypart, DWORD slot, DWORD element, DWORD value);
 DWORD _stdcall GetCriticalTable(DWORD critter, DWORD bodypart, DWORD slot, DWORD element);

@@ -1,3 +1,7 @@
 
+#include "Module.h"
 
-void SoundInit();
+class Sound : public Module {
+	const char* name() { return "Sounds"; }
+	void init();
+};

@@ -21,6 +21,8 @@
 #include "..\FalloutEngine\Fallout2.h"
 #include "..\Logging.h"
 
+#include "AmmoMod.h"
+
 static const DWORD DamageFunctionReturn = 0x424A63;
 
 // Damage Fix v5 by Glovz 2014.04.16.xx.xx
@@ -737,7 +739,7 @@ end:
 	}
 }
 
-void AmmoModInit() {
+void AmmoMod::init() {
 	int formula;
 	if (formula = GetPrivateProfileIntA("Misc", "DamageFormula", 0, ini)) {
 		switch (formula) {

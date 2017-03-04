@@ -27,11 +27,9 @@
 
 #include "..\main.h"
 #include "..\FalloutEngine\Fallout2.h"
-#include "PartyControl.h"
+#include "LoadGameHook.h"
 
-#if (_MSC_VER < 1600)
-#include "..\win9x\Cpp11_emu.h"
-#endif
+#include "PartyControl.h"
 
 static DWORD Mode;
 static int IsControllingNPC = 0;
@@ -344,7 +342,17 @@ end:
 	}
 }
 
-void PartyControlInit() {
+void __stdcall PartyControlReset() {
+	if (real_dude != nullptr && IsControllingNPC > 0) {
+		RestoreRealDudeState();
+	}
+}
+
+bool IsNpcControlled() {
+	return IsControllingNPC != 0;
+}
+
+void PartyControl::init() {
 	Mode = GetPrivateProfileIntA("Misc", "ControlCombat", 0, ini);
 	if (Mode > 2) {
 		Mode = 0;
@@ -379,17 +387,11 @@ void PartyControlInit() {
 		HookCall(0x454218, &stat_pc_add_experience_hook); // call inside op_give_exp_points_hook
 		HookCall(0x4124F1, &pc_flag_toggle_hook);
 		HookCall(0x41279A, &pc_flag_toggle_hook);
+
+		LoadGameHook::onGameReset += PartyControlReset;
 	} else {
 		dlog(" Disabled.", DL_INIT);
 	}
 }
 
-void __stdcall PartyControlReset() {
-	if (real_dude != nullptr && IsControllingNPC > 0) {
-		RestoreRealDudeState();
-	}
-}
 
-bool IsNpcControlled() {
-	return IsControllingNPC != 0;
-}

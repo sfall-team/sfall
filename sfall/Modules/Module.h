@@ -24,6 +24,9 @@ public:
 	Module() {
 	}
 
+	// the module name for logging
+	virtual const char* name() = 0;
+
 	// Called on starting the game
 	virtual void init() = 0;
 

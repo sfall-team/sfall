@@ -16,17 +16,18 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "..\main.h"
-
 #include <vector> // should be above DX SDK includes to avoid warning 4995
 #include <d3d9.h>
 #include <dshow.h>
 #include <Vmr9.h>
 
+#include "..\main.h"
 #include "..\FalloutEngine\Fallout2.h"
 #include "..\SimplePatch.h"
 #include "..\Logging.h"
 #include "Graphics.h"
+#include "LoadGameHook.h"
+
 #include "Movies.h"
 
 static DWORD MoviePtrs[MaxMovies];
@@ -532,8 +533,11 @@ less:
 	}
 }
 
-void MoviesInit() {
+void Movies::init() {
 	dlog("Applying movie patch.", DL_INIT);
+
+	LoadGameHook::onGameReset += WipeSounds;
+
 	if (*((DWORD*)0x00518DA0) != 0x00503300) {
 		dlog("Error!", DL_INIT);
 	}
@@ -555,7 +559,7 @@ void MoviesInit() {
 	SafeWrite32(0x44E75E, (DWORD)MoviePtrs);
 	SafeWrite32(0x44E78A, (DWORD)MoviePtrs);
 	dlog(".", DL_INIT);
-	if (GraphicsMode != 0) {
+	if (Graphics::mode != 0) {
 		HookCall(0x440C4F, PlayMovieHook);
 		HookCall(0x45A1D0, PlayMovieHook);
 		HookCall(0x4809CB, PlayMovieHook);

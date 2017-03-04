@@ -21,6 +21,8 @@
 #include "..\main.h"
 
 #include "..\FalloutEngine\Fallout2.h"
+#include "LoadGameHook.h"
+
 #include "FileSystem.h"
 
 extern void GetSavePath(char* buf, char* ftype);
@@ -447,7 +449,7 @@ void FileSystemReset() {
 	}
 }
 
-void FileSystemSave(HANDLE h) {
+void FileSystem::save(HANDLE h) {
 	DWORD count = 0, unused;
 	if (!UsingFileSystem) {
 		WriteFile(h, &count, 4, &unused, 0);
@@ -739,4 +741,12 @@ void _stdcall FSresize(DWORD id, DWORD size) {
 	files[id].length = size;
 	files[id].wpos = 0;
 	delete[] buf;
+}
+
+void FileSystem::init() {
+	if (GetPrivateProfileIntA("Misc", "UseFileSystemOverride", 0, ini)) {
+		FileSystemInit();
+
+		LoadGameHook::onGameReset += FileSystemReset;
+	}
 }

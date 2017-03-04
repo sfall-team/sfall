@@ -18,8 +18,15 @@
 
 #pragma once
 
-extern DWORD GraphicsMode;
-void graphics_OnGameLoad();
+#include "Module.h"
+
+class Graphics : public Module {
+public:
+	const char* name() { return "Graphics"; }
+	void init();
+
+	static DWORD mode;
+};
 
 int _stdcall GetShaderVersion();
 int _stdcall LoadShader(const char*);

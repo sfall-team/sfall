@@ -19,8 +19,8 @@
 #include <math.h>
 #include <stdio.h>
 
-#include "..\..\main.h"
-#include "..\..\FalloutEngine\Fallout2.h"
+#include "..\main.h"
+#include "..\FalloutEngine\Fallout2.h"
 
 #include "Karma.h"
 
@@ -118,4 +118,9 @@ void ApplyKarmaFRMsPatch() {
 		HookCall(0x4367A9, DrawCardHook);
 		dlogr(" Done", DL_INIT);
 	}
+}
+
+void Karma::init() {
+	ApplyDisplayKarmaChangesPatch();
+	ApplyKarmaFRMsPatch();
 }

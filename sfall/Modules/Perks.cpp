@@ -19,8 +19,9 @@
 #include <vector>
 
 #include "..\main.h"
-
 #include "..\FalloutEngine\Fallout2.h"
+#include "LoadGameHook.h"
+
 #include "Perks.h"
 
 //static const BYTE PerksUsed=121;
@@ -997,17 +998,6 @@ void _stdcall SetPerkDesc(int id, char* value) {
 	Perks[id].Desc = &Desc[1024 * id];
 }
 
-void PerksInit() {
-	for (int i = STAT_st; i <= STAT_lu; i++) SafeWrite8(GainStatPerks[i][0], (BYTE)GainStatPerks[i][1]);
-
-	HookCall(0x442729, &PerkInitWrapper);
-	if (GetPrivateProfileString("Misc", "PerksFile", "", &perksFile[2], 257, ini)) {
-		perksFile[0] = '.';
-		perksFile[1] = '\\';
-		HookCall(0x44272E, &TraitInitWrapper);
-	} else perksFile[0] = 0;
-}
-
 void PerksReset() {
 	fakeTraits.clear();
 	fakePerks.clear();
@@ -1020,7 +1010,7 @@ void PerksReset() {
 	PerkFreqOverride = 0;
 }
 
-void PerksSave(HANDLE file) {
+void Perks::save(HANDLE file) {
 	DWORD count;
 	DWORD unused;
 	count = fakeTraits.size();
@@ -1040,7 +1030,7 @@ void PerksSave(HANDLE file) {
 	}
 }
 
-bool PerksLoad(HANDLE file) {
+bool Perks::load(HANDLE file) {
 	DWORD count;
 	DWORD size;
 	ReadFile(file, &count, 4, &size, 0);
@@ -1113,4 +1103,17 @@ void PerksCancelCharScreen() {
 
 void PerksAcceptCharScreen() {
 	if (RemoveSelectableID != -1) fakeSelectablePerks.erase(fakeSelectablePerks.begin() + RemoveSelectableID);
+}
+
+void Perks::init() {
+	for (int i = STAT_st; i <= STAT_lu; i++) SafeWrite8(GainStatPerks[i][0], (BYTE)GainStatPerks[i][1]);
+
+	HookCall(0x442729, &PerkInitWrapper);
+	if (GetPrivateProfileString("Misc", "PerksFile", "", &perksFile[2], 257, ini)) {
+		perksFile[0] = '.';
+		perksFile[1] = '\\';
+		HookCall(0x44272E, &TraitInitWrapper);
+	} else perksFile[0] = 0;
+
+	LoadGameHook::onGameReset += PerksReset;
 }

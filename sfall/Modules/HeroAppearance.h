@@ -21,7 +21,9 @@
 #include "Module.h"
 
 class HeroAppearance : public Module {
-	void init() override;
+	const char* name() { return "HeroAppearance"; }
+
+	void init();
 
 	void exit() override;
 };

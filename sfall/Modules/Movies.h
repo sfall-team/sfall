@@ -18,11 +18,15 @@
 
 #pragma once
 
+#include "Module.h"
+
+class Movies : public Module {
+	const char* name() { return "Movies"; }
+	void init();
+};
+
 static const int MaxMovies=32;
 extern char MoviePaths[MaxMovies*65];
 
-void MoviesInit();
-
 void* _stdcall PlaySfallSound(const char* path, int loop);
 void _stdcall StopSfallSound(void* ptr);
-void WipeSounds();

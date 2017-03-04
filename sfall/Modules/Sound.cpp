@@ -3,6 +3,8 @@
 //#include <vector>
 #include "..\FalloutEngine\Fallout2.h"
 
+#include "Sound.h"
+
 static char attackerSnd[8];
 static char targetSnd[8];
 
@@ -45,22 +47,7 @@ skip:
 	}
 }
 
-/*struct ChangedReg {
-
-};
-std::vector<ChangedReg>* regChanges=0;
-
-void SoundExit() {
-	if(regChanges) {
-
-	}
-}
-
-static void SetupSoundAcceleration(int level) {
-	//RegOpenKey(HKEY_LOCAL_MACHINE, "SOFTWARE\\ControlSet001\\Hardware Profiles\\Current\\System\\CurrentControlSet\\", 0, 0, 0);
-}
-*/
-void SoundInit() {
+void Sound::init() {
 	int tmp;
 	if (tmp = GetPrivateProfileIntA("Sound", "NumSoundBuffers", 0, ini)) {
 		SafeWrite8(0x451129, (BYTE)tmp);

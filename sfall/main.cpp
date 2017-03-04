@@ -29,7 +29,7 @@
 #include "Modules\AnimationsAtOnceLimit.h"
 #include "Modules\BarBoxes.h"
 #include "Modules\Books.h"
-#include "Modules\Bugs.h"
+#include "Modules\BugFixes.h"
 #include "Modules\BurstMods.h"
 #include "Modules\Console.h"
 #include "Modules\CRC.h"
@@ -40,58 +40,41 @@
 #include "Modules\FileSystem.h"
 #include "Modules\Graphics.h"
 #include "Modules\HeroAppearance.h"
+#include "Modules\Input.h"
 #include "Modules\Inventory.h"
+#include "Modules\Karma.h"
 #include "Modules\KillCounter.h"
 #include "Modules\knockback.h"
 #include "Modules\LoadGameHook.h"
+#include "Modules\LoadOrder.h"
 #include "Modules\MainMenu.h"
 #include "Modules\Message.h"
 #include "Modules\MiscPatches.h"
 #include "Modules\Movies.h"
 #include "Modules\PartyControl.h"
 #include "Modules\Perks.h"
+#include "Modules\PlayerModel.h"
 #include "Modules\Premade.h"
 #include "Modules\QuestList.h"
 #include "Modules\Reputations.h"
 #include "Modules\ScriptExtender.h"
 #include "Modules\Skills.h"
 #include "Modules\Sound.h"
+#include "Modules\SpeedPatch.h"
 #include "Modules\Stats.h"
-#include "Modules\SuperSave.h"
+#include "Modules\ExtraSaveSlots.h"
 #include "Modules\Tiles.h"
-#include "Modules\Timer.h"
-#include "Modules\Patches\Karma.h"
-#include "Modules\Patches\LoadOrder.h"
-#include "Modules\Patches\SpeedPatch.h"
-#include "Modules\Patches\Worldmap.h"
+#include "Modules\Worldmap.h"
 #include "SimplePatch.h"
 
 #include "Logging.h"
 #include "Version.h"
-#if (_MSC_VER < 1600)
-#include "Cpp11_emu.h"
-#endif
 
 bool IsDebug = false;
 
 char ini[65];
 char translationIni[65];
 
-void ApplyScriptExtenderPatches() {
-	dlog("Applying script extender patch.", DL_INIT);
-	StatsInit();
-	dlog(".", DL_INIT);
-	ScriptExtenderSetup();
-	dlog(".", DL_INIT);
-	LoadGameHookInit();
-	dlog(".", DL_INIT);
-	PerksInit();
-	dlog(".", DL_INIT);
-	KnockbackInit();
-	dlog(".", DL_INIT);
-	SkillsInit();
-	dlog(".", DL_INIT);
-}
 
 static void DllMain2() {
 	dlogr("In DllMain2", DL_MAIN);
@@ -99,251 +82,53 @@ static void DllMain2() {
 	auto& manager = ModuleManager::getInstance();
 
 	// initialize all modules
+	manager.add<MiscPatches>();
+
+	manager.add<SpeedPatch>();
+	manager.add<BugFixes>();
+	manager.add<Graphics>();
+	manager.add<Input>();
+	manager.add<Movies>();
+	manager.add<PlayerModel>();
+	manager.add<Worldmap>();
+	manager.add<Stats>();
+	manager.add<ScriptExtender>();
+	manager.add<LoadGameHook>();
+	manager.add<Perks>();
+	manager.add<Knockback>();
+	manager.add<Skills>();
+	manager.add<FileSystem>();
+	manager.add<Criticals>();
+	manager.add<LoadOrder>();
+	manager.add<Karma>();
+	manager.add<Tiles>();
+	manager.add<Credits>();
+	manager.add<QuestList>();
+	manager.add<Premade>();
+	manager.add<Sound>();
+	manager.add<Reputations>();
+	manager.add<Console>();
+	manager.add<ExtraSaveSlots>();
+	manager.add<Inventory>();
+	manager.add<MainMenu>();
+	manager.add<PartyControl>();
+	manager.add<BurstMods>();
+	manager.add<Books>();
+	manager.add<Explosions>();
+
+	manager.add<AI>();
+	manager.add<AmmoMod>();
+	manager.add<AnimationsAtOnce>();
+	manager.add<BarBoxes>();
 	manager.add<HeroAppearance>();
 
 	manager.initAll();
-
-	dlogr("Running BugsInit.", DL_INIT);
-	BugsInit();
-	dlogr(" Done", DL_INIT);
-
-	ApplySpeedPatch();
-	ApplyInputPatch();
-
-	ApplyGraphicsPatch();
-
-	AmmoModInit();
-	MoviesInit();
-
-	ApplyPlayerModelPatches();
-
-	ApplyStartingStatePatches();
-
-	ApplyPathfinderFix();
-
-	ApplyWorldmapFpsPatch();
-
-	if (GetPrivateProfileIntA("Misc", "DialogueFix", 1, ini)) {
-		dlog("Applying dialogue patch.", DL_INIT);
-		SafeWrite8(0x00446848, 0x31);
-		dlogr(" Done", DL_INIT);
-	}
-
-	if (GetPrivateProfileIntA("Misc", "ExtraKillTypes", 0, ini)) {
-		dlog("Applying extra kill types patch.", DL_INIT);
-		KillCounterInit(true);
-		dlogr(" Done", DL_INIT);
-	} else {
-		KillCounterInit(false);
-	}
-
-	ApplyScriptExtenderPatches();
-
-	ApplyCombatProcFix();
-
-	ApplyWorldLimitsPatches();
-
-	ApplyTimeLimitPatch();
-
-	ApplyDebugModePatch();
-
-	ApplyNPCAutoLevelPatch();
-	
-	char elevPath[MAX_PATH];
-	GetPrivateProfileString("Misc", "ElevatorsFile", "", elevPath, MAX_PATH, ini);
-	if (strlen(elevPath)>0) {
-		dlog("Applying elevator patch.", DL_INIT);
-		ElevatorsInit(elevPath);
-		dlogr(" Done", DL_INIT);
-	}
-
-	if (GetPrivateProfileIntA("Misc", "UseFileSystemOverride", 0, ini)) {
-		FileSystemInit();
-	}
-
-	/*if (GetPrivateProfileIntA("Misc", "PrintToFileFix", 0, ini)) {
-		dlog("Applying print to file patch.", DL_INIT);
-		SafeWrite32(0x6C0364, (DWORD)&FakeFindFirstFile);
-		SafeWrite32(0x6C0368, (DWORD)&FakeFindNextFile);
-		dlogr(" Done", DL_INIT);
-	}*/
-
-	ApplyAdditionalWeaponAnimsPatch();
-
-	if (IsDebug && GetPrivateProfileIntA("Debugging", "DontDeleteProtos", 0, ".\\ddraw.ini")) {
-		dlog("Applying permanent protos patch.", DL_INIT);
-		SafeWrite8(0x48007E, 0xeb);
-		dlogr(" Done", DL_INIT);
-	}
-
-	CritInit();
-
-	ApplyMultiPatchesPatch();
-
-	ApplyDataLoadOrderPatch();
-
-	ApplyDisplayKarmaChangesPatch();
-
-	if (GetPrivateProfileInt("Misc", "AlwaysReloadMsgs", 0, ini)) {
-		dlog("Applying always reload messages patch.", DL_INIT);
-		SafeWrite8(0x4A6B8A, 0xff);
-		SafeWrite32(0x4A6B8B, 0x02eb0074);
-		dlogr(" Done", DL_INIT);
-	}
-
-	ApplyPlayIdleAnimOnReloadPatch();
-
-	ApplyCorpseLineOfFireFix();
-
-	if (GetPrivateProfileIntA("Misc", "SkipOpeningMovies", 0, ini)) {
-		dlog("Blocking opening movies.", DL_INIT);
-		BlockCall(0x4809CB);
-		BlockCall(0x4809D4);
-		BlockCall(0x4809E0);
-		dlogr(" Done", DL_INIT);
-	}
-
-	ApplyNpcExtraApPatch();
-
-	ApplySkilldexImagesPatch();
-
-	if(GetPrivateProfileIntA("Misc", "RemoveWindowRounding", 0, ini)) {
-		SafeWrite32(0x4B8090, 0x90909090);
-		SafeWrite16(0x4B8094, 0x9090);
-	}
-
-	dlogr("Running TilesInit().", DL_INIT);
-	TilesInit();
-
-	dlogr("Applying main menu text patch", DL_INIT);
-	CreditsInit();
-
-	if(GetPrivateProfileIntA("Misc", "UseScrollingQuestsList", 0, ini)) {
-		dlog("Applying quests list patch ", DL_INIT);
-		QuestListInit();
-		dlogr(" Done", DL_INIT);
-	}
-
-	dlog("Applying premade characters patch", DL_INIT);
-	PremadeInit();
-
-	dlogr("Running SoundInit().", DL_INIT);
-	SoundInit();
-
-	dlogr("Running ReputationsInit().", DL_INIT);
-	ReputationsInit();
-
-	dlogr("Running ConsoleInit().", DL_INIT);
-	ConsoleInit();
-
-	if (GetPrivateProfileIntA("Misc", "ExtraSaveSlots", 0, ini)) {
-		dlog("Running EnableSuperSaving()", DL_INIT);
-		EnableSuperSaving();
-		dlogr(" Done", DL_INIT);
-	}
-
-	ApplySpeedInterfaceCounterAnimsPatch();
-
-	ApplyKarmaFRMsPatch();
-
-	ApplyScienceOnCrittersPatch();
-
-	DWORD tmp;
-	tmp = GetPrivateProfileIntA("Misc", "SpeedInventoryPCRotation", 166, ini);
-	if (tmp != 166 && tmp <= 1000) {
-		dlog("Applying SpeedInventoryPCRotation patch.", DL_INIT);
-		SafeWrite32(0x47066B, tmp);
-		dlogr(" Done", DL_INIT);
-	}
-
-	dlogr("Running BarBoxesInit().", DL_INIT);
-	BarBoxesInit();
-
-	dlogr("Patching out ereg call.", DL_INIT);
-	BlockCall(0x4425E6);
-
-	AnimationsAtOnceInit();
-
-	if (GetPrivateProfileIntA("Misc", "RemoveCriticalTimelimits", 0, ini)) {
-		dlog("Removing critical time limits.", DL_INIT);
-		SafeWrite8(0x42412B, 0x90);
-		BlockCall(0x42412C);
-		SafeWrite16(0x4A3052, 0x9090);
-		SafeWrite16(0x4A3093, 0x9090);
-		dlogr(" Done", DL_INIT);
-	}
-
-	ApplyOverrideMusicDirPatch();
-
-	ApplyNpcStage6Fix();
-
-	ApplyFashShotTraitFix();
-
-	ApplyBoostScriptDialogLimitPatch();
-
-	dlog("Running InventoryInit.", DL_INIT);
-	InventoryInit();
-	dlogr(" Done", DL_INIT);
-
-	ApplyMotionScannerFlagsPatch();
-
-	ApplyEncounterTableSizePatch();
-
-	dlog("Initing main menu patches.", DL_INIT);
-	MainMenuInit();
-	dlogr(" Done", DL_INIT);
-
-	if (GetPrivateProfileIntA("Misc", "DisablePipboyAlarm", 0, ini)) {
-		SafeWrite8(0x499518, 0xc3);
-	}
-
-	dlog("Initing AI patches.", DL_INIT);
-	AIInit();
-	dlogr(" Done", DL_INIT);
-
-	dlog("Initing AI control.", DL_INIT);
-	PartyControlInit();
-	dlogr(" Done", DL_INIT);
-
-	ApplyObjCanSeeShootThroughPatch();
-
-	// phobos2077:
-	ComputeSprayModInit();
-	ExplosionLightingInit();
-	tmp = SimplePatch<DWORD>(0x4A2873, "Misc", "Dynamite_DmgMax", 50, 0, 9999);
-	SimplePatch<DWORD>(0x4A2878, "Misc", "Dynamite_DmgMin", 30, 0, tmp);
-	tmp = SimplePatch<DWORD>(0x4A287F, "Misc", "PlasticExplosive_DmgMax", 80, 0, 9999);
-	SimplePatch<DWORD>(0x4A2884, "Misc", "PlasticExplosive_DmgMin", 40, 0, tmp);
-	BooksInit();
-	DWORD addrs[2] = {0x45F9DE, 0x45FB33};
-	SimplePatch<WORD>(addrs, 2, "Misc", "CombatPanelAnimDelay", 1000, 0, 65535);
-	addrs[0] = 0x447DF4; addrs[1] = 0x447EB6;
-	SimplePatch<BYTE>(addrs, 2, "Misc", "DialogPanelAnimDelay", 33, 0, 255);
-	addrs[0] = 0x499B99; addrs[1] = 0x499DA8;
-	SimplePatch<BYTE>(addrs, 2, "Misc", "PipboyTimeAnimDelay", 50, 0, 127);
-
-	if (GetPrivateProfileIntA("Misc", "EnableMusicInDialogue", 0, ini)) {
-		dlog("Applying music in dialogue patch.", DL_INIT);
-		SafeWrite8(0x44525B, 0x0);
-		//BlockCall(0x450627);
-		dlogr(" Done", DL_INIT);
-	}
-
-	ApplyTownMapsHotkeyFix();
-
-	ApplyInstantWeaponEquipPatch();	
-
-	ApplyNumbersInDialoguePatch();
 
 	dlogr("Leave DllMain2", DL_MAIN);
 }
 
 // TODO: remove
 static void _stdcall OnExit() {
-	MiscReset();
-	ClearReadExtraGameMsgFiles();
-	ConsoleExit();
-	AnimationsAtOnceExit();
 }
 
 static void __declspec(naked) OnExitFunc() {

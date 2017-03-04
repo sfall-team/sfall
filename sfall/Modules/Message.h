@@ -20,12 +20,19 @@
 
 #include <memory>
 #include <unordered_map>
+
 #include "..\main.h"
+
+#include "Module.h"
 
 typedef std::tr1::unordered_map<int, std::unique_ptr<MessageList>> ExtraGameMessageListsMap;
 extern ExtraGameMessageListsMap gExtraGameMsgLists;
 
+class Message : public Module {
+	const char* name() { return "Message"; }
+	void init();
+	void exit() override;
+};
+
 MessageNode *GetMsgNode(MessageList *msgList, int msgRef);
 char* GetMsg(MessageList *MsgList, int msgRef, int msgNum);
-void ReadExtraGameMsgFiles();
-void ClearReadExtraGameMsgFiles();

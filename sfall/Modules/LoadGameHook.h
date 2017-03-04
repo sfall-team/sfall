@@ -18,11 +18,33 @@
 
 #pragma once
 
-// #include "..\Delegate.h"
+#include "Module.h"
 
-void LoadGameHookInit();
+#include "..\Delegate.h"
+
+class LoadGameHook : public Module {
+public:
+	const char* name() { return "LoadGameHook"; }
+	void init();
+
+	// Invoked when game state is being reset (before loading a save, after quitting, etc.)
+	static Delegate<> onGameReset;
+
+	// Invoked before game is being loaded (new game or saved game)
+	static Delegate<> onBeforeGameStart;
+
+	// Invoked after game has been loaded (new game or saved game)
+	static Delegate<> onAfterGameStarted;
+
+	// Invoked after new game has started
+	static Delegate<> onAfterNewGame;
+};
+
+// True if some map was loaded, false when on the main menu
+bool IsMapLoaded();
 
 DWORD InWorldMap();
+
 DWORD InCombat();
 
 #define WORLDMAP   (1<<0) //0x1

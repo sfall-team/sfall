@@ -20,6 +20,8 @@
 
 #include "..\Logging.h"
 
+#include "BurstMods.h"
+
 static DWORD compute_spray_center_mult;
 static DWORD compute_spray_center_div;
 static DWORD compute_spray_target_mult;
@@ -68,7 +70,7 @@ divEnd2:
 }
 
 
-void ComputeSprayModInit() {
+void BurstMods::init() {
 	if (GetPrivateProfileIntA("Misc", "ComputeSprayMod", 0, ini)) {
 		dlog("Applying ComputeSpray changes.", DL_INIT);
 		compute_spray_center_mult = GetPrivateProfileIntA("Misc", "ComputeSpray_CenterMult", 1, ini);

@@ -16,14 +16,15 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "..\main.h"
-
 #include <d3d9.h>
 #include <d3dx9.h>
 #include <stdio.h>
 #include <unordered_map>
 
+#include "..\main.h"
 #include "..\FalloutEngine\Fallout2.h"
+
+#include "TalkingHeads.h"
 
 void _stdcall SetHeadTex(IDirect3DTexture9* tex, int width, int height, int xoff, int yoff);
 
@@ -178,7 +179,7 @@ skip:
 	}
 }
 
-void HeadsInit() {
+void TalkingHeads::init() {
 	if (GetPrivateProfileInt("Graphics", "Use32BitHeadGraphics", 0, ini)) {
 		HookCall(0x44AFB4, &TransTalkHook);
 		HookCall(0x44B00B, &TransTalkHook);

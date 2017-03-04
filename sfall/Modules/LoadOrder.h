@@ -18,15 +18,9 @@
 
 #pragma once
 
+#include "Module.h"
 
-void ApplyPathfinderFix();
-
-void ApplyStartingStatePatches();
-
-void ApplyTimeLimitPatch();
-
-void ApplyTownMapsHotkeyFix();
-
-void ApplyWorldLimitsPatches();
-
-void ApplyWorldmapFpsPatch();
+class LoadOrder : public Module {
+	const char* name() { return "LoadOrder"; }
+	void init();
+};

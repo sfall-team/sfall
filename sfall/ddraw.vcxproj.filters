@@ -4,9 +4,6 @@
     <Filter Include="Modules">
       <UniqueIdentifier>{4851975c-0bb8-4a32-8e2c-5e688aa2db5b}</UniqueIdentifier>
     </Filter>
-    <Filter Include="win9x">
-      <UniqueIdentifier>{07dcfbfe-dd6b-4b88-8b9e-c512c333406a}</UniqueIdentifier>
-    </Filter>
     <Filter Include="FalloutEngine">
       <UniqueIdentifier>{1b253470-d2b8-4cba-bf4b-56cfda37b152}</UniqueIdentifier>
     </Filter>
@@ -15,9 +12,6 @@
     </Filter>
     <Filter Include="Modules\Scripting\Handlers">
       <UniqueIdentifier>{bd51bc83-6a88-45c3-a4ae-a4a2808281ab}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Modules\Patches">
-      <UniqueIdentifier>{864bba05-5201-4f37-a3de-0e18684c79c7}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -35,9 +29,6 @@
       <Filter>Modules</Filter>
     </ClInclude>
     <ClInclude Include="Modules\Books.h">
-      <Filter>Modules</Filter>
-    </ClInclude>
-    <ClInclude Include="Modules\Bugs.h">
       <Filter>Modules</Filter>
     </ClInclude>
     <ClInclude Include="Modules\BurstMods.h">
@@ -109,22 +100,13 @@
     <ClInclude Include="Modules\Stats.h">
       <Filter>Modules</Filter>
     </ClInclude>
-    <ClInclude Include="Modules\SuperSave.h">
-      <Filter>Modules</Filter>
-    </ClInclude>
     <ClInclude Include="Modules\Tiles.h">
       <Filter>Modules</Filter>
-    </ClInclude>
-    <ClInclude Include="win9x\Cpp11_emu.h">
-      <Filter>win9x</Filter>
     </ClInclude>
     <ClInclude Include="resource.h" />
     <ClInclude Include="Logging.h" />
     <ClInclude Include="SafeWrite.h" />
     <ClInclude Include="Modules\Graphics.h">
-      <Filter>Modules</Filter>
-    </ClInclude>
-    <ClInclude Include="Modules\Heads.h">
       <Filter>Modules</Filter>
     </ClInclude>
     <ClInclude Include="Modules\Movies.h">
@@ -134,9 +116,6 @@
       <Filter>Modules</Filter>
     </ClInclude>
     <ClInclude Include="Modules\Sound.h">
-      <Filter>Modules</Filter>
-    </ClInclude>
-    <ClInclude Include="Modules\Timer.h">
       <Filter>Modules</Filter>
     </ClInclude>
     <ClInclude Include="Modules\ScriptExtender.h">
@@ -226,24 +205,39 @@
     <ClInclude Include="Modules\Module.h">
       <Filter>Modules</Filter>
     </ClInclude>
-    <ClInclude Include="Modules\Patches\Worldmap.h">
-      <Filter>Modules\Patches</Filter>
-    </ClInclude>
-    <ClInclude Include="Modules\Patches\LoadOrder.h">
-      <Filter>Modules\Patches</Filter>
-    </ClInclude>
-    <ClInclude Include="Modules\Patches\SpeedPatch.h">
-      <Filter>Modules\Patches</Filter>
-    </ClInclude>
-    <ClInclude Include="Modules\Patches\Karma.h">
-      <Filter>Modules\Patches</Filter>
-    </ClInclude>
     <ClInclude Include="Modules\MiscPatches.h">
       <Filter>Modules</Filter>
     </ClInclude>
     <ClInclude Include="SimplePatch.h" />
     <ClInclude Include="ModuleManager.h" />
     <ClInclude Include="Delegate.h" />
+    <ClInclude Include="Modules\Karma.h">
+      <Filter>Modules</Filter>
+    </ClInclude>
+    <ClInclude Include="Modules\LoadOrder.h">
+      <Filter>Modules</Filter>
+    </ClInclude>
+    <ClInclude Include="Modules\SpeedPatch.h">
+      <Filter>Modules</Filter>
+    </ClInclude>
+    <ClInclude Include="Modules\Worldmap.h">
+      <Filter>Modules</Filter>
+    </ClInclude>
+    <ClInclude Include="Modules\BugFixes.h">
+      <Filter>Modules</Filter>
+    </ClInclude>
+    <ClInclude Include="Modules\TalkingHeads.h">
+      <Filter>Modules</Filter>
+    </ClInclude>
+    <ClInclude Include="Modules\PlayerModel.h">
+      <Filter>Modules</Filter>
+    </ClInclude>
+    <ClInclude Include="Modules\ExtraSaveSlots.h">
+      <Filter>Modules</Filter>
+    </ClInclude>
+    <ClInclude Include="Modules\Input.h">
+      <Filter>Modules</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
@@ -260,9 +254,6 @@
       <Filter>Modules</Filter>
     </ClCompile>
     <ClCompile Include="Modules\Books.cpp">
-      <Filter>Modules</Filter>
-    </ClCompile>
-    <ClCompile Include="Modules\Bugs.cpp">
       <Filter>Modules</Filter>
     </ClCompile>
     <ClCompile Include="Modules\BurstMods.cpp">
@@ -334,9 +325,6 @@
     <ClCompile Include="Modules\Stats.cpp">
       <Filter>Modules</Filter>
     </ClCompile>
-    <ClCompile Include="Modules\SuperSave.cpp">
-      <Filter>Modules</Filter>
-    </ClCompile>
     <ClCompile Include="Modules\Tiles.cpp">
       <Filter>Modules</Filter>
     </ClCompile>
@@ -346,9 +334,6 @@
     <ClCompile Include="Modules\Graphics.cpp">
       <Filter>Modules</Filter>
     </ClCompile>
-    <ClCompile Include="Modules\Heads.cpp">
-      <Filter>Modules</Filter>
-    </ClCompile>
     <ClCompile Include="Modules\Movies.cpp">
       <Filter>Modules</Filter>
     </ClCompile>
@@ -356,9 +341,6 @@
       <Filter>Modules</Filter>
     </ClCompile>
     <ClCompile Include="Modules\Sound.cpp">
-      <Filter>Modules</Filter>
-    </ClCompile>
-    <ClCompile Include="Modules\Timer.cpp">
       <Filter>Modules</Filter>
     </ClCompile>
     <ClCompile Include="Modules\ScriptExtender.cpp">
@@ -431,22 +413,37 @@
     <ClCompile Include="Modules\Scripting\Opcodes.cpp">
       <Filter>Modules\Scripting</Filter>
     </ClCompile>
-    <ClCompile Include="Modules\Patches\Worldmap.cpp">
-      <Filter>Modules\Patches</Filter>
-    </ClCompile>
-    <ClCompile Include="Modules\Patches\LoadOrder.cpp">
-      <Filter>Modules\Patches</Filter>
-    </ClCompile>
-    <ClCompile Include="Modules\Patches\SpeedPatch.cpp">
-      <Filter>Modules\Patches</Filter>
-    </ClCompile>
-    <ClCompile Include="Modules\Patches\Karma.cpp">
-      <Filter>Modules\Patches</Filter>
-    </ClCompile>
     <ClCompile Include="Modules\MiscPatches.cpp">
       <Filter>Modules</Filter>
     </ClCompile>
     <ClCompile Include="ModuleManager.cpp" />
+    <ClCompile Include="Modules\Karma.cpp">
+      <Filter>Modules</Filter>
+    </ClCompile>
+    <ClCompile Include="Modules\LoadOrder.cpp">
+      <Filter>Modules</Filter>
+    </ClCompile>
+    <ClCompile Include="Modules\SpeedPatch.cpp">
+      <Filter>Modules</Filter>
+    </ClCompile>
+    <ClCompile Include="Modules\Worldmap.cpp">
+      <Filter>Modules</Filter>
+    </ClCompile>
+    <ClCompile Include="Modules\BugFixes.cpp">
+      <Filter>Modules</Filter>
+    </ClCompile>
+    <ClCompile Include="Modules\TalkingHeads.cpp">
+      <Filter>Modules</Filter>
+    </ClCompile>
+    <ClCompile Include="Modules\PlayerModel.cpp">
+      <Filter>Modules</Filter>
+    </ClCompile>
+    <ClCompile Include="Modules\ExtraSaveSlots.cpp">
+      <Filter>Modules</Filter>
+    </ClCompile>
+    <ClCompile Include="Modules\Input.cpp">
+      <Filter>Modules</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="version.rc" />

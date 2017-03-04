@@ -16,9 +16,9 @@
 *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "..\..\main.h"
-#include "..\..\FalloutEngine\Fallout2.h"
-#include "..\..\Logging.h"
+#include "..\main.h"
+#include "..\FalloutEngine\Fallout2.h"
+#include "..\Logging.h"
 
 #include "LoadOrder.h"
 
@@ -89,7 +89,7 @@ skip:
 	}
 }
 
-void ApplyDataLoadOrderPatch() {
+void LoadOrder::init() {
 	if (GetPrivateProfileIntA("Misc", "DataLoadOrderPatch", 0, ini)) {
 		dlog("Applying data load order patch.", DL_INIT);
 		MakeCall(0x444259, &game_init_databases_hack1, false);

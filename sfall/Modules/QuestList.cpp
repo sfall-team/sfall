@@ -20,6 +20,8 @@
 
 #include "..\FalloutEngine\Fallout2.h"
 
+#include "QuestList.h"
+
 static DWORD calledflag = 0x0;
 static DWORD called_quest_number = 0x0;
 static DWORD total_quests = 0x0;
@@ -328,7 +330,7 @@ smpj6:
 	}
 }
 
-void QuestListInit() {
+void QuestListPatch() {
 //<comments removed because they couldn't display correctly in this encoding>
 	SafeWrite8(0x004974DF, 0xE8);
 	SafeWrite32(0x004974E0, ((DWORD)&newbuttonfct) - 0x004974E4);
@@ -358,4 +360,12 @@ void QuestListInit() {
 //
 	SafeWrite8(0x00497219, 0xE8);
 	SafeWrite32(0x0049721A, ((DWORD)&backhookfunct) - 0x0049721E);
+}
+
+void QuestList::init() {
+	if(GetPrivateProfileIntA("Misc", "UseScrollingQuestsList", 0, ini)) {
+		dlog("Applying quests list patch ", DL_INIT);
+		QuestListPatch();
+		dlogr(" Done", DL_INIT);
+	}
 }

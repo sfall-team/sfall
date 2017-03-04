@@ -16,4 +16,9 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-void MainMenuInit();
+#include "Module.h"
+
+class MainMenu : public Module {
+	const char* name() { return "MainMenu"; }
+	void init();
+};

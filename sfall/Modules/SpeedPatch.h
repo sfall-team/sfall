@@ -18,4 +18,9 @@
 
 #pragma once
 
-void ApplyDataLoadOrderPatch();
+#include "Module.h"
+
+class SpeedPatch : public Module {
+	const char* name() { return "SpeedPatch"; }
+	void init();
+};

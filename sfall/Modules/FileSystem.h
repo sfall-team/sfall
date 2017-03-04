@@ -18,9 +18,16 @@
 
 #pragma once
 
-void FileSystemInit();
-void FileSystemReset();
-void FileSystemSave(HANDLE h);
+#include "Module.h"
+
+class FileSystem : public Module {
+public:
+	const char* name() { return "FileSystem"; }
+	void init();
+
+	// save FileSystem data to a save game file
+	static void save(HANDLE h);
+};
 
 DWORD _stdcall FScreate(const char* path, int size);
 DWORD _stdcall FScreateFromData(const char* path, void* data, int size);

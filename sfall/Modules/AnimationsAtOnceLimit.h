@@ -18,5 +18,10 @@
 
 #pragma once
 
-void AnimationsAtOnceInit();
-void AnimationsAtOnceExit();
+#include "Module.h"
+
+class AnimationsAtOnce : public Module {
+	const char* name() { return "AnimationsAtOnceLimit"; }
+	void init();
+	void exit() override;
+};

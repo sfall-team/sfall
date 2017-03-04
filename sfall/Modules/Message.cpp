@@ -108,3 +108,11 @@ void ClearReadExtraGameMsgFiles() {
 
 	gExtraGameMsgLists.clear();
 }
+
+void Message::init() {
+	ReadExtraGameMsgFiles();
+}
+
+void Message::exit() {
+	ClearReadExtraGameMsgFiles();
+}

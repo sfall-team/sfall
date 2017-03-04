@@ -18,6 +18,12 @@
 
 #pragma once
 
-void ExplosionLightingInit();
+#include "Module.h"
+
+class Explosions : public Module {
+	const char* name() { return "Explosions"; }
+	void init();
+};
+
 int _stdcall ExplosionsMetaruleFunc(int mode, int arg1, int arg2);
 void ResetExplosionSettings();

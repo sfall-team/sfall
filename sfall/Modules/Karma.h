@@ -1,6 +1,6 @@
 /*
 *    sfall
-*    Copyright (C) 2008-2016  The sfall team
+*    Copyright (C) 2008-2017  The sfall team
 *
 *    This program is free software: you can redistribute it and/or modify
 *    it under the terms of the GNU General Public License as published by
@@ -15,14 +15,13 @@
 *    You should have received a copy of the GNU General Public License
 *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
+
 #pragma once
 
 #include "Module.h"
 
-class PartyControl : public Module {
-	const char* name() { return "PartyControl"; }
+class Karma : public Module {
+	const char* name() { return "Karma"; }
 	void init();
 };
 
-int __stdcall PartyControl_SwitchHandHook(TGameObj* item);
-bool IsNpcControlled();

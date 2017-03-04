@@ -18,6 +18,8 @@
 
 #include "..\main.h"
 
+#include "Premade.h"
+
 struct PremadeChar {
 	char path[20];
 	DWORD fid;
@@ -26,7 +28,7 @@ struct PremadeChar {
 
 PremadeChar* premade;
 
-void PremadeInit() {
+void Premade::init() {
 	char buf[512];
 	GetPrivateProfileString("misc", "PremadePaths", "", buf, 512, ini);
 	if (buf[0]) {

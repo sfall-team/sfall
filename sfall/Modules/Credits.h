@@ -18,4 +18,9 @@
 
 #pragma once
 
-void CreditsInit();
+#include "Module.h"
+
+class Credits : public Module {
+	const char* name() { return "Credits"; }
+	void init();
+};

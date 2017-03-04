@@ -18,4 +18,9 @@
 
 #pragma once
 
-void AmmoModInit();
+#include "Module.h"
+
+class AmmoMod : public Module {
+	const char* name() { return "AmmoMod"; }
+	void init();
+};

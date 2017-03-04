@@ -16,21 +16,21 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "..\main.h"
-
 #include <stdio.h>
 
+#include "..\main.h"
 #include "..\FalloutEngine\Fallout2.h"
+#include "..\InputFuncs.h"
 #include "HookScripts.h"
-#include "Inventory.h"
 #include "LoadGameHook.h"
 
+#include "Inventory.h"
 
 static DWORD mode;
 static DWORD MaxItemSize;
 static DWORD ReloadWeaponKey = 0;
 
-int& GetActiveItemMode() {
+long& GetActiveItemMode() {
 	return VarPtr::itemButtonItems[VarPtr::itemCurrentItem].mode;
 }
 
@@ -39,7 +39,7 @@ TGameObj* GetActiveItem() {
 }
 
 void InventoryKeyPressedHook(DWORD dxKey, bool pressed, DWORD vKey) {
-	if (pressed && ReloadWeaponKey && dxKey == ReloadWeaponKey && (GetCurrentLoops() & ~(COMBAT | PCOMBAT)) == 0) {
+	if (pressed && ReloadWeaponKey && dxKey == ReloadWeaponKey && IsMapLoaded() && (GetCurrentLoops() & ~(COMBAT | PCOMBAT)) == 0) {
 		DWORD maxAmmo, curAmmo;
 		TGameObj* item = GetActiveItem();
 		__asm {
@@ -51,7 +51,7 @@ void InventoryKeyPressedHook(DWORD dxKey, bool pressed, DWORD vKey) {
 			mov curAmmo, eax;
 		}
 		if (maxAmmo != curAmmo) {
-			int &currentMode = GetActiveItemMode();
+			long &currentMode = GetActiveItemMode();
 			long previusMode = currentMode;
 			currentMode = 5; // reload mode
 			__asm {
@@ -69,29 +69,6 @@ void InventoryKeyPressedHook(DWORD dxKey, bool pressed, DWORD vKey) {
 		}
 	}
 }
-
-
-/*static DWORD _stdcall item_total_size(void* critter) {
-	//TODO: Don't really want to be overwriting stuff like this after init. Rewrite properly.
-	HookCall(0x477EBD, (void*)0x477B68);
-	HookCall(0x477EF6, (void*)0x477B68);
-	HookCall(0x477F12, (void*)0x477B68);
-	HookCall(0x477F2A, (void*)0x477B68);
-
-	DWORD result;
-	__asm {
-		mov eax, critter;
-		call FuncOffs::item_total_weight_;
-		mov result, eax;
-	}
-
-	HookCall(0x477EBD, (void*)0x477B88);
-	HookCall(0x477EF6, (void*)0x477B88);
-	HookCall(0x477F12, (void*)0x477B88);
-	HookCall(0x477F2A, (void*)0x477B88);
-
-	return result;
-}*/
 
 //TODO: Do we actually want to include this in the limit anyway?
 static __declspec(naked) DWORD item_total_size(void* critter) {
@@ -617,8 +594,38 @@ end:
 	}
 }
 
+int __stdcall ItemCountFixStdcall(TGameObj* who, TGameObj* item) {
+	int count = 0;
+	for (int i = 0; i < who->invenCount; i++) {
+		auto tableItem = &who->invenTable[i];
+		if (tableItem->object == item) {
+			count += tableItem->count;
+		} else if (Wrapper::item_get_type(tableItem->object) == item_type_container) {
+			count += ItemCountFixStdcall(tableItem->object, item);
+		}
+	}
+	return count;
+}
 
-void InventoryInit() {
+void __declspec(naked) ItemCountFix() {
+	__asm {
+		push ebx; push ecx; push edx; // save state
+		push edx; // item
+		push eax; // container-object
+		call ItemCountFixStdcall;
+		pop edx; pop ecx; pop ebx; // restore
+		retn;
+	}
+}
+
+void InventoryReset() {
+	invenapcost = GetPrivateProfileInt("Misc", "InventoryApCost", 4, ini);
+}
+
+void Inventory::init() {
+	onKeyPressed += InventoryKeyPressedHook;
+	LoadGameHook::onGameReset += InventoryReset;
+
 	mode = GetPrivateProfileInt("Misc", "CritterInvSizeLimitMode", 0, ini);
 	invenapcost = GetPrivateProfileInt("Misc", "InventoryApCost", 4, ini);
 	invenapqpreduction = GetPrivateProfileInt("Misc", "QuickPocketsApCostReduction", 2, ini);
@@ -651,7 +658,7 @@ void InventoryInit() {
 		SafeWrite32(0x472632, 150);
 		SafeWrite8(0x472638, 0);
 
-		//Display item weight when examening
+		//Display item weight when examining
 		HookCall(0x472FFE, &InvenObjExamineFuncHook);
 	}
 
@@ -687,8 +694,8 @@ void InventoryInit() {
 
 	// Move items to player's main inventory instead of the opened bag/backpack when confirming a trade
 	SafeWrite32(0x475CF2, VARPTR_stack);
+
+	// Fix item_count function returning incorrect value when there is a container-item inside
+	MakeCall(0x47808C, ItemCountFix, true); // replacing item_count_ function
 }
 
-void InventoryReset() {
-	invenapcost = GetPrivateProfileInt("Misc", "InventoryApCost", 4, ini);
-}

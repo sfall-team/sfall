@@ -21,6 +21,8 @@
 #include "..\FalloutEngine\Fallout2.h"
 #include "..\Version.h"
 
+#include "MainMenu.h"
+
 static DWORD MainMenuYOffset;
 static DWORD MainMenuTextOffset;
 
@@ -82,7 +84,7 @@ static void __declspec(naked) MainMenuTextHook() {
 	}
 }
 
-void MainMenuInit() {
+void MainMenu::init() {
 	int tmp;
 
 	if(tmp=GetPrivateProfileIntA("Misc", "MainMenuCreditsOffsetX", 0, ini)) {

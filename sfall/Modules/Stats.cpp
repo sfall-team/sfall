@@ -208,7 +208,7 @@ void StatsReset() {
 	ExtraApAcBonus = 4;
 }
 
-void StatsInit() {
+void Stats::init() {
 	StatsReset();
 	SafeWrite8(0x004AEF48, 0xe9);
 	HookCall(0x004AEF48, GetCurrentStatHook1);

@@ -84,7 +84,7 @@ void LoadVanillaBooks() {
 	BooksCount += 5;
 }
 
-void BooksInit() {
+void Books::init() {
 	char buf[MAX_PATH - 3];
 	GetPrivateProfileString("Misc", "BooksFile", "", buf, MAX_PATH, ini);
 	if (strlen(buf) > 0) {

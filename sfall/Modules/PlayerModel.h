@@ -15,9 +15,14 @@
 *    You should have received a copy of the GNU General Public License
 *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-
 #pragma once
 
-void ApplyDisplayKarmaChangesPatch();
+#include "Module.h"
 
-void ApplyKarmaFRMsPatch();
+class PlayerModel : public Module {
+	const char* name() { return "PlayerModel"; }
+	void init();
+};
+
+extern char DefaultMaleModelName[65];
+extern char DefaultFemaleModelName[65];

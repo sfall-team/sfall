@@ -18,4 +18,9 @@
 
 #pragma once
 
-void ComputeSprayModInit();
+#include "Module.h"
+
+class BurstMods : public Module {
+	const char* name() { return "BurstMods"; }
+	void init();
+};

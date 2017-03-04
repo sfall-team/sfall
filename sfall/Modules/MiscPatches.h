@@ -17,59 +17,14 @@
 */
 #pragma once
 
-extern char DefaultMaleModelName[65];
-extern char DefaultFemaleModelName[65];
+#include "Module.h"
 
-extern bool NpcAutoLevelEnabled;
+class MiscPatches : public Module {
+	const char* name() { return "MiscPatches"; }
+	void init();
+	void exit() override;
+};
 
-void ApplyCombatProcFix();
-
-void ApplyInputPatch();
-
-void ApplyGraphicsPatch();
-
-void ApplyPlayerModelPatches();
-
-void ApplyDebugModePatch();
-
-void ApplyNPCAutoLevelPatch();
-
-void ApplyAdditionalWeaponAnimsPatch();
-
-void ApplySkilldexImagesPatch();
-
-void ApplySpeedInterfaceCounterAnimsPatch();
-
-void ApplyScienceOnCrittersPatch();
-
-void ApplyFashShotTraitFix();
-
-void ApplyBoostScriptDialogLimitPatch();
-
-void ApplyNumbersInDialoguePatch();
-
-void ApplyInstantWeaponEquipPatch();
-
-void ApplyMultiPatchesPatch();
-
-void ApplyPlayIdleAnimOnReloadPatch();
-
-void ApplyCorpseLineOfFireFix();
-
-void ApplyNpcExtraApPatch();
-
-void ApplyNpcStage6Fix();
-
-void ApplyMotionScannerFlagsPatch();
-
-void ApplyEncounterTableSizePatch();
-
-void ApplyObjCanSeeShootThroughPatch();
-
-void ApplyOverrideMusicDirPatch();
-
-void ApplyMiscPatches();
-
-void MiscReset();
+extern bool npcAutoLevelEnabled;
 
 void _stdcall SetMapMulti(float d);

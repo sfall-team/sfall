@@ -18,10 +18,6 @@
 
 #pragma once
 
-#if (_MSC_VER < 1600)
-#include "..\..\win9x\Cpp11_emu.h"
-#endif
-
 #include "..\..\..\main.h"
 #include "..\..\Inventory.h"
 #include "..\..\ScriptExtender.h"

@@ -37,7 +37,6 @@
 #include "..\Version.h"
 
 #include "Graphics.h"
-#include "Heads.h"
 #include "LoadGameHook.h"
 
 
@@ -126,7 +125,7 @@ static D3DXHANDLE gpuBltHeadCorner;
 
 static float rcpres[2];
 
-DWORD GraphicsMode;
+DWORD Graphics::mode;
 
 struct sShader {
 	ID3DXEffect* Effect;
@@ -179,7 +178,7 @@ void _stdcall SetShaderMode(DWORD d, DWORD mode) {
 }
 
 int _stdcall LoadShader(const char* path) {
-	if ((GraphicsMode < 4) || (strstr(path, "..")) || (strstr(path, ":"))) return -1;
+	if ((Graphics::mode < 4) || (strstr(path, "..")) || (strstr(path, ":"))) return -1;
 	char buf[MAX_PATH];
 	sprintf(buf, "%s\\shaders\\%s", VarPtr::patches, path);
 	for (DWORD d = 0; d < shaders.size(); d++) {
@@ -265,13 +264,13 @@ static void ResetDevice(bool CreateNew) {
 	D3DPRESENT_PARAMETERS params;
 	ZeroMemory(&params, sizeof(params));
 	params.BackBufferCount = 1;
-	params.BackBufferFormat = (GraphicsMode == 5) ? D3DFMT_UNKNOWN : D3DFMT_X8R8G8B8;
+	params.BackBufferFormat = (Graphics::mode == 5) ? D3DFMT_UNKNOWN : D3DFMT_X8R8G8B8;
 	params.BackBufferWidth = gWidth;
 	params.BackBufferHeight = gHeight;
 	params.EnableAutoDepthStencil = false;
 	params.MultiSampleQuality = 0;
 	params.MultiSampleType = D3DMULTISAMPLE_NONE;
-	params.Windowed = (GraphicsMode == 5);
+	params.Windowed = (Graphics::mode == 5);
 	params.SwapEffect = D3DSWAPEFFECT_DISCARD;
 	params.hDeviceWindow = window;
 	params.PresentationInterval = D3DPRESENT_INTERVAL_IMMEDIATE;
@@ -891,11 +890,9 @@ public:
 		if (!d3d9Device) {
 			ResetDevice(true);
 			CoInitialize(0);
-
-			if (GPUBlt) HeadsInit();
 		}
 
-		if (GraphicsMode == 5) {
+		if (Graphics::mode == 5) {
 			SetWindowLong(a, GWL_STYLE, WS_OVERLAPPED | WS_CAPTION | WS_BORDER);
 			RECT r;
 			r.left = 0;
@@ -951,7 +948,7 @@ HRESULT _stdcall FakeDirectDrawCreate2(void*, IDirectDraw** b, void*) {
 	if (!GPUBlt || GPUBlt > 2) GPUBlt = 2; //Swap them around to keep compatibility with old ddraw.ini's
 	else if (GPUBlt == 2) GPUBlt = 0;
 
-	if (GraphicsMode == 5) {
+	if (Graphics::mode == 5) {
 		ScrollWindowKey = GetPrivateProfileInt("Input", "WindowScrollKey", 0, ini);
 	} else ScrollWindowKey = 0;
 
@@ -960,4 +957,55 @@ HRESULT _stdcall FakeDirectDrawCreate2(void*, IDirectDraw** b, void*) {
 
 	*b = (IDirectDraw*)new FakeDirectDraw2();
 	return DD_OK;
+}
+
+static DWORD fadeMulti;
+static __declspec(naked) void FadeHook() {
+	__asm {
+		pushf;
+		push ebx;
+		fild[esp];
+		fmul fadeMulti;
+		fistp[esp];
+		pop ebx;
+		popf;
+		call FuncOffs::fadeSystemPalette_;
+		retn;
+	}
+}
+
+void Graphics::init() {
+	Graphics::mode = GetPrivateProfileIntA("Graphics", "Mode", 0, ini);
+	if (Graphics::mode != 4 && Graphics::mode != 5) {
+		Graphics::mode = 0;
+	}
+	if (Graphics::mode == 4 || Graphics::mode == 5) {
+		dlog("Applying dx9 graphics patch.", DL_INIT);
+#ifdef WIN2K
+#define _DLL_NAME "d3dx9_42.dll"
+#else
+#define _DLL_NAME "d3dx9_43.dll"
+#endif
+		HMODULE h = LoadLibraryEx(_DLL_NAME, 0, LOAD_LIBRARY_AS_DATAFILE);
+		if (!h) {
+			MessageBoxA(0, "You have selected graphics mode 4 or 5, but " _DLL_NAME " is missing\nSwitch back to mode 0, or install an up to date version of DirectX", "Error", 0);
+			ExitProcess(-1);
+		} else {
+			FreeLibrary(h);
+		}
+		SafeWrite8(0x0050FB6B, '2');
+		dlogr(" Done", DL_INIT);
+#undef _DLL_NAME
+	}
+	fadeMulti = GetPrivateProfileIntA("Graphics", "FadeMultiplier", 100, ini);
+	if (fadeMulti != 100) {
+		dlog("Applying fade patch.", DL_INIT);
+		SafeWrite32(0x00493B17, ((DWORD)&FadeHook) - 0x00493B1b);
+		fadeMulti = ((double)fadeMulti) / 100.0;
+		dlogr(" Done", DL_INIT);
+	}
+
+	if (Graphics::mode > 3) {
+		LoadGameHook::onGameReset += graphics_OnGameLoad;
+	}
 }

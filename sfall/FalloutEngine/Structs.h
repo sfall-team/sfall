@@ -37,41 +37,41 @@ struct TScript;
 #pragma pack(push, 1)
 struct TInvenRec {
 	TGameObj *object;
-	__int32 count;
+	long count;
 };
 #pragma pack(pop)
 
 /* 15 */
 #pragma pack(push, 1)
 struct TGameObj {
-	__int32 ID;
-	__int32 tile;
-	__int32 x;
-	__int32 y;
-	__int32 sx;
-	__int32 sy;
-	__int32 currentFrm;
-	__int32 rotation;
-	unsigned __int32 artFID;
-	__int32 flags;
-	__int32 elevation;
-	__int32 invenCount;
-	__int32 invenMax;
+	long ID;
+	long tile;
+	long x;
+	long y;
+	long sx;
+	long sy;
+	long currentFrm;
+	long rotation;
+	long artFID;
+	long flags;
+	long elevation;
+	long invenCount;
+	long invenMax;
 	TInvenRec *invenTable;
 	char gap_38[4];
-	__int32 itemCharges;
-	__int32 critterAP_weaponAmmoPid;
+	long itemCharges;
+	long critterAP_weaponAmmoPid;
 	char gap_44[16];
-	__int32 lastTarget;
+	long lastTarget;
 	char gap_58[12];
-	__int32 pid;
-	__int32 cid;
-	__int32 lightDistance;
-	__int32 lightIntensity;
+	long pid;
+	long cid;
+	long lightDistance;
+	long lightIntensity;
 	char outline[4];
-	__int32 scriptID;
+	long scriptID;
 	TGameObj* owner;
-	__int32 script_index;
+	long script_index;
 	char gap_84[7];
 	char field_0;
 };
@@ -84,16 +84,16 @@ struct TComputeAttack {
 	char gap_4[4];
 	TGameObj *weapon;
 	char gap_C[4];
-	__int32 damageAttacker;
-	__int32 flagsAttacker;
-	__int32 rounds;
+	long damageAttacker;
+	long flagsAttacker;
+	long rounds;
 	char gap_1C[4];
 	TGameObj *target;
-	__int32 targetTile;
-	__int32 bodyPart;
-	__int32 damageTarget;
-	__int32 flagsTarget;
-	__int32 knockbackValue;
+	long targetTile;
+	long bodyPart;
+	long damageTarget;
+	long flagsTarget;
+	long knockbackValue;
 };
 #pragma pack(pop)
 
@@ -101,25 +101,25 @@ struct TComputeAttack {
 /*   22 */
 #pragma pack(push, 1)
 struct TScript {
-	__int32 script_id;
+	long script_id;
 	char gap_4[4];
-	__int32 elevation_and_tile;
-	__int32 spatial_radius;
+	long elevation_and_tile;
+	long spatial_radius;
 	char gap_10[4];
-	__int32 script_index;
+	long script_index;
 	TProgram *program_ptr;
-	__int32 self_obj_id;
+	long self_obj_id;
 	char gap_20[8];
-	__int32 scr_return;
+	long scr_return;
 	char gap_2C[4];
-	__int32 fixed_param;
+	long fixed_param;
 	TGameObj *self_obj;
 	TGameObj *source_obj;
 	TGameObj *target_obj;
-	__int32 script_overrides;
+	long script_overrides;
 	char field_44;
 	char gap_45[15];
-	__int32 procedure_table[28];
+	long procedure_table[28];
 };
 #pragma pack(pop)
 
@@ -128,94 +128,94 @@ struct TScript {
 #pragma pack(push, 1)
 struct TProgram {
 	const char* fileName;
-	__int32 *codeStackPtr;
+	long *codeStackPtr;
 	char gap_8[8];
-	__int32 *codePtr;
-	__int32 field_14;
+	long *codePtr;
+	long field_14;
 	char gap_18[4];
-	__int32 *dStackPtr;
-	__int32 *aStackPtr;
-	__int32 *dStackOffs;
-	__int32 *aStackOffs;
+	long *dStackPtr;
+	long *aStackPtr;
+	long *dStackOffs;
+	long *aStackOffs;
 	char gap_2C[4];
-	__int32 *stringRefPtr;
+	long *stringRefPtr;
 	char gap_34[4];
-	__int32 *procTablePtr;
+	long *procTablePtr;
 };
 #pragma pack(pop)
 
 struct ItemButtonItem {
 	TGameObj* item;
-	__int32 field_2;
-	__int32 field_3;
-	__int32 field_4;
-	__int32 mode;
-	__int32 field_6;
+	long field_2;
+	long field_3;
+	long field_4;
+	long mode;
+	long field_6;
 };
 
 struct PerkInfo {
 	char* Name;
 	char* Desc;
-	__int32 Image;
-	__int32 Ranks;
-	__int32 Level;
-	__int32 Stat;
-	__int32 StatMag;
-	__int32 Skill1;
-	__int32 Skill1Mag;
-	__int32 Type;
-	__int32 Skill2;
-	__int32 Skill2Mag;
-	__int32 Str;
-	__int32 Per;
-	__int32 End;
-	__int32 Chr;
-	__int32 Int;
-	__int32 Agl;
-	__int32 Lck;
+	long Image;
+	long Ranks;
+	long Level;
+	long Stat;
+	long StatMag;
+	long Skill1;
+	long Skill1Mag;
+	long Type;
+	long Skill2;
+	long Skill2Mag;
+	long Str;
+	long Per;
+	long End;
+	long Chr;
+	long Int;
+	long Agl;
+	long Lck;
 };
 
 struct DBFile {
-	__int32 fileType;
+	long fileType;
 	void* handle;
 };
 
 struct sElevator {
-	__int32 ID1;
-	__int32 Elevation1;
-	__int32 Tile1;
-	__int32 ID2;
-	__int32 Elevation2;
-	__int32 Tile2;
-	__int32 ID3;
-	__int32 Elevation3;
-	__int32 Tile3;
-	__int32 ID4;
-	__int32 Elevation4;
-	__int32 Tile4;
+	long ID1;
+	long Elevation1;
+	long Tile1;
+	long ID2;
+	long Elevation2;
+	long Tile2;
+	long ID3;
+	long Elevation3;
+	long Tile3;
+	long ID4;
+	long Elevation4;
+	long Tile4;
 };
 
 #pragma pack(push, 1)
 struct FRM {
-	__int32 id;			//0x00
-	__int32 unused;		//0x04
-	__int16 frames;		//0x08
-	__int16 xshift[6];		//0x0a
-	__int16 yshift[6];		//0x16
-	__int32 framestart[6];//0x22
-	__int32 size;			//0x3a
-	__int16 width;			//0x3e
-	__int16 height;		//0x40
-	__int32 frmsize;		//0x42
-	__int16 xoffset;		//0x46
-	__int16 yoffset;		//0x48
-	unsigned char pixels[80 * 36];	//0x4a
+	long id;			//0x00
+	long unused;		//0x04
+	short frames;		//0x08
+	short xshift[6];		//0x0a
+	short yshift[6];		//0x16
+	long framestart[6];//0x22
+	long size;			//0x3a
+	short width;			//0x3e
+	short height;		//0x40
+	long frmsize;		//0x42
+	short xoffset;		//0x46
+	short yoffset;		//0x48
+	BYTE pixels[80 * 36];	//0x4a
 };
 #pragma pack(pop)
 
 struct MessageNode {
-	__int32 number;
-	__int32 flags;
+	long number;
+	long flags;
 	char* audio;
 	char* message;
 
@@ -229,7 +229,7 @@ struct MessageNode {
 
 //for holding msg array
 typedef struct MessageList {
-	__int32 numMsgs;
+	long numMsgs;
 	MessageNode *nodes;
 
 	MessageList() {
@@ -240,247 +240,247 @@ typedef struct MessageList {
 
 
 struct sArt {
-	__int32 flags;
+	long flags;
 	char path[16];
 	char* names;
-	__int32 d18;
-	__int32 total;
+	long d18;
+	long total;
 };
 
 struct CritStruct {
 	union {
 		struct {
-			__int32 DamageMultiplier;
-			__int32 EffectFlags;
-			__int32 StatCheck;
-			__int32 StatMod;
-			__int32 FailureEffect;
-			__int32 Message;
-			__int32 FailMessage;
+			long DamageMultiplier;
+			long EffectFlags;
+			long StatCheck;
+			long StatMod;
+			long FailureEffect;
+			long Message;
+			long FailMessage;
 		};
-		__int32 values[7];
+		long values[7];
 	};
 };
 
 #pragma pack(push, 1)
 struct SkillInfo
 {
-  char* name;
-  char* desc;
-  __int32 attr;
-  __int32 image;
-  __int32 base;
-  __int32 statMulti;
-  __int32 statA;
-  __int32 statB;
-  __int32 skillPointMulti;
-  __int32 Exp;
-  __int32 f;
+	char* name;
+	char* desc;
+	long attr;
+	long image;
+	long base;
+	long statMulti;
+	long statA;
+	long statB;
+	long skillPointMulti;
+	long Exp;
+	long f;
 };
 #pragma pack(pop)
 
 struct StatInfo {
 	char* dame;
 	char* description;
-	__int32 image;
-	__int32 minValue;
-	__int32 maxValue;
-	__int32 defaultValue;
+	long image;
+	long minValue;
+	long maxValue;
+	long defaultValue;
 };
 
 struct TraitInfo {
 	char* Name;
 	char* Desc;
-	__int32 Image;
+	long Image;
 };
 
 //fallout2 path node structure
 struct sPath {
 	char* path;
 	void* pDat;
-	__int32 isDat;
+	long isDat;
 	sPath* next;
 };
 
 struct sProtoBase {
-	__int32 pid;
-	__int32 message_num;
-	__int32 fid;
+	long pid;
+	long message_num;
+	long fid;
 };
 
 struct sProtoTile {
 	sProtoBase base;	
-	__int32 flags;
-	__int32 flags_ext;
-	__int32 material;
-	__int32 field_18;
+	long flags;
+	long flags_ext;
+	long material;
+	long field_18;
 };
 
 struct sProtoObj {
 	sProtoBase base;
-	__int32 light_distance;
-	__int32 light_intensity;
-	__int32 flags;
+	long light_distance;
+	long light_intensity;
+	long flags;
 };
 
 struct sProtoItem {
 	sProtoObj obj;	
-	__int32 flags_ext;
-	__int32 sid;
+	long flags_ext;
+	long sid;
 	ItemType type;
 };
 
 struct sProtoWeapon
 {
 	sProtoItem item;
-	__int32 animation_code;
-	__int32 min_damage;
-	__int32 max_damage;
-	__int32 dt;
-	__int32 max_range1;
-	__int32 max_range2;
-	__int32 proj_pid;
-	__int32 min_st;
-	__int32 mp_cost1;
-	__int32 mp_cost2;
-	__int32 crit_fail_table;
-	__int32 perk;
-	__int32 rounds;
-	__int32 caliber;
-	__int32 ammo_type_pid;
-	__int32 max_ammo;
-	__int32 sound_id;
-	__int32 field_68;
-	__int32 material;
-	__int32 size;
-	__int32 weight;
-	__int32 cost;
-	__int32 inv_fid;
-	__int8 SndID;
+	long animation_code;
+	long min_damage;
+	long max_damage;
+	long dt;
+	long max_range1;
+	long max_range2;
+	long proj_pid;
+	long min_st;
+	long mp_cost1;
+	long mp_cost2;
+	long crit_fail_table;
+	long perk;
+	long rounds;
+	long caliber;
+	long ammo_type_pid;
+	long max_ammo;
+	long sound_id;
+	long field_68;
+	long material;
+	long size;
+	long weight;
+	long cost;
+	long inv_fid;
+	BYTE SndID;
 };
 
 struct sProtoCritter {
 	sProtoObj obj;
-	__int32 flags_ext;
-	__int32 sid;
-	__int32 critter_flags;
-	__int32 base_stat_srength;
-	__int32 base_stat_prception;
-	__int32 base_stat_endurance;
-	__int32 base_stat_charisma;
-	__int32 base_stat_intelligence;
-	__int32 base_stat_agility;
-	__int32 base_stat_luck;
-	__int32 base_stat_hp;
-	__int32 base_stat_ap;
-	__int32 base_stat_ac;
+	long flags_ext;
+	long sid;
+	long critter_flags;
+	long base_stat_srength;
+	long base_stat_prception;
+	long base_stat_endurance;
+	long base_stat_charisma;
+	long base_stat_intelligence;
+	long base_stat_agility;
+	long base_stat_luck;
+	long base_stat_hp;
+	long base_stat_ap;
+	long base_stat_ac;
 	// not used by engine
-	__int32 base_stat_unarmed_damage;
-	__int32 base_stat_melee_damage;
-	__int32 base_stat_carry_weight;
-	__int32 base_stat_sequence;
-	__int32 base_stat_healing_rate;
-	__int32 base_stat_critical_chance;
-	__int32 base_stat_better_criticals;
-	__int32 base_dt_normal;
-	__int32 base_dt_laser;
-	__int32 base_dt_fire;
-	__int32 base_dt_plasma;
-	__int32 base_dt_electrical;
-	__int32 base_dt_emp;
-	__int32 base_dt_explode;
-	__int32 base_dr_normal;
-	__int32 base_dr_laser;
-	__int32 base_dr_fire;
-	__int32 base_dr_plasma;
-	__int32 base_dr_electrical;
-	__int32 base_dr_emp;
-	__int32 base_dr_explode;
-	__int32 base_dr_radiation;
-	__int32 base_dr_poison;
-	__int32 base_age;
-	__int32 base_gender;
-	__int32 bonus_stat_srength;
-	__int32 bonus_stat_prception;
-	__int32 bonus_stat_endurance;
-	__int32 bonus_stat_charisma;
-	__int32 bonus_stat_intelligence;
-	__int32 bonus_stat_agility;
-	__int32 bonus_stat_luck;
-	__int32 bonus_stat_hp;
-	__int32 bonus_stat_ap;
-	__int32 bonus_stat_ac;
-	__int32 bonus_stat_unarmed_damage;
-	__int32 bonus_stat_melee_damage;
-	__int32 bonus_stat_carry_weight;
-	__int32 bonus_stat_sequence;
-	__int32 bonus_stat_healing_rate;
-	__int32 bonus_stat_critical_chance;
-	__int32 bonus_stat_better_criticals;
-	__int32 bonus_dt_normal;
-	__int32 bonus_dt_laser;
-	__int32 bonus_dt_fire;
-	__int32 bonus_dt_plasma;
-	__int32 bonus_dt_electrical;
-	__int32 bonus_dt_emp;
-	__int32 bonus_dt_explode;
-	__int32 bonus_dr_normal;
-	__int32 bonus_dr_laser;
-	__int32 bonus_dr_fire;
-	__int32 bonus_dr_plasma;
-	__int32 bonus_dr_electrical;
-	__int32 bonus_dr_emp;
-	__int32 bonus_dr_explode;
-	__int32 bonus_dr_radiation;
-	__int32 bonus_dr_poison;
-	__int32 bonus_age;
-	__int32 bonus_gender;
-	__int32 skill_small_guns;
-	__int32 skill_big_guns;
-	__int32 skill_energy_weapons;
-	__int32 skill_unarmed;
-	__int32 skill_melee_weapons;
-	__int32 skill_throwing;
-	__int32 skill_first_aid;
-	__int32 skill_doctor;
-	__int32 skill_sneak;
-	__int32 skill_lockpick;
-	__int32 skill_steal;
-	__int32 skill_traps;
-	__int32 skill_science;
-	__int32 skill_repair;
-	__int32 skill_speech;
-	__int32 skill_barter;
-	__int32 skill_gambling;
-	__int32 skill_outdoorsman;
-	__int32 body_type;
-	__int32 exp_val;
-	__int32 kill_type;
-	__int32 damage_type;
-	__int32 head_fid;
-	__int32 ai_packet;
-	__int32 team_num;
+	long base_stat_unarmed_damage;
+	long base_stat_melee_damage;
+	long base_stat_carry_weight;
+	long base_stat_sequence;
+	long base_stat_healing_rate;
+	long base_stat_critical_chance;
+	long base_stat_better_criticals;
+	long base_dt_normal;
+	long base_dt_laser;
+	long base_dt_fire;
+	long base_dt_plasma;
+	long base_dt_electrical;
+	long base_dt_emp;
+	long base_dt_explode;
+	long base_dr_normal;
+	long base_dr_laser;
+	long base_dr_fire;
+	long base_dr_plasma;
+	long base_dr_electrical;
+	long base_dr_emp;
+	long base_dr_explode;
+	long base_dr_radiation;
+	long base_dr_poison;
+	long base_age;
+	long base_gender;
+	long bonus_stat_srength;
+	long bonus_stat_prception;
+	long bonus_stat_endurance;
+	long bonus_stat_charisma;
+	long bonus_stat_intelligence;
+	long bonus_stat_agility;
+	long bonus_stat_luck;
+	long bonus_stat_hp;
+	long bonus_stat_ap;
+	long bonus_stat_ac;
+	long bonus_stat_unarmed_damage;
+	long bonus_stat_melee_damage;
+	long bonus_stat_carry_weight;
+	long bonus_stat_sequence;
+	long bonus_stat_healing_rate;
+	long bonus_stat_critical_chance;
+	long bonus_stat_better_criticals;
+	long bonus_dt_normal;
+	long bonus_dt_laser;
+	long bonus_dt_fire;
+	long bonus_dt_plasma;
+	long bonus_dt_electrical;
+	long bonus_dt_emp;
+	long bonus_dt_explode;
+	long bonus_dr_normal;
+	long bonus_dr_laser;
+	long bonus_dr_fire;
+	long bonus_dr_plasma;
+	long bonus_dr_electrical;
+	long bonus_dr_emp;
+	long bonus_dr_explode;
+	long bonus_dr_radiation;
+	long bonus_dr_poison;
+	long bonus_age;
+	long bonus_gender;
+	long skill_small_guns;
+	long skill_big_guns;
+	long skill_energy_weapons;
+	long skill_unarmed;
+	long skill_melee_weapons;
+	long skill_throwing;
+	long skill_first_aid;
+	long skill_doctor;
+	long skill_sneak;
+	long skill_lockpick;
+	long skill_steal;
+	long skill_traps;
+	long skill_science;
+	long skill_repair;
+	long skill_speech;
+	long skill_barter;
+	long skill_gambling;
+	long skill_outdoorsman;
+	long body_type;
+	long exp_val;
+	long kill_type;
+	long damage_type;
+	long head_fid;
+	long ai_packet;
+	long team_num;
 };
 
 struct ScriptListInfoItem {
 	char fileName[16];
-	__int32 numLocalVars;
+	long numLocalVars;
 };
 
 //for holding window info
 struct WINinfo {
-	__int32 ref;
-	__int32 flags;
+	long ref;
+	long flags;
 	RECT wRect;
-	unsigned __int32 width;
-	unsigned __int32 height;
-	__int32 clearColour;
-	__int32 unknown2;
-	__int32 unknown3;
-	unsigned char *surface;         // bytes frame data ref to palette
-	__int32 buttonListP;
-	__int32 unknown5;//buttonptr?
-	__int32 unknown6;
-	__int32 unknown7;
-	__int32 drawFuncP;
+	long width;
+	long height;
+	long clearColour;
+	long unknown2;
+	long unknown3;
+	BYTE *surface; // bytes frame data ref to palette
+	long buttonListP;
+	long unknown5;//buttonptr?
+	long unknown6;
+	long unknown7;
+	long drawFuncP;
 };

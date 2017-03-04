@@ -21,6 +21,13 @@
 #include "..\main.h"
 #include "..\FalloutEngine\Structs.h"
 
+#include "Module.h"
+
+class ScriptExtender : public Module {
+	const char* name() { return "ScriptExtender"; }
+	void init();
+};
+
 struct sGlobalVar {
 	__int64 id;
 	int val;
@@ -37,8 +44,6 @@ void _stdcall SetGlobalScriptRepeat(TProgram* script, int frames);
 void _stdcall SetGlobalScriptType(TProgram* script, int type);
 void ScriptExtenderSetup();
 bool _stdcall IsGameScript(const char* filename);
-void LoadGlobalScripts();
-void ClearGlobalScripts();
 
 void RunGlobalScripts1();
 void RunGlobalScripts2();
@@ -48,7 +53,6 @@ void AfterAttackCleanup();
 
 void LoadGlobals(HANDLE h);
 void SaveGlobals(HANDLE h);
-void ClearGlobals();
 
 int GetNumGlobals();
 void GetGlobals(sGlobalVar* globals);
@@ -62,7 +66,7 @@ DWORD _stdcall GetGlobalVarInt(DWORD var);
 void _stdcall SetSelfObject(TProgram* script, TGameObj* obj);
 
 extern DWORD AddUnarmedStatToGetYear;
-extern DWORD AvailableGlobalScriptTypes;
+extern DWORD availableGlobalScriptTypes;
 
 void SetAppearanceGlobals(int race, int style);
 void GetAppearanceGlobals(int *race, int *style);

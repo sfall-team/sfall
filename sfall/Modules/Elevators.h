@@ -18,4 +18,9 @@
 
 #pragma once
 
-void ElevatorsInit(char* file);
+#include "Module.h"
+
+class Elevators : public Module {
+	const char* name() { return "Elevators"; }
+	void init();
+};

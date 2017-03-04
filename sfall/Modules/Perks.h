@@ -18,10 +18,16 @@
 
 #pragma once
 
-void PerksInit();
-void PerksReset();
-void PerksSave(HANDLE file);
-bool PerksLoad(HANDLE file);
+#include "Module.h"
+
+class Perks : public Module {
+public:
+	const char* name() { return "Perks"; }
+	void init();
+
+	static void save(HANDLE file);
+	static bool load(HANDLE file);
+};
 
 void PerksEnterCharScreen();
 void PerksCancelCharScreen();

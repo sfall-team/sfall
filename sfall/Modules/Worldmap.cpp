@@ -18,9 +18,9 @@
 
 #include <math.h>
 
-#include "..\..\main.h"
-#include "..\..\FalloutEngine\Fallout2.h"
-#include "..\ScriptExtender.h"
+#include "..\main.h"
+#include "..\FalloutEngine\Fallout2.h"
+#include "ScriptExtender.h"
 
 #include "Worldmap.h"
 
@@ -380,7 +380,7 @@ void ApplyWorldmapFpsPatch() {
 		if (tmp) {
 			dlog("Applying world map fps patch.", DL_INIT);
 			if (*((WORD*)0x004CAFB9) == 0x0000) {
-				AvailableGlobalScriptTypes |= 2;
+				availableGlobalScriptTypes |= 2;
 				SafeWrite32(0x004BFE5E, ((DWORD)&WorldMapSpeedPatch2) - 0x004BFE62);
 				if (GetPrivateProfileIntA("Misc", "ForceLowResolutionTimer", 0, ini) || !QueryPerformanceFrequency((LARGE_INTEGER*)&wm_perfadd) || wm_perfadd <= 1000) {
 					wm_wait = 1000.0 / (double)tmp;
@@ -478,4 +478,13 @@ void ApplyStartingStatePatches() {
 		HookCall(0x4BCF07, &ViewportHook);
 		dlogr(" Done", DL_INIT);
 	}
+}
+
+void Worldmap::init() {
+	ApplyPathfinderFix();
+	ApplyStartingStatePatches();
+	ApplyTimeLimitPatch();
+	ApplyTownMapsHotkeyFix();
+	ApplyWorldLimitsPatches();
+	ApplyWorldmapFpsPatch();
 }

@@ -18,6 +18,8 @@
 
 #pragma once
 
+#include "Module.h"
+
 enum HookType
 {
 	HOOK_TOHIT            = 0,
@@ -49,6 +51,11 @@ enum HookType
 	HOOK_COUNT
 };
 
+class HookScripts : public Module {
+	const char* name() { return "HookScripts"; }
+	void init();
+};
+
 DWORD _stdcall GetHSArgCount();
 DWORD _stdcall GetHSArg();
 DWORD* _stdcall GetHSArgs();
@@ -57,8 +64,9 @@ void _stdcall SetHSReturn(DWORD d);
 // register hook by proc num (special values: -1 - use default (start) procedure, 0 - unregister)
 void _stdcall RegisterHook(TProgram* script, int id, int procNum);
 
-void HookScriptInit();
+// TODO: move
 void HookScriptClear();
+void LoadHookScripts();
 
 extern DWORD InitingHookScripts;
 extern void __declspec() AmmoCostHookWrapper();

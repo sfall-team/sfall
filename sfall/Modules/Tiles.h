@@ -18,4 +18,9 @@
 
 #pragma once
 
-void TilesInit();
+#include "Module.h"
+
+class Tiles : public Module {
+	const char* name() { return "Tiles"; }
+	void init();
+};
