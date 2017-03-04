@@ -25,9 +25,6 @@ class Knockback : public Module {
 	void init();
 };
 
-// TODO: move
-void Knockback_OnGameLoad();
-
 void _stdcall SetPickpocketMax(DWORD critter, DWORD maximum, DWORD mod);
 void _stdcall SetHitChanceMax(DWORD critter, DWORD maximum, DWORD mod);
 void _stdcall KnockbackSetMod(DWORD id, DWORD type, float val, DWORD on);

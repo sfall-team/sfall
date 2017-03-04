@@ -30,4 +30,3 @@ extern char MoviePaths[MaxMovies*65];
 
 void* _stdcall PlaySfallSound(const char* path, int loop);
 void _stdcall StopSfallSound(void* ptr);
-void WipeSounds();

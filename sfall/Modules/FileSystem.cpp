@@ -449,7 +449,7 @@ void FileSystemReset() {
 	}
 }
 
-void FileSystemSave(HANDLE h) {
+void FileSystem::save(HANDLE h) {
 	DWORD count = 0, unused;
 	if (!UsingFileSystem) {
 		WriteFile(h, &count, 4, &unused, 0);
@@ -747,6 +747,6 @@ void FileSystem::init() {
 	if (GetPrivateProfileIntA("Misc", "UseFileSystemOverride", 0, ini)) {
 		FileSystemInit();
 
-		//LoadGameHook::
+		LoadGameHook::onGameReset += FileSystemReset;
 	}
 }

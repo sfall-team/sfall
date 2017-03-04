@@ -93,7 +93,7 @@ typedef std::unordered_map<__int64, int> :: const_iterator glob_citr;
 typedef std::pair<__int64, int> glob_pair;
 
 DWORD AddUnarmedStatToGetYear = 0;
-DWORD AvailableGlobalScriptTypes = 0;
+DWORD availableGlobalScriptTypes = 0;
 bool isGameLoading;
 
 TScript OverrideScriptStruct;
@@ -822,6 +822,13 @@ void GetAppearanceGlobals(int *race, int *style) {
 
 void ScriptExtender::init() {
 	LoadGameHook::onAfterGameStarted += LoadGlobalScripts;
+	LoadGameHook::onGameReset += [] () {
+		ClearGlobalScripts();
+		ClearGlobals();
+		RegAnimCombatCheck(1);
+		AfterAttackCleanup();
+	};
+	LoadGameHook::onGameReset += ClearGlobals;
 
 	toggleHighlightsKey = GetPrivateProfileIntA("Input", "ToggleItemHighlightsKey", 0, ini);
 	if (toggleHighlightsKey) {

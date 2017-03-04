@@ -31,7 +31,7 @@ void __declspec(naked) op_graphics_funcs_available() {
 		push edx;
 		mov ecx, eax;
 		xor edx, edx;
-		mov ebx, GraphicsMode;
+		mov ebx, Graphics::mode;
 		cmp ebx, 3;
 		jle end;
 		inc edx;

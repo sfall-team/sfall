@@ -40,6 +40,7 @@
 #include "Modules\FileSystem.h"
 #include "Modules\Graphics.h"
 #include "Modules\HeroAppearance.h"
+#include "Modules\Input.h"
 #include "Modules\Inventory.h"
 #include "Modules\Karma.h"
 #include "Modules\KillCounter.h"
@@ -86,6 +87,7 @@ static void DllMain2() {
 	manager.add<SpeedPatch>();
 	manager.add<BugFixes>();
 	manager.add<Graphics>();
+	manager.add<Input>();
 	manager.add<Movies>();
 	manager.add<PlayerModel>();
 	manager.add<Worldmap>();

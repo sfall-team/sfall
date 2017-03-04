@@ -78,7 +78,7 @@ void __declspec(naked) op_available_global_script_types() {
 		push ebx;
 		push ecx;
 		push edx;
-		mov edx, AvailableGlobalScriptTypes;
+		mov edx, availableGlobalScriptTypes;
 		mov ecx, eax;
 		call FuncOffs::interpretPushLong_;
 		mov edx, 0xc001;

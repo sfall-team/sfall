@@ -24,8 +24,5 @@ class PartyControl : public Module {
 	void init();
 };
 
-// TODO: move
-void __stdcall PartyControlReset();
-
 int __stdcall PartyControl_SwitchHandHook(TGameObj* item);
 bool IsNpcControlled();

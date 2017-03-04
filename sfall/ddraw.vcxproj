@@ -211,6 +211,7 @@
     <ClInclude Include="FalloutEngine\Variables.h" />
     <ClInclude Include="FalloutEngine\Wrappers.h" />
     <ClInclude Include="FalloutEngine\Wrappers_def.h" />
+    <ClInclude Include="Modules\Input.h" />
     <ClInclude Include="ModuleManager.h" />
     <ClInclude Include="Modules\Module.h" />
     <ClInclude Include="Modules\AI.h" />
@@ -288,6 +289,7 @@
     <ClCompile Include="FalloutEngine\Utils.cpp" />
     <ClCompile Include="FalloutEngine\Variables.cpp" />
     <ClCompile Include="FalloutEngine\Wrappers.cpp" />
+    <ClCompile Include="Modules\Input.cpp" />
     <ClCompile Include="ModuleManager.cpp" />
     <ClCompile Include="Modules\AI.cpp" />
     <ClCompile Include="Modules\AmmoMod.cpp" />

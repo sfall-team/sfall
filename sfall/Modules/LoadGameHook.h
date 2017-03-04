@@ -27,6 +27,9 @@ public:
 	const char* name() { return "LoadGameHook"; }
 	void init();
 
+	// Invoked when game state is being reset (before loading a save, after quitting, etc.)
+	static Delegate<> onGameReset;
+
 	// Invoked before game is being loaded (new game or saved game)
 	static Delegate<> onBeforeGameStart;
 
@@ -37,8 +40,7 @@ public:
 	static Delegate<> onAfterNewGame;
 };
 
-// True if some map was loaded at least once
-// TODO: set to false if game was loaded and then quit back to main menu
+// True if some map was loaded, false when on the main menu
 bool IsMapLoaded();
 
 DWORD InWorldMap();

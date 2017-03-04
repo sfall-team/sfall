@@ -20,8 +20,9 @@
 #include <vector>
 
 #include "..\main.h"
-
 #include "..\FalloutEngine\Fallout2.h"
+#include "LoadGameHook.h"
+
 #include "Knockback.h"
 
 static std::vector<TGameObj*> NoBursts;
@@ -189,15 +190,6 @@ fail:
 	}
 }
 
-void Knockback::init() {
-	SafeWrite16(0x424B61, 0x25ff);
-	SafeWrite32(0x424B63, (DWORD)&KnockbackAddr);
-	MakeCall(0x4136D3, &KnockbackHook2, true); // for op_critter_dmg
-	MakeCall(0x424791, HitChanceHook, true);
-	MakeCall(0x4ABC62, PickpocketHook, true);
-	MakeCall(0x429E44, BurstHook, true);
-}
-
 void Knockback_OnGameLoad() {
 	mTargets.clear();
 	mAttackers.clear();
@@ -351,4 +343,15 @@ void _stdcall ForceAimedShots(DWORD pid) {
 	for (DWORD i = 0; i < disabledAS.size(); i++) if (disabledAS[i] == pid) disabledAS.erase(disabledAS.begin() + (i--));
 	for (DWORD i = 0; i < forcedAS.size(); i++) if (forcedAS[i] == pid) return;
 	forcedAS.push_back(pid);
+}
+
+void Knockback::init() {
+	SafeWrite16(0x424B61, 0x25ff);
+	SafeWrite32(0x424B63, (DWORD)&KnockbackAddr);
+	MakeCall(0x4136D3, &KnockbackHook2, true); // for op_critter_dmg
+	MakeCall(0x424791, HitChanceHook, true);
+	MakeCall(0x4ABC62, PickpocketHook, true);
+	MakeCall(0x429E44, BurstHook, true);
+
+	LoadGameHook::onGameReset += Knockback_OnGameLoad;
 }

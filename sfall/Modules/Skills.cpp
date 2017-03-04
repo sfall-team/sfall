@@ -24,6 +24,7 @@
 
 #include "..\FalloutEngine\Fallout2.h"
 #include "Knockback.h"
+#include "LoadGameHook.h"
 
 #include "Skills.h"
 
@@ -212,6 +213,13 @@ static void __declspec(naked) SkillLevelCostHook() {
 	}
 }
 
+void Skills_OnGameLoad() {
+	SkillMaxMods.clear();
+	BaseSkillMax.maximum = 300;
+	BaseSkillMax.mod = 0;
+}
+
+
 void Skills::init() {
 	MakeCall(0x4AA63C, SkillHookA, true);
 	MakeCall(0x4AA847, SkillHookB, true);
@@ -287,10 +295,6 @@ void Skills::init() {
 		basedOnPoints = GetPrivateProfileIntA("Skills", "BasedOnPoints", 0, file);
 		if (basedOnPoints) HookCall(0x4AA9EC, (void*)FuncOffs::skill_points_);
 	}
-}
 
-void Skills_OnGameLoad() {
-	SkillMaxMods.clear();
-	BaseSkillMax.maximum = 300;
-	BaseSkillMax.mod = 0;
+	LoadGameHook::onGameReset += Skills_OnGameLoad;
 }

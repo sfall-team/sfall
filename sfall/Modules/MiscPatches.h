@@ -25,50 +25,6 @@ class MiscPatches : public Module {
 	void exit() override;
 };
 
-extern bool NpcAutoLevelEnabled;
-
-void ApplyCombatProcFix();
-
-void ApplyInputPatch();
-
-void ApplyGraphicsPatch();
-
-void ApplyDebugModePatch();
-
-void ApplyNPCAutoLevelPatch();
-
-void ApplyAdditionalWeaponAnimsPatch();
-
-void ApplySkilldexImagesPatch();
-
-void ApplySpeedInterfaceCounterAnimsPatch();
-
-void ApplyScienceOnCrittersPatch();
-
-void ApplyFashShotTraitFix();
-
-void ApplyBoostScriptDialogLimitPatch();
-
-void ApplyNumbersInDialoguePatch();
-
-void ApplyInstantWeaponEquipPatch();
-
-void ApplyMultiPatchesPatch();
-
-void ApplyPlayIdleAnimOnReloadPatch();
-
-void ApplyCorpseLineOfFireFix();
-
-void ApplyNpcExtraApPatch();
-
-void ApplyNpcStage6Fix();
-
-void ApplyMotionScannerFlagsPatch();
-
-void ApplyEncounterTableSizePatch();
-
-void ApplyObjCanSeeShootThroughPatch();
-
-void ApplyOverrideMusicDirPatch();
+extern bool npcAutoLevelEnabled;
 
 void _stdcall SetMapMulti(float d);

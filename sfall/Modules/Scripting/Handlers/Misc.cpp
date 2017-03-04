@@ -574,7 +574,7 @@ static void _stdcall IncNPCLevel4(char* npc) {
 		//SafeWrite32(0x00495C8E, 0x90909090);
 		SafeWrite16(0x00495CEC, 0x9090);	//Check that the npc hasn't already levelled up recently
 		SafeWrite32(0x00495CEE, 0x90909090);
-		if (!NpcAutoLevelEnabled) {
+		if (!npcAutoLevelEnabled) {
 			SafeWrite16(0x00495D22, 0x9090);//Random element
 			SafeWrite32(0x00495D24, 0x90909090);
 		}
@@ -607,7 +607,7 @@ static void _stdcall IncNPCLevel2(char* npc) {
 	//SafeWrite32(0x00495C8E, 0x000001bf);
 	SafeWrite16(0x00495CEC, 0x850f);
 	SafeWrite32(0x00495CEE, 0x00000130);
-	if (!NpcAutoLevelEnabled) {
+	if (!npcAutoLevelEnabled) {
 		SafeWrite16(0x00495D22, 0x8f0f);
 		SafeWrite32(0x00495D24, 0x00000129);
 	}

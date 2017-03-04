@@ -26,6 +26,3 @@ class Skills : public Module {
 };
 
 void _stdcall SetSkillMax(DWORD critter, DWORD maximum);
-
-// TODO: move
-void Skills_OnGameLoad();

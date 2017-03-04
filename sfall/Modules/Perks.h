@@ -21,14 +21,13 @@
 #include "Module.h"
 
 class Perks : public Module {
+public:
 	const char* name() { return "Perks"; }
 	void init();
-};
 
-// TODO: move
-void PerksReset();
-void PerksSave(HANDLE file);
-bool PerksLoad(HANDLE file);
+	static void save(HANDLE file);
+	static bool load(HANDLE file);
+};
 
 void PerksEnterCharScreen();
 void PerksCancelCharScreen();

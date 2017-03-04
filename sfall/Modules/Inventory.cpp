@@ -618,8 +618,13 @@ void __declspec(naked) ItemCountFix() {
 	}
 }
 
+void InventoryReset() {
+	invenapcost = GetPrivateProfileInt("Misc", "InventoryApCost", 4, ini);
+}
+
 void Inventory::init() {
 	onKeyPressed += InventoryKeyPressedHook;
+	LoadGameHook::onGameReset += InventoryReset;
 
 	mode = GetPrivateProfileInt("Misc", "CritterInvSizeLimitMode", 0, ini);
 	invenapcost = GetPrivateProfileInt("Misc", "InventoryApCost", 4, ini);
@@ -694,6 +699,3 @@ void Inventory::init() {
 	MakeCall(0x47808C, ItemCountFix, true); // replacing item_count_ function
 }
 
-void InventoryReset() {
-	invenapcost = GetPrivateProfileInt("Misc", "InventoryApCost", 4, ini);
-}

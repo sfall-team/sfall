@@ -17,33 +17,23 @@
  */
 
 #include "..\main.h"
-
 #include "..\Delegate.h"
 #include "..\FalloutEngine\Fallout2.h"
 #include "..\InputFuncs.h"
 #include "..\Logging.h"
-#include "..\ModuleManager.h"
 #include "..\version.h"
 
 #include "AI.h"
-#include "Console.h"
-#include "Criticals.h"
 #include "FileSystem.h"
-#include "Graphics.h"
-#include "HeroAppearance.h"
-#include "Inventory.h"
-#include "Knockback.h"
-#include "LoadGameHook.h"
-#include "Message.h"
-#include "Movies.h"
 #include "PartyControl.h"
 #include "Perks.h"
 #include "ScriptExtender.h"
 #include "Scripting\Arrays.h"
-#include "Skills.h"
-#include "Sound.h"
 #include "ExtraSaveSlots.h"
 
+#include "LoadGameHook.h"
+
+Delegate<> LoadGameHook::onGameReset;
 Delegate<> LoadGameHook::onBeforeGameStart;
 Delegate<> LoadGameHook::onAfterGameStarted;
 Delegate<> LoadGameHook::onAfterNewGame;
@@ -70,29 +60,16 @@ DWORD GetCurrentLoops() {
 	return inLoop;
 }
 
-static void _stdcall ResetState(DWORD onLoad) {
-	// TODO: remove direct references to other modules
-	if (!onLoad) FileSystemReset();
-	ClearGlobalScripts();
-	ClearGlobals();
-	ForceGraphicsRefresh(0);
-	WipeSounds();
-	if (GraphicsMode > 3) graphics_OnGameLoad();
-	Knockback_OnGameLoad();
-	Skills_OnGameLoad();
+static void _stdcall ResetState() {
 	inLoop = 0;
-	PerksReset();
-	InventoryReset();
-	RegAnimCombatCheck(1);
-	AfterAttackCleanup();
-	PartyControlReset();
+	LoadGameHook::onGameReset.invoke();
 }
 
 void GetSavePath(char* buf, char* ftype) {
 	sprintf(buf, "%s\\savegame\\slot%.2d\\sfall%s.sav", VarPtr::patches, VarPtr::slot_cursor + 1 + LSPageOffset, ftype); //add SuperSave Page offset
 }
 
-static char SaveSfallDataFailMsg[128];
+static char saveSfallDataFailMsg[128];
 
 static void _stdcall SaveGame2() {
 	char buf[MAX_PATH];
@@ -107,34 +84,34 @@ static void _stdcall SaveGame2() {
 		WriteFile(h, &unused, 4, &size, 0);
 		unused++;
 		WriteFile(h, &unused, 4, &size, 0);
-		PerksSave(h);
+		Perks::save(h);
 		SaveArrays(h);
 		CloseHandle(h);
 	} else {
 		dlogr("ERROR creating sfallgv!", DL_MAIN);
-		Wrapper::display_print(SaveSfallDataFailMsg);
+		Wrapper::display_print(saveSfallDataFailMsg);
 		Wrapper::gsound_play_sfx_file("IISXXXX1");
 	}
 	GetSavePath(buf, "fs");
 	h = CreateFileA(buf, GENERIC_WRITE, 0, 0, CREATE_ALWAYS, 0, 0);
 	if (h != INVALID_HANDLE_VALUE) {
-		FileSystemSave(h);
+		FileSystem::save(h);
 	}
 	CloseHandle(h);
 }
 
-static char SaveFailMsg[128];
-static DWORD _stdcall combatSaveTest() {
+static char saveFailMsg[128];
+static DWORD _stdcall CombatSaveTest() {
 	if (!saveInCombatFix && !IsNpcControlled()) return 1;
 	if (inLoop & COMBAT) {
 		if (saveInCombatFix == 2 || IsNpcControlled() || !(inLoop & PCOMBAT)) {
-			Wrapper::display_print(SaveFailMsg);
+			Wrapper::display_print(saveFailMsg);
 			return 0;
 		}
 		int ap = Wrapper::stat_level(VarPtr::obj_dude, STAT_max_move_points);
 		int bonusmove = Wrapper::perk_level(VarPtr::obj_dude, PERK_bonus_move);
 		if (VarPtr::obj_dude->critterAP_weaponAmmoPid != ap || bonusmove * 2 != VarPtr::combat_free_move) {
-			Wrapper::display_print(SaveFailMsg);
+			Wrapper::display_print(saveFailMsg);
 			return 0;
 		}
 	}
@@ -147,7 +124,7 @@ static void __declspec(naked) SaveGame() {
 		push ecx;
 		push edx;
 		push eax; // save Mode parameter
-		call combatSaveTest;
+		call CombatSaveTest;
 		test eax, eax;
 		pop edx; // recall Mode parameter
 		jz end;
@@ -170,22 +147,21 @@ end:
 
 // Called right before savegame slot is being loaded
 static void _stdcall LoadGame_Before() {
+	ResetState();
 	LoadGameHook::onBeforeGameStart.invoke();
-	ResetState(1);
 	
 	char buf[MAX_PATH];
 	GetSavePath(buf, "gv");
 
 	dlog_f("Loading save game: %s\r\n", DL_MAIN, buf);
 
-	ClearGlobals();
 	HANDLE h = CreateFileA(buf, GENERIC_READ, FILE_SHARE_READ, 0, OPEN_EXISTING, 0, 0);
 	if (h != INVALID_HANDLE_VALUE) {
 		DWORD size, unused[2];
 		LoadGlobals(h);
 		ReadFile(h, &unused, 8, &size, 0);
 		if (size == 8) {
-			PerksLoad(h);
+			Perks::load(h);
 			LoadArrays(h);
 		}
 		CloseHandle(h);
@@ -231,16 +207,11 @@ end:
 }
 
 static void __stdcall NewGame_Before() {
+	ResetState();
 	LoadGameHook::onBeforeGameStart.invoke();
-
-	ResetState(0);
 }
 
-static void __stdcall NewGame_After() {
-	// TODO: Move this hack out
-	VarPtr::Meet_Frank_Horrigan = disableHorrigan;
-	VarPtr::gmovie_played_list[3] = pipBoyAvailableAtGameStart;
-	
+static void __stdcall NewGame_After() {	
 	LoadGameHook::onAfterNewGame.invoke();
 	LoadGameHook::onAfterGameStarted.invoke();
 
@@ -261,6 +232,21 @@ static void __declspec(naked) main_load_new_hook() {
 		retn;
 	}
 }
+
+static void __stdcall MainMenuLoop() {
+	mapLoaded = false;
+}
+
+static void __declspec(naked) main_menu_loop_hook() {
+	__asm {
+		pushad;
+		call MainMenuLoop;
+		popad;
+		call FuncOffs::main_menu_loop_;
+		retn;
+	}
+}
+
 
 static void __declspec(naked) WorldMapHook() {
 	__asm {
@@ -411,23 +397,8 @@ static void __declspec(naked) AutomapHook() {
 void LoadGameHook::init() {
 	saveInCombatFix = GetPrivateProfileInt("Misc", "SaveInCombatFix", 1, ini);
 	if (saveInCombatFix > 2) saveInCombatFix = 0;
-	GetPrivateProfileString("sfall", "SaveInCombat", "Cannot save at this time", SaveFailMsg, 128, translationIni);
-	GetPrivateProfileString("sfall", "SaveSfallDataFail", "ERROR saving extended savegame information! Check if other programs interfere with savegame files/folders and try again!", SaveSfallDataFailMsg, 128, translationIni);
-
-	// TODO: move these patches someplace else
-	switch (GetPrivateProfileInt("Misc", "PipBoyAvailableAtGameStart", 0, ini)) {
-	case 1:
-		pipBoyAvailableAtGameStart = true;
-		break;
-	case 2:
-		SafeWrite8(0x497011, 0xEB); // skip the vault suit movie check
-		break;
-	}
-
-	if (GetPrivateProfileInt("Misc", "DisableHorrigan", 0, ini)) {
-		disableHorrigan = true;
-		SafeWrite8(0x4C06D8, 0xEB); // skip the Horrigan encounter check
-	}
+	GetPrivateProfileString("sfall", "SaveInCombat", "Cannot save at this time", saveFailMsg, 128, translationIni);
+	GetPrivateProfileString("sfall", "SaveSfallDataFail", "ERROR saving extended savegame information! Check if other programs interfere with savegame files/folders and try again!", saveSfallDataFailMsg, 128, translationIni);
 
 	HookCall(0x480AAE, main_load_new_hook);
 
@@ -440,6 +411,7 @@ void LoadGameHook::init() {
 	HookCall(0x443AAC, SaveGame);
 	HookCall(0x443B1C, SaveGame);
 	HookCall(0x48FCFF, SaveGame);
+	HookCall(0x480A28, main_menu_loop_hook);
 
 	HookCall(0x483668, WorldMapHook);
 	HookCall(0x4A4073, WorldMapHook);
