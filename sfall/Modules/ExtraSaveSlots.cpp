@@ -589,7 +589,7 @@ void EnableSuperSaving() {
 }
 
 void ExtraSaveSlots::init() {
-	if (GetPrivateProfileIntA("Misc", "ExtraSaveSlots", 0, ini)) {
+	if (GetConfigInt("Misc", "ExtraSaveSlots", 0)) {
 		dlog("Running EnableSuperSaving()", DL_INIT);
 		EnableSuperSaving();
 		dlogr(" Done", DL_INIT);

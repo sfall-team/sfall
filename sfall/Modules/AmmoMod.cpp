@@ -741,7 +741,7 @@ end:
 
 void AmmoMod::init() {
 	int formula;
-	if (formula = GetPrivateProfileIntA("Misc", "DamageFormula", 0, ini)) {
+	if (formula = GetConfigInt("Misc", "DamageFormula", 0)) {
 		switch (formula) {
 		case 1:
 			MakeCall(0x424995, &DamageFunction1, true);
@@ -760,8 +760,8 @@ void AmmoMod::init() {
 			break;
 		}
 	}
-	int BonusHtHDmgFix = GetPrivateProfileIntA("Misc", "BonusHtHDamageFix", 1, ini);
-	int DisplayBonusDmg = GetPrivateProfileIntA("Misc", "DisplayBonusDamage", 0, ini);
+	int BonusHtHDmgFix = GetConfigInt("Misc", "BonusHtHDamageFix", 1);
+	int DisplayBonusDmg = GetConfigInt("Misc", "DisplayBonusDamage", 0);
 	if (BonusHtHDmgFix) {
 		dlog("Applying Bonus HtH Damage Perk fix.", DL_INIT);
 		MakeCall(0x435C0C, &MeleeDmgDispFix, true);
@@ -774,7 +774,7 @@ void AmmoMod::init() {
 		MakeCall(0x47854C, &HtHDamageFix1b, true);
 		dlogr(" Done", DL_INIT);
 	}
-	//if(GetPrivateProfileIntA("Misc", "SpecialUnarmedAttacksFix", 1, ini)) {
+	//if(GetConfigInt("Misc", "SpecialUnarmedAttacksFix", 1)) {
 	dlog("Applying Special Unarmed Attacks fix.", DL_INIT);
 	MakeCall(0x42394D, &UnarmedAttacksFix, true);
 	dlogr(" Done", DL_INIT);

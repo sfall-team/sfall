@@ -619,16 +619,16 @@ void __declspec(naked) ItemCountFix() {
 }
 
 void InventoryReset() {
-	invenapcost = GetPrivateProfileInt("Misc", "InventoryApCost", 4, ini);
+	invenapcost = GetConfigInt("Misc", "InventoryApCost", 4);
 }
 
 void Inventory::init() {
 	onKeyPressed += InventoryKeyPressedHook;
 	LoadGameHook::onGameReset += InventoryReset;
 
-	mode = GetPrivateProfileInt("Misc", "CritterInvSizeLimitMode", 0, ini);
-	invenapcost = GetPrivateProfileInt("Misc", "InventoryApCost", 4, ini);
-	invenapqpreduction = GetPrivateProfileInt("Misc", "QuickPocketsApCostReduction", 2, ini);
+	mode = GetConfigInt("Misc", "CritterInvSizeLimitMode", 0);
+	invenapcost = GetConfigInt("Misc", "InventoryApCost", 4);
+	invenapqpreduction = GetConfigInt("Misc", "QuickPocketsApCostReduction", 2);
 	MakeCall(0x46E80B, inven_ap_cost_hook, true);
 	if (mode > 7) {
 		mode = 0;
@@ -638,7 +638,7 @@ void Inventory::init() {
 		SafeWrite8(0x477EB3, 0xeb);
 	}
 	if (mode) {
-		MaxItemSize = GetPrivateProfileInt("Misc", "CritterInvSizeLimit", 100, ini);
+		MaxItemSize = GetConfigInt("Misc", "CritterInvSizeLimit", 100);
 
 		//Check item_add_multi (picking stuff from the floor, etc.)
 		HookCall(0x4771BD, &ItemAddMultiHook1);
@@ -662,25 +662,25 @@ void Inventory::init() {
 		HookCall(0x472FFE, &InvenObjExamineFuncHook);
 	}
 
-	if (GetPrivateProfileInt("Misc", "SuperStimExploitFix", 0, ini)) {
+	if (GetConfigInt("Misc", "SuperStimExploitFix", 0)) {
 		GetPrivateProfileString("sfall", "SuperStimExploitMsg", "You cannot use a super stim on someone who is not injured!", SuperStimMsg, 128, translationIni);
 		MakeCall(0x49C3CC, SuperStimFix, true);
 	}
 
-	if (GetPrivateProfileInt("Misc", "CheckWeaponAmmoCost", 0, ini)) {
+	if (GetConfigInt("Misc", "CheckWeaponAmmoCost", 0)) {
 		MakeCall(0x4266E9, &add_check_for_item_ammo_cost, true);
 		MakeCall(0x4234B3, &divide_burst_rounds_by_ammo_cost, true);
 	}
 
-	ReloadWeaponKey = GetPrivateProfileInt("Input", "ReloadWeaponKey", 0, ini);
+	ReloadWeaponKey = GetConfigInt("Input", "ReloadWeaponKey", 0);
 
-	if (GetPrivateProfileIntA("Misc", "StackEmptyWeapons", 0, ini)) {
+	if (GetConfigInt("Misc", "StackEmptyWeapons", 0)) {
 		MakeCall(0x4736C6, &inven_action_cursor_hack, true);
 		HookCall(0x4772AA, &item_add_mult_hook);
 	}
 
 	// Do not call the 'Move Items' window when using drap and drop to reload weapons in the inventory
-	int ReloadReserve = GetPrivateProfileIntA("Misc", "ReloadReserve", 1, ini);
+	int ReloadReserve = GetConfigInt("Misc", "ReloadReserve", 1);
 	if (ReloadReserve >= 0) {
 		SafeWrite32(0x47655F, ReloadReserve);     // mov  eax, ReloadReserve
 		SafeWrite32(0x476563, 0x097EC139);        // cmp  ecx, eax; jle  0x476570

@@ -33,9 +33,22 @@
 	#define isDebug false
 #endif
 
+// Gets the integer value from Sfall configuration INI file.
 unsigned int GetConfigInt(const char* section, const char* setting, int defaultValue);
+
+// Gets the string value from given INI file.
+std::string GetIniString(const char* section, const char* setting, const char* defaultValue, size_t bufSize, const char* iniFile);
+
+// Parses the comma-separated list setting from given INI file.
+std::vector<std::string> GetIniList(const char* section, const char* setting, const char* defaultValue, size_t bufSize, const char* iniFile);
+
+// Gets the string value from Sfall configuration INI file.
 std::string GetConfigString(const char* section, const char* setting, const char* defaultValue, size_t bufSize = 128);
+
+// Parses the comma-separated list from the settings from Sfall configuration INI file.
 std::vector<std::string> GetConfigList(const char* section, const char* setting, const char* defaultValue, size_t bufSize = 128);
+
+// Translates given string using Sfall translation INI file.
 std::string Translate(const char* section, const char* setting, const char* defaultValue, size_t bufSize = 128);
 
 extern const char ddrawIni[];

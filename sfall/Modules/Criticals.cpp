@@ -234,7 +234,7 @@ void CriticalTableOverride() {dlog("Initilizing critical table override.", DL_IN
 #undef SetEntry
 
 void RemoveCriticalTimeLimitsPatch() {
-	if (GetPrivateProfileIntA("Misc", "RemoveCriticalTimelimits", 0, ini)) {
+	if (GetConfigInt("Misc", "RemoveCriticalTimelimits", 0)) {
 		dlog("Removing critical time limits.", DL_INIT);
 		SafeWrite8(0x42412B, 0x90);
 		BlockCall(0x42412C);
@@ -247,7 +247,7 @@ void RemoveCriticalTimeLimitsPatch() {
 void Criticals::init() {
 	LoadGameHook::onAfterGameStarted += CritLoad;
 
-	mode = GetPrivateProfileIntA("Misc", "OverrideCriticalTable", 2, ini);
+	mode = GetConfigInt("Misc", "OverrideCriticalTable", 2);
 	if (mode < 0 || mode > 3) mode = 0;
 	if (mode) {
 		CriticalTableOverride();

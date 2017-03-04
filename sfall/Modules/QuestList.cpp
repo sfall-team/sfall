@@ -363,7 +363,7 @@ void QuestListPatch() {
 }
 
 void QuestList::init() {
-	if(GetPrivateProfileIntA("Misc", "UseScrollingQuestsList", 0, ini)) {
+	if(GetConfigInt("Misc", "UseScrollingQuestsList", 0)) {
 		dlog("Applying quests list patch ", DL_INIT);
 		QuestListPatch();
 		dlogr(" Done", DL_INIT);

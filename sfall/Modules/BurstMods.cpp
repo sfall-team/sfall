@@ -71,18 +71,18 @@ divEnd2:
 
 
 void BurstMods::init() {
-	if (GetPrivateProfileIntA("Misc", "ComputeSprayMod", 0, ini)) {
+	if (GetConfigInt("Misc", "ComputeSprayMod", 0)) {
 		dlog("Applying ComputeSpray changes.", DL_INIT);
-		compute_spray_center_mult = GetPrivateProfileIntA("Misc", "ComputeSpray_CenterMult", 1, ini);
-		compute_spray_center_div  = GetPrivateProfileIntA("Misc", "ComputeSpray_CenterDiv", 3, ini);
+		compute_spray_center_mult = GetConfigInt("Misc", "ComputeSpray_CenterMult", 1);
+		compute_spray_center_div  = GetConfigInt("Misc", "ComputeSpray_CenterDiv", 3);
 		if (compute_spray_center_div < 1) {
 			compute_spray_center_div = 1;
 		}
 		if (compute_spray_center_mult > compute_spray_center_div) {
 			compute_spray_center_mult = compute_spray_center_div;
 		}
-		compute_spray_target_mult = GetPrivateProfileIntA("Misc", "ComputeSpray_TargetMult", 1, ini);
-		compute_spray_target_div  = GetPrivateProfileIntA("Misc", "ComputeSpray_TargetDiv", 2, ini);
+		compute_spray_target_mult = GetConfigInt("Misc", "ComputeSpray_TargetMult", 1);
+		compute_spray_target_div  = GetConfigInt("Misc", "ComputeSpray_TargetDiv", 2);
 		if (compute_spray_target_div < 1) {
 			compute_spray_target_div = 1;
 		}

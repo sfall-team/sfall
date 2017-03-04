@@ -930,7 +930,7 @@ end:
 
 void BugFixes::init()
 {
-	//if (GetPrivateProfileIntA("Misc", "SharpshooterFix", 1, ini)) {
+	//if (GetConfigInt("Misc", "SharpshooterFix", 1)) {
 		dlog("Applying sharpshooter patch.", DL_INIT);
 		// http://www.nma-fallout.com/threads/fo2-engine-tweaks-sfall.178390/page-119#post-4050162
 		// by Slider2k
@@ -949,7 +949,7 @@ void BugFixes::init()
 	dlogr(" Done", DL_INIT);
 
 	// Fix for "Too Many Items" bug
-	//if (GetPrivateProfileIntA("Misc", "TooManyItemsBugFix", 1, ini)) {
+	//if (GetConfigInt("Misc", "TooManyItemsBugFix", 1)) {
 		dlog("Applying preventive patch for \"Too Many Items\" bug.", DL_INIT);
 		HookCall(0x4A596A, &scr_write_ScriptNode_hook);
 		HookCall(0x4A59C1, &scr_write_ScriptNode_hook);
@@ -960,7 +960,7 @@ void BugFixes::init()
 	MakeCall(0x49BE70, &obj_use_power_on_car_hack, false);
 
 	// Fix for being able to charge the car by using cells on other scenery/critters
-	if (GetPrivateProfileIntA("Misc", "CarChargingFix", 1, ini)) {
+	if (GetConfigInt("Misc", "CarChargingFix", 1)) {
 		dlog("Applying car charging fix.", DL_INIT);
 		MakeCall(0x49C36D, &protinst_default_use_item_hack, true);
 		dlogr(" Done", DL_INIT);
@@ -979,7 +979,7 @@ void BugFixes::init()
 	// Evil bug! If party member has the same armor type in inventory as currently equipped, then
 	// on level up he loses Armor Class equal to the one received from this armor.
 	// The same happens if you just order NPC to remove the armor through dialogue.
-	//if (GetPrivateProfileIntA("Misc", "ArmorCorruptsNPCStatsFix", 1, ini)) {
+	//if (GetConfigInt("Misc", "ArmorCorruptsNPCStatsFix", 1)) {
 		dlog("Applying fix for armor reducing NPC original stats when removed.", DL_INIT);
 		HookCall(0x495F3B, &partyMemberCopyLevelInfo_stat_level_hook);
 		HookCall(0x45419B, &correctFidForRemovedItem_adjust_ac_hook);
@@ -992,7 +992,7 @@ void BugFixes::init()
 	dlogr(" Done", DL_INIT);
 
 	// Allow 9 options (lines of text) to be displayed correctly in a dialog window
-	if (GetPrivateProfileIntA("Misc", "DialogOptions9Lines", 1, ini)) {
+	if (GetConfigInt("Misc", "DialogOptions9Lines", 1)) {
 		dlog("Applying 9 dialog options patch.", DL_INIT);
 		MakeCall(0x44701C, &gdProcessUpdate_hack, true);
 		dlogr(" Done", DL_INIT);
@@ -1009,7 +1009,7 @@ void BugFixes::init()
 	dlogr(" Done", DL_INIT);
 
 	// Fix for not counting in the weight of equipped items on NPC when stealing or bartering
-	//if (GetPrivateProfileIntA("Misc", "NPCWeightFix", 1, ini)) {
+	//if (GetConfigInt("Misc", "NPCWeightFix", 1)) {
 		dlog("Applying fix for not counting in weight of equipped items on NPC.", DL_INIT);
 		MakeCall(0x473B4E, &loot_container_hack, false);
 		MakeCall(0x47588A, &barter_inventory_hack, false);
@@ -1023,7 +1023,7 @@ void BugFixes::init()
 	SafeWrite8(0x475541, 64);
 	SafeWrite8(0x475789, 64);
 
-	//if (GetPrivateProfileIntA("Misc", "InventoryDragIssuesFix", 1, ini)) {
+	//if (GetConfigInt("Misc", "InventoryDragIssuesFix", 1)) {
 		dlog("Applying inventory reverse order issues fix.", DL_INIT);
 		// Fix for minor visual glitch when picking up solo item from the top of inventory
 		// and there is multiple item stack at the bottom of inventory
@@ -1036,32 +1036,32 @@ void BugFixes::init()
 		dlogr(" Done", DL_INIT);
 	//}
 
-	//if (GetPrivateProfileIntA("Misc", "NPCLevelFix", 1, ini)) {
+	//if (GetConfigInt("Misc", "NPCLevelFix", 1)) {
 		dlog("Applying NPC level fix.", DL_INIT);
 		HookCall(0x495BC9, (void*)0x495E51);
 		dlogr(" Done", DL_INIT);
 	//}
 
-	//if (GetPrivateProfileIntA("Misc", "BlackSkilldexFix", 1, ini)) {
+	//if (GetConfigInt("Misc", "BlackSkilldexFix", 1)) {
 		dlog("Applying black skilldex patch.", DL_INIT);
 		HookCall(0x497D0F, &PipStatus_AddHotLines_hook);
 		dlogr(" Done", DL_INIT);
 	//}
 
-	//if (GetPrivateProfileIntA("Misc", "FixWithdrawalPerkDescCrash", 1, ini)) {
+	//if (GetConfigInt("Misc", "FixWithdrawalPerkDescCrash", 1)) {
 		dlog("Applying withdrawal perk description crash fix.", DL_INIT);
 		HookCall(0x47A501, &perform_withdrawal_start_display_print_hook);
 		dlogr(" Done", DL_INIT);
 	//}
 
-	//if (GetPrivateProfileIntA("Misc", "JetAntidoteFix", 1, ini)) {
+	//if (GetConfigInt("Misc", "JetAntidoteFix", 1)) {
 		dlog("Applying Jet Antidote fix.", DL_INIT);
 		// the original jet antidote fix
 		MakeCall(0x47A013, &item_d_take_drug_hack1, true);
 		dlogr(" Done", DL_INIT);
 	//}
 
-	//if (GetPrivateProfileIntA("Misc", "NPCDrugAddictionFix", 1, ini)) {
+	//if (GetConfigInt("Misc", "NPCDrugAddictionFix", 1)) {
 		dlog("Applying NPC's drug addiction fix.", DL_INIT);
 		// proper checks for NPC's addiction instead of always using global vars
 		MakeCall(0x47A644, &item_d_check_addict_hack, true);
@@ -1069,13 +1069,13 @@ void BugFixes::init()
 		dlogr(" Done", DL_INIT);
 	//}
 
-	//if (GetPrivateProfileInt("Misc", "ShivPatch", 1, ini)) {
+	//if (GetConfigInt("Misc", "ShivPatch", 1)) {
 		dlog("Applying shiv patch.", DL_INIT);
 		SafeWrite8(0x477B2B, 0xEB);
 		dlogr(" Done", DL_INIT);
 	//}
 
-	//if (GetPrivateProfileInt("Misc", "ImportedProcedureFix", 0, ini)) {
+	//if (GetConfigInt("Misc", "ImportedProcedureFix", 0)) {
 		dlog("Applying imported procedure patch.", DL_INIT);
 		// http://teamx.ru/site_arc/smf/index.php-topic=398.0.htm
 		SafeWrite16(0x46B35B, 0x1C60); // Fix problems with the temporary stack
@@ -1086,21 +1086,21 @@ void BugFixes::init()
 		dlogr(" Done", DL_INIT);
 	//}
 
-	//if (GetPrivateProfileIntA("Misc", "WieldObjCritterFix", 1, ini)) {
+	//if (GetConfigInt("Misc", "WieldObjCritterFix", 1)) {
 		dlog("Applying wield_obj_critter fix.", DL_INIT);
 		SafeWrite8(0x456912, 0x1E);
 		HookCall(0x45697F, &op_wield_obj_critter_adjust_ac_hook);
 		dlogr(" Done", DL_INIT);
 	//}
 
-	//if (GetPrivateProfileIntA("Misc", "MultiHexPathingFix", 1, ini)) {
+	//if (GetConfigInt("Misc", "MultiHexPathingFix", 1)) {
 		dlog("Applying MultiHex Pathing Fix.", DL_INIT);
 		MakeCall(0x42901F, &MultiHexFix, false);
 		MakeCall(0x429170, &MultiHexFix, false);
 		dlogr(" Done", DL_INIT);
 	//}
 
-	//if (GetPrivateProfileIntA("Misc", "DodgyDoorsFix", 1, ini)) {
+	//if (GetConfigInt("Misc", "DodgyDoorsFix", 1)) {
 		dlog("Applying Dodgy Door Fix.", DL_INIT);
 		MakeCall(0x4113D6, &action_melee_hack, true);
 		MakeCall(0x411BCC, &action_ranged_hack, true);
@@ -1108,7 +1108,7 @@ void BugFixes::init()
 	//}
 
 	// Fix for "NPC turns into a container" bug
-	//if (GetPrivateProfileIntA("Misc", "NPCTurnsIntoContainerFix", 1, ini)) {
+	//if (GetConfigInt("Misc", "NPCTurnsIntoContainerFix", 1)) {
 		dlog("Applying fix for \"NPC turns into a container\" bug.", DL_INIT);
 		MakeCall(0x424F8E, &set_new_results_hack, false);
 		MakeCall(0x42E46E, &critter_wake_clear_hack, true);
@@ -1127,7 +1127,7 @@ void BugFixes::init()
 	dlogr(" Done", DL_INIT);
 
 	// Fix for unable to sell used geiger counters or stealth boys
-	if (GetPrivateProfileIntA("Misc", "CanSellUsedGeiger", 1, ini)) {
+	if (GetConfigInt("Misc", "CanSellUsedGeiger", 1)) {
 		dlog("Applying fix for unable to sell used geiger counters or stealth boys.", DL_INIT);
 		SafeWrite8(0x478115, 0xBA);
 		SafeWrite8(0x478138, 0xBA);
@@ -1152,26 +1152,26 @@ void BugFixes::init()
 	SafeWrite8(0x4C4743, 0xC6); // cmp esi, eax
 
 	// Partial fix for incorrect positioning after exiting small locations (e.g. Ghost Farm)
-	//if (GetPrivateProfileIntA("Misc", "SmallLocExitFix", 1, ini)) {
+	//if (GetConfigInt("Misc", "SmallLocExitFix", 1)) {
 		dlog("Applying fix for incorrect positioning after exiting small locations.", DL_INIT);
 		MakeCall(0x4C5A41, &wmTeleportToArea_hack, true);
 		dlogr(" Done", DL_INIT);
 	//}
 
-	//if (GetPrivateProfileIntA("Misc", "PrintToFileFix", 1, ini)) {
+	//if (GetConfigInt("Misc", "PrintToFileFix", 1)) {
 		dlog("Applying print to file fix.", DL_INIT);
 		MakeCall(0x4C67D4, &db_get_file_list_hack, false);
 		dlogr(" Done", DL_INIT);
 	//}
 
 	// Fix for display issues when calling gdialog_mod_barter with critters with no "Barter" flag set
-	//if (GetPrivateProfileIntA("Misc", "gdBarterDispFix", 1, ini)) {
+	//if (GetConfigInt("Misc", "gdBarterDispFix", 1)) {
 		dlog("Applying gdialog_mod_barter display fix.", DL_INIT);
 		HookCall(0x448250, &gdActivateBarter_hook);
 		dlogr(" Done", DL_INIT);
 	//}
 
-	//if (GetPrivateProfileIntA("Misc", "BagBackpackFix", 1, ini)) {
+	//if (GetConfigInt("Misc", "BagBackpackFix", 1)) {
 		// Fix for items disappearing from inventory when you try to drag them to bag/backpack in the inventory list
 		// and are overloaded
 		HookCall(0x4764FC, (void*)FuncOffs::item_add_force_);

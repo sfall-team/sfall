@@ -216,7 +216,7 @@ end:
 }
 
 void Tiles::init() {
-	tileMode = GetPrivateProfileIntA("Misc", "AllowLargeTiles", 0, ini);
+	tileMode = GetConfigInt("Misc", "AllowLargeTiles", 0);
 	if (tileMode) {
 		HookCall(0x481D72, &ArtInitHook);
 		HookCall(0x48434C, SquareLoadHook);

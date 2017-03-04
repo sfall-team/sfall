@@ -154,7 +154,7 @@ morelines:
 void Credits::init() {
 	HookCall(0x480C49, &ShowCreditsHook);
 	HookCall(0x43F881, &ShowCreditsHook);
-	if (GetPrivateProfileIntA("Misc", "CreditsAtBottom", 0, ini)) {
+	if (GetConfigInt("Misc", "CreditsAtBottom", 0)) {
 		HookCall(0x42CB49, &CreditsNextLineHook_Bottom);
 	} else {
 		HookCall(0x42CB49, &CreditsNextLineHook_Top);

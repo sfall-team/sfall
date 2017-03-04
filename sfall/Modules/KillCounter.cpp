@@ -118,7 +118,7 @@ void KillCounterInit(bool use) {
 }
 
 void KillCounter::init() {
-	if (GetPrivateProfileIntA("Misc", "ExtraKillTypes", 0, ini)) {
+	if (GetConfigInt("Misc", "ExtraKillTypes", 0)) {
 		dlog("Applying extra kill types patch.", DL_INIT);
 		KillCounterInit(true);
 		dlogr(" Done", DL_INIT);

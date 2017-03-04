@@ -50,8 +50,8 @@ static BYTE toggleHighlightsKey;
 static DWORD HighlightContainers;
 static DWORD Color_Containers;
 static char idle;
-static char HighlightFail1[128];
-static char HighlightFail2[128];
+static std::string highlightFailMsg1;
+static std::string HighlightFailMsg2;
 
 struct sGlobalScript {
 	sScriptProgram prog;
@@ -605,15 +605,15 @@ void ClearGlobalScripts() {
 	//Stat ranges
 	StatsReset();
 	//Bodypart hit chances
-	*((DWORD*)0x510954) = GetPrivateProfileIntA("Misc", "BodyHit_Head",      0xFFFFFFD8, ini);
-	*((DWORD*)0x510958) = GetPrivateProfileIntA("Misc", "BodyHit_Left_Arm",  0xFFFFFFE2, ini);
-	*((DWORD*)0x51095C) = GetPrivateProfileIntA("Misc", "BodyHit_Right_Arm", 0xFFFFFFE2, ini);
-	*((DWORD*)0x510960) = GetPrivateProfileIntA("Misc", "BodyHit_Torso",     0x00000000, ini);
-	*((DWORD*)0x510964) = GetPrivateProfileIntA("Misc", "BodyHit_Right_Leg", 0xFFFFFFEC, ini);
-	*((DWORD*)0x510968) = GetPrivateProfileIntA("Misc", "BodyHit_Left_Leg",  0xFFFFFFEC, ini);
-	*((DWORD*)0x51096C) = GetPrivateProfileIntA("Misc", "BodyHit_Eyes",      0xFFFFFFC4, ini);
-	*((DWORD*)0x510970) = GetPrivateProfileIntA("Misc", "BodyHit_Groin",     0xFFFFFFE2, ini);
-	*((DWORD*)0x510974) = GetPrivateProfileIntA("Misc", "BodyHit_Torso",     0x00000000, ini);
+	*((DWORD*)0x510954) = GetConfigInt("Misc", "BodyHit_Head",      0xFFFFFFD8);
+	*((DWORD*)0x510958) = GetConfigInt("Misc", "BodyHit_Left_Arm",  0xFFFFFFE2);
+	*((DWORD*)0x51095C) = GetConfigInt("Misc", "BodyHit_Right_Arm", 0xFFFFFFE2);
+	*((DWORD*)0x510960) = GetConfigInt("Misc", "BodyHit_Torso",     0x00000000);
+	*((DWORD*)0x510964) = GetConfigInt("Misc", "BodyHit_Right_Leg", 0xFFFFFFEC);
+	*((DWORD*)0x510968) = GetConfigInt("Misc", "BodyHit_Left_Leg",  0xFFFFFFEC);
+	*((DWORD*)0x51096C) = GetConfigInt("Misc", "BodyHit_Eyes",      0xFFFFFFC4);
+	*((DWORD*)0x510970) = GetConfigInt("Misc", "BodyHit_Groin",     0xFFFFFFE2);
+	*((DWORD*)0x510974) = GetConfigInt("Misc", "BodyHit_Torso",     0x00000000);
 	//skillpoints per level mod
 	SafeWrite8(0x43C27a, 5);
 }
@@ -676,11 +676,11 @@ static void RunGlobalScripts1() {
 						if (MotionSensorMode & 2) {
 							highlightingToggled = Wrapper::item_m_dec_charges(scanner) + 1;
 							if (!highlightingToggled) {
-								Wrapper::display_print(HighlightFail2);
+								Wrapper::display_print(HighlightFailMsg2.c_str());
 							}
 						} else highlightingToggled = 1;
 					} else {
-						Wrapper::display_print(HighlightFail1);
+						Wrapper::display_print(highlightFailMsg1.c_str());
 					}
 				} else {
 					highlightingToggled = 1;
@@ -830,10 +830,10 @@ void ScriptExtender::init() {
 	};
 	LoadGameHook::onGameReset += ClearGlobals;
 
-	toggleHighlightsKey = GetPrivateProfileIntA("Input", "ToggleItemHighlightsKey", 0, ini);
+	toggleHighlightsKey = GetConfigInt("Input", "ToggleItemHighlightsKey", 0);
 	if (toggleHighlightsKey) {
-		MotionSensorMode = GetPrivateProfileIntA("Misc", "MotionScannerFlags", 1, ini);
-		HighlightContainers = GetPrivateProfileIntA("Input", "HighlightContainers", 0, ini);
+		MotionSensorMode = GetConfigInt("Misc", "MotionScannerFlags", 1);
+		HighlightContainers = GetConfigInt("Input", "HighlightContainers", 0);
 		switch (HighlightContainers) {
 		case 1:
 			Color_Containers = 0x10; // yellow
@@ -846,18 +846,18 @@ void ScriptExtender::init() {
 		HookCall(0x44BD1C, &obj_remove_outline_hook);
 		HookCall(0x44E559, &obj_remove_outline_hook);
 	}
-	GetPrivateProfileStringA("Sfall", "HighlightFail1", "You aren't carrying a motion sensor.", HighlightFail1, 128, translationIni);
-	GetPrivateProfileStringA("Sfall", "HighlightFail2", "Your motion sensor is out of charge.", HighlightFail2, 128, translationIni);
+	highlightFailMsg1 = Translate("Sfall", "HighlightFail1", "You aren't carrying a motion sensor.");
+	HighlightFailMsg2 = Translate("Sfall", "HighlightFail2", "Your motion sensor is out of charge.");
 
-	idle = GetPrivateProfileIntA("Misc", "ProcessorIdle", -1, ini);
+	idle = GetConfigInt("Misc", "ProcessorIdle", -1);
 	if (idle > -1) {
 		VarPtr::idle_func = reinterpret_cast<DWORD>(Sleep);
 		SafeWrite8(0x4C9F12, 0x6A); // push
 		SafeWrite8(0x4C9F13, idle);
 	}
-	modifiedIni = GetPrivateProfileIntA("Main", "ModifiedIni", 0, ini);
+	modifiedIni = GetConfigInt("Main", "ModifiedIni", 0);
 	
-	arraysBehavior = GetPrivateProfileIntA("Misc", "arraysBehavior", 1, ini);
+	arraysBehavior = GetConfigInt("Misc", "arraysBehavior", 1);
 	if (arraysBehavior > 0) {
 		arraysBehavior = 1; // only 1 and 0 allowed at this time
 		dlogr("New arrays behavior enabled.", DL_SCRIPT);

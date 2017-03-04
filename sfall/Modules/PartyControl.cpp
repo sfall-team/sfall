@@ -353,27 +353,15 @@ bool IsNpcControlled() {
 }
 
 void PartyControl::init() {
-	Mode = GetPrivateProfileIntA("Misc", "ControlCombat", 0, ini);
+	Mode = GetConfigInt("Misc", "ControlCombat", 0);
 	if (Mode > 2) {
 		Mode = 0;
 	}
 	if (Mode > 0) {
-		char pidbuf[512];
-		pidbuf[511] = 0;
-		if (GetPrivateProfileStringA("Misc", "ControlCombatPIDList", "", pidbuf, 511, ini)) {
-			char* ptr = pidbuf;
-			char* comma;
-			while (true) {
-				comma = strchr(ptr, ',');
-				if (!comma) 
-					break;
-				*comma = 0;
-				if (strlen(ptr) > 0)
-					Chars.push_back((WORD)strtoul(ptr, 0, 0));
-				ptr = comma + 1;
-			}
-			if (strlen(ptr) > 0) {
-				Chars.push_back((WORD)strtoul(ptr, 0, 0));
+		auto pidList = GetConfigList("Misc", "ControlCombatPIDList", "", 512);
+		if (pidList.size() > 0) {
+			for (auto &pid : pidList) {
+				Chars.push_back(static_cast<WORD>(strtoul(pid.c_str(), 0, 0)));
 			}
 		}
 		dlog_f(" Mode %d, Chars read: %d.", DL_INIT, Mode, Chars.size());

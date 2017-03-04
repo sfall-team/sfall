@@ -744,7 +744,7 @@ void _stdcall FSresize(DWORD id, DWORD size) {
 }
 
 void FileSystem::init() {
-	if (GetPrivateProfileIntA("Misc", "UseFileSystemOverride", 0, ini)) {
+	if (GetConfigInt("Misc", "UseFileSystemOverride", 0)) {
 		FileSystemInit();
 
 		LoadGameHook::onGameReset += FileSystemReset;

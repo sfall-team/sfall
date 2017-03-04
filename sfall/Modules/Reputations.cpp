@@ -16,7 +16,10 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <iterator>
+
 #include "..\main.h"
+#include "..\Utils.h"
 
 #include "Reputations.h"
 
@@ -25,28 +28,22 @@ struct CityRep {
 	DWORD cityID;
 };
 
-static CityRep* repList;
+// C-array is neccessary, because it is used by game engine
+static CityRep* repList = nullptr;
 
 void Reputations::init() {
-	int count;
-	if (count = GetPrivateProfileIntA("Misc", "CityRepsCount", 0, ini)) {
-		repList = new CityRep[count];
-		char buf[512];
-		GetPrivateProfileStringA("Misc", "CityRepsList", "", buf, 512, ini);
-		char* end;
-		char* start = buf;
-		for (int i = 0; i < count; i++) {
-			end = strchr(start, ':');
-			*end = '\0';
-			repList[i].cityID = atoi(start);
-			start = end + 1;
-			if (i == count - 1) {
-				repList[i].globalID = atoi(start);
-			} else {
-				end = strchr(start, ',');
-				*end = '\0';
-				repList[i].globalID = atoi(start);
-				start = end + 1;
+	auto cityRepList = GetConfigList("Misc", "CityRepsList", "", 512);
+	auto count = cityRepList.size();
+	if (count > 0) {
+		repList = new CityRep[cityRepList.size()];
+		std::vector<std::string> pair;
+		pair.reserve(2);
+		for (size_t i = 0; i < cityRepList.size(); i++) {
+			pair.clear();
+			split(cityRepList[i], ':', std::back_inserter(pair), 2);
+			repList[i].cityID = atoi(pair[0].c_str());
+			if (pair.size() >= 2) {
+				repList[i].globalID = atoi(pair[1].c_str());
 			}
 		}
 
@@ -54,5 +51,11 @@ void Reputations::init() {
 		SafeWrite32(0x43BF3C, (DWORD)&repList[0].cityID);
 		SafeWrite32(0x43BF4C, (DWORD)&repList[0].globalID);
 		SafeWrite32(0x43C03E, count * 8);
+	}
+}
+
+void Reputations::exit() {
+	if (repList != nullptr) {
+		delete[] repList;
 	}
 }

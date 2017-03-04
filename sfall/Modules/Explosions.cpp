@@ -214,7 +214,7 @@ void ResetExplosionSettings() {
 void Explosions::init() {
 	MakeCall(0x411AB4, &explosion_effect_hook, true); // required for explosions_metarule
 
-	if (GetPrivateProfileIntA("Misc", "ExplosionsEmitLight", 0, ini)) {
+	if (GetConfigInt("Misc", "ExplosionsEmitLight", 0)) {
 		dlog("Initing Explosion changes.", DL_INIT);
 		lightingEnabled = true;
 		MakeCall(0x4118E1, &ranged_attack_lighting_fix, true);

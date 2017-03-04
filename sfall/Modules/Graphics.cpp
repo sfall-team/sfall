@@ -938,18 +938,18 @@ HRESULT _stdcall FakeDirectDrawCreate2(void*, IDirectDraw** b, void*) {
 	movieDesc.dwHeight = 320;
 	movieDesc.dwWidth = 640;
 
-	gWidth = GetPrivateProfileIntA("Graphics", "GraphicsWidth", 0, ini);
-	gHeight = GetPrivateProfileIntA("Graphics", "GraphicsHeight", 0, ini);
+	gWidth = GetConfigInt("Graphics", "GraphicsWidth", 0);
+	gHeight = GetConfigInt("Graphics", "GraphicsHeight", 0);
 	if (!gWidth || !gHeight) {
 		gWidth = ResWidth;
 		gHeight = ResHeight;
 	}
-	GPUBlt = GetPrivateProfileIntA("Graphics", "GPUBlt", 0, ini);
+	GPUBlt = GetConfigInt("Graphics", "GPUBlt", 0);
 	if (!GPUBlt || GPUBlt > 2) GPUBlt = 2; //Swap them around to keep compatibility with old ddraw.ini's
 	else if (GPUBlt == 2) GPUBlt = 0;
 
 	if (Graphics::mode == 5) {
-		ScrollWindowKey = GetPrivateProfileInt("Input", "WindowScrollKey", 0, ini);
+		ScrollWindowKey = GetConfigInt("Input", "WindowScrollKey", 0);
 	} else ScrollWindowKey = 0;
 
 	rcpres[0] = 1.0f / (float)gWidth;
@@ -975,7 +975,7 @@ static __declspec(naked) void FadeHook() {
 }
 
 void Graphics::init() {
-	Graphics::mode = GetPrivateProfileIntA("Graphics", "Mode", 0, ini);
+	Graphics::mode = GetConfigInt("Graphics", "Mode", 0);
 	if (Graphics::mode != 4 && Graphics::mode != 5) {
 		Graphics::mode = 0;
 	}
@@ -997,7 +997,7 @@ void Graphics::init() {
 		dlogr(" Done", DL_INIT);
 #undef _DLL_NAME
 	}
-	fadeMulti = GetPrivateProfileIntA("Graphics", "FadeMultiplier", 100, ini);
+	fadeMulti = GetConfigInt("Graphics", "FadeMultiplier", 100);
 	if (fadeMulti != 100) {
 		dlog("Applying fade patch.", DL_INIT);
 		SafeWrite32(0x00493B17, ((DWORD)&FadeHook) - 0x00493B1b);

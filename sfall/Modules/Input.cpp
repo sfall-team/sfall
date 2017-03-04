@@ -10,7 +10,7 @@
 static const DWORD dinputPos = 0x50FB70;
 
 void Input::init() {
-	//if(GetPrivateProfileIntA("Input", "Enable", 0, ini)) {
+	//if(GetConfigInt("Input", "Enable", 0)) {
 		dlog("Applying input patch.", DL_INIT);
 		SafeWriteStr(dinputPos, "ddraw.dll");
 		availableGlobalScriptTypes |= 1;

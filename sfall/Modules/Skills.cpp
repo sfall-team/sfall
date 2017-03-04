@@ -219,17 +219,16 @@ void Skills_OnGameLoad() {
 	BaseSkillMax.mod = 0;
 }
 
-
 void Skills::init() {
 	MakeCall(0x4AA63C, SkillHookA, true);
 	MakeCall(0x4AA847, SkillHookB, true);
 	MakeCall(0x4AA725, SkillHookC, true);
 
 	char buf[512], key[16], file[64];
-	if (GetPrivateProfileStringA("Misc", "SkillsFile", "", buf, 62, ini) > 0) {
+	auto skillsFile = GetConfigString("Misc", "SkillsFile", "");
+	if (skillsFile.size() > 0) {
 		SkillInfo *skills = VarPtr::skill_data;
-
-		sprintf(file, ".\\%s", buf);
+		sprintf(file, ".\\%s", skillsFile.c_str());
 		multipliers = new double[7 * SKILL_count];
 		memset(multipliers, 0, 7 * SKILL_count * sizeof(double));
 
@@ -298,3 +297,4 @@ void Skills::init() {
 
 	LoadGameHook::onGameReset += Skills_OnGameLoad;
 }
+

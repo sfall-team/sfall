@@ -2441,7 +2441,7 @@ void EnableHeroAppearanceMod() {
 }
 
 void HeroAppearance::init() {
-	if (GetPrivateProfileIntA("Misc", "EnableHeroAppearanceMod", 0, ini)) {
+	if (GetConfigInt("Misc", "EnableHeroAppearanceMod", 0)) {
 		dlog("Setting up Appearance Char Screen buttons.", DL_INIT);
 		EnableHeroAppearanceMod();
 		dlogr(" Done", DL_INIT);

@@ -266,20 +266,20 @@ static __declspec(naked) void PathfinderFix() {
 }
 
 void ApplyWorldLimitsPatches() {
-	DWORD date = GetPrivateProfileInt("Misc", "LocalMapXLimit", 0, ini);
+	DWORD date = GetConfigInt("Misc", "LocalMapXLimit", 0);
 	if (date) {
 		dlog("Applying local map x limit patch.", DL_INIT);
 		SafeWrite32(0x004B13B9, date);
 		dlogr(" Done", DL_INIT);
 	}
-	date = GetPrivateProfileInt("Misc", "LocalMapYLimit", 0, ini);
+	date = GetConfigInt("Misc", "LocalMapYLimit", 0);
 	if (date) {
 		dlog("Applying local map y limit patch.", DL_INIT);
 		SafeWrite32(0x004B13C7, date);
 		dlogr(" Done", DL_INIT);
 	}
 
-	//if(GetPrivateProfileIntA("Misc", "WorldMapCitiesListFix", 0, ini)) {
+	//if(GetConfigInt("Misc", "WorldMapCitiesListFix", 0)) {
 	dlog("Applying world map cities list patch.", DL_INIT);
 
 	SafeWrite32(0x004C04BA, ((DWORD)&ScrollCityListHook) - 0x004C04BE);
@@ -289,7 +289,7 @@ void ApplyWorldLimitsPatches() {
 	dlogr(" Done", DL_INIT);
 	//}
 
-	//if(GetPrivateProfileIntA("Misc", "CitiesLimitFix", 0, ini)) {
+	//if(GetConfigInt("Misc", "CitiesLimitFix", 0)) {
 	dlog("Applying cities limit patch.", DL_INIT);
 	if (*((BYTE*)0x004BF3BB) != 0xeb) {
 		SafeWrite8(0x004BF3BB, 0xeb);
@@ -297,7 +297,7 @@ void ApplyWorldLimitsPatches() {
 	dlogr(" Done", DL_INIT);
 	//}
 
-	DWORD wmSlots = GetPrivateProfileIntA("Misc", "WorldMapSlots", 0, ini);
+	DWORD wmSlots = GetConfigInt("Misc", "WorldMapSlots", 0);
 	if (wmSlots && wmSlots < 128) {
 		dlog("Applying world map slots patch.", DL_INIT);
 		if (wmSlots < 7) wmSlots = 7;
@@ -312,7 +312,7 @@ void ApplyWorldLimitsPatches() {
 }
 
 void ApplyTimeLimitPatch() {
-	int limit = GetPrivateProfileIntA("Misc", "TimeLimit", 13, ini);
+	int limit = GetConfigInt("Misc", "TimeLimit", 13);
 	if (limit == -2) {
 		limit = 14;
 	}
@@ -357,7 +357,7 @@ void ApplyTimeLimitPatch() {
 }
 
 void ApplyTownMapsHotkeyFix() {
-	if (GetPrivateProfileIntA("Misc", "TownMapHotkeysFix", 1, ini)) {
+	if (GetConfigInt("Misc", "TownMapHotkeysFix", 1)) {
 		dlog("Applying town map hotkeys patch.", DL_INIT);
 		MakeCall(0x4C4945, &wmTownMapFunc_hack, false);
 		dlogr(" Done", DL_INIT);
@@ -366,23 +366,23 @@ void ApplyTownMapsHotkeyFix() {
 
 void ApplyWorldmapFpsPatch() {
 	DWORD tmp;
-	if (GetPrivateProfileInt("Misc", "WorldMapFPSPatch", 0, ini)) {
+	if (GetConfigInt("Misc", "WorldMapFPSPatch", 0)) {
 		dlog("Applying world map fps patch.", DL_INIT);
 		if (*(DWORD*)0x004BFE5E != 0x8d16) {
 			dlogr(" Failed", DL_INIT);
 		} else {
-			wp_delay = GetPrivateProfileInt("Misc", "WorldMapDelay2", 66, ini);
+			wp_delay = GetConfigInt("Misc", "WorldMapDelay2", 66);
 			HookCall(0x004BFE5D, worldmap_patch);
 			dlogr(" Done", DL_INIT);
 		}
 	} else {
-		tmp = GetPrivateProfileIntA("Misc", "WorldMapFPS", 0, ini);
+		tmp = GetConfigInt("Misc", "WorldMapFPS", 0);
 		if (tmp) {
 			dlog("Applying world map fps patch.", DL_INIT);
 			if (*((WORD*)0x004CAFB9) == 0x0000) {
 				availableGlobalScriptTypes |= 2;
 				SafeWrite32(0x004BFE5E, ((DWORD)&WorldMapSpeedPatch2) - 0x004BFE62);
-				if (GetPrivateProfileIntA("Misc", "ForceLowResolutionTimer", 0, ini) || !QueryPerformanceFrequency((LARGE_INTEGER*)&wm_perfadd) || wm_perfadd <= 1000) {
+				if (GetConfigInt("Misc", "ForceLowResolutionTimer", 0) || !QueryPerformanceFrequency((LARGE_INTEGER*)&wm_perfadd) || wm_perfadd <= 1000) {
 					wm_wait = 1000.0 / (double)tmp;
 					wm_nexttick = GetTickCount();
 					wm_usingperf = false;
@@ -394,7 +394,7 @@ void ApplyWorldmapFpsPatch() {
 			}
 			dlogr(" Done", DL_INIT);
 		} else {
-			tmp = GetPrivateProfileIntA("Misc", "WorldMapDelay", 0, ini);
+			tmp = GetConfigInt("Misc", "WorldMapDelay", 0);
 			if (tmp) {
 				if (*((WORD*)0x004CAFB9) == 0x3d40)
 					SafeWrite32(0x004CAFBB, tmp);
@@ -408,9 +408,9 @@ void ApplyWorldmapFpsPatch() {
 				}
 			}
 		}
-		if (GetPrivateProfileIntA("Misc", "WorldMapEncounterFix", 0, ini)) {
+		if (GetConfigInt("Misc", "WorldMapEncounterFix", 0)) {
 			dlog("Applying world map encounter patch.", DL_INIT);
-			WorldMapEncounterRate = GetPrivateProfileIntA("Misc", "WorldMapEncounterRate", 5, ini);
+			WorldMapEncounterRate = GetConfigInt("Misc", "WorldMapEncounterRate", 5);
 			SafeWrite32(0x4C232D, 0x01EBC031);        // xor eax, eax; jmps 0x4C2332
 			HookCall(0x4BFEE0, &wmWorldMapFunc_hook);
 			MakeCall(0x4C0667, &wmRndEncounterOccurred_hack, false);
@@ -420,43 +420,43 @@ void ApplyWorldmapFpsPatch() {
 }
 
 void ApplyPathfinderFix() {
-	//if(GetPrivateProfileIntA("Misc", "PathfinderFix", 0, ini)) {
+	//if(GetConfigInt("Misc", "PathfinderFix", 0)) {
 	dlog("Applying pathfinder patch.", DL_INIT);
 	SafeWrite32(0x004C1FF2, ((DWORD)&PathfinderFix3) - 0x004c1ff6);
 	SafeWrite32(0x004C1C79, ((DWORD)&PathfinderFix) - 0x004c1c7d);
-	MapMulti = (double)GetPrivateProfileIntA("Misc", "WorldMapTimeMod", 100, ini) / 100.0;
+	MapMulti = (double)GetConfigInt("Misc", "WorldMapTimeMod", 100) / 100.0;
 	dlogr(" Done", DL_INIT);
 //}
 }
 
 void ApplyStartingStatePatches() {
-	int date = GetPrivateProfileInt("Misc", "StartYear", -1, ini);
+	int date = GetConfigInt("Misc", "StartYear", -1);
 	if (date > 0) {
 		dlog("Applying starting year patch.", DL_INIT);
 		SafeWrite32(0x4A336C, date);
 		dlogr(" Done", DL_INIT);
 	}
-	date = GetPrivateProfileInt("Misc", "StartMonth", -1, ini);
+	date = GetConfigInt("Misc", "StartMonth", -1);
 	if (date >= 0 && date < 12) {
 		dlog("Applying starting month patch.", DL_INIT);
 		SafeWrite32(0x4A3382, date);
 		dlogr(" Done", DL_INIT);
 	}
-	date = GetPrivateProfileInt("Misc", "StartDay", -1, ini);
+	date = GetConfigInt("Misc", "StartDay", -1);
 	if (date >= 0 && date < 31) {
 		dlog("Applying starting day patch.", DL_INIT);
 		SafeWrite8(0x4A3356, date);
 		dlogr(" Done", DL_INIT);
 	}
 
-	date = GetPrivateProfileInt("Misc", "StartXPos", -1, ini);
+	date = GetConfigInt("Misc", "StartXPos", -1);
 	if (date != -1) {
 		dlog("Applying starting x position patch.", DL_INIT);
 		SafeWrite32(0x4BC990, date);
 		SafeWrite32(0x4BCC08, date);
 		dlogr(" Done", DL_INIT);
 	}
-	date = GetPrivateProfileInt("Misc", "StartYPos", -1, ini);
+	date = GetConfigInt("Misc", "StartYPos", -1);
 	if (date != -1) {
 		dlog("Applying starting y position patch.", DL_INIT);
 		SafeWrite32(0x4BC995, date);
@@ -464,14 +464,14 @@ void ApplyStartingStatePatches() {
 		dlogr(" Done", DL_INIT);
 	}
 
-	ViewportX = GetPrivateProfileInt("Misc", "ViewXPos", -1, ini);
+	ViewportX = GetConfigInt("Misc", "ViewXPos", -1);
 	if (ViewportX != -1) {
 		dlog("Applying starting x view patch.", DL_INIT);
 		SafeWrite32(VARPTR_wmWorldOffsetX, ViewportX);
 		HookCall(0x4BCF07, &ViewportHook);
 		dlogr(" Done", DL_INIT);
 	}
-	ViewportY = GetPrivateProfileInt("Misc", "ViewYPos", -1, ini);
+	ViewportY = GetConfigInt("Misc", "ViewYPos", -1);
 	if (ViewportY != -1) {
 		dlog("Applying starting y view patch.", DL_INIT);
 		SafeWrite32(VARPTR_wmWorldOffsetY, ViewportY);

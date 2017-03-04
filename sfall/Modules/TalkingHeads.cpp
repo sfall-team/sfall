@@ -180,7 +180,7 @@ skip:
 }
 
 void TalkingHeads::init() {
-	if (GetPrivateProfileInt("Graphics", "Use32BitHeadGraphics", 0, ini)) {
+	if (GetConfigInt("Graphics", "Use32BitHeadGraphics", 0)) {
 		HookCall(0x44AFB4, &TransTalkHook);
 		HookCall(0x44B00B, &TransTalkHook);
 		MakeCall(0x44AD01, &DrawFrmHook, true);

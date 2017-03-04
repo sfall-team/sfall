@@ -89,7 +89,7 @@ end:
 }
 
 void ApplyDisplayKarmaChangesPatch() {
-	if (GetPrivateProfileInt("Misc", "DisplayKarmaChanges", 0, ini)) {
+	if (GetConfigInt("Misc", "DisplayKarmaChanges", 0)) {
 		dlog("Applying display karma changes patch.", DL_INIT);
 		karmaGainMsg = Translate("sfall", "KarmaGain", "You gained %d karma.");
 		karmaLossMsg = Translate("sfall", "KarmaLoss", "You lost %d karma.");

@@ -87,27 +87,29 @@ static void __declspec(naked) MainMenuTextHook() {
 void MainMenu::init() {
 	int tmp;
 
-	if(tmp=GetPrivateProfileIntA("Misc", "MainMenuCreditsOffsetX", 0, ini)) {
-		SafeWrite32(0x481753, 0xf+tmp);
+	if (tmp = GetConfigInt("Misc", "MainMenuCreditsOffsetX", 0)) {
+		SafeWrite32(0x481753, 0xf + tmp);
 	}
-	if(tmp=GetPrivateProfileIntA("Misc", "MainMenuCreditsOffsetY", 0, ini)) {
-		SafeWrite32(0x48175C, 0x1cc+tmp);
+	if (tmp = GetConfigInt("Misc", "MainMenuCreditsOffsetY", 0)) {
+		SafeWrite32(0x48175C, 0x1cc + tmp);
 	}
-	if(tmp=GetPrivateProfileIntA("Misc", "MainMenuOffsetX", 0, ini)) {
-		SafeWrite32(0x48187C, 0x1e+tmp);
-		MainMenuTextOffset=tmp;
+	if (tmp = GetConfigInt("Misc", "MainMenuOffsetX", 0)) {
+		SafeWrite32(0x48187C, 0x1e + tmp);
+		MainMenuTextOffset = tmp;
 	}
-	if(tmp=GetPrivateProfileIntA("Misc", "MainMenuOffsetY", 0, ini)) {
-		MainMenuYOffset=tmp;
-		MainMenuTextOffset+=tmp*640;
+	if (tmp = GetConfigInt("Misc", "MainMenuOffsetY", 0)) {
+		MainMenuYOffset = tmp;
+		MainMenuTextOffset += tmp * 640;
 		MakeCall(0x481844, &MainMenuButtonYHook, true);
 	}
-	if(MainMenuTextOffset) {
+	if (MainMenuTextOffset) {
 		SafeWrite8(0x481933, 0x90);
 		MakeCall(0x481934, &MainMenuTextYHook, false);
 	}
 
 	MakeCall(0x4817AB, MainMenuTextHook, true);
-	OverrideColour=GetPrivateProfileInt("Misc", "MainMenuFontColour", 0, ini);
-	if(OverrideColour) MakeCall(0x48174C, &FontColour, false);
+	OverrideColour = GetConfigInt("Misc", "MainMenuFontColour", 0);
+	if (OverrideColour) {
+		MakeCall(0x48174C, &FontColour, false);
+	}
 }

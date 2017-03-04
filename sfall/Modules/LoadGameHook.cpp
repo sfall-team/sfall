@@ -402,7 +402,7 @@ static void __declspec(naked) AutomapHook() {
 }
 
 void LoadGameHook::init() {
-	saveInCombatFix = GetPrivateProfileInt("Misc", "SaveInCombatFix", 1, ini);
+	saveInCombatFix = GetConfigInt("Misc", "SaveInCombatFix", 1);
 	if (saveInCombatFix > 2) saveInCombatFix = 0;
 	GetPrivateProfileString("sfall", "SaveInCombat", "Cannot save at this time", saveFailMsg, 128, translationIni);
 	GetPrivateProfileString("sfall", "SaveSfallDataFail", "ERROR saving extended savegame information! Check if other programs interfere with savegame files/folders and try again!", saveSfallDataFailMsg, 128, translationIni);

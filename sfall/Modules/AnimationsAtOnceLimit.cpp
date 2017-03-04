@@ -294,7 +294,7 @@ void ApplyAnimationsAtOncePatches(signed char aniMax) {
 }
 
 void AnimationsAtOnce::init() {
-	DWORD setting = GetPrivateProfileIntA("Misc", "AnimationsAtOnceLimit", 32, ini);
+	DWORD setting = GetConfigInt("Misc", "AnimationsAtOnceLimit", 32);
 	if ((signed char)setting > 32) {
 		dlog("Applying AnimationsAtOnceLimit patch.", DL_INIT);
 		ApplyAnimationsAtOncePatches((signed char)setting);

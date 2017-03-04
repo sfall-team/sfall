@@ -63,7 +63,7 @@ void Sound::init() {
 		SafeWrite8(0x42B772, 0xeb);
 	}
 
-	/*if(tmp=GetPrivateProfileIntA("Sound", "ForceSoundAcceleration", 0, ini)) {
+	/*if(tmp=GetConfigInt("Sound", "ForceSoundAcceleration", 0)) {
 		if(tmp>=1&&tmp<=4) SetupSoundAcceleration(tmp);
 	}*/
 }

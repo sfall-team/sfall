@@ -573,7 +573,7 @@ void Movies::init() {
 		HookCall(0x4A37CD, PlayMovieHook);
 	}
 	dlog(".", DL_INIT);
-	if (GetPrivateProfileInt("Sound", "AllowDShowSound", 0, ini)) {
+	if (GetConfigInt("Sound", "AllowDShowSound", 0)) {
 		MakeCall(0x4AD498, &SoundLoadHook, true);
 	}
 	dlogr(" Done", DL_INIT);
@@ -582,7 +582,7 @@ void Movies::init() {
 	tmp = SimplePatch<DWORD>(0x4A36EC, "Misc", "MovieTimer_artimer4", 360, 0);
 	tmp = SimplePatch<DWORD>(0x4A3747, "Misc", "MovieTimer_artimer3", 270, 0, tmp);
 	tmp = SimplePatch<DWORD>(0x4A376A, "Misc", "MovieTimer_artimer2", 180, 0, tmp);
-	Artimer1DaysCheckTimer = GetPrivateProfileIntA("Misc", "MovieTimer_artimer1", 90, ini);
+	Artimer1DaysCheckTimer = GetConfigInt("Misc", "MovieTimer_artimer1", 90);
 	if (Artimer1DaysCheckTimer != 90) {
 		Artimer1DaysCheckTimer = max(0, min(tmp, Artimer1DaysCheckTimer));
 		char s[255];

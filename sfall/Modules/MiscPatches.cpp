@@ -391,7 +391,7 @@ void DebugModePatch() {
 }
 
 void NpcAutoLevelPatch() {
-	npcAutoLevelEnabled = GetPrivateProfileIntA("Misc", "NPCAutoLevel", 0, ini) != 0;
+	npcAutoLevelEnabled = GetConfigInt("Misc", "NPCAutoLevel", 0) != 0;
 	if (npcAutoLevelEnabled) {
 		dlog("Applying npc autolevel patch.", DL_INIT);
 		SafeWrite16(0x00495D22, 0x9090);
@@ -399,7 +399,7 @@ void NpcAutoLevelPatch() {
 		dlogr(" Done", DL_INIT);
 	}
 
-	if (GetPrivateProfileIntA("Misc", "SingleCore", 1, ini)) {
+	if (GetConfigInt("Misc", "SingleCore", 1)) {
 		dlog("Applying single core patch.", DL_INIT);
 		HANDLE process = GetCurrentProcess();
 		SetProcessAffinityMask(process, 1);
@@ -407,7 +407,7 @@ void NpcAutoLevelPatch() {
 		dlogr(" Done", DL_INIT);
 	}
 
-	if (GetPrivateProfileIntA("Misc", "OverrideArtCacheSize", 0, ini)) {
+	if (GetConfigInt("Misc", "OverrideArtCacheSize", 0)) {
 		dlog("Applying override art cache size patch.", DL_INIT);
 		SafeWrite32(0x00418867, 0x90909090);
 		SafeWrite32(0x00418872, 256);
@@ -416,7 +416,7 @@ void NpcAutoLevelPatch() {
 }
 
 void AdditionalWeaponAnimsPatch() {
-	if (GetPrivateProfileIntA("Misc", "AdditionalWeaponAnims", 0, ini)) {
+	if (GetConfigInt("Misc", "AdditionalWeaponAnims", 0)) {
 		dlog("Applying additional weapon animations patch.", DL_INIT);
 		SafeWrite8(0x419320, 0x12);
 		HookCall(0x4194CC, WeaponAnimHook);
@@ -429,31 +429,31 @@ void AdditionalWeaponAnimsPatch() {
 void SkilldexImagesPatch() {
 	DWORD tmp;
 	dlog("Checking for changed skilldex images.", DL_INIT);
-	tmp = GetPrivateProfileIntA("Misc", "Lockpick", 293, ini);
+	tmp = GetConfigInt("Misc", "Lockpick", 293);
 	if (tmp != 293) {
 		SafeWrite32(0x00518D54, tmp);
 	}
-	tmp = GetPrivateProfileIntA("Misc", "Steal", 293, ini);
+	tmp = GetConfigInt("Misc", "Steal", 293);
 	if (tmp != 293) {
 		SafeWrite32(0x00518D58, tmp);
 	}
-	tmp = GetPrivateProfileIntA("Misc", "Traps", 293, ini);
+	tmp = GetConfigInt("Misc", "Traps", 293);
 	if (tmp != 293) {
 		SafeWrite32(0x00518D5C, tmp);
 	}
-	tmp = GetPrivateProfileIntA("Misc", "FirstAid", 293, ini);
+	tmp = GetConfigInt("Misc", "FirstAid", 293);
 	if (tmp != 293) {
 		SafeWrite32(0x00518D4C, tmp);
 	}
-	tmp = GetPrivateProfileIntA("Misc", "Doctor", 293, ini);
+	tmp = GetConfigInt("Misc", "Doctor", 293);
 	if (tmp != 293) {
 		SafeWrite32(0x00518D50, tmp);
 	}
-	tmp = GetPrivateProfileIntA("Misc", "Science", 293, ini);
+	tmp = GetConfigInt("Misc", "Science", 293);
 	if (tmp != 293) {
 		SafeWrite32(0x00518D60, tmp);
 	}
-	tmp = GetPrivateProfileIntA("Misc", "Repair", 293, ini);
+	tmp = GetConfigInt("Misc", "Repair", 293);
 	if (tmp != 293) {
 		SafeWrite32(0x00518D64, tmp);
 	}
@@ -461,7 +461,7 @@ void SkilldexImagesPatch() {
 }
 
 void SpeedInterfaceCounterAnimsPatch() {
-	switch (GetPrivateProfileIntA("Misc", "SpeedInterfaceCounterAnims", 0, ini)) {
+	switch (GetConfigInt("Misc", "SpeedInterfaceCounterAnims", 0)) {
 	case 1:
 		dlog("Applying SpeedInterfaceCounterAnims patch.", DL_INIT);
 		MakeCall(0x460BA1, &intface_rotate_numbers_hack, true);
@@ -476,7 +476,7 @@ void SpeedInterfaceCounterAnimsPatch() {
 }
 
 void ScienceOnCrittersPatch() {
-	switch (GetPrivateProfileIntA("Misc", "ScienceOnCritters", 0, ini)) {
+	switch (GetConfigInt("Misc", "ScienceOnCritters", 0)) {
 	case 1:
 		HookCall(0x41276E, ScienceCritterCheckHook);
 		break;
@@ -487,7 +487,7 @@ void ScienceOnCrittersPatch() {
 }
 
 void FashShotTraitFix() {
-	switch (GetPrivateProfileIntA("Misc", "FastShotFix", 1, ini)) {
+	switch (GetConfigInt("Misc", "FastShotFix", 1)) {
 	case 1:
 		dlog("Applying Fast Shot Trait Fix.", DL_INIT);
 		MakeCall(0x478E75, &FastShotTraitFix, true);
@@ -505,7 +505,7 @@ void FashShotTraitFix() {
 }
 
 void BoostScriptDialogLimitPatch() {
-	if (GetPrivateProfileIntA("Misc", "BoostScriptDialogLimit", 0, ini)) {
+	if (GetConfigInt("Misc", "BoostScriptDialogLimit", 0)) {
 		const int scriptDialogCount = 10000;
 		dlog("Applying script dialog limit patch.", DL_INIT);
 		scriptDialog = new int[scriptDialogCount * 2]; // Because the msg structure is 8 bytes, not 4.
@@ -520,7 +520,7 @@ void BoostScriptDialogLimitPatch() {
 }
 
 void NumbersInDialoguePatch() {
-	if (GetPrivateProfileIntA("Misc", "NumbersInDialogue", 0, ini)) {
+	if (GetConfigInt("Misc", "NumbersInDialogue", 0)) {
 		dlog("Applying numbers in dialogue patch.", DL_INIT);
 		SafeWrite32(0x502C32, 0x2000202E);
 		SafeWrite8(0x446F3B, 0x35);
@@ -535,7 +535,7 @@ void NumbersInDialoguePatch() {
 }
 
 void InstantWeaponEquipPatch() {
-	if (GetPrivateProfileIntA("Misc", "InstantWeaponEquip", 0, ini)) {
+	if (GetConfigInt("Misc", "InstantWeaponEquip", 0)) {
 		//Skip weapon equip/unequip animations
 		dlog("Applying instant weapon equip patch.", DL_INIT);
 		for (int i = 0; i < sizeof(PutAwayWeapon) / 4; i++) {
@@ -559,7 +559,7 @@ void CombatProcFix() {
 }
 
 void MultiPatchesPatch() {
-	if (GetPrivateProfileIntA("Misc", "MultiPatches", 0, ini)) {
+	if (GetConfigInt("Misc", "MultiPatches", 0)) {
 		dlog("Applying load multiple patches patch.", DL_INIT);
 		SafeWrite8(0x444354, 0x90); // Change step from 2 to 1
 		SafeWrite8(0x44435C, 0xC4); // Disable check
@@ -568,7 +568,7 @@ void MultiPatchesPatch() {
 }
 
 void PlayIdleAnimOnReloadPatch() {
-	if (GetPrivateProfileInt("Misc", "PlayIdleAnimOnReload", 0, ini)) {
+	if (GetConfigInt("Misc", "PlayIdleAnimOnReload", 0)) {
 		dlog("Applying idle anim on reload patch.", DL_INIT);
 		HookCall(0x460B8C, ReloadHook);
 		dlogr(" Done", DL_INIT);
@@ -576,7 +576,7 @@ void PlayIdleAnimOnReloadPatch() {
 }
 
 void CorpseLineOfFireFix() {
-	if (GetPrivateProfileInt("Misc", "CorpseLineOfFireFix", 0, ini)) {
+	if (GetConfigInt("Misc", "CorpseLineOfFireFix", 0)) {
 		dlog("Applying corpse line of fire patch.", DL_INIT);
 		MakeCall(0x48B994, CorpseHitFix2, true);
 		MakeCall(0x48BA04, CorpseHitFix2b, true);
@@ -585,7 +585,7 @@ void CorpseLineOfFireFix() {
 }
 
 void ApplyNpcExtraApPatch() {
-	RetryCombatMinAP = GetPrivateProfileIntA("Misc", "NPCsTryToSpendExtraAP", 0, ini);
+	RetryCombatMinAP = GetConfigInt("Misc", "NPCsTryToSpendExtraAP", 0);
 	if (RetryCombatMinAP > 0) {
 		dlog("Applying retry combat patch.", DL_INIT);
 		HookCall(0x422B94, &RetryCombatHook);
@@ -594,7 +594,7 @@ void ApplyNpcExtraApPatch() {
 }
 
 void NpcStage6Fix() {
-	if (GetPrivateProfileIntA("Misc", "NPCStage6Fix", 0, ini)) {
+	if (GetConfigInt("Misc", "NPCStage6Fix", 0)) {
 		dlog("Applying NPC Stage 6 Fix.", DL_INIT);
 		MakeCall(0x493CE9, &NPCStage6Fix1, true);
 		SafeWrite8(0x494063, 0x06);		// loop should look for a potential 6th stage
@@ -606,7 +606,7 @@ void NpcStage6Fix() {
 
 void MotionScannerFlagsPatch() {
 	DWORD flags;
-	if (flags = GetPrivateProfileIntA("Misc", "MotionScannerFlags", 1, ini)) {
+	if (flags = GetConfigInt("Misc", "MotionScannerFlags", 1)) {
 		dlog("Applying MotionScannerFlags patch.", DL_INIT);
 		if (flags & 1) MakeCall(0x41BBE9, &ScannerAutomapHook, true);
 		if (flags & 2) BlockCall(0x41BC3C);
@@ -615,7 +615,7 @@ void MotionScannerFlagsPatch() {
 }
 
 void EncounterTableSizePatch() {
-	DWORD tableSize = GetPrivateProfileIntA("Misc", "EncounterTableSize", 0, ini);
+	DWORD tableSize = GetConfigInt("Misc", "EncounterTableSize", 0);
 	if (tableSize > 40 && tableSize <= 127) {
 		dlog("Applying EncounterTableSize patch.", DL_INIT);
 		SafeWrite8(0x4BDB17, (BYTE)tableSize);
@@ -629,7 +629,7 @@ void EncounterTableSizePatch() {
 }
 
 void ObjCanSeeShootThroughPatch() {
-	if (GetPrivateProfileIntA("Misc", "ObjCanSeeObj_ShootThru_Fix", 0, ini)) {
+	if (GetConfigInt("Misc", "ObjCanSeeObj_ShootThru_Fix", 0)) {
 		dlog("Applying ObjCanSeeObj ShootThru Fix.", DL_INIT);
 		SafeWrite32(0x456BC7, (DWORD)&objCanSeeObj_ShootThru_Fix - 0x456BCB);
 		dlogr(" Done", DL_INIT);
@@ -639,7 +639,7 @@ void ObjCanSeeShootThroughPatch() {
 static const char* musicOverridePath = "data\\sound\\music\\";
 void OverrideMusicDirPatch() {
 	DWORD overrideMode;
-	if (overrideMode = GetPrivateProfileIntA("Sound", "OverrideMusicDir", 0, ini)) {
+	if (overrideMode = GetConfigInt("Sound", "OverrideMusicDir", 0)) {
 		SafeWrite32(0x4449C2, (DWORD)musicOverridePath);
 		SafeWrite32(0x4449DB, (DWORD)musicOverridePath);
 		if (overrideMode == 2) {
@@ -650,7 +650,7 @@ void OverrideMusicDirPatch() {
 }
 
 void DialogueFix() {
-	if (GetPrivateProfileIntA("Misc", "DialogueFix", 1, ini)) {
+	if (GetConfigInt("Misc", "DialogueFix", 1)) {
 		dlog("Applying dialogue patch.", DL_INIT);
 		SafeWrite8(0x00446848, 0x31);
 		dlogr(" Done", DL_INIT);
@@ -666,7 +666,7 @@ void DontDeleteProtosPatch() {
 }
 
 void AlwaysReloadMsgs() {
-	if (GetPrivateProfileInt("Misc", "AlwaysReloadMsgs", 0, ini)) {
+	if (GetConfigInt("Misc", "AlwaysReloadMsgs", 0)) {
 		dlog("Applying always reload messages patch.", DL_INIT);
 		SafeWrite8(0x4A6B8A, 0xff);
 		SafeWrite32(0x4A6B8B, 0x02eb0074);
@@ -675,7 +675,7 @@ void AlwaysReloadMsgs() {
 }
 
 void SkipOpeningMoviesPatch() {	
-	if (GetPrivateProfileIntA("Misc", "SkipOpeningMovies", 0, ini)) {
+	if (GetConfigInt("Misc", "SkipOpeningMovies", 0)) {
 		dlog("Blocking opening movies.", DL_INIT);
 		BlockCall(0x4809CB);
 		BlockCall(0x4809D4);
@@ -685,14 +685,14 @@ void SkipOpeningMoviesPatch() {
 }
 
 void RemoveWindowRoundingPatch() {
-	if(GetPrivateProfileIntA("Misc", "RemoveWindowRounding", 0, ini)) {
+	if(GetConfigInt("Misc", "RemoveWindowRounding", 0)) {
 		SafeWrite32(0x4B8090, 0x90909090);
 		SafeWrite16(0x4B8094, 0x9090);
 	}
 }
 
 void InventoryCharacterRotationSpeedPatch() {
-	DWORD setting = GetPrivateProfileIntA("Misc", "SpeedInventoryPCRotation", 166, ini);
+	DWORD setting = GetConfigInt("Misc", "SpeedInventoryPCRotation", 166);
 	if (setting != 166 && setting <= 1000) {
 		dlog("Applying SpeedInventoryPCRotation patch.", DL_INIT);
 		SafeWrite32(0x47066B, setting);
@@ -710,7 +710,7 @@ void UIAnimationSpeedPatch() {
 }
 
 void MusicInDialoguePatch() {
-	if (GetPrivateProfileIntA("Misc", "EnableMusicInDialogue", 0, ini)) {
+	if (GetConfigInt("Misc", "EnableMusicInDialogue", 0)) {
 		dlog("Applying music in dialogue patch.", DL_INIT);
 		SafeWrite8(0x44525B, 0x0);
 		//BlockCall(0x450627);
@@ -719,7 +719,7 @@ void MusicInDialoguePatch() {
 }
 
 void PipboyAvailableAtStartPatch() {
-	switch (GetPrivateProfileInt("Misc", "PipBoyAvailableAtGameStart", 0, ini)) {
+	switch (GetConfigInt("Misc", "PipBoyAvailableAtGameStart", 0)) {
 	case 1:
 		LoadGameHook::onAfterNewGame += []() {
 			// PipBoy aquiring video
@@ -733,7 +733,7 @@ void PipboyAvailableAtStartPatch() {
 }
 
 void DisableHorriganPatch() {
-	if (GetPrivateProfileInt("Misc", "DisableHorrigan", 0, ini)) {
+	if (GetConfigInt("Misc", "DisableHorrigan", 0)) {
 		LoadGameHook::onAfterNewGame += []() {
 			VarPtr::Meet_Frank_Horrigan = true;
 		};
@@ -802,7 +802,7 @@ void MiscPatches::init() {
 	MotionScannerFlagsPatch();
 	EncounterTableSizePatch();
 
-	if (GetPrivateProfileIntA("Misc", "DisablePipboyAlarm", 0, ini)) {
+	if (GetConfigInt("Misc", "DisablePipboyAlarm", 0)) {
 		SafeWrite8(0x499518, 0xc3);
 	}
 

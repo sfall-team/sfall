@@ -118,7 +118,7 @@ void TimerInit() {
 	StoredTickCount = 0;
 	LastTickCount = GetTickCount();
 	TickCountFraction = 0;
-	Multi = (double)GetPrivateProfileInt("Speed", "SpeedMultiInitial", 100, ini) / 100.0;
+	Multi = (double)GetConfigInt("Speed", "SpeedMultiInitial", 100) / 100.0;
 	Enabled = true;
 	Toggled = false;
 
@@ -126,23 +126,23 @@ void TimerInit() {
 	GetLocalTime(&time);
 	SystemTimeToFileTime(&time, (FILETIME*)&StartTime);
 
-	ModKey = GetPrivateProfileInt("Input", "SpeedModKey", -1, ini);
-	ToggleKey = GetPrivateProfileInt("Input", "SpeedToggleKey", 0, ini);
+	ModKey = GetConfigInt("Input", "SpeedModKey", -1);
+	ToggleKey = GetConfigInt("Input", "SpeedToggleKey", 0);
 	char c[2];
 	char key[12];
 	for (int i = 0; i < 10; i++) {
 		_itoa_s(i, c, 10);
 		strcpy_s(key, "SpeedKey");
 		strcat_s(key, c);
-		Keys[i] = GetPrivateProfileInt("Input", key, 0, ini);
+		Keys[i] = GetConfigInt("Input", key, 0);
 		strcpy_s(key, "SpeedMulti");
 		strcat_s(key, c);
-		Multipliers[i] = GetPrivateProfileInt("Speed", key, 0x00, ini) / 100.0;
+		Multipliers[i] = GetConfigInt("Speed", key, 0x00) / 100.0;
 	}
 }
 
 void SpeedPatch::init() {
-	if (GetPrivateProfileIntA("Speed", "Enable", 0, ini)) {
+	if (GetConfigInt("Speed", "Enable", 0)) {
 		dlog("Applying speed patch.", DL_INIT);
 		addrGetTickCount = (DWORD)&FakeGetTickCount;
 		addrGetLocalTime = (DWORD)&FakeGetLocalTime;

@@ -219,34 +219,25 @@ void Stats::init() {
 	SafeWrite8(0x4AF09C, 0xe9);
 	HookCall(0x4AF09C, ApplyApAcBonus);
 
-	char table[2048];
-	GetPrivateProfileString("Misc", "XPTable", "", table, 2048, ini);
-	if (strlen(table) > 0) {
-		char *ptr = table, *ptr2;
-		DWORD level = 0;
-
+	auto xpTableList = GetConfigList("Misc", "XPTable", "", 2048);
+	size_t numLevels = xpTableList.size();
+	if (numLevels > 0) {
 		HookCall(0x434AA7, GetNextLevelXPHook);
 		HookCall(0x439642, GetNextLevelXPHook);
 		HookCall(0x4AFB22, GetNextLevelXPHook);
 		HookCall(0x496C8D, GetLevelXPHook);
 		HookCall(0x4AFC53, GetLevelXPHook);
 
-		while ((ptr2 = strstr(ptr, ",")) && level < 99) {
-			ptr2[0] = '\0';
-			xpTable[level++] = atoi(ptr);
-			ptr = ptr2 + 1;
+		for (size_t i = 0; i < 99; i++) {
+			xpTable[i] = (i < numLevels)
+				? atoi(xpTableList[i].c_str())
+				: -1;
 		}
-		if (level < 99 && ptr[0] != '\0') {
-			xpTable[level++] = atoi(ptr);
-		}
-		for (int i = level; i < 99; i++) {
-			xpTable[i] = -1;
-		}
-		SafeWrite8(0x4AFB1B, (BYTE)(level + 1));
+		SafeWrite8(0x4AFB1B, static_cast<BYTE>(numLevels));
 	}
 
-	GetPrivateProfileStringA("Misc", "DerivedStats", "", table, 2048, ini);
-	if (strlen(table)) {
+	auto statsFile = GetConfigString("Misc", "DerivedStats", "", 2048);
+	if (statsFile.size() > 0) {
 		MakeCall(0x4AF6FC, &stat_recalc_derived, true);
 		memset(StatFormulas, 0, sizeof(StatFormulas));
 		memset(StatShifts, 0, sizeof(StatShifts));
@@ -271,20 +262,19 @@ void Stats::init() {
 		StatMulti[32 * 7 + 2] = 5; //poison resist
 
 		char key[6], buf2[256], buf3[256];
-		strcpy(buf3, table);
-		sprintf(table, ".\\%s", buf3);
+		statsFile = ".\\" + statsFile;
 		for (int i = 7; i <= 32; i++) {
 			if (i >= 17 && i <= 30) continue;
 
 			_itoa(i, key, 10);
-			StatFormulas[i * 2] = GetPrivateProfileInt(key, "base", StatFormulas[i * 2], table);
-			StatFormulas[i * 2 + 1] = GetPrivateProfileInt(key, "min", StatFormulas[i * 2 + 1], table);
+			StatFormulas[i * 2] = GetPrivateProfileInt(key, "base", StatFormulas[i * 2], statsFile.c_str());
+			StatFormulas[i * 2 + 1] = GetPrivateProfileInt(key, "min", StatFormulas[i * 2 + 1], statsFile.c_str());
 			for (int j = 0; j < 7; j++) {
 				sprintf(buf2, "shift%d", j);
-				StatShifts[i * 7 + j] = GetPrivateProfileInt(key, buf2, StatShifts[i * 7 + 0], table);
+				StatShifts[i * 7 + j] = GetPrivateProfileInt(key, buf2, StatShifts[i * 7 + 0], statsFile.c_str());
 				sprintf(buf2, "multi%d", j);
 				_gcvt(StatMulti[i * 7 + j], 16, buf3);
-				GetPrivateProfileStringA(key, buf2, buf3, buf2, 256, table);
+				GetPrivateProfileStringA(key, buf2, buf3, buf2, 256, statsFile.c_str());
 				StatMulti[i * 7 + j] = atof(buf2);
 			}
 		}

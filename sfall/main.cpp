@@ -16,6 +16,7 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <algorithm>
 #include <stdio.h>
 #include <memory>
 
@@ -78,7 +79,7 @@ char ini[65];
 char translationIni[65];
 
 unsigned int GetConfigInt(const char* section, const char* setting, int defaultValue) {
-	return GetPrivateProfileIntA(section, setting, defaultValue, ini);
+	return GetPrivateProfileIntA(section, setting, defaultValue, ::ini);
 }
 
 std::string GetIniString(const char* section, const char* setting, const char* defaultValue, size_t bufSize, const char* iniFile) {
@@ -86,7 +87,13 @@ std::string GetIniString(const char* section, const char* setting, const char* d
 	GetPrivateProfileStringA(section, setting, defaultValue, buf, bufSize, iniFile);
 	std::string str(buf);
 	delete[] buf;
-	return str;
+	return trim(str);
+}
+
+std::vector<std::string> GetIniList(const char* section, const char* setting, const char* defaultValue, size_t bufSize, char delimiter, const char* iniFile) {
+	auto list = split(GetConfigString(section, setting, defaultValue, bufSize), delimiter);
+	std::transform(list.cbegin(), list.cend(), list.begin(), trim);
+	return list;
 }
 
 std::string GetConfigString(const char* section, const char* setting, const char* defaultValue, size_t bufSize) {
@@ -94,7 +101,7 @@ std::string GetConfigString(const char* section, const char* setting, const char
 }
 
 std::vector<std::string> GetConfigList(const char* section, const char* setting, const char* defaultValue, size_t bufSize) {
-	return split(GetConfigString(section, setting,defaultValue, bufSize), ',');
+	return GetIniList(section, setting, defaultValue, bufSize, ',', ::ini);
 }
 
 std::string Translate(const char* section, const char* setting, const char* defaultValue, size_t bufSize) {
