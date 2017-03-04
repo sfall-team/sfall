@@ -33,6 +33,7 @@
 
 #include "LoadGameHook.h"
 
+Delegate<> LoadGameHook::onGameInit;
 Delegate<> LoadGameHook::onGameReset;
 Delegate<> LoadGameHook::onBeforeGameStart;
 Delegate<> LoadGameHook::onAfterGameStarted;
@@ -43,6 +44,7 @@ static DWORD saveInCombatFix;
 static bool disableHorrigan = false;
 static bool pipBoyAvailableAtGameStart = false;
 static bool mapLoaded = false;
+static bool gameLoaded = false;
 
 bool IsMapLoaded() {
 	return mapLoaded;
@@ -235,6 +237,11 @@ static void __declspec(naked) main_load_new_hook() {
 
 static void __stdcall MainMenuLoop() {
 	mapLoaded = false;
+	if (!gameLoaded) {
+		gameLoaded = true;
+		// called only once
+		LoadGameHook::onGameInit.invoke();
+	}
 }
 
 static void __declspec(naked) main_menu_loop_hook() {

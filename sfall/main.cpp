@@ -141,6 +141,7 @@ static void DllMain2() {
 	manager.add<BurstMods>();
 	manager.add<Books>();
 	manager.add<Explosions>();
+	manager.add<Message>();
 
 	manager.add<AI>();
 	manager.add<AmmoMod>();

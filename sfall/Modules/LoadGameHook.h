@@ -26,6 +26,9 @@ class LoadGameHook : public Module {
 public:
 	const char* name() { return "LoadGameHook"; }
 	void init();
+	
+	// Invoked when the game has initialized (game_init_ was called).
+	static Delegate<> onGameInit;
 
 	// Invoked when game state is being reset (before loading a save, after quitting, etc.)
 	static Delegate<> onGameReset;
