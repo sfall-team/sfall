@@ -183,7 +183,7 @@ void __declspec(naked) defaultOpcodeHandler() {
 }
 
 void InitNewOpcodes() {
-	bool AllowUnsafeScripting = IsDebug
+	bool AllowUnsafeScripting = isDebug
 		&& GetPrivateProfileIntA("Debugging", "AllowUnsafeScripting", 0, ".\\ddraw.ini") != 0;
 
 	dlogr("Adding additional opcodes", DL_SCRIPT);

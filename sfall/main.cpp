@@ -16,8 +16,6 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "main.h"
-
 #include <stdio.h>
 #include <memory>
 
@@ -68,12 +66,40 @@
 #include "SimplePatch.h"
 
 #include "Logging.h"
+#include "Utils.h"
 #include "Version.h"
 
-bool IsDebug = false;
+#include "main.h"
 
+bool isDebug = false;
+
+const char ddrawIni[] = ".\\ddraw.ini";
 char ini[65];
 char translationIni[65];
+
+unsigned int GetConfigInt(const char* section, const char* setting, int defaultValue) {
+	return GetPrivateProfileIntA(section, setting, defaultValue, ini);
+}
+
+std::string GetIniString(const char* section, const char* setting, const char* defaultValue, size_t bufSize, const char* iniFile) {
+	char* buf = new char[bufSize];
+	GetPrivateProfileStringA(section, setting, defaultValue, buf, bufSize, iniFile);
+	std::string str(buf);
+	delete[] buf;
+	return str;
+}
+
+std::string GetConfigString(const char* section, const char* setting, const char* defaultValue, size_t bufSize) {
+	return GetIniString(section, setting, defaultValue, bufSize, ::ini);
+}
+
+std::vector<std::string> GetConfigList(const char* section, const char* setting, const char* defaultValue, size_t bufSize) {
+	return split(GetConfigString(section, setting,defaultValue, bufSize), ',');
+}
+
+std::string Translate(const char* section, const char* setting, const char* defaultValue, size_t bufSize) {
+	return GetIniString(section, setting, defaultValue, bufSize, ::translationIni);
+}
 
 
 static void DllMain2() {
@@ -127,19 +153,6 @@ static void DllMain2() {
 	dlogr("Leave DllMain2", DL_MAIN);
 }
 
-// TODO: remove
-static void _stdcall OnExit() {
-}
-
-static void __declspec(naked) OnExitFunc() {
-	__asm {
-		pushad;
-		call OnExit;
-		popad;
-		jmp FuncOffs::DOSCmdLineDestroy_;
-	}
-}
-
 static void CompatModeCheck(HKEY root, const char* filepath, int extra) {
 	HKEY key;
 	char buf[MAX_PATH];
@@ -167,19 +180,17 @@ static void CompatModeCheck(HKEY root, const char* filepath, int extra) {
 bool _stdcall DllMain(HANDLE hDllHandle, DWORD dwReason, LPVOID  lpreserved) {
 	if (dwReason == DLL_PROCESS_ATTACH) {
 		// enabling debugging features
- 		IsDebug = (GetPrivateProfileIntA("Debugging", "Enable", 0, ".\\ddraw.ini") != 0);
-		if (IsDebug) {
+ 		isDebug = (GetPrivateProfileIntA("Debugging", "Enable", 0, ddrawIni) != 0);
+		if (isDebug) {
 			LoggingInit();
 		}
-
-		HookCall(0x4DE7D2, &OnExitFunc);
 
 		char filepath[MAX_PATH];
 		GetModuleFileName(0, filepath, MAX_PATH);
 
 		CRC(filepath);
 
-		if (!IsDebug || !GetPrivateProfileIntA("Debugging", "SkipCompatModeCheck", 0, ".\\ddraw.ini")) {
+		if (!isDebug || !GetPrivateProfileIntA("Debugging", "SkipCompatModeCheck", 0, ddrawIni)) {
 			int is64bit;
 			typedef int (_stdcall *chk64bitproc)(HANDLE, int*);
 			HMODULE h=LoadLibrary("Kernel32.dll");
@@ -195,7 +206,7 @@ bool _stdcall DllMain(HANDLE hDllHandle, DWORD dwReason, LPVOID  lpreserved) {
 		// ini file override
 		bool cmdlineexists = false;
 		char* cmdline = GetCommandLineA();
-		if (GetPrivateProfileIntA("Main", "UseCommandLine", 0, ".\\ddraw.ini")) {
+		if (GetPrivateProfileIntA("Main", "UseCommandLine", 0, ddrawIni)) {
 			while (cmdline[0] == ' ') cmdline++;
 			bool InQuote = false;
 			int count = -1;
@@ -225,10 +236,10 @@ bool _stdcall DllMain(HANDLE hDllHandle, DWORD dwReason, LPVOID  lpreserved) {
 			else {
 				MessageBox(0, "You gave a command line argument to fallout, but it couldn't be matched to a file\n" \
 						   "Using default ddraw.ini instead", "Warning", MB_TASKMODAL);
-				strcpy_s(ini, ".\\ddraw.ini");
+				strcpy_s(ini, ddrawIni);
 			}
 		} else {
-			strcpy_s(ini, ".\\ddraw.ini");
+			strcpy_s(ini, ddrawIni);
 		}
 
 		GetPrivateProfileStringA("Main", "TranslationsINI", "./Translations.ini", translationIni, 65, ini);

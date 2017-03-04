@@ -20,15 +20,24 @@
 #include <assert.h>
 //#define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
+#include <string>
+#include <vector>
+
 #include "SafeWrite.h"
 #include "Logging.h"
 
 // global flag, indicating that debugging features of Sfall are enabled
 #ifndef NO_SFALL_DEBUG
-	extern bool IsDebug;
+	extern bool isDebug;
 #else
-	#define IsDebug false
+	#define isDebug false
 #endif
 
+unsigned int GetConfigInt(const char* section, const char* setting, int defaultValue);
+std::string GetConfigString(const char* section, const char* setting, const char* defaultValue, size_t bufSize = 128);
+std::vector<std::string> GetConfigList(const char* section, const char* setting, const char* defaultValue, size_t bufSize = 128);
+std::string Translate(const char* section, const char* setting, const char* defaultValue, size_t bufSize = 128);
+
+extern const char ddrawIni[];
 extern char ini[65];
 extern char translationIni[65];

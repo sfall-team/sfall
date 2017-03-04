@@ -367,7 +367,7 @@ static const DWORD EncounterTableSize[] = {
 };
 
 void DebugModePatch() {
-	if (IsDebug) {
+	if (isDebug) {
 		DWORD dbgMode = GetPrivateProfileIntA("Debugging", "DebugMode", 0, ".\\ddraw.ini");
 		if (dbgMode) {
 			dlog("Applying debugmode patch.", DL_INIT);
@@ -658,7 +658,7 @@ void DialogueFix() {
 }
 
 void DontDeleteProtosPatch() {	
-	if (IsDebug && GetPrivateProfileIntA("Debugging", "DontDeleteProtos", 0, ".\\ddraw.ini")) {
+	if (isDebug && GetPrivateProfileIntA("Debugging", "DontDeleteProtos", 0, ".\\ddraw.ini")) {
 		dlog("Applying permanent protos patch.", DL_INIT);
 		SafeWrite8(0x48007E, 0xeb);
 		dlogr(" Done", DL_INIT);

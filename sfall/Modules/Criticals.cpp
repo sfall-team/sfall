@@ -80,7 +80,7 @@ void CritLoad() {
 					CritStruct& defaultEffect = VarPtr::crit_succ_eff[critter][part][crit];
 					for (int i = 0; i < 7; i++) {
 						newEffect.values[i] = GetPrivateProfileIntA(section, CritNames[i], defaultEffect.values[i], ".\\CriticalOverrides.ini");
-						if (IsDebug) {
+						if (isDebug) {
 							char logmsg[256];
 							if (newEffect.values[i] != defaultEffect.values[i]) {
 								sprintf_s(logmsg, "Entry %s value %d changed from %d to %d", section, i, defaultEffect.values[i], newEffect.values[i]);

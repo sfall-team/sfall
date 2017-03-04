@@ -959,7 +959,7 @@ HRESULT _stdcall FakeDirectDrawCreate2(void*, IDirectDraw** b, void*) {
 	return DD_OK;
 }
 
-static DWORD fadeMulti;
+static double fadeMulti;
 static __declspec(naked) void FadeHook() {
 	__asm {
 		pushf;

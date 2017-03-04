@@ -49,17 +49,17 @@ skip:
 
 void Sound::init() {
 	int tmp;
-	if (tmp = GetPrivateProfileIntA("Sound", "NumSoundBuffers", 0, ini)) {
+	if (tmp = GetConfigInt("Sound", "NumSoundBuffers", 0)) {
 		SafeWrite8(0x451129, (BYTE)tmp);
 	}
 
-	if (GetPrivateProfileIntA("Sound", "AllowSoundForFloats", 0, ini)) {
+	if (GetConfigInt("Sound", "AllowSoundForFloats", 0)) {
 		HookCall(0x42B7C7, MsgCopy);
 		HookCall(0x42B849, DisplayMsg);
 	}
 
 	//Yes, I did leave this in on purpose. Will be of use to anyone trying to add in the sound effects
-	if (GetPrivateProfileIntA("Sound", "Test_ForceFloats", 0, ini)) {
+	if (GetConfigInt("Sound", "Test_ForceFloats", 0)) {
 		SafeWrite8(0x42B772, 0xeb);
 	}
 

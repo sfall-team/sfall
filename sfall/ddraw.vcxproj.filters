@@ -238,6 +238,7 @@
     <ClInclude Include="Modules\Input.h">
       <Filter>Modules</Filter>
     </ClInclude>
+    <ClInclude Include="Utils.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
@@ -444,6 +445,7 @@
     <ClCompile Include="Modules\Input.cpp">
       <Filter>Modules</Filter>
     </ClCompile>
+    <ClCompile Include="Utils.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="version.rc" />
