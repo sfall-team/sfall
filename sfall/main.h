@@ -39,8 +39,11 @@ unsigned int GetConfigInt(const char* section, const char* setting, int defaultV
 // Gets the string value from given INI file.
 std::string GetIniString(const char* section, const char* setting, const char* defaultValue, size_t bufSize, const char* iniFile);
 
+// Loads the string value from Sfall configuration INI file into the provided buffer.
+size_t GetConfigString(const char* section, const char* setting, const char* defaultValue, char* buffer, size_t bufSize = 128);
+
 // Parses the comma-separated list setting from given INI file.
-std::vector<std::string> GetIniList(const char* section, const char* setting, const char* defaultValue, size_t bufSize, const char* iniFile);
+std::vector<std::string> GetIniList(const char* section, const char* setting, const char* defaultValue, size_t bufSize, char delimiter, const char* iniFile);
 
 // Gets the string value from Sfall configuration INI file.
 std::string GetConfigString(const char* section, const char* setting, const char* defaultValue, size_t bufSize = 128);
@@ -51,6 +54,8 @@ std::vector<std::string> GetConfigList(const char* section, const char* setting,
 // Translates given string using Sfall translation INI file.
 std::string Translate(const char* section, const char* setting, const char* defaultValue, size_t bufSize = 128);
 
+// Translates given string using Sfall translation INI file and puts the result into given buffer.
+size_t Translate(const char* section, const char* setting, const char* defaultValue, char* buffer, size_t bufSize = 128);
+
 extern const char ddrawIni[];
-extern char ini[65];
-extern char translationIni[65];
+

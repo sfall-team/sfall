@@ -24,5 +24,5 @@ class PlayerModel : public Module {
 	void init();
 };
 
-extern char DefaultMaleModelName[65];
-extern char DefaultFemaleModelName[65];
+extern char defaultMaleModelName[65];
+extern char defaultFemaleModelName[65];

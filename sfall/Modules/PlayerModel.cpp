@@ -23,35 +23,35 @@
 
 #include "PlayerModel.h"
 
-static char StartMaleModelName[65];
-char DefaultMaleModelName[65];
-static char StartFemaleModelName[65];
-char DefaultFemaleModelName[65];
+static char startMaleModelName[65];
+char defaultMaleModelName[65];
+static char startFemaleModelName[65];
+char defaultFemaleModelName[65];
 
 void PlayerModel::init() {
-	StartMaleModelName[64] = 0;
-	if (GetPrivateProfileString("Misc", "MaleStartModel", "", StartMaleModelName, 64, ini)) {
+	startMaleModelName[64] = 0;
+	if (GetConfigString("Misc", "MaleStartModel", "", startMaleModelName, 64)) {
 		dlog("Applying male start model patch.", DL_INIT);
-		SafeWrite32(0x00418B88, (DWORD)&StartMaleModelName);
+		SafeWrite32(0x00418B88, (DWORD)&startMaleModelName);
 		dlogr(" Done", DL_INIT);
 	}
 
-	StartFemaleModelName[64] = 0;
-	if (GetPrivateProfileString("Misc", "FemaleStartModel", "", StartFemaleModelName, 64, ini)) {
+	startFemaleModelName[64] = 0;
+	if (GetConfigString("Misc", "FemaleStartModel", "", startFemaleModelName, 64)) {
 		dlog("Applying female start model patch.", DL_INIT);
-		SafeWrite32(0x00418BAB, (DWORD)&StartFemaleModelName);
+		SafeWrite32(0x00418BAB, (DWORD)&startFemaleModelName);
 		dlogr(" Done", DL_INIT);
 	}
 
-	DefaultMaleModelName[64] = 0;
-	GetPrivateProfileString("Misc", "MaleDefaultModel", "hmjmps", DefaultMaleModelName, 64, ini);
+	defaultMaleModelName[64] = 0;
+	GetConfigString("Misc", "MaleDefaultModel", "hmjmps", defaultMaleModelName, 64);
 	dlog("Applying male model patch.", DL_INIT);
-	SafeWrite32(0x00418B50, (DWORD)&DefaultMaleModelName);
+	SafeWrite32(0x00418B50, (DWORD)&defaultMaleModelName);
 	dlogr(" Done", DL_INIT);
 
-	DefaultFemaleModelName[64] = 0;
-	GetPrivateProfileString("Misc", "FemaleDefaultModel", "hfjmps", DefaultFemaleModelName, 64, ini);
+	defaultFemaleModelName[64] = 0;
+	GetConfigString("Misc", "FemaleDefaultModel", "hfjmps", defaultFemaleModelName, 64);
 	dlog("Applying female model patch.", DL_INIT);
-	SafeWrite32(0x00418B6D, (DWORD)&DefaultFemaleModelName);
+	SafeWrite32(0x00418B6D, (DWORD)&defaultFemaleModelName);
 	dlogr(" Done", DL_INIT);
 }

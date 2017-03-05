@@ -71,8 +71,7 @@ void GetSavePath(char* buf, char* ftype) {
 	sprintf(buf, "%s\\savegame\\slot%.2d\\sfall%s.sav", VarPtr::patches, VarPtr::slot_cursor + 1 + LSPageOffset, ftype); //add SuperSave Page offset
 }
 
-static char saveSfallDataFailMsg[128];
-
+static std::string saveSfallDataFailMsg;
 static void _stdcall SaveGame2() {
 	char buf[MAX_PATH];
 	GetSavePath(buf, "gv");
@@ -91,7 +90,7 @@ static void _stdcall SaveGame2() {
 		CloseHandle(h);
 	} else {
 		dlogr("ERROR creating sfallgv!", DL_MAIN);
-		Wrapper::display_print(saveSfallDataFailMsg);
+		DisplayPrint(saveSfallDataFailMsg);
 		Wrapper::gsound_play_sfx_file("IISXXXX1");
 	}
 	GetSavePath(buf, "fs");
@@ -102,18 +101,18 @@ static void _stdcall SaveGame2() {
 	CloseHandle(h);
 }
 
-static char saveFailMsg[128];
+static std::string saveFailMsg;
 static DWORD _stdcall CombatSaveTest() {
 	if (!saveInCombatFix && !IsNpcControlled()) return 1;
 	if (inLoop & COMBAT) {
 		if (saveInCombatFix == 2 || IsNpcControlled() || !(inLoop & PCOMBAT)) {
-			Wrapper::display_print(saveFailMsg);
+			DisplayPrint(saveFailMsg);
 			return 0;
 		}
 		int ap = Wrapper::stat_level(VarPtr::obj_dude, STAT_max_move_points);
 		int bonusmove = Wrapper::perk_level(VarPtr::obj_dude, PERK_bonus_move);
 		if (VarPtr::obj_dude->critterAP_weaponAmmoPid != ap || bonusmove * 2 != VarPtr::combat_free_move) {
-			Wrapper::display_print(saveFailMsg);
+			DisplayPrint(saveFailMsg);
 			return 0;
 		}
 	}
@@ -404,8 +403,9 @@ static void __declspec(naked) AutomapHook() {
 void LoadGameHook::init() {
 	saveInCombatFix = GetConfigInt("Misc", "SaveInCombatFix", 1);
 	if (saveInCombatFix > 2) saveInCombatFix = 0;
-	GetPrivateProfileString("sfall", "SaveInCombat", "Cannot save at this time", saveFailMsg, 128, translationIni);
-	GetPrivateProfileString("sfall", "SaveSfallDataFail", "ERROR saving extended savegame information! Check if other programs interfere with savegame files/folders and try again!", saveSfallDataFailMsg, 128, translationIni);
+	saveFailMsg = Translate("sfall", "SaveInCombat", "Cannot save at this time");
+	saveSfallDataFailMsg = Translate("sfall", "SaveSfallDataFail", 
+		"ERROR saving extended savegame information! Check if other programs interfere with savegame files/folders and try again!");
 
 	HookCall(0x480AAE, main_load_new_hook);
 

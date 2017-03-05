@@ -46,9 +46,8 @@ static void __declspec(naked) ConsoleHook() {
 }
 
 void Console::init() {
-	char path[MAX_PATH];
-	GetPrivateProfileString("Misc", "ConsoleOutputPath", "", path, MAX_PATH, ini);
-	if (strlen(path) > 0) {
+	auto path = GetConfigString("Misc", "ConsoleOutputPath", "", MAX_PATH);
+	if (path.size() > 0) {
 		consolefile.open(path);
 		if (consolefile.is_open()) {
 			MakeCall(0x43186C, &ConsoleHook, true);

@@ -16,11 +16,14 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "..\main.h"
-
+#include <algorithm>
 #include <stdio.h>
+
+#include "..\main.h"
 #include "..\Version.h"
 #include "..\Logging.h"
+
+#include "CRC.h"
 
 static const DWORD ExpectedSize=0x00122800;
 static const DWORD ExpectedCRC[]= {0xe1680293, 0xef34f989};
@@ -91,13 +94,13 @@ void CRC(const char* filepath) {
 
 	bool matchedCRC = false;
 
-	if (isDebug && GetPrivateProfileStringA("Debugging", "ExtraCRC", "", buf, 512, ddrawIni) > 0) {
-		char *TestCRC;
-		TestCRC = strtok(buf, ",");
-		while (TestCRC) {
-			DWORD extraCRC = strtoul(TestCRC, 0, 16);
-			if (crc == extraCRC) matchedCRC = true;
-			TestCRC = strtok(0, ",");
+	if (isDebug) {
+		auto extraCrcList = GetIniList("Debugging", "ExtraCRC", "", 512, ',', ddrawIni);
+		if (extraCrcList.size() > 0) {
+			matchedCRC = std::any_of(extraCrcList.begin(), extraCrcList.end(), [crc](const std::string& testCrcStr) {
+				auto testedCrc = strtoul(testCrcStr.c_str(), 0, 16);
+				return testedCrc && crc == testedCrc;
+			});
 		}
 	}
 

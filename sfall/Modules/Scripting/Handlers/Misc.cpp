@@ -32,8 +32,8 @@
 
 #include "Misc.h"
 
-static DWORD defaultMaleModelNamePtr = (DWORD)DefaultMaleModelName;
-static DWORD defaultFemaleModelNamePtr = (DWORD)DefaultFemaleModelName;
+static DWORD defaultMaleModelNamePtr = (DWORD)defaultMaleModelName;
+static DWORD defaultFemaleModelNamePtr = (DWORD)defaultFemaleModelName;
 static DWORD movieNamesPtr = (DWORD)MoviePaths;
 
 

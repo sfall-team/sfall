@@ -1603,11 +1603,14 @@ void _stdcall HeroSelectWindow(int RaceStyleFlag) {
 	SetFont(0x67);
 	BYTE textColour = *(BYTE*)0x6A82F3; //PeanutButter colour -palette offset stored in mem
 
-	char titleText[8];
+	char titleText[16];
 	DWORD titleTextWidth;
 	//Get alternate text from ini if available
-	if (isStyle) GetPrivateProfileString("AppearanceMod", "StyleText", "Style", titleText, 8, translationIni);
-	else GetPrivateProfileString("AppearanceMod", "RaceText", "Race", titleText, 8, translationIni);
+	if (isStyle) {
+		Translate("AppearanceMod", "StyleText", "Style", titleText, 16);
+	} else {
+		Translate("AppearanceMod", "RaceText", "Race", titleText, 16);
+	}
 
 	titleTextWidth = GetTextWidth(titleText);
 
@@ -2174,8 +2177,8 @@ static void __declspec(naked) FixCharScrnBack(void) {
 		DWORD raceTextWidth, styleTextWidth;
 
 		//Get alternate text from ini if available
-		GetPrivateProfileString("AppearanceMod", "RaceText", "Race", RaceText, 8, translationIni);
-		GetPrivateProfileString("AppearanceMod", "StyleText", "Style", StyleText, 8, translationIni);
+		Translate("AppearanceMod", "RaceText", "Race", RaceText, 8);
+		Translate("AppearanceMod", "StyleText", "Style", StyleText, 8);
 
 		raceTextWidth=GetTextWidth(RaceText);
 		styleTextWidth=GetTextWidth(StyleText);

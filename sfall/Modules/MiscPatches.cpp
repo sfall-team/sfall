@@ -743,21 +743,21 @@ void DisableHorriganPatch() {
 
 void MiscPatches::init() {
 	mapName[64] = 0;
-	if (GetPrivateProfileString("Misc", "StartingMap", "", mapName, 64, ini)) {
+	if (GetConfigString("Misc", "StartingMap", "", mapName, 64)) {
 		dlog("Applying starting map patch.", DL_INIT);
 		SafeWrite32(0x00480AAA, (DWORD)&mapName);
 		dlogr(" Done", DL_INIT);
 	}
 
 	versionString[64] = 0;
-	if (GetPrivateProfileString("Misc", "VersionString", "", versionString, 64, ini)) {
+	if (GetConfigString("Misc", "VersionString", "", versionString, 64)) {
 		dlog("Applying version string patch.", DL_INIT);
 		SafeWrite32(0x004B4588, (DWORD)&versionString);
 		dlogr(" Done", DL_INIT);
 	}
 
 	configName[64] = 0;
-	if (GetPrivateProfileString("Misc", "ConfigFile", "", configName, 64, ini)) {
+	if (GetConfigString("Misc", "ConfigFile", "", configName, 64)) {
 		dlog("Applying config file patch.", DL_INIT);
 		SafeWrite32(0x00444BA5, (DWORD)&configName);
 		SafeWrite32(0x00444BCA, (DWORD)&configName);
@@ -765,7 +765,7 @@ void MiscPatches::init() {
 	}
 
 	patchName[64] = 0;
-	if (GetPrivateProfileString("Misc", "PatchFile", "", patchName, 64, ini)) {
+	if (GetConfigString("Misc", "PatchFile", "", patchName, 64)) {
 		dlog("Applying patch file patch.", DL_INIT);
 		SafeWrite32(0x00444323, (DWORD)&patchName);
 		dlogr(" Done", DL_INIT);

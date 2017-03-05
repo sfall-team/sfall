@@ -302,6 +302,12 @@ struct sPath {
 	sPath* next;
 };
 
+struct PremadeChar {
+	char path[20];
+	DWORD fid;
+	char unknown[20];
+};
+
 struct sProtoBase {
 	long pid;
 	long message_num;

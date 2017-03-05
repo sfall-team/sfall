@@ -30,7 +30,7 @@ static char Name[64 * PERK_count];
 static char Desc[1024 * PERK_count];
 static char tName[64 * TRAIT_count];
 static char tDesc[1024 * TRAIT_count];
-static char perksFile[260];
+static char perksFile[MAX_PATH];
 static BYTE disableTraits[TRAIT_count];
 
 #define check_trait(a) !disableTraits[a] && (VarPtr::pc_trait[0] == a || VarPtr::pc_trait[1] == a)
@@ -671,7 +671,9 @@ static void PerkSetup() {
 		char num[4];
 		for (int i = 0; i < PERK_count; i++) {
 			_itoa_s(i, num, 10);
-			if (GetPrivateProfileString(num, "Name", "", &Name[i * 64], 63, perksFile)) Perks[i].Name = &Name[i * 64];
+			if (GetPrivateProfileString(num, "Name", "", &Name[i * 64], 63, perksFile)) {
+				Perks[i].Name = &Name[i * 64];
+			}
 			if (GetPrivateProfileString(num, "Desc", "", &Desc[i * 1024], 1023, perksFile)) {
 				Perks[i].Desc = &Desc[i * 1024];
 			}
@@ -1109,7 +1111,7 @@ void Perks::init() {
 	for (int i = STAT_st; i <= STAT_lu; i++) SafeWrite8(GainStatPerks[i][0], (BYTE)GainStatPerks[i][1]);
 
 	HookCall(0x442729, &PerkInitWrapper);
-	if (GetPrivateProfileString("Misc", "PerksFile", "", &perksFile[2], 257, ini)) {
+	if (GetConfigString("Misc", "PerksFile", "", &perksFile[2], MAX_PATH)) {
 		perksFile[0] = '.';
 		perksFile[1] = '\\';
 		HookCall(0x44272E, &TraitInitWrapper);

@@ -391,7 +391,7 @@ static __declspec(naked) void InvenObjExamineFuncHook() {
 	}
 }
 
-static char SuperStimMsg[128];
+static std::string superStimMsg;
 static int _stdcall SuperStimFix2(DWORD* item, DWORD* target) {
 	if (!item || !target) return 0;
 	DWORD itm_pid = item[0x64 / 4], target_pid = target[0x64 / 4];
@@ -410,7 +410,7 @@ static int _stdcall SuperStimFix2(DWORD* item, DWORD* target) {
 			mov max_hp, eax;
 	}
 	if (curr_hp < max_hp) return 0;
-	Wrapper::display_print(SuperStimMsg);
+	Wrapper::display_print(superStimMsg.c_str());
 	return 1;
 }
 
@@ -663,7 +663,7 @@ void Inventory::init() {
 	}
 
 	if (GetConfigInt("Misc", "SuperStimExploitFix", 0)) {
-		GetPrivateProfileString("sfall", "SuperStimExploitMsg", "You cannot use a super stim on someone who is not injured!", SuperStimMsg, 128, translationIni);
+		superStimMsg = Translate("sfall", "SuperStimExploitMsg", "You cannot use a super stim on someone who is not injured!");
 		MakeCall(0x49C3CC, SuperStimFix, true);
 	}
 

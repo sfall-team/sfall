@@ -78,11 +78,10 @@ void BarBoxes::init() {
 	SafeWrite8(0x461495, 0x78);
 
 	MakeCall(0x4615A3, &DisplayBoxesHook, true);
-	char buf[6];
-	GetPrivateProfileString("Misc", "BoxBarColours", "", buf, 6, ini);
-	if (strlen(buf) == 5) {
+	auto boxBarColors = GetConfigString("Misc", "BoxBarColours", "", 6);
+	if (boxBarColors.size() == 5) {
 		for (int i = 0; i < 5; i++) {
-			if (buf[i] == '1') {
+			if (boxBarColors[i] == '1') {
 				boxes[i + 5].colour = 1;
 			}
 		}

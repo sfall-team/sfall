@@ -75,8 +75,8 @@
 bool isDebug = false;
 
 const char ddrawIni[] = ".\\ddraw.ini";
-char ini[65];
-char translationIni[65];
+static char ini[65];
+static char translationIni[65];
 
 unsigned int GetConfigInt(const char* section, const char* setting, int defaultValue) {
 	return GetPrivateProfileIntA(section, setting, defaultValue, ::ini);
@@ -91,7 +91,7 @@ std::string GetIniString(const char* section, const char* setting, const char* d
 }
 
 std::vector<std::string> GetIniList(const char* section, const char* setting, const char* defaultValue, size_t bufSize, char delimiter, const char* iniFile) {
-	auto list = split(GetConfigString(section, setting, defaultValue, bufSize), delimiter);
+	auto list = split(GetIniString(section, setting, defaultValue, bufSize, iniFile), delimiter);
 	std::transform(list.cbegin(), list.cend(), list.begin(), trim);
 	return list;
 }
@@ -100,12 +100,20 @@ std::string GetConfigString(const char* section, const char* setting, const char
 	return GetIniString(section, setting, defaultValue, bufSize, ::ini);
 }
 
+size_t GetConfigString(const char* section, const char* setting, const char* defaultValue, char* buf, size_t bufSize) {
+	return GetPrivateProfileStringA(section, setting, defaultValue, buf, bufSize, ::ini);
+}
+
 std::vector<std::string> GetConfigList(const char* section, const char* setting, const char* defaultValue, size_t bufSize) {
 	return GetIniList(section, setting, defaultValue, bufSize, ',', ::ini);
 }
 
 std::string Translate(const char* section, const char* setting, const char* defaultValue, size_t bufSize) {
 	return GetIniString(section, setting, defaultValue, bufSize, ::translationIni);
+}
+
+size_t Translate(const char* section, const char* setting, const char* defaultValue, char* buffer, size_t bufSize) {
+	return GetPrivateProfileStringA(section, setting, defaultValue, buffer, bufSize, ::translationIni);
 }
 
 
@@ -250,7 +258,7 @@ bool _stdcall DllMain(HANDLE hDllHandle, DWORD dwReason, LPVOID  lpreserved) {
 			strcpy_s(ini, ddrawIni);
 		}
 
-		GetPrivateProfileStringA("Main", "TranslationsINI", "./Translations.ini", translationIni, 65, ini);
+		GetConfigString("Main", "TranslationsINI", "./Translations.ini", translationIni, 65);
 
 		DllMain2();
 	}

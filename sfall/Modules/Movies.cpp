@@ -548,9 +548,9 @@ void Movies::init() {
 		strcpy_s(ininame, "Movie");
 		_itoa_s(i + 1, &ininame[5], 3, 10);
 		if (i < 17) {
-			GetPrivateProfileString("Misc", ininame, (char*)(0x518DA0 + i * 4), &MoviePaths[i * 65], 65, ini);
+			GetConfigString("Misc", ininame, (char*)(0x518DA0 + i * 4), &MoviePaths[i * 65], 65);
 		} else {
-			GetPrivateProfileString("Misc", ininame, "", &MoviePaths[i * 65], 65, ini);
+			GetConfigString("Misc", ininame, "", &MoviePaths[i * 65], 65);
 		}
 	}
 	dlog(".", DL_INIT);

@@ -85,10 +85,9 @@ void LoadVanillaBooks() {
 }
 
 void Books::init() {
-	char buf[MAX_PATH - 3];
-	GetPrivateProfileString("Misc", "BooksFile", "", buf, MAX_PATH, ini);
-	if (strlen(buf) > 0) {
-		sprintf(iniBooks, ".\\%s", buf);
+	auto booksFile = GetConfigString("Misc", "BooksFile", "", MAX_PATH);
+	if (booksFile.size() > 0) {
+		sprintf(iniBooks, ".\\%s", booksFile.c_str());
 		dlog("Applying books patch... ", DL_INIT);
 		memset(books, 0, sizeof(sBook)*BooksCount);
 

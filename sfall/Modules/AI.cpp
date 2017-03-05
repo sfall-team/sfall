@@ -29,6 +29,9 @@ typedef std::unordered_map<DWORD, DWORD> :: const_iterator iter;
 static std::unordered_map<DWORD,DWORD> targets;
 static std::unordered_map<DWORD,DWORD> sources;
 
+static DWORD combatDisabled;
+static std::string combatBlockedMessage;
+
 DWORD _stdcall AIGetLastAttacker(DWORD target) {
 	iter itr=sources.find(target);
 	if(itr==sources.end()) return 0;
@@ -57,18 +60,15 @@ static void __declspec(naked) combat_attack_hook() {
 	}
 }
 
-static DWORD CombatDisabled;
-static char CombatBlockedMessage[128];
-
 static void _stdcall CombatBlocked() {
-	Wrapper::display_print(CombatBlockedMessage);
+	Wrapper::display_print(combatBlockedMessage.c_str());
 }
 
 static const DWORD BlockCombatHook1Ret1=0x45F6B4;
 static const DWORD BlockCombatHook1Ret2=0x45F6D7;
 static void __declspec(naked) BlockCombatHook1() {
 	__asm {
-		mov eax, CombatDisabled;
+		mov eax, combatDisabled;
 		test eax, eax;
 		jz end;
 		call CombatBlocked;
@@ -84,7 +84,7 @@ static void __declspec(naked) BlockCombatHook2() {
 		mov eax, dword ptr ds:[VARPTR_intfaceEnabled];
 		test eax, eax;
 		jz end;
-		mov eax, CombatDisabled;
+		mov eax, combatDisabled;
 		test eax, eax;
 		jz succeed;
 		pushad;
@@ -100,8 +100,7 @@ end:
 }
 
 void _stdcall AIBlockCombat(DWORD i) {
-	if(i) CombatDisabled=1;
-	else CombatDisabled=0;
+	combatDisabled = i ? 1 : 0;
 }
 
 void AI::init() {
@@ -111,7 +110,7 @@ void AI::init() {
 	HookCall(0x42A796, combat_attack_hook);
 	MakeCall(0x45F6AF, BlockCombatHook1, true);
 	HookCall(0x4432A6, BlockCombatHook2);
-	GetPrivateProfileString("sfall", "BlockedCombat", "You cannot enter combat at this time.", CombatBlockedMessage, 128, translationIni);
+	combatBlockedMessage = Translate("sfall", "BlockedCombat", "You cannot enter combat at this time.");
 }
 
 void _stdcall AICombatStart() {

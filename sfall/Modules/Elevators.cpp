@@ -22,7 +22,7 @@
 #include "..\FalloutEngine\Fallout2.h"
 
 static const int ElevatorCount = 50;
-static char File[MAX_PATH];
+static char elevFile[MAX_PATH];
 
 
 static sElevator Elevators[ElevatorCount];
@@ -105,29 +105,29 @@ void ResetElevators() {
 	for (int i = 0; i < 24; i++) Menus[i] = i;
 	for (int i = 24; i < ElevatorCount; i++) Menus[i] = 0;
 	char section[4];
-	if (File) {
+	if (elevFile) {
 		for (int i = 0; i < ElevatorCount; i++) {
 			_itoa_s(i, section, 10);
-			Menus[i] = GetPrivateProfileIntA(section, "Image", Menus[i], File);
-			Elevators[i].ID1 = GetPrivateProfileIntA(section, "ID1", Elevators[i].ID1, File);
-			Elevators[i].ID2 = GetPrivateProfileIntA(section, "ID2", Elevators[i].ID2, File);
-			Elevators[i].ID3 = GetPrivateProfileIntA(section, "ID3", Elevators[i].ID3, File);
-			Elevators[i].ID4 = GetPrivateProfileIntA(section, "ID4", Elevators[i].ID4, File);
-			Elevators[i].Elevation1 = GetPrivateProfileIntA(section, "Elevation1", Elevators[i].Elevation1, File);
-			Elevators[i].Elevation2 = GetPrivateProfileIntA(section, "Elevation2", Elevators[i].Elevation2, File);
-			Elevators[i].Elevation3 = GetPrivateProfileIntA(section, "Elevation3", Elevators[i].Elevation3, File);
-			Elevators[i].Elevation4 = GetPrivateProfileIntA(section, "Elevation4", Elevators[i].Elevation4, File);
-			Elevators[i].Tile1 = GetPrivateProfileIntA(section, "Tile1", Elevators[i].Tile1, File);
-			Elevators[i].Tile2 = GetPrivateProfileIntA(section, "Tile2", Elevators[i].Tile2, File);
-			Elevators[i].Tile3 = GetPrivateProfileIntA(section, "Tile3", Elevators[i].Tile3, File);
-			Elevators[i].Tile4 = GetPrivateProfileIntA(section, "Tile4", Elevators[i].Tile4, File);
+			Menus[i] = GetPrivateProfileIntA(section, "Image", Menus[i], elevFile);
+			Elevators[i].ID1 = GetPrivateProfileIntA(section, "ID1", Elevators[i].ID1, elevFile);
+			Elevators[i].ID2 = GetPrivateProfileIntA(section, "ID2", Elevators[i].ID2, elevFile);
+			Elevators[i].ID3 = GetPrivateProfileIntA(section, "ID3", Elevators[i].ID3, elevFile);
+			Elevators[i].ID4 = GetPrivateProfileIntA(section, "ID4", Elevators[i].ID4, elevFile);
+			Elevators[i].Elevation1 = GetPrivateProfileIntA(section, "Elevation1", Elevators[i].Elevation1, elevFile);
+			Elevators[i].Elevation2 = GetPrivateProfileIntA(section, "Elevation2", Elevators[i].Elevation2, elevFile);
+			Elevators[i].Elevation3 = GetPrivateProfileIntA(section, "Elevation3", Elevators[i].Elevation3, elevFile);
+			Elevators[i].Elevation4 = GetPrivateProfileIntA(section, "Elevation4", Elevators[i].Elevation4, elevFile);
+			Elevators[i].Tile1 = GetPrivateProfileIntA(section, "Tile1", Elevators[i].Tile1, elevFile);
+			Elevators[i].Tile2 = GetPrivateProfileIntA(section, "Tile2", Elevators[i].Tile2, elevFile);
+			Elevators[i].Tile3 = GetPrivateProfileIntA(section, "Tile3", Elevators[i].Tile3, elevFile);
+			Elevators[i].Tile4 = GetPrivateProfileIntA(section, "Tile4", Elevators[i].Tile4, elevFile);
 		}
 	}
 }
 
-void ElevatorsInit(char* file) {
-	strcpy_s(File, ".\\");
-	strcat_s(File, file);
+void ElevatorsInit(const char* file) {
+	strcpy_s(elevFile, ".\\");
+	strcat_s(elevFile, file);
 	HookCall(0x43EF83, GetMenuHook);
 	HookCall(0x43F141, UnknownHook);
 	HookCall(0x43F2D2, UnknownHook2);
@@ -149,10 +149,9 @@ void ElevatorsInit(char* file) {
 }
 
 void Elevators::init() {
-	char elevPath[MAX_PATH];
-	GetPrivateProfileString("Misc", "ElevatorsFile", "", elevPath, MAX_PATH, ini);
-	if (strlen(elevPath) > 0) {
+	auto elevPath = GetConfigString("Misc", "ElevatorsFile", "", MAX_PATH);
+	if (elevPath.size() > 0) {
 		dlogr("Applying elevator patch.", DL_INIT);
-		ElevatorsInit(elevPath);
+		ElevatorsInit(elevPath.c_str());
 	}
 }

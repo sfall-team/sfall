@@ -17,12 +17,20 @@
 */
 #pragma once
 
+#include <string>
+
+#include "Wrappers.h"
+
 //
 // Various utility functions, based on FO engine functions
 //
 
 // returns weapon animation code
 char AnimCodeByWeapon(TGameObj* weapon);
+
+inline void DisplayPrint(const std::string& str) {
+	Wrapper::display_print(str.c_str());
+}
 
 // returns message string from given file
 const char* _stdcall GetMessageStr(const MessageList* fileAddr, int messageId);

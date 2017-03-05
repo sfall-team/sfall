@@ -17,44 +17,22 @@
  */
 
 #include "..\main.h"
+#include "..\FalloutEngine\Structs.h"
 
 #include "Premade.h"
-
-struct PremadeChar {
-	char path[20];
-	DWORD fid;
-	char unknown[20];
-};
 
 PremadeChar* premade;
 
 void Premade::init() {
-	char buf[512];
-	GetPrivateProfileString("misc", "PremadePaths", "", buf, 512, ini);
-	if (buf[0]) {
-		char buf2[512];
-		GetPrivateProfileString("misc", "PremadeFIDs", "", buf2, 512, ini);
-
-		int count = 1;
-		char* tmp = buf;
-		while (tmp = strchr(tmp, ',')) {
-			tmp++; count++;
-		}
+	auto premadePaths = GetConfigList("misc", "PremadePaths", "", 512);
+	auto premadeFids = GetConfigList("misc", "PremadeFIDs", "", 512);
+	if (premadePaths.size() > 0 && premadeFids.size() > 0) {
+		int count = min(premadePaths.size(), premadeFids.size());
 		premade = new PremadeChar[count];
-
-		tmp = buf;
-		char* tmp2 = buf2;
 		for (int i = 0; i < count; i++) {
-			char* tmp3 = strchr(tmp, ',');
-			if (tmp3) *tmp3 = 0;
-			strcpy_s(premade[i].path, 20, "premade\\");
-			strcat_s(premade[i].path, 20, tmp);
-			tmp = tmp3 + 1;
-
-			tmp3 = strchr(tmp2, ',');
-			if (tmp3) *tmp3 = 0;
-			premade[i].fid = atoi(tmp2);
-			tmp2 = tmp3 + 1;
+			auto path = "premade\\" + premadePaths[i];
+			strcpy_s(premade[i].path, 20, path.c_str());
+			premade[i].fid = atoi(premadeFids[i].c_str());
 		}
 
 		SafeWrite32(0x51C8D4, count);
