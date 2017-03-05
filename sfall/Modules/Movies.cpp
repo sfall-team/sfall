@@ -536,6 +536,16 @@ less:
 	}
 }
 
+void SkipOpeningMoviesPatch() {	
+	if (GetConfigInt("Misc", "SkipOpeningMovies", 0)) {
+		dlog("Blocking opening movies.", DL_INIT);
+		BlockCall(0x4809CB);
+		BlockCall(0x4809D4);
+		BlockCall(0x4809E0);
+		dlogr(" Done", DL_INIT);
+	}
+}
+
 void Movies::init() {
 	dlog("Applying movie patch.", DL_INIT);
 
@@ -594,6 +604,9 @@ void Movies::init() {
 		MakeCall(0x4A378B, &Artimer1DaysCheckHook, true);
 		dlogr("Done", DL_INIT);
 	}
+
+	// Should be AFTER the PlayMovieHook setup above
+	SkipOpeningMoviesPatch();
 }
 
 }

@@ -125,8 +125,6 @@ static void InitModules() {
 	auto& manager = ModuleManager::getInstance();
 
 	// initialize all modules
-	manager.add<MiscPatches>();
-
 	manager.add<SpeedPatch>();
 	manager.add<BugFixes>();
 	manager.add<Graphics>();
@@ -165,6 +163,7 @@ static void InitModules() {
 	manager.add<AnimationsAtOnce>();
 	manager.add<BarBoxes>();
 	manager.add<HeroAppearance>();
+	manager.add<MiscPatches>();
 
 	manager.initAll();
 

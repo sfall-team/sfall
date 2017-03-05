@@ -677,16 +677,6 @@ void AlwaysReloadMsgs() {
 	}
 }
 
-void SkipOpeningMoviesPatch() {	
-	if (GetConfigInt("Misc", "SkipOpeningMovies", 0)) {
-		dlog("Blocking opening movies.", DL_INIT);
-		BlockCall(0x4809CB);
-		BlockCall(0x4809D4);
-		BlockCall(0x4809E0);
-		dlogr(" Done", DL_INIT);
-	}
-}
-
 void RemoveWindowRoundingPatch() {
 	if(GetConfigInt("Misc", "RemoveWindowRounding", 0)) {
 		SafeWrite32(0x4B8090, 0x90909090);
@@ -784,7 +774,6 @@ void MiscPatches::init() {
 	AlwaysReloadMsgs();
 	PlayIdleAnimOnReloadPatch();
 	CorpseLineOfFireFix();
-	SkipOpeningMoviesPatch();
 
 	ApplyNpcExtraApPatch();
 
