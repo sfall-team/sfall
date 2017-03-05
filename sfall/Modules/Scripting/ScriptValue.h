@@ -25,12 +25,11 @@ namespace sfall
 namespace script
 {
 
-// TODO: replace with enum class
-enum SfallDataType {
-	DATATYPE_NONE = 0,
-	DATATYPE_INT,
-	DATATYPE_FLOAT,
-	DATATYPE_STR
+enum class DataType : unsigned long {
+	NONE = 0,
+	INT,
+	FLOAT,
+	STR
 };
 
 /*
@@ -38,7 +37,7 @@ enum SfallDataType {
 */
 class ScriptValue {
 public:
-	ScriptValue(SfallDataType type, unsigned long value);
+	ScriptValue(DataType type, unsigned long value);
 
 	ScriptValue();
 
@@ -75,7 +74,7 @@ public:
 	// returns value as object pointer or nullptr if value is not integer
 	TGameObj* asObject() const;
 
-	SfallDataType type() const;
+	DataType type() const;
 
 private:
 	union Value {
@@ -86,7 +85,7 @@ private:
 		TGameObj* gObj;
 	} _val;
 
-	SfallDataType _type; // TODO: replace with enum class
+	DataType _type; // TODO: replace with enum class
 };
 
 }

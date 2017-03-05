@@ -23,7 +23,7 @@ namespace sfall
 namespace script
 {
 
-ScriptValue::ScriptValue( SfallDataType type, unsigned long value )
+ScriptValue::ScriptValue( DataType type, unsigned long value )
 {
 	_val.dw = value;
 	_type = type;
@@ -31,45 +31,45 @@ ScriptValue::ScriptValue( SfallDataType type, unsigned long value )
 
 ScriptValue::ScriptValue() {
 	_val.dw = 0;
-	_type = DATATYPE_NONE;
+	_type = DataType::NONE;
 }
 
 ScriptValue::ScriptValue(const char* strval) {
 	_val.str = strval;
-	_type = DATATYPE_STR;
+	_type = DataType::STR;
 }
 
 ScriptValue::ScriptValue(int val) {
 	_val.i = val;
-	_type = DATATYPE_INT;
+	_type = DataType::INT;
 }
 
 ScriptValue::ScriptValue(float val) {
 	_val.f = val;
-	_type = DATATYPE_FLOAT;
+	_type = DataType::FLOAT;
 }
 
 ScriptValue::ScriptValue(bool val) {
 	_val.i = val ? 1 : 0;
-	_type = DATATYPE_INT;
+	_type = DataType::INT;
 }
 
 ScriptValue::ScriptValue(TGameObj* obj) {
 	_val.gObj = obj;
-	_type = DATATYPE_INT;
+	_type = DataType::INT;
 }
 
 bool ScriptValue::isInt() const
 {
-	return _type == DATATYPE_INT;
+	return _type == DataType::INT;
 }
 
 bool ScriptValue::isFloat() const {
-	return _type == DATATYPE_FLOAT;
+	return _type == DataType::FLOAT;
 }
 
 bool ScriptValue::isString() const {
-	return _type == DATATYPE_STR;
+	return _type == DataType::STR;
 }
 
 unsigned long ScriptValue::rawValue() const {
@@ -78,9 +78,9 @@ unsigned long ScriptValue::rawValue() const {
 
 int ScriptValue::asInt() const {
 	switch (_type) {
-	case DATATYPE_FLOAT:
+	case DataType::FLOAT:
 		return static_cast<int>(_val.f);
-	case DATATYPE_INT:
+	case DataType::INT:
 		return _val.i;
 	default:
 		return 0;
@@ -89,9 +89,9 @@ int ScriptValue::asInt() const {
 
 bool ScriptValue::asBool() const {
 	switch (_type) {
-	case DATATYPE_FLOAT:
+	case DataType::FLOAT:
 		return static_cast<int>(_val.f) != 0;
-	case DATATYPE_INT:
+	case DataType::INT:
 		return _val.i != 0;
 	default:
 		return true;
@@ -100,9 +100,9 @@ bool ScriptValue::asBool() const {
 
 float ScriptValue::asFloat() const {
 	switch (_type) {
-	case DATATYPE_FLOAT:
+	case DataType::FLOAT:
 		return _val.f;
-	case DATATYPE_INT:
+	case DataType::INT:
 		return static_cast<float>(_val.i);
 	default:
 		return 0.0;
@@ -110,18 +110,18 @@ float ScriptValue::asFloat() const {
 }
 
 const char* ScriptValue::asString() const {
-	return (_type == DATATYPE_STR)
+	return (_type == DataType::STR)
 		? _val.str
 		: "";
 }
 
 TGameObj* ScriptValue::asObject() const {
-	return (_type == DATATYPE_INT)
+	return (_type == DataType::INT)
 		? _val.gObj
 		: nullptr;
 }
 
-SfallDataType ScriptValue::type() const {
+DataType ScriptValue::type() const {
 	return _type;
 }
 

@@ -32,7 +32,7 @@ namespace script
 void sf_create_array(OpcodeContext& ctx) {
 	auto arrayId = CreateArray(ctx.arg(0).asInt(), ctx.arg(1).asInt());
 	ctx.setReturn(
-		ScriptValue(DATATYPE_INT, arrayId)
+		ScriptValue(DataType::INT, arrayId)
 	);
 }
 
@@ -83,7 +83,7 @@ void sf_resize_array(OpcodeContext& ctx) {
 void sf_temp_array(OpcodeContext& ctx) {
 	auto arrayId = TempArray(ctx.arg(0).asInt(), ctx.arg(1).asInt());
 	ctx.setReturn(
-		ScriptValue(DATATYPE_INT, arrayId)
+		ScriptValue(DataType::INT, arrayId)
 	);
 }
 
@@ -209,14 +209,14 @@ static void _stdcall ListEnd(sList* list) {
 void sf_list_begin(OpcodeContext& ctx) {
 	auto list = ListBegin(ctx.arg(0).asInt());
 	ctx.setReturn(
-		ScriptValue(DATATYPE_INT, reinterpret_cast<DWORD>(list))
+		ScriptValue(DataType::INT, reinterpret_cast<DWORD>(list))
 	);
 }
 
 void sf_list_as_array(OpcodeContext& ctx) {
 	auto arrayId = ListAsArray(ctx.arg(0).asInt());
 	ctx.setReturn(
-		ScriptValue(DATATYPE_INT, arrayId)
+		ScriptValue(DataType::INT, arrayId)
 	);
 }
 

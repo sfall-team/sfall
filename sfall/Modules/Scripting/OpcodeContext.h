@@ -100,7 +100,7 @@ public:
 	DWORD opcode() const;
 	
 	// set return value for current opcode
-	void setReturn(unsigned long value, SfallDataType type);
+	void setReturn(unsigned long value, DataType type);
 	
 	// set return value for current opcode
 	void setReturn(const ScriptValue& val);
@@ -127,9 +127,9 @@ public:
 
 	static const char* getSfallTypeName(DWORD dataType);
 
-	static DWORD getSfallTypeByScriptType(DWORD varType);
+	static DataType getSfallTypeByScriptType(DWORD varType);
 
-	static DWORD getScriptTypeBySfallType(DWORD dataType);
+	static DWORD getScriptTypeBySfallType(DataType dataType);
 
 private:
 	// pops arguments from data stack

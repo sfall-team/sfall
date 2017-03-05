@@ -258,7 +258,7 @@ void sf_make_straight_path(OpcodeContext& ctx) {
 		resultObj, arg6;
 	arg6 = (type == BLOCKING_TYPE_SHOOT) ? 32 : 0;
 	make_straight_path_func_wrapper(objFrom, *(DWORD*)(objFrom + 4), 0, tileTo, &resultObj, arg6, getBlockingFunc(type));
-	ctx.setReturn(resultObj, DATATYPE_INT);
+	ctx.setReturn(resultObj, DataType::INT);
 }
 
 void sf_make_path(OpcodeContext& ctx) {
@@ -270,7 +270,7 @@ void sf_make_path(OpcodeContext& ctx) {
 		arr;
 	long pathLength, a5 = 1;
 	if (!objFrom) {
-		ctx.setReturn(0, DATATYPE_INT);
+		ctx.setReturn(0, DataType::INT);
 		return;
 	}
 	tileFrom = *(DWORD*)(objFrom + 4);
@@ -290,7 +290,7 @@ void sf_make_path(OpcodeContext& ctx) {
 	for (int i = 0; i < pathLength; i++) {
 		arrays[arr].val[i].set((long)pathData[i]);
 	}
-	ctx.setReturn(arr, DATATYPE_INT);
+	ctx.setReturn(arr, DataType::INT);
 }
 
 void sf_obj_blocking_at(OpcodeContext& ctx) {
@@ -303,7 +303,7 @@ void sf_obj_blocking_at(OpcodeContext& ctx) {
 		// this check was added because the engine always does exactly this when using shoot blocking checks
 		resultObj = 0;
 	}
-	ctx.setReturn(resultObj, DATATYPE_INT);
+	ctx.setReturn(resultObj, DataType::INT);
 }
 
 void sf_tile_get_objects(OpcodeContext& ctx) {
@@ -324,7 +324,7 @@ void sf_tile_get_objects(OpcodeContext& ctx) {
 			mov obj, eax;
 		}
 	}
-	ctx.setReturn(arrayId, DATATYPE_INT);
+	ctx.setReturn(arrayId, DataType::INT);
 }
 
 void sf_get_party_members(OpcodeContext& ctx) {
@@ -349,7 +349,7 @@ void sf_get_party_members(OpcodeContext& ctx) {
 		}
 		arrays[arrayId].push_back((long)obj);
 	}
-	ctx.setReturn(arrayId, DATATYPE_INT);
+	ctx.setReturn(arrayId, DataType::INT);
 }
 
 void sf_art_exists(OpcodeContext& ctx) {

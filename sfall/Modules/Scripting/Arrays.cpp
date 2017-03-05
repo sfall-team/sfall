@@ -30,14 +30,14 @@ DWORD stackArrayId;
 
 static char get_all_arrays_special_key[] = "...all_arrays...";
 
-sArrayElement::sArrayElement() : len(0), intVal(0), type(DATATYPE_NONE)
+sArrayElement::sArrayElement() : len(0), intVal(0), type(DataType::NONE)
 {
 
 }
 
-sArrayElement::sArrayElement( DWORD _val, DWORD _dataType ) : len(0), type(_dataType), intVal(_val)
+sArrayElement::sArrayElement( DWORD _val, DataType _dataType ) : len(0), type(_dataType), intVal(_val)
 {
-	if (DATATYPE_STR == _dataType)
+	if (DataType::STR == _dataType)
 		len = strlen((char*)_val);
 }
 
@@ -48,20 +48,20 @@ sArrayElement::sArrayElement(const long& other)
 
 void sArrayElement::clear()
 {
-	if (type == DATATYPE_STR && strVal)
+	if (type == DataType::STR && strVal)
 		delete[] strVal;
 }
 
-void sArrayElement::setByType( DWORD val, DWORD dataType )
+void sArrayElement::setByType( DWORD val, DataType dataType )
 {
 	switch(dataType) {
-	case DATATYPE_STR:
+	case DataType::STR:
 		set((char*)val);
 		break;
-	case DATATYPE_INT:
+	case DataType::INT:
 		set(*(long*)&val);
 		break;
-	case DATATYPE_FLOAT:
+	case DataType::FLOAT:
 		set(*(float*)&val);
 		break;
 	}
@@ -70,21 +70,21 @@ void sArrayElement::setByType( DWORD val, DWORD dataType )
 void sArrayElement::set( long val )
 {
 	clear();
-	type = DATATYPE_INT;
+	type = DataType::INT;
 	intVal = val;
 }
 
 void sArrayElement::set( float val )
 {
 	clear();
-	type = DATATYPE_FLOAT;
+	type = DataType::FLOAT;
 	floatVal = val;
 }
 
 void sArrayElement::set( const char* val, int _len /*= -1*/ )
 {
 	clear();
-	type = DATATYPE_STR;
+	type = DataType::STR;
 	if (_len == -1)
 		_len = strlen(val);
 	if (_len > ARRAY_MAX_STRING-1) // memory safety
@@ -98,13 +98,13 @@ void sArrayElement::set( const char* val, int _len /*= -1*/ )
 void sArrayElement::unset()
 {
 	clear();
-	type = DATATYPE_NONE;
+	type = DataType::NONE;
 	len = intVal = 0;
 }
 
-DWORD sArrayElement::getHashStatic(DWORD value, DWORD type) {
+DWORD sArrayElement::getHashStatic(DWORD value, DataType type) {
 	switch (type) {
-	case DATATYPE_STR:
+	case DataType::STR:
 		const char* str;
 		str = (const char*)value;
 		int i;
@@ -113,8 +113,8 @@ DWORD sArrayElement::getHashStatic(DWORD value, DWORD type) {
 			res = ((res << 5) + res) + str[i];
 		}
 		return res;
-	case DATATYPE_INT:
-	case DATATYPE_FLOAT:
+	case DataType::INT:
+	case DataType::FLOAT:
 		return value;
 	default:
 		return 0;
@@ -127,11 +127,11 @@ bool sArrayElement::operator<( const sArrayElement &el ) const
 		return true;
 	} else if (type == el.type) {
 		switch (type) {
-		case DATATYPE_STR:
+		case DataType::STR:
 			return strcmp(strVal, el.strVal) < 0;
-		case DATATYPE_FLOAT:
+		case DataType::FLOAT:
 			return floatVal < el.floatVal;
-		case DATATYPE_INT:
+		case DataType::INT:
 		default:
 			return intVal < el.intVal;
 		}
@@ -145,10 +145,10 @@ bool sArrayElement_EqualFunc::operator()( const sArrayElement &elA, const sArray
 	if (elA.type != elB.type)
 		return false;
 	switch (elA.type) {
-	case DATATYPE_STR:
+	case DataType::STR:
 		return strcmp(elA.strVal, elB.strVal) == 0;
-	case DATATYPE_INT:
-	case DATATYPE_FLOAT:
+	case DataType::INT:
+	case DataType::FLOAT:
 		return elA.intVal == elB.intVal;
 	default:
 		return true;
@@ -169,7 +169,7 @@ void SaveArrayElement(sArrayElement* el, HANDLE h)
 {
 	DWORD unused;
 	WriteFile(h, &el->type, 4, &unused, 0);
-	if (el->type == DATATYPE_STR) {
+	if (el->type == DataType::STR) {
 		WriteFile(h, &el->len, 4, &unused, 0);
 		WriteFile(h, el->strVal, el->len, &unused, 0);
 	} else {
@@ -181,7 +181,7 @@ void LoadArrayElement(sArrayElement* el, HANDLE h)
 {
 	DWORD unused;
 	ReadFile(h, &el->type, 4, &unused, 0);
-	if (el->type == DATATYPE_STR) {
+	if (el->type == DataType::STR) {
 		ReadFile(h, &el->len, 4, &unused, 0);
 		if (el->len > 0) {
 			el->strVal = new char[el->len];
@@ -211,20 +211,20 @@ void LoadArraysOld(HANDLE h) {
 		varN.val.resize(var.len);
 		for (j=0; j<var.len; j++) {
 			switch (var.types[j]) {
-			case DATATYPE_INT:
+			case DataType::INT:
 				varN.val[j].set(*(long*)(&var.data[var.datalen*j]));
 				break;
-			case DATATYPE_FLOAT:
+			case DataType::FLOAT:
 				varN.val[j].set(*(float*)(&var.data[var.datalen*j]));
 				break;
-			case DATATYPE_STR:
+			case DataType::STR:
 				varN.val[j].set(&var.data[var.datalen*j], var.datalen - 1);
 				break;
 			}
 		}
 		delete[] var.types;
 		delete[] var.data;
-		varN.key = sArrayElement(id, DATATYPE_INT);
+		varN.key = sArrayElement(id, DataType::INT);
 		arrays.insert(array_pair(id, varN));
 		savedArrays[varN.key] = id;
 	}
@@ -240,9 +240,9 @@ void LoadArrays(HANDLE h) {
 	nextarrayid = 1;
 	for (DWORD i=0; i<count; i++) {
 		LoadArrayElement(&arrayVar.key, h);
-		if (arrayVar.key.type > 4 || arrayVar.key.intVal == 0) { // partial compatibility with 3.4
-			arrayVar.key.intVal = arrayVar.key.type;
-			arrayVar.key.type = DATATYPE_INT;
+		if (static_cast<long>(arrayVar.key.type) > 4 || arrayVar.key.intVal == 0) { // partial compatibility with 3.4
+			arrayVar.key.intVal = static_cast<long>(arrayVar.key.type);
+			arrayVar.key.type = DataType::INT;
 		}
 		ReadFile(h, &arrayVar.flags, 4, &unused, 0);
 		ReadFile(h, &elCount, 4, &unused, 0); // actual number of elements: keys+values
@@ -335,7 +335,7 @@ DWORD _stdcall CreateArray(int len, DWORD nothing) {
 	while(arrays.find(nextarrayid)!=arrays.end()) nextarrayid++;
 	if (nextarrayid == 0) nextarrayid++;
 	if (arraysBehavior == 0) {
-		var.key = sArrayElement(nextarrayid, DATATYPE_INT);
+		var.key = sArrayElement(nextarrayid, DataType::INT);
 		savedArrays[var.key] = nextarrayid;
 	}
 	stackArrayId = nextarrayid;
@@ -369,13 +369,13 @@ ScriptValue _stdcall GetArrayKey(DWORD id, int index) {
 		index *= 2;
 		// for associative array - return key at the specified index
 		switch(arrays[id].val[index].type) {
-		case DATATYPE_INT:
+		case DataType::INT:
 			return ScriptValue(arrays[id].val[index].intVal);
-		case DATATYPE_FLOAT:
+		case DataType::FLOAT:
 			return ScriptValue(arrays[id].val[index].floatVal);
-		case DATATYPE_STR:
+		case DataType::STR:
 			return ScriptValue(arrays[id].val[index].strVal);
-		case DATATYPE_NONE:
+		case DataType::NONE:
 		default:
 			return ScriptValue(0);
 		}
@@ -405,12 +405,12 @@ ScriptValue _stdcall GetArray(DWORD id, const ScriptValue& key) {
 		}
 	}
 	switch (arr.val[el].type) {
-	case DATATYPE_NONE:  return ScriptValue();
-	case DATATYPE_INT:
+	case DataType::NONE:  return ScriptValue();
+	case DataType::INT:
 		return ScriptValue(arr.val[el].intVal);
-	case DATATYPE_FLOAT:
+	case DataType::FLOAT:
 		return ScriptValue(arr.val[el].floatVal);
-	case DATATYPE_STR:
+	case DataType::STR:
 		return ScriptValue(arr.val[el].strVal);
 	}
 	return ScriptValue(0);
@@ -526,7 +526,7 @@ ScriptValue _stdcall ScanArray(DWORD id, const ScriptValue& val) {
 				 (val.isString() && strcmp(el.strVal, val.asString()) == 0)) {
 				 if (arrays[id].isAssoc()) { // return key instead of index for associative arrays
 					 return ScriptValue(
-						 static_cast<SfallDataType>(arrays[id].val[i].type), 
+						 static_cast<DataType>(arrays[id].val[i].type), 
 						 static_cast<DWORD>(arrays[id].val[i].intVal)
 					 );
 				 } else {
@@ -541,7 +541,7 @@ ScriptValue _stdcall ScanArray(DWORD id, const ScriptValue& val) {
 DWORD _stdcall LoadArray(const ScriptValue& key) {
 	if (!key.isInt() || key.asInt() != 0) { // returns arrayId by it's key (ignoring int(0) because it is used to "unsave" array)
 		sArrayElement keyEl = sArrayElement(key.rawValue(), key.type());
-		if (keyEl.type == DATATYPE_STR && strcmp(keyEl.strVal, get_all_arrays_special_key) == 0) { // this is a special case to get temp array containing all saved arrays
+		if (keyEl.type == DataType::STR && strcmp(keyEl.strVal, get_all_arrays_special_key) == 0) { // this is a special case to get temp array containing all saved arrays
 			DWORD tmpArrId = TempArray(savedArrays.size(), 0);
 			if (tmpArrId > 0) {
 				std::vector<sArrayElement>::iterator elIt;

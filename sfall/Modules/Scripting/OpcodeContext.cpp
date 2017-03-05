@@ -72,7 +72,7 @@ DWORD OpcodeContext::opcode() const {
 	return _opcode;
 }
 
-void OpcodeContext::setReturn(unsigned long value, SfallDataType type) {
+void OpcodeContext::setReturn(unsigned long value, DataType type) {
 	_ret = ScriptValue(type, value);
 }
 
@@ -99,13 +99,13 @@ bool OpcodeContext::validateArguments(const OpcodeArgumentType argTypes[], const
 		auto actualType = arg(i).type();
 		// display invalid type error if type is set and differs from actual type
 		// exception is when type set to 
-		if ((argType == ARG_INT || argType == ARG_OBJECT) && !(actualType == DATATYPE_INT)) {
+		if ((argType == ARG_INT || argType == ARG_OBJECT) && !(actualType == DataType::INT)) {
 			printOpcodeError("%s() - argument #%d is not an integer.", opcodeName, i);
 			return false;
-		} else if (argType == ARG_NUMBER && !(actualType == DATATYPE_INT || actualType == DATATYPE_FLOAT)) {
+		} else if (argType == ARG_NUMBER && !(actualType == DataType::INT || actualType == DataType::FLOAT)) {
 			printOpcodeError("%s() - argument #%d is not a number.", opcodeName, i);
 			return false;
-		} else if (argType == ARG_STRING && !(actualType == DATATYPE_STR)) {
+		} else if (argType == ARG_STRING && !(actualType == DataType::STR)) {
 			printOpcodeError("%s() - argument #%d is not a string.", opcodeName, i);
 			return false;
 		} else if (argType == ARG_OBJECT && arg(i).rawValue() == 0) {
@@ -146,40 +146,40 @@ void __stdcall OpcodeContext::handleOpcodeStatic(TProgram* program, DWORD opcode
 
 const char* OpcodeContext::getSfallTypeName(DWORD dataType) {
 	switch (dataType) {
-		case DATATYPE_NONE:
+		case DataType::NONE:
 			return "(none)";
-		case DATATYPE_STR:
+		case DataType::STR:
 			return "string";
-		case DATATYPE_FLOAT:
+		case DataType::FLOAT:
 			return "float";
-		case DATATYPE_INT:
+		case DataType::INT:
 			return "integer";
 		default:
 			return "(unknown)";
 	}
 }
 
-DWORD OpcodeContext::getSfallTypeByScriptType(DWORD varType) {
+DataType OpcodeContext::getSfallTypeByScriptType(DWORD varType) {
 	varType &= 0xffff;
 	switch (varType) {
 		case VAR_TYPE_STR:
 		case VAR_TYPE_STR2:
-			return DATATYPE_STR;
+			return DataType::STR;
 		case VAR_TYPE_FLOAT:
-			return DATATYPE_FLOAT;
+			return DataType::FLOAT;
 		case VAR_TYPE_INT:
 		default:
-			return DATATYPE_INT;
+			return DataType::INT;
 	}
 }
 
-DWORD OpcodeContext::getScriptTypeBySfallType(DWORD dataType) {
+DWORD OpcodeContext::getScriptTypeBySfallType(DataType dataType) {
 	switch (dataType) {
-		case DATATYPE_STR:
+		case DataType::STR:
 			return VAR_TYPE_STR;
-		case DATATYPE_FLOAT:
+		case DataType::FLOAT:
 			return VAR_TYPE_FLOAT;
-		case DATATYPE_INT:
+		case DataType::INT:
 		default:
 			return VAR_TYPE_INT;
 	}
@@ -191,10 +191,10 @@ void OpcodeContext::_popArguments() {
 		// get argument from stack
 		DWORD rawValueType = Wrapper::interpretPopShort(_program);
 		DWORD rawValue = Wrapper::interpretPopLong(_program);
-		SfallDataType type = static_cast<SfallDataType>(getSfallTypeByScriptType(rawValueType));
+		DataType type = static_cast<DataType>(getSfallTypeByScriptType(rawValueType));
 
 		// retrieve string argument
-		if (type == DATATYPE_STR) {
+		if (type == DataType::STR) {
 			_args.at(i) = Wrapper::interpretGetString(_program, rawValueType, rawValue);
 		} else {
 			_args.at(i) = ScriptValue(type, rawValue);
@@ -204,12 +204,12 @@ void OpcodeContext::_popArguments() {
 
 void OpcodeContext::_pushReturnValue() {
 	if (_hasReturn) {
-		if (_ret.type() == DATATYPE_NONE) {
+		if (_ret.type() == DataType::NONE) {
 			// if no value was set in handler, force return 0 to avoid stack error
 			_ret = ScriptValue(0);
 		}
 		DWORD rawResult = _ret.rawValue();
-		if (_ret.type() == DATATYPE_STR) {
+		if (_ret.type() == DataType::STR) {
 			rawResult = Wrapper::interpretAddString(_program, _ret.asString());
 		}
 		Wrapper::interpretPushLong(_program, rawResult);

@@ -71,13 +71,13 @@ void sf_test(OpcodeContext& ctx) {
 		const ScriptValue &arg = ctx.arg(i);
 		sstream << ", ";
 		switch (arg.type()) {
-			case DATATYPE_INT:
+			case DataType::INT:
 				sstream << arg.asInt();
 				break;
-			case DATATYPE_FLOAT:
+			case DataType::FLOAT:
 				sstream << arg.asFloat();
 				break;
-			case DATATYPE_STR:
+			case DataType::STR:
 				sstream << '"' << arg.asString() << '"';
 				break;
 			default:
@@ -99,7 +99,7 @@ void sf_get_metarule_table(OpcodeContext& ctx) {
 		arrays[arr].val[i].set(it->first.c_str());
 		i++;
 	}
-	ctx.setReturn(arr, DATATYPE_INT);
+	ctx.setReturn(arr, DataType::INT);
 }
 
 /*

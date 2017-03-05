@@ -5,6 +5,8 @@
 #include <set>
 #include <Windows.h>
 
+#include "ScriptValue.h"
+
 namespace sfall
 {
 namespace script
@@ -22,13 +24,11 @@ namespace script
 
 extern char get_all_arrays_special_key[];
 
-class ScriptValue;
-
 // TODO: rewrite (or replace with ScriptValue)
 class sArrayElement 
 {
 public:
-	DWORD type; // DATATYPE_*
+	DataType type;
 	DWORD len; // for strings
 	union {
 		long  intVal;
@@ -37,12 +37,12 @@ public:
 	};
 	sArrayElement();
 	// this constructor does not copy strings (for performance), use set() for actual array elements
-	sArrayElement(DWORD _val, DWORD _dataType);
+	sArrayElement(DWORD _val, DataType _dataType);
 	sArrayElement(const long&);
 	// free string resource from memory, has to be called manually when deleting element
 	void clear();
 	// set* methods will actually COPY strings, use this when acquiring data from the scripting engine
-	void setByType(DWORD val, DWORD dataType);
+	void setByType(DWORD val, DataType dataType);
 	void sArrayElement::set( const sArrayElement &el )
 	{
 		setByType(el.intVal, el.type);
@@ -55,7 +55,7 @@ public:
 	{
 		return getHashStatic(*(DWORD*)&intVal, type);
 	}
-	DWORD static getHashStatic(DWORD value, DWORD type);
+	DWORD static getHashStatic(DWORD value, DataType type);
 	bool operator < (const sArrayElement &el) const;
 };
 
