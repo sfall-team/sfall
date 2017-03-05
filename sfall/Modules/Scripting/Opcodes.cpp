@@ -163,7 +163,7 @@ void InitOpcodeInfoTable() {
 
 // Default handler for Sfall Opcodes. 
 // Searches current opcode in Opcode Info table and executes the appropriate handler.
-void __stdcall defaultOpcodeHandlerStdcall(TProgram* program, DWORD opcodeOffset) {
+void __stdcall defaultOpcodeHandlerStdcall(fo::TProgram* program, DWORD opcodeOffset) {
 	int opcode = opcodeOffset / 4;
 	auto iter = opcodeInfoMap.find(opcode);
 	if (iter != opcodeInfoMap.end()) {

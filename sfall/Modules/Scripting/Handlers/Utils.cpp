@@ -328,9 +328,9 @@ void sf_message_str_game(OpcodeContext& ctx) {
 	int fileId = fileIdArg.asInt();
 	int msgId = msgIdArg.asInt();
 	if (fileId < 20) { // main msg files
-		msg = GetMessageStr(gameMsgFiles[fileId], msgId);
+		msg = fo::GetMessageStr(gameMsgFiles[fileId], msgId);
 	} else if (fileId >= 0x1000 && fileId <= 0x1005) { // proto msg files
-		msg = GetMessageStr(&VarPtr::proto_msg_files[fileId - 0x1000], msgId);
+		msg = fo::GetMessageStr(&VarPtr::proto_msg_files[fileId - 0x1000], msgId);
 	} else if (fileId >= 0x2000) { // Extra game message files.
 		ExtraGameMessageListsMap::iterator it = gExtraGameMsgLists.find(fileId);
 

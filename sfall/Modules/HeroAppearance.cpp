@@ -1374,7 +1374,7 @@ void DrawPCConsole() {
 		//sub_draw(70, 102, widthBG, heightBG, xPosBG, yPosBG, BGSurface, 70, 102, 0, 0, ConSurface, 0);
 
 		//DWORD CritNum = VarPtr::art_vault_guy_num; //pointer to current base hero critter FrmId
-		DWORD CritNum = VarPtr::obj_dude->artFID; //pointer to current armored hero critter FrmId
+		DWORD CritNum = VarPtr::obj_dude->art_fid; //pointer to current armored hero critter FrmId
 		DWORD CritFrmObj;
 		FRMhead *CritFrm;
 		//DWORD PcCritOri = 0;

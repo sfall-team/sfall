@@ -22,6 +22,8 @@
 
 #include "Enums.h"
 
+namespace fo
+{
 
 /******************************************************************************/
 /* FALLOUT2.EXE structs should be placed here  */
@@ -44,32 +46,51 @@ struct TInvenRec {
 /* 15 */
 #pragma pack(push, 1)
 struct TGameObj {
-	long ID;
+	long id;
 	long tile;
 	long x;
 	long y;
 	long sx;
 	long sy;
-	long currentFrm;
+	long frm;
 	long rotation;
-	long artFID;
+	long art_fid;
 	long flags;
 	long elevation;
-	long invenCount;
-	long invenMax;
-	TInvenRec *invenTable;
-	char gap_38[4];
-	long itemCharges;
-	long critterAP_weaponAmmoPid;
-	char gap_44[16];
-	long lastTarget;
-	char gap_58[12];
+	long inven_size;
+	long inven_max;
+	TInvenRec *inven_table;
+	union {
+		struct {
+			char gap_38[4];
+			// for weapons - ammo in magazine, for ammo - amount of ammo in last ammo pack
+			long charges;
+			// current type of ammo loaded in magazine
+			long ammo_pid;
+			char gap_44[32];
+		} item;
+		struct {
+			long reaction;
+			// 1 - combat, 2 - enemies out of sight, 4 - running away
+			long combat_state;
+			// aka action points
+			long move_points;
+			long damage_flags;
+			long damage_last_turn;
+			long ai_packet;
+			long team_num;
+			long who_hit_me;
+			long health;
+			long rads;
+			long poison;
+		} critter;
+	};
 	long pid;
 	long cid;
-	long lightDistance;
-	long lightIntensity;
+	long light_distance;
+	long light_intensity;
 	char outline[4];
-	long scriptID;
+	long script_id;
 	TGameObj* owner;
 	long script_index;
 	char gap_84[7];
@@ -490,3 +511,5 @@ struct WINinfo {
 	long unknown7;
 	long drawFuncP;
 };
+
+}

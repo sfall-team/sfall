@@ -23,6 +23,9 @@
 
 #include "Utils.h"
 
+namespace fo
+{
+
 static MessageNode message_buf;
 
 const char* _stdcall GetMessageStr(const MessageList* fileAddr, int messageId) {
@@ -66,4 +69,6 @@ void SkillSetTags(int* tags, long num) {
 		num = 4;
 	}
 	Wrapper::skill_set_tags(tags, num);
+}
+
 }

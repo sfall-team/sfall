@@ -76,13 +76,13 @@ struct sExportedVar {
 	sExportedVar() : val(0), type(VAR_TYPE_INT) {}
 };
 
-static std::vector<TProgram*> checkedScripts;
+static std::vector<fo::TProgram*> checkedScripts;
 static std::vector<sGlobalScript> globalScripts;
 // a map of all sfall programs (global and hook scripts) by thier scriptPtr
-typedef std::unordered_map<TProgram*, sScriptProgram> SfallProgsMap;
+typedef std::unordered_map<fo::TProgram*, sScriptProgram> SfallProgsMap;
 static SfallProgsMap sfallProgsMap;
 // a map scriptPtr => self_obj  to override self_obj for all script types using set_self
-std::unordered_map<TProgram*, TGameObj*> selfOverrideMap;
+std::unordered_map<fo::TProgram*, fo::TGameObj*> selfOverrideMap;
 
 typedef std::tr1::unordered_map<std::string, sExportedVar> ExportedVarsMap;
 static ExportedVarsMap globalExportedVars;
@@ -98,14 +98,14 @@ DWORD AddUnarmedStatToGetYear = 0;
 DWORD availableGlobalScriptTypes = 0;
 bool isGameLoading;
 
-TScript OverrideScriptStruct;
+fo::TScript OverrideScriptStruct;
 
 static const DWORD scr_find_sid_from_program = FuncOffs::scr_find_sid_from_program_ + 5;
 static const DWORD scr_ptr_back = FuncOffs::scr_ptr_ + 5;
 static const DWORD scr_find_obj_from_program = FuncOffs::scr_find_obj_from_program_ + 7;
 
-DWORD _stdcall FindSidHook2(TProgram* script) {
-	std::unordered_map<TProgram*, TGameObj*>::iterator overrideIt = selfOverrideMap.find(script);
+DWORD _stdcall FindSidHook2(fo::TProgram* script) {
+	std::unordered_map<fo::TProgram*, fo::TGameObj*>::iterator overrideIt = selfOverrideMap.find(script);
 	if (overrideIt != selfOverrideMap.end()) {
 		DWORD scriptId = overrideIt->second->scriptID;
 		if (scriptId != -1) {
@@ -297,7 +297,7 @@ proceedNormal:
 }
 
 // this hook prevents sfall scripts from being removed after switching to another map, since normal script engine re-loads completely
-static void _stdcall FreeProgramHook2(TProgram* progPtr) {
+static void _stdcall FreeProgramHook2(fo::TProgram* progPtr) {
 	if (isGameLoading || (sfallProgsMap.find(progPtr) == sfallProgsMap.end())) { // only delete non-sfall scripts or when actually loading the game
 		__asm {
 			mov eax, progPtr;
@@ -397,7 +397,7 @@ end:
 	}
 }
 
-void _stdcall SetGlobalScriptRepeat(TProgram* script, int frames) {
+void _stdcall SetGlobalScriptRepeat(fo::TProgram* script, int frames) {
 	for (DWORD d = 0; d < globalScripts.size(); d++) {
 		if (globalScripts[d].prog.ptr == script) {
 			if (frames == -1) {
@@ -410,7 +410,7 @@ void _stdcall SetGlobalScriptRepeat(TProgram* script, int frames) {
 	}
 }
 
-void _stdcall SetGlobalScriptType(TProgram* script, int type) {
+void _stdcall SetGlobalScriptType(fo::TProgram* script, int type) {
 	if (type <= 3) {
 		for (size_t d = 0; d < globalScripts.size(); d++) {
 			if (globalScripts[d].prog.ptr == script) {
@@ -465,11 +465,11 @@ DWORD _stdcall GetGlobalVarInt(DWORD var) {
 	return GetGlobalVarInternal(var);
 }
 
-void _stdcall SetSelfObject(TProgram* script, TGameObj* obj) {
+void _stdcall SetSelfObject(fo::TProgram* script, fo::TGameObj* obj) {
 	if (obj) {
 		selfOverrideMap[script] = obj;
 	} else {
-		std::unordered_map<TProgram*, TGameObj*>::iterator it = selfOverrideMap.find(script);
+		std::unordered_map<fo::TProgram*, fo::TGameObj*>::iterator it = selfOverrideMap.find(script);
 		if (it != selfOverrideMap.end()) {
 			selfOverrideMap.erase(it);
 		}
@@ -477,8 +477,8 @@ void _stdcall SetSelfObject(TProgram* script, TGameObj* obj) {
 }
 
 // loads script from .int file into a sScriptProgram struct, filling script pointer and proc lookup table
-void LoadScriptProgram(sScriptProgram &prog, const char* fileName) {
-	TProgram* scriptPtr = Wrapper::loadProgram(fileName);
+void LoadScripfo::TProgram(sScriptProgram &prog, const char* fileName) {
+	fo::TProgram* scriptPtr = Wrapper::loadProgram(fileName);
 	if (scriptPtr) {
 		const char** procTable = VarPtr::procTableStrs;
 		prog.ptr = scriptPtr;
@@ -504,7 +504,7 @@ void AddProgramToMap(sScriptProgram &prog) {
 	sfallProgsMap[prog.ptr] = prog;
 }
 
-sScriptProgram* GetGlobalScriptProgram(TProgram* scriptPtr) {
+sScriptProgram* GetGlobalScriptProgram(fo::TProgram* scriptPtr) {
 	for (std::vector<sGlobalScript>::iterator it = globalScripts.begin(); it != globalScripts.end(); it++) {
 		if (it->prog.ptr == scriptPtr) return &it->prog;
 	}
@@ -538,7 +538,7 @@ void LoadGlobalScripts() {
 			dlog(">", DL_SCRIPT);
 			dlog(name, DL_SCRIPT);
 			isGlobalScriptLoading = 1;
-			LoadScriptProgram(prog, name);
+			LoadScripfo::TProgram(prog, name);
 			if (prog.ptr) {
 				dlogr(" Done", DL_SCRIPT);
 				DWORD idx;
@@ -559,7 +559,7 @@ void LoadGlobalScripts() {
 	//ButtonsReload();
 }
 
-bool _stdcall ScriptHasLoaded(TProgram* script) {
+bool _stdcall ScriptHasLoaded(fo::TProgram* script) {
 	for (size_t d = 0; d < checkedScripts.size(); d++) {
 		if (checkedScripts[d] == script) {
 			return false;
@@ -621,7 +621,7 @@ void ClearGlobalScripts() {
 
 
 void RunScriptProc(sScriptProgram* prog, const char* procName) {
-	TProgram* sptr = prog->ptr;
+	fo::TProgram* sptr = prog->ptr;
 	int procNum = Wrapper::interpretFindProcedure(sptr, procName);
 	if (procNum != -1) {
 		Wrapper::executeProcedure(sptr, procNum);
@@ -630,7 +630,7 @@ void RunScriptProc(sScriptProgram* prog, const char* procName) {
 
 void RunScriptProc(sScriptProgram* prog, int procId) {
 	if (procId > 0 && procId <= SCRIPT_PROC_MAX) {
-		TProgram* sptr = prog->ptr;
+		fo::TProgram* sptr = prog->ptr;
 		int procNum = prog->procLookup[procId];
 		if (procNum != -1) {
 			Wrapper::executeProcedure(sptr, procNum);
@@ -671,7 +671,7 @@ static void RunGlobalScripts1() {
 		if (KeyDown(toggleHighlightsKey)) {
 			if (!highlightingToggled) {
 				if (MotionSensorMode&4) {
-					TGameObj* scanner = Wrapper::inven_pid_is_carried_ptr(VarPtr::obj_dude, PID_MOTION_SENSOR);
+					fo::TGameObj* scanner = Wrapper::inven_pid_is_carried_ptr(VarPtr::obj_dude, PID_MOTION_SENSOR);
 					if (scanner != nullptr) {
 						if (MotionSensorMode & 2) {
 							highlightingToggled = Wrapper::item_m_dec_charges(scanner) + 1;
@@ -870,7 +870,7 @@ void ScriptExtender::init() {
 
 	MakeCall(0x4A390C, &FindSidHook, true);
 	MakeCall(0x4A5E34, &ScrPtrHook, true);
-	memset(&OverrideScriptStruct, 0, sizeof(TScript));
+	memset(&OverrideScriptStruct, 0, sizeof(fo::TScript));
 
 	MakeCall(0x4230D5, &AfterCombatAttackHook, true);
 	MakeCall(0x4A67F2, &ExecMapScriptsHook, true);

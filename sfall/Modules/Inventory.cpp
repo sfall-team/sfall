@@ -37,14 +37,14 @@ long& GetActiveItemMode() {
 	return VarPtr::itemButtonItems[VarPtr::itemCurrentItem].mode;
 }
 
-TGameObj* GetActiveItem() {
+fo::TGameObj* GetActiveItem() {
 	return VarPtr::itemButtonItems[VarPtr::itemCurrentItem].item;
 }
 
 void InventoryKeyPressedHook(DWORD dxKey, bool pressed, DWORD vKey) {
 	if (pressed && reloadWeaponKey && dxKey == reloadWeaponKey && IsMapLoaded() && (GetCurrentLoops() & ~(COMBAT | PCOMBAT)) == 0) {
 		DWORD maxAmmo, curAmmo;
-		TGameObj* item = GetActiveItem();
+		fo::TGameObj* item = GetActiveItem();
 		maxAmmo = Wrapper::item_w_max_ammo(item);
 		curAmmo = Wrapper::item_w_curr_ammo(item);
 		if (maxAmmo != curAmmo) {
@@ -311,7 +311,7 @@ static const char* InvenFmt1 = "%s %d/%d  %s %d/%d";
 static const char* InvenFmt2 = "%s %d/%d";
 
 static const char* _stdcall GetInvenMsg() {
-	const char* tmp = GetMessageStr(&VarPtr::inventry_message_file, 35);
+	const char* tmp = fo::GetMessageStr(&VarPtr::inventry_message_file, 35);
 	if (!tmp) return "S:";
 	else return tmp;
 }
@@ -359,11 +359,11 @@ end:
 static char SizeMsgBuf[32];
 static const char* _stdcall FmtSizeMsg(int size) {
 	if(size==1) {
-		const char* tmp = GetMessageStr(&VarPtr::proto_main_msg_file, 543);
+		const char* tmp = fo::GetMessageStr(&VarPtr::proto_main_msg_file, 543);
 		if(!tmp) strcpy(SizeMsgBuf, "It occupies 1 unit.");
 		else sprintf(SizeMsgBuf, tmp, size);
 	} else {
-		const char* tmp = GetMessageStr(&VarPtr::proto_main_msg_file, 542);
+		const char* tmp = fo::GetMessageStr(&VarPtr::proto_main_msg_file, 542);
 		if(!tmp) sprintf(SizeMsgBuf, "It occupies %d units.", size);
 		else sprintf(SizeMsgBuf, tmp, size);
 	}
@@ -589,10 +589,10 @@ end:
 	}
 }
 
-int __stdcall ItemCountFixStdcall(TGameObj* who, TGameObj* item) {
+int __stdcall ItemCountFixStdcall(fo::TGameObj* who, fo::TGameObj* item) {
 	int count = 0;
-	for (int i = 0; i < who->invenCount; i++) {
-		auto tableItem = &who->invenTable[i];
+	for (int i = 0; i < who->inven_size; i++) {
+		auto tableItem = &who->inven_table[i];
 		if (tableItem->object == item) {
 			count += tableItem->count;
 		} else if (Wrapper::item_get_type(tableItem->object) == item_type_container) {

@@ -39,7 +39,7 @@ static int IsControllingNPC = 0;
 static std::vector<WORD> Chars;
 static int DelayedExperience;
 
-static TGameObj* real_dude = nullptr;
+static fo::TGameObj* real_dude = nullptr;
 static long real_traits[2];
 static char real_pc_name[sizeof(VarPtr::pc_name)];
 static DWORD real_last_level;
@@ -58,7 +58,7 @@ static int real_perkLevelDataList[PERK_count];
 static int real_tag_skill[4];
 //static DWORD real_bbox_sneak;
 
-static bool _stdcall IsInPidList(TGameObj* obj) {
+static bool _stdcall IsInPidList(fo::TGameObj* obj) {
 	int pid = obj->pid & 0xFFFFFF;
 	for (std::vector<WORD>::iterator it = Chars.begin(); it != Chars.end(); it++) {
 		if (*it == pid) {
@@ -100,11 +100,11 @@ static void SaveRealDudeState() {
 	real_unspent_skill_points = VarPtr::curr_pc_stat[0];
 	//real_map_elevation = VarPtr::map_elevation;
 	real_sneak_working = VarPtr::sneak_working;
-	SkillGetTags(real_tag_skill, 4);
+	fo::SkillGetTags(real_tag_skill, 4);
 }
 
 // take control of the NPC
-static void TakeControlOfNPC(TGameObj* npc) {
+static void TakeControlOfNPC(fo::TGameObj* npc) {
 	// remove skill tags
 	int tagSkill[4];
 #if (_MSC_VER < 1600)
@@ -112,7 +112,7 @@ static void TakeControlOfNPC(TGameObj* npc) {
 #else
 	std::fill(std::begin(tagSkill), std::end(tagSkill), -1);
 #endif
-	SkillSetTags(tagSkill, 4);
+	fo::SkillSetTags(tagSkill, 4);
 
 	// reset traits
 	VarPtr::pc_trait[0] = VarPtr::pc_trait[1] = -1;
@@ -140,8 +140,8 @@ static void TakeControlOfNPC(TGameObj* npc) {
 	VarPtr::sneak_working = 0;
 
 	// deduce active hand by weapon anim code
-	char critterAnim = (npc->artFID & 0xF000) >> 12; // current weapon as seen in hands
-	if (AnimCodeByWeapon(Wrapper::inven_left_hand(npc)) == critterAnim) { // definitely left hand..
+	char critterAnim = (npc->art_fid & 0xF000) >> 12; // current weapon as seen in hands
+	if (fo::AnimCodeByWeapon(Wrapper::inven_left_hand(npc)) == critterAnim) { // definitely left hand..
 		VarPtr::itemCurrentItem = 0;
 	} else {
 		VarPtr::itemCurrentItem = 1;
@@ -177,7 +177,7 @@ static void RestoreRealDudeState() {
 	VarPtr::curr_pc_stat[0] = real_unspent_skill_points;
 	//real_map_elevation = VarPtr::map_elevation; -- why save elevation?
 	VarPtr::sneak_working = real_sneak_working;
-	SkillSetTags(real_tag_skill, 4);
+	fo::SkillSetTags(real_tag_skill, 4);
 
 	VarPtr::inven_pid = real_dude->pid;
 
@@ -192,7 +192,7 @@ static void RestoreRealDudeState() {
 	real_dude = nullptr;
 }
 
-static int __stdcall CombatTurn(TGameObj* obj) {
+static int __stdcall CombatTurn(fo::TGameObj* obj) {
 	__asm {
 		mov eax, obj;
 		call FuncOffs::combat_turn_;
@@ -200,7 +200,7 @@ static int __stdcall CombatTurn(TGameObj* obj) {
 }
 
 // return values: 0 - use vanilla handler, 1 - skip vanilla handler, return 0 (normal status), -1 - skip vanilla, return -1 (game ended)
-static int _stdcall CombatWrapperInner(TGameObj* obj) {
+static int _stdcall CombatWrapperInner(fo::TGameObj* obj) {
 	if ((obj != VarPtr::obj_dude) && (Chars.size() == 0 || IsInPidList(obj)) && (Mode == 1 || Wrapper::isPartyMember(obj))) {
 		// save "real" dude state
 		SaveRealDudeState();
@@ -247,11 +247,11 @@ static void _declspec(naked) ItemDropHook() {
 */
 
 static void __stdcall DisplayCantDoThat() {
-	Wrapper::display_print(GetMessageStr(&VarPtr::proto_main_msg_file, 675)); // I Can't do that
+	Wrapper::display_print(fo::GetMessageStr(&VarPtr::proto_main_msg_file, 675)); // I Can't do that
 }
 
 // 1 skip handler, -1 don't skip
-int __stdcall PartyControl_SwitchHandHook(TGameObj* item) {
+int __stdcall PartyControl_SwitchHandHook(fo::TGameObj* item) {
 	if (Wrapper::item_get_type(item) == 3 && IsControllingNPC > 0) {
 		int canUse;
 		/* check below uses AI packets and skills to check if weapon is usable
@@ -263,8 +263,8 @@ int __stdcall PartyControl_SwitchHandHook(TGameObj* item) {
 			call FuncOffs::ai_can_use_weapon_;
 			mov canUse, eax;
 		}*/
-		int fId = (VarPtr::obj_dude)->artFID;
-		char weaponCode = AnimCodeByWeapon(item);
+		int fId = (VarPtr::obj_dude)->art_fid;
+		char weaponCode = fo::AnimCodeByWeapon(item);
 		fId = (fId & 0xffff0fff) | (weaponCode << 12);
 		// check if art with this weapon exists
 		__asm {

@@ -18,6 +18,9 @@
 
 #pragma once
 
+namespace fo
+{
+
 enum Animation : long
 {
 	ANIM_stand = 0,
@@ -540,3 +543,5 @@ enum RollResult
 	ROLL_SUCCESS = 0x2,
 	ROLL_CRITICAL_SUCCESS = 0x3,
 };
+
+}

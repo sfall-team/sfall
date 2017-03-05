@@ -158,8 +158,8 @@ void sf_create_spatial(OpcodeContext& ctx) {
 
 void sf_spatial_radius(OpcodeContext& ctx) {
 	auto spatialObj = ctx.arg(0).asObject();
-	TScript* script;
-	if (Wrapper::scr_ptr(spatialObj->scriptID, &script) != -1) {
+	fo::TScript* script;
+	if (Wrapper::scr_ptr(spatialObj->script_id, &script) != -1) {
 		ctx.setReturn(script->spatial_radius);
 	}
 }
@@ -182,7 +182,7 @@ void sf_set_critter_burst_disable(OpcodeContext& ctx) {
 void sf_get_weapon_ammo_pid(OpcodeContext& ctx) {
 	if (ctx.arg(0).isInt()) {
 		auto obj = ctx.arg(0).asObject();
-		ctx.setReturn(obj->critterAP_weaponAmmoPid);
+		ctx.setReturn(obj->item.ammo_pid);
 	} else {
 		ctx.setReturn(-1);
 	}
@@ -190,13 +190,13 @@ void sf_get_weapon_ammo_pid(OpcodeContext& ctx) {
 
 void sf_set_weapon_ammo_pid(OpcodeContext& ctx) {
 	auto obj = ctx.arg(0).asObject();
-	obj->critterAP_weaponAmmoPid = ctx.arg(1).asInt();
+	obj->item.ammo_pid = ctx.arg(1).asInt();
 }
 
 void sf_get_weapon_ammo_count(OpcodeContext& ctx) {
 	if (ctx.arg(0).isInt()) {
 		auto obj = ctx.arg(0).asObject();
-		ctx.setReturn(obj->itemCharges);
+		ctx.setReturn(obj->item.charges);
 	} else {
 		ctx.setReturn(-1);
 	}
@@ -204,7 +204,7 @@ void sf_get_weapon_ammo_count(OpcodeContext& ctx) {
 
 void sf_set_weapon_ammo_count(OpcodeContext& ctx) {
 	auto obj = ctx.arg(0).asObject();
-	obj->itemCharges = ctx.arg(1).asInt();
+	obj->item.charges = ctx.arg(1).asInt();
 }
 
 static DWORD _stdcall obj_blocking_at_wrapper(DWORD obj, DWORD tile, DWORD elevation, DWORD func) {
@@ -362,12 +362,12 @@ void sf_obj_is_carrying_obj(OpcodeContext& ctx) {
 		&itemObjArg = ctx.arg(1);
 
 	if (invenObjArg.isInt() && itemObjArg.isInt()) {
-		TGameObj *invenObj = (TGameObj*)invenObjArg.asObject(),
-			*itemObj = (TGameObj*)itemObjArg.asObject();
+		fo::TGameObj *invenObj = (fo::TGameObj*)invenObjArg.asObject(),
+			*itemObj = (fo::TGameObj*)itemObjArg.asObject();
 		if (invenObj != nullptr && itemObj != nullptr) {
-			for (int i = 0; i < invenObj->invenCount; i++) {
-				if (invenObj->invenTable[i].object == itemObj) {
-					num = invenObj->invenTable[i].count;
+			for (int i = 0; i < invenObj->inven_size; i++) {
+				if (invenObj->inven_table[i].object == itemObj) {
+					num = invenObj->inven_table[i].count;
 					break;
 				}
 			}
@@ -377,7 +377,7 @@ void sf_obj_is_carrying_obj(OpcodeContext& ctx) {
 }
 
 void sf_critter_inven_obj2(OpcodeContext& ctx) {
-	TGameObj* critter = ctx.arg(0).asObject();
+	fo::TGameObj* critter = ctx.arg(0).asObject();
 	int slot = ctx.arg(1).asInt();
 	switch (slot) {
 	case 0:
@@ -390,7 +390,7 @@ void sf_critter_inven_obj2(OpcodeContext& ctx) {
 		ctx.setReturn(Wrapper::inven_left_hand(critter));
 		break;
 	case -2:
-		ctx.setReturn(critter->invenCount);
+		ctx.setReturn(critter->inven_size);
 		break;
 	default:
 		ctx.printOpcodeError("critter_inven_obj2() - invalid type.");

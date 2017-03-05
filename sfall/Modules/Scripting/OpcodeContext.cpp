@@ -27,7 +27,7 @@ namespace sfall
 namespace script
 {
 
-OpcodeContext::OpcodeContext(TProgram* program, DWORD opcode, int argNum, bool hasReturn) {
+OpcodeContext::OpcodeContext(fo::TProgram* program, DWORD opcode, int argNum, bool hasReturn) {
 	assert(argNum < OP_MAX_ARGUMENTS);
 
 	_program = program;
@@ -64,7 +64,7 @@ const ScriptValue& OpcodeContext::returnValue() const {
 	return _ret;
 }
 
-TProgram* OpcodeContext::program() const {
+fo::TProgram* OpcodeContext::program() const {
 	return _program;
 }
 
@@ -137,7 +137,7 @@ void OpcodeContext::handleOpcode(ScriptingFunctionHandler func, const OpcodeArgu
 	_pushReturnValue();
 }
 
-void __stdcall OpcodeContext::handleOpcodeStatic(TProgram* program, DWORD opcodeOffset, ScriptingFunctionHandler func, int argNum, bool hasReturn) {
+void __stdcall OpcodeContext::handleOpcodeStatic(fo::TProgram* program, DWORD opcodeOffset, ScriptingFunctionHandler func, int argNum, bool hasReturn) {
 	// for each opcode create new context on stack (no allocations at this point)
 	OpcodeContext currentContext(program, opcodeOffset / 4, argNum, hasReturn);
 	// handle the opcode using provided handler

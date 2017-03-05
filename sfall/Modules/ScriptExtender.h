@@ -38,13 +38,13 @@ struct sGlobalVar {
 
 #define SCRIPT_PROC_MAX (27)
 typedef struct {
-	TProgram* ptr;
+	fo::TProgram* ptr;
 	int procLookup[SCRIPT_PROC_MAX+1];
 	char initialized;
 } sScriptProgram;
 
-void _stdcall SetGlobalScriptRepeat(TProgram* script, int frames);
-void _stdcall SetGlobalScriptType(TProgram* script, int type);
+void _stdcall SetGlobalScriptRepeat(fo::TProgram* script, int frames);
+void _stdcall SetGlobalScriptType(fo::TProgram* script, int type);
 void ScriptExtenderSetup();
 bool _stdcall IsGameScript(const char* filename);
 
@@ -66,7 +66,7 @@ void _stdcall SetGlobalVarInt(DWORD var, int val);
 DWORD _stdcall GetGlobalVar(const char* var);
 DWORD _stdcall GetGlobalVarInt(DWORD var);
 
-void _stdcall SetSelfObject(TProgram* script, TGameObj* obj);
+void _stdcall SetSelfObject(fo::TProgram* script, TGameObj* obj);
 
 extern DWORD AddUnarmedStatToGetYear;
 extern DWORD availableGlobalScriptTypes;
@@ -76,9 +76,9 @@ void GetAppearanceGlobals(int *race, int *style);
 
 void _stdcall RegAnimCombatCheck(DWORD newValue);
 
-bool _stdcall ScriptHasLoaded(TProgram* script);
+bool _stdcall ScriptHasLoaded(fo::TProgram* script);
 // loads script from .int file into scripting engine, fill scriptPtr and proc table
-void LoadScriptProgram(sScriptProgram &prog, const char* fileName);
+void LoadScripfo::TProgram(sScriptProgram &prog, const char* fileName);
 // init program after load, needs to be called once
 void InitScriptProgram(sScriptProgram &prog);
 // execute script by specific proc name
@@ -87,7 +87,7 @@ void RunScriptProc(sScriptProgram* prog, const char* procName);
 void RunScriptProc(sScriptProgram* prog, int procId);
 
 void AddProgramToMap(sScriptProgram &prog);
-sScriptProgram* GetGlobalScriptProgram(TProgram* scriptPtr);
+sScriptProgram* GetGlobalScriptProgram(fo::TProgram* scriptPtr);
 
 // variables
 static char reg_anim_combat_check = 1;

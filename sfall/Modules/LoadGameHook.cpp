@@ -93,7 +93,7 @@ static void _stdcall SaveGame2() {
 		CloseHandle(h);
 	} else {
 		dlogr("ERROR creating sfallgv!", DL_MAIN);
-		DisplayPrint(saveSfallDataFailMsg);
+		fo::DisplayPrint(saveSfallDataFailMsg);
 		Wrapper::gsound_play_sfx_file("IISXXXX1");
 	}
 	GetSavePath(buf, "fs");
@@ -109,13 +109,13 @@ static DWORD _stdcall CombatSaveTest() {
 	if (!saveInCombatFix && !IsNpcControlled()) return 1;
 	if (inLoop & COMBAT) {
 		if (saveInCombatFix == 2 || IsNpcControlled() || !(inLoop & PCOMBAT)) {
-			DisplayPrint(saveFailMsg);
+			fo::DisplayPrint(saveFailMsg);
 			return 0;
 		}
 		int ap = Wrapper::stat_level(VarPtr::obj_dude, STAT_max_move_points);
 		int bonusmove = Wrapper::perk_level(VarPtr::obj_dude, PERK_bonus_move);
-		if (VarPtr::obj_dude->critterAP_weaponAmmoPid != ap || bonusmove * 2 != VarPtr::combat_free_move) {
-			DisplayPrint(saveFailMsg);
+		if (VarPtr::obj_dude->critter.move_points != ap || bonusmove * 2 != VarPtr::combat_free_move) {
+			fo::DisplayPrint(saveFailMsg);
 			return 0;
 		}
 	}

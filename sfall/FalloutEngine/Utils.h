@@ -25,6 +25,9 @@
 // Various utility functions, based on FO engine functions
 //
 
+namespace fo
+{
+
 // returns weapon animation code
 char AnimCodeByWeapon(TGameObj* weapon);
 
@@ -45,3 +48,5 @@ void SkillGetTags(int* result, long num);
 
 // wrapper for skill_set_tags with bounds checking
 void SkillSetTags(int* tags, long num);
+
+}
