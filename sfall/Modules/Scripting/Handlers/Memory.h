@@ -18,6 +18,11 @@
 
 #pragma once
 
+namespace sfall
+{
+namespace script
+{
+
  // memory_reading_funcs
 
 void __declspec() op_read_byte();
@@ -37,3 +42,6 @@ void __declspec() op_write_int();
 void __declspec() op_write_string();
 
 void __declspec() op_call_offset();
+
+}
+}

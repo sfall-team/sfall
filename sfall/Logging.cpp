@@ -23,6 +23,9 @@
 
 #include <fstream>
 
+namespace sfall 
+{
+
 using namespace std;
 
 static int DebugTypes=0;
@@ -67,6 +70,8 @@ void LoggingInit() {
 	if (GetPrivateProfileIntA("Debugging", "Criticals", 0, ddrawIni)) {
 		DebugTypes |= DL_CRITICALS;
 	}
+}
+
 }
 
 #endif

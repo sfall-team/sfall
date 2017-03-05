@@ -20,9 +20,14 @@
 
 #include "Module.h"
 
+namespace sfall
+{
+
 class Skills : public Module {
 	const char* name() { return "Skills"; }
 	void init();
 };
 
 void _stdcall SetSkillMax(DWORD critter, DWORD maximum);
+
+}

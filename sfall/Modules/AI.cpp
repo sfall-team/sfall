@@ -24,6 +24,9 @@
 #include "..\FalloutEngine\Fallout2.h"
 #include "..\SafeWrite.h"
 
+namespace sfall 
+{
+
 typedef std::unordered_map<DWORD, DWORD> :: const_iterator iter;
 
 static std::unordered_map<DWORD,DWORD> targets;
@@ -121,4 +124,6 @@ void _stdcall AICombatStart() {
 void _stdcall AICombatEnd() {
 	targets.clear();
 	sources.clear();
+}
+
 }

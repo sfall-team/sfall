@@ -16,13 +16,12 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "..\main.h"
-
 #include <cassert>
 #include <set>
 #include <string>
 #include <unordered_map>
 
+#include "..\main.h"
 #include "..\FalloutEngine\Fallout2.h"
 #include "..\InputFuncs.h"
 #include "..\Version.h"
@@ -32,7 +31,6 @@
 #include "HookScripts.h"
 #include "LoadGameHook.h"
 #include "..\Logging.h"
-#include "Stats.h"
 #include "Scripting\Arrays.h"
 #include "Scripting\Opcodes.h"
 #include "Scripting\OpcodeContext.h"
@@ -40,15 +38,19 @@
 
 #include "ScriptExtender.h"
 
+namespace sfall
+{
+
+using namespace script;
 
 void _stdcall HandleMapUpdateForScripts(DWORD procId);
 
-// TODO: move highligting-related code to separate file
+// TODO: move highlighting-related code to separate file
 static DWORD highlightingToggled = 0;
 static DWORD MotionSensorMode;
 static BYTE toggleHighlightsKey;
-static DWORD HighlightContainers;
-static DWORD Color_Containers;
+static DWORD highlightContainers;
+static DWORD colorContainers;
 static char idle;
 static std::string highlightFailMsg1;
 static std::string HighlightFailMsg2;
@@ -337,9 +339,9 @@ loopObject:
 		mov  edx, 0x10                            // yellow
 		test byte ptr [ecx+0x25], dl              // NoHighlight_ flag is set (is this a container)?
 		jz   NoHighlight                          // No
-		cmp  HighlightContainers, eax             // Highlight containers?
+		cmp  highlightContainers, eax             // Highlight containers?
 		je   nextObject                           // No
-		mov  edx, Color_Containers                // NR: should be set to yellow or purple later
+		mov  edx, colorContainers                // NR: should be set to yellow or purple later
 NoHighlight:
 		mov  [ecx+0x74], edx
 nextObject:
@@ -602,8 +604,6 @@ void ClearGlobalScripts() {
 	SafeWrite32(0x00496880, 0x00019078);
 	//HP bonus
 	SafeWrite8(0x4AFBC1, 2);
-	//Stat ranges
-	StatsReset();
 	//Bodypart hit chances
 	*((DWORD*)0x510954) = GetConfigInt("Misc", "BodyHit_Head",      0xFFFFFFD8);
 	*((DWORD*)0x510958) = GetConfigInt("Misc", "BodyHit_Left_Arm",  0xFFFFFFE2);
@@ -833,13 +833,13 @@ void ScriptExtender::init() {
 	toggleHighlightsKey = GetConfigInt("Input", "ToggleItemHighlightsKey", 0);
 	if (toggleHighlightsKey) {
 		MotionSensorMode = GetConfigInt("Misc", "MotionScannerFlags", 1);
-		HighlightContainers = GetConfigInt("Input", "HighlightContainers", 0);
-		switch (HighlightContainers) {
+		highlightContainers = GetConfigInt("Input", "HighlightContainers", 0);
+		switch (highlightContainers) {
 		case 1:
-			Color_Containers = 0x10; // yellow
+			colorContainers = 0x10; // yellow
 			break;
 		case 2:
-			Color_Containers = 0x40; // purple
+			colorContainers = 0x40; // purple
 			break;
 		}
 		//HookCall(0x44B9BA, &gmouse_bk_process_hook);
@@ -893,4 +893,6 @@ void ScriptExtender::init() {
 	HookCall(0x46E141, FreeProgramHook);
 	
 	InitNewOpcodes();
+}
+
 }

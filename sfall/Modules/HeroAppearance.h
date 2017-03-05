@@ -20,6 +20,9 @@
 
 #include "Module.h"
 
+namespace sfall
+{
+
 class HeroAppearance : public Module {
 	const char* name() { return "HeroAppearance"; }
 
@@ -41,3 +44,5 @@ void _stdcall LoadHeroAppearance(void);
 void _stdcall SetNewCharAppearanceGlobals(void);
 
 void _stdcall RefreshPCArt();
+
+}

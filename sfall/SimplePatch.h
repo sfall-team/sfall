@@ -1,5 +1,8 @@
 #pragma once
 
+namespace sfall 
+{
+
 template<typename T> 
 T SimplePatch(DWORD addr, const char* iniSection, const char* iniKey, T defaultValue, T minValue = 0, T maxValue = INT_MAX)
 {
@@ -24,4 +27,6 @@ T SimplePatch(DWORD *addrs, int numAddrs, const char* iniSection, const char* in
 		dlogr(" Done", DL_INIT);
 	}
 	return value;
+}
+
 }

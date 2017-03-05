@@ -24,6 +24,9 @@
 
 #include "Worldmap.h"
 
+namespace sfall
+{
+
 static DWORD ViewportX;
 static DWORD ViewportY;
 
@@ -487,4 +490,6 @@ void Worldmap::init() {
 	ApplyTownMapsHotkeyFix();
 	ApplyWorldLimitsPatches();
 	ApplyWorldmapFpsPatch();
+}
+
 }

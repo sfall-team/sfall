@@ -18,6 +18,11 @@
 
 #pragma once
 
+namespace sfall
+{
+namespace script
+{
+
 // graphics_functions
 void __declspec() op_graphics_funcs_available();
 
@@ -44,3 +49,6 @@ void __declspec() op_get_shader_version();
 void __declspec() op_set_shader_mode();
 
 void __declspec() op_force_graphics_refresh();
+
+}
+}

@@ -17,26 +17,28 @@
  */
 
 #include "..\main.h"
-
-#include "Elevators.h"
 #include "..\FalloutEngine\Fallout2.h"
 
-static const int ElevatorCount = 50;
+#include "Elevators.h"
+
+namespace sfall
+{
+
+static const int elevatorCount = 50;
 static char elevFile[MAX_PATH];
 
-
-static sElevator Elevators[ElevatorCount];
-static DWORD Menus[ElevatorCount];
+static sElevator Elevators[elevatorCount];
+static DWORD menus[elevatorCount];
 
 void SetElevator(DWORD id, DWORD index, DWORD value) {
-	if (id >= ElevatorCount || index >= 12) return;
+	if (id >= elevatorCount || index >= 12) return;
 	*(DWORD*)(((DWORD)&Elevators[id]) + index * 4) = value;
 }
 
 static void __declspec(naked) GetMenuHook() {
 	__asm {
 		push ebx;
-		lea ebx, Menus;
+		lea ebx, menus;
 		shl eax, 2;
 		mov eax, [ebx+eax];
 		call FuncOffs::elevator_start_;
@@ -48,7 +50,7 @@ static void __declspec(naked) GetMenuHook() {
 static void __declspec(naked) UnknownHook() {
 	__asm {
 		push ebx;
-		lea ebx, Menus;
+		lea ebx, menus;
 		shl eax, 2;
 		mov eax, [ebx+eax];
 		call FuncOffs::Check4Keys_;
@@ -60,7 +62,7 @@ static void __declspec(naked) UnknownHook() {
 static void __declspec(naked) UnknownHook2() {
 	__asm {
 		push ebx;
-		lea ebx, Menus;
+		lea ebx, menus;
 		shl eax, 2;
 		mov eax, [ebx+eax];
 		call FuncOffs::elevator_end_;
@@ -71,7 +73,7 @@ static void __declspec(naked) UnknownHook2() {
 
 static void __declspec(naked) GetNumButtonsHook1() {
 	__asm {
-		lea  esi, Menus;
+		lea  esi, menus;
 		mov  eax, [esi+edi*4];
 		mov  eax, [VARPTR_btncnt + eax*4];
 		push 0x43F064;
@@ -81,7 +83,7 @@ static void __declspec(naked) GetNumButtonsHook1() {
 
 static void __declspec(naked) GetNumButtonsHook2() {
 	__asm {
-		lea  edx, Menus;
+		lea  edx, menus;
 		mov  eax, [edx+edi*4];
 		mov  eax, [VARPTR_btncnt + eax*4];
 		push 0x43F18B;
@@ -91,7 +93,7 @@ static void __declspec(naked) GetNumButtonsHook2() {
 
 static void __declspec(naked) GetNumButtonsHook3() {
 	__asm {
-		lea  eax, Menus;
+		lea  eax, menus;
 		mov  eax, [eax+edi*4];
 		mov  eax, [VARPTR_btncnt+eax*4];
 		push 0x43F1EB;
@@ -101,14 +103,14 @@ static void __declspec(naked) GetNumButtonsHook3() {
 
 void ResetElevators() {
 	memcpy(Elevators, VarPtr::retvals, sizeof(sElevator) * 24);
-	memset(&Elevators[24], 0, sizeof(sElevator)*(ElevatorCount - 24));
-	for (int i = 0; i < 24; i++) Menus[i] = i;
-	for (int i = 24; i < ElevatorCount; i++) Menus[i] = 0;
+	memset(&Elevators[24], 0, sizeof(sElevator)*(elevatorCount - 24));
+	for (int i = 0; i < 24; i++) menus[i] = i;
+	for (int i = 24; i < elevatorCount; i++) menus[i] = 0;
 	char section[4];
 	if (elevFile) {
-		for (int i = 0; i < ElevatorCount; i++) {
+		for (int i = 0; i < elevatorCount; i++) {
 			_itoa_s(i, section, 10);
-			Menus[i] = GetPrivateProfileIntA(section, "Image", Menus[i], elevFile);
+			menus[i] = GetPrivateProfileIntA(section, "Image", menus[i], elevFile);
 			Elevators[i].ID1 = GetPrivateProfileIntA(section, "ID1", Elevators[i].ID1, elevFile);
 			Elevators[i].ID2 = GetPrivateProfileIntA(section, "ID2", Elevators[i].ID2, elevFile);
 			Elevators[i].ID3 = GetPrivateProfileIntA(section, "ID3", Elevators[i].ID3, elevFile);
@@ -131,7 +133,7 @@ void ElevatorsInit(const char* file) {
 	HookCall(0x43EF83, GetMenuHook);
 	HookCall(0x43F141, UnknownHook);
 	HookCall(0x43F2D2, UnknownHook2);
-	SafeWrite8(0x43EF76, (BYTE)ElevatorCount);
+	SafeWrite8(0x43EF76, (BYTE)elevatorCount);
 	SafeWrite32(0x43EFA4, (DWORD)Elevators);
 	SafeWrite32(0x43EFB9, (DWORD)Elevators);
 	SafeWrite32(0x43EFEA, (DWORD)&Elevators[0].Tile1);
@@ -154,4 +156,6 @@ void Elevators::init() {
 		dlogr("Applying elevator patch.", DL_INIT);
 		ElevatorsInit(elevPath.c_str());
 	}
+}
+
 }

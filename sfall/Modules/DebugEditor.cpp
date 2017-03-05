@@ -19,11 +19,14 @@
 #include <vector>
 
 #include "..\main.h"
-
 #include "..\FalloutEngine\Fallout2.h"
-#include "DebugEditor.h"
 #include "ScriptExtender.h"
 #include "Scripting\Arrays.h"
+
+#include "DebugEditor.h"
+
+namespace sfall
+{
 
 #define CODE_EXIT (254)
 #define CODE_SET_GLOBAL  (0)
@@ -94,7 +97,7 @@ static void RunEditorInternal(SOCKET &s) {
 	int numGlobals = VarPtr::num_game_global_vars;
 	int numMapVars = VarPtr::num_map_global_vars;
 	int numSGlobals = GetNumGlobals();
-	int numArrays = GetNumArrays();
+	int numArrays = script::GetNumArrays();
 	InternalSend(s, &numGlobals, 4);
 	InternalSend(s, &numMapVars, 4);
 	InternalSend(s, &numSGlobals, 4);
@@ -104,13 +107,15 @@ static void RunEditorInternal(SOCKET &s) {
 	sGlobalVar* sglobals = new sGlobalVar[numSGlobals];
 	GetGlobals(sglobals);
 	int* arrays = new int[numArrays * 3];
-	GetArrays(arrays);
+	script::GetArrays(arrays);
 
 	InternalSend(s, reinterpret_cast<void*>(VarPtr::game_global_vars), 4 * numGlobals);
 	InternalSend(s, reinterpret_cast<void*>(VarPtr::map_global_vars), 4 * numMapVars);
 	InternalSend(s, sglobals, sizeof(sGlobalVar)*numSGlobals);
 	InternalSend(s, arrays, numArrays * 3 * 4);
-	for (int i = 0; i < numCritters; i++) InternalSend(s, &vec[i][25], 4);
+	for (int i = 0; i < numCritters; i++) {
+		InternalSend(s, &vec[i][25], 4);
+	}
 
 	while (true) {
 		BYTE code;
@@ -146,7 +151,7 @@ static void RunEditorInternal(SOCKET &s) {
 			InternalRecv(s, &id, 4);
 			DWORD *types = new DWORD[arrays[id * 3 + 1]];
 			char *data = new char[arrays[id * 3 + 1] * arrays[id * 3 + 2]];
-			DEGetArray(arrays[id * 3], types, data);
+			script::DEGetArray(arrays[id * 3], types, data);
 			InternalSend(s, types, arrays[id * 3 + 1] * 4);
 			InternalSend(s, data, arrays[id * 3 + 1] * arrays[id * 3 + 2]);
 			delete[] data;
@@ -158,7 +163,7 @@ static void RunEditorInternal(SOCKET &s) {
 			InternalRecv(s, &id, 4);
 			char *data = new char[arrays[id * 3 + 1] * arrays[id * 3 + 2]];
 			InternalRecv(s, data, arrays[id * 3 + 1] * arrays[id * 3 + 2]);
-			DESetArray(arrays[id * 3], 0, data);
+			script::DESetArray(arrays[id * 3], 0, data);
 			delete[] data;
 		}
 		break;
@@ -229,4 +234,6 @@ void RunDebugEditor() {
 	closesocket(client);
 	closesocket(sock);
 	WSACleanup();
+}
+
 }

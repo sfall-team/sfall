@@ -28,6 +28,9 @@
 
 #include "Skills.h"
 
+namespace sfall
+{
+
 struct ChanceModifier {
 	DWORD id;
 	int maximum;
@@ -298,3 +301,4 @@ void Skills::init() {
 	LoadGameHook::onGameReset += Skills_OnGameLoad;
 }
 
+}

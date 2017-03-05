@@ -39,9 +39,11 @@
 #include "Graphics.h"
 #include "LoadGameHook.h"
 
-
 typedef HRESULT (_stdcall *DDrawCreateProc)(void*, IDirectDraw**, void*);
 typedef IDirect3D9* (_stdcall *D3DCreateProc)(UINT version);
+
+namespace sfall
+{
 
 #define UNUSEDFUNCTION { DEBUGMESS("Unused function called: " __FUNCTION__); return DDERR_GENERIC; }
 #define SAFERELEASE(a) { if (a) { a->Release(); a = 0; } }
@@ -912,7 +914,7 @@ public:
 	HRESULT _stdcall WaitForVerticalBlank(DWORD, HANDLE) { UNUSEDFUNCTION; }
 };
 
-HRESULT _stdcall FakeDirectDrawCreate2(void*, IDirectDraw** b, void*) {
+HRESULT _stdcall FakeDirectDrawCreate2_graphics(void*, IDirectDraw** b, void*) {
 	ResWidth = *(DWORD*)0x004CAD6B;
 	ResHeight = *(DWORD*)0x004CAD66;
 
@@ -1008,4 +1010,11 @@ void Graphics::init() {
 	if (Graphics::mode > 3) {
 		LoadGameHook::onGameReset += graphics_OnGameLoad;
 	}
+}
+
+}
+
+// This should be in global namespace
+HRESULT _stdcall FakeDirectDrawCreate2(void* a, IDirectDraw** b, void* c) {
+	return sfall::FakeDirectDrawCreate2_graphics(a, b, c);
 }

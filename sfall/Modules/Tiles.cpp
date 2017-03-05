@@ -16,13 +16,17 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "..\main.h"
-
 #include <math.h>
 #include <stdio.h>
+
+#include "..\main.h"
 #include "..\FalloutEngine\Fallout2.h"
 #include "FileSystem.h"
+
 #include "Tiles.h"
+
+namespace sfall
+{
 
 struct OverrideEntry {
 	//DWORD id;
@@ -221,4 +225,6 @@ void Tiles::init() {
 		HookCall(0x481D72, &ArtInitHook);
 		HookCall(0x48434C, SquareLoadHook);
 	}
+}
+
 }

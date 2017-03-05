@@ -17,11 +17,15 @@
 */
 
 #include "..\..\main.h"
-
 #include "..\..\FalloutEngine\Fallout2.h"
 #include "..\ScriptExtender.h"
 
 #include "OpcodeContext.h"
+
+namespace sfall
+{
+namespace script
+{
 
 OpcodeContext::OpcodeContext(TProgram* program, DWORD opcode, int argNum, bool hasReturn) {
 	assert(argNum < OP_MAX_ARGUMENTS);
@@ -211,4 +215,7 @@ void OpcodeContext::_pushReturnValue() {
 		Wrapper::interpretPushLong(_program, rawResult);
 		Wrapper::interpretPushShort(_program, getScriptTypeBySfallType(_ret.type()));
 	}
+}
+
+}
 }

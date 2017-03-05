@@ -20,6 +20,9 @@
 
 #include "Module.h"
 
+namespace sfall
+{
+
 class Knockback : public Module {
 	const char* name() { return "Knockback"; }
 	void init();
@@ -33,3 +36,5 @@ void _stdcall KnockbackRemoveMod(DWORD id, DWORD on);
 void _stdcall SetNoBurstMode(TGameObj* critter, bool on);
 void _stdcall DisableAimedShots(DWORD pid);
 void _stdcall ForceAimedShots(DWORD pid);
+
+}

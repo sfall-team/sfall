@@ -16,19 +16,21 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "..\main.h"
-
 #include <stdio.h>
+
+#include "..\main.h"
 #include "..\FalloutEngine\Fallout2.h"
 #include "HeroAppearance.h"
+
 #include "ExtraSaveSlots.h"
+
+namespace sfall
+{
 
 //extern
 DWORD LSPageOffset = 0;
 
-
 int LSButtDN = 0;
-
 
 //--------------------------------------
 void SavePageOffsets() {
@@ -594,4 +596,6 @@ void ExtraSaveSlots::init() {
 		EnableSuperSaving();
 		dlogr(" Done", DL_INIT);
 	}
+}
+
 }

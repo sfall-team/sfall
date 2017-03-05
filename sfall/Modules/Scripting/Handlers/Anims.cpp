@@ -24,6 +24,11 @@
 
 #include "Anims.h"
 
+namespace sfall
+{
+namespace script
+{
+
 // checks if combat mode is enabled (using R8 8-bit register) and jumps to GOTOFAIL if it is (does nothing if reg_anim_combat_check is 0)
 #define _CHECK_COMBAT_MODE(R8, GOTOFAIL) __asm { \
 	__asm mov R8, reg_anim_combat_check   \
@@ -107,4 +112,7 @@ void sf_explosions_metarule(OpcodeContext& ctx) {
 		arg2 = ctx.arg(2).asInt();
 
 	ctx.setReturn(ExplosionsMetaruleFunc(mode, arg1, arg2));
+}
+
+}
 }

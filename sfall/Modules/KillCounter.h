@@ -20,9 +20,14 @@
 
 #include "Module.h"
 
+namespace sfall
+{
+
 class KillCounter : public Module {
 	const char* name() { return "KillCounter"; }
 	void init();
 };
 
 bool UsingExtraKillTypes();
+
+}

@@ -33,6 +33,9 @@
 
 #include "LoadGameHook.h"
 
+namespace sfall
+{
+
 Delegate<> LoadGameHook::onGameInit;
 Delegate<> LoadGameHook::onGameReset;
 Delegate<> LoadGameHook::onBeforeGameStart;
@@ -86,7 +89,7 @@ static void _stdcall SaveGame2() {
 		unused++;
 		WriteFile(h, &unused, 4, &size, 0);
 		Perks::save(h);
-		SaveArrays(h);
+		script::SaveArrays(h);
 		CloseHandle(h);
 	} else {
 		dlogr("ERROR creating sfallgv!", DL_MAIN);
@@ -163,7 +166,7 @@ static void _stdcall LoadGame_Before() {
 		ReadFile(h, &unused, 8, &size, 0);
 		if (size == 8) {
 			Perks::load(h);
-			LoadArrays(h);
+			script::LoadArrays(h);
 		}
 		CloseHandle(h);
 	} else {
@@ -449,4 +452,6 @@ void LoadGameHook::init() {
 	HookCall(0x443357, InventoryHook);
 	HookCall(0x44396D, AutomapHook);
 	HookCall(0x479519, AutomapHook);
+}
+
 }

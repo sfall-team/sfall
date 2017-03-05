@@ -16,12 +16,17 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "..\main.h"
-
 #include <math.h>
 #include <stdio.h>
+
+#include "..\main.h"
 #include "..\FalloutEngine\Fallout2.h"
+#include "LoadGameHook.h"
+
 #include "Stats.h"
+
+namespace sfall
+{
 
 static DWORD StatMaximumsPC[STAT_max_stat];
 static DWORD StatMinimumsPC[STAT_max_stat];
@@ -210,6 +215,9 @@ void StatsReset() {
 
 void Stats::init() {
 	StatsReset();
+
+	LoadGameHook::onGameReset += StatsReset;
+
 	SafeWrite8(0x004AEF48, 0xe9);
 	HookCall(0x004AEF48, GetCurrentStatHook1);
 	SafeWrite8(0x004AF3AF, 0xe9);
@@ -303,4 +311,6 @@ void _stdcall SetNPCStatMin(int stat, int i) {
 	if (stat >= 0 && stat < STAT_max_stat) {
 		StatMinimumsNPC[stat] = i;
 	}
+}
+
 }

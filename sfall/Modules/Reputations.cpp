@@ -23,6 +23,9 @@
 
 #include "Reputations.h"
 
+namespace sfall
+{
+
 struct CityRep {
 	DWORD globalID;
 	DWORD cityID;
@@ -58,4 +61,6 @@ void Reputations::exit() {
 	if (repList != nullptr) {
 		delete[] repList;
 	}
+}
+
 }

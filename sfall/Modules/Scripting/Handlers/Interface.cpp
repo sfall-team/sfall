@@ -24,6 +24,11 @@
 
 #include "Interface.h"
 
+namespace sfall
+{
+namespace script
+{
+
 void __declspec(naked) op_input_funcs_available() {
 	__asm {
 		push ebx;
@@ -425,4 +430,7 @@ void sf_intface_is_hidden(OpcodeContext& ctx) {
 		mov isHidden, eax;
 	}
 	ctx.setReturn(isHidden);
+}
+
+}
 }

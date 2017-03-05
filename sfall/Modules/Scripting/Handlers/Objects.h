@@ -22,6 +22,11 @@
 #include "..\..\Inventory.h"
 #include "..\..\ScriptExtender.h"
 
+namespace sfall
+{
+namespace script
+{
+
 //script control functions
 
 class OpcodeContext;
@@ -61,3 +66,6 @@ void sf_art_exists(OpcodeContext&);
 void sf_obj_is_carrying_obj(OpcodeContext&);
 
 void sf_critter_inven_obj2(OpcodeContext&);
+
+}
+}

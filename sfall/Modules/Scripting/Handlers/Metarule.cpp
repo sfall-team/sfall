@@ -26,6 +26,11 @@
 
 #include "Metarule.h"
 
+namespace sfall
+{
+namespace script
+{
+
 // Metarule is a universal opcode(s) for all kinds of new sfall scripting functions.
 // Prefix all function handlers with sf_ and add them to sfall_metarule_table.
 // DO NOT add arguments and/or return values to function handlers!
@@ -165,4 +170,7 @@ void HandleMetarule(OpcodeContext& ctx) {
 	} else {
 		ctx.printOpcodeError("sfall_funcX(name, ...) - name must be string.");
 	}
+}
+
+}
 }

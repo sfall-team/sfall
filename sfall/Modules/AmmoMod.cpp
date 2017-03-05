@@ -23,6 +23,9 @@
 
 #include "AmmoMod.h"
 
+namespace sfall 
+{
+
 static const DWORD DamageFunctionReturn = 0x424A63;
 
 // Damage Fix v5 by Glovz 2014.04.16.xx.xx
@@ -788,4 +791,6 @@ void AmmoMod::init() {
 		}
 		dlogr(" Done", DL_INIT);
 	}
+}
+
 }

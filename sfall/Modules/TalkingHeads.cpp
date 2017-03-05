@@ -26,6 +26,9 @@
 
 #include "TalkingHeads.h"
 
+namespace sfall
+{
+
 void _stdcall SetHeadTex(IDirect3DTexture9* tex, int width, int height, int xoff, int yoff);
 
 extern IDirect3DDevice9* d3d9Device;
@@ -186,4 +189,6 @@ void TalkingHeads::init() {
 		MakeCall(0x44AD01, &DrawFrmHook, true);
 		MakeCall(0x447294, &EndSpeechHook, true);
 	}
+}
+
 }

@@ -25,11 +25,14 @@
 
 #include "Criticals.h"
 
-static const DWORD CritTableCount = 2 * 19 + 1;              //Number of species in new critical table
+namespace sfall
+{
+
+static const DWORD critTableCount = 2 * 19 + 1; //Number of species in new critical table
 
 static DWORD mode;
 
-static const char* CritNames[] = {
+static const char* critNames[] = {
 	"DamageMultiplier",
 	"EffectFlags",
 	"StatCheck",
@@ -39,30 +42,30 @@ static const char* CritNames[] = {
 	"FailMessage",
 };
 
-static CritStruct critTable[CritTableCount][9][6];
+static CritStruct critTable[critTableCount][9][6];
 static CritStruct (*playerCrit)[9][6];
 static bool Inited=false;
 
 void _stdcall SetCriticalTable(DWORD critter, DWORD bodypart, DWORD slot, DWORD element, DWORD value) {
 	if (!Inited) return;
-	if (critter >= CritTableCount || bodypart >= 9 || slot >= 6 || element >= 7) return;
+	if (critter >= critTableCount || bodypart >= 9 || slot >= 6 || element >= 7) return;
 	critTable[critter][bodypart][slot].values[element] = value;
 }
 
 DWORD _stdcall GetCriticalTable(DWORD critter, DWORD bodypart, DWORD slot, DWORD element) {
 	if (!Inited) return 0;
-	if (critter >= CritTableCount || bodypart >= 9 || slot >= 6 || element >= 7) return 0;
+	if (critter >= critTableCount || bodypart >= 9 || slot >= 6 || element >= 7) return 0;
 	return critTable[critter][bodypart][slot].values[element];
 }
 
 void _stdcall ResetCriticalTable(DWORD critter, DWORD bodypart, DWORD slot, DWORD element) {
 	if (!Inited) return;
-	if (critter >= CritTableCount || bodypart >= 9 || slot >= 6 || element >= 7) return;
+	if (critter >= critTableCount || bodypart >= 9 || slot >= 6 || element >= 7) return;
 	//It's been a long time since we worried about win9x compatibility, so just sprintf it for goodness sake...
 	char section[16];
 	sprintf_s(section, "c_%02d_%d_%d", critter, bodypart, slot);
 	CritStruct& defaultEffect = VarPtr::crit_succ_eff[critter][bodypart][slot];
-	critTable[critter][bodypart][slot].values[element] = critTable[critter][bodypart][slot].DamageMultiplier = GetPrivateProfileIntA(section, CritNames[element], defaultEffect.values[element], ".\\CriticalOverrides.ini");
+	critTable[critter][bodypart][slot].values[element] = critTable[critter][bodypart][slot].DamageMultiplier = GetPrivateProfileIntA(section, critNames[element], defaultEffect.values[element], ".\\CriticalOverrides.ini");
 }
 
 void CritLoad() {
@@ -79,7 +82,7 @@ void CritLoad() {
 					CritStruct& newEffect = critTable[newCritter][part][crit];
 					CritStruct& defaultEffect = VarPtr::crit_succ_eff[critter][part][crit];
 					for (int i = 0; i < 7; i++) {
-						newEffect.values[i] = GetPrivateProfileIntA(section, CritNames[i], defaultEffect.values[i], ".\\CriticalOverrides.ini");
+						newEffect.values[i] = GetPrivateProfileIntA(section, critNames[i], defaultEffect.values[i], ".\\CriticalOverrides.ini");
 						if (isDebug) {
 							char logmsg[256];
 							if (newEffect.values[i] != defaultEffect.values[i]) {
@@ -99,7 +102,7 @@ void CritLoad() {
 
 		if (mode == 3) {
 			char buf[32], buf2[32], buf3[32];
-			for (int critter = 0; critter < CritTableCount; critter++) {
+			for (int critter = 0; critter < critTableCount; critter++) {
 				sprintf_s(buf, "c_%02d", critter);
 				int all;
 				if (!(all = GetPrivateProfileIntA(buf, "Enabled", 0, ".\\CriticalOverrides.ini"))) continue;
@@ -113,7 +116,7 @@ void CritLoad() {
 					for (int crit = 0; crit < 6; crit++) {
 						CritStruct& effect = critTable[critter][part][crit];
 						for (int i = 0; i < 7; i++) {
-							sprintf_s(buf3, "e%d_%s", crit, CritNames[i]);
+							sprintf_s(buf3, "e%d_%s", crit, critNames[i]);
 							effect.values[i] = GetPrivateProfileIntA(buf2, buf3, effect.values[i], ".\\CriticalOverrides.ini");
 						}
 					}
@@ -254,4 +257,6 @@ void Criticals::init() {
 	}
 
 	RemoveCriticalTimeLimitsPatch();
+}
+
 }

@@ -32,6 +32,11 @@
 
 #include "Misc.h"
 
+namespace sfall
+{
+namespace script
+{
+
 static DWORD defaultMaleModelNamePtr = (DWORD)defaultMaleModelName;
 static DWORD defaultFemaleModelNamePtr = (DWORD)defaultFemaleModelName;
 static DWORD movieNamesPtr = (DWORD)MoviePaths;
@@ -1707,4 +1712,7 @@ void sf_tile_light(OpcodeContext& ctx) {
 
 void sf_exec_map_update_scripts(OpcodeContext& ctx) {
 	__asm call FuncOffs::scr_exec_map_update_scripts_
+}
+
+}
 }

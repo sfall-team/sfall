@@ -1,9 +1,10 @@
 #include "..\main.h"
-
-//#include <vector>
 #include "..\FalloutEngine\Fallout2.h"
 
 #include "Sound.h"
+
+namespace sfall
+{
 
 static char attackerSnd[8];
 static char targetSnd[8];
@@ -62,8 +63,6 @@ void Sound::init() {
 	if (GetConfigInt("Sound", "Test_ForceFloats", 0)) {
 		SafeWrite8(0x42B772, 0xeb);
 	}
+}
 
-	/*if(tmp=GetConfigInt("Sound", "ForceSoundAcceleration", 0)) {
-		if(tmp>=1&&tmp<=4) SetupSoundAcceleration(tmp);
-	}*/
 }

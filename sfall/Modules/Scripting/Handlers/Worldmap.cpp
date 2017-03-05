@@ -16,7 +16,6 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #include "..\..\..\CommonTypes.h"
 #include "..\..\..\FalloutEngine\Fallout2.h"
 #include "..\..\..\SafeWrite.h"
@@ -24,6 +23,11 @@
 #include "..\..\ScriptExtender.h"
 
 #include "Worldmap.h"
+
+namespace sfall
+{
+namespace script
+{
 
 static DWORD EncounteredHorrigan;
 static void _stdcall ForceEncounter4() {
@@ -221,3 +225,5 @@ end:
 	}
 }
 
+}
+}

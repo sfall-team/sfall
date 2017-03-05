@@ -20,6 +20,9 @@
 
 #include "Module.h"
 
+namespace sfall
+{
+
 class Console : public Module {
 	const char* name() { return "Console"; }
 	void init();
@@ -27,3 +30,4 @@ class Console : public Module {
 };
 
 //void DisplayAlertPopup(const char* msg, const char* line2);
+}

@@ -26,6 +26,9 @@
 
 #include "Karma.h"
 
+namespace sfall
+{
+
 struct KarmaFrmSetting {
 	DWORD frm;
 	int points;
@@ -120,4 +123,6 @@ void ApplyKarmaFRMsPatch() {
 void Karma::init() {
 	ApplyDisplayKarmaChangesPatch();
 	ApplyKarmaFRMsPatch();
+}
+
 }

@@ -24,6 +24,10 @@
 
 #include "Arrays.h"
 
+namespace sfall
+{
+namespace script
+{
 
 void sf_create_array(OpcodeContext& ctx) {
 	auto arrayId = CreateArray(ctx.arg(0).asInt(), ctx.arg(1).asInt());
@@ -228,4 +232,7 @@ void sf_list_end(OpcodeContext& ctx) {
 	// TODO: make it safer
 	auto list = reinterpret_cast<sList*>(ctx.arg(0).rawValue());
 	ListEnd(list);
+}
+
+}
 }

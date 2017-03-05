@@ -1,5 +1,7 @@
-
 #include "Module.h"
+
+namespace sfall 
+{
 
 class BarBoxes : public Module {
 	const char* name() { return "BarBoxes"; }
@@ -9,3 +11,5 @@ class BarBoxes : public Module {
 int _stdcall GetBox(int i);
 void _stdcall AddBox(int i);
 void _stdcall RemoveBox(int i);
+
+}

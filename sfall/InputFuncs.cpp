@@ -22,15 +22,18 @@
 #include <queue>
 
 #include "main.h"
-
-#include "InputFuncs.h"
 #include "Logging.h"
 #include "Modules\Graphics.h"
 #include "Modules\ScriptExtender.h"
 #include "Modules\HookScripts.h"
 #include "Modules\DebugEditor.h"
 
+#include "InputFuncs.h"
+
 typedef HRESULT (_stdcall *DInputCreateProc)(HINSTANCE a,DWORD b,IDirectInputA** c,IUnknown* d);
+
+namespace sfall 
+{
 
 static bool useScrollWheel;
 static DWORD wheelMod;
@@ -83,6 +86,7 @@ void SetMDown(bool down, bool right) {
 	if (right) RMouse = down ? 0x80 : 0;
 	else LMouse = down ? 0x80 : 0;
 }
+
 void SetMPos(int x, int y) {
 	MPMouseX = x;
 	MPMouseY = y;
@@ -377,7 +381,7 @@ public:
 	}
 };
 
-HRESULT _stdcall FakeDirectInputCreate(HINSTANCE a, DWORD b, IDirectInputA** c, IUnknown* d) {
+HRESULT _stdcall FakeDirectInputCreate_input(HINSTANCE a, DWORD b, IDirectInputA** c, IUnknown* d) {
 	ZeroMemory(keysDown, sizeof(keysDown));
 
 	HMODULE dinput = LoadLibraryA("dinput.dll");
@@ -413,4 +417,11 @@ HRESULT _stdcall FakeDirectInputCreate(HINSTANCE a, DWORD b, IDirectInputA** c, 
 	keyboardLayout = GetKeyboardLayout(0);
 
 	return hr;
+}
+
+}
+
+// This should be in global namespace
+HRESULT _stdcall FakeDirectInputCreate(HINSTANCE a, DWORD b, IDirectInputA** c, IUnknown* d) {
+	return sfall::FakeDirectInputCreate_input(a, b, c, d);
 }

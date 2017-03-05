@@ -22,6 +22,11 @@
 
 #include "FileSystem.h"
 
+namespace sfall
+{
+namespace script
+{
+
 void __declspec(naked) op_fs_create() {
 	__asm {
 		pushad;
@@ -543,4 +548,7 @@ end:
 		popad;
 		retn;
 	}
+}
+
+}
 }

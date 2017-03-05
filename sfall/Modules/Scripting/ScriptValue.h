@@ -20,6 +20,11 @@
 
 #include "..\..\FalloutEngine\Structs.h"
 
+namespace sfall
+{
+namespace script
+{
+
 // TODO: replace with enum class
 enum SfallDataType {
 	DATATYPE_NONE = 0,
@@ -84,3 +89,5 @@ private:
 	SfallDataType _type; // TODO: replace with enum class
 };
 
+}
+}

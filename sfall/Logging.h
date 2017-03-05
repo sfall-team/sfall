@@ -25,10 +25,15 @@
 #ifndef NO_SFALL_DEBUG
 #include <stdio.h>
 
+namespace sfall 
+{
+
 void dlog(const char* msg, int type);
 void dlogr(const char* msg, int type);
 void dlog_f(const char *format, int type, ...);
 void LoggingInit();
+
+}
 #else
 #define dlog(a,b)
 #define dlogr(a,b)

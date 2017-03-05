@@ -19,13 +19,13 @@
 #include <vector>
 
 #include "..\main.h"
-
 #include "..\FalloutEngine\Fallout2.h"
 #include "LoadGameHook.h"
 
 #include "FileSystem.h"
 
-extern void GetSavePath(char* buf, char* ftype);
+namespace sfall
+{
 
 struct fsFile {
 	char* data;
@@ -749,4 +749,6 @@ void FileSystem::init() {
 
 		LoadGameHook::onGameReset += FileSystemReset;
 	}
+}
+
 }

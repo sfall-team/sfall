@@ -20,7 +20,12 @@
 
 #include "Module.h"
 
+namespace sfall
+{
+
 class BurstMods : public Module {
 	const char* name() { return "BurstMods"; }
 	void init();
 };
+
+}

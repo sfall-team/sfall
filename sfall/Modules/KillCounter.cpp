@@ -17,11 +17,13 @@
  */
 
 #include "..\main.h"
-
 #include "..\FalloutEngine\Fallout2.h"
 #include "..\Version.h"
 
 #include "KillCounter.h"
+
+namespace sfall
+{
 
 static int usingExtraKillTypes;
 bool UsingExtraKillTypes() { return usingExtraKillTypes != 0; }
@@ -91,30 +93,6 @@ void KillCounterInit(bool use) {
 
 	//Change char sheet to loop through the extra kill types
 	SafeWrite8(0x004344E4, 38);
-
-	//Where fallout clears the counters
-	/*SafeWrite32(0x0042CF5E, sizeof(KillCounters));
-	SafeWrite32(0x0042CFEC, sizeof(KillCounters));
-	SafeWrite32(0x0042D863, sizeof(KillCounters));
-	SafeWrite32(0x0042CF63, (DWORD)KillCounters);
-	SafeWrite32(0x0042CFF1, (DWORD)KillCounters);
-	SafeWrite32(0x0042D868, (DWORD)KillCounters);
-
-	//Where fallout increments the kill counter
-	SafeWrite8(0x0042D881, COUNTERS);
-	SafeWrite32(0x0042D895, (DWORD)KillCounters);
-	SafeWrite32(0x0042D89E, (DWORD)KillCounters);
-
-	//A function that reads the kill counter
-	SafeWrite8(0x0042D8AF, COUNTERS);
-	SafeWrite32(0x0042D8B8, (DWORD)KillCounters);
-
-	//Not sure what these two do. Possibly related to loading the names/descriptions?
-	SafeWrite32(0x0042D8C6, COUNTERS); //This one causes a crash on load?
-	SafeWrite32(0x0042D8CB, (DWORD)KillCounters);
-
-	SafeWrite32(0x0042D8F6, COUNTERS);
-	SafeWrite32(0x0042D8FB, (DWORD)KillCounters);*/
 }
 
 void KillCounter::init() {
@@ -125,4 +103,6 @@ void KillCounter::init() {
 	} else {
 		KillCounterInit(false);
 	}
+}
+
 }

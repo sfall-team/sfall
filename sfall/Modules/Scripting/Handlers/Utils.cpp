@@ -28,6 +28,11 @@
 
 #include "Utils.h"
 
+namespace sfall
+{
+namespace script
+{
+
 void sf_sqrt(OpcodeContext& ctx) {
 	ctx.setReturn(sqrt(ctx.arg(0).asFloat()));
 }
@@ -338,4 +343,7 @@ void sf_message_str_game(OpcodeContext& ctx) {
 		msg = "Error";
 	}
 	ctx.setReturn(msg);
+}
+
+}
 }

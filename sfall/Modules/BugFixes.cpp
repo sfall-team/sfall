@@ -1,8 +1,11 @@
 #include "..\main.h"
-
-#include "BugFixes.h"
 #include "..\FalloutEngine\Fallout2.h"
 #include "ScriptExtender.h"
+
+#include "BugFixes.h"
+
+namespace sfall
+{
 
 DWORD WeightOnBody = 0;
 
@@ -1187,4 +1190,6 @@ void BugFixes::init()
 		// Fix crash when trying to open bag/backpack on the table in the bartering interface
 		MakeCall(0x473191, &inven_action_cursor_hack, false);
 	//}
+}
+
 }

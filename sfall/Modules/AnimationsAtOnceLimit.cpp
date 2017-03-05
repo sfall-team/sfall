@@ -20,8 +20,10 @@
 
 #include "AnimationsAtOnceLimit.h"
 
+namespace sfall 
+{
 
-static bool AniLimitFixActive = false;
+static bool animLimitFixActive = false;
 
 //pointers to new animation struct arrays
 static BYTE *anim_set;
@@ -146,7 +148,7 @@ static const DWORD sad_28[] = {
 void ApplyAnimationsAtOncePatches(signed char aniMax) {
 	if (aniMax <= 32) return;
 
-	AniLimitFixActive = true;
+	animLimitFixActive = true;
 
 	int i;
 
@@ -303,7 +305,9 @@ void AnimationsAtOnce::init() {
 }
 
 void AnimationsAtOnce::exit() {
-	if (!AniLimitFixActive) return;
+	if (!animLimitFixActive) return;
 	delete[] anim_set;
 	delete[] sad;
+}
+
 }

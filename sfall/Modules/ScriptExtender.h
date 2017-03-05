@@ -23,6 +23,9 @@
 
 #include "Module.h"
 
+namespace sfall
+{
+
 class ScriptExtender : public Module {
 	const char* name() { return "ScriptExtender"; }
 	void init();
@@ -102,3 +105,5 @@ extern DWORD modifiedIni;
 #define map_enter_p_proc    (15)
 #define destroy_p_proc      (18)
 #define map_update_p_proc   (23)
+
+}

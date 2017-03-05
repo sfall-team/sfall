@@ -18,6 +18,10 @@
 
 #include "ScriptValue.h"
 
+namespace sfall
+{
+namespace script
+{
 
 ScriptValue::ScriptValue( SfallDataType type, unsigned long value )
 {
@@ -119,4 +123,7 @@ TGameObj* ScriptValue::asObject() const {
 
 SfallDataType ScriptValue::type() const {
 	return _type;
+}
+
+}
 }

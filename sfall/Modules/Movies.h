@@ -20,6 +20,9 @@
 
 #include "Module.h"
 
+namespace sfall
+{
+
 class Movies : public Module {
 	const char* name() { return "Movies"; }
 	void init();
@@ -30,3 +33,5 @@ extern char MoviePaths[MaxMovies*65];
 
 void* _stdcall PlaySfallSound(const char* path, int loop);
 void _stdcall StopSfallSound(void* ptr);
+
+}

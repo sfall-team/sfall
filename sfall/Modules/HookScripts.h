@@ -20,6 +20,9 @@
 
 #include "Module.h"
 
+namespace sfall
+{
+
 enum HookType
 {
 	HOOK_TOHIT            = 0,
@@ -73,3 +76,5 @@ extern void __declspec() AmmoCostHookWrapper();
 void _stdcall MouseClickHook(DWORD button, bool pressed);
 void _stdcall KeyPressHook(DWORD dxKey, bool pressed, DWORD vKey);
 void _stdcall RunHookScriptsAtProc(DWORD procId);
+
+}

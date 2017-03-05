@@ -24,7 +24,8 @@
 
 #include "Perks.h"
 
-//static const BYTE PerksUsed=121;
+namespace sfall
+{
 
 static char Name[64 * PERK_count];
 static char Desc[1024 * PERK_count];
@@ -1118,4 +1119,6 @@ void Perks::init() {
 	} else perksFile[0] = 0;
 
 	LoadGameHook::onGameReset += PerksReset;
+}
+
 }

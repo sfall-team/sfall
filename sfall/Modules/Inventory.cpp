@@ -26,9 +26,12 @@
 
 #include "Inventory.h"
 
+namespace sfall
+{
+
 static DWORD mode;
-static DWORD MaxItemSize;
-static DWORD ReloadWeaponKey = 0;
+static DWORD maxItemSize;
+static DWORD reloadWeaponKey = 0;
 
 long& GetActiveItemMode() {
 	return VarPtr::itemButtonItems[VarPtr::itemCurrentItem].mode;
@@ -39,24 +42,16 @@ TGameObj* GetActiveItem() {
 }
 
 void InventoryKeyPressedHook(DWORD dxKey, bool pressed, DWORD vKey) {
-	if (pressed && ReloadWeaponKey && dxKey == ReloadWeaponKey && IsMapLoaded() && (GetCurrentLoops() & ~(COMBAT | PCOMBAT)) == 0) {
+	if (pressed && reloadWeaponKey && dxKey == reloadWeaponKey && IsMapLoaded() && (GetCurrentLoops() & ~(COMBAT | PCOMBAT)) == 0) {
 		DWORD maxAmmo, curAmmo;
 		TGameObj* item = GetActiveItem();
-		__asm {
-			mov eax, item;
-			call FuncOffs::item_w_max_ammo_;
-			mov maxAmmo, eax;
-			mov eax, item;
-			call FuncOffs::item_w_curr_ammo_;
-			mov curAmmo, eax;
-		}
+		maxAmmo = Wrapper::item_w_max_ammo(item);
+		curAmmo = Wrapper::item_w_curr_ammo(item);
 		if (maxAmmo != curAmmo) {
 			long &currentMode = GetActiveItemMode();
 			long previusMode = currentMode;
 			currentMode = 5; // reload mode
-			__asm {
-				call FuncOffs::intface_use_item_;
-			}
+			Wrapper::intface_use_item();
 			if (previusMode != 5) {
 				// return to previous active item mode (if it wasn't "reload")
 				currentMode = previusMode - 1;
@@ -188,7 +183,7 @@ run:
 		mov eax, [eax + 0xB0 + 40]; //The unused stat in the extra block
 		jmp end;
 single:
-		mov eax, MaxItemSize;
+		mov eax, maxItemSize;
 		jmp end;
 fail:
 		xor eax, eax;
@@ -638,7 +633,7 @@ void Inventory::init() {
 		SafeWrite8(0x477EB3, 0xeb);
 	}
 	if (mode) {
-		MaxItemSize = GetConfigInt("Misc", "CritterInvSizeLimit", 100);
+		maxItemSize = GetConfigInt("Misc", "CritterInvSizeLimit", 100);
 
 		//Check item_add_multi (picking stuff from the floor, etc.)
 		HookCall(0x4771BD, &ItemAddMultiHook1);
@@ -672,7 +667,7 @@ void Inventory::init() {
 		MakeCall(0x4234B3, &divide_burst_rounds_by_ammo_cost, true);
 	}
 
-	ReloadWeaponKey = GetConfigInt("Input", "ReloadWeaponKey", 0);
+	reloadWeaponKey = GetConfigInt("Input", "ReloadWeaponKey", 0);
 
 	if (GetConfigInt("Misc", "StackEmptyWeapons", 0)) {
 		MakeCall(0x4736C6, &inven_action_cursor_hack, true);
@@ -699,3 +694,4 @@ void Inventory::init() {
 	MakeCall(0x47808C, ItemCountFix, true); // replacing item_count_ function
 }
 
+}

@@ -72,6 +72,9 @@
 
 #include "main.h"
 
+namespace sfall
+{
+
 bool isDebug = false;
 
 const char ddrawIni[] = ".\\ddraw.ini";
@@ -79,7 +82,7 @@ static char ini[65];
 static char translationIni[65];
 
 unsigned int GetConfigInt(const char* section, const char* setting, int defaultValue) {
-	return GetPrivateProfileIntA(section, setting, defaultValue, ::ini);
+	return GetPrivateProfileIntA(section, setting, defaultValue, ini);
 }
 
 std::string GetIniString(const char* section, const char* setting, const char* defaultValue, size_t bufSize, const char* iniFile) {
@@ -97,23 +100,23 @@ std::vector<std::string> GetIniList(const char* section, const char* setting, co
 }
 
 std::string GetConfigString(const char* section, const char* setting, const char* defaultValue, size_t bufSize) {
-	return GetIniString(section, setting, defaultValue, bufSize, ::ini);
+	return GetIniString(section, setting, defaultValue, bufSize, ini);
 }
 
 size_t GetConfigString(const char* section, const char* setting, const char* defaultValue, char* buf, size_t bufSize) {
-	return GetPrivateProfileStringA(section, setting, defaultValue, buf, bufSize, ::ini);
+	return GetPrivateProfileStringA(section, setting, defaultValue, buf, bufSize, ini);
 }
 
 std::vector<std::string> GetConfigList(const char* section, const char* setting, const char* defaultValue, size_t bufSize) {
-	return GetIniList(section, setting, defaultValue, bufSize, ',', ::ini);
+	return GetIniList(section, setting, defaultValue, bufSize, ',', ini);
 }
 
 std::string Translate(const char* section, const char* setting, const char* defaultValue, size_t bufSize) {
-	return GetIniString(section, setting, defaultValue, bufSize, ::translationIni);
+	return GetIniString(section, setting, defaultValue, bufSize, translationIni);
 }
 
 size_t Translate(const char* section, const char* setting, const char* defaultValue, char* buffer, size_t bufSize) {
-	return GetPrivateProfileStringA(section, setting, defaultValue, buffer, bufSize, ::translationIni);
+	return GetPrivateProfileStringA(section, setting, defaultValue, buffer, bufSize, translationIni);
 }
 
 
@@ -193,7 +196,7 @@ static void CompatModeCheck(HKEY root, const char* filepath, int extra) {
 	}
 }
 
-bool _stdcall DllMain(HANDLE hDllHandle, DWORD dwReason, LPVOID  lpreserved) {
+inline bool DllMain1(HANDLE hDllHandle, DWORD dwReason, LPVOID  lpreserved) {
 	if (dwReason == DLL_PROCESS_ATTACH) {
 		// enabling debugging features
  		isDebug = (GetPrivateProfileIntA("Debugging", "Enable", 0, ddrawIni) != 0);
@@ -263,4 +266,10 @@ bool _stdcall DllMain(HANDLE hDllHandle, DWORD dwReason, LPVOID  lpreserved) {
 		DllMain2();
 	}
 	return true;
+}
+
+}
+
+bool _stdcall DllMain(HANDLE hDllHandle, DWORD dwReason, LPVOID lpreserved) {
+	sfall::DllMain1(hDllHandle, dwReason, lpreserved);
 }

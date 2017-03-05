@@ -24,6 +24,11 @@
 
 #include "Graphics.h"
 
+namespace sfall
+{
+namespace script
+{
+
 void __declspec(naked) op_graphics_funcs_available() {
 	__asm {
 		push ebx;
@@ -513,4 +518,7 @@ end:
 		pop ebx;
 		retn;
 	}
+}
+
+}
 }

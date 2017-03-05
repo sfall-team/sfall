@@ -18,6 +18,11 @@
 
 #pragma once
 
+namespace sfall
+{
+namespace script
+{
+
 // stat_funcs
 void __declspec() op_set_pc_base_stat();
 
@@ -83,3 +88,5 @@ void __declspec() op_set_xp_mod();
 
 void __declspec() op_set_perk_level_mod();
 
+}
+}

@@ -38,6 +38,11 @@
 
 #include "Opcodes.h"
 
+namespace sfall
+{
+namespace script
+{
+
 static const short sfallOpcodeStart = 0x156;
 static const short opcodeCount = 0x300;
 
@@ -422,4 +427,7 @@ void InitNewOpcodes() {
 
 	InitOpcodeInfoTable();
 	InitMetaruleTable();
+}
+
+}
 }

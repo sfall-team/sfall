@@ -24,6 +24,11 @@
 
 #include "Objects.h"
 
+namespace sfall
+{
+namespace script
+{
+
 void __declspec(naked) op_remove_script() {
 	__asm {
 		push ebx;
@@ -390,4 +395,7 @@ void sf_critter_inven_obj2(OpcodeContext& ctx) {
 	default:
 		ctx.printOpcodeError("critter_inven_obj2() - invalid type.");
 	}
+}
+
+}
 }

@@ -21,6 +21,9 @@
 
 #include "Premade.h"
 
+namespace sfall
+{
+
 PremadeChar* premade;
 
 void Premade::init() {
@@ -41,4 +44,6 @@ void Premade::init() {
 		SafeWrite32(0x4A7E2C, (DWORD)premade + 20);
 		strcpy_s((char*)0x50AF68, 20, premade[0].path);
 	}
+}
+
 }

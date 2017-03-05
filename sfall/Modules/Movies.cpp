@@ -30,6 +30,9 @@
 
 #include "Movies.h"
 
+namespace sfall
+{
+
 static DWORD MoviePtrs[MaxMovies];
 char MoviePaths[MaxMovies * 65];
 
@@ -591,4 +594,6 @@ void Movies::init() {
 		MakeCall(0x4A378B, &Artimer1DaysCheckHook, true);
 		dlogr("Done", DL_INIT);
 	}
+}
+
 }

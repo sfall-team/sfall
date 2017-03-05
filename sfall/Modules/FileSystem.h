@@ -20,6 +20,9 @@
 
 #include "Module.h"
 
+namespace sfall
+{
+
 class FileSystem : public Module {
 public:
 	const char* name() { return "FileSystem"; }
@@ -47,3 +50,5 @@ DWORD _stdcall FSsize(DWORD id);
 DWORD _stdcall FSpos(DWORD id);
 void _stdcall FSseek(DWORD id, DWORD pos);
 void _stdcall FSresize(DWORD id, DWORD size);
+
+}

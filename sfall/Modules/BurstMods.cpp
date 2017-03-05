@@ -17,10 +17,12 @@
  */
 
 #include "..\main.h"
-
 #include "..\Logging.h"
 
 #include "BurstMods.h"
+
+namespace sfall
+{
 
 static DWORD compute_spray_center_mult;
 static DWORD compute_spray_center_div;
@@ -92,4 +94,6 @@ void BurstMods::init() {
 		MakeCall(0x4234F1, &compute_spray_rounds_distribution, true);
 		dlogr(" Done", DL_INIT);
 	}
+}
+
 }

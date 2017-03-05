@@ -19,6 +19,9 @@
 
 #include "Module.h"
 
+namespace sfall
+{
+
 class PlayerModel : public Module {
 	const char* name() { return "PlayerModel"; }
 	void init();
@@ -26,3 +29,5 @@ class PlayerModel : public Module {
 
 extern char defaultMaleModelName[65];
 extern char defaultFemaleModelName[65];
+
+}

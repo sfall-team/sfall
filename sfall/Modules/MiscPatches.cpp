@@ -28,6 +28,9 @@
 
 #include "MiscPatches.h"
 
+namespace sfall
+{
+
 // TODO: split this into smaller files
 
 static char mapName[65];
@@ -820,4 +823,6 @@ void MiscPatches::exit() {
 	if (scriptDialog != nullptr) {
 		delete[] scriptDialog;
 	}
+}
+
 }

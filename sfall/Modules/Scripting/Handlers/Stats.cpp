@@ -26,6 +26,11 @@
 
 #include "Stats.h"
 
+namespace sfall
+{
+namespace script
+{
+
 void __declspec(naked) op_set_pc_base_stat() {
 	__asm {
 		//Store registers
@@ -1268,4 +1273,7 @@ end:
 		pop ebx;
 		retn;
 	}
+}
+
+}
 }

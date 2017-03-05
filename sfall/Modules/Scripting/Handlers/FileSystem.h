@@ -20,6 +20,11 @@
 
 //file system functions
 
+namespace sfall
+{
+namespace script
+{
+
 void __declspec() op_fs_create();
 
 void __declspec() op_fs_copy();
@@ -53,3 +58,6 @@ void __declspec() op_fs_pos();
 void __declspec() op_fs_seek();
 
 void __declspec() op_fs_resize();
+
+}
+}

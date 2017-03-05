@@ -25,6 +25,8 @@
 
 #include "Message.h"
 
+namespace sfall
+{
 
 ExtraGameMessageListsMap gExtraGameMsgLists;
 
@@ -92,4 +94,6 @@ void Message::init() {
 
 void Message::exit() {
 	ClearReadExtraGameMsgFiles();
+}
+
 }

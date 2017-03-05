@@ -27,6 +27,11 @@
 
 #include "Core.h"
 
+namespace sfall
+{
+namespace script
+{
+
 void __declspec(naked) op_set_global_script_repeat() {
 	__asm {
 		push ebx;
@@ -375,4 +380,7 @@ void sf_sfall_ver_minor(OpcodeContext& ctx) {
 
 void sf_sfall_ver_build(OpcodeContext& ctx) {
 	ctx.setReturn(VERSION_BUILD);
+}
+
+}
 }

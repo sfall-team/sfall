@@ -20,6 +20,9 @@
 
 #include "Module.h"
 
+namespace sfall
+{
+
 class Perks : public Module {
 public:
 	const char* name() { return "Perks"; }
@@ -52,3 +55,5 @@ DWORD _stdcall HasFakeTrait(char* name);
 void _stdcall ClearSelectablePerks();
 
 void _stdcall SetPerkFreq(int i);
+
+}

@@ -18,7 +18,12 @@
 
 #include "Module.h"
 
+namespace sfall
+{
+
 class Premade : public Module {
 	const char* name() { return "Premade"; }
 	void init();
 };
+
+}

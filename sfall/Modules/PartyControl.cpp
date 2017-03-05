@@ -31,6 +31,9 @@
 
 #include "PartyControl.h"
 
+namespace sfall
+{
+
 static DWORD Mode;
 static int IsControllingNPC = 0;
 static std::vector<WORD> Chars;
@@ -382,4 +385,4 @@ void PartyControl::init() {
 	}
 }
 
-
+}

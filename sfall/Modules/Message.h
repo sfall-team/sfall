@@ -25,6 +25,9 @@
 
 #include "Module.h"
 
+namespace sfall
+{
+
 typedef std::tr1::unordered_map<int, std::unique_ptr<MessageList>> ExtraGameMessageListsMap;
 extern ExtraGameMessageListsMap gExtraGameMsgLists;
 
@@ -36,3 +39,5 @@ class Message : public Module {
 
 MessageNode *GetMsgNode(MessageList *msgList, int msgRef);
 char* GetMsg(MessageList *MsgList, int msgRef, int msgNum);
+
+}

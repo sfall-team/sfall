@@ -22,6 +22,11 @@
 
 #include "Perks.h"
 
+namespace sfall
+{
+namespace script
+{
+
 void __declspec(naked) op_get_perk_owed() {
 	__asm {
 		pushad;
@@ -671,4 +676,7 @@ end:
 		pop ebx;
 		retn;
 	}
+}
+
+}
 }

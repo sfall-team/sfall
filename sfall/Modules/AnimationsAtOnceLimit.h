@@ -20,8 +20,13 @@
 
 #include "Module.h"
 
+namespace sfall 
+{
+
 class AnimationsAtOnce : public Module {
 	const char* name() { return "AnimationsAtOnceLimit"; }
 	void init();
 	void exit() override;
 };
+
+}

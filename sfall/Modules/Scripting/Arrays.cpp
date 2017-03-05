@@ -7,6 +7,11 @@
 
 #include "Arrays.h"
 
+namespace sfall
+{
+namespace script
+{
+
 /*
 	GLOBAL variable for arrays
 */
@@ -599,4 +604,7 @@ DWORD _stdcall StackArray(const ScriptValue& key, const ScriptValue& val) {
 	}
 	SetArray(id, key, val, 0);
 	return 0;
+}
+
+}
 }

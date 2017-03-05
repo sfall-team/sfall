@@ -22,6 +22,10 @@
 
 #include "Memory.h"
 
+namespace sfall
+{
+namespace script
+{
 
 void __declspec(naked) op_read_byte() {
 	__asm {
@@ -329,4 +333,7 @@ void __declspec(naked) op_call_offset() {
 		popad;
 		retn;
 	}
+}
+
+}
 }

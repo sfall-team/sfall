@@ -26,24 +26,25 @@
 
 #include "HeroAppearance.h"
 
-bool AppModEnabled = false; //check if Appearance mod enabled for script functions
+namespace sfall
+{
+
+bool appModEnabled = false; //check if Appearance mod enabled for script functions
 
 //char scrn surfaces
-BYTE *NewButt01Surface = NULL;
-BYTE *CharScrnBackSurface = NULL;
+BYTE *newButt01Surface = NULL;
+BYTE *charScrnBackSurface = NULL;
 
 //char scrn critter rotation vars
-DWORD CharRotTick = 0;
-DWORD CharRotOri = 0;
+DWORD charRotTick = 0;
+DWORD charRotOri = 0;
 
-int CurrentRaceVal = 0, CurrentStyleVal = 0; //holds Appearance values to restore after global reset in NewGame2 function in LoadGameHooks.cpp
-
+int currentRaceVal = 0, currentStyleVal = 0; //holds Appearance values to restore after global reset in NewGame2 function in LoadGameHooks.cpp
 DWORD critterListSize = 0, critterArraySize = 0; //Critter art list size
 
-
-sPath **TempPathPtr = &VarPtr::paths;
-sPath *HeroPathPtr = NULL;
-sPath *RacePathPtr = NULL;
+sPath **tempPathPtr = &VarPtr::paths;
+sPath *heroPathPtr = NULL;
+sPath *racePathPtr = NULL;
 
 
 //for word wrapping
@@ -839,43 +840,43 @@ EndFunc:
 //----------------------------------------------------------------
 int _stdcall LoadHeroDat(unsigned int Race, unsigned int Style) {
 
-	if (HeroPathPtr->pDat) { //unload previous Dats
-		UnloadDat(HeroPathPtr->pDat);
-		HeroPathPtr->pDat = NULL;
-		HeroPathPtr->isDat = 0;
+	if (heroPathPtr->pDat) { //unload previous Dats
+		UnloadDat(heroPathPtr->pDat);
+		heroPathPtr->pDat = NULL;
+		heroPathPtr->isDat = 0;
 	}
-	if (RacePathPtr->pDat) {
-		UnloadDat(RacePathPtr->pDat);
-		RacePathPtr->pDat = NULL;
-		RacePathPtr->isDat = 0;
+	if (racePathPtr->pDat) {
+		UnloadDat(racePathPtr->pDat);
+		racePathPtr->pDat = NULL;
+		racePathPtr->isDat = 0;
 	}
 
-	sprintf_s(HeroPathPtr->path, 64, "Appearance\\h%cR%02dS%02d.dat\0", GetSex(), Race, Style);
-	if (GetFileAttributes(HeroPathPtr->path) != INVALID_FILE_ATTRIBUTES) { //check if Dat exists for selected appearance
-		HeroPathPtr->pDat = LoadDat(HeroPathPtr->path);
-		HeroPathPtr->isDat = 1;
+	sprintf_s(heroPathPtr->path, 64, "Appearance\\h%cR%02dS%02d.dat\0", GetSex(), Race, Style);
+	if (GetFileAttributes(heroPathPtr->path) != INVALID_FILE_ATTRIBUTES) { //check if Dat exists for selected appearance
+		heroPathPtr->pDat = LoadDat(heroPathPtr->path);
+		heroPathPtr->isDat = 1;
 	}
 	else {
-		sprintf_s(HeroPathPtr->path, 64, "Appearance\\h%cR%02dS%02d\0", GetSex(), Race, Style);
-		if (GetFileAttributes(HeroPathPtr->path) == INVALID_FILE_ATTRIBUTES) //check if folder exists for selected appearance
+		sprintf_s(heroPathPtr->path, 64, "Appearance\\h%cR%02dS%02d\0", GetSex(), Race, Style);
+		if (GetFileAttributes(heroPathPtr->path) == INVALID_FILE_ATTRIBUTES) //check if folder exists for selected appearance
 			return -1;
 	}
 
-	TempPathPtr = &HeroPathPtr; //set path for selected appearance
-	HeroPathPtr->next = &VarPtr::paths[0];
+	tempPathPtr = &heroPathPtr; //set path for selected appearance
+	heroPathPtr->next = &VarPtr::paths[0];
 
 	if (Style != 0){
-		sprintf_s(RacePathPtr->path, 64, "Appearance\\h%cR%02dS%02d.dat\0", GetSex(), Race, 0);
-		if (GetFileAttributes(RacePathPtr->path) != INVALID_FILE_ATTRIBUTES) { //check if Dat exists for selected race base appearance
-			RacePathPtr->pDat = LoadDat(RacePathPtr->path);
-			RacePathPtr->isDat = 1;
+		sprintf_s(racePathPtr->path, 64, "Appearance\\h%cR%02dS%02d.dat\0", GetSex(), Race, 0);
+		if (GetFileAttributes(racePathPtr->path) != INVALID_FILE_ATTRIBUTES) { //check if Dat exists for selected race base appearance
+			racePathPtr->pDat = LoadDat(racePathPtr->path);
+			racePathPtr->isDat = 1;
 		}
 		else
-			sprintf_s(RacePathPtr->path, 64, "Appearance\\h%cR%02dS%02d\0", GetSex(), Race, 0);
+			sprintf_s(racePathPtr->path, 64, "Appearance\\h%cR%02dS%02d\0", GetSex(), Race, 0);
 
-		if (GetFileAttributes(RacePathPtr->path) != INVALID_FILE_ATTRIBUTES) { //check if folder/Dat exists for selected race base appearance
-			HeroPathPtr->next = RacePathPtr; //set path for selected race base appearance
-			RacePathPtr->next = &VarPtr::paths[0];
+		if (GetFileAttributes(racePathPtr->path) != INVALID_FILE_ATTRIBUTES) { //check if folder/Dat exists for selected race base appearance
+			heroPathPtr->next = racePathPtr; //set path for selected race base appearance
+			racePathPtr->next = &VarPtr::paths[0];
 		}
 	}
 	return 0;
@@ -891,7 +892,7 @@ static void __declspec(naked) LoadNewHeroArt() {
 		mov ecx, VARPTR_paths
 		jmp setPath
 isReading:
-		mov ecx, TempPathPtr
+		mov ecx, tempPathPtr
 setPath:
 		mov ecx, dword ptr ds:[ecx]
 		ret
@@ -1199,78 +1200,78 @@ LoopStart:
 		mov dword ptr ds:[VARPTR_i_lhand], eax //item1
 	}
 
-	if (!AppModEnabled) return;
+	if (!appModEnabled) return;
 
-	if (LoadHeroDat(CurrentRaceVal, CurrentStyleVal) != 0) { //if load fails
-		CurrentStyleVal = 0; //set style to default
-		if (LoadHeroDat(CurrentRaceVal, CurrentStyleVal) != 0) { //if race fails with style at default
-			CurrentRaceVal = 0; //set race to default
-			LoadHeroDat(CurrentRaceVal, CurrentStyleVal);
+	if (LoadHeroDat(currentRaceVal, currentStyleVal) != 0) { //if load fails
+		currentStyleVal = 0; //set style to default
+		if (LoadHeroDat(currentRaceVal, currentStyleVal) != 0) { //if race fails with style at default
+			currentRaceVal = 0; //set race to default
+			LoadHeroDat(currentRaceVal, currentStyleVal);
 		}
 	}
 	RefreshArtCache();
-	SetAppearanceGlobals(CurrentRaceVal, CurrentStyleVal); //store new globals
+	SetAppearanceGlobals(currentRaceVal, currentStyleVal); //store new globals
 	DrawPC();
 }
 
 //----------------------------------------------------------------------
 void _stdcall LoadHeroAppearance(void) {
-	if (!AppModEnabled) return;
+	if (!appModEnabled) return;
 
-	GetAppearanceGlobals(&CurrentRaceVal, &CurrentStyleVal);
+	GetAppearanceGlobals(&currentRaceVal, &currentStyleVal);
 	RefreshArtCache();
-	LoadHeroDat(CurrentRaceVal, CurrentStyleVal);
+	LoadHeroDat(currentRaceVal, currentStyleVal);
 	SetHeroArt(1);
 	DrawPC();
 }
 
 //---------------------------------------
 void _stdcall SetNewCharAppearanceGlobals(void) {
-	if (!AppModEnabled) return;
+	if (!appModEnabled) return;
 
-	if (CurrentRaceVal > 0 || CurrentStyleVal > 0)
-		SetAppearanceGlobals(CurrentRaceVal, CurrentStyleVal);
+	if (currentRaceVal > 0 || currentStyleVal > 0)
+		SetAppearanceGlobals(currentRaceVal, currentStyleVal);
 }
 
 //----------------------------------------------------------------------
 void _stdcall SetHeroStyle(int newStyleVal) {
-	if (!AppModEnabled) return;
+	if (!appModEnabled) return;
 
-	if (newStyleVal == CurrentStyleVal) return;
+	if (newStyleVal == currentStyleVal) return;
 
 	RefreshArtCache();
 
-	if (LoadHeroDat(CurrentRaceVal, newStyleVal) != 0) { //if new style cannot be set
-		if (CurrentRaceVal == 0 && newStyleVal == 0) {
-			CurrentStyleVal = 0; //ignore error if appearance = default
+	if (LoadHeroDat(currentRaceVal, newStyleVal) != 0) { //if new style cannot be set
+		if (currentRaceVal == 0 && newStyleVal == 0) {
+			currentStyleVal = 0; //ignore error if appearance = default
 		} else {
-			LoadHeroDat(CurrentRaceVal, CurrentStyleVal); //reload original style
+			LoadHeroDat(currentRaceVal, currentStyleVal); //reload original style
 		}
 	} else {
-		CurrentStyleVal = newStyleVal;
+		currentStyleVal = newStyleVal;
 	}
 
-	SetAppearanceGlobals(CurrentRaceVal, CurrentStyleVal);
+	SetAppearanceGlobals(currentRaceVal, currentStyleVal);
 	DrawPC();
 }
 
 //----------------------------------------------------------------------
 void _stdcall SetHeroRace(int newRaceVal) {
 
-	if (!AppModEnabled) return;
+	if (!appModEnabled) return;
 
-	if (newRaceVal == CurrentRaceVal) return;
+	if (newRaceVal == currentRaceVal) return;
 
 	RefreshArtCache();
 
 	if (LoadHeroDat(newRaceVal, 0) != 0) {   //if new race fails with style at 0
-		if (newRaceVal == 0) CurrentRaceVal = 0, CurrentStyleVal = 0; //ignore if appearance = default
-		else LoadHeroDat(CurrentRaceVal, CurrentStyleVal); //reload original race & style
+		if (newRaceVal == 0) currentRaceVal = 0, currentStyleVal = 0; //ignore if appearance = default
+		else LoadHeroDat(currentRaceVal, currentStyleVal); //reload original race & style
 	}
 	else
-		CurrentRaceVal=newRaceVal, CurrentStyleVal=0;
+		currentRaceVal=newRaceVal, currentStyleVal=0;
 
-	SetAppearanceGlobals(CurrentRaceVal, CurrentStyleVal); //store new globals
+	SetAppearanceGlobals(currentRaceVal, currentStyleVal); //store new globals
 	DrawPC();
 }
 
@@ -1353,14 +1354,14 @@ void DrawPCConsole() {
 	DWORD NewTick = *(DWORD*)0x5709C4; //char scrn gettickcount ret
 	DWORD RotSpeed = *(DWORD*)0x47066B; //get rotation speed -inventory rotation speed
 
-	if (CharRotTick > NewTick)
-		CharRotTick = NewTick;
+	if (charRotTick > NewTick)
+		charRotTick = NewTick;
 
-	if (NewTick - CharRotTick > RotSpeed) {
-		CharRotTick = NewTick;
-		if (CharRotOri < 5)
-			CharRotOri++;
-		else CharRotOri = 0;
+	if (NewTick - charRotTick > RotSpeed) {
+		charRotTick = NewTick;
+		if (charRotOri < 5)
+			charRotOri++;
+		else charRotOri = 0;
 
 
 		int WinRef = VarPtr::edit_win; //char screen window ref
@@ -1369,7 +1370,7 @@ void DrawPCConsole() {
 
 		BYTE *ConSurface = new BYTE [70*102];
 
-		sub_draw(70, 102, 640, 480, 338, 78, CharScrnBackSurface, 70, 102, 0, 0, ConSurface, 0);
+		sub_draw(70, 102, 640, 480, 338, 78, charScrnBackSurface, 70, 102, 0, 0, ConSurface, 0);
 		//sub_draw(70, 102, widthBG, heightBG, xPosBG, yPosBG, BGSurface, 70, 102, 0, 0, ConSurface, 0);
 
 		//DWORD CritNum = VarPtr::art_vault_guy_num; //pointer to current base hero critter FrmId
@@ -1382,9 +1383,9 @@ void DrawPCConsole() {
 		BYTE *CritSurface;
 
 		CritFrm = GetFrm(LoadFrm(1, CritNum), &CritFrmObj);
-		CritWidth = GetFrmFrameWidth(CritFrm, 0, CharRotOri);
-		CritHeight = GetFrmFrameHeight(CritFrm, 0, CharRotOri);
-		CritSurface = GetFrmFrameSurface(CritFrm, 0, CharRotOri);
+		CritWidth = GetFrmFrameWidth(CritFrm, 0, charRotOri);
+		CritHeight = GetFrmFrameHeight(CritFrm, 0, charRotOri);
+		CritSurface = GetFrmFrameSurface(CritFrm, 0, charRotOri);
 
 		sub_draw(CritWidth, CritHeight, CritWidth, CritHeight, 0, 0, CritSurface, 70, 102, 35-CritWidth/2, 51-CritHeight/2, ConSurface, 0);
 
@@ -1404,7 +1405,7 @@ void DrawPCConsole() {
 		sprintf_s(TextBuf, 12, "%2d\0", CurrentRaceVal);
 		PrintText(TextBuf, raceColour, 2, 2, 64, 70, ConSurface);
 
-		sprintf_s(TextBuf, 12, "%2d\0", CurrentStyleVal);
+		sprintf_s(TextBuf, 12, "%2d\0", currentStyleVal);
 		PrintText(TextBuf, styleColour, 5, 88, 64, 70, ConSurface);
 
 		SetFont(oldFont); //restore previous font
@@ -1530,7 +1531,7 @@ void DrawCharNote(DWORD LstNum, char *TitleTxt, char *AltTitleTxt, char *Message
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void _stdcall HeroSelectWindow(int RaceStyleFlag) {
 
-	if (!AppModEnabled) return;
+	if (!appModEnabled) return;
 
 	bool isStyle = TRUE;
 	if (RaceStyleFlag == 0) isStyle = FALSE;
@@ -1626,7 +1627,7 @@ void _stdcall HeroSelectWindow(int RaceStyleFlag) {
 
 	ShowWin(WinRef);
 
-	int raceVal = CurrentRaceVal, styleVal = CurrentStyleVal; //show default style when setting race
+	int raceVal = currentRaceVal, styleVal = currentStyleVal; //show default style when setting race
 	if (!isStyle) styleVal = 0;
 	LoadHeroDat(raceVal, styleVal);
 
@@ -1735,19 +1736,19 @@ void _stdcall HeroSelectWindow(int RaceStyleFlag) {
 			}
 		} else if (button == 0x0D) { //save and exit -Enter button pushed
 			exitMenu = -1;
-			if (!isStyle && CurrentRaceVal == raceVal) { //return style to previous value if no race change
-				styleVal = CurrentStyleVal;
+			if (!isStyle && currentRaceVal == raceVal) { //return style to previous value if no race change
+				styleVal = currentStyleVal;
 			}
-			CurrentRaceVal = raceVal;
-			CurrentStyleVal = styleVal;
+			currentRaceVal = raceVal;
+			currentStyleVal = styleVal;
 		} else if (button == 0x1B) {//exit -ESC button pushed
 			exitMenu = -1;
 		}
 	}
 
 	RefreshArtCache();
-	LoadHeroDat(CurrentRaceVal, CurrentStyleVal);
-	SetAppearanceGlobals(CurrentRaceVal, CurrentStyleVal);
+	LoadHeroDat(currentRaceVal, currentStyleVal);
+	SetAppearanceGlobals(currentRaceVal, currentStyleVal);
 
 	DestroyWin(WinRef);
 	delete[]mainSurface;
@@ -1800,15 +1801,15 @@ void FixTextHighLight() {
 
 //-------------------------------------------
 void _stdcall DrawCharNoteNewChar(bool Style) {
-	DrawCharNote(Style, VarPtr::edit_win, 348, 272, CharScrnBackSurface, 348, 272, 640, 480);
+	DrawCharNote(Style, VarPtr::edit_win, 348, 272, charScrnBackSurface, 348, 272, 640, 480);
 }
 
 //-------------------------------------------------------------------
 int _stdcall CheckCharButtons() {
 	int button = Wrapper::get_input();
 
-	int raceVal = CurrentRaceVal;
-	int styleVal = CurrentStyleVal;
+	int raceVal = currentRaceVal;
+	int styleVal = currentStyleVal;
 
 	int drawFlag = -1;
 
@@ -1909,8 +1910,8 @@ int _stdcall CheckCharButtons() {
 		default:
 		break;
 	}
-	CurrentRaceVal = raceVal;
-	CurrentStyleVal = styleVal;
+	currentRaceVal = raceVal;
+	currentStyleVal = styleVal;
 
 	if (drawFlag == 1) {
 		PlayAcm("ib3p1xx1");
@@ -1949,10 +1950,10 @@ EndFunc:
 
 //-------------------------------
 void DeleteCharSurfaces() {
-	delete[] NewButt01Surface;
-	NewButt01Surface = NULL;
-	delete[] CharScrnBackSurface;
-	CharScrnBackSurface = NULL;
+	delete[] newButt01Surface;
+	newButt01Surface = NULL;
+	delete[] charScrnBackSurface;
+	charScrnBackSurface = NULL;
 }
 
 //------------------------------------------
@@ -1997,11 +1998,11 @@ ChangeSex:
 		//mov dword ptr ds:[VARPTR_art_vault_guy_num], eax //current base dude model
 		mov eax, dword ptr ds:[VARPTR_obj_dude] //dude state structure
 		call FuncOffs::inven_worn_
-		mov CurrentRaceVal, 0 //reset race and style to defaults
-		mov CurrentStyleVal, 0
+		mov currentRaceVal, 0 //reset race and style to defaults
+		mov currentStyleVal, 0
 
-		push CurrentStyleVal
-		push CurrentRaceVal
+		push currentStyleVal
+		push currentRaceVal
 		call LoadHeroDat
 		call RefreshPCArt
 		//Check If Race or Style selected to redraw info note
@@ -2043,26 +2044,26 @@ static void __declspec(naked) AddCharScrnButtons(void) {
 		//reset hero appearance
 		//RefreshArtCache();
 		//CurrentRaceVal=0;
-		//CurrentStyleVal=0;
-		//LoadHeroDat(CurrentRaceVal, CurrentStyleVal);
+		//currentStyleVal=0;
+		//LoadHeroDat(CurrentRaceVal, currentStyleVal);
 		//RefreshPCArt();
-		if (NewButt01Surface == NULL) {
-			NewButt01Surface = new BYTE [20*18*4];
+		if (newButt01Surface == NULL) {
+			newButt01Surface = new BYTE [20*18*4];
 
 			DWORD FrmObj; //frm objects for char screen Appearance button
 			BYTE *FrmSurface;
 
 			FrmSurface = GetFrmSurface(LoadFrm(6, 122), 0, 0, &FrmObj); //SLUFrm
-			sub_draw(20, 18, 20, 18, 0, 0, FrmSurface, 20, 18*4, 0, 0, NewButt01Surface, 0x0);
+			sub_draw(20, 18, 20, 18, 0, 0, FrmSurface, 20, 18*4, 0, 0, newButt01Surface, 0x0);
 			UnloadFrm(FrmObj);
 			FrmSurface = GetFrmSurface(LoadFrm(6, 123), 0, 0, &FrmObj); //SLDFrm
-			sub_draw(20, 18, 20, 18, 0, 0, FrmSurface, 20, 18*4, 0, 18, NewButt01Surface, 0x0);
+			sub_draw(20, 18, 20, 18, 0, 0, FrmSurface, 20, 18*4, 0, 18, newButt01Surface, 0x0);
 			UnloadFrm(FrmObj);
 			FrmSurface = GetFrmSurface(LoadFrm(6, 124), 0, 0, &FrmObj); //SRUFrm
-			sub_draw(20, 18, 20, 18, 0, 0, FrmSurface, 20, 18*4, 0, 18*2, NewButt01Surface, 0x0);
+			sub_draw(20, 18, 20, 18, 0, 0, FrmSurface, 20, 18*4, 0, 18*2, newButt01Surface, 0x0);
 			UnloadFrm(FrmObj);
 			FrmSurface = GetFrmSurface(LoadFrm(6, 125), 0, 0, &FrmObj); //SRDFrm
-			sub_draw(20, 18, 20, 18, 0, 0, FrmSurface, 20, 18*4, 0, 18*3, NewButt01Surface, 0x0);
+			sub_draw(20, 18, 20, 18, 0, 0, FrmSurface, 20, 18*4, 0, 18*3, newButt01Surface, 0x0);
 			UnloadFrm(FrmObj);
 			FrmSurface = NULL;
 		}
@@ -2071,12 +2072,12 @@ static void __declspec(naked) AddCharScrnButtons(void) {
 		if (GetFileAttributes("Appearance\\hmR01S00\0") != INVALID_FILE_ATTRIBUTES || GetFileAttributes("Appearance\\hfR01S00\0") != INVALID_FILE_ATTRIBUTES ||
 			GetFileAttributes("Appearance\\hmR01S00.dat\0") != INVALID_FILE_ATTRIBUTES || GetFileAttributes("Appearance\\hfR01S00.dat\0") != INVALID_FILE_ATTRIBUTES) {
 			//race selection buttons
-			CreateButton(WinRef, 348, 37, 20, 18, -1, -1, -1, 0x511, NewButt01Surface, NewButt01Surface + (20*18), 0x20);
-			CreateButton(WinRef, 373, 37, 20, 18, -1, -1, -1, 0x513, NewButt01Surface + (20*18*2), NewButt01Surface + (20*18*3), 0x20);
+			CreateButton(WinRef, 348, 37, 20, 18, -1, -1, -1, 0x511, newButt01Surface, newButt01Surface + (20*18), 0x20);
+			CreateButton(WinRef, 373, 37, 20, 18, -1, -1, -1, 0x513, newButt01Surface + (20*18*2), newButt01Surface + (20*18*3), 0x20);
 		}
 		//style selection buttons
-		CreateButton(WinRef, 348, 199, 20, 18, -1, -1, -1, 0x512, NewButt01Surface, NewButt01Surface+(20*18), 0x20);
-		CreateButton(WinRef, 373, 199, 20, 18, -1, -1, -1, 0x514, NewButt01Surface + (20*18*2), NewButt01Surface + (20*18*3), 0x20);
+		CreateButton(WinRef, 348, 199, 20, 18, -1, -1, -1, 0x512, newButt01Surface, newButt01Surface+(20*18), 0x20);
+		CreateButton(WinRef, 373, 199, 20, 18, -1, -1, -1, 0x514, newButt01Surface + (20*18*2), newButt01Surface + (20*18*3), 0x20);
 	}
 
 	__asm {
@@ -2104,30 +2105,30 @@ static void __declspec(naked) FixCharScrnBack(void) {
 		pushad
 	}
 
-	if (CharScrnBackSurface == NULL) {
-		CharScrnBackSurface = new BYTE [640*480];
+	if (charScrnBackSurface == NULL) {
+		charScrnBackSurface = new BYTE [640*480];
 
 		BYTE *OldCharScrnBackSurface = VarPtr::bckgnd; //char screen background frm surface
 		
 		//copy old charscrn surface to new
-		sub_draw(640, 480, 640, 480, 0, 0, OldCharScrnBackSurface, 640, 480, 0, 0, CharScrnBackSurface, 0);
+		sub_draw(640, 480, 640, 480, 0, 0, OldCharScrnBackSurface, 640, 480, 0, 0, charScrnBackSurface, 0);
 
 		//copy Tag Skill Counter background to the right
-		sub_draw(38, 26, 640, 480, 519, 228, OldCharScrnBackSurface, 640, 480, 519+36, 228, CharScrnBackSurface, 0);
+		sub_draw(38, 26, 640, 480, 519, 228, OldCharScrnBackSurface, 640, 480, 519+36, 228, charScrnBackSurface, 0);
 		//copy a blank part of the Tag Skill Bar hiding the old counter
-		sub_draw(38, 26, 640, 480, 460, 228, OldCharScrnBackSurface, 640, 480, 519, 228, CharScrnBackSurface, 0);
+		sub_draw(38, 26, 640, 480, 460, 228, OldCharScrnBackSurface, 640, 480, 519, 228, charScrnBackSurface, 0);
 
-		sub_draw(36, 258, 640, 480, 332, 0, OldCharScrnBackSurface, 640, 480, 408, 0, CharScrnBackSurface, 0); //shift behind button rail
-		sub_draw(6, 32, 640, 480, 331, 233, OldCharScrnBackSurface, 640, 480, 330, 6, CharScrnBackSurface, 0); //shadow for style/race button
+		sub_draw(36, 258, 640, 480, 332, 0, OldCharScrnBackSurface, 640, 480, 408, 0, charScrnBackSurface, 0); //shift behind button rail
+		sub_draw(6, 32, 640, 480, 331, 233, OldCharScrnBackSurface, 640, 480, 330, 6, charScrnBackSurface, 0); //shadow for style/race button
 
 
 		DWORD FrmObj, FrmMaskObj; //frm objects for char screen Appearance button
 		BYTE *FrmSurface,*FrmMaskSurface;
 
 		FrmSurface = GetFrmSurface(LoadFrm(6, 113), 0, 0, &FrmObj);
-		sub_draw(81, 132, 292, 376, 163, 20, FrmSurface, 640, 480, 331, 63, CharScrnBackSurface, 0); //char view win
-		sub_draw(79, 31, 292, 376, 154, 228, FrmSurface, 640, 480, 331, 32, CharScrnBackSurface, 0); //upper  char view win
-		sub_draw(79, 30, 292, 376, 158, 236, FrmSurface, 640, 480, 331, 195, CharScrnBackSurface, 0); //lower  char view win
+		sub_draw(81, 132, 292, 376, 163, 20, FrmSurface, 640, 480, 331, 63, charScrnBackSurface, 0); //char view win
+		sub_draw(79, 31, 292, 376, 154, 228, FrmSurface, 640, 480, 331, 32, charScrnBackSurface, 0); //upper  char view win
+		sub_draw(79, 30, 292, 376, 158, 236, FrmSurface, 640, 480, 331, 195, charScrnBackSurface, 0); //lower  char view win
 		UnloadFrm(FrmObj);
 
 		//Sexoff Frm
@@ -2155,16 +2156,16 @@ static void __declspec(naked) FixCharScrnBack(void) {
 		FrmSurface[80*31 - 4] = 0;
 		FrmSurface[80*30 - 4] = 0;
 
-		sub_draw(80, 32, 80, 32, 0, 0, FrmSurface, 640, 480, 332, 0, CharScrnBackSurface, 0); //style and race buttons
-		sub_draw(80, 32, 80, 32, 0, 0, FrmSurface, 640, 480, 332, 225, CharScrnBackSurface, 0); //style and race buttons
+		sub_draw(80, 32, 80, 32, 0, 0, FrmSurface, 640, 480, 332, 0, charScrnBackSurface, 0); //style and race buttons
+		sub_draw(80, 32, 80, 32, 0, 0, FrmSurface, 640, 480, 332, 225, charScrnBackSurface, 0); //style and race buttons
 		UnloadFrm(FrmObj);
 
 		//frm background for char screen Appearance button
 		FrmSurface = GetFrmSurface(LoadFrm(6, 174), 0, 0, &FrmObj); //Pickchar frm
-		sub_draw(69, 20, 640, 480, 282, 320, FrmSurface, 640, 480, 337, 37, CharScrnBackSurface, 0); //button backround top
-		sub_draw(69, 20, 640, 480, 282, 320, FrmSurface, 640, 480, 337, 199, CharScrnBackSurface, 0); //button backround bottom
-		sub_draw(47, 16, 640, 480, 94, 394, FrmSurface, 640, 480, 347, 39, CharScrnBackSurface, 0); //cover buttons pics top
-		sub_draw(47, 16, 640, 480, 94, 394, FrmSurface, 640, 480, 347, 201, CharScrnBackSurface, 0); //cover buttons pics bottom
+		sub_draw(69, 20, 640, 480, 282, 320, FrmSurface, 640, 480, 337, 37, charScrnBackSurface, 0); //button backround top
+		sub_draw(69, 20, 640, 480, 282, 320, FrmSurface, 640, 480, 337, 199, charScrnBackSurface, 0); //button backround bottom
+		sub_draw(47, 16, 640, 480, 94, 394, FrmSurface, 640, 480, 347, 39, charScrnBackSurface, 0); //cover buttons pics top
+		sub_draw(47, 16, 640, 480, 94, 394, FrmSurface, 640, 480, 347, 201, charScrnBackSurface, 0); //cover buttons pics bottom
 		UnloadFrm(FrmObj);
 		FrmSurface = NULL;
 
@@ -2183,8 +2184,8 @@ static void __declspec(naked) FixCharScrnBack(void) {
 		raceTextWidth=GetTextWidth(RaceText);
 		styleTextWidth=GetTextWidth(StyleText);
 
-		PrintText(RaceText, PeanutButter, 372 - raceTextWidth/2, 6, raceTextWidth, 640, CharScrnBackSurface);
-		PrintText(StyleText, PeanutButter, 372 - styleTextWidth/2, 231, styleTextWidth, 640, CharScrnBackSurface);
+		PrintText(RaceText, PeanutButter, 372 - raceTextWidth/2, 6, raceTextWidth, 640, charScrnBackSurface);
+		PrintText(StyleText, PeanutButter, 372 - styleTextWidth/2, 231, styleTextWidth, 640, charScrnBackSurface);
 		SetFont(oldFont);
 	}
 
@@ -2192,7 +2193,7 @@ static void __declspec(naked) FixCharScrnBack(void) {
 		popad
 		mov esp, ebp //epilog
 		pop ebp
-		mov eax, CharScrnBackSurface
+		mov eax, charScrnBackSurface
 EndFunc:
 		mov dword ptr ds:[VARPTR_bckgnd], eax //surface ptr for char scrn back
 		retn
@@ -2240,19 +2241,19 @@ static void __declspec(naked) FixCharScrnSaveNPrint() {
 
 // Load Appearance data from GCD file------------
 void _stdcall LoadGCDAppearance(void *FileStream) {
-	CurrentRaceVal = 0;
-	CurrentStyleVal = 0;
+	currentRaceVal = 0;
+	currentStyleVal = 0;
 	DWORD temp;
 	if (FReadDword(FileStream, &temp) != -1) {
-		CurrentRaceVal = (int)temp;
+		currentRaceVal = (int)temp;
 		if (FReadDword(FileStream, &temp) != -1) {
-			CurrentStyleVal = (int)temp;
+			currentStyleVal = (int)temp;
 		}
 	}
 
 	//reset hero appearance
 	RefreshArtCache();
-	LoadHeroDat(CurrentRaceVal, CurrentStyleVal);
+	LoadHeroDat(currentRaceVal, currentStyleVal);
 	RefreshPCArt();
 
 	FCloseFile(FileStream);
@@ -2260,8 +2261,8 @@ void _stdcall LoadGCDAppearance(void *FileStream) {
 
 // Save Appearance data to GCD file--------------
 void _stdcall SaveGCDAppearance(void *FileStream) {
-	if (FWriteDword(FileStream, (DWORD)CurrentRaceVal) != -1) {
-		FWriteDword(FileStream, (DWORD)CurrentStyleVal);
+	if (FWriteDword(FileStream, (DWORD)currentRaceVal) != -1) {
+		FWriteDword(FileStream, (DWORD)currentStyleVal);
 	}
 
 	FCloseFile(FileStream);
@@ -2270,11 +2271,11 @@ void _stdcall SaveGCDAppearance(void *FileStream) {
 // Reset Appearance when selecting "Create Character" from the New Char screen------
 static void __declspec(naked) CreateCharReset() {
 	__asm {
-		mov CurrentRaceVal, 0 //reset race and style to defaults
-		mov CurrentStyleVal, 0
+		mov currentRaceVal, 0 //reset race and style to defaults
+		mov currentStyleVal, 0
 
-		push CurrentStyleVal
-		push CurrentRaceVal
+		push currentStyleVal
+		push currentRaceVal
 		call LoadHeroDat
 		call RefreshPCArt
 
@@ -2285,15 +2286,15 @@ static void __declspec(naked) CreateCharReset() {
 
 //---------------------------------
 void HeroAppearanceModExit() {
-	if (!AppModEnabled) return;
+	if (!appModEnabled) return;
 
-	if (HeroPathPtr) {
-		delete[] HeroPathPtr->path;
-		delete HeroPathPtr;
+	if (heroPathPtr) {
+		delete[] heroPathPtr->path;
+		delete heroPathPtr;
 	}
-	if (RacePathPtr) {
-		delete[] RacePathPtr->path;
-		delete RacePathPtr;
+	if (racePathPtr) {
+		delete[] racePathPtr->path;
+		delete racePathPtr;
 	}
 }
 
@@ -2311,18 +2312,18 @@ EndFunc:
 
 //--------------------------------------------------------------------------
 void EnableHeroAppearanceMod() {
-	AppModEnabled = true;
+	appModEnabled = true;
 
 	//setup paths
-	HeroPathPtr = new sPath;
-	RacePathPtr = new sPath;
-	HeroPathPtr->path = new char[64];
-	RacePathPtr->path = new char[64];
+	heroPathPtr = new sPath;
+	racePathPtr = new sPath;
+	heroPathPtr->path = new char[64];
+	racePathPtr->path = new char[64];
 
-	HeroPathPtr->isDat = 0;
-	RacePathPtr->isDat = 0;
-	HeroPathPtr->pDat = NULL;
-	RacePathPtr->pDat = NULL;
+	heroPathPtr->isDat = 0;
+	racePathPtr->isDat = 0;
+	heroPathPtr->pDat = NULL;
+	racePathPtr->pDat = NULL;
 
 	//Check if new Appearance char scrn button pushed
 	SafeWrite32(0x431E9E, (DWORD)&CheckCharScrnButtons - 0x431EA2);
@@ -2456,4 +2457,6 @@ void HeroAppearance::init() {
 
 void HeroAppearance::exit() {
 	HeroAppearanceModExit();
+}
+
 }

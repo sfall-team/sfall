@@ -25,6 +25,9 @@
 
 #include "Explosions.h"
 
+namespace sfall
+{
+
 static bool lightingEnabled = false;
 
 static const DWORD ranged_attack_lighting_fix_back = 0x4118F8;
@@ -229,4 +232,6 @@ void Explosions::init() {
 	SimplePatch<DWORD>(0x4A2878, "Misc", "Dynamite_DmgMin", 30, 0, tmp);
 	tmp = SimplePatch<DWORD>(0x4A287F, "Misc", "PlasticExplosive_DmgMax", 80, 0, 9999);
 	SimplePatch<DWORD>(0x4A2884, "Misc", "PlasticExplosive_DmgMin", 40, 0, tmp);
+}
+
 }

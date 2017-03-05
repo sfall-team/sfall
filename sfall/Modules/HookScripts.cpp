@@ -29,6 +29,9 @@
 
 #include "HookScripts.h"
 
+namespace sfall
+{
+
 #define MAXDEPTH (8)
 static const int numHooks = HOOK_COUNT;
 
@@ -1321,4 +1324,6 @@ void _stdcall RunHookScriptsAtProc(DWORD procId) {
 
 void HookScripts::init() {
 	onKeyPressed += KeyPressHook;
+}
+
 }

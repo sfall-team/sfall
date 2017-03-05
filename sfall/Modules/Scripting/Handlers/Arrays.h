@@ -18,6 +18,11 @@
 
 #pragma once
 
+namespace sfall
+{
+namespace script
+{
+
 void sf_create_array(OpcodeContext&);
 
 void sf_set_array(OpcodeContext&);
@@ -55,3 +60,6 @@ void sf_list_as_array(OpcodeContext&);
 void sf_list_next(OpcodeContext&);
 
 void sf_list_end(OpcodeContext&);
+
+}
+}

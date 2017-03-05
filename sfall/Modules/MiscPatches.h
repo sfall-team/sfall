@@ -19,6 +19,9 @@
 
 #include "Module.h"
 
+namespace sfall
+{
+
 class MiscPatches : public Module {
 	const char* name() { return "MiscPatches"; }
 	void init();
@@ -28,3 +31,6 @@ class MiscPatches : public Module {
 extern bool npcAutoLevelEnabled;
 
 void _stdcall SetMapMulti(float d);
+
+}
+

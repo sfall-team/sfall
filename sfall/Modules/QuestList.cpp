@@ -17,10 +17,12 @@
  */
 
 #include "..\main.h"
-
 #include "..\FalloutEngine\Fallout2.h"
 
 #include "QuestList.h"
+
+namespace sfall
+{
 
 static DWORD calledflag = 0x0;
 static DWORD called_quest_number = 0x0;
@@ -368,4 +370,6 @@ void QuestList::init() {
 		QuestListPatch();
 		dlogr(" Done", DL_INIT);
 	}
+}
+
 }

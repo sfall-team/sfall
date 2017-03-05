@@ -18,6 +18,9 @@
 
 #include "Module.h"
 
+namespace sfall 
+{
+
 class AI : public Module {
 	const char* name() { return "AI"; }
 	void init();
@@ -31,3 +34,5 @@ DWORD _stdcall AIGetLastAttacker(DWORD target);
 DWORD _stdcall AIGetLastTarget(DWORD source);
 
 void _stdcall AIBlockCombat(DWORD i);
+
+}

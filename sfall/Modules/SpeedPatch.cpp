@@ -24,6 +24,9 @@
 
 #include "SpeedPatch.h"
 
+namespace sfall
+{
+
 //GetTickCount calls
 static const DWORD offsetsA[] = {
 	0x4C8D34, 0x4C9375, 0x4C9384, 0x4C93C0, 0x4C93E8, 0x4C9D2E, 0x4FE01E,
@@ -164,4 +167,6 @@ void SpeedPatch::init() {
 		TimerInit();
 		dlogr(" Done", DL_INIT);
 	}
+}
+
 }

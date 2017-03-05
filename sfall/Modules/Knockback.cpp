@@ -25,6 +25,9 @@
 
 #include "Knockback.h"
 
+namespace sfall
+{
+
 static std::vector<TGameObj*> NoBursts;
 
 struct KnockbackModifier {
@@ -354,4 +357,6 @@ void Knockback::init() {
 	MakeCall(0x429E44, BurstHook, true);
 
 	LoadGameHook::onGameReset += Knockback_OnGameLoad;
+}
+
 }

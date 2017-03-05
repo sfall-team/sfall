@@ -16,13 +16,16 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "..\main.h"
-
 #include <stdio.h>
+
+#include "..\main.h"
 #include "..\FalloutEngine\Fallout2.h"
 #include "..\Version.h"
 
 #include "Credits.h"
+
+namespace sfall
+{
 
 static DWORD InCredits = 0;
 static DWORD CreditsLine = 0;
@@ -159,4 +162,6 @@ void Credits::init() {
 	} else {
 		HookCall(0x42CB49, &CreditsNextLineHook_Top);
 	}
+}
+
 }

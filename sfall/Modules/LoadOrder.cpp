@@ -22,6 +22,9 @@
 
 #include "LoadOrder.h"
 
+namespace sfall
+{
+
 static void __declspec(naked) removeDatabase() {
 	__asm {
 		cmp  eax, -1
@@ -98,4 +101,6 @@ void LoadOrder::init() {
 		SafeWrite8(0x4DFAEC, 0x1D); // error correction
 		dlogr(" Done", DL_INIT);
 	}
+}
+
 }

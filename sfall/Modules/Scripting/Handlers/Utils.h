@@ -18,6 +18,11 @@
 
 #pragma once
 
+namespace sfall
+{
+namespace script
+{
+
 class OpcodeContext;
 
 void sf_sqrt(OpcodeContext&);
@@ -69,3 +74,6 @@ void sf_round(OpcodeContext&);
 void sf_message_str_game(OpcodeContext&);
 
 char* _stdcall Substring(const char* str, int pos, int length);
+
+}
+}

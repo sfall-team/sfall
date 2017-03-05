@@ -22,6 +22,11 @@
  *	Misc operators
  */
 
+namespace sfall
+{
+namespace script
+{
+
 class OpcodeContext;
 
 // TODO: rewrite all op_* functions using OpcodeContext
@@ -151,3 +156,6 @@ void sf_sneak_success(OpcodeContext& ctx);
 void sf_tile_light(OpcodeContext& ctx);
 
 void sf_exec_map_update_scripts(OpcodeContext&);
+
+}
+}

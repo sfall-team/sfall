@@ -24,6 +24,11 @@
 #include "..\..\FalloutEngine\Structs.h"
 #include "ScriptValue.h"
 
+namespace sfall
+{
+namespace script
+{
+
 #define OP_MAX_ARGUMENTS	(10)
 
 class OpcodeContext;
@@ -141,3 +146,6 @@ private:
 	std::array<ScriptValue, OP_MAX_ARGUMENTS> _args;
 	ScriptValue _ret;
 };
+
+}
+}

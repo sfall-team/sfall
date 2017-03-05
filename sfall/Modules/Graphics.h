@@ -20,6 +20,9 @@
 
 #include "Module.h"
 
+namespace sfall
+{
+
 class Graphics : public Module {
 public:
 	const char* name() { return "Graphics"; }
@@ -47,3 +50,5 @@ void GetFalloutWindowInfo(DWORD* width, DWORD* height, HWND* window);
 
 void SetMovieTexture(void* tex);
 void _stdcall PlayMovieFrame();
+
+}

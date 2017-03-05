@@ -18,6 +18,9 @@
 
 #pragma once
 
+namespace sfall
+{
+
 class Module {
 public:
 
@@ -36,4 +39,6 @@ public:
 	~Module() {
 	}
 };
+
+}
 

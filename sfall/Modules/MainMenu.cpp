@@ -17,11 +17,13 @@
  */
 
 #include "..\main.h"
-
 #include "..\FalloutEngine\Fallout2.h"
 #include "..\Version.h"
 
 #include "MainMenu.h"
+
+namespace sfall
+{
 
 static DWORD MainMenuYOffset;
 static DWORD MainMenuTextOffset;
@@ -112,4 +114,6 @@ void MainMenu::init() {
 	if (OverrideColour) {
 		MakeCall(0x48174C, &FontColour, false);
 	}
+}
+
 }
