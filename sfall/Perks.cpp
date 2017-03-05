@@ -30,7 +30,7 @@ static char Name[64*PERK_count];
 static char Desc[1024*PERK_count];
 static char tName[64*TRAIT_count];
 static char tDesc[1024*TRAIT_count];
-static char perksFile[260];
+static char perksFile[MAX_PATH];
 static BYTE disableTraits[TRAIT_count];
 static DWORD* pc_trait=(DWORD*)_pc_trait;
 
