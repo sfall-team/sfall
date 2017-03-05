@@ -39,11 +39,11 @@
 #include "Graphics.h"
 #include "LoadGameHook.h"
 
-typedef HRESULT (_stdcall *DDrawCreateProc)(void*, IDirectDraw**, void*);
-typedef IDirect3D9* (_stdcall *D3DCreateProc)(UINT version);
-
 namespace sfall
 {
+
+typedef HRESULT (_stdcall *DDrawCreateProc)(void*, IDirectDraw**, void*);
+typedef IDirect3D9* (_stdcall *D3DCreateProc)(UINT version);
 
 #define UNUSEDFUNCTION { DEBUGMESS("Unused function called: " __FUNCTION__); return DDERR_GENERIC; }
 #define SAFERELEASE(a) { if (a) { a->Release(); a = 0; } }

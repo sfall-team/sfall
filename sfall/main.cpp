@@ -119,9 +119,8 @@ size_t Translate(const char* section, const char* setting, const char* defaultVa
 	return GetPrivateProfileStringA(section, setting, defaultValue, buffer, bufSize, translationIni);
 }
 
-
-static void DllMain2() {
-	dlogr("In DllMain2", DL_MAIN);
+static void InitModules() {
+	dlogr("In InitModules", DL_MAIN);
 
 	auto& manager = ModuleManager::getInstance();
 
@@ -169,7 +168,7 @@ static void DllMain2() {
 
 	manager.initAll();
 
-	dlogr("Leave DllMain2", DL_MAIN);
+	dlogr("Leave InitModules", DL_MAIN);
 }
 
 static void CompatModeCheck(HKEY root, const char* filepath, int extra) {
@@ -196,80 +195,80 @@ static void CompatModeCheck(HKEY root, const char* filepath, int extra) {
 	}
 }
 
-inline bool DllMain1(HANDLE hDllHandle, DWORD dwReason, LPVOID  lpreserved) {
-	if (dwReason == DLL_PROCESS_ATTACH) {
-		// enabling debugging features
- 		isDebug = (GetPrivateProfileIntA("Debugging", "Enable", 0, ddrawIni) != 0);
-		if (isDebug) {
-			LoggingInit();
-		}
+inline void SfallInit() {
+	// enabling debugging features
+ 	isDebug = (GetPrivateProfileIntA("Debugging", "Enable", 0, ddrawIni) != 0);
+	if (isDebug) {
+		LoggingInit();
+	}
 
-		char filepath[MAX_PATH];
-		GetModuleFileName(0, filepath, MAX_PATH);
+	char filepath[MAX_PATH];
+	GetModuleFileName(0, filepath, MAX_PATH);
 
-		CRC(filepath);
+	CRC(filepath);
 
-		if (!isDebug || !GetPrivateProfileIntA("Debugging", "SkipCompatModeCheck", 0, ddrawIni)) {
-			int is64bit;
-			typedef int (_stdcall *chk64bitproc)(HANDLE, int*);
-			HMODULE h=LoadLibrary("Kernel32.dll");
-			chk64bitproc proc = (chk64bitproc)GetProcAddress(h, "IsWow64Process");
-			if(proc) proc(GetCurrentProcess(), &is64bit);
-			else is64bit=0;
-			FreeLibrary(h);
+	if (!isDebug || !GetPrivateProfileIntA("Debugging", "SkipCompatModeCheck", 0, ddrawIni)) {
+		int is64bit;
+		typedef int (_stdcall *chk64bitproc)(HANDLE, int*);
+		HMODULE h = LoadLibrary("Kernel32.dll");
+		chk64bitproc proc = (chk64bitproc)GetProcAddress(h, "IsWow64Process");
+		if(proc) proc(GetCurrentProcess(), &is64bit);
+		else is64bit=0;
+		FreeLibrary(h);
 
-			CompatModeCheck(HKEY_CURRENT_USER, filepath, is64bit?KEY_WOW64_64KEY:0);
-			CompatModeCheck(HKEY_LOCAL_MACHINE, filepath, is64bit?KEY_WOW64_64KEY:0);
-		}
+		CompatModeCheck(HKEY_CURRENT_USER, filepath, is64bit?KEY_WOW64_64KEY:0);
+		CompatModeCheck(HKEY_LOCAL_MACHINE, filepath, is64bit?KEY_WOW64_64KEY:0);
+	}
 
-		// ini file override
-		bool cmdlineexists = false;
-		char* cmdline = GetCommandLineA();
-		if (GetPrivateProfileIntA("Main", "UseCommandLine", 0, ddrawIni)) {
-			while (cmdline[0] == ' ') cmdline++;
-			bool InQuote = false;
-			int count = -1;
+	// ini file override
+	bool cmdlineexists = false;
+	char* cmdline = GetCommandLineA();
+	if (GetPrivateProfileIntA("Main", "UseCommandLine", 0, ddrawIni)) {
+		while (cmdline[0] == ' ') cmdline++;
+		bool InQuote = false;
+		int count = -1;
 
-			while (true) {
-				count++;
-				if (cmdline[count] == 0) break;;
-				if (cmdline[count] == ' ' && !InQuote) break;
-				if (cmdline[count] == '"') {
-					InQuote = !InQuote;
-					if (!InQuote) break;
-				}
-			}
-			if (cmdline[count] != 0) {
-				count++;
-				while (cmdline[count] == ' ') count++;
-				cmdline = &cmdline[count];
-				cmdlineexists = true;
+		while (true) {
+			count++;
+			if (cmdline[count] == 0) break;;
+			if (cmdline[count] == ' ' && !InQuote) break;
+			if (cmdline[count] == '"') {
+				InQuote = !InQuote;
+				if (!InQuote) break;
 			}
 		}
+		if (cmdline[count] != 0) {
+			count++;
+			while (cmdline[count] == ' ') count++;
+			cmdline = &cmdline[count];
+			cmdlineexists = true;
+		}
+	}
 
-		if (cmdlineexists && strlen(cmdline)) {
-			strcpy_s(ini, ".\\");
-			strcat_s(ini, cmdline);
-			HANDLE h = CreateFileA(cmdline, GENERIC_READ, 0, 0, OPEN_EXISTING, 0, 0);
-			if (h != INVALID_HANDLE_VALUE) CloseHandle(h);
-			else {
-				MessageBox(0, "You gave a command line argument to fallout, but it couldn't be matched to a file\n" \
-						   "Using default ddraw.ini instead", "Warning", MB_TASKMODAL);
-				strcpy_s(ini, ddrawIni);
-			}
-		} else {
+	if (cmdlineexists && strlen(cmdline)) {
+		strcpy_s(ini, ".\\");
+		strcat_s(ini, cmdline);
+		HANDLE h = CreateFileA(cmdline, GENERIC_READ, 0, 0, OPEN_EXISTING, 0, 0);
+		if (h != INVALID_HANDLE_VALUE) CloseHandle(h);
+		else {
+			MessageBox(0, "You gave a command line argument to fallout, but it couldn't be matched to a file\n" \
+						"Using default ddraw.ini instead", "Warning", MB_TASKMODAL);
 			strcpy_s(ini, ddrawIni);
 		}
-
-		GetConfigString("Main", "TranslationsINI", "./Translations.ini", translationIni, 65);
-
-		DllMain2();
+	} else {
+		strcpy_s(ini, ddrawIni);
 	}
-	return true;
+
+	GetConfigString("Main", "TranslationsINI", "./Translations.ini", translationIni, 65);
+
+	InitModules();
 }
 
 }
 
 bool _stdcall DllMain(HANDLE hDllHandle, DWORD dwReason, LPVOID lpreserved) {
-	sfall::DllMain1(hDllHandle, dwReason, lpreserved);
+	if (dwReason == DLL_PROCESS_ATTACH) {
+		sfall::SfallInit();
+	}
+	return true;
 }
