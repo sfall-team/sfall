@@ -19,9 +19,9 @@
 #include "main.h"
 
 #include "AnimationsAtOnceLimit.h"
+#include "FalloutEngine.h"
 
-
-static bool AniLimitFixActive = false;
+static int AnimationsLimit = 32;
 
 //pointers to new animation struct arrays
 static BYTE *anim_set;
@@ -143,12 +143,31 @@ static const DWORD sad_28[] = {
 	0x4173CE, 0x4174C1, 0x4175F1, 0x417730,
 };
 
-void AnimationsAtOnceInit(signed char aniMax) {
+static void __declspec(naked) anim_set_end_hook() {
+ __asm {
+  mov  edi, _anim_set
+  cmp  dword ptr AnimationsLimit, 32
+  jbe  skip
+  mov  edi, anim_set
+  add  edi, 2656                            // Adding a pacifier
+skip:
+  test dl, 0x2                              // Flag of combat mode?
+  jz   end                                  // No
+  call combat_anim_finished_
+end:
+  mov  [edi][esi], ebx
+  push 0x415DF2
+  retn
+ }
+};
 
-	if (aniMax <= 32) return;
+void AnimationsAtOnceInit() {
 
-	AniLimitFixActive = true;
-
+  AnimationsLimit = GetPrivateProfileIntA("Misc", "AnimationsAtOnceLimit", 32, ini);
+   if (AnimationsLimit > 32) {
+	if (AnimationsLimit > 127) AnimationsLimit = 127;
+	dlog("Applying AnimationsAtOnceLimit patch.", DL_INIT);
+	int aniMax = AnimationsLimit; 	
 	int i;
 
 	//allocate memory to store larger animation struct arrays
@@ -292,11 +311,13 @@ void AnimationsAtOnceInit(signed char aniMax) {
 	for (i = 0; i < sizeof(sad_28)/4; i++) {
 		SafeWrite32(sad_28[i], 40+(DWORD)sad);
 	}
-
+	dlogr(" Done", DL_INIT);
+   }
+  MakeCall(0x415DE2, &anim_set_end_hook, true);
 }
 
 void AnimationsAtOnceExit() {
-	if (!AniLimitFixActive) return;
+	if (AnimationsLimit <= 32) return;
 	delete[] anim_set;
 	delete[] sad;
 }
