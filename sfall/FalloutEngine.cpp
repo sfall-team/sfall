@@ -263,6 +263,7 @@ const DWORD credits_ = 0x42C860;
 const DWORD credits_get_next_line_ = 0x42CE6C;
 const DWORD critter_body_type_ = 0x42DDC4;
 const DWORD critter_can_obj_dude_rest_ = 0x42E564;
+const DWORD critter_flag_check_ = 0x42E6AC;
 const DWORD critter_compute_ap_from_distance_ = 0x42E62C;
 const DWORD critter_get_hits_ = 0x42D18C;
 const DWORD critter_is_dead_ = 0x42DD18;

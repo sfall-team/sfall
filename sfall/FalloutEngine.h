@@ -436,6 +436,7 @@ extern const DWORD credits_;
 extern const DWORD credits_get_next_line_;
 extern const DWORD critter_body_type_;
 extern const DWORD critter_can_obj_dude_rest_;
+extern const DWORD critter_flag_check_;
 extern const DWORD critter_compute_ap_from_distance_;
 extern const DWORD critter_get_hits_;
 extern const DWORD critter_is_dead_; // eax - critter
