@@ -928,6 +928,18 @@ end:
 	}
 }
 
+static void __declspec(naked) use_inventory_on_hook() {
+	 __asm {
+	  inc  ecx
+	  mov  edx, [eax]                           // Inventory.inv_size
+	  sub  edx, ecx
+	  jge  end
+	  mov  edx, [eax]                           // Inventory.inv_size
+end:
+	  retn
+	 }
+}
+
 int __stdcall ItemCountFixStdcall(TGameObj* who, TGameObj* item) {
 	int count = 0;
 	for (int i = 0; i < who->invenCount; i++) {
@@ -1212,7 +1224,10 @@ void BugsInit()
 		// Fix crash when trying to open bag/backpack on the table in the bartering interface
 		MakeCall(0x473191, &inven_action_cursor_hack, false);
 	//}
+	// Fix crash when clicking on empty space in the inventory with the cursor using an item from the backpack (Crafty)
+    MakeCall(0x471A94, &use_inventory_on_hook, false);
 
 	// Fix item_count function returning incorrect value when there is a container-item inside
 	MakeCall(0x47808C, ItemCountFix, true); // replacing item_count_ function
+
 }
