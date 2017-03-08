@@ -13,7 +13,7 @@ static void __declspec(naked) MsgCopy() {
 	__asm {
 		mov edi, [esp+0xc];
 		pushad;
-		cmp eax, VARPTR_target_str;
+		cmp eax, FO_VAR_target_str;
 		jne attacker;
 		lea eax, targetSnd;
 		jmp end;
@@ -31,7 +31,7 @@ end:
 static void __declspec(naked) DisplayMsg() {
 	__asm {
 		pushad;
-		cmp edx, VARPTR_target_str;
+		cmp edx, FO_VAR_target_str;
 		jne attacker;
 		lea eax, targetSnd;
 		jmp end;

@@ -522,7 +522,7 @@ static __declspec(naked) void MeleeDmgDispFix() {
 	__asm {
 		call FuncOffs::stat_level_;			// Get Melee Damage
 		mov ecx, eax;				// Store value
-		mov eax, dword ptr ds : [VARPTR_obj_dude];	// Get pointer to PC
+		mov eax, dword ptr ds : [FO_VAR_obj_dude];	// Get pointer to PC
 		mov edx, PERK_bonus_hth_damage;		// perk_level_ argument: PERK_bonus_hth_damage
 		call FuncOffs::perk_level_;			// Get rank of Bonus HtH Damage
 		shl eax, 0x1;				// Multiply by 2
@@ -536,7 +536,7 @@ static __declspec(naked) void MeleeDmgPrintFix() {
 	__asm {
 		call FuncOffs::stat_level_;			// Get Melee Damage
 		mov ebx, eax;				// Store value
-		mov eax, dword ptr ds : [VARPTR_obj_dude];	// Get pointer to PC
+		mov eax, dword ptr ds : [FO_VAR_obj_dude];	// Get pointer to PC
 		mov edx, PERK_bonus_hth_damage;		// perk_level_ argument: PERK_bonus_hth_damage
 		call FuncOffs::perk_level_;			// Get rank of Bonus HtH Damage
 		shl eax, 0x1;				// Multiply by 2
@@ -551,8 +551,8 @@ static __declspec(naked) void MeleeWeapDmgRngDispFix() {
 	__asm {
 		call FuncOffs::stat_level_;			// Get Melee Damage
 		mov ebx, eax;				// Store Melee Damage value
-		mov edx, dword ptr ds : [VARPTR_stack];		// Get pointer to critter
-		mov eax, dword ptr ds : [VARPTR_obj_dude];	// Get pointer to PC
+		mov edx, dword ptr ds : [FO_VAR_stack];		// Get pointer to critter
+		mov eax, dword ptr ds : [FO_VAR_obj_dude];	// Get pointer to PC
 		cmp eax, edx;				// Is PC == critter?
 		jnz end;					// exit if no
 		mov edx, PERK_bonus_hth_damage;		// perk_level_ argument: PERK_bonus_hth_damage
@@ -567,8 +567,8 @@ end:
 static __declspec(naked) void UnarmedDmgRngDispFix() {
 	__asm {
 		mov ebx, eax;				// Store Melee Damage value
-		mov edx, dword ptr ds : [VARPTR_stack];		// Get pointer to critter
-		mov eax, dword ptr ds : [VARPTR_obj_dude];	// Get pointer to PC
+		mov edx, dword ptr ds : [FO_VAR_stack];		// Get pointer to critter
+		mov eax, dword ptr ds : [FO_VAR_obj_dude];	// Get pointer to PC
 		cmp eax, edx;				// Is PC == critter?
 		jnz end;					// exit if no
 		mov edx, PERK_bonus_hth_damage;		// perk_level_ argument: PERK_bonus_hth_damage
@@ -593,7 +593,7 @@ static __declspec(naked) void HtHDamageFix1a() {
 		add eax, 2;					// Total_Melee_Damage += 2
 		mov dword ptr ss : [esp], eax;			// Max_Damage = Total_Melee_Damage
 		xor edx, edx;
-		mov eax, dword ptr ds : [VARPTR_obj_dude];	// Get pointer to PC
+		mov eax, dword ptr ds : [FO_VAR_obj_dude];	// Get pointer to PC
 		cmp ecx, eax;				// Is the critter == PC?
 		jnz ajmp;					// Skip to ajmp if no
 		mov edx, PERK_bonus_hth_damage;		// perk_level_ argument: PERK_bonus_hth_damage
@@ -612,7 +612,7 @@ static __declspec(naked) void HtHDamageFix1b() {
 	__asm {
 		call FuncOffs::stat_level_;			// Get Total_Melee_Damage
 		mov ebp, eax;
-		mov eax, dword ptr ds : [VARPTR_obj_dude];	// Get pointer to PC
+		mov eax, dword ptr ds : [FO_VAR_obj_dude];	// Get pointer to PC
 		cmp ecx, eax;				// Is the critter == PC?
 		jnz end;					// Skip to exit if no
 		mov edx, PERK_bonus_hth_damage;		// perk_level_ argument: PERK_bonus_hth_damage
@@ -628,7 +628,7 @@ end:
 static void __declspec(naked) DisplayBonusRangedDmg() {
 	__asm {
 		mov  edx, PERK_bonus_ranged_damage
-		mov  eax, dword ptr ds : [VARPTR_stack]
+		mov  eax, dword ptr ds : [FO_VAR_stack]
 		call FuncOffs::perk_level_
 		shl  eax, 1
 		add  dword ptr[esp + 4 * 4], eax             // min_dmg
@@ -641,7 +641,7 @@ static void __declspec(naked) DisplayBonusRangedDmg() {
 static void __declspec(naked) DisplayBonusHtHDmg1() {
 	__asm {
 		mov  edx, PERK_bonus_hth_damage
-		mov  eax, dword ptr ds : [VARPTR_stack]
+		mov  eax, dword ptr ds : [FO_VAR_stack]
 		call FuncOffs::perk_level_
 		shl  eax, 1
 		add  dword ptr[esp + 4 * 4], eax             // min_dmg

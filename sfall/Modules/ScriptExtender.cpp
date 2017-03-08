@@ -319,12 +319,12 @@ static void __declspec(naked) FreeProgramHook() {
 static void __declspec(naked) obj_outline_all_items_on() {
 	__asm {
 		pushad
-		mov  eax, dword ptr ds:[VARPTR_map_elevation]
+		mov  eax, dword ptr ds:[FO_VAR_map_elevation]
 		call FuncOffs::obj_find_first_at_
 loopObject:
 		test eax, eax
 		jz   end
-		cmp  eax, ds:[VARPTR_outlined_object]
+		cmp  eax, ds:[FO_VAR_outlined_object]
 		je   nextObject
 		xchg ecx, eax
 		mov  eax, [ecx+0x20]
@@ -357,12 +357,12 @@ end:
 static void __declspec(naked) obj_outline_all_items_off() {
 	__asm {
 		pushad
-		mov  eax, dword ptr ds:[VARPTR_map_elevation]
+		mov  eax, dword ptr ds:[FO_VAR_map_elevation]
 		call FuncOffs::obj_find_first_at_
 loopObject:
 		test eax, eax
 		jz   end
-		cmp  eax, ds:[VARPTR_outlined_object]
+		cmp  eax, ds:[FO_VAR_outlined_object]
 		je   nextObject
 		xchg ecx, eax
 		mov  eax, [ecx+0x20]
@@ -390,7 +390,7 @@ static void __declspec(naked) obj_remove_outline_hook() {
 		jnz  end
 		cmp  highlightingToggled, 1
 		jne  end
-		mov  ds:[VARPTR_outlined_object], eax
+		mov  ds:[FO_VAR_outlined_object], eax
 		call obj_outline_all_items_on
 end:
 		retn

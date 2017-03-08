@@ -75,7 +75,7 @@ static void __declspec(naked) GetNumButtonsHook1() {
 	__asm {
 		lea  esi, menus;
 		mov  eax, [esi+edi*4];
-		mov  eax, [VARPTR_btncnt + eax*4];
+		mov  eax, [FO_VAR_btncnt + eax*4];
 		push 0x43F064;
 		retn;
 	}
@@ -85,7 +85,7 @@ static void __declspec(naked) GetNumButtonsHook2() {
 	__asm {
 		lea  edx, menus;
 		mov  eax, [edx+edi*4];
-		mov  eax, [VARPTR_btncnt + eax*4];
+		mov  eax, [FO_VAR_btncnt + eax*4];
 		push 0x43F18B;
 		retn;
 	}
@@ -95,7 +95,7 @@ static void __declspec(naked) GetNumButtonsHook3() {
 	__asm {
 		lea  eax, menus;
 		mov  eax, [eax+edi*4];
-		mov  eax, [VARPTR_btncnt+eax*4];
+		mov  eax, [FO_VAR_btncnt+eax*4];
 		push 0x43F1EB;
 		retn;
 	}

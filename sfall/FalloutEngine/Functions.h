@@ -23,7 +23,7 @@
 * HOW TO USE ENGINE FUNCTIONS:
 *
 * in ASM code, call offsets directly, don't call wrappers as they might not be _stdcall
-* in C++ code, use wrappers (add new ones if the don't exist yet)
+* in C++ code, use wrappers (add new ones if the don't exist yet, see Wrappers_def.h)
 *
 * Note: USE C++! 
 * 1) Place thin __declspec(naked) hooks, only use minimum ASM to pass values to/from C++

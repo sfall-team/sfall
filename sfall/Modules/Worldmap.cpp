@@ -36,7 +36,7 @@ static __declspec(naked) void GetDateWrapper() {
 		push esi;
 		push ebx;
 		call FuncOffs::game_time_date_;
-		mov ecx, ds:[VARPTR_pc_proto + 0x4C];
+		mov ecx, ds:[FO_VAR_pc_proto + 0x4C];
 		pop esi;
 		test esi, esi;
 		jz end;
@@ -96,7 +96,7 @@ tck:
 
 static void __declspec(naked) WorldMapEncPatch1() {
 	__asm {
-		inc dword ptr ds : [VARPTR_wmLastRndTime]
+		inc dword ptr ds : [FO_VAR_wmLastRndTime]
 		call FuncOffs::wmPartyWalkingStep_;
 		retn;
 	}
@@ -104,14 +104,14 @@ static void __declspec(naked) WorldMapEncPatch1() {
 
 static void __declspec(naked) WorldMapEncPatch2() {
 	__asm {
-		mov dword ptr ds : [VARPTR_wmLastRndTime], 0;
+		mov dword ptr ds : [FO_VAR_wmLastRndTime], 0;
 		retn;
 	}
 }
 
 static void __declspec(naked) WorldMapEncPatch3() {
 	__asm {
-		mov eax, ds:[VARPTR_wmLastRndTime];
+		mov eax, ds:[FO_VAR_wmLastRndTime];
 		retn;
 	}
 }
@@ -119,7 +119,7 @@ static void __declspec(naked) WorldMapEncPatch3() {
 static DWORD WorldMapEncounterRate;
 static void __declspec(naked) wmWorldMapFunc_hook() {
 	__asm {
-		inc  dword ptr ds:[VARPTR_wmLastRndTime];
+		inc  dword ptr ds:[FO_VAR_wmLastRndTime];
 		jmp  FuncOffs::wmPartyWalkingStep_;
 	}
 }
@@ -199,9 +199,9 @@ static void __declspec(naked) ViewportHook() {
 	__asm {
 		call FuncOffs::wmWorldMapLoadTempData_;
 		mov eax, ViewportX;
-		mov ds : [VARPTR_wmWorldOffsetX], eax
+		mov ds : [FO_VAR_wmWorldOffsetX], eax
 		mov eax, ViewportY;
-		mov ds : [VARPTR_wmWorldOffsetY], eax;
+		mov ds : [FO_VAR_wmWorldOffsetY], eax;
 		retn;
 	}
 }
@@ -259,7 +259,7 @@ static __declspec(naked) void PathfinderFix() {
 	using namespace fo;
 	__asm {
 		push eax;
-		mov eax, ds:[VARPTR_obj_dude];
+		mov eax, ds:[FO_VAR_obj_dude];
 		mov edx, PERK_pathfinder;
 		call FuncOffs::perk_level_;
 		push eax;
@@ -471,14 +471,14 @@ void ApplyStartingStatePatches() {
 	ViewportX = GetConfigInt("Misc", "ViewXPos", -1);
 	if (ViewportX != -1) {
 		dlog("Applying starting x view patch.", DL_INIT);
-		SafeWrite32(VARPTR_wmWorldOffsetX, ViewportX);
+		SafeWrite32(FO_VAR_wmWorldOffsetX, ViewportX);
 		HookCall(0x4BCF07, &ViewportHook);
 		dlogr(" Done", DL_INIT);
 	}
 	ViewportY = GetConfigInt("Misc", "ViewYPos", -1);
 	if (ViewportY != -1) {
 		dlog("Applying starting y view patch.", DL_INIT);
-		SafeWrite32(VARPTR_wmWorldOffsetY, ViewportY);
+		SafeWrite32(FO_VAR_wmWorldOffsetY, ViewportY);
 		HookCall(0x4BCF07, &ViewportHook);
 		dlogr(" Done", DL_INIT);
 	}

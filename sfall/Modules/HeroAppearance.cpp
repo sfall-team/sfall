@@ -670,7 +670,7 @@ void PrintText(char *DisplayText, BYTE ColourIndex, DWORD Xpos, DWORD Ypos, DWOR
 		mov ecx, ToWidth
 		mov eax, ToSurface
 		add eax, posOffset
-		call dword ptr ds:[VARPTR_text_to_buf]
+		call dword ptr ds:[FO_VAR_text_to_buf]
 	}
 }
 
@@ -679,7 +679,7 @@ void PrintText(char *DisplayText, BYTE ColourIndex, DWORD Xpos, DWORD Ypos, DWOR
 DWORD GetTextHeight() {
 	DWORD TxtHeight;
 	__asm {
-		call dword ptr ds:[VARPTR_text_height] //get text height
+		call dword ptr ds:[FO_VAR_text_height] //get text height
 		mov TxtHeight, eax
 	}
 	return TxtHeight;
@@ -691,7 +691,7 @@ DWORD GetTextWidth(char *TextMsg) {
 	DWORD TxtWidth;
 	__asm {
 		mov eax, TextMsg
-		call dword ptr ds:[VARPTR_text_width] //get text width
+		call dword ptr ds:[FO_VAR_text_width] //get text width
 		mov TxtWidth, eax
 	}
 	return TxtWidth;
@@ -703,7 +703,7 @@ DWORD GetCharWidth(char CharVal) {
 	DWORD charWidth;
 	__asm {
 		mov al, CharVal
-		call dword ptr ds:[VARPTR_text_char_width]
+		call dword ptr ds:[FO_VAR_text_char_width]
 		mov charWidth, eax
 	}
 	return charWidth;
@@ -715,7 +715,7 @@ DWORD GetMaxTextWidth(char *TextMsg) {
 	DWORD msgWidth;
 	__asm {
 		mov eax, TextMsg
-		call dword ptr ds:[VARPTR_text_mono_width]
+		call dword ptr ds:[FO_VAR_text_mono_width]
 		mov msgWidth, eax
 	}
 	return msgWidth;
@@ -726,7 +726,7 @@ DWORD GetMaxTextWidth(char *TextMsg) {
 DWORD GetCharGapWidth() {
 	DWORD gapWidth;
 	__asm {
-		call dword ptr ds:[VARPTR_text_spacing]
+		call dword ptr ds:[FO_VAR_text_spacing]
 		mov gapWidth, eax
 	}
 	return gapWidth;
@@ -737,7 +737,7 @@ DWORD GetCharGapWidth() {
 DWORD GetMaxCharWidth() {
 	DWORD charWidth = 0;
 	__asm {
-		call dword ptr ds:[VARPTR_text_max]
+		call dword ptr ds:[FO_VAR_text_max]
 		mov charWidth, eax
 	}
 	return charWidth;
@@ -824,7 +824,7 @@ char _stdcall GetSex(void) {
 	char sex;
 	__asm {
 		mov edx, STAT_gender //sex stat ref
-		mov eax, dword ptr ds:[VARPTR_obj_dude] //hero state structure
+		mov eax, dword ptr ds:[FO_VAR_obj_dude] //hero state structure
 		call FuncOffs::stat_level_ //get Player stat val
 		test eax, eax //male=0, female=1
 		jne Female
@@ -890,7 +890,7 @@ static void __declspec(naked) LoadNewHeroArt() {
 	__asm {
 		cmp byte ptr ds:[esi], 'r'
 		je isReading
-		mov ecx, VARPTR_paths
+		mov ecx, FO_VAR_paths
 		jmp setPath
 isReading:
 		mov ecx, tempPathPtr
@@ -927,7 +927,7 @@ static void __declspec(naked) CheckHeroExist() {
 		sub esp, 0x4
 		lea ebx, [esp]
 		push ebx
-		push VARPTR_art_name //critter art file name address
+		push FO_VAR_art_name //critter art file name address
 		//call CheckHeroFile//check if art file exists
 		call CheckFile
 		add esp, 0xC
@@ -943,7 +943,7 @@ static void __declspec(naked) CheckHeroExist() {
 		jmp eax
 EndFunc:
 		//popad
-		mov eax, VARPTR_art_name
+		mov eax, FO_VAR_art_name
 		ret
 	}
 }
@@ -957,7 +957,7 @@ static void __declspec(naked) AdjustHeroBaseArt() {
 		// jg EndFunc
 		add eax, critterListSize
 //EndFunc:
-		mov dword ptr ds:[VARPTR_art_vault_guy_num],eax
+		mov dword ptr ds:[FO_VAR_art_vault_guy_num],eax
 		ret
 	}
 }
@@ -978,7 +978,7 @@ static void __declspec(naked) AdjustHeroArmorArt() {
 		jg EndFunc
 		add eax, critterListSize //shift critter art index up into hero range
 EndFunc:
-		//mov dword ptr ds:[VARPTR_i_fid],eax
+		//mov dword ptr ds:[FO_VAR_i_fid],eax
 		ret
 	}
 }
@@ -987,7 +987,7 @@ EndFunc:
 void _stdcall SetHeroArt(int NewArtFlag) {
 
 	__asm {
-		mov eax, dword ptr ds:[VARPTR_obj_dude] //hero state struct
+		mov eax, dword ptr ds:[FO_VAR_obj_dude] //hero state struct
 		mov eax, dword ptr ds:[eax + 0x20] //get hero FrmID
 		xor edx, edx
 		mov dx, ax
@@ -1005,7 +1005,7 @@ IsHero:
 SetArt:
 		mov ebx, 0 //SomePtr
 		mov edx, eax
-		mov eax, dword ptr ds:[VARPTR_obj_dude] //hero state struct
+		mov eax, dword ptr ds:[FO_VAR_obj_dude] //hero state struct
 		mov dword ptr ds:[eax + 0x20],edx //copy new FrmID to hero state struct
 		//call obj_change_fid_ // set critter FrmID function
 EndFunc:
@@ -1079,7 +1079,7 @@ static void __declspec(naked) AddHeroCritNames() {
 
 	__asm {
 		call FixCritList //insert names for hero critters
-		mov eax, dword ptr ds:[VARPTR_art + 0x3C]
+		mov eax, dword ptr ds:[FO_VAR_art + 0x3C]
 		ret
 	}
 }
@@ -1117,15 +1117,15 @@ void DrawPC(void) {
 	__asm {
 		/*
 		lea ebx, //-out- RECT*
-		mov eax, dword ptr ds:[VARPTR_obj_dude] //critter struct
+		mov eax, dword ptr ds:[FO_VAR_obj_dude] //critter struct
 		mov edx, dword ptr ds:[eax + 0x20] // new frmId
 		call obj_change_fid_ //set new critt FrmID func
 		*/
 		lea edx, critRect //out critter RECT*
-		mov eax, dword ptr ds:[VARPTR_obj_dude] //dude critter struct
+		mov eax, dword ptr ds:[FO_VAR_obj_dude] //dude critter struct
 		call FuncOffs::obj_bound_ //get critter rect func
 
-		mov edx, dword ptr ds:[VARPTR_obj_dude] //dude critter struct
+		mov edx, dword ptr ds:[FO_VAR_obj_dude] //dude critter struct
 		lea eax, critRect //RECT*
 		mov edx, dword ptr ds:[edx + 0x28] //map level the dude is on
 		call FuncOffs::tile_refresh_rect_ //draw rect area func
@@ -1139,19 +1139,19 @@ void _stdcall RefreshPCArt() {
 	__asm {
 		call FuncOffs::proto_dude_update_gender_ //refresh PC base model art
 
-		mov eax, dword ptr ds:[VARPTR_obj_dude] //PC state struct
-		mov dword ptr ds:[VARPTR_inven_dude], eax //inventory temp pointer to PC state struct
-		mov eax, dword ptr ds:[VARPTR_inven_dude]
+		mov eax, dword ptr ds:[FO_VAR_obj_dude] //PC state struct
+		mov dword ptr ds:[FO_VAR_inven_dude], eax //inventory temp pointer to PC state struct
+		mov eax, dword ptr ds:[FO_VAR_inven_dude]
 		lea edx, dword ptr ds:[eax + 0x2C]
-		mov dword ptr ds:[VARPTR_pud], edx //PC inventory
+		mov dword ptr ds:[FO_VAR_pud], edx //PC inventory
 
 		xor eax, eax
 		xor edx, edx //itemListOffset
 		xor ebx, ebx //itemNum
 
-		mov dword ptr ds:[VARPTR_i_rhand], eax //item2
-		mov dword ptr ds:[VARPTR_i_worn], eax //armor
-		mov dword ptr ds:[VARPTR_i_lhand], eax //item1
+		mov dword ptr ds:[FO_VAR_i_rhand], eax //item2
+		mov dword ptr ds:[FO_VAR_i_worn], eax //armor
+		mov dword ptr ds:[FO_VAR_i_lhand], eax //item1
 		jmp LoopStart
 
 CheckNextItem:
@@ -1167,22 +1167,22 @@ CheckNextItem:
 		jmp SetNextItem
 
 IsItem1:
-		mov dword ptr ds:[VARPTR_i_lhand], eax //set item1
+		mov dword ptr ds:[FO_VAR_i_lhand], eax //set item1
 		test byte ptr ds:[eax + 0x27], 2 //check if same item type also in item2 slot
 		jz SetNextItem
 
 IsItem2:
-		mov dword ptr ds:[VARPTR_i_rhand], eax //set item2
+		mov dword ptr ds:[FO_VAR_i_rhand], eax //set item2
 		jmp SetNextItem
 
 IsArmor:
-		mov dword ptr ds:[VARPTR_i_worn], eax //set armor
+		mov dword ptr ds:[FO_VAR_i_worn], eax //set armor
 
 SetNextItem:
 		inc ebx //itemNum++
 		add edx, 0x8 //itemListOffset + itemsize
 LoopStart:
-		mov eax, dword ptr ds:[VARPTR_pud] //PC inventory
+		mov eax, dword ptr ds:[FO_VAR_pud] //PC inventory
 		cmp ebx, dword ptr ds:[eax] //size of item list
 		jl CheckNextItem
 
@@ -1190,15 +1190,15 @@ LoopStart:
 		call FuncOffs::adjust_fid_
 
 		//copy new FrmID to hero state struct
-		mov edx, dword ptr ds:[VARPTR_i_fid]
-		mov eax, dword ptr ds:[VARPTR_inven_dude]
+		mov edx, dword ptr ds:[FO_VAR_i_fid]
+		mov eax, dword ptr ds:[FO_VAR_inven_dude]
 		mov dword ptr ds:[eax + 0x20], edx
 		//call FuncOffs::obj_change_fid_
 
 		xor eax,eax
-		mov dword ptr ds:[VARPTR_i_rhand], eax //item2
-		mov dword ptr ds:[VARPTR_i_worn], eax //armor
-		mov dword ptr ds:[VARPTR_i_lhand], eax //item1
+		mov dword ptr ds:[FO_VAR_i_rhand], eax //item2
+		mov dword ptr ds:[FO_VAR_i_worn], eax //armor
+		mov dword ptr ds:[FO_VAR_i_lhand], eax //item1
 	}
 
 	if (!appModEnabled) return;
@@ -1519,10 +1519,10 @@ void DrawCharNote(bool Style, int WinRef, DWORD xPosWin, DWORD yPosWin, BYTE *BG
 void DrawCharNote(DWORD LstNum, char *TitleTxt, char *AltTitleTxt, char *Message) {
 
 	__asm {
-		MOV ECX,Message//100//DWORD PTR ds:[VARPTR_folder_card_desc]
-		MOV EBX,AltTitleTxt//DWORD PTR ds:[VARPTR_folder_card_title2]
-		MOV EDX,TitleTxt//DWORD PTR ds:[VARPTR_folder_card_title]
-		MOV EAX,LstNum//11//LstNum//DWORD PTR ds:[VARPTR_folder_card_fid]
+		MOV ECX,Message//100//DWORD PTR ds:[FO_VAR_folder_card_desc]
+		MOV EBX,AltTitleTxt//DWORD PTR ds:[FO_VAR_folder_card_title2]
+		MOV EDX,TitleTxt//DWORD PTR ds:[FO_VAR_folder_card_title]
+		MOV EAX,LstNum//11//LstNum//DWORD PTR ds:[FO_VAR_folder_card_fid]
 		CALL FuncOffs::DrawCard_
 	}
 }
@@ -1962,7 +1962,7 @@ static void __declspec(naked) CharScrnEnd(void) {
 		pushad
 		call DeleteCharSurfaces
 		popad
-		mov ebp, dword ptr ds:[VARPTR_info_line]
+		mov ebp, dword ptr ds:[FO_VAR_info_line]
 		retn
 	}
 }
@@ -1973,31 +1973,31 @@ static void __declspec(naked) SexScrnEnd(void) {
 	__asm {
 		pushad
 		mov edx, STAT_gender
-		mov eax, dword ptr ds:[VARPTR_obj_dude]
+		mov eax, dword ptr ds:[FO_VAR_obj_dude]
 		call FuncOffs::stat_level_ //get PC stat current gender
 		mov ecx, eax
 		call FuncOffs::SexWindow_ //call gender selection window
 		mov edx, STAT_gender
-		mov eax, dword ptr ds:[VARPTR_obj_dude]
+		mov eax, dword ptr ds:[FO_VAR_obj_dude]
 		call FuncOffs::stat_level_ //get PC stat current gender
 		cmp ecx, eax //check if gender has been changed
 		je EndFunc
 
 		xor ebx, ebx
-		//cmp byte ptr ds:[VARPTR_gmovie_played_list + 0x3],1 //check if wearing vault suit
+		//cmp byte ptr ds:[FO_VAR_gmovie_played_list + 0x3],1 //check if wearing vault suit
 		//jne NoVaultSuit
 		//mov ebx, 0x8
 //NoVaultSuit:
 		test eax, eax //check if male 0
 		jnz IsFemale
-		mov eax, dword ptr ds:[ebx + VARPTR_art_vault_person_nums] //base male model
+		mov eax, dword ptr ds:[ebx + FO_VAR_art_vault_person_nums] //base male model
 		jmp ChangeSex
 IsFemale:
 		mov eax, dword ptr ds:[ebx + 0x5108AC] //base female model
 ChangeSex:
 		call AdjustHeroBaseArt
-		//mov dword ptr ds:[VARPTR_art_vault_guy_num], eax //current base dude model
-		mov eax, dword ptr ds:[VARPTR_obj_dude] //dude state structure
+		//mov dword ptr ds:[FO_VAR_art_vault_guy_num], eax //current base dude model
+		mov eax, dword ptr ds:[FO_VAR_obj_dude] //dude state structure
 		call FuncOffs::inven_worn_
 		mov currentRaceVal, 0 //reset race and style to defaults
 		mov currentStyleVal, 0
@@ -2007,12 +2007,12 @@ ChangeSex:
 		call LoadHeroDat
 		call RefreshPCArt
 		//Check If Race or Style selected to redraw info note
-		cmp dword ptr ds:[VARPTR_info_line], 0x501
+		cmp dword ptr ds:[FO_VAR_info_line], 0x501
 		jne CheckIfStyle
 		push 0
 		call DrawCharNoteNewChar
 CheckIfStyle:
-		cmp dword ptr ds:[VARPTR_info_line], 0x502
+		cmp dword ptr ds:[FO_VAR_info_line], 0x502
 		jne EndFunc
 		push 1
 		call DrawCharNoteNewChar
@@ -2096,7 +2096,7 @@ static void __declspec(naked) AddCharScrnButtons(void) {
 static void __declspec(naked) FixCharScrnBack(void) {
 //00432B92  |. A3 A4075700    MOV DWORD PTR DS:[5707A4],EAX
 	__asm {
-		mov dword ptr ds:[VARPTR_bckgnd], eax //surface ptr for char scrn back
+		mov dword ptr ds:[FO_VAR_bckgnd], eax //surface ptr for char scrn back
 		test eax, eax //check if frm loaded ok
 		je EndFunc
 
@@ -2196,7 +2196,7 @@ static void __declspec(naked) FixCharScrnBack(void) {
 		pop ebp
 		mov eax, charScrnBackSurface
 EndFunc:
-		mov dword ptr ds:[VARPTR_bckgnd], eax //surface ptr for char scrn back
+		mov dword ptr ds:[FO_VAR_bckgnd], eax //surface ptr for char scrn back
 		retn
 	}
 }

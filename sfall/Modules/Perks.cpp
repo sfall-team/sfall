@@ -104,17 +104,17 @@ static void __declspec(naked) LevelUpHook() {
 notskilled:
 		mov ecx, 3;
 afterskilled:
-		mov eax, ds:[VARPTR_Level_]; //Get players level
+		mov eax, ds:[FO_VAR_Level_]; //Get players level
 		inc eax;
 		xor edx, edx;
 		div ecx;
 		test edx, edx;
 		jnz end;
-		inc byte ptr ds:[VARPTR_free_perk]; //Increment the number of perks owed
+		inc byte ptr ds:[FO_VAR_free_perk]; //Increment the number of perks owed
 end:
 		pop ebx;
 		pop ecx;
-		mov edx, ds:[VARPTR_Level_];
+		mov edx, ds:[FO_VAR_Level_];
 		retn;
 	}
 }
@@ -348,7 +348,7 @@ static void __declspec(naked) PlayerHasPerkHook() {
 		mov  ecx, eax;
 		xor  ebx, ebx;
 oloop:
-		mov  eax, ds:[VARPTR_obj_dude];
+		mov  eax, ds:[FO_VAR_obj_dude];
 		mov  edx, ebx;
 		call FuncOffs::perk_level_;
 		test eax, eax;
@@ -582,7 +582,7 @@ end:
 		jl end2;
 		cmp edx, 90;
 		jg end2;
-		inc ds:[edx*4 + (VARPTR_pc_proto + 0x24 - (PERK_gain_strength_perk)*4)]; // base_stat_srength
+		inc ds:[edx*4 + (FO_VAR_pc_proto + 0x24 - (PERK_gain_strength_perk)*4)]; // base_stat_srength
 end2:
 		retn;
 	}
@@ -746,7 +746,7 @@ static int _stdcall stat_get_base_direct(DWORD statID) {
 	DWORD result;
 	__asm {
 		mov edx, statID;
-		mov eax, dword ptr ds:[VARPTR_obj_dude];
+		mov eax, dword ptr ds:[FO_VAR_obj_dude];
 		call FuncOffs::stat_get_base_direct_;
 		mov result, eax;
 	}

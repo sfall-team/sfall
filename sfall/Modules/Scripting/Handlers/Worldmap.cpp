@@ -161,7 +161,7 @@ void __declspec(naked) op_get_world_map_x_pos() {
 		push ecx;
 		push edx;
 		mov ecx, eax;
-		mov edx, ds:[VARPTR_world_xpos];
+		mov edx, ds:[FO_VAR_world_xpos];
 		call FuncOffs::interpretPushLong_;
 		mov edx, 0xc001;
 		mov eax, ecx;
@@ -179,7 +179,7 @@ void __declspec(naked) op_get_world_map_y_pos() {
 		push ecx;
 		push edx;
 		mov ecx, eax;
-		mov edx, ds:[VARPTR_world_ypos];
+		mov edx, ds:[FO_VAR_world_ypos];
 		call FuncOffs::interpretPushLong_;
 		mov edx, 0xc001;
 		mov eax, ecx;
@@ -213,8 +213,8 @@ void __declspec(naked) op_set_world_map_pos() {
 		jnz end;
 		cmp si, 0xC001;
 		jnz end;
-		mov ds : [VARPTR_world_xpos], eax;
-		mov ds : [VARPTR_world_ypos], edi;
+		mov ds : [FO_VAR_world_xpos], eax;
+		mov ds : [FO_VAR_world_ypos], edi;
 end:
 		pop esi;
 		pop edi;

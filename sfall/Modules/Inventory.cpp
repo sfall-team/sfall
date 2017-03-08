@@ -148,7 +148,7 @@ static const DWORD ObjPickupEnd=0x49B6F8;
 static const DWORD size_limit;
 static __declspec(naked) void  ObjPickupHook() {
 	__asm {
-		cmp edi, ds:[VARPTR_obj_dude];
+		cmp edi, ds:[FO_VAR_obj_dude];
 		jnz end;
 end:
 		lea edx, [esp+0x10];
@@ -164,7 +164,7 @@ static __declspec(naked) int CritterCheck() {
 		sub esp, 4;
 		mov ebx, eax;
 
-		cmp eax, dword ptr ds:[VARPTR_obj_dude];
+		cmp eax, dword ptr ds:[FO_VAR_obj_dude];
 		je single;
 		test mode, 3;
 		jnz run;
@@ -326,13 +326,13 @@ static __declspec(naked) void DisplayStatsHook() {
 		call CritterCheck;
 		jz nolimit;
 		push eax;
-		mov eax, ds:[VARPTR_stack];
+		mov eax, ds:[FO_VAR_stack];
 		push ecx;
 		push InvenFmt1;
 		push offset InvenFmt;
 		call strcpy_wrapper;
 		pop ecx;
-		mov eax, ds:[VARPTR_stack];
+		mov eax, ds:[FO_VAR_stack];
 		call item_total_size;
 		push eax;
 		push ecx;
@@ -350,7 +350,7 @@ nolimit:
 		push eax;
 		push eax;
 end:
-		mov eax, ds:[VARPTR_stack];
+		mov eax, ds:[FO_VAR_stack];
 		mov edx, 0xc;
 		jmp DisplayStatsEnd;
 	}
@@ -557,7 +557,7 @@ static void __declspec(naked) item_add_mult_hook() {
 
 static void __declspec(naked) inven_pickup_hook() {
 	__asm {
-		mov  eax, ds:[VARPTR_i_wid]
+		mov  eax, ds:[FO_VAR_i_wid]
 		call FuncOffs::GNW_find_
 		mov  ebx, [eax+0x8+0x0]                   // ebx = _i_wid.rect.x
 		mov  ecx, [eax+0x8+0x4]                   // ecx = _i_wid.rect.y
@@ -570,7 +570,7 @@ static void __declspec(naked) inven_pickup_hook() {
 		call FuncOffs::mouse_click_in_
 		test eax, eax
 		jz   end
-		mov  edx, ds:[VARPTR_curr_stack]
+		mov  edx, ds:[FO_VAR_curr_stack]
 		test edx, edx
 		jnz  end
 		cmp  edi, 1006                            // Hands?
@@ -681,7 +681,7 @@ void Inventory::init() {
 	HookCall(0x471457, &inven_pickup_hook);
 
 	// Move items to player's main inventory instead of the opened bag/backpack when confirming a trade
-	SafeWrite32(0x475CF2, VARPTR_stack);
+	SafeWrite32(0x475CF2, FO_VAR_stack);
 
 	// Fix item_count function returning incorrect value when there is a container-item inside
 	MakeCall(0x47808C, ItemCountFix, true); // replacing item_count_ function

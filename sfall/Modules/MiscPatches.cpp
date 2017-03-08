@@ -65,7 +65,7 @@ static void __declspec(naked) Combat_p_procFix() {
 	__asm {
 		push eax;
 
-		mov eax, dword ptr ds : [VARPTR_combat_state];
+		mov eax, dword ptr ds : [FO_VAR_combat_state];
 		cmp eax, 3;
 		jnz end_cppf;
 
@@ -73,7 +73,7 @@ static void __declspec(naked) Combat_p_procFix() {
 		push ebx;
 		push edx;
 
-		mov esi, VARPTR_main_ctd;
+		mov esi, FO_VAR_main_ctd;
 		mov eax, [esi];
 		mov ebx, [esi + 0x20];
 		xor edx, edx;
@@ -176,7 +176,7 @@ static void __declspec(naked) register_object_take_out_hack() {
 
 static void __declspec(naked) gdAddOptionStr_hack() {
 	__asm {
-		mov  ecx, ds:[VARPTR_gdNumOptions]
+		mov  ecx, ds:[FO_VAR_gdNumOptions]
 		add  ecx, '1'
 		push ecx
 		push 0x4458FA
@@ -186,7 +186,7 @@ static void __declspec(naked) gdAddOptionStr_hack() {
 
 static void __declspec(naked) ScienceCritterCheckHook() {
 	__asm {
-		cmp esi, ds:[VARPTR_obj_dude];
+		cmp esi, ds:[FO_VAR_obj_dude];
 		jne end;
 		mov eax, 10;
 		retn;
@@ -220,14 +220,14 @@ static void __declspec(naked) ReloadHook() {
 		push eax;
 		push ebx;
 		push edx;
-		mov eax, dword ptr ds:[VARPTR_obj_dude];
+		mov eax, dword ptr ds:[FO_VAR_obj_dude];
 		call FuncOffs::register_clear_;
 		xor eax, eax;
 		inc eax;
 		call FuncOffs::register_begin_;
 		xor edx, edx;
 		xor ebx, ebx;
-		mov eax, dword ptr ds:[VARPTR_obj_dude];
+		mov eax, dword ptr ds:[FO_VAR_obj_dude];
 		dec ebx;
 		call FuncOffs::register_object_animate_;
 		call FuncOffs::register_end_;
@@ -290,7 +290,7 @@ retry:
 		xor edx, edx;
 		call FuncOffs::combat_ai_;
 process:
-		cmp dword ptr ds:[VARPTR_combat_turn_running], 0;
+		cmp dword ptr ds:[FO_VAR_combat_turn_running], 0;
 		jle next;
 		call FuncOffs::process_bk_;
 		jmp process;
@@ -314,7 +314,7 @@ static void __declspec(naked) NPCStage6Fix1() {
 		mov eax,0xcc;				// set record size to 204 bytes
 		imul eax,edx;				// multiply by number of NPC records in party.txt
 		call FuncOffs::mem_malloc_;			// malloc the necessary memory
-		mov edx,dword ptr ds:[VARPTR_partyMemberMaxCount];	// retrieve number of NPC records in party.txt
+		mov edx,dword ptr ds:[FO_VAR_partyMemberMaxCount];	// retrieve number of NPC records in party.txt
 		mov ebx,0xcc;				// set record size to 204 bytes
 		imul ebx,edx;				// multiply by number of NPC records in party.txt
 		jmp NPCStage6Fix1End;			// call memset to set all malloc'ed memory to 0
@@ -325,7 +325,7 @@ static void __declspec(naked) NPCStage6Fix2() {
 	__asm {
 		mov eax,0xcc;				// record size is 204 bytes
 		imul edx,eax;				// multiply by NPC number as listed in party.txt
-		mov eax,dword ptr ds:[VARPTR_partyMemberAIOptions];	// get starting offset of internal NPC table
+		mov eax,dword ptr ds:[FO_VAR_partyMemberAIOptions];	// get starting offset of internal NPC table
 		jmp NPCStage6Fix2End;			// eax+edx = offset of specific NPC record
 	}
 }
@@ -335,7 +335,7 @@ static const DWORD ScannerHookFail=0x41BC65;
 static void __declspec(naked) ScannerAutomapHook() {
 	using fo::PID_MOTION_SENSOR;
 	__asm {
-		mov eax, ds:[VARPTR_obj_dude];
+		mov eax, ds:[FO_VAR_obj_dude];
 		mov edx, PID_MOTION_SENSOR;
 		call FuncOffs::inven_pid_is_carried_ptr_;
 		test eax, eax;

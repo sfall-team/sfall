@@ -51,7 +51,7 @@ static DWORD _stdcall DrawCardHook2() {
 
 static void __declspec(naked) DrawCardHook() {
 	__asm {
-		cmp ds : [VARPTR_info_line], 10;
+		cmp ds : [FO_VAR_info_line], 10;
 		jne skip;
 		cmp eax, 0x30;
 		jne skip;

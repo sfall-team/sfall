@@ -55,7 +55,7 @@ static void __declspec(naked) save_page_offsets(void) {
       //save last slot position values to file
       call SavePageOffsets
       //restore original code
-      mov eax, dword ptr ds:[VARPTR_lsgwin]
+      mov eax, dword ptr ds:[FO_VAR_lsgwin]
       ret
   }
 }
@@ -103,7 +103,7 @@ static void __declspec(naked) create_page_buttons(void) {
      mov ecx, 24//Width
      mov edx, 100//Xpos
      mov ebx, 56//Ypos
-     mov eax, dword ptr ds:[VARPTR_lsgwin]//WinRef
+     mov eax, dword ptr ds:[FO_VAR_lsgwin]//WinRef
      call FuncOffs::win_register_button_
      //left button -100
      push 32//ButType
@@ -118,7 +118,7 @@ static void __declspec(naked) create_page_buttons(void) {
      mov ecx, 24//Width
      mov edx, 68//Xpos
      mov ebx, 56//Ypos
-     mov eax, dword ptr ds:[VARPTR_lsgwin]//WinRef
+     mov eax, dword ptr ds:[FO_VAR_lsgwin]//WinRef
      call FuncOffs::win_register_button_//create button function
      //right button +10
      push 32//ButType
@@ -133,7 +133,7 @@ static void __declspec(naked) create_page_buttons(void) {
      mov ecx, 24//Width
      mov edx, 216//Xpos
      mov ebx, 56//Ypos
-     mov eax, dword ptr ds:[VARPTR_lsgwin]//WinRef
+     mov eax, dword ptr ds:[FO_VAR_lsgwin]//WinRef
      call FuncOffs::win_register_button_//create button function
      //right button +100
      push 32//ButType
@@ -148,7 +148,7 @@ static void __declspec(naked) create_page_buttons(void) {
      mov ecx, 24//Width
      mov edx, 248//Xpos
      mov ebx, 56//Ypos
-     mov eax, dword ptr ds:[VARPTR_lsgwin]//WinRef
+     mov eax, dword ptr ds:[FO_VAR_lsgwin]//WinRef
      call FuncOffs::win_register_button_//create button function
      //Set Number button
      push 32//ButType
@@ -163,7 +163,7 @@ static void __declspec(naked) create_page_buttons(void) {
      mov ecx, 60//Width
      mov edx, 140//Xpos
      mov ebx, 56//Ypos
-     mov eax, dword ptr ds:[VARPTR_lsgwin]//WinRef
+     mov eax, dword ptr ds:[FO_VAR_lsgwin]//WinRef
      call FuncOffs::win_register_button_//create button function
 
      //restore original code
@@ -430,7 +430,7 @@ static void __declspec(naked) draw_page_text(void) {
 //add page num offset when reading and writing various save data files
 static void __declspec(naked) AddPageOffset01(void) {
 	__asm {
-		mov eax, dword ptr ds:[VARPTR_slot_cursor]//list position 0-9
+		mov eax, dword ptr ds:[FO_VAR_slot_cursor]//list position 0-9
 		add eax, LSPageOffset//add page num offset
 		ret
 	}

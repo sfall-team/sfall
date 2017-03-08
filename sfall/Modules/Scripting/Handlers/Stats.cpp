@@ -552,7 +552,7 @@ void __declspec(naked) op_get_available_skill_points() {
 	__asm {
 		pushad;
 		mov ecx, eax;
-		mov edx, dword ptr ds : [VARPTR_curr_pc_stat];
+		mov edx, dword ptr ds : [FO_VAR_curr_pc_stat];
 		call FuncOffs::interpretPushLong_;
 		mov edx, 0xc001;
 		mov eax, ecx;
@@ -645,11 +645,11 @@ void __declspec(naked) op_set_critter_current_ap() {
 		cmp si, 0xC001;
 		jnz end;
 		mov[eax + 0x40], ebx;
-		mov ecx, ds:[VARPTR_obj_dude]
+		mov ecx, ds:[FO_VAR_obj_dude]
 			cmp ecx, eax;
 		jne end;
 		mov eax, ebx;
-		mov edx, ds:[VARPTR_combat_free_move]
+		mov edx, ds:[FO_VAR_combat_free_move]
 			call FuncOffs::intface_update_move_points_;
 end:
 		//Restore registers and return
