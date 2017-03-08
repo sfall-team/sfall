@@ -41,10 +41,10 @@ void __declspec(naked) op_graphics_funcs_available() {
 		jle end;
 		inc edx;
 end:
-		call FuncOffs::interpretPushLong_;
+		call fo::funcoffs::interpretPushLong_;
 		mov edx, 0xc001;
 		mov eax, ecx;
-		call FuncOffs::interpretPushShort_;
+		call fo::funcoffs::interpretPushShort_;
 		pop edx;
 		pop ecx;
 		pop ebx;
@@ -59,10 +59,10 @@ void __declspec(naked) op_load_shader() {
 		push edx;
 		push edi;
 		mov edi, eax;
-		call FuncOffs::interpretPopShort_;
+		call fo::funcoffs::interpretPopShort_;
 		mov edx, eax;
 		mov eax, edi;
-		call FuncOffs::interpretPopLong_;
+		call fo::funcoffs::interpretPopLong_;
 		cmp dx, 0x9001;
 		jz next;
 		cmp dx, 0x9801;
@@ -70,7 +70,7 @@ void __declspec(naked) op_load_shader() {
 next:
 		mov ebx, eax;
 		mov eax, edi;
-		call FuncOffs::interpretGetString_;
+		call fo::funcoffs::interpretGetString_;
 		push eax;
 		call LoadShader;
 		mov edx, eax;
@@ -79,10 +79,10 @@ error:
 		mov edx, -1;
 result:
 		mov eax, edi;
-		call FuncOffs::interpretPushLong_;
+		call fo::funcoffs::interpretPushLong_;
 		mov edx, 0xC001;
 		mov eax, edi;
-		call FuncOffs::interpretPushShort_;
+		call fo::funcoffs::interpretPushShort_;
 		pop edi;
 		pop edx;
 		pop ecx;
@@ -97,10 +97,10 @@ void __declspec(naked) op_free_shader() {
 		push ecx;
 		push edx;
 		mov ecx, eax;
-		call FuncOffs::interpretPopShort_;
+		call fo::funcoffs::interpretPopShort_;
 		mov edx, eax;
 		mov eax, ecx;
-		call FuncOffs::interpretPopLong_;
+		call fo::funcoffs::interpretPopLong_;
 		cmp dx, 0xC001;
 		jnz end;
 		push eax;
@@ -119,10 +119,10 @@ void __declspec(naked) op_activate_shader() {
 		push ecx;
 		push edx;
 		mov ecx, eax;
-		call FuncOffs::interpretPopShort_;
+		call fo::funcoffs::interpretPopShort_;
 		mov edx, eax;
 		mov eax, ecx;
-		call FuncOffs::interpretPopLong_;
+		call fo::funcoffs::interpretPopLong_;
 		cmp dx, 0xC001;
 		jnz end;
 		push eax;
@@ -141,10 +141,10 @@ void __declspec(naked) op_deactivate_shader() {
 		push ecx;
 		push edx;
 		mov ecx, eax;
-		call FuncOffs::interpretPopShort_;
+		call fo::funcoffs::interpretPopShort_;
 		mov edx, eax;
 		mov eax, ecx;
-		call FuncOffs::interpretPopLong_;
+		call fo::funcoffs::interpretPopLong_;
 		cmp dx, 0xC001;
 		jnz end;
 		push eax;
@@ -166,16 +166,16 @@ void __declspec(naked) op_get_shader_texture() {
 		push edi;
 		//Get function args
 		mov ecx, eax;
-		call FuncOffs::interpretPopShort_;
+		call fo::funcoffs::interpretPopShort_;
 		push eax;
 		mov eax, ecx;
-		call FuncOffs::interpretPopLong_;
+		call fo::funcoffs::interpretPopLong_;
 		mov edi, eax;
 		mov eax, ecx;
-		call FuncOffs::interpretPopShort_;
+		call fo::funcoffs::interpretPopShort_;
 		push eax;
 		mov eax, ecx;
-		call FuncOffs::interpretPopLong_;
+		call fo::funcoffs::interpretPopLong_;
 		mov ebx, [esp];
 		cmp bx, 0xC001;
 		jnz fail;
@@ -195,10 +195,10 @@ fail:
 end:
 		//Pass back the result
 		mov eax, ecx;
-		call FuncOffs::interpretPushLong_;
+		call fo::funcoffs::interpretPushLong_;
 		mov edx, 0xc001;
 		mov eax, ecx;
-		call FuncOffs::interpretPushShort_;
+		call fo::funcoffs::interpretPushShort_;
 		//Restore registers and return
 		add esp, 8;
 		pop edi;
@@ -220,22 +220,22 @@ void __declspec(naked) op_set_shader_int() {
 		sub esp, 0xc;
 		mov ecx, eax;
 		//Get args
-		call FuncOffs::interpretPopShort_;
+		call fo::funcoffs::interpretPopShort_;
 		mov edi, eax;
 		mov eax, ecx;
-		call FuncOffs::interpretPopLong_;
+		call fo::funcoffs::interpretPopLong_;
 		mov[esp + 8], eax;
 		mov eax, ecx;
-		call FuncOffs::interpretPopShort_;
+		call fo::funcoffs::interpretPopShort_;
 		mov edx, eax;
 		mov eax, ecx;
-		call FuncOffs::interpretPopLong_;
+		call fo::funcoffs::interpretPopLong_;
 		mov ebp, eax;
 		mov eax, ecx;
-		call FuncOffs::interpretPopShort_;
+		call fo::funcoffs::interpretPopShort_;
 		mov esi, eax;
 		mov eax, ecx;
-		call FuncOffs::interpretPopLong_;
+		call fo::funcoffs::interpretPopLong_;
 		mov[esp], eax;
 		//Error check
 		cmp di, 0xC001;
@@ -249,7 +249,7 @@ next:
 		jnz fail;
 		mov eax, ecx;
 		mov ebx, ebp;
-		call FuncOffs::interpretGetString_;
+		call fo::funcoffs::interpretGetString_;
 		mov[esp + 4], eax;
 		call SetShaderInt;
 		jmp end;
@@ -277,22 +277,22 @@ void __declspec(naked) op_set_shader_texture() {
 		sub esp, 0xc;
 		mov ecx, eax;
 		//Get args
-		call FuncOffs::interpretPopShort_;
+		call fo::funcoffs::interpretPopShort_;
 		mov edi, eax;
 		mov eax, ecx;
-		call FuncOffs::interpretPopLong_;
+		call fo::funcoffs::interpretPopLong_;
 		mov[esp + 8], eax;
 		mov eax, ecx;
-		call FuncOffs::interpretPopShort_;
+		call fo::funcoffs::interpretPopShort_;
 		mov edx, eax;
 		mov eax, ecx;
-		call FuncOffs::interpretPopLong_;
+		call fo::funcoffs::interpretPopLong_;
 		mov ebp, eax;
 		mov eax, ecx;
-		call FuncOffs::interpretPopShort_;
+		call fo::funcoffs::interpretPopShort_;
 		mov esi, eax;
 		mov eax, ecx;
-		call FuncOffs::interpretPopLong_;
+		call fo::funcoffs::interpretPopLong_;
 		mov[esp], eax;
 		//Error check
 		cmp di, 0xC001;
@@ -306,7 +306,7 @@ next:
 		jnz fail;
 		mov eax, ecx;
 		mov ebx, ebp;
-		call FuncOffs::interpretGetString_;
+		call fo::funcoffs::interpretGetString_;
 		mov[esp + 4], eax;
 		call SetShaderTexture;
 		jmp end;
@@ -334,22 +334,22 @@ void __declspec(naked) op_set_shader_float() {
 		sub esp, 0xc;
 		mov ecx, eax;
 		//Get args
-		call FuncOffs::interpretPopShort_;
+		call fo::funcoffs::interpretPopShort_;
 		mov edi, eax;
 		mov eax, ecx;
-		call FuncOffs::interpretPopLong_;
+		call fo::funcoffs::interpretPopLong_;
 		mov[esp + 8], eax;
 		mov eax, ecx;
-		call FuncOffs::interpretPopShort_;
+		call fo::funcoffs::interpretPopShort_;
 		mov edx, eax;
 		mov eax, ecx;
-		call FuncOffs::interpretPopLong_;
+		call fo::funcoffs::interpretPopLong_;
 		mov ebp, eax;
 		mov eax, ecx;
-		call FuncOffs::interpretPopShort_;
+		call fo::funcoffs::interpretPopShort_;
 		mov esi, eax;
 		mov eax, ecx;
-		call FuncOffs::interpretPopLong_;
+		call fo::funcoffs::interpretPopLong_;
 		mov[esp], eax;
 		//Error check
 		cmp di, 0xa001;
@@ -368,7 +368,7 @@ next:
 		jnz fail;
 		mov eax, ecx;
 		mov ebx, ebp;
-		call FuncOffs::interpretGetString_;
+		call fo::funcoffs::interpretGetString_;
 		mov[esp + 4], eax;
 		call SetShaderFloat;
 		jmp end;
@@ -397,10 +397,10 @@ void __declspec(naked) op_set_shader_vector() {
 		mov ecx, 6;
 argloopstart:
 		mov eax, ebp;
-		call FuncOffs::interpretPopShort_;
+		call fo::funcoffs::interpretPopShort_;
 		mov word ptr[esp + ecx * 2 + 0x16], ax;
 		mov eax, ebp;
-		call FuncOffs::interpretPopLong_;
+		call fo::funcoffs::interpretPopLong_;
 		mov[esp + ecx * 4 - 0x4], eax;
 		loop argloopstart;
 		//Error check
@@ -425,7 +425,7 @@ next:
 		mov ebx, [esp + 4];
 		xor edx, edx;
 		mov dx, word ptr[esp + 0x1a];
-		call FuncOffs::interpretGetString_;
+		call fo::funcoffs::interpretGetString_;
 		mov[esp + 4], eax;
 		call SetShaderVector;
 		add esp, 0x12;
@@ -451,10 +451,10 @@ void __declspec(naked) op_get_shader_version() {
 		call GetShaderVersion;
 		mov edx, eax;
 		mov eax, edi;
-		call FuncOffs::interpretPushLong_;
+		call fo::funcoffs::interpretPushLong_;
 		mov edx, 0xc001;
 		mov eax, edi;
-		call FuncOffs::interpretPushShort_;
+		call fo::funcoffs::interpretPushShort_;
 		pop edi;
 		pop edx;
 		pop ecx;
@@ -470,16 +470,16 @@ void __declspec(naked) op_set_shader_mode() {
 		push edx;
 		push esi;
 		mov ecx, eax;
-		call FuncOffs::interpretPopShort_;
+		call fo::funcoffs::interpretPopShort_;
 		mov edx, eax;
 		mov eax, ecx;
-		call FuncOffs::interpretPopLong_;
+		call fo::funcoffs::interpretPopLong_;
 		push eax;
 		mov eax, ecx;
-		call FuncOffs::interpretPopShort_;
+		call fo::funcoffs::interpretPopShort_;
 		mov esi, eax;
 		mov eax, ecx;
-		call FuncOffs::interpretPopLong_;
+		call fo::funcoffs::interpretPopLong_;
 		cmp dx, 0xC001;
 		jnz fail;
 		cmp si, 0xC001;
@@ -504,10 +504,10 @@ void __declspec(naked) op_force_graphics_refresh() {
 		push ecx;
 		push edx;
 		mov ecx, eax;
-		call FuncOffs::interpretPopShort_;
+		call fo::funcoffs::interpretPopShort_;
 		mov edx, eax;
 		mov eax, ecx;
-		call FuncOffs::interpretPopLong_;
+		call fo::funcoffs::interpretPopLong_;
 		cmp dx, 0xC001;
 		jnz end;
 		push eax;

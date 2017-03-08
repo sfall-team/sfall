@@ -244,12 +244,12 @@ void __declspec(naked) NegateFixHook() {
 		fchs;
 		fstp[esp];
 		pop     ebx;
-		call    FuncOffs::pushLongStack_;
+		call    fo::funcoffs::pushLongStack_;
 		mov     edx, VAR_TYPE_FLOAT;
 		jmp     end;
 notfloat:
 		neg     ebx
-		call    FuncOffs::pushLongStack_;
+		call    fo::funcoffs::pushLongStack_;
 		mov     edx, VAR_TYPE_INT;
 end:
 		mov     eax, ecx;

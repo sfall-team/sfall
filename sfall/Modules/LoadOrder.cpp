@@ -34,7 +34,7 @@ static void __declspec(naked) removeDatabase() {
 nextPath:
 		mov  edx, [esp+0x104+4+4]                 // path_patches
 		mov  eax, [ebx]                           // database.path
-		call FuncOffs::stricmp_
+		call fo::funcoffs::stricmp_
 		test eax, eax                             // found path?
 		jz   skip                                 // Yes
 		mov  ecx, ebx
@@ -66,7 +66,7 @@ static void __declspec(naked) game_init_databases_hack2() {
 		je   end
 		mov  eax, ds:[FO_VAR_master_db_handle]
 		mov  eax, [eax]                           // eax = master_patches.path
-		call FuncOffs::xremovepath_
+		call fo::funcoffs::xremovepath_
 		dec  eax                                  // remove path (critter_patches == master_patches)?
 		jz   end                                  // Yes
 		inc  eax

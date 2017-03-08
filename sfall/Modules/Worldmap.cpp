@@ -35,7 +35,7 @@ static __declspec(naked) void GetDateWrapper() {
 		push ecx;
 		push esi;
 		push ebx;
-		call FuncOffs::game_time_date_;
+		call fo::funcoffs::game_time_date_;
 		mov ecx, ds:[FO_VAR_pc_proto + 0x4C];
 		pop esi;
 		test esi, esi;
@@ -69,7 +69,7 @@ up:
 		test ebx, ebx;
 		jz end;
 run:
-		call FuncOffs::wmInterfaceScrollTabsStart_;
+		call fo::funcoffs::wmInterfaceScrollTabsStart_;
 end:
 		pop ebx;
 		retn;
@@ -84,20 +84,20 @@ static void __declspec(naked) worldmap_patch() {
 		mov ecx, wp_delay;
 tck:
 		mov eax, ds : [0x50fb08];
-		call FuncOffs::elapsed_time_;
+		call fo::funcoffs::elapsed_time_;
 		cmp eax, ecx;
 		jl tck;
-		call FuncOffs::get_time_;
+		call fo::funcoffs::get_time_;
 		mov ds : [0x50fb08], eax;
 		popad;
-		jmp FuncOffs::get_input_;
+		jmp fo::funcoffs::get_input_;
 	}
 }
 
 static void __declspec(naked) WorldMapEncPatch1() {
 	__asm {
 		inc dword ptr ds : [FO_VAR_wmLastRndTime]
-		call FuncOffs::wmPartyWalkingStep_;
+		call fo::funcoffs::wmPartyWalkingStep_;
 		retn;
 	}
 }
@@ -120,7 +120,7 @@ static DWORD WorldMapEncounterRate;
 static void __declspec(naked) wmWorldMapFunc_hook() {
 	__asm {
 		inc  dword ptr ds:[FO_VAR_wmLastRndTime];
-		jmp  FuncOffs::wmPartyWalkingStep_;
+		jmp  fo::funcoffs::wmPartyWalkingStep_;
 	}
 }
 
@@ -163,7 +163,7 @@ static void __declspec(naked) WorldMapSpeedPatch2() {
 		pushad;
 		call WorldMapSpeedPatch3;
 		popad;
-		call FuncOffs::get_input_;
+		call fo::funcoffs::get_input_;
 		retn;
 	}
 }
@@ -179,7 +179,7 @@ ls:
 		mov eax, eax;
 		loop ls;
 		pop ecx;
-		call FuncOffs::get_input_;
+		call fo::funcoffs::get_input_;
 		retn;
 	}
 }
@@ -190,14 +190,14 @@ static void WorldMapHook() {
 		pushad;
 		call RunGlobalScripts3;
 		popad;
-		call FuncOffs::get_input_;
+		call fo::funcoffs::get_input_;
 		retn;
 	}
 }
 
 static void __declspec(naked) ViewportHook() {
 	__asm {
-		call FuncOffs::wmWorldMapLoadTempData_;
+		call fo::funcoffs::wmWorldMapLoadTempData_;
 		mov eax, ViewportX;
 		mov ds : [FO_VAR_wmWorldOffsetX], eax
 		mov eax, ViewportY;
@@ -261,10 +261,10 @@ static __declspec(naked) void PathfinderFix() {
 		push eax;
 		mov eax, ds:[FO_VAR_obj_dude];
 		mov edx, PERK_pathfinder;
-		call FuncOffs::perk_level_;
+		call fo::funcoffs::perk_level_;
 		push eax;
 		call PathfinderFix2;
-		call FuncOffs::inc_game_time_;
+		call fo::funcoffs::inc_game_time_;
 		retn;
 	}
 }

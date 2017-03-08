@@ -18,10 +18,10 @@
 
 #include <cassert>
 
-#include "Wrappers.h"
+#include "Functions.h"
 #include "Structs.h"
 
-#include "Utils.h"
+#include "EngineUtils.h"
 
 namespace fo
 {

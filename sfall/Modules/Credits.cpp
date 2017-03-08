@@ -85,7 +85,7 @@ static void _stdcall ShowCreditsHook() {
 	CreditsLine = 0;
 	__asm {
 		mov  eax, creditsFile;
-		call FuncOffs::credits_;
+		call fo::funcoffs::credits_;
 	}
 	InCredits = 0;
 }
@@ -126,7 +126,7 @@ static void __declspec(naked) CreditsNextLineHook_Top() {
 		inc eax;
 		retn;
 fail:
-		jmp FuncOffs::credits_get_next_line_;
+		jmp fo::funcoffs::credits_get_next_line_;
 	}
 }
 
@@ -134,7 +134,7 @@ fail:
 static void __declspec(naked) CreditsNextLineHook_Bottom() {
 	__asm {
 		pushad;
-		call FuncOffs::credits_get_next_line_;  // call default function
+		call fo::funcoffs::credits_get_next_line_;  // call default function
 		test eax, eax;
 		popad;
 		jnz  morelines;               // if not the end yet, skip custom code

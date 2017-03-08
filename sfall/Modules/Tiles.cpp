@@ -45,7 +45,7 @@ static OverrideEntry** overrides;
 static DWORD origTileCount = 0;
 
 typedef int (_stdcall *functype)();
-static const functype _art_init = (functype)FuncOffs::art_init_;
+static const functype _art_init = (functype)fo::funcoffs::art_init_;
 static BYTE* mask;
 
 static void CreateMask() {
@@ -207,7 +207,7 @@ static void _stdcall SquareLoadCheck(tilestruct* data) {
 static void __declspec(naked) SquareLoadHook() {
 	__asm {
 		mov edi, edx;
-		call FuncOffs::db_freadIntCount_;
+		call fo::funcoffs::db_freadIntCount_;
 		test eax, eax;
 		jnz end;
 		pushad;

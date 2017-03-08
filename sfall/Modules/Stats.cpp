@@ -139,7 +139,7 @@ static void __declspec(naked) ApplyApAcBonus() {
 h2hEvade:
 		mov edx, PERK_hth_evade_perk;
 		mov eax, dword ptr ds:[FO_VAR_obj_dude];
-		call FuncOffs::perk_level_;
+		call fo::funcoffs::perk_level_;
 		imul ax, ExtraApAcBonus;
 		imul ax, [ebx+0x40];
 		mov edi, eax;
@@ -161,7 +161,7 @@ static int __declspec(naked) _stdcall StatLevel(void* critter, int id) {
 	__asm {
 		mov eax, [esp+4];
 		mov edx, [esp+8];
-		call FuncOffs::stat_level_;
+		call fo::funcoffs::stat_level_;
 		retn 8;
 	}
 }
@@ -170,7 +170,7 @@ static void __declspec(naked) _stdcall ProtoPtr(DWORD pid, int** proto) {
 	__asm {
 		mov eax, [esp+4];
 		mov edx, [esp+8];
-		call FuncOffs::proto_ptr_;
+		call fo::funcoffs::proto_ptr_;
 		retn 8;
 	}
 }

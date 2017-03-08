@@ -971,7 +971,7 @@ static __declspec(naked) void FadeHook() {
 		fistp[esp];
 		pop ebx;
 		popf;
-		call FuncOffs::fadeSystemPalette_;
+		call fo::funcoffs::fadeSystemPalette_;
 		retn;
 	}
 }

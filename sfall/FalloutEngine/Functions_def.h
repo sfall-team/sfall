@@ -1,5 +1,16 @@
-// An easier way to introduce function wrappers. 
-// Just add one line here and you're all set.
+/**
+	X-Macro for defining engine function wrappers.
+
+	Add one line for every function you want to call from C++ code.
+
+	Format:
+	WRAP_WATCOM_FUNCX(retType, name, argType1, argName1, ...)
+	- X - number of arguments
+	- retType - function return type
+	- name - function name (without trailing underscore)
+	- argType - type of argument
+	- argName - name of argument (repeat for all of X arguments)
+*/
 
 WRAP_WATCOM_FUNC0(void, intface_use_item)
 // returns light level at given tile

@@ -71,7 +71,7 @@ static void __declspec(naked) MainMenuTextHook() {
 		call FontColour;
 		mov [esp+8], eax;
 		pop eax;
-		call FuncOffs::win_print_;
+		call fo::funcoffs::win_print_;
 		call FontColour;
 		push eax;//colour
 		mov edx, VerString1;//msg
@@ -81,7 +81,7 @@ static void __declspec(naked) MainMenuTextHook() {
 		add edi, 12;
 		push edi; //ypos
 		mov eax, dword ptr ds:[FO_VAR_main_window];//winptr
-		call FuncOffs::win_print_;
+		call fo::funcoffs::win_print_;
 		jmp MainMenuTextRet;
 	}
 }

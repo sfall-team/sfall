@@ -90,7 +90,7 @@ jl smpfhj;
 		cmp wait_flag, eax;
 		jg smpfhj;
 		pop eax;
-		call FuncOffs::_word_wrap_;
+		call fo::funcoffs::_word_wrap_;
 		inc wait_flag;
 		add total_quests, 1;
 		retn;
@@ -108,7 +108,7 @@ static void __declspec(naked) newhookresetvalue() {
 		push eax;
 		mov wait_flag, 0;
 		pop eax;
-		call FuncOffs::pip_back_;
+		call fo::funcoffs::pip_back_;
 		retn;
 		}
 }
@@ -196,7 +196,7 @@ smpj1:
 		push ebx;
 		mov edx, 0x35;
 		mov ebx, edi;
-		call FuncOffs::win_register_button_;
+		call fo::funcoffs::win_register_button_;
 		cmp eax, -0x1;
 		jz smpj3;
 		mov ebx, 0x451978;
@@ -222,22 +222,22 @@ smpj4:
 		mov edx, 0xB5; // number from intrface.lst for button-up
 		mov eax, 0x6;
 		xor ebx, ebx;
-		call FuncOffs::art_id_;
+		call fo::funcoffs::art_id_;
 		mov ecx, 0x518F28;
 		xor ebx, ebx;
 		xor edx, edx;
-		call FuncOffs::art_ptr_lock_data_;
+		call fo::funcoffs::art_ptr_lock_data_;
 		mov ds:[0x59D3FC], eax; // first texture memory address
 		push +0x0;
 		mov edx, 0xB6; // number from intrface.lst for button-down
 		mov eax, 0x6;
 		xor ecx, ecx;
 		xor ebx, ebx;
-		call FuncOffs::art_id_;
+		call fo::funcoffs::art_id_;
 		mov ecx, 0x518F2C;
 		xor ebx, ebx;
 		xor edx, edx;
-		call FuncOffs::art_ptr_lock_data_;
+		call fo::funcoffs::art_ptr_lock_data_;
 		mov ds:[0x59D400], eax; // second texture memory address
 
 
@@ -250,22 +250,22 @@ smpj4:
 		mov edx, 0xC7; // number from intrface.lst for button-up
 		mov eax, 0x6;
 		xor ebx, ebx;
-		call FuncOffs::art_id_;
+		call fo::funcoffs::art_id_;
 		mov ecx, 0x518F28;
 		xor ebx, ebx;
 		xor edx, edx;
-		call FuncOffs::art_ptr_lock_data_;
+		call fo::funcoffs::art_ptr_lock_data_;
 		mov ds:[0x570514], eax; // first texture memory address
 		push +0x0;
 		mov edx, 0xC8; // number from intrface.lst for button-down
 		mov eax, 0x6;
 		xor ecx, ecx;
 		xor ebx, ebx;
-		call FuncOffs::art_id_;
+		call fo::funcoffs::art_id_;
 		mov ecx, 0x518F2C;
 		xor ebx, ebx;
 		xor edx, edx;
-		call FuncOffs::art_ptr_lock_data_;
+		call fo::funcoffs::art_ptr_lock_data_;
 		mov ds:[0x570518], eax; // second texture memory address
 
 
@@ -289,7 +289,7 @@ smpj4:
 		push ebx;
 		mov edx, 0x8B;
 		mov ebx, edi;
-		call FuncOffs::win_register_button_;
+		call fo::funcoffs::win_register_button_;
 		cmp eax, -0x1;
 		jz smpj16;
 		mov ebx, 0x451978;
@@ -316,7 +316,7 @@ smpj16:
 		push ebx;
 		mov edx, 0x8B;
 		mov ebx, edi;
-		call FuncOffs::win_register_button_;
+		call fo::funcoffs::win_register_button_;
 		cmp eax, -0x1;
 		jz smpj6;
 		mov ebx, 0x451978;

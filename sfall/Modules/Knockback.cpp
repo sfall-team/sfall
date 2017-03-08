@@ -325,7 +325,7 @@ disable:
 realfunc:
 		pop edx;
 		pop eax;
-		jmp FuncOffs::item_w_damage_type_;
+		jmp fo::funcoffs::item_w_damage_type_;
 	}
 }
 

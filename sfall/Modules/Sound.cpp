@@ -22,9 +22,9 @@ attacker:
 end:
 		mov edx, edi;
 		mov ebx, 8;
-		call FuncOffs::strncpy_;
+		call fo::funcoffs::strncpy_;
 		popad;
-		jmp FuncOffs::strncpy_;
+		jmp fo::funcoffs::strncpy_;
 	}
 }
 
@@ -41,10 +41,10 @@ end:
 		mov ebx, [eax];
 		test bl, bl;
 		jz skip;
-		call FuncOffs::gsound_play_sfx_file_;
+		call fo::funcoffs::gsound_play_sfx_file_;
 skip:
 		popad;
-		jmp FuncOffs::text_object_create_;
+		jmp fo::funcoffs::text_object_create_;
 	}
 }
 

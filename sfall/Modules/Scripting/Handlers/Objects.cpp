@@ -35,10 +35,10 @@ void __declspec(naked) op_remove_script() {
 		push ecx;
 		push edx;
 		mov ecx, eax;
-		call FuncOffs::interpretPopShort_;
+		call fo::funcoffs::interpretPopShort_;
 		mov edx, eax;
 		mov eax, ecx;
-		call FuncOffs::interpretPopLong_;
+		call fo::funcoffs::interpretPopLong_;
 		cmp dx, 0xc001;
 		jnz end;
 		test eax, eax;
@@ -47,7 +47,7 @@ void __declspec(naked) op_remove_script() {
 		mov eax, [eax + 0x78];
 		cmp eax, 0xffffffff;
 		jz end;
-		call FuncOffs::scr_remove_;
+		call fo::funcoffs::scr_remove_;
 		mov dword ptr[edx + 0x78], 0xffffffff;
 end:
 		pop edx;
@@ -61,16 +61,16 @@ void __declspec(naked) op_set_script() {
 	__asm {
 		pushad;
 		mov ecx, eax;
-		call FuncOffs::interpretPopShort_;
+		call fo::funcoffs::interpretPopShort_;
 		mov edx, eax;
 		mov eax, ecx;
-		call FuncOffs::interpretPopLong_;
+		call fo::funcoffs::interpretPopLong_;
 		mov ebx, eax;
 		mov eax, ecx;
-		call FuncOffs::interpretPopShort_;
+		call fo::funcoffs::interpretPopShort_;
 		mov edi, eax;
 		mov eax, ecx;
-		call FuncOffs::interpretPopLong_;
+		call fo::funcoffs::interpretPopLong_;
 		cmp dx, 0xc001;
 		jnz end;
 		cmp di, 0xc001;
@@ -82,7 +82,7 @@ void __declspec(naked) op_set_script() {
 		jz newscript;
 		push eax;
 		mov eax, esi;
-		call FuncOffs::scr_remove_;
+		call fo::funcoffs::scr_remove_;
 		pop eax;
 		mov dword ptr[eax + 0x78], 0xffffffff;
 newscript:
@@ -101,15 +101,15 @@ execMapEnter:
 		inc edx; // 4 - "critter" type script
 notCritter:
 		dec ebx;
-		call FuncOffs::obj_new_sid_inst_;
+		call fo::funcoffs::obj_new_sid_inst_;
 		mov eax, [ecx + 0x78];
 		mov edx, 1; // start
-		call FuncOffs::exec_script_proc_;
+		call fo::funcoffs::exec_script_proc_;
 		cmp esi, 1; // run map enter?
 		jnz end;
 		mov eax, [ecx + 0x78];
 		mov edx, 0xf; // map_enter_p_proc
-		call FuncOffs::exec_script_proc_;
+		call fo::funcoffs::exec_script_proc_;
 end:
 		popad;
 		retn;
@@ -126,7 +126,7 @@ void sf_create_spatial(OpcodeContext& ctx) {
 	__asm {
 		lea eax, scriptId;
 		mov edx, 1;
-		call FuncOffs::scr_new_;
+		call fo::funcoffs::scr_new_;
 		mov tmp, eax;
 	}
 	if (tmp == -1)
@@ -134,7 +134,7 @@ void sf_create_spatial(OpcodeContext& ctx) {
 	__asm {
 		mov eax, scriptId;
 		lea edx, scriptPtr;
-		call FuncOffs::scr_ptr_;
+		call fo::funcoffs::scr_ptr_;
 		mov tmp, eax;
 	}
 	if (tmp == -1)
@@ -147,10 +147,10 @@ void sf_create_spatial(OpcodeContext& ctx) {
 	__asm {
 		mov eax, scriptId;
 		mov edx, 1; // start_p_proc
-		call FuncOffs::exec_script_proc_;
+		call fo::funcoffs::exec_script_proc_;
 		mov eax, scriptPtr;
 		mov eax, [eax + 0x18]; // program pointer
-		call FuncOffs::scr_find_obj_from_program_;
+		call fo::funcoffs::scr_find_obj_from_program_;
 		mov objectPtr, eax;
 	}
 	ctx.setReturn((int)objectPtr);
@@ -225,7 +225,7 @@ static DWORD _stdcall make_straight_path_func_wrapper(DWORD obj, DWORD tileFrom,
 		push func;
 		push a6;
 		push result;
-		call FuncOffs::make_straight_path_func_;
+		call fo::funcoffs::make_straight_path_func_;
 	}
 }
 
@@ -238,13 +238,13 @@ static DWORD _stdcall make_straight_path_func_wrapper(DWORD obj, DWORD tileFrom,
 static DWORD getBlockingFunc(DWORD type) {
 	switch (type) {
 	case BLOCKING_TYPE_BLOCK: default:
-		return FuncOffs::obj_blocking_at_;
+		return fo::funcoffs::obj_blocking_at_;
 	case BLOCKING_TYPE_SHOOT:
-		return FuncOffs::obj_shoot_blocking_at_;
+		return fo::funcoffs::obj_shoot_blocking_at_;
 	case BLOCKING_TYPE_AI:
-		return FuncOffs::obj_ai_blocking_at_;
+		return fo::funcoffs::obj_ai_blocking_at_;
 	case BLOCKING_TYPE_SIGHT:
-		return FuncOffs::obj_sight_blocking_at_;
+		return fo::funcoffs::obj_sight_blocking_at_;
 	//case 4: 
 	//	return obj_scroll_blocking_at_;
 
@@ -283,7 +283,7 @@ void sf_make_path(OpcodeContext& ctx) {
 		mov ebx, tileTo;
 		push func;
 		push a5;
-		call FuncOffs::make_path_func_;
+		call fo::funcoffs::make_path_func_;
 		mov pathLength, eax;
 	}
 	arr = TempArray(pathLength, 0);
@@ -314,13 +314,13 @@ void sf_tile_get_objects(OpcodeContext& ctx) {
 	__asm {
 		mov eax, elevation;
 		mov edx, tile;
-		call FuncOffs::obj_find_first_at_tile_;
+		call fo::funcoffs::obj_find_first_at_tile_;
 		mov obj, eax;
 	}
 	while (obj) {
 		arrays[arrayId].push_back((long)obj);
 		__asm {
-			call FuncOffs::obj_find_next_at_tile_;
+			call fo::funcoffs::obj_find_next_at_tile_;
 			mov obj, eax;
 		}
 	}
@@ -339,7 +339,7 @@ void sf_get_party_members(OpcodeContext& ctx) {
 				continue;
 			__asm {
 				mov eax, obj;
-				call FuncOffs::critter_is_dead_;
+				call fo::funcoffs::critter_is_dead_;
 				mov isDead, eax;
 			}
 			if (isDead)

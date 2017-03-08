@@ -100,9 +100,9 @@ bool isGameLoading;
 
 fo::TScript OverrideScriptStruct;
 
-static const DWORD scr_find_sid_from_program = FuncOffs::scr_find_sid_from_program_ + 5;
-static const DWORD scr_ptr_back = FuncOffs::scr_ptr_ + 5;
-static const DWORD scr_find_obj_from_program = FuncOffs::scr_find_obj_from_program_ + 7;
+static const DWORD scr_ptr_back = fo::funcoffs::scr_ptr_ + 5;
+static const DWORD scr_find_sid_from_program = fo::funcoffs::scr_find_sid_from_program_ + 5;
+static const DWORD scr_find_obj_from_program = fo::funcoffs::scr_find_obj_from_program_ + 7;
 
 DWORD _stdcall FindSidHook2(fo::TProgram* script) {
 	std::unordered_map<fo::TProgram*, fo::TGameObj*>::iterator overrideIt = selfOverrideMap.find(script);
@@ -178,7 +178,7 @@ static void __declspec(naked) MainGameLoopHook() {
 		push ebx;
 		push ecx;
 		push edx;
-		call FuncOffs::get_input_
+		call fo::funcoffs::get_input_
 		push eax;
 		call RunGlobalScripts1;
 		pop eax;
@@ -194,7 +194,7 @@ static void __declspec(naked) CombatLoopHook() {
 		pushad;
 		call RunGlobalScripts1;
 		popad;
-		jmp  FuncOffs::get_input_
+		jmp  fo::funcoffs::get_input_
 	}
 }
 
@@ -270,7 +270,7 @@ static void __declspec(naked) Export_FetchOrStore_FindVar_Hook() {
 		pop ecx;
 		pop edx;
 		pop eax;
-		call FuncOffs::findVar_
+		call fo::funcoffs::findVar_
 		retn
 	}
 }
@@ -291,7 +291,7 @@ static void __declspec(naked) Export_Export_FindVar_Hook() {
 
 proceedNormal:
 		popad;
-		call FuncOffs::findVar_;  // else - proceed normal
+		call fo::funcoffs::findVar_;  // else - proceed normal
 		jmp Export_Export_FindVar_back1;
 	}
 }
@@ -301,7 +301,7 @@ static void _stdcall FreeProgramHook2(fo::TProgram* progPtr) {
 	if (isGameLoading || (sfallProgsMap.find(progPtr) == sfallProgsMap.end())) { // only delete non-sfall scripts or when actually loading the game
 		__asm {
 			mov eax, progPtr;
-			call FuncOffs::interpretFreeProgram_;
+			call fo::funcoffs::interpretFreeProgram_;
 		}
 	}
 }
@@ -320,7 +320,7 @@ static void __declspec(naked) obj_outline_all_items_on() {
 	__asm {
 		pushad
 		mov  eax, dword ptr ds:[FO_VAR_map_elevation]
-		call FuncOffs::obj_find_first_at_
+		call fo::funcoffs::obj_find_first_at_
 loopObject:
 		test eax, eax
 		jz   end
@@ -345,10 +345,10 @@ loopObject:
 NoHighlight:
 		mov  [ecx+0x74], edx
 nextObject:
-		call FuncOffs::obj_find_next_at_
+		call fo::funcoffs::obj_find_next_at_
 		jmp  loopObject
 end:
-		call FuncOffs::tile_refresh_display_
+		call fo::funcoffs::tile_refresh_display_
 		popad
 		retn
 	}
@@ -358,7 +358,7 @@ static void __declspec(naked) obj_outline_all_items_off() {
 	__asm {
 		pushad
 		mov  eax, dword ptr ds:[FO_VAR_map_elevation]
-		call FuncOffs::obj_find_first_at_
+		call fo::funcoffs::obj_find_first_at_
 loopObject:
 		test eax, eax
 		jz   end
@@ -374,10 +374,10 @@ loopObject:
 		jnz  nextObject                           // Yes
 		mov  dword ptr [ecx+0x74], eax
 nextObject:
-		call FuncOffs::obj_find_next_at_
+		call fo::funcoffs::obj_find_next_at_
 		jmp  loopObject
 end:
-		call FuncOffs::tile_refresh_display_
+		call fo::funcoffs::tile_refresh_display_
 		popad
 		retn
 	}
@@ -385,7 +385,7 @@ end:
 
 static void __declspec(naked) obj_remove_outline_hook() {
 	__asm {
-		call FuncOffs::obj_remove_outline_
+		call fo::funcoffs::obj_remove_outline_
 		test eax, eax
 		jnz  end
 		cmp  highlightingToggled, 1

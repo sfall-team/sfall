@@ -61,7 +61,7 @@ static void __declspec(naked) DrawCardHook() {
 		pop edx;
 		pop ecx;
 skip:
-		jmp FuncOffs::DrawCard_;
+		jmp fo::funcoffs::DrawCard_;
 	}
 }
 
@@ -87,7 +87,7 @@ static void __declspec(naked) SetGlobalVarWrapper() {
 		call SetKarma;
 		popad;
 end:
-		jmp FuncOffs::game_set_global_var_;
+		jmp fo::funcoffs::game_set_global_var_;
 	}
 }
 

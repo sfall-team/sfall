@@ -114,7 +114,7 @@ static void __declspec(naked) ToHitHook() {
 		mov args[12], ecx;
 		push [esp+8];
 		push [esp+8];
-		call FuncOffs::determine_to_hit_func_
+		call fo::funcoffs::determine_to_hit_func_
 		mov args[0], eax;
 		pushad;
 		push HOOK_TOHIT;
@@ -171,7 +171,7 @@ static void __declspec(naked) CalcApCostHook() {
 		mov args[0], eax;
 		mov args[4], edx;
 		mov args[8], ebx;
-		call FuncOffs::item_w_mp_cost_;
+		call fo::funcoffs::item_w_mp_cost_;
 		mov args[12], eax;
 		pushad;
 		push HOOK_CALCAPCOST;
@@ -235,7 +235,7 @@ weapend:
 		mov edx, rets[0];
 		mov args[0], edx;
 		mov eax, esp;
-		call FuncOffs::obj_pid_new_
+		call fo::funcoffs::obj_pid_new_
 		add esp, 4;
 		cmp eax, 0xffffffff;
 		jz end1;
@@ -250,7 +250,7 @@ end1:
 		push ebx;
 		mov eax, args[4];
 		mov ebx, args[24];
-		call FuncOffs::pick_death_
+		call fo::funcoffs::pick_death_
 		mov args[16], eax;
 		mov eax, args[16];
 		mov ArgCount, 5;
@@ -270,7 +270,7 @@ skip2:
 		jz aend;
 		mov eax, args[24];
 		xor edx, edx;
-		call FuncOffs::obj_erase_object_
+		call fo::funcoffs::obj_erase_object_
 aend:
 		pop eax;
 		hookend;
@@ -281,7 +281,7 @@ aend:
 static void __declspec(naked) CalcDeathAnimHook2() {
 	__asm {
 		hookbegin(5);
-		call FuncOffs::check_death_; // call original function
+		call fo::funcoffs::check_death_; // call original function
 		mov args[0], -1; // weaponPid, -1
 		mov	ebx, [esp+60]
 		mov args[4], ebx; // attacker
@@ -309,7 +309,7 @@ static void __declspec(naked) CombatDamageHook() {
 		push edx;
 		push ebx;
 		push eax;
-		call FuncOffs::compute_damage_
+		call fo::funcoffs::compute_damage_
 		pop edx;
 
 		//zero damage insta death criticals fix
@@ -380,7 +380,7 @@ static void __declspec(naked) OnDeathHook() {
 	__asm {
 		hookbegin(1);
 		mov args[0], eax;
-		call FuncOffs::critter_kill_
+		call fo::funcoffs::critter_kill_
 		pushad;
 		push HOOK_ONDEATH;
 		call RunHookScript;
@@ -394,7 +394,7 @@ static void __declspec(naked) OnDeathHook2() {
 	__asm {
 		hookbegin(1);
 		mov args[0], esi;
-		call FuncOffs::partyMemberRemove_
+		call fo::funcoffs::partyMemberRemove_
 		pushad;
 		push HOOK_ONDEATH;
 		call RunHookScript;
@@ -422,7 +422,7 @@ static void __declspec(naked) FindTargetHook() {
 		popad;
 		cmp cRet, 4;
 		jge cont;
-		call FuncOffs::qsort_;
+		call fo::funcoffs::qsort_;
 		jmp end;
 cont:
 		mov edi, rets[0];
@@ -454,7 +454,7 @@ static void __declspec(naked) UseObjOnHook() {
 		mov eax, rets[0];
 		jmp end
 defaulthandler:
-		call FuncOffs::protinst_use_item_on_
+		call fo::funcoffs::protinst_use_item_on_
 end:
 		hookend;
 		retn;
@@ -476,7 +476,7 @@ static void __declspec(naked) UseObjOnHook_item_d_take_drug() {
 		mov eax, rets[0];
 		jmp end
 defaulthandler:
-		call FuncOffs::item_d_take_drug_;
+		call fo::funcoffs::item_d_take_drug_;
 end:
 		hookend;
 		retn;
@@ -499,7 +499,7 @@ static void __declspec(naked) UseObjHook() {
 		mov eax, rets[0];
 		jmp end;
 defaulthandler:
-		call FuncOffs::protinst_use_item_;
+		call fo::funcoffs::protinst_use_item_;
 end:
 		hookend;
 		retn;
@@ -534,15 +534,15 @@ static void __declspec(naked) BarterPriceHook() {
 		hookbegin(6);
 		mov args[0], eax;
 		mov args[4], edx;
-		call FuncOffs::barter_compute_value_
+		call fo::funcoffs::barter_compute_value_
 		mov edx, ds:[FO_VAR_btable]
 		mov args[8], eax;
 		mov args[12], edx;
 		xchg eax, edx;
-		call FuncOffs::item_caps_total_
+		call fo::funcoffs::item_caps_total_
 		mov args[16], eax;
 		mov eax, ds:[FO_VAR_btable]
-		call FuncOffs::item_total_cost_
+		call fo::funcoffs::item_total_cost_
 		mov args[20], eax;
 		mov eax, edx;
 		pushad;
@@ -563,7 +563,7 @@ static void __declspec(naked) MoveCostHook() {
 		hookbegin(3);
 		mov args[0], eax;
 		mov args[4], edx;
-		call FuncOffs::critter_compute_ap_from_distance_
+		call fo::funcoffs::critter_compute_ap_from_distance_
 		mov args[8], eax;
 		pushad;
 		push HOOK_MOVECOST;
@@ -613,7 +613,7 @@ static void __declspec(naked) HexABlockingHook() {
 		mov args[0], eax;
 		mov args[4], edx;
 		mov args[8], ebx;
-		call FuncOffs::obj_ai_blocking_at_
+		call fo::funcoffs::obj_ai_blocking_at_
 		mov args[12], eax;
 		pushad;
 		push HOOK_HEXAIBLOCKING;
@@ -634,7 +634,7 @@ static void __declspec(naked) HexShootBlockingHook() {
 		mov args[0], eax;
 		mov args[4], edx;
 		mov args[8], ebx;
-		call FuncOffs::obj_shoot_blocking_at_
+		call fo::funcoffs::obj_shoot_blocking_at_
 		mov args[12], eax;
 		pushad;
 		push HOOK_HEXSHOOTBLOCKING;
@@ -655,7 +655,7 @@ static void __declspec(naked) HexSightBlockingHook() {
 		mov args[0], eax;
 		mov args[4], edx;
 		mov args[8], ebx;
-		call FuncOffs::obj_sight_blocking_at_
+		call fo::funcoffs::obj_sight_blocking_at_
 		mov args[12], eax;
 		pushad;
 		push HOOK_HEXSIGHTBLOCKING;
@@ -694,7 +694,7 @@ skip:
 		je end;
 		mov edx, rets[4];
 runrandom:
-		call FuncOffs::roll_random_
+		call fo::funcoffs::roll_random_
 end:
 		hookend;
 		retn;
@@ -707,7 +707,7 @@ static void __declspec(naked) AmmoCostHook_internal() {
 		mov args[0], eax; //weapon
 		mov ebx, [edx]
 		mov args[4], ebx; //rounds in attack
-		call FuncOffs::item_w_compute_ammo_cost_
+		call fo::funcoffs::item_w_compute_ammo_cost_
 		cmp eax, -1
 		je fail
 		mov ebx, [edx]
@@ -788,7 +788,7 @@ static void __declspec(naked) UseSkillHook() {
 		mov eax, rets[0];
 		jmp end
 defaulthandler:
-		call FuncOffs::skill_use_
+		call fo::funcoffs::skill_use_
 end:
 		hookend;
 		retn;
@@ -813,7 +813,7 @@ static void __declspec(naked) StealCheckHook() {
 		mov eax, rets[0];
 		jmp end
 defaulthandler:
-		call FuncOffs::skill_check_stealing_
+		call fo::funcoffs::skill_check_stealing_
 end:
 		hookend;
 		retn;
@@ -825,7 +825,7 @@ static void __declspec(naked) PerceptionRangeHook() {
 		hookbegin(3);
 		mov args[0], eax; // watcher
 		mov args[4], edx; // target
-		call FuncOffs::is_within_perception_
+		call fo::funcoffs::is_within_perception_
 		mov args[8], eax; // check result
 		pushad;
 		push HOOK_WITHINPERCEPTION;
@@ -894,7 +894,7 @@ static void _declspec(naked) SwitchHandHook() {
 		cmp eax, -1;
 		popad;
 		jne skip;
-		call FuncOffs::switch_hand_;
+		call fo::funcoffs::switch_hand_;
 skip:
 		retn;
 	}
@@ -945,7 +945,7 @@ static void _declspec(naked) MoveInventoryHook() {
 		cmp rets[0], -1;
 		jne skipcall;
 skipcheck:
-		call FuncOffs::item_add_force_
+		call fo::funcoffs::item_add_force_
 skipcall:
 		hookend;
 		retn;
@@ -964,7 +964,7 @@ static void _declspec(naked) invenWieldFunc_Hook() {
 		cmp ebx, 1; // right hand slot?
 		je skip;
 		mov eax, edx;
-		call FuncOffs::item_get_type_;
+		call fo::funcoffs::item_get_type_;
 		cmp eax, item_type_armor;
 		jz skip;
 		mov args[8], 2; // INVEN_TYPE_LEFT_HAND
@@ -978,7 +978,7 @@ skip:
 		je defaulthandler;
 		jmp end
 defaulthandler:
-		call FuncOffs::invenWieldFunc_
+		call fo::funcoffs::invenWieldFunc_
 end:
 		hookend;
 		retn;
@@ -1007,7 +1007,7 @@ notlefthand:
 		je defaulthandler;
 		jmp end
 defaulthandler:
-		call FuncOffs::invenUnwieldFunc_;
+		call fo::funcoffs::invenUnwieldFunc_;
 end:
 		hookend;
 		retn;
@@ -1039,7 +1039,7 @@ notlefthand:
 		je defaulthandler;
 		jmp end
 defaulthandler:
-		call FuncOffs::correctFidForRemovedItem_;
+		call fo::funcoffs::correctFidForRemovedItem_;
 end:
 		hookend;
 		retn;

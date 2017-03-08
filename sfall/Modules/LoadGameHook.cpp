@@ -135,7 +135,7 @@ static void __declspec(naked) SaveGame() {
 		mov eax, edx;
 
 		or inLoop, SAVEGAME;
-		call FuncOffs::SaveGame_;
+		call fo::funcoffs::SaveGame_;
 		and inLoop, (-1^SAVEGAME);
 		cmp eax, 1;
 		jne end;
@@ -185,7 +185,7 @@ static void __declspec(naked) LoadSlot() {
 		pushad;
 		call LoadGame_Before;
 		popad;
-		call FuncOffs::LoadSlot_;
+		call fo::funcoffs::LoadSlot_;
 		retn;
 	}
 }
@@ -196,7 +196,7 @@ static void __declspec(naked) LoadGame() {
 		push ecx;
 		push edx;
 		or inLoop, LOADGAME;
-		call FuncOffs::LoadGame_;
+		call fo::funcoffs::LoadGame_;
 		and inLoop, (-1^LOADGAME);
 		cmp eax, 1;
 		jne end;
@@ -230,7 +230,7 @@ static void __declspec(naked) main_load_new_hook() {
 		push eax;
 		call NewGame_Before;
 		pop eax;
-		call FuncOffs::main_load_new_;
+		call fo::funcoffs::main_load_new_;
 		call NewGame_After;
 		popad;
 		retn;
@@ -251,7 +251,7 @@ static void __declspec(naked) main_menu_loop_hook() {
 		pushad;
 		call MainMenuLoop;
 		popad;
-		call FuncOffs::main_menu_loop_;
+		call fo::funcoffs::main_menu_loop_;
 		retn;
 	}
 }
@@ -261,7 +261,7 @@ static void __declspec(naked) WorldMapHook() {
 	__asm {
 		or inLoop, WORLDMAP;
 		xor eax, eax;
-		call FuncOffs::wmWorldMapFunc_;
+		call fo::funcoffs::wmWorldMapFunc_;
 		and inLoop, (-1^WORLDMAP);
 		retn;
 	}
@@ -270,7 +270,7 @@ static void __declspec(naked) WorldMapHook() {
 static void __declspec(naked) WorldMapHook2() {
 	__asm {
 		or inLoop, WORLDMAP;
-		call FuncOffs::wmWorldMapFunc_;
+		call fo::funcoffs::wmWorldMapFunc_;
 		and inLoop, (-1^WORLDMAP);
 		retn;
 	}
@@ -282,7 +282,7 @@ static void __declspec(naked) CombatHook() {
 		call AICombatStart;
 		popad
 		or inLoop, COMBAT;
-		call FuncOffs::combat_;
+		call fo::funcoffs::combat_;
 		pushad;
 		call AICombatEnd;
 		popad
@@ -294,7 +294,7 @@ static void __declspec(naked) CombatHook() {
 static void __declspec(naked) PlayerCombatHook() {
 	__asm {
 		or inLoop, PCOMBAT;
-		call FuncOffs::combat_input_;
+		call fo::funcoffs::combat_input_;
 		and inLoop, (-1^PCOMBAT);
 		retn;
 	}
@@ -303,7 +303,7 @@ static void __declspec(naked) PlayerCombatHook() {
 static void __declspec(naked) EscMenuHook() {
 	__asm {
 		or inLoop, ESCMENU;
-		call FuncOffs::do_optionsFunc_;
+		call fo::funcoffs::do_optionsFunc_;
 		and inLoop, (-1^ESCMENU);
 		retn;
 	}
@@ -313,7 +313,7 @@ static void __declspec(naked) EscMenuHook2() {
 	//Bloody stupid watcom compiler optimizations...
 	__asm {
 		or inLoop, ESCMENU;
-		call FuncOffs::do_options_;
+		call fo::funcoffs::do_options_;
 		and inLoop, (-1^ESCMENU);
 		retn;
 	}
@@ -322,7 +322,7 @@ static void __declspec(naked) EscMenuHook2() {
 static void __declspec(naked) OptionsMenuHook() {
 	__asm {
 		or inLoop, OPTIONS;
-		call FuncOffs::do_prefscreen_;
+		call fo::funcoffs::do_prefscreen_;
 		and inLoop, (-1^OPTIONS);
 		retn;
 	}
@@ -331,7 +331,7 @@ static void __declspec(naked) OptionsMenuHook() {
 static void __declspec(naked) HelpMenuHook() {
 	__asm {
 		or inLoop, HELP;
-		call FuncOffs::game_help_;
+		call fo::funcoffs::game_help_;
 		and inLoop, (-1^HELP);
 		retn;
 	}
@@ -343,7 +343,7 @@ static void __declspec(naked) CharacterHook() {
 		pushad;
 		call PerksEnterCharScreen;
 		popad;
-		call FuncOffs::editor_design_;
+		call fo::funcoffs::editor_design_;
 		pushad;
 		test eax, eax;
 		jz success;
@@ -361,7 +361,7 @@ end:
 static void __declspec(naked) DialogHook() {
 	__asm {
 		or inLoop, DIALOG;
-		call FuncOffs::gdProcess_;
+		call fo::funcoffs::gdProcess_;
 		and inLoop, (-1^DIALOG);
 		retn;
 	}
@@ -370,7 +370,7 @@ static void __declspec(naked) DialogHook() {
 static void __declspec(naked) PipboyHook() {
 	__asm {
 		or inLoop, PIPBOY;
-		call FuncOffs::pipboy_;
+		call fo::funcoffs::pipboy_;
 		and inLoop, (-1^PIPBOY);
 		retn;
 	}
@@ -379,7 +379,7 @@ static void __declspec(naked) PipboyHook() {
 static void __declspec(naked) SkilldexHook() {
 	__asm {
 		or inLoop, SKILLDEX;
-		call FuncOffs::skilldex_select_;
+		call fo::funcoffs::skilldex_select_;
 		and inLoop, (-1^SKILLDEX);
 		retn;
 	}
@@ -388,7 +388,7 @@ static void __declspec(naked) SkilldexHook() {
 static void __declspec(naked) InventoryHook() {
 	__asm {
 		or inLoop, INVENTORY;
-		call FuncOffs::handle_inventory_;
+		call fo::funcoffs::handle_inventory_;
 		and inLoop, (-1^INVENTORY);
 		retn;
 	}
@@ -397,7 +397,7 @@ static void __declspec(naked) InventoryHook() {
 static void __declspec(naked) AutomapHook() {
 	__asm {
 		or inLoop, AUTOMAP;
-		call FuncOffs::automap_;
+		call fo::funcoffs::automap_;
 		and inLoop, (-1^AUTOMAP);
 		retn;
 	}

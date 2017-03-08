@@ -81,7 +81,7 @@ static void _stdcall SetInventoryCheck(bool skip) {
 static void __stdcall StatPcAddExperience(int amount) {
 	__asm {
 		mov eax, amount
-		call FuncOffs::stat_pc_add_experience_
+		call fo::funcoffs::stat_pc_add_experience_
 	}
 }
 
@@ -195,7 +195,7 @@ static void RestoreRealDudeState() {
 static int __stdcall CombatTurn(fo::TGameObj* obj) {
 	__asm {
 		mov eax, obj;
-		call FuncOffs::combat_turn_;
+		call fo::funcoffs::combat_turn_;
 	}
 }
 
@@ -232,7 +232,7 @@ static void _declspec(naked) FidChangeHook() {
 		or edx, eax; // only change one octet with weapon type
 		pop eax;
 skip:
-		call FuncOffs::obj_change_fid_;
+		call fo::funcoffs::obj_change_fid_;
 		retn;
 	}
 }
@@ -240,7 +240,7 @@ skip:
 /*
 static void _declspec(naked) ItemDropHook() {
 	_asm {
-		call FuncOffs::item_add_force_;
+		call fo::funcoffs::item_add_force_;
 		retn;
 	}
 }
@@ -260,7 +260,7 @@ int __stdcall PartyControl_SwitchHandHook(fo::TGameObj* item) {
 			mov eax, obj_dude_ptr;
 			mov eax, [eax];
 			mov ebx, 2;
-			call FuncOffs::ai_can_use_weapon_;
+			call fo::funcoffs::ai_can_use_weapon_;
 			mov canUse, eax;
 		}*/
 		int fId = (fo::var::obj_dude)->art_fid;
@@ -269,7 +269,7 @@ int __stdcall PartyControl_SwitchHandHook(fo::TGameObj* item) {
 		// check if art with this weapon exists
 		__asm {
 			mov eax, fId;
-			call FuncOffs::art_exists_;
+			call fo::funcoffs::art_exists_;
 			mov canUse, eax;
 		}
 		if (!canUse) {
@@ -300,7 +300,7 @@ combatend:
 		mov eax, -1; // don't continue combat, as the game was loaded
 		retn;
 gonormal:
-		jmp FuncOffs::combat_turn_;
+		jmp fo::funcoffs::combat_turn_;
 	}
 }
 
@@ -328,7 +328,7 @@ static void __declspec(naked) stat_pc_add_experience_hook() {
 		retn
 skip:
 		xchg esi, eax
-		jmp  FuncOffs::stat_pc_add_experience_
+		jmp  fo::funcoffs::stat_pc_add_experience_
 	}
 }
 
@@ -340,7 +340,7 @@ static void __declspec(naked) pc_flag_toggle_hook() {
 		call DisplayCantDoThat
 		retn
 end:
-		call  FuncOffs::pc_flag_toggle_
+		call  fo::funcoffs::pc_flag_toggle_
 		retn
 	}
 }

@@ -58,7 +58,7 @@ void InventoryKeyPressedHook(DWORD dxKey, bool pressed, DWORD vKey) {
 				if (currentMode < 0)
 					currentMode = 4;
 				__asm {
-					call FuncOffs::intface_toggle_item_state_;
+					call fo::funcoffs::intface_toggle_item_state_;
 				}
 			}
 		}
@@ -87,7 +87,7 @@ static __declspec(naked) DWORD item_total_size(void* critter) {
 loc_477EB7:
 		mov     ecx, [edi+8];
 		mov     eax, [ecx+ebx];
-		call    FuncOffs::item_size_
+		call    fo::funcoffs::item_size_
 		imul    eax, [ecx+ebx+4];
 		add     ebx, 8;
 		inc     edx;
@@ -102,33 +102,33 @@ loc_477ED3:
 		cmp     eax, 1;
 		jnz     loc_477F31;
 		mov     eax, ebp;
-		call    FuncOffs::inven_right_hand_
+		call    fo::funcoffs::inven_right_hand_
 		mov     edx, eax;
 		test    eax, eax;
 		jz      loc_477EFD;
 		test    byte ptr [eax+27h], 2;
 		jnz     loc_477EFD;
-		call    FuncOffs::item_size_
+		call    fo::funcoffs::item_size_
 		add     esi, eax;
 loc_477EFD:
 		mov     eax, ebp;
-		call    FuncOffs::inven_left_hand_
+		call    fo::funcoffs::inven_left_hand_
 		test    eax, eax;
 		jz      loc_477F19;
 		cmp     edx, eax;
 		jz      loc_477F19;
 		test    byte ptr [eax+27h], 1;
 		jnz     loc_477F19;
-		call    FuncOffs::item_size_
+		call    fo::funcoffs::item_size_
 		add     esi, eax;
 loc_477F19:
 		mov     eax, ebp;
-		call    FuncOffs::inven_worn_
+		call    fo::funcoffs::inven_worn_
 		test    eax, eax;
 		jz      loc_477F31;
 		test    byte ptr [eax+27h], 4;
 		jnz     loc_477F31;
-		call    FuncOffs::item_size_
+		call    fo::funcoffs::item_size_
 		add     esi, eax;
 loc_477F31:
 		mov     eax, esi;
@@ -170,7 +170,7 @@ static __declspec(naked) int CritterCheck() {
 		jnz run;
 		test mode, 2;
 		jz fail;
-		call FuncOffs::isPartyMember_;
+		call fo::funcoffs::isPartyMember_;
 		test eax, eax;
 		jz end;
 run:
@@ -178,7 +178,7 @@ run:
 		jz single;
 		mov edx, esp;
 		mov eax, ebx;
-		call FuncOffs::proto_ptr_;
+		call fo::funcoffs::proto_ptr_;
 		mov eax, [esp];
 		mov eax, [eax + 0xB0 + 40]; //The unused stat in the extra block
 		jmp end;
@@ -225,7 +225,7 @@ static __declspec(naked) void ItemAddMultiHook1() {
 		jz end;
 		mov ebp, eax;
 		mov eax, esi;
-		call FuncOffs::item_size_
+		call fo::funcoffs::item_size_
 		mov edx, eax;
 		imul edx, ebx;
 		mov eax, ecx;
@@ -372,16 +372,16 @@ static const char* _stdcall FmtSizeMsg(int size) {
 
 static __declspec(naked) void InvenObjExamineFuncHook() {
 	__asm {
-		call FuncOffs::inven_display_msg_
+		call fo::funcoffs::inven_display_msg_
 		push edx;
 		push ecx;
 		mov eax, esi;
-		call FuncOffs::item_size_
+		call fo::funcoffs::item_size_
 		push eax;
 		call FmtSizeMsg;
 		pop ecx;
 		pop edx;
-		call FuncOffs::inven_display_msg_
+		call fo::funcoffs::inven_display_msg_
 		retn;
 	}
 }
@@ -453,7 +453,7 @@ static void __declspec(naked) add_check_for_item_ammo_cost() {
 		push    edx
 		push    ebx
 		sub     esp, 4
-		call    FuncOffs::item_w_curr_ammo_
+		call    fo::funcoffs::item_w_curr_ammo_
 		mov     ebx, eax
 		mov     eax, ecx // weapon
 		mov     edx, esp
@@ -517,7 +517,7 @@ static void __declspec(naked) SetDefaultAmmo() {
 		push    edx
 		xchg    eax, edx
 		mov     ebx, eax
-		call    FuncOffs::item_get_type_
+		call    fo::funcoffs::item_get_type_
 		cmp     eax, item_type_weapon // is it item_type_weapon?
 		jne     end // no
 		cmp     dword ptr [ebx+0x3C], 0 // is there any ammo in the weapon?
@@ -525,7 +525,7 @@ static void __declspec(naked) SetDefaultAmmo() {
 		sub     esp, 4
 		mov     edx, esp
 		mov     eax, [ebx+0x64] // eax = weapon pid
-		call    FuncOffs::proto_ptr_
+		call    fo::funcoffs::proto_ptr_
 		mov     edx, [esp]
 		mov     eax, [edx+0x5C] // eax = default ammo pid
 		mov     [ebx+0x40], eax // set current ammo proto
@@ -551,14 +551,14 @@ static void __declspec(naked) inven_action_cursor_hack() {
 static void __declspec(naked) item_add_mult_hook() {
 	__asm {
 		call    SetDefaultAmmo
-		jmp     FuncOffs::item_add_force_
+		jmp     fo::funcoffs::item_add_force_
 	}
 }
 
 static void __declspec(naked) inven_pickup_hook() {
 	__asm {
 		mov  eax, ds:[FO_VAR_i_wid]
-		call FuncOffs::GNW_find_
+		call fo::funcoffs::GNW_find_
 		mov  ebx, [eax+0x8+0x0]                   // ebx = _i_wid.rect.x
 		mov  ecx, [eax+0x8+0x4]                   // ecx = _i_wid.rect.y
 		mov  eax, 176
@@ -567,7 +567,7 @@ static void __declspec(naked) inven_pickup_hook() {
 		mov  edx, 37
 		add  edx, ecx                             // y_start
 		add  ecx, 37+100                          // y_end
-		call FuncOffs::mouse_click_in_
+		call fo::funcoffs::mouse_click_in_
 		test eax, eax
 		jz   end
 		mov  edx, ds:[FO_VAR_curr_stack]

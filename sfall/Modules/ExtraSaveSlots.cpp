@@ -104,7 +104,7 @@ static void __declspec(naked) create_page_buttons(void) {
      mov edx, 100//Xpos
      mov ebx, 56//Ypos
      mov eax, dword ptr ds:[FO_VAR_lsgwin]//WinRef
-     call FuncOffs::win_register_button_
+     call fo::funcoffs::win_register_button_
      //left button -100
      push 32//ButType
      push 0//? always 0
@@ -119,7 +119,7 @@ static void __declspec(naked) create_page_buttons(void) {
      mov edx, 68//Xpos
      mov ebx, 56//Ypos
      mov eax, dword ptr ds:[FO_VAR_lsgwin]//WinRef
-     call FuncOffs::win_register_button_//create button function
+     call fo::funcoffs::win_register_button_//create button function
      //right button +10
      push 32//ButType
      push 0//? always 0
@@ -134,7 +134,7 @@ static void __declspec(naked) create_page_buttons(void) {
      mov edx, 216//Xpos
      mov ebx, 56//Ypos
      mov eax, dword ptr ds:[FO_VAR_lsgwin]//WinRef
-     call FuncOffs::win_register_button_//create button function
+     call fo::funcoffs::win_register_button_//create button function
      //right button +100
      push 32//ButType
      push 0//? always 0
@@ -149,7 +149,7 @@ static void __declspec(naked) create_page_buttons(void) {
      mov edx, 248//Xpos
      mov ebx, 56//Ypos
      mov eax, dword ptr ds:[FO_VAR_lsgwin]//WinRef
-     call FuncOffs::win_register_button_//create button function
+     call fo::funcoffs::win_register_button_//create button function
      //Set Number button
      push 32//ButType
      push 0//? always 0
@@ -164,7 +164,7 @@ static void __declspec(naked) create_page_buttons(void) {
      mov edx, 140//Xpos
      mov ebx, 56//Ypos
      mov eax, dword ptr ds:[FO_VAR_lsgwin]//WinRef
-     call FuncOffs::win_register_button_//create button function
+     call fo::funcoffs::win_register_button_//create button function
 
      //restore original code
      mov eax, 0x65
