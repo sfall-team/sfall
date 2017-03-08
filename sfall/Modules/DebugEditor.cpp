@@ -82,20 +82,20 @@ static void RunEditorInternal(SOCKET &s) {
 	std::vector<DWORD*> vec = std::vector<DWORD*>();
 	for (int elv = 0; elv < 3; elv++) {
 		for (int tile = 0; tile < 40000; tile++) {
-			fo::TGameObj* obj = Wrapper::obj_find_first_at_tile(elv, tile);
+			fo::TGameObj* obj = fo::func::obj_find_first_at_tile(elv, tile);
 			while (obj) {
-				if ((obj->pid >> 24) == OBJ_TYPE_CRITTER) {
+				if ((obj->type()) == fo::OBJ_TYPE_CRITTER) {
 					vec.push_back(reinterpret_cast<DWORD*>(obj));
 				}
-				obj = Wrapper::obj_find_next_at_tile();
+				obj = fo::func::obj_find_next_at_tile();
 			}
 		}
 	}
 
 	int numCritters = vec.size();
 
-	int numGlobals = VarPtr::num_game_global_vars;
-	int numMapVars = VarPtr::num_map_global_vars;
+	int numGlobals = fo::var::num_game_global_vars;
+	int numMapVars = fo::var::num_map_global_vars;
 	int numSGlobals = GetNumGlobals();
 	int numArrays = script::GetNumArrays();
 	InternalSend(s, &numGlobals, 4);
@@ -109,8 +109,8 @@ static void RunEditorInternal(SOCKET &s) {
 	int* arrays = new int[numArrays * 3];
 	script::GetArrays(arrays);
 
-	InternalSend(s, reinterpret_cast<void*>(VarPtr::game_global_vars), 4 * numGlobals);
-	InternalSend(s, reinterpret_cast<void*>(VarPtr::map_global_vars), 4 * numMapVars);
+	InternalSend(s, reinterpret_cast<void*>(fo::var::game_global_vars), 4 * numGlobals);
+	InternalSend(s, reinterpret_cast<void*>(fo::var::map_global_vars), 4 * numMapVars);
 	InternalSend(s, sglobals, sizeof(sGlobalVar)*numSGlobals);
 	InternalSend(s, arrays, numArrays * 3 * 4);
 	for (int i = 0; i < numCritters; i++) {
@@ -126,12 +126,12 @@ static void RunEditorInternal(SOCKET &s) {
 		case 0:
 			InternalRecv(s, &id, 4);
 			InternalRecv(s, &val, 4);
-			VarPtr::game_global_vars[id] = val;
+			fo::var::game_global_vars[id] = val;
 			break;
 		case 1:
 			InternalRecv(s, &id, 4);
 			InternalRecv(s, &val, 4);
-			VarPtr::map_global_vars[id] = val;
+			fo::var::map_global_vars[id] = val;
 			break;
 		case 2:
 			InternalRecv(s, &id, 4);

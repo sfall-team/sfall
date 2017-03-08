@@ -20,7 +20,9 @@
 
 // Pointers to engine global variables
 
-namespace VarPtr
+namespace fo
+{
+namespace var
 {
 
 // defines reference to a variable (pointer is constant, but value can be changed)
@@ -46,4 +48,5 @@ namespace VarPtr
 // X-Macros pattern
 #include "Variables_def.h"
 
+}
 }

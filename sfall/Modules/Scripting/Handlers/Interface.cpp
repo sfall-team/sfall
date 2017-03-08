@@ -412,7 +412,7 @@ end:
 }
 
 void sf_intface_redraw(OpcodeContext& ctx) {
-	Wrapper::intface_redraw();
+	fo::func::intface_redraw();
 }
 
 void sf_intface_show(OpcodeContext& ctx) {

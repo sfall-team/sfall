@@ -171,7 +171,7 @@ void __stdcall defaultOpcodeHandlerStdcall(fo::TProgram* program, DWORD opcodeOf
 		OpcodeContext ctx(program, opcode, info->argNum, info->hasReturn);
 		ctx.handleOpcode(info->handler, info->argValidation, info->name);
 	} else {
-		Wrapper::interpretError("Unknown opcode: %d", opcode);
+		fo::func::interpretError("Unknown opcode: %d", opcode);
 	}
 }
 

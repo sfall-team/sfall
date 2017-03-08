@@ -24,14 +24,14 @@
 namespace sfall
 {
 
-PremadeChar* premade;
+fo::PremadeChar* premade;
 
 void Premade::init() {
 	auto premadePaths = GetConfigList("misc", "PremadePaths", "", 512);
 	auto premadeFids = GetConfigList("misc", "PremadeFIDs", "", 512);
 	if (premadePaths.size() > 0 && premadeFids.size() > 0) {
 		int count = min(premadePaths.size(), premadeFids.size());
-		premade = new PremadeChar[count];
+		premade = new fo::PremadeChar[count];
 		for (int i = 0; i < count; i++) {
 			auto path = "premade\\" + premadePaths[i];
 			strcpy_s(premade[i].path, 20, path.c_str());

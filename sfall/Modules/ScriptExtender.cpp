@@ -107,7 +107,7 @@ static const DWORD scr_find_obj_from_program = FuncOffs::scr_find_obj_from_progr
 DWORD _stdcall FindSidHook2(fo::TProgram* script) {
 	std::unordered_map<fo::TProgram*, fo::TGameObj*>::iterator overrideIt = selfOverrideMap.find(script);
 	if (overrideIt != selfOverrideMap.end()) {
-		DWORD scriptId = overrideIt->second->scriptID;
+		DWORD scriptId = overrideIt->second->script_id;
 		if (scriptId != -1) {
 			selfOverrideMap.erase(overrideIt);
 			return scriptId; // returns the real scriptId of object if it is scripted
@@ -477,14 +477,14 @@ void _stdcall SetSelfObject(fo::TProgram* script, fo::TGameObj* obj) {
 }
 
 // loads script from .int file into a sScriptProgram struct, filling script pointer and proc lookup table
-void LoadScripfo::TProgram(sScriptProgram &prog, const char* fileName) {
-	fo::TProgram* scriptPtr = Wrapper::loadProgram(fileName);
+void LoadScriptProgram(sScriptProgram &prog, const char* fileName) {
+	fo::TProgram* scriptPtr = fo::func::loadProgram(fileName);
 	if (scriptPtr) {
-		const char** procTable = VarPtr::procTableStrs;
+		const char** procTable = fo::var::procTableStrs;
 		prog.ptr = scriptPtr;
 		// fill lookup table
 		for (int i=0; i<=SCRIPT_PROC_MAX; i++) {
-			prog.procLookup[i] = Wrapper::interpretFindProcedure(prog.ptr, procTable[i]);
+			prog.procLookup[i] = fo::func::interpretFindProcedure(prog.ptr, procTable[i]);
 		}
 		prog.initialized = 0;
 	} else {
@@ -494,8 +494,8 @@ void LoadScripfo::TProgram(sScriptProgram &prog, const char* fileName) {
 
 void InitScriptProgram(sScriptProgram &prog) {
 	if (prog.initialized == 0) {
-		Wrapper::runProgram(prog.ptr);
-		Wrapper::interpret(prog.ptr, -1);
+		fo::func::runProgram(prog.ptr);
+		fo::func::interpret(prog.ptr, -1);
 		prog.initialized = 1;
 	}
 }
@@ -513,8 +513,8 @@ sScriptProgram* GetGlobalScriptProgram(fo::TProgram* scriptPtr) {
 
 bool _stdcall IsGameScript(const char* filename) {
 	// TODO: write better solution
-	for (int i = 0; i < VarPtr::maxScriptNum; i++) {
-		if (strcmp(filename, VarPtr::scriptListInfo[i].fileName) == 0) return true;
+	for (int i = 0; i < fo::var::maxScriptNum; i++) {
+		if (strcmp(filename, fo::var::scriptListInfo[i].fileName) == 0) return true;
 	}
 	return false;
 }
@@ -527,7 +527,7 @@ void LoadGlobalScripts() {
 
 	char* name = "scripts\\gl*.int";
 	char* *filenames;
-	int count = Wrapper::db_get_file_list(name, &filenames, 0, 0);
+	int count = fo::func::db_get_file_list(name, &filenames, 0, 0);
 
 	// TODO: refactor script programs
 	sScriptProgram prog;
@@ -538,7 +538,7 @@ void LoadGlobalScripts() {
 			dlog(">", DL_SCRIPT);
 			dlog(name, DL_SCRIPT);
 			isGlobalScriptLoading = 1;
-			LoadScripfo::TProgram(prog, name);
+			LoadScriptProgram(prog, name);
 			if (prog.ptr) {
 				dlogr(" Done", DL_SCRIPT);
 				DWORD idx;
@@ -554,7 +554,7 @@ void LoadGlobalScripts() {
 			isGlobalScriptLoading = 0;
 		}
 	}
-	Wrapper::db_free_file_list(&filenames, 0);
+	fo::func::db_free_file_list(&filenames, 0);
 	dlogr("Finished loading global scripts", DL_SCRIPT|DL_INIT);
 	//ButtonsReload();
 }
@@ -622,9 +622,9 @@ void ClearGlobalScripts() {
 
 void RunScriptProc(sScriptProgram* prog, const char* procName) {
 	fo::TProgram* sptr = prog->ptr;
-	int procNum = Wrapper::interpretFindProcedure(sptr, procName);
+	int procNum = fo::func::interpretFindProcedure(sptr, procName);
 	if (procNum != -1) {
-		Wrapper::executeProcedure(sptr, procNum);
+		fo::func::executeProcedure(sptr, procNum);
 	}
 }
 
@@ -633,7 +633,7 @@ void RunScriptProc(sScriptProgram* prog, int procId) {
 		fo::TProgram* sptr = prog->ptr;
 		int procNum = prog->procLookup[procId];
 		if (procNum != -1) {
-			Wrapper::executeProcedure(sptr, procNum);
+			fo::func::executeProcedure(sptr, procNum);
 		}
 	}
 }
@@ -671,16 +671,16 @@ static void RunGlobalScripts1() {
 		if (KeyDown(toggleHighlightsKey)) {
 			if (!highlightingToggled) {
 				if (MotionSensorMode&4) {
-					fo::TGameObj* scanner = Wrapper::inven_pid_is_carried_ptr(VarPtr::obj_dude, PID_MOTION_SENSOR);
+					fo::TGameObj* scanner = fo::func::inven_pid_is_carried_ptr(fo::var::obj_dude, fo::PID_MOTION_SENSOR);
 					if (scanner != nullptr) {
 						if (MotionSensorMode & 2) {
-							highlightingToggled = Wrapper::item_m_dec_charges(scanner) + 1;
+							highlightingToggled = fo::func::item_m_dec_charges(scanner) + 1;
 							if (!highlightingToggled) {
-								Wrapper::display_print(HighlightFailMsg2.c_str());
+								fo::func::display_print(HighlightFailMsg2.c_str());
 							}
 						} else highlightingToggled = 1;
 					} else {
-						Wrapper::display_print(highlightFailMsg1.c_str());
+						fo::func::display_print(highlightFailMsg1.c_str());
 					}
 				} else {
 					highlightingToggled = 1;
@@ -737,7 +737,7 @@ void _stdcall HandleMapUpdateForScripts(DWORD procId) {
 	if (procId == map_enter_p_proc) {
 		// map changed, all game objects were destroyed and scripts detached, need to re-insert global scripts into the game
 		for (SfallProgsMap::iterator it = sfallProgsMap.begin(); it != sfallProgsMap.end(); it++) {
-			Wrapper::runProgram(it->second.ptr);
+			fo::func::runProgram(it->second.ptr);
 		}
 	}
 	RunGlobalScriptsAtProc(procId); // gl* scripts of types 0 and 3
@@ -851,7 +851,7 @@ void ScriptExtender::init() {
 
 	idle = GetConfigInt("Misc", "ProcessorIdle", -1);
 	if (idle > -1) {
-		VarPtr::idle_func = reinterpret_cast<DWORD>(Sleep);
+		fo::var::idle_func = reinterpret_cast<DWORD>(Sleep);
 		SafeWrite8(0x4C9F12, 0x6A); // push
 		SafeWrite8(0x4C9F13, idle);
 	}

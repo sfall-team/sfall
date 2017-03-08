@@ -19,7 +19,10 @@
 #include "Functions.h"
 #include "Wrappers.h"
 
-namespace Wrapper
+namespace fo
+{
+
+namespace func
 {
 
 // Fallout2.exe was compiled using WATCOM compiler, which uses Watcom register calling convention.
@@ -373,4 +376,5 @@ int __stdcall win_register_button(DWORD winRef, int xPos, int yPos, int width, i
 
 #include "Wrappers_def.h"
 
+}
 }

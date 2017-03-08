@@ -1702,11 +1702,11 @@ end:
 }
 
 void sf_sneak_success(OpcodeContext& ctx) {
-	ctx.setReturn(static_cast<int>(VarPtr::sneak_working));
+	ctx.setReturn(static_cast<int>(fo::var::sneak_working));
 }
 
 void sf_tile_light(OpcodeContext& ctx) {
-	int lightLevel = Wrapper::light_get_tile(ctx.arg(0).asInt(), ctx.arg(1).asInt());
+	int lightLevel = fo::func::light_get_tile(ctx.arg(0).asInt(), ctx.arg(1).asInt());
 	ctx.setReturn(lightLevel);
 }
 

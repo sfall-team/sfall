@@ -40,7 +40,7 @@ static std::string karmaGainMsg;
 static std::string karmaLossMsg;
 
 static DWORD _stdcall DrawCardHook2() {
-	int reputation = VarPtr::game_global_vars[GVAR_PLAYER_REPUTATION];
+	int reputation = fo::var::game_global_vars[fo::GVAR_PLAYER_REPUTATION];
 	for (auto& info : karmaFrms) {
 		if (reputation < info.points) {
 			return info.frm;
@@ -66,7 +66,7 @@ skip:
 }
 
 static void _stdcall SetKarma(int value) {
-	int old = VarPtr::game_global_vars[GVAR_PLAYER_REPUTATION];
+	int old = fo::var::game_global_vars[fo::GVAR_PLAYER_REPUTATION];
 	old = value - old;
 	char buf[128];
 	if (old == 0) return;
@@ -75,7 +75,7 @@ static void _stdcall SetKarma(int value) {
 	} else {
 		sprintf_s(buf, karmaLossMsg.c_str(), -old);
 	}
-	Wrapper::display_print(buf);
+	fo::func::display_print(buf);
 }
 
 static void __declspec(naked) SetGlobalVarWrapper() {

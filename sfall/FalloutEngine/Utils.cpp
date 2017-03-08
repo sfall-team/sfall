@@ -29,7 +29,7 @@ namespace fo
 static MessageNode message_buf;
 
 const char* _stdcall GetMessageStr(const MessageList* fileAddr, int messageId) {
-	return Wrapper::getmsg(fileAddr, &message_buf, messageId);
+	return fo::func::getmsg(fileAddr, &message_buf, messageId);
 }
 
 char AnimCodeByWeapon(TGameObj* weapon) {
@@ -51,7 +51,7 @@ sProtoItem* GetItemProto(int pid) {
 
 sProtoBase* GetProto(int pid) {
 	sProtoBase* protoPtr;
-	if (Wrapper::proto_ptr(pid, &protoPtr) != -1) {
+	if (fo::func::proto_ptr(pid, &protoPtr) != -1) {
 		return protoPtr;
 	}
 	return nullptr;
@@ -61,14 +61,14 @@ void SkillGetTags(int* result, long num) {
 	if (num > 4) {
 		num = 4;
 	}
-	Wrapper::skill_get_tags(result, num);
+	fo::func::skill_get_tags(result, num);
 }
 
 void SkillSetTags(int* tags, long num) {
 	if (num > 4) {
 		num = 4;
 	}
-	Wrapper::skill_set_tags(tags, num);
+	fo::func::skill_set_tags(tags, num);
 }
 
 }

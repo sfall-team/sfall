@@ -142,22 +142,22 @@ static void FillListVector(DWORD type, std::vector<fo::TGameObj*>& vec) {
 		fo::TGameObj* self_obj;
 		fo::TProgram* programPtr;
 		for (int elev = 0; elev <= 2; elev++) {
-			scriptPtr = Wrapper::scr_find_first_at(elev);
+			scriptPtr = fo::func::scr_find_first_at(elev);
 			while (scriptPtr != nullptr) {
 				self_obj = scriptPtr->self_obj;
 				if (self_obj == nullptr) {
 					programPtr = scriptPtr->program_ptr;
-					self_obj = Wrapper::scr_find_obj_from_program(programPtr);
+					self_obj = fo::func::scr_find_obj_from_program(programPtr);
 				}
 				vec.push_back(self_obj);
-				scriptPtr = Wrapper::scr_find_next_at();
+				scriptPtr = fo::func::scr_find_next_at();
 			}
 		}
 	} else if (type == 4) {
 		// TODO: verify code correctness
 
 		/*for(int elv=0;elv<2;elv++) {
-			DWORD* esquares = &VarPtr::squares[elv];
+			DWORD* esquares = &fo::var::squares[elv];
 			for(int tile=0;tile<10000;tile++) {
 				esquares[tile]=0x8f000002;
 			}
@@ -166,13 +166,13 @@ static void FillListVector(DWORD type, std::vector<fo::TGameObj*>& vec) {
 	} else {
 		for (int elv = 0; elv < 3; elv++) {
 			for (int tile = 0; tile < 40000; tile++) {
-				fo::TGameObj* obj = Wrapper::obj_find_first_at_tile(elv, tile);
+				fo::TGameObj* obj = fo::func::obj_find_first_at_tile(elv, tile);
 				while (obj) {
 					DWORD otype = (obj->pid & 0xff000000) >> 24;
 					if (type == 9 || (type == 0 && otype == 1) || (type == 1 && otype == 0) || (type >= 2 && type <= 5 && type == otype)) {
 						vec.push_back(obj);
 					}
-					obj = Wrapper::obj_find_next_at_tile();
+					obj = fo::func::obj_find_next_at_tile();
 				}
 			}
 		}

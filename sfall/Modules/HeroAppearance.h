@@ -31,7 +31,7 @@ class HeroAppearance : public Module {
 	void exit() override;
 };
 
-WINinfo *GetWinStruct(int WinRef);
+fo::WINinfo *GetWinStruct(int WinRef);
 void RedrawWin(int WinRef);
 void PrintText(char *DisplayText, BYTE ColourIndex, DWORD Xpos, DWORD Ypos, DWORD TxtWidth, DWORD ToWidth, BYTE *ToSurface);
 DWORD GetTextWidth(char *TextMsg);

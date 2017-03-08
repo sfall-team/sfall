@@ -50,10 +50,10 @@ static BYTE* mask;
 
 static void CreateMask() {
 	mask = new BYTE[80*36];
-	DBFile* file = Wrapper::db_fopen("art\\tiles\\grid000.frm", "r");
-	Wrapper::db_fseek(file, 0x4a, 0);
-	Wrapper::db_freadByteCount(file, mask, 80*36);
-	Wrapper::db_fclose(file);
+	fo::DBFile* file = fo::func::db_fopen("art\\tiles\\grid000.frm", "r");
+	fo::func::db_fseek(file, 0x4a, 0);
+	fo::func::db_freadByteCount(file, mask, 80*36);
+	fo::func::db_fclose(file);
 }
 
 static WORD ByteSwapW(WORD w) {
@@ -64,26 +64,26 @@ static DWORD ByteSwapD(DWORD w) {
 	return ((w & 0xff) << 24) | ((w & 0xff00) << 8) | ((w & 0xff0000) >> 8) | ((w & 0xff000000) >> 24);
 }
 
-static int ProcessTile(sArt* tiles, int tile, int listpos) {
+static int ProcessTile(fo::sArt* tiles, int tile, int listpos) {
 	char buf[32];
 	//sprintf_s(buf, "art\\tiles\\%s", &tiles->names[13*tile]);
 	strcpy_s(buf, "art\\tiles\\");
 	strcat_s(buf, &tiles->names[13 * tile]);
 
-	DBFile* art = Wrapper::db_fopen(buf, "r");
+	fo::DBFile* art = fo::func::db_fopen(buf, "r");
 	if (!art) return 0;
-	Wrapper::db_fseek(art, 0x3e, 0);
+	fo::func::db_fseek(art, 0x3e, 0);
 	short width;
-	Wrapper::db_freadShort(art, &width);  //80;
+	fo::func::db_freadShort(art, &width);  //80;
 	if (width == 80) {
-		Wrapper::db_fclose(art);
+		fo::func::db_fclose(art);
 		return 0;
 	}
 	short height;
-	Wrapper::db_freadShort(art, &height); //36
-	Wrapper::db_fseek(art, 0x4A, 0);
+	fo::func::db_freadShort(art, &height); //36
+	fo::func::db_fseek(art, 0x4A, 0);
 	BYTE* pixeldata = new BYTE[width * height];
-	Wrapper::db_freadByteCount(art, pixeldata, width * height);
+	fo::func::db_freadByteCount(art, pixeldata, width * height);
 	DWORD listid = listpos - tiles->total;
 	float newwidth = (float)(width - width % 8);
 	float newheight = (float)(height - height % 12);
@@ -91,9 +91,9 @@ static int ProcessTile(sArt* tiles, int tile, int listpos) {
 	int ysize = (int)floor(newheight / 16.0f - newwidth / 64.0f);
 	for (int y = 0; y < ysize; y++) {
 		for (int x = 0; x < xsize; x++) {
-			FRM frame;
-			Wrapper::db_fseek(art, 0, 0);
-			Wrapper::db_freadByteCount(art, &frame, 0x4a);
+			fo::FRM frame;
+			fo::func::db_fseek(art, 0, 0);
+			fo::func::db_freadByteCount(art, &frame, 0x4a);
 			frame.height = ByteSwapW(36);
 			frame.width = ByteSwapW(80);
 			frame.frmsize = ByteSwapD(80 * 36);
@@ -112,13 +112,13 @@ static int ProcessTile(sArt* tiles, int tile, int listpos) {
 
 			sprintf_s(buf, 32, "art\\tiles\\zzz%04d.frm", listid++);
 			//FScreateFromData(buf, &frame, sizeof(frame));
-			DBFile* file = Wrapper::db_fopen(buf, "w");
-			Wrapper::db_fwriteByteCount(file, &frame, sizeof(frame));
-			Wrapper::db_fclose(file);
+			fo::DBFile* file = fo::func::db_fopen(buf, "w");
+			fo::func::db_fwriteByteCount(file, &frame, sizeof(frame));
+			fo::func::db_fclose(file);
 		}
 	}
 	overrides[tile] = new OverrideEntry(xsize, ysize, listpos);
-	Wrapper::db_fclose(art);
+	fo::func::db_fclose(art);
 	delete[] pixeldata;
 	return xsize * ysize;
 }
@@ -131,7 +131,7 @@ static int _stdcall ArtInitHook2() {
 
 	CreateMask();
 
-	sArt* tiles = &VarPtr::art[4];
+	fo::sArt* tiles = &fo::var::art[4];
 	char buf[32];
 	DWORD listpos = tiles->total;
 	origTileCount = listpos;
@@ -139,21 +139,21 @@ static int _stdcall ArtInitHook2() {
 	ZeroMemory(overrides, 4 * (listpos - 1));
 
 	if (tileMode == 2) {
-		DBFile* file = Wrapper::db_fopen("art\\tiles\\xltiles.lst", "rt");
+		fo::DBFile* file = fo::func::db_fopen("art\\tiles\\xltiles.lst", "rt");
 		if (!file) return 0;
 		DWORD id;
 		char* comment;
-		while (Wrapper::db_fgets(buf, 31, file) > 0) {
+		while (fo::func::db_fgets(buf, 31, file) > 0) {
 			if (comment = strchr(buf, ';')) *comment = 0;
 			id = atoi(buf);
 			if (id > 1) listpos += ProcessTile(tiles, id, listpos);
 		}
-		Wrapper::db_fclose(file);
+		fo::func::db_fclose(file);
 	} else {
 		for (int i = 2; i < tiles->total; i++) listpos += ProcessTile(tiles, i, listpos);
 	}
 	if (listpos != tiles->total) {
-		tiles->names = (char*)Wrapper::mem_realloc(tiles->names, listpos * 13);
+		tiles->names = (char*)fo::func::mem_realloc(tiles->names, listpos * 13);
 		for (DWORD i = tiles->total; i < listpos; i++) {
 			sprintf_s(&tiles->names[i * 13], 12, "zzz%04d.frm", i - tiles->total);
 		}

@@ -25,6 +25,7 @@
 
 namespace sfall 
 {
+using namespace fo;
 
 static const DWORD DamageFunctionReturn = 0x424A63;
 
@@ -584,9 +585,10 @@ end:
 }
 
 static __declspec(naked) void HtHDamageFix1a() {
+	using namespace fo;
 	__asm {
 		mov eax, ecx;				// stat_level_ argument: pointer to critter
-		mov edx, STAT_melee_dmg;		// stat_level_ argument: STAT_melee_dmg
+		mov edx, STAT_melee_dmg;		// stat_level_ argument: fo::STAT_melee_dmg
 		call FuncOffs::stat_level_;			// Get Total_Melee_Damage
 		add eax, 2;					// Total_Melee_Damage += 2
 		mov dword ptr ss : [esp], eax;			// Max_Damage = Total_Melee_Damage

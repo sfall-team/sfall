@@ -64,7 +64,7 @@ static void __declspec(naked) combat_attack_hook() {
 }
 
 static void _stdcall CombatBlocked() {
-	Wrapper::display_print(combatBlockedMessage.c_str());
+	fo::func::display_print(combatBlockedMessage.c_str());
 }
 
 static const DWORD BlockCombatHook1Ret1=0x45F6B4;

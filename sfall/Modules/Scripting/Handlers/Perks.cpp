@@ -26,6 +26,7 @@ namespace sfall
 {
 namespace script
 {
+using namespace fo;
 
 void __declspec(naked) op_get_perk_owed() {
 	__asm {

@@ -66,7 +66,7 @@ void _stdcall SetGlobalVarInt(DWORD var, int val);
 DWORD _stdcall GetGlobalVar(const char* var);
 DWORD _stdcall GetGlobalVarInt(DWORD var);
 
-void _stdcall SetSelfObject(fo::TProgram* script, TGameObj* obj);
+void _stdcall SetSelfObject(fo::TProgram* script, fo::TGameObj* obj);
 
 extern DWORD AddUnarmedStatToGetYear;
 extern DWORD availableGlobalScriptTypes;
@@ -78,7 +78,7 @@ void _stdcall RegAnimCombatCheck(DWORD newValue);
 
 bool _stdcall ScriptHasLoaded(fo::TProgram* script);
 // loads script from .int file into scripting engine, fill scriptPtr and proc table
-void LoadScripfo::TProgram(sScriptProgram &prog, const char* fileName);
+void LoadScriptProgram(sScriptProgram &prog, const char* fileName);
 // init program after load, needs to be called once
 void InitScriptProgram(sScriptProgram &prog);
 // execute script by specific proc name

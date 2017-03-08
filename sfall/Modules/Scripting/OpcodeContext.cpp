@@ -89,8 +89,8 @@ void OpcodeContext::printOpcodeError(const char* fmt, ...) const {
 	vsnprintf_s(msg, sizeof msg, _TRUNCATE, fmt, args);
 	va_end(args);
 
-	const char* procName = Wrapper::findCurrentProc(_program);
-	Wrapper::debug_printf("\nOPCODE ERROR: %s\n   Current script: %s, procedure %s.", msg, _program->fileName, procName);
+	const char* procName = fo::func::findCurrentProc(_program);
+	fo::func::debug_printf("\nOPCODE ERROR: %s\n   Current script: %s, procedure %s.", msg, _program->fileName, procName);
 }
 
 bool OpcodeContext::validateArguments(const OpcodeArgumentType argTypes[], const char* opcodeName) const {
@@ -189,13 +189,13 @@ void OpcodeContext::_popArguments() {
 	// process arguments on stack (reverse order)
 	for (int i = _numArgs - 1; i >= 0; i--) {
 		// get argument from stack
-		DWORD rawValueType = Wrapper::interpretPopShort(_program);
-		DWORD rawValue = Wrapper::interpretPopLong(_program);
+		DWORD rawValueType = fo::func::interpretPopShort(_program);
+		DWORD rawValue = fo::func::interpretPopLong(_program);
 		DataType type = static_cast<DataType>(getSfallTypeByScriptType(rawValueType));
 
 		// retrieve string argument
 		if (type == DataType::STR) {
-			_args.at(i) = Wrapper::interpretGetString(_program, rawValueType, rawValue);
+			_args.at(i) = fo::func::interpretGetString(_program, rawValueType, rawValue);
 		} else {
 			_args.at(i) = ScriptValue(type, rawValue);
 		}
@@ -210,10 +210,10 @@ void OpcodeContext::_pushReturnValue() {
 		}
 		DWORD rawResult = _ret.rawValue();
 		if (_ret.type() == DataType::STR) {
-			rawResult = Wrapper::interpretAddString(_program, _ret.asString());
+			rawResult = fo::func::interpretAddString(_program, _ret.asString());
 		}
-		Wrapper::interpretPushLong(_program, rawResult);
-		Wrapper::interpretPushShort(_program, getScriptTypeBySfallType(_ret.type()));
+		fo::func::interpretPushLong(_program, rawResult);
+		fo::func::interpretPushShort(_program, getScriptTypeBySfallType(_ret.type()));
 	}
 }
 

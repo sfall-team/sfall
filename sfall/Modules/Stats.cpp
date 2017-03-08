@@ -28,10 +28,10 @@
 namespace sfall
 {
 
-static DWORD StatMaximumsPC[STAT_max_stat];
-static DWORD StatMinimumsPC[STAT_max_stat];
-static DWORD StatMaximumsNPC[STAT_max_stat];
-static DWORD StatMinimumsNPC[STAT_max_stat];
+static DWORD StatMaximumsPC[fo::STAT_max_stat];
+static DWORD StatMinimumsPC[fo::STAT_max_stat];
+static DWORD StatMaximumsNPC[fo::STAT_max_stat];
+static DWORD StatMinimumsNPC[fo::STAT_max_stat];
 
 static DWORD cCritter;
 
@@ -128,6 +128,7 @@ unsigned short StandardApAcBonus = 4;
 unsigned short ExtraApAcBonus = 4;
 static const DWORD ApAcRetAddr = 0x4AF0A4;
 static void __declspec(naked) ApplyApAcBonus() {
+	using namespace fo;
 	__asm {
 		push edi;
 		push edx;
@@ -205,9 +206,9 @@ static void __declspec(naked) stat_recalc_derived() {
 }
 
 void StatsReset() {
-	for (int i = 0; i < STAT_max_stat; i++) {
-		StatMaximumsPC[i] = StatMaximumsNPC[i] = VarPtr::stat_data[i].maxValue;
-		StatMinimumsPC[i] = StatMinimumsNPC[i] = VarPtr::stat_data[i].minValue;
+	for (int i = 0; i < fo::STAT_max_stat; i++) {
+		StatMaximumsPC[i] = StatMaximumsNPC[i] = fo::var::stat_data[i].maxValue;
+		StatMinimumsPC[i] = StatMinimumsNPC[i] = fo::var::stat_data[i].minValue;
 	}
 	StandardApAcBonus = 4;
 	ExtraApAcBonus = 4;
@@ -290,25 +291,25 @@ void Stats::init() {
 }
 
 void _stdcall SetPCStatMax(int stat, int i) {
-	if (stat >= 0 && stat < STAT_max_stat) {
+	if (stat >= 0 && stat < fo::STAT_max_stat) {
 		StatMaximumsPC[stat] = i;
 	}
 }
 
 void _stdcall SetPCStatMin(int stat, int i) {
-	if (stat >= 0 && stat < STAT_max_stat) {
+	if (stat >= 0 && stat < fo::STAT_max_stat) {
 		StatMinimumsPC[stat] = i;
 	}
 }
 
 void _stdcall SetNPCStatMax(int stat, int i) {
-	if (stat >= 0 && stat < STAT_max_stat) {
+	if (stat >= 0 && stat < fo::STAT_max_stat) {
 		StatMaximumsNPC[stat] = i;
 	}
 }
 
 void _stdcall SetNPCStatMin(int stat, int i) {
-	if (stat >= 0 && stat < STAT_max_stat) {
+	if (stat >= 0 && stat < fo::STAT_max_stat) {
 		StatMinimumsNPC[stat] = i;
 	}
 }

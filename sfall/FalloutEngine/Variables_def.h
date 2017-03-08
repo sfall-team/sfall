@@ -1,5 +1,5 @@
 // List of all engine variables and their types.
-// Used to generate VarPtr::var_name constants.
+// Used to generate fo::var::var_name constants.
 
 // TODO: assign appropriate types (arrays, structs, strings, etc.) for all variables
 

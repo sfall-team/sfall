@@ -39,7 +39,7 @@ struct ChanceModifier {
 
 static std::vector<ChanceModifier> SkillMaxMods;
 static ChanceModifier BaseSkillMax;
-static BYTE skillCosts[512*SKILL_count];
+static BYTE skillCosts[512 * fo::SKILL_count];
 static DWORD basedOnPoints;
 
 static int _stdcall SkillMaxHook2(int base, DWORD critter) {
@@ -135,7 +135,7 @@ static int __declspec(naked) _stdcall stat_level(void* critter, int stat) {
 	}
 }
 
-static int _stdcall GetStatBonusHook2(const SkillInfo* info, int skill, int points, void* critter) {
+static int _stdcall GetStatBonusHook2(const fo::SkillInfo* info, int skill, int points, void* critter) {
 	double result = 0;
 	for (int i = 0; i < 7; i++) {
 		result += stat_level(critter, i)*multipliers[skill * 7 + i];
@@ -230,12 +230,12 @@ void Skills::init() {
 	char buf[512], key[16], file[64];
 	auto skillsFile = GetConfigString("Misc", "SkillsFile", "");
 	if (skillsFile.size() > 0) {
-		SkillInfo *skills = VarPtr::skill_data;
+		fo::SkillInfo *skills = fo::var::skill_data;
 		sprintf(file, ".\\%s", skillsFile.c_str());
-		multipliers = new double[7 * SKILL_count];
-		memset(multipliers, 0, 7 * SKILL_count * sizeof(double));
+		multipliers = new double[7 * fo::SKILL_count];
+		memset(multipliers, 0, 7 * fo::SKILL_count * sizeof(double));
 
-		for (int i = 0; i < SKILL_count; i++) {
+		for (int i = 0; i < fo::SKILL_count; i++) {
 			sprintf(key, "Skill%d", i);
 			if (GetPrivateProfileStringA("Skills", key, "", buf, 64, file)) {
 				char* tok = strtok(buf, "|");

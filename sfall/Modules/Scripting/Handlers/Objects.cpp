@@ -159,7 +159,7 @@ void sf_create_spatial(OpcodeContext& ctx) {
 void sf_spatial_radius(OpcodeContext& ctx) {
 	auto spatialObj = ctx.arg(0).asObject();
 	fo::TScript* script;
-	if (Wrapper::scr_ptr(spatialObj->script_id, &script) != -1) {
+	if (fo::func::scr_ptr(spatialObj->script_id, &script) != -1) {
 		ctx.setReturn(script->spatial_radius);
 	}
 }
@@ -329,13 +329,13 @@ void sf_tile_get_objects(OpcodeContext& ctx) {
 
 void sf_get_party_members(OpcodeContext& ctx) {
 	DWORD obj, mode = ctx.arg(0).asInt(), isDead;
-	int i, actualCount = VarPtr::partyMemberCount;
+	int i, actualCount = fo::var::partyMemberCount;
 	DWORD arrayId = TempArray(0, 4);
-	DWORD* partyMemberList = VarPtr::partyMemberList;
+	DWORD* partyMemberList = fo::var::partyMemberList;
 	for (i = 0; i < actualCount; i++) {
 		obj = partyMemberList[i * 4];
 		if (mode == 0) { // mode 0 will act just like op_party_member_count in fallout2
-			if ((*(DWORD*)(obj + 100) >> 24) != OBJ_TYPE_CRITTER)  // obj type != critter
+			if ((*(DWORD*)(obj + 100) >> 24) != fo::OBJ_TYPE_CRITTER)  // obj type != critter
 				continue;
 			__asm {
 				mov eax, obj;
@@ -353,7 +353,7 @@ void sf_get_party_members(OpcodeContext& ctx) {
 }
 
 void sf_art_exists(OpcodeContext& ctx) {
-	ctx.setReturn(Wrapper::art_exists(ctx.arg(0).asInt()));
+	ctx.setReturn(fo::func::art_exists(ctx.arg(0).asInt()));
 }
 
 void sf_obj_is_carrying_obj(OpcodeContext& ctx) {
@@ -381,13 +381,13 @@ void sf_critter_inven_obj2(OpcodeContext& ctx) {
 	int slot = ctx.arg(1).asInt();
 	switch (slot) {
 	case 0:
-		ctx.setReturn(Wrapper::inven_worn(critter));
+		ctx.setReturn(fo::func::inven_worn(critter));
 		break;
 	case 1:
-		ctx.setReturn(Wrapper::inven_right_hand(critter));
+		ctx.setReturn(fo::func::inven_right_hand(critter));
 		break;
 	case 2:
-		ctx.setReturn(Wrapper::inven_left_hand(critter));
+		ctx.setReturn(fo::func::inven_left_hand(critter));
 		break;
 	case -2:
 		ctx.setReturn(critter->inven_size);

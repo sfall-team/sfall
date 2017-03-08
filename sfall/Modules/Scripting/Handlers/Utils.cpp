@@ -296,29 +296,29 @@ void sf_round(OpcodeContext& ctx) {
 }
 
 // TODO: move to FalloutEngine module
-#define _castmsg(adr) reinterpret_cast<MessageList*>(adr)
-static const MessageList* gameMsgFiles[] =
-{ _castmsg(0x56D368)     // COMBAT
-, _castmsg(0x56D510)     // AI
-, _castmsg(0x56D754)     // SCRNAME
-, _castmsg(0x58E940)     // MISC
-, _castmsg(0x58EA98)     // CUSTOM
-, _castmsg(0x59E814)     // INVENTRY
-, _castmsg(0x59E980)     // ITEM
-, _castmsg(0x613D28)     // LSGAME
-, _castmsg(0x631D48)     // MAP
-, _castmsg(0x6637E8)     // OPTIONS
-, _castmsg(0x6642D4)     // PERK
-, _castmsg(0x664348)     // PIPBOY
-, _castmsg(0x664410)     // QUESTS
-, _castmsg(0x6647FC)     // PROTO
-, _castmsg(0x667724)     // SCRIPT
-, _castmsg(0x668080)     // SKILL
-, _castmsg(0x6680F8)     // SKILLDEX
-, _castmsg(0x66817C)     // STAT
-, _castmsg(0x66BE38)     // TRAIT
-, _castmsg(0x672FB0) };  // WORLDMAP
-#undef _castmsg
+#define CASTMSG(adr) reinterpret_cast<fo::MessageList*>(adr)
+static const fo::MessageList* gameMsgFiles[] =
+{ CASTMSG(0x56D368)     // COMBAT
+, CASTMSG(0x56D510)     // AI
+, CASTMSG(0x56D754)     // SCRNAME
+, CASTMSG(0x58E940)     // MISC
+, CASTMSG(0x58EA98)     // CUSTOM
+, CASTMSG(0x59E814)     // INVENTRY
+, CASTMSG(0x59E980)     // ITEM
+, CASTMSG(0x613D28)     // LSGAME
+, CASTMSG(0x631D48)     // MAP
+, CASTMSG(0x6637E8)     // OPTIONS
+, CASTMSG(0x6642D4)     // PERK
+, CASTMSG(0x664348)     // PIPBOY
+, CASTMSG(0x664410)     // QUESTS
+, CASTMSG(0x6647FC)     // PROTO
+, CASTMSG(0x667724)     // SCRIPT
+, CASTMSG(0x668080)     // SKILL
+, CASTMSG(0x6680F8)     // SKILLDEX
+, CASTMSG(0x66817C)     // STAT
+, CASTMSG(0x66BE38)     // TRAIT
+, CASTMSG(0x672FB0) };  // WORLDMAP
+#undef CASTMSG
 
 void sf_message_str_game(OpcodeContext& ctx) {
 	const char* msg = nullptr;
@@ -330,7 +330,7 @@ void sf_message_str_game(OpcodeContext& ctx) {
 	if (fileId < 20) { // main msg files
 		msg = fo::GetMessageStr(gameMsgFiles[fileId], msgId);
 	} else if (fileId >= 0x1000 && fileId <= 0x1005) { // proto msg files
-		msg = fo::GetMessageStr(&VarPtr::proto_msg_files[fileId - 0x1000], msgId);
+		msg = fo::GetMessageStr(&fo::var::proto_msg_files[fileId - 0x1000], msgId);
 	} else if (fileId >= 0x2000) { // Extra game message files.
 		ExtraGameMessageListsMap::iterator it = gExtraGameMsgLists.find(fileId);
 

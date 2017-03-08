@@ -333,6 +333,7 @@ static void __declspec(naked) NPCStage6Fix2() {
 static const DWORD ScannerHookRet=0x41BC1D;
 static const DWORD ScannerHookFail=0x41BC65;
 static void __declspec(naked) ScannerAutomapHook() {
+	using fo::PID_MOTION_SENSOR;
 	__asm {
 		mov eax, ds:[VARPTR_obj_dude];
 		mov edx, PID_MOTION_SENSOR;
@@ -716,7 +717,7 @@ void PipboyAvailableAtStartPatch() {
 	case 1:
 		LoadGameHook::onAfterNewGame += []() {
 			// PipBoy aquiring video
-			VarPtr::gmovie_played_list[3] = true;
+			fo::var::gmovie_played_list[3] = true;
 		};
 		break;
 	case 2:
@@ -728,7 +729,7 @@ void PipboyAvailableAtStartPatch() {
 void DisableHorriganPatch() {
 	if (GetConfigInt("Misc", "DisableHorrigan", 0)) {
 		LoadGameHook::onAfterNewGame += []() {
-			VarPtr::Meet_Frank_Horrigan = true;
+			fo::var::Meet_Frank_Horrigan = true;
 		};
 		SafeWrite8(0x4C06D8, 0xEB); // skip the Horrigan encounter check
 	}

@@ -32,7 +32,7 @@ namespace fo
 char AnimCodeByWeapon(TGameObj* weapon);
 
 inline void DisplayPrint(const std::string& str) {
-	Wrapper::display_print(str.c_str());
+	fo::func::display_print(str.c_str());
 }
 
 // returns message string from given file

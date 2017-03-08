@@ -71,7 +71,7 @@ static void _stdcall ResetState() {
 }
 
 void GetSavePath(char* buf, char* ftype) {
-	sprintf(buf, "%s\\savegame\\slot%.2d\\sfall%s.sav", VarPtr::patches, VarPtr::slot_cursor + 1 + LSPageOffset, ftype); //add SuperSave Page offset
+	sprintf(buf, "%s\\savegame\\slot%.2d\\sfall%s.sav", fo::var::patches, fo::var::slot_cursor + 1 + LSPageOffset, ftype); //add SuperSave Page offset
 }
 
 static std::string saveSfallDataFailMsg;
@@ -94,7 +94,7 @@ static void _stdcall SaveGame2() {
 	} else {
 		dlogr("ERROR creating sfallgv!", DL_MAIN);
 		fo::DisplayPrint(saveSfallDataFailMsg);
-		Wrapper::gsound_play_sfx_file("IISXXXX1");
+		fo::func::gsound_play_sfx_file("IISXXXX1");
 	}
 	GetSavePath(buf, "fs");
 	h = CreateFileA(buf, GENERIC_WRITE, 0, 0, CREATE_ALWAYS, 0, 0);
@@ -112,9 +112,9 @@ static DWORD _stdcall CombatSaveTest() {
 			fo::DisplayPrint(saveFailMsg);
 			return 0;
 		}
-		int ap = Wrapper::stat_level(VarPtr::obj_dude, STAT_max_move_points);
-		int bonusmove = Wrapper::perk_level(VarPtr::obj_dude, PERK_bonus_move);
-		if (VarPtr::obj_dude->critter.move_points != ap || bonusmove * 2 != VarPtr::combat_free_move) {
+		int ap = fo::func::stat_level(fo::var::obj_dude, fo::STAT_max_move_points);
+		int bonusmove = fo::func::perk_level(fo::var::obj_dude, fo::PERK_bonus_move);
+		if (fo::var::obj_dude->critter.move_points != ap || bonusmove * 2 != fo::var::combat_free_move) {
 			fo::DisplayPrint(saveFailMsg);
 			return 0;
 		}

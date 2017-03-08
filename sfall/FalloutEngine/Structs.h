@@ -95,6 +95,10 @@ struct TGameObj {
 	long script_index;
 	char gap_84[7];
 	char field_0;
+
+	inline char type() {
+		return pid >> 24;
+	}
 };
 #pragma pack(pop)
 

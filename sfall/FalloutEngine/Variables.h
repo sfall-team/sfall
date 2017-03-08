@@ -214,9 +214,11 @@
 //
 // Global variable pointers.
 //
-// In normal CPP code use: VarPtr::var_name to read/write value or &VarPtr::var_name to use as pointer.
+// In normal CPP code use: fo::var::var_name to read/write value or &fo::var::var_name to use as pointer.
 //
-namespace VarPtr
+namespace fo
+{
+namespace var
 {
 
 template <typename T, int Size>
@@ -260,4 +262,5 @@ struct ArrayWrapper {
 // TODO: assign appropriate types (arrays, structs, strings, etc.) for all variables
 #include "Variables_def.h"
 
+}
 }

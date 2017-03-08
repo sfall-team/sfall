@@ -6,6 +6,7 @@
 
 namespace sfall
 {
+using namespace fo;
 
 DWORD WeightOnBody = 0;
 

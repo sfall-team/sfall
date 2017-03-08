@@ -50,9 +50,9 @@ end:
 }
 
 static void TimerReset() {
-	VarPtr::fallout_game_time = 0;
+	fo::var::fallout_game_time = 0;
 	// used as additional years indicator
-	VarPtr::pc_proto.base_stat_unarmed_damage += 13;
+	fo::var::pc_proto.base_stat_unarmed_damage += 13;
 }
 
 static int mapSlotsScrollMax = 27 * (17 - 7);
@@ -256,6 +256,7 @@ static DWORD _stdcall PathfinderFix2(DWORD perkLevel, DWORD ticks) {
 }
 
 static __declspec(naked) void PathfinderFix() {
+	using namespace fo;
 	__asm {
 		push eax;
 		mov eax, ds:[VARPTR_obj_dude];

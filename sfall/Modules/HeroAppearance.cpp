@@ -42,9 +42,9 @@ DWORD charRotOri = 0;
 int currentRaceVal = 0, currentStyleVal = 0; //holds Appearance values to restore after global reset in NewGame2 function in LoadGameHooks.cpp
 DWORD critterListSize = 0, critterArraySize = 0; //Critter art list size
 
-sPath **tempPathPtr = &VarPtr::paths;
-sPath *heroPathPtr = NULL;
-sPath *racePathPtr = NULL;
+fo::sPath **tempPathPtr = &fo::var::paths;
+fo::sPath *heroPathPtr = NULL;
+fo::sPath *racePathPtr = NULL;
 
 
 //for word wrapping
@@ -292,7 +292,7 @@ int FWriteDword(void *FileStream, DWORD bVal) {
 /////////////////////////////////////////////////////////////////MOUSE FUNCTIONS////////////////////////////////////////////////////////////////////////
 //-----------------------------------------------------
 //get current mouse pic ref
-// TODO: replace with VarPtr::
+// TODO: replace with fo::var::
 int GetMousePic() {
 	return *(DWORD*)0x518C0C;
 }
@@ -338,7 +338,7 @@ void HideMouse() {
 //-------------------------------------------------------
 //returns 0 if mouse is hidden
 int IsMouseHidden() {
-	return VarPtr::mouse_is_hidden;
+	return fo::var::mouse_is_hidden;
 }
 
 /////////////////////////////////////////////////////////////////FRM FUNCTIONS////////////////////////////////////////////////////////////////////////
@@ -563,8 +563,8 @@ void DestroyWin(int WinRef) {
 }
 
 //--------------------------------------------------
-WINinfo *GetWinStruct(int WinRef) {
-	WINinfo *winStruct;
+fo::WINinfo *GetWinStruct(int WinRef) {
+	fo::WINinfo *winStruct;
 
 	__asm {
 		push edx
@@ -653,7 +653,7 @@ void SetFont(int ref) {
 
 //-----------------------
 int GetFont(void) {
-	return VarPtr::curr_font_num;
+	return fo::var::curr_font_num;
 }
 
 
@@ -820,6 +820,7 @@ int retVal = 0;
 
 //-----------------------------------------
 char _stdcall GetSex(void) {
+	using fo::STAT_gender;
 	char sex;
 	__asm {
 		mov edx, STAT_gender //sex stat ref
@@ -863,7 +864,7 @@ int _stdcall LoadHeroDat(unsigned int Race, unsigned int Style) {
 	}
 
 	tempPathPtr = &heroPathPtr; //set path for selected appearance
-	heroPathPtr->next = &VarPtr::paths[0];
+	heroPathPtr->next = &fo::var::paths[0];
 
 	if (Style != 0){
 		sprintf_s(racePathPtr->path, 64, "Appearance\\h%cR%02dS%02d.dat\0", GetSex(), Race, 0);
@@ -876,7 +877,7 @@ int _stdcall LoadHeroDat(unsigned int Race, unsigned int Style) {
 
 		if (GetFileAttributes(racePathPtr->path) != INVALID_FILE_ATTRIBUTES) { //check if folder/Dat exists for selected race base appearance
 			heroPathPtr->next = racePathPtr; //set path for selected race base appearance
-			racePathPtr->next = &VarPtr::paths[0];
+			racePathPtr->next = &fo::var::paths[0];
 		}
 	}
 	return 0;
@@ -1055,11 +1056,11 @@ EndFunc:
 //------------------------------
 void FixCritList() {
 	//int size = (*(DWORD*)0x510774) / 2; //critter list size after resize by DoubleArt func
-	// TODO: use VarPtr::
+	// TODO: use fo::var::
 	critterListSize = (*(DWORD*)0x510774)/2;
 	critterArraySize = critterListSize*13;
 
-	// TODO: use VarPtr::
+	// TODO: use fo::var::
 	char *CritList = (*(char**)0x51076C); //critter list offset
 	char *HeroList = CritList + (critterArraySize); //set start of hero critter list after regular critter list
 
@@ -1364,17 +1365,17 @@ void DrawPCConsole() {
 		else charRotOri = 0;
 
 
-		int WinRef = VarPtr::edit_win; //char screen window ref
+		int WinRef = fo::var::edit_win; //char screen window ref
 		//BYTE *WinSurface = GetWinSurface(WinRef);
-		WINinfo *WinInfo = GetWinStruct(WinRef);
+		fo::WINinfo *WinInfo = GetWinStruct(WinRef);
 
 		BYTE *ConSurface = new BYTE [70*102];
 
 		sub_draw(70, 102, 640, 480, 338, 78, charScrnBackSurface, 70, 102, 0, 0, ConSurface, 0);
 		//sub_draw(70, 102, widthBG, heightBG, xPosBG, yPosBG, BGSurface, 70, 102, 0, 0, ConSurface, 0);
 
-		//DWORD CritNum = VarPtr::art_vault_guy_num; //pointer to current base hero critter FrmId
-		DWORD CritNum = VarPtr::obj_dude->art_fid; //pointer to current armored hero critter FrmId
+		//DWORD CritNum = fo::var::art_vault_guy_num; //pointer to current base hero critter FrmId
+		DWORD CritNum = fo::var::obj_dude->art_fid; //pointer to current armored hero critter FrmId
 		DWORD CritFrmObj;
 		FRMhead *CritFrm;
 		//DWORD PcCritOri = 0;
@@ -1389,13 +1390,13 @@ void DrawPCConsole() {
 
 		sub_draw(CritWidth, CritHeight, CritWidth, CritHeight, 0, 0, CritSurface, 70, 102, 35-CritWidth/2, 51-CritHeight/2, ConSurface, 0);
 
-		BYTE ConsoleGreen = VarPtr::GreenColor; //palette offset stored in mem - text colour
-		BYTE ConsoleGold = VarPtr::YellowColor; //palette offset stored in mem - text colour
+		BYTE ConsoleGreen = fo::var::GreenColor; //palette offset stored in mem - text colour
+		BYTE ConsoleGold = fo::var::YellowColor; //palette offset stored in mem - text colour
 
 		BYTE styleColour = ConsoleGreen, raceColour = ConsoleGreen;
-		if (VarPtr::info_line == 0x501)
+		if (fo::var::info_line == 0x501)
 			raceColour = ConsoleGold;
-		else if (VarPtr::info_line == 0x502)
+		else if (fo::var::info_line == 0x502)
 			styleColour = ConsoleGold;
 /*
 		int oldFont = GetFont(); //store current font
@@ -1424,8 +1425,7 @@ void DrawPCConsole() {
 
 //------------------------------------------------------------------------------------------------------------------------------------------------
 void DrawCharNote(bool Style, int WinRef, DWORD xPosWin, DWORD yPosWin, BYTE *BGSurface, DWORD xPosBG, DWORD yPosBG, DWORD widthBG, DWORD heightBG) {
-
-	MessageList MsgList;
+	fo::MessageList MsgList;
 	char *TitleMsg = NULL;
 	char *InfoMsg = NULL;
 
@@ -1434,14 +1434,14 @@ void DrawCharNote(bool Style, int WinRef, DWORD xPosWin, DWORD yPosWin, BYTE *BG
 	if (!Style) MsgFileName = "game\\AppRace.msg";
 	else MsgFileName = "game\\AppStyle.msg";
 
-	if (Wrapper::message_load(&MsgList, MsgFileName) == 1) {
+	if (fo::func::message_load(&MsgList, MsgFileName) == 1) {
 		TitleMsg = GetMsg(&MsgList, 100, 2);
 		InfoMsg = GetMsg(&MsgList, 101, 2);
 	}
 
 	BYTE colour = *(BYTE*)0x6A38D0; //brown
 
-	WINinfo *WinInfo = GetWinStruct(WinRef);
+	fo::WINinfo *WinInfo = GetWinStruct(WinRef);
 
 	BYTE *PadSurface;
 	PadSurface = new BYTE [280*168];
@@ -1511,8 +1511,8 @@ void DrawCharNote(bool Style, int WinRef, DWORD xPosWin, DWORD yPosWin, BYTE *BG
 	delete[]PadSurface;
 	WinInfo = NULL;
 	SetFont(oldFont); //restore previous font
-	Wrapper::message_exit(&MsgList);
-	//RedrawWin(VarPtr::edit_win);
+	fo::func::message_exit(&MsgList);
+	//RedrawWin(fo::var::edit_win);
 }
 
 /*
@@ -1638,11 +1638,11 @@ void _stdcall HeroSelectWindow(int RaceStyleFlag) {
 
 	DWORD NewTick = 0, OldTick = 0;
 
-	textColour = VarPtr::GreenColor; //ConsoleGreen colour -palette offset stored in mem
+	textColour = fo::var::GreenColor; //ConsoleGreen colour -palette offset stored in mem
 	SetFont(0x65);
 
-	DWORD CritNum = VarPtr::art_vault_guy_num; //pointer to current base hero critter FrmID
-	//DWORD CritNum = VarPtr::obj_dude->artFID; //pointer to current armored hero critter FrmID
+	DWORD CritNum = fo::var::art_vault_guy_num; //pointer to current base hero critter FrmID
+	//DWORD CritNum = fo::var::obj_dude->artFID; //pointer to current armored hero critter FrmID
 	FRMhead *CritFrm;
 	DWORD CritFrmObj = 0, CritOri = 0, CritWidth = 0, CritHeight = 0;
 	BYTE *CritSurface = NULL;
@@ -1696,7 +1696,7 @@ void _stdcall HeroSelectWindow(int RaceStyleFlag) {
 			RedrawWin(WinRef);
 		}
 
-		button = Wrapper::get_input();
+		button = fo::func::get_input();
 		if (button == 0x148) { //previous style/race -up arrow button pushed
 			drawFlag = TRUE;
 			PlayAcm("ib1p1xx1");
@@ -1801,38 +1801,38 @@ void FixTextHighLight() {
 
 //-------------------------------------------
 void _stdcall DrawCharNoteNewChar(bool Style) {
-	DrawCharNote(Style, VarPtr::edit_win, 348, 272, charScrnBackSurface, 348, 272, 640, 480);
+	DrawCharNote(Style, fo::var::edit_win, 348, 272, charScrnBackSurface, 348, 272, 640, 480);
 }
 
 //-------------------------------------------------------------------
 int _stdcall CheckCharButtons() {
-	int button = Wrapper::get_input();
+	int button = fo::func::get_input();
 
 	int raceVal = currentRaceVal;
 	int styleVal = currentStyleVal;
 
 	int drawFlag = -1;
 
-	if (VarPtr::info_line == 0x503) {
+	if (fo::var::info_line == 0x503) {
 		button = 0x501;
-	} else if (VarPtr::info_line == 0x504) {
+	} else if (fo::var::info_line == 0x504) {
 		button = 0x502;
-	} else if (VarPtr::info_line == 0x501 || VarPtr::info_line == 0x502) {
+	} else if (fo::var::info_line == 0x501 || fo::var::info_line == 0x502) {
 		switch (button) {
 			case 0x14B: //button =left
 			case 0x14D: //button =right
 				if (*(DWORD*)0x5709D0 == 1) { //if in char creation scrn
-					if (VarPtr::info_line == 0x501)
+					if (fo::var::info_line == 0x501)
 						button = button + 0x3C6;
-					else if (VarPtr::info_line == 0x502)
+					else if (fo::var::info_line == 0x502)
 						button = button + 0x3C6 + 1;
 				}
 			break;
 			case 0x148: //button =up
 			case 0x150: //button =down
-				if (VarPtr::info_line == 0x501)
+				if (fo::var::info_line == 0x501)
 					button = 0x502;
-				else if (VarPtr::info_line == 0x502)
+				else if (fo::var::info_line == 0x502)
 					button = 0x501;
 			break;
 			case 0x0D: //button =return
@@ -1843,10 +1843,10 @@ int _stdcall CheckCharButtons() {
 			case 0x1F6: //button =cancel
 			case 'c': //button =cancel
 			case 'C': //button =cancel
-			if (VarPtr::info_line == 0x501) //for redrawing note when reentering char screen
-				VarPtr::info_line = 0x503;
+			if (fo::var::info_line == 0x501) //for redrawing note when reentering char screen
+				fo::var::info_line = 0x503;
 			else
-				VarPtr::info_line = 0x504;
+				fo::var::info_line = 0x504;
 			break;
 
 			default:
@@ -1856,7 +1856,7 @@ int _stdcall CheckCharButtons() {
 
 	switch(button) {
 		case 0x9: //tab button pushed
-			if (VarPtr::info_line >= 0x3D && VarPtr::info_line < 0x4F) //if menu ref in last menu go to race
+			if (fo::var::info_line >= 0x3D && fo::var::info_line < 0x4F) //if menu ref in last menu go to race
 				button = 0x501, drawFlag = 0;
 		break;
 		case 0x501: //race button pushed
@@ -1915,20 +1915,20 @@ int _stdcall CheckCharButtons() {
 
 	if (drawFlag == 1) {
 		PlayAcm("ib3p1xx1");
-		VarPtr::info_line = 0x502;
+		fo::var::info_line = 0x502;
 		FixTextHighLight();
 		DrawCharNoteNewChar(1);
-		//DrawCharNote(1, VarPtr::edit_win, 348, 272, CharScrnBackSurface, 348, 272, 640, 480);
+		//DrawCharNote(1, fo::var::edit_win, 348, 272, CharScrnBackSurface, 348, 272, 640, 480);
 	}
 	else if (drawFlag==0) {
 		PlayAcm("ib3p1xx1");
-		VarPtr::info_line = 0x501;
+		fo::var::info_line = 0x501;
 		FixTextHighLight();
 		DrawCharNoteNewChar(0);
-		//DrawCharNote(0, VarPtr::edit_win, 348, 272, CharScrnBackSurface, 348, 272, 640, 480);
+		//DrawCharNote(0, fo::var::edit_win, 348, 272, CharScrnBackSurface, 348, 272, 640, 480);
 	}
 
-	DrawPCConsole(); //(VarPtr::edit_win, 338, 78, CharScrnBackSurface, 338, 78, 640, 480);
+	DrawPCConsole(); //(fo::var::edit_win, 338, 78, CharScrnBackSurface, 338, 78, 640, 480);
 
 	return button;
 }
@@ -1969,6 +1969,7 @@ static void __declspec(naked) CharScrnEnd(void) {
 
 //------------------------------------------
 static void __declspec(naked) SexScrnEnd(void) {
+	using namespace fo;
 	__asm {
 		pushad
 		mov edx, STAT_gender
@@ -2032,13 +2033,13 @@ static void __declspec(naked) AddCharScrnButtons(void) {
 	}
 
 	int WinRef;
-	WinRef = VarPtr::edit_win; //char screen window ref
+	WinRef = fo::var::edit_win; //char screen window ref
 
 	//race and style buttons
 	CreateButton(WinRef, 332, 0, 82, 32, -1, -1, 0x501, -1, 0, 0, 0);
 	CreateButton(WinRef, 332, 226, 82, 32, -1, -1, 0x502, -1, 0, 0, 0);
 
-	// TODO: use VarPtr::
+	// TODO: use fo::var::
 	if (*(DWORD*)0x5709D0 == 1) { //equals 1 if new char screen - equals 0 if ingame char screen
 
 		//reset hero appearance
@@ -2108,7 +2109,7 @@ static void __declspec(naked) FixCharScrnBack(void) {
 	if (charScrnBackSurface == NULL) {
 		charScrnBackSurface = new BYTE [640*480];
 
-		BYTE *OldCharScrnBackSurface = VarPtr::bckgnd; //char screen background frm surface
+		BYTE *OldCharScrnBackSurface = fo::var::bckgnd; //char screen background frm surface
 		
 		//copy old charscrn surface to new
 		sub_draw(640, 480, 640, 480, 0, 0, OldCharScrnBackSurface, 640, 480, 0, 0, charScrnBackSurface, 0);
@@ -2315,8 +2316,8 @@ void EnableHeroAppearanceMod() {
 	appModEnabled = true;
 
 	//setup paths
-	heroPathPtr = new sPath;
-	racePathPtr = new sPath;
+	heroPathPtr = new fo::sPath;
+	racePathPtr = new fo::sPath;
 	heroPathPtr->path = new char[64];
 	racePathPtr->path = new char[64];
 

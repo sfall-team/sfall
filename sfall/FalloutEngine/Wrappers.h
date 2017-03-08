@@ -25,7 +25,9 @@
 // WRAPPERS for FO engine functions. 
 // Use those as you would if there were source code for the engine...
 //
-namespace Wrapper
+namespace fo
+{
+namespace func
 {
 
 bool __stdcall art_exists(int artFid);
@@ -215,4 +217,5 @@ int __stdcall win_register_button(DWORD winRef, int xPos, int yPos, int width, i
 //#undef WRAP_WATCOM_FUNC6
 //#undef WRAP_WATCOM_FUNC7
 
+}
 }

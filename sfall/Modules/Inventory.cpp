@@ -34,24 +34,24 @@ static DWORD maxItemSize;
 static DWORD reloadWeaponKey = 0;
 
 long& GetActiveItemMode() {
-	return VarPtr::itemButtonItems[VarPtr::itemCurrentItem].mode;
+	return fo::var::itemButtonItems[fo::var::itemCurrentItem].mode;
 }
 
 fo::TGameObj* GetActiveItem() {
-	return VarPtr::itemButtonItems[VarPtr::itemCurrentItem].item;
+	return fo::var::itemButtonItems[fo::var::itemCurrentItem].item;
 }
 
 void InventoryKeyPressedHook(DWORD dxKey, bool pressed, DWORD vKey) {
 	if (pressed && reloadWeaponKey && dxKey == reloadWeaponKey && IsMapLoaded() && (GetCurrentLoops() & ~(COMBAT | PCOMBAT)) == 0) {
 		DWORD maxAmmo, curAmmo;
 		fo::TGameObj* item = GetActiveItem();
-		maxAmmo = Wrapper::item_w_max_ammo(item);
-		curAmmo = Wrapper::item_w_curr_ammo(item);
+		maxAmmo = fo::func::item_w_max_ammo(item);
+		curAmmo = fo::func::item_w_curr_ammo(item);
 		if (maxAmmo != curAmmo) {
 			long &currentMode = GetActiveItemMode();
 			long previusMode = currentMode;
 			currentMode = 5; // reload mode
-			Wrapper::intface_use_item();
+			fo::func::intface_use_item();
 			if (previusMode != 5) {
 				// return to previous active item mode (if it wasn't "reload")
 				currentMode = previusMode - 1;
@@ -311,7 +311,7 @@ static const char* InvenFmt1 = "%s %d/%d  %s %d/%d";
 static const char* InvenFmt2 = "%s %d/%d";
 
 static const char* _stdcall GetInvenMsg() {
-	const char* tmp = fo::GetMessageStr(&VarPtr::inventry_message_file, 35);
+	const char* tmp = fo::GetMessageStr(&fo::var::inventry_message_file, 35);
 	if (!tmp) return "S:";
 	else return tmp;
 }
@@ -359,11 +359,11 @@ end:
 static char SizeMsgBuf[32];
 static const char* _stdcall FmtSizeMsg(int size) {
 	if(size==1) {
-		const char* tmp = fo::GetMessageStr(&VarPtr::proto_main_msg_file, 543);
+		const char* tmp = fo::GetMessageStr(&fo::var::proto_main_msg_file, 543);
 		if(!tmp) strcpy(SizeMsgBuf, "It occupies 1 unit.");
 		else sprintf(SizeMsgBuf, tmp, size);
 	} else {
-		const char* tmp = fo::GetMessageStr(&VarPtr::proto_main_msg_file, 542);
+		const char* tmp = fo::GetMessageStr(&fo::var::proto_main_msg_file, 542);
 		if(!tmp) sprintf(SizeMsgBuf, "It occupies %d units.", size);
 		else sprintf(SizeMsgBuf, tmp, size);
 	}
@@ -387,25 +387,17 @@ static __declspec(naked) void InvenObjExamineFuncHook() {
 }
 
 static std::string superStimMsg;
-static int _stdcall SuperStimFix2(DWORD* item, DWORD* target) {
+static int _stdcall SuperStimFix2(fo::TGameObj* item, fo::TGameObj* target) {
 	if (!item || !target) return 0;
-	DWORD itm_pid = item[0x64 / 4], target_pid = target[0x64 / 4];
+	DWORD itm_pid = item->pid, target_pid = target->pid;
 	if ((target_pid & 0xff000000) != 0x01000000) return 0;
 	if ((itm_pid & 0xff000000) != 0) return 0;
 	if ((itm_pid & 0xffffff) != 144) return 0;
 	DWORD curr_hp, max_hp;
-	__asm {
-		mov eax, target;
-		mov edx, STAT_current_hp
-			call FuncOffs::stat_level_
-			mov curr_hp, eax;
-		mov eax, target;
-		mov edx, STAT_max_hit_points
-			call FuncOffs::stat_level_
-			mov max_hp, eax;
-	}
+	curr_hp = fo::func::stat_level(target, fo::STAT_current_hp);
+	max_hp = fo::func::stat_level(target, fo::STAT_max_hit_points);
 	if (curr_hp < max_hp) return 0;
-	Wrapper::display_print(superStimMsg.c_str());
+	fo::func::display_print(superStimMsg.c_str());
 	return 1;
 }
 
@@ -518,6 +510,7 @@ skip:
 }
 
 static void __declspec(naked) SetDefaultAmmo() {
+	using namespace fo;
 	__asm {
 		push    eax
 		push    ebx
@@ -595,7 +588,7 @@ int __stdcall ItemCountFixStdcall(fo::TGameObj* who, fo::TGameObj* item) {
 		auto tableItem = &who->inven_table[i];
 		if (tableItem->object == item) {
 			count += tableItem->count;
-		} else if (Wrapper::item_get_type(tableItem->object) == item_type_container) {
+		} else if (fo::func::item_get_type(tableItem->object) == fo::item_type_container) {
 			count += ItemCountFixStdcall(tableItem->object, item);
 		}
 	}

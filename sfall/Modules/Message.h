@@ -28,7 +28,7 @@
 namespace sfall
 {
 
-typedef std::tr1::unordered_map<int, std::unique_ptr<MessageList>> ExtraGameMessageListsMap;
+typedef std::tr1::unordered_map<int, std::unique_ptr<fo::MessageList>> ExtraGameMessageListsMap;
 extern ExtraGameMessageListsMap gExtraGameMsgLists;
 
 class Message : public Module {
@@ -37,7 +37,7 @@ class Message : public Module {
 	void exit() override;
 };
 
-MessageNode *GetMsgNode(MessageList *msgList, int msgRef);
-char* GetMsg(MessageList *MsgList, int msgRef, int msgNum);
+fo::MessageNode *GetMsgNode(fo::MessageList *msgList, int msgRef);
+char* GetMsg(fo::MessageList *MsgList, int msgRef, int msgNum);
 
 }

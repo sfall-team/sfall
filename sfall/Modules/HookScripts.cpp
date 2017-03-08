@@ -87,7 +87,7 @@ static void _stdcall RunSpecificHookScript(sHookScript *hook) {
 	cArg = 0;
 	cRetTmp = 0;
 	if (hook->callback != -1) {
-		Wrapper::executeProcedure(hook->prog.ptr, hook->callback);
+		fo::func::executeProcedure(hook->prog.ptr, hook->callback);
 	} else {
 		RunScriptProc(&hook->prog, start);
 	}
@@ -857,7 +857,7 @@ nevermind:
 
 static int __stdcall SwitchHandHook2(fo::TGameObj* item, fo::TGameObj* itemReplaced, DWORD addr) {
 	int tmp;
-	if (itemReplaced && Wrapper::item_get_type(itemReplaced) == 3 && Wrapper::item_get_type(item) == 4) {
+	if (itemReplaced && fo::func::item_get_type(itemReplaced) == 3 && fo::func::item_get_type(item) == 4) {
 		return -1; // to prevent inappropriate hook call after dropping ammo on weapon
 	}
 	BeginHook();
@@ -953,6 +953,7 @@ skipcall:
 }
 
 static void _declspec(naked) invenWieldFunc_Hook() {
+	using namespace fo;
 	__asm {
 		hookbegin(4);
 		mov args[0], eax; // critter
@@ -1124,11 +1125,11 @@ static void LoadHookScript(const char* name, int id) {
 
 	char filename[MAX_PATH];
 	sprintf(filename, "scripts\\%s.int", name);
-	if (Wrapper::db_access(filename) && !IsGameScript(name)) {
+	if (fo::func::db_access(filename) && !IsGameScript(name)) {
 		sScriptProgram prog;
 		dlog(">", DL_HOOK);
 		dlog(name, DL_HOOK);
-		LoadScripfo::TProgram(prog, name);
+		LoadScriptProgram(prog, name);
 		if (prog.ptr) {
 			dlogr(" Done", DL_HOOK);
 			sHookScript hook;
