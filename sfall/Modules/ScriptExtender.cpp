@@ -605,15 +605,15 @@ void ClearGlobalScripts() {
 	//HP bonus
 	SafeWrite8(0x4AFBC1, 2);
 	//Bodypart hit chances
-	*((DWORD*)0x510954) = GetConfigInt("Misc", "BodyHit_Head",      0xFFFFFFD8);
-	*((DWORD*)0x510958) = GetConfigInt("Misc", "BodyHit_Left_Arm",  0xFFFFFFE2);
-	*((DWORD*)0x51095C) = GetConfigInt("Misc", "BodyHit_Right_Arm", 0xFFFFFFE2);
-	*((DWORD*)0x510960) = GetConfigInt("Misc", "BodyHit_Torso",     0x00000000);
-	*((DWORD*)0x510964) = GetConfigInt("Misc", "BodyHit_Right_Leg", 0xFFFFFFEC);
-	*((DWORD*)0x510968) = GetConfigInt("Misc", "BodyHit_Left_Leg",  0xFFFFFFEC);
-	*((DWORD*)0x51096C) = GetConfigInt("Misc", "BodyHit_Eyes",      0xFFFFFFC4);
-	*((DWORD*)0x510970) = GetConfigInt("Misc", "BodyHit_Groin",     0xFFFFFFE2);
-	*((DWORD*)0x510974) = GetConfigInt("Misc", "BodyHit_Torso",     0x00000000);
+	*((DWORD*)0x510954) = GetConfigInt("Misc", "BodyHit_Head",           0xFFFFFFD8, ini);
+	*((DWORD*)0x510958) = GetConfigInt("Misc", "BodyHit_Left_Arm",       0xFFFFFFE2, ini);
+	*((DWORD*)0x51095C) = GetConfigInt("Misc", "BodyHit_Right_Arm",      0xFFFFFFE2, ini);
+	*((DWORD*)0x510960) = GetConfigInt("Misc", "BodyHit_Torso_Uncalled", 0x00000000, ini);
+	*((DWORD*)0x510964) = GetConfigInt("Misc", "BodyHit_Right_Leg",      0xFFFFFFEC, ini);
+	*((DWORD*)0x510968) = GetConfigInt("Misc", "BodyHit_Left_Leg",       0xFFFFFFEC, ini);
+	*((DWORD*)0x51096C) = GetConfigInt("Misc", "BodyHit_Eyes",           0xFFFFFFC4, ini);
+	*((DWORD*)0x510970) = GetConfigInt("Misc", "BodyHit_Groin",          0xFFFFFFE2, ini);
+	*((DWORD*)0x510974) = GetConfigInt("Misc", "BodyHit_Torso_Uncalled", 0x00000000, ini);
 	//skillpoints per level mod
 	SafeWrite8(0x43C27a, 5);
 }

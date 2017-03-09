@@ -208,15 +208,14 @@ public:
 			MouseState.lY = (LONG)d;
 		}
 		if (useScrollWheel) {
+			int count = 1;
 			if (MouseState.lZ > 0) {
-				int count;
 				if (wheelMod) count = MouseState.lZ / wheelMod;
-				else count = 1;
+				if (count < 1) count = 1;
 				while (count--) TapKey(DIK_UP);
 			} else if (MouseState.lZ < 0) {
-				int count;
 				if (wheelMod) count = (-MouseState.lZ) / wheelMod;
-				else count = 1;
+				if (count < 1) count = 1;
 				while (count--) TapKey(DIK_DOWN);
 			}
 		}
