@@ -651,7 +651,7 @@ end:
 	}
 }
 
-static void __declspec(naked) partyMemberPrepLoadInstance_hack() {
+static void __declspec(naked) partyMemberPrepLoadInstance_hook() {
 	__asm {
 		and  word ptr [eax+0x44], 0x7FFD          // not (DAM_LOSE_TURN or DAM_KNOCKED_DOWN)
 		jmp  dude_stand_
@@ -928,16 +928,16 @@ end:
 	}
 }
 
-static void __declspec(naked) use_inventory_on_hook() {
-	 __asm {
-	  inc  ecx
-	  mov  edx, [eax]                           // Inventory.inv_size
-	  sub  edx, ecx
-	  jge  end
-	  mov  edx, [eax]                           // Inventory.inv_size
+static void __declspec(naked) use_inventory_on_hack() {
+	__asm {
+		inc  ecx
+		mov  edx, [eax]                           // Inventory.inv_size
+		sub  edx, ecx
+		jge  end
+		mov  edx, [eax]                           // Inventory.inv_size
 end:
-	  retn
-	 }
+		retn
+	}
 }
 
 int __stdcall ItemCountFixStdcall(TGameObj* who, TGameObj* item) {
@@ -1150,7 +1150,7 @@ void BugsInit()
 		MakeCall(0x424F8E, &set_new_results_hack, false);
 		MakeCall(0x42E46E, &critter_wake_clear_hack, true);
 		MakeCall(0x488EF3, &obj_load_func_hack, true);
-		HookCall(0x4949B2, &partyMemberPrepLoadInstance_hack);
+		HookCall(0x4949B2, &partyMemberPrepLoadInstance_hook);
 		dlogr(" Done", DL_INIT);
 	//}
 
@@ -1224,10 +1224,10 @@ void BugsInit()
 		// Fix crash when trying to open bag/backpack on the table in the bartering interface
 		MakeCall(0x473191, &inven_action_cursor_hack, false);
 	//}
-	// Fix crash when clicking on empty space in the inventory with the cursor using an item from the backpack (Crafty)
-    MakeCall(0x471A94, &use_inventory_on_hook, false);
+
+	// Fix crash when clicking on empty space in the inventory list opened by "Use Inventory Item On" (backpack) action icon
+	MakeCall(0x471A94, &use_inventory_on_hack, false);
 
 	// Fix item_count function returning incorrect value when there is a container-item inside
 	MakeCall(0x47808C, ItemCountFix, true); // replacing item_count_ function
-
 }
