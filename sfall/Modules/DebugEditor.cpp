@@ -82,7 +82,7 @@ static void RunEditorInternal(SOCKET &s) {
 	std::vector<DWORD*> vec = std::vector<DWORD*>();
 	for (int elv = 0; elv < 3; elv++) {
 		for (int tile = 0; tile < 40000; tile++) {
-			fo::TGameObj* obj = fo::func::obj_find_first_at_tile(elv, tile);
+			fo::GameObject* obj = fo::func::obj_find_first_at_tile(elv, tile);
 			while (obj) {
 				if ((obj->type()) == fo::OBJ_TYPE_CRITTER) {
 					vec.push_back(reinterpret_cast<DWORD*>(obj));

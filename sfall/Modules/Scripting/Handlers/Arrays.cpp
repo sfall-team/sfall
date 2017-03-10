@@ -122,13 +122,13 @@ void sf_stack_array(OpcodeContext& ctx) {
 // object LISTS
 
 struct sList {
-	fo::TGameObj** obj;
+	fo::GameObject** obj;
 	DWORD len;
 	DWORD pos;
 
-	sList(const std::vector<fo::TGameObj*>* vec) {
+	sList(const std::vector<fo::GameObject*>* vec) {
 		len = vec->size();
-		obj = new fo::TGameObj*[len];
+		obj = new fo::GameObject*[len];
 		for (size_t i = 0; i < len; i++) {
 			obj[i] = (*vec)[i];
 		}
@@ -136,17 +136,17 @@ struct sList {
 	}
 };
 
-static void FillListVector(DWORD type, std::vector<fo::TGameObj*>& vec) {
+static void FillListVector(DWORD type, std::vector<fo::GameObject*>& vec) {
 	if (type == 6) {
-		fo::TScript* scriptPtr;
-		fo::TGameObj* self_obj;
-		fo::TProgram* programPtr;
+		fo::ScriptInstance* scriptPtr;
+		fo::GameObject* self_obj;
+		fo::Program* programPtr;
 		for (int elev = 0; elev <= 2; elev++) {
 			scriptPtr = fo::func::scr_find_first_at(elev);
 			while (scriptPtr != nullptr) {
-				self_obj = scriptPtr->self_obj;
+				self_obj = scriptPtr->selfObject;
 				if (self_obj == nullptr) {
-					programPtr = scriptPtr->program_ptr;
+					programPtr = scriptPtr->program;
 					self_obj = fo::func::scr_find_obj_from_program(programPtr);
 				}
 				vec.push_back(self_obj);
@@ -166,7 +166,7 @@ static void FillListVector(DWORD type, std::vector<fo::TGameObj*>& vec) {
 	} else {
 		for (int elv = 0; elv < 3; elv++) {
 			for (int tile = 0; tile < 40000; tile++) {
-				fo::TGameObj* obj = fo::func::obj_find_first_at_tile(elv, tile);
+				fo::GameObject* obj = fo::func::obj_find_first_at_tile(elv, tile);
 				while (obj) {
 					DWORD otype = (obj->pid & 0xff000000) >> 24;
 					if (type == 9 || (type == 0 && otype == 1) || (type == 1 && otype == 0) || (type >= 2 && type <= 5 && type == otype)) {
@@ -180,14 +180,14 @@ static void FillListVector(DWORD type, std::vector<fo::TGameObj*>& vec) {
 }
 
 static void* _stdcall ListBegin(DWORD type) {
-	std::vector<fo::TGameObj*> vec = std::vector<fo::TGameObj*>();
+	std::vector<fo::GameObject*> vec = std::vector<fo::GameObject*>();
 	FillListVector(type, vec);
 	sList* list = new sList(&vec);
 	return list;
 }
 
 static DWORD _stdcall ListAsArray(DWORD type) {
-	std::vector<fo::TGameObj*> vec = std::vector<fo::TGameObj*>();
+	std::vector<fo::GameObject*> vec = std::vector<fo::GameObject*>();
 	FillListVector(type, vec);
 	DWORD id = TempArray(vec.size(), 4);
 	for (DWORD i = 0; i < vec.size(); i++) {
@@ -196,7 +196,7 @@ static DWORD _stdcall ListAsArray(DWORD type) {
 	return id;
 }
 
-static fo::TGameObj* _stdcall ListNext(sList* list) {
+static fo::GameObject* _stdcall ListNext(sList* list) {
 	if (list->pos == list->len) return 0;
 	else return list->obj[list->pos++];
 }

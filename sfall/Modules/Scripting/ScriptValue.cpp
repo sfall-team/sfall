@@ -54,7 +54,7 @@ ScriptValue::ScriptValue(bool val) {
 	_type = DataType::INT;
 }
 
-ScriptValue::ScriptValue(fo::TGameObj* obj) {
+ScriptValue::ScriptValue(fo::GameObject* obj) {
 	_val.gObj = obj;
 	_type = DataType::INT;
 }
@@ -115,7 +115,7 @@ const char* ScriptValue::asString() const {
 		: "";
 }
 
-fo::TGameObj* ScriptValue::asObject() const {
+fo::GameObject* ScriptValue::asObject() const {
 	return (_type == DataType::INT)
 		? _val.gObj
 		: nullptr;

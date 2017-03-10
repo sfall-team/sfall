@@ -31,21 +31,21 @@ namespace fo
 
 // TODO: make consistent naming for all FO structs
 
-struct TGameObj;
-struct TProgram;
-struct TScript;
+struct GameObject;
+struct Program;
+struct ScriptInstance;
 
 /*   26 */
 #pragma pack(push, 1)
 struct TInvenRec {
-	TGameObj *object;
+	GameObject *object;
 	long count;
 };
 #pragma pack(pop)
 
-/* 15 */
+// Game objects (items, critters, etc.), including those stored in inventories.
 #pragma pack(push, 1)
-struct TGameObj {
+struct GameObject {
 	long id;
 	long tile;
 	long x;
@@ -54,32 +54,32 @@ struct TGameObj {
 	long sy;
 	long frm;
 	long rotation;
-	long art_fid;
+	long artFid;
 	long flags;
 	long elevation;
-	long inven_size;
-	long inven_max;
-	TInvenRec *inven_table;
+	long invenSize;
+	long invenMax;
+	TInvenRec *invenTable;
 	union {
 		struct {
 			char gap_38[4];
 			// for weapons - ammo in magazine, for ammo - amount of ammo in last ammo pack
 			long charges;
 			// current type of ammo loaded in magazine
-			long ammo_pid;
+			long ammoPid;
 			char gap_44[32];
 		} item;
 		struct {
 			long reaction;
 			// 1 - combat, 2 - enemies out of sight, 4 - running away
-			long combat_state;
+			long combatState;
 			// aka action points
-			long move_points;
-			long damage_flags;
-			long damage_last_turn;
-			long ai_packet;
-			long team_num;
-			long who_hit_me;
+			long movePoints;
+			long damageFlags;
+			long damageLastTurn;
+			long aiPacket;
+			long teamNum;
+			long whoHitMe;
 			long health;
 			long rads;
 			long poison;
@@ -87,14 +87,12 @@ struct TGameObj {
 	};
 	long pid;
 	long cid;
-	long light_distance;
-	long light_intensity;
+	long lightDistance;
+	long lightIntensity;
 	char outline[4];
-	long script_id;
-	TGameObj* owner;
-	long script_index;
-	char gap_84[7];
-	char field_0;
+	long scriptId;
+	GameObject* owner;
+	long scriptIndex;
 
 	inline char type() {
 		return pid >> 24;
@@ -102,56 +100,66 @@ struct TGameObj {
 };
 #pragma pack(pop)
 
-/*    9 */
+// Results of compute_attack_() function.
 #pragma pack(push, 1)
-struct TComputeAttack {
-	TGameObj *attacker;
-	char gap_4[4];
-	TGameObj *weapon;
-	char gap_C[4];
-	long damageAttacker;
-	long flagsAttacker;
-	long rounds;
-	char gap_1C[4];
-	TGameObj *target;
+struct ComputeAttackResult {
+	GameObject* attacker;
+	long hitMode;
+	GameObject* weapon;
+	long field_C;
+	long attackerDamage;
+	long attackerFlags;
+	long numRounds;
+	long message;
+	GameObject* target;
 	long targetTile;
 	long bodyPart;
-	long damageTarget;
-	long flagsTarget;
+	long damage;
+	long flags;
 	long knockbackValue;
+	GameObject* mainTarget;
+	long numExtras;
+	GameObject* extraTarget[6];
+	long extraBodyPart[6];
+	long extraDamage[6];
+	long extraFlags[6];
+	long extraKnockbackValue[6];
 };
 #pragma pack(pop)
 
-
-/*   22 */
+// Script instance attached to an object or tile (spatial script).
 #pragma pack(push, 1)
-struct TScript {
-	long script_id;
-	char gap_4[4];
-	long elevation_and_tile;
-	long spatial_radius;
-	char gap_10[4];
-	long script_index;
-	TProgram *program_ptr;
-	long self_obj_id;
-	char gap_20[8];
-	long scr_return;
-	char gap_2C[4];
-	long fixed_param;
-	TGameObj *self_obj;
-	TGameObj *source_obj;
-	TGameObj *target_obj;
-	long script_overrides;
-	char field_44;
-	char gap_45[15];
-	long procedure_table[28];
+struct ScriptInstance {
+	long id;
+	long next;
+	// first 3 bits - elevation, rest - tile number
+	long elevationAndTile;
+	long spatialRadius;
+	long flags;
+	long scriptIdx;
+	Program *program;
+	long selfObjectId;
+	long localVarOffset;
+	long numLocalVars;
+	long returnValue;
+	long action;
+	long fixedParam;
+	GameObject *selfObject;
+	GameObject *sourceObject;
+	GameObject *targetObject;
+	long actionNum;
+	long scriptOverrides;
+	char gap_48[4];
+	long howMuch;
+	char gap_50[4];
+	long procedureTable[28];
 };
 #pragma pack(pop)
 
 
 /*   25 */
 #pragma pack(push, 1)
-struct TProgram {
+struct Program {
 	const char* fileName;
 	long *codeStackPtr;
 	char gap_8[8];
@@ -170,54 +178,49 @@ struct TProgram {
 #pragma pack(pop)
 
 struct ItemButtonItem {
-	TGameObj* item;
-	long field_2;
-	long field_3;
-	long field_4;
+	GameObject* item;
+	long flags;
+	long primaryAttack;
+	long secondaryAttack;
 	long mode;
-	long field_6;
+	long fid;
 };
 
+// When gained, the perk increases Stat by StatMod, which may be negative. All other perk effects come from being
+// specifically checked for by scripts or the engine. If a primary stat requirement is negative, that stat must be
+// below the value specified (e.g., -7 indicates a stat must be less than 7). Operator is only non-zero when there
+// are two skill requirements. If set to 1, only one of those requirements must be met; if set to 2, both must be met.
 struct PerkInfo {
-	char* Name;
-	char* Desc;
-	long Image;
-	long Ranks;
-	long Level;
-	long Stat;
-	long StatMag;
-	long Skill1;
-	long Skill1Mag;
-	long Type;
-	long Skill2;
-	long Skill2Mag;
-	long Str;
-	long Per;
-	long End;
-	long Chr;
-	long Int;
-	long Agl;
-	long Lck;
+	const char* name;
+	const char* description;
+	long image;
+	long ranks;
+	long levelMin;
+	long stat;
+	long statMod;
+	long skill1;
+	long skill1Min;
+	long skillOperator;
+	long skill2;
+	long skill2Min;
+	long strengthMin;
+	long perceptionMin;
+	long enduranceMin;
+	long charismaMin;
+	long intelligenceMin;
+	long agilityMin;
+	long luckMin;
 };
 
-struct DBFile {
+struct DbFile {
 	long fileType;
 	void* handle;
 };
 
-struct sElevator {
-	long ID1;
-	long Elevation1;
-	long Tile1;
-	long ID2;
-	long Elevation2;
-	long Tile2;
-	long ID3;
-	long Elevation3;
-	long Tile3;
-	long ID4;
-	long Elevation4;
-	long Tile4;
+struct ElevatorExit {
+	long id;
+	long elevation;
+	long tile;
 };
 
 #pragma pack(push, 1)

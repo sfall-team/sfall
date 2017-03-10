@@ -28,7 +28,7 @@
 namespace sfall
 {
 
-static std::vector<fo::TGameObj*> NoBursts;
+static std::vector<fo::GameObject*> NoBursts;
 
 struct KnockbackModifier {
 	DWORD id;
@@ -166,7 +166,7 @@ static void __declspec(naked) HitChanceHook() {
 
 static DWORD BurstTestResult;
 static const DWORD BurstHookRet = 0x429E4A;
-static void _stdcall BurstTest(fo::TGameObj* critter) {
+static void _stdcall BurstTest(fo::GameObject* critter) {
 	BurstTestResult = 0;
 	for (size_t i = 0; i < NoBursts.size(); i++) {
 		if (NoBursts[i] == critter) {
@@ -282,7 +282,7 @@ void _stdcall SetPickpocketMax(DWORD critter, DWORD maximum, DWORD mod) {
 	PickpocketMods.push_back(cm);
 }
 
-void _stdcall SetNoBurstMode(fo::TGameObj* critter, bool on) {
+void _stdcall SetNoBurstMode(fo::GameObject* critter, bool on) {
 	if (on) {
 		for (size_t i = 0; i < NoBursts.size(); i++) {
 			if (NoBursts[i] == critter) return;

@@ -76,13 +76,13 @@ struct sExportedVar {
 	sExportedVar() : val(0), type(VAR_TYPE_INT) {}
 };
 
-static std::vector<fo::TProgram*> checkedScripts;
+static std::vector<fo::Program*> checkedScripts;
 static std::vector<sGlobalScript> globalScripts;
 // a map of all sfall programs (global and hook scripts) by thier scriptPtr
-typedef std::unordered_map<fo::TProgram*, sScriptProgram> SfallProgsMap;
+typedef std::unordered_map<fo::Program*, sScriptProgram> SfallProgsMap;
 static SfallProgsMap sfallProgsMap;
 // a map scriptPtr => self_obj  to override self_obj for all script types using set_self
-std::unordered_map<fo::TProgram*, fo::TGameObj*> selfOverrideMap;
+std::unordered_map<fo::Program*, fo::GameObject*> selfOverrideMap;
 
 typedef std::tr1::unordered_map<std::string, sExportedVar> ExportedVarsMap;
 static ExportedVarsMap globalExportedVars;
@@ -98,28 +98,28 @@ DWORD AddUnarmedStatToGetYear = 0;
 DWORD availableGlobalScriptTypes = 0;
 bool isGameLoading;
 
-fo::TScript OverrideScriptStruct;
+fo::ScriptInstance OverrideScriptStruct;
 
 static const DWORD scr_ptr_back = fo::funcoffs::scr_ptr_ + 5;
 static const DWORD scr_find_sid_from_program = fo::funcoffs::scr_find_sid_from_program_ + 5;
 static const DWORD scr_find_obj_from_program = fo::funcoffs::scr_find_obj_from_program_ + 7;
 
-DWORD _stdcall FindSidHook2(fo::TProgram* script) {
-	std::unordered_map<fo::TProgram*, fo::TGameObj*>::iterator overrideIt = selfOverrideMap.find(script);
+DWORD _stdcall FindSidHook2(fo::Program* script) {
+	std::unordered_map<fo::Program*, fo::GameObject*>::iterator overrideIt = selfOverrideMap.find(script);
 	if (overrideIt != selfOverrideMap.end()) {
-		DWORD scriptId = overrideIt->second->script_id;
+		DWORD scriptId = overrideIt->second->scriptId;
 		if (scriptId != -1) {
 			selfOverrideMap.erase(overrideIt);
 			return scriptId; // returns the real scriptId of object if it is scripted
 		}
-		OverrideScriptStruct.self_obj = overrideIt->second;
-		OverrideScriptStruct.target_obj = overrideIt->second;
+		OverrideScriptStruct.selfObject = overrideIt->second;
+		OverrideScriptStruct.targetObject = overrideIt->second;
 		selfOverrideMap.erase(overrideIt); // this reverts self_obj back to original value for next function calls
 		return -2; // override struct
 	}
 	// this will allow to use functions like roll_vs_skill, etc without calling set_self (they don't really need self object)
 	if (sfallProgsMap.find(script) != sfallProgsMap.end()) {
-		OverrideScriptStruct.target_obj = OverrideScriptStruct.self_obj = 0;
+		OverrideScriptStruct.targetObject = OverrideScriptStruct.selfObject = 0;
 		return -2; // override struct
 	}
 	return -1; // change nothing
@@ -297,7 +297,7 @@ proceedNormal:
 }
 
 // this hook prevents sfall scripts from being removed after switching to another map, since normal script engine re-loads completely
-static void _stdcall FreeProgramHook2(fo::TProgram* progPtr) {
+static void _stdcall FreeProgramHook2(fo::Program* progPtr) {
 	if (isGameLoading || (sfallProgsMap.find(progPtr) == sfallProgsMap.end())) { // only delete non-sfall scripts or when actually loading the game
 		__asm {
 			mov eax, progPtr;
@@ -397,7 +397,7 @@ end:
 	}
 }
 
-void _stdcall SetGlobalScriptRepeat(fo::TProgram* script, int frames) {
+void _stdcall SetGlobalScriptRepeat(fo::Program* script, int frames) {
 	for (DWORD d = 0; d < globalScripts.size(); d++) {
 		if (globalScripts[d].prog.ptr == script) {
 			if (frames == -1) {
@@ -410,7 +410,7 @@ void _stdcall SetGlobalScriptRepeat(fo::TProgram* script, int frames) {
 	}
 }
 
-void _stdcall SetGlobalScriptType(fo::TProgram* script, int type) {
+void _stdcall SetGlobalScriptType(fo::Program* script, int type) {
 	if (type <= 3) {
 		for (size_t d = 0; d < globalScripts.size(); d++) {
 			if (globalScripts[d].prog.ptr == script) {
@@ -465,11 +465,11 @@ DWORD _stdcall GetGlobalVarInt(DWORD var) {
 	return GetGlobalVarInternal(var);
 }
 
-void _stdcall SetSelfObject(fo::TProgram* script, fo::TGameObj* obj) {
+void _stdcall SetSelfObject(fo::Program* script, fo::GameObject* obj) {
 	if (obj) {
 		selfOverrideMap[script] = obj;
 	} else {
-		std::unordered_map<fo::TProgram*, fo::TGameObj*>::iterator it = selfOverrideMap.find(script);
+		std::unordered_map<fo::Program*, fo::GameObject*>::iterator it = selfOverrideMap.find(script);
 		if (it != selfOverrideMap.end()) {
 			selfOverrideMap.erase(it);
 		}
@@ -478,7 +478,7 @@ void _stdcall SetSelfObject(fo::TProgram* script, fo::TGameObj* obj) {
 
 // loads script from .int file into a sScriptProgram struct, filling script pointer and proc lookup table
 void LoadScriptProgram(sScriptProgram &prog, const char* fileName) {
-	fo::TProgram* scriptPtr = fo::func::loadProgram(fileName);
+	fo::Program* scriptPtr = fo::func::loadProgram(fileName);
 	if (scriptPtr) {
 		const char** procTable = fo::var::procTableStrs;
 		prog.ptr = scriptPtr;
@@ -504,7 +504,7 @@ void AddProgramToMap(sScriptProgram &prog) {
 	sfallProgsMap[prog.ptr] = prog;
 }
 
-sScriptProgram* GetGlobalScriptProgram(fo::TProgram* scriptPtr) {
+sScriptProgram* GetGlobalScriptProgram(fo::Program* scriptPtr) {
 	for (std::vector<sGlobalScript>::iterator it = globalScripts.begin(); it != globalScripts.end(); it++) {
 		if (it->prog.ptr == scriptPtr) return &it->prog;
 	}
@@ -559,7 +559,7 @@ void LoadGlobalScripts() {
 	//ButtonsReload();
 }
 
-bool _stdcall ScriptHasLoaded(fo::TProgram* script) {
+bool _stdcall ScriptHasLoaded(fo::Program* script) {
 	for (size_t d = 0; d < checkedScripts.size(); d++) {
 		if (checkedScripts[d] == script) {
 			return false;
@@ -605,15 +605,15 @@ void ClearGlobalScripts() {
 	//HP bonus
 	SafeWrite8(0x4AFBC1, 2);
 	//Bodypart hit chances
-	*((DWORD*)0x510954) = GetConfigInt("Misc", "BodyHit_Head",           0xFFFFFFD8, ini);
-	*((DWORD*)0x510958) = GetConfigInt("Misc", "BodyHit_Left_Arm",       0xFFFFFFE2, ini);
-	*((DWORD*)0x51095C) = GetConfigInt("Misc", "BodyHit_Right_Arm",      0xFFFFFFE2, ini);
-	*((DWORD*)0x510960) = GetConfigInt("Misc", "BodyHit_Torso_Uncalled", 0x00000000, ini);
-	*((DWORD*)0x510964) = GetConfigInt("Misc", "BodyHit_Right_Leg",      0xFFFFFFEC, ini);
-	*((DWORD*)0x510968) = GetConfigInt("Misc", "BodyHit_Left_Leg",       0xFFFFFFEC, ini);
-	*((DWORD*)0x51096C) = GetConfigInt("Misc", "BodyHit_Eyes",           0xFFFFFFC4, ini);
-	*((DWORD*)0x510970) = GetConfigInt("Misc", "BodyHit_Groin",          0xFFFFFFE2, ini);
-	*((DWORD*)0x510974) = GetConfigInt("Misc", "BodyHit_Torso_Uncalled", 0x00000000, ini);
+	*((DWORD*)0x510954) = GetConfigInt("Misc", "BodyHit_Head",           0xFFFFFFD8);
+	*((DWORD*)0x510958) = GetConfigInt("Misc", "BodyHit_Left_Arm",       0xFFFFFFE2);
+	*((DWORD*)0x51095C) = GetConfigInt("Misc", "BodyHit_Right_Arm",      0xFFFFFFE2);
+	*((DWORD*)0x510960) = GetConfigInt("Misc", "BodyHit_Torso_Uncalled", 0x00000000);
+	*((DWORD*)0x510964) = GetConfigInt("Misc", "BodyHit_Right_Leg",      0xFFFFFFEC);
+	*((DWORD*)0x510968) = GetConfigInt("Misc", "BodyHit_Left_Leg",       0xFFFFFFEC);
+	*((DWORD*)0x51096C) = GetConfigInt("Misc", "BodyHit_Eyes",           0xFFFFFFC4);
+	*((DWORD*)0x510970) = GetConfigInt("Misc", "BodyHit_Groin",          0xFFFFFFE2);
+	*((DWORD*)0x510974) = GetConfigInt("Misc", "BodyHit_Torso_Uncalled", 0x00000000);
 	//skillpoints per level mod
 	SafeWrite8(0x43C27a, 5);
 }
@@ -621,7 +621,7 @@ void ClearGlobalScripts() {
 
 
 void RunScriptProc(sScriptProgram* prog, const char* procName) {
-	fo::TProgram* sptr = prog->ptr;
+	fo::Program* sptr = prog->ptr;
 	int procNum = fo::func::interpretFindProcedure(sptr, procName);
 	if (procNum != -1) {
 		fo::func::executeProcedure(sptr, procNum);
@@ -630,7 +630,7 @@ void RunScriptProc(sScriptProgram* prog, const char* procName) {
 
 void RunScriptProc(sScriptProgram* prog, int procId) {
 	if (procId > 0 && procId <= SCRIPT_PROC_MAX) {
-		fo::TProgram* sptr = prog->ptr;
+		fo::Program* sptr = prog->ptr;
 		int procNum = prog->procLookup[procId];
 		if (procNum != -1) {
 			fo::func::executeProcedure(sptr, procNum);
@@ -671,7 +671,7 @@ static void RunGlobalScripts1() {
 		if (KeyDown(toggleHighlightsKey)) {
 			if (!highlightingToggled) {
 				if (MotionSensorMode&4) {
-					fo::TGameObj* scanner = fo::func::inven_pid_is_carried_ptr(fo::var::obj_dude, fo::PID_MOTION_SENSOR);
+					fo::GameObject* scanner = fo::func::inven_pid_is_carried_ptr(fo::var::obj_dude, fo::PID_MOTION_SENSOR);
 					if (scanner != nullptr) {
 						if (MotionSensorMode & 2) {
 							highlightingToggled = fo::func::item_m_dec_charges(scanner) + 1;
@@ -870,7 +870,7 @@ void ScriptExtender::init() {
 
 	MakeCall(0x4A390C, &FindSidHook, true);
 	MakeCall(0x4A5E34, &ScrPtrHook, true);
-	memset(&OverrideScriptStruct, 0, sizeof(fo::TScript));
+	memset(&OverrideScriptStruct, 0, sizeof(fo::ScriptInstance));
 
 	MakeCall(0x4230D5, &AfterCombatAttackHook, true);
 	MakeCall(0x4A67F2, &ExecMapScriptsHook, true);

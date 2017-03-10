@@ -37,14 +37,14 @@ long& GetActiveItemMode() {
 	return fo::var::itemButtonItems[fo::var::itemCurrentItem].mode;
 }
 
-fo::TGameObj* GetActiveItem() {
+fo::GameObject* GetActiveItem() {
 	return fo::var::itemButtonItems[fo::var::itemCurrentItem].item;
 }
 
 void InventoryKeyPressedHook(DWORD dxKey, bool pressed, DWORD vKey) {
 	if (pressed && reloadWeaponKey && dxKey == reloadWeaponKey && IsMapLoaded() && (GetCurrentLoops() & ~(COMBAT | PCOMBAT)) == 0) {
 		DWORD maxAmmo, curAmmo;
-		fo::TGameObj* item = GetActiveItem();
+		fo::GameObject* item = GetActiveItem();
 		maxAmmo = fo::func::item_w_max_ammo(item);
 		curAmmo = fo::func::item_w_curr_ammo(item);
 		if (maxAmmo != curAmmo) {
@@ -387,7 +387,7 @@ static __declspec(naked) void InvenObjExamineFuncHook() {
 }
 
 static std::string superStimMsg;
-static int _stdcall SuperStimFix2(fo::TGameObj* item, fo::TGameObj* target) {
+static int _stdcall SuperStimFix2(fo::GameObject* item, fo::GameObject* target) {
 	if (!item || !target) return 0;
 	DWORD itm_pid = item->pid, target_pid = target->pid;
 	if ((target_pid & 0xff000000) != 0x01000000) return 0;
@@ -582,10 +582,10 @@ end:
 	}
 }
 
-int __stdcall ItemCountFixStdcall(fo::TGameObj* who, fo::TGameObj* item) {
+int __stdcall ItemCountFixStdcall(fo::GameObject* who, fo::GameObject* item) {
 	int count = 0;
-	for (int i = 0; i < who->inven_size; i++) {
-		auto tableItem = &who->inven_table[i];
+	for (int i = 0; i < who->invenSize; i++) {
+		auto tableItem = &who->invenTable[i];
 		if (tableItem->object == item) {
 			count += tableItem->count;
 		} else if (fo::func::item_get_type(tableItem->object) == fo::item_type_container) {

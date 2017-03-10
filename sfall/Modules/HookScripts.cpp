@@ -855,7 +855,7 @@ nevermind:
 	}
 }
 
-static int __stdcall SwitchHandHook2(fo::TGameObj* item, fo::TGameObj* itemReplaced, DWORD addr) {
+static int __stdcall SwitchHandHook2(fo::GameObject* item, fo::GameObject* itemReplaced, DWORD addr) {
 	int tmp;
 	if (itemReplaced && fo::func::item_get_type(itemReplaced) == 3 && fo::func::item_get_type(item) == 4) {
 		return -1; // to prevent inappropriate hook call after dropping ammo on weapon
@@ -1100,7 +1100,7 @@ void _stdcall SetHSReturn(DWORD d) {
 	}
 }
 
-void _stdcall RegisterHook(fo::TProgram* script, int id, int procNum )
+void _stdcall RegisterHook(fo::Program* script, int id, int procNum )
 {
 	if (id >= numHooks) return;
 	for (std::vector<sHookScript>::iterator it = hooks[id].begin(); it != hooks[id].end(); ++it) {

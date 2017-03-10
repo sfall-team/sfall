@@ -32,7 +32,7 @@ const char* _stdcall GetMessageStr(const MessageList* fileAddr, int messageId) {
 	return fo::func::getmsg(fileAddr, &message_buf, messageId);
 }
 
-char AnimCodeByWeapon(TGameObj* weapon) {
+char AnimCodeByWeapon(GameObject* weapon) {
 	if (weapon != nullptr) {
 		sProtoItem* proto = GetItemProto(weapon->pid);
 		if (proto != nullptr && proto->type == item_type_weapon) {

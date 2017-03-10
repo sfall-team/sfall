@@ -39,7 +39,7 @@ static int IsControllingNPC = 0;
 static std::vector<WORD> Chars;
 static int DelayedExperience;
 
-static fo::TGameObj* real_dude = nullptr;
+static fo::GameObject* real_dude = nullptr;
 static long real_traits[2];
 static char real_pc_name[sizeof(fo::var::pc_name)];
 static DWORD real_last_level;
@@ -58,7 +58,7 @@ static int real_perkLevelDataList[fo::PERK_count];
 static int real_tag_skill[4];
 //static DWORD real_bbox_sneak;
 
-static bool _stdcall IsInPidList(fo::TGameObj* obj) {
+static bool _stdcall IsInPidList(fo::GameObject* obj) {
 	int pid = obj->pid & 0xFFFFFF;
 	for (std::vector<WORD>::iterator it = Chars.begin(); it != Chars.end(); it++) {
 		if (*it == pid) {
@@ -104,7 +104,7 @@ static void SaveRealDudeState() {
 }
 
 // take control of the NPC
-static void TakeControlOfNPC(fo::TGameObj* npc) {
+static void TakeControlOfNPC(fo::GameObject* npc) {
 	// remove skill tags
 	int tagSkill[4];
 #if (_MSC_VER < 1600)
@@ -140,7 +140,7 @@ static void TakeControlOfNPC(fo::TGameObj* npc) {
 	fo::var::sneak_working = 0;
 
 	// deduce active hand by weapon anim code
-	char critterAnim = (npc->art_fid & 0xF000) >> 12; // current weapon as seen in hands
+	char critterAnim = (npc->artFid & 0xF000) >> 12; // current weapon as seen in hands
 	if (fo::AnimCodeByWeapon(fo::func::inven_left_hand(npc)) == critterAnim) { // definitely left hand..
 		fo::var::itemCurrentItem = 0;
 	} else {
@@ -192,7 +192,7 @@ static void RestoreRealDudeState() {
 	real_dude = nullptr;
 }
 
-static int __stdcall CombatTurn(fo::TGameObj* obj) {
+static int __stdcall CombatTurn(fo::GameObject* obj) {
 	__asm {
 		mov eax, obj;
 		call fo::funcoffs::combat_turn_;
@@ -200,7 +200,7 @@ static int __stdcall CombatTurn(fo::TGameObj* obj) {
 }
 
 // return values: 0 - use vanilla handler, 1 - skip vanilla handler, return 0 (normal status), -1 - skip vanilla, return -1 (game ended)
-static int _stdcall CombatWrapperInner(fo::TGameObj* obj) {
+static int _stdcall CombatWrapperInner(fo::GameObject* obj) {
 	if ((obj != fo::var::obj_dude) && (Chars.size() == 0 || IsInPidList(obj)) && (Mode == 1 || fo::func::isPartyMember(obj))) {
 		// save "real" dude state
 		SaveRealDudeState();
@@ -251,7 +251,7 @@ static void __stdcall DisplayCantDoThat() {
 }
 
 // 1 skip handler, -1 don't skip
-int __stdcall PartyControl_SwitchHandHook(fo::TGameObj* item) {
+int __stdcall PartyControl_SwitchHandHook(fo::GameObject* item) {
 	if (fo::func::item_get_type(item) == 3 && IsControllingNPC > 0) {
 		int canUse;
 		/* check below uses AI packets and skills to check if weapon is usable
@@ -263,7 +263,7 @@ int __stdcall PartyControl_SwitchHandHook(fo::TGameObj* item) {
 			call fo::funcoffs::ai_can_use_weapon_;
 			mov canUse, eax;
 		}*/
-		int fId = (fo::var::obj_dude)->art_fid;
+		int fId = (fo::var::obj_dude)->artFid;
 		char weaponCode = fo::AnimCodeByWeapon(item);
 		fId = (fId & 0xffff0fff) | (weaponCode << 12);
 		// check if art with this weapon exists

@@ -114,7 +114,7 @@ static DWORD _stdcall CombatSaveTest() {
 		}
 		int ap = fo::func::stat_level(fo::var::obj_dude, fo::STAT_max_move_points);
 		int bonusmove = fo::func::perk_level(fo::var::obj_dude, fo::PERK_bonus_move);
-		if (fo::var::obj_dude->critter.move_points != ap || bonusmove * 2 != fo::var::combat_free_move) {
+		if (fo::var::obj_dude->critter.movePoints != ap || bonusmove * 2 != fo::var::combat_free_move) {
 			fo::DisplayPrint(saveFailMsg);
 			return 0;
 		}

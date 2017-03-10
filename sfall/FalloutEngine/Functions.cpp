@@ -64,7 +64,7 @@ bool __stdcall art_exists(int artFid) {
 }
 
 // Returns the name of the critter
-const char* __stdcall critter_name(TGameObj* critter) {
+const char* __stdcall critter_name(GameObject* critter) {
 	WRAP_WATCOM_CALL1(critter_name_, critter)
 }
 
@@ -77,43 +77,43 @@ bool __stdcall db_access(const char* fileName) {
 	WRAP_WATCOM_CALL1(db_access_, fileName)
 }
 
-int __stdcall db_fclose(DBFile* file) {
+int __stdcall db_fclose(DbFile* file) {
 	WRAP_WATCOM_CALL1(db_fclose_, file)
 }
 
-DBFile* __stdcall db_fopen(const char* path, const char* mode) {
+DbFile* __stdcall db_fopen(const char* path, const char* mode) {
 	WRAP_WATCOM_CALL2(db_fopen_, path, mode)
 }
 
-int __stdcall db_fgetc(DBFile* file) {
+int __stdcall db_fgetc(DbFile* file) {
 	WRAP_WATCOM_CALL1(db_fgetc_, file)
 }
 
-char* __stdcall db_fgets(char* buf, int max_count, DBFile* file) {
+char* __stdcall db_fgets(char* buf, int max_count, DbFile* file) {
 	WRAP_WATCOM_CALL3(db_fgets_, buf, max_count, file)
 }
 
-int __stdcall db_fread(void* buf, int elsize, int count, DBFile* file) {
+int __stdcall db_fread(void* buf, int elsize, int count, DbFile* file) {
 	WRAP_WATCOM_CALL4(db_fread_, buf, elsize, count, file)
 }
 
-int __stdcall db_fseek(DBFile* file, long pos, int origin) {
+int __stdcall db_fseek(DbFile* file, long pos, int origin) {
 	WRAP_WATCOM_CALL3(db_fseek_, file, pos, origin)
 }
 
-int __stdcall db_freadByte(DBFile* file, __int8* _out) {
+int __stdcall db_freadByte(DbFile* file, __int8* _out) {
 	WRAP_WATCOM_CALL2(db_freadByte_, file, _out)
 }
 
-int __stdcall db_freadByteCount(DBFile* file, void* cptr, int count) {
+int __stdcall db_freadByteCount(DbFile* file, void* cptr, int count) {
 	WRAP_WATCOM_CALL3(db_freadByteCount_, file, cptr, count)
 }
 
-int __stdcall db_freadShort(DBFile* file, __int16* _out) {
+int __stdcall db_freadShort(DbFile* file, __int16* _out) {
 	WRAP_WATCOM_CALL2(db_freadShort_, file, _out)
 }
 
-int __stdcall db_freadInt(DBFile* file, __int32* _out) {
+int __stdcall db_freadInt(DbFile* file, __int32* _out) {
 	WRAP_WATCOM_CALL2(db_freadInt_, file, _out)
 }
 
@@ -121,7 +121,7 @@ void __stdcall db_free_file_list(char* * *fileList, DWORD arg2) {
 	WRAP_WATCOM_CALL2(db_free_file_list_, fileList, arg2)
 }
 
-int __stdcall db_fwriteByteCount(DBFile* file, void* cptr, int count) {
+int __stdcall db_fwriteByteCount(DbFile* file, void* cptr, int count) {
 	WRAP_WATCOM_CALL3(db_fwriteByteCount_, file, cptr, count)
 }
 
@@ -139,7 +139,7 @@ void display_print(const char* msg) {
 	WRAP_WATCOM_CALL1(display_print_, msg)
 }
 
-void executeProcedure(TProgram* sptr, int procNum) {
+void executeProcedure(Program* sptr, int procNum) {
 	WRAP_WATCOM_CALL2(executeProcedure_, sptr, procNum)
 }
 
@@ -148,7 +148,7 @@ int __stdcall get_input() {
 }
 
 // returns the name of current procedure by program pointer
-const char* __stdcall findCurrentProc(TProgram* program) {
+const char* __stdcall findCurrentProc(Program* program) {
 	WRAP_WATCOM_CALL1(findCurrentProc_, program)
 }
 
@@ -165,39 +165,39 @@ void intface_redraw() {
 	WRAP_WATCOM_CALL0(intface_redraw_)
 }
 
-int __stdcall interpret(TProgram* program, int arg2) {
+int __stdcall interpret(Program* program, int arg2) {
 	WRAP_WATCOM_CALL2(interpret_, program, arg2)
 }
 
-int __stdcall interpretFindProcedure(TProgram* scriptPtr, const char* procName) {
+int __stdcall interpretFindProcedure(Program* scriptPtr, const char* procName) {
 	WRAP_WATCOM_CALL2(interpretFindProcedure_, scriptPtr, procName)
 }
 
 // pops value type from Data stack (must be followed by InterpretPopLong)
-DWORD __stdcall interpretPopShort(TProgram* scriptPtr) {
+DWORD __stdcall interpretPopShort(Program* scriptPtr) {
 	WRAP_WATCOM_CALL1(interpretPopShort_, scriptPtr)
 }
 
 // pops value from Data stack (must be preceded by InterpretPopShort)
-DWORD __stdcall interpretPopLong(TProgram* scriptPtr) {
+DWORD __stdcall interpretPopLong(Program* scriptPtr) {
 	WRAP_WATCOM_CALL1(interpretPopLong_, scriptPtr)
 }
 
 // pushes value to Data stack (must be followed by InterpretPushShort)
-void __stdcall interpretPushLong(TProgram* scriptPtr, DWORD val) {
+void __stdcall interpretPushLong(Program* scriptPtr, DWORD val) {
 	WRAP_WATCOM_CALL2(interpretPushLong_, scriptPtr, val)
 }
 
 // pushes value type to Data stack (must be preceded by InterpretPushLong)
-void __stdcall interpretPushShort(TProgram* scriptPtr, DWORD valType) {
+void __stdcall interpretPushShort(Program* scriptPtr, DWORD valType) {
 	WRAP_WATCOM_CALL2(interpretPushShort_, scriptPtr, valType)
 }
 
-DWORD __stdcall interpretAddString(TProgram* scriptPtr, const char* strval) {
+DWORD __stdcall interpretAddString(Program* scriptPtr, const char* strval) {
 	WRAP_WATCOM_CALL2(interpretAddString_, scriptPtr, strval)
 }
 
-const char* __stdcall interpretGetString(TProgram* scriptPtr, DWORD dataType, DWORD strId) {
+const char* __stdcall interpretGetString(Program* scriptPtr, DWORD dataType, DWORD strId) {
 	WRAP_WATCOM_CALL3(interpretGetString_, scriptPtr, dataType, strId)
 }
 
@@ -207,38 +207,38 @@ void __declspec(naked) interpretError(const char* fmt, ...) {
 	__asm jmp fo::funcoffs::interpretError_
 }
 
-int _stdcall isPartyMember(TGameObj* obj) {
+int _stdcall isPartyMember(GameObject* obj) {
 	WRAP_WATCOM_CALL1(isPartyMember_, obj)
 }
 
-int __stdcall item_get_type(TGameObj* item) {
+int __stdcall item_get_type(GameObject* item) {
 	WRAP_WATCOM_CALL1(item_get_type_, item)
 }
 
-int __stdcall item_m_dec_charges(TGameObj* item) {
+int __stdcall item_m_dec_charges(GameObject* item) {
 	WRAP_WATCOM_CALL1(item_m_dec_charges_, item) //Returns -1 if the item has no charges
 }
 
-TGameObj* __stdcall inven_pid_is_carried_ptr(TGameObj* invenObj, int pid) {
+GameObject* __stdcall inven_pid_is_carried_ptr(GameObject* invenObj, int pid) {
 	WRAP_WATCOM_CALL2(inven_pid_is_carried_ptr_, invenObj, pid)
 }
 
 // critter worn item (armor)
-TGameObj* __stdcall inven_worn(TGameObj* critter) {
+GameObject* __stdcall inven_worn(GameObject* critter) {
 	WRAP_WATCOM_CALL1(inven_worn_, critter)
 }
 
 // item in critter's left hand slot
-TGameObj* __stdcall inven_left_hand(TGameObj* critter) {
+GameObject* __stdcall inven_left_hand(GameObject* critter) {
 	WRAP_WATCOM_CALL1(inven_left_hand_, critter)
 }
 
 // item in critter's right hand slot
-TGameObj* __stdcall inven_right_hand(TGameObj* critter) {
+GameObject* __stdcall inven_right_hand(GameObject* critter) {
 	WRAP_WATCOM_CALL1(inven_right_hand_, critter)
 }
 
-TProgram* __stdcall loadProgram(const char* fileName) {
+Program* __stdcall loadProgram(const char* fileName) {
 	WRAP_WATCOM_CALL1(loadProgram_, fileName)
 }
 
@@ -270,19 +270,19 @@ int __stdcall message_exit(MessageList *msgList) {
 	WRAP_WATCOM_CALL1(message_exit_, msgList)
 }
 
-TGameObj* __stdcall obj_find_first_at_tile(int elevation, int tileNum) {
+GameObject* __stdcall obj_find_first_at_tile(int elevation, int tileNum) {
 	WRAP_WATCOM_CALL2(obj_find_first_at_tile_, elevation, tileNum)
 }
 
-TGameObj* __stdcall obj_find_next_at_tile() {
+GameObject* __stdcall obj_find_next_at_tile() {
 	WRAP_WATCOM_CALL0(obj_find_next_at_tile_)
 }
 
-int _stdcall partyMemberGetCurLevel(TGameObj* obj) {
+int _stdcall partyMemberGetCurLevel(GameObject* obj) {
 	WRAP_WATCOM_CALL1(partyMemberGetCurLevel_, obj)
 }
 
-int _stdcall perk_level(TGameObj* critter, int perkId) {
+int _stdcall perk_level(GameObject* critter, int perkId) {
 	WRAP_WATCOM_CALL2(perk_level_, critter, perkId)
 }
 
@@ -290,25 +290,25 @@ int proto_ptr(int pid, sProtoBase* *ptrPtr) {
 	WRAP_WATCOM_CALL2(proto_ptr_, pid, ptrPtr)
 }
 
-DWORD* __stdcall runProgram(TProgram* progPtr) {
+DWORD* __stdcall runProgram(Program* progPtr) {
 	WRAP_WATCOM_CALL1(runProgram_, progPtr)
 }
 
-TScript* __stdcall scr_find_first_at(int elevation) {
+ScriptInstance* __stdcall scr_find_first_at(int elevation) {
 	WRAP_WATCOM_CALL1(scr_find_first_at_, elevation)
 }
 
-TScript* __stdcall scr_find_next_at() {
+ScriptInstance* __stdcall scr_find_next_at() {
 	WRAP_WATCOM_CALL0(scr_find_next_at_)
 }
 
-TGameObj* __stdcall scr_find_obj_from_program(TProgram* program) {
+GameObject* __stdcall scr_find_obj_from_program(Program* program) {
 	WRAP_WATCOM_CALL1(scr_find_obj_from_program_, program)
 }
 
 // Saves pointer to script object into scriptPtr using scriptID. 
 // Returns 0 on success, -1 on failure.
-int __stdcall scr_ptr(int scriptId, TScript** scriptPtr) {
+int __stdcall scr_ptr(int scriptId, ScriptInstance** scriptPtr) {
 	WRAP_WATCOM_CALL2(scr_ptr_, scriptId, scriptPtr)
 }
 
@@ -320,7 +320,7 @@ void skill_set_tags(int* tags, int num) {
 	WRAP_WATCOM_CALL2(skill_set_tags_, tags, num)
 }
 
-int __stdcall stat_level(TGameObj* critter, int statId) {
+int __stdcall stat_level(GameObject* critter, int statId) {
 	WRAP_WATCOM_CALL2(stat_level_, critter, statId)
 }
 

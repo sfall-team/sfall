@@ -49,7 +49,7 @@ public:
 
 	ScriptValue(bool val);
 
-	ScriptValue(fo::TGameObj* obj);
+	ScriptValue(fo::GameObject* obj);
 
 	bool isInt() const;
 
@@ -72,7 +72,7 @@ public:
 	const char* asString() const;
 
 	// returns value as object pointer or nullptr if value is not integer
-	fo::TGameObj* asObject() const;
+	fo::GameObject* asObject() const;
 
 	DataType type() const;
 
@@ -82,7 +82,7 @@ private:
 		int i;
 		float f;
 		const char* str;
-		fo::TGameObj* gObj;
+		fo::GameObject* gObj;
 	} _val;
 
 	DataType _type; // TODO: replace with enum class

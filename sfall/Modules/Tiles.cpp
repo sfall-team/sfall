@@ -50,7 +50,7 @@ static BYTE* mask;
 
 static void CreateMask() {
 	mask = new BYTE[80*36];
-	fo::DBFile* file = fo::func::db_fopen("art\\tiles\\grid000.frm", "r");
+	fo::DbFile* file = fo::func::db_fopen("art\\tiles\\grid000.frm", "r");
 	fo::func::db_fseek(file, 0x4a, 0);
 	fo::func::db_freadByteCount(file, mask, 80*36);
 	fo::func::db_fclose(file);
@@ -70,7 +70,7 @@ static int ProcessTile(fo::sArt* tiles, int tile, int listpos) {
 	strcpy_s(buf, "art\\tiles\\");
 	strcat_s(buf, &tiles->names[13 * tile]);
 
-	fo::DBFile* art = fo::func::db_fopen(buf, "r");
+	fo::DbFile* art = fo::func::db_fopen(buf, "r");
 	if (!art) return 0;
 	fo::func::db_fseek(art, 0x3e, 0);
 	short width;
@@ -112,7 +112,7 @@ static int ProcessTile(fo::sArt* tiles, int tile, int listpos) {
 
 			sprintf_s(buf, 32, "art\\tiles\\zzz%04d.frm", listid++);
 			//FScreateFromData(buf, &frame, sizeof(frame));
-			fo::DBFile* file = fo::func::db_fopen(buf, "w");
+			fo::DbFile* file = fo::func::db_fopen(buf, "w");
 			fo::func::db_fwriteByteCount(file, &frame, sizeof(frame));
 			fo::func::db_fclose(file);
 		}
@@ -139,7 +139,7 @@ static int _stdcall ArtInitHook2() {
 	ZeroMemory(overrides, 4 * (listpos - 1));
 
 	if (tileMode == 2) {
-		fo::DBFile* file = fo::func::db_fopen("art\\tiles\\xltiles.lst", "rt");
+		fo::DbFile* file = fo::func::db_fopen("art\\tiles\\xltiles.lst", "rt");
 		if (!file) return 0;
 		DWORD id;
 		char* comment;

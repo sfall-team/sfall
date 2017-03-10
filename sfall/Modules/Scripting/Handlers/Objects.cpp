@@ -158,16 +158,16 @@ void sf_create_spatial(OpcodeContext& ctx) {
 
 void sf_spatial_radius(OpcodeContext& ctx) {
 	auto spatialObj = ctx.arg(0).asObject();
-	fo::TScript* script;
-	if (fo::func::scr_ptr(spatialObj->script_id, &script) != -1) {
-		ctx.setReturn(script->spatial_radius);
+	fo::ScriptInstance* script;
+	if (fo::func::scr_ptr(spatialObj->scriptId, &script) != -1) {
+		ctx.setReturn(script->spatialRadius);
 	}
 }
 
 void sf_get_script(OpcodeContext& ctx) {
 	if (ctx.arg(0).isInt()) {
 		auto obj = ctx.arg(0).asObject();
-		ctx.setReturn(obj->script_index);
+		ctx.setReturn(obj->scriptIndex);
 	} else {
 		ctx.setReturn(-1);
 	}
@@ -182,7 +182,7 @@ void sf_set_critter_burst_disable(OpcodeContext& ctx) {
 void sf_get_weapon_ammo_pid(OpcodeContext& ctx) {
 	if (ctx.arg(0).isInt()) {
 		auto obj = ctx.arg(0).asObject();
-		ctx.setReturn(obj->item.ammo_pid);
+		ctx.setReturn(obj->item.ammoPid);
 	} else {
 		ctx.setReturn(-1);
 	}
@@ -190,7 +190,7 @@ void sf_get_weapon_ammo_pid(OpcodeContext& ctx) {
 
 void sf_set_weapon_ammo_pid(OpcodeContext& ctx) {
 	auto obj = ctx.arg(0).asObject();
-	obj->item.ammo_pid = ctx.arg(1).asInt();
+	obj->item.ammoPid = ctx.arg(1).asInt();
 }
 
 void sf_get_weapon_ammo_count(OpcodeContext& ctx) {
@@ -362,12 +362,12 @@ void sf_obj_is_carrying_obj(OpcodeContext& ctx) {
 		&itemObjArg = ctx.arg(1);
 
 	if (invenObjArg.isInt() && itemObjArg.isInt()) {
-		fo::TGameObj *invenObj = (fo::TGameObj*)invenObjArg.asObject(),
-			*itemObj = (fo::TGameObj*)itemObjArg.asObject();
+		fo::GameObject *invenObj = (fo::GameObject*)invenObjArg.asObject(),
+			*itemObj = (fo::GameObject*)itemObjArg.asObject();
 		if (invenObj != nullptr && itemObj != nullptr) {
-			for (int i = 0; i < invenObj->inven_size; i++) {
-				if (invenObj->inven_table[i].object == itemObj) {
-					num = invenObj->inven_table[i].count;
+			for (int i = 0; i < invenObj->invenSize; i++) {
+				if (invenObj->invenTable[i].object == itemObj) {
+					num = invenObj->invenTable[i].count;
 					break;
 				}
 			}
@@ -377,7 +377,7 @@ void sf_obj_is_carrying_obj(OpcodeContext& ctx) {
 }
 
 void sf_critter_inven_obj2(OpcodeContext& ctx) {
-	fo::TGameObj* critter = ctx.arg(0).asObject();
+	fo::GameObject* critter = ctx.arg(0).asObject();
 	int slot = ctx.arg(1).asInt();
 	switch (slot) {
 	case 0:
@@ -390,7 +390,7 @@ void sf_critter_inven_obj2(OpcodeContext& ctx) {
 		ctx.setReturn(fo::func::inven_left_hand(critter));
 		break;
 	case -2:
-		ctx.setReturn(critter->inven_size);
+		ctx.setReturn(critter->invenSize);
 		break;
 	default:
 		ctx.printOpcodeError("critter_inven_obj2() - invalid type.");

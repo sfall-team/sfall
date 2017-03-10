@@ -615,7 +615,7 @@ lower:
 void _stdcall ApplyHeaveHoFix() {
 	SafeWrite8(0x478AC4, 0xe9);
 	HookCall(0x478AC4, HeaveHoHook);
-	perks[PERK_heave_ho].Str = 0;
+	perks[PERK_heave_ho].strengthMin = 0;
 }
 
 static void PerkSetup() {
@@ -674,57 +674,57 @@ static void PerkSetup() {
 		for (int i = 0; i < PERK_count; i++) {
 			_itoa_s(i, num, 10);
 			if (GetPrivateProfileString(num, "Name", "", &Name[i * 64], 63, perksFile)) {
-				perks[i].Name = &Name[i * 64];
+				perks[i].name = &Name[i * 64];
 			}
 			if (GetPrivateProfileString(num, "Desc", "", &Desc[i * 1024], 1023, perksFile)) {
-				perks[i].Desc = &Desc[i * 1024];
+				perks[i].description = &Desc[i * 1024];
 			}
 			int value;
 			value = GetPrivateProfileInt(num, "Image", -99999, perksFile);
-			if (value != -99999) perks[i].Image = value;
+			if (value != -99999) perks[i].image = value;
 			value = GetPrivateProfileInt(num, "Ranks", -99999, perksFile);
-			if (value != -99999) perks[i].Ranks = value;
+			if (value != -99999) perks[i].ranks = value;
 			value = GetPrivateProfileInt(num, "Level", -99999, perksFile);
-			if (value != -99999) perks[i].Level = value;
+			if (value != -99999) perks[i].levelMin = value;
 			value = GetPrivateProfileInt(num, "Stat", -99999, perksFile);
-			if (value != -99999) perks[i].Stat = value;
+			if (value != -99999) perks[i].stat = value;
 			value = GetPrivateProfileInt(num, "StatMag", -99999, perksFile);
-			if (value != -99999) perks[i].StatMag = value;
+			if (value != -99999) perks[i].statMod = value;
 			value = GetPrivateProfileInt(num, "Skill1", -99999, perksFile);
-			if (value != -99999) perks[i].Skill1 = value;
+			if (value != -99999) perks[i].skill1 = value;
 			value = GetPrivateProfileInt(num, "Skill1Mag", -99999, perksFile);
-			if (value != -99999) perks[i].Skill1Mag = value;
+			if (value != -99999) perks[i].skill1Min = value;
 			value = GetPrivateProfileInt(num, "Type", -99999, perksFile);
-			if (value != -99999) perks[i].Type = value;
+			if (value != -99999) perks[i].skillOperator = value;
 			value = GetPrivateProfileInt(num, "Skill2", -99999, perksFile);
-			if (value != -99999) perks[i].Skill2 = value;
+			if (value != -99999) perks[i].skill2 = value;
 			value = GetPrivateProfileInt(num, "Skill2Mag", -99999, perksFile);
-			if (value != -99999) perks[i].Skill2Mag = value;
+			if (value != -99999) perks[i].skill2Min = value;
 			value = GetPrivateProfileInt(num, "STR", -99999, perksFile);
-			if (value != -99999) perks[i].Str = value;
+			if (value != -99999) perks[i].strengthMin = value;
 			value = GetPrivateProfileInt(num, "PER", -99999, perksFile);
-			if (value != -99999) perks[i].Per = value;
+			if (value != -99999) perks[i].perceptionMin = value;
 			value = GetPrivateProfileInt(num, "END", -99999, perksFile);
-			if (value != -99999) perks[i].End = value;
+			if (value != -99999) perks[i].enduranceMin = value;
 			value = GetPrivateProfileInt(num, "CHR", -99999, perksFile);
-			if (value != -99999) perks[i].Chr = value;
+			if (value != -99999) perks[i].charismaMin = value;
 			value = GetPrivateProfileInt(num, "INT", -99999, perksFile);
-			if (value != -99999) perks[i].Int = value;
+			if (value != -99999) perks[i].intelligenceMin = value;
 			value = GetPrivateProfileInt(num, "AGL", -99999, perksFile);
-			if (value != -99999) perks[i].Agl = value;
+			if (value != -99999) perks[i].agilityMin = value;
 			value = GetPrivateProfileInt(num, "LCK", -99999, perksFile);
-			if (value != -99999) perks[i].Lck = value;
+			if (value != -99999) perks[i].luckMin = value;
 		}
 	}
 
 	for (int i = 0; i < PERK_count; i++) {
-		if (perks[i].Name != &Name[64 * i]) {
-			strcpy_s(&Name[64 * i], 64, perks[i].Name);
-			perks[i].Name = &Name[64 * i];
+		if (perks[i].name != &Name[64 * i]) {
+			strcpy_s(&Name[64 * i], 64, perks[i].name);
+			perks[i].name = &Name[64 * i];
 		}
-		if (perks[i].Desc&&perks[i].Desc != &Desc[1024 * i]) {
-			strcpy_s(&Desc[1024 * i], 1024, perks[i].Desc);
-			perks[i].Desc = &Desc[1024 * i];
+		if (perks[i].description&&perks[i].description != &Desc[1024 * i]) {
+			strcpy_s(&Desc[1024 * i], 1024, perks[i].description);
+			perks[i].description = &Desc[1024 * i];
 		}
 	}
 
@@ -999,7 +999,7 @@ void _stdcall SetPerkName(int id, char* value) {
 void _stdcall SetPerkDesc(int id, char* value) {
 	if (id < 0 || id >= PERK_count) return;
 	strcpy_s(&Desc[id * 1024], 1024, value);
-	perks[id].Desc = &Desc[1024 * id];
+	perks[id].description = &Desc[1024 * id];
 }
 
 void PerksReset() {

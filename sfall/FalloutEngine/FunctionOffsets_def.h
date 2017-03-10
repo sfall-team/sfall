@@ -374,7 +374,7 @@ FUNC(ai_attack_,                      0x42A748)
 FUNC(ai_best_weapon_,                 0x4293BC)
 FUNC(ai_called_shot_,                 0x42A670)
 FUNC(ai_can_use_drug_,                0x429B44)
-FUNC(ai_can_use_weapon_,              0x4298EC)  // (fo::TGameObj *aCritter<eax>, int aWeapon<edx>, int a2Or3<ebx>) returns 1 or 0
+FUNC(ai_can_use_weapon_,              0x4298EC)  // (fo::GameObject *aCritter<eax>, int aWeapon<edx>, int a2Or3<ebx>) returns 1 or 0
 FUNC(ai_cap_,                         0x4280B4)
 FUNC(ai_cap_from_packet_,             0x42811C)
 FUNC(ai_check_drugs_,                 0x428480)

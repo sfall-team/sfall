@@ -24,16 +24,13 @@
 namespace sfall
 {
 
+static const int exitsPerElevator = 4;
+static const int vanillaElevatorCount = 24;
 static const int elevatorCount = 50;
 static char elevFile[MAX_PATH];
 
-static fo::sElevator elevators[elevatorCount];
+static fo::ElevatorExit elevatorExits[elevatorCount][exitsPerElevator];
 static DWORD menus[elevatorCount];
-
-void SetElevator(DWORD id, DWORD index, DWORD value) {
-	if (id >= elevatorCount || index >= 12) return;
-	*(DWORD*)(((DWORD)&elevators[id]) + index * 4) = value;
-}
 
 static void __declspec(naked) GetMenuHook() {
 	__asm {
@@ -102,27 +99,24 @@ static void __declspec(naked) GetNumButtonsHook3() {
 }
 
 void ResetElevators() {
-	memcpy(elevators, fo::var::retvals, sizeof(fo::sElevator) * 24);
-	memset(&elevators[24], 0, sizeof(fo::sElevator)*(elevatorCount - 24));
-	for (int i = 0; i < 24; i++) menus[i] = i;
-	for (int i = 24; i < elevatorCount; i++) menus[i] = 0;
+	memcpy(elevatorExits, fo::var::retvals, sizeof(fo::ElevatorExit) * vanillaElevatorCount * exitsPerElevator);
+	memset(&elevatorExits[vanillaElevatorCount], 0, sizeof(fo::ElevatorExit) * (elevatorCount - vanillaElevatorCount) * exitsPerElevator);
+	for (int i = 0; i < vanillaElevatorCount; i++) menus[i] = i;
+	for (int i = vanillaElevatorCount; i < elevatorCount; i++) menus[i] = 0;
 	char section[4];
 	if (elevFile) {
 		for (int i = 0; i < elevatorCount; i++) {
 			_itoa_s(i, section, 10);
 			menus[i] = GetPrivateProfileIntA(section, "Image", menus[i], elevFile);
-			elevators[i].ID1 = GetPrivateProfileIntA(section, "ID1", elevators[i].ID1, elevFile);
-			elevators[i].ID2 = GetPrivateProfileIntA(section, "ID2", elevators[i].ID2, elevFile);
-			elevators[i].ID3 = GetPrivateProfileIntA(section, "ID3", elevators[i].ID3, elevFile);
-			elevators[i].ID4 = GetPrivateProfileIntA(section, "ID4", elevators[i].ID4, elevFile);
-			elevators[i].Elevation1 = GetPrivateProfileIntA(section, "Elevation1", elevators[i].Elevation1, elevFile);
-			elevators[i].Elevation2 = GetPrivateProfileIntA(section, "Elevation2", elevators[i].Elevation2, elevFile);
-			elevators[i].Elevation3 = GetPrivateProfileIntA(section, "Elevation3", elevators[i].Elevation3, elevFile);
-			elevators[i].Elevation4 = GetPrivateProfileIntA(section, "Elevation4", elevators[i].Elevation4, elevFile);
-			elevators[i].Tile1 = GetPrivateProfileIntA(section, "Tile1", elevators[i].Tile1, elevFile);
-			elevators[i].Tile2 = GetPrivateProfileIntA(section, "Tile2", elevators[i].Tile2, elevFile);
-			elevators[i].Tile3 = GetPrivateProfileIntA(section, "Tile3", elevators[i].Tile3, elevFile);
-			elevators[i].Tile4 = GetPrivateProfileIntA(section, "Tile4", elevators[i].Tile4, elevFile);
+			char setting[32];
+			for (int j = 0; j < exitsPerElevator; j++) {
+				sprintf_s(setting, "ID%d", j);
+				elevatorExits[i][j].id = GetPrivateProfileIntA(section, setting, elevatorExits[i][j].id, elevFile);
+				sprintf_s(setting, "Elevation%d", j);
+				elevatorExits[i][j].elevation = GetPrivateProfileIntA(section, setting, elevatorExits[i][j].elevation, elevFile);
+				sprintf_s(setting, "Tile%d", j);
+				elevatorExits[i][j].tile = GetPrivateProfileIntA(section, setting, elevatorExits[i][j].tile, elevFile);
+			}
 		}
 	}
 }
@@ -134,12 +128,12 @@ void ElevatorsInit(const char* file) {
 	HookCall(0x43F141, UnknownHook);
 	HookCall(0x43F2D2, UnknownHook2);
 	SafeWrite8(0x43EF76, (BYTE)elevatorCount);
-	SafeWrite32(0x43EFA4, (DWORD)elevators);
-	SafeWrite32(0x43EFB9, (DWORD)elevators);
-	SafeWrite32(0x43EFEA, (DWORD)&elevators[0].Tile1);
-	SafeWrite32(0x43F2FC, (DWORD)elevators);
-	SafeWrite32(0x43F309, (DWORD)&elevators[0].Elevation1);
-	SafeWrite32(0x43F315, (DWORD)&elevators[0].Tile1);
+	SafeWrite32(0x43EFA4, (DWORD)elevatorExits);
+	SafeWrite32(0x43EFB9, (DWORD)elevatorExits);
+	SafeWrite32(0x43EFEA, (DWORD)&elevatorExits[0][0].tile);
+	SafeWrite32(0x43F2FC, (DWORD)elevatorExits);
+	SafeWrite32(0x43F309, (DWORD)&elevatorExits[0][0].elevation);
+	SafeWrite32(0x43F315, (DWORD)&elevatorExits[0][0].tile);
 
 	SafeWrite8(0x43F05D, 0xe9);
 	HookCall(0x43F05D, GetNumButtonsHook1);

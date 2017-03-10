@@ -72,7 +72,7 @@ public:
 	// opcode - opcode number
 	// argNum - number of arguments for this opcode
 	// hasReturn - true if opcode has return value (is expression)
-	OpcodeContext(fo::TProgram* program, DWORD opcode, int argNum, bool hasReturn);
+	OpcodeContext(fo::Program* program, DWORD opcode, int argNum, bool hasReturn);
 
 	// number of arguments, possibly reduced by argShift
 	int numArgs() const;
@@ -94,7 +94,7 @@ public:
 	const ScriptValue& returnValue() const;
 
 	// current script program
-	fo::TProgram* program() const;
+	fo::Program* program() const;
 
 	// current opcode number
 	DWORD opcode() const;
@@ -123,7 +123,7 @@ public:
 	void handleOpcode(ScriptingFunctionHandler func, const OpcodeArgumentType argTypes[], const char* opcodeName);
 
 	// handles opcode using default instance
-	static void __stdcall handleOpcodeStatic(fo::TProgram* program, DWORD opcodeOffset, ScriptingFunctionHandler func, int argNum, bool hasReturn);
+	static void __stdcall handleOpcodeStatic(fo::Program* program, DWORD opcodeOffset, ScriptingFunctionHandler func, int argNum, bool hasReturn);
 
 	static const char* getSfallTypeName(DWORD dataType);
 
@@ -137,7 +137,7 @@ private:
 	// pushes return value to data stack
 	void _pushReturnValue();
 
-	fo::TProgram* _program;
+	fo::Program* _program;
 	DWORD _opcode;
 
 	int _numArgs;

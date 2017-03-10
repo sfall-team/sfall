@@ -29,7 +29,7 @@ namespace fo
 {
 
 // returns weapon animation code
-char AnimCodeByWeapon(TGameObj* weapon);
+char AnimCodeByWeapon(GameObject* weapon);
 
 inline void DisplayPrint(const std::string& str) {
 	fo::func::display_print(str.c_str());
