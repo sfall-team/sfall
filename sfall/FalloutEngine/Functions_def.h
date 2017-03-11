@@ -63,6 +63,7 @@ WRAP_WATCOM_FUNC1(long, register_object_must_erase, GameObject*, object)
 // WRAP_WATCOM_FUNC3(long, register_object_run_to_tile_, GameObject*, object;
 WRAP_WATCOM_FUNC3(long, register_object_take_out, GameObject*, object, long, holdFrameId, long, nothing)
 WRAP_WATCOM_FUNC3(long, register_object_turn_towards, GameObject*, object, long, tileNum, long, nothing)
+WRAP_WATCOM_FUNC0(void, tile_refresh_display)
 WRAP_WATCOM_FUNC1(long, text_font, long, fontNum)
 WRAP_WATCOM_FUNC6(DWORD, win_add, long, x, long, y, long, width, long, height, long, bgColorIndex, long, flags)
 WRAP_WATCOM_FUNC1(void, win_show, DWORD, winRef)

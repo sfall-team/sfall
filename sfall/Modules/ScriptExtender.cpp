@@ -693,7 +693,7 @@ static void RunGlobalScripts1() {
 			}
 		} else if (highlightingToggled) {
 			if (highlightingToggled == 1) {
-				obj_outline_all_items_off();  
+				obj_outline_all_items_off();
 			} 
 			highlightingToggled = 0;
 		}

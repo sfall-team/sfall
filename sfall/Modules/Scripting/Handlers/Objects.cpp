@@ -397,5 +397,16 @@ void sf_critter_inven_obj2(OpcodeContext& ctx) {
 	}
 }
 
+void sf_set_outline(OpcodeContext& ctx) {
+	auto obj = ctx.arg(0).asObject();
+	*(long*)&obj->outline = ctx.arg(1).asInt();
+	fo::func::tile_refresh_display();
+}
+
+void sf_get_outline(OpcodeContext& ctx) {
+	auto obj = ctx.arg(0).asObject();
+	ctx.setReturn(*(long*)&obj->outline);
+}
+
 }
 }

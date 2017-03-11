@@ -158,6 +158,15 @@
 #define GAME_MSG_PRO_TILE   (0x1004)
 #define GAME_MSG_PRO_MISC   (0x1005)
 
+#define OUTLINE_NONE		(0)
+#define OUTLINE_RED_GLOW	(0x01)
+#define OUTLINE_RED			(0x02)
+#define OUTLINE_PURPLE		(0x03)
+#define OUTLINE_GREY		(0x04)
+#define OUTLINE_GREEN_GLOW	(0x08)
+#define OUTLINE_YELLOW		(0x10)
+#define OUTLINE_DARK_YELLOW	(0x20)
+
 #define mstr_combat(x)      (message_str_game(GAME_MSG_COMBAT, x))
 #define mstr_ai(x)          (message_str_game(GAME_MSG_AI, x))
 #define mstr_scrname(x)     (message_str_game(GAME_MSG_SCRNAME, x))
@@ -196,3 +205,5 @@
 #define intface_show                          sfall_func0("intface_show")
 #define intface_is_hidden                     sfall_func0("intface_is_hidden")
 #define exec_map_update_scripts               sfall_func0("exec_map_update_scripts")
+#define set_outline(obj, color)               sfall_func2("set_outline", obj, color)
+#define get_outline(obj)               		  sfall_func1("get_outline", obj)

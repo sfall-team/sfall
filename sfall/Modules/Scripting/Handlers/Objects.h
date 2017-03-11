@@ -67,5 +67,9 @@ void sf_obj_is_carrying_obj(OpcodeContext&);
 
 void sf_critter_inven_obj2(OpcodeContext&);
 
+void sf_set_outline(OpcodeContext&);
+
+void sf_get_outline(OpcodeContext&);
+
 }
 }
