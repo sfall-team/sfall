@@ -30,7 +30,7 @@ namespace fo
 
 static MessageNode message_buf;
 
-const char* _stdcall GetMessageStr(const MessageList* fileAddr, int messageId) {
+const char* _stdcall GetMessageStr(const MessageList* fileAddr, long messageId) {
 	return fo::func::getmsg(fileAddr, &message_buf, messageId);
 }
 
@@ -44,7 +44,7 @@ long AnimCodeByWeapon(GameObject* weapon) {
 	return 0;
 }
 
-Proto* GetProto(int pid) {
+Proto* GetProto(long pid) {
 	Proto* protoPtr;
 	if (fo::func::proto_ptr(pid, &protoPtr) != -1) {
 		return protoPtr;
@@ -52,14 +52,14 @@ Proto* GetProto(int pid) {
 	return nullptr;
 }
 
-void SkillGetTags(int* result, long num) {
+void SkillGetTags(long* result, long num) {
 	if (num > 4) {
 		num = 4;
 	}
 	fo::func::skill_get_tags(result, num);
 }
 
-void SkillSetTags(int* tags, long num) {
+void SkillSetTags(long* tags, long num) {
 	if (num > 4) {
 		num = 4;
 	}

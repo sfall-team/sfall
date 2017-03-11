@@ -73,13 +73,13 @@ static int ProcessTile(fo::Art* tiles, int tile, int listpos) {
 	fo::DbFile* art = fo::func::db_fopen(buf, "r");
 	if (!art) return 0;
 	fo::func::db_fseek(art, 0x3e, 0);
-	short width;
+	WORD width;
 	fo::func::db_freadShort(art, &width);  //80;
 	if (width == 80) {
 		fo::func::db_fclose(art);
 		return 0;
 	}
-	short height;
+	WORD height;
 	fo::func::db_freadShort(art, &height); //36
 	fo::func::db_fseek(art, 0x4A, 0);
 	BYTE* pixeldata = new BYTE[width * height];
@@ -91,9 +91,9 @@ static int ProcessTile(fo::Art* tiles, int tile, int listpos) {
 	int ysize = (int)floor(newheight / 16.0f - newwidth / 64.0f);
 	for (int y = 0; y < ysize; y++) {
 		for (int x = 0; x < xsize; x++) {
-			fo::Frame frame;
+			fo::FrmFile frame;
 			fo::func::db_fseek(art, 0, 0);
-			fo::func::db_freadByteCount(art, &frame, 0x4a);
+			fo::func::db_freadByteCount(art, (BYTE*)&frame, 0x4a);
 			frame.height = ByteSwapW(36);
 			frame.width = ByteSwapW(80);
 			frame.frmSize = ByteSwapD(80 * 36);
@@ -113,7 +113,7 @@ static int ProcessTile(fo::Art* tiles, int tile, int listpos) {
 			sprintf_s(buf, 32, "art\\tiles\\zzz%04d.frm", listid++);
 			//FScreateFromData(buf, &frame, sizeof(frame));
 			fo::DbFile* file = fo::func::db_fopen(buf, "w");
-			fo::func::db_fwriteByteCount(file, &frame, sizeof(frame));
+			fo::func::db_fwriteByteCount(file, (BYTE*)&frame, sizeof(frame));
 			fo::func::db_fclose(file);
 		}
 	}

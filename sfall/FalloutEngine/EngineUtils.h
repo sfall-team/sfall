@@ -36,16 +36,16 @@ inline void DisplayPrint(const std::string& str) {
 }
 
 // returns message string from given file
-const char* _stdcall GetMessageStr(const MessageList* fileAddr, int messageId);
+const char* _stdcall GetMessageStr(const MessageList* fileAddr, long messageId);
 
 // returns pointer to prototype by PID, or nullptr on failure
-Proto* GetProto(int pid);
+Proto* GetProto(long pid);
 
 // wrapper for skill_get_tags with bounds checking
-void SkillGetTags(int* result, long num);
+void SkillGetTags(long* result, long num);
 
 // wrapper for skill_set_tags with bounds checking
-void SkillSetTags(int* tags, long num);
+void SkillSetTags(long* tags, long num);
 
 // Print text to surface
 void PrintText(char *displayText, BYTE colorIndex, DWORD x, DWORD y, DWORD textWidth, DWORD destWidth, BYTE *surface);

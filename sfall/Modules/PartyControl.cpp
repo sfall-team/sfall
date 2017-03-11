@@ -52,10 +52,10 @@ static DWORD real_sneak_working;
 //static DWORD real_sneak_queue_time;
 static DWORD real_hand;
 static fo::ItemButtonItem real_itemButtonItems[2];
-static int real_perkLevelDataList[fo::PERK_count];
+static long real_perkLevelDataList[fo::PERK_count];
 //static DWORD real_drug_gvar[6];
 //static DWORD real_jet_gvar;
-static int real_tag_skill[4];
+static long real_tag_skill[4];
 //static DWORD real_bbox_sneak;
 
 static bool _stdcall IsInPidList(fo::GameObject* obj) {
@@ -106,7 +106,7 @@ static void SaveRealDudeState() {
 // take control of the NPC
 static void TakeControlOfNPC(fo::GameObject* npc) {
 	// remove skill tags
-	int tagSkill[4];
+	long tagSkill[4];
 #if (_MSC_VER < 1600)
 	std::fill(std_begin(tagSkill), std_end(tagSkill), -1);
 #else

@@ -48,18 +48,18 @@ namespace func
 	WRAP_WATCOM_CALL3(offs, arg1, arg2, arg3)
 
 #define WRAP_WATCOM_CALL5(offs, arg1, arg2, arg3, arg4, arg5) \
-	push arg5				\
+	__asm push arg5				\
 	WRAP_WATCOM_CALL4(offs, arg1, arg2, arg3, arg4)
 
 #define WRAP_WATCOM_CALL6(offs, arg1, arg2, arg3, arg4, arg5, arg6) \
-	push arg6				\
+	__asm push arg6				\
 	WRAP_WATCOM_CALL5(offs, arg1, arg2, arg3, arg4, arg5)
 
 #define WRAP_WATCOM_CALL7(offs, arg1, arg2, arg3, arg4, arg5, arg6, arg7) \
-	push arg7				\
+	__asm push arg7				\
 	WRAP_WATCOM_CALL6(offs, arg1, arg2, arg3, arg4, arg5, arg6)
 
-bool __stdcall art_exists(int artFid) {
+bool __stdcall art_exists(long artFid) {
 	WRAP_WATCOM_CALL1(art_exists_, artFid)
 }
 
@@ -77,7 +77,7 @@ bool __stdcall db_access(const char* fileName) {
 	WRAP_WATCOM_CALL1(db_access_, fileName)
 }
 
-int __stdcall db_fclose(DbFile* file) {
+long __stdcall db_fclose(DbFile* file) {
 	WRAP_WATCOM_CALL1(db_fclose_, file)
 }
 
@@ -85,35 +85,35 @@ DbFile* __stdcall db_fopen(const char* path, const char* mode) {
 	WRAP_WATCOM_CALL2(db_fopen_, path, mode)
 }
 
-int __stdcall db_fgetc(DbFile* file) {
+long __stdcall db_fgetc(DbFile* file) {
 	WRAP_WATCOM_CALL1(db_fgetc_, file)
 }
 
-char* __stdcall db_fgets(char* buf, int max_count, DbFile* file) {
+char* __stdcall db_fgets(char* buf, long max_count, DbFile* file) {
 	WRAP_WATCOM_CALL3(db_fgets_, buf, max_count, file)
 }
 
-int __stdcall db_fread(void* buf, int elsize, int count, DbFile* file) {
+long __stdcall db_fread(void* buf, long elsize, long count, DbFile* file) {
 	WRAP_WATCOM_CALL4(db_fread_, buf, elsize, count, file)
 }
 
-int __stdcall db_fseek(DbFile* file, long pos, int origin) {
+long __stdcall db_fseek(DbFile* file, long pos, long origin) {
 	WRAP_WATCOM_CALL3(db_fseek_, file, pos, origin)
 }
 
-int __stdcall db_freadByte(DbFile* file, __int8* _out) {
+long __stdcall db_freadByte(DbFile* file, BYTE* _out) {
 	WRAP_WATCOM_CALL2(db_freadByte_, file, _out)
 }
 
-int __stdcall db_freadByteCount(DbFile* file, void* cptr, int count) {
+long __stdcall db_freadByteCount(DbFile* file, BYTE* cptr, long count) {
 	WRAP_WATCOM_CALL3(db_freadByteCount_, file, cptr, count)
 }
 
-int __stdcall db_freadShort(DbFile* file, __int16* _out) {
+long __stdcall db_freadShort(DbFile* file, WORD* _out) {
 	WRAP_WATCOM_CALL2(db_freadShort_, file, _out)
 }
 
-int __stdcall db_freadInt(DbFile* file, __int32* _out) {
+long __stdcall db_freadInt(DbFile* file, DWORD* _out) {
 	WRAP_WATCOM_CALL2(db_freadInt_, file, _out)
 }
 
@@ -121,11 +121,11 @@ void __stdcall db_free_file_list(char* * *fileList, DWORD arg2) {
 	WRAP_WATCOM_CALL2(db_free_file_list_, fileList, arg2)
 }
 
-int __stdcall db_fwriteByteCount(DbFile* file, void* cptr, int count) {
+long __stdcall db_fwriteByteCount(DbFile* file, const BYTE* cptr, long count) {
 	WRAP_WATCOM_CALL3(db_fwriteByteCount_, file, cptr, count)
 }
 
-int __stdcall db_get_file_list(const char* searchMask, char* * *fileList, DWORD arg3, DWORD arg4) {
+long __stdcall db_get_file_list(const char* searchMask, char* * *fileList, DWORD arg3, DWORD arg4) {
 	WRAP_WATCOM_CALL4(db_get_file_list_, searchMask, fileList, arg3, arg4)
 }
 
@@ -139,11 +139,11 @@ void display_print(const char* msg) {
 	WRAP_WATCOM_CALL1(display_print_, msg)
 }
 
-void executeProcedure(Program* sptr, int procNum) {
+void executeProcedure(Program* sptr, long procNum) {
 	WRAP_WATCOM_CALL2(executeProcedure_, sptr, procNum)
 }
 
-int __stdcall get_input() {
+long __stdcall get_input() {
 	WRAP_WATCOM_CALL0(get_input_)
 }
 
@@ -152,7 +152,7 @@ const char* __stdcall findCurrentProc(Program* program) {
 	WRAP_WATCOM_CALL1(findCurrentProc_, program)
 }
 
-const char* _stdcall getmsg(const MessageList* fileAddr, MessageNode* result, int messageId) {
+const char* _stdcall getmsg(const MessageList* fileAddr, MessageNode* result, long messageId) {
 	WRAP_WATCOM_CALL3(getmsg_, fileAddr, result, messageId)
 }
 
@@ -165,11 +165,11 @@ void intface_redraw() {
 	WRAP_WATCOM_CALL0(intface_redraw_)
 }
 
-int __stdcall interpret(Program* program, int arg2) {
+long __stdcall interpret(Program* program, long arg2) {
 	WRAP_WATCOM_CALL2(interpret_, program, arg2)
 }
 
-int __stdcall interpretFindProcedure(Program* scriptPtr, const char* procName) {
+long __stdcall interpretFindProcedure(Program* scriptPtr, const char* procName) {
 	WRAP_WATCOM_CALL2(interpretFindProcedure_, scriptPtr, procName)
 }
 
@@ -207,19 +207,19 @@ void __declspec(naked) interpretError(const char* fmt, ...) {
 	__asm jmp fo::funcoffs::interpretError_
 }
 
-int _stdcall isPartyMember(GameObject* obj) {
+long _stdcall isPartyMember(GameObject* obj) {
 	WRAP_WATCOM_CALL1(isPartyMember_, obj)
 }
 
-int __stdcall item_get_type(GameObject* item) {
+long __stdcall item_get_type(GameObject* item) {
 	WRAP_WATCOM_CALL1(item_get_type_, item)
 }
 
-int __stdcall item_m_dec_charges(GameObject* item) {
+long __stdcall item_m_dec_charges(GameObject* item) {
 	WRAP_WATCOM_CALL1(item_m_dec_charges_, item) //Returns -1 if the item has no charges
 }
 
-GameObject* __stdcall inven_pid_is_carried_ptr(GameObject* invenObj, int pid) {
+GameObject* __stdcall inven_pid_is_carried_ptr(GameObject* invenObj, long pid) {
 	WRAP_WATCOM_CALL2(inven_pid_is_carried_ptr_, invenObj, pid)
 }
 
@@ -246,31 +246,31 @@ void* __stdcall mem_realloc(void* lpmem, DWORD msize) {
 	WRAP_WATCOM_CALL2(mem_realloc_, lpmem, msize)
 }
 
-int __stdcall message_add(MessageList* file, MessageNode* msg) {
+long __stdcall message_add(MessageList* file, MessageNode* msg) {
 	WRAP_WATCOM_CALL2(message_add_, file, msg)
 }
 
-int __stdcall message_filter(MessageList* file) {
+long __stdcall message_filter(MessageList* file) {
 	WRAP_WATCOM_CALL1(message_filter_, file)
 }
 
-int __stdcall message_make_path(char* outpath, char* path) {
+long __stdcall message_make_path(char* outpath, char* path) {
 	WRAP_WATCOM_CALL2(message_make_path_, outpath, path)
 }
 
-int __stdcall message_search(MessageList* file, MessageNode* msg) {
+long __stdcall message_search(MessageList* file, MessageNode* msg) {
 	WRAP_WATCOM_CALL2(message_search_, file, msg)
 }
 
-int __stdcall message_load(MessageList *msgList, const char *msgFilePath) {
+long __stdcall message_load(MessageList *msgList, const char *msgFilePath) {
 	WRAP_WATCOM_CALL2(message_load_, msgList, msgFilePath)
 }
 
-int __stdcall message_exit(MessageList *msgList) {
+long __stdcall message_exit(MessageList *msgList) {
 	WRAP_WATCOM_CALL1(message_exit_, msgList)
 }
 
-GameObject* __stdcall obj_find_first_at_tile(int elevation, int tileNum) {
+GameObject* __stdcall obj_find_first_at_tile(long elevation, long tileNum) {
 	WRAP_WATCOM_CALL2(obj_find_first_at_tile_, elevation, tileNum)
 }
 
@@ -278,15 +278,15 @@ GameObject* __stdcall obj_find_next_at_tile() {
 	WRAP_WATCOM_CALL0(obj_find_next_at_tile_)
 }
 
-int _stdcall partyMemberGetCurLevel(GameObject* obj) {
+long _stdcall partyMemberGetCurLevel(GameObject* obj) {
 	WRAP_WATCOM_CALL1(partyMemberGetCurLevel_, obj)
 }
 
-int _stdcall perk_level(GameObject* critter, int perkId) {
+long _stdcall perk_level(GameObject* critter, long perkId) {
 	WRAP_WATCOM_CALL2(perk_level_, critter, perkId)
 }
 
-int proto_ptr(int pid, Proto* *ptrPtr) {
+long proto_ptr(long pid, Proto* *ptrPtr) {
 	WRAP_WATCOM_CALL2(proto_ptr_, pid, ptrPtr)
 }
 
@@ -294,7 +294,7 @@ DWORD* __stdcall runProgram(Program* progPtr) {
 	WRAP_WATCOM_CALL1(runProgram_, progPtr)
 }
 
-ScriptInstance* __stdcall scr_find_first_at(int elevation) {
+ScriptInstance* __stdcall scr_find_first_at(long elevation) {
 	WRAP_WATCOM_CALL1(scr_find_first_at_, elevation)
 }
 
@@ -308,23 +308,23 @@ GameObject* __stdcall scr_find_obj_from_program(Program* program) {
 
 // Saves pointer to script object into scriptPtr using scriptID. 
 // Returns 0 on success, -1 on failure.
-int __stdcall scr_ptr(int scriptId, ScriptInstance** scriptPtr) {
+long __stdcall scr_ptr(long scriptId, ScriptInstance** scriptPtr) {
 	WRAP_WATCOM_CALL2(scr_ptr_, scriptId, scriptPtr)
 }
 
-void skill_get_tags(int* result, int num) {
+void skill_get_tags(long* result, long num) {
 	WRAP_WATCOM_CALL2(skill_get_tags_, result, num)
 }
 
-void skill_set_tags(int* tags, int num) {
+void skill_set_tags(long* tags, long num) {
 	WRAP_WATCOM_CALL2(skill_set_tags_, tags, num)
 }
 
-int __stdcall stat_level(GameObject* critter, int statId) {
+long __stdcall stat_level(GameObject* critter, long statId) {
 	WRAP_WATCOM_CALL2(stat_level_, critter, statId)
 }
 
-int __stdcall win_register_button(DWORD winRef, int xPos, int yPos, int width, int height, int hoverOn, int hoverOff, int buttonDown, int buttonUp, int pictureUp, int pictureDown, int arg12, int buttonType) {
+long __stdcall win_register_button(DWORD winRef, long xPos, long yPos, long width, long height, long hoverOn, long hoverOff, long buttonDown, long buttonUp, long pictureUp, long pictureDown, long arg12, long buttonType) {
 	__asm {
 		push buttonType
 		push arg12
@@ -365,12 +365,12 @@ int __stdcall win_register_button(DWORD winRef, int xPos, int yPos, int width, i
 	}
 
 #define WRAP_WATCOM_FUNC4(retType, name, arg1t, arg1, arg2t, arg2, arg3t, arg3, arg4t, arg4) \
-	retType __stdcall name(arg1t arg1, arg2t arg2, arg3t arg3, arg4t, arg4) { \
+	retType __stdcall name(arg1t arg1, arg2t arg2, arg3t arg3, arg4t arg4) { \
 		WRAP_WATCOM_CALL4(name##_, arg1, arg2, arg3, arg4) \
 	}
 
 #define WRAP_WATCOM_FUNC5(retType, name, arg1t, arg1, arg2t, arg2, arg3t, arg3, arg4t, arg4, arg5t, arg5) \
-	retType __stdcall name(arg1t arg1, arg2t arg2, arg3t arg3, arg4t, arg4, arg5t, arg5) { \
+	retType __stdcall name(arg1t arg1, arg2t arg2, arg3t arg3, arg4t arg4, arg5t arg5) { \
 		WRAP_WATCOM_CALL5(name##_, arg1, arg2, arg3, arg4, arg5) \
 	}
 

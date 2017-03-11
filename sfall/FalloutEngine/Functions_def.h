@@ -12,12 +12,28 @@
 	- argName - name of argument (repeat for all of X arguments)
 */
 
+WRAP_WATCOM_FUNC5(long, art_id, long, artType, long, lstIndex, long, animCode, long, weaponCode, long, directionCode)
+WRAP_WATCOM_FUNC3(BYTE*, art_frame_data, FrmFrameData*, frm, long, frameNum, long, rotation)
+WRAP_WATCOM_FUNC3(long, art_frame_width, FrmFrameData*, frm, long, frameNum, long, rotation)
+WRAP_WATCOM_FUNC3(long, art_frame_length, FrmFrameData*, frm, long, frameNum, long, rotation)
+WRAP_WATCOM_FUNC2(FrmFrameData*, art_ptr_lock, long, frmId, DWORD*, lockPtr)
+WRAP_WATCOM_FUNC4(BYTE*, art_ptr_lock_data, long, frmId, long, frameNum, long, rotation, DWORD*, lockPtr)
+WRAP_WATCOM_FUNC4(BYTE*, art_lock, long, frmId, DWORD*, lockPtr, long*, widthOut, long*, heightOut)
+WRAP_WATCOM_FUNC1(long, art_ptr_unlock, DWORD, lockId)
+WRAP_WATCOM_FUNC3(long, db_freadShortCount, DbFile*, file, WORD*, dest, long, count)
+WRAP_WATCOM_FUNC3(long, db_freadIntCount, DbFile*, file, DWORD*, dest, long, count)
+WRAP_WATCOM_FUNC2(long, db_fwriteByte, DbFile*, file, long, value)
+WRAP_WATCOM_FUNC2(long, db_fwriteInt, DbFile*, file, long, value)
+WRAP_WATCOM_FUNC1(long, gmouse_set_cursor, long, picNum)
 WRAP_WATCOM_FUNC1(Window*, GNW_find, long, windowId)
 WRAP_WATCOM_FUNC0(void, intface_use_item)
 WRAP_WATCOM_FUNC1(long, item_w_max_ammo, GameObject*, item)
 WRAP_WATCOM_FUNC1(long, item_w_curr_ammo, GameObject*, item)
 // returns light level at given tile
 WRAP_WATCOM_FUNC2(long, light_get_tile, long, elevation, long, tileNum)
+WRAP_WATCOM_FUNC2(void, mouse_get_position, long*, outX, long*, outY)
+WRAP_WATCOM_FUNC0(void, mouse_show)
+WRAP_WATCOM_FUNC0(void, mouse_hide)
 WRAP_WATCOM_FUNC3(long, register_object_animate, GameObject*, object, long, anim, long, delay)
 WRAP_WATCOM_FUNC3(long, register_object_animate_and_hide, GameObject*, object, long, anim, long, delay)
 // WRAP_WATCOM_FUNC3(long, register_object_animate_and_move_straight_, GameObject*, object;
@@ -44,3 +60,5 @@ WRAP_WATCOM_FUNC3(long, register_object_take_out, GameObject*, object, long, hol
 WRAP_WATCOM_FUNC3(long, register_object_turn_towards, GameObject*, object, long, tileNum, long, nothing)
 
 WRAP_WATCOM_FUNC1(void, win_draw, long, windowId)
+WRAP_WATCOM_FUNC2(DbFile*, xfopen, const char*, fileName, const char*, flags)
+WRAP_WATCOM_FUNC3(long, xfseek, DbFile*, file, long, fOffset, long, origin)

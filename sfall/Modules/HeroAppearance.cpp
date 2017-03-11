@@ -46,68 +46,19 @@ fo::PathNode **tempPathPtr = &fo::var::paths;
 fo::PathNode *heroPathPtr = nullptr;
 fo::PathNode *racePathPtr = nullptr;
 
-
 //for word wrapping
-typedef struct LINENode {
+typedef struct LineNode {
 	DWORD offset;
-	LINENode *next;
+	LineNode *next;
 
-	LINENode() {
+	LineNode() {
 		next = nullptr;
 		offset = 0;
 	}
-} LINENode;
-
-
-//structures for holding frms loaded with fallout2 functions
-#pragma pack(2)
-typedef class FRMframe {
-public:
-	WORD width;
-	WORD height;
-	DWORD size;
-	WORD x;
-	WORD y;
-} FRMframe;
-
-typedef class FRMhead {
-public:
-	DWORD version; //version num
-	WORD FPS; //frames per sec
-	WORD actionFrame;
-	WORD numFrames; //number of frames per direction
-	WORD xCentreShift[6]; //offset from frm centre +=right -=left
-	WORD yCentreShift[6]; //offset from frm centre +=down -=up
-	DWORD oriOffset[6]; //frame area offset for diff orientations
-	DWORD frameAreaSize;
-} FRMhead;
-#pragma pack()
+} LineNode;
 
 //structures for loading unlisted frms
-typedef class UNLSTDframe {
-public:
-	WORD width;
-	WORD height;
-	DWORD size;
-	WORD x;
-	WORD y;
-	BYTE *indexBuff;
-	UNLSTDframe() {
-		width = 0;
-		height = 0;
-		size = 0;
-		x = 0;
-		y = 0;
-		indexBuff = nullptr;
-	}
-	~UNLSTDframe() {
-		if (indexBuff != nullptr)
-			delete[] indexBuff;
-	}
-} UNLSTDframe;
-
-typedef class UNLSTDfrm {
-	public:
+struct UnlistedFrm {
 	DWORD version;
 	WORD FPS;
 	WORD actionFrame;
@@ -116,8 +67,30 @@ typedef class UNLSTDfrm {
 	WORD yCentreShift[6];
 	DWORD oriOffset[6];
 	DWORD frameAreaSize;
-	UNLSTDframe *frames;
-	UNLSTDfrm() {
+	
+	struct Frame {
+		WORD width;
+		WORD height;
+		DWORD size;
+		WORD x;
+		WORD y;
+		BYTE *indexBuff;
+
+		Frame() {
+			width = 0;
+			height = 0;
+			size = 0;
+			x = 0;
+			y = 0;
+			indexBuff = nullptr;
+		}
+		~Frame() {
+			if (indexBuff != nullptr)
+				delete[] indexBuff;
+		}
+	} *frames;
+
+	UnlistedFrm() {
 		version = 0;
 		FPS = 0;
 		actionFrame = 0;
@@ -130,394 +103,82 @@ typedef class UNLSTDfrm {
 		frameAreaSize = 0;
 		frames = nullptr;
 	}
-	~UNLSTDfrm() {
+	~UnlistedFrm() {
 		if (frames != nullptr)
 		delete[] frames;
 	}
-} UNLSTDfrm;
+};
 
-
-/*
-WORD ByteSwap16 (WORD num) {
-	return (((num >> 8)) | (num << 8));
-}
-
-DWORD ByteSwap32 (DWORD num) {
-	return (((num&0x000000FF) << 24) + ((num&0x0000FF00) << 8) +
-	((num&0x00FF0000) >> 8) + ((num&0xFF000000) >> 24));
-}
-*/
-
-/////////////////////////////////////////////////////////////////FILE FUNCTIONS////////////////////////////////////////////////////////////////////////
-//--------------------------------------------------
-// TODO: move those to wrappers
-
-void* FOpenFile(char *FileName, char *flags) {
-	void *retVal;
-	__asm {
-		mov edx, flags
-		mov eax, FileName
-		call fo::funcoffs::xfopen_
-		mov retVal, eax
-	}
-	return retVal;
-}
 
 //--------------------------------------------------
-int FCloseFile(void *FileStream) {
-	int retVal;
-	__asm {
-
-		mov eax, FileStream
-		call fo::funcoffs::db_fclose_
-		mov retVal, eax
-	}
-	return retVal;
-}
-
-//--------------------------------------------------
-int Ffseek(void *FileStream, long fOffset, int origin) {
-	int retVal;
-	__asm {
-		mov ebx, origin
-		mov edx, fOffset
-		mov eax, FileStream
-		call fo::funcoffs::xfseek_
-		mov retVal, eax
-	}
-	return retVal;
-}
-
-//--------------------------------------------------
-int FReadByte(void *FileStream, BYTE *toMem) {
-	int retVal;
-	__asm {
-		mov edx, toMem
-		mov eax, FileStream
-		call fo::funcoffs::db_freadByte_
-		mov retVal, eax
-	}
-	return retVal;
-}
-
-//--------------------------------------------------
-int FReadWord(void *FileStream, WORD *toMem) {
-	int retVal;
-	__asm {
-		mov edx, toMem
-		mov eax, FileStream
-		call fo::funcoffs::db_freadShort_
-		mov retVal, eax
-	}
-	return retVal;
-}
-
-//--------------------------------------------------
-int FReadDword(void *FileStream, DWORD *toMem) {
-	int retVal;
-	__asm {
-		mov edx, toMem
-		mov eax, FileStream
-		call fo::funcoffs::db_freadInt_
-		mov retVal, eax
-	}
-	return retVal;
-}
-
-//--------------------------------------------------
-int FReadWordArray(void *FileStream, WORD *toMem, DWORD NumElements) {
-	int retVal;
-	__asm {
-		mov ebx, NumElements
-		mov edx, toMem
-		mov eax, FileStream
-		call fo::funcoffs::db_freadShortCount_
-		mov retVal, eax
-	}
-	return retVal;
-}
-
-//--------------------------------------------------
-int FReadDwordArray(void *FileStream, DWORD *toMem, DWORD NumElements) {
-	int retVal;
-	__asm {
-		mov ebx, NumElements
-		mov edx, toMem
-		mov eax, FileStream
-		call fo::funcoffs::db_freadIntCount_
-		mov retVal, eax
-	}
-	return retVal;
-}
-
-//--------------------------------------------------
-int FReadString(void *FileStream, char *toMem, DWORD charLength, DWORD NumStrings) {
-	int retVal;
-	__asm {
-		mov ecx, FileStream
-		mov ebx, NumStrings
-		mov edx, charLength
-		mov eax, toMem
-		call fo::funcoffs::db_fread_
-		mov retVal, eax
-	}
-	return retVal;
-}
-
-//--------------------------------------------------
-int FWriteByte(void *FileStream, BYTE bVal) {
-	int retVal;
-	__asm {
-		xor edx, edx
-		mov dl, bVal
-		mov eax, FileStream
-		call fo::funcoffs::db_fwriteByte_
-		mov retVal, eax
-	}
-	return retVal;
-}
-
-//--------------------------------------------------
-int FWriteDword(void *FileStream, DWORD bVal) {
-	int retVal;
-	__asm {
-		mov edx, bVal
-		mov eax, FileStream
-		call fo::funcoffs::db_fwriteInt_
-		mov retVal, eax
-	}
-	return retVal;
-}
-
-/////////////////////////////////////////////////////////////////MOUSE FUNCTIONS////////////////////////////////////////////////////////////////////////
-//-----------------------------------------------------
-//get current mouse pic ref
-// TODO: replace with fo::var::
-int GetMousePic() {
-	return *(DWORD*)0x518C0C;
-}
-
-//-----------------------------------------------------
-//set mouse pic
-// TODO: move to wrappers
-int SetMousePic(int picNum) {
-	__asm {
-		mov eax, picNum
-		call fo::funcoffs::gmouse_set_cursor_
-		mov picNum, eax
-	}
-	return picNum; //0 = success, -1 = fail
-}
-
-//--------------------------------------------------
-// TODO: move to wrappers
-void GetMousePos(int *x_out, int *y_out) {
-	__asm {
-		push esi
-		mov edx, y_out
-		mov eax, x_out
-		call fo::funcoffs::mouse_get_position_
-		pop esi
-	}
-}
-
-//-----------------------------------------------------
-void ShowMouse() {
-	__asm {
-		call fo::funcoffs::mouse_show_
-	}
-}
-
-//-----------------------------------------------------
-void HideMouse() {
-	__asm {
-		call fo::funcoffs::mouse_hide_
-	}
-}
-
-//-------------------------------------------------------
-//returns 0 if mouse is hidden
-int IsMouseHidden() {
-	return fo::var::mouse_is_hidden;
-}
-
-/////////////////////////////////////////////////////////////////FRM FUNCTIONS////////////////////////////////////////////////////////////////////////
-
-//--------------------------------------------------
-// TODO: use wrapper
-DWORD LoadFrm(DWORD LstRef, DWORD LstNum) {
-	DWORD FrmID;
-	__asm {
-		push 0
-		xor ecx, ecx
-		xor ebx, ebx
-		mov edx, LstNum
-		mov eax, LstRef
-		call fo::funcoffs::art_id_
-		mov FrmID, eax
-	}
-	return FrmID;
-}
-
-//---------------------------------------------
-void UnloadFrm(DWORD FrmObj) {
-
-	__asm {
-		mov eax, FrmObj
-		call fo::funcoffs::art_ptr_unlock_
-	}
-}
-
-//--------------------------------------------------------
-BYTE* GetFrmSurface(DWORD FrmID, DWORD FrameNum, DWORD Ori, DWORD *FrmObj_out) {
-	BYTE *Surface;
-
-	__asm {
-		mov ecx, FrmObj_out //0x518F4C
-		mov ebx, Ori
-		mov edx, FrameNum
-		mov eax, FrmID
-		call fo::funcoffs::art_ptr_lock_data_
-		mov Surface,eax
-	}
-	return Surface;
-}
-
-//--------------------------------------------------------
-BYTE* GetFrmSurface2(DWORD FrmID, DWORD *FrmObj_out, DWORD *frmWidth_out, DWORD *frmHeight_out) {
-	BYTE *Surface;
-
-	__asm {
-		mov ecx, frmHeight_out
-		mov ebx, frmWidth_out
-		mov edx, FrmObj_out //0x518F4C
-		mov eax, FrmID
-		call fo::funcoffs::art_lock_
-		mov Surface,eax
-	}
-	return Surface;
-}
-
-//--------------------------------------------------------
-FRMhead* GetFrm(DWORD FrmID, DWORD *FrmObj_out) {
-	FRMhead* Frm;
-
-	__asm {
-		mov edx, FrmObj_out
-		mov eax, FrmID
-		call fo::funcoffs::art_ptr_lock_
-		mov Frm, eax
-	}
-	return Frm;
-}
-
-//--------------------------------------------------------
-DWORD GetFrmFrameWidth(FRMhead* Frm, DWORD FrameNum, DWORD Ori) {
-	DWORD Width;
-
-	__asm {
-		mov ebx, Ori //0-5
-		mov edx, FrameNum
-		mov eax, Frm
-		call fo::funcoffs::art_frame_width_
-		mov Width,eax
-	}
-	return Width;
-}
-
-//--------------------------------------------------------
-DWORD GetFrmFrameHeight(FRMhead* Frm, DWORD FrameNum, DWORD Ori) {
-	DWORD Height;
-
-	__asm {
-		mov ebx, Ori //0-5
-		mov edx, FrameNum
-		mov eax, Frm
-		call fo::funcoffs::art_frame_length_
-		mov Height,eax
-	}
-	return Height;
-}
-
-//--------------------------------------------------------
-BYTE* GetFrmFrameSurface(FRMhead* Frm,  DWORD FrameNum, DWORD Ori) {
-	BYTE *Surface;
-
-	__asm {
-		mov ebx, Ori //0-5
-		mov edx, FrameNum
-		mov eax, Frm
-		call fo::funcoffs::art_frame_data_
-		mov Surface,eax
-	}
-	return Surface;
+DWORD BuildFrmId(DWORD LstRef, DWORD LstNum) {
+	return fo::func::art_id(LstRef, LstNum, 0, 0, 0);
 }
 
 /////////////////////////////////////////////////////////////////UNLISTED FRM FUNCTIONS////////////////////////////////////////////////////////////////////////
 
 //---------------------------------------------------------------
-bool LoadFrmHeader(UNLSTDfrm *frmHeader, void*frmStream) {
+bool LoadFrmHeader(UnlistedFrm *frmHeader, fo::DbFile* frmStream) {
+	if (fo::func::db_freadInt(frmStream, &frmHeader->version) == -1) return 0;
+	else if (fo::func::db_freadShort(frmStream, &frmHeader->FPS) == -1) return 0;
+	else if (fo::func::db_freadShort(frmStream, &frmHeader->actionFrame) == -1) return 0;
+	else if (fo::func::db_freadShort(frmStream, &frmHeader->numFrames) == -1) return 0;
 
-	if (FReadDword(frmStream, &frmHeader->version) == -1) return 0;
-	else if (FReadWord(frmStream, &frmHeader->FPS) == -1) return 0;
-	else if (FReadWord(frmStream, &frmHeader->actionFrame) == -1) return 0;
-	else if (FReadWord(frmStream, &frmHeader->numFrames) == -1) return 0;
-
-	else if (FReadWordArray(frmStream, frmHeader->xCentreShift, 6) == -1) return 0;
-	else if (FReadWordArray(frmStream, frmHeader->yCentreShift, 6) == -1) return 0;
-	else if (FReadDwordArray(frmStream, frmHeader->oriOffset, 6) == -1) return 0;
-	else if (FReadDword(frmStream, &frmHeader->frameAreaSize) == -1) return 0;
+	else if (fo::func::db_freadShortCount(frmStream, frmHeader->xCentreShift, 6) == -1) return 0;
+	else if (fo::func::db_freadShortCount(frmStream, frmHeader->yCentreShift, 6) == -1) return 0;
+	else if (fo::func::db_freadIntCount(frmStream, frmHeader->oriOffset, 6) == -1) return 0;
+	else if (fo::func::db_freadInt(frmStream, &frmHeader->frameAreaSize) == -1) return 0;
 
 	return 1;
 }
 
 //------------------------------------------------------------
-bool LoadFrmFrame(UNLSTDframe *frame, void *frmStream) {
+bool LoadFrmFrame(UnlistedFrm::Frame *frame, fo::DbFile* frmStream) {
 
 	//FRMframe *frameHeader = (FRMframe*)frameMEM;
 	//BYTE* frameBuff = frame + sizeof(FRMframe);
 
-	if (FReadWord(frmStream, &frame->width)==-1) return 0;
-	else if (FReadWord(frmStream, &frame->height)==-1) return 0;
-	else if (FReadDword(frmStream, &frame->size)==-1) return 0;
-	else if (FReadWord(frmStream, &frame->x)==-1) return 0;
-	else if (FReadWord(frmStream, &frame->y)==-1) return 0;
+	if (fo::func::db_freadShort(frmStream, &frame->width)==-1) return 0;
+	else if (fo::func::db_freadShort(frmStream, &frame->height)==-1) return 0;
+	else if (fo::func::db_freadInt(frmStream, &frame->size)==-1) return 0;
+	else if (fo::func::db_freadShort(frmStream, &frame->x)==-1) return 0;
+	else if (fo::func::db_freadShort(frmStream, &frame->y)==-1) return 0;
 	frame->indexBuff = new BYTE[frame->size];
-	if (FReadString(frmStream, (char*)frame->indexBuff, frame->size, 1) != 1) return 0;
+	if (fo::func::db_fread(frame->indexBuff, 1, frame->size, frmStream) != 1) return 0;
 
 	return 1;
 }
 
 //-------------------------------------------------------------------
-UNLSTDfrm *LoadUnlistedFrm(char *FrmName, unsigned int folderRef) {
+UnlistedFrm *LoadUnlistedFrm(char *FrmName, unsigned int folderRef) {
 
 	if (folderRef > 10) return nullptr;
 
 	char*artfolder = (char*)(0x51073C + folderRef * 32); //address of art type name
-	char FrmPath[MAX_PATH];
+	char frmPath[MAX_PATH];
 
-	sprintf_s(FrmPath, MAX_PATH, "art\\%s\\%s\0", artfolder, FrmName);
+	sprintf_s(frmPath, MAX_PATH, "art\\%s\\%s\0", artfolder, FrmName);
 
-	UNLSTDfrm *frm = new UNLSTDfrm;
+	UnlistedFrm *frm = new UnlistedFrm;
 
-	void *frmStream = FOpenFile(FrmPath, "rb");
+	auto frmStream = fo::func::xfopen(frmPath, "rb");
 
-	if (frmStream) {
+	if (frmStream != nullptr) {
 		if (!LoadFrmHeader(frm, frmStream)) {
-			FCloseFile(frmStream);
+			fo::func::db_fclose(frmStream);
 			delete frm;
 			return nullptr;
 		}
 
 		DWORD oriOffset_1st = frm->oriOffset[0];
 		DWORD oriOffset_new = 0;
-		frm->frames = new UNLSTDframe[6 * frm->numFrames];
+		frm->frames = new UnlistedFrm::Frame[6 * frm->numFrames];
 		for (int ori = 0; ori < 6; ori++) {
 			if (ori == 0 || frm->oriOffset[ori] != oriOffset_1st) {
 				frm->oriOffset[ori] = oriOffset_new;
 				for (int fNum = 0; fNum < frm->numFrames; fNum++) {
 					if (!LoadFrmFrame(&frm->frames[oriOffset_new + fNum], frmStream)) {
-						FCloseFile(frmStream);
+						fo::func::db_fclose(frmStream);
 						delete frm;
 						return nullptr;
 					}
@@ -526,7 +187,7 @@ UNLSTDfrm *LoadUnlistedFrm(char *FrmName, unsigned int folderRef) {
 			} else frm->oriOffset[ori] = 0;
 		}
 
-		FCloseFile(frmStream);
+		fo::func::db_fclose(frmStream);
 	} else {
 		delete frm;
 		return nullptr;
@@ -965,15 +626,6 @@ static void __declspec(naked) AddHeroCritNames() {
 void sub_draw(long subWidth, long subHeight, long fromWidth, long fromHeight, long fromX, long fromY, BYTE *fromBuff,
               long toWidth, long toHeight, long toX, long toY, BYTE *toBuff, int maskRef) {
 
-	//if (toX < 0) fromX = fromX + toX, subWidth = subWidth + toX, toX = 0;
-	//if (toY < 0) fromY = fromY + toY, subHeight = subHeight + toY, toY = 0;
-
-	//if (fromX + subWidth > fromWidth) subWidth = fromWidth - fromX;
-	//if (fromY + subHeight > fromHeight) subHeight = fromHeight - fromY;
-
-	//if (toX + subWidth > toWidth) subWidth = toWidth - toX;
-	//if (toY + subHeight > toHeight) subHeight = toHeight - toY;
-
 	fromBuff = fromBuff + fromY*fromWidth + fromX;
 	toBuff = toBuff + toY*toWidth + toX;
 
@@ -1154,7 +806,7 @@ void _stdcall SetHeroRace(int newRaceVal) {
 }
 
 //--------------------------------------------------------------------------------------
-bool CreateWordWrapList(char *TextMsg, DWORD WrapWidth, DWORD *lineNum, LINENode *StartLine) {
+bool CreateWordWrapList(char *TextMsg, DWORD WrapWidth, DWORD *lineNum, LineNode *StartLine) {
 	*lineNum = 1;
 
 	if (fo::GetMaxCharWidth() >= WrapWidth) return FALSE;
@@ -1163,8 +815,8 @@ bool CreateWordWrapList(char *TextMsg, DWORD WrapWidth, DWORD *lineNum, LINENode
 
 	DWORD GapWidth = fo::GetCharGapWidth();
 
-	StartLine->next = new LINENode;
-	LINENode *NextLine = StartLine->next;
+	StartLine->next = new LineNode;
+	LineNode *NextLine = StartLine->next;
 
 	DWORD lineWidth = 0, wordWidth = 0;
 
@@ -1189,7 +841,7 @@ bool CreateWordWrapList(char *TextMsg, DWORD WrapWidth, DWORD *lineNum, LINENode
 			wordWidth = 0;
 			CurrentChar = '\0';
 			*lineNum = *lineNum + 1;
-			NextLine->next = new LINENode;
+			NextLine->next = new LineNode;
 			NextLine = NextLine->next;
 		}
 		i++;
@@ -1216,8 +868,8 @@ int WordWrap(char *TextMsg, DWORD lineLength, WORD *lineNum, WORD *lineOffsets) 
 }
 */
 
-void DeleteWordWrapList(LINENode *CurrentLine) {
-	LINENode *NextLine = nullptr;
+void DeleteWordWrapList(LineNode *CurrentLine) {
+	LineNode *NextLine = nullptr;
 
 	while (CurrentLine != nullptr) {
 		NextLine = CurrentLine->next;
@@ -1252,20 +904,20 @@ void DrawPCConsole() {
 		//sub_draw(70, 102, widthBG, heightBG, xPosBG, yPosBG, BGSurface, 70, 102, 0, 0, ConSurface, 0);
 
 		//DWORD CritNum = fo::var::art_vault_guy_num; //pointer to current base hero critter FrmId
-		DWORD CritNum = fo::var::obj_dude->artFid; //pointer to current armored hero critter FrmId
-		DWORD CritFrmObj;
-		FRMhead *CritFrm;
+		DWORD critNum = fo::var::obj_dude->artFid; //pointer to current armored hero critter FrmId
+		DWORD critFrmLock;
+		fo::FrmFrameData *critFrm;
 		//DWORD PcCritOri = 0;
-		DWORD CritWidth;
-		DWORD CritHeight;
-		BYTE *CritSurface;
+		DWORD critWidth;
+		DWORD critHeight;
+		BYTE *critSurface;
 
-		CritFrm = GetFrm(LoadFrm(1, CritNum), &CritFrmObj);
-		CritWidth = GetFrmFrameWidth(CritFrm, 0, charRotOri);
-		CritHeight = GetFrmFrameHeight(CritFrm, 0, charRotOri);
-		CritSurface = GetFrmFrameSurface(CritFrm, 0, charRotOri);
+		critFrm = fo::func::art_ptr_lock(BuildFrmId(1, critNum), &critFrmLock);
+		critWidth = fo::func::art_frame_width(critFrm, 0, charRotOri);
+		critHeight = fo::func::art_frame_length(critFrm, 0, charRotOri);
+		critSurface = fo::func::art_frame_data(critFrm, 0, charRotOri);
 
-		sub_draw(CritWidth, CritHeight, CritWidth, CritHeight, 0, 0, CritSurface, 70, 102, 35-CritWidth/2, 51-CritHeight/2, ConSurface, 0);
+		sub_draw(critWidth, critHeight, critWidth, critHeight, 0, 0, critSurface, 70, 102, 35-critWidth/2, 51-critHeight/2, ConSurface, 0);
 
 		BYTE ConsoleGreen = fo::var::GreenColor; //palette offset stored in mem - text colour
 		BYTE ConsoleGold = fo::var::YellowColor; //palette offset stored in mem - text colour
@@ -1292,8 +944,8 @@ void DrawPCConsole() {
 		//sub_draw(70, 102, 70, 102, 0, 0, ConSurface, 640, 480, 338, 78, WinSurface, 0);
 		sub_draw(70, 102, 70, 102, 0, 0, ConSurface, WinInfo->width, WinInfo->height, 338, 78, WinInfo->surface, 0);
 
-		UnloadFrm(CritFrmObj);
-		CritSurface = nullptr;
+		fo::func::art_ptr_unlock(critFrmLock);
+		critSurface = nullptr;
 		delete[] ConSurface;
 		WinInfo = nullptr;
 		fo::func::win_draw(WinRef);
@@ -1324,7 +976,7 @@ void DrawCharNote(bool Style, int WinRef, DWORD xPosWin, DWORD yPosWin, BYTE *BG
 	PadSurface = new BYTE [280*168];
 	sub_draw(280, 168, widthBG, heightBG, xPosBG, yPosBG, BGSurface, 280, 168, 0, 0, PadSurface, 0);
 
-	UNLSTDfrm *frm;
+	UnlistedFrm *frm;
 	if (Style) frm = LoadUnlistedFrm("AppStyle.frm", 10);
 	else frm = LoadUnlistedFrm("AppRace.frm", 10);
 
@@ -1354,8 +1006,8 @@ void DrawCharNote(bool Style, int WinRef, DWORD xPosWin, DWORD yPosWin, BYTE *BG
 
 	DWORD lineNum = 0;
 
-	LINENode *StartLine = new LINENode;
-	LINENode *CurrentLine, *NextLine;
+	LineNode *StartLine = new LineNode;
+	LineNode *CurrentLine, *NextLine;
 
 	if (InfoMsg != nullptr) {
 		if (CreateWordWrapList(InfoMsg, 160, &lineNum, StartLine)) {
@@ -1419,12 +1071,13 @@ void _stdcall HeroSelectWindow(int RaceStyleFlag) {
 	int WinRef = CreateWin(ResWidth/2 - 242, (ResHeight - 100)/2 - 65, 484, 230, 100, 0x4);
 	if (WinRef == -1) return;
 
-	int mouseWasHidden = IsMouseHidden();
-	if (mouseWasHidden)
-	   ShowMouse();
+	int mouseWasHidden = fo::var::mouse_is_hidden;
+	if (mouseWasHidden) {
+		fo::func::mouse_show();
+	}
 
-	int oldMouse = GetMousePic();
-	SetMousePic(1);
+	int oldMouse = fo::var::gmouse_current_cursor;
+	fo::func::gmouse_set_cursor(1);
 
 	BYTE *WinSurface = GetWinSurface(WinRef);
 
@@ -1434,46 +1087,46 @@ void _stdcall HeroSelectWindow(int RaceStyleFlag) {
 	DWORD tempObj;
 	BYTE *tempSurface;
 	//perkwin
-	tempSurface = GetFrmSurface(LoadFrm(6, 86), 0, 0, &tempObj);
+	tempSurface = fo::func::art_ptr_lock_data(BuildFrmId(6, 86), 0, 0, &tempObj);
 	sub_draw(484, 230, 573, 230, 89, 0, tempSurface, 484, 230, 0, 0, mainSurface, 0);
 	sub_draw(13, 230, 573, 230, 0, 0, tempSurface, 484, 230, 0, 0, mainSurface, 0);
-	UnloadFrm(tempObj);
+	fo::func::art_ptr_unlock(tempObj);
 
 	//opbase
-	tempSurface = GetFrmSurface(LoadFrm(6, 220), 0, 0, &tempObj);
+	tempSurface = fo::func::art_ptr_lock_data(BuildFrmId(6, 220), 0, 0, &tempObj);
 	sub_draw(164, 217, 164, 217, 0, 0, tempSurface, 484, 230, 12, 4, mainSurface, 0);
-	UnloadFrm(tempObj);
+	fo::func::art_ptr_unlock(tempObj);
 
 	//use
-	tempSurface = GetFrmSurface(LoadFrm(6, 113), 0, 0, &tempObj);
+	tempSurface = fo::func::art_ptr_lock_data(BuildFrmId(6, 113), 0, 0, &tempObj);
 	sub_draw(138, 132, 292, 376, 128, 20, tempSurface, 484, 230, 25, 38, mainSurface, 0);
 	sub_draw(2, 132, 292, 376, 23, 224, tempSurface, 484, 230, 25, 38, mainSurface, 0);
 	sub_draw(12, 4, 292, 376, 135, 148, tempSurface, 484, 230, 25, 166, mainSurface, 0);
-	UnloadFrm(tempObj);
+	fo::func::art_ptr_unlock(tempObj);
 
 	//barter
-	tempSurface = GetFrmSurface(LoadFrm(6, 111), 0, 0, &tempObj);
+	tempSurface = fo::func::art_ptr_lock_data(BuildFrmId(6, 111), 0, 0, &tempObj);
 	sub_draw(25, 52, 640, 191, 190, 54, tempSurface, 484, 230, 27, 57, mainSurface, 0); //button background up down
-	UnloadFrm(tempObj);
+	fo::func::art_ptr_unlock(tempObj);
 
 	//loot
-	tempSurface = GetFrmSurface(LoadFrm(6, 114), 0, 0, &tempObj);
+	tempSurface = fo::func::art_ptr_lock_data(BuildFrmId(6, 114), 0, 0, &tempObj);
 	sub_draw(116, 27, 537, 376, 392, 325, tempSurface, 484, 230, 36, 180, mainSurface, 0); //button background "done"
-	UnloadFrm(tempObj);
+	fo::func::art_ptr_unlock(tempObj);
 
 	DWORD MenuUObj, MenuDObj;
-	BYTE *MenuUSurface = GetFrmSurface(LoadFrm(6, 299), 0, 0, &MenuUObj); //MENUUP Frm
-	BYTE *MenuDSurface = GetFrmSurface(LoadFrm(6, 300), 0, 0, &MenuDObj); //MENUDOWN Frm
+	BYTE *MenuUSurface = fo::func::art_ptr_lock_data(BuildFrmId(6, 299), 0, 0, &MenuUObj); //MENUUP Frm
+	BYTE *MenuDSurface = fo::func::art_ptr_lock_data(BuildFrmId(6, 300), 0, 0, &MenuDObj); //MENUDOWN Frm
 	CreateButton(WinRef, 116, 181, 26, 26, -1, -1, -1, 0x0D, MenuUSurface, MenuDSurface, 0x20);
 
 	DWORD DidownUObj, DidownDObj;
-	BYTE *DidownUSurface = GetFrmSurface(LoadFrm(6, 93), 0, 0, &DidownUObj); //MENUUP Frm
-	BYTE *DidownDSurface = GetFrmSurface(LoadFrm(6, 94), 0, 0, &DidownDObj); //MENUDOWN Frm
+	BYTE *DidownUSurface = fo::func::art_ptr_lock_data(BuildFrmId(6, 93), 0, 0, &DidownUObj); //MENUUP Frm
+	BYTE *DidownDSurface = fo::func::art_ptr_lock_data(BuildFrmId(6, 94), 0, 0, &DidownDObj); //MENUDOWN Frm
 	CreateButton(WinRef, 28, 84, 24, 25, -1, -1, -1, 0x150, DidownUSurface, DidownDSurface, 0x20);
 
 	DWORD DiupUObj, DiupDObj;
-	BYTE *DiupUSurface = GetFrmSurface(LoadFrm(6, 100), 0, 0, &DiupUObj); //MENUUP Frm
-	BYTE *DiupDSurface = GetFrmSurface(LoadFrm(6, 101), 0, 0, &DiupDObj); //MENUDOWN Frm
+	BYTE *DiupUSurface = fo::func::art_ptr_lock_data(BuildFrmId(6, 100), 0, 0, &DiupUObj); //MENUUP Frm
+	BYTE *DiupDSurface = fo::func::art_ptr_lock_data(BuildFrmId(6, 101), 0, 0, &DiupDObj); //MENUDOWN Frm
 	CreateButton(WinRef, 28, 59, 23, 24, -1, -1, -1, 0x148, DiupUSurface, DiupDSurface, 0x20);
 
 	int oldFont;
@@ -1520,7 +1173,7 @@ void _stdcall HeroSelectWindow(int RaceStyleFlag) {
 
 	DWORD CritNum = fo::var::art_vault_guy_num; //pointer to current base hero critter FrmID
 	//DWORD CritNum = fo::var::obj_dude->artFID; //pointer to current armored hero critter FrmID
-	FRMhead *CritFrm;
+	fo::FrmFrameData *CritFrm;
 	DWORD CritFrmObj = 0, CritOri = 0, CritWidth = 0, CritHeight = 0;
 	BYTE *CritSurface = nullptr;
 
@@ -1551,12 +1204,12 @@ void _stdcall HeroSelectWindow(int RaceStyleFlag) {
 			RedrawTick = NewTick;
 			sub_draw(70, 102, 484, 230, 66, 53, mainSurface, 70, 102, 0, 0, ConDraw, 0);
 
-			CritFrm = GetFrm(LoadFrm(1, CritNum), &CritFrmObj);
-			CritWidth = GetFrmFrameWidth(CritFrm, 0, CritOri);
-			CritHeight = GetFrmFrameHeight(CritFrm, 0, CritOri);
-			CritSurface = GetFrmFrameSurface(CritFrm, 0, CritOri);
+			CritFrm = fo::func::art_ptr_lock(BuildFrmId(1, CritNum), &CritFrmObj);
+			CritWidth = fo::func::art_frame_width(CritFrm, 0, CritOri);
+			CritHeight = fo::func::art_frame_length(CritFrm, 0, CritOri);
+			CritSurface = fo::func::art_frame_data(CritFrm, 0, CritOri);
 			sub_draw(CritWidth, CritHeight, CritWidth, CritHeight, 0, 0, CritSurface, 70, 102, 35 - CritWidth / 2, 51 - CritHeight / 2, ConDraw, 0);
-			UnloadFrm(CritFrmObj);
+			fo::func::art_ptr_unlock(CritFrmObj);
 			CritSurface = nullptr;
 /*
 			if (isStyle) sprintf_s(TextBuf, 12, "%2d\0", styleVal);
@@ -1630,26 +1283,26 @@ void _stdcall HeroSelectWindow(int RaceStyleFlag) {
 	DestroyWin(WinRef);
 	delete[]mainSurface;
 	delete[]ConDraw;
-	UnloadFrm(MenuUObj);
-	UnloadFrm(MenuDObj);
+	fo::func::art_ptr_unlock(MenuUObj);
+	fo::func::art_ptr_unlock(MenuDObj);
 	MenuUSurface = nullptr;
 	MenuDSurface = nullptr;
 
-	UnloadFrm(DidownUObj);
-	UnloadFrm(DidownDObj);
+	fo::func::art_ptr_unlock(DidownUObj);
+	fo::func::art_ptr_unlock(DidownDObj);
 	DidownUSurface = nullptr;
 	DidownDSurface = nullptr;
 
-	UnloadFrm(DiupUObj);
-	UnloadFrm(DiupDObj);
+	fo::func::art_ptr_unlock(DiupUObj);
+	fo::func::art_ptr_unlock(DiupDObj);
 	DiupUSurface = nullptr;
 	DiupDSurface = nullptr;
 
 	SetFont(oldFont);
-	SetMousePic(oldMouse);
+	fo::func::gmouse_set_cursor(oldMouse);
 
 	if (mouseWasHidden) {
-		HideMouse();
+		fo::func::mouse_hide();
 	}
 }
 
@@ -1916,34 +1569,26 @@ static void __declspec(naked) AddCharScrnButtons(void) {
 	CreateButton(WinRef, 332, 0, 82, 32, -1, -1, 0x501, -1, 0, 0, 0);
 	CreateButton(WinRef, 332, 226, 82, 32, -1, -1, 0x502, -1, 0, 0, 0);
 
-	// TODO: use fo::var::
-	if (*(DWORD*)0x5709D0 == 1) { //equals 1 if new char screen - equals 0 if ingame char screen
-
-		//reset hero appearance
-		//RefreshArtCache();
-		//CurrentRaceVal=0;
-		//currentStyleVal=0;
-		//LoadHeroDat(CurrentRaceVal, currentStyleVal);
-		//RefreshPCArt();
+	if (fo::var::glblmode == 1) { //equals 1 if new char screen - equals 0 if ingame char screen
 		if (newButt01Surface == nullptr) {
 			newButt01Surface = new BYTE [20*18*4];
 
-			DWORD FrmObj; //frm objects for char screen Appearance button
-			BYTE *FrmSurface;
+			DWORD frmLock; //frm objects for char screen Appearance button
+			BYTE *frmSurface;
 
-			FrmSurface = GetFrmSurface(LoadFrm(6, 122), 0, 0, &FrmObj); //SLUFrm
-			sub_draw(20, 18, 20, 18, 0, 0, FrmSurface, 20, 18*4, 0, 0, newButt01Surface, 0x0);
-			UnloadFrm(FrmObj);
-			FrmSurface = GetFrmSurface(LoadFrm(6, 123), 0, 0, &FrmObj); //SLDFrm
-			sub_draw(20, 18, 20, 18, 0, 0, FrmSurface, 20, 18*4, 0, 18, newButt01Surface, 0x0);
-			UnloadFrm(FrmObj);
-			FrmSurface = GetFrmSurface(LoadFrm(6, 124), 0, 0, &FrmObj); //SRUFrm
-			sub_draw(20, 18, 20, 18, 0, 0, FrmSurface, 20, 18*4, 0, 18*2, newButt01Surface, 0x0);
-			UnloadFrm(FrmObj);
-			FrmSurface = GetFrmSurface(LoadFrm(6, 125), 0, 0, &FrmObj); //SRDFrm
-			sub_draw(20, 18, 20, 18, 0, 0, FrmSurface, 20, 18*4, 0, 18*3, newButt01Surface, 0x0);
-			UnloadFrm(FrmObj);
-			FrmSurface = nullptr;
+			frmSurface = fo::func::art_ptr_lock_data(BuildFrmId(6, 122), 0, 0, &frmLock); //SLUFrm
+			sub_draw(20, 18, 20, 18, 0, 0, frmSurface, 20, 18*4, 0, 0, newButt01Surface, 0x0);
+			fo::func::art_ptr_unlock(frmLock);
+			frmSurface = fo::func::art_ptr_lock_data(BuildFrmId(6, 123), 0, 0, &frmLock); //SLDFrm
+			sub_draw(20, 18, 20, 18, 0, 0, frmSurface, 20, 18*4, 0, 18, newButt01Surface, 0x0);
+			fo::func::art_ptr_unlock(frmLock);
+			frmSurface = fo::func::art_ptr_lock_data(BuildFrmId(6, 124), 0, 0, &frmLock); //SRUFrm
+			sub_draw(20, 18, 20, 18, 0, 0, frmSurface, 20, 18*4, 0, 18*2, newButt01Surface, 0x0);
+			fo::func::art_ptr_unlock(frmLock);
+			frmSurface = fo::func::art_ptr_lock_data(BuildFrmId(6, 125), 0, 0, &frmLock); //SRDFrm
+			sub_draw(20, 18, 20, 18, 0, 0, frmSurface, 20, 18*4, 0, 18*3, newButt01Surface, 0x0);
+			fo::func::art_ptr_unlock(frmLock);
+			frmSurface = nullptr;
 		}
 
 		//check if Data exists for other races male or female, and if so enable race selection buttons.
@@ -2003,19 +1648,19 @@ static void __declspec(naked) FixCharScrnBack(void) {
 		DWORD FrmObj, FrmMaskObj; //frm objects for char screen Appearance button
 		BYTE *FrmSurface,*FrmMaskSurface;
 
-		FrmSurface = GetFrmSurface(LoadFrm(6, 113), 0, 0, &FrmObj);
+		FrmSurface = fo::func::art_ptr_lock_data(BuildFrmId(6, 113), 0, 0, &FrmObj);
 		sub_draw(81, 132, 292, 376, 163, 20, FrmSurface, 640, 480, 331, 63, charScrnBackSurface, 0); //char view win
 		sub_draw(79, 31, 292, 376, 154, 228, FrmSurface, 640, 480, 331, 32, charScrnBackSurface, 0); //upper  char view win
 		sub_draw(79, 30, 292, 376, 158, 236, FrmSurface, 640, 480, 331, 195, charScrnBackSurface, 0); //lower  char view win
-		UnloadFrm(FrmObj);
+		fo::func::art_ptr_unlock(FrmObj);
 
 		//Sexoff Frm
-		FrmSurface = GetFrmSurface(LoadFrm(6, 188), 0, 0, &FrmObj);
+		FrmSurface = fo::func::art_ptr_lock_data(BuildFrmId(6, 188), 0, 0, &FrmObj);
 		//Sex button mask frm
-		FrmMaskSurface = GetFrmSurface(LoadFrm(6, 187), 0, 0, &FrmMaskObj);
+		FrmMaskSurface = fo::func::art_ptr_lock_data(BuildFrmId(6, 187), 0, 0, &FrmMaskObj);
 
 		sub_draw(80, 28, 80, 32, 0, 0, FrmMaskSurface, 80, 32, 0, 0, FrmSurface, 0x39); //mask for style and race buttons
-		UnloadFrm(FrmMaskObj);
+		fo::func::art_ptr_unlock(FrmMaskObj);
 		FrmMaskSurface = nullptr;
 
 		FrmSurface[80*32 - 1] = 0;
@@ -2036,15 +1681,15 @@ static void __declspec(naked) FixCharScrnBack(void) {
 
 		sub_draw(80, 32, 80, 32, 0, 0, FrmSurface, 640, 480, 332, 0, charScrnBackSurface, 0); //style and race buttons
 		sub_draw(80, 32, 80, 32, 0, 0, FrmSurface, 640, 480, 332, 225, charScrnBackSurface, 0); //style and race buttons
-		UnloadFrm(FrmObj);
+		fo::func::art_ptr_unlock(FrmObj);
 
 		//frm background for char screen Appearance button
-		FrmSurface = GetFrmSurface(LoadFrm(6, 174), 0, 0, &FrmObj); //Pickchar frm
+		FrmSurface = fo::func::art_ptr_lock_data(BuildFrmId(6, 174), 0, 0, &FrmObj); //Pickchar frm
 		sub_draw(69, 20, 640, 480, 282, 320, FrmSurface, 640, 480, 337, 37, charScrnBackSurface, 0); //button backround top
 		sub_draw(69, 20, 640, 480, 282, 320, FrmSurface, 640, 480, 337, 199, charScrnBackSurface, 0); //button backround bottom
 		sub_draw(47, 16, 640, 480, 94, 394, FrmSurface, 640, 480, 347, 39, charScrnBackSurface, 0); //cover buttons pics top
 		sub_draw(47, 16, 640, 480, 94, 394, FrmSurface, 640, 480, 347, 201, charScrnBackSurface, 0); //cover buttons pics bottom
-		UnloadFrm(FrmObj);
+		fo::func::art_ptr_unlock(FrmObj);
 		FrmSurface = nullptr;
 
 		int oldFont;
@@ -2118,13 +1763,13 @@ static void __declspec(naked) FixCharScrnSaveNPrint() {
 
 
 // Load Appearance data from GCD file------------
-void _stdcall LoadGCDAppearance(void *FileStream) {
+void _stdcall LoadGCDAppearance(fo::DbFile* fileStream) {
 	currentRaceVal = 0;
 	currentStyleVal = 0;
 	DWORD temp;
-	if (FReadDword(FileStream, &temp) != -1) {
+	if (fo::func::db_freadInt(fileStream, &temp) != -1) {
 		currentRaceVal = (int)temp;
-		if (FReadDword(FileStream, &temp) != -1) {
+		if (fo::func::db_freadInt(fileStream, &temp) != -1) {
 			currentStyleVal = (int)temp;
 		}
 	}
@@ -2134,16 +1779,16 @@ void _stdcall LoadGCDAppearance(void *FileStream) {
 	LoadHeroDat(currentRaceVal, currentStyleVal);
 	RefreshPCArt();
 
-	FCloseFile(FileStream);
+	fo::func::db_fclose(fileStream);
 }
 
 // Save Appearance data to GCD file--------------
-void _stdcall SaveGCDAppearance(void *FileStream) {
-	if (FWriteDword(FileStream, (DWORD)currentRaceVal) != -1) {
-		FWriteDword(FileStream, (DWORD)currentStyleVal);
+void _stdcall SaveGCDAppearance(fo::DbFile *FileStream) {
+	if (fo::func::db_fwriteInt(FileStream, (DWORD)currentRaceVal) != -1) {
+		fo::func::db_fwriteInt(FileStream, (DWORD)currentStyleVal);
 	}
 
-	FCloseFile(FileStream);
+	fo::func::db_fclose(FileStream);
 }
 
 // Reset Appearance when selecting "Create Character" from the New Char screen------
