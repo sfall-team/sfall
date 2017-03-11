@@ -170,7 +170,7 @@ int _stdcall partyMemberGetCurLevel(GameObject* obj);
 int _stdcall perk_level(GameObject* critter, int perkId);
 
 // places pointer to a prototype structure into ptrPtr and returns 0 on success or -1 on failure
-int proto_ptr(int pid, sProtoBase* *ptrPtr);
+int proto_ptr(int pid, Proto* *ptrPtr);
 
 DWORD* __stdcall runProgram(Program* progPtr);
 

@@ -286,7 +286,7 @@ int _stdcall perk_level(GameObject* critter, int perkId) {
 	WRAP_WATCOM_CALL2(perk_level_, critter, perkId)
 }
 
-int proto_ptr(int pid, sProtoBase* *ptrPtr) {
+int proto_ptr(int pid, Proto* *ptrPtr) {
 	WRAP_WATCOM_CALL2(proto_ptr_, pid, ptrPtr)
 }
 

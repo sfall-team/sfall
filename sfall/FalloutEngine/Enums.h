@@ -161,6 +161,19 @@ enum GlobalVar : long
 	GVAR_FALLOUT_2 = 494,
 };
 
+// Physical material type, used for items and tiles.
+enum Material : long
+{
+	Glass = 0x0,
+	Metal = 0x1,
+	Plastic = 0x2,
+	Wood = 0x3,
+	Dirt = 0x4,
+	Stone = 0x5,
+	Cement = 0x6,
+	Leather = 0x7
+};
+
 enum ObjType : char
 {
 	OBJ_TYPE_ITEM = 0,
@@ -374,6 +387,16 @@ enum Trait : long
 	TRAIT_skilled = 14,
 	TRAIT_gifted = 15,
 	TRAIT_count = 16,
+};
+
+enum class ScenerySubType : long
+{
+	DOOR = 0,
+	STAIRS = 1, 
+	ELEVATOR = 2, 
+	LADDER_BOTTOM = 3,
+	LADDER_TOP = 4,
+	GENERIC = 5
 };
 
 enum ScriptTypes

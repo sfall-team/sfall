@@ -32,25 +32,18 @@ const char* _stdcall GetMessageStr(const MessageList* fileAddr, int messageId) {
 	return fo::func::getmsg(fileAddr, &message_buf, messageId);
 }
 
-char AnimCodeByWeapon(GameObject* weapon) {
+long AnimCodeByWeapon(GameObject* weapon) {
 	if (weapon != nullptr) {
-		sProtoItem* proto = GetItemProto(weapon->pid);
-		if (proto != nullptr && proto->type == item_type_weapon) {
-			// TODO: find better way to cast into specific item type proto
-			return static_cast<char>(reinterpret_cast<sProtoWeapon*>(proto)->animation_code);
+		Proto* proto = GetProto(weapon->pid);
+		if (proto != nullptr && proto->item.type == item_type_weapon) {
+			return proto->item.weapon.animationCode;
 		}
 	}
 	return 0;
 }
 
-sProtoItem* GetItemProto(int pid) {
-	assert((pid >> 24) == OBJ_TYPE_ITEM);
-
-	return reinterpret_cast<sProtoItem*>(GetProto(pid));
-}
-
-sProtoBase* GetProto(int pid) {
-	sProtoBase* protoPtr;
+Proto* GetProto(int pid) {
+	Proto* protoPtr;
 	if (fo::func::proto_ptr(pid, &protoPtr) != -1) {
 		return protoPtr;
 	}

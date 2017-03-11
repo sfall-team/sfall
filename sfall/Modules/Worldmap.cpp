@@ -52,7 +52,7 @@ end:
 static void TimerReset() {
 	fo::var::fallout_game_time = 0;
 	// used as additional years indicator
-	fo::var::pc_proto.base_stat_unarmed_damage += 13;
+	fo::var::pc_proto.critter.base.unarmedDamage += 13;
 }
 
 static int mapSlotsScrollMax = 27 * (17 - 7);

@@ -42,9 +42,9 @@ DWORD charRotOri = 0;
 int currentRaceVal = 0, currentStyleVal = 0; //holds Appearance values to restore after global reset in NewGame2 function in LoadGameHooks.cpp
 DWORD critterListSize = 0, critterArraySize = 0; //Critter art list size
 
-fo::sPath **tempPathPtr = &fo::var::paths;
-fo::sPath *heroPathPtr = NULL;
-fo::sPath *racePathPtr = NULL;
+fo::PathNode **tempPathPtr = &fo::var::paths;
+fo::PathNode *heroPathPtr = NULL;
+fo::PathNode *racePathPtr = NULL;
 
 
 //for word wrapping
@@ -2316,8 +2316,8 @@ void EnableHeroAppearanceMod() {
 	appModEnabled = true;
 
 	//setup paths
-	heroPathPtr = new fo::sPath;
-	racePathPtr = new fo::sPath;
+	heroPathPtr = new fo::PathNode;
+	racePathPtr = new fo::PathNode;
 	heroPathPtr->path = new char[64];
 	racePathPtr->path = new char[64];
 

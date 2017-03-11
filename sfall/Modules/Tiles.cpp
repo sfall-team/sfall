@@ -64,7 +64,7 @@ static DWORD ByteSwapD(DWORD w) {
 	return ((w & 0xff) << 24) | ((w & 0xff00) << 8) | ((w & 0xff0000) >> 8) | ((w & 0xff000000) >> 24);
 }
 
-static int ProcessTile(fo::sArt* tiles, int tile, int listpos) {
+static int ProcessTile(fo::Art* tiles, int tile, int listpos) {
 	char buf[32];
 	//sprintf_s(buf, "art\\tiles\\%s", &tiles->names[13*tile]);
 	strcpy_s(buf, "art\\tiles\\");
@@ -91,12 +91,12 @@ static int ProcessTile(fo::sArt* tiles, int tile, int listpos) {
 	int ysize = (int)floor(newheight / 16.0f - newwidth / 64.0f);
 	for (int y = 0; y < ysize; y++) {
 		for (int x = 0; x < xsize; x++) {
-			fo::FRM frame;
+			fo::Frame frame;
 			fo::func::db_fseek(art, 0, 0);
 			fo::func::db_freadByteCount(art, &frame, 0x4a);
 			frame.height = ByteSwapW(36);
 			frame.width = ByteSwapW(80);
-			frame.frmsize = ByteSwapD(80 * 36);
+			frame.frmSize = ByteSwapD(80 * 36);
 			frame.size = ByteSwapD(80 * 36 + 12);
 			int xoffset = x * 48 + (ysize - (y + 1)) * 32;
 			int yoffset = height - (36 + x * 12 + y * 24);
@@ -131,7 +131,7 @@ static int _stdcall ArtInitHook2() {
 
 	CreateMask();
 
-	fo::sArt* tiles = &fo::var::art[4];
+	fo::Art* tiles = &fo::var::art[4];
 	char buf[32];
 	DWORD listpos = tiles->total;
 	origTileCount = listpos;

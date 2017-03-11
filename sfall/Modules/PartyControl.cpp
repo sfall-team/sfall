@@ -264,7 +264,7 @@ int __stdcall PartyControl_SwitchHandHook(fo::GameObject* item) {
 			mov canUse, eax;
 		}*/
 		int fId = (fo::var::obj_dude)->artFid;
-		char weaponCode = fo::AnimCodeByWeapon(item);
+		long weaponCode = fo::AnimCodeByWeapon(item);
 		fId = (fId & 0xffff0fff) | (weaponCode << 12);
 		// check if art with this weapon exists
 		__asm {

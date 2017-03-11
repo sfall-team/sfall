@@ -5,7 +5,7 @@
 
 VAR_(aiInfoList,                 DWORD)
 VAR_(ambient_light,              DWORD)
-VARA(art,                        sArt, 11)
+VARA(art,                        Art, 11)
 VAR_(art_name,                   DWORD)
 VAR_(art_vault_guy_num,          DWORD)
 VAR_(art_vault_person_nums,      DWORD)
@@ -22,7 +22,7 @@ VAR_(combat_list,                DWORD)
 VAR_(combat_state,               DWORD)
 VAR_(combat_turn_running,        DWORD)
 VAR_(combatNumTurns,             DWORD)
-VAR3(crit_succ_eff,              CritStruct, 20, 9, 6)  // 20 critters with 9 body parts and 6 effects each
+VAR3(crit_succ_eff,              CritInfo, 20, 9, 6)  // 20 critters with 9 body parts and 6 effects each
 VAR_(critter_db_handle,          DWORD)
 VAR_(critterClearObj,            DWORD)
 VAR_(crnt_func,                  DWORD)
@@ -122,11 +122,11 @@ VAR_(partyMemberList,            DWORD*) // each struct - 4 integers, first inte
 VAR_(partyMemberMaxCount,        DWORD)
 VAR_(partyMemberPidList,         DWORD)
 VAR_(patches,                    char*)
-VAR_(paths,                      sPath*)  // array
-VAR2(pc_crit_succ_eff,           CritStruct, 9, 6)  // 9 body parts, 6 effects
+VAR_(paths,                      PathNode*)  // array
+VAR2(pc_crit_succ_eff,           CritInfo, 9, 6)  // 9 body parts, 6 effects
 VAR_(pc_kill_counts,             DWORD)
 VARA(pc_name,                    char, 32)
-VAR_(pc_proto,                   sProtoCritter)
+VAR_(pc_proto,                   Proto)
 VARA(pc_trait,                   long, 2)  // 2 of them
 VARA(perk_data,                  PerkInfo, PERK_count)
 VAR_(perkLevelDataList,          long*) // dynamic array, limited to PERK_Count

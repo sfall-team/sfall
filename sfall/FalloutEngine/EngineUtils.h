@@ -29,7 +29,7 @@ namespace fo
 {
 
 // returns weapon animation code
-char AnimCodeByWeapon(GameObject* weapon);
+long AnimCodeByWeapon(GameObject* weapon);
 
 inline void DisplayPrint(const std::string& str) {
 	fo::func::display_print(str.c_str());
@@ -39,9 +39,7 @@ inline void DisplayPrint(const std::string& str) {
 const char* _stdcall GetMessageStr(const MessageList* fileAddr, int messageId);
 
 // returns pointer to prototype by PID, or nullptr on failure
-sProtoBase* GetProto(int pid);
-
-sProtoItem* GetItemProto(int pid);
+Proto* GetProto(int pid);
 
 // wrapper for skill_get_tags with bounds checking
 void SkillGetTags(int* result, long num);

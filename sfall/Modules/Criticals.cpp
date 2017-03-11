@@ -42,8 +42,8 @@ static const char* critNames[] = {
 	"FailMessage",
 };
 
-static fo::CritStruct critTable[critTableCount][9][6];
-static fo::CritStruct (*playerCrit)[9][6];
+static fo::CritInfo critTable[critTableCount][9][6];
+static fo::CritInfo (*playerCrit)[9][6];
 static bool Inited=false;
 
 void _stdcall SetCriticalTable(DWORD critter, DWORD bodypart, DWORD slot, DWORD element, DWORD value) {
@@ -64,8 +64,8 @@ void _stdcall ResetCriticalTable(DWORD critter, DWORD bodypart, DWORD slot, DWOR
 	//It's been a long time since we worried about win9x compatibility, so just sprintf it for goodness sake...
 	char section[16];
 	sprintf_s(section, "c_%02d_%d_%d", critter, bodypart, slot);
-	fo::CritStruct& defaultEffect = fo::var::crit_succ_eff[critter][bodypart][slot];
-	critTable[critter][bodypart][slot].values[element] = critTable[critter][bodypart][slot].DamageMultiplier = GetPrivateProfileIntA(section, critNames[element], defaultEffect.values[element], ".\\CriticalOverrides.ini");
+	fo::CritInfo& defaultEffect = fo::var::crit_succ_eff[critter][bodypart][slot];
+	critTable[critter][bodypart][slot].values[element] = critTable[critter][bodypart][slot].damageMult = GetPrivateProfileIntA(section, critNames[element], defaultEffect.values[element], ".\\CriticalOverrides.ini");
 }
 
 void CritLoad() {
@@ -79,8 +79,8 @@ void CritLoad() {
 				for (DWORD crit = 0; crit < 6; crit++) {
 					sprintf_s(section, "c_%02d_%d_%d", critter, part, crit);
 					DWORD newCritter = (critter == 19) ? 38 : critter;
-					fo::CritStruct& newEffect = critTable[newCritter][part][crit];
-					fo::CritStruct& defaultEffect = fo::var::crit_succ_eff[critter][part][crit];
+					fo::CritInfo& newEffect = critTable[newCritter][part][crit];
+					fo::CritInfo& defaultEffect = fo::var::crit_succ_eff[critter][part][crit];
 					for (int i = 0; i < 7; i++) {
 						newEffect.values[i] = GetPrivateProfileIntA(section, critNames[i], defaultEffect.values[i], ".\\CriticalOverrides.ini");
 						if (isDebug) {
@@ -97,8 +97,8 @@ void CritLoad() {
 	} else {
 		dlogr("Setting up critical hit table using RP fixes", DL_CRITICALS);
 		memcpy(critTable, fo::var::crit_succ_eff, sizeof(critTable));
-		memset(&critTable[19], 0, 6 * 9 * 19 * sizeof(fo::CritStruct));
-		memcpy(playerCrit, &fo::var::pc_crit_succ_eff, 6 * 9 * sizeof(fo::CritStruct));
+		memset(&critTable[19], 0, 6 * 9 * 19 * sizeof(fo::CritInfo));
+		memcpy(playerCrit, &fo::var::pc_crit_succ_eff, 6 * 9 * sizeof(fo::CritInfo));
 
 		if (mode == 3) {
 			char buf[32], buf2[32], buf3[32];
@@ -114,7 +114,7 @@ void CritLoad() {
 
 					sprintf_s(buf2, "c_%02d_%d", critter, part);
 					for (int crit = 0; crit < 6; crit++) {
-						fo::CritStruct& effect = critTable[critter][part][crit];
+						fo::CritInfo& effect = critTable[critter][part][crit];
 						for (int i = 0; i < 7; i++) {
 							sprintf_s(buf3, "e%d_%s", crit, critNames[i]);
 							effect.values[i] = GetPrivateProfileIntA(buf2, buf3, effect.values[i], ".\\CriticalOverrides.ini");

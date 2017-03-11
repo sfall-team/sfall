@@ -884,13 +884,13 @@ static void TraitSetup() {
 		char* num2 = &num[1];
 		for (int i = 0; i < TRAIT_count; i++) {
 			_itoa_s(i, num2, 4, 10);
-			if (GetPrivateProfileString(num, "Name", "", &tName[i * 64], 63, perksFile)) traits[i].Name = &tName[i * 64];
+			if (GetPrivateProfileString(num, "Name", "", &tName[i * 64], 63, perksFile)) traits[i].name = &tName[i * 64];
 			if (GetPrivateProfileString(num, "Desc", "", &tDesc[i * 1024], 1023, perksFile)) {
-				traits[i].Desc = &tDesc[i * 1024];
+				traits[i].description = &tDesc[i * 1024];
 			}
 			int value;
 			value = GetPrivateProfileInt(num, "Image", -99999, perksFile);
-			if (value != -99999) traits[i].Image = value;
+			if (value != -99999) traits[i].image = value;
 
 			if (GetPrivateProfileStringA(num, "StatMod", "", buf, 512, perksFile) > 0) {
 				char *stat, *mod;
@@ -956,13 +956,13 @@ static void TraitSetup() {
 	}
 
 	for (int i = 0; i < TRAIT_count; i++) {
-		if (traits[i].Name != &tName[64 * i]) {
-			strcpy_s(&tName[64 * i], 64, traits[i].Name);
-			traits[i].Name = &tName[64 * i];
+		if (traits[i].name != &tName[64 * i]) {
+			strcpy_s(&tName[64 * i], 64, traits[i].name);
+			traits[i].name = &tName[64 * i];
 		}
-		if (traits[i].Desc&&traits[i].Desc != &tDesc[1024 * i]) {
-			strcpy_s(&tDesc[1024 * i], 1024, traits[i].Desc);
-			traits[i].Desc = &tDesc[1024 * i];
+		if (traits[i].description&&traits[i].description != &tDesc[1024 * i]) {
+			strcpy_s(&tDesc[1024 * i], 1024, traits[i].description);
+			traits[i].description = &tDesc[1024 * i];
 		}
 	}
 }
