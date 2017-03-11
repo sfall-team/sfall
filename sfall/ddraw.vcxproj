@@ -315,11 +315,7 @@
     <ClCompile Include="Modules\LoadOrder.cpp" />
     <ClCompile Include="Modules\PlayerModel.cpp" />
     <ClCompile Include="Modules\SpeedPatch.cpp" />
-    <ClCompile Include="Modules\Worldmap.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Use</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Use</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Win2K|Win32'">Use</PrecompiledHeader>
-    </ClCompile>
+    <ClCompile Include="Modules\Worldmap.cpp" />
     <ClCompile Include="Modules\ScriptExtender.cpp" />
     <ClCompile Include="Modules\BarBoxes.cpp" />
     <ClCompile Include="Modules\Books.cpp" />
@@ -336,11 +332,7 @@
     <ClCompile Include="Modules\Elevators.cpp" />
     <ClCompile Include="Modules\Explosions.cpp" />
     <ClCompile Include="Modules\FileSystem.cpp" />
-    <ClCompile Include="Modules\TalkingHeads.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Use</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Use</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Win2K|Win32'">Use</PrecompiledHeader>
-    </ClCompile>
+    <ClCompile Include="Modules\TalkingHeads.cpp" />
     <ClCompile Include="Modules\HeroAppearance.cpp" />
     <ClCompile Include="Modules\HookScripts.cpp" />
     <ClCompile Include="Modules\Inventory.cpp" />
