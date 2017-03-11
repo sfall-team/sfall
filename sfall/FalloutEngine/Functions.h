@@ -189,7 +189,10 @@ void skill_set_tags(long* tags, long num);
 
 long __stdcall stat_level(GameObject* critter, long statId);
 
-long __stdcall win_register_button(DWORD winRef, long xPos, long yPos, long width, long height, long hoverOn, long hoverOff, long buttonDown, long buttonUp, long pictureUp, long pictureDown, long arg12, long buttonType);
+// Creates a button on a given window
+// buttonType: 0x10 = move window pos, 0x20 or 0x0 = regular click, 0x23 = toggle click
+// pictureUp/pictureDown - pointers to a surface
+long __stdcall win_register_button(DWORD winRef, long xPos, long yPos, long width, long height, long hoverOn, long hoverOff, long buttonDown, long buttonUp, BYTE* pictureUp, BYTE* pictureDown, long arg12, long buttonType);
 
 
 // X-Macro for wrapper functions.
@@ -212,6 +215,9 @@ long __stdcall win_register_button(DWORD winRef, long xPos, long yPos, long widt
 #define WRAP_WATCOM_FUNC5(retType, name, arg1t, arg1, arg2t, arg2, arg3t, arg3, arg4t, arg4, arg5t, arg5) \
 	retType __stdcall name(arg1t arg1, arg2t arg2, arg3t arg3, arg4t arg4, arg5t arg5);
 
+#define WRAP_WATCOM_FUNC6(retType, name, arg1t, arg1, arg2t, arg2, arg3t, arg3, arg4t, arg4, arg5t, arg5, arg6t, arg6) \
+	retType __stdcall name(arg1t arg1, arg2t arg2, arg3t arg3, arg4t arg4, arg5t arg5, arg6t arg6);
+
 #include "Functions_def.h"
 
 #undef WRAP_WATCOM_FUNC0
@@ -220,7 +226,7 @@ long __stdcall win_register_button(DWORD winRef, long xPos, long yPos, long widt
 #undef WRAP_WATCOM_FUNC3
 #undef WRAP_WATCOM_FUNC4
 #undef WRAP_WATCOM_FUNC5
-//#undef WRAP_WATCOM_FUNC6
+#undef WRAP_WATCOM_FUNC6
 //#undef WRAP_WATCOM_FUNC7
 
 }

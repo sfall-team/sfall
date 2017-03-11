@@ -324,7 +324,7 @@ long __stdcall stat_level(GameObject* critter, long statId) {
 	WRAP_WATCOM_CALL2(stat_level_, critter, statId)
 }
 
-long __stdcall win_register_button(DWORD winRef, long xPos, long yPos, long width, long height, long hoverOn, long hoverOff, long buttonDown, long buttonUp, long pictureUp, long pictureDown, long arg12, long buttonType) {
+long __stdcall win_register_button(DWORD winRef, long xPos, long yPos, long width, long height, long hoverOn, long hoverOff, long buttonDown, long buttonUp, BYTE* pictureUp, BYTE* pictureDown, long arg12, long buttonType) {
 	__asm {
 		push buttonType
 		push arg12
@@ -372,6 +372,11 @@ long __stdcall win_register_button(DWORD winRef, long xPos, long yPos, long widt
 #define WRAP_WATCOM_FUNC5(retType, name, arg1t, arg1, arg2t, arg2, arg3t, arg3, arg4t, arg4, arg5t, arg5) \
 	retType __stdcall name(arg1t arg1, arg2t arg2, arg3t arg3, arg4t arg4, arg5t arg5) { \
 		WRAP_WATCOM_CALL5(name##_, arg1, arg2, arg3, arg4, arg5) \
+	}
+
+#define WRAP_WATCOM_FUNC6(retType, name, arg1t, arg1, arg2t, arg2, arg3t, arg3, arg4t, arg4, arg5t, arg5, arg6t, arg6) \
+	retType __stdcall name(arg1t arg1, arg2t arg2, arg3t arg3, arg4t arg4, arg5t arg5, arg6t arg6) { \
+		WRAP_WATCOM_CALL6(name##_, arg1, arg2, arg3, arg4, arg5, arg6) \
 	}
 
 #include "Functions_def.h"

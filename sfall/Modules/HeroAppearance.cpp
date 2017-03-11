@@ -195,104 +195,14 @@ UnlistedFrm *LoadUnlistedFrm(char *FrmName, unsigned int folderRef) {
 	return frm;
 }
 
-/////////////////////////////////////////////////////////////////WINDOW FUNCTIONS////////////////////////////////////////////////////////////////////////
-
-//-----------------------------------------------------------------------------------------------
-int CreateWin(DWORD x, DWORD y, DWORD width, DWORD height, DWORD BGColourIndex, DWORD flags) {
-	int WinRef;
-
-	__asm {
-		push flags
-		push BGColourIndex
-		mov ecx, height
-		mov ebx, width
-		mov edx, y
-		mov eax, x
-		call fo::funcoffs::win_add_
-		mov WinRef, eax
-	}
-	return WinRef;
-}
-
-//----------------------------------------------------------------------------------
-void DestroyWin(int WinRef) {
-
-	__asm {
-		mov eax, WinRef
-		call fo::funcoffs::win_delete_
-	}
-}
-
-//---------------------------------
-BYTE* GetWinSurface(int WinRef) {
-	BYTE *surface;
-
-	__asm {
-		mov eax, WinRef
-		call fo::funcoffs::win_get_buf_
-		mov surface, eax
-	}
-	return surface;
-}
-
-//----------------------------------------------------------------------------------
-void ShowWin(int WinRef) {
-	__asm {
-		mov eax, WinRef
-		call fo::funcoffs::win_show_
-	}
-}
-
-/*
-//----------------------------------------------------------------------------------
-void HideWin(int WinRef) {
-
-	__asm {
-		mov eax, WinRef
-		call fo::funcoffs::win_hide_
-	}
-}
-*/
-
-
-/////////////////////////////////////////////////////////////////BUTTON FUNCTIONS////////////////////////////////////////////////////////////////////////
-//---------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-int CreateButton(int WinRef, DWORD Xpos, DWORD Ypos, DWORD Width, DWORD Height, DWORD HovOn, DWORD HovOff,
-                 DWORD ButtDown, DWORD ButtUp, BYTE *PicUp, BYTE *PicDown, DWORD ButType) {
-	int ret_val;
-
-	__asm {
-		push ButType //button type: 0x10 = move window pos, 0x20 or 0x0 = regular click, 0x23 = toggle click
-		push 0x0 //? always 0
-		push PicDown //0//button down pic index
-		push PicUp //0//button up pic index
-		push ButtUp
-		push ButtDown
-		push HovOff
-		push HovOn
-		push Height
-		mov ecx, Width
-		mov edx, Xpos
-		mov ebx, Ypos
-		mov eax, WinRef
-		call fo::funcoffs::win_register_button_
-		mov ret_val, eax
-	}
-	return ret_val;
-}
-
 /////////////////////////////////////////////////////////////////TEXT FUNCTIONS////////////////////////////////////////////////////////////////////////
 //-------------------------
-void SetFont(int ref) {
-	__asm {
-		mov eax, ref
-		call fo::funcoffs::text_font_
-	}
+void SetFont(long ref) {
+	fo::func::text_font(ref);
 }
 
 //-----------------------
-int GetFont(void) {
+long GetFont(void) {
 	return fo::var::curr_font_num;
 }
 
@@ -300,23 +210,13 @@ int GetFont(void) {
 /////////////////////////////////////////////////////////////////DAT FUNCTIONS////////////////////////////////////////////////////////////////////////
 
 //-----------------------------------------
-void* LoadDat(char*FileName) {
-	void *dat=nullptr;
-	__asm {
-		mov eax, FileName
-		call fo::funcoffs::dbase_open_
-		mov dat, eax
-	}
-	return dat;
+void* LoadDat(char*fileName) {
+	return fo::func::dbase_open(fileName);
 }
 
 //-----------------------------------------
 void UnloadDat(void *dat) {
-
-	__asm {
-		mov eax, dat
-		call fo::funcoffs::dbase_close_
-	}
+	fo::func::dbase_close(dat);
 }
 
 /////////////////////////////////////////////////////////////////OTHER FUNCTIONS////////////////////////////////////////////////////////////////////////
@@ -348,17 +248,9 @@ void PlayAcm(char *AcmName) {
 	}
 }
 
-//------------------------------
-void _stdcall RefreshArtCache(void) {
-	__asm {
-		call fo::funcoffs::art_flush_
-	}
-}
-
-
 // Check fallout paths for file----------------
 int CheckFile(char*FileName, DWORD *size_out) {
-int retVal = 0;
+	int retVal = 0;
 	__asm {
 		mov edx, size_out
 		mov eax, FileName
@@ -739,7 +631,7 @@ LoopStart:
 			LoadHeroDat(currentRaceVal, currentStyleVal);
 		}
 	}
-	RefreshArtCache();
+	fo::func::art_flush();
 	SetAppearanceGlobals(currentRaceVal, currentStyleVal); //store new globals
 	DrawPC();
 }
@@ -749,7 +641,7 @@ void _stdcall LoadHeroAppearance(void) {
 	if (!appModEnabled) return;
 
 	GetAppearanceGlobals(&currentRaceVal, &currentStyleVal);
-	RefreshArtCache();
+	fo::func::art_flush();
 	LoadHeroDat(currentRaceVal, currentStyleVal);
 	SetHeroArt(1);
 	DrawPC();
@@ -769,7 +661,7 @@ void _stdcall SetHeroStyle(int newStyleVal) {
 
 	if (newStyleVal == currentStyleVal) return;
 
-	RefreshArtCache();
+	fo::func::art_flush();
 
 	if (LoadHeroDat(currentRaceVal, newStyleVal) != 0) { //if new style cannot be set
 		if (currentRaceVal == 0 && newStyleVal == 0) {
@@ -792,7 +684,7 @@ void _stdcall SetHeroRace(int newRaceVal) {
 
 	if (newRaceVal == currentRaceVal) return;
 
-	RefreshArtCache();
+	fo::func::art_flush();
 
 	if (LoadHeroDat(newRaceVal, 0) != 0) {   //if new race fails with style at 0
 		if (newRaceVal == 0) currentRaceVal = 0, currentStyleVal = 0; //ignore if appearance = default
@@ -1065,11 +957,11 @@ void _stdcall HeroSelectWindow(int RaceStyleFlag) {
 	bool isStyle = TRUE;
 	if (RaceStyleFlag == 0) isStyle = FALSE;
 
-	DWORD ResWidth = *(DWORD*)0x4CAD6B;
-	DWORD ResHeight = *(DWORD*)0x4CAD66;
+	DWORD resWidth = *(DWORD*)0x4CAD6B;
+	DWORD resHeight = *(DWORD*)0x4CAD66;
 
-	int WinRef = CreateWin(ResWidth/2 - 242, (ResHeight - 100)/2 - 65, 484, 230, 100, 0x4);
-	if (WinRef == -1) return;
+	int winRef = fo::func::win_add(resWidth/2 - 242, (resHeight - 100)/2 - 65, 484, 230, 100, 0x4);
+	if (winRef == -1) return;
 
 	int mouseWasHidden = fo::var::mouse_is_hidden;
 	if (mouseWasHidden) {
@@ -1079,7 +971,7 @@ void _stdcall HeroSelectWindow(int RaceStyleFlag) {
 	int oldMouse = fo::var::gmouse_current_cursor;
 	fo::func::gmouse_set_cursor(1);
 
-	BYTE *WinSurface = GetWinSurface(WinRef);
+	BYTE *winSurface = fo::func::win_get_buf(winRef);
 
 	BYTE *mainSurface;
 	mainSurface = new BYTE [484*230];
@@ -1117,17 +1009,17 @@ void _stdcall HeroSelectWindow(int RaceStyleFlag) {
 	DWORD MenuUObj, MenuDObj;
 	BYTE *MenuUSurface = fo::func::art_ptr_lock_data(BuildFrmId(6, 299), 0, 0, &MenuUObj); //MENUUP Frm
 	BYTE *MenuDSurface = fo::func::art_ptr_lock_data(BuildFrmId(6, 300), 0, 0, &MenuDObj); //MENUDOWN Frm
-	CreateButton(WinRef, 116, 181, 26, 26, -1, -1, -1, 0x0D, MenuUSurface, MenuDSurface, 0x20);
+	fo::func::win_register_button(winRef, 116, 181, 26, 26, -1, -1, -1, 0x0D, MenuUSurface, MenuDSurface, 0, 0x20);
 
 	DWORD DidownUObj, DidownDObj;
 	BYTE *DidownUSurface = fo::func::art_ptr_lock_data(BuildFrmId(6, 93), 0, 0, &DidownUObj); //MENUUP Frm
 	BYTE *DidownDSurface = fo::func::art_ptr_lock_data(BuildFrmId(6, 94), 0, 0, &DidownDObj); //MENUDOWN Frm
-	CreateButton(WinRef, 28, 84, 24, 25, -1, -1, -1, 0x150, DidownUSurface, DidownDSurface, 0x20);
+	fo::func::win_register_button(winRef, 28, 84, 24, 25, -1, -1, -1, 0x150, DidownUSurface, DidownDSurface, 0, 0x20);
 
 	DWORD DiupUObj, DiupDObj;
 	BYTE *DiupUSurface = fo::func::art_ptr_lock_data(BuildFrmId(6, 100), 0, 0, &DiupUObj); //MENUUP Frm
 	BYTE *DiupDSurface = fo::func::art_ptr_lock_data(BuildFrmId(6, 101), 0, 0, &DiupDObj); //MENUDOWN Frm
-	CreateButton(WinRef, 28, 59, 23, 24, -1, -1, -1, 0x148, DiupUSurface, DiupDSurface, 0x20);
+	fo::func::win_register_button(winRef, 28, 59, 23, 24, -1, -1, -1, 0x148, DiupUSurface, DiupDSurface, 0, 0x20);
 
 	int oldFont;
 	oldFont = GetFont();
@@ -1153,9 +1045,9 @@ void _stdcall HeroSelectWindow(int RaceStyleFlag) {
 	memset(mainSurface + 484*(10 + titleTextHeight + 1) + 94 - titleTextWidth/2, textColour, titleTextWidth );
 
 
-	sub_draw(484, 230, 484, 230, 0, 0, mainSurface, 484, 230, 0, 0, WinSurface, 0);
+	sub_draw(484, 230, 484, 230, 0, 0, mainSurface, 484, 230, 0, 0, winSurface, 0);
 
-	ShowWin(WinRef);
+	fo::func::win_show(winRef);
 
 	int raceVal = currentRaceVal, styleVal = currentStyleVal; //show default style when setting race
 	if (!isStyle) styleVal = 0;
@@ -1217,20 +1109,20 @@ void _stdcall HeroSelectWindow(int RaceStyleFlag) {
 
 			PrintText(TextBuf, textColour, 2, 2, 64, 70, ConDraw);
 */
-			sub_draw(70, 102, 70, 102, 0, 0, ConDraw, 484, 230, 66, 53, WinSurface, 0);
+			sub_draw(70, 102, 70, 102, 0, 0, ConDraw, 484, 230, 66, 53, winSurface, 0);
 
 			if (drawFlag == TRUE)
-				DrawCharNote(isStyle, WinRef, 190, 29, mainSurface, 190, 29, 484, 230);
+				DrawCharNote(isStyle, winRef, 190, 29, mainSurface, 190, 29, 484, 230);
 			drawFlag = FALSE;
 
-			fo::func::win_draw(WinRef);
+			fo::func::win_draw(winRef);
 		}
 
 		button = fo::func::get_input();
 		if (button == 0x148) { //previous style/race -up arrow button pushed
 			drawFlag = TRUE;
 			PlayAcm("ib1p1xx1");
-			RefreshArtCache();
+			fo::func::art_flush();
 
 			if (isStyle) {
 				if (styleVal > 0) styleVal--;
@@ -1249,7 +1141,7 @@ void _stdcall HeroSelectWindow(int RaceStyleFlag) {
 		} else if (button == 0x150) { //Next style/race -down arrow button pushed
 			drawFlag = TRUE;
 			PlayAcm("ib1p1xx1");
-			RefreshArtCache();
+			fo::func::art_flush();
 
 			if (isStyle) {
 				styleVal++;
@@ -1276,11 +1168,11 @@ void _stdcall HeroSelectWindow(int RaceStyleFlag) {
 		}
 	}
 
-	RefreshArtCache();
+	fo::func::art_flush();
 	LoadHeroDat(currentRaceVal, currentStyleVal);
 	SetAppearanceGlobals(currentRaceVal, currentStyleVal);
 
-	DestroyWin(WinRef);
+	fo::func::win_delete(winRef);
 	delete[]mainSurface;
 	delete[]ConDraw;
 	fo::func::art_ptr_unlock(MenuUObj);
@@ -1396,7 +1288,7 @@ int _stdcall CheckCharButtons() {
 			drawFlag = 1;
 		break;
 		case 0x511: //race left button pushed
-			RefreshArtCache();
+			fo::func::art_flush();
 
 			if (raceVal > 0) styleVal = 0, raceVal--;
 
@@ -1407,7 +1299,7 @@ int _stdcall CheckCharButtons() {
 			drawFlag = 0;
 		break;
 		case 0x513: //race right button pushed
-			RefreshArtCache();
+			fo::func::art_flush();
 
 			styleVal = 0, raceVal++;
 			if (LoadHeroDat(raceVal, styleVal) != 0) {
@@ -1417,7 +1309,7 @@ int _stdcall CheckCharButtons() {
 			drawFlag=0;
 		break;
 		case 0x512: //style left button pushed
-			RefreshArtCache();
+			fo::func::art_flush();
 
 			if (styleVal > 0) styleVal--;
 
@@ -1428,7 +1320,7 @@ int _stdcall CheckCharButtons() {
 			drawFlag = 1;
 		break;
 		case 0x514: //style right button pushed
-			RefreshArtCache();
+			fo::func::art_flush();
 
 			styleVal++;
 			if (LoadHeroDat(raceVal, styleVal) != 0) {
@@ -1566,8 +1458,8 @@ static void __declspec(naked) AddCharScrnButtons(void) {
 	WinRef = fo::var::edit_win; //char screen window ref
 
 	//race and style buttons
-	CreateButton(WinRef, 332, 0, 82, 32, -1, -1, 0x501, -1, 0, 0, 0);
-	CreateButton(WinRef, 332, 226, 82, 32, -1, -1, 0x502, -1, 0, 0, 0);
+	fo::func::win_register_button(WinRef, 332, 0, 82, 32, -1, -1, 0x501, -1, 0, 0, 0, 0);
+	fo::func::win_register_button(WinRef, 332, 226, 82, 32, -1, -1, 0x502, -1, 0, 0, 0, 0);
 
 	if (fo::var::glblmode == 1) { //equals 1 if new char screen - equals 0 if ingame char screen
 		if (newButt01Surface == nullptr) {
@@ -1595,12 +1487,12 @@ static void __declspec(naked) AddCharScrnButtons(void) {
 		if (GetFileAttributes("Appearance\\hmR01S00\0") != INVALID_FILE_ATTRIBUTES || GetFileAttributes("Appearance\\hfR01S00\0") != INVALID_FILE_ATTRIBUTES ||
 			GetFileAttributes("Appearance\\hmR01S00.dat\0") != INVALID_FILE_ATTRIBUTES || GetFileAttributes("Appearance\\hfR01S00.dat\0") != INVALID_FILE_ATTRIBUTES) {
 			//race selection buttons
-			CreateButton(WinRef, 348, 37, 20, 18, -1, -1, -1, 0x511, newButt01Surface, newButt01Surface + (20*18), 0x20);
-			CreateButton(WinRef, 373, 37, 20, 18, -1, -1, -1, 0x513, newButt01Surface + (20*18*2), newButt01Surface + (20*18*3), 0x20);
+			fo::func::win_register_button(WinRef, 348, 37, 20, 18, -1, -1, -1, 0x511, newButt01Surface, newButt01Surface + (20*18), 0, 0x20);
+			fo::func::win_register_button(WinRef, 373, 37, 20, 18, -1, -1, -1, 0x513, newButt01Surface + (20*18*2), newButt01Surface + (20*18*3), 0, 0x20);
 		}
 		//style selection buttons
-		CreateButton(WinRef, 348, 199, 20, 18, -1, -1, -1, 0x512, newButt01Surface, newButt01Surface+(20*18), 0x20);
-		CreateButton(WinRef, 373, 199, 20, 18, -1, -1, -1, 0x514, newButt01Surface + (20*18*2), newButt01Surface + (20*18*3), 0x20);
+		fo::func::win_register_button(WinRef, 348, 199, 20, 18, -1, -1, -1, 0x512, newButt01Surface, newButt01Surface+(20*18), 0, 0x20);
+		fo::func::win_register_button(WinRef, 373, 199, 20, 18, -1, -1, -1, 0x514, newButt01Surface + (20*18*2), newButt01Surface + (20*18*3), 0, 0x20);
 	}
 
 	__asm {
@@ -1775,7 +1667,7 @@ void _stdcall LoadGCDAppearance(fo::DbFile* fileStream) {
 	}
 
 	//reset hero appearance
-	RefreshArtCache();
+	fo::func::art_flush();
 	LoadHeroDat(currentRaceVal, currentStyleVal);
 	RefreshPCArt();
 
