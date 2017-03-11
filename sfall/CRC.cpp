@@ -77,7 +77,7 @@ void CRC(const char* filepath) {
 	DWORD size = GetFileSize(h, 0), crc;
 	bool sizeMatch = (size == ExpectedSize);
 
-	if (IsDebug && !sizeMatch && GetPrivateProfileIntA("Debugging", "SkipSizeCheck", 0, ".\\ddraw.ini")) {
+	if (!sizeMatch && GetPrivateProfileIntA("Debugging", "SkipSizeCheck", 0, ".\\ddraw.ini")) {
 		sizeMatch = true;
 	}
 
@@ -91,7 +91,7 @@ void CRC(const char* filepath) {
 
 	bool matchedCRC = false;
 
-	if (IsDebug && GetPrivateProfileStringA("Debugging", "ExtraCRC", "", buf, 512, ".\\ddraw.ini") > 0) {
+	if (GetPrivateProfileStringA("Debugging", "ExtraCRC", "", buf, 512, ".\\ddraw.ini") > 0) {
 		char *TestCRC;
 		TestCRC = strtok(buf, ",");
 		while (TestCRC) {
