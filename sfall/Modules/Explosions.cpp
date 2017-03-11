@@ -25,6 +25,9 @@
 
 #include "Explosions.h"
 
+namespace sfall
+{
+
 static bool lightingEnabled = false;
 
 static const DWORD ranged_attack_lighting_fix_back = 0x4118F8;
@@ -38,7 +41,7 @@ static void __declspec(naked) ranged_attack_lighting_fix() {
 		mov     ebx, [ecx+0x10]; // light intensity - 4th arg
 		//mov     ebx, 0x10000; // light intensity - 4th arg
 		xor     ecx, ecx; // unknown(0) - 3rd argument
-		call    FuncOffs::obj_set_light_;
+		call    fo::funcoffs::obj_set_light_;
 		jmp     ranged_attack_lighting_fix_back; // jump back
 	}
 }
@@ -54,11 +57,11 @@ static void __declspec(naked) explosion_effect_hook() {
 		test    bl, bl
 		jz      usevanilla
 		xor     ebx, ebx
-		call    FuncOffs::register_object_animate_
+		call    fo::funcoffs::register_object_animate_
 		jmp     next
 usevanilla:
 		xor     ebx, ebx
-		call    FuncOffs::register_object_animate_and_hide_
+		call    fo::funcoffs::register_object_animate_and_hide_
 next:
 		mov     al, lightingEnabled
 		test    al, al
@@ -66,7 +69,7 @@ next:
 		mov     eax, [esp+40]; // projectile ptr - 1st arg
 		mov     edx, 0xFFFF0008; // maximum radius + intensity (see anim_set_check__light_fix)
 		mov     ebx, 0
-		call    FuncOffs::register_object_light_;
+		call    fo::funcoffs::register_object_light_;
 skiplight:
 		mov     edi, explosion_effect_starting_dir; // starting direction
 		jmp     explosion_effect_hook_back; // jump back
@@ -80,17 +83,17 @@ static void __declspec(naked) explosion_lighting_fix2() {
 		mov     eax, [esp+24]
 		mov     edx, 1 // turn on
 		mov     ebx, 0
-		call    FuncOffs::register_object_funset_
+		call    fo::funcoffs::register_object_funset_
 
 		mov     eax, [esp+24]; // explosion obj ptr
 		mov     edx, 0xFFFF0008; // maximum radius + intensity (see anim_set_check__light_fix)
 		mov     ebx, 0
-		call    FuncOffs::register_object_light_;
+		call    fo::funcoffs::register_object_light_;
 
 		mov     eax, [esp+24]
 		xor     edx, edx
 		mov     ebx, 0
-		call    FuncOffs::register_object_animate_
+		call    fo::funcoffs::register_object_animate_
 
 		jmp     explosion_lighting_fix2_back; // jump back
 	}
@@ -131,15 +134,15 @@ static void __declspec(naked) fire_dance_lighting_fix1() {
 		mov     eax, esi; // projectile ptr - 1st arg
 		mov     edx, 0xFFFF0002; // maximum radius + intensity (see anim_set_check__light_fix)
 		mov     ebx, 0
-		call    FuncOffs::register_object_light_;
+		call    fo::funcoffs::register_object_light_;
 		mov     eax, esi;
 		pop     ebx;
 		pop     edx;
-		call    FuncOffs::register_object_animate_; // overwritten call
+		call    fo::funcoffs::register_object_animate_; // overwritten call
 		mov     eax, esi; // projectile ptr - 1st arg
 		mov     edx, 0x00010000; // maximum radius + intensity (see anim_set_check__light_fix)
 		mov     ebx, -1
-		call    FuncOffs::register_object_light_;
+		call    fo::funcoffs::register_object_light_;
 
 		jmp     fire_dance_lighting_back; // jump back
 	}
@@ -194,19 +197,18 @@ int _stdcall ExplosionsMetaruleFunc(int mode, int arg1, int arg2) {
 }
 
 void ResetExplosionSettings() {
-	int i;
 	// explosion pattern
 	explosion_effect_starting_dir = 0;
 	SafeWrite8(0x411B54, 6); // last direction
 	// explosion art
-	for (i = 0; i < 4; i++) {
+	for (int i = 0; i < numArtChecks; i++) {
 		SafeWrite32(explosion_art_adr[i], explosion_art_defaults[i]);
 	}
 	// explosion radiuses
 	SafeWrite32(explosion_radius_grenade, 2);
 	SafeWrite32(explosion_radius_rocket, 3);
 	// explosion dmgtype
-	for (i = 0; i < 4; i++) {
+	for (int i = 0; i < numDmgChecks; i++) {
 		SafeWrite8(explosion_dmg_check_adr[i], 6);
 	}
 }
@@ -229,4 +231,6 @@ void Explosions::init() {
 	SimplePatch<DWORD>(0x4A2878, "Misc", "Dynamite_DmgMin", 30, 0, tmp);
 	tmp = SimplePatch<DWORD>(0x4A287F, "Misc", "PlasticExplosive_DmgMax", 80, 0, 9999);
 	SimplePatch<DWORD>(0x4A2884, "Misc", "PlasticExplosive_DmgMin", 40, 0, tmp);
+}
+
 }

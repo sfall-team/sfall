@@ -21,14 +21,17 @@
 
 #include "Premade.h"
 
-PremadeChar* premade;
+namespace sfall
+{
+
+fo::PremadeChar* premade;
 
 void Premade::init() {
 	auto premadePaths = GetConfigList("misc", "PremadePaths", "", 512);
 	auto premadeFids = GetConfigList("misc", "PremadeFIDs", "", 512);
 	if (premadePaths.size() > 0 && premadeFids.size() > 0) {
 		int count = min(premadePaths.size(), premadeFids.size());
-		premade = new PremadeChar[count];
+		premade = new fo::PremadeChar[count];
 		for (int i = 0; i < count; i++) {
 			auto path = "premade\\" + premadePaths[i];
 			strcpy_s(premade[i].path, 20, path.c_str());
@@ -41,4 +44,6 @@ void Premade::init() {
 		SafeWrite32(0x4A7E2C, (DWORD)premade + 20);
 		strcpy_s((char*)0x50AF68, 20, premade[0].path);
 	}
+}
+
 }

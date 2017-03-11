@@ -7,6 +7,9 @@
 
 #include "Input.h"
 
+namespace sfall
+{
+
 static const DWORD dinputPos = 0x50FB70;
 
 void Input::init() {
@@ -20,4 +23,6 @@ void Input::init() {
 	LoadGameHook::onGameReset += []() {
 		ForceGraphicsRefresh(0);
 	};
+}
+
 }

@@ -23,6 +23,9 @@
 
 #include "Module.h"
 
+namespace sfall
+{
+
 class ScriptExtender : public Module {
 	const char* name() { return "ScriptExtender"; }
 	void init();
@@ -35,13 +38,13 @@ struct sGlobalVar {
 
 #define SCRIPT_PROC_MAX (27)
 typedef struct {
-	TProgram* ptr;
+	fo::Program* ptr;
 	int procLookup[SCRIPT_PROC_MAX+1];
 	char initialized;
 } sScriptProgram;
 
-void _stdcall SetGlobalScriptRepeat(TProgram* script, int frames);
-void _stdcall SetGlobalScriptType(TProgram* script, int type);
+void _stdcall SetGlobalScriptRepeat(fo::Program* script, int frames);
+void _stdcall SetGlobalScriptType(fo::Program* script, int type);
 void ScriptExtenderSetup();
 bool _stdcall IsGameScript(const char* filename);
 
@@ -63,7 +66,7 @@ void _stdcall SetGlobalVarInt(DWORD var, int val);
 DWORD _stdcall GetGlobalVar(const char* var);
 DWORD _stdcall GetGlobalVarInt(DWORD var);
 
-void _stdcall SetSelfObject(TProgram* script, TGameObj* obj);
+void _stdcall SetSelfObject(fo::Program* script, fo::GameObject* obj);
 
 extern DWORD AddUnarmedStatToGetYear;
 extern DWORD availableGlobalScriptTypes;
@@ -73,7 +76,7 @@ void GetAppearanceGlobals(int *race, int *style);
 
 void _stdcall RegAnimCombatCheck(DWORD newValue);
 
-bool _stdcall ScriptHasLoaded(TProgram* script);
+bool _stdcall ScriptHasLoaded(fo::Program* script);
 // loads script from .int file into scripting engine, fill scriptPtr and proc table
 void LoadScriptProgram(sScriptProgram &prog, const char* fileName);
 // init program after load, needs to be called once
@@ -84,7 +87,7 @@ void RunScriptProc(sScriptProgram* prog, const char* procName);
 void RunScriptProc(sScriptProgram* prog, int procId);
 
 void AddProgramToMap(sScriptProgram &prog);
-sScriptProgram* GetGlobalScriptProgram(TProgram* scriptPtr);
+sScriptProgram* GetGlobalScriptProgram(fo::Program* scriptPtr);
 
 // variables
 static char reg_anim_combat_check = 1;
@@ -102,3 +105,5 @@ extern DWORD modifiedIni;
 #define map_enter_p_proc    (15)
 #define destroy_p_proc      (18)
 #define map_update_p_proc   (23)
+
+}

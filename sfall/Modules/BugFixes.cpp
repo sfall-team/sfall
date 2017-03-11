@@ -1,20 +1,24 @@
 #include "..\main.h"
-
-#include "BugFixes.h"
 #include "..\FalloutEngine\Fallout2.h"
 #include "ScriptExtender.h"
+
+#include "BugFixes.h"
+
+namespace sfall
+{
+using namespace fo;
 
 DWORD WeightOnBody = 0;
 
 static void __declspec(naked) SharpShooterFix() {
 	__asm {
-		call FuncOffs::stat_level_                          // Perception
-		cmp  edi, dword ptr ds:[VARPTR_obj_dude]
+		call fo::funcoffs::stat_level_                          // Perception
+		cmp  edi, dword ptr ds:[FO_VAR_obj_dude]
 		jne  end
 		xchg ecx, eax
 		mov  eax, edi                             // _obj_dude
 		mov  edx, PERK_sharpshooter
-		call FuncOffs::perk_level_
+		call fo::funcoffs::perk_level_
 		shl  eax, 1
 		add  eax, ecx
 end:
@@ -26,20 +30,20 @@ static void __declspec(naked) pipboy_hack() {
 	__asm {
 		cmp  ebx, 0x210                           // Back button?
 		je   end
-		cmp  byte ptr ds:[VARPTR_holo_flag], 0
+		cmp  byte ptr ds:[FO_VAR_holo_flag], 0
 		jne  end
 		xor  ebx, ebx                             // No man, no problem (c) :-p
 end:
-		mov  eax, ds:[VARPTR_crnt_func]
+		mov  eax, ds:[FO_VAR_crnt_func]
 		retn
 	}
 }
 
 static void __declspec(naked) PipAlarm_hack() {
 	__asm {
-		mov  ds:[VARPTR_crnt_func], eax
+		mov  ds:[FO_VAR_crnt_func], eax
 		mov  eax, 0x400
-		call FuncOffs::PipStatus_
+		call fo::funcoffs::PipStatus_
 		mov  eax, 0x50CC04                        // 'iisxxxx1'
 		retn
 	}
@@ -62,7 +66,7 @@ skip:
 		mov  dword ptr [ebp+0xE00], ecx           // num
 		xor  ecx, ecx
 		xchg dword ptr [ebp+0xE04], ecx           // NextBlock
-		call FuncOffs::scr_write_ScriptNode_
+		call fo::funcoffs::scr_write_ScriptNode_
 		xchg dword ptr [ebp+0xE04], ecx           // NextBlock
 		pop  dword ptr [ebp+0xE00]                // num
 		retn
@@ -78,7 +82,7 @@ static void __declspec(naked) protinst_default_use_item_hack() {
 		jne  notCar
 isCar:
 		mov  eax, ebx
-		call FuncOffs::obj_use_power_on_car_
+		call fo::funcoffs::obj_use_power_on_car_
 		cmp  eax, -1
 		jne  skip
 notCar:
@@ -112,7 +116,7 @@ static void __declspec(naked) item_d_check_addict_hack() {
 		je   skip                                 // No
 		xchg ebx, eax                             // ebx = drug_pid
 		mov  eax, esi                             // eax = who
-		call FuncOffs::queue_find_first_
+		call fo::funcoffs::queue_find_first_
 loopQueue:
 		test eax, eax                             // Has something in the list?
 		jz   end                                  // No
@@ -120,11 +124,11 @@ loopQueue:
 		je   end                                  // Has specific addiction
 		mov  eax, esi                             // eax = who
 		mov  edx, 2                               // type = addiction
-		call FuncOffs::queue_find_next_
+		call fo::funcoffs::queue_find_next_
 		jmp  loopQueue
 skip:
-		mov  eax, dword ptr ds:[VARPTR_obj_dude]
-		call FuncOffs::queue_find_first_
+		mov  eax, dword ptr ds:[FO_VAR_obj_dude]
+		call fo::funcoffs::queue_find_first_
 end:
 		push 0x47A6A1
 		retn
@@ -133,7 +137,7 @@ end:
 
 static void __declspec(naked) remove_jet_addict() {
 	__asm {
-		cmp  eax, dword ptr ds:[VARPTR_wd_obj]
+		cmp  eax, dword ptr ds:[FO_VAR_wd_obj]
 		jne  end
 		cmp  dword ptr [edx+0x4], PID_JET         // queue_addict.drug_pid == PID_JET?
 		jne  end
@@ -152,12 +156,12 @@ static void __declspec(naked) item_d_take_drug_hack() {
 		jne  skip                                 // Addiction is not active yet
 		mov  edx, PERK_add_jet
 		mov  eax, esi
-		call FuncOffs::perform_withdrawal_end_
+		call fo::funcoffs::perform_withdrawal_end_
 skip:
-		mov  dword ptr ds:[VARPTR_wd_obj], esi
+		mov  dword ptr ds:[FO_VAR_wd_obj], esi
 		mov  eax, 2                               // type = addiction
 		mov  edx, offset remove_jet_addict
-		call FuncOffs::queue_clear_type_
+		call fo::funcoffs::queue_clear_type_
 		push 0x479FD1
 		retn
 	}
@@ -168,13 +172,13 @@ static void __declspec(naked) item_d_load_hack() {
 		sub  esp, 4
 		mov  [ebp], edi                           // edi->queue_drug
 		mov  ecx, 7
-		mov  esi, VARPTR_drugInfoList + 12
+		mov  esi, FO_VAR_drugInfoList + 12
 loopDrug:
 		cmp  dword ptr [esi+8], 0                 // drugInfoList.numeffects
 		je   nextDrug
 		mov  edx, esp
 		mov  eax, [esi]                           // drugInfoList.pid
-		call FuncOffs::proto_ptr_
+		call fo::funcoffs::proto_ptr_
 		mov  edx, [esp]
 		mov  eax, [edx+0x24]                      // drug.stat0
 		cmp  eax, [edi+0x4]                       // drug.stat0 == queue_drug.stat0?
@@ -202,7 +206,7 @@ end:
 static void __declspec(naked) queue_clear_type_mem_free_hook() {
 	__asm {
 		mov  ebx, [esi]
-		jmp  FuncOffs::mem_free_
+		jmp  fo::funcoffs::mem_free_
 	}
 }
 
@@ -210,23 +214,23 @@ static void __declspec(naked) partyMemberCopyLevelInfo_stat_level_hook() {
 	__asm {
 nextArmor:
 		mov  eax, esi
-		call FuncOffs::inven_worn_
+		call fo::funcoffs::inven_worn_
 		test eax, eax
 		jz   noArmor
 		and  byte ptr [eax+0x27], 0xFB            // Unset the flag of equipped armor
 		jmp  nextArmor
 noArmor:
 		mov  eax, esi
-		jmp  FuncOffs::stat_level_
+		jmp  fo::funcoffs::stat_level_
 	}
 }
 
 static void __declspec(naked) correctFidForRemovedItem_adjust_ac_hook() {
 	__asm {
-		call FuncOffs::adjust_ac_
+		call fo::funcoffs::adjust_ac_
 nextArmor:
 		mov  eax, esi
-		call FuncOffs::inven_worn_
+		call fo::funcoffs::inven_worn_
 		test eax, eax
 		jz   end
 		and  byte ptr [eax+0x27], 0xFB            // Unset flag of equipped armor
@@ -239,27 +243,27 @@ end:
 static void __declspec(naked) partyMemberCopyLevelInfo_hook() {
 	__asm {
 		push eax
-		call FuncOffs::partyMemberCopyLevelInfo_
+		call fo::funcoffs::partyMemberCopyLevelInfo_
 		pop  ebx
 		cmp  eax, -1
 		je   end
 		pushad
-		mov  dword ptr ds:[VARPTR_critterClearObj], ebx
-		mov  edx, FuncOffs::critterClearObjDrugs_
-		call FuncOffs::queue_clear_type_
+		mov  dword ptr ds:[FO_VAR_critterClearObj], ebx
+		mov  edx, fo::funcoffs::critterClearObjDrugs_
+		call fo::funcoffs::queue_clear_type_
 		mov  ecx, 8
-		mov  edi, VARPTR_drugInfoList
+		mov  edi, FO_VAR_drugInfoList
 		mov  esi, ebx
 loopAddict:
 		mov  eax, dword ptr [edi]                 // eax = drug pid
-		call FuncOffs::item_d_check_addict_
+		call fo::funcoffs::item_d_check_addict_
 		test eax, eax                             // Has addiction?
 		jz   noAddict                             // No
 		cmp  dword ptr [eax], 0                   // queue_addict.init
 		jne  noAddict                             // Addiction is not active yet
 		mov  edx, dword ptr [eax+0x8]             // queue_addict.perk
 		mov  eax, ebx
-		call FuncOffs::perk_add_effect_
+		call fo::funcoffs::perk_add_effect_
 noAddict:
 		add  edi, 12
 		loop loopAddict
@@ -273,7 +277,7 @@ end:
 static void __declspec(naked) gdProcessUpdate_hack() {
 	__asm {
 		add  eax, esi
-		cmp  eax, dword ptr ds:[VARPTR_optionRect + 0xC]         // _optionRect.offy
+		cmp  eax, dword ptr ds:[FO_VAR_optionRect + 0xC]         // _optionRect.offy
 		jge  skip
 		add  eax, 2
 		push 0x44702D
@@ -293,15 +297,15 @@ static void __declspec(naked) invenWieldFunc_item_get_type_hook() {
 		mov  cl, byte ptr [edi+0x27]
 		and  cl, 0x3
 		xchg edx, eax                             // eax = who, edx = item
-		call FuncOffs::item_remove_mult_
+		call fo::funcoffs::item_remove_mult_
 		xchg ebx, eax
 		mov  eax, esi
 		test cl, 0x2                              // Right hand?
 		jz   leftHand                             // No
-		call FuncOffs::inven_right_hand_
+		call fo::funcoffs::inven_right_hand_
 		jmp  removeFlag
 leftHand:
-		call FuncOffs::inven_left_hand_
+		call fo::funcoffs::inven_left_hand_
 removeFlag:
 		test eax, eax
 		jz   noWeapon
@@ -313,10 +317,10 @@ noWeapon:
 		jz   skip
 		mov  eax, esi
 		mov  edx, edi
-		call FuncOffs::item_add_force_
+		call fo::funcoffs::item_add_force_
 skip:
 		mov  eax, edi
-		jmp  FuncOffs::item_get_type_
+		jmp  fo::funcoffs::item_get_type_
 	}
 }
 
@@ -325,19 +329,19 @@ static void __declspec(naked) loot_container_hack() {
 		mov  eax, [esp+0x114+0x4]
 		test eax, eax
 		jz   noLeftWeapon
-		call FuncOffs::item_weight_
+		call fo::funcoffs::item_weight_
 noLeftWeapon:
 		mov  WeightOnBody, eax
 		mov  eax, [esp+0x118+0x4]
 		test eax, eax
 		jz   noRightWeapon
-		call FuncOffs::item_weight_
+		call fo::funcoffs::item_weight_
 noRightWeapon:
 		add  WeightOnBody, eax
 		mov  eax, [esp+0x11C+0x4]
 		test eax, eax
 		jz   noArmor
-		call FuncOffs::item_weight_
+		call fo::funcoffs::item_weight_
 noArmor:
 		add  WeightOnBody, eax
 		xor  eax, eax
@@ -352,19 +356,19 @@ static void __declspec(naked) barter_inventory_hack() {
 		mov  eax, [esp+0x20+0x4]
 		test eax, eax
 		jz   noArmor
-		call FuncOffs::item_weight_
+		call fo::funcoffs::item_weight_
 noArmor:
 		mov  WeightOnBody, eax
 		mov  eax, [esp+0x1C+0x4]
 		test eax, eax
 		jnz  haveWeapon
-		cmp  dword ptr ds:[VARPTR_dialog_target_is_party], eax
+		cmp  dword ptr ds:[FO_VAR_dialog_target_is_party], eax
 		jne  end                                  // This is a party member
 		mov  eax, [esp+0x18+0x4]
 		test eax, eax
 		jz   end
 haveWeapon:
-		call FuncOffs::item_weight_
+		call fo::funcoffs::item_weight_
 		add  WeightOnBody, eax
 end:
 		mov  ebx, PID_JESSE_CONTAINER
@@ -374,7 +378,7 @@ end:
 
 static void __declspec(naked) barter_attempt_transaction_hook() {
 	__asm {
-		call FuncOffs::stat_level_                          // eax = Max weight
+		call fo::funcoffs::stat_level_                          // eax = Max weight
 		sub  eax, WeightOnBody                    // Accounting for weight of target's equipped armor and weapon
 		retn
 	}
@@ -384,7 +388,7 @@ static DWORD Looting = 0;
 static void __declspec(naked) move_inventory_hook() {
 	__asm {
 		inc  Looting
-		call FuncOffs::move_inventory_
+		call fo::funcoffs::move_inventory_
 		dec  Looting
 		retn
 	}
@@ -392,7 +396,7 @@ static void __declspec(naked) move_inventory_hook() {
 
 static void __declspec(naked) item_add_mult_hook() {
 	__asm {
-		call FuncOffs::stat_level_                          // eax = Max weight
+		call fo::funcoffs::stat_level_                          // eax = Max weight
 		cmp  Looting, 0
 		je   end
 		sub  eax, WeightOnBody                    // Accounting for weight of target's equipped armor and weapon
@@ -403,7 +407,7 @@ end:
 
 static void __declspec(naked) inven_pickup_hack() {
 	__asm {
-		mov  edx, ds:[VARPTR_pud]
+		mov  edx, ds:[FO_VAR_pud]
 		mov  edx, [edx]                           // itemsCount
 		dec  edx
 		sub  edx, eax
@@ -417,8 +421,8 @@ static void __declspec(naked) inven_pickup_hack2() {
 	__asm {
 		test eax, eax
 		jz   end
-		mov  eax, ds:[VARPTR_i_wid]
-		call FuncOffs::GNW_find_
+		mov  eax, ds:[FO_VAR_i_wid]
+		call fo::funcoffs::GNW_find_
 		mov  ecx, [eax+0x8+0x4]                   // ecx = _i_wid.rect.y
 		mov  eax, [eax+0x8+0x0]                   // eax = _i_wid.rect.x
 		add  eax, 44                              // x_start
@@ -435,7 +439,7 @@ next:
 		add  edx, ecx                             // y_start
 		mov  ecx, edx
 		add  ecx, 48                              // y_end
-		call FuncOffs::mouse_click_in_
+		call fo::funcoffs::mouse_click_in_
 		pop  ebx
 		pop  ecx
 		pop  edx
@@ -451,7 +455,7 @@ end:
 found:
 		mov  ebx, 0x4711DF
 		add  edx, [esp+0x40]                      // inventory_offset
-		mov  eax, ds:[VARPTR_pud]
+		mov  eax, ds:[FO_VAR_pud]
 		mov  ecx, [eax]                           // itemsCount
 		jecxz skip
 		dec  ecx
@@ -496,7 +500,7 @@ foundItem:
 		inc  esi                                  // No, need to change from_slot
 skip:
 		mov  edx, ebp
-		call FuncOffs::item_remove_mult_
+		call fo::funcoffs::item_remove_mult_
 		test eax, eax                             // Have weapon been deleted from inventory?
 		jnz  end                                  // No
 		sub  [esp+0x24+4], esi                    // Yes, correct from_slot
@@ -507,9 +511,9 @@ end:
 
 static void __declspec(naked) PipStatus_AddHotLines_hook() {
 	__asm {
-		call FuncOffs::AddHotLines_
+		call fo::funcoffs::AddHotLines_
 		xor  eax, eax
-		mov  dword ptr ds:[VARPTR_hot_line_count], eax
+		mov  dword ptr ds:[FO_VAR_hot_line_count], eax
 		retn
 	}
 }
@@ -518,7 +522,7 @@ static void __declspec(naked) perform_withdrawal_start_display_print_hook() {
 	__asm {
 		test eax, eax
 		jz   end
-		jmp  FuncOffs::display_print_
+		jmp  fo::funcoffs::display_print_
 end:
 		retn
 	}
@@ -533,9 +537,9 @@ static void __declspec(naked) item_d_take_drug_hack1() {
 
 static void __declspec(naked) op_wield_obj_critter_adjust_ac_hook() {
 	__asm {
-		call FuncOffs::adjust_ac_
+		call fo::funcoffs::adjust_ac_
 		xor  eax, eax                       // not animated
-		jmp  FuncOffs::intface_update_ac_
+		jmp  fo::funcoffs::intface_update_ac_
 	}
 }
 
@@ -594,7 +598,7 @@ static void __declspec(naked) set_new_results_hack() {
 		mov  eax, esi
 		xor  edx, edx
 		inc  edx                                  // type = knockout
-		jmp  FuncOffs::queue_remove_this_                   // Remove knockout from queue (if there is one)
+		jmp  fo::funcoffs::queue_remove_this_                   // Remove knockout from queue (if there is one)
 end:
 		pop  eax                                  // Destroying return address
 		push 0x424FC6
@@ -637,7 +641,7 @@ static void __declspec(naked) obj_load_func_hack() {
 		xor  ebx, ebx
 		xor  edx, edx
 		xchg edx, eax
-		call FuncOffs::queue_add_
+		call fo::funcoffs::queue_add_
 		popad
 clear:
 		and  word ptr [eax+0x44], 0x7FFD          // not (DAM_LOSE_TURN or DAM_KNOCKED_DOWN)
@@ -650,10 +654,10 @@ end:
 	}
 }
 
-static void __declspec(naked) partyMemberPrepLoadInstance_hack() {
+static void __declspec(naked) partyMemberPrepLoadInstance_hook() {
 	__asm {
 		and  word ptr [eax+0x44], 0x7FFD          // not (DAM_LOSE_TURN or DAM_KNOCKED_DOWN)
-		jmp  FuncOffs::dude_stand_
+		jmp  fo::funcoffs::dude_stand_
 	}
 }
 
@@ -677,7 +681,7 @@ static void __declspec(naked) obj_save_hack() {
 		dec  eax
 		mov  edx, [esp+0x1C]                      // combat_data
 		mov  eax, [eax+0x68]                      // pobj.who_hit_me.cid
-		test byte ptr ds:[VARPTR_combat_state], 1       // in combat?
+		test byte ptr ds:[FO_VAR_combat_state], 1       // in combat?
 		jz   clear                                // No
 		cmp  dword ptr [edx], 0                   // in combat?
 		jne  skip                                 // Yes
@@ -696,7 +700,7 @@ static void __declspec(naked) action_explode_hack() {
 	__asm {
 		mov  edx, destroy_p_proc
 		mov  eax, [esi+0x78]                      // pobj.sid
-		call FuncOffs::exec_script_proc_
+		call fo::funcoffs::exec_script_proc_
 		xor  edx, edx
 		dec  edx
 		retn
@@ -722,7 +726,7 @@ static void __declspec(naked) barter_attempt_transaction_hack() {
 		mov  eax, 0x474D34
 		jmp  eax
 found:
-		call FuncOffs::item_m_turn_off_
+		call fo::funcoffs::item_m_turn_off_
 		mov  eax, 0x474D17
 		jmp  eax                                  // Is there any other activated items among the ones being sold?
 	}
@@ -731,7 +735,7 @@ found:
 static void __declspec(naked) item_m_turn_off_hook() {
 	__asm {
 		and  byte ptr [eax+0x25], 0xDF            // Rest flag of used items
-		jmp  FuncOffs::queue_remove_this_
+		jmp  fo::funcoffs::queue_remove_this_
 	}
 }
 
@@ -742,8 +746,8 @@ static void __declspec(naked) combat_hack() {
 		jz   end
 		push eax
 		mov  edx, STAT_max_move_points
-		call FuncOffs::stat_level_
-		mov  edx, ds:[VARPTR_gcsd]
+		call fo::funcoffs::stat_level_
+		mov  edx, ds:[FO_VAR_gcsd]
 		test edx, edx
 		jz   skip
 		add  eax, [edx+0x8]                       // gcsd.free_move
@@ -751,13 +755,13 @@ skip:
 		pop  edx
 		xchg edx, eax                             // eax = source, edx = Max action points
 		mov  [eax+0x40], edx                      // pobj.curr_mp
-		test byte ptr ds:[VARPTR_combat_state], 1       // in combat?
+		test byte ptr ds:[FO_VAR_combat_state], 1       // in combat?
 		jz   end                                  // No
 		mov  edx, [eax+0x68]                      // pobj.cid
 		cmp  edx, -1
 		je   end
 		push eax
-		mov  eax, ds:[VARPTR_aiInfoList]
+		mov  eax, ds:[FO_VAR_aiInfoList]
 		shl  edx, 4
 		mov  dword ptr [edx+eax+0xC], 0           // aiInfo.lastMove
 		pop  eax
@@ -769,20 +773,20 @@ end:
 
 static void __declspec(naked) wmTeleportToArea_hack() {
 	__asm {
-		cmp  ebx, ds:[VARPTR_WorldMapCurrArea]
+		cmp  ebx, ds:[FO_VAR_WorldMapCurrArea]
 		je   end
-		mov  ds:[VARPTR_WorldMapCurrArea], ebx
+		mov  ds:[FO_VAR_WorldMapCurrArea], ebx
 		sub  eax, edx
-		add  eax, ds:[VARPTR_wmAreaInfoList]
+		add  eax, ds:[FO_VAR_wmAreaInfoList]
 		mov  edx, [eax+0x30]                      // wmAreaInfoList.world_posy
-		mov  ds:[VARPTR_world_ypos], edx
+		mov  ds:[FO_VAR_world_ypos], edx
 		mov  edx, [eax+0x2C]                      // wmAreaInfoList.world_posx
-		mov  ds:[VARPTR_world_xpos], edx
+		mov  ds:[FO_VAR_world_xpos], edx
 end:
 		xor  eax, eax
-		mov  ds:[VARPTR_target_xpos], eax
-		mov  ds:[VARPTR_target_ypos], eax
-		mov  ds:[VARPTR_In_WorldMap], eax
+		mov  ds:[FO_VAR_target_xpos], eax
+		mov  ds:[FO_VAR_target_ypos], eax
+		mov  ds:[FO_VAR_In_WorldMap], eax
 		push 0x4C5A77
 		retn
 	}
@@ -821,11 +825,11 @@ static void __declspec(naked) db_get_file_list_hack() {
 		jbe  end                                  // Yes
 		mov  edx, [esi]
 		xchg edx, eax
-		call FuncOffs::nrealloc_                  // eax = mem, edx = size
+		call fo::funcoffs::nrealloc_                  // eax = mem, edx = size
 		test eax, eax
 		jnz  skip
 		push 0x50B2F0                             // "Error: Ran out of memory!"
-		call FuncOffs::debug_printf_
+		call fo::funcoffs::debug_printf_
 		add  esp, 4
 		jmp  end
 skip:
@@ -840,10 +844,10 @@ end:
 
 static void __declspec(naked) gdActivateBarter_hook() {
 	__asm {
-		call FuncOffs::gdialog_barter_pressed_
-		cmp  ds:[VARPTR_dialogue_state], ecx
+		call fo::funcoffs::gdialog_barter_pressed_
+		cmp  ds:[FO_VAR_dialogue_state], ecx
 		jne  skip
-		cmp  ds:[VARPTR_dialogue_switch_mode], esi
+		cmp  ds:[FO_VAR_dialogue_switch_mode], esi
 		je   end
 skip:
 		push ecx
@@ -859,7 +863,7 @@ end:
 
 static void __declspec(naked) switch_hand_hack() {
 	__asm {
-		mov  eax, ds:[VARPTR_inven_dude]
+		mov  eax, ds:[FO_VAR_inven_dude]
 		push eax
 		mov  [edi], ebp
 		inc  ecx
@@ -867,11 +871,11 @@ static void __declspec(naked) switch_hand_hack() {
 		xor  ebx, ebx
 		inc  ebx
 		mov  edx, ebp
-		call FuncOffs::item_remove_mult_
+		call fo::funcoffs::item_remove_mult_
 skip:
 		pop  edx
 		mov  eax, ebp
-		call FuncOffs::item_get_type_
+		call fo::funcoffs::item_get_type_
 		cmp  eax, item_type_container
 		jne  end
 		mov  [ebp+0x7C], edx                      // iobj.owner = _inven_dude
@@ -885,7 +889,7 @@ end:
 
 static void __declspec(naked) inven_item_wearing() {
 	__asm {
-		mov  esi, ds:[VARPTR_inven_dude]
+		mov  esi, ds:[FO_VAR_inven_dude]
 		xchg ebx, eax                             // ebx = source
 		mov  eax, [esi+0x20]
 		and  eax, 0xF000000
@@ -893,11 +897,11 @@ static void __declspec(naked) inven_item_wearing() {
 		test eax, eax                             // check if object FID type flag is set to item
 		jnz  skip                                 // No
 		mov  eax, esi
-		call FuncOffs::item_get_type_
+		call fo::funcoffs::item_get_type_
 		cmp  eax, item_type_container             // Bag/Backpack?
 		jne  skip                                 // No
 		mov  eax, esi
-		call FuncOffs::obj_top_environment_
+		call fo::funcoffs::obj_top_environment_
 		test eax, eax                             // has an owner?
 		jz   skip                                 // No
 		mov  ecx, [eax+0x20]
@@ -919,9 +923,21 @@ static void __declspec(naked) inven_action_cursor_hack() {
 	__asm {
 		cmp  dword ptr [esp+0x44+0x4], item_type_container
 		jne  end
-		cmp  eax, ds:[VARPTR_stack]
+		cmp  eax, ds:[FO_VAR_stack]
 		je   end
-		cmp  eax, ds:[VARPTR_target_stack]
+		cmp  eax, ds:[FO_VAR_target_stack]
+end:
+		retn
+	}
+}
+
+static void __declspec(naked) use_inventory_on_hack() {
+	__asm {
+		inc  ecx
+		mov  edx, [eax]                           // Inventory.inv_size
+		sub  edx, ecx
+		jge  end
+		mov  edx, [eax]                           // Inventory.inv_size
 end:
 		retn
 	}
@@ -1113,7 +1129,7 @@ void BugFixes::init()
 		MakeCall(0x424F8E, &set_new_results_hack, false);
 		MakeCall(0x42E46E, &critter_wake_clear_hack, true);
 		MakeCall(0x488EF3, &obj_load_func_hack, true);
-		HookCall(0x4949B2, &partyMemberPrepLoadInstance_hack);
+		HookCall(0x4949B2, &partyMemberPrepLoadInstance_hook);
 		dlogr(" Done", DL_INIT);
 	//}
 
@@ -1174,7 +1190,7 @@ void BugFixes::init()
 	//if (GetConfigInt("Misc", "BagBackpackFix", 1)) {
 		// Fix for items disappearing from inventory when you try to drag them to bag/backpack in the inventory list
 		// and are overloaded
-		HookCall(0x4764FC, (void*)FuncOffs::item_add_force_);
+		HookCall(0x4764FC, (void*)fo::funcoffs::item_add_force_);
 		// Fix for the engine not checking player's inventory properly when putting items into the bag/backpack in the hands
 		MakeCall(0x4715DB, &switch_hand_hack, true);
 		// Fix to ignore player's equipped items when opening bag/backpack
@@ -1187,4 +1203,9 @@ void BugFixes::init()
 		// Fix crash when trying to open bag/backpack on the table in the bartering interface
 		MakeCall(0x473191, &inven_action_cursor_hack, false);
 	//}
+
+	// Fix crash when clicking on empty space in the inventory list opened by "Use Inventory Item On" (backpack) action icon
+	MakeCall(0x471A94, &use_inventory_on_hack, false);
+}
+
 }

@@ -24,6 +24,9 @@
 #include "..\FalloutEngine\Fallout2.h"
 #include "..\SafeWrite.h"
 
+namespace sfall 
+{
+
 typedef std::unordered_map<DWORD, DWORD> :: const_iterator iter;
 
 static std::unordered_map<DWORD,DWORD> targets;
@@ -56,12 +59,12 @@ static void __declspec(naked) combat_attack_hook() {
 		push eax;
 		call CombatAttackHook;
 		popad;
-		jmp FuncOffs::combat_attack_;
+		jmp fo::funcoffs::combat_attack_;
 	}
 }
 
 static void _stdcall CombatBlocked() {
-	Wrapper::display_print(combatBlockedMessage.c_str());
+	fo::func::display_print(combatBlockedMessage.c_str());
 }
 
 static const DWORD BlockCombatHook1Ret1=0x45F6B4;
@@ -81,7 +84,7 @@ end:
 
 static void __declspec(naked) BlockCombatHook2() {
 	__asm {
-		mov eax, dword ptr ds:[VARPTR_intfaceEnabled];
+		mov eax, dword ptr ds:[FO_VAR_intfaceEnabled];
 		test eax, eax;
 		jz end;
 		mov eax, combatDisabled;
@@ -121,4 +124,6 @@ void _stdcall AICombatStart() {
 void _stdcall AICombatEnd() {
 	targets.clear();
 	sources.clear();
+}
+
 }

@@ -38,6 +38,11 @@
 
 #include "Opcodes.h"
 
+namespace sfall
+{
+namespace script
+{
+
 static const short sfallOpcodeStart = 0x156;
 static const short opcodeCount = 0x300;
 
@@ -158,7 +163,7 @@ void InitOpcodeInfoTable() {
 
 // Default handler for Sfall Opcodes. 
 // Searches current opcode in Opcode Info table and executes the appropriate handler.
-void __stdcall defaultOpcodeHandlerStdcall(TProgram* program, DWORD opcodeOffset) {
+void __stdcall defaultOpcodeHandlerStdcall(fo::Program* program, DWORD opcodeOffset) {
 	int opcode = opcodeOffset / 4;
 	auto iter = opcodeInfoMap.find(opcode);
 	if (iter != opcodeInfoMap.end()) {
@@ -166,7 +171,7 @@ void __stdcall defaultOpcodeHandlerStdcall(TProgram* program, DWORD opcodeOffset
 		OpcodeContext ctx(program, opcode, info->argNum, info->hasReturn);
 		ctx.handleOpcode(info->handler, info->argValidation, info->name);
 	} else {
-		Wrapper::interpretError("Unknown opcode: %d", opcode);
+		fo::func::interpretError("Unknown opcode: %d", opcode);
 	}
 }
 
@@ -422,4 +427,7 @@ void InitNewOpcodes() {
 
 	InitOpcodeInfoTable();
 	InitMetaruleTable();
+}
+
+}
 }

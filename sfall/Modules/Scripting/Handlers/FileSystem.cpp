@@ -22,20 +22,25 @@
 
 #include "FileSystem.h"
 
+namespace sfall
+{
+namespace script
+{
+
 void __declspec(naked) op_fs_create() {
 	__asm {
 		pushad;
 		mov edi, eax;
-		call FuncOffs::interpretPopShort_;
+		call fo::funcoffs::interpretPopShort_;
 		mov ebx, eax;
 		mov eax, edi;
-		call FuncOffs::interpretPopLong_;
+		call fo::funcoffs::interpretPopLong_;
 		mov esi, eax;
 		mov eax, edi;
-		call FuncOffs::interpretPopShort_;
+		call fo::funcoffs::interpretPopShort_;
 		mov edx, eax;
 		mov eax, edi;
-		call FuncOffs::interpretPopLong_;
+		call fo::funcoffs::interpretPopLong_;
 		cmp dx, 0x9001;
 		jz next;
 		cmp dx, 0x9801;
@@ -45,7 +50,7 @@ next:
 		jnz fail;
 		mov ebx, eax;
 		mov eax, edi;
-		call FuncOffs::interpretGetString_;
+		call fo::funcoffs::interpretGetString_;
 		push esi;
 		push eax;
 		call FScreate;
@@ -56,10 +61,10 @@ fail:
 		dec edx;
 end:
 		mov eax, edi;
-		call FuncOffs::interpretPushLong_;
+		call fo::funcoffs::interpretPushLong_;
 		mov eax, edi;
 		mov edx, 0xc001;
-		call FuncOffs::interpretPushShort_;
+		call fo::funcoffs::interpretPushShort_;
 		popad;
 		retn;
 	}
@@ -69,16 +74,16 @@ void __declspec(naked) op_fs_copy() {
 	__asm {
 		pushad;
 		mov ebp, eax;
-		call FuncOffs::interpretPopShort_;
+		call fo::funcoffs::interpretPopShort_;
 		mov edi, eax;
 		mov eax, ebp;
-		call FuncOffs::interpretPopLong_;
+		call fo::funcoffs::interpretPopLong_;
 		mov ecx, eax;
 		mov eax, ebp;
-		call FuncOffs::interpretPopShort_;
+		call fo::funcoffs::interpretPopShort_;
 		mov esi, eax;
 		mov eax, ebp;
-		call FuncOffs::interpretPopLong_;
+		call fo::funcoffs::interpretPopLong_;
 		cmp di, 0x9001;
 		jz next;
 		cmp di, 0x9801;
@@ -92,12 +97,12 @@ next2:
 		mov ebx, eax;
 		mov edx, esi;
 		mov eax, ebp;
-		call FuncOffs::interpretGetString_;
+		call fo::funcoffs::interpretGetString_;
 		mov esi, eax;
 		mov ebx, ecx;
 		mov edx, edi;
 		mov eax, ebp;
-		call FuncOffs::interpretGetString_;
+		call fo::funcoffs::interpretGetString_;
 		push eax;
 		push esi;
 		call FScopy;
@@ -107,10 +112,10 @@ fail:
 		dec edx;
 end:
 		mov eax, ebp;
-		call FuncOffs::interpretPushLong_;
+		call fo::funcoffs::interpretPushLong_;
 		mov eax, ebp;
 		mov edx, 0xc001;
-		call FuncOffs::interpretPushShort_;
+		call fo::funcoffs::interpretPushShort_;
 		popad;
 		retn;
 	}
@@ -120,10 +125,10 @@ void __declspec(naked) op_fs_find() {
 	__asm {
 		pushad;
 		mov ebp, eax;
-		call FuncOffs::interpretPopShort_;
+		call fo::funcoffs::interpretPopShort_;
 		mov edi, eax;
 		mov eax, ebp;
-		call FuncOffs::interpretPopLong_;
+		call fo::funcoffs::interpretPopLong_;
 		cmp di, 0x9001;
 		jz next;
 		cmp di, 0x9801;
@@ -132,7 +137,7 @@ next:
 		mov ebx, eax;
 		mov edx, edi;
 		mov eax, ebp;
-		call FuncOffs::interpretGetString_;
+		call fo::funcoffs::interpretGetString_;
 		push eax;
 		call FSfind;
 		mov edx, eax;
@@ -142,10 +147,10 @@ fail:
 		dec edx;
 end:
 		mov eax, ebp;
-		call FuncOffs::interpretPushLong_;
+		call fo::funcoffs::interpretPushLong_;
 		mov eax, ebp;
 		mov edx, 0xc001;
-		call FuncOffs::interpretPushShort_;
+		call fo::funcoffs::interpretPushShort_;
 		popad;
 		retn;
 	}
@@ -155,16 +160,16 @@ void __declspec(naked) op_fs_write_byte() {
 	__asm {
 		pushad;
 		mov ebp, eax;
-		call FuncOffs::interpretPopShort_;
+		call fo::funcoffs::interpretPopShort_;
 		mov edi, eax;
 		mov eax, ebp;
-		call FuncOffs::interpretPopLong_;
+		call fo::funcoffs::interpretPopLong_;
 		mov ecx, eax;
 		mov eax, ebp;
-		call FuncOffs::interpretPopShort_;
+		call fo::funcoffs::interpretPopShort_;
 		mov esi, eax;
 		mov eax, ebp;
-		call FuncOffs::interpretPopLong_;
+		call fo::funcoffs::interpretPopLong_;
 		cmp di, 0xc001;
 		jnz end;
 		cmp si, 0xc001;
@@ -182,16 +187,16 @@ void __declspec(naked) op_fs_write_short() {
 	__asm {
 		pushad;
 		mov ebp, eax;
-		call FuncOffs::interpretPopShort_;
+		call fo::funcoffs::interpretPopShort_;
 		mov edi, eax;
 		mov eax, ebp;
-		call FuncOffs::interpretPopLong_;
+		call fo::funcoffs::interpretPopLong_;
 		mov ecx, eax;
 		mov eax, ebp;
-		call FuncOffs::interpretPopShort_;
+		call fo::funcoffs::interpretPopShort_;
 		mov esi, eax;
 		mov eax, ebp;
-		call FuncOffs::interpretPopLong_;
+		call fo::funcoffs::interpretPopLong_;
 		cmp di, 0xc001;
 		jnz end;
 		cmp si, 0xc001;
@@ -209,16 +214,16 @@ void __declspec(naked) op_fs_write_int() {
 	__asm {
 		pushad;
 		mov ebp, eax;
-		call FuncOffs::interpretPopShort_;
+		call fo::funcoffs::interpretPopShort_;
 		mov edi, eax;
 		mov eax, ebp;
-		call FuncOffs::interpretPopLong_;
+		call fo::funcoffs::interpretPopLong_;
 		mov ecx, eax;
 		mov eax, ebp;
-		call FuncOffs::interpretPopShort_;
+		call fo::funcoffs::interpretPopShort_;
 		mov esi, eax;
 		mov eax, ebp;
-		call FuncOffs::interpretPopLong_;
+		call fo::funcoffs::interpretPopLong_;
 		cmp di, 0xc001;
 		jnz end;
 		cmp si, 0xc001;
@@ -239,16 +244,16 @@ void __declspec(naked) op_fs_write_string() {
 	__asm {
 		pushad;
 		mov edi, eax;
-		call FuncOffs::interpretPopShort_;
+		call fo::funcoffs::interpretPopShort_;
 		mov ebx, eax;
 		mov eax, edi;
-		call FuncOffs::interpretPopLong_;
+		call fo::funcoffs::interpretPopLong_;
 		mov esi, eax;
 		mov eax, edi;
-		call FuncOffs::interpretPopShort_;
+		call fo::funcoffs::interpretPopShort_;
 		mov edx, eax;
 		mov eax, edi;
-		call FuncOffs::interpretPopLong_;
+		call fo::funcoffs::interpretPopLong_;
 		mov ebp, eax;
 		cmp bx, 0x9001;
 		jz next;
@@ -260,7 +265,7 @@ next:
 		mov edx, ebx;
 		mov ebx, esi;
 		mov eax, edi;
-		call FuncOffs::interpretGetString_;
+		call fo::funcoffs::interpretGetString_;
 		push eax;
 		push ebp;
 		call FSwrite_string;
@@ -274,16 +279,16 @@ void __declspec(naked) op_fs_write_bstring() {
 	__asm {
 		pushad;
 		mov edi, eax;
-		call FuncOffs::interpretPopShort_;
+		call fo::funcoffs::interpretPopShort_;
 		mov ebx, eax;
 		mov eax, edi;
-		call FuncOffs::interpretPopLong_;
+		call fo::funcoffs::interpretPopLong_;
 		mov esi, eax;
 		mov eax, edi;
-		call FuncOffs::interpretPopShort_;
+		call fo::funcoffs::interpretPopShort_;
 		mov edx, eax;
 		mov eax, edi;
-		call FuncOffs::interpretPopLong_;
+		call fo::funcoffs::interpretPopLong_;
 		mov ebp, eax;
 		cmp bx, 0x9001;
 		jz next;
@@ -295,7 +300,7 @@ next:
 		mov edx, ebx;
 		mov ebx, esi;
 		mov eax, edi;
-		call FuncOffs::interpretGetString_;
+		call fo::funcoffs::interpretGetString_;
 		push eax;
 		push ebp;
 		call FSwrite_bstring;
@@ -309,10 +314,10 @@ void __declspec(naked) op_fs_read_byte() {
 	__asm {
 		pushad;
 		mov ebp, eax;
-		call FuncOffs::interpretPopShort_;
+		call fo::funcoffs::interpretPopShort_;
 		mov edi, eax;
 		mov eax, ebp;
-		call FuncOffs::interpretPopLong_;
+		call fo::funcoffs::interpretPopLong_;
 		cmp di, 0xc001;
 		jnz fail;
 		push eax;
@@ -324,10 +329,10 @@ fail:
 		dec edx;
 end:
 		mov eax, ebp;
-		call FuncOffs::interpretPushLong_;
+		call fo::funcoffs::interpretPushLong_;
 		mov eax, ebp;
 		mov edx, 0xc001;
-		call FuncOffs::interpretPushShort_;
+		call fo::funcoffs::interpretPushShort_;
 		popad;
 		retn;
 	}
@@ -337,10 +342,10 @@ void __declspec(naked) op_fs_read_short() {
 	__asm {
 		pushad;
 		mov ebp, eax;
-		call FuncOffs::interpretPopShort_;
+		call fo::funcoffs::interpretPopShort_;
 		mov edi, eax;
 		mov eax, ebp;
-		call FuncOffs::interpretPopLong_;
+		call fo::funcoffs::interpretPopLong_;
 		cmp di, 0xc001;
 		jnz fail;
 		push eax;
@@ -352,10 +357,10 @@ fail:
 		dec edx;
 end:
 		mov eax, ebp;
-		call FuncOffs::interpretPushLong_;
+		call fo::funcoffs::interpretPushLong_;
 		mov eax, ebp;
 		mov edx, 0xc001;
-		call FuncOffs::interpretPushShort_;
+		call fo::funcoffs::interpretPushShort_;
 		popad;
 		retn;
 	}
@@ -365,10 +370,10 @@ void __declspec(naked) op_fs_read_int() {
 	__asm {
 		pushad;
 		mov ebp, eax;
-		call FuncOffs::interpretPopShort_;
+		call fo::funcoffs::interpretPopShort_;
 		mov edi, eax;
 		mov eax, ebp;
-		call FuncOffs::interpretPopLong_;
+		call fo::funcoffs::interpretPopLong_;
 		cmp di, 0xc001;
 		jnz fail;
 		push eax;
@@ -380,10 +385,10 @@ fail:
 		dec edx;
 end:
 		mov eax, ebp;
-		call FuncOffs::interpretPushLong_;
+		call fo::funcoffs::interpretPushLong_;
 		mov eax, ebp;
 		mov edx, 0xc001;
-		call FuncOffs::interpretPushShort_;
+		call fo::funcoffs::interpretPushShort_;
 		popad;
 		retn;
 	}
@@ -393,10 +398,10 @@ void __declspec(naked) op_fs_read_float() {
 	__asm {
 		pushad;
 		mov ebp, eax;
-		call FuncOffs::interpretPopShort_;
+		call fo::funcoffs::interpretPopShort_;
 		mov edi, eax;
 		mov eax, ebp;
-		call FuncOffs::interpretPopLong_;
+		call fo::funcoffs::interpretPopLong_;
 		cmp di, 0xc001;
 		jnz fail;
 		push eax;
@@ -408,10 +413,10 @@ fail:
 		dec edx;
 end:
 		mov eax, ebp;
-		call FuncOffs::interpretPushLong_;
+		call fo::funcoffs::interpretPushLong_;
 		mov eax, ebp;
 		mov edx, 0xa001;
-		call FuncOffs::interpretPushShort_;
+		call fo::funcoffs::interpretPushShort_;
 		popad;
 		retn;
 	}
@@ -421,10 +426,10 @@ void __declspec(naked) op_fs_delete() {
 	__asm {
 		pushad;
 		mov ebp, eax;
-		call FuncOffs::interpretPopShort_;
+		call fo::funcoffs::interpretPopShort_;
 		mov edi, eax;
 		mov eax, ebp;
-		call FuncOffs::interpretPopLong_;
+		call fo::funcoffs::interpretPopLong_;
 		cmp di, 0xc001;
 		jnz end
 			push eax;
@@ -439,10 +444,10 @@ void __declspec(naked) op_fs_size() {
 	__asm {
 		pushad;
 		mov ebp, eax;
-		call FuncOffs::interpretPopShort_;
+		call fo::funcoffs::interpretPopShort_;
 		mov edi, eax;
 		mov eax, ebp;
-		call FuncOffs::interpretPopLong_;
+		call fo::funcoffs::interpretPopLong_;
 		cmp di, 0xc001;
 		jnz fail;
 		push eax;
@@ -454,10 +459,10 @@ fail:
 		dec edx;
 end:
 		mov eax, ebp;
-		call FuncOffs::interpretPushLong_;
+		call fo::funcoffs::interpretPushLong_;
 		mov eax, ebp;
 		mov edx, 0xc001;
-		call FuncOffs::interpretPushShort_;
+		call fo::funcoffs::interpretPushShort_;
 		popad;
 		retn;
 	}
@@ -467,10 +472,10 @@ void __declspec(naked) op_fs_pos() {
 	__asm {
 		pushad;
 		mov ebp, eax;
-		call FuncOffs::interpretPopShort_;
+		call fo::funcoffs::interpretPopShort_;
 		mov edi, eax;
 		mov eax, ebp;
-		call FuncOffs::interpretPopLong_;
+		call fo::funcoffs::interpretPopLong_;
 		cmp di, 0xc001;
 		jnz fail;
 		push eax;
@@ -482,10 +487,10 @@ fail:
 		dec edx;
 end:
 		mov eax, ebp;
-		call FuncOffs::interpretPushLong_;
+		call fo::funcoffs::interpretPushLong_;
 		mov eax, ebp;
 		mov edx, 0xc001;
-		call FuncOffs::interpretPushShort_;
+		call fo::funcoffs::interpretPushShort_;
 		popad;
 		retn;
 	}
@@ -495,16 +500,16 @@ void __declspec(naked) op_fs_seek() {
 	__asm {
 		pushad;
 		mov ebp, eax;
-		call FuncOffs::interpretPopShort_;
+		call fo::funcoffs::interpretPopShort_;
 		mov edi, eax;
 		mov eax, ebp;
-		call FuncOffs::interpretPopLong_;
+		call fo::funcoffs::interpretPopLong_;
 		mov ecx, eax;
 		mov eax, ebp;
-		call FuncOffs::interpretPopShort_;
+		call fo::funcoffs::interpretPopShort_;
 		mov esi, eax;
 		mov eax, ebp;
-		call FuncOffs::interpretPopLong_;
+		call fo::funcoffs::interpretPopLong_;
 		cmp di, 0xc001;
 		jnz end;
 		cmp si, 0xc001;
@@ -522,16 +527,16 @@ void __declspec(naked) op_fs_resize() {
 	__asm {
 		pushad;
 		mov ebp, eax;
-		call FuncOffs::interpretPopShort_;
+		call fo::funcoffs::interpretPopShort_;
 		mov edi, eax;
 		mov eax, ebp;
-		call FuncOffs::interpretPopLong_;
+		call fo::funcoffs::interpretPopLong_;
 		mov ecx, eax;
 		mov eax, ebp;
-		call FuncOffs::interpretPopShort_;
+		call fo::funcoffs::interpretPopShort_;
 		mov esi, eax;
 		mov eax, ebp;
-		call FuncOffs::interpretPopLong_;
+		call fo::funcoffs::interpretPopLong_;
 		cmp di, 0xc001;
 		jnz end;
 		cmp si, 0xc001;
@@ -543,4 +548,7 @@ end:
 		popad;
 		retn;
 	}
+}
+
+}
 }

@@ -24,6 +24,9 @@
 
 #include "Worldmap.h"
 
+namespace sfall
+{
+
 static DWORD ViewportX;
 static DWORD ViewportY;
 
@@ -32,8 +35,8 @@ static __declspec(naked) void GetDateWrapper() {
 		push ecx;
 		push esi;
 		push ebx;
-		call FuncOffs::game_time_date_;
-		mov ecx, ds:[VARPTR_pc_proto + 0x4C];
+		call fo::funcoffs::game_time_date_;
+		mov ecx, ds:[FO_VAR_pc_proto + 0x4C];
 		pop esi;
 		test esi, esi;
 		jz end;
@@ -47,9 +50,9 @@ end:
 }
 
 static void TimerReset() {
-	VarPtr::fallout_game_time = 0;
+	fo::var::fallout_game_time = 0;
 	// used as additional years indicator
-	VarPtr::pc_proto.base_stat_unarmed_damage += 13;
+	fo::var::pc_proto.critter.base.unarmedDamage += 13;
 }
 
 static int mapSlotsScrollMax = 27 * (17 - 7);
@@ -66,7 +69,7 @@ up:
 		test ebx, ebx;
 		jz end;
 run:
-		call FuncOffs::wmInterfaceScrollTabsStart_;
+		call fo::funcoffs::wmInterfaceScrollTabsStart_;
 end:
 		pop ebx;
 		retn;
@@ -81,34 +84,34 @@ static void __declspec(naked) worldmap_patch() {
 		mov ecx, wp_delay;
 tck:
 		mov eax, ds : [0x50fb08];
-		call FuncOffs::elapsed_time_;
+		call fo::funcoffs::elapsed_time_;
 		cmp eax, ecx;
 		jl tck;
-		call FuncOffs::get_time_;
+		call fo::funcoffs::get_time_;
 		mov ds : [0x50fb08], eax;
 		popad;
-		jmp FuncOffs::get_input_;
+		jmp fo::funcoffs::get_input_;
 	}
 }
 
 static void __declspec(naked) WorldMapEncPatch1() {
 	__asm {
-		inc dword ptr ds : [VARPTR_wmLastRndTime]
-		call FuncOffs::wmPartyWalkingStep_;
+		inc dword ptr ds : [FO_VAR_wmLastRndTime]
+		call fo::funcoffs::wmPartyWalkingStep_;
 		retn;
 	}
 }
 
 static void __declspec(naked) WorldMapEncPatch2() {
 	__asm {
-		mov dword ptr ds : [VARPTR_wmLastRndTime], 0;
+		mov dword ptr ds : [FO_VAR_wmLastRndTime], 0;
 		retn;
 	}
 }
 
 static void __declspec(naked) WorldMapEncPatch3() {
 	__asm {
-		mov eax, ds:[VARPTR_wmLastRndTime];
+		mov eax, ds:[FO_VAR_wmLastRndTime];
 		retn;
 	}
 }
@@ -116,8 +119,8 @@ static void __declspec(naked) WorldMapEncPatch3() {
 static DWORD WorldMapEncounterRate;
 static void __declspec(naked) wmWorldMapFunc_hook() {
 	__asm {
-		inc  dword ptr ds:[VARPTR_wmLastRndTime];
-		jmp  FuncOffs::wmPartyWalkingStep_;
+		inc  dword ptr ds:[FO_VAR_wmLastRndTime];
+		jmp  fo::funcoffs::wmPartyWalkingStep_;
 	}
 }
 
@@ -160,7 +163,7 @@ static void __declspec(naked) WorldMapSpeedPatch2() {
 		pushad;
 		call WorldMapSpeedPatch3;
 		popad;
-		call FuncOffs::get_input_;
+		call fo::funcoffs::get_input_;
 		retn;
 	}
 }
@@ -176,7 +179,7 @@ ls:
 		mov eax, eax;
 		loop ls;
 		pop ecx;
-		call FuncOffs::get_input_;
+		call fo::funcoffs::get_input_;
 		retn;
 	}
 }
@@ -187,18 +190,18 @@ static void WorldMapHook() {
 		pushad;
 		call RunGlobalScripts3;
 		popad;
-		call FuncOffs::get_input_;
+		call fo::funcoffs::get_input_;
 		retn;
 	}
 }
 
 static void __declspec(naked) ViewportHook() {
 	__asm {
-		call FuncOffs::wmWorldMapLoadTempData_;
+		call fo::funcoffs::wmWorldMapLoadTempData_;
 		mov eax, ViewportX;
-		mov ds : [VARPTR_wmWorldOffsetX], eax
+		mov ds : [FO_VAR_wmWorldOffsetX], eax
 		mov eax, ViewportY;
-		mov ds : [VARPTR_wmWorldOffsetY], eax;
+		mov ds : [FO_VAR_wmWorldOffsetY], eax;
 		retn;
 	}
 }
@@ -253,14 +256,15 @@ static DWORD _stdcall PathfinderFix2(DWORD perkLevel, DWORD ticks) {
 }
 
 static __declspec(naked) void PathfinderFix() {
+	using namespace fo;
 	__asm {
 		push eax;
-		mov eax, ds:[VARPTR_obj_dude];
+		mov eax, ds:[FO_VAR_obj_dude];
 		mov edx, PERK_pathfinder;
-		call FuncOffs::perk_level_;
+		call fo::funcoffs::perk_level_;
 		push eax;
 		call PathfinderFix2;
-		call FuncOffs::inc_game_time_;
+		call fo::funcoffs::inc_game_time_;
 		retn;
 	}
 }
@@ -467,14 +471,14 @@ void ApplyStartingStatePatches() {
 	ViewportX = GetConfigInt("Misc", "ViewXPos", -1);
 	if (ViewportX != -1) {
 		dlog("Applying starting x view patch.", DL_INIT);
-		SafeWrite32(VARPTR_wmWorldOffsetX, ViewportX);
+		SafeWrite32(FO_VAR_wmWorldOffsetX, ViewportX);
 		HookCall(0x4BCF07, &ViewportHook);
 		dlogr(" Done", DL_INIT);
 	}
 	ViewportY = GetConfigInt("Misc", "ViewYPos", -1);
 	if (ViewportY != -1) {
 		dlog("Applying starting y view patch.", DL_INIT);
-		SafeWrite32(VARPTR_wmWorldOffsetY, ViewportY);
+		SafeWrite32(FO_VAR_wmWorldOffsetY, ViewportY);
 		HookCall(0x4BCF07, &ViewportHook);
 		dlogr(" Done", DL_INIT);
 	}
@@ -487,4 +491,6 @@ void Worldmap::init() {
 	ApplyTownMapsHotkeyFix();
 	ApplyWorldLimitsPatches();
 	ApplyWorldmapFpsPatch();
+}
+
 }

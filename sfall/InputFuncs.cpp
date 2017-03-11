@@ -22,15 +22,16 @@
 #include <queue>
 
 #include "main.h"
-
-#include "InputFuncs.h"
 #include "Logging.h"
 #include "Modules\Graphics.h"
 #include "Modules\ScriptExtender.h"
 #include "Modules\HookScripts.h"
 #include "Modules\DebugEditor.h"
 
-typedef HRESULT (_stdcall *DInputCreateProc)(HINSTANCE a,DWORD b,IDirectInputA** c,IUnknown* d);
+#include "InputFuncs.h"
+
+namespace sfall 
+{
 
 static bool useScrollWheel;
 static DWORD wheelMod;
@@ -83,6 +84,7 @@ void SetMDown(bool down, bool right) {
 	if (right) RMouse = down ? 0x80 : 0;
 	else LMouse = down ? 0x80 : 0;
 }
+
 void SetMPos(int x, int y) {
 	MPMouseX = x;
 	MPMouseY = y;
@@ -206,15 +208,14 @@ public:
 			MouseState.lY = (LONG)d;
 		}
 		if (useScrollWheel) {
+			int count = 1;
 			if (MouseState.lZ > 0) {
-				int count;
 				if (wheelMod) count = MouseState.lZ / wheelMod;
-				else count = 1;
+				if (count < 1) count = 1;
 				while (count--) TapKey(DIK_UP);
 			} else if (MouseState.lZ < 0) {
-				int count;
 				if (wheelMod) count = (-MouseState.lZ) / wheelMod;
-				else count = 1;
+				if (count < 1) count = 1;
 				while (count--) TapKey(DIK_DOWN);
 			}
 		}
@@ -377,16 +378,8 @@ public:
 	}
 };
 
-HRESULT _stdcall FakeDirectInputCreate(HINSTANCE a, DWORD b, IDirectInputA** c, IUnknown* d) {
+inline void InitInputFeatures() {
 	ZeroMemory(keysDown, sizeof(keysDown));
-
-	HMODULE dinput = LoadLibraryA("dinput.dll");
-	if (!dinput || dinput == INVALID_HANDLE_VALUE) return -1;
-	DInputCreateProc proc = (DInputCreateProc)GetProcAddress(dinput, "DirectInputCreateA");
-	if (!proc) return -1;
-
-	HRESULT hr = proc(a, b, c, d);
-	if (FAILED(hr)) return hr;
 
 	reverseMouse = GetConfigInt("Input", "ReverseMouseButtons", 0) != 0;
 
@@ -408,9 +401,26 @@ HRESULT _stdcall FakeDirectInputCreate(HINSTANCE a, DWORD b, IDirectInputA** c, 
 
 	debugEditorKey = GetConfigInt("Input", "DebugEditorKey", 0);
 
-	*c = (IDirectInputA*)new FakeDirectInput(*c);
-
 	keyboardLayout = GetKeyboardLayout(0);
+}
+
+}
+
+typedef HRESULT (_stdcall *DInputCreateProc)(HINSTANCE a,DWORD b,IDirectInputA** c,IUnknown* d);
+
+// This should be in global namespace
+HRESULT _stdcall FakeDirectInputCreate(HINSTANCE a, DWORD b, IDirectInputA** c, IUnknown* d) {
+	HMODULE dinput = LoadLibraryA("dinput.dll");
+	if (!dinput || dinput == INVALID_HANDLE_VALUE) return -1;
+	DInputCreateProc proc = (DInputCreateProc)GetProcAddress(dinput, "DirectInputCreateA");
+	if (!proc) return -1;
+
+	HRESULT hr = proc(a, b, c, d);
+	if (FAILED(hr)) return hr;
+
+	*c = (IDirectInputA*)new sfall::FakeDirectInput(*c);
+
+	sfall::InitInputFeatures();
 
 	return hr;
 }

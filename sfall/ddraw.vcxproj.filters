@@ -135,16 +135,7 @@
     <ClInclude Include="Modules\Scripting\Arrays.h">
       <Filter>Modules\Scripting</Filter>
     </ClInclude>
-    <ClInclude Include="FalloutEngine\Wrappers.h">
-      <Filter>FalloutEngine</Filter>
-    </ClInclude>
-    <ClInclude Include="FalloutEngine\Functions.h">
-      <Filter>FalloutEngine</Filter>
-    </ClInclude>
     <ClInclude Include="FalloutEngine\Variables.h">
-      <Filter>FalloutEngine</Filter>
-    </ClInclude>
-    <ClInclude Include="FalloutEngine\Utils.h">
       <Filter>FalloutEngine</Filter>
     </ClInclude>
     <ClInclude Include="Modules\Scripting\ScriptValue.h">
@@ -199,9 +190,6 @@
     <ClInclude Include="Modules\Scripting\Opcodes.h">
       <Filter>Modules\Scripting</Filter>
     </ClInclude>
-    <ClInclude Include="FalloutEngine\Wrappers_def.h">
-      <Filter>FalloutEngine</Filter>
-    </ClInclude>
     <ClInclude Include="Modules\Module.h">
       <Filter>Modules</Filter>
     </ClInclude>
@@ -239,6 +227,22 @@
       <Filter>Modules</Filter>
     </ClInclude>
     <ClInclude Include="Utils.h" />
+    <ClInclude Include="FalloutEngine\FunctionOffsets.h">
+      <Filter>FalloutEngine</Filter>
+    </ClInclude>
+    <ClInclude Include="FalloutEngine\Functions.h">
+      <Filter>FalloutEngine</Filter>
+    </ClInclude>
+    <ClInclude Include="FalloutEngine\Functions_def.h">
+      <Filter>FalloutEngine</Filter>
+    </ClInclude>
+    <ClInclude Include="FalloutEngine\EngineUtils.h">
+      <Filter>FalloutEngine</Filter>
+    </ClInclude>
+    <ClInclude Include="FalloutEngine\FunctionOffsets_def.h">
+      <Filter>FalloutEngine</Filter>
+    </ClInclude>
+    <ClInclude Include="FalloutEngine\VariableOffsets.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
@@ -351,16 +355,7 @@
     <ClCompile Include="Modules\Scripting\Arrays.cpp">
       <Filter>Modules\Scripting</Filter>
     </ClCompile>
-    <ClCompile Include="FalloutEngine\Functions.cpp">
-      <Filter>FalloutEngine</Filter>
-    </ClCompile>
     <ClCompile Include="FalloutEngine\Variables.cpp">
-      <Filter>FalloutEngine</Filter>
-    </ClCompile>
-    <ClCompile Include="FalloutEngine\Wrappers.cpp">
-      <Filter>FalloutEngine</Filter>
-    </ClCompile>
-    <ClCompile Include="FalloutEngine\Utils.cpp">
       <Filter>FalloutEngine</Filter>
     </ClCompile>
     <ClCompile Include="Modules\Scripting\ScriptValue.cpp">
@@ -446,6 +441,15 @@
       <Filter>Modules</Filter>
     </ClCompile>
     <ClCompile Include="Utils.cpp" />
+    <ClCompile Include="FalloutEngine\Functions.cpp">
+      <Filter>FalloutEngine</Filter>
+    </ClCompile>
+    <ClCompile Include="FalloutEngine\EngineUtils.cpp">
+      <Filter>FalloutEngine</Filter>
+    </ClCompile>
+    <ClCompile Include="FalloutEngine\FunctionOffsets.cpp">
+      <Filter>FalloutEngine</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="version.rc" />

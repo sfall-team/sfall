@@ -24,7 +24,9 @@
 
 #include "Perks.h"
 
-//static const BYTE PerksUsed=121;
+namespace sfall
+{
+using namespace fo;
 
 static char Name[64 * PERK_count];
 static char Desc[1024 * PERK_count];
@@ -33,13 +35,13 @@ static char tDesc[1024 * TRAIT_count];
 static char perksFile[MAX_PATH];
 static BYTE disableTraits[TRAIT_count];
 
-#define check_trait(a) !disableTraits[a] && (VarPtr::pc_trait[0] == a || VarPtr::pc_trait[1] == a)
+#define check_trait(a) !disableTraits[a] && (var::pc_trait[0] == a || var::pc_trait[1] == a)
 
 static DWORD addPerkMode = 2;
 
 //static const PerkStruct BlankPerk={ &Name[PERK_count*64], &Desc[PERK_count*1024], 0x48, 1, 1, -1, 0, -1, 0, 0, -1, 0, 0, 0, 0, 0, 0, 0, 0 };
-static PerkInfo Perks[PERK_count];
-static TraitInfo Traits[TRAIT_count];
+static PerkInfo perks[PERK_count];
+static TraitInfo traits[TRAIT_count];
 
 struct FakePerk {
 	int Level;
@@ -90,7 +92,7 @@ static void __declspec(naked) LevelUpHook() {
 		test ecx, ecx;
 		jnz afterskilled;
 		mov eax, TRAIT_skilled;
-		call FuncOffs::trait_level_; //Check if the player has the skilled trait
+		call fo::funcoffs::trait_level_; //Check if the player has the skilled trait
 		test eax, eax;
 		jz notskilled;
 		push TRAIT_skilled;
@@ -102,17 +104,17 @@ static void __declspec(naked) LevelUpHook() {
 notskilled:
 		mov ecx, 3;
 afterskilled:
-		mov eax, ds:[VARPTR_Level_]; //Get players level
+		mov eax, ds:[FO_VAR_Level_]; //Get players level
 		inc eax;
 		xor edx, edx;
 		div ecx;
 		test edx, edx;
 		jnz end;
-		inc byte ptr ds:[VARPTR_free_perk]; //Increment the number of perks owed
+		inc byte ptr ds:[FO_VAR_free_perk]; //Increment the number of perks owed
 end:
 		pop ebx;
 		pop ecx;
-		mov edx, ds:[VARPTR_Level_];
+		mov edx, ds:[FO_VAR_Level_];
 		retn;
 	}
 }
@@ -325,15 +327,15 @@ static DWORD _stdcall HandleFakeTraits(int i2) {
 		DWORD a = (DWORD)fakeTraits[i].Name;
 		__asm {
 			mov eax, a;
-			call FuncOffs::folder_print_line_;
+			call fo::funcoffs::folder_print_line_;
 			mov a, eax;
 		}
 		if (a && !i2) {
 			i2 = 1;
-			VarPtr::folder_card_fid = fakeTraits[i].Image;
-			VarPtr::folder_card_title = (DWORD)fakeTraits[i].Name;
-			VarPtr::folder_card_title2 = 0;
-			VarPtr::folder_card_desc = (DWORD)fakeTraits[i].Desc;
+			var::folder_card_fid = fakeTraits[i].Image;
+			var::folder_card_title = (DWORD)fakeTraits[i].Name;
+			var::folder_card_title2 = 0;
+			var::folder_card_desc = (DWORD)fakeTraits[i].Desc;
 		}
 	}
 	return i2;
@@ -346,9 +348,9 @@ static void __declspec(naked) PlayerHasPerkHook() {
 		mov  ecx, eax;
 		xor  ebx, ebx;
 oloop:
-		mov  eax, ds:[VARPTR_obj_dude];
+		mov  eax, ds:[FO_VAR_obj_dude];
 		mov  edx, ebx;
-		call FuncOffs::perk_level_;
+		call fo::funcoffs::perk_level_;
 		test eax, eax;
 		jnz  win;
 		inc  ebx;
@@ -386,7 +388,7 @@ static void __declspec(naked) GetPerkLevelHook() {
 		mov eax, ds:[eax];
 		ret;
 end:
-		jmp FuncOffs::perk_level_;
+		jmp fo::funcoffs::perk_level_;
 	}
 }
 
@@ -399,7 +401,7 @@ static void __declspec(naked) GetPerkImageHook() {
 		mov eax, ds:[eax+4];
 		ret;
 end:
-		jmp FuncOffs::perk_skilldex_fid_;
+		jmp fo::funcoffs::perk_skilldex_fid_;
 	}
 }
 
@@ -412,7 +414,7 @@ static void __declspec(naked) GetPerkNameHook() {
 		lea eax, ds:[eax+8];
 		ret;
 end:
-		jmp FuncOffs::perk_name_;
+		jmp fo::funcoffs::perk_name_;
 	}
 }
 
@@ -425,7 +427,7 @@ static void __declspec(naked) GetPerkDescHook() {
 		lea eax, ds:[eax+72];
 		ret;
 end:
-		jmp FuncOffs::perk_description_
+		jmp fo::funcoffs::perk_description_
 	}
 }
 
@@ -459,7 +461,7 @@ static void __declspec(naked) GetAvailablePerksHook() {
 		mov ebx, IgnoringDefaultPerks;
 		test ebx, ebx;
 		jnz skipdefaults;
-		call FuncOffs::perk_make_list_;
+		call fo::funcoffs::perk_make_list_;
 		jmp next;
 skipdefaults:
 		xor eax, eax;
@@ -480,7 +482,7 @@ static void __declspec(naked) GetPerkSLevelHook() {
 		call GetFakeSPerkLevel;
 		ret;
 end:
-		jmp FuncOffs::perk_level_;
+		jmp fo::funcoffs::perk_level_;
 	}
 }
 
@@ -493,7 +495,7 @@ static void __declspec(naked) GetPerkSImageHook() {
 		mov eax, ds:[eax+4];
 		ret;
 end:
-		jmp FuncOffs::perk_skilldex_fid_;
+		jmp fo::funcoffs::perk_skilldex_fid_;
 	}
 }
 
@@ -506,7 +508,7 @@ static void __declspec(naked) GetPerkSNameHook() {
 		lea eax, ds:[eax+8];
 		ret;
 end:
-		jmp FuncOffs::perk_name_;
+		jmp fo::funcoffs::perk_name_;
 	}
 }
 
@@ -519,7 +521,7 @@ static void __declspec(naked) GetPerkSDescHook() {
 		lea eax, ds:[eax+72];
 		ret;
 end:
-		jmp FuncOffs::perk_description_;
+		jmp fo::funcoffs::perk_description_;
 	}
 }
 
@@ -572,7 +574,7 @@ static void __declspec(naked) AddPerkHook() {
 		ret;
 end:
 		push edx;
-		call FuncOffs::perk_add_;
+		call fo::funcoffs::perk_add_;
 		pop edx;
 		test eax, eax;
 		jnz end2;
@@ -580,7 +582,7 @@ end:
 		jl end2;
 		cmp edx, 90;
 		jg end2;
-		inc ds:[edx*4 + (VARPTR_pc_proto + 0x24 - PERK_gain_strength_perk*4)]; // base_stat_srength
+		inc ds:[edx*4 + (FO_VAR_pc_proto + 0x24 - (PERK_gain_strength_perk)*4)]; // base_stat_srength
 end2:
 		retn;
 	}
@@ -590,7 +592,7 @@ static void __declspec(naked) HeaveHoHook() {
 	__asm {
 		xor  edx, edx;
 		mov  eax, ecx;
-		call FuncOffs::stat_level_;
+		call fo::funcoffs::stat_level_;
 		lea  ebx, [0+eax*4];
 		sub  ebx, eax;
 		cmp  ebx, esi;
@@ -599,7 +601,7 @@ static void __declspec(naked) HeaveHoHook() {
 lower:
 		mov  eax, ecx;
 		mov  edx, PERK_heave_ho;
-		call FuncOffs::perk_level_;
+		call fo::funcoffs::perk_level_;
 		lea  ecx, [0+eax*8];
 		sub  ecx, eax;
 		sub  ecx, eax;
@@ -613,7 +615,7 @@ lower:
 void _stdcall ApplyHeaveHoFix() {
 	SafeWrite8(0x478AC4, 0xe9);
 	HookCall(0x478AC4, HeaveHoHook);
-	Perks[PERK_heave_ho].Str = 0;
+	perks[PERK_heave_ho].strengthMin = 0;
 }
 
 static void PerkSetup() {
@@ -655,74 +657,74 @@ static void PerkSetup() {
 
 	memset(Name, 0, sizeof(Name));
 	memset(Desc, 0, sizeof(Desc));
-	memcpy(Perks, VarPtr::perk_data, sizeof(PerkInfo) * PERK_count);
+	memcpy(perks, var::perk_data, sizeof(PerkInfo) * PERK_count);
 
-	SafeWrite32(0x00496669, (DWORD)Perks);
-	SafeWrite32(0x00496837, (DWORD)Perks);
-	SafeWrite32(0x00496BAD, (DWORD)Perks);
-	SafeWrite32(0x00496C41, (DWORD)Perks);
-	SafeWrite32(0x00496D25, (DWORD)Perks);
-	SafeWrite32(0x00496696, (DWORD)Perks + 4);
-	SafeWrite32(0x00496BD1, (DWORD)Perks + 4);
-	SafeWrite32(0x00496BF5, (DWORD)Perks + 8);
-	SafeWrite32(0x00496AD4, (DWORD)Perks + 12);
+	SafeWrite32(0x00496669, (DWORD)perks);
+	SafeWrite32(0x00496837, (DWORD)perks);
+	SafeWrite32(0x00496BAD, (DWORD)perks);
+	SafeWrite32(0x00496C41, (DWORD)perks);
+	SafeWrite32(0x00496D25, (DWORD)perks);
+	SafeWrite32(0x00496696, (DWORD)perks + 4);
+	SafeWrite32(0x00496BD1, (DWORD)perks + 4);
+	SafeWrite32(0x00496BF5, (DWORD)perks + 8);
+	SafeWrite32(0x00496AD4, (DWORD)perks + 12);
 
 	if (strlen(perksFile)) {
 		char num[4];
 		for (int i = 0; i < PERK_count; i++) {
 			_itoa_s(i, num, 10);
 			if (GetPrivateProfileString(num, "Name", "", &Name[i * 64], 63, perksFile)) {
-				Perks[i].Name = &Name[i * 64];
+				perks[i].name = &Name[i * 64];
 			}
 			if (GetPrivateProfileString(num, "Desc", "", &Desc[i * 1024], 1023, perksFile)) {
-				Perks[i].Desc = &Desc[i * 1024];
+				perks[i].description = &Desc[i * 1024];
 			}
 			int value;
 			value = GetPrivateProfileInt(num, "Image", -99999, perksFile);
-			if (value != -99999) Perks[i].Image = value;
+			if (value != -99999) perks[i].image = value;
 			value = GetPrivateProfileInt(num, "Ranks", -99999, perksFile);
-			if (value != -99999) Perks[i].Ranks = value;
+			if (value != -99999) perks[i].ranks = value;
 			value = GetPrivateProfileInt(num, "Level", -99999, perksFile);
-			if (value != -99999) Perks[i].Level = value;
+			if (value != -99999) perks[i].levelMin = value;
 			value = GetPrivateProfileInt(num, "Stat", -99999, perksFile);
-			if (value != -99999) Perks[i].Stat = value;
+			if (value != -99999) perks[i].stat = value;
 			value = GetPrivateProfileInt(num, "StatMag", -99999, perksFile);
-			if (value != -99999) Perks[i].StatMag = value;
+			if (value != -99999) perks[i].statMod = value;
 			value = GetPrivateProfileInt(num, "Skill1", -99999, perksFile);
-			if (value != -99999) Perks[i].Skill1 = value;
+			if (value != -99999) perks[i].skill1 = value;
 			value = GetPrivateProfileInt(num, "Skill1Mag", -99999, perksFile);
-			if (value != -99999) Perks[i].Skill1Mag = value;
+			if (value != -99999) perks[i].skill1Min = value;
 			value = GetPrivateProfileInt(num, "Type", -99999, perksFile);
-			if (value != -99999) Perks[i].Type = value;
+			if (value != -99999) perks[i].skillOperator = value;
 			value = GetPrivateProfileInt(num, "Skill2", -99999, perksFile);
-			if (value != -99999) Perks[i].Skill2 = value;
+			if (value != -99999) perks[i].skill2 = value;
 			value = GetPrivateProfileInt(num, "Skill2Mag", -99999, perksFile);
-			if (value != -99999) Perks[i].Skill2Mag = value;
+			if (value != -99999) perks[i].skill2Min = value;
 			value = GetPrivateProfileInt(num, "STR", -99999, perksFile);
-			if (value != -99999) Perks[i].Str = value;
+			if (value != -99999) perks[i].strengthMin = value;
 			value = GetPrivateProfileInt(num, "PER", -99999, perksFile);
-			if (value != -99999) Perks[i].Per = value;
+			if (value != -99999) perks[i].perceptionMin = value;
 			value = GetPrivateProfileInt(num, "END", -99999, perksFile);
-			if (value != -99999) Perks[i].End = value;
+			if (value != -99999) perks[i].enduranceMin = value;
 			value = GetPrivateProfileInt(num, "CHR", -99999, perksFile);
-			if (value != -99999) Perks[i].Chr = value;
+			if (value != -99999) perks[i].charismaMin = value;
 			value = GetPrivateProfileInt(num, "INT", -99999, perksFile);
-			if (value != -99999) Perks[i].Int = value;
+			if (value != -99999) perks[i].intelligenceMin = value;
 			value = GetPrivateProfileInt(num, "AGL", -99999, perksFile);
-			if (value != -99999) Perks[i].Agl = value;
+			if (value != -99999) perks[i].agilityMin = value;
 			value = GetPrivateProfileInt(num, "LCK", -99999, perksFile);
-			if (value != -99999) Perks[i].Lck = value;
+			if (value != -99999) perks[i].luckMin = value;
 		}
 	}
 
 	for (int i = 0; i < PERK_count; i++) {
-		if (Perks[i].Name != &Name[64 * i]) {
-			strcpy_s(&Name[64 * i], 64, Perks[i].Name);
-			Perks[i].Name = &Name[64 * i];
+		if (perks[i].name != &Name[64 * i]) {
+			strcpy_s(&Name[64 * i], 64, perks[i].name);
+			perks[i].name = &Name[64 * i];
 		}
-		if (Perks[i].Desc&&Perks[i].Desc != &Desc[1024 * i]) {
-			strcpy_s(&Desc[1024 * i], 1024, Perks[i].Desc);
-			Perks[i].Desc = &Desc[1024 * i];
+		if (perks[i].description&&perks[i].description != &Desc[1024 * i]) {
+			strcpy_s(&Desc[1024 * i], 1024, perks[i].description);
+			perks[i].description = &Desc[1024 * i];
 		}
 	}
 
@@ -744,8 +746,8 @@ static int _stdcall stat_get_base_direct(DWORD statID) {
 	DWORD result;
 	__asm {
 		mov edx, statID;
-		mov eax, dword ptr ds:[VARPTR_obj_dude];
-		call FuncOffs::stat_get_base_direct_;
+		mov eax, dword ptr ds:[FO_VAR_obj_dude];
+		call fo::funcoffs::stat_get_base_direct_;
 		mov result, eax;
 	}
 	return result;
@@ -754,8 +756,8 @@ static int _stdcall stat_get_base_direct(DWORD statID) {
 static int _stdcall trait_adjust_stat_override(DWORD statID) {
 	if (statID > STAT_max_derived) return 0;
 	int result = 0;
-	if (VarPtr::pc_trait[0] != -1) result += TraitStatBonuses[statID*TRAIT_count + VarPtr::pc_trait[0]];
-	if (VarPtr::pc_trait[1] != -1) result += TraitStatBonuses[statID*TRAIT_count + VarPtr::pc_trait[1]];
+	if (var::pc_trait[0] != -1) result += TraitStatBonuses[statID*TRAIT_count + var::pc_trait[0]];
+	if (var::pc_trait[1] != -1) result += TraitStatBonuses[statID*TRAIT_count + var::pc_trait[1]];
 	switch (statID) {
 	case STAT_st:
 		if (check_trait(TRAIT_gifted)) result++;
@@ -831,8 +833,8 @@ static void __declspec(naked) TraitAdjustStatHook() {
 
 static int _stdcall trait_adjust_skill_override(DWORD skillID) {
 	int result = 0;
-	if (VarPtr::pc_trait[0] != -1) result += TraitSkillBonuses[skillID*TRAIT_count + VarPtr::pc_trait[0]];
-	if (VarPtr::pc_trait[1] != -1) result += TraitSkillBonuses[skillID*TRAIT_count + VarPtr::pc_trait[1]];
+	if (var::pc_trait[0] != -1) result += TraitSkillBonuses[skillID*TRAIT_count + var::pc_trait[0]];
+	if (var::pc_trait[1] != -1) result += TraitSkillBonuses[skillID*TRAIT_count + var::pc_trait[1]];
 	if (check_trait(TRAIT_gifted)) result -= 10;
 	if (check_trait(TRAIT_good_natured)) {
 		if (skillID <= SKILL_THROWING) result -= 10;
@@ -866,15 +868,15 @@ static void TraitSetup() {
 
 	memset(tName, 0, sizeof(tName));
 	memset(tDesc, 0, sizeof(tDesc));
-	memcpy(Traits, VarPtr::trait_data, sizeof(TraitInfo) * TRAIT_count);
+	memcpy(traits, var::trait_data, sizeof(TraitInfo) * TRAIT_count);
 	memset(TraitStatBonuses, 0, sizeof(TraitStatBonuses));
 	memset(TraitSkillBonuses, 0, sizeof(TraitSkillBonuses));
 
-	SafeWrite32(0x4B3A81, (DWORD)Traits);
-	SafeWrite32(0x4B3B80, (DWORD)Traits);
-	SafeWrite32(0x4B3AAE, (DWORD)Traits + 4);
-	SafeWrite32(0x4B3BA0, (DWORD)Traits + 4);
-	SafeWrite32(0x4B3BC0, (DWORD)Traits + 8);
+	SafeWrite32(0x4B3A81, (DWORD)traits);
+	SafeWrite32(0x4B3B80, (DWORD)traits);
+	SafeWrite32(0x4B3AAE, (DWORD)traits + 4);
+	SafeWrite32(0x4B3BA0, (DWORD)traits + 4);
+	SafeWrite32(0x4B3BC0, (DWORD)traits + 8);
 
 	if (strlen(perksFile)) {
 		char num[5], buf[512];
@@ -882,13 +884,13 @@ static void TraitSetup() {
 		char* num2 = &num[1];
 		for (int i = 0; i < TRAIT_count; i++) {
 			_itoa_s(i, num2, 4, 10);
-			if (GetPrivateProfileString(num, "Name", "", &tName[i * 64], 63, perksFile)) Traits[i].Name = &tName[i * 64];
+			if (GetPrivateProfileString(num, "Name", "", &tName[i * 64], 63, perksFile)) traits[i].name = &tName[i * 64];
 			if (GetPrivateProfileString(num, "Desc", "", &tDesc[i * 1024], 1023, perksFile)) {
-				Traits[i].Desc = &tDesc[i * 1024];
+				traits[i].description = &tDesc[i * 1024];
 			}
 			int value;
 			value = GetPrivateProfileInt(num, "Image", -99999, perksFile);
-			if (value != -99999) Traits[i].Image = value;
+			if (value != -99999) traits[i].image = value;
 
 			if (GetPrivateProfileStringA(num, "StatMod", "", buf, 512, perksFile) > 0) {
 				char *stat, *mod;
@@ -954,20 +956,20 @@ static void TraitSetup() {
 	}
 
 	for (int i = 0; i < TRAIT_count; i++) {
-		if (Traits[i].Name != &tName[64 * i]) {
-			strcpy_s(&tName[64 * i], 64, Traits[i].Name);
-			Traits[i].Name = &tName[64 * i];
+		if (traits[i].name != &tName[64 * i]) {
+			strcpy_s(&tName[64 * i], 64, traits[i].name);
+			traits[i].name = &tName[64 * i];
 		}
-		if (Traits[i].Desc&&Traits[i].Desc != &tDesc[1024 * i]) {
-			strcpy_s(&tDesc[1024 * i], 1024, Traits[i].Desc);
-			Traits[i].Desc = &tDesc[1024 * i];
+		if (traits[i].description&&traits[i].description != &tDesc[1024 * i]) {
+			strcpy_s(&tDesc[1024 * i], 1024, traits[i].description);
+			traits[i].description = &tDesc[1024 * i];
 		}
 	}
 }
 
 static __declspec(naked) void PerkInitWrapper() {
 	__asm {
-		call FuncOffs::perk_init_;
+		call fo::funcoffs::perk_init_;
 		pushad;
 		call PerkSetup;
 		popad;
@@ -976,7 +978,7 @@ static __declspec(naked) void PerkInitWrapper() {
 }
 static __declspec(naked) void TraitInitWrapper() {
 	__asm {
-		call FuncOffs::trait_init_;
+		call fo::funcoffs::trait_init_;
 		pushad;
 		call TraitSetup;
 		popad;
@@ -986,7 +988,7 @@ static __declspec(naked) void TraitInitWrapper() {
 
 void _stdcall SetPerkValue(int id, int value, DWORD offset) {
 	if (id < 0 || id >= PERK_count) return;
-	*(DWORD*)((DWORD)(&Perks[id]) + offset) = value;
+	*(DWORD*)((DWORD)(&perks[id]) + offset) = value;
 }
 
 void _stdcall SetPerkName(int id, char* value) {
@@ -997,7 +999,7 @@ void _stdcall SetPerkName(int id, char* value) {
 void _stdcall SetPerkDesc(int id, char* value) {
 	if (id < 0 || id >= PERK_count) return;
 	strcpy_s(&Desc[id * 1024], 1024, value);
-	Perks[id].Desc = &Desc[1024 * id];
+	perks[id].description = &Desc[1024 * id];
 }
 
 void PerksReset() {
@@ -1118,4 +1120,6 @@ void Perks::init() {
 	} else perksFile[0] = 0;
 
 	LoadGameHook::onGameReset += PerksReset;
+}
+
 }

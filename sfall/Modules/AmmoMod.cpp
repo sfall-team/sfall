@@ -23,6 +23,10 @@
 
 #include "AmmoMod.h"
 
+namespace sfall 
+{
+using namespace fo;
+
 static const DWORD DamageFunctionReturn = 0x424A63;
 
 // Damage Fix v5 by Glovz 2014.04.16.xx.xx
@@ -37,7 +41,7 @@ begin:
 		mov dword ptr ss : [esp + 0x30], 0x0; // clear value
 		mov edx, dword ptr ds : [esi + 4]; // get pointer to weapon being used by an attacker (I think)
 		mov eax, dword ptr ds : [esi]; // get pointer to critter attacking
-		call FuncOffs::item_w_damage_; // get the raw damage value
+		call fo::funcoffs::item_w_damage_; // get the raw damage value
 		mov ebx, dword ptr ss : [esp + 0x18]; // get the bonus ranged damage value
 		cmp ebx, 0x0; // compare the range bonus damage value to 0
 		jle rdJmp; // if the RB value is less than or equal to 0 then goto rdJmp
@@ -50,7 +54,7 @@ rdJmp:
 		cmp edx, 0x0; // compare the armorDT value to 0
 		jle bJmp; // if the armorDT value is less than or equal to 0 then goto bJmp
 		mov eax, dword ptr ds : [esi + 0x8]; // get pointer to critters ammo being used in their weapon (I think)
-		call FuncOffs::item_w_dam_div_; // get the ammoY value
+		call fo::funcoffs::item_w_dam_div_; // get the ammoY value
 		cmp eax, 0x0; // compare the ammoY value to 0
 		jg aJmp; // if the ammoY value is greater than 0 then goto aJmp
 		mov eax, 0x1; // set the ammoY value to 1
@@ -129,7 +133,7 @@ sdrJmp:
 		sub edx, 0x14; // subtract 20 from the armorDR value
 aSubCJmp:
 		mov eax, dword ptr ds : [esi + 0x8]; // get pointer to ammo being used in the critters weapon (I think)
-		call FuncOffs::item_w_dr_adjust_; // get the ammoDRM value
+		call fo::funcoffs::item_w_dr_adjust_; // get the ammoDRM value
 		cmp eax, 0x0; // compare the ammoDRM value to 0
 		jl adrJmp; // if the ammoDRM value is less than 0 then goto adrJmp
 		je bSubCJmp; // if the ammoDRM value is equal to 0 then goto bSubCJmp
@@ -140,7 +144,7 @@ adrJmp:
 		add edx, eax; // add the ammoDRM value to the armorDR value
 bSubCJmp:
 		mov eax, dword ptr ds : [esi + 0x8]; // get pointer to ammo being used in the critters weapon (I think)
-		call FuncOffs::item_w_dam_mult_; // get the ammoX value
+		call fo::funcoffs::item_w_dam_mult_; // get the ammoX value
 		cmp eax, 0x0; // compare the ammoX value to 0
 		jg cSubCJmp; // if the ammoX value is greater than 0 then goto cSubCJmp;
 		mov eax, 0x1; // set the ammoX value to 1
@@ -158,11 +162,11 @@ divThree:
 		jmp eJmp; // goto eJmp
 dJmp:
 		mov eax, dword ptr ds : [esi + 0x8]; // get pointer to ammo being used in the critters weapon (I think)
-		call FuncOffs::item_w_dam_mult_; // get the ammoX value
+		call fo::funcoffs::item_w_dam_mult_; // get the ammoX value
 		cmp eax, 0x1; // compare the ammoX value to 1
 		jle bSubDJmp; // if the ammoX value is less than or equal to 1 then goto bSubDJmp;
 		mov eax, dword ptr ds : [esi + 0x8]; // get pointer to critters ammo being used in their weapon (I think)
-		call FuncOffs::item_w_dam_div_; // get the ammoY value
+		call fo::funcoffs::item_w_dam_div_; // get the ammoY value
 		cmp eax, 0x1; // compare the ammoY value to 1
 		jle aSubDJmp; // if the ammoY value is less than or equal to 1 then goto aSubDJmp
 		mov edx, ebx; // set temp value
@@ -184,7 +188,7 @@ divFive:
 		jmp eJmp; // goto eJmp
 bSubDJmp:
 		mov eax, dword ptr ds : [esi + 0x8]; // get pointer to critters ammo being used in their weapon (I think)
-		call FuncOffs::item_w_dam_div_; // get the ammoY value
+		call fo::funcoffs::item_w_dam_div_; // get the ammoY value
 		cmp eax, 0x1; // compare the ammoY value to 1
 		jle eJmp; // goto eJmp
 		mov edx, ebx; // set temp value
@@ -226,7 +230,7 @@ begin:
 		mov dword ptr ss : [esp + 0x30], 0x0; // clear value
 		mov edx, dword ptr ds : [esi + 4]; // get pointer to weapon being used by an attacker (I think)
 		mov eax, dword ptr ds : [esi]; // get pointer to critter attacking
-		call FuncOffs::item_w_damage_; // get the raw damage value
+		call fo::funcoffs::item_w_damage_; // get the raw damage value
 		mov ebx, dword ptr ss : [esp + 0x18]; // get the bonus ranged damage value
 		cmp ebx, 0x0; // compare the range bonus damage value to 0
 		jle rdJmp; // if the RB value is less than or equal to 0 then goto rdJmp
@@ -239,7 +243,7 @@ rdJmp:
 		cmp edx, 0x0; // compare the armorDT value to 0
 		jle bJmp; // if the armorDT value is less than or equal to 0 then goto bJmp
 		mov eax, dword ptr ds : [esi + 0x8]; // get pointer to critters ammo being used in their weapon (I think)
-		call FuncOffs::item_w_dam_div_; // get the ammoY value
+		call fo::funcoffs::item_w_dam_div_; // get the ammoY value
 		cmp eax, 0x0; // compare the ammoY value to 0
 		jg aJmp; // if the ammoY value is greater than 0 then goto aJmp
 		mov eax, 0x1; // set the ammoY value to 1
@@ -320,7 +324,7 @@ sdrJmp:
 		sub edx, 0x14; // subtract 20 from the armorDR value
 aSubCJmp:
 		mov eax, dword ptr ds : [esi + 0x8]; // get pointer to ammo being used in the critters weapon (I think)
-		call FuncOffs::item_w_dr_adjust_; // get the ammoDRM value
+		call fo::funcoffs::item_w_dr_adjust_; // get the ammoDRM value
 		cmp eax, 0x0; // compare the ammoDRM value to 0
 		jl adrJmp; // if the ammoDRM value is less than 0 then goto adrJmp
 		je bSubCJmp; // if the ammoDRM value is equal to 0 then goto bSubCJmp
@@ -331,7 +335,7 @@ adrJmp:
 		add edx, eax; // add the ammoDRM value to the armorDR value
 bSubCJmp:
 		mov eax, dword ptr ds : [esi + 0x8]; // get pointer to ammo being used in the critters weapon (I think)
-		call FuncOffs::item_w_dam_mult_; // get the ammoX value
+		call fo::funcoffs::item_w_dam_mult_; // get the ammoX value
 		cmp eax, 0x0; // compare the ammoX value to 0
 		jg cSubCJmp; // if the ammoX value is greater than 0 then goto cSubCJmp;
 		mov eax, 0x1; // set the ammoX value to 1
@@ -349,11 +353,11 @@ divThree:
 		jmp eJmp; // goto eJmp
 dJmp:
 		mov eax, dword ptr ds : [esi + 0x8]; // get pointer to ammo being used in the critters weapon (I think)
-		call FuncOffs::item_w_dam_mult_; // get the ammoX value
+		call fo::funcoffs::item_w_dam_mult_; // get the ammoX value
 		cmp eax, 0x1; // compare the ammoX value to 1
 		jle bSubDJmp; // if the ammoX value is less than or equal to 1 then goto bSubDJmp;
 		mov eax, dword ptr ds : [esi + 0x8]; // get pointer to critters ammo being used in their weapon (I think)
-		call FuncOffs::item_w_dam_div_; // get the ammoY value
+		call fo::funcoffs::item_w_dam_div_; // get the ammoY value
 		cmp eax, 0x1; // compare the ammoY value to 1
 		jle aSubDJmp; // if the ammoY value is less than or equal to 1 then goto aSubDJmp
 		mov edx, ebx; // set temp value
@@ -375,7 +379,7 @@ divFive:
 		jmp eJmp; // goto eJmp
 bSubDJmp:
 		mov eax, dword ptr ds : [esi + 0x8]; // get pointer to critters ammo being used in their weapon (I think)
-		call FuncOffs::item_w_dam_div_; // get the ammoY value
+		call fo::funcoffs::item_w_dam_div_; // get the ammoY value
 		cmp eax, 0x1; // compare the ammoY value to 1
 		jle eJmp; // goto eJmp
 		mov edx, ebx; // set temp value
@@ -417,10 +421,10 @@ static __declspec(naked) void DamageFunction5() {
 	__asm {
 		mov eax, dword ptr ds : [esi + 0x8];		// Get pointer to critter's weapon
 		mov edx, dword ptr ss : [esp + 0x24];	// Get Critical Multiplier (passed in as argument to function)
-		call FuncOffs::item_w_dam_mult_;			// Retrieve Ammo Dividend
+		call fo::funcoffs::item_w_dam_mult_;			// Retrieve Ammo Dividend
 		imul edx, eax;				// Damage Multipler = Critical Multipler * Ammo Dividend
 		mov eax, dword ptr ds : [esi + 0x8];		// Get pointer to critter's weapon
-		call FuncOffs::item_w_dam_div_;			// Retrieve Ammo Divisor
+		call fo::funcoffs::item_w_dam_div_;			// Retrieve Ammo Divisor
 		imul ebp, eax;				// Ammo Divisor = 1 * Ammo Divisor (ebp set to 1 earlier in function)
 		mov ebx, dword ptr ss : [esp + 0x1c];	// Get number of hits
 		xor ecx, ecx;				// Set loop counter to zero
@@ -431,11 +435,11 @@ ajmp:							// Start of damage calculation loop
 		mov edx, dword ptr ds : [esi + 0x4];		// Get pointer to weapon (?)
 		mov eax, dword ptr ds : [esi];		// Get pointer to critter (?)
 		mov ebx, dword ptr ss : [esp + 0x18];	// Get Bonus Ranged Damage
-		call FuncOffs::item_w_damage_;		// Retrieve Raw Damage
+		call fo::funcoffs::item_w_damage_;		// Retrieve Raw Damage
 		add ebx, eax; 				// Raw Damage = Raw Damage + Bonus Ranged Damage
 		mov edx, dword ptr ss : [esp + 0x28];	// Get armor DT
 		mov eax, dword ptr ds : [esi + 0x8];		// Get pointer to critter's weapon
-		call FuncOffs::item_w_dr_adjust_;			// Retrieve ammo DT (well, it's really Retrieve ammo DR, but since we're treating ammo DR as ammo DT...)
+		call fo::funcoffs::item_w_dr_adjust_;			// Retrieve ammo DT (well, it's really Retrieve ammo DR, but since we're treating ammo DR as ammo DT...)
 		sub edx, eax;				// DT = armor DT - ammo DT
 		test edx, edx;				// Is DT >= 0?
 		jge bjmp;				// If yes, skip the next instruction
@@ -467,7 +471,7 @@ djmp:
 		mov ebx, eax;				// Raw Damage = Raw Damage / 100
 		mov edx, dword ptr ss : [esp + 0x28];	// Get armor DT
 		mov eax, dword ptr ds : [esi + 0x8];		// Get pointer to critter's weapon
-		call FuncOffs::item_w_dr_adjust_;			// Retrieve ammo DT
+		call fo::funcoffs::item_w_dr_adjust_;			// Retrieve ammo DT
 		sub edx, eax;				// DT = armor DT - ammo DT
 		test edx, edx;				// Is DT >= 0?
 		jge ejmp;				// If yes, set DT = 0
@@ -516,11 +520,11 @@ static const DWORD FixbEnd = 0x478553;
 
 static __declspec(naked) void MeleeDmgDispFix() {
 	__asm {
-		call FuncOffs::stat_level_;			// Get Melee Damage
+		call fo::funcoffs::stat_level_;			// Get Melee Damage
 		mov ecx, eax;				// Store value
-		mov eax, dword ptr ds : [VARPTR_obj_dude];	// Get pointer to PC
+		mov eax, dword ptr ds : [FO_VAR_obj_dude];	// Get pointer to PC
 		mov edx, PERK_bonus_hth_damage;		// perk_level_ argument: PERK_bonus_hth_damage
-		call FuncOffs::perk_level_;			// Get rank of Bonus HtH Damage
+		call fo::funcoffs::perk_level_;			// Get rank of Bonus HtH Damage
 		shl eax, 0x1;				// Multiply by 2
 		sub ecx, eax;				// Subtract from Melee Damage
 		mov eax, ecx;				// Move back to eax in preparation of push
@@ -530,11 +534,11 @@ static __declspec(naked) void MeleeDmgDispFix() {
 
 static __declspec(naked) void MeleeDmgPrintFix() {
 	__asm {
-		call FuncOffs::stat_level_;			// Get Melee Damage
+		call fo::funcoffs::stat_level_;			// Get Melee Damage
 		mov ebx, eax;				// Store value
-		mov eax, dword ptr ds : [VARPTR_obj_dude];	// Get pointer to PC
+		mov eax, dword ptr ds : [FO_VAR_obj_dude];	// Get pointer to PC
 		mov edx, PERK_bonus_hth_damage;		// perk_level_ argument: PERK_bonus_hth_damage
-		call FuncOffs::perk_level_;			// Get rank of Bonus HtH Damage
+		call fo::funcoffs::perk_level_;			// Get rank of Bonus HtH Damage
 		shl eax, 0x1;				// Multiply by 2
 		sub ebx, eax;				// Subtract from Melee Damage
 		mov eax, ebx;				// Move back to eax in preparation of push
@@ -545,14 +549,14 @@ static __declspec(naked) void MeleeDmgPrintFix() {
 
 static __declspec(naked) void MeleeWeapDmgRngDispFix() {
 	__asm {
-		call FuncOffs::stat_level_;			// Get Melee Damage
+		call fo::funcoffs::stat_level_;			// Get Melee Damage
 		mov ebx, eax;				// Store Melee Damage value
-		mov edx, dword ptr ds : [VARPTR_stack];		// Get pointer to critter
-		mov eax, dword ptr ds : [VARPTR_obj_dude];	// Get pointer to PC
+		mov edx, dword ptr ds : [FO_VAR_stack];		// Get pointer to critter
+		mov eax, dword ptr ds : [FO_VAR_obj_dude];	// Get pointer to PC
 		cmp eax, edx;				// Is PC == critter?
 		jnz end;					// exit if no
 		mov edx, PERK_bonus_hth_damage;		// perk_level_ argument: PERK_bonus_hth_damage
-		call FuncOffs::perk_level_;			// Otherwise, get rank of Bonus HtH Damage
+		call fo::funcoffs::perk_level_;			// Otherwise, get rank of Bonus HtH Damage
 		shl eax, 0x1;				// Multiply by 2
 		sub ebx, eax;				// Subtract from Melee Damage
 end:
@@ -563,12 +567,12 @@ end:
 static __declspec(naked) void UnarmedDmgRngDispFix() {
 	__asm {
 		mov ebx, eax;				// Store Melee Damage value
-		mov edx, dword ptr ds : [VARPTR_stack];		// Get pointer to critter
-		mov eax, dword ptr ds : [VARPTR_obj_dude];	// Get pointer to PC
+		mov edx, dword ptr ds : [FO_VAR_stack];		// Get pointer to critter
+		mov eax, dword ptr ds : [FO_VAR_obj_dude];	// Get pointer to PC
 		cmp eax, edx;				// Is PC == critter?
 		jnz end;					// exit if no
 		mov edx, PERK_bonus_hth_damage;		// perk_level_ argument: PERK_bonus_hth_damage
-		call FuncOffs::perk_level_;			// Otherwise, get rank of Bonus HtH Damage
+		call fo::funcoffs::perk_level_;			// Otherwise, get rank of Bonus HtH Damage
 		shl eax, 0x1;				// Multiply by 2
 		sub ebx, eax;				// Subtract to Melee Damage
 end:
@@ -581,18 +585,19 @@ end:
 }
 
 static __declspec(naked) void HtHDamageFix1a() {
+	using namespace fo;
 	__asm {
 		mov eax, ecx;				// stat_level_ argument: pointer to critter
-		mov edx, STAT_melee_dmg;		// stat_level_ argument: STAT_melee_dmg
-		call FuncOffs::stat_level_;			// Get Total_Melee_Damage
+		mov edx, STAT_melee_dmg;		// stat_level_ argument: fo::STAT_melee_dmg
+		call fo::funcoffs::stat_level_;			// Get Total_Melee_Damage
 		add eax, 2;					// Total_Melee_Damage += 2
 		mov dword ptr ss : [esp], eax;			// Max_Damage = Total_Melee_Damage
 		xor edx, edx;
-		mov eax, dword ptr ds : [VARPTR_obj_dude];	// Get pointer to PC
+		mov eax, dword ptr ds : [FO_VAR_obj_dude];	// Get pointer to PC
 		cmp ecx, eax;				// Is the critter == PC?
 		jnz ajmp;					// Skip to ajmp if no
 		mov edx, PERK_bonus_hth_damage;		// perk_level_ argument: PERK_bonus_hth_damage
-		call FuncOffs::perk_level_;			// Return Rank_of_Bonus_HtH_Damage_perk
+		call fo::funcoffs::perk_level_;			// Return Rank_of_Bonus_HtH_Damage_perk
 		shl eax, 0x1;				// Rank_of_Bonus_HtH_Damage_perk *= 2
 		mov edx, eax;				// Min_Damage = Rank_of_Bonus_HtH_Damage_perk
 ajmp:
@@ -605,13 +610,13 @@ ajmp:
 
 static __declspec(naked) void HtHDamageFix1b() {
 	__asm {
-		call FuncOffs::stat_level_;			// Get Total_Melee_Damage
+		call fo::funcoffs::stat_level_;			// Get Total_Melee_Damage
 		mov ebp, eax;
-		mov eax, dword ptr ds : [VARPTR_obj_dude];	// Get pointer to PC
+		mov eax, dword ptr ds : [FO_VAR_obj_dude];	// Get pointer to PC
 		cmp ecx, eax;				// Is the critter == PC?
 		jnz end;					// Skip to exit if no
 		mov edx, PERK_bonus_hth_damage;		// perk_level_ argument: PERK_bonus_hth_damage
-		call FuncOffs::perk_level_;			// Return Rank_of_Bonus_HtH_Damage_perk
+		call fo::funcoffs::perk_level_;			// Return Rank_of_Bonus_HtH_Damage_perk
 		shl eax, 0x1;				// Rank_of_Bonus_HtH_Damage_perk *= 2
 		add dword ptr ss : [esp + 0x4], eax;	// Min_Damage += Rank_of_Bonus_HtH_Damage_perk
 end:
@@ -623,12 +628,12 @@ end:
 static void __declspec(naked) DisplayBonusRangedDmg() {
 	__asm {
 		mov  edx, PERK_bonus_ranged_damage
-		mov  eax, dword ptr ds : [VARPTR_stack]
-		call FuncOffs::perk_level_
+		mov  eax, dword ptr ds : [FO_VAR_stack]
+		call fo::funcoffs::perk_level_
 		shl  eax, 1
 		add  dword ptr[esp + 4 * 4], eax             // min_dmg
 		add  dword ptr[esp + 4 * 5], eax             // max_dmg
-		jmp  FuncOffs::sprintf_
+		jmp  fo::funcoffs::sprintf_
 	}
 }
 
@@ -636,11 +641,11 @@ static void __declspec(naked) DisplayBonusRangedDmg() {
 static void __declspec(naked) DisplayBonusHtHDmg1() {
 	__asm {
 		mov  edx, PERK_bonus_hth_damage
-		mov  eax, dword ptr ds : [VARPTR_stack]
-		call FuncOffs::perk_level_
+		mov  eax, dword ptr ds : [FO_VAR_stack]
+		call fo::funcoffs::perk_level_
 		shl  eax, 1
 		add  dword ptr[esp + 4 * 4], eax             // min_dmg
-		jmp  FuncOffs::sprintf_
+		jmp  fo::funcoffs::sprintf_
 	}
 }
 
@@ -648,13 +653,13 @@ static void __declspec(naked) DisplayBonusHtHDmg1() {
 static void __declspec(naked) DisplayBonusHtHDmg2() {
 	__asm {
 		push eax
-		call FuncOffs::stat_level_
+		call fo::funcoffs::stat_level_
 		pop  ecx
 		add  eax, 2
 		push eax
 		xchg ecx, eax
 		mov  edx, PERK_bonus_hth_damage
-		call FuncOffs::perk_level_
+		call fo::funcoffs::perk_level_
 		shl  eax, 1
 		add  eax, 1
 		push eax
@@ -663,7 +668,7 @@ static void __declspec(naked) DisplayBonusHtHDmg2() {
 		push 0x509EDC                             // '%s %d-%d'
 		lea  eax, [esp + 0xC + 0x4]
 		push eax
-		call FuncOffs::sprintf_
+		call fo::funcoffs::sprintf_
 		add  esp, 4 * 5
 		push 0x472569
 		retn
@@ -680,7 +685,7 @@ static void __declspec(naked) UnarmedAttacksFix() {
 PowKickHPunch:
 		mov edx, 0x64;
 		mov eax, 0x1;
-		call FuncOffs::roll_random_;
+		call fo::funcoffs::roll_random_;
 		cmp eax, 0x5;				// 5% chance of critical hit
 		jle CriticalHit;
 		jmp end;
@@ -693,7 +698,7 @@ HKickJabCheck:
 HKickJab:
 		mov edx, 0x64;
 		mov eax, 0x1;
-		call FuncOffs::roll_random_;
+		call fo::funcoffs::roll_random_;
 		cmp eax, 0xa;				// 10% chance of critical hit
 		jle CriticalHit;
 		jmp end;
@@ -702,7 +707,7 @@ Haymaker:
 		jnz PalmStrike;
 		mov edx, 0x64;
 		mov eax, 0x1;
-		call FuncOffs::roll_random_;
+		call fo::funcoffs::roll_random_;
 		cmp eax, 0xf;				// 15% chance of critical hit
 		jle CriticalHit;
 		jmp end;
@@ -711,7 +716,7 @@ PalmStrike:
 		jnz PiercingStrike;
 		mov edx, 0x64;
 		mov eax, 0x1;
-		call FuncOffs::roll_random_;
+		call fo::funcoffs::roll_random_;
 		cmp eax, 0x14;				// 20% chance of critical hit
 		jle CriticalHit;
 		jmp end;
@@ -720,7 +725,7 @@ PiercingStrike:
 		jnz PiercingKick;
 		mov edx, 0x64;
 		mov eax, 0x1;
-		call FuncOffs::roll_random_;
+		call fo::funcoffs::roll_random_;
 		cmp eax, 0x28;				// 40% chance of critical hit
 		jle CriticalHit;
 		jmp end;
@@ -729,7 +734,7 @@ PiercingKick:
 		jnz end;
 		mov edx, 0x64;
 		mov eax, 0x1;
-		call FuncOffs::roll_random_;
+		call fo::funcoffs::roll_random_;
 		cmp eax, 0x32;				// 50% chance of critical hit
 		jg end;
 CriticalHit:
@@ -788,4 +793,6 @@ void AmmoMod::init() {
 		}
 		dlogr(" Done", DL_INIT);
 	}
+}
+
 }

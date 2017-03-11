@@ -18,7 +18,12 @@
 
 #include "Module.h"
 
+namespace sfall
+{
+
 class QuestList : public Module {
 	const char* name() { return "QuestList"; }
 	void init();
 };
+
+}

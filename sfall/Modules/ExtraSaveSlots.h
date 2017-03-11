@@ -20,9 +20,14 @@
 
 #include "Module.h"
 
+namespace sfall
+{
+
 extern DWORD LSPageOffset;
 
 class ExtraSaveSlots : public Module {
 	const char* name() { return "SuperSave"; }
 	void init();
 };
+
+}

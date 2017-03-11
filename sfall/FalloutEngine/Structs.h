@@ -22,6 +22,8 @@
 
 #include "Enums.h"
 
+namespace fo
+{
 
 /******************************************************************************/
 /* FALLOUT2.EXE structs should be placed here  */
@@ -29,104 +31,135 @@
 
 // TODO: make consistent naming for all FO structs
 
-struct TGameObj;
-struct TProgram;
-struct TScript;
+struct GameObject;
+struct Program;
+struct ScriptInstance;
 
 /*   26 */
 #pragma pack(push, 1)
 struct TInvenRec {
-	TGameObj *object;
+	GameObject *object;
 	long count;
 };
 #pragma pack(pop)
 
-/* 15 */
+// Game objects (items, critters, etc.), including those stored in inventories.
 #pragma pack(push, 1)
-struct TGameObj {
-	long ID;
+struct GameObject {
+	long id;
 	long tile;
 	long x;
 	long y;
 	long sx;
 	long sy;
-	long currentFrm;
+	long frm;
 	long rotation;
-	long artFID;
+	long artFid;
 	long flags;
 	long elevation;
-	long invenCount;
+	long invenSize;
 	long invenMax;
 	TInvenRec *invenTable;
-	char gap_38[4];
-	long itemCharges;
-	long critterAP_weaponAmmoPid;
-	char gap_44[16];
-	long lastTarget;
-	char gap_58[12];
+	union {
+		struct {
+			char gap_38[4];
+			// for weapons - ammo in magazine, for ammo - amount of ammo in last ammo pack
+			long charges;
+			// current type of ammo loaded in magazine
+			long ammoPid;
+			char gap_44[32];
+		} item;
+		struct {
+			long reaction;
+			// 1 - combat, 2 - enemies out of sight, 4 - running away
+			long combatState;
+			// aka action points
+			long movePoints;
+			long damageFlags;
+			long damageLastTurn;
+			long aiPacket;
+			long teamNum;
+			long whoHitMe;
+			long health;
+			long rads;
+			long poison;
+		} critter;
+	};
 	long pid;
 	long cid;
 	long lightDistance;
 	long lightIntensity;
 	char outline[4];
-	long scriptID;
-	TGameObj* owner;
-	long script_index;
-	char gap_84[7];
-	char field_0;
+	long scriptId;
+	GameObject* owner;
+	long scriptIndex;
+
+	inline char type() {
+		return pid >> 24;
+	}
 };
 #pragma pack(pop)
 
-/*    9 */
+// Results of compute_attack_() function.
 #pragma pack(push, 1)
-struct TComputeAttack {
-	TGameObj *attacker;
-	char gap_4[4];
-	TGameObj *weapon;
-	char gap_C[4];
-	long damageAttacker;
-	long flagsAttacker;
-	long rounds;
-	char gap_1C[4];
-	TGameObj *target;
+struct ComputeAttackResult {
+	GameObject* attacker;
+	long hitMode;
+	GameObject* weapon;
+	long field_C;
+	long attackerDamage;
+	long attackerFlags;
+	long numRounds;
+	long message;
+	GameObject* target;
 	long targetTile;
 	long bodyPart;
-	long damageTarget;
-	long flagsTarget;
+	long damage;
+	long flags;
 	long knockbackValue;
+	GameObject* mainTarget;
+	long numExtras;
+	GameObject* extraTarget[6];
+	long extraBodyPart[6];
+	long extraDamage[6];
+	long extraFlags[6];
+	long extraKnockbackValue[6];
 };
 #pragma pack(pop)
 
-
-/*   22 */
+// Script instance attached to an object or tile (spatial script).
 #pragma pack(push, 1)
-struct TScript {
-	long script_id;
-	char gap_4[4];
-	long elevation_and_tile;
-	long spatial_radius;
-	char gap_10[4];
-	long script_index;
-	TProgram *program_ptr;
-	long self_obj_id;
-	char gap_20[8];
-	long scr_return;
-	char gap_2C[4];
-	long fixed_param;
-	TGameObj *self_obj;
-	TGameObj *source_obj;
-	TGameObj *target_obj;
-	long script_overrides;
-	char field_44;
-	char gap_45[15];
-	long procedure_table[28];
+struct ScriptInstance {
+	long id;
+	long next;
+	// first 3 bits - elevation, rest - tile number
+	long elevationAndTile;
+	long spatialRadius;
+	long flags;
+	long scriptIdx;
+	Program *program;
+	long selfObjectId;
+	long localVarOffset;
+	long numLocalVars;
+	long returnValue;
+	long action;
+	long fixedParam;
+	GameObject *selfObject;
+	GameObject *sourceObject;
+	GameObject *targetObject;
+	long actionNum;
+	long scriptOverrides;
+	char gap_48[4];
+	long howMuch;
+	char gap_50[4];
+	long procedureTable[28];
 };
 #pragma pack(pop)
 
 
 /*   25 */
 #pragma pack(push, 1)
-struct TProgram {
+struct Program {
 	const char* fileName;
 	long *codeStackPtr;
 	char gap_8[8];
@@ -145,58 +178,53 @@ struct TProgram {
 #pragma pack(pop)
 
 struct ItemButtonItem {
-	TGameObj* item;
-	long field_2;
-	long field_3;
-	long field_4;
+	GameObject* item;
+	long flags;
+	long primaryAttack;
+	long secondaryAttack;
 	long mode;
-	long field_6;
+	long fid;
 };
 
+// When gained, the perk increases Stat by StatMod, which may be negative. All other perk effects come from being
+// specifically checked for by scripts or the engine. If a primary stat requirement is negative, that stat must be
+// below the value specified (e.g., -7 indicates a stat must be less than 7). Operator is only non-zero when there
+// are two skill requirements. If set to 1, only one of those requirements must be met; if set to 2, both must be met.
 struct PerkInfo {
-	char* Name;
-	char* Desc;
-	long Image;
-	long Ranks;
-	long Level;
-	long Stat;
-	long StatMag;
-	long Skill1;
-	long Skill1Mag;
-	long Type;
-	long Skill2;
-	long Skill2Mag;
-	long Str;
-	long Per;
-	long End;
-	long Chr;
-	long Int;
-	long Agl;
-	long Lck;
+	const char* name;
+	const char* description;
+	long image;
+	long ranks;
+	long levelMin;
+	long stat;
+	long statMod;
+	long skill1;
+	long skill1Min;
+	long skillOperator;
+	long skill2;
+	long skill2Min;
+	long strengthMin;
+	long perceptionMin;
+	long enduranceMin;
+	long charismaMin;
+	long intelligenceMin;
+	long agilityMin;
+	long luckMin;
 };
 
-struct DBFile {
+struct DbFile {
 	long fileType;
 	void* handle;
 };
 
-struct sElevator {
-	long ID1;
-	long Elevation1;
-	long Tile1;
-	long ID2;
-	long Elevation2;
-	long Tile2;
-	long ID3;
-	long Elevation3;
-	long Tile3;
-	long ID4;
-	long Elevation4;
-	long Tile4;
+struct ElevatorExit {
+	long id;
+	long elevation;
+	long tile;
 };
 
 #pragma pack(push, 1)
-struct FRM {
+struct Frame {
 	long id;			//0x00
 	long unused;		//0x04
 	short frames;		//0x08
@@ -206,7 +234,7 @@ struct FRM {
 	long size;			//0x3a
 	short width;			//0x3e
 	short height;		//0x40
-	long frmsize;		//0x42
+	long frmSize;		//0x42
 	short xoffset;		//0x46
 	short yoffset;		//0x48
 	BYTE pixels[80 * 36];	//0x4a
@@ -239,7 +267,7 @@ typedef struct MessageList {
 } MessageList;
 
 
-struct sArt {
+struct Art {
 	long flags;
 	char path[16];
 	char* names;
@@ -247,16 +275,23 @@ struct sArt {
 	long total;
 };
 
-struct CritStruct {
+struct CritInfo {
 	union {
 		struct {
-			long DamageMultiplier;
-			long EffectFlags;
-			long StatCheck;
-			long StatMod;
-			long FailureEffect;
-			long Message;
-			long FailMessage;
+			// This is divided by 2, so a value of 3 does 1.5x damage, and 8 does 4x damage.
+			long damageMult;
+			// This is a flag bit field (DAM_*) controlling what effects the critical causes.
+			long effectFlags;
+			// This makes a check against a (SPECIAL) stat. Values of 2 (endurance), 5 (agility), and 6 (luck) are used, but other stats will probably work as well. A value of -1 indicates that no check is to be made.
+			long statCheck;
+			// Affects the outcome of the stat check, if one is made. Positive values make it easier to pass the check, and negative ones make it harder.
+			long statMod;
+			// Another bit field, using the same values as EffectFlags. If the stat check is failed, these are applied in addition to the earlier ones.
+			long failureEffect;
+			// The message to show when this critical occurs, taken from combat.msg .
+			long message;
+			// Shown instead of Message if the stat check is failed.
+			long failMessage;
 		};
 		long values[7];
 	};
@@ -265,8 +300,8 @@ struct CritStruct {
 #pragma pack(push, 1)
 struct SkillInfo
 {
-	char* name;
-	char* desc;
+	const char* name;
+	const char* description;
 	long attr;
 	long image;
 	long base;
@@ -274,14 +309,16 @@ struct SkillInfo
 	long statA;
 	long statB;
 	long skillPointMulti;
-	long Exp;
+	// Default experience for using the skill: 25 for Lockpick, Steal, Traps, and First Aid, 50 for Doctor, and 100 for Outdoorsman.
+	long experience;
+	// 1 for Lockpick, Steal, Traps; 0 otherwise
 	long f;
 };
 #pragma pack(pop)
 
 struct StatInfo {
-	char* dame;
-	char* description;
+	const char* dame;
+	const char* description;
 	long image;
 	long minValue;
 	long maxValue;
@@ -289,17 +326,17 @@ struct StatInfo {
 };
 
 struct TraitInfo {
-	char* Name;
-	char* Desc;
-	long Image;
+	const char* name;
+	const char* description;
+	long image;
 };
 
 //fallout2 path node structure
-struct sPath {
+struct PathNode {
 	char* path;
 	void* pDat;
 	long isDat;
-	sPath* next;
+	PathNode* next;
 };
 
 struct PremadeChar {
@@ -308,164 +345,196 @@ struct PremadeChar {
 	char unknown[20];
 };
 
-struct sProtoBase {
+// In-memory PROTO structure, not the same as PRO file format.
+struct Proto {
 	long pid;
-	long message_num;
+	long messageNum;
 	long fid;
-};
+	// range 0-8 in hexes
+	long lightDistance;
+	// range 0 - 65536
+	long lightIntensity;
+	union {
+		struct Tile {
+			long scriptId;
+			Material material;
+		} tile;
 
-struct sProtoTile {
-	sProtoBase base;	
-	long flags;
-	long flags_ext;
-	long material;
-	long field_18;
-};
+		struct Item {
+			long flags;
+			long flagsExt;
+			// 0x0Y00XXXX: Y - script type (0=s_system, 1=s_spatial, 2=s_time, 3=s_item, 4=s_critter); XXXX - number in scripts.lst. -1 means no script.
+			long scriptId;
+			ItemType type;
 
-struct sProtoObj {
-	sProtoBase base;
-	long light_distance;
-	long light_intensity;
-	long flags;
-};
+			union {
+				struct Weapon {
+					long animationCode;
+					long minDamage;
+					long maxDamage;
+					long damageType;
+					long maxRange[2];
+					long projectilePid;
+					long minStrength;
+					long movePointCost[2];
+					long critFailTable;
+					long perk;
+					long burstRounds;
+					long caliber;
+					long ammoPid;
+					long maxAmmo;
+					// shot sound ID
+					long soundId;
+					long gap_68;
+				} weapon;
 
-struct sProtoItem {
-	sProtoObj obj;	
-	long flags_ext;
-	long sid;
-	ItemType type;
-};
+				struct Ammo {
+					long caliber;
+					long packSize;
+					long acAdjust;
+					long drAdjust;
+					long damageMult;
+					long damageDiv;
+					char gap_3c[48];
+				} ammo;
 
-struct sProtoWeapon
-{
-	sProtoItem item;
-	long animation_code;
-	long min_damage;
-	long max_damage;
-	long dt;
-	long max_range1;
-	long max_range2;
-	long proj_pid;
-	long min_st;
-	long mp_cost1;
-	long mp_cost2;
-	long crit_fail_table;
-	long perk;
-	long rounds;
-	long caliber;
-	long ammo_type_pid;
-	long max_ammo;
-	long sound_id;
-	long field_68;
-	long material;
-	long size;
-	long weight;
-	long cost;
-	long inv_fid;
-	BYTE SndID;
-};
+				struct Armor {
+					long armorClass;
+					// for each DamageType
+					long damageResistance[7];
+					// for each DamageType
+					long damageThreshold[7];
+					long perk;
+					long maleFid;
+					long femaleFid;
+				} armor;
 
-struct sProtoCritter {
-	sProtoObj obj;
-	long flags_ext;
-	long sid;
-	long critter_flags;
-	long base_stat_srength;
-	long base_stat_prception;
-	long base_stat_endurance;
-	long base_stat_charisma;
-	long base_stat_intelligence;
-	long base_stat_agility;
-	long base_stat_luck;
-	long base_stat_hp;
-	long base_stat_ap;
-	long base_stat_ac;
-	// not used by engine
-	long base_stat_unarmed_damage;
-	long base_stat_melee_damage;
-	long base_stat_carry_weight;
-	long base_stat_sequence;
-	long base_stat_healing_rate;
-	long base_stat_critical_chance;
-	long base_stat_better_criticals;
-	long base_dt_normal;
-	long base_dt_laser;
-	long base_dt_fire;
-	long base_dt_plasma;
-	long base_dt_electrical;
-	long base_dt_emp;
-	long base_dt_explode;
-	long base_dr_normal;
-	long base_dr_laser;
-	long base_dr_fire;
-	long base_dr_plasma;
-	long base_dr_electrical;
-	long base_dr_emp;
-	long base_dr_explode;
-	long base_dr_radiation;
-	long base_dr_poison;
-	long base_age;
-	long base_gender;
-	long bonus_stat_srength;
-	long bonus_stat_prception;
-	long bonus_stat_endurance;
-	long bonus_stat_charisma;
-	long bonus_stat_intelligence;
-	long bonus_stat_agility;
-	long bonus_stat_luck;
-	long bonus_stat_hp;
-	long bonus_stat_ap;
-	long bonus_stat_ac;
-	long bonus_stat_unarmed_damage;
-	long bonus_stat_melee_damage;
-	long bonus_stat_carry_weight;
-	long bonus_stat_sequence;
-	long bonus_stat_healing_rate;
-	long bonus_stat_critical_chance;
-	long bonus_stat_better_criticals;
-	long bonus_dt_normal;
-	long bonus_dt_laser;
-	long bonus_dt_fire;
-	long bonus_dt_plasma;
-	long bonus_dt_electrical;
-	long bonus_dt_emp;
-	long bonus_dt_explode;
-	long bonus_dr_normal;
-	long bonus_dr_laser;
-	long bonus_dr_fire;
-	long bonus_dr_plasma;
-	long bonus_dr_electrical;
-	long bonus_dr_emp;
-	long bonus_dr_explode;
-	long bonus_dr_radiation;
-	long bonus_dr_poison;
-	long bonus_age;
-	long bonus_gender;
-	long skill_small_guns;
-	long skill_big_guns;
-	long skill_energy_weapons;
-	long skill_unarmed;
-	long skill_melee_weapons;
-	long skill_throwing;
-	long skill_first_aid;
-	long skill_doctor;
-	long skill_sneak;
-	long skill_lockpick;
-	long skill_steal;
-	long skill_traps;
-	long skill_science;
-	long skill_repair;
-	long skill_speech;
-	long skill_barter;
-	long skill_gambling;
-	long skill_outdoorsman;
-	long body_type;
-	long exp_val;
-	long kill_type;
-	long damage_type;
-	long head_fid;
-	long ai_packet;
-	long team_num;
+				struct Container {
+					// container size capacity (not weight)
+					long maxSize;
+					// 1 - has use animation, 0 - no animation
+					long openFlags;
+				} container;
+
+				struct Drug {
+					long stats[3];
+					long immediateEffect[3];
+					struct DelayedEffect {
+						// delay for the effect
+						long duration;
+						// effect amount for each stat
+						long effect[3];
+					} delayed[2];
+					long addictionRate;
+					long addictionEffect;
+					long addictionOnset;
+					char gap_68[4];
+				} drug;
+
+				struct Misc {
+					long powerPid;
+					long powerType;
+					long maxCharges;
+				} misc;
+
+				struct Key {
+					long keyCode;
+				} key;
+			};
+			Material material; // should be at 0x6C
+			long size;
+			long weight;
+			long cost;
+			long inventoryFid;
+			BYTE soundId;
+		} item;
+
+		struct Critter {
+			typedef struct {
+				long strength;
+				long perception;
+				long endurance;
+				long charisma;
+				long intelligence;
+				long agility;
+				long luck;
+				long health;
+				// max move points (action points)
+				long movePoints;
+				long armorClass;
+				// not used by engine
+				long unarmedDamage;
+				long meleeDamage;
+				long carryWeight;
+				long sequence;
+				long healingRate;
+				long criticalChance;
+				long betterCriticals;
+				// for each DamageType
+				long damageThreshold[7];
+				// for each DamageType
+				long damageResistance[7];
+				long radiationResistance;
+				long poisonResistance;
+				long age;
+				long gender;
+			} Stats;
+
+			long flags;
+			long flagsExt;
+			long scriptId;
+			long critterFlags;
+
+			Stats base;
+			Stats bonus;
+
+			long skills[SKILL_count];
+
+			long bodyType;
+			long experience;
+			long killType;
+			long damageType;
+			long headFid;
+			long aiPacket;
+			long teamNum;
+		} critter;
+
+		struct Scenery {
+			long flags;
+			long flagsExt;
+			long scriptId;
+			ScenerySubType type;
+			union {
+				struct Door {
+					long openFlags;
+					long keyCode;
+				} door;
+				struct Stairs {
+					long elevationAndTile;
+					long mapId;
+				} stairs;
+				struct Elevator {
+					long id;
+					long level;
+				} elevator;
+			};
+			Material material;
+			char gap_30[4];
+			BYTE soundId;
+		} scenery;
+
+		struct Wall {
+			long flags;
+			long flagsExt;
+			long scriptId;
+			Material material;
+		} wall;
+
+		struct Misc {
+			long flags;
+			long flagsExt;
+		} misc;
+	};
 };
 
 struct ScriptListInfoItem {
@@ -474,7 +543,7 @@ struct ScriptListInfoItem {
 };
 
 //for holding window info
-struct WINinfo {
+struct Window {
 	long ref;
 	long flags;
 	RECT wRect;
@@ -490,3 +559,5 @@ struct WINinfo {
 	long unknown7;
 	long drawFuncP;
 };
+
+}

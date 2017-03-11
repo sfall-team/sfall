@@ -24,6 +24,11 @@
 #include "..\..\FalloutEngine\Structs.h"
 #include "ScriptValue.h"
 
+namespace sfall
+{
+namespace script
+{
+
 #define OP_MAX_ARGUMENTS	(10)
 
 class OpcodeContext;
@@ -67,7 +72,7 @@ public:
 	// opcode - opcode number
 	// argNum - number of arguments for this opcode
 	// hasReturn - true if opcode has return value (is expression)
-	OpcodeContext(TProgram* program, DWORD opcode, int argNum, bool hasReturn);
+	OpcodeContext(fo::Program* program, DWORD opcode, int argNum, bool hasReturn);
 
 	// number of arguments, possibly reduced by argShift
 	int numArgs() const;
@@ -89,13 +94,13 @@ public:
 	const ScriptValue& returnValue() const;
 
 	// current script program
-	TProgram* program() const;
+	fo::Program* program() const;
 
 	// current opcode number
 	DWORD opcode() const;
 	
 	// set return value for current opcode
-	void setReturn(unsigned long value, SfallDataType type);
+	void setReturn(unsigned long value, DataType type);
 	
 	// set return value for current opcode
 	void setReturn(const ScriptValue& val);
@@ -118,13 +123,13 @@ public:
 	void handleOpcode(ScriptingFunctionHandler func, const OpcodeArgumentType argTypes[], const char* opcodeName);
 
 	// handles opcode using default instance
-	static void __stdcall handleOpcodeStatic(TProgram* program, DWORD opcodeOffset, ScriptingFunctionHandler func, int argNum, bool hasReturn);
+	static void __stdcall handleOpcodeStatic(fo::Program* program, DWORD opcodeOffset, ScriptingFunctionHandler func, int argNum, bool hasReturn);
 
 	static const char* getSfallTypeName(DWORD dataType);
 
-	static DWORD getSfallTypeByScriptType(DWORD varType);
+	static DataType getSfallTypeByScriptType(DWORD varType);
 
-	static DWORD getScriptTypeBySfallType(DWORD dataType);
+	static DWORD getScriptTypeBySfallType(DataType dataType);
 
 private:
 	// pops arguments from data stack
@@ -132,7 +137,7 @@ private:
 	// pushes return value to data stack
 	void _pushReturnValue();
 
-	TProgram* _program;
+	fo::Program* _program;
 	DWORD _opcode;
 
 	int _numArgs;
@@ -141,3 +146,6 @@ private:
 	std::array<ScriptValue, OP_MAX_ARGUMENTS> _args;
 	ScriptValue _ret;
 };
+
+}
+}

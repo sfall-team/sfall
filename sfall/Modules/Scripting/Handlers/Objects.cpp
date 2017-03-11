@@ -24,16 +24,21 @@
 
 #include "Objects.h"
 
+namespace sfall
+{
+namespace script
+{
+
 void __declspec(naked) op_remove_script() {
 	__asm {
 		push ebx;
 		push ecx;
 		push edx;
 		mov ecx, eax;
-		call FuncOffs::interpretPopShort_;
+		call fo::funcoffs::interpretPopShort_;
 		mov edx, eax;
 		mov eax, ecx;
-		call FuncOffs::interpretPopLong_;
+		call fo::funcoffs::interpretPopLong_;
 		cmp dx, 0xc001;
 		jnz end;
 		test eax, eax;
@@ -42,7 +47,7 @@ void __declspec(naked) op_remove_script() {
 		mov eax, [eax + 0x78];
 		cmp eax, 0xffffffff;
 		jz end;
-		call FuncOffs::scr_remove_;
+		call fo::funcoffs::scr_remove_;
 		mov dword ptr[edx + 0x78], 0xffffffff;
 end:
 		pop edx;
@@ -56,16 +61,16 @@ void __declspec(naked) op_set_script() {
 	__asm {
 		pushad;
 		mov ecx, eax;
-		call FuncOffs::interpretPopShort_;
+		call fo::funcoffs::interpretPopShort_;
 		mov edx, eax;
 		mov eax, ecx;
-		call FuncOffs::interpretPopLong_;
+		call fo::funcoffs::interpretPopLong_;
 		mov ebx, eax;
 		mov eax, ecx;
-		call FuncOffs::interpretPopShort_;
+		call fo::funcoffs::interpretPopShort_;
 		mov edi, eax;
 		mov eax, ecx;
-		call FuncOffs::interpretPopLong_;
+		call fo::funcoffs::interpretPopLong_;
 		cmp dx, 0xc001;
 		jnz end;
 		cmp di, 0xc001;
@@ -77,7 +82,7 @@ void __declspec(naked) op_set_script() {
 		jz newscript;
 		push eax;
 		mov eax, esi;
-		call FuncOffs::scr_remove_;
+		call fo::funcoffs::scr_remove_;
 		pop eax;
 		mov dword ptr[eax + 0x78], 0xffffffff;
 newscript:
@@ -96,15 +101,15 @@ execMapEnter:
 		inc edx; // 4 - "critter" type script
 notCritter:
 		dec ebx;
-		call FuncOffs::obj_new_sid_inst_;
+		call fo::funcoffs::obj_new_sid_inst_;
 		mov eax, [ecx + 0x78];
 		mov edx, 1; // start
-		call FuncOffs::exec_script_proc_;
+		call fo::funcoffs::exec_script_proc_;
 		cmp esi, 1; // run map enter?
 		jnz end;
 		mov eax, [ecx + 0x78];
 		mov edx, 0xf; // map_enter_p_proc
-		call FuncOffs::exec_script_proc_;
+		call fo::funcoffs::exec_script_proc_;
 end:
 		popad;
 		retn;
@@ -121,7 +126,7 @@ void sf_create_spatial(OpcodeContext& ctx) {
 	__asm {
 		lea eax, scriptId;
 		mov edx, 1;
-		call FuncOffs::scr_new_;
+		call fo::funcoffs::scr_new_;
 		mov tmp, eax;
 	}
 	if (tmp == -1)
@@ -129,7 +134,7 @@ void sf_create_spatial(OpcodeContext& ctx) {
 	__asm {
 		mov eax, scriptId;
 		lea edx, scriptPtr;
-		call FuncOffs::scr_ptr_;
+		call fo::funcoffs::scr_ptr_;
 		mov tmp, eax;
 	}
 	if (tmp == -1)
@@ -142,10 +147,10 @@ void sf_create_spatial(OpcodeContext& ctx) {
 	__asm {
 		mov eax, scriptId;
 		mov edx, 1; // start_p_proc
-		call FuncOffs::exec_script_proc_;
+		call fo::funcoffs::exec_script_proc_;
 		mov eax, scriptPtr;
 		mov eax, [eax + 0x18]; // program pointer
-		call FuncOffs::scr_find_obj_from_program_;
+		call fo::funcoffs::scr_find_obj_from_program_;
 		mov objectPtr, eax;
 	}
 	ctx.setReturn((int)objectPtr);
@@ -153,16 +158,16 @@ void sf_create_spatial(OpcodeContext& ctx) {
 
 void sf_spatial_radius(OpcodeContext& ctx) {
 	auto spatialObj = ctx.arg(0).asObject();
-	TScript* script;
-	if (Wrapper::scr_ptr(spatialObj->scriptID, &script) != -1) {
-		ctx.setReturn(script->spatial_radius);
+	fo::ScriptInstance* script;
+	if (fo::func::scr_ptr(spatialObj->scriptId, &script) != -1) {
+		ctx.setReturn(script->spatialRadius);
 	}
 }
 
 void sf_get_script(OpcodeContext& ctx) {
 	if (ctx.arg(0).isInt()) {
 		auto obj = ctx.arg(0).asObject();
-		ctx.setReturn(obj->script_index);
+		ctx.setReturn(obj->scriptIndex);
 	} else {
 		ctx.setReturn(-1);
 	}
@@ -177,7 +182,7 @@ void sf_set_critter_burst_disable(OpcodeContext& ctx) {
 void sf_get_weapon_ammo_pid(OpcodeContext& ctx) {
 	if (ctx.arg(0).isInt()) {
 		auto obj = ctx.arg(0).asObject();
-		ctx.setReturn(obj->critterAP_weaponAmmoPid);
+		ctx.setReturn(obj->item.ammoPid);
 	} else {
 		ctx.setReturn(-1);
 	}
@@ -185,13 +190,13 @@ void sf_get_weapon_ammo_pid(OpcodeContext& ctx) {
 
 void sf_set_weapon_ammo_pid(OpcodeContext& ctx) {
 	auto obj = ctx.arg(0).asObject();
-	obj->critterAP_weaponAmmoPid = ctx.arg(1).asInt();
+	obj->item.ammoPid = ctx.arg(1).asInt();
 }
 
 void sf_get_weapon_ammo_count(OpcodeContext& ctx) {
 	if (ctx.arg(0).isInt()) {
 		auto obj = ctx.arg(0).asObject();
-		ctx.setReturn(obj->itemCharges);
+		ctx.setReturn(obj->item.charges);
 	} else {
 		ctx.setReturn(-1);
 	}
@@ -199,7 +204,7 @@ void sf_get_weapon_ammo_count(OpcodeContext& ctx) {
 
 void sf_set_weapon_ammo_count(OpcodeContext& ctx) {
 	auto obj = ctx.arg(0).asObject();
-	obj->itemCharges = ctx.arg(1).asInt();
+	obj->item.charges = ctx.arg(1).asInt();
 }
 
 static DWORD _stdcall obj_blocking_at_wrapper(DWORD obj, DWORD tile, DWORD elevation, DWORD func) {
@@ -220,7 +225,7 @@ static DWORD _stdcall make_straight_path_func_wrapper(DWORD obj, DWORD tileFrom,
 		push func;
 		push a6;
 		push result;
-		call FuncOffs::make_straight_path_func_;
+		call fo::funcoffs::make_straight_path_func_;
 	}
 }
 
@@ -233,13 +238,13 @@ static DWORD _stdcall make_straight_path_func_wrapper(DWORD obj, DWORD tileFrom,
 static DWORD getBlockingFunc(DWORD type) {
 	switch (type) {
 	case BLOCKING_TYPE_BLOCK: default:
-		return FuncOffs::obj_blocking_at_;
+		return fo::funcoffs::obj_blocking_at_;
 	case BLOCKING_TYPE_SHOOT:
-		return FuncOffs::obj_shoot_blocking_at_;
+		return fo::funcoffs::obj_shoot_blocking_at_;
 	case BLOCKING_TYPE_AI:
-		return FuncOffs::obj_ai_blocking_at_;
+		return fo::funcoffs::obj_ai_blocking_at_;
 	case BLOCKING_TYPE_SIGHT:
-		return FuncOffs::obj_sight_blocking_at_;
+		return fo::funcoffs::obj_sight_blocking_at_;
 	//case 4: 
 	//	return obj_scroll_blocking_at_;
 
@@ -253,7 +258,7 @@ void sf_make_straight_path(OpcodeContext& ctx) {
 		resultObj, arg6;
 	arg6 = (type == BLOCKING_TYPE_SHOOT) ? 32 : 0;
 	make_straight_path_func_wrapper(objFrom, *(DWORD*)(objFrom + 4), 0, tileTo, &resultObj, arg6, getBlockingFunc(type));
-	ctx.setReturn(resultObj, DATATYPE_INT);
+	ctx.setReturn(resultObj, DataType::INT);
 }
 
 void sf_make_path(OpcodeContext& ctx) {
@@ -265,7 +270,7 @@ void sf_make_path(OpcodeContext& ctx) {
 		arr;
 	long pathLength, a5 = 1;
 	if (!objFrom) {
-		ctx.setReturn(0, DATATYPE_INT);
+		ctx.setReturn(0, DataType::INT);
 		return;
 	}
 	tileFrom = *(DWORD*)(objFrom + 4);
@@ -278,14 +283,14 @@ void sf_make_path(OpcodeContext& ctx) {
 		mov ebx, tileTo;
 		push func;
 		push a5;
-		call FuncOffs::make_path_func_;
+		call fo::funcoffs::make_path_func_;
 		mov pathLength, eax;
 	}
 	arr = TempArray(pathLength, 0);
 	for (int i = 0; i < pathLength; i++) {
 		arrays[arr].val[i].set((long)pathData[i]);
 	}
-	ctx.setReturn(arr, DATATYPE_INT);
+	ctx.setReturn(arr, DataType::INT);
 }
 
 void sf_obj_blocking_at(OpcodeContext& ctx) {
@@ -298,7 +303,7 @@ void sf_obj_blocking_at(OpcodeContext& ctx) {
 		// this check was added because the engine always does exactly this when using shoot blocking checks
 		resultObj = 0;
 	}
-	ctx.setReturn(resultObj, DATATYPE_INT);
+	ctx.setReturn(resultObj, DataType::INT);
 }
 
 void sf_tile_get_objects(OpcodeContext& ctx) {
@@ -309,32 +314,32 @@ void sf_tile_get_objects(OpcodeContext& ctx) {
 	__asm {
 		mov eax, elevation;
 		mov edx, tile;
-		call FuncOffs::obj_find_first_at_tile_;
+		call fo::funcoffs::obj_find_first_at_tile_;
 		mov obj, eax;
 	}
 	while (obj) {
 		arrays[arrayId].push_back((long)obj);
 		__asm {
-			call FuncOffs::obj_find_next_at_tile_;
+			call fo::funcoffs::obj_find_next_at_tile_;
 			mov obj, eax;
 		}
 	}
-	ctx.setReturn(arrayId, DATATYPE_INT);
+	ctx.setReturn(arrayId, DataType::INT);
 }
 
 void sf_get_party_members(OpcodeContext& ctx) {
 	DWORD obj, mode = ctx.arg(0).asInt(), isDead;
-	int i, actualCount = VarPtr::partyMemberCount;
+	int i, actualCount = fo::var::partyMemberCount;
 	DWORD arrayId = TempArray(0, 4);
-	DWORD* partyMemberList = VarPtr::partyMemberList;
+	DWORD* partyMemberList = fo::var::partyMemberList;
 	for (i = 0; i < actualCount; i++) {
 		obj = partyMemberList[i * 4];
 		if (mode == 0) { // mode 0 will act just like op_party_member_count in fallout2
-			if ((*(DWORD*)(obj + 100) >> 24) != OBJ_TYPE_CRITTER)  // obj type != critter
+			if ((*(DWORD*)(obj + 100) >> 24) != fo::OBJ_TYPE_CRITTER)  // obj type != critter
 				continue;
 			__asm {
 				mov eax, obj;
-				call FuncOffs::critter_is_dead_;
+				call fo::funcoffs::critter_is_dead_;
 				mov isDead, eax;
 			}
 			if (isDead)
@@ -344,11 +349,11 @@ void sf_get_party_members(OpcodeContext& ctx) {
 		}
 		arrays[arrayId].push_back((long)obj);
 	}
-	ctx.setReturn(arrayId, DATATYPE_INT);
+	ctx.setReturn(arrayId, DataType::INT);
 }
 
 void sf_art_exists(OpcodeContext& ctx) {
-	ctx.setReturn(Wrapper::art_exists(ctx.arg(0).asInt()));
+	ctx.setReturn(fo::func::art_exists(ctx.arg(0).asInt()));
 }
 
 void sf_obj_is_carrying_obj(OpcodeContext& ctx) {
@@ -357,10 +362,10 @@ void sf_obj_is_carrying_obj(OpcodeContext& ctx) {
 		&itemObjArg = ctx.arg(1);
 
 	if (invenObjArg.isInt() && itemObjArg.isInt()) {
-		TGameObj *invenObj = (TGameObj*)invenObjArg.asObject(),
-			*itemObj = (TGameObj*)itemObjArg.asObject();
+		fo::GameObject *invenObj = (fo::GameObject*)invenObjArg.asObject(),
+			*itemObj = (fo::GameObject*)itemObjArg.asObject();
 		if (invenObj != nullptr && itemObj != nullptr) {
-			for (int i = 0; i < invenObj->invenCount; i++) {
+			for (int i = 0; i < invenObj->invenSize; i++) {
 				if (invenObj->invenTable[i].object == itemObj) {
 					num = invenObj->invenTable[i].count;
 					break;
@@ -372,22 +377,25 @@ void sf_obj_is_carrying_obj(OpcodeContext& ctx) {
 }
 
 void sf_critter_inven_obj2(OpcodeContext& ctx) {
-	TGameObj* critter = ctx.arg(0).asObject();
+	fo::GameObject* critter = ctx.arg(0).asObject();
 	int slot = ctx.arg(1).asInt();
 	switch (slot) {
 	case 0:
-		ctx.setReturn(Wrapper::inven_worn(critter));
+		ctx.setReturn(fo::func::inven_worn(critter));
 		break;
 	case 1:
-		ctx.setReturn(Wrapper::inven_right_hand(critter));
+		ctx.setReturn(fo::func::inven_right_hand(critter));
 		break;
 	case 2:
-		ctx.setReturn(Wrapper::inven_left_hand(critter));
+		ctx.setReturn(fo::func::inven_left_hand(critter));
 		break;
 	case -2:
-		ctx.setReturn(critter->invenCount);
+		ctx.setReturn(critter->invenSize);
 		break;
 	default:
 		ctx.printOpcodeError("critter_inven_obj2() - invalid type.");
 	}
+}
+
+}
 }

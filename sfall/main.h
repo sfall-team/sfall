@@ -26,6 +26,9 @@
 #include "SafeWrite.h"
 #include "Logging.h"
 
+namespace sfall
+{
+
 // global flag, indicating that debugging features of Sfall are enabled
 #ifndef NO_SFALL_DEBUG
 	extern bool isDebug;
@@ -59,3 +62,4 @@ size_t Translate(const char* section, const char* setting, const char* defaultVa
 
 extern const char ddrawIni[];
 
+}

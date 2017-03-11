@@ -22,15 +22,21 @@
 
 #include "Perks.h"
 
+namespace sfall
+{
+namespace script
+{
+using namespace fo;
+
 void __declspec(naked) op_get_perk_owed() {
 	__asm {
 		pushad;
 		mov ecx, eax;
-		movzx edx, byte ptr ds : [VARPTR_free_perk];
-		call FuncOffs::interpretPushLong_;
+		movzx edx, byte ptr ds : [FO_VAR_free_perk];
+		call fo::funcoffs::interpretPushLong_;
 		mov edx, 0xc001;
 		mov eax, ecx;
-		call FuncOffs::interpretPushShort_;
+		call fo::funcoffs::interpretPushShort_;
 		popad;
 		retn;
 	}
@@ -40,16 +46,16 @@ void __declspec(naked) op_set_perk_owed() {
 	__asm {
 		pushad;
 		mov ecx, eax;
-		call FuncOffs::interpretPopShort_;
+		call fo::funcoffs::interpretPopShort_;
 		mov edx, eax;
 		mov eax, ecx;
-		call FuncOffs::interpretPopLong_;
+		call fo::funcoffs::interpretPopLong_;
 		cmp dx, 0xC001;
 		jnz end;
 		and eax, 0xff;
 		cmp eax, 250;
 		jg end;
-		mov byte ptr ds : [VARPTR_free_perk], al
+		mov byte ptr ds : [FO_VAR_free_perk], al
 			end :
 		popad
 			retn;
@@ -60,10 +66,10 @@ void __declspec(naked) op_set_perk_freq() {
 	__asm {
 		pushad;
 		mov ecx, eax;
-		call FuncOffs::interpretPopShort_;
+		call fo::funcoffs::interpretPopShort_;
 		mov edx, eax;
 		mov eax, ecx;
-		call FuncOffs::interpretPopLong_;
+		call fo::funcoffs::interpretPopLong_;
 		cmp dx, 0xC001;
 		jnz end;
 		push eax;
@@ -78,27 +84,27 @@ void __declspec(naked) op_get_perk_available() {
 	__asm {
 		pushad;
 		mov ecx, eax;
-		call FuncOffs::interpretPopShort_;
+		call fo::funcoffs::interpretPopShort_;
 		mov edx, eax;
 		mov eax, ecx;
-		call FuncOffs::interpretPopLong_;
+		call fo::funcoffs::interpretPopLong_;
 		cmp dx, 0xC001;
 		jnz fail;
 		cmp eax, PERK_count;
 		jge fail;
 		mov edx, eax;
-		mov eax, ds:[VARPTR_obj_dude];
-		call FuncOffs::perk_make_list_;
+		mov eax, ds:[FO_VAR_obj_dude];
+		call fo::funcoffs::perk_make_list_;
 		mov edx, eax;
 		jmp end;
 fail:
 		xor edx, edx;
 end:
 		mov eax, ecx;
-		call FuncOffs::interpretPushLong_;
+		call fo::funcoffs::interpretPushLong_;
 		mov edx, 0xc001;
 		mov eax, ecx;
-		call FuncOffs::interpretPushShort_;
+		call fo::funcoffs::interpretPushShort_;
 		popad;
 		retn;
 	}
@@ -108,16 +114,16 @@ void __declspec(naked) op_set_perk_name() {
 	__asm {
 		pushad;
 		mov ecx, eax;
-		call FuncOffs::interpretPopShort_;
+		call fo::funcoffs::interpretPopShort_;
 		mov esi, eax;
 		mov eax, ecx;
-		call FuncOffs::interpretPopLong_;
+		call fo::funcoffs::interpretPopLong_;
 		mov edi, eax;
 		mov eax, ecx;
-		call FuncOffs::interpretPopShort_;
+		call fo::funcoffs::interpretPopShort_;
 		mov edx, eax;
 		mov eax, ecx;
-		call FuncOffs::interpretPopLong_;
+		call fo::funcoffs::interpretPopLong_;
 		cmp dx, 0xC001;
 		jnz end;
 		cmp si, 0x9001;
@@ -129,7 +135,7 @@ next:
 		mov edx, esi;
 		mov esi, eax;
 		mov eax, ecx;
-		call FuncOffs::interpretGetString_;
+		call fo::funcoffs::interpretGetString_;
 		push eax;
 		push esi;
 		call SetPerkName;
@@ -144,16 +150,16 @@ void __declspec(naked) op_set_perk_desc() {
 	__asm {
 		pushad;
 		mov ecx, eax;
-		call FuncOffs::interpretPopShort_;
+		call fo::funcoffs::interpretPopShort_;
 		mov esi, eax;
 		mov eax, ecx;
-		call FuncOffs::interpretPopLong_;
+		call fo::funcoffs::interpretPopLong_;
 		mov edi, eax;
 		mov eax, ecx;
-		call FuncOffs::interpretPopShort_;
+		call fo::funcoffs::interpretPopShort_;
 		mov edx, eax;
 		mov eax, ecx;
-		call FuncOffs::interpretPopLong_;
+		call fo::funcoffs::interpretPopLong_;
 		cmp dx, 0xC001;
 		jnz end;
 		cmp si, 0x9001;
@@ -165,7 +171,7 @@ next:
 		mov edx, esi;
 		mov esi, eax;
 		mov eax, ecx;
-		call FuncOffs::interpretGetString_;
+		call fo::funcoffs::interpretGetString_;
 		push eax;
 		push esi;
 		call SetPerkDesc;
@@ -182,16 +188,16 @@ void __declspec(naked) op_set_perk_value() {
 		sub edx, 0x5e0 - 8; // offset of value into perk struct; edx = ((edx/4) - 0x178 + 0x8) * 4
 		push edx;
 		mov ecx, eax;
-		call FuncOffs::interpretPopShort_;
+		call fo::funcoffs::interpretPopShort_;
 		mov esi, eax;
 		mov eax, ecx;
-		call FuncOffs::interpretPopLong_;
+		call fo::funcoffs::interpretPopLong_;
 		mov edi, eax;
 		mov eax, ecx;
-		call FuncOffs::interpretPopShort_;
+		call fo::funcoffs::interpretPopShort_;
 		mov edx, eax;
 		mov eax, ecx;
-		call FuncOffs::interpretPopLong_;
+		call fo::funcoffs::interpretPopLong_;
 		cmp dx, 0xC001;
 		jnz fail;
 		cmp si, 0xC001;
@@ -212,28 +218,28 @@ void __declspec(naked) op_set_selectable_perk() {
 	__asm {
 		pushad;
 		mov ecx, eax;
-		call FuncOffs::interpretPopShort_;
+		call fo::funcoffs::interpretPopShort_;
 		push eax;
 		mov eax, ecx;
-		call FuncOffs::interpretPopLong_;
+		call fo::funcoffs::interpretPopLong_;
 		push eax;
 		mov eax, ecx;
-		call FuncOffs::interpretPopShort_;
+		call fo::funcoffs::interpretPopShort_;
 		push eax;
 		mov eax, ecx;
-		call FuncOffs::interpretPopLong_;
+		call fo::funcoffs::interpretPopLong_;
 		push eax;
 		mov eax, ecx;
-		call FuncOffs::interpretPopShort_;
+		call fo::funcoffs::interpretPopShort_;
 		push eax;
 		mov eax, ecx;
-		call FuncOffs::interpretPopLong_;
+		call fo::funcoffs::interpretPopLong_;
 		push eax;
 		mov eax, ecx;
-		call FuncOffs::interpretPopShort_;
+		call fo::funcoffs::interpretPopShort_;
 		push eax;
 		mov eax, ecx;
-		call FuncOffs::interpretPopLong_;
+		call fo::funcoffs::interpretPopLong_;
 		push eax;
 
 		movzx eax, word ptr[esp + 12];
@@ -257,7 +263,7 @@ next2:
 		mov eax, ecx;
 		mov edx, [esp + 28];
 		mov ebx, [esp + 24];
-		call FuncOffs::interpretGetString_;
+		call fo::funcoffs::interpretGetString_;
 		push eax;
 		mov eax, [esp + 20];
 		push eax;
@@ -266,7 +272,7 @@ next2:
 		mov eax, ecx;
 		mov edx, [esp + 16];
 		mov ebx, [esp + 12];
-		call FuncOffs::interpretGetString_;
+		call fo::funcoffs::interpretGetString_;
 		push eax;
 
 		call SetSelectablePerk;
@@ -281,28 +287,28 @@ void __declspec(naked) op_set_fake_perk() {
 	__asm {
 		pushad;
 		mov ecx, eax;
-		call FuncOffs::interpretPopShort_;
+		call fo::funcoffs::interpretPopShort_;
 		push eax;
 		mov eax, ecx;
-		call FuncOffs::interpretPopLong_;
+		call fo::funcoffs::interpretPopLong_;
 		push eax;
 		mov eax, ecx;
-		call FuncOffs::interpretPopShort_;
+		call fo::funcoffs::interpretPopShort_;
 		push eax;
 		mov eax, ecx;
-		call FuncOffs::interpretPopLong_;
+		call fo::funcoffs::interpretPopLong_;
 		push eax;
 		mov eax, ecx;
-		call FuncOffs::interpretPopShort_;
+		call fo::funcoffs::interpretPopShort_;
 		push eax;
 		mov eax, ecx;
-		call FuncOffs::interpretPopLong_;
+		call fo::funcoffs::interpretPopLong_;
 		push eax;
 		mov eax, ecx;
-		call FuncOffs::interpretPopShort_;
+		call fo::funcoffs::interpretPopShort_;
 		push eax;
 		mov eax, ecx;
-		call FuncOffs::interpretPopLong_;
+		call fo::funcoffs::interpretPopLong_;
 		push eax;
 
 		movzx eax, word ptr[esp + 12];
@@ -326,7 +332,7 @@ next2:
 		mov eax, ecx;
 		mov edx, [esp + 28];
 		mov ebx, [esp + 24];
-		call FuncOffs::interpretGetString_;
+		call fo::funcoffs::interpretGetString_;
 		push eax;
 		mov eax, [esp + 20];
 		push eax;
@@ -335,7 +341,7 @@ next2:
 		mov eax, ecx;
 		mov edx, [esp + 16];
 		mov ebx, [esp + 12];
-		call FuncOffs::interpretGetString_;
+		call fo::funcoffs::interpretGetString_;
 		push eax;
 
 		call SetFakePerk;
@@ -354,28 +360,28 @@ void __declspec(naked) op_set_fake_trait() {
 		push edi;
 		push esi;
 		mov ecx, eax;
-		call FuncOffs::interpretPopShort_;
+		call fo::funcoffs::interpretPopShort_;
 		push eax;
 		mov eax, ecx;
-		call FuncOffs::interpretPopLong_;
+		call fo::funcoffs::interpretPopLong_;
 		push eax;
 		mov eax, ecx;
-		call FuncOffs::interpretPopShort_;
+		call fo::funcoffs::interpretPopShort_;
 		push eax;
 		mov eax, ecx;
-		call FuncOffs::interpretPopLong_;
+		call fo::funcoffs::interpretPopLong_;
 		push eax;
 		mov eax, ecx;
-		call FuncOffs::interpretPopShort_;
+		call fo::funcoffs::interpretPopShort_;
 		push eax;
 		mov eax, ecx;
-		call FuncOffs::interpretPopLong_;
+		call fo::funcoffs::interpretPopLong_;
 		push eax;
 		mov eax, ecx;
-		call FuncOffs::interpretPopShort_;
+		call fo::funcoffs::interpretPopShort_;
 		push eax;
 		mov eax, ecx;
-		call FuncOffs::interpretPopLong_;
+		call fo::funcoffs::interpretPopLong_;
 		push eax;
 
 		movzx eax, word ptr[esp + 12];
@@ -399,7 +405,7 @@ next2:
 		mov eax, ecx;
 		mov edx, [esp + 28];
 		mov ebx, [esp + 24];
-		call FuncOffs::interpretGetString_;
+		call fo::funcoffs::interpretGetString_;
 		push eax;
 		mov eax, [esp + 20];
 		push eax;
@@ -408,7 +414,7 @@ next2:
 		mov eax, ecx;
 		mov edx, [esp + 16];
 		mov ebx, [esp + 12];
-		call FuncOffs::interpretGetString_;
+		call fo::funcoffs::interpretGetString_;
 		push eax;
 
 		call SetFakeTrait;
@@ -430,10 +436,10 @@ void __declspec(naked) op_set_perkbox_title() {
 		push edx;
 		push edi;
 		mov edi, eax;
-		call FuncOffs::interpretPopShort_;
+		call fo::funcoffs::interpretPopShort_;
 		mov edx, eax;
 		mov eax, edi;
-		call FuncOffs::interpretPopLong_;
+		call fo::funcoffs::interpretPopLong_;
 		cmp dx, 0x9001;
 		jz next;
 		cmp dx, 0x9801;
@@ -441,7 +447,7 @@ void __declspec(naked) op_set_perkbox_title() {
 next:
 		mov ebx, eax;
 		mov eax, edi;
-		call FuncOffs::interpretGetString_;
+		call fo::funcoffs::interpretGetString_;
 		push eax;
 		call SetPerkboxTitle;
 end:
@@ -499,10 +505,10 @@ void __declspec(naked) op_has_fake_perk() {
 		push edx;
 		push edi;
 		mov edi, eax;
-		call FuncOffs::interpretPopShort_;
+		call fo::funcoffs::interpretPopShort_;
 		mov edx, eax;
 		mov eax, edi;
-		call FuncOffs::interpretPopLong_;
+		call fo::funcoffs::interpretPopLong_;
 		cmp dx, 0x9001;
 		jz next;
 		cmp dx, 0x9801;
@@ -510,16 +516,16 @@ void __declspec(naked) op_has_fake_perk() {
 next:
 		mov ebx, eax;
 		mov eax, edi;
-		call FuncOffs::interpretGetString_;
+		call fo::funcoffs::interpretGetString_;
 		push eax;
 		call HasFakePerk;
 end:
 		mov edx, eax;
 		mov eax, edi;
-		call FuncOffs::interpretPushLong_;
+		call fo::funcoffs::interpretPushLong_;
 		mov eax, edi;
 		mov edx, 0xc001;
-		call FuncOffs::interpretPushShort_;
+		call fo::funcoffs::interpretPushShort_;
 		pop edi;
 		pop edx;
 		pop ecx;
@@ -535,10 +541,10 @@ void __declspec(naked) op_has_fake_trait() {
 		push edx;
 		push edi;
 		mov edi, eax;
-		call FuncOffs::interpretPopShort_;
+		call fo::funcoffs::interpretPopShort_;
 		mov edx, eax;
 		mov eax, edi;
-		call FuncOffs::interpretPopLong_;
+		call fo::funcoffs::interpretPopLong_;
 		cmp dx, 0x9001;
 		jz next;
 		cmp dx, 0x9801;
@@ -546,16 +552,16 @@ void __declspec(naked) op_has_fake_trait() {
 next:
 		mov ebx, eax;
 		mov eax, edi;
-		call FuncOffs::interpretGetString_;
+		call fo::funcoffs::interpretGetString_;
 		push eax;
 		call HasFakeTrait;
 end:
 		mov edx, eax;
 		mov eax, edi;
-		call FuncOffs::interpretPushLong_;
+		call fo::funcoffs::interpretPushLong_;
 		mov eax, edi;
 		mov edx, 0xc001;
-		call FuncOffs::interpretPushShort_;
+		call fo::funcoffs::interpretPushShort_;
 		pop edi;
 		pop edx;
 		pop ecx;
@@ -570,10 +576,10 @@ void __declspec(naked) op_perk_add_mode() {
 		push ecx;
 		push edx;
 		mov ecx, eax;
-		call FuncOffs::interpretPopShort_;
+		call fo::funcoffs::interpretPopShort_;
 		mov edx, eax;
 		mov eax, ecx;
-		call FuncOffs::interpretPopLong_;
+		call fo::funcoffs::interpretPopLong_;
 		cmp dx, 0xC001;
 		jnz end;
 		push eax;
@@ -590,24 +596,24 @@ void __declspec(naked) op_remove_trait() {
 	__asm {
 		pushad;
 		mov ebp, eax;
-		call FuncOffs::interpretPopShort_;
+		call fo::funcoffs::interpretPopShort_;
 		mov edi, eax;
 		mov eax, ebp;
-		call FuncOffs::interpretPopLong_;
+		call fo::funcoffs::interpretPopLong_;
 		cmp di, 0xc001;
 		jnz end;
 		xor ebx, ebx;
 		dec ebx;
-		mov ecx, ds:[VARPTR_pc_trait + 4];
-		cmp eax, ds:[VARPTR_pc_trait];
+		mov ecx, ds:[FO_VAR_pc_trait + 4];
+		cmp eax, ds:[FO_VAR_pc_trait];
 		jne next;
-		mov ds : [VARPTR_pc_trait], ecx;
-		mov ds : [VARPTR_pc_trait + 4], ebx;
+		mov ds : [FO_VAR_pc_trait], ecx;
+		mov ds : [FO_VAR_pc_trait + 4], ebx;
 		jmp end;
 next:
-		cmp eax, ds : [VARPTR_pc_trait + 4];
+		cmp eax, ds : [FO_VAR_pc_trait + 4];
 		jne end;
-		mov ds : [VARPTR_pc_trait + 4], ebx;
+		mov ds : [FO_VAR_pc_trait + 4], ebx;
 end:
 		popad;
 		retn;
@@ -620,10 +626,10 @@ void __declspec(naked) op_set_pyromaniac_mod() {
 		push ecx;
 		push edx;
 		mov ecx, eax;
-		call FuncOffs::interpretPopShort_;
+		call fo::funcoffs::interpretPopShort_;
 		mov edx, eax;
 		mov eax, ecx;
-		call FuncOffs::interpretPopLong_;
+		call fo::funcoffs::interpretPopLong_;
 		cmp dx, 0xC001;
 		jnz end;
 		push eax;
@@ -656,10 +662,10 @@ void __declspec(naked) op_set_swiftlearner_mod() {
 		push ecx;
 		push edx;
 		mov ecx, eax;
-		call FuncOffs::interpretPopShort_;
+		call fo::funcoffs::interpretPopShort_;
 		mov edx, eax;
 		mov eax, ecx;
-		call FuncOffs::interpretPopLong_;
+		call fo::funcoffs::interpretPopLong_;
 		cmp dx, 0xC001;
 		jnz end;
 		push eax;
@@ -671,4 +677,7 @@ end:
 		pop ebx;
 		retn;
 	}
+}
+
+}
 }

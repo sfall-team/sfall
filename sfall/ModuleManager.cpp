@@ -2,6 +2,9 @@
 
 #include "ModuleManager.h"
 
+namespace sfall 
+{
+
 ModuleManager ModuleManager::_instance;
 
 ModuleManager::ModuleManager() {
@@ -22,4 +25,6 @@ void ModuleManager::initAll() {
 
 ModuleManager& ModuleManager::getInstance() {
 	return _instance;
+}
+
 }

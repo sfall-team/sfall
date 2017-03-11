@@ -22,6 +22,9 @@
 
 #include "Delegate.h"
 
+namespace sfall 
+{
+
 void SetMDown(bool down, bool right);
 void SetMPos(int x, int y);
 
@@ -176,3 +179,5 @@ void GetMouse(int* x, int* y);
 #define DIK_PGDN            DIK_NEXT            /* PgDn on arrow keypad */
 
 void _stdcall ForceGraphicsRefresh(DWORD);
+
+}

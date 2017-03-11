@@ -1,11 +1,11 @@
 // List of all engine variables and their types.
-// Used to generate VarPtr::var_name constants.
+// Used to generate fo::var::var_name constants.
 
 // TODO: assign appropriate types (arrays, structs, strings, etc.) for all variables
 
 VAR_(aiInfoList,                 DWORD)
 VAR_(ambient_light,              DWORD)
-VARA(art,                        sArt, 11)
+VARA(art,                        Art, 11)
 VAR_(art_name,                   DWORD)
 VAR_(art_vault_guy_num,          DWORD)
 VAR_(art_vault_person_nums,      DWORD)
@@ -22,7 +22,7 @@ VAR_(combat_list,                DWORD)
 VAR_(combat_state,               DWORD)
 VAR_(combat_turn_running,        DWORD)
 VAR_(combatNumTurns,             DWORD)
-VAR3(crit_succ_eff,              CritStruct, 20, 9, 6)  // 20 critters with 9 body parts and 6 effects each
+VAR3(crit_succ_eff,              CritInfo, 20, 9, 6)  // 20 critters with 9 body parts and 6 effects each
 VAR_(critter_db_handle,          DWORD)
 VAR_(critterClearObj,            DWORD)
 VAR_(crnt_func,                  DWORD)
@@ -72,7 +72,7 @@ VAR_(info_line,                  DWORD)
 VAR_(interfaceWindow,            DWORD)
 VAR_(intfaceEnabled,             DWORD)
 VAR_(intotal,                    DWORD)
-VAR_(inven_dude,                 TGameObj*)
+VAR_(inven_dude,                 GameObject*)
 VAR_(inven_pid,                  DWORD)
 VAR_(inven_scroll_dn_bid,        DWORD)
 VAR_(inven_scroll_up_bid,        DWORD)
@@ -110,7 +110,7 @@ VAR_(name_font,                  DWORD)
 VAR_(name_sort_list,             DWORD)
 VAR_(num_game_global_vars,       DWORD)
 VAR_(num_map_global_vars,        DWORD)
-VAR_(obj_dude,                   TGameObj*)
+VAR_(obj_dude,                   GameObject*)
 VAR_(objectTable,                DWORD)
 VAR_(objItemOutlineState,        DWORD)
 VAR_(optionRect,                 DWORD)
@@ -122,11 +122,11 @@ VAR_(partyMemberList,            DWORD*) // each struct - 4 integers, first inte
 VAR_(partyMemberMaxCount,        DWORD)
 VAR_(partyMemberPidList,         DWORD)
 VAR_(patches,                    char*)
-VAR_(paths,                      sPath*)  // array
-VAR2(pc_crit_succ_eff,           CritStruct, 9, 6)  // 9 body parts, 6 effects
+VAR_(paths,                      PathNode*)  // array
+VAR2(pc_crit_succ_eff,           CritInfo, 9, 6)  // 9 body parts, 6 effects
 VAR_(pc_kill_counts,             DWORD)
 VARA(pc_name,                    char, 32)
-VAR_(pc_proto,                   sProtoCritter)
+VAR_(pc_proto,                   Proto)
 VARA(pc_trait,                   long, 2)  // 2 of them
 VARA(perk_data,                  PerkInfo, PERK_count)
 VAR_(perkLevelDataList,          long*) // dynamic array, limited to PERK_Count
@@ -143,7 +143,7 @@ VAR_(queue,                      DWORD)
 VAR_(quick_done,                 DWORD)
 VAR_(read_callback,              DWORD)
 VAR_(RedColor,                   BYTE)
-VARA(retvals,                    sElevator, 24)
+VAR2(retvals,                    ElevatorExit, 24, 4)  // 24 elevators, 4 exits each
 VAR_(scr_size,                   DWORD)
 VAR_(scriptListInfo,             ScriptListInfoItem*)  // dynamic array
 VARA(skill_data,                 SkillInfo, SKILL_count)

@@ -17,29 +17,28 @@
  */
 
 #include "..\main.h"
-
-#include "Elevators.h"
 #include "..\FalloutEngine\Fallout2.h"
 
-static const int ElevatorCount = 50;
+#include "Elevators.h"
+
+namespace sfall
+{
+
+static const int exitsPerElevator = 4;
+static const int vanillaElevatorCount = 24;
+static const int elevatorCount = 50;
 static char elevFile[MAX_PATH];
 
-
-static sElevator Elevators[ElevatorCount];
-static DWORD Menus[ElevatorCount];
-
-void SetElevator(DWORD id, DWORD index, DWORD value) {
-	if (id >= ElevatorCount || index >= 12) return;
-	*(DWORD*)(((DWORD)&Elevators[id]) + index * 4) = value;
-}
+static fo::ElevatorExit elevatorExits[elevatorCount][exitsPerElevator];
+static DWORD menus[elevatorCount];
 
 static void __declspec(naked) GetMenuHook() {
 	__asm {
 		push ebx;
-		lea ebx, Menus;
+		lea ebx, menus;
 		shl eax, 2;
 		mov eax, [ebx+eax];
-		call FuncOffs::elevator_start_;
+		call fo::funcoffs::elevator_start_;
 		pop ebx;
 		ret;
 	}
@@ -48,10 +47,10 @@ static void __declspec(naked) GetMenuHook() {
 static void __declspec(naked) UnknownHook() {
 	__asm {
 		push ebx;
-		lea ebx, Menus;
+		lea ebx, menus;
 		shl eax, 2;
 		mov eax, [ebx+eax];
-		call FuncOffs::Check4Keys_;
+		call fo::funcoffs::Check4Keys_;
 		pop ebx;
 		ret;
 	}
@@ -60,10 +59,10 @@ static void __declspec(naked) UnknownHook() {
 static void __declspec(naked) UnknownHook2() {
 	__asm {
 		push ebx;
-		lea ebx, Menus;
+		lea ebx, menus;
 		shl eax, 2;
 		mov eax, [ebx+eax];
-		call FuncOffs::elevator_end_;
+		call fo::funcoffs::elevator_end_;
 		pop ebx;
 		ret;
 	}
@@ -71,9 +70,9 @@ static void __declspec(naked) UnknownHook2() {
 
 static void __declspec(naked) GetNumButtonsHook1() {
 	__asm {
-		lea  esi, Menus;
+		lea  esi, menus;
 		mov  eax, [esi+edi*4];
-		mov  eax, [VARPTR_btncnt + eax*4];
+		mov  eax, [FO_VAR_btncnt + eax*4];
 		push 0x43F064;
 		retn;
 	}
@@ -81,9 +80,9 @@ static void __declspec(naked) GetNumButtonsHook1() {
 
 static void __declspec(naked) GetNumButtonsHook2() {
 	__asm {
-		lea  edx, Menus;
+		lea  edx, menus;
 		mov  eax, [edx+edi*4];
-		mov  eax, [VARPTR_btncnt + eax*4];
+		mov  eax, [FO_VAR_btncnt + eax*4];
 		push 0x43F18B;
 		retn;
 	}
@@ -91,36 +90,33 @@ static void __declspec(naked) GetNumButtonsHook2() {
 
 static void __declspec(naked) GetNumButtonsHook3() {
 	__asm {
-		lea  eax, Menus;
+		lea  eax, menus;
 		mov  eax, [eax+edi*4];
-		mov  eax, [VARPTR_btncnt+eax*4];
+		mov  eax, [FO_VAR_btncnt+eax*4];
 		push 0x43F1EB;
 		retn;
 	}
 }
 
 void ResetElevators() {
-	memcpy(Elevators, VarPtr::retvals, sizeof(sElevator) * 24);
-	memset(&Elevators[24], 0, sizeof(sElevator)*(ElevatorCount - 24));
-	for (int i = 0; i < 24; i++) Menus[i] = i;
-	for (int i = 24; i < ElevatorCount; i++) Menus[i] = 0;
+	memcpy(elevatorExits, fo::var::retvals, sizeof(fo::ElevatorExit) * vanillaElevatorCount * exitsPerElevator);
+	memset(&elevatorExits[vanillaElevatorCount], 0, sizeof(fo::ElevatorExit) * (elevatorCount - vanillaElevatorCount) * exitsPerElevator);
+	for (int i = 0; i < vanillaElevatorCount; i++) menus[i] = i;
+	for (int i = vanillaElevatorCount; i < elevatorCount; i++) menus[i] = 0;
 	char section[4];
 	if (elevFile) {
-		for (int i = 0; i < ElevatorCount; i++) {
+		for (int i = 0; i < elevatorCount; i++) {
 			_itoa_s(i, section, 10);
-			Menus[i] = GetPrivateProfileIntA(section, "Image", Menus[i], elevFile);
-			Elevators[i].ID1 = GetPrivateProfileIntA(section, "ID1", Elevators[i].ID1, elevFile);
-			Elevators[i].ID2 = GetPrivateProfileIntA(section, "ID2", Elevators[i].ID2, elevFile);
-			Elevators[i].ID3 = GetPrivateProfileIntA(section, "ID3", Elevators[i].ID3, elevFile);
-			Elevators[i].ID4 = GetPrivateProfileIntA(section, "ID4", Elevators[i].ID4, elevFile);
-			Elevators[i].Elevation1 = GetPrivateProfileIntA(section, "Elevation1", Elevators[i].Elevation1, elevFile);
-			Elevators[i].Elevation2 = GetPrivateProfileIntA(section, "Elevation2", Elevators[i].Elevation2, elevFile);
-			Elevators[i].Elevation3 = GetPrivateProfileIntA(section, "Elevation3", Elevators[i].Elevation3, elevFile);
-			Elevators[i].Elevation4 = GetPrivateProfileIntA(section, "Elevation4", Elevators[i].Elevation4, elevFile);
-			Elevators[i].Tile1 = GetPrivateProfileIntA(section, "Tile1", Elevators[i].Tile1, elevFile);
-			Elevators[i].Tile2 = GetPrivateProfileIntA(section, "Tile2", Elevators[i].Tile2, elevFile);
-			Elevators[i].Tile3 = GetPrivateProfileIntA(section, "Tile3", Elevators[i].Tile3, elevFile);
-			Elevators[i].Tile4 = GetPrivateProfileIntA(section, "Tile4", Elevators[i].Tile4, elevFile);
+			menus[i] = GetPrivateProfileIntA(section, "Image", menus[i], elevFile);
+			char setting[32];
+			for (int j = 0; j < exitsPerElevator; j++) {
+				sprintf_s(setting, "ID%d", j);
+				elevatorExits[i][j].id = GetPrivateProfileIntA(section, setting, elevatorExits[i][j].id, elevFile);
+				sprintf_s(setting, "Elevation%d", j);
+				elevatorExits[i][j].elevation = GetPrivateProfileIntA(section, setting, elevatorExits[i][j].elevation, elevFile);
+				sprintf_s(setting, "Tile%d", j);
+				elevatorExits[i][j].tile = GetPrivateProfileIntA(section, setting, elevatorExits[i][j].tile, elevFile);
+			}
 		}
 	}
 }
@@ -131,13 +127,13 @@ void ElevatorsInit(const char* file) {
 	HookCall(0x43EF83, GetMenuHook);
 	HookCall(0x43F141, UnknownHook);
 	HookCall(0x43F2D2, UnknownHook2);
-	SafeWrite8(0x43EF76, (BYTE)ElevatorCount);
-	SafeWrite32(0x43EFA4, (DWORD)Elevators);
-	SafeWrite32(0x43EFB9, (DWORD)Elevators);
-	SafeWrite32(0x43EFEA, (DWORD)&Elevators[0].Tile1);
-	SafeWrite32(0x43F2FC, (DWORD)Elevators);
-	SafeWrite32(0x43F309, (DWORD)&Elevators[0].Elevation1);
-	SafeWrite32(0x43F315, (DWORD)&Elevators[0].Tile1);
+	SafeWrite8(0x43EF76, (BYTE)elevatorCount);
+	SafeWrite32(0x43EFA4, (DWORD)elevatorExits);
+	SafeWrite32(0x43EFB9, (DWORD)elevatorExits);
+	SafeWrite32(0x43EFEA, (DWORD)&elevatorExits[0][0].tile);
+	SafeWrite32(0x43F2FC, (DWORD)elevatorExits);
+	SafeWrite32(0x43F309, (DWORD)&elevatorExits[0][0].elevation);
+	SafeWrite32(0x43F315, (DWORD)&elevatorExits[0][0].tile);
 
 	SafeWrite8(0x43F05D, 0xe9);
 	HookCall(0x43F05D, GetNumButtonsHook1);
@@ -154,4 +150,6 @@ void Elevators::init() {
 		dlogr("Applying elevator patch.", DL_INIT);
 		ElevatorsInit(elevPath.c_str());
 	}
+}
+
 }

@@ -23,6 +23,9 @@
 
 #include "PlayerModel.h"
 
+namespace sfall
+{
+
 static char startMaleModelName[65];
 char defaultMaleModelName[65];
 static char startFemaleModelName[65];
@@ -54,4 +57,6 @@ void PlayerModel::init() {
 	dlog("Applying female model patch.", DL_INIT);
 	SafeWrite32(0x00418B6D, (DWORD)&defaultFemaleModelName);
 	dlogr(" Done", DL_INIT);
+}
+
 }

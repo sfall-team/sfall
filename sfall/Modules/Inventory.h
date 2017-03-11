@@ -20,9 +20,14 @@
 
 #include "Module.h"
 
+namespace sfall
+{
+
 class Inventory : public Module {
 	const char* name() { return "Inventory"; }
 	void init();
 };
 
 void _stdcall SetInvenApCost(int a);
+
+}

@@ -17,11 +17,13 @@
  */
 
 #include "..\main.h"
-
 #include "..\FalloutEngine\Fallout2.h"
 #include "..\Version.h"
 
 #include "MainMenu.h"
+
+namespace sfall
+{
 
 static DWORD MainMenuYOffset;
 static DWORD MainMenuTextOffset;
@@ -39,7 +41,7 @@ static void __declspec(naked) MainMenuButtonYHook() {
 static void __declspec(naked) MainMenuTextYHook() {
 	__asm {
 		add eax, MainMenuTextOffset;
-		jmp dword ptr ds:[VARPTR_text_to_buf];
+		jmp dword ptr ds:[FO_VAR_text_to_buf];
 	}
 }
 
@@ -69,7 +71,7 @@ static void __declspec(naked) MainMenuTextHook() {
 		call FontColour;
 		mov [esp+8], eax;
 		pop eax;
-		call FuncOffs::win_print_;
+		call fo::funcoffs::win_print_;
 		call FontColour;
 		push eax;//colour
 		mov edx, VerString1;//msg
@@ -78,8 +80,8 @@ static void __declspec(naked) MainMenuTextHook() {
 		dec ecx; //xpos
 		add edi, 12;
 		push edi; //ypos
-		mov eax, dword ptr ds:[VARPTR_main_window];//winptr
-		call FuncOffs::win_print_;
+		mov eax, dword ptr ds:[FO_VAR_main_window];//winptr
+		call fo::funcoffs::win_print_;
 		jmp MainMenuTextRet;
 	}
 }
@@ -112,4 +114,6 @@ void MainMenu::init() {
 	if (OverrideColour) {
 		MakeCall(0x48174C, &FontColour, false);
 	}
+}
+
 }

@@ -18,9 +18,11 @@
 
 #pragma once
 
+#include "..\Delegate.h"
 #include "Module.h"
 
-#include "..\Delegate.h"
+namespace sfall
+{
 
 class LoadGameHook : public Module {
 public:
@@ -69,5 +71,6 @@ DWORD InCombat();
 
 DWORD GetCurrentLoops();
 
-//extern Delegate OnBeforeLoadGame;
-//extern Delegate OnAfterLoadGame;
+void GetSavePath(char* buf, char* ftype);
+
+}

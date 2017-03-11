@@ -26,6 +26,9 @@
 
 #include "TalkingHeads.h"
 
+namespace sfall
+{
+
 void _stdcall SetHeadTex(IDirect3DTexture9* tex, int width, int height, int xoff, int yoff);
 
 extern IDirect3DDevice9* d3d9Device;
@@ -79,7 +82,7 @@ static Frame* FramePointer(const Frm* frm, int frameno) {
 		mov eax, frm;
 		mov edx, frameno;
 		xor ebx, ebx;
-		call FuncOffs::frame_ptr_;
+		call fo::funcoffs::frame_ptr_;
 		mov result, eax;
 	}
 	return result;
@@ -92,7 +95,7 @@ static void LoadFrm(Frm* frm) {
 		char buf[MAX_PATH];
 		IDirect3DTexture9** textures = new IDirect3DTexture9*[frm->frames];
 		for (int i = 0; i < frm->frames; i++) {
-			sprintf(buf, "%s\\art\\heads\\%s\\%d.png", VarPtr::patches, frm->path, i);
+			sprintf(buf, "%s\\art\\heads\\%s\\%d.png", fo::var::patches, frm->path, i);
 			if (FAILED(D3DXCreateTextureFromFileExA(d3d9Device, buf, 0, 0, 1, 0, D3DFMT_UNKNOWN, D3DPOOL_MANAGED, D3DX_DEFAULT, D3DX_DEFAULT, 0, 0, 0, &textures[i]))) {
 				for (int j = 0; j < i; j++) textures[j]->Release();
 				delete[] textures;
@@ -173,7 +176,7 @@ static void __declspec(naked) TransTalkHook() {
 	__asm {
 		cmp overridden, 0;
 		jne skip;
-		jmp FuncOffs::talk_to_translucent_trans_buf_to_buf_;
+		jmp fo::funcoffs::talk_to_translucent_trans_buf_to_buf_;
 skip:
 		retn 0x18;
 	}
@@ -186,4 +189,6 @@ void TalkingHeads::init() {
 		MakeCall(0x44AD01, &DrawFrmHook, true);
 		MakeCall(0x447294, &EndSpeechHook, true);
 	}
+}
+
 }

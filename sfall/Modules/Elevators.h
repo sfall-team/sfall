@@ -20,7 +20,12 @@
 
 #include "Module.h"
 
+namespace sfall
+{
+
 class Elevators : public Module {
 	const char* name() { return "Elevators"; }
 	void init();
 };
+
+}

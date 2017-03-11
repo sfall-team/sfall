@@ -20,6 +20,9 @@
 
 #include "Module.h"
 
+namespace sfall
+{
+
 class Explosions : public Module {
 	const char* name() { return "Explosions"; }
 	void init();
@@ -27,3 +30,5 @@ class Explosions : public Module {
 
 int _stdcall ExplosionsMetaruleFunc(int mode, int arg1, int arg2);
 void ResetExplosionSettings();
+
+}

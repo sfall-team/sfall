@@ -30,3 +30,4 @@ HRESULT _stdcall FakeDirectDrawCreate(void* a, void* b, void* c) {
 	if (!proc) return -1;
 	return proc(a, b, c);
 }
+

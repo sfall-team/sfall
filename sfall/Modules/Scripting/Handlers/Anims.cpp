@@ -24,15 +24,20 @@
 
 #include "Anims.h"
 
+namespace sfall
+{
+namespace script
+{
+
 // checks if combat mode is enabled (using R8 8-bit register) and jumps to GOTOFAIL if it is (does nothing if reg_anim_combat_check is 0)
 #define _CHECK_COMBAT_MODE(R8, GOTOFAIL) __asm { \
 	__asm mov R8, reg_anim_combat_check   \
-	__asm test byte ptr ds:VARPTR_combat_state, R8		\
+	__asm test byte ptr ds:FO_VAR_combat_state, R8		\
 	__asm jnz GOTOFAIL }
 
 // true if combat mode is active and combat check was not disabled
 bool checkCombatMode() {
-	return (reg_anim_combat_check & VarPtr::combat_state) != 0;
+	return (reg_anim_combat_check & fo::var::combat_state) != 0;
 }
 
 void sf_reg_anim_combat_check(OpcodeContext& ctx) {
@@ -42,7 +47,7 @@ void sf_reg_anim_combat_check(OpcodeContext& ctx) {
 void sf_reg_anim_destroy(OpcodeContext& ctx) {
 	if (!checkCombatMode()) {
 		auto obj = ctx.arg(0).asObject();
-		Wrapper::register_object_must_erase(obj);
+		fo::func::register_object_must_erase(obj);
 	}
 }
 
@@ -52,7 +57,7 @@ void sf_reg_anim_animate_and_hide(OpcodeContext& ctx) {
 		int animId = ctx.arg(1).asInt(),
 			delay = ctx.arg(2).asInt();
 
-		Wrapper::register_object_animate_and_hide(obj, animId, delay);
+		fo::func::register_object_animate_and_hide(obj, animId, delay);
 	}
 }
 
@@ -67,7 +72,7 @@ void sf_reg_anim_light(OpcodeContext& ctx) {
 		} else if (radius > 8) {
 			radius = 8;
 		}
-		Wrapper::register_object_light(obj, radius, delay);
+		fo::func::register_object_light(obj, radius, delay);
 	}
 }
 
@@ -77,7 +82,7 @@ void sf_reg_anim_change_fid(OpcodeContext& ctx) {
 		int fid = ctx.arg(1).asInt(),
 			delay = ctx.arg(2).asInt();
 
-		Wrapper::register_object_change_fid(obj, fid, delay);
+		fo::func::register_object_change_fid(obj, fid, delay);
 	}
 }
 
@@ -87,7 +92,7 @@ void sf_reg_anim_take_out(OpcodeContext& ctx) {
 		int holdFrame = ctx.arg(1).asInt(),
 			nothing = ctx.arg(2).asInt(); // not used by engine
 
-		Wrapper::register_object_take_out(obj, holdFrame, nothing);
+		fo::func::register_object_take_out(obj, holdFrame, nothing);
 	}
 }
 
@@ -97,7 +102,7 @@ void sf_reg_anim_turn_towards(OpcodeContext& ctx) {
 		int tile = ctx.arg(1).asInt(),
 			nothing = ctx.arg(2).asInt();
 
-		Wrapper::register_object_turn_towards(obj, tile, nothing);
+		fo::func::register_object_turn_towards(obj, tile, nothing);
 	}
 }
 
@@ -107,4 +112,7 @@ void sf_explosions_metarule(OpcodeContext& ctx) {
 		arg2 = ctx.arg(2).asInt();
 
 	ctx.setReturn(ExplosionsMetaruleFunc(mode, arg1, arg2));
+}
+
+}
 }

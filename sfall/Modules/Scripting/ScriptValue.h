@@ -20,12 +20,16 @@
 
 #include "..\..\FalloutEngine\Structs.h"
 
-// TODO: replace with enum class
-enum SfallDataType {
-	DATATYPE_NONE = 0,
-	DATATYPE_INT,
-	DATATYPE_FLOAT,
-	DATATYPE_STR
+namespace sfall
+{
+namespace script
+{
+
+enum class DataType : unsigned long {
+	NONE = 0,
+	INT,
+	FLOAT,
+	STR
 };
 
 /*
@@ -33,7 +37,7 @@ enum SfallDataType {
 */
 class ScriptValue {
 public:
-	ScriptValue(SfallDataType type, unsigned long value);
+	ScriptValue(DataType type, unsigned long value);
 
 	ScriptValue();
 
@@ -45,7 +49,7 @@ public:
 
 	ScriptValue(bool val);
 
-	ScriptValue(TGameObj* obj);
+	ScriptValue(fo::GameObject* obj);
 
 	bool isInt() const;
 
@@ -68,9 +72,9 @@ public:
 	const char* asString() const;
 
 	// returns value as object pointer or nullptr if value is not integer
-	TGameObj* asObject() const;
+	fo::GameObject* asObject() const;
 
-	SfallDataType type() const;
+	DataType type() const;
 
 private:
 	union Value {
@@ -78,9 +82,11 @@ private:
 		int i;
 		float f;
 		const char* str;
-		TGameObj* gObj;
+		fo::GameObject* gObj;
 	} _val;
 
-	SfallDataType _type; // TODO: replace with enum class
+	DataType _type; // TODO: replace with enum class
 };
 
+}
+}

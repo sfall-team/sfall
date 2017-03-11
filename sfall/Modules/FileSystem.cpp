@@ -19,13 +19,13 @@
 #include <vector>
 
 #include "..\main.h"
-
 #include "..\FalloutEngine\Fallout2.h"
 #include "LoadGameHook.h"
 
 #include "FileSystem.h"
 
-extern void GetSavePath(char* buf, char* ftype);
+namespace sfall
+{
 
 struct fsFile {
 	char* data;
@@ -74,7 +74,7 @@ static void __declspec(naked) asm_xfclose(sFile* file) {
 		retn;
 end:
 		popad;
-		jmp FuncOffs::xfclose_;
+		jmp fo::funcoffs::xfclose_;
 	}
 }
 
@@ -104,7 +104,7 @@ static __declspec(naked) sFile* asm_xfopen(const char* path, const char* mode) {
 		retn;
 end:
 		popad;
-		jmp FuncOffs::xfopen_;
+		jmp fo::funcoffs::xfopen_;
 	}
 }
 
@@ -126,7 +126,7 @@ static __declspec(naked) int asm_xvfprintf(sFile* file, const char* format, void
 		retn;
 end:
 		popad;
-		jmp FuncOffs::xvfprintf_;
+		jmp fo::funcoffs::xvfprintf_;
 	}
 }
 
@@ -149,7 +149,7 @@ static __declspec(naked) int asm_xfgetc(sFile* file) {
 		retn;
 end:
 		popad;
-		jmp FuncOffs::xfgetc_;
+		jmp fo::funcoffs::xfgetc_;
 	}
 }
 
@@ -184,7 +184,7 @@ static __declspec(naked) char* asm_xfgets(char* buf, int max_count, sFile* file)
 		retn;
 end:
 		popad;
-		jmp FuncOffs::xfgets_;
+		jmp fo::funcoffs::xfgets_;
 	}
 }
 
@@ -207,7 +207,7 @@ static __declspec(naked) int asm_xfputc(int c, sFile* file) {
 		retn;
 end:
 		popad;
-		jmp FuncOffs::xfputc_;
+		jmp fo::funcoffs::xfputc_;
 	}
 }
 
@@ -230,7 +230,7 @@ static __declspec(naked) int asm_xfputs(const char* str, sFile* file) {
 		retn;
 end:
 		popad;
-		jmp FuncOffs::xfputs_;
+		jmp fo::funcoffs::xfputs_;
 	}
 }
 
@@ -256,7 +256,7 @@ static __declspec(naked) int asm_xfungetc(int c, sFile* file) {
 		retn;
 end:
 		popad;
-		jmp FuncOffs::xungetc_;
+		jmp fo::funcoffs::xungetc_;
 	}
 }
 
@@ -286,7 +286,7 @@ static __declspec(naked) int asm_xfread(void* buf, int elsize, int count, sFile*
 		retn;
 end:
 		popad;
-		jmp FuncOffs::xfread_;
+		jmp fo::funcoffs::xfread_;
 	}
 }
 
@@ -311,7 +311,7 @@ static __declspec(naked) int asm_xfwrite(const void* buf, int elsize, int count,
 		retn;
 end:
 		popad;
-		jmp FuncOffs::xfwrite_;
+		jmp fo::funcoffs::xfwrite_;
 	}
 }
 
@@ -346,7 +346,7 @@ static __declspec(naked) int asm_xfseek(sFile* file, long pos, int origin) {
 		retn;
 end:
 		popad;
-		jmp FuncOffs::xfseek_;
+		jmp fo::funcoffs::xfseek_;
 	}
 }
 
@@ -368,7 +368,7 @@ static __declspec(naked) long asm_xftell(sFile* file) {
 		retn;
 end:
 		popad;
-		jmp FuncOffs::xftell_;
+		jmp fo::funcoffs::xftell_;
 	}
 }
 
@@ -389,7 +389,7 @@ static __declspec(naked) void asm_xfrewind(sFile* file) {
 		retn;
 end:
 		popad;
-		jmp FuncOffs::xrewind_;
+		jmp fo::funcoffs::xrewind_;
 	}
 }
 
@@ -412,7 +412,7 @@ static __declspec(naked) int asm_xfeof(sFile* file) {
 		retn;
 end:
 		popad;
-		jmp FuncOffs::xfeof_;
+		jmp fo::funcoffs::xfeof_;
 	}
 }
 
@@ -434,7 +434,7 @@ static __declspec(naked) int asm_xfilelength(sFile* file) {
 		retn;
 end:
 		popad;
-		jmp FuncOffs::xfilelength_;
+		jmp fo::funcoffs::xfilelength_;
 	}
 }
 
@@ -590,22 +590,22 @@ DWORD _stdcall FScopy(const char* path, const char* source) {
 	__asm {
 		mov eax, source;
 		mov edx, mode;
-		call FuncOffs::xfopen_;
+		call fo::funcoffs::xfopen_;
 		mov file, eax;
 	}
 	if (!file) return -1;
 	__asm {
 		mov eax, file;
-		call FuncOffs::xfilelength_;
+		call fo::funcoffs::xfilelength_;
 		mov fsize, eax;
 	}
 	char* fdata = new char[fsize];
 	__asm {
 		mov eax, file;
-		call FuncOffs::xfclose_;
+		call fo::funcoffs::xfclose_;
 		mov eax, source;
 		mov edx, fdata;
-		call FuncOffs::db_read_to_buf_;
+		call fo::funcoffs::db_read_to_buf_;
 	}
 	fsFile* fsfile = 0;
 	for (DWORD i = 0; i < files.size(); i++) {
@@ -749,4 +749,6 @@ void FileSystem::init() {
 
 		LoadGameHook::onGameReset += FileSystemReset;
 	}
+}
+
 }

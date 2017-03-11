@@ -4,6 +4,9 @@
 #include <sstream>
 #include <vector>
 
+namespace sfall 
+{
+
 // splits a string by given delimiter
 // taken from: http://stackoverflow.com/a/236803/4331475
 template<typename T>
@@ -22,3 +25,5 @@ void split(const std::string &s, char delim, T result, size_t limit = -1) {
 std::vector<std::string> split(const std::string &s, char delim);
 
 std::string trim(const std::string& str);
+
+}

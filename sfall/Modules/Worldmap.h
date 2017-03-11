@@ -20,8 +20,12 @@
 
 #include "Module.h"
 
+namespace sfall
+{
+
 class Worldmap : public Module {
 	const char* name() { return "Worldmap"; }
 	void init();
 };
 
+}

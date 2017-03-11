@@ -20,6 +20,9 @@
 
 #include "Module.h"
 
+namespace sfall
+{
+
 class Criticals : public Module {
 	const char* name() { return "Criticals"; }
 	void init();
@@ -28,3 +31,5 @@ class Criticals : public Module {
 void _stdcall SetCriticalTable(DWORD critter, DWORD bodypart, DWORD slot, DWORD element, DWORD value);
 DWORD _stdcall GetCriticalTable(DWORD critter, DWORD bodypart, DWORD slot, DWORD element);
 void _stdcall ResetCriticalTable(DWORD critter, DWORD bodypart, DWORD slot, DWORD element);
+
+}

@@ -18,7 +18,12 @@
 
 #include "Module.h"
 
+namespace sfall
+{
+
 class MainMenu : public Module {
 	const char* name() { return "MainMenu"; }
 	void init();
 };
+
+}

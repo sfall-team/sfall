@@ -25,6 +25,9 @@
 
 #include "CRC.h"
 
+namespace sfall
+{
+
 static const DWORD ExpectedSize=0x00122800;
 static const DWORD ExpectedCRC[]= {0xe1680293, 0xef34f989};
 
@@ -114,4 +117,6 @@ void CRC(const char* filepath) {
 
 	CloseHandle(h);
 	delete[] bytes;
+}
+
 }

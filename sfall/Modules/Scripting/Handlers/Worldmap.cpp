@@ -16,7 +16,6 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #include "..\..\..\CommonTypes.h"
 #include "..\..\..\FalloutEngine\Fallout2.h"
 #include "..\..\..\SafeWrite.h"
@@ -24,6 +23,11 @@
 #include "..\..\ScriptExtender.h"
 
 #include "Worldmap.h"
+
+namespace sfall
+{
+namespace script
+{
 
 static DWORD EncounteredHorrigan;
 static void _stdcall ForceEncounter4() {
@@ -68,10 +72,10 @@ void __declspec(naked) op_force_encounter() {
 		push ecx;
 		push edx;
 		mov ecx, eax;
-		call FuncOffs::interpretPopShort_;
+		call fo::funcoffs::interpretPopShort_;
 		mov edx, eax;
 		mov eax, ecx;
-		call FuncOffs::interpretPopLong_;
+		call fo::funcoffs::interpretPopLong_;
 		cmp dx, 0xC001;
 		jnz end;
 		push 0;
@@ -89,16 +93,16 @@ void __declspec(naked) op_force_encounter_with_flags() {
 	__asm {
 		pushad
 		mov ecx, eax;
-		call FuncOffs::interpretPopShort_;
+		call fo::funcoffs::interpretPopShort_;
 		mov edx, eax;
 		mov eax, ecx;
-		call FuncOffs::interpretPopLong_;
+		call fo::funcoffs::interpretPopLong_;
 		mov ebx, eax;
 		mov eax, ecx;
-		call FuncOffs::interpretPopShort_;
+		call fo::funcoffs::interpretPopShort_;
 		mov edi, eax;
 		mov eax, ecx;
-		call FuncOffs::interpretPopLong_;
+		call fo::funcoffs::interpretPopLong_;
 		cmp dx, 0xC001;
 		jnz end;
 		cmp di, 0xc001;
@@ -123,10 +127,10 @@ void __declspec(naked) op_in_world_map() {
 		call InWorldMap;
 		mov edx, eax;
 		mov eax, esi;
-		call FuncOffs::interpretPushLong_;
+		call fo::funcoffs::interpretPushLong_;
 		mov edx, 0xc001;
 		mov eax, esi;
-		call FuncOffs::interpretPushShort_;
+		call fo::funcoffs::interpretPushShort_;
 		pop esi;
 		pop edx;
 		pop ecx;
@@ -142,10 +146,10 @@ void __declspec(naked) op_get_game_mode() {
 		call GetCurrentLoops;
 		mov edx, eax;
 		mov eax, edi;
-		call FuncOffs::interpretPushLong_;
+		call fo::funcoffs::interpretPushLong_;
 		mov edx, 0xc001;
 		mov eax, edi;
-		call FuncOffs::interpretPushShort_;
+		call fo::funcoffs::interpretPushShort_;
 		popad;
 		retn;
 	}
@@ -157,11 +161,11 @@ void __declspec(naked) op_get_world_map_x_pos() {
 		push ecx;
 		push edx;
 		mov ecx, eax;
-		mov edx, ds:[VARPTR_world_xpos];
-		call FuncOffs::interpretPushLong_;
+		mov edx, ds:[FO_VAR_world_xpos];
+		call fo::funcoffs::interpretPushLong_;
 		mov edx, 0xc001;
 		mov eax, ecx;
-		call FuncOffs::interpretPushShort_;
+		call fo::funcoffs::interpretPushShort_;
 		pop edx;
 		pop ecx;
 		pop ebx;
@@ -175,11 +179,11 @@ void __declspec(naked) op_get_world_map_y_pos() {
 		push ecx;
 		push edx;
 		mov ecx, eax;
-		mov edx, ds:[VARPTR_world_ypos];
-		call FuncOffs::interpretPushLong_;
+		mov edx, ds:[FO_VAR_world_ypos];
+		call fo::funcoffs::interpretPushLong_;
 		mov edx, 0xc001;
 		mov eax, ecx;
-		call FuncOffs::interpretPushShort_;
+		call fo::funcoffs::interpretPushShort_;
 		pop edx;
 		pop ecx;
 		pop ebx;
@@ -195,22 +199,22 @@ void __declspec(naked) op_set_world_map_pos() {
 		push edi;
 		push esi;
 		mov ecx, eax;
-		call FuncOffs::interpretPopShort_;
+		call fo::funcoffs::interpretPopShort_;
 		mov esi, eax;
 		mov eax, ecx;
-		call FuncOffs::interpretPopLong_;
+		call fo::funcoffs::interpretPopLong_;
 		mov edi, eax;
 		mov eax, ecx;
-		call FuncOffs::interpretPopShort_;
+		call fo::funcoffs::interpretPopShort_;
 		mov edx, eax;
 		mov eax, ecx;
-		call FuncOffs::interpretPopLong_;
+		call fo::funcoffs::interpretPopLong_;
 		cmp dx, 0xC001;
 		jnz end;
 		cmp si, 0xC001;
 		jnz end;
-		mov ds : [VARPTR_world_xpos], eax;
-		mov ds : [VARPTR_world_ypos], edi;
+		mov ds : [FO_VAR_world_xpos], eax;
+		mov ds : [FO_VAR_world_ypos], edi;
 end:
 		pop esi;
 		pop edi;
@@ -221,3 +225,5 @@ end:
 	}
 }
 
+}
+}

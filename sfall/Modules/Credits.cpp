@@ -16,13 +16,16 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "..\main.h"
-
 #include <stdio.h>
+
+#include "..\main.h"
 #include "..\FalloutEngine\Fallout2.h"
 #include "..\Version.h"
 
 #include "Credits.h"
+
+namespace sfall
+{
 
 static DWORD InCredits = 0;
 static DWORD CreditsLine = 0;
@@ -82,7 +85,7 @@ static void _stdcall ShowCreditsHook() {
 	CreditsLine = 0;
 	__asm {
 		mov  eax, creditsFile;
-		call FuncOffs::credits_;
+		call fo::funcoffs::credits_;
 	}
 	InCredits = 0;
 }
@@ -93,15 +96,15 @@ static DWORD _stdcall CreditsNextLine(char* buf, DWORD* font, DWORD* colour) {
 	if (strlen(line)) {
 		if (line[0] == '#') {
 			line++;
-			*font = VarPtr::name_font;
+			*font = fo::var::name_font;
 			*colour = *(BYTE*)0x6A7F01;
 		} else if (line[0] == '@') {
 			line++;
-			*font = VarPtr::title_font;
-			*colour = VarPtr::title_color;
+			*font = fo::var::title_font;
+			*colour = fo::var::title_color;
 		} else {
-			*font = VarPtr::name_font;
-			*colour = VarPtr::name_color;
+			*font = fo::var::name_font;
+			*colour = fo::var::name_color;
 		}
 	}
 	strcpy_s(buf, 256, line);
@@ -123,7 +126,7 @@ static void __declspec(naked) CreditsNextLineHook_Top() {
 		inc eax;
 		retn;
 fail:
-		jmp FuncOffs::credits_get_next_line_;
+		jmp fo::funcoffs::credits_get_next_line_;
 	}
 }
 
@@ -131,7 +134,7 @@ fail:
 static void __declspec(naked) CreditsNextLineHook_Bottom() {
 	__asm {
 		pushad;
-		call FuncOffs::credits_get_next_line_;  // call default function
+		call fo::funcoffs::credits_get_next_line_;  // call default function
 		test eax, eax;
 		popad;
 		jnz  morelines;               // if not the end yet, skip custom code
@@ -159,4 +162,6 @@ void Credits::init() {
 	} else {
 		HookCall(0x42CB49, &CreditsNextLineHook_Top);
 	}
+}
+
 }

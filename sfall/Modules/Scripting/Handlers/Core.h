@@ -22,6 +22,11 @@
 	Opcodes for core sfall features.
  */
 
+namespace sfall
+{
+namespace script
+{
+
 void __declspec() op_set_global_script_repeat();
 
 void __declspec() op_set_global_script_type();
@@ -54,3 +59,6 @@ void sf_sfall_ver_major(OpcodeContext&);
 void sf_sfall_ver_minor(OpcodeContext&);
 
 void sf_sfall_ver_build(OpcodeContext&);
+
+}
+}

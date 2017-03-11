@@ -26,44 +26,39 @@
 
 #include "Inventory.h"
 
+namespace sfall
+{
+
 static DWORD mode;
-static DWORD MaxItemSize;
-static DWORD ReloadWeaponKey = 0;
+static DWORD maxItemSize;
+static DWORD reloadWeaponKey = 0;
 
 long& GetActiveItemMode() {
-	return VarPtr::itemButtonItems[VarPtr::itemCurrentItem].mode;
+	return fo::var::itemButtonItems[fo::var::itemCurrentItem].mode;
 }
 
-TGameObj* GetActiveItem() {
-	return VarPtr::itemButtonItems[VarPtr::itemCurrentItem].item;
+fo::GameObject* GetActiveItem() {
+	return fo::var::itemButtonItems[fo::var::itemCurrentItem].item;
 }
 
 void InventoryKeyPressedHook(DWORD dxKey, bool pressed, DWORD vKey) {
-	if (pressed && ReloadWeaponKey && dxKey == ReloadWeaponKey && IsMapLoaded() && (GetCurrentLoops() & ~(COMBAT | PCOMBAT)) == 0) {
+	if (pressed && reloadWeaponKey && dxKey == reloadWeaponKey && IsMapLoaded() && (GetCurrentLoops() & ~(COMBAT | PCOMBAT)) == 0) {
 		DWORD maxAmmo, curAmmo;
-		TGameObj* item = GetActiveItem();
-		__asm {
-			mov eax, item;
-			call FuncOffs::item_w_max_ammo_;
-			mov maxAmmo, eax;
-			mov eax, item;
-			call FuncOffs::item_w_curr_ammo_;
-			mov curAmmo, eax;
-		}
+		fo::GameObject* item = GetActiveItem();
+		maxAmmo = fo::func::item_w_max_ammo(item);
+		curAmmo = fo::func::item_w_curr_ammo(item);
 		if (maxAmmo != curAmmo) {
 			long &currentMode = GetActiveItemMode();
 			long previusMode = currentMode;
 			currentMode = 5; // reload mode
-			__asm {
-				call FuncOffs::intface_use_item_;
-			}
+			fo::func::intface_use_item();
 			if (previusMode != 5) {
 				// return to previous active item mode (if it wasn't "reload")
 				currentMode = previusMode - 1;
 				if (currentMode < 0)
 					currentMode = 4;
 				__asm {
-					call FuncOffs::intface_toggle_item_state_;
+					call fo::funcoffs::intface_toggle_item_state_;
 				}
 			}
 		}
@@ -92,7 +87,7 @@ static __declspec(naked) DWORD item_total_size(void* critter) {
 loc_477EB7:
 		mov     ecx, [edi+8];
 		mov     eax, [ecx+ebx];
-		call    FuncOffs::item_size_
+		call    fo::funcoffs::item_size_
 		imul    eax, [ecx+ebx+4];
 		add     ebx, 8;
 		inc     edx;
@@ -107,33 +102,33 @@ loc_477ED3:
 		cmp     eax, 1;
 		jnz     loc_477F31;
 		mov     eax, ebp;
-		call    FuncOffs::inven_right_hand_
+		call    fo::funcoffs::inven_right_hand_
 		mov     edx, eax;
 		test    eax, eax;
 		jz      loc_477EFD;
 		test    byte ptr [eax+27h], 2;
 		jnz     loc_477EFD;
-		call    FuncOffs::item_size_
+		call    fo::funcoffs::item_size_
 		add     esi, eax;
 loc_477EFD:
 		mov     eax, ebp;
-		call    FuncOffs::inven_left_hand_
+		call    fo::funcoffs::inven_left_hand_
 		test    eax, eax;
 		jz      loc_477F19;
 		cmp     edx, eax;
 		jz      loc_477F19;
 		test    byte ptr [eax+27h], 1;
 		jnz     loc_477F19;
-		call    FuncOffs::item_size_
+		call    fo::funcoffs::item_size_
 		add     esi, eax;
 loc_477F19:
 		mov     eax, ebp;
-		call    FuncOffs::inven_worn_
+		call    fo::funcoffs::inven_worn_
 		test    eax, eax;
 		jz      loc_477F31;
 		test    byte ptr [eax+27h], 4;
 		jnz     loc_477F31;
-		call    FuncOffs::item_size_
+		call    fo::funcoffs::item_size_
 		add     esi, eax;
 loc_477F31:
 		mov     eax, esi;
@@ -153,7 +148,7 @@ static const DWORD ObjPickupEnd=0x49B6F8;
 static const DWORD size_limit;
 static __declspec(naked) void  ObjPickupHook() {
 	__asm {
-		cmp edi, ds:[VARPTR_obj_dude];
+		cmp edi, ds:[FO_VAR_obj_dude];
 		jnz end;
 end:
 		lea edx, [esp+0x10];
@@ -169,13 +164,13 @@ static __declspec(naked) int CritterCheck() {
 		sub esp, 4;
 		mov ebx, eax;
 
-		cmp eax, dword ptr ds:[VARPTR_obj_dude];
+		cmp eax, dword ptr ds:[FO_VAR_obj_dude];
 		je single;
 		test mode, 3;
 		jnz run;
 		test mode, 2;
 		jz fail;
-		call FuncOffs::isPartyMember_;
+		call fo::funcoffs::isPartyMember_;
 		test eax, eax;
 		jz end;
 run:
@@ -183,12 +178,12 @@ run:
 		jz single;
 		mov edx, esp;
 		mov eax, ebx;
-		call FuncOffs::proto_ptr_;
+		call fo::funcoffs::proto_ptr_;
 		mov eax, [esp];
 		mov eax, [eax + 0xB0 + 40]; //The unused stat in the extra block
 		jmp end;
 single:
-		mov eax, MaxItemSize;
+		mov eax, maxItemSize;
 		jmp end;
 fail:
 		xor eax, eax;
@@ -230,7 +225,7 @@ static __declspec(naked) void ItemAddMultiHook1() {
 		jz end;
 		mov ebp, eax;
 		mov eax, esi;
-		call FuncOffs::item_size_
+		call fo::funcoffs::item_size_
 		mov edx, eax;
 		imul edx, ebx;
 		mov eax, ecx;
@@ -316,7 +311,7 @@ static const char* InvenFmt1 = "%s %d/%d  %s %d/%d";
 static const char* InvenFmt2 = "%s %d/%d";
 
 static const char* _stdcall GetInvenMsg() {
-	const char* tmp = GetMessageStr(&VarPtr::inventry_message_file, 35);
+	const char* tmp = fo::GetMessageStr(&fo::var::inventry_message_file, 35);
 	if (!tmp) return "S:";
 	else return tmp;
 }
@@ -331,13 +326,13 @@ static __declspec(naked) void DisplayStatsHook() {
 		call CritterCheck;
 		jz nolimit;
 		push eax;
-		mov eax, ds:[VARPTR_stack];
+		mov eax, ds:[FO_VAR_stack];
 		push ecx;
 		push InvenFmt1;
 		push offset InvenFmt;
 		call strcpy_wrapper;
 		pop ecx;
-		mov eax, ds:[VARPTR_stack];
+		mov eax, ds:[FO_VAR_stack];
 		call item_total_size;
 		push eax;
 		push ecx;
@@ -355,7 +350,7 @@ nolimit:
 		push eax;
 		push eax;
 end:
-		mov eax, ds:[VARPTR_stack];
+		mov eax, ds:[FO_VAR_stack];
 		mov edx, 0xc;
 		jmp DisplayStatsEnd;
 	}
@@ -364,11 +359,11 @@ end:
 static char SizeMsgBuf[32];
 static const char* _stdcall FmtSizeMsg(int size) {
 	if(size==1) {
-		const char* tmp = GetMessageStr(&VarPtr::proto_main_msg_file, 543);
+		const char* tmp = fo::GetMessageStr(&fo::var::proto_main_msg_file, 543);
 		if(!tmp) strcpy(SizeMsgBuf, "It occupies 1 unit.");
 		else sprintf(SizeMsgBuf, tmp, size);
 	} else {
-		const char* tmp = GetMessageStr(&VarPtr::proto_main_msg_file, 542);
+		const char* tmp = fo::GetMessageStr(&fo::var::proto_main_msg_file, 542);
 		if(!tmp) sprintf(SizeMsgBuf, "It occupies %d units.", size);
 		else sprintf(SizeMsgBuf, tmp, size);
 	}
@@ -377,40 +372,32 @@ static const char* _stdcall FmtSizeMsg(int size) {
 
 static __declspec(naked) void InvenObjExamineFuncHook() {
 	__asm {
-		call FuncOffs::inven_display_msg_
+		call fo::funcoffs::inven_display_msg_
 		push edx;
 		push ecx;
 		mov eax, esi;
-		call FuncOffs::item_size_
+		call fo::funcoffs::item_size_
 		push eax;
 		call FmtSizeMsg;
 		pop ecx;
 		pop edx;
-		call FuncOffs::inven_display_msg_
+		call fo::funcoffs::inven_display_msg_
 		retn;
 	}
 }
 
 static std::string superStimMsg;
-static int _stdcall SuperStimFix2(DWORD* item, DWORD* target) {
+static int _stdcall SuperStimFix2(fo::GameObject* item, fo::GameObject* target) {
 	if (!item || !target) return 0;
-	DWORD itm_pid = item[0x64 / 4], target_pid = target[0x64 / 4];
+	DWORD itm_pid = item->pid, target_pid = target->pid;
 	if ((target_pid & 0xff000000) != 0x01000000) return 0;
 	if ((itm_pid & 0xff000000) != 0) return 0;
 	if ((itm_pid & 0xffffff) != 144) return 0;
 	DWORD curr_hp, max_hp;
-	__asm {
-		mov eax, target;
-		mov edx, STAT_current_hp
-			call FuncOffs::stat_level_
-			mov curr_hp, eax;
-		mov eax, target;
-		mov edx, STAT_max_hit_points
-			call FuncOffs::stat_level_
-			mov max_hp, eax;
-	}
+	curr_hp = fo::func::stat_level(target, fo::STAT_current_hp);
+	max_hp = fo::func::stat_level(target, fo::STAT_max_hit_points);
 	if (curr_hp < max_hp) return 0;
-	Wrapper::display_print(superStimMsg.c_str());
+	fo::func::display_print(superStimMsg.c_str());
 	return 1;
 }
 
@@ -466,7 +453,7 @@ static void __declspec(naked) add_check_for_item_ammo_cost() {
 		push    edx
 		push    ebx
 		sub     esp, 4
-		call    FuncOffs::item_w_curr_ammo_
+		call    fo::funcoffs::item_w_curr_ammo_
 		mov     ebx, eax
 		mov     eax, ecx // weapon
 		mov     edx, esp
@@ -523,13 +510,14 @@ skip:
 }
 
 static void __declspec(naked) SetDefaultAmmo() {
+	using namespace fo;
 	__asm {
 		push    eax
 		push    ebx
 		push    edx
 		xchg    eax, edx
 		mov     ebx, eax
-		call    FuncOffs::item_get_type_
+		call    fo::funcoffs::item_get_type_
 		cmp     eax, item_type_weapon // is it item_type_weapon?
 		jne     end // no
 		cmp     dword ptr [ebx+0x3C], 0 // is there any ammo in the weapon?
@@ -537,7 +525,7 @@ static void __declspec(naked) SetDefaultAmmo() {
 		sub     esp, 4
 		mov     edx, esp
 		mov     eax, [ebx+0x64] // eax = weapon pid
-		call    FuncOffs::proto_ptr_
+		call    fo::funcoffs::proto_ptr_
 		mov     edx, [esp]
 		mov     eax, [edx+0x5C] // eax = default ammo pid
 		mov     [ebx+0x40], eax // set current ammo proto
@@ -563,14 +551,14 @@ static void __declspec(naked) inven_action_cursor_hack() {
 static void __declspec(naked) item_add_mult_hook() {
 	__asm {
 		call    SetDefaultAmmo
-		jmp     FuncOffs::item_add_force_
+		jmp     fo::funcoffs::item_add_force_
 	}
 }
 
 static void __declspec(naked) inven_pickup_hook() {
 	__asm {
-		mov  eax, ds:[VARPTR_i_wid]
-		call FuncOffs::GNW_find_
+		mov  eax, ds:[FO_VAR_i_wid]
+		call fo::funcoffs::GNW_find_
 		mov  ebx, [eax+0x8+0x0]                   // ebx = _i_wid.rect.x
 		mov  ecx, [eax+0x8+0x4]                   // ecx = _i_wid.rect.y
 		mov  eax, 176
@@ -579,10 +567,10 @@ static void __declspec(naked) inven_pickup_hook() {
 		mov  edx, 37
 		add  edx, ecx                             // y_start
 		add  ecx, 37+100                          // y_end
-		call FuncOffs::mouse_click_in_
+		call fo::funcoffs::mouse_click_in_
 		test eax, eax
 		jz   end
-		mov  edx, ds:[VARPTR_curr_stack]
+		mov  edx, ds:[FO_VAR_curr_stack]
 		test edx, edx
 		jnz  end
 		cmp  edi, 1006                            // Hands?
@@ -594,13 +582,13 @@ end:
 	}
 }
 
-int __stdcall ItemCountFixStdcall(TGameObj* who, TGameObj* item) {
+int __stdcall ItemCountFixStdcall(fo::GameObject* who, fo::GameObject* item) {
 	int count = 0;
-	for (int i = 0; i < who->invenCount; i++) {
+	for (int i = 0; i < who->invenSize; i++) {
 		auto tableItem = &who->invenTable[i];
 		if (tableItem->object == item) {
 			count += tableItem->count;
-		} else if (Wrapper::item_get_type(tableItem->object) == item_type_container) {
+		} else if (fo::func::item_get_type(tableItem->object) == fo::item_type_container) {
 			count += ItemCountFixStdcall(tableItem->object, item);
 		}
 	}
@@ -638,7 +626,7 @@ void Inventory::init() {
 		SafeWrite8(0x477EB3, 0xeb);
 	}
 	if (mode) {
-		MaxItemSize = GetConfigInt("Misc", "CritterInvSizeLimit", 100);
+		maxItemSize = GetConfigInt("Misc", "CritterInvSizeLimit", 100);
 
 		//Check item_add_multi (picking stuff from the floor, etc.)
 		HookCall(0x4771BD, &ItemAddMultiHook1);
@@ -672,7 +660,7 @@ void Inventory::init() {
 		MakeCall(0x4234B3, &divide_burst_rounds_by_ammo_cost, true);
 	}
 
-	ReloadWeaponKey = GetConfigInt("Input", "ReloadWeaponKey", 0);
+	reloadWeaponKey = GetConfigInt("Input", "ReloadWeaponKey", 0);
 
 	if (GetConfigInt("Misc", "StackEmptyWeapons", 0)) {
 		MakeCall(0x4736C6, &inven_action_cursor_hack, true);
@@ -693,9 +681,10 @@ void Inventory::init() {
 	HookCall(0x471457, &inven_pickup_hook);
 
 	// Move items to player's main inventory instead of the opened bag/backpack when confirming a trade
-	SafeWrite32(0x475CF2, VARPTR_stack);
+	SafeWrite32(0x475CF2, FO_VAR_stack);
 
 	// Fix item_count function returning incorrect value when there is a container-item inside
 	MakeCall(0x47808C, ItemCountFix, true); // replacing item_count_ function
 }
 
+}

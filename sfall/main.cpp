@@ -72,6 +72,9 @@
 
 #include "main.h"
 
+namespace sfall
+{
+
 bool isDebug = false;
 
 const char ddrawIni[] = ".\\ddraw.ini";
@@ -79,7 +82,7 @@ static char ini[65];
 static char translationIni[65];
 
 unsigned int GetConfigInt(const char* section, const char* setting, int defaultValue) {
-	return GetPrivateProfileIntA(section, setting, defaultValue, ::ini);
+	return GetPrivateProfileIntA(section, setting, defaultValue, ini);
 }
 
 std::string GetIniString(const char* section, const char* setting, const char* defaultValue, size_t bufSize, const char* iniFile) {
@@ -97,34 +100,31 @@ std::vector<std::string> GetIniList(const char* section, const char* setting, co
 }
 
 std::string GetConfigString(const char* section, const char* setting, const char* defaultValue, size_t bufSize) {
-	return GetIniString(section, setting, defaultValue, bufSize, ::ini);
+	return GetIniString(section, setting, defaultValue, bufSize, ini);
 }
 
 size_t GetConfigString(const char* section, const char* setting, const char* defaultValue, char* buf, size_t bufSize) {
-	return GetPrivateProfileStringA(section, setting, defaultValue, buf, bufSize, ::ini);
+	return GetPrivateProfileStringA(section, setting, defaultValue, buf, bufSize, ini);
 }
 
 std::vector<std::string> GetConfigList(const char* section, const char* setting, const char* defaultValue, size_t bufSize) {
-	return GetIniList(section, setting, defaultValue, bufSize, ',', ::ini);
+	return GetIniList(section, setting, defaultValue, bufSize, ',', ini);
 }
 
 std::string Translate(const char* section, const char* setting, const char* defaultValue, size_t bufSize) {
-	return GetIniString(section, setting, defaultValue, bufSize, ::translationIni);
+	return GetIniString(section, setting, defaultValue, bufSize, translationIni);
 }
 
 size_t Translate(const char* section, const char* setting, const char* defaultValue, char* buffer, size_t bufSize) {
-	return GetPrivateProfileStringA(section, setting, defaultValue, buffer, bufSize, ::translationIni);
+	return GetPrivateProfileStringA(section, setting, defaultValue, buffer, bufSize, translationIni);
 }
 
-
-static void DllMain2() {
-	dlogr("In DllMain2", DL_MAIN);
+static void InitModules() {
+	dlogr("In InitModules", DL_MAIN);
 
 	auto& manager = ModuleManager::getInstance();
 
 	// initialize all modules
-	manager.add<MiscPatches>();
-
 	manager.add<SpeedPatch>();
 	manager.add<BugFixes>();
 	manager.add<Graphics>();
@@ -163,10 +163,11 @@ static void DllMain2() {
 	manager.add<AnimationsAtOnce>();
 	manager.add<BarBoxes>();
 	manager.add<HeroAppearance>();
+	manager.add<MiscPatches>();
 
 	manager.initAll();
 
-	dlogr("Leave DllMain2", DL_MAIN);
+	dlogr("Leave InitModules", DL_MAIN);
 }
 
 static void CompatModeCheck(HKEY root, const char* filepath, int extra) {
@@ -193,74 +194,80 @@ static void CompatModeCheck(HKEY root, const char* filepath, int extra) {
 	}
 }
 
-bool _stdcall DllMain(HANDLE hDllHandle, DWORD dwReason, LPVOID  lpreserved) {
-	if (dwReason == DLL_PROCESS_ATTACH) {
-		// enabling debugging features
- 		isDebug = (GetPrivateProfileIntA("Debugging", "Enable", 0, ddrawIni) != 0);
-		if (isDebug) {
-			LoggingInit();
-		}
+inline void SfallInit() {
+	// enabling debugging features
+ 	isDebug = (GetPrivateProfileIntA("Debugging", "Enable", 0, ddrawIni) != 0);
+	if (isDebug) {
+		LoggingInit();
+	}
 
-		char filepath[MAX_PATH];
-		GetModuleFileName(0, filepath, MAX_PATH);
+	char filepath[MAX_PATH];
+	GetModuleFileName(0, filepath, MAX_PATH);
 
-		CRC(filepath);
+	CRC(filepath);
 
-		if (!isDebug || !GetPrivateProfileIntA("Debugging", "SkipCompatModeCheck", 0, ddrawIni)) {
-			int is64bit;
-			typedef int (_stdcall *chk64bitproc)(HANDLE, int*);
-			HMODULE h=LoadLibrary("Kernel32.dll");
-			chk64bitproc proc = (chk64bitproc)GetProcAddress(h, "IsWow64Process");
-			if(proc) proc(GetCurrentProcess(), &is64bit);
-			else is64bit=0;
-			FreeLibrary(h);
+	if (!isDebug || !GetPrivateProfileIntA("Debugging", "SkipCompatModeCheck", 0, ddrawIni)) {
+		int is64bit;
+		typedef int (_stdcall *chk64bitproc)(HANDLE, int*);
+		HMODULE h = LoadLibrary("Kernel32.dll");
+		chk64bitproc proc = (chk64bitproc)GetProcAddress(h, "IsWow64Process");
+		if(proc) proc(GetCurrentProcess(), &is64bit);
+		else is64bit=0;
+		FreeLibrary(h);
 
-			CompatModeCheck(HKEY_CURRENT_USER, filepath, is64bit?KEY_WOW64_64KEY:0);
-			CompatModeCheck(HKEY_LOCAL_MACHINE, filepath, is64bit?KEY_WOW64_64KEY:0);
-		}
+		CompatModeCheck(HKEY_CURRENT_USER, filepath, is64bit?KEY_WOW64_64KEY:0);
+		CompatModeCheck(HKEY_LOCAL_MACHINE, filepath, is64bit?KEY_WOW64_64KEY:0);
+	}
 
-		// ini file override
-		bool cmdlineexists = false;
-		char* cmdline = GetCommandLineA();
-		if (GetPrivateProfileIntA("Main", "UseCommandLine", 0, ddrawIni)) {
-			while (cmdline[0] == ' ') cmdline++;
-			bool InQuote = false;
-			int count = -1;
+	// ini file override
+	bool cmdlineexists = false;
+	char* cmdline = GetCommandLineA();
+	if (GetPrivateProfileIntA("Main", "UseCommandLine", 0, ddrawIni)) {
+		while (cmdline[0] == ' ') cmdline++;
+		bool InQuote = false;
+		int count = -1;
 
-			while (true) {
-				count++;
-				if (cmdline[count] == 0) break;;
-				if (cmdline[count] == ' ' && !InQuote) break;
-				if (cmdline[count] == '"') {
-					InQuote = !InQuote;
-					if (!InQuote) break;
-				}
-			}
-			if (cmdline[count] != 0) {
-				count++;
-				while (cmdline[count] == ' ') count++;
-				cmdline = &cmdline[count];
-				cmdlineexists = true;
+		while (true) {
+			count++;
+			if (cmdline[count] == 0) break;;
+			if (cmdline[count] == ' ' && !InQuote) break;
+			if (cmdline[count] == '"') {
+				InQuote = !InQuote;
+				if (!InQuote) break;
 			}
 		}
+		if (cmdline[count] != 0) {
+			count++;
+			while (cmdline[count] == ' ') count++;
+			cmdline = &cmdline[count];
+			cmdlineexists = true;
+		}
+	}
 
-		if (cmdlineexists && strlen(cmdline)) {
-			strcpy_s(ini, ".\\");
-			strcat_s(ini, cmdline);
-			HANDLE h = CreateFileA(cmdline, GENERIC_READ, 0, 0, OPEN_EXISTING, 0, 0);
-			if (h != INVALID_HANDLE_VALUE) CloseHandle(h);
-			else {
-				MessageBox(0, "You gave a command line argument to fallout, but it couldn't be matched to a file\n" \
-						   "Using default ddraw.ini instead", "Warning", MB_TASKMODAL);
-				strcpy_s(ini, ddrawIni);
-			}
-		} else {
+	if (cmdlineexists && strlen(cmdline)) {
+		strcpy_s(ini, ".\\");
+		strcat_s(ini, cmdline);
+		HANDLE h = CreateFileA(cmdline, GENERIC_READ, 0, 0, OPEN_EXISTING, 0, 0);
+		if (h != INVALID_HANDLE_VALUE) CloseHandle(h);
+		else {
+			MessageBox(0, "You gave a command line argument to fallout, but it couldn't be matched to a file\n" \
+						"Using default ddraw.ini instead", "Warning", MB_TASKMODAL);
 			strcpy_s(ini, ddrawIni);
 		}
+	} else {
+		strcpy_s(ini, ddrawIni);
+	}
 
-		GetConfigString("Main", "TranslationsINI", "./Translations.ini", translationIni, 65);
+	GetConfigString("Main", "TranslationsINI", "./Translations.ini", translationIni, 65);
 
-		DllMain2();
+	InitModules();
+}
+
+}
+
+bool _stdcall DllMain(HANDLE hDllHandle, DWORD dwReason, LPVOID lpreserved) {
+	if (dwReason == DLL_PROCESS_ATTACH) {
+		sfall::SfallInit();
 	}
 	return true;
 }

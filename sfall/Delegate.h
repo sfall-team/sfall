@@ -3,6 +3,9 @@
 #include <functional>
 #include <vector>
 
+namespace sfall 
+{
+
 // Simple multi-cast Delegate implementation.
 // Removing specific functions after they were added is not supported yet.
 template <typename ...ArgT>
@@ -77,3 +80,5 @@ private:
 	FunctorCollection _functors;
 
 };
+
+}

@@ -1,6 +1,6 @@
 /*
 * sfall
-* Copyright (C) 2008-2016 The sfall team
+* Copyright (C) 2008-2017 The sfall team
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -18,20 +18,18 @@
 #pragma once
 
 /* 
-* FALLOUT2.EXE structs, function offsets and wrappers should be placed here  
-*
+* FALLOUT2.EXE structs, function offsets and wrappers are included from here.
 */
 
 #include "Enums.h"
-#include "Functions.h"
+#include "FunctionOffsets.h"
 #include "Structs.h"
-#include "Utils.h"
+#include "EngineUtils.h"
 #include "Variables.h"
-#include "Wrappers.h"
+#include "Functions.h"
 
 
-
-
+// TODO: move/rename these
 #define MSG_FILE_COMBAT		(0x56D368)
 #define MSG_FILE_AI			(0x56D510)
 #define MSG_FILE_SCRNAME	(0x56D754)

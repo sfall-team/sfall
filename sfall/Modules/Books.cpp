@@ -16,10 +16,14 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "..\main.h"
 #include <stdio.h>
 
+#include "..\main.h"
+
 #include "Books.h"
+
+namespace sfall 
+{
 
 static int BooksCount = 0;
 static const int BooksMax = 30;
@@ -112,4 +116,6 @@ void Books::init() {
 		MakeCall(0x49B9FB, &obj_use_book_hook, true);
 		dlog_f(" (%d/%d books) Done\r\n", DL_INIT, n, count);
 	}
+}
+
 }

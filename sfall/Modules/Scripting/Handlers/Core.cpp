@@ -27,16 +27,21 @@
 
 #include "Core.h"
 
+namespace sfall
+{
+namespace script
+{
+
 void __declspec(naked) op_set_global_script_repeat() {
 	__asm {
 		push ebx;
 		push ecx;
 		push edx;
 		mov ecx, eax;
-		call FuncOffs::interpretPopShort_;
+		call fo::funcoffs::interpretPopShort_;
 		mov edx, eax;
 		mov eax, ecx;
-		call FuncOffs::interpretPopLong_;
+		call fo::funcoffs::interpretPopLong_;
 		cmp dx, 0xC001;
 		jnz end;
 		push eax;
@@ -56,10 +61,10 @@ void __declspec(naked) op_set_global_script_type() {
 		push ecx;
 		push edx;
 		mov ecx, eax;
-		call FuncOffs::interpretPopShort_;
+		call fo::funcoffs::interpretPopShort_;
 		mov edx, eax;
 		mov eax, ecx;
-		call FuncOffs::interpretPopLong_;
+		call fo::funcoffs::interpretPopLong_;
 		cmp dx, 0xC001;
 		jnz end;
 		push eax;
@@ -80,10 +85,10 @@ void __declspec(naked) op_available_global_script_types() {
 		push edx;
 		mov edx, availableGlobalScriptTypes;
 		mov ecx, eax;
-		call FuncOffs::interpretPushLong_;
+		call fo::funcoffs::interpretPushLong_;
 		mov edx, 0xc001;
 		mov eax, ecx;
-		call FuncOffs::interpretPushShort_;
+		call fo::funcoffs::interpretPushShort_;
 		pop edx;
 		pop ecx;
 		pop ebx;
@@ -99,15 +104,15 @@ void __declspec(naked) op_set_sfall_global() {
 		push edi;
 		push esi;
 		mov edi, eax;
-		call FuncOffs::interpretPopShort_;
+		call fo::funcoffs::interpretPopShort_;
 		mov eax, edi;
-		call FuncOffs::interpretPopLong_;
+		call fo::funcoffs::interpretPopLong_;
 		mov esi, eax;
 		mov eax, edi;
-		call FuncOffs::interpretPopShort_;
+		call fo::funcoffs::interpretPopShort_;
 		mov edx, eax;
 		mov eax, edi;
-		call FuncOffs::interpretPopLong_;
+		call fo::funcoffs::interpretPopLong_;
 		cmp dx, 0x9001;
 		jz next;
 		cmp dx, 0x9801;
@@ -121,7 +126,7 @@ void __declspec(naked) op_set_sfall_global() {
 next:
 		mov ebx, eax;
 		mov eax, edi;
-		call FuncOffs::interpretGetString_;
+		call fo::funcoffs::interpretGetString_;
 		push esi;
 		push eax;
 		call SetGlobalVar;
@@ -144,10 +149,10 @@ void __declspec(naked) op_get_sfall_global_int() {
 		push esi;
 		xor edx, edx;
 		mov edi, eax;
-		call FuncOffs::interpretPopShort_;
+		call fo::funcoffs::interpretPopShort_;
 		mov esi, eax;
 		mov eax, edi;
-		call FuncOffs::interpretPopLong_;
+		call fo::funcoffs::interpretPopLong_;
 		cmp si, 0x9001;
 		jz next;
 		cmp si, 0x9801;
@@ -162,16 +167,16 @@ next:
 		mov edx, esi;
 		mov ebx, eax;
 		mov eax, edi;
-		call FuncOffs::interpretGetString_;
+		call fo::funcoffs::interpretGetString_;
 		push eax;
 		call GetGlobalVar;
 		mov edx, eax;
 end:
 		mov eax, edi;
-		call FuncOffs::interpretPushLong_;
+		call fo::funcoffs::interpretPushLong_;
 		mov edx, 0xc001;
 		mov eax, edi;
-		call FuncOffs::interpretPushShort_;
+		call fo::funcoffs::interpretPushShort_;
 		pop esi;
 		pop edi;
 		pop edx;
@@ -190,10 +195,10 @@ void __declspec(naked) op_get_sfall_global_float() {
 		push esi;
 		xor edx, edx;
 		mov edi, eax;
-		call FuncOffs::interpretPopShort_;
+		call fo::funcoffs::interpretPopShort_;
 		mov esi, eax;
 		mov eax, edi;
-		call FuncOffs::interpretPopLong_;
+		call fo::funcoffs::interpretPopLong_;
 		cmp si, 0x9001;
 		jz next;
 		cmp si, 0x9801;
@@ -208,16 +213,16 @@ next:
 		mov edx, esi;
 		mov ebx, eax;
 		mov eax, edi;
-		call FuncOffs::interpretGetString_;
+		call fo::funcoffs::interpretGetString_;
 		push eax;
 		call GetGlobalVar;
 		mov edx, eax;
 end:
 		mov eax, edi;
-		call FuncOffs::interpretPushLong_;
+		call fo::funcoffs::interpretPushLong_;
 		mov edx, 0xa001;
 		mov eax, edi;
-		call FuncOffs::interpretPushShort_;
+		call fo::funcoffs::interpretPushShort_;
 		pop esi;
 		pop edi;
 		pop edx;
@@ -235,10 +240,10 @@ void __declspec(naked) op_get_sfall_arg() {
 		pop ecx;
 		mov edx, eax;
 		mov eax, ecx;
-		call FuncOffs::interpretPushLong_;
+		call fo::funcoffs::interpretPushLong_;
 		mov eax, ecx;
 		mov edx, 0xc001;
-		call FuncOffs::interpretPushShort_;
+		call fo::funcoffs::interpretPushShort_;
 		popad;
 		retn;
 	}
@@ -262,10 +267,10 @@ void __declspec(naked) op_get_sfall_args() {
 		pop ecx;
 		mov edx, eax;
 		mov eax, ecx;
-		call FuncOffs::interpretPushLong_;
+		call fo::funcoffs::interpretPushLong_;
 		mov eax, ecx;
 		mov edx, 0xc001;
-		call FuncOffs::interpretPushShort_;
+		call fo::funcoffs::interpretPushShort_;
 		popad;
 		retn;
 	}
@@ -275,16 +280,16 @@ void __declspec(naked) op_set_sfall_arg() {
 	__asm {
 		pushad;
 		mov ecx, eax;
-		call FuncOffs::interpretPopShort_;
+		call fo::funcoffs::interpretPopShort_;
 		mov edi, eax;
 		mov eax, ecx;
-		call FuncOffs::interpretPopLong_;
+		call fo::funcoffs::interpretPopLong_;
 		mov edx, eax;
 		mov eax, ecx;
-		call FuncOffs::interpretPopShort_;
+		call fo::funcoffs::interpretPopShort_;
 		mov esi, eax;
 		mov eax, ecx;
-		call FuncOffs::interpretPopLong_;
+		call fo::funcoffs::interpretPopLong_;
 		cmp di, 0xc001;
 		jnz end;
 		cmp si, 0xc001;
@@ -304,10 +309,10 @@ void __declspec(naked) op_set_sfall_return() {
 		push ecx;
 		push edx;
 		mov ecx, eax;
-		call FuncOffs::interpretPopShort_;
+		call fo::funcoffs::interpretPopShort_;
 		mov edx, eax;
 		mov eax, ecx;
-		call FuncOffs::interpretPopLong_;
+		call fo::funcoffs::interpretPopLong_;
 		cmp dx, 0xc001;
 		jnz end;
 		push eax;
@@ -326,10 +331,10 @@ void __declspec(naked) op_init_hook() {
 		push edx;
 		mov ecx, eax;
 		mov edx, InitingHookScripts;
-		call FuncOffs::interpretPushLong_;
+		call fo::funcoffs::interpretPushLong_;
 		mov eax, ecx;
 		mov edx, 0xc001;
-		call FuncOffs::interpretPushShort_;
+		call fo::funcoffs::interpretPushShort_;
 		pop edx;
 		pop ecx;
 		retn;
@@ -340,10 +345,10 @@ void __declspec(naked) op_set_self() {
 	__asm {
 		pushad;
 		mov ebp, eax;
-		call FuncOffs::interpretPopShort_;
+		call fo::funcoffs::interpretPopShort_;
 		mov edi, eax;
 		mov eax, ebp;
-		call FuncOffs::interpretPopLong_;
+		call fo::funcoffs::interpretPopLong_;
 		cmp di, 0xc001;
 		jnz end;
 		push eax;
@@ -375,4 +380,7 @@ void sf_sfall_ver_minor(OpcodeContext& ctx) {
 
 void sf_sfall_ver_build(OpcodeContext& ctx) {
 	ctx.setReturn(VERSION_BUILD);
+}
+
+}
 }

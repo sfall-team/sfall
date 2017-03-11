@@ -16,17 +16,22 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "..\main.h"
-
 #include <math.h>
 #include <stdio.h>
+
+#include "..\main.h"
 #include "..\FalloutEngine\Fallout2.h"
+#include "LoadGameHook.h"
+
 #include "Stats.h"
 
-static DWORD StatMaximumsPC[STAT_max_stat];
-static DWORD StatMinimumsPC[STAT_max_stat];
-static DWORD StatMaximumsNPC[STAT_max_stat];
-static DWORD StatMinimumsNPC[STAT_max_stat];
+namespace sfall
+{
+
+static DWORD StatMaximumsPC[fo::STAT_max_stat];
+static DWORD StatMinimumsPC[fo::STAT_max_stat];
+static DWORD StatMaximumsNPC[fo::STAT_max_stat];
+static DWORD StatMinimumsNPC[fo::STAT_max_stat];
 
 static DWORD cCritter;
 
@@ -49,7 +54,7 @@ static void __declspec(naked) GetCurrentStatHook2() {
 	__asm {
 		shl esi, 2;
 		mov eax, cCritter;
-		cmp eax, dword ptr ds:[VARPTR_obj_dude];
+		cmp eax, dword ptr ds:[FO_VAR_obj_dude];
 		je pc;
 		cmp ecx, StatMinimumsNPC[esi];
 		jg npc1;
@@ -83,7 +88,7 @@ end:
 
 static void __declspec(naked) SetCurrentStatHook() {
 	__asm {
-		cmp esi, dword ptr ds:[VARPTR_obj_dude];
+		cmp esi, dword ptr ds:[FO_VAR_obj_dude];
 		je pc;
 		cmp ebx, StatMinimumsNPC[ecx*4];
 		jl fail;
@@ -114,7 +119,7 @@ static void __declspec(naked) GetLevelXPHook() {
 }
 static void __declspec(naked) GetNextLevelXPHook() {
 	__asm {
-		mov eax, ds:[VARPTR_Level_];
+		mov eax, ds:[FO_VAR_Level_];
 		jmp GetLevelXPHook;
 	}
 }
@@ -123,6 +128,7 @@ unsigned short StandardApAcBonus = 4;
 unsigned short ExtraApAcBonus = 4;
 static const DWORD ApAcRetAddr = 0x4AF0A4;
 static void __declspec(naked) ApplyApAcBonus() {
+	using namespace fo;
 	__asm {
 		push edi;
 		push edx;
@@ -132,8 +138,8 @@ static void __declspec(naked) ApplyApAcBonus() {
 		jmp standard;
 h2hEvade:
 		mov edx, PERK_hth_evade_perk;
-		mov eax, dword ptr ds:[VARPTR_obj_dude];
-		call FuncOffs::perk_level_;
+		mov eax, dword ptr ds:[FO_VAR_obj_dude];
+		call fo::funcoffs::perk_level_;
 		imul ax, ExtraApAcBonus;
 		imul ax, [ebx+0x40];
 		mov edi, eax;
@@ -155,7 +161,7 @@ static int __declspec(naked) _stdcall StatLevel(void* critter, int id) {
 	__asm {
 		mov eax, [esp+4];
 		mov edx, [esp+8];
-		call FuncOffs::stat_level_;
+		call fo::funcoffs::stat_level_;
 		retn 8;
 	}
 }
@@ -164,7 +170,7 @@ static void __declspec(naked) _stdcall ProtoPtr(DWORD pid, int** proto) {
 	__asm {
 		mov eax, [esp+4];
 		mov edx, [esp+8];
-		call FuncOffs::proto_ptr_;
+		call fo::funcoffs::proto_ptr_;
 		retn 8;
 	}
 }
@@ -200,9 +206,9 @@ static void __declspec(naked) stat_recalc_derived() {
 }
 
 void StatsReset() {
-	for (int i = 0; i < STAT_max_stat; i++) {
-		StatMaximumsPC[i] = StatMaximumsNPC[i] = VarPtr::stat_data[i].maxValue;
-		StatMinimumsPC[i] = StatMinimumsNPC[i] = VarPtr::stat_data[i].minValue;
+	for (int i = 0; i < fo::STAT_max_stat; i++) {
+		StatMaximumsPC[i] = StatMaximumsNPC[i] = fo::var::stat_data[i].maxValue;
+		StatMinimumsPC[i] = StatMinimumsNPC[i] = fo::var::stat_data[i].minValue;
 	}
 	StandardApAcBonus = 4;
 	ExtraApAcBonus = 4;
@@ -210,6 +216,9 @@ void StatsReset() {
 
 void Stats::init() {
 	StatsReset();
+
+	LoadGameHook::onGameReset += StatsReset;
+
 	SafeWrite8(0x004AEF48, 0xe9);
 	HookCall(0x004AEF48, GetCurrentStatHook1);
 	SafeWrite8(0x004AF3AF, 0xe9);
@@ -282,25 +291,27 @@ void Stats::init() {
 }
 
 void _stdcall SetPCStatMax(int stat, int i) {
-	if (stat >= 0 && stat < STAT_max_stat) {
+	if (stat >= 0 && stat < fo::STAT_max_stat) {
 		StatMaximumsPC[stat] = i;
 	}
 }
 
 void _stdcall SetPCStatMin(int stat, int i) {
-	if (stat >= 0 && stat < STAT_max_stat) {
+	if (stat >= 0 && stat < fo::STAT_max_stat) {
 		StatMinimumsPC[stat] = i;
 	}
 }
 
 void _stdcall SetNPCStatMax(int stat, int i) {
-	if (stat >= 0 && stat < STAT_max_stat) {
+	if (stat >= 0 && stat < fo::STAT_max_stat) {
 		StatMaximumsNPC[stat] = i;
 	}
 }
 
 void _stdcall SetNPCStatMin(int stat, int i) {
-	if (stat >= 0 && stat < STAT_max_stat) {
+	if (stat >= 0 && stat < fo::STAT_max_stat) {
 		StatMinimumsNPC[stat] = i;
 	}
+}
+
 }

@@ -20,7 +20,12 @@
 
 #include "Module.h"
 
+namespace sfall
+{
+
 class SpeedPatch : public Module {
 	const char* name() { return "SpeedPatch"; }
 	void init();
 };
+
+}

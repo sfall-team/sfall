@@ -28,6 +28,9 @@
 
 #include "MiscPatches.h"
 
+namespace sfall
+{
+
 // TODO: split this into smaller files
 
 static char mapName[65];
@@ -62,7 +65,7 @@ static void __declspec(naked) Combat_p_procFix() {
 	__asm {
 		push eax;
 
-		mov eax, dword ptr ds : [VARPTR_combat_state];
+		mov eax, dword ptr ds : [FO_VAR_combat_state];
 		cmp eax, 3;
 		jnz end_cppf;
 
@@ -70,12 +73,12 @@ static void __declspec(naked) Combat_p_procFix() {
 		push ebx;
 		push edx;
 
-		mov esi, VARPTR_main_ctd;
+		mov esi, FO_VAR_main_ctd;
 		mov eax, [esi];
 		mov ebx, [esi + 0x20];
 		xor edx, edx;
 		mov eax, [eax + 0x78];
-		call FuncOffs::scr_set_objs_;
+		call fo::funcoffs::scr_set_objs_;
 		mov eax, [esi];
 
 		cmp dword ptr ds : [esi + 0x2c], +0x0;
@@ -89,18 +92,18 @@ jmp1:
 		mov edx, 0x1;
 jmp2:
 		mov eax, [eax + 0x78];
-		call FuncOffs::scr_set_ext_param_;
+		call fo::funcoffs::scr_set_ext_param_;
 		mov eax, [esi];
 		mov edx, 0xd;
 		mov eax, [eax + 0x78];
-		call FuncOffs::exec_script_proc_;
+		call fo::funcoffs::exec_script_proc_;
 		pop edx;
 		pop ebx;
 		pop esi;
 
 end_cppf:
 		pop eax;
-		call FuncOffs::stat_level_;
+		call fo::funcoffs::stat_level_;
 
 		retn;
 	}
@@ -112,13 +115,13 @@ static void __declspec(naked) WeaponAnimHook() {
 		je c11;
 		cmp edx, 15;
 		je c15;
-		jmp FuncOffs::art_get_code_;
+		jmp fo::funcoffs::art_get_code_;
 c11:
 		mov edx, 16;
-		jmp FuncOffs::art_get_code_;
+		jmp fo::funcoffs::art_get_code_;
 c15:
 		mov edx, 17;
-		jmp FuncOffs::art_get_code_;
+		jmp fo::funcoffs::art_get_code_;
 	}
 }
 static void __declspec(naked) intface_rotate_numbers_hack() {
@@ -159,12 +162,12 @@ static void __declspec(naked) register_object_take_out_hack() {
 		and edx, 0xFFF                           // Index
 		xor eax, eax
 		inc  eax                                  // Obj_Type
-		call FuncOffs::art_id_
+		call fo::funcoffs::art_id_
 		xor  ebx, ebx
 		dec  ebx
 		xchg edx, eax
 		pop  eax
-		call FuncOffs::register_object_change_fid_
+		call fo::funcoffs::register_object_change_fid_
 		pop  ecx
 		xor  eax, eax
 		retn
@@ -173,7 +176,7 @@ static void __declspec(naked) register_object_take_out_hack() {
 
 static void __declspec(naked) gdAddOptionStr_hack() {
 	__asm {
-		mov  ecx, ds:[VARPTR_gdNumOptions]
+		mov  ecx, ds:[FO_VAR_gdNumOptions]
 		add  ecx, '1'
 		push ecx
 		push 0x4458FA
@@ -183,12 +186,12 @@ static void __declspec(naked) gdAddOptionStr_hack() {
 
 static void __declspec(naked) ScienceCritterCheckHook() {
 	__asm {
-		cmp esi, ds:[VARPTR_obj_dude];
+		cmp esi, ds:[FO_VAR_obj_dude];
 		jne end;
 		mov eax, 10;
 		retn;
 end:
-		jmp FuncOffs::critter_kill_count_type_;
+		jmp fo::funcoffs::critter_kill_count_type_;
 	}
 }
 
@@ -200,7 +203,7 @@ static void __declspec(naked) FastShotTraitFix() {
 		je ajmp;				// skip ahead if no
 		mov edx, ecx;				// argument for item_w_range_: hit_mode
 		mov eax, ebx;				// argument for item_w_range_: pointer to source_obj (always dude_obj due to code path)
-		call FuncOffs::item_w_range_;			// get weapon's range
+		call fo::funcoffs::item_w_range_;			// get weapon's range
 		cmp eax, 0x2;				// is weapon range less than or equal 2 (i.e. melee/unarmed attack)?
 		jle ajmp;				// skip ahead if yes
 		xor eax, eax;				// otherwise, disallow called shot attempt
@@ -217,21 +220,21 @@ static void __declspec(naked) ReloadHook() {
 		push eax;
 		push ebx;
 		push edx;
-		mov eax, dword ptr ds:[VARPTR_obj_dude];
-		call FuncOffs::register_clear_;
+		mov eax, dword ptr ds:[FO_VAR_obj_dude];
+		call fo::funcoffs::register_clear_;
 		xor eax, eax;
 		inc eax;
-		call FuncOffs::register_begin_;
+		call fo::funcoffs::register_begin_;
 		xor edx, edx;
 		xor ebx, ebx;
-		mov eax, dword ptr ds:[VARPTR_obj_dude];
+		mov eax, dword ptr ds:[FO_VAR_obj_dude];
 		dec ebx;
-		call FuncOffs::register_object_animate_;
-		call FuncOffs::register_end_;
+		call fo::funcoffs::register_object_animate_;
+		call fo::funcoffs::register_end_;
 		pop edx;
 		pop ebx;
 		pop eax;
-		jmp FuncOffs::gsound_play_sfx_file_;
+		jmp fo::funcoffs::gsound_play_sfx_file_;
 	}
 }
 
@@ -241,7 +244,7 @@ static void __declspec(naked) CorpseHitFix2() {
 	__asm {
 		push eax;
 		mov eax, [eax];
-		call FuncOffs::critter_is_dead_; // found some object, check if it's a dead critter
+		call fo::funcoffs::critter_is_dead_; // found some object, check if it's a dead critter
 		test eax, eax;
 		pop eax;
 		jz really_end; // if not, allow breaking the loop (will return this object)
@@ -262,7 +265,7 @@ static const DWORD CorpseHitFix2_continue_loop2 = 0x48BA0B;
 static void __declspec(naked) CorpseHitFix2b() {
 	__asm {
 		mov eax, [edx];
-		call FuncOffs::critter_is_dead_;
+		call fo::funcoffs::critter_is_dead_;
 		test eax, eax;
 		jz really_end;
 		jmp CorpseHitFix2_continue_loop2;
@@ -285,11 +288,11 @@ static void __declspec(naked) RetryCombatHook() {
 retry:
 		mov eax, esi;
 		xor edx, edx;
-		call FuncOffs::combat_ai_;
+		call fo::funcoffs::combat_ai_;
 process:
-		cmp dword ptr ds:[VARPTR_combat_turn_running], 0;
+		cmp dword ptr ds:[FO_VAR_combat_turn_running], 0;
 		jle next;
-		call FuncOffs::process_bk_;
+		call fo::funcoffs::process_bk_;
 		jmp process;
 next:
 		mov eax, [esi+0x40];
@@ -310,8 +313,8 @@ static void __declspec(naked) NPCStage6Fix1() {
 	__asm {
 		mov eax,0xcc;				// set record size to 204 bytes
 		imul eax,edx;				// multiply by number of NPC records in party.txt
-		call FuncOffs::mem_malloc_;			// malloc the necessary memory
-		mov edx,dword ptr ds:[VARPTR_partyMemberMaxCount];	// retrieve number of NPC records in party.txt
+		call fo::funcoffs::mem_malloc_;			// malloc the necessary memory
+		mov edx,dword ptr ds:[FO_VAR_partyMemberMaxCount];	// retrieve number of NPC records in party.txt
 		mov ebx,0xcc;				// set record size to 204 bytes
 		imul ebx,edx;				// multiply by number of NPC records in party.txt
 		jmp NPCStage6Fix1End;			// call memset to set all malloc'ed memory to 0
@@ -322,7 +325,7 @@ static void __declspec(naked) NPCStage6Fix2() {
 	__asm {
 		mov eax,0xcc;				// record size is 204 bytes
 		imul edx,eax;				// multiply by NPC number as listed in party.txt
-		mov eax,dword ptr ds:[VARPTR_partyMemberAIOptions];	// get starting offset of internal NPC table
+		mov eax,dword ptr ds:[FO_VAR_partyMemberAIOptions];	// get starting offset of internal NPC table
 		jmp NPCStage6Fix2End;			// eax+edx = offset of specific NPC record
 	}
 }
@@ -330,10 +333,11 @@ static void __declspec(naked) NPCStage6Fix2() {
 static const DWORD ScannerHookRet=0x41BC1D;
 static const DWORD ScannerHookFail=0x41BC65;
 static void __declspec(naked) ScannerAutomapHook() {
+	using fo::PID_MOTION_SENSOR;
 	__asm {
-		mov eax, ds:[VARPTR_obj_dude];
+		mov eax, ds:[FO_VAR_obj_dude];
 		mov edx, PID_MOTION_SENSOR;
-		call FuncOffs::inven_pid_is_carried_ptr_;
+		call fo::funcoffs::inven_pid_is_carried_ptr_;
 		test eax, eax;
 		jz fail;
 		mov edx, eax;
@@ -348,12 +352,12 @@ static void __declspec(naked) objCanSeeObj_ShootThru_Fix() {//(EAX *objStruct, E
 		push esi
 		push edi
 
-		push FuncOffs::obj_shoot_blocking_at_ //arg3 check hex objects func pointer
+		push fo::funcoffs::obj_shoot_blocking_at_ //arg3 check hex objects func pointer
 		mov esi, 0x20//arg2 flags, 0x20 = check shootthru
 		push esi
 		mov edi, dword ptr ss : [esp + 0x14] //arg1 **ret_objStruct
 		push edi
-		call FuncOffs::make_straight_path_func_;//(EAX *objStruct, EDX hexNum1, EBX hexNum2, ECX ?, stack1 **ret_objStruct, stack2 flags, stack3 *check_hex_objs_func)
+		call fo::funcoffs::make_straight_path_func_;//(EAX *objStruct, EDX hexNum1, EBX hexNum2, ECX ?, stack1 **ret_objStruct, stack2 flags, stack3 *check_hex_objs_func)
 
 		pop edi
 		pop esi
@@ -674,16 +678,6 @@ void AlwaysReloadMsgs() {
 	}
 }
 
-void SkipOpeningMoviesPatch() {	
-	if (GetConfigInt("Misc", "SkipOpeningMovies", 0)) {
-		dlog("Blocking opening movies.", DL_INIT);
-		BlockCall(0x4809CB);
-		BlockCall(0x4809D4);
-		BlockCall(0x4809E0);
-		dlogr(" Done", DL_INIT);
-	}
-}
-
 void RemoveWindowRoundingPatch() {
 	if(GetConfigInt("Misc", "RemoveWindowRounding", 0)) {
 		SafeWrite32(0x4B8090, 0x90909090);
@@ -723,7 +717,7 @@ void PipboyAvailableAtStartPatch() {
 	case 1:
 		LoadGameHook::onAfterNewGame += []() {
 			// PipBoy aquiring video
-			VarPtr::gmovie_played_list[3] = true;
+			fo::var::gmovie_played_list[3] = true;
 		};
 		break;
 	case 2:
@@ -735,7 +729,7 @@ void PipboyAvailableAtStartPatch() {
 void DisableHorriganPatch() {
 	if (GetConfigInt("Misc", "DisableHorrigan", 0)) {
 		LoadGameHook::onAfterNewGame += []() {
-			VarPtr::Meet_Frank_Horrigan = true;
+			fo::var::Meet_Frank_Horrigan = true;
 		};
 		SafeWrite8(0x4C06D8, 0xEB); // skip the Horrigan encounter check
 	}
@@ -781,7 +775,6 @@ void MiscPatches::init() {
 	AlwaysReloadMsgs();
 	PlayIdleAnimOnReloadPatch();
 	CorpseLineOfFireFix();
-	SkipOpeningMoviesPatch();
 
 	ApplyNpcExtraApPatch();
 
@@ -820,4 +813,6 @@ void MiscPatches::exit() {
 	if (scriptDialog != nullptr) {
 		delete[] scriptDialog;
 	}
+}
+
 }

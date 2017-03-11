@@ -18,6 +18,9 @@
 
 #pragma once
 
+namespace fo
+{
+
 enum Animation : long
 {
 	ANIM_stand = 0,
@@ -156,6 +159,19 @@ enum GlobalVar : long
 	GVAR_NEW_RENO_SUPER_CAR = 456,
 	GVAR_MODOC_SHITTY_DEATH = 491,
 	GVAR_FALLOUT_2 = 494,
+};
+
+// Physical material type, used for items and tiles.
+enum Material : long
+{
+	Glass = 0x0,
+	Metal = 0x1,
+	Plastic = 0x2,
+	Wood = 0x3,
+	Dirt = 0x4,
+	Stone = 0x5,
+	Cement = 0x6,
+	Leather = 0x7
 };
 
 enum ObjType : char
@@ -373,6 +389,16 @@ enum Trait : long
 	TRAIT_count = 16,
 };
 
+enum class ScenerySubType : long
+{
+	DOOR = 0,
+	STAIRS = 1, 
+	ELEVATOR = 2, 
+	LADDER_BOTTOM = 3,
+	LADDER_TOP = 4,
+	GENERIC = 5
+};
+
 enum ScriptTypes
 {
 	SCRIPT_SYSTEM = 0,
@@ -540,3 +566,5 @@ enum RollResult
 	ROLL_SUCCESS = 0x2,
 	ROLL_CRITICAL_SUCCESS = 0x3,
 };
+
+}

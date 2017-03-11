@@ -18,6 +18,11 @@
 
 #pragma once
 
+namespace sfall
+{
+namespace script
+{
+
 void __declspec() op_force_encounter();
 
 void __declspec() op_force_encounter_with_flags();
@@ -32,3 +37,6 @@ void __declspec() op_get_world_map_x_pos();
 void __declspec() op_get_world_map_y_pos();
 
 void __declspec() op_set_world_map_pos();
+
+}
+}

@@ -16,19 +16,20 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "..\main.h"
-
 #include <stdio.h>
+
+#include "..\main.h"
 #include "..\FalloutEngine\Fallout2.h"
-#include "HeroAppearance.h"
+
 #include "ExtraSaveSlots.h"
+
+namespace sfall
+{
 
 //extern
 DWORD LSPageOffset = 0;
 
-
 int LSButtDN = 0;
-
 
 //--------------------------------------
 void SavePageOffsets() {
@@ -37,10 +38,10 @@ void SavePageOffsets() {
 
 	char buffer[6];
 
-  strcpy_s(SavePath, MAX_PATH, VarPtr::patches);
+  strcpy_s(SavePath, MAX_PATH, fo::var::patches);
   strcat_s(SavePath, MAX_PATH, "savegame\\SLOTDAT.ini");
 
-  _itoa_s(VarPtr::slot_cursor, buffer, 10);
+  _itoa_s(fo::var::slot_cursor, buffer, 10);
   WritePrivateProfileString("POSITION", "ListNum", buffer, SavePath);
   _itoa_s(LSPageOffset, buffer, 10);
   WritePrivateProfileString("POSITION", "PageOffset", buffer, SavePath);
@@ -53,7 +54,7 @@ static void __declspec(naked) save_page_offsets(void) {
       //save last slot position values to file
       call SavePageOffsets
       //restore original code
-      mov eax, dword ptr ds:[VARPTR_lsgwin]
+      mov eax, dword ptr ds:[FO_VAR_lsgwin]
       ret
   }
 }
@@ -62,11 +63,11 @@ static void __declspec(naked) save_page_offsets(void) {
 void LoadPageOffsets() {
   char LoadPath[MAX_PATH];
 
-  strcpy_s(LoadPath, MAX_PATH, VarPtr::patches);
+  strcpy_s(LoadPath, MAX_PATH, fo::var::patches);
   strcat_s(LoadPath, MAX_PATH, "savegame\\SLOTDAT.ini");
 
-  VarPtr::slot_cursor = GetPrivateProfileInt("POSITION", "ListNum", 0, LoadPath);
-  if (VarPtr::slot_cursor > 9)VarPtr::slot_cursor = 9;
+  fo::var::slot_cursor = GetPrivateProfileInt("POSITION", "ListNum", 0, LoadPath);
+  if (fo::var::slot_cursor > 9)fo::var::slot_cursor = 9;
 
   LSPageOffset = GetPrivateProfileInt("POSITION", "PageOffset", 0, LoadPath);
   if (LSPageOffset > 9990) {
@@ -101,8 +102,8 @@ static void __declspec(naked) create_page_buttons(void) {
      mov ecx, 24//Width
      mov edx, 100//Xpos
      mov ebx, 56//Ypos
-     mov eax, dword ptr ds:[VARPTR_lsgwin]//WinRef
-     call FuncOffs::win_register_button_
+     mov eax, dword ptr ds:[FO_VAR_lsgwin]//WinRef
+     call fo::funcoffs::win_register_button_
      //left button -100
      push 32//ButType
      push 0//? always 0
@@ -116,8 +117,8 @@ static void __declspec(naked) create_page_buttons(void) {
      mov ecx, 24//Width
      mov edx, 68//Xpos
      mov ebx, 56//Ypos
-     mov eax, dword ptr ds:[VARPTR_lsgwin]//WinRef
-     call FuncOffs::win_register_button_//create button function
+     mov eax, dword ptr ds:[FO_VAR_lsgwin]//WinRef
+     call fo::funcoffs::win_register_button_//create button function
      //right button +10
      push 32//ButType
      push 0//? always 0
@@ -131,8 +132,8 @@ static void __declspec(naked) create_page_buttons(void) {
      mov ecx, 24//Width
      mov edx, 216//Xpos
      mov ebx, 56//Ypos
-     mov eax, dword ptr ds:[VARPTR_lsgwin]//WinRef
-     call FuncOffs::win_register_button_//create button function
+     mov eax, dword ptr ds:[FO_VAR_lsgwin]//WinRef
+     call fo::funcoffs::win_register_button_//create button function
      //right button +100
      push 32//ButType
      push 0//? always 0
@@ -146,8 +147,8 @@ static void __declspec(naked) create_page_buttons(void) {
      mov ecx, 24//Width
      mov edx, 248//Xpos
      mov ebx, 56//Ypos
-     mov eax, dword ptr ds:[VARPTR_lsgwin]//WinRef
-     call FuncOffs::win_register_button_//create button function
+     mov eax, dword ptr ds:[FO_VAR_lsgwin]//WinRef
+     call fo::funcoffs::win_register_button_//create button function
      //Set Number button
      push 32//ButType
      push 0//? always 0
@@ -161,8 +162,8 @@ static void __declspec(naked) create_page_buttons(void) {
      mov ecx, 60//Width
      mov edx, 140//Xpos
      mov ebx, 56//Ypos
-     mov eax, dword ptr ds:[VARPTR_lsgwin]//WinRef
-     call FuncOffs::win_register_button_//create button function
+     mov eax, dword ptr ds:[FO_VAR_lsgwin]//WinRef
+     call fo::funcoffs::win_register_button_//create button function
 
      //restore original code
      mov eax, 0x65
@@ -172,15 +173,17 @@ static void __declspec(naked) create_page_buttons(void) {
 
 //------------------------------------------------------
 void SetPageNum() {
-	int WinRef = VarPtr::lsgwin; //load/save winref
-	if (WinRef == NULL)return;
-	WINinfo *SaveLoadWin = GetWinStruct(WinRef);
+	int winRef = fo::var::lsgwin; //load/save winref
+	if (winRef == 0) {
+		return;
+	}
+	fo::Window *SaveLoadWin = fo::func::GNW_find(winRef);
 	if (SaveLoadWin->surface == NULL)return;
 
-	BYTE ConsoleGold = VarPtr::YellowColor;//palette offset stored in mem - text colour
+	BYTE ConsoleGold = fo::var::YellowColor;//palette offset stored in mem - text colour
 
 	char TempText[32];
-	unsigned int TxtMaxWidth = GetMaxCharWidth() * 8;//GetTextWidth(TempText);
+	unsigned int TxtMaxWidth = fo::GetMaxCharWidth() * 8;//GetTextWidth(TempText);
 	unsigned int TxtWidth = 0;
 
 	DWORD NewTick = 0, OldTick = 0;
@@ -210,7 +213,7 @@ void SetPageNum() {
 			if (tempPageOffset == -1) {
 				sprintf_s(TempText, 32, "#%c", '_');
 			}
-			TxtWidth = GetTextWidth(TempText);
+			TxtWidth = fo::GetTextWidth(TempText);
 
 			sprintf_s(TempText, 32, "#%d%c", tempPageOffset / 10 + 1, blip);
 			if (tempPageOffset == -1) {
@@ -222,11 +225,11 @@ void SetPageNum() {
 				memset(SaveLoadWin->surface + y + 170 - TxtMaxWidth / 2, 0xCF, TxtMaxWidth);
 			}
 
-			PrintText(TempText, ConsoleGold, 170 - TxtWidth / 2, 60, TxtWidth, SaveLoadWin->width, SaveLoadWin->surface);
-			RedrawWin(WinRef);
+			fo::PrintText(TempText, ConsoleGold, 170 - TxtWidth / 2, 60, TxtWidth, SaveLoadWin->width, SaveLoadWin->surface);
+			fo::func::win_draw(winRef);
 		}
 
-		button = Wrapper::get_input();
+		button = fo::func::get_input();
 		if (button >= '0' && button <= '9') {
 			if (numpos < 4) {
 				Number[numpos] = button;
@@ -351,11 +354,11 @@ EndFunc:
 //------------------------------------------
 void DrawPageText() {
 
-	int WinRef = VarPtr::lsgwin; //load/save winref
+	int WinRef = fo::var::lsgwin; //load/save winref
 	if (WinRef == NULL) {
 		return;
 	}
-	WINinfo *SaveLoadWin = GetWinStruct(WinRef);
+	fo::Window *SaveLoadWin = fo::func::GNW_find(WinRef);
 	if (SaveLoadWin->surface == NULL) return;
 
 	//fill over text area with consol black colour
@@ -363,15 +366,15 @@ void DrawPageText() {
 		memset(SaveLoadWin->surface + 50 + y, 0xCF, 240);
 	}
 
-	BYTE ConsoleGreen = VarPtr::GreenColor; //palette offset stored in mem - text colour
-	BYTE ConsoleGold = VarPtr::YellowColor; //palette offset stored in mem - text colour
+	BYTE ConsoleGreen = fo::var::GreenColor; //palette offset stored in mem - text colour
+	BYTE ConsoleGold = fo::var::YellowColor; //palette offset stored in mem - text colour
 	BYTE Colour = ConsoleGreen;
 
 	char TempText[32];
 	sprintf_s(TempText, 32, "[ %d ]", LSPageOffset / 10 + 1);
 
-	unsigned int TxtWidth = GetTextWidth(TempText);
-	PrintText(TempText, Colour, 170 - TxtWidth / 2, 60, TxtWidth, SaveLoadWin->width, SaveLoadWin->surface);
+	unsigned int TxtWidth = fo::GetTextWidth(TempText);
+	fo::PrintText(TempText, Colour, 170 - TxtWidth / 2, 60, TxtWidth, SaveLoadWin->width, SaveLoadWin->surface);
 
 	if (LSButtDN == 0x549) {
 		Colour = ConsoleGold;
@@ -379,8 +382,8 @@ void DrawPageText() {
 		Colour = ConsoleGreen;
 	}
 	strcpy_s(TempText, 12, "<<");
-	TxtWidth = GetTextWidth(TempText);
-	PrintText(TempText, Colour, 80 - TxtWidth / 2, 60, TxtWidth, SaveLoadWin->width, SaveLoadWin->surface);
+	TxtWidth = fo::GetTextWidth(TempText);
+	fo::PrintText(TempText, Colour, 80 - TxtWidth / 2, 60, TxtWidth, SaveLoadWin->width, SaveLoadWin->surface);
 
 	if (LSButtDN == 0x54B) {
 		Colour = ConsoleGold;
@@ -388,8 +391,8 @@ void DrawPageText() {
 		Colour = ConsoleGreen;
 	}
 	strcpy_s(TempText, 12, "<");
-	TxtWidth = GetTextWidth(TempText);
-	PrintText(TempText, Colour, 112 - TxtWidth / 2, 60, TxtWidth, SaveLoadWin->width, SaveLoadWin->surface);
+	TxtWidth = fo::GetTextWidth(TempText);
+	fo::PrintText(TempText, Colour, 112 - TxtWidth / 2, 60, TxtWidth, SaveLoadWin->width, SaveLoadWin->surface);
 
 	if (LSButtDN == 0x551) {
 		Colour = ConsoleGold;
@@ -397,8 +400,8 @@ void DrawPageText() {
 		Colour = ConsoleGreen;
 	}
 	strcpy_s(TempText, 12, ">>");
-	TxtWidth = GetTextWidth(TempText);
-	PrintText(TempText, Colour, 260 - TxtWidth / 2, 60, TxtWidth, SaveLoadWin->width, SaveLoadWin->surface);
+	TxtWidth = fo::GetTextWidth(TempText);
+	fo::PrintText(TempText, Colour, 260 - TxtWidth / 2, 60, TxtWidth, SaveLoadWin->width, SaveLoadWin->surface);
 
 	if (LSButtDN == 0x54D) {
 		Colour = ConsoleGold;
@@ -406,8 +409,8 @@ void DrawPageText() {
 		Colour = ConsoleGreen;
 	}
 	strcpy_s(TempText, 12, ">");
-	TxtWidth = GetTextWidth(TempText);
-	PrintText(TempText, Colour, 228 - TxtWidth / 2, 60, TxtWidth, SaveLoadWin->width, SaveLoadWin->surface);
+	TxtWidth = fo::GetTextWidth(TempText);
+	fo::PrintText(TempText, Colour, 228 - TxtWidth / 2, 60, TxtWidth, SaveLoadWin->width, SaveLoadWin->surface);
 
 	SaveLoadWin = NULL;
 }
@@ -428,7 +431,7 @@ static void __declspec(naked) draw_page_text(void) {
 //add page num offset when reading and writing various save data files
 static void __declspec(naked) AddPageOffset01(void) {
 	__asm {
-		mov eax, dword ptr ds:[VARPTR_slot_cursor]//list position 0-9
+		mov eax, dword ptr ds:[FO_VAR_slot_cursor]//list position 0-9
 		add eax, LSPageOffset//add page num offset
 		ret
 	}
@@ -594,4 +597,6 @@ void ExtraSaveSlots::init() {
 		EnableSuperSaving();
 		dlogr(" Done", DL_INIT);
 	}
+}
+
 }

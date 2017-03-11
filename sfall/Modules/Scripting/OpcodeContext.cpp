@@ -17,13 +17,17 @@
 */
 
 #include "..\..\main.h"
-
 #include "..\..\FalloutEngine\Fallout2.h"
 #include "..\ScriptExtender.h"
 
 #include "OpcodeContext.h"
 
-OpcodeContext::OpcodeContext(TProgram* program, DWORD opcode, int argNum, bool hasReturn) {
+namespace sfall
+{
+namespace script
+{
+
+OpcodeContext::OpcodeContext(fo::Program* program, DWORD opcode, int argNum, bool hasReturn) {
 	assert(argNum < OP_MAX_ARGUMENTS);
 
 	_program = program;
@@ -60,7 +64,7 @@ const ScriptValue& OpcodeContext::returnValue() const {
 	return _ret;
 }
 
-TProgram* OpcodeContext::program() const {
+fo::Program* OpcodeContext::program() const {
 	return _program;
 }
 
@@ -68,7 +72,7 @@ DWORD OpcodeContext::opcode() const {
 	return _opcode;
 }
 
-void OpcodeContext::setReturn(unsigned long value, SfallDataType type) {
+void OpcodeContext::setReturn(unsigned long value, DataType type) {
 	_ret = ScriptValue(type, value);
 }
 
@@ -85,8 +89,8 @@ void OpcodeContext::printOpcodeError(const char* fmt, ...) const {
 	vsnprintf_s(msg, sizeof msg, _TRUNCATE, fmt, args);
 	va_end(args);
 
-	const char* procName = Wrapper::findCurrentProc(_program);
-	Wrapper::debug_printf("\nOPCODE ERROR: %s\n   Current script: %s, procedure %s.", msg, _program->fileName, procName);
+	const char* procName = fo::func::findCurrentProc(_program);
+	fo::func::debug_printf("\nOPCODE ERROR: %s\n   Current script: %s, procedure %s.", msg, _program->fileName, procName);
 }
 
 bool OpcodeContext::validateArguments(const OpcodeArgumentType argTypes[], const char* opcodeName) const {
@@ -95,13 +99,13 @@ bool OpcodeContext::validateArguments(const OpcodeArgumentType argTypes[], const
 		auto actualType = arg(i).type();
 		// display invalid type error if type is set and differs from actual type
 		// exception is when type set to 
-		if ((argType == ARG_INT || argType == ARG_OBJECT) && !(actualType == DATATYPE_INT)) {
+		if ((argType == ARG_INT || argType == ARG_OBJECT) && !(actualType == DataType::INT)) {
 			printOpcodeError("%s() - argument #%d is not an integer.", opcodeName, i);
 			return false;
-		} else if (argType == ARG_NUMBER && !(actualType == DATATYPE_INT || actualType == DATATYPE_FLOAT)) {
+		} else if (argType == ARG_NUMBER && !(actualType == DataType::INT || actualType == DataType::FLOAT)) {
 			printOpcodeError("%s() - argument #%d is not a number.", opcodeName, i);
 			return false;
-		} else if (argType == ARG_STRING && !(actualType == DATATYPE_STR)) {
+		} else if (argType == ARG_STRING && !(actualType == DataType::STR)) {
 			printOpcodeError("%s() - argument #%d is not a string.", opcodeName, i);
 			return false;
 		} else if (argType == ARG_OBJECT && arg(i).rawValue() == 0) {
@@ -133,7 +137,7 @@ void OpcodeContext::handleOpcode(ScriptingFunctionHandler func, const OpcodeArgu
 	_pushReturnValue();
 }
 
-void __stdcall OpcodeContext::handleOpcodeStatic(TProgram* program, DWORD opcodeOffset, ScriptingFunctionHandler func, int argNum, bool hasReturn) {
+void __stdcall OpcodeContext::handleOpcodeStatic(fo::Program* program, DWORD opcodeOffset, ScriptingFunctionHandler func, int argNum, bool hasReturn) {
 	// for each opcode create new context on stack (no allocations at this point)
 	OpcodeContext currentContext(program, opcodeOffset / 4, argNum, hasReturn);
 	// handle the opcode using provided handler
@@ -142,40 +146,40 @@ void __stdcall OpcodeContext::handleOpcodeStatic(TProgram* program, DWORD opcode
 
 const char* OpcodeContext::getSfallTypeName(DWORD dataType) {
 	switch (dataType) {
-		case DATATYPE_NONE:
+		case DataType::NONE:
 			return "(none)";
-		case DATATYPE_STR:
+		case DataType::STR:
 			return "string";
-		case DATATYPE_FLOAT:
+		case DataType::FLOAT:
 			return "float";
-		case DATATYPE_INT:
+		case DataType::INT:
 			return "integer";
 		default:
 			return "(unknown)";
 	}
 }
 
-DWORD OpcodeContext::getSfallTypeByScriptType(DWORD varType) {
+DataType OpcodeContext::getSfallTypeByScriptType(DWORD varType) {
 	varType &= 0xffff;
 	switch (varType) {
 		case VAR_TYPE_STR:
 		case VAR_TYPE_STR2:
-			return DATATYPE_STR;
+			return DataType::STR;
 		case VAR_TYPE_FLOAT:
-			return DATATYPE_FLOAT;
+			return DataType::FLOAT;
 		case VAR_TYPE_INT:
 		default:
-			return DATATYPE_INT;
+			return DataType::INT;
 	}
 }
 
-DWORD OpcodeContext::getScriptTypeBySfallType(DWORD dataType) {
+DWORD OpcodeContext::getScriptTypeBySfallType(DataType dataType) {
 	switch (dataType) {
-		case DATATYPE_STR:
+		case DataType::STR:
 			return VAR_TYPE_STR;
-		case DATATYPE_FLOAT:
+		case DataType::FLOAT:
 			return VAR_TYPE_FLOAT;
-		case DATATYPE_INT:
+		case DataType::INT:
 		default:
 			return VAR_TYPE_INT;
 	}
@@ -185,13 +189,13 @@ void OpcodeContext::_popArguments() {
 	// process arguments on stack (reverse order)
 	for (int i = _numArgs - 1; i >= 0; i--) {
 		// get argument from stack
-		DWORD rawValueType = Wrapper::interpretPopShort(_program);
-		DWORD rawValue = Wrapper::interpretPopLong(_program);
-		SfallDataType type = static_cast<SfallDataType>(getSfallTypeByScriptType(rawValueType));
+		DWORD rawValueType = fo::func::interpretPopShort(_program);
+		DWORD rawValue = fo::func::interpretPopLong(_program);
+		DataType type = static_cast<DataType>(getSfallTypeByScriptType(rawValueType));
 
 		// retrieve string argument
-		if (type == DATATYPE_STR) {
-			_args.at(i) = Wrapper::interpretGetString(_program, rawValueType, rawValue);
+		if (type == DataType::STR) {
+			_args.at(i) = fo::func::interpretGetString(_program, rawValueType, rawValue);
 		} else {
 			_args.at(i) = ScriptValue(type, rawValue);
 		}
@@ -200,15 +204,18 @@ void OpcodeContext::_popArguments() {
 
 void OpcodeContext::_pushReturnValue() {
 	if (_hasReturn) {
-		if (_ret.type() == DATATYPE_NONE) {
+		if (_ret.type() == DataType::NONE) {
 			// if no value was set in handler, force return 0 to avoid stack error
 			_ret = ScriptValue(0);
 		}
 		DWORD rawResult = _ret.rawValue();
-		if (_ret.type() == DATATYPE_STR) {
-			rawResult = Wrapper::interpretAddString(_program, _ret.asString());
+		if (_ret.type() == DataType::STR) {
+			rawResult = fo::func::interpretAddString(_program, _ret.asString());
 		}
-		Wrapper::interpretPushLong(_program, rawResult);
-		Wrapper::interpretPushShort(_program, getScriptTypeBySfallType(_ret.type()));
+		fo::func::interpretPushLong(_program, rawResult);
+		fo::func::interpretPushShort(_program, getScriptTypeBySfallType(_ret.type()));
 	}
+}
+
+}
 }

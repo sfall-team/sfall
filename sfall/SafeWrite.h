@@ -2,6 +2,9 @@
 
 #include <Windows.h>
 
+namespace sfall 
+{
+
 template<typename T> void _stdcall SafeWrite(DWORD addr, T data) {
 	DWORD	oldProtect;
 	VirtualProtect((void *)addr, 1, PAGE_EXECUTE_READWRITE, &oldProtect);
@@ -17,3 +20,5 @@ void MakeCall(DWORD addr, void* func, bool jump);
 void BlockCall(DWORD addr);
 void SafeMemSet(DWORD addr, BYTE val, int len);
 void SafeWriteBytes(DWORD addr, BYTE* data, int count);
+
+}

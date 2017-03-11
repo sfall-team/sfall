@@ -16,10 +16,14 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <fstream>
+
 #include "..\main.h"
 
 #include "Console.h"
-#include <fstream>
+
+namespace sfall
+{
 
 using namespace std;
 
@@ -59,4 +63,6 @@ void Console::exit() {
 	if (consolefile.is_open()) {
 		consolefile.close();
 	}
+}
+
 }

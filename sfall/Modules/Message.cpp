@@ -25,12 +25,14 @@
 
 #include "Message.h"
 
+namespace sfall
+{
 
 ExtraGameMessageListsMap gExtraGameMsgLists;
 
-MessageNode *GetMsgNode(MessageList *msgList, int msgRef) {
+fo::MessageNode *GetMsgNode(fo::MessageList *msgList, int msgRef) {
 	if (msgList != nullptr && msgList->numMsgs > 0) {
-		MessageNode *msgNode = msgList->nodes;
+		fo::MessageNode *msgNode = msgList->nodes;
 		long last = msgList->numMsgs - 1;
 		long first = 0;
 		long mid;
@@ -49,8 +51,8 @@ MessageNode *GetMsgNode(MessageList *msgList, int msgRef) {
 	return nullptr;
 }
 
-char* GetMsg(MessageList *msgList, int msgRef, int msgNum) {
-	MessageNode *msgNode = GetMsgNode(msgList, msgRef);
+char* GetMsg(fo::MessageList *msgList, int msgRef, int msgNum) {
+	fo::MessageNode *msgNode = GetMsgNode(msgList, msgRef);
 	if (msgNode) {
 		if (msgNum == 2) {
 			return msgNode->message;
@@ -66,8 +68,8 @@ void ReadExtraGameMsgFiles() {
 	if (msgFileList.size() > 0) {
 		for (auto& msgName : msgFileList) {
 			std::string path = "game\\" + msgName + ".msg";
-			MessageList* list = new MessageList();
-			if (Wrapper::message_load(list, (char*)path.data()) == 1) {
+			fo::MessageList* list = new fo::MessageList();
+			if (fo::func::message_load(list, (char*)path.data()) == 1) {
 				gExtraGameMsgLists.insert(std::make_pair(0x2000 + gExtraGameMsgLists.size(), list));
 			} else {
 				delete list;
@@ -80,7 +82,7 @@ void ClearReadExtraGameMsgFiles() {
 	ExtraGameMessageListsMap::iterator it;
 
 	for (it = gExtraGameMsgLists.begin(); it != gExtraGameMsgLists.end(); ++it) {
-		Wrapper::message_exit(it->second.get());
+		fo::func::message_exit(it->second.get());
 	}
 
 	gExtraGameMsgLists.clear();
@@ -92,4 +94,6 @@ void Message::init() {
 
 void Message::exit() {
 	ClearReadExtraGameMsgFiles();
+}
+
 }

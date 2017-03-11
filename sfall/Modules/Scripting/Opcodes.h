@@ -20,5 +20,13 @@
 // Everything related to new sfall opcodes.
 //
 
+namespace sfall
+{
+namespace script
+{
+
 void InitNewOpcodes();
+
+}
+}
 

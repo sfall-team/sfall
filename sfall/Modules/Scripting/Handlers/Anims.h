@@ -18,6 +18,10 @@
 
 #pragma once
 
+namespace sfall
+{
+namespace script
+{
 
 // new reg_anim functions (all using existing engine code)
 
@@ -31,3 +35,6 @@ void sf_reg_anim_change_fid(OpcodeContext&);
 void sf_reg_anim_take_out(OpcodeContext&);
 void sf_reg_anim_turn_towards(OpcodeContext&);
 void sf_explosions_metarule(OpcodeContext&);
+
+}
+}

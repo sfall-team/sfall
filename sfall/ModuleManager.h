@@ -5,6 +5,9 @@
 
 #include "Modules\Module.h"
 
+namespace sfall 
+{
+
 // Singleton for managing all of Sfall modules.
 class ModuleManager {
 public:
@@ -31,3 +34,5 @@ private:
 
 	static ModuleManager _instance;
 };
+
+}

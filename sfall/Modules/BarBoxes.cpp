@@ -17,9 +17,12 @@
  */
 
 #include "..\main.h"
+#include "..\FalloutEngine\Fallout2.h"
 
 #include "BarBoxes.h"
-#include "..\FalloutEngine\Fallout2.h"
+
+namespace sfall 
+{
 
 static const DWORD DisplayBoxesRet1 = 0x4615A8;
 static const DWORD DisplayBoxesRet2 = 0x4615BE;
@@ -39,7 +42,7 @@ start:
 		test eax, eax;
 		jz next;
 		lea eax, [ebx + 5];
-		call FuncOffs::add_bar_box_;
+		call fo::funcoffs::add_bar_box_;
 		add esi, eax;
 next:
 		inc ebx;
@@ -101,4 +104,6 @@ void _stdcall AddBox(int i) {
 void _stdcall RemoveBox(int i) {
 	if (i < 5 || i>9) return;
 	boxesEnabled[i - 5] = 0;
+}
+
 }

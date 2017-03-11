@@ -39,6 +39,8 @@
 #include "Graphics.h"
 #include "LoadGameHook.h"
 
+namespace sfall
+{
 
 typedef HRESULT (_stdcall *DDrawCreateProc)(void*, IDirectDraw**, void*);
 typedef IDirect3D9* (_stdcall *D3DCreateProc)(UINT version);
@@ -180,7 +182,7 @@ void _stdcall SetShaderMode(DWORD d, DWORD mode) {
 int _stdcall LoadShader(const char* path) {
 	if ((Graphics::mode < 4) || (strstr(path, "..")) || (strstr(path, ":"))) return -1;
 	char buf[MAX_PATH];
-	sprintf(buf, "%s\\shaders\\%s", VarPtr::patches, path);
+	sprintf(buf, "%s\\shaders\\%s", fo::var::patches, path);
 	for (DWORD d = 0; d < shaders.size(); d++) {
 		if (!shaders[d].Effect) {
 			if (FAILED(D3DXCreateEffectFromFile(d3d9Device, buf, 0, 0, 0, 0, &shaders[d].Effect, 0))) return -1;
@@ -198,7 +200,7 @@ int _stdcall LoadShader(const char* path) {
 
 		sprintf_s(buf, "texname%d", i);
 		if (FAILED(shader.Effect->GetString(buf, &name))) break;
-		sprintf_s(buf, "%s\\art\\stex\\%s", VarPtr::patches, name);
+		sprintf_s(buf, "%s\\art\\stex\\%s", fo::var::patches, name);
 		if (FAILED(D3DXCreateTextureFromFileA(d3d9Device, buf, &tex))) continue;
 		sprintf_s(buf, "tex%d", i);
 		shader.Effect->SetTexture(buf, tex);
@@ -912,7 +914,7 @@ public:
 	HRESULT _stdcall WaitForVerticalBlank(DWORD, HANDLE) { UNUSEDFUNCTION; }
 };
 
-HRESULT _stdcall FakeDirectDrawCreate2(void*, IDirectDraw** b, void*) {
+HRESULT _stdcall FakeDirectDrawCreate2_graphics(void*, IDirectDraw** b, void*) {
 	ResWidth = *(DWORD*)0x004CAD6B;
 	ResHeight = *(DWORD*)0x004CAD66;
 
@@ -969,7 +971,7 @@ static __declspec(naked) void FadeHook() {
 		fistp[esp];
 		pop ebx;
 		popf;
-		call FuncOffs::fadeSystemPalette_;
+		call fo::funcoffs::fadeSystemPalette_;
 		retn;
 	}
 }
@@ -1008,4 +1010,11 @@ void Graphics::init() {
 	if (Graphics::mode > 3) {
 		LoadGameHook::onGameReset += graphics_OnGameLoad;
 	}
+}
+
+}
+
+// This should be in global namespace
+HRESULT _stdcall FakeDirectDrawCreate2(void* a, IDirectDraw** b, void* c) {
+	return sfall::FakeDirectDrawCreate2_graphics(a, b, c);
 }

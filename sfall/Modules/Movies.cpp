@@ -30,6 +30,9 @@
 
 #include "Movies.h"
 
+namespace sfall
+{
+
 static DWORD MoviePtrs[MaxMovies];
 char MoviePaths[MaxMovies * 65];
 
@@ -252,7 +255,7 @@ DWORD CreateDSGraph(wchar_t* path, IDirect3DTexture9** tex, sDSTexture* result) 
 static DWORD PlayFrameHook3() {
 	__asm {
 		xor eax, eax;
-		call FuncOffs::GNW95_process_message_; //windows message pump
+		call fo::funcoffs::GNW95_process_message_; //windows message pump
 	}
 	PlayMovieFrame();
 	if (GetAsyncKeyState(VK_ESCAPE)) return 0;
@@ -283,7 +286,7 @@ static void __declspec(naked) PlayFrameHook2() {
 static DWORD _stdcall PlayMovieHook2(DWORD id) {
 	//Get file path in unicode
 	wchar_t path[MAX_PATH];
-	char* master_patches = VarPtr::patches;
+	char* master_patches = fo::var::patches;
 	DWORD len = 0;
 	while (master_patches[len]) {
 		path[len] = master_patches[len]; len++;
@@ -533,6 +536,16 @@ less:
 	}
 }
 
+void SkipOpeningMoviesPatch() {	
+	if (GetConfigInt("Misc", "SkipOpeningMovies", 0)) {
+		dlog("Blocking opening movies.", DL_INIT);
+		BlockCall(0x4809CB);
+		BlockCall(0x4809D4);
+		BlockCall(0x4809E0);
+		dlogr(" Done", DL_INIT);
+	}
+}
+
 void Movies::init() {
 	dlog("Applying movie patch.", DL_INIT);
 
@@ -591,4 +604,9 @@ void Movies::init() {
 		MakeCall(0x4A378B, &Artimer1DaysCheckHook, true);
 		dlogr("Done", DL_INIT);
 	}
+
+	// Should be AFTER the PlayMovieHook setup above
+	SkipOpeningMoviesPatch();
+}
+
 }

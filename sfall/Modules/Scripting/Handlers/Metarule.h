@@ -25,6 +25,10 @@
 #include "..\..\..\main.h"
 #include "..\..\ScriptExtender.h"
 
+namespace sfall
+{
+namespace script
+{
 
 // Example handler. Feel free to add handlers in other files.
 void sf_test(OpcodeContext&);
@@ -35,3 +39,6 @@ void sf_get_metarule_table(OpcodeContext&);
 void InitMetaruleTable();
 
 void HandleMetarule(OpcodeContext& ctx);
+
+}
+}

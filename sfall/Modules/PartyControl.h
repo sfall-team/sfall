@@ -19,10 +19,15 @@
 
 #include "Module.h"
 
+namespace sfall
+{
+
 class PartyControl : public Module {
 	const char* name() { return "PartyControl"; }
 	void init();
 };
 
-int __stdcall PartyControl_SwitchHandHook(TGameObj* item);
+int __stdcall PartyControl_SwitchHandHook(fo::GameObject* item);
 bool IsNpcControlled();
+
+}

@@ -20,6 +20,9 @@
 
 #include "Module.h"
 
+namespace sfall
+{
+
 enum HookType
 {
 	HOOK_TOHIT            = 0,
@@ -62,7 +65,7 @@ DWORD* _stdcall GetHSArgs();
 void _stdcall SetHSArg(DWORD id, DWORD value);
 void _stdcall SetHSReturn(DWORD d);
 // register hook by proc num (special values: -1 - use default (start) procedure, 0 - unregister)
-void _stdcall RegisterHook(TProgram* script, int id, int procNum);
+void _stdcall RegisterHook(fo::Program* script, int id, int procNum);
 
 // TODO: move
 void HookScriptClear();
@@ -73,3 +76,5 @@ extern void __declspec() AmmoCostHookWrapper();
 void _stdcall MouseClickHook(DWORD button, bool pressed);
 void _stdcall KeyPressHook(DWORD dxKey, bool pressed, DWORD vKey);
 void _stdcall RunHookScriptsAtProc(DWORD procId);
+
+}

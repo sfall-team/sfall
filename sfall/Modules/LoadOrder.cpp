@@ -22,16 +22,19 @@
 
 #include "LoadOrder.h"
 
+namespace sfall
+{
+
 static void __declspec(naked) removeDatabase() {
 	__asm {
 		cmp  eax, -1
 		je   end
-		mov  ebx, ds:[VARPTR_paths]
+		mov  ebx, ds:[FO_VAR_paths]
 		mov  ecx, ebx
 nextPath:
 		mov  edx, [esp+0x104+4+4]                 // path_patches
 		mov  eax, [ebx]                           // database.path
-		call FuncOffs::stricmp_
+		call fo::funcoffs::stricmp_
 		test eax, eax                             // found path?
 		jz   skip                                 // Yes
 		mov  ecx, ebx
@@ -43,7 +46,7 @@ skip:
 		xchg ebx, eax
 		cmp  eax, ecx
 		jne  end
-		mov  ds:[VARPTR_paths], ebx
+		mov  ds:[FO_VAR_paths], ebx
 end:
 		retn
 	}
@@ -52,7 +55,7 @@ end:
 static void __declspec(naked) game_init_databases_hack1() {
 	__asm {
 		call removeDatabase
-		mov  ds:[VARPTR_master_db_handle], eax
+		mov  ds:[FO_VAR_master_db_handle], eax
 		retn
 	}
 }
@@ -61,15 +64,15 @@ static void __declspec(naked) game_init_databases_hack2() {
 	__asm {
 		cmp  eax, -1
 		je   end
-		mov  eax, ds:[VARPTR_master_db_handle]
+		mov  eax, ds:[FO_VAR_master_db_handle]
 		mov  eax, [eax]                           // eax = master_patches.path
-		call FuncOffs::xremovepath_
+		call fo::funcoffs::xremovepath_
 		dec  eax                                  // remove path (critter_patches == master_patches)?
 		jz   end                                  // Yes
 		inc  eax
 		call removeDatabase
 end:
-		mov  ds:[VARPTR_critter_db_handle], eax
+		mov  ds:[FO_VAR_critter_db_handle], eax
 		retn
 	}
 }
@@ -77,14 +80,14 @@ end:
 static void __declspec(naked) game_init_databases_hook() {
 // eax = _master_db_handle
 	__asm {
-		mov  ecx, ds:[VARPTR_critter_db_handle]
-		mov  edx, ds:[VARPTR_paths]
+		mov  ecx, ds:[FO_VAR_critter_db_handle]
+		mov  edx, ds:[FO_VAR_paths]
 		jecxz skip
 		mov  [ecx+0xC], edx                       // critter_patches.next->_paths
 		mov  edx, ecx
 skip:
 		mov  [eax+0xC], edx                       // master_patches.next
-		mov  ds:[VARPTR_paths], eax
+		mov  ds:[FO_VAR_paths], eax
 		retn
 	}
 }
@@ -98,4 +101,6 @@ void LoadOrder::init() {
 		SafeWrite8(0x4DFAEC, 0x1D); // error correction
 		dlogr(" Done", DL_INIT);
 	}
+}
+
 }

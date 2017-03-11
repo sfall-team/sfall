@@ -18,6 +18,11 @@
 
 #pragma once
 
+namespace sfall
+{
+namespace script
+{
+
 class OpcodeContext;
 
 // input_functions
@@ -75,3 +80,6 @@ void sf_intface_show(OpcodeContext&);
 void sf_intface_hide(OpcodeContext&);
 
 void sf_intface_is_hidden(OpcodeContext&);
+
+}
+}
