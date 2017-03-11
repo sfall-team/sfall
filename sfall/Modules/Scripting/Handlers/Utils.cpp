@@ -66,7 +66,7 @@ void sf_strlen(OpcodeContext& ctx) {
 void sf_atoi(OpcodeContext& ctx) {
 	auto str = ctx.arg(0).asString();
 	ctx.setReturn(
-		static_cast<int>(strtol(str, (char**)NULL, 0)) // auto-determine radix
+		static_cast<int>(strtol(str, (char**)nullptr, 0)) // auto-determine radix
 	);
 }
 
@@ -145,7 +145,7 @@ void sf_substr(OpcodeContext& ctx) {
 	);
 }
 
-static char* sprintfbuf = NULL;
+static char* sprintfbuf = nullptr;
 // A safer version of sprintf for using in user scripts.
 static char* _stdcall sprintf_lite(const char* format, ScriptValue value) {
 	int fmtlen = strlen(format);

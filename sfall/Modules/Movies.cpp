@@ -53,10 +53,10 @@ public:
 
 	CAllocator() {
 		RefCount = 1;
-		surface = NULL;
-		pAllocNotify = NULL;
-		tex = NULL;
-		ptex = NULL;
+		surface = nullptr;
+		pAllocNotify = nullptr;
+		tex = nullptr;
+		ptex = nullptr;
 	}
 
 	ULONG _stdcall AddRef() {
@@ -68,7 +68,7 @@ public:
 			TerminateDevice(0);
 			if (pAllocNotify) {
 				pAllocNotify->Release();
-				pAllocNotify = NULL;
+				pAllocNotify = nullptr;
 			}
 		}
 		return RefCount;
@@ -77,7 +77,7 @@ public:
 	HRESULT _stdcall QueryInterface(const IID &riid, void** ppvObject) {
 		HRESULT hr = E_NOINTERFACE;
 
-		if (ppvObject == NULL) {
+		if (ppvObject == nullptr) {
 			hr = E_POINTER;
 		} else if (riid == IID_IVMRSurfaceAllocator9) {
 			*ppvObject = static_cast<IVMRSurfaceAllocator9*>(this);
@@ -114,7 +114,7 @@ public:
 			return hr;
 		}
 
-		d3d9Device->CreateTexture(lpAllocInfo->dwWidth, lpAllocInfo->dwHeight, 1, 0, lpAllocInfo->Format, D3DPOOL_DEFAULT, &tex, NULL);
+		d3d9Device->CreateTexture(lpAllocInfo->dwWidth, lpAllocInfo->dwHeight, 1, 0, lpAllocInfo->Format, D3DPOOL_DEFAULT, &tex, nullptr);
 
 		return S_OK;
 	}
@@ -191,12 +191,12 @@ void StopMovie(sDSTexture* movie) {
 
 void RewindMovie(sDSTexture* movie) {
 	LONGLONG time = 0;
-	movie->pSeek->SetPositions(&time, AM_SEEKING_AbsolutePositioning, NULL, AM_SEEKING_NoPositioning);
+	movie->pSeek->SetPositions(&time, AM_SEEKING_AbsolutePositioning, nullptr, AM_SEEKING_NoPositioning);
 }
 
 void SeekMovie(sDSTexture* movie, DWORD shortTime) {
 	LONGLONG time = shortTime * 10000;
-	movie->pSeek->SetPositions(&time, AM_SEEKING_AbsolutePositioning, NULL, AM_SEEKING_NoPositioning);
+	movie->pSeek->SetPositions(&time, AM_SEEKING_AbsolutePositioning, nullptr, AM_SEEKING_NoPositioning);
 }
 
 DWORD FreeMovie(sDSTexture* info) {
@@ -245,7 +245,7 @@ DWORD CreateDSGraph(wchar_t* path, IDirect3DTexture9** tex, sDSTexture* result) 
 	hr |= result->pGraph->QueryInterface(IID_IMediaSeeking, (void**)&result->pSeek);
 	if (hr != S_OK) return FreeMovie(result);
 
-	result->pGraph->RenderFile(path, NULL);
+	result->pGraph->RenderFile(path, nullptr);
 	result->pControl->Run();
 
 	*tex = result->pMyAlloc->tex;

@@ -178,7 +178,7 @@ void SetPageNum() {
 		return;
 	}
 	fo::Window *SaveLoadWin = fo::func::GNW_find(winRef);
-	if (SaveLoadWin->surface == NULL)return;
+	if (SaveLoadWin->surface == nullptr)return;
 
 	BYTE ConsoleGold = fo::var::YellowColor;//palette offset stored in mem - text colour
 
@@ -263,7 +263,7 @@ void SetPageNum() {
 		LSPageOffset = tempPageOffset;
 	}
 
-	SaveLoadWin = NULL;
+	SaveLoadWin = nullptr;
 }
 
 //------------------------------------------
@@ -353,13 +353,11 @@ EndFunc:
 
 //------------------------------------------
 void DrawPageText() {
-
-	int WinRef = fo::var::lsgwin; //load/save winref
-	if (WinRef == NULL) {
+	if (fo::var::lsgwin == 0) {
 		return;
 	}
-	fo::Window *SaveLoadWin = fo::func::GNW_find(WinRef);
-	if (SaveLoadWin->surface == NULL) return;
+	fo::Window *SaveLoadWin = fo::func::GNW_find(fo::var::lsgwin);
+	if (SaveLoadWin->surface == nullptr) return;
 
 	//fill over text area with consol black colour
 	for (int y = SaveLoadWin->width * 52; y < SaveLoadWin->width * 82; y = y + SaveLoadWin->width) {
@@ -412,7 +410,7 @@ void DrawPageText() {
 	TxtWidth = fo::GetTextWidth(TempText);
 	fo::PrintText(TempText, Colour, 228 - TxtWidth / 2, 60, TxtWidth, SaveLoadWin->width, SaveLoadWin->surface);
 
-	SaveLoadWin = NULL;
+	SaveLoadWin = nullptr;
 }
 
 //------------------------------------------

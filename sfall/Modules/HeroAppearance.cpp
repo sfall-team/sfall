@@ -32,8 +32,8 @@ namespace sfall
 bool appModEnabled = false; //check if Appearance mod enabled for script functions
 
 //char scrn surfaces
-BYTE *newButt01Surface = NULL;
-BYTE *charScrnBackSurface = NULL;
+BYTE *newButt01Surface = nullptr;
+BYTE *charScrnBackSurface = nullptr;
 
 //char scrn critter rotation vars
 DWORD charRotTick = 0;
@@ -43,8 +43,8 @@ int currentRaceVal = 0, currentStyleVal = 0; //holds Appearance values to restor
 DWORD critterListSize = 0, critterArraySize = 0; //Critter art list size
 
 fo::PathNode **tempPathPtr = &fo::var::paths;
-fo::PathNode *heroPathPtr = NULL;
-fo::PathNode *racePathPtr = NULL;
+fo::PathNode *heroPathPtr = nullptr;
+fo::PathNode *racePathPtr = nullptr;
 
 
 //for word wrapping
@@ -53,7 +53,7 @@ typedef struct LINENode {
 	LINENode *next;
 
 	LINENode() {
-		next = NULL;
+		next = nullptr;
 		offset = 0;
 	}
 } LINENode;
@@ -98,10 +98,10 @@ public:
 		size = 0;
 		x = 0;
 		y = 0;
-		indexBuff = NULL;
+		indexBuff = nullptr;
 	}
 	~UNLSTDframe() {
-		if (indexBuff != NULL)
+		if (indexBuff != nullptr)
 			delete[] indexBuff;
 	}
 } UNLSTDframe;
@@ -128,10 +128,10 @@ typedef class UNLSTDfrm {
 			oriOffset[i] = 0;
 		}
 		frameAreaSize = 0;
-		frames = NULL;
+		frames = nullptr;
 	}
 	~UNLSTDfrm() {
-		if (frames != NULL)
+		if (frames != nullptr)
 		delete[] frames;
 	}
 } UNLSTDfrm;
@@ -491,7 +491,7 @@ bool LoadFrmFrame(UNLSTDframe *frame, void *frmStream) {
 //-------------------------------------------------------------------
 UNLSTDfrm *LoadUnlistedFrm(char *FrmName, unsigned int folderRef) {
 
-	if (folderRef > 10) return NULL;
+	if (folderRef > 10) return nullptr;
 
 	char*artfolder = (char*)(0x51073C + folderRef * 32); //address of art type name
 	char FrmPath[MAX_PATH];
@@ -506,7 +506,7 @@ UNLSTDfrm *LoadUnlistedFrm(char *FrmName, unsigned int folderRef) {
 		if (!LoadFrmHeader(frm, frmStream)) {
 			FCloseFile(frmStream);
 			delete frm;
-			return NULL;
+			return nullptr;
 		}
 
 		DWORD oriOffset_1st = frm->oriOffset[0];
@@ -519,7 +519,7 @@ UNLSTDfrm *LoadUnlistedFrm(char *FrmName, unsigned int folderRef) {
 					if (!LoadFrmFrame(&frm->frames[oriOffset_new + fNum], frmStream)) {
 						FCloseFile(frmStream);
 						delete frm;
-						return NULL;
+						return nullptr;
 					}
 				}
 				oriOffset_new += frm->numFrames;
@@ -529,7 +529,7 @@ UNLSTDfrm *LoadUnlistedFrm(char *FrmName, unsigned int folderRef) {
 		FCloseFile(frmStream);
 	} else {
 		delete frm;
-		return NULL;
+		return nullptr;
 	}
 	return frm;
 }
@@ -640,7 +640,7 @@ int GetFont(void) {
 
 //-----------------------------------------
 void* LoadDat(char*FileName) {
-	void *dat=NULL;
+	void *dat=nullptr;
 	__asm {
 		mov eax, FileName
 		call fo::funcoffs::dbase_open_
@@ -736,12 +736,12 @@ int _stdcall LoadHeroDat(unsigned int Race, unsigned int Style) {
 
 	if (heroPathPtr->pDat) { //unload previous Dats
 		UnloadDat(heroPathPtr->pDat);
-		heroPathPtr->pDat = NULL;
+		heroPathPtr->pDat = nullptr;
 		heroPathPtr->isDat = 0;
 	}
 	if (racePathPtr->pDat) {
 		UnloadDat(racePathPtr->pDat);
-		racePathPtr->pDat = NULL;
+		racePathPtr->pDat = nullptr;
 		racePathPtr->isDat = 0;
 	}
 
@@ -1168,10 +1168,10 @@ bool CreateWordWrapList(char *TextMsg, DWORD WrapWidth, DWORD *lineNum, LINENode
 
 	DWORD lineWidth = 0, wordWidth = 0;
 
-	char CurrentChar = NULL;
+	char CurrentChar = '\0';
 	DWORD i = 0;
 
-	while (TextMsg[i] != NULL) {
+	while (TextMsg[i] != '\0') {
 		CurrentChar = TextMsg[i];
 
 		lineWidth = lineWidth + fo::GetCharWidth(CurrentChar) + GapWidth;
@@ -1187,14 +1187,14 @@ bool CreateWordWrapList(char *TextMsg, DWORD WrapWidth, DWORD *lineNum, LINENode
 
 			lineWidth = wordWidth;
 			wordWidth = 0;
-			CurrentChar = NULL;
+			CurrentChar = '\0';
 			*lineNum = *lineNum + 1;
 			NextLine->next = new LINENode;
 			NextLine = NextLine->next;
 		}
 		i++;
 
-		if (TextMsg[i] == NULL)
+		if (TextMsg[i] == '\0')
 			NextLine->offset = 0;
 	}
 
@@ -1217,9 +1217,9 @@ int WordWrap(char *TextMsg, DWORD lineLength, WORD *lineNum, WORD *lineOffsets) 
 */
 
 void DeleteWordWrapList(LINENode *CurrentLine) {
-	LINENode *NextLine = NULL;
+	LINENode *NextLine = nullptr;
 
-	while (CurrentLine != NULL) {
+	while (CurrentLine != nullptr) {
 		NextLine = CurrentLine->next;
 		delete CurrentLine;
 		CurrentLine = NextLine;
@@ -1293,9 +1293,9 @@ void DrawPCConsole() {
 		sub_draw(70, 102, 70, 102, 0, 0, ConSurface, WinInfo->width, WinInfo->height, 338, 78, WinInfo->surface, 0);
 
 		UnloadFrm(CritFrmObj);
-		CritSurface = NULL;
+		CritSurface = nullptr;
 		delete[] ConSurface;
-		WinInfo = NULL;
+		WinInfo = nullptr;
 		fo::func::win_draw(WinRef);
 	}
 }
@@ -1303,10 +1303,10 @@ void DrawPCConsole() {
 //------------------------------------------------------------------------------------------------------------------------------------------------
 void DrawCharNote(bool Style, int WinRef, DWORD xPosWin, DWORD yPosWin, BYTE *BGSurface, DWORD xPosBG, DWORD yPosBG, DWORD widthBG, DWORD heightBG) {
 	fo::MessageList MsgList;
-	char *TitleMsg = NULL;
-	char *InfoMsg = NULL;
+	char *TitleMsg = nullptr;
+	char *InfoMsg = nullptr;
 
-	char *MsgFileName = NULL;
+	char *MsgFileName = nullptr;
 
 	if (!Style) MsgFileName = "game\\AppRace.msg";
 	else MsgFileName = "game\\AppStyle.msg";
@@ -1340,7 +1340,7 @@ void DrawCharNote(bool Style, int WinRef, DWORD xPosWin, DWORD yPosWin, BYTE *BG
 
 	DWORD textHeight = fo::GetTextHeight();
 
-	if (TitleMsg != NULL) {
+	if (TitleMsg != nullptr) {
 		fo::PrintText(TitleMsg, colour, 0, 0, 265, 280, PadSurface);
 		//DrawLineX(WinRef, 348, 613, 272+textHeight, colour);
 		//DrawLineX(WinRef, 348, 613, 273+textHeight, colour);
@@ -1357,7 +1357,7 @@ void DrawCharNote(bool Style, int WinRef, DWORD xPosWin, DWORD yPosWin, BYTE *BG
 	LINENode *StartLine = new LINENode;
 	LINENode *CurrentLine, *NextLine;
 
-	if (InfoMsg != NULL) {
+	if (InfoMsg != nullptr) {
 		if (CreateWordWrapList(InfoMsg, 160, &lineNum, StartLine)) {
 			int lineHeight = 43;
 			char TempChar = 0;
@@ -1383,10 +1383,10 @@ void DrawCharNote(bool Style, int WinRef, DWORD xPosWin, DWORD yPosWin, BYTE *BG
 	sub_draw(280, 168, 280, 168, 0, 0, PadSurface, WinInfo->width, WinInfo->height, xPosWin, yPosWin, WinInfo->surface, 0);
 
 	DeleteWordWrapList(StartLine);
-	CurrentLine = NULL;
-	NextLine = NULL;
+	CurrentLine = nullptr;
+	NextLine = nullptr;
 	delete[]PadSurface;
-	WinInfo = NULL;
+	WinInfo = nullptr;
 	SetFont(oldFont); //restore previous font
 	fo::func::message_exit(&MsgList);
 	//RedrawWin(fo::var::edit_win);
@@ -1522,7 +1522,7 @@ void _stdcall HeroSelectWindow(int RaceStyleFlag) {
 	//DWORD CritNum = fo::var::obj_dude->artFID; //pointer to current armored hero critter FrmID
 	FRMhead *CritFrm;
 	DWORD CritFrmObj = 0, CritOri = 0, CritWidth = 0, CritHeight = 0;
-	BYTE *CritSurface = NULL;
+	BYTE *CritSurface = nullptr;
 
 	int button = 0, exitMenu = 0;
 
@@ -1557,7 +1557,7 @@ void _stdcall HeroSelectWindow(int RaceStyleFlag) {
 			CritSurface = GetFrmFrameSurface(CritFrm, 0, CritOri);
 			sub_draw(CritWidth, CritHeight, CritWidth, CritHeight, 0, 0, CritSurface, 70, 102, 35 - CritWidth / 2, 51 - CritHeight / 2, ConDraw, 0);
 			UnloadFrm(CritFrmObj);
-			CritSurface = NULL;
+			CritSurface = nullptr;
 /*
 			if (isStyle) sprintf_s(TextBuf, 12, "%2d\0", styleVal);
 			else sprintf_s(TextBuf, 12, "%2d\0", raceVal);
@@ -1632,18 +1632,18 @@ void _stdcall HeroSelectWindow(int RaceStyleFlag) {
 	delete[]ConDraw;
 	UnloadFrm(MenuUObj);
 	UnloadFrm(MenuDObj);
-	MenuUSurface = NULL;
-	MenuDSurface = NULL;
+	MenuUSurface = nullptr;
+	MenuDSurface = nullptr;
 
 	UnloadFrm(DidownUObj);
 	UnloadFrm(DidownDObj);
-	DidownUSurface = NULL;
-	DidownDSurface = NULL;
+	DidownUSurface = nullptr;
+	DidownDSurface = nullptr;
 
 	UnloadFrm(DiupUObj);
 	UnloadFrm(DiupDObj);
-	DiupUSurface = NULL;
-	DiupDSurface = NULL;
+	DiupUSurface = nullptr;
+	DiupDSurface = nullptr;
 
 	SetFont(oldFont);
 	SetMousePic(oldMouse);
@@ -1828,9 +1828,9 @@ EndFunc:
 //-------------------------------
 void DeleteCharSurfaces() {
 	delete[] newButt01Surface;
-	newButt01Surface = NULL;
+	newButt01Surface = nullptr;
 	delete[] charScrnBackSurface;
-	charScrnBackSurface = NULL;
+	charScrnBackSurface = nullptr;
 }
 
 //------------------------------------------
@@ -1925,7 +1925,7 @@ static void __declspec(naked) AddCharScrnButtons(void) {
 		//currentStyleVal=0;
 		//LoadHeroDat(CurrentRaceVal, currentStyleVal);
 		//RefreshPCArt();
-		if (newButt01Surface == NULL) {
+		if (newButt01Surface == nullptr) {
 			newButt01Surface = new BYTE [20*18*4];
 
 			DWORD FrmObj; //frm objects for char screen Appearance button
@@ -1943,7 +1943,7 @@ static void __declspec(naked) AddCharScrnButtons(void) {
 			FrmSurface = GetFrmSurface(LoadFrm(6, 125), 0, 0, &FrmObj); //SRDFrm
 			sub_draw(20, 18, 20, 18, 0, 0, FrmSurface, 20, 18*4, 0, 18*3, newButt01Surface, 0x0);
 			UnloadFrm(FrmObj);
-			FrmSurface = NULL;
+			FrmSurface = nullptr;
 		}
 
 		//check if Data exists for other races male or female, and if so enable race selection buttons.
@@ -1983,7 +1983,7 @@ static void __declspec(naked) FixCharScrnBack(void) {
 		pushad
 	}
 
-	if (charScrnBackSurface == NULL) {
+	if (charScrnBackSurface == nullptr) {
 		charScrnBackSurface = new BYTE [640*480];
 
 		BYTE *OldCharScrnBackSurface = fo::var::bckgnd; //char screen background frm surface
@@ -2016,7 +2016,7 @@ static void __declspec(naked) FixCharScrnBack(void) {
 
 		sub_draw(80, 28, 80, 32, 0, 0, FrmMaskSurface, 80, 32, 0, 0, FrmSurface, 0x39); //mask for style and race buttons
 		UnloadFrm(FrmMaskObj);
-		FrmMaskSurface = NULL;
+		FrmMaskSurface = nullptr;
 
 		FrmSurface[80*32 - 1] = 0;
 		FrmSurface[80*31 - 1] = 0;
@@ -2045,7 +2045,7 @@ static void __declspec(naked) FixCharScrnBack(void) {
 		sub_draw(47, 16, 640, 480, 94, 394, FrmSurface, 640, 480, 347, 39, charScrnBackSurface, 0); //cover buttons pics top
 		sub_draw(47, 16, 640, 480, 94, 394, FrmSurface, 640, 480, 347, 201, charScrnBackSurface, 0); //cover buttons pics bottom
 		UnloadFrm(FrmObj);
-		FrmSurface = NULL;
+		FrmSurface = nullptr;
 
 		int oldFont;
 		oldFont = GetFont();
@@ -2200,8 +2200,8 @@ void EnableHeroAppearanceMod() {
 
 	heroPathPtr->isDat = 0;
 	racePathPtr->isDat = 0;
-	heroPathPtr->pDat = NULL;
-	racePathPtr->pDat = NULL;
+	heroPathPtr->pDat = nullptr;
+	racePathPtr->pDat = nullptr;
 
 	//Check if new Appearance char scrn button pushed
 	SafeWrite32(0x431E9E, (DWORD)&CheckCharScrnButtons - 0x431EA2);

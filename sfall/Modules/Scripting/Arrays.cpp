@@ -187,7 +187,7 @@ void LoadArrayElement(sArrayElement* el, HANDLE h)
 			el->strVal = new char[el->len];
 			ReadFile(h, el->strVal, el->len, &unused, 0);
 		} else
-			el->strVal = NULL;
+			el->strVal = nullptr;
 	} else {
 		ReadFile(h, &el->intVal, 4, &unused, 0);
 	}

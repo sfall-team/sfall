@@ -60,7 +60,7 @@ char* GetMsg(fo::MessageList *msgList, int msgRef, int msgNum) {
 			return msgNode->audio;
 		}
 	}
-	return NULL;
+	return nullptr;
 }
 
 void ReadExtraGameMsgFiles() {

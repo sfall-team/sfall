@@ -488,7 +488,7 @@ void LoadScriptProgram(sScriptProgram &prog, const char* fileName) {
 		}
 		prog.initialized = 0;
 	} else {
-		prog.ptr = NULL;
+		prog.ptr = nullptr;
 	}
 }
 
