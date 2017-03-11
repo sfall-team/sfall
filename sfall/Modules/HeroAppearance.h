@@ -31,12 +31,6 @@ class HeroAppearance : public Module {
 	void exit() override;
 };
 
-fo::WINinfo *GetWinStruct(int WinRef);
-void RedrawWin(int WinRef);
-void PrintText(char *DisplayText, BYTE ColourIndex, DWORD Xpos, DWORD Ypos, DWORD TxtWidth, DWORD ToWidth, BYTE *ToSurface);
-DWORD GetTextWidth(char *TextMsg);
-DWORD GetMaxCharWidth();
-
 void _stdcall HeroSelectWindow(int RaceStyleFlag);
 void _stdcall SetHeroStyle(int newStyleVal);
 void _stdcall SetHeroRace(int newRaceVal);

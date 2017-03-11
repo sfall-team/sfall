@@ -562,20 +562,6 @@ void DestroyWin(int WinRef) {
 	}
 }
 
-//--------------------------------------------------
-fo::WINinfo *GetWinStruct(int WinRef) {
-	fo::WINinfo *winStruct;
-
-	__asm {
-		push edx
-		mov eax, WinRef
-		call fo::funcoffs::GNW_find_
-		mov winStruct, eax
-		pop edx
-	}
-	return winStruct;
-}
-
 //---------------------------------
 BYTE* GetWinSurface(int WinRef) {
 	BYTE *surface;
@@ -606,14 +592,7 @@ void HideWin(int WinRef) {
 	}
 }
 */
-//-----------------------------------------------------------------------------------------------------------------------
-void RedrawWin(int WinRef) {
 
-	__asm {
-		mov eax, WinRef
-		call fo::funcoffs::win_draw_
-	}
-}
 
 /////////////////////////////////////////////////////////////////BUTTON FUNCTIONS////////////////////////////////////////////////////////////////////////
 //---------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -656,92 +635,6 @@ int GetFont(void) {
 	return fo::var::curr_font_num;
 }
 
-
-//---------------------------------------------------------
-//print text to surface
-void PrintText(char *DisplayText, BYTE ColourIndex, DWORD Xpos, DWORD Ypos, DWORD TxtWidth, DWORD ToWidth, BYTE *ToSurface) {
-	DWORD posOffset = Ypos*ToWidth + Xpos;
-	__asm {
-		xor eax, eax
-		MOV AL, ColourIndex
-		push eax
-		mov edx, DisplayText
-		mov ebx, TxtWidth
-		mov ecx, ToWidth
-		mov eax, ToSurface
-		add eax, posOffset
-		call dword ptr ds:[FO_VAR_text_to_buf]
-	}
-}
-
-//---------------------------------------------------------
-//gets the height of the currently selected font
-DWORD GetTextHeight() {
-	DWORD TxtHeight;
-	__asm {
-		call dword ptr ds:[FO_VAR_text_height] //get text height
-		mov TxtHeight, eax
-	}
-	return TxtHeight;
-}
-
-//---------------------------------------------------------
-//gets the length of a string using the currently selected font
-DWORD GetTextWidth(char *TextMsg) {
-	DWORD TxtWidth;
-	__asm {
-		mov eax, TextMsg
-		call dword ptr ds:[FO_VAR_text_width] //get text width
-		mov TxtWidth, eax
-	}
-	return TxtWidth;
-}
-
-//---------------------------------------------------------
-//get width of Char for current font
-DWORD GetCharWidth(char CharVal) {
-	DWORD charWidth;
-	__asm {
-		mov al, CharVal
-		call dword ptr ds:[FO_VAR_text_char_width]
-		mov charWidth, eax
-	}
-	return charWidth;
-}
-
-//---------------------------------------------------------
-//get maximum string length for current font - if all characters were maximum width
-DWORD GetMaxTextWidth(char *TextMsg) {
-	DWORD msgWidth;
-	__asm {
-		mov eax, TextMsg
-		call dword ptr ds:[FO_VAR_text_mono_width]
-		mov msgWidth, eax
-	}
-	return msgWidth;
-}
-
-//---------------------------------------------------------
-//get number of pixels between characters for current font
-DWORD GetCharGapWidth() {
-	DWORD gapWidth;
-	__asm {
-		call dword ptr ds:[FO_VAR_text_spacing]
-		mov gapWidth, eax
-	}
-	return gapWidth;
-}
-
-//---------------------------------------------------------
-//get maximum character width for current font
-DWORD GetMaxCharWidth() {
-	DWORD charWidth = 0;
-	__asm {
-		call dword ptr ds:[FO_VAR_text_max]
-		mov charWidth, eax
-	}
-	return charWidth;
-}
 
 /////////////////////////////////////////////////////////////////DAT FUNCTIONS////////////////////////////////////////////////////////////////////////
 
@@ -899,22 +792,6 @@ setPath:
 		ret
 	}
 }
-
-/*
-//----------------------------------------------------------------
-int _stdcall CheckHeroFile(char* FileName) {
-
-	char TempPath[64];
-	//sprintf_s(TempPath, 64, "%s\\%s\0", cPath, FileName);
-	sprintf_s(TempPath, 64, "%s\\%s\0", HeroPathPtr->path, FileName);
-
-	if (GetFileAttributes(TempPath) == INVALID_FILE_ATTRIBUTES)
-		return -1;
-
-
-	return 0;
-}
-*/
 
 //---------------------------------------------------------
 static void __declspec(naked) CheckHeroExist() {
@@ -1280,11 +1157,11 @@ void _stdcall SetHeroRace(int newRaceVal) {
 bool CreateWordWrapList(char *TextMsg, DWORD WrapWidth, DWORD *lineNum, LINENode *StartLine) {
 	*lineNum = 1;
 
-	if (GetMaxCharWidth() >= WrapWidth) return FALSE;
+	if (fo::GetMaxCharWidth() >= WrapWidth) return FALSE;
 
-	if (GetTextWidth(TextMsg) < WrapWidth) return TRUE;
+	if (fo::GetTextWidth(TextMsg) < WrapWidth) return TRUE;
 
-	DWORD GapWidth = GetCharGapWidth();
+	DWORD GapWidth = fo::GetCharGapWidth();
 
 	StartLine->next = new LINENode;
 	LINENode *NextLine = StartLine->next;
@@ -1297,8 +1174,8 @@ bool CreateWordWrapList(char *TextMsg, DWORD WrapWidth, DWORD *lineNum, LINENode
 	while (TextMsg[i] != NULL) {
 		CurrentChar = TextMsg[i];
 
-		lineWidth = lineWidth + GetCharWidth(CurrentChar) + GapWidth;
-		wordWidth = wordWidth + GetCharWidth(CurrentChar) + GapWidth;
+		lineWidth = lineWidth + fo::GetCharWidth(CurrentChar) + GapWidth;
+		wordWidth = wordWidth + fo::GetCharWidth(CurrentChar) + GapWidth;
 
 		if (lineWidth <= WrapWidth) {
 			if (isspace(CurrentChar) || CurrentChar == '-')
@@ -1367,7 +1244,7 @@ void DrawPCConsole() {
 
 		int WinRef = fo::var::edit_win; //char screen window ref
 		//BYTE *WinSurface = GetWinSurface(WinRef);
-		fo::WINinfo *WinInfo = GetWinStruct(WinRef);
+		fo::Window *WinInfo = fo::func::GNW_find(WinRef);
 
 		BYTE *ConSurface = new BYTE [70*102];
 
@@ -1419,7 +1296,7 @@ void DrawPCConsole() {
 		CritSurface = NULL;
 		delete[] ConSurface;
 		WinInfo = NULL;
-		RedrawWin(WinRef);
+		fo::func::win_draw(WinRef);
 	}
 }
 
@@ -1441,7 +1318,7 @@ void DrawCharNote(bool Style, int WinRef, DWORD xPosWin, DWORD yPosWin, BYTE *BG
 
 	BYTE colour = *(BYTE*)0x6A38D0; //brown
 
-	fo::WINinfo *WinInfo = GetWinStruct(WinRef);
+	fo::Window *WinInfo = fo::func::GNW_find(WinRef);
 
 	BYTE *PadSurface;
 	PadSurface = new BYTE [280*168];
@@ -1461,10 +1338,10 @@ void DrawCharNote(bool Style, int WinRef, DWORD xPosWin, DWORD yPosWin, BYTE *BG
 	int oldFont = GetFont(); //store current font
 	SetFont(0x66); //set font for title
 
-	DWORD textHeight=GetTextHeight();
+	DWORD textHeight = fo::GetTextHeight();
 
 	if (TitleMsg != NULL) {
-		PrintText(TitleMsg, colour, 0, 0, 265, 280, PadSurface);
+		fo::PrintText(TitleMsg, colour, 0, 0, 265, 280, PadSurface);
 		//DrawLineX(WinRef, 348, 613, 272+textHeight, colour);
 		//DrawLineX(WinRef, 348, 613, 273+textHeight, colour);
 		memset(PadSurface + 280*textHeight, colour, 265);
@@ -1473,7 +1350,7 @@ void DrawCharNote(bool Style, int WinRef, DWORD xPosWin, DWORD yPosWin, BYTE *BG
 
 	SetFont(0x65); //set font for info
 
-	textHeight = GetTextHeight();
+	textHeight = fo::GetTextHeight();
 
 	DWORD lineNum = 0;
 
@@ -1485,7 +1362,7 @@ void DrawCharNote(bool Style, int WinRef, DWORD xPosWin, DWORD yPosWin, BYTE *BG
 			int lineHeight = 43;
 			char TempChar = 0;
 
-			if (lineNum == 1) PrintText(InfoMsg, colour, 0, lineHeight, 280, 280, PadSurface);
+			if (lineNum == 1) fo::PrintText(InfoMsg, colour, 0, lineHeight, 280, 280, PadSurface);
 			else{
 				if (lineNum > 11) lineNum = 11;
 				CurrentLine = StartLine;
@@ -1494,7 +1371,7 @@ void DrawCharNote(bool Style, int WinRef, DWORD xPosWin, DWORD yPosWin, BYTE *BG
 					NextLine = CurrentLine->next;
 					TempChar = InfoMsg[NextLine->offset]; //[line+1]];
 					InfoMsg[NextLine->offset] = '\0';
-					PrintText(InfoMsg+CurrentLine->offset, colour, 0, lineHeight, 280, 280, PadSurface);
+					fo::PrintText(InfoMsg+CurrentLine->offset, colour, 0, lineHeight, 280, 280, PadSurface);
 					InfoMsg[NextLine->offset] = TempChar;
 					lineHeight = lineHeight + textHeight + 1;
 					CurrentLine = NextLine;
@@ -1613,11 +1490,11 @@ void _stdcall HeroSelectWindow(int RaceStyleFlag) {
 		Translate("AppearanceMod", "RaceText", "Race", titleText, 16);
 	}
 
-	titleTextWidth = GetTextWidth(titleText);
+	titleTextWidth = fo::GetTextWidth(titleText);
 
-	PrintText(titleText, textColour, 94 - titleTextWidth/2, 10, titleTextWidth, 484, mainSurface);
+	fo::PrintText(titleText, textColour, 94 - titleTextWidth/2, 10, titleTextWidth, 484, mainSurface);
 
-	DWORD titleTextHeight = GetTextHeight();
+	DWORD titleTextHeight = fo::GetTextHeight();
 	//Title underline
 	memset(mainSurface + 484*(10 + titleTextHeight) + 94 - titleTextWidth/2, textColour, titleTextWidth );
 	memset(mainSurface + 484*(10 + titleTextHeight + 1) + 94 - titleTextWidth/2, textColour, titleTextWidth );
@@ -1693,7 +1570,7 @@ void _stdcall HeroSelectWindow(int RaceStyleFlag) {
 				DrawCharNote(isStyle, WinRef, 190, 29, mainSurface, 190, 29, 484, 230);
 			drawFlag = FALSE;
 
-			RedrawWin(WinRef);
+			fo::func::win_draw(WinRef);
 		}
 
 		button = fo::func::get_input();
@@ -2182,11 +2059,11 @@ static void __declspec(naked) FixCharScrnBack(void) {
 		Translate("AppearanceMod", "RaceText", "Race", RaceText, 8);
 		Translate("AppearanceMod", "StyleText", "Style", StyleText, 8);
 
-		raceTextWidth=GetTextWidth(RaceText);
-		styleTextWidth=GetTextWidth(StyleText);
+		raceTextWidth = fo::GetTextWidth(RaceText);
+		styleTextWidth = fo::GetTextWidth(StyleText);
 
-		PrintText(RaceText, PeanutButter, 372 - raceTextWidth/2, 6, raceTextWidth, 640, charScrnBackSurface);
-		PrintText(StyleText, PeanutButter, 372 - styleTextWidth/2, 231, styleTextWidth, 640, charScrnBackSurface);
+		fo::PrintText(RaceText, PeanutButter, 372 - raceTextWidth/2, 6, raceTextWidth, 640, charScrnBackSurface);
+		fo::PrintText(StyleText, PeanutButter, 372 - styleTextWidth/2, 231, styleTextWidth, 640, charScrnBackSurface);
 		SetFont(oldFont);
 	}
 

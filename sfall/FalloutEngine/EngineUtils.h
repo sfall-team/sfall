@@ -47,4 +47,20 @@ void SkillGetTags(int* result, long num);
 // wrapper for skill_set_tags with bounds checking
 void SkillSetTags(int* tags, long num);
 
+// Print text to surface
+void PrintText(char *displayText, BYTE colorIndex, DWORD x, DWORD y, DWORD textWidth, DWORD destWidth, BYTE *surface);
+// gets the height of the currently selected font
+DWORD GetTextHeight();
+// gets the length of a string using the currently selected font
+DWORD GetTextWidth(char *textMsg);
+// get width of Char for current font
+DWORD GetCharWidth(char charVal);
+// get maximum string length for current font - if all characters were maximum width
+DWORD GetMaxTextWidth(char *textMsg);
+// get number of pixels between characters for current font
+DWORD GetCharGapWidth();
+// get maximum character width for current font
+DWORD GetMaxCharWidth();
+
+
 }

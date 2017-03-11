@@ -348,7 +348,7 @@ struct PremadeChar {
 // In-memory PROTO structure, not the same as PRO file format.
 struct Proto {
 	long pid;
-	long message_num;
+	long messageNum;
 	long fid;
 	// range 0-8 in hexes
 	long lightDistance;
@@ -543,7 +543,7 @@ struct ScriptListInfoItem {
 };
 
 //for holding window info
-struct WINinfo {
+struct Window {
 	long ref;
 	long flags;
 	RECT wRect;

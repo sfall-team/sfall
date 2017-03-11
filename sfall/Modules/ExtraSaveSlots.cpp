@@ -20,7 +20,6 @@
 
 #include "..\main.h"
 #include "..\FalloutEngine\Fallout2.h"
-#include "HeroAppearance.h"
 
 #include "ExtraSaveSlots.h"
 
@@ -174,15 +173,17 @@ static void __declspec(naked) create_page_buttons(void) {
 
 //------------------------------------------------------
 void SetPageNum() {
-	int WinRef = fo::var::lsgwin; //load/save winref
-	if (WinRef == NULL)return;
-	fo::WINinfo *SaveLoadWin = GetWinStruct(WinRef);
+	int winRef = fo::var::lsgwin; //load/save winref
+	if (winRef == 0) {
+		return;
+	}
+	fo::Window *SaveLoadWin = fo::func::GNW_find(winRef);
 	if (SaveLoadWin->surface == NULL)return;
 
 	BYTE ConsoleGold = fo::var::YellowColor;//palette offset stored in mem - text colour
 
 	char TempText[32];
-	unsigned int TxtMaxWidth = GetMaxCharWidth() * 8;//GetTextWidth(TempText);
+	unsigned int TxtMaxWidth = fo::GetMaxCharWidth() * 8;//GetTextWidth(TempText);
 	unsigned int TxtWidth = 0;
 
 	DWORD NewTick = 0, OldTick = 0;
@@ -212,7 +213,7 @@ void SetPageNum() {
 			if (tempPageOffset == -1) {
 				sprintf_s(TempText, 32, "#%c", '_');
 			}
-			TxtWidth = GetTextWidth(TempText);
+			TxtWidth = fo::GetTextWidth(TempText);
 
 			sprintf_s(TempText, 32, "#%d%c", tempPageOffset / 10 + 1, blip);
 			if (tempPageOffset == -1) {
@@ -224,8 +225,8 @@ void SetPageNum() {
 				memset(SaveLoadWin->surface + y + 170 - TxtMaxWidth / 2, 0xCF, TxtMaxWidth);
 			}
 
-			PrintText(TempText, ConsoleGold, 170 - TxtWidth / 2, 60, TxtWidth, SaveLoadWin->width, SaveLoadWin->surface);
-			RedrawWin(WinRef);
+			fo::PrintText(TempText, ConsoleGold, 170 - TxtWidth / 2, 60, TxtWidth, SaveLoadWin->width, SaveLoadWin->surface);
+			fo::func::win_draw(winRef);
 		}
 
 		button = fo::func::get_input();
@@ -357,7 +358,7 @@ void DrawPageText() {
 	if (WinRef == NULL) {
 		return;
 	}
-	fo::WINinfo *SaveLoadWin = GetWinStruct(WinRef);
+	fo::Window *SaveLoadWin = fo::func::GNW_find(WinRef);
 	if (SaveLoadWin->surface == NULL) return;
 
 	//fill over text area with consol black colour
@@ -372,8 +373,8 @@ void DrawPageText() {
 	char TempText[32];
 	sprintf_s(TempText, 32, "[ %d ]", LSPageOffset / 10 + 1);
 
-	unsigned int TxtWidth = GetTextWidth(TempText);
-	PrintText(TempText, Colour, 170 - TxtWidth / 2, 60, TxtWidth, SaveLoadWin->width, SaveLoadWin->surface);
+	unsigned int TxtWidth = fo::GetTextWidth(TempText);
+	fo::PrintText(TempText, Colour, 170 - TxtWidth / 2, 60, TxtWidth, SaveLoadWin->width, SaveLoadWin->surface);
 
 	if (LSButtDN == 0x549) {
 		Colour = ConsoleGold;
@@ -381,8 +382,8 @@ void DrawPageText() {
 		Colour = ConsoleGreen;
 	}
 	strcpy_s(TempText, 12, "<<");
-	TxtWidth = GetTextWidth(TempText);
-	PrintText(TempText, Colour, 80 - TxtWidth / 2, 60, TxtWidth, SaveLoadWin->width, SaveLoadWin->surface);
+	TxtWidth = fo::GetTextWidth(TempText);
+	fo::PrintText(TempText, Colour, 80 - TxtWidth / 2, 60, TxtWidth, SaveLoadWin->width, SaveLoadWin->surface);
 
 	if (LSButtDN == 0x54B) {
 		Colour = ConsoleGold;
@@ -390,8 +391,8 @@ void DrawPageText() {
 		Colour = ConsoleGreen;
 	}
 	strcpy_s(TempText, 12, "<");
-	TxtWidth = GetTextWidth(TempText);
-	PrintText(TempText, Colour, 112 - TxtWidth / 2, 60, TxtWidth, SaveLoadWin->width, SaveLoadWin->surface);
+	TxtWidth = fo::GetTextWidth(TempText);
+	fo::PrintText(TempText, Colour, 112 - TxtWidth / 2, 60, TxtWidth, SaveLoadWin->width, SaveLoadWin->surface);
 
 	if (LSButtDN == 0x551) {
 		Colour = ConsoleGold;
@@ -399,8 +400,8 @@ void DrawPageText() {
 		Colour = ConsoleGreen;
 	}
 	strcpy_s(TempText, 12, ">>");
-	TxtWidth = GetTextWidth(TempText);
-	PrintText(TempText, Colour, 260 - TxtWidth / 2, 60, TxtWidth, SaveLoadWin->width, SaveLoadWin->surface);
+	TxtWidth = fo::GetTextWidth(TempText);
+	fo::PrintText(TempText, Colour, 260 - TxtWidth / 2, 60, TxtWidth, SaveLoadWin->width, SaveLoadWin->surface);
 
 	if (LSButtDN == 0x54D) {
 		Colour = ConsoleGold;
@@ -408,8 +409,8 @@ void DrawPageText() {
 		Colour = ConsoleGreen;
 	}
 	strcpy_s(TempText, 12, ">");
-	TxtWidth = GetTextWidth(TempText);
-	PrintText(TempText, Colour, 228 - TxtWidth / 2, 60, TxtWidth, SaveLoadWin->width, SaveLoadWin->surface);
+	TxtWidth = fo::GetTextWidth(TempText);
+	fo::PrintText(TempText, Colour, 228 - TxtWidth / 2, 60, TxtWidth, SaveLoadWin->width, SaveLoadWin->surface);
 
 	SaveLoadWin = NULL;
 }
