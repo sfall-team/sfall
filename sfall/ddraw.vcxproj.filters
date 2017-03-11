@@ -243,6 +243,7 @@
       <Filter>FalloutEngine</Filter>
     </ClInclude>
     <ClInclude Include="FalloutEngine\VariableOffsets.h" />
+    <ClInclude Include="stdafx.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
@@ -450,6 +451,7 @@
     <ClCompile Include="FalloutEngine\FunctionOffsets.cpp">
       <Filter>FalloutEngine</Filter>
     </ClCompile>
+    <ClCompile Include="stdafx.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="version.rc" />

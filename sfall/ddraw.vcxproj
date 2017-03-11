@@ -65,6 +65,15 @@
     <GenerateManifest Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</GenerateManifest>
     <GenerateManifest Condition="'$(Configuration)|$(Platform)'=='Win2K|Win32'">false</GenerateManifest>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Win2K|Win32'">
+    <IncludePath>C:\Program Files %28x86%29\Microsoft DirectX SDK\Include;$(IncludePath);$(ProjectDir) </IncludePath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <IncludePath>C:\Program Files %28x86%29\Microsoft DirectX SDK\Include;$(IncludePath);$(ProjectDir) </IncludePath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <IncludePath>C:\Program Files %28x86%29\Microsoft DirectX SDK\Include;$(IncludePath);$(ProjectDir) </IncludePath>
+  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
@@ -72,12 +81,12 @@
       <MinimalRebuild>true</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
-      <PrecompiledHeader>
-      </PrecompiledHeader>
+      <PrecompiledHeader>Use</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <AssemblerListingLocation>$(IntDir)/%(RelativeDir)/</AssemblerListingLocation>
       <ObjectFileName>$(IntDir)/%(RelativeDir)/</ObjectFileName>
+      <ForcedIncludeFiles>stdafx.h;%(ForcedIncludeFiles)</ForcedIncludeFiles>
     </ClCompile>
     <Link>
       <AdditionalDependencies>kernel32.lib;user32.lib;d3d9.lib;d3dx9d.lib;Strmiids.lib;dinput.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -126,6 +135,7 @@
       <CallingConvention>Cdecl</CallingConvention>
       <AssemblerListingLocation>$(IntDir)/%(RelativeDir)/</AssemblerListingLocation>
       <ObjectFileName>$(IntDir)/%(RelativeDir)/</ObjectFileName>
+      <ForcedIncludeFiles>stdafx.h;%(ForcedIncludeFiles)</ForcedIncludeFiles>
     </ClCompile>
     <Link>
       <AdditionalDependencies>kernel32.lib;user32.lib;d3d9.lib;d3dx9.lib;Strmiids.lib;dinput.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -174,6 +184,8 @@
       <CallingConvention>Cdecl</CallingConvention>
       <AssemblerListingLocation>$(IntDir)/%(RelativeDir)/</AssemblerListingLocation>
       <ObjectFileName>$(IntDir)/%(RelativeDir)/</ObjectFileName>
+      <PrecompiledHeaderFile>stdafx.h</PrecompiledHeaderFile>
+      <ForcedIncludeFiles>stdafx.h;%(ForcedIncludeFiles)</ForcedIncludeFiles>
     </ClCompile>
     <Link>
       <AdditionalDependencies>kernel32.lib;user32.lib;d3d9.lib;d3dx9.lib;Strmiids.lib;dinput.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -281,6 +293,7 @@
     <ClInclude Include="Modules\Sound.h" />
     <ClInclude Include="Modules\Stats.h" />
     <ClInclude Include="Modules\Tiles.h" />
+    <ClInclude Include="stdafx.h" />
     <ClInclude Include="Utils.h" />
     <ClInclude Include="Version.h" />
     <ClInclude Include="Logging.h" />
@@ -302,7 +315,11 @@
     <ClCompile Include="Modules\LoadOrder.cpp" />
     <ClCompile Include="Modules\PlayerModel.cpp" />
     <ClCompile Include="Modules\SpeedPatch.cpp" />
-    <ClCompile Include="Modules\Worldmap.cpp" />
+    <ClCompile Include="Modules\Worldmap.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Use</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Use</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Win2K|Win32'">Use</PrecompiledHeader>
+    </ClCompile>
     <ClCompile Include="Modules\ScriptExtender.cpp" />
     <ClCompile Include="Modules\BarBoxes.cpp" />
     <ClCompile Include="Modules\Books.cpp" />
@@ -319,7 +336,11 @@
     <ClCompile Include="Modules\Elevators.cpp" />
     <ClCompile Include="Modules\Explosions.cpp" />
     <ClCompile Include="Modules\FileSystem.cpp" />
-    <ClCompile Include="Modules\TalkingHeads.cpp" />
+    <ClCompile Include="Modules\TalkingHeads.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Use</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Use</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Win2K|Win32'">Use</PrecompiledHeader>
+    </ClCompile>
     <ClCompile Include="Modules\HeroAppearance.cpp" />
     <ClCompile Include="Modules\HookScripts.cpp" />
     <ClCompile Include="Modules\Inventory.cpp" />
@@ -360,6 +381,11 @@
     <ClCompile Include="Modules\Tiles.cpp" />
     <ClCompile Include="Logging.cpp" />
     <ClCompile Include="Modules\ExtraSaveSlots.cpp" />
+    <ClCompile Include="stdafx.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Win2K|Win32'">Create</PrecompiledHeader>
+    </ClCompile>
     <ClCompile Include="Utils.cpp" />
   </ItemGroup>
   <ItemGroup>
