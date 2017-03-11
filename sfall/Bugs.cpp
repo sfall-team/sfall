@@ -964,6 +964,51 @@ void __declspec(naked) ItemCountFix() {
 	}
 }
 
+static void __declspec(naked) PrintBasicStat_hack() {
+	__asm {
+		test eax, eax
+		jle  skip
+		cmp  eax, 10
+		jg   end
+		pop  ebx
+		push 0x434C21
+		retn
+skip:
+		xor  eax, eax
+end:
+		retn
+	}
+}
+
+static void __declspec(naked) StatButtonUp_hook() {
+	__asm {
+		call inc_stat_
+		test eax, eax
+		jl   end
+		test ebx, ebx
+		jge  end
+		sub  ds:[_character_points], esi
+		xor  esi, esi
+		mov  [esp+0xC+0x4], esi
+end:
+		retn
+	}
+}
+
+static void __declspec(naked) StatButtonDown_hook() {
+	__asm {
+		call stat_level_
+		cmp  eax, 1
+		jg   end
+		pop  eax
+		xor  eax, eax
+		inc  eax
+		mov  [esp+0xC], eax
+		push 0x437B41
+end:
+		retn
+	}
+}
 
 void BugsInit()
 {
@@ -1043,6 +1088,13 @@ void BugsInit()
 	// Fix for negative values in Skilldex window ("S")
 	dlog("Applying fix for negative values in Skilldex window.", DL_INIT);
 	SafeWrite8(0x4AC377, 0x7F);                // jg
+	dlogr(" Done", DL_INIT);
+	
+	//Fix negative value SPECIAL when creation character, when Trait influences with negative values on basic parameters SPECIAL.
+	dlog("Applying fix for negative values SPECIAL when creation character.", DL_INIT);
+	MakeCall(0x434BFF, &PrintBasicStat_hack, false);
+	HookCall(0x437AB4, &StatButtonUp_hook);
+	HookCall(0x437B26, &StatButtonDown_hook);
 	dlogr(" Done", DL_INIT);
 
 	// Fix for not counting in the weight of equipped items on NPC when stealing or bartering
