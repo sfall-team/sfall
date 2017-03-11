@@ -168,7 +168,7 @@ static void FillListVector(DWORD type, std::vector<fo::GameObject*>& vec) {
 			for (int tile = 0; tile < 40000; tile++) {
 				fo::GameObject* obj = fo::func::obj_find_first_at_tile(elv, tile);
 				while (obj) {
-					DWORD otype = (obj->pid & 0xff000000) >> 24;
+					DWORD otype = (obj->protoId & 0xff000000) >> 24;
 					if (type == 9 || (type == 0 && otype == 1) || (type == 1 && otype == 0) || (type >= 2 && type <= 5 && type == otype)) {
 						vec.push_back(obj);
 					}

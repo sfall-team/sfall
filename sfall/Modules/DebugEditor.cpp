@@ -104,14 +104,14 @@ static void RunEditorInternal(SOCKET &s) {
 	InternalSend(s, &numArrays, 4);
 	InternalSend(s, &numCritters, 4);
 
-	sGlobalVar* sglobals = new sGlobalVar[numSGlobals];
+	GlobalVar* sglobals = new GlobalVar[numSGlobals];
 	GetGlobals(sglobals);
 	int* arrays = new int[numArrays * 3];
 	script::GetArrays(arrays);
 
 	InternalSend(s, reinterpret_cast<void*>(fo::var::game_global_vars), 4 * numGlobals);
 	InternalSend(s, reinterpret_cast<void*>(fo::var::map_global_vars), 4 * numMapVars);
-	InternalSend(s, sglobals, sizeof(sGlobalVar)*numSGlobals);
+	InternalSend(s, sglobals, sizeof(GlobalVar)*numSGlobals);
 	InternalSend(s, arrays, numArrays * 3 * 4);
 	for (int i = 0; i < numCritters; i++) {
 		InternalSend(s, &vec[i][25], 4);

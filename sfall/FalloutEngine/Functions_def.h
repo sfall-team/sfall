@@ -39,6 +39,8 @@ WRAP_WATCOM_FUNC2(long, light_get_tile, long, elevation, long, tileNum)
 WRAP_WATCOM_FUNC2(void, mouse_get_position, long*, outX, long*, outY)
 WRAP_WATCOM_FUNC0(void, mouse_show)
 WRAP_WATCOM_FUNC0(void, mouse_hide)
+// calculates bounding box (rectangle) for a given object
+WRAP_WATCOM_FUNC2(void, obj_bound, GameObject*, object, BoundRect*, boundRect)
 WRAP_WATCOM_FUNC3(long, register_object_animate, GameObject*, object, long, anim, long, delay)
 WRAP_WATCOM_FUNC3(long, register_object_animate_and_hide, GameObject*, object, long, anim, long, delay)
 // WRAP_WATCOM_FUNC3(long, register_object_animate_and_move_straight_, GameObject*, object;
@@ -63,7 +65,10 @@ WRAP_WATCOM_FUNC1(long, register_object_must_erase, GameObject*, object)
 // WRAP_WATCOM_FUNC3(long, register_object_run_to_tile_, GameObject*, object;
 WRAP_WATCOM_FUNC3(long, register_object_take_out, GameObject*, object, long, holdFrameId, long, nothing)
 WRAP_WATCOM_FUNC3(long, register_object_turn_towards, GameObject*, object, long, tileNum, long, nothing)
+// redraws the whole screen
 WRAP_WATCOM_FUNC0(void, tile_refresh_display)
+// redraws the given rectangle on screen
+WRAP_WATCOM_FUNC2(void, tile_refresh_rect, BoundRect*, boundRect, long, elevation)
 WRAP_WATCOM_FUNC1(long, text_font, long, fontNum)
 WRAP_WATCOM_FUNC6(DWORD, win_add, long, x, long, y, long, width, long, height, long, bgColorIndex, long, flags)
 WRAP_WATCOM_FUNC1(void, win_show, DWORD, winRef)

@@ -697,6 +697,7 @@ end:
 }
 
 static void __declspec(naked) action_explode_hack() {
+	using fo::ScriptProc::destroy_p_proc;
 	__asm {
 		mov  edx, destroy_p_proc
 		mov  eax, [esi+0x78]                      // pobj.sid

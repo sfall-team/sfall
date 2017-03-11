@@ -36,7 +36,7 @@ const char* _stdcall GetMessageStr(const MessageList* fileAddr, long messageId) 
 
 long AnimCodeByWeapon(GameObject* weapon) {
 	if (weapon != nullptr) {
-		Proto* proto = GetProto(weapon->pid);
+		Proto* proto = GetProto(weapon->protoId);
 		if (proto != nullptr && proto->item.type == item_type_weapon) {
 			return proto->item.weapon.animationCode;
 		}
@@ -152,6 +152,12 @@ DWORD GetMaxCharWidth() {
 		mov charWidth, eax
 	}
 	return charWidth;
+}
+
+void RedrawObject(GameObject* obj) {
+	BoundRect rect;
+	func::obj_bound(obj, &rect);
+	func::tile_refresh_rect(&rect, obj->elevation);
 }
 
 }

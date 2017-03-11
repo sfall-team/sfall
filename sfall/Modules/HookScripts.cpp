@@ -35,13 +35,13 @@ namespace sfall
 #define MAXDEPTH (8)
 static const int numHooks = HOOK_COUNT;
 
-struct sHookScript {
-	sScriptProgram prog;
+struct HookScript {
+	ScriptProgram prog;
 	int callback; // proc number in script's proc table
 	bool isGlobalScript; // false for hs_* scripts, true for gl* scripts
 };
 
-static std::vector<sHookScript> hooks[numHooks];
+static std::vector<HookScript> hooks[numHooks];
 
 DWORD InitingHookScripts;
 
@@ -83,13 +83,13 @@ static void _stdcall EndHook() {
 	}
 }
 
-static void _stdcall RunSpecificHookScript(sHookScript *hook) {
+static void _stdcall RunSpecificHookScript(HookScript *hook) {
 	cArg = 0;
 	cRetTmp = 0;
 	if (hook->callback != -1) {
 		fo::func::executeProcedure(hook->prog.ptr, hook->callback);
 	} else {
-		RunScriptProc(&hook->prog, start);
+		RunScriptProc(&hook->prog, fo::ScriptProc::start);
 	}
 }
 
@@ -1103,16 +1103,16 @@ void _stdcall SetHSReturn(DWORD d) {
 void _stdcall RegisterHook(fo::Program* script, int id, int procNum )
 {
 	if (id >= numHooks) return;
-	for (std::vector<sHookScript>::iterator it = hooks[id].begin(); it != hooks[id].end(); ++it) {
+	for (std::vector<HookScript>::iterator it = hooks[id].begin(); it != hooks[id].end(); ++it) {
 		if (it->prog.ptr == script) {
 			if (procNum == 0) hooks[id].erase(it); // unregister 
 			return;
 		}
 	}
-	sScriptProgram *prog = GetGlobalScriptProgram(script);
+	ScriptProgram *prog = GetGlobalScriptProgram(script);
 	if (prog) {
 		dlog_f("Global script %08x registered as hook id %d\r\n", DL_HOOK, script, id);
-		sHookScript hook;
+		HookScript hook;
 		hook.prog = *prog;
 		hook.callback = procNum;
 		hook.isGlobalScript = true;
@@ -1126,13 +1126,13 @@ static void LoadHookScript(const char* name, int id) {
 	char filename[MAX_PATH];
 	sprintf(filename, "scripts\\%s.int", name);
 	if (fo::func::db_access(filename) && !IsGameScript(name)) {
-		sScriptProgram prog;
+		ScriptProgram prog;
 		dlog(">", DL_HOOK);
 		dlog(name, DL_HOOK);
 		LoadScriptProgram(prog, name);
 		if (prog.ptr) {
 			dlogr(" Done", DL_HOOK);
-			sHookScript hook;
+			HookScript hook;
 			hook.prog = prog;
 			hook.callback = -1;
 			hook.isGlobalScript = false;

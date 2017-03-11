@@ -39,7 +39,18 @@ ScriptValue::ScriptValue(const char* strval) {
 	_type = DataType::STR;
 }
 
+// int, long and unsigned long behave identically
 ScriptValue::ScriptValue(int val) {
+	_val.i = val;
+	_type = DataType::INT;
+}
+
+ScriptValue::ScriptValue(long val) {
+	_val.i = val;
+	_type = DataType::INT;
+}
+
+ScriptValue::ScriptValue(unsigned long val) {
 	_val.i = val;
 	_type = DataType::INT;
 }

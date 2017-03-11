@@ -62,5 +62,7 @@ DWORD GetCharGapWidth();
 // get maximum character width for current font
 DWORD GetMaxCharWidth();
 
+// Redraw the given object on screen
+void RedrawObject(GameObject* obj);
 
 }

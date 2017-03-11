@@ -57,7 +57,7 @@ VAR_(gmouse_current_cursor,      long)
 VARA(gmovie_played_list,         BYTE, 17)
 VAR_(GreenColor,                 BYTE)
 VAR_(gsound_initialized,         DWORD)
-VAR_(hit_location_penalty,       DWORD)
+VARA(hit_location_penalty,       long, 9)
 VAR_(holo_flag,                  DWORD)
 VAR_(holopages,                  DWORD)
 VAR_(hot_line_count,             DWORD)
@@ -134,7 +134,7 @@ VAR_(pip_win,                    DWORD)
 VAR_(pipboy_message_file,        MessageList)
 VAR_(pipmesg,                    DWORD)
 VAR_(preload_list_index,         DWORD)
-VARA(procTableStrs,              const char*, ScriptProc::count)  // table of procId (from define.h) => procName map
+VARA(procTableStrs,              const char*, (int)ScriptProc::count)  // table of procId (from define.h) => procName map
 VARA(proto_msg_files,            MessageList, 6)  // array of 6 elements
 VAR_(proto_main_msg_file,        MessageList)  
 VAR_(ptable,                     DWORD)

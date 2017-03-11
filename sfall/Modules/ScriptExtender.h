@@ -31,21 +31,19 @@ class ScriptExtender : public Module {
 	void init();
 };
 
-struct sGlobalVar {
+struct GlobalVar {
 	__int64 id;
 	int val;
 };
 
-#define SCRIPT_PROC_MAX (27)
 typedef struct {
 	fo::Program* ptr;
-	int procLookup[SCRIPT_PROC_MAX+1];
+	int procLookup[fo::ScriptProc::count];
 	char initialized;
-} sScriptProgram;
+} ScriptProgram;
 
 void _stdcall SetGlobalScriptRepeat(fo::Program* script, int frames);
 void _stdcall SetGlobalScriptType(fo::Program* script, int type);
-void ScriptExtenderSetup();
 bool _stdcall IsGameScript(const char* filename);
 
 void RunGlobalScripts1();
@@ -58,8 +56,8 @@ void LoadGlobals(HANDLE h);
 void SaveGlobals(HANDLE h);
 
 int GetNumGlobals();
-void GetGlobals(sGlobalVar* globals);
-void SetGlobals(sGlobalVar* globals);
+void GetGlobals(GlobalVar* globals);
+void SetGlobals(GlobalVar* globals);
 
 void _stdcall SetGlobalVar(const char* var, int val);
 void _stdcall SetGlobalVarInt(DWORD var, int val);
@@ -78,16 +76,16 @@ void _stdcall RegAnimCombatCheck(DWORD newValue);
 
 bool _stdcall ScriptHasLoaded(fo::Program* script);
 // loads script from .int file into scripting engine, fill scriptPtr and proc table
-void LoadScriptProgram(sScriptProgram &prog, const char* fileName);
+void LoadScriptProgram(ScriptProgram &prog, const char* fileName);
 // init program after load, needs to be called once
-void InitScriptProgram(sScriptProgram &prog);
+void InitScriptProgram(ScriptProgram &prog);
 // execute script by specific proc name
-void RunScriptProc(sScriptProgram* prog, const char* procName);
+void RunScriptProc(ScriptProgram* prog, const char* procName);
 // execute script proc by procId from define.h
-void RunScriptProc(sScriptProgram* prog, int procId);
+void RunScriptProc(ScriptProgram* prog, long procId);
 
-void AddProgramToMap(sScriptProgram &prog);
-sScriptProgram* GetGlobalScriptProgram(fo::Program* scriptPtr);
+void AddProgramToMap(ScriptProgram &prog);
+ScriptProgram* GetGlobalScriptProgram(fo::Program* scriptPtr);
 
 // variables
 static char reg_anim_combat_check = 1;
@@ -99,11 +97,5 @@ extern DWORD modifiedIni;
 #define VAR_TYPE_FLOAT  (0xA001)
 #define VAR_TYPE_STR    (0x9801)
 #define VAR_TYPE_STR2   (0x9001)
-
-// script procs
-#define start               (1)
-#define map_enter_p_proc    (15)
-#define destroy_p_proc      (18)
-#define map_update_p_proc   (23)
 
 }

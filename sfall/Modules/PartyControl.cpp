@@ -59,7 +59,7 @@ static long real_tag_skill[4];
 //static DWORD real_bbox_sneak;
 
 static bool _stdcall IsInPidList(fo::GameObject* obj) {
-	int pid = obj->pid & 0xFFFFFF;
+	int pid = obj->protoId & 0xFFFFFF;
 	for (std::vector<WORD>::iterator it = Chars.begin(); it != Chars.end(); it++) {
 		if (*it == pid) {
 			return true;
@@ -143,7 +143,7 @@ static void TakeControlOfNPC(fo::GameObject* npc) {
 		fo::var::itemCurrentItem = 1;
 	}
 
-	fo::var::inven_pid = npc->pid;
+	fo::var::inven_pid = npc->protoId;
 
 	// switch main dude_obj pointers - this should be done last!
 	fo::var::obj_dude = npc;
@@ -175,7 +175,7 @@ static void RestoreRealDudeState() {
 	fo::var::sneak_working = real_sneak_working;
 	fo::SkillSetTags(real_tag_skill, 4);
 
-	fo::var::inven_pid = real_dude->pid;
+	fo::var::inven_pid = real_dude->protoId;
 
 	if (DelayedExperience > 0) {
 		StatPcAddExperience(DelayedExperience);

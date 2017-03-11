@@ -56,13 +56,13 @@ static std::string highlightFailMsg1;
 static std::string HighlightFailMsg2;
 
 struct sGlobalScript {
-	sScriptProgram prog;
+	ScriptProgram prog;
 	int count;
 	int repeat;
 	int mode; //0 - local map loop, 1 - input loop, 2 - world map loop, 3 - local and world map loops
 
 	sGlobalScript() {}
-	sGlobalScript(sScriptProgram script) {
+	sGlobalScript(ScriptProgram script) {
 		prog = script;
 		count = 0;
 		repeat = 0;
@@ -79,7 +79,7 @@ struct sExportedVar {
 static std::vector<fo::Program*> checkedScripts;
 static std::vector<sGlobalScript> globalScripts;
 // a map of all sfall programs (global and hook scripts) by thier scriptPtr
-typedef std::unordered_map<fo::Program*, sScriptProgram> SfallProgsMap;
+typedef std::unordered_map<fo::Program*, ScriptProgram> SfallProgsMap;
 static SfallProgsMap sfallProgsMap;
 // a map scriptPtr => self_obj  to override self_obj for all script types using set_self
 std::unordered_map<fo::Program*, fo::GameObject*> selfOverrideMap;
@@ -477,13 +477,13 @@ void _stdcall SetSelfObject(fo::Program* script, fo::GameObject* obj) {
 }
 
 // loads script from .int file into a sScriptProgram struct, filling script pointer and proc lookup table
-void LoadScriptProgram(sScriptProgram &prog, const char* fileName) {
+void LoadScriptProgram(ScriptProgram &prog, const char* fileName) {
 	fo::Program* scriptPtr = fo::func::loadProgram(fileName);
 	if (scriptPtr) {
 		const char** procTable = fo::var::procTableStrs;
 		prog.ptr = scriptPtr;
 		// fill lookup table
-		for (int i=0; i<=SCRIPT_PROC_MAX; i++) {
+		for (int i = 0; i < fo::ScriptProc::count; ++i) {
 			prog.procLookup[i] = fo::func::interpretFindProcedure(prog.ptr, procTable[i]);
 		}
 		prog.initialized = 0;
@@ -492,7 +492,7 @@ void LoadScriptProgram(sScriptProgram &prog, const char* fileName) {
 	}
 }
 
-void InitScriptProgram(sScriptProgram &prog) {
+void InitScriptProgram(ScriptProgram &prog) {
 	if (prog.initialized == 0) {
 		fo::func::runProgram(prog.ptr);
 		fo::func::interpret(prog.ptr, -1);
@@ -500,11 +500,11 @@ void InitScriptProgram(sScriptProgram &prog) {
 	}
 }
 
-void AddProgramToMap(sScriptProgram &prog) {
+void AddProgramToMap(ScriptProgram &prog) {
 	sfallProgsMap[prog.ptr] = prog;
 }
 
-sScriptProgram* GetGlobalScriptProgram(fo::Program* scriptPtr) {
+ScriptProgram* GetGlobalScriptProgram(fo::Program* scriptPtr) {
 	for (std::vector<sGlobalScript>::iterator it = globalScripts.begin(); it != globalScripts.end(); it++) {
 		if (it->prog.ptr == scriptPtr) return &it->prog;
 	}
@@ -530,7 +530,7 @@ void LoadGlobalScripts() {
 	int count = fo::func::db_get_file_list(name, &filenames, 0, 0);
 
 	// TODO: refactor script programs
-	sScriptProgram prog;
+	ScriptProgram prog;
 	for (int i = 0; i < count; i++) {
 		name = _strlwr(filenames[i]);
 		name[strlen(name) - 4] = 0;
@@ -604,23 +604,23 @@ void ClearGlobalScripts() {
 	SafeWrite32(0x00496880, 0x00019078);
 	//HP bonus
 	SafeWrite8(0x4AFBC1, 2);
+	// TODO: move this elsewhere
 	//Bodypart hit chances
-	*((DWORD*)0x510954) = GetConfigInt("Misc", "BodyHit_Head",           0xFFFFFFD8);
-	*((DWORD*)0x510958) = GetConfigInt("Misc", "BodyHit_Left_Arm",       0xFFFFFFE2);
-	*((DWORD*)0x51095C) = GetConfigInt("Misc", "BodyHit_Right_Arm",      0xFFFFFFE2);
-	*((DWORD*)0x510960) = GetConfigInt("Misc", "BodyHit_Torso_Uncalled", 0x00000000);
-	*((DWORD*)0x510964) = GetConfigInt("Misc", "BodyHit_Right_Leg",      0xFFFFFFEC);
-	*((DWORD*)0x510968) = GetConfigInt("Misc", "BodyHit_Left_Leg",       0xFFFFFFEC);
-	*((DWORD*)0x51096C) = GetConfigInt("Misc", "BodyHit_Eyes",           0xFFFFFFC4);
-	*((DWORD*)0x510970) = GetConfigInt("Misc", "BodyHit_Groin",          0xFFFFFFE2);
-	*((DWORD*)0x510974) = GetConfigInt("Misc", "BodyHit_Torso_Uncalled", 0x00000000);
+	using fo::var::hit_location_penalty;
+	hit_location_penalty[0] = static_cast<long>(GetConfigInt("Misc", "BodyHit_Head", -40));
+	hit_location_penalty[1] = static_cast<long>(GetConfigInt("Misc", "BodyHit_Left_Arm", -30));
+	hit_location_penalty[2] = static_cast<long>(GetConfigInt("Misc", "BodyHit_Right_Arm", -30));
+	hit_location_penalty[3] = static_cast<long>(GetConfigInt("Misc", "BodyHit_Torso_Uncalled", 0));
+	hit_location_penalty[4] = static_cast<long>(GetConfigInt("Misc", "BodyHit_Right_Leg", -20));
+	hit_location_penalty[5] = static_cast<long>(GetConfigInt("Misc", "BodyHit_Left_Leg", -20));
+	hit_location_penalty[6] = static_cast<long>(GetConfigInt("Misc", "BodyHit_Eyes", -60));
+	hit_location_penalty[7] = static_cast<long>(GetConfigInt("Misc", "BodyHit_Groin", -30));
+	hit_location_penalty[8] = static_cast<long>(GetConfigInt("Misc", "BodyHit_Torso_Uncalled", 0));
 	//skillpoints per level mod
 	SafeWrite8(0x43C27a, 5);
 }
 
-
-
-void RunScriptProc(sScriptProgram* prog, const char* procName) {
+void RunScriptProc(ScriptProgram* prog, const char* procName) {
 	fo::Program* sptr = prog->ptr;
 	int procNum = fo::func::interpretFindProcedure(sptr, procName);
 	if (procNum != -1) {
@@ -628,8 +628,8 @@ void RunScriptProc(sScriptProgram* prog, const char* procName) {
 	}
 }
 
-void RunScriptProc(sScriptProgram* prog, int procId) {
-	if (procId > 0 && procId <= SCRIPT_PROC_MAX) {
+void RunScriptProc(ScriptProgram* prog, long procId) {
+	if (procId > 0 && procId < fo::ScriptProc::count) {
 		fo::Program* sptr = prog->ptr;
 		int procNum = prog->procLookup[procId];
 		if (procNum != -1) {
@@ -640,7 +640,7 @@ void RunScriptProc(sScriptProgram* prog, int procId) {
 
 static void RunScript(sGlobalScript* script) {
 	script->count=0;
-	RunScriptProc(&script->prog, start); // run "start"
+	RunScriptProc(&script->prog, fo::ScriptProc::start); // run "start"
 }
 
 /**
@@ -734,7 +734,7 @@ void RunGlobalScripts3() {
 }
 
 void _stdcall HandleMapUpdateForScripts(DWORD procId) {
-	if (procId == map_enter_p_proc) {
+	if (procId == fo::ScriptProc::map_enter_p_proc) {
 		// map changed, all game objects were destroyed and scripts detached, need to re-insert global scripts into the game
 		for (SfallProgsMap::iterator it = sfallProgsMap.begin(); it != sfallProgsMap.end(); it++) {
 			fo::func::runProgram(it->second.ptr);
@@ -756,9 +756,9 @@ void LoadGlobals(HANDLE h) {
 	DWORD count, unused;
 	ReadFile(h, &count, 4, &unused, 0);
 	if (unused!=4) return;
-	sGlobalVar var;
+	GlobalVar var;
 	for (DWORD i = 0; i<count; i++) {
-		ReadFile(h, &var, sizeof(sGlobalVar), &unused, 0);
+		ReadFile(h, &var, sizeof(GlobalVar), &unused, 0);
 		globalVars.insert(glob_pair(var.id, var.val));
 	}
 }
@@ -767,12 +767,12 @@ void SaveGlobals(HANDLE h) {
 	DWORD count, unused;
 	count = globalVars.size();
 	WriteFile(h, &count, 4, &unused, 0);
-	sGlobalVar var;
+	GlobalVar var;
 	glob_citr itr = globalVars.begin();
 	while (itr != globalVars.end()) {
 		var.id = itr->first;
 		var.val = itr->second;
-		WriteFile(h, &var, sizeof(sGlobalVar), &unused, 0);
+		WriteFile(h, &var, sizeof(GlobalVar), &unused, 0);
 		itr++;
 	}
 }
@@ -790,7 +790,7 @@ int GetNumGlobals() {
 	return globalVars.size(); 
 }
 
-void GetGlobals(sGlobalVar* globals) {
+void GetGlobals(GlobalVar* globals) {
 	glob_citr itr = globalVars.begin();
 	int i = 0;
 	while (itr != globalVars.end()) {
@@ -800,7 +800,7 @@ void GetGlobals(sGlobalVar* globals) {
 	}
 }
 
-void SetGlobals(sGlobalVar* globals) {
+void SetGlobals(GlobalVar* globals) {
 	glob_itr itr = globalVars.begin();
 	int i = 0;
 	while(itr != globalVars.end()) {

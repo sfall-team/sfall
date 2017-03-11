@@ -162,7 +162,7 @@ enum GlobalVar : long
 };
 
 // Physical material type, used for items and tiles.
-enum Material : long
+enum class Material : long
 {
 	Glass = 0x0,
 	Metal = 0x1,
@@ -173,6 +173,34 @@ enum Material : long
 	Cement = 0x6,
 	Leather = 0x7
 };
+
+namespace ObjectFlag {
+	enum ObjectFlag : DWORD {
+		Mouse_3d = 0x1,
+		WalkThru = 0x4,
+		Flat = 0x8,
+		NoBlock = 0x10,
+		Lighting = 0x20,
+		Temp = 0x400,
+		MultiHex = 0x800,
+		NoHighlight = 0x1000,
+		Used = 0x2000,
+		TransRed = 0x4000,
+		TransNone = 0x8000,
+		TransWall = 0x10000,
+		TransGlass = 0x20000,
+		TransSteam = 0x40000,
+		TransEnergy = 0x80000,
+		Left_Hand = 0x1000000,
+		Right_Hand = 0x2000000,
+		Worn = 0x4000000,
+		HiddenItem = 0x8000000,
+		WallTransEnd = 0x10000000,
+		LightThru = 0x20000000,
+		Seen = 0x40000000,
+		ShootThru = 0x80000000,
+	};
+}
 
 enum ObjType : char
 {
@@ -459,39 +487,38 @@ enum Stat : long
 	STAT_real_max_stat = 38
 };
 
-namespace ScriptProc // workaround while enum class is not supported
-{
-enum ScriptProc : long {
-	no_p_proc = 0,
-	start = 1,
-	spatial_p_proc = 2,
-	description_p_proc = 3,
-	pickup_p_proc = 4,
-	drop_p_proc = 5,
-	use_p_proc = 6,
-	use_obj_on_p_proc = 7,
-	use_skill_on_p_proc = 8,
-	none_x_bad = 9,
-	none_x_bad2 = 10,
-	talk_p_proc = 11,
-	critter_p_proc = 12,
-	combat_p_proc = 13,
-	damage_p_proc = 14,
-	map_enter_p_proc = 15,
-	map_exit_p_proc = 16,
-	create_p_proc = 17,
-	destroy_p_proc = 18,
-	none_x_bad3 = 19,
-	none_x_bad4 = 20,
-	look_at_p_proc = 21,
-	timed_event_p_proc = 22,
-	map_update_p_proc = 23,
-	push_p_proc = 24,
-	is_dropping_p_proc = 25,
-	combat_is_starting_p_proc = 26,
-	combat_is_over_p_proc = 27,
-	count = 28
-};
+namespace ScriptProc {
+	enum ScriptProc : long {
+		no_p_proc = 0,
+		start = 1,
+		spatial_p_proc = 2,
+		description_p_proc = 3,
+		pickup_p_proc = 4,
+		drop_p_proc = 5,
+		use_p_proc = 6,
+		use_obj_on_p_proc = 7,
+		use_skill_on_p_proc = 8,
+		none_x_bad = 9,
+		none_x_bad2 = 10,
+		talk_p_proc = 11,
+		critter_p_proc = 12,
+		combat_p_proc = 13,
+		damage_p_proc = 14,
+		map_enter_p_proc = 15,
+		map_exit_p_proc = 16,
+		create_p_proc = 17,
+		destroy_p_proc = 18,
+		none_x_bad3 = 19,
+		none_x_bad4 = 20,
+		look_at_p_proc = 21,
+		timed_event_p_proc = 22,
+		map_update_p_proc = 23,
+		push_p_proc = 24,
+		is_dropping_p_proc = 25,
+		combat_is_starting_p_proc = 26,
+		combat_is_over_p_proc = 27,
+		count = 28
+	};
 }
 
 #define STAT_max_derived   STAT_poison_resist

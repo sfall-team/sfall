@@ -35,16 +35,26 @@ struct GameObject;
 struct Program;
 struct ScriptInstance;
 
-/*   26 */
-#pragma pack(push, 1)
-struct TInvenRec {
-	GameObject *object;
-	long count;
+#pragma pack(1)
+struct Art {
+	long flags;
+	char path[16];
+	char* names;
+	long d18;
+	long total;
 };
-#pragma pack(pop)
+
+// Bounding rectangle, used by tile_refresh_rect and related functions.
+#pragma pack(1)
+struct BoundRect {
+	long x;
+	long y;
+	long offx;
+	long offy;
+};
 
 // Game objects (items, critters, etc.), including those stored in inventories.
-#pragma pack(push, 1)
+#pragma pack(1)
 struct GameObject {
 	long id;
 	long tile;
@@ -59,7 +69,11 @@ struct GameObject {
 	long elevation;
 	long invenSize;
 	long invenMax;
-	TInvenRec *invenTable;
+	struct InvenItem {
+		GameObject *object;
+		long count;
+	} *invenTable;
+
 	union {
 		struct {
 			char gap_38[4];
@@ -85,23 +99,22 @@ struct GameObject {
 			long poison;
 		} critter;
 	};
-	long pid;
+	DWORD protoId;
 	long cid;
 	long lightDistance;
 	long lightIntensity;
-	char outline[4];
+	DWORD outline;
 	long scriptId;
 	GameObject* owner;
 	long scriptIndex;
 
 	inline char type() {
-		return pid >> 24;
+		return protoId >> 24;
 	}
 };
-#pragma pack(pop)
 
 // Results of compute_attack_() function.
-#pragma pack(push, 1)
+#pragma pack(1)
 struct ComputeAttackResult {
 	GameObject* attacker;
 	long hitMode;
@@ -125,10 +138,9 @@ struct ComputeAttackResult {
 	long extraFlags[6];
 	long extraKnockbackValue[6];
 };
-#pragma pack(pop)
 
 // Script instance attached to an object or tile (spatial script).
-#pragma pack(push, 1)
+#pragma pack(1)
 struct ScriptInstance {
 	long id;
 	long next;
@@ -154,11 +166,9 @@ struct ScriptInstance {
 	char gap_50[4];
 	long procedureTable[28];
 };
-#pragma pack(pop)
 
-
-/*   25 */
-#pragma pack(push, 1)
+// Script run-time data
+#pragma pack(1)
 struct Program {
 	const char* fileName;
 	long *codeStackPtr;
@@ -175,8 +185,8 @@ struct Program {
 	char gap_34[4];
 	long *procTablePtr;
 };
-#pragma pack(pop)
 
+#pragma pack(1)
 struct ItemButtonItem {
 	GameObject* item;
 	long flags;
@@ -190,6 +200,7 @@ struct ItemButtonItem {
 // specifically checked for by scripts or the engine. If a primary stat requirement is negative, that stat must be
 // below the value specified (e.g., -7 indicates a stat must be less than 7). Operator is only non-zero when there
 // are two skill requirements. If set to 1, only one of those requirements must be met; if set to 2, both must be met.
+#pragma pack(1)
 struct PerkInfo {
 	const char* name;
 	const char* description;
@@ -212,18 +223,20 @@ struct PerkInfo {
 	long luckMin;
 };
 
+#pragma pack(1)
 struct DbFile {
 	long fileType;
 	void* handle;
 };
 
+#pragma pack(1)
 struct ElevatorExit {
 	long id;
 	long elevation;
 	long tile;
 };
 
-#pragma pack(push, 1)
+#pragma pack(1)
 struct FrmFile {
 	long id;			//0x00
 	long unused;		//0x04
@@ -239,7 +252,6 @@ struct FrmFile {
 	short yoffset;		//0x48
 	BYTE pixels[80 * 36];	//0x4a
 };
-#pragma pack(pop)
 
 //structures for holding frms loaded with fallout2 functions
 #pragma pack(2)
@@ -263,8 +275,8 @@ public:
 	DWORD oriOffset[6]; //frame area offset for diff orientations
 	DWORD frameAreaSize;
 } FrmFrameData;
-#pragma pack()
 
+#pragma pack(1)
 struct MessageNode {
 	long number;
 	long flags;
@@ -280,6 +292,7 @@ struct MessageNode {
 };
 
 //for holding msg array
+#pragma pack(1)
 typedef struct MessageList {
 	long numMsgs;
 	MessageNode *nodes;
@@ -290,15 +303,7 @@ typedef struct MessageList {
 	}
 } MessageList;
 
-
-struct Art {
-	long flags;
-	char path[16];
-	char* names;
-	long d18;
-	long total;
-};
-
+#pragma pack(1)
 struct CritInfo {
 	union {
 		struct {
@@ -321,7 +326,7 @@ struct CritInfo {
 	};
 };
 
-#pragma pack(push, 1)
+#pragma pack(1)
 struct SkillInfo
 {
 	const char* name;
@@ -338,8 +343,8 @@ struct SkillInfo
 	// 1 for Lockpick, Steal, Traps; 0 otherwise
 	long f;
 };
-#pragma pack(pop)
 
+#pragma pack(1)
 struct StatInfo {
 	const char* dame;
 	const char* description;
@@ -349,6 +354,7 @@ struct StatInfo {
 	long defaultValue;
 };
 
+#pragma pack(1)
 struct TraitInfo {
 	const char* name;
 	const char* description;
@@ -356,6 +362,7 @@ struct TraitInfo {
 };
 
 //fallout2 path node structure
+#pragma pack(1)
 struct PathNode {
 	char* path;
 	void* pDat;
@@ -363,6 +370,7 @@ struct PathNode {
 	PathNode* next;
 };
 
+#pragma pack(1)
 struct PremadeChar {
 	char path[20];
 	DWORD fid;
@@ -370,6 +378,7 @@ struct PremadeChar {
 };
 
 // In-memory PROTO structure, not the same as PRO file format.
+#pragma pack(1)
 struct Proto {
 	long pid;
 	long messageNum;
@@ -561,12 +570,14 @@ struct Proto {
 	};
 };
 
+#pragma pack(1)
 struct ScriptListInfoItem {
 	char fileName[16];
 	long numLocalVars;
 };
 
 //for holding window info
+#pragma pack(1)
 struct Window {
 	long ref;
 	long flags;

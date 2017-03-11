@@ -40,13 +40,11 @@ public:
 	ScriptValue(DataType type, unsigned long value);
 
 	ScriptValue();
-
 	ScriptValue(const char* strval);
-
 	ScriptValue(int val);
-
+	ScriptValue(long val);
+	ScriptValue(unsigned long val);
 	ScriptValue(float val);
-
 	ScriptValue(bool val);
 
 	ScriptValue(fo::GameObject* obj);
@@ -79,7 +77,7 @@ public:
 private:
 	union Value {
 		unsigned long dw;
-		int i;
+		long i;
 		float f;
 		const char* str;
 		fo::GameObject* gObj;

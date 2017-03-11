@@ -389,7 +389,7 @@ static __declspec(naked) void InvenObjExamineFuncHook() {
 static std::string superStimMsg;
 static int _stdcall SuperStimFix2(fo::GameObject* item, fo::GameObject* target) {
 	if (!item || !target) return 0;
-	DWORD itm_pid = item->pid, target_pid = target->pid;
+	DWORD itm_pid = item->protoId, target_pid = target->protoId;
 	if ((target_pid & 0xff000000) != 0x01000000) return 0;
 	if ((itm_pid & 0xff000000) != 0) return 0;
 	if ((itm_pid & 0xffffff) != 144) return 0;
