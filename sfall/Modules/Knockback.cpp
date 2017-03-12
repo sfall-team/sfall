@@ -356,7 +356,7 @@ void Knockback::init() {
 	MakeCall(0x4ABC62, PickpocketHook, true);
 	MakeCall(0x429E44, BurstHook, true);
 
-	LoadGameHook::onGameReset += Knockback_OnGameLoad;
+	LoadGameHook::OnGameReset() += Knockback_OnGameLoad;
 }
 
 }

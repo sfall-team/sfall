@@ -248,7 +248,7 @@ void RemoveCriticalTimeLimitsPatch() {
 }
 
 void Criticals::init() {
-	LoadGameHook::onAfterGameStarted += CritLoad;
+	LoadGameHook::OnAfterGameStarted() += CritLoad;
 
 	mode = GetConfigInt("Misc", "OverrideCriticalTable", 2);
 	if (mode < 0 || mode > 3) mode = 0;

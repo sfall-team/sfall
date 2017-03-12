@@ -30,19 +30,19 @@ public:
 	void init();
 	
 	// Invoked when the game has initialized (game_init_ was called).
-	static Delegate<> onGameInit;
+	static Delegate<>& OnGameInit();
 
 	// Invoked when game state is being reset (before loading a save, after quitting, etc.)
-	static Delegate<> onGameReset;
+	static Delegate<>& OnGameReset();
 
 	// Invoked before game is being loaded (new game or saved game)
-	static Delegate<> onBeforeGameStart;
+	static Delegate<>& OnBeforeGameStart();
 
 	// Invoked after game has been loaded (new game or saved game)
-	static Delegate<> onAfterGameStarted;
+	static Delegate<>& OnAfterGameStarted();
 
 	// Invoked after new game has started
-	static Delegate<> onAfterNewGame;
+	static Delegate<>& OnAfterNewGame();
 };
 
 // True if some map was loaded, false when on the main menu

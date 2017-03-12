@@ -668,19 +668,19 @@ void GetAppearanceGlobals(int *race, int *style) {
 }
 
 void ScriptExtender::init() {
-	LoadGameHook::onAfterGameStarted += LoadGlobalScripts;
-	LoadGameHook::onGameReset += [] () {
+	LoadGameHook::OnAfterGameStarted() += LoadGlobalScripts;
+	LoadGameHook::OnGameReset() += [] () {
 		ClearGlobalScripts();
 		ClearGlobals();
 		RegAnimCombatCheck(1);
 		AfterAttackCleanup();
 	};
-	LoadGameHook::onGameReset += ClearGlobals;
+	LoadGameHook::OnGameReset() += ClearGlobals;
 
-	MainLoopHook::onMainLoop += RunGlobalScriptsOnMainLoop;
-	MainLoopHook::onCombatLoop += RunGlobalScriptsOnMainLoop;
+	MainLoopHook::OnMainLoop() += RunGlobalScriptsOnMainLoop;
+	MainLoopHook::OnCombatLoop() += RunGlobalScriptsOnMainLoop;
 	OnInputLoop() += RunGlobalScriptsOnInput;
-	Worldmap::onWorldmapLoop += RunGlobalScriptsOnWorldMap;
+	Worldmap::OnWorldmapLoop() += RunGlobalScriptsOnWorldMap;
 
 	// TODO: move out?
 	idle = GetConfigInt("Misc", "ProcessorIdle", -1);

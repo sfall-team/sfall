@@ -1008,7 +1008,7 @@ void Graphics::init() {
 	}
 
 	if (Graphics::mode > 3) {
-		LoadGameHook::onGameReset += graphics_OnGameLoad;
+		LoadGameHook::OnGameReset() += graphics_OnGameLoad;
 	}
 }
 

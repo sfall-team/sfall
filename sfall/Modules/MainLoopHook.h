@@ -13,10 +13,10 @@ public:
 	void init();
 
 	// Main game loop (real-time action)
-	static Delegate<> onMainLoop;
+	static Delegate<>& OnMainLoop();
 
 	// Turn-based combat loop
-	static Delegate<> onCombatLoop;
+	static Delegate<>& OnCombatLoop();
 };
 
 }

@@ -715,7 +715,7 @@ void MusicInDialoguePatch() {
 void PipboyAvailableAtStartPatch() {
 	switch (GetConfigInt("Misc", "PipBoyAvailableAtGameStart", 0)) {
 	case 1:
-		LoadGameHook::onAfterNewGame += []() {
+		LoadGameHook::OnAfterNewGame() += []() {
 			// PipBoy aquiring video
 			fo::var::gmovie_played_list[3] = true;
 		};
@@ -728,7 +728,7 @@ void PipboyAvailableAtStartPatch() {
 
 void DisableHorriganPatch() {
 	if (GetConfigInt("Misc", "DisableHorrigan", 0)) {
-		LoadGameHook::onAfterNewGame += []() {
+		LoadGameHook::OnAfterNewGame() += []() {
 			fo::var::Meet_Frank_Horrigan = true;
 		};
 		SafeWrite8(0x4C06D8, 0xEB); // skip the Horrigan encounter check

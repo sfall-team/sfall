@@ -27,6 +27,7 @@
 namespace sfall
 {
 
+static Delegate<> onWorldmapLoop;
 static DWORD ViewportX;
 static DWORD ViewportY;
 
@@ -77,7 +78,7 @@ end:
 }
 
 static void __stdcall WorldmapLoopHook() {
-	Worldmap::onWorldmapLoop.invoke();
+	onWorldmapLoop.invoke();
 }
 
 static DWORD worldMapDelay;
@@ -408,8 +409,6 @@ void ApplyStartingStatePatches() {
 	}
 }
 
-sfall::Delegate<> Worldmap::onWorldmapLoop;
-
 void Worldmap::init() {
 	ApplyPathfinderFix();
 	ApplyStartingStatePatches();
@@ -417,6 +416,10 @@ void Worldmap::init() {
 	ApplyTownMapsHotkeyFix();
 	ApplyWorldLimitsPatches();
 	ApplyWorldmapFpsPatch();
+}
+
+Delegate<>& Worldmap::OnWorldmapLoop() {
+	return onWorldmapLoop;
 }
 
 }

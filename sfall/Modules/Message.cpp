@@ -89,7 +89,7 @@ void ClearReadExtraGameMsgFiles() {
 }
 
 void Message::init() {
-	LoadGameHook::onGameInit += ReadExtraGameMsgFiles;
+	LoadGameHook::OnGameInit() += ReadExtraGameMsgFiles;
 }
 
 void Message::exit() {

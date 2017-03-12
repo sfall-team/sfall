@@ -217,7 +217,7 @@ void StatsReset() {
 void Stats::init() {
 	StatsReset();
 
-	LoadGameHook::onGameReset += StatsReset;
+	LoadGameHook::OnGameReset() += StatsReset;
 
 	SafeWrite8(0x004AEF48, 0xe9);
 	HookCall(0x004AEF48, GetCurrentStatHook1);

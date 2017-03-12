@@ -375,7 +375,7 @@ void PartyControl::init() {
 		HookCall(0x4124F1, &pc_flag_toggle_hook);
 		HookCall(0x41279A, &pc_flag_toggle_hook);
 
-		LoadGameHook::onGameReset += PartyControlReset;
+		LoadGameHook::OnGameReset() += PartyControlReset;
 	} else {
 		dlog(" Disabled.", DL_INIT);
 	}

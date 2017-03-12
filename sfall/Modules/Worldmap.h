@@ -29,7 +29,7 @@ public:
 	const char* name() { return "Worldmap"; }
 	void init();
 
-	static Delegate<> onWorldmapLoop;
+	static Delegate<>& OnWorldmapLoop();
 };
 
 }

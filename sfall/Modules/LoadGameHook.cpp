@@ -36,11 +36,11 @@
 namespace sfall
 {
 
-Delegate<> LoadGameHook::onGameInit;
-Delegate<> LoadGameHook::onGameReset;
-Delegate<> LoadGameHook::onBeforeGameStart;
-Delegate<> LoadGameHook::onAfterGameStarted;
-Delegate<> LoadGameHook::onAfterNewGame;
+static Delegate<> onGameInit;
+static Delegate<> onGameReset;
+static Delegate<> onBeforeGameStart;
+static Delegate<> onAfterGameStarted;
+static Delegate<> onAfterNewGame;
 
 static DWORD inLoop = 0;
 static DWORD saveInCombatFix;
@@ -67,7 +67,7 @@ DWORD GetCurrentLoops() {
 
 static void _stdcall ResetState() {
 	inLoop = 0;
-	LoadGameHook::onGameReset.invoke();
+	onGameReset.invoke();
 }
 
 void GetSavePath(char* buf, char* ftype) {
@@ -152,7 +152,7 @@ end:
 // Called right before savegame slot is being loaded
 static void _stdcall LoadGame_Before() {
 	ResetState();
-	LoadGameHook::onBeforeGameStart.invoke();
+	onBeforeGameStart.invoke();
 	
 	char buf[MAX_PATH];
 	GetSavePath(buf, "gv");
@@ -176,7 +176,7 @@ static void _stdcall LoadGame_Before() {
 
 // Called after game was loaded from a save
 static void _stdcall LoadGame_After() {
-	LoadGameHook::onAfterGameStarted.invoke();
+	onAfterGameStarted.invoke();
 	mapLoaded = true;
 }
 
@@ -212,12 +212,12 @@ end:
 
 static void __stdcall NewGame_Before() {
 	ResetState();
-	LoadGameHook::onBeforeGameStart.invoke();
+	onBeforeGameStart.invoke();
 }
 
 static void __stdcall NewGame_After() {	
-	LoadGameHook::onAfterNewGame.invoke();
-	LoadGameHook::onAfterGameStarted.invoke();
+	onAfterNewGame.invoke();
+	onAfterGameStarted.invoke();
 
 	dlogr("New Game started.", DL_MAIN);
 	
@@ -242,7 +242,7 @@ static void __stdcall MainMenuLoop() {
 	if (!gameLoaded) {
 		gameLoaded = true;
 		// called only once
-		LoadGameHook::onGameInit.invoke();
+		onGameInit.invoke();
 	}
 }
 
@@ -452,6 +452,26 @@ void LoadGameHook::init() {
 	HookCall(0x443357, InventoryHook);
 	HookCall(0x44396D, AutomapHook);
 	HookCall(0x479519, AutomapHook);
+}
+
+Delegate<>& LoadGameHook::OnGameInit() {
+	return onGameInit;
+}
+
+Delegate<>& LoadGameHook::OnGameReset() {
+	return onGameReset;
+}
+
+Delegate<>& LoadGameHook::OnBeforeGameStart() {
+	return onBeforeGameStart;
+}
+
+Delegate<>& LoadGameHook::OnAfterGameStarted() {
+	return onAfterGameStarted;
+}
+
+Delegate<>& LoadGameHook::OnAfterNewGame() {
+	return onAfterNewGame;
 }
 
 }

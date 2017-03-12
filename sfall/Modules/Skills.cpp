@@ -298,7 +298,7 @@ void Skills::init() {
 		if (basedOnPoints) HookCall(0x4AA9EC, (void*)fo::funcoffs::skill_points_);
 	}
 
-	LoadGameHook::onGameReset += Skills_OnGameLoad;
+	LoadGameHook::OnGameReset() += Skills_OnGameLoad;
 }
 
 }

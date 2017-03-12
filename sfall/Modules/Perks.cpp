@@ -1119,7 +1119,7 @@ void Perks::init() {
 		HookCall(0x44272E, &TraitInitWrapper);
 	} else perksFile[0] = 0;
 
-	LoadGameHook::onGameReset += PerksReset;
+	LoadGameHook::OnGameReset() += PerksReset;
 }
 
 }

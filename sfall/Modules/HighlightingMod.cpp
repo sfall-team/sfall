@@ -152,8 +152,8 @@ void HighlightingMod::init() {
 		highlightFailMsg1 = Translate("Sfall", "HighlightFail1", "You aren't carrying a motion sensor.");
 		HighlightFailMsg2 = Translate("Sfall", "HighlightFail2", "Your motion sensor is out of charge.");
 
-		MainLoopHook::onCombatLoop += ProcessMainLoop;
-		MainLoopHook::onMainLoop += ProcessMainLoop;
+		MainLoopHook::OnCombatLoop() += ProcessMainLoop;
+		MainLoopHook::OnMainLoop() += ProcessMainLoop;
 	}
 }
 

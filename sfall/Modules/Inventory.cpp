@@ -612,7 +612,7 @@ void InventoryReset() {
 
 void Inventory::init() {
 	OnKeyPressed() += InventoryKeyPressedHook;
-	LoadGameHook::onGameReset += InventoryReset;
+	LoadGameHook::OnGameReset() += InventoryReset;
 
 	mode = GetConfigInt("Misc", "CritterInvSizeLimitMode", 0);
 	invenapcost = GetConfigInt("Misc", "InventoryApCost", 4);

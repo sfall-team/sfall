@@ -20,7 +20,7 @@ void Input::init() {
 		dlogr(" Done", DL_INIT);
 	//}
 	
-	LoadGameHook::onGameReset += []() {
+	LoadGameHook::OnGameReset() += []() {
 		ForceGraphicsRefresh(0);
 	};
 }

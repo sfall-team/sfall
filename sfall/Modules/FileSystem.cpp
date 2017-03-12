@@ -747,7 +747,7 @@ void FileSystem::init() {
 	if (GetConfigInt("Misc", "UseFileSystemOverride", 0)) {
 		FileSystemInit();
 
-		LoadGameHook::onGameReset += FileSystemReset;
+		LoadGameHook::OnGameReset() += FileSystemReset;
 	}
 }
 

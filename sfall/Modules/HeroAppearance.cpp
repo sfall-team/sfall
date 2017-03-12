@@ -1865,8 +1865,8 @@ void HeroAppearance::init() {
 		EnableHeroAppearanceMod();
 		dlogr(" Done", DL_INIT);
 		
-		LoadGameHook::onAfterNewGame += SetNewCharAppearanceGlobals;
-		LoadGameHook::onAfterGameStarted += LoadHeroAppearance;
+		LoadGameHook::OnAfterNewGame() += SetNewCharAppearanceGlobals;
+		LoadGameHook::OnAfterGameStarted() += LoadHeroAppearance;
 	}
 }
 
