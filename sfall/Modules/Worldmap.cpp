@@ -80,12 +80,12 @@ static void __stdcall WorldmapLoopHook() {
 	Worldmap::onWorldmapLoop.invoke();
 }
 
-static DWORD wp_delay;
+static DWORD worldMapDelay;
 static void __declspec(naked) WorldMapFpsPatch() {
 	__asm {
 		pushad;
 		call WorldmapLoopHook;
-		mov ecx, wp_delay;
+		mov ecx, worldMapDelay;
 tck:
 		mov eax, ds : [0x50fb08];
 		call fo::funcoffs::elapsed_time_;
@@ -93,6 +93,16 @@ tck:
 		jl tck;
 		call fo::funcoffs::get_time_;
 		mov ds : [0x50fb08], eax;
+		popad;
+		jmp fo::funcoffs::get_input_;
+	}
+}
+
+//Only used if the world map speed patch is disabled, so that world map scripts are still run
+static void __declspec(naked) WorldMapHook() {
+	__asm {
+		pushad;
+		call WorldmapLoopHook;
 		popad;
 		jmp fo::funcoffs::get_input_;
 	}
@@ -132,69 +142,6 @@ static void __declspec(naked) wmRndEncounterOccurred_hack() {
 	__asm {
 		xor  ecx, ecx;
 		cmp  edx, WorldMapEncounterRate;
-		retn;
-	}
-}
-
-static double wm_nexttick;
-static double wm_wait;
-static bool wm_usingperf;
-static __int64 wm_perfadd;
-static __int64 wm_perfnext;
-static DWORD WorldMapLoopCount;
-static void WorldMapSpeedPatch3() {
-	WorldmapLoopHook();
-	if (wm_usingperf) {
-		__int64 timer;
-		while (true) {
-			QueryPerformanceCounter((LARGE_INTEGER*)&timer);
-			if (timer > wm_perfnext) break;
-			Sleep(0);
-		}
-		if (wm_perfnext + wm_perfadd < timer) wm_perfnext = timer + wm_perfadd;
-		else wm_perfnext += wm_perfadd;
-	} else {
-		DWORD tick;
-		DWORD nexttick = (DWORD)wm_nexttick;
-		while ((tick = GetTickCount()) < nexttick) Sleep(0);
-		if (nexttick + wm_wait < tick) wm_nexttick = tick + wm_wait;
-		else wm_nexttick += wm_wait;
-	}
-}
-
-static void __declspec(naked) WorldMapSpeedPatch2() {
-	__asm {
-		pushad;
-		call WorldMapSpeedPatch3;
-		popad;
-		call fo::funcoffs::get_input_;
-		retn;
-	}
-}
-
-static void __declspec(naked) WorldMapSpeedPatch() {
-	__asm {
-		pushad;
-		call WorldmapLoopHook;
-		popad;
-		push ecx;
-		mov ecx, WorldMapLoopCount;
-ls:
-		mov eax, eax;
-		loop ls;
-		pop ecx;
-		call fo::funcoffs::get_input_;
-		retn;
-	}
-}
-
-//Only used if the world map speed patch is disabled, so that world map scripts are still run
-static void WorldMapHook() {
-	__asm {
-		pushad;
-		call WorldmapLoopHook;
-		popad;
-		call fo::funcoffs::get_input_;
 		retn;
 	}
 }
@@ -373,58 +320,30 @@ void ApplyTownMapsHotkeyFix() {
 }
 
 void ApplyWorldmapFpsPatch() {
-	DWORD tmp;
 	if (GetConfigInt("Misc", "WorldMapFPSPatch", 0)) {
 		dlog("Applying world map fps patch.", DL_INIT);
-		if (*(DWORD*)0x004BFE5E != 0x8d16) {
+		if (*(DWORD*)0x4BFE5E != 0x8d16) {
 			dlogr(" Failed", DL_INIT);
 		} else {
-			wp_delay = GetConfigInt("Misc", "WorldMapDelay2", 66);
-			HookCall(0x004BFE5D, WorldMapFpsPatch);
+			worldMapDelay = GetConfigInt("Misc", "WorldMapDelay2", 66);
+			HookCall(0x4BFE5D, WorldMapFpsPatch);
 			::sfall::availableGlobalScriptTypes |= 2;
 			dlogr(" Done", DL_INIT);
 		}
 	} else {
-		tmp = GetConfigInt("Misc", "WorldMapFPS", 0);
-		if (tmp) {
-			dlog("Applying world map fps patch.", DL_INIT);
-			if (*((WORD*)0x004CAFB9) == 0x0000) {
-				::sfall::availableGlobalScriptTypes |= 2;
-				SafeWrite32(0x004BFE5E, ((DWORD)&WorldMapSpeedPatch2) - 0x004BFE62);
-				if (GetConfigInt("Misc", "ForceLowResolutionTimer", 0) || !QueryPerformanceFrequency((LARGE_INTEGER*)&wm_perfadd) || wm_perfadd <= 1000) {
-					wm_wait = 1000.0 / (double)tmp;
-					wm_nexttick = GetTickCount();
-					wm_usingperf = false;
-				} else {
-					wm_usingperf = true;
-					wm_perfadd /= tmp;
-					wm_perfnext = 0;
-				}
-			}
-			dlogr(" Done", DL_INIT);
-		} else {
-			tmp = GetConfigInt("Misc", "WorldMapDelay", 0);
-			if (tmp) {
-				if (*((WORD*)0x004CAFB9) == 0x3d40)
-					SafeWrite32(0x004CAFBB, tmp);
-				else if (*((WORD*)0x004CAFB9) == 0x0000) {
-					SafeWrite32(0x004BFE5E, ((DWORD)&WorldMapSpeedPatch) - 0x004BFE62);
-					WorldMapLoopCount = tmp;
-				}
-			} else {
-				if (*(DWORD*)0x004BFE5E == 0x0000d816) {
-					SafeWrite32(0x004BFE5E, ((DWORD)&WorldMapHook) - 0x004BFE62);
-				}
-			}
+		if (*(DWORD*)0x4BFE5E == 0x8d16) {
+			HookCall(0x4BFE5D, WorldMapHook);
+			::sfall::availableGlobalScriptTypes |= 2;
 		}
-		if (GetConfigInt("Misc", "WorldMapEncounterFix", 0)) {
-			dlog("Applying world map encounter patch.", DL_INIT);
-			WorldMapEncounterRate = GetConfigInt("Misc", "WorldMapEncounterRate", 5);
-			SafeWrite32(0x4C232D, 0x01EBC031);        // xor eax, eax; jmps 0x4C2332
-			HookCall(0x4BFEE0, &wmWorldMapFunc_hook);
-			MakeCall(0x4C0667, &wmRndEncounterOccurred_hack, false);
-			dlogr(" Done", DL_INIT);
-		}
+	}
+
+	if (GetConfigInt("Misc", "WorldMapEncounterFix", 0)) {
+		dlog("Applying world map encounter patch.", DL_INIT);
+		WorldMapEncounterRate = GetConfigInt("Misc", "WorldMapEncounterRate", 5);
+		SafeWrite32(0x4C232D, 0x01EBC031);        // xor eax, eax; jmps 0x4C2332
+		HookCall(0x4BFEE0, &wmWorldMapFunc_hook);
+		MakeCall(0x4C0667, &wmRndEncounterOccurred_hack, false);
+		dlogr(" Done", DL_INIT);
 	}
 }
 
