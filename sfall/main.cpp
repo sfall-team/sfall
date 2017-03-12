@@ -39,6 +39,7 @@
 #include "Modules\FileSystem.h"
 #include "Modules\Graphics.h"
 #include "Modules\HighlightingMod.h"
+#include "Modules\HookScripts.h"
 #include "Modules\HeroAppearance.h"
 #include "Modules\Input.h"
 #include "Modules\Inventory.h"
@@ -136,6 +137,7 @@ static void InitModules() {
 	manager.add<Worldmap>();
 	manager.add<Stats>();
 	manager.add<ScriptExtender>();
+	manager.add<HookScripts>();
 	manager.add<LoadGameHook>();
 	manager.add<MainLoopHook>();
 	manager.add<Perks>();
@@ -166,7 +168,7 @@ static void InitModules() {
 	manager.add<AnimationsAtOnce>();
 	manager.add<BarBoxes>();
 	manager.add<HeroAppearance>();
-	manager.add<HighlightingMod>();
+	//manager.add<HighlightingMod>();
 	manager.add<MiscPatches>();
 
 	manager.initAll();

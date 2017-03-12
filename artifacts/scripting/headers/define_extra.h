@@ -39,6 +39,32 @@
 #define ATKMODE_SEC_BURST     112  // 0x00000070
 #define ATKMODE_SEC_FLAME     128  // 0x00000080
 
+/* Object flags */
+#define FLAG_MOUSE_3D            (0x1)
+#define FLAG_WALKTHRU            (0x4)
+#define FLAG_FLAT                (0x8)
+#define FLAG_NOBLOCK            (0x10)
+#define FLAG_LIGHTING           (0x20)
+#define FLAG_TEMP              (0x400)
+#define FLAG_MULTIHEX          (0x800)
+#define FLAG_NOHIGHLIGHT      (0x1000)
+#define FLAG_USED             (0x2000)
+#define FLAG_TRANSRED         (0x4000)
+#define FLAG_TRANSNONE        (0x8000)
+#define FLAG_TRANSWALL       (0x10000)
+#define FLAG_TRANSGLASS      (0x20000)
+#define FLAG_TRANSSTEAM      (0x40000)
+#define FLAG_TRANSENERGY     (0x80000)
+#define FLAG_LEFT_HAND     (0x1000000)
+#define FLAG_RIGHT_HAND    (0x2000000)
+#define FLAG_WORN          (0x4000000)
+#define FLAG_HIDDENITEM    (0x8000000)
+#define FLAG_WALLTRANSEND (0x10000000)
+#define FLAG_LIGHTTHRU    (0x20000000)
+#define FLAG_SEEN         (0x40000000)
+#define FLAG_SHOOTTHRU    (0x80000000)
+
+
 /* Critter Flags */
 #define CFLG_BARTER             2  // 0x00000002 - Barter (can trade with)
 #define CFLG_NOSTEAL           32  // 0x00000020 - Steal (cannot steal from)
@@ -223,6 +249,5 @@
 #define WPN_ANIM_BIG_GUN            (0x08) // (K)
 #define WPN_ANIM_MINIGUN            (0x09) // (L)
 #define WPN_ANIM_ROCKET_LAUNCHER    (0x0A) // (M)
-
 
 #endif // DEFINE_EXTRA_H

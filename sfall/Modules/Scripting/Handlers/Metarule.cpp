@@ -125,7 +125,8 @@ static const SfallMetarule metaruleArray[] = {
 	{"intface_is_hidden", sf_intface_is_hidden, 0, 0},
 	{"exec_map_update_scripts", sf_exec_map_update_scripts, 0, 0},
 	{"set_outline", sf_set_outline, 2, 2, {ARG_OBJECT, ARG_INT}},
-	{"get_outline", sf_get_outline, 1, 1, {ARG_OBJECT}}
+	{"get_outline", sf_get_outline, 1, 1, {ARG_OBJECT}},
+	{"tile_refresh_display", sf_tile_refresh_display, 0, 0},
 };
 
 void InitMetaruleTable() {

@@ -432,5 +432,9 @@ void sf_intface_is_hidden(OpcodeContext& ctx) {
 	ctx.setReturn(isHidden);
 }
 
+void sf_tile_refresh_display(OpcodeContext& ctx) {
+	fo::func::tile_refresh_display();
+}
+
 }
 }

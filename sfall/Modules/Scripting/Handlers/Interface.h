@@ -81,5 +81,7 @@ void sf_intface_hide(OpcodeContext&);
 
 void sf_intface_is_hidden(OpcodeContext&);
 
+void sf_tile_refresh_display(OpcodeContext&);
+
 }
 }

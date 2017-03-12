@@ -1,0 +1,52 @@
+#include "..\scripting\headers\sfall.h"
+#include "..\scripting\headers\define_extra.h"
+//#include "..\..\..\!SRC\headers\define.h"
+
+#define it_flags  (6)
+#define CRITTER_IS_DEAD   (1)
+
+variable highlightKey;
+variable highlightContainers;
+
+procedure toggle_highlight_object(variable obj, variable color) begin
+   if obj 
+      and (proto_data(obj_pid(obj), it_flags) bwand FLAG_NOHIGHLIGHT) == 0 
+      and (color == 0 or not obj_blocking_line(dude_obj, tile_num(obj), BLOCKING_TYPE_SHOOT)) then begin
+      set_outline(obj, color);
+   end
+end
+
+procedure toggle_highlight(variable color) begin
+   variable obj;
+   foreach obj in list_as_array(LIST_GROUNDITEMS) begin
+      call toggle_highlight_object(obj, color);
+   end
+   foreach obj in list_as_array(LIST_CRITTERS) begin
+      if critter_state(obj) == CRITTER_IS_DEAD then begin
+         call toggle_highlight_object(obj, color);
+      end
+   end
+   tile_refresh_display;
+end
+
+procedure key_press_handler begin
+   variable pressed := get_sfall_arg,
+            scanCode := get_sfall_arg;
+            
+   if scanCode == highlightKey then begin
+      if pressed then begin
+         call toggle_highlight(OUTLINE_DARK_YELLOW);
+      end else begin
+         call toggle_highlight(0);
+      end
+   end
+end
+
+procedure start begin
+   if game_loaded then begin
+      highlightKey := get_ini_setting("ddraw.ini|Input|ToggleItemHighlightsKey");
+      display_msg("key= " + highlightKey);
+      highlightContainers := get_ini_setting("ddraw.ini|Input|HighlightContainers");
+      register_hook_proc(HOOK_KEYPRESS, key_press_handler);
+   end
+end

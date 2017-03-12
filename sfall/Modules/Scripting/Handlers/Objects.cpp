@@ -401,7 +401,6 @@ void sf_set_outline(OpcodeContext& ctx) {
 	auto obj = ctx.arg(0).asObject();
 	int color = ctx.arg(1).asInt();
 	obj->outline = color;
-	fo::RedrawObject(obj);
 }
 
 void sf_get_outline(OpcodeContext& ctx) {
