@@ -2,7 +2,6 @@
 #include "..\scripting\headers\define_extra.h"
 //#include "..\..\..\!SRC\headers\define.h"
 
-#define it_flags  (6)
 #define CRITTER_IS_DEAD   (1)
 
 variable highlightKey;
@@ -10,7 +9,7 @@ variable highlightContainers;
 
 procedure toggle_highlight_object(variable obj, variable color) begin
    if obj 
-      and (proto_data(obj_pid(obj), it_flags) bwand FLAG_NOHIGHLIGHT) == 0 
+      and (get_flags(obj) bwand FLAG_NOHIGHLIGHT) == 0 
       and (color == 0 or not obj_blocking_line(dude_obj, tile_num(obj), BLOCKING_TYPE_SHOOT)) then begin
       set_outline(obj, color);
    end

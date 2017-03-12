@@ -408,5 +408,16 @@ void sf_get_outline(OpcodeContext& ctx) {
 	ctx.setReturn(obj->outline);
 }
 
+void sf_set_flags(OpcodeContext& ctx) {
+	auto obj = ctx.arg(0).asObject();
+	int flags = ctx.arg(1).asInt();
+	obj->flags = flags;
+}
+
+void sf_get_flags(OpcodeContext& ctx) {
+	auto obj = ctx.arg(0).asObject();
+	ctx.setReturn(obj->flags);
+}
+
 }
 }

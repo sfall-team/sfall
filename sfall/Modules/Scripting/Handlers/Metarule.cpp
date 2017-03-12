@@ -126,6 +126,8 @@ static const SfallMetarule metaruleArray[] = {
 	{"exec_map_update_scripts", sf_exec_map_update_scripts, 0, 0},
 	{"set_outline", sf_set_outline, 2, 2, {ARG_OBJECT, ARG_INT}},
 	{"get_outline", sf_get_outline, 1, 1, {ARG_OBJECT}},
+	{"set_flags", sf_set_flags, 2, 2, {ARG_OBJECT, ARG_INT}},
+	{"get_flags", sf_get_flags, 1, 1, {ARG_OBJECT}},
 	{"tile_refresh_display", sf_tile_refresh_display, 0, 0},
 };
 
