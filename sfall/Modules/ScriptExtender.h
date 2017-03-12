@@ -31,9 +31,11 @@ class ScriptExtender : public Module {
 	void init();
 };
 
+#pragma pack(8)
 struct GlobalVar {
 	__int64 id;
-	int val;
+	__int32 val;
+	__int32 unused;
 };
 
 typedef struct {
