@@ -144,6 +144,7 @@ VAR_(quick_done,                 DWORD)
 VAR_(read_callback,              DWORD)
 VAR_(RedColor,                   BYTE)
 VAR2(retvals,                    ElevatorExit, 24, 4)  // 24 elevators, 4 exits each
+VAR_(script_path_base,           const char*)
 VAR_(scr_size,                   DWORD)
 VAR_(scriptListInfo,             ScriptListInfoItem*)  // dynamic array
 VARA(skill_data,                 SkillInfo, SKILL_count)

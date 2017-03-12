@@ -75,7 +75,7 @@ long __stdcall db_fwriteByteCount(DbFile* file, const BYTE* cptr, long count);
 // searches files in DB by given path/filename mask and stores result in fileList
 // fileList is a pointer to a variable, that will be assigned with an address of an array of char* strings
 // returns number of elements in *fileList
-long __stdcall db_get_file_list(const char* searchMask, char* * *fileList, DWORD arg3, DWORD arg4);
+long __stdcall db_get_file_list(const char* searchMask, char* * *fileList);
 
 // prints message to debug.log file
 void __declspec() debug_printf(const char* fmt, ...);

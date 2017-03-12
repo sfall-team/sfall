@@ -31,13 +31,13 @@ using namespace std;
 static int DebugTypes=0;
 static ofstream Log;
 
-void dlog(const char* a, int type) {
+void dlog(const std::string& a, int type) {
 	if (isDebug && (type == DL_MAIN || (type & DebugTypes))) {
 		Log << a;
 		Log.flush();
 	}
 }
-void dlogr(const char* a, int type) {
+void dlogr(const std::string& a, int type) {
 	if (isDebug && (type == DL_MAIN || (type & DebugTypes))) {
 		Log << a << "\r\n";
 		Log.flush();

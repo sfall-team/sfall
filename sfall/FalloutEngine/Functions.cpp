@@ -125,8 +125,8 @@ long __stdcall db_fwriteByteCount(DbFile* file, const BYTE* cptr, long count) {
 	WRAP_WATCOM_CALL3(db_fwriteByteCount_, file, cptr, count)
 }
 
-long __stdcall db_get_file_list(const char* searchMask, char* * *fileList, DWORD arg3, DWORD arg4) {
-	WRAP_WATCOM_CALL4(db_get_file_list_, searchMask, fileList, arg3, arg4)
+long __stdcall db_get_file_list(const char* searchMask, char* * *fileList) {
+	WRAP_WATCOM_CALL2(db_get_file_list_, searchMask, fileList)
 }
 
 // prints message to debug.log file

@@ -14,6 +14,7 @@
 	NOTES: be careful not to use reserved words, including ASM instructions (push, pop, mov, div, etc.)
 */
 
+WRAP_WATCOM_FUNC1(Program*, allocateProgram, const char*, filePath)
 WRAP_WATCOM_FUNC0(void, art_flush)
 WRAP_WATCOM_FUNC5(long, art_id, long, artType, long, lstIndex, long, animCode, long, weaponCode, long, directionCode)
 WRAP_WATCOM_FUNC3(BYTE*, art_frame_data, FrmFrameData*, frm, long, frameNum, long, rotation)

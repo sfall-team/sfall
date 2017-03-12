@@ -24,14 +24,15 @@
 #include "..\main.h"
 #include "..\FalloutEngine\Fallout2.h"
 #include "..\InputFuncs.h"
+#include "..\Logging.h"
 #include "..\Version.h"
+#include "..\Utils.h"
 #include "BarBoxes.h"
 #include "Console.h"
 #include "HookScripts.h"
 #include "LoadGameHook.h"
 #include "MainLoopHook.h"
 #include "Worldmap.h"
-#include "..\Logging.h"
 #include "Scripting\Arrays.h"
 #include "Scripting\Opcodes.h"
 #include "Scripting\OpcodeContext.h"
@@ -49,14 +50,14 @@ void _stdcall HandleMapUpdateForScripts(DWORD procId);
 // TODO: move to a better place
 static char idle;
 
-struct sGlobalScript {
+struct GlobalScript {
 	ScriptProgram prog;
 	int count;
 	int repeat;
 	int mode; //0 - local map loop, 1 - input loop, 2 - world map loop, 3 - local and world map loops
 
-	sGlobalScript() {}
-	sGlobalScript(ScriptProgram script) {
+	GlobalScript() {}
+	GlobalScript(ScriptProgram script) {
 		prog = script;
 		count = 0;
 		repeat = 0;
@@ -64,21 +65,21 @@ struct sGlobalScript {
 	}
 };
 
-struct sExportedVar {
+struct ExportedVar {
 	int type; // in scripting engine terms, eg. VAR_TYPE_*
 	int val;
-	sExportedVar() : val(0), type(VAR_TYPE_INT) {}
+	ExportedVar() : val(0), type(VAR_TYPE_INT) {}
 };
 
 static std::vector<fo::Program*> checkedScripts;
-static std::vector<sGlobalScript> globalScripts;
+static std::vector<GlobalScript> globalScripts;
 // a map of all sfall programs (global and hook scripts) by thier scriptPtr
 typedef std::unordered_map<fo::Program*, ScriptProgram> SfallProgsMap;
 static SfallProgsMap sfallProgsMap;
 // a map scriptPtr => self_obj  to override self_obj for all script types using set_self
 std::unordered_map<fo::Program*, fo::GameObject*> selfOverrideMap;
 
-typedef std::tr1::unordered_map<std::string, sExportedVar> ExportedVarsMap;
+typedef std::tr1::unordered_map<std::string, ExportedVar> ExportedVarsMap;
 static ExportedVarsMap globalExportedVars;
 DWORD isGlobalScriptLoading = 0;
 DWORD modifiedIni;
@@ -185,7 +186,7 @@ static DWORD __stdcall GetGlobalExportedVarPtr(const char* name) {
 	ExportedVarsMap::iterator it = globalExportedVars.find(str);
 	//dlog_f("\n Trying to find exported var %s... ", DL_MAIN, name);
 	if (it != globalExportedVars.end()) {
-		sExportedVar *ptr = &it->second;
+		ExportedVar *ptr = &it->second;
 		return (DWORD)ptr;
 	}
 	return 0;
@@ -194,7 +195,7 @@ static DWORD __stdcall GetGlobalExportedVarPtr(const char* name) {
 static DWORD __stdcall CreateGlobalExportedVar(DWORD scr, const char* name) {
 	//dlog_f("\nTrying to export variable %s (%d)\r\n", DL_MAIN, name, isGlobalScriptLoading);
 	std::string str(name);
-	globalExportedVars[str] = sExportedVar(); // add new
+	globalExportedVars[str] = ExportedVar(); // add new
 	return 1;
 }
 
@@ -354,8 +355,11 @@ void _stdcall SetSelfObject(fo::Program* script, fo::GameObject* obj) {
 }
 
 // loads script from .int file into a sScriptProgram struct, filling script pointer and proc lookup table
-void LoadScriptProgram(ScriptProgram &prog, const char* fileName) {
-	fo::Program* scriptPtr = fo::func::loadProgram(fileName);
+void LoadScriptProgram(ScriptProgram &prog, const char* fileName, bool fullPath) {
+	fo::Program* scriptPtr = fullPath 
+		? fo::func::allocateProgram(fileName)
+		: fo::func::loadProgram(fileName);
+
 	if (scriptPtr) {
 		const char** procTable = fo::var::procTableStrs;
 		prog.ptr = scriptPtr;
@@ -382,7 +386,7 @@ void AddProgramToMap(ScriptProgram &prog) {
 }
 
 ScriptProgram* GetGlobalScriptProgram(fo::Program* scriptPtr) {
-	for (std::vector<sGlobalScript>::iterator it = globalScripts.begin(); it != globalScripts.end(); it++) {
+	for (std::vector<GlobalScript>::iterator it = globalScripts.begin(); it != globalScripts.end(); it++) {
 		if (it->prog.ptr == scriptPtr) return &it->prog;
 	}
 	return nullptr;
@@ -396,30 +400,29 @@ bool _stdcall IsGameScript(const char* filename) {
 	return false;
 }
 
-// this runs after the game was loaded/started
-void LoadGlobalScripts() {
-	isGameLoading = false;
-	LoadHookScripts();
-	dlogr("Loading global scripts", DL_SCRIPT|DL_INIT);
-
-	char* name = "scripts\\gl*.int";
+void LoadGLobalScriptsByMask(const std::string& fileMask) {
 	char* *filenames;
-	int count = fo::func::db_get_file_list(name, &filenames, 0, 0);
+	auto basePath = fileMask.substr(0, fileMask.find_last_of("\\/") + 1);
+	ToLowerCase(basePath);
+	int count = fo::func::db_get_file_list(fileMask.c_str(), &filenames);
 
 	// TODO: refactor script programs
 	ScriptProgram prog;
 	for (int i = 0; i < count; i++) {
-		name = _strlwr(filenames[i]);
-		name[strlen(name) - 4] = 0;
-		if (!IsGameScript(name)) {
+		char* name = _strlwr(filenames[i]);
+		std::string baseName(name);
+		baseName = baseName.substr(0, baseName.find_last_of('.'));
+		if (basePath != fo::var::script_path_base || !IsGameScript(baseName.c_str())) {
 			dlog(">", DL_SCRIPT);
-			dlog(name, DL_SCRIPT);
+			std::string fullPath(basePath);
+			fullPath += name;
+			dlog(fullPath, DL_SCRIPT);
 			isGlobalScriptLoading = 1;
-			LoadScriptProgram(prog, name);
+			LoadScriptProgram(prog, fullPath.c_str(), true);
 			if (prog.ptr) {
 				dlogr(" Done", DL_SCRIPT);
 				DWORD idx;
-				sGlobalScript gscript = sGlobalScript(prog);
+				GlobalScript gscript = GlobalScript(prog);
 				idx = globalScripts.size();
 				globalScripts.push_back(gscript);
 				AddProgramToMap(prog);
@@ -432,6 +435,17 @@ void LoadGlobalScripts() {
 		}
 	}
 	fo::func::db_free_file_list(&filenames, 0);
+}
+
+// this runs after the game was loaded/started
+void LoadGlobalScripts() {
+	isGameLoading = false;
+	LoadHookScripts();
+	dlogr("Loading global scripts", DL_SCRIPT|DL_INIT);
+	auto maskList = GetConfigList("Scripts", "GlobalScriptPaths", "scripts\\gl*.int", 255);
+	for (auto& mask : maskList) {
+		LoadGLobalScriptsByMask(mask);
+	}
 	dlogr("Finished loading global scripts", DL_SCRIPT|DL_INIT);
 	//ButtonsReload();
 }
@@ -515,7 +529,7 @@ void RunScriptProc(ScriptProgram* prog, long procId) {
 	}
 }
 
-static void RunScript(sGlobalScript* script) {
+static void RunScript(GlobalScript* script) {
 	script->count = 0;
 	RunScriptProc(&script->prog, fo::ScriptProc::start); // run "start"
 }

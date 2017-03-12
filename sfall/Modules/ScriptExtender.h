@@ -72,8 +72,11 @@ void GetAppearanceGlobals(int *race, int *style);
 void _stdcall RegAnimCombatCheck(DWORD newValue);
 
 bool _stdcall ScriptHasLoaded(fo::Program* script);
-// loads script from .int file into scripting engine, fill scriptPtr and proc table
-void LoadScriptProgram(ScriptProgram &prog, const char* fileName);
+// loads script from .int file into a sScriptProgram struct, filling script pointer and proc lookup table
+// prog - reference to program structure
+// fileName - the script file name without extension (if fullPath is false) or a full file path (if fullPath is true)
+// fullPath - controls how fileName is used (see above)
+void LoadScriptProgram(ScriptProgram &prog, const char* fileName, bool fullPath = false);
 // init program after load, needs to be called once
 void InitScriptProgram(ScriptProgram &prog);
 // execute script by specific proc name

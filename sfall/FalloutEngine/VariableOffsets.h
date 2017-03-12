@@ -147,6 +147,7 @@
 #define FO_VAR_read_callback              0x51DEEC
 #define FO_VAR_RedColor                   0x6AB4D0
 #define FO_VAR_retvals                    0x43EA7C
+#define FO_VAR_script_path_base           0x51C710
 #define FO_VAR_scr_size                   0x6AC9F0
 #define FO_VAR_scriptListInfo             0x51C7C8
 #define FO_VAR_skill_data                 0x51D118
