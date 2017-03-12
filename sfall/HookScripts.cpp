@@ -520,7 +520,7 @@ static void __declspec(naked) RemoveObjHook() {
 
 static void __declspec(naked) BarterPriceHook() {
 	__asm {
-		hookbegin(6);
+		hookbegin(9);
 		mov args[0], eax;
 		mov args[4], edx;
 		call barter_compute_value_
@@ -533,6 +533,16 @@ static void __declspec(naked) BarterPriceHook() {
 		mov eax, ds:[_btable]
 		call item_total_cost_
 		mov args[20], eax;
+		mov  eax, ds:[_ptable]
+		mov  args[24], eax
+		call item_total_cost_
+		mov  args[28], eax 
+		xor  eax, eax
+		cmp  edi, args[0] // check offers button
+		jne  skip
+		inc  eax
+skip:
+		mov  args[32], eax
 		mov eax, edx;
 		pushad;
 		push HOOK_BARTERPRICE;
