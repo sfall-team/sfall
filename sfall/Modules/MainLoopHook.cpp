@@ -8,6 +8,7 @@ namespace sfall
 
 static Delegate<> onMainLoop;
 static Delegate<> onCombatLoop;
+static Delegate<> onAfterCombatAttack;
 
 void __stdcall MainGameLoopHook2() {
 	onMainLoop.invoke();
@@ -15,6 +16,10 @@ void __stdcall MainGameLoopHook2() {
 
 void __stdcall CombatLoopHook2() {
 	onCombatLoop.invoke();
+}
+
+void AfterCombatAttackHook2() {
+	onAfterCombatAttack.invoke();
 }
 
 static void __declspec(naked) MainGameLoopHook() {
@@ -42,9 +47,21 @@ static void __declspec(naked) CombatLoopHook() {
 	}
 }
 
+static void __declspec(naked) AfterCombatAttackHook() {
+	__asm {
+		pushad;
+		call AfterCombatAttackHook2;
+		popad;
+		mov  eax, 1;
+		push 0x4230DA;
+		retn;
+	}
+}
+
 void MainLoopHook::init() {
 	HookCall(0x480E7B, MainGameLoopHook); //hook the main game loop
 	HookCall(0x422845, CombatLoopHook); //hook the combat loop
+	MakeCall(0x4230D5, &AfterCombatAttackHook, true);
 }
 
 Delegate<>& MainLoopHook::OnMainLoop() {
@@ -53,6 +70,10 @@ Delegate<>& MainLoopHook::OnMainLoop() {
 
 Delegate<>& MainLoopHook::OnCombatLoop() {
 	return onCombatLoop;
+}
+
+Delegate<>& MainLoopHook::OnAfterCombatAttack() {
+	return onAfterCombatAttack;
 }
 
 }

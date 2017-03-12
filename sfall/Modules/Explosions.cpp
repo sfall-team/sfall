@@ -21,6 +21,7 @@
 #include "..\FalloutEngine\Fallout2.h"
 #include "..\Logging.h"
 #include "..\SimplePatch.h"
+#include "MainLoopHook.h"
 #include "ScriptExtender.h"
 
 #include "Explosions.h"
@@ -231,6 +232,9 @@ void Explosions::init() {
 	SimplePatch<DWORD>(0x4A2878, "Misc", "Dynamite_DmgMin", 30, 0, tmp);
 	tmp = SimplePatch<DWORD>(0x4A287F, "Misc", "PlasticExplosive_DmgMax", 80, 0, 9999);
 	SimplePatch<DWORD>(0x4A2884, "Misc", "PlasticExplosive_DmgMin", 40, 0, tmp);
+
+	// after each combat attack, reset metarule_explosions settings
+	MainLoopHook::OnAfterCombatAttack() += ResetExplosionSettings;
 }
 
 }

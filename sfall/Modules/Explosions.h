@@ -29,6 +29,5 @@ class Explosions : public Module {
 };
 
 int _stdcall ExplosionsMetaruleFunc(int mode, int arg1, int arg2);
-void ResetExplosionSettings();
 
 }

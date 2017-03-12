@@ -27,7 +27,6 @@
 #include "..\Version.h"
 #include "BarBoxes.h"
 #include "Console.h"
-#include "Explosions.h"
 #include "HookScripts.h"
 #include "LoadGameHook.h"
 #include "MainLoopHook.h"
@@ -165,17 +164,6 @@ end:
 		push edi;
 		push ebp;
 		jmp scr_ptr_back;
-	}
-}
-
-static void __declspec(naked) AfterCombatAttackHook() {
-	__asm {
-		pushad;
-		call AfterAttackCleanup;
-		popad;
-		mov  eax, 1;
-		push 0x4230DA;
-		retn;
 	}
 }
 
@@ -528,7 +516,7 @@ void RunScriptProc(ScriptProgram* prog, long procId) {
 }
 
 static void RunScript(sGlobalScript* script) {
-	script->count=0;
+	script->count = 0;
 	RunScriptProc(&script->prog, fo::ScriptProc::start); // run "start"
 }
 
@@ -544,13 +532,6 @@ static void ResetStateAfterFrame() {
 		tempArrays.clear();
 	}
 	RegAnimCombatCheck(1);
-}
-
-/**
-	Do some cleaning after each combat attack action
-*/
-void AfterAttackCleanup() {
-	ResetExplosionSettings();
 }
 
 static inline void RunGlobalScripts(int mode1, int mode2) {
@@ -673,7 +654,6 @@ void ScriptExtender::init() {
 		ClearGlobalScripts();
 		ClearGlobals();
 		RegAnimCombatCheck(1);
-		AfterAttackCleanup();
 	};
 	LoadGameHook::OnGameReset() += ClearGlobals;
 
@@ -703,7 +683,6 @@ void ScriptExtender::init() {
 	MakeCall(0x4A5E34, &ScrPtrHook, true);
 	memset(&overrideScriptStruct, 0, sizeof(fo::ScriptInstance));
 
-	MakeCall(0x4230D5, &AfterCombatAttackHook, true);
 	MakeCall(0x4A67F2, &ExecMapScriptsHook, true);
 
 	// this patch makes it possible to export variables from sfall global scripts

@@ -47,7 +47,7 @@ void _stdcall SetGlobalScriptType(fo::Program* script, int type);
 bool _stdcall IsGameScript(const char* filename);
 
 void _stdcall RunGlobalScriptsAtProc(DWORD procId);
-void AfterAttackCleanup();
+void AfterCombatAttackHook2();
 
 void LoadGlobals(HANDLE h);
 void SaveGlobals(HANDLE h);
