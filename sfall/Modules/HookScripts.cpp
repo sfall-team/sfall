@@ -534,20 +534,30 @@ static void __declspec(naked) RemoveObjHook() {
 
 static void __declspec(naked) BarterPriceHook() {
 	__asm {
-		hookbegin(6);
+		hookbegin(9);
 		mov args[0], eax;
 		mov args[4], edx;
-		call fo::funcoffs::barter_compute_value_
-		mov edx, ds:[FO_VAR_btable]
+		call fo::funcoffs::barter_compute_value_;
+		mov edx, ds:[FO_VAR_btable];
 		mov args[8], eax;
 		mov args[12], edx;
 		xchg eax, edx;
-		call fo::funcoffs::item_caps_total_
+		call fo::funcoffs::item_caps_total_;
 		mov args[16], eax;
 		mov eax, ds:[FO_VAR_btable]
-		call fo::funcoffs::item_total_cost_
+		call fo::funcoffs::item_total_cost_;
 		mov args[20], eax;
-		mov eax, edx;
+		mov eax, ds:[FO_VAR_ptable];
+		mov args[24], eax;
+		call fo::funcoffs::item_total_cost_;
+		mov args[28], eax;
+		xor eax, eax;
+		mov edx, [esp]; // check offers button
+		cmp edx, 0x474D51; // last address on call stack
+		jne skip;
+		inc eax;
+skip:
+		mov args[32], eax;
 		pushad;
 		push HOOK_BARTERPRICE;
 		call RunHookScript;

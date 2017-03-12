@@ -235,9 +235,12 @@ Runs whenever the value of goods being purchased is calculated
 critter arg1 - the critter doing the bartering (either dude_obj or inven_dude)
 critter arg2 - the critter being bartered with
 int     arg3 - the default value of the goods
-critter arg4 - the barter critter (has all of the goods being traded in its inventory)
+critter arg4 - table of requested goods (being bought from NPC)
 int     arg5 - the amount of actual caps in the barter stack (as opposed to goods)
 int     arg6 - the value of all goods being traded before skill modifications
+critter arg7 - table of offered goods (being sold to NPC)
+int     arg8 - the total cost of the goods offered by the player
+int     arg9 - set 1 if the "offers" button was pressed(not for a party member), otherwise 0
 
 int     ret1 - the modified value of all of the goods
 
