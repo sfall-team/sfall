@@ -32,7 +32,12 @@ DWORD _stdcall KeyDown(DWORD key);
 void _stdcall TapKey(DWORD key);
 
 typedef Delegate<DWORD, bool, DWORD> KeyPressedDelegate;
+
 extern KeyPressedDelegate onKeyPressed;
+extern Delegate<> onInputLoop;
+
+KeyPressedDelegate& OnKeyPressed();
+Delegate<>& OnInputLoop();
 
 void GetMouse(int* x, int* y);
 

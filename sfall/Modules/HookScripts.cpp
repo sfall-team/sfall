@@ -32,7 +32,8 @@
 namespace sfall
 {
 
-#define MAXDEPTH (8)
+static const int maxArgs = 16;
+static const int maxDepth = 8;
 static const int numHooks = HOOK_COUNT;
 
 struct HookScript {
@@ -45,41 +46,42 @@ static std::vector<HookScript> hooks[numHooks];
 
 DWORD InitingHookScripts;
 
-// TODO: maybe use ScriptValue for arguments and return values?
-static DWORD args[16]; // current hook arguments
-static DWORD oldargs[8 * MAXDEPTH];
+static DWORD args[maxArgs]; // current hook arguments
+static DWORD oldargs[maxArgs * maxDepth];
 static DWORD* argPtr;
 static DWORD rets[16]; // current hook return values
 
 static DWORD firstArg = 0;
 static DWORD callDepth;
-static DWORD lastCount[MAXDEPTH];
+static DWORD lastCount[maxDepth];
 
-static DWORD ArgCount;
+static DWORD argCount;
 static DWORD cArg; // how many arguments were taken by current hook script
 static DWORD cRet; // how many return values were set by current hook script
 static DWORD cRetTmp; // how many return values were set by specific hook script (when using register_hook)
 
-#define hookbegin(a) __asm pushad __asm call BeginHook __asm popad __asm mov ArgCount, a
+#define hookbegin(a) __asm pushad __asm call BeginHook __asm popad __asm mov argCount, a
 #define hookend __asm pushad __asm call EndHook __asm popad
 
 static void _stdcall BeginHook() {
-	if (callDepth <= MAXDEPTH) {
+	if (callDepth <= maxDepth) {
 		if (callDepth) {
-			lastCount[callDepth - 1] = ArgCount;
-			memcpy(&oldargs[8 * (callDepth - 1)], args, 8 * sizeof(DWORD));
+			lastCount[callDepth - 1] = argCount;
+			memcpy(&oldargs[maxArgs * (callDepth - 1)], args, maxArgs * sizeof(DWORD));
 		}
 		argPtr = args;
-		for (DWORD i = 0; i < callDepth; i++) argPtr += lastCount[i];
+		for (DWORD i = 0; i < callDepth; i++) {
+			argPtr += lastCount[i];
+		}
 	}
 	callDepth++;
 }
 
 static void _stdcall EndHook() {
 	callDepth--;
-	if (callDepth && callDepth <= MAXDEPTH) {
-		ArgCount = lastCount[callDepth - 1];
-		memcpy(args, &oldargs[8 * (callDepth - 1)], 8 * sizeof(DWORD));
+	if (callDepth && callDepth <= maxDepth) {
+		argCount = lastCount[callDepth - 1];
+		memcpy(args, &oldargs[maxArgs * (callDepth - 1)], maxArgs * sizeof(DWORD));
 	}
 }
 
@@ -106,6 +108,7 @@ static void _stdcall RunHookScript(DWORD hook) {
 	}
 }
 
+// TODO: move specific hook scripts into separate files
 static void __declspec(naked) ToHitHook() {
 	__asm {
 		hookbegin(4);
@@ -253,7 +256,7 @@ end1:
 		call fo::funcoffs::pick_death_
 		mov args[16], eax;
 		mov eax, args[16];
-		mov ArgCount, 5;
+		mov argCount, 5;
 		pushad;
 		push HOOK_DEATHANIM2;
 		call RunHookScript;
@@ -750,10 +753,9 @@ void __declspec(naked) AmmoCostHookWrapper() {
 	}
 }
 
-void _stdcall KeyPressHook( DWORD dxKey, bool pressed, DWORD vKey )
-{
+void _stdcall KeyPressHook(DWORD dxKey, bool pressed, DWORD vKey) {
 	BeginHook();
-	ArgCount = 3;
+	argCount = 3;
 	args[0] = (DWORD)pressed;
 	args[1] = dxKey;
 	args[2] = vKey;
@@ -763,7 +765,7 @@ void _stdcall KeyPressHook( DWORD dxKey, bool pressed, DWORD vKey )
 
 void _stdcall MouseClickHook(DWORD button, bool pressed) {
 	BeginHook();
-	ArgCount = 2;
+	argCount = 2;
 	args[0] = (DWORD)pressed;
 	args[1] = button;
 	RunHookScript(HOOK_MOUSECLICK);
@@ -861,7 +863,7 @@ static int __stdcall SwitchHandHook2(fo::GameObject* item, fo::GameObject* itemR
 		return -1; // to prevent inappropriate hook call after dropping ammo on weapon
 	}
 	BeginHook();
-	ArgCount = 3;
+	argCount = 3;
 	args[0] = (addr < 0x47136D) ? 1 : 2;
 	args[1] = (DWORD)item;
 	args[2] = (DWORD)itemReplaced;
@@ -1075,16 +1077,16 @@ donothing:
 }
 
 DWORD _stdcall GetHSArgCount() {
-	return ArgCount;
+	return argCount;
 }
 
 DWORD _stdcall GetHSArg() {
-	if (cArg == ArgCount) return 0;
+	if (cArg == argCount) return 0;
 	else return args[cArg++];
 }
 
 void _stdcall SetHSArg(DWORD id, DWORD value) {
-	if(id<ArgCount) args[id]=value;
+	if(id<argCount) args[id]=value;
 }
 
 DWORD* _stdcall GetHSArgs() {
@@ -1100,8 +1102,7 @@ void _stdcall SetHSReturn(DWORD d) {
 	}
 }
 
-void _stdcall RegisterHook(fo::Program* script, int id, int procNum )
-{
+void _stdcall RegisterHook(fo::Program* script, int id, int procNum) {
 	if (id >= numHooks) return;
 	for (std::vector<HookScript>::iterator it = hooks[id].begin(); it != hooks[id].end(); ++it) {
 		if (it->prog.ptr == script) {
@@ -1324,7 +1325,7 @@ void _stdcall RunHookScriptsAtProc(DWORD procId) {
 }
 
 void HookScripts::init() {
-	onKeyPressed += KeyPressHook;
+	OnKeyPressed() += KeyPressHook;
 }
 
 }

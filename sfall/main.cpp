@@ -38,6 +38,7 @@
 #include "Modules\Explosions.h"
 #include "Modules\FileSystem.h"
 #include "Modules\Graphics.h"
+#include "Modules\HighlightingMod.h"
 #include "Modules\HeroAppearance.h"
 #include "Modules\Input.h"
 #include "Modules\Inventory.h"
@@ -47,6 +48,7 @@
 #include "Modules\LoadGameHook.h"
 #include "Modules\LoadOrder.h"
 #include "Modules\MainMenu.h"
+#include "Modules\MainLoopHook.h"
 #include "Modules\Message.h"
 #include "Modules\MiscPatches.h"
 #include "Modules\Movies.h"
@@ -135,6 +137,7 @@ static void InitModules() {
 	manager.add<Stats>();
 	manager.add<ScriptExtender>();
 	manager.add<LoadGameHook>();
+	manager.add<MainLoopHook>();
 	manager.add<Perks>();
 	manager.add<Knockback>();
 	manager.add<Skills>();
@@ -163,6 +166,7 @@ static void InitModules() {
 	manager.add<AnimationsAtOnce>();
 	manager.add<BarBoxes>();
 	manager.add<HeroAppearance>();
+	manager.add<HighlightingMod>();
 	manager.add<MiscPatches>();
 
 	manager.initAll();
@@ -196,7 +200,7 @@ static void CompatModeCheck(HKEY root, const char* filepath, int extra) {
 
 inline void SfallInit() {
 	// enabling debugging features
- 	isDebug = (GetPrivateProfileIntA("Debugging", "Enable", 0, ddrawIni) != 0);
+ 	isDebug = (GetPrivateProfileIntA("Debugging", "Enable", 0, ::sfall::ddrawIni) != 0);
 	if (isDebug) {
 		LoggingInit();
 	}
@@ -206,7 +210,7 @@ inline void SfallInit() {
 
 	CRC(filepath);
 
-	if (!isDebug || !GetPrivateProfileIntA("Debugging", "SkipCompatModeCheck", 0, ddrawIni)) {
+	if (!isDebug || !GetPrivateProfileIntA("Debugging", "SkipCompatModeCheck", 0, ::sfall::ddrawIni)) {
 		int is64bit;
 		typedef int (_stdcall *chk64bitproc)(HANDLE, int*);
 		HMODULE h = LoadLibrary("Kernel32.dll");
@@ -222,7 +226,7 @@ inline void SfallInit() {
 	// ini file override
 	bool cmdlineexists = false;
 	char* cmdline = GetCommandLineA();
-	if (GetPrivateProfileIntA("Main", "UseCommandLine", 0, ddrawIni)) {
+	if (GetPrivateProfileIntA("Main", "UseCommandLine", 0, ::sfall::ddrawIni)) {
 		while (cmdline[0] == ' ') cmdline++;
 		bool InQuote = false;
 		int count = -1;
@@ -252,10 +256,10 @@ inline void SfallInit() {
 		else {
 			MessageBox(0, "You gave a command line argument to fallout, but it couldn't be matched to a file\n" \
 						"Using default ddraw.ini instead", "Warning", MB_TASKMODAL);
-			strcpy_s(ini, ddrawIni);
+			strcpy_s(ini, ::sfall::ddrawIni);
 		}
 	} else {
-		strcpy_s(ini, ddrawIni);
+		strcpy_s(ini, ::sfall::ddrawIni);
 	}
 
 	GetConfigString("Main", "TranslationsINI", "./Translations.ini", translationIni, 65);

@@ -18,6 +18,7 @@
 
 #pragma once
 
+#include "..\FalloutEngine\Structs.h"
 #include "Module.h"
 
 namespace sfall

@@ -611,7 +611,7 @@ void InventoryReset() {
 }
 
 void Inventory::init() {
-	onKeyPressed += InventoryKeyPressedHook;
+	OnKeyPressed() += InventoryKeyPressedHook;
 	LoadGameHook::onGameReset += InventoryReset;
 
 	mode = GetConfigInt("Misc", "CritterInvSizeLimitMode", 0);

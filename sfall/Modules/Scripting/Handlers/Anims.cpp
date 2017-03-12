@@ -37,7 +37,7 @@ namespace script
 
 // true if combat mode is active and combat check was not disabled
 bool checkCombatMode() {
-	return (reg_anim_combat_check & fo::var::combat_state) != 0;
+	return (regAnimCombatCheck & fo::var::combat_state) != 0;
 }
 
 void sf_reg_anim_combat_check(OpcodeContext& ctx) {

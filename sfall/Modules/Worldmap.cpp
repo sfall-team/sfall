@@ -76,11 +76,15 @@ end:
 	}
 }
 
+static void __stdcall WorldmapLoopHook() {
+	Worldmap::onWorldmapLoop.invoke();
+}
+
 static DWORD wp_delay;
-static void __declspec(naked) worldmap_patch() {
+static void __declspec(naked) WorldMapFpsPatch() {
 	__asm {
 		pushad;
-		call RunGlobalScripts3;
+		call WorldmapLoopHook;
 		mov ecx, wp_delay;
 tck:
 		mov eax, ds : [0x50fb08];
@@ -139,7 +143,7 @@ static __int64 wm_perfadd;
 static __int64 wm_perfnext;
 static DWORD WorldMapLoopCount;
 static void WorldMapSpeedPatch3() {
-	RunGlobalScripts3();
+	WorldmapLoopHook();
 	if (wm_usingperf) {
 		__int64 timer;
 		while (true) {
@@ -171,7 +175,7 @@ static void __declspec(naked) WorldMapSpeedPatch2() {
 static void __declspec(naked) WorldMapSpeedPatch() {
 	__asm {
 		pushad;
-		call RunGlobalScripts3;
+		call WorldmapLoopHook;
 		popad;
 		push ecx;
 		mov ecx, WorldMapLoopCount;
@@ -188,7 +192,7 @@ ls:
 static void WorldMapHook() {
 	__asm {
 		pushad;
-		call RunGlobalScripts3;
+		call WorldmapLoopHook;
 		popad;
 		call fo::funcoffs::get_input_;
 		retn;
@@ -323,7 +327,7 @@ void ApplyTimeLimitPatch() {
 	if (limit == -3) {
 		dlog("Applying time limit patch (-3).", DL_INIT);
 		limit = -1;
-		AddUnarmedStatToGetYear = 1;
+		addUnarmedStatToGetYear = 1;
 
 		SafeWrite32(0x004392F9, ((DWORD)&GetDateWrapper) - 0x004392Fd);
 		SafeWrite32(0x00443809, ((DWORD)&GetDateWrapper) - 0x0044380d);
@@ -376,7 +380,8 @@ void ApplyWorldmapFpsPatch() {
 			dlogr(" Failed", DL_INIT);
 		} else {
 			wp_delay = GetConfigInt("Misc", "WorldMapDelay2", 66);
-			HookCall(0x004BFE5D, worldmap_patch);
+			HookCall(0x004BFE5D, WorldMapFpsPatch);
+			::sfall::availableGlobalScriptTypes |= 2;
 			dlogr(" Done", DL_INIT);
 		}
 	} else {
@@ -384,7 +389,7 @@ void ApplyWorldmapFpsPatch() {
 		if (tmp) {
 			dlog("Applying world map fps patch.", DL_INIT);
 			if (*((WORD*)0x004CAFB9) == 0x0000) {
-				availableGlobalScriptTypes |= 2;
+				::sfall::availableGlobalScriptTypes |= 2;
 				SafeWrite32(0x004BFE5E, ((DWORD)&WorldMapSpeedPatch2) - 0x004BFE62);
 				if (GetConfigInt("Misc", "ForceLowResolutionTimer", 0) || !QueryPerformanceFrequency((LARGE_INTEGER*)&wm_perfadd) || wm_perfadd <= 1000) {
 					wm_wait = 1000.0 / (double)tmp;
@@ -483,6 +488,8 @@ void ApplyStartingStatePatches() {
 		dlogr(" Done", DL_INIT);
 	}
 }
+
+sfall::Delegate<> Worldmap::onWorldmapLoop;
 
 void Worldmap::init() {
 	ApplyPathfinderFix();

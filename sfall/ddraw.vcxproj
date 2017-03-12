@@ -223,8 +223,10 @@
     <ClInclude Include="FalloutEngine\Variables.h" />
     <ClInclude Include="FalloutEngine\Functions.h" />
     <ClInclude Include="FalloutEngine\Functions_def.h" />
+    <ClInclude Include="Modules\HighlightingMod.h" />
     <ClInclude Include="Modules\Input.h" />
     <ClInclude Include="ModuleManager.h" />
+    <ClInclude Include="Modules\MainLoopHook.h" />
     <ClInclude Include="Modules\Module.h" />
     <ClInclude Include="Modules\AI.h" />
     <ClInclude Include="Modules\AmmoMod.h" />
@@ -303,11 +305,13 @@
     <ClCompile Include="FalloutEngine\FunctionOffsets.cpp" />
     <ClCompile Include="FalloutEngine\Variables.cpp" />
     <ClCompile Include="FalloutEngine\Functions.cpp" />
+    <ClCompile Include="Modules\HighlightingMod.cpp" />
     <ClCompile Include="Modules\Input.cpp" />
     <ClCompile Include="ModuleManager.cpp" />
     <ClCompile Include="Modules\AI.cpp" />
     <ClCompile Include="Modules\AmmoMod.cpp" />
     <ClCompile Include="Modules\AnimationsAtOnceLimit.cpp" />
+    <ClCompile Include="Modules\MainLoopHook.cpp" />
     <ClCompile Include="Modules\MiscPatches.cpp" />
     <ClCompile Include="Modules\Karma.cpp" />
     <ClCompile Include="Modules\LoadOrder.cpp" />

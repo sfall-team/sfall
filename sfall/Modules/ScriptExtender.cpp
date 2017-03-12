@@ -30,6 +30,8 @@
 #include "Explosions.h"
 #include "HookScripts.h"
 #include "LoadGameHook.h"
+#include "MainLoopHook.h"
+#include "Worldmap.h"
 #include "..\Logging.h"
 #include "Scripting\Arrays.h"
 #include "Scripting\Opcodes.h"
@@ -45,15 +47,8 @@ using namespace script;
 
 void _stdcall HandleMapUpdateForScripts(DWORD procId);
 
-// TODO: move highlighting-related code to separate file
-static DWORD highlightingToggled = 0;
-static DWORD MotionSensorMode;
-static BYTE toggleHighlightsKey;
-static DWORD highlightContainers;
-static DWORD colorContainers;
+// TODO: move to a better place
 static char idle;
-static std::string highlightFailMsg1;
-static std::string HighlightFailMsg2;
 
 struct sGlobalScript {
 	ScriptProgram prog;
@@ -94,11 +89,11 @@ typedef std::unordered_map<__int64, int> :: iterator glob_itr;
 typedef std::unordered_map<__int64, int> :: const_iterator glob_citr;
 typedef std::pair<__int64, int> glob_pair;
 
-DWORD AddUnarmedStatToGetYear = 0;
+DWORD addUnarmedStatToGetYear = 0;
 DWORD availableGlobalScriptTypes = 0;
 bool isGameLoading;
 
-fo::ScriptInstance OverrideScriptStruct;
+fo::ScriptInstance overrideScriptStruct;
 
 static const DWORD scr_ptr_back = fo::funcoffs::scr_ptr_ + 5;
 static const DWORD scr_find_sid_from_program = fo::funcoffs::scr_find_sid_from_program_ + 5;
@@ -112,14 +107,14 @@ DWORD _stdcall FindSidHook2(fo::Program* script) {
 			selfOverrideMap.erase(overrideIt);
 			return scriptId; // returns the real scriptId of object if it is scripted
 		}
-		OverrideScriptStruct.selfObject = overrideIt->second;
-		OverrideScriptStruct.targetObject = overrideIt->second;
+		overrideScriptStruct.selfObject = overrideIt->second;
+		overrideScriptStruct.targetObject = overrideIt->second;
 		selfOverrideMap.erase(overrideIt); // this reverts self_obj back to original value for next function calls
 		return -2; // override struct
 	}
 	// this will allow to use functions like roll_vs_skill, etc without calling set_self (they don't really need self object)
 	if (sfallProgsMap.find(script) != sfallProgsMap.end()) {
-		OverrideScriptStruct.targetObject = OverrideScriptStruct.selfObject = 0;
+		overrideScriptStruct.targetObject = overrideScriptStruct.selfObject = 0;
 		return -2; // override struct
 	}
 	return -1; // change nothing
@@ -143,7 +138,7 @@ static void __declspec(naked) FindSidHook() {
 override_script:
 		test edx, edx;
 		jz end;
-		lea eax, OverrideScriptStruct;
+		lea eax, overrideScriptStruct;
 		mov [edx], eax;
 		mov eax, -2;
 		retn;
@@ -170,31 +165,6 @@ end:
 		push edi;
 		push ebp;
 		jmp scr_ptr_back;
-	}
-}
-
-static void __declspec(naked) MainGameLoopHook() {
-	__asm {
-		push ebx;
-		push ecx;
-		push edx;
-		call fo::funcoffs::get_input_
-		push eax;
-		call RunGlobalScripts1;
-		pop eax;
-		pop edx;
-		pop ecx;
-		pop ebx;
-		retn;
-	}
-}
-
-static void __declspec(naked) CombatLoopHook() {
-	__asm {
-		pushad;
-		call RunGlobalScripts1;
-		popad;
-		jmp  fo::funcoffs::get_input_
 	}
 }
 
@@ -313,87 +283,6 @@ static void __declspec(naked) FreeProgramHook() {
 		call FreeProgramHook2;
 		popad;
 		retn;
-	}
-}
-
-static void __declspec(naked) obj_outline_all_items_on() {
-	__asm {
-		pushad
-		mov  eax, dword ptr ds:[FO_VAR_map_elevation]
-		call fo::funcoffs::obj_find_first_at_
-loopObject:
-		test eax, eax
-		jz   end
-		cmp  eax, ds:[FO_VAR_outlined_object]
-		je   nextObject
-		xchg ecx, eax
-		mov  eax, [ecx+0x20]
-		and  eax, 0xF000000
-		sar  eax, 0x18
-		test eax, eax                             // This object is an item?
-		jnz  nextObject                           // No
-		cmp  dword ptr [ecx+0x7C], eax            // Owned by someone?
-		jnz  nextObject                           // Yes
-		test dword ptr [ecx+0x74], eax            // Already outlined?
-		jnz  nextObject                           // Yes
-		mov  edx, 0x10                            // yellow
-		test byte ptr [ecx+0x25], dl              // NoHighlight_ flag is set (is this a container)?
-		jz   NoHighlight                          // No
-		cmp  highlightContainers, eax             // Highlight containers?
-		je   nextObject                           // No
-		mov  edx, colorContainers                // NR: should be set to yellow or purple later
-NoHighlight:
-		mov  [ecx+0x74], edx
-nextObject:
-		call fo::funcoffs::obj_find_next_at_
-		jmp  loopObject
-end:
-		call fo::funcoffs::tile_refresh_display_
-		popad
-		retn
-	}
-}
-
-static void __declspec(naked) obj_outline_all_items_off() {
-	__asm {
-		pushad
-		mov  eax, dword ptr ds:[FO_VAR_map_elevation]
-		call fo::funcoffs::obj_find_first_at_
-loopObject:
-		test eax, eax
-		jz   end
-		cmp  eax, ds:[FO_VAR_outlined_object]
-		je   nextObject
-		xchg ecx, eax
-		mov  eax, [ecx+0x20]
-		and  eax, 0xF000000
-		sar  eax, 0x18
-		test eax, eax                             // Is this an item?
-		jnz  nextObject                           // No
-		cmp  dword ptr [ecx+0x7C], eax            // Owned by someone?
-		jnz  nextObject                           // Yes
-		mov  dword ptr [ecx+0x74], eax
-nextObject:
-		call fo::funcoffs::obj_find_next_at_
-		jmp  loopObject
-end:
-		call fo::funcoffs::tile_refresh_display_
-		popad
-		retn
-	}
-}
-
-static void __declspec(naked) obj_remove_outline_hook() {
-	__asm {
-		call fo::funcoffs::obj_remove_outline_
-		test eax, eax
-		jnz  end
-		cmp  highlightingToggled, 1
-		jne  end
-		mov  ds:[FO_VAR_outlined_object], eax
-		call obj_outline_all_items_on
-end:
-		retn
 	}
 }
 
@@ -570,17 +459,17 @@ bool _stdcall ScriptHasLoaded(fo::Program* script) {
 }
 
 void _stdcall RegAnimCombatCheck(DWORD newValue) {
-	char oldValue = reg_anim_combat_check;
-	reg_anim_combat_check = (newValue > 0);
-	if (oldValue != reg_anim_combat_check) {
-		SafeWrite8(0x459C97, reg_anim_combat_check); // reg_anim_func
-		SafeWrite8(0x459D4B, reg_anim_combat_check); // reg_anim_animate
-		SafeWrite8(0x459E3B, reg_anim_combat_check); // reg_anim_animate_reverse
-		SafeWrite8(0x459EEB, reg_anim_combat_check); // reg_anim_obj_move_to_obj
-		SafeWrite8(0x459F9F, reg_anim_combat_check); // reg_anim_obj_run_to_obj
-		SafeWrite8(0x45A053, reg_anim_combat_check); // reg_anim_obj_move_to_tile
-		SafeWrite8(0x45A10B, reg_anim_combat_check); // reg_anim_obj_run_to_tile
-		SafeWrite8(0x45AE53, reg_anim_combat_check); // reg_anim_animate_forever
+	char oldValue = regAnimCombatCheck;
+	regAnimCombatCheck = (newValue > 0);
+	if (oldValue != regAnimCombatCheck) {
+		SafeWrite8(0x459C97, regAnimCombatCheck); // reg_anim_func
+		SafeWrite8(0x459D4B, regAnimCombatCheck); // reg_anim_animate
+		SafeWrite8(0x459E3B, regAnimCombatCheck); // reg_anim_animate_reverse
+		SafeWrite8(0x459EEB, regAnimCombatCheck); // reg_anim_obj_move_to_obj
+		SafeWrite8(0x459F9F, regAnimCombatCheck); // reg_anim_obj_run_to_obj
+		SafeWrite8(0x45A053, regAnimCombatCheck); // reg_anim_obj_move_to_tile
+		SafeWrite8(0x45A10B, regAnimCombatCheck); // reg_anim_obj_run_to_tile
+		SafeWrite8(0x45AE53, regAnimCombatCheck); // reg_anim_animate_forever
 	}
 }
 
@@ -664,73 +553,31 @@ void AfterAttackCleanup() {
 	ResetExplosionSettings();
 }
 
-static void RunGlobalScripts1() {
-	if (idle >- 1) Sleep(idle);
-	if (toggleHighlightsKey) {
-		//0x48C294 to toggle
-		if (KeyDown(toggleHighlightsKey)) {
-			if (!highlightingToggled) {
-				if (MotionSensorMode&4) {
-					fo::GameObject* scanner = fo::func::inven_pid_is_carried_ptr(fo::var::obj_dude, fo::PID_MOTION_SENSOR);
-					if (scanner != nullptr) {
-						if (MotionSensorMode & 2) {
-							highlightingToggled = fo::func::item_m_dec_charges(scanner) + 1;
-							if (!highlightingToggled) {
-								fo::func::display_print(HighlightFailMsg2.c_str());
-							}
-						} else highlightingToggled = 1;
-					} else {
-						fo::func::display_print(highlightFailMsg1.c_str());
-					}
-				} else {
-					highlightingToggled = 1;
-				}
-				if (highlightingToggled) {
-					obj_outline_all_items_on();
-				} else {
-					highlightingToggled = 2;
-				}
-			}
-		} else if (highlightingToggled) {
-			if (highlightingToggled == 1) {
-				obj_outline_all_items_off();
-			} 
-			highlightingToggled = 0;
-		}
+static inline void RunGlobalScripts(int mode1, int mode2) {
+	// TODO: move processor idle out?
+	if (idle > -1) {
+		Sleep(idle);
 	}
 	for (DWORD d=0; d<globalScripts.size(); d++) {
-		if (!globalScripts[d].repeat || (globalScripts[d].mode != 0 && globalScripts[d].mode != 3)) continue;
-		if (++globalScripts[d].count >= globalScripts[d].repeat) {
+		if (globalScripts[d].repeat
+			&& (globalScripts[d].mode == mode1 || globalScripts[d].mode == mode2)
+			&& ++globalScripts[d].count >= globalScripts[d].repeat) {
 			RunScript(&globalScripts[d]);
 		}
 	}
 	ResetStateAfterFrame();
 }
 
-void RunGlobalScripts2() {
-	if (idle >- 1) {
-		Sleep(idle);
-	}
-	for (size_t d = 0; d < globalScripts.size(); d++) {
-		if (!globalScripts[d].repeat || globalScripts[d].mode != 1) continue;
-		if (++globalScripts[d].count >= globalScripts[d].repeat) {
-			RunScript(&globalScripts[d]);
-		}
-	}
-	ResetStateAfterFrame();
+static void RunGlobalScriptsOnMainLoop() {
+	RunGlobalScripts(0, 3);
 }
 
-void RunGlobalScripts3() {
-	if (idle >- 1) {
-		Sleep(idle);
-	}
-	for (size_t d=0; d < globalScripts.size(); d++) {
-		if (!globalScripts[d].repeat || (globalScripts[d].mode != 2 && globalScripts[d].mode != 3)) continue;
-		if (++globalScripts[d].count >= globalScripts[d].repeat) {
-			RunScript(&globalScripts[d]);
-		}
-	}
-	ResetStateAfterFrame();
+void RunGlobalScriptsOnInput() {
+	RunGlobalScripts(1, 1);
+}
+
+void RunGlobalScriptsOnWorldMap() {
+	RunGlobalScripts(2, 3);
 }
 
 void _stdcall HandleMapUpdateForScripts(DWORD procId) {
@@ -830,25 +677,12 @@ void ScriptExtender::init() {
 	};
 	LoadGameHook::onGameReset += ClearGlobals;
 
-	toggleHighlightsKey = GetConfigInt("Input", "ToggleItemHighlightsKey", 0);
-	if (toggleHighlightsKey) {
-		MotionSensorMode = GetConfigInt("Misc", "MotionScannerFlags", 1);
-		highlightContainers = GetConfigInt("Input", "HighlightContainers", 0);
-		switch (highlightContainers) {
-		case 1:
-			colorContainers = 0x10; // yellow
-			break;
-		case 2:
-			colorContainers = 0x40; // purple
-			break;
-		}
-		//HookCall(0x44B9BA, &gmouse_bk_process_hook);
-		HookCall(0x44BD1C, &obj_remove_outline_hook);
-		HookCall(0x44E559, &obj_remove_outline_hook);
-	}
-	highlightFailMsg1 = Translate("Sfall", "HighlightFail1", "You aren't carrying a motion sensor.");
-	HighlightFailMsg2 = Translate("Sfall", "HighlightFail2", "Your motion sensor is out of charge.");
+	MainLoopHook::onMainLoop += RunGlobalScriptsOnMainLoop;
+	MainLoopHook::onCombatLoop += RunGlobalScriptsOnMainLoop;
+	OnInputLoop() += RunGlobalScriptsOnInput;
+	Worldmap::onWorldmapLoop += RunGlobalScriptsOnWorldMap;
 
+	// TODO: move out?
 	idle = GetConfigInt("Misc", "ProcessorIdle", -1);
 	if (idle > -1) {
 		fo::var::idle_func = reinterpret_cast<DWORD>(Sleep);
@@ -864,13 +698,10 @@ void ScriptExtender::init() {
 	} else {
 		dlogr("Arrays in backward-compatiblity mode.", DL_SCRIPT);
 	}
-	
-	HookCall(0x480E7B, MainGameLoopHook); //hook the main game loop
-	HookCall(0x422845, CombatLoopHook); //hook the combat loop
 
 	MakeCall(0x4A390C, &FindSidHook, true);
 	MakeCall(0x4A5E34, &ScrPtrHook, true);
-	memset(&OverrideScriptStruct, 0, sizeof(fo::ScriptInstance));
+	memset(&overrideScriptStruct, 0, sizeof(fo::ScriptInstance));
 
 	MakeCall(0x4230D5, &AfterCombatAttackHook, true);
 	MakeCall(0x4A67F2, &ExecMapScriptsHook, true);

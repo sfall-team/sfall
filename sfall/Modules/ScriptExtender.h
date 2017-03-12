@@ -46,9 +46,6 @@ void _stdcall SetGlobalScriptRepeat(fo::Program* script, int frames);
 void _stdcall SetGlobalScriptType(fo::Program* script, int type);
 bool _stdcall IsGameScript(const char* filename);
 
-void RunGlobalScripts1();
-void RunGlobalScripts2();
-void RunGlobalScripts3();
 void _stdcall RunGlobalScriptsAtProc(DWORD procId);
 void AfterAttackCleanup();
 
@@ -66,7 +63,7 @@ DWORD _stdcall GetGlobalVarInt(DWORD var);
 
 void _stdcall SetSelfObject(fo::Program* script, fo::GameObject* obj);
 
-extern DWORD AddUnarmedStatToGetYear;
+extern DWORD addUnarmedStatToGetYear;
 extern DWORD availableGlobalScriptTypes;
 
 void SetAppearanceGlobals(int race, int style);
@@ -88,14 +85,8 @@ void AddProgramToMap(ScriptProgram &prog);
 ScriptProgram* GetGlobalScriptProgram(fo::Program* scriptPtr);
 
 // variables
-static char reg_anim_combat_check = 1;
+static char regAnimCombatCheck = 1;
 extern DWORD isGlobalScriptLoading;
 extern DWORD modifiedIni;
-
-// types for script variables
-#define VAR_TYPE_INT    (0xC001)
-#define VAR_TYPE_FLOAT  (0xA001)
-#define VAR_TYPE_STR    (0x9801)
-#define VAR_TYPE_STR2   (0x9001)
 
 }

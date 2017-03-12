@@ -83,7 +83,7 @@ void CRC(const char* filepath) {
 	DWORD size = GetFileSize(h, 0), crc;
 	bool sizeMatch = (size == ExpectedSize);
 
-	if (isDebug && !sizeMatch && GetPrivateProfileIntA("Debugging", "SkipSizeCheck", 0, ddrawIni)) {
+	if (isDebug && !sizeMatch && GetPrivateProfileIntA("Debugging", "SkipSizeCheck", 0, ::sfall::ddrawIni)) {
 		sizeMatch = true;
 	}
 
@@ -98,7 +98,7 @@ void CRC(const char* filepath) {
 	bool matchedCRC = false;
 
 	if (isDebug) {
-		auto extraCrcList = GetIniList("Debugging", "ExtraCRC", "", 512, ',', ddrawIni);
+		auto extraCrcList = GetIniList("Debugging", "ExtraCRC", "", 512, ',', ::sfall::ddrawIni);
 		if (extraCrcList.size() > 0) {
 			matchedCRC = std::any_of(extraCrcList.begin(), extraCrcList.end(), [crc](const std::string& testCrcStr) {
 				auto testedCrc = strtoul(testCrcStr.c_str(), 0, 16);

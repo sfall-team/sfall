@@ -24,7 +24,6 @@
 #include "main.h"
 #include "Logging.h"
 #include "Modules\Graphics.h"
-#include "Modules\ScriptExtender.h"
 #include "Modules\HookScripts.h"
 #include "Modules\DebugEditor.h"
 
@@ -79,6 +78,7 @@ static std::queue<DIDEVICEOBJECTDATA> bufferedPresses;
 static HKL keyboardLayout;
 
 KeyPressedDelegate onKeyPressed;
+Delegate<> onInputLoop;
 
 void SetMDown(bool down, bool right) {
 	if (right) RMouse = down ? 0x80 : 0;
@@ -89,6 +89,15 @@ void SetMPos(int x, int y) {
 	MPMouseX = x;
 	MPMouseY = y;
 }
+
+KeyPressedDelegate& OnKeyPressed() {
+	return onKeyPressed;
+}
+
+Delegate<>& OnInputLoop() {
+	return onInputLoop;
+}
+
 
 DWORD _stdcall KeyDown(DWORD key) {
 	if ((key & 0x80000000) > 0) { // special flag to check by VK code directly
@@ -245,7 +254,7 @@ public:
 			return RealDevice->GetDeviceData(a, b, c, d);
 		}
 
-		RunGlobalScripts2();
+		onInputLoop.invoke();
 
 		if (!b || bufferedPresses.empty() || (d&DIGDD_PEEK)) {
 			HRESULT hr = RealDevice->GetDeviceData(a, b, c, d);

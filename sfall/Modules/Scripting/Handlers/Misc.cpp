@@ -171,7 +171,7 @@ void __declspec(naked) op_get_year() {
 		mov ebx, esp;
 		call fo::funcoffs::game_time_date_;
 		mov edx, [esp];
-		mov eax, AddUnarmedStatToGetYear;
+		mov eax, addUnarmedStatToGetYear;
 		test eax, eax;
 		jz end;
 		add edx, ds:[FO_VAR_pc_proto + 0x4C];

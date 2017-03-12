@@ -18,14 +18,18 @@
 
 #pragma once
 
+#include "Delegate.h"
 #include "Module.h"
 
 namespace sfall
 {
 
 class Worldmap : public Module {
+public:
 	const char* name() { return "Worldmap"; }
 	void init();
+
+	static Delegate<> onWorldmapLoop;
 };
 
 }
