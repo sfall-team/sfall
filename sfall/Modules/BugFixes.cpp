@@ -323,6 +323,70 @@ skip:
 		jmp  fo::funcoffs::item_get_type_
 	}
 }
+static void __declspec(naked) is_supper_bonus_hack() {
+	__asm {
+		add  eax, ecx
+		test eax, eax
+		jle  skip
+		cmp  eax, 10
+		jle  end
+skip:
+		pop  eax                                  // Destroy the return address
+		xor  eax, eax
+		inc  eax
+		pop  edx
+		pop  ecx
+		pop  ebx
+end:
+		retn
+	}
+}
+
+static void __declspec(naked) PrintBasicStat_hack() {
+	__asm {
+		test eax, eax
+		jle  skip
+		cmp  eax, 10
+		jg   end
+		pop  ebx                                  // Destroy the return address
+		push 0x434C21
+		retn
+skip:
+		xor  eax, eax
+end:
+		retn
+	}
+}
+
+static void __declspec(naked) StatButtonUp_hook() {
+	__asm {
+		call fo::funcoffs::inc_stat_
+		test eax, eax
+		jl   end
+		test ebx, ebx
+		jge  end
+		sub  ds:[FO_VAR_character_points], esi
+		dec  esi
+		mov  [esp+0xC+0x4], esi
+end:
+		retn
+	}
+}
+
+static void __declspec(naked) StatButtonDown_hook() {
+	__asm {
+		call fo::funcoffs::stat_level_
+		cmp  eax, 1
+		jg   end
+		pop  eax                                  // Destroy the return address
+		xor  eax, eax
+		inc  eax
+		mov  [esp+0xC], eax
+		push 0x437B41
+end:
+		retn
+	}
+}
 
 static void __declspec(naked) loot_container_hack() {
 	__asm {
@@ -600,7 +664,7 @@ static void __declspec(naked) set_new_results_hack() {
 		inc  edx                                  // type = knockout
 		jmp  fo::funcoffs::queue_remove_this_                   // Remove knockout from queue (if there is one)
 end:
-		pop  eax                                  // Destroying return address
+		pop  eax                                  // Destroy the return address
 		push 0x424FC6
 		retn
 	}
@@ -948,7 +1012,7 @@ end:
 void BugFixes::init()
 {
 	//if (GetConfigInt("Misc", "SharpshooterFix", 1)) {
-		dlog("Applying sharpshooter patch.", DL_INIT);
+		dlog("Applying Sharpshooter patch.", DL_INIT);
 		// http://www.nma-fallout.com/threads/fo2-engine-tweaks-sfall.178390/page-119#post-4050162
 		// by Slider2k
 		HookCall(0x4244AB, &SharpShooterFix); // hooks stat_level_() call in detemine_to_hit_func_()
@@ -1025,6 +1089,14 @@ void BugFixes::init()
 	SafeWrite8(0x4AC377, 0x7F);                // jg
 	dlogr(" Done", DL_INIT);
 
+	// Fix for negative SPECIAL values in character creation
+	dlog("Applying fix for negative SPECIAL values in character creation.", DL_INIT);
+	MakeCall(0x43DF6F, &is_supper_bonus_hack, false);
+	MakeCall(0x434BFF, &PrintBasicStat_hack, false);
+	HookCall(0x437AB4, &StatButtonUp_hook);
+	HookCall(0x437B26, &StatButtonDown_hook);
+	dlogr(" Done", DL_INIT);
+
 	// Fix for not counting in the weight of equipped items on NPC when stealing or bartering
 	//if (GetConfigInt("Misc", "NPCWeightFix", 1)) {
 		dlog("Applying fix for not counting in weight of equipped items on NPC.", DL_INIT);
@@ -1060,7 +1132,7 @@ void BugFixes::init()
 	//}
 
 	//if (GetConfigInt("Misc", "BlackSkilldexFix", 1)) {
-		dlog("Applying black skilldex patch.", DL_INIT);
+		dlog("Applying black Skilldex patch.", DL_INIT);
 		HookCall(0x497D0F, &PipStatus_AddHotLines_hook);
 		dlogr(" Done", DL_INIT);
 	//}
@@ -1189,6 +1261,7 @@ void BugFixes::init()
 	//}
 
 	//if (GetConfigInt("Misc", "BagBackpackFix", 1)) {
+		dlog("Applying fix for bag/backpack bugs.", DL_INIT);
 		// Fix for items disappearing from inventory when you try to drag them to bag/backpack in the inventory list
 		// and are overloaded
 		HookCall(0x4764FC, (void*)fo::funcoffs::item_add_force_);
@@ -1203,6 +1276,7 @@ void BugFixes::init()
 		SafeWrite8(0x471C1C, 0x90); // nop
 		// Fix crash when trying to open bag/backpack on the table in the bartering interface
 		MakeCall(0x473191, &inven_action_cursor_hack, false);
+		dlogr(" Done", DL_INIT);
 	//}
 
 	// Fix crash when clicking on empty space in the inventory list opened by "Use Inventory Item On" (backpack) action icon
