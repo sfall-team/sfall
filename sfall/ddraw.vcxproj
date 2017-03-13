@@ -223,7 +223,6 @@
     <ClInclude Include="FalloutEngine\Variables.h" />
     <ClInclude Include="FalloutEngine\Functions.h" />
     <ClInclude Include="FalloutEngine\Functions_def.h" />
-    <ClInclude Include="Modules\HighlightingMod.h" />
     <ClInclude Include="Modules\Input.h" />
     <ClInclude Include="ModuleManager.h" />
     <ClInclude Include="Modules\MainLoopHook.h" />
@@ -305,7 +304,6 @@
     <ClCompile Include="FalloutEngine\FunctionOffsets.cpp" />
     <ClCompile Include="FalloutEngine\Variables.cpp" />
     <ClCompile Include="FalloutEngine\Functions.cpp" />
-    <ClCompile Include="Modules\HighlightingMod.cpp" />
     <ClCompile Include="Modules\Input.cpp" />
     <ClCompile Include="ModuleManager.cpp" />
     <ClCompile Include="Modules\AI.cpp" />

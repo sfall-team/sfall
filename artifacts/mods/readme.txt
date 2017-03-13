@@ -1,0 +1,1 @@
+To install each mod, copy *.int file into your <Fallout Dir>\data\scripts\ folder.

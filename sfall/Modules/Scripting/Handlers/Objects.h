@@ -75,5 +75,7 @@ void sf_set_flags(OpcodeContext&);
 
 void sf_get_flags(OpcodeContext&);
 
+void sf_outlined_object(OpcodeContext&);
+
 }
 }

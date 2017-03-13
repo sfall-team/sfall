@@ -1,14 +1,24 @@
-#include "..\scripting\headers\sfall.h"
-#include "..\scripting\headers\define_extra.h"
+/**
+   
+   Item Highlight mod. 
+   
+   Previously was part of sfall itself, now a separate mod.
+   Features:
+   - highlighting items, containers (optional) and dead bodies on the ground
+   - configurable hotkey is used to trigger highlight
+   - only objects in direct line-of-sight of player are highlighted
+   - motion scanner is required to enable highlight (optional)
+   - motion scanner charges are decreesed on each use (optional)
+   
+**/
+
+#include "main.h"
 //#include "..\..\..\!SRC\headers\define.h"
 
 #define CRITTER_IS_DEAD   (1)
 #define PID_MOTION_SENSOR  (59)
 #define NO_HIGHLIGHT(obj)  (get_flags(obj) bwand FLAG_NOHIGHLIGHT)
-#define TRANSLATE(id, default)   (get_ini_string(translationIni + "|" id "|" default)
 
-variable ini := "ddraw.ini";
-variable translationIni;
 variable highlightKey;
 variable highlightContainers;
 variable colorContainers;
@@ -22,7 +32,7 @@ procedure toggle_highlight_object(variable obj, variable enable) begin
       and (highlightContainers or not NO_HIGHLIGHT(obj)) then begin
       set_outline(
          obj, 
-         enable and (NO_HIGHLIGHT(obj) and colorContainers or OUTLINE_YELLOW) or 0
+         enable and (NO_HIGHLIGHT(obj) and colorContainers or OUTLINE_DARK_YELLOW) or 0
       );
    end
 end
@@ -30,7 +40,9 @@ end
 procedure toggle_highlight(variable enable) begin
    variable obj;
    foreach obj in list_as_array(LIST_GROUNDITEMS) begin
-      call toggle_highlight_object(obj, enable);
+      if obj != outlined_object then begin
+         call toggle_highlight_object(obj, enable);
+      end
    end
    foreach obj in list_as_array(LIST_CRITTERS) begin
       if critter_state(obj) == CRITTER_IS_DEAD then begin
@@ -74,26 +86,6 @@ procedure key_press_handler begin
    end
 end
 
-procedure GetConfig(variable section, variable key, variable def) begin
-   variable val := get_ini_setting(ini + "|" + section + "|" + key);
-   if val == -1 then val := def;
-   return val;      
-end
-
-procedure GetConfigStr(variable section, variable key, variable def) begin
-   variable val := get_ini_string(ini + "|" + section + "|" + key);
-   if val == -1 or val == "" then val := def;
-   return val;
-end
-
-procedure translate(variable id, variable def) begin
-   variable str := get_ini_string(translationIni + "|Sfall|" + id); 
-   if not str or (strlen(str) == 0) then begin
-      str := def;
-   end      
-   return str;
-end
-
 procedure start begin
    if game_loaded then begin
       translationIni := GetConfigStr("Main", "TranslationsINI", "./Translations.ini");
@@ -102,7 +94,7 @@ procedure start begin
       display_msg("key= " + highlightKey);
       highlightContainers := GetConfig("Input", "HighlightContainers", 0);
       if highlightContainers == 1 then begin
-         colorContainers := OUTLINE_YELLOW;
+         colorContainers := OUTLINE_DARK_YELLOW;
       end else if highlightContainers == 2 then begin
          colorContainers := OUTLINE_PURPLE;
       end

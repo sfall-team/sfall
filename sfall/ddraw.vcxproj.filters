@@ -247,9 +247,6 @@
     <ClInclude Include="Modules\MainLoopHook.h">
       <Filter>Modules</Filter>
     </ClInclude>
-    <ClInclude Include="Modules\HighlightingMod.h">
-      <Filter>Modules</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
@@ -459,9 +456,6 @@
     </ClCompile>
     <ClCompile Include="stdafx.cpp" />
     <ClCompile Include="Modules\MainLoopHook.cpp">
-      <Filter>Modules</Filter>
-    </ClCompile>
-    <ClCompile Include="Modules\HighlightingMod.cpp">
       <Filter>Modules</Filter>
     </ClCompile>
   </ItemGroup>

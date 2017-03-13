@@ -419,5 +419,9 @@ void sf_get_flags(OpcodeContext& ctx) {
 	ctx.setReturn(obj->flags);
 }
 
+void sf_outlined_object(OpcodeContext& ctx) {
+	ctx.setReturn(fo::var::outlined_object);
+}
+
 }
 }
