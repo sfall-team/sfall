@@ -27,9 +27,11 @@ enum SfallDataType {
 	DATATYPE_STR
 };
 
+#pragma pack(8)
 struct sGlobalVar {
 	__int64 id;
-	int val;
+	__int32 val;
+	__int32 unused;
 };
 
 #define SCRIPT_PROC_MAX (27)

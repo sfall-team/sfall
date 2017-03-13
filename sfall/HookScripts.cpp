@@ -88,6 +88,7 @@ static void _stdcall RunSpecificHookScript(sHookScript *hook) {
 	else
 		RunScriptProc(&hook->prog, start);
 }
+
 static void _stdcall RunHookScript(DWORD hook) {
 	if (hooks[hook].size()) {
 		dlog_f("Running hook %d, which has %0d entries attached\r\n", DL_HOOK, hook, hooks[hook].size());
@@ -121,6 +122,7 @@ end:
 		retn 8;
 	}
 }
+
 static const DWORD AfterHitRollAddr=0x423898;
 static void __declspec(naked) AfterHitRollHook() {
 	__asm {
@@ -177,6 +179,7 @@ end:
 		retn;
 	}
 }
+
 // this is for using non-weapon items, always 2 AP in vanilla
 static void __declspec(naked) CalcApCostHook2() {
 	__asm {
@@ -268,6 +271,7 @@ aend:
 		retn 8;
 	}
 }
+
 static void __declspec(naked) CalcDeathAnimHook2() {
 	__asm {
 		hookbegin(5);
@@ -293,6 +297,7 @@ skip:
 		retn;
 	}
 }
+
 static void __declspec(naked) CombatDamageHook() {
 	__asm {
 		push edx;
@@ -523,27 +528,27 @@ static void __declspec(naked) BarterPriceHook() {
 		hookbegin(9);
 		mov args[0], eax;
 		mov args[4], edx;
-		call barter_compute_value_
+		call barter_compute_value_;
 		mov edx, ds:[_btable]
 		mov args[8], eax;
 		mov args[12], edx;
 		xchg eax, edx;
-		call item_caps_total_
+		call item_caps_total_;
 		mov args[16], eax;
-		mov eax, ds:[_btable]
-		call item_total_cost_
+		mov eax, ds:[_btable];
+		call item_total_cost_;
 		mov args[20], eax;
-		mov  eax, ds:[_ptable]
-		mov  args[24], eax
-		call item_total_cost_
-		mov  args[28], eax 
-		xor  eax, eax
-		cmp  edi, args[0] // check offers button
-		jne  skip
-		inc  eax
+		mov eax, ds:[_ptable];
+		mov args[24], eax;
+		call item_total_cost_;
+		mov args[28], eax;
+		xor eax, eax;
+		mov edx, [esp]; // check offers button
+		cmp edx, 0x474D51; // last address on call stack
+		jne skip;
+		inc eax;
 skip:
-		mov  args[32], eax
-		mov eax, edx;
+		mov args[32], eax;
 		pushad;
 		push HOOK_BARTERPRICE;
 		call RunHookScript;
@@ -746,6 +751,7 @@ void __declspec(naked) AmmoCostHookWrapper() {
 		retn;
 	}
 }
+
 void _stdcall KeyPressHook( DWORD dxKey, bool pressed, DWORD vKey )
 {
 	BeginHook();
@@ -1087,6 +1093,7 @@ void _stdcall SetHSReturn(DWORD d) {
 	if (cRetTmp > cRet)
 		cRet = cRetTmp;
 }
+
 void _stdcall RegisterHook( DWORD script, DWORD id, DWORD procNum )
 {
 	if (id >= numHooks) return;

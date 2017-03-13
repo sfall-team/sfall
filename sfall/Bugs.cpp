@@ -386,7 +386,6 @@ end:
 	}
 }
 
-
 static void __declspec(naked) loot_container_hack() {
 	__asm {
 		mov  eax, [esp+0x114+0x4]
@@ -1033,7 +1032,7 @@ void __declspec(naked) ItemCountFix() {
 static void __declspec(naked) Save_as_ASCII_hack() {
 	__asm {
 		mov  edx, STAT_sequence;
-		mov  ebx, 626; // in EDITOR.MSG
+		mov  ebx, 626; // line index in EDITOR.MSG
 		push 0x4396FC; // call stat_level_
 		retn;
 	}
