@@ -1030,6 +1030,15 @@ void __declspec(naked) ItemCountFix() {
 	}
 }
 
+static void __declspec(naked) Save_as_ASCII_hack() {
+	__asm {
+		mov  edx, STAT_sequence;
+		mov  ebx, 626; // in EDITOR.MSG
+		push 0x4396FC; // call stat_level_
+		retn;
+	}
+}
+
 
 void BugsInit()
 {
@@ -1306,4 +1315,7 @@ void BugsInit()
 
 	// Fix item_count function returning incorrect value when there is a container-item inside
 	MakeCall(0x47808C, ItemCountFix, true); // replacing item_count_ function
+
+	// Fix for Sequence stat value not being printed correctly when using "print to file" option
+	MakeCall(0x4396F5, &Save_as_ASCII_hack, true);
 }

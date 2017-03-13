@@ -63,6 +63,7 @@ static const char* ExtraLines[] = {
 	"Continuum",
 	"Fakeman",
 	"Drobovik",
+	"Mr.Stalin",
 	"Anyone who has used sfall in their own mods",
 	"The bug reporters and feature requesters",
 	""
