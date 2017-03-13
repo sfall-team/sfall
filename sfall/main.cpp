@@ -313,63 +313,14 @@ end_cppf:
 		retn;
 	}
 }
-static double wm_nexttick;
-static double wm_wait;
-static bool wm_usingperf;
-static __int64 wm_perfadd;
-static __int64 wm_perfnext;
-static DWORD WorldMapLoopCount;
-static void WorldMapSpeedPatch3() {
-	RunGlobalScripts3();
-	if (wm_usingperf) {
-		__int64 timer;
-		while (true) {
-			QueryPerformanceCounter((LARGE_INTEGER*)&timer);
-			if (timer > wm_perfnext) break;
-			Sleep(0);
-		}
-		if (wm_perfnext + wm_perfadd < timer) wm_perfnext = timer + wm_perfadd;
-		else wm_perfnext += wm_perfadd;
-	} else {
-		DWORD tick;
-		DWORD nexttick = (DWORD)wm_nexttick;
-		while ((tick = GetTickCount()) < nexttick) Sleep(0);
-		if (nexttick + wm_wait < tick) wm_nexttick = tick + wm_wait;
-		else wm_nexttick += wm_wait;
-	}
-}
-static void __declspec(naked) WorldMapSpeedPatch2() {
-	__asm {
-		pushad;
-		call WorldMapSpeedPatch3;
-		popad;
-		call get_input_;
-		retn;
-	}
-}
-static void __declspec(naked) WorldMapSpeedPatch() {
-	__asm {
-		pushad;
-		call RunGlobalScripts3;
-		popad;
-		push ecx;
-		mov ecx, WorldMapLoopCount;
-ls:
-		mov eax, eax;
-		loop ls;
-		pop ecx;
-		call get_input_;
-		retn;
-	}
-}
+
 //Only used if the world map speed patch is disabled, so that world map scripts are still run
-static void WorldMapHook() {
+static void __declspec(naked) WorldMapHook() {
 	__asm {
 		pushad;
 		call RunGlobalScripts3;
 		popad;
-		call get_input_;
-		retn;
+		jmp get_input_;
 	}
 }
 
@@ -1046,45 +997,18 @@ static void DllMain2() {
 
 	if (GetPrivateProfileInt("Misc", "WorldMapFPSPatch", 0, ini)) {
 		dlog("Applying world map fps patch.", DL_INIT);
-		if (*(DWORD*)0x004BFE5E != 0x8d16) {
+		if (*(DWORD*)0x4BFE5E != 0x8d16) {
 			dlogr(" Failed", DL_INIT);
 		} else {
 			wp_delay = GetPrivateProfileInt("Misc", "WorldMapDelay2", 66, ini);
-			HookCall(0x004BFE5D, worldmap_patch);
+			HookCall(0x4BFE5D, worldmap_patch);
+			AvailableGlobalScriptTypes |= 2;
 			dlogr(" Done", DL_INIT);
 		}
 	} else {
-		tmp = GetPrivateProfileIntA("Misc", "WorldMapFPS", 0, ini);
-		if (tmp) {
-			dlog("Applying world map fps patch.", DL_INIT);
-			if (*((WORD*)0x004CAFB9) == 0x0000) {
-				AvailableGlobalScriptTypes |= 2;
-				SafeWrite32(0x004BFE5E, ((DWORD)&WorldMapSpeedPatch2) - 0x004BFE62);
-				if (GetPrivateProfileIntA("Misc", "ForceLowResolutionTimer", 0, ini) || !QueryPerformanceFrequency((LARGE_INTEGER*)&wm_perfadd) || wm_perfadd <= 1000) {
-					wm_wait = 1000.0 / (double)tmp;
-					wm_nexttick = GetTickCount();
-					wm_usingperf = false;
-				} else {
-					wm_usingperf = true;
-					wm_perfadd /= tmp;
-					wm_perfnext = 0;
-				}
-			}
-			dlogr(" Done", DL_INIT);
-		} else {
-			tmp = GetPrivateProfileIntA("Misc", "WorldMapDelay", 0, ini);
-			if (tmp) {
-				if (*((WORD*)0x004CAFB9) == 0x3d40)
-					SafeWrite32(0x004CAFBB, tmp);
-				else if (*((WORD*)0x004CAFB9) == 0x0000) {
-					SafeWrite32(0x004BFE5E, ((DWORD)&WorldMapSpeedPatch) - 0x004BFE62);
-					WorldMapLoopCount = tmp;
-				}
-			} else {
-				if (*(DWORD*)0x004BFE5E == 0x0000d816) {
-					SafeWrite32(0x004BFE5E, ((DWORD)&WorldMapHook) - 0x004BFE62);
-				}
-			}
+		if (*(DWORD*)0x4BFE5E == 0x8d16) {
+			HookCall(0x4BFE5D, WorldMapHook);
+			AvailableGlobalScriptTypes |= 2;
 		}
 	}
 
