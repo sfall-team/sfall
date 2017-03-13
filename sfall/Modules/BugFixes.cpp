@@ -1008,6 +1008,15 @@ end:
 	}
 }
 
+static void __declspec(naked) Save_as_ASCII_hack() {
+	__asm {
+		mov  edx, STAT_sequence;
+		mov  ebx, 626; // line index in EDITOR.MSG
+		push 0x4396FC; // call stat_level_
+		retn;
+	}
+}
+
 
 void BugFixes::init()
 {
@@ -1281,6 +1290,9 @@ void BugFixes::init()
 
 	// Fix crash when clicking on empty space in the inventory list opened by "Use Inventory Item On" (backpack) action icon
 	MakeCall(0x471A94, &use_inventory_on_hack, false);
+
+	// Fix for Sequence stat value not being printed correctly when using "print to file" option
+	MakeCall(0x4396F5, &Save_as_ASCII_hack, true);
 }
 
 }
