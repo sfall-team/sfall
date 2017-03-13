@@ -28,10 +28,18 @@
 namespace fo
 {
 
-static MessageNode message_buf;
+static MessageNode messageBuf;
 
 const char* _stdcall GetMessageStr(const MessageList* fileAddr, long messageId) {
-	return fo::func::getmsg(fileAddr, &message_buf, messageId);
+	return fo::func::getmsg(fileAddr, &messageBuf, messageId);
+}
+
+const char* _stdcall MessageSearch(const MessageList* fileAddr, long messageId) {
+	messageBuf.number = messageId;
+	if (fo::func::message_search(fileAddr, &messageBuf) == 1) {
+		return messageBuf.message;
+	}
+	return nullptr;
 }
 
 long AnimCodeByWeapon(GameObject* weapon) {

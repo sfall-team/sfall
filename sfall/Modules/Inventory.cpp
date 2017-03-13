@@ -311,7 +311,7 @@ static const char* InvenFmt1 = "%s %d/%d  %s %d/%d";
 static const char* InvenFmt2 = "%s %d/%d";
 
 static const char* _stdcall GetInvenMsg() {
-	const char* tmp = fo::GetMessageStr(&fo::var::inventry_message_file, 35);
+	const char* tmp = fo::MessageSearch(&fo::var::inventry_message_file, 35);
 	if (!tmp) return "S:";
 	else return tmp;
 }
@@ -359,11 +359,11 @@ end:
 static char SizeMsgBuf[32];
 static const char* _stdcall FmtSizeMsg(int size) {
 	if(size==1) {
-		const char* tmp = fo::GetMessageStr(&fo::var::proto_main_msg_file, 543);
+		const char* tmp = fo::MessageSearch(&fo::var::proto_main_msg_file, 543);
 		if(!tmp) strcpy(SizeMsgBuf, "It occupies 1 unit.");
 		else sprintf(SizeMsgBuf, tmp, size);
 	} else {
-		const char* tmp = fo::GetMessageStr(&fo::var::proto_main_msg_file, 542);
+		const char* tmp = fo::MessageSearch(&fo::var::proto_main_msg_file, 542);
 		if(!tmp) sprintf(SizeMsgBuf, "It occupies %d units.", size);
 		else sprintf(SizeMsgBuf, tmp, size);
 	}

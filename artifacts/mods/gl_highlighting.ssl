@@ -3,26 +3,38 @@
 //#include "..\..\..\!SRC\headers\define.h"
 
 #define CRITTER_IS_DEAD   (1)
+#define PID_MOTION_SENSOR  (59)
+#define NO_HIGHLIGHT(obj)  (get_flags(obj) bwand FLAG_NOHIGHLIGHT)
+#define TRANSLATE(id, default)   (get_ini_string(translationIni + "|" id "|" default)
 
+variable ini := "ddraw.ini";
+variable translationIni;
 variable highlightKey;
 variable highlightContainers;
+variable colorContainers;
+variable motionScannerFlags;
+variable highlightFailMsg1;
+variable highlightFailMsg2;
 
-procedure toggle_highlight_object(variable obj, variable color) begin
+procedure toggle_highlight_object(variable obj, variable enable) begin
    if obj 
-      and (get_flags(obj) bwand FLAG_NOHIGHLIGHT) == 0 
-      and (color == 0 or not obj_blocking_line(dude_obj, tile_num(obj), BLOCKING_TYPE_SHOOT)) then begin
-      set_outline(obj, color);
+      and (not enable or not obj_blocking_line(dude_obj, tile_num(obj), BLOCKING_TYPE_SHOOT))
+      and (highlightContainers or not NO_HIGHLIGHT(obj)) then begin
+      set_outline(
+         obj, 
+         enable and (NO_HIGHLIGHT(obj) and colorContainers or OUTLINE_YELLOW) or 0
+      );
    end
 end
 
-procedure toggle_highlight(variable color) begin
+procedure toggle_highlight(variable enable) begin
    variable obj;
    foreach obj in list_as_array(LIST_GROUNDITEMS) begin
-      call toggle_highlight_object(obj, color);
+      call toggle_highlight_object(obj, enable);
    end
    foreach obj in list_as_array(LIST_CRITTERS) begin
       if critter_state(obj) == CRITTER_IS_DEAD then begin
-         call toggle_highlight_object(obj, color);
+         call toggle_highlight_object(obj, enable);
       end
    end
    tile_refresh_display;
@@ -30,22 +42,76 @@ end
 
 procedure key_press_handler begin
    variable pressed := get_sfall_arg,
-            scanCode := get_sfall_arg;
+            scanCode := get_sfall_arg,
+            scanner, charges;
             
    if scanCode == highlightKey then begin
       if pressed then begin
-         call toggle_highlight(OUTLINE_DARK_YELLOW);
+         if motionScannerFlags bwand 4 then begin
+            scanner := obj_carrying_pid_obj(dude_obj, PID_MOTION_SENSOR);
+            if scanner then begin
+               if motionScannerFlags bwand 2 then begin
+                  charges := get_weapon_ammo_count(scanner);
+                  if charges > 0 then begin
+                     set_weapon_ammo_count(scanner, charges - 1);
+                     intface_redraw;
+                     call toggle_highlight(true);
+                  end else begin                     
+                     display_msg(highlightFailMsg2);
+                  end
+               end else begin
+                  call toggle_highlight(true);
+               end
+            end else begin
+               display_msg(highlightFailMsg1);
+            end             
+         end else begin
+            call toggle_highlight(true);
+         end           
       end else begin
-         call toggle_highlight(0);
+         call toggle_highlight(false);
       end
    end
 end
 
+procedure GetConfig(variable section, variable key, variable def) begin
+   variable val := get_ini_setting(ini + "|" + section + "|" + key);
+   if val == -1 then val := def;
+   return val;      
+end
+
+procedure GetConfigStr(variable section, variable key, variable def) begin
+   variable val := get_ini_string(ini + "|" + section + "|" + key);
+   if val == -1 or val == "" then val := def;
+   return val;
+end
+
+procedure translate(variable id, variable def) begin
+   variable str := get_ini_string(translationIni + "|Sfall|" + id); 
+   if not str or (strlen(str) == 0) then begin
+      str := def;
+   end      
+   return str;
+end
+
 procedure start begin
    if game_loaded then begin
-      highlightKey := get_ini_setting("ddraw.ini|Input|ToggleItemHighlightsKey");
+      translationIni := GetConfigStr("Main", "TranslationsINI", "./Translations.ini");
+   
+      highlightKey := GetConfig("Input", "ToggleItemHighlightsKey", 0);
       display_msg("key= " + highlightKey);
-      highlightContainers := get_ini_setting("ddraw.ini|Input|HighlightContainers");
+      highlightContainers := GetConfig("Input", "HighlightContainers", 0);
+      if highlightContainers == 1 then begin
+         colorContainers := OUTLINE_YELLOW;
+      end else if highlightContainers == 2 then begin
+         colorContainers := OUTLINE_PURPLE;
+      end
+      motionScannerFlags := GetConfig("Misc", "MotionScannerFlags", 1);
+      debug_msg("Flags=" + motionScannerFlags + ", ini=" + translationIni);
+      
+		highlightFailMsg1 := translate("HighlightFail1", "You aren't carrying a motion sensor.");
+		highlightFailMsg2 := translate("HighlightFail2", "Your motion sensor is out of charge.");
+		
       register_hook_proc(HOOK_KEYPRESS, key_press_handler);
    end
 end

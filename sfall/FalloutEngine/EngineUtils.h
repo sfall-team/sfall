@@ -35,8 +35,11 @@ inline void DisplayPrint(const std::string& str) {
 	fo::func::display_print(str.c_str());
 }
 
-// returns message string from given file
+// returns message string from given file or "Error" when not found
 const char* _stdcall GetMessageStr(const MessageList* fileAddr, long messageId);
+
+// similar to GetMessageStr, but returns nullptr when no message is found
+const char* _stdcall MessageSearch(const MessageList* fileAddr, long messageId);
 
 // returns pointer to prototype by PID, or nullptr on failure
 Proto* GetProto(long pid);

@@ -153,7 +153,7 @@ long __stdcall message_filter(MessageList* file);
 
 long __stdcall message_make_path(char* outpath, char* path);
 
-long __stdcall message_search(MessageList* file, MessageNode* msg);
+long __stdcall message_search(const MessageList* file, MessageNode* msg);
 
 // loads MSG file into given MessageList
 long __stdcall message_load(MessageList *msgList, const char *msgFilePath);

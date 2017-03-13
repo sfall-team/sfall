@@ -258,7 +258,7 @@ long __stdcall message_make_path(char* outpath, char* path) {
 	WRAP_WATCOM_CALL2(message_make_path_, outpath, path)
 }
 
-long __stdcall message_search(MessageList* file, MessageNode* msg) {
+long __stdcall message_search(const MessageList* file, MessageNode* msg) {
 	WRAP_WATCOM_CALL2(message_search_, file, msg)
 }
 
