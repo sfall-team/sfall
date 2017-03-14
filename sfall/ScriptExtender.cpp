@@ -1745,19 +1745,20 @@ static void RunGlobalScripts1() {
 		//0x48C294 to toggle
 		if (KeyDown(toggleHighlightsKey)) {
 			if (!highlightingToggled) {
-				if (MotionSensorMode&4) {
+				if (MotionSensorMode & 4) {
 					DWORD scanner;
 					__asm {
 						mov eax, ds:[_obj_dude];
-						mov edx, PID_MOTION_SENSOR
-						call inven_pid_is_carried_ptr_
+						mov edx, PID_MOTION_SENSOR;
+						call inven_pid_is_carried_ptr_;
 						mov scanner, eax;
 					}
 					if (scanner) {
-						if (MotionSensorMode&2) {
+						if (!(MotionSensorMode & 2)) {
 							__asm {
 								mov eax, scanner;
-								call item_m_dec_charges_ //Returns -1 if the item has no charges
+								call item_m_dec_charges_; //Returns -1 if the item has no charges
+								call intface_redraw_;
 								inc eax;
 								mov highlightingToggled, eax;
 							}
@@ -1770,7 +1771,7 @@ static void RunGlobalScripts1() {
 				if (highlightingToggled) obj_outline_all_items_on();
 				else highlightingToggled = 2;
 			}
-		} else if(highlightingToggled) {
+		} else if (highlightingToggled) {
 			if (highlightingToggled == 1) obj_outline_all_items_off();
 			highlightingToggled = 0;
 		}

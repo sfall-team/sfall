@@ -1447,7 +1447,13 @@ static void DllMain2() {
 	if (tmp = GetPrivateProfileIntA("Misc", "MotionScannerFlags", 1, ini)) {
 		dlog("Applying MotionScannerFlags patch.", DL_INIT);
 		if (tmp & 1) MakeCall(0x41BBE9, &ScannerAutomapHook, true);
-		if (tmp & 2) BlockCall(0x41BC3C);
+		if (tmp & 2) {
+			// automap_
+			SafeWrite16(0x41BC24, 0x9090);
+			BlockCall(0x41BC3C);
+			// item_m_use_charged_item_
+			SafeWrite8(0x4794B3, 0x5E); // jbe short 0x479512
+		}
 		dlogr(" Done", DL_INIT);
 	}
 
