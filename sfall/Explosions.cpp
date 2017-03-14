@@ -37,7 +37,7 @@ static void __declspec(naked) ranged_attack_lighting_fix() {
 		mov edx, [ecx+0x0C]; // light radius - 2nd arg
 		mov ebx, [ecx+0x10]; // light intensity - 4th arg
 		xor ecx, ecx; // unknown(0) - 3rd argument
-		call fo::funcoffs::obj_set_light_;
+		call obj_set_light_;
 skip:
 		jmp ranged_attack_lighting_fix_back; // jump back
 	}
