@@ -8,7 +8,10 @@
    - configurable hotkey is used to trigger highlight
    - only objects in direct line-of-sight of player are highlighted
    - motion scanner is required to enable highlight (optional)
-   - motion scanner charges are decreesed on each use (optional)
+   - motion scanner charges are decreased on each use (optional)
+   
+   NOTE: this script requires compiler from sfall modderspack with -s option
+   (short circuit evaluation)
    
 **/
 
@@ -19,91 +22,84 @@
 #define PID_MOTION_SENSOR  (59)
 #define NO_HIGHLIGHT(obj)  (get_flags(obj) bwand FLAG_NOHIGHLIGHT)
 
+variable configSection := "Highlighting";
 variable highlightKey;
-variable highlightContainers;
-variable colorContainers;
-variable motionScannerFlags;
+variable ignoreFlags;
+variable outlineColor;
+variable motionScanner;
 variable highlightFailMsg1;
 variable highlightFailMsg2;
 
-procedure toggle_highlight_object(variable obj, variable enable) begin
+procedure ToggleHighlightObject(variable obj, variable enable) begin
    if obj 
       and (not enable or not obj_blocking_line(dude_obj, tile_num(obj), BLOCKING_TYPE_SHOOT))
-      and (highlightContainers or not NO_HIGHLIGHT(obj)) then begin
-      set_outline(
-         obj, 
-         enable and (NO_HIGHLIGHT(obj) and colorContainers or OUTLINE_DARK_YELLOW) or 0
-      );
+      and (ignoreFlags or not NO_HIGHLIGHT(obj)) then begin
+      if (enable) then set_outline(obj, outlineColor);
+      else set_outline(obj, 0);
    end
 end
 
-procedure toggle_highlight(variable enable) begin
+procedure ToggleHighlight(variable enable) begin
    variable obj;
    foreach obj in list_as_array(LIST_GROUNDITEMS) begin
       if obj != outlined_object then begin
-         call toggle_highlight_object(obj, enable);
+         call ToggleHighlightObject(obj, enable);
       end
    end
    foreach obj in list_as_array(LIST_CRITTERS) begin
       if critter_state(obj) == CRITTER_IS_DEAD then begin
-         call toggle_highlight_object(obj, enable);
+         call ToggleHighlightObject(obj, enable);
       end
    end
    tile_refresh_display;
 end
 
-procedure key_press_handler begin
+procedure KeyPressHandler begin
    variable pressed := get_sfall_arg,
             scanCode := get_sfall_arg,
             scanner, charges;
             
    if scanCode == highlightKey then begin
       if pressed then begin
-         if motionScannerFlags bwand 4 then begin
+         if motionScanner then begin
             scanner := obj_carrying_pid_obj(dude_obj, PID_MOTION_SENSOR);
             if scanner then begin
-               if motionScannerFlags bwand 2 then begin
+               if motionScanner >= 2 then begin
                   charges := get_weapon_ammo_count(scanner);
                   if charges > 0 then begin
                      set_weapon_ammo_count(scanner, charges - 1);
                      intface_redraw;
-                     call toggle_highlight(true);
+                     call ToggleHighlight(true);
                   end else begin                     
                      display_msg(highlightFailMsg2);
                   end
                end else begin
-                  call toggle_highlight(true);
+                  call ToggleHighlight(true);
                end
             end else begin
                display_msg(highlightFailMsg1);
             end             
          end else begin
-            call toggle_highlight(true);
+            call ToggleHighlight(true);
          end           
       end else begin
-         call toggle_highlight(false);
+         call ToggleHighlight(false);
       end
    end
 end
 
 procedure start begin
    if game_loaded then begin
-      translationIni := GetConfigStr("Main", "TranslationsINI", "./Translations.ini");
+      call InitConfigs;
    
-      highlightKey := GetConfig("Input", "ToggleItemHighlightsKey", 0);
-      display_msg("key= " + highlightKey);
-      highlightContainers := GetConfig("Input", "HighlightContainers", 0);
-      if highlightContainers == 1 then begin
-         colorContainers := OUTLINE_DARK_YELLOW;
-      end else if highlightContainers == 2 then begin
-         colorContainers := OUTLINE_PURPLE;
-      end
-      motionScannerFlags := GetConfig("Misc", "MotionScannerFlags", 1);
-      debug_msg("Flags=" + motionScannerFlags + ", ini=" + translationIni);
+      highlightKey := GetConfig(configSection, "Key", 0);
+      ignoreFlags := GetConfig(configSection, "IgnoreFlags", 0);
+      outlineColor := GetConfig(configSection, "OutlineColor", 0);
+      motionScanner := GetConfig(configSection, "MotionScanner", 1);
       
-		highlightFailMsg1 := translate("HighlightFail1", "You aren't carrying a motion sensor.");
-		highlightFailMsg2 := translate("HighlightFail2", "Your motion sensor is out of charge.");
+		highlightFailMsg1 := Translate("HighlightFail1", "You aren't carrying a motion sensor.");
+		highlightFailMsg2 := Translate("HighlightFail2", "Your motion sensor is out of charge.");
 		
-      register_hook_proc(HOOK_KEYPRESS, key_press_handler);
+      register_hook_proc(HOOK_KEYPRESS, KeyPressHandler);
    end
 end

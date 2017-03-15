@@ -161,11 +161,11 @@
 #define OUTLINE_NONE        (0)
 #define OUTLINE_RED_GLOW    (0x01)
 #define OUTLINE_RED         (0x02)
-#define OUTLINE_PURPLE      (0x03)
 #define OUTLINE_GREY        (0x04)
 #define OUTLINE_GREEN_GLOW  (0x08)
 #define OUTLINE_YELLOW      (0x10)
 #define OUTLINE_DARK_YELLOW (0x20)
+#define OUTLINE_PURPLE      (0x40)
 
 #define mstr_combat(x)      (message_str_game(GAME_MSG_COMBAT, x))
 #define mstr_ai(x)          (message_str_game(GAME_MSG_AI, x))

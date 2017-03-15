@@ -2,7 +2,7 @@
 #include "..\scripting\headers\sfall.h"
 #include "..\scripting\headers\define_extra.h"
 
-variable ini := "ddraw.ini";
+variable ini := "sfall-mods.ini";
 variable translationIni;
 
 // Gets the integer value from ddraw.ini
@@ -20,7 +20,7 @@ procedure GetConfigStr(variable section, variable key, variable def) begin
 end
 
 // Translates given string using Translations.ini
-procedure translate(variable id, variable def) begin
+procedure Translate(variable id, variable def) begin
    variable str := get_ini_string(translationIni + "|Sfall|" + id); 
    if not str or (strlen(str) == 0) then begin
       str := def;
@@ -28,3 +28,6 @@ procedure translate(variable id, variable def) begin
    return str;
 end
 
+procedure InitConfigs begin
+   translationIni := GetConfigStr("Main", "TranslationsINI", "./Translations.ini");
+end
