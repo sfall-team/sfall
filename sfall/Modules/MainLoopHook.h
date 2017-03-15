@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Delegate.h"
+#include "..\Delegate.h"
 #include "Module.h"
 
 namespace sfall
