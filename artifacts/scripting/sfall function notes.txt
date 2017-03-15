@@ -369,6 +369,28 @@ Some utility/math functions are available:
 > void sfall_func0("exec_map_update_scripts")
 - executes map_update_p_proc for all objects on map and global/hook scripts as well
 
+> int sfall_func1("get_outline", object)
+- gets the current outline color for an object
+
+> void sfall_func2("set_outline", object, int color)
+- sets the outline color of an object
+- 0 means or any value above 0x00FFFFFF disables the outline
+- call "tile_refresh_display" after changing outline of objects to properly redraw the scene
+
+> int sfall_func1("get_flags", object)
+- gets the current value of object flags (see sfall.h for available flags)
+
+> void sfall_func2("set_flags", object, int flags)
+- sets the current flags of an object
+- all flags are rewritten with given integer, so first get current flags with "get_flags" and use bwor/bwand to set/remove specific flag
+
+> void sfall_func0("tile_refresh_display")
+- redraws the game scene (tiles, walls, objects, etc.)
+
+> object sfall_func0("outlined_object")
+- returns an object that is currently highlighted by hovering the mouse above it
+
+
 ------------------------
 ------ MORE INFO -------
 ------------------------
