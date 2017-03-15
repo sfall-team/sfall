@@ -16,7 +16,6 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "..\..\..\CommonTypes.h"
 #include "..\..\..\FalloutEngine\Fallout2.h"
 #include "..\..\..\SafeWrite.h"
 #include "..\..\LoadGameHook.h"

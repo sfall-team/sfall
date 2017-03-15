@@ -18,7 +18,6 @@
 
 #pragma once
 
-#include "..\CommonTypes.h"
 #include "Structs.h"
 
 // 

@@ -240,7 +240,6 @@
     <ClInclude Include="Modules\Console.h" />
     <ClInclude Include="Modules\Scripting\Handlers\Anims.h" />
     <ClInclude Include="Modules\Scripting\Arrays.h" />
-    <ClInclude Include="CommonTypes.h" />
     <ClInclude Include="Modules\Scripting\Handlers\Core.h" />
     <ClInclude Include="Modules\Scripting\Handlers\FileSystem.h" />
     <ClInclude Include="Modules\Scripting\Handlers\Graphics.h" />

@@ -20,7 +20,6 @@
 
 #include <cassert>
 
-#include "..\CommonTypes.h"
 #include "VariableOffsets.h"
 #include "Structs.h"
 

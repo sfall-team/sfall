@@ -180,7 +180,6 @@
     <ClInclude Include="Modules\Scripting\Handlers\Worldmap.h">
       <Filter>Modules\Scripting\Handlers</Filter>
     </ClInclude>
-    <ClInclude Include="CommonTypes.h" />
     <ClInclude Include="Modules\Scripting\OpcodeContext.h">
       <Filter>Modules\Scripting</Filter>
     </ClInclude>
@@ -242,10 +241,12 @@
     <ClInclude Include="FalloutEngine\FunctionOffsets_def.h">
       <Filter>FalloutEngine</Filter>
     </ClInclude>
-    <ClInclude Include="FalloutEngine\VariableOffsets.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="Modules\MainLoopHook.h">
       <Filter>Modules</Filter>
+    </ClInclude>
+    <ClInclude Include="FalloutEngine\VariableOffsets.h">
+      <Filter>FalloutEngine</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
