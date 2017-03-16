@@ -28,8 +28,8 @@
 namespace sfall
 {
 
-static const DWORD ExpectedSize=0x00122800;
-static const DWORD ExpectedCRC[]= {0xe1680293, 0xef34f989};
+static const DWORD ExpectedSize = 0x00122800;
+static const DWORD ExpectedCRC[] = {0xe1680293, 0xef34f989};
 
 static void inline Fail(const char* a) { MessageBoxA(0, a, "Error", MB_TASKMODAL); ExitProcess(1); }
 
@@ -83,7 +83,7 @@ void CRC(const char* filepath) {
 	DWORD size = GetFileSize(h, 0), crc;
 	bool sizeMatch = (size == ExpectedSize);
 
-	if (isDebug && !sizeMatch && GetPrivateProfileIntA("Debugging", "SkipSizeCheck", 0, ::sfall::ddrawIni)) {
+	if (!sizeMatch && GetPrivateProfileIntA("Debugging", "SkipSizeCheck", 0, ::sfall::ddrawIni)) {
 		sizeMatch = true;
 	}
 
@@ -97,14 +97,12 @@ void CRC(const char* filepath) {
 
 	bool matchedCRC = false;
 
-	if (isDebug) {
-		auto extraCrcList = GetIniList("Debugging", "ExtraCRC", "", 512, ',', ::sfall::ddrawIni);
-		if (extraCrcList.size() > 0) {
-			matchedCRC = std::any_of(extraCrcList.begin(), extraCrcList.end(), [crc](const std::string& testCrcStr) {
-				auto testedCrc = strtoul(testCrcStr.c_str(), 0, 16);
-				return testedCrc && crc == testedCrc;
-			});
-		}
+	auto extraCrcList = GetIniList("Debugging", "ExtraCRC", "", 512, ',', ::sfall::ddrawIni);
+	if (extraCrcList.size() > 0) {
+		matchedCRC = std::any_of(extraCrcList.begin(), extraCrcList.end(), [crc](const std::string& testCrcStr) {
+			auto testedCrc = strtoul(testCrcStr.c_str(), 0, 16);
+			return testedCrc && crc == testedCrc;
+		});
 	}
 
 	for (int i = 0; i < sizeof(ExpectedCRC) / 4; i++) {
