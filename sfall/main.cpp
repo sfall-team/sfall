@@ -839,20 +839,20 @@ static void DllMain2() {
 	if (GraphicsMode == 4 || GraphicsMode == 5) {
 		dlog("Applying dx9 graphics patch.", DL_INIT);
 #ifdef WIN2K
-		HMODULE h = LoadLibraryEx("d3dx9_42.dll", 0, LOAD_LIBRARY_AS_DATAFILE);
-		if (!h) {
-			MessageBoxA(0, "You have selected graphics mode 4 or 5, but d3dx9_42.dll is missing\nSwitch back to mode 0, or install an up to date version of DirectX", "Error", 0);
+#define _DLL_NAME "d3dx9_42.dll"
 #else
-		HMODULE h = LoadLibraryEx("d3dx9_43.dll", 0, LOAD_LIBRARY_AS_DATAFILE);
-		if (!h) {
-			MessageBoxA(0, "You have selected graphics mode 4 or 5, but d3dx9_43.dll is missing\nSwitch back to mode 0, or install an up to date version of DirectX", "Error", 0);
+#define _DLL_NAME "d3dx9_43.dll"
 #endif
+		HMODULE h = LoadLibraryEx(_DLL_NAME, 0, LOAD_LIBRARY_AS_DATAFILE);
+		if (!h) {
+			MessageBoxA(0, "You have selected graphics mode 4 or 5, but " _DLL_NAME " is missing\nSwitch back to mode 0, or install an up to date version of DirectX", "Error", 0);
 			ExitProcess(-1);
 		} else {
 			FreeLibrary(h);
 		}
 		SafeWrite8(0x0050FB6B, '2');
 		dlogr(" Done", DL_INIT);
+#undef _DLL_NAME
 	}
 	tmp = GetPrivateProfileIntA("Graphics", "FadeMultiplier", 100, ini);
 	if (tmp != 100) {
