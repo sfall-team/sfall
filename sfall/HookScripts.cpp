@@ -549,6 +549,7 @@ static void __declspec(naked) BarterPriceHook() {
 		inc eax;
 skip:
 		mov args[32], eax;
+		mov eax, args[8];
 		pushad;
 		push HOOK_BARTERPRICE;
 		call RunHookScript;
