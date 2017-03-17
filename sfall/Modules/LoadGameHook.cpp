@@ -238,7 +238,11 @@ static void __declspec(naked) main_load_new_hook() {
 }
 
 static void __stdcall MainMenuLoop() {
-	mapLoaded = false;
+	if (mapLoaded) {
+		// reset sfall modules state once after returning from the game
+		onGameReset.invoke();
+		mapLoaded = false;
+	}
 	if (!gameLoaded) {
 		gameLoaded = true;
 		// called only once

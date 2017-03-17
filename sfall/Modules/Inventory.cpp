@@ -42,6 +42,7 @@ fo::GameObject* GetActiveItem() {
 }
 
 void InventoryKeyPressedHook(DWORD dxKey, bool pressed, DWORD vKey) {
+	// TODO: move this out into a script
 	if (pressed && reloadWeaponKey && dxKey == reloadWeaponKey && IsMapLoaded() && (GetCurrentLoops() & ~(COMBAT | PCOMBAT)) == 0) {
 		DWORD maxAmmo, curAmmo;
 		fo::GameObject* item = GetActiveItem();
@@ -55,11 +56,10 @@ void InventoryKeyPressedHook(DWORD dxKey, bool pressed, DWORD vKey) {
 			if (previusMode != 5) {
 				// return to previous active item mode (if it wasn't "reload")
 				currentMode = previusMode - 1;
-				if (currentMode < 0)
+				if (currentMode < 0) {
 					currentMode = 4;
-				__asm {
-					call fo::funcoffs::intface_toggle_item_state_;
 				}
+				fo::func::intface_toggle_item_state();
 			}
 		}
 	}

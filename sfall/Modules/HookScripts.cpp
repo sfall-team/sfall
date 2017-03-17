@@ -24,6 +24,7 @@
 #include "..\InputFuncs.h"
 #include "..\Logging.h"
 #include "Inventory.h"
+#include "LoadGameHook.h"
 #include "PartyControl.h"
 #include "ScriptExtender.h"
 
@@ -765,6 +766,9 @@ void __declspec(naked) AmmoCostHookWrapper() {
 }
 
 void _stdcall KeyPressHook(DWORD dxKey, bool pressed, DWORD vKey) {
+	if (!IsMapLoaded()) {
+		return;
+	}
 	BeginHook();
 	argCount = 3;
 	args[0] = (DWORD)pressed;

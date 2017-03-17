@@ -568,7 +568,9 @@ static void RunGlobalScriptsOnMainLoop() {
 }
 
 void RunGlobalScriptsOnInput() {
-	RunGlobalScripts(1, 1);
+	if (IsMapLoaded()) {
+		RunGlobalScripts(1, 1);
+	}
 }
 
 void RunGlobalScriptsOnWorldMap() {
