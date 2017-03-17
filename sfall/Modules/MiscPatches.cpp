@@ -613,7 +613,13 @@ void MotionScannerFlagsPatch() {
 	if (flags = GetConfigInt("Misc", "MotionScannerFlags", 1)) {
 		dlog("Applying MotionScannerFlags patch.", DL_INIT);
 		if (flags & 1) MakeCall(0x41BBE9, &ScannerAutomapHook, true);
-		if (flags & 2) BlockCall(0x41BC3C);
+		if (flags & 2) {
+			// automap_
+			SafeWrite16(0x41BC24, 0x9090);
+			BlockCall(0x41BC3C);
+			// item_m_use_charged_item_
+			SafeWrite8(0x4794B3, 0x5E); // jbe short 0x479512
+		}
 		dlogr(" Done", DL_INIT);
 	}
 }
