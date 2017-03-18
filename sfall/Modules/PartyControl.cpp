@@ -363,7 +363,7 @@ void PartyControl::init() {
 				Chars.push_back(static_cast<WORD>(strtoul(pid.c_str(), 0, 0)));
 			}
 		}
-		dlog_f(" Mode %d, Chars read: %d.", DL_INIT, Mode, Chars.size());
+		dlog_f("  Mode %d, Chars read: %d.\n", DL_INIT, Mode, Chars.size());
 
 		HookCall(0x46EBEE, &FidChangeHook);
 
@@ -377,7 +377,7 @@ void PartyControl::init() {
 
 		LoadGameHook::OnGameReset() += PartyControlReset;
 	} else {
-		dlog(" Disabled.", DL_INIT);
+		dlogr("  Disabled.", DL_INIT);
 	}
 }
 

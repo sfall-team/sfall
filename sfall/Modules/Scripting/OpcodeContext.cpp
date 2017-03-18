@@ -86,7 +86,7 @@ void OpcodeContext::printOpcodeError(const char* fmt, ...) const {
 	va_list args;
 	va_start(args, fmt);
 	char msg[1024];
-	vsnprintf_s(msg, sizeof msg, _TRUNCATE, fmt, args);
+	vsnprintf_s(msg, sizeof(msg), _TRUNCATE, fmt, args);
 	va_end(args);
 
 	const char* procName = fo::func::findCurrentProc(_program);

@@ -592,13 +592,6 @@ end:
 	}
 }
 
-static void __declspec(naked) item_d_take_drug_hack1() {
-	__asm {
-		push 0x47A168
-		retn
-	}
-}
-
 static void __declspec(naked) op_wield_obj_critter_adjust_ac_hook() {
 	__asm {
 		call fo::funcoffs::adjust_ac_
@@ -1155,7 +1148,7 @@ void BugFixes::init()
 	//if (GetConfigInt("Misc", "JetAntidoteFix", 1)) {
 		dlog("Applying Jet Antidote fix.", DL_INIT);
 		// the original jet antidote fix
-		MakeCall(0x47A013, &item_d_take_drug_hack1, true);
+		MakeCall(0x47A013, (void*)0x47A168, true);
 		dlogr(" Done", DL_INIT);
 	//}
 

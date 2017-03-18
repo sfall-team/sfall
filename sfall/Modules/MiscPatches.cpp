@@ -397,7 +397,7 @@ void DebugModePatch() {
 void NpcAutoLevelPatch() {
 	npcAutoLevelEnabled = GetConfigInt("Misc", "NPCAutoLevel", 0) != 0;
 	if (npcAutoLevelEnabled) {
-		dlog("Applying npc autolevel patch.", DL_INIT);
+		dlog("Applying NPC autolevel patch.", DL_INIT);
 		SafeWrite16(0x00495D22, 0x9090);
 		SafeWrite32(0x00495D24, 0x90909090);
 		dlogr(" Done", DL_INIT);
@@ -555,11 +555,11 @@ void InstantWeaponEquipPatch() {
 
 void CombatProcFix() {
 	//Ray's combat_p_proc fix
-		SafeWrite32(0x0425253, ((DWORD)&Combat_p_procFix) - 0x0425257);
-		SafeWrite8(0x0424dbc, 0xE9);
-		SafeWrite32(0x0424dbd, 0x00000034);
-		dlogr(" Done", DL_INIT);
-	//}
+	dlog("Applying combat_p_proc fix.", DL_INIT);
+	SafeWrite32(0x0425253, ((DWORD)&Combat_p_procFix) - 0x0425257);
+	SafeWrite8(0x0424dbc, 0xE9);
+	SafeWrite32(0x0424dbd, 0x00000034);
+	dlogr(" Done", DL_INIT);
 }
 
 void MultiPatchesPatch() {
