@@ -330,7 +330,7 @@ void __declspec(naked) op_init_hook() {
 		push ecx;
 		push edx;
 		mov ecx, eax;
-		mov edx, InitingHookScripts;
+		mov edx, initingHookScripts;
 		call fo::funcoffs::interpretPushLong_;
 		mov eax, ecx;
 		mov edx, 0xc001;

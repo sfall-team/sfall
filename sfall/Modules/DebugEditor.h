@@ -3,6 +3,9 @@
 namespace sfall
 {
 
-void RunDebugEditor();
+class DebugEditor : public Module {
+	const char* name() { return "Debug Editor"; }
+	void init();
+};
 
 }

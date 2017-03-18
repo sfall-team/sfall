@@ -45,7 +45,7 @@ struct HookScript {
 
 static std::vector<HookScript> hooks[numHooks];
 
-DWORD InitingHookScripts;
+DWORD initingHookScripts;
 
 static DWORD args[maxArgs]; // current hook arguments
 static DWORD oldargs[maxArgs * maxDepth];
@@ -308,7 +308,7 @@ skip:
 	}
 }
 
-static void __declspec(naked) CombatDamageHook() {
+static void __declspec(naked) ComputeDamageHook() {
 	__asm {
 		push edx;
 		push ebx;
@@ -779,6 +779,9 @@ void _stdcall KeyPressHook(DWORD dxKey, bool pressed, DWORD vKey) {
 }
 
 void _stdcall MouseClickHook(DWORD button, bool pressed) {
+	if (!IsMapLoaded()) {
+		return;
+	}
 	BeginHook();
 	argCount = 2;
 	args[0] = (DWORD)pressed;
@@ -1197,14 +1200,14 @@ static void HookScriptInit2() {
 	HookCall(0x4109BF, &CalcDeathAnimHook2);
 
 	LoadHookScript("hs_combatdamage", HOOK_COMBATDAMAGE);
-	HookCall(0x42326C, &CombatDamageHook); // check_ranged_miss()
-	HookCall(0x4233E3, &CombatDamageHook); // shoot_along_path() - for extra burst targets
-	HookCall(0x423AB7, &CombatDamageHook); // compute_attack()
-	HookCall(0x423BBF, &CombatDamageHook); // compute_attack()
-	HookCall(0x423DE7, &CombatDamageHook); // compute_explosion_on_extras()
-	HookCall(0x423E69, &CombatDamageHook); // compute_explosion_on_extras()
-	HookCall(0x424220, &CombatDamageHook); // attack_crit_failure()
-	HookCall(0x4242FB, &CombatDamageHook); // attack_crit_failure()
+	HookCall(0x42326C, &ComputeDamageHook); // check_ranged_miss()
+	HookCall(0x4233E3, &ComputeDamageHook); // shoot_along_path() - for extra burst targets
+	HookCall(0x423AB7, &ComputeDamageHook); // compute_attack()
+	HookCall(0x423BBF, &ComputeDamageHook); // compute_attack()
+	HookCall(0x423DE7, &ComputeDamageHook); // compute_explosion_on_extras()
+	HookCall(0x423E69, &ComputeDamageHook); // compute_explosion_on_extras()
+	HookCall(0x424220, &ComputeDamageHook); // attack_crit_failure()
+	HookCall(0x4242FB, &ComputeDamageHook); // attack_crit_failure()
 
 	LoadHookScript("hs_ondeath", HOOK_ONDEATH);
 	HookCall(0x4130CC, &OnDeathHook);
@@ -1320,14 +1323,14 @@ void HookScriptClear() {
 void LoadHookScripts() {
 	isGlobalScriptLoading = 1; // this should allow to register global exported variables
 	HookScriptInit2();
-	InitingHookScripts = 1;
+	initingHookScripts = 1;
 	for (int i = 0; i < numHooks; i++) {
 		if (hooks[i].size()) {
 			InitScriptProgram(hooks[i][0].prog);// zero hook is always hs_*.int script because Hook scripts are loaded BEFORE global scripts
 		}
 	}
 	isGlobalScriptLoading = 0;
-	InitingHookScripts = 0;
+	initingHookScripts = 0;
 }
 
 // run specific event procedure for all hook scripts
@@ -1341,6 +1344,7 @@ void _stdcall RunHookScriptsAtProc(DWORD procId) {
 
 void HookScripts::init() {
 	OnKeyPressed() += KeyPressHook;
+	OnMouseClick() += MouseClickHook;
 }
 
 }

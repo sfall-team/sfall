@@ -24,8 +24,6 @@
 #include "main.h"
 #include "Logging.h"
 #include "Modules\Graphics.h"
-#include "Modules\HookScripts.h"
-#include "Modules\DebugEditor.h"
 
 #include "InputFuncs.h"
 
@@ -55,7 +53,6 @@ static int mouseX;
 static int mouseY;
 
 static DWORD forcingGraphicsRefresh = 0;
-static DWORD debugEditorKey = 0;
 
 void _stdcall ForceGraphicsRefresh(DWORD d) {
 	forcingGraphicsRefresh = (d == 0) ? 0 : 1;
@@ -78,6 +75,7 @@ static std::queue<DIDEVICEOBJECTDATA> bufferedPresses;
 static HKL keyboardLayout;
 
 KeyPressedDelegate onKeyPressed;
+MouseClickedDelegate onMouseClick;
 Delegate<> onInputLoop;
 
 void SetMDown(bool down, bool right) {
@@ -94,10 +92,13 @@ KeyPressedDelegate& OnKeyPressed() {
 	return onKeyPressed;
 }
 
+MouseClickedDelegate& OnMouseClick() {
+	return onMouseClick;
+}
+
 Delegate<>& OnInputLoop() {
 	return onInputLoop;
 }
-
 
 DWORD _stdcall KeyDown(DWORD key) {
 	if ((key & 0x80000000) > 0) { // special flag to check by VK code directly
@@ -240,7 +241,7 @@ public:
 		numButtons = formatLock ? 8 : 4;
 		for (int i = 0; i < numButtons; i++) {
 			if ((MouseState.rgbButtons[i] & 0x80) != (keysDown[256 + i] & 0x80)) { // state changed
-				MouseClickHook(i, (MouseState.rgbButtons[i] & 0x80) > 0);
+				onMouseClick.invoke(i, (MouseState.rgbButtons[i] & 0x80) > 0);
 			}
 			keysDown[256 + i] = MouseState.rgbButtons[i];
 		}
@@ -263,7 +264,6 @@ public:
 				keysDown[b[i].dwOfs] = b[i].dwData & 0x80;
 				onKeyPressed.invoke(b[i].dwOfs, (b[i].dwData & 0x80) > 0, MapVirtualKeyEx(b[i].dwOfs, MAPVK_VSC_TO_VK, keyboardLayout));
 			}
-			if (keysDown[debugEditorKey]) RunDebugEditor();
 			return hr;
 		}
 		//Despite passing an array of 32 data objects, fallout cant seem to cope with a key being pressed and released in the same frame...
@@ -407,8 +407,6 @@ inline void InitInputFeatures() {
 
 	backgroundKeyboard = GetConfigInt("Input", "BackgroundKeyboard", 0) != 0;
 	backgroundMouse = GetConfigInt("Input", "BackgroundMouse", 0) != 0;
-
-	debugEditorKey = GetConfigInt("Input", "DebugEditorKey", 0);
 
 	keyboardLayout = GetKeyboardLayout(0);
 }

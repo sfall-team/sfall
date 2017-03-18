@@ -20,6 +20,8 @@
 
 #include "..\main.h"
 #include "..\FalloutEngine\Fallout2.h"
+#include "..\InputFuncs.h"
+#include "LoadGameHook.h"
 #include "ScriptExtender.h"
 #include "Scripting\Arrays.h"
 
@@ -234,6 +236,19 @@ void RunDebugEditor() {
 	closesocket(client);
 	closesocket(sock);
 	WSACleanup();
+}
+
+static DWORD debugEditorKey = 0;
+
+void DebugEditor::init() {
+	debugEditorKey = GetConfigInt("Input", "DebugEditorKey", 0);
+	if (debugEditorKey != 0) {
+		OnKeyPressed() += [](DWORD scanCode, bool pressed, DWORD vkCode) {
+			if (scanCode == debugEditorKey && pressed && IsMapLoaded()) {
+				RunDebugEditor();
+			}
+		};
+	}
 }
 
 }

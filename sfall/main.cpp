@@ -34,6 +34,7 @@
 #include "Modules\CRC.h"
 #include "Modules\Credits.h"
 #include "Modules\Criticals.h"
+#include "Modules\DebugEditor.h"
 #include "Modules\Elevators.h"
 #include "Modules\Explosions.h"
 #include "Modules\FileSystem.h"
@@ -161,6 +162,7 @@ static void InitModules() {
 	manager.add<Books>();
 	manager.add<Explosions>();
 	manager.add<Message>();
+	manager.add<DebugEditor>();
 
 	manager.add<AI>();
 	manager.add<AmmoMod>();
