@@ -193,7 +193,7 @@ static DWORD __stdcall GetGlobalExportedVarPtr(const char* name) {
 }
 
 static DWORD __stdcall CreateGlobalExportedVar(DWORD scr, const char* name) {
-	//dlog_f("\nTrying to export variable %s (%d)\r\n", DL_MAIN, name, isGlobalScriptLoading);
+	//dlog_f("\nTrying to export variable %s (%d)\n", DL_MAIN, name, isGlobalScriptLoading);
 	std::string str(name);
 	globalExportedVars[str] = ExportedVar(); // add new
 	return 1;

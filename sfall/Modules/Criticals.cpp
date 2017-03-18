@@ -128,11 +128,11 @@ void CritLoad() {
 }
 
 #define SetEntry(a,b,c,d,e) fo::var::crit_succ_eff[a][b][c].values[d] = e;
-void CriticalTableOverride() {dlog("Initilizing critical table override.", DL_INIT);
+void CriticalTableOverride() {
+	dlog("Initializing critical table override.", DL_INIT);
 	playerCrit = &critTable[38];
 	SafeWrite32(0x423F96, (DWORD)playerCrit);
 	SafeWrite32(0x423FB3, (DWORD)critTable);
-	dlog(". ", DL_INIT);
 
 	if (mode == 2 || mode == 3) {
 		SetEntry(2, 4, 1, 4, 0);
