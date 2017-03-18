@@ -47,7 +47,6 @@ static DWORD saveInCombatFix;
 static bool disableHorrigan = false;
 static bool pipBoyAvailableAtGameStart = false;
 static bool mapLoaded = false;
-static bool gameLoaded = false;
 
 bool IsMapLoaded() {
 	return mapLoaded;
@@ -65,9 +64,11 @@ DWORD GetCurrentLoops() {
 	return inLoop;
 }
 
-static void _stdcall ResetState() {
-	inLoop = 0;
+// called whenever game is being reset (prior to loading a save or when returning to main menu)
+static void _stdcall GameReset() {
 	onGameReset.invoke();
+	inLoop = 0;
+	mapLoaded = false;
 }
 
 void GetSavePath(char* buf, char* ftype) {
@@ -122,7 +123,7 @@ static DWORD _stdcall CombatSaveTest() {
 	return 1;
 }
 
-static void __declspec(naked) SaveGame() {
+static void __declspec(naked) SaveGame_hook() {
 	__asm {
 		push ebx;
 		push ecx;
@@ -151,7 +152,6 @@ end:
 
 // Called right before savegame slot is being loaded
 static void _stdcall LoadGame_Before() {
-	ResetState();
 	onBeforeGameStart.invoke();
 	
 	char buf[MAX_PATH];
@@ -180,7 +180,7 @@ static void _stdcall LoadGame_After() {
 	mapLoaded = true;
 }
 
-static void __declspec(naked) LoadSlot() {
+static void __declspec(naked) LoadSlot_hook() {
 	__asm {
 		pushad;
 		call LoadGame_Before;
@@ -190,7 +190,7 @@ static void __declspec(naked) LoadSlot() {
 	}
 }
 
-static void __declspec(naked) LoadGame() {
+static void __declspec(naked) LoadGame_hook() {
 	__asm {
 		push ebx;
 		push ecx;
@@ -211,11 +211,10 @@ end:
 }
 
 static void __stdcall NewGame_Before() {
-	ResetState();
 	onBeforeGameStart.invoke();
 }
 
-static void __stdcall NewGame_After() {	
+static void __stdcall NewGame_After() {
 	onAfterNewGame.invoke();
 	onAfterGameStarted.invoke();
 
@@ -237,29 +236,27 @@ static void __declspec(naked) main_load_new_hook() {
 	}
 }
 
-static void __stdcall MainMenuLoop() {
-	if (mapLoaded) {
-		// reset sfall modules state once after returning from the game
-		onGameReset.invoke();
-		mapLoaded = false;
-	}
-	if (!gameLoaded) {
-		gameLoaded = true;
-		// called only once
-		onGameInit.invoke();
-	}
+static void __stdcall GameInitialized() {
+	onGameInit.invoke();
 }
 
-static void __declspec(naked) main_menu_loop_hook() {
+static void __declspec(naked) main_init_system_hook() {
 	__asm {
 		pushad;
-		call MainMenuLoop;
+		call GameInitialized;
 		popad;
-		call fo::funcoffs::main_menu_loop_;
-		retn;
+		jmp fo::funcoffs::main_init_system_;
 	}
 }
 
+static void __declspec(naked) game_reset_hook() {
+	__asm {
+		pushad;
+		call GameReset; // reset all sfall modules before resetting the game data
+		popad;
+		jmp fo::funcoffs::game_reset_;
+	}
+}
 
 static void __declspec(naked) WorldMapHook() {
 	__asm {
@@ -414,18 +411,28 @@ void LoadGameHook::init() {
 	saveSfallDataFailMsg = Translate("sfall", "SaveSfallDataFail", 
 		"ERROR saving extended savegame information! Check if other programs interfere with savegame files/folders and try again!");
 
+	HookCall(0x4809BA, main_init_system_hook);
 	HookCall(0x480AAE, main_load_new_hook);
-
-	HookCall(0x47C72C, LoadSlot);
-	HookCall(0x47D1C9, LoadSlot);
-	HookCall(0x443AE4, LoadGame);
-	HookCall(0x443B89, LoadGame);
-	HookCall(0x480B77, LoadGame);
-	HookCall(0x48FD35, LoadGame);
-	HookCall(0x443AAC, SaveGame);
-	HookCall(0x443B1C, SaveGame);
-	HookCall(0x48FCFF, SaveGame);
-	HookCall(0x480A28, main_menu_loop_hook);
+	HookCall(0x47C72C, LoadSlot_hook);
+	HookCall(0x47D1C9, LoadSlot_hook);
+	HookCall(0x443AE4, LoadGame_hook);
+	HookCall(0x443B89, LoadGame_hook);
+	HookCall(0x480B77, LoadGame_hook);
+	HookCall(0x48FD35, LoadGame_hook);
+	HookCall(0x443AAC, SaveGame_hook);
+	HookCall(0x443B1C, SaveGame_hook);
+	HookCall(0x48FCFF, SaveGame_hook);
+	HookCall(0x47DD6B, game_reset_hook); // LoadSlot_
+	HookCall(0x47DDF3, game_reset_hook); // LoadSlot_
+	HookCall(0x47F491, game_reset_hook); // PrepLoad_
+	HookCall(0x480708, game_reset_hook); // RestoreLoad_ (never called)
+	HookCall(0x480AD3, game_reset_hook); // gnw_main_
+	HookCall(0x480BCC, game_reset_hook); // gnw_main_
+	HookCall(0x480D0C, game_reset_hook); // main_reset_system_ (never called)
+	HookCall(0x481028, game_reset_hook); // main_selfrun_record_
+	HookCall(0x481062, game_reset_hook); // main_selfrun_record_
+	HookCall(0x48110B, game_reset_hook); // main_selfrun_play_
+	HookCall(0x481145, game_reset_hook); // main_selfrun_play_
 
 	HookCall(0x483668, WorldMapHook);
 	HookCall(0x4A4073, WorldMapHook);
