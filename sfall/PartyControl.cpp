@@ -368,7 +368,7 @@ void PartyControlInit() {
 			if (strlen(ptr) > 0)
 				Chars.push_back((WORD)strtoul(ptr, 0, 0));
 		}
-		dlog_f(" Mode %d, Chars read: %d.", DL_INIT, Mode, Chars.size());
+		dlog_f("  Mode %d, Chars read: %d.\n", DL_INIT, Mode, Chars.size());
 
 		HookCall(0x46EBEE, &FidChangeHook);
 
@@ -380,7 +380,7 @@ void PartyControlInit() {
 		HookCall(0x4124F1, &pc_flag_toggle_hook);
 		HookCall(0x41279A, &pc_flag_toggle_hook);
 	} else
-		dlog(" Disabled.", DL_INIT);
+		dlogr("  Disabled.", DL_INIT);
 }
 
 void __stdcall PartyControlReset() {

@@ -1011,7 +1011,7 @@ static DWORD __stdcall GetGlobalExportedVarPtr(const char* name) {
 	return 0;
 }
 static DWORD __stdcall CreateGlobalExportedVar(DWORD scr, const char* name) {
-	//dlog_f("\nTrying to export variable %s (%d)\r\n", DL_MAIN, name, isGlobalScriptLoading);
+	//dlog_f("\nTrying to export variable %s (%d)\n", DL_MAIN, name, isGlobalScriptLoading);
 	std::string str(name);
 	globalExportedVars[str] = sExportedVar(); // add new
 	return 1;
@@ -1203,8 +1203,8 @@ void ScriptExtenderSetup() {
 	modifiedIni = GetPrivateProfileIntA("Main", "ModifiedIni", 0, ini);
 
 	dlogr("Adding additional opcodes", DL_SCRIPT);
-	if(AllowUnsafeScripting) dlogr("  Unsafe opcodes enabled", DL_SCRIPT);
-	else dlogr("  Unsafe opcodes disabled", DL_SCRIPT);
+	if(AllowUnsafeScripting) dlogr("  Unsafe opcodes enabled.", DL_SCRIPT);
+	else dlogr("  Unsafe opcodes disabled.", DL_SCRIPT);
 
 	arraysBehavior = GetPrivateProfileIntA("Misc", "arraysBehavior", 1, ini);
 	if (arraysBehavior > 0) {
@@ -1643,7 +1643,7 @@ void LoadGlobalScripts() {
 		lea  eax, filenames
 		call db_free_file_list_
 	}
-	dlogr("Finished loading global scripts", DL_SCRIPT|DL_INIT);
+	dlogr("Finished loading global scripts.", DL_SCRIPT|DL_INIT);
 	//ButtonsReload();
 }
 

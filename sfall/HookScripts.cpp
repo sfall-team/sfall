@@ -91,7 +91,7 @@ static void _stdcall RunSpecificHookScript(sHookScript *hook) {
 
 static void _stdcall RunHookScript(DWORD hook) {
 	if (hooks[hook].size()) {
-		dlog_f("Running hook %d, which has %0d entries attached\r\n", DL_HOOK, hook, hooks[hook].size());
+		dlog_f("Running hook %d, which has %0d entries attached\n", DL_HOOK, hook, hooks[hook].size());
 		cRet=0;
 		for(int i=hooks[hook].size()-1;i>=0;i--) RunSpecificHookScript(&hooks[hook][i]);
 	} else {
@@ -1106,7 +1106,7 @@ void _stdcall RegisterHook( DWORD script, DWORD id, DWORD procNum )
 	}
 	sScriptProgram *prog = GetGlobalScriptProgram(script);
 	if (prog) {
-		dlog_f("Global script %08x registered as hook id %d\r\n", DL_HOOK, script, id);
+		dlog_f("Global script %08x registered as hook id %d\n", DL_HOOK, script, id);
 		sHookScript hook;
 		hook.prog = *prog;
 		hook.callback = procNum;
@@ -1308,7 +1308,7 @@ static void HookScriptInit2() {
 		call db_free_file_list_
 	}
 
-	dlogr("Finished loading hook scripts", DL_HOOK|DL_INIT);
+	dlogr("Finished loading hook scripts.", DL_HOOK|DL_INIT);
 }
 
 void HookScriptClear() {

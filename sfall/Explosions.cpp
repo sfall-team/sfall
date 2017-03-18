@@ -212,7 +212,7 @@ void ExplosionLightingInit() {
 	MakeCall(0x411AB4, &explosion_effect_hook, true); // required for explosions_metarule
 
 	if (GetPrivateProfileIntA("Misc", "ExplosionsEmitLight", 0, ini)) {
-		dlog("Initing Explosion changes.", DL_INIT);
+		dlog("Applying Explosion changes.", DL_INIT);
 		lightingEnabled = true;
 		MakeCall(0x4118E1, &ranged_attack_lighting_fix, true);
 		MakeCall(0x410A4A, &fire_dance_lighting_fix1, true);

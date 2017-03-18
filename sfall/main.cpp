@@ -800,9 +800,8 @@ static void DllMain2() {
 	DWORD tmp;
 	dlogr("In DllMain2", DL_MAIN);
 
-	dlogr("Running BugsInit.", DL_INIT);
+	dlogr("Running BugsInit().", DL_INIT);
 	BugsInit();
-	dlogr(" Done", DL_INIT);
 
 	if (GetPrivateProfileIntA("Speed", "Enable", 0, ini)) {
 		dlog("Applying speed patch.", DL_INIT);
@@ -1047,8 +1046,10 @@ static void DllMain2() {
 		dlog(".", DL_INIT);
 		SkillsInit();
 		dlog(".", DL_INIT);
+		dlogr(" Done", DL_INIT);
 
 		//Ray's combat_p_proc fix
+		dlog("Applying combat_p_proc fix.", DL_INIT);
 		SafeWrite32(0x0425253, ((DWORD)&Combat_p_procFix) - 0x0425257);
 		SafeWrite8(0x0424dbc, 0xE9);
 		SafeWrite32(0x0424dbd, 0x00000034);
@@ -1057,7 +1058,6 @@ static void DllMain2() {
 
 	//if (GetPrivateProfileIntA("Misc", "WorldMapCitiesListFix", 0, ini)) {
 		dlog("Applying world map cities list patch.", DL_INIT);
-
 		SafeWrite32(0x004C04BA, ((DWORD)&ScrollCityListHook) - 0x004C04BE);
 		SafeWrite32(0x004C04C9, ((DWORD)&ScrollCityListHook) - 0x004C04CD);
 		SafeWrite32(0x004C4A35, ((DWORD)&ScrollCityListHook) - 0x004C4A39);
@@ -1146,7 +1146,7 @@ static void DllMain2() {
 
 	npcautolevel = GetPrivateProfileIntA("Misc", "NPCAutoLevel", 0, ini) != 0;
 	if (npcautolevel) {
-		dlog("Applying npc autolevel patch.", DL_INIT);
+		dlog("Applying NPC autolevel patch.", DL_INIT);
 		SafeWrite8(0x495CFB, 0xEB);               // jmps 0x495D28 (skip random check)
 		dlogr(" Done", DL_INIT);
 	}
@@ -1288,17 +1288,18 @@ static void DllMain2() {
 	dlogr("Running TilesInit().", DL_INIT);
 	TilesInit();
 
-	dlogr("Applying main menu text patch", DL_INIT);
+	dlogr("Running CreditsInit().", DL_INIT);
 	CreditsInit();
 
 	if (GetPrivateProfileIntA("Misc", "UseScrollingQuestsList", 0, ini)) {
-		dlog("Applying quests list patch ", DL_INIT);
+		dlog("Applying quests list patch.", DL_INIT);
 		QuestListInit();
 		dlogr(" Done", DL_INIT);
 	}
 
-	dlog("Applying premade characters patch", DL_INIT);
+	dlog("Applying premade characters patch.", DL_INIT);
 	PremadeInit();
+	dlogr(" Done", DL_INIT);
 
 	dlogr("Running SoundInit().", DL_INIT);
 	SoundInit();
@@ -1310,9 +1311,8 @@ static void DllMain2() {
 	ConsoleInit();
 
 	if (GetPrivateProfileIntA("Misc", "ExtraSaveSlots", 0, ini)) {
-		dlog("Running EnableSuperSaving()", DL_INIT);
+		dlogr("Running EnableSuperSaving().", DL_INIT);
 		EnableSuperSaving();
-		dlogr(" Done", DL_INIT);
 	}
 
 	switch (GetPrivateProfileIntA("Misc", "SpeedInterfaceCounterAnims", 0, ini)) {
@@ -1440,9 +1440,8 @@ static void DllMain2() {
 		dlogr(" Done", DL_INIT);
 	}
 
-	dlog("Running InventoryInit.", DL_INIT);
+	dlogr("Running InventoryInit().", DL_INIT);
 	InventoryInit();
-	dlogr(" Done", DL_INIT);
 
 	if (tmp = GetPrivateProfileIntA("Misc", "MotionScannerFlags", 1, ini)) {
 		dlog("Applying MotionScannerFlags patch.", DL_INIT);
@@ -1468,7 +1467,7 @@ static void DllMain2() {
 		dlogr(" Done", DL_INIT);
 	}
 
-	dlog("Initing main menu patches.", DL_INIT);
+	dlog("Applying main menu patches.", DL_INIT);
 	MainMenuInit();
 	dlogr(" Done", DL_INIT);
 
@@ -1476,13 +1475,12 @@ static void DllMain2() {
 		SafeWrite8(0x499518, 0xc3);
 	}
 
-	dlog("Initing AI patches.", DL_INIT);
+	dlog("Applying AI patches.", DL_INIT);
 	AIInit();
 	dlogr(" Done", DL_INIT);
 
-	dlog("Initing AI control.", DL_INIT);
+	dlogr("Initializing AI control.", DL_INIT);
 	PartyControlInit();
-	dlogr(" Done", DL_INIT);
 
 	//HookCall(0x413105, explosion_crash_fix_hook);//test for explosives
 	//SafeWrite32(0x413034, (DWORD)&explosion_crash_fix_hook);
