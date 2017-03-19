@@ -92,7 +92,7 @@ void Books::init() {
 	auto booksFile = GetConfigString("Misc", "BooksFile", "", MAX_PATH);
 	if (booksFile.size() > 0) {
 		sprintf(iniBooks, ".\\%s", booksFile.c_str());
-		dlog("Applying books patch... ", DL_INIT);
+		dlog("Applying books patch...", DL_INIT);
 		memset(books, 0, sizeof(sBook)*BooksCount);
 
 		int i, n = 0, count;

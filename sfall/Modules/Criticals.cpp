@@ -124,7 +124,7 @@ void CritLoad() {
 			}
 		}
 	}
-	dlogr("Completed critical hit table", DL_CRITICALS);
+	dlogr("Completed critical hit table.", DL_CRITICALS);
 }
 
 #define SetEntry(a,b,c,d,e) fo::var::crit_succ_eff[a][b][c].values[d] = e;

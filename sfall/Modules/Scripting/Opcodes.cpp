@@ -193,9 +193,9 @@ void InitNewOpcodes() {
 
 	dlogr("Adding additional opcodes", DL_SCRIPT);
 	if (AllowUnsafeScripting) {
-		dlogr("  Unsafe opcodes enabled", DL_SCRIPT);
+		dlogr("  Unsafe opcodes enabled.", DL_SCRIPT);
 	} else {
-		dlogr("  Unsafe opcodes disabled", DL_SCRIPT);
+		dlogr("  Unsafe opcodes disabled.", DL_SCRIPT);
 	}
 
 	SafeWrite32(0x46E370, opcodeCount);	//Maximum number of allowed opcodes
