@@ -84,6 +84,9 @@ int     arg1 - The unmodified hit chance
 critter arg2 - The attacker
 critter arg3 - The target of the attack
 int     arg4 - The targeted bodypart
+int     arg5 - Source tile (may differ from attacker's tile, when AI is considering potential fire position)
+int     arg6 - Attack Type (one of ATKTYPE_*)
+int     arg7 - Ranged flag (0 or 1, actually passed 1 even for unarmed attacks, may be a vanilla bug)
 
 int     ret1 - the new hit chance
 

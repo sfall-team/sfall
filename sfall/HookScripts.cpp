@@ -102,13 +102,19 @@ static void _stdcall RunHookScript(DWORD hook) {
 
 static void __declspec(naked) ToHitHook() {
 	__asm {
-		hookbegin(4);
-		mov args[4], eax;
-		mov args[8], ebx;
-		mov args[12], ecx;
+		hookbegin(7);
+		mov args[4], eax; // attacker
+		mov args[8], ebx; // target
+		mov args[12], ecx; // body part
+		mov args[16], edx; // source tile
+		mov eax, [esp+4]; // attack type
+		mov args[20], eax;
+		mov eax, [esp+8]; // is ranged
+		mov args[24], eax;
+		mov eax, args[4];
 		push [esp+8];
-		push [esp+8];
-		call determine_to_hit_func_
+		push [esp+4];
+		call determine_to_hit_func_;
 		mov args[0], eax;
 		pushad;
 		push HOOK_TOHIT;
@@ -1158,14 +1164,14 @@ static void HookScriptInit2() {
 	}
 
 	LoadHookScript("hs_tohit", HOOK_TOHIT);
-	HookCall(0x421686, &ToHitHook);
-	HookCall(0x4231D9, &ToHitHook);
-	HookCall(0x42331F, &ToHitHook);
-	HookCall(0x4237FC, &ToHitHook);
-	HookCall(0x424379, &ToHitHook);
-	HookCall(0x42438D, &ToHitHook);
-	HookCall(0x42439C, &ToHitHook);
-	HookCall(0x42679A, &ToHitHook);
+	HookCall(0x421686, &ToHitHook); // combat_safety_invalidate_weapon_func_
+	HookCall(0x4231D9, &ToHitHook); // check_ranged_miss_
+	HookCall(0x42331F, &ToHitHook); // shoot_along_path_
+	HookCall(0x4237FC, &ToHitHook); // compute_attack_
+	HookCall(0x424379, &ToHitHook); // determine_to_hit_
+	HookCall(0x42438D, &ToHitHook); // determine_to_hit_no_range_
+	HookCall(0x42439C, &ToHitHook); // determine_to_hit_from_tile_
+	HookCall(0x42679A, &ToHitHook); // combat_to_hit_
 
 	LoadHookScript("hs_afterhitroll", HOOK_AFTERHITROLL);
 	MakeCall(0x423893, &AfterHitRollHook, true);

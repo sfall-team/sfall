@@ -61,9 +61,8 @@ static const char* ExtraLines[] = {
 	"MIB88",
 	"Rain man",
 	"Continuum",
-	"Fakeman",
-	"Drobovik",
 	"Mr.Stalin",
+	"Drobovik",
 	"Anyone who has used sfall in their own mods",
 	"The bug reporters and feature requesters",
 	""
