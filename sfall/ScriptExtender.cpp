@@ -1101,22 +1101,45 @@ loopObject:
 		cmp  eax, ds:[_outlined_object]
 		je   nextObject
 		xchg ecx, eax
+		mov  edx, 0x10                            // yellow
 		mov  eax, [ecx+0x20]
 		and  eax, 0xF000000
 		sar  eax, 0x18
 		test eax, eax                             // This object is an item?
+		jz   skip                                 // Yes (переход это Item подсвечивать желтым)
+		cmp  HighlightContainers, 0               // Highlight containers?
+		je   skip 
+		dec  eax                                  // This ObjType_Critter?
 		jnz  nextObject                           // No
+		test byte ptr [ecx+0x44], 0x80            // source.results & DAM_DEAD?
+		jz   nextObject                           // No
+		mov  edx, 0x20                            // edx = 0x20 = _Steal
+		mov  eax, [ecx+0x64]                      // eax = source.pid
+		call critter_flag_check_
+		test eax, eax                             // Can't be stolen from? (нельзя обворовать?)
+		jnz  nextObject                           // Yes
+		mov  edx, Color_Containers                // NR: should be set to yellow or purple later
+skip:
 		cmp  dword ptr [ecx+0x7C], eax            // Owned by someone?
 		jnz  nextObject                           // Yes
 		test dword ptr [ecx+0x74], eax            // Already outlined?
 		jnz  nextObject                           // Yes
-		mov  edx, 0x10                            // yellow
-		test byte ptr [ecx+0x25], dl              // NoHighlight_ flag is set (is this a container)?
-		jz   NoHighlight                          // No
 		cmp  HighlightContainers, eax             // Highlight containers?
-		je   nextObject                           // No
+		je   CheckItemFlag                        // No (подсвечивать только предметы у которого неустановлен флаг NoHighlight)
+		push eax
+	    mov  eax, ecx                             // Проверить, если этот item равен контейнеру то подсвечивать его
+	    call item_get_type_                       // Get item subtype 
+	    cmp  eax, item_type_container             // ObjSubItem == item_type_container (is this a container)? 
+	    pop  eax
+	    jnz  CheckItemFlag                        // No (переход если не item_type_container)
+		cmp  dword ptr [ecx+0x64], PID_CAR_TRUNK  // Exclude pid trunk from highlight
+		je   nextObject
 		mov  edx, Color_Containers                // NR: should be set to yellow or purple later
-NoHighlight:
+		jmp  Highlight
+CheckItemFlag:
+		test byte ptr [ecx+0x25], dl              // NoHighlight_ flag is set 
+		jnz  nextObject                           // Yes
+Highlight:
 		mov  [ecx+0x74], edx
 nextObject:
 		call obj_find_next_at_
@@ -1143,7 +1166,12 @@ loopObject:
 		and  eax, 0xF000000
 		sar  eax, 0x18
 		test eax, eax                             // Is this an item?
+		jz   skip                                 // Yes
+		dec  eax                                  // This ObjType_Critter?
 		jnz  nextObject                           // No
+		test byte ptr [ecx+0x44], 0x80            // source.results & DAM_DEAD?
+		jz   nextObject                           // No
+skip:
 		cmp  dword ptr [ecx+0x7C], eax            // Owned by someone?
 		jnz  nextObject                           // Yes
 		mov  dword ptr [ecx+0x74], eax
