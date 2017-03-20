@@ -123,7 +123,7 @@ static void __declspec(naked) ToHitHook() {
 		mov args[24], eax;
 		mov eax, args[4];
 		push [esp+8];
-		push [esp+4];
+		push [esp+8];
 		call fo::funcoffs::determine_to_hit_func_;
 		mov args[0], eax;
 		pushad;
