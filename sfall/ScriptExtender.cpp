@@ -244,7 +244,7 @@ public:
 		va_list args;
 		va_start(args, fmt);
 		char msg[1024];
-		vsnprintf_s(msg, sizeof msg, _TRUNCATE, fmt, args);
+		vsnprintf_s(msg, sizeof(msg), _TRUNCATE, fmt, args);
 		va_end(args);
 
 		const char* procName = FindCurrentProc(_program);
@@ -391,7 +391,7 @@ static DWORD MotionSensorMode;
 static BYTE toggleHighlightsKey;
 static DWORD HighlightContainers;
 static DWORD Color_Containers;
-static signed char idle;
+static int idle;
 static char HighlightFail1[128];
 static char HighlightFail2[128];
 
@@ -1195,7 +1195,7 @@ void ScriptExtenderSetup() {
 	GetPrivateProfileStringA("Sfall", "HighlightFail2", "Your motion sensor is out of charge.", HighlightFail2, 128, translationIni);
 
 	idle = GetPrivateProfileIntA("Misc", "ProcessorIdle", -1, ini);
-	if (idle > -1) {
+	if (idle > -1 && idle <= 127) {
 		SafeWrite32(_idle_func, (DWORD)Sleep);
 		SafeWrite8(0x4C9F12, 0x6A); // push
 		SafeWrite8(0x4C9F13, idle);
@@ -1740,7 +1740,7 @@ void AfterAttackCleanup() {
 }
 
 static void RunGlobalScripts1() {
-	if (idle > -1) Sleep(idle);
+	if (idle > -1 && idle <= 127) Sleep(idle);
 	if (toggleHighlightsKey) {
 		//0x48C294 to toggle
 		if (KeyDown(toggleHighlightsKey)) {
@@ -1786,7 +1786,7 @@ static void RunGlobalScripts1() {
 }
 
 void RunGlobalScripts2() {
-	if (idle > -1) Sleep(idle);
+	if (idle > -1 && idle <= 127) Sleep(idle);
 	for (DWORD d = 0; d < globalScripts.size(); d++) {
 		if (!globalScripts[d].repeat || globalScripts[d].mode != 1) continue;
 		if (++globalScripts[d].count >= globalScripts[d].repeat) {
@@ -1796,7 +1796,7 @@ void RunGlobalScripts2() {
 	ResetStateAfterFrame();
 }
 void RunGlobalScripts3() {
-	if (idle > -1) Sleep(idle);
+	if (idle > -1 && idle <= 127) Sleep(idle);
 	for (DWORD d = 0; d < globalScripts.size(); d++) {
 		if (!globalScripts[d].repeat || (globalScripts[d].mode != 2 && globalScripts[d].mode != 3)) continue;
 		if (++globalScripts[d].count >= globalScripts[d].repeat) {

@@ -46,7 +46,7 @@ void dlog_f(const char *fmt, int type, ...) {
 		va_list args;
 		va_start(args, type);
 		char buf[4096];
-		vsnprintf_s(buf, sizeof buf, _TRUNCATE, fmt, args);
+		vsnprintf_s(buf, sizeof(buf), _TRUNCATE, fmt, args);
 		Log << buf;
 		Log.flush();
 		va_end(args);
