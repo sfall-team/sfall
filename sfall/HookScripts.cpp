@@ -88,9 +88,10 @@ static void _stdcall RunSpecificHookScript(sHookScript *hook) {
 	else
 		RunScriptProc(&hook->prog, start);
 }
+
 static void _stdcall RunHookScript(DWORD hook) {
 	if (hooks[hook].size()) {
-		dlog_f("Running hook %d, which has %0d entries attached\r\n", DL_HOOK, hook, hooks[hook].size());
+		dlog_f("Running hook %d, which has %0d entries attached\n", DL_HOOK, hook, hooks[hook].size());
 		cRet=0;
 		for(int i=hooks[hook].size()-1;i>=0;i--) RunSpecificHookScript(&hooks[hook][i]);
 	} else {
@@ -101,13 +102,19 @@ static void _stdcall RunHookScript(DWORD hook) {
 
 static void __declspec(naked) ToHitHook() {
 	__asm {
-		hookbegin(4);
-		mov args[4], eax;
-		mov args[8], ebx;
-		mov args[12], ecx;
+		hookbegin(7);
+		mov args[4], eax; // attacker
+		mov args[8], ebx; // target
+		mov args[12], ecx; // body part
+		mov args[16], edx; // source tile
+		mov eax, [esp+4]; // attack type
+		mov args[20], eax;
+		mov eax, [esp+8]; // is ranged
+		mov args[24], eax;
+		mov eax, args[4];
 		push [esp+8];
 		push [esp+8];
-		call determine_to_hit_func_
+		call determine_to_hit_func_;
 		mov args[0], eax;
 		pushad;
 		push HOOK_TOHIT;
@@ -121,6 +128,7 @@ end:
 		retn 8;
 	}
 }
+
 static const DWORD AfterHitRollAddr=0x423898;
 static void __declspec(naked) AfterHitRollHook() {
 	__asm {
@@ -177,6 +185,7 @@ end:
 		retn;
 	}
 }
+
 // this is for using non-weapon items, always 2 AP in vanilla
 static void __declspec(naked) CalcApCostHook2() {
 	__asm {
@@ -268,6 +277,7 @@ aend:
 		retn 8;
 	}
 }
+
 static void __declspec(naked) CalcDeathAnimHook2() {
 	__asm {
 		hookbegin(5);
@@ -293,6 +303,7 @@ skip:
 		retn;
 	}
 }
+
 static void __declspec(naked) CombatDamageHook() {
 	__asm {
 		push edx;
@@ -520,20 +531,31 @@ static void __declspec(naked) RemoveObjHook() {
 
 static void __declspec(naked) BarterPriceHook() {
 	__asm {
-		hookbegin(6);
+		hookbegin(9);
 		mov args[0], eax;
 		mov args[4], edx;
-		call barter_compute_value_
+		call barter_compute_value_;
 		mov edx, ds:[_btable]
 		mov args[8], eax;
 		mov args[12], edx;
 		xchg eax, edx;
-		call item_caps_total_
+		call item_caps_total_;
 		mov args[16], eax;
-		mov eax, ds:[_btable]
-		call item_total_cost_
+		mov eax, ds:[_btable];
+		call item_total_cost_;
 		mov args[20], eax;
-		mov eax, edx;
+		mov eax, ds:[_ptable];
+		mov args[24], eax;
+		call item_total_cost_;
+		mov args[28], eax;
+		xor eax, eax;
+		mov edx, [esp]; // check offers button
+		cmp edx, 0x474D51; // last address on call stack
+		jne skip;
+		inc eax;
+skip:
+		mov args[32], eax;
+		mov eax, args[8];
 		pushad;
 		push HOOK_BARTERPRICE;
 		call RunHookScript;
@@ -736,6 +758,7 @@ void __declspec(naked) AmmoCostHookWrapper() {
 		retn;
 	}
 }
+
 void _stdcall KeyPressHook( DWORD dxKey, bool pressed, DWORD vKey )
 {
 	BeginHook();
@@ -1077,6 +1100,7 @@ void _stdcall SetHSReturn(DWORD d) {
 	if (cRetTmp > cRet)
 		cRet = cRetTmp;
 }
+
 void _stdcall RegisterHook( DWORD script, DWORD id, DWORD procNum )
 {
 	if (id >= numHooks) return;
@@ -1088,7 +1112,7 @@ void _stdcall RegisterHook( DWORD script, DWORD id, DWORD procNum )
 	}
 	sScriptProgram *prog = GetGlobalScriptProgram(script);
 	if (prog) {
-		dlog_f("Global script %08x registered as hook id %d\r\n", DL_HOOK, script, id);
+		dlog_f("Global script %08x registered as hook id %d\n", DL_HOOK, script, id);
 		sHookScript hook;
 		hook.prog = *prog;
 		hook.callback = procNum;
@@ -1140,14 +1164,14 @@ static void HookScriptInit2() {
 	}
 
 	LoadHookScript("hs_tohit", HOOK_TOHIT);
-	HookCall(0x421686, &ToHitHook);
-	HookCall(0x4231D9, &ToHitHook);
-	HookCall(0x42331F, &ToHitHook);
-	HookCall(0x4237FC, &ToHitHook);
-	HookCall(0x424379, &ToHitHook);
-	HookCall(0x42438D, &ToHitHook);
-	HookCall(0x42439C, &ToHitHook);
-	HookCall(0x42679A, &ToHitHook);
+	HookCall(0x421686, &ToHitHook); // combat_safety_invalidate_weapon_func_
+	HookCall(0x4231D9, &ToHitHook); // check_ranged_miss_
+	HookCall(0x42331F, &ToHitHook); // shoot_along_path_
+	HookCall(0x4237FC, &ToHitHook); // compute_attack_
+	HookCall(0x424379, &ToHitHook); // determine_to_hit_
+	HookCall(0x42438D, &ToHitHook); // determine_to_hit_no_range_
+	HookCall(0x42439C, &ToHitHook); // determine_to_hit_from_tile_
+	HookCall(0x42679A, &ToHitHook); // combat_to_hit_
 
 	LoadHookScript("hs_afterhitroll", HOOK_AFTERHITROLL);
 	MakeCall(0x423893, &AfterHitRollHook, true);
@@ -1290,7 +1314,7 @@ static void HookScriptInit2() {
 		call db_free_file_list_
 	}
 
-	dlogr("Finished loading hook scripts", DL_HOOK|DL_INIT);
+	dlogr("Finished loading hook scripts.", DL_HOOK|DL_INIT);
 }
 
 void HookScriptClear() {

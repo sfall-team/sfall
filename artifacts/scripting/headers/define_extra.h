@@ -224,5 +224,4 @@
 #define WPN_ANIM_MINIGUN            (0x09) // (L)
 #define WPN_ANIM_ROCKET_LAUNCHER    (0x0A) // (M)
 
-
 #endif // DEFINE_EXTRA_H

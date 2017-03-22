@@ -21,7 +21,7 @@
 #include "AnimationsAtOnceLimit.h"
 #include "FalloutEngine.h"
 
-static int AnimationsLimit = 32;
+static int animationLimit = 32;
 
 //pointers to new animation struct arrays
 static BYTE *anim_set;
@@ -145,53 +145,51 @@ static const DWORD sad_28[] = {
 
 static void __declspec(naked) anim_set_end_hook() {
 	__asm {
-		mov  edi, _anim_set
-		cmp  dword ptr AnimationsLimit, 32
-		jbe  skip
-		mov  edi, anim_set
-		add  edi, 2656                            // Adding a pacifier
+		mov  edi, _anim_set;
+		cmp  dword ptr animationLimit, 32;
+		jbe  skip;
+		mov  edi, anim_set;
+		add  edi, 2656;                           // Include a dummy
 skip:
-		test dl, 0x2                              // Flag of combat mode?
-		jz   end                                  // No
-		call combat_anim_finished_
+		test dl, 0x2;                             // Is the combat flag set?
+		jz   end;                                 // No
+		call combat_anim_finished_;
 end:
-		mov  [edi][esi], ebx
-		push 0x415DF2
-		retn
+		mov  [edi][esi], ebx;
+		push 0x415DF2;
+		retn;
 	}
 };
 
 void AnimationsAtOnceInit() {
-
-	AnimationsLimit = GetPrivateProfileIntA("Misc", "AnimationsAtOnceLimit", 32, ini);
-	if (AnimationsLimit > 32) {
-		if (AnimationsLimit > 127) AnimationsLimit = 127;
+	animationLimit = GetPrivateProfileIntA("Misc", "AnimationsAtOnceLimit", 32, ini);
+	if (animationLimit > 32) {
+		if (animationLimit > 127) animationLimit = 127;
 		dlog("Applying AnimationsAtOnceLimit patch.", DL_INIT);
-		int aniMax = AnimationsLimit; 	
+
 		int i;
 
 		//allocate memory to store larger animation struct arrays
-		anim_set = new BYTE[2656*(aniMax+1)];
-		sad = new BYTE[3240*(aniMax+1)]; // here (aniMax-8) from @Crafty. Bug? 
+		anim_set = new BYTE[2656*(animationLimit+1)];
+		sad = new BYTE[3240*(animationLimit+1)];
 
-		//set general animation limit check (old 20) aniMax-12 -- +12 reserved for PC movement(4) + other critical animations(8)?
-		SafeWrite8(0x413C07, aniMax-12);
+		//set general animation limit check (old 20) animationLimit-12 -- +12 reserved for PC movement(4) + other critical animations(8)?
+		SafeWrite8(0x413C07, animationLimit-12);
 
-		//PC movement animation limit checks (old 24) aniMax-8 -- +8 reserved for other critical animations?.
+		//PC movement animation limit checks (old 24) animationLimit-8 -- +8 reserved for other critical animations?.
 		for (i = 0; i < sizeof(AnimPCMove)/4; i++) {
-			SafeWrite8(AnimPCMove[i], aniMax-8);
+			SafeWrite8(AnimPCMove[i], animationLimit-8);
 		}
 
-		//Max animation limit checks (old 32) aniMax
+		//Max animation limit checks (old 32) animationLimit
 		for (i = 0; i < sizeof(AnimMaxCheck)/4; i++) {
-			SafeWrite8(AnimMaxCheck[i], aniMax);
+			SafeWrite8(AnimMaxCheck[i], animationLimit);
 		}
 
 		//Max animations checks - animation struct size * max num of animations (old 2656*32=84992)
 		for (i = 0; i < sizeof(AnimMaxSizeCheck)/4; i++) {
-			SafeWrite32(AnimMaxSizeCheck[i], 2656*aniMax);
+			SafeWrite32(AnimMaxSizeCheck[i], 2656*animationLimit);
 		}
-
 
 		//divert old animation structure list pointers to newly alocated memory
 
@@ -245,7 +243,6 @@ void AnimationsAtOnceInit() {
 
 		//old addr 0x54CC48
 		SafeWrite32(0x415C35, 2656+52+(DWORD)anim_set);
-
 
 		//struct array 2///////////////////
 
@@ -311,13 +308,14 @@ void AnimationsAtOnceInit() {
 		for (i = 0; i < sizeof(sad_28)/4; i++) {
 			SafeWrite32(sad_28[i], 40+(DWORD)sad);
 		}
+
 		dlogr(" Done", DL_INIT);
 	}
 	MakeCall(0x415DE2, &anim_set_end_hook, true);
 }
 
 void AnimationsAtOnceExit() {
-	if (AnimationsLimit <= 32) return;
+	if (animationLimit <= 32) return;
 	delete[] anim_set;
 	delete[] sad;
 }

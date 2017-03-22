@@ -313,63 +313,14 @@ end_cppf:
 		retn;
 	}
 }
-static double wm_nexttick;
-static double wm_wait;
-static bool wm_usingperf;
-static __int64 wm_perfadd;
-static __int64 wm_perfnext;
-static DWORD WorldMapLoopCount;
-static void WorldMapSpeedPatch3() {
-	RunGlobalScripts3();
-	if (wm_usingperf) {
-		__int64 timer;
-		while (true) {
-			QueryPerformanceCounter((LARGE_INTEGER*)&timer);
-			if (timer > wm_perfnext) break;
-			Sleep(0);
-		}
-		if (wm_perfnext + wm_perfadd < timer) wm_perfnext = timer + wm_perfadd;
-		else wm_perfnext += wm_perfadd;
-	} else {
-		DWORD tick;
-		DWORD nexttick = (DWORD)wm_nexttick;
-		while ((tick = GetTickCount()) < nexttick) Sleep(0);
-		if (nexttick + wm_wait < tick) wm_nexttick = tick + wm_wait;
-		else wm_nexttick += wm_wait;
-	}
-}
-static void __declspec(naked) WorldMapSpeedPatch2() {
-	__asm {
-		pushad;
-		call WorldMapSpeedPatch3;
-		popad;
-		call get_input_;
-		retn;
-	}
-}
-static void __declspec(naked) WorldMapSpeedPatch() {
-	__asm {
-		pushad;
-		call RunGlobalScripts3;
-		popad;
-		push ecx;
-		mov ecx, WorldMapLoopCount;
-ls:
-		mov eax, eax;
-		loop ls;
-		pop ecx;
-		call get_input_;
-		retn;
-	}
-}
+
 //Only used if the world map speed patch is disabled, so that world map scripts are still run
-static void WorldMapHook() {
+static void __declspec(naked) WorldMapHook() {
 	__asm {
 		pushad;
 		call RunGlobalScripts3;
 		popad;
-		call get_input_;
-		retn;
+		jmp get_input_;
 	}
 }
 
@@ -849,9 +800,8 @@ static void DllMain2() {
 	DWORD tmp;
 	dlogr("In DllMain2", DL_MAIN);
 
-	dlogr("Running BugsInit.", DL_INIT);
+	dlogr("Running BugsInit().", DL_INIT);
 	BugsInit();
-	dlogr(" Done", DL_INIT);
 
 	if (GetPrivateProfileIntA("Speed", "Enable", 0, ini)) {
 		dlog("Applying speed patch.", DL_INIT);
@@ -888,20 +838,20 @@ static void DllMain2() {
 	if (GraphicsMode == 4 || GraphicsMode == 5) {
 		dlog("Applying dx9 graphics patch.", DL_INIT);
 #ifdef WIN2K
-		HMODULE h = LoadLibraryEx("d3dx9_42.dll", 0, LOAD_LIBRARY_AS_DATAFILE);
-		if (!h) {
-			MessageBoxA(0, "You have selected graphics mode 4 or 5, but d3dx9_42.dll is missing\nSwitch back to mode 0, or install an up to date version of DirectX", "Error", 0);
+#define _DLL_NAME "d3dx9_42.dll"
 #else
-		HMODULE h = LoadLibraryEx("d3dx9_43.dll", 0, LOAD_LIBRARY_AS_DATAFILE);
-		if (!h) {
-			MessageBoxA(0, "You have selected graphics mode 4 or 5, but d3dx9_43.dll is missing\nSwitch back to mode 0, or install an up to date version of DirectX", "Error", 0);
+#define _DLL_NAME "d3dx9_43.dll"
 #endif
+		HMODULE h = LoadLibraryEx(_DLL_NAME, 0, LOAD_LIBRARY_AS_DATAFILE);
+		if (!h) {
+			MessageBoxA(0, "You have selected graphics mode 4 or 5, but " _DLL_NAME " is missing\nSwitch back to mode 0, or install an up to date version of DirectX", "Error", 0);
 			ExitProcess(-1);
 		} else {
 			FreeLibrary(h);
 		}
 		SafeWrite8(0x0050FB6B, '2');
 		dlogr(" Done", DL_INIT);
+#undef _DLL_NAME
 	}
 	tmp = GetPrivateProfileIntA("Graphics", "FadeMultiplier", 100, ini);
 	if (tmp != 100) {
@@ -1046,45 +996,18 @@ static void DllMain2() {
 
 	if (GetPrivateProfileInt("Misc", "WorldMapFPSPatch", 0, ini)) {
 		dlog("Applying world map fps patch.", DL_INIT);
-		if (*(DWORD*)0x004BFE5E != 0x8d16) {
+		if (*(DWORD*)0x4BFE5E != 0x8d16) {
 			dlogr(" Failed", DL_INIT);
 		} else {
 			wp_delay = GetPrivateProfileInt("Misc", "WorldMapDelay2", 66, ini);
-			HookCall(0x004BFE5D, worldmap_patch);
+			HookCall(0x4BFE5D, worldmap_patch);
+			AvailableGlobalScriptTypes |= 2;
 			dlogr(" Done", DL_INIT);
 		}
 	} else {
-		tmp = GetPrivateProfileIntA("Misc", "WorldMapFPS", 0, ini);
-		if (tmp) {
-			dlog("Applying world map fps patch.", DL_INIT);
-			if (*((WORD*)0x004CAFB9) == 0x0000) {
-				AvailableGlobalScriptTypes |= 2;
-				SafeWrite32(0x004BFE5E, ((DWORD)&WorldMapSpeedPatch2) - 0x004BFE62);
-				if (GetPrivateProfileIntA("Misc", "ForceLowResolutionTimer", 0, ini) || !QueryPerformanceFrequency((LARGE_INTEGER*)&wm_perfadd) || wm_perfadd <= 1000) {
-					wm_wait = 1000.0 / (double)tmp;
-					wm_nexttick = GetTickCount();
-					wm_usingperf = false;
-				} else {
-					wm_usingperf = true;
-					wm_perfadd /= tmp;
-					wm_perfnext = 0;
-				}
-			}
-			dlogr(" Done", DL_INIT);
-		} else {
-			tmp = GetPrivateProfileIntA("Misc", "WorldMapDelay", 0, ini);
-			if (tmp) {
-				if (*((WORD*)0x004CAFB9) == 0x3d40)
-					SafeWrite32(0x004CAFBB, tmp);
-				else if (*((WORD*)0x004CAFB9) == 0x0000) {
-					SafeWrite32(0x004BFE5E, ((DWORD)&WorldMapSpeedPatch) - 0x004BFE62);
-					WorldMapLoopCount = tmp;
-				}
-			} else {
-				if (*(DWORD*)0x004BFE5E == 0x0000d816) {
-					SafeWrite32(0x004BFE5E, ((DWORD)&WorldMapHook) - 0x004BFE62);
-				}
-			}
+		if (*(DWORD*)0x4BFE5E == 0x8d16) {
+			HookCall(0x4BFE5D, WorldMapHook);
+			AvailableGlobalScriptTypes |= 2;
 		}
 	}
 
@@ -1123,8 +1046,10 @@ static void DllMain2() {
 		dlog(".", DL_INIT);
 		SkillsInit();
 		dlog(".", DL_INIT);
+		dlogr(" Done", DL_INIT);
 
 		//Ray's combat_p_proc fix
+		dlog("Applying combat_p_proc fix.", DL_INIT);
 		SafeWrite32(0x0425253, ((DWORD)&Combat_p_procFix) - 0x0425257);
 		SafeWrite8(0x0424dbc, 0xE9);
 		SafeWrite32(0x0424dbd, 0x00000034);
@@ -1133,7 +1058,6 @@ static void DllMain2() {
 
 	//if (GetPrivateProfileIntA("Misc", "WorldMapCitiesListFix", 0, ini)) {
 		dlog("Applying world map cities list patch.", DL_INIT);
-
 		SafeWrite32(0x004C04BA, ((DWORD)&ScrollCityListHook) - 0x004C04BE);
 		SafeWrite32(0x004C04C9, ((DWORD)&ScrollCityListHook) - 0x004C04CD);
 		SafeWrite32(0x004C4A35, ((DWORD)&ScrollCityListHook) - 0x004C4A39);
@@ -1222,7 +1146,7 @@ static void DllMain2() {
 
 	npcautolevel = GetPrivateProfileIntA("Misc", "NPCAutoLevel", 0, ini) != 0;
 	if (npcautolevel) {
-		dlog("Applying npc autolevel patch.", DL_INIT);
+		dlog("Applying NPC autolevel patch.", DL_INIT);
 		SafeWrite8(0x495CFB, 0xEB);               // jmps 0x495D28 (skip random check)
 		dlogr(" Done", DL_INIT);
 	}
@@ -1364,17 +1288,18 @@ static void DllMain2() {
 	dlogr("Running TilesInit().", DL_INIT);
 	TilesInit();
 
-	dlogr("Applying main menu text patch", DL_INIT);
+	dlogr("Running CreditsInit().", DL_INIT);
 	CreditsInit();
 
 	if (GetPrivateProfileIntA("Misc", "UseScrollingQuestsList", 0, ini)) {
-		dlog("Applying quests list patch ", DL_INIT);
+		dlog("Applying quests list patch.", DL_INIT);
 		QuestListInit();
 		dlogr(" Done", DL_INIT);
 	}
 
-	dlog("Applying premade characters patch", DL_INIT);
+	dlog("Applying premade characters patch.", DL_INIT);
 	PremadeInit();
+	dlogr(" Done", DL_INIT);
 
 	dlogr("Running SoundInit().", DL_INIT);
 	SoundInit();
@@ -1386,9 +1311,8 @@ static void DllMain2() {
 	ConsoleInit();
 
 	if (GetPrivateProfileIntA("Misc", "ExtraSaveSlots", 0, ini)) {
-		dlog("Running EnableSuperSaving()", DL_INIT);
+		dlogr("Running EnableSuperSaving().", DL_INIT);
 		EnableSuperSaving();
-		dlogr(" Done", DL_INIT);
 	}
 
 	switch (GetPrivateProfileIntA("Misc", "SpeedInterfaceCounterAnims", 0, ini)) {
@@ -1511,14 +1435,19 @@ static void DllMain2() {
 		dlogr(" Done", DL_INIT);
 	}
 
-	dlog("Running InventoryInit.", DL_INIT);
+	dlogr("Running InventoryInit().", DL_INIT);
 	InventoryInit();
-	dlogr(" Done", DL_INIT);
 
 	if (tmp = GetPrivateProfileIntA("Misc", "MotionScannerFlags", 1, ini)) {
 		dlog("Applying MotionScannerFlags patch.", DL_INIT);
 		if (tmp & 1) MakeCall(0x41BBE9, &ScannerAutomapHook, true);
-		if (tmp & 2) BlockCall(0x41BC3C);
+		if (tmp & 2) {
+			// automap_
+			SafeWrite16(0x41BC24, 0x9090);
+			BlockCall(0x41BC3C);
+			// item_m_use_charged_item_
+			SafeWrite8(0x4794B3, 0x5E); // jbe short 0x479512
+		}
 		dlogr(" Done", DL_INIT);
 	}
 
@@ -1533,7 +1462,7 @@ static void DllMain2() {
 		dlogr(" Done", DL_INIT);
 	}
 
-	dlog("Initing main menu patches.", DL_INIT);
+	dlog("Applying main menu patches.", DL_INIT);
 	MainMenuInit();
 	dlogr(" Done", DL_INIT);
 
@@ -1541,13 +1470,12 @@ static void DllMain2() {
 		SafeWrite8(0x499518, 0xc3);
 	}
 
-	dlog("Initing AI patches.", DL_INIT);
+	dlog("Applying AI patches.", DL_INIT);
 	AIInit();
 	dlogr(" Done", DL_INIT);
 
-	dlog("Initing AI control.", DL_INIT);
+	dlogr("Initializing AI control.", DL_INIT);
 	PartyControlInit();
-	dlogr(" Done", DL_INIT);
 
 	//HookCall(0x413105, explosion_crash_fix_hook);//test for explosives
 	//SafeWrite32(0x413034, (DWORD)&explosion_crash_fix_hook);

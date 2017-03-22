@@ -199,6 +199,9 @@
     <ClInclude Include="Cpp11_emu.h">
       <Filter>Headers</Filter>
     </ClInclude>
+    <ClInclude Include="stdafx.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AmmoMod.cpp">
@@ -332,6 +335,9 @@
       <Filter>Source</Filter>
     </ClCompile>
     <ClCompile Include="Message.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="stdafx.cpp">
       <Filter>Source</Filter>
     </ClCompile>
   </ItemGroup>

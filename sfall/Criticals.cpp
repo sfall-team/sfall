@@ -133,7 +133,7 @@ void CritLoad() {
 			}
 		}
 	}
-	dlogr("Completed critical hit table", DL_CRITICALS);
+	dlogr("Completed critical hit table.", DL_CRITICALS);
 }
 
 #define SetEntry(a,b,c,d,e) defaultTable[a*9*6 + b*6 + c].values[d]=e;
@@ -143,12 +143,11 @@ void CritInit() {
 
 	if(!mode) return;
 
-	dlog("Initilizing critical table override.", DL_INIT);
+	dlog("Initializing critical table override.", DL_INIT);
 	critTable=new CritStruct[CritTableSize];
 	playerCrit=&critTable[6*9*38];
 	SafeWrite32(0x423F96, (DWORD)playerCrit);
 	SafeWrite32(0x423FB3, (DWORD)critTable);
-	dlog(". ", DL_INIT);
 
 	if(mode==2 || mode==3) {
 		CritStruct* defaultTable=(CritStruct*)_crit_succ_eff;

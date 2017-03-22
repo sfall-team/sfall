@@ -90,7 +90,7 @@ static void _stdcall SaveGame2() {
 	char buf[MAX_PATH];
 	GetSavePath(buf, "gv");
 
-	dlog_f("Saving game: %s\r\n", DL_MAIN, buf);
+	dlog_f("Saving game: %s\n", DL_MAIN, buf);
 
 	DWORD size, unused = 0;
 	HANDLE h = CreateFileA(buf, GENERIC_WRITE, 0, 0, CREATE_ALWAYS, 0, 0);
@@ -177,7 +177,7 @@ static void _stdcall LoadGame2_Before() {
 	char buf[MAX_PATH];
 	GetSavePath(buf, "gv");
 
-	dlog_f("Loading save game: %s\r\n", DL_MAIN, buf);
+	dlog_f("Loading save game: %s\n", DL_MAIN, buf);
 
 	ClearGlobals();
 	HANDLE h = CreateFileA(buf, GENERIC_READ, FILE_SHARE_READ, 0, OPEN_EXISTING, 0, 0);

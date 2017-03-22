@@ -29,14 +29,17 @@ static const DWORD ranged_attack_lighting_fix_back = 0x4118F8;
 // enable lighting for flying projectile, based on projectile PID data (light intensity & radius)
 static void __declspec(naked) ranged_attack_lighting_fix() {
 	__asm {
-		mov     eax, [esp+40]; // projectile ptr - 1st arg
-		mov     ecx, [esp+1Ch]; // protoPtr of projectile
-		mov     edx, [ecx+0x0C]; // light radius - 2nd arg
-		mov     ebx, [ecx+0x10]; // light intensity - 4th arg
-		//mov     ebx, 0x10000; // light intensity - 4th arg
-		xor     ecx, ecx; // unknown(0) - 3rd argument
-		call    obj_set_light_;
-		jmp     ranged_attack_lighting_fix_back; // jump back
+		mov eax, [esp+40];   // projectile ptr - 1st arg
+		mov ecx, [eax+0x70]; // check existing light intensity
+		cmp ecx, 0;          // if non-zero, skip obj_set_light call
+		jnz skip;
+		mov ecx, [esp+0x1C]; // protoPtr of projectile
+		mov edx, [ecx+0x0C]; // light radius - 2nd arg
+		mov ebx, [ecx+0x10]; // light intensity - 4th arg
+		xor ecx, ecx; // unknown(0) - 3rd argument
+		call obj_set_light_;
+skip:
+		jmp ranged_attack_lighting_fix_back; // jump back
 	}
 }
 
@@ -209,7 +212,7 @@ void ExplosionLightingInit() {
 	MakeCall(0x411AB4, &explosion_effect_hook, true); // required for explosions_metarule
 
 	if (GetPrivateProfileIntA("Misc", "ExplosionsEmitLight", 0, ini)) {
-		dlog("Initing Explosion changes.", DL_INIT);
+		dlog("Applying Explosion changes.", DL_INIT);
 		lightingEnabled = true;
 		MakeCall(0x4118E1, &ranged_attack_lighting_fix, true);
 		MakeCall(0x410A4A, &fire_dance_lighting_fix1, true);
