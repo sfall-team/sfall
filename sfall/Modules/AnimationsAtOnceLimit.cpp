@@ -17,13 +17,16 @@
  */
 
 #include "..\main.h"
+#include "..\FalloutEngine\Fallout2.h"
 
 #include "AnimationsAtOnceLimit.h"
+
+#define ANIM_RECORD_SIZE 2656
 
 namespace sfall 
 {
 
-static bool animLimitFixActive = false;
+static int animationLimit = 32;
 
 //pointers to new animation struct arrays
 static BYTE *anim_set;
@@ -145,16 +148,32 @@ static const DWORD sad_28[] = {
 	0x4173CE, 0x4174C1, 0x4175F1, 0x417730,
 };
 
+static void __declspec(naked) anim_set_end_hack() {
+	__asm {
+		mov  edi, FO_VAR_anim_set;
+		cmp  dword ptr animationLimit, 32;
+		jle  skip;
+		mov  edi, anim_set;
+		add  edi, ANIM_RECORD_SIZE;                // Adding a pacifier
+skip:
+		test dl, 0x2;                              // Flag of combat mode?
+		jz   end;                                  // No
+		call fo::funcoffs::combat_anim_finished_;
+end:
+		mov  [edi][esi], ebx;
+		push 0x415DF2;
+		retn;
+	}
+};
+
 void ApplyAnimationsAtOncePatches(signed char aniMax) {
 	if (aniMax <= 32) return;
-
-	animLimitFixActive = true;
 
 	int i;
 
 	//allocate memory to store larger animation struct arrays
-	anim_set = new BYTE[2656 * (aniMax + 1)];
-	sad = new BYTE[3240 * (aniMax + 1)];
+	anim_set = new BYTE[ANIM_RECORD_SIZE * (aniMax + 1)];
+	sad = new BYTE[3240*(aniMax+1)]; // here (aniMax-8) from @Crafty. Bug? 
 
 	//set general animation limit check (old 20) aniMax-12 -- +12 reserved for PC movement(4) + other critical animations(8)?
 	SafeWrite8(0x413C07, aniMax - 12);
@@ -171,9 +190,8 @@ void ApplyAnimationsAtOncePatches(signed char aniMax) {
 
 	//Max animations checks - animation struct size * max num of animations (old 2656*32=84992)
 	for (i = 0; i < sizeof(AnimMaxSizeCheck) / 4; i++) {
-		SafeWrite32(AnimMaxSizeCheck[i], 2656 * aniMax);
+		SafeWrite32(AnimMaxSizeCheck[i], ANIM_RECORD_SIZE * aniMax);
 	}
-
 
 	//divert old animation structure list pointers to newly alocated memory
 
@@ -189,44 +207,44 @@ void ApplyAnimationsAtOncePatches(signed char aniMax) {
 
 	//old addr 0x54CC14
 	for (i = 0; i < sizeof(anim_set_0) / 4; i++) {
-		SafeWrite32(anim_set_0[i], 2656 + (DWORD)anim_set);
+		SafeWrite32(anim_set_0[i], ANIM_RECORD_SIZE + (DWORD)anim_set);
 	}
 
 	//old addr 0x54CC18
 	for (i = 0; i < sizeof(anim_set_4) / 4; i++) {
-		SafeWrite32(anim_set_4[i], 2656 + 4 + (DWORD)anim_set);
+		SafeWrite32(anim_set_4[i], ANIM_RECORD_SIZE + 4 + (DWORD)anim_set);
 	}
 
 	//old addr 0x54CC1C
 	for (i = 0; i < sizeof(anim_set_8) / 4; i++) {
-		SafeWrite32(anim_set_8[i], 2656 + 8 + (DWORD)anim_set);
+		SafeWrite32(anim_set_8[i], ANIM_RECORD_SIZE + 8 + (DWORD)anim_set);
 	}
 
 	//old addr 0x54CC20
 	for (i = 0; i < sizeof(anim_set_C) / 4; i++) {
-		SafeWrite32(anim_set_C[i], 2656 + 12 + (DWORD)anim_set);
+		SafeWrite32(anim_set_C[i], ANIM_RECORD_SIZE + 12 + (DWORD)anim_set);
 	}
 
 	//old addr 0x54CC24
 	for (i = 0; i < sizeof(anim_set_10) / 4; i++) {
-		SafeWrite32(anim_set_10[i], 2656 + 16 + (DWORD)anim_set);
+		SafeWrite32(anim_set_10[i], ANIM_RECORD_SIZE + 16 + (DWORD)anim_set);
 	}
 
 	//old addr 0x54CC28
 	for (i = 0; i < sizeof(anim_set_14) / 4; i++) {
-		SafeWrite32(anim_set_14[i], 2656 + 20 + (DWORD)anim_set);
+		SafeWrite32(anim_set_14[i], ANIM_RECORD_SIZE + 20 + (DWORD)anim_set);
 	}
 
 	//old addr 0x54CC38
-	SafeWrite32(0x413F29, 2656 + 36 + (DWORD)anim_set);
+	SafeWrite32(0x413F29, ANIM_RECORD_SIZE + 36 + (DWORD)anim_set);
 
 	//old addr 0x54CC3C
 	for (i = 0; i < sizeof(anim_set_28) / 4; i++) {
-		SafeWrite32(anim_set_28[i], 2656 + 40 + (DWORD)anim_set);
+		SafeWrite32(anim_set_28[i], ANIM_RECORD_SIZE + 40 + (DWORD)anim_set);
 	}
 
 	//old addr 0x54CC48
-	SafeWrite32(0x415C35, 2656 + 52 + (DWORD)anim_set);
+	SafeWrite32(0x415C35, ANIM_RECORD_SIZE + 52 + (DWORD)anim_set);
 
 
 	//struct array 2///////////////////
@@ -293,19 +311,24 @@ void ApplyAnimationsAtOncePatches(signed char aniMax) {
 	for (i = 0; i < sizeof(sad_28) / 4; i++) {
 		SafeWrite32(sad_28[i], 40 + (DWORD)sad);
 	}
+
+	MakeCall(0x415DE2, &anim_set_end_hack, true);
 }
 
 void AnimationsAtOnce::init() {
-	DWORD setting = GetConfigInt("Misc", "AnimationsAtOnceLimit", 32);
-	if ((signed char)setting > 32) {
+	animationLimit = GetConfigInt("Misc", "AnimationsAtOnceLimit", 32);
+	if (animationLimit > 32) {
+		if (animationLimit > 127) {
+			animationLimit = 127;
+		}
 		dlog("Applying AnimationsAtOnceLimit patch.", DL_INIT);
-		ApplyAnimationsAtOncePatches((signed char)setting);
+		ApplyAnimationsAtOncePatches(animationLimit);
 		dlogr(" Done", DL_INIT);
 	}
 }
 
 void AnimationsAtOnce::exit() {
-	if (!animLimitFixActive) return;
+	if (animationLimit < 32) return;
 	delete[] anim_set;
 	delete[] sad;
 }
