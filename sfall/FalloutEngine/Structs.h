@@ -44,6 +44,30 @@ struct Art {
 	long total;
 };
 
+#pragma pack(1)
+struct AnimationSet {
+	long currentAnim;
+	long counter;
+	long animCounter;
+	long flags;
+	struct Animation {
+		long number;
+		long source;
+		long target;
+		long data1;
+		long elevation;
+		long animCode;
+		long delay;
+		long(__fastcall *callFunc)(DWORD, DWORD);
+		long(__fastcall *callFunc3)(DWORD, DWORD);
+		long flags;
+		long data2;
+		long frmPtr;
+	} animations[55];
+};
+
+static_assert(sizeof(AnimationSet) == 2656, "Incorrect AnimationSet definition.");
+
 // Bounding rectangle, used by tile_refresh_rect and related functions.
 #pragma pack(1)
 struct BoundRect {
@@ -380,6 +404,198 @@ struct PremadeChar {
 // In-memory PROTO structure, not the same as PRO file format.
 #pragma pack(1)
 struct Proto {
+	struct Tile {
+		long scriptId;
+		Material material;
+	};
+
+	struct Item {
+		struct Weapon {
+			long animationCode;
+			long minDamage;
+			long maxDamage;
+			long damageType;
+			long maxRange[2];
+			long projectilePid;
+			long minStrength;
+			long movePointCost[2];
+			long critFailTable;
+			long perk;
+			long burstRounds;
+			long caliber;
+			long ammoPid;
+			long maxAmmo;
+			// shot sound ID
+			long soundId;
+			long gap_68;
+		};
+
+		struct Ammo {
+			long caliber;
+			long packSize;
+			long acAdjust;
+			long drAdjust;
+			long damageMult;
+			long damageDiv;
+			char gap_3c[48];
+		};
+
+		struct Armor {
+			long armorClass;
+			// for each DamageType
+			long damageResistance[7];
+			// for each DamageType
+			long damageThreshold[7];
+			long perk;
+			long maleFid;
+			long femaleFid;
+		};
+
+		struct Container {
+			// container size capacity (not weight)
+			long maxSize;
+			// 1 - has use animation, 0 - no animation
+			long openFlags;
+		};
+
+		struct Drug {
+			long stats[3];
+			long immediateEffect[3];
+			struct DelayedEffect {
+				// delay for the effect
+				long duration;
+				// effect amount for each stat
+				long effect[3];
+			} delayed[2];
+			long addictionRate;
+			long addictionEffect;
+			long addictionOnset;
+			char gap_68[4];
+		};
+
+		struct Misc {
+			long powerPid;
+			long powerType;
+			long maxCharges;
+		};
+
+		struct Key {
+			long keyCode;
+		};
+
+		long flags;
+		long flagsExt;
+		// 0x0Y00XXXX: Y - script type (0=s_system, 1=s_spatial, 2=s_time, 3=s_item, 4=s_critter); XXXX - number in scripts.lst. -1 means no script.
+		long scriptId;
+		ItemType type;
+
+		union {
+			Weapon weapon;
+			Ammo ammo;
+			Armor armor;
+			Container container;
+			Drug drug;
+			Misc misc;
+			Key key;
+		};
+		Material material; // should be at 0x6C
+		long size;
+		long weight;
+		long cost;
+		long inventoryFid;
+		BYTE soundId;
+	};
+
+	struct Critter {
+		struct Stats {
+			long strength;
+			long perception;
+			long endurance;
+			long charisma;
+			long intelligence;
+			long agility;
+			long luck;
+			long health;
+			// max move points (action points)
+			long movePoints;
+			long armorClass;
+			// not used by engine
+			long unarmedDamage;
+			long meleeDamage;
+			long carryWeight;
+			long sequence;
+			long healingRate;
+			long criticalChance;
+			long betterCriticals;
+			// for each DamageType
+			long damageThreshold[7];
+			// for each DamageType
+			long damageResistance[7];
+			long radiationResistance;
+			long poisonResistance;
+			long age;
+			long gender;
+		};
+
+		long flags;
+		long flagsExt;
+		long scriptId;
+		long critterFlags;
+
+		Stats base;
+		Stats bonus;
+
+		long skills[SKILL_count];
+
+		long bodyType;
+		long experience;
+		long killType;
+		long damageType;
+		long headFid;
+		long aiPacket;
+		long teamNum;
+	};
+
+	struct Scenery {
+		struct Door {
+			long openFlags;
+			long keyCode;
+		};
+		struct Stairs {
+			long elevationAndTile;
+			long mapId;
+		};
+		struct Elevator {
+			long id;
+			long level;
+		};
+
+		long flags;
+		long flagsExt;
+		long scriptId;
+		ScenerySubType type;
+		union {
+			Door door;
+			Stairs stairs;
+			Elevator elevator;
+		};
+		Material material;
+		char gap_30[4];
+		BYTE soundId;
+	};
+
+	struct Wall {
+		long flags;
+		long flagsExt;
+		long scriptId;
+		Material material;
+	};
+
+	struct Misc {
+		long flags;
+		long flagsExt;
+	};
+
 	long pid;
 	long messageNum;
 	long fid;
@@ -388,187 +604,16 @@ struct Proto {
 	// range 0 - 65536
 	long lightIntensity;
 	union {
-		struct Tile {
-			long scriptId;
-			Material material;
-		} tile;
-
-		struct Item {
-			long flags;
-			long flagsExt;
-			// 0x0Y00XXXX: Y - script type (0=s_system, 1=s_spatial, 2=s_time, 3=s_item, 4=s_critter); XXXX - number in scripts.lst. -1 means no script.
-			long scriptId;
-			ItemType type;
-
-			union {
-				struct Weapon {
-					long animationCode;
-					long minDamage;
-					long maxDamage;
-					long damageType;
-					long maxRange[2];
-					long projectilePid;
-					long minStrength;
-					long movePointCost[2];
-					long critFailTable;
-					long perk;
-					long burstRounds;
-					long caliber;
-					long ammoPid;
-					long maxAmmo;
-					// shot sound ID
-					long soundId;
-					long gap_68;
-				} weapon;
-
-				struct Ammo {
-					long caliber;
-					long packSize;
-					long acAdjust;
-					long drAdjust;
-					long damageMult;
-					long damageDiv;
-					char gap_3c[48];
-				} ammo;
-
-				struct Armor {
-					long armorClass;
-					// for each DamageType
-					long damageResistance[7];
-					// for each DamageType
-					long damageThreshold[7];
-					long perk;
-					long maleFid;
-					long femaleFid;
-				} armor;
-
-				struct Container {
-					// container size capacity (not weight)
-					long maxSize;
-					// 1 - has use animation, 0 - no animation
-					long openFlags;
-				} container;
-
-				struct Drug {
-					long stats[3];
-					long immediateEffect[3];
-					struct DelayedEffect {
-						// delay for the effect
-						long duration;
-						// effect amount for each stat
-						long effect[3];
-					} delayed[2];
-					long addictionRate;
-					long addictionEffect;
-					long addictionOnset;
-					char gap_68[4];
-				} drug;
-
-				struct Misc {
-					long powerPid;
-					long powerType;
-					long maxCharges;
-				} misc;
-
-				struct Key {
-					long keyCode;
-				} key;
-			};
-			Material material; // should be at 0x6C
-			long size;
-			long weight;
-			long cost;
-			long inventoryFid;
-			BYTE soundId;
-		} item;
-
-		struct Critter {
-			typedef struct {
-				long strength;
-				long perception;
-				long endurance;
-				long charisma;
-				long intelligence;
-				long agility;
-				long luck;
-				long health;
-				// max move points (action points)
-				long movePoints;
-				long armorClass;
-				// not used by engine
-				long unarmedDamage;
-				long meleeDamage;
-				long carryWeight;
-				long sequence;
-				long healingRate;
-				long criticalChance;
-				long betterCriticals;
-				// for each DamageType
-				long damageThreshold[7];
-				// for each DamageType
-				long damageResistance[7];
-				long radiationResistance;
-				long poisonResistance;
-				long age;
-				long gender;
-			} Stats;
-
-			long flags;
-			long flagsExt;
-			long scriptId;
-			long critterFlags;
-
-			Stats base;
-			Stats bonus;
-
-			long skills[SKILL_count];
-
-			long bodyType;
-			long experience;
-			long killType;
-			long damageType;
-			long headFid;
-			long aiPacket;
-			long teamNum;
-		} critter;
-
-		struct Scenery {
-			long flags;
-			long flagsExt;
-			long scriptId;
-			ScenerySubType type;
-			union {
-				struct Door {
-					long openFlags;
-					long keyCode;
-				} door;
-				struct Stairs {
-					long elevationAndTile;
-					long mapId;
-				} stairs;
-				struct Elevator {
-					long id;
-					long level;
-				} elevator;
-			};
-			Material material;
-			char gap_30[4];
-			BYTE soundId;
-		} scenery;
-
-		struct Wall {
-			long flags;
-			long flagsExt;
-			long scriptId;
-			Material material;
-		} wall;
-
-		struct Misc {
-			long flags;
-			long flagsExt;
-		} misc;
+		Tile tile;
+		Item item;
+		Critter critter;
+		Scenery scenery;
+		Wall wall;
+		Misc misc;
 	};
 };
+
+static_assert(offsetof(Proto, item) + offsetof(Proto::Item, material) == 0x6C, "Incorrect Proto definition.");
 
 #pragma pack(1)
 struct ScriptListInfoItem {

@@ -21,10 +21,10 @@
 
 #include "AnimationsAtOnceLimit.h"
 
-#define ANIM_RECORD_SIZE 2656
-
 namespace sfall 
 {
+
+static const int animRecordSize = sizeof(fo::AnimationSet);
 
 static int animationLimit = 32;
 
@@ -154,7 +154,7 @@ static void __declspec(naked) anim_set_end_hack() {
 		cmp  dword ptr animationLimit, 32;
 		jle  skip;
 		mov  edi, anim_set;
-		add  edi, ANIM_RECORD_SIZE;                // Adding a pacifier
+		add  edi, animRecordSize;                  // Adding a pacifier
 skip:
 		test dl, 0x2;                              // Flag of combat mode?
 		jz   end;                                  // No
@@ -172,7 +172,7 @@ void ApplyAnimationsAtOncePatches(signed char aniMax) {
 	int i;
 
 	//allocate memory to store larger animation struct arrays
-	anim_set = new BYTE[ANIM_RECORD_SIZE * (aniMax + 1)];
+	anim_set = new BYTE[animRecordSize * (aniMax + 1)];
 	sad = new BYTE[3240*(aniMax+1)]; // here (aniMax-8) from @Crafty. Bug? 
 
 	//set general animation limit check (old 20) aniMax-12 -- +12 reserved for PC movement(4) + other critical animations(8)?
@@ -190,7 +190,7 @@ void ApplyAnimationsAtOncePatches(signed char aniMax) {
 
 	//Max animations checks - animation struct size * max num of animations (old 2656*32=84992)
 	for (i = 0; i < sizeof(AnimMaxSizeCheck) / 4; i++) {
-		SafeWrite32(AnimMaxSizeCheck[i], ANIM_RECORD_SIZE * aniMax);
+		SafeWrite32(AnimMaxSizeCheck[i], animRecordSize * aniMax);
 	}
 
 	//divert old animation structure list pointers to newly alocated memory
@@ -207,44 +207,44 @@ void ApplyAnimationsAtOncePatches(signed char aniMax) {
 
 	//old addr 0x54CC14
 	for (i = 0; i < sizeof(anim_set_0) / 4; i++) {
-		SafeWrite32(anim_set_0[i], ANIM_RECORD_SIZE + (DWORD)anim_set);
+		SafeWrite32(anim_set_0[i], animRecordSize + (DWORD)anim_set);
 	}
 
 	//old addr 0x54CC18
 	for (i = 0; i < sizeof(anim_set_4) / 4; i++) {
-		SafeWrite32(anim_set_4[i], ANIM_RECORD_SIZE + 4 + (DWORD)anim_set);
+		SafeWrite32(anim_set_4[i], animRecordSize + 4 + (DWORD)anim_set);
 	}
 
 	//old addr 0x54CC1C
 	for (i = 0; i < sizeof(anim_set_8) / 4; i++) {
-		SafeWrite32(anim_set_8[i], ANIM_RECORD_SIZE + 8 + (DWORD)anim_set);
+		SafeWrite32(anim_set_8[i], animRecordSize + 8 + (DWORD)anim_set);
 	}
 
 	//old addr 0x54CC20
 	for (i = 0; i < sizeof(anim_set_C) / 4; i++) {
-		SafeWrite32(anim_set_C[i], ANIM_RECORD_SIZE + 12 + (DWORD)anim_set);
+		SafeWrite32(anim_set_C[i], animRecordSize + 12 + (DWORD)anim_set);
 	}
 
 	//old addr 0x54CC24
 	for (i = 0; i < sizeof(anim_set_10) / 4; i++) {
-		SafeWrite32(anim_set_10[i], ANIM_RECORD_SIZE + 16 + (DWORD)anim_set);
+		SafeWrite32(anim_set_10[i], animRecordSize + 16 + (DWORD)anim_set);
 	}
 
 	//old addr 0x54CC28
 	for (i = 0; i < sizeof(anim_set_14) / 4; i++) {
-		SafeWrite32(anim_set_14[i], ANIM_RECORD_SIZE + 20 + (DWORD)anim_set);
+		SafeWrite32(anim_set_14[i], animRecordSize + 20 + (DWORD)anim_set);
 	}
 
 	//old addr 0x54CC38
-	SafeWrite32(0x413F29, ANIM_RECORD_SIZE + 36 + (DWORD)anim_set);
+	SafeWrite32(0x413F29, animRecordSize + 36 + (DWORD)anim_set);
 
 	//old addr 0x54CC3C
 	for (i = 0; i < sizeof(anim_set_28) / 4; i++) {
-		SafeWrite32(anim_set_28[i], ANIM_RECORD_SIZE + 40 + (DWORD)anim_set);
+		SafeWrite32(anim_set_28[i], animRecordSize + 40 + (DWORD)anim_set);
 	}
 
 	//old addr 0x54CC48
-	SafeWrite32(0x415C35, ANIM_RECORD_SIZE + 52 + (DWORD)anim_set);
+	SafeWrite32(0x415C35, animRecordSize + 52 + (DWORD)anim_set);
 
 
 	//struct array 2///////////////////

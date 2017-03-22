@@ -5,6 +5,7 @@
 
 VAR_(aiInfoList,                 DWORD)
 VAR_(ambient_light,              DWORD)
+VARA(anim_set,                   AnimationSet, 32)
 VARA(art,                        Art, 11)
 VAR_(art_name,                   DWORD)
 VAR_(art_vault_guy_num,          DWORD)
