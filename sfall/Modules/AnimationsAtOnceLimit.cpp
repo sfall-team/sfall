@@ -154,17 +154,17 @@ static void __declspec(naked) anim_set_end_hack() {
 		cmp  dword ptr animationLimit, 32;
 		jle  skip;
 		mov  edi, anim_set;
-		add  edi, animRecordSize;                  // Adding a pacifier
+		add  edi, animRecordSize;                 // Include a dummy
 skip:
-		test dl, 0x2;                              // Flag of combat mode?
-		jz   end;                                  // No
+		test dl, 0x2;                             // Is the combat flag set?
+		jz   end;                                 // No
 		call fo::funcoffs::combat_anim_finished_;
 end:
 		mov  [edi][esi], ebx;
 		push 0x415DF2;
 		retn;
 	}
-};
+}
 
 void ApplyAnimationsAtOncePatches(signed char aniMax) {
 	if (aniMax <= 32) return;
@@ -173,7 +173,7 @@ void ApplyAnimationsAtOncePatches(signed char aniMax) {
 
 	//allocate memory to store larger animation struct arrays
 	anim_set = new BYTE[animRecordSize * (aniMax + 1)];
-	sad = new BYTE[3240*(aniMax+1)]; // here (aniMax-8) from @Crafty. Bug? 
+	sad = new BYTE[3240 * (aniMax + 1)];
 
 	//set general animation limit check (old 20) aniMax-12 -- +12 reserved for PC movement(4) + other critical animations(8)?
 	SafeWrite8(0x413C07, aniMax - 12);
@@ -246,7 +246,6 @@ void ApplyAnimationsAtOncePatches(signed char aniMax) {
 	//old addr 0x54CC48
 	SafeWrite32(0x415C35, animRecordSize + 52 + (DWORD)anim_set);
 
-
 	//struct array 2///////////////////
 
 	//old addr 0x530014
@@ -311,8 +310,6 @@ void ApplyAnimationsAtOncePatches(signed char aniMax) {
 	for (i = 0; i < sizeof(sad_28) / 4; i++) {
 		SafeWrite32(sad_28[i], 40 + (DWORD)sad);
 	}
-
-	MakeCall(0x415DE2, &anim_set_end_hack, true);
 }
 
 void AnimationsAtOnce::init() {
@@ -325,10 +322,11 @@ void AnimationsAtOnce::init() {
 		ApplyAnimationsAtOncePatches(animationLimit);
 		dlogr(" Done", DL_INIT);
 	}
+	MakeCall(0x415DE2, &anim_set_end_hack, true);
 }
 
 void AnimationsAtOnce::exit() {
-	if (animationLimit < 32) return;
+	if (animationLimit <= 32) return;
 	delete[] anim_set;
 	delete[] sad;
 }
