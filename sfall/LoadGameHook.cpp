@@ -45,13 +45,20 @@
 
 static DWORD InLoop = 0;
 static DWORD SaveInCombatFix;
+static bool mapLoaded = false;
+
+bool IsMapLoaded() {
+	return mapLoaded;
+}
 
 DWORD InWorldMap() {
 	return (InLoop&WORLDMAP) ? 1 : 0;
 }
+
 DWORD InCombat() {
 	return (InLoop&COMBAT) ? 1 : 0;
 }
+
 DWORD GetCurrentLoops() {
 	return InLoop;
 }
@@ -83,7 +90,7 @@ static void _stdcall SaveGame2() {
 	char buf[MAX_PATH];
 	GetSavePath(buf, "gv");
 
-	dlog_f("Saving game: %s\r\n", DL_MAIN, buf);
+	dlog_f("Saving game: %s\n", DL_MAIN, buf);
 
 	DWORD size, unused = 0;
 	HANDLE h = CreateFileA(buf, GENERIC_WRITE, 0, 0, CREATE_ALWAYS, 0, 0);
@@ -170,7 +177,7 @@ static void _stdcall LoadGame2_Before() {
 	char buf[MAX_PATH];
 	GetSavePath(buf, "gv");
 
-	dlog_f("Loading save game: %s\r\n", DL_MAIN, buf);
+	dlog_f("Loading save game: %s\n", DL_MAIN, buf);
 
 	ClearGlobals();
 	HANDLE h = CreateFileA(buf, GENERIC_READ, FILE_SHARE_READ, 0, OPEN_EXISTING, 0, 0);
@@ -192,6 +199,7 @@ static void _stdcall LoadGame2_After() {
 	LoadGlobalScripts();
 	CritLoad();
 	LoadHeroAppearance();
+	mapLoaded = true;
 }
 
 static void __declspec(naked) LoadSlot() {
@@ -241,6 +249,7 @@ static void NewGame2() {
 
 	LoadGlobalScripts();
 	CritLoad();
+	mapLoaded = true;
 }
 
 static bool DisableHorrigan = false;

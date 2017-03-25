@@ -244,7 +244,7 @@ public:
 		va_list args;
 		va_start(args, fmt);
 		char msg[1024];
-		vsnprintf_s(msg, sizeof msg, _TRUNCATE, fmt, args);
+		vsnprintf_s(msg, sizeof(msg), _TRUNCATE, fmt, args);
 		va_end(args);
 
 		const char* procName = FindCurrentProc(_program);
@@ -391,7 +391,7 @@ static DWORD MotionSensorMode;
 static BYTE toggleHighlightsKey;
 static DWORD HighlightContainers;
 static DWORD Color_Containers;
-static signed char idle;
+static int idle;
 static char HighlightFail1[128];
 static char HighlightFail2[128];
 
@@ -1011,7 +1011,7 @@ static DWORD __stdcall GetGlobalExportedVarPtr(const char* name) {
 	return 0;
 }
 static DWORD __stdcall CreateGlobalExportedVar(DWORD scr, const char* name) {
-	//dlog_f("\nTrying to export variable %s (%d)\r\n", DL_MAIN, name, isGlobalScriptLoading);
+	//dlog_f("\nTrying to export variable %s (%d)\n", DL_MAIN, name, isGlobalScriptLoading);
 	std::string str(name);
 	globalExportedVars[str] = sExportedVar(); // add new
 	return 1;
@@ -1195,7 +1195,7 @@ void ScriptExtenderSetup() {
 	GetPrivateProfileStringA("Sfall", "HighlightFail2", "Your motion sensor is out of charge.", HighlightFail2, 128, translationIni);
 
 	idle = GetPrivateProfileIntA("Misc", "ProcessorIdle", -1, ini);
-	if (idle > -1) {
+	if (idle > -1 && idle <= 127) {
 		SafeWrite32(_idle_func, (DWORD)Sleep);
 		SafeWrite8(0x4C9F12, 0x6A); // push
 		SafeWrite8(0x4C9F13, idle);
@@ -1203,8 +1203,8 @@ void ScriptExtenderSetup() {
 	modifiedIni = GetPrivateProfileIntA("Main", "ModifiedIni", 0, ini);
 
 	dlogr("Adding additional opcodes", DL_SCRIPT);
-	if(AllowUnsafeScripting) dlogr("  Unsafe opcodes enabled", DL_SCRIPT);
-	else dlogr("  Unsafe opcodes disabled", DL_SCRIPT);
+	if(AllowUnsafeScripting) dlogr("  Unsafe opcodes enabled.", DL_SCRIPT);
+	else dlogr("  Unsafe opcodes disabled.", DL_SCRIPT);
 
 	arraysBehavior = GetPrivateProfileIntA("Misc", "arraysBehavior", 1, ini);
 	if (arraysBehavior > 0) {
@@ -1643,7 +1643,7 @@ void LoadGlobalScripts() {
 		lea  eax, filenames
 		call db_free_file_list_
 	}
-	dlogr("Finished loading global scripts", DL_SCRIPT|DL_INIT);
+	dlogr("Finished loading global scripts.", DL_SCRIPT|DL_INIT);
 	//ButtonsReload();
 }
 
@@ -1740,24 +1740,25 @@ void AfterAttackCleanup() {
 }
 
 static void RunGlobalScripts1() {
-	if (idle > -1) Sleep(idle);
+	if (idle > -1 && idle <= 127) Sleep(idle);
 	if (toggleHighlightsKey) {
 		//0x48C294 to toggle
 		if (KeyDown(toggleHighlightsKey)) {
 			if (!highlightingToggled) {
-				if (MotionSensorMode&4) {
+				if (MotionSensorMode & 4) {
 					DWORD scanner;
 					__asm {
 						mov eax, ds:[_obj_dude];
-						mov edx, PID_MOTION_SENSOR
-						call inven_pid_is_carried_ptr_
+						mov edx, PID_MOTION_SENSOR;
+						call inven_pid_is_carried_ptr_;
 						mov scanner, eax;
 					}
 					if (scanner) {
-						if (MotionSensorMode&2) {
+						if (!(MotionSensorMode & 2)) {
 							__asm {
 								mov eax, scanner;
-								call item_m_dec_charges_ //Returns -1 if the item has no charges
+								call item_m_dec_charges_; //Returns -1 if the item has no charges
+								call intface_redraw_;
 								inc eax;
 								mov highlightingToggled, eax;
 							}
@@ -1770,7 +1771,7 @@ static void RunGlobalScripts1() {
 				if (highlightingToggled) obj_outline_all_items_on();
 				else highlightingToggled = 2;
 			}
-		} else if(highlightingToggled) {
+		} else if (highlightingToggled) {
 			if (highlightingToggled == 1) obj_outline_all_items_off();
 			highlightingToggled = 0;
 		}
@@ -1785,7 +1786,7 @@ static void RunGlobalScripts1() {
 }
 
 void RunGlobalScripts2() {
-	if (idle > -1) Sleep(idle);
+	if (idle > -1 && idle <= 127) Sleep(idle);
 	for (DWORD d = 0; d < globalScripts.size(); d++) {
 		if (!globalScripts[d].repeat || globalScripts[d].mode != 1) continue;
 		if (++globalScripts[d].count >= globalScripts[d].repeat) {
@@ -1795,7 +1796,7 @@ void RunGlobalScripts2() {
 	ResetStateAfterFrame();
 }
 void RunGlobalScripts3() {
-	if (idle > -1) Sleep(idle);
+	if (idle > -1 && idle <= 127) Sleep(idle);
 	for (DWORD d = 0; d < globalScripts.size(); d++) {
 		if (!globalScripts[d].repeat || (globalScripts[d].mode != 2 && globalScripts[d].mode != 3)) continue;
 		if (++globalScripts[d].count >= globalScripts[d].repeat) {

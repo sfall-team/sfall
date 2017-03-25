@@ -321,6 +321,71 @@ skip:
 	}
 }
 
+static void __declspec(naked) is_supper_bonus_hack() {
+	__asm {
+		add  eax, ecx
+		test eax, eax
+		jle  skip
+		cmp  eax, 10
+		jle  end
+skip:
+		pop  eax                                  // Destroy the return address
+		xor  eax, eax
+		inc  eax
+		pop  edx
+		pop  ecx
+		pop  ebx
+end:
+		retn
+	}
+}
+
+static void __declspec(naked) PrintBasicStat_hack() {
+	__asm {
+		test eax, eax
+		jle  skip
+		cmp  eax, 10
+		jg   end
+		pop  ebx                                  // Destroy the return address
+		push 0x434C21
+		retn
+skip:
+		xor  eax, eax
+end:
+		retn
+	}
+}
+
+static void __declspec(naked) StatButtonUp_hook() {
+	__asm {
+		call inc_stat_
+		test eax, eax
+		jl   end
+		test ebx, ebx
+		jge  end
+		sub  ds:[_character_points], esi
+		dec  esi
+		mov  [esp+0xC+0x4], esi
+end:
+		retn
+	}
+}
+
+static void __declspec(naked) StatButtonDown_hook() {
+	__asm {
+		call stat_level_
+		cmp  eax, 1
+		jg   end
+		pop  eax                                  // Destroy the return address
+		xor  eax, eax
+		inc  eax
+		mov  [esp+0xC], eax
+		push 0x437B41
+end:
+		retn
+	}
+}
+
 static void __declspec(naked) loot_container_hack() {
 	__asm {
 		mov  eax, [esp+0x114+0x4]
@@ -525,13 +590,6 @@ end:
 	}
 }
 
-static void __declspec(naked) item_d_take_drug_hack1() {
-	__asm {
-		push 0x47A168
-		retn
-	}
-}
-
 static void __declspec(naked) op_wield_obj_critter_adjust_ac_hook() {
 	__asm {
 		call adjust_ac_
@@ -597,7 +655,7 @@ static void __declspec(naked) set_new_results_hack() {
 		inc  edx                                  // type = knockout
 		jmp  queue_remove_this_                   // Remove knockout from queue (if there is one)
 end:
-		pop  eax                                  // Destroying return address
+		pop  eax                                  // Destroy the return address
 		push 0x424FC6
 		retn
 	}
@@ -651,7 +709,7 @@ end:
 	}
 }
 
-static void __declspec(naked) partyMemberPrepLoadInstance_hack() {
+static void __declspec(naked) partyMemberPrepLoadInstance_hook() {
 	__asm {
 		and  word ptr [eax+0x44], 0x7FFD          // not (DAM_LOSE_TURN or DAM_KNOCKED_DOWN)
 		jmp  dude_stand_
@@ -928,11 +986,56 @@ end:
 	}
 }
 
+static void __declspec(naked) use_inventory_on_hack() {
+	__asm {
+		inc  ecx
+		mov  edx, [eax]                           // Inventory.inv_size
+		sub  edx, ecx
+		jge  end
+		mov  edx, [eax]                           // Inventory.inv_size
+end:
+		retn
+	}
+}
+
+int __stdcall ItemCountFixStdcall(TGameObj* who, TGameObj* item) {
+	int count = 0;
+	for (int i = 0; i < who->invenCount; i++) {
+		TInvenRec* tableItem = &who->invenTablePtr[i];
+		if (tableItem->object == item) {
+			count += tableItem->count;
+		} else if (ItemGetType(tableItem->object) == item_type_container) {
+			count += ItemCountFixStdcall(tableItem->object, item);
+		}
+	}
+	return count;
+}
+
+void __declspec(naked) ItemCountFix() {
+	__asm {
+		push ebx; push ecx; push edx; // save state
+		push edx; // item
+		push eax; // container-object
+		call ItemCountFixStdcall;
+		pop edx; pop ecx; pop ebx; // restore
+		retn;
+	}
+}
+
+static void __declspec(naked) Save_as_ASCII_hack() {
+	__asm {
+		mov  edx, STAT_sequence;
+		mov  ebx, 626; // line index in EDITOR.MSG
+		push 0x4396FC; // call stat_level_
+		retn;
+	}
+}
+
 
 void BugsInit()
 {
 	//if (GetPrivateProfileIntA("Misc", "SharpshooterFix", 1, ini)) {
-		dlog("Applying sharpshooter patch.", DL_INIT);
+		dlog("Applying Sharpshooter patch.", DL_INIT);
 		// http://www.nma-fallout.com/threads/fo2-engine-tweaks-sfall.178390/page-119#post-4050162
 		// by Slider2k
 		HookCall(0x4244AB, &SharpShooterFix); // hooks stat_level_() call in detemine_to_hit_func_()
@@ -1009,6 +1112,14 @@ void BugsInit()
 	SafeWrite8(0x4AC377, 0x7F);                // jg
 	dlogr(" Done", DL_INIT);
 
+	// Fix for negative SPECIAL values in character creation
+	dlog("Applying fix for negative SPECIAL values in character creation.", DL_INIT);
+	MakeCall(0x43DF6F, &is_supper_bonus_hack, false);
+	MakeCall(0x434BFF, &PrintBasicStat_hack, false);
+	HookCall(0x437AB4, &StatButtonUp_hook);
+	HookCall(0x437B26, &StatButtonDown_hook);
+	dlogr(" Done", DL_INIT);
+
 	// Fix for not counting in the weight of equipped items on NPC when stealing or bartering
 	//if (GetPrivateProfileIntA("Misc", "NPCWeightFix", 1, ini)) {
 		dlog("Applying fix for not counting in weight of equipped items on NPC.", DL_INIT);
@@ -1044,7 +1155,7 @@ void BugsInit()
 	//}
 
 	//if (GetPrivateProfileIntA("Misc", "BlackSkilldexFix", 1, ini)) {
-		dlog("Applying black skilldex patch.", DL_INIT);
+		dlog("Applying black Skilldex patch.", DL_INIT);
 		HookCall(0x497D0F, &PipStatus_AddHotLines_hook);
 		dlogr(" Done", DL_INIT);
 	//}
@@ -1058,7 +1169,7 @@ void BugsInit()
 	//if (GetPrivateProfileIntA("Misc", "JetAntidoteFix", 1, ini)) {
 		dlog("Applying Jet Antidote fix.", DL_INIT);
 		// the original jet antidote fix
-		MakeCall(0x47A013, &item_d_take_drug_hack1, true);
+		MakeCall(0x47A013, (void*)0x47A168, true);
 		dlogr(" Done", DL_INIT);
 	//}
 
@@ -1114,7 +1225,7 @@ void BugsInit()
 		MakeCall(0x424F8E, &set_new_results_hack, false);
 		MakeCall(0x42E46E, &critter_wake_clear_hack, true);
 		MakeCall(0x488EF3, &obj_load_func_hack, true);
-		HookCall(0x4949B2, &partyMemberPrepLoadInstance_hack);
+		HookCall(0x4949B2, &partyMemberPrepLoadInstance_hook);
 		dlogr(" Done", DL_INIT);
 	//}
 
@@ -1173,6 +1284,7 @@ void BugsInit()
 	//}
 
 	//if (GetPrivateProfileIntA("Misc", "BagBackpackFix", 1, ini)) {
+		dlog("Applying fix for bag/backpack bugs.", DL_INIT);
 		// Fix for items disappearing from inventory when you try to drag them to bag/backpack in the inventory list
 		// and are overloaded
 		HookCall(0x4764FC, (void*)item_add_force_);
@@ -1187,5 +1299,15 @@ void BugsInit()
 		SafeWrite8(0x471C1C, 0x90); // nop
 		// Fix crash when trying to open bag/backpack on the table in the bartering interface
 		MakeCall(0x473191, &inven_action_cursor_hack, false);
+		dlogr(" Done", DL_INIT);
 	//}
+
+	// Fix crash when clicking on empty space in the inventory list opened by "Use Inventory Item On" (backpack) action icon
+	MakeCall(0x471A94, &use_inventory_on_hack, false);
+
+	// Fix item_count function returning incorrect value when there is a container-item inside
+	MakeCall(0x47808C, ItemCountFix, true); // replacing item_count_ function
+
+	// Fix for Sequence stat value not being printed correctly when using "print to file" option
+	MakeCall(0x4396F5, &Save_as_ASCII_hack, true);
 }

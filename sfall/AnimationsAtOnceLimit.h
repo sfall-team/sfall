@@ -20,7 +20,7 @@
 #pragma once
 
 
-void AnimationsAtOnceInit(signed char aniMax);
+void AnimationsAtOnceInit();
 void AnimationsAtOnceExit();
 
 

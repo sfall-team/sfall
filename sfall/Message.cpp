@@ -106,7 +106,7 @@ void ReadExtraGameMsgFiles() {
 	names.resize(256);
 
 	while ((read = GetPrivateProfileStringA("Misc", "ExtraGameMsgFileList", "",
-		(LPSTR)names.data(), names.size(), ".\\ddraw.ini")) == names.size() - 1)
+		(LPSTR)names.data(), names.size(), ini)) == names.size() - 1)
 		names.resize(names.size() + 256);
 
 	if (names.empty())

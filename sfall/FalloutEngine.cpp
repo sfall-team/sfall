@@ -250,6 +250,7 @@ const DWORD check_death_ = 0x410814;
 const DWORD Check4Keys_ = 0x43F73C;
 const DWORD combat_ = 0x422D2C;
 const DWORD combat_ai_ = 0x42B130;
+const DWORD combat_anim_finished_ = 0x425E80;
 const DWORD combat_attack_ = 0x422F3C;
 const DWORD combat_input_ = 0x4227F4;
 const DWORD combat_should_end_ = 0x422C60;
@@ -343,6 +344,7 @@ const DWORD gsnd_build_weapon_sfx_name_ = 0x451760;
 const DWORD gsound_play_sfx_file_ = 0x4519A8;
 const DWORD handle_inventory_ = 0x46E7B0;
 const DWORD inc_game_time_ = 0x4A34CC;
+const DWORD inc_stat_ = 0x4AF5D4;
 const DWORD insert_withdrawal_ = 0x47A290;
 const DWORD interpret_ = 0x46CCA4;
 const DWORD interpretAddString_ = 0x467A80; // edx = ptr to string, eax = script

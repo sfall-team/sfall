@@ -170,17 +170,16 @@ public:
 			MousePartY = modf(d, &d);
 			MouseState.lY=(LONG)d;
 		}
-		if(UseScrollWheel) {
-			if(MouseState.lZ>0) {
-				int count;
-				if(WheelMod) count=MouseState.lZ/WheelMod;
-				else count=1;
-				while(count--) TapKey(DIK_UP);
-			} else if(MouseState.lZ<0) {
-				int count;
-				if(WheelMod) count=(-MouseState.lZ)/WheelMod;
-				else count=1;
-				while(count--) TapKey(DIK_DOWN);
+		if (UseScrollWheel) {
+			int count = 1;
+			if (MouseState.lZ > 0) {
+				if (WheelMod) count = MouseState.lZ / WheelMod;
+				if (count < 1) count = 1;
+				while (count--) TapKey(DIK_UP);
+			} else if (MouseState.lZ < 0) {
+				if (WheelMod) count = (-MouseState.lZ) / WheelMod;
+				if (count < 1) count = 1;
+				while (count--) TapKey(DIK_DOWN);
 			}
 		}
 		if(MiddleMouseKey&&MouseState.rgbButtons[2]) {

@@ -89,7 +89,7 @@ void BooksInit() {
 	GetPrivateProfileString("Misc", "BooksFile", "", buf, MAX_PATH, ini);
 	if (strlen(buf)>0) {
 		sprintf(iniBooks, ".\\%s", buf);
-		dlog("Applying books patch... ", DL_INIT);
+		dlog("Applying books patch...", DL_INIT);
 		memset(books,0,sizeof(sBook)*BooksCount);
 
 		int i, n = 0, count;
@@ -111,6 +111,6 @@ void BooksInit() {
 		}
 		
 		MakeCall(0x49B9FB, &obj_use_book_hook, true);
-		dlog_f(" (%d/%d books) Done\r\n", DL_INIT, n, count);
+		dlog_f(" (%d/%d books) Done\n", DL_INIT, n, count);
 	}
 }

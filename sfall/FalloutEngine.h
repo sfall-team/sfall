@@ -31,6 +31,7 @@
 
 #define _aiInfoList                 0x510948
 #define _ambient_light              0x51923C
+#define _anim_set                   0x54CC14
 #define _art                        0x510738
 #define _art_name                   0x56C9E4
 #define _art_vault_guy_num          0x5108A4
@@ -41,6 +42,7 @@
 #define _btable                     0x59E944
 #define _btncnt                     0x43EA1C
 #define _CarCurrArea                0x672E68
+#define _character_points           0x518538
 #define _cmap                       0x51DF34
 #define _colorTable                 0x6A38D0
 #define _combat_free_move           0x56D39C
@@ -422,6 +424,7 @@ extern const DWORD check_death_;
 extern const DWORD Check4Keys_;
 extern const DWORD combat_;
 extern const DWORD combat_ai_;
+extern const DWORD combat_anim_finished_;
 extern const DWORD combat_attack_;
 extern const DWORD combat_input_;
 extern const DWORD combat_should_end_;
@@ -514,6 +517,7 @@ extern const DWORD gsnd_build_weapon_sfx_name_;
 extern const DWORD gsound_play_sfx_file_;
 extern const DWORD handle_inventory_;
 extern const DWORD inc_game_time_;
+extern const DWORD inc_stat_;
 extern const DWORD insert_withdrawal_;
 extern const DWORD interpret_; // <eax> - programPtr, <edx> - ??? (-1)
 extern const DWORD interpretAddString_;
