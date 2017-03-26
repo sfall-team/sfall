@@ -617,7 +617,7 @@ void Inventory::init() {
 	mode = GetConfigInt("Misc", "CritterInvSizeLimitMode", 0);
 	invenapcost = GetConfigInt("Misc", "InventoryApCost", 4);
 	invenapqpreduction = GetConfigInt("Misc", "QuickPocketsApCostReduction", 2);
-	MakeCall(0x46E80B, inven_ap_cost_hook, true);
+	MakeJump(0x46E80B, inven_ap_cost_hook);
 	if (mode > 7) {
 		mode = 0;
 	}
@@ -630,16 +630,16 @@ void Inventory::init() {
 
 		//Check item_add_multi (picking stuff from the floor, etc.)
 		HookCall(0x4771BD, &ItemAddMultiHook1);
-		MakeCall(0x47726D, &ItemAddMultiHook2, true);
-		MakeCall(0x42E688, &CritterIsOverloadedHook, true);
+		MakeJump(0x47726D, ItemAddMultiHook2);
+		MakeJump(0x42E688, CritterIsOverloadedHook);
 
 		//Check capacity of player and barteree when bartering
-		MakeCall(0x474C78, &BarterAttemptTransactionHook1, true);
-		MakeCall(0x474CCF, &BarterAttemptTransactionHook2, true);
+		MakeJump(0x474C78, BarterAttemptTransactionHook1);
+		MakeJump(0x474CCF, BarterAttemptTransactionHook2);
 
 		//Display total weight on the inventory screen
 		SafeWrite32(0x4725FF, (DWORD)&InvenFmt);
-		MakeCall(0x4725E0, &DisplayStatsHook, true);
+		MakeJump(0x4725E0, DisplayStatsHook);
 		SafeWrite8(0x47260F, 0x20);
 		SafeWrite32(0x4725F9, 0x9c + 0xc);
 		SafeWrite8(0x472606, 0x10 + 0xc);
@@ -652,18 +652,18 @@ void Inventory::init() {
 
 	if (GetConfigInt("Misc", "SuperStimExploitFix", 0)) {
 		superStimMsg = Translate("sfall", "SuperStimExploitMsg", "You cannot use a super stim on someone who is not injured!");
-		MakeCall(0x49C3CC, SuperStimFix, true);
+		MakeJump(0x49C3CC, SuperStimFix);
 	}
 
 	if (GetConfigInt("Misc", "CheckWeaponAmmoCost", 0)) {
-		MakeCall(0x4266E9, &add_check_for_item_ammo_cost, true);
-		MakeCall(0x4234B3, &divide_burst_rounds_by_ammo_cost, true);
+		MakeJump(0x4266E9, add_check_for_item_ammo_cost);
+		MakeJump(0x4234B3, divide_burst_rounds_by_ammo_cost);
 	}
 
 	reloadWeaponKey = GetConfigInt("Input", "ReloadWeaponKey", 0);
 
 	if (GetConfigInt("Misc", "StackEmptyWeapons", 0)) {
-		MakeCall(0x4736C6, &inven_action_cursor_hack, true);
+		MakeJump(0x4736C6, inven_action_cursor_hack);
 		HookCall(0x4772AA, &item_add_mult_hook);
 	}
 
@@ -684,7 +684,7 @@ void Inventory::init() {
 	SafeWrite32(0x475CF2, FO_VAR_stack);
 
 	// Fix item_count function returning incorrect value when there is a container-item inside
-	MakeCall(0x47808C, ItemCountFix, true); // replacing item_count_ function
+	MakeJump(0x47808C, ItemCountFix); // replacing item_count_ function
 }
 
 }

@@ -1027,8 +1027,8 @@ void BugFixes::init()
 
 	// Fixes for clickability issue in Pip-Boy and exploit that allows to rest in places where you shouldn't be able to rest
 	dlog("Applying fix for Pip-Boy rest exploit.", DL_INIT);
-	MakeCall(0x4971C7, &pipboy_hack, false);
-	MakeCall(0x499530, &PipAlarm_hack, false);
+	MakeCall(0x4971C7, pipboy_hack);
+	MakeCall(0x499530, PipAlarm_hack);
 	dlogr(" Done", DL_INIT);
 
 	// Fix for "Too Many Items" bug
@@ -1040,18 +1040,18 @@ void BugFixes::init()
 	//}
 
 	// Fix for cells getting consumed even when the car is already fully charged
-	MakeCall(0x49BE70, &obj_use_power_on_car_hack, false);
+	MakeCall(0x49BE70, obj_use_power_on_car_hack);
 
 	// Fix for being able to charge the car by using cells on other scenery/critters
 	if (GetConfigInt("Misc", "CarChargingFix", 1)) {
 		dlog("Applying car charging fix.", DL_INIT);
-		MakeCall(0x49C36D, &protinst_default_use_item_hack, true);
+		MakeJump(0x49C36D, protinst_default_use_item_hack);
 		dlogr(" Done", DL_INIT);
 	}
 
 	// Fix for gaining stats from more than two doses of a specific chem after save-load
 	dlog("Applying fix for save-load unlimited drug use exploit.", DL_INIT);
-	MakeCall(0x47A243, &item_d_load_hack, false);
+	MakeCall(0x47A243, item_d_load_hack);
 	dlogr(" Done", DL_INIT);
 
 	// Fix crash when leaving the map while waiting for someone to die of a super stimpak overdose
@@ -1077,7 +1077,7 @@ void BugFixes::init()
 	// Allow 9 options (lines of text) to be displayed correctly in a dialog window
 	if (GetConfigInt("Misc", "DialogOptions9Lines", 1)) {
 		dlog("Applying 9 dialog options patch.", DL_INIT);
-		MakeCall(0x44701C, &gdProcessUpdate_hack, true);
+		MakeJump(0x44701C, gdProcessUpdate_hack);
 		dlogr(" Done", DL_INIT);
 	}
 
@@ -1093,8 +1093,8 @@ void BugFixes::init()
 
 	// Fix for negative SPECIAL values in character creation
 	dlog("Applying fix for negative SPECIAL values in character creation.", DL_INIT);
-	MakeCall(0x43DF6F, &is_supper_bonus_hack, false);
-	MakeCall(0x434BFF, &PrintBasicStat_hack, false);
+	MakeCall(0x43DF6F, is_supper_bonus_hack);
+	MakeCall(0x434BFF, PrintBasicStat_hack);
 	HookCall(0x437AB4, &StatButtonUp_hook);
 	HookCall(0x437B26, &StatButtonDown_hook);
 	dlogr(" Done", DL_INIT);
@@ -1102,8 +1102,8 @@ void BugFixes::init()
 	// Fix for not counting in the weight of equipped items on NPC when stealing or bartering
 	//if (GetConfigInt("Misc", "NPCWeightFix", 1)) {
 		dlog("Applying fix for not counting in weight of equipped items on NPC.", DL_INIT);
-		MakeCall(0x473B4E, &loot_container_hack, false);
-		MakeCall(0x47588A, &barter_inventory_hack, false);
+		MakeCall(0x473B4E, loot_container_hack);
+		MakeCall(0x47588A, barter_inventory_hack);
 		HookCall(0x474CB8, &barter_attempt_transaction_hook);
 		HookCall(0x4742AD, &move_inventory_hook);
 		HookCall(0x4771B5, &item_add_mult_hook);
@@ -1118,10 +1118,10 @@ void BugFixes::init()
 		dlog("Applying inventory reverse order issues fix.", DL_INIT);
 		// Fix for minor visual glitch when picking up solo item from the top of inventory
 		// and there is multiple item stack at the bottom of inventory
-		MakeCall(0x470EC2, &inven_pickup_hack, true);
+		MakeJump(0x470EC2, inven_pickup_hack);
 		// Fix for error in player's inventory, related to IFACE_BAR_MODE=1 in f2_res.ini, and
 		// also for reverse order error
-		MakeCall(0x47114A, &inven_pickup_hack2, true);
+		MakeJump(0x47114A, inven_pickup_hack2);
 		// Fix for using only one box of ammo when a weapon is above the ammo in the inventory list
 		HookCall(0x476598, &drop_ammo_into_weapon_hook);
 		dlogr(" Done", DL_INIT);
@@ -1148,15 +1148,15 @@ void BugFixes::init()
 	//if (GetConfigInt("Misc", "JetAntidoteFix", 1)) {
 		dlog("Applying Jet Antidote fix.", DL_INIT);
 		// the original jet antidote fix
-		MakeCall(0x47A013, (void*)0x47A168, true);
+		MakeJump(0x47A013, (void*)0x47A168);
 		dlogr(" Done", DL_INIT);
 	//}
 
 	//if (GetConfigInt("Misc", "NPCDrugAddictionFix", 1)) {
 		dlog("Applying NPC's drug addiction fix.", DL_INIT);
 		// proper checks for NPC's addiction instead of always using global vars
-		MakeCall(0x47A644, &item_d_check_addict_hack, true);
-		MakeCall(0x479FC5, &item_d_take_drug_hack, true);
+		MakeJump(0x47A644, item_d_check_addict_hack);
+		MakeJump(0x479FC5, item_d_take_drug_hack);
 		dlogr(" Done", DL_INIT);
 	//}
 
@@ -1186,35 +1186,35 @@ void BugFixes::init()
 
 	//if (GetConfigInt("Misc", "MultiHexPathingFix", 1)) {
 		dlog("Applying MultiHex Pathing Fix.", DL_INIT);
-		MakeCall(0x42901F, &MultiHexFix, false);
-		MakeCall(0x429170, &MultiHexFix, false);
+		MakeCall(0x42901F, MultiHexFix);
+		MakeCall(0x429170, MultiHexFix);
 		dlogr(" Done", DL_INIT);
 	//}
 
 	//if (GetConfigInt("Misc", "DodgyDoorsFix", 1)) {
 		dlog("Applying Dodgy Door Fix.", DL_INIT);
-		MakeCall(0x4113D6, &action_melee_hack, true);
-		MakeCall(0x411BCC, &action_ranged_hack, true);
+		MakeJump(0x4113D6, action_melee_hack);
+		MakeJump(0x411BCC, action_ranged_hack);
 		dlogr(" Done", DL_INIT);
 	//}
 
 	// Fix for "NPC turns into a container" bug
 	//if (GetConfigInt("Misc", "NPCTurnsIntoContainerFix", 1)) {
 		dlog("Applying fix for \"NPC turns into a container\" bug.", DL_INIT);
-		MakeCall(0x424F8E, &set_new_results_hack, false);
-		MakeCall(0x42E46E, &critter_wake_clear_hack, true);
-		MakeCall(0x488EF3, &obj_load_func_hack, true);
+		MakeCall(0x424F8E, set_new_results_hack);
+		MakeJump(0x42E46E, critter_wake_clear_hack);
+		MakeJump(0x488EF3, obj_load_func_hack);
 		HookCall(0x4949B2, &partyMemberPrepLoadInstance_hook);
 		dlogr(" Done", DL_INIT);
 	//}
 
 	dlog("Applying fix for explosives bugs.", DL_INIT);
 	// Fix crashes when killing critters with explosives
-	MakeCall(0x422F05, &combat_ctd_init_hack, true);
-	MakeCall(0x489413, &obj_save_hack, true);
+	MakeJump(0x422F05, combat_ctd_init_hack);
+	MakeJump(0x489413, obj_save_hack);
 	// Fix for destroy_p_proc not being called if the critter is killed by explosives when you leave the map
-	MakeCall(0x4130C3, &action_explode_hack, false);
-	MakeCall(0x4130E5, &action_explode_hack1, false);
+	MakeCall(0x4130C3, action_explode_hack);
+	MakeCall(0x4130E5, action_explode_hack1);
 	dlogr(" Done", DL_INIT);
 
 	// Fix for unable to sell used geiger counters or stealth boys
@@ -1222,7 +1222,7 @@ void BugFixes::init()
 		dlog("Applying fix for unable to sell used geiger counters or stealth boys.", DL_INIT);
 		SafeWrite8(0x478115, 0xBA);
 		SafeWrite8(0x478138, 0xBA);
-		MakeCall(0x474D22, &barter_attempt_transaction_hack, true);
+		MakeJump(0x474D22, barter_attempt_transaction_hack);
 		HookCall(0x4798B1, &item_m_turn_off_hook);
 		dlogr(" Done", DL_INIT);
 	}
@@ -1230,7 +1230,7 @@ void BugFixes::init()
 	// Fix for incorrect initialization of action points at the beginning of each turn
 	dlog("Applying Action Points initialization fix.", DL_INIT);
 	BlockCall(0x422E02);
-	MakeCall(0x422E1B, &combat_hack, false);
+	MakeCall(0x422E1B, combat_hack);
 	dlogr(" Done", DL_INIT);
 
 	// Fix for incorrect death animations being used when killing critters with kill_critter_type function
@@ -1245,13 +1245,13 @@ void BugFixes::init()
 	// Partial fix for incorrect positioning after exiting small locations (e.g. Ghost Farm)
 	//if (GetConfigInt("Misc", "SmallLocExitFix", 1)) {
 		dlog("Applying fix for incorrect positioning after exiting small locations.", DL_INIT);
-		MakeCall(0x4C5A41, &wmTeleportToArea_hack, true);
+		MakeJump(0x4C5A41, wmTeleportToArea_hack);
 		dlogr(" Done", DL_INIT);
 	//}
 
 	//if (GetConfigInt("Misc", "PrintToFileFix", 1)) {
 		dlog("Applying print to file fix.", DL_INIT);
-		MakeCall(0x4C67D4, &db_get_file_list_hack, false);
+		MakeCall(0x4C67D4, db_get_file_list_hack);
 		dlogr(" Done", DL_INIT);
 	//}
 
@@ -1268,24 +1268,24 @@ void BugFixes::init()
 		// and are overloaded
 		HookCall(0x4764FC, (void*)fo::funcoffs::item_add_force_);
 		// Fix for the engine not checking player's inventory properly when putting items into the bag/backpack in the hands
-		MakeCall(0x4715DB, &switch_hand_hack, true);
+		MakeJump(0x4715DB, switch_hand_hack);
 		// Fix to ignore player's equipped items when opening bag/backpack
-		MakeCall(0x471B7F, &inven_item_wearing, false); // inven_right_hand_
+		MakeCall(0x471B7F, inven_item_wearing); // inven_right_hand_
 		SafeWrite8(0x471B84, 0x90); // nop
-		MakeCall(0x471BCB, &inven_item_wearing, false); // inven_left_hand_
+		MakeCall(0x471BCB, inven_item_wearing); // inven_left_hand_
 		SafeWrite8(0x471BD0, 0x90); // nop
-		MakeCall(0x471C17, &inven_item_wearing, false); // inven_worn_
+		MakeCall(0x471C17, inven_item_wearing); // inven_worn_
 		SafeWrite8(0x471C1C, 0x90); // nop
 		// Fix crash when trying to open bag/backpack on the table in the bartering interface
-		MakeCall(0x473191, &inven_action_cursor_hack, false);
+		MakeCall(0x473191, inven_action_cursor_hack);
 		dlogr(" Done", DL_INIT);
 	//}
 
 	// Fix crash when clicking on empty space in the inventory list opened by "Use Inventory Item On" (backpack) action icon
-	MakeCall(0x471A94, &use_inventory_on_hack, false);
+	MakeCall(0x471A94, use_inventory_on_hack);
 
 	// Fix for Sequence stat value not being printed correctly when using "print to file" option
-	MakeCall(0x4396F5, &Save_as_ASCII_hack, true);
+	MakeJump(0x4396F5, Save_as_ASCII_hack);
 }
 
 }

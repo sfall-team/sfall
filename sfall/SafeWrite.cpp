@@ -49,13 +49,14 @@ void HookCall(DWORD addr, void* func) {
 	SafeWrite32(addr+1, (DWORD)func - (addr+5));
 }
 
-void MakeCall(DWORD addr, void* func, bool jump) {
-	SafeWrite8(addr, jump?0xe9:0xe8);
+void MakeCall(DWORD addr, void* func) {
+	SafeWrite8(addr, 0xE8);
 	HookCall(addr, func);
 }
 
 void MakeJump(DWORD addr, void* func) {
-	MakeCall(addr, func, true);
+	SafeWrite8(addr, 0xE9);
+	HookCall(addr, func);
 }
 
 void HookCalls(void* func, std::initializer_list<DWORD> addrs) {

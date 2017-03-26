@@ -315,7 +315,7 @@ void ApplyTimeLimitPatch() {
 void ApplyTownMapsHotkeyFix() {
 	if (GetConfigInt("Misc", "TownMapHotkeysFix", 1)) {
 		dlog("Applying town map hotkeys patch.", DL_INIT);
-		MakeCall(0x4C4945, &wmTownMapFunc_hack, false);
+		MakeCall(0x4C4945, wmTownMapFunc_hack);
 		dlogr(" Done", DL_INIT);
 	}
 }
@@ -343,7 +343,7 @@ void ApplyWorldmapFpsPatch() {
 		WorldMapEncounterRate = GetConfigInt("Misc", "WorldMapEncounterRate", 5);
 		SafeWrite32(0x4C232D, 0x01EBC031);        // xor eax, eax; jmps 0x4C2332
 		HookCall(0x4BFEE0, &wmWorldMapFunc_hook);
-		MakeCall(0x4C0667, &wmRndEncounterOccurred_hack, false);
+		MakeCall(0x4C0667, wmRndEncounterOccurred_hack);
 		dlogr(" Done", DL_INIT);
 	}
 }

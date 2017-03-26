@@ -468,7 +468,7 @@ void SpeedInterfaceCounterAnimsPatch() {
 	switch (GetConfigInt("Misc", "SpeedInterfaceCounterAnims", 0)) {
 	case 1:
 		dlog("Applying SpeedInterfaceCounterAnims patch.", DL_INIT);
-		MakeCall(0x460BA1, &intface_rotate_numbers_hack, true);
+		MakeJump(0x460BA1, intface_rotate_numbers_hack);
 		dlogr(" Done", DL_INIT);
 		break;
 	case 2:
@@ -494,7 +494,7 @@ void FashShotTraitFix() {
 	switch (GetConfigInt("Misc", "FastShotFix", 1)) {
 	case 1:
 		dlog("Applying Fast Shot Trait Fix.", DL_INIT);
-		MakeCall(0x478E75, &FastShotTraitFix, true);
+		MakeJump(0x478E75, FastShotTraitFix);
 		dlogr(" Done", DL_INIT);
 		break;
 	case 2:
@@ -533,7 +533,7 @@ void NumbersInDialoguePatch() {
 		SafeWrite8(0x446F07, 0x50);               // push eax
 		SafeWrite32(0x446FE0, 0x2824448B);        // mov  eax, [esp+0x28]
 		SafeWrite8(0x446FE4, 0x50);               // push eax
-		MakeCall(0x4458F5, &gdAddOptionStr_hack, true);
+		MakeJump(0x4458F5, gdAddOptionStr_hack);
 		dlogr(" Done", DL_INIT);
 	}
 }
@@ -548,7 +548,7 @@ void InstantWeaponEquipPatch() {
 		BlockCall(0x472AD5);                      //
 		BlockCall(0x472AE0);                      // invenUnwieldFunc_
 		BlockCall(0x472AF0);                      //
-		MakeCall(0x415238, &register_object_take_out_hack, true);
+		MakeJump(0x415238, register_object_take_out_hack);
 		dlogr(" Done", DL_INIT);
 	}
 }
@@ -582,8 +582,8 @@ void PlayIdleAnimOnReloadPatch() {
 void CorpseLineOfFireFix() {
 	if (GetConfigInt("Misc", "CorpseLineOfFireFix", 0)) {
 		dlog("Applying corpse line of fire patch.", DL_INIT);
-		MakeCall(0x48B994, CorpseHitFix2, true);
-		MakeCall(0x48BA04, CorpseHitFix2b, true);
+		MakeJump(0x48B994, CorpseHitFix2);
+		MakeJump(0x48BA04, CorpseHitFix2b);
 		dlogr(" Done", DL_INIT);
 	}
 }
@@ -600,10 +600,10 @@ void ApplyNpcExtraApPatch() {
 void NpcStage6Fix() {
 	if (GetConfigInt("Misc", "NPCStage6Fix", 0)) {
 		dlog("Applying NPC Stage 6 Fix.", DL_INIT);
-		MakeCall(0x493CE9, &NPCStage6Fix1, true);
+		MakeJump(0x493CE9, NPCStage6Fix1);
 		SafeWrite8(0x494063, 0x06);		// loop should look for a potential 6th stage
 		SafeWrite8(0x4940BB, 0xCC);		// move pointer by 204 bytes instead of 200
-		MakeCall(0x494224, &NPCStage6Fix2, true);
+		MakeJump(0x494224, NPCStage6Fix2);
 		dlogr(" Done", DL_INIT);
 	}
 }
@@ -612,7 +612,7 @@ void MotionScannerFlagsPatch() {
 	DWORD flags;
 	if (flags = GetConfigInt("Misc", "MotionScannerFlags", 1)) {
 		dlog("Applying MotionScannerFlags patch.", DL_INIT);
-		if (flags & 1) MakeCall(0x41BBE9, &ScannerAutomapHook, true);
+		if (flags & 1) MakeJump(0x41BBE9, ScannerAutomapHook);
 		if (flags & 2) {
 			// automap_
 			SafeWrite16(0x41BC24, 0x9090);

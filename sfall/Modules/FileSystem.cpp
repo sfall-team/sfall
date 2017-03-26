@@ -502,7 +502,7 @@ static void __declspec(naked) FSLoadHook() {
 
 void FileSystemInit() {
 	UsingFileSystem = true;
-	MakeCall(0x47CCE2, &FSLoadHook, true);
+	MakeJump(0x47CCE2, FSLoadHook);
 
 	HookCall(0x4C5DBD, &asm_xfclose);
 	HookCall(0x4C5EA5, &asm_xfclose);

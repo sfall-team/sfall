@@ -223,9 +223,9 @@ void Skills_OnGameLoad() {
 }
 
 void Skills::init() {
-	MakeCall(0x4AA63C, SkillHookA, true);
-	MakeCall(0x4AA847, SkillHookB, true);
-	MakeCall(0x4AA725, SkillHookC, true);
+	MakeJump(0x4AA63C, SkillHookA);
+	MakeJump(0x4AA847, SkillHookB);
+	MakeJump(0x4AA725, SkillHookC);
 
 	char buf[512], key[16], file[64];
 	auto skillsFile = GetConfigString("Misc", "SkillsFile", "");
@@ -289,9 +289,9 @@ void Skills::init() {
 			skills[i].image = GetPrivateProfileIntA("Skills", key, skills[i].image, file);
 		}
 
-		MakeCall(0x4AA59D, GetStatBonusHook, true);
-		MakeCall(0x4AA738, &SkillIncCostHook, true);
-		MakeCall(0x4AA93D, &SkillDecCostHook, true);
+		MakeJump(0x4AA59D, GetStatBonusHook);
+		MakeJump(0x4AA738, SkillIncCostHook);
+		MakeJump(0x4AA93D, SkillDecCostHook);
 		HookCall(0x4AA9E1, &SkillLevelCostHook);
 		HookCall(0x4AA9F1, &SkillLevelCostHook);
 		basedOnPoints = GetPrivateProfileIntA("Skills", "BasedOnPoints", 0, file);

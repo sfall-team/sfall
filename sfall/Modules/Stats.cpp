@@ -247,7 +247,7 @@ void Stats::init() {
 
 	auto statsFile = GetConfigString("Misc", "DerivedStats", "", 2048);
 	if (statsFile.size() > 0) {
-		MakeCall(0x4AF6FC, &stat_recalc_derived, true);
+		MakeJump(0x4AF6FC, stat_recalc_derived);
 		memset(StatFormulas, 0, sizeof(StatFormulas));
 		memset(StatShifts, 0, sizeof(StatShifts));
 		memset(StatMulti, 0, sizeof(StatMulti));

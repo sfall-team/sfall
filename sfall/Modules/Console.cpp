@@ -54,7 +54,7 @@ void Console::init() {
 	if (path.size() > 0) {
 		consolefile.open(path);
 		if (consolefile.is_open()) {
-			MakeCall(0x43186C, &ConsoleHook, true);
+			MakeJump(0x43186C, ConsoleHook);
 		}
 	}
 }

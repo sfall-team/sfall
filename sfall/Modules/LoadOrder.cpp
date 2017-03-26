@@ -95,8 +95,8 @@ skip:
 void LoadOrder::init() {
 	if (GetConfigInt("Misc", "DataLoadOrderPatch", 0)) {
 		dlog("Applying data load order patch.", DL_INIT);
-		MakeCall(0x444259, &game_init_databases_hack1, false);
-		MakeCall(0x4442F1, &game_init_databases_hack2, false);
+		MakeCall(0x444259, game_init_databases_hack1);
+		MakeCall(0x4442F1, game_init_databases_hack2);
 		HookCall(0x44436D, &game_init_databases_hook);
 		SafeWrite8(0x4DFAEC, 0x1D); // error correction
 		dlogr(" Done", DL_INIT);

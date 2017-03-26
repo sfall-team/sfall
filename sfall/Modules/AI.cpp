@@ -111,7 +111,7 @@ void AI::init() {
 	//HookCall(0x42AE5C, ai_attack_hook);
 	HookCall(0x426A95, combat_attack_hook);
 	HookCall(0x42A796, combat_attack_hook);
-	MakeCall(0x45F6AF, BlockCombatHook1, true);
+	MakeJump(0x45F6AF, BlockCombatHook1);
 	HookCall(0x4432A6, BlockCombatHook2);
 	combatBlockedMessage = Translate("sfall", "BlockedCombat", "You cannot enter combat at this time.");
 }

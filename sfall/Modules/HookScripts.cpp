@@ -1185,7 +1185,7 @@ static void HookScriptInit2() {
 	});
 
 	LoadHookScript("hs_afterhitroll", HOOK_AFTERHITROLL);
-	MakeCall(0x423893, AfterHitRollHook, true);
+	MakeJump(0x423893, AfterHitRollHook);
 
 	LoadHookScript("hs_calcapcost", HOOK_CALCAPCOST);
 	HookCalls(CalcApCostHook, {
@@ -1200,7 +1200,7 @@ static void HookScriptInit2() {
 		0x460048,
 		0x47807B
 	});
-	MakeCall(0x478083, CalcApCostHook2, false);
+	MakeCall(0x478083, CalcApCostHook2);
 
 	LoadHookScript("hs_deathanim1", HOOK_DEATHANIM1);
 	LoadHookScript("hs_deathanim2", HOOK_DEATHANIM2);

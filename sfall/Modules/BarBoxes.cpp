@@ -80,7 +80,7 @@ void BarBoxes::init() {
 	SafeWrite8(0x46140B, 10);
 	SafeWrite8(0x461495, 0x78);
 
-	MakeCall(0x4615A3, &DisplayBoxesHook, true);
+	MakeJump(0x4615A3, DisplayBoxesHook);
 	auto boxBarColors = GetConfigString("Misc", "BoxBarColours", "", 6);
 	if (boxBarColors.size() == 5) {
 		for (int i = 0; i < 5; i++) {

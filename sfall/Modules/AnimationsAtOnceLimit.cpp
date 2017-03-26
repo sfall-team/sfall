@@ -322,7 +322,7 @@ void AnimationsAtOnce::init() {
 		ApplyAnimationsAtOncePatches(animationLimit);
 		dlogr(" Done", DL_INIT);
 	}
-	MakeCall(0x415DE2, &anim_set_end_hack, true);
+	MakeJump(0x415DE2, anim_set_end_hack);
 }
 
 void AnimationsAtOnce::exit() {

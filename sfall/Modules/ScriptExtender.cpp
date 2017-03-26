@@ -695,19 +695,19 @@ void ScriptExtender::init() {
 		dlogr("Arrays in backward-compatiblity mode.", DL_SCRIPT);
 	}
 
-	MakeCall(0x4A390C, &FindSidHook, true);
-	MakeCall(0x4A5E34, &ScrPtrHook, true);
+	MakeJump(0x4A390C, FindSidHook);
+	MakeJump(0x4A5E34, ScrPtrHook);
 	memset(&overrideScriptStruct, 0, sizeof(fo::ScriptInstance));
 
-	MakeCall(0x4A67F2, &ExecMapScriptsHook, true);
+	MakeJump(0x4A67F2, ExecMapScriptsHook);
 
 	// this patch makes it possible to export variables from sfall global scripts
-	MakeCall(0x4414C8, &Export_Export_FindVar_Hook, true);
+	MakeJump(0x4414C8, Export_Export_FindVar_Hook);
 	HookCall(0x441285, &Export_FetchOrStore_FindVar_Hook); // store
 	HookCall(0x4413D9, &Export_FetchOrStore_FindVar_Hook); // fetch
 
 	// fix vanilla negate operator on float values
-	MakeCall(0x46AB63, &NegateFixHook, true);
+	MakeJump(0x46AB63, NegateFixHook);
 	// fix incorrect int-to-float conversion
 	// op_mult:
 	SafeWrite16(0x46A3F4, 0x04DB); // replace operator to "fild 32bit"
