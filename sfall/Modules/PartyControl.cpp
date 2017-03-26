@@ -92,7 +92,7 @@ static void SaveRealDudeState() {
 }
 
 // take control of the NPC
-static void TakeControlOfNPC(fo::GameObject* npc) {
+static void SetCurrentDude(fo::GameObject* npc) {
 	// remove skill tags
 	long tagSkill[4];
 	std::fill(std::begin(tagSkill), std::end(tagSkill), -1);
@@ -146,6 +146,8 @@ static void TakeControlOfNPC(fo::GameObject* npc) {
 
 // restores the real dude state
 static void RestoreRealDudeState() {
+	assert(real_dude != nullptr);
+
 	fo::var::obj_dude = real_dude;
 	fo::var::inven_dude = real_dude;
 
@@ -173,7 +175,6 @@ static void RestoreRealDudeState() {
 
 	SetInventoryCheck(false);
 	isControllingNPC = false;
-	real_dude = nullptr;
 }
 
 // return values: 0 - use vanilla handler, 1 - skip vanilla handler, return 0 (normal status), -1 - skip vanilla, return -1 (game ended)
@@ -181,7 +182,7 @@ static int _stdcall CombatWrapperInner(fo::GameObject* obj) {
 	if ((obj != fo::var::obj_dude) && (allowedCritterPids.size() == 0 || IsInPidList(obj)) && (controlMode == 1 || fo::func::isPartyMember(obj))) {
 		// save "real" dude state
 		SaveRealDudeState();
-		TakeControlOfNPC(obj);
+		SetCurrentDude(obj);
 		
 		// Do combat turn
 		int turnResult = fo::func::combat_turn(obj, 1);
@@ -322,7 +323,7 @@ void PartyControl::SwitchToCritter(fo::GameObject* critter) {
 		SaveRealDudeState();
 	}
 	if (critter != nullptr && critter != real_dude) {
-		TakeControlOfNPC(critter);
+		SetCurrentDude(critter);
 	}
 }
 

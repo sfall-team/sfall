@@ -390,6 +390,10 @@ Some utility/math functions are available:
 > object sfall_func0("outlined_object")
 - returns an object that is currently highlighted by hovering the mouse above it
 
+> object sfall_func1("set_dude_obj", critter)
+- take control of a given critter
+- passing 0 will reset control back to "real" dude
+
 
 ------------------------
 ------ MORE INFO -------
