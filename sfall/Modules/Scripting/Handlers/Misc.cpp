@@ -16,6 +16,8 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <cstring>
+
 #include "..\..\..\FalloutEngine\Fallout2.h"
 #include "..\..\AI.h"
 #include "..\..\Criticals.h"
@@ -28,6 +30,7 @@
 #include "..\..\PlayerModel.h"
 #include "..\..\ScriptExtender.h"
 #include "..\..\Stats.h"
+#include "..\Arrays.h"
 #include "..\OpcodeContext.h"
 
 #include "Misc.h"
@@ -46,6 +49,10 @@ static DWORD movieNamesPtr = (DWORD)MoviePaths;
 static void _stdcall strcpy_p(char* to, const char* from) {
 	strcpy_s(to, 64, from);
 }
+
+/************************************************************************/
+/* TODO: Rewrite these raw handlers using OpcodeContext                 */
+/************************************************************************/
 
 void __declspec(naked) op_set_dm_model() {
 	__asm {
@@ -1712,6 +1719,48 @@ void sf_tile_light(OpcodeContext& ctx) {
 
 void sf_exec_map_update_scripts(OpcodeContext& ctx) {
 	__asm call fo::funcoffs::scr_exec_map_update_scripts_
+}
+
+char getIniSectionBuf[512];
+void sf_get_ini_sections(OpcodeContext& ctx) {
+	auto fileName = std::string(".\\") + ctx.arg(0).asString();
+	GetPrivateProfileSectionNamesA(getIniSectionBuf, 512, fileName.data());
+	std::vector<char*> sections;
+	char* section = getIniSectionBuf;
+	while (*section != 0) {
+		sections.push_back(section);
+		section += std::strlen(section) + 1;
+	}
+	int arrayId = TempArray(sections.size(), 0);
+	auto& arr = arrays[arrayId];
+
+	for (size_t i = 0; i < sections.size(); ++i) {
+		arr.val[i].set(sections[i]);
+	}
+	ctx.setReturn(arrayId);
+}
+
+void sf_get_ini_section(OpcodeContext& ctx) {
+	auto fileName = std::string(".\\") + ctx.arg(0).asString();
+	auto section = ctx.arg(1).asString();
+	GetPrivateProfileSectionA(section, getIniSectionBuf, 512, fileName.data());
+	int arrayId = TempArray(-1, 0); // associative
+	auto& arr = arrays[arrayId];
+	char *key = getIniSectionBuf, *val = nullptr;
+	while (*key != 0) {
+		char* val = std::strpbrk(key, "=");
+		if (val != nullptr) {
+			*val = '\0';
+			val += 1;
+
+			SetArray(arrayId, ScriptValue(key), ScriptValue(val), false);
+
+			key = val + std::strlen(val) + 1;
+		} else {
+			key += std::strlen(key) + 1;
+		}
+	}
+	ctx.setReturn(arrayId);
 }
 
 }

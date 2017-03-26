@@ -394,6 +394,11 @@ Some utility/math functions are available:
 - take control of a given critter
 - passing 0 will reset control back to "real" dude
 
+> array sfall_func1("get_ini_sections", string fileName)
+- returns an array of names of all sections in a given INI file
+
+> array sfall_func2("get_ini_section", string fileName, string section)
+- returns an associative array of keys and values for a given INI file and section
 
 ------------------------
 ------ MORE INFO -------

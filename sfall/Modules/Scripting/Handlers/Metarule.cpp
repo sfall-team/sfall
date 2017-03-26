@@ -125,6 +125,8 @@ static const SfallMetarule metaruleArray[] = {
 	{"intface_is_hidden", sf_intface_is_hidden, 0, 0},
 	{"item_weight", sf_item_weight, 1, 1, {ARG_OBJECT}},
 	{"exec_map_update_scripts", sf_exec_map_update_scripts, 0, 0},
+	{"get_ini_sections", sf_get_ini_sections, 1, 1, {ARG_STRING}},
+	{"get_ini_section", sf_get_ini_section, 2, 2, {ARG_STRING, ARG_STRING}},
 	{"set_outline", sf_set_outline, 2, 2, {ARG_OBJECT, ARG_INT}},
 	{"get_outline", sf_get_outline, 1, 1, {ARG_OBJECT}},
 	{"set_flags", sf_set_flags, 2, 2, {ARG_OBJECT, ARG_INT}},
