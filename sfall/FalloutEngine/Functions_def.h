@@ -30,6 +30,8 @@ WRAP_WATCOM_FUNC3(long, db_freadShortCount, DbFile*, file, WORD*, dest, long, co
 WRAP_WATCOM_FUNC3(long, db_freadIntCount, DbFile*, file, DWORD*, dest, long, count)
 WRAP_WATCOM_FUNC2(long, db_fwriteByte, DbFile*, file, long, value)
 WRAP_WATCOM_FUNC2(long, db_fwriteInt, DbFile*, file, long, value)
+// perform combat turn for a given critter
+WRAP_WATCOM_FUNC2(long, combat_turn, GameObject*, critter, long, isDudeTurn)
 WRAP_WATCOM_FUNC1(long, gmouse_set_cursor, long, picNum)
 WRAP_WATCOM_FUNC1(Window*, GNW_find, long, winRef)
 WRAP_WATCOM_FUNC0(void, intface_toggle_item_state)
@@ -68,6 +70,8 @@ WRAP_WATCOM_FUNC1(long, register_object_must_erase, GameObject*, object)
 // WRAP_WATCOM_FUNC3(long, register_object_run_to_tile_, GameObject*, object;
 WRAP_WATCOM_FUNC3(long, register_object_take_out, GameObject*, object, long, holdFrameId, long, nothing)
 WRAP_WATCOM_FUNC3(long, register_object_turn_towards, GameObject*, object, long, tileNum, long, nothing)
+// adds experience points to PC
+WRAP_WATCOM_FUNC1(void, stat_pc_add_experience, long, amount)
 // redraws the whole screen
 WRAP_WATCOM_FUNC0(void, tile_refresh_display)
 // redraws the given rectangle on screen

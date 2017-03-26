@@ -892,7 +892,7 @@ static int __stdcall SwitchHandHook2(fo::GameObject* item, fo::GameObject* itemR
 	args[1] = (DWORD)item;
 	args[2] = (DWORD)itemReplaced;
 	RunHookScript(HOOK_INVENTORYMOVE); // moveinventory
-	tmp = PartyControl_SwitchHandHook(item);
+	tmp = PartyControl::SwitchHandHook(item);
 	if (tmp != -1) {
 		cRetTmp = 0;
 		SetHSReturn(tmp);

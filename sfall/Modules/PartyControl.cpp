@@ -34,10 +34,10 @@
 namespace sfall
 {
 
-static DWORD Mode;
-static int IsControllingNPC = 0;
-static std::vector<WORD> Chars;
-static int DelayedExperience;
+static DWORD controlMode;
+static bool isControllingNPC = false;
+static std::vector<WORD> allowedCritterPids;
+static int delayedExperience;
 
 static fo::GameObject* real_dude = nullptr;
 static long real_traits[2];
@@ -60,12 +60,7 @@ static long real_tag_skill[4];
 
 static bool _stdcall IsInPidList(fo::GameObject* obj) {
 	int pid = obj->protoId & 0xFFFFFF;
-	for (std::vector<WORD>::iterator it = Chars.begin(); it != Chars.end(); it++) {
-		if (*it == pid) {
-			return true;
-		}
-	}
-	return false;
+	return std::find(allowedCritterPids.begin(), allowedCritterPids.end(), pid) != allowedCritterPids.end();
 }
 
 static void _stdcall SetInventoryCheck(bool skip) {
@@ -75,13 +70,6 @@ static void _stdcall SetInventoryCheck(bool skip) {
 	} else {
 		SafeWrite16(0x46E7CD, 0x850F); //Inventory check
 		SafeWrite32(0x46E7Cf, 0x4B1);
-	}
-}
-
-static void __stdcall StatPcAddExperience(int amount) {
-	__asm {
-		mov eax, amount
-		call fo::funcoffs::stat_pc_add_experience_
 	}
 }
 
@@ -149,8 +137,8 @@ static void TakeControlOfNPC(fo::GameObject* npc) {
 	fo::var::obj_dude = npc;
 	fo::var::inven_dude = npc;
 
-	IsControllingNPC = 1;
-	DelayedExperience = 0;
+	isControllingNPC = true;
+	delayedExperience = 0;
 	SetInventoryCheck(true);
 
 	fo::func::intface_redraw();
@@ -177,36 +165,29 @@ static void RestoreRealDudeState() {
 
 	fo::var::inven_pid = real_dude->protoId;
 
-	if (DelayedExperience > 0) {
-		StatPcAddExperience(DelayedExperience);
+	if (delayedExperience > 0) {
+		fo::func::stat_pc_add_experience(delayedExperience);
 	}
 
 	fo::func::intface_redraw();
 
 	SetInventoryCheck(false);
-	IsControllingNPC = 0;
+	isControllingNPC = false;
 	real_dude = nullptr;
-}
-
-static int __stdcall CombatTurn(fo::GameObject* obj) {
-	__asm {
-		mov eax, obj;
-		call fo::funcoffs::combat_turn_;
-	}
 }
 
 // return values: 0 - use vanilla handler, 1 - skip vanilla handler, return 0 (normal status), -1 - skip vanilla, return -1 (game ended)
 static int _stdcall CombatWrapperInner(fo::GameObject* obj) {
-	if ((obj != fo::var::obj_dude) && (Chars.size() == 0 || IsInPidList(obj)) && (Mode == 1 || fo::func::isPartyMember(obj))) {
+	if ((obj != fo::var::obj_dude) && (allowedCritterPids.size() == 0 || IsInPidList(obj)) && (controlMode == 1 || fo::func::isPartyMember(obj))) {
 		// save "real" dude state
 		SaveRealDudeState();
 		TakeControlOfNPC(obj);
 		
 		// Do combat turn
-		int turnResult = CombatTurn(obj);
+		int turnResult = fo::func::combat_turn(obj, 1);
 
 		// restore state
-		if (IsControllingNPC) { // if game was loaded during turn, PartyControlReset() was called and already restored state
+		if (isControllingNPC) { // if game was loaded during turn, PartyControlReset() was called and already restored state
 			RestoreRealDudeState();
 		}
 		// -1 means that combat ended during turn
@@ -219,7 +200,7 @@ static int _stdcall CombatWrapperInner(fo::GameObject* obj) {
 // this hook fixes NPCs art switched to main dude art after inventory screen closes
 static void _declspec(naked) FidChangeHook() {
 	_asm {
-		cmp IsControllingNPC, 0;
+		cmp isControllingNPC, 0;
 		je skip;
 		push eax;
 		mov eax, [eax+0x20]; // current fid
@@ -233,23 +214,13 @@ skip:
 	}
 }
 
-/*
-static void _declspec(naked) ItemDropHook() {
-	_asm {
-		call fo::funcoffs::item_add_force_;
-		retn;
-	}
-}
-*/
-
 static void __stdcall DisplayCantDoThat() {
 	fo::func::display_print(fo::GetMessageStr(&fo::var::proto_main_msg_file, 675)); // I Can't do that
 }
 
 // 1 skip handler, -1 don't skip
-int __stdcall PartyControl_SwitchHandHook(fo::GameObject* item) {
-	if (fo::func::item_get_type(item) == 3 && IsControllingNPC > 0) {
-		int canUse;
+int __stdcall PartyControl::SwitchHandHook(fo::GameObject* item) {
+	if (fo::func::item_get_type(item) == fo::ItemType::item_type_weapon && isControllingNPC) {
 		/* check below uses AI packets and skills to check if weapon is usable
 		__asm {
 			mov edx, item;
@@ -262,13 +233,7 @@ int __stdcall PartyControl_SwitchHandHook(fo::GameObject* item) {
 		int fId = (fo::var::obj_dude)->artFid;
 		long weaponCode = fo::AnimCodeByWeapon(item);
 		fId = (fId & 0xffff0fff) | (weaponCode << 12);
-		// check if art with this weapon exists
-		__asm {
-			mov eax, fId;
-			call fo::funcoffs::art_exists_;
-			mov canUse, eax;
-		}
-		if (!canUse) {
+		if (!fo::func::art_exists(fId)) {
 			DisplayCantDoThat();
 			return 1;
 		}
@@ -317,10 +282,9 @@ gonormal:
 
 static void __declspec(naked) stat_pc_add_experience_hook() {
 	__asm {
-		xor  eax, eax
-		cmp  IsControllingNPC, eax
+		cmp  isControllingNPC, 0
 		je   skip
-		add  DelayedExperience, esi
+		add  delayedExperience, esi
 		retn
 skip:
 		xchg esi, eax
@@ -331,7 +295,7 @@ skip:
 // prevents using sneak when controlling NPCs
 static void __declspec(naked) pc_flag_toggle_hook() {
 	__asm {
-		cmp  IsControllingNPC, 0
+		cmp  isControllingNPC, 0
 		je   end
 		call DisplayCantDoThat
 		retn
@@ -342,28 +306,39 @@ end:
 }
 
 void __stdcall PartyControlReset() {
-	if (real_dude != nullptr && IsControllingNPC > 0) {
+	if (real_dude != nullptr && isControllingNPC) {
 		RestoreRealDudeState();
 	}
 }
 
-bool IsNpcControlled() {
-	return IsControllingNPC != 0;
+bool PartyControl::IsNpcControlled() {
+	return isControllingNPC;
+}
+
+void PartyControl::SwitchToCritter(fo::GameObject* critter) {
+	if (isControllingNPC) {
+		RestoreRealDudeState();
+	} else {
+		SaveRealDudeState();
+	}
+	if (critter != nullptr && critter != real_dude) {
+		TakeControlOfNPC(critter);
+	}
 }
 
 void PartyControl::init() {
-	Mode = GetConfigInt("Misc", "ControlCombat", 0);
-	if (Mode > 2) {
-		Mode = 0;
+	controlMode = GetConfigInt("Misc", "ControlCombat", 0);
+	if (controlMode > 2) {
+		controlMode = 0;
 	}
-	if (Mode > 0) {
+	if (controlMode > 0) {
 		auto pidList = GetConfigList("Misc", "ControlCombatPIDList", "", 512);
 		if (pidList.size() > 0) {
 			for (auto &pid : pidList) {
-				Chars.push_back(static_cast<WORD>(strtoul(pid.c_str(), 0, 0)));
+				allowedCritterPids.push_back(static_cast<WORD>(strtoul(pid.c_str(), 0, 0)));
 			}
 		}
-		dlog_f("  Mode %d, Chars read: %d.\n", DL_INIT, Mode, Chars.size());
+		dlog_f("  Mode %d, Chars read: %d.\n", DL_INIT, controlMode, allowedCritterPids.size());
 
 		HookCall(0x46EBEE, &FidChangeHook);
 

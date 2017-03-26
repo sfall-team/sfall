@@ -115,9 +115,9 @@ static void _stdcall SaveGame2() {
 
 static std::string saveFailMsg;
 static DWORD _stdcall CombatSaveTest() {
-	if (!saveInCombatFix && !IsNpcControlled()) return 1;
+	if (!saveInCombatFix && !PartyControl::IsNpcControlled()) return 1;
 	if (inLoop & COMBAT) {
-		if (saveInCombatFix == 2 || IsNpcControlled() || !(inLoop & PCOMBAT)) {
+		if (saveInCombatFix == 2 || PartyControl::IsNpcControlled() || !(inLoop & PCOMBAT)) {
 			fo::DisplayPrint(saveFailMsg);
 			return 0;
 		}

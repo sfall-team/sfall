@@ -23,11 +23,17 @@ namespace sfall
 {
 
 class PartyControl : public Module {
+public:
 	const char* name() { return "PartyControl"; }
 	void init();
+
+	static int __stdcall SwitchHandHook(fo::GameObject* item);
+
+	static bool IsNpcControlled();
+
+	// Take control of given NPC or switch back to "Real" dude if nullptr is passed
+	static void SwitchToCritter(fo::GameObject* critter);
 };
 
-int __stdcall PartyControl_SwitchHandHook(fo::GameObject* item);
-bool IsNpcControlled();
 
 }
