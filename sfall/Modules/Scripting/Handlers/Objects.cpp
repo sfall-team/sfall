@@ -18,6 +18,7 @@
 
 #include "..\..\..\FalloutEngine\Fallout2.h"
 #include "..\..\Knockback.h"
+#include "..\..\PartyControl.h"
 #include "..\..\ScriptExtender.h"
 #include "..\Arrays.h"
 #include "..\OpcodeContext.h"
@@ -425,6 +426,16 @@ void sf_outlined_object(OpcodeContext& ctx) {
 
 void sf_item_weight(OpcodeContext& ctx) {
 	ctx.setReturn(fo::func::item_weight(ctx.arg(0).asObject()));
+}
+
+void sf_set_dude_obj(OpcodeContext& ctx) {
+	auto obj = ctx.arg(0).asObject();
+	if (obj->type() == fo::ObjType::OBJ_TYPE_CRITTER) {
+		PartyControl::SwitchToCritter(obj);
+	} else {
+		ctx.printOpcodeError("Object is not a critter!");
+		ctx.setReturn(-1);
+	}
 }
 
 }

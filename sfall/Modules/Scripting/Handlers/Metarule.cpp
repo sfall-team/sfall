@@ -131,6 +131,7 @@ static const SfallMetarule metaruleArray[] = {
 	{"get_flags", sf_get_flags, 1, 1, {ARG_OBJECT}},
 	{"tile_refresh_display", sf_tile_refresh_display, 0, 0},
 	{"outlined_object", sf_outlined_object, 0, 0},
+	{"set_dude_obj", sf_set_dude_obj, 1, 1, {ARG_OBJECT}},
 };
 
 void InitMetaruleTable() {

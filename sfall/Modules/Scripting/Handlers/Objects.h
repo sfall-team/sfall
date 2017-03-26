@@ -79,5 +79,7 @@ void sf_outlined_object(OpcodeContext&);
 
 void sf_item_weight(OpcodeContext&);
 
+void sf_set_dude_obj(OpcodeContext&);
+
 }
 }
