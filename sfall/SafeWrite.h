@@ -8,13 +8,31 @@ namespace sfall
 
 template<typename T> void _stdcall SafeWrite(DWORD addr, T data) {
 	DWORD	oldProtect;
-	VirtualProtect((void *)addr, 1, PAGE_EXECUTE_READWRITE, &oldProtect);
+	VirtualProtect((void *)addr, sizeof(T), PAGE_EXECUTE_READWRITE, &oldProtect);
 	*((T*)addr) = data;
-	VirtualProtect((void *)addr, 1, oldProtect, &oldProtect);
+	VirtualProtect((void *)addr, sizeof(T), oldProtect, &oldProtect);
 }
 void _stdcall SafeWrite8(DWORD addr, BYTE data);
 void _stdcall SafeWrite16(DWORD addr, WORD data);
 void _stdcall SafeWrite32(DWORD addr, DWORD data);
+
+template <typename T, class ForwardIteratorType>
+void _stdcall SafeWriteBatch(T data, ForwardIteratorType begin, ForwardIteratorType end) {
+	for (auto it = begin; it != end; ++it) {
+		SafeWrite<T>(*it, data);
+	}
+}
+
+template <class T, size_t N>
+void _stdcall SafeWriteBatch(T data, const DWORD (&addrs)[N]) {
+	SafeWriteBatch<T>(data, std::begin(addrs), std::end(addrs));
+}
+
+template <typename T>
+void _stdcall SafeWriteBatch(T data, std::initializer_list<DWORD> addrs) {
+	SafeWriteBatch<T>(data, addrs.begin(), addrs.end());
+}
+
 void _stdcall SafeWriteStr(DWORD addr, const char* data);
 void HookCall(DWORD addr, void* func);
 void MakeCall(DWORD addr, void* func);
