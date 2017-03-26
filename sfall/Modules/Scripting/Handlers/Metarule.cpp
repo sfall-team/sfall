@@ -123,6 +123,7 @@ static const SfallMetarule metaruleArray[] = {
 	{"intface_show", sf_intface_show, 0, 0},
 	{"intface_hide", sf_intface_hide, 0, 0},
 	{"intface_is_hidden", sf_intface_is_hidden, 0, 0},
+	{"item_weight", sf_item_weight, 1, 1, {ARG_OBJECT}},
 	{"exec_map_update_scripts", sf_exec_map_update_scripts, 0, 0},
 	{"set_outline", sf_set_outline, 2, 2, {ARG_OBJECT, ARG_INT}},
 	{"get_outline", sf_get_outline, 1, 1, {ARG_OBJECT}},
@@ -169,6 +170,8 @@ void HandleMetarule(OpcodeContext& ctx) {
 			ctx.setArgShift(1);
 			if (ValidateMetaruleArguments(ctx, currentMetarule)) {
 				currentMetarule->func(ctx);
+			} else if (ctx.hasReturn()) {
+				ctx.setReturn(-1);
 			}
 		} else {
 			ctx.printOpcodeError("sfall_funcX(name, ...) - name '%s' is unknown.", name);

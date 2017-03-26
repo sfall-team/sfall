@@ -36,6 +36,7 @@ WRAP_WATCOM_FUNC0(void, intface_toggle_item_state)
 WRAP_WATCOM_FUNC0(void, intface_use_item)
 WRAP_WATCOM_FUNC1(long, item_w_max_ammo, GameObject*, item)
 WRAP_WATCOM_FUNC1(long, item_w_curr_ammo, GameObject*, item)
+WRAP_WATCOM_FUNC1(long, item_weight, GameObject*, item)
 // returns light level at given tile
 WRAP_WATCOM_FUNC2(long, light_get_tile, long, elevation, long, tileNum)
 WRAP_WATCOM_FUNC2(void, mouse_get_position, long*, outX, long*, outY)

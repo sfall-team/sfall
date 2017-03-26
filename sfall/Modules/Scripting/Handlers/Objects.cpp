@@ -423,5 +423,9 @@ void sf_outlined_object(OpcodeContext& ctx) {
 	ctx.setReturn(fo::var::outlined_object);
 }
 
+void sf_item_weight(OpcodeContext& ctx) {
+	ctx.setReturn(fo::func::item_weight(ctx.arg(0).asObject()));
+}
+
 }
 }

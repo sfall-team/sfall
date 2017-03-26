@@ -77,5 +77,7 @@ void sf_get_flags(OpcodeContext&);
 
 void sf_outlined_object(OpcodeContext&);
 
+void sf_item_weight(OpcodeContext&);
+
 }
 }
