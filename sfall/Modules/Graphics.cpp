@@ -448,8 +448,8 @@ void RefreshGraphics() {
 	}
 	for (int d = shaders.size() - 1; d >= 0; d--) {
 		if (!shaders[d].Effect || !shaders[d].Active) continue;
-		if (shaders[d].mode2 && !(shaders[d].mode2&GetCurrentLoops())) continue;
-		if (shaders[d].mode&GetCurrentLoops()) continue;
+		if (shaders[d].mode2 && !(shaders[d].mode2&GetLoopFlags())) continue;
+		if (shaders[d].mode&GetLoopFlags()) continue;
 		if (shaders[d].ehTicks) shaders[d].Effect->SetInt(shaders[d].ehTicks, GetTickCount());
 		UINT passes;
 		shaders[d].Effect->Begin(&passes, 0);

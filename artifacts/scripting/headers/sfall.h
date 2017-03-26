@@ -14,6 +14,10 @@
 #define INVENTORY  (0x1000)
 #define AUTOMAP    (0x2000)
 #define SKILLDEX   (0x4000)
+#define INTFACEUSE  (0x8000)
+#define INTFACELOOT (0x10000)
+#define BARTER     (0x20000)
+#define HEROWIN    (0x40000)
 
 //Valid arguments to register_hook
 #define HOOK_TOHIT            (0)

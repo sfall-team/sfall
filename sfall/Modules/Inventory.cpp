@@ -43,7 +43,7 @@ fo::GameObject* GetActiveItem() {
 
 void InventoryKeyPressedHook(DWORD dxKey, bool pressed, DWORD vKey) {
 	// TODO: move this out into a script
-	if (pressed && reloadWeaponKey && dxKey == reloadWeaponKey && IsMapLoaded() && (GetCurrentLoops() & ~(COMBAT | PCOMBAT)) == 0) {
+	if (pressed && reloadWeaponKey && dxKey == reloadWeaponKey && IsMapLoaded() && (GetLoopFlags() & ~(COMBAT | PCOMBAT)) == 0) {
 		DWORD maxAmmo, curAmmo;
 		fo::GameObject* item = GetActiveItem();
 		maxAmmo = fo::func::item_w_max_ammo(item);

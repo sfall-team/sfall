@@ -142,7 +142,7 @@ void __declspec(naked) op_get_game_mode() {
 	__asm {
 		pushad;
 		mov edi, eax;
-		call GetCurrentLoops;
+		call GetLoopFlags;
 		mov edx, eax;
 		mov eax, edi;
 		call fo::funcoffs::interpretPushLong_;

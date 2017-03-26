@@ -1077,6 +1077,8 @@ void _stdcall HeroSelectWindow(int RaceStyleFlag) {
 
 	DWORD RedrawTick = 0;
 
+	SetLoopFlag(LoopFlag::HEROWIN);
+
 	while (!exitMenu) { //main loop
 		NewTick = GetTickCount(); //timer for redraw
 		if (OldTick > NewTick)
@@ -1167,6 +1169,8 @@ void _stdcall HeroSelectWindow(int RaceStyleFlag) {
 			exitMenu = -1;
 		}
 	}
+
+	ClearLoopFlag(LoopFlag::HEROWIN);
 
 	fo::func::art_flush();
 	LoadHeroDat(currentRaceVal, currentStyleVal);

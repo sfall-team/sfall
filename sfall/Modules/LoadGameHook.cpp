@@ -60,8 +60,16 @@ DWORD InCombat() {
 	return (inLoop&COMBAT) ? 1 : 0;
 }
 
-DWORD GetCurrentLoops() {
+DWORD GetLoopFlags() {
 	return inLoop;
+}
+
+void SetLoopFlag(LoopFlag flag) {
+	inLoop |= flag;
+}
+
+void ClearLoopFlag(LoopFlag flag) {
+	inLoop &= ~flag;
 }
 
 // called whenever game is being reset (prior to loading a save or when returning to main menu)
@@ -386,7 +394,7 @@ static void __declspec(naked) SkilldexHook() {
 	}
 }
 
-static void __declspec(naked) InventoryHook() {
+static void __declspec(naked) HandleInventoryHook() {
 	__asm {
 		or inLoop, INVENTORY;
 		call fo::funcoffs::handle_inventory_;
@@ -395,11 +403,38 @@ static void __declspec(naked) InventoryHook() {
 	}
 }
 
+static void __declspec(naked) UseInventoryOnHook() {
+	__asm {
+		or inLoop, INTFACEUSE;
+		call fo::funcoffs::use_inventory_on_;
+		and inLoop, (-1 ^ INTFACEUSE);
+		retn;
+	}
+}
+
+static void __declspec(naked) LootContainerHook() {
+	__asm {
+		or inLoop, INTFACELOOT;
+		call fo::funcoffs::loot_container_;
+		and inLoop, (-1 ^ INTFACELOOT);
+		retn;
+	}
+}
+
+static void __declspec(naked) BarterInventoryHook() {
+	__asm {
+		or inLoop, BARTER;
+		call fo::funcoffs::barter_inventory_;
+		and inLoop, (-1 ^ BARTER);
+		retn;
+	}
+}
+
 static void __declspec(naked) AutomapHook() {
 	__asm {
 		or inLoop, AUTOMAP;
 		call fo::funcoffs::automap_;
-		and inLoop, (-1^AUTOMAP);
+		and inLoop, (-1 ^ AUTOMAP);
 		retn;
 	}
 }
@@ -411,58 +446,45 @@ void LoadGameHook::init() {
 	saveSfallDataFailMsg = Translate("sfall", "SaveSfallDataFail", 
 		"ERROR saving extended savegame information! Check if other programs interfere with savegame files/folders and try again!");
 
-	HookCall(0x4809BA, main_init_system_hook);
-	HookCall(0x480AAE, main_load_new_hook);
-	HookCall(0x47C72C, LoadSlot_hook);
-	HookCall(0x47D1C9, LoadSlot_hook);
-	HookCall(0x443AE4, LoadGame_hook);
-	HookCall(0x443B89, LoadGame_hook);
-	HookCall(0x480B77, LoadGame_hook);
-	HookCall(0x48FD35, LoadGame_hook);
-	HookCall(0x443AAC, SaveGame_hook);
-	HookCall(0x443B1C, SaveGame_hook);
-	HookCall(0x48FCFF, SaveGame_hook);
-	HookCall(0x47DD6B, game_reset_hook); // LoadSlot_
-	HookCall(0x47DDF3, game_reset_hook); // LoadSlot_
-	HookCall(0x47F491, game_reset_hook); // PrepLoad_
-	HookCall(0x480708, game_reset_hook); // RestoreLoad_ (never called)
-	HookCall(0x480AD3, game_reset_hook); // gnw_main_
-	HookCall(0x480BCC, game_reset_hook); // gnw_main_
-	HookCall(0x480D0C, game_reset_hook); // main_reset_system_ (never called)
-	HookCall(0x481028, game_reset_hook); // main_selfrun_record_
-	HookCall(0x481062, game_reset_hook); // main_selfrun_record_
-	HookCall(0x48110B, game_reset_hook); // main_selfrun_play_
-	HookCall(0x481145, game_reset_hook); // main_selfrun_play_
+	HookCalls(main_init_system_hook, {0x4809BA});
+	HookCalls(main_load_new_hook, {0x480AAE});
+	HookCalls(LoadSlot_hook, {0x47C72C, 0x47D1C9});
+	HookCalls(LoadGame_hook, {0x443AE4, 0x443B89, 0x480B77, 0x48FD35});
+	HookCalls(SaveGame_hook, {0x443AAC, 0x443B1C, 0x48FCFF});
+	HookCalls(game_reset_hook, {
+				0x47DD6B,  // LoadSlot_
+				0x47DDF3, // LoadSlot_
+				0x47F491, // PrepLoad_
+				0x480708, // RestoreLoad_ (never called)
+				0x480AD3, // gnw_main_
+				0x480BCC, // gnw_main_
+				0x480D0C, // main_reset_system_ (never called)
+				0x481028, // main_selfrun_record_
+				0x481062, // main_selfrun_record_
+				0x48110B, // main_selfrun_play_
+				0x481145 // main_selfrun_play_
+			}); 
 
-	HookCall(0x483668, WorldMapHook);
-	HookCall(0x4A4073, WorldMapHook);
-	HookCall(0x4C4855, WorldMapHook2);
-	HookCall(0x426A29, CombatHook);
-	HookCall(0x4432BE, CombatHook);
-	HookCall(0x45F6D2, CombatHook);
-	HookCall(0x4A4020, CombatHook);
-	HookCall(0x4A403D, CombatHook);
-	HookCall(0x422B09, PlayerCombatHook);
-	HookCall(0x480C16, EscMenuHook);
-	HookCall(0x4433BE, EscMenuHook2);
-	HookCall(0x48FCE4, OptionsMenuHook);
-	HookCall(0x48FD17, OptionsMenuHook);
-	HookCall(0x48FD4D, OptionsMenuHook);
-	HookCall(0x48FD6A, OptionsMenuHook);
-	HookCall(0x48FD87, OptionsMenuHook);
-	HookCall(0x48FDB3, OptionsMenuHook);
-	HookCall(0x443A50, HelpMenuHook);
-	HookCall(0x443320, CharacterHook);
-	HookCall(0x4A73EB, CharacterHook);
-	HookCall(0x4A740A, CharacterHook);
-	HookCall(0x445748, DialogHook);
-	HookCall(0x443463, PipboyHook);
-	HookCall(0x443605, PipboyHook);
-	HookCall(0x4434AC, SkilldexHook);
-	HookCall(0x44C7BD, SkilldexHook);
-	HookCall(0x443357, InventoryHook);
-	HookCall(0x44396D, AutomapHook);
-	HookCall(0x479519, AutomapHook);
+	HookCalls(WorldMapHook, {0x483668, 0x4A4073});
+	HookCalls(WorldMapHook2, {0x4C4855});
+	HookCalls(CombatHook, {0x426A29, 0x4432BE, 0x45F6D2, 0x4A4020, 0x4A403D});
+	HookCalls(PlayerCombatHook, {0x422B09});
+	HookCalls(EscMenuHook, {0x480C16});
+	HookCalls(EscMenuHook2, {0x4433BE});
+	HookCalls(OptionsMenuHook, {0x48FCE4, 0x48FD17, 0x48FD4D, 0x48FD6A, 0x48FD87, 0x48FDB3});
+	HookCalls(HelpMenuHook, {0x443A50});
+	HookCalls(CharacterHook, {0x443320, 0x4A73EB, 0x4A740A});
+	HookCalls(DialogHook, {0x445748});
+	HookCalls(PipboyHook, {0x443463, 0x443605});
+	HookCalls(SkilldexHook, {0x4434AC, 0x44C7BD});
+	HookCalls(HandleInventoryHook, {0x443357});
+	HookCalls(UseInventoryOnHook, {0x44C6FB});
+	HookCalls(LootContainerHook, {
+			0x4746EC,
+			0x4A4369,
+			0x4A4565});
+	HookCalls(BarterInventoryHook, {0x4466C7});
+	HookCalls(AutomapHook, {0x44396D, 0x479519});
 }
 
 Delegate<>& LoadGameHook::OnGameInit() {

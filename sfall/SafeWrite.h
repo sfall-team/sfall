@@ -1,5 +1,6 @@
 #pragma once
 
+#include <initializer_list>
 #include <Windows.h>
 
 namespace sfall 
@@ -20,5 +21,7 @@ void MakeCall(DWORD addr, void* func, bool jump);
 void BlockCall(DWORD addr);
 void SafeMemSet(DWORD addr, BYTE val, int len);
 void SafeWriteBytes(DWORD addr, BYTE* data, int count);
+
+void HookCalls(void* func, std::initializer_list<DWORD> addrs);
 
 }

@@ -54,6 +54,12 @@ void MakeCall(DWORD addr, void* func, bool jump) {
 	HookCall(addr, func);
 }
 
+void HookCalls(void* func, std::initializer_list<DWORD> addrs) {
+	for (auto addr : addrs) {
+		HookCall(addr, func);
+	}
+}
+
 void SafeMemSet(DWORD addr, BYTE val, int len) {
 	DWORD	oldProtect;
 
