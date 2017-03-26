@@ -54,6 +54,10 @@ void MakeCall(DWORD addr, void* func, bool jump) {
 	HookCall(addr, func);
 }
 
+void MakeJump(DWORD addr, void* func) {
+	MakeCall(addr, func, true);
+}
+
 void HookCalls(void* func, std::initializer_list<DWORD> addrs) {
 	for (auto addr : addrs) {
 		HookCall(addr, func);
