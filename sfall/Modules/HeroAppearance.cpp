@@ -22,6 +22,7 @@
 #include "..\FalloutEngine\Fallout2.h"
 #include "LoadGameHook.h"
 #include "Message.h"
+#include "PartyControl.h"
 #include "ScriptExtender.h"
 
 #include "HeroAppearance.h"
@@ -395,13 +396,14 @@ static void __declspec(naked) AdjustHeroBaseArt() {
 //---------------------------------------------------------
 //adjust armor art if num below hero art range
 static void __declspec(naked) AdjustHeroArmorArt() {
-
 	__asm {
 		pop ebx //get ret addr
 		mov dword ptr ss:[esp], ebx //reinsert ret addr in old (push 0)
 		xor ebx, ebx
 		push 0
 		call fo::funcoffs::art_id_ //call load frm func
+		cmp isControllingNPC, 1;
+		jz EndFunc;
 		mov dx, ax
 		and dh, 0xFF00 //mask out current weapon flag
 		cmp edx, critterListSize //check if critter art in PC range
@@ -485,13 +487,11 @@ EndFunc:
 
 //------------------------------
 void FixCritList() {
-	//int size = (*(DWORD*)0x510774) / 2; //critter list size after resize by DoubleArt func
-	// TODO: use fo::var::
-	critterListSize = (*(DWORD*)0x510774)/2;
-	critterArraySize = critterListSize*13;
+	auto &critterArt = fo::var::art[fo::OBJ_TYPE_CRITTER];
+	critterListSize = critterArt.total / 2;
+	critterArraySize = critterListSize * 13;
 
-	// TODO: use fo::var::
-	char *CritList = (*(char**)0x51076C); //critter list offset
+	char *CritList = critterArt.names; //critter list offset
 	char *HeroList = CritList + (critterArraySize); //set start of hero critter list after regular critter list
 
 	memset( HeroList, '\0', critterArraySize);
@@ -506,7 +506,6 @@ void FixCritList() {
 
 //---------------------------------------------------------
 static void __declspec(naked) AddHeroCritNames() {
-
 	__asm {
 		call FixCritList //insert names for hero critters
 		mov eax, dword ptr ds:[FO_VAR_art + 0x3C]

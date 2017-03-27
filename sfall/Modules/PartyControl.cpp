@@ -34,13 +34,15 @@
 namespace sfall
 {
 
+bool isControllingNPC = false;
+
 static DWORD controlMode;
-static bool isControllingNPC = false;
 static std::vector<WORD> allowedCritterPids;
 static int delayedExperience;
 
 static struct DudeState {
 	fo::GameObject* obj_dude = nullptr;
+	DWORD art_vault_guy_num;
 	long traits[2];
 	char pc_name[sizeof(fo::var::pc_name)];
 	DWORD last_level;
@@ -68,12 +70,18 @@ static bool _stdcall IsInPidList(fo::GameObject* obj) {
 // enable or disable showing actual armor on Dude in inventory screens
 // if disabled, the default art will be used
 static void ToggleInventoryArmorDisplay(bool enable) {
-	SafeWrite8(0x47173B, enable ? 0x74 : 0xEB); // 74 - JZ (default), EB - JMP (disables condition for i_worn)
+	constexpr DWORD addr = 0x47171D;
+	if (enable) {
+		MakeCall(addr, (void*)fo::funcoffs::proto_ptr_); // vanilla code
+	} else {
+		MakeJump(addr, (void*)0x471778); // skip reading critter FID from proto and applying armor ID (use existing fid)
+	}
 }
 
 // saves the state of PC before moving control to NPC
 static void SaveRealDudeState() {
 	realDude.obj_dude = fo::var::obj_dude;
+	realDude.art_vault_guy_num = fo::var::art_vault_guy_num;
 	realDude.itemCurrentItem = fo::var::itemCurrentItem;
 	memcpy(realDude.itemButtonItems, fo::var::itemButtonItems, sizeof(fo::ItemButtonItem) * 2);
 	memcpy(realDude.traits, fo::var::pc_trait, sizeof(long) * 2);
@@ -133,6 +141,7 @@ static void SetCurrentDude(fo::GameObject* npc) {
 	fo::var::obj_dude = npc;
 	fo::var::inven_dude = npc;
 	fo::var::inven_pid = npc->protoId;
+	fo::var::art_vault_guy_num = npc->artFid & 0xFFF;
 
 	isControllingNPC = true;
 	delayedExperience = 0;
@@ -148,6 +157,7 @@ static void RestoreRealDudeState() {
 	fo::var::obj_dude = realDude.obj_dude;
 	fo::var::inven_dude = realDude.obj_dude;
 	fo::var::inven_pid = realDude.obj_dude->protoId;
+	fo::var::art_vault_guy_num = realDude.art_vault_guy_num;
 
 	fo::var::itemCurrentItem = realDude.itemCurrentItem;
 	memcpy(fo::var::itemButtonItems, realDude.itemButtonItems, sizeof(DWORD) * 6 * 2);

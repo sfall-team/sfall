@@ -35,5 +35,6 @@ public:
 	static void SwitchToCritter(fo::GameObject* critter);
 };
 
+extern bool isControllingNPC;
 
 }
