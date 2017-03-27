@@ -424,9 +424,10 @@ static void __declspec(naked) LootContainerHook() {
 static void __declspec(naked) BarterInventoryHook() {
 	__asm {
 		or inLoop, BARTER;
+		push [ESP + 4];
 		call fo::funcoffs::barter_inventory_;
 		and inLoop, (-1 ^ BARTER);
-		retn;
+		retn 4;
 	}
 }
 
