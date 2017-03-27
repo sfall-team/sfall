@@ -39,56 +39,54 @@ static bool isControllingNPC = false;
 static std::vector<WORD> allowedCritterPids;
 static int delayedExperience;
 
-static fo::GameObject* real_dude = nullptr;
-static long real_traits[2];
-static char real_pc_name[sizeof(fo::var::pc_name)];
-static DWORD real_last_level;
-static DWORD real_Level;
-static DWORD real_Experience;
-static char real_free_perk;
-static DWORD real_unspent_skill_points;
-//static DWORD real_map_elevation;
-static DWORD real_sneak_working;
-//static DWORD real_sneak_queue_time;
-static DWORD real_hand;
-static fo::ItemButtonItem real_itemButtonItems[2];
-static long real_perkLevelDataList[fo::PERK_count];
-//static DWORD real_drug_gvar[6];
-//static DWORD real_jet_gvar;
-static long real_tag_skill[4];
-//static DWORD real_bbox_sneak;
+static struct DudeState {
+	fo::GameObject* obj_dude = nullptr;
+	long traits[2];
+	char pc_name[sizeof(fo::var::pc_name)];
+	DWORD last_level;
+	DWORD Level;
+	DWORD Experience;
+	char free_perk;
+	DWORD unspent_skill_points;
+	//DWORD map_elevation;
+	DWORD sneak_working;
+	//DWORD sneak_queue_time;
+	DWORD itemCurrentItem;
+	fo::ItemButtonItem itemButtonItems[2];
+	long perkLevelDataList[fo::PERK_count];
+	//DWORD drug_gvar[6];
+	//DWORD jet_gvar;
+	long tag_skill[4];
+	//DWORD bbox_sneak;
+} realDude;
 
 static bool _stdcall IsInPidList(fo::GameObject* obj) {
 	int pid = obj->protoId & 0xFFFFFF;
 	return std::find(allowedCritterPids.begin(), allowedCritterPids.end(), pid) != allowedCritterPids.end();
 }
 
-static void _stdcall SetInventoryCheck(bool skip) {
-	if (skip) {
-		SafeWrite16(0x46E7CD, 0x9090); //Inventory check
-		SafeWrite32(0x46E7Cf, 0x90909090);
-	} else {
-		SafeWrite16(0x46E7CD, 0x850F); //Inventory check
-		SafeWrite32(0x46E7Cf, 0x4B1);
-	}
+// enable or disable showing actual armor on Dude in inventory screens
+// if disabled, the default art will be used
+static void ToggleInventoryArmorDisplay(bool enable) {
+	SafeWrite8(0x47173B, enable ? 0x74 : 0xEB); // 74 - JZ (default), EB - JMP (disables condition for i_worn)
 }
 
 // saves the state of PC before moving control to NPC
 static void SaveRealDudeState() {
-	real_dude = fo::var::obj_dude;
-	real_hand = fo::var::itemCurrentItem;
-	memcpy(real_itemButtonItems, fo::var::itemButtonItems, sizeof(fo::ItemButtonItem) * 2);
-	memcpy(real_traits, fo::var::pc_trait, sizeof(long) * 2);
-	memcpy(real_perkLevelDataList, fo::var::perkLevelDataList, sizeof(DWORD) * fo::PERK_count);
-	strcpy_s(real_pc_name, sizeof(fo::var::pc_name), fo::var::pc_name);
-	real_Level = fo::var::Level_;
-	real_last_level = fo::var::last_level;
-	real_Experience = fo::var::Experience_;
-	real_free_perk = fo::var::free_perk;
-	real_unspent_skill_points = fo::var::curr_pc_stat[0];
+	realDude.obj_dude = fo::var::obj_dude;
+	realDude.itemCurrentItem = fo::var::itemCurrentItem;
+	memcpy(realDude.itemButtonItems, fo::var::itemButtonItems, sizeof(fo::ItemButtonItem) * 2);
+	memcpy(realDude.traits, fo::var::pc_trait, sizeof(long) * 2);
+	memcpy(realDude.perkLevelDataList, fo::var::perkLevelDataList, sizeof(DWORD) * fo::PERK_count);
+	strcpy_s(realDude.pc_name, sizeof(fo::var::pc_name), fo::var::pc_name);
+	realDude.Level = fo::var::Level_;
+	realDude.last_level = fo::var::last_level;
+	realDude.Experience = fo::var::Experience_;
+	realDude.free_perk = fo::var::free_perk;
+	realDude.unspent_skill_points = fo::var::curr_pc_stat[0];
 	//real_map_elevation = fo::var::map_elevation;
-	real_sneak_working = fo::var::sneak_working;
-	fo::SkillGetTags(real_tag_skill, 4);
+	realDude.sneak_working = fo::var::sneak_working;
+	fo::SkillGetTags(realDude.tag_skill, 4);
 }
 
 // take control of the NPC
@@ -131,41 +129,39 @@ static void SetCurrentDude(fo::GameObject* npc) {
 		fo::var::itemCurrentItem = 1;
 	}
 
-	fo::var::inven_pid = npc->protoId;
-
 	// switch main dude_obj pointers - this should be done last!
 	fo::var::obj_dude = npc;
 	fo::var::inven_dude = npc;
+	fo::var::inven_pid = npc->protoId;
 
 	isControllingNPC = true;
 	delayedExperience = 0;
-	SetInventoryCheck(true);
+	ToggleInventoryArmorDisplay(false);
 
 	fo::func::intface_redraw();
 }
 
 // restores the real dude state
 static void RestoreRealDudeState() {
-	assert(real_dude != nullptr);
+	assert(realDude.obj_dude != nullptr);
 
-	fo::var::obj_dude = real_dude;
-	fo::var::inven_dude = real_dude;
+	fo::var::obj_dude = realDude.obj_dude;
+	fo::var::inven_dude = realDude.obj_dude;
+	fo::var::inven_pid = realDude.obj_dude->protoId;
 
-	fo::var::itemCurrentItem = real_hand;
-	memcpy(fo::var::itemButtonItems, real_itemButtonItems, sizeof(DWORD) * 6 * 2);
-	memcpy(fo::var::pc_trait, real_traits, sizeof(long) * 2);
-	memcpy(fo::var::perkLevelDataList, real_perkLevelDataList, sizeof(DWORD) * fo::PERK_count);
-	strcpy_s(fo::var::pc_name, sizeof(fo::var::pc_name), real_pc_name);
-	fo::var::Level_ = real_Level;
-	fo::var::last_level = real_last_level;
-	fo::var::Experience_ = real_Experience;
-	fo::var::free_perk = real_free_perk;
-	fo::var::curr_pc_stat[0] = real_unspent_skill_points;
-	//real_map_elevation = fo::var::map_elevation; -- why save elevation?
-	fo::var::sneak_working = real_sneak_working;
-	fo::SkillSetTags(real_tag_skill, 4);
-
-	fo::var::inven_pid = real_dude->protoId;
+	fo::var::itemCurrentItem = realDude.itemCurrentItem;
+	memcpy(fo::var::itemButtonItems, realDude.itemButtonItems, sizeof(DWORD) * 6 * 2);
+	memcpy(fo::var::pc_trait, realDude.traits, sizeof(long) * 2);
+	memcpy(fo::var::perkLevelDataList, realDude.perkLevelDataList, sizeof(DWORD) * fo::PERK_count);
+	strcpy_s(fo::var::pc_name, sizeof(fo::var::pc_name), realDude.pc_name);
+	fo::var::Level_ = realDude.Level;
+	fo::var::last_level = realDude.last_level;
+	fo::var::Experience_ = realDude.Experience;
+	fo::var::free_perk = realDude.free_perk;
+	fo::var::curr_pc_stat[0] = realDude.unspent_skill_points;
+	//realDude.map_elevation = fo::var::map_elevation; -- why save elevation?
+	fo::var::sneak_working = realDude.sneak_working;
+	fo::SkillSetTags(realDude.tag_skill, 4);
 
 	if (delayedExperience > 0) {
 		fo::func::stat_pc_add_experience(delayedExperience);
@@ -173,7 +169,7 @@ static void RestoreRealDudeState() {
 
 	fo::func::intface_redraw();
 
-	SetInventoryCheck(false);
+	ToggleInventoryArmorDisplay(true);
 	isControllingNPC = false;
 }
 
@@ -196,7 +192,6 @@ static int _stdcall CombatWrapperInner(fo::GameObject* obj) {
 	}
 	return 0;
 }
-
 
 // this hook fixes NPCs art switched to main dude art after inventory screen closes
 static void _declspec(naked) FidChangeHook() {
@@ -231,7 +226,7 @@ int __stdcall PartyControl::SwitchHandHook(fo::GameObject* item) {
 			call fo::funcoffs::ai_can_use_weapon_;
 			mov canUse, eax;
 		}*/
-		int fId = (fo::var::obj_dude)->artFid;
+		int fId = fo::var::obj_dude->artFid;
 		long weaponCode = fo::AnimCodeByWeapon(item);
 		fId = (fId & 0xffff0fff) | (weaponCode << 12);
 		if (!fo::func::art_exists(fId)) {
@@ -307,7 +302,7 @@ end:
 }
 
 void __stdcall PartyControlReset() {
-	if (real_dude != nullptr && isControllingNPC) {
+	if (realDude.obj_dude != nullptr && isControllingNPC) {
 		RestoreRealDudeState();
 	}
 }
@@ -322,7 +317,7 @@ void PartyControl::SwitchToCritter(fo::GameObject* critter) {
 	} else {
 		SaveRealDudeState();
 	}
-	if (critter != nullptr && critter != real_dude) {
+	if (critter != nullptr && critter != realDude.obj_dude) {
 		SetCurrentDude(critter);
 	}
 }
@@ -341,15 +336,13 @@ void PartyControl::init() {
 		}
 		dlog_f("  Mode %d, Chars read: %d.\n", DL_INIT, controlMode, allowedCritterPids.size());
 
-		HookCall(0x46EBEE, &FidChangeHook);
+		// HookCall(0x46EBEE, &FidChangeHook);
 
 		MakeJump(0x422354, CombatHack_add_noncoms_);
-		HookCall(0x422D87, &CombatWrapper_v2);
-		HookCall(0x422E20, &CombatWrapper_v2);
+		HookCalls(CombatWrapper_v2, { 0x422D87, 0x422E20 });
 
-		HookCall(0x454218, &stat_pc_add_experience_hook); // call inside op_give_exp_points_hook
-		HookCall(0x4124F1, &pc_flag_toggle_hook);
-		HookCall(0x41279A, &pc_flag_toggle_hook);
+		HookCall(0x454218, stat_pc_add_experience_hook); // call inside op_give_exp_points_hook
+		HookCalls(pc_flag_toggle_hook, { 0x4124F1, 0x41279A });
 
 		LoadGameHook::OnGameReset() += PartyControlReset;
 	} else {

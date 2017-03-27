@@ -883,7 +883,7 @@ nevermind:
 
 static int __stdcall SwitchHandHook2(fo::GameObject* item, fo::GameObject* itemReplaced, DWORD addr) {
 	int tmp;
-	if (itemReplaced && fo::func::item_get_type(itemReplaced) == 3 && fo::func::item_get_type(item) == 4) {
+	if (itemReplaced && fo::func::item_get_type(itemReplaced) == fo::item_type_weapon && fo::func::item_get_type(item) == fo::item_type_ammo) {
 		return -1; // to prevent inappropriate hook call after dropping ammo on weapon
 	}
 	BeginHook();
@@ -898,8 +898,9 @@ static int __stdcall SwitchHandHook2(fo::GameObject* item, fo::GameObject* itemR
 		SetHSReturn(tmp);
 	}
 	EndHook();
-	if (cRet > 0)
+	if (cRet > 0) {
 		return rets[0];
+	}
 	return -1;
 }
 
