@@ -398,8 +398,7 @@ void NpcAutoLevelPatch() {
 	npcAutoLevelEnabled = GetConfigInt("Misc", "NPCAutoLevel", 0) != 0;
 	if (npcAutoLevelEnabled) {
 		dlog("Applying NPC autolevel patch.", DL_INIT);
-		SafeWrite16(0x00495D22, 0x9090);
-		SafeWrite32(0x00495D24, 0x90909090);
+		SafeWrite8(0x495CFB, 0xEB);               // jmps 0x495D28 (skip random check)
 		dlogr(" Done", DL_INIT);
 	}
 
@@ -678,16 +677,14 @@ void DontDeleteProtosPatch() {
 void AlwaysReloadMsgs() {
 	if (GetConfigInt("Misc", "AlwaysReloadMsgs", 0)) {
 		dlog("Applying always reload messages patch.", DL_INIT);
-		SafeWrite8(0x4A6B8A, 0xff);
-		SafeWrite32(0x4A6B8B, 0x02eb0074);
+		SafeWrite8(0x4A6B8D, 0x0);
 		dlogr(" Done", DL_INIT);
 	}
 }
 
 void RemoveWindowRoundingPatch() {
 	if(GetConfigInt("Misc", "RemoveWindowRounding", 0)) {
-		SafeWrite32(0x4B8090, 0x90909090);
-		SafeWrite16(0x4B8094, 0x9090);
+		SafeWrite16(0x4B8090, 0x04EB);            // jmps 0x4B8096
 	}
 }
 

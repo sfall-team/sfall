@@ -538,10 +538,8 @@ less:
 
 void SkipOpeningMoviesPatch() {	
 	if (GetConfigInt("Misc", "SkipOpeningMovies", 0)) {
-		dlog("Blocking opening movies.", DL_INIT);
-		BlockCall(0x4809CB);
-		BlockCall(0x4809D4);
-		BlockCall(0x4809E0);
+		dlog("Skipping opening movies.", DL_INIT);
+		SafeWrite16(0x4809C7, 0x1CEB);            // jmps 0x4809E5
 		dlogr(" Done", DL_INIT);
 	}
 }
