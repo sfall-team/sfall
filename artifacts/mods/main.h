@@ -1,6 +1,11 @@
 
 #include "..\scripting\headers\sfall.h"
+#include "..\scripting\headers\define_lite.h"
 #include "..\scripting\headers\define_extra.h"
+
+#include "..\scripting\headers\lib.arrays.h"
+#include "..\scripting\headers\lib.strings.h"
+// #include "..\scripting\headers\lib.inven.h"
 
 variable ini := "sfall-mods.ini";
 variable translationIni;

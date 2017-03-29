@@ -1,0 +1,84 @@
+/*  
+
+   WIP!!!
+
+*/
+
+#include "main.h"
+
+variable
+   modIni := "npcarmor.ini",
+   defaultFids,
+   armorPidMap, // maps armor PID to it's "type" - leather armor, metal, power armor, etc.
+   npcMap;
+
+procedure invenwield_handler begin
+   variable s, critter, item, slot, isWorn, npc, pid, armorType, fid;
+   critter := get_sfall_arg;
+   item := get_sfall_arg;
+   slot := get_sfall_arg;
+   isWorn := get_sfall_arg;
+   
+   s := "Wield: " + obj_name(critter);
+   if (item) then 
+      s += ", " + obj_name(item);
+   s += ", " + slot + ", " + isWorn;
+   display_msg(s);
+   
+   if (critter and item and critter != dude_obj and npcMap[obj_pid(critter)] and obj_type(item) == item_type_armor) then begin
+      npc := npcMap[obj_pid(critter)];
+      if (not isWorn) then begin
+         display_msg("No armor fid: " + npc["Default"]);
+         art_change_fid_num(critter, npc["Default"]);
+      end else if (item) then begin
+         armorType := armorPidMap[obj_pid(item)];
+         fid := npc[armorType] or defaultFids[armorType];
+         if (fid >= 1) then begin
+            display_msg("Change fid: " + fid);
+            art_change_fid_num(critter, fid);
+         end
+      end
+   end
+end
+
+
+procedure start begin
+   variable sect, sects, armorTypes, armorType, npc, pid, pids, i;
+   if game_loaded then begin
+      register_hook_proc(HOOK_INVENWIELD, invenwield_handler);
+      
+      defaultFids := get_ini_section(modIni, "Default");
+      fix_array(defaultFids);
+      display_array(defaultFids);
+      
+      armorPidMap := create_array_map;
+      armorTypes := get_ini_section(modIni, "ArmorTypes");
+      foreach (armorType: pids in armorTypes) begin
+         pids := string_split(pids, ",");
+         foreach (pid in pids) begin
+            armorPidMap[atoi(pid)] := armorType;
+         end
+      end
+      display_array(armorPidMap);
+      
+      npcMap := create_array_map;
+      
+      i := 1;
+      sect := get_ini_section(modIni, ""+i);
+      while (sect.PID) do begin
+         npc := create_array_map;
+         npc["Default"] := atoi(sect["Default"]);
+         foreach (armorType: pids in armorTypes) begin
+            npc[armorType] := atoi(sect[armorType]);
+         end
+         npcMap[atoi(sect.PID)] := npc;
+         
+         i += 1;
+         sect := get_ini_section(modIni, ""+i);
+      end
+      
+      display_array(npcMap[16777734]);
+   end
+   
+end
+

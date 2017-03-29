@@ -215,3 +215,5 @@
 #define get_flags(obj)               	       sfall_func1("get_flags", obj)
 #define tile_refresh_display             	    sfall_func0("tile_refresh_display")
 #define outlined_object                       sfall_func0("outlined_object")
+#define get_ini_sections(file)                sfall_func1("get_ini_sections", file)
+#define get_ini_section(file, sect)           sfall_func2("get_ini_section", file, sect)
