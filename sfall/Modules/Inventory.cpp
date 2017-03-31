@@ -21,6 +21,7 @@
 #include "..\main.h"
 #include "..\FalloutEngine\Fallout2.h"
 #include "..\InputFuncs.h"
+#include "PartyControl.h"
 #include "HookScripts.h"
 #include "LoadGameHook.h"
 
@@ -28,6 +29,8 @@
 
 namespace sfall
 {
+
+static Delegate<DWORD> onAdjustFid;
 
 static DWORD mode;
 static DWORD maxItemSize;
@@ -606,6 +609,67 @@ void __declspec(naked) ItemCountFix() {
 	}
 }
 
+// reimplementation of adjust_fid engine function
+// Differences from vanilla:
+// - doesn't use art_vault_guy_num as default art, uses current critter FID instead
+// - invokes onAdjustFid delegate that allows to hook into FID calculation
+DWORD __stdcall adjust_fid_replacement2() {
+	using namespace fo;
+
+	DWORD fid;
+	if ((var::inven_dude->artFid & 0xF000000) >> 24 == OBJ_TYPE_CRITTER) {
+		DWORD frameNum;
+		DWORD weaponAnimCode = 0;
+		if (PartyControl::IsNpcControlled()) {
+			// if NPC is under control, use current FID of critter
+			frameNum = var::inven_dude->artFid & 0xFFF;
+		} else {
+			// vanilla logic:
+			frameNum = var::art_vault_guy_num;
+			auto critterPro = GetProto(var::inven_pid);
+			if (critterPro != nullptr) {
+				frameNum = critterPro->fid & 0xFFF;
+			}
+			if (var::i_worn != nullptr) {
+				auto armorPro = GetProto(var::i_worn->protoId);
+				DWORD armorFrameNum = func::stat_level(var::inven_dude, STAT_gender) == GENDER_FEMALE
+					? armorPro->item.armor.femaleFrameNum
+					: armorPro->item.armor.maleFrameNum;
+
+				if (armorFrameNum != -1) {
+					frameNum = armorFrameNum;
+				}
+			}
+		}
+		auto itemInHand = func::intface_is_item_right_hand()
+			? var::i_rhand
+			: var::i_lhand;
+
+		if (itemInHand != nullptr) {
+			auto itemPro = GetProto(itemInHand->protoId);
+			if (itemPro->item.type == item_type_weapon) {
+				weaponAnimCode = itemPro->item.weapon.animationCode;
+			}
+		}
+		fid = func::art_id(OBJ_TYPE_CRITTER, frameNum, 0, weaponAnimCode, 0);
+	} else {
+		fid = var::inven_dude->artFid;
+	}
+	var::i_fid = fid;
+	onAdjustFid.invoke(fid);
+	return var::i_fid;
+}
+
+void __declspec(naked) adjust_fid_replacement() {
+	__asm {
+		pushad;
+		call adjust_fid_replacement2;
+		popad;
+		mov eax, [FO_VAR_i_fid];
+		retn;
+	}
+}
+
 void InventoryReset() {
 	invenapcost = GetConfigInt("Misc", "InventoryApCost", 4);
 }
@@ -613,6 +677,8 @@ void InventoryReset() {
 void Inventory::init() {
 	OnKeyPressed() += InventoryKeyPressedHook;
 	LoadGameHook::OnGameReset() += InventoryReset;
+
+	MakeJump(fo::funcoffs::adjust_fid_, adjust_fid_replacement);
 
 	mode = GetConfigInt("Misc", "CritterInvSizeLimitMode", 0);
 	invenapcost = GetConfigInt("Misc", "InventoryApCost", 4);
@@ -686,5 +752,11 @@ void Inventory::init() {
 	// Fix item_count function returning incorrect value when there is a container-item inside
 	MakeJump(0x47808C, ItemCountFix); // replacing item_count_ function
 }
+
+Delegate<DWORD>& Inventory::OnAdjustFid() {
+	return onAdjustFid;
+}
+
+
 
 }

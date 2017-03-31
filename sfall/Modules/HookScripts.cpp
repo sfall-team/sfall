@@ -979,6 +979,35 @@ skipcall:
 	}
 }
 
+// Hooks into dropping item from inventory to ground
+// - allows to prevent item being dropped if 0 is returned with set_sfall_return
+// - called for every item when dropping multiple items in stack (except caps)
+// - when dropping caps it called always once
+// - if 0 is returned while dropping caps, selected amount - 1 will still disappear from inventory
+/*
+static void __declspec(naked) InvenActionCursor_ObjDrop_Hook() {
+	__asm {
+		hookbegin(3);
+		mov args[0], 5;
+		mov args[4], edx; // item being dropped
+		mov args[8], 0; // no item being replaced here..
+		pushad;
+		push HOOK_INVENTORYMOVE;
+		call RunHookScript;
+		popad;
+		cmp cRet, 1;
+		jl skipcheck;
+		cmp rets[0], -1;
+		jne skipcall;
+skipcheck:
+		call fo::funcoffs::obj_drop_;
+skipcall:
+		hookend;
+		retn;
+	}
+}
+*/
+
 static void _declspec(naked) invenWieldFunc_Hook() {
 	using namespace fo;
 	__asm {
@@ -1100,6 +1129,19 @@ donothing:
 		jmp DropAmmoIntoWeaponHack_return;
 	}
 }
+
+void AdjustFidHook(DWORD vanillaFid) {
+	BeginHook();
+	argCount = 1;
+	args[0] = vanillaFid;
+	RunHookScript(HOOK_ADJUSTFID);
+	if (cRet > 0) {
+		fo::var::i_fid = rets[0];
+	}
+	EndHook();
+}
+
+// END HOOKS
 
 DWORD _stdcall GetHSArgCount() {
 	return argCount;
@@ -1316,11 +1358,16 @@ static void HookScriptInit2() {
 	//HookCall(0x4712C7, &DropAmmoIntoWeaponHook);
 	//HookCall(0x471351, &DropAmmoIntoWeaponHook);
 	MakeJump(0x476588, DropAmmoIntoWeaponHack);
+	// TODO: consider adding item drop event into INVENTORYMOVE or different hook
+	//HookCalls(InvenActionCursor_ObjDrop_Hook, { 0x473851, 0x47386F });
 
 	LoadHookScript("hs_invenwield", HOOK_INVENWIELD);
 	HookCalls(invenWieldFunc_Hook, { 0x47275E, 0x495FDF });
 	HookCalls(invenUnwieldFunc_Hook, { 0x45967D, 0x472A5A, 0x495F0B});
 	HookCalls(correctFidForRemovedItem_Hook, { 0x45680C, 0x45C4EA });
+
+	LoadHookScript("hs_adjustfid", HOOK_ADJUSTFID);
+	Inventory::OnAdjustFid() += AdjustFidHook;
 
 	dlogr("Finished loading hook scripts", DL_HOOK|DL_INIT);
 }

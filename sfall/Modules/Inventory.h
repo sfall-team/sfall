@@ -18,14 +18,19 @@
 
 #pragma once
 
+#include "Delegate.h"
 #include "Module.h"
 
 namespace sfall
 {
 
 class Inventory : public Module {
+public:
 	const char* name() { return "Inventory"; }
 	void init();
+
+	// Called after game calculated dude FID for displaying on inventory screen
+	static Delegate<DWORD>& OnAdjustFid();
 };
 
 void _stdcall SetInvenApCost(int a);

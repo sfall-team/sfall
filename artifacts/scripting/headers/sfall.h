@@ -46,6 +46,7 @@
 #define HOOK_WITHINPERCEPTION (23)
 #define HOOK_INVENTORYMOVE    (24)
 #define HOOK_INVENWIELD       (25)
+#define HOOK_ADJUSTFID        (26)
 
 //Valid arguments to list_begin
 #define LIST_CRITTERS    (0)
@@ -215,3 +216,7 @@
 #define get_flags(obj)               	       sfall_func1("get_flags", obj)
 #define tile_refresh_display             	    sfall_func0("tile_refresh_display")
 #define outlined_object                       sfall_func0("outlined_object")
+#define get_ini_sections(file)                sfall_func1("get_ini_sections", file)
+#define get_ini_section(file, sect)           sfall_func2("get_ini_section", file, sect)
+#define set_dude_obj(critter)                 sfall_func1("set_dude_obj", critter)
+#define real_dude_obj                         sfall_func0("real_dude_obj")

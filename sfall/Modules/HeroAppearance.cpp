@@ -20,6 +20,7 @@
 
 #include "..\main.h"
 #include "..\FalloutEngine\Fallout2.h"
+#include "Inventory.h"
 #include "LoadGameHook.h"
 #include "Message.h"
 #include "PartyControl.h"
@@ -395,23 +396,12 @@ static void __declspec(naked) AdjustHeroBaseArt() {
 
 //---------------------------------------------------------
 //adjust armor art if num below hero art range
-static void __declspec(naked) AdjustHeroArmorArt() {
-	__asm {
-		pop ebx //get ret addr
-		mov dword ptr ss:[esp], ebx //reinsert ret addr in old (push 0)
-		xor ebx, ebx
-		push 0
-		call fo::funcoffs::art_id_ //call load frm func
-		cmp isControllingNPC, 1;
-		jz EndFunc;
-		mov dx, ax
-		and dh, 0xFF00 //mask out current weapon flag
-		cmp edx, critterListSize //check if critter art in PC range
-		jg EndFunc
-		add eax, critterListSize //shift critter art index up into hero range
-EndFunc:
-		//mov dword ptr ds:[FO_VAR_i_fid],eax
-		ret
+static void AdjustHeroArmorArt(DWORD fid) {
+	if (!PartyControl::IsNpcControlled()) {
+		DWORD fidBase = fid & 0xFFF;
+		if (fidBase <= critterListSize) {
+			fo::var::i_fid += critterListSize;
+		}
 	}
 }
 
@@ -1866,10 +1856,11 @@ void HeroAppearance::init() {
 	if (GetConfigInt("Misc", "EnableHeroAppearanceMod", 0)) {
 		dlog("Setting up Appearance Char Screen buttons.", DL_INIT);
 		EnableHeroAppearanceMod();
-		dlogr(" Done", DL_INIT);
 		
 		LoadGameHook::OnAfterNewGame() += SetNewCharAppearanceGlobals;
 		LoadGameHook::OnAfterGameStarted() += LoadHeroAppearance;
+		Inventory::OnAdjustFid() += AdjustHeroArmorArt;
+		dlogr(" Done", DL_INIT);
 	}
 }
 

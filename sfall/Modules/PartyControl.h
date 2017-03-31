@@ -33,6 +33,9 @@ public:
 
 	// Take control of given NPC or switch back to "Real" dude if nullptr is passed
 	static void SwitchToCritter(fo::GameObject* critter);
+
+	// Returns pointer to "real" dude, which is different from "dude_obj" when controlling another critter
+	static fo::GameObject* RealDudeObject();
 };
 
 extern bool isControllingNPC;
