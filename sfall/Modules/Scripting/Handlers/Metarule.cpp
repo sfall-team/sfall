@@ -62,8 +62,43 @@ static MetaruleTableType metaruleTable;
 // currently executed metarule
 static const SfallMetarule* currentMetarule;
 
-static std::string sf_test_stringBuf;
+/*
+	Metarule AKA sfall_funcX.
 
+	Add your custom scripting functions here.
+
+	Format is as follows:
+	{ name, handler, minArgs, maxArgs, {arg1, arg2, ...} }
+		- name - name of function that will be used in scripts,
+		- handler - pointer to handler function (see examples below),
+		- minArgs/maxArgs - minimum and maximum number of arguments allowed for this function
+		- arg1, arg2, ... - argument types for automatic validation
+*/
+static const SfallMetarule metarules[] = {
+	{"critter_inven_obj2", sf_critter_inven_obj2, 2, 2, {ARG_OBJECT, ARG_INT}},
+	{"exec_map_update_scripts", sf_exec_map_update_scripts, 0, 0},
+	{"get_flags", sf_get_flags, 1, 1, {ARG_OBJECT}},
+	{"get_ini_section", sf_get_ini_section, 2, 2, {ARG_STRING, ARG_STRING}},
+	{"get_ini_sections", sf_get_ini_sections, 1, 1, {ARG_STRING}},
+	{"get_metarule_table", sf_get_metarule_table, 0, 0},
+	{"get_outline", sf_get_outline, 1, 1, {ARG_OBJECT}},
+	{"intface_hide", sf_intface_hide, 0, 0},
+	{"intface_is_hidden", sf_intface_is_hidden, 0, 0},
+	{"intface_redraw", sf_intface_redraw, 0, 0},
+	{"intface_show", sf_intface_show, 0, 0},
+	{"item_weight", sf_item_weight, 1, 1, {ARG_OBJECT}},
+	{"outlined_object", sf_outlined_object, 0, 0},
+	{"real_dude_obj", sf_real_dude_obj, 0, 0},
+	{"set_dude_obj", sf_set_dude_obj, 1, 1, {ARG_OBJECT}},
+	{"set_flags", sf_set_flags, 2, 2, {ARG_OBJECT, ARG_INT}},
+	{"set_outline", sf_set_outline, 2, 2, {ARG_OBJECT, ARG_INT}},
+	{"spatial_radius", sf_spatial_radius, 1, 1, {ARG_OBJECT}},
+	{"tile_refresh_display", sf_tile_refresh_display, 0, 0},
+	{"validate_test", sf_test, 2, 5, {ARG_INT, ARG_NUMBER, ARG_STRING, ARG_OBJECT, ARG_ANY}},
+};
+
+
+static std::string sf_test_stringBuf;
 void sf_test(OpcodeContext& ctx) {
 	std::ostringstream sstream;
 	sstream << "sfall_funcX(\"test\"";
@@ -102,45 +137,9 @@ void sf_get_metarule_table(OpcodeContext& ctx) {
 	ctx.setReturn(arr, DataType::INT);
 }
 
-/*
-	Metarule array.
-
-	Add your custom scripting functions here.
-
-	Format is as follows:
-	{ name, handler, minArgs, maxArgs }
-		- name - name of function that will be used to call it from scripts,
-		- handler - pointer to handler function (see examples below),
-		- minArgs/maxArgs - minimum and maximum number of arguments allowed for this function
-		- argument types for validation
-*/
-static const SfallMetarule metaruleArray[] = {
-	{"get_metarule_table", sf_get_metarule_table, 0, 0},
-	{"validate_test", sf_test, 2, 5, {ARG_INT, ARG_NUMBER, ARG_STRING, ARG_OBJECT, ARG_ANY}},
-	{"spatial_radius", sf_spatial_radius, 1, 1, {ARG_OBJECT}},
-	{"critter_inven_obj2", sf_critter_inven_obj2, 2, 2, {ARG_OBJECT, ARG_INT}},
-	{"intface_redraw", sf_intface_redraw, 0, 0},
-	{"intface_show", sf_intface_show, 0, 0},
-	{"intface_hide", sf_intface_hide, 0, 0},
-	{"intface_is_hidden", sf_intface_is_hidden, 0, 0},
-	{"item_weight", sf_item_weight, 1, 1, {ARG_OBJECT}},
-	{"exec_map_update_scripts", sf_exec_map_update_scripts, 0, 0},
-	{"get_ini_sections", sf_get_ini_sections, 1, 1, {ARG_STRING}},
-	{"get_ini_section", sf_get_ini_section, 2, 2, {ARG_STRING, ARG_STRING}},
-	{"set_outline", sf_set_outline, 2, 2, {ARG_OBJECT, ARG_INT}},
-	{"get_outline", sf_get_outline, 1, 1, {ARG_OBJECT}},
-	{"set_flags", sf_set_flags, 2, 2, {ARG_OBJECT, ARG_INT}},
-	{"get_flags", sf_get_flags, 1, 1, {ARG_OBJECT}},
-	{"tile_refresh_display", sf_tile_refresh_display, 0, 0},
-	{"outlined_object", sf_outlined_object, 0, 0},
-	{"set_dude_obj", sf_set_dude_obj, 1, 1, {ARG_OBJECT}},
-	{"real_dude_obj", sf_real_dude_obj, 0, 0},
-};
-
 void InitMetaruleTable() {
-	int length = sizeof(metaruleArray) / sizeof(SfallMetarule);
-	for (int i = 0; i < length; ++i) {
-		metaruleTable[metaruleArray[i].name] = &metaruleArray[i];
+	for (auto metarule = std::begin(metarules); metarule != std::end(metarules); ++metarule) {
+		metaruleTable[metarule->name] = metarule;
 	}
 }
 
