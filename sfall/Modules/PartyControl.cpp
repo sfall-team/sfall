@@ -67,17 +67,6 @@ static bool _stdcall IsInPidList(fo::GameObject* obj) {
 	return std::find(allowedCritterPids.begin(), allowedCritterPids.end(), pid) != allowedCritterPids.end();
 }
 
-// enable or disable showing actual armor on Dude in inventory screens
-// if disabled, the default art will be used
-static void ToggleInventoryArmorDisplay(bool enable) {
-	constexpr DWORD addr = 0x47171D;
-	if (enable) {
-		MakeCall(addr, (void*)fo::funcoffs::proto_ptr_); // vanilla code
-	} else {
-		MakeJump(addr, (void*)0x471778); // skip reading critter FID from proto and applying armor ID (use existing fid)
-	}
-}
-
 // saves the state of PC before moving control to NPC
 static void SaveRealDudeState() {
 	realDude.obj_dude = fo::var::obj_dude;
@@ -145,7 +134,6 @@ static void SetCurrentDude(fo::GameObject* npc) {
 
 	isControllingNPC = true;
 	delayedExperience = 0;
-	ToggleInventoryArmorDisplay(false);
 
 	fo::func::intface_redraw();
 }
@@ -179,7 +167,6 @@ static void RestoreRealDudeState() {
 
 	fo::func::intface_redraw();
 
-	ToggleInventoryArmorDisplay(true);
 	isControllingNPC = false;
 }
 

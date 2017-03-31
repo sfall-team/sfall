@@ -447,8 +447,8 @@ struct Proto {
 			// for each DamageType
 			long damageThreshold[7];
 			long perk;
-			long maleFid;
-			long femaleFid;
+			long maleFrameNum;
+			long femaleFrameNum;
 		};
 
 		struct Container {

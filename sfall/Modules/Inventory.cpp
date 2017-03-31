@@ -21,6 +21,7 @@
 #include "..\main.h"
 #include "..\FalloutEngine\Fallout2.h"
 #include "..\InputFuncs.h"
+#include "PartyControl.h"
 #include "HookScripts.h"
 #include "LoadGameHook.h"
 
@@ -608,25 +609,36 @@ void __declspec(naked) ItemCountFix() {
 	}
 }
 
-// reimplementation adjust_fid engine function
+// reimplementation of adjust_fid engine function
+// Differences from vanilla:
+// - doesn't use art_vault_guy_num as default art, uses current critter FID instead
+// - invokes onAdjustFid delegate that allows to hook into FID calculation
 DWORD __stdcall adjust_fid_replacement2() {
 	using namespace fo;
 
 	DWORD fid;
 	if ((var::inven_dude->artFid & 0xF000000) >> 24 == OBJ_TYPE_CRITTER) {
-		DWORD frameNum = var::art_vault_guy_num;
+		DWORD frameNum;
 		DWORD weaponAnimCode = 0;
-		auto critterPro = GetProto(var::inven_pid);
-		if (critterPro != nullptr) {
-			frameNum = critterPro->fid & 0xFFF;
-		}
-		if (var::i_worn != nullptr) {
-			auto armorPro = GetProto(var::i_worn->protoId);
-			frameNum = func::stat_level(var::inven_dude, STAT_gender) == GENDER_FEMALE
-				? armorPro->item.armor.femaleFid
-				: armorPro->item.armor.maleFid;
-			if (frameNum == -1) {
-				frameNum = var::art_vault_guy_num;
+		if (PartyControl::IsNpcControlled()) {
+			// if NPC is under control, use current FID of critter
+			frameNum = var::inven_dude->artFid & 0xFFF;
+		} else {
+			// vanilla logic:
+			frameNum = var::art_vault_guy_num;
+			auto critterPro = GetProto(var::inven_pid);
+			if (critterPro != nullptr) {
+				frameNum = critterPro->fid & 0xFFF;
+			}
+			if (var::i_worn != nullptr) {
+				auto armorPro = GetProto(var::i_worn->protoId);
+				DWORD armorFrameNum = func::stat_level(var::inven_dude, STAT_gender) == GENDER_FEMALE
+					? armorPro->item.armor.femaleFrameNum
+					: armorPro->item.armor.maleFrameNum;
+
+				if (armorFrameNum != -1) {
+					frameNum = armorFrameNum;
+				}
 			}
 		}
 		auto itemInHand = func::intface_is_item_right_hand()
