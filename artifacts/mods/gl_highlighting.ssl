@@ -13,6 +13,8 @@
    NOTE: this script requires compiler from sfall modderspack with -s option
    (short circuit evaluation)
    
+   version 1.0
+   
 **/
 
 #include "main.h"

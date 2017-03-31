@@ -1,10 +1,21 @@
 /*  
 
-   WIP!!!
+   NPC Armor Appearance mod
+   
+   Used to replace the scripted part of B-Team mod.
+   Appropriate graphics are required for this mod to work.
+   Can be adopted to any mod by adjusting armor PIDs, NPC PIDs and NPC FIDs in INI file.
+   
+   NOTE: this script requires compiler from sfall modderspack with -s option
+   (short circuit evaluation)
+   
+   version 1.0
 
 */
 
 #include "main.h"
+
+#define IS_ARMOR(item)  (obj_type(item) == OBJ_TYPE_ITEM and obj_item_subtype(item) == item_type_armor)
 
 variable
    modIni := "npcarmor.ini",
@@ -12,31 +23,48 @@ variable
    armorPidMap, // maps armor PID to it's "type" - leather armor, metal, power armor, etc.
    npcMap;
 
+procedure check_armor_change(variable critter, variable item, variable isWorn) begin
+   variable npc, armorType, fid;
+   if (npcMap[obj_pid(critter)]) then begin
+      npc := npcMap[obj_pid(critter)];
+      if (not isWorn) then begin
+         // display_msg("No armor fid: " + npc["Default"]);
+         return npc["Default"];
+      end else if (item) then begin
+         armorType := armorPidMap[obj_pid(item)];
+         fid := npc[armorType] or defaultFids[armorType];
+         if (fid == 0 or fid == -1) then fid := npc["Default"];
+         // display_msg("Change fid: " + fid + ", npc: " + npc[armorType] + ", default:" + defaultFids[armorType]);
+         return fid;
+      end
+   end
+   return -1;
+end
+
+// for NPCs when they change armor themselves
 procedure invenwield_handler begin
-   variable s, critter, item, slot, isWorn, npc, pid, armorType, fid;
+   variable critter, item, fid, slot, isWorn;
    critter := get_sfall_arg;
    item := get_sfall_arg;
    slot := get_sfall_arg;
    isWorn := get_sfall_arg;
    
-   s := "Wield: " + obj_name(critter);
-   if (item) then 
-      s += ", " + obj_name(item);
-   s += ", " + slot + ", " + isWorn;
-   display_msg(s);
-   
-   if (critter and item and critter != dude_obj and npcMap[obj_pid(critter)] and obj_type(item) == item_type_armor) then begin
-      npc := npcMap[obj_pid(critter)];
-      if (not isWorn) then begin
-         display_msg("No armor fid: " + npc["Default"]);
-         art_change_fid_num(critter, npc["Default"]);
-      end else if (item) then begin
-         armorType := armorPidMap[obj_pid(item)];
-         fid := npc[armorType] or defaultFids[armorType];
-         if (fid >= 1) then begin
-            display_msg("Change fid: " + fid);
-            art_change_fid_num(critter, fid);
-         end
+   if (critter and item and slot == INVEN_TYPE_WORN) then begin
+      fid := check_armor_change(critter, item, isWorn);
+      if (fid != -1) then begin
+         art_change_fid_num(critter, fid);
+      end        
+   end
+end
+
+// when changing armor from inventory while controlling other NPCs
+procedure adjustfid_handler begin
+   variable fid, armor;
+   if (dude_obj != real_dude_obj) then begin
+      armor := critter_inven_obj(dude_obj, INVEN_TYPE_WORN);
+      fid := check_armor_change(dude_obj, armor, armor != 0);
+      if (fid != -1) then begin
+         set_sfall_return(fid);
       end
    end
 end
@@ -46,10 +74,13 @@ procedure start begin
    variable sect, sects, armorTypes, armorType, npc, pid, pids, i;
    if game_loaded then begin
       register_hook_proc(HOOK_INVENWIELD, invenwield_handler);
+      register_hook_proc(HOOK_ADJUSTFID, adjustfid_handler);
       
       defaultFids := get_ini_section(modIni, "Default");
       fix_array(defaultFids);
-      display_array(defaultFids);
+      foreach (armorType: i in defaultFids) begin
+         defaultFids[armorType] := atoi(i);
+      end
       
       armorPidMap := create_array_map;
       armorTypes := get_ini_section(modIni, "ArmorTypes");
@@ -59,7 +90,6 @@ procedure start begin
             armorPidMap[atoi(pid)] := armorType;
          end
       end
-      display_array(armorPidMap);
       
       npcMap := create_array_map;
       
@@ -69,15 +99,15 @@ procedure start begin
          npc := create_array_map;
          npc["Default"] := atoi(sect["Default"]);
          foreach (armorType: pids in armorTypes) begin
-            npc[armorType] := atoi(sect[armorType]);
+            if (sect[armorType]) then begin
+               npc[armorType] := atoi(sect[armorType]);
+            end             
          end
          npcMap[atoi(sect.PID)] := npc;
          
          i += 1;
          sect := get_ini_section(modIni, ""+i);
       end
-      
-      display_array(npcMap[16777734]);
    end
    
 end
