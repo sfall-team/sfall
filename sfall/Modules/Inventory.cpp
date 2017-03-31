@@ -29,6 +29,8 @@
 namespace sfall
 {
 
+static Delegate<DWORD> onAdjustFid;
+
 static DWORD mode;
 static DWORD maxItemSize;
 static DWORD reloadWeaponKey = 0;
@@ -606,6 +608,56 @@ void __declspec(naked) ItemCountFix() {
 	}
 }
 
+// reimplementation adjust_fid engine function
+DWORD __stdcall adjust_fid_replacement2() {
+	using namespace fo;
+
+	DWORD fid;
+	if ((var::inven_dude->artFid & 0xF000000) >> 24 == OBJ_TYPE_CRITTER) {
+		DWORD frameNum = var::art_vault_guy_num;
+		DWORD weaponAnimCode = 0;
+		auto critterPro = GetProto(var::inven_pid);
+		if (critterPro != nullptr) {
+			frameNum = critterPro->fid & 0xFFF;
+		}
+		if (var::i_worn != nullptr) {
+			auto armorPro = GetProto(var::i_worn->protoId);
+			frameNum = func::stat_level(var::inven_dude, STAT_gender) == GENDER_FEMALE
+				? armorPro->item.armor.femaleFid
+				: armorPro->item.armor.maleFid;
+			if (frameNum == -1) {
+				frameNum = var::art_vault_guy_num;
+			}
+		}
+		auto itemInHand = func::intface_is_item_right_hand()
+			? var::i_rhand
+			: var::i_lhand;
+
+		if (itemInHand != nullptr) {
+			auto itemPro = GetProto(itemInHand->protoId);
+			if (itemPro->item.type == item_type_weapon) {
+				weaponAnimCode = itemPro->item.weapon.animationCode;
+			}
+		}
+		fid = func::art_id(OBJ_TYPE_CRITTER, frameNum, 0, weaponAnimCode, 0);
+	} else {
+		fid = var::inven_dude->artFid;
+	}
+	var::i_fid = fid;
+	onAdjustFid.invoke(fid);
+	return var::i_fid;
+}
+
+void __declspec(naked) adjust_fid_replacement() {
+	__asm {
+		pushad;
+		call adjust_fid_replacement2;
+		popad;
+		mov eax, [FO_VAR_i_fid];
+		retn;
+	}
+}
+
 void InventoryReset() {
 	invenapcost = GetConfigInt("Misc", "InventoryApCost", 4);
 }
@@ -613,6 +665,8 @@ void InventoryReset() {
 void Inventory::init() {
 	OnKeyPressed() += InventoryKeyPressedHook;
 	LoadGameHook::OnGameReset() += InventoryReset;
+
+	MakeJump(fo::funcoffs::adjust_fid_, adjust_fid_replacement);
 
 	mode = GetConfigInt("Misc", "CritterInvSizeLimitMode", 0);
 	invenapcost = GetConfigInt("Misc", "InventoryApCost", 4);
@@ -686,5 +740,11 @@ void Inventory::init() {
 	// Fix item_count function returning incorrect value when there is a container-item inside
 	MakeJump(0x47808C, ItemCountFix); // replacing item_count_ function
 }
+
+Delegate<DWORD>& Inventory::OnAdjustFid() {
+	return onAdjustFid;
+}
+
+
 
 }
