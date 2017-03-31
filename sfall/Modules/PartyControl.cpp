@@ -319,6 +319,12 @@ void PartyControl::SwitchToCritter(fo::GameObject* critter) {
 	}
 }
 
+fo::GameObject* PartyControl::RealDudeObject() {
+	return realDude.obj_dude != nullptr
+		? realDude.obj_dude
+		: fo::var::obj_dude;
+}
+
 void PartyControl::init() {
 	controlMode = GetConfigInt("Misc", "ControlCombat", 0);
 	if (controlMode > 2) {
