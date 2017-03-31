@@ -46,6 +46,7 @@
 #define HOOK_WITHINPERCEPTION (23)
 #define HOOK_INVENTORYMOVE    (24)
 #define HOOK_INVENWIELD       (25)
+#define HOOK_ADJUSTFID        (26)
 
 //Valid arguments to list_begin
 #define LIST_CRITTERS    (0)

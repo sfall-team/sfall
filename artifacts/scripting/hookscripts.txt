@@ -436,3 +436,17 @@ int     arg3 - slot (INVEN_TYPE_*)
 int     arg4 - 1 when wielding, 0 when unwielding
 
 int     ret1 - overrides hard-coded handler (-1 - use engine handler, any other value - override) - NOT RECOMMENDED
+
+
+-------------------------------------------
+
+HOOK_ADJUSTFID (hs_adjustfid.int)
+
+Runs after calculating character figure FID on the inventory screen, whenever the game decides that character appearance might change.
+Also happens on other screens, like barter.
+
+NOTE: FID has following format: 0x0ABBCDDD, where A is object type, BB - animation code (always 0 in this case), C - weapon code, DDD - FRM index in LST file.
+
+int	    arg1 - the vanilla fid calculated by the engine according to critter base FID and armor/weapon being used
+
+int     ret1 - overrides the calculated FID with provided value
