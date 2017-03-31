@@ -438,5 +438,9 @@ void sf_set_dude_obj(OpcodeContext& ctx) {
 	}
 }
 
+void sf_real_dude_obj(OpcodeContext& ctx) {
+	ctx.setReturn(PartyControl::RealDudeObject());
+}
+
 }
 }

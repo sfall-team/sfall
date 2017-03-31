@@ -218,3 +218,5 @@
 #define outlined_object                       sfall_func0("outlined_object")
 #define get_ini_sections(file)                sfall_func1("get_ini_sections", file)
 #define get_ini_section(file, sect)           sfall_func2("get_ini_section", file, sect)
+#define set_dude_obj(critter)                 sfall_func1("set_dude_obj", critter)
+#define real_dude_obj                         sfall_func0("real_dude_obj")
