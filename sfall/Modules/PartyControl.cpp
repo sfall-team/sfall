@@ -190,23 +190,6 @@ static int _stdcall CombatWrapperInner(fo::GameObject* obj) {
 	return 0;
 }
 
-// this hook fixes NPCs art switched to main dude art after inventory screen closes
-static void _declspec(naked) FidChangeHook() {
-	_asm {
-		cmp isControllingNPC, 0;
-		je skip;
-		push eax;
-		mov eax, [eax+0x20]; // current fid
-		and eax, 0xffff0fff;
-		and edx, 0x0000f000;
-		or edx, eax; // only change one octet with weapon type
-		pop eax;
-skip:
-		call fo::funcoffs::obj_change_fid_;
-		retn;
-	}
-}
-
 static void __stdcall DisplayCantDoThat() {
 	fo::func::display_print(fo::GetMessageStr(&fo::var::proto_main_msg_file, 675)); // I Can't do that
 }
@@ -338,8 +321,6 @@ void PartyControl::init() {
 			}
 		}
 		dlog_f("  Mode %d, Chars read: %d.\n", DL_INIT, controlMode, allowedCritterPids.size());
-
-		// HookCall(0x46EBEE, &FidChangeHook);
 
 		MakeJump(0x422354, CombatHack_add_noncoms_);
 		HookCalls(CombatWrapper_v2, { 0x422D87, 0x422E20 });

@@ -13,6 +13,9 @@
     <Filter Include="Modules\Scripting\Handlers">
       <UniqueIdentifier>{bd51bc83-6a88-45c3-a4ae-a4a2808281ab}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Modules\HookScripts">
+      <UniqueIdentifier>{1e66856c-4830-4ca0-a998-15b697208223}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="main.h" />
@@ -248,6 +251,21 @@
     <ClInclude Include="FalloutEngine\VariableOffsets.h">
       <Filter>FalloutEngine</Filter>
     </ClInclude>
+    <ClInclude Include="Modules\HookScripts\Common.h">
+      <Filter>Modules\HookScripts</Filter>
+    </ClInclude>
+    <ClInclude Include="Modules\HookScripts\DeathHs.h">
+      <Filter>Modules\HookScripts</Filter>
+    </ClInclude>
+    <ClInclude Include="Modules\HookScripts\HexBlockingHs.h">
+      <Filter>Modules\HookScripts</Filter>
+    </ClInclude>
+    <ClInclude Include="Modules\HookScripts\InventoryHs.h">
+      <Filter>Modules\HookScripts</Filter>
+    </ClInclude>
+    <ClInclude Include="Modules\HookScripts\MiscHs.h">
+      <Filter>Modules\HookScripts</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
@@ -458,6 +476,21 @@
     <ClCompile Include="stdafx.cpp" />
     <ClCompile Include="Modules\MainLoopHook.cpp">
       <Filter>Modules</Filter>
+    </ClCompile>
+    <ClCompile Include="Modules\HookScripts\Common.cpp">
+      <Filter>Modules\HookScripts</Filter>
+    </ClCompile>
+    <ClCompile Include="Modules\HookScripts\DeathHs.cpp">
+      <Filter>Modules\HookScripts</Filter>
+    </ClCompile>
+    <ClCompile Include="Modules\HookScripts\HexBlockingHs.cpp">
+      <Filter>Modules\HookScripts</Filter>
+    </ClCompile>
+    <ClCompile Include="Modules\HookScripts\InventoryHs.cpp">
+      <Filter>Modules\HookScripts</Filter>
+    </ClCompile>
+    <ClCompile Include="Modules\HookScripts\MiscHs.cpp">
+      <Filter>Modules\HookScripts</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
