@@ -24,6 +24,7 @@ namespace sfall
 {
 
 class KillCounter : public Module {
+public:
 	const char* name() { return "KillCounter"; }
 	void init();
 };

@@ -24,6 +24,7 @@ namespace sfall
 {
 
 class Console : public Module {
+public:
 	const char* name() { return "Console"; }
 	void init();
 	void exit() override;

@@ -24,6 +24,7 @@ namespace sfall
 {
 
 class Knockback : public Module {
+public:
 	const char* name() { return "Knockback"; }
 	void init();
 };

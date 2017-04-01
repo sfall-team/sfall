@@ -4,6 +4,7 @@ namespace sfall
 {
 
 class BarBoxes : public Module {
+public:
 	const char* name() { return "BarBoxes"; }
 	void init();
 };

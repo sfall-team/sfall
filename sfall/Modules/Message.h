@@ -32,6 +32,7 @@ typedef std::tr1::unordered_map<int, std::unique_ptr<fo::MessageList>> ExtraGame
 extern ExtraGameMessageListsMap gExtraGameMsgLists;
 
 class Message : public Module {
+public:
 	const char* name() { return "Message"; }
 	void init();
 	void exit() override;

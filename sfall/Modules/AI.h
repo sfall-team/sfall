@@ -22,6 +22,7 @@ namespace sfall
 {
 
 class AI : public Module {
+public:
 	const char* name() { return "AI"; }
 	void init();
 };

@@ -24,6 +24,7 @@ namespace sfall
 {
 
 class LoadOrder : public Module {
+public:
 	const char* name() { return "LoadOrder"; }
 	void init();
 };

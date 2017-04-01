@@ -27,6 +27,7 @@ namespace sfall
 {
 
 class ScriptExtender : public Module {
+public:
 	const char* name() { return "ScriptExtender"; }
 	void init();
 };

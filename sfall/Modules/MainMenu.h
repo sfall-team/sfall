@@ -22,6 +22,7 @@ namespace sfall
 {
 
 class MainMenu : public Module {
+public:
 	const char* name() { return "MainMenu"; }
 	void init();
 };

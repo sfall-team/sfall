@@ -57,6 +57,7 @@ enum HookType
 };
 
 class HookScripts : public Module {
+public:
 	const char* name() { return "HookScripts"; }
 	void init();
 };

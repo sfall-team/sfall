@@ -24,6 +24,7 @@ namespace sfall
 {
 
 class Karma : public Module {
+public:
 	const char* name() { return "Karma"; }
 	void init();
 };

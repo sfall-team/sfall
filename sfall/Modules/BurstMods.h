@@ -24,6 +24,7 @@ namespace sfall
 {
 
 class BurstMods : public Module {
+public:
 	const char* name() { return "BurstMods"; }
 	void init();
 };

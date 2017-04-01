@@ -22,6 +22,7 @@ namespace sfall
 {
 
 class QuestList : public Module {
+public:
 	const char* name() { return "QuestList"; }
 	void init();
 };

@@ -22,6 +22,7 @@ namespace sfall
 {
 
 class Premade : public Module {
+public:
 	const char* name() { return "Premade"; }
 	void init();
 };

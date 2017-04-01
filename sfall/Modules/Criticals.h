@@ -24,6 +24,7 @@ namespace sfall
 {
 
 class Criticals : public Module {
+public:
 	const char* name() { return "Criticals"; }
 	void init();
 };

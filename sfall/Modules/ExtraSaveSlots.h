@@ -26,6 +26,7 @@ namespace sfall
 extern DWORD LSPageOffset;
 
 class ExtraSaveSlots : public Module {
+public:
 	const char* name() { return "SuperSave"; }
 	void init();
 };

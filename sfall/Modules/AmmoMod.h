@@ -24,6 +24,7 @@ namespace sfall
 {
 
 class AmmoMod : public Module {
+public:
 	const char* name() { return "AmmoMod"; }
 	void init();
 };

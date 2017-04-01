@@ -23,6 +23,7 @@ namespace sfall
 {
 
 class PlayerModel : public Module {
+public:
 	const char* name() { return "PlayerModel"; }
 	void init();
 };

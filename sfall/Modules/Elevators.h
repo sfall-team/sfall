@@ -24,6 +24,7 @@ namespace sfall
 {
 
 class Elevators : public Module {
+public:
 	const char* name() { return "Elevators"; }
 	void init();
 };

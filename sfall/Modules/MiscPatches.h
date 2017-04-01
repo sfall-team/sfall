@@ -23,6 +23,7 @@ namespace sfall
 {
 
 class MiscPatches : public Module {
+public:
 	const char* name() { return "MiscPatches"; }
 	void init();
 	void exit() override;
