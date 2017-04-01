@@ -1,0 +1,51 @@
+/*  
+
+   NPC Combat Control
+   
+   Allows to take control of your party member or other NPCs during combat
+   
+   NOTE: this script requires compiler from sfall modderspack with -s option
+   (short circuit evaluation)
+   
+   version 1.0
+
+*/
+
+#include "main.h"
+
+variable
+   configSection := "CombatControl",
+   controlMode,
+   pidList;
+   
+
+procedure combatturn_handler begin
+   variable
+      status := get_sfall_arg,
+      critter := get_sfall_arg, 
+      arg3 := get_sfall_arg,
+      pid;
+      
+   // display_msg("Combat Turn: " + status + ", by "  + obj_name(critter) + ", arg3: " + arg3);
+   pid := obj_pid(critter);
+   if (status == 1 
+      and (len_array(pidList) == 0 or scan_array(pidList, pid bwand 0xFFFFFF) != -1)
+      and (controlMode == 1 or party_member_obj(pid))) then begin
+      set_dude_obj(critter);
+   end else begin
+      set_dude_obj(real_dude_obj);
+   end
+end
+
+procedure start begin
+   if game_loaded then begin
+      controlMode := GetConfig("CombatControl", "Mode", 0);
+      if (controlMode > 2) then controlMode := 0;
+      if (controlMode > 0) then begin
+         pidList := GetConfigListInt("CombatControl", "PIDList");
+         fix_array(pidList);
+      
+         register_hook_proc(HOOK_COMBATTURN, combatturn_handler);
+      end
+   end
+end

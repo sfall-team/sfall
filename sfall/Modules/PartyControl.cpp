@@ -56,11 +56,6 @@ static struct DudeState {
 	//DWORD bbox_sneak;
 } realDude;
 
-static bool _stdcall IsInPidList(fo::GameObject* obj) {
-	int pid = obj->protoId & 0xFFFFFF;
-	return std::find(allowedCritterPids.begin(), allowedCritterPids.end(), pid) != allowedCritterPids.end();
-}
-
 // saves the state of PC before moving control to NPC
 static void SaveRealDudeState() {
 	realDude.obj_dude = fo::var::obj_dude;
@@ -164,26 +159,6 @@ static void RestoreRealDudeState() {
 	isControllingNPC = false;
 }
 
-// return values: 0 - use vanilla handler, 1 - skip vanilla handler, return 0 (normal status), -1 - skip vanilla, return -1 (game ended)
-/*static int _stdcall CombatWrapperInner(fo::GameObject* obj) {
-	if ((obj != fo::var::obj_dude) && (allowedCritterPids.size() == 0 || IsInPidList(obj)) && (controlMode == 1 || fo::func::isPartyMember(obj))) {
-		// save "real" dude state
-		SaveRealDudeState();
-		SetCurrentDude(obj);
-		
-		// Do combat turn
-		int turnResult = fo::func::combat_turn(obj, 1);
-
-		// restore state
-		if (isControllingNPC) { // if game was loaded during turn, PartyControlReset() was called and already restored state
-			RestoreRealDudeState();
-		}
-		// -1 means that combat ended during turn
-		return (turnResult == -1) ? -1 : 1;
-	}
-	return 0;
-}*/
-
 static void __stdcall DisplayCantDoThat() {
 	fo::func::display_print(fo::GetMessageStr(&fo::var::proto_main_msg_file, 675)); // I Can't do that
 }
@@ -256,26 +231,10 @@ fo::GameObject* PartyControl::RealDudeObject() {
 }
 
 void PartyControl::init() {
-	controlMode = GetConfigInt("Misc", "ControlCombat", 0);
-	if (controlMode > 2) {
-		controlMode = 0;
-	}
-	if (controlMode > 0) {
-		auto pidList = GetConfigList("Misc", "ControlCombatPIDList", "", 512);
-		if (pidList.size() > 0) {
-			for (auto &pid : pidList) {
-				allowedCritterPids.push_back(static_cast<WORD>(strtoul(pid.c_str(), 0, 0)));
-			}
-		}
-		dlog_f("  Mode %d, Chars read: %d.\n", DL_INIT, controlMode, allowedCritterPids.size());
+	LoadGameHook::OnGameReset() += PartyControlReset;
 
-		HookCall(0x454218, stat_pc_add_experience_hook); // call inside op_give_exp_points_hook
-		HookCalls(pc_flag_toggle_hook, { 0x4124F1, 0x41279A });
-
-		LoadGameHook::OnGameReset() += PartyControlReset;
-	} else {
-		dlogr("  Disabled.", DL_INIT);
-	}
+	HookCall(0x454218, stat_pc_add_experience_hook); // call inside op_give_exp_points_hook
+	HookCalls(pc_flag_toggle_hook, { 0x4124F1, 0x41279A });
 }
 
 }

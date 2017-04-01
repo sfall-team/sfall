@@ -604,46 +604,5 @@ procedure _PURGE_all_saved_arrays begin
       free_array(load_array(key));
 end
 
-// temp_list* functions are deprecated since we have array expressions
-
-#define _LIST_ELEMENT_SIZE    128
-
-procedure temp_list2(variable x1, variable x2) begin
-  variable a;
-  a := temp_array(2, _LIST_ELEMENT_SIZE);
-  a[0] := x1; a[1] := x2;
-  return a;
-end
-
-procedure temp_list3(variable x1, variable x2, variable x3) begin
-  variable a;
-  a := temp_array(3, _LIST_ELEMENT_SIZE);
-  a[0] := x1; a[1] := x2; a[2] := x3;
-  return a;
-end
-
-procedure temp_list4(variable x1, variable x2, variable x3, variable x4) begin
-  variable a;
-  a := temp_array(4, _LIST_ELEMENT_SIZE);
-  a[0] := x1; a[1] := x2; a[2] := x3; a[3] := x4;
-  return a;
-end
-
-procedure temp_list6(variable x1, variable x2, variable x3, variable x4, variable x5, variable x6) begin
-  variable a;
-  a := temp_array(6, _LIST_ELEMENT_SIZE);
-  a[0] := x1; a[1] := x2; a[2] := x3; a[3] := x4; a[4] := x5; a[5] := x6;
-  return a;
-end
-
-procedure temp_list8(variable x1, variable x2, variable x3, variable x4, variable x5, variable x6, variable x7, variable x8) begin
-  variable a;
-  a := temp_array(8, _LIST_ELEMENT_SIZE);
-  a[0] := x1; a[1] := x2; a[2] := x3; a[3] := x4; a[4] := x5; a[5] := x6; a[6] := x7; a[7] := x8;
-  return a;
-end
-
-#undef _LIST_ELEMENT_SIZE
-
 #endif
 

@@ -24,6 +24,25 @@ procedure GetConfigStr(variable section, variable key, variable def) begin
    return val;
 end
 
+// Gets the value from ddraw.ini as a temp array of strings
+procedure GetConfigList(variable section, variable key) begin
+   variable val := get_ini_string(ini + "|" + section + "|" + key);
+   if val == -1 or val == "" then return [];
+   
+   return string_split(val, ",");
+end
+
+// Gets the value from ddraw.ini as a temp array of ints
+procedure GetConfigListInt(variable section, variable key) begin
+   variable arr, i, item;
+   
+   arr := GetConfigList(section, key);
+   for (i := 0; i < len_array(arr); i++) begin
+      arr[i] := atoi(arr[i]);
+   end
+   return arr;
+end
+
 // Translates given string using Translations.ini
 procedure Translate(variable id, variable def) begin
    variable str := get_ini_string(translationIni + "|Sfall|" + id); 
