@@ -47,6 +47,7 @@
 #define HOOK_INVENTORYMOVE    (24)
 #define HOOK_INVENWIELD       (25)
 #define HOOK_ADJUSTFID        (26)
+#define HOOK_COMBATTURN       (27)
 
 //Valid arguments to list_begin
 #define LIST_CRITTERS    (0)

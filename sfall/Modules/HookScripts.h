@@ -53,6 +53,7 @@ enum HookType
 	HOOK_INVENTORYMOVE    = 24,
 	HOOK_INVENWIELD       = 25,
 	HOOK_ADJUSTFID        = 26,
+	HOOK_COMBATTURN       = 27,
 	HOOK_COUNT
 };
 

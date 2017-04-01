@@ -303,6 +303,53 @@ void __declspec(naked) AmmoCostHookWrapper() {
 	}
 }
 
+// hooks combat_turn function
+static void _declspec(naked) CombatTurnHook() {
+	__asm {
+		hookbegin(3);
+		mov args[0], 1; // turn begin
+		mov args[4], eax; // critter
+		mov args[8], edx; // unknown
+		pushad;
+		push HOOK_COMBATTURN;
+		call RunHookScript; // Start of turn
+		popad;
+		cmp cRet, 1;
+		jl gonormal; // set_sfall_return not used, proceed normally
+		mov eax, rets[0];
+		jmp end;
+gonormal:
+		call fo::funcoffs::combat_turn_;
+		mov args[0], eax;
+		mov cRet, 0; // reset number of return values
+		pushad;
+		push HOOK_COMBATTURN;
+		call RunHookScript; // End of turn
+		popad;
+		cmp cRet, 1;
+		jl end;
+		mov eax, rets[0]; // override result of turn
+end:
+		hookend;
+		retn;
+	}
+}
+
+// hack to exit from combat_add_noncoms function without crashing when you load game during NPC turn
+static const DWORD CombatHack_add_noncoms_back = 0x422359;
+static void _declspec(naked) CombatAddNoncoms_CombatTurn_Hack() {
+	__asm {
+		call CombatTurnHook;
+		cmp eax, -1;
+		jne gonormal;
+		mov ecx, FO_VAR_list_com;
+		mov [ecx], 0;
+		mov ecx, [esp];
+gonormal:
+		jmp CombatHack_add_noncoms_back;
+	}
+}
+
 void InitCombatHookScripts() {
 	LoadHookScript("hs_tohit", HOOK_TOHIT);
 	HookCalls(ToHitHook, {
@@ -354,6 +401,10 @@ void InitCombatHookScripts() {
 
 	LoadHookScript("hs_ammocost", HOOK_AMMOCOST);
 	HookCalls(AmmoCostHook, { 0x423A7C });
+
+	LoadHookScript("hs_combatturn", HOOK_COMBATTURN);
+	MakeJump(0x422354, CombatAddNoncoms_CombatTurn_Hack);
+	HookCalls(CombatTurnHook, { 0x422D87, 0x422E20 });
 }
 
 }

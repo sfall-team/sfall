@@ -450,3 +450,17 @@ NOTE: FID has following format: 0x0ABBCDDD, where A is object type, BB - animati
 int	    arg1 - the vanilla fid calculated by the engine according to critter base FID and armor/weapon being used
 
 int     ret1 - overrides the calculated FID with provided value
+
+
+-------------------------------------------
+
+HOOK_COMBATTURN (hs_combatturn.int)
+
+Runs before and after each turn in combat (for both PC and NPC).
+
+int	    arg1 - event type: 1 - start of turn, 0 - normal end of turn, -1 - combat ended abruptly (by script or by pressing Enter during PC turn)
+int     arg2 - critter doing the turn
+int     arg3 - unknown boolean argument
+
+int     ret1 - pass 1 at the start of turn to skip the turn, pass -1 at the end of turn to force end of combat
+

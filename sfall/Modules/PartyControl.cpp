@@ -16,12 +16,6 @@
 *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
-/*
-	KNOWN ISSUES with party control
-	- doesn't work with NPC's wearing armor mod, armor won't change when you change it from critter's inventory
-*/
-
 #include <algorithm>
 #include <vector>
 
@@ -171,7 +165,7 @@ static void RestoreRealDudeState() {
 }
 
 // return values: 0 - use vanilla handler, 1 - skip vanilla handler, return 0 (normal status), -1 - skip vanilla, return -1 (game ended)
-static int _stdcall CombatWrapperInner(fo::GameObject* obj) {
+/*static int _stdcall CombatWrapperInner(fo::GameObject* obj) {
 	if ((obj != fo::var::obj_dude) && (allowedCritterPids.size() == 0 || IsInPidList(obj)) && (controlMode == 1 || fo::func::isPartyMember(obj))) {
 		// save "real" dude state
 		SaveRealDudeState();
@@ -188,7 +182,7 @@ static int _stdcall CombatWrapperInner(fo::GameObject* obj) {
 		return (turnResult == -1) ? -1 : 1;
 	}
 	return 0;
-}
+}*/
 
 static void __stdcall DisplayCantDoThat() {
 	fo::func::display_print(fo::GetMessageStr(&fo::var::proto_main_msg_file, 675)); // I Can't do that
@@ -196,16 +190,8 @@ static void __stdcall DisplayCantDoThat() {
 
 // 1 skip handler, -1 don't skip
 int __stdcall PartyControl::SwitchHandHook(fo::GameObject* item) {
+	// don't allow to use the weapon, if no art exist for it
 	if (fo::func::item_get_type(item) == fo::ItemType::item_type_weapon && isControllingNPC) {
-		/* check below uses AI packets and skills to check if weapon is usable
-		__asm {
-			mov edx, item;
-			mov eax, obj_dude_ptr;
-			mov eax, [eax];
-			mov ebx, 2;
-			call fo::funcoffs::ai_can_use_weapon_;
-			mov canUse, eax;
-		}*/
 		int fId = fo::var::obj_dude->artFid;
 		long weaponCode = fo::AnimCodeByWeapon(item);
 		fId = (fId & 0xffff0fff) | (weaponCode << 12);
@@ -215,45 +201,6 @@ int __stdcall PartyControl::SwitchHandHook(fo::GameObject* item) {
 		}
 	}
 	return -1;
-}
-
-
-static void _declspec(naked) CombatWrapper_v2() {
-	__asm {
-		sub esp, 4;
-		pushad;
-		push eax;
-		call CombatWrapperInner;
-		mov [esp+32], eax;
-		popad;
-		add esp, 4;
-		cmp [esp-4], 0;
-		je gonormal;
-		cmp [esp-4], -1;
-		je combatend;
-		xor eax, eax;
-		retn;
-combatend:
-		mov eax, -1; // don't continue combat, as the game was loaded
-		retn;
-gonormal:
-		jmp fo::funcoffs::combat_turn_;
-	}
-}
-
-// hack to exit from this function safely when you load game during NPC turn
-static const DWORD CombatHack_add_noncoms_back = 0x422359;
-static void _declspec(naked) CombatHack_add_noncoms_() {
-	__asm {
-		call CombatWrapper_v2;
-		cmp eax, -1;
-		jne gonormal;
-		mov eax, FO_VAR_list_com;
-		mov [eax], 0;
-		mov ecx, [esp];
-gonormal:
-		jmp CombatHack_add_noncoms_back;
-	}
 }
 
 static void __declspec(naked) stat_pc_add_experience_hook() {
@@ -321,9 +268,6 @@ void PartyControl::init() {
 			}
 		}
 		dlog_f("  Mode %d, Chars read: %d.\n", DL_INIT, controlMode, allowedCritterPids.size());
-
-		MakeJump(0x422354, CombatHack_add_noncoms_);
-		HookCalls(CombatWrapper_v2, { 0x422D87, 0x422E20 });
 
 		HookCall(0x454218, stat_pc_add_experience_hook); // call inside op_give_exp_points_hook
 		HookCalls(pc_flag_toggle_hook, { 0x4124F1, 0x41279A });
