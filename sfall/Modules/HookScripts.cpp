@@ -23,6 +23,7 @@
 #include "..\FalloutEngine\Fallout2.h"
 #include "..\InputFuncs.h"
 #include "HookScripts\Common.h"
+#include "HookScripts\CombatHs.h"
 #include "HookScripts\DeathHs.h"
 #include "HookScripts\HexBlockingHs.h"
 #include "HookScripts\InventoryHs.h"
@@ -113,13 +114,11 @@ void _stdcall RegisterHook(fo::Program* script, int id, int procNum) {
 static void HookScriptInit2() {
 	dlogr("Loading hook scripts", DL_HOOK|DL_INIT);
 
-	InitMiscHookScripts();
-
+	InitCombatHookScripts();
 	InitDeathHookScripts();
-
 	InitHexBlockingHookScripts();
-
 	InitInventoryHookScripts();
+	InitMiscHookScripts();
 
 	LoadHookScript("hs_keypress", HOOK_KEYPRESS);
 	LoadHookScript("hs_mouseclick", HOOK_MOUSECLICK);

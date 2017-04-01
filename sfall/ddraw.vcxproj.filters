@@ -266,6 +266,9 @@
     <ClInclude Include="Modules\HookScripts\MiscHs.h">
       <Filter>Modules\HookScripts</Filter>
     </ClInclude>
+    <ClInclude Include="Modules\HookScripts\CombatHs.h">
+      <Filter>Modules\HookScripts</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
@@ -490,6 +493,9 @@
       <Filter>Modules\HookScripts</Filter>
     </ClCompile>
     <ClCompile Include="Modules\HookScripts\MiscHs.cpp">
+      <Filter>Modules\HookScripts</Filter>
+    </ClCompile>
+    <ClCompile Include="Modules\HookScripts\CombatHs.cpp">
       <Filter>Modules\HookScripts</Filter>
     </ClCompile>
   </ItemGroup>
