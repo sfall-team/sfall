@@ -213,7 +213,7 @@
 #define exec_map_update_scripts               sfall_func0("exec_map_update_scripts")
 #define set_outline(obj, color)               sfall_func2("set_outline", obj, color)
 #define get_outline(obj)               	    sfall_func1("get_outline", obj)
-#define set_flags(obj, color)                 sfall_func2("set_flags", obj, color)
+#define set_flags(obj, flags)                 sfall_func2("set_flags", obj, flags)
 #define get_flags(obj)               	       sfall_func1("get_flags", obj)
 #define tile_refresh_display             	    sfall_func0("tile_refresh_display")
 #define outlined_object                       sfall_func0("outlined_object")

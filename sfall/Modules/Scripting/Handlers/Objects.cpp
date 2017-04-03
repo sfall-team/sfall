@@ -217,7 +217,7 @@ static DWORD _stdcall obj_blocking_at_wrapper(DWORD obj, DWORD tile, DWORD eleva
 	}
 }
 
-static DWORD _stdcall make_straight_path_func_wrapper(DWORD obj, DWORD tileFrom, DWORD a3, DWORD tileTo, DWORD* result, DWORD a6, DWORD func) {
+static DWORD _stdcall make_straight_path_func_wrapper(fo::GameObject* obj, DWORD tileFrom, DWORD a3, DWORD tileTo, DWORD* result, DWORD a6, DWORD func) {
 	__asm {
 		mov eax, obj;
 		mov edx, tileFrom;
@@ -253,45 +253,28 @@ static DWORD getBlockingFunc(DWORD type) {
 }
 
 void sf_make_straight_path(OpcodeContext& ctx) {
-	DWORD objFrom = ctx.arg(0).asInt(),
-		tileTo = ctx.arg(1).asInt(),
+	auto objFrom = ctx.arg(0).asObject();
+	DWORD tileTo = ctx.arg(1).asInt(),
 		type = ctx.arg(2).asInt(),
 		resultObj, arg6;
 	arg6 = (type == BLOCKING_TYPE_SHOOT) ? 32 : 0;
-	make_straight_path_func_wrapper(objFrom, *(DWORD*)(objFrom + 4), 0, tileTo, &resultObj, arg6, getBlockingFunc(type));
+	make_straight_path_func_wrapper(objFrom, objFrom->tile, 0, tileTo, &resultObj, arg6, getBlockingFunc(type));
 	ctx.setReturn(resultObj, DataType::INT);
 }
 
 void sf_make_path(OpcodeContext& ctx) {
-	DWORD objFrom = ctx.arg(0).asInt(),
-		tileFrom = 0,
-		tileTo = ctx.arg(1).asInt(),
-		type = ctx.arg(2).asInt(),
-		func = getBlockingFunc(type),
-		arr;
+	auto objFrom = ctx.arg(0).asObject();
+	auto tileTo = ctx.arg(1).asInt(),
+		type = ctx.arg(2).asInt();
+	auto func = getBlockingFunc(type);
 	long pathLength, a5 = 1;
-	if (!objFrom) {
-		ctx.setReturn(0, DataType::INT);
-		return;
-	}
-	tileFrom = *(DWORD*)(objFrom + 4);
 	char pathData[800];
-	char* pathDataPtr = pathData;
-	__asm {
-		mov eax, objFrom;
-		mov edx, tileFrom;
-		mov ecx, pathDataPtr;
-		mov ebx, tileTo;
-		push func;
-		push a5;
-		call fo::funcoffs::make_path_func_;
-		mov pathLength, eax;
-	}
-	arr = TempArray(pathLength, 0);
+	pathLength = fo::func::make_path_func(objFrom, objFrom->tile, tileTo, pathData, a5, (void*)func);
+	auto arrayId = TempArray(pathLength, 0);
 	for (int i = 0; i < pathLength; i++) {
-		arrays[arr].val[i].set((long)pathData[i]);
+		arrays[arrayId].val[i].set((long)pathData[i]);
 	}
-	ctx.setReturn(arr, DataType::INT);
+	ctx.setReturn(arrayId, DataType::INT);
 }
 
 void sf_obj_blocking_at(OpcodeContext& ctx) {
@@ -309,46 +292,26 @@ void sf_obj_blocking_at(OpcodeContext& ctx) {
 
 void sf_tile_get_objects(OpcodeContext& ctx) {
 	DWORD tile = ctx.arg(0).asInt(),
-		elevation = ctx.arg(1).asInt(),
-		obj;
+		elevation = ctx.arg(1).asInt();
 	DWORD arrayId = TempArray(0, 4);
-	__asm {
-		mov eax, elevation;
-		mov edx, tile;
-		call fo::funcoffs::obj_find_first_at_tile_;
-		mov obj, eax;
-	}
+	auto obj = fo::func::obj_find_first_at_tile(elevation, tile);
 	while (obj) {
-		arrays[arrayId].push_back((long)obj);
-		__asm {
-			call fo::funcoffs::obj_find_next_at_tile_;
-			mov obj, eax;
-		}
+		arrays[arrayId].push_back(reinterpret_cast<long>(obj));
+		obj = fo::func::obj_find_next_at_tile();
 	}
 	ctx.setReturn(arrayId, DataType::INT);
 }
 
 void sf_get_party_members(OpcodeContext& ctx) {
-	DWORD obj, mode = ctx.arg(0).asInt(), isDead;
-	int i, actualCount = fo::var::partyMemberCount;
+	auto includeHidden = ctx.arg(0).asInt();
+	int actualCount = fo::var::partyMemberCount;
 	DWORD arrayId = TempArray(0, 4);
-	DWORD* partyMemberList = fo::var::partyMemberList;
-	for (i = 0; i < actualCount; i++) {
-		obj = partyMemberList[i * 4];
-		if (mode == 0) { // mode 0 will act just like op_party_member_count in fallout2
-			if ((*(DWORD*)(obj + 100) >> 24) != fo::OBJ_TYPE_CRITTER)  // obj type != critter
-				continue;
-			__asm {
-				mov eax, obj;
-				call fo::funcoffs::critter_is_dead_;
-				mov isDead, eax;
-			}
-			if (isDead)
-				continue;
-			if (*(DWORD*)(obj + 36) & 1) // no idea..
-				continue;
+	auto partyMemberList = fo::var::partyMemberList;
+	for (int i = 0; i < actualCount; i++) {
+		auto obj = reinterpret_cast<fo::GameObject*>(partyMemberList[i * 4]);
+		if (includeHidden || (obj->type() == fo::OBJ_TYPE_CRITTER && !fo::func::critter_is_dead(obj) && !(obj->flags & fo::ObjectFlag::Mouse_3d))) {
+			arrays[arrayId].push_back((long)obj);
 		}
-		arrays[arrayId].push_back((long)obj);
 	}
 	ctx.setReturn(arrayId, DataType::INT);
 }

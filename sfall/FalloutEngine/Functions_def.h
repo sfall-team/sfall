@@ -32,6 +32,7 @@ WRAP_WATCOM_FUNC2(long, db_fwriteByte, DbFile*, file, long, value)
 WRAP_WATCOM_FUNC2(long, db_fwriteInt, DbFile*, file, long, value)
 // perform combat turn for a given critter
 WRAP_WATCOM_FUNC2(long, combat_turn, GameObject*, critter, long, isDudeTurn)
+WRAP_WATCOM_FUNC1(long, critter_is_dead, GameObject*, critter)
 WRAP_WATCOM_FUNC1(long, gmouse_set_cursor, long, picNum)
 WRAP_WATCOM_FUNC1(Window*, GNW_find, long, winRef)
 WRAP_WATCOM_FUNC0(long, intface_is_item_right_hand)
@@ -45,6 +46,8 @@ WRAP_WATCOM_FUNC2(long, light_get_tile, long, elevation, long, tileNum)
 WRAP_WATCOM_FUNC2(void, mouse_get_position, long*, outX, long*, outY)
 WRAP_WATCOM_FUNC0(void, mouse_show)
 WRAP_WATCOM_FUNC0(void, mouse_hide)
+// calculates path and returns it's length
+WRAP_WATCOM_FUNC6(long, make_path_func, GameObject*, objectFrom, long, tileFrom, long, tileTo, char*, pathDataBuffer, long, arg5, void*, blockingFunc)
 // calculates bounding box (rectangle) for a given object
 WRAP_WATCOM_FUNC2(void, obj_bound, GameObject*, object, BoundRect*, boundRect)
 WRAP_WATCOM_FUNC3(long, register_object_animate, GameObject*, object, long, anim, long, delay)
