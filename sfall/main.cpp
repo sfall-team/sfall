@@ -162,6 +162,7 @@ static void InitModules() {
 	manager.add<Books>();
 	manager.add<Explosions>();
 	manager.add<Message>();
+	manager.add<Elevators>();
 	manager.add<DebugEditor>();
 
 	manager.add<AI>();

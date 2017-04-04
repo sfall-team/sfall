@@ -110,11 +110,11 @@ void ResetElevators() {
 			menus[i] = GetPrivateProfileIntA(section, "Image", menus[i], elevFile);
 			char setting[32];
 			for (int j = 0; j < exitsPerElevator; j++) {
-				sprintf_s(setting, "ID%d", j);
+				sprintf_s(setting, "ID%d", j + 1);
 				elevatorExits[i][j].id = GetPrivateProfileIntA(section, setting, elevatorExits[i][j].id, elevFile);
-				sprintf_s(setting, "Elevation%d", j);
+				sprintf_s(setting, "Elevation%d", j + 1);
 				elevatorExits[i][j].elevation = GetPrivateProfileIntA(section, setting, elevatorExits[i][j].elevation, elevFile);
-				sprintf_s(setting, "Tile%d", j);
+				sprintf_s(setting, "Tile%d", j + 1);
 				elevatorExits[i][j].tile = GetPrivateProfileIntA(section, setting, elevatorExits[i][j].tile, elevFile);
 			}
 		}
