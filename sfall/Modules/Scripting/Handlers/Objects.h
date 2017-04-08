@@ -83,5 +83,7 @@ void sf_set_dude_obj(OpcodeContext&);
 
 void sf_real_dude_obj(OpcodeContext&);
 
+void sf_car_gas_amount(OpcodeContext&);
+
 }
 }

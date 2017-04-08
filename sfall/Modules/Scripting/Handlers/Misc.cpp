@@ -877,7 +877,7 @@ void __declspec(naked) op_set_car_current_town() {
 		call fo::funcoffs::interpretPopLong_;
 		cmp dx, 0xC001;
 		jnz end;
-		mov ds:[FO_VAR_CarCurrArea], eax;
+		mov ds:[FO_VAR_carCurrentArea], eax;
 end:
 		pop edi;
 		pop edx;

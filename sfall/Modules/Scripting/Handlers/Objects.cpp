@@ -405,5 +405,9 @@ void sf_real_dude_obj(OpcodeContext& ctx) {
 	ctx.setReturn(PartyControl::RealDudeObject());
 }
 
+void sf_car_gas_amount(OpcodeContext& ctx) {
+	ctx.setReturn(fo::var::carGasAmount);
+}
+
 }
 }

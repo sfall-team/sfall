@@ -17,7 +17,8 @@
 #define FO_VAR_bottom_line                0x664524
 #define FO_VAR_btable                     0x59E944
 #define FO_VAR_btncnt                     0x43EA1C
-#define FO_VAR_CarCurrArea                0x672E68
+#define FO_VAR_carCurrentArea             0x672E68
+#define FO_VAR_carGasAmount               0x672E6C
 #define FO_VAR_character_points           0x518538
 #define FO_VAR_cmap                       0x51DF34
 #define FO_VAR_colorTable                 0x6A38D0

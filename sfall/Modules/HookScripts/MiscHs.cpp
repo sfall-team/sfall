@@ -88,8 +88,8 @@ static void __declspec(naked) BarterPriceHook() {
 		xchg eax, edx;
 		call fo::funcoffs::item_caps_total_;
 		mov args[16], eax;
-		mov eax, ds:[FO_VAR_btable]
-			call fo::funcoffs::item_total_cost_;
+		mov eax, ds:[FO_VAR_btable];
+		call fo::funcoffs::item_total_cost_;
 		mov args[20], eax;
 		mov eax, ds:[FO_VAR_ptable];
 		mov args[24], eax;
@@ -133,10 +133,10 @@ static void __declspec(naked) UseSkillHook() {
 		cmp rets[0], -1;
 		je defaulthandler;
 		mov eax, rets[0];
-		jmp end
-			defaulthandler :
-		call fo::funcoffs::skill_use_
-			end :
+		jmp end;
+defaulthandler:
+		call fo::funcoffs::skill_use_;
+end:
 		hookend;
 		retn;
 	}
@@ -158,10 +158,10 @@ static void __declspec(naked) StealCheckHook() {
 		cmp rets[0], -1;
 		je defaulthandler;
 		mov eax, rets[0];
-		jmp end
-			defaulthandler :
-		call fo::funcoffs::skill_check_stealing_
-			end :
+		jmp end;
+defaulthandler:
+		call fo::funcoffs::skill_check_stealing_;
+end:
 		hookend;
 		retn;
 	}
@@ -172,8 +172,8 @@ static void __declspec(naked) PerceptionRangeHook() {
 		hookbegin(3);
 		mov args[0], eax; // watcher
 		mov args[4], edx; // target
-		call fo::funcoffs::is_within_perception_
-			mov args[8], eax; // check result
+		call fo::funcoffs::is_within_perception_;
+		mov args[8], eax; // check result
 		pushad;
 		push HOOK_WITHINPERCEPTION;
 		call RunHookScript;
