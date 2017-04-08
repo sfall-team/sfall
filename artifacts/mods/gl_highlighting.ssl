@@ -26,18 +26,18 @@
 
 variable configSection := "Highlighting";
 variable highlightKey;
-variable ignoreFlags;
+variable alsoContainer;
 variable outlineColor;
 variable motionScanner;
 variable highlightFailMsg1;
 variable highlightFailMsg2;
 
 procedure ToggleHighlightObject(variable obj, variable enable) begin
-   if obj 
-      and (not enable or not obj_blocking_line(dude_obj, tile_num(obj), BLOCKING_TYPE_SHOOT))
-      and (ignoreFlags or not NO_HIGHLIGHT(obj)) then begin
-      if (enable) then set_outline(obj, outlineColor);
-      else set_outline(obj, 0);
+   if obj and (not enable or not obj_blocking_line(dude_obj, tile_num(obj), BLOCKING_TYPE_SHOOT)) then begin
+      if (alsoContainer and obj_item_subtype(obj) == item_type_container) or (not NO_HIGHLIGHT(obj)) then begin
+         if (enable) then set_outline(obj, outlineColor);
+         else set_outline(obj, 0);
+      end
    end
 end
 
@@ -91,17 +91,17 @@ procedure KeyPressHandler begin
 end
 
 procedure start begin
-   if game_loaded then begin
+   if game_loaded and (sfall_ver_major >= 4) then begin
       call InitConfigs;
    
       highlightKey := GetConfig(configSection, "Key", 0);
-      ignoreFlags := GetConfig(configSection, "IgnoreFlags", 0);
+      alsoContainer := GetConfig(configSection, "Containers", 0);
       outlineColor := GetConfig(configSection, "OutlineColor", 0);
       motionScanner := GetConfig(configSection, "MotionScanner", 1);
       
-		highlightFailMsg1 := Translate("HighlightFail1", "You aren't carrying a motion sensor.");
-		highlightFailMsg2 := Translate("HighlightFail2", "Your motion sensor is out of charge.");
-		
+      highlightFailMsg1 := Translate("HighlightFail1", "You aren't carrying a motion sensor.");
+      highlightFailMsg2 := Translate("HighlightFail2", "Your motion sensor is out of charge.");
+    
       register_hook_proc(HOOK_KEYPRESS, KeyPressHandler);
    end
 end
