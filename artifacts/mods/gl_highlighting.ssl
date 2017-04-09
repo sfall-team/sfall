@@ -35,19 +35,10 @@ variable highlightFailMsg1;
 variable highlightFailMsg2;
 
 procedure ToggleHighlightObject(variable obj, variable enable) begin
-   if (checkLOS) then begin
-      if obj and (not enable or not obj_blocking_line(dude_obj, tile_num(obj), BLOCKING_TYPE_SHOOT)) then begin
-         if (alsoContainer and obj_item_subtype(obj) == item_type_container) or (not NO_HIGHLIGHT(obj)) then begin
-            if (enable) then set_outline(obj, outlineColor);
-            else set_outline(obj, 0);
-         end
-      end
-   end else begin
-      if obj then begin
-         if (alsoContainer and obj_item_subtype(obj) == item_type_container) or (not NO_HIGHLIGHT(obj)) then begin
-            if (enable) then set_outline(obj, outlineColor);
-            else set_outline(obj, 0);
-         end
+   if obj and (not enable or not checkLOS or not obj_blocking_line(dude_obj, tile_num(obj), BLOCKING_TYPE_SHOOT)) then begin
+      if (alsoContainer and obj_item_subtype(obj) == item_type_container) or (not NO_HIGHLIGHT(obj)) then begin
+         if (enable) then set_outline(obj, outlineColor);
+         else set_outline(obj, 0);
       end
    end
 end
