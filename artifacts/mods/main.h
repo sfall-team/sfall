@@ -14,7 +14,7 @@ variable translationIni;
 procedure GetConfig(variable section, variable key, variable def) begin
    variable val := get_ini_setting(ini + "|" + section + "|" + key);
    if val == -1 then val := def;
-   return val;      
+   return val;
 end
 
 // Gets the string value from ddraw.ini
@@ -28,14 +28,14 @@ end
 procedure GetConfigList(variable section, variable key) begin
    variable val := get_ini_string(ini + "|" + section + "|" + key);
    if val == -1 or val == "" then return [];
-   
+
    return string_split(val, ",");
 end
 
 // Gets the value from ddraw.ini as a temp array of ints
 procedure GetConfigListInt(variable section, variable key) begin
    variable arr, i, item;
-   
+
    arr := GetConfigList(section, key);
    for (i := 0; i < len_array(arr); i++) begin
       arr[i] := atoi(arr[i]);
@@ -45,10 +45,10 @@ end
 
 // Translates given string using Translations.ini
 procedure Translate(variable id, variable def) begin
-   variable str := get_ini_string(translationIni + "|Sfall|" + id); 
+   variable str := get_ini_string(translationIni + "|Sfall|" + id);
    if not str or (strlen(str) == 0) then begin
       str := def;
-   end      
+   end
    return str;
 end
 
