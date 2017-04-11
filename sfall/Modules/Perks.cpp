@@ -61,10 +61,10 @@ static DWORD RemoveSelectableID;
 static DWORD TraitSkillBonuses[TRAIT_count*18];
 static DWORD TraitStatBonuses[TRAIT_count*(STAT_max_derived+1)];
 
-static DWORD IgnoringDefaultPerks=0;
+static DWORD IgnoringDefaultPerks = 0;
 static char PerkBoxTitle[64];
 
-static DWORD PerkFreqOverride;
+static DWORD PerkFreqOverride = 0;
 
 static const DWORD GainStatPerks[7][2] = {
 	{0x4AF122, 0xC9}, // Strength     // mov  ecx, ecx

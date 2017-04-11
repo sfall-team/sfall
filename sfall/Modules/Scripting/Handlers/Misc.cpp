@@ -1089,7 +1089,7 @@ void __declspec(naked) op_set_unspent_ap_bonus() {
 		call fo::funcoffs::interpretPopLong_;
 		cmp dx, 0xc001;
 		jnz end;
-		mov StandardApAcBonus, ax;
+		mov standardApAcBonus, ax;
 end:
 		pop edx;
 		pop ecx;
@@ -1102,7 +1102,7 @@ void __declspec(naked) op_get_unspent_ap_bonus() {
 		push ecx;
 		push edx;
 		mov ecx, eax;
-		movzx edx, StandardApAcBonus;
+		movzx edx, standardApAcBonus;
 		call fo::funcoffs::interpretPushLong_;
 		mov eax, ecx;
 		mov edx, 0xc001;
@@ -1124,7 +1124,7 @@ void __declspec(naked) op_set_unspent_ap_perk_bonus() {
 		call fo::funcoffs::interpretPopLong_;
 		cmp dx, 0xc001;
 		jnz end;
-		mov ExtraApAcBonus, ax;
+		mov extraApAcBonus, ax;
 end:
 		pop edx;
 		pop ecx;
@@ -1137,7 +1137,7 @@ void __declspec(naked) op_get_unspent_ap_perk_bonus() {
 		push ecx;
 		push edx;
 		mov ecx, eax;
-		movzx edx, ExtraApAcBonus;
+		movzx edx, extraApAcBonus;
 		call fo::funcoffs::interpretPushLong_;
 		mov eax, ecx;
 		mov edx, 0xc001;

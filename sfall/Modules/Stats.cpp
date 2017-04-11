@@ -28,10 +28,10 @@
 namespace sfall
 {
 
-static DWORD StatMaximumsPC[fo::STAT_max_stat];
-static DWORD StatMinimumsPC[fo::STAT_max_stat];
-static DWORD StatMaximumsNPC[fo::STAT_max_stat];
-static DWORD StatMinimumsNPC[fo::STAT_max_stat];
+static DWORD statMaximumsPC[fo::STAT_max_stat];
+static DWORD statMinimumsPC[fo::STAT_max_stat];
+static DWORD statMaximumsNPC[fo::STAT_max_stat];
+static DWORD statMinimumsNPC[fo::STAT_max_stat];
 
 static DWORD cCritter;
 
@@ -56,27 +56,27 @@ static void __declspec(naked) GetCurrentStatHook2() {
 		mov eax, cCritter;
 		cmp eax, dword ptr ds:[FO_VAR_obj_dude];
 		je pc;
-		cmp ecx, StatMinimumsNPC[esi];
+		cmp ecx, statMinimumsNPC[esi];
 		jg npc1;
-		mov eax, StatMinimumsNPC[esi];
+		mov eax, statMinimumsNPC[esi];
 		jmp end;
 npc1:
-		cmp ecx, StatMaximumsNPC[esi];
+		cmp ecx, statMaximumsNPC[esi];
 		jl npc2;
-		mov eax, StatMaximumsNPC[esi];
+		mov eax, statMaximumsNPC[esi];
 		jmp end;
 npc2:
 		mov eax, ecx;
 		jmp end;
 pc:
-		cmp ecx, StatMinimumsPC[esi];
+		cmp ecx, statMinimumsPC[esi];
 		jge pc1;
-		mov eax, StatMinimumsPC[esi];
+		mov eax, statMinimumsPC[esi];
 		jmp end;
 pc1:
-		cmp ecx, StatMaximumsPC[esi];
+		cmp ecx, statMaximumsPC[esi];
 		jle pc2;
-		mov eax, StatMaximumsPC[esi];
+		mov eax, statMaximumsPC[esi];
 		jmp end;
 pc2:
 		mov eax, ecx;
@@ -90,15 +90,15 @@ static void __declspec(naked) SetCurrentStatHook() {
 	__asm {
 		cmp esi, dword ptr ds:[FO_VAR_obj_dude];
 		je pc;
-		cmp ebx, StatMinimumsNPC[ecx*4];
+		cmp ebx, statMinimumsNPC[ecx*4];
 		jl fail;
-		cmp ebx, StatMaximumsNPC[ecx*4];
+		cmp ebx, statMaximumsNPC[ecx*4];
 		jg fail;
 		jmp end;
 pc:
-		cmp ebx, StatMinimumsPC[ecx*4];
+		cmp ebx, statMinimumsPC[ecx*4];
 		jl fail;
-		cmp ebx, StatMaximumsPC[ecx*4];
+		cmp ebx, statMaximumsPC[ecx*4];
 		jg fail;
 		jmp end;
 fail:
@@ -124,8 +124,8 @@ static void __declspec(naked) GetNextLevelXPHook() {
 	}
 }
 
-unsigned short StandardApAcBonus = 4;
-unsigned short ExtraApAcBonus = 4;
+unsigned short standardApAcBonus = 4;
+unsigned short extraApAcBonus = 4;
 static const DWORD ApAcRetAddr = 0x4AF0A4;
 static void __declspec(naked) ApplyApAcBonus() {
 	using namespace fo;
@@ -140,12 +140,12 @@ h2hEvade:
 		mov edx, PERK_hth_evade_perk;
 		mov eax, dword ptr ds:[FO_VAR_obj_dude];
 		call fo::funcoffs::perk_level_;
-		imul ax, ExtraApAcBonus;
+		imul ax, extraApAcBonus;
 		imul ax, [ebx+0x40];
 		mov edi, eax;
 standard:
 		mov eax, [ebx+0x40];
-		imul ax, StandardApAcBonus;
+		imul ax, standardApAcBonus;
 		add eax, edi;
 		shr eax, 2;
 		pop edx;
@@ -207,11 +207,11 @@ static void __declspec(naked) stat_recalc_derived() {
 
 void StatsReset() {
 	for (int i = 0; i < fo::STAT_max_stat; i++) {
-		StatMaximumsPC[i] = StatMaximumsNPC[i] = fo::var::stat_data[i].maxValue;
-		StatMinimumsPC[i] = StatMinimumsNPC[i] = fo::var::stat_data[i].minValue;
+		statMaximumsPC[i] = statMaximumsNPC[i] = fo::var::stat_data[i].maxValue;
+		statMinimumsPC[i] = statMinimumsNPC[i] = fo::var::stat_data[i].minValue;
 	}
-	StandardApAcBonus = 4;
-	ExtraApAcBonus = 4;
+	standardApAcBonus = 4;
+	extraApAcBonus = 4;
 }
 
 void Stats::init() {
@@ -292,25 +292,25 @@ void Stats::init() {
 
 void _stdcall SetPCStatMax(int stat, int i) {
 	if (stat >= 0 && stat < fo::STAT_max_stat) {
-		StatMaximumsPC[stat] = i;
+		statMaximumsPC[stat] = i;
 	}
 }
 
 void _stdcall SetPCStatMin(int stat, int i) {
 	if (stat >= 0 && stat < fo::STAT_max_stat) {
-		StatMinimumsPC[stat] = i;
+		statMinimumsPC[stat] = i;
 	}
 }
 
 void _stdcall SetNPCStatMax(int stat, int i) {
 	if (stat >= 0 && stat < fo::STAT_max_stat) {
-		StatMaximumsNPC[stat] = i;
+		statMaximumsNPC[stat] = i;
 	}
 }
 
 void _stdcall SetNPCStatMin(int stat, int i) {
 	if (stat >= 0 && stat < fo::STAT_max_stat) {
-		StatMinimumsNPC[stat] = i;
+		statMinimumsNPC[stat] = i;
 	}
 }
 

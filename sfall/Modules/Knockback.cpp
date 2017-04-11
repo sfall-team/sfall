@@ -42,15 +42,15 @@ static std::vector<KnockbackModifier> mWeapons;
 
 struct ChanceModifier {
 	DWORD id;
-	int maximum;
-	int mod;
+	int maximum { 95 };
+	int mod { 0 };
 };
 
-static std::vector<ChanceModifier> HitChanceMods;
-static std::vector<ChanceModifier> PickpocketMods;
+static std::vector<ChanceModifier> hitChanceMods;
+static std::vector<ChanceModifier> pickpocketMods;
 
-static ChanceModifier BaseHitChance;
-static ChanceModifier BasePickpocket;
+static ChanceModifier baseHitChance;
+static ChanceModifier basePickpocket;
 
 static bool hookedAimedShot;
 static const DWORD aimedShotRet1 = 0x478EE4;
@@ -119,12 +119,12 @@ static void __declspec(naked) KnockbackHook2() {
 
 static const DWORD KnockbackAddr = (DWORD)&KnockbackHook;
 static int _stdcall PickpocketHook2(int base, DWORD critter) {
-	for (DWORD i = 0; i < PickpocketMods.size(); i++) {
-		if (critter == PickpocketMods[i].id) {
-			return min(base + PickpocketMods[i].mod, PickpocketMods[i].maximum);
+	for (DWORD i = 0; i < pickpocketMods.size(); i++) {
+		if (critter == pickpocketMods[i].id) {
+			return min(base + pickpocketMods[i].mod, pickpocketMods[i].maximum);
 		}
 	}
-	return min(base + BasePickpocket.mod, BasePickpocket.maximum);
+	return min(base + basePickpocket.mod, basePickpocket.maximum);
 }
 
 static void __declspec(naked) PickpocketHook() {
@@ -145,12 +145,12 @@ static void __declspec(naked) PickpocketHook() {
 }
 
 static int _stdcall HitChanceHook2(int base, DWORD critter) {
-	for (DWORD i = 0; i < HitChanceMods.size(); i++) {
-		if (critter == HitChanceMods[i].id) {
-			return min(base + HitChanceMods[i].mod, HitChanceMods[i].maximum);
+	for (DWORD i = 0; i < hitChanceMods.size(); i++) {
+		if (critter == hitChanceMods[i].id) {
+			return min(base + hitChanceMods[i].mod, hitChanceMods[i].maximum);
 		}
 	}
-	return min(base + BaseHitChance.mod, BaseHitChance.maximum);
+	return min(base + baseHitChance.mod, baseHitChance.maximum);
 }
 
 static void __declspec(naked) HitChanceHook() {
@@ -197,12 +197,12 @@ void Knockback_OnGameLoad() {
 	mTargets.clear();
 	mAttackers.clear();
 	mWeapons.clear();
-	HitChanceMods.clear();
-	BaseHitChance.maximum = 95;
-	BaseHitChance.mod = 0;
-	PickpocketMods.clear();
-	BasePickpocket.maximum = 95;
-	BasePickpocket.mod = 0;
+	hitChanceMods.clear();
+	baseHitChance.maximum = 95;
+	baseHitChance.mod = 0;
+	pickpocketMods.clear();
+	basePickpocket.maximum = 95;
+	basePickpocket.mod = 0;
 	NoBursts.clear();
 	disabledAS.clear();
 	forcedAS.clear();
@@ -244,14 +244,14 @@ void _stdcall KnockbackRemoveMod(DWORD id, DWORD on) {
 
 void _stdcall SetHitChanceMax(DWORD critter, DWORD maximum, DWORD mod) {
 	if (critter == -1) {
-		BaseHitChance.maximum = maximum;
-		BaseHitChance.mod = mod;
+		baseHitChance.maximum = maximum;
+		baseHitChance.mod = mod;
 		return;
 	}
-	for (DWORD i = 0; i < HitChanceMods.size(); i++) {
-		if (critter == HitChanceMods[i].id) {
-			HitChanceMods[i].maximum = maximum;
-			HitChanceMods[i].mod = mod;
+	for (DWORD i = 0; i < hitChanceMods.size(); i++) {
+		if (critter == hitChanceMods[i].id) {
+			hitChanceMods[i].maximum = maximum;
+			hitChanceMods[i].mod = mod;
 			return;
 		}
 	}
@@ -259,19 +259,19 @@ void _stdcall SetHitChanceMax(DWORD critter, DWORD maximum, DWORD mod) {
 	cm.id = critter;
 	cm.maximum = maximum;
 	cm.mod = mod;
-	HitChanceMods.push_back(cm);
+	hitChanceMods.push_back(cm);
 }
 
 void _stdcall SetPickpocketMax(DWORD critter, DWORD maximum, DWORD mod) {
 	if (critter == -1) {
-		BasePickpocket.maximum = maximum;
-		BasePickpocket.mod = mod;
+		basePickpocket.maximum = maximum;
+		basePickpocket.mod = mod;
 		return;
 	}
-	for (DWORD i = 0; i < PickpocketMods.size(); i++) {
-		if (critter == PickpocketMods[i].id) {
-			PickpocketMods[i].maximum = maximum;
-			PickpocketMods[i].mod = mod;
+	for (DWORD i = 0; i < pickpocketMods.size(); i++) {
+		if (critter == pickpocketMods[i].id) {
+			pickpocketMods[i].maximum = maximum;
+			pickpocketMods[i].mod = mod;
 			return;
 		}
 	}
@@ -279,7 +279,7 @@ void _stdcall SetPickpocketMax(DWORD critter, DWORD maximum, DWORD mod) {
 	cm.id = critter;
 	cm.maximum = maximum;
 	cm.mod = mod;
-	PickpocketMods.push_back(cm);
+	pickpocketMods.push_back(cm);
 }
 
 void _stdcall SetNoBurstMode(fo::GameObject* critter, bool on) {

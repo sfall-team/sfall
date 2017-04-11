@@ -32,55 +32,55 @@ namespace sfall
 {
 
 struct ChanceModifier {
-	DWORD id;
-	int maximum;
-	int mod;
+	DWORD id { 0 };
+	int maximum { 300 };
+	int mod { 0 };
 };
 
-static std::vector<ChanceModifier> SkillMaxMods;
-static ChanceModifier BaseSkillMax;
+static std::vector<ChanceModifier> skillMaxMods;
+static ChanceModifier baseSkillMax;
 static BYTE skillCosts[512 * fo::SKILL_count];
 static DWORD basedOnPoints;
 
 static int _stdcall SkillMaxHook2(int base, DWORD critter) {
-	for(DWORD i=0;i<SkillMaxMods.size();i++) {
-		if(critter==SkillMaxMods[i].id) {
-			return min(base, SkillMaxMods[i].maximum);
+	for (DWORD i = 0; i < skillMaxMods.size(); i++) {
+		if (critter == skillMaxMods[i].id) {
+			return min(base, skillMaxMods[i].maximum);
 		}
 	}
-	return min(base, BaseSkillMax.maximum);
+	return min(base, baseSkillMax.maximum);
 }
 
 static void __declspec(naked) SkillHookA() {
 	__asm {
-	push ecx;
-	push esi;
-	call SkillMaxHook2;
-	push 0x4AA64B;
-	retn;
+		push ecx;
+		push esi;
+		call SkillMaxHook2;
+		push 0x4AA64B;
+		retn;
 	}
 }
 
 static void __declspec(naked) SkillHookB() {
 	__asm {
-	push edx;
-	push ecx;
-	push ebx;
-	push eax;
-	push ecx;
-	push 0x7fffffff;
-	call SkillMaxHook2;
-	pop  edx;
-	cmp  edx, eax;
-	pop  ebx;
-	pop  ecx;
-	pop  edx;
-	jl   win;
-	push 0x4AA84E;
-	retn;
+		push edx;
+		push ecx;
+		push ebx;
+		push eax;
+		push ecx;
+		push 0x7fffffff;
+		call SkillMaxHook2;
+		pop  edx;
+		cmp  edx, eax;
+		pop  ebx;
+		pop  ecx;
+		pop  edx;
+		jl   win;
+		push 0x4AA84E;
+		retn;
 win:
-	push 0x4AA85C;
-	retn;
+		push 0x4AA85C;
+		retn;
 	}
 }
 
@@ -88,29 +88,29 @@ static const DWORD SkillHookWin = 0x4AA738;
 static const DWORD SkillHookFail = 0x4AA72C;
 static void __declspec(naked) SkillHookC() {
 	__asm {
-	pushad;
-	push eax;
-	push esi;
-	push 0x7fffffff;
-	call SkillMaxHook2;
-	pop edx;
-	cmp edx, eax;
-	popad;
-	jl win;
-	jmp SkillHookFail;
+		pushad;
+		push eax;
+		push esi;
+		push 0x7fffffff;
+		call SkillMaxHook2;
+		pop edx;
+		cmp edx, eax;
+		popad;
+		jl win;
+		jmp SkillHookFail;
 win:
-	jmp SkillHookWin;
+		jmp SkillHookWin;
 	}
 }
 
 void _stdcall SetSkillMax(DWORD critter, DWORD maximum) {
 	if (critter == -1) {
-		BaseSkillMax.maximum = maximum;
+		baseSkillMax.maximum = maximum;
 		return;
 	}
-	for (DWORD i = 0; i < SkillMaxMods.size(); i++) {
-		if (critter == SkillMaxMods[i].id) {
-			SkillMaxMods[i].maximum = maximum;
+	for (DWORD i = 0; i < skillMaxMods.size(); i++) {
+		if (critter == skillMaxMods[i].id) {
+			skillMaxMods[i].maximum = maximum;
 			return;
 		}
 	}
@@ -118,7 +118,7 @@ void _stdcall SetSkillMax(DWORD critter, DWORD maximum) {
 	cm.id = critter;
 	cm.maximum = maximum;
 	cm.mod = 0;
-	SkillMaxMods.push_back(cm);
+	skillMaxMods.push_back(cm);
 }
 
 double* multipliers;
@@ -217,9 +217,9 @@ static void __declspec(naked) SkillLevelCostHook() {
 }
 
 void Skills_OnGameLoad() {
-	SkillMaxMods.clear();
-	BaseSkillMax.maximum = 300;
-	BaseSkillMax.mod = 0;
+	skillMaxMods.clear();
+	baseSkillMax.maximum = 300;
+	baseSkillMax.mod = 0;
 }
 
 void Skills::init() {
