@@ -20,6 +20,8 @@
 #include "..\..\..\SafeWrite.h"
 #include "..\..\LoadGameHook.h"
 #include "..\..\ScriptExtender.h"
+#include "..\..\Worldmap.h"
+#include "..\OpcodeContext.h"
 
 #include "Worldmap.h"
 
@@ -222,6 +224,10 @@ end:
 		pop ebx;
 		retn;
 	}
+}
+
+void sf_set_car_intface_art(OpcodeContext& ctx) {
+	Worldmap::SetCarInterfaceArt(ctx.arg(0).asInt());
 }
 
 }

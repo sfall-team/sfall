@@ -20,6 +20,7 @@
 
 #include "..\main.h"
 #include "..\FalloutEngine\Fallout2.h"
+#include "LoadGameHook.h"
 #include "ScriptExtender.h"
 
 #include "Worldmap.h"
@@ -416,10 +417,18 @@ void Worldmap::init() {
 	ApplyTownMapsHotkeyFix();
 	ApplyWorldLimitsPatches();
 	ApplyWorldmapFpsPatch();
+
+	LoadGameHook::OnGameReset() += []() {
+		SetCarInterfaceArt(0x1B1);
+	};
 }
 
 Delegate<>& Worldmap::OnWorldmapLoop() {
 	return onWorldmapLoop;
+}
+
+void Worldmap::SetCarInterfaceArt(DWORD artIndex) {
+	SafeWrite32(0x4C2D9B, artIndex);
 }
 
 }

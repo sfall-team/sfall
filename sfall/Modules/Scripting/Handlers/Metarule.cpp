@@ -23,6 +23,7 @@
 #include "Interface.h"
 #include "Misc.h"
 #include "Objects.h"
+#include "Worldmap.h"
 
 #include "Metarule.h"
 
@@ -90,6 +91,7 @@ static const SfallMetarule metarules[] = {
 	{"item_weight", sf_item_weight, 1, 1, {ARG_OBJECT}},
 	{"outlined_object", sf_outlined_object, 0, 0},
 	{"real_dude_obj", sf_real_dude_obj, 0, 0},
+	{"set_car_intface_art", sf_set_car_intface_art, 1, 1, {ARG_INT}},
 	{"set_dude_obj", sf_set_dude_obj, 1, 1, {ARG_OBJECT}},
 	{"set_flags", sf_set_flags, 2, 2, {ARG_OBJECT, ARG_INT}},
 	{"set_outline", sf_set_outline, 2, 2, {ARG_OBJECT, ARG_INT}},

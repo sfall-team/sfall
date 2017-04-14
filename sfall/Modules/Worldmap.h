@@ -30,6 +30,8 @@ public:
 	void init();
 
 	static Delegate<>& OnWorldmapLoop();
+
+	static void SetCarInterfaceArt(DWORD artIndex);
 };
 
 }
