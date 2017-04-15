@@ -218,6 +218,7 @@
 #define intface_show                          sfall_func0("intface_show")
 #define outlined_object                       sfall_func0("outlined_object")
 #define real_dude_obj                         sfall_func0("real_dude_obj")
+#define set_car_intface_art(artIndex)         sfall_func1("set_car_intface_art", artIndex)
 #define set_dude_obj(critter)                 sfall_func1("set_dude_obj", critter)
 #define set_flags(obj, flags)                 sfall_func2("set_flags", obj, flags)
 #define set_outline(obj, color)               sfall_func2("set_outline", obj, color)

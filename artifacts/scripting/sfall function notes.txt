@@ -106,6 +106,9 @@ array - array ID to be used with array-related functions (actually an integer)
 > int get_npc_level(string npc)
 - also takes the npc name as an argument, and returns the npc's current level. Again, the npc needs to be in your party.
 
+> void set_car_current_town(int town)
+- changes the current town index for the player's car
+
 > int get_ini_setting(string setting)
 - reads an integer value from an ini file in the fallout directory.
 - It only takes a single argument; seperate the file name, section and key with a '|' character; e.g. 'myvar:=get_ini_setting("myini.ini|mysec|var1")' If the file or key cannot be found, -1 is returned.
@@ -399,6 +402,15 @@ Some utility/math functions are available:
 
 > array sfall_func2("get_ini_section", string fileName, string section)
 - returns an associative array of keys and values for a given INI file and section
+
+> int sfall_func0("car_gas_amount")
+- returns current amount of fuel in player's car (between 0 and 80000)
+- to change fuel amount, use vanilla function: metarule(METARULE_GIVE_CAR_GAS, amount) - amount can be positive or negative
+
+> void sfall_func1("set_car_intface_art", int artIndex)
+- changes the interface art (index in LST file) for the car image on worldmap screen
+- should be called before going to worldmap
+- vanilla art index is 0x1B1
 
 ------------------------
 ------ MORE INFO -------
