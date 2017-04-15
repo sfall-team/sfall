@@ -222,7 +222,7 @@ static __declspec(naked) void PathfinderFix() {
 	}
 }
 
-void ApplyWorldLimitsPatches() {
+void WorldLimitsPatches() {
 	DWORD date = GetConfigInt("Misc", "LocalMapXLimit", 0);
 	if (date) {
 		dlog("Applying local map x limit patch.", DL_INIT);
@@ -268,7 +268,7 @@ void ApplyWorldLimitsPatches() {
 	}
 }
 
-void ApplyTimeLimitPatch() {
+void TimeLimitPatch() {
 	int limit = GetConfigInt("Misc", "TimeLimit", 13);
 	if (limit == -2) {
 		limit = 14;
@@ -313,7 +313,7 @@ void ApplyTimeLimitPatch() {
 	}
 }
 
-void ApplyTownMapsHotkeyFix() {
+void TownMapsHotkeyFix() {
 	if (GetConfigInt("Misc", "TownMapHotkeysFix", 1)) {
 		dlog("Applying town map hotkeys patch.", DL_INIT);
 		MakeCall(0x4C4945, wmTownMapFunc_hack);
@@ -321,7 +321,7 @@ void ApplyTownMapsHotkeyFix() {
 	}
 }
 
-void ApplyWorldmapFpsPatch() {
+void WorldmapFpsPatch() {
 	if (GetConfigInt("Misc", "WorldMapFPSPatch", 0)) {
 		dlog("Applying world map fps patch.", DL_INIT);
 		if (*(DWORD*)0x4BFE5E != 0x8d16) {
@@ -349,7 +349,7 @@ void ApplyWorldmapFpsPatch() {
 	}
 }
 
-void ApplyPathfinderFix() {
+void PathfinderFixInit() {
 	//if(GetConfigInt("Misc", "PathfinderFix", 0)) {
 	dlog("Applying pathfinder patch.", DL_INIT);
 	SafeWrite32(0x004C1FF2, ((DWORD)&PathfinderFix3) - 0x004c1ff6);
@@ -359,7 +359,7 @@ void ApplyPathfinderFix() {
 //}
 }
 
-void ApplyStartingStatePatches() {
+void StartingStatePatches() {
 	int date = GetConfigInt("Misc", "StartYear", -1);
 	if (date > 0) {
 		dlog("Applying starting year patch.", DL_INIT);
@@ -411,12 +411,12 @@ void ApplyStartingStatePatches() {
 }
 
 void Worldmap::init() {
-	ApplyPathfinderFix();
-	ApplyStartingStatePatches();
-	ApplyTimeLimitPatch();
-	ApplyTownMapsHotkeyFix();
-	ApplyWorldLimitsPatches();
-	ApplyWorldmapFpsPatch();
+	PathfinderFixInit();
+	StartingStatePatches();
+	TimeLimitPatch();
+	TownMapsHotkeyFix();
+	WorldLimitsPatches();
+	WorldmapFpsPatch();
 
 	LoadGameHook::OnGameReset() += []() {
 		SetCarInterfaceArt(0x1B1);

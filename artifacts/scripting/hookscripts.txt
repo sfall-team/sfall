@@ -464,3 +464,17 @@ int     arg3 - unknown boolean argument
 
 int     ret1 - pass 1 at the start of turn to skip the turn, pass -1 at the end of turn to force end of combat
 
+
+-------------------------------------------
+
+HOOK_CARTRAVEL (hs_cartravel.int)
+
+Runs continously during worldmap travel on car.
+
+int	    arg1 - vanilla car speed (between 3 and 8 "steps")
+int     arg2 - vanilla fuel consumption (100 and below)
+
+int     ret1 - car speed override (pass -1 if you just want to override fuel consumption)
+int     ret2 - fuel consumption override
+
+

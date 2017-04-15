@@ -48,6 +48,7 @@
 #define HOOK_INVENWIELD       (25)
 #define HOOK_ADJUSTFID        (26)
 #define HOOK_COMBATTURN       (27)
+#define HOOK_CARTRAVEL        (28)
 
 //Valid arguments to list_begin
 #define LIST_CRITTERS    (0)

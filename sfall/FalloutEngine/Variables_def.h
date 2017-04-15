@@ -16,7 +16,7 @@ VAR_(bottom_line,                DWORD)
 VAR_(btable,                     DWORD)
 VAR_(btncnt,                     DWORD)
 VAR_(carCurrentArea,             DWORD)
-VAR_(carGasAmount,               DWORD) // from 0 to 80000
+VAR_(carGasAmount,               long) // from 0 to 80000
 VAR_(cmap,                       DWORD)
 VAR_(colorTable,                 DWORD)
 VAR_(combat_free_move,           DWORD)

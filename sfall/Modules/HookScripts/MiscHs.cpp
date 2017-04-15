@@ -22,10 +22,10 @@ static void __declspec(naked) UseObjOnHook() {
 		cmp cRet, 1;
 		jl	defaulthandler;
 		mov eax, rets[0];
-		jmp end
-			defaulthandler :
-		call fo::funcoffs::protinst_use_item_on_
-			end :
+		jmp end;
+defaulthandler:
+		call fo::funcoffs::protinst_use_item_on_;
+end:
 		hookend;
 		retn;
 	}
@@ -44,8 +44,8 @@ static void __declspec(naked) UseObjOnHook_item_d_take_drug() {
 		cmp cRet, 1;
 		jl	defaulthandler;
 		mov eax, rets[0];
-		jmp end
-			defaulthandler :
+		jmp end;
+defaulthandler:
 		call fo::funcoffs::item_d_take_drug_;
 end:
 		hookend;
@@ -202,6 +202,61 @@ nevermind:
 	}
 }
 
+static constexpr long maxGasAmount = 80000;
+static void CarTravelHookScript() {
+	BeginHook();
+	argCount = 2;
+	// calculate vanilla speed
+	int carSpeed = 3;
+	if (fo::func::game_get_global_var(fo::GVAR_CAR_BLOWER)) {
+		carSpeed += 1;
+	}
+	if (fo::func::game_get_global_var(fo::GVAR_NEW_RENO_CAR_UPGRADE)) {
+		carSpeed += 1;
+	}
+	if (fo::func::game_get_global_var(fo::GVAR_NEW_RENO_SUPER_CAR)) {
+		carSpeed += 3;
+	}
+	// calculate vanilla fuel consumption
+	int originalGas = fo::var::carGasAmount;
+	fo::var::carGasAmount = maxGasAmount;
+	fo::func::wmCarUseGas(100);
+	int consumption = maxGasAmount - fo::var::carGasAmount;
+
+	// run script
+	args[0] = carSpeed;
+	args[1] = consumption;
+	RunHookScript(HOOK_CARTRAVEL);
+
+	// override travel speed
+	if (cRet > 0 && static_cast<long>(rets[0]) >= 0) {
+		carSpeed = rets[0];
+	}
+	// move car on map
+	for (int i = 0; i < carSpeed; ++i) {
+		fo::func::wmPartyWalkingStep();
+	}
+
+	// override fuel consumption
+	if (cRet > 1) {
+		consumption = static_cast<long>(rets[1]);
+	}
+	// consume fuel
+	fo::var::carGasAmount = max(originalGas - consumption, 0);
+
+	EndHook();
+}
+
+static const DWORD CarTravelHack_back = 0x4BFF43;
+static void __declspec(naked) CarTravelHack() {
+	__asm {
+		pushad;
+		call CarTravelHookScript;
+		popad;
+		jmp CarTravelHack_back;
+	}
+}
+
 void InitMiscHookScripts() {
 	LoadHookScript("hs_useobjon", HOOK_USEOBJON);
 	HookCalls(UseObjOnHook, { 0x49C606, 0x473619 });
@@ -240,6 +295,10 @@ void InitMiscHookScripts() {
 		0x458403
 	});
 	MakeJump(0x456BA2, PerceptionRangeBonusHack);
+
+	LoadHookScript("hs_cartravel", HOOK_CARTRAVEL);
+	MakeJump(0x4BFEF1, CarTravelHack);
+	BlockCall(0x4BFF6E); // vanilla wnCarUseGas(100) call
 }
 
 }
