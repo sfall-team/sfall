@@ -718,7 +718,7 @@ void MusicInDialoguePatch() {
 void PipboyAvailableAtStartPatch() {
 	switch (GetConfigInt("Misc", "PipBoyAvailableAtGameStart", 0)) {
 	case 1:
-		LoadGameHook::OnAfterNewGame() += []() {
+		LoadGameHook::OnBeforeGameStart() += []() {
 			// PipBoy aquiring video
 			fo::var::gmovie_played_list[3] = true;
 		};

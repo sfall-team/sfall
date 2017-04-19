@@ -31,14 +31,14 @@
 namespace sfall
 {
 
-struct ChanceModifier {
+struct SkillModifier {
 	DWORD id { 0 };
 	int maximum { 300 };
 	int mod { 0 };
 };
 
-static std::vector<ChanceModifier> skillMaxMods;
-static ChanceModifier baseSkillMax;
+static std::vector<SkillModifier> skillMaxMods;
+static SkillModifier baseSkillMax;
 static BYTE skillCosts[512 * fo::SKILL_count];
 static DWORD basedOnPoints;
 
@@ -114,7 +114,7 @@ void _stdcall SetSkillMax(DWORD critter, DWORD maximum) {
 			return;
 		}
 	}
-	ChanceModifier cm;
+	SkillModifier cm;
 	cm.id = critter;
 	cm.maximum = maximum;
 	cm.mod = 0;
