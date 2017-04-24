@@ -653,17 +653,6 @@ void SetGlobals(GlobalVar* globals) {
 	}
 }
 
-//fuctions to load and save appearance globals
-// TODO: move to HeroAppearance mod
-void SetAppearanceGlobals(int race, int style) {
-	SetGlobalVar("HAp_Race", race);
-	SetGlobalVar("HApStyle", style);
-}
-void GetAppearanceGlobals(int *race, int *style) {
-	*race = GetGlobalVar("HAp_Race");
-	*style = GetGlobalVar("HApStyle");
-}
-
 void ScriptExtender::init() {
 	LoadGameHook::OnAfterGameStarted() += LoadGlobalScripts;
 	LoadGameHook::OnGameReset() += [] () {
@@ -671,7 +660,6 @@ void ScriptExtender::init() {
 		ClearGlobals();
 		RegAnimCombatCheck(1);
 	};
-	LoadGameHook::OnGameReset() += ClearGlobals;
 
 	MainLoopHook::OnMainLoop() += RunGlobalScriptsOnMainLoop;
 	MainLoopHook::OnCombatLoop() += RunGlobalScriptsOnMainLoop;

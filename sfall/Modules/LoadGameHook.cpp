@@ -72,13 +72,6 @@ void ClearLoopFlag(LoopFlag flag) {
 	inLoop &= ~flag;
 }
 
-// called whenever game is being reset (prior to loading a save or when returning to main menu)
-static void _stdcall GameReset() {
-	onGameReset.invoke();
-	inLoop = 0;
-	mapLoaded = false;
-}
-
 void GetSavePath(char* buf, char* ftype) {
 	sprintf(buf, "%s\\savegame\\slot%.2d\\sfall%s.sav", fo::var::patches, fo::var::slot_cursor + 1 + LSPageOffset, ftype); //add SuperSave Page offset
 }
@@ -182,20 +175,21 @@ static void _stdcall LoadGame_Before() {
 	}
 }
 
+// called whenever game is being reset (prior to loading a save or when returning to main menu)
+static void _stdcall GameReset(DWORD isGameLoad) {
+	onGameReset.invoke();
+	inLoop = 0;
+	mapLoaded = false;
+
+	if (isGameLoad) {
+		LoadGame_Before();
+	}
+}
+
 // Called after game was loaded from a save
 static void _stdcall LoadGame_After() {
 	onAfterGameStarted.invoke();
 	mapLoaded = true;
-}
-
-static void __declspec(naked) LoadSlot_hook() {
-	__asm {
-		pushad;
-		call LoadGame_Before;
-		popad;
-		call fo::funcoffs::LoadSlot_;
-		retn;
-	}
 }
 
 static void __declspec(naked) LoadGame_hook() {
@@ -260,6 +254,17 @@ static void __declspec(naked) main_init_system_hook() {
 static void __declspec(naked) game_reset_hook() {
 	__asm {
 		pushad;
+		push 0;
+		call GameReset; // reset all sfall modules before resetting the game data
+		popad;
+		jmp fo::funcoffs::game_reset_;
+	}
+}
+
+static void __declspec(naked) game_reset_on_load_hook() {
+	__asm {
+		pushad;
+		push 1;
 		call GameReset; // reset all sfall modules before resetting the game data
 		popad;
 		jmp fo::funcoffs::game_reset_;
@@ -449,22 +454,23 @@ void LoadGameHook::init() {
 
 	HookCalls(main_init_system_hook, {0x4809BA});
 	HookCalls(main_load_new_hook, {0x480AAE});
-	HookCalls(LoadSlot_hook, {0x47C72C, 0x47D1C9});
 	HookCalls(LoadGame_hook, {0x443AE4, 0x443B89, 0x480B77, 0x48FD35});
 	HookCalls(SaveGame_hook, {0x443AAC, 0x443B1C, 0x48FCFF});
 	HookCalls(game_reset_hook, {
-				0x47DD6B,  // LoadSlot_
-				0x47DDF3, // LoadSlot_
-				0x47F491, // PrepLoad_
+				0x47DD6B, // LoadSlot_ (on error)
+				0x47DDF3, // LoadSlot_ (on error)
 				0x480708, // RestoreLoad_ (never called)
-				0x480AD3, // gnw_main_
-				0x480BCC, // gnw_main_
+				0x480AD3, // gnw_main_ (game ended after playing via New Game)
+				0x480BCC, // gnw_main_ (game ended after playing via Load Game)
 				0x480D0C, // main_reset_system_ (never called)
 				0x481028, // main_selfrun_record_
 				0x481062, // main_selfrun_record_
 				0x48110B, // main_selfrun_play_
 				0x481145 // main_selfrun_play_
 			}); 
+	HookCalls(game_reset_on_load_hook, {
+				0x47F491, // PrepLoad_ (the very first step during save game loading)
+			});
 
 	HookCalls(WorldMapHook, {0x483668, 0x4A4073});
 	HookCalls(WorldMapHook2, {0x4C4855});
