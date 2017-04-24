@@ -146,7 +146,7 @@ bool LoadFrmFrame(UnlistedFrm::Frame *frame, fo::DbFile* frmStream) {
 	else if (fo::func::db_freadShort(frmStream, &frame->x)==-1) return 0;
 	else if (fo::func::db_freadShort(frmStream, &frame->y)==-1) return 0;
 	frame->indexBuff = new BYTE[frame->size];
-	if (fo::func::db_fread(frame->indexBuff, 1, frame->size, frmStream) != 1) return 0;
+	if (fo::func::db_fread(frame->indexBuff, frame->size, 1, frmStream) != 1) return 0;
 
 	return 1;
 }
@@ -1236,19 +1236,21 @@ int _stdcall CheckCharButtons() {
 		switch (button) {
 			case 0x14B: //button =left
 			case 0x14D: //button =right
-				if (*(DWORD*)0x5709D0 == 1) { //if in char creation scrn
-					if (fo::var::info_line == 0x501)
+				if (fo::var::glblmode == 1) { //if in char creation scrn
+					if (fo::var::info_line == 0x501) {
 						button = button + 0x3C6;
-					else if (fo::var::info_line == 0x502)
+					} else if (fo::var::info_line == 0x502) {
 						button = button + 0x3C6 + 1;
+					}
 				}
 			break;
 			case 0x148: //button =up
 			case 0x150: //button =down
-				if (fo::var::info_line == 0x501)
+				if (fo::var::info_line == 0x501) {
 					button = 0x502;
-				else if (fo::var::info_line == 0x502)
+				} else if (fo::var::info_line == 0x502) {
 					button = 0x501;
+				}
 			break;
 			case 0x0D: //button =return
 			case 0x1B: //button =esc
@@ -1258,10 +1260,11 @@ int _stdcall CheckCharButtons() {
 			case 0x1F6: //button =cancel
 			case 'c': //button =cancel
 			case 'C': //button =cancel
-			if (fo::var::info_line == 0x501) //for redrawing note when reentering char screen
+			if (fo::var::info_line == 0x501) { //for redrawing note when reentering char screen
 				fo::var::info_line = 0x503;
-			else
+			} else {
 				fo::var::info_line = 0x504;
+			}
 			break;
 
 			default:
@@ -1271,8 +1274,9 @@ int _stdcall CheckCharButtons() {
 
 	switch(button) {
 		case 0x9: //tab button pushed
-			if (fo::var::info_line >= 0x3D && fo::var::info_line < 0x4F) //if menu ref in last menu go to race
+			if (fo::var::info_line >= 0x3D && fo::var::info_line < 0x4F) { //if menu ref in last menu go to race
 				button = 0x501, drawFlag = 0;
+			}
 		break;
 		case 0x501: //race button pushed
 			drawFlag = 0;
