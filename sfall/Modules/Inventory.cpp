@@ -600,11 +600,15 @@ int __stdcall ItemCountFixStdcall(fo::GameObject* who, fo::GameObject* item) {
 
 void __declspec(naked) ItemCountFix() {
 	__asm {
-		push ebx; push ecx; push edx; // save state
+		push ebx;
+		push ecx;
+		push edx; // save state
 		push edx; // item
 		push eax; // container-object
 		call ItemCountFixStdcall;
-		pop edx; pop ecx; pop ebx; // restore
+		pop edx;
+		pop ecx;
+		pop ebx; // restore
 		retn;
 	}
 }

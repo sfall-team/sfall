@@ -103,6 +103,7 @@ procedure start begin
       alsoCorpse := GetConfig(configSection, "Corpses", 0);
       checkLOS := GetConfig(configSection, "CheckLOS", 0);
       outlineColor := GetConfig(configSection, "OutlineColor", 16);
+      if (outlineColor < 1) then outlineColor := 64;
       motionScanner := GetConfig(configSection, "MotionScanner", 0);
 
       highlightFailMsg1 := Translate("HighlightFail1", "You aren't carrying a motion sensor.");
