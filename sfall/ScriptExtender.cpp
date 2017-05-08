@@ -386,11 +386,11 @@ static void InitOpcodeMetaTable() {
 
 typedef void (_stdcall *regOpcodeProc)(WORD opcode,void* ptr);
 
-static DWORD highlightingToggled=0;
+static DWORD highlightingToggled = 0;
 static DWORD MotionSensorMode;
 static BYTE toggleHighlightsKey;
-static DWORD HighlightContainers;
-static DWORD Color_Containers;
+static DWORD highlightContainers = 0;
+static int outlineColor = 0x10;
 static int idle;
 static char HighlightFail1[128];
 static char HighlightFail2[128];
@@ -1104,19 +1104,18 @@ loopObject:
 		mov  eax, [ecx+0x20]
 		and  eax, 0xF000000
 		sar  eax, 0x18
-		test eax, eax                             // This object is an item?
+		test eax, eax                             // Is this an item?
 		jnz  nextObject                           // No
 		cmp  dword ptr [ecx+0x7C], eax            // Owned by someone?
 		jnz  nextObject                           // Yes
 		test dword ptr [ecx+0x74], eax            // Already outlined?
 		jnz  nextObject                           // Yes
-		mov  edx, 0x10                            // yellow
-		test byte ptr [ecx+0x25], dl              // NoHighlight_ flag is set (is this a container)?
+		test byte ptr [ecx+0x25], 0x10            // Is NoHighlight_ flag set (is this a container)?
 		jz   NoHighlight                          // No
-		cmp  HighlightContainers, eax             // Highlight containers?
+		cmp  highlightContainers, eax             // Highlight containers?
 		je   nextObject                           // No
-		mov  edx, Color_Containers                // NR: should be set to yellow or purple later
 NoHighlight:
+		mov  edx, outlineColor
 		mov  [ecx+0x74], edx
 nextObject:
 		call obj_find_next_at_
@@ -1178,16 +1177,9 @@ void ScriptExtenderSetup() {
 	toggleHighlightsKey = GetPrivateProfileIntA("Input", "ToggleItemHighlightsKey", 0, ini);
 	if (toggleHighlightsKey) {
 		MotionSensorMode = GetPrivateProfileIntA("Misc", "MotionScannerFlags", 1, ini);
-		HighlightContainers = GetPrivateProfileIntA("Input", "HighlightContainers", 0, ini);
-		switch (HighlightContainers) {
-		case 1:
-			Color_Containers = 0x10; // yellow
-			break;
-		case 2:
-			Color_Containers = 0x40; // purple
-			break;
-		}
-		//HookCall(0x44B9BA, &gmouse_bk_process_hook);
+		highlightContainers = GetPrivateProfileIntA("Input", "HighlightContainers", 0, ini);
+		outlineColor = GetPrivateProfileIntA("Input", "OutlineColor", 0x10, ini);
+		if (outlineColor < 1) outlineColor = 0x40;
 		HookCall(0x44BD1C, &obj_remove_outline_hook);
 		HookCall(0x44E559, &obj_remove_outline_hook);
 	}

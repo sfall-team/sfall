@@ -1294,7 +1294,6 @@ LoopStart:
 		}
 	}
 	RefreshArtCache();
-	SetAppearanceGlobals(CurrentRaceVal, CurrentStyleVal); //store new globals
 	DrawPC();
 }
 

@@ -1,6 +1,6 @@
 /*
 * sfall
-* Copyright (C) 2008-2015 The sfall team
+* Copyright (C) 2008-2016 The sfall team
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -15,6 +15,7 @@
 * You should have received a copy of the GNU General Public License
 * along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
+
 #pragma once
 
 
@@ -24,13 +25,15 @@
 
 
 struct TGameObj;
+struct TProgram;
+struct TScript;
 
 /*   26 */
 #pragma pack(push, 1)
 struct TInvenRec
 {
 	TGameObj *object;
-	int count;
+	long count;
 };
 #pragma pack(pop)
 
@@ -38,29 +41,34 @@ struct TInvenRec
 #pragma pack(push, 1)
 struct TGameObj
 {
-	int ID;
-	int tile;
-	char gap_8[2];
-	char field_A;
-	char gap_B[17];
-	int rotation;
-	int artFID;
-	char gap_24[4];
-	int elevation;
-	int invenCount;
-	int field_30;
+	long ID;
+	long tile;
+	long x;
+	long y;
+	long sx;
+	long sy;
+	long currentFrm;
+	long rotation;
+	long artFID;
+	long flags;
+	long elevation;
+	long invenCount;
+	long invenMax;
 	TInvenRec *invenTablePtr;
 	char gap_38[4];
-	int itemCharges;
-	int critterAP_weaponAmmoPid;
+	long itemCharges;
+	long critterAP_weaponAmmoPid;
 	char gap_44[16];
-	int lastTarget;
+	long lastTarget;
 	char gap_58[12];
-	int pid;
-	char gap_68[16];
-	int scriptID;
-	char gap_7C[4];
-	int script_index;
+	long pid;
+	long cid;
+	long lightDistance;
+	long lightIntensity;
+	char outline[4];
+	long scriptID;
+	TGameObj* owner;
+	long script_index;
 	char gap_84[7];
 	char field_0;
 };
@@ -74,43 +82,42 @@ struct TComputeAttack
 	char gap_4[4];
 	TGameObj *weapon;
 	char gap_C[4];
-	int damageAttacker;
-	int flagsAttacker;
-	int rounds;
+	long damageAttacker;
+	long flagsAttacker;
+	long rounds;
 	char gap_1C[4];
 	TGameObj *target;
-	int targetTile;
-	int bodyPart;
-	int damageTarget;
-	int flagsTarget;
-	int knockbackValue;
+	long targetTile;
+	long bodyPart;
+	long damageTarget;
+	long flagsTarget;
+	long knockbackValue;
 };
 #pragma pack(pop)
-
 
 /*   22 */
 #pragma pack(push, 1)
 struct TScript
 {
-	int script_id;
+	long script_id;
 	char gap_4[4];
-	int elevation_and_tile;
-	int spatial_radius;
+	long elevation_and_tile;
+	long spatial_radius;
 	char gap_10[4];
-	int script_index;
-	int program_ptr;
-	int self_obj_id;
+	long script_index;
+	TProgram *program_ptr;
+	long self_obj_id;
 	char gap_20[8];
-	int scr_return;
+	long scr_return;
 	char gap_2C[4];
-	int fixed_param;
+	long fixed_param;
 	TGameObj *self_obj;
 	TGameObj *source_obj;
 	TGameObj *target_obj;
-	int script_overrides;
+	long script_overrides;
 	char field_44;
 	char gap_45[15];
-	int procedure_table[28];
+	long procedure_table[28];
 };
 #pragma pack(pop)
 
@@ -140,18 +147,18 @@ enum ObjectTypes
 struct TProgram
 {
 	const char* fileName;
-	int *codeStackPtr;
+	long *codeStackPtr;
 	char gap_8[8];
-	int *codePtr;
-	int field_14;
+	long *codePtr;
+	long field_14;
 	char gap_18[4];
-	int *dStackPtr;
-	int *aStackPtr;
-	int *dStackOffs;
-	int *aStackOffs;
+	long *dStackPtr;
+	long *aStackPtr;
+	long *dStackOffs;
+	long *aStackOffs;
 	char gap_2C[4];
-	int *stringRefPtr;
+	long *stringRefPtr;
 	char gap_34[4];
-	int *procTablePtr;
+	long *procTablePtr;
 };
 #pragma pack(pop)
