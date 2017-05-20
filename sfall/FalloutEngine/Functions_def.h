@@ -33,6 +33,7 @@ WRAP_WATCOM_FUNC2(long, db_fwriteInt, DbFile*, file, long, value)
 // perform combat turn for a given critter
 WRAP_WATCOM_FUNC2(long, combat_turn, GameObject*, critter, long, isDudeTurn)
 WRAP_WATCOM_FUNC1(long, critter_is_dead, GameObject*, critter)
+WRAP_WATCOM_FUNC1(void, EndLoad, DbFile*, file)
 WRAP_WATCOM_FUNC1(long, game_get_global_var, long, globalVar)
 WRAP_WATCOM_FUNC1(long, gmouse_set_cursor, long, picNum)
 WRAP_WATCOM_FUNC1(Window*, GNW_find, long, winRef)

@@ -200,14 +200,19 @@ static void __declspec(naked) LoadGame_hook() {
 		or inLoop, LOADGAME;
 		call fo::funcoffs::LoadGame_;
 		and inLoop, (-1^LOADGAME);
-		cmp eax, 1;
-		jne end;
-		call LoadGame_After;
-		mov eax, 1;
-end:
 		pop edx;
 		pop ecx;
 		pop ebx;
+		retn;
+	}
+}
+
+static void __declspec(naked) EndLoadHook() {
+	__asm {
+		call fo::funcoffs::EndLoad_;
+		pushad;
+		call LoadGame_After;
+		popad;
 		retn;
 	}
 }
@@ -455,6 +460,7 @@ void LoadGameHook::init() {
 	HookCalls(main_init_system_hook, {0x4809BA});
 	HookCalls(main_load_new_hook, {0x480AAE});
 	HookCalls(LoadGame_hook, {0x443AE4, 0x443B89, 0x480B77, 0x48FD35});
+	SafeWrite32(0x5194C0, (DWORD)&EndLoadHook);
 	HookCalls(SaveGame_hook, {0x443AAC, 0x443B1C, 0x48FCFF});
 	HookCalls(game_reset_hook, {
 				0x47DD6B, // LoadSlot_ (on error)
