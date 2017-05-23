@@ -13,15 +13,15 @@ Example setup for a hook-script based mod:
 
 
 procedure tohit_hook_handler begin
-    display_msg("Modifying hit_hook " + get_sfall_arg);
-    set_hit_chance_max(100);
-    set_sfall_return(100);
+   display_msg("Modifying hit_hook " + get_sfall_arg);
+   set_hit_chance_max(100);
+   set_sfall_return(100);
 end
 
 procedure start begin
-    if game_loaded then begin
-        register_hook_proc(HOOK_TOHIT, tohit_hook_handler);
-    end
+   if game_loaded then begin
+      register_hook_proc(HOOK_TOHIT, tohit_hook_handler);
+   end
 end
 
 

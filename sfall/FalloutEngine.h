@@ -492,6 +492,7 @@ extern const DWORD elapsed_time_;
 extern const DWORD elevator_end_;
 extern const DWORD elevator_start_;
 extern const DWORD endgame_slideshow_;
+extern const DWORD EndLoad_;
 extern const DWORD exec_script_proc_; // unsigned int aScriptID<eax>, int aProcId<edx>
 extern const DWORD executeProcedure_; // <eax> - programPtr, <edx> - procNumber
 extern const DWORD fadeSystemPalette_;

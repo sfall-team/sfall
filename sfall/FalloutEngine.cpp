@@ -318,6 +318,7 @@ const DWORD elapsed_time_ = 0x4C93E0;
 const DWORD elevator_end_ = 0x43F6D0;
 const DWORD elevator_start_ = 0x43F324;
 const DWORD endgame_slideshow_ = 0x43F788;
+const DWORD EndLoad_ = 0x47F4C8;
 const DWORD exec_script_proc_ = 0x4A4810;
 const DWORD executeProcedure_ = 0x46DD2C;
 const DWORD findCurrentProc_ = 0x467160;

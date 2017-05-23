@@ -83,6 +83,7 @@
 #define PROTO_IT_SIZE       (112)
 #define PROTO_IT_WEIGHT     (116)
 #define PROTO_IT_COST       (120)
+#define PROTO_IT_INV_FID    (124)
 
 // weapons
 #define PROTO_WP_ANIM        (36)

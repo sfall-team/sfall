@@ -220,15 +220,19 @@ static void __declspec(naked) LoadGame() {
 		or InLoop, LOADGAME;
 		call LoadGame_;
 		and InLoop, (-1^LOADGAME);
-		cmp eax, 1;
-		jne end;
-		call LoadGame2_After;
-		mov eax, 1;
-end:
-
 		pop edx;
 		pop ecx;
 		pop ebx;
+		retn;
+	}
+}
+
+static void __declspec(naked) EndLoadHook() {
+	__asm {
+		call EndLoad_;
+		pushad;
+		call LoadGame2_After;
+		popad;
 		retn;
 	}
 }
@@ -460,6 +464,7 @@ void LoadGameHookInit() {
 	HookCall(0x443B89, LoadGame);
 	HookCall(0x480B77, LoadGame);
 	HookCall(0x48FD35, LoadGame);
+	SafeWrite32(0x5194C0, (DWORD)&EndLoadHook);
 	HookCall(0x443AAC, SaveGame);
 	HookCall(0x443B1C, SaveGame);
 	HookCall(0x48FCFF, SaveGame);
