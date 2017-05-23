@@ -19,9 +19,9 @@ procedure tohit_hook_handler begin
 end
 
 procedure start begin
-	if game_loaded then begin
-		register_hook_proc(HOOK_TOHIT, tohit_hook_handler);
-	end
+   if game_loaded then begin
+      register_hook_proc(HOOK_TOHIT, tohit_hook_handler);
+   end
 end
 
 
@@ -427,7 +427,7 @@ HOOK_INVENWIELD (hs_invenwield.int)
 
 Runs before wielding or unwielding an armor or a weapon by a critter (except when using inventory by PC).
 An example usage would be to change critter art depending on armor being used or to dynamically customize weapon animations.
-NOTE: when replacing a previously wielded armor or weapon, the unwielding hook will not be executed. 
+NOTE: when replacing a previously wielded armor or weapon, the unwielding hook will not be executed.
 If you need to rely on this, try checking if armor/weapon already equipped when wielding hook is executed.
 
 Critter arg1 - critter
@@ -436,7 +436,6 @@ int     arg3 - slot (INVEN_TYPE_*)
 int     arg4 - 1 when wielding, 0 when unwielding
 
 int     ret1 - overrides hard-coded handler (-1 - use engine handler, any other value - override) - NOT RECOMMENDED
-
 
 -------------------------------------------
 
@@ -451,7 +450,6 @@ int	    arg1 - the vanilla fid calculated by the engine according to critter bas
 
 int     ret1 - overrides the calculated FID with provided value
 
-
 -------------------------------------------
 
 HOOK_COMBATTURN (hs_combatturn.int)
@@ -464,7 +462,6 @@ int     arg3 - unknown boolean argument
 
 int     ret1 - pass 1 at the start of turn to skip the turn, pass -1 at the end of turn to force end of combat
 
-
 -------------------------------------------
 
 HOOK_CARTRAVEL (hs_cartravel.int)
@@ -476,5 +473,3 @@ int     arg2 - vanilla fuel consumption (100 and below)
 
 int     ret1 - car speed override (pass -1 if you just want to override fuel consumption)
 int     ret2 - fuel consumption override
-
-

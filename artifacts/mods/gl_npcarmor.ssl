@@ -1,14 +1,14 @@
-/*  
+/*
 
    NPC Armor Appearance mod
-   
+
    Used to replace the scripted part of B-Team mod.
    Appropriate graphics are required for this mod to work.
    Can be adopted to any mod by adjusting armor PIDs, NPC PIDs and NPC FIDs in INI file.
-   
+
    NOTE: this script requires compiler from sfall modderspack with -s option
    (short circuit evaluation)
-   
+
    version 1.0
 
 */
@@ -48,12 +48,12 @@ procedure invenwield_handler begin
    item := get_sfall_arg;
    slot := get_sfall_arg;
    isWorn := get_sfall_arg;
-   
+
    if (critter and item and slot == INVEN_TYPE_WORN) then begin
       fid := check_armor_change(critter, item, isWorn);
       if (fid != -1) then begin
          art_change_fid_num(critter, fid);
-      end        
+      end
    end
 end
 
@@ -72,16 +72,16 @@ end
 
 procedure start begin
    variable sect, sects, armorTypes, armorType, npc, pid, pids, i;
-   if game_loaded then begin
+   if game_loaded and (sfall_ver_major >= 4) then begin
       register_hook_proc(HOOK_INVENWIELD, invenwield_handler);
       register_hook_proc(HOOK_ADJUSTFID, adjustfid_handler);
-      
+
       defaultFids := get_ini_section(modIni, "Default");
       fix_array(defaultFids);
       foreach (armorType: i in defaultFids) begin
          defaultFids[armorType] := atoi(i);
       end
-      
+
       armorPidMap := create_array_map;
       armorTypes := get_ini_section(modIni, "ArmorTypes");
       foreach (armorType: pids in armorTypes) begin
@@ -90,9 +90,9 @@ procedure start begin
             armorPidMap[atoi(pid)] := armorType;
          end
       end
-      
+
       npcMap := create_array_map;
-      
+
       i := 1;
       sect := get_ini_section(modIni, ""+i);
       while (sect.PID) do begin
@@ -101,14 +101,14 @@ procedure start begin
          foreach (armorType: pids in armorTypes) begin
             if (sect[armorType]) then begin
                npc[armorType] := atoi(sect[armorType]);
-            end             
+            end
          end
          npcMap[atoi(sect.PID)] := npc;
-         
+
          i += 1;
          sect := get_ini_section(modIni, ""+i);
       end
    end
-   
+
 end
 
