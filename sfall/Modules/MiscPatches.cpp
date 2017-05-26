@@ -552,6 +552,14 @@ void InstantWeaponEquipPatch() {
 	}
 }
 
+void DontTurnOffSneakIfYouRunPatch() {
+	if (GetConfigInt("Misc", "DontTurnOffSneakIfYouRun", 0)) {
+		dlog("Applying DontTurnOffSneakIfYouRun patch.", DL_INIT);
+		SafeWrite8(0x418135, 0xEB);
+		dlogr(" Done", DL_INIT);
+	}
+}
+
 void CombatProcFix() {
 	//Ray's combat_p_proc fix
 	dlog("Applying combat_p_proc fix.", DL_INIT);
@@ -637,6 +645,14 @@ void EncounterTableSizePatch() {
 	}
 }
 
+void DisablePipboyAlarmPatch() {
+	if (GetConfigInt("Misc", "DisablePipboyAlarm", 0)) {
+		dlog("Applying Disable Pip-Boy alarm button patch.", DL_INIT);
+		SafeWrite8(0x499518, 0xC3);
+		dlogr(" Done", DL_INIT);
+	}
+}
+
 void ObjCanSeeShootThroughPatch() {
 	if (GetConfigInt("Misc", "ObjCanSeeObj_ShootThru_Fix", 0)) {
 		dlog("Applying ObjCanSeeObj ShootThru Fix.", DL_INIT);
@@ -666,7 +682,7 @@ void DialogueFix() {
 	}
 }
 
-void DontDeleteProtosPatch() {	
+void DontDeleteProtosPatch() {
 	if (isDebug && GetPrivateProfileIntA("Debugging", "DontDeleteProtos", 0, ".\\ddraw.ini")) {
 		dlog("Applying permanent protos patch.", DL_INIT);
 		SafeWrite8(0x48007E, 0xeb);
@@ -783,7 +799,7 @@ void MiscPatches::init() {
 
 	SkilldexImagesPatch();
 	RemoveWindowRoundingPatch();
-	
+
 	SpeedInterfaceCounterAnimsPatch();
 	ScienceOnCrittersPatch();
 	InventoryCharacterRotationSpeedPatch();
@@ -798,13 +814,12 @@ void MiscPatches::init() {
 	MotionScannerFlagsPatch();
 	EncounterTableSizePatch();
 
-	if (GetConfigInt("Misc", "DisablePipboyAlarm", 0)) {
-		SafeWrite8(0x499518, 0xc3);
-	}
+	DisablePipboyAlarmPatch();
 
 	ObjCanSeeShootThroughPatch();
 	UIAnimationSpeedPatch();
 	MusicInDialoguePatch();
+	DontTurnOffSneakIfYouRunPatch();
 
 	InstantWeaponEquipPatch();
 	NumbersInDialoguePatch();
