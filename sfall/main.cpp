@@ -1467,7 +1467,9 @@ static void DllMain2() {
 	dlogr(" Done", DL_INIT);
 
 	if (GetPrivateProfileIntA("Misc", "DisablePipboyAlarm", 0, ini)) {
-		SafeWrite8(0x499518, 0xc3);
+		dlog("Applying Disable Pip-Boy alarm button patch.", DL_INIT);
+		SafeWrite8(0x499518, 0xC3);
+		dlogr(" Done", DL_INIT);
 	}
 
 	dlog("Applying AI patches.", DL_INIT);
@@ -1511,6 +1513,12 @@ static void DllMain2() {
 	if (GetPrivateProfileIntA("Misc", "TownMapHotkeysFix", 1, ini)) {
 		dlog("Applying town map hotkeys patch.", DL_INIT);
 		MakeCall(0x4C4945, &wmTownMapFunc_hack, false);
+		dlogr(" Done", DL_INIT);
+	}
+
+	if (GetPrivateProfileIntA("Misc", "DontTurnOffSneakIfYouRun", 0, ini)) {
+		dlog("Applying DontTurnOffSneakIfYouRun patch.", DL_INIT);
+		SafeWrite8(0x418135, 0xEB);
 		dlogr(" Done", DL_INIT);
 	}
 
