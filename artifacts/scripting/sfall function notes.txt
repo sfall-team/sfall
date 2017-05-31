@@ -381,7 +381,7 @@ Some utility/math functions are available:
 - call "tile_refresh_display" after changing outline of objects to properly redraw the scene
 
 > int sfall_func1("get_flags", object)
-- gets the current value of object flags (see sfall.h for available flags)
+- gets the current value of object flags (see define_extra.h for available flags)
 
 > void sfall_func2("set_flags", object, int flags)
 - sets the current flags of an object

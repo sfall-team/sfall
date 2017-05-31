@@ -39,7 +39,7 @@
 #define ATKMODE_SEC_BURST     112  // 0x00000070
 #define ATKMODE_SEC_FLAME     128  // 0x00000080
 
-/* Object flags */
+/* Object flags for get/set_flags */
 #define FLAG_MOUSE_3D            (0x1)
 #define FLAG_WALKTHRU            (0x4)
 #define FLAG_FLAT                (0x8)
