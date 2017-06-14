@@ -133,7 +133,7 @@ static void __declspec(naked) ComputeDamageHook() {
 		jz hookscript;
 		inc dword ptr ds : [edx + 0x2c];
 hookscript:
-		hookbegin(11);
+		hookbegin(12);
 		mov ebx, [edx + 0x20];
 		mov args[0x00], ebx;
 		mov ebx, [edx + 0x00];
@@ -156,6 +156,8 @@ hookscript:
 		mov args[0x24], ebx;
 		mov ebx, [edx + 0x34]; // knockback value
 		mov args[0x28], ebx;
+		mov ebx, [edx + 0x04]; // attack type
+		mov args[0x2c], ebx;
 
 		pushad;
 		push HOOK_COMBATDAMAGE;
