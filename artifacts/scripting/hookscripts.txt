@@ -169,6 +169,7 @@ int     arg8  - The bodypart that was struck
 int     arg9  - Roll result of the attack (check with is_success, etc functions; basically: 0-crit. fail, 1-fail, 2-success, 3-crit. success)
 int     arg10 - Number of bullets actually hit the target (1 for melee attacks)
 int     arg11 - The amount of knockback to the target
+int     arg12 - Attack Type (see ATKTYPE_* constants)
 
 int     ret1 - The damage to the target
 int     ret2 - The damage to the attacker
