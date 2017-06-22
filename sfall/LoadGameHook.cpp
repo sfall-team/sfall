@@ -157,7 +157,7 @@ static void __declspec(naked) SaveGame() {
 
 		or InLoop, SAVEGAME;
 		call SaveGame_;
-		and InLoop, (-1^SAVEGAME);
+		and InLoop, (-1 ^ SAVEGAME);
 		cmp eax, 1;
 		jne end;
 		call SaveGame2;
@@ -219,7 +219,7 @@ static void __declspec(naked) LoadGame() {
 		push edx;
 		or InLoop, LOADGAME;
 		call LoadGame_;
-		and InLoop, (-1^LOADGAME);
+		and InLoop, (-1 ^ LOADGAME);
 		pop edx;
 		pop ecx;
 		pop ebx;
@@ -295,7 +295,7 @@ static void __declspec(naked) WorldMapHook() {
 		or InLoop, WORLDMAP;
 		xor eax, eax;
 		call wmWorldMapFunc_;
-		and InLoop, (-1^WORLDMAP);
+		and InLoop, (-1 ^ WORLDMAP);
 		retn;
 	}
 }
@@ -304,7 +304,7 @@ static void __declspec(naked) WorldMapHook2() {
 	__asm {
 		or InLoop, WORLDMAP;
 		call wmWorldMapFunc_;
-		and InLoop, (-1^WORLDMAP);
+		and InLoop, (-1 ^ WORLDMAP);
 		retn;
 	}
 }
@@ -319,7 +319,7 @@ static void __declspec(naked) CombatHook() {
 		pushad;
 		call AICombatEnd;
 		popad
-		and InLoop, (-1^COMBAT);
+		and InLoop, (-1 ^ COMBAT);
 		retn;
 	}
 }
@@ -328,7 +328,7 @@ static void __declspec(naked) PlayerCombatHook() {
 	__asm {
 		or InLoop, PCOMBAT;
 		call combat_input_;
-		and InLoop, (-1^PCOMBAT);
+		and InLoop, (-1 ^ PCOMBAT);
 		retn;
 	}
 }
@@ -337,7 +337,7 @@ static void __declspec(naked) EscMenuHook() {
 	__asm {
 		or InLoop, ESCMENU;
 		call do_optionsFunc_;
-		and InLoop, (-1^ESCMENU);
+		and InLoop, (-1 ^ ESCMENU);
 		retn;
 	}
 }
@@ -347,7 +347,7 @@ static void __declspec(naked) EscMenuHook2() {
 	__asm {
 		or InLoop, ESCMENU;
 		call do_options_;
-		and InLoop, (-1^ESCMENU);
+		and InLoop, (-1 ^ ESCMENU);
 		retn;
 	}
 }
@@ -356,7 +356,7 @@ static void __declspec(naked) OptionsMenuHook() {
 	__asm {
 		or InLoop, OPTIONS;
 		call do_prefscreen_;
-		and InLoop, (-1^OPTIONS);
+		and InLoop, (-1 ^ OPTIONS);
 		retn;
 	}
 }
@@ -365,7 +365,7 @@ static void __declspec(naked) HelpMenuHook() {
 	__asm {
 		or InLoop, HELP;
 		call game_help_;
-		and InLoop, (-1^HELP);
+		and InLoop, (-1 ^ HELP);
 		retn;
 	}
 }
@@ -386,7 +386,7 @@ success:
 		call PerksAcceptCharScreen;
 end:
 		popad;
-		and InLoop, (-1^CHARSCREEN);
+		and InLoop, (-1 ^ CHARSCREEN);
 		retn;
 	}
 }
@@ -395,7 +395,7 @@ static void __declspec(naked) DialogHook() {
 	__asm {
 		or InLoop, DIALOG;
 		call gdProcess_;
-		and InLoop, (-1^DIALOG);
+		and InLoop, (-1 ^ DIALOG);
 		retn;
 	}
 }
@@ -404,7 +404,7 @@ static void __declspec(naked) PipboyHook() {
 	__asm {
 		or InLoop, PIPBOY;
 		call pipboy_;
-		and InLoop, (-1^PIPBOY);
+		and InLoop, (-1 ^ PIPBOY);
 		retn;
 	}
 }
@@ -413,17 +413,45 @@ static void __declspec(naked) SkilldexHook() {
 	__asm {
 		or InLoop, SKILLDEX;
 		call skilldex_select_;
-		and InLoop, (-1^SKILLDEX);
+		and InLoop, (-1 ^ SKILLDEX);
 		retn;
 	}
 }
 
-static void __declspec(naked) InventoryHook() {
+static void __declspec(naked) HandleInventoryHook() {
 	__asm {
 		or InLoop, INVENTORY;
 		call handle_inventory_;
-		and InLoop, (-1^INVENTORY);
+		and InLoop, (-1 ^ INVENTORY);
 		retn;
+	}
+}
+
+static void __declspec(naked) UseInventoryOnHook() {
+	__asm {
+		or InLoop, INTFACEUSE;
+		call use_inventory_on_;
+		and InLoop, (-1 ^ INTFACEUSE);
+		retn;
+	}
+}
+
+static void __declspec(naked) LootContainerHook() {
+	__asm {
+		or InLoop, INTFACELOOT;
+		call loot_container_;
+		and InLoop, (-1 ^ INTFACELOOT);
+		retn;
+	}
+}
+
+static void __declspec(naked) BarterInventoryHook() {
+	__asm {
+		or InLoop, BARTER;
+		push [ESP + 4];
+		call barter_inventory_;
+		and InLoop, (-1 ^ BARTER);
+		retn 4;
 	}
 }
 
@@ -431,7 +459,7 @@ static void __declspec(naked) AutomapHook() {
 	__asm {
 		or InLoop, AUTOMAP;
 		call automap_;
-		and InLoop, (-1^AUTOMAP);
+		and InLoop, (-1 ^ AUTOMAP);
 		retn;
 	}
 }
@@ -497,7 +525,12 @@ void LoadGameHookInit() {
 	HookCall(0x443605, PipboyHook);
 	HookCall(0x4434AC, SkilldexHook);
 	HookCall(0x44C7BD, SkilldexHook);
-	HookCall(0x443357, InventoryHook);
+	HookCall(0x443357, HandleInventoryHook);
+	HookCall(0x44C6FB, UseInventoryOnHook);
+	HookCall(0x4746EC, LootContainerHook);
+	HookCall(0x4A4369, LootContainerHook);
+	HookCall(0x4A4565, LootContainerHook);
+	HookCall(0x4466C7, BarterInventoryHook);
 	HookCall(0x44396D, AutomapHook);
 	HookCall(0x479519, AutomapHook);
 }
