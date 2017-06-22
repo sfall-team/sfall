@@ -138,7 +138,7 @@ static void __declspec(naked) SaveGame_hook() {
 
 		or inLoop, SAVEGAME;
 		call fo::funcoffs::SaveGame_;
-		and inLoop, (-1^SAVEGAME);
+		and inLoop, (-1 ^ SAVEGAME);
 		cmp eax, 1;
 		jne end;
 		call SaveGame2;
@@ -199,7 +199,7 @@ static void __declspec(naked) LoadGame_hook() {
 		push edx;
 		or inLoop, LOADGAME;
 		call fo::funcoffs::LoadGame_;
-		and inLoop, (-1^LOADGAME);
+		and inLoop, (-1 ^ LOADGAME);
 		pop edx;
 		pop ecx;
 		pop ebx;
@@ -281,7 +281,7 @@ static void __declspec(naked) WorldMapHook() {
 		or inLoop, WORLDMAP;
 		xor eax, eax;
 		call fo::funcoffs::wmWorldMapFunc_;
-		and inLoop, (-1^WORLDMAP);
+		and inLoop, (-1 ^ WORLDMAP);
 		retn;
 	}
 }
@@ -290,7 +290,7 @@ static void __declspec(naked) WorldMapHook2() {
 	__asm {
 		or inLoop, WORLDMAP;
 		call fo::funcoffs::wmWorldMapFunc_;
-		and inLoop, (-1^WORLDMAP);
+		and inLoop, (-1 ^ WORLDMAP);
 		retn;
 	}
 }
@@ -305,7 +305,7 @@ static void __declspec(naked) CombatHook() {
 		pushad;
 		call AICombatEnd;
 		popad
-		and inLoop, (-1^COMBAT);
+		and inLoop, (-1 ^ COMBAT);
 		retn;
 	}
 }
@@ -314,7 +314,7 @@ static void __declspec(naked) PlayerCombatHook() {
 	__asm {
 		or inLoop, PCOMBAT;
 		call fo::funcoffs::combat_input_;
-		and inLoop, (-1^PCOMBAT);
+		and inLoop, (-1 ^ PCOMBAT);
 		retn;
 	}
 }
@@ -323,7 +323,7 @@ static void __declspec(naked) EscMenuHook() {
 	__asm {
 		or inLoop, ESCMENU;
 		call fo::funcoffs::do_optionsFunc_;
-		and inLoop, (-1^ESCMENU);
+		and inLoop, (-1 ^ ESCMENU);
 		retn;
 	}
 }
@@ -333,7 +333,7 @@ static void __declspec(naked) EscMenuHook2() {
 	__asm {
 		or inLoop, ESCMENU;
 		call fo::funcoffs::do_options_;
-		and inLoop, (-1^ESCMENU);
+		and inLoop, (-1 ^ ESCMENU);
 		retn;
 	}
 }
@@ -342,7 +342,7 @@ static void __declspec(naked) OptionsMenuHook() {
 	__asm {
 		or inLoop, OPTIONS;
 		call fo::funcoffs::do_prefscreen_;
-		and inLoop, (-1^OPTIONS);
+		and inLoop, (-1 ^ OPTIONS);
 		retn;
 	}
 }
@@ -351,7 +351,7 @@ static void __declspec(naked) HelpMenuHook() {
 	__asm {
 		or inLoop, HELP;
 		call fo::funcoffs::game_help_;
-		and inLoop, (-1^HELP);
+		and inLoop, (-1 ^ HELP);
 		retn;
 	}
 }
@@ -372,7 +372,7 @@ success:
 		call PerksAcceptCharScreen;
 end:
 		popad;
-		and inLoop, (-1^CHARSCREEN);
+		and inLoop, (-1 ^ CHARSCREEN);
 		retn;
 	}
 }
@@ -381,7 +381,7 @@ static void __declspec(naked) DialogHook() {
 	__asm {
 		or inLoop, DIALOG;
 		call fo::funcoffs::gdProcess_;
-		and inLoop, (-1^DIALOG);
+		and inLoop, (-1 ^ DIALOG);
 		retn;
 	}
 }
@@ -390,7 +390,7 @@ static void __declspec(naked) PipboyHook() {
 	__asm {
 		or inLoop, PIPBOY;
 		call fo::funcoffs::pipboy_;
-		and inLoop, (-1^PIPBOY);
+		and inLoop, (-1 ^ PIPBOY);
 		retn;
 	}
 }
@@ -399,7 +399,7 @@ static void __declspec(naked) SkilldexHook() {
 	__asm {
 		or inLoop, SKILLDEX;
 		call fo::funcoffs::skilldex_select_;
-		and inLoop, (-1^SKILLDEX);
+		and inLoop, (-1 ^ SKILLDEX);
 		retn;
 	}
 }
@@ -408,7 +408,7 @@ static void __declspec(naked) HandleInventoryHook() {
 	__asm {
 		or inLoop, INVENTORY;
 		call fo::funcoffs::handle_inventory_;
-		and inLoop, (-1^INVENTORY);
+		and inLoop, (-1 ^ INVENTORY);
 		retn;
 	}
 }
