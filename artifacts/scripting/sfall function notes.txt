@@ -397,6 +397,9 @@ Some utility/math functions are available:
 - take control of a given critter
 - passing 0 will reset control back to "real" dude
 
+> void sfall_func0("real_dude_obj")
+- returns the initial dude_obj after set_dude_obj was used
+
 > array sfall_func1("get_ini_sections", string fileName)
 - returns an array of names of all sections in a given INI file
 
