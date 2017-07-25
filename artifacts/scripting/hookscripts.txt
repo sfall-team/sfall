@@ -42,7 +42,7 @@ Returns all hook arguments as a new temp array.
 Used to return the new values from the script. Each time it's called it sets the next value, or if you've already set all return values it does nothing.
 
 > void set_sfall_arg(int argnum, int value)
-Changes argument value. This is usefull if you have several hook scripts attached to one hook point (see below).
+Changes argument value. The argument number (argnum) is 0-indexed. This is usefull if you have several hook scripts attached to one hook point (see below).
 
 > void register_hook(int hooktype)
 Used from a normal global script if you want to run it at the same point a full hook script would normally run. In case of this function, "start" proc will be execuded in a current global script. You can use all above functions like normal.
@@ -58,13 +58,13 @@ Example: let's say we have a Mod A which reduces all "to hit" chances by 50%. Th
 
 Mod B also want to affect hit chances globally, by increasing them by 50%. Now in order for both mods to work well together, we need to add this line to Mod A hook script:
 
-    set_sfall_arg(original_chance / 2);
+    set_sfall_arg(0, (original_chance / 2));
 
 This basically changes hook argument for the next script. Mod B code:
 
     original_chance = get_sfall_arg;
     set_sfall_return(original_chance * 1.5);
-    set_sfall_arg(original_chance * 1.5);
+    set_sfall_arg(0, (original_chance * 1.5));
 
 So if you combine both mods together, they will run in chain and the end result will be a 75% from original hit chance (hook register order doesn't matter in this case, if you use "set_sfall_arg" in both hooks).
 
@@ -447,7 +447,7 @@ Also happens on other screens, like barter.
 
 NOTE: FID has following format: 0x0ABBCDDD, where A is object type, BB - animation code (always 0 in this case), C - weapon code, DDD - FRM index in LST file.
 
-int	    arg1 - the vanilla fid calculated by the engine according to critter base FID and armor/weapon being used
+int     arg1 - the vanilla fid calculated by the engine according to critter base FID and armor/weapon being used
 
 int     ret1 - overrides the calculated FID with provided value
 
@@ -457,7 +457,7 @@ HOOK_COMBATTURN (hs_combatturn.int)
 
 Runs before and after each turn in combat (for both PC and NPC).
 
-int	    arg1 - event type: 1 - start of turn, 0 - normal end of turn, -1 - combat ended abruptly (by script or by pressing Enter during PC turn)
+int     arg1 - event type: 1 - start of turn, 0 - normal end of turn, -1 - combat ended abruptly (by script or by pressing Enter during PC turn)
 int     arg2 - critter doing the turn
 int     arg3 - unknown boolean argument
 
@@ -469,7 +469,7 @@ HOOK_CARTRAVEL (hs_cartravel.int)
 
 Runs continously during worldmap travel on car.
 
-int	    arg1 - vanilla car speed (between 3 and 8 "steps")
+int     arg1 - vanilla car speed (between 3 and 8 "steps")
 int     arg2 - vanilla fuel consumption (100 and below)
 
 int     ret1 - car speed override (pass -1 if you just want to override fuel consumption)

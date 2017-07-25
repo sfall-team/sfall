@@ -208,9 +208,8 @@
 0x81e3 - void reset_critical_table(int crittertype, int bodypart, int level, int valuetype)
 
 0x81e4 - int   get_sfall_arg()
-0x823d - void  set_sfall_arg(int arg, int value)
 0x823c - array get_sfall_args()
-0x823d - void  set_sfall_arg(int arg, int value)
+0x823d - void  set_sfall_arg(int argnum, int value)
 0x81e5 - void  set_sfall_return(int value)
 0x81ea - int   init_hook()
 
