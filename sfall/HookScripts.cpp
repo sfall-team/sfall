@@ -1176,7 +1176,7 @@ static void HookScriptInit2() {
 	HookCall(0x42679A, &ToHitHook); // combat_to_hit_
 
 	LoadHookScript("hs_afterhitroll", HOOK_AFTERHITROLL);
-	MakeCall(0x423893, &AfterHitRollHook, true);
+	MakeJump(0x423893, AfterHitRollHook);
 
 	LoadHookScript("hs_calcapcost", HOOK_CALCAPCOST);
 	HookCall(0x42307A, &CalcApCostHook);
@@ -1189,7 +1189,7 @@ static void HookScriptInit2() {
 	HookCall(0x42AE71, &CalcApCostHook);
 	HookCall(0x460048, &CalcApCostHook);
 	HookCall(0x47807B, &CalcApCostHook);
-	MakeCall(0x478083, &CalcApCostHook2, false);
+	MakeCall(0x478083, CalcApCostHook2);
 
 	LoadHookScript("hs_deathanim1", HOOK_DEATHANIM1);
 	LoadHookScript("hs_deathanim2", HOOK_DEATHANIM2);
@@ -1234,7 +1234,7 @@ static void HookScriptInit2() {
 	HookCall(0x473573, &UseObjOnHook_item_d_take_drug); // inven_action_cursor
 
 	LoadHookScript("hs_removeinvenobj", HOOK_REMOVEINVENOBJ);
-	MakeCall(0x477490, &RemoveObjHook, true);
+	MakeJump(0x477490, RemoveObjHook);
 
 	LoadHookScript("hs_barterprice", HOOK_BARTERPRICE);
 	HookCall(0x474D4C, &BarterPriceHook);
@@ -1257,7 +1257,7 @@ static void HookScriptInit2() {
 	SafeWrite32(0x426CF8, (DWORD)&HexShootBlockingHook);
 	SafeWrite32(0x42A570, (DWORD)&HexShootBlockingHook);
 	SafeWrite32(0x42A0A4, (DWORD)&HexABlockingHook);
-	MakeCall(0x48B848, &HexMBlockingHook, true);
+	MakeJump(0x48B848, HexMBlockingHook);
 
 	LoadHookScript("hs_itemdamage", HOOK_ITEMDAMAGE);
 	HookCall(0x478560, &ItemDamageHook);
@@ -1287,19 +1287,19 @@ static void HookScriptInit2() {
 	HookCall(0x42BC87, &PerceptionRangeHook);
 	HookCall(0x42BC9F, &PerceptionRangeHook);
 	HookCall(0x42BD04, &PerceptionRangeHook);
-	MakeCall(0x456BA2, &PerceptionRangeBonusHack, true);
+	MakeJump(0x456BA2, PerceptionRangeBonusHack);
 	HookCall(0x458403, &PerceptionRangeHook);
 
 	LoadHookScript("hs_inventorymove", HOOK_INVENTORYMOVE);
 	HookCall(0x4712E3, &SwitchHandHook); // left slot
 	HookCall(0x47136D, &SwitchHandHook); // right slot
-	MakeCall(0x4713A3, &UseArmorHack, true);
+	MakeJump(0x4713A3, UseArmorHack);
 	//HookCall(0x4711B3, &DropIntoContainerHook); 
 	//HookCall(0x47147C, &DropIntoContainerHook); 
 	HookCall(0x471200, &MoveInventoryHook); 
 	//HookCall(0x4712C7, &DropAmmoIntoWeaponHook);
 	//HookCall(0x471351, &DropAmmoIntoWeaponHook);
-	MakeCall(0x476588, &DropAmmoIntoWeaponHack, true);
+	MakeJump(0x476588, DropAmmoIntoWeaponHack);
 
 	LoadHookScript("hs_invenwield", HOOK_INVENWIELD);
 	HookCall(0x47275E, &invenWieldFunc_Hook);

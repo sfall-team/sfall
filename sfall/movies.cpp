@@ -543,7 +543,7 @@ void MoviesInit() {
 	}
 	dlog(".", DL_INIT);
 	if(GetPrivateProfileInt("Sound", "AllowDShowSound", 0, ini)) {
-		MakeCall(0x4AD498, &SoundLoadHook, true);
+		MakeJump(0x4AD498, SoundLoadHook);
 	}
 	dlogr(" Done", DL_INIT);
 
@@ -557,7 +557,7 @@ void MoviesInit() {
 		char s[255];
 		sprintf_s(s, "Applying patch: MovieTimer_artimer1 = %d. ", Artimer1DaysCheckTimer);
 		dlog(s, DL_INIT);
-		MakeCall(0x4A378B, &Artimer1DaysCheckHook, true);
+		MakeJump(0x4A378B, Artimer1DaysCheckHook);
 		dlogr("Done", DL_INIT);
 	}
 }

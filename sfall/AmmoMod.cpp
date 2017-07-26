@@ -737,19 +737,19 @@ void AmmoModInit() {
 	if (formula=GetPrivateProfileIntA("Misc", "DamageFormula", 0, ini)) {
 		switch (formula) {
 		case 1:
-			MakeCall(0x424995, &DamageFunction1, true);
+			MakeJump(0x424995, DamageFunction1);
 			break;
 		case 2:
-			MakeCall(0x424995, &DamageFunction2, true);
+			MakeJump(0x424995, DamageFunction2);
 			break;
 		/*case 3:
-			MakeCall(0x424995, &DamageFunction3, true);
+			MakeJump(0x424995, DamageFunction3);
 			break;
 		case 4:
-			MakeCall(0x424995, &DamageFunction4, true);
+			MakeJump(0x424995, DamageFunction4);
 			break;*/
 		case 5:
-			MakeCall(0x424995, &DamageFunction5, true);
+			MakeJump(0x424995, DamageFunction5);
 			break;
 		}
 	}
@@ -757,19 +757,19 @@ void AmmoModInit() {
 	int DisplayBonusDmg = GetPrivateProfileIntA("Misc", "DisplayBonusDamage", 0, ini);
 	if (BonusHtHDmgFix) {
 		dlog("Applying Bonus HtH Damage Perk fix.", DL_INIT);
-		MakeCall(0x435C0C, &MeleeDmgDispFix, true);
-		MakeCall(0x43991C, &MeleeDmgPrintFix, true);
+		MakeJump(0x435C0C, MeleeDmgDispFix);
+		MakeJump(0x43991C, MeleeDmgPrintFix);
 		if (!DisplayBonusDmg) {
-			MakeCall(0x472266, &MeleeWeapDmgRngDispFix, true);
-			MakeCall(0x47254B, &UnarmedDmgRngDispFix, true);
+			MakeJump(0x472266, MeleeWeapDmgRngDispFix);
+			MakeJump(0x47254B, UnarmedDmgRngDispFix);
 		}
-		MakeCall(0x478492, &HtHDamageFix1a, true);
-		MakeCall(0x47854C, &HtHDamageFix1b, true);
+		MakeJump(0x478492, HtHDamageFix1a);
+		MakeJump(0x47854C, HtHDamageFix1b);
 		dlogr(" Done", DL_INIT);
 	}
 	//if(GetPrivateProfileIntA("Misc", "SpecialUnarmedAttacksFix", 1, ini)) {
 		dlog("Applying Special Unarmed Attacks fix.", DL_INIT);
-		MakeCall(0x42394D, &UnarmedAttacksFix, true);
+		MakeJump(0x42394D, UnarmedAttacksFix);
 		dlogr(" Done", DL_INIT);
 	//}
 	if (DisplayBonusDmg) {
@@ -777,7 +777,7 @@ void AmmoModInit() {
 		HookCall(0x4722DD, &DisplayBonusRangedDmg);
 		if (BonusHtHDmgFix) {
 			HookCall(0x472309, &DisplayBonusHtHDmg1);
-			MakeCall(0x472546, &DisplayBonusHtHDmg2, true);
+			MakeJump(0x472546, DisplayBonusHtHDmg2);
 		}
 		dlogr(" Done", DL_INIT);
 	}

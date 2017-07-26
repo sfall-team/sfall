@@ -50,7 +50,7 @@ void ConsoleInit() {
 	GetPrivateProfileString("Misc", "ConsoleOutputPath", "", path, MAX_PATH, ini);
 	if(strlen(path)>0) {
 		consolefile.open(path);
-		if(consolefile.is_open()) MakeCall(0x43186C, &ConsoleHook, true);
+		if(consolefile.is_open()) MakeJump(0x43186C, ConsoleHook);
 	}
 }
 

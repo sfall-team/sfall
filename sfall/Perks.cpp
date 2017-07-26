@@ -727,7 +727,7 @@ static void PerkSetup() {
 	}
 
 	//perk_owed hooks
-	MakeCall(0x4AFB2F, LevelUpHook, false);//replaces 'mov edx, ds:[PlayerLevel]
+	MakeCall(0x4AFB2F, LevelUpHook);//replaces 'mov edx, ds:[PlayerLevel]
 	SafeWrite8(0x4AFB34, 0x90);
 
 	SafeWrite8(0x43C2EC, 0xEB); //skip the block of code which checks if the player has gained a perk (now handled in level up code)
@@ -854,8 +854,8 @@ static void __declspec(naked) BlockedTrait() {
 	}
 }
 static void TraitSetup() {
-	MakeCall(0x4B3C7C, &TraitAdjustStatHook, true);
-	MakeCall(0x4B40FC, &TraitAdjustSkillHook, true);
+	MakeJump(0x4B3C7C, TraitAdjustStatHook);
+	MakeJump(0x4B40FC, TraitAdjustSkillHook);
 
 	memset(tName, 0, sizeof(tName));
 	memset(tDesc, 0, sizeof(tDesc));

@@ -242,7 +242,7 @@ void StatsInit() {
 
 	GetPrivateProfileStringA("Misc", "DerivedStats", "", table, 2048, ini);
 	if(strlen(table)) {
-		MakeCall(0x4AF6FC, &stat_recalc_derived, true);
+		MakeJump(0x4AF6FC, stat_recalc_derived);
 		memset(StatFormulas, 0, sizeof(StatFormulas));
 		memset(StatShifts, 0, sizeof(StatShifts));
 		memset(StatMulti, 0, sizeof(StatMulti));

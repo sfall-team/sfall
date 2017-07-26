@@ -75,7 +75,7 @@ void BarBoxesInit() {
 	SafeWrite8(0x46140B, 10);
 	SafeWrite8(0x461495, 0x78);
 
-	MakeCall(0x4615A3, &DisplayBoxesHook, true);
+	MakeJump(0x4615A3, DisplayBoxesHook);
 	char buf[6];
 	GetPrivateProfileString("Misc", "BoxBarColours", "", buf, 6, ini);
 	if(strlen(buf)==5) {

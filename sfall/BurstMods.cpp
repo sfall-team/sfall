@@ -83,7 +83,7 @@ void ComputeSprayModInit() {
 			compute_spray_target_div = 1;
 		if (compute_spray_target_mult > compute_spray_target_div)
 			compute_spray_target_mult = compute_spray_target_div;
-		MakeCall(0x4234F1, &compute_spray_rounds_distribution, true);
+		MakeJump(0x4234F1, compute_spray_rounds_distribution);
 		dlogr(" Done", DL_INIT);
 	}
 }

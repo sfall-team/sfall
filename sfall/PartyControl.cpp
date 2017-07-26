@@ -372,7 +372,7 @@ void PartyControlInit() {
 
 		HookCall(0x46EBEE, &FidChangeHook);
 
-		MakeCall(0x422354, &CombatHack_add_noncoms_, true);
+		MakeJump(0x422354, CombatHack_add_noncoms_);
 		HookCall(0x422D87, &CombatWrapper_v2);
 		HookCall(0x422E20, &CombatWrapper_v2);
 

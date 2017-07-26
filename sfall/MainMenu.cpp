@@ -97,14 +97,14 @@ void MainMenuInit() {
 	if(tmp=GetPrivateProfileIntA("Misc", "MainMenuOffsetY", 0, ini)) {
 		MainMenuYOffset=tmp;
 		MainMenuTextOffset+=tmp*640;
-		MakeCall(0x481844, &MainMenuButtonYHook, true);
+		MakeJump(0x481844, MainMenuButtonYHook);
 	}
 	if(MainMenuTextOffset) {
 		SafeWrite8(0x481933, 0x90);
-		MakeCall(0x481934, &MainMenuTextYHook, false);
+		MakeCall(0x481934, MainMenuTextYHook);
 	}
 
-	MakeCall(0x4817AB, MainMenuTextHook, true);
+	MakeJump(0x4817AB, MainMenuTextHook);
 	OverrideColour=GetPrivateProfileInt("Misc", "MainMenuFontColour", 0, ini);
-	if(OverrideColour) MakeCall(0x48174C, &FontColour, false);
+	if(OverrideColour) MakeCall(0x48174C, FontColour);
 }

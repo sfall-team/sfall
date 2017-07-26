@@ -187,10 +187,10 @@ fail:
 void KnockbackInit() {
 	SafeWrite16(0x424B61, 0x25ff);
 	SafeWrite32(0x424B63, (DWORD)&KnockbackAddr);
-	MakeCall(0x4136D3, &KnockbackHook2, true); // for op_critter_dmg
-	MakeCall(0x424791, HitChanceHook, true);
-	MakeCall(0x4ABC62, PickpocketHook, true);
-	MakeCall(0x429E44, BurstHook, true);
+	MakeJump(0x4136D3, KnockbackHook2); // for op_critter_dmg
+	MakeJump(0x424791, HitChanceHook);
+	MakeJump(0x4ABC62, PickpocketHook);
+	MakeJump(0x429E44, BurstHook);
 }
 void Knockback_OnGameLoad() {
 	mTargets.clear();

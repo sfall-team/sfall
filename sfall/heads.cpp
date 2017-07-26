@@ -181,7 +181,7 @@ void HeadsInit() {
 	if (GetPrivateProfileInt("Graphics", "Use32BitHeadGraphics", 0, ini)) {
 		HookCall(0x44AFB4, &TransTalkHook);
 		HookCall(0x44B00B, &TransTalkHook);
-		MakeCall(0x44AD01, &DrawFrmHook, true);
-		MakeCall(0x447294, &EndSpeechHook, true);
+		MakeJump(0x44AD01, DrawFrmHook);
+		MakeJump(0x447294, EndSpeechHook);
 	}
 }

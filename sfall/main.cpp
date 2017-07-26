@@ -1016,7 +1016,7 @@ static void DllMain2() {
 		WorldMapEncounterRate = GetPrivateProfileIntA("Misc", "WorldMapEncounterRate", 5, ini);
 		SafeWrite32(0x4C232D, 0x01EBC031);        // xor eax, eax; jmps 0x4C2332
 		HookCall(0x4BFEE0, &wmWorldMapFunc_hook);
-		MakeCall(0x4C0667, &wmRndEncounterOccurred_hack, false);
+		MakeCall(0x4C0667, wmRndEncounterOccurred_hack);
 		dlogr(" Done", DL_INIT);
 	}
 
@@ -1211,8 +1211,8 @@ static void DllMain2() {
 
 	if (GetPrivateProfileIntA("Misc", "DataLoadOrderPatch", 0, ini)) {
 		dlog("Applying data load order patch.", DL_INIT);
-		MakeCall(0x444259, &game_init_databases_hack1, false);
-		MakeCall(0x4442F1, &game_init_databases_hack2, false);
+		MakeCall(0x444259, game_init_databases_hack1);
+		MakeCall(0x4442F1, game_init_databases_hack2);
 		HookCall(0x44436D, &game_init_databases_hook);
 		SafeWrite8(0x4DFAEC, 0x1D); // error correction
 		dlogr(" Done", DL_INIT);
@@ -1240,8 +1240,8 @@ static void DllMain2() {
 
 	if (GetPrivateProfileInt("Misc", "CorpseLineOfFireFix", 0, ini)) {
 		dlog("Applying corpse line of fire patch.", DL_INIT);
-		MakeCall(0x48B994, CorpseHitFix2, true);
-		MakeCall(0x48BA04, CorpseHitFix2b, true);
+		MakeJump(0x48B994, CorpseHitFix2);
+		MakeJump(0x48BA04, CorpseHitFix2b);
 		dlogr(" Done", DL_INIT);
 	}
 
@@ -1318,7 +1318,7 @@ static void DllMain2() {
 	switch (GetPrivateProfileIntA("Misc", "SpeedInterfaceCounterAnims", 0, ini)) {
 	case 1:
 		dlog("Applying SpeedInterfaceCounterAnims patch.", DL_INIT);
-		MakeCall(0x460BA1, &intface_rotate_numbers_hack, true);
+		MakeJump(0x460BA1, intface_rotate_numbers_hack);
 		dlogr(" Done", DL_INIT);
 		break;
 	case 2:
@@ -1399,17 +1399,17 @@ static void DllMain2() {
 
 	if (GetPrivateProfileIntA("Misc", "NPCStage6Fix", 0, ini)) {
 		dlog("Applying NPC Stage 6 Fix.", DL_INIT);
-		MakeCall(0x493CE9, &NPCStage6Fix1, true);
+		MakeJump(0x493CE9, NPCStage6Fix1);
 		SafeWrite8(0x494063, 0x06); // loop should look for a potential 6th stage
 		SafeWrite8(0x4940BB, 0xCC); // move pointer by 204 bytes instead of 200
-		MakeCall(0x494224, &NPCStage6Fix2, true);
+		MakeJump(0x494224, NPCStage6Fix2);
 		dlogr(" Done", DL_INIT);
 	}
 
 	switch (GetPrivateProfileIntA("Misc", "FastShotFix", 1, ini)) {
 	case 1:
 		dlog("Applying Fast Shot Trait Fix.", DL_INIT);
-		MakeCall(0x478E75, &FastShotTraitFix, true);
+		MakeJump(0x478E75, FastShotTraitFix);
 		dlogr(" Done", DL_INIT);
 		break;
 	case 2:
@@ -1440,7 +1440,7 @@ static void DllMain2() {
 
 	if (tmp = GetPrivateProfileIntA("Misc", "MotionScannerFlags", 1, ini)) {
 		dlog("Applying MotionScannerFlags patch.", DL_INIT);
-		if (tmp & 1) MakeCall(0x41BBE9, &ScannerAutomapHook, true);
+		if (tmp & 1) MakeJump(0x41BBE9, ScannerAutomapHook);
 		if (tmp & 2) {
 			// automap_
 			SafeWrite16(0x41BC24, 0x9090);
@@ -1512,7 +1512,7 @@ static void DllMain2() {
 
 	if (GetPrivateProfileIntA("Misc", "TownMapHotkeysFix", 1, ini)) {
 		dlog("Applying town map hotkeys patch.", DL_INIT);
-		MakeCall(0x4C4945, &wmTownMapFunc_hack, false);
+		MakeCall(0x4C4945, wmTownMapFunc_hack);
 		dlogr(" Done", DL_INIT);
 	}
 
@@ -1531,7 +1531,7 @@ static void DllMain2() {
 		BlockCall(0x472AD5);                      //
 		BlockCall(0x472AE0);                      // invenUnwieldFunc_
 		BlockCall(0x472AF0);                      //
-		MakeCall(0x415238, &register_object_take_out_hack, true);
+		MakeJump(0x415238, register_object_take_out_hack);
 		dlogr(" Done", DL_INIT);
 	}
 
@@ -1544,7 +1544,7 @@ static void DllMain2() {
 		SafeWrite8(0x446F07, 0x50);               // push eax
 		SafeWrite32(0x446FE0, 0x2824448B);        // mov  eax, [esp+0x28]
 		SafeWrite8(0x446FE4, 0x50);               // push eax
-		MakeCall(0x4458F5, &gdAddOptionStr_hack, true);
+		MakeJump(0x4458F5, gdAddOptionStr_hack);
 		dlogr(" Done", DL_INIT);
 	}
 
