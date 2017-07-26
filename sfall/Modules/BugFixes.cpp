@@ -1010,6 +1010,39 @@ static void __declspec(naked) Save_as_ASCII_hack() {
 	}
 }
 
+static DWORD combatFreeMoveTmp = 0xFFFFFFFF;
+static void __declspec(naked) combat_load_hook() {
+	__asm {
+		call fo::funcoffs::db_freadInt_;
+		test eax, eax;                            // Successful?
+		jnz  end;                                 // No
+		push PERK_bonus_move;
+		pop  edx;
+		mov  eax, dword ptr ds:[FO_VAR_obj_dude];
+		call fo::funcoffs::perk_level_;
+		test eax, eax;                            // Have the perk?
+		jz   end;                                 // No
+		mov  eax, ds:[FO_VAR_combat_free_move];   // eax = real value
+		mov  combatFreeMoveTmp, eax               // Save to the temp
+		xor  eax, eax
+end:
+		retn
+	}
+}
+
+static void __declspec(naked) combat_turn_hack() {
+	__asm {
+		mov  edx, combatFreeMoveTmp
+		cmp  edx, 0xFFFFFFFF;                     // Is there a real value?
+		je   end;                                 // No
+		mov  combatFreeMoveTmp, 0xFFFFFFFF;
+		xchg edx, eax;
+end:
+		mov  ds:[FO_VAR_combat_free_move], eax;
+		retn;
+	}
+}
+
 
 void BugFixes::init()
 {
@@ -1286,6 +1319,14 @@ void BugFixes::init()
 
 	// Fix for Sequence stat value not being printed correctly when using "print to file" option
 	MakeJump(0x4396F5, Save_as_ASCII_hack);
+
+	// Fix for Bonus Move APs being replenished when you save and load the game in combat
+	//if (GetConfigInt("Misc", "BonusMoveFix", 1)) {
+		dlog("Applying fix for Bonus Move exploit.", DL_INIT);
+		HookCall(0x420E93, &combat_load_hook);
+		MakeCall(0x422A06, combat_turn_hack);
+		dlogr(" Done", DL_INIT);
+	//}
 }
 
 }
