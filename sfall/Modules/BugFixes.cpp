@@ -1043,6 +1043,29 @@ end:
 	}
 }
 
+static void __declspec(naked) combat_display_hack() {
+	__asm {
+		mov  ebx, 0x42536B
+		je   end                                  // This is a critter
+		cmp  dword ptr [ecx+0x78], -1             // Does the target have a script?
+		jne  end                                  // Yes
+		mov  ebx, 0x425413
+end:
+		jmp  ebx
+	}
+}
+
+static void __declspec(naked) apply_damage_hack() {
+	__asm {
+		xchg edx, eax
+		test [esi+0x15], dl                       // ctd.flags2Source & DAM_HIT_?
+		jz   end                                  // No
+		inc  ebx
+end:
+		retn
+	}
+}
+
 
 void BugFixes::init()
 {
@@ -1327,6 +1350,12 @@ void BugFixes::init()
 		MakeCall(0x422A06, combat_turn_hack);
 		dlogr(" Done", DL_INIT);
 	//}
+
+	// Fix for the displayed message when the attack randomly hits a target that is not a critter and has a script attached
+	MakeJump(0x425365, combat_display_hack);
+
+	// Fix for damage_p_proc being called for misses if the target is not a critter
+	MakeCall(0x424CD2, apply_damage_hack);
 }
 
 }
