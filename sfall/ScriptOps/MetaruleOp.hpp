@@ -75,7 +75,7 @@ static void sf_test() {
 		}
 	}
 	sstream << ")";
-	
+
 	sf_test_stringBuf = sstream.str();
 	opHandler.setReturn(sf_test_stringBuf.c_str());
 }
@@ -127,8 +127,8 @@ static bool ValidateMetaruleArguments(const SfallMetarule* metaruleInfo) {
 	int argCount = opHandler.numArgs();
 	if (argCount < metaruleInfo->minArgs || argCount > metaruleInfo->maxArgs) {
 		opHandler.printOpcodeError(
-			"sfall_funcX(\"%s\", ...) - invalid number of arguments (%d), must be from %d to %d.", 
-			metaruleInfo->name, 
+			"sfall_funcX(\"%s\", ...) - invalid number of arguments (%d), must be from %d to %d.",
+			metaruleInfo->name,
 			argCount,
 			metaruleInfo->minArgs,
 			metaruleInfo->maxArgs);
@@ -163,7 +163,7 @@ static void _stdcall op_sfall_metarule_handler() {
 		} else {
 			opHandler.printOpcodeError("sfall_funcX(name, ...) - name '%s' is unknown.", name);
 		}
-	} else {		
+	} else {
 		opHandler.printOpcodeError("sfall_funcX(name, ...) - name must be string.");
 	}
 }

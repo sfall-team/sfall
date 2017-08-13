@@ -106,6 +106,9 @@ array - array ID to be used with array-related functions (actually an integer)
 > int get_npc_level(string npc)
 - also takes the npc name as an argument, and returns the npc's current level. Again, the npc needs to be in your party.
 
+> void set_car_current_town(int town)
+- changes the current town index for the player's car
+
 > int get_ini_setting(string setting)
 - reads an integer value from an ini file in the fallout directory.
 - It only takes a single argument; seperate the file name, section and key with a '|' character; e.g. 'myvar:=get_ini_setting("myini.ini|mysec|var1")' If the file or key cannot be found, -1 is returned.
