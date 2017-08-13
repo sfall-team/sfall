@@ -372,6 +372,9 @@ Some utility/math functions are available:
 > void sfall_func0("exec_map_update_scripts")
 - executes map_update_p_proc for all objects on map and global/hook scripts as well
 
+> int sfall_func1("item_weight", object)
+- gets the current weight of an object
+
 > int sfall_func1("get_outline", object)
 - gets the current outline color for an object
 
