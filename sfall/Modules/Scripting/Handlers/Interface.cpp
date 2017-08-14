@@ -436,5 +436,18 @@ void sf_tile_refresh_display(OpcodeContext& ctx) {
 	fo::func::tile_refresh_display();
 }
 
+void sf_get_cursor_mode(OpcodeContext& ctx) {
+	int cursorMode;
+	__asm {
+		call fo::funcoffs::gmouse_3d_get_mode_
+		mov cursorMode, eax;
+	}
+	ctx.setReturn(cursorMode);
+}
+
+void sf_set_cursor_mode(OpcodeContext& ctx) {
+	fo::func::gmouse_3d_set_mode(ctx.arg(0).asInt());
+}
+
 }
 }

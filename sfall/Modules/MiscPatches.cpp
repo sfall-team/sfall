@@ -65,7 +65,7 @@ static void __declspec(naked) Combat_p_procFix() {
 	__asm {
 		push eax;
 
-		mov eax, dword ptr ds : [FO_VAR_combat_state];
+		mov eax, dword ptr ds:[FO_VAR_combat_state];
 		cmp eax, 3;
 		jnz end_cppf;
 
@@ -81,10 +81,10 @@ static void __declspec(naked) Combat_p_procFix() {
 		call fo::funcoffs::scr_set_objs_;
 		mov eax, [esi];
 
-		cmp dword ptr ds : [esi + 0x2c], +0x0;
+		cmp dword ptr ds:[esi + 0x2c], +0x0;
 		jng jmp1;
 
-		test byte ptr ds : [esi + 0x15], 0x1;
+		test byte ptr ds:[esi + 0x15], 0x1;
 		jz jmp1;
 		mov edx, 0x2;
 		jmp jmp2;
