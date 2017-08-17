@@ -174,6 +174,10 @@
 #define OUTLINE_DARK_YELLOW (0x20)
 #define OUTLINE_PURPLE      (0x40)
 
+#define CURSOR_MOVEMENT     (0)
+#define CURSOR_COMMAND      (1)
+#define CURSOR_TARGETING    (2)
+
 #define mstr_combat(x)      (message_str_game(GAME_MSG_COMBAT, x))
 #define mstr_ai(x)          (message_str_game(GAME_MSG_AI, x))
 #define mstr_scrname(x)     (message_str_game(GAME_MSG_SCRNAME, x))
