@@ -166,7 +166,7 @@ int     arg5  - The special effect flags for the target
 int     arg6  - The special effect flags for the attacker
 int     arg7  - The weapon used in the attack
 int     arg8  - The bodypart that was struck
-int     arg9  - Roll result of the attack (check with is_success, etc functions; basically: 0-crit. fail, 1-fail, 2-success, 3-crit. success)
+int     arg9  - Damage Multipiler (this is divided by 2, so a value of 3 does 1.5x damage, and 8 does 4x damage. Usually it's 2, but with Silent Death perk and the corresponding attack conditions, it's 4; for critical hits, the value is taken from the critical table)
 int     arg10 - Number of bullets actually hit the target (1 for melee attacks)
 int     arg11 - The amount of knockback to the target
 int     arg12 - Attack Type (see ATKTYPE_* constants)
@@ -263,7 +263,7 @@ int     arg5 - the amount of actual caps in the barter stack (as opposed to good
 int     arg6 - the value of all goods being traded before skill modifications
 critter arg7 - table of offered goods (being sold to NPC)
 int     arg8 - the total cost of the goods offered by the player
-int     arg9 - set 1 if the "offers" button was pressed(not for a party member), otherwise 0
+int     arg9 - set 1 if the "offers" button was pressed (not for a party member), otherwise 0
 
 int     ret1 - the modified value of all of the goods
 
