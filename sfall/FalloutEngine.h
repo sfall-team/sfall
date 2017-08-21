@@ -417,6 +417,7 @@ extern const DWORD art_lock_;
 extern const DWORD art_ptr_lock_;
 extern const DWORD art_ptr_lock_data_;
 extern const DWORD art_ptr_unlock_;
+extern const DWORD attack_crit_success_;
 extern const DWORD automap_;
 extern const DWORD barter_compute_value_;
 extern const DWORD barter_inventory_;

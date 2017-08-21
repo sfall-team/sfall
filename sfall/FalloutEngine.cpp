@@ -243,6 +243,7 @@ const DWORD art_lock_ = 0x4191CC;
 const DWORD art_ptr_lock_ = 0x419160;
 const DWORD art_ptr_lock_data_ = 0x419188;
 const DWORD art_ptr_unlock_ = 0x419260;
+const DWORD attack_crit_success_ = 0x423EB4;
 const DWORD automap_ = 0x41B8BC;
 const DWORD barter_compute_value_ = 0x474B2C;
 const DWORD barter_inventory_ = 0x4757F0;
