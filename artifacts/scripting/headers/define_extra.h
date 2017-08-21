@@ -186,11 +186,10 @@
 #define PROTO_DR_ADDICT_DELAY   (100)
 
 // critters
-#define PROTO_CR_ACTION_FLAGS    (32)
+#define PROTO_CR_FLAGS           (32)
 #define PROTO_CR_HEAD_FID        (40)
 #define PROTO_CR_AI_PACKET       (44)
 #define PROTO_CR_TEAM_NUM        (48)
-#define PROTO_CR_FLAGS           (52)
 #define PROTO_CR_BODY_TYPE      (388)
 #define PROTO_CR_KILL_EXP       (392)
 #define PROTO_CR_KILL_TYPE      (396)
