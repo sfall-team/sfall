@@ -1023,16 +1023,16 @@ static void __declspec(naked) combat_load_hook() {
 		test eax, eax;                            // Have the perk?
 		jz   end;                                 // No
 		mov  eax, ds:[FO_VAR_combat_free_move];   // eax = real value
-		mov  combatFreeMoveTmp, eax               // Save to the temp
-		xor  eax, eax
+		mov  combatFreeMoveTmp, eax;              // Save to the temp
+		xor  eax, eax;
 end:
-		retn
+		retn;
 	}
 }
 
 static void __declspec(naked) combat_turn_hack() {
 	__asm {
-		mov  edx, combatFreeMoveTmp
+		mov  edx, combatFreeMoveTmp;
 		cmp  edx, 0xFFFFFFFF;                     // Is there a real value?
 		je   end;                                 // No
 		mov  combatFreeMoveTmp, 0xFFFFFFFF;
@@ -1045,24 +1045,37 @@ end:
 
 static void __declspec(naked) combat_display_hack() {
 	__asm {
-		mov  ebx, 0x42536B
-		je   end                                  // This is a critter
-		cmp  dword ptr [ecx+0x78], -1             // Does the target have a script?
-		jne  end                                  // Yes
-		mov  ebx, 0x425413
+		mov  ebx, 0x42536B;
+		je   end;                                 // This is a critter
+		cmp  dword ptr [ecx+0x78], -1;            // Does the target have a script?
+		jne  end;                                 // Yes
+		mov  ebx, 0x425413;
 end:
-		jmp  ebx
+		jmp  ebx;
 	}
 }
 
 static void __declspec(naked) apply_damage_hack() {
 	__asm {
-		xchg edx, eax
-		test [esi+0x15], dl                       // ctd.flags2Source & DAM_HIT_?
-		jz   end                                  // No
-		inc  ebx
+		xchg edx, eax;
+		test [esi+0x15], dl;                      // ctd.flags2Source & DAM_HIT_?
+		jz   end;                                 // No
+		inc  ebx;
 end:
-		retn
+		retn;
+	}
+}
+
+static void __declspec(naked) compute_attack_hook() {
+	__asm {
+		call fo::funcoffs::attack_crit_success_;
+		test [esi+0x15], 2;                       // ctd.flags2Source & DAM_CRITICAL_?
+		jz   end;                                 // No
+		cmp  dword ptr [esp+0x4+0x20], 4;         // Has Silent Death perk?
+		jne  end;                                 // No
+		shl  eax, 1;                              // Multiply by 2 for the perk effect
+end:
+		retn;
 	}
 }
 
@@ -1356,6 +1369,14 @@ void BugFixes::init()
 
 	// Fix for damage_p_proc being called for misses if the target is not a critter
 	MakeCall(0x424CD2, apply_damage_hack);
+
+	// Fix for the double damage effect of Silent Death perk not being applied to critical hits
+	//if (GetConfigInt("Misc", "SilentDeathFix", 1)) {
+		dlog("Applying Silent Death patch.", DL_INIT);
+		SafeWrite8(0x4238DF, 0x8C); // jl loc_423A0D
+		HookCall(0x423A99, &compute_attack_hook);
+		dlogr(" Done", DL_INIT);
+	//}
 }
 
 }
