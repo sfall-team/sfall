@@ -2,14 +2,14 @@
 
   This library contains procedures which should ease working with sfall arrays.
   sfall v3.4 or higher is required
-  
+
   WARNING!!!
   1. This library may contain bugs, so test each method before you use it.
-  2. Author is not responsible for any damage to your mod or your savegames when using this library. 
+  2. Author is not responsible for any damage to your mod or your savegames when using this library.
   It is provided AS IS.
-    
+
   @author phobos2077
-   
+
 */
 
 #ifndef LIB_ARRAYS_H
@@ -66,7 +66,7 @@ procedure array_sum(variable arr);
 procedure array_random_value(variable arr);
 
 /**
- * Fill array (or it's part) with the same value. 
+ * Fill array (or it's part) with the same value.
  * pos - starting position
  * count - number of items to fill (use -1 to fill to the end of the array)
  * value - value to set
@@ -92,21 +92,21 @@ procedure remove_array_set(variable array, variable item);
 
 
 /**
-   Array of blocks functions (allows to use arrays as arrays of "objects", where "object" properties are bound to 
+   Array of blocks functions (allows to use arrays as arrays of "objects", where "object" properties are bound to
    relative offsets in one array)
-   Recommended use case: 
+   Recommended use case:
    1) create a block for each "object"
-   2) define macros like (example): 
+   2) define macros like (example):
    #define TRAP_OFSET_TILE                      (5)
    #define trap_tile(array, index)              (array[index + TRAP_OFSET_TILE])
    #define trap_tile_set(array, index, value)   (array[index + TRAP_OFSET_TILE] := value)
-   3) use them to read and write object properties; 
+   3) use them to read and write object properties;
    4) use while loop with step equal to blocksize to iterate over all objects
    5) 0 offset is always equal to object "ID" (starting index of block)
-   
+
    DEPRECATED, use collections instead
  */
- 
+
 /**
  * Adds new empty place for a new block into array. Returns index of new block that was "created".
  */
@@ -155,16 +155,16 @@ procedure load_collection(variable name);
  * Returns first index of zero value
  */
 procedure get_empty_array_index(variable array) begin
-  variable zero := false;
-  variable i := 0;
-  while i < len_array(array) and not(zero) do begin
-    if (array[i] == 0) then begin 
-      zero := true; // break
-    end else begin
-      i++;
-    end
-  end
-  return i;
+   variable zero := false;
+   variable i := 0;
+   while i < len_array(array) and not(zero) do begin
+      if (array[i] == 0) then begin
+         zero := true; // break
+      end else begin
+         i++;
+      end
+   end
+   return i;
 end
 
 // push new item at the end of array
@@ -252,11 +252,11 @@ procedure array_diff(variable arr1, variable arr2) begin
    foreach (v in arr2) begin
       i := scan_array(arr1, v);
       if (i != -1) then begin
-         if (isMap) then 
+         if (isMap) then
             unset_array(arr1, i);
          else
             call array_cut(arr1, i, 1);
-      end           
+      end
    end
    return arr1;
 end
@@ -282,8 +282,8 @@ procedure clone_array(variable array) begin
       new := temp_array_list(len_array(array));
    foreach k: v in array begin
       new[k] := v;
-   end      
-   return new;      
+   end
+   return new;
 end
 
 procedure arrays_equal(variable arr1, variable arr2) begin
@@ -344,48 +344,48 @@ end
 
 
 procedure add_array_set(variable array, variable item) begin
-  variable i := 0;
-  variable len;
-  variable exist := false;
-  variable zero := false;
-  len := len_array(array);
-  
-  // search for first empty space and also check if item exists
-  while i < len and not(zero) do begin
-    if (array[i] == 0) then begin 
-      zero := true; // break
-      i--;
-    end else if (array[i] == item) then exist := true;
-    i++;
-  end
-  if not(exist) then begin 
-    // if no empty space, resize array
-    if (i == len) then begin
-      resize_array(array, len + ARRAY_SET_BLOCK_SIZE);
-    end
-    set_array(array, i, item);
-  end
+   variable i := 0;
+   variable len;
+   variable exist := false;
+   variable zero := false;
+   len := len_array(array);
+
+   // search for first empty space and also check if item exists
+   while i < len and not(zero) do begin
+      if (array[i] == 0) then begin
+         zero := true; // break
+         i--;
+      end else if (array[i] == item) then exist := true;
+      i++;
+   end
+   if not(exist) then begin
+      // if no empty space, resize array
+      if (i == len) then begin
+         resize_array(array, len + ARRAY_SET_BLOCK_SIZE);
+      end
+      set_array(array, i, item);
+   end
 end
 
 procedure remove_array_set(variable array, variable item) begin
-  variable i := 0;
-  variable len;
-  variable found_at := -1;
-  variable zero := false;
+   variable i := 0;
+   variable len;
+   variable found_at := -1;
+   variable zero := false;
 
-  len := len_array(array);
-  // search for first empty space and also check if item exists
-  while (i < len and not(zero)) do begin
-    if (array[i] == 0) then begin 
-      zero := true; // break
-      i--;
-    end else if (array[i] == item) then found_at := i;
-    i++;
-  end
-  if (found_at != -1) then begin
-    array[found_at] := array[i - 1];
-    array[i - 1] := 0;
-  end
+   len := len_array(array);
+   // search for first empty space and also check if item exists
+   while (i < len and not(zero)) do begin
+      if (array[i] == 0) then begin
+         zero := true; // break
+         i--;
+      end else if (array[i] == item) then found_at := i;
+      i++;
+   end
+   if (found_at != -1) then begin
+      array[found_at] := array[i - 1];
+      array[i - 1] := 0;
+   end
 end
 
 // use callback on each array element
@@ -404,27 +404,27 @@ end
  * DEPRECATED, use collections instead
  */
 procedure add_array_block(variable arr, variable blocksize) begin
-  variable begin
-    index := 0;
-    zero := false;
-    tile;
-    elev;
-  end
-  // find empty array index
-  index := 0;
-  while index < len_array(arr) and not(zero) do begin
-    if (get_array(arr, index) == ARRAY_EMPTY_INDEX) then begin 
-      // this index is empty, place struct here
-      zero := true; // break
-    end else begin
-      index += blocksize;
-    end
-  end
-  if (index == len_array(arr)) then begin
-    resize_array(arr, index + blocksize);
-  end
-  set_array(arr, index, index);
-  return index;
+   variable begin
+      index := 0;
+      zero := false;
+      tile;
+      elev;
+   end
+   // find empty array index
+   index := 0;
+   while index < len_array(arr) and not(zero) do begin
+      if (get_array(arr, index) == ARRAY_EMPTY_INDEX) then begin
+         // this index is empty, place struct here
+         zero := true; // break
+      end else begin
+         index += blocksize;
+      end
+   end
+   if (index == len_array(arr)) then begin
+      resize_array(arr, index + blocksize);
+   end
+   set_array(arr, index, index);
+   return index;
 end
 
 /**
@@ -433,25 +433,25 @@ end
  * DEPRECATED, use collections instead
  */
 procedure remove_array_block(variable arr, variable blocksize, variable index) begin
-  variable len;
-  len := len_array(arr);
-  if (index + blocksize == len) then begin
-    // if this is last block, reduce the array
-    resize_array(arr, len - blocksize);
-  end else begin
-    // mark block as empty
-    set_array(arr, index, ARRAY_EMPTY_INDEX);
-    // null other part of block - just in case...
-    call array_fill(arr, index + 1, blocksize - 1, 0);
-  end
+   variable len;
+   len := len_array(arr);
+   if (index + blocksize == len) then begin
+      // if this is last block, reduce the array
+      resize_array(arr, len - blocksize);
+   end else begin
+      // mark block as empty
+      set_array(arr, index, ARRAY_EMPTY_INDEX);
+      // null other part of block - just in case...
+      call array_fill(arr, index + 1, blocksize - 1, 0);
+   end
 end
 
 procedure array_fill(variable arr, variable pos, variable count, variable value) begin
-  variable i := 0;
-  if (count == -1 or (pos + count > len_array(arr))) then count := len_array(arr) - pos; // this should prevent write to illegal offsets
-  while (i < count) do begin
-    arr[pos + i] := value;
-    i++;
+   variable i := 0;
+   if (count == -1 or (pos + count > len_array(arr))) then count := len_array(arr) - pos; // this should prevent write to illegal offsets
+   while (i < count) do begin
+      arr[pos + i] := value;
+      i++;
    end
    return arr;
 end
@@ -462,7 +462,7 @@ procedure array_append(variable arr1, variable arr2) begin
       variable k, v;
       foreach (k: v in arr2) begin
          arr1[k] := v;
-      end                
+      end
    end else begin
       arr1_len := len_array(arr1);
       resize_array(arr1, arr1_len + len_array(arr2));
@@ -484,7 +484,7 @@ end
 procedure get_saved_array_new(variable name, variable size) begin
    variable arr;
    arr := load_array(name);
-   if (arr) then 
+   if (arr) then
       free_array(arr);
    arr := create_array(size, 0);
    save_array(name, arr);
@@ -525,45 +525,45 @@ end
 
 /* NOT SAFE
 procedure sfall_global_array(variable global, variable size) begin
-  variable ar;
-  ar := get_sfall_global_int(global);
-  if (ar == 0) then begin
-    ar := create_array(size, 0); // persistent array, but not saved
-    set_sfall_global(global, ar);
-  end
-  return ar;
+   variable ar;
+   ar := get_sfall_global_int(global);
+   if (ar == 0) then begin
+      ar := create_array(size, 0); // persistent array, but not saved
+      set_sfall_global(global, ar);
+   end
+   return ar;
 end*/
 
-/* 
+/*
 DEPRECATED code, just for reference, don't use
 
 procedure get_sfall_global_array(variable global_id, variable elemcount, variable elemsize) begin
-  variable ar;
-  ar := get_sfall_global_int(global_id);
-  if (ar == 0) then begin
-    ar := create_array(elemcount, elemsize);
-    set_sfall_global(global_id, ar);
-  end
-  return ar;
+   variable ar;
+   ar := get_sfall_global_int(global_id);
+   if (ar == 0) then begin
+      ar := create_array(elemcount, elemsize);
+      set_sfall_global(global_id, ar);
+   end
+   return ar;
 end
 
 procedure get_sfall_global_array_new(variable global_id, variable elemcount, variable elemsize) begin
-  variable ar;
-  variable i;
-  variable it;
-  ar := get_sfall_global_int(global_id);
-  if (ar == 0) then begin
-    ar := create_array(elemcount, elemsize);
-    set_sfall_global(global_id, ar);
-  end else begin
-    i := 0;
-    resize_array(ar, elemcount);
-    while (i < len_array(ar)) do begin
-      ar[i] := 0;
-      i++;
-    end
-  end
-  return ar;
+   variable ar;
+   variable i;
+   variable it;
+   ar := get_sfall_global_int(global_id);
+   if (ar == 0) then begin
+      ar := create_array(elemcount, elemsize);
+      set_sfall_global(global_id, ar);
+   end else begin
+      i := 0;
+      resize_array(ar, elemcount);
+      while (i < len_array(ar)) do begin
+         ar[i] := 0;
+         i++;
+      end
+   end
+   return ar;
 end
 */
 

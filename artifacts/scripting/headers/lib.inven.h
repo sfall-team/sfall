@@ -8,24 +8,24 @@
   Inventory contents as temp array to be used in foreach
 */
 procedure inven_as_array(variable critter) begin
-  variable i:=0, list;
-  list := temp_array(100, 4);
-  while (inven_ptr(critter, i)) do begin
-    if (i>=len_array(list)) then
-      resize_array(list, len_array(list) + 100);
-    list[i] := inven_ptr(critter, i);
-    i++;
-  end
-  resize_array(list, i);
-  return list;
+   variable i:=0, list;
+   list := temp_array(100, 4);
+   while (inven_ptr(critter, i)) do begin
+      if (i>=len_array(list)) then
+         resize_array(list, len_array(list) + 100);
+      list[i] := inven_ptr(critter, i);
+      i++;
+   end
+   resize_array(list, i);
+   return list;
 end
 
 
 procedure add_items_pid(variable who_obj, variable the_pid, variable pid_qty) begin
-    variable item;
-    item := create_object(the_pid,0,0);
-    add_mult_objs_to_inven(who_obj, item, (pid_qty));
-    return item;
+   variable item;
+   item := create_object(the_pid,0,0);
+   add_mult_objs_to_inven(who_obj, item, (pid_qty));
+   return item;
 end
 
 // aliases:
@@ -36,27 +36,27 @@ end
 #endif
 
 procedure unwield_armor(variable who_obj) begin
-    variable armor;
-    if (not(who_obj)) then return;
-    if (critter_wearing_armor(who_obj)) then begin
-       armor := critter_inven_obj(who_obj,INVEN_TYPE_WORN);
-       rm_obj_from_inven(who_obj, armor);
-       add_obj_to_inven(who_obj, armor);
-    end
+   variable armor;
+   if (not(who_obj)) then return;
+   if (critter_wearing_armor(who_obj)) then begin
+      armor := critter_inven_obj(who_obj,INVEN_TYPE_WORN);
+      rm_obj_from_inven(who_obj, armor);
+      add_obj_to_inven(who_obj, armor);
+   end
 end
 
 procedure remove_items_pid(variable who_obj, variable the_pid, variable pid_qty) begin
-    variable begin
-        item;
-        removed_qty;
-        tmp;
-    end
-    if (not(who_obj)) then return;
-    removed_qty := obj_is_carrying_obj_pid(who_obj,the_pid);
-    if (pid_qty < removed_qty and pid_qty != -1) then begin
+   variable begin
+      item;
+      removed_qty;
+      tmp;
+   end
+   if (not(who_obj)) then return;
+   removed_qty := obj_is_carrying_obj_pid(who_obj,the_pid);
+   if (pid_qty < removed_qty and pid_qty != -1) then begin
       removed_qty := pid_qty;
-    end
-    if (removed_qty > 0) then begin
+   end
+   if (removed_qty > 0) then begin
       item := obj_carrying_pid_obj(who_obj, the_pid);
       if (obj_type(who_obj) == 1) then begin
          if (critter_inven_obj(who_obj,INVEN_TYPE_WORN) == item) then begin
@@ -67,7 +67,7 @@ procedure remove_items_pid(variable who_obj, variable the_pid, variable pid_qty)
       end
       tmp := rm_mult_objs_from_inven(who_obj, item, removed_qty);
       destroy_object(item);
-    end
+   end
 end
 
 procedure remove_item_obj(variable who_obj, variable item) begin
@@ -91,34 +91,34 @@ end
  */
 procedure set_items_qty_pid(variable invenobj, variable itempid, variable newcount)
 begin
-	variable begin
-		count;
-		obj;
-	end
-	count := obj_is_carrying_obj_pid(invenobj, itempid);
-	if (newcount > count) then begin
-		obj := create_object_sid(itempid, 0, 0, -1);
-		add_mult_objs_to_inven(invenobj, obj, newcount - count);
-	end else if (newcount < count) then begin
-		call remove_items_pid(invenobj, itempid, count - newcount);
-	end
+   variable begin
+      count;
+      obj;
+   end
+   count := obj_is_carrying_obj_pid(invenobj, itempid);
+   if (newcount > count) then begin
+      obj := create_object_sid(itempid, 0, 0, -1);
+      add_mult_objs_to_inven(invenobj, obj, newcount - count);
+   end else if (newcount < count) then begin
+      call remove_items_pid(invenobj, itempid, count - newcount);
+   end
 end
 
 /*
 
 procedure check_restock_item(the_item, min_amt, max_amt, res_perc)
-        restock_amt := random(min_amt, max_amt);
-        if (obj_is_carrying_obj_pid(self_obj, the_item) < restock_amt) then begin
-            if (res_perc >= random(1,100)) then begin
-               stock_pid_qty(self_obj, the_item, restock_amt)
-            end
-        end else begin
-           stock_pid_qty(self_obj, the_item, restock_amt)
-        end
+      restock_amt := random(min_amt, max_amt);
+      if (obj_is_carrying_obj_pid(self_obj, the_item) < restock_amt) then begin
+         if (res_perc >= random(1,100)) then begin
+            stock_pid_qty(self_obj, the_item, restock_amt)
+         end
+      end else begin
+         stock_pid_qty(self_obj, the_item, restock_amt)
+      end
 procedure check_restock_item_min_limit(the_item, min_amt, max_amt, res_perc)
-        if (obj_is_carrying_obj_pid(self_obj, the_item) < min_amt) then begin
-           check_restock_item(the_item, min_amt, max_amt, res_perc)
-        end
+      if (obj_is_carrying_obj_pid(self_obj, the_item) < min_amt) then begin
+         check_restock_item(the_item, min_amt, max_amt, res_perc)
+      end
 */
 
 
@@ -129,7 +129,7 @@ procedure reduce_merchant_loot(variable critter, variable moneyPercent, variable
    //display_msg("total items "+len_array(inv));
    foreach item in inv begin
       if (obj_pid(item) != PID_BOTTLE_CAPS) then begin
-         it := obj_item_subtype(item);  
+         it := obj_item_subtype(item);
          if (it == item_type_armor) then
             prob := probArmor;
          else if (it == item_type_drug) then

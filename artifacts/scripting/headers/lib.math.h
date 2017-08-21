@@ -20,26 +20,26 @@ procedure min(variable x, variable y) begin
 end
 
 /*procedure round(variable val) begin
-	variable intp;
-	intp := floor(val);
-	if ((val-intp) >= 0.5) then intp++;
-	return intp;
+   variable intp;
+   intp := floor(val);
+   if ((val-intp) >= 0.5) then intp++;
+   return intp;
 end*/
 
 procedure ceil(variable val) begin
-	variable intp;
-	intp := floor(val);
-	if (abs(val-intp) > 0.0) then begin
-	   intp++;
-	end
-	return intp;
+   variable intp;
+   intp := floor(val);
+   if (abs(val-intp) > 0.0) then begin
+      intp++;
+   end
+   return intp;
 end
 
 
 procedure cap_number(variable num, variable min, variable max) begin
-	if (num > max) then num := max;
-	else if (num < min) then num := min;
-	return num;
+   if (num > max) then num := max;
+   else if (num < min) then num := min;
+   return num;
 end
 
 

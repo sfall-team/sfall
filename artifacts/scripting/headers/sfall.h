@@ -174,6 +174,10 @@
 #define OUTLINE_DARK_YELLOW (0x20)
 #define OUTLINE_PURPLE      (0x40)
 
+#define CURSOR_MOVEMENT     (0)
+#define CURSOR_COMMAND      (1)
+#define CURSOR_TARGETING    (2)
+
 #define mstr_combat(x)      (message_str_game(GAME_MSG_COMBAT, x))
 #define mstr_ai(x)          (message_str_game(GAME_MSG_AI, x))
 #define mstr_scrname(x)     (message_str_game(GAME_MSG_SCRNAME, x))
@@ -208,6 +212,7 @@
 #define car_gas_amount                        sfall_func0("car_gas_amount")
 #define critter_inven_obj2(obj, type)         sfall_func2("critter_inven_obj2", obj, type)
 #define exec_map_update_scripts               sfall_func0("exec_map_update_scripts")
+#define get_cursor_mode                       sfall_func0("get_cursor_mode")
 #define get_flags(obj)                        sfall_func1("get_flags", obj)
 #define get_ini_section(file, sect)           sfall_func2("get_ini_section", file, sect)
 #define get_ini_sections(file)                sfall_func1("get_ini_sections", file)
@@ -220,6 +225,7 @@
 #define outlined_object                       sfall_func0("outlined_object")
 #define real_dude_obj                         sfall_func0("real_dude_obj")
 #define set_car_intface_art(artIndex)         sfall_func1("set_car_intface_art", artIndex)
+#define set_cursor_mode(mode)                 sfall_func1("set_cursor_mode", mode)
 #define set_dude_obj(critter)                 sfall_func1("set_dude_obj", critter)
 #define set_flags(obj, flags)                 sfall_func2("set_flags", obj, flags)
 #define set_outline(obj, color)               sfall_func2("set_outline", obj, color)

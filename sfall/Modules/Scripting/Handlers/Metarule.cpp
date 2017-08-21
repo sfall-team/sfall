@@ -51,7 +51,7 @@ struct SfallMetarule {
 
 	// maximum number of arguments
 	int maxArgs;
-	
+
 	// argument validation settings
 	OpcodeArgumentType argValidation[OP_MAX_ARGUMENTS];
 };
@@ -79,6 +79,7 @@ static const SfallMetarule metarules[] = {
 	{"car_gas_amount", sf_car_gas_amount, 0, 0},
 	{"critter_inven_obj2", sf_critter_inven_obj2, 2, 2, {ARG_OBJECT, ARG_INT}},
 	{"exec_map_update_scripts", sf_exec_map_update_scripts, 0, 0},
+	{"get_cursor_mode", sf_get_cursor_mode, 0, 0},
 	{"get_flags", sf_get_flags, 1, 1, {ARG_OBJECT}},
 	{"get_ini_section", sf_get_ini_section, 2, 2, {ARG_STRING, ARG_STRING}},
 	{"get_ini_sections", sf_get_ini_sections, 1, 1, {ARG_STRING}},
@@ -92,6 +93,7 @@ static const SfallMetarule metarules[] = {
 	{"outlined_object", sf_outlined_object, 0, 0},
 	{"real_dude_obj", sf_real_dude_obj, 0, 0},
 	{"set_car_intface_art", sf_set_car_intface_art, 1, 1, {ARG_INT}},
+	{"set_cursor_mode", sf_set_cursor_mode, 1, 1, {ARG_INT}},
 	{"set_dude_obj", sf_set_dude_obj, 1, 1, {ARG_OBJECT}},
 	{"set_flags", sf_set_flags, 2, 2, {ARG_OBJECT, ARG_INT}},
 	{"set_outline", sf_set_outline, 2, 2, {ARG_OBJECT, ARG_INT}},
@@ -124,7 +126,7 @@ void sf_test(OpcodeContext& ctx) {
 		}
 	}
 	sstream << ")";
-	
+
 	sf_test_stringBuf = sstream.str();
 	ctx.setReturn(sf_test_stringBuf.c_str());
 }
@@ -152,8 +154,8 @@ static bool ValidateMetaruleArguments(OpcodeContext& ctx, const SfallMetarule* m
 	int argCount = ctx.numArgs();
 	if (argCount < metaruleInfo->minArgs || argCount > metaruleInfo->maxArgs) {
 		ctx.printOpcodeError(
-			"sfall_funcX(\"%s\", ...) - invalid number of arguments (%d), must be from %d to %d.", 
-			metaruleInfo->name, 
+			"sfall_funcX(\"%s\", ...) - invalid number of arguments (%d), must be from %d to %d.",
+			metaruleInfo->name,
 			argCount,
 			metaruleInfo->minArgs,
 			metaruleInfo->maxArgs);

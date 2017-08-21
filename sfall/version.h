@@ -28,9 +28,9 @@
 #define VERSION_REV 0
 
 #ifdef WIN2K
-#define VERSION_STRING "4.0 beta1 win2k"
+#define VERSION_STRING "4.0 win2k"
 #else
-#define VERSION_STRING "4.0 beta1"
+#define VERSION_STRING "4.0"
 #endif
 
 #define CHECK_VAL  (4)

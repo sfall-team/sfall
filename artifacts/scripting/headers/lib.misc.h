@@ -6,20 +6,20 @@
 */
 /*
 procedure round(variable val) begin
-	variable intp;
-	intp := floor(val);
-	if ((val-intp) >= 0.5) then intp++;
-	return intp;
+   variable intp;
+   intp := floor(val);
+   if ((val-intp) >= 0.5) then intp++;
+   return intp;
 end*/
 
 // this fixes strange behavior when using negative float values
 // looks like the only way to create correct negative float is to use atof()
 // DEPRECATED as of sfall 3.4 (engine bug fixed)
 /*procedure itof_safe(variable var) begin
-	if (var < 0) then begin
-		var := atof("-"+(-var));
-	end
-	return var;
+   if (var < 0) then begin
+      var := atof("-"+(-var));
+   end
+   return var;
 end*/
 
 // Parse keyboard shortcut definition
@@ -65,20 +65,20 @@ end
   Attempt to make list_as_array safe
 */
 /*procedure list_as_array_safe(variable type) begin
-  variable list, item, arr, i;
-  list := list_begin(type);
-  arr := temp_array(100, 4);
-  i := 0;
-  item := list_next(list);
-  while (item) do begin
-    if (len_array(arr) == i) then resize_array(arr, len_array(arr) + 100);
-    arr[i] := item;
-    item := list_next(list);
-    i++;
-  end
-  resize_array(arr, i);
-  list_end(list);
-  return arr;
+   variable list, item, arr, i;
+   list := list_begin(type);
+   arr := temp_array(100, 4);
+   i := 0;
+   item := list_next(list);
+   while (item) do begin
+      if (len_array(arr) == i) then resize_array(arr, len_array(arr) + 100);
+      arr[i] := item;
+      item := list_next(list);
+      i++;
+   end
+   resize_array(arr, i);
+   list_end(list);
+   return arr;
 end*/
 
 

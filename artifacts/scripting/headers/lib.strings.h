@@ -63,12 +63,12 @@ procedure sprintf2(variable str, variable arg1, variable arg2) begin
             end
          end else begin
             if (j == 0) then
-               arg := arg1;   
-            else if (j == 1) then 
+               arg := arg1;
+            else if (j == 1) then
                arg := arg2;
             else
                arg := 0;
-            
+
             str += sprintf("%" + split[i], arg);
             j++;
          end
@@ -136,7 +136,7 @@ procedure string_get_tokens(variable str, variable delim) begin
             line += delim + token;
       end
    //end
-   
+
    return count;
 end
 
@@ -166,14 +166,14 @@ end
  * Useful in cunjunction with is_in_array()
  */
 procedure string_split_ints(variable str, variable split) begin
-	variable i := 0;
-	variable list;
-	list := string_split(str, split);
-	while (i < len_array(list)) do begin
-		list[i] := atoi(list[i]);
-		i++;
-	end
-	return list;
+   variable i := 0;
+   variable list;
+   list := string_split(str, split);
+   while (i < len_array(list)) do begin
+      list[i] := atoi(list[i]);
+      i++;
+   end
+   return list;
 end
 
 
@@ -181,34 +181,34 @@ end
   String parse functions. Idea taken from KLIMaka on TeamX forums.
   Placeholders in format %d% are replaced from string. d refers to variable index (starting from 1).
   You can repeat one placeholder multiple times, or use placeholders in any order.
-  
-  Example: 
+
+  Example:
   parse_str_2("Hello, %2%. I have only $%1% to spare.", money_amount, dude_name);
-  Will return: 
+  Will return:
   Hello, Killiano. I have only $1200 to spare.
-  
+
   The *_list function takes a temp_array as second parameter.
-*/ 
+*/
 
 #define _TOKENIZE_BEGIN       \
-  variable token, rest, line, result, n; \
-  line := tokenize(str, 0, '%'); \
-  result := line; \
-  while line != str do begin \
-    token := tokenize(str, line, '%'); \
-    line += "%" + token; \
-    if token == "" then result += "%"; \
-    else begin
-    
+   variable token, rest, line, result, n; \
+   line := tokenize(str, 0, '%'); \
+   result := line; \
+   while line != str do begin \
+      token := tokenize(str, line, '%'); \
+      line += "%" + token; \
+      if token == "" then result += "%"; \
+      else begin
+
 #define _TOKENIZE_END       \
-    end \
-    rest := tokenize(str, line, '%'); \
-    if (rest != 0) then begin \
-      line += "%" + rest; \
-      result += rest; \
-    end \
-  end \
-  return result;
+      end \
+      rest := tokenize(str, line, '%'); \
+      if (rest != 0) then begin \
+         line += "%" + rest; \
+         result += rest; \
+      end \
+   end \
+   return result;
 
 
 procedure parse_str_list(variable str, variable list) begin

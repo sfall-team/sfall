@@ -83,5 +83,9 @@ void sf_intface_is_hidden(OpcodeContext&);
 
 void sf_tile_refresh_display(OpcodeContext&);
 
+void sf_get_cursor_mode(OpcodeContext&);
+
+void sf_set_cursor_mode(OpcodeContext&);
+
 }
 }
