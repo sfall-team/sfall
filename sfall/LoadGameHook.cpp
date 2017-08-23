@@ -243,14 +243,6 @@ static void NewGame2() {
 	dlogr("Starting new game", DL_MAIN);
 
 	SetNewCharAppearanceGlobals();
-
-	/*if (GetPrivateProfileInt("Misc", "PipBoyAvailableAtGameStart", 0, ini)) {
-		SafeWrite8(0x596C7B, 1);
-	}
-	if (GetPrivateProfileInt("Misc", "DisableHorrigan", 0, ini)) {
-		*(DWORD*)0x672E04 = 1;
-	}*/
-
 	LoadGlobalScripts();
 	CritLoad();
 	mapLoaded = true;

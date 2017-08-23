@@ -335,26 +335,6 @@ static void __declspec(naked) ViewportHook() {
 	}
 }
 
-/*HANDLE _stdcall FakeFindFirstFile(const char* str, WIN32_FIND_DATAA* data) {
-	HANDLE h = FindFirstFileA(str,data);
-	if (h == INVALID_HANDLE_VALUE) return h;
-	while (strlen(data->cFileName) > 12) {
-		int i = FindNextFileA(h, data);
-		if (i == 0) {
-			FindClose(h);
-			return INVALID_HANDLE_VALUE;
-		}
-	}
-	return h;
-}
-int _stdcall FakeFindNextFile(HANDLE h, WIN32_FIND_DATAA* data) {
-	int i = FindNextFileA(h, data);
-	while (strlen(data->cFileName) > 12 && i) {
-		i = FindNextFileA(h, data);
-	}
-	return i;
-}*/
-
 static void __declspec(naked) WeaponAnimHook() {
 	__asm {
 		cmp edx, 11;
@@ -678,43 +658,6 @@ fail:
 		jmp ScannerHookFail;
 	}
 }
-
-/*static void _stdcall explosion_crash_fix_hook2() {
-	if (InCombat()) return;
-	for (int elv = 0; elv < 3; elv++) {
-		for (int tile = 0; tile < 40000; tile++) {
-			DWORD* obj;
-			__asm {
-				mov  edx, tile;
-				mov  eax, elv;
-				call obj_find_first_at_tile_;
-				mov  obj, eax;
-			}
-			while (obj) {
-				DWORD otype = obj[25];
-				otype = (otype&0xff000000) >> 24;
-				if (otype == 1) {
-					obj[0x12] = 0;
-					obj[0x15] = 0;
-					obj[0x10] = 0;
-				}
-				__asm {
-					call obj_find_next_at_tile_;
-					mov  obj, eax;
-				}
-			}
-		}
-	}
-}
-
-static void __declspec(naked) explosion_crash_fix_hook() {
-	__asm {
-		pushad;
-		call explosion_crash_fix_hook2;
-		popad;
-		jmp  report_explosion_;
-	}
-}*/
 
 static void __declspec(naked) objCanSeeObj_ShootThru_Fix() {//(EAX *objStruct, EDX hexNum1, EBX hexNum2, ECX ?, stack1 **ret_objStruct, stack2 flags)
 	__asm {
@@ -1178,13 +1121,6 @@ static void DllMain2() {
 		FileSystemInit();
 	}
 
-	/*if (GetPrivateProfileIntA("Misc", "PrintToFileFix", 0, ini)) {
-		dlog("Applying print to file patch.", DL_INIT);
-		SafeWrite32(0x6C0364, (DWORD)&FakeFindFirstFile);
-		SafeWrite32(0x6C0368, (DWORD)&FakeFindNextFile);
-		dlogr(" Done", DL_INIT);
-	}*/
-
 	if (GetPrivateProfileIntA("Misc", "AdditionalWeaponAnims", 0, ini)) {
 		dlog("Applying additional weapon animations patch.", DL_INIT);
 		SafeWrite8(0x419320, 0x12);
@@ -1479,9 +1415,6 @@ static void DllMain2() {
 	dlogr("Initializing AI control.", DL_INIT);
 	PartyControlInit();
 
-	//HookCall(0x413105, explosion_crash_fix_hook);//test for explosives
-	//SafeWrite32(0x413034, (DWORD)&explosion_crash_fix_hook);
-
 	if (GetPrivateProfileIntA("Misc", "ObjCanSeeObj_ShootThru_Fix", 0, ini)) {
 		dlog("Applying ObjCanSeeObj ShootThru Fix.", DL_INIT);
 		SafeWrite32(0x456BC7, (DWORD)&objCanSeeObj_ShootThru_Fix - 0x456BCB);
@@ -1581,31 +1514,17 @@ static void CompatModeCheck(HKEY root, const char* filepath, int extra) {
 			if (size && (type == REG_EXPAND_SZ || type == REG_MULTI_SZ || type == REG_SZ)) {
 				if (strstr(buf, "256COLOR") || strstr(buf, "640X480") || strstr(buf, "WIN")) {
 					RegCloseKey(key);
-					/*if (!RegOpenKeyEx(root, "Software\\Microsoft\\Windows NT\\CurrentVersion\\AppCompatFlags\\Layers", 0, extra|KEY_READ|KEY_WRITE, &key)) {
-						if ((type=RegDeleteValueA(key, filepath))==ERROR_SUCCESS) {
-							MessageBoxA(0, "Fallout was set to run in compatibility mode.\n"
-								"Please restart fallout to ensure it runs correctly.", "Error", 0);
-							RegCloseKey(key);
-							ExitProcess(-1);
-						} else {
-							//FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM, 0, type, 0, buf, 260, 0);
-							//MessageBoxA(0, buf, "", 0);
-						}
-					}*/
 
 					MessageBoxA(0, "Fallout appears to be running in compatibility mode.\n" //, and sfall was not able to disable it.\n"
-						"Please check the compatibility tab of fallout2.exe, and ensure that the following settings are unchecked.\n"
-						"Run this program in compatibility mode for..., run in 256 colours, and run in 640x480 resolution.\n"
-						"If these options are disabled, click the 'change settings for all users' button and see if that enables them.", "Error", 0);
-					//RegCloseKey(key);
+								"Please check the compatibility tab of fallout2.exe, and ensure that the following settings are unchecked.\n"
+								"Run this program in compatibility mode for..., run in 256 colours, and run in 640x480 resolution.\n"
+								"If these options are disabled, click the 'change settings for all users' button and see if that enables them.", "Error", 0);
+
 					ExitProcess(-1);
 				}
 			}
 		}
 		RegCloseKey(key);
-	} else {
-		//FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM, 0, type, 0, buf, 260, 0);
-		//MessageBoxA(0, buf, "", 0);
 	}
 }
 
