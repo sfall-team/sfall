@@ -24,24 +24,21 @@ bool IsMapLoaded();
 DWORD InWorldMap();
 DWORD InCombat();
 
-#define WORLDMAP    (1<<0)  // 0x1
-#define LOCALMAP    (1<<1)  // 0x2 No point hooking this: would always be 1 at any point at which scripts are running
-#define DIALOG      (1<<2)  // 0x4
-#define ESCMENU     (1<<3)  // 0x8
-#define SAVEGAME    (1<<4)  // 0x10
-#define LOADGAME    (1<<5)  // 0x20
-#define COMBAT      (1<<6)  // 0x40
-#define OPTIONS     (1<<7)  // 0x80
-#define HELP        (1<<8)  // 0x100
-#define CHARSCREEN  (1<<9)  // 0x200
-#define PIPBOY      (1<<10) // 0x400
-#define PCOMBAT     (1<<11) // 0x800
-#define INVENTORY   (1<<12) // 0x1000
-#define AUTOMAP     (1<<13) // 0x2000
-#define SKILLDEX    (1<<14) // 0x4000
-#define INTFACEUSE  (1<<15) // 0x8000
-#define INTFACELOOT (1<<16) // 0x10000
-#define BARTER      (1<<17) // 0x20000
+#define WORLDMAP   (1<<0)  // 0x1
+#define LOCALMAP   (1<<1)  // 0x2 No point hooking this: would always be 1 at any point at which scripts are running
+#define DIALOG     (1<<2)  // 0x4
+#define ESCMENU    (1<<3)  // 0x8
+#define SAVEGAME   (1<<4)  // 0x10
+#define LOADGAME   (1<<5)  // 0x20
+#define COMBAT     (1<<6)  // 0x40
+#define OPTIONS    (1<<7)  // 0x80
+#define HELP       (1<<8)  // 0x100
+#define CHARSCREEN (1<<9)  // 0x200
+#define PIPBOY     (1<<10) // 0x400
+#define PCOMBAT    (1<<11) // 0x800
+#define INVENTORY  (1<<12) // 0x1000
+#define AUTOMAP    (1<<13) // 0x2000
+#define SKILLDEX   (1<<14) // 0x4000
 #define RESERVED   (1<<31)
 
 DWORD GetCurrentLoops();
