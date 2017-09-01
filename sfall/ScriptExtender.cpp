@@ -1170,23 +1170,23 @@ end:
 	}
 }
 
-static void __declspec(naked) combat_begin_hook() {
+static void __declspec(naked) CombatBeginHook() {
 	__asm {
-		push eax
-		call scr_set_ext_param_
-		pop  eax                                  // pobj.sid
-		mov  edx, combat_is_starting_p_proc
-		jmp  exec_script_proc_
+		push eax;
+		call scr_set_ext_param_;
+		pop  eax;                                 // pobj.sid
+		mov  edx, combat_is_starting_p_proc;
+		jmp  exec_script_proc_;
 	}
 }
 
-static void __declspec(naked) combat_over_hook() {
+static void __declspec(naked) CombatOverHook() {
 	__asm {
-		push eax
-		call scr_set_ext_param_
-		pop  eax                                  // pobj.sid
-		mov  edx, combat_is_over_p_proc
-		jmp  exec_script_proc_
+		push eax;
+		call scr_set_ext_param_;
+		pop  eax;                                 // pobj.sid
+		mov  edx, combat_is_over_p_proc;
+		jmp  exec_script_proc_;
 	}
 }
 
@@ -1257,8 +1257,8 @@ void ScriptExtenderSetup() {
 	HookCall(0x46E141, FreeProgramHook);
 
 	// combat_is_starting_p_proc / combat_is_over_p_proc
-	HookCall(0x421B72, &combat_begin_hook);
-	HookCall(0x421FC1, &combat_over_hook);
+	HookCall(0x421B72, CombatBeginHook);
+	HookCall(0x421FC1, CombatOverHook);
 
 	if(AllowUnsafeScripting) {
 		opcodes[0x156]=ReadByte;

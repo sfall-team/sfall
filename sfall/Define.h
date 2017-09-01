@@ -275,8 +275,9 @@
 #define ROLL_SUCCESS          (2)
 #define ROLL_CRITICAL_SUCCESS (3)
 
-//XXXXXXXXXXXXXXXXXXXXXX
-//XX Handlers defines XX
-//XXXXXXXXXXXXXXXXXXXXXX
+//XXXXXXXXXXXXXXXXXXXXXXX
+//XX Procedure defines XX
+//XXXXXXXXXXXXXXXXXXXXXXX
+
 #define combat_is_starting_p_proc (26)
 #define combat_is_over_p_proc     (27)
