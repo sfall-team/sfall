@@ -275,6 +275,28 @@ static void __declspec(naked) FreeProgramHook() {
 	}
 }
 
+static void __declspec(naked) CombatBeginHook() {
+	using fo::ScriptProc::combat_is_starting_p_proc;
+	__asm {
+		push eax;
+		call fo::funcoffs::scr_set_ext_param_;
+		pop  eax;                                 // pobj.sid
+		mov  edx, combat_is_starting_p_proc;
+		jmp  fo::funcoffs::exec_script_proc_;
+	}
+}
+
+static void __declspec(naked) CombatOverHook() {
+	using fo::ScriptProc::combat_is_over_p_proc;
+	__asm {
+		push eax;
+		call fo::funcoffs::scr_set_ext_param_;
+		pop  eax;                                 // pobj.sid
+		mov  edx, combat_is_over_p_proc;
+		jmp  fo::funcoffs::exec_script_proc_;
+	}
+}
+
 void _stdcall SetGlobalScriptRepeat(fo::Program* script, int frames) {
 	for (DWORD d = 0; d < globalScripts.size(); d++) {
 		if (globalScripts[d].prog.ptr == script) {
@@ -705,7 +727,11 @@ void ScriptExtender::init() {
 	SafeWrite16(0x46A4E7, 0x04DB);
 
 	HookCall(0x46E141, FreeProgramHook);
-	
+
+	// combat_is_starting_p_proc / combat_is_over_p_proc
+	HookCall(0x421B72, CombatBeginHook);
+	HookCall(0x421FC1, CombatOverHook);
+
 	InitNewOpcodes();
 }
 
