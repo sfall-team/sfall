@@ -220,6 +220,11 @@ static void __declspec(naked) LoadGame() {
 		or InLoop, LOADGAME;
 		call LoadGame_;
 		and InLoop, (-1 ^ LOADGAME);
+		cmp eax, 1;
+		jne end;
+		call LoadGame2_After;
+		mov eax, 1;
+end:
 		pop edx;
 		pop ecx;
 		pop ebx;
@@ -231,7 +236,7 @@ static void __declspec(naked) EndLoadHook() {
 	__asm {
 		call EndLoad_;
 		pushad;
-		call LoadGame2_After;
+		call LoadHeroAppearance;
 		popad;
 		retn;
 	}
