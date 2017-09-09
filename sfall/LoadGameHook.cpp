@@ -198,7 +198,6 @@ static void _stdcall LoadGame2_Before() {
 static void _stdcall LoadGame2_After() {
 	LoadGlobalScripts();
 	CritLoad();
-	LoadHeroAppearance();
 	mapLoaded = true;
 }
 
