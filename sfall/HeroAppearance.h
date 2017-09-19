@@ -18,28 +18,23 @@
 
 #pragma once
 
-
 //for holding window info
 typedef struct WINinfo {
-	      DWORD ref;
-		  DWORD flags;
-		  RECT wRect;
-	      DWORD width;
-		  DWORD height;
-		  DWORD clearColour;
-		  DWORD unknown2;
-		  DWORD unknown3;
-	      BYTE *surface;         // bytes frame data ref to palette
-		  DWORD buttonListP;
-	      DWORD unknown5;//buttonptr?
-	      DWORD unknown6;
-	      DWORD unknown7;
-		  DWORD drawFuncP;
-	     } WINinfo;
-
-
-
-
+	DWORD ref;
+	DWORD flags;
+	RECT wRect;
+	DWORD width;
+	DWORD height;
+	DWORD clearColour;
+	DWORD unknown2;
+	DWORD unknown3;
+	BYTE *surface; //bytes frame data ref to palette
+	DWORD buttonListP;
+	DWORD unknown5; //buttonptr?
+	DWORD unknown6;
+	DWORD unknown7;
+	DWORD drawFuncP;
+} WINinfo;
 
 WINinfo *GetWinStruct(int WinRef);
 void RedrawWin(int WinRef);
@@ -47,8 +42,6 @@ void PrintText(char *DisplayText, BYTE ColourIndex, DWORD Xpos, DWORD Ypos, DWOR
 DWORD GetTextWidth(char *TextMsg);
 DWORD GetMaxCharWidth();
 int check_buttons(void);
-
-
 
 void EnableHeroAppearanceMod();
 void HeroAppearanceModExit();
