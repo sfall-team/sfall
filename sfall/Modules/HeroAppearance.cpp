@@ -1856,7 +1856,10 @@ void HeroAppearance::init() {
 		dlog("Setting up Appearance Char Screen buttons.", DL_INIT);
 		EnableHeroAppearanceMod();
 
-		LoadGameHook::OnAfterNewGame() += SetNewCharAppearanceGlobals;
+		LoadGameHook::OnAfterNewGame() += []() {
+			SetNewCharAppearanceGlobals();
+			LoadHeroAppearance();
+		};
 		Inventory::OnAdjustFid() += AdjustHeroArmorArt;
 		dlogr(" Done", DL_INIT);
 	}
