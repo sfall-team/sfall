@@ -247,8 +247,10 @@ static void NewGame2() {
 	dlogr("Starting new game", DL_MAIN);
 
 	SetNewCharAppearanceGlobals();
+
 	LoadGlobalScripts();
 	CritLoad();
+	LoadHeroAppearance();
 	mapLoaded = true;
 }
 
@@ -271,7 +273,7 @@ static void ReadExtraGameMsgFilesIfNeeded() {
 }
 
 static bool PipBoyAvailableAtGameStart = false;
-static void __declspec(naked) MainMenu() {
+static void __declspec(naked) MainMenuHook() {
 	__asm {
 		pushad;
 		push 0;
@@ -279,7 +281,6 @@ static void __declspec(naked) MainMenu() {
 		mov  al, PipBoyAvailableAtGameStart;
 		mov  byte ptr ds:[_gmovie_played_list + 0x3], al;
 		call ReadExtraGameMsgFilesIfNeeded;
-		call LoadHeroAppearance;
 		popad;
 		call main_menu_loop_;
 		retn;
@@ -465,7 +466,7 @@ void LoadGameHookInit() {
 	HookCall(0x443B1C, SaveGame);
 	HookCall(0x48FCFF, SaveGame);
 
-	HookCall(0x480A28, MainMenu);
+	HookCall(0x480A28, MainMenuHook);
 
 	HookCall(0x483668, WorldMapHook);
 	HookCall(0x4A4073, WorldMapHook);
