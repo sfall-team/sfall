@@ -69,7 +69,7 @@ struct UnlistedFrm {
 	WORD yCentreShift[6];
 	DWORD oriOffset[6];
 	DWORD frameAreaSize;
-	
+
 	struct Frame {
 		WORD width;
 		WORD height;
@@ -225,7 +225,6 @@ void UnloadDat(void *dat) {
 
 /*
 void DrawLineX(int WinRef, DWORD XStartPos, DWORD XEndPos, DWORD Ypos, BYTE ColourIndex) {
-
 	__asm {
 		xor eax, eax
 		mov al, ColourIndex
@@ -243,7 +242,6 @@ void DrawLineX(int WinRef, DWORD XStartPos, DWORD XEndPos, DWORD Ypos, BYTE Colo
 
 //---------------------------------------------------------
 void PlayAcm(char *AcmName) {
-
 	__asm {
 		mov eax, AcmName
 		call fo::funcoffs::gsound_play_sfx_file_
@@ -262,9 +260,7 @@ int CheckFile(char*FileName, DWORD *size_out) {
 	return retVal;
 }
 
-
 /////////////////////////////////////////////////////////////////APP MOD FUNCTIONS////////////////////////////////////////////////////////////////////////
-
 
 //-----------------------------------------
 char _stdcall GetSex(void) {
@@ -324,7 +320,7 @@ int _stdcall LoadHeroDat(unsigned int Race, unsigned int Style) {
 	tempPathPtr = &heroPathPtr; //set path for selected appearance
 	heroPathPtr->next = &fo::var::paths[0];
 
-	if (Style != 0){
+	if (Style != 0) {
 		sprintf_s(racePathPtr->path, 64, "Appearance\\h%cR%02dS%02d.dat\0", GetSex(), Race, 0);
 		if (GetFileAttributes(racePathPtr->path) != INVALID_FILE_ATTRIBUTES) { //check if Dat exists for selected race base appearance
 			racePathPtr->pDat = LoadDat(racePathPtr->path);
@@ -344,7 +340,6 @@ int _stdcall LoadHeroDat(unsigned int Race, unsigned int Style) {
 //---------------------------------------------------------
 //insert hero art path in front of main path structure when loading art
 static void __declspec(naked) LoadNewHeroArt() {
-
 	__asm {
 		cmp byte ptr ds:[esi], 'r'
 		je isReading
@@ -360,7 +355,6 @@ setPath:
 
 //---------------------------------------------------------
 static void __declspec(naked) CheckHeroExist() {
-
 	__asm {
 		//pushad
 		cmp esi, critterArraySize //check if loading hero art
@@ -393,7 +387,6 @@ EndFunc:
 //---------------------------------------------------------
 //adjust base hero art if num below hero art range
 static void __declspec(naked) AdjustHeroBaseArt() {
-
 	__asm {
 		//cmp eax, critterListSize
 		// jg EndFunc
@@ -417,7 +410,6 @@ static void AdjustHeroArmorArt(DWORD fid) {
 
 //-----------------------------------------
 void _stdcall SetHeroArt(int NewArtFlag) {
-
 	__asm {
 		mov eax, dword ptr ds:[FO_VAR_obj_dude] //hero state struct
 		mov eax, dword ptr ds:[eax + 0x20] //get hero FrmID
@@ -472,7 +464,6 @@ static void __declspec(naked) SavCritNumFix() {
 
 //---------------------------------------------------------
 static void __declspec(naked) DoubleArt() {
-
 	__asm {
 		cmp dword ptr ss:[esp+0xCC], 0x510774 //check if loading critter lst. 0x510774= addr of critter list size val
 		jne EndFunc
@@ -936,7 +927,6 @@ void DrawCharNote(bool Style, int WinRef, DWORD xPosWin, DWORD yPosWin, BYTE *BG
 
 /*
 void DrawCharNote(DWORD LstNum, char *TitleTxt, char *AltTitleTxt, char *Message) {
-
 	__asm {
 		MOV ECX,Message//100//DWORD PTR ds:[FO_VAR_folder_card_desc]
 		MOV EBX,AltTitleTxt//DWORD PTR ds:[FO_VAR_folder_card_title2]
@@ -1041,7 +1031,6 @@ void _stdcall HeroSelectWindow(int RaceStyleFlag) {
 	//Title underline
 	memset(mainSurface + 484*(10 + titleTextHeight) + 94 - titleTextWidth/2, textColour, titleTextWidth );
 	memset(mainSurface + 484*(10 + titleTextHeight + 1) + 94 - titleTextWidth/2, textColour, titleTextWidth );
-
 
 	sub_draw(484, 230, 484, 230, 0, 0, mainSurface, 484, 230, 0, 0, winSurface, 0);
 
@@ -1281,7 +1270,7 @@ int _stdcall CheckCharButtons() {
 		}
 	}
 
-	switch(button) {
+	switch (button) {
 		case 0x9: //tab button pushed
 			if (fo::var::info_line >= 0x3D && fo::var::info_line < 0x4F) { //if menu ref in last menu go to race
 				button = 0x501, drawFlag = 0;
@@ -1312,7 +1301,7 @@ int _stdcall CheckCharButtons() {
 				raceVal--;
 				LoadHeroDat(raceVal, styleVal);
 			}
-			drawFlag=0;
+			drawFlag = 0;
 		break;
 		case 0x512: //style left button pushed
 			fo::func::art_flush();
@@ -1348,7 +1337,7 @@ int _stdcall CheckCharButtons() {
 		DrawCharNoteNewChar(1);
 		//DrawCharNote(1, fo::var::edit_win, 348, 272, CharScrnBackSurface, 348, 272, 640, 480);
 	}
-	else if (drawFlag==0) {
+	else if (drawFlag == 0) {
 		PlayAcm("ib3p1xx1");
 		fo::var::info_line = 0x501;
 		FixTextHighLight();
@@ -1511,7 +1500,6 @@ static void __declspec(naked) AddCharScrnButtons(void) {
 	}
 }
 
-
 //------------------------------------------
 static void __declspec(naked) FixCharScrnBack(void) {
 //00432B92  |. A3 A4075700    MOV DWORD PTR DS:[5707A4],EAX
@@ -1530,7 +1518,7 @@ static void __declspec(naked) FixCharScrnBack(void) {
 		charScrnBackSurface = new BYTE [640*480];
 
 		BYTE *OldCharScrnBackSurface = fo::var::bckgnd; //char screen background frm surface
-		
+
 		//copy old charscrn surface to new
 		sub_draw(640, 480, 640, 480, 0, 0, OldCharScrnBackSurface, 640, 480, 0, 0, charScrnBackSurface, 0);
 
@@ -1643,7 +1631,6 @@ ExitFunc:
 //Set path to normal before printing or saving character details------------
 static void __declspec(naked) FixCharScrnSaveNPrint() {
 //00432359  |> E8 AA580000    |CALL fallout2.00437C08
-
 	__asm {
 		push TempPathPtr //store current path
 		mov eax, _paths
@@ -1658,7 +1645,6 @@ static void __declspec(naked) FixCharScrnSaveNPrint() {
 	}
 }
 */
-
 
 // Load Appearance data from GCD file------------
 void _stdcall LoadGCDAppearance(fo::DbFile* fileStream) {
@@ -1869,9 +1855,8 @@ void HeroAppearance::init() {
 	if (GetConfigInt("Misc", "EnableHeroAppearanceMod", 0)) {
 		dlog("Setting up Appearance Char Screen buttons.", DL_INIT);
 		EnableHeroAppearanceMod();
-		
+
 		LoadGameHook::OnAfterNewGame() += SetNewCharAppearanceGlobals;
-		LoadGameHook::OnAfterGameStarted() += LoadHeroAppearance;
 		Inventory::OnAdjustFid() += AdjustHeroArmorArt;
 		dlogr(" Done", DL_INIT);
 	}

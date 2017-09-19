@@ -25,6 +25,7 @@
 
 #include "AI.h"
 #include "FileSystem.h"
+#include "HeroAppearance.h"
 #include "PartyControl.h"
 #include "Perks.h"
 #include "ScriptExtender.h"
@@ -154,7 +155,7 @@ end:
 // Called right before savegame slot is being loaded
 static void _stdcall LoadGame_Before() {
 	onBeforeGameStart.invoke();
-	
+
 	char buf[MAX_PATH];
 	GetSavePath(buf, "gv");
 
@@ -200,6 +201,11 @@ static void __declspec(naked) LoadGame_hook() {
 		or inLoop, LOADGAME;
 		call fo::funcoffs::LoadGame_;
 		and inLoop, (-1 ^ LOADGAME);
+		cmp eax, 1;
+		jne end;
+		call LoadGame_After;
+		mov eax, 1;
+end:
 		pop edx;
 		pop ecx;
 		pop ebx;
@@ -211,7 +217,7 @@ static void __declspec(naked) EndLoadHook() {
 	__asm {
 		call fo::funcoffs::EndLoad_;
 		pushad;
-		call LoadGame_After;
+		call LoadHeroAppearance;
 		popad;
 		retn;
 	}
@@ -226,7 +232,7 @@ static void __stdcall NewGame_After() {
 	onAfterGameStarted.invoke();
 
 	dlogr("New Game started.", DL_MAIN);
-	
+
 	mapLoaded = true;
 }
 
@@ -454,7 +460,7 @@ void LoadGameHook::init() {
 	saveInCombatFix = GetConfigInt("Misc", "SaveInCombatFix", 1);
 	if (saveInCombatFix > 2) saveInCombatFix = 0;
 	saveFailMsg = Translate("sfall", "SaveInCombat", "Cannot save at this time");
-	saveSfallDataFailMsg = Translate("sfall", "SaveSfallDataFail", 
+	saveSfallDataFailMsg = Translate("sfall", "SaveSfallDataFail",
 		"ERROR saving extended savegame information! Check if other programs interfere with savegame files/folders and try again!");
 
 	HookCalls(main_init_system_hook, {0x4809BA});
@@ -473,7 +479,7 @@ void LoadGameHook::init() {
 				0x481062, // main_selfrun_record_
 				0x48110B, // main_selfrun_play_
 				0x481145 // main_selfrun_play_
-			}); 
+			});
 	HookCalls(game_reset_on_load_hook, {
 				0x47F491, // PrepLoad_ (the very first step during save game loading)
 			});
