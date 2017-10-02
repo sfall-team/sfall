@@ -11,12 +11,14 @@
 
 */
 
+#include "..\headers\define.h"
 #include "main.h"
 
 variable
    configSection := "CombatControl",
    controlMode,
-   pidList;
+   pidList,
+   hasGeckoSkinning := false;
 
 
 procedure combatturn_handler begin
@@ -32,6 +34,7 @@ procedure combatturn_handler begin
       and (len_array(pidList) == 0 or scan_array(pidList, pid bwand 0xFFFFFF) != -1)
       and (controlMode == 1 or party_member_obj(pid))) then begin
       set_dude_obj(critter);
+      if hasGeckoSkinning then critter_add_trait(critter, TRAIT_PERK, PERK_gecko_skinning_perk, 1);
    end else begin
       set_dude_obj(real_dude_obj);
    end
@@ -44,6 +47,7 @@ procedure start begin
       if (controlMode > 0) then begin
          pidList := GetConfigListInt("CombatControl", "PIDList");
          fix_array(pidList);
+         if has_trait(TRAIT_PERK, dude_obj, PERK_gecko_skinning_perk) then hasGeckoSkinning := true;
 
          register_hook_proc(HOOK_COMBATTURN, combatturn_handler);
       end
