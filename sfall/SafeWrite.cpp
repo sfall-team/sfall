@@ -2,6 +2,9 @@
 
 #pragma warning(disable:4996)
 
+namespace sfall 
+{
+
 void SafeWriteBytes(DWORD addr, BYTE* data, int count) {
 	DWORD	oldProtect;
 
@@ -45,9 +48,21 @@ void _stdcall SafeWriteStr(DWORD addr, const char* data) {
 void HookCall(DWORD addr, void* func) {
 	SafeWrite32(addr+1, (DWORD)func - (addr+5));
 }
-void MakeCall(DWORD addr, void* func, bool jump) {
-	SafeWrite8(addr, jump?0xe9:0xe8);
+
+void MakeCall(DWORD addr, void* func) {
+	SafeWrite8(addr, 0xE8);
 	HookCall(addr, func);
+}
+
+void MakeJump(DWORD addr, void* func) {
+	SafeWrite8(addr, 0xE9);
+	HookCall(addr, func);
+}
+
+void HookCalls(void* func, std::initializer_list<DWORD> addrs) {
+	for (auto addr : addrs) {
+		HookCall(addr, func);
+	}
 }
 
 void SafeMemSet(DWORD addr, BYTE val, int len) {
@@ -57,6 +72,9 @@ void SafeMemSet(DWORD addr, BYTE val, int len) {
 	memset((void*)addr, val, len);
 	VirtualProtect((void *)addr, len, oldProtect, &oldProtect);
 }
+
 void BlockCall(DWORD addr) {
 	SafeMemSet(addr, 0x90, 5);
+}
+
 }

@@ -106,6 +106,9 @@ array - array ID to be used with array-related functions (actually an integer)
 > int get_npc_level(string npc)
 - also takes the npc name as an argument, and returns the npc's current level. Again, the npc needs to be in your party.
 
+> void set_car_current_town(int town)
+- changes the current town index for the player's car
+
 > int get_ini_setting(string setting)
 - reads an integer value from an ini file in the fallout directory.
 - It only takes a single argument; seperate the file name, section and key with a '|' character; e.g. 'myvar:=get_ini_setting("myini.ini|mysec|var1")' If the file or key cannot be found, -1 is returned.
@@ -368,6 +371,59 @@ Some utility/math functions are available:
 
 > void sfall_func0("exec_map_update_scripts")
 - executes map_update_p_proc for all objects on map and global/hook scripts as well
+
+> int sfall_func1("item_weight", object)
+- gets the current weight of an object
+
+> int sfall_func1("get_outline", object)
+- gets the current outline color for an object
+
+> void sfall_func2("set_outline", object, int color)
+- sets the outline color of an object
+- 0 means or any value above 0x00FFFFFF disables the outline
+- call "tile_refresh_display" after changing outline of objects to properly redraw the scene
+
+> int sfall_func1("get_flags", object)
+- gets the current value of object flags (see define_extra.h for available flags)
+
+> void sfall_func2("set_flags", object, int flags)
+- sets the current flags of an object
+- all flags are rewritten with given integer, so first get current flags with "get_flags" and use bwor/bwand to set/remove specific flag
+
+> void sfall_func0("tile_refresh_display")
+- redraws the game scene (tiles, walls, objects, etc.)
+
+> object sfall_func0("outlined_object")
+- returns an object that is currently highlighted by hovering the mouse above it
+
+> object sfall_func1("set_dude_obj", critter)
+- take control of a given critter
+- passing 0 will reset control back to "real" dude
+
+> void sfall_func0("real_dude_obj")
+- returns the initial dude_obj after set_dude_obj was used
+
+> array sfall_func1("get_ini_sections", string fileName)
+- returns an array of names of all sections in a given INI file
+
+> array sfall_func2("get_ini_section", string fileName, string section)
+- returns an associative array of keys and values for a given INI file and section
+
+> int sfall_func0("car_gas_amount")
+- returns current amount of fuel in player's car (between 0 and 80000)
+- to change fuel amount, use vanilla function: metarule(METARULE_GIVE_CAR_GAS, amount) - amount can be positive or negative
+
+> void sfall_func1("set_car_intface_art", int artIndex)
+- changes the interface art (index in LST file) for the car image on worldmap screen
+- should be called before going to worldmap
+- vanilla art index is 0x1B1
+
+> int sfall_func0("get_cursor_mode")
+- returns the current cursor mode (0 - movement cursor, 1 - command cursor, 2 - targeting cursor)
+- mode 4 to 10 are Skilldex skills (yellow targeting cursor)
+
+> void sfall_func1("set_cursor_mode", int mode)
+- sets the current cursor mode
 
 ------------------------
 ------ MORE INFO -------

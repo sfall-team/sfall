@@ -24,11 +24,17 @@
 
 #ifndef NO_SFALL_DEBUG
 #include <stdio.h>
+#include <string>
 
-void dlog(const char* msg, int type);
-void dlogr(const char* msg, int type);
+namespace sfall 
+{
+
+void dlog(const std::string&, int type);
+void dlogr(const std::string&, int type);
 void dlog_f(const char *format, int type, ...);
 void LoggingInit();
+
+}
 #else
 #define dlog(a,b)
 #define dlogr(a,b)

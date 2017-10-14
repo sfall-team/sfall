@@ -1,65 +1,65 @@
 /*
- *    sfall
- *    Copyright (C) 2010  The sfall team
- *
- *    This program is free software: you can redistribute it and/or modify
- *    it under the terms of the GNU General Public License as published by
- *    the Free Software Foundation, either version 3 of the License, or
- *    (at your option) any later version.
- *
- *    This program is distributed in the hope that it will be useful,
- *    but WITHOUT ANY WARRANTY; without even the implied warranty of
- *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *    GNU General Public License for more details.
- *
- *    You should have received a copy of the GNU General Public License
- *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
-
+*    sfall
+*    Copyright (C) 2008-2016  The sfall team
+*
+*    This program is free software: you can redistribute it and/or modify
+*    it under the terms of the GNU General Public License as published by
+*    the Free Software Foundation, either version 3 of the License, or
+*    (at your option) any later version.
+*
+*    This program is distributed in the hope that it will be useful,
+*    but WITHOUT ANY WARRANTY; without even the implied warranty of
+*    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+*    GNU General Public License for more details.
+*
+*    You should have received a copy of the GNU General Public License
+*    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
 #pragma once
 
+#include <assert.h>
 //#define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
+#include <string>
+#include <vector>
+
 #include "SafeWrite.h"
 #include "Logging.h"
 
+namespace sfall
+{
+
 // global flag, indicating that debugging features of Sfall are enabled
 #ifndef NO_SFALL_DEBUG
-	extern bool IsDebug;
+	extern bool isDebug;
 #else
-	#define IsDebug false
+	#define isDebug false
 #endif
 
-extern char ini[65];
-extern char translationIni[65];
+// Gets the integer value from Sfall configuration INI file.
+unsigned int GetConfigInt(const char* section, const char* setting, int defaultValue);
 
-extern char dmModelName[65];
-extern char dfModelName[65];
+// Gets the string value from given INI file.
+std::string GetIniString(const char* section, const char* setting, const char* defaultValue, size_t bufSize, const char* iniFile);
 
-extern bool npcautolevel;
+// Loads the string value from Sfall configuration INI file into the provided buffer.
+size_t GetConfigString(const char* section, const char* setting, const char* defaultValue, char* buffer, size_t bufSize = 128);
 
-template<typename T> 
-T SimplePatch(DWORD addr, const char* iniSection, const char* iniKey, T defaultValue, T minValue = 0, T maxValue = INT_MAX)
-{
-	return SimplePatch<T>(&addr, 1, iniSection, iniKey, defaultValue, minValue, maxValue);
-}
+// Parses the comma-separated list setting from given INI file.
+std::vector<std::string> GetIniList(const char* section, const char* setting, const char* defaultValue, size_t bufSize, char delimiter, const char* iniFile);
 
-template<typename T> 
-T SimplePatch(DWORD *addrs, int numAddrs, const char* iniSection, const char* iniKey, T defaultValue, T minValue = 0, T maxValue = INT_MAX)
-{
-	T value;
-	char msg[255];
-	value = (T)GetPrivateProfileIntA(iniSection, iniKey, defaultValue, ini);
-	if (value != defaultValue) {
-		if (value < minValue)
-			value = minValue;
-		else if (value > maxValue)
-			value = maxValue;
-		_snprintf_s(msg, sizeof(msg), _TRUNCATE, "Applying patch: %s = %d.", iniKey, value);
-		dlog((const char *)msg, DL_INIT);
-		for (int i=0; i<numAddrs; i++)
-			SafeWrite<T>(addrs[i], (T)value);
-		dlogr(" Done", DL_INIT);
-	}
-	return value;
+// Gets the string value from Sfall configuration INI file.
+std::string GetConfigString(const char* section, const char* setting, const char* defaultValue, size_t bufSize = 128);
+
+// Parses the comma-separated list from the settings from Sfall configuration INI file.
+std::vector<std::string> GetConfigList(const char* section, const char* setting, const char* defaultValue, size_t bufSize = 128);
+
+// Translates given string using Sfall translation INI file.
+std::string Translate(const char* section, const char* setting, const char* defaultValue, size_t bufSize = 128);
+
+// Translates given string using Sfall translation INI file and puts the result into given buffer.
+size_t Translate(const char* section, const char* setting, const char* defaultValue, char* buffer, size_t bufSize = 128);
+
+extern const char ddrawIni[];
+
 }

@@ -23,26 +23,29 @@
 
 #include <fstream>
 
+namespace sfall 
+{
+
 using namespace std;
 
 static int DebugTypes=0;
 static ofstream Log;
 
-void dlog(const char* a, int type) {
-	if (IsDebug && (type == DL_MAIN || (type & DebugTypes))) {
+void dlog(const std::string& a, int type) {
+	if (isDebug && (type == DL_MAIN || (type & DebugTypes))) {
 		Log << a;
 		Log.flush();
 	}
 }
-void dlogr(const char* a, int type) {
-	if (IsDebug && (type == DL_MAIN || (type & DebugTypes))) {
+void dlogr(const std::string& a, int type) {
+	if (isDebug && (type == DL_MAIN || (type & DebugTypes))) {
 		Log << a << "\n";
 		Log.flush();
 	}
 }
 
 void dlog_f(const char *fmt, int type, ...) {
-	if (IsDebug) {
+	if (isDebug) {
 		va_list args;
 		va_start(args, type);
 		char buf[4096];
@@ -55,10 +58,20 @@ void dlog_f(const char *fmt, int type, ...) {
 
 void LoggingInit() {
 	Log.open("sfall-log.txt", ios_base::out | ios_base::trunc);
-	if (GetPrivateProfileIntA("Debugging", "Init", 0, ".\\ddraw.ini")) DebugTypes |= DL_INIT;
-	if (GetPrivateProfileIntA("Debugging", "Hook", 0, ".\\ddraw.ini")) DebugTypes |= DL_HOOK;
-	if (GetPrivateProfileIntA("Debugging", "Script", 0, ".\\ddraw.ini")) DebugTypes |= DL_SCRIPT;
-	if (GetPrivateProfileIntA("Debugging", "Criticals", 0, ".\\ddraw.ini")) DebugTypes |= DL_CRITICALS;
+	if (GetPrivateProfileIntA("Debugging", "Init", 0, ::sfall::ddrawIni)) {
+		DebugTypes |= DL_INIT;
+	}
+	if (GetPrivateProfileIntA("Debugging", "Hook", 0, ::sfall::ddrawIni)) {
+		DebugTypes |= DL_HOOK;
+	}
+	if (GetPrivateProfileIntA("Debugging", "Script", 0, ::sfall::ddrawIni)) {
+		DebugTypes |= DL_SCRIPT;
+	}
+	if (GetPrivateProfileIntA("Debugging", "Criticals", 0, ::sfall::ddrawIni)) {
+		DebugTypes |= DL_CRITICALS;
+	}
+}
+
 }
 
 #endif

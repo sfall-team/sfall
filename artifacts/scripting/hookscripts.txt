@@ -13,15 +13,15 @@ Example setup for a hook-script based mod:
 
 
 procedure tohit_hook_handler begin
-    display_msg("Modifying hit_hook " + get_sfall_arg);
-    set_hit_chance_max(100);
-    set_sfall_return(100);
+   display_msg("Modifying hit_hook " + get_sfall_arg);
+   set_hit_chance_max(100);
+   set_sfall_return(100);
 end
 
 procedure start begin
-    if game_loaded then begin
-        register_hook_proc(HOOK_TOHIT, tohit_hook_handler);
-    end
+   if game_loaded then begin
+      register_hook_proc(HOOK_TOHIT, tohit_hook_handler);
+   end
 end
 
 
@@ -42,7 +42,7 @@ Returns all hook arguments as a new temp array.
 Used to return the new values from the script. Each time it's called it sets the next value, or if you've already set all return values it does nothing.
 
 > void set_sfall_arg(int argnum, int value)
-Changes argument value. This is usefull if you have several hook scripts attached to one hook point (see below).
+Changes argument value. The argument number (argnum) is 0-indexed. This is usefull if you have several hook scripts attached to one hook point (see below).
 
 > void register_hook(int hooktype)
 Used from a normal global script if you want to run it at the same point a full hook script would normally run. In case of this function, "start" proc will be execuded in a current global script. You can use all above functions like normal.
@@ -58,13 +58,13 @@ Example: let's say we have a Mod A which reduces all "to hit" chances by 50%. Th
 
 Mod B also want to affect hit chances globally, by increasing them by 50%. Now in order for both mods to work well together, we need to add this line to Mod A hook script:
 
-    set_sfall_arg(original_chance / 2);
+    set_sfall_arg(0, (original_chance / 2));
 
 This basically changes hook argument for the next script. Mod B code:
 
     original_chance = get_sfall_arg;
     set_sfall_return(original_chance * 1.5);
-    set_sfall_arg(original_chance * 1.5);
+    set_sfall_arg(0, (original_chance * 1.5));
 
 So if you combine both mods together, they will run in chain and the end result will be a 75% from original hit chance (hook register order doesn't matter in this case, if you use "set_sfall_arg" in both hooks).
 
@@ -166,9 +166,10 @@ int     arg5  - The special effect flags for the target
 int     arg6  - The special effect flags for the attacker
 int     arg7  - The weapon used in the attack
 int     arg8  - The bodypart that was struck
-int     arg9  - Roll result of the attack (check with is_success, etc functions; basically: 0-crit. fail, 1-fail, 2-success, 3-crit. success)
+int     arg9  - Damage Multipiler (this is divided by 2, so a value of 3 does 1.5x damage, and 8 does 4x damage. Usually it's 2, but with Silent Death perk and the corresponding attack conditions, it's 4; for critical hits, the value is taken from the critical table)
 int     arg10 - Number of bullets actually hit the target (1 for melee attacks)
 int     arg11 - The amount of knockback to the target
+int     arg12 - Attack Type (see ATKTYPE_* constants)
 
 int     ret1 - The damage to the target
 int     ret2 - The damage to the attacker
@@ -262,7 +263,7 @@ int     arg5 - the amount of actual caps in the barter stack (as opposed to good
 int     arg6 - the value of all goods being traded before skill modifications
 critter arg7 - table of offered goods (being sold to NPC)
 int     arg8 - the total cost of the goods offered by the player
-int     arg9 - set 1 if the "offers" button was pressed(not for a party member), otherwise 0
+int     arg9 - set 1 if the "offers" button was pressed (not for a party member), otherwise 0
 
 int     ret1 - the modified value of all of the goods
 
@@ -436,3 +437,40 @@ int     arg3 - slot (INVEN_TYPE_*)
 int     arg4 - 1 when wielding, 0 when unwielding
 
 int     ret1 - overrides hard-coded handler (-1 - use engine handler, any other value - override) - NOT RECOMMENDED
+
+-------------------------------------------
+
+HOOK_ADJUSTFID (hs_adjustfid.int)
+
+Runs after calculating character figure FID on the inventory screen, whenever the game decides that character appearance might change.
+Also happens on other screens, like barter.
+
+NOTE: FID has following format: 0x0ABBCDDD, where A is object type, BB - animation code (always 0 in this case), C - weapon code, DDD - FRM index in LST file.
+
+int     arg1 - the vanilla fid calculated by the engine according to critter base FID and armor/weapon being used
+
+int     ret1 - overrides the calculated FID with provided value
+
+-------------------------------------------
+
+HOOK_COMBATTURN (hs_combatturn.int)
+
+Runs before and after each turn in combat (for both PC and NPC).
+
+int     arg1 - event type: 1 - start of turn, 0 - normal end of turn, -1 - combat ended abruptly (by script or by pressing Enter during PC turn)
+int     arg2 - critter doing the turn
+int     arg3 - unknown boolean argument
+
+int     ret1 - pass 1 at the start of turn to skip the turn, pass -1 at the end of turn to force end of combat
+
+-------------------------------------------
+
+HOOK_CARTRAVEL (hs_cartravel.int)
+
+Runs continously during worldmap travel on car.
+
+int     arg1 - vanilla car speed (between 3 and 8 "steps")
+int     arg2 - vanilla fuel consumption (100 and below)
+
+int     ret1 - car speed override (pass -1 if you just want to override fuel consumption)
+int     ret2 - fuel consumption override

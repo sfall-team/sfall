@@ -1,21 +1,28 @@
 ﻿
-Microsoft Visual Studio Solution File, Format Version 11.00
-# Visual Studio 2010
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.26403.0
+MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ddraw", "ddraw.vcxproj", "{FB9023DA-CA5E-4704-B601-407810963EF0}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{EA440259-1669-4720-AAC4-5A5F0D1F33AC}"
+	ProjectSection(SolutionItems) = preProject
+		Rebracer.xml = Rebracer.xml
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
 		Release|Win32 = Release|Win32
-		Win2K|Win32 = Win2K|Win32
+		ReleaseXP|Win32 = ReleaseXP|Win32
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{FB9023DA-CA5E-4704-B601-407810963EF0}.Debug|Win32.ActiveCfg = Debug|Win32
 		{FB9023DA-CA5E-4704-B601-407810963EF0}.Debug|Win32.Build.0 = Debug|Win32
 		{FB9023DA-CA5E-4704-B601-407810963EF0}.Release|Win32.ActiveCfg = Release|Win32
 		{FB9023DA-CA5E-4704-B601-407810963EF0}.Release|Win32.Build.0 = Release|Win32
-		{FB9023DA-CA5E-4704-B601-407810963EF0}.Win2K|Win32.ActiveCfg = Win2K|Win32
-		{FB9023DA-CA5E-4704-B601-407810963EF0}.Win2K|Win32.Build.0 = Win2K|Win32
+		{FB9023DA-CA5E-4704-B601-407810963EF0}.ReleaseXP|Win32.ActiveCfg = ReleaseXP|Win32
+		{FB9023DA-CA5E-4704-B601-407810963EF0}.ReleaseXP|Win32.Build.0 = ReleaseXP|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

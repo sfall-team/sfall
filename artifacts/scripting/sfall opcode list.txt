@@ -208,9 +208,8 @@
 0x81e3 - void reset_critical_table(int crittertype, int bodypart, int level, int valuetype)
 
 0x81e4 - int   get_sfall_arg()
-0x823d - void  set_sfall_arg(int arg, int value)
 0x823c - array get_sfall_args()
-0x823d - void  set_sfall_arg(int arg, int value)
+0x823d - void  set_sfall_arg(int argnum, int value)
 0x81e5 - void  set_sfall_return(int value)
 0x81ea - int   init_hook()
 
@@ -258,8 +257,8 @@
 0x8202 - void  fs_seek(int id, int pos)
 0x8203 - void  fs_resize(int id, int size)
 
-0x8204 - int  get_proto_data(object, int offset)
-0x8205 - void set_proto_data(object, int offset, int value)
+0x8204 - int  get_proto_data(int pid, int offset)
+0x8205 - void set_proto_data(int pid, int offset, int value)
 
 0x8206 - void set_self(object)
 0x8207 - void register_hook(int hook)
