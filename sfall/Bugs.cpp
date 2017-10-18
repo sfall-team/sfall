@@ -1104,6 +1104,15 @@ end:
 	}
 }
 
+static void __declspec(naked) partyMemberGetCurLevel_hack() {
+	__asm {
+		mov  esi, 0xFFFFFFFF; // initialize party member index
+		mov  edi, dword ptr ds:[_partyMemberMaxCount];
+		push 0x495FFC;
+		retn;
+	}
+}
+
 
 void BugsInit()
 {
@@ -1405,4 +1414,7 @@ void BugsInit()
 		HookCall(0x423A99, &compute_attack_hook);
 		dlogr(" Done", DL_INIT);
 	//}
+
+	// Fix crash when calling partyMemberGetCurLevel_ on a critter that has no data in party.txt
+	MakeJump(0x495FF6, partyMemberGetCurLevel_hack);
 }

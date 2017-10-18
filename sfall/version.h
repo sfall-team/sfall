@@ -22,12 +22,12 @@
 
 #define VERSION_MAJOR 3
 #define VERSION_MINOR 8
-#define VERSION_BUILD 5
+#define VERSION_BUILD 6
 #define VERSION_REV 0
 #ifdef WIN2K
-#define VERSION_STRING "3.8.5 win2k"
+#define VERSION_STRING "3.8.6 win2k"
 #else
-#define VERSION_STRING "3.8.5"
+#define VERSION_STRING "3.8.6"
 #endif
 
 #define CHECK_VAL  (4)
