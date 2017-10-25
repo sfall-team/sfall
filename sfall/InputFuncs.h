@@ -25,6 +25,8 @@
 namespace sfall 
 {
 
+extern bool useScrollWheel;
+
 void SetMDown(bool down, bool right);
 void SetMPos(int x, int y);
 
@@ -135,7 +137,7 @@ void GetMouse(int* x, int* y);
 #define DIK_NOCONVERT       0x7B    /* (Japanese keyboard)            */
 #define DIK_YEN             0x7D    /* (Japanese keyboard)            */
 #define DIK_NUMPADEQUALS    0x8D    /* = on numeric keypad (NEC PC98) */
-//#define DIK_CIRCUMFLEX      0x90    /* (Japanese keyboard)            */
+#define DIK_PREVTRACK       0x90    /* Previous Track (DIK_CIRCUMFLEX on Japanese keyboard) */
 #define DIK_AT              0x91    /*                     (NEC PC98) */
 #define DIK_COLON           0x92    /*                     (NEC PC98) */
 #define DIK_UNDERLINE       0x93    /*                     (NEC PC98) */
@@ -181,6 +183,11 @@ void GetMouse(int* x, int* y);
 #define DIK_RIGHTARROW      DIK_RIGHT           /* RightArrow on arrow keypad */
 #define DIK_DOWNARROW       DIK_DOWN            /* DownArrow on arrow keypad */
 #define DIK_PGDN            DIK_NEXT            /* PgDn on arrow keypad */
+
+/*
+ *  Alternate names for keys originally not used on US keyboards.
+ */
+#define DIK_CIRCUMFLEX      DIK_PREVTRACK       /* Japanese keyboard */
 
 void _stdcall ForceGraphicsRefresh(DWORD);
 
