@@ -1199,8 +1199,7 @@ static void __declspec(naked) SetXpMod3() {
 }
 
 static void _stdcall SetXpMod2(DWORD percent) {
-	SafeWrite8(0x004AFAB8, 0xe9);
-	SafeWrite32(0x004AFAB9, (DWORD)&SetXpMod3 - 0x004AFABD);
+	MakeJump(0x4AFAB8, SetXpMod3);
 	xpmod = (float)percent / 100.0f;
 }
 
@@ -1222,7 +1221,7 @@ end:
 static void _stdcall SetPerkLevelMod2(int mod) {
 	if (mod < -25 || mod>25) return;
 	PerkLevelMod = mod;
-	SafeWrite32(0x00496880, (DWORD)&SetPerkLevelMod3 - 0x00496884);
+	HookCall(0x49687F, &SetPerkLevelMod3);
 }
 
 void __declspec(naked) op_set_xp_mod() {

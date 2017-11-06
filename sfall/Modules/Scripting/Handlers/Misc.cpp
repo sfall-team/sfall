@@ -572,23 +572,23 @@ void __declspec(naked) op_eax_available() {
 static char* NPCToInc;
 static void _stdcall IncNPCLevel4(char* npc) {
 	if (_stricmp(npc, NPCToInc)) {
-		SafeWrite8(0x00495C50, 0xe9);
-		SafeWrite32(0x00495C51, 0x000001fc);
+		SafeWrite8(0x495C50, 0xE9);
+		SafeWrite32(0x495C51, 0x000001FC);
 	} else {
-		SafeWrite16(0x00495C50, 0x840f);	//Want to keep this check intact.
-		SafeWrite32(0x00495C52, 0x000001fb);
+		SafeWrite16(0x495C50, 0x840F);	//Want to keep this check intact.
+		SafeWrite32(0x495C52, 0x000001FB);
 
-		//SafeWrite16(0x00495C50, 0x9090);
-		//SafeWrite32(0x00495C52, 0x90909090);
-		SafeWrite16(0x00495C77, 0x9090);	//Check that the player is high enough for the npc to consider this level
-		SafeWrite32(0x00495C79, 0x90909090);
-		//SafeWrite16(0x00495C8C, 0x9090);	//Check that the npc isn't already at its maximum level
-		//SafeWrite32(0x00495C8E, 0x90909090);
-		SafeWrite16(0x00495CEC, 0x9090);	//Check that the npc hasn't already levelled up recently
-		SafeWrite32(0x00495CEE, 0x90909090);
+		//SafeWrite16(0x495C50, 0x9090);
+		//SafeWrite32(0x495C52, 0x90909090);
+		SafeWrite16(0x495C77, 0x9090);	//Check that the player is high enough for the npc to consider this level
+		SafeWrite32(0x495C79, 0x90909090);
+		//SafeWrite16(0x495C8C, 0x9090);	//Check that the npc isn't already at its maximum level
+		//SafeWrite32(0x495C8E, 0x90909090);
+		SafeWrite16(0x495CEC, 0x9090);	//Check that the npc hasn't already levelled up recently
+		SafeWrite32(0x495CEE, 0x90909090);
 		if (!npcAutoLevelEnabled) {
-			SafeWrite16(0x00495D22, 0x9090);//Random element
-			SafeWrite32(0x00495D24, 0x90909090);
+			SafeWrite16(0x495D22, 0x9090);//Random element
+			SafeWrite32(0x495D24, 0x90909090);
 		}
 	}
 }
@@ -606,22 +606,21 @@ static void __declspec(naked) IncNPCLevel3() {
 
 static void _stdcall IncNPCLevel2(char* npc) {
 	NPCToInc = npc;
-	SafeWrite8(0x00495BEB, 0xe9);	//Replace the debug output with a jmp
-	SafeWrite32(0x00495BEC, ((DWORD)&IncNPCLevel3) - 0x00495BF0);
+	MakeJump(0x495BEB, IncNPCLevel3);	//Replace the debug output with a jmp
 	__asm {
 		call fo::funcoffs::partyMemberIncLevels_;
 	}
-	SafeWrite16(0x00495C50, 0x840f);
-	SafeWrite32(0x00495C52, 0x000001fb);
-	SafeWrite16(0x00495C77, 0x8c0f);
-	SafeWrite32(0x00495C79, 0x000001d4);
-	//SafeWrite16(0x00495C8C, 0x8d0f);
-	//SafeWrite32(0x00495C8E, 0x000001bf);
-	SafeWrite16(0x00495CEC, 0x850f);
-	SafeWrite32(0x00495CEE, 0x00000130);
+	SafeWrite16(0x495C50, 0x840F);
+	SafeWrite32(0x495C52, 0x000001FB);
+	SafeWrite16(0x495C77, 0x8C0F);
+	SafeWrite32(0x495C79, 0x000001D4);
+	//SafeWrite16(0x495C8C, 0x8D0F);
+	//SafeWrite32(0x495C8E, 0x000001BF);
+	SafeWrite16(0x495CEC, 0x850F);
+	SafeWrite32(0x495CEE, 0x00000130);
 	if (!npcAutoLevelEnabled) {
-		SafeWrite16(0x00495D22, 0x8f0f);
-		SafeWrite32(0x00495D24, 0x00000129);
+		SafeWrite16(0x495D22, 0x8F0F);
+		SafeWrite32(0x495D24, 0x00000129);
 	}
 }
 
@@ -662,7 +661,7 @@ static int _stdcall get_npc_level2(DWORD numMembers, DWORD maxMembers, DWORD* me
 			mov eax, members;
 			mov eax, [eax];
 			call fo::funcoffs::critter_name_
-				mov name2, eax;
+			mov name2, eax;
 		}
 		if (_stricmp(name, name2)) {
 			members += 4;

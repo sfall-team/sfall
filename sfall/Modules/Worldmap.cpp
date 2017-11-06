@@ -226,30 +226,30 @@ void WorldLimitsPatches() {
 	DWORD date = GetConfigInt("Misc", "LocalMapXLimit", 0);
 	if (date) {
 		dlog("Applying local map x limit patch.", DL_INIT);
-		SafeWrite32(0x004B13B9, date);
+		SafeWrite32(0x4B13B9, date);
 		dlogr(" Done", DL_INIT);
 	}
 	date = GetConfigInt("Misc", "LocalMapYLimit", 0);
 	if (date) {
 		dlog("Applying local map y limit patch.", DL_INIT);
-		SafeWrite32(0x004B13C7, date);
+		SafeWrite32(0x4B13C7, date);
 		dlogr(" Done", DL_INIT);
 	}
 
 	//if(GetConfigInt("Misc", "WorldMapCitiesListFix", 0)) {
 	dlog("Applying world map cities list patch.", DL_INIT);
 
-	SafeWrite32(0x004C04BA, ((DWORD)&ScrollCityListHook) - 0x004C04BE);
-	SafeWrite32(0x004C04C9, ((DWORD)&ScrollCityListHook) - 0x004C04CD);
-	SafeWrite32(0x004C4A35, ((DWORD)&ScrollCityListHook) - 0x004C4A39);
-	SafeWrite32(0x004C4A3E, ((DWORD)&ScrollCityListHook) - 0x004C4A42);
+	HookCall(0x4C04B9, &ScrollCityListHook);
+	HookCall(0x4C04C8, &ScrollCityListHook);
+	HookCall(0x4C4A34, &ScrollCityListHook);
+	HookCall(0x4C4A3D, &ScrollCityListHook);
 	dlogr(" Done", DL_INIT);
 	//}
 
 	//if(GetConfigInt("Misc", "CitiesLimitFix", 0)) {
 	dlog("Applying cities limit patch.", DL_INIT);
-	if (*((BYTE*)0x004BF3BB) != 0xeb) {
-		SafeWrite8(0x004BF3BB, 0xeb);
+	if (*((BYTE*)0x4BF3BB) != 0xEB) {
+		SafeWrite8(0x4BF3BB, 0xEB);
 	}
 	dlogr(" Done", DL_INIT);
 	//}
@@ -259,10 +259,10 @@ void WorldLimitsPatches() {
 		dlog("Applying world map slots patch.", DL_INIT);
 		if (wmSlots < 7) wmSlots = 7;
 		mapSlotsScrollMax = (wmSlots - 7) * 27;
-		if (wmSlots < 25) SafeWrite32(0x004C21FD, 230 - (wmSlots - 17) * 27);
+		if (wmSlots < 25) SafeWrite32(0x4C21FD, 230 - (wmSlots - 17) * 27);
 		else {
-			SafeWrite8(0x004C21FC, 0xC2);
-			SafeWrite32(0x004C21FD, 2 + 27 * (wmSlots - 26));
+			SafeWrite8(0x4C21FC, 0xC2);
+			SafeWrite32(0x4C21FD, 2 + 27 * (wmSlots - 26));
 		}
 		dlogr(" Done", DL_INIT);
 	}
@@ -278,36 +278,36 @@ void TimeLimitPatch() {
 		limit = -1;
 		addUnarmedStatToGetYear = 1;
 
-		SafeWrite32(0x004392F9, ((DWORD)&GetDateWrapper) - 0x004392Fd);
-		SafeWrite32(0x00443809, ((DWORD)&GetDateWrapper) - 0x0044380d);
-		SafeWrite32(0x0047E128, ((DWORD)&GetDateWrapper) - 0x0047E12c);
-		SafeWrite32(0x004975A3, ((DWORD)&GetDateWrapper) - 0x004975A7);
-		SafeWrite32(0x00497713, ((DWORD)&GetDateWrapper) - 0x00497717);
-		SafeWrite32(0x004979Ca, ((DWORD)&GetDateWrapper) - 0x004979Ce);
-		SafeWrite32(0x004C3CB6, ((DWORD)&GetDateWrapper) - 0x004C3CBa);
+		HookCall(0x4392F8, &GetDateWrapper);
+		HookCall(0x443808, &GetDateWrapper);
+		HookCall(0x47E127, &GetDateWrapper);
+		HookCall(0x4975A2, &GetDateWrapper);
+		HookCall(0x497712, &GetDateWrapper);
+		HookCall(0x4979C9, &GetDateWrapper);
+		HookCall(0x4C3CB5, &GetDateWrapper);
 		dlogr(" Done", DL_INIT);
 	}
 
 	if (limit <= 14 && limit >= -1 && limit != 13) {
 		dlog("Applying time limit patch.", DL_INIT);
 		if (limit == -1) {
-			SafeWrite32(0x004A34Fa, ((DWORD)&TimerReset) - 0x004A34Fe);
-			SafeWrite32(0x004A3552, ((DWORD)&TimerReset) - 0x004A3556);
+			HookCall(0x4A34F9, &TimerReset);
+			HookCall(0x4A3551, &TimerReset);
 
-			SafeWrite32(0x004A34EF, 0x90909090);
-			SafeWrite32(0x004A34f3, 0x90909090);
-			SafeWrite16(0x004A34f7, 0x9090);
-			SafeWrite32(0x004A34FE, 0x90909090);
-			SafeWrite16(0x004A3502, 0x9090);
+			SafeWrite32(0x4A34EF, 0x90909090);
+			SafeWrite32(0x4A34F3, 0x90909090);
+			SafeWrite16(0x4A34F7, 0x9090);
+			SafeWrite32(0x4A34FE, 0x90909090);
+			SafeWrite16(0x4A3502, 0x9090);
 
-			SafeWrite32(0x004A3547, 0x90909090);
-			SafeWrite32(0x004A354b, 0x90909090);
-			SafeWrite16(0x004A354f, 0x9090);
-			SafeWrite32(0x004A3556, 0x90909090);
-			SafeWrite16(0x004A355a, 0x9090);
+			SafeWrite32(0x4A3547, 0x90909090);
+			SafeWrite32(0x4A354B, 0x90909090);
+			SafeWrite16(0x4A354F, 0x9090);
+			SafeWrite32(0x4A3556, 0x90909090);
+			SafeWrite16(0x4A355A, 0x9090);
 		} else {
-			SafeWrite8(0x004A34EC, limit);
-			SafeWrite8(0x004A3544, limit);
+			SafeWrite8(0x4A34EC, limit);
+			SafeWrite8(0x4A3544, limit);
 		}
 		dlogr(" Done", DL_INIT);
 	}
@@ -324,7 +324,7 @@ void TownMapsHotkeyFix() {
 void WorldmapFpsPatch() {
 	if (GetConfigInt("Misc", "WorldMapFPSPatch", 0)) {
 		dlog("Applying world map fps patch.", DL_INIT);
-		if (*(DWORD*)0x4BFE5E != 0x8d16) {
+		if (*(DWORD*)0x4BFE5E != 0x8D16) {
 			dlogr(" Failed", DL_INIT);
 		} else {
 			worldMapDelay = GetConfigInt("Misc", "WorldMapDelay2", 66);
@@ -333,7 +333,7 @@ void WorldmapFpsPatch() {
 			dlogr(" Done", DL_INIT);
 		}
 	} else {
-		if (*(DWORD*)0x4BFE5E == 0x8d16) {
+		if (*(DWORD*)0x4BFE5E == 0x8D16) {
 			HookCall(0x4BFE5D, WorldMapHook);
 			::sfall::availableGlobalScriptTypes |= 2;
 		}
@@ -352,8 +352,8 @@ void WorldmapFpsPatch() {
 void PathfinderFixInit() {
 	//if(GetConfigInt("Misc", "PathfinderFix", 0)) {
 	dlog("Applying pathfinder patch.", DL_INIT);
-	SafeWrite32(0x004C1FF2, ((DWORD)&PathfinderFix3) - 0x004c1ff6);
-	SafeWrite32(0x004C1C79, ((DWORD)&PathfinderFix) - 0x004c1c7d);
+	HookCall(0x4C1FF1, &PathfinderFix3);
+	HookCall(0x4C1C78, &PathfinderFix);
 	MapMulti = (double)GetConfigInt("Misc", "WorldMapTimeMod", 100) / 100.0;
 	dlogr(" Done", DL_INIT);
 //}

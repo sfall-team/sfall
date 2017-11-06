@@ -32,11 +32,11 @@ namespace script
 
 static DWORD EncounteredHorrigan;
 static void _stdcall ForceEncounter4() {
-	*(DWORD*)0x00672E04 = EncounteredHorrigan;
-	SafeWrite32(0x004C070E, 0x95);
-	SafeWrite32(0x004C0718, 0x95);
-	SafeWrite32(0x004C06D1, 0x2E043D83);
-	SafeWrite32(0x004C071D, 0xFFFC2413);
+	*(DWORD*)0x672E04 = EncounteredHorrigan;
+	SafeWrite32(0x4C070E, 0x95);
+	SafeWrite32(0x4C0718, 0x95);
+	SafeWrite32(0x4C06D1, 0x2E043D83);
+	SafeWrite32(0x4C071D, 0xFFFC2413);
 	SafeWrite8(0x4C0706, 0x75);
 }
 
@@ -59,12 +59,12 @@ static void __declspec(naked) ForceEncounter3() {
 }
 
 static void _stdcall ForceEncounter2(DWORD mapID, DWORD flags) {
-	EncounteredHorrigan = *(DWORD*)0x00672E04;
-	SafeWrite32(0x004C070E, mapID);
-	SafeWrite32(0x004C0718, mapID);
-	SafeWrite32(0x004C06D1, 0x18EBD231); //xor edx, edx / jmp 0x18
-	SafeWrite32(0x004C071D, ((DWORD)&ForceEncounter3) - 0x004C0721);
-	if (flags & 1) SafeWrite8(0x4C0706, 0xeb);
+	EncounteredHorrigan = *(DWORD*)0x672E04;
+	SafeWrite32(0x4C070E, mapID);
+	SafeWrite32(0x4C0718, mapID);
+	SafeWrite32(0x4C06D1, 0x18EBD231); //xor edx, edx / jmp 0x18
+	HookCall(0x4C071C, &ForceEncounter3);
+	if (flags & 1) SafeWrite8(0x4C0706, 0xEB);
 }
 
 void __declspec(naked) op_force_encounter() {

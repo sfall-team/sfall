@@ -77,7 +77,7 @@ static const DWORD GainStatPerks[7][2] = {
 };
 
 void _stdcall SetPerkFreq(int i) {
-	PerkFreqOverride=i;
+	PerkFreqOverride = i;
 }
 
 static DWORD _stdcall IsTraitDisabled(int id) {
@@ -136,15 +136,15 @@ void _stdcall RestoreDefaultPerks() {
 
 void _stdcall SetPerkboxTitle(char* name) {
 	if (name[0] == '\0') {
-		SafeWrite32(0x0043C77D, 0x488cb);
+		SafeWrite32(0x43C77D, 0x488CB);
 	} else {
 		strcpy_s(PerkBoxTitle, name);
-		HookCall(0x0043C77C, GetPerkBoxTitleHook);
+		HookCall(0x43C77C, GetPerkBoxTitleHook);
 	}
 }
 
 void _stdcall SetSelectablePerk(char* name, int level, int image, char* desc) {
-	if (level < 0 || level>1) return;
+	if (level < 0 || level > 1) return;
 	if (level == 0) {
 		for (DWORD i = 0; i < fakeSelectablePerks.size(); i++) {
 			if (!strcmp(name, fakeSelectablePerks[i].Name)) {
@@ -172,7 +172,7 @@ void _stdcall SetSelectablePerk(char* name, int level, int image, char* desc) {
 }
 
 void _stdcall SetFakePerk(char* name, int level, int image, char* desc) {
-	if (level < 0 || level>100) return;
+	if (level < 0 || level > 100) return;
 	if (level == 0) {
 		for (DWORD i = 0; i < fakePerks.size(); i++) {
 			if (!strcmp(name, fakePerks[i].Name)) {
@@ -200,7 +200,7 @@ void _stdcall SetFakePerk(char* name, int level, int image, char* desc) {
 }
 
 void _stdcall SetFakeTrait(char* name, int level, int image, char* desc) {
-	if (level < 0 || level>1) return;
+	if (level < 0 || level > 1) return;
 	if (level == 0) {
 		for (DWORD i = 0; i < fakeTraits.size(); i++) {
 			if (!strcmp(name, fakeTraits[i].Name)) {
@@ -613,24 +613,24 @@ lower:
 }
 
 void _stdcall ApplyHeaveHoFix() {
-	SafeWrite8(0x478AC4, 0xe9);
+	SafeWrite8(0x478AC4, 0xE9);
 	HookCall(0x478AC4, HeaveHoHook);
 	perks[PERK_heave_ho].strengthMin = 0;
 }
 
 static void PerkSetup() {
 	//Character screen
-	HookCall(0x00434256, PlayerHasTraitHook);
-	SafeWrite8(0x0043436B, 0xe9);
-	HookCall(0x0043436B, PlayerHasPerkHook);
-	HookCall(0x004343AC, GetPerkLevelHook);
-	HookCall(0x004343C1, GetPerkNameHook);
-	HookCall(0x004343DF, GetPerkNameHook);
-	HookCall(0x0043440D, GetPerkImageHook);
-	HookCall(0x0043441B, GetPerkNameHook);
-	HookCall(0x00434432, GetPerkDescHook);
-	SafeWrite8(0x0043443D, 0xe9);
-	HookCall(0x0043443D, EndPerkLoopHook);
+	HookCall(0x434256, PlayerHasTraitHook);
+	SafeWrite8(0x43436B, 0xE9);
+	HookCall(0x43436B, PlayerHasPerkHook);
+	HookCall(0x4343AC, GetPerkLevelHook);
+	HookCall(0x4343C1, GetPerkNameHook);
+	HookCall(0x4343DF, GetPerkNameHook);
+	HookCall(0x43440D, GetPerkImageHook);
+	HookCall(0x43441B, GetPerkNameHook);
+	HookCall(0x434432, GetPerkDescHook);
+	SafeWrite8(0x43443D, 0xE9);
+	HookCall(0x43443D, EndPerkLoopHook);
 
 	//GetPlayerAvailablePerks
 	HookCall(0x43D127, GetAvailablePerksHook);
@@ -638,8 +638,8 @@ static void PerkSetup() {
 	HookCall(0x43D25E, GetPerkSLevelHook);
 	HookCall(0x43D275, GetPerkSLevelHook);
 	//ShowPerkBox
-	HookCall(0x0043C82E, GetPerkSLevelHook);
-	HookCall(0x0043C85B, GetPerkSLevelHook);
+	HookCall(0x43C82E, GetPerkSLevelHook);
+	HookCall(0x43C85B, GetPerkSLevelHook);
 	HookCall(0x43C888, GetPerkSDescHook);
 	HookCall(0x43C8A6, GetPerkSNameHook);
 	HookCall(0x43C8D1, GetPerkSDescHook);
@@ -659,15 +659,15 @@ static void PerkSetup() {
 	memset(Desc, 0, sizeof(Desc));
 	memcpy(perks, var::perk_data, sizeof(PerkInfo) * PERK_count);
 
-	SafeWrite32(0x00496669, (DWORD)perks);
-	SafeWrite32(0x00496837, (DWORD)perks);
-	SafeWrite32(0x00496BAD, (DWORD)perks);
-	SafeWrite32(0x00496C41, (DWORD)perks);
-	SafeWrite32(0x00496D25, (DWORD)perks);
-	SafeWrite32(0x00496696, (DWORD)perks + 4);
-	SafeWrite32(0x00496BD1, (DWORD)perks + 4);
-	SafeWrite32(0x00496BF5, (DWORD)perks + 8);
-	SafeWrite32(0x00496AD4, (DWORD)perks + 12);
+	SafeWrite32(0x496669, (DWORD)perks);
+	SafeWrite32(0x496837, (DWORD)perks);
+	SafeWrite32(0x496BAD, (DWORD)perks);
+	SafeWrite32(0x496C41, (DWORD)perks);
+	SafeWrite32(0x496D25, (DWORD)perks);
+	SafeWrite32(0x496696, (DWORD)perks + 4);
+	SafeWrite32(0x496BD1, (DWORD)perks + 4);
+	SafeWrite32(0x496BF5, (DWORD)perks + 8);
+	SafeWrite32(0x496AD4, (DWORD)perks + 12);
 
 	if (strlen(perksFile)) {
 		char num[4];
@@ -734,11 +734,11 @@ static void PerkSetup() {
 
 	SafeWrite8(0x43C2EC, 0xEB); //skip the block of code which checks if the player has gained a perk (now handled in level up code)
 
-	SafeWrite8(0x43C362, 0xe8);                     //call sub_43401C, dec byte ptr ds:[0x00570A29]
-	SafeWrite32(0x43C363, 0x0043410C - 0x0043C367); //replaces call sub_43401C, mov byte ptr ds:[0x00570A29], 0
-	SafeWrite8(0x43C367, 0x3e);
-	SafeWrite16(0x43C368, 0x0dfe);
-	SafeWrite32(0x43C36a, 0x00570A29);
+	SafeWrite8(0x43C362, 0xE8);                 //call sub_43401C, dec byte ptr ds:[0x570A29]
+	SafeWrite32(0x43C363, 0x43410C - 0x43C367); //replaces call sub_43401C, mov byte ptr ds:[0x570A29], 0
+	SafeWrite8(0x43C367, 0x3E);
+	SafeWrite16(0x43C368, 0x0DFE);
+	SafeWrite32(0x43C36A, 0x00570A29);
 	SafeWrite8(0x43C36e, 0x90);
 }
 
@@ -884,7 +884,9 @@ static void TraitSetup() {
 		char* num2 = &num[1];
 		for (int i = 0; i < TRAIT_count; i++) {
 			_itoa_s(i, num2, 4, 10);
-			if (GetPrivateProfileString(num, "Name", "", &tName[i * 64], 63, perksFile)) traits[i].name = &tName[i * 64];
+			if (GetPrivateProfileString(num, "Name", "", &tName[i * 64], 63, perksFile)) {
+				traits[i].name = &tName[i * 64];
+			}
 			if (GetPrivateProfileString(num, "Desc", "", &tDesc[i * 1024], 1023, perksFile)) {
 				traits[i].description = &tDesc[i * 1024];
 			}
@@ -1006,10 +1008,10 @@ void PerksReset() {
 	fakeTraits.clear();
 	fakePerks.clear();
 	fakeSelectablePerks.clear();
-	SafeWrite32(0x0043C77D, 0x488cb);
+	SafeWrite32(0x43C77D, 0x488CB);
 	IgnoringDefaultPerks = 0;
 	addPerkMode = 2;
-	SafeWrite8(0x478AC4, 0xba);
+	SafeWrite8(0x478AC4, 0xBA);
 	SafeWrite32(0x478AC5, 0x23);
 	PerkFreqOverride = 0;
 }
@@ -1086,7 +1088,7 @@ DWORD _stdcall HasFakeTrait(char* name) {
 void _stdcall ClearSelectablePerks() {
 	fakeSelectablePerks.clear();
 	addPerkMode = 2;
-	SafeWrite32(0x0043C77D, 0x488cb);
+	SafeWrite32(0x43C77D, 0x488CB);
 	IgnoringDefaultPerks = 0;
 }
 
