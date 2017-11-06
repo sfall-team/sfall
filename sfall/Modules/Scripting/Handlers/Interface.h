@@ -87,5 +87,7 @@ void sf_get_cursor_mode(OpcodeContext&);
 
 void sf_set_cursor_mode(OpcodeContext&);
 
+void sf_display_stats(OpcodeContext&);
+
 }
 }
