@@ -861,8 +861,8 @@ public:
 };
 
 HRESULT _stdcall FakeDirectDrawCreate2(void*, IDirectDraw** b, void*) {
-	ResWidth=*(DWORD*)0x004CAD6B;
-	ResHeight=*(DWORD*)0x004CAD66;
+	ResWidth=*(DWORD*)0x4CAD6B;
+	ResHeight=*(DWORD*)0x4CAD66;
 
 	if(!d3d9) {
 		d3d9=Direct3DCreate9(D3D_SDK_VERSION);

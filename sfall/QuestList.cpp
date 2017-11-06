@@ -329,32 +329,24 @@ smpj6:
 
 void QuestListInit() {
 //<comments removed because they couldn't display correctly in this encoding>
-	SafeWrite8(0x004974DF, 0xE8);
-	SafeWrite32(0x004974E0, ((DWORD)&newbuttonfct) - 0x004974E4);
-	SafeWrite8(0x004974E4, 0xE9);
-	SafeWrite32(0x004974e5, 0x0000005B);
+	MakeCall(0x4974DF, newbuttonfct);
+	SafeWrite8(0x4974E4, 0xE9);
+	SafeWrite32(0x4974E5, 0x0000005B);
 //
-	SafeWrite8(0x00497173, 0xE8);
-	SafeWrite32(0x00497174, ((DWORD)&newactbpip) - 0x00497178);
-	SafeWrite8(0x00497178, 0x90);
+	MakeCall(0x497173, newactbpip);
+	SafeWrite8(0x497178, 0x90);
 //
-	SafeWrite8(0x004971B2, 0xE8);
-	SafeWrite32(0x004971B3, ((DWORD)&newhookpress) - 0x004971B7);
-	SafeWrite8(0x004971B7, 0x90);
+	MakeCall(0x4971B2, newhookpress);
+	SafeWrite8(0x4971B7, 0x90);
 //
-	SafeWrite8(0x00497183, 0xE8);
-	SafeWrite32(0x00497184, ((DWORD)&newhookpress1) - 0x00497188);
-	SafeWrite8(0x00497188, 0x90);
+	MakeCall(0x497183, newhookpress1);
+	SafeWrite8(0x497188, 0x90);
 //
-	SafeWrite8(0x00498186, 0xE8);
-	SafeWrite32(0x00498187, ((DWORD)&newhooklooktext) - 0x0049818B);
+	MakeCall(0x498186, newhooklooktext);
 //
-	SafeWrite8(0x004982B0, 0xE8);
-	SafeWrite32(0x004982B1, ((DWORD)&newhookresetvalue) - 0x004982B5);
+	MakeCall(0x4982B0, newhookresetvalue);
 //
-	SafeWrite8(0x004971D9, 0xE8);
-	SafeWrite32(0x004971DA, ((DWORD)&nexthookfunct) - 0x004971DE);
+	MakeCall(0x4971D9, nexthookfunct);
 //
-	SafeWrite8(0x00497219, 0xE8);
-	SafeWrite32(0x0049721A, ((DWORD)&backhookfunct) - 0x0049721E);
+	MakeCall(0x497219, backhookfunct);
 }

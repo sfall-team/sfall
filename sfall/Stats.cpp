@@ -207,13 +207,13 @@ void StatsReset() {
 }
 void StatsInit() {
 	StatsReset();
-	SafeWrite8(0x004AEF48, 0xe9);
-	HookCall(0x004AEF48, GetCurrentStatHook1);
-	SafeWrite8(0x004AF3AF, 0xe9);
-	HookCall(0x004AF3AF, GetCurrentStatHook2);
-	SafeWrite8(0x004AF56A, 0xe9);
-	HookCall(0x004AF56A, SetCurrentStatHook);
-	SafeWrite8(0x4AF09C, 0xe9);
+	SafeWrite8(0x4AEF48, 0xE9);
+	HookCall(0x4AEF48, GetCurrentStatHook1);
+	SafeWrite8(0x4AF3AF, 0xE9);
+	HookCall(0x4AF3AF, GetCurrentStatHook2);
+	SafeWrite8(0x4AF56A, 0xE9);
+	HookCall(0x4AF56A, SetCurrentStatHook);
+	SafeWrite8(0x4AF09C, 0xE9);
 	HookCall(0x4AF09C, ApplyApAcBonus);
 
 	char table[2048];

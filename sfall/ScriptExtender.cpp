@@ -1685,10 +1685,10 @@ void ClearGlobalScripts() {
 	//Pyromaniac bonus
 	SafeWrite8(0x424AB6, 5);
 	//xp mod
-	SafeWrite8(0x004AFAB8, 0x53);
-	SafeWrite32(0x004AFAB9, 0x55575651);
+	SafeWrite8(0x4AFAB8, 0x53);
+	SafeWrite32(0x4AFAB9, 0x55575651);
 	//Perk level mod
-	SafeWrite32(0x00496880, 0x00019078);
+	SafeWrite32(0x496880, 0x00019078);
 	//HP bonus
 	SafeWrite8(0x4AFBC1, 2);
 	//Stat ranges

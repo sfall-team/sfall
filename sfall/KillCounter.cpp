@@ -64,53 +64,53 @@ func:
 }
 
 void KillCounterInit(bool use) {
-	if(!use) {
-		usingExtraKillTypes=0;
+	if (!use) {
+		usingExtraKillTypes = 0;
 		return;
 	}
-	usingExtraKillTypes=1;
+	usingExtraKillTypes = 1;
 
 	//Overwrite the function that reads the kill counter with my own
-	SafeWrite32(0x004344C0, ((DWORD)&ReadKillCounter) - 0x004344C4);
-	SafeWrite32(0x0043A163, ((DWORD)&ReadKillCounter) - 0x0043A167);
-	SafeWrite32(0x004571D9, ((DWORD)&ReadKillCounter) - 0x004571DD);
+	HookCall(0x4344BF, &ReadKillCounter);
+	HookCall(0x43A162, &ReadKillCounter);
+	HookCall(0x4571D8, &ReadKillCounter);
 
 	//Overwrite the function that increments the kill counter with my own
-	SafeWrite32(0x00425145, ((DWORD)&IncKillCounter) - 0x00425149);
+	HookCall(0x425144, &IncKillCounter);
 
 	//Edit the GetKillTypeName function to accept kill types over 0x13
-	SafeWrite8(0x0042D980, 38);
-	SafeWrite8(0x0042D990, 38);
+	SafeWrite8(0x42D980, 38);
+	SafeWrite8(0x42D990, 38);
 
 	//And the same for GetKillTypeDesc
-	SafeWrite8(0x0042D9C0, 38);
-	SafeWrite8(0x0042D9D0, 38);
-	SafeWrite32(0x0042D9DD, 1488);
+	SafeWrite8(0x42D9C0, 38);
+	SafeWrite8(0x42D9D0, 38);
+	SafeWrite32(0x42D9DD, 1488);
 
 	//Change char sheet to loop through the extra kill types
-	SafeWrite8(0x004344E4, 38);
+	SafeWrite8(0x4344E4, 38);
 
 	//Where fallout clears the counters
-	/*SafeWrite32(0x0042CF5E, sizeof(KillCounters));
-	SafeWrite32(0x0042CFEC, sizeof(KillCounters));
-	SafeWrite32(0x0042D863, sizeof(KillCounters));
-	SafeWrite32(0x0042CF63, (DWORD)KillCounters);
-	SafeWrite32(0x0042CFF1, (DWORD)KillCounters);
-	SafeWrite32(0x0042D868, (DWORD)KillCounters);
+	/*SafeWrite32(0x42CF5E, sizeof(KillCounters));
+	SafeWrite32(0x42CFEC, sizeof(KillCounters));
+	SafeWrite32(0x42D863, sizeof(KillCounters));
+	SafeWrite32(0x42CF63, (DWORD)KillCounters);
+	SafeWrite32(0x42CFF1, (DWORD)KillCounters);
+	SafeWrite32(0x42D868, (DWORD)KillCounters);
 
 	//Where fallout increments the kill counter
-	SafeWrite8(0x0042D881, COUNTERS);
-	SafeWrite32(0x0042D895, (DWORD)KillCounters);
-	SafeWrite32(0x0042D89E, (DWORD)KillCounters);
+	SafeWrite8(0x42D881, COUNTERS);
+	SafeWrite32(0x42D895, (DWORD)KillCounters);
+	SafeWrite32(0x42D89E, (DWORD)KillCounters);
 
 	//A function that reads the kill counter
-	SafeWrite8(0x0042D8AF, COUNTERS);
-	SafeWrite32(0x0042D8B8, (DWORD)KillCounters);
+	SafeWrite8(0x42D8AF, COUNTERS);
+	SafeWrite32(0x42D8B8, (DWORD)KillCounters);
 
 	//Not sure what these two do. Possibly related to loading the names/descriptions?
-	SafeWrite32(0x0042D8C6, COUNTERS); //This one causes a crash on load?
-	SafeWrite32(0x0042D8CB, (DWORD)KillCounters);
+	SafeWrite32(0x42D8C6, COUNTERS); //This one causes a crash on load?
+	SafeWrite32(0x42D8CB, (DWORD)KillCounters);
 
-	SafeWrite32(0x0042D8F6, COUNTERS);
-	SafeWrite32(0x0042D8FB, (DWORD)KillCounters);*/
+	SafeWrite32(0x42D8F6, COUNTERS);
+	SafeWrite32(0x42D8FB, (DWORD)KillCounters);*/
 }

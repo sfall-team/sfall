@@ -75,7 +75,7 @@ static DWORD _stdcall CalcKnockback(int flags, int damage,DWORD target,DWORD att
 	return (DWORD)floor(result);
 }
 
-static const DWORD KnockbackRetAddr=0x00424B85;
+static const DWORD KnockbackRetAddr=0x424B85;
 static void __declspec(naked) KnockbackHook() {
 	__asm {
 		mov ecx, [esp+0x14];

@@ -24,19 +24,19 @@
 #include "FalloutEngine.h"
 #include "Perks.h"
 
-//static const BYTE PerksUsed=121;
+//static const BYTE PerksUsed = 121;
 
-static char Name[64*PERK_count];
-static char Desc[1024*PERK_count];
-static char tName[64*TRAIT_count];
-static char tDesc[1024*TRAIT_count];
+static char Name[64 * PERK_count];
+static char Desc[1024 * PERK_count];
+static char tName[64 * TRAIT_count];
+static char tDesc[1024 * TRAIT_count];
 static char perksFile[MAX_PATH];
 static BYTE disableTraits[TRAIT_count];
-static DWORD* pc_trait=(DWORD*)_pc_trait;
+static DWORD* pc_trait = (DWORD*)_pc_trait;
 
-#define check_trait(a) !disableTraits[a]&&(pc_trait[0]==a||pc_trait[1]==a)
+#define check_trait(a) !disableTraits[a] && (pc_trait[0] == a || pc_trait[1] == a)
 
-static DWORD addPerkMode=2;
+static DWORD addPerkMode = 2;
 
 struct TraitStruct {
 	char* Name;
@@ -86,10 +86,10 @@ static DWORD RemoveSelectableID;
 static DWORD TraitSkillBonuses[TRAIT_count*18];
 static DWORD TraitStatBonuses[TRAIT_count*(STAT_max_derived+1)];
 
-static DWORD IgnoringDefaultPerks=0;
+static DWORD IgnoringDefaultPerks = 0;
 static char PerkBoxTitle[64];
 
-static DWORD PerkFreqOverride;
+static DWORD PerkFreqOverride = 0;
 
 static const DWORD GainStatPerks[7][2] = {
 	{0x4AF122, 0xC9}, // Strength     // mov  ecx, ecx
@@ -102,7 +102,7 @@ static const DWORD GainStatPerks[7][2] = {
 };
 
 void _stdcall SetPerkFreq(int i) {
-	PerkFreqOverride=i;
+	PerkFreqOverride = i;
 }
 
 static DWORD _stdcall IsTraitDisabled(int id) {
@@ -149,92 +149,99 @@ static void __declspec(naked) GetPerkBoxTitleHook() {
 		ret;
 	}
 }
-void _stdcall IgnoreDefaultPerks() { IgnoringDefaultPerks=1; }
-void _stdcall RestoreDefaultPerks() { IgnoringDefaultPerks=0; }
+
+void _stdcall IgnoreDefaultPerks() {
+	IgnoringDefaultPerks = 1;
+}
+
+void _stdcall RestoreDefaultPerks() {
+	IgnoringDefaultPerks = 0;
+}
+
 void _stdcall SetPerkboxTitle(char* name) {
-	if(name[0]=='\0') {
-		SafeWrite32(0x0043C77D, 0x488cb);
+	if (name[0] == '\0') {
+		SafeWrite32(0x43C77D, 0x488CB);
 	} else {
 		strcpy_s(PerkBoxTitle, name);
-		HookCall(0x0043C77C, GetPerkBoxTitleHook);
+		HookCall(0x43C77C, GetPerkBoxTitleHook);
 	}
 }
 void _stdcall SetSelectablePerk(char* name, int level, int image, char* desc) {
-	if(level<0||level>1) return;
-	if(level==0) {
-		for(DWORD i=0;i<fakeSelectablePerks.size();i++) {
-			if(!strcmp(name,fakeSelectablePerks[i].Name)) {
+	if (level < 0 || level > 1) return;
+	if (level == 0) {
+		for (DWORD i = 0; i < fakeSelectablePerks.size(); i++) {
+			if (!strcmp(name, fakeSelectablePerks[i].Name)) {
 				fakeSelectablePerks.erase(fakeSelectablePerks.begin() + i);
 				return;
 			}
 		}
 	} else {
-		for(DWORD i=0;i<fakeSelectablePerks.size();i++) {
-			if(!strcmp(name,fakeSelectablePerks[i].Name)) {
-				fakeSelectablePerks[i].Level=level;
-				fakeSelectablePerks[i].Image=image;
+		for (DWORD i = 0; i < fakeSelectablePerks.size(); i++) {
+			if (!strcmp(name, fakeSelectablePerks[i].Name)) {
+				fakeSelectablePerks[i].Level = level;
+				fakeSelectablePerks[i].Image = image;
 				strcpy_s(fakeSelectablePerks[i].Desc, desc);
 				return;
 			}
 		}
 		FakePerk fp;
 		memset(&fp, 0, sizeof(FakePerk));
-		fp.Level=level;
-		fp.Image=image;
+		fp.Level = level;
+		fp.Image = image;
 		strcpy_s(fp.Name, name);
 		strcpy_s(fp.Desc, desc);
 		fakeSelectablePerks.push_back(fp);
 	}
 }
 void _stdcall SetFakePerk(char* name, int level, int image, char* desc) {
-	if(level<0||level>100) return;
-	if(level==0) {
-		for(DWORD i=0;i<fakePerks.size();i++) {
-			if(!strcmp(name,fakePerks[i].Name)) {
+	if (level < 0 || level > 100) return;
+	if (level == 0) {
+		for (DWORD i = 0; i < fakePerks.size(); i++) {
+			if (!strcmp(name, fakePerks[i].Name)) {
 				fakePerks.erase(fakePerks.begin() + i);
 				return;
 			}
 		}
 	} else {
-		for(DWORD i=0;i<fakePerks.size();i++) {
-			if(!strcmp(name,fakePerks[i].Name)) {
-				fakePerks[i].Level=level;
-				fakePerks[i].Image=image;
+		for (DWORD i = 0; i < fakePerks.size(); i++) {
+			if (!strcmp(name, fakePerks[i].Name)) {
+				fakePerks[i].Level = level;
+				fakePerks[i].Image = image;
 				strcpy_s(fakePerks[i].Desc, desc);
 				return;
 			}
 		}
 		FakePerk fp;
 		memset(&fp, 0, sizeof(FakePerk));
-		fp.Level=level;
-		fp.Image=image;
+		fp.Level = level;
+		fp.Image = image;
 		strcpy_s(fp.Name, name);
 		strcpy_s(fp.Desc, desc);
 		fakePerks.push_back(fp);
 	}
 }
 void _stdcall SetFakeTrait(char* name, int level, int image, char* desc) {
-	if(level<0||level>1) return;
-	if(level==0) {
-		for(DWORD i=0;i<fakeTraits.size();i++) {
-			if(!strcmp(name,fakeTraits[i].Name)) {
+	if (level < 0 || level > 1) return;
+	if (level == 0) {
+		for (DWORD i = 0; i < fakeTraits.size(); i++) {
+			if (!strcmp(name, fakeTraits[i].Name)) {
 				fakeTraits.erase(fakeTraits.begin() + i);
 				return;
 			}
 		}
 	} else {
-		for(DWORD i=0;i<fakeTraits.size();i++) {
-			if(!strcmp(name,fakeTraits[i].Name)) {
-				fakeTraits[i].Level=level;
-				fakeTraits[i].Image=image;
+		for (DWORD i = 0; i < fakeTraits.size(); i++) {
+			if (!strcmp(name, fakeTraits[i].Name)) {
+				fakeTraits[i].Level = level;
+				fakeTraits[i].Image = image;
 				strcpy_s(fakeTraits[i].Desc, desc);
 				return;
 			}
 		}
 		FakePerk fp;
 		memset(&fp, 0, sizeof(FakePerk));
-		fp.Level=level;
-		fp.Image=image;
+		fp.Level = level;
+		fp.Image = image;
 		strcpy_s(fp.Name, name);
 		strcpy_s(fp.Desc, desc);
 		fakeTraits.push_back(fp);
@@ -308,9 +315,9 @@ static void __declspec(naked) GetFakeSPerk() {
 	}
 }
 static DWORD _stdcall GetFakeSPerkLevel2(int id) {
-	char* c=fakeSelectablePerks[id-PERK_count].Name;
-	for(DWORD i=0;i<fakePerks.size();i++) {
-		if(!strcmp(c,fakePerks[i].Name)) return fakePerks[i].Level;
+	char* c = fakeSelectablePerks[id - PERK_count].Name;
+	for (DWORD i = 0; i < fakePerks.size(); i++) {
+		if (!strcmp(c, fakePerks[i].Name)) return fakePerks[i].Level;
 	}
 	return 0;
 }
@@ -330,15 +337,15 @@ static void __declspec(naked) GetFakeSPerkLevel() {
 }
 
 static DWORD _stdcall HandleFakeTraits(int i2) {
-	for(DWORD i=0;i<fakeTraits.size();i++) {
-		DWORD a=(DWORD)fakeTraits[i].Name;
+	for (DWORD i = 0; i < fakeTraits.size(); i++) {
+		DWORD a = (DWORD)fakeTraits[i].Name;
 		__asm {
 			mov eax, a;
 			call folder_print_line_;
 			mov a, eax;
 		}
-		if(a&&!i2) {
-			i2=1;
+		if (a && !i2) {
+			i2 = 1;
 			*(DWORD*)_folder_card_fid = fakeTraits[i].Image;
 			*(DWORD*)_folder_card_title = (DWORD)fakeTraits[i].Name;
 			*(DWORD*)_folder_card_title2 = 0;
@@ -452,11 +459,11 @@ end:
 }
 
 static DWORD _stdcall HandleExtraSelectablePerks(DWORD offset, DWORD* data) {
-	for(DWORD i=0;i<fakeSelectablePerks.size();i++) {
+	for (DWORD i = 0; i < fakeSelectablePerks.size(); i++) {
 		//*(WORD*)(_name_sort_list + (offset+i)*8)=(WORD)(PERK_count+i);
-		data[offset+i]=PERK_count+i;
+		data[offset + i] = PERK_count + i;
 	}
-	return offset+fakeSelectablePerks.size();
+	return offset + fakeSelectablePerks.size();
 }
 static void __declspec(naked) GetAvailablePerksHook() {
 	__asm {
@@ -529,35 +536,35 @@ end:
 }
 
 static void _stdcall AddFakePerk(DWORD perkID) {
-	perkID-=PERK_count;
-	if(addPerkMode&1) {
-		bool matched=false;
-		for(DWORD d=0;d<fakeTraits.size();d++) {
-			if(!strcmp(fakeTraits[d].Name, fakeSelectablePerks[perkID].Name)) {
-				matched=true;
+	perkID -= PERK_count;
+	if (addPerkMode & 1) {
+		bool matched = false;
+		for (DWORD d = 0; d < fakeTraits.size(); d++) {
+			if (!strcmp(fakeTraits[d].Name, fakeSelectablePerks[perkID].Name)) {
+				matched = true;
 			}
 		}
-		if(!matched) {
-			RemoveTraitID=fakeTraits.size();
+		if (!matched) {
+			RemoveTraitID = fakeTraits.size();
 			fakeTraits.push_back(fakeSelectablePerks[perkID]);
 		}
 	}
-	if(addPerkMode&2) {
-		bool matched=false;
-		for(DWORD d=0;d<fakePerks.size();d++) {
-			if(!strcmp(fakePerks[d].Name, fakeSelectablePerks[perkID].Name)) {
-				RemovePerkID=d;
+	if (addPerkMode & 2) {
+		bool matched = false;
+		for (DWORD d = 0; d < fakePerks.size(); d++) {
+			if (!strcmp(fakePerks[d].Name, fakeSelectablePerks[perkID].Name)) {
+				RemovePerkID = d;
 				fakePerks[d].Level++;
-				matched=true;
+				matched = true;
 			}
 		}
-		if(!matched) {
-			RemovePerkID=fakePerks.size();
+		if (!matched) {
+			RemovePerkID = fakePerks.size();
 			fakePerks.push_back(fakeSelectablePerks[perkID]);
 		}
 	}
-	if(addPerkMode&4) {
-		RemoveSelectableID=perkID;
+	if (addPerkMode & 4) {
+		RemoveSelectableID = perkID;
 		//fakeSelectablePerks.remove_at(perkID);
 
 	}
@@ -614,23 +621,23 @@ lower:
 	}
 }
 void _stdcall ApplyHeaveHoFix() {
-	SafeWrite8(0x478AC4, 0xe9);
+	SafeWrite8(0x478AC4, 0xE9);
 	HookCall(0x478AC4, HeaveHoHook);
-	Perks[PERK_heave_ho].Str=0;
+	Perks[PERK_heave_ho].Str = 0;
 }
 static void PerkSetup() {
 	//Character screen
-	HookCall(0x00434256, PlayerHasTraitHook);
-	SafeWrite8(0x0043436B, 0xe9);
-	HookCall(0x0043436B, PlayerHasPerkHook);
-	HookCall(0x004343AC, GetPerkLevelHook);
-	HookCall(0x004343C1, GetPerkNameHook);
-	HookCall(0x004343DF, GetPerkNameHook);
-	HookCall(0x0043440D, GetPerkImageHook);
-	HookCall(0x0043441B, GetPerkNameHook);
-	HookCall(0x00434432, GetPerkDescHook);
-	SafeWrite8(0x0043443D, 0xe9);
-	HookCall(0x0043443D, EndPerkLoopHook);
+	HookCall(0x434256, PlayerHasTraitHook);
+	SafeWrite8(0x43436B, 0xE9);
+	HookCall(0x43436B, PlayerHasPerkHook);
+	HookCall(0x4343AC, GetPerkLevelHook);
+	HookCall(0x4343C1, GetPerkNameHook);
+	HookCall(0x4343DF, GetPerkNameHook);
+	HookCall(0x43440D, GetPerkImageHook);
+	HookCall(0x43441B, GetPerkNameHook);
+	HookCall(0x434432, GetPerkDescHook);
+	SafeWrite8(0x43443D, 0xE9);
+	HookCall(0x43443D, EndPerkLoopHook);
 
 	//GetPlayerAvailablePerks
 	HookCall(0x43D127, GetAvailablePerksHook);
@@ -638,8 +645,8 @@ static void PerkSetup() {
 	HookCall(0x43D25E, GetPerkSLevelHook);
 	HookCall(0x43D275, GetPerkSLevelHook);
 	//ShowPerkBox
-	HookCall(0x0043C82E, GetPerkSLevelHook);
-	HookCall(0x0043C85B, GetPerkSLevelHook);
+	HookCall(0x43C82E, GetPerkSLevelHook);
+	HookCall(0x43C85B, GetPerkSLevelHook);
 	HookCall(0x43C888, GetPerkSDescHook);
 	HookCall(0x43C8A6, GetPerkSNameHook);
 	HookCall(0x43C8D1, GetPerkSDescHook);
@@ -657,72 +664,74 @@ static void PerkSetup() {
 
 	memset(Name, 0, sizeof(Name));
 	memset(Desc, 0, sizeof(Desc));
-	memcpy(Perks, (void*)_perk_data, sizeof(PerkStruct)*PERK_count);
+	memcpy(Perks, (void*)_perk_data, sizeof(PerkStruct) * PERK_count);
 
-	SafeWrite32(0x00496669, (DWORD)Perks);
-	SafeWrite32(0x00496837, (DWORD)Perks);
-	SafeWrite32(0x00496BAD, (DWORD)Perks);
-	SafeWrite32(0x00496C41, (DWORD)Perks);
-	SafeWrite32(0x00496D25, (DWORD)Perks);
-	SafeWrite32(0x00496696, (DWORD)Perks + 4);
-	SafeWrite32(0x00496BD1, (DWORD)Perks + 4);
-	SafeWrite32(0x00496BF5, (DWORD)Perks + 8);
-	SafeWrite32(0x00496AD4, (DWORD)Perks + 12);
+	SafeWrite32(0x496669, (DWORD)Perks);
+	SafeWrite32(0x496837, (DWORD)Perks);
+	SafeWrite32(0x496BAD, (DWORD)Perks);
+	SafeWrite32(0x496C41, (DWORD)Perks);
+	SafeWrite32(0x496D25, (DWORD)Perks);
+	SafeWrite32(0x496696, (DWORD)Perks + 4);
+	SafeWrite32(0x496BD1, (DWORD)Perks + 4);
+	SafeWrite32(0x496BF5, (DWORD)Perks + 8);
+	SafeWrite32(0x496AD4, (DWORD)Perks + 12);
 
-	if(strlen(perksFile)) {
+	if (strlen(perksFile)) {
 		char num[4];
-		for(int i=0;i<PERK_count;i++) {
+		for (int i = 0; i < PERK_count; i++) {
 			_itoa_s(i, num, 10);
-			if(GetPrivateProfileString(num, "Name", "", &Name[i*64], 63, perksFile)) Perks[i].Name=&Name[i*64];
-			if(GetPrivateProfileString(num, "Desc", "", &Desc[i*1024], 1023, perksFile)) {
-				Perks[i].Desc=&Desc[i*1024];
+			if (GetPrivateProfileString(num, "Name", "", &Name[i * 64], 63, perksFile)) {
+				Perks[i].Name = &Name[i * 64];
+			}
+			if (GetPrivateProfileString(num, "Desc", "", &Desc[i * 1024], 1023, perksFile)) {
+				Perks[i].Desc = &Desc[i * 1024];
 			}
 			int value;
-			value=GetPrivateProfileInt(num, "Image", -99999, perksFile);
-			if(value!=-99999) Perks[i].Image=value;
-			value=GetPrivateProfileInt(num, "Ranks", -99999, perksFile);
-			if(value!=-99999) Perks[i].Ranks=value;
-			value=GetPrivateProfileInt(num, "Level", -99999, perksFile);
-			if(value!=-99999) Perks[i].Level=value;
-			value=GetPrivateProfileInt(num, "Stat", -99999, perksFile);
-			if(value!=-99999) Perks[i].Stat=value;
-			value=GetPrivateProfileInt(num, "StatMag", -99999, perksFile);
-			if(value!=-99999) Perks[i].StatMag=value;
-			value=GetPrivateProfileInt(num, "Skill1", -99999, perksFile);
-			if(value!=-99999) Perks[i].Skill1=value;
-			value=GetPrivateProfileInt(num, "Skill1Mag", -99999, perksFile);
-			if(value!=-99999) Perks[i].Skill1Mag=value;
-			value=GetPrivateProfileInt(num, "Type", -99999, perksFile);
-			if(value!=-99999) Perks[i].Type=value;
-			value=GetPrivateProfileInt(num, "Skill2", -99999, perksFile);
-			if(value!=-99999) Perks[i].Skill2=value;
-			value=GetPrivateProfileInt(num, "Skill2Mag", -99999, perksFile);
-			if(value!=-99999) Perks[i].Skill2Mag=value;
-			value=GetPrivateProfileInt(num, "STR", -99999, perksFile);
-			if(value!=-99999) Perks[i].Str=value;
-			value=GetPrivateProfileInt(num, "PER", -99999, perksFile);
-			if(value!=-99999) Perks[i].Per=value;
-			value=GetPrivateProfileInt(num, "END", -99999, perksFile);
-			if(value!=-99999) Perks[i].End=value;
-			value=GetPrivateProfileInt(num, "CHR", -99999, perksFile);
-			if(value!=-99999) Perks[i].Chr=value;
-			value=GetPrivateProfileInt(num, "INT", -99999, perksFile);
-			if(value!=-99999) Perks[i].Int=value;
-			value=GetPrivateProfileInt(num, "AGL", -99999, perksFile);
-			if(value!=-99999) Perks[i].Agl=value;
-			value=GetPrivateProfileInt(num, "LCK", -99999, perksFile);
-			if(value!=-99999) Perks[i].Lck=value;
+			value = GetPrivateProfileInt(num, "Image", -99999, perksFile);
+			if (value != -99999) Perks[i].Image = value;
+			value = GetPrivateProfileInt(num, "Ranks", -99999, perksFile);
+			if (value != -99999) Perks[i].Ranks = value;
+			value = GetPrivateProfileInt(num, "Level", -99999, perksFile);
+			if (value != -99999) Perks[i].Level = value;
+			value = GetPrivateProfileInt(num, "Stat", -99999, perksFile);
+			if (value != -99999) Perks[i].Stat = value;
+			value = GetPrivateProfileInt(num, "StatMag", -99999, perksFile);
+			if (value != -99999) Perks[i].StatMag = value;
+			value = GetPrivateProfileInt(num, "Skill1", -99999, perksFile);
+			if (value != -99999) Perks[i].Skill1 = value;
+			value = GetPrivateProfileInt(num, "Skill1Mag", -99999, perksFile);
+			if (value != -99999) Perks[i].Skill1Mag = value;
+			value = GetPrivateProfileInt(num, "Type", -99999, perksFile);
+			if (value != -99999) Perks[i].Type = value;
+			value = GetPrivateProfileInt(num, "Skill2", -99999, perksFile);
+			if (value != -99999) Perks[i].Skill2 = value;
+			value = GetPrivateProfileInt(num, "Skill2Mag", -99999, perksFile);
+			if (value != -99999) Perks[i].Skill2Mag = value;
+			value = GetPrivateProfileInt(num, "STR", -99999, perksFile);
+			if (value != -99999) Perks[i].Str = value;
+			value = GetPrivateProfileInt(num, "PER", -99999, perksFile);
+			if (value != -99999) Perks[i].Per = value;
+			value = GetPrivateProfileInt(num, "END", -99999, perksFile);
+			if (value != -99999) Perks[i].End = value;
+			value = GetPrivateProfileInt(num, "CHR", -99999, perksFile);
+			if (value != -99999) Perks[i].Chr = value;
+			value = GetPrivateProfileInt(num, "INT", -99999, perksFile);
+			if (value != -99999) Perks[i].Int = value;
+			value = GetPrivateProfileInt(num, "AGL", -99999, perksFile);
+			if (value != -99999) Perks[i].Agl = value;
+			value = GetPrivateProfileInt(num, "LCK", -99999, perksFile);
+			if (value != -99999) Perks[i].Lck = value;
 		}
 	}
 
-	for(int i=0;i<PERK_count;i++) {
-		if(Perks[i].Name!=&Name[64*i]) {
-			strcpy_s(&Name[64*i], 64, Perks[i].Name);
-			Perks[i].Name=&Name[64*i];
+	for (int i = 0; i < PERK_count; i++) {
+		if (Perks[i].Name != &Name[64 * i]) {
+			strcpy_s(&Name[64 * i], 64, Perks[i].Name);
+			Perks[i].Name = &Name[64 * i];
 		}
-		if(Perks[i].Desc&&Perks[i].Desc!=&Desc[1024*i]) {
-			strcpy_s(&Desc[1024*i], 1024, Perks[i].Desc);
-			Perks[i].Desc=&Desc[1024*i];
+		if (Perks[i].Desc&&Perks[i].Desc != &Desc[1024 * i]) {
+			strcpy_s(&Desc[1024 * i], 1024, Perks[i].Desc);
+			Perks[i].Desc = &Desc[1024 * i];
 		}
 	}
 
@@ -732,11 +741,11 @@ static void PerkSetup() {
 
 	SafeWrite8(0x43C2EC, 0xEB); //skip the block of code which checks if the player has gained a perk (now handled in level up code)
 
-	SafeWrite8(0x43C362, 0xe8);                     //call sub_43401C, dec byte ptr ds:[0x00570A29]
-	SafeWrite32(0x43C363, 0x0043410C - 0x0043C367); //replaces call sub_43401C, mov byte ptr ds:[0x00570A29], 0
-	SafeWrite8(0x43C367, 0x3e);
-	SafeWrite16(0x43C368, 0x0dfe);
-	SafeWrite32(0x43C36a, 0x00570A29);
+	SafeWrite8(0x43C362, 0xE8);                 //call sub_43401C, dec byte ptr ds:[0x570A29]
+	SafeWrite32(0x43C363, 0x43410C - 0x43C367); //replaces call sub_43401C, mov byte ptr ds:[0x570A29], 0
+	SafeWrite8(0x43C367, 0x3E);
+	SafeWrite16(0x43C368, 0x0DFE);
+	SafeWrite32(0x43C36A, 0x00570A29);
 	SafeWrite8(0x43C36e, 0x90);
 }
 static int _stdcall stat_get_base_direct(DWORD statID) {
@@ -750,66 +759,66 @@ static int _stdcall stat_get_base_direct(DWORD statID) {
 	return result;
 }
 static int _stdcall trait_adjust_stat_override(DWORD statID) {
-	if(statID>STAT_max_derived) return 0;
-	int result=0;
-	if(pc_trait[0]!=-1) result+=TraitStatBonuses[statID*TRAIT_count+pc_trait[0]];
-	if(pc_trait[1]!=-1) result+=TraitStatBonuses[statID*TRAIT_count+pc_trait[1]];
-	switch(statID) {
+	if (statID > STAT_max_derived) return 0;
+	int result = 0;
+	if (pc_trait[0] != -1) result += TraitStatBonuses[statID*TRAIT_count + pc_trait[0]];
+	if (pc_trait[1] != -1) result += TraitStatBonuses[statID*TRAIT_count + pc_trait[1]];
+	switch (statID) {
 		case STAT_st:
-			if(check_trait(TRAIT_gifted)) result++;
-			if(check_trait(TRAIT_bruiser)) result+=2;
+			if (check_trait(TRAIT_gifted)) result++;
+			if (check_trait(TRAIT_bruiser)) result += 2;
 			break;
 		case STAT_pe:
-			if(check_trait(TRAIT_gifted)) result++;
+			if (check_trait(TRAIT_gifted)) result++;
 			break;
 		case STAT_en:
-			if(check_trait(TRAIT_gifted)) result++;
+			if (check_trait(TRAIT_gifted)) result++;
 			break;
 		case STAT_ch:
-			if(check_trait(TRAIT_gifted)) result++;
+			if (check_trait(TRAIT_gifted)) result++;
 			break;
 		case STAT_iq:
-			if(check_trait(TRAIT_gifted)) result++;
+			if (check_trait(TRAIT_gifted)) result++;
 			break;
 		case STAT_ag:
-			if(check_trait(TRAIT_gifted)) result++;
-			if(check_trait(TRAIT_small_frame)) result++;
+			if (check_trait(TRAIT_gifted)) result++;
+			if (check_trait(TRAIT_small_frame)) result++;
 			break;
 		case STAT_lu:
-			if(check_trait(TRAIT_gifted)) result++;
+			if (check_trait(TRAIT_gifted)) result++;
 			break;
 		case STAT_max_move_points:
-			if(check_trait(TRAIT_bruiser)) result-=2;
+			if (check_trait(TRAIT_bruiser)) result -= 2;
 			break;
 		case STAT_ac:
-			if(check_trait(TRAIT_kamikaze)) return -stat_get_base_direct(STAT_ac);
+			if (check_trait(TRAIT_kamikaze)) return -stat_get_base_direct(STAT_ac);
 			break;
 		case STAT_melee_dmg:
-			if(check_trait(TRAIT_heavy_handed)) result+=4;
+			if (check_trait(TRAIT_heavy_handed)) result += 4;
 			break;
 		case STAT_carry_amt:
-			if(check_trait(TRAIT_small_frame)) {
-				int str=stat_get_base_direct(STAT_st);
-				result-=str*10;
+			if (check_trait(TRAIT_small_frame)) {
+				int str = stat_get_base_direct(STAT_st);
+				result -= str * 10;
 			}
 			break;
 		case STAT_sequence:
-			if(check_trait(TRAIT_kamikaze)) result+=5;
+			if (check_trait(TRAIT_kamikaze)) result += 5;
 			break;
 		case STAT_heal_rate:
-			if(check_trait(TRAIT_fast_metabolism)) result+=2;
+			if (check_trait(TRAIT_fast_metabolism)) result += 2;
 			break;
 		case STAT_crit_chance:
-			if(check_trait(TRAIT_finesse)) result+=10;
+			if (check_trait(TRAIT_finesse)) result += 10;
 			break;
 		case STAT_better_crit:
-			if(check_trait(TRAIT_heavy_handed)) result-=30;
+			if (check_trait(TRAIT_heavy_handed)) result -= 30;
 			break;
 		case STAT_rad_resist:
-			if(check_trait(TRAIT_fast_metabolism)) return -stat_get_base_direct(STAT_rad_resist);
+			if (check_trait(TRAIT_fast_metabolism)) return -stat_get_base_direct(STAT_rad_resist);
 			break;
 		case STAT_poison_resist:
-			if(check_trait(TRAIT_fast_metabolism)) return -stat_get_base_direct(STAT_poison_resist);
+			if (check_trait(TRAIT_fast_metabolism)) return -stat_get_base_direct(STAT_poison_resist);
 			break;
 	}
 	return result;
@@ -826,13 +835,13 @@ static void __declspec(naked) TraitAdjustStatHook() {
 	}
 }
 static int _stdcall trait_adjust_skill_override(DWORD skillID) {
-	int result=0;
-	if(pc_trait[0]!=-1) result+=TraitSkillBonuses[skillID*TRAIT_count+pc_trait[0]];
-	if(pc_trait[1]!=-1) result+=TraitSkillBonuses[skillID*TRAIT_count+pc_trait[1]];
-	if(check_trait(TRAIT_gifted)) result-=10;
-	if(check_trait(TRAIT_good_natured)) {
-		if(skillID<=SKILL_THROWING) result-=10;
-		else if(skillID==SKILL_FIRST_AID||skillID==SKILL_DOCTOR||skillID==SKILL_CONVERSANT||skillID==SKILL_BARTER) result+=15;
+	int result = 0;
+	if (pc_trait[0] != -1) result += TraitSkillBonuses[skillID*TRAIT_count + pc_trait[0]];
+	if (pc_trait[1] != -1) result += TraitSkillBonuses[skillID*TRAIT_count + pc_trait[1]];
+	if (check_trait(TRAIT_gifted)) result -= 10;
+	if (check_trait(TRAIT_good_natured)) {
+		if (skillID <= SKILL_THROWING) result -= 10;
+		else if (skillID == SKILL_FIRST_AID || skillID == SKILL_DOCTOR || skillID == SKILL_CONVERSANT || skillID == SKILL_BARTER) result += 15;
 	}
 	return result;
 }
@@ -859,7 +868,7 @@ static void TraitSetup() {
 
 	memset(tName, 0, sizeof(tName));
 	memset(tDesc, 0, sizeof(tDesc));
-	memcpy(Traits, (void*)_trait_data, sizeof(TraitStruct)*TRAIT_count);
+	memcpy(Traits, (void*)_trait_data, sizeof(TraitStruct) * TRAIT_count);
 	memset(TraitStatBonuses, 0, sizeof(TraitStatBonuses));
 	memset(TraitSkillBonuses, 0, sizeof(TraitSkillBonuses));
 
@@ -869,47 +878,49 @@ static void TraitSetup() {
 	SafeWrite32(0x4B3BA0, (DWORD)Traits + 4);
 	SafeWrite32(0x4B3BC0, (DWORD)Traits + 8);
 
-	if(strlen(perksFile)) {
+	if (strlen(perksFile)) {
 		char num[5], buf[512];
-		num[0]='t';
-		char* num2=&num[1];
-		for(int i=0;i<TRAIT_count;i++) {
+		num[0] = 't';
+		char* num2 = &num[1];
+		for (int i = 0; i < TRAIT_count; i++) {
 			_itoa_s(i, num2, 4, 10);
-			if(GetPrivateProfileString(num, "Name", "", &tName[i*64], 63, perksFile)) Traits[i].Name=&tName[i*64];
-			if(GetPrivateProfileString(num, "Desc", "", &tDesc[i*1024], 1023, perksFile)) {
-				Traits[i].Desc=&tDesc[i*1024];
+			if (GetPrivateProfileString(num, "Name", "", &tName[i * 64], 63, perksFile)) {
+				Traits[i].Name = &tName[i * 64];
+			}
+			if (GetPrivateProfileString(num, "Desc", "", &tDesc[i * 1024], 1023, perksFile)) {
+				Traits[i].Desc = &tDesc[i * 1024];
 			}
 			int value;
-			value=GetPrivateProfileInt(num, "Image", -99999, perksFile);
-			if(value!=-99999) Traits[i].Image=value;
+			value = GetPrivateProfileInt(num, "Image", -99999, perksFile);
+			if (value != -99999) Traits[i].Image = value;
 
-			if(GetPrivateProfileStringA(num, "StatMod", "", buf, 512, perksFile)>0) {
+			if (GetPrivateProfileStringA(num, "StatMod", "", buf, 512, perksFile) > 0) {
 				char *stat, *mod;
-				stat=strtok(buf, "|");
-				mod=strtok(0, "|");
-				while(stat&&mod) {
-					int _stat=atoi(stat), _mod=atoi(mod);
-					if(_stat>=0&&_stat<=STAT_max_derived) TraitStatBonuses[_stat*TRAIT_count+i]=_mod;
-					stat=strtok(0, "|");
-					mod=strtok(0, "|");
+				stat = strtok(buf, "|");
+				mod = strtok(0, "|");
+				while (stat&&mod) {
+					int _stat = atoi(stat), _mod = atoi(mod);
+					if (_stat >= 0 && _stat <= STAT_max_derived) TraitStatBonuses[_stat*TRAIT_count + i] = _mod;
+					stat = strtok(0, "|");
+					mod = strtok(0, "|");
 				}
 			}
 
-			if(GetPrivateProfileStringA(num, "SkillMod", "", buf, 512, perksFile)>0) {
+			if (GetPrivateProfileStringA(num, "SkillMod", "", buf, 512, perksFile) > 0) {
 				char *stat, *mod;
-				stat=strtok(buf, "|");
-				mod=strtok(0, "|");
-				while(stat&&mod) {
-					int _stat=atoi(stat), _mod=atoi(mod);
-					if(_stat>=0&&_stat<18) TraitSkillBonuses[_stat*TRAIT_count+i]=_mod;
-					stat=strtok(0, "|");
-					mod=strtok(0, "|");
+				stat = strtok(buf, "|");
+				mod = strtok(0, "|");
+				while (stat&&mod) {
+					int _stat = atoi(stat), _mod = atoi(mod);
+					if (_stat >= 0 && _stat < 18) TraitSkillBonuses[_stat*TRAIT_count + i] = _mod;
+					stat = strtok(0, "|");
+					mod = strtok(0, "|");
 				}
 			}
 
-			if(GetPrivateProfileInt(num, "NoHardcode", 0, perksFile)) {
-				disableTraits[i]=1;
-				switch(i) {
+			if (GetPrivateProfileInt(num, "NoHardcode", 0, perksFile)) {
+				disableTraits[i] = 1;
+				switch (i) {
 					case 3:
 						HookCall(0x4245E0, &BlockedTrait);
 						break;
@@ -946,14 +957,14 @@ static void TraitSetup() {
 		}
 	}
 
-	for(int i=0;i<TRAIT_count;i++) {
-		if(Traits[i].Name!=&tName[64*i]) {
-			strcpy_s(&tName[64*i], 64, Traits[i].Name);
-			Traits[i].Name=&tName[64*i];
+	for (int i = 0; i < TRAIT_count; i++) {
+		if (Traits[i].Name != &tName[64 * i]) {
+			strcpy_s(&tName[64 * i], 64, Traits[i].Name);
+			Traits[i].Name = &tName[64 * i];
 		}
-		if(Traits[i].Desc&&Traits[i].Desc!=&tDesc[1024*i]) {
-			strcpy_s(&tDesc[1024*i], 1024, Traits[i].Desc);
-			Traits[i].Desc=&tDesc[1024*i];
+		if (Traits[i].Desc&&Traits[i].Desc != &tDesc[1024 * i]) {
+			strcpy_s(&tDesc[1024 * i], 1024, Traits[i].Desc);
+			Traits[i].Desc = &tDesc[1024 * i];
 		}
 	}
 }
@@ -977,17 +988,17 @@ static __declspec(naked) void TraitInitWrapper() {
 }
 
 void _stdcall SetPerkValue(int id, int value, DWORD offset) {
-	if(id<0||id>=PERK_count) return;
-	*(DWORD*)((DWORD)(&Perks[id])+offset)=value;
+	if (id < 0 || id >= PERK_count) return;
+	*(DWORD*)((DWORD)(&Perks[id]) + offset) = value;
 }
 void _stdcall SetPerkName(int id, char* value) {
-	if(id<0||id>=PERK_count) return;
-	strcpy_s(&Name[id*64], 64, value);
+	if (id < 0 || id >= PERK_count) return;
+	strcpy_s(&Name[id * 64], 64, value);
 }
 void _stdcall SetPerkDesc(int id, char* value) {
-	if(id<0||id>=PERK_count) return;
-	strcpy_s(&Desc[id*1024], 1024, value);
-	Perks[id].Desc=&Desc[1024*id];
+	if (id < 0 || id >= PERK_count) return;
+	strcpy_s(&Desc[id * 1024], 1024, value);
+	Perks[id].Desc = &Desc[1024 * id];
 }
 
 void PerksInit() {
@@ -995,8 +1006,8 @@ void PerksInit() {
 
 	HookCall(0x442729, &PerkInitWrapper);
 	if (GetPrivateProfileString("Misc", "PerksFile", "", &perksFile[2], 257, ini)) {
-		perksFile[0]='.';
-		perksFile[1]='\\';
+		perksFile[0] = '.';
+		perksFile[1] = '\\';
 		HookCall(0x44272E, &TraitInitWrapper);
 	} else perksFile[0] = 0;
 }
@@ -1005,67 +1016,73 @@ void PerksReset() {
 	fakeTraits.clear();
 	fakePerks.clear();
 	fakeSelectablePerks.clear();
-	SafeWrite32(0x0043C77D, 0x488cb);
-	IgnoringDefaultPerks=0;
-	addPerkMode=2;
-	SafeWrite8(0x478AC4, 0xba);
+	SafeWrite32(0x43C77D, 0x488CB);
+	IgnoringDefaultPerks = 0;
+	addPerkMode = 2;
+	SafeWrite8(0x478AC4, 0xBA);
 	SafeWrite32(0x478AC5, 0x23);
-	PerkFreqOverride=0;
+	PerkFreqOverride = 0;
 }
 void PerksSave(HANDLE file) {
 	DWORD count;
 	DWORD unused;
-	count=fakeTraits.size();
+	count = fakeTraits.size();
 	WriteFile(file, &count, 4, &unused, 0);
-	for(DWORD i=0;i<count;i++) WriteFile(file, &fakeTraits[i], sizeof(FakePerk), &unused, 0);
-	count=fakePerks.size();
+	for (DWORD i = 0; i < count; i++) {
+		WriteFile(file, &fakeTraits[i], sizeof(FakePerk), &unused, 0);
+	}
+	count = fakePerks.size();
 	WriteFile(file, &count, 4, &unused, 0);
-	for(DWORD i=0;i<count;i++) WriteFile(file, &fakePerks[i], sizeof(FakePerk), &unused, 0);
-	count=fakeSelectablePerks.size();
+	for (DWORD i = 0; i < count; i++) {
+		WriteFile(file, &fakePerks[i], sizeof(FakePerk), &unused, 0);
+	}
+	count = fakeSelectablePerks.size();
 	WriteFile(file, &count, 4, &unused, 0);
-	for(DWORD i=0;i<count;i++) WriteFile(file, &fakeSelectablePerks[i], sizeof(FakePerk), &unused, 0);
+	for (DWORD i = 0; i < count; i++) {
+		WriteFile(file, &fakeSelectablePerks[i], sizeof(FakePerk), &unused, 0);
+	}
 }
 bool PerksLoad(HANDLE file) {
 	DWORD count;
 	DWORD size;
 	ReadFile(file, &count, 4, &size, 0);
-	if(size!=4) return false;
-	for(DWORD i=0;i<count;i++) {
+	if (size != 4) return false;
+	for (DWORD i = 0; i < count; i++) {
 		FakePerk fp;
-		ReadFile(file,&fp,sizeof(FakePerk),&size,0);
+		ReadFile(file, &fp, sizeof(FakePerk), &size, 0);
 		fakeTraits.push_back(fp);
 	}
 	ReadFile(file, &count, 4, &size, 0);
-	if(size!=4) return false;
-	for(DWORD i=0;i<count;i++) {
+	if (size != 4) return false;
+	for (DWORD i = 0; i < count; i++) {
 		FakePerk fp;
-		ReadFile(file,&fp,sizeof(FakePerk),&size,0);
+		ReadFile(file, &fp, sizeof(FakePerk), &size, 0);
 		fakePerks.push_back(fp);
 	}
 	ReadFile(file, &count, 4, &size, 0);
-	if(size!=4) return false;
-	for(DWORD i=0;i<count;i++) {
+	if (size != 4) return false;
+	for (DWORD i = 0; i < count; i++) {
 		FakePerk fp;
-		ReadFile(file,&fp,sizeof(FakePerk),&size,0);
+		ReadFile(file, &fp, sizeof(FakePerk), &size, 0);
 		fakeSelectablePerks.push_back(fp);
 	}
 	return true;
 }
 
 void _stdcall AddPerkMode(DWORD mode) {
-	addPerkMode=mode;
+	addPerkMode = mode;
 }
 DWORD _stdcall HasFakePerk(char* name) {
-	for(DWORD i=0;i<fakePerks.size();i++) {
-		if(!strcmp(name,fakePerks[i].Name)) {
+	for (DWORD i = 0; i < fakePerks.size(); i++) {
+		if (!strcmp(name, fakePerks[i].Name)) {
 			return fakePerks[i].Level;
 		}
 	}
 	return 0;
 }
 DWORD _stdcall HasFakeTrait(char* name) {
-	for(DWORD i=0;i<fakeTraits.size();i++) {
-		if(!strcmp(name,fakeTraits[i].Name)) {
+	for (DWORD i = 0; i < fakeTraits.size(); i++) {
+		if (!strcmp(name, fakeTraits[i].Name)) {
 			return 1;
 		}
 	}
@@ -1073,23 +1090,23 @@ DWORD _stdcall HasFakeTrait(char* name) {
 }
 void _stdcall ClearSelectablePerks() {
 	fakeSelectablePerks.clear();
-	addPerkMode=2;
-	SafeWrite32(0x0043C77D, 0x488cb);
-	IgnoringDefaultPerks=0;
+	addPerkMode = 2;
+	SafeWrite32(0x43C77D, 0x488CB);
+	IgnoringDefaultPerks = 0;
 }
 void PerksEnterCharScreen() {
-	RemoveTraitID=-1;
-	RemovePerkID=-1;
-	RemoveSelectableID=-1;
+	RemoveTraitID = -1;
+	RemovePerkID = -1;
+	RemoveSelectableID = -1;
 }
 void PerksCancelCharScreen() {
-	if(RemoveTraitID!=-1) {
+	if (RemoveTraitID != -1) {
 		fakeTraits.erase(fakeTraits.begin() + RemoveTraitID);
 	}
-	if(RemovePerkID!=-1) {
-		if(!--fakePerks[RemovePerkID].Level) fakePerks.erase(fakePerks.begin() + RemovePerkID);
+	if (RemovePerkID != -1) {
+		if (!--fakePerks[RemovePerkID].Level) fakePerks.erase(fakePerks.begin() + RemovePerkID);
 	}
 }
 void PerksAcceptCharScreen() {
-	if(RemoveSelectableID!=-1) fakeSelectablePerks.erase(fakeSelectablePerks.begin() + RemoveSelectableID);
+	if (RemoveSelectableID != -1) fakeSelectablePerks.erase(fakeSelectablePerks.begin() + RemoveSelectableID);
 }

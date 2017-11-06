@@ -792,14 +792,14 @@ static void DllMain2() {
 		} else {
 			FreeLibrary(h);
 		}
-		SafeWrite8(0x0050FB6B, '2');
+		SafeWrite8(0x50FB6B, '2');
 		dlogr(" Done", DL_INIT);
 #undef _DLL_NAME
 	}
 	tmp = GetPrivateProfileIntA("Graphics", "FadeMultiplier", 100, ini);
 	if (tmp != 100) {
 		dlog("Applying fade patch.", DL_INIT);
-		SafeWrite32(0x00493B17, ((DWORD)&FadeHook) - 0x00493B1b);
+		HookCall(0x493B16, &FadeHook);
 		FadeMulti = ((double)tmp) / 100.0;
 		dlogr(" Done", DL_INIT);
 	}
@@ -810,56 +810,56 @@ static void DllMain2() {
 	mapName[64] = 0;
 	if (GetPrivateProfileString("Misc", "StartingMap", "", mapName, 64, ini)) {
 		dlog("Applying starting map patch.", DL_INIT);
-		SafeWrite32(0x00480AAA, (DWORD)&mapName);
+		SafeWrite32(0x480AAA, (DWORD)&mapName);
 		dlogr(" Done", DL_INIT);
 	}
 
 	versionString[64] = 0;
 	if (GetPrivateProfileString("Misc", "VersionString", "", versionString, 64, ini)) {
 		dlog("Applying version string patch.", DL_INIT);
-		SafeWrite32(0x004B4588, (DWORD)&versionString);
+		SafeWrite32(0x4B4588, (DWORD)&versionString);
 		dlogr(" Done", DL_INIT);
 	}
 
 	configName[64] = 0;
 	if (GetPrivateProfileString("Misc", "ConfigFile", "", configName, 64, ini)) {
 		dlog("Applying config file patch.", DL_INIT);
-		SafeWrite32(0x00444BA5, (DWORD)&configName);
-		SafeWrite32(0x00444BCA, (DWORD)&configName);
+		SafeWrite32(0x444BA5, (DWORD)&configName);
+		SafeWrite32(0x444BCA, (DWORD)&configName);
 		dlogr(" Done", DL_INIT);
 	}
 
 	patchName[64] = 0;
 	if (GetPrivateProfileString("Misc", "PatchFile", "", patchName, 64, ini)) {
 		dlog("Applying patch file patch.", DL_INIT);
-		SafeWrite32(0x00444323, (DWORD)&patchName);
+		SafeWrite32(0x444323, (DWORD)&patchName);
 		dlogr(" Done", DL_INIT);
 	}
 
 	smModelName[64] = 0;
 	if (GetPrivateProfileString("Misc", "MaleStartModel", "", smModelName, 64, ini)) {
 		dlog("Applying male start model patch.", DL_INIT);
-		SafeWrite32(0x00418B88, (DWORD)&smModelName);
+		SafeWrite32(0x418B88, (DWORD)&smModelName);
 		dlogr(" Done", DL_INIT);
 	}
 
 	sfModelName[64] = 0;
 	if (GetPrivateProfileString("Misc", "FemaleStartModel", "", sfModelName, 64, ini)) {
 		dlog("Applying female start model patch.", DL_INIT);
-		SafeWrite32(0x00418BAB, (DWORD)&sfModelName);
+		SafeWrite32(0x418BAB, (DWORD)&sfModelName);
 		dlogr(" Done", DL_INIT);
 	}
 
 	dmModelName[64] = 0;
 	GetPrivateProfileString("Misc", "MaleDefaultModel", "hmjmps", dmModelName, 64, ini);
 	dlog("Applying male model patch.", DL_INIT);
-	SafeWrite32(0x00418B50, (DWORD)&dmModelName);
+	SafeWrite32(0x418B50, (DWORD)&dmModelName);
 	dlogr(" Done", DL_INIT);
 
 	dfModelName[64] = 0;
 	GetPrivateProfileString("Misc", "FemaleDefaultModel", "hfjmps", dfModelName, 64, ini);
 	dlog("Applying female model patch.", DL_INIT);
-	SafeWrite32(0x00418B6D, (DWORD)&dfModelName);
+	SafeWrite32(0x418B6D, (DWORD)&dfModelName);
 	dlogr(" Done", DL_INIT);
 
 	int date = GetPrivateProfileInt("Misc", "StartYear", -1, ini);
@@ -931,15 +931,15 @@ static void DllMain2() {
 
 	//if (GetPrivateProfileIntA("Misc", "PathfinderFix", 0, ini)) {
 		dlog("Applying pathfinder patch.", DL_INIT);
-		SafeWrite32(0x004C1FF2, ((DWORD)&PathfinderFix3) - 0x004c1ff6);
-		SafeWrite32(0x004C1C79, ((DWORD)&PathfinderFix) - 0x004c1c7d);
+		HookCall(0x4C1FF1, &PathfinderFix3);
+		HookCall(0x4C1C78, &PathfinderFix);
 		MapMulti = (double)GetPrivateProfileIntA("Misc", "WorldMapTimeMod", 100, ini) / 100.0;
 		dlogr(" Done", DL_INIT);
 	//}
 
 	if (GetPrivateProfileInt("Misc", "WorldMapFPSPatch", 0, ini)) {
 		dlog("Applying world map fps patch.", DL_INIT);
-		if (*(DWORD*)0x4BFE5E != 0x8d16) {
+		if (*(DWORD*)0x4BFE5E != 0x8D16) {
 			dlogr(" Failed", DL_INIT);
 		} else {
 			wp_delay = GetPrivateProfileInt("Misc", "WorldMapDelay2", 66, ini);
@@ -948,7 +948,7 @@ static void DllMain2() {
 			dlogr(" Done", DL_INIT);
 		}
 	} else {
-		if (*(DWORD*)0x4BFE5E == 0x8d16) {
+		if (*(DWORD*)0x4BFE5E == 0x8D16) {
 			HookCall(0x4BFE5D, WorldMapHook);
 			AvailableGlobalScriptTypes |= 2;
 		}
@@ -965,7 +965,7 @@ static void DllMain2() {
 
 	if (GetPrivateProfileIntA("Misc", "DialogueFix", 1, ini)) {
 		dlog("Applying dialogue patch.", DL_INIT);
-		SafeWrite8(0x00446848, 0x31);
+		SafeWrite8(0x446848, 0x31);
 		dlogr(" Done", DL_INIT);
 	}
 
@@ -993,25 +993,25 @@ static void DllMain2() {
 
 		//Ray's combat_p_proc fix
 		dlog("Applying combat_p_proc fix.", DL_INIT);
-		SafeWrite32(0x0425253, ((DWORD)&Combat_p_procFix) - 0x0425257);
-		SafeWrite8(0x0424dbc, 0xE9);
-		SafeWrite32(0x0424dbd, 0x00000034);
+		HookCall(0x425252, &Combat_p_procFix);
+		SafeWrite8(0x424DBC, 0xE9);
+		SafeWrite32(0x424DBD, 0x00000034);
 		dlogr(" Done", DL_INIT);
 	//}
 
 	//if (GetPrivateProfileIntA("Misc", "WorldMapCitiesListFix", 0, ini)) {
 		dlog("Applying world map cities list patch.", DL_INIT);
-		SafeWrite32(0x004C04BA, ((DWORD)&ScrollCityListHook) - 0x004C04BE);
-		SafeWrite32(0x004C04C9, ((DWORD)&ScrollCityListHook) - 0x004C04CD);
-		SafeWrite32(0x004C4A35, ((DWORD)&ScrollCityListHook) - 0x004C4A39);
-		SafeWrite32(0x004C4A3E, ((DWORD)&ScrollCityListHook) - 0x004C4A42);
+		HookCall(0x4C04B9, &ScrollCityListHook);
+		HookCall(0x4C04C8, &ScrollCityListHook);
+		HookCall(0x4C4A34, &ScrollCityListHook);
+		HookCall(0x4C4A3D, &ScrollCityListHook);
 		dlogr(" Done", DL_INIT);
 	//}
 
 	//if (GetPrivateProfileIntA("Misc", "CitiesLimitFix", 0, ini)) {
 		dlog("Applying cities limit patch.", DL_INIT);
-		if (*((BYTE*)0x004BF3BB) != 0xEB) {
-			SafeWrite8(0x004BF3BB, 0xEB);
+		if (*((BYTE*)0x4BF3BB) != 0xEB) {
+			SafeWrite8(0x4BF3BB, 0xEB);
 		}
 		dlogr(" Done", DL_INIT);
 	//}
@@ -1021,10 +1021,10 @@ static void DllMain2() {
 		dlog("Applying world map slots patch.", DL_INIT);
 		if (tmp < 7) tmp = 7;
 		mapSlotsScrollMax = (tmp - 7) * 27;
-		if (tmp < 25) SafeWrite32(0x004C21FD, 230 - (tmp - 17) * 27);
+		if (tmp < 25) SafeWrite32(0x4C21FD, 230 - (tmp - 17) * 27);
 		else {
-			SafeWrite8(0x004C21FC, 0xC2);
-			SafeWrite32(0x004C21FD, 2 + 27 * (tmp - 26));
+			SafeWrite8(0x4C21FC, 0xC2);
+			SafeWrite32(0x4C21FD, 2 + 27 * (tmp - 26));
 		}
 		dlogr(" Done", DL_INIT);
 	}
@@ -1036,35 +1036,35 @@ static void DllMain2() {
 		limit = -1;
 		AddUnarmedStatToGetYear = 1;
 
-		SafeWrite32(0x004392F9, ((DWORD)&GetDateWrapper) - 0x004392Fd);
-		SafeWrite32(0x00443809, ((DWORD)&GetDateWrapper) - 0x0044380d);
-		SafeWrite32(0x0047E128, ((DWORD)&GetDateWrapper) - 0x0047E12c);
-		SafeWrite32(0x004975A3, ((DWORD)&GetDateWrapper) - 0x004975A7);
-		SafeWrite32(0x00497713, ((DWORD)&GetDateWrapper) - 0x00497717);
-		SafeWrite32(0x004979Ca, ((DWORD)&GetDateWrapper) - 0x004979Ce);
-		SafeWrite32(0x004C3CB6, ((DWORD)&GetDateWrapper) - 0x004C3CBa);
+		HookCall(0x4392F8, &GetDateWrapper);
+		HookCall(0x443808, &GetDateWrapper);
+		HookCall(0x47E127, &GetDateWrapper);
+		HookCall(0x4975A2, &GetDateWrapper);
+		HookCall(0x497712, &GetDateWrapper);
+		HookCall(0x4979C9, &GetDateWrapper);
+		HookCall(0x4C3CB5, &GetDateWrapper);
 		dlogr(" Done", DL_INIT);
 	}
 	if (limit <= 14 && limit >= -1 && limit != 13) {
 		dlog("Applying time limit patch.", DL_INIT);
 		if (limit == -1) {
-			SafeWrite32(0x004A34Fa, ((DWORD)&TimerReset) - 0x004A34Fe);
-			SafeWrite32(0x004A3552, ((DWORD)&TimerReset) - 0x004A3556);
+			HookCall(0x4A34F9, &TimerReset);
+			HookCall(0x4A3551, &TimerReset);
 
-			SafeWrite32(0x004A34EF, 0x90909090);
-			SafeWrite32(0x004A34f3, 0x90909090);
-			SafeWrite16(0x004A34f7, 0x9090);
-			SafeWrite32(0x004A34FE, 0x90909090);
-			SafeWrite16(0x004A3502, 0x9090);
+			SafeWrite32(0x4A34EF, 0x90909090);
+			SafeWrite32(0x4A34F3, 0x90909090);
+			SafeWrite16(0x4A34F7, 0x9090);
+			SafeWrite32(0x4A34FE, 0x90909090);
+			SafeWrite16(0x4A3502, 0x9090);
 
-			SafeWrite32(0x004A3547, 0x90909090);
-			SafeWrite32(0x004A354b, 0x90909090);
-			SafeWrite16(0x004A354f, 0x9090);
-			SafeWrite32(0x004A3556, 0x90909090);
-			SafeWrite16(0x004A355a, 0x9090);
+			SafeWrite32(0x4A3547, 0x90909090);
+			SafeWrite32(0x4A354B, 0x90909090);
+			SafeWrite16(0x4A354F, 0x9090);
+			SafeWrite32(0x4A3556, 0x90909090);
+			SafeWrite16(0x4A355A, 0x9090);
 		} else {
-			SafeWrite8(0x004A34EC, limit);
-			SafeWrite8(0x004A3544, limit);
+			SafeWrite8(0x4A34EC, limit);
+			SafeWrite8(0x4A3544, limit);
 		}
 		dlogr(" Done", DL_INIT);
 	}
@@ -1074,15 +1074,15 @@ static void DllMain2() {
 		if (tmp) {
 			dlog("Applying debugmode patch.", DL_INIT);
 			//If the player is using an exe with the debug patch already applied, just skip this block without erroring
-			if (*((DWORD*)0x00444A64) != 0x082327e8) {
-				SafeWrite32(0x00444A64, 0x082327e8);
-				SafeWrite32(0x00444A68, 0x0120e900);
-				SafeWrite8(0x00444A6D, 0);
-				SafeWrite32(0x00444A6E, 0x90909090);
+			if (*((DWORD*)0x444A64) != 0x082327E8) {
+				SafeWrite32(0x444A64, 0x082327E8);
+				SafeWrite32(0x444A68, 0x0120E900);
+				SafeWrite8(0x444A6D, 0);
+				SafeWrite32(0x444A6E, 0x90909090);
 			}
-			SafeWrite8(0x004C6D9B, 0xb8);
-			if (tmp == 1) SafeWrite32(0x004C6D9C, (DWORD)debugGnw);
-			else SafeWrite32(0x004C6D9C, (DWORD)debugLog);
+			SafeWrite8(0x4C6D9B, 0xB8);
+			if (tmp == 1) SafeWrite32(0x4C6D9C, (DWORD)debugGnw);
+			else SafeWrite32(0x4C6D9C, (DWORD)debugLog);
 			dlogr(" Done", DL_INIT);
 		}
 	}
@@ -1202,19 +1202,19 @@ static void DllMain2() {
 
 	dlog("Checking for changed skilldex images.", DL_INIT);
 	tmp = GetPrivateProfileIntA("Misc", "Lockpick", 293, ini);
-	if (tmp != 293) SafeWrite32(0x00518D54, tmp);
+	if (tmp != 293) SafeWrite32(0x518D54, tmp);
 	tmp = GetPrivateProfileIntA("Misc", "Steal", 293, ini);
-	if (tmp != 293) SafeWrite32(0x00518D58, tmp);
+	if (tmp != 293) SafeWrite32(0x518D58, tmp);
 	tmp = GetPrivateProfileIntA("Misc", "Traps", 293, ini);
-	if (tmp != 293) SafeWrite32(0x00518D5C, tmp);
+	if (tmp != 293) SafeWrite32(0x518D5C, tmp);
 	tmp = GetPrivateProfileIntA("Misc", "FirstAid", 293, ini);
-	if (tmp != 293) SafeWrite32(0x00518D4C, tmp);
+	if (tmp != 293) SafeWrite32(0x518D4C, tmp);
 	tmp = GetPrivateProfileIntA("Misc", "Doctor", 293, ini);
-	if (tmp != 293) SafeWrite32(0x00518D50, tmp);
+	if (tmp != 293) SafeWrite32(0x518D50, tmp);
 	tmp = GetPrivateProfileIntA("Misc", "Science", 293, ini);
-	if (tmp != 293) SafeWrite32(0x00518D60, tmp);
+	if (tmp != 293) SafeWrite32(0x518D60, tmp);
 	tmp = GetPrivateProfileIntA("Misc", "Repair", 293, ini);
-	if (tmp != 293) SafeWrite32(0x00518D64, tmp);
+	if (tmp != 293) SafeWrite32(0x518D64, tmp);
 	dlogr(" Done", DL_INIT);
 
 	if (GetPrivateProfileIntA("Misc", "RemoveWindowRounding", 0, ini)) {

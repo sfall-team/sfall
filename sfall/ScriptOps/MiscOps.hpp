@@ -543,24 +543,24 @@ static void __declspec(naked) EaxAvailable() {
 }
 static char* NPCToInc;
 static void _stdcall IncNPCLevel4(char* npc) {
-	if(_stricmp(npc, NPCToInc)) {
-		SafeWrite8(0x00495C50, 0xe9);
-		SafeWrite32(0x00495C51, 0x000001fc);
+	if (_stricmp(npc, NPCToInc)) {
+		SafeWrite8(0x495C50, 0xE9);
+		SafeWrite32(0x495C51, 0x000001FC);
 	} else {
-		SafeWrite16(0x00495C50, 0x840f);	//Want to keep this check intact.
-		SafeWrite32(0x00495C52, 0x000001fb);
+		SafeWrite16(0x495C50, 0x840F);	//Want to keep this check intact.
+		SafeWrite32(0x495C52, 0x000001FB);
 
-		//SafeWrite16(0x00495C50, 0x9090);
-		//SafeWrite32(0x00495C52, 0x90909090);
-		SafeWrite16(0x00495C77, 0x9090);	//Check that the player is high enough for the npc to consider this level
-		SafeWrite32(0x00495C79, 0x90909090);
-		//SafeWrite16(0x00495C8C, 0x9090);	//Check that the npc isn't already at its maximum level
-		//SafeWrite32(0x00495C8E, 0x90909090);
-		SafeWrite16(0x00495CEC, 0x9090);	//Check that the npc hasn't already levelled up recently
-		SafeWrite32(0x00495CEE, 0x90909090);
-		if(!npcautolevel) {
-			SafeWrite16(0x00495D22, 0x9090);//Random element
-			SafeWrite32(0x00495D24, 0x90909090);
+		//SafeWrite16(0x495C50, 0x9090);
+		//SafeWrite32(0x495C52, 0x90909090);
+		SafeWrite16(0x495C77, 0x9090);	//Check that the player is high enough for the npc to consider this level
+		SafeWrite32(0x495C79, 0x90909090);
+		//SafeWrite16(0x495C8C, 0x9090);	//Check that the npc isn't already at its maximum level
+		//SafeWrite32(0x495C8E, 0x90909090);
+		SafeWrite16(0x495CEC, 0x9090);	//Check that the npc hasn't already levelled up recently
+		SafeWrite32(0x495CEE, 0x90909090);
+		if (!npcautolevel) {
+			SafeWrite16(0x495D22, 0x9090);//Random element
+			SafeWrite32(0x495D24, 0x90909090);
 		}
 	}
 }
@@ -575,23 +575,22 @@ static void __declspec(naked) IncNPCLevel3() {
 	}
 }
 static void _stdcall IncNPCLevel2(char* npc) {
-	NPCToInc=npc;
-	SafeWrite8(0x00495BEB, 0xe9);	//Replace the debug output with a jmp
-	SafeWrite32(0x00495BEC, ((DWORD)&IncNPCLevel3) - 0x00495BF0);
+	NPCToInc = npc;
+	MakeJump(0x495BEB, IncNPCLevel3);	//Replace the debug output with a jmp
 	__asm {
 		call partyMemberIncLevels_;
 	}
-	SafeWrite16(0x00495C50, 0x840f);
-	SafeWrite32(0x00495C52, 0x000001fb);
-	SafeWrite16(0x00495C77, 0x8c0f);
-	SafeWrite32(0x00495C79, 0x000001d4);
-	//SafeWrite16(0x00495C8C, 0x8d0f);
-	//SafeWrite32(0x00495C8E, 0x000001bf);
-	SafeWrite16(0x00495CEC, 0x850f);
-	SafeWrite32(0x00495CEE, 0x00000130);
-	if(!npcautolevel) {
-		SafeWrite16(0x00495D22, 0x8f0f);
-		SafeWrite32(0x00495D24, 0x00000129);
+	SafeWrite16(0x495C50, 0x840F);
+	SafeWrite32(0x495C52, 0x000001FB);
+	SafeWrite16(0x495C77, 0x8C0F);
+	SafeWrite32(0x495C79, 0x000001D4);
+	//SafeWrite16(0x495C8C, 0x8D0F);
+	//SafeWrite32(0x495C8E, 0x000001BF);
+	SafeWrite16(0x495CEC, 0x850F);
+	SafeWrite32(0x495CEE, 0x00000130);
+	if (!npcautolevel) {
+		SafeWrite16(0x495D22, 0x8F0F);
+		SafeWrite32(0x495D24, 0x00000129);
 	}
 }
 static void __declspec(naked) IncNPCLevel() {
@@ -624,7 +623,7 @@ end:
 	}
 }
 static int _stdcall get_npc_level2(DWORD numMembers, DWORD maxMembers, DWORD* members, DWORD* pids, DWORD* words, const char* name) {
-	for(DWORD i=0;i<numMembers;i++) {
+	for (DWORD i = 0; i < numMembers; i++) {
 		const char* name2;
 		__asm {
 			mov eax, members;
@@ -632,22 +631,22 @@ static int _stdcall get_npc_level2(DWORD numMembers, DWORD maxMembers, DWORD* me
 			call critter_name_
 			mov name2, eax;
 		}
-		if(_stricmp(name, name2)) {
-			members+=4;
+		if (_stricmp(name, name2)) {
+			members += 4;
 			continue;
 		}
 
-		DWORD pid=((DWORD*)members[0])[25];
-		DWORD id=-1;
-		for(DWORD j=0;j<maxMembers;j++) {
-			if(pids[j]==pid) {
-				id=j;
+		DWORD pid = ((DWORD*)members[0])[25];
+		DWORD id = -1;
+		for (DWORD j = 0; j < maxMembers; j++) {
+			if (pids[j] == pid) {
+				id = j;
 				break;
 			}
 		}
-		if(id==-1) break;
+		if (id == -1) break;
 
-		return words[id*3];
+		return words[id * 3];
 	}
 	return 0;
 }
@@ -697,28 +696,28 @@ end:
 
 static char IniStrBuffer[128];
 static DWORD _stdcall GetIniSetting2(const char* c, DWORD string) {
-	const char* key=strstr(c, "|");
-	if(!key) return -1;
-	DWORD filelen=(DWORD)key - (DWORD)c;
-	if(filelen>=64) return -1;
-	key=strstr(key+1, "|");
-	if(!key) return -1;
-	DWORD seclen=(DWORD)key - ((DWORD)c + filelen + 1);
-	if(seclen>32) return -1;
+	const char* key = strstr(c, "|");
+	if (!key) return -1;
+	DWORD filelen = (DWORD)key - (DWORD)c;
+	if (filelen >= 64) return -1;
+	key = strstr(key + 1, "|");
+	if (!key) return -1;
+	DWORD seclen = (DWORD)key - ((DWORD)c + filelen + 1);
+	if (seclen > 32) return -1;
 
 	char file[67];
-	file[0]='.';
-	file[1]='\\';
+	file[0] = '.';
+	file[1] = '\\';
 	memcpy(&file[2], c, filelen);
-	file[filelen+2]=0;
+	file[filelen + 2] = 0;
 
 	char section[33];
-	memcpy(section, &c[filelen+1], seclen);
-	section[seclen]=0;
+	memcpy(section, &c[filelen + 1], seclen);
+	section[seclen] = 0;
 
 	key++;
-	if(string) {
-		IniStrBuffer[0]=0;
+	if (string) {
+		IniStrBuffer[0] = 0;
 		GetPrivateProfileStringA(section, key, "", IniStrBuffer, 128, file);
 		return (DWORD)&IniStrBuffer[0];
 	} else {
