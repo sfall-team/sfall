@@ -48,7 +48,7 @@ using namespace script;
 void _stdcall HandleMapUpdateForScripts(DWORD procId);
 
 // TODO: move to a better place
-static char idle;
+static int idle;
 
 struct GlobalScript {
 	ScriptProgram prog;
@@ -572,7 +572,7 @@ static void ResetStateAfterFrame() {
 
 static inline void RunGlobalScripts(int mode1, int mode2) {
 	// TODO: move processor idle out?
-	if (idle > -1) {
+	if (idle > -1 && idle <= 127) {
 		Sleep(idle);
 	}
 	for (DWORD d=0; d<globalScripts.size(); d++) {
@@ -690,7 +690,7 @@ void ScriptExtender::init() {
 
 	// TODO: move out?
 	idle = GetConfigInt("Misc", "ProcessorIdle", -1);
-	if (idle > -1) {
+	if (idle > -1 && idle <= 127) {
 		fo::var::idle_func = reinterpret_cast<DWORD>(Sleep);
 		SafeWrite8(0x4C9F12, 0x6A); // push
 		SafeWrite8(0x4C9F13, idle);
