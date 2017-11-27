@@ -309,7 +309,7 @@ Runs when retriving the damage rating of the players used weapon. (Which may be 
 
 int     arg1 - The default min damage
 int     arg2 - The default max damage
-Item    arg3 - The weapin used. (0 if unarmed)
+Item    arg3 - The weapon used. (0 if unarmed)
 Critter arg4 - The critter doing the attacking
 int     arg5 - The type of attack
 int     arg6 - non zero if this is an attack using a melee weapon
