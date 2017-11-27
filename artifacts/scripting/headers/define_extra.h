@@ -115,6 +115,7 @@
 #define PROTO_WP_ANIM        (36)
 #define PROTO_WP_DMG_MIN     (40)
 #define PROTO_WP_DMG_MAX     (44)
+#define PROTO_WP_DMG_TYPE    (48)
 #define PROTO_WP_RANGE_1     (52)
 #define PROTO_WP_RANGE_2     (56)
 #define PROTO_WP_PROJ_PID    (60)
