@@ -34,7 +34,7 @@ void __declspec(naked) op_get_perk_owed() {
 		mov ecx, eax;
 		movzx edx, byte ptr ds : [FO_VAR_free_perk];
 		call fo::funcoffs::interpretPushLong_;
-		mov edx, 0xc001;
+		mov edx, VAR_TYPE_INT;
 		mov eax, ecx;
 		call fo::funcoffs::interpretPushShort_;
 		popad;
@@ -50,7 +50,7 @@ void __declspec(naked) op_set_perk_owed() {
 		mov edx, eax;
 		mov eax, ecx;
 		call fo::funcoffs::interpretPopLong_;
-		cmp dx, 0xC001;
+		cmp dx, VAR_TYPE_INT;
 		jnz end;
 		and eax, 0xff;
 		cmp eax, 250;
@@ -70,7 +70,7 @@ void __declspec(naked) op_set_perk_freq() {
 		mov edx, eax;
 		mov eax, ecx;
 		call fo::funcoffs::interpretPopLong_;
-		cmp dx, 0xC001;
+		cmp dx, VAR_TYPE_INT;
 		jnz end;
 		push eax;
 		call SetPerkFreq;
@@ -88,7 +88,7 @@ void __declspec(naked) op_get_perk_available() {
 		mov edx, eax;
 		mov eax, ecx;
 		call fo::funcoffs::interpretPopLong_;
-		cmp dx, 0xC001;
+		cmp dx, VAR_TYPE_INT;
 		jnz fail;
 		cmp eax, PERK_count;
 		jge fail;
@@ -102,7 +102,7 @@ fail:
 end:
 		mov eax, ecx;
 		call fo::funcoffs::interpretPushLong_;
-		mov edx, 0xc001;
+		mov edx, VAR_TYPE_INT;
 		mov eax, ecx;
 		call fo::funcoffs::interpretPushShort_;
 		popad;
@@ -124,11 +124,11 @@ void __declspec(naked) op_set_perk_name() {
 		mov edx, eax;
 		mov eax, ecx;
 		call fo::funcoffs::interpretPopLong_;
-		cmp dx, 0xC001;
+		cmp dx, VAR_TYPE_INT;
 		jnz end;
-		cmp si, 0x9001;
+		cmp si, VAR_TYPE_STR2;
 		jz next;
-		cmp si, 0x9801;
+		cmp si, VAR_TYPE_STR;
 		jnz end;
 next:
 		mov ebx, edi;
@@ -160,11 +160,11 @@ void __declspec(naked) op_set_perk_desc() {
 		mov edx, eax;
 		mov eax, ecx;
 		call fo::funcoffs::interpretPopLong_;
-		cmp dx, 0xC001;
+		cmp dx, VAR_TYPE_INT;
 		jnz end;
-		cmp si, 0x9001;
+		cmp si, VAR_TYPE_STR2;
 		jz next;
-		cmp si, 0x9801;
+		cmp si, VAR_TYPE_STR;
 		jnz end;
 next:
 		mov ebx, edi;
@@ -198,9 +198,9 @@ void __declspec(naked) op_set_perk_value() {
 		mov edx, eax;
 		mov eax, ecx;
 		call fo::funcoffs::interpretPopLong_;
-		cmp dx, 0xC001;
+		cmp dx, VAR_TYPE_INT;
 		jnz fail;
-		cmp si, 0xC001;
+		cmp si, VAR_TYPE_INT;
 		jnz fail;
 		push edi;
 		push eax;
@@ -243,21 +243,21 @@ void __declspec(naked) op_set_selectable_perk() {
 		push eax;
 
 		movzx eax, word ptr[esp + 12];
-		cmp eax, 0xc001;
+		cmp eax, VAR_TYPE_INT;
 		jne fail;
 		movzx eax, word ptr[esp + 20];
-		cmp eax, 0xc001;
+		cmp eax, VAR_TYPE_INT;
 		jne fail;
 		movzx eax, word ptr ds : [esp + 4];
-		cmp eax, 0x9001;
+		cmp eax, VAR_TYPE_STR2;
 		je next1;
-		cmp eax, 0x9801;
+		cmp eax, VAR_TYPE_STR;
 		jne fail;
 next1:
 		movzx eax, word ptr ds : [esp + 28];
-		cmp eax, 0x9001;
+		cmp eax, VAR_TYPE_STR2;
 		je next2;
-		cmp eax, 0x9801;
+		cmp eax, VAR_TYPE_STR;
 		jne fail;
 next2:
 		mov eax, ecx;
@@ -312,21 +312,21 @@ void __declspec(naked) op_set_fake_perk() {
 		push eax;
 
 		movzx eax, word ptr[esp + 12];
-		cmp eax, 0xc001;
+		cmp eax, VAR_TYPE_INT;
 		jne fail;
 		movzx eax, word ptr[esp + 20];
-		cmp eax, 0xc001;
+		cmp eax, VAR_TYPE_INT;
 		jne fail;
 		movzx eax, word ptr ds : [esp + 4];
-		cmp eax, 0x9001;
+		cmp eax, VAR_TYPE_STR2;
 		je next1;
-		cmp eax, 0x9801;
+		cmp eax, VAR_TYPE_STR;
 		jne fail;
 next1:
 		movzx eax, word ptr ds : [esp + 28];
-		cmp eax, 0x9001;
+		cmp eax, VAR_TYPE_STR2;
 		je next2;
-		cmp eax, 0x9801;
+		cmp eax, VAR_TYPE_STR;
 		jne fail;
 next2:
 		mov eax, ecx;
@@ -385,21 +385,21 @@ void __declspec(naked) op_set_fake_trait() {
 		push eax;
 
 		movzx eax, word ptr[esp + 12];
-		cmp eax, 0xc001;
+		cmp eax, VAR_TYPE_INT;
 		jne fail;
 		movzx eax, word ptr[esp + 20];
-		cmp eax, 0xc001;
+		cmp eax, VAR_TYPE_INT;
 		jne fail;
 		movzx eax, word ptr ds : [esp + 4];
-		cmp eax, 0x9001;
+		cmp eax, VAR_TYPE_STR2;
 		je next1;
-		cmp eax, 0x9801;
+		cmp eax, VAR_TYPE_STR;
 		jne fail;
 next1:
 		movzx eax, word ptr ds : [esp + 28];
-		cmp eax, 0x9001;
+		cmp eax, VAR_TYPE_STR2;
 		je next2;
-		cmp eax, 0x9801;
+		cmp eax, VAR_TYPE_STR;
 		jne fail;
 next2:
 		mov eax, ecx;
@@ -440,9 +440,9 @@ void __declspec(naked) op_set_perkbox_title() {
 		mov edx, eax;
 		mov eax, edi;
 		call fo::funcoffs::interpretPopLong_;
-		cmp dx, 0x9001;
+		cmp dx, VAR_TYPE_STR2;
 		jz next;
-		cmp dx, 0x9801;
+		cmp dx, VAR_TYPE_STR;
 		jnz end;
 next:
 		mov ebx, eax;
@@ -509,9 +509,9 @@ void __declspec(naked) op_has_fake_perk() {
 		mov edx, eax;
 		mov eax, edi;
 		call fo::funcoffs::interpretPopLong_;
-		cmp dx, 0x9001;
+		cmp dx, VAR_TYPE_STR2;
 		jz next;
-		cmp dx, 0x9801;
+		cmp dx, VAR_TYPE_STR;
 		jnz end;
 next:
 		mov ebx, eax;
@@ -524,7 +524,7 @@ end:
 		mov eax, edi;
 		call fo::funcoffs::interpretPushLong_;
 		mov eax, edi;
-		mov edx, 0xc001;
+		mov edx, VAR_TYPE_INT;
 		call fo::funcoffs::interpretPushShort_;
 		pop edi;
 		pop edx;
@@ -545,9 +545,9 @@ void __declspec(naked) op_has_fake_trait() {
 		mov edx, eax;
 		mov eax, edi;
 		call fo::funcoffs::interpretPopLong_;
-		cmp dx, 0x9001;
+		cmp dx, VAR_TYPE_STR2;
 		jz next;
-		cmp dx, 0x9801;
+		cmp dx, VAR_TYPE_STR;
 		jnz end;
 next:
 		mov ebx, eax;
@@ -560,7 +560,7 @@ end:
 		mov eax, edi;
 		call fo::funcoffs::interpretPushLong_;
 		mov eax, edi;
-		mov edx, 0xc001;
+		mov edx, VAR_TYPE_INT;
 		call fo::funcoffs::interpretPushShort_;
 		pop edi;
 		pop edx;
@@ -580,7 +580,7 @@ void __declspec(naked) op_perk_add_mode() {
 		mov edx, eax;
 		mov eax, ecx;
 		call fo::funcoffs::interpretPopLong_;
-		cmp dx, 0xC001;
+		cmp dx, VAR_TYPE_INT;
 		jnz end;
 		push eax;
 		call AddPerkMode;
@@ -600,7 +600,7 @@ void __declspec(naked) op_remove_trait() {
 		mov edi, eax;
 		mov eax, ebp;
 		call fo::funcoffs::interpretPopLong_;
-		cmp di, 0xc001;
+		cmp di, VAR_TYPE_INT;
 		jnz end;
 		xor ebx, ebx;
 		dec ebx;
@@ -630,7 +630,7 @@ void __declspec(naked) op_set_pyromaniac_mod() {
 		mov edx, eax;
 		mov eax, ecx;
 		call fo::funcoffs::interpretPopLong_;
-		cmp dx, 0xC001;
+		cmp dx, VAR_TYPE_INT;
 		jnz end;
 		push eax;
 		push 0x424AB6;
@@ -666,7 +666,7 @@ void __declspec(naked) op_set_swiftlearner_mod() {
 		mov edx, eax;
 		mov eax, ecx;
 		call fo::funcoffs::interpretPopLong_;
-		cmp dx, 0xC001;
+		cmp dx, VAR_TYPE_INT;
 		jnz end;
 		push eax;
 		push 0x4AFAE2;

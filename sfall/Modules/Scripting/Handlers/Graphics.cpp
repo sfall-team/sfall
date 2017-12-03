@@ -42,7 +42,7 @@ void __declspec(naked) op_graphics_funcs_available() {
 		inc edx;
 end:
 		call fo::funcoffs::interpretPushLong_;
-		mov edx, 0xc001;
+		mov edx, VAR_TYPE_INT;
 		mov eax, ecx;
 		call fo::funcoffs::interpretPushShort_;
 		pop edx;
@@ -63,9 +63,9 @@ void __declspec(naked) op_load_shader() {
 		mov edx, eax;
 		mov eax, edi;
 		call fo::funcoffs::interpretPopLong_;
-		cmp dx, 0x9001;
+		cmp dx, VAR_TYPE_STR2;
 		jz next;
-		cmp dx, 0x9801;
+		cmp dx, VAR_TYPE_STR;
 		jnz error;
 next:
 		mov ebx, eax;
@@ -80,7 +80,7 @@ error:
 result:
 		mov eax, edi;
 		call fo::funcoffs::interpretPushLong_;
-		mov edx, 0xC001;
+		mov edx, VAR_TYPE_INT;
 		mov eax, edi;
 		call fo::funcoffs::interpretPushShort_;
 		pop edi;
@@ -101,7 +101,7 @@ void __declspec(naked) op_free_shader() {
 		mov edx, eax;
 		mov eax, ecx;
 		call fo::funcoffs::interpretPopLong_;
-		cmp dx, 0xC001;
+		cmp dx, VAR_TYPE_INT;
 		jnz end;
 		push eax;
 		call FreeShader;
@@ -123,7 +123,7 @@ void __declspec(naked) op_activate_shader() {
 		mov edx, eax;
 		mov eax, ecx;
 		call fo::funcoffs::interpretPopLong_;
-		cmp dx, 0xC001;
+		cmp dx, VAR_TYPE_INT;
 		jnz end;
 		push eax;
 		call ActivateShader;
@@ -145,7 +145,7 @@ void __declspec(naked) op_deactivate_shader() {
 		mov edx, eax;
 		mov eax, ecx;
 		call fo::funcoffs::interpretPopLong_;
-		cmp dx, 0xC001;
+		cmp dx, VAR_TYPE_INT;
 		jnz end;
 		push eax;
 		call DeactivateShader;
@@ -177,10 +177,10 @@ void __declspec(naked) op_get_shader_texture() {
 		mov eax, ecx;
 		call fo::funcoffs::interpretPopLong_;
 		mov ebx, [esp];
-		cmp bx, 0xC001;
+		cmp bx, VAR_TYPE_INT;
 		jnz fail;
 		mov ebx, [esp + 4];
-		cmp bx, 0xc001;
+		cmp bx, VAR_TYPE_INT;
 		jnz fail;
 		//set the new value
 		push ecx;
@@ -196,7 +196,7 @@ end:
 		//Pass back the result
 		mov eax, ecx;
 		call fo::funcoffs::interpretPushLong_;
-		mov edx, 0xc001;
+		mov edx, VAR_TYPE_INT;
 		mov eax, ecx;
 		call fo::funcoffs::interpretPushShort_;
 		//Restore registers and return
@@ -238,14 +238,14 @@ void __declspec(naked) op_set_shader_int() {
 		call fo::funcoffs::interpretPopLong_;
 		mov[esp], eax;
 		//Error check
-		cmp di, 0xC001;
+		cmp di, VAR_TYPE_INT;
 		jnz fail;
-		cmp dx, 0x9001;
+		cmp dx, VAR_TYPE_STR2;
 		jz next;
-		cmp dx, 0x9801;
+		cmp dx, VAR_TYPE_STR;
 		jnz fail;
 next:
-		cmp si, 0xc001;
+		cmp si, VAR_TYPE_INT;
 		jnz fail;
 		mov eax, ecx;
 		mov ebx, ebp;
@@ -295,14 +295,14 @@ void __declspec(naked) op_set_shader_texture() {
 		call fo::funcoffs::interpretPopLong_;
 		mov[esp], eax;
 		//Error check
-		cmp di, 0xC001;
+		cmp di, VAR_TYPE_INT;
 		jnz fail;
-		cmp dx, 0x9001;
+		cmp dx, VAR_TYPE_STR2;
 		jz next;
-		cmp dx, 0x9801;
+		cmp dx, VAR_TYPE_STR;
 		jnz fail;
 next:
-		cmp si, 0xc001;
+		cmp si, VAR_TYPE_INT;
 		jnz fail;
 		mov eax, ecx;
 		mov ebx, ebp;
@@ -352,19 +352,19 @@ void __declspec(naked) op_set_shader_float() {
 		call fo::funcoffs::interpretPopLong_;
 		mov[esp], eax;
 		//Error check
-		cmp di, 0xa001;
+		cmp di, VAR_TYPE_FLOAT;
 		jz paramWasFloat;
-		cmp di, 0xc001;
+		cmp di, VAR_TYPE_INT;
 		jnz fail;
 		fild[esp + 8];
 		fstp[esp + 8];
 paramWasFloat:
-		cmp dx, 0x9001;
+		cmp dx, VAR_TYPE_STR2;
 		jz next;
-		cmp dx, 0x9801;
+		cmp dx, VAR_TYPE_STR;
 		jnz fail;
 next:
-		cmp si, 0xc001;
+		cmp si, VAR_TYPE_INT;
 		jnz fail;
 		mov eax, ecx;
 		mov ebx, ebp;
@@ -406,20 +406,20 @@ argloopstart:
 		//Error check
 		mov ecx, 4;
 checkloopstart:
-		cmp word ptr[esp + ecx * 2 + 0x1a], 0xa001;
+		cmp word ptr[esp + ecx * 2 + 0x1a], VAR_TYPE_FLOAT;
 		jz paramWasFloat;
-		cmp word ptr[esp + ecx * 2 + 0x1a], 0xc001;
+		cmp word ptr[esp + ecx * 2 + 0x1a], VAR_TYPE_INT;
 		jnz fail;
 		fild[esp + ecx * 4 + 0x4];
 		fstp[esp + ecx * 4 + 0x4];
 paramWasFloat:
 		loop checkloopstart;
-		cmp word ptr[esp + 0x1a], 0x9001;
+		cmp word ptr[esp + 0x1a], VAR_TYPE_STR2;
 		jz next;
-		cmp word ptr[esp + 0x1a], 0x9801;
+		cmp word ptr[esp + 0x1a], VAR_TYPE_STR;
 		jnz fail;
 next:
-		cmp word ptr[esp + 0x18], 0xc001;
+		cmp word ptr[esp + 0x18], VAR_TYPE_INT;
 		jnz fail;
 		mov eax, ebp;
 		mov ebx, [esp + 4];
@@ -452,7 +452,7 @@ void __declspec(naked) op_get_shader_version() {
 		mov edx, eax;
 		mov eax, edi;
 		call fo::funcoffs::interpretPushLong_;
-		mov edx, 0xc001;
+		mov edx, VAR_TYPE_INT;
 		mov eax, edi;
 		call fo::funcoffs::interpretPushShort_;
 		pop edi;
@@ -480,9 +480,9 @@ void __declspec(naked) op_set_shader_mode() {
 		mov esi, eax;
 		mov eax, ecx;
 		call fo::funcoffs::interpretPopLong_;
-		cmp dx, 0xC001;
+		cmp dx, VAR_TYPE_INT;
 		jnz fail;
-		cmp si, 0xC001;
+		cmp si, VAR_TYPE_INT;
 		jnz fail;
 		push eax;
 		call SetShaderMode;
@@ -508,7 +508,7 @@ void __declspec(naked) op_force_graphics_refresh() {
 		mov edx, eax;
 		mov eax, ecx;
 		call fo::funcoffs::interpretPopLong_;
-		cmp dx, 0xC001;
+		cmp dx, VAR_TYPE_INT;
 		jnz end;
 		push eax;
 		call ForceGraphicsRefresh;

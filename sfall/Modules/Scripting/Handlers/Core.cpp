@@ -42,7 +42,7 @@ void __declspec(naked) op_set_global_script_repeat() {
 		mov edx, eax;
 		mov eax, ecx;
 		call fo::funcoffs::interpretPopLong_;
-		cmp dx, 0xC001;
+		cmp dx, VAR_TYPE_INT;
 		jnz end;
 		push eax;
 		push ecx;
@@ -65,7 +65,7 @@ void __declspec(naked) op_set_global_script_type() {
 		mov edx, eax;
 		mov eax, ecx;
 		call fo::funcoffs::interpretPopLong_;
-		cmp dx, 0xC001;
+		cmp dx, VAR_TYPE_INT;
 		jnz end;
 		push eax;
 		push ecx;
@@ -86,7 +86,7 @@ void __declspec(naked) op_available_global_script_types() {
 		mov edx, availableGlobalScriptTypes;
 		mov ecx, eax;
 		call fo::funcoffs::interpretPushLong_;
-		mov edx, 0xc001;
+		mov edx, VAR_TYPE_INT;
 		mov eax, ecx;
 		call fo::funcoffs::interpretPushShort_;
 		pop edx;
@@ -113,11 +113,11 @@ void __declspec(naked) op_set_sfall_global() {
 		mov edx, eax;
 		mov eax, edi;
 		call fo::funcoffs::interpretPopLong_;
-		cmp dx, 0x9001;
+		cmp dx, VAR_TYPE_STR2;
 		jz next;
-		cmp dx, 0x9801;
+		cmp dx, VAR_TYPE_STR;
 		jz next;
-		cmp dx, 0xc001;
+		cmp dx, VAR_TYPE_INT;
 		jnz end;
 		push esi;
 		push eax;
@@ -153,11 +153,11 @@ void __declspec(naked) op_get_sfall_global_int() {
 		mov esi, eax;
 		mov eax, edi;
 		call fo::funcoffs::interpretPopLong_;
-		cmp si, 0x9001;
+		cmp si, VAR_TYPE_STR2;
 		jz next;
-		cmp si, 0x9801;
+		cmp si, VAR_TYPE_STR;
 		jz next;
-		cmp si, 0xc001;
+		cmp si, VAR_TYPE_INT;
 		jnz end;
 		push eax;
 		call GetGlobalVarInt;
@@ -174,7 +174,7 @@ next:
 end:
 		mov eax, edi;
 		call fo::funcoffs::interpretPushLong_;
-		mov edx, 0xc001;
+		mov edx, VAR_TYPE_INT;
 		mov eax, edi;
 		call fo::funcoffs::interpretPushShort_;
 		pop esi;
@@ -199,11 +199,11 @@ void __declspec(naked) op_get_sfall_global_float() {
 		mov esi, eax;
 		mov eax, edi;
 		call fo::funcoffs::interpretPopLong_;
-		cmp si, 0x9001;
+		cmp si, VAR_TYPE_STR2;
 		jz next;
-		cmp si, 0x9801;
+		cmp si, VAR_TYPE_STR;
 		jz next;
-		cmp si, 0xc001;
+		cmp si, VAR_TYPE_INT;
 		jnz end;
 		push eax;
 		call GetGlobalVarInt;
@@ -220,7 +220,7 @@ next:
 end:
 		mov eax, edi;
 		call fo::funcoffs::interpretPushLong_;
-		mov edx, 0xa001;
+		mov edx, VAR_TYPE_FLOAT;
 		mov eax, edi;
 		call fo::funcoffs::interpretPushShort_;
 		pop esi;
@@ -242,7 +242,7 @@ void __declspec(naked) op_get_sfall_arg() {
 		mov eax, ecx;
 		call fo::funcoffs::interpretPushLong_;
 		mov eax, ecx;
-		mov edx, 0xc001;
+		mov edx, VAR_TYPE_INT;
 		call fo::funcoffs::interpretPushShort_;
 		popad;
 		retn;
@@ -269,7 +269,7 @@ void __declspec(naked) op_get_sfall_args() {
 		mov eax, ecx;
 		call fo::funcoffs::interpretPushLong_;
 		mov eax, ecx;
-		mov edx, 0xc001;
+		mov edx, VAR_TYPE_INT;
 		call fo::funcoffs::interpretPushShort_;
 		popad;
 		retn;
@@ -290,9 +290,9 @@ void __declspec(naked) op_set_sfall_arg() {
 		mov esi, eax;
 		mov eax, ecx;
 		call fo::funcoffs::interpretPopLong_;
-		cmp di, 0xc001;
+		cmp di, VAR_TYPE_INT;
 		jnz end;
-		cmp si, 0xc001;
+		cmp si, VAR_TYPE_INT;
 		jnz end;
 		push edx;
 		push eax;
@@ -313,7 +313,7 @@ void __declspec(naked) op_set_sfall_return() {
 		mov edx, eax;
 		mov eax, ecx;
 		call fo::funcoffs::interpretPopLong_;
-		cmp dx, 0xc001;
+		cmp dx, VAR_TYPE_INT;
 		jnz end;
 		push eax;
 		call SetHSReturn;
@@ -333,7 +333,7 @@ void __declspec(naked) op_init_hook() {
 		mov edx, initingHookScripts;
 		call fo::funcoffs::interpretPushLong_;
 		mov eax, ecx;
-		mov edx, 0xc001;
+		mov edx, VAR_TYPE_INT;
 		call fo::funcoffs::interpretPushShort_;
 		pop edx;
 		pop ecx;
@@ -349,7 +349,7 @@ void __declspec(naked) op_set_self() {
 		mov edi, eax;
 		mov eax, ebp;
 		call fo::funcoffs::interpretPopLong_;
-		cmp di, 0xc001;
+		cmp di, VAR_TYPE_INT;
 		jnz end;
 		push eax;
 		push ebp;

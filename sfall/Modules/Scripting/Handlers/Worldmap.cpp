@@ -77,7 +77,7 @@ void __declspec(naked) op_force_encounter() {
 		mov edx, eax;
 		mov eax, ecx;
 		call fo::funcoffs::interpretPopLong_;
-		cmp dx, 0xC001;
+		cmp dx, VAR_TYPE_INT;
 		jnz end;
 		push 0;
 		push eax;
@@ -104,9 +104,9 @@ void __declspec(naked) op_force_encounter_with_flags() {
 		mov edi, eax;
 		mov eax, ecx;
 		call fo::funcoffs::interpretPopLong_;
-		cmp dx, 0xC001;
+		cmp dx, VAR_TYPE_INT;
 		jnz end;
-		cmp di, 0xc001;
+		cmp di, VAR_TYPE_INT;
 		jnz end;
 		push ebx;
 		push eax;
@@ -129,7 +129,7 @@ void __declspec(naked) op_in_world_map() {
 		mov edx, eax;
 		mov eax, esi;
 		call fo::funcoffs::interpretPushLong_;
-		mov edx, 0xc001;
+		mov edx, VAR_TYPE_INT;
 		mov eax, esi;
 		call fo::funcoffs::interpretPushShort_;
 		pop esi;
@@ -148,7 +148,7 @@ void __declspec(naked) op_get_game_mode() {
 		mov edx, eax;
 		mov eax, edi;
 		call fo::funcoffs::interpretPushLong_;
-		mov edx, 0xc001;
+		mov edx, VAR_TYPE_INT;
 		mov eax, edi;
 		call fo::funcoffs::interpretPushShort_;
 		popad;
@@ -164,7 +164,7 @@ void __declspec(naked) op_get_world_map_x_pos() {
 		mov ecx, eax;
 		mov edx, ds:[FO_VAR_world_xpos];
 		call fo::funcoffs::interpretPushLong_;
-		mov edx, 0xc001;
+		mov edx, VAR_TYPE_INT;
 		mov eax, ecx;
 		call fo::funcoffs::interpretPushShort_;
 		pop edx;
@@ -182,7 +182,7 @@ void __declspec(naked) op_get_world_map_y_pos() {
 		mov ecx, eax;
 		mov edx, ds:[FO_VAR_world_ypos];
 		call fo::funcoffs::interpretPushLong_;
-		mov edx, 0xc001;
+		mov edx, VAR_TYPE_INT;
 		mov eax, ecx;
 		call fo::funcoffs::interpretPushShort_;
 		pop edx;
@@ -210,9 +210,9 @@ void __declspec(naked) op_set_world_map_pos() {
 		mov edx, eax;
 		mov eax, ecx;
 		call fo::funcoffs::interpretPopLong_;
-		cmp dx, 0xC001;
+		cmp dx, VAR_TYPE_INT;
 		jnz end;
-		cmp si, 0xC001;
+		cmp si, VAR_TYPE_INT;
 		jnz end;
 		mov ds : [FO_VAR_world_xpos], eax;
 		mov ds : [FO_VAR_world_ypos], edi;

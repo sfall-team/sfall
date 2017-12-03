@@ -40,7 +40,7 @@ void __declspec(naked) op_remove_script() {
 		mov edx, eax;
 		mov eax, ecx;
 		call fo::funcoffs::interpretPopLong_;
-		cmp dx, 0xc001;
+		cmp dx, VAR_TYPE_INT;
 		jnz end;
 		test eax, eax;
 		jz end;
@@ -72,9 +72,9 @@ void __declspec(naked) op_set_script() {
 		mov edi, eax;
 		mov eax, ecx;
 		call fo::funcoffs::interpretPopLong_;
-		cmp dx, 0xc001;
+		cmp dx, VAR_TYPE_INT;
 		jnz end;
-		cmp di, 0xc001;
+		cmp di, VAR_TYPE_INT;
 		jnz end;
 		test eax, eax;
 		jz end;

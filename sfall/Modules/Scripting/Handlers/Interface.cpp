@@ -38,7 +38,7 @@ void __declspec(naked) op_input_funcs_available() {
 		mov ecx, eax;
 		mov edx, 1; //They're always available from 2.9 on
 		call fo::funcoffs::interpretPushLong_;
-		mov edx, 0xc001;
+		mov edx, VAR_TYPE_INT;
 		mov eax, ecx;
 		call fo::funcoffs::interpretPushShort_;
 		pop edx;
@@ -64,7 +64,7 @@ void __declspec(naked) op_tap_key() {
 		mov edx, eax;
 		mov eax, ecx;
 		call fo::funcoffs::interpretPopLong_;
-		cmp dx, 0xC001;
+		cmp dx, VAR_TYPE_INT;
 		jnz end;
 		test eax, eax;
 		jl end;
@@ -89,7 +89,7 @@ void __declspec(naked) op_get_mouse_x() {
 		add edx, ds:[FO_VAR_mouse_hotx];
 		call fo::funcoffs::interpretPushLong_;
 		mov eax, ecx;
-		mov edx, 0xc001;
+		mov edx, VAR_TYPE_INT;
 		call fo::funcoffs::interpretPushShort_
 		pop edx;
 		pop ecx;
@@ -106,7 +106,7 @@ void __declspec(naked) op_get_mouse_y() {
 		add edx, ds:[FO_VAR_mouse_hoty];
 		call fo::funcoffs::interpretPushLong_;
 		mov eax, ecx;
-		mov edx, 0xc001;
+		mov edx, VAR_TYPE_INT;
 		call fo::funcoffs::interpretPushShort_
 		pop edx;
 		pop ecx;
@@ -122,7 +122,7 @@ void __declspec(naked) op_get_mouse_buttons() {
 		mov edx, ds:[FO_VAR_last_buttons];
 		call fo::funcoffs::interpretPushLong_;
 		mov eax, ecx;
-		mov edx, 0xc001;
+		mov edx, VAR_TYPE_INT;
 		call fo::funcoffs::interpretPushShort_
 		pop edx;
 		pop ecx;
@@ -138,7 +138,7 @@ void __declspec(naked) op_get_window_under_mouse() {
 		mov edx, ds:[FO_VAR_last_button_winID];
 		call fo::funcoffs::interpretPushLong_;
 		mov eax, ecx;
-		mov edx, 0xc001;
+		mov edx, VAR_TYPE_INT;
 		call fo::funcoffs::interpretPushShort_
 		pop edx;
 		pop ecx;
@@ -155,7 +155,7 @@ void __declspec(naked) op_get_screen_width() {
 		inc  edx
 		call fo::funcoffs::interpretPushLong_
 		pop  eax
-		mov  edx, 0xc001
+		mov  edx, VAR_TYPE_INT
 		call fo::funcoffs::interpretPushShort_
 		pop  edx
 		retn
@@ -171,7 +171,7 @@ void __declspec(naked) op_get_screen_height() {
 		inc  edx
 		call fo::funcoffs::interpretPushLong_
 		pop  eax
-		mov  edx, 0xc001
+		mov  edx, VAR_TYPE_INT
 		call fo::funcoffs::interpretPushShort_
 		pop  edx
 		retn
@@ -204,9 +204,9 @@ void __declspec(naked) op_create_message_window() {
 		mov edx, eax;
 		mov eax, ecx;
 		call fo::funcoffs::interpretPopLong_;
-		cmp dx, 0x9001;
+		cmp dx, VAR_TYPE_STR2;
 		jz next;
-		cmp dx, 0x9801;
+		cmp dx, VAR_TYPE_STR;
 		jnz end;
 next:
 		mov ebx, eax;
@@ -242,7 +242,7 @@ void __declspec(naked) op_get_viewport_x() {
 		mov ecx, eax;
 		mov edx, ds:[FO_VAR_wmWorldOffsetX];
 		call fo::funcoffs::interpretPushLong_;
-		mov edx, 0xc001;
+		mov edx, VAR_TYPE_INT;
 		mov eax, ecx;
 		call fo::funcoffs::interpretPushShort_;
 		pop edx;
@@ -260,7 +260,7 @@ void __declspec(naked) op_get_viewport_y() {
 		mov ecx, eax;
 		mov edx, ds:[FO_VAR_wmWorldOffsetY];
 		call fo::funcoffs::interpretPushLong_;
-		mov edx, 0xc001;
+		mov edx, VAR_TYPE_INT;
 		mov eax, ecx;
 		call fo::funcoffs::interpretPushShort_;
 		pop edx;
@@ -280,7 +280,7 @@ void __declspec(naked) op_set_viewport_x() {
 		mov edx, eax;
 		mov eax, ecx;
 		call fo::funcoffs::interpretPopLong_;
-		cmp dx, 0xC001;
+		cmp dx, VAR_TYPE_INT;
 		jnz end;
 		mov ds:[FO_VAR_wmWorldOffsetX], eax
 end:
@@ -301,7 +301,7 @@ void __declspec(naked) op_set_viewport_y() {
 		mov edx, eax;
 		mov eax, ecx;
 		call fo::funcoffs::interpretPopLong_;
-		cmp dx, 0xC001;
+		cmp dx, VAR_TYPE_INT;
 		jnz end;
 		mov ds:[FO_VAR_wmWorldOffsetY], eax
 end:
@@ -320,7 +320,7 @@ void __declspec(naked) op_show_iface_tag() {
 		mov edx, eax;
 		mov eax, ecx;
 		call fo::funcoffs::interpretPopLong_;
-		cmp dx, 0xC001;
+		cmp dx, VAR_TYPE_INT;
 		jnz end;
 		cmp eax, 3;
 		je falloutfunc;
@@ -346,7 +346,7 @@ void __declspec(naked) op_hide_iface_tag() {
 		mov edx, eax;
 		mov eax, ecx;
 		call fo::funcoffs::interpretPopLong_;
-		cmp dx, 0xC001;
+		cmp dx, VAR_TYPE_INT;
 		jnz end;
 		cmp eax, 3;
 		je falloutfunc;
@@ -373,7 +373,7 @@ void __declspec(naked) op_is_iface_tag_active() {
 		mov edx, eax;
 		mov eax, ebx;
 		call fo::funcoffs::interpretPopLong_;
-		cmp dx, 0xC001;
+		cmp dx, VAR_TYPE_INT;
 		jnz fail;
 		cmp eax, 3;
 		je falloutfunc;
@@ -404,7 +404,7 @@ end:
 		mov eax, ebx;
 		call fo::funcoffs::interpretPushLong_;
 		mov eax, ebx;
-		mov edx, 0xc001;
+		mov edx, VAR_TYPE_INT;
 		call fo::funcoffs::interpretPushShort_;
 		add esp, 4;
 		popad;
