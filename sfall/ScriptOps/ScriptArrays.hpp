@@ -32,9 +32,9 @@ static void __declspec(naked) create_array() {
 		mov edx, eax;
 		mov eax, edi;
 		call interpretPopLong_;
-		cmp bx, 0xc001;
+		cmp bx, VAR_TYPE_INT;
 		jne fail;
-		cmp dx, 0xc001;
+		cmp dx, VAR_TYPE_INT;
 		jne fail;
 		push ecx;
 		push eax;
@@ -46,7 +46,7 @@ fail:
 end:
 		mov eax, edi;
 		call interpretPushLong_;
-		mov edx, 0xc001;
+		mov edx, VAR_TYPE_INT;
 		mov eax, edi;
 		call interpretPushShort_;
 		popad;
@@ -76,14 +76,14 @@ static void __declspec(naked) set_array() {
 		call interpretPopLong_;
 		xchg eax, edi; // arrayID
 		//Error check:
-		cmp bx, 0xC001;
+		cmp bx, VAR_TYPE_INT;
 		jne end;
 		push 1; // arg 6: allow unset
 		push edx; // arg 5: value type
 		// value:
-		cmp dx, 0x9001;
+		cmp dx, VAR_TYPE_STR2;
 		jz next;
-		cmp dx, 0x9801;
+		cmp dx, VAR_TYPE_STR;
 		jnz notstring;
 next:
 		mov ebx, eax;
@@ -92,9 +92,9 @@ next:
 notstring:
 		push eax; // arg 4: value
 		// key:
-		cmp cx, 0x9001;
+		cmp cx, VAR_TYPE_STR2;
 		jz next1;
-		cmp cx, 0x9801;
+		cmp cx, VAR_TYPE_STR;
 		jnz notstring1;
 next1:
 		mov edx, ecx;
@@ -182,9 +182,9 @@ notstring1:
 		jmp end;
 fail:
 		xor edx, edx;
-		mov ebx, 0xc001;
+		mov ebx, VAR_TYPE_INT;
 end:
-		cmp bx, 0x9801;
+		cmp bx, VAR_TYPE_STR;
 		jne notstring;
 		mov eax, ebp;
 		call interpretAddString_;
@@ -207,7 +207,7 @@ static void __declspec(naked) free_array() {
 		mov ebx, eax;
 		mov eax, edi;
 		call interpretPopLong_;
-		cmp bx, 0xc001;
+		cmp bx, VAR_TYPE_INT;
 		jne end;
 		push eax;
 		call FreeArray;
@@ -224,7 +224,7 @@ static void __declspec(naked) len_array() {
 		mov ebx, eax;
 		mov eax, edi;
 		call interpretPopLong_;
-		cmp bx, 0xc001;
+		cmp bx, VAR_TYPE_INT;
 		jne fail;
 		push eax;
 		call LenArray;
@@ -235,7 +235,7 @@ fail:
 end:
 		mov eax, edi;
 		call interpretPushLong_;
-		mov edx, 0xc001;
+		mov edx, VAR_TYPE_INT;
 		mov eax, edi;
 		call interpretPushShort_;
 		popad;
@@ -260,9 +260,9 @@ static void __declspec(naked) resize_array() {
 		mov esi, eax;
 		mov eax, ebp;
 		//Error check
-		cmp bx, 0xc001;
+		cmp bx, VAR_TYPE_INT;
 		jne end;
-		cmp cx, 0xc001;
+		cmp cx, VAR_TYPE_INT;
 		jne end;
 		push edi;
 		push esi;
@@ -286,9 +286,9 @@ static void __declspec(naked) temp_array() {
 		mov edx, eax;
 		mov eax, edi;
 		call interpretPopLong_;
-		cmp bx, 0xc001;
+		cmp bx, VAR_TYPE_INT;
 		jne fail;
-		cmp dx, 0xc001;
+		cmp dx, VAR_TYPE_INT;
 		jne fail;
 		push ecx;
 		push eax;
@@ -300,7 +300,7 @@ fail:
 end:
 		mov eax, edi;
 		call interpretPushLong_;
-		mov edx, 0xc001;
+		mov edx, VAR_TYPE_INT;
 		mov eax, edi;
 		call interpretPushShort_;
 		popad;
@@ -315,7 +315,7 @@ static void __declspec(naked) fix_array() {
 		mov ebx, eax;
 		mov eax, edi;
 		call interpretPopLong_;
-		cmp bx, 0xc001;
+		cmp bx, VAR_TYPE_INT;
 		jne end;
 		push eax;
 		call FixArray;
@@ -570,7 +570,7 @@ static void __declspec(naked) list_begin() {
 		mov edi, eax;
 		mov eax, ebp;
 		call interpretPopLong_;
-		cmp di, 0xc001;
+		cmp di, VAR_TYPE_INT;
 		jnz fail;
 		push eax;
 		call list_begin2;
@@ -583,7 +583,7 @@ end:
 		mov eax, ebp;
 		call interpretPushLong_;
 		mov eax, ebp;
-		mov edx, 0xc001;
+		mov edx, VAR_TYPE_INT;
 		call interpretPushShort_;
 		popad;
 		retn;
@@ -597,7 +597,7 @@ static void __declspec(naked) list_as_array() {
 		mov edi, eax;
 		mov eax, ebp;
 		call interpretPopLong_;
-		cmp di, 0xc001;
+		cmp di, VAR_TYPE_INT;
 		jnz fail;
 		push eax;
 		call list_as_array2;
@@ -610,7 +610,7 @@ end:
 		mov eax, ebp;
 		call interpretPushLong_;
 		mov eax, ebp;
-		mov edx, 0xc001;
+		mov edx, VAR_TYPE_INT;
 		call interpretPushShort_;
 		popad;
 		retn;
@@ -624,7 +624,7 @@ static void __declspec(naked) list_next() {
 		mov edi, eax;
 		mov eax, ebp;
 		call interpretPopLong_;
-		cmp di, 0xc001;
+		cmp di, VAR_TYPE_INT;
 		jnz fail;
 		push eax;
 		call list_next2;
@@ -637,7 +637,7 @@ end:
 		mov eax, ebp;
 		call interpretPushLong_;
 		mov eax, ebp;
-		mov edx, 0xc001;
+		mov edx, VAR_TYPE_INT;
 		call interpretPushShort_;
 		popad;
 		retn;
@@ -651,7 +651,7 @@ static void __declspec(naked) list_end() {
 		mov edi, eax;
 		mov eax, ebp;
 		call interpretPopLong_;
-		cmp di, 0xc001;
+		cmp di, VAR_TYPE_INT;
 		jnz end;
 		push eax;
 		call list_end2;

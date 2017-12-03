@@ -28,7 +28,7 @@ static void __declspec(naked) GetPerkOwed() {
 		mov ecx, eax;
 		movzx edx, byte ptr ds:[_free_perk];
 		call interpretPushLong_;
-		mov edx, 0xc001;
+		mov edx, VAR_TYPE_INT;
 		mov eax, ecx;
 		call interpretPushShort_;
 		popad;
@@ -43,7 +43,7 @@ static void __declspec(naked) SetPerkOwed() {
 		mov edx, eax;
 		mov eax, ecx;
 		call interpretPopLong_;
-		cmp dx, 0xC001;
+		cmp dx, VAR_TYPE_INT;
 		jnz end;
 		and eax, 0xff;
 		cmp eax, 250;
@@ -62,7 +62,7 @@ static void __declspec(naked) set_perk_freq() {
 		mov edx, eax;
 		mov eax, ecx;
 		call interpretPopLong_;
-		cmp dx, 0xC001;
+		cmp dx, VAR_TYPE_INT;
 		jnz end;
 		push eax;
 		call SetPerkFreq;
@@ -79,7 +79,7 @@ static void __declspec(naked) GetPerkAvailable() {
 		mov edx, eax;
 		mov eax, ecx;
 		call interpretPopLong_;
-		cmp dx, 0xC001;
+		cmp dx, VAR_TYPE_INT;
 		jnz fail;
 		cmp eax, PERK_count;
 		jge fail;
@@ -93,7 +93,7 @@ fail:
 end:
 		mov eax, ecx
 		call interpretPushLong_;
-		mov edx, 0xc001;
+		mov edx, VAR_TYPE_INT;
 		mov eax, ecx;
 		call interpretPushShort_;
 		popad;
@@ -114,11 +114,11 @@ static void __declspec(naked) funcSetPerkName() {
 		mov edx, eax;
 		mov eax, ecx;
 		call interpretPopLong_;
-		cmp dx, 0xC001;
+		cmp dx, VAR_TYPE_INT;
 		jnz end;
-		cmp si, 0x9001;
+		cmp si, VAR_TYPE_STR2;
 		jz next;
-		cmp si, 0x9801;
+		cmp si, VAR_TYPE_STR;
 		jnz end;
 next:
 		mov ebx, edi;
@@ -149,11 +149,11 @@ static void __declspec(naked) funcSetPerkDesc() {
 		mov edx, eax;
 		mov eax, ecx;
 		call interpretPopLong_;
-		cmp dx, 0xC001;
+		cmp dx, VAR_TYPE_INT;
 		jnz end;
-		cmp si, 0x9001;
+		cmp si, VAR_TYPE_STR2;
 		jz next;
-		cmp si, 0x9801;
+		cmp si, VAR_TYPE_STR;
 		jnz end;
 next:
 		mov ebx, edi;
@@ -186,9 +186,9 @@ static void __declspec(naked) funcSetPerkValue() {
 		mov edx, eax;
 		mov eax, ecx;
 		call interpretPopLong_;
-		cmp dx, 0xC001;
+		cmp dx, VAR_TYPE_INT;
 		jnz fail;
-		cmp si, 0xC001;
+		cmp si, VAR_TYPE_INT;
 		jnz fail;
 		push edi;
 		push eax;
@@ -231,21 +231,21 @@ static void __declspec(naked) fSetSelectablePerk() {
 		push eax;
 
 		movzx eax, word ptr [esp+12];
-		cmp eax, 0xc001;
+		cmp eax, VAR_TYPE_INT;
 		jne fail;
 		movzx eax, word ptr [esp+20];
-		cmp eax, 0xc001;
+		cmp eax, VAR_TYPE_INT;
 		jne fail;
 		movzx eax, word ptr ds:[esp+4];
-		cmp eax, 0x9001;
+		cmp eax, VAR_TYPE_STR2;
 		je next1;
-		cmp eax, 0x9801;
+		cmp eax, VAR_TYPE_STR;
 		jne fail;
 next1:
 		movzx eax, word ptr ds:[esp+28];
-		cmp eax, 0x9001;
+		cmp eax, VAR_TYPE_STR2;
 		je next2;
-		cmp eax, 0x9801;
+		cmp eax, VAR_TYPE_STR;
 		jne fail;
 next2:
 		mov eax, ecx;
@@ -299,21 +299,21 @@ static void __declspec(naked) fSetFakePerk() {
 		push eax;
 
 		movzx eax, word ptr [esp+12];
-		cmp eax, 0xc001;
+		cmp eax, VAR_TYPE_INT;
 		jne fail;
 		movzx eax, word ptr [esp+20];
-		cmp eax, 0xc001;
+		cmp eax, VAR_TYPE_INT;
 		jne fail;
 		movzx eax, word ptr ds:[esp+4];
-		cmp eax, 0x9001;
+		cmp eax, VAR_TYPE_STR2;
 		je next1;
-		cmp eax, 0x9801;
+		cmp eax, VAR_TYPE_STR;
 		jne fail;
 next1:
 		movzx eax, word ptr ds:[esp+28];
-		cmp eax, 0x9001;
+		cmp eax, VAR_TYPE_STR2;
 		je next2;
-		cmp eax, 0x9801;
+		cmp eax, VAR_TYPE_STR;
 		jne fail;
 next2:
 		mov eax, ecx;
@@ -371,21 +371,21 @@ static void __declspec(naked) fSetFakeTrait() {
 		push eax;
 
 		movzx eax, word ptr [esp+12];
-		cmp eax, 0xc001;
+		cmp eax, VAR_TYPE_INT;
 		jne fail;
 		movzx eax, word ptr [esp+20];
-		cmp eax, 0xc001;
+		cmp eax, VAR_TYPE_INT;
 		jne fail;
 		movzx eax, word ptr ds:[esp+4];
-		cmp eax, 0x9001;
+		cmp eax, VAR_TYPE_STR2;
 		je next1;
-		cmp eax, 0x9801;
+		cmp eax, VAR_TYPE_STR;
 		jne fail;
 next1:
 		movzx eax, word ptr ds:[esp+28];
-		cmp eax, 0x9001;
+		cmp eax, VAR_TYPE_STR2;
 		je next2;
-		cmp eax, 0x9801;
+		cmp eax, VAR_TYPE_STR;
 		jne fail;
 next2:
 		mov eax, ecx;
@@ -425,9 +425,9 @@ static void __declspec(naked) fSetPerkboxTitle() {
 		mov edx, eax;
 		mov eax, edi;
 		call interpretPopLong_;
-		cmp dx, 0x9001;
+		cmp dx, VAR_TYPE_STR2;
 		jz next;
-		cmp dx, 0x9801;
+		cmp dx, VAR_TYPE_STR;
 		jnz end;
 next:
 		mov ebx, eax;
@@ -490,9 +490,9 @@ static void __declspec(naked) fHasFakePerk() {
 		mov edx, eax;
 		mov eax, edi;
 		call interpretPopLong_;
-		cmp dx, 0x9001;
+		cmp dx, VAR_TYPE_STR2;
 		jz next;
-		cmp dx, 0x9801;
+		cmp dx, VAR_TYPE_STR;
 		jnz end;
 next:
 		mov ebx, eax;
@@ -505,7 +505,7 @@ end:
 		mov eax, edi;
 		call interpretPushLong_;
 		mov eax, edi;
-		mov edx, 0xc001;
+		mov edx, VAR_TYPE_INT;
 		call interpretPushShort_;
 		pop edi;
 		pop edx;
@@ -525,9 +525,9 @@ static void __declspec(naked) fHasFakeTrait() {
 		mov edx, eax;
 		mov eax, edi;
 		call interpretPopLong_;
-		cmp dx, 0x9001;
+		cmp dx, VAR_TYPE_STR2;
 		jz next;
-		cmp dx, 0x9801;
+		cmp dx, VAR_TYPE_STR;
 		jnz end;
 next:
 		mov ebx, eax;
@@ -540,7 +540,7 @@ end:
 		mov eax, edi;
 		call interpretPushLong_;
 		mov eax, edi;
-		mov edx, 0xc001;
+		mov edx, VAR_TYPE_INT;
 		call interpretPushShort_;
 		pop edi;
 		pop edx;
@@ -559,7 +559,7 @@ static void __declspec(naked) fAddPerkMode() {
 		mov edx, eax;
 		mov eax, ecx;
 		call interpretPopLong_;
-		cmp dx, 0xC001;
+		cmp dx, VAR_TYPE_INT;
 		jnz end;
 		push eax;
 		call AddPerkMode;
@@ -578,7 +578,7 @@ static void __declspec(naked) remove_trait() {
 		mov edi, eax;
 		mov eax, ebp;
 		call interpretPopLong_;
-		cmp di, 0xc001;
+		cmp di, VAR_TYPE_INT;
 		jnz end;
 		xor ebx, ebx;
 		dec ebx;
@@ -608,7 +608,7 @@ static void __declspec(naked) SetPyromaniacMod() {
 		mov edx, eax;
 		mov eax, ecx;
 		call interpretPopLong_;
-		cmp dx, 0xC001;
+		cmp dx, VAR_TYPE_INT;
 		jnz end;
 		push eax;
 		push 0x424AB6;
@@ -643,7 +643,7 @@ static void __declspec(naked) SetSwiftLearnerMod() {
 		mov edx, eax;
 		mov eax, ecx;
 		call interpretPopLong_;
-		cmp dx, 0xC001;
+		cmp dx, VAR_TYPE_INT;
 		jnz end;
 		push eax;
 		push 0x4AFAE2;

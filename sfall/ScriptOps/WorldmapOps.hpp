@@ -66,7 +66,7 @@ static void __declspec(naked) ForceEncounter() {
 		mov edx, eax;
 		mov eax, ecx;
 		call interpretPopLong_;
-		cmp dx, 0xC001;
+		cmp dx, VAR_TYPE_INT;
 		jnz end;
 		push 0;
 		push eax;
@@ -92,9 +92,9 @@ static void __declspec(naked) ForceEncounterWithFlags() {
 		mov edi, eax;
 		mov eax, ecx;
 		call interpretPopLong_;
-		cmp dx, 0xC001;
+		cmp dx, VAR_TYPE_INT;
 		jnz end;
-		cmp di, 0xc001;
+		cmp di, VAR_TYPE_INT;
 		jnz end;
 		push ebx;
 		push eax;
@@ -117,7 +117,7 @@ static void __declspec(naked) funcInWorldMap() {
 		mov edx, eax;
 		mov eax, esi;
 		call interpretPushLong_;
-		mov edx, 0xc001;
+		mov edx, VAR_TYPE_INT;
 		mov eax, esi;
 		call interpretPushShort_;
 		pop esi;
@@ -135,7 +135,7 @@ static void __declspec(naked) GetGameMode() {
 		mov edx, eax;
 		mov eax, edi;
 		call interpretPushLong_;
-		mov edx, 0xc001;
+		mov edx, VAR_TYPE_INT;
 		mov eax, edi;
 		call interpretPushShort_;
 		popad;
@@ -150,7 +150,7 @@ static void __declspec(naked) GetWorldMapXPos() {
 		mov ecx, eax;
 		mov edx, ds:[_world_xpos];
 		call interpretPushLong_;
-		mov edx, 0xc001;
+		mov edx, VAR_TYPE_INT;
 		mov eax, ecx;
 		call interpretPushShort_;
 		pop edx;
@@ -167,7 +167,7 @@ static void __declspec(naked) GetWorldMapYPos() {
 		mov ecx, eax;
 		mov edx, ds:[_world_ypos];
 		call interpretPushLong_;
-		mov edx, 0xc001;
+		mov edx, VAR_TYPE_INT;
 		mov eax, ecx;
 		call interpretPushShort_;
 		pop edx;
@@ -194,9 +194,9 @@ static void __declspec(naked) SetWorldMapPos() {
 		mov edx, eax;
 		mov eax, ecx;
 		call interpretPopLong_;
-		cmp dx, 0xC001;
+		cmp dx, VAR_TYPE_INT;
 		jnz end;
-		cmp si, 0xC001;
+		cmp si, VAR_TYPE_INT;
 		jnz end;
 		mov ds:[_world_xpos], eax;
 		mov ds:[_world_ypos], edi;

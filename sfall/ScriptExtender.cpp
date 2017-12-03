@@ -469,7 +469,7 @@ static void __declspec(naked) SetGlobalScriptRepeat() {
 		mov edx, eax;
 		mov eax, ecx;
 		call interpretPopLong_;
-		cmp dx, 0xC001;
+		cmp dx, VAR_TYPE_INT;
 		jnz end;
 		push eax;
 		push ecx;
@@ -500,7 +500,7 @@ static void __declspec(naked) SetGlobalScriptType() {
 		mov edx, eax;
 		mov eax, ecx;
 		call interpretPopLong_;
-		cmp dx, 0xC001;
+		cmp dx, VAR_TYPE_INT;
 		jnz end;
 		push eax;
 		push ecx;
@@ -520,7 +520,7 @@ static void __declspec(naked) GetGlobalScriptTypes() {
 		mov edx, AvailableGlobalScriptTypes;
 		mov ecx, eax;
 		call interpretPushLong_;
-		mov edx, 0xc001;
+		mov edx, VAR_TYPE_INT;
 		mov eax, ecx;
 		call interpretPushShort_;
 		pop edx;
@@ -561,11 +561,11 @@ static void __declspec(naked) SetGlobalVar() {
 		mov edx, eax;
 		mov eax, edi;
 		call interpretPopLong_;
-		cmp dx, 0x9001;
+		cmp dx, VAR_TYPE_STR2;
 		jz next;
-		cmp dx, 0x9801;
+		cmp dx, VAR_TYPE_STR;
 		jz next;
-		cmp dx, 0xc001;
+		cmp dx, VAR_TYPE_INT;
 		jnz end;
 		push esi;
 		push eax;
@@ -612,11 +612,11 @@ static void __declspec(naked) GetGlobalVarInt() {
 		mov esi, eax;
 		mov eax, edi;
 		call interpretPopLong_;
-		cmp si, 0x9001;
+		cmp si, VAR_TYPE_STR2;
 		jz next;
-		cmp si, 0x9801;
+		cmp si, VAR_TYPE_STR;
 		jz next;
-		cmp si, 0xc001;
+		cmp si, VAR_TYPE_INT;
 		jnz end;
 		push eax;
 		call GetGlobalVar2Int;
@@ -633,7 +633,7 @@ next:
 end:
 		mov eax, edi;
 		call interpretPushLong_;
-		mov edx, 0xc001;
+		mov edx, VAR_TYPE_INT;
 		mov eax, edi;
 		call interpretPushShort_;
 		pop esi;
@@ -657,11 +657,11 @@ static void __declspec(naked) GetGlobalVarFloat() {
 		mov esi, eax;
 		mov eax, edi;
 		call interpretPopLong_;
-		cmp si, 0x9001;
+		cmp si, VAR_TYPE_STR2;
 		jz next;
-		cmp si, 0x9801;
+		cmp si, VAR_TYPE_STR;
 		jz next;
-		cmp si, 0xc001;
+		cmp si, VAR_TYPE_INT;
 		jnz end;
 		push eax;
 		call GetGlobalVar2Int;
@@ -678,7 +678,7 @@ next:
 end:
 		mov eax, edi;
 		call interpretPushLong_;
-		mov edx, 0xa001;
+		mov edx, VAR_TYPE_FLOAT;
 		mov eax, edi;
 		call interpretPushShort_;
 		pop esi;
@@ -700,7 +700,7 @@ static void __declspec(naked) GetSfallArg() {
 		mov eax, ecx;
 		call interpretPushLong_;
 		mov eax, ecx;
-		mov edx, 0xc001;
+		mov edx, VAR_TYPE_INT;
 		call interpretPushShort_;
 		popad;
 		retn;
@@ -723,7 +723,7 @@ static void __declspec(naked) GetSfallArgs() {
 		mov eax, ecx;
 		call interpretPushLong_;
 		mov eax, ecx;
-		mov edx, 0xc001;
+		mov edx, VAR_TYPE_INT;
 		call interpretPushShort_;
 		popad;
 		retn;
@@ -743,9 +743,9 @@ static void __declspec(naked) SetSfallArg() {
 		mov esi, eax;
 		mov eax, ecx;
 		call interpretPopLong_;
-		cmp di, 0xc001;
+		cmp di, VAR_TYPE_INT;
 		jnz end;
-		cmp si, 0xc001;
+		cmp si, VAR_TYPE_INT;
 		jnz end;
 		push edx;
 		push eax;
@@ -765,7 +765,7 @@ static void __declspec(naked) SetSfallReturn() {
 		mov edx, eax;
 		mov eax, ecx;
 		call interpretPopLong_;
-		cmp dx, 0xc001;
+		cmp dx, VAR_TYPE_INT;
 		jnz end;
 		push eax;
 		call SetHSReturn;
@@ -784,7 +784,7 @@ static void __declspec(naked) InitHook() {
 		mov edx, InitingHookScripts;
 		call interpretPushLong_;
 		mov eax, ecx;
-		mov edx, 0xc001;
+		mov edx, VAR_TYPE_INT;
 		call interpretPushShort_;
 		pop edx;
 		pop ecx;
@@ -810,7 +810,7 @@ static void __declspec(naked) set_self() {
 		mov edi, eax;
 		mov eax, ebp;
 		call interpretPopLong_;
-		cmp di, 0xc001;
+		cmp di, VAR_TYPE_INT;
 		jnz end;
 		push eax;
 		push ebp;
@@ -828,7 +828,7 @@ static void __declspec(naked) register_hook() {
 		mov edi, eax;
 		mov eax, ebp;
 		call interpretPopLong_;
-		cmp di, 0xc001;
+		cmp di, VAR_TYPE_INT;
 		jnz end;
 		push -1;
 		push eax;

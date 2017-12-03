@@ -37,13 +37,13 @@ static void __declspec(naked) funcSqrt() {
 		mov ebx, eax;
 		mov eax, ecx;
 		call interpretPopLong_;
-		cmp bx, 0xc001;
+		cmp bx, VAR_TYPE_INT;
 		jnz arg1l2;
 		mov [esp], eax;
 		fild [esp];
 		jmp calc;
 arg1l2:
-		cmp bx, 0xa001;
+		cmp bx, VAR_TYPE_FLOAT;
 		jnz fail;
 		mov [esp], eax;
 		fld [esp];
@@ -59,7 +59,7 @@ fail:
 end:
 		mov eax, ecx;
 		call interpretPushLong_;
-		mov edx, 0xa001;
+		mov edx, VAR_TYPE_FLOAT;
 		mov eax, ecx;
 		call interpretPushShort_;
 		add esp, 4;
@@ -76,13 +76,13 @@ static void __declspec(naked) funcAbs() {
 		mov ebx, eax;
 		mov eax, ecx;
 		call interpretPopLong_;
-		cmp bx, 0xc001;
+		cmp bx, VAR_TYPE_INT;
 		jnz arg1l2;
 		mov [esp], eax;
 		fild [esp];
 		jmp calc;
 arg1l2:
-		cmp bx, 0xa001;
+		cmp bx, VAR_TYPE_FLOAT;
 		jnz fail;
 		mov [esp], eax;
 		fld [esp];
@@ -98,7 +98,7 @@ fail:
 end:
 		mov eax, ecx;
 		call interpretPushLong_;
-		mov edx, 0xa001;
+		mov edx, VAR_TYPE_FLOAT;
 		mov eax, ecx;
 		call interpretPushShort_;
 		add esp, 4;
@@ -115,13 +115,13 @@ static void __declspec(naked) funcSin() {
 		mov ebx, eax;
 		mov eax, ecx;
 		call interpretPopLong_;
-		cmp bx, 0xc001;
+		cmp bx, VAR_TYPE_INT;
 		jnz arg1l2;
 		mov [esp], eax;
 		fild [esp];
 		jmp calc;
 arg1l2:
-		cmp bx, 0xa001;
+		cmp bx, VAR_TYPE_FLOAT;
 		jnz fail;
 		mov [esp], eax;
 		fld [esp];
@@ -137,7 +137,7 @@ fail:
 end:
 		mov eax, ecx;
 		call interpretPushLong_;
-		mov edx, 0xa001;
+		mov edx, VAR_TYPE_FLOAT;
 		mov eax, ecx;
 		call interpretPushShort_;
 		add esp, 4;
@@ -154,13 +154,13 @@ static void __declspec(naked) funcCos() {
 		mov ebx, eax;
 		mov eax, ecx;
 		call interpretPopLong_;
-		cmp bx, 0xc001;
+		cmp bx, VAR_TYPE_INT;
 		jnz arg1l2;
 		mov [esp], eax;
 		fild [esp];
 		jmp calc;
 arg1l2:
-		cmp bx, 0xa001;
+		cmp bx, VAR_TYPE_FLOAT;
 		jnz fail;
 		mov [esp], eax;
 		fld [esp];
@@ -176,7 +176,7 @@ fail:
 end:
 		mov eax, ecx;
 		call interpretPushLong_;
-		mov edx, 0xa001;
+		mov edx, VAR_TYPE_FLOAT;
 		mov eax, ecx;
 		call interpretPushShort_;
 		add esp, 4;
@@ -193,13 +193,13 @@ static void __declspec(naked) funcTan() {
 		mov ebx, eax;
 		mov eax, ecx;
 		call interpretPopLong_;
-		cmp bx, 0xc001;
+		cmp bx, VAR_TYPE_INT;
 		jnz arg1l2;
 		mov [esp], eax;
 		fild [esp];
 		jmp calc;
 arg1l2:
-		cmp bx, 0xa001;
+		cmp bx, VAR_TYPE_FLOAT;
 		jnz fail;
 		mov [esp], eax;
 		fld [esp];
@@ -216,7 +216,7 @@ fail:
 end:
 		mov eax, ecx;
 		call interpretPushLong_;
-		mov edx, 0xa001;
+		mov edx, VAR_TYPE_FLOAT;
 		mov eax, ecx;
 		call interpretPushShort_;
 		add esp, 4;
@@ -239,24 +239,24 @@ static void __declspec(naked) funcATan() {
 		mov edx, eax;
 		mov eax, ecx;
 		call interpretPopLong_;
-		cmp bx, 0xc001;
+		cmp bx, VAR_TYPE_INT;
 		jnz arg1l2;
 		mov [esp], eax;
 		fild [esp];
 		jmp arg2l1;
 arg1l2:
-		cmp bx, 0xa001;
+		cmp bx, VAR_TYPE_FLOAT;
 		jnz fail;
 		mov [esp], eax;
 		fld [esp];
 arg2l1:
-		cmp dx, 0xc001;
+		cmp dx, VAR_TYPE_INT;
 		jnz arg2l2;
 		mov [esp], edi;
 		fild [esp];
 		jmp calc;
 arg2l2:
-		cmp dx, 0xa001;
+		cmp dx, VAR_TYPE_FLOAT;
 		jnz fail2;
 		mov [esp], edi;
 		fld [esp];
@@ -274,7 +274,7 @@ fail:
 end:
 		mov eax, ecx;
 		call interpretPushLong_;
-		mov edx, 0xa001;
+		mov edx, VAR_TYPE_FLOAT;
 		mov eax, ecx;
 		call interpretPushShort_;
 		add esp, 4;
@@ -327,14 +327,14 @@ static void __declspec(naked) string_split() {
 		mov eax, ebp;
 		call interpretPopLong_;
 		mov esi, eax;
-		cmp bx, 0x9001;
+		cmp bx, VAR_TYPE_STR2;
 		jz str1;
-		cmp bx, 0x9801;
+		cmp bx, VAR_TYPE_STR;
 		jnz fail;
 str1:
-		cmp cx, 0x9001;
+		cmp cx, VAR_TYPE_STR2;
 		jz str2;
-		cmp cx, 0x9801;
+		cmp cx, VAR_TYPE_STR;
 		jnz fail;
 str2:
 		mov eax, ebp;
@@ -356,7 +356,7 @@ fail:
 end:
 		mov eax, ebp;
 		call interpretPushLong_;
-		mov edx, 0xc001;
+		mov edx, VAR_TYPE_INT;
 		mov eax, ebp;
 		call interpretPushShort_;
 		popad;
@@ -378,9 +378,9 @@ static void __declspec(naked) str_to_int() {
 		mov ebx, eax;
 		mov eax, ebp;
 		call interpretPopLong_;
-		cmp bx, 0x9001;
+		cmp bx, VAR_TYPE_STR2;
 		jz str1;
-		cmp bx, 0x9801;
+		cmp bx, VAR_TYPE_STR;
 		jnz fail;
 str1:
 		mov edx, ebx;
@@ -396,7 +396,7 @@ fail:
 end:
 		mov eax, ebp;
 		call interpretPushLong_;
-		mov edx, 0xc001;
+		mov edx, VAR_TYPE_INT;
 		mov eax, ebp;
 		call interpretPushShort_;
 		popad;
@@ -411,9 +411,9 @@ static void __declspec(naked) str_to_flt() {
 		mov ebx, eax;
 		mov eax, ebp;
 		call interpretPopLong_;
-		cmp bx, 0x9001;
+		cmp bx, VAR_TYPE_STR2;
 		jz str1;
-		cmp bx, 0x9801;
+		cmp bx, VAR_TYPE_STR;
 		jnz fail;
 str1:
 		mov edx, ebx;
@@ -429,7 +429,7 @@ fail:
 end:
 		mov eax, ebp;
 		call interpretPushLong_;
-		mov edx, 0xa001;
+		mov edx, VAR_TYPE_FLOAT;
 		mov eax, ebp;
 		call interpretPushShort_;
 		popad;
@@ -651,12 +651,12 @@ static void __declspec(naked) op_sprintf() {
 		call interpretPopLong_; // format string
 		mov esi, eax;
 		// check types
-		cmp cx, 0x9001;
+		cmp cx, VAR_TYPE_STR2;
 		je nextarg;
 		cmp cx, VAR_TYPE_STR;
 		jne fail;
 nextarg:
-		cmp dx, 0x9001;
+		cmp dx, VAR_TYPE_STR2;
 		je next2;
 		cmp dx, VAR_TYPE_STR;
 		jne notstring;

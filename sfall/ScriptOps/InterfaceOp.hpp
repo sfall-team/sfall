@@ -32,7 +32,7 @@ static void __declspec(naked) InputFuncsAvailable() {
 		mov ecx, eax;
 		mov edx, 1; //They're always available from 2.9 on
 		call interpretPushLong_;
-		mov edx, 0xc001;
+		mov edx, VAR_TYPE_INT;
 		mov eax, ecx;
 		call interpretPushShort_;
 		pop edx;
@@ -51,7 +51,7 @@ static void __declspec(naked) KeyPressed() {
 		mov edx, eax;
 		mov eax, ecx;
 		call interpretPopLong_;
-		cmp dx, 0xC001;
+		cmp dx, VAR_TYPE_INT;
 		jnz fail;
 		push ecx;
 		push eax;
@@ -64,7 +64,7 @@ fail:
 end:
 		mov eax, ecx;
 		call interpretPushLong_;
-		mov edx, 0xc001;
+		mov edx, VAR_TYPE_INT;
 		mov eax, ecx;
 		call interpretPushShort_;
 		pop edx;
@@ -83,7 +83,7 @@ static void __declspec(naked) funcTapKey() {
 		mov edx, eax;
 		mov eax, ecx;
 		call interpretPopLong_;
-		cmp dx, 0xC001;
+		cmp dx, VAR_TYPE_INT;
 		jnz end;
 		test eax, eax;
 		jl end;
@@ -109,7 +109,7 @@ static void __declspec(naked) get_mouse_x() {
 	  add edx, ds:[_mouse_hotx];
 	  call interpretPushLong_;
 	  mov eax, ecx;
-	  mov edx, 0xc001;
+	  mov edx, VAR_TYPE_INT;
 	  call interpretPushShort_
 	  pop edx;
 	  pop ecx;
@@ -127,7 +127,7 @@ static void __declspec(naked) get_mouse_y() {
 	  add edx, ds:[_mouse_hoty];
 	  call interpretPushLong_;
 	  mov eax, ecx;
-	  mov edx, 0xc001;
+	  mov edx, VAR_TYPE_INT;
 	  call interpretPushShort_
 	  pop edx;
 	  pop ecx;
@@ -144,7 +144,7 @@ static void __declspec(naked) get_mouse_buttons() {
 	  mov edx, ds:[_last_buttons];
 	  call interpretPushLong_;
 	  mov eax, ecx;
-	  mov edx, 0xc001;
+	  mov edx, VAR_TYPE_INT;
 	  call interpretPushShort_
 	  pop edx;
 	  pop ecx;
@@ -161,7 +161,7 @@ static void __declspec(naked) get_window_under_mouse() {
 	  mov edx, ds:[_last_button_winID];
 	  call interpretPushLong_;
 	  mov eax, ecx;
-	  mov edx, 0xc001;
+	  mov edx, VAR_TYPE_INT;
 	  call interpretPushShort_
 	  pop edx;
 	  pop ecx;
@@ -179,7 +179,7 @@ static void __declspec(naked) get_screen_width() {
 		inc  edx
 		call interpretPushLong_
 		pop  eax
-		mov  edx, 0xc001
+		mov  edx, VAR_TYPE_INT
 		call interpretPushShort_
 		pop  edx
 		retn
@@ -196,7 +196,7 @@ static void __declspec(naked) get_screen_height() {
 		inc  edx
 		call interpretPushLong_
 		pop  eax
-		mov  edx, 0xc001
+		mov  edx, VAR_TYPE_INT
 		call interpretPushShort_
 		pop  edx
 		retn
@@ -238,9 +238,9 @@ static void __declspec(naked) create_message_window() {
 	  mov edx, eax;
 	  mov eax, ecx;
 	  call interpretPopLong_;
-	  cmp dx, 0x9001;
+	  cmp dx, VAR_TYPE_STR2;
 	  jz next;
-	  cmp dx, 0x9801;
+	  cmp dx, VAR_TYPE_STR;
 	  jnz end;
 next:
 	  mov ebx, eax;
@@ -276,7 +276,7 @@ static void __declspec(naked) GetViewportX() {
 		mov ecx, eax;
 		mov edx, ds:[_wmWorldOffsetX];
 		call interpretPushLong_;
-		mov edx, 0xc001;
+		mov edx, VAR_TYPE_INT;
 		mov eax, ecx;
 		call interpretPushShort_;
 		pop edx;
@@ -293,7 +293,7 @@ static void __declspec(naked) GetViewportY() {
 		mov ecx, eax;
 		mov edx, ds:[_wmWorldOffsetY];
 		call interpretPushLong_;
-		mov edx, 0xc001;
+		mov edx, VAR_TYPE_INT;
 		mov eax, ecx;
 		call interpretPushShort_;
 		pop edx;
@@ -312,7 +312,7 @@ static void __declspec(naked) SetViewportX() {
 		mov edx, eax;
 		mov eax, ecx;
 		call interpretPopLong_;
-		cmp dx, 0xC001;
+		cmp dx, VAR_TYPE_INT;
 		jnz end;
 		mov ds:[_wmWorldOffsetX], eax
 end:
@@ -332,7 +332,7 @@ static void __declspec(naked) SetViewportY() {
 		mov edx, eax;
 		mov eax, ecx;
 		call interpretPopLong_;
-		cmp dx, 0xC001;
+		cmp dx, VAR_TYPE_INT;
 		jnz end;
 		mov ds:[_wmWorldOffsetY], eax
 end:
@@ -351,7 +351,7 @@ static void __declspec(naked) ShowIfaceTag() {
 		mov edx, eax;
 		mov eax, ecx;
 		call interpretPopLong_;
-		cmp dx, 0xC001;
+		cmp dx, VAR_TYPE_INT;
 		jnz end;
 		cmp eax, 3;
 		je falloutfunc;
@@ -376,7 +376,7 @@ static void __declspec(naked) HideIfaceTag() {
 		mov edx, eax;
 		mov eax, ecx;
 		call interpretPopLong_;
-		cmp dx, 0xC001;
+		cmp dx, VAR_TYPE_INT;
 		jnz end;
 		cmp eax, 3;
 		je falloutfunc;
@@ -402,7 +402,7 @@ static void __declspec(naked) IsIfaceTagActive() {
 		mov edx, eax;
 		mov eax, ebx;
 		call interpretPopLong_;
-		cmp dx, 0xC001;
+		cmp dx, VAR_TYPE_INT;
 		jnz fail;
 		cmp eax, 3;
 		je falloutfunc;
@@ -433,7 +433,7 @@ end:
 		mov eax, ebx;
 		call interpretPushLong_;
 		mov eax, ebx;
-		mov edx, 0xc001;
+		mov edx, VAR_TYPE_INT;
 		call interpretPushShort_;
 		add esp, 4;
 		popad;

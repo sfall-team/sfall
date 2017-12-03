@@ -37,7 +37,7 @@ static void __declspec(naked) GraphicsFuncsAvailable() {
 		inc edx;
 end:
 		call interpretPushLong_;
-		mov edx, 0xc001;
+		mov edx, VAR_TYPE_INT;
 		mov eax, ecx;
 		call interpretPushShort_;
 		pop edx;
@@ -57,9 +57,9 @@ static void __declspec(naked) funcLoadShader() {
 		mov edx, eax;
 		mov eax, edi;
 		call interpretPopLong_;
-		cmp dx, 0x9001;
+		cmp dx, VAR_TYPE_STR2;
 		jz next;
-		cmp dx, 0x9801;
+		cmp dx, VAR_TYPE_STR;
 		jnz error;
 next:
 		mov ebx, eax;
@@ -74,7 +74,7 @@ error:
 result:
 		mov eax, edi;
 		call interpretPushLong_;
-		mov edx, 0xC001;
+		mov edx, VAR_TYPE_INT;
 		mov eax, edi;
 		call interpretPushShort_;
 		pop edi;
@@ -94,7 +94,7 @@ static void __declspec(naked) funcFreeShader() {
 		mov edx, eax;
 		mov eax, ecx;
 		call interpretPopLong_;
-		cmp dx, 0xC001;
+		cmp dx, VAR_TYPE_INT;
 		jnz end;
 		push eax;
 		call FreeShader;
@@ -115,7 +115,7 @@ static void __declspec(naked) funcActivateShader() {
 		mov edx, eax;
 		mov eax, ecx;
 		call interpretPopLong_;
-		cmp dx, 0xC001;
+		cmp dx, VAR_TYPE_INT;
 		jnz end;
 		push eax;
 		call ActivateShader;
@@ -136,7 +136,7 @@ static void __declspec(naked) funcDeactivateShader() {
 		mov edx, eax;
 		mov eax, ecx;
 		call interpretPopLong_;
-		cmp dx, 0xC001;
+		cmp dx, VAR_TYPE_INT;
 		jnz end;
 		push eax;
 		call DeactivateShader;
@@ -167,10 +167,10 @@ static void __declspec(naked) funcGetShaderTexture() {
 		mov eax, ecx;
 		call interpretPopLong_;
 		mov ebx, [esp];
-		cmp bx, 0xC001;
+		cmp bx, VAR_TYPE_INT;
 		jnz fail;
 		mov ebx, [esp+4];
-		cmp bx, 0xc001;
+		cmp bx, VAR_TYPE_INT;
 		jnz fail;
 		//set the new value
 		push ecx;
@@ -186,7 +186,7 @@ end:
 		//Pass back the result
 		mov eax, ecx;
 		call interpretPushLong_;
-		mov edx, 0xc001;
+		mov edx, VAR_TYPE_INT;
 		mov eax, ecx;
 		call interpretPushShort_;
 		//Restore registers and return
@@ -227,14 +227,14 @@ static void __declspec(naked) funcSetShaderInt() {
 		call interpretPopLong_;
 		mov [esp], eax;
 		//Error check
-		cmp di, 0xC001;
+		cmp di, VAR_TYPE_INT;
 		jnz fail;
-		cmp dx, 0x9001;
+		cmp dx, VAR_TYPE_STR2;
 		jz next;
-		cmp dx, 0x9801;
+		cmp dx, VAR_TYPE_STR;
 		jnz fail;
 next:
-		cmp si, 0xc001;
+		cmp si, VAR_TYPE_INT;
 		jnz fail;
 		mov eax, ecx;
 		mov ebx, ebp;
@@ -283,14 +283,14 @@ static void __declspec(naked) funcSetShaderTexture() {
 		call interpretPopLong_;
 		mov [esp], eax;
 		//Error check
-		cmp di, 0xC001;
+		cmp di, VAR_TYPE_INT;
 		jnz fail;
-		cmp dx, 0x9001;
+		cmp dx, VAR_TYPE_STR2;
 		jz next;
-		cmp dx, 0x9801;
+		cmp dx, VAR_TYPE_STR;
 		jnz fail;
 next:
-		cmp si, 0xc001;
+		cmp si, VAR_TYPE_INT;
 		jnz fail;
 		mov eax, ecx;
 		mov ebx, ebp;
@@ -339,19 +339,19 @@ static void __declspec(naked) funcSetShaderFloat() {
 		call interpretPopLong_;
 		mov [esp], eax;
 		//Error check
-		cmp di, 0xa001;
+		cmp di, VAR_TYPE_FLOAT;
 		jz paramWasFloat;
-		cmp di, 0xc001;
+		cmp di, VAR_TYPE_INT;
 		jnz fail;
 		fild [esp+8];
 		fstp [esp+8];
 paramWasFloat:
-		cmp dx, 0x9001;
+		cmp dx, VAR_TYPE_STR2;
 		jz next;
-		cmp dx, 0x9801;
+		cmp dx, VAR_TYPE_STR;
 		jnz fail;
 next:
-		cmp si, 0xc001;
+		cmp si, VAR_TYPE_INT;
 		jnz fail;
 		mov eax, ecx;
 		mov ebx, ebp;
@@ -392,20 +392,20 @@ argloopstart:
 		//Error check
 		mov ecx, 4;
 checkloopstart:
-		cmp word ptr [esp+ecx*2+0x1a], 0xa001;
+		cmp word ptr [esp+ecx*2+0x1a], VAR_TYPE_FLOAT;
 		jz paramWasFloat;
-		cmp word ptr [esp+ecx*2+0x1a], 0xc001;
+		cmp word ptr [esp+ecx*2+0x1a], VAR_TYPE_INT;
 		jnz fail;
 		fild [esp+ecx*4+0x4];
 		fstp [esp+ecx*4+0x4];
 paramWasFloat:
 		loop checkloopstart;
-		cmp word ptr [esp+0x1a], 0x9001;
+		cmp word ptr [esp+0x1a], VAR_TYPE_STR2;
 		jz next;
-		cmp word ptr [esp+0x1a], 0x9801;
+		cmp word ptr [esp+0x1a], VAR_TYPE_STR;
 		jnz fail;
 next:
-		cmp word ptr [esp+0x18], 0xc001;
+		cmp word ptr [esp+0x18], VAR_TYPE_INT;
 		jnz fail;
 		mov eax, ebp;
 		mov ebx, [esp+4];
@@ -437,7 +437,7 @@ static void __declspec(naked) funcGetShaderVersion() {
 		mov edx, eax;
 		mov eax, edi;
 		call interpretPushLong_;
-		mov edx, 0xc001;
+		mov edx, VAR_TYPE_INT;
 		mov eax, edi;
 		call interpretPushShort_;
 		pop edi;
@@ -464,9 +464,9 @@ static void __declspec(naked) funcSetShaderMode() {
 		mov esi, eax;
 		mov eax, ecx;
 		call interpretPopLong_;
-		cmp dx, 0xC001;
+		cmp dx, VAR_TYPE_INT;
 		jnz fail;
-		cmp si, 0xC001;
+		cmp si, VAR_TYPE_INT;
 		jnz fail;
 		push eax;
 		call SetShaderMode;
@@ -491,7 +491,7 @@ static void __declspec(naked) funcForceGraphicsRefresh() {
 		mov edx, eax;
 		mov eax, ecx;
 		call interpretPopLong_;
-		cmp dx, 0xC001;
+		cmp dx, VAR_TYPE_INT;
 		jnz end;
 		push eax;
 		call ForceGraphicsRefresh;

@@ -38,7 +38,7 @@ static void __declspec(naked) RemoveScript() {
 		mov edx, eax;
 		mov eax, ecx;
 		call interpretPopLong_;
-		cmp dx, 0xc001;
+		cmp dx, VAR_TYPE_INT;
 		jnz end;
 		test eax, eax;
 		jz end;
@@ -71,9 +71,9 @@ static void __declspec(naked) SetScript() {
 		mov edi, eax;
 		mov eax, ecx;
 		call interpretPopLong_;
-		cmp dx, 0xc001;
+		cmp dx, VAR_TYPE_INT;
 		jnz end;
-		cmp di, 0xc001;
+		cmp di, VAR_TYPE_INT;
 		jnz end;
 		test eax, eax;
 		jz end;
@@ -178,7 +178,7 @@ static void __declspec(naked) GetScript() {
 		mov edx, eax;
 		mov eax, ecx;
 		call interpretPopLong_;
-		cmp dx, 0xc001;
+		cmp dx, VAR_TYPE_INT;
 		jnz fail;
 		test eax, eax;
 		jz fail;
@@ -194,7 +194,7 @@ end:
 		mov eax, ecx;
 		call interpretPushLong_;
 		mov eax, ecx;
-		mov edx, 0xc001;
+		mov edx, VAR_TYPE_INT;
 		call interpretPushShort_;
 		popad;
 		retn;
@@ -215,9 +215,9 @@ static void __declspec(naked) set_critter_burst_disable() {
 		mov esi, eax;
 		mov eax, ebp;
 		call interpretPopLong_;
-		cmp di, 0xc001;
+		cmp di, VAR_TYPE_INT;
 		jnz end;
-		cmp si, 0xc001;
+		cmp si, VAR_TYPE_INT;
 		jnz end;
 		push ecx;
 		push eax;
@@ -235,7 +235,7 @@ static void __declspec(naked) get_weapon_ammo_pid() {
 		mov edi, eax;
 		mov eax, ebp;
 		call interpretPopLong_;
-		cmp di, 0xc001;
+		cmp di, VAR_TYPE_INT;
 		jnz fail;
 		test eax, eax;
 		jz fail;
@@ -248,7 +248,7 @@ end:
 		mov eax, ebp;
 		call interpretPushLong_;
 		mov eax, ebp;
-		mov edx, 0xc001;
+		mov edx, VAR_TYPE_INT;
 		call interpretPushShort_;
 		popad;
 		retn;
@@ -268,9 +268,9 @@ static void __declspec(naked) set_weapon_ammo_pid() {
 		mov esi, eax;
 		mov eax, ebp;
 		call interpretPopLong_;
-		cmp di, 0xc001;
+		cmp di, VAR_TYPE_INT;
 		jnz end;
-		cmp si, 0xc001;
+		cmp si, VAR_TYPE_INT;
 		jnz end;
 		test eax, eax;
 		jz end;
@@ -288,7 +288,7 @@ static void __declspec(naked) get_weapon_ammo_count() {
 		mov edi, eax;
 		mov eax, ebp;
 		call interpretPopLong_;
-		cmp di, 0xc001;
+		cmp di, VAR_TYPE_INT;
 		jnz fail;
 		test eax, eax;
 		jz fail;
@@ -301,7 +301,7 @@ end:
 		mov eax, ebp;
 		call interpretPushLong_;
 		mov eax, ebp;
-		mov edx, 0xc001;
+		mov edx, VAR_TYPE_INT;
 		call interpretPushShort_;
 		popad;
 		retn;
@@ -321,9 +321,9 @@ static void __declspec(naked) set_weapon_ammo_count() {
 		mov esi, eax;
 		mov eax, ebp;
 		call interpretPopLong_;
-		cmp di, 0xc001;
+		cmp di, VAR_TYPE_INT;
 		jnz end;
-		cmp si, 0xc001;
+		cmp si, VAR_TYPE_INT;
 		jnz end;
 		test eax, eax;
 		jz end;
