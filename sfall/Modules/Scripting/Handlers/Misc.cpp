@@ -1708,7 +1708,7 @@ end:
 }
 
 void sf_sneak_success(OpcodeContext& ctx) {
-	ctx.setReturn(static_cast<int>(fo::var::sneak_working));
+	ctx.setReturn(fo::func::is_pc_sneak_working());
 }
 
 void sf_tile_light(OpcodeContext& ctx) {
