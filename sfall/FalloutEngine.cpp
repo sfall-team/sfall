@@ -378,6 +378,7 @@ const DWORD inven_right_hand_ = 0x471B70;
 const DWORD inven_unwield_ = 0x472A54;
 const DWORD inven_wield_ = 0x472758;
 const DWORD inven_worn_ = 0x471C08;
+const DWORD is_pc_sneak_working_ = 0x42E3F4;
 const DWORD is_within_perception_ = 0x42BA04;
 const DWORD isPartyMember_ = 0x494FC4;
 const DWORD item_add_force_ = 0x4772B8;

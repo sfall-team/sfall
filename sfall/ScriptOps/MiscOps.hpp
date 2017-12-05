@@ -1650,7 +1650,7 @@ end:
 static void __declspec(naked) op_sneak_success() {
 	_OP_BEGIN(ebp)
 	__asm {
-		mov eax, ds:[_sneak_working]
+		call is_pc_sneak_working_
 	}
 	_RET_VAL_INT(ebp)
 	_OP_END

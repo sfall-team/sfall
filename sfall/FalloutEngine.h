@@ -551,6 +551,7 @@ extern const DWORD inven_right_hand_;
 extern const DWORD inven_unwield_;
 extern const DWORD inven_wield_;
 extern const DWORD inven_worn_;
+extern const DWORD is_pc_sneak_working_;
 extern const DWORD is_within_perception_;
 extern const DWORD isPartyMember_; // (<eax> - object) - bool result
 extern const DWORD item_add_force_;
