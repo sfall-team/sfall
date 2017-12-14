@@ -170,6 +170,13 @@ end:
 	}
 }
 
+static void __declspec(naked) SetPCBaseStatEMP() {
+	__asm {
+		mov  ds:[29*4 + 0x51C394], 100; // set_pc_base_stat(STAT_dmg_resist_emp, 100)
+		retn;
+	}
+}
+
 // should be called before savegame is loaded
 static void _stdcall LoadGame2_Before() {
 	ResetState(1);
@@ -196,6 +203,7 @@ static void _stdcall LoadGame2_Before() {
 }
 
 static void _stdcall LoadGame2_After() {
+	SetPCBaseStatEMP();
 	LoadGlobalScripts();
 	CritLoad();
 	mapLoaded = true;
@@ -246,6 +254,7 @@ static void NewGame2() {
 
 	dlogr("Starting new game", DL_MAIN);
 
+	SetPCBaseStatEMP();
 	SetNewCharAppearanceGlobals();
 
 	LoadGlobalScripts();
