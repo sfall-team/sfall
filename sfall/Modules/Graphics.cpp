@@ -915,8 +915,8 @@ public:
 };
 
 HRESULT _stdcall FakeDirectDrawCreate2_graphics(void*, IDirectDraw** b, void*) {
-	ResWidth = *(DWORD*)0x004CAD6B;
-	ResHeight = *(DWORD*)0x004CAD66;
+	ResWidth = *(DWORD*)0x4CAD6B;
+	ResHeight = *(DWORD*)0x4CAD66;
 
 	if (!d3d9) {
 		d3d9 = Direct3DCreate9(D3D_SDK_VERSION);
@@ -995,14 +995,14 @@ void Graphics::init() {
 		} else {
 			FreeLibrary(h);
 		}
-		SafeWrite8(0x0050FB6B, '2');
+		SafeWrite8(0x50FB6B, '2');
 		dlogr(" Done", DL_INIT);
 #undef _DLL_NAME
 	}
 	fadeMulti = GetConfigInt("Graphics", "FadeMultiplier", 100);
 	if (fadeMulti != 100) {
 		dlog("Applying fade patch.", DL_INIT);
-		SafeWrite32(0x00493B17, ((DWORD)&FadeHook) - 0x00493B1b);
+		HookCall(0x493B16, &FadeHook);
 		fadeMulti = ((double)fadeMulti) / 100.0;
 		dlogr(" Done", DL_INIT);
 	}

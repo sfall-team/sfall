@@ -585,6 +585,126 @@ end:
 	}
 }
 
+static void __declspec(naked) loot_container_hack2() {
+	__asm {
+		cmp  esi, 0x150                           // source_down
+		je   scroll
+		cmp  esi, 0x148                           // source_up
+		jne  end
+scroll:
+		push edx
+		push ecx
+		push ebx
+		mov  eax, ds:[FO_VAR_i_wid]
+		call fo::funcoffs::GNW_find_
+		mov  ebx, [eax+0x8+0x0]                   // ebx = _i_wid.rect.x
+		mov  ecx, [eax+0x8+0x4]                   // ecx = _i_wid.rect.y
+		mov  eax, 297
+		add  eax, ebx                             // x_start
+		add  ebx, 297+64                          // x_end
+		mov  edx, 37
+		add  edx, ecx                             // y_start
+		add  ecx, 37+6*48                         // y_end
+		call fo::funcoffs::mouse_click_in_
+		pop  ebx
+		pop  ecx
+		pop  edx
+		test eax, eax
+		jz   end
+		cmp  esi, 0x150                           // source_down
+		je   targetDown
+		mov  esi, 0x18D                           // target_up
+		jmp  end
+targetDown:
+		mov  esi, 0x191                           // target_down
+end:
+		mov  eax, ds:[FO_VAR_curr_stack]
+		retn
+	}
+}
+
+static void __declspec(naked) barter_inventory_hack2() {
+	__asm {
+		push edx
+		push ecx
+		push ebx
+		xchg esi, eax
+		cmp  esi, 0x150                           // source_down
+		je   scroll
+		cmp  esi, 0x148                           // source_up
+		jne  end
+scroll:
+		mov  eax, ds:[FO_VAR_i_wid]
+		call fo::funcoffs::GNW_find_
+		mov  ebx, [eax+0x8+0x0]                   // ebx = _i_wid.rect.x
+		mov  ecx, [eax+0x8+0x4]                   // ecx = _i_wid.rect.y
+		push ebx
+		push ecx
+		mov  eax, 395
+		add  eax, ebx                             // x_start
+		add  ebx, 395+64                          // x_end
+		mov  edx, 35
+		add  edx, ecx                             // y_start
+		add  ecx, 35+3*48                         // y_end
+		call fo::funcoffs::mouse_click_in_
+		pop  ecx
+		pop  ebx
+		test eax, eax
+		jz   notTargetScroll
+		cmp  esi, 0x150                           // source_down
+		je   targetDown
+		mov  esi, 0x18D                           // target_up
+		jmp  end
+targetDown:
+		mov  esi, 0x191                           // target_down
+		jmp  end
+notTargetScroll:
+		push ebx
+		push ecx
+		mov  eax, 250
+		add  eax, ebx                             // x_start
+		add  ebx, 250+64                          // x_end
+		mov  edx, 20
+		add  edx, ecx                             // y_start
+		add  ecx, 20+3*48                         // y_end
+		call fo::funcoffs::mouse_click_in_
+		pop  ecx
+		pop  ebx
+		test eax, eax
+		jz   notTargetBarter
+		cmp  esi, 0x150                           // source_down
+		je   barterTargetDown
+		mov  esi, 0x184                           // target_barter_up
+		jmp  end
+barterTargetDown:
+		mov  esi, 0x176                           // target_barter_down
+		jmp  end
+notTargetBarter:
+		mov  eax, 165
+		add  eax, ebx                             // x_start
+		add  ebx, 165+64                          // x_end
+		mov  edx, 20
+		add  edx, ecx                             // y_start
+		add  ecx, 20+3*48                         // y_end
+		call fo::funcoffs::mouse_click_in_
+		test eax, eax
+		jz   end
+		cmp  esi, 0x150                           // source_down
+		je   barterSourceDown
+		mov  esi, 0x149                           // source_barter_up
+		jmp  end
+barterSourceDown:
+		mov  esi, 0x151                           // source_barter_down
+end:
+		pop  ebx
+		pop  ecx
+		pop  edx
+		mov  eax, esi
+		cmp  eax, 0x11
+		retn
+	}
+}
+
 int __stdcall ItemCountFixStdcall(fo::GameObject* who, fo::GameObject* item) {
 	int count = 0;
 	for (int i = 0; i < who->invenSize; i++) {
@@ -752,6 +872,13 @@ void Inventory::init() {
 
 	// Move items to player's main inventory instead of the opened bag/backpack when confirming a trade
 	SafeWrite32(0x475CF2, FO_VAR_stack);
+
+	// Enable mouse scroll control in barter and loot screens when the cursor is hovering over other lists
+	if (useScrollWheel) {
+		MakeCall(0x473E66, loot_container_hack2);
+		MakeCall(0x4759F1, barter_inventory_hack2);
+		fo::var::max = 100;
+	};
 
 	// Fix item_count function returning incorrect value when there is a container-item inside
 	MakeJump(0x47808C, ItemCountFix); // replacing item_count_ function

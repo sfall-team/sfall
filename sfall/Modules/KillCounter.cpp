@@ -75,24 +75,24 @@ void KillCounterInit(bool use) {
 	usingExtraKillTypes = 1;
 
 	//Overwrite the function that reads the kill counter with my own
-	SafeWrite32(0x004344C0, ((DWORD)&ReadKillCounter) - 0x004344C4);
-	SafeWrite32(0x0043A163, ((DWORD)&ReadKillCounter) - 0x0043A167);
-	SafeWrite32(0x004571D9, ((DWORD)&ReadKillCounter) - 0x004571DD);
+	HookCall(0x4344BF, &ReadKillCounter);
+	HookCall(0x43A162, &ReadKillCounter);
+	HookCall(0x4571D8, &ReadKillCounter);
 
 	//Overwrite the function that increments the kill counter with my own
-	SafeWrite32(0x00425145, ((DWORD)&IncKillCounter) - 0x00425149);
+	HookCall(0x425144, &IncKillCounter);
 
 	//Edit the GetKillTypeName function to accept kill types over 0x13
-	SafeWrite8(0x0042D980, 38);
-	SafeWrite8(0x0042D990, 38);
+	SafeWrite8(0x42D980, 38);
+	SafeWrite8(0x42D990, 38);
 
 	//And the same for GetKillTypeDesc
-	SafeWrite8(0x0042D9C0, 38);
-	SafeWrite8(0x0042D9D0, 38);
-	SafeWrite32(0x0042D9DD, 1488);
+	SafeWrite8(0x42D9C0, 38);
+	SafeWrite8(0x42D9D0, 38);
+	SafeWrite32(0x42D9DD, 1488);
 
 	//Change char sheet to loop through the extra kill types
-	SafeWrite8(0x004344E4, 38);
+	SafeWrite8(0x4344E4, 38);
 }
 
 void KillCounter::init() {

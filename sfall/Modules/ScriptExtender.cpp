@@ -48,7 +48,7 @@ using namespace script;
 void _stdcall HandleMapUpdateForScripts(DWORD procId);
 
 // TODO: move to a better place
-static char idle;
+static int idle;
 
 struct GlobalScript {
 	ScriptProgram prog;
@@ -511,10 +511,10 @@ void ClearGlobalScripts() {
 	//Pyromaniac bonus
 	SafeWrite8(0x424AB6, 5);
 	//xp mod
-	SafeWrite8(0x004AFAB8, 0x53);
-	SafeWrite32(0x004AFAB9, 0x55575651);
+	SafeWrite8(0x4AFAB8, 0x53);
+	SafeWrite32(0x4AFAB9, 0x55575651);
 	//Perk level mod
-	SafeWrite32(0x00496880, 0x00019078);
+	SafeWrite32(0x496880, 0x00019078);
 	//HP bonus
 	SafeWrite8(0x4AFBC1, 2);
 	// TODO: move this elsewhere
@@ -572,7 +572,7 @@ static void ResetStateAfterFrame() {
 
 static inline void RunGlobalScripts(int mode1, int mode2) {
 	// TODO: move processor idle out?
-	if (idle > -1) {
+	if (idle > -1 && idle <= 127) {
 		Sleep(idle);
 	}
 	for (DWORD d=0; d<globalScripts.size(); d++) {
@@ -690,7 +690,7 @@ void ScriptExtender::init() {
 
 	// TODO: move out?
 	idle = GetConfigInt("Misc", "ProcessorIdle", -1);
-	if (idle > -1) {
+	if (idle > -1 && idle <= 127) {
 		fo::var::idle_func = reinterpret_cast<DWORD>(Sleep);
 		SafeWrite8(0x4C9F12, 0x6A); // push
 		SafeWrite8(0x4C9F13, idle);

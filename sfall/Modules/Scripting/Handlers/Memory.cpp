@@ -37,7 +37,7 @@ void __declspec(naked) op_read_byte() {
 		mov edx, eax;
 		mov eax, ecx;
 		call fo::funcoffs::interpretPopLong_;
-		cmp dx, 0xC001;
+		cmp dx, VAR_TYPE_INT;
 		jnz error;
 		movzx edx, byte ptr ds : [eax];
 		jmp result;
@@ -46,7 +46,7 @@ error:
 result:
 		mov eax, ecx;
 		call fo::funcoffs::interpretPushLong_;
-		mov edx, 0xc001;
+		mov edx, VAR_TYPE_INT;
 		mov eax, ecx;
 		call fo::funcoffs::interpretPushShort_;
 		pop edx;
@@ -66,7 +66,7 @@ void __declspec(naked) op_read_short() {
 		mov edx, eax;
 		mov eax, ecx;
 		call fo::funcoffs::interpretPopLong_;
-		cmp dx, 0xC001;
+		cmp dx, VAR_TYPE_INT;
 		jnz error;
 		movzx edx, word ptr ds : [eax];
 		jmp result;
@@ -75,7 +75,7 @@ error:
 result:
 		mov eax, ecx;
 		call fo::funcoffs::interpretPushLong_;
-		mov edx, 0xc001;
+		mov edx, VAR_TYPE_INT;
 		mov eax, ecx;
 		call fo::funcoffs::interpretPushShort_;
 		pop edx;
@@ -95,7 +95,7 @@ void __declspec(naked) op_read_int() {
 		mov edx, eax;
 		mov eax, ecx;
 		call fo::funcoffs::interpretPopLong_;
-		cmp dx, 0xC001;
+		cmp dx, VAR_TYPE_INT;
 		jnz error;
 		mov edx, dword ptr ds : [eax];
 		jmp result;
@@ -104,7 +104,7 @@ error:
 result:
 		mov eax, ecx;
 		call fo::funcoffs::interpretPushLong_;
-		mov edx, 0xc001;
+		mov edx, VAR_TYPE_INT;
 		mov eax, ecx;
 		call fo::funcoffs::interpretPushShort_;
 		pop edx;
@@ -124,7 +124,7 @@ void __declspec(naked) op_read_string() {
 		mov edx, eax;
 		mov eax, ecx;
 		call fo::funcoffs::interpretPopLong_;
-		cmp dx, 0xC001;
+		cmp dx, VAR_TYPE_INT;
 		jnz error;
 		mov edx, eax;
 		jmp result;
@@ -133,7 +133,7 @@ error:
 result:
 		mov eax, ecx;
 		call fo::funcoffs::interpretPushLong_;
-		mov edx, 0x9801;
+		mov edx, VAR_TYPE_STR;
 		mov eax, ecx;
 		call fo::funcoffs::interpretPushShort_;
 		pop edx;
@@ -157,9 +157,9 @@ void __declspec(naked) op_write_byte() {
 		mov edi, eax;
 		mov eax, ecx;
 		call fo::funcoffs::interpretPopLong_;
-		cmp di, 0xC001;
+		cmp di, VAR_TYPE_INT;
 		jnz end;
-		cmp si, 0xC001;
+		cmp si, VAR_TYPE_INT;
 		jnz end;
 		//mov byte ptr ds:[eax], dl;
 		and edx, 0xff;
@@ -186,9 +186,9 @@ void __declspec(naked) op_write_short() {
 		mov edi, eax;
 		mov eax, ecx;
 		call fo::funcoffs::interpretPopLong_;
-		cmp di, 0xC001;
+		cmp di, VAR_TYPE_INT;
 		jnz end;
-		cmp si, 0xC001;
+		cmp si, VAR_TYPE_INT;
 		jnz end;
 		//mov word ptr ds:[eax], dx;
 		and edx, 0xffff;
@@ -215,9 +215,9 @@ void __declspec(naked) op_write_int() {
 		mov edi, eax;
 		mov eax, ecx;
 		call fo::funcoffs::interpretPopLong_;
-		cmp di, 0xC001;
+		cmp di, VAR_TYPE_INT;
 		jnz end;
-		cmp si, 0xC001;
+		cmp si, VAR_TYPE_INT;
 		jnz end;
 		//mov dword ptr ds:[eax], edx;
 		push edx;
@@ -255,11 +255,11 @@ void __declspec(naked) op_write_string() {
 		mov edx, eax;
 		mov eax, ecx;
 		call fo::funcoffs::interpretPopLong_;
-		cmp dx, 0xC001;
+		cmp dx, VAR_TYPE_INT;
 		jnz end;
-		cmp si, 0x9001;
+		cmp si, VAR_TYPE_STR2;
 		jz next;
-		cmp si, 0x9801;
+		cmp si, VAR_TYPE_STR;
 		jnz end;
 next:
 		mov ebx, edi;
@@ -287,7 +287,7 @@ static void _stdcall CallOffsetInternal(DWORD func, DWORD script) {
 		__asm {
 			mov eax, script;
 			call fo::funcoffs::interpretPopShort_;
-			cmp ax, 0xc001;
+			cmp ax, VAR_TYPE_INT;
 			jz legal;
 			inc illegalarg;
 legal:
@@ -318,7 +318,7 @@ legal:
 			mov edx, args[0];
 			call fo::funcoffs::interpretPushLong_;
 			mov eax, script;
-			mov edx, 0xc001;
+			mov edx, VAR_TYPE_INT;
 			call fo::funcoffs::interpretPushShort_;
 		}
 	}

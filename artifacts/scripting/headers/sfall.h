@@ -211,6 +211,7 @@
 
 #define car_gas_amount                        sfall_func0("car_gas_amount")
 #define critter_inven_obj2(obj, type)         sfall_func2("critter_inven_obj2", obj, type)
+#define display_stats                         sfall_func0("display_stats")
 #define exec_map_update_scripts               sfall_func0("exec_map_update_scripts")
 #define get_cursor_mode                       sfall_func0("get_cursor_mode")
 #define get_flags(obj)                        sfall_func1("get_flags", obj)

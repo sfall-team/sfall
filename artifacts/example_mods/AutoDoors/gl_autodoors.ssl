@@ -1,0 +1,77 @@
+/*
+
+Auto Doors mod for Fallout 2 by Mr.Stalin
+-----------------------------------------
+
+- allows the player to automatically open/walk through unlocked doors when not in combat
+
+Requires sfall 3.7b or higher
+
+NOTE: this script requires compiler from sfall modderspack with -s option
+(short circuit evaluation)
+
+*/
+
+#include "..\headers\define.h"
+#include "..\headers\command.h"
+#include "..\headers\sfall\sfall.h"
+#include "..\headers\sfall\define_extra.h"
+
+procedure start;
+procedure map_enter_p_proc;
+procedure set_door_flag(variable state);
+procedure combatturn_handler;
+
+#define PORTAL      (0)
+#define DOOR_FLAGS  (0x24)
+
+variable only_once := 0;
+
+procedure start begin
+   if game_loaded then begin
+      if (sfall_ver_major >= 4) then
+         register_hook_proc(HOOK_COMBATTURN, combatturn_handler);
+      else
+         set_global_script_repeat(60);
+      call map_enter_p_proc;
+   end else begin
+      if (only_once == 1 and combat_is_initialized) then begin
+         only_once := 2;
+         call set_door_flag(false);
+      end else if (only_once == 2 and not(combat_is_initialized)) then begin
+         only_once := 1;
+         if (sfall_ver_major >= 4) then
+            set_global_script_repeat(0);
+         call set_door_flag(FLAG_WALKTHRU);
+      end
+   end
+end
+
+procedure map_enter_p_proc begin
+   only_once := 1;
+   call set_door_flag(FLAG_WALKTHRU);
+end
+
+procedure set_door_flag(variable state) begin
+   variable objectMap, obj, objPid, arrayPid, i;
+
+   objectMap := list_as_array(LIST_SCENERY);
+   arrayPid := temp_array(1, 0);
+
+   foreach (obj in objectMap) begin
+      objPid := obj_pid(obj);
+
+      if (proto_data(objPid, sc_type) != PORTAL) or is_in_array(objPid, arrayPid) then
+         continue;
+
+      arrayPid[i] := objPid;
+      i++;
+      resize_array(arrayPid, i + 1);
+      set_proto_data(objPid, DOOR_FLAGS, state);
+   end
+end
+
+procedure combatturn_handler begin
+   if (only_once == 1) then
+      set_global_script_repeat(60);
+end

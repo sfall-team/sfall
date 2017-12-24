@@ -299,8 +299,8 @@ Some utility/math functions are available:
 - Additional game msg files added by ExtraGameMsgFileList setting will have consecutive fileIds assigned beginning from 0x2000. (e.g. if you set ExtraGameMsgFileList=foo,bar in ddraw.ini, foo.msg will be associated with 0x2000 and bar.msg with 0x2001.)
 
 > int sneak_success
-- returns 1 if last sneak attempt (roll against skill) was successful, 0 otherwise
-- this is an internal engine variable wich is used to determine the perception range of critters (which you can override using HOOK_WITHINPERCEPTION)
+- returns 1 if the player is currently sneaking, and last sneak attempt (roll against skill) was successful; 0 otherwise
+- this calls an internal engine function which is used to determine the perception range of critters (which you can override using HOOK_WITHINPERCEPTION)
 
 > int tile_light(int elevation, int tileNum)
 - returns light intensity at the given tile in range from 0 to 65535
@@ -424,6 +424,10 @@ Some utility/math functions are available:
 
 > void sfall_func1("set_cursor_mode", int mode)
 - sets the current cursor mode
+
+> void sfall_func0("display_stats")
+- displays player stats in the inventory screen display window
+- works only in opened inventory
 
 ------------------------
 ------ MORE INFO -------

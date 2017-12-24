@@ -19,6 +19,7 @@
 #include "..\..\..\FalloutEngine\Fallout2.h"
 #include "..\..\..\InputFuncs.h"
 #include "..\..\BarBoxes.h"
+#include "..\..\LoadGameHook.h"
 #include "..\..\ScriptExtender.h"
 #include "..\OpcodeContext.h"
 
@@ -37,7 +38,7 @@ void __declspec(naked) op_input_funcs_available() {
 		mov ecx, eax;
 		mov edx, 1; //They're always available from 2.9 on
 		call fo::funcoffs::interpretPushLong_;
-		mov edx, 0xc001;
+		mov edx, VAR_TYPE_INT;
 		mov eax, ecx;
 		call fo::funcoffs::interpretPushShort_;
 		pop edx;
@@ -63,7 +64,7 @@ void __declspec(naked) op_tap_key() {
 		mov edx, eax;
 		mov eax, ecx;
 		call fo::funcoffs::interpretPopLong_;
-		cmp dx, 0xC001;
+		cmp dx, VAR_TYPE_INT;
 		jnz end;
 		test eax, eax;
 		jl end;
@@ -88,9 +89,9 @@ void __declspec(naked) op_get_mouse_x() {
 		add edx, ds:[FO_VAR_mouse_hotx];
 		call fo::funcoffs::interpretPushLong_;
 		mov eax, ecx;
-		mov edx, 0xc001;
+		mov edx, VAR_TYPE_INT;
 		call fo::funcoffs::interpretPushShort_
-			pop edx;
+		pop edx;
 		pop ecx;
 		retn;
 	}
@@ -105,9 +106,9 @@ void __declspec(naked) op_get_mouse_y() {
 		add edx, ds:[FO_VAR_mouse_hoty];
 		call fo::funcoffs::interpretPushLong_;
 		mov eax, ecx;
-		mov edx, 0xc001;
+		mov edx, VAR_TYPE_INT;
 		call fo::funcoffs::interpretPushShort_
-			pop edx;
+		pop edx;
 		pop ecx;
 		retn;
 	}
@@ -121,9 +122,9 @@ void __declspec(naked) op_get_mouse_buttons() {
 		mov edx, ds:[FO_VAR_last_buttons];
 		call fo::funcoffs::interpretPushLong_;
 		mov eax, ecx;
-		mov edx, 0xc001;
+		mov edx, VAR_TYPE_INT;
 		call fo::funcoffs::interpretPushShort_
-			pop edx;
+		pop edx;
 		pop ecx;
 		retn;
 	}
@@ -137,9 +138,9 @@ void __declspec(naked) op_get_window_under_mouse() {
 		mov edx, ds:[FO_VAR_last_button_winID];
 		call fo::funcoffs::interpretPushLong_;
 		mov eax, ecx;
-		mov edx, 0xc001;
+		mov edx, VAR_TYPE_INT;
 		call fo::funcoffs::interpretPushShort_
-			pop edx;
+		pop edx;
 		pop ecx;
 		retn;
 	}
@@ -150,11 +151,11 @@ void __declspec(naked) op_get_screen_width() {
 		push edx
 		push eax
 		mov  edx, ds:[FO_VAR_scr_size + 8]                // _scr_size.offx
-		sub  edx, ds : [FO_VAR_scr_size]                  // _scr_size.x
+		sub  edx, ds:[FO_VAR_scr_size]                    // _scr_size.x
 		inc  edx
 		call fo::funcoffs::interpretPushLong_
 		pop  eax
-		mov  edx, 0xc001
+		mov  edx, VAR_TYPE_INT
 		call fo::funcoffs::interpretPushShort_
 		pop  edx
 		retn
@@ -166,11 +167,11 @@ void __declspec(naked) op_get_screen_height() {
 		push edx
 		push eax
 		mov  edx, ds:[FO_VAR_scr_size + 12]               // _scr_size.offy
-		sub  edx, ds : [FO_VAR_scr_size + 4]                // _scr_size.y
+		sub  edx, ds:[FO_VAR_scr_size + 4]                // _scr_size.y
 		inc  edx
 		call fo::funcoffs::interpretPushLong_
 		pop  eax
-		mov  edx, 0xc001
+		mov  edx, VAR_TYPE_INT
 		call fo::funcoffs::interpretPushShort_
 		pop  edx
 		retn
@@ -194,7 +195,7 @@ void __declspec(naked) op_resume_game() {
 void __declspec(naked) op_create_message_window() {
 	__asm {
 		pushad
-		mov ebx, dword ptr ds : [FO_VAR_curr_font_num];
+		mov ebx, dword ptr ds:[FO_VAR_curr_font_num];
 		cmp ebx, 0x65;
 		je end;
 
@@ -203,9 +204,9 @@ void __declspec(naked) op_create_message_window() {
 		mov edx, eax;
 		mov eax, ecx;
 		call fo::funcoffs::interpretPopLong_;
-		cmp dx, 0x9001;
+		cmp dx, VAR_TYPE_STR2;
 		jz next;
-		cmp dx, 0x9801;
+		cmp dx, VAR_TYPE_STR;
 		jnz end;
 next:
 		mov ebx, eax;
@@ -241,7 +242,7 @@ void __declspec(naked) op_get_viewport_x() {
 		mov ecx, eax;
 		mov edx, ds:[FO_VAR_wmWorldOffsetX];
 		call fo::funcoffs::interpretPushLong_;
-		mov edx, 0xc001;
+		mov edx, VAR_TYPE_INT;
 		mov eax, ecx;
 		call fo::funcoffs::interpretPushShort_;
 		pop edx;
@@ -259,7 +260,7 @@ void __declspec(naked) op_get_viewport_y() {
 		mov ecx, eax;
 		mov edx, ds:[FO_VAR_wmWorldOffsetY];
 		call fo::funcoffs::interpretPushLong_;
-		mov edx, 0xc001;
+		mov edx, VAR_TYPE_INT;
 		mov eax, ecx;
 		call fo::funcoffs::interpretPushShort_;
 		pop edx;
@@ -279,10 +280,10 @@ void __declspec(naked) op_set_viewport_x() {
 		mov edx, eax;
 		mov eax, ecx;
 		call fo::funcoffs::interpretPopLong_;
-		cmp dx, 0xC001;
+		cmp dx, VAR_TYPE_INT;
 		jnz end;
-		mov ds : [FO_VAR_wmWorldOffsetX], eax
-			end :
+		mov ds:[FO_VAR_wmWorldOffsetX], eax
+end:
 		pop edx;
 		pop ecx;
 		pop ebx;
@@ -300,10 +301,10 @@ void __declspec(naked) op_set_viewport_y() {
 		mov edx, eax;
 		mov eax, ecx;
 		call fo::funcoffs::interpretPopLong_;
-		cmp dx, 0xC001;
+		cmp dx, VAR_TYPE_INT;
 		jnz end;
-		mov ds : [FO_VAR_wmWorldOffsetY], eax
-			end :
+		mov ds:[FO_VAR_wmWorldOffsetY], eax
+end:
 		pop edx;
 		pop ecx;
 		pop ebx;
@@ -319,7 +320,7 @@ void __declspec(naked) op_show_iface_tag() {
 		mov edx, eax;
 		mov eax, ecx;
 		call fo::funcoffs::interpretPopLong_;
-		cmp dx, 0xC001;
+		cmp dx, VAR_TYPE_INT;
 		jnz end;
 		cmp eax, 3;
 		je falloutfunc;
@@ -345,7 +346,7 @@ void __declspec(naked) op_hide_iface_tag() {
 		mov edx, eax;
 		mov eax, ecx;
 		call fo::funcoffs::interpretPopLong_;
-		cmp dx, 0xC001;
+		cmp dx, VAR_TYPE_INT;
 		jnz end;
 		cmp eax, 3;
 		je falloutfunc;
@@ -372,7 +373,7 @@ void __declspec(naked) op_is_iface_tag_active() {
 		mov edx, eax;
 		mov eax, ebx;
 		call fo::funcoffs::interpretPopLong_;
-		cmp dx, 0xC001;
+		cmp dx, VAR_TYPE_INT;
 		jnz fail;
 		cmp eax, 3;
 		je falloutfunc;
@@ -384,7 +385,7 @@ void __declspec(naked) op_is_iface_tag_active() {
 		jmp end;
 falloutfunc:
 		mov ecx, eax;
-		mov eax, dword ptr ds : [FO_VAR_obj_dude];
+		mov eax, dword ptr ds:[FO_VAR_obj_dude];
 		mov edx, esp;
 		mov eax, [eax + 0x64];
 		call fo::funcoffs::proto_ptr_;
@@ -403,7 +404,7 @@ end:
 		mov eax, ebx;
 		call fo::funcoffs::interpretPushLong_;
 		mov eax, ebx;
-		mov edx, 0xc001;
+		mov edx, VAR_TYPE_INT;
 		call fo::funcoffs::interpretPushShort_;
 		add esp, 4;
 		popad;
@@ -447,6 +448,13 @@ void sf_get_cursor_mode(OpcodeContext& ctx) {
 
 void sf_set_cursor_mode(OpcodeContext& ctx) {
 	fo::func::gmouse_3d_set_mode(ctx.arg(0).asInt());
+}
+
+void sf_display_stats(OpcodeContext& ctx) {
+// calling the function outside of inventory screen will crash the game
+	if (GetLoopFlags() & INVENTORY) {
+		__asm call fo::funcoffs::display_stats_
+	}
 }
 
 }

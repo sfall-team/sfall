@@ -32,11 +32,11 @@ namespace script
 
 static DWORD EncounteredHorrigan;
 static void _stdcall ForceEncounter4() {
-	*(DWORD*)0x00672E04 = EncounteredHorrigan;
-	SafeWrite32(0x004C070E, 0x95);
-	SafeWrite32(0x004C0718, 0x95);
-	SafeWrite32(0x004C06D1, 0x2E043D83);
-	SafeWrite32(0x004C071D, 0xFFFC2413);
+	*(DWORD*)0x672E04 = EncounteredHorrigan;
+	SafeWrite32(0x4C070E, 0x95);
+	SafeWrite32(0x4C0718, 0x95);
+	SafeWrite32(0x4C06D1, 0x2E043D83);
+	SafeWrite32(0x4C071D, 0xFFFC2413);
 	SafeWrite8(0x4C0706, 0x75);
 }
 
@@ -59,12 +59,12 @@ static void __declspec(naked) ForceEncounter3() {
 }
 
 static void _stdcall ForceEncounter2(DWORD mapID, DWORD flags) {
-	EncounteredHorrigan = *(DWORD*)0x00672E04;
-	SafeWrite32(0x004C070E, mapID);
-	SafeWrite32(0x004C0718, mapID);
-	SafeWrite32(0x004C06D1, 0x18EBD231); //xor edx, edx / jmp 0x18
-	SafeWrite32(0x004C071D, ((DWORD)&ForceEncounter3) - 0x004C0721);
-	if (flags & 1) SafeWrite8(0x4C0706, 0xeb);
+	EncounteredHorrigan = *(DWORD*)0x672E04;
+	SafeWrite32(0x4C070E, mapID);
+	SafeWrite32(0x4C0718, mapID);
+	SafeWrite32(0x4C06D1, 0x18EBD231); //xor edx, edx / jmp 0x18
+	HookCall(0x4C071C, &ForceEncounter3);
+	if (flags & 1) SafeWrite8(0x4C0706, 0xEB);
 }
 
 void __declspec(naked) op_force_encounter() {
@@ -77,7 +77,7 @@ void __declspec(naked) op_force_encounter() {
 		mov edx, eax;
 		mov eax, ecx;
 		call fo::funcoffs::interpretPopLong_;
-		cmp dx, 0xC001;
+		cmp dx, VAR_TYPE_INT;
 		jnz end;
 		push 0;
 		push eax;
@@ -104,9 +104,9 @@ void __declspec(naked) op_force_encounter_with_flags() {
 		mov edi, eax;
 		mov eax, ecx;
 		call fo::funcoffs::interpretPopLong_;
-		cmp dx, 0xC001;
+		cmp dx, VAR_TYPE_INT;
 		jnz end;
-		cmp di, 0xc001;
+		cmp di, VAR_TYPE_INT;
 		jnz end;
 		push ebx;
 		push eax;
@@ -129,7 +129,7 @@ void __declspec(naked) op_in_world_map() {
 		mov edx, eax;
 		mov eax, esi;
 		call fo::funcoffs::interpretPushLong_;
-		mov edx, 0xc001;
+		mov edx, VAR_TYPE_INT;
 		mov eax, esi;
 		call fo::funcoffs::interpretPushShort_;
 		pop esi;
@@ -148,7 +148,7 @@ void __declspec(naked) op_get_game_mode() {
 		mov edx, eax;
 		mov eax, edi;
 		call fo::funcoffs::interpretPushLong_;
-		mov edx, 0xc001;
+		mov edx, VAR_TYPE_INT;
 		mov eax, edi;
 		call fo::funcoffs::interpretPushShort_;
 		popad;
@@ -164,7 +164,7 @@ void __declspec(naked) op_get_world_map_x_pos() {
 		mov ecx, eax;
 		mov edx, ds:[FO_VAR_world_xpos];
 		call fo::funcoffs::interpretPushLong_;
-		mov edx, 0xc001;
+		mov edx, VAR_TYPE_INT;
 		mov eax, ecx;
 		call fo::funcoffs::interpretPushShort_;
 		pop edx;
@@ -182,7 +182,7 @@ void __declspec(naked) op_get_world_map_y_pos() {
 		mov ecx, eax;
 		mov edx, ds:[FO_VAR_world_ypos];
 		call fo::funcoffs::interpretPushLong_;
-		mov edx, 0xc001;
+		mov edx, VAR_TYPE_INT;
 		mov eax, ecx;
 		call fo::funcoffs::interpretPushShort_;
 		pop edx;
@@ -210,9 +210,9 @@ void __declspec(naked) op_set_world_map_pos() {
 		mov edx, eax;
 		mov eax, ecx;
 		call fo::funcoffs::interpretPopLong_;
-		cmp dx, 0xC001;
+		cmp dx, VAR_TYPE_INT;
 		jnz end;
-		cmp si, 0xC001;
+		cmp si, VAR_TYPE_INT;
 		jnz end;
 		mov ds : [FO_VAR_world_xpos], eax;
 		mov ds : [FO_VAR_world_ypos], edi;

@@ -376,18 +376,18 @@ void DebugModePatch() {
 		if (dbgMode) {
 			dlog("Applying debugmode patch.", DL_INIT);
 			//If the player is using an exe with the debug patch already applied, just skip this block without erroring
-			if (*((DWORD*)0x00444A64) != 0x082327e8) {
-				SafeWrite32(0x00444A64, 0x082327e8);
-				SafeWrite32(0x00444A68, 0x0120e900);
-				SafeWrite8(0x00444A6D, 0);
-				SafeWrite32(0x00444A6E, 0x90909090);
+			if (*((DWORD*)0x444A64) != 0x082327E8) {
+				SafeWrite32(0x444A64, 0x082327E8); // call debug_register_env_
+				SafeWrite32(0x444A68, 0x0120E900); // jmp  0x444B8E
+				SafeWrite8(0x444A6D, 0);
+				SafeWrite32(0x444A6E, 0x90909090);
 			}
-			SafeWrite8(0x004C6D9B, 0xb8);
-			if (dbgMode == 1) {
-				SafeWrite32(0x004C6D9C, (DWORD)debugGnw);
+			SafeWrite8(0x4C6D9B, 0xB8);            // mov  eax, GNW/LOG
+			if (dbgMode == 2) {
+				SafeWrite32(0x4C6D9C, (DWORD)debugLog);
 			}
 			else {
-				SafeWrite32(0x004C6D9C, (DWORD)debugLog);
+				SafeWrite32(0x4C6D9C, (DWORD)debugGnw);
 			}
 			dlogr(" Done", DL_INIT);
 		}
@@ -412,8 +412,8 @@ void NpcAutoLevelPatch() {
 
 	if (GetConfigInt("Misc", "OverrideArtCacheSize", 0)) {
 		dlog("Applying override art cache size patch.", DL_INIT);
-		SafeWrite32(0x00418867, 0x90909090);
-		SafeWrite32(0x00418872, 256);
+		SafeWrite32(0x418867, 0x90909090);
+		SafeWrite32(0x418872, 256);
 		dlogr(" Done", DL_INIT);
 	}
 }
@@ -434,31 +434,31 @@ void SkilldexImagesPatch() {
 	dlog("Checking for changed skilldex images.", DL_INIT);
 	tmp = GetConfigInt("Misc", "Lockpick", 293);
 	if (tmp != 293) {
-		SafeWrite32(0x00518D54, tmp);
+		SafeWrite32(0x518D54, tmp);
 	}
 	tmp = GetConfigInt("Misc", "Steal", 293);
 	if (tmp != 293) {
-		SafeWrite32(0x00518D58, tmp);
+		SafeWrite32(0x518D58, tmp);
 	}
 	tmp = GetConfigInt("Misc", "Traps", 293);
 	if (tmp != 293) {
-		SafeWrite32(0x00518D5C, tmp);
+		SafeWrite32(0x518D5C, tmp);
 	}
 	tmp = GetConfigInt("Misc", "FirstAid", 293);
 	if (tmp != 293) {
-		SafeWrite32(0x00518D4C, tmp);
+		SafeWrite32(0x518D4C, tmp);
 	}
 	tmp = GetConfigInt("Misc", "Doctor", 293);
 	if (tmp != 293) {
-		SafeWrite32(0x00518D50, tmp);
+		SafeWrite32(0x518D50, tmp);
 	}
 	tmp = GetConfigInt("Misc", "Science", 293);
 	if (tmp != 293) {
-		SafeWrite32(0x00518D60, tmp);
+		SafeWrite32(0x518D60, tmp);
 	}
 	tmp = GetConfigInt("Misc", "Repair", 293);
 	if (tmp != 293) {
-		SafeWrite32(0x00518D64, tmp);
+		SafeWrite32(0x518D64, tmp);
 	}
 	dlogr(" Done", DL_INIT);
 }
@@ -677,7 +677,7 @@ void OverrideMusicDirPatch() {
 void DialogueFix() {
 	if (GetConfigInt("Misc", "DialogueFix", 1)) {
 		dlog("Applying dialogue patch.", DL_INIT);
-		SafeWrite8(0x00446848, 0x31);
+		SafeWrite8(0x446848, 0x31);
 		dlogr(" Done", DL_INIT);
 	}
 }
@@ -685,7 +685,7 @@ void DialogueFix() {
 void DontDeleteProtosPatch() {
 	if (isDebug && GetPrivateProfileIntA("Debugging", "DontDeleteProtos", 0, ".\\ddraw.ini")) {
 		dlog("Applying permanent protos patch.", DL_INIT);
-		SafeWrite8(0x48007E, 0xeb);
+		SafeWrite8(0x48007E, 0xEB);
 		dlogr(" Done", DL_INIT);
 	}
 }
@@ -758,29 +758,29 @@ void MiscPatches::init() {
 	mapName[64] = 0;
 	if (GetConfigString("Misc", "StartingMap", "", mapName, 64)) {
 		dlog("Applying starting map patch.", DL_INIT);
-		SafeWrite32(0x00480AAA, (DWORD)&mapName);
+		SafeWrite32(0x480AAA, (DWORD)&mapName);
 		dlogr(" Done", DL_INIT);
 	}
 
 	versionString[64] = 0;
 	if (GetConfigString("Misc", "VersionString", "", versionString, 64)) {
 		dlog("Applying version string patch.", DL_INIT);
-		SafeWrite32(0x004B4588, (DWORD)&versionString);
+		SafeWrite32(0x4B4588, (DWORD)&versionString);
 		dlogr(" Done", DL_INIT);
 	}
 
 	configName[64] = 0;
 	if (GetConfigString("Misc", "ConfigFile", "", configName, 64)) {
 		dlog("Applying config file patch.", DL_INIT);
-		SafeWrite32(0x00444BA5, (DWORD)&configName);
-		SafeWrite32(0x00444BCA, (DWORD)&configName);
+		SafeWrite32(0x444BA5, (DWORD)&configName);
+		SafeWrite32(0x444BCA, (DWORD)&configName);
 		dlogr(" Done", DL_INIT);
 	}
 
 	patchName[64] = 0;
 	if (GetConfigString("Misc", "PatchFile", "", patchName, 64)) {
 		dlog("Applying patch file patch.", DL_INIT);
-		SafeWrite32(0x00444323, (DWORD)&patchName);
+		SafeWrite32(0x444323, (DWORD)&patchName);
 		dlogr(" Done", DL_INIT);
 	}
 

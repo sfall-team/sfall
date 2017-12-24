@@ -23,6 +23,7 @@
 
 #include "main.h"
 #include "Logging.h"
+#include "FalloutEngine\Fallout2.h"
 #include "Modules\Graphics.h"
 
 #include "InputFuncs.h"
@@ -30,7 +31,7 @@
 namespace sfall 
 {
 
-static bool useScrollWheel;
+bool useScrollWheel = true;
 static DWORD wheelMod;
 
 static bool reverseMouse;
@@ -131,21 +132,21 @@ void _stdcall TapKey(DWORD key) {
 
 class FakeDirectInputDevice : public IDirectInputDeviceA {
 private:
-    IDirectInputDeviceA* RealDevice;
-    DWORD DeviceType;
+	IDirectInputDeviceA* RealDevice;
+	DWORD DeviceType;
 	ULONG Refs;
 	bool formatLock;
 	DIDATAFORMAT oldFormat;
 
 public:
-    /*** Constructor and misc functions ***/
-    FakeDirectInputDevice(IDirectInputDevice* device,DWORD type) {
-        RealDevice=device;
-        DeviceType=type;
-		Refs=1;
+	/*** Constructor and misc functions ***/
+	FakeDirectInputDevice(IDirectInputDevice* device,DWORD type) {
+		RealDevice = device;
+		DeviceType = type;
+		Refs = 1;
 		formatLock = false;
-		oldFormat.dwDataSize=0;
-    }
+		oldFormat.dwDataSize = 0;
+	}
 
 	/*** IUnknown methods ***/
 	HRESULT _stdcall QueryInterface(REFIID riid, LPVOID * ppvObj) {
@@ -220,13 +221,25 @@ public:
 		if (useScrollWheel) {
 			int count = 1;
 			if (MouseState.lZ > 0) {
-				if (wheelMod) count = MouseState.lZ / wheelMod;
-				if (count < 1) count = 1;
-				while (count--) TapKey(DIK_UP);
+				if (fo::var::gmouse_current_cursor == 2 || fo::var::gmouse_current_cursor == 3) {
+					__asm {
+						call fo::funcoffs::display_scroll_up_;
+					}
+				} else {
+					if (wheelMod) count = MouseState.lZ / wheelMod;
+					if (count < 1) count = 1;
+					while (count--) TapKey(DIK_UP);
+				}
 			} else if (MouseState.lZ < 0) {
-				if (wheelMod) count = (-MouseState.lZ) / wheelMod;
-				if (count < 1) count = 1;
-				while (count--) TapKey(DIK_DOWN);
+				if (fo::var::gmouse_current_cursor == 2 || fo::var::gmouse_current_cursor == 3) {
+					__asm {
+						call fo::funcoffs::display_scroll_down_;
+					}
+				} else {
+					if (wheelMod) count = (-MouseState.lZ) / wheelMod;
+					if (count < 1) count = 1;
+					while (count--) TapKey(DIK_DOWN);
+				}
 			}
 		}
 		if (middleMouseKey&&MouseState.rgbButtons[2]) {
@@ -323,7 +336,7 @@ public:
 		RealInput = Real; Refs = 1;
 	}
 
-/*** IUnknown methods ***/
+	/*** IUnknown methods ***/
 	HRESULT _stdcall QueryInterface(REFIID riid, LPVOID* ppvObj) {
 		return RealInput->QueryInterface(riid, ppvObj);
 	}
@@ -347,7 +360,7 @@ public:
 		GUID GUID_SysMouse = { 0x6F1D2B60, 0xD5A0, 0x11CF, { 0xBF,0xC7,0x44,0x45,0x53,0x54,0x00,0x00} };
 		GUID GUID_SysKeyboard = { 0x6F1D2B61, 0xD5A0, 0x11CF, { 0xBF,0xC7,0x44,0x45,0x53,0x54,0x00,0x00} };
 
-		if (r != GUID_SysKeyboard&&r != GUID_SysMouse) {
+		if (r != GUID_SysKeyboard && r != GUID_SysMouse) {
 			return RealInput->CreateDevice(r, device, unused);
 		} else {
 			DWORD d;

@@ -41,12 +41,12 @@ void __declspec(naked) op_fs_create() {
 		mov edx, eax;
 		mov eax, edi;
 		call fo::funcoffs::interpretPopLong_;
-		cmp dx, 0x9001;
+		cmp dx, VAR_TYPE_STR2;
 		jz next;
-		cmp dx, 0x9801;
+		cmp dx, VAR_TYPE_STR;
 		jnz fail;
 next:
-		cmp bx, 0xc001;
+		cmp bx, VAR_TYPE_INT;
 		jnz fail;
 		mov ebx, eax;
 		mov eax, edi;
@@ -63,7 +63,7 @@ end:
 		mov eax, edi;
 		call fo::funcoffs::interpretPushLong_;
 		mov eax, edi;
-		mov edx, 0xc001;
+		mov edx, VAR_TYPE_INT;
 		call fo::funcoffs::interpretPushShort_;
 		popad;
 		retn;
@@ -84,14 +84,14 @@ void __declspec(naked) op_fs_copy() {
 		mov esi, eax;
 		mov eax, ebp;
 		call fo::funcoffs::interpretPopLong_;
-		cmp di, 0x9001;
+		cmp di, VAR_TYPE_STR2;
 		jz next;
-		cmp di, 0x9801;
+		cmp di, VAR_TYPE_STR;
 		jnz fail;
 next:
-		cmp si, 0x9001;
+		cmp si, VAR_TYPE_STR2;
 		jz next2;
-		cmp si, 0x9801;
+		cmp si, VAR_TYPE_STR;
 		jnz fail;
 next2:
 		mov ebx, eax;
@@ -114,7 +114,7 @@ end:
 		mov eax, ebp;
 		call fo::funcoffs::interpretPushLong_;
 		mov eax, ebp;
-		mov edx, 0xc001;
+		mov edx, VAR_TYPE_INT;
 		call fo::funcoffs::interpretPushShort_;
 		popad;
 		retn;
@@ -129,9 +129,9 @@ void __declspec(naked) op_fs_find() {
 		mov edi, eax;
 		mov eax, ebp;
 		call fo::funcoffs::interpretPopLong_;
-		cmp di, 0x9001;
+		cmp di, VAR_TYPE_STR2;
 		jz next;
-		cmp di, 0x9801;
+		cmp di, VAR_TYPE_STR;
 		jnz fail;
 next:
 		mov ebx, eax;
@@ -149,7 +149,7 @@ end:
 		mov eax, ebp;
 		call fo::funcoffs::interpretPushLong_;
 		mov eax, ebp;
-		mov edx, 0xc001;
+		mov edx, VAR_TYPE_INT;
 		call fo::funcoffs::interpretPushShort_;
 		popad;
 		retn;
@@ -170,9 +170,9 @@ void __declspec(naked) op_fs_write_byte() {
 		mov esi, eax;
 		mov eax, ebp;
 		call fo::funcoffs::interpretPopLong_;
-		cmp di, 0xc001;
+		cmp di, VAR_TYPE_INT;
 		jnz end;
-		cmp si, 0xc001;
+		cmp si, VAR_TYPE_INT;
 		jnz end;
 		push ecx;
 		push eax;
@@ -197,9 +197,9 @@ void __declspec(naked) op_fs_write_short() {
 		mov esi, eax;
 		mov eax, ebp;
 		call fo::funcoffs::interpretPopLong_;
-		cmp di, 0xc001;
+		cmp di, VAR_TYPE_INT;
 		jnz end;
-		cmp si, 0xc001;
+		cmp si, VAR_TYPE_INT;
 		jnz end;
 		push ecx;
 		push eax;
@@ -224,11 +224,11 @@ void __declspec(naked) op_fs_write_int() {
 		mov esi, eax;
 		mov eax, ebp;
 		call fo::funcoffs::interpretPopLong_;
-		cmp di, 0xc001;
+		cmp di, VAR_TYPE_INT;
 		jnz end;
-		cmp si, 0xc001;
+		cmp si, VAR_TYPE_INT;
 		jz next;
-		cmp si, 0xa001;
+		cmp si, VAR_TYPE_FLOAT;
 		jnz end;
 next:
 		push ecx;
@@ -255,12 +255,12 @@ void __declspec(naked) op_fs_write_string() {
 		mov eax, edi;
 		call fo::funcoffs::interpretPopLong_;
 		mov ebp, eax;
-		cmp bx, 0x9001;
+		cmp bx, VAR_TYPE_STR2;
 		jz next;
-		cmp bx, 0x9801;
+		cmp bx, VAR_TYPE_STR;
 		jnz end;
 next:
-		cmp dx, 0xc001;
+		cmp dx, VAR_TYPE_INT;
 		jnz end;
 		mov edx, ebx;
 		mov ebx, esi;
@@ -290,12 +290,12 @@ void __declspec(naked) op_fs_write_bstring() {
 		mov eax, edi;
 		call fo::funcoffs::interpretPopLong_;
 		mov ebp, eax;
-		cmp bx, 0x9001;
+		cmp bx, VAR_TYPE_STR2;
 		jz next;
-		cmp bx, 0x9801;
+		cmp bx, VAR_TYPE_STR;
 		jnz end;
 next:
-		cmp dx, 0xc001;
+		cmp dx, VAR_TYPE_INT;
 		jnz end;
 		mov edx, ebx;
 		mov ebx, esi;
@@ -318,7 +318,7 @@ void __declspec(naked) op_fs_read_byte() {
 		mov edi, eax;
 		mov eax, ebp;
 		call fo::funcoffs::interpretPopLong_;
-		cmp di, 0xc001;
+		cmp di, VAR_TYPE_INT;
 		jnz fail;
 		push eax;
 		call FSread_byte;
@@ -331,7 +331,7 @@ end:
 		mov eax, ebp;
 		call fo::funcoffs::interpretPushLong_;
 		mov eax, ebp;
-		mov edx, 0xc001;
+		mov edx, VAR_TYPE_INT;
 		call fo::funcoffs::interpretPushShort_;
 		popad;
 		retn;
@@ -346,7 +346,7 @@ void __declspec(naked) op_fs_read_short() {
 		mov edi, eax;
 		mov eax, ebp;
 		call fo::funcoffs::interpretPopLong_;
-		cmp di, 0xc001;
+		cmp di, VAR_TYPE_INT;
 		jnz fail;
 		push eax;
 		call FSread_short;
@@ -359,7 +359,7 @@ end:
 		mov eax, ebp;
 		call fo::funcoffs::interpretPushLong_;
 		mov eax, ebp;
-		mov edx, 0xc001;
+		mov edx, VAR_TYPE_INT;
 		call fo::funcoffs::interpretPushShort_;
 		popad;
 		retn;
@@ -374,7 +374,7 @@ void __declspec(naked) op_fs_read_int() {
 		mov edi, eax;
 		mov eax, ebp;
 		call fo::funcoffs::interpretPopLong_;
-		cmp di, 0xc001;
+		cmp di, VAR_TYPE_INT;
 		jnz fail;
 		push eax;
 		call FSread_int;
@@ -387,7 +387,7 @@ end:
 		mov eax, ebp;
 		call fo::funcoffs::interpretPushLong_;
 		mov eax, ebp;
-		mov edx, 0xc001;
+		mov edx, VAR_TYPE_INT;
 		call fo::funcoffs::interpretPushShort_;
 		popad;
 		retn;
@@ -402,7 +402,7 @@ void __declspec(naked) op_fs_read_float() {
 		mov edi, eax;
 		mov eax, ebp;
 		call fo::funcoffs::interpretPopLong_;
-		cmp di, 0xc001;
+		cmp di, VAR_TYPE_INT;
 		jnz fail;
 		push eax;
 		call FSread_int;
@@ -415,7 +415,7 @@ end:
 		mov eax, ebp;
 		call fo::funcoffs::interpretPushLong_;
 		mov eax, ebp;
-		mov edx, 0xa001;
+		mov edx, VAR_TYPE_FLOAT;
 		call fo::funcoffs::interpretPushShort_;
 		popad;
 		retn;
@@ -430,7 +430,7 @@ void __declspec(naked) op_fs_delete() {
 		mov edi, eax;
 		mov eax, ebp;
 		call fo::funcoffs::interpretPopLong_;
-		cmp di, 0xc001;
+		cmp di, VAR_TYPE_INT;
 		jnz end
 			push eax;
 		call FSdelete;
@@ -448,7 +448,7 @@ void __declspec(naked) op_fs_size() {
 		mov edi, eax;
 		mov eax, ebp;
 		call fo::funcoffs::interpretPopLong_;
-		cmp di, 0xc001;
+		cmp di, VAR_TYPE_INT;
 		jnz fail;
 		push eax;
 		call FSsize;
@@ -461,7 +461,7 @@ end:
 		mov eax, ebp;
 		call fo::funcoffs::interpretPushLong_;
 		mov eax, ebp;
-		mov edx, 0xc001;
+		mov edx, VAR_TYPE_INT;
 		call fo::funcoffs::interpretPushShort_;
 		popad;
 		retn;
@@ -476,7 +476,7 @@ void __declspec(naked) op_fs_pos() {
 		mov edi, eax;
 		mov eax, ebp;
 		call fo::funcoffs::interpretPopLong_;
-		cmp di, 0xc001;
+		cmp di, VAR_TYPE_INT;
 		jnz fail;
 		push eax;
 		call FSpos;
@@ -489,7 +489,7 @@ end:
 		mov eax, ebp;
 		call fo::funcoffs::interpretPushLong_;
 		mov eax, ebp;
-		mov edx, 0xc001;
+		mov edx, VAR_TYPE_INT;
 		call fo::funcoffs::interpretPushShort_;
 		popad;
 		retn;
@@ -510,9 +510,9 @@ void __declspec(naked) op_fs_seek() {
 		mov esi, eax;
 		mov eax, ebp;
 		call fo::funcoffs::interpretPopLong_;
-		cmp di, 0xc001;
+		cmp di, VAR_TYPE_INT;
 		jnz end;
-		cmp si, 0xc001;
+		cmp si, VAR_TYPE_INT;
 		jnz end;
 		push ecx;
 		push eax;
@@ -537,9 +537,9 @@ void __declspec(naked) op_fs_resize() {
 		mov esi, eax;
 		mov eax, ebp;
 		call fo::funcoffs::interpretPopLong_;
-		cmp di, 0xc001;
+		cmp di, VAR_TYPE_INT;
 		jnz end;
-		cmp si, 0xc001;
+		cmp si, VAR_TYPE_INT;
 		jnz end;
 		push ecx;
 		push eax;
