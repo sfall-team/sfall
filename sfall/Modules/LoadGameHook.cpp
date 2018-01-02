@@ -154,7 +154,7 @@ end:
 
 static void __declspec(naked) SetPCBaseStatEMP() {
 	__asm {
-		mov  ds:[29*4 + 0x51C394], 100; // set_pc_base_stat(STAT_dmg_resist_emp, 100)
+		mov  dword ptr ds:[29*4 + 0x51C394], 100; // set_pc_base_stat(STAT_dmg_resist_emp, 100)
 		retn;
 	}
 }
