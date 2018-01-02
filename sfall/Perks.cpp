@@ -621,8 +621,7 @@ lower:
 	}
 }
 void _stdcall ApplyHeaveHoFix() {
-	SafeWrite8(0x478AC4, 0xE9);
-	HookCall(0x478AC4, HeaveHoHook);
+	MakeJump(0x478AC4, HeaveHoHook);
 	Perks[PERK_heave_ho].Str = 0;
 }
 static void PerkSetup() {
