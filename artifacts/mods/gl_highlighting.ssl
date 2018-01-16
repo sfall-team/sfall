@@ -75,7 +75,7 @@ procedure KeyPressHandler begin
             scanCode := get_sfall_arg,
             scanner, charges;
 
-   if scanCode == highlightKey then begin
+   if scanCode == highlightKey and not (get_game_mode BWAND INTFACELOOT) then begin
       if pressed then begin
          if motionScanner then begin
             scanner := obj_carrying_pid_obj(dude_obj, PID_MOTION_SENSOR);
