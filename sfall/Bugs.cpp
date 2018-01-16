@@ -1417,4 +1417,7 @@ void BugsInit()
 
 	// Fix crash when calling partyMemberGetCurLevel_ on a critter that has no data in party.txt
 	MakeJump(0x495FF6, partyMemberGetCurLevel_hack);
+
+	// Fix for add_mult_objs_to_inven only adding 500 of an object when the value of "count" argument is over 99999
+	SafeWrite32(0x45A2A0, 0x1869F); // 99999
 }
