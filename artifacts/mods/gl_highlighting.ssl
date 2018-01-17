@@ -4,7 +4,7 @@
 
    Previously was part of sfall itself, now a separate mod.
    Features:
-   - highlighting items, containers (optional) and dead bodies (optional) on the ground
+   - highlighting items, containers (optional), critters (optional) and dead bodies (optional) on the ground
    - configurable hotkey is used to trigger highlight
    - only objects in direct line-of-sight of player are highlighted (optional)
    - motion scanner is required to enable highlight (optional)
@@ -28,7 +28,9 @@
 variable configSection := "Highlighting";
 variable highlightKey;
 variable alsoContainer;
+variable ignoreNoHighlight;
 variable alsoCorpse;
+variable alsoCritter;
 variable checkLOS;
 variable outlineColor;
 variable motionScanner;
@@ -37,7 +39,7 @@ variable highlightFailMsg2;
 
 procedure ToggleHighlightObject(variable obj, variable enable) begin
    if obj and (not enable or not checkLOS or not obj_blocking_line(dude_obj, tile_num(obj), BLOCKING_TYPE_SHOOT)) then begin
-      if (alsoContainer and obj_item_subtype(obj) == item_type_container) or (not NO_HIGHLIGHT(obj)) then begin
+      if (alsoContainer and obj_item_subtype(obj) == item_type_container) or (not (NO_HIGHLIGHT(obj) and not ignoreNoHighlight)) then begin
          if (enable) then set_outline(obj, outlineColor);
          else set_outline(obj, 0);
       end
@@ -58,6 +60,13 @@ procedure ToggleHighlight(variable enable) begin
          end
       end
    end
+   if (alsoCritter) then begin
+      foreach obj in list_as_array(LIST_CRITTERS) begin
+         if critter_state(obj) != CRITTER_IS_DEAD then begin
+            call ToggleHighlightObject(obj, enable);
+         end
+      end
+   end
    tile_refresh_display;
 end
 
@@ -66,7 +75,7 @@ procedure KeyPressHandler begin
             scanCode := get_sfall_arg,
             scanner, charges;
 
-   if scanCode == highlightKey then begin
+   if scanCode == highlightKey and not (get_game_mode BWAND INTFACELOOT) then begin
       if pressed then begin
          if motionScanner then begin
             scanner := obj_carrying_pid_obj(dude_obj, PID_MOTION_SENSOR);
@@ -101,7 +110,9 @@ procedure start begin
 
       highlightKey := GetConfig(configSection, "Key", 0);
       alsoContainer := GetConfig(configSection, "Containers", 0);
+      ignoreNoHighlight := GetConfig(configSection, "IgnoreNoHighlight", 0);
       alsoCorpse := GetConfig(configSection, "Corpses", 0);
+      alsoCritter := GetConfig(configSection, "Critters", 0);
       checkLOS := GetConfig(configSection, "CheckLOS", 0);
       outlineColor := GetConfig(configSection, "OutlineColor", 16);
       if (outlineColor < 1) then outlineColor := 64;
