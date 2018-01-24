@@ -4,7 +4,7 @@
 
    Previously was part of sfall itself, now a separate mod.
    Features:
-   - highlighting items on the ground, containers (optional), dead bodies (optional) and critters (optional)
+   - highlighting items on the ground, containers (optional), dead bodies (optional), ground traps (optional) and critters (optional)
    - configurable hotkey is used to trigger highlight
    - only objects in direct line-of-sight of player are highlighted (optional)
    - motion scanner is required to enable highlight (optional)
@@ -24,12 +24,19 @@
 #define PID_MOTION_SENSOR  (59)
 #define NO_HIGHLIGHT(obj)  (get_flags(obj) bwand FLAG_NOHIGHLIGHT)
 #define NO_STEAL(obj)      (get_proto_data(obj_pid(obj), PROTO_CR_FLAGS) bwand CFLG_NOSTEAL)
+#define PID_CAVE_FLOOR_TRAP_VISIBLE         (33555383)
+#define PID_CAVE_FLOOR_TRAP_DISARMED        (33555384)
+#define PID_METAL_FLOOR_TRAP_VISIBLE        (33555429)
+#define PID_METAL_FLOOR_TRAP_DISARMED       (33555430)
+#define TRAP_CAVE_ARMED(obj)   (obj_pid(obj) == PID_CAVE_FLOOR_TRAP_VISIBLE and not (tile_contains_obj_pid(tile_num(obj), elevation(obj), PID_CAVE_FLOOR_TRAP_DISARMED)))
+#define TRAP_METAL_ARMED(obj)  (obj_pid(obj) == PID_METAL_FLOOR_TRAP_VISIBLE and not (tile_contains_obj_pid(tile_num(obj), elevation(obj), PID_METAL_FLOOR_TRAP_DISARMED)))
 
 variable configSection := "Highlighting";
 variable highlightKey;
 variable alsoContainer;
 variable alsoCorpse;
 variable alsoCritter;
+variable alsoTrap;
 variable ignoreNoHighlight;
 variable checkLOS;
 variable outlineColor;
@@ -64,6 +71,13 @@ procedure ToggleHighlight(variable enable) begin
             call ToggleHighlightObject(obj, enable);
          end
       end
+   end
+   if (alsoTrap) then begin
+     foreach obj in list_as_array(LIST_SCENERY) begin
+        if TRAP_CAVE_ARMED(obj) or TRAP_METAL_ARMED(obj) then begin
+           call ToggleHighlightObject(obj, enable);
+        end
+     end
    end
    tile_refresh_display;
 end
@@ -110,6 +124,7 @@ procedure start begin
       alsoContainer := GetConfig(configSection, "Containers", 0);
       alsoCorpse := GetConfig(configSection, "Corpses", 0);
       alsoCritter := GetConfig(configSection, "Critters", 0);
+      alsoTrap := GetConfig(configSection, "Traps", 0);
       ignoreNoHighlight := GetConfig(configSection, "IgnoreNoHighlight", 0);
       checkLOS := GetConfig(configSection, "CheckLOS", 0);
       outlineColor := GetConfig(configSection, "OutlineColor", 16);
