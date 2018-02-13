@@ -613,8 +613,7 @@ lower:
 }
 
 void _stdcall ApplyHeaveHoFix() {
-	SafeWrite8(0x478AC4, 0xE9);
-	HookCall(0x478AC4, HeaveHoHook);
+	MakeJump(0x478AC4, HeaveHoHook);
 	perks[PERK_heave_ho].strengthMin = 0;
 }
 

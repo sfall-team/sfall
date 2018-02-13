@@ -154,13 +154,13 @@ static void __declspec(naked) register_object_take_out_hack() {
 		push ecx
 		push eax
 		mov  ecx, edx                             // ID1
-		mov  edx, [eax + 0x1C]                      // cur_rot
+		mov  edx, [eax + 0x1C]                    // cur_rot
 		inc  edx
 		push edx                                  // ID3
 		xor  ebx, ebx                             // ID2
-		mov  edx, [eax + 0x20]                      // fid
-		and edx, 0xFFF                           // Index
-		xor eax, eax
+		mov  edx, [eax + 0x20]                    // fid
+		and  edx, 0xFFF                           // Index
+		xor  eax, eax
 		inc  eax                                  // Obj_Type
 		call fo::funcoffs::art_id_
 		xor  ebx, ebx
