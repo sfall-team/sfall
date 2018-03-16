@@ -42,5 +42,6 @@ void SafeMemSet(DWORD addr, BYTE val, int len);
 void SafeWriteBytes(DWORD addr, BYTE* data, int count);
 
 void HookCalls(void* func, std::initializer_list<DWORD> addrs);
+void MakeCalls(void* func, std::initializer_list<DWORD> addrs);
 
 }
