@@ -30,7 +30,7 @@ end
 There are script functions available, specific to hook scripts:
 
 > int init_hook()
-The hook script equivilent of game_loaded; it returns 2 when the script is first loaded, 1 when the player reloads and 0 otherwise.
+The hook script equivalent of game_loaded; it returns 2 when the script is first loaded, 1 when the player reloads and 0 otherwise.
 
 > mixed get_sfall_arg()
 Gets the next argument from sfall. Each time it's called it returns the next argument, or otherwise it returns 0 if there are no more arguments left.
@@ -42,10 +42,10 @@ Returns all hook arguments as a new temp array.
 Used to return the new values from the script. Each time it's called it sets the next value, or if you've already set all return values it does nothing.
 
 > void set_sfall_arg(int argnum, int value)
-Changes argument value. The argument number (argnum) is 0-indexed. This is usefull if you have several hook scripts attached to one hook point (see below).
+Changes argument value. The argument number (argnum) is 0-indexed. This is useful if you have several hook scripts attached to one hook point (see below).
 
 > void register_hook(int hooktype)
-Used from a normal global script if you want to run it at the same point a full hook script would normally run. In case of this function, "start" proc will be execuded in a current global script. You can use all above functions like normal.
+Used from a normal global script if you want to run it at the same point a full hook script would normally run. In case of this function, "start" proc will be executed in a current global script. You can use all above functions like normal.
 
 > void register_hook_proc(int hooktype, proc procedure)
 The same as register_hook, except that you specifically define which procedure in the current script should be called as a hook (instead of "start"). Pass procedure the same as how you use dialog option functions. This IS the recommended way to use hook scripts, as it gives both modularity (each mod logic in a separate global script, no conflicts if you don't use "hs_*.int" scripts) and flexibility (you can place all related hook scripts for specific mod in a single script!).
@@ -166,7 +166,7 @@ int     arg5  - The special effect flags for the target
 int     arg6  - The special effect flags for the attacker
 int     arg7  - The weapon used in the attack
 int     arg8  - The bodypart that was struck
-int     arg9  - Damage Multipiler (this is divided by 2, so a value of 3 does 1.5x damage, and 8 does 4x damage. Usually it's 2, but with Silent Death perk and the corresponding attack conditions, it's 4; for critical hits, the value is taken from the critical table)
+int     arg9  - Damage Multiplier (this is divided by 2, so a value of 3 does 1.5x damage, and 8 does 4x damage. Usually it's 2, but with Silent Death perk and the corresponding attack conditions, it's 4; for critical hits, the value is taken from the critical table)
 int     arg10 - Number of bullets actually hit the target (1 for melee attacks)
 int     arg11 - The amount of knockback to the target
 int     arg12 - Attack Type (see ATKTYPE_* constants)
@@ -181,7 +181,7 @@ int     ret5 - The amount of knockback to the target
 
 HOOK_ONDEATH (hs_ondeath.int)
 
-Runs immediately after a critter dies for any reason. No return values; this is just a convinence for when you need to do something after death for a large number of different critters and don't want to have to script each and every one of them.
+Runs immediately after a critter dies for any reason. No return values; this is just a convenience for when you need to do something after death for a large number of different critters and don't want to have to script each and every one of them.
 
 Critter arg1 - The critter that just died
 
@@ -213,7 +213,7 @@ Runs when:
 2) a critter uses an object from inventory screen AND this object does not have "Use" action flag set and it's not active flare or explosive.
 3) player or AI uses any drug
 
-This is fired before the object is used, and the relevent use_obj_on script procedures are run. You can disable default item behavior.
+This is fired before the object is used, and the relevant use_obj_on script procedures are run. You can disable default item behavior.
 NOTE: you can't remove and/or destroy this object during the hookscript (game will crash otherwise). To remove it, return 1.
 
 Critter arg1 - The target
@@ -230,7 +230,7 @@ Runs when:
 1) a critter uses an object from inventory which have "Use" action flag set or it's an active flare or dynamite.
 2) player uses an object from main interface
 
-This is fired before the object is used, and the relevent use_obj script procedures are run. You can disable default item behavior.
+This is fired before the object is used, and the relevant use_obj script procedures are run. You can disable default item behavior.
 NOTE: you can't remove and/or destroy this object during the hookscript (game will crash otherwise). To remove it, return 1.
 
 Critter arg1 - The user
@@ -305,7 +305,7 @@ object* ret1 - 0 if the hex doesn't block, or any sort of object pointer if it d
 
 HOOK_ITEMDAMAGE (hs_itemdamage.int)
 
-Runs when retriving the damage rating of the players used weapon. (Which may be their fists.)
+Runs when retrieving the damage rating of the players used weapon. (Which may be their fists.)
 
 int     arg1 - The default min damage
 int     arg2 - The default max damage
@@ -328,7 +328,7 @@ To add proper check for ammo before shooting and proper calculation of number of
 Item    arg1 - weapon
 int     arg2 - Number of bullets in burst (1 for single shots)
 int     arg3 - Ammo cost calculated by original function (this is basically 2 for Super Cattle Prod and Mega Power Fist)
-int     arg4 - Type of hook (0 - when substracting ammo after attack, 1 - when checking for "out of ammo" before attack)
+int     arg4 - Type of hook (0 - when subtracting ammo after attack, 1 - when checking for "out of ammo" before attack)
 
 int     ret1 - new ammo cost value (set to 0 for unlimited ammo)
 
@@ -393,12 +393,12 @@ HOOK_WITHINPERCEPTION (hs_withinperception.int)
 
 Runs when checking if one critter sees another critter. This is used in different situations like combat AI. You can override the result.
 
-NOTE: obj_can_see_obj calls this first when deciding if critter can possibly see another critter with regard to perception, lighting, sneak factors. If check fails, the end result is false. If check succeeds (eg. critter is within perception range), another check is made if there is any blocking tile between two critters (which includes stuff like windows, large bushes, barrels, etc.) and if there is - check still fails. You can override "within perception" check by returning 0 or 1, OR, as a convenience, you can also override blocking check after the perception check by returning 2 instead. In this case you should add "line of sight" check inside your hook script, otherwise critters will detect you through walls.
+NOTE: obj_can_see_obj calls this first when deciding if critter can possibly see another critter with regard to perception, lighting, sneak factors. If check fails, the end result is false. If check succeeds (e.g. critter is within perception range), another check is made if there is any blocking tile between two critters (which includes stuff like windows, large bushes, barrels, etc.) and if there is - check still fails. You can override "within perception" check by returning 0 or 1, OR, as a convenience, you can also override blocking check after the perception check by returning 2 instead. In this case you should add "line of sight" check inside your hook script, otherwise critters will detect you through walls.
 
 This is fired after the default calculation is made.
 
 Critter arg1 - Watcher object
-Obj     arg2 - Target objet
+Obj     arg2 - Target object
 int     arg3 - Result of vanilla function: 1 - within perception range, 0 - otherwise
 
 int     ret1 - overrides the returned result of the function: 0 - not in range (can't see), 1 - in range (will see if not blocked), 2 - forced detection (will see regardless, only used in obj_can_see_obj scripting function which is called by every critter in the game)
@@ -409,7 +409,7 @@ HOOK_INVENTORYMOVE (hs_inventorymove.int)
 
 Runs before moving items between inventory slots in dude interface. You can override the action.
 What you can NOT do with this hook:
-- force moving items to inapropriate slots (like gun in armor slot)
+- force moving items to inappropriate slots (like gun in armor slot)
 - block picking up items
 What you can do:
 - restrict player from using specific weapons or armors
