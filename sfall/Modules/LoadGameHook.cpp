@@ -152,13 +152,6 @@ end:
 	}
 }
 
-static void __declspec(naked) SetPCBaseStatEMP() {
-	__asm {
-		mov  dword ptr ds:[29*4 + 0x51C394], 100; // set_pc_base_stat(STAT_dmg_resist_emp, 100)
-		retn;
-	}
-}
-
 // Called right before savegame slot is being loaded
 static void _stdcall LoadGame_Before() {
 	onBeforeGameStart.invoke();
@@ -464,7 +457,6 @@ static void __declspec(naked) AutomapHook() {
 }
 
 void LoadGameHook::init() {
-	LoadGameHook::OnAfterGameStarted() += SetPCBaseStatEMP;
 	saveInCombatFix = GetConfigInt("Misc", "SaveInCombatFix", 1);
 	if (saveInCombatFix > 2) saveInCombatFix = 0;
 	saveFailMsg = Translate("sfall", "SaveInCombat", "Cannot save at this time");
