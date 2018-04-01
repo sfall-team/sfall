@@ -564,6 +564,7 @@ const DWORD stat_pc_add_experience_ = 0x4AFAA8;
 const DWORD stat_pc_get_ = 0x4AF8FC;
 const DWORD stat_pc_set_ = 0x4AF910;
 const DWORD stat_set_bonus_ = 0x4AF63C;
+const DWORD stat_set_defaults_ = 0x4AF6CC;
 const DWORD stricmp_ = 0x4DECE6;
 const DWORD strncpy_ = 0x4F014F;
 const DWORD switch_hand_ = 0x4714E0;

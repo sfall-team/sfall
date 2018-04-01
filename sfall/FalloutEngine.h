@@ -740,6 +740,7 @@ extern const DWORD stat_pc_add_experience_; // eax - amount to add
 extern const DWORD stat_pc_get_;
 extern const DWORD stat_pc_set_;
 extern const DWORD stat_set_bonus_;
+extern const DWORD stat_set_defaults_;
 extern const DWORD stricmp_;
 extern const DWORD strncpy_;
 extern const DWORD switch_hand_;

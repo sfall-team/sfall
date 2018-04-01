@@ -1113,6 +1113,15 @@ static void __declspec(naked) partyMemberGetCurLevel_hack() {
 	}
 }
 
+static void __declspec(naked) ResetPlayer_hook() {
+	__asm {
+		mov  edx, eax;
+		call stat_set_defaults_;
+		mov  dword ptr [edx + 0x78], 100; // critter_data.base_dr_emp
+		retn;
+	}
+}
+
 
 void BugsInit()
 {
@@ -1417,6 +1426,9 @@ void BugsInit()
 
 	// Fix crash when calling partyMemberGetCurLevel_ on a critter that has no data in party.txt
 	MakeJump(0x495FF6, partyMemberGetCurLevel_hack);
+
+	// Fix for player's base EMP DR not being properly initialized when creating a new character and then starting the game
+	HookCall(0x4A22DF, &ResetPlayer_hook);
 
 	// Fix for add_mult_objs_to_inven only adding 500 of an object when the value of "count" argument is over 99999
 	SafeWrite32(0x45A2A0, 0x1869F); // 99999
