@@ -689,13 +689,13 @@ static void __declspec(naked) ItemDamageHook() {
 		mov args[0], eax; //min
 		mov args[4], edx; //max
 		mov args[8], edi; //weapon
-		mov args[12], ecx; //source
-		test edi, edi; //has a weapon in hand?
-		jnz skip; //yes
-		add esi, 8; //edit hit_mode
-skip:
-		mov args[16], esi; //hit_mode
+		mov args[12], ecx; //critter
+		mov args[16], esi; //type
 		mov args[20], ebp; //non-zero for weapon melee attack
+		test edi, edi;
+		jnz skip;
+		add args[16], 8;
+skip:
 		pushad;
 		push HOOK_ITEMDAMAGE;
 		call RunHookScript;
