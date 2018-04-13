@@ -93,7 +93,7 @@ skip:
 }
 
 void LoadOrder::init() {
-	if (GetConfigInt("Misc", "DataLoadOrderPatch", 0)) {
+	if (GetConfigInt("Misc", "DataLoadOrderPatch", 1)) {
 		dlog("Applying data load order patch.", DL_INIT);
 		MakeCall(0x444259, game_init_databases_hack1);
 		MakeCall(0x4442F1, game_init_databases_hack2);
