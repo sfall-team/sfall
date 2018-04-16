@@ -724,6 +724,7 @@ static DWORD _stdcall GetIniSetting2(const char* c, DWORD string) {
 		return GetPrivateProfileIntA(section, key, -1, file);
 	}
 }
+
 static void __declspec(naked) GetIniSetting() {
 	__asm {
 		push ebx;
@@ -807,6 +808,7 @@ result:
 		retn;
 	}
 }
+
 static DWORD _stdcall GetTickCount2() {
 	return GetTickCount();
 }
@@ -1674,7 +1676,53 @@ end:
 	_OP_END
 }
 
-
 static void sf_exec_map_update_scripts() {
 	__asm call scr_exec_map_update_scripts_
+}
+
+static void sf_set_ini_setting() {
+	int result = -1;
+
+	const char* iniString = opHandler.arg(0).asString();
+	const char* sValue = opHandler.arg(1).asString();
+
+	IniStrBuffer[0] = 0;
+	if (strlen(sValue) == 0)
+		_itoa_s(opHandler.arg(1).asInt(), IniStrBuffer, 10);
+	else
+		strcpy(IniStrBuffer, sValue);
+
+	const char* key = strstr(iniString, "|");
+	if (!key) goto error;
+
+	DWORD filelen = (DWORD)key - (DWORD)iniString;
+	if (filelen >= 64) goto error;
+
+	key = strstr(key + 1, "|");
+	if (!key) goto error;
+
+	DWORD seclen = (DWORD)key - ((DWORD)iniString + filelen + 1);
+	if (seclen > 32) goto error;
+
+	char file[67];
+	file[0] = '.';
+	file[1] = '\\';
+	memcpy(&file[2], iniString, filelen);
+	file[filelen + 2] = 0;
+
+	char section[33];
+	memcpy(section, &iniString[filelen + 1], seclen);
+	section[seclen] = 0;
+
+	result = WritePrivateProfileString(section, ++key, IniStrBuffer, file);
+
+error:
+	switch (result) {
+	case 0:
+		opHandler.printOpcodeError("set_ini_setting() - value save error.");
+		break;
+	case -1:
+		opHandler.printOpcodeError("set_ini_setting() - invalid arguments.");
+		break;
+	}
 }
