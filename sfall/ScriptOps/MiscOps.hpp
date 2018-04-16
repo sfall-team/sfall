@@ -1684,14 +1684,14 @@ static void sf_set_ini_setting() {
 	int result = -1;
 
 	const char* iniString = opHandler.arg(0).asString();
-	const char* sValue = opHandler.arg(1).asString();
+	const ScriptValue &argVal = opHandler.arg(1);
 
 	IniStrBuffer[0] = 0;
-	if (strlen(sValue) == 0)
-		_itoa_s(opHandler.arg(1).asInt(), IniStrBuffer, 10);
+	if (argVal.isInt())
+		_itoa_s(argVal.asInt(), IniStrBuffer, 10);
 	else
-		strcpy(IniStrBuffer, sValue);
-
+		strcpy(IniStrBuffer, argVal.asString());
+		
 	const char* key = strstr(iniString, "|");
 	if (!key) goto error;
 
