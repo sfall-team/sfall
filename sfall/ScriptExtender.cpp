@@ -374,6 +374,7 @@ static const SfallOpcodeMetadata opcodeMetaArray[] = {
 	{sf_test, "validate_test", {DATATYPE_MASK_INT, DATATYPE_MASK_INT | DATATYPE_MASK_FLOAT, DATATYPE_MASK_STR, DATATYPE_NONE}},
 	{sf_spatial_radius, "spatial_radius", {DATATYPE_MASK_VALID_OBJ}},
 	{sf_critter_inven_obj2, "critter_inven_obj2", {DATATYPE_MASK_VALID_OBJ, DATATYPE_MASK_INT}},
+	{sf_set_ini_setting, "set_ini_setting", {DATATYPE_MASK_STR, DATATYPE_MASK_INT | DATATYPE_MASK_STR}},
 	//{op_message_str_game, {}}
 };
 
