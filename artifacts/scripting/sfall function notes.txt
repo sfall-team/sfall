@@ -54,7 +54,7 @@ show_iface_tag, hide_iface_tag and is_iface_tag_active relate to the boxes that 
 
 get/set_bodypart_hit_modifier alter the hit percentage modifiers for aiming at specific bodyparts. Valid bodypart id's are from 0 to 8. Changes are not saved, and will reset to the defaults (or to the values specified in ddraw.ini if they exist) at each reload.
 
-(re)set/get_critical_table are used for modifying the critical table. For details see 'http://Falloutmods.wikia.com/wiki/Critical_hit_tables'. Changes are not saved, and will reset to the defaults, (or to the contents of CriticalOverrides.ini, if it exists,) at each game reload. These function also require OverrideCriticalTable to be set to 1 in ddraw.ini. (Disabled by default, because it noticably increases loading times.)
+(re)set/get_critical_table are used for modifying the critical table. For details see 'http://falloutmods.wikia.com/wiki/Critical_hit_tables'. Changes are not saved, and will reset to the defaults, (or to the contents of CriticalOverrides.ini, if it exists,) at each game reload. These function also require OverrideCriticalTable to be set to 1 in ddraw.ini. (Disabled by default, because it noticably increases loading times.)
 
 get/set_unspent_ap_bonus alter the AC bonus you receive per unused action point at the end of your turn in combat. To allow for fractional values, the value given if divided by 4. (Hence the default value is 4 and not 1.) get/set_unspent_ap_perk_bonus are similar, but effect the extra AC granted by the h2h evade perk. (The default value of this is also 4, equivalent to doubling the original bonus.)
 
