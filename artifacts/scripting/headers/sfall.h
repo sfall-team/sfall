@@ -195,4 +195,5 @@
 #define intface_is_hidden                     sfall_func0("intface_is_hidden")
 #define intface_redraw                        sfall_func0("intface_redraw")
 #define intface_show                          sfall_func0("intface_show")
+#define set_ini_setting(setting, value)       sfall_func2("set_ini_setting", setting, value)
 #define spatial_radius(obj)                   sfall_func1("spatial_radius", obj)

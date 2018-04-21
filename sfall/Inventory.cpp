@@ -407,7 +407,7 @@ static char SizeMsgBuf[32];
 static const char* _stdcall FmtSizeMsg(int size) {
 	if(size==1) {
 		const char* tmp=MsgSearch(543, _proto_main_msg_file);
-		if(!tmp) strcpy(SizeMsgBuf, "It occupies 1 unit.");
+		if(!tmp) strcpy_s(SizeMsgBuf, "It occupies 1 unit.");
 		else sprintf(SizeMsgBuf, tmp, size);
 	} else {
 		const char* tmp=MsgSearch(542, _proto_main_msg_file);

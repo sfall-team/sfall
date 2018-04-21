@@ -266,7 +266,7 @@ void StatsInit() {
 		StatMulti[32*7+2]=5; //poison resist
 
 		char key[6], buf2[256], buf3[256];
-		strcpy(buf3, table);
+		strcpy_s(buf3, table);
 		sprintf(table, ".\\%s", buf3);
 		for(int i=7;i<=32;i++) {
 			if(i>=17&&i<=30) continue;

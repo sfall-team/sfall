@@ -14,7 +14,7 @@ Global scripts have multiple modes, which can be set using the set_global_script
 
 Both set_global_script_repeat and set_global_script_type only have an effect on the script they were called from. Every global script needs its own game_loaded block to correctly set up the script type and repeat rate. set_global_script_repeat will have no effect if called on a non-global script.
 
-The read_xxx functions take a memory address as the parameter and can read arbitrary pieces of fallout's address space. The write functions are equivalent except that they write to arbitrary memory addresses. The call_offset_xx functions can be used to call arbitrary functions inside fallout. Different versions are used to call functions with different numbers of arguments. None of these functions will work unless AllowUnsafeScripting is enabled in ddraw.ini
+The read_xxx functions take a memory address as the parameter and can read arbitrary pieces of Fallout's address space. The write functions are equivalent except that they write to arbitrary memory addresses. The call_offset_xx functions can be used to call arbitrary functions inside Fallout. Different versions are used to call functions with different numbers of arguments. None of these functions will work unless AllowUnsafeScripting is enabled in ddraw.ini
 
 The get/set_pc_base/extra_stat functions are equivalent to calling get/set_critter_base/extra_stat with dude_obj as the critter pointer. None of these stat functions take perks into account, and neither do they do range clamping to make sure the stats are valid. Use the normal get_critter_stat function to get a correctly perk adjusted and range clamped value for a stat.
 
@@ -40,11 +40,11 @@ get/set_critter_current_ap functions should only be used during the target critt
 
 The 'type' value in the weapon knockback functions can be 0 or 1. If 0, the value becomes an absolute distance that targets will be knocked back. If 1, the value is multiplied by the distance they would normally have been knocked back. Weapon knockback modifiers are applied in the order weapon -> attacker -> target, so a x2 weapon wielded by an abs 6 attacker hitting a /2 target will knock the target back 3 squares. The knockback functions will not override the stonewall perk or knockdowns resulting from criticals. knockback values set on weapons or critters are not saved, and must be reset each time the player reloads.
 
-The get/set_sfall_global functions require an 8 character long case sensitive string for the variable name. The variables behave the same as normal fallout globals, except that they don't have to be declared beforehand in vault13.gam. Trying to get a variable which hasn't been set will always return 0. These functions are intended for use when a patch to a mod requires the addition of a new global variable, a case which would otherwise require the player to start a new game.
+The get/set_sfall_global functions require an 8 character long case sensitive string for the variable name. The variables behave the same as normal Fallout globals, except that they don't have to be declared beforehand in vault13.gam. Trying to get a variable which hasn't been set will always return 0. These functions are intended for use when a patch to a mod requires the addition of a new global variable, a case which would otherwise require the player to start a new game.
 
 set_pickpocket_max and set_hit_chance_max effect all critters rather than just the player. set_skill_max can't be used to increase the skill cap above 300. set_perk_level_mod sets a modifier between +25 and -25 that is added/subtracted from the players level for the purposes of deciding which perks can be chosen.
 
-set_fake_trait and set_fake_perk can be used to add additional traits and perks to the character screen. They will be saved correctly when the player saves and reloads games, but by themselves they will have no further effect on the character. For perks, the allowed range for levels is between 0 and 100; setting the level to 0 removes that perk. For traits, the level must be 0 or 1. The image is a numeric id that corresponds to an entry in skilldex.lst. The name is limited to 64 characters and the description to 1024 characters by sfall, but internal fallout limits may be lower.
+set_fake_trait and set_fake_perk can be used to add additional traits and perks to the character screen. They will be saved correctly when the player saves and reloads games, but by themselves they will have no further effect on the character. For perks, the allowed range for levels is between 0 and 100; setting the level to 0 removes that perk. For traits, the level must be 0 or 1. The image is a numeric id that corresponds to an entry in skilldex.lst. The name is limited to 64 characters and the description to 1024 characters by sfall, but internal Fallout limits may be lower.
 
 has_fake_trait and has_fake_perk return the number of levels the player has of the perks/traits with the given name.
 
@@ -54,7 +54,7 @@ show_iface_tag, hide_iface_tag and is_iface_tag_active relate to the boxes that 
 
 get/set_bodypart_hit_modifier alter the hit percentage modifiers for aiming at specific bodyparts. Valid bodypart id's are from 0 to 8. Changes are not saved, and will reset to the defaults (or to the values specified in ddraw.ini if they exist) at each reload.
 
-(re)set/get_critical_table are used for modifying the critical table. For details see 'http://falloutmods.wikia.com/wiki/Critical_hit_tables'. Changes are not saved, and will reset to the defaults, (or to the contents of CriticalOverrides.ini, if it exists,) at each game reload. These function also require OverrideCriticalTable to be set to 1 in ddraw.ini. (Disabled by default, because it noticably increases loading times.)
+(re)set/get_critical_table are used for modifying the critical table. For details see 'http://Falloutmods.wikia.com/wiki/Critical_hit_tables'. Changes are not saved, and will reset to the defaults, (or to the contents of CriticalOverrides.ini, if it exists,) at each game reload. These function also require OverrideCriticalTable to be set to 1 in ddraw.ini. (Disabled by default, because it noticably increases loading times.)
 
 get/set_unspent_ap_bonus alter the AC bonus you receive per unused action point at the end of your turn in combat. To allow for fractional values, the value given if divided by 4. (Hence the default value is 4 and not 1.) get/set_unspent_ap_perk_bonus are similar, but effect the extra AC granted by the h2h evade perk. (The default value of this is also 4, equivalent to doubling the original bonus.)
 
@@ -62,11 +62,11 @@ nb_* functions are reserved for the brotherhood tactical training mod, and shoul
 
 The fs_* functions are used to manipulate a virtual file system. Files saved here should have paths relative to the data folder, and use backslashes as the directory separator. They will take precedence over files stored in the normal data folder. They will also be saved into save games, so be avoid creating large files. Using fs_copy followed by fs_read_xxx, you can read the contents of existing files.
 
-get/set_proto_data are used to manipulate the in memory copies of the .pro files fallout makes when they are loaded. The offset refers to the offset in memory from the start of the proto to the element you are reading. Changes are not stored on disc, and are not permanent. If you modify the protos, and then fallout subsequently reloads the file your changes will be lost.
+get/set_proto_data are used to manipulate the in memory copies of the .pro files Fallout makes when they are loaded. The offset refers to the offset in memory from the start of the proto to the element you are reading. Changes are not stored on disc, and are not permanent. If you modify the protos, and then Fallout subsequently reloads the file your changes will be lost.
 
 the list_xxx functions can be used to loop over all items on a map. list_begin takes an argument telling sfall what you want to list. (Defined in sfall.h) It returns a list pointer, which you iterate through with list_next. Finally, when you've finished with the list use list_end on it. Not calling list_end will result in a memory leak. Alternatively, use list_as_array to get the whole list at once as a temp array variable, which can be looped over using len_array and which you don't need to remember to free afterwards.
 
-play_sfall_sound and stop_sfall_sound are used to play mp3/wav/wma files. The path given is relative to the fallout folder. Specify loop as 1 to loop the file continuously, or 0 otherwise. If you don't wish to loop, play_sfall_sound returns 0. If you do loop, it returns an id which can be passed back to stop_sfall_sound when you want to stop the effect. All sounds effects will be stopped on game reload, looping or not. These functions do not require 'AllowDShowSound' to be set to 1 in ddraw.ini.
+play_sfall_sound and stop_sfall_sound are used to play mp3/wav/wma files. The path given is relative to the Fallout folder. Specify loop as 1 to loop the file continuously, or 0 otherwise. If you don't wish to loop, play_sfall_sound returns 0. If you do loop, it returns an id which can be passed back to stop_sfall_sound when you want to stop the effect. All sounds effects will be stopped on game reload, looping or not. These functions do not require 'AllowDShowSound' to be set to 1 in ddraw.ini.
 
 arrays are created and manipulated with the xxx_array functions. An array must first be created with create_array or temp_array, specifying how many data elements the array can hold. You can store any of ints, floats and strings in an array, and can mix all 3 in a single array. The id returned by create/temp_array can then be used with the other array functions. Arrays are shared between all scripts. (i.e. you can call create_array from one script, and then use the returned id from another script.) They are also saved across savegames. You must remember to free any arrays you create with create_array when you are done with them, or you will leak memory. arrays created with temp_array will be automatically freed at the end of the frame. These functions are safe, in that supplying a bad id or trying to access out of range elements will not crash the script. create_array is the only function that returns a permanent array, all other functions which return arrays (string_split, list_as_array etc,) all return temp arrays. You can use fix_array to make a temp array permanent.
 
@@ -110,14 +110,14 @@ array - array ID to be used with array-related functions (actually an integer)
 - changes the current town index for the player's car
 
 > int get_ini_setting(string setting)
-- reads an integer value from an ini file in the fallout directory.
+- reads an integer value from an ini file in the Fallout directory.
 - It only takes a single argument; seperate the file name, section and key with a '|' character; e.g. 'myvar:=get_ini_setting("myini.ini|mysec|var1")' If the file or key cannot be found, -1 is returned.
-- The file name is limited to 16 chars, including the extension.
-- The section name is limited to 8 characters.
+- The file name is limited to 63 chars, including the extension.
+- The section name is limited to 32 characters.
 - It can also be used to get sfalls settings, by using ddraw.ini as the file name.
 
 > string get_ini_string(string setting)
-- reads a string value from an ini file in the fallout directory.
+- reads a string value from an ini file in the Fallout directory.
 
 > int get_game_mode()
 - is a more flexible version of in_world_map. It will return a set of flags indicating which mode the game is currently in.
@@ -371,6 +371,12 @@ Some utility/math functions are available:
 
 > void sfall_func0("exec_map_update_scripts")
 - executes map_update_p_proc for all objects on map and global/hook scripts as well
+
+> void sfall_func2("set_ini_setting", string setting, int/string value)
+- writes an integer or a string value to an ini file in the Fallout directory. If the ini file doesn't exist, it will be created
+- The setting argument works in the same way as in get_ini_setting; seperate the file name, section and key with a '|' character; e.g. 'set_ini_setting("myini.ini|mysec|var1", 42)'
+- The file name is limited to 63 chars, including the extension
+- The section name is limited to 32 characters
 
 ------------------------
 ------ MORE INFO -------

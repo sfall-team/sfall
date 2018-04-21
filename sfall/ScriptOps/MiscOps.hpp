@@ -699,13 +699,13 @@ static int ParseIniSetting(const char* iniString, const char* &key, char section
 	if (!key) return -1;
 
 	DWORD filelen = (DWORD)key - (DWORD)iniString;
-	if (filelen >= 64)  return -1;
+	if (filelen >= 64) return -1;
 
 	key = strstr(key + 1, "|");
-	if (!key)  return -1;
+	if (!key) return -1;
 
 	DWORD seclen = (DWORD)key - ((DWORD)iniString + filelen + 1);
-	if (seclen > 32)  return -1;
+	if (seclen > 32) return -1;
 
 	file[0] = '.';
 	file[1] = '\\';
@@ -1695,10 +1695,11 @@ static void sf_set_ini_setting() {
 	const char* iniString = opHandler.arg(0).asString();
 	const ScriptValue &argVal = opHandler.arg(1);
 
-	if (argVal.isInt())
+	if (argVal.isInt()) {
 		_itoa_s(argVal.asInt(), IniStrBuffer, 10);
-	else
-		strcpy(IniStrBuffer, argVal.asString());
+	} else {
+		strcpy_s(IniStrBuffer, argVal.asString());
+	}
 
 	const char* key;
 	char section[33], file[67];
