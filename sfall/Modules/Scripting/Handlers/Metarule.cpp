@@ -97,6 +97,7 @@ static const SfallMetarule metarules[] = {
 	{"set_cursor_mode", sf_set_cursor_mode, 1, 1, {ARG_INT}},
 	{"set_dude_obj", sf_set_dude_obj, 1, 1, {ARG_OBJECT}},
 	{"set_flags", sf_set_flags, 2, 2, {ARG_OBJECT, ARG_INT}},
+	{"set_ini_setting", sf_set_ini_setting, 2, 2, {ARG_STRING, ARG_INTSTR}},
 	{"set_outline", sf_set_outline, 2, 2, {ARG_OBJECT, ARG_INT}},
 	{"spatial_radius", sf_spatial_radius, 1, 1, {ARG_OBJECT}},
 	{"tile_refresh_display", sf_tile_refresh_display, 0, 0},

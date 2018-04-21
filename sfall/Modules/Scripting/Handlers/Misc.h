@@ -157,6 +157,8 @@ void sf_tile_light(OpcodeContext& ctx);
 
 void sf_exec_map_update_scripts(OpcodeContext&);
 
+void sf_set_ini_setting(OpcodeContext&);
+
 void sf_get_ini_sections(OpcodeContext&);
 
 void sf_get_ini_section(OpcodeContext&);

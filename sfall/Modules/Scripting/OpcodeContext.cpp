@@ -111,6 +111,9 @@ bool OpcodeContext::validateArguments(const OpcodeArgumentType argTypes[], const
 		} else if (argType == ARG_OBJECT && arg(i).rawValue() == 0) {
 			printOpcodeError("%s() - argument #%d is null.", opcodeName, i);
 			return false;
+		} else if (argType == ARG_INTSTR && !(actualType == DataType::INT || actualType == DataType::STR)) {
+			printOpcodeError("%s() - argument #%d is not an integer or a string.", opcodeName, i);
+			return false;
 		}
 	}
 	return true;

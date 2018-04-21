@@ -727,28 +727,39 @@ end:
 	}
 }
 
-static char IniStrBuffer[128];
-static DWORD _stdcall GetIniSetting2(const char* c, DWORD string) {
-	const char* key = strstr(c, "|");
+static int ParseIniSetting(const char* iniString, const char* &key, char section[], char file[]) {
+	key = strstr(iniString, "|");
 	if (!key) return -1;
-	DWORD filelen = (DWORD)key - (DWORD)c;
+
+	DWORD filelen = (DWORD)key - (DWORD)iniString;
 	if (filelen >= 64) return -1;
+
 	key = strstr(key + 1, "|");
 	if (!key) return -1;
-	DWORD seclen = (DWORD)key - ((DWORD)c + filelen + 1);
+
+	DWORD seclen = (DWORD)key - ((DWORD)iniString + filelen + 1);
 	if (seclen > 32) return -1;
 
-	char file[67];
 	file[0] = '.';
 	file[1] = '\\';
-	memcpy(&file[2], c, filelen);
+	memcpy(&file[2], iniString, filelen);
 	file[filelen + 2] = 0;
 
-	char section[33];
-	memcpy(section, &c[filelen + 1], seclen);
+	memcpy(section, &iniString[filelen + 1], seclen);
 	section[seclen] = 0;
 
 	key++;
+	return 1;
+}
+
+static char IniStrBuffer[128];
+static DWORD _stdcall GetIniSetting2(const char* c, DWORD string) {
+	const char* key;
+	char section[33], file[67];
+	
+	if (ParseIniSetting(c, key, section, file) < 0) {
+		return -1;
+	}
 	if (string) {
 		IniStrBuffer[0] = 0;
 		GetPrivateProfileStringA(section, key, "", IniStrBuffer, 128, file);
@@ -1718,6 +1729,33 @@ void sf_tile_light(OpcodeContext& ctx) {
 
 void sf_exec_map_update_scripts(OpcodeContext& ctx) {
 	__asm call fo::funcoffs::scr_exec_map_update_scripts_
+}
+
+void sf_set_ini_setting(OpcodeContext& ctx) {
+	const char* iniString = ctx.arg(0).asString();
+	const ScriptValue &argVal = ctx.arg(1);
+
+	if (argVal.isInt()) {
+		_itoa_s(argVal.asInt(), IniStrBuffer, 10);
+	} else {
+		strcpy_s(IniStrBuffer, argVal.asString());
+	}
+
+	const char* key;
+	char section[33], file[67];
+	int result = ParseIniSetting(iniString, key, section, file);
+	if (result > 0) {
+		result = WritePrivateProfileString(section, key, IniStrBuffer, file);
+	}
+
+	switch (result) {
+	case 0:
+		ctx.printOpcodeError("set_ini_setting() - value save error.");
+		break;
+	case -1:
+		ctx.printOpcodeError("set_ini_setting() - invalid setting argument.");
+		break;
+	}
 }
 
 char getIniSectionBuf[512];
