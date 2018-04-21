@@ -112,6 +112,7 @@ static const SfallMetarule metaruleArray[] = {
 	{"intface_hide", sf_intface_hide, 0, 0},
 	{"intface_is_hidden", sf_intface_is_hidden, 0, 0},
 	{"exec_map_update_scripts", sf_exec_map_update_scripts, 0, 0},
+	{"set_ini_setting", sf_set_ini_setting, 2, 2},
 };
 
 static void InitMetaruleTable() {
