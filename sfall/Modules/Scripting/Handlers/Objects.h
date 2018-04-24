@@ -89,5 +89,7 @@ void sf_lock_is_jammed(OpcodeContext&);
 
 void sf_unjam_lock(OpcodeContext&);
 
+void sf_set_unjam_locks_time(OpcodeContext&);
+
 }
 }

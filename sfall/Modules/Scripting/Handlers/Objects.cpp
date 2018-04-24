@@ -417,5 +417,14 @@ void sf_unjam_lock(OpcodeContext& ctx) {
 	fo::func::obj_unjam_lock(ctx.arg(0).asObject());
 }
 
+void sf_set_unjam_locks_time(OpcodeContext& ctx) {
+	int time = ctx.arg(0).asInt();
+	if (time < 0 || time > 255) {
+		ctx.printOpcodeError("set_unjam_locks_time() - time argument must be in the range of 0 to 255.");
+	} else {
+		ScriptExtender::SetAutoUnjamLockTime(time);
+	}
+}
+
 }
 }

@@ -30,6 +30,8 @@ class ScriptExtender : public Module {
 public:
 	const char* name() { return "ScriptExtender"; }
 	void init();
+
+	static void SetAutoUnjamLockTime(DWORD time);
 };
 
 #pragma pack(8)

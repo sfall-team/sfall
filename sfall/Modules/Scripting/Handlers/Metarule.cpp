@@ -100,6 +100,7 @@ static const SfallMetarule metarules[] = {
 	{"set_flags", sf_set_flags, 2, 2, {ARG_OBJECT, ARG_INT}},
 	{"set_ini_setting", sf_set_ini_setting, 2, 2, {ARG_STRING, ARG_INTSTR}},
 	{"set_outline", sf_set_outline, 2, 2, {ARG_OBJECT, ARG_INT}},
+	{"set_unjam_locks_time", sf_set_unjam_locks_time, 1, 1, {ARG_INT}},
 	{"spatial_radius", sf_spatial_radius, 1, 1, {ARG_OBJECT}},
 	{"tile_refresh_display", sf_tile_refresh_display, 0, 0},
 	{"unjam_lock", sf_unjam_lock, 1, 1, {ARG_OBJECT}},
