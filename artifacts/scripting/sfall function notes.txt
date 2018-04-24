@@ -373,7 +373,7 @@ Some utility/math functions are available:
 - executes map_update_p_proc for all objects on map and global/hook scripts as well
 
 > void sfall_func2("set_ini_setting", string setting, int/string value)
-- writes an integer or a string value to an ini file in the Fallout directory. If the ini file doesn't exist, it will be created
+- writes an integer or a string value to an ini file in the Fallout directory. If the ini file does not exist, it will be created
 - The setting argument works in the same way as in get_ini_setting; seperate the file name, section and key with a '|' character; e.g. 'set_ini_setting("myini.ini|mysec|var1", 42)'
 - The file name is limited to 63 chars, including the extension
 - The section name is limited to 32 characters
@@ -434,6 +434,13 @@ Some utility/math functions are available:
 > void sfall_func0("display_stats")
 - displays player stats in the inventory screen display window
 - works only in opened inventory
+
+> int sfall_func1("lock_is_jammed", object)
+- returns 1 if the lock (container or scenery) is currently jammed, 0 otherwise
+
+> void sfall_func1("unjam_lock", object)
+- unjams a lock immediately, without having to wait until the next day
+- does not work in use_skill_on_p_proc and use_obj_on_proc procedures
 
 ------------------------
 ------ MORE INFO -------

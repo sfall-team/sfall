@@ -223,6 +223,7 @@
 #define intface_redraw                        sfall_func0("intface_redraw")
 #define intface_show                          sfall_func0("intface_show")
 #define item_weight(obj)                      sfall_func1("item_weight", obj)
+#define lock_is_jammed(obj)                   sfall_func1("lock_is_jammed", obj)
 #define outlined_object                       sfall_func0("outlined_object")
 #define real_dude_obj                         sfall_func0("real_dude_obj")
 #define set_car_intface_art(artIndex)         sfall_func1("set_car_intface_art", artIndex)
@@ -233,3 +234,4 @@
 #define set_outline(obj, color)               sfall_func2("set_outline", obj, color)
 #define spatial_radius(obj)                   sfall_func1("spatial_radius", obj)
 #define tile_refresh_display                  sfall_func0("tile_refresh_display")
+#define unjam_lock(obj)                       sfall_func1("unjam_lock", obj)

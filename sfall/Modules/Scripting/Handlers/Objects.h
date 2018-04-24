@@ -85,5 +85,9 @@ void sf_real_dude_obj(OpcodeContext&);
 
 void sf_car_gas_amount(OpcodeContext&);
 
+void sf_lock_is_jammed(OpcodeContext&);
+
+void sf_unjam_lock(OpcodeContext&);
+
 }
 }

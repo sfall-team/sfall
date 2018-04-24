@@ -91,6 +91,7 @@ static const SfallMetarule metarules[] = {
 	{"intface_redraw", sf_intface_redraw, 0, 0},
 	{"intface_show", sf_intface_show, 0, 0},
 	{"item_weight", sf_item_weight, 1, 1, {ARG_OBJECT}},
+	{"lock_is_jammed", sf_lock_is_jammed, 1, 1, {ARG_OBJECT}},
 	{"outlined_object", sf_outlined_object, 0, 0},
 	{"real_dude_obj", sf_real_dude_obj, 0, 0},
 	{"set_car_intface_art", sf_set_car_intface_art, 1, 1, {ARG_INT}},
@@ -101,6 +102,7 @@ static const SfallMetarule metarules[] = {
 	{"set_outline", sf_set_outline, 2, 2, {ARG_OBJECT, ARG_INT}},
 	{"spatial_radius", sf_spatial_radius, 1, 1, {ARG_OBJECT}},
 	{"tile_refresh_display", sf_tile_refresh_display, 0, 0},
+	{"unjam_lock", sf_unjam_lock, 1, 1, {ARG_OBJECT}},
 	{"validate_test", sf_test, 2, 5, {ARG_INT, ARG_NUMBER, ARG_STRING, ARG_OBJECT, ARG_ANY}},
 };
 

@@ -409,5 +409,13 @@ void sf_car_gas_amount(OpcodeContext& ctx) {
 	ctx.setReturn(fo::var::carGasAmount);
 }
 
+void sf_lock_is_jammed(OpcodeContext& ctx) {
+	ctx.setReturn(fo::func::obj_lock_is_jammed(ctx.arg(0).asObject()));
+}
+
+void sf_unjam_lock(OpcodeContext& ctx) {
+	fo::func::obj_unjam_lock(ctx.arg(0).asObject());
+}
+
 }
 }
