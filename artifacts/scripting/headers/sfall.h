@@ -232,6 +232,7 @@
 #define set_flags(obj, flags)                 sfall_func2("set_flags", obj, flags)
 #define set_ini_setting(setting, value)       sfall_func2("set_ini_setting", setting, value)
 #define set_outline(obj, color)               sfall_func2("set_outline", obj, color)
+#define set_unjam_locks_time(time)            sfall_func1("set_unjam_locks_time", time)
 #define spatial_radius(obj)                   sfall_func1("spatial_radius", obj)
 #define tile_refresh_display                  sfall_func0("tile_refresh_display")
 #define unjam_lock(obj)                       sfall_func1("unjam_lock", obj)

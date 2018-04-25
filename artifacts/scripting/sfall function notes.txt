@@ -26,7 +26,7 @@ The graphics functions are only available if the user is using graphics mode 4 o
 
 load_shader takes a path relative to the data\shaders\ directory as an argument and returns a shader ID. That ID should be passed as the first argument to all other shader functions, and is valid until free_shader is called on the ID, the player loads a saved game or the player quits to the main menu.
 
-get_shader_version gives you the highest shader version supported by the players graphics cards. Possible return values are 11, 12, 13, 14, 20, 21 and 30.
+get_shader_version gives you the highest shader version supported by the player's graphics cards. Possible return values are 11, 12, 13, 14, 20, 21 and 30.
 
 set_shader_mode tells sfall when to use a shader. The parameter is a set of 32 flags which specify the screens on which the shader will be disabled, unless bit 32 is set, in which case the shader will only be active on those screens. Remember that screens are displayed on top of each other; if the player opens the character menu which in combat, the game still considers the player to be in combat. See sfall.h for a list of defines.
 
@@ -439,8 +439,14 @@ Some utility/math functions are available:
 - returns 1 if the lock (container or scenery) is currently jammed, 0 otherwise
 
 > void sfall_func1("unjam_lock", object)
-- unjams a lock immediately, without having to wait until the next day
-- does not work in use_skill_on_p_proc and use_obj_on_proc procedures
+- unjams a lock immediately without having to wait until the next day, or leave the map and then return after 24 hours
+- does not work in use_skill_on_p_proc procedure
+
+> void sfall_func1("set_unjam_locks_time", int time)
+- sets after how many hours (up to 127 hours) jammed locks will be unjammed if the player leaves the map
+- also disables the auto unjam that occurs at midnight when the player is on the map
+- passing 0 will disable the auto unjam mechanism completely
+- The auto unjam mechanism will be reset each time the player reloads the game
 
 ------------------------
 ------ MORE INFO -------
