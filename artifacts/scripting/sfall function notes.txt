@@ -26,7 +26,7 @@ The graphics functions are only available if the user is using graphics mode 4 o
 
 load_shader takes a path relative to the data\shaders\ directory as an argument and returns a shader ID. That ID should be passed as the first argument to all other shader functions, and is valid until free_shader is called on the ID, the player loads a saved game or the player quits to the main menu.
 
-get_shader_version gives you the highest shader version supported by the players graphics cards. Possible return values are 11, 12, 13, 14, 20, 21 and 30.
+get_shader_version gives you the highest shader version supported by the player's graphics cards. Possible return values are 11, 12, 13, 14, 20, 21 and 30.
 
 set_shader_mode tells sfall when to use a shader. The parameter is a set of 32 flags which specify the screens on which the shader will be disabled, unless bit 32 is set, in which case the shader will only be active on those screens. Remember that screens are displayed on top of each other; if the player opens the character menu which in combat, the game still considers the player to be in combat. See sfall.h for a list of defines.
 
@@ -373,7 +373,7 @@ Some utility/math functions are available:
 - executes map_update_p_proc for all objects on map and global/hook scripts as well
 
 > void sfall_func2("set_ini_setting", string setting, int/string value)
-- writes an integer or a string value to an ini file in the Fallout directory. If the ini file doesn't exist, it will be created
+- writes an integer or a string value to an ini file in the Fallout directory. If the ini file does not exist, it will be created
 - The setting argument works in the same way as in get_ini_setting; seperate the file name, section and key with a '|' character; e.g. 'set_ini_setting("myini.ini|mysec|var1", 42)'
 - The file name is limited to 63 chars, including the extension
 - The section name is limited to 32 characters

@@ -21,8 +21,8 @@
 #include "BarBoxes.h"
 #include "FalloutEngine.h"
 
-static const DWORD DisplayBoxesRet1=0x4615A8;
-static const DWORD DisplayBoxesRet2=0x4615BE;
+static const DWORD DisplayBoxesRet1 = 0x4615A8;
+static const DWORD DisplayBoxesRet2 = 0x4615BE;
 struct sBox {
 	DWORD msg;
 	DWORD colour;
@@ -35,15 +35,15 @@ static void __declspec(naked) DisplayBoxesHook() {
 	__asm {
 		mov ebx, 0;
 start:
-		mov eax, boxesEnabled[ebx*4];
+		mov eax, boxesEnabled[ebx * 4];
 		test eax, eax;
 		jz next;
-		lea eax, [ebx+5];
+		lea eax, [ebx + 5];
 		call add_bar_box_;
 		add esi, eax;
 next:
 		inc ebx;
-		cmp ebx, 4;
+		cmp ebx, 5;
 		jne start;
 		cmp esi, 1;
 		jle fail;
@@ -65,11 +65,13 @@ void BarBoxesInit() {
 	SafeWrite32(0x46148C, (DWORD)boxes + 8);
 	SafeWrite32(0x4616BB, (DWORD)boxes + 8);
 
-	memset(boxes, 0, 12*10);
-	memset(boxesEnabled, 0, 5*4);
-	memcpy(boxes, (void*)0x518FE8, 12*5);
-	
-	for(int i=5;i<10;i++) boxes[i].msg=0x69 + i - 5;
+	memset(boxes, 0, 12 * 10);
+	memset(boxesEnabled, 0, 5 * 4);
+	memcpy(boxes, (void*)0x518FE8, 12 * 5);
+
+	for (int i = 5; i < 10; i++) {
+		boxes[i].msg = 0x69 + i - 5;
+	}
 
 	SafeWrite8(0x46127C, 10);
 	SafeWrite8(0x46140B, 10);
@@ -78,22 +80,26 @@ void BarBoxesInit() {
 	MakeJump(0x4615A3, DisplayBoxesHook);
 	char buf[6];
 	GetPrivateProfileString("Misc", "BoxBarColours", "", buf, 6, ini);
-	if(strlen(buf)==5) {
-		for(int i=0;i<5;i++) {
-			if(buf[i]=='1') boxes[i+5].colour=1;
+	if (strlen(buf) == 5) {
+		for (int i = 0; i < 5; i++) {
+			if (buf[i] == '1') {
+				boxes[i + 5].colour = 1;
+			}
 		}
 	}
 }
 
-int _stdcall GetBox(int i) { 
-	if(i<5||i>9) return 0;
-	return boxesEnabled[i-5];
+int _stdcall GetBox(int i) {
+	if (i < 5 || i > 9) return 0;
+	return boxesEnabled[i - 5];
 }
-void _stdcall AddBox(int i) { 
-	if(i<5||i>9) return;
-	boxesEnabled[i-5]=1;
+
+void _stdcall AddBox(int i) {
+	if (i < 5 || i > 9) return;
+	boxesEnabled[i - 5] = 1;
 }
-void _stdcall RemoveBox(int i) { 
-	if(i<5||i>9) return;
-	boxesEnabled[i-5]=0;
+
+void _stdcall RemoveBox(int i) {
+	if (i < 5 || i > 9) return;
+	boxesEnabled[i - 5] = 0;
 }
