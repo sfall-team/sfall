@@ -46,7 +46,7 @@ start:
 		add esi, eax;
 next:
 		inc ebx;
-		cmp ebx, 4;
+		cmp ebx, 5;
 		jne start;
 		cmp esi, 1;
 		jle fail;
@@ -92,17 +92,17 @@ void BarBoxes::init() {
 }
 
 int _stdcall GetBox(int i) {
-	if (i < 5 || i>9) return 0;
+	if (i < 5 || i > 9) return 0;
 	return boxesEnabled[i - 5];
 }
 
 void _stdcall AddBox(int i) {
-	if (i < 5 || i>9) return;
+	if (i < 5 || i > 9) return;
 	boxesEnabled[i - 5] = 1;
 }
 
 void _stdcall RemoveBox(int i) {
-	if (i < 5 || i>9) return;
+	if (i < 5 || i > 9) return;
 	boxesEnabled[i - 5] = 0;
 }
 
