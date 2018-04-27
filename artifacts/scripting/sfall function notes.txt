@@ -448,6 +448,10 @@ Some utility/math functions are available:
 - passing 0 will disable the auto unjam mechanism completely
 - The auto unjam mechanism will be reset each time the player reloads the game
 
+> array sfall_func0("get_map_enter_position")
+
+> void sfall_func3("set_map_enter_position", int tile, int elevation, int rotation)
+
 ------------------------
 ------ MORE INFO -------
 ------------------------

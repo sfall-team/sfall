@@ -42,5 +42,9 @@ void __declspec() op_set_world_map_pos();
 
 void sf_set_car_intface_art(OpcodeContext&);
 
+void sf_set_map_enter_position(OpcodeContext&);
+
+void sf_get_map_enter_position(OpcodeContext&);
+
 }
 }

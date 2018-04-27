@@ -236,3 +236,6 @@
 #define spatial_radius(obj)                   sfall_func1("spatial_radius", obj)
 #define tile_refresh_display                  sfall_func0("tile_refresh_display")
 #define unjam_lock(obj)                       sfall_func1("unjam_lock", obj)
+#define get_map_enter_position                sfall_func0("get_map_enter_position")
+#define set_map_enter_position(tile, elev, rot) sfall_func3("set_map_enter_position", tile, elev, rot)
+
