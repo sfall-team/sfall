@@ -449,8 +449,14 @@ Some utility/math functions are available:
 - The auto unjam mechanism will be reset each time the player reloads the game
 
 > array sfall_func0("get_map_enter_position")
+- returns an array of the player's position data (index 0 - tile, 1 - elevation, 2 - rotation) when entering the map through exit grids
+- if entering from the world map, the tile value will be -1
+- should be called in map_enter_p_proc procedure to get the correct position data
 
 > void sfall_func3("set_map_enter_position", int tile, int elevation, int rotation)
+- overrides the player's entry position when entering the map through exit grids
+- setting the tile to 0 will put the player on the start hex (default tile and elevation) of the map
+- works only in map_enter_p_proc procedure
 
 ------------------------
 ------ MORE INFO -------

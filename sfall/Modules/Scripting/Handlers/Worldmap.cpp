@@ -21,6 +21,7 @@
 #include "..\..\LoadGameHook.h"
 #include "..\..\ScriptExtender.h"
 #include "..\..\Worldmap.h"
+#include "..\Arrays.h"
 #include "..\OpcodeContext.h"
 
 #include "Worldmap.h"
@@ -235,7 +236,7 @@ void sf_set_map_enter_position(OpcodeContext& ctx) {
 	int elev = ctx.arg(1).asInt();
 	int rot = ctx.arg(2).asInt();
 
-	if (tile > -1 && tile <= 40200) {
+	if (tile > -1 && tile < 40000) {
 		fo::var::tile = tile;
 	}
 	if (elev > -1 && elev < 3) {
