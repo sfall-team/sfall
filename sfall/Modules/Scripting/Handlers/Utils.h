@@ -57,21 +57,17 @@ void __declspec() NegateFixHook();
 
 void sf_power(OpcodeContext&);
 
-void sf_power(OpcodeContext&);
-
 void sf_log(OpcodeContext&);
 
 void sf_exponent(OpcodeContext&);
-
-void sf_exponent(OpcodeContext&);
-
-void sf_ceil(OpcodeContext&);
 
 void sf_ceil(OpcodeContext&);
 
 void sf_round(OpcodeContext&);
 
 void sf_message_str_game(OpcodeContext&);
+
+void sf_floor2(OpcodeContext&);
 
 char* _stdcall Substring(const char* str, int pos, int length);
 

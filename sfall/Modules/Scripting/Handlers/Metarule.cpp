@@ -23,6 +23,7 @@
 #include "Interface.h"
 #include "Misc.h"
 #include "Objects.h"
+#include "Utils.h"
 #include "Worldmap.h"
 
 #include "Metarule.h"
@@ -80,6 +81,7 @@ static const SfallMetarule metarules[] = {
 	{"critter_inven_obj2", sf_critter_inven_obj2, 2, 2, {ARG_OBJECT, ARG_INT}},
 	{"display_stats", sf_display_stats, 0, 0},
 	{"exec_map_update_scripts", sf_exec_map_update_scripts, 0, 0},
+	{"floor2", sf_floor2, 1, 1, {ARG_NUMBER}},
 	{"get_cursor_mode", sf_get_cursor_mode, 0, 0},
 	{"get_flags", sf_get_flags, 1, 1, {ARG_OBJECT}},
 	{"get_ini_section", sf_get_ini_section, 2, 2, {ARG_STRING, ARG_STRING}},
