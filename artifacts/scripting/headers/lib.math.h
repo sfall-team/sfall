@@ -26,15 +26,14 @@ end
    return intp;
 end*/
 
-procedure ceil(variable val) begin
+/*procedure ceil(variable val) begin
    variable intp;
    intp := floor(val);
    if (abs(val-intp) > 0.0) then begin
       intp++;
    end
    return intp;
-end
-
+end*/
 
 procedure cap_number(variable num, variable min, variable max) begin
    if (num > max) then num := max;

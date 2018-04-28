@@ -265,6 +265,9 @@ Some utility/math functions are available:
 > float exponent(float x)
 - e^x
 
+> int ceil(float x)
+- round x to the nearest integer that is not less than x
+
 > int round(float x)
 - round x to the nearest integer
 
@@ -377,6 +380,10 @@ Some utility/math functions are available:
 - The setting argument works in the same way as in get_ini_setting; seperate the file name, section and key with a '|' character; e.g. 'set_ini_setting("myini.ini|mysec|var1", 42)'
 - The file name is limited to 63 chars, including the extension
 - The section name is limited to 32 characters
+
+> int sfall_func1("floor2", int/float value)
+- works just like vanilla floor function, but returns correct integers for negative values
+- vanilla floor function works exactly the same as ceil for negative values, much like trunc in C/C++
 
 ------------------------
 ------ MORE INFO -------

@@ -891,3 +891,7 @@ static void _stdcall op_message_str_game2() {
 static void __declspec(naked) op_message_str_game() {
 	_WRAP_OPCODE(op_message_str_game2, 2, 1)
 }
+
+static void sf_floor2() {
+	opHandler.setReturn(static_cast<int>(floor(opHandler.arg(0).asFloat())));
+}
