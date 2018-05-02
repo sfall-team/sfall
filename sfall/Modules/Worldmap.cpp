@@ -32,6 +32,9 @@ static Delegate<> onWorldmapLoop;
 static DWORD ViewportX;
 static DWORD ViewportY;
 
+static bool restMode;
+static bool restTime;
+
 static __declspec(naked) void GetDateWrapper() {
 	__asm {
 		push ecx;
@@ -420,6 +423,9 @@ void Worldmap::init() {
 
 	LoadGameHook::OnGameReset() += []() {
 		SetCarInterfaceArt(0x1B1);
+		if (restTime) 
+			SetRestHealTime(180);
+		RestRestore();
 	};
 }
 
@@ -429,6 +435,46 @@ Delegate<>& Worldmap::OnWorldmapLoop() {
 
 void Worldmap::SetCarInterfaceArt(DWORD artIndex) {
 	SafeWrite32(0x4C2D9B, artIndex);
+}
+
+static void SetRestHealTime(DWORD minutes) {
+	if (minutes > 0) {
+		SafeWrite32(0x499FDE, minutes);
+		restTime = (minutes != 180);
+	}
+}
+
+static void SetRestMode(DWORD mode) {
+	RestRestore(); // restore default
+	
+	restMode = ((mode & 0x7) > 0);
+	if (!restMode) return;
+
+	if (mode & 1) { // bit1 - disable rest
+		SafeWrite8(0x49952C, 0x31); //test to xor
+		SafeWrite8(0x497557, 0x31);
+		return;
+	}
+	if (mode & 2) { // bit2 - fix rest
+		SafeWrite8(0x42E587, 0xE9);
+		SafeWrite32(0x42E588, 0x94);
+	}
+	if (mode & 4) { // bit3 - disable heal
+		SafeWrite16(0x499FD4, 0x9090);
+		SafeWrite16(0x499E93, 0x8FEB);
+	}
+}
+
+static void RestRestore() {
+	if (!restMode) return;
+
+	restMode = false;
+	SafeWrite8(0x49952C, 0x85);
+	SafeWrite8(0x497557, 0x85);
+	SafeWrite8(0x42E587, 0xC7);
+	SafeWrite32(0x42E588, 0x10C2444);
+	SafeWrite16(0x499FD4, 0xC201);
+	SafeWrite16(0x499E93, 0x0574);
 }
 
 }

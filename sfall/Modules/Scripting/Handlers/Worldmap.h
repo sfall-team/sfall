@@ -46,5 +46,9 @@ void sf_set_map_enter_position(OpcodeContext&);
 
 void sf_get_map_enter_position(OpcodeContext&);
 
+void sf_set_rest_heal_time(OpcodeContext&);
+
+void sf_set_rest_mode(OpcodeContext&);
+
 }
 }

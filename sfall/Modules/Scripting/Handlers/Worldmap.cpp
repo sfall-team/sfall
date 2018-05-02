@@ -255,5 +255,13 @@ void sf_get_map_enter_position(OpcodeContext& ctx) {
 	ctx.setReturn(id, DataType::INT);
 }
 
+void sf_set_rest_heal_time(OpcodeContext& ctx) {
+	Worldmap::SetRestHealTime(ctx.arg(0).asInt());
+}
+
+void sf_set_rest_mode(OpcodeContext& ctx) {
+	Worldmap::SetRestMode(ctx.arg(0).asInt());
+}
+
 }
 }

@@ -365,7 +365,7 @@ void InitMiscHookScripts() {
 	LoadHookScript("hs_setglobalvar", HOOK_SETGLOBALVAR);
 	HookCall(0x455A6D, SetGlobalVarHook);
 	
-	LoadHookScript("hs_timerrest", HOOK_TIMERREST);
+	LoadHookScript("hs_resttimer", HOOK_RESTTIMER);
 	HookCalls(RestTimerLoopHook, { 0x499B4B, 0x499BE0, 0x499D2C, 0x499DF2 });
 
 }
