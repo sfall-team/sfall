@@ -49,6 +49,7 @@
 #define HOOK_ADJUSTFID        (26)
 #define HOOK_COMBATTURN       (27)
 #define HOOK_CARTRAVEL        (28)
+#define HOOK_SETGLOBALVAR     (29)
 
 //Valid arguments to list_begin
 #define LIST_CRITTERS    (0)

@@ -1,6 +1,7 @@
 #include "..\..\FalloutEngine\Fallout2.h"
 #include "..\..\SafeWrite.h"
 #include "..\HookScripts.h"
+#include "..\Karma.h"
 #include "Common.h"
 
 #include "MiscHs.h"
@@ -115,7 +116,6 @@ end:
 		retn;
 	}
 }
-
 
 static void __declspec(naked) UseSkillHook() {
 	__asm {
@@ -257,6 +257,38 @@ static void __declspec(naked) CarTravelHack() {
 	}
 }
 
+static int newGVarValue;
+static void _stdcall GlobalVarHookScript(DWORD number, int value) {
+	int old = fo::var::game_global_vars[number];
+
+	BeginHook();
+	argCount = 2;
+	args[0] = number;
+	args[1] = value;
+	RunHookScript(HOOK_SETGLOBALVAR);
+	EndHook();
+
+	if (cRet == 1) value = rets[0];
+
+	if (number == fo::GVAR_PLAYER_REPUTATION && displayKarmaChanges) {
+		int diff = value - old;
+		if (diff != 0) Karma::DisplayKarma(diff);
+	}
+	newGVarValue = value;
+}
+
+static void __declspec(naked) SetGlobalVarHook() {
+	__asm {
+		pushad;
+		push edx; // value
+		push eax; // number
+		call GlobalVarHookScript;
+		popad;
+		mov edx, newGVarValue;
+		jmp fo::funcoffs::game_set_global_var_;
+	}
+}
+
 void InitMiscHookScripts() {
 	LoadHookScript("hs_useobjon", HOOK_USEOBJON);
 	HookCalls(UseObjOnHook, { 0x49C606, 0x473619 });
@@ -299,6 +331,10 @@ void InitMiscHookScripts() {
 	LoadHookScript("hs_cartravel", HOOK_CARTRAVEL);
 	MakeJump(0x4BFEF1, CarTravelHack);
 	BlockCall(0x4BFF6E); // vanilla wnCarUseGas(100) call
+
+	LoadHookScript("hs_setglobalvar", HOOK_SETGLOBALVAR);
+	HookCall(0x455A6D, SetGlobalVarHook);
+
 }
 
 }

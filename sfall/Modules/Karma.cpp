@@ -38,6 +38,7 @@ static std::vector<KarmaFrmSetting> karmaFrms;
 
 static std::string karmaGainMsg;
 static std::string karmaLossMsg;
+bool displayKarmaChanges;
 
 static DWORD _stdcall DrawCardHook2() {
 	int reputation = fo::var::game_global_vars[fo::GVAR_PLAYER_REPUTATION];
@@ -65,38 +66,22 @@ skip:
 	}
 }
 
-static void _stdcall SetKarma(int value) {
-	int old = fo::var::game_global_vars[fo::GVAR_PLAYER_REPUTATION];
-	old = value - old;
+void Karma::DisplayKarma(int value) {
 	char buf[128];
-	if (old == 0) return;
-	if (old > 0) {
-		sprintf_s(buf, karmaGainMsg.c_str(), old);
+	if (value > 0) {
+		sprintf_s(buf, karmaGainMsg.c_str(), value);
 	} else {
-		sprintf_s(buf, karmaLossMsg.c_str(), -old);
+		sprintf_s(buf, karmaLossMsg.c_str(), -value);
 	}
 	fo::func::display_print(buf);
 }
 
-static void __declspec(naked) SetGlobalVarWrapper() {
-	__asm {
-		test eax, eax;
-		jnz end;
-		pushad;
-		push edx;
-		call SetKarma;
-		popad;
-end:
-		jmp fo::funcoffs::game_set_global_var_;
-	}
-}
-
 void ApplyDisplayKarmaChangesPatch() {
-	if (GetConfigInt("Misc", "DisplayKarmaChanges", 0)) {
+	displayKarmaChanges = GetConfigInt("Misc", "DisplayKarmaChanges", 0) != 0;
+	if (displayKarmaChanges) {
 		dlog("Applying display karma changes patch.", DL_INIT);
 		karmaGainMsg = Translate("sfall", "KarmaGain", "You gained %d karma.");
 		karmaLossMsg = Translate("sfall", "KarmaLoss", "You lost %d karma.");
-		HookCall(0x455A6D, SetGlobalVarWrapper);
 		dlogr(" Done", DL_INIT);
 	}
 }

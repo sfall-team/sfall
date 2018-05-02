@@ -77,7 +77,7 @@ The defines to use for the hooktype are in sfall.h.
 
 HOOK_TOHIT (hs_tohit.int)
 
-Runs when fallout is calculating the chances of an attack striking a target
+Runs when Fallout is calculating the chances of an attack striking a target
 Runs after the hit chance is fully calculated normally, including applying the 95% cap
 
 int     arg1 - The unmodified hit chance
@@ -94,7 +94,7 @@ int     ret1 - the new hit chance
 
 HOOK_AFTERHITROLL (hs_afterhitroll.int)
 
-Runs after fallout has decided if an attack will hit or miss
+Runs after Fallout has decided if an attack will hit or miss
 
 int     arg1 - If the attack will hit. (0 - critical miss, 1 - miss, 2 - hit, 3 - critical hit)
 critter arg2 - The attacker
@@ -110,22 +110,22 @@ critter ret3 - Override the target of the attack
 
 HOOK_CALCAPCOST (hs_calcapcost.int)
 
-Runs whenever fallout is calculating the ap cost of using the weapon (or unarmed attack). Doesn't run for using other item types or moving.
-Note that the first time a game is loaded, this script doesn't run before the initial interface is drawn, so if the script effects the ap cost of whatever is in the players hands at the time the wrong ap cost will be shown. It will be fixed the next time the interface is redrawn.
+Runs whenever Fallout is calculating the AP cost of using the weapon (or unarmed attack). Doesn't run for using other item types or moving.
+Note that the first time a game is loaded, this script doesn't run before the initial interface is drawn, so if the script effects the AP cost of whatever is in the players hands at the time the wrong AP cost will be shown. It will be fixed the next time the interface is redrawn.
 You can get the weapon object by checking item slot based on attack type (ATKTYPE_LWEP1, ATKTYPE_LWEP2, etc) and then calling critter_inven_obj().
 
 critter arg1 - The critter performing the action
 int     arg2 - Attack Type (see ATKTYPE_* constants)
 int     arg3 - Is aimed attack (1 or 0)
-int     arg4 - The normal ap cost
+int     arg4 - The normal AP cost
 
-int     ret1 - The new ap cost
+int     ret1 - The new AP cost
 
 -------------------------------------------
 
 HOOK_DEATHANIM1 (hs_deathanim1.int)
 
-Runs before fallout tries to calculate the death animation. Lets you switch out which weapon fallout sees
+Runs before Fallout tries to calculate the death animation. Lets you switch out which weapon Fallout sees
 
 int     arg1 - The pid of the weapon performing the attack. (May be -1 if the attack is unarmed)
 critter arg2 - The attacker
@@ -138,14 +138,14 @@ int     ret1 - The pid of an object to override the attacking weapon with
 
 HOOK_DEATHANIM2 (hs_deathanim2.int)
 
-Runs after fallout has calculated the death animation. Lets you set your own custom frame id, so more powerful than hs_deathanim1, but performs no validation.
+Runs after Fallout has calculated the death animation. Lets you set your own custom frame id, so more powerful than hs_deathanim1, but performs no validation.
 When using critter_dmg function, this script will also run. In that case weapon pid will be -1 and target will point to an object with obj_art_fid == 0x20001F5.
 
 item    arg1 - The pid of the weapon performing the attack. (May be -1 if the attack is unarmed)
 critter arg2 - The attacker
 critter arg3 - The target
 int     arg4 - The amount of damage
-int     arg5 - The death anim id calculated by fallout
+int     arg5 - The death anim id calculated by Fallout
 
 int     ret1 - The death anim id to override with
 
@@ -271,13 +271,13 @@ int     ret1 - the modified value of all of the goods
 
 HOOK_MOVECOST (hs_movecost.int)
 
-Runs when calculating the ap cost of movement
+Runs when calculating the AP cost of movement
 
 Critter arg1 - the critter doing the moving
 int     arg2 - the number of hexes being moved
-int     arg3 - the original ap cost
+int     arg3 - the original AP cost
 
-int     ret1 - the new ap cost
+int     ret1 - the new AP cost
 
 -------------------------------------------
 
@@ -474,3 +474,14 @@ int     arg2 - vanilla fuel consumption (100 and below)
 
 int     ret1 - car speed override (pass -1 if you just want to override fuel consumption)
 int     ret2 - fuel consumption override
+
+-------------------------------------------
+
+HOOK_SETGLOBALVAR (hs_setglobalvar.int)
+
+Runs when setting the value of a global variable.
+
+int     arg1 - the index number of the global variable being set
+int     arg2 - the set value of the global variable
+
+int     ret1 - overrides the value of the global variable
