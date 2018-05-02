@@ -289,6 +289,36 @@ static void __declspec(naked) SetGlobalVarHook() {
 	}
 }
 
+static void _stdcall RestTimerHookScript() {
+	int addrHook;
+	__asm {
+		mov args[0], eax;
+		mov addrHook, ebx;
+	}
+	addrHook -= 5;
+
+	BeginHook();
+	argCount = 2;
+	args[1] = (addrHook == 0x499DF2 || addrHook == 0x499BE0) ? 1 : 0;
+	RunHookScript(HOOK_TIMERREST);
+	EndHook();
+}
+
+static void __declspec(naked) RestTimerLoopHook() {
+	__asm {
+		pushad;
+		mov ebx, [esp + 32];
+		call RestTimerHookScript;
+		popad;
+		cmp cRet, 1;
+		jl	skip;
+		cmp rets[0], 1;
+		jnz	skip;
+		mov edi, rets[0];
+skip:
+		jmp fo::funcoffs::set_game_time_;
+	}
+}
 void InitMiscHookScripts() {
 	LoadHookScript("hs_useobjon", HOOK_USEOBJON);
 	HookCalls(UseObjOnHook, { 0x49C606, 0x473619 });
@@ -334,6 +364,9 @@ void InitMiscHookScripts() {
 
 	LoadHookScript("hs_setglobalvar", HOOK_SETGLOBALVAR);
 	HookCall(0x455A6D, SetGlobalVarHook);
+	
+	LoadHookScript("hs_timerrest", HOOK_TIMERREST);
+	HookCalls(RestTimerLoopHook, { 0x499B4B, 0x499BE0, 0x499D2C, 0x499DF2 });
 
 }
 

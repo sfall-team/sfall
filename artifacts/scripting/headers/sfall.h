@@ -50,6 +50,7 @@
 #define HOOK_COMBATTURN       (27)
 #define HOOK_CARTRAVEL        (28)
 #define HOOK_SETGLOBALVAR     (29)
+#define HOOK_TIMERREST        (30)
 
 //Valid arguments to list_begin
 #define LIST_CRITTERS    (0)
