@@ -137,6 +137,7 @@
 #define set_attack_explosion_radius(x)        metarule2_explosions(3, x, 0)
 #define set_attack_is_explosion(x)            metarule2_explosions(4, x, 0)
 #define set_attack_is_explosion_fire          set_attack_is_explosion(DMG_fire)
+#define set_explosion_radius(grenade, rocket) metarule2_explosions(5, grenade, rocket)
 
 
 #define GAME_MSG_COMBAT      (0)
