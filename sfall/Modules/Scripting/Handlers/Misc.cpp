@@ -578,17 +578,12 @@ static void _stdcall IncNPCLevel4(char* npc) {
 		SafeWrite16(0x495C50, 0x840F);	//Want to keep this check intact.
 		SafeWrite32(0x495C52, 0x000001FB);
 
-		//SafeWrite16(0x495C50, 0x9090);
-		//SafeWrite32(0x495C52, 0x90909090);
-		SafeWrite16(0x495C77, 0x9090);	//Check that the player is high enough for the npc to consider this level
-		SafeWrite32(0x495C79, 0x90909090);
-		//SafeWrite16(0x495C8C, 0x9090);	//Check that the npc isn't already at its maximum level
-		//SafeWrite32(0x495C8E, 0x90909090);
-		SafeWrite16(0x495CEC, 0x9090);	//Check that the npc hasn't already levelled up recently
-		SafeWrite32(0x495CEE, 0x90909090);
+		//SafeMemSet(0x495C50, 0x90, 6);
+		SafeMemSet(0x495C77, 0x90, 6);     //Check that the player is high enough for the npc to consider this level
+		//SafeMemSet(0x495C8C, 0x90, 6);   //Check that the npc isn't already at its maximum level
+		SafeMemSet(0x495CEC, 0x90, 6);     //Check that the npc hasn't already levelled up recently
 		if (!npcAutoLevelEnabled) {
-			SafeWrite16(0x495D22, 0x9090);//Random element
-			SafeWrite32(0x495D24, 0x90909090);
+			SafeMemSet(0x495D22, 0x90, 6);  //Random element
 		}
 	}
 }
@@ -1396,12 +1391,30 @@ void __declspec(naked) op_refresh_pc_art() {
 	}
 }
 
+void _stdcall intf_attack_type() {
+	__asm {
+		sub esp, 8;
+		lea edx, [esp];
+		lea eax, [esp+4];
+		call fo::funcoffs::intface_get_attack_;
+		pop edx; // is_secondary
+		pop ecx; // hit_mode
+	}
+}
+
 void __declspec(naked) op_get_attack_type() {
 	__asm {
 		push edx;
 		push ecx;
-		mov ecx, eax;
-		mov edx, ds:[FO_VAR_main_ctd + 0x4];
+		push eax;
+		call intf_attack_type;
+		test eax, eax;
+		jz skip;
+		mov ecx, eax; // result = -1
+skip:
+		mov edx, ecx; // hit_mode
+		pop ecx;
+		mov eax, ecx;
 		call fo::funcoffs::interpretPushLong_;
 		mov eax, ecx;
 		mov edx, VAR_TYPE_INT;
@@ -1716,6 +1729,16 @@ end:
 		pop ecx;
 		retn;
 	}
+}
+
+void sf_attack_is_aimed(OpcodeContext& ctx) {
+	int is_secondary, result;
+	__asm {
+		call intf_attack_type;
+		mov result, eax;
+		mov is_secondary, edx;
+	}
+	ctx.setReturn((result != -1) ? is_secondary : -1);
 }
 
 void sf_sneak_success(OpcodeContext& ctx) {

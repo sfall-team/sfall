@@ -29,6 +29,8 @@ namespace script
 
 class OpcodeContext;
 
+void _stdcall intf_attack_type();
+
 // TODO: rewrite all op_* functions using OpcodeContext
 
 void __declspec() op_set_dm_model();
@@ -151,9 +153,11 @@ void __declspec() op_gdialog_get_barter_mod();
 
 void __declspec() op_set_inven_ap_cost();
 
-void sf_sneak_success(OpcodeContext& ctx);
+void sf_attack_is_aimed(OpcodeContext&);
 
-void sf_tile_light(OpcodeContext& ctx);
+void sf_sneak_success(OpcodeContext&);
+
+void sf_tile_light(OpcodeContext&);
 
 void sf_exec_map_update_scripts(OpcodeContext&);
 

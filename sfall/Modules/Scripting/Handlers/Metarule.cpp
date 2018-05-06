@@ -77,6 +77,7 @@ static const SfallMetarule* currentMetarule;
 		- arg1, arg2, ... - argument types for automatic validation
 */
 static const SfallMetarule metarules[] = {
+	{"attack_is_aimed", sf_attack_is_aimed, 0, 0},
 	{"car_gas_amount", sf_car_gas_amount, 0, 0},
 	{"critter_inven_obj2", sf_critter_inven_obj2, 2, 2, {ARG_OBJECT, ARG_INT}},
 	{"display_stats", sf_display_stats, 0, 0},

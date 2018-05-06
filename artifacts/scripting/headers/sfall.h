@@ -210,6 +210,7 @@
 #define party_member_list_all           party_member_list(1)
 
 
+#define attack_is_aimed                       sfall_func0("attack_is_aimed")
 #define car_gas_amount                        sfall_func0("car_gas_amount")
 #define critter_inven_obj2(obj, type)         sfall_func2("critter_inven_obj2", obj, type)
 #define display_stats                         sfall_func0("display_stats")
