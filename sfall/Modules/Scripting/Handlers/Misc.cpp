@@ -1408,11 +1408,19 @@ void __declspec(naked) op_get_attack_type() {
 		push ecx;
 		push eax;
 		call intf_attack_type;
+		mov edx, ecx; // hit_mode
 		test eax, eax;
 		jz skip;
-		mov ecx, eax; // result = -1
+		cmp ds:[FO_VAR_interfaceWindow], eax;
+		jz end;
+		mov ecx, ds:[FO_VAR_itemCurrentItem];     // 0 - left, 1 - right
+		imul edx, ecx, 0x18;
+		cmp ds:[FO_VAR_itemButtonItems+5+edx], 1; // .itsWeapon
+		jnz end;
+		lea eax, [ecx+6];
+end:
+		mov edx, eax; // result
 skip:
-		mov edx, ecx; // hit_mode
 		pop ecx;
 		mov eax, ecx;
 		call fo::funcoffs::interpretPushLong_;
