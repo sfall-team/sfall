@@ -1746,7 +1746,7 @@ void sf_attack_is_aimed(OpcodeContext& ctx) {
 		mov result, eax;
 		mov is_secondary, edx;
 	}
-	ctx.setReturn((result != -1) ? is_secondary : -1);
+	ctx.setReturn((result != -1) ? is_secondary : 0);
 }
 
 void sf_sneak_success(OpcodeContext& ctx) {
