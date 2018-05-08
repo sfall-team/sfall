@@ -550,17 +550,12 @@ static void _stdcall IncNPCLevel4(char* npc) {
 		SafeWrite16(0x495C50, 0x840F);	//Want to keep this check intact.
 		SafeWrite32(0x495C52, 0x000001FB);
 
-		//SafeWrite16(0x495C50, 0x9090);
-		//SafeWrite32(0x495C52, 0x90909090);
-		SafeWrite16(0x495C77, 0x9090);	//Check that the player is high enough for the npc to consider this level
-		SafeWrite32(0x495C79, 0x90909090);
-		//SafeWrite16(0x495C8C, 0x9090);	//Check that the npc isn't already at its maximum level
-		//SafeWrite32(0x495C8E, 0x90909090);
-		SafeWrite16(0x495CEC, 0x9090);	//Check that the npc hasn't already levelled up recently
-		SafeWrite32(0x495CEE, 0x90909090);
+		//SafeMemSet(0x495C50, 0x90, 6);
+		SafeMemSet(0x495C77, 0x90, 6);     //Check that the player is high enough for the npc to consider this level
+		//SafeMemSet(0x495C8C, 0x90, 6);   //Check that the npc isn't already at its maximum level
+		SafeMemSet(0x495CEC, 0x90, 6);     //Check that the npc hasn't already levelled up recently
 		if (!npcautolevel) {
-			SafeWrite16(0x495D22, 0x9090);//Random element
-			SafeWrite32(0x495D24, 0x90909090);
+			SafeMemSet(0x495D22, 0x90, 6);  //Random element
 		}
 	}
 }
@@ -1353,12 +1348,29 @@ static void __declspec(naked) get_attack_type() {
 	__asm {
 		push edx;
 		push ecx;
-		mov ecx, eax;
-		mov edx, ds:[_main_ctd + 0x4];
-		call interpretPushLong_;
-		mov eax, ecx;
-		mov edx, VAR_TYPE_INT;
-		call interpretPushShort_;
+		push eax;
+		sub esp, 8;
+		lea edx, [esp];
+		lea eax, [esp+4];
+		call intface_get_attack_;
+		add esp, 4; // is_secondary
+		test eax, eax;
+		jz skip;
+		add esp, 4;
+		// get reload
+		cmp ds:[_interfaceWindow], eax;
+		jz end;
+		mov ecx, ds:[_itemCurrentItem];     // 0 - left, 1 - right
+		imul edx, ecx, 0x18;
+		cmp ds:[_itemButtonItems+5+edx], 1; // .itsWeapon
+		jnz end;
+		lea eax, [ecx+6];
+		jmp end;
+skip:
+		pop eax; // hit_mode
+end:
+		pop ecx;
+		_RET_VAL_INT(ecx);
 		pop ecx;
 		pop edx;
 		retn;

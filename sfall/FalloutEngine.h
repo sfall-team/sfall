@@ -543,6 +543,7 @@ extern const DWORD intface_use_item_;
 extern const DWORD intface_show_;
 extern const DWORD intface_hide_;
 extern const DWORD intface_is_hidden_;
+extern const DWORD intface_get_attack_;
 extern const DWORD invenUnwieldFunc_; // (int critter@<eax>, int slot@<edx>, int a3@<ebx>) - int result (-1 on error, 0 on success)
 extern const DWORD invenWieldFunc_; // (int who@<eax>, int item@<edx>, int a3@<ecx>, int slot@<ebx>) - int result (-1 on error, 0 on success)
 extern const DWORD inven_display_msg_;

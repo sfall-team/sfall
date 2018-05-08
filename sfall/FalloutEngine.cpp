@@ -369,6 +369,7 @@ const DWORD intface_use_item_ = 0x45F5EC;
 const DWORD intface_show_ = 0x45EA10;
 const DWORD intface_hide_ = 0x45E9E0;
 const DWORD intface_is_hidden_ = 0x45EA5C;
+const DWORD intface_get_attack_ = 0x45EF6C;
 const DWORD invenUnwieldFunc_ = 0x472A64;
 const DWORD invenWieldFunc_ = 0x472768;
 const DWORD inven_display_msg_ = 0x472D24;

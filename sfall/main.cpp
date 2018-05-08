@@ -1051,17 +1051,11 @@ static void DllMain2() {
 			HookCall(0x4A34F9, &TimerReset);
 			HookCall(0x4A3551, &TimerReset);
 
-			SafeWrite32(0x4A34EF, 0x90909090);
-			SafeWrite32(0x4A34F3, 0x90909090);
-			SafeWrite16(0x4A34F7, 0x9090);
-			SafeWrite32(0x4A34FE, 0x90909090);
-			SafeWrite16(0x4A3502, 0x9090);
+			SafeMemSet(0x4A34EF, 0x90, 10);
+			SafeMemSet(0x4A34FE, 0x90, 6);
 
-			SafeWrite32(0x4A3547, 0x90909090);
-			SafeWrite32(0x4A354B, 0x90909090);
-			SafeWrite16(0x4A354F, 0x9090);
-			SafeWrite32(0x4A3556, 0x90909090);
-			SafeWrite16(0x4A355A, 0x9090);
+			SafeMemSet(0x4A3547, 0x90, 10);
+			SafeMemSet(0x4A3556, 0x90, 6);
 		} else {
 			SafeWrite8(0x4A34EC, limit);
 			SafeWrite8(0x4A3544, limit);
