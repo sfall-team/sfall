@@ -32,6 +32,8 @@ public:
 	static Delegate<>& OnWorldmapLoop();
 
 	static void SetCarInterfaceArt(DWORD artIndex);
+	static void SetRestHealTime(DWORD minutes);
+	static void SetRestMode(DWORD mode);
 };
 
 }

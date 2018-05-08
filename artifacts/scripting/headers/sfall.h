@@ -50,6 +50,7 @@
 #define HOOK_COMBATTURN       (27)
 #define HOOK_CARTRAVEL        (28)
 #define HOOK_SETGLOBALVAR     (29)
+#define HOOK_RESTTIMER        (30)
 
 //Valid arguments to list_begin
 #define LIST_CRITTERS    (0)
@@ -206,6 +207,11 @@
 #define BLOCKING_TYPE_AI        (2)
 #define BLOCKING_TYPE_SIGHT     (3)  // not really useful (works not as you would expect), game uses this only when checking if you can talk to a person
 
+//Rest mode flags
+#define DISABLE_REST        (1)
+#define DISABLE_REST_FIX    (2)
+#define DISABLE_REST_HEAL   (4)
+
 #define party_member_list_critters      party_member_list(0)
 #define party_member_list_all           party_member_list(1)
 
@@ -236,6 +242,8 @@
 #define set_ini_setting(setting, value)       sfall_func2("set_ini_setting", setting, value)
 #define set_map_enter_position(tile, elev, rot) sfall_func3("set_map_enter_position", tile, elev, rot)
 #define set_outline(obj, color)               sfall_func2("set_outline", obj, color)
+#define set_rest_heal_time(time)              sfall_func1("set_rest_heal_time", time)
+#define set_rest_mode(mode)                   sfall_func1("set_rest_mode", mode)
 #define set_unjam_locks_time(time)            sfall_func1("set_unjam_locks_time", time)
 #define spatial_radius(obj)                   sfall_func1("spatial_radius", obj)
 #define tile_refresh_display                  sfall_func0("tile_refresh_display")

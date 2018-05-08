@@ -104,6 +104,8 @@ static const SfallMetarule metarules[] = {
 	{"set_ini_setting", sf_set_ini_setting, 2, 2, {ARG_STRING, ARG_INTSTR}},
 	{"set_map_enter_position", sf_set_map_enter_position, 3, 3, {ARG_INT, ARG_INT, ARG_INT}},
 	{"set_outline", sf_set_outline, 2, 2, {ARG_OBJECT, ARG_INT}},
+	{"set_rest_heal_time", sf_set_rest_heal_time, 1, 1, {ARG_INT}},
+	{"set_rest_mode", sf_set_rest_mode, 1, 1, {ARG_INT}},
 	{"set_unjam_locks_time", sf_set_unjam_locks_time, 1, 1, {ARG_INT}},
 	{"spatial_radius", sf_spatial_radius, 1, 1, {ARG_OBJECT}},
 	{"tile_refresh_display", sf_tile_refresh_display, 0, 0},
