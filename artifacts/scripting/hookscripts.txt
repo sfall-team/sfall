@@ -485,3 +485,16 @@ int     arg1 - the index number of the global variable being set
 int     arg2 - the set value of the global variable
 
 int     ret1 - overrides the value of the global variable
+
+-------------------------------------------
+
+HOOK_RESTTIMER (hs_resttimer.int)
+
+Runs continuously while the player is resting (using pipboy alarm clock).
+
+int     arg1 - the game time in ticks
+int     arg2 - event type: 1 - when the resting ends normally, -1 - when pressing ESC to cancel the timer, 0 - otherwise
+int     arg3 - the hour part of the length of resting time
+int     arg4 - the minute part of the length of resting time
+
+int     ret1 - pass 1 to interrupt the resting

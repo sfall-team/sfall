@@ -180,6 +180,11 @@
 #define CURSOR_COMMAND      (1)
 #define CURSOR_TARGETING    (2)
 
+//Valid flags for set_rest_mode
+#define RESTMODE_DISABLED   (1) // disable resting on all maps
+#define RESTMODE_STRICT     (2) // disable resting on maps with "can_rest_here=No" in Maps.txt, even if there are no other critters
+#define RESTMODE_NO_HEALING (4) // disable healing during resting
+
 #define mstr_combat(x)      (message_str_game(GAME_MSG_COMBAT, x))
 #define mstr_ai(x)          (message_str_game(GAME_MSG_AI, x))
 #define mstr_scrname(x)     (message_str_game(GAME_MSG_SCRNAME, x))
@@ -206,11 +211,6 @@
 #define BLOCKING_TYPE_SHOOT     (1)  // use this for more realistic line-of-sight checks
 #define BLOCKING_TYPE_AI        (2)
 #define BLOCKING_TYPE_SIGHT     (3)  // not really useful (works not as you would expect), game uses this only when checking if you can talk to a person
-
-//Rest mode flags
-#define DISABLE_REST        (1)
-#define DISABLE_REST_FIX    (2)
-#define DISABLE_REST_HEAL   (4)
 
 #define party_member_list_critters      party_member_list(0)
 #define party_member_list_all           party_member_list(1)

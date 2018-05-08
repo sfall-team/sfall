@@ -466,8 +466,12 @@ Some utility/math functions are available:
 - works only in map_enter_p_proc procedure
 
 > void sfall_func1("set_rest_heal_time", int minutes)
+- sets the time interval in minutes for healing during resting. The default is 180
+- The time interval will be reset each time the player reloads the game
 
 > void sfall_func1("set_rest_mode", int mode)
+- sets the bit flags for the rest mode (see REST_* constants in sfall.h)
+- passing 0 will reset the rest mode. It will also be reset each time the player reloads the game
 
 ------------------------
 ------ MORE INFO -------

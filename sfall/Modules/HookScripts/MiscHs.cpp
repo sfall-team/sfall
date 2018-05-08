@@ -6,7 +6,7 @@
 
 #include "MiscHs.h"
 
-// Misc. hook scripts 
+// Misc. hook scripts
 namespace sfall
 {
 
@@ -21,7 +21,7 @@ static void __declspec(naked) UseObjOnHook() {
 		call RunHookScript;
 		popad;
 		cmp cRet, 1;
-		jl	defaulthandler;
+		jl  defaulthandler;
 		mov eax, rets[0];
 		jmp end;
 defaulthandler:
@@ -43,7 +43,7 @@ static void __declspec(naked) UseObjOnHook_item_d_take_drug() {
 		call RunHookScript;
 		popad;
 		cmp cRet, 1;
-		jl	defaulthandler;
+		jl  defaulthandler;
 		mov eax, rets[0];
 		jmp end;
 defaulthandler:
@@ -64,7 +64,7 @@ static void __declspec(naked) UseObjHook() {
 		call RunHookScript;
 		popad;
 		cmp cRet, 1;
-		jl	defaulthandler;
+		jl  defaulthandler;
 		cmp rets[0], -1;
 		je defaulthandler;
 		mov eax, rets[0];
@@ -129,7 +129,7 @@ static void __declspec(naked) UseSkillHook() {
 		call RunHookScript;
 		popad;
 		cmp cRet, 1;
-		jl	defaulthandler;
+		jl  defaulthandler;
 		cmp rets[0], -1;
 		je defaulthandler;
 		mov eax, rets[0];
@@ -154,7 +154,7 @@ static void __declspec(naked) StealCheckHook() {
 		call RunHookScript;
 		popad;
 		cmp cRet, 1;
-		jl	defaulthandler;
+		jl  defaulthandler;
 		cmp rets[0], -1;
 		je defaulthandler;
 		mov eax, rets[0];
@@ -179,7 +179,7 @@ static void __declspec(naked) PerceptionRangeHook() {
 		call RunHookScript;
 		popad;
 		cmp cRet, 1;
-		jl	end;
+		jl  end;
 		mov eax, rets[0];
 end:
 		hookend;
@@ -289,16 +289,16 @@ static void __declspec(naked) SetGlobalVarHook() {
 	}
 }
 
-static int restTicks; // previous ticks
+static int restTicks;
 static void _stdcall RestTimerHookScript() {
-	int addrHook;
+	DWORD addrHook;
 	__asm {
 		mov addrHook, ebx;
 		mov args[0], eax;
 		mov args[8], ecx;
 		mov args[12], edx;
 	}
-	
+
 	BeginHook();
 	argCount = 4;
 	addrHook -= 5;
@@ -317,8 +317,8 @@ static void __declspec(naked) RestTimerLoopHook() {
 	__asm {
 		pushad;
 		mov ebx, [esp + 32];
-		mov ecx, [esp+36+0x40];  // hours_
-		mov edx, [esp+36+0x44];  // minutes_
+		mov ecx, [esp + 36 + 0x40]; // hours_
+		mov edx, [esp + 36 + 0x44]; // minutes_
 		call RestTimerHookScript;
 		popad;
 		cmp cRet, 1;
@@ -333,12 +333,12 @@ skip:
 
 static void __declspec(naked) RestTimerEscapeHook() {
 	__asm {
-		cmp eax, 0x1B;
+		cmp eax, 0x1B; // ESC ASCII code
 		jnz skip;
 		pushad;
-		mov ebx, [esp+32];
-		mov ecx, [esp+36+0x40];  // hours_
-		mov edx, [esp+36+0x44];  // minutes_
+		mov ebx, [esp + 32];
+		mov ecx, [esp + 36 + 0x40]; // hours_
+		mov edx, [esp + 36 + 0x44]; // minutes_
 		call RestTimerHookScript;
 		popad;
 		cmp cRet, 1;
@@ -398,7 +398,7 @@ void InitMiscHookScripts() {
 
 	LoadHookScript("hs_setglobalvar", HOOK_SETGLOBALVAR);
 	HookCall(0x455A6D, SetGlobalVarHook);
-	
+
 	LoadHookScript("hs_resttimer", HOOK_RESTTIMER);
 	HookCalls(RestTimerLoopHook, { 0x499B4B, 0x499BE0, 0x499D2C, 0x499DF2 });
 	MakeCalls(RestTimerEscapeHook, { 0x499B63, 0x499CA1 });
