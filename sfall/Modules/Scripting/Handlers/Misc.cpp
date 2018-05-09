@@ -1391,7 +1391,7 @@ void __declspec(naked) op_refresh_pc_art() {
 	}
 }
 
-void _stdcall intf_attack_type() {
+static void _stdcall intface_attack_type() {
 	__asm {
 		sub esp, 8;
 		lea edx, [esp];
@@ -1407,10 +1407,11 @@ void __declspec(naked) op_get_attack_type() {
 		push edx;
 		push ecx;
 		push eax;
-		call intf_attack_type;
+		call intface_attack_type;
 		mov edx, ecx; // hit_mode
 		test eax, eax;
 		jz skip;
+		// get reload
 		cmp ds:[FO_VAR_interfaceWindow], eax;
 		jz end;
 		mov ecx, ds:[FO_VAR_itemCurrentItem];     // 0 - left, 1 - right
@@ -1742,7 +1743,7 @@ end:
 void sf_attack_is_aimed(OpcodeContext& ctx) {
 	int is_secondary, result;
 	__asm {
-		call intf_attack_type;
+		call intface_attack_type;
 		mov result, eax;
 		mov is_secondary, edx;
 	}

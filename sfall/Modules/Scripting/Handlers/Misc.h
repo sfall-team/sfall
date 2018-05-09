@@ -29,8 +29,6 @@ namespace script
 
 class OpcodeContext;
 
-void _stdcall intf_attack_type();
-
 // TODO: rewrite all op_* functions using OpcodeContext
 
 void __declspec() op_set_dm_model();
