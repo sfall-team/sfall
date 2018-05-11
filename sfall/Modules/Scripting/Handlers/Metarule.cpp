@@ -23,6 +23,7 @@
 #include "Interface.h"
 #include "Misc.h"
 #include "Objects.h"
+#include "Utils.h"
 #include "Worldmap.h"
 
 #include "Metarule.h"
@@ -76,14 +77,17 @@ static const SfallMetarule* currentMetarule;
 		- arg1, arg2, ... - argument types for automatic validation
 */
 static const SfallMetarule metarules[] = {
+	{"attack_is_aimed", sf_attack_is_aimed, 0, 0},
 	{"car_gas_amount", sf_car_gas_amount, 0, 0},
 	{"critter_inven_obj2", sf_critter_inven_obj2, 2, 2, {ARG_OBJECT, ARG_INT}},
 	{"display_stats", sf_display_stats, 0, 0},
 	{"exec_map_update_scripts", sf_exec_map_update_scripts, 0, 0},
+	{"floor2", sf_floor2, 1, 1, {ARG_NUMBER}},
 	{"get_cursor_mode", sf_get_cursor_mode, 0, 0},
 	{"get_flags", sf_get_flags, 1, 1, {ARG_OBJECT}},
 	{"get_ini_section", sf_get_ini_section, 2, 2, {ARG_STRING, ARG_STRING}},
 	{"get_ini_sections", sf_get_ini_sections, 1, 1, {ARG_STRING}},
+	{"get_map_enter_position", sf_get_map_enter_position, 0, 0},
 	{"get_metarule_table", sf_get_metarule_table, 0, 0},
 	{"get_outline", sf_get_outline, 1, 1, {ARG_OBJECT}},
 	{"intface_hide", sf_intface_hide, 0, 0},
@@ -91,15 +95,22 @@ static const SfallMetarule metarules[] = {
 	{"intface_redraw", sf_intface_redraw, 0, 0},
 	{"intface_show", sf_intface_show, 0, 0},
 	{"item_weight", sf_item_weight, 1, 1, {ARG_OBJECT}},
+	{"lock_is_jammed", sf_lock_is_jammed, 1, 1, {ARG_OBJECT}},
 	{"outlined_object", sf_outlined_object, 0, 0},
 	{"real_dude_obj", sf_real_dude_obj, 0, 0},
 	{"set_car_intface_art", sf_set_car_intface_art, 1, 1, {ARG_INT}},
 	{"set_cursor_mode", sf_set_cursor_mode, 1, 1, {ARG_INT}},
 	{"set_dude_obj", sf_set_dude_obj, 1, 1, {ARG_OBJECT}},
 	{"set_flags", sf_set_flags, 2, 2, {ARG_OBJECT, ARG_INT}},
+	{"set_ini_setting", sf_set_ini_setting, 2, 2, {ARG_STRING, ARG_INTSTR}},
+	{"set_map_enter_position", sf_set_map_enter_position, 3, 3, {ARG_INT, ARG_INT, ARG_INT}},
 	{"set_outline", sf_set_outline, 2, 2, {ARG_OBJECT, ARG_INT}},
+	{"set_rest_heal_time", sf_set_rest_heal_time, 1, 1, {ARG_INT}},
+	{"set_rest_mode", sf_set_rest_mode, 1, 1, {ARG_INT}},
+	{"set_unjam_locks_time", sf_set_unjam_locks_time, 1, 1, {ARG_INT}},
 	{"spatial_radius", sf_spatial_radius, 1, 1, {ARG_OBJECT}},
 	{"tile_refresh_display", sf_tile_refresh_display, 0, 0},
+	{"unjam_lock", sf_unjam_lock, 1, 1, {ARG_OBJECT}},
 	{"validate_test", sf_test, 2, 5, {ARG_INT, ARG_NUMBER, ARG_STRING, ARG_OBJECT, ARG_ANY}},
 };
 

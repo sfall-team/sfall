@@ -49,11 +49,11 @@ void sf_cos(OpcodeContext& ctx) {
 	ctx.setReturn(cos(ctx.arg(0).asFloat()));
 }
 
-void sf_tan(OpcodeContext& ctx) {	
+void sf_tan(OpcodeContext& ctx) {
 	ctx.setReturn(tan(ctx.arg(0).asFloat()));
 }
 
-void sf_arctan(OpcodeContext& ctx) {	
+void sf_arctan(OpcodeContext& ctx) {
 	ctx.setReturn(atan2(ctx.arg(0).asFloat(), ctx.arg(1).asFloat()));
 }
 
@@ -70,7 +70,7 @@ void sf_atoi(OpcodeContext& ctx) {
 	);
 }
 
-void sf_atof(OpcodeContext& ctx) {	
+void sf_atof(OpcodeContext& ctx) {
 	auto str = ctx.arg(0).asString();
 	ctx.setReturn(
 		static_cast<float>(atof(str))
@@ -343,6 +343,10 @@ void sf_message_str_game(OpcodeContext& ctx) {
 		msg = "Error";
 	}
 	ctx.setReturn(msg);
+}
+
+void sf_floor2(OpcodeContext& ctx) {
+	ctx.setReturn(static_cast<int>(floor(ctx.arg(0).asFloat())));
 }
 
 }

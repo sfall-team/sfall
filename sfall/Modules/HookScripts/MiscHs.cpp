@@ -1,11 +1,12 @@
 #include "..\..\FalloutEngine\Fallout2.h"
 #include "..\..\SafeWrite.h"
 #include "..\HookScripts.h"
+#include "..\Karma.h"
 #include "Common.h"
 
 #include "MiscHs.h"
 
-// Misc. hook scripts 
+// Misc. hook scripts
 namespace sfall
 {
 
@@ -20,7 +21,7 @@ static void __declspec(naked) UseObjOnHook() {
 		call RunHookScript;
 		popad;
 		cmp cRet, 1;
-		jl	defaulthandler;
+		jl  defaulthandler;
 		mov eax, rets[0];
 		jmp end;
 defaulthandler:
@@ -42,7 +43,7 @@ static void __declspec(naked) UseObjOnHook_item_d_take_drug() {
 		call RunHookScript;
 		popad;
 		cmp cRet, 1;
-		jl	defaulthandler;
+		jl  defaulthandler;
 		mov eax, rets[0];
 		jmp end;
 defaulthandler:
@@ -63,7 +64,7 @@ static void __declspec(naked) UseObjHook() {
 		call RunHookScript;
 		popad;
 		cmp cRet, 1;
-		jl	defaulthandler;
+		jl  defaulthandler;
 		cmp rets[0], -1;
 		je defaulthandler;
 		mov eax, rets[0];
@@ -116,7 +117,6 @@ end:
 	}
 }
 
-
 static void __declspec(naked) UseSkillHook() {
 	__asm {
 		hookbegin(4);
@@ -129,7 +129,7 @@ static void __declspec(naked) UseSkillHook() {
 		call RunHookScript;
 		popad;
 		cmp cRet, 1;
-		jl	defaulthandler;
+		jl  defaulthandler;
 		cmp rets[0], -1;
 		je defaulthandler;
 		mov eax, rets[0];
@@ -154,7 +154,7 @@ static void __declspec(naked) StealCheckHook() {
 		call RunHookScript;
 		popad;
 		cmp cRet, 1;
-		jl	defaulthandler;
+		jl  defaulthandler;
 		cmp rets[0], -1;
 		je defaulthandler;
 		mov eax, rets[0];
@@ -179,7 +179,7 @@ static void __declspec(naked) PerceptionRangeHook() {
 		call RunHookScript;
 		popad;
 		cmp cRet, 1;
-		jl	end;
+		jl  end;
 		mov eax, rets[0];
 end:
 		hookend;
@@ -257,6 +257,102 @@ static void __declspec(naked) CarTravelHack() {
 	}
 }
 
+static int newGVarValue;
+static void _stdcall GlobalVarHookScript(DWORD number, int value) {
+	int old = fo::var::game_global_vars[number];
+
+	BeginHook();
+	argCount = 2;
+	args[0] = number;
+	args[1] = value;
+	RunHookScript(HOOK_SETGLOBALVAR);
+	EndHook();
+
+	if (cRet == 1) value = rets[0];
+
+	if (number == fo::GVAR_PLAYER_REPUTATION && displayKarmaChanges) {
+		int diff = value - old;
+		if (diff != 0) Karma::DisplayKarma(diff);
+	}
+	newGVarValue = value;
+}
+
+static void __declspec(naked) SetGlobalVarHook() {
+	__asm {
+		pushad;
+		push edx; // value
+		push eax; // number
+		call GlobalVarHookScript;
+		popad;
+		mov edx, newGVarValue;
+		jmp fo::funcoffs::game_set_global_var_;
+	}
+}
+
+static int restTicks;
+static void _stdcall RestTimerHookScript() {
+	DWORD addrHook;
+	__asm {
+		mov addrHook, ebx;
+		mov args[0], eax;
+		mov args[8], ecx;
+		mov args[12], edx;
+	}
+
+	BeginHook();
+	argCount = 4;
+	addrHook -= 5;
+	if (addrHook == 0x499CA1 || addrHook == 0x499B63) {
+		args[0] = restTicks;
+		args[1] = -1;
+	} else {
+		restTicks = args[0];
+		args[1] = (addrHook == 0x499DF2 || (args[2] == 0 && addrHook == 0x499BE0)) ? 1 : 0;
+	}
+	RunHookScript(HOOK_RESTTIMER);
+	EndHook();
+}
+
+static void __declspec(naked) RestTimerLoopHook() {
+	__asm {
+		pushad;
+		mov ebx, [esp + 32];
+		mov ecx, [esp + 36 + 0x40]; // hours_
+		mov edx, [esp + 36 + 0x44]; // minutes_
+		call RestTimerHookScript;
+		popad;
+		cmp cRet, 1;
+		jl skip;
+		cmp rets[0], 1;
+		jnz skip;
+		mov edi, 1;
+skip:
+		jmp fo::funcoffs::set_game_time_;
+	}
+}
+
+static void __declspec(naked) RestTimerEscapeHook() {
+	__asm {
+		cmp eax, 0x1B; // ESC ASCII code
+		jnz skip;
+		pushad;
+		mov ebx, [esp + 32];
+		mov ecx, [esp + 36 + 0x40]; // hours_
+		mov edx, [esp + 36 + 0x44]; // minutes_
+		call RestTimerHookScript;
+		popad;
+		cmp cRet, 1;
+		jl skip;
+		cmp rets[0], 0;
+		jnz skip;
+		mov edi, 0; // cancel escape
+		retn;
+skip:
+		mov edi, 1;
+		retn;
+	}
+}
+
 void InitMiscHookScripts() {
 	LoadHookScript("hs_useobjon", HOOK_USEOBJON);
 	HookCalls(UseObjOnHook, { 0x49C606, 0x473619 });
@@ -299,6 +395,14 @@ void InitMiscHookScripts() {
 	LoadHookScript("hs_cartravel", HOOK_CARTRAVEL);
 	MakeJump(0x4BFEF1, CarTravelHack);
 	BlockCall(0x4BFF6E); // vanilla wnCarUseGas(100) call
+
+	LoadHookScript("hs_setglobalvar", HOOK_SETGLOBALVAR);
+	HookCall(0x455A6D, SetGlobalVarHook);
+
+	LoadHookScript("hs_resttimer", HOOK_RESTTIMER);
+	HookCalls(RestTimerLoopHook, { 0x499B4B, 0x499BE0, 0x499D2C, 0x499DF2 });
+	MakeCalls(RestTimerEscapeHook, { 0x499B63, 0x499CA1 });
+
 }
 
 }

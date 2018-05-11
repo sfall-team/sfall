@@ -21,6 +21,7 @@
 #include "..\..\LoadGameHook.h"
 #include "..\..\ScriptExtender.h"
 #include "..\..\Worldmap.h"
+#include "..\Arrays.h"
 #include "..\OpcodeContext.h"
 
 #include "Worldmap.h"
@@ -228,6 +229,38 @@ end:
 
 void sf_set_car_intface_art(OpcodeContext& ctx) {
 	Worldmap::SetCarInterfaceArt(ctx.arg(0).asInt());
+}
+
+void sf_set_map_enter_position(OpcodeContext& ctx) {
+	int tile = ctx.arg(0).asInt();
+	int elev = ctx.arg(1).asInt();
+	int rot = ctx.arg(2).asInt();
+
+	if (tile > -1 && tile < 40000) {
+		fo::var::tile = tile;
+	}
+	if (elev > -1 && elev < 3) {
+		fo::var::elevation = elev;
+	}
+	if (rot > -1 && rot < 6) {
+		fo::var::rotation = rot;
+	}
+}
+
+void sf_get_map_enter_position(OpcodeContext& ctx) {
+	DWORD id = TempArray(3, 0);
+	arrays[id].val[0].set((long)fo::var::tile);
+	arrays[id].val[1].set((long)fo::var::elevation);
+	arrays[id].val[2].set((long)fo::var::rotation);
+	ctx.setReturn(id, DataType::INT);
+}
+
+void sf_set_rest_heal_time(OpcodeContext& ctx) {
+	Worldmap::SetRestHealTime(ctx.arg(0).asInt());
+}
+
+void sf_set_rest_mode(OpcodeContext& ctx) {
+	Worldmap::SetRestMode(ctx.arg(0).asInt());
 }
 
 }

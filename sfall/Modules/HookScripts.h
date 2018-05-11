@@ -55,6 +55,8 @@ enum HookType
 	HOOK_ADJUSTFID        = 26,
 	HOOK_COMBATTURN       = 27,
 	HOOK_CARTRAVEL        = 28,
+	HOOK_SETGLOBALVAR     = 29,
+	HOOK_RESTTIMER        = 30,
 	HOOK_COUNT
 };
 

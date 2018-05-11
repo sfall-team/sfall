@@ -409,5 +409,22 @@ void sf_car_gas_amount(OpcodeContext& ctx) {
 	ctx.setReturn(fo::var::carGasAmount);
 }
 
+void sf_lock_is_jammed(OpcodeContext& ctx) {
+	ctx.setReturn(fo::func::obj_lock_is_jammed(ctx.arg(0).asObject()));
+}
+
+void sf_unjam_lock(OpcodeContext& ctx) {
+	fo::func::obj_unjam_lock(ctx.arg(0).asObject());
+}
+
+void sf_set_unjam_locks_time(OpcodeContext& ctx) {
+	int time = ctx.arg(0).asInt();
+	if (time < 0 || time > 127) {
+		ctx.printOpcodeError("set_unjam_locks_time() - time argument must be in the range of 0 to 127.");
+	} else {
+		ScriptExtender::SetAutoUnjamLockTime(time);
+	}
+}
+
 }
 }

@@ -1088,6 +1088,27 @@ static void __declspec(naked) partyMemberGetCurLevel_hack() {
 	}
 }
 
+static void __declspec(naked) ResetPlayer_hook() {
+	__asm {
+		mov  edx, eax;
+		call fo::funcoffs::stat_set_defaults_;
+		mov  dword ptr [edx + 0x78], 100; // critter_data.base_dr_emp
+		retn;
+	}
+}
+
+static void __declspec(naked) obj_move_to_tile_hack() {
+	__asm {
+		cmp  ds:[FO_VAR_map_state], 0;
+		jz   map_leave;
+		pop  eax;
+		push 0x48A74E;
+map_leave:
+		mov  ebx, 16;
+		retn;
+	}
+}
+
 
 void BugFixes::init()
 {
@@ -1390,8 +1411,15 @@ void BugFixes::init()
 	// Fix crash when calling partyMemberGetCurLevel_ on a critter that has no data in party.txt
 	MakeJump(0x495FF6, partyMemberGetCurLevel_hack);
 
+	// Fix for player's base EMP DR not being properly initialized when creating a new character and then starting the game
+	HookCall(0x4A22DF, &ResetPlayer_hook);
+
 	// Fix for add_mult_objs_to_inven only adding 500 of an object when the value of "count" argument is over 99999
 	SafeWrite32(0x45A2A0, 0x1869F); // 99999
+
+	// Fix for being at incorrect hex after map change when the exit hex in source map is at the same position as
+	// some exit hex in destination map
+	MakeCall(0x48A704, obj_move_to_tile_hack);
 }
 
 }

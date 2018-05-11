@@ -14,9 +14,9 @@ Global scripts have multiple modes, which can be set using the set_global_script
 
 Both set_global_script_repeat and set_global_script_type only have an effect on the script they were called from. Every global script needs its own game_loaded block to correctly set up the script type and repeat rate. set_global_script_repeat will have no effect if called on a non-global script.
 
-The read_xxx functions take a memory address as the parameter and can read arbitrary pieces of fallouts address space. The write functions are equivilent except that they write to arbitrary memory addresses. The call_offset_xx functions can be used to call arbitrary functions inside fallout. Different versions are used to call functions with different numbers of arguments. None of these functions will work unless AllowUnsafeScripting is enabled in ddraw.ini
+The read_xxx functions take a memory address as the parameter and can read arbitrary pieces of Fallout's address space. The write functions are equivalent except that they write to arbitrary memory addresses. The call_offset_xx functions can be used to call arbitrary functions inside Fallout. Different versions are used to call functions with different numbers of arguments. None of these functions will work unless AllowUnsafeScripting is enabled in ddraw.ini
 
-The get/set_pc_base/extra_stat functions are equivelent to calling get/set_critter_base/extra_stat with dude_obj as the critter pointer. None of these stat functions take perks into account, and neither do they do range clamping to make sure the stats are valid. Use the normal get_critter_stat function to get a correctly perk adjusted and range clamped value for a stat.
+The get/set_pc_base/extra_stat functions are equivalent to calling get/set_critter_base/extra_stat with dude_obj as the critter pointer. None of these stat functions take perks into account, and neither do they do range clamping to make sure the stats are valid. Use the normal get_critter_stat function to get a correctly perk adjusted and range clamped value for a stat.
 
 The set_stat_max/min functions can be used to set the valid ranges on on stats. Values returned by get_current_stat will be clamped to this range. The set_pc_ function only effect the player, the set_npc_ functions only effect other critters, and the set_ functions effect both.
 
@@ -26,7 +26,7 @@ The graphics functions are only available if the user is using graphics mode 4 o
 
 load_shader takes a path relative to the data\shaders\ directory as an argument and returns a shader ID. That ID should be passed as the first argument to all other shader functions, and is valid until free_shader is called on the ID, the player loads a saved game or the player quits to the main menu.
 
-get_shader_version gives you the higest shader version supported by the players graphics cards. Possible return values are 11, 12, 13, 14, 20, 21 and 30.
+get_shader_version gives you the highest shader version supported by the player's graphics cards. Possible return values are 11, 12, 13, 14, 20, 21 and 30.
 
 set_shader_mode tells sfall when to use a shader. The parameter is a set of 32 flags which specify the screens on which the shader will be disabled, unless bit 32 is set, in which case the shader will only be active on those screens. Remember that screens are displayed on top of each other; if the player opens the character menu which in combat, the game still considers the player to be in combat. See sfall.h for a list of defines.
 
@@ -38,13 +38,13 @@ set_pipboy_available will only accept 0 or 1 as an argument. Using any other val
 
 get/set_critter_current_ap functions should only be used during the target critters turn while in combat. Calling them outside of combat typically returns the critters max ap, but don't rely on that behaviour. (Specifically, if the critter has never before entered combat, it will probably return the critters base ap ignoring any extra bonuses from perks etc.) Using set_critter_current_ap on the player will not automatically redraw the screen, so the ap bar will be incorrect until the player next clicks.
 
-The 'type' value in the weapon knockback functions can be 0 or 1. If 0, the value becomes an absolute distance that targets will be knocked back. If 1, the value is multiplied by the distance they would normally have been knocked back. Weapon knockback modifiers are applied in the order weapon -> attacker -> target, so a x2 weapon weilded by an abs 6 attacker hitting a /2 target will knock the target back 3 squares. The knockback functions will not override the stonewall perk or knockdowns resulting from criticals. knockback values set on weapons or critters are not saved, and must be reset each time the player reloads.
+The 'type' value in the weapon knockback functions can be 0 or 1. If 0, the value becomes an absolute distance that targets will be knocked back. If 1, the value is multiplied by the distance they would normally have been knocked back. Weapon knockback modifiers are applied in the order weapon -> attacker -> target, so a x2 weapon wielded by an abs 6 attacker hitting a /2 target will knock the target back 3 squares. The knockback functions will not override the stonewall perk or knockdowns resulting from criticals. knockback values set on weapons or critters are not saved, and must be reset each time the player reloads.
 
-The get/set_sfall_global functions require an 8 character long case sensitive string for the variable name. The variables behave the same as normal fallout globals, except that they don't have to be declared beforehand in vault13.gam. Trying to get a variable which hasn't been set will always return 0. These functions are intended for use when a patch to a mod requires the addition of a new global variable, a case which would otherwise require the player to start a new game.
+The get/set_sfall_global functions require an 8 character long case sensitive string for the variable name. The variables behave the same as normal Fallout globals, except that they don't have to be declared beforehand in vault13.gam. Trying to get a variable which hasn't been set will always return 0. These functions are intended for use when a patch to a mod requires the addition of a new global variable, a case which would otherwise require the player to start a new game.
 
 set_pickpocket_max and set_hit_chance_max effect all critters rather than just the player. set_skill_max can't be used to increase the skill cap above 300. set_perk_level_mod sets a modifier between +25 and -25 that is added/subtracted from the players level for the purposes of deciding which perks can be chosen.
 
-set_fake_trait and set_fake_perk can be used to add additional traits and perks to the character screen. They will be saved correctly when the player saves and reloads games, but by themselves they will have no further effect on the character. For perks, the allowed range for levels is between 0 and 100; setting the level to 0 removes that perk. For traits, the level must be 0 or 1. The image is a numeric id that corrisponds to an entry in skilldex.lst. The name is limited to 64 characters and the description to 1024 characters by sfall, but internal fallout limits may be lower.
+set_fake_trait and set_fake_perk can be used to add additional traits and perks to the character screen. They will be saved correctly when the player saves and reloads games, but by themselves they will have no further effect on the character. For perks, the allowed range for levels is between 0 and 100; setting the level to 0 removes that perk. For traits, the level must be 0 or 1. The image is a numeric id that corresponds to an entry in skilldex.lst. The name is limited to 64 characters and the description to 1024 characters by sfall, but internal Fallout limits may be lower.
 
 has_fake_trait and has_fake_perk return the number of levels the player has of the perks/traits with the given name.
 
@@ -54,21 +54,21 @@ show_iface_tag, hide_iface_tag and is_iface_tag_active relate to the boxes that 
 
 get/set_bodypart_hit_modifier alter the hit percentage modifiers for aiming at specific bodyparts. Valid bodypart id's are from 0 to 8. Changes are not saved, and will reset to the defaults (or to the values specified in ddraw.ini if they exist) at each reload.
 
-(re)set/get_critical_table are used for modifing the critical table. For details see 'http://falloutmods.wikia.com/wiki/Critical_hit_tables'. Changes are not saved, and will reset to the defaults, (or to the contents of CriticalOverrides.ini, if it exists,) at each game reload. These function also require OverrideCriticalTable to be set to 1 in ddraw.ini. (Disabled by default, because it noticably increases loading times.)
+(re)set/get_critical_table are used for modifying the critical table. For details see 'http://falloutmods.wikia.com/wiki/Critical_hit_tables'. Changes are not saved, and will reset to the defaults, (or to the contents of CriticalOverrides.ini, if it exists,) at each game reload. These function also require OverrideCriticalTable to be set to 1 in ddraw.ini. (Disabled by default, because it noticably increases loading times.)
 
-get/set_unspent_ap_bonus alter the AC bonus you recieve per unused action point at the end of your turn in combat. To allow for fractional values, the value given if divided by 4. (Hence the default value is 4 and not 1.) get/set_unspent_ap_perk_bonus are similar, but effect the extra AC granted by the h2h evade perk. (The default value of this is also 4, equivilent to doubling the original bonus.)
+get/set_unspent_ap_bonus alter the AC bonus you receive per unused action point at the end of your turn in combat. To allow for fractional values, the value given if divided by 4. (Hence the default value is 4 and not 1.) get/set_unspent_ap_perk_bonus are similar, but effect the extra AC granted by the h2h evade perk. (The default value of this is also 4, equivalent to doubling the original bonus.)
 
 nb_* functions are reserved for the brotherhood tactical training mod, and should be avoided.
 
-The fs_* functions are used to manipulate a virtual file system. Files saved here should have paths relative to the data folder, and use backslashes as the directory seperator. They will take precedence over files stored in the normal data folder. They will also be saved into save games, so be avoid creating large files. Using fs_copy followed by fs_read_xxx, you can read the contents of existing files.
+The fs_* functions are used to manipulate a virtual file system. Files saved here should have paths relative to the data folder, and use backslashes as the directory separator. They will take precedence over files stored in the normal data folder. They will also be saved into save games, so be avoid creating large files. Using fs_copy followed by fs_read_xxx, you can read the contents of existing files.
 
-get/set_proto_data are used to manipulate the in memory copies of the .pro files fallout makes when they are loaded. The offset refers to the offset in memory from the start of the proto to the element you are reading. Changes are not stored on disc, and are not permenent. If you modify the protos, and then fallout subsequently reloads the file your changes will be lost.
+get/set_proto_data are used to manipulate the in memory copies of the .pro files Fallout makes when they are loaded. The offset refers to the offset in memory from the start of the proto to the element you are reading. Changes are not stored on disc, and are not permanent. If you modify the protos, and then Fallout subsequently reloads the file your changes will be lost.
 
 the list_xxx functions can be used to loop over all items on a map. list_begin takes an argument telling sfall what you want to list. (Defined in sfall.h) It returns a list pointer, which you iterate through with list_next. Finally, when you've finished with the list use list_end on it. Not calling list_end will result in a memory leak. Alternatively, use list_as_array to get the whole list at once as a temp array variable, which can be looped over using len_array and which you don't need to remember to free afterwards.
 
-play_sfall_sound and stop_sfall_sound are used to play mp3/wav/wma files. The path given is relative to the fallout folder. Specify loop as 1 to loop the file continuously, or 0 otherwise. If you don't wish to loop, play_sfall_sound returns 0. If you do loop, it returns an id which can be passed back to stop_sfall_sound when you want to stop the effect. All sounds effects will be stopped on game reload, looping or not. These functions do not require 'AllowDShowSound' to be set to 1 in ddraw.ini.
+play_sfall_sound and stop_sfall_sound are used to play mp3/wav/wma files. The path given is relative to the Fallout folder. Specify loop as 1 to loop the file continuously, or 0 otherwise. If you don't wish to loop, play_sfall_sound returns 0. If you do loop, it returns an id which can be passed back to stop_sfall_sound when you want to stop the effect. All sounds effects will be stopped on game reload, looping or not. These functions do not require 'AllowDShowSound' to be set to 1 in ddraw.ini.
 
-arrays are created and manipulated with the xxx_array functions. An array must first be created with create_array or temp_array, specifying how many data elements the array can hold. You can store any of ints, floats and strings in an array, and can mix all 3 in a single array. The id returned by create/temp_array can then be used with the other array functions. Arrays are shared between all scripts. (i.e. you can call create_array from one script, and then use the returned id from another script.) They are also saved across savegames. You must remember to free any arrays you create with create_array when you are done with them, or you will leak memory. arrays created with temp_array will be automatically freed at the end of the frame. These functions are safe, in that supplying a bad id or trying to access out of range elements will not crash the script. create_array is the only function that returns a permenent array, all other functions which return arrays (string_split, list_as_array etc,) all return temp arrays. You can use fix_array to make a temp array permenent.
+arrays are created and manipulated with the xxx_array functions. An array must first be created with create_array or temp_array, specifying how many data elements the array can hold. You can store any of ints, floats and strings in an array, and can mix all 3 in a single array. The id returned by create/temp_array can then be used with the other array functions. Arrays are shared between all scripts. (i.e. you can call create_array from one script, and then use the returned id from another script.) They are also saved across savegames. You must remember to free any arrays you create with create_array when you are done with them, or you will leak memory. arrays created with temp_array will be automatically freed at the end of the frame. These functions are safe, in that supplying a bad id or trying to access out of range elements will not crash the script. create_array is the only function that returns a permanent array, all other functions which return arrays (string_split, list_as_array etc,) all return temp arrays. You can use fix_array to make a temp array permanent.
 
 NOTE: the above description only applies when "arraysBehavior" is set to 0 in ddraw.ini. Refer to "arrays.txt" for detailed description of new arrays behavior.
 
@@ -110,14 +110,14 @@ array - array ID to be used with array-related functions (actually an integer)
 - changes the current town index for the player's car
 
 > int get_ini_setting(string setting)
-- reads an integer value from an ini file in the fallout directory.
+- reads an integer value from an ini file in the Fallout directory.
 - It only takes a single argument; seperate the file name, section and key with a '|' character; e.g. 'myvar:=get_ini_setting("myini.ini|mysec|var1")' If the file or key cannot be found, -1 is returned.
-- The file name is limited to 16 chars, including the extension.
-- The section name is limited to 8 characters.
+- The file name is limited to 63 chars, including the extension.
+- The section name is limited to 32 characters.
 - It can also be used to get sfalls settings, by using ddraw.ini as the file name.
 
 > string get_ini_string(string setting)
-- reads a string value from an ini file in the fallout directory.
+- reads a string value from an ini file in the Fallout directory.
 
 > int get_game_mode()
 - is a more flexible version of in_world_map. It will return a set of flags indicating which mode the game is currently in.
@@ -157,21 +157,21 @@ array - array ID to be used with array-related functions (actually an integer)
 - if you add 0x80000000 to the sid when calling set_script, map_enter_p_proc will be SKIPPED. The start proc will always be run.
 
 > int get_script(object)
-- accepts a pointer to an object and returns it's scriptID (line number in scripts.lst), or -1 if the object is unscripted.
+- accepts a pointer to an object and returns its scriptID (line number in scripts.lst), or -1 if the object is unscripted.
 
 > void set_self(int obj)
 - overrides the scripts self_obj for the next function call.
 - It is primarily used to allow the calling of functions which take an implicit self_obj parameter (e.g. drop_obj) from global scripts, but it can also be used from normal scripts;
 - self_obj will revert back to its original value after the next function call.
 - calling self_obj(0) will also revert self_obj to original value
-- source_obj, target_obj, and similar functions will not work if preceeded by "set_self"
+- source_obj, target_obj, and similar functions will not work if preceded by "set_self"
 
 > void mod_skill_points_per_level(int x)
-- accepts a value of between -100 and 100, and modifies the number of skill points the player recieves when they level up.
+- accepts a value of between -100 and 100, and modifies the number of skill points the player receives when they level up.
 - This is a modification of what would otherwise happen, rather than a replacement.
 - The value is not saved into the save game, so should be reset in the game_loaded section of a script.
 
-> void seq_perk_freq(int x)
+> void set_perk_freq(int x)
 - sets the number of levels between each perk.
 - Setting 0 will reset it back to the default.
 - This overrides the effects of the skilled trait.
@@ -182,7 +182,7 @@ array - array ID to be used with array-related functions (actually an integer)
 - will return the last critter to be deliberately attacked
 > object get_last_attacker(object)
 - will return the last critter to deliberately launch an attack against the argument critter.
-- If a critter has not launched/recieved an attack, it will return 0. This is only stored for the duration of combat, and outside of combat both functions will always return 0.
+- If a critter has not launched/received an attack, it will return 0. This is only stored for the duration of combat, and outside of combat both functions will always return 0.
 
 > void set_base_pickpocket_mod(int max, int mod)
 - changes maximum chance of success and chance mod for each steal attempt
@@ -214,7 +214,7 @@ Some additional reg_anim_* functions were introduced. They all work in the same 
 - plays "take out weapon" animation for given holdFrameID. It is not required to have such weapon in critter's inventory.
 
 > void reg_anim_turn_towards(object, tile/target, delay)
-- makes object change it's direction to face given tile num or target object.
+- makes object change its direction to face given tile num or target object.
 
 > int metarule2_explosions(int arg1, int arg2)
 was made as a dirty easy hack to allow dynamically change some explosion parameters (ranged attack). All changed parameters are reset to vanilla state automatically after each attack action. Following macros are available in sfall.h:
@@ -229,13 +229,13 @@ was made as a dirty easy hack to allow dynamically change some explosion paramet
 - changes radius at which explosion will hit secondary targets for the next attack (from the experiments it is limited to something around 8 by the engine)
 
 > void set_attack_is_explosion_fire
-- if you call this right before using a weapon with fire damage type, it will produce explosion effects (and radius damage) just like "explosion" type, but all targets will still recieve fire damage.
+- if you call this right before using a weapon with fire damage type, it will produce explosion effects (and radius damage) just like "explosion" type, but all targets will still receive fire damage.
 
 
 Some utility/math functions are available:
 
 > array string_split(string, split)
-- takes a string and a seperator, searches the string for all instances of the seperator, and returns a temp array filled with the pieces of the string split at each instance. If you give an empty string as the seperator, the string is split into individual characters.
+- takes a string and a separator, searches the string for all instances of the separator, and returns a temp array filled with the pieces of the string split at each instance. If you give an empty string as the separator, the string is split into individual characters.
 - you can use this to search for a substring in a string like this: strlen(get_array(string_split(haystack, needle), 0))
 
 > string substr(string, start, length)
@@ -245,7 +245,7 @@ Some utility/math functions are available:
 - returns string length
 
 > string sprintf(string format, any value)
-- formats given value using standart syntax of C printf function (google "printf" for format details). However it is limited to formatting only 1 value.
+- formats given value using standard syntax of C printf function (google "printf" for format details). However it is limited to formatting only 1 value.
 - can be used to get character by ASCII code ("%c")
 
 > int typeof(any value)
@@ -264,6 +264,9 @@ Some utility/math functions are available:
 
 > float exponent(float x)
 - e^x
+
+> int ceil(float x)
+- round x to the nearest integer that is not less than x
 
 > int round(float x)
 - round x to the nearest integer
@@ -340,7 +343,7 @@ Some utility/math functions are available:
 - these opcodes allows to use additional scripting functions, that do not require new opcode
 - first argument is always function name (string)
 - there are 7 versions of this opcode for different number of additional arguments (for convenience)
-- opcodes have return value, but it is not neccessary to use it
+- opcodes have return value, but it is not necessary to use it
 
 
 ------------------------------------
@@ -371,6 +374,16 @@ Some utility/math functions are available:
 
 > void sfall_func0("exec_map_update_scripts")
 - executes map_update_p_proc for all objects on map and global/hook scripts as well
+
+> void sfall_func2("set_ini_setting", string setting, int/string value)
+- writes an integer or a string value to an ini file in the Fallout directory. If the ini file does not exist, it will be created
+- The setting argument works in the same way as in get_ini_setting; seperate the file name, section and key with a '|' character; e.g. 'set_ini_setting("myini.ini|mysec|var1", 42)'
+- The file name is limited to 63 chars, including the extension
+- The section name is limited to 32 characters
+
+> int sfall_func1("floor2", int/float value)
+- works just like vanilla floor function, but returns correct integers for negative values
+- vanilla floor function works exactly the same as ceil for negative values, much like trunc in C/C++
 
 > int sfall_func1("item_weight", object)
 - gets the current weight of an object
@@ -428,6 +441,40 @@ Some utility/math functions are available:
 > void sfall_func0("display_stats")
 - displays player stats in the inventory screen display window
 - works only in opened inventory
+
+> int sfall_func1("lock_is_jammed", object)
+- returns 1 if the lock (container or scenery) is currently jammed, 0 otherwise
+
+> void sfall_func1("unjam_lock", object)
+- unjams a lock immediately without having to wait until the next day, or leave the map and then return after 24 hours
+- does not work in use_skill_on_p_proc procedure
+
+> void sfall_func1("set_unjam_locks_time", int time)
+- sets after how many hours (up to 127 hours) jammed locks will be unjammed if the player leaves the map
+- also disables the auto unjam that occurs at midnight when the player is on the map
+- passing 0 will disable the auto unjam mechanism completely
+- The auto unjam mechanism will be reset each time the player reloads the game
+
+> array sfall_func0("get_map_enter_position")
+- returns an array of the player's position data (index 0 - tile, 1 - elevation, 2 - rotation) when entering the map through exit grids
+- if entering from the world map, the tile value will be -1
+- should be called in map_enter_p_proc procedure to get the correct position data
+
+> void sfall_func3("set_map_enter_position", int tile, int elevation, int rotation)
+- overrides the player's entry position when entering the map through exit grids
+- setting the tile to 0 will put the player on the start hex (default tile and elevation) of the map
+- works only in map_enter_p_proc procedure
+
+> void sfall_func1("set_rest_heal_time", int minutes)
+- sets the time interval in minutes for healing during resting. The default is 180
+- The time interval will be reset each time the player reloads the game
+
+> void sfall_func1("set_rest_mode", int mode)
+- sets the bit flags for the rest mode (see RESTMODE_* constants in sfall.h)
+- passing 0 will reset the rest mode. It will also be reset each time the player reloads the game
+
+> int sfall_func0("attack_is_aimed")
+- returns 1 if the aimed attack mode is selected, 0 otherwise
 
 ------------------------
 ------ MORE INFO -------

@@ -151,11 +151,15 @@ void __declspec() op_gdialog_get_barter_mod();
 
 void __declspec() op_set_inven_ap_cost();
 
-void sf_sneak_success(OpcodeContext& ctx);
+void sf_attack_is_aimed(OpcodeContext&);
 
-void sf_tile_light(OpcodeContext& ctx);
+void sf_sneak_success(OpcodeContext&);
+
+void sf_tile_light(OpcodeContext&);
 
 void sf_exec_map_update_scripts(OpcodeContext&);
+
+void sf_set_ini_setting(OpcodeContext&);
 
 void sf_get_ini_sections(OpcodeContext&);
 

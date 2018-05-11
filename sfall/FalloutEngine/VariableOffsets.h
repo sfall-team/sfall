@@ -42,6 +42,7 @@
 #define FO_VAR_drugInfoList               0x5191CC
 #define FO_VAR_edit_win                   0x57060C
 #define FO_VAR_Educated                   0x57082C
+#define FO_VAR_elevation                  0x631D2C
 #define FO_VAR_Experience_                0x6681B4
 #define FO_VAR_fallout_game_time          0x51C720
 #define FO_VAR_flptr                      0x614808
@@ -99,6 +100,7 @@
 #define FO_VAR_main_window                0x5194F0
 #define FO_VAR_map_elevation              0x519578
 #define FO_VAR_map_global_vars            0x51956C
+#define FO_VAR_map_state                  0x631D28
 #define FO_VAR_master_db_handle           0x58E948
 #define FO_VAR_max                        0x56FB50
 #define FO_VAR_maxScriptNum               0x51C7CC
@@ -150,6 +152,7 @@
 #define FO_VAR_read_callback              0x51DEEC
 #define FO_VAR_RedColor                   0x6AB4D0
 #define FO_VAR_retvals                    0x43EA7C
+#define FO_VAR_rotation                   0x631D34
 #define FO_VAR_script_path_base           0x51C710
 #define FO_VAR_scr_size                   0x6AC9F0
 #define FO_VAR_scriptListInfo             0x51C7C8
@@ -178,6 +181,7 @@
 #define FO_VAR_text_spacing               0x51E3CC
 #define FO_VAR_text_to_buf                0x51E3B8
 #define FO_VAR_text_width                 0x51E3C0
+#define FO_VAR_tile                       0x631D30
 #define FO_VAR_title_color                0x56D750
 #define FO_VAR_title_font                 0x56D748
 #define FO_VAR_trait_data                 0x51DB84

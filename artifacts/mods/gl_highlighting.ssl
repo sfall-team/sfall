@@ -27,6 +27,7 @@
 
 variable configSection := "Highlighting";
 variable highlightKey;
+variable isHighlight;
 variable alsoContainer;
 variable alsoCorpse;
 variable checkLOS;
@@ -68,6 +69,7 @@ procedure KeyPressHandler begin
 
    if scanCode == highlightKey then begin
       if pressed then begin
+         isHighlight := true;
          if motionScanner then begin
             scanner := obj_carrying_pid_obj(dude_obj, PID_MOTION_SENSOR);
             if scanner then begin
@@ -90,8 +92,16 @@ procedure KeyPressHandler begin
             call ToggleHighlight(true);
          end
       end else begin
+         isHighlight := false;
          call ToggleHighlight(false);
       end
+   end
+end
+
+procedure CombatTurnHandler begin
+   if isHighlight then begin
+      isHighlight := false;
+      call ToggleHighlight(false);
    end
 end
 
@@ -111,5 +121,6 @@ procedure start begin
       highlightFailMsg2 := Translate("HighlightFail2", "Your motion sensor is out of charge.");
 
       register_hook_proc(HOOK_KEYPRESS, KeyPressHandler);
+      register_hook_proc(HOOK_COMBATTURN, CombatTurnHandler);
    end
 end

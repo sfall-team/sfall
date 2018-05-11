@@ -32,6 +32,9 @@ static Delegate<> onWorldmapLoop;
 static DWORD ViewportX;
 static DWORD ViewportY;
 
+static bool restMode;
+static bool restTime;
+
 static __declspec(naked) void GetDateWrapper() {
 	__asm {
 		push ecx;
@@ -222,6 +225,18 @@ static __declspec(naked) void PathfinderFix() {
 	}
 }
 
+static void RestRestore() {
+	if (!restMode) return;
+
+	restMode = false;
+	SafeWrite8(0x49952C, 0x85);
+	SafeWrite8(0x497557, 0x85);
+	SafeWrite8(0x42E587, 0xC7);
+	SafeWrite32(0x42E588, 0x10C2444);
+	SafeWrite16(0x499FD4, 0xC201);
+	SafeWrite16(0x499E93, 0x0574);
+}
+
 void WorldLimitsPatches() {
 	DWORD date = GetConfigInt("Misc", "LocalMapXLimit", 0);
 	if (date) {
@@ -294,17 +309,11 @@ void TimeLimitPatch() {
 			HookCall(0x4A34F9, &TimerReset);
 			HookCall(0x4A3551, &TimerReset);
 
-			SafeWrite32(0x4A34EF, 0x90909090);
-			SafeWrite32(0x4A34F3, 0x90909090);
-			SafeWrite16(0x4A34F7, 0x9090);
-			SafeWrite32(0x4A34FE, 0x90909090);
-			SafeWrite16(0x4A3502, 0x9090);
+			SafeMemSet(0x4A34EF, 0x90, 10);
+			SafeMemSet(0x4A34FE, 0x90, 6);
 
-			SafeWrite32(0x4A3547, 0x90909090);
-			SafeWrite32(0x4A354B, 0x90909090);
-			SafeWrite16(0x4A354F, 0x9090);
-			SafeWrite32(0x4A3556, 0x90909090);
-			SafeWrite16(0x4A355A, 0x9090);
+			SafeMemSet(0x4A3547, 0x90, 10);
+			SafeMemSet(0x4A3556, 0x90, 6);
 		} else {
 			SafeWrite8(0x4A34EC, limit);
 			SafeWrite8(0x4A3544, limit);
@@ -420,6 +429,8 @@ void Worldmap::init() {
 
 	LoadGameHook::OnGameReset() += []() {
 		SetCarInterfaceArt(0x1B1);
+		if (restTime) SetRestHealTime(180);
+		RestRestore();
 	};
 }
 
@@ -429,6 +440,34 @@ Delegate<>& Worldmap::OnWorldmapLoop() {
 
 void Worldmap::SetCarInterfaceArt(DWORD artIndex) {
 	SafeWrite32(0x4C2D9B, artIndex);
+}
+
+void Worldmap::SetRestHealTime(DWORD minutes) {
+	if (minutes > 0) {
+		SafeWrite32(0x499FDE, minutes);
+		restTime = (minutes != 180);
+	}
+}
+
+void Worldmap::SetRestMode(DWORD mode) {
+	RestRestore(); // restore default
+
+	restMode = ((mode & 0x7) > 0);
+	if (!restMode) return;
+
+	if (mode & 1) { // bit1 - disable resting on all maps
+		SafeWrite8(0x49952C, 0x31); // test to xor
+		SafeWrite8(0x497557, 0x31);
+		return;
+	}
+	if (mode & 2) { // bit2 - disable resting on maps with "can_rest_here=No" in Maps.txt, even if there are no other critters
+		SafeWrite8(0x42E587, 0xE9);
+		SafeWrite32(0x42E588, 0x00000094); // jmp  0x42E620
+	}
+	if (mode & 4) { // bit3 - disable healing during resting
+		SafeWrite16(0x499FD4, 0x9090);
+		SafeWrite16(0x499E93, 0x8FEB); // jmp  0x499E24
+	}
 }
 
 }

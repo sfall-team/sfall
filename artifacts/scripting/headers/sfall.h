@@ -49,6 +49,8 @@
 #define HOOK_ADJUSTFID        (26)
 #define HOOK_COMBATTURN       (27)
 #define HOOK_CARTRAVEL        (28)
+#define HOOK_SETGLOBALVAR     (29)
+#define HOOK_RESTTIMER        (30)
 
 //Valid arguments to list_begin
 #define LIST_CRITTERS    (0)
@@ -178,6 +180,11 @@
 #define CURSOR_COMMAND      (1)
 #define CURSOR_TARGETING    (2)
 
+//Valid flags for set_rest_mode
+#define RESTMODE_DISABLED   (1) // disable resting on all maps
+#define RESTMODE_STRICT     (2) // disable resting on maps with "can_rest_here=No" in Maps.txt, even if there are no other critters
+#define RESTMODE_NO_HEALING (4) // disable healing during resting
+
 #define mstr_combat(x)      (message_str_game(GAME_MSG_COMBAT, x))
 #define mstr_ai(x)          (message_str_game(GAME_MSG_AI, x))
 #define mstr_scrname(x)     (message_str_game(GAME_MSG_SCRNAME, x))
@@ -209,26 +216,36 @@
 #define party_member_list_all           party_member_list(1)
 
 
+#define attack_is_aimed                       sfall_func0("attack_is_aimed")
 #define car_gas_amount                        sfall_func0("car_gas_amount")
 #define critter_inven_obj2(obj, type)         sfall_func2("critter_inven_obj2", obj, type)
 #define display_stats                         sfall_func0("display_stats")
 #define exec_map_update_scripts               sfall_func0("exec_map_update_scripts")
+#define floor2(value)                         sfall_func1("floor2", value)
 #define get_cursor_mode                       sfall_func0("get_cursor_mode")
 #define get_flags(obj)                        sfall_func1("get_flags", obj)
 #define get_ini_section(file, sect)           sfall_func2("get_ini_section", file, sect)
 #define get_ini_sections(file)                sfall_func1("get_ini_sections", file)
+#define get_map_enter_position                sfall_func0("get_map_enter_position")
 #define get_outline(obj)                      sfall_func1("get_outline", obj)
 #define intface_hide                          sfall_func0("intface_hide")
 #define intface_is_hidden                     sfall_func0("intface_is_hidden")
 #define intface_redraw                        sfall_func0("intface_redraw")
 #define intface_show                          sfall_func0("intface_show")
 #define item_weight(obj)                      sfall_func1("item_weight", obj)
+#define lock_is_jammed(obj)                   sfall_func1("lock_is_jammed", obj)
 #define outlined_object                       sfall_func0("outlined_object")
 #define real_dude_obj                         sfall_func0("real_dude_obj")
 #define set_car_intface_art(artIndex)         sfall_func1("set_car_intface_art", artIndex)
 #define set_cursor_mode(mode)                 sfall_func1("set_cursor_mode", mode)
 #define set_dude_obj(critter)                 sfall_func1("set_dude_obj", critter)
 #define set_flags(obj, flags)                 sfall_func2("set_flags", obj, flags)
+#define set_ini_setting(setting, value)       sfall_func2("set_ini_setting", setting, value)
+#define set_map_enter_position(tile, elev, rot) sfall_func3("set_map_enter_position", tile, elev, rot)
 #define set_outline(obj, color)               sfall_func2("set_outline", obj, color)
+#define set_rest_heal_time(time)              sfall_func1("set_rest_heal_time", time)
+#define set_rest_mode(mode)                   sfall_func1("set_rest_mode", mode)
+#define set_unjam_locks_time(time)            sfall_func1("set_unjam_locks_time", time)
 #define spatial_radius(obj)                   sfall_func1("spatial_radius", obj)
 #define tile_refresh_display                  sfall_func0("tile_refresh_display")
+#define unjam_lock(obj)                       sfall_func1("unjam_lock", obj)

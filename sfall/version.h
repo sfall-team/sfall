@@ -24,13 +24,13 @@
 
 #define VERSION_MAJOR 4
 #define VERSION_MINOR 0
-#define VERSION_BUILD 3
+#define VERSION_BUILD 4
 #define VERSION_REV 0
 
 #ifdef WIN2K
-#define VERSION_STRING "4.0.3 win2k"
+#define VERSION_STRING "4.0.4 win2k"
 #else
-#define VERSION_STRING "4.0.3"
+#define VERSION_STRING "4.0.4"
 #endif
 
 #define CHECK_VAL  (4)

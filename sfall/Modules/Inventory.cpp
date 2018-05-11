@@ -363,7 +363,7 @@ static char SizeMsgBuf[32];
 static const char* _stdcall FmtSizeMsg(int size) {
 	if(size==1) {
 		const char* tmp = fo::MessageSearch(&fo::var::proto_main_msg_file, 543);
-		if(!tmp) strcpy(SizeMsgBuf, "It occupies 1 unit.");
+		if(!tmp) strcpy_s(SizeMsgBuf, "It occupies 1 unit.");
 		else sprintf(SizeMsgBuf, tmp, size);
 	} else {
 		const char* tmp = fo::MessageSearch(&fo::var::proto_main_msg_file, 542);
