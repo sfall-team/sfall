@@ -1503,6 +1503,7 @@ static void __declspec(naked) AddCharScrnButtons(void) {
 //------------------------------------------
 static void __declspec(naked) FixCharScrnBack(void) {
 //00432B92  |. A3 A4075700    MOV DWORD PTR DS:[5707A4],EAX
+	int gMode;
 	__asm {
 		mov dword ptr ds:[FO_VAR_bckgnd], eax //surface ptr for char scrn back
 		test eax, eax //check if frm loaded ok
@@ -1512,13 +1513,15 @@ static void __declspec(naked) FixCharScrnBack(void) {
 		mov ebp, esp
 		sub esp, __LOCAL_SIZE
 		pushad
+		mov eax, ds:[FO_VAR_glblmode]
+		mov gMode, eax
 	}
 
 	if (charScrnBackSurface == nullptr) {
 		charScrnBackSurface = new BYTE [640*480];
 
 		UnlistedFrm *frm;
-		frm = LoadUnlistedFrm((FO_VAR_glblmode) ? "AppChCrt.frm" : "AppChEdt.frm", 6);
+		frm = LoadUnlistedFrm((gMode) ? "AppChCrt.frm" : "AppChEdt.frm", 6);
 
 		if (frm != nullptr) {
 			sub_draw(640, 480, 640, 480, 0, 0, frm->frames[0].indexBuff, 640, 480, 0, 0, charScrnBackSurface, 0);
