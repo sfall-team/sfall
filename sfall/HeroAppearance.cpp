@@ -2040,6 +2040,7 @@ static void __declspec(naked) AddCharScrnButtons(void) {
 //------------------------------------------
 static void __declspec(naked) FixCharScrnBack(void) {
 //00432B92  |. A3 A4075700    MOV DWORD PTR DS:[5707A4],EAX
+	int gMode;
 	__asm {
 		mov dword ptr ds:[_bckgnd], eax //surface ptr for char scrn back
 		test eax, eax //check if frm loaded ok
@@ -2049,72 +2050,81 @@ static void __declspec(naked) FixCharScrnBack(void) {
 		mov ebp, esp
 		sub esp, __LOCAL_SIZE
 		pushad
+		mov eax, ds:[_glblmode]
+		mov gMode, eax
 	}
 
 	if (CharScrnBackSurface == NULL) {
 		CharScrnBackSurface = new BYTE [640*480];
 
-		BYTE *OldCharScrnBackSurface;
-		OldCharScrnBackSurface = *(BYTE**)_bckgnd; //char screen background frm surface
+		UNLSTDfrm *frm;
+		frm = LoadUnlistedFrm((gMode) ? "AppChCrt.frm" : "AppChEdt.frm", 6);
 
-		//copy old charscrn surface to new
-		sub_draw(640, 480, 640, 480, 0, 0, OldCharScrnBackSurface, 640, 480, 0, 0, CharScrnBackSurface, 0);
+		if (frm != NULL) {
+			sub_draw(640, 480, 640, 480, 0, 0, frm->frames[0].indexBuff, 640, 480, 0, 0, CharScrnBackSurface, 0);
+			delete frm;
+		} else {
+			BYTE *OldCharScrnBackSurface;
+			//copy old charscrn surface to new
+			OldCharScrnBackSurface = *(BYTE**)_bckgnd; //char screen background frm surface
+			sub_draw(640, 480, 640, 480, 0, 0, OldCharScrnBackSurface, 640, 480, 0, 0, CharScrnBackSurface, 0);
 
-		//copy Tag Skill Counter background to the right
-		sub_draw(38, 26, 640, 480, 519, 228, OldCharScrnBackSurface, 640, 480, 519+36, 228, CharScrnBackSurface, 0);
-		//copy a blank part of the Tag Skill Bar hiding the old counter
-		sub_draw(38, 26, 640, 480, 460, 228, OldCharScrnBackSurface, 640, 480, 519, 228, CharScrnBackSurface, 0);
+			//copy Tag Skill Counter background to the right
+			sub_draw(38, 26, 640, 480, 519, 228, OldCharScrnBackSurface, 640, 480, 519+36, 228, CharScrnBackSurface, 0);
+			//copy a blank part of the Tag Skill Bar hiding the old counter
+			sub_draw(38, 26, 640, 480, 460, 228, OldCharScrnBackSurface, 640, 480, 519, 228, CharScrnBackSurface, 0);
 
-		sub_draw(36, 258, 640, 480, 332, 0, OldCharScrnBackSurface, 640, 480, 408, 0, CharScrnBackSurface, 0); //shift behind button rail
-		sub_draw(6, 32, 640, 480, 331, 233, OldCharScrnBackSurface, 640, 480, 330, 6, CharScrnBackSurface, 0); //shadow for style/race button
+			sub_draw(36, 258, 640, 480, 332, 0, OldCharScrnBackSurface, 640, 480, 408, 0, CharScrnBackSurface, 0); //shift behind button rail
+			sub_draw(6, 32, 640, 480, 331, 233, OldCharScrnBackSurface, 640, 480, 330, 6, CharScrnBackSurface, 0); //shadow for style/race button
 
 
-		DWORD FrmObj, FrmMaskObj; //frm objects for char screen Appearance button
-		BYTE *FrmSurface,*FrmMaskSurface;
+			DWORD FrmObj, FrmMaskObj; //frm objects for char screen Appearance button
+			BYTE *FrmSurface,*FrmMaskSurface;
 
-		FrmSurface = GetFrmSurface(LoadFrm(6, 113), 0, 0, &FrmObj);
-		sub_draw(81, 132, 292, 376, 163, 20, FrmSurface, 640, 480, 331, 63, CharScrnBackSurface, 0); //char view win
-		sub_draw(79, 31, 292, 376, 154, 228, FrmSurface, 640, 480, 331, 32, CharScrnBackSurface, 0); //upper  char view win
-		sub_draw(79, 30, 292, 376, 158, 236, FrmSurface, 640, 480, 331, 195, CharScrnBackSurface, 0); //lower  char view win
-		UnloadFrm(FrmObj);
+			FrmSurface = GetFrmSurface(LoadFrm(6, 113), 0, 0, &FrmObj);
+			sub_draw(81, 132, 292, 376, 163, 20, FrmSurface, 640, 480, 331, 63, CharScrnBackSurface, 0); //char view win
+			sub_draw(79, 31, 292, 376, 154, 228, FrmSurface, 640, 480, 331, 32, CharScrnBackSurface, 0); //upper  char view win
+			sub_draw(79, 30, 292, 376, 158, 236, FrmSurface, 640, 480, 331, 195, CharScrnBackSurface, 0); //lower  char view win
+			UnloadFrm(FrmObj);
 
-		//Sexoff Frm
-		FrmSurface = GetFrmSurface(LoadFrm(6, 188), 0, 0, &FrmObj);
-		//Sex button mask frm
-		FrmMaskSurface = GetFrmSurface(LoadFrm(6, 187), 0, 0, &FrmMaskObj);
+			//Sexoff Frm
+			FrmSurface = GetFrmSurface(LoadFrm(6, 188), 0, 0, &FrmObj);
+			//Sex button mask frm
+			FrmMaskSurface = GetFrmSurface(LoadFrm(6, 187), 0, 0, &FrmMaskObj);
 
-		sub_draw(80, 28, 80, 32, 0, 0, FrmMaskSurface, 80, 32, 0, 0, FrmSurface, 0x39); //mask for style and race buttons
-		UnloadFrm(FrmMaskObj);
-		FrmMaskSurface = NULL;
+			sub_draw(80, 28, 80, 32, 0, 0, FrmMaskSurface, 80, 32, 0, 0, FrmSurface, 0x39); //mask for style and race buttons
+			UnloadFrm(FrmMaskObj);
+			FrmMaskSurface = NULL;
 
-		FrmSurface[80*32 - 1] = 0;
-		FrmSurface[80*31 - 1] = 0;
-		FrmSurface[80*30 - 1] = 0;
+			FrmSurface[80*32 - 1] = 0;
+			FrmSurface[80*31 - 1] = 0;
+			FrmSurface[80*30 - 1] = 0;
 
-		FrmSurface[80*32 - 2] = 0;
-		FrmSurface[80*31 - 2] = 0;
-		FrmSurface[80*30 - 2] = 0;
+			FrmSurface[80*32 - 2] = 0;
+			FrmSurface[80*31 - 2] = 0;
+			FrmSurface[80*30 - 2] = 0;
 
-		FrmSurface[80*32 - 3] = 0;
-		FrmSurface[80*31 - 3] = 0;
-		FrmSurface[80*30 - 3] = 0;
+			FrmSurface[80*32 - 3] = 0;
+			FrmSurface[80*31 - 3] = 0;
+			FrmSurface[80*30 - 3] = 0;
 
-		FrmSurface[80*32 - 4] = 0;
-		FrmSurface[80*31 - 4] = 0;
-		FrmSurface[80*30 - 4] = 0;
+			FrmSurface[80*32 - 4] = 0;
+			FrmSurface[80*31 - 4] = 0;
+			FrmSurface[80*30 - 4] = 0;
 
-		sub_draw(80, 32, 80, 32, 0, 0, FrmSurface, 640, 480, 332, 0, CharScrnBackSurface, 0); //style and race buttons
-		sub_draw(80, 32, 80, 32, 0, 0, FrmSurface, 640, 480, 332, 225, CharScrnBackSurface, 0); //style and race buttons
-		UnloadFrm(FrmObj);
+			sub_draw(80, 32, 80, 32, 0, 0, FrmSurface, 640, 480, 332, 0, CharScrnBackSurface, 0); //style and race buttons
+			sub_draw(80, 32, 80, 32, 0, 0, FrmSurface, 640, 480, 332, 225, CharScrnBackSurface, 0); //style and race buttons
+			UnloadFrm(FrmObj);
 
-		//frm background for char screen Appearance button
-		FrmSurface = GetFrmSurface(LoadFrm(6, 174), 0, 0, &FrmObj); //Pickchar frm
-		sub_draw(69, 20, 640, 480, 282, 320, FrmSurface, 640, 480, 337, 37, CharScrnBackSurface, 0); //button backround top
-		sub_draw(69, 20, 640, 480, 282, 320, FrmSurface, 640, 480, 337, 199, CharScrnBackSurface, 0); //button backround bottom
-		sub_draw(47, 16, 640, 480, 94, 394, FrmSurface, 640, 480, 347, 39, CharScrnBackSurface, 0); //cover buttons pics top
-		sub_draw(47, 16, 640, 480, 94, 394, FrmSurface, 640, 480, 347, 201, CharScrnBackSurface, 0); //cover buttons pics bottom
-		UnloadFrm(FrmObj);
-		FrmSurface = NULL;
+			//frm background for char screen Appearance button
+			FrmSurface = GetFrmSurface(LoadFrm(6, 174), 0, 0, &FrmObj); //Pickchar frm
+			sub_draw(69, 20, 640, 480, 282, 320, FrmSurface, 640, 480, 337, 37, CharScrnBackSurface, 0); //button backround top
+			sub_draw(69, 20, 640, 480, 282, 320, FrmSurface, 640, 480, 337, 199, CharScrnBackSurface, 0); //button backround bottom
+			sub_draw(47, 16, 640, 480, 94, 394, FrmSurface, 640, 480, 347, 39, CharScrnBackSurface, 0); //cover buttons pics top
+			sub_draw(47, 16, 640, 480, 94, 394, FrmSurface, 640, 480, 347, 201, CharScrnBackSurface, 0); //cover buttons pics bottom
+			UnloadFrm(FrmObj);
+			FrmSurface = NULL;
+		}
 
 		int oldFont;
 		oldFont = GetFont();
