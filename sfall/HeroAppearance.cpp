@@ -2151,8 +2151,8 @@ static void __declspec(naked) FixCharScrnBack(void) {
 		mov esp, ebp //epilog
 		pop ebp
 		mov eax, CharScrnBackSurface
-EndFunc:
 		mov dword ptr ds:[_bckgnd], eax //surface ptr for char scrn back
+EndFunc:
 		retn
 	}
 }
