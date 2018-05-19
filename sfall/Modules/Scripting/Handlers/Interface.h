@@ -89,5 +89,7 @@ void sf_set_cursor_mode(OpcodeContext&);
 
 void sf_display_stats(OpcodeContext&);
 
+void sf_set_iface_tag_text(OpcodeContext&);
+
 }
 }
