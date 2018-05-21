@@ -240,6 +240,7 @@
 #define set_cursor_mode(mode)                 sfall_func1("set_cursor_mode", mode)
 #define set_dude_obj(critter)                 sfall_func1("set_dude_obj", critter)
 #define set_flags(obj, flags)                 sfall_func2("set_flags", obj, flags)
+#define set_iface_tag_text(tagId, text, clr)  sfall_func3("set_iface_tag_text", tagId, text, clr)
 #define set_ini_setting(setting, value)       sfall_func2("set_ini_setting", setting, value)
 #define set_map_enter_position(tile, elev, rot) sfall_func3("set_map_enter_position", tile, elev, rot)
 #define set_outline(obj, color)               sfall_func2("set_outline", obj, color)

@@ -453,7 +453,17 @@ void sf_set_cursor_mode(OpcodeContext& ctx) {
 void sf_display_stats(OpcodeContext& ctx) {
 // calling the function outside of inventory screen will crash the game
 	if (GetLoopFlags() & INVENTORY) {
-		__asm call fo::funcoffs::display_stats_
+		fo::func::display_stats();
+	}
+}
+
+void sf_set_iface_tag_text(OpcodeContext& ctx) {
+	int boxTag = ctx.arg(0).asInt();
+
+	if (boxTag > 4 && boxTag < 10) {
+		BarBoxes::SetText(boxTag, ctx.arg(1).asString(), ctx.arg(2).asInt());
+	} else {
+		ctx.printOpcodeError("set_iface_tag_text: value of TagId should be range from 5 to 9.");
 	}
 }
 

@@ -191,6 +191,11 @@ VAR_(world_ypos,                 DWORD)
 VAR_(WorldMapCurrArea,           DWORD)
 VAR_(YellowColor,                BYTE)
 
+VAR_(BlueColor,                  BYTE)
+VAR_(GoodColor,                  BYTE)
+VAR_(PeanutButter,               BYTE)
+VAR_(WhiteColor,                 BYTE)
+
 #undef VAR_
 #undef VARP
 #undef VARA

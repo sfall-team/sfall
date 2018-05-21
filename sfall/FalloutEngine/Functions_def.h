@@ -30,6 +30,7 @@ WRAP_WATCOM_FUNC3(long, db_freadShortCount, DbFile*, file, WORD*, dest, long, co
 WRAP_WATCOM_FUNC3(long, db_freadIntCount, DbFile*, file, DWORD*, dest, long, count)
 WRAP_WATCOM_FUNC2(long, db_fwriteByte, DbFile*, file, long, value)
 WRAP_WATCOM_FUNC2(long, db_fwriteInt, DbFile*, file, long, value)
+WRAP_WATCOM_FUNC0(void, display_stats)
 // perform combat turn for a given critter
 WRAP_WATCOM_FUNC2(long, combat_turn, GameObject*, critter, long, isDudeTurn)
 WRAP_WATCOM_FUNC1(long, critter_is_dead, GameObject*, critter)

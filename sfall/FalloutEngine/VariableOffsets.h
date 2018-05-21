@@ -195,3 +195,8 @@
 #define FO_VAR_world_ypos                 0x672E10
 #define FO_VAR_WorldMapCurrArea           0x672E08
 #define FO_VAR_YellowColor                0x6AB8BB
+
+#define FO_VAR_BlueColor                  0x6A38EF
+#define FO_VAR_GoodColor                  0x6AB4EF
+#define FO_VAR_PeanutButter               0x6A82F3
+#define FO_VAR_WhiteColor                 0x6AB8CF
