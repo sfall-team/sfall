@@ -476,6 +476,12 @@ Some utility/math functions are available:
 > int sfall_func0("attack_is_aimed")
 - returns 1 if the aimed attack mode is selected, 0 otherwise
 
+> void sfall_func3("set_iface_tag_text", int tag, string text, int color)
+- sets the text messages and colors for custom notification boxes to the interface without the need to add messages to intrface.msg and set up the font colors in ddraw.ini
+- tag value is the same as used in show_iface_tag, hide_iface_tag, and is_iface_tag_active. The valid range is from 5 to 9 (custom boxes)
+- The text is limited to 19 characters
+- available colors: 0 - green, 1 - red, 2 - white, 3 - yellow, 4 - dark yellow, 5 - blue, 6 - purple
+
 ------------------------
 ------ MORE INFO -------
 ------------------------

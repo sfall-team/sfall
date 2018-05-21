@@ -14,6 +14,7 @@
 #define FO_VAR_art_vault_person_nums      0x5108A8
 #define FO_VAR_bckgnd                     0x5707A4
 #define FO_VAR_black_palette              0x663FD0
+#define FO_VAR_BlueColor                  0x6A38EF
 #define FO_VAR_bottom_line                0x664524
 #define FO_VAR_btable                     0x59E944
 #define FO_VAR_btncnt                     0x43EA1C
@@ -61,6 +62,7 @@
 #define FO_VAR_glblmode                   0x5709D0
 #define FO_VAR_gmouse_current_cursor      0x518C0C
 #define FO_VAR_gmovie_played_list         0x596C78
+#define FO_VAR_GoodColor                  0x6AB4EF
 #define FO_VAR_GreenColor                 0x6A3CB0
 #define FO_VAR_gsound_initialized         0x518E30
 #define FO_VAR_hit_location_penalty       0x510954
@@ -136,6 +138,7 @@
 #define FO_VAR_pc_proto                   0x51C370
 #define FO_VAR_pc_trait                   0x66BE40
 #define FO_VAR_pc_trait2                  0x66BE44
+#define FO_VAR_PeanutButter               0x6A82F3
 #define FO_VAR_perk_data                  0x519DCC
 #define FO_VAR_perkLevelDataList          0x51C120
 #define FO_VAR_pip_win                    0x6644C4
@@ -187,6 +190,7 @@
 #define FO_VAR_trait_data                 0x51DB84
 #define FO_VAR_view_page                  0x664520
 #define FO_VAR_wd_obj                     0x59E98C
+#define FO_VAR_WhiteColor                 0x6AB8CF
 #define FO_VAR_wmAreaInfoList             0x51DDF8
 #define FO_VAR_wmLastRndTime              0x51DEA0
 #define FO_VAR_wmWorldOffsetX             0x51DE2C
@@ -195,8 +199,3 @@
 #define FO_VAR_world_ypos                 0x672E10
 #define FO_VAR_WorldMapCurrArea           0x672E08
 #define FO_VAR_YellowColor                0x6AB8BB
-
-#define FO_VAR_BlueColor                  0x6A38EF
-#define FO_VAR_GoodColor                  0x6AB4EF
-#define FO_VAR_PeanutButter               0x6A82F3
-#define FO_VAR_WhiteColor                 0x6AB8CF

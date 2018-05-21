@@ -22,14 +22,14 @@
 
 #include "BarBoxes.h"
 
-namespace sfall 
+namespace sfall
 {
 
 static const DWORD DisplayBoxesRet1 = 0x4615A8;
 static const DWORD DisplayBoxesRet2 = 0x4615BE;
 static const DWORD SetIndexBoxRet   = 0x4612E8;
 
-#define sSize    12
+#define sSize    (12)
 struct sBox {
 	DWORD msg;
 	DWORD colour;
@@ -38,7 +38,7 @@ struct sBox {
 static sBox boxes[10];
 static DWORD boxesEnabled[5];
 
-#define tSize    28
+#define tSize    (28)
 struct tBox {
 	DWORD hasText;
 	DWORD color;
@@ -48,6 +48,10 @@ static tBox boxText[5];
 
 static DWORD clrBakup[5];
 static bool setCustomBoxText;
+
+static const DWORD bboxMemAddr[] = {
+	0x461266, 0x4612AC, 0x461374, 0x4613E8, 0x461479, 0x46148C, 0x4616BB,
+};
 
 static void __declspec(naked) DisplayBoxesHook() {
 	__asm {
@@ -73,22 +77,22 @@ fail:
 
 static void __declspec(naked) BarBoxesTextHack() {
 	__asm {
-		//mov ecx, [esp+0x440-0x1C];
-		push ecx;                  // ecx = BoxIndex
+		//mov ecx, [esp + 0x440 - 0x1C];
+		push ecx;                      // ecx = BoxIndex
 		sub ecx, 5;
 		imul ecx, tSize;
-		cmp boxText[ecx], 1;       // .hasText
+		cmp boxText[ecx], 1;           // .hasText
 		jnz end;
 		// get color
-		mov ebx, boxText[ecx+4];   // .color
+		mov ebx, boxText[ecx + 4];     // .color
 		// set text
-		lea eax, [boxText+ecx+8];  // .text
+		lea eax, [boxText + ecx + 8];  // .text
 		// set color
 		pop ecx;
 		imul ecx, sSize;
-		cmp boxes[ecx+4], 2;       // .colour
+		cmp boxes[ecx + 4], 2;         // .colour
 		jb skip;
-		mov [esp+0x440-0x20], ebx; // Color
+		mov [esp + 0x440 - 0x20], ebx; // Color
 skip:
 		retn;
 end:
@@ -114,6 +118,23 @@ static void ReconstructBarBoxes() {
 	}
 }
 
+static void ResetBoxes() {
+	for (int i = 0; i < 5; i++) {
+		boxesEnabled[i] = 0;
+		boxes[i + 5].colour = clrBakup[i];
+	}
+
+	if (!setCustomBoxText) return;
+
+	//Restore boxes
+	SafeWrite32(0x461343, 0x00023D05); // call getmsg_
+	ReconstructBarBoxes();
+	SafeWrite8(0x461243, 0x31);
+	SafeWrite32(0x461244, 0x249489D2);
+
+	setCustomBoxText = false;
+}
+
 void BarBoxes::SetText(int box, const char* text, DWORD color) {
 	boxes[box].colour = color;
 	box -= 5;
@@ -122,28 +143,28 @@ void BarBoxes::SetText(int box, const char* text, DWORD color) {
 
 	DWORD clr;
 	switch (color) {
-		case 2:  
-			clr = fo::var::WhiteColor;
-			break;  
-		case 3:  
-			clr = fo::var::YellowColor;
-			break;
-		case 4:  
-			clr = fo::var::PeanutButter;
-			break;
-		case 5:  
-			clr = fo::var::BlueColor;
-			break;
-		case 6:
-			clr = fo::var::GoodColor;
-			break;
-		default:
-			clr = fo::var::GreenColor;
+	case 2:
+		clr = fo::var::WhiteColor;
+		break;
+	case 3:
+		clr = fo::var::YellowColor;
+		break;
+	case 4:
+		clr = fo::var::PeanutButter;
+		break;
+	case 5:
+		clr = fo::var::BlueColor;
+		break;
+	case 6:
+		clr = fo::var::GoodColor;
+		break;
+	default:
+		clr = fo::var::GreenColor;
 	}
 	boxText[box].color = clr;
 
 	int enabled[5];
-	for (int i = 0; i < 5; i++) { 
+	for (int i = 0; i < 5; i++) {
 		enabled[i] = boxesEnabled[i];
 		boxesEnabled[i] = 0;
 	}
@@ -159,32 +180,13 @@ void BarBoxes::SetText(int box, const char* text, DWORD color) {
 	for (int i = 0; i < 5; i++) {
 		boxesEnabled[i] = enabled[i];
 	}
-	__asm call refresh_box_bar_win_;
-}
-
-static void ResetBoxes() {
-	for (int i = 0; i < 5; i++) {
-		boxesEnabled[i] = 0;
-		boxes[i + 5].colour = clrBakup[i];
-	}
-
-	if (!setCustomBoxText) return;
-
-	//Restore boxes
-	SafeWrite32(0x461343, 0x23D05);  // call
-	ReconstructBarBoxes();
-	SafeWrite8(0x461243, 0x31);
-	SafeWrite32(0x461244, 0x249489D2);
-
-	setCustomBoxText = false;
+	__asm call fo::funcoffs::refresh_box_bar_win_;
 }
 
 void BarBoxes::init() {
-	DWORD addr[] = {0x461266, 0x4612AC, 0x461374, 0x4613E8, 0x461479, 0x46148C, 0x4616BB};
-	for (int i = 0; i < 7; i++)
-		SafeWrite32(addr[i], (DWORD)boxes + 8); //.mem
-	SafeWrite32(0x4612FE, (DWORD)boxes + 4);    //.colour
-	SafeWrite32(0x46133C, (DWORD)boxes);        //.msg
+	SafeWriteBatch<DWORD>((DWORD)boxes + 8, bboxMemAddr); //.mem
+	SafeWrite32(0x4612FE, (DWORD)boxes + 4); //.colour
+	SafeWrite32(0x46133C, (DWORD)boxes);     //.msg
 
 	int size = sSize * 10;
 	memset(boxes, 0, size);
@@ -206,8 +208,9 @@ void BarBoxes::init() {
 			if (boxBarColors[i] == '1') {
 				boxes[i + 5].colour = 1;
 				clrBakup[i] = 1;
-			} else
+			} else {
 				clrBakup[i] = 0;
+			}
 		}
 	}
 
@@ -228,4 +231,5 @@ void _stdcall RemoveBox(int i) {
 	if (i < 5 || i > 9) return;
 	boxesEnabled[i - 5] = 0;
 }
+
 }

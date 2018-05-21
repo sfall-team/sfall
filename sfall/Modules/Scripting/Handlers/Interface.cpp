@@ -463,7 +463,7 @@ void sf_set_iface_tag_text(OpcodeContext& ctx) {
 	if (boxTag > 4 && boxTag < 10) {
 		BarBoxes::SetText(boxTag, ctx.arg(1).asString(), ctx.arg(2).asInt());
 	} else {
-		ctx.printOpcodeError("set_iface_tag_text: value of TagId should be range from 5 to 9.");
+		ctx.printOpcodeError("set_iface_tag_text() - tag value must be in the range of 5 to 9.");
 	}
 }
 
