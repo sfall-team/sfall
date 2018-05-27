@@ -374,7 +374,7 @@ static DWORD __fastcall GetWeaponSlotMode(DWORD itemPtr, DWORD mode) {
 	return mode;
 }
 
-static void __declspec(naked) display_weapon_range_hook() {
+static void __declspec(naked) display_stats_hook() {
 	__asm {
 		push eax;
 		push ecx;
@@ -671,6 +671,7 @@ void DisablePipboyAlarmPatch() {
 	if (GetConfigInt("Misc", "DisablePipboyAlarm", 0)) {
 		dlog("Applying Disable Pip-Boy alarm button patch.", DL_INIT);
 		SafeWrite8(0x499518, 0xC3);
+		SafeWrite8(0x443601, 0x0);
 		dlogr(" Done", DL_INIT);
 	}
 }
@@ -777,9 +778,9 @@ void DisableHorriganPatch() {
 }
 
 void DisplaySecondWeaponRangePatch() {
-	if (GetConfigInt("Misc", "ShowSecondWeaponRange", 1)) {
-		dlog("Applying show second weapon range patch.", DL_INIT);
-		HookCall(0x472201, display_weapon_range_hook);
+	if (GetConfigInt("Misc", "DisplaySecondWeaponRange", 1)) {
+		dlog("Applying display second weapon range patch.", DL_INIT);
+		HookCall(0x472201, display_stats_hook);
 		dlogr(" Done", DL_INIT);
 	}
 }
