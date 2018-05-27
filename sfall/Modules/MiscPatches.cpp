@@ -365,6 +365,28 @@ static void __declspec(naked) objCanSeeObj_ShootThru_Fix() {//(EAX *objStruct, E
 	}
 }
 
+static DWORD __fastcall GetWeaponSlotMode(DWORD itemPtr, DWORD mode) {
+	int slot = (mode > 0) ? 1 : 0;
+	auto itemButton = fo::var::itemButtonItems;
+	if ((DWORD)itemButton.vals[slot].item == itemPtr && (DWORD)itemButton.vals[slot].mode == 3) {
+		mode++;
+	}
+	return mode;
+}
+
+static void __declspec(naked) display_weapon_range_hook() {
+	__asm {
+		push eax;
+		push ecx;
+		mov ecx, ds:[esp + edi + 0xA8 + 0xC];   // get itemPtr
+		call GetWeaponSlotMode;                 // ecx - itemPtr, edx - mode;
+		mov edx, eax;
+		pop ecx;
+		pop eax;
+		jmp fo::funcoffs::item_w_range_;
+	}
+}
+
 static const DWORD EncounterTableSize[] = {
 	0x4BD1A3, 0x4BD1D9, 0x4BD270, 0x4BD604, 0x4BDA14, 0x4BDA44, 0x4BE707,
 	0x4C0815, 0x4C0D4A, 0x4C0FD4,
@@ -754,6 +776,14 @@ void DisableHorriganPatch() {
 	}
 }
 
+void DisplaySecondWeaponRangePatch() {
+	if (GetConfigInt("Misc", "ShowSecondWeaponRange", 1)) {
+		dlog("Applying show second weapon range patch.", DL_INIT);
+		HookCall(0x472201, display_weapon_range_hook);
+		dlogr(" Done", DL_INIT);
+	}
+}
+
 void MiscPatches::init() {
 	mapName[64] = 0;
 	if (GetConfigString("Misc", "StartingMap", "", mapName, 64)) {
@@ -825,6 +855,7 @@ void MiscPatches::init() {
 	NumbersInDialoguePatch();
 	PipboyAvailableAtStartPatch();
 	DisableHorriganPatch();
+	DisplaySecondWeaponRangePatch();
 }
 
 void MiscPatches::exit() {
