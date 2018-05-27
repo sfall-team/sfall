@@ -104,10 +104,6 @@ static const DWORD offsetsC[] = {
 	0x4FE036,
 };
 
-static const DWORD origFuncPosA = 0x6C0200;
-static const DWORD origFuncPosB = 0x6C03B0;
-static const DWORD origFuncPosC = 0x6C0164;
-
 static const DWORD getLocalTimePos = 0x4FDF58;
 
 static const DWORD dinputPos = 0x50FB70;
@@ -118,6 +114,10 @@ static DWORD AddrGetLocalTime;
 
 static DWORD ViewportX;
 static DWORD ViewportY;
+
+static const DWORD GetDateAddr[] = {
+	0x4392F8, 0x443808, 0x47E127, 0x4975A2, 0x497712, 0x4979C9, 0x4C3CB5,
+};
 
 static const DWORD FastShotFixF1[] = {
 	0x478BB8, 0x478BC7, 0x478BD6, 0x478BEA, 0x478BF9, 0x478C08, 0x478C2F,
@@ -737,6 +737,28 @@ static void __declspec(naked) gdAddOptionStr_hack() {
 	}
 }
 
+static DWORD __fastcall GetWeaponSlotMode(DWORD itemPtr, DWORD mode) {
+	int slot = (mode > 0) ? 1 : 0;
+	DWORD* itemButton = ptr_itemButtonItems;
+	if (itemButton[slot * 6] == itemPtr && itemButton[(slot * 6) + 4] == 3) {
+		mode++;
+	}
+	return mode;
+}
+
+static void __declspec(naked) display_stats_hook() {
+	__asm {
+		push eax;
+		push ecx;
+		mov ecx, ds:[esp + edi + 0xA8 + 0xC];   // get itemPtr
+		call GetWeaponSlotMode;                 // ecx - itemPtr, edx - mode;
+		mov edx, eax;
+		pop ecx;
+		pop eax;
+		jmp item_w_range_;
+	}
+}
+
 static void DllMain2() {
 	//SafeWrite8(0x4B15E8, 0xc3);
 	//SafeWrite8(0x4B30C4, 0xc3); //this is the one I need to override for bigger tiles
@@ -1036,13 +1058,9 @@ static void DllMain2() {
 		limit = -1;
 		AddUnarmedStatToGetYear = 1;
 
-		HookCall(0x4392F8, &GetDateWrapper);
-		HookCall(0x443808, &GetDateWrapper);
-		HookCall(0x47E127, &GetDateWrapper);
-		HookCall(0x4975A2, &GetDateWrapper);
-		HookCall(0x497712, &GetDateWrapper);
-		HookCall(0x4979C9, &GetDateWrapper);
-		HookCall(0x4C3CB5, &GetDateWrapper);
+		for (int i = 0; i < sizeof(GetDateAddr) / 4; i++) {
+			HookCall(GetDateAddr[i], &GetDateWrapper);
+		}
 		dlogr(" Done", DL_INIT);
 	}
 	if (limit <= 14 && limit >= -1 && limit != 13) {
@@ -1399,6 +1417,7 @@ static void DllMain2() {
 	if (GetPrivateProfileIntA("Misc", "DisablePipboyAlarm", 0, ini)) {
 		dlog("Applying Disable Pip-Boy alarm button patch.", DL_INIT);
 		SafeWrite8(0x499518, 0xC3);
+		SafeWrite8(0x443601, 0x0);
 		dlogr(" Done", DL_INIT);
 	}
 
@@ -1472,6 +1491,12 @@ static void DllMain2() {
 		SafeWrite32(0x446FE0, 0x2824448B);        // mov  eax, [esp+0x28]
 		SafeWrite8(0x446FE4, 0x50);               // push eax
 		MakeJump(0x4458F5, gdAddOptionStr_hack);
+		dlogr(" Done", DL_INIT);
+	}
+
+	if (GetPrivateProfileIntA("Misc", "DisplaySecondWeaponRange", 1, ini)) {
+		dlog("Applying display second weapon range patch.", DL_INIT);
+		HookCall(0x472201, &display_stats_hook);
 		dlogr(" Done", DL_INIT);
 	}
 
