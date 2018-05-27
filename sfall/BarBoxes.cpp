@@ -31,6 +31,10 @@ struct sBox {
 static sBox boxes[10];
 static DWORD boxesEnabled[5];
 
+static const DWORD bboxMemAddr[] = {
+	0x461266, 0x4612AC, 0x461374, 0x4613E8, 0x461479, 0x46148C, 0x4616BB,
+};
+
 static void __declspec(naked) DisplayBoxesHook() {
 	__asm {
 		mov ebx, 0;
@@ -54,16 +58,11 @@ fail:
 }
 
 void BarBoxesInit() {
-	SafeWrite32(0x461266, (DWORD)boxes + 8);
-	SafeWrite32(0x4612AC, (DWORD)boxes + 8);
-	SafeWrite32(0x4612FE, (DWORD)boxes + 4);
-	SafeWrite32(0x46133C, (DWORD)boxes + 0);
-	SafeWrite32(0x461374, (DWORD)boxes + 8);
-	SafeWrite32(0x4613E8, (DWORD)boxes + 8);
-
-	SafeWrite32(0x461479, (DWORD)boxes + 8);
-	SafeWrite32(0x46148C, (DWORD)boxes + 8);
-	SafeWrite32(0x4616BB, (DWORD)boxes + 8);
+	for (int i = 0; i < sizeof(bboxMemAddr) / 4; i++) {
+		SafeWrite32(bboxMemAddr[i], (DWORD)boxes + 8); //.mem
+	}
+	SafeWrite32(0x4612FE, (DWORD)boxes + 4); //.colour
+	SafeWrite32(0x46133C, (DWORD)boxes + 0); //.msg
 
 	memset(boxes, 0, 12 * 10);
 	memset(boxesEnabled, 0, 5 * 4);
