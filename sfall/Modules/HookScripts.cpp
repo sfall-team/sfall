@@ -64,6 +64,14 @@ void _stdcall MouseClickHook(DWORD button, bool pressed) {
 	EndHook();
 }
 
+void _stdcall GameModeChangeHook(DWORD exit) {
+	BeginHook();
+	argCount = 1;
+	args[0] = exit;
+	RunHookScript(HOOK_GAMEMODECHANGE);
+	EndHook();
+}
+
 // END HOOKS
 
 DWORD _stdcall GetHSArgCount() {
@@ -122,6 +130,7 @@ static void HookScriptInit2() {
 
 	LoadHookScript("hs_keypress", HOOK_KEYPRESS);
 	LoadHookScript("hs_mouseclick", HOOK_MOUSECLICK);
+	LoadHookScript("hs_gamemodechange", HOOK_GAMEMODECHANGE);
 
 	dlogr("Finished loading hook scripts", DL_HOOK|DL_INIT);
 }
@@ -157,6 +166,7 @@ void _stdcall RunHookScriptsAtProc(DWORD procId) {
 void HookScripts::init() {
 	OnKeyPressed() += KeyPressHook;
 	OnMouseClick() += MouseClickHook;
+	LoadGameHook::OnGameModeChange() += GameModeChangeHook;
 }
 
 }

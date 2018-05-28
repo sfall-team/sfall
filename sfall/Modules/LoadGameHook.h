@@ -43,6 +43,9 @@ public:
 
 	// Invoked after new game has started
 	static Delegate<>& OnAfterNewGame();
+
+	// Invoked when the game mode is changed.
+	static Delegate<DWORD>& OnGameModeChange();
 };
 
 // True if some map was loaded, false when on the main menu

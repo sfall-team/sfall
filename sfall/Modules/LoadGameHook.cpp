@@ -37,11 +37,15 @@
 namespace sfall
 {
 
+#define _InLoop(type, flag)  _asm pushad _asm push flag _asm push type _asm call SetInLoop _asm popad
+#define _InLoop2(type, flag) _asm push flag _asm push type _asm call SetInLoop
+
 static Delegate<> onGameInit;
 static Delegate<> onGameReset;
 static Delegate<> onBeforeGameStart;
 static Delegate<> onAfterGameStarted;
 static Delegate<> onAfterNewGame;
+static Delegate<DWORD> onGameModeChange;
 
 static DWORD inLoop = 0;
 static DWORD saveInCombatFix;
@@ -54,11 +58,11 @@ bool IsMapLoaded() {
 }
 
 DWORD InWorldMap() {
-	return (inLoop&WORLDMAP) ? 1 : 0;
+	return (inLoop & WORLDMAP) ? 1 : 0;
 }
 
 DWORD InCombat() {
-	return (inLoop&COMBAT) ? 1 : 0;
+	return (inLoop & COMBAT) ? 1 : 0;
 }
 
 DWORD GetLoopFlags() {
@@ -71,6 +75,19 @@ void SetLoopFlag(LoopFlag flag) {
 
 void ClearLoopFlag(LoopFlag flag) {
 	inLoop &= ~flag;
+}
+
+static void __stdcall GameModeChange(DWORD state) {
+	onGameModeChange.invoke(state);
+}
+
+void _stdcall SetInLoop(DWORD mode, LoopFlag flag) {
+	if (mode) {
+		SetLoopFlag(flag);
+	} else {
+		ClearLoopFlag(flag);
+	}
+	GameModeChange(0);
 }
 
 void GetSavePath(char* buf, char* ftype) {
@@ -133,15 +150,16 @@ static void __declspec(naked) SaveGame_hook() {
 		push eax; // save Mode parameter
 		call CombatSaveTest;
 		test eax, eax;
-		pop edx; // recall Mode parameter
+		pop edx; // recall Mode parameter (pop eax)
 		jz end;
 		mov eax, edx;
 
-		or inLoop, SAVEGAME;
+		_InLoop(1, SAVEGAME);
 		call fo::funcoffs::SaveGame_;
-		and inLoop, (-1 ^ SAVEGAME);
+		_InLoop(0, SAVEGAME);
 		cmp eax, 1;
 		jne end;
+		// save sfall.sav
 		call SaveGame2;
 		mov eax, 1;
 end:
@@ -185,6 +203,11 @@ static void _stdcall GameReset(DWORD isGameLoad) {
 	if (isGameLoad) {
 		LoadGame_Before();
 	}
+
+	if (isDebug) {
+		char* str = (isGameLoad) ? "on Load" : "on Exit";
+		fo::func::debug_printf("n\[SFALL: State reset %s]", str);
+	}
 }
 
 // Called after game was loaded from a save
@@ -195,20 +218,21 @@ static void _stdcall LoadGame_After() {
 
 static void __declspec(naked) LoadGame_hook() {
 	__asm {
+		_InLoop(1, LOADGAME);
+		call fo::funcoffs::LoadGame_;
+		_InLoop(0, LOADGAME);
+		cmp eax, 1;
+		jne end;
+		// Invoked
 		push ebx;
 		push ecx;
 		push edx;
-		or inLoop, LOADGAME;
-		call fo::funcoffs::LoadGame_;
-		and inLoop, (-1 ^ LOADGAME);
-		cmp eax, 1;
-		jne end;
 		call LoadGame_After;
 		mov eax, 1;
-end:
 		pop edx;
 		pop ecx;
 		pop ebx;
+end:
 		retn;
 	}
 }
@@ -282,21 +306,31 @@ static void __declspec(naked) game_reset_on_load_hook() {
 	}
 }
 
+static void __declspec(naked) before_game_exit_hook() {
+	__asm {
+		pushad;
+		push 1;
+		call GameModeChange;
+		popad;
+		jmp fo::funcoffs::map_exit_;
+	}
+}
+
 static void __declspec(naked) WorldMapHook() {
 	__asm {
-		or inLoop, WORLDMAP;
+		_InLoop(1, WORLDMAP);
 		xor eax, eax;
 		call fo::funcoffs::wmWorldMapFunc_;
-		and inLoop, (-1 ^ WORLDMAP);
+		_InLoop(0, WORLDMAP);
 		retn;
 	}
 }
 
 static void __declspec(naked) WorldMapHook2() {
 	__asm {
-		or inLoop, WORLDMAP;
+		_InLoop(1, WORLDMAP);
 		call fo::funcoffs::wmWorldMapFunc_;
-		and inLoop, (-1 ^ WORLDMAP);
+		_InLoop(0, WORLDMAP);
 		retn;
 	}
 }
@@ -305,31 +339,31 @@ static void __declspec(naked) CombatHook() {
 	__asm {
 		pushad;
 		call AICombatStart;
-		popad
-		or inLoop, COMBAT;
+		_InLoop2(1, COMBAT);
+		popad;
 		call fo::funcoffs::combat_;
 		pushad;
 		call AICombatEnd;
-		popad
-		and inLoop, (-1 ^ COMBAT);
+		_InLoop2(0, COMBAT);
+		popad;
 		retn;
 	}
 }
 
 static void __declspec(naked) PlayerCombatHook() {
 	__asm {
-		or inLoop, PCOMBAT;
+		_InLoop(1, PCOMBAT);
 		call fo::funcoffs::combat_input_;
-		and inLoop, (-1 ^ PCOMBAT);
+		_InLoop(0, PCOMBAT);
 		retn;
 	}
 }
 
 static void __declspec(naked) EscMenuHook() {
 	__asm {
-		or inLoop, ESCMENU;
+		_InLoop(1, ESCMENU);
 		call fo::funcoffs::do_optionsFunc_;
-		and inLoop, (-1 ^ ESCMENU);
+		_InLoop(0, ESCMENU);
 		retn;
 	}
 }
@@ -337,35 +371,35 @@ static void __declspec(naked) EscMenuHook() {
 static void __declspec(naked) EscMenuHook2() {
 	//Bloody stupid watcom compiler optimizations...
 	__asm {
-		or inLoop, ESCMENU;
+		_InLoop(1, ESCMENU);
 		call fo::funcoffs::do_options_;
-		and inLoop, (-1 ^ ESCMENU);
+		_InLoop(0, ESCMENU);
 		retn;
 	}
 }
 
 static void __declspec(naked) OptionsMenuHook() {
 	__asm {
-		or inLoop, OPTIONS;
+		_InLoop(1, OPTIONS);
 		call fo::funcoffs::do_prefscreen_;
-		and inLoop, (-1 ^ OPTIONS);
+		_InLoop(0, OPTIONS);
 		retn;
 	}
 }
 
 static void __declspec(naked) HelpMenuHook() {
 	__asm {
-		or inLoop, HELP;
+		_InLoop(1, HELP);
 		call fo::funcoffs::game_help_;
-		and inLoop, (-1 ^ HELP);
+		_InLoop(0, HELP);
 		retn;
 	}
 }
 
 static void __declspec(naked) CharacterHook() {
 	__asm {
-		or inLoop, CHARSCREEN;
 		pushad;
+		_InLoop2(1, CHARSCREEN);
 		call PerksEnterCharScreen;
 		popad;
 		call fo::funcoffs::editor_design_;
@@ -377,81 +411,81 @@ static void __declspec(naked) CharacterHook() {
 success:
 		call PerksAcceptCharScreen;
 end:
+		_InLoop2(0, CHARSCREEN);
 		popad;
-		and inLoop, (-1 ^ CHARSCREEN);
 		retn;
 	}
 }
 
 static void __declspec(naked) DialogHook() {
 	__asm {
-		or inLoop, DIALOG;
+		_InLoop(1, DIALOG);
 		call fo::funcoffs::gdProcess_;
-		and inLoop, (-1 ^ DIALOG);
+		_InLoop(0, DIALOG);
 		retn;
 	}
 }
 
 static void __declspec(naked) PipboyHook() {
 	__asm {
-		or inLoop, PIPBOY;
+		_InLoop(1, PIPBOY);
 		call fo::funcoffs::pipboy_;
-		and inLoop, (-1 ^ PIPBOY);
+		_InLoop(0, PIPBOY);
 		retn;
 	}
 }
 
 static void __declspec(naked) SkilldexHook() {
 	__asm {
-		or inLoop, SKILLDEX;
+		_InLoop(1, SKILLDEX);
 		call fo::funcoffs::skilldex_select_;
-		and inLoop, (-1 ^ SKILLDEX);
+		_InLoop(0, SKILLDEX);
 		retn;
 	}
 }
 
 static void __declspec(naked) HandleInventoryHook() {
 	__asm {
-		or inLoop, INVENTORY;
+		_InLoop(1, INVENTORY);
 		call fo::funcoffs::handle_inventory_;
-		and inLoop, (-1 ^ INVENTORY);
+		_InLoop(0, INVENTORY);
 		retn;
 	}
 }
 
 static void __declspec(naked) UseInventoryOnHook() {
 	__asm {
-		or inLoop, INTFACEUSE;
+		_InLoop(1, INTFACEUSE);
 		call fo::funcoffs::use_inventory_on_;
-		and inLoop, (-1 ^ INTFACEUSE);
+		_InLoop(0, INTFACEUSE);
 		retn;
 	}
 }
 
 static void __declspec(naked) LootContainerHook() {
 	__asm {
-		or inLoop, INTFACELOOT;
+		_InLoop(1, INTFACELOOT);
 		call fo::funcoffs::loot_container_;
-		and inLoop, (-1 ^ INTFACELOOT);
+		_InLoop(0, INTFACELOOT);
 		retn;
 	}
 }
 
 static void __declspec(naked) BarterInventoryHook() {
 	__asm {
-		or inLoop, BARTER;
+		_InLoop(1, BARTER);
 		push [ESP + 4];
 		call fo::funcoffs::barter_inventory_;
-		and inLoop, (-1 ^ BARTER);
+		_InLoop(0, BARTER);
 		retn 4;
 	}
 }
 
 static void __declspec(naked) AutomapHook() {
 	__asm {
-		or inLoop, AUTOMAP;
+		_InLoop(1, AUTOMAP);
 		call fo::funcoffs::automap_;
-		and inLoop, (-1 ^ AUTOMAP);
+		_InLoop(0, AUTOMAP);
 		retn;
 	}
 }
@@ -471,10 +505,10 @@ void LoadGameHook::init() {
 	HookCalls(game_reset_hook, {
 				0x47DD6B, // LoadSlot_ (on error)
 				0x47DDF3, // LoadSlot_ (on error)
-				0x480708, // RestoreLoad_ (never called)
+				//0x480708, // RestoreLoad_ (never called)
 				0x480AD3, // gnw_main_ (game ended after playing via New Game)
 				0x480BCC, // gnw_main_ (game ended after playing via Load Game)
-				0x480D0C, // main_reset_system_ (never called)
+				//0x480D0C, // main_reset_system_ (never called)
 				0x481028, // main_selfrun_record_
 				0x481062, // main_selfrun_record_
 				0x48110B, // main_selfrun_play_
@@ -483,6 +517,7 @@ void LoadGameHook::init() {
 	HookCalls(game_reset_on_load_hook, {
 				0x47F491, // PrepLoad_ (the very first step during save game loading)
 			});
+	HookCalls(before_game_exit_hook, {0x480ACE, 0x480BC7});
 
 	HookCalls(WorldMapHook, {0x483668, 0x4A4073});
 	HookCalls(WorldMapHook2, {0x4C4855});
@@ -526,4 +561,7 @@ Delegate<>& LoadGameHook::OnAfterNewGame() {
 	return onAfterNewGame;
 }
 
+Delegate<DWORD>& LoadGameHook::OnGameModeChange() {
+	return onGameModeChange;
+}
 }
