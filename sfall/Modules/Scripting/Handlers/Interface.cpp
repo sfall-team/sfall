@@ -114,20 +114,13 @@ void __declspec(naked) op_get_mouse_y() {
 	}
 }
 
-void __declspec(naked) op_get_mouse_buttons() {
-	__asm {
-		push ecx;
-		push edx;
-		mov ecx, eax;
-		mov edx, ds:[FO_VAR_last_buttons];
-		call fo::funcoffs::interpretPushLong_;
-		mov eax, ecx;
-		mov edx, VAR_TYPE_INT;
-		call fo::funcoffs::interpretPushShort_
-		pop edx;
-		pop ecx;
-		retn;
+#define MOUSE_MIDDLE_BTN        (4)
+void sf_get_mouse_buttons(OpcodeContext& ctx) {
+	DWORD button = fo::var::last_buttons;
+	if (button == 0 && middleMouseDown) {
+		button = MOUSE_MIDDLE_BTN;
 	}
+	ctx.setReturn(button);
 }
 
 void __declspec(naked) op_get_window_under_mouse() {

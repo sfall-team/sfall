@@ -83,12 +83,13 @@ static SfallOpcodeInfo opcodeInfoArray[] = {
 	{0x218, "set_weapon_ammo_pid", sf_set_weapon_ammo_pid, 2, false, {ARG_OBJECT, ARG_INT}},
 	{0x219, "get_weapon_ammo_count", sf_get_weapon_ammo_count, 1, true, {ARG_OBJECT}},
 	{0x21a, "set_weapon_ammo_count", sf_set_weapon_ammo_count, 2, false, {ARG_OBJECT, ARG_INT}},
+	{0x21e, "get_mouse_buttons", sf_get_mouse_buttons, 0, true},
 
 	{0x22d, "create_array", sf_create_array, 2, true, {ARG_INT, ARG_INT}},
 	{0x22e, "set_array", sf_set_array, 3, false, {ARG_OBJECT, ARG_ANY, ARG_ANY}},
 	{0x22f, "get_array", sf_get_array, 2, true, {ARG_ANY, ARG_ANY}}, // can also be used on strings
 	{0x230, "free_array", sf_free_array, 1, false, {ARG_OBJECT}},
-	{0x231, "len_array", sf_len_array, 1, true, {ARG_OBJECT}},
+	{0x231, "len_array", sf_len_array, 1, true, {ARG_INT}},
 	{0x232, "resize_array", sf_resize_array, 2, false, {ARG_OBJECT, ARG_INT}},
 	{0x233, "temp_array", sf_temp_array, 2, true, {ARG_INT, ARG_INT}},
 	{0x234, "fix_array", sf_fix_array, 1, false, {ARG_INT}},
@@ -375,7 +376,6 @@ void InitNewOpcodes() {
 	}
 	opcodes[0x21c] = op_get_mouse_x;
 	opcodes[0x21d] = op_get_mouse_y;
-	opcodes[0x21e] = op_get_mouse_buttons;
 	opcodes[0x21f] = op_get_window_under_mouse;
 	opcodes[0x220] = op_get_screen_width;
 	opcodes[0x221] = op_get_screen_height;
