@@ -1280,7 +1280,7 @@ static void DllMain2() {
 	if (KarmaFrmCount) {
 		KarmaFrms = new DWORD[KarmaFrmCount];
 		KarmaPoints = new int[KarmaFrmCount - 1];
-		dlog("Applying karma frm patch.", DL_INIT);
+		dlog("Applying karma FRM patch.", DL_INIT);
 		char buf[512];
 		GetPrivateProfileStringA("Misc", "KarmaFRMs", "", buf, 512, ini);
 		char *ptr = buf, *ptr2;
