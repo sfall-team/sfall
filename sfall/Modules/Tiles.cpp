@@ -27,28 +27,27 @@
 
 namespace sfall
 {
-
-#define _OBJ_TYPE_TILE	        (4)
+using namespace fo;
 
 static const DWORD Tiles_0E[] = {
 	0x484255, 0x48429D, 0x484377, 0x484385, 0x48A897, 0x48A89A, 0x4B2231,
-	0x4B2374, 0x4B2381, 0x4B2480, 0x4B248D, 0x4B2A7C, 0x4B2BDA
+	0x4B2374, 0x4B2381, 0x4B2480, 0x4B248D, 0x4B2A7C, 0x4B2BDA,
 };
 
 static const DWORD Tiles_3F[] = {
 	0x41875D, 0x4839E6, 0x483A2F, 0x484380, 0x48A803, 0x48A9F2, 0x48C96C,
 	0x48C99F, 0x48C9D2, 0x4B2247, 0x4B2334, 0x4B2440, 0x4B2AB9, 0x4B2B8F,
-	0x4B2BF4, 0x1000E1DA
+	0x4B2BF4,
 };
 
 static const DWORD Tiles_40[] = {
 	0x48C941, 0x48C955, 0x48CA5F, 0x48CA71, 0x48CA9B, 0x48CAAD, 0x48CADB,
-	0x48CAEB, 0x48CAF7, 0x48CB20, 0x48CB32, 0x48CB61, 0x1000E1C0
+	0x48CAEB, 0x48CAF7, 0x48CB20, 0x48CB32, 0x48CB61,
 };
 
 static const DWORD Tiles_C0[] = {
 	0x48424E, 0x484296, 0x484372, 0x48A88D, 0x48A892, 0x4B222C, 0x4B236F,
-	0x4B247B, 0x4B2A77, 0x4B2BD5
+	0x4B247B, 0x4B2A77, 0x4B2BD5,
 };
 
 struct OverrideEntry {
@@ -244,7 +243,7 @@ end:
 
 static void __declspec(naked) art_id_hack() {
 	__asm {
-		cmp  esi, (_OBJ_TYPE_TILE << 24); //0x4000000
+		cmp  esi, (OBJ_TYPE_TILE << 24); // 0x4000000
 		jne  end;
 		and  eax, 0x3FFF;
 		retn;
@@ -257,7 +256,7 @@ end:
 static void __declspec(naked) art_get_name_hack() {
 	__asm {
 		sar  eax, 24;
-		cmp  eax, _OBJ_TYPE_TILE;
+		cmp  eax, OBJ_TYPE_TILE;
 		jne  end;
 		mov  esi, edx;
 		mov  ebp, edx;
@@ -273,19 +272,25 @@ end:
 void Tiles::init() {
 	tileMode = GetConfigInt("Misc", "AllowLargeTiles", 0);
 	if (tileMode) {
+		dlog("Applying allow large tiles patch.", DL_INIT);
 		HookCall(0x481D72, &ArtInitHook);
 		HookCall(0x48434C, SquareLoadHook);
+		dlogr(" Done", DL_INIT);
 	}
 
 	if (GetConfigInt("Misc", "MoreTiles", 0)) {
+		dlog("Applying tile FRM limit patch.", DL_INIT);
+		MakeCall(0x419D46, art_id_hack);
+		MakeCall(0x419479, art_get_name_hack);
+		SafeWriteBatch<BYTE>(0x0E, Tiles_0E);
+		SafeWriteBatch<BYTE>(0x3F, Tiles_3F);
+		SafeWriteBatch<BYTE>(0x40, Tiles_40);
+		SafeWriteBatch<BYTE>(0xC0, Tiles_C0);
 		if (*(long*)0x1000E1BF == 0x1000 && *(long*)0x1000E1D9 == 0x0FFF) { // Check HRP 4.1.8
-			MakeCall(0x419D46, art_id_hack);
-			MakeCall(0x419479, art_get_name_hack);
-			SafeWriteBatch<BYTE>(0x0E, Tiles_0E);
-			SafeWriteBatch<BYTE>(0x3F, Tiles_3F);
-			SafeWriteBatch<BYTE>(0x40, Tiles_40);
-			SafeWriteBatch<BYTE>(0xC0, Tiles_C0);
+			SafeWrite8(0x1000E1C0, 0x40);
+			SafeWrite8(0x1000E1DA, 0x3F);
 		}
+		dlogr(" Done", DL_INIT);
 	}
 }
 

@@ -293,13 +293,15 @@ void TimeLimitPatch() {
 		limit = -1;
 		addUnarmedStatToGetYear = 1;
 
-		HookCall(0x4392F8, &GetDateWrapper);
-		HookCall(0x443808, &GetDateWrapper);
-		HookCall(0x47E127, &GetDateWrapper);
-		HookCall(0x4975A2, &GetDateWrapper);
-		HookCall(0x497712, &GetDateWrapper);
-		HookCall(0x4979C9, &GetDateWrapper);
-		HookCall(0x4C3CB5, &GetDateWrapper);
+		HookCalls(GetDateWrapper, {
+			0x4392F8,
+			0x443808,
+			0x47E127,
+			0x4975A2,
+			0x497712,
+			0x4979C9,
+			0x4C3CB5
+		});
 		dlogr(" Done", DL_INIT);
 	}
 
