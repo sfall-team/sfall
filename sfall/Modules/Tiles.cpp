@@ -125,7 +125,7 @@ static int ProcessTile(fo::Art* tiles, int tile, int listpos) {
 			for (int y2 = 0; y2 < 36; y2++) {
 				for (int x2 = 0; x2 < 80; x2++) {
 					if (mask[y2 * 80 + x2]) {
-						frame.pixels[y2 * 80 + x2] = pixeldata[(yoffset + y2)*width + xoffset + x2];
+						frame.pixels[y2 * 80 + x2] = pixeldata[(yoffset + y2) * width + xoffset + x2];
 					} else {
 						frame.pixels[y2 * 80 + x2] = 0;
 					}
@@ -211,7 +211,7 @@ static void _stdcall SquareLoadCheck(tilestruct* data) {
 		for (DWORD x = 0; x < 100; x++) {
 			for (DWORD z = 0; z < 2; z++) {
 				DWORD tile = data[y * 100 + x].tile[z];
-				if (tile > 1 && tile < origTileCount&&overrides[tile]) {
+				if (tile > 1 && tile < origTileCount && overrides[tile]) {
 					DWORD newtile = overrides[tile]->replacementid - 1;
 					for (DWORD y2 = 0; y2 < overrides[tile]->ytiles; y2++) {
 						for (DWORD x2 = 0; x2 < overrides[tile]->xtiles; x2++) {

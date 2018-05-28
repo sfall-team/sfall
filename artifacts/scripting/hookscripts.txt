@@ -498,3 +498,11 @@ int     arg3 - the hour part of the length of resting time
 int     arg4 - the minute part of the length of resting time
 
 int     ret1 - pass 1 to interrupt the resting
+
+-------------------------------------------
+
+HOOK_GAMEMODECHANGE (hs_gamemodechange.int)
+
+Runs once every time when the game mode was changed, like opening/closing the inventory, character screen, pipboy, etc.
+
+int     arg1 - event type: 1 - when the player exits the game, 0 - otherwise

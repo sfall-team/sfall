@@ -37,8 +37,16 @@
 namespace sfall
 {
 
-#define _InLoop(type, flag)  _asm pushad _asm push flag _asm push type _asm call SetInLoop _asm popad
-#define _InLoop2(type, flag) _asm push flag _asm push type _asm call SetInLoop
+#define _InLoop(type, flag) __asm { \
+	_asm pushad \
+	_asm push flag \
+	_asm push type \
+	_asm call SetInLoop \
+	_asm popad }
+#define _InLoop2(type, flag) __asm { \
+	_asm push flag \
+	_asm push type \
+	_asm call SetInLoop }
 
 static Delegate<> onGameInit;
 static Delegate<> onGameReset;
@@ -206,7 +214,7 @@ static void _stdcall GameReset(DWORD isGameLoad) {
 
 	if (isDebug) {
 		char* str = (isGameLoad) ? "on Load" : "on Exit";
-		fo::func::debug_printf("n\[SFALL: State reset %s]", str);
+		fo::func::debug_printf("\n[SFALL: State reset %s]\n", str);
 	}
 }
 
@@ -564,4 +572,5 @@ Delegate<>& LoadGameHook::OnAfterNewGame() {
 Delegate<DWORD>& LoadGameHook::OnGameModeChange() {
 	return onGameModeChange;
 }
+
 }
