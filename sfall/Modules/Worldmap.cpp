@@ -225,6 +225,14 @@ static __declspec(naked) void PathfinderFix() {
 	}
 }
 
+static void __declspec(naked) wmInterfaceInit_text_font_hook() {
+	__asm {
+		mov  eax, 0x65; // normal text font
+		call fo::funcoffs::text_font_;
+		retn;
+	}
+}
+
 static void RestRestore() {
 	if (!restMode) return;
 
@@ -421,6 +429,14 @@ void StartingStatePatches() {
 	}
 }
 
+void WorldMapFontPatch() {
+	if (GetConfigInt("Misc", "WorldMapFont", 0)) {
+		dlog("Applying world map font patch.", DL_INIT);
+		HookCall(0x4C2343, wmInterfaceInit_text_font_hook);
+		dlogr(" Done", DL_INIT);
+	}
+}
+
 void Worldmap::init() {
 	PathfinderFixInit();
 	StartingStatePatches();
@@ -428,6 +444,7 @@ void Worldmap::init() {
 	TownMapsHotkeyFix();
 	WorldLimitsPatches();
 	WorldmapFpsPatch();
+	WorldMapFontPatch();
 
 	LoadGameHook::OnGameReset() += []() {
 		SetCarInterfaceArt(0x1B1);
