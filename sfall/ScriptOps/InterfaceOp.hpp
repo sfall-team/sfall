@@ -101,72 +101,79 @@ end:
 
 //// *** From helios *** ////
 static void __declspec(naked) get_mouse_x() {
-   __asm {
-	  push ecx;
-	  push edx;
-	  mov ecx, eax;
-	  mov edx, ds:[_mouse_x_];
-	  add edx, ds:[_mouse_hotx];
-	  call interpretPushLong_;
-	  mov eax, ecx;
-	  mov edx, VAR_TYPE_INT;
-	  call interpretPushShort_
-	  pop edx;
-	  pop ecx;
-	  retn;
-   }
+	__asm {
+		push ecx;
+		push edx;
+		mov ecx, eax;
+		mov edx, ds:[_mouse_x_];
+		add edx, ds:[_mouse_hotx];
+		call interpretPushLong_;
+		mov eax, ecx;
+		mov edx, VAR_TYPE_INT;
+		call interpretPushShort_
+		pop edx;
+		pop ecx;
+		retn;
+	}
 }
 
 //Return mouse y position
 static void __declspec(naked) get_mouse_y() {
-   __asm {
-	  push ecx;
-	  push edx;
-	  mov ecx, eax;
-	  mov edx, ds:[_mouse_y_];
-	  add edx, ds:[_mouse_hoty];
-	  call interpretPushLong_;
-	  mov eax, ecx;
-	  mov edx, VAR_TYPE_INT;
-	  call interpretPushShort_
-	  pop edx;
-	  pop ecx;
-	  retn;
-   }
+	__asm {
+		push ecx;
+		push edx;
+		mov ecx, eax;
+		mov edx, ds:[_mouse_y_];
+		add edx, ds:[_mouse_hoty];
+		call interpretPushLong_;
+		mov eax, ecx;
+		mov edx, VAR_TYPE_INT;
+		call interpretPushShort_
+		pop edx;
+		pop ecx;
+		retn;
+	}
 }
 
-//Return pressed mouse button (1=left, 2=right, 3=left+right)
+//Return pressed mouse button (1=left, 2=right, 3=left+right, 4=middle)
 static void __declspec(naked) get_mouse_buttons() {
-   __asm {
-	  push ecx;
-	  push edx;
-	  mov ecx, eax;
-	  mov edx, ds:[_last_buttons];
-	  call interpretPushLong_;
-	  mov eax, ecx;
-	  mov edx, VAR_TYPE_INT;
-	  call interpretPushShort_
-	  pop edx;
-	  pop ecx;
-	  retn;
-   }
+	__asm {
+		push ecx;
+		push edx;
+		mov edx, ds:[_last_buttons];
+		test edx, edx;
+		jnz skip;
+		movzx ecx, MiddleMouseDown;
+		test ecx, ecx;
+		jz skip;
+		mov edx, 4;
+skip:
+		mov ecx, eax;
+		call interpretPushLong_;
+		mov eax, ecx;
+		mov edx, VAR_TYPE_INT;
+		call interpretPushShort_;
+		pop edx;
+		pop ecx;
+		retn;
+	}
 }
 
 //Return the window number under the mous
 static void __declspec(naked) get_window_under_mouse() {
-   __asm {
-	  push ecx;
-	  push edx;
-	  mov ecx, eax;
-	  mov edx, ds:[_last_button_winID];
-	  call interpretPushLong_;
-	  mov eax, ecx;
-	  mov edx, VAR_TYPE_INT;
-	  call interpretPushShort_
-	  pop edx;
-	  pop ecx;
-	  retn;
-   }
+	__asm {
+		push ecx;
+		push edx;
+		mov ecx, eax;
+		mov edx, ds:[_last_button_winID];
+		call interpretPushLong_;
+		mov eax, ecx;
+		mov edx, VAR_TYPE_INT;
+		call interpretPushShort_
+		pop edx;
+		pop ecx;
+		retn;
+	}
 }
 
 //Return screen width
@@ -205,67 +212,67 @@ static void __declspec(naked) get_screen_height() {
 
 //Stop game, the same effect as open charsscreen or inventory
 static void __declspec(naked) stop_game() {
-   __asm {
-	  push ebx;
-	  mov ebx, map_disable_bk_processes_;
-	  call ebx;
-	  pop ebx;
-	  retn;
-   }
+	__asm {
+		push ebx;
+		mov ebx, map_disable_bk_processes_;
+		call ebx;
+		pop ebx;
+		retn;
+	}
 }
 
 //Resume the game when it is stopped
 static void __declspec(naked) resume_game() {
-   __asm {
-	  push ebx;
-	  mov ebx, map_enable_bk_processes_;
-	  call ebx;
-	  pop ebx;
-	  retn;
-   }
+	__asm {
+		push ebx;
+		mov ebx, map_enable_bk_processes_;
+		call ebx;
+		pop ebx;
+		retn;
+	}
 }
 
 //Create a message window with given string
 static void __declspec(naked) create_message_window() {
-   __asm {
-	  pushad
-	  mov ebx, dword ptr ds:[_curr_font_num];
-	  cmp ebx, 0x65;
-	  je end;
+	__asm {
+		pushad
+		mov ebx, dword ptr ds:[_curr_font_num];
+		cmp ebx, 0x65;
+		je end;
 
-	  mov ecx, eax;
-	  call interpretPopShort_;
-	  mov edx, eax;
-	  mov eax, ecx;
-	  call interpretPopLong_;
-	  cmp dx, VAR_TYPE_STR2;
-	  jz next;
-	  cmp dx, VAR_TYPE_STR;
-	  jnz end;
+		mov ecx, eax;
+		call interpretPopShort_;
+		mov edx, eax;
+		mov eax, ecx;
+		call interpretPopLong_;
+		cmp dx, VAR_TYPE_STR2;
+		jz next;
+		cmp dx, VAR_TYPE_STR;
+		jnz end;
 next:
-	  mov ebx, eax;
-	  mov eax, ecx;
-	  call interpretGetString_;
-	  mov esi, eax
+		mov ebx, eax;
+		mov eax, ecx;
+		call interpretGetString_;
+		mov esi, eax
 
-	  mov ecx, eax;
-	  mov eax, 3;
-	  push 1;
-	  mov al, ds:[0x006AB718];
-	  push eax;
-	  push 0;
-	  push eax;
-	  push 0x74;
-	  mov ecx, 0xC0;
-	  mov eax, esi;
-	  xor ebx, ebx;
-	  xor edx, edx;
-	  call dialog_out_;
-	  //xor eax, eax;
+		mov ecx, eax;
+		mov eax, 3;
+		push 1;
+		mov al, ds:[0x006AB718];
+		push eax;
+		push 0;
+		push eax;
+		push 0x74;
+		mov ecx, 0xC0;
+		mov eax, esi;
+		xor ebx, ebx;
+		xor edx, edx;
+		call dialog_out_;
+		//xor eax, eax;
 end:
-	  popad
-	  ret;
-   }
+		popad
+		ret;
+	}
 }
 
 static void __declspec(naked) GetViewportX() {

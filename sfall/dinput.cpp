@@ -38,7 +38,7 @@ static DWORD WheelMod;
 
 static bool ReverseMouse;
 
-static bool MiddleMouseDown;
+bool MiddleMouseDown;
 static DWORD MiddleMouseKey;
 
 static bool BackgroundKeyboard;
