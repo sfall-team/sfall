@@ -430,7 +430,7 @@ void StartingStatePatches() {
 }
 
 void WorldMapFontPatch() {
-	if (GetConfigInt("Misc", "WorldMapFont", 0)) {
+	if (GetConfigInt("Misc", "WorldMapFontPatch", 0)) {
 		dlog("Applying world map font patch.", DL_INIT);
 		HookCall(0x4C2343, wmInterfaceInit_text_font_hook);
 		dlogr(" Done", DL_INIT);
