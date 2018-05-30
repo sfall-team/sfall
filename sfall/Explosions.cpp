@@ -211,9 +211,9 @@ void ResetExplosionSettings() {
 void ExplosionLightingInit() {
 	MakeJump(0x411AB4, explosion_effect_hook); // required for explosions_metarule
 
-	if (GetPrivateProfileIntA("Misc", "ExplosionsEmitLight", 0, ini)) {
+	lightingEnabled = GetPrivateProfileIntA("Misc", "ExplosionsEmitLight", 0, ini) != 0;
+	if (lightingEnabled) {
 		dlog("Applying Explosion changes.", DL_INIT);
-		lightingEnabled = true;
 		MakeJump(0x4118E1, ranged_attack_lighting_fix);
 		MakeJump(0x410A4A, fire_dance_lighting_fix1);
 		MakeJump(0x415A3F, anim_set_check__light_fix); // this allows to change light intensity
