@@ -231,6 +231,10 @@ was made as a dirty easy hack to allow dynamically change some explosion paramet
 > void set_attack_is_explosion_fire
 - if you call this right before using a weapon with fire damage type, it will produce explosion effects (and radius damage) just like "explosion" type, but all targets will still receive fire damage.
 
+> void set_explosion_radius(grenade, rocket)
+- sets a permanent radius of the explosion for grenades and/or rockets. Passing 0 means not changing the corresponding radius.
+- changed radius will be reset each time the player reloads the game.
+
 
 Some utility/math functions are available:
 

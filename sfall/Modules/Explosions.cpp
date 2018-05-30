@@ -251,7 +251,7 @@ void Explosions::init() {
 
 		dlogr(" Done", DL_INIT);
 	}
-	
+
 	DWORD tmp;
 	tmp = SimplePatch<DWORD>(0x4A2873, "Misc", "Dynamite_DmgMax", 50, 0, 9999);
 	SimplePatch<DWORD>(0x4A2878, "Misc", "Dynamite_DmgMin", 30, 0, tmp);
