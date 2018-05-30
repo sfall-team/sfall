@@ -21,6 +21,7 @@
 #include "..\FalloutEngine\Fallout2.h"
 #include "..\Logging.h"
 #include "..\SimplePatch.h"
+#include "LoadGameHook.h"
 #include "MainLoopHook.h"
 #include "ScriptExtender.h"
 
@@ -30,6 +31,7 @@ namespace sfall
 {
 
 static bool lightingEnabled = false;
+static bool explosionsMetaruleReset = false;
 
 static const DWORD ranged_attack_lighting_fix_back = 0x4118F8;
 
@@ -153,11 +155,14 @@ static void __declspec(naked) fire_dance_lighting_fix1() {
 }
 
 
-static const DWORD explosion_dmg_check_adr[] = {0x411709, 0x4119FC, 0x411C08, 0x4517C1, 0x423BC8};
+static const DWORD explosion_dmg_check_adr[] = {0x411709, 0x4119FC, 0x411C08, 0x4517C1, 0x423BC8, 0x42381A};
 static const DWORD explosion_art_adr[] = {0x411A19, 0x411A29, 0x411A35, 0x411A3C};
 static const DWORD explosion_art_defaults[] = {10, 2, 31, 29};
 static const DWORD explosion_radius_grenade = 0x479183;
 static const DWORD explosion_radius_rocket  = 0x47918B;
+
+static DWORD set_expl_radius_grenade = 2;
+static DWORD set_expl_radius_rocket  = 3;
 
 static const size_t numArtChecks = sizeof(explosion_art_adr) / sizeof(explosion_art_adr[0]);
 static const size_t numDmgChecks = sizeof(explosion_dmg_check_adr) / sizeof(explosion_dmg_check_adr[0]);
@@ -166,8 +171,14 @@ enum MetaruleExplosionsMode {
 	EXPL_FORCE_EXPLOSION_PATTERN = 1,
 	EXPL_FORCE_EXPLOSION_ART = 2,
 	EXPL_FORCE_EXPLOSION_RADIUS = 3,
-	EXPL_FORCE_EXPLOSION_DMGTYPE = 4
+	EXPL_FORCE_EXPLOSION_DMGTYPE = 4,
+	EXPL_STATIC_EXPLOSION_RADIUS = 5
 };
+
+static void SetExplosionRadius(int arg1, int arg2) {
+	SafeWrite32(explosion_radius_grenade, arg1);
+	SafeWrite32(explosion_radius_rocket, arg2);
+}
 
 int _stdcall ExplosionsMetaruleFunc(int mode, int arg1, int arg2) {
 	switch (mode) {
@@ -180,27 +191,33 @@ int _stdcall ExplosionsMetaruleFunc(int mode, int arg1, int arg2) {
 				SafeWrite8(0x411B54, 6); // last direction
 			}
 			break;
-		case EXPL_FORCE_EXPLOSION_ART: {
+		case EXPL_FORCE_EXPLOSION_ART:
 			for (int i = 0; i < numArtChecks; i++) {
 				SafeWrite32(explosion_art_adr[i], (BYTE)arg1);
 			}
 			break;
-		}
 		case EXPL_FORCE_EXPLOSION_RADIUS:
-			SafeWrite32(explosion_radius_grenade, arg1);
-			SafeWrite32(explosion_radius_rocket, arg1);
+			SetExplosionRadius(arg1, arg1);
 			break;
-		case EXPL_FORCE_EXPLOSION_DMGTYPE: {
+		case EXPL_FORCE_EXPLOSION_DMGTYPE:
 			for (int i = 0; i < numDmgChecks; i++) {
 				SafeWrite8(explosion_dmg_check_adr[i], (BYTE)arg1);
 			}
 			break;
-		}
+		case EXPL_STATIC_EXPLOSION_RADIUS:
+			if (arg1 > 0) set_expl_radius_grenade = arg1;
+			if (arg2 > 0) set_expl_radius_rocket = arg2;
+			SetExplosionRadius(set_expl_radius_grenade, set_expl_radius_rocket);
+			break;
+		default:
+			return -1;
 	}
+	if (mode != EXPL_STATIC_EXPLOSION_RADIUS) explosionsMetaruleReset = true;
 	return 0;
 }
 
 void ResetExplosionSettings() {
+	if (!explosionsMetaruleReset) return;
 	// explosion pattern
 	explosion_effect_starting_dir = 0;
 	SafeWrite8(0x411B54, 6); // last direction
@@ -209,20 +226,25 @@ void ResetExplosionSettings() {
 		SafeWrite32(explosion_art_adr[i], explosion_art_defaults[i]);
 	}
 	// explosion radiuses
-	SafeWrite32(explosion_radius_grenade, 2);
-	SafeWrite32(explosion_radius_rocket, 3);
+	SetExplosionRadius(set_expl_radius_grenade, set_expl_radius_rocket);
 	// explosion dmgtype
 	for (int i = 0; i < numDmgChecks; i++) {
-		SafeWrite8(explosion_dmg_check_adr[i], 6);
+		SafeWrite8(explosion_dmg_check_adr[i], fo::DamageType::DMG_explosion);
 	}
+	explosionsMetaruleReset = false;
+}
+
+void ResetExplosionRadius() {
+	if (set_expl_radius_grenade != 2 || set_expl_radius_rocket != 3)
+		SetExplosionRadius(2, 3);
 }
 
 void Explosions::init() {
 	MakeJump(0x411AB4, explosion_effect_hook); // required for explosions_metarule
 
-	if (GetConfigInt("Misc", "ExplosionsEmitLight", 0)) {
+	lightingEnabled = GetConfigInt("Misc", "ExplosionsEmitLight", 0) != 0;
+	if (lightingEnabled) {
 		dlog("Applying Explosion changes.", DL_INIT);
-		lightingEnabled = true;
 		MakeJump(0x4118E1, ranged_attack_lighting_fix);
 		MakeJump(0x410A4A, fire_dance_lighting_fix1);
 		MakeJump(0x415A3F, anim_set_check__light_fix); // this allows to change light intensity
@@ -238,6 +260,8 @@ void Explosions::init() {
 
 	// after each combat attack, reset metarule_explosions settings
 	MainLoopHook::OnAfterCombatAttack() += ResetExplosionSettings;
+
+	LoadGameHook::OnGameReset() += ResetExplosionRadius;
 }
 
 }
