@@ -759,6 +759,14 @@ static void __declspec(naked) display_stats_hook() {
 	}
 }
 
+static void __declspec(naked) wmInterfaceInit_text_font_hook() {
+	__asm {
+		mov  eax, 0x65; // normal text font
+		call text_font_;
+		retn;
+	}
+}
+
 static void DllMain2() {
 	//SafeWrite8(0x4B15E8, 0xc3);
 	//SafeWrite8(0x4B30C4, 0xc3); //this is the one I need to override for bigger tiles
@@ -1497,6 +1505,12 @@ static void DllMain2() {
 	if (GetPrivateProfileIntA("Misc", "DisplaySecondWeaponRange", 1, ini)) {
 		dlog("Applying display second weapon range patch.", DL_INIT);
 		HookCall(0x472201, &display_stats_hook);
+		dlogr(" Done", DL_INIT);
+	}
+
+	if (GetPrivateProfileIntA("Misc", "WorldMapFontPatch", 0, ini)) {
+		dlog("Applying world map font patch.", DL_INIT);
+		HookCall(0x4C2343, &wmInterfaceInit_text_font_hook);
 		dlogr(" Done", DL_INIT);
 	}
 
