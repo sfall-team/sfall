@@ -20,6 +20,7 @@
 
 #include "AnimationsAtOnceLimit.h"
 #include "FalloutEngine.h"
+#include "LoadGameHook.h"
 
 static const int animRecordSize = 2656;
 
@@ -159,6 +160,35 @@ skip:
 end:
 		mov  [edi][esi], ebx;
 		push 0x415DF2;
+		retn;
+	}
+}
+
+static DWORD __fastcall CheckSetSad(BYTE openFlag, DWORD valueMul) {
+	bool result = false;
+	int offset = (3240 * valueMul) + 32;
+
+	if (*(DWORD*)(_sad + offset) == -1000) {
+		result = true;
+	} else if (!InCombat() && !(openFlag & 1)) {
+		*(DWORD*)(_sad + offset) = -1000;
+		result = true;
+	}
+
+	return result;
+}
+
+static void __declspec(naked) object_move_hack() {
+	__asm {
+		mov  ecx, ds:[ecx + 0x3C];         // openFlag
+		mov  edx, [esp + 0x4C - 0x20];     // valueMul
+		call CheckSetSad;
+		test eax, eax;
+		jz   end;
+		push 0x417611;    // fixed jump
+		retn;
+end:
+		push 0x417616;    // default
 		retn;
 	}
 }
@@ -313,7 +343,11 @@ void AnimationsAtOnceInit() {
 
 		dlogr(" Done", DL_INIT);
 	}
+	// Fix for calling anim() functions in combat
 	MakeJump(0x415DE2, anim_set_end_hack);
+
+	// Fix crash when the critter goes through a door with animation trigger
+	MakeJump(0x41755E, object_move_hack);
 }
 
 void AnimationsAtOnceExit() {

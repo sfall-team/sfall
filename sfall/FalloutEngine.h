@@ -173,6 +173,7 @@
 #define _read_callback              0x51DEEC
 #define _RedColor                   0x6AB4D0
 #define _retvals                    0x43EA7C
+#define _sad                        0x530014
 #define _scr_size                   0x6AC9F0
 #define _scriptListInfo             0x51C7C8
 #define _skill_data                 0x51D118
@@ -355,6 +356,7 @@ extern DWORD* ptr_quick_done;
 extern DWORD* ptr_read_callback;
 extern DWORD* ptr_RedColor;
 extern DWORD* ptr_retvals;
+extern DWORD* ptr_sad;
 extern DWORD* ptr_scr_size;
 extern DWORD* ptr_scriptListInfo;
 extern DWORD* ptr_skill_data;
