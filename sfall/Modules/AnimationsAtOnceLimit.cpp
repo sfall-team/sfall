@@ -18,6 +18,7 @@
 
 #include "..\main.h"
 #include "..\FalloutEngine\Fallout2.h"
+#include "LoadGameHook.h"
 
 #include "AnimationsAtOnceLimit.h"
 
@@ -33,7 +34,8 @@ static int animationLimit = 32;
 static std::vector<fo::AnimationSet> new_anim_set;
 static std::vector<BYTE> new_sad;
 
-static DWORD animSetAddr, sadAddr;
+static DWORD animSetAddr = FO_VAR_anim_set;
+static DWORD sadAddr = FO_VAR_sad;
 
 static const DWORD animPCMove[] = {
 	0x416E11, 0x416F64, 0x417143, 0x41725C, 0x4179CC,
@@ -151,20 +153,54 @@ static const DWORD sad_28[] = {
 	0x4173CE, 0x4174C1, 0x4175F1, 0x417730,
 };
 
+static DWORD __fastcall AnimCombatFix(DWORD* scr, BYTE combatFlag) {
+	DWORD animAddr = animSetAddr;
+
+	if (animationLimit > 32) {
+		animAddr += animRecordSize;    // include a dummy
+	}
+
+	if (combatFlag & 2) {              // combat flag is set
+		_asm call fo::funcoffs::combat_anim_finished_;
+	}
+
+	return animAddr;
+}
+
 static void __declspec(naked) anim_set_end_hack() {
 	__asm {
-		mov  edi, FO_VAR_anim_set;
-		cmp  dword ptr animationLimit, 32;
-		jle  skip;
-		mov  edi, animSetAddr;
-		add  edi, animRecordSize;                 // Include a dummy
-skip:
-		test dl, 0x2;                             // Is the combat flag set?
-		jz   end;                                 // No
-		call fo::funcoffs::combat_anim_finished_;
-end:
-		mov  [edi][esi], ebx;
+		call AnimCombatFix;
+		mov  [eax][esi], ebx;
 		push 0x415DF2;
+		retn;
+	}
+}
+
+static DWORD __fastcall CheckSetSad(BYTE openFlag, DWORD valueMul) {
+	bool result = false;
+	int offset = (sadSize * valueMul) + 32;
+
+	if (*(DWORD*)(sadAddr + offset) == -1000) {
+		 result = true;
+	} else if (!InCombat() && !(openFlag & 1)) {
+		*(DWORD*)(sadAddr + offset) = -1000;
+		result = true;
+	}
+
+	return result;
+}
+
+static void __declspec(naked) obj_move_hack() {
+	__asm {
+		mov  ecx, ds:[ecx + 0x3C];         // openFlag
+		mov  edx, [esp + 0x4C - 0x20];     // valueMul
+		call CheckSetSad;
+		test eax, eax;
+		jz   end;
+		push 0x417611;    // fixed jump
+		retn;
+end:
+		push 0x417616;    // default
 		retn;
 	}
 }
@@ -278,7 +314,11 @@ void AnimationsAtOnce::init() {
 		ApplyAnimationsAtOncePatches(animationLimit);
 		dlogr(" Done", DL_INIT);
 	}
+	// Fixed using animation in combat mode for anim() functions
 	MakeJump(0x415DE2, anim_set_end_hack);
+
+	// Fix game crash when playing animation when the critter/pc goes through the door
+	MakeJump(0x41755E, obj_move_hack);
 }
 
 void AnimationsAtOnce::exit() {
