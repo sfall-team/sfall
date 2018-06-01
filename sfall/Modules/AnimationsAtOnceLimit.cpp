@@ -22,7 +22,7 @@
 
 #include "AnimationsAtOnceLimit.h"
 
-namespace sfall 
+namespace sfall
 {
 
 static constexpr int animRecordSize = sizeof(fo::AnimationSet);
@@ -181,7 +181,7 @@ static DWORD __fastcall CheckSetSad(BYTE openFlag, DWORD valueMul) {
 	int offset = (sadSize * valueMul) + 32;
 
 	if (*(DWORD*)(sadAddr + offset) == -1000) {
-		 result = true;
+		result = true;
 	} else if (!InCombat() && !(openFlag & 1)) {
 		*(DWORD*)(sadAddr + offset) = -1000;
 		result = true;
@@ -190,7 +190,7 @@ static DWORD __fastcall CheckSetSad(BYTE openFlag, DWORD valueMul) {
 	return result;
 }
 
-static void __declspec(naked) obj_move_hack() {
+static void __declspec(naked) object_move_hack() {
 	__asm {
 		mov  ecx, ds:[ecx + 0x3C];         // openFlag
 		mov  edx, [esp + 0x4C - 0x20];     // valueMul
@@ -314,11 +314,11 @@ void AnimationsAtOnce::init() {
 		ApplyAnimationsAtOncePatches(animationLimit);
 		dlogr(" Done", DL_INIT);
 	}
-	// Fixed using animation in combat mode for anim() functions
+	// Fix for calling anim() functions in combat
 	MakeJump(0x415DE2, anim_set_end_hack);
 
-	// Fix game crash when playing animation when the critter/pc goes through the door
-	MakeJump(0x41755E, obj_move_hack);
+	// Fix crash when the critter goes through a door with animation trigger
+	MakeJump(0x41755E, object_move_hack);
 }
 
 void AnimationsAtOnce::exit() {
