@@ -244,6 +244,35 @@
 #define SKILL_OUTDOORSMAN      (17)
 #define SKILL_count            (18)
 
+//XXXXXXXXXXXXXXXXXXXXXXXXXX
+//XX Combat Flags defines XX
+//XXXXXXXXXXXXXXXXXXXXXXXXXX
+
+#define DAM_KNOCKED_OUT        (0x1)
+#define DAM_KNOCKED_DOWN       (0x2)
+#define DAM_CRIP_LEG_LEFT      (0x4)
+#define DAM_CRIP_LEG_RIGHT     (0x8)
+#define DAM_CRIP_ARM_LEFT      (0x10)
+#define DAM_CRIP_ARM_RIGHT     (0x20)
+#define DAM_BLIND              (0x40)
+#define DAM_DEAD               (0x80)
+#define DAM_HIT                (0x100)
+#define DAM_CRITICAL           (0x200)
+#define DAM_ON_FIRE            (0x400)
+#define DAM_BYPASS             (0x800)
+#define DAM_EXPLODE            (0x1000)
+#define DAM_DESTROY            (0x2000)
+#define DAM_DROP               (0x4000)
+#define DAM_LOSE_TURN          (0x8000)
+#define DAM_HIT_SELF           (0x10000)
+#define DAM_LOSE_AMMO          (0x20000)
+#define DAM_DUD                (0x40000)
+#define DAM_HURT_SELF          (0x80000)
+#define DAM_RANDOM_HIT         (0x100000)
+#define DAM_CRIP_RANDOM        (0x200000)
+#define DAM_BACKWASH           (0x400000)
+#define DAM_PERFORM_REVERSE    (0x800000)
+
 //XXXXXXXXXXXXXXXXXXXX
 //XX Object defines XX
 //XXXXXXXXXXXXXXXXXXXX

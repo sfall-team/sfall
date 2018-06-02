@@ -1134,6 +1134,17 @@ map_leave:
 	}
 }
 
+static void __declspec(naked) ai_move_steps_closer_hack() {
+	__asm {
+		call  combat_turn_run_;
+		movzx dx, word ptr [esi + 0x44]; // combat_data.results
+		test  dx, DAM_DEAD or DAM_KNOCKED_OUT or DAM_LOSE_TURN;
+		jz    end;
+		mov   [esi + 0x40], 0;           // pobj.curr_mp (source reset ap)
+end:
+		retn;
+	}
+}
 
 void BugsInit()
 {
@@ -1448,4 +1459,7 @@ void BugsInit()
 	// Fix for being at incorrect hex after map change when the exit hex in source map is at the same position as
 	// some exit hex in destination map
 	MakeCall(0x48A704, obj_move_to_tile_hack);
+
+	// Fix bug "walking dead" for critters in combat mode after their death.
+	HookCall(0x42A1A8, ai_move_steps_closer_hack); //0x42B24D
 }
