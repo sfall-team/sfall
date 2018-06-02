@@ -1134,7 +1134,7 @@ map_leave:
 	}
 }
 
-static void __declspec(naked) ai_move_steps_closer_hack() {
+static void __declspec(naked) ai_move_steps_closer_hook() {
 	__asm {
 		call  combat_turn_run_;
 		movzx dx, word ptr [esi + 0x44]; // combat_data.results
@@ -1145,6 +1145,7 @@ end:
 		retn;
 	}
 }
+
 
 void BugsInit()
 {
@@ -1460,6 +1461,7 @@ void BugsInit()
 	// some exit hex in destination map
 	MakeCall(0x48A704, obj_move_to_tile_hack);
 
-	// Fix bug "walking dead" for critters in combat mode after their death.
-	HookCall(0x42A1A8, ai_move_steps_closer_hack); //0x42B24D
+	// Fix for critters killed in combat by scripting still being able to move in their combat turn if the distance parameter
+	// in their AI packages is set to stay_close/charge, or NPCsTryToSpendExtraAP is enabled
+	HookCall(0x42A1A8, ai_move_steps_closer_hook); // 0x42B24D
 }
