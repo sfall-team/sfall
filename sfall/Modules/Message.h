@@ -28,7 +28,7 @@
 namespace sfall
 {
 
-typedef std::tr1::unordered_map<int, std::unique_ptr<fo::MessageList>> ExtraGameMessageListsMap;
+typedef std::unordered_map<int, std::unique_ptr<fo::MessageList>> ExtraGameMessageListsMap;
 extern ExtraGameMessageListsMap gExtraGameMsgLists;
 
 class Message : public Module {

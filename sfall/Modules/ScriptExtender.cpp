@@ -80,7 +80,7 @@ static SfallProgsMap sfallProgsMap;
 // a map scriptPtr => self_obj  to override self_obj for all script types using set_self
 std::unordered_map<fo::Program*, fo::GameObject*> selfOverrideMap;
 
-typedef std::tr1::unordered_map<std::string, ExportedVar> ExportedVarsMap;
+typedef std::unordered_map<std::string, ExportedVar> ExportedVarsMap;
 static ExportedVarsMap globalExportedVars;
 DWORD isGlobalScriptLoading = 0;
 DWORD modifiedIni;

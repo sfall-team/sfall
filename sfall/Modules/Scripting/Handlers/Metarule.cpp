@@ -57,7 +57,7 @@ struct SfallMetarule {
 	OpcodeArgumentType argValidation[OP_MAX_ARGUMENTS];
 };
 
-typedef std::tr1::unordered_map<std::string, const SfallMetarule*> MetaruleTableType;
+typedef std::unordered_map<std::string, const SfallMetarule*> MetaruleTableType;
 
 static MetaruleTableType metaruleTable;
 
