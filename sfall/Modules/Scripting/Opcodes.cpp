@@ -51,7 +51,7 @@ static const short opcodeCount = 0x300;
 // Other half is filled by sfall here.
 static void* opcodes[opcodeCount];
 
-typedef std::tr1::unordered_map<int, const SfallOpcodeInfo*> OpcodeInfoMapType;
+typedef std::unordered_map<int, const SfallOpcodeInfo*> OpcodeInfoMapType;
 
 // Opcode Table. Add additional (sfall) opcodes here.
 // Format: {
