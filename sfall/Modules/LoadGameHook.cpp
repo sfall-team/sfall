@@ -501,7 +501,7 @@ static void __declspec(naked) AutomapHook() {
 void LoadGameHook::init() {
 	saveInCombatFix = GetConfigInt("Misc", "SaveInCombatFix", 1);
 	if (saveInCombatFix > 2) saveInCombatFix = 0;
-	saveFailMsg = Translate("sfall", "SaveInCombat", "Cannot save at this time");
+	saveFailMsg = Translate("sfall", "SaveInCombat", "Cannot save at this time.");
 	saveSfallDataFailMsg = Translate("sfall", "SaveSfallDataFail",
 		"ERROR saving extended savegame information! Check if other programs interfere with savegame files/folders and try again!");
 
