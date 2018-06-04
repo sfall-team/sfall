@@ -436,7 +436,7 @@ static void __declspec(naked) AutomapHook() {
 void LoadGameHookInit() {
 	SaveInCombatFix = GetPrivateProfileInt("Misc", "SaveInCombatFix", 1, ini);
 	if (SaveInCombatFix > 2) SaveInCombatFix = 0;
-	GetPrivateProfileString("sfall", "SaveInCombat", "Cannot save at this time", SaveFailMsg, 128, translationIni);
+	GetPrivateProfileString("sfall", "SaveInCombat", "Cannot save at this time.", SaveFailMsg, 128, translationIni);
 	GetPrivateProfileString("sfall", "SaveSfallDataFail", "ERROR saving extended savegame information! Check if other programs interfere with savegame files/folders and try again!", SaveSfallDataFailMsg, 128, translationIni);
 
 	switch (GetPrivateProfileInt("Misc", "PipBoyAvailableAtGameStart", 0, ini)) {
