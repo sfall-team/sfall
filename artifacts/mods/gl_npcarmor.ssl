@@ -4,18 +4,19 @@
 
    Used to replace the scripted part of B-Team mod.
    Appropriate graphics are required for this mod to work.
-   Can be adopted to any mod by adjusting armor PIDs, NPC PIDs and NPC FIDs in INI file.
+   Can be adopted to any mod by adjusting armor PIDs, allowed weapon anim codes, NPC PIDs and NPC FIDs in INI file.
 
    NOTE: this script requires compiler from sfall modderspack with -s option
    (short circuit evaluation)
 
-   version 1.0
+   version 1.1
 
 */
 
 #include "main.h"
 
 #define IS_ARMOR(item)  (obj_type(item) == OBJ_TYPE_ITEM and obj_item_subtype(item) == item_type_armor)
+#define IS_WEAPON(item)  (obj_type(item) == OBJ_TYPE_ITEM and obj_item_subtype(item) == item_type_weapon)
 
 variable
    modIni := "npcarmor.ini",
@@ -41,9 +42,28 @@ procedure check_armor_change(variable critter, variable item, variable isWorn) b
    return -1;
 end
 
-// for NPCs when they change armor themselves
+procedure check_weapon_change(variable critter, variable item, variable isWield) begin
+   variable npc, newWeaponAnim, weaponAnimList, i;
+   if (npcMap[obj_pid(critter)]) then begin
+      npc := npcMap[obj_pid(critter)];
+      if isWield then begin
+         newWeaponAnim := get_proto_data(obj_pid(item), PROTO_WP_ANIM);
+         weaponAnimList := string_split(npc["WeaponAnims"], ",");
+         if newWeaponAnim then begin
+            foreach (i in weaponAnimList) begin
+               if (newWeaponAnim == atoi(i)) then return -1;
+            end
+         end else begin // anim code 0 - none/unarmed
+            return -1;
+         end
+      end
+   end
+   return 0;
+end
+
+// for NPCs when they change armor/weapon themselves
 procedure invenwield_handler begin
-   variable critter, item, fid, slot, isWorn;
+   variable critter, item, fid, slot, isWorn, canWield;
    critter := get_sfall_arg;
    item := get_sfall_arg;
    slot := get_sfall_arg;
@@ -54,6 +74,11 @@ procedure invenwield_handler begin
       if (fid != -1) then begin
          art_change_fid_num(critter, fid);
       end
+   end
+
+   if (critter and item and (slot == INVEN_TYPE_RIGHT_HAND or slot == INVEN_TYPE_LEFT_HAND)) then begin
+      canWield := check_weapon_change(critter, item, isWorn);
+      set_sfall_return(canWield);
    end
 end
 
@@ -69,12 +94,26 @@ procedure adjustfid_handler begin
    end
 end
 
+// when changing weapon from inventory while controlling other NPCs
+procedure inventorymove_handler begin
+   variable slot, item, canWield;
+   slot := get_sfall_arg;
+   item := get_sfall_arg;
+   if (dude_obj != real_dude_obj) then begin
+      if (IS_WEAPON(item) and (slot == INVEN_TYPE_RIGHT_HAND or slot == INVEN_TYPE_LEFT_HAND)) then begin
+         canWield := check_weapon_change(dude_obj, item, item != 0);
+         set_sfall_return(canWield);
+      end
+   end
+end
+
 
 procedure start begin
    variable sect, sects, armorTypes, armorType, npc, pid, pids, i;
    if game_loaded and (sfall_ver_major >= 4) then begin
       register_hook_proc(HOOK_INVENWIELD, invenwield_handler);
       register_hook_proc(HOOK_ADJUSTFID, adjustfid_handler);
+      register_hook_proc(HOOK_INVENTORYMOVE, inventorymove_handler);
 
       defaultFids := get_ini_section(modIni, "Default");
       fix_array(defaultFids);
@@ -97,6 +136,7 @@ procedure start begin
       sect := get_ini_section(modIni, ""+i);
       while (sect.PID) do begin
          npc := create_array_map;
+         npc["WeaponAnims"] := sect["WeaponAnims"];
          npc["Default"] := atoi(sect["Default"]);
          foreach (armorType: pids in armorTypes) begin
             if (sect[armorType]) then begin
