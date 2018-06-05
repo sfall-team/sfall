@@ -35,6 +35,7 @@ static Delegate<DWORD> onAdjustFid;
 static DWORD mode;
 static DWORD maxItemSize;
 static DWORD reloadWeaponKey = 0;
+static DWORD itemFastMoveKey = 0;
 
 long& GetActiveItemMode() {
 	return fo::var::itemButtonItems[fo::var::itemCurrentItem].mode;
@@ -794,6 +795,27 @@ void __declspec(naked) adjust_fid_replacement() {
 	}
 }
 
+void __declspec(naked) do_move_timer_hook() {
+	__asm {
+		cmp eax, 4;
+		jnz end;
+		pushad;
+	}
+
+	KeyDown(itemFastMoveKey);
+
+	__asm {
+		test eax, eax;
+		popad;
+		jz end;
+		mov dword ptr [esp], 0x476920;
+		retn;
+end:
+		call fo::funcoffs::setup_move_timer_win_;
+		retn;
+	}
+}
+
 void InventoryReset() {
 	invenapcost = GetConfigInt("Misc", "InventoryApCost", 4);
 }
@@ -865,6 +887,15 @@ void Inventory::init() {
 		SafeWrite16(0x476567, 0xC129);            // sub  ecx, eax
 		SafeWrite8(0x476569, 0x91);               // xchg ecx, eax
 	};
+
+	itemFastMoveKey = GetConfigInt("Input", "ItemFastMoveKey", DIK_LCONTROL);
+	if (itemFastMoveKey > 0) {
+		HookCall(0x476897, do_move_timer_hook);
+	}
+
+	if (GetConfigInt("Misc", "ItemCounterDefaultMax", 0)) {
+		BlockCall(0x4768A3); // mov  ebx, 1
+	}
 
 	// Move items out of bag/backpack and back into the main inventory list by dragging them to character's image
 	// (similar to Fallout 1 behavior)
