@@ -888,10 +888,13 @@ void Inventory::init() {
 		SafeWrite8(0x476569, 0x91);               // xchg ecx, eax
 	};
 
-	itemFastMoveKey = GetConfigInt("Misc", "ItemFastMoveKey", DIK_LCONTROL);
+	itemFastMoveKey = GetConfigInt("Input", "ItemFastMoveKey", DIK_LCONTROL);
 	if (itemFastMoveKey > 0) {
 		HookCall(0x476897, do_move_timer_hook);
-		BlockCall(0x4768A3);
+	}
+
+	if (GetConfigInt("Misc", "ItemCounterDefaultMax", 0)) {
+		BlockCall(0x4768A3); // mov  ebx, 1
 	}
 
 	// Move items out of bag/backpack and back into the main inventory list by dragging them to character's image
