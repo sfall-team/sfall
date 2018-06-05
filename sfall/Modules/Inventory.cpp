@@ -880,7 +880,7 @@ void Inventory::init() {
 	}
 
 	// Do not call the 'Move Items' window when using drap and drop to reload weapons in the inventory
-	int ReloadReserve = GetConfigInt("Misc", "ReloadReserve", 1);
+	int ReloadReserve = GetConfigInt("Misc", "ReloadReserve", -1);
 	if (ReloadReserve >= 0) {
 		SafeWrite32(0x47655F, ReloadReserve);     // mov  eax, ReloadReserve
 		SafeWrite32(0x476563, 0x097EC139);        // cmp  ecx, eax; jle  0x476570
