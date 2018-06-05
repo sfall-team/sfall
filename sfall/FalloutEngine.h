@@ -727,6 +727,7 @@ extern const DWORD scr_set_ext_param_;
 extern const DWORD scr_set_objs_;
 extern const DWORD scr_write_ScriptNode_;
 extern const DWORD set_game_time_;
+extern const DWORD setup_move_timer_win_;
 extern const DWORD SexWindow_;
 extern const DWORD skill_check_stealing_;
 extern const DWORD skill_dec_point_;

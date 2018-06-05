@@ -548,6 +548,7 @@ const DWORD scr_set_ext_param_ = 0x4A3B34;
 const DWORD scr_set_objs_ = 0x4A3B0C;
 const DWORD scr_write_ScriptNode_ = 0x4A5704;
 const DWORD set_game_time_ = 0x4A347C;
+const DWORD setup_move_timer_win_ = 0x476AB8;
 const DWORD SexWindow_ = 0x437664;
 const DWORD skill_check_stealing_ = 0x4ABBE4;
 const DWORD skill_dec_point_ = 0x4AA8C4;
