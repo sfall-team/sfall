@@ -579,6 +579,14 @@ enum ItemType : long
 	item_type_key = 6,
 };
 
+// Inventory Equates
+enum InvenType : long
+{
+	INVEN_TYPE_WORN = 0,
+	INVEN_TYPE_RIGHT_HAND = 1,
+	INVEN_TYPE_LEFT_HAND = 2,
+};
+
 #define OBJFLAG_CAN_WEAR_ITEMS (0xf000000)
 
 #define OBJFLAG_HELD_IN_RIGHT (0x10000)
