@@ -740,8 +740,11 @@ static void __declspec(naked) gdAddOptionStr_hack() {
 static DWORD __fastcall GetWeaponSlotMode(DWORD itemPtr, DWORD mode) {
 	int slot = (mode > 0) ? 1 : 0;
 	DWORD* itemButton = ptr_itemButtonItems;
-	if (itemButton[slot * 6] == itemPtr && itemButton[(slot * 6) + 4] == 3) {
-		mode++;
+	if (itemButton[slot * 6] == itemPtr) {
+		int slotMode = itemButton[(slot * 6) + 4];
+		if (slotMode == 3 || slotMode == 4) {
+			mode++;
+		}
 	}
 	return mode;
 }

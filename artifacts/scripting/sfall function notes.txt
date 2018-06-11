@@ -72,7 +72,7 @@ arrays are created and manipulated with the xxx_array functions. An array must f
 
 NOTE: the above description only applies when "arraysBehavior" is set to 0 in ddraw.ini. Refer to "arrays.txt" for detailed description of new arrays behavior.
 
-force_aimed_shots and disable_aimed_shots allow overriding the normal rules regarding which weapons are allowed to make aimed attacks. (e.g. weapons that cause explosive damage normally cannot normally make aimed shots.) force_aimed_shots will allow a weapon to make aimed shots even if it normally couldn't, and disable_aimed_shots stops a weapon from making aimed shots even if it normally could. Both of these functions affect player and npcs alike. force_aimed_shots does not override the effects of the fast shot trait. The list of edited weapons is not saved over game loads, so you need to call the functions once at each reload. Use a pid of 0 to represent unarmed.
+force_aimed_shots and disable_aimed_shots allow overriding the normal rules regarding which weapons are allowed to make aimed attacks. (e.g. weapons that cause explosive damage normally cannot normally make aimed shots.) force_aimed_shots will allow a weapon to make aimed shots even if it normally couldn't, and disable_aimed_shots stops a weapon from making aimed shots even if it normally could. Both of these functions affect player and NPCs alike. force_aimed_shots does not override the effects of the fast shot trait. The list of edited weapons is not saved over game loads, so you need to call the functions once at each reload. Use a pid of 0 to represent unarmed.
 
 get/set_critter_skill_points will get/set the number of additional points a critter has in a skill, on top of whatever they have from their stats and other bonuses. Note that skill points are part of the proto, so calling set_skill_points on a critter will affect all critters that share the same proto.
 
@@ -101,10 +101,10 @@ array - array ID to be used with array-related functions (actually an integer)
 - returns 1 the first time it is called after a new game or game load, and 0 any time after. It works on an individual basis for each script, so one script wont interfere with others. It's primary use is for global scripts, so that they know when to call set_global_script_repeat, but it can be called from normal scripts too.
 
 > void inc_npc_level(string npc)
-- takes an npc name as an argument. The npc must be in your party. This function ignores player level requirements and the minimum 3 player level delay between npc level gains. It also ignores the random element, regardless of sfall's NPCAutoLevel setting.
+- takes an NPC name as an argument. The NPC must be in your party. This function ignores player level requirements and the minimum 3 player level delay between NPC level gains. It also ignores the random element, regardless of sfall's NPCAutoLevel setting.
 
 > int get_npc_level(string npc)
-- also takes the npc name as an argument, and returns the npc's current level. Again, the npc needs to be in your party.
+- also takes the NPC name as an argument, and returns the NPC's current level. Again, the NPC needs to be in your party.
 
 > void set_car_current_town(int town)
 - changes the current town index for the player's car
