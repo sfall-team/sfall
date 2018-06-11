@@ -115,16 +115,14 @@ skip:
 	}
 }
 
-static const DWORD UseArmorHack_back = 0x4713A9; // normal operation
+static const DWORD UseArmorHack_back = 0x4713AF; // normal operation (old 0x4713A9)
 static const DWORD UseArmorHack_skip = 0x471481; // skip code, prevent wearing armor
 // This hack is called when an armor is dropped into the armor slot at inventory screen
 static void _declspec(naked) UseArmorHack() {
 	__asm {
-		//previous instruction 'test eax, eax'
-		jne skip; // not armor
+		mov  ecx, ds:[FO_VAR_i_worn];       // replacement item (override code)
+		mov  edx, [esp + 0x58 - 0x40];      // item
 		pushad;
-		mov  ecx, ds:[FO_VAR_i_worn];       // replacement item
-		mov  edx, [esp + 0x58 - 0x40 + 32]; // item
 		push 3;                             // event: armor slot
 		call InventoryMoveHook_Script;
 		cmp  eax, -1;                       // ret value
@@ -224,6 +222,14 @@ static void __declspec(naked) DropIntoContainerHack() {
 skipdrop:
 		mov eax, -1;
 		jmp DropIntoContainer_skip;
+	}
+}
+
+static const DWORD DropIntoContainerRet = 0x471481;
+static void __declspec(naked) DropIntoContainerHandSlotHack() {
+	__asm {
+		call fo::funcoffs::drop_into_container_;
+		jmp DropIntoContainerRet;
 	}
 }
 
@@ -351,8 +357,10 @@ void InitInventoryHookScripts() {
 		0x4712E3, // left slot
 		0x47136D  // right slot
 	});
-	MakeJump(0x4713A3, UseArmorHack);
+	MakeJump(0x4713A9, UseArmorHack); // old 0x4713A3
 	MakeJump(0x476491, DropIntoContainerHack);
+	MakeJump(0x471338, DropIntoContainerHandSlotHack);
+	MakeJump(0x4712AB, DropIntoContainerHandSlotHack);
 	HookCall(0x471200, MoveInventoryHook);
 	MakeJump(0x476588, DropAmmoIntoWeaponHack);
 	HookCalls(InvenActionCursorObjDropHook, {
