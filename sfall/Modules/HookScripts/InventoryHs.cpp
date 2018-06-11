@@ -179,7 +179,7 @@ static void __declspec(naked) InvenActionCursorObjDropHook() {
 			cmp  dword ptr [esp], 0x47379A + 5;  // caps call address
 			jz   capsMultiDrop;
 		}
-	}	
+	}
 
 	if (dropResult == -1) {
 		_asm call fo::funcoffs::obj_drop_;
@@ -270,7 +270,7 @@ static void _declspec(naked) InvenWieldFuncHook() {
 		args[2] = INVEN_TYPE_LEFT_HAND;
 	}
 
-	InvenWieldHook_Script(1); // wield flag 
+	InvenWieldHook_Script(1); // wield flag
 
 	_asm popad;
 	if (cRet == 0 || rets[0] == -1) {
@@ -312,11 +312,11 @@ static void _declspec(naked) CorrectFidForRemovedItemHook() {
 
 	// set slot
 	if (args[2] & fo::ObjectFlag::Right_Hand) {       // right hand slot
-		args[2] = fo::INVEN_TYPE_RIGHT_HAND; 
+		args[2] = fo::INVEN_TYPE_RIGHT_HAND;
 	} else if (args[2] & fo::ObjectFlag::Left_Hand) { // left hand slot
-		args[2] = fo::INVEN_TYPE_LEFT_HAND;  
+		args[2] = fo::INVEN_TYPE_LEFT_HAND;
 	} else {
-		args[2] = fo::INVEN_TYPE_WORN;                // armor slot 
+		args[2] = fo::INVEN_TYPE_WORN;                // armor slot
 	}
 
 	InvenWieldHook_Script(0); // unwield flag (armor by default)

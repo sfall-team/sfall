@@ -420,8 +420,8 @@ enum Trait : long
 enum class ScenerySubType : long
 {
 	DOOR = 0,
-	STAIRS = 1, 
-	ELEVATOR = 2, 
+	STAIRS = 1,
+	ELEVATOR = 2,
 	LADDER_BOTTOM = 3,
 	LADDER_TOP = 4,
 	GENERIC = 5

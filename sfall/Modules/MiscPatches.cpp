@@ -368,8 +368,11 @@ static void __declspec(naked) objCanSeeObj_ShootThru_Fix() {//(EAX *objStruct, E
 static DWORD __fastcall GetWeaponSlotMode(DWORD itemPtr, DWORD mode) {
 	int slot = (mode > 0) ? 1 : 0;
 	auto itemButton = fo::var::itemButtonItems;
-	if ((DWORD)itemButton.vals[slot].item == itemPtr && (DWORD)itemButton.vals[slot].mode == 3) {
-		mode++;
+	if ((DWORD)itemButton[slot].item == itemPtr) {
+		int slotMode = itemButton[slot].mode;
+		if (slotMode == 3 || slotMode == 4) {
+			mode++;
+		}
 	}
 	return mode;
 }
