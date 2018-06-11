@@ -420,8 +420,8 @@ enum Trait : long
 enum class ScenerySubType : long
 {
 	DOOR = 0,
-	STAIRS = 1, 
-	ELEVATOR = 2, 
+	STAIRS = 1,
+	ELEVATOR = 2,
 	LADDER_BOTTOM = 3,
 	LADDER_TOP = 4,
 	GENERIC = 5
@@ -577,6 +577,38 @@ enum ItemType : long
 	item_type_ammo = 4,
 	item_type_misc_item = 5,
 	item_type_key = 6,
+};
+
+// Inventory Equates
+enum InvenType : long
+{
+	INVEN_TYPE_WORN = 0,
+	INVEN_TYPE_RIGHT_HAND = 1,
+	INVEN_TYPE_LEFT_HAND = 2,
+};
+
+enum AttackType : long
+{
+	ATKTYPE_LWEAPON_PRIMARY   = 0,
+	ATKTYPE_LWEAPON_SECONDARY = 1,
+	ATKTYPE_RWEAPON_PRIMARY   = 2,
+	ATKTYPE_RWEAPON_SECONDARY = 3,
+	ATKTYPE_PUNCH             = 4,
+	ATKTYPE_KICK              = 5,
+	ATKTYPE_LWEAPON_RELOAD    = 6,
+	ATKTYPE_RWEAPON_RELOAD    = 7,
+	ATKTYPE_STRONGPUNCH       = 8,
+	ATKTYPE_HAMMERPUNCH       = 9,
+	ATKTYPE_HAYMAKER          = 10,
+	ATKTYPE_JAB               = 11,
+	ATKTYPE_PALMSTRIKE        = 12,
+	ATKTYPE_PIERCINGSTRIKE    = 13,
+	ATKTYPE_STRONGKICK        = 14,
+	ATKTYPE_SNAPKICK          = 15,
+	ATKTYPE_POWERKICK         = 16,
+	ATKTYPE_HIPKICK           = 17,
+	ATKTYPE_HOOKKICK          = 18,
+	ATKTYPE_PIERCINGKICK      = 19
 };
 
 #define OBJFLAG_CAN_WEAR_ITEMS (0xf000000)

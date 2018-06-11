@@ -368,8 +368,11 @@ static void __declspec(naked) objCanSeeObj_ShootThru_Fix() {//(EAX *objStruct, E
 static DWORD __fastcall GetWeaponSlotMode(DWORD itemPtr, DWORD mode) {
 	int slot = (mode > 0) ? 1 : 0;
 	auto itemButton = fo::var::itemButtonItems;
-	if ((DWORD)itemButton.vals[slot].item == itemPtr && (DWORD)itemButton.vals[slot].mode == 3) {
-		mode++;
+	if ((DWORD)itemButton[slot].item == itemPtr) {
+		int slotMode = itemButton[slot].mode;
+		if (slotMode == 3 || slotMode == 4) {
+			mode++;
+		}
 	}
 	return mode;
 }
@@ -384,6 +387,69 @@ static void __declspec(naked) display_stats_hook() {
 		pop ecx;
 		pop eax;
 		jmp fo::funcoffs::item_w_range_;
+	}
+}
+
+static void __fastcall SwapHandSlots(fo::GameObject* item, DWORD* toSlot) {
+
+	if (fo::GetItemType(item) != fo::item_type_weapon && *toSlot
+		 && fo::GetItemType((fo::GameObject*)*toSlot) != fo::item_type_weapon) {
+		return;
+	}
+
+	DWORD* leftSlot = (DWORD*)FO_VAR_itemButtonItems;
+	DWORD* rightSlot = leftSlot + 6;
+
+	if (*toSlot == 0) { //copy to slot
+		DWORD* slot;
+		fo::ItemButtonItem item[1];
+		if ((int)toSlot == FO_VAR_i_lhand) {
+			memcpy(item, rightSlot, 0x14);
+			item[0].primaryAttack   = fo::AttackType::ATKTYPE_LWEAPON_PRIMARY;
+			item[0].secondaryAttack = fo::AttackType::ATKTYPE_LWEAPON_SECONDARY;
+			slot = leftSlot;// Rslot > Lslot;
+		} else {
+			memcpy(item, leftSlot, 0x14);
+			item[0].primaryAttack   = fo::AttackType::ATKTYPE_RWEAPON_PRIMARY;
+			item[0].secondaryAttack = fo::AttackType::ATKTYPE_RWEAPON_SECONDARY;
+			slot = rightSlot; // Lslot > Rslot;
+		}
+		memcpy(slot, item, 0x14);
+	} else { // swap slot
+		fo::ItemButtonItem swapLBuf[1];
+		fo::ItemButtonItem swapRBuf[1];
+
+		memcpy(swapLBuf, leftSlot,  0x14);
+		memcpy(swapRBuf, rightSlot, 0x14);
+
+		swapLBuf[0].primaryAttack   = fo::AttackType::ATKTYPE_RWEAPON_PRIMARY;
+		swapLBuf[0].secondaryAttack = fo::AttackType::ATKTYPE_RWEAPON_SECONDARY;
+		swapRBuf[0].primaryAttack   = fo::AttackType::ATKTYPE_LWEAPON_PRIMARY;
+		swapRBuf[0].secondaryAttack = fo::AttackType::ATKTYPE_LWEAPON_SECONDARY;
+
+		memcpy(leftSlot,  swapRBuf, 0x14); // buf Rslot > Lslot;
+		memcpy(rightSlot, swapLBuf, 0x14); // buf Lslot > Rslot;
+	}
+}
+
+static void __declspec(naked) switch_hand_hack() {
+	__asm {
+		pushfd;
+		test ebx, ebx;
+		jz skip;
+		cmp ebx, edx;
+		jz skip;
+		push ecx;
+		mov ecx, eax;
+		call SwapHandSlots;
+		pop ecx;
+skip:
+		popfd;
+		jz end;
+		retn;
+end:
+		mov dword ptr[esp], 0x4715B7;
+		retn;
 	}
 }
 
@@ -785,6 +851,15 @@ void DisplaySecondWeaponRangePatch() {
 	}
 }
 
+void KeepWeaponSelectModePatch() {
+	if (GetConfigInt("Misc", "KeepWeaponSelectMode", 1)) {
+		dlog("Applying keep weapon select mode patch.", DL_INIT);
+		MakeCall(0x4714EC, switch_hand_hack);
+		SafeWrite8(0x4714F1, 0x90);
+		dlogr(" Done", DL_INIT);
+	}
+}
+
 void MiscPatches::init() {
 	mapName[64] = 0;
 	if (GetConfigString("Misc", "StartingMap", "", mapName, 64)) {
@@ -856,7 +931,9 @@ void MiscPatches::init() {
 	NumbersInDialoguePatch();
 	PipboyAvailableAtStartPatch();
 	DisableHorriganPatch();
+
 	DisplaySecondWeaponRangePatch();
+	KeepWeaponSelectModePatch();
 }
 
 void MiscPatches::exit() {
