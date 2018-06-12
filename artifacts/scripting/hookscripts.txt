@@ -189,7 +189,7 @@ Critter arg1 - The critter that just died
 
 HOOK_FINDTARGET (hs_findtarget.int)
 
-Runs when the ai is trying to pick a target in combat. Fallout first chooses a list of 4 likely suspects, then normally sorts them in order of weakness/distance/etc depending on the ai caps of the attacker. This hook replaces that sorting function, allowing you to sort the targets in some arbitrary way. Use sfall_return to give the 4 targets, in order of preference. All 4 must be given if you want to override normal sorting; if you want to specify less than 4 targets fill in the extra spaces with 0's. If you do not give 4 targets, the npcs normal sorting mechanism will be used.
+Runs when the ai is trying to pick a target in combat. Fallout first chooses a list of 4 likely suspects, then normally sorts them in order of weakness/distance/etc depending on the ai caps of the attacker. This hook replaces that sorting function, allowing you to sort the targets in some arbitrary way. Use sfall_return to give the 4 targets, in order of preference. All 4 must be given if you want to override normal sorting; if you want to specify less than 4 targets fill in the extra spaces with 0's. If you do not give 4 targets, the NPCs normal sorting mechanism will be used.
 
 The return values can include critters that weren't in the list of possible targets, but the additional targets may still be discarded later on in the combat turn if they are out of the attackers perception or the chance of a successful hit is too low. The list of possible targets often includes duplicated entries.
 
@@ -312,7 +312,7 @@ int     arg2 - The default max damage
 Item    arg3 - The weapon used. (0 if unarmed)
 Critter arg4 - The critter doing the attacking
 int     arg5 - The type of attack
-int     arg6 - non zero if this is an attack using a melee weapon
+int     arg6 - non-zero if this is an attack using a melee weapon
 
 int     ret1 - Either the damage to be used, if ret2 isn't given, or the new minimum damage if it is
 int     ret2 - The new maximum damage
@@ -416,9 +416,9 @@ What you can do:
 - add AP costs for all inventory movement including reloading
 - apply or remove some special scripted effects depending on PC's armor
 
-int     arg1 - Target slot (0 - main backpack, 1 - left hand, 2 - right hand, 3 - armor slot, 4 - weapon, when reloading it by dropping ammo)
+int     arg1 - Target slot (0 - main backpack, 1 - left hand, 2 - right hand, 3 - armor slot, 4 - weapon, when reloading it by dropping ammo, 5 - container, like bag/backpack, 6 - dropping on the ground)
 Item    arg2 - Item being moved
-Item    arg3 - Item being replaced or weapon being reloaded (can be 0)
+Item    arg3 - Item being replaced, weapon being reloaded, or container being filled (can be 0)
 
 int     ret1 - Override setting (-1 - use engine handler, any other value - prevent relocation of item/reloading weapon)
 
@@ -432,7 +432,7 @@ NOTE: when replacing a previously wielded armor or weapon, the unwielding hook w
 If you need to rely on this, try checking if armor/weapon already equipped when wielding hook is executed.
 
 Critter arg1 - critter
-Obj     arg2 - item being wielded or unwielded (weapon/armor), may be 0 when unwielding
+Obj     arg2 - item being wielded or unwielded (weapon/armor)
 int     arg3 - slot (INVEN_TYPE_*)
 int     arg4 - 1 when wielding, 0 when unwielding
 
@@ -498,3 +498,11 @@ int     arg3 - the hour part of the length of resting time
 int     arg4 - the minute part of the length of resting time
 
 int     ret1 - pass 1 to interrupt the resting
+
+-------------------------------------------
+
+HOOK_GAMEMODECHANGE (hs_gamemodechange.int)
+
+Runs once every time when the game mode was changed, like opening/closing the inventory, character screen, pipboy, etc.
+
+int     arg1 - event type: 1 - when the player exits the game, 0 - otherwise

@@ -57,6 +57,7 @@ enum HookType
 	HOOK_CARTRAVEL        = 28,
 	HOOK_SETGLOBALVAR     = 29,
 	HOOK_RESTTIMER        = 30,
+	HOOK_GAMEMODECHANGE   = 31,
 	HOOK_COUNT
 };
 

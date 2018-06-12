@@ -108,10 +108,12 @@ void sf_reg_anim_turn_towards(OpcodeContext& ctx) {
 
 void sf_explosions_metarule(OpcodeContext& ctx) {
 	int mode = ctx.arg(0).asInt(),
-		arg1 = ctx.arg(1).asInt(),
-		arg2 = ctx.arg(2).asInt();
+		result = ExplosionsMetaruleFunc(mode, ctx.arg(1).asInt(), ctx.arg(2).asInt());
 
-	ctx.setReturn(ExplosionsMetaruleFunc(mode, arg1, arg2));
+	if (result == -1) {
+		ctx.printOpcodeError("ExplosionsMetarule() - mode (%d) is not supported for the function.", mode);
+	}
+	ctx.setReturn(result);
 }
 
 }

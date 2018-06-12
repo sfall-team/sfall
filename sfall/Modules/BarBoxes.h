@@ -7,6 +7,8 @@ class BarBoxes : public Module {
 public:
 	const char* name() { return "BarBoxes"; }
 	void init();
+
+	static void SetText(int box, const char* text, DWORD color);
 };
 
 int _stdcall GetBox(int i);

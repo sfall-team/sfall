@@ -50,7 +50,7 @@ has_fake_trait and has_fake_perk return the number of levels the player has of t
 
 perk_add_mode, set_selectable_perk, set_perkbox_title, hide_real_perks, show_real_perks and clear_selectable_perks control the behaviour of the select a perk box. set_selectable_perk can be used to add additional items by setting the 'active' parameter to 1, and to remove them again by setting it to 0. set_perkbox_title can be used to change the title of the box, or by using "" it will be set back to the default. hide and show_real_perks can be used to prevent the dialog from displaying any of the original 119 perks. perk_add_mode modifies what happens when a fake perk is selected from the perks dialog. It is treated as a set of flags - if bit 1 is set then it is added to the players traits, if bit 2 is set it is added to the players perks, and if bit 3 is set it is removed from the list of selectable perks. The default is 0x2. clear_selectable_perks restores the dialog to it's default state.
 
-show_iface_tag, hide_iface_tag and is_iface_tag_active relate to the boxes that appear above the interface such as SNEAK and LEVEL. You can use 3 for LEVEL and 4 for ADDICT, or the range from 5 to 9 for custom boxes. Remember to add your messages to intrface.msg and setup the font colours in ddraw.ini if you're going to use custom boxes.
+show_iface_tag, hide_iface_tag and is_iface_tag_active relate to the boxes that appear above the interface such as SNEAK and LEVEL. You can use 3 for LEVEL and 4 for ADDICT, or the range from 5 to 9 for custom boxes. Remember to add your messages to intrface.msg and set up the font colours in ddraw.ini if you're going to use custom boxes.
 
 get/set_bodypart_hit_modifier alter the hit percentage modifiers for aiming at specific bodyparts. Valid bodypart id's are from 0 to 8. Changes are not saved, and will reset to the defaults (or to the values specified in ddraw.ini if they exist) at each reload.
 
@@ -72,7 +72,7 @@ arrays are created and manipulated with the xxx_array functions. An array must f
 
 NOTE: the above description only applies when "arraysBehavior" is set to 0 in ddraw.ini. Refer to "arrays.txt" for detailed description of new arrays behavior.
 
-force_aimed_shots and disable_aimed_shots allow overriding the normal rules regarding which weapons are allowed to make aimed attacks. (e.g. weapons that cause explosive damage normally cannot normally make aimed shots.) force_aimed_shots will allow a weapon to make aimed shots even if it normally couldn't, and disable_aimed_shots stops a weapon from making aimed shots even if it normally could. Both of these functions affect player and npcs alike. force_aimed_shots does not override the effects of the fast shot trait. The list of edited weapons is not saved over game loads, so you need to call the functions once at each reload. Use a pid of 0 to represent unarmed.
+force_aimed_shots and disable_aimed_shots allow overriding the normal rules regarding which weapons are allowed to make aimed attacks. (e.g. weapons that cause explosive damage normally cannot normally make aimed shots.) force_aimed_shots will allow a weapon to make aimed shots even if it normally couldn't, and disable_aimed_shots stops a weapon from making aimed shots even if it normally could. Both of these functions affect player and NPCs alike. force_aimed_shots does not override the effects of the fast shot trait. The list of edited weapons is not saved over game loads, so you need to call the functions once at each reload. Use a pid of 0 to represent unarmed.
 
 get/set_critter_skill_points will get/set the number of additional points a critter has in a skill, on top of whatever they have from their stats and other bonuses. Note that skill points are part of the proto, so calling set_skill_points on a critter will affect all critters that share the same proto.
 
@@ -101,10 +101,10 @@ array - array ID to be used with array-related functions (actually an integer)
 - returns 1 the first time it is called after a new game or game load, and 0 any time after. It works on an individual basis for each script, so one script wont interfere with others. It's primary use is for global scripts, so that they know when to call set_global_script_repeat, but it can be called from normal scripts too.
 
 > void inc_npc_level(string npc)
-- takes an npc name as an argument. The npc must be in your party. This function ignores player level requirements and the minimum 3 player level delay between npc level gains. It also ignores the random element, regardless of sfall's NPCAutoLevel setting.
+- takes an NPC name as an argument. The NPC must be in your party. This function ignores player level requirements and the minimum 3 player level delay between NPC level gains. It also ignores the random element, regardless of sfall's NPCAutoLevel setting.
 
 > int get_npc_level(string npc)
-- also takes the npc name as an argument, and returns the npc's current level. Again, the npc needs to be in your party.
+- also takes the NPC name as an argument, and returns the NPC's current level. Again, the NPC needs to be in your party.
 
 > void set_car_current_town(int town)
 - changes the current town index for the player's car
@@ -230,6 +230,10 @@ was made as a dirty easy hack to allow dynamically change some explosion paramet
 
 > void set_attack_is_explosion_fire
 - if you call this right before using a weapon with fire damage type, it will produce explosion effects (and radius damage) just like "explosion" type, but all targets will still receive fire damage.
+
+> void set_explosion_radius(grenade, rocket)
+- sets a permanent radius of the explosion for grenades and/or rockets. Passing 0 means not changing the corresponding radius.
+- changed radius will be reset each time the player reloads the game.
 
 
 Some utility/math functions are available:
@@ -475,6 +479,12 @@ Some utility/math functions are available:
 
 > int sfall_func0("attack_is_aimed")
 - returns 1 if the aimed attack mode is selected, 0 otherwise
+
+> void sfall_func3("set_iface_tag_text", int tag, string text, int color)
+- sets the text messages and colors for custom notification boxes to the interface without the need to add messages to intrface.msg and set up the font colors in ddraw.ini
+- tag value is the same as used in show_iface_tag, hide_iface_tag, and is_iface_tag_active. The valid range is from 5 to 9 (custom boxes)
+- The text is limited to 19 characters
+- available colors: 0 - green, 1 - red, 2 - white, 3 - yellow, 4 - dark yellow, 5 - blue, 6 - purple
 
 ------------------------
 ------ MORE INFO -------

@@ -225,6 +225,14 @@ static __declspec(naked) void PathfinderFix() {
 	}
 }
 
+static void __declspec(naked) wmInterfaceInit_text_font_hook() {
+	__asm {
+		mov  eax, 0x65; // normal text font
+		call fo::funcoffs::text_font_;
+		retn;
+	}
+}
+
 static void RestRestore() {
 	if (!restMode) return;
 
@@ -293,13 +301,15 @@ void TimeLimitPatch() {
 		limit = -1;
 		addUnarmedStatToGetYear = 1;
 
-		HookCall(0x4392F8, &GetDateWrapper);
-		HookCall(0x443808, &GetDateWrapper);
-		HookCall(0x47E127, &GetDateWrapper);
-		HookCall(0x4975A2, &GetDateWrapper);
-		HookCall(0x497712, &GetDateWrapper);
-		HookCall(0x4979C9, &GetDateWrapper);
-		HookCall(0x4C3CB5, &GetDateWrapper);
+		HookCalls(GetDateWrapper, {
+			0x4392F8,
+			0x443808,
+			0x47E127,
+			0x4975A2,
+			0x497712,
+			0x4979C9,
+			0x4C3CB5
+		});
 		dlogr(" Done", DL_INIT);
 	}
 
@@ -419,6 +429,14 @@ void StartingStatePatches() {
 	}
 }
 
+void WorldMapFontPatch() {
+	if (GetConfigInt("Misc", "WorldMapFontPatch", 0)) {
+		dlog("Applying world map font patch.", DL_INIT);
+		HookCall(0x4C2343, wmInterfaceInit_text_font_hook);
+		dlogr(" Done", DL_INIT);
+	}
+}
+
 void Worldmap::init() {
 	PathfinderFixInit();
 	StartingStatePatches();
@@ -426,6 +444,7 @@ void Worldmap::init() {
 	TownMapsHotkeyFix();
 	WorldLimitsPatches();
 	WorldmapFpsPatch();
+	WorldMapFontPatch();
 
 	LoadGameHook::OnGameReset() += []() {
 		SetCarInterfaceArt(0x1B1);

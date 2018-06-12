@@ -420,8 +420,8 @@ enum Trait : long
 enum class ScenerySubType : long
 {
 	DOOR = 0,
-	STAIRS = 1, 
-	ELEVATOR = 2, 
+	STAIRS = 1,
+	ELEVATOR = 2,
 	LADDER_BOTTOM = 3,
 	LADDER_TOP = 4,
 	GENERIC = 5
@@ -577,6 +577,14 @@ enum ItemType : long
 	item_type_ammo = 4,
 	item_type_misc_item = 5,
 	item_type_key = 6,
+};
+
+// Inventory Equates
+enum InvenType : long
+{
+	INVEN_TYPE_WORN = 0,
+	INVEN_TYPE_RIGHT_HAND = 1,
+	INVEN_TYPE_LEFT_HAND = 2,
 };
 
 #define OBJFLAG_CAN_WEAR_ITEMS (0xf000000)

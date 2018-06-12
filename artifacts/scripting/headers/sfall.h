@@ -51,6 +51,7 @@
 #define HOOK_CARTRAVEL        (28)
 #define HOOK_SETGLOBALVAR     (29)
 #define HOOK_RESTTIMER        (30)
+#define HOOK_GAMEMODECHANGE   (31)
 
 //Valid arguments to list_begin
 #define LIST_CRITTERS    (0)
@@ -138,6 +139,7 @@
 #define set_attack_explosion_radius(x)        metarule2_explosions(3, x, 0)
 #define set_attack_is_explosion(x)            metarule2_explosions(4, x, 0)
 #define set_attack_is_explosion_fire          set_attack_is_explosion(DMG_fire)
+#define set_explosion_radius(grenade, rocket) metarule2_explosions(5, grenade, rocket)
 
 
 #define GAME_MSG_COMBAT      (0)
@@ -240,6 +242,7 @@
 #define set_cursor_mode(mode)                 sfall_func1("set_cursor_mode", mode)
 #define set_dude_obj(critter)                 sfall_func1("set_dude_obj", critter)
 #define set_flags(obj, flags)                 sfall_func2("set_flags", obj, flags)
+#define set_iface_tag_text(tag, text, color)  sfall_func3("set_iface_tag_text", tag, text, color)
 #define set_ini_setting(setting, value)       sfall_func2("set_ini_setting", setting, value)
 #define set_map_enter_position(tile, elev, rot) sfall_func3("set_map_enter_position", tile, elev, rot)
 #define set_outline(obj, color)               sfall_func2("set_outline", obj, color)

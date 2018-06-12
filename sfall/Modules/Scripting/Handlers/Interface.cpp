@@ -114,20 +114,13 @@ void __declspec(naked) op_get_mouse_y() {
 	}
 }
 
-void __declspec(naked) op_get_mouse_buttons() {
-	__asm {
-		push ecx;
-		push edx;
-		mov ecx, eax;
-		mov edx, ds:[FO_VAR_last_buttons];
-		call fo::funcoffs::interpretPushLong_;
-		mov eax, ecx;
-		mov edx, VAR_TYPE_INT;
-		call fo::funcoffs::interpretPushShort_
-		pop edx;
-		pop ecx;
-		retn;
+#define MOUSE_MIDDLE_BTN        (4)
+void sf_get_mouse_buttons(OpcodeContext& ctx) {
+	DWORD button = fo::var::last_buttons;
+	if (button == 0 && middleMouseDown) {
+		button = MOUSE_MIDDLE_BTN;
 	}
+	ctx.setReturn(button);
 }
 
 void __declspec(naked) op_get_window_under_mouse() {
@@ -453,7 +446,17 @@ void sf_set_cursor_mode(OpcodeContext& ctx) {
 void sf_display_stats(OpcodeContext& ctx) {
 // calling the function outside of inventory screen will crash the game
 	if (GetLoopFlags() & INVENTORY) {
-		__asm call fo::funcoffs::display_stats_
+		fo::func::display_stats();
+	}
+}
+
+void sf_set_iface_tag_text(OpcodeContext& ctx) {
+	int boxTag = ctx.arg(0).asInt();
+
+	if (boxTag > 4 && boxTag < 10) {
+		BarBoxes::SetText(boxTag, ctx.arg(1).asString(), ctx.arg(2).asInt());
+	} else {
+		ctx.printOpcodeError("set_iface_tag_text() - tag value must be in the range of 5 to 9.");
 	}
 }
 

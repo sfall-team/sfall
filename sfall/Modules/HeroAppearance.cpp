@@ -1517,66 +1517,74 @@ static void __declspec(naked) FixCharScrnBack(void) {
 	if (charScrnBackSurface == nullptr) {
 		charScrnBackSurface = new BYTE [640*480];
 
-		BYTE *OldCharScrnBackSurface = fo::var::bckgnd; //char screen background frm surface
+		UnlistedFrm *frm;
+		frm = LoadUnlistedFrm((*(long*)FO_VAR_glblmode) ? "AppChCrt.frm" : "AppChEdt.frm", 6);
 
-		//copy old charscrn surface to new
-		sub_draw(640, 480, 640, 480, 0, 0, OldCharScrnBackSurface, 640, 480, 0, 0, charScrnBackSurface, 0);
+		if (frm != nullptr) {
+			sub_draw(640, 480, 640, 480, 0, 0, frm->frames[0].indexBuff, 640, 480, 0, 0, charScrnBackSurface, 0);
+			delete frm;
+		} else {
+			BYTE *OldCharScrnBackSurface = fo::var::bckgnd; //char screen background frm surface
 
-		//copy Tag Skill Counter background to the right
-		sub_draw(38, 26, 640, 480, 519, 228, OldCharScrnBackSurface, 640, 480, 519+36, 228, charScrnBackSurface, 0);
-		//copy a blank part of the Tag Skill Bar hiding the old counter
-		sub_draw(38, 26, 640, 480, 460, 228, OldCharScrnBackSurface, 640, 480, 519, 228, charScrnBackSurface, 0);
+			//copy old charscrn surface to new
+			sub_draw(640, 480, 640, 480, 0, 0, OldCharScrnBackSurface, 640, 480, 0, 0, charScrnBackSurface, 0);
 
-		sub_draw(36, 258, 640, 480, 332, 0, OldCharScrnBackSurface, 640, 480, 408, 0, charScrnBackSurface, 0); //shift behind button rail
-		sub_draw(6, 32, 640, 480, 331, 233, OldCharScrnBackSurface, 640, 480, 330, 6, charScrnBackSurface, 0); //shadow for style/race button
+			//copy Tag Skill Counter background to the right
+			sub_draw(38, 26, 640, 480, 519, 228, OldCharScrnBackSurface, 640, 480, 519+36, 228, charScrnBackSurface, 0);
+			//copy a blank part of the Tag Skill Bar hiding the old counter
+			sub_draw(38, 26, 640, 480, 460, 228, OldCharScrnBackSurface, 640, 480, 519, 228, charScrnBackSurface, 0);
+
+			sub_draw(36, 258, 640, 480, 332, 0, OldCharScrnBackSurface, 640, 480, 408, 0, charScrnBackSurface, 0); //shift behind button rail
+			sub_draw(6, 32, 640, 480, 331, 233, OldCharScrnBackSurface, 640, 480, 330, 6, charScrnBackSurface, 0); //shadow for style/race button
 
 
-		DWORD FrmObj, FrmMaskObj; //frm objects for char screen Appearance button
-		BYTE *FrmSurface,*FrmMaskSurface;
+			DWORD FrmObj, FrmMaskObj; //frm objects for char screen Appearance button
+			BYTE *FrmSurface,*FrmMaskSurface;
 
-		FrmSurface = fo::func::art_ptr_lock_data(BuildFrmId(6, 113), 0, 0, &FrmObj);
-		sub_draw(81, 132, 292, 376, 163, 20, FrmSurface, 640, 480, 331, 63, charScrnBackSurface, 0); //char view win
-		sub_draw(79, 31, 292, 376, 154, 228, FrmSurface, 640, 480, 331, 32, charScrnBackSurface, 0); //upper  char view win
-		sub_draw(79, 30, 292, 376, 158, 236, FrmSurface, 640, 480, 331, 195, charScrnBackSurface, 0); //lower  char view win
-		fo::func::art_ptr_unlock(FrmObj);
+			FrmSurface = fo::func::art_ptr_lock_data(BuildFrmId(6, 113), 0, 0, &FrmObj);
+			sub_draw(81, 132, 292, 376, 163, 20, FrmSurface, 640, 480, 331, 63, charScrnBackSurface, 0); //char view win
+			sub_draw(79, 31, 292, 376, 154, 228, FrmSurface, 640, 480, 331, 32, charScrnBackSurface, 0); //upper  char view win
+			sub_draw(79, 30, 292, 376, 158, 236, FrmSurface, 640, 480, 331, 195, charScrnBackSurface, 0); //lower  char view win
+			fo::func::art_ptr_unlock(FrmObj);
 
-		//Sexoff Frm
-		FrmSurface = fo::func::art_ptr_lock_data(BuildFrmId(6, 188), 0, 0, &FrmObj);
-		//Sex button mask frm
-		FrmMaskSurface = fo::func::art_ptr_lock_data(BuildFrmId(6, 187), 0, 0, &FrmMaskObj);
+			//Sexoff Frm
+			FrmSurface = fo::func::art_ptr_lock_data(BuildFrmId(6, 188), 0, 0, &FrmObj);
+			//Sex button mask frm
+			FrmMaskSurface = fo::func::art_ptr_lock_data(BuildFrmId(6, 187), 0, 0, &FrmMaskObj);
 
-		sub_draw(80, 28, 80, 32, 0, 0, FrmMaskSurface, 80, 32, 0, 0, FrmSurface, 0x39); //mask for style and race buttons
-		fo::func::art_ptr_unlock(FrmMaskObj);
-		FrmMaskSurface = nullptr;
+			sub_draw(80, 28, 80, 32, 0, 0, FrmMaskSurface, 80, 32, 0, 0, FrmSurface, 0x39); //mask for style and race buttons
+			fo::func::art_ptr_unlock(FrmMaskObj);
+			FrmMaskSurface = nullptr;
 
-		FrmSurface[80*32 - 1] = 0;
-		FrmSurface[80*31 - 1] = 0;
-		FrmSurface[80*30 - 1] = 0;
+			FrmSurface[80*32 - 1] = 0;
+			FrmSurface[80*31 - 1] = 0;
+			FrmSurface[80*30 - 1] = 0;
 
-		FrmSurface[80*32 - 2] = 0;
-		FrmSurface[80*31 - 2] = 0;
-		FrmSurface[80*30 - 2] = 0;
+			FrmSurface[80*32 - 2] = 0;
+			FrmSurface[80*31 - 2] = 0;
+			FrmSurface[80*30 - 2] = 0;
 
-		FrmSurface[80*32 - 3] = 0;
-		FrmSurface[80*31 - 3] = 0;
-		FrmSurface[80*30 - 3] = 0;
+			FrmSurface[80*32 - 3] = 0;
+			FrmSurface[80*31 - 3] = 0;
+			FrmSurface[80*30 - 3] = 0;
 
-		FrmSurface[80*32 - 4] = 0;
-		FrmSurface[80*31 - 4] = 0;
-		FrmSurface[80*30 - 4] = 0;
+			FrmSurface[80*32 - 4] = 0;
+			FrmSurface[80*31 - 4] = 0;
+			FrmSurface[80*30 - 4] = 0;
 
-		sub_draw(80, 32, 80, 32, 0, 0, FrmSurface, 640, 480, 332, 0, charScrnBackSurface, 0); //style and race buttons
-		sub_draw(80, 32, 80, 32, 0, 0, FrmSurface, 640, 480, 332, 225, charScrnBackSurface, 0); //style and race buttons
-		fo::func::art_ptr_unlock(FrmObj);
+			sub_draw(80, 32, 80, 32, 0, 0, FrmSurface, 640, 480, 332, 0, charScrnBackSurface, 0); //style and race buttons
+			sub_draw(80, 32, 80, 32, 0, 0, FrmSurface, 640, 480, 332, 225, charScrnBackSurface, 0); //style and race buttons
+			fo::func::art_ptr_unlock(FrmObj);
 
-		//frm background for char screen Appearance button
-		FrmSurface = fo::func::art_ptr_lock_data(BuildFrmId(6, 174), 0, 0, &FrmObj); //Pickchar frm
-		sub_draw(69, 20, 640, 480, 282, 320, FrmSurface, 640, 480, 337, 37, charScrnBackSurface, 0); //button backround top
-		sub_draw(69, 20, 640, 480, 282, 320, FrmSurface, 640, 480, 337, 199, charScrnBackSurface, 0); //button backround bottom
-		sub_draw(47, 16, 640, 480, 94, 394, FrmSurface, 640, 480, 347, 39, charScrnBackSurface, 0); //cover buttons pics top
-		sub_draw(47, 16, 640, 480, 94, 394, FrmSurface, 640, 480, 347, 201, charScrnBackSurface, 0); //cover buttons pics bottom
-		fo::func::art_ptr_unlock(FrmObj);
-		FrmSurface = nullptr;
+			//frm background for char screen Appearance button
+			FrmSurface = fo::func::art_ptr_lock_data(BuildFrmId(6, 174), 0, 0, &FrmObj); //Pickchar frm
+			sub_draw(69, 20, 640, 480, 282, 320, FrmSurface, 640, 480, 337, 37, charScrnBackSurface, 0); //button backround top
+			sub_draw(69, 20, 640, 480, 282, 320, FrmSurface, 640, 480, 337, 199, charScrnBackSurface, 0); //button backround bottom
+			sub_draw(47, 16, 640, 480, 94, 394, FrmSurface, 640, 480, 347, 39, charScrnBackSurface, 0); //cover buttons pics top
+			sub_draw(47, 16, 640, 480, 94, 394, FrmSurface, 640, 480, 347, 201, charScrnBackSurface, 0); //cover buttons pics bottom
+			fo::func::art_ptr_unlock(FrmObj);
+			FrmSurface = nullptr;
+		}
 
 		int oldFont;
 		oldFont = GetFont();
@@ -1603,8 +1611,8 @@ static void __declspec(naked) FixCharScrnBack(void) {
 		mov esp, ebp //epilog
 		pop ebp
 		mov eax, charScrnBackSurface
-EndFunc:
 		mov dword ptr ds:[FO_VAR_bckgnd], eax //surface ptr for char scrn back
+EndFunc:
 		retn
 	}
 }

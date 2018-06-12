@@ -89,7 +89,7 @@ void ApplyDisplayKarmaChangesPatch() {
 void ApplyKarmaFRMsPatch() {
 	auto karmaFrmList = GetConfigList("Misc", "KarmaFRMs", "", 512);
 	if (karmaFrmList.size() > 0) {
-		dlog("Applying karma frm patch.", DL_INIT);
+		dlog("Applying karma FRM patch.", DL_INIT);
 
 		auto karmaPointsList = GetConfigList("Misc", "KarmaPoints", "", 512);
 		karmaFrms.resize(karmaFrmList.size());

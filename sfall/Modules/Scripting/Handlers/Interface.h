@@ -38,8 +38,8 @@ void __declspec() op_get_mouse_x();
 //Return mouse y position
 void __declspec() op_get_mouse_y();
 
-//Return pressed mouse button (1=left, 2=right, 3=left+right)
-void __declspec() op_get_mouse_buttons();
+//Return pressed mouse button (1=left, 2=right, 3=left+right, 4=middle)
+void sf_get_mouse_buttons(OpcodeContext&);
 
 //Return the window number under the mous
 void __declspec() op_get_window_under_mouse();
@@ -88,6 +88,8 @@ void sf_get_cursor_mode(OpcodeContext&);
 void sf_set_cursor_mode(OpcodeContext&);
 
 void sf_display_stats(OpcodeContext&);
+
+void sf_set_iface_tag_text(OpcodeContext&);
 
 }
 }
