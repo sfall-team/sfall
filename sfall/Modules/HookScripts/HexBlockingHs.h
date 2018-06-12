@@ -7,4 +7,9 @@ namespace sfall
 
 void InitHexBlockingHookScripts();
 
+void Inject_HexSightBlockHook();
+void Inject_HexShootBlockHook();
+void Inject_HexIABlockHook();
+void Inject_HexMoveBlockHook();
+
 }

@@ -100,15 +100,29 @@ end:
 	}
 }
 
+void Inject_HexSightBlockHook() {
+	SafeWriteBatch<DWORD>((DWORD)&HexSightBlockingHook, { 0x413979 });
+}
+
+void Inject_HexShootBlockHook() {
+	SafeWriteBatch<DWORD>((DWORD)&HexShootBlockingHook, { 0x4C1A88, 0x423178, 0x4232D4, 0x423B4D, 0x426CF8, 0x42A570 });
+}
+
+void Inject_HexIABlockHook() {
+	SafeWriteBatch<DWORD>((DWORD)&HexABlockingHook, { 0x42A0A4 });
+}
+
+void Inject_HexMoveBlockHook() {
+	MakeJump(0x48B848, HexMBlockingHook);
+}
+
 void InitHexBlockingHookScripts() {
+
 	LoadHookScript("hs_hexmoveblocking", HOOK_HEXMOVEBLOCKING);
 	LoadHookScript("hs_hexaiblocking", HOOK_HEXAIBLOCKING);
 	LoadHookScript("hs_hexshootblocking", HOOK_HEXSHOOTBLOCKING);
 	LoadHookScript("hs_hexsightblocking", HOOK_HEXSIGHTBLOCKING);
-	SafeWriteBatch<DWORD>((DWORD)&HexSightBlockingHook, { 0x413979 });
-	SafeWriteBatch<DWORD>((DWORD)&HexShootBlockingHook, { 0x4C1A88, 0x423178, 0x4232D4, 0x423B4D, 0x426CF8, 0x42A570 });
-	SafeWriteBatch<DWORD>((DWORD)&HexABlockingHook, { 0x42A0A4 });
-	MakeJump(0x48B848, HexMBlockingHook);
+
 }
 
 }

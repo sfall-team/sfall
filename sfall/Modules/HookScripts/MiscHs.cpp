@@ -353,8 +353,7 @@ skip:
 	}
 }
 
-void InitMiscHookScripts() {
-	LoadHookScript("hs_useobjon", HOOK_USEOBJON);
+void Inject_UseObjOnHook() {
 	HookCalls(UseObjOnHook, { 0x49C606, 0x473619 });
 
 	// the following hooks allows to catch drug use of AI and from action cursor
@@ -364,24 +363,29 @@ void InitMiscHookScripts() {
 		0x4287F8, // ai_check_drugs
 		0x473573 // inven_action_cursor
 	});
+}
 
-	LoadHookScript("hs_barterprice", HOOK_BARTERPRICE);
+void Inject_BarterPriceHook() {
 	HookCalls(BarterPriceHook, {
 		0x474D4C,
 		0x475735,
 		0x475762
 	});
+}
 
-	LoadHookScript("hs_useobj", HOOK_USEOBJ);
+void Inject_UseObjHook() {
 	HookCalls(UseObjHook, { 0x42AEBF, 0x473607, 0x49C12E });
+}
 
-	LoadHookScript("hs_useskill", HOOK_USESKILL);
+void Inject_UseSkillHook() {
 	HookCalls(UseSkillHook, { 0x49C48F, 0x49D12E });
+}
 
-	LoadHookScript("hs_steal", HOOK_STEAL);
+void Inject_StealCheckHook() {
 	HookCalls(StealCheckHook, { 0x4749A2, 0x474A69 });
+}
 
-	LoadHookScript("hs_withinperception", HOOK_WITHINPERCEPTION);
+void Inject_WithinPerceptionHook() {
 	HookCalls(PerceptionRangeHook, {
 		0x429157,
 		0x42B4ED,
@@ -391,18 +395,33 @@ void InitMiscHookScripts() {
 		0x458403
 	});
 	MakeJump(0x456BA2, PerceptionRangeBonusHack);
+}
 
-	LoadHookScript("hs_cartravel", HOOK_CARTRAVEL);
+void Inject_CarTravelHook() {
 	MakeJump(0x4BFEF1, CarTravelHack);
 	BlockCall(0x4BFF6E); // vanilla wnCarUseGas(100) call
+}
 
-	LoadHookScript("hs_setglobalvar", HOOK_SETGLOBALVAR);
+void Inject_SetGlobalVarHook() {
 	HookCall(0x455A6D, SetGlobalVarHook);
+}
 
-	LoadHookScript("hs_resttimer", HOOK_RESTTIMER);
+void Inject_RestTimerHook() {
 	HookCalls(RestTimerLoopHook, { 0x499B4B, 0x499BE0, 0x499D2C, 0x499DF2 });
 	MakeCalls(RestTimerEscapeHook, { 0x499B63, 0x499CA1 });
+}
 
+void InitMiscHookScripts() {
+
+	LoadHookScript("hs_useobjon", HOOK_USEOBJON);
+	LoadHookScript("hs_barterprice", HOOK_BARTERPRICE);
+	LoadHookScript("hs_useobj", HOOK_USEOBJ);
+	LoadHookScript("hs_useskill", HOOK_USESKILL);
+	LoadHookScript("hs_steal", HOOK_STEAL);
+	LoadHookScript("hs_withinperception", HOOK_WITHINPERCEPTION);
+	LoadHookScript("hs_cartravel", HOOK_CARTRAVEL);
+	LoadHookScript("hs_setglobalvar", HOOK_SETGLOBALVAR);
+	LoadHookScript("hs_resttimer", HOOK_RESTTIMER);
 }
 
 }
