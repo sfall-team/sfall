@@ -98,7 +98,8 @@ bool OpcodeContext::validateArguments(const OpcodeArgumentType argTypes[], const
 		auto argType = argTypes[i];
 		auto actualType = arg(i).type();
 		// display invalid type error if type is set and differs from actual type
-		// exception is when type set to 
+		// exception is when type set to
+		if (actualType == DataType::NONE) break;
 		if ((argType == ARG_INT || argType == ARG_OBJECT) && !(actualType == DataType::INT)) {
 			printOpcodeError("%s() - argument #%d is not an integer.", opcodeName, i);
 			return false;

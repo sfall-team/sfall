@@ -17,6 +17,7 @@
  */
 
 #include "..\..\..\FalloutEngine\Fallout2.h"
+#include "..\..\Explosions.h"
 #include "..\..\Knockback.h"
 #include "..\..\PartyControl.h"
 #include "..\..\ScriptExtender.h"
@@ -423,6 +424,24 @@ void sf_set_unjam_locks_time(OpcodeContext& ctx) {
 		ctx.printOpcodeError("set_unjam_locks_time() - time argument must be in the range of 0 to 127.");
 	} else {
 		ScriptExtender::SetAutoUnjamLockTime(time);
+	}
+}
+
+void sf_item_make_explosive(OpcodeContext& ctx) {
+	DWORD pid = ctx.arg(0).rawValue();
+	DWORD pidActive = ctx.arg(1).rawValue();
+	DWORD min = ctx.arg(2).rawValue();
+	DWORD max = (ctx.numArgs() == 4) ? ctx.arg(3).rawValue() : min;
+
+	if (min > max) {
+		max = min;
+		ctx.printOpcodeError("item_make_explosive() - Warning: argument max has a value less than the argument min.");
+	}
+
+	if (pid > 0 && pidActive > 0) {
+		Explosions::AddToExplosives(pid, pidActive, min, max);
+	} else {
+		ctx.printOpcodeError("item_make_explosive() - PID's arguments must be greater 0.");
 	}
 }
 

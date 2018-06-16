@@ -216,7 +216,7 @@ Some additional reg_anim_* functions were introduced. They all work in the same 
 > void reg_anim_turn_towards(object, tile/target, delay)
 - makes object change its direction to face given tile num or target object.
 
-> int metarule2_explosions(int arg1, int arg2)
+> int/array metarule2_explosions(int arg1, int arg2, int arg3)
 was made as a dirty easy hack to allow dynamically change some explosion parameters (ranged attack). All changed parameters are reset to vanilla state automatically after each attack action. Following macros are available in sfall.h:
 
 > void set_attack_explosion_pattern(x, y)
@@ -235,6 +235,14 @@ was made as a dirty easy hack to allow dynamically change some explosion paramet
 - sets a permanent radius of the explosion for grenades and/or rockets. Passing 0 means not changing the corresponding radius.
 - changed radius will be reset each time the player reloads the game.
 
+> array get_explosion_damage(itemPid)
+- returns array the sets min/max damage for the explosive item.
+
+> void set_dynamite_damage(minDmg, maxDmg)
+- sets the minimum and maximum damage for an explosion of dynamite.
+
+> void set_plastic_damage(minDmg, maxDmg)
+- sets the minimum and maximum damage for an explosion of plastic explosive.
 
 Some utility/math functions are available:
 
@@ -485,6 +493,14 @@ Some utility/math functions are available:
 - tag value is the same as used in show_iface_tag, hide_iface_tag, and is_iface_tag_active. The valid range is from 5 to 9 (custom boxes)
 - The text is limited to 19 characters
 - available colors: 0 - green, 1 - red, 2 - white, 3 - yellow, 4 - dark yellow, 5 - blue, 6 - purple
+
+> void sfall_func3("item_make_explosive", int pid, int activePid, int damage)
+> void sfall_func4("item_make_explosive", int pid, int activePid, int min, int max)
+- makes the specified item(pid) an explosive item (as like dynamite or plastic explosives)
+- activePid for an item with an active timer, can use the same object pid
+- min/max minimum and maximum explosion damage
+- using the function for an item that is already explosive, will override previously made settings
+Note: this function does not work for pid's dynamite and plastic explosives
 
 ------------------------
 ------ MORE INFO -------

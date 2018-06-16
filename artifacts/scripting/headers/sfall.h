@@ -140,7 +140,9 @@
 #define set_attack_is_explosion(x)            metarule2_explosions(4, x, 0)
 #define set_attack_is_explosion_fire          set_attack_is_explosion(DMG_fire)
 #define set_explosion_radius(grenade, rocket) metarule2_explosions(5, grenade, rocket)
-
+#define get_explosion_damage(itemPid)         metarule2_explosions(6, pid, 0)
+#define set_dynamite_damage(minDmg, maxDmg)   metarule2_explosions(7, minDmg, maxDmg)
+#define set_plastic_damage(minDmg, maxDmg)    metarule2_explosions(8, minDmg, maxDmg)
 
 #define GAME_MSG_COMBAT      (0)
 #define GAME_MSG_AI          (1)
@@ -252,3 +254,4 @@
 #define spatial_radius(obj)                   sfall_func1("spatial_radius", obj)
 #define tile_refresh_display                  sfall_func0("tile_refresh_display")
 #define unjam_lock(obj)                       sfall_func1("unjam_lock", obj)
+#define item_make_explosive(pid, activePid, min, max) sfall_func4("item_make_explosive", pid, activePid, min, max)
