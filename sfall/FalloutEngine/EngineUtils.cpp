@@ -74,7 +74,25 @@ void SkillSetTags(long* tags, long num) {
 	fo::func::skill_set_tags(tags, num);
 }
 
+int _fastcall GetItemType(GameObject* item) {
+	return fo::func::item_get_type(item);
+}
 
+_declspec(noinline) GameObject* GetItemPtrSlot(GameObject* critter, InvenType slot) {
+	GameObject* itemPtr = 0;
+	switch (slot) {
+		case fo::INVEN_TYPE_LEFT_HAND :
+			itemPtr = fo::func::inven_left_hand(critter);
+			break;
+		case fo::INVEN_TYPE_RIGHT_HAND :
+			itemPtr = fo::func::inven_right_hand(critter);
+			break;
+		case fo::INVEN_TYPE_WORN :
+			itemPtr = fo::func::inven_worn(critter);
+			break;
+	}
+	return itemPtr;
+}
 
 //---------------------------------------------------------
 //print text to surface
