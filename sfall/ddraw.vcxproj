@@ -228,6 +228,7 @@
     <ClInclude Include="Modules\HookScripts\HexBlockingHs.h" />
     <ClInclude Include="Modules\HookScripts\InventoryHs.h" />
     <ClInclude Include="Modules\HookScripts\MiscHs.h" />
+    <ClInclude Include="Modules\HookScripts\ObjectHs.h" />
     <ClInclude Include="Modules\Input.h" />
     <ClInclude Include="ModuleManager.h" />
     <ClInclude Include="Modules\MainLoopHook.h" />
@@ -314,6 +315,7 @@
     <ClCompile Include="Modules\HookScripts\HexBlockingHs.cpp" />
     <ClCompile Include="Modules\HookScripts\InventoryHs.cpp" />
     <ClCompile Include="Modules\HookScripts\MiscHs.cpp" />
+    <ClCompile Include="Modules\HookScripts\ObjectHs.cpp" />
     <ClCompile Include="Modules\Input.cpp" />
     <ClCompile Include="ModuleManager.cpp" />
     <ClCompile Include="Modules\AI.cpp" />

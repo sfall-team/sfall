@@ -58,15 +58,18 @@ enum HookType
 	HOOK_SETGLOBALVAR     = 29,
 	HOOK_RESTTIMER        = 30,
 	HOOK_GAMEMODECHANGE   = 31,
+	HOOK_USEOBJECTMAP     = 32,
 	HOOK_COUNT
 };
 
 class HookScripts : public Module {
+
 public:
 	const char* name() { return "HookScripts"; }
 	void init();
 
 	static void InjectingHook(int hookId);
+	static bool injectAllHooks;
 };
 
 DWORD _stdcall GetHSArgCount();
@@ -81,7 +84,6 @@ void _stdcall RegisterHook(fo::Program* script, int id, int procNum);
 void HookScriptClear();
 void LoadHookScripts();
 
-extern bool injectAllHooks;
 extern DWORD initingHookScripts;
 extern void __declspec() AmmoCostHookWrapper();
 void _stdcall RunHookScriptsAtProc(DWORD procId);

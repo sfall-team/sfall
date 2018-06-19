@@ -27,6 +27,7 @@
 #include "HookScripts\DeathHs.h"
 #include "HookScripts\HexBlockingHs.h"
 #include "HookScripts\InventoryHs.h"
+#include "HookScripts\ObjectHs.h"
 #include "HookScripts\MiscHs.h"
 #include "LoadGameHook.h"
 
@@ -75,9 +76,10 @@ static HooksInjectInfo injectHooks[] = {
 	{HOOK_SETGLOBALVAR,     Inject_SetGlobalVarHook,     false},
 	{HOOK_RESTTIMER,        Inject_RestTimerHook,        false},
 	{HOOK_GAMEMODECHANGE,   nullptr,                      true}, // always embedded to the engine
+	{HOOK_USEOBJECTMAP,     Inject_UseObjectMapHook,     false},
 };
 
-bool injectAllHooks;
+bool HookScripts::injectAllHooks;
 DWORD initingHookScripts;
 
 // BEGIN HOOKS
@@ -177,6 +179,7 @@ static void HookScriptInit() {
 	InitDeathHookScripts();
 	InitHexBlockingHookScripts();
 	InitInventoryHookScripts();
+	InitObjectHookScripts();
 	InitMiscHookScripts();
 
 	LoadHookScript("hs_keypress", HOOK_KEYPRESS);
@@ -219,7 +222,7 @@ void HookScripts::init() {
 	OnMouseClick() += MouseClickHook;
 	LoadGameHook::OnGameModeChange() += GameModeChangeHook;
 
-	injectAllHooks = (isDebug && (GetConfigInt("Debugging", "InjectingAllGameHooks", 0) != 0));
+	HookScripts::injectAllHooks = (isDebug && (GetConfigInt("Debugging", "InjectingAllGameHooks", 0) != 0));
 }
 
 }
