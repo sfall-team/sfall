@@ -65,6 +65,8 @@ class HookScripts : public Module {
 public:
 	const char* name() { return "HookScripts"; }
 	void init();
+
+	static void InjectingHook(int hookId);
 };
 
 DWORD _stdcall GetHSArgCount();
@@ -79,6 +81,7 @@ void _stdcall RegisterHook(fo::Program* script, int id, int procNum);
 void HookScriptClear();
 void LoadHookScripts();
 
+extern bool injectAllHooks;
 extern DWORD initingHookScripts;
 extern void __declspec() AmmoCostHookWrapper();
 void _stdcall RunHookScriptsAtProc(DWORD procId);

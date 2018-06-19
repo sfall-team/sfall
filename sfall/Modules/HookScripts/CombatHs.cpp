@@ -352,8 +352,7 @@ gonormal:
 	}
 }
 
-void InitCombatHookScripts() {
-	LoadHookScript("hs_tohit", HOOK_TOHIT);
+void Inject_ToHitHook() {
 	HookCalls(ToHitHook, {
 		0x421686, // combat_safety_invalidate_weapon_func_
 		0x4231D9, // check_ranged_miss_
@@ -362,13 +361,15 @@ void InitCombatHookScripts() {
 		0x424379, // determine_to_hit_
 		0x42438D, // determine_to_hit_no_range_
 		0x42439C, // determine_to_hit_from_tile_
-		0x42679A // combat_to_hit_
+		0x42679A  // combat_to_hit_
 	});
+}
 
-	LoadHookScript("hs_afterhitroll", HOOK_AFTERHITROLL);
+void Inject_AfterHitRollHook() {
 	MakeJump(0x423893, AfterHitRollHook);
+}
 
-	LoadHookScript("hs_calcapcost", HOOK_CALCAPCOST);
+void Inject_CalcApCostHook() {
 	HookCalls(CalcApCostHook, {
 		0x42307A,
 		0x42669F,
@@ -382,8 +383,9 @@ void InitCombatHookScripts() {
 		0x47807B
 	});
 	MakeCall(0x478083, CalcApCostHook2);
+}
 
-	LoadHookScript("hs_combatdamage", HOOK_COMBATDAMAGE);
+void Inject_CombatDamageHook() {
 	HookCalls(ComputeDamageHook, {
 		0x42326C, // check_ranged_miss()
 		0x4233E3, // shoot_along_path() - for extra burst targets
@@ -394,19 +396,36 @@ void InitCombatHookScripts() {
 		0x424220, // attack_crit_failure()
 		0x4242FB, // attack_crit_failure()
 	});
+}
 
-	LoadHookScript("hs_findtarget", HOOK_FINDTARGET);
+void Inject_FindTargetHook() {
 	HookCalls(FindTargetHook, { 0x429143 });
+}
 
-	LoadHookScript("hs_itemdamage", HOOK_ITEMDAMAGE);
+void Inject_ItemDamageHook() {
 	HookCalls(ItemDamageHook, { 0x478560 });
+}
 
-	LoadHookScript("hs_ammocost", HOOK_AMMOCOST);
+void Inject_AmmoCostHook() {
 	HookCalls(AmmoCostHook, { 0x423A7C });
+}
 
-	LoadHookScript("hs_combatturn", HOOK_COMBATTURN);
+void Inject_CombatTurnHook() {
 	MakeJump(0x422354, CombatAddNoncoms_CombatTurn_Hack);
 	HookCalls(CombatTurnHook, { 0x422D87, 0x422E20 });
+}
+
+void InitCombatHookScripts() {
+
+	LoadHookScript("hs_tohit", HOOK_TOHIT);
+	LoadHookScript("hs_afterhitroll", HOOK_AFTERHITROLL);
+	LoadHookScript("hs_calcapcost", HOOK_CALCAPCOST);
+	LoadHookScript("hs_combatdamage", HOOK_COMBATDAMAGE);
+	LoadHookScript("hs_findtarget", HOOK_FINDTARGET);
+	LoadHookScript("hs_itemdamage", HOOK_ITEMDAMAGE);
+	LoadHookScript("hs_ammocost", HOOK_AMMOCOST);
+	LoadHookScript("hs_combatturn", HOOK_COMBATTURN);
+
 }
 
 }

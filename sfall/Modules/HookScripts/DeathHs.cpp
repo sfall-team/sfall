@@ -132,18 +132,19 @@ static void __declspec(naked) OnDeathHook2() {
 	}
 }
 
-
-void InitDeathHookScripts() {
-	LoadHookScript("hs_deathanim1", HOOK_DEATHANIM1);
-	LoadHookScript("hs_deathanim2", HOOK_DEATHANIM2);
+void Inject_DeathAnim1Hook() {
 	HookCalls(CalcDeathAnimHook, { 0x4109DE });
+}
+
+void Inject_DeathAnim2Hook() {
 	HookCalls(CalcDeathAnimHook2, {
 		0x410981,
 		0x4109A1,
 		0x4109BF
 	});
+}
 
-	LoadHookScript("hs_ondeath", HOOK_ONDEATH);
+void Inject_OnDeathHook() {
 	HookCalls(OnDeathHook, {
 		0x4130CC,
 		0x4130EF,
@@ -157,6 +158,14 @@ void InitDeathHookScripts() {
 		0x4C14F9
 	});
 	HookCalls(OnDeathHook2, { 0x425161 });
+}
+
+void InitDeathHookScripts() {
+
+	LoadHookScript("hs_deathanim1", HOOK_DEATHANIM1);
+	LoadHookScript("hs_deathanim2", HOOK_DEATHANIM2);
+	LoadHookScript("hs_ondeath", HOOK_ONDEATH);
+
 }
 
 }
