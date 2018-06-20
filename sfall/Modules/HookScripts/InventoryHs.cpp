@@ -53,7 +53,7 @@ static void __declspec(naked) MoveCostHook() {
 	__asm {
 		popad;
 		cmp cRet, 1;
-		cmovge eax, rets[0];
+		cmovge eax, dword ptr rets[0];
 		retn;
 	}
 }
@@ -162,10 +162,11 @@ skip:
 // - if 0 is returned while dropping caps, selected amount - 1 will still disappear from inventory (fixed)
 static DWORD nextHookDropSkip = 0;
 static int dropResult = -1;
+static const DWORD InvenActionObjDropRet = 0x473874;
 static void __declspec(naked) InvenActionCursorObjDropHook() {
 	if (nextHookDropSkip) {
 		nextHookDropSkip = 0;
-		dropResult = -1;
+		goto skipHook;
 	} else {
 		__asm {
 			pushad;
@@ -180,6 +181,7 @@ static void __declspec(naked) InvenActionCursorObjDropHook() {
 	}
 
 	if (dropResult == -1) {
+skipHook:
 		_asm call fo::funcoffs::obj_drop_;
 	}
 	_asm retn;
@@ -189,10 +191,28 @@ capsMultiDrop:
 	if (dropResult == -1) {
 		nextHookDropSkip = 1;
 		_asm call fo::funcoffs::item_remove_mult_;
-	} else {
-		_asm mov dword ptr [esp], 0x473874;  // no caps drop
+		_asm retn;
 	}
-	_asm retn;
+	_asm add esp, 4;
+	_asm jmp InvenActionObjDropRet;    // no caps drop
+}
+
+static void __declspec(naked) InvenActionExplosiveDropHack() {
+	__asm {
+		pushad;
+		xor  ecx, ecx;                       // no itemReplace
+		push 6;                              // event: item drop ground
+		call InventoryMoveHook_Script;       // edx - item
+		cmp  eax, -1;                        // ret value
+		popad;
+		jnz noDrop;
+		mov dword ptr ds:[FO_VAR_dropped_explosive], ebp; // overwritten engine code (ebp = 1)
+		mov nextHookDropSkip, ebp;
+		retn;
+noDrop:
+		add esp, 4;
+		jmp InvenActionObjDropRet;           // no drop
+	}
 }
 
 static int __fastcall DropIntoContainer(DWORD ptrCont, DWORD item, DWORD addrCall) {
@@ -368,6 +388,8 @@ void Inject_InventoryMoveHook() {
 		0x473851, 0x47386F,
 		0x47379A  // caps multi drop
 	});
+	MakeCall(0x473807, InvenActionExplosiveDropHack);  // drop active explosives
+	SafeWrite8(0x47380C, 0x90);
 }
 
 void Inject_InvenWieldHook() {
