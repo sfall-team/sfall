@@ -52,6 +52,7 @@
 #define HOOK_SETGLOBALVAR     (29)
 #define HOOK_RESTTIMER        (30)
 #define HOOK_GAMEMODECHANGE   (31)
+#define HOOK_USEANIMOBJ       (32)
 
 //Valid arguments to list_begin
 #define LIST_CRITTERS    (0)

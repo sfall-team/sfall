@@ -76,7 +76,7 @@ static HooksInjectInfo injectHooks[] = {
 	{HOOK_SETGLOBALVAR,     Inject_SetGlobalVarHook,     false},
 	{HOOK_RESTTIMER,        Inject_RestTimerHook,        false},
 	{HOOK_GAMEMODECHANGE,   nullptr,                      true}, // always embedded to the engine
-	{HOOK_USEOBJECTMAP,     Inject_UseObjectMapHook,     false},
+	{HOOK_USEANIMOBJ,       Inject_UseAnimateObjHook,    false},
 };
 
 bool HookScripts::injectAllHooks;

@@ -6,5 +6,5 @@ namespace sfall
 
 	void Inject_UseObjOnHook();
 	void Inject_UseObjHook();
-	void Inject_UseObjectMapHook();
+	void Inject_UseAnimateObjHook();
 }

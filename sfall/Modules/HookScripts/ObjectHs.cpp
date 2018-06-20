@@ -77,7 +77,7 @@ end:
 }
 
 // Before animation of using map object
-static void __declspec(naked) UseObjectMapHook() {
+static void __declspec(naked) UseAnimateObjHook() {
 	__asm {
 		mov args[0], eax;           // source critter
 		mov args[8], edx;           // anim code
@@ -94,7 +94,7 @@ next:
 	
 	BeginHook();
 	argCount = 3;
-	RunHookScript(HOOK_USEOBJECTMAP);
+	RunHookScript(HOOK_USEANIMOBJ);
 	EndHook();
 	
 	if (cRet > 0 && static_cast<long>(rets[0]) > 64) cRet = 0;
@@ -129,15 +129,15 @@ void Inject_UseObjHook() {
 	HookCalls(UseObjHook, { 0x42AEBF, 0x473607, 0x49C12E });
 }
 
-void Inject_UseObjectMapHook() {
-	HookCalls(UseObjectMapHook, { 0x4120C1, 0x412292 });
+void Inject_UseAnimateObjHook() {
+	HookCalls(UseAnimateObjHook, { 0x4120C1, 0x412292 });
 }
 
 void InitObjectHookScripts() {
 
 	LoadHookScript("hs_useobjon", HOOK_USEOBJON);
 	LoadHookScript("hs_useobj", HOOK_USEOBJ);
-	LoadHookScript("hs_useobjectmap", HOOK_USEOBJECTMAP);
+	LoadHookScript("hs_useanimobj", HOOK_USEANIMOBJ);
 }
 
 }

@@ -509,13 +509,13 @@ int     arg1 - event type: 1 - when the player exits the game, 0 - otherwise
 
 -------------------------------------------
 
-HOOK_USEOBJECTMAP (hs_useobjectmap.int)
+HOOK_USEANIMOBJ (hs_useanimobj.int)
 
 Runs before the uses animation the map object (or walking/running animation if the player is at a distance from the object).
 Hook allows to override the usage animation.
 
 Critter arg1 - critter that uses an object (usually dude_obj)
 Obj     arg2 - the map object that is used
-int     arg3 - animation code (see define.h)
+int     arg3 - animation code (ANIM_* see Animcomd.h)
 
 int     ret1 - pass the animation code to override the animation, or pass -1 to skip the usage animation
