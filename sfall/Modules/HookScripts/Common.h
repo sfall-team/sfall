@@ -42,6 +42,8 @@ void _stdcall BeginHook();
 void _stdcall RunHookScript(DWORD hook);
 void _stdcall EndHook();
 
+#define HookBegin __asm pushad __asm call BeginHook __asm popad
+
 #define hookbegin(a) __asm pushad __asm call BeginHook __asm popad __asm mov argCount, a
 #define hookend __asm pushad __asm call EndHook __asm popad
 

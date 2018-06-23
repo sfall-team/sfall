@@ -15,6 +15,7 @@ static const DWORD RemoveObjHookRet = 0x477497;
 static void __declspec(naked) RemoveObjHook() {
 	__asm {
 		mov ecx, [esp + 8]; // call addr
+		HookBegin;
 		mov args[0], eax;
 		mov args[4], edx;
 		mov args[8], ebx;
@@ -22,7 +23,6 @@ static void __declspec(naked) RemoveObjHook() {
 		pushad;
 	}
 
-	BeginHook();
 	argCount = 4;
 	RunHookScript(HOOK_REMOVEINVENOBJ);
 	EndHook();
@@ -38,6 +38,7 @@ static void __declspec(naked) RemoveObjHook() {
 
 static void __declspec(naked) MoveCostHook() {
 	__asm {
+		HookBegin;
 		mov  args[0], eax;
 		mov  args[4], edx;
 		call fo::funcoffs::critter_compute_ap_from_distance_
@@ -45,7 +46,6 @@ static void __declspec(naked) MoveCostHook() {
 		pushad;
 	}
 
-	BeginHook();
 	argCount = 3;
 	RunHookScript(HOOK_MOVECOST);
 	EndHook();
@@ -78,16 +78,19 @@ static int __fastcall SwitchHandHook_Script(fo::GameObject* item, fo::GameObject
 	if (itemReplaced && fo::GetItemType(itemReplaced) == fo::item_type_weapon && fo::GetItemType(item) == fo::item_type_ammo) {
 		return -1; // to prevent inappropriate hook call after dropping ammo on weapon
 	}
+
 	BeginHook();
 	argCount = 3;
+
 	args[0] = (addr < 0x47136D) ? 1 : 2;    // slot: 1 - left, 2 - right
 	args[1] = (DWORD)item;
 	args[2] = (DWORD)itemReplaced;
+
 	RunHookScript(HOOK_INVENTORYMOVE);
-	int tmp = PartyControl::SwitchHandHook(item);
-	if (tmp != -1) {
+	int result = PartyControl::SwitchHandHook(item);
+	if (result != -1) {
 		cRetTmp = 0;
-		SetHSReturn(tmp);
+		SetHSReturn(result);
 	}
 	EndHook();
 
@@ -275,7 +278,7 @@ donothing:
 
 /* Common InvenWield hook */
 static void InvenWieldHook_Script(int flag) {
-	BeginHook();
+
 	argCount = 4;
 	args[3] = flag;  // invenwield flag
 	RunHookScript(HOOK_INVENWIELD);
@@ -285,6 +288,7 @@ static void InvenWieldHook_Script(int flag) {
 static void _declspec(naked) InvenWieldFuncHook() {
 	using namespace fo;
 	__asm {
+		HookBegin;
 		mov args[0], eax; // critter
 		mov args[4], edx; // item
 		mov args[8], ebx; // slot
@@ -308,6 +312,7 @@ static void _declspec(naked) InvenWieldFuncHook() {
 // called when unwielding weapons
 static void _declspec(naked) InvenUnwieldFuncHook() {
 	__asm {
+		HookBegin;
 		mov args[0], eax;   // critter
 		mov args[8], edx;   // slot
 		pushad;
@@ -330,6 +335,7 @@ static void _declspec(naked) InvenUnwieldFuncHook() {
 
 static void _declspec(naked) CorrectFidForRemovedItemHook() {
 	__asm {
+		HookBegin;
 		mov args[0], eax; // critter
 		mov args[4], edx; // item
 		mov args[8], ebx; // item flag
