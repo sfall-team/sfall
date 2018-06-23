@@ -77,6 +77,7 @@ static HooksInjectInfo injectHooks[] = {
 	{HOOK_RESTTIMER,        Inject_RestTimerHook,        false},
 	{HOOK_GAMEMODECHANGE,   nullptr,                      true}, // always embedded to the engine
 	{HOOK_USEANIMOBJ,       Inject_UseAnimateObjHook,    false},
+	{HOOK_EXPLOSIVETIMER,   Inject_ExplosiveTimerHook,   false},
 };
 
 bool HookScripts::injectAllHooks;

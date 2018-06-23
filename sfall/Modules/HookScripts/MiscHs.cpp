@@ -281,6 +281,55 @@ skip:
 	}
 }
 
+static int __fastcall ExplosiveTimerHook_Script(DWORD type, DWORD item, DWORD time) {
+
+	BeginHook();
+	argCount = 3;
+
+	args[0] = time;
+	args[1] = item;
+	args[2] = (type == 11) ? fo::ROLL_FAILURE : fo::ROLL_SUCCESS;
+
+	RunHookScript(HOOK_EXPLOSIVETIMER);
+	EndHook();
+
+	int result = 0;
+	if (cRet > 0 && rets[0] >= 0) {
+		if (rets[0] > 18000) rets[0] = 18000;  // max 30 minutes
+		if (cRet < 2) {
+			result--;       // use vanilla type
+		} else {
+			result++;       // use returned type
+		}
+	}
+	return result;
+}
+
+static void _declspec(naked) ExplosiveTimerHook() {
+	__asm {
+		push eax;
+		push edx;
+		push ecx;
+		//-------
+		push edi;                       // time in ticks
+		call ExplosiveTimerHook_Script; // ecx - type, edx - item
+		cmp  eax, 0;
+		pop  ecx;
+		pop  edx;
+		pop  eax;
+		jz   end;
+		mov  eax, rets[0];           // time in ticks
+		jl   end;
+		mov  ecx, 8;                 // type SUCCESS
+		cmp  rets[4], 1;
+		jg   end;
+		add  ecx, 3;                 // type FAILURE (11)
+end:
+		call fo::funcoffs::queue_add_;
+		retn;
+	}
+}
+
 void Inject_BarterPriceHook() {
 	HookCalls(BarterPriceHook, {
 		0x474D4C,
@@ -323,6 +372,10 @@ void Inject_RestTimerHook() {
 	MakeCalls(RestTimerEscapeHook, { 0x499B63, 0x499CA1 });
 }
 
+void Inject_ExplosiveTimerHook() {
+	HookCall(0x49BDC4, ExplosiveTimerHook);
+}
+
 void InitMiscHookScripts() {
 
 	LoadHookScript("hs_barterprice", HOOK_BARTERPRICE);
@@ -332,6 +385,7 @@ void InitMiscHookScripts() {
 	LoadHookScript("hs_cartravel", HOOK_CARTRAVEL);
 	LoadHookScript("hs_setglobalvar", HOOK_SETGLOBALVAR);
 	LoadHookScript("hs_resttimer", HOOK_RESTTIMER);
+	LoadHookScript("hs_explosivetimer", HOOK_EXPLOSIVETIMER);
 }
 
 }
