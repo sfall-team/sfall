@@ -211,8 +211,8 @@ static void __fastcall GlobalVarHookScript(DWORD number, int value) {
 static void __declspec(naked) SetGlobalVarHook() {
 	__asm {
 		pushad;
-		mov ecx, eax; // number
-		call GlobalVarHookScript; // edx value
+		mov ecx, eax;             // number
+		call GlobalVarHookScript; // edx - value
 		popad;
 		cmp cRet, 1;
 		cmovae edx, dword ptr rets[0];
@@ -225,12 +225,12 @@ static void _stdcall RestTimerHookScript() {
 	DWORD addrHook;
 	__asm {
 		mov addrHook, ebx;
+		HookBegin;
 		mov args[0], eax;
 		mov args[8], ecx;
 		mov args[12], edx;
 	}
 
-	BeginHook();
 	argCount = 4;
 	addrHook -= 5;
 	if (addrHook == 0x499CA1 || addrHook == 0x499B63) {

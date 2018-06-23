@@ -76,30 +76,34 @@ end:
 	}
 }
 
+static void __fastcall UseAnimateObjHook_Script(DWORD critter, DWORD animCode, DWORD object) {
+
+	BeginHook();
+	argCount = 3;
+
+	args[0] = critter;
+	args[1] = object;
+	args[2] = animCode;
+
+	RunHookScript(HOOK_USEANIMOBJ);
+	EndHook();
+
+	if (cRet > 0 && static_cast<long>(rets[0]) > 64) cRet = 0;
+}
+
 // Before animation of using map object
 static void __declspec(naked) UseAnimateObjHook() {
 	__asm {
-		mov args[0], eax;           // source critter
-		mov args[8], edx;           // anim code
-		//
 		cmp dword ptr [esp], 0x412292 + 5;
+		pushad;
 		jne contr;
-		mov args[4], ebp;           // map object
+		push ebp;                      // map object
 		jmp next;
 contr:
-		mov args[4], edi;
+		push edi;                      // map object
 next:
-		pushad;
-	}
-	
-	BeginHook();
-	argCount = 3;
-	RunHookScript(HOOK_USEANIMOBJ);
-	EndHook();
-	
-	if (cRet > 0 && static_cast<long>(rets[0]) > 64) cRet = 0;
-
-	__asm {
+		mov ecx, eax;                  // source critter
+		call UseAnimateObjHook_Script; // edx - anim code
 		popad;
 		cmp cRet, 0;
 		jle skip;
