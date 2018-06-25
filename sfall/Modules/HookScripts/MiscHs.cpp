@@ -10,73 +10,6 @@
 namespace sfall
 {
 
-static void __declspec(naked) UseObjOnHook() {
-	__asm {
-		hookbegin(3);
-		mov args[0], edx; // target
-		mov args[4], eax; // user
-		mov args[8], ebx; // object
-		pushad;
-		push HOOK_USEOBJON;
-		call RunHookScript;
-		popad;
-		cmp cRet, 1;
-		jl  defaulthandler;
-		mov eax, rets[0];
-		jmp end;
-defaulthandler:
-		call fo::funcoffs::protinst_use_item_on_;
-end:
-		hookend;
-		retn;
-	}
-}
-
-static void __declspec(naked) UseObjOnHook_item_d_take_drug() {
-	__asm {
-		hookbegin(3);
-		mov args[0], eax; // target
-		mov args[4], eax; // user
-		mov args[8], edx; // object
-		pushad;
-		push HOOK_USEOBJON; // useobjon
-		call RunHookScript;
-		popad;
-		cmp cRet, 1;
-		jl  defaulthandler;
-		mov eax, rets[0];
-		jmp end;
-defaulthandler:
-		call fo::funcoffs::item_d_take_drug_;
-end:
-		hookend;
-		retn;
-	}
-}
-
-static void __declspec(naked) UseObjHook() {
-	__asm {
-		hookbegin(2);
-		mov args[0], eax; // user
-		mov args[4], edx; // object
-		pushad;
-		push HOOK_USEOBJ;
-		call RunHookScript;
-		popad;
-		cmp cRet, 1;
-		jl  defaulthandler;
-		cmp rets[0], -1;
-		je defaulthandler;
-		mov eax, rets[0];
-		jmp end;
-defaulthandler:
-		call fo::funcoffs::protinst_use_item_;
-end:
-		hookend;
-		retn;
-	}
-}
-
 static void __declspec(naked) BarterPriceHook() {
 	__asm {
 		hookbegin(9);
@@ -257,8 +190,7 @@ static void __declspec(naked) CarTravelHack() {
 	}
 }
 
-static int newGVarValue;
-static void _stdcall GlobalVarHookScript(DWORD number, int value) {
+static void __fastcall GlobalVarHookScript(DWORD number, int value) {
 	int old = fo::var::game_global_vars[number];
 
 	BeginHook();
@@ -268,23 +200,22 @@ static void _stdcall GlobalVarHookScript(DWORD number, int value) {
 	RunHookScript(HOOK_SETGLOBALVAR);
 	EndHook();
 
-	if (cRet == 1) value = rets[0];
+	if (cRet > 0) value = rets[0];
 
 	if (number == fo::GVAR_PLAYER_REPUTATION && displayKarmaChanges) {
 		int diff = value - old;
 		if (diff != 0) Karma::DisplayKarma(diff);
 	}
-	newGVarValue = value;
 }
 
 static void __declspec(naked) SetGlobalVarHook() {
 	__asm {
 		pushad;
-		push edx; // value
-		push eax; // number
-		call GlobalVarHookScript;
+		mov ecx, eax;             // number
+		call GlobalVarHookScript; // edx - value
 		popad;
-		mov edx, newGVarValue;
+		cmp cRet, 1;
+		cmovae edx, dword ptr rets[0];
 		jmp fo::funcoffs::game_set_global_var_;
 	}
 }
@@ -294,12 +225,12 @@ static void _stdcall RestTimerHookScript() {
 	DWORD addrHook;
 	__asm {
 		mov addrHook, ebx;
+		HookBegin;
 		mov args[0], eax;
 		mov args[8], ecx;
 		mov args[12], edx;
 	}
 
-	BeginHook();
 	argCount = 4;
 	addrHook -= 5;
 	if (addrHook == 0x499CA1 || addrHook == 0x499B63) {
@@ -324,8 +255,7 @@ static void __declspec(naked) RestTimerLoopHook() {
 		cmp cRet, 1;
 		jl skip;
 		cmp rets[0], 1;
-		jnz skip;
-		mov edi, 1;
+		cmovz edi, rets[0];
 skip:
 		jmp fo::funcoffs::set_game_time_;
 	}
@@ -341,28 +271,14 @@ static void __declspec(naked) RestTimerEscapeHook() {
 		mov edx, [esp + 36 + 0x44]; // minutes_
 		call RestTimerHookScript;
 		popad;
+		mov edi, 1;
 		cmp cRet, 1;
 		jl skip;
 		cmp rets[0], 0;
-		jnz skip;
-		mov edi, 0; // cancel escape
-		retn;
+		cmovz edi, rets[0]; // ret 0 for cancel escape
 skip:
-		mov edi, 1;
 		retn;
 	}
-}
-
-void Inject_UseObjOnHook() {
-	HookCalls(UseObjOnHook, { 0x49C606, 0x473619 });
-
-	// the following hooks allows to catch drug use of AI and from action cursor
-	HookCalls(UseObjOnHook_item_d_take_drug, {
-		0x4285DF, // ai_check_drugs
-		0x4286F8, // ai_check_drugs
-		0x4287F8, // ai_check_drugs
-		0x473573 // inven_action_cursor
-	});
 }
 
 void Inject_BarterPriceHook() {
@@ -371,10 +287,6 @@ void Inject_BarterPriceHook() {
 		0x475735,
 		0x475762
 	});
-}
-
-void Inject_UseObjHook() {
-	HookCalls(UseObjHook, { 0x42AEBF, 0x473607, 0x49C12E });
 }
 
 void Inject_UseSkillHook() {
@@ -413,9 +325,7 @@ void Inject_RestTimerHook() {
 
 void InitMiscHookScripts() {
 
-	LoadHookScript("hs_useobjon", HOOK_USEOBJON);
 	LoadHookScript("hs_barterprice", HOOK_BARTERPRICE);
-	LoadHookScript("hs_useobj", HOOK_USEOBJ);
 	LoadHookScript("hs_useskill", HOOK_USESKILL);
 	LoadHookScript("hs_steal", HOOK_STEAL);
 	LoadHookScript("hs_withinperception", HOOK_WITHINPERCEPTION);

@@ -42,12 +42,12 @@ void LoadHookScript(const char* name, int id) {
 			hook.isGlobalScript = false;
 			hooks[id].push_back(hook);
 			AddProgramToMap(prog);
-			if (!injectAllHooks) HookScripts::InjectingHook(id); // inject hook to engine code
+			if (!HookScripts::injectAllHooks) HookScripts::InjectingHook(id); // inject hook to engine code
 		} else {
 			dlogr(" Error!", DL_HOOK);
 		}
 	}
-	if (injectAllHooks) HookScripts::InjectingHook(id);
+	if (HookScripts::injectAllHooks) HookScripts::InjectingHook(id);
 }
 
 void _stdcall BeginHook() {
