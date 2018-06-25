@@ -20,6 +20,7 @@
 
 #include "Functions.h"
 #include "Structs.h"
+#include "Variables.h"
 #include "VariableOffsets.h"
 
 #include "EngineUtils.h"
@@ -79,19 +80,27 @@ int _fastcall GetItemType(GameObject* item) {
 }
 
 _declspec(noinline) GameObject* GetItemPtrSlot(GameObject* critter, InvenType slot) {
-	GameObject* itemPtr = 0;
+	GameObject* itemPtr = nullptr;
 	switch (slot) {
-		case fo::INVEN_TYPE_LEFT_HAND :
+		case fo::INVEN_TYPE_LEFT_HAND:
 			itemPtr = fo::func::inven_left_hand(critter);
 			break;
-		case fo::INVEN_TYPE_RIGHT_HAND :
+		case fo::INVEN_TYPE_RIGHT_HAND:
 			itemPtr = fo::func::inven_right_hand(critter);
 			break;
-		case fo::INVEN_TYPE_WORN :
+		case fo::INVEN_TYPE_WORN:
 			itemPtr = fo::func::inven_worn(critter);
 			break;
 	}
 	return itemPtr;
+}
+
+long& GetActiveItemMode() {
+	return fo::var::itemButtonItems[fo::var::itemCurrentItem].mode;
+}
+
+GameObject* GetActiveItem() {
+	return fo::var::itemButtonItems[fo::var::itemCurrentItem].item;
 }
 
 //---------------------------------------------------------

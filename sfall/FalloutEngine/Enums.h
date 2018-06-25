@@ -632,4 +632,52 @@ enum RollResult
 	ROLL_CRITICAL_SUCCESS = 0x3,
 };
 
+namespace Fields {
+	enum CommonObj : long
+	{
+		id                = 0x00,
+		tile              = 0x04,
+		x                 = 0x08,
+		y                 = 0x0C,
+		sx                = 0x10,
+		sy                = 0x14,
+		frm               = 0x18,
+		rotation          = 0x1C,
+		artFid            = 0x20,
+		flags             = 0x24,
+		elevation         = 0x28,
+		inventory         = 0x2C,
+		protoId           = 0x64,
+		cid               = 0x68,
+		lightDistance     = 0x6C,
+		lightIntensity    = 0x70,
+		outline           = 0x74,
+		scriptId          = 0x78,
+		owner             = 0x7C,
+		scriptIndex       = 0x80,
+	};
+
+	enum CritterObj : long 
+	{	
+		reaction          = 0x38,
+		combatState       = 0x3C,
+		movePoints        = 0x40,
+		damageFlags       = 0x44,
+		damageLastTurn    = 0x48,
+		aiPacket          = 0x4C,
+		teamNum           = 0x50,
+		whoHitMe          = 0x54,
+		health            = 0x58,
+		rads              = 0x5C,
+		poison            = 0x60,
+	};
+
+	enum ItemObj : long
+	{
+		updatedFlags      = 0x38,
+		charges           = 0x3C,
+		ammoPid           = 0x40,
+	};
+}
+
 }

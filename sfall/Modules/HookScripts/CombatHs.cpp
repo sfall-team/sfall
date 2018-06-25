@@ -10,86 +10,92 @@ namespace sfall
 
 static void __declspec(naked) ToHitHook() {
 	__asm {
-		hookbegin(7);
-		mov args[4], eax; // attacker
-		mov args[8], ebx; // target
-		mov args[12], ecx; // body part
-		mov args[16], edx; // source tile
-		mov eax, [esp + 4]; // attack type
-		mov args[20], eax;
-		mov eax, [esp + 8]; // is ranged
-		mov args[24], eax;
-		mov eax, args[4];
-		push[esp + 8];
-		push[esp + 8];
+		HookBegin;
+		mov  args[4],  eax;   // attacker
+		mov  args[8],  ebx;   // target
+		mov  args[12], ecx;   // body part
+		mov  args[16], edx;   // source tile
+		mov  eax, [esp + 8];
+		mov  args[24], eax;   // is ranged
+		push eax;
+		mov  eax, [esp + 8];
+		mov  args[20], eax;   // attack type
+		push eax;
+		mov  eax, args[4];    // restore
 		call fo::funcoffs::determine_to_hit_func_;
-		mov args[0], eax;
+		mov  args[0], eax;
 		pushad;
-		push HOOK_TOHIT;
-		call RunHookScript;
+	}
+
+	argCount = 7;
+	RunHookScript(HOOK_TOHIT);
+	EndHook();
+
+	__asm {
 		popad;
-		cmp cRet, 1;
-		jl end;
-		mov eax, rets[0];
-end:
-		hookend;
+		cmp  cRet, 1;
+		cmovnb eax, rets[0];
 		retn 8;
 	}
 }
 
+static void __fastcall AfterHitRollHook_Script(fo::ComputeAttackResult &ctd, DWORD hitChance, DWORD hit) {
+
+	BeginHook();
+	argCount = 5;
+
+	args[0] = hit;
+	args[1] = (DWORD)ctd.attacker;   // Attacker
+	args[2] = (DWORD)ctd.target;     // Target
+	args[3] = ctd.bodyPart;          // bodypart
+	args[4] = hitChance;
+
+	RunHookScript(HOOK_AFTERHITROLL);
+	if (cRet > 1) {
+		ctd.bodyPart = rets[1];
+		if (cRet > 2) ctd.target = (fo::GameObject*)rets[2];
+	}
+	EndHook();
+}
+
 static const DWORD AfterHitRollAddr = 0x423898;
 static void __declspec(naked) AfterHitRollHook() {
+	using namespace fo;
 	__asm {
-		hookbegin(5);
-		mov args[0], eax; //was it a hit?
-		mov ebx, [esi];
-		mov args[4], ebx; //Attacker
-		mov ebx, [esi + 0x20];
-		mov args[8], ebx; //Target
-		mov ebx, [esi + 0x28];
-		mov args[12], ebx; //bodypart
-		mov ebx, [esp + 0x18];
-		mov args[16], ebx; //hit chance
 		pushad;
-		push HOOK_AFTERHITROLL;
-		call RunHookScript;
+		mov  ecx, esi;                 // ctd
+		mov  edx, [esp + 0x18 + 32];   // hit chance
+		push eax;                      // was it a hit?
+		call AfterHitRollHook_Script;
 		popad;
-		cmp cRet, 1;
-		jl end;
-		mov eax, rets[0];
-		cmp cRet, 2;
-		jl end;
-		mov ebx, rets[4];
-		mov[esi + 0x28], ebx;
-		cmp cRet, 3;
-		jl end;
-		mov ebx, rets[8];
-		mov[esi + 0x20], ebx;
-end:
-		mov ebx, eax;
-		hookend;
-		cmp ebx, 1;
-		jmp AfterHitRollAddr;
+		cmp  cRet, 1;
+		cmovnb eax, rets[0];
+		// engine code
+		mov  ebx, eax;
+		cmp  ebx, ROLL_FAILURE;
+		jmp  AfterHitRollAddr;
 	}
 }
 
 static void __declspec(naked) CalcApCostHook() {
 	__asm {
-		hookbegin(4);
-		mov args[0], eax;
-		mov args[4], edx;
-		mov args[8], ebx;
+		HookBegin;
+		mov  args[0], eax;
+		mov  args[4], edx;
+		mov  args[8], ebx;
 		call fo::funcoffs::item_w_mp_cost_;
-		mov args[12], eax;
+		mov  args[12], eax;
 		pushad;
-		push HOOK_CALCAPCOST;
-		call RunHookScript;
+	}
+
+	argCount = 4;
+	RunHookScript(HOOK_CALCAPCOST);
+	EndHook();
+
+	__asm {
 		popad;
 		cmp cRet, 1;
-		jl end;
-		mov eax, rets[0];
-end:
-		hookend;
+		cmovnb eax, rets[0];
 		retn;
 	}
 }
@@ -97,210 +103,188 @@ end:
 // this is for using non-weapon items, always 2 AP in vanilla
 static void __declspec(naked) CalcApCostHook2() {
 	__asm {
-		hookbegin(4);
+		HookBegin;
 		mov args[0], ecx; // critter
 		mov args[4], edx; // attack type (to determine hand)
 		mov args[8], ebx;
-		mov eax, 2; // vanilla value
+		mov eax, 2;       // vanilla value
 		mov args[12], eax;
 		pushad;
-		push HOOK_CALCAPCOST;
-		call RunHookScript;
+	}
+
+	argCount = 4;
+	RunHookScript(HOOK_CALCAPCOST);
+	EndHook();
+
+	__asm {
 		popad;
 		cmp cRet, 1;
-		jl end;
-		mov eax, rets[0];
-end:
-		hookend;
+		cmovnb eax, rets[0];
 		retn;
 	}
+}
+
+static void __fastcall ComputeDamageHook_Script(fo::ComputeAttackResult &ctd, DWORD rounds, DWORD multiply) {
+
+	BeginHook();
+	argCount = 12;
+
+	args[0] = (DWORD)ctd.target;           // Target
+	args[1] = (DWORD)ctd.attacker;         // Attacker
+	args[2] = ctd.targetDamage;            // amountTarget
+	args[3] = ctd.attackerDamage;          // amountSource
+	args[4] = ctd.targetFlags;             // flagsTarget
+	args[5] = ctd.attackerFlags;           // flagsSource
+	args[6] = (DWORD)ctd.weapon;
+	args[7] = ctd.bodyPart;
+	args[8] = multiply;                    // multiply damage
+	args[9] = rounds;                      // number rounds
+	args[10] = ctd.knockbackValue;
+	args[11] = ctd.hitMode;                // attack type
+
+	RunHookScript(HOOK_COMBATDAMAGE);
+
+	if (cRet > 0) {
+		ctd.targetDamage = rets[0];
+		if (cRet > 1) {
+			ctd.attackerDamage = rets[1];
+			if (cRet > 2) {
+				ctd.targetFlags = rets[2];         // flagsTarget
+				if (cRet > 3) {
+					ctd.attackerFlags = rets[3];   // flagsSource
+					if (cRet > 4) ctd.knockbackValue = rets[4];
+				}
+			}
+		}
+	}
+	EndHook();
 }
 
 static void __declspec(naked) ComputeDamageHook() {
 	__asm {
-		push edx;
-		push ebx;
-		push eax;
+		push ecx;
+		push ebx;         // store dmg multiply  args[8]
+		push edx;         // store num rounds    args[9]
+		push eax;         // store ctd
 		call fo::funcoffs::compute_damage_;
-		pop edx;
-
-		//zero damage insta death criticals fix
-		mov ebx, [edx + 0x2c];
-		test ebx, ebx;
-		jnz hookscript;
-		mov ebx, [edx + 0x30];
-		test bl, 0x80;
-		jz hookscript;
-		inc dword ptr ds : [edx + 0x2c];
-hookscript:
-		hookbegin(12);
-		mov ebx, [edx + 0x20];
-		mov args[0x00], ebx;
-		mov ebx, [edx + 0x00];
-		mov args[0x04], ebx;
-		mov ebx, [edx + 0x2c];
-		mov args[0x08], ebx;
-		mov ebx, [edx + 0x10];
-		mov args[0x0c], ebx;
-		mov ebx, [edx + 0x30];
-		mov args[0x10], ebx;
-		mov ebx, [edx + 0x14];
-		mov args[0x14], ebx;
-		mov ebx, [edx + 0x08];
-		mov args[0x18], ebx;
-		mov ebx, [edx + 0x28];
-		mov args[0x1c], ebx;
-		pop ebx; // roll result
-		mov args[0x20], ebx;
-		pop ebx; // num rounds
-		mov args[0x24], ebx;
-		mov ebx, [edx + 0x34]; // knockback value
-		mov args[0x28], ebx;
-		mov ebx, [edx + 0x04]; // attack type
-		mov args[0x2c], ebx;
-
-		pushad;
-		push HOOK_COMBATDAMAGE;
-		call RunHookScript;
-		popad;
-
-		cmp cRet, 1;
-		jl end;
-		mov ebx, rets[0x00];
-		mov[edx + 0x2c], ebx;
-		cmp cRet, 2;
-		jl end;
-		mov ebx, rets[0x04];
-		mov[edx + 0x10], ebx;
-		cmp cRet, 3;
-		jl end;
-		mov ebx, rets[0x08];
-		mov[edx + 0x30], ebx;
-		cmp cRet, 4;
-		jl end;
-		mov ebx, rets[0x0c];
-		mov[edx + 0x14], ebx;
-		cmp cRet, 5;
-		jl end;
-		mov ebx, rets[0x10];
-		mov[edx + 0x34], ebx; // knockback
-end:
-		hookend;
+		pop  ecx;         // restore ctd (eax)
+		pop  edx;         // restore num rounds                  
+		call ComputeDamageHook_Script;
+		pop  ecx;
 		retn;
 	}
 }
 
+static void __fastcall FindTargetHook_Script(DWORD* target, DWORD attacker) {
+
+	BeginHook();
+	argCount = 5;
+
+	args[0] = attacker;
+	args[1] = target[0];
+	args[2] = target[1];
+	args[3] = target[2];
+	args[4] = target[3];
+
+	RunHookScript(HOOK_FINDTARGET);
+
+	if (cRet >= 4) {
+		target[0] = args[1];
+		target[1] = args[2];
+		target[2] = args[3];
+		target[3] = args[4];
+	}
+	EndHook();
+}
+
 static void __declspec(naked) FindTargetHook() {
 	__asm {
-		hookbegin(5);
-		mov args[0], esi; //attacker
-		mov edi, [eax + 0];
-		mov args[4], edi;
-		mov edi, [eax + 4];
-		mov args[8], edi;
-		mov edi, [eax + 8];
-		mov args[12], edi;
-		mov edi, [eax + 12];
-		mov args[16], edi;
 		pushad;
-		push HOOK_FINDTARGET;
-		call RunHookScript;
+		mov  ecx, eax;     // targets (base)
+		mov  edx, esi;     // attacker
+		call FindTargetHook_Script;
 		popad;
-		cmp cRet, 4;
-		jge cont;
+		cmp  cRet, 4;
+		jge  skip;
 		call fo::funcoffs::qsort_;
-		jmp end;
-cont:
-		mov edi, rets[0];
-		mov[eax + 0], edi;
-		mov edi, rets[4];
-		mov[eax + 4], edi;
-		mov edi, rets[8];
-		mov[eax + 8], edi;
-		mov edi, rets[12];
-		mov[eax + 12], edi;
-end:
-		hookend;
+skip:
 		retn;
 	}
 }
 
 static void __declspec(naked) ItemDamageHook() {
 	__asm {
-		hookbegin(6);
-		mov args[0], eax; //min
-		mov args[4], edx; //max
-		mov args[8], edi; //weapon
-		mov args[12], ecx; //critter
-		mov args[16], esi; //type
-		mov args[20], ebp; //non-zero for weapon melee attack
-		test edi, edi;
-		jnz skip;
-		add args[16], 8;
-skip:
+		HookBegin;
+		mov args[0], eax;  // min
+		mov args[4], edx;  // max
+		mov args[8], edi;  // weapon
+		mov args[12], ecx; // critter
+		mov args[16], esi; // type
+		mov args[20], ebp; // non-zero for weapon melee attack (add to min/max melee damage)
 		pushad;
-		push HOOK_ITEMDAMAGE;
-		call RunHookScript;
-		popad;
-		cmp cRet, 0;
-		je runrandom;
-		mov eax, rets[0];
-		cmp cRet, 1;
-		je end;
-		mov edx, rets[4];
-runrandom:
-		call fo::funcoffs::roll_random_;
-end:
-		hookend;
-		retn;
 	}
+
+	if (args[2] == 0) {  // weapon arg
+		args[4] += 8;    // type arg
+	}
+
+	argCount = 6;
+	RunHookScript(HOOK_ITEMDAMAGE);
+	EndHook();
+
+	_asm popad;
+	if (cRet > 0) {
+		_asm mov eax, rets[0];
+		if (cRet > 1) {
+			_asm mov edx, rets[4];
+		} else {
+			_asm retn;
+		}
+	}
+	_asm call fo::funcoffs::roll_random_;
+	_asm retn;
 }
 
-static void __declspec(naked) AmmoCostHook_internal() {
-	__asm {
-		pushad;
-		mov args[0], eax; //weapon
-		mov ebx, [edx];
-		mov args[4], ebx; //rounds in attack
-		call fo::funcoffs::item_w_compute_ammo_cost_;
-		cmp eax, -1;
-		je fail;
-		mov ebx, [edx];
-		mov args[8], ebx; //rounds as computed by game
+int __fastcall AmmoCostHook_Script(DWORD hookType, fo::GameObject* weapon, DWORD* rounds) {
+	int result = 0;
 
-		push HOOK_AMMOCOST;
-		call RunHookScript;
-		popad;
-		cmp cRet, 0;
-		je end;
-		mov eax, rets[0];
-		mov[edx], eax; // override result
-		mov eax, 0;
-		jmp end;
-fail:
-		popad;
-end:
-		hookend;
-		retn;
+	BeginHook();
+	argCount = 4;
+
+	args[0] = (DWORD)weapon;
+	args[1] = *rounds;          // rounds in attack
+	args[3] = hookType;
+
+	if (hookType == 2) {        // burst hook
+		*rounds = 1;            // set default multiply for check burst attack
+	} else {
+		result = fo::func::item_w_compute_ammo_cost(weapon, rounds);
+		if (result == -1) goto failed; // failed computed
 	}
+	args[2] = *rounds;          // rounds as computed by game (cost)
+
+	RunHookScript(HOOK_AMMOCOST);
+
+	if (cRet > 0) *rounds = rets[0]; // override rounds
+
+failed:
+	EndHook();
+	return result;
 }
 
 static void __declspec(naked) AmmoCostHook() {
+	using namespace fo;
 	__asm {
-		hookbegin(4);
-		mov args[12], 0; // type of hook
-		jmp AmmoCostHook_internal;
-	}
-}
-
-void __declspec(naked) AmmoCostHookWrapper() {
-	__asm {
-		hookbegin(4);
-		push eax;
-		mov eax, [esp + 8]; // hook type
-		mov args[12], eax;
-		pop eax;
-		call AmmoCostHook_internal;
+		xor  ecx, ecx;             // type of hook (0)
+		cmp dword ptr [esp + 0x1C + 4], ANIM_fire_burst;
+		jl skip;
+		cmp dword ptr [esp + 0x1C + 4], ANIM_fire_continuous;
+		jg skip;
+		mov  ecx, 3;               // hook type burst
+skip:		
+		xchg eax, edx;
+		push eax;                  // rounds in attack
+		call AmmoCostHook_Script;  // edx - weapon
 		retn;
 	}
 }
@@ -308,47 +292,55 @@ void __declspec(naked) AmmoCostHookWrapper() {
 // hooks combat_turn function
 static void _declspec(naked) CombatTurnHook() {
 	__asm {
-		hookbegin(3);
-		mov args[0], 1; // turn begin
+		HookBegin;
+		mov args[0], 1;   // turn begin
 		mov args[4], eax; // critter
-		mov args[8], edx; // unknown
+		mov args[8], edx; // unknown (1 = dude turn)
 		pushad;
-		push HOOK_COMBATTURN;
-		call RunHookScript; // Start of turn
+	}
+
+	argCount = 3;
+	RunHookScript(HOOK_COMBATTURN); // Start of turn
+
+	if (cRet > 0) {
+		EndHook();
+		_asm popad;
+		_asm mov eax, rets[0];
+		_asm retn;        // exit hook
+	}
+
+// set_sfall_return not used, proceed normally
+	__asm {
 		popad;
-		cmp cRet, 1;
-		jl gonormal; // set_sfall_return not used, proceed normally
-		mov eax, rets[0];
-		jmp end;
-gonormal:
 		call fo::funcoffs::combat_turn_;
-		mov args[0], eax;
-		mov cRet, 0; // reset number of return values
+		mov  args[0], eax;
 		pushad;
-		push HOOK_COMBATTURN;
-		call RunHookScript; // End of turn
+	}
+
+	cRet = 0; // reset number of return values
+	RunHookScript(HOOK_COMBATTURN); // End of turn
+	EndHook();
+
+	__asm {
 		popad;
 		cmp cRet, 1;
-		jl end;
-		mov eax, rets[0]; // override result of turn
-end:
-		hookend;
+		cmovnb eax, rets[0]; // override result of turn
 		retn;
 	}
 }
 
 // hack to exit from combat_add_noncoms function without crashing when you load game during NPC turn
 static const DWORD CombatHack_add_noncoms_back = 0x422359;
-static void _declspec(naked) CombatAddNoncoms_CombatTurn_Hack() {
+static void _declspec(naked) CombatAddNoncoms_CombatTurnHack() {
 	__asm {
 		call CombatTurnHook;
-		cmp eax, -1;
-		jne gonormal;
-		mov ecx, FO_VAR_list_com;
-		mov [ecx], 0;
-		mov ecx, [esp];
-gonormal:
-		jmp CombatHack_add_noncoms_back;
+		cmp  eax, -1;
+		jne  normalTurn;
+		mov  ecx, FO_VAR_list_com;
+		mov  dword ptr [ecx], 0;
+		mov  ecx, [esp];
+normalTurn:
+		jmp  CombatHack_add_noncoms_back;
 	}
 }
 
@@ -399,19 +391,19 @@ void Inject_CombatDamageHook() {
 }
 
 void Inject_FindTargetHook() {
-	HookCalls(FindTargetHook, { 0x429143 });
+	HookCall(0x429143, FindTargetHook);
 }
 
 void Inject_ItemDamageHook() {
-	HookCalls(ItemDamageHook, { 0x478560 });
+	HookCall(0x478560, ItemDamageHook);
 }
 
 void Inject_AmmoCostHook() {
-	HookCalls(AmmoCostHook, { 0x423A7C });
+	HookCall(0x423A7C, AmmoCostHook);
 }
 
 void Inject_CombatTurnHook() {
-	MakeJump(0x422354, CombatAddNoncoms_CombatTurn_Hack);
+	MakeJump(0x422354, CombatAddNoncoms_CombatTurnHack);
 	HookCalls(CombatTurnHook, { 0x422D87, 0x422E20 });
 }
 

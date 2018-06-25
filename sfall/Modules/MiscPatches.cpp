@@ -367,9 +367,9 @@ static void __declspec(naked) objCanSeeObj_ShootThru_Fix() {//(EAX *objStruct, E
 
 static DWORD __fastcall GetWeaponSlotMode(DWORD itemPtr, DWORD mode) {
 	int slot = (mode > 0) ? 1 : 0;
-	auto itemButton = fo::var::itemButtonItems;
-	if ((DWORD)itemButton[slot].item == itemPtr) {
-		int slotMode = itemButton[slot].mode;
+	fo::ItemButtonItem* itemButton = &fo::var::itemButtonItems[slot];
+	if ((DWORD)itemButton->item == itemPtr) {
+		int slotMode = itemButton->mode;
 		if (slotMode == 3 || slotMode == 4) {
 			mode++;
 		}
@@ -407,7 +407,7 @@ static void __fastcall SwapHandSlots(fo::GameObject* item, DWORD* toSlot) {
 			memcpy(item, rightSlot, 0x14);
 			item[0].primaryAttack   = fo::AttackType::ATKTYPE_LWEAPON_PRIMARY;
 			item[0].secondaryAttack = fo::AttackType::ATKTYPE_LWEAPON_SECONDARY;
-			slot = leftSlot;// Rslot > Lslot;
+			slot = leftSlot; // Rslot > Lslot
 		} else {
 			memcpy(item, leftSlot, 0x14);
 			item[0].primaryAttack   = fo::AttackType::ATKTYPE_RWEAPON_PRIMARY;
@@ -416,19 +416,14 @@ static void __fastcall SwapHandSlots(fo::GameObject* item, DWORD* toSlot) {
 		}
 		memcpy(slot, item, 0x14);
 	} else { // swap slot
-		fo::ItemButtonItem swapLBuf[1];
-		fo::ItemButtonItem swapRBuf[1];
+		auto swapBuf = fo::var::itemButtonItems;
+		swapBuf[0].primaryAttack   = fo::AttackType::ATKTYPE_RWEAPON_PRIMARY;
+		swapBuf[0].secondaryAttack = fo::AttackType::ATKTYPE_RWEAPON_SECONDARY;
+		swapBuf[1].primaryAttack   = fo::AttackType::ATKTYPE_LWEAPON_PRIMARY;
+		swapBuf[1].secondaryAttack = fo::AttackType::ATKTYPE_LWEAPON_SECONDARY;
 
-		memcpy(swapLBuf, leftSlot,  0x14);
-		memcpy(swapRBuf, rightSlot, 0x14);
-
-		swapLBuf[0].primaryAttack   = fo::AttackType::ATKTYPE_RWEAPON_PRIMARY;
-		swapLBuf[0].secondaryAttack = fo::AttackType::ATKTYPE_RWEAPON_SECONDARY;
-		swapRBuf[0].primaryAttack   = fo::AttackType::ATKTYPE_LWEAPON_PRIMARY;
-		swapRBuf[0].secondaryAttack = fo::AttackType::ATKTYPE_LWEAPON_SECONDARY;
-
-		memcpy(leftSlot,  swapRBuf, 0x14); // buf Rslot > Lslot;
-		memcpy(rightSlot, swapLBuf, 0x14); // buf Lslot > Rslot;
+		memcpy(leftSlot,  &swapBuf[1], 0x14); // buf Rslot > Lslot
+		memcpy(rightSlot, &swapBuf[0], 0x14); // buf Lslot > Rslot
 	}
 }
 
