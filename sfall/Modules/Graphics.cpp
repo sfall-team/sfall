@@ -983,11 +983,7 @@ void Graphics::init() {
 	}
 	if (Graphics::mode == 4 || Graphics::mode == 5) {
 		dlog("Applying dx9 graphics patch.", DL_INIT);
-#ifdef WIN2K
-#define _DLL_NAME "d3dx9_42.dll"
-#else
 #define _DLL_NAME "d3dx9_43.dll"
-#endif
 		HMODULE h = LoadLibraryEx(_DLL_NAME, 0, LOAD_LIBRARY_AS_DATAFILE);
 		if (!h) {
 			MessageBoxA(0, "You have selected graphics mode 4 or 5, but " _DLL_NAME " is missing\nSwitch back to mode 0, or install an up to date version of DirectX", "Error", 0);
