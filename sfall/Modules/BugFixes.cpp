@@ -1123,25 +1123,9 @@ end:
 }
 
 //zero damage insta death criticals fix (moved from compute_damage hook)
-static int instaDeathTypeFix = 0; // 0 - for old variant fix 
 static void __fastcall InstantDeathFix(fo::ComputeAttackResult &ctd) {
-	// target
 	if (ctd.targetDamage == 0 && (ctd.targetFlags & fo::DamageFlag::DAM_DEAD)) {
-		if (instaDeathTypeFix) {
-			GameObject* obj = ctd.target;
-			if (((obj->artFid & 0xF000000) >> 24) == fo::ObjType::OBJ_TYPE_CRITTER) {
-				long health = obj->critter.health; // curr.health
-				if (health > ctd.targetDamage) ctd.targetDamage = health;
-			}
-		} else {
-			ctd.targetDamage++; // 1 hp damage
-		}
-	}
-	// source
-	if (instaDeathTypeFix && ctd.attackerDamage == 0 && (ctd.attackerFlags & fo::DamageFlag::DAM_DEAD)) {
-		GameObject* obj = ctd.attacker;
-		long health = obj->critter.health; // curr.health;
-		if (health > ctd.attackerDamage) ctd.attackerDamage = health;
+		ctd.targetDamage++; // set 1 hp damage
 	}
 }
 
@@ -1160,7 +1144,9 @@ static void __declspec(naked) compute_damage_hack() {
 
 void BugFixes::init()
 {
-	if (isDebug && (GetConfigInt("Debugging", "BugFixes", 1) == 0)) return;
+	#ifndef NDEBUG
+		if (isDebug && (GetConfigInt("Debugging", "BugFixes", 1) == 0)) return;
+	#endif
 
 	//if (GetConfigInt("Misc", "SharpshooterFix", 1)) {
 		dlog("Applying Sharpshooter patch.", DL_INIT);
@@ -1478,7 +1464,6 @@ void BugFixes::init()
 	// Fix instant death critical
 	dlog("Applying instant death fix.", DL_INIT);
 	MakeJump(0x424BA2, compute_damage_hack);
-	instaDeathTypeFix = GetConfigInt("Bugs", "InstantDeathTypeFix", 0);
 	dlogr(" Done", DL_INIT);
 
 }
