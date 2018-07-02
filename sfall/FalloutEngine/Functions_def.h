@@ -55,9 +55,12 @@ WRAP_WATCOM_FUNC0(void, mouse_hide)
 WRAP_WATCOM_FUNC6(long, make_path_func, GameObject*, objectFrom, long, tileFrom, long, tileTo, char*, pathDataBuffer, long, arg5, void*, blockingFunc)
 // calculates bounding box (rectangle) for a given object
 WRAP_WATCOM_FUNC2(void, obj_bound, GameObject*, object, BoundRect*, boundRect)
+WRAP_WATCOM_FUNC2(long, obj_erase_object, GameObject*, object, BoundRect*, boundRect)
+WRAP_WATCOM_FUNC2(long, obj_pid_new, fo::GameObject*, object, long, pid)
 // checks/unjams jammed locks
 WRAP_WATCOM_FUNC1(long, obj_lock_is_jammed, GameObject*, object)
 WRAP_WATCOM_FUNC1(void, obj_unjam_lock, GameObject*, object)
+WRAP_WATCOM_FUNC6(long, pick_death, GameObject*, attacker, GameObject*, target, GameObject*, weapon, long, amount, long, anim, long, hitFromBack)
 WRAP_WATCOM_FUNC3(long, register_object_animate, GameObject*, object, long, anim, long, delay)
 WRAP_WATCOM_FUNC3(long, register_object_animate_and_hide, GameObject*, object, long, anim, long, delay)
 // WRAP_WATCOM_FUNC3(long, register_object_animate_and_move_straight_, GameObject*, object;

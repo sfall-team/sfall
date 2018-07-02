@@ -11,67 +11,79 @@ namespace sfall
 
 static void __declspec(naked) UseObjOnHook() {
 	__asm {
-		hookbegin(3);
+		HookBegin;
 		mov args[0], edx; // target
 		mov args[4], eax; // user
 		mov args[8], ebx; // object
 		pushad;
-		push HOOK_USEOBJON;
-		call RunHookScript;
+	}
+
+	argCount = 3;
+	RunHookScript(HOOK_USEOBJON);
+	EndHook();
+
+	__asm {
 		popad;
 		cmp cRet, 1;
-		jl  defaulthandler;
+		jl  defaultHandler;
 		mov eax, rets[0];
-		jmp end;
-defaulthandler:
+		retn;
+
+defaultHandler:
 		call fo::funcoffs::protinst_use_item_on_;
-end:
-		hookend;
 		retn;
 	}
 }
 
-static void __declspec(naked) UseObjOnHook_item_d_take_drug() {
+static void __declspec(naked) Drug_UseObjOnHook() {
 	__asm {
-		hookbegin(3);
+		HookBegin;
 		mov args[0], eax; // target
 		mov args[4], eax; // user
 		mov args[8], edx; // object
 		pushad;
-		push HOOK_USEOBJON; // useobjon
-		call RunHookScript;
+	}
+
+	argCount = 3;
+	RunHookScript(HOOK_USEOBJON);
+	EndHook();
+
+	__asm {
 		popad;
 		cmp cRet, 1;
-		jl  defaulthandler;
+		jl  defaultHandler;
 		mov eax, rets[0];
-		jmp end;
-defaulthandler:
+		retn;
+
+defaultHandler:
 		call fo::funcoffs::item_d_take_drug_;
-end:
-		hookend;
 		retn;
 	}
 }
 
 static void __declspec(naked) UseObjHook() {
 	__asm {
-		hookbegin(2);
+		HookBegin;
 		mov args[0], eax; // user
 		mov args[4], edx; // object
 		pushad;
-		push HOOK_USEOBJ;
-		call RunHookScript;
+	}
+	
+	argCount = 2;
+	RunHookScript(HOOK_USEOBJ);
+	EndHook();
+
+	__asm {
 		popad;
 		cmp cRet, 1;
-		jl  defaulthandler;
+		jl  defaultHandler;
 		cmp rets[0], -1;
-		je defaulthandler;
+		je defaultHandler;
 		mov eax, rets[0];
-		jmp end;
-defaulthandler:
+		retn;
+
+defaultHandler:
 		call fo::funcoffs::protinst_use_item_;
-end:
-		hookend;
 		retn;
 	}
 }
@@ -121,7 +133,7 @@ void Inject_UseObjOnHook() {
 	HookCalls(UseObjOnHook, { 0x49C606, 0x473619 });
 
 	// the following hooks allows to catch drug use of AI and from action cursor
-	HookCalls(UseObjOnHook_item_d_take_drug, {
+	HookCalls(Drug_UseObjOnHook, {
 		0x4285DF, // ai_check_drugs
 		0x4286F8, // ai_check_drugs
 		0x4287F8, // ai_check_drugs
