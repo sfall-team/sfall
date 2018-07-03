@@ -100,7 +100,7 @@ struct GameObject {
 
 	union {
 		struct {
-			char gap_38[4];
+			char updatedFlags[4];
 			// for weapons - ammo in magazine, for ammo - amount of ammo in last ammo pack
 			long charges;
 			// current type of ammo loaded in magazine
@@ -151,8 +151,8 @@ struct ComputeAttackResult {
 	GameObject* target;
 	long targetTile;
 	long bodyPart;
-	long damage;
-	long flags;
+	long targetDamage;
+	long targetFlags;
 	long knockbackValue;
 	GameObject* mainTarget;
 	long numExtras;
