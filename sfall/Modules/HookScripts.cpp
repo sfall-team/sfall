@@ -222,7 +222,7 @@ void HookScripts::init() {
 	OnMouseClick() += MouseClickHook;
 	LoadGameHook::OnGameModeChange() += GameModeChangeHook;
 
-	HookScripts::injectAllHooks = (isDebug && (GetConfigInt("Debugging", "InjectingAllGameHooks", 0) != 0));
+	HookScripts::injectAllHooks = (isDebug && (GetConfigInt("Debugging", "InjectAllGameHooks", 0) != 0));
 }
 
 }
