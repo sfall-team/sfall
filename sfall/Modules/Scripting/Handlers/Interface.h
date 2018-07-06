@@ -91,5 +91,7 @@ void sf_display_stats(OpcodeContext&);
 
 void sf_set_iface_tag_text(OpcodeContext&);
 
+void sf_items_ui_redraw(OpcodeContext&);
+
 }
 }

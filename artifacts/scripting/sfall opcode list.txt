@@ -337,6 +337,7 @@
 
 0x8262 - void register_hook_proc(int hook, procedure proc)
 
+0x826a - void items_ui_redraw(int interfaceSlot)
 0x826b - string message_str_game(int fileId, int messageId)
 0x826c - int sneak_success
 0x826d - int tile_light(int elevation, int tileNum)
