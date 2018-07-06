@@ -128,6 +128,7 @@ static SfallOpcodeInfo opcodeInfoArray[] = {
 	{0x265, "exponent", sf_exponent, 1, true, {ARG_NUMBER}},
 	{0x266, "ceil", sf_ceil, 1, true, {ARG_NUMBER}},
 	{0x267, "round", sf_round, 1, true, {ARG_NUMBER}},
+	{0x26a, "items_ui_redraw", sf_items_ui_redraw, 1, false, {ARG_INT}},
 	{0x26b, "message_str_game", sf_message_str_game, 2, true, {ARG_INT, ARG_INT}},
 	{0x26c, "sneak_success", sf_sneak_success, 0, true},
 	{0x26d, "tile_light", sf_tile_light, 2, true, {ARG_INT, ARG_INT}},
@@ -414,7 +415,6 @@ void InitNewOpcodes() {
 
 	// opcodes[0x268]= RESERVED
 	// opcodes[0x269]= RESERVED
-	// opcodes[0x26a]=op_game_ui_redraw;
 
 	// configure default opcode handler
 	for (int i = sfallOpcodeStart; i < opcodeCount; i++) {

@@ -349,6 +349,9 @@ Some utility/math functions are available:
 - there are 7 versions of this opcode for different number of additional arguments (for convenience)
 - opcodes have return value, but it is not necessary to use it
 
+> void items_ui_redraw(int interfaceSlot)
+- Redraws items in inventory slots Pc/Loot/Barter/Use
+- interfaceSlot specifies which slot is needs to redraw, 0 for the player, 1 for the target.
 
 ------------------------------------
 ------ sfall_funcX functions -------
