@@ -94,6 +94,7 @@ static const SfallMetarule metarules[] = {
 	{"intface_is_hidden", sf_intface_is_hidden, 0, 0},
 	{"intface_redraw", sf_intface_redraw, 0, 0},
 	{"intface_show", sf_intface_show, 0, 0},
+	{"inventory_redraw", sf_inventory_redraw, 1, 1, {ARG_INT}},
 	{"item_weight", sf_item_weight, 1, 1, {ARG_OBJECT}},
 	{"lock_is_jammed", sf_lock_is_jammed, 1, 1, {ARG_OBJECT}},
 	{"outlined_object", sf_outlined_object, 0, 0},

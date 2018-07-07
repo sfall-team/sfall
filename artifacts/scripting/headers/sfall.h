@@ -235,6 +235,7 @@
 #define intface_is_hidden                     sfall_func0("intface_is_hidden")
 #define intface_redraw                        sfall_func0("intface_redraw")
 #define intface_show                          sfall_func0("intface_show")
+#define inventory_redraw(invSide)             sfall_func1("inventory_redraw", invSide)
 #define item_weight(obj)                      sfall_func1("item_weight", obj)
 #define lock_is_jammed(obj)                   sfall_func1("lock_is_jammed", obj)
 #define outlined_object                       sfall_func0("outlined_object")

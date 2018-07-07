@@ -486,6 +486,10 @@ Some utility/math functions are available:
 - The text is limited to 19 characters
 - available colors: 0 - green, 1 - red, 2 - white, 3 - yellow, 4 - dark yellow, 5 - blue, 6 - purple
 
+> void sfall_func1("inventory_redraw", int invSide)
+- redraws inventory list in the inventory/use inventory item on/loot/barter screens
+- invSide specifies which side needs to be redrawn: 0 - the player, 1 - target (container/NPC in loot/barter screens)
+
 ------------------------
 ------ MORE INFO -------
 ------------------------
