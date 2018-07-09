@@ -518,3 +518,16 @@ Obj     arg2 - the object being used
 int     arg3 - the animation code being used (see ANIM_* in Animcomd.h)
 
 int     ret1 - overrides the animation code (pass -1 if you want to skip the animation)
+
+-------------------------------------------
+
+HOOK_EXPLOSIVETIMER (hs_explosivetimer)
+
+Runs after setting the explosive timer. You can override the result.
+
+int     arg1 - the time in ticks set in the timer
+Obj     arg2 - the explosive object
+int     arg3 - the result of engine calculation of whether the timer was set successfully: 1 - failure, 2 - success (similar to ROLL_* in Condtion.h)
+
+int     ret1 - overrides the time of the timer (maximum 18000 ticks)
+int     ret2 - overrides the result of engine calculation: 1 - failure, 2 - success, any other value - use engine handler

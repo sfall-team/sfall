@@ -1,8 +1,15 @@
 /*
-   Example implementation of the algorithm of the game engine setting the timer of explosives.
+   Example implementation of the algorithm of how the game engine sets the explosive timer.
 */
 
+#include "..\..\scripting_docs\headers\sfall.h"
 #include "..\..\scripting_docs\headers\define_lite.h"
+
+// from CONDTION.H
+#define ROLL_CRITICAL_FAILURE (0)
+#define ROLL_FAILURE          (1)
+#define ROLL_SUCCESS          (2)
+#define ROLL_CRITICAL_SUCCESS (3)
 
 procedure start;
 
