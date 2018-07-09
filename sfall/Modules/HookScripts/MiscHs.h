@@ -11,5 +11,5 @@ namespace sfall
 	void Inject_CarTravelHook();
 	void Inject_SetGlobalVarHook();
 	void Inject_RestTimerHook();
-
+	void Inject_ExplosiveTimerHook();
 }
