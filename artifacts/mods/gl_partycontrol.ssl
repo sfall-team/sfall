@@ -12,12 +12,15 @@
 */
 
 #include "..\headers\define.h"
+#include "..\headers\command.h"
 #include "main.h"
 
 variable
    configSection := "CombatControl",
    controlMode,
    pidList,
+   displayName,
+   displayNameColor,
    hasGeckoSkinning := false;
 
 
@@ -34,10 +37,17 @@ procedure combatturn_handler begin
       and (len_array(pidList) == 0 or scan_array(pidList, pid bwand 0xFFFFFF) != -1)
       and (controlMode == 1 or party_member_obj(pid))) then begin
       set_dude_obj(critter);
+      if displayName then begin
+         set_iface_tag_text(displayName, obj_name(critter), displayNameColor);
+         show_iface_tag(displayName);
+      end
       if hasGeckoSkinning then critter_add_trait(critter, TRAIT_PERK, PERK_gecko_skinning_perk, 1);
    end else begin
       set_dude_obj(real_dude_obj);
+      hide_iface_tag(displayName);
    end
+   move_to(dude_obj, dude_tile, dude_elevation); // for removing roof tiles
+   tile_set_center(dude_tile);
 end
 
 procedure start begin
@@ -45,7 +55,10 @@ procedure start begin
       set_perk_ranks(PERK_gecko_skinning_perk, 1);
       set_perk_level(PERK_gecko_skinning_perk, 999); // prevent it from appearing in the perk selection window
       controlMode := GetConfig("CombatControl", "Mode", 0);
+      displayName := GetConfig("CombatControl", "DisplayName", 0);
+      displayNameColor := GetConfig("CombatControl", "DisplayNameColor", 0);
       if (controlMode > 2) then controlMode := 0;
+      if (displayName < 5 or displayName > 9) then displayName := 0;
       if (controlMode > 0) then begin
          pidList := GetConfigListInt("CombatControl", "PIDList");
          fix_array(pidList);
