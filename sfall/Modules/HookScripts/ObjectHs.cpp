@@ -117,6 +117,32 @@ end:
 	}
 }
 
+static void __stdcall DescriptionObjHook_Script(DWORD object) {
+	BeginHook();
+	argCount = 1;
+
+	args[0] = object;
+
+	RunHookScript(HOOK_DESCRIPTIONOBJ);
+	EndHook();
+}
+
+static void __declspec(naked) DescriptionObjHook() {
+	__asm {
+		pushad;
+		push eax;          // object
+		call DescriptionObjHook_Script;
+		popad;
+		cmp  cRet, 1;
+		jb   skip;
+		mov  eax, rets[0]; // pointer to text
+		retn;
+skip:
+		call fo::funcoffs::item_description_;
+		retn;
+	}
+}
+
 void Inject_UseObjOnHook() {
 	HookCalls(UseObjOnHook, { 0x49C606, 0x473619 });
 
@@ -137,11 +163,16 @@ void Inject_UseAnimateObjHook() {
 	HookCalls(UseAnimateObjHook, { 0x4120C1, 0x412292 });
 }
 
+void Inject_DescriptionObjHook() {
+	HookCall(0x48C925, DescriptionObjHook);
+}
+
 void InitObjectHookScripts() {
 
 	LoadHookScript("hs_useobjon", HOOK_USEOBJON);
 	LoadHookScript("hs_useobj", HOOK_USEOBJ);
 	LoadHookScript("hs_useanimobj", HOOK_USEANIMOBJ);
+	LoadHookScript("hs_descriptionobj", HOOK_DESCRIPTIONOBJ);
 }
 
 }

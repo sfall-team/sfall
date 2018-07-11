@@ -490,6 +490,12 @@ Some utility/math functions are available:
 - redraws inventory list in the inventory/use inventory item on/loot/barter screens
 - invSide specifies which side needs to be redrawn: 0 - the player, 1 - target (container/NPC in loot/barter screens)
 
+> int sfall_func1("get_string_pointer", string text)
+- returns a pointer to a string variable or to a text
+
+> void sfall_func1("dialog_message", string text)
+- displays a message in the NPC response window in dialog or trade mode
+
 ------------------------
 ------ MORE INFO -------
 ------------------------

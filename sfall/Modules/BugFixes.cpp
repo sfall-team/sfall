@@ -1142,6 +1142,82 @@ static void __declspec(naked) compute_damage_hack() {
 	}
 }
 
+static int currDescLen = 0;
+static char textBuf[322];
+static void __stdcall AppendText(const char* text, const char* desc) {
+	if (currDescLen == 0) {
+		strncpy_s(textBuf, desc, 128);
+		int len = strlen(textBuf);
+		textBuf[len]   = ' ';
+		textBuf[++len] = 0;
+		currDescLen = len;
+	}
+
+	strncat(textBuf, text, 64);
+	currDescLen += strlen(text);
+	if (currDescLen < 320) {
+		textBuf[currDescLen]   = '.';
+		textBuf[++currDescLen] = ' ';
+		textBuf[++currDescLen] = 0;
+	}
+}
+
+static void __declspec(naked) obj_examine_func_hack_ammo0() {
+	__asm {
+		cmp  dword ptr [esp+0x1AC-0x14+4], 0x445448; // gdialogDisplayMsg_
+		jnz  skip;
+		pushad;
+		push esi;
+		push eax;
+		call AppendText;
+		popad;
+		retn;
+skip:
+		call [esp + 0x1AC - 0x14 + 4];
+		retn;
+	}
+}
+
+static void __declspec(naked) obj_examine_func_hack_ammo1() {
+	__asm {
+		cmp  dword ptr [esp + 0x1AC - 0x14 + 4], 0x445448; // gdialogDisplayMsg_
+		jnz  skip;
+		pushad;
+		push 0;
+		push eax;
+		call AppendText;
+		mov  currDescLen, 0;
+		popad;
+		lea  eax, [textBuf];
+		call fo::funcoffs::gdialogDisplayMsg_;
+		retn;
+skip:
+		call [esp + 0x1AC - 0x14 + 4];
+		retn;
+	}
+}
+
+static void __declspec(naked) obj_examine_func_hack_weapon() {
+	__asm {
+		cmp  dword ptr [esp + 0x1AC - 0x14], 0x445448; // gdialogDisplayMsg_
+		jnz  skip;
+		pushad;
+		push esi;
+		push eax;
+		call AppendText;
+		mov  eax, currDescLen;
+		sub  eax, 2;
+		mov  byte ptr textBuf[eax], 0; // cutoff last character
+		mov  currDescLen, 0;
+		popad;
+		lea  eax, [textBuf];
+skip:
+		push 0x49B63C;
+		retn;
+	}
+}
+
+
 void BugFixes::init()
 {
 	#ifndef NDEBUG
@@ -1465,6 +1541,16 @@ void BugFixes::init()
 	dlog("Applying instant death fix.", DL_INIT);
 	MakeJump(0x424BA2, compute_damage_hack);
 	dlogr(" Done", DL_INIT);
+	
+	// Fix descriptions info items weapon/ammo in barter window
+	dlog("Applying items description fix.", DL_INIT);
+	MakeCalls(obj_examine_func_hack_ammo0, {0x49B4AD, 0x49B504});
+	SafeWrite16(0x49B4B2, 0x9090);
+	SafeWrite16(0x49B509, 0x9090);
+	MakeCall(0x49B563, obj_examine_func_hack_ammo1);
+	SafeWrite16(0x49B568, 0x9090);
+	HookCall(0x49B452, obj_examine_func_hack_weapon); // it's jump
+    dlogr(" Done", DL_INIT);
 
 }
 

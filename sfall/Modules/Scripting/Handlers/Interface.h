@@ -93,5 +93,7 @@ void sf_set_iface_tag_text(OpcodeContext&);
 
 void sf_inventory_redraw(OpcodeContext&);
 
+void sf_dialog_message(OpcodeContext&);
+
 }
 }
