@@ -36,18 +36,20 @@ procedure combatturn_handler begin
    if (status == 1
       and (len_array(pidList) == 0 or scan_array(pidList, pid bwand 0xFFFFFF) != -1)
       and (controlMode == 1 or party_member_obj(pid))) then begin
-      set_dude_obj(critter);
+      if not(critter == real_dude_obj) then begin
+         set_dude_obj(critter);
+         if hasGeckoSkinning then critter_add_trait(critter, TRAIT_PERK, PERK_gecko_skinning_perk, 1);
+      end
       if displayName then begin
          set_iface_tag_text(displayName, obj_name(critter), displayNameColor);
          show_iface_tag(displayName);
       end
-      if hasGeckoSkinning then critter_add_trait(critter, TRAIT_PERK, PERK_gecko_skinning_perk, 1);
    end else begin
       set_dude_obj(real_dude_obj);
       hide_iface_tag(displayName);
    end
-   move_to(dude_obj, dude_tile, dude_elevation); // for removing roof tiles
-   tile_set_center(dude_tile);
+   // center the screen on the controlled critter and remove roof tiles
+   move_to(dude_obj, dude_tile, dude_elevation);
 end
 
 procedure start begin
