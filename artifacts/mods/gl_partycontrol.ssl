@@ -21,6 +21,7 @@ variable
    pidList,
    displayName,
    displayNameColor,
+   inControl := false,
    hasGeckoSkinning := false;
 
 
@@ -39,17 +40,24 @@ procedure combatturn_handler begin
       if not(critter == real_dude_obj) then begin
          set_dude_obj(critter);
          if hasGeckoSkinning then critter_add_trait(critter, TRAIT_PERK, PERK_gecko_skinning_perk, 1);
+         inControl := true;
       end
-      if displayName then begin
-         set_iface_tag_text(displayName, obj_name(critter), displayNameColor);
-         show_iface_tag(displayName);
+      if inControl then begin
+         // center the screen on the controlled critter and remove roof tiles
+         move_to(dude_obj, dude_tile, dude_elevation);
+         if displayName then begin
+            set_iface_tag_text(displayName, obj_name(critter), displayNameColor);
+            show_iface_tag(displayName);
+         end
       end
-   end else begin
+   end else if inControl then begin
       set_dude_obj(real_dude_obj);
-      hide_iface_tag(displayName);
+      if displayName then hide_iface_tag(displayName);
    end
-   // center the screen on the controlled critter and remove roof tiles
-   move_to(dude_obj, dude_tile, dude_elevation);
+end
+
+procedure gamemodechange_handler begin
+   if not(get_game_mode BWAND COMBAT) then inControl := false;
 end
 
 procedure start begin
@@ -67,6 +75,7 @@ procedure start begin
          if has_trait(TRAIT_PERK, dude_obj, PERK_gecko_skinning_perk) then hasGeckoSkinning := true;
 
          register_hook_proc(HOOK_COMBATTURN, combatturn_handler);
+         register_hook_proc(HOOK_GAMEMODECHANGE, gamemodechange_handler);
       end
    end
 end
