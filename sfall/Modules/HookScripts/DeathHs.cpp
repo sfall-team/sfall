@@ -8,6 +8,9 @@
 namespace sfall
 {
 
+static bool registerHookDeathAnim1 = false;
+static bool registerHookDeathAnim2 = false;
+
 static DWORD __fastcall CalcDeathAnimHook_Script(register DWORD damage, fo::GameObject* target, fo::GameObject* attacker, fo::GameObject* weapon, int animation, int hitBack) {
 
 	BeginHook();
@@ -18,35 +21,38 @@ static DWORD __fastcall CalcDeathAnimHook_Script(register DWORD damage, fo::Game
 	args[3] = damage;
 	args[4] = -1;
 
-	if (weapon) { // weapon_ptr
-		args[0] = weapon->protoId;
-	} else {
-		args[0] = -1; // attack is unarmed
-	}
-
-	RunHookScript(HOOK_DEATHANIM1);
+	// weapon_ptr
+	args[0] = (weapon) ? weapon->protoId : -1; // attack is unarmed
 
 	bool createNewObj = false;
-	if (cRet > 0) {
-		register DWORD pid = rets[0];
-		args[0] = pid;
-		fo::GameObject* object = nullptr; 
-		if (fo::func::obj_pid_new((fo::GameObject*)&object, pid) != -1) { // create new object
-			createNewObj = true;
-			weapon = object;  // replace pointer to created object
+	if (registerHookDeathAnim1) {
+		RunHookScript(HOOK_DEATHANIM1);
+		if (cRet > 0) {
+			register DWORD pid = rets[0];
+			args[0] = pid;
+			fo::GameObject* object = nullptr;
+			if (fo::func::obj_pid_new((fo::GameObject*)&object, pid) != -1) { // create new object
+				createNewObj = true;
+				weapon = object;  // replace pointer to created object
+			}
+			cRet = 0; // reset rets from HOOK_DEATHANIM1
 		}
 	}
 
 	long animDeath = fo::func::pick_death(attacker, target, weapon, damage, animation, hitBack); // vanilla pick death
 
-	//argCount = 5;
-	args[4] = animDeath;
-	RunHookScript(HOOK_DEATHANIM2);
+	if (registerHookDeathAnim2) {
+		//argCount = 5;
+		args[4] = animDeath;
+		RunHookScript(HOOK_DEATHANIM2);
+	}
+
+	DWORD result = (cRet > 0) ? rets[0] : animDeath;
 	EndHook();
 
 	if (createNewObj) fo::func::obj_erase_object(weapon, 0); // delete created object
 
-	return (cRet > 0) ? rets[0] : animDeath;
+	return result;
 }
 
 static void __declspec(naked) CalcDeathAnimHook() {
@@ -123,6 +129,8 @@ static void __declspec(naked) OnDeathHook2() {
 }
 
 void Inject_DeathAnim1Hook() {
+	registerHookDeathAnim1 = true;
+	if (registerHookDeathAnim2) return;
 	HookCall(0x4109DE, CalcDeathAnimHook);
 }
 
@@ -132,6 +140,9 @@ void Inject_DeathAnim2Hook() {
 		0x4109A1,
 		0x4109BF
 	});
+	registerHookDeathAnim2 = true;
+	if (registerHookDeathAnim1) return;
+	HookCall(0x4109DE, CalcDeathAnimHook);
 }
 
 void Inject_OnDeathHook() {
