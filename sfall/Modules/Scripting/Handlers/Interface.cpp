@@ -460,5 +460,32 @@ void sf_set_iface_tag_text(OpcodeContext& ctx) {
 	}
 }
 
+void sf_inventory_redraw(OpcodeContext& ctx) {
+	int mode = -1;
+	DWORD loopFlag = GetLoopFlags();
+	if (loopFlag & INVENTORY) {
+		mode = 0;
+	} else if (loopFlag & INTFACEUSE) {
+		mode = 1;
+	} else if (loopFlag & INTFACELOOT) {
+		mode = 2;
+	} else if (loopFlag & BARTER) {
+		mode = 3;
+	} else {
+		return;
+	}
+
+	if (!ctx.arg(0).asBool()) {
+		int* stack_offset = (int*)FO_VAR_stack_offset;
+		stack_offset[fo::var::curr_stack * 4] = 0;
+		fo::func::display_inventory(0, -1, mode);
+	} else if (mode >= 2) {
+		int* target_stack_offset = (int*)FO_VAR_target_stack_offset;
+		target_stack_offset[fo::var::target_curr_stack * 4] = 0;
+		fo::func::display_target_inventory(0, -1, (DWORD*)fo::var::target_pud, mode);
+		fo::func::win_draw(fo::var::i_wid);
+	}
+}
+
 }
 }

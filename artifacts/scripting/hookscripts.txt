@@ -497,7 +497,7 @@ int     arg2 - event type: 1 - when the resting ends normally, -1 - when pressin
 int     arg3 - the hour part of the length of resting time
 int     arg4 - the minute part of the length of resting time
 
-int     ret1 - pass 1 to interrupt the resting
+int     ret1 - pass 1 to interrupt the resting, pass 0 to continue the rest if it was interrupted by pressing ESC key
 
 -------------------------------------------
 
