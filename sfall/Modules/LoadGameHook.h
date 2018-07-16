@@ -74,7 +74,9 @@ enum LoopFlag : unsigned long {
 	INTFACEUSE  = 1 << 15, // 0x8000
 	INTFACELOOT = 1 << 16, // 0x10000
 	BARTER      = 1 << 17, // 0x20000
-	HEROWIN     = 1 << 18, // 0x40000
+	HEROWIN     = 1 << 18, // 0x40000 Hero Appearance mod
+	DIALOGVIEW  = 1 << 19, // 0x80000
+
 	// RESERVED    = 1 << 31
 };
 
