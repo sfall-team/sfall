@@ -30,6 +30,7 @@ namespace sfall
 DWORD LSPageOffset = 0;
 
 int LSButtDN = 0;
+BYTE* SaveLoadSurface = nullptr;
 
 static const char* filename = "%s\\savegame\\slotdat.ini";
 
@@ -84,87 +85,27 @@ static void __declspec(naked) load_page_offsets(void) {
 }
 
 //------------------------------------------
+static void CreateButtons() {
+	register DWORD winRef = fo::var::lsgwin;
+
+	// left button -10                   | X | Y | W | H |HOn |HOff |BDown |BUp |PicUp |PicDown |? |ButType
+	fo::func::win_register_button(winRef, 100, 60, 24, 20, -1, 0x500, 0x54B, 0x14B, 0, 0, 0, 32);
+	// left button -100
+	fo::func::win_register_button(winRef,  68, 60, 24, 20, -1, 0x500, 0x549, 0x149, 0, 0, 0, 32);
+	// right button +10
+	fo::func::win_register_button(winRef, 216, 60, 24, 20, -1, 0x500, 0x54D, 0x14D, 0, 0, 0, 32);
+	// right button +100
+	fo::func::win_register_button(winRef, 248, 60, 24, 20, -1, 0x500, 0x551, 0x151, 0, 0, 0, 32);
+	// Set Number button
+	fo::func::win_register_button(winRef, 140, 60, 60, 20, -1, -1, 'p', -1, 0, 0, 0, 32);
+}
+
 static void __declspec(naked) create_page_buttons(void) {
 	__asm {
-		// left button -10
-		push 32 // ButType
-		push 0 // ? always 0
-		push 0 // PicDown
-		push 0 // PicUp
-		push 0x14B // ButtUp left button
-		push 0x54B // ButtDown
-		push 0x500 // HovOff
-		push -1 // HovOn
-		push 20 // Height
-		mov  ecx, 24 // Width
-		mov  edx, 100 // Xpos
-		mov  ebx, 56 // Ypos
-		mov  eax, dword ptr ds:[FO_VAR_lsgwin] // WinRef
-		call fo::funcoffs::win_register_button_
-		// left button -100
-		push 32 // ButType
-		push 0 // ? always 0
-		push 0 // PicDown
-		push 0 // PicUp
-		push 0x149 // ButtUp PGUP button
-		push 0x549 // ButtDown
-		push 0x500 // HovOff
-		push -1 // HovOn
-		push 20 // Height
-		mov  ecx, 24 // Width
-		mov  edx, 68 // Xpos
-		mov  ebx, 56 // Ypos
-		mov  eax, dword ptr ds:[FO_VAR_lsgwin] // WinRef
-		call fo::funcoffs::win_register_button_ // create button function
-		// right button +10
-		push 32 // ButType
-		push 0 // ? always 0
-		push 0 // PicDown
-		push 0 // PicUp
-		push 0x14D // ButtUp right button
-		push 0x54D // ButtDown
-		push 0x500 // HovOff
-		push -1 // HovOn
-		push 20 // Height
-		mov  ecx, 24 // Width
-		mov  edx, 216 // Xpos
-		mov  ebx, 56 // Ypos
-		mov  eax, dword ptr ds:[FO_VAR_lsgwin] // WinRef
-		call fo::funcoffs::win_register_button_ // create button function
-		// right button +100
-		push 32 // ButType
-		push 0 // ? always 0
-		push 0 // PicDown
-		push 0 // PicUp
-		push 0x151 // ButtUp PGDN button
-		push 0x551 // ButtDown
-		push 0x500 // HovOff
-		push -1 // HovOn
-		push 20 // Height
-		mov  ecx, 24 // Width
-		mov  edx, 248 // Xpos
-		mov  ebx, 56 // Ypos
-		mov  eax, dword ptr ds:[FO_VAR_lsgwin] // WinRef
-		call fo::funcoffs::win_register_button_ // create button function
-		// Set Number button
-		push 32 // ButType
-		push 0 // ? always 0
-		push 0 // PicDown
-		push 0 // PicUp
-		push -1 // ButtUp
-		push 'p' // ButtDown
-		push -1 // HovOff
-		push -1 // HovOn
-		push 20 // Height
-		mov  ecx, 60 // Width
-		mov  edx, 140 // Xpos
-		mov  ebx, 56 // Ypos
-		mov  eax, dword ptr ds:[FO_VAR_lsgwin] // WinRef
-		call fo::funcoffs::win_register_button_ // create button function
-
+		call CreateButtons;
 		// restore original code
-		mov  eax, 0x65
-		ret
+		mov  eax, 0x65;
+		ret;
 	}
 }
 
@@ -182,15 +123,13 @@ void SetPageNum() {
 	BYTE ConsoleGold = fo::var::YellowColor; // palette offset stored in mem - text colour
 
 	char TempText[32];
-	unsigned int TxtMaxWidth = fo::GetMaxCharWidth() * 8; // GetTextWidth(TempText);
+	unsigned int TxtMaxWidth = fo::GetMaxCharWidth() * 6; // GetTextWidth(TempText);
+	unsigned int HalfMaxWidth = TxtMaxWidth / 2;
 	unsigned int TxtWidth = 0;
 
 	DWORD NewTick = 0, OldTick = 0;
-	int button = 0;
-	int exitFlag = 0;
-	char blip = '_';
-	char Number[5];
-	int numpos = 0;
+	int button = 0, exitFlag = 0, numpos = 0;
+	char Number[4], blip = '_';
 
 	DWORD tempPageOffset = -1;
 
@@ -202,43 +141,48 @@ void SetPageNum() {
 		if (NewTick - OldTick > 166) { // time to draw
 			OldTick = NewTick;
 
-			if (blip == '_') {
-				blip = ' ';
-			} else {
-				blip = '_';
-			}
+			blip = (blip == '_') ? ' ' : '_';
 
-			sprintf_s(TempText, 32, "#%d%c", tempPageOffset / 10 + 1, '_');
 			if (tempPageOffset == -1) {
-				sprintf_s(TempText, 32, "#%c", '_');
+				sprintf_s(TempText, 32, "[ %c ]", '_');
+			} else {
+				sprintf_s(TempText, 32, "[ %d%c ]", tempPageOffset / 10, '_');
 			}
 			TxtWidth = fo::GetTextWidth(TempText);
 
-			sprintf_s(TempText, 32, "#%d%c", tempPageOffset / 10 + 1, blip);
 			if (tempPageOffset == -1) {
-				sprintf_s(TempText, 32, "#%c", blip);
+				sprintf_s(TempText, 32, "[ %c", blip);
+			} else {
+				sprintf_s(TempText, 32, "[ %d%c", tempPageOffset / 10, blip);
 			}
 
-			// fill over text area with consol black colour
-			for (int y = SaveLoadWin->width * 52; y < SaveLoadWin->width * 82; y = y + SaveLoadWin->width) {
-				memset(SaveLoadWin->surface + y + 170 - TxtMaxWidth / 2, 0xCF, TxtMaxWidth);
+			int z = 0;
+			// paste image part from buffer into text area
+			for (int y = SaveLoadWin->width * 62; y < SaveLoadWin->width * 74; y += SaveLoadWin->width) {
+				memcpy(SaveLoadWin->surface + y + (170 - HalfMaxWidth), SaveLoadSurface + (100 - HalfMaxWidth) + (200 * z++), TxtMaxWidth);
 			}
 
-			fo::PrintText(TempText, ConsoleGold, 170 - TxtWidth / 2, 60, TxtWidth, SaveLoadWin->width, SaveLoadWin->surface);
+			int HalfTxtWidth = TxtWidth / 2;
+			fo::PrintText(TempText, ConsoleGold, 170 - HalfTxtWidth, 64, TxtWidth, SaveLoadWin->width, SaveLoadWin->surface);
+
+			char* EndBracket = "]";
+			int width = fo::GetTextWidth(EndBracket);
+			fo::PrintText(EndBracket, ConsoleGold, (170 - HalfTxtWidth) + TxtWidth - width, 64, width, SaveLoadWin->width, SaveLoadWin->surface);
+
 			fo::func::win_draw(winRef);
 		}
 
 		button = fo::func::get_input();
 		if (button >= '0' && button <= '9') {
-			if (numpos < 4) {
+			if (numpos < 3) {
 				Number[numpos] = button;
 				Number[numpos + 1] = '\0';
 				numpos++;
 				if (Number[0] == '0') {
 					numpos = 0;
-					tempPageOffset = -1;
+					tempPageOffset = 0;
 				} else {
-					tempPageOffset = (atoi(Number) - 1) * 10;
+					tempPageOffset = (atoi(Number)) * 10;
 				}
 			}
 			//else exitFlag=-1;
@@ -248,7 +192,7 @@ void SetPageNum() {
 			if (!numpos) {
 				tempPageOffset = -1;
 			} else {
-				tempPageOffset = (atoi(Number) - 1) * 10;
+				tempPageOffset = (atoi(Number)) * 10;
 			}
 		} else if (button == 0x0D || button == 0x20 || button == 'p' || button == 'P') {
 			exitFlag = -1; // Enter, Space or P Keys
@@ -265,87 +209,59 @@ void SetPageNum() {
 }
 
 //------------------------------------------
-static void __declspec(naked) check_page_buttons(void) {
-/*
-0047BD49  |> 3D 48010000            |CMP EAX,148
-0047BD4E  |. 75 2E                  |JNZ SHORT fallout2.0047BD7E
-0047BD50  |. 8B15 B8935100          |MOV EDX,DWORD PTR DS:[5193B8]
-0047BD56  |. 4A                     |DEC EDX
-0047BD57  |. 8915 B8935100          |MOV DWORD PTR DS:[5193B8],EDX
-0047BD5D  |. 85D2                   |TEST EDX,EDX
-0047BD5F  |. 7D 07                  |JGE SHORT fallout2.0047BD68
-0047BD61  |. 31C0                   |XOR EAX,EAX
-0047BD63  |. A3 B8935100            |MOV DWORD PTR DS:[5193B8],EAX
-0047BD68  |> B9 FFFFFFFF            |MOV ECX,-1                          // button pressed exit check
-0047BD6D  |. BA 01000000            |MOV EDX,1
-0047BD72  |. 898C24 28020000        |MOV DWORD PTR SS:[ESP+228],ECX
-0047BD79  |. E9 7B010000            |JMP fallout2.0047BEF9
-*/
+static long __fastcall CheckPage(long button) {
+	switch (button) {
+		case 0x14B:                        // left button
+			if (LSPageOffset >= 10) LSPageOffset -= 10;
+			_asm call fo::funcoffs::gsound_red_butt_press_;
+			break;
+		case 0x149:                        // fast left PGUP button
+			if (LSPageOffset < 100) {
+				LSPageOffset = 0;          // FirstPage
+			} else {
+				LSPageOffset -= 100;
+			}
+			_asm call fo::funcoffs::gsound_red_butt_press_;
+			break;
+		case 0x14D:                        // right button
+			if (LSPageOffset <= 9980) LSPageOffset += 10;
+			_asm call fo::funcoffs::gsound_red_butt_press_;
+			break;
+		case 0x151:                        // fast right PGDN button
+			if (LSPageOffset > 9890) {
+				LSPageOffset = 9990;       // LastPage
+			} else {
+				LSPageOffset += 100;
+			}
+			_asm call fo::funcoffs::gsound_red_butt_press_;
+			break;
+		case 'p':                          // P/p button pressed
+		case 'P':
+			SetPageNum();
+			break;
+		default:
+			if (button < 0x500) return 1;  // button in down state
+	}
 
+	LSButtDN = button;
+	return 0;
+}
+
+static void __declspec(naked) check_page_buttons(void) {
 	__asm {
-		cmp  eax, 0x14B // left button
-		jnz  CheckFastLeft
-		cmp  LSPageOffset, 10
-		jl   SetRet
-		sub  LSPageOffset, 10
-		jmp  SetRet
-CheckFastLeft:
-		cmp  eax, 0x149 // fast left PGUP button
-		jnz  CheckRight
-		cmp  LSPageOffset, 100
-		jl   FirstPage
-		sub  LSPageOffset, 100
-		jmp  SetRet
-FirstPage:
-		mov  LSPageOffset, 0
-		jmp  SetRet
-CheckRight:
-		cmp  eax, 0x14D // right button
-		jnz  CheckFastRight
-		cmp  LSPageOffset, 9980
-		jg   SetRet
-		add  LSPageOffset, 10
-		jmp  SetRet
-CheckFastRight:
-		cmp  eax, 0x151 // fast right PGDN button
-		jnz  CheckSetNumber
-		cmp  LSPageOffset, 9890
-		jg   LastPage
-		add  LSPageOffset, 100
-		jmp  SetRet
-LastPage:
-		mov  LSPageOffset, 9990
-		jmp  SetRet
-CheckSetNumber:
-		cmp  eax, 'p' // p button pressed - start SetPageNum func
-		jnz  CheckSetNumber2
-		pushad
-		call SetPageNum
-		popad
-		jmp  SetRet
-CheckSetNumber2:
-		cmp  eax, 'P' // P button pressed - start SetPageNum func
-		jnz  CheckButtonDown
-		pushad
-		call  SetPageNum
-		popad
-		jmp  SetRet
-CheckButtonDown:
-		cmp  eax, 0x500 // button in down state
-		jl   CheckUp
-SetRet:
-		mov  LSButtDN, eax
-		push esi
-		mov  esi, 0x47E5D0  // reset page save list func
-		call esi
-		pop  esi
-		add  dword ptr ds:[esp], 26 // set return to button pressed code
-		jmp  EndFunc
+		pushad;
+		mov  ecx, eax;
+		call CheckPage;
+		test eax, eax;
+		popad;
+		jnz  CheckUp;
+		call fo::funcoffs::GetSlotList_;    // reset page save list func
+		add  dword ptr ds:[esp], 26;        // set return to button pressed code
+		ret;
 CheckUp:
 		// restore original code
-		cmp  eax, 0x148 // up button
-EndFunc:
-		ret
+		cmp  eax, 0x148;                    // up button
+		ret;
 	}
 }
 
@@ -359,9 +275,18 @@ void DrawPageText() {
 		return;
 	}
 
-	// fill over text area with consol black colour
-	for (int y = SaveLoadWin->width * 52; y < SaveLoadWin->width * 82; y = y + SaveLoadWin->width) {
-		memset(SaveLoadWin->surface + 50 + y, 0xCF, 240);
+	int z = 0;
+	if (SaveLoadSurface == nullptr) {
+		SaveLoadSurface = new BYTE[2400];
+		// save part of original image to buffer
+		for (int y = SaveLoadWin->width * 62; y < SaveLoadWin->width * 74; y += SaveLoadWin->width) {
+			memcpy(SaveLoadSurface + (200 * z++), SaveLoadWin->surface + 74 + y, 200);
+		}
+	} else {
+		// paste image from buffer into text area
+		for (int y = SaveLoadWin->width * 62; y < SaveLoadWin->width * 74; y += SaveLoadWin->width) {
+			memcpy(SaveLoadWin->surface + 74 + y, SaveLoadSurface + (200 * z++), 200);
+		}
 	}
 
 	BYTE ConsoleGreen = fo::var::GreenColor; // palette offset stored in mem - text colour
@@ -369,10 +294,10 @@ void DrawPageText() {
 	BYTE Colour = ConsoleGreen;
 
 	char TempText[32];
-	sprintf_s(TempText, 32, "[ %d ]", LSPageOffset / 10 + 1);
+	sprintf_s(TempText, 32, "[ %d ]", LSPageOffset / 10);
 
 	unsigned int TxtWidth = fo::GetTextWidth(TempText);
-	fo::PrintText(TempText, Colour, 170 - TxtWidth / 2, 60, TxtWidth, SaveLoadWin->width, SaveLoadWin->surface);
+	fo::PrintText(TempText, Colour, 170 - TxtWidth / 2, 64, TxtWidth, SaveLoadWin->width, SaveLoadWin->surface);
 
 	if (LSButtDN == 0x549) {
 		Colour = ConsoleGold;
@@ -381,7 +306,7 @@ void DrawPageText() {
 	}
 	strcpy_s(TempText, 12, "<<");
 	TxtWidth = fo::GetTextWidth(TempText);
-	fo::PrintText(TempText, Colour, 80 - TxtWidth / 2, 60, TxtWidth, SaveLoadWin->width, SaveLoadWin->surface);
+	fo::PrintText(TempText, Colour, 80 - TxtWidth / 2, 64, TxtWidth, SaveLoadWin->width, SaveLoadWin->surface);
 
 	if (LSButtDN == 0x54B) {
 		Colour = ConsoleGold;
@@ -390,7 +315,7 @@ void DrawPageText() {
 	}
 	strcpy_s(TempText, 12, "<");
 	TxtWidth = fo::GetTextWidth(TempText);
-	fo::PrintText(TempText, Colour, 112 - TxtWidth / 2, 60, TxtWidth, SaveLoadWin->width, SaveLoadWin->surface);
+	fo::PrintText(TempText, Colour, 112 - TxtWidth / 2, 64, TxtWidth, SaveLoadWin->width, SaveLoadWin->surface);
 
 	if (LSButtDN == 0x551) {
 		Colour = ConsoleGold;
@@ -399,7 +324,7 @@ void DrawPageText() {
 	}
 	strcpy_s(TempText, 12, ">>");
 	TxtWidth = fo::GetTextWidth(TempText);
-	fo::PrintText(TempText, Colour, 260 - TxtWidth / 2, 60, TxtWidth, SaveLoadWin->width, SaveLoadWin->surface);
+	fo::PrintText(TempText, Colour, 260 - TxtWidth / 2, 64, TxtWidth, SaveLoadWin->width, SaveLoadWin->surface);
 
 	if (LSButtDN == 0x54D) {
 		Colour = ConsoleGold;
@@ -408,7 +333,7 @@ void DrawPageText() {
 	}
 	strcpy_s(TempText, 12, ">");
 	TxtWidth = fo::GetTextWidth(TempText);
-	fo::PrintText(TempText, Colour, 228 - TxtWidth / 2, 60, TxtWidth, SaveLoadWin->width, SaveLoadWin->surface);
+	fo::PrintText(TempText, Colour, 228 - TxtWidth / 2, 64, TxtWidth, SaveLoadWin->width, SaveLoadWin->surface);
 
 	SaveLoadWin = nullptr;
 }
@@ -439,13 +364,11 @@ static void __declspec(naked) AddPageOffset01(void) {
 // getting info for the 10 currently displayed save slots from save.dats
 static void __declspec(naked) AddPageOffset02(void) {
 	__asm {
-		pop  edx // pop ret addr
-		mov  eax, 0x50A514  // ASCII "SAVE.DAT"
-		push eax
-		lea  eax, dword ptr ds:[ebx+1]
-		add  eax, LSPageOffset // add page num offset
-		push edx // push ret addr
-		ret
+		push 0x50A514;          // ASCII "SAVE.DAT"
+		lea  eax, [ebx + 1];
+		add  eax, LSPageOffset; // add page num offset
+		mov  edx, 0x47E5E9;     // ret addr
+		jmp  edx;
 	}
 }
 
@@ -469,11 +392,8 @@ void EnableSuperSaving() {
 	// Draw button text
 	MakeCalls(draw_page_text, {0x47E6E8});
 
-	// check save buttons
-	MakeCalls(check_page_buttons, {0x47BD49});
-
-	// check load buttons
-	MakeCalls(check_page_buttons, {0x47CB1C});
+	// check load/save buttons
+	MakeCalls(check_page_buttons, {0x47CB1C, 0x47BD49});
 
 	// save current page and list positions to file on load/save scrn exit
 	MakeCalls(save_page_offsets, {0x47D828});
@@ -490,9 +410,7 @@ void EnableSuperSaving() {
 		0x4808D3
 	});
 
-	MakeCalls(AddPageOffset02, {0x47E5E1});
-	SafeWrite16(0x47E5E6, 0x9090);
-	SafeWrite8(0x47E5E8, 0x90);
+	MakeJump(0x47E5E1, AddPageOffset02);
 
 	MakeCalls(AddPageOffset03, {0x47E756});
 }
@@ -503,6 +421,10 @@ void ExtraSaveSlots::init() {
 		EnableSuperSaving();
 		dlogr(" Done", DL_INIT);
 	}
+}
+
+void ExtraSaveSlots::exit() {
+	if (SaveLoadSurface) delete[] SaveLoadSurface;
 }
 
 }

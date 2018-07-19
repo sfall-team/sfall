@@ -29,6 +29,7 @@ class ExtraSaveSlots : public Module {
 public:
 	const char* name() { return "SuperSave"; }
 	void init();
+	void exit() override;
 };
 
 }
