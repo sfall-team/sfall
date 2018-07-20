@@ -522,7 +522,7 @@ int     ret1 - overrides the animation code (pass -1 if you want to skip the ani
 
 -------------------------------------------
 
-HOOK_EXPLOSIVETIMER (hs_explosivetimer)
+HOOK_EXPLOSIVETIMER (hs_explosivetimer.int)
 
 Runs after setting the explosive timer. You can override the result.
 
@@ -535,7 +535,7 @@ int     ret2 - overrides the result of engine calculation: 0/1 - failure, 2/3 - 
 
 -------------------------------------------
 
-HOOK_DESCRIPTIONOBJ (hs_descriptionobj)
+HOOK_DESCRIPTIONOBJ (hs_descriptionobj.int)
 
 Runs when using the examine action icon to display item description. You can override the description of the item.
 An example usage would be to add additional parameters to the description.
@@ -543,3 +543,17 @@ An example usage would be to add additional parameters to the description.
 Obj     arg1 - the item
 
 int     ret1 - a pointer to the new text received by using "get_string_pointer" function
+
+-------------------------------------------
+
+HOOK_USESKILLON (hs_useskillon.int)
+
+Runs before using skills on the object. Allows to override the critter that used the skill.
+Note: When using the Steal skill, the critter can't be override.
+
+Critter arg1 - the user critter (usually dude_obj)
+Obj     arg2 - the target object/critter
+int     arg3 - skill used
+
+int     ret1 - a new critter who used the skill, pass -1 to cancel the skill use, 0 - for skip this return argument
+int     ret2 - pass 1 to allow the use of skill in combat (only for dude or critter under control of the player)
