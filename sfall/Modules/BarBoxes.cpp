@@ -208,8 +208,8 @@ void BarBoxes::SetText(int box, const char* text, DWORD color) {
 void BarBoxes::init() {
 
 	boxCount = 5 + GetConfigInt("Misc", "BoxBarCount", 5);
-	if (boxCount < 5)   boxCount = 5;
-	if (boxCount > 120) boxCount = 120;
+	if (boxCount < 10)  boxCount = 10;
+	if (boxCount > 100) boxCount = 100;
 
 	actualBoxCount = boxCount - 5;
 	sizeBox = sSize * boxCount;

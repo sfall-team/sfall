@@ -328,11 +328,23 @@ void sf_hide_iface_tag(OpcodeContext &ctx) {
 void sf_is_iface_tag_active(OpcodeContext &ctx) {
 	bool result = false;
 	int tag = ctx.arg(0).asInt();
-	if (tag > -1 && tag < 5) {
-		fo::GameObject* obj = fo::var::obj_dude; 
-		fo::Proto* proto = fo::GetProto(obj->protoId);
-		int flagBit = 1 << tag;
-		result = ((proto->critter.critterFlags & flagBit) != 0);
+	if (tag >= 0 && tag < 5) {
+		if (tag == 1 || tag == 2) { // Poison/Radiation
+			tag += 2;
+			int* boxslot = (int*)FO_VAR_bboxslot;
+			for (int i = 0; i < 6; i++) {
+				int value = boxslot[i];
+				if (value == tag || value == -1) {
+					result = (value != -1);
+					break;
+				}
+			}
+		} else { // Sneak/Level/Addict
+			fo::GameObject* obj = fo::var::obj_dude;
+			fo::Proto* proto = fo::GetProto(obj->protoId);
+			int flagBit = 1 << tag;
+			result = ((proto->critter.critterFlags & flagBit) != 0);
+		}
 	} else {
 		result = BarBoxes::GetBox(tag);
 	}
