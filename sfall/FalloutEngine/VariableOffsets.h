@@ -12,7 +12,7 @@
 #define FO_VAR_art_name                   0x56C9E4
 #define FO_VAR_art_vault_guy_num          0x5108A4
 #define FO_VAR_art_vault_person_nums      0x5108A8
-#define FO_VAR_bboxslot                   0x5970E0 
+#define FO_VAR_bboxslot                   0x5970E0
 #define FO_VAR_bckgnd                     0x5707A4
 #define FO_VAR_black_palette              0x663FD0
 #define FO_VAR_BlueColor                  0x6A38EF

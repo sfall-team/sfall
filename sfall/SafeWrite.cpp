@@ -60,8 +60,8 @@ void HookCall(DWORD addr, void* func) {
 		if (addr == wa) {
 			exist = true;
 			char buf[512];
-			sprintf_s(buf, "Conflict write address, at 0x%x address has already before been inserted the code.", addr);
-			MessageBoxA(0, buf, "Detect conflict", MB_TASKMODAL);
+			sprintf_s(buf, "Memory writing conflict at address 0x%x. The address has already been overwritten by other code.", addr);
+			MessageBoxA(0, buf, "Conflict Detected", MB_TASKMODAL);
 		}
 	}
 	if (!exist) writeAddress.push_back(addr);
