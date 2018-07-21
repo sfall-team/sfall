@@ -64,6 +64,9 @@ typedef std::unordered_map<int, const SfallOpcodeInfo*> OpcodeInfoMapType;
 // }
 static SfallOpcodeInfo opcodeInfoArray[] = {
 	{0x16c, "key_pressed", sf_key_pressed, 1, true},
+	{0x1dc, "show_iface_tag", sf_show_iface_tag, 1, false, {ARG_INT}},
+	{0x1dd, "hide_iface_tag", sf_hide_iface_tag, 1, false, {ARG_INT}},
+	{0x1de, "is_iface_tag_active", sf_is_iface_tag_active, 1, true, {ARG_INT}},
 	{0x1ec, "sqrt", sf_sqrt, 1, true, {ARG_NUMBER}},
 	{0x1ed, "abs", sf_abs, 1, true, {ARG_NUMBER}},
 	{0x1ee, "sin", sf_sin, 1, true, {ARG_NUMBER}},
@@ -326,9 +329,6 @@ void InitNewOpcodes() {
 			opcodes[i] = op_call_offset;
 		}
 	}
-	opcodes[0x1dc] = op_show_iface_tag;
-	opcodes[0x1dd] = op_hide_iface_tag;
-	opcodes[0x1de] = op_is_iface_tag_active;
 	opcodes[0x1df] = op_get_bodypart_hit_modifier;
 	opcodes[0x1e0] = op_set_bodypart_hit_modifier;
 	opcodes[0x1e1] = op_set_critical_table;

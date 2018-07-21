@@ -305,104 +305,50 @@ end:
 	}
 }
 
-void __declspec(naked) op_show_iface_tag() {
-	__asm {
-		pushad;
-		mov ecx, eax;
-		call fo::funcoffs::interpretPopShort_;
-		mov edx, eax;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPopLong_;
-		cmp dx, VAR_TYPE_INT;
-		jnz end;
-		cmp eax, 3;
-		je falloutfunc;
-		cmp eax, 4;
-		je falloutfunc;
-		push eax;
-		call AddBox;
-		call fo::funcoffs::refresh_box_bar_win_;
-		jmp end;
-falloutfunc:
-		call fo::funcoffs::pc_flag_on_;
-end:
-		popad;
-		retn;
+void sf_show_iface_tag(OpcodeContext &ctx) {
+	int tag = ctx.arg(0).asInt();
+	if (tag == 3 || tag == 4) {
+		_asm mov  eax, tag;
+		_asm call fo::funcoffs::pc_flag_on_;
+	} else {
+		BarBoxes::AddBox(tag);
 	}
 }
 
-void __declspec(naked) op_hide_iface_tag() {
-	__asm {
-		pushad;
-		mov ecx, eax;
-		call fo::funcoffs::interpretPopShort_;
-		mov edx, eax;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPopLong_;
-		cmp dx, VAR_TYPE_INT;
-		jnz end;
-		cmp eax, 3;
-		je falloutfunc;
-		cmp eax, 4;
-		je falloutfunc;
-		push eax;
-		call RemoveBox;
-		call fo::funcoffs::refresh_box_bar_win_;
-		jmp end;
-falloutfunc:
-		call fo::funcoffs::pc_flag_off_;
-end:
-		popad;
-		retn;
+void sf_hide_iface_tag(OpcodeContext &ctx) {
+	int tag = ctx.arg(0).asInt();
+	if (tag == 3 || tag == 4) {
+		_asm mov  eax, tag;
+		_asm call fo::funcoffs::pc_flag_off_;
+	} else {
+		BarBoxes::RemoveBox(tag);
 	}
 }
 
-void __declspec(naked) op_is_iface_tag_active() {
-	__asm {
-		pushad;
-		sub esp, 4;
-		mov ebx, eax;
-		call fo::funcoffs::interpretPopShort_;
-		mov edx, eax;
-		mov eax, ebx;
-		call fo::funcoffs::interpretPopLong_;
-		cmp dx, VAR_TYPE_INT;
-		jnz fail;
-		cmp eax, 3;
-		je falloutfunc;
-		cmp eax, 4;
-		je falloutfunc;
-		push eax;
-		call GetBox;
-		mov edx, eax;
-		jmp end;
-falloutfunc:
-		mov ecx, eax;
-		mov eax, dword ptr ds:[FO_VAR_obj_dude];
-		mov edx, esp;
-		mov eax, [eax + 0x64];
-		call fo::funcoffs::proto_ptr_;
-		mov edx, 1;
-		shl edx, cl;
-		mov ecx, [esp];
-		mov eax, [ecx + 0x20];
-		and eax, edx;
-		jz fail;
-		xor edx, edx;
-		inc edx;
-		jmp end;
-fail:
-		xor edx, edx;
-end:
-		mov eax, ebx;
-		call fo::funcoffs::interpretPushLong_;
-		mov eax, ebx;
-		mov edx, VAR_TYPE_INT;
-		call fo::funcoffs::interpretPushShort_;
-		add esp, 4;
-		popad;
-		retn;
+void sf_is_iface_tag_active(OpcodeContext &ctx) {
+	bool result = false;
+	int tag = ctx.arg(0).asInt();
+	if (tag >= 0 && tag < 5) {
+		if (tag == 1 || tag == 2) { // Poison/Radiation
+			tag += 2;
+			int* boxslot = (int*)FO_VAR_bboxslot;
+			for (int i = 0; i < 6; i++) {
+				int value = boxslot[i];
+				if (value == tag || value == -1) {
+					result = (value != -1);
+					break;
+				}
+			}
+		} else { // Sneak/Level/Addict
+			fo::GameObject* obj = fo::var::obj_dude;
+			fo::Proto* proto = fo::GetProto(obj->protoId);
+			int flagBit = 1 << tag;
+			result = ((proto->critter.critterFlags & flagBit) != 0);
+		}
+	} else {
+		result = BarBoxes::GetBox(tag);
 	}
+	ctx.setReturn(result);
 }
 
 void sf_intface_redraw(OpcodeContext& ctx) {
@@ -410,17 +356,17 @@ void sf_intface_redraw(OpcodeContext& ctx) {
 }
 
 void sf_intface_show(OpcodeContext& ctx) {
-	__asm call fo::funcoffs::intface_show_
+	__asm call fo::funcoffs::intface_show_;
 }
 
 void sf_intface_hide(OpcodeContext& ctx) {
-	__asm call fo::funcoffs::intface_hide_
+	__asm call fo::funcoffs::intface_hide_;
 }
 
 void sf_intface_is_hidden(OpcodeContext& ctx) {
 	int isHidden;
 	__asm {
-		call fo::funcoffs::intface_is_hidden_
+		call fo::funcoffs::intface_is_hidden_;
 		mov isHidden, eax;
 	}
 	ctx.setReturn(isHidden);
@@ -433,7 +379,7 @@ void sf_tile_refresh_display(OpcodeContext& ctx) {
 void sf_get_cursor_mode(OpcodeContext& ctx) {
 	int cursorMode;
 	__asm {
-		call fo::funcoffs::gmouse_3d_get_mode_
+		call fo::funcoffs::gmouse_3d_get_mode_;
 		mov cursorMode, eax;
 	}
 	ctx.setReturn(cursorMode);
@@ -453,10 +399,11 @@ void sf_display_stats(OpcodeContext& ctx) {
 void sf_set_iface_tag_text(OpcodeContext& ctx) {
 	int boxTag = ctx.arg(0).asInt();
 
-	if (boxTag > 4 && boxTag < 10) {
+	int maxBox = BarBoxes::MaxBox();
+	if (boxTag > 4 && boxTag <= maxBox) {
 		BarBoxes::SetText(boxTag, ctx.arg(1).asString(), ctx.arg(2).asInt());
 	} else {
-		ctx.printOpcodeError("set_iface_tag_text() - tag value must be in the range of 5 to 9.");
+		ctx.printOpcodeError("set_iface_tag_text() - tag value must be in the range of 5 to %d.", maxBox);
 	}
 }
 
