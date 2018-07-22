@@ -133,6 +133,9 @@ void SetPageNum() {
 
 	DWORD tempPageOffset = -1;
 
+	char* EndBracket = "]";
+	int width = fo::GetTextWidth(EndBracket);
+
 	while (!exitFlag) {
 		NewTick = GetTickCount(); // timer for redraw
 		if (OldTick > NewTick) {
@@ -163,12 +166,9 @@ void SetPageNum() {
 			}
 
 			int HalfTxtWidth = TxtWidth / 2;
+
 			fo::PrintText(TempText, ConsoleGold, 170 - HalfTxtWidth, 64, TxtWidth, SaveLoadWin->width, SaveLoadWin->surface);
-
-			char* EndBracket = "]";
-			int width = fo::GetTextWidth(EndBracket);
 			fo::PrintText(EndBracket, ConsoleGold, (170 - HalfTxtWidth) + TxtWidth - width, 64, width, SaveLoadWin->width, SaveLoadWin->surface);
-
 			fo::func::win_draw(winRef);
 		}
 
@@ -255,9 +255,8 @@ static void __declspec(naked) check_page_buttons(void) {
 		test eax, eax;
 		popad;
 		jnz  CheckUp;
-		call fo::funcoffs::GetSlotList_;    // reset page save list func
 		add  dword ptr ds:[esp], 26;        // set return to button pressed code
-		ret;
+		jmp  fo::funcoffs::GetSlotList_;    // reset page save list func
 CheckUp:
 		// restore original code
 		cmp  eax, 0x148;                    // up button
