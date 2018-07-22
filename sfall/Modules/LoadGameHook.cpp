@@ -73,6 +73,10 @@ DWORD InCombat() {
 	return (inLoop & COMBAT) ? 1 : 0;
 }
 
+DWORD InDialog() {
+	return (inLoop & DIALOG) ? 1 : 0;
+}
+
 DWORD GetLoopFlags() {
 	return inLoop;
 }
