@@ -55,6 +55,8 @@ DWORD InWorldMap();
 
 DWORD InCombat();
 
+DWORD InDialog();
+
 enum LoopFlag : unsigned long {
 	WORLDMAP    = 1 << 0, // 0x1
 	LOCALMAP    = 1 << 1, // 0x2 No point hooking this: would always be 1 at any point at which scripts are running

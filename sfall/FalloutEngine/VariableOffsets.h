@@ -5,6 +5,7 @@
 // To add another variable, first add FO_VAR_* constant with it's address, then add it in Varaibles_def.h
 
 // PLEASE USE THOSE IN ASM BLOCKS!
+#define FO_VAR_aDialogS_msg               0x50DBE8
 #define FO_VAR_aiInfoList                 0x510948
 #define FO_VAR_ambient_light              0x51923C
 #define FO_VAR_anim_set                   0x54CC14
