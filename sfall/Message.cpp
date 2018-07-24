@@ -118,6 +118,7 @@ void ReadExtraGameMsgFiles() {
 	int begin = 0;
 	int end;
 	int length;
+	int number = 0;
 
 	while ((end = names.find_first_of(',', begin)) != std::string::npos) {
 		length = end - begin;
@@ -127,10 +128,11 @@ void ReadExtraGameMsgFiles() {
 			MSGList* list = new MSGList;
 
 			if (LoadMsgList(list, (char*)path.data()) == 1)
-				gExtraGameMsgLists.insert(std::make_pair(0x2000 + gExtraGameMsgLists.size(), list));
+				gExtraGameMsgLists.insert(std::make_pair(0x2000 + number, list));
 			else
 				delete list;
 		}
+		number++;
 
 		begin = end + 1;
 	}
