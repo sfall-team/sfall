@@ -20,7 +20,6 @@
 #include "..\FalloutEngine\Fallout2.h"
 #include "..\Logging.h"
 #include "LoadGameHook.h"
-
 #include "LoadOrder.h"
 
 namespace sfall
@@ -145,8 +144,8 @@ void LoadOrder::init() {
 		dlogr(" Done", DL_INIT);
 	}
 
-	if (GetConfigInt("Misc", "DialogFemaleMsgFile", 0)) {
-		dlog("Applying dialog files load order patch.", DL_INIT);
+	if (GetConfigInt("Misc", "FemaleDialogMsgs", 0)) {
+		dlog("Applying alternative female dialog files patch.", DL_INIT);
 		MakeJump(0x4A6BCD, scr_get_dialog_msg_file_hack1);
 		MakeJump(0x4A6BF5, scr_get_dialog_msg_file_hack2);
 		dlogr(" Done", DL_INIT);

@@ -469,11 +469,8 @@ void EnableSuperSaving() {
 	// Draw button text
 	MakeCalls(draw_page_text, {0x47E6E8});
 
-	// check save buttons
-	MakeCalls(check_page_buttons, {0x47BD49});
-
-	// check load buttons
-	MakeCalls(check_page_buttons, {0x47CB1C});
+	// check save/load buttons
+	MakeCalls(check_page_buttons, {0x47BD49, 0x47CB1C});
 
 	// save current page and list positions to file on load/save scrn exit
 	MakeCalls(save_page_offsets, {0x47D828});
