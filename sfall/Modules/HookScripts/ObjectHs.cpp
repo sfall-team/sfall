@@ -138,8 +138,7 @@ static void __declspec(naked) DescriptionObjHook() {
 		mov  eax, rets[0]; // pointer to text
 		retn;
 skip:
-		call fo::funcoffs::item_description_;
-		retn;
+		jmp fo::funcoffs::item_description_;
 	}
 }
 
