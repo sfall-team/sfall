@@ -24,10 +24,10 @@
 
 #define VERSION_MAJOR 4
 #define VERSION_MINOR 0
-#define VERSION_BUILD 7
+#define VERSION_BUILD 8
 #define VERSION_REV 0
 
-#define VERSION_STRING "4.0.7"
+#define VERSION_STRING "4.0.8"
 
 #define CHECK_VAL  (4)
 

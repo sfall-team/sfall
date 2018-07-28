@@ -66,14 +66,16 @@ char* GetMsg(fo::MessageList *msgList, int msgRef, int msgNum) {
 void ReadExtraGameMsgFiles() {
 	auto msgFileList = GetConfigList("Misc", "ExtraGameMsgFileList", "", 512);
 	if (msgFileList.size() > 0) {
+		int number = 0;
 		for (auto& msgName : msgFileList) {
 			std::string path = "game\\" + msgName + ".msg";
 			fo::MessageList* list = new fo::MessageList();
 			if (fo::func::message_load(list, (char*)path.data()) == 1) {
-				gExtraGameMsgLists.insert(std::make_pair(0x2000 + gExtraGameMsgLists.size(), list));
+				gExtraGameMsgLists.insert(std::make_pair(0x2000 + number, list));
 			} else {
 				delete list;
 			}
+			number++;
 		}
 	}
 }
