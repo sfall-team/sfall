@@ -495,7 +495,7 @@ Some utility/math functions are available:
 - returns a pointer to a string variable or to a text
 
 > void sfall_func1("dialog_message", string text)
-- displays a message in the NPC response window in dialog or trade mode
+- displays a message in the NPC response window in dialog or barter screen
 
 ------------------------
 ------ MORE INFO -------

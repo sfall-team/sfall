@@ -1548,18 +1548,23 @@ void BugFixes::init()
 	MakeJump(0x424BA2, compute_damage_hack);
 	dlogr(" Done", DL_INIT);
 	
-	// Fix descriptions info items weapon/ammo in barter
-	dlog("Applying barter item description fix.", DL_INIT);
+	// Fix missing AC/DR mod stats when examining ammo in barter screen
+	dlog("Applying fix for displaying ammo stats in barter screen.", DL_INIT);
 	MakeCalls(obj_examine_func_hack_ammo0, {0x49B4AD, 0x49B504});
 	SafeWrite16(0x49B4B2, 0x9090);
 	SafeWrite16(0x49B509, 0x9090);
 	MakeCall(0x49B563, obj_examine_func_hack_ammo1);
 	SafeWrite16(0x49B568, 0x9090);
-	showItemDescription = (GetConfigInt("Misc", "BarterItemDescriptions", 1) != 0);
-	if (showItemDescription) {
-		HookCall(0x49B452, obj_examine_func_hack_weapon); // it's jump
-	}
 	dlogr(" Done", DL_INIT);
+
+	// Display full item description for weapon/ammo in barter screen
+	showItemDescription = (GetConfigInt("Misc", "FullItemDescInBarter", 0) != 0);
+	if (showItemDescription) {
+		dlog("Applying full item description in barter patch.", DL_INIT);
+		HookCall(0x49B452, obj_examine_func_hack_weapon); // it's jump
+		dlogr(" Done", DL_INIT);
+	}
+
 
 }
 
