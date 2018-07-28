@@ -265,7 +265,8 @@ critter arg7 - table of offered goods (being sold to NPC)
 int     arg8 - the total cost of the goods offered by the player
 int     arg9 - set 1 if the "offers" button was pressed (not for a party member), otherwise 0
 
-int     ret1 - the modified value of all of the goods
+int     ret1 - the modified value of all of the goods, pass -1 for modify only offered goods
+int     ret2 - the modified value of all offered goods
 
 -------------------------------------------
 
@@ -530,4 +531,15 @@ Obj     arg2 - the explosive object
 int     arg3 - the result of engine calculation of whether the timer was set successfully: 1 - failure, 2 - success (similar to ROLL_* in Condtion.h)
 
 int     ret1 - overrides the time of the timer (maximum 18000 ticks)
-int     ret2 - overrides the result of engine calculation: 1 - failure, 2 - success, any other value - use engine handler
+int     ret2 - overrides the result of engine calculation: 0/1 - failure, 2/3 - success (similar to ROLL_*), any other value - use engine handler
+
+-------------------------------------------
+
+HOOK_DESCRIPTIONOBJ (hs_descriptionobj)
+
+Runs while using the item description icon in the player's inventory, or trade window.
+Allows to override the description of the item (for example: add additional parameters to the description).
+
+Obj arg1 - the item
+
+int ret1 - a pointer to the new "text" received using the macro function 'get_string_pointer' from FuncX functions

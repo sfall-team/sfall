@@ -78,6 +78,7 @@ static HooksInjectInfo injectHooks[] = {
 	{HOOK_GAMEMODECHANGE,   nullptr,                      true}, // always embedded to the engine
 	{HOOK_USEANIMOBJ,       Inject_UseAnimateObjHook,    false},
 	{HOOK_EXPLOSIVETIMER,   Inject_ExplosiveTimerHook,   false},
+	{HOOK_DESCRIPTIONOBJ,   Inject_DescriptionObjHook,   false},
 };
 
 bool HookScripts::injectAllHooks;

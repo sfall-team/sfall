@@ -69,6 +69,8 @@ void sf_message_str_game(OpcodeContext&);
 
 void sf_floor2(OpcodeContext&);
 
+void sf_get_string_pointer(OpcodeContext&);
+
 char* _stdcall Substring(const char* str, int pos, int length);
 
 }
