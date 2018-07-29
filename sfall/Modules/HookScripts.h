@@ -72,6 +72,8 @@ public:
 
 	static void InjectingHook(int hookId);
 	static bool injectAllHooks;
+
+	static void GameModeChangeHook(DWORD exit);
 };
 
 DWORD _stdcall GetHSArgCount();

@@ -111,7 +111,7 @@ void _stdcall MouseClickHook(DWORD button, bool pressed) {
 	EndHook();
 }
 
-void _stdcall GameModeChangeHook(DWORD exit) {
+void HookScripts::GameModeChangeHook(DWORD exit) {
 	BeginHook();
 	argCount = 1;
 	args[0] = exit;
