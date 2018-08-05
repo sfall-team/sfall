@@ -63,6 +63,15 @@ bool __stdcall art_exists(long artFid) {
 	WRAP_WATCOM_CALL1(art_exists_, artFid)
 }
 
+long __fastcall _word_wrap(const char* text, int maxWidth, DWORD* buf, BYTE* count) {
+	__asm {
+		mov eax, ecx;
+		mov ecx, count;
+		mov ebx, buf;
+		call fo::funcoffs::_word_wrap_;
+	}
+}
+
 // Returns the name of the critter
 const char* __stdcall critter_name(GameObject* critter) {
 	WRAP_WATCOM_CALL1(critter_name_, critter)

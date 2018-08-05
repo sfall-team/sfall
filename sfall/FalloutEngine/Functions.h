@@ -33,6 +33,7 @@ namespace func
 	Add functions here if they have non-trivial wrapper implementation (like vararg functions or too many arguments, etc.)
 	Otherwise use Functions_def.h file (much easier).
 */
+long __fastcall _word_wrap(const char* text, int maxWidth, DWORD* buf, BYTE* count);
 
 bool __stdcall art_exists(long artFid);
 

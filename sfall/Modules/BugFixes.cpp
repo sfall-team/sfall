@@ -50,6 +50,13 @@ static void __declspec(naked) PipAlarm_hack() {
 	}
 }
 
+static void __declspec(naked) PipStatus_hook() {
+	__asm {
+		call fo::funcoffs::ListHoloDiskTitles_;
+		mov  dword ptr ds:[FO_VAR_holodisk], ebx;
+		retn;
+	}
+}
 // corrects saving script blocks (to *.sav file) by properly accounting for actual number of scripts to be saved
 static void __declspec(naked) scr_write_ScriptNode_hook() {
 	__asm {
@@ -1223,6 +1230,66 @@ skip:
 	}
 }
 
+static DWORD expSwiftLearner; // experience points for print
+static void __declspec(naked) statPCAddExperienceCheckPMs_hack() {
+	__asm {
+		mov  expSwiftLearner, edi;
+		mov  eax, dword ptr ds:[FO_VAR_Experience_];
+		retn;
+	}
+}
+
+static void __declspec(naked) combat_give_exps_hook() {
+	__asm {
+		call fo::funcoffs::stat_pc_add_experience_;
+		mov  ebx, expSwiftLearner;
+		retn;
+	}
+}
+
+static void __declspec(naked) loot_container_exp_hack() {
+	__asm {
+		mov  edx, [esp + 0x150 - 0x18];  // experience
+		xchg edx, eax;
+		call fo::funcoffs::stat_pc_add_experience_;
+		// engine code 
+		cmp  edx, 1;                     // from eax
+		jnz  skip;
+		push expSwiftLearner;
+		mov  ebx, [esp + 0x154 - 0x78 + 0x0C]; // msgfile.message
+		push ebx;
+		lea  eax, [esp + 0x158 - 0x150]; // buf
+		push eax;
+		call fo::funcoffs::sprintf_;
+		add  esp, 0x0C;
+		mov  eax, esp;
+		call fo::funcoffs::display_print_;
+		// end code
+skip:
+		mov eax, 0x4745E3;
+		jmp eax;
+	}
+}
+
+static void __declspec(naked) wmRndEncounterOccurred_hook() {
+	__asm {
+		call fo::funcoffs::stat_pc_add_experience_;
+		cmp  ecx, 110;
+		jnb  skip;
+		push expSwiftLearner;
+		// engine code 
+		push edx;
+		lea  eax, [esp + 0x08 + 4];
+		push eax;
+		call fo::funcoffs::sprintf_;
+		add  esp, 0x0C;
+		lea  eax, [esp + 4];
+		call fo::funcoffs::display_print_;
+		// end code
+skip:
+		retn;
+	}
+}
 
 void BugFixes::init()
 {
@@ -1247,6 +1314,10 @@ void BugFixes::init()
 	MakeCall(0x4971C7, pipboy_hack);
 	MakeCall(0x499530, PipAlarm_hack);
 	dlogr(" Done", DL_INIT);
+	// Fixes of clickability holodisk
+	HookCall(0x497E9F, PipStatus_hook);
+	SafeWrite16(0x497E8C, 0xD389); // mov ebx, edx
+	SafeMemSet(0x497E8E, 0x90, 4);
 
 	// Fix for "Too Many Items" bug
 	//if (GetConfigInt("Misc", "TooManyItemsBugFix", 1)) {
@@ -1565,6 +1636,16 @@ void BugFixes::init()
 		dlogr(" Done", DL_INIT);
 	}
 
+	// In derivation of number of experience points obtained, consider perk 'SwiftLearner' (Crafty)
+	if (GetConfigInt("Misc", "ExperienceSwiftLearnerFix", 1) != 0) {
+		dlog("Applying fix displayed experience points of Swift Learner perk.", DL_INIT);
+		HookCall(0x4221E2, combat_give_exps_hook);
+		HookCall(0x4C0AEB, wmRndEncounterOccurred_hook);
+		MakeCall(0x4AFAEF, statPCAddExperienceCheckPMs_hack);
+		MakeJump(0x4745AE, loot_container_exp_hack);
+		SafeWrite16(0x4C0AB1, 0x23EB); // jmps 0x4C0AD6
+		dlogr(" Done", DL_INIT);
+	}
 
 }
 
