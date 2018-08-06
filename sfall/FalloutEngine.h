@@ -87,6 +87,7 @@
 #define _gsound_initialized         0x518E30
 #define _hit_location_penalty       0x510954
 #define _holo_flag                  0x664529
+#define _holodisk                   0x6644F4
 #define _holopages                  0x66445C
 #define _hot_line_count             0x6644F8
 #define _i_fid                      0x59E95C
@@ -168,6 +169,7 @@
 #define _proto_main_msg_file        0x6647FC
 #define _ptable                     0x59E934
 #define _pud                        0x59E960
+#define _quest_count                0x51C12C
 #define _queue                      0x6648C0
 #define _quick_done                 0x5193BC
 #define _read_callback              0x51DEEC
@@ -597,6 +599,7 @@ extern const DWORD item_w_unload_;
 extern const DWORD item_weight_;
 extern const DWORD light_get_tile_; // aElev<eax>, aTilenum<edx>
 extern const DWORD ListDrvdStats_;
+extern const DWORD ListHoloDiskTitles_;
 extern const DWORD ListSkills_;
 extern const DWORD ListTraits_;
 extern const DWORD loadColorTable_;

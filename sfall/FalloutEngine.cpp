@@ -421,6 +421,7 @@ const DWORD item_w_unload_ = 0x478F80;
 const DWORD item_weight_ = 0x477B88;
 const DWORD light_get_tile_ = 0x47A980;
 const DWORD ListDrvdStats_ = 0x43527C;
+const DWORD ListHoloDiskTitles_ = 0x498C40;
 const DWORD ListSkills_ = 0x436154;
 const DWORD ListTraits_ = 0x43B8A8;
 const DWORD loadColorTable_ = 0x4C78E4;
