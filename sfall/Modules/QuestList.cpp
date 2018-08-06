@@ -24,11 +24,39 @@
 namespace sfall
 {
 
+static bool outRangeFlag = false;
 static DWORD calledflag = 0x0;
 static DWORD called_quest_number = 0x0;
 static DWORD total_quests = 0x0;
 static DWORD curent_quest_page = 0x0;
 static DWORD wait_flag = 0x0;
+
+// Fix crash when the quest list is too long
+static void __declspec(naked) PipStatus_hook_printfix() {
+	__asm {
+		test outRangeFlag, 0xFF;
+		jnz  force;
+		call fo::funcoffs::_word_wrap_;
+		push eax;
+		movzx eax, word ptr [esp + 0x49C + 8];
+		dec  eax;
+		shl  eax, 1;
+		add  eax, dword ptr ds:[FO_VAR_cursor_line];
+		cmp  eax, dword ptr ds:[FO_VAR_bottom_line];  // check max
+		jb   skip;
+		mov  eax, dword ptr ds:[FO_VAR_quest_count];
+		sub  eax, 2;
+		mov  dword ptr [esp + 0x4BC - 0x24 + 8], eax; // set last counter
+		mov  outRangeFlag, 1;
+skip:
+		pop  eax;
+		retn;
+force:
+		or   eax, -1; // force log error "out of range"
+		mov  outRangeFlag, 0;
+		retn;
+	}
+}
 
 static void __declspec(naked) newhookpress() {
 	__asm {
@@ -357,10 +385,12 @@ void QuestListPatch() {
 }
 
 void QuestList::init() {
-	if(GetConfigInt("Misc", "UseScrollingQuestsList", 0)) {
+	if (GetConfigInt("Misc", "UseScrollingQuestsList", 0)) {
 		dlog("Applying quests list patch ", DL_INIT);
 		QuestListPatch();
 		dlogr(" Done", DL_INIT);
+	} else {
+		HookCall(0x498186, PipStatus_hook_printfix); // fix "out of range" bug when printing a list of quests
 	}
 }
 

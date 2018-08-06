@@ -49,6 +49,14 @@ static void __declspec(naked) PipAlarm_hack() {
 	}
 }
 
+static void __declspec(naked) PipStatus_hook() {
+	__asm {
+		call fo::funcoffs::ListHoloDiskTitles_;
+		mov  dword ptr ds:[FO_VAR_holodisk], ebx;
+		retn;
+	}
+}
+
 // corrects saving script blocks (to *.sav file) by properly accounting for actual number of scripts to be saved
 static void __declspec(naked) scr_write_ScriptNode_hook() {
 	__asm {
@@ -1137,9 +1145,13 @@ void BugFixes::init()
 	//}
 
 	// Fixes for clickability issue in Pip-Boy and exploit that allows to rest in places where you shouldn't be able to rest
-	dlog("Applying fix for Pip-Boy rest exploit.", DL_INIT);
+	dlog("Applying fix for Pip-Boy clickability issues and rest exploit.", DL_INIT);
 	MakeCall(0x4971C7, pipboy_hack);
 	MakeCall(0x499530, PipAlarm_hack);
+	// Fix for clickability issue of holodisk list
+	HookCall(0x497E9F, PipStatus_hook);
+	SafeWrite16(0x497E8C, 0xD389); // mov ebx, edx
+	SafeWrite32(0x497E8E, 0x90909090);
 	dlogr(" Done", DL_INIT);
 
 	// Fix for "Too Many Items" bug
