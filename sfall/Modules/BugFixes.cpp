@@ -1223,6 +1223,29 @@ skip:
 	}
 }
 
+static void __declspec(naked) op_obj_can_hear_obj_hack() {
+	__asm {
+		mov eax, [esp + 0x28 - 0x28 + 4];  // target
+		mov edx, [esp + 0x28 - 0x24 + 4];  // source 
+		retn;
+	}
+}
+
+static void __declspec(naked) op_obj_can_see_obj_hack() {
+	__asm {
+		mov  eax, [esp + 0x2C - 0x28 + 4];  // source
+		mov  ecx, [eax + tile];             // source.tile
+		cmp  ecx, -1;
+		jz   end;
+		mov  eax, [eax + elevation];
+		mov  edi, [edx + elevation];    // target.elev
+		cmp  eax, edi;                  // check source.elev == target.elev
+		retn;
+end:
+		dec  ecx;  // reset ZF
+		retn;
+	}
+}
 
 void BugFixes::init()
 {
@@ -1565,7 +1588,19 @@ void BugFixes::init()
 		dlogr(" Done", DL_INIT);
 	}
 
+	// Fix op_obj_can_see_obj_
+	MakeCall(0x456B63, op_obj_can_see_obj_hack);
+	SafeWrite16(0x456B76, 0x23EB);  // jz > jmp (skip unused engine code)
 
+	//Fix broken op_obj_can_hear_obj_ (enable a function)
+	if (GetConfigInt("Misc", "CanHearObjFix", 0) != 0) {
+		dlog("Applying obj_can_hear_obj opcode fix.", DL_INIT);
+		SafeWrite8(0x4583D8, 0x3B); // change jz offset
+		SafeWrite8(0x4583DE, 0x74); // jnz > jz
+		MakeCall(0x4583E0, op_obj_can_hear_obj_hack);
+		SafeWrite8(0x4583E5, 0x90);
+		dlogr(" Done", DL_INIT);
+	}
 }
 
 }
