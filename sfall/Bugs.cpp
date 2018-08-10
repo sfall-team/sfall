@@ -1154,6 +1154,22 @@ end:
 	}
 }
 
+static void __declspec(naked) op_obj_can_see_obj_hack() {
+	__asm {
+		mov  eax, [esp + 0x2C - 0x28 + 4];  // source
+		mov  ecx, [eax + 4];                // source.tile
+		cmp  ecx, -1;
+		jz   end;
+		mov  eax, [eax + 0x28];         // source.elev
+		mov  edi, [edx + 0x28];         // target.elev
+		cmp  eax, edi;                  // check source.elev == target.elev
+		retn;
+end:
+		dec  ecx;  // reset ZF
+		retn;
+	}
+}
+
 
 void BugsInit()
 {
@@ -1476,4 +1492,9 @@ void BugsInit()
 	// Fix for critters killed in combat by scripting still being able to move in their combat turn if the distance parameter
 	// in their AI packages is set to stay_close/charge, or NPCsTryToSpendExtraAP is enabled
 	HookCall(0x42A1A8, ai_move_steps_closer_hook); // 0x42B24D
+
+	// Fix for obj_can_see_obj not checking if source and target objects are on the same elevation before calling
+	// is_within_perception_
+	MakeCall(0x456B63, op_obj_can_see_obj_hack);
+	SafeWrite16(0x456B76, 0x23EB); // jmp loc_456B9B (skip unused engine code)
 }
