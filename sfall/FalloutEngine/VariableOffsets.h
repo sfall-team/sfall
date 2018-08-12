@@ -70,6 +70,7 @@
 #define FO_VAR_gsound_initialized         0x518E30
 #define FO_VAR_hit_location_penalty       0x510954
 #define FO_VAR_holo_flag                  0x664529
+#define FO_VAR_holodisk                   0x6644F4
 #define FO_VAR_holopages                  0x66445C
 #define FO_VAR_hot_line_count             0x6644F8
 #define FO_VAR_i_fid                      0x59E95C
@@ -126,6 +127,12 @@
 #define FO_VAR_objectTable                0x639DA0
 #define FO_VAR_objItemOutlineState        0x519798
 #define FO_VAR_optionRect                 0x58ECC0
+#define FO_VAR_optionsButtonDown1         0x570518
+#define FO_VAR_optionsButtonUp1           0x570514
+#define FO_VAR_optionsButtonDown          0x59D400
+#define FO_VAR_optionsButtonUp            0x59D3FC
+#define FO_VAR_optionsButtonDownKey       0x518F2C
+#define FO_VAR_optionsButtonUpKey         0x518F28
 #define FO_VAR_outlined_object            0x518D94
 #define FO_VAR_partyMemberAIOptions       0x519DB8
 #define FO_VAR_partyMemberCount           0x519DAC
@@ -153,6 +160,7 @@
 #define FO_VAR_proto_main_msg_file        0x6647FC
 #define FO_VAR_ptable                     0x59E934
 #define FO_VAR_pud                        0x59E960
+#define FO_VAR_quest_count                0x51C12C
 #define FO_VAR_queue                      0x6648C0
 #define FO_VAR_quick_done                 0x5193BC
 #define FO_VAR_read_callback              0x51DEEC

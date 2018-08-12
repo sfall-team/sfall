@@ -435,7 +435,8 @@ void sf_inventory_redraw(OpcodeContext& ctx) {
 }
 
 void sf_dialog_message(OpcodeContext& ctx) {
-	if (GetLoopFlags() & DIALOG) {
+	DWORD loopFlag = GetLoopFlags();
+	if ((loopFlag & DIALOGVIEW) == 0 && (loopFlag & DIALOG)) {
 		const char* message = ctx.arg(0).asString();
 		fo::func::gdialogDisplayMsg(message);
 	}
