@@ -71,6 +71,7 @@ public:
 	void init();
 
 	static void InjectingHook(int hookId);
+	static bool IsInjectHook(int hookId);
 	static bool injectAllHooks;
 
 	static void GameModeChangeHook(DWORD exit);

@@ -154,6 +154,10 @@ void HookScripts::InjectingHook(int hookId) {
 	}
 }
 
+bool HookScripts::IsInjectHook(int hookId) {
+	return injectHooks[hookId].isInject;
+}
+
 void _stdcall RegisterHook(fo::Program* script, int id, int procNum) {
 	if (id >= numHooks) return;
 	for (std::vector<HookScript>::iterator it = hooks[id].begin(); it != hooks[id].end(); ++it) {
