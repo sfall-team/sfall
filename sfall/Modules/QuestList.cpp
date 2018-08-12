@@ -45,14 +45,14 @@ static bool calledflag = false;
 static DWORD called_quest_number = 0;
 static DWORD total_quests_pages = 0;
 static DWORD curent_quest_page = 0;
-static DWORD look_quests = 0;         // current check quest
+static DWORD look_quests = 0;         // check current quests
 
 static DWORD first_quest_page = 0;
 static DWORD last_quest_page = MAXINT;
 
 static std::vector<int> pageQuest;
 
-// Fixes a crash when the quest list is overfull
+// Fix crash when the quest list is too long
 static void __declspec(naked) PipStatus_hook_printfix() {
 	__asm {
 		test outRangeFlag, 0xFF;
@@ -67,7 +67,7 @@ static void __declspec(naked) PipStatus_hook_printfix() {
 		jb   skip;
 		mov  eax, dword ptr ds:[FO_VAR_quest_count];
 		sub  eax, 2;
-		mov  dword ptr [esp + 0x4BC - 0x24 + 8], eax; //set last counter
+		mov  dword ptr [esp + 0x4BC - 0x24 + 8], eax; // set last counter
 		mov  outRangeFlag, 1;
 skip:
 		pop  eax;
@@ -81,7 +81,7 @@ force:
 // ------------------------------------
 
 // Add an unused bit for an additional text offset 60 pixels to the right
-// maybe it might be needed outside the function to display the pages of the quest list
+// it might be needed outside of the function to display quest list pages
 static void __declspec(naked) pip_print_hack() {
 	__asm {
 		test bh, 1;
@@ -109,10 +109,10 @@ static void ResetPageValues() {
 	last_quest_page = MAXINT;
 }
 
-// Event of entering the list of quests and keystrokes up/down
+// Event of entering the quest list and up/down keystrokes
 static void __declspec(naked) pipboy_hack_press0() {
 	__asm {
-		// fixed vanilla bug, preventing display the listing of quests from other locations when clicking on the pipboy screen
+		// fixed vanilla bug, preventing displaying the quest list of other locations when clicking on the pipboy screen
 		test InQuestsList, 0xFF;
 		jz   skip;
 		test buttonsPressed, 0xFF;
@@ -150,7 +150,7 @@ skip:
 	}
 }
 
-// Press back button 
+// Press back button
 static void __declspec(naked) pipboy_hack_back() {
 	__asm {
 		mov  InQuestsList, 0;
@@ -173,7 +173,7 @@ skip:
 
 static void AddPage(int lines) {
 	total_quests_pages++;
-	pageQuest.push_back(look_quests); // add to array the quest number at top of page
+	pageQuest.push_back(look_quests); // add the quest number to array at top of page
 	fo::var::cursor_line = 3 + lines; // reset current line to beginning, and add text lines
 	outRangeFlag = true;
 }
@@ -445,7 +445,7 @@ static void __declspec(naked) StartPipboy_hack() {
 	}
 }
 
-// Resets states on close pipboy
+// Reset states when closing pipboy
 static void __declspec(naked) pipboy_hook() {
 	__asm {
 		call fo::funcoffs::EndPipboy_;
@@ -497,7 +497,7 @@ void QuestList::init() {
 
 		dlogr(" Done", DL_INIT);
 	} else {
-		HookCall(0x498186, PipStatus_hook_printfix); //fix 'out-of-range' bug when printing a list of quests
+		HookCall(0x498186, PipStatus_hook_printfix); // fix "out of range" bug when printing a list of quests
 	}
 }
 

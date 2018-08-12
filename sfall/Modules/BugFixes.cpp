@@ -57,6 +57,7 @@ static void __declspec(naked) PipStatus_hook() {
 		retn;
 	}
 }
+
 // corrects saving script blocks (to *.sav file) by properly accounting for actual number of scripts to be saved
 static void __declspec(naked) scr_write_ScriptNode_hook() {
 	__asm {
@@ -631,7 +632,7 @@ static void __declspec(naked) action_melee_hack() {
 		cmp  ebx, OBJ_TYPE_CRITTER                // check if object FID type flag is set to critter
 		jne  end                                  // if object not a critter leave jump condition flags
 		// set to skip dodge animation
-		test byte ptr [eax + damageFlags], DAM_KNOCKED_OUT or DAM_KNOCKED_DOWN    // (original code) 
+		test byte ptr [eax + damageFlags], DAM_KNOCKED_OUT or DAM_KNOCKED_DOWN    // (original code)
 		jnz  end
 		mov  edx, 0x4113FE
 end:
@@ -1252,7 +1253,7 @@ static void __declspec(naked) loot_container_exp_hack() {
 		mov  edx, [esp + 0x150 - 0x18];  // experience
 		xchg edx, eax;
 		call fo::funcoffs::stat_pc_add_experience_;
-		// engine code 
+		// engine code
 		cmp  edx, 1;                     // from eax
 		jnz  skip;
 		push expSwiftLearner;
@@ -1277,7 +1278,7 @@ static void __declspec(naked) wmRndEncounterOccurred_hook() {
 		cmp  ecx, 110;
 		jnb  skip;
 		push expSwiftLearner;
-		// engine code 
+		// engine code
 		push edx;
 		lea  eax, [esp + 0x08 + 4];
 		push eax;
@@ -1290,6 +1291,7 @@ skip:
 		retn;
 	}
 }
+
 
 void BugFixes::init()
 {
@@ -1310,14 +1312,14 @@ void BugFixes::init()
 	//}
 
 	// Fixes for clickability issue in Pip-Boy and exploit that allows to rest in places where you shouldn't be able to rest
-	dlog("Applying fix for Pip-Boy rest exploit.", DL_INIT);
+	dlog("Applying fix for Pip-Boy clickability issues and rest exploit.", DL_INIT);
 	MakeCall(0x4971C7, pipboy_hack);
 	MakeCall(0x499530, PipAlarm_hack);
-	dlogr(" Done", DL_INIT);
-	// Fixes of clickability holodisk
+	// Fix for clickability issue of holodisk list
 	HookCall(0x497E9F, PipStatus_hook);
 	SafeWrite16(0x497E8C, 0xD389); // mov ebx, edx
-	SafeMemSet(0x497E8E, 0x90, 4);
+	SafeWrite32(0x497E8E, 0x90909090);
+	dlogr(" Done", DL_INIT);
 
 	// Fix for "Too Many Items" bug
 	//if (GetConfigInt("Misc", "TooManyItemsBugFix", 1)) {
@@ -1613,12 +1615,12 @@ void BugFixes::init()
 	// Fix for critters killed in combat by scripting still being able to move in their combat turn if the distance parameter
 	// in their AI packages is set to stay_close/charge, or NPCsTryToSpendExtraAP is enabled
 	HookCall(0x42A1A8, ai_move_steps_closer_hook); // 0x42B24D
-	
+
 	// Fix instant death critical
 	dlog("Applying instant death fix.", DL_INIT);
 	MakeJump(0x424BA2, compute_damage_hack);
 	dlogr(" Done", DL_INIT);
-	
+
 	// Fix missing AC/DR mod stats when examining ammo in barter screen
 	dlog("Applying fix for displaying ammo stats in barter screen.", DL_INIT);
 	MakeCalls(obj_examine_func_hack_ammo0, {0x49B4AD, 0x49B504});
@@ -1636,17 +1638,16 @@ void BugFixes::init()
 		dlogr(" Done", DL_INIT);
 	}
 
-	// In derivation of number of experience points obtained, consider perk 'SwiftLearner' (Crafty)
-	if (GetConfigInt("Misc", "ExperienceSwiftLearnerFix", 1) != 0) {
-		dlog("Applying fix displayed experience points of Swift Learner perk.", DL_INIT);
-		HookCall(0x4221E2, combat_give_exps_hook);
-		HookCall(0x4C0AEB, wmRndEncounterOccurred_hook);
+	// Display experience points with the bonus from Swift Learner perk when gained from non-scripted situations
+	if (GetConfigInt("Misc", "DisplaySwiftLearnerExp", 1) != 0) {
+		dlog("Applying Swift Learner exp display patch.", DL_INIT);
 		MakeCall(0x4AFAEF, statPCAddExperienceCheckPMs_hack);
+		HookCall(0x4221E2, combat_give_exps_hook);
 		MakeJump(0x4745AE, loot_container_exp_hack);
 		SafeWrite16(0x4C0AB1, 0x23EB); // jmps 0x4C0AD6
+		HookCall(0x4C0AEB, wmRndEncounterOccurred_hook);
 		dlogr(" Done", DL_INIT);
 	}
-
 }
 
 }

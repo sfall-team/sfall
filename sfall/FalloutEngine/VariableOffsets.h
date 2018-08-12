@@ -127,11 +127,11 @@
 #define FO_VAR_objectTable                0x639DA0
 #define FO_VAR_objItemOutlineState        0x519798
 #define FO_VAR_optionRect                 0x58ECC0
-#define FO_VAR_optionsButtonDown1         0x570518
-#define FO_VAR_optionsButtonUp1           0x570514
 #define FO_VAR_optionsButtonDown          0x59D400
-#define FO_VAR_optionsButtonUp            0x59D3FC
+#define FO_VAR_optionsButtonDown1         0x570518
 #define FO_VAR_optionsButtonDownKey       0x518F2C
+#define FO_VAR_optionsButtonUp            0x59D3FC
+#define FO_VAR_optionsButtonUp1           0x570514
 #define FO_VAR_optionsButtonUpKey         0x518F28
 #define FO_VAR_outlined_object            0x518D94
 #define FO_VAR_partyMemberAIOptions       0x519DB8
