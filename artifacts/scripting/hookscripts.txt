@@ -401,6 +401,7 @@ This is fired after the default calculation is made.
 Critter arg1 - Watcher object
 Obj     arg2 - Target object
 int     arg3 - Result of vanilla function: 1 - within perception range, 0 - otherwise
+int     arg4 - The type of the called hook: 1 - from the script function obj_can_see_obj, 2 - from the script function obj_can_hear_obj (need option CanHearObjFix enabled), 0 for all other cases
 
 int     ret1 - overrides the returned result of the function: 0 - not in range (can't see), 1 - in range (will see if not blocked), 2 - forced detection (will see regardless, only used in obj_can_see_obj scripting function which is called by every critter in the game)
 

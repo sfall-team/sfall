@@ -139,39 +139,62 @@ defaultHandler:
 	}
 }
 
-static void __declspec(naked) PerceptionRangeHook() {
+static void __stdcall PerceptionRangeHook_Script(int type) {
 	__asm {
 		HookBegin;
 		mov  args[0], eax; // watcher
 		mov  args[4], edx; // target
 		call fo::funcoffs::is_within_perception_;
 		mov  args[8], eax; // check result
-		pushad;
+		push eax;
 	}
 
-	argCount = 3;
+	args[3] = type;
+
+	argCount = 4;
 	RunHookScript(HOOK_WITHINPERCEPTION);
 	EndHook();
 
 	__asm {
-		popad;
+		pop eax;
 		cmp cRet, 1;
 		cmovnb eax, rets[0];
+	}
+}
+
+static void __declspec(naked) PerceptionRangeHook() {
+	__asm {
+		push ecx;
+		push 0;
+		call PerceptionRangeHook_Script;
+		pop  ecx;
 		retn;
 	}
 }
 
-static const DWORD PerceptionRangeBonusHack_back = 0x456BA7;
-static const DWORD PerceptionRangeBonusHack_skip = 0x456BDC;
-static void __declspec(naked) PerceptionRangeBonusHack() {
+static void __declspec(naked) PerceptionRangeSeeHook() {
 	__asm {
-		call PerceptionRangeHook;
+		push ecx;
+		push 1;
+		call PerceptionRangeHook_Script;
+		pop  ecx;
 		cmp  eax, 2;
-		jne  nevermind; // return
-		mov  dword ptr[esp + 16], 1;
-		jmp  PerceptionRangeBonusHack_skip; // skip blocking check
+		jne  nevermind; // normal return
+		dec  eax;
+		mov  dword ptr[esp + 0x2C - 0x1C + 4], eax; // set 1, skip blocking check
+		dec  eax;
 nevermind:
-		jmp  PerceptionRangeBonusHack_back;
+		retn;
+	}
+}
+
+static void __declspec(naked) PerceptionRangeHearHook() {
+	__asm {
+		push ecx;
+		push 2;
+		call PerceptionRangeHook_Script;
+		pop  ecx;
+		retn;
 	}
 }
 
@@ -396,9 +419,9 @@ void Inject_WithinPerceptionHook() {
 		0x42BC87,
 		0x42BC9F,
 		0x42BD04,
-		0x458403
 	});
-	MakeJump(0x456BA2, PerceptionRangeBonusHack);
+	HookCall(0x456BA2, PerceptionRangeSeeHook);
+	HookCall(0x458403, PerceptionRangeHearHook);
 }
 
 void Inject_CarTravelHook() {
