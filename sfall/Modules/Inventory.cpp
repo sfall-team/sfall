@@ -446,13 +446,18 @@ static DWORD __fastcall add_check_for_item_ammo_cost(register fo::GameObject* we
 	DWORD rounds = 1;
 	DWORD anim = fo::func::item_w_anim_weap(weapon, hitMode);
 	if (anim == fo::Animation::ANIM_fire_burst || anim == fo::Animation::ANIM_fire_continuous) {
-		rounds = fo::func::item_w_rounds(weapon);
+		rounds = fo::func::item_w_rounds(weapon); // ammo in burst
 	}
 
-	AmmoCostHook_Script(1, weapon, &rounds);
+	if (HookScripts::IsInjectHook(HOOK_AMMOCOST)) {
+		AmmoCostHook_Script(1, weapon, &rounds);  // get rounds cost from hook
+	}
 
 	DWORD currAmmo = fo::func::item_w_curr_ammo(weapon);
-	DWORD cost = (DWORD)ceilf((float)rounds / currAmmo);    // get rounds cost from hook
+
+	DWORD cost = 1; // default cost
+	if (currAmmo > 0) cost = (DWORD)ceilf((float)rounds / currAmmo);
+
 	return (cost > currAmmo) ? 0 : 1;   // 0 - this will force "Out of ammo", 1 - this will force success (enough ammo)
 }
 
@@ -472,9 +477,12 @@ static void __declspec(naked) combat_check_bad_shot_hook() {
 }
 
 static DWORD __fastcall divide_burst_rounds_by_ammo_cost(fo::GameObject* weapon, register DWORD currAmmo, DWORD burstRounds) {
-	DWORD rounds = burstRounds; // rounds in burst (количество патронов израсходуемое в очереди)
+	DWORD rounds = 1; // default multiply
 
-	AmmoCostHook_Script(2, weapon, &rounds);
+	if (HookScripts::IsInjectHook(HOOK_AMMOCOST)) {
+		rounds = burstRounds;            // rounds in burst (количество патронов израсходуемое в очереди)
+		AmmoCostHook_Script(2, weapon, &rounds);
+	}
 
 	DWORD cost = burstRounds * rounds;    // so much ammo is required for this burst (количество патронов в очереди умноженное на 1 или на значения возвращаемое из скрипта)
 	if (cost > currAmmo) cost = currAmmo; // if cost ammo more than current ammo, set it to current

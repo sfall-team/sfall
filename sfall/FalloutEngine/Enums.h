@@ -213,6 +213,15 @@ enum ObjType : char
 	OBJ_TYPE_SPATIAL = 6
 };
 
+enum ArtType : char
+{
+	OBJ_TYPE_INTRFACE   = 6,
+	OBJ_TYPE_INVEN      = 7,
+	OBJ_TYPE_HEAD       = 8,
+	OBJ_TYPE_BACKGROUND = 9,
+	OBJ_TYPE_SKILLDEX   = 10
+};
+
 // Some FO2 PIDs possibly used by engine
 enum ProtoId : long
 {
