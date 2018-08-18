@@ -1298,7 +1298,7 @@ static void __declspec(naked) op_obj_can_see_obj_hack() {
 		mov  ecx, [eax + tile];             // source.tile
 		cmp  ecx, -1;
 		jz   end;
-		mov  eax, [eax + elevation];
+		mov  eax, [eax + elevation];    // source.elev
 		mov  edi, [edx + elevation];    // target.elev
 		cmp  eax, edi;                  // check source.elev == target.elev
 		retn;
@@ -1673,15 +1673,16 @@ void BugFixes::init()
 		dlogr(" Done", DL_INIT);
 	}
 
-	// Fix op_obj_can_see_obj_
+	// Fix for obj_can_see_obj not checking if source and target objects are on the same elevation before calling
+	// is_within_perception_
 	MakeCall(0x456B63, op_obj_can_see_obj_hack);
-	SafeWrite16(0x456B76, 0x23EB);  // jz > jmp (skip unused engine code)
+	SafeWrite16(0x456B76, 0x23EB); // jmp loc_456B9B (skip unused engine code)
 
-	//Fix broken op_obj_can_hear_obj_ (enable a function)
-	if (GetConfigInt("Misc", "CanHearObjFix", 0) != 0) {
-		dlog("Applying obj_can_hear_obj opcode fix.", DL_INIT);
-		SafeWrite8(0x4583D8, 0x3B); // change jz offset
-		SafeWrite8(0x4583DE, 0x74); // jnz > jz
+	// Fix broken op_obj_can_hear_obj_ function
+	if (GetConfigInt("Misc", "ObjCanHearObjFix", 0) != 0) {
+		dlog("Applying obj_can_hear_obj fix.", DL_INIT);
+		SafeWrite8(0x4583D8, 0x3B); // jz loc_458414
+		SafeWrite8(0x4583DE, 0x74); // jz loc_458414
 		MakeCall(0x4583E0, op_obj_can_hear_obj_hack);
 		SafeWrite8(0x4583E5, 0x90);
 		dlogr(" Done", DL_INIT);
