@@ -611,7 +611,7 @@ static void __declspec(naked) op_wield_obj_critter_adjust_ac_hook() {
 // Haenlomal
 static void __declspec(naked) MultiHexFix() {
 	__asm {
-		xor  ecx, ecx;                      // argument value for make_path_func: ecx=0 (unknown arg)
+		xor  ecx, ecx;                      // argument value for make_path_func: ecx=0 (rotation data arg)
 		test byte ptr ds:[ebx+0x25], 0x08;  // is target multihex?
 		mov  ebx, dword ptr ds:[ebx+0x4];   // argument value for make_path_func: target's tilenum (end_tile)
 		je   end;                           // skip if not multihex
@@ -1145,6 +1145,13 @@ end:
 	}
 }
 
+static void __declspec(naked) ai_best_weapon_hook() {
+	__asm {
+		mov eax, [esp + 0xF4 - 0x10 + 4]; // prev.item
+		jmp fo::funcoffs::item_w_perk_;
+	}
+}
+
 
 void BugFixes::init()
 {
@@ -1327,6 +1334,9 @@ void BugFixes::init()
 		dlog("Applying MultiHex Pathing Fix.", DL_INIT);
 		MakeCall(0x42901F, MultiHexFix);
 		MakeCall(0x429170, MultiHexFix);
+		// Fix for multihex critters moving too close and overlapping their targets in combat
+		SafeWrite8(0x42A153, 0xEB); // jmp loc_42A169 (skip register_object_run_to_tile_)
+		SafeWrite8(0x42A17C, 0xEB); // jmp loc_42A192 (skip register_object_move_to_tile_)
 		dlogr(" Done", DL_INIT);
 	//}
 
@@ -1469,6 +1479,9 @@ void BugFixes::init()
 	// is_within_perception_
 	MakeCall(0x456B63, op_obj_can_see_obj_hack);
 	SafeWrite16(0x456B76, 0x23EB); // jmp loc_456B9B (skip unused engine code)
+
+	// Fix for critters not checking weapon perks properly when searching for the best weapon
+	HookCall(0x42954B, ai_best_weapon_hook);
 }
 
 }
