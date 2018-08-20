@@ -303,7 +303,7 @@ long __stdcall message_exit(MessageList *msgList) {
 
 GameObject* __fastcall obj_blocking_at_wrapper(GameObject* obj, DWORD tile, DWORD elevation, void* func) {
 	__asm {
-		mov  eax, obj;
+		mov  eax, ecx;
 		mov  ebx, elevation;
 		call func;
 	}
