@@ -280,33 +280,6 @@ really_end:
 	}
 }
 
-static DWORD RetryCombatLastAP;
-static DWORD RetryCombatMinAP;
-static void __declspec(naked) RetryCombatHook() {
-	__asm {
-		mov RetryCombatLastAP, 0;
-retry:
-		mov eax, esi;
-		xor edx, edx;
-		call fo::funcoffs::combat_ai_;
-process:
-		cmp dword ptr ds:[FO_VAR_combat_turn_running], 0;
-		jle next;
-		call fo::funcoffs::process_bk_;
-		jmp process;
-next:
-		mov eax, [esi+0x40];
-		cmp eax, RetryCombatMinAP;
-		jl end;
-		cmp eax, RetryCombatLastAP;
-		je end;
-		mov RetryCombatLastAP, eax;
-		jmp retry;
-end:
-		retn;
-	}
-}
-
 static const DWORD NPCStage6Fix1End = 0x493D16;
 static const DWORD NPCStage6Fix2End = 0x49423A;
 static void __declspec(naked) NPCStage6Fix1() {
@@ -678,15 +651,6 @@ void CorpseLineOfFireFix() {
 	}
 }
 
-void ApplyNpcExtraApPatch() {
-	RetryCombatMinAP = GetConfigInt("Misc", "NPCsTryToSpendExtraAP", 0);
-	if (RetryCombatMinAP > 0) {
-		dlog("Applying retry combat patch.", DL_INIT);
-		HookCall(0x422B94, &RetryCombatHook);
-		dlogr(" Done", DL_INIT);
-	}
-}
-
 void NpcStage6Fix() {
 	if (GetConfigInt("Misc", "NPCStage6Fix", 0)) {
 		dlog("Applying NPC Stage 6 Fix.", DL_INIT);
@@ -895,8 +859,6 @@ void MiscPatches::init() {
 	AlwaysReloadMsgs();
 	PlayIdleAnimOnReloadPatch();
 	CorpseLineOfFireFix();
-
-	ApplyNpcExtraApPatch();
 
 	SkilldexImagesPatch();
 	RemoveWindowRoundingPatch();

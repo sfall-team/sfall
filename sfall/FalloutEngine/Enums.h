@@ -620,6 +620,22 @@ enum AttackType : long
 	ATKTYPE_PIERCINGKICK      = 19
 };
 
+enum AttackSubType : long
+{
+	NONE                      = 0,
+	UNARMED                   = 1,
+	MELEE                     = 2,
+	THROWING                  = 3,
+	GUNS                      = 4
+};
+
+enum BodyType : long
+{
+	Biped                     = 0,
+	Quadruped                 = 1,
+	Robotic                   = 2
+};
+
 #define OBJFLAG_CAN_WEAR_ITEMS (0xf000000)
 
 #define OBJFLAG_HELD_IN_RIGHT (0x10000)
