@@ -613,12 +613,36 @@ static void __declspec(naked) op_wield_obj_critter_adjust_ac_hook() {
 static void __declspec(naked) MultiHexFix() {
 	__asm {
 		xor  ecx, ecx;                      // argument value for make_path_func: ecx=0 (unknown arg)
-		test byte ptr ds:[ebx+0x25], 0x08;  // is target multihex?
-		mov  ebx, dword ptr ds:[ebx+0x4];   // argument value for make_path_func: target's tilenum (end_tile)
+		test [ebx + flags + 1], 0x08;       // is target multihex?
+		mov  ebx, dword ptr ds:[ebx + 0x4]; // argument value for make_path_func: target's tilenum (end_tile)
 		je   end;                           // skip if not multihex
 		inc  ebx;                           // otherwise, increase tilenum by 1
 end:
 		retn;                               // call make_path_func (at 0x429024, 0x429175)
+	}
+}
+
+static void __declspec(naked) MultiHexAIMissHitFix() {
+	__asm {
+		push ebx;                           // var: weaponRange
+		call fo::funcoffs::tile_num_beyond_;
+		mov  ebx, [esi];                    // source
+		test [ebx + flags + 1], 0x08;       // is MultiHex?
+		jz   skip;
+		//
+		push eax;
+		mov  edx, [ebx + tile];             // source tile
+		call fo::funcoffs::tile_dist_;
+		cmp  eax, 2;
+		pop  eax;
+		jge  skip;
+		mov  eax, [ebx + tile];             // source tile
+		mov  edx, [ebx + rotation];
+		mov  ebx, dword ptr [esp];          // distance weaponRange
+		call fo::funcoffs::tile_num_in_direction_;  // return new tile
+skip:
+		add  esp, 4;
+		retn;
 	}
 }
 
@@ -1316,6 +1340,12 @@ static void __declspec(naked) op_obj_can_hear_obj_hack() {
 	}
 }
 
+static void __declspec(naked) ai_best_weapon_hook() {
+	__asm {
+		mov eax, [esp + 0xF4 - 0x10 + 4]; // prev.item
+		jmp fo::funcoffs::item_w_perk_;
+	}
+}
 
 void BugFixes::init()
 {
@@ -1500,10 +1530,19 @@ void BugFixes::init()
 
 	//if (GetConfigInt("Misc", "MultiHexPathingFix", 1)) {
 		dlog("Applying MultiHex Pathing Fix.", DL_INIT);
-		MakeCall(0x42901F, MultiHexFix);
-		MakeCall(0x429170, MultiHexFix);
+		MakeCalls(MultiHexFix, { 0x42901F, 0x429170 });
+		// Fixed the movement of multihex critters in combat mode (Crafty)
+		SafeWriteBatch<BYTE>(0xEB, { 0x42A153, 0x42A17C }); // jmp
 		dlogr(" Done", DL_INIT);
 	//}
+
+	// Fix the impact in itself in case of a miss hit for multihex critters when using throwing weapon
+	// Note: in fact, the bug is in tile_num_beyond_ and related functions, in case of fix, this crutch will need to be removed
+	if (GetConfigInt("Misc", "MultiHexSelfHitFix", 0) != 0) {
+		dlog("Applying multihex critter miss hit fix.", DL_INIT);
+		HookCalls(MultiHexAIMissHitFix, { 0x423B44, 0x42315D });
+		dlogr(" Done", DL_INIT);
+	}
 
 	//if (GetConfigInt("Misc", "DodgyDoorsFix", 1)) {
 		dlog("Applying Dodgy Door Fix.", DL_INIT);
@@ -1650,8 +1689,7 @@ void BugFixes::init()
 	MakeCalls(obj_examine_func_hack_ammo0, {0x49B4AD, 0x49B504});
 	SafeWrite16(0x49B4B2, 0x9090);
 	SafeWrite16(0x49B509, 0x9090);
-	MakeCall(0x49B563, obj_examine_func_hack_ammo1);
-	SafeWrite16(0x49B568, 0x9090);
+	MakeCall(0x49B563, obj_examine_func_hack_ammo1, 2);
 	dlogr(" Done", DL_INIT);
 
 	// Display full item description for weapon/ammo in barter screen
@@ -1687,6 +1725,10 @@ void BugFixes::init()
 		SafeWrite8(0x4583E5, 0x90);
 		dlogr(" Done", DL_INIT);
 	}
+
+	// Fix code: Wrong item was pass to the function, to check the perk of the object
+	HookCall(0x42954B, ai_best_weapon_hook);
+
 }
 
 }

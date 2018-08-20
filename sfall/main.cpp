@@ -128,8 +128,8 @@ static void InitModules() {
 	auto& manager = ModuleManager::getInstance();
 
 	// initialize all modules
+	manager.add<BugFixes>();    // fixes should be applied at the beginning
 	manager.add<SpeedPatch>();
-	manager.add<BugFixes>();
 	manager.add<Graphics>();
 	manager.add<Input>();
 	manager.add<Movies>();

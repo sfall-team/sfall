@@ -59,17 +59,39 @@ namespace func
 	__asm push arg7				\
 	WRAP_WATCOM_CALL6(offs, arg1, arg2, arg3, arg4, arg5, arg6)
 
+// defines wrappers for __fastcall
+#define WRAP_WATCOM_FCALL1(offs, arg1) \
+	__asm mov eax, ecx                 \
+	WRAP_WATCOM_CALL0(offs)
+
+#define WRAP_WATCOM_FCALL2(offs, arg1, arg2) \
+	WRAP_WATCOM_FCALL1(offs, arg1)
+
+#define WRAP_WATCOM_FCALL3(offs, arg1, arg2, arg3) \
+	__asm mov ebx, arg3                            \
+	WRAP_WATCOM_FCALL1(offs, arg1)
+
+#define WRAP_WATCOM_FCALL4(offs, arg1, arg2, arg3, arg4) \
+	__asm mov eax, ecx     \
+	__asm mov ebx, arg3    \
+	__asm mov ecx, arg4    \
+	WRAP_WATCOM_CALL0(offs)
+
+#define WRAP_WATCOM_FCALL5(offs, arg1, arg2, arg3, arg4, arg5) \
+	__asm push arg5                                            \
+	WRAP_WATCOM_FCALL4(offs, arg1, arg2, arg3, arg4)
+
+#define WRAP_WATCOM_FCALL6(offs, arg1, arg2, arg3, arg4, arg5, arg6) \
+	__asm push arg6                                                  \
+	WRAP_WATCOM_FCALL5(offs, arg1, arg2, arg3, arg4, arg5)
+
+#define WRAP_WATCOM_FCALL7(offs, arg1, arg2, arg3, arg4, arg5, arg6, arg7) \
+	__asm push arg7                                                        \
+	WRAP_WATCOM_FCALL6(offs, arg1, arg2, arg3, arg4, arg5, arg6)
+
+
 bool __stdcall art_exists(long artFid) {
 	WRAP_WATCOM_CALL1(art_exists_, artFid)
-}
-
-long __fastcall _word_wrap(const char* text, int maxWidth, DWORD* buf, BYTE* count) {
-	__asm {
-		mov eax, ecx;
-		mov ecx, count;
-		mov ebx, buf;
-		call fo::funcoffs::_word_wrap_;
-	}
 }
 
 // Returns the name of the critter
@@ -279,6 +301,14 @@ long __stdcall message_exit(MessageList *msgList) {
 	WRAP_WATCOM_CALL1(message_exit_, msgList)
 }
 
+GameObject* __fastcall obj_blocking_at_wrapper(GameObject* obj, DWORD tile, DWORD elevation, void* func) {
+	__asm {
+		mov  eax, obj;
+		mov  ebx, elevation;
+		call func;
+	}
+}
+
 GameObject* __stdcall obj_find_first_at_tile(long elevation, long tileNum) {
 	WRAP_WATCOM_CALL2(obj_find_first_at_tile_, elevation, tileNum)
 }
@@ -386,6 +416,42 @@ long __stdcall win_register_button(DWORD winRef, long xPos, long yPos, long widt
 #define WRAP_WATCOM_FUNC6(retType, name, arg1t, arg1, arg2t, arg2, arg3t, arg3, arg4t, arg4, arg5t, arg5, arg6t, arg6) \
 	retType __stdcall name(arg1t arg1, arg2t arg2, arg3t arg3, arg4t arg4, arg5t arg5, arg6t arg6) { \
 		WRAP_WATCOM_CALL6(name##_, arg1, arg2, arg3, arg4, arg5, arg6) \
+	}
+
+
+#define WRAP_WATCOM_FFUNC1(retType, name, arg1t, arg1) \
+	retType __fastcall name(arg1t arg1) { \
+		WRAP_WATCOM_FCALL1(name##_, arg1) \
+	}
+
+#define WRAP_WATCOM_FFUNC2(retType, name, arg1t, arg1, arg2t, arg2) \
+	retType __fastcall name(arg1t arg1, arg2t arg2) { \
+		WRAP_WATCOM_FCALL2(name##_, arg1, arg2) \
+	}
+
+#define WRAP_WATCOM_FFUNC3(retType, name, arg1t, arg1, arg2t, arg2, arg3t, arg3) \
+	retType __fastcall name(arg1t arg1, arg2t arg2, arg3t arg3) { \
+		WRAP_WATCOM_FCALL3(name##_, arg1, arg2, arg3) \
+	}
+
+#define WRAP_WATCOM_FFUNC4(retType, name, arg1t, arg1, arg2t, arg2, arg3t, arg3, arg4t, arg4) \
+	retType __fastcall name(arg1t arg1, arg2t arg2, arg3t arg3, arg4t arg4) { \
+		WRAP_WATCOM_FCALL4(name##_, arg1, arg2, arg3, arg4) \
+	}
+
+#define WRAP_WATCOM_FFUNC5(retType, name, arg1t, arg1, arg2t, arg2, arg3t, arg3, arg4t, arg4, arg5t, arg5) \
+	retType __fastcall name(arg1t arg1, arg2t arg2, arg3t arg3, arg4t arg4, arg5t arg5) { \
+		WRAP_WATCOM_FCALL5(name##_, arg1, arg2, arg3, arg4, arg5) \
+	}
+
+#define WRAP_WATCOM_FFUNC6(retType, name, arg1t, arg1, arg2t, arg2, arg3t, arg3, arg4t, arg4, arg5t, arg5, arg6t, arg6) \
+	retType __fastcall name(arg1t arg1, arg2t arg2, arg3t arg3, arg4t arg4, arg5t arg5, arg6t arg6) { \
+		WRAP_WATCOM_FCALL6(name##_, arg1, arg2, arg3, arg4, arg5, arg6) \
+	}
+
+#define WRAP_WATCOM_FFUNC7(retType, name, arg1t, arg1, arg2t, arg2, arg3t, arg3, arg4t, arg4, arg5t, arg5, arg6t, arg6, arg7t, arg7) \
+	retType __fastcall name(arg1t arg1, arg2t arg2, arg3t arg3, arg4t arg4, arg5t arg5, arg6t arg6, arg7t arg7) { \
+		WRAP_WATCOM_FCALL7(name##_, arg1, arg2, arg3, arg4, arg5, arg6, arg7) \
 	}
 
 #include "Functions_def.h"
