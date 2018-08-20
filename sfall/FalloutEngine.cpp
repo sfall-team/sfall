@@ -414,6 +414,7 @@ const DWORD item_w_damage_type_ = 0x478570;
 const DWORD item_w_dr_adjust_ = 0x4791E0;
 const DWORD item_w_max_ammo_ = 0x478674;
 const DWORD item_w_mp_cost_ = 0x478B24;
+const DWORD item_w_perk_ = 0x478D58;
 const DWORD item_w_range_ = 0x478A1C;
 const DWORD item_w_rounds_ = 0x478D80;
 const DWORD item_w_try_reload_ = 0x478768;

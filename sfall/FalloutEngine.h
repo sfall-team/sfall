@@ -592,6 +592,7 @@ extern const DWORD item_w_damage_type_;
 extern const DWORD item_w_dr_adjust_;
 extern const DWORD item_w_max_ammo_;
 extern const DWORD item_w_mp_cost_;
+extern const DWORD item_w_perk_;
 extern const DWORD item_w_range_;
 extern const DWORD item_w_rounds_;
 extern const DWORD item_w_try_reload_;
