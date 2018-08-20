@@ -612,13 +612,41 @@ static void __declspec(naked) op_wield_obj_critter_adjust_ac_hook() {
 // Haenlomal
 static void __declspec(naked) MultiHexFix() {
 	__asm {
-		xor  ecx, ecx;                      // argument value for make_path_func: ecx=0 (unknown arg)
+		xor  ecx, ecx;                      // argument value for make_path_func: ecx=0 (rotation data arg)
 		test [ebx + flags + 1], 0x08;       // is target multihex?
-		mov  ebx, dword ptr ds:[ebx + 0x4]; // argument value for make_path_func: target's tilenum (end_tile)
+		mov  ebx, [ebx + tile];             // argument value for make_path_func: target's tilenum (end_tile)
 		je   end;                           // skip if not multihex
-		inc  ebx;                           // otherwise, increase tilenum by 1
+		inc  ebx;                           // otherwise, increase tilenum by 1 (почему это нужно увеличивать на единицу?)
 end:
 		retn;                               // call make_path_func (at 0x429024, 0x429175)
+	}
+}
+
+static const DWORD ai_move_steps_closer_move_object_ret = 0x42A192;
+static void __declspec(naked) MultiHexCombatMoveFix() {
+	__asm {
+		test [edi + flags + 1], 0x08; // target is multihex?
+		jnz  moveObject;
+		test [esi + flags + 1], 0x08; // source is multihex?
+		jnz  moveObject;
+		retn;
+moveObject:
+		add  esp, 4;
+		jmp  ai_move_steps_closer_move_object_ret;
+	}
+}
+
+static const DWORD ai_move_steps_closer_run_object_ret = 0x42A169;
+static void __declspec(naked) MultiHexCombatRunFix() {
+	__asm {
+		test [edi + flags + 1], 0x08; // target is multihex?
+		jnz  runObject;
+		test [esi + flags + 1], 0x08; // source is multihex?
+		jnz  runObject;
+		retn;
+runObject:
+		add  esp, 4;
+		jmp  ai_move_steps_closer_run_object_ret;
 	}
 }
 
@@ -639,7 +667,7 @@ static void __declspec(naked) MultiHexAIMissHitFix() {
 		mov  eax, [ebx + tile];             // source tile
 		mov  edx, [ebx + rotation];
 		mov  ebx, dword ptr [esp];          // distance weaponRange
-		call fo::funcoffs::tile_num_in_direction_;  // return new tile
+		call fo::funcoffs::tile_num_in_direction_;  // return new tile for miss projectile
 skip:
 		add  esp, 4;
 		retn;
@@ -1528,13 +1556,14 @@ void BugFixes::init()
 		dlogr(" Done", DL_INIT);
 	//}
 
-	//if (GetConfigInt("Misc", "MultiHexPathingFix", 1)) {
+	// Fixed movement of multihex critters in combat
+	MakeCalls(MultiHexFix, { 0x42901F, 0x429170 });
+	if (GetConfigInt("Misc", "MultiHexPathingFix", 0)) {
 		dlog("Applying MultiHex Pathing Fix.", DL_INIT);
-		MakeCalls(MultiHexFix, { 0x42901F, 0x429170 });
-		// Fixed the movement of multihex critters in combat mode (Crafty)
-		SafeWriteBatch<BYTE>(0xEB, { 0x42A153, 0x42A17C }); // jmp
+		MakeCall(0x42A14F, MultiHexCombatRunFix, 1);
+		MakeCall(0x42A178, MultiHexCombatMoveFix, 1);
 		dlogr(" Done", DL_INIT);
-	//}
+	}
 
 	// Fix the impact in itself in case of a miss hit for multihex critters when using throwing weapon
 	// Note: in fact, the bug is in tile_num_beyond_ and related functions, in case of fix, this crutch will need to be removed

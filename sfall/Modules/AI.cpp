@@ -68,7 +68,7 @@ continue:
 }
 
 static bool GoToTile = false;
-static DWORD __cdecl sf_ai_move_steps_closer(fo::GameObject* source, fo::GameObject* target, DWORD* distPrt) {
+static DWORD __cdecl sf_ai_move_steps_closer(fo::GameObject* source, fo::GameObject* target, DWORD* distPtr) {
 	DWORD distance, shotTile = 0;
 
 	char rotationData[256];
@@ -93,7 +93,7 @@ static DWORD __cdecl sf_ai_move_steps_closer(fo::GameObject* source, fo::GameObj
 		if (source->critter.movePoints < needAP) {
 			shotTile = 0;
 		} else {
-			*distPrt = distance;
+			*distPtr = distance;
 			GoToTile = true;
 		}
 	}
@@ -106,7 +106,7 @@ static void __declspec(naked) ai_move_steps_closer_hook() {
 		jnz  end;
 		push ecx;
 		push ebp;  // dist
-		push esp;  // distPrt
+		push esp;  // distPtr
 		push edx;
 		push eax;
 		call sf_ai_move_steps_closer;
@@ -128,8 +128,14 @@ static const DWORD ai_move_to_object_ret = 0x42A192;
 static void __declspec(naked) ai_move_steps_closer_hack_move() {
 	__asm {
 		cmp  GoToTile, 1;
-		jnz  moveObject;
+		jnz  skip;
 		mov  GoToTile, 0;
+		retn;
+skip:
+		test [edi + flags + 1], 0x08; // target is multihex?
+		jnz  moveObject;
+		test [esi + flags + 1], 0x08; // source is multihex?
+		jnz  moveObject;
 		retn;
 moveObject:
 		add  esp, 4;
@@ -141,8 +147,14 @@ static const DWORD ai_run_to_object_ret = 0x42A169;
 static void __declspec(naked) ai_move_steps_closer_hack_run() {
 	__asm {
 		cmp  GoToTile, 1;
-		jnz  runObject;
+		jnz  skip;
 		mov  GoToTile, 0;
+		retn;
+skip:
+		test [edi + flags + 1], 0x08; // target is multihex?
+		jnz  runObject;
+		test [esi + flags + 1], 0x08; // source is multihex?
+		jnz  runObject;
 		retn;
 runObject:
 		add  esp, 4;
@@ -198,7 +210,7 @@ static void __fastcall sf_ai_search_weapon(fo::GameObject* source, fo::GameObjec
 		}
 	}
 
-	if ((LookupOnGround || !itemHand) && source->critter.movePoints > 0 && fo::func::critter_body_type(source) == fo::BodyType::Biped) {
+	if ((LookupOnGround || !itemHand) && source->critter.movePoints >= 3 && fo::func::critter_body_type(source) == fo::BodyType::Biped) {
 		fo::GameObject* itemGround = sf_ai_search_weapon_environ(source, target, bestWeapon);
 		if (itemGround && (!bestWeapon || itemGround->protoId != bestWeapon->protoId)) {
 			itemGround = fo::func::ai_retrieve_object(source, itemGround);
@@ -240,7 +252,6 @@ static void __declspec(naked) RetryCombatHook() {
 	__asm {
 		mov  RetryCombatLastAP, 0;
 retry:
-		xor  edx, edx;
 		call fo::funcoffs::combat_ai_;
 process:
 		cmp  dword ptr ds:[FO_VAR_combat_turn_running], 0;
@@ -255,6 +266,7 @@ next:
 		je   end;
 		mov  RetryCombatLastAP, eax;
 		mov  eax, esi;
+		xor  edx, edx;
 		jmp  retry;
 end:
 		retn;

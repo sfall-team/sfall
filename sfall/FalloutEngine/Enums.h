@@ -622,7 +622,7 @@ enum AttackType : long
 
 enum AttackSubType : long
 {
-	NOWEAPON                  = 0,
+	NONE                      = 0,
 	UNARMED                   = 1,
 	MELEE                     = 2,
 	THROWING                  = 3,
