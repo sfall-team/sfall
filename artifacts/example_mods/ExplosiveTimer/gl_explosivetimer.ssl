@@ -14,7 +14,9 @@
 procedure start;
 
 procedure start begin
-   if (init_hook == 0) then begin
+   if game_loaded then begin
+      register_hook(HOOK_EXPLOSIVETIMER);
+   end else begin
       variable
          time   := get_sfall_arg,
          result := ROLL_CRITICAL_FAILURE;
