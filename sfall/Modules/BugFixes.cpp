@@ -612,7 +612,7 @@ static void __declspec(naked) op_wield_obj_critter_adjust_ac_hook() {
 // Haenlomal
 static void __declspec(naked) MultiHexFix() {
 	__asm {
-		xor  ecx, ecx;                      // argument value for make_path_func: ecx=0 (unknown arg)
+		xor  ecx, ecx;                      // argument value for make_path_func: ecx=0 (rotation data arg)
 		test byte ptr ds:[ebx+0x25], 0x08;  // is target multihex?
 		mov  ebx, dword ptr ds:[ebx+0x4];   // argument value for make_path_func: target's tilenum (end_tile)
 		je   end;                           // skip if not multihex
