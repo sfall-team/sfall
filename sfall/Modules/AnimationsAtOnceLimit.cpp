@@ -190,6 +190,8 @@ static DWORD __fastcall CheckSetSad(BYTE openFlag, DWORD valueMul) {
 	return result;
 }
 
+static const DWORD object_move_back0 = 0x417611;
+static const DWORD object_move_back1 = 0x417616;
 static void __declspec(naked) object_move_hack() {
 	__asm {
 		mov  ecx, ds:[ecx + 0x3C];         // openFlag
@@ -197,11 +199,9 @@ static void __declspec(naked) object_move_hack() {
 		call CheckSetSad;
 		test eax, eax;
 		jz   end;
-		push 0x417611;    // fixed jump
-		retn;
+		jmp  object_move_back0;            // fixed jump
 end:
-		push 0x417616;    // default
-		retn;
+		jmp  object_move_back1;            // default
 	}
 }
 

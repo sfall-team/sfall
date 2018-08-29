@@ -448,6 +448,24 @@ end:
 	}
 }
 
+static void __declspec(naked) action_use_skill_on_hook() {
+	__asm { // eax = dude_obj, edx = target, ebp = party_member
+		cmp  eax, edx;
+		jnz  end;                     // jump if target != dude_obj
+		mov  edx, ebp;
+		call fo::funcoffs::obj_dist_; // check distance between dude_obj and party_member
+		cmp  eax, 1;                  // if the distance is greater than 1, then reset the register
+		jg   skip;
+		inc  eax;
+		retn;
+skip:
+		xor  eax, eax;
+		retn;
+end:
+		jmp  fo::funcoffs::obj_dist_;
+	}
+}
+
 static const DWORD EncounterTableSize[] = {
 	0x4BD1A3, 0x4BD1D9, 0x4BD270, 0x4BD604, 0x4BDA14, 0x4BDA44, 0x4BE707,
 	0x4C0815, 0x4C0D4A, 0x4C0FD4,
@@ -855,6 +873,21 @@ void KeepWeaponSelectModePatch() {
 	}
 }
 
+void PartyMemberSkillPatch() {
+	// Fixed getting distance from source to target when using skills
+	// Note: You need to use the Doctor/First-Aid skill on the player, this will cause the party member to apply his skill,
+	// but the engine function is not implemented completely so using this fix without overriding the Doctor/First-Aid
+	// functions in the global script is impractical, so this should be disabled by default
+	if (GetConfigInt("Misc", "PartyMemberSkillFix", 0) != 0) {
+		dlog("Applying party member using skill Doctor/First-Aid patch.", DL_INIT);
+		HookCall(0x412836, action_use_skill_on_hook);
+		dlogr(" Done", DL_INIT);
+	}
+	// Small code fix (change obj_dude to source)
+	SafeWrite32(0x4128F3, 0x90909090);
+	SafeWrite16(0x4128F7, 0xFE39); // cmp esi, _obj_dude to cmp esi, edi
+}
+
 void MiscPatches::init() {
 	mapName[64] = 0;
 	if (GetConfigString("Misc", "StartingMap", "", mapName, 64)) {
@@ -929,6 +962,8 @@ void MiscPatches::init() {
 
 	DisplaySecondWeaponRangePatch();
 	KeepWeaponSelectModePatch();
+
+	PartyMemberSkillPatch();
 }
 
 void MiscPatches::exit() {

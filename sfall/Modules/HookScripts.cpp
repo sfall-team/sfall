@@ -79,6 +79,7 @@ static HooksInjectInfo injectHooks[] = {
 	{HOOK_USEANIMOBJ,       Inject_UseAnimateObjHook,    false},
 	{HOOK_EXPLOSIVETIMER,   Inject_ExplosiveTimerHook,   false},
 	{HOOK_DESCRIPTIONOBJ,   Inject_DescriptionObjHook,   false},
+	{HOOK_USESKILLON,       Inject_UseSkillOnHook,       false},
 };
 
 bool HookScripts::injectAllHooks;
@@ -227,6 +228,7 @@ void HookScripts::init() {
 	OnKeyPressed() += KeyPressHook;
 	OnMouseClick() += MouseClickHook;
 	LoadGameHook::OnGameModeChange() += GameModeChangeHook;
+	LoadGameHook::OnAfterGameStarted() += SourceUseSkillOnInit;
 
 	HookScripts::injectAllHooks = (isDebug && (GetConfigInt("Debugging", "InjectAllGameHooks", 0) != 0));
 }
