@@ -23,6 +23,7 @@
 
 #include "..\main.h"
 #include "..\FalloutEngine\Fallout2.h"
+#include "HookScripts.h"
 
 #include "Karma.h"
 
@@ -82,6 +83,7 @@ void ApplyDisplayKarmaChangesPatch() {
 		dlog("Applying display karma changes patch.", DL_INIT);
 		karmaGainMsg = Translate("sfall", "KarmaGain", "You gained %d karma.");
 		karmaLossMsg = Translate("sfall", "KarmaLoss", "You lost %d karma.");
+		HookScripts::InjectingHook(HOOK_SETGLOBALVAR);
 		dlogr(" Done", DL_INIT);
 	}
 }

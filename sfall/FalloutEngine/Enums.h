@@ -213,6 +213,15 @@ enum ObjType : char
 	OBJ_TYPE_SPATIAL = 6
 };
 
+enum ArtType : char
+{
+	OBJ_TYPE_INTRFACE   = 6,
+	OBJ_TYPE_INVEN      = 7,
+	OBJ_TYPE_HEAD       = 8,
+	OBJ_TYPE_BACKGROUND = 9,
+	OBJ_TYPE_SKILLDEX   = 10
+};
+
 // Some FO2 PIDs possibly used by engine
 enum ProtoId : long
 {
@@ -585,6 +594,30 @@ enum InvenType : long
 	INVEN_TYPE_WORN = 0,
 	INVEN_TYPE_RIGHT_HAND = 1,
 	INVEN_TYPE_LEFT_HAND = 2,
+};
+
+enum AttackType : long
+{
+	ATKTYPE_LWEAPON_PRIMARY   = 0,
+	ATKTYPE_LWEAPON_SECONDARY = 1,
+	ATKTYPE_RWEAPON_PRIMARY   = 2,
+	ATKTYPE_RWEAPON_SECONDARY = 3,
+	ATKTYPE_PUNCH             = 4,
+	ATKTYPE_KICK              = 5,
+	ATKTYPE_LWEAPON_RELOAD    = 6,
+	ATKTYPE_RWEAPON_RELOAD    = 7,
+	ATKTYPE_STRONGPUNCH       = 8,
+	ATKTYPE_HAMMERPUNCH       = 9,
+	ATKTYPE_HAYMAKER          = 10,
+	ATKTYPE_JAB               = 11,
+	ATKTYPE_PALMSTRIKE        = 12,
+	ATKTYPE_PIERCINGSTRIKE    = 13,
+	ATKTYPE_STRONGKICK        = 14,
+	ATKTYPE_SNAPKICK          = 15,
+	ATKTYPE_POWERKICK         = 16,
+	ATKTYPE_HIPKICK           = 17,
+	ATKTYPE_HOOKKICK          = 18,
+	ATKTYPE_PIERCINGKICK      = 19
 };
 
 #define OBJFLAG_CAN_WEAR_ITEMS (0xf000000)

@@ -58,13 +58,23 @@ enum HookType
 	HOOK_SETGLOBALVAR     = 29,
 	HOOK_RESTTIMER        = 30,
 	HOOK_GAMEMODECHANGE   = 31,
+	HOOK_USEANIMOBJ       = 32,
+	HOOK_EXPLOSIVETIMER   = 33,
+	HOOK_DESCRIPTIONOBJ   = 34,
 	HOOK_COUNT
 };
 
 class HookScripts : public Module {
+
 public:
 	const char* name() { return "HookScripts"; }
 	void init();
+
+	static void InjectingHook(int hookId);
+	static bool IsInjectHook(int hookId);
+	static bool injectAllHooks;
+
+	static void GameModeChangeHook(DWORD exit);
 };
 
 DWORD _stdcall GetHSArgCount();
@@ -80,7 +90,7 @@ void HookScriptClear();
 void LoadHookScripts();
 
 extern DWORD initingHookScripts;
-extern void __declspec() AmmoCostHookWrapper();
+extern int __fastcall AmmoCostHook_Script(DWORD hookType, fo::GameObject* weapon, DWORD* rounds);
 void _stdcall RunHookScriptsAtProc(DWORD procId);
 
 }

@@ -151,8 +151,8 @@ struct ComputeAttackResult {
 	GameObject* target;
 	long targetTile;
 	long bodyPart;
-	long damage;
-	long flags;
+	long targetDamage;
+	long targetFlags;
 	long knockbackValue;
 	GameObject* mainTarget;
 	long numExtras;

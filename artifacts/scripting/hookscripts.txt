@@ -265,7 +265,8 @@ critter arg7 - table of offered goods (being sold to NPC)
 int     arg8 - the total cost of the goods offered by the player
 int     arg9 - set 1 if the "offers" button was pressed (not for a party member), otherwise 0
 
-int     ret1 - the modified value of all of the goods
+int     ret1 - the modified value of all of the goods (pass -1 if you just want to modify offered goods)
+int     ret2 - the modified value of all offered goods
 
 -------------------------------------------
 
@@ -323,12 +324,12 @@ HOOK_AMMOCOST (hs_ammocost.int)
 
 Runs when calculating ammo cost for a weapon. Doesn't affect damage, only how much ammo is spent.
 By default, weapon will shoot when at least 1 round is left, regardless of ammo cost calculations.
-To add proper check for ammo before shooting and proper calculation of number of burst rounds, set Misc.CheckWeaponAmmoCost=1 in ddraw.ini
+To add proper check for ammo before shooting and proper calculation of number of burst rounds (hook type 1 and 2 in arg4), set Misc.CheckWeaponAmmoCost=1 in ddraw.ini
 
 Item    arg1 - weapon
 int     arg2 - Number of bullets in burst (1 for single shots)
 int     arg3 - Ammo cost calculated by original function (this is basically 2 for Super Cattle Prod and Mega Power Fist)
-int     arg4 - Type of hook (0 - when subtracting ammo after attack, 1 - when checking for "out of ammo" before attack)
+int     arg4 - Type of hook (0 - when subtracting ammo after single shot attack, 1 - when checking for "out of ammo" before attack, 2 - when calculating number of burst rounds, 3 - when subtracting ammo after burst attack)
 
 int     ret1 - new ammo cost value (set to 0 for unlimited ammo)
 
@@ -400,6 +401,7 @@ This is fired after the default calculation is made.
 Critter arg1 - Watcher object
 Obj     arg2 - Target object
 int     arg3 - Result of vanilla function: 1 - within perception range, 0 - otherwise
+int     arg4 - Type of hook: 1 - when being called from obj_can_see_obj script function, 2 when being called from obj_can_hear_obj script function (need to set ObjCanHearObjFix=1 in ddraw.ini), 0 for all other cases
 
 int     ret1 - overrides the returned result of the function: 0 - not in range (can't see), 1 - in range (will see if not blocked), 2 - forced detection (will see regardless, only used in obj_can_see_obj scripting function which is called by every critter in the game)
 
@@ -497,7 +499,7 @@ int     arg2 - event type: 1 - when the resting ends normally, -1 - when pressin
 int     arg3 - the hour part of the length of resting time
 int     arg4 - the minute part of the length of resting time
 
-int     ret1 - pass 1 to interrupt the resting
+int     ret1 - pass 1 to interrupt the resting, pass 0 to continue the rest if it was interrupted by pressing ESC key
 
 -------------------------------------------
 
@@ -506,3 +508,39 @@ HOOK_GAMEMODECHANGE (hs_gamemodechange.int)
 Runs once every time when the game mode was changed, like opening/closing the inventory, character screen, pipboy, etc.
 
 int     arg1 - event type: 1 - when the player exits the game, 0 - otherwise
+
+-------------------------------------------
+
+HOOK_USEANIMOBJ (hs_useanimobj.int)
+
+Runs before playing the "use" (usually "magic hands") animation when a critter uses a scenery/container object on the map, or before walking/running animation if the player is at a distance from the object.
+
+Critter arg1 - the critter that uses an object (usually dude_obj)
+Obj     arg2 - the object being used
+int     arg3 - the animation code being used (see ANIM_* in Animcomd.h)
+
+int     ret1 - overrides the animation code (pass -1 if you want to skip the animation)
+
+-------------------------------------------
+
+HOOK_EXPLOSIVETIMER (hs_explosivetimer.int)
+
+Runs after setting the explosive timer. You can override the result.
+
+int     arg1 - the time in ticks set in the timer
+Obj     arg2 - the explosive object
+int     arg3 - the result of engine calculation of whether the timer was set successfully: 1 - failure, 2 - success (similar to ROLL_* in Condtion.h)
+
+int     ret1 - overrides the time of the timer (maximum 18000 ticks)
+int     ret2 - overrides the result of engine calculation: 0/1 - failure, 2/3 - success (similar to ROLL_*), any other value - use engine handler
+
+-------------------------------------------
+
+HOOK_DESCRIPTIONOBJ (hs_descriptionobj.int)
+
+Runs when using the examine action icon to display item description. You can override the description of the item.
+An example usage would be to add an additional description to the item based on player's stats/skills.
+
+Obj     arg1 - the item
+
+int     ret1 - a pointer to the new text received by using "get_string_pointer" function

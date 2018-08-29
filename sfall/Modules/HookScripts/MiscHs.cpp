@@ -10,200 +10,196 @@
 namespace sfall
 {
 
-static void __declspec(naked) UseObjOnHook() {
-	__asm {
-		hookbegin(3);
-		mov args[0], edx; // target
-		mov args[4], eax; // user
-		mov args[8], ebx; // object
-		pushad;
-		push HOOK_USEOBJON;
-		call RunHookScript;
-		popad;
-		cmp cRet, 1;
-		jl  defaulthandler;
-		mov eax, rets[0];
-		jmp end;
-defaulthandler:
-		call fo::funcoffs::protinst_use_item_on_;
-end:
-		hookend;
-		retn;
-	}
-}
+static DWORD __fastcall BarterPriceHook_Script(register fo::GameObject* source, register fo::GameObject* target, DWORD callAddr) {
 
-static void __declspec(naked) UseObjOnHook_item_d_take_drug() {
-	__asm {
-		hookbegin(3);
-		mov args[0], eax; // target
-		mov args[4], eax; // user
-		mov args[8], edx; // object
-		pushad;
-		push HOOK_USEOBJON; // useobjon
-		call RunHookScript;
-		popad;
-		cmp cRet, 1;
-		jl  defaulthandler;
-		mov eax, rets[0];
-		jmp end;
-defaulthandler:
-		call fo::funcoffs::item_d_take_drug_;
-end:
-		hookend;
-		retn;
-	}
-}
+	int computeCost = fo::func::barter_compute_value(source, target);
 
-static void __declspec(naked) UseObjHook() {
-	__asm {
-		hookbegin(2);
-		mov args[0], eax; // user
-		mov args[4], edx; // object
-		pushad;
-		push HOOK_USEOBJ;
-		call RunHookScript;
-		popad;
-		cmp cRet, 1;
-		jl  defaulthandler;
-		cmp rets[0], -1;
-		je defaulthandler;
-		mov eax, rets[0];
-		jmp end;
-defaulthandler:
-		call fo::funcoffs::protinst_use_item_;
-end:
-		hookend;
-		retn;
-	}
+	BeginHook();
+	argCount = 9;
+
+	args[0] = (DWORD)source;
+	args[1] = (DWORD)target;
+	args[2] = computeCost;
+
+	fo::GameObject* bTable = (fo::GameObject*)fo::var::btable;
+	args[3] = (DWORD)bTable;
+	args[4] = fo::func::item_caps_total(bTable);
+	args[5] = fo::func::item_total_cost(bTable);
+
+	fo::GameObject* pTable = (fo::GameObject*)fo::var::ptable;
+	args[6] = (DWORD)pTable;
+	int pcCost = fo::func::item_total_cost(pTable);
+	args[7] = pcCost;
+
+	args[8] = (DWORD)(callAddr == 0x474D51); // check offers button
+
+	RunHookScript(HOOK_BARTERPRICE);
+	EndHook();
+
+	return (callAddr == 0x47551F) ? pcCost : computeCost;
 }
 
 static void __declspec(naked) BarterPriceHook() {
 	__asm {
-		hookbegin(9);
-		mov args[0], eax;
-		mov args[4], edx;
-		call fo::funcoffs::barter_compute_value_;
-		mov edx, ds:[FO_VAR_btable];
-		mov args[8], eax;
-		mov args[12], edx;
-		xchg eax, edx;
-		call fo::funcoffs::item_caps_total_;
-		mov args[16], eax;
-		mov eax, ds:[FO_VAR_btable];
-		call fo::funcoffs::item_total_cost_;
-		mov args[20], eax;
-		mov eax, ds:[FO_VAR_ptable];
-		mov args[24], eax;
-		call fo::funcoffs::item_total_cost_;
-		mov args[28], eax;
-		xor eax, eax;
-		mov edx, [esp]; // check offers button
-		cmp edx, 0x474D51; // last address on call stack
-		jne skip;
-		inc eax;
+		push edx;
+		push ecx;
+		//-------
+		push [esp + 8];               // address on call stack
+		mov  ecx, eax;                // source
+		call BarterPriceHook_Script;  // edx - target
+		pop  ecx;
+		pop  edx;
+		cmp  cRet, 1;
+		jb   skip;
+		cmp  rets[0], -1;
+		cmovg eax, rets[0];
 skip:
-		mov args[32], eax;
-		mov eax, args[8];
-		pushad;
-		push HOOK_BARTERPRICE;
-		call RunHookScript;
-		popad;
-		cmp cRet, 1;
-		jl end;
-		mov eax, rets[0];
-end:
-		hookend;
 		retn;
+	}
+}
+
+static DWORD offersGoodsCost; // keep last cost
+static void __declspec(naked) PC_BarterPriceHook() {
+	__asm {
+		push edx;
+		push ecx;
+		//-------
+		push [esp + 8];                                // address on call stack
+		mov  ecx, dword ptr ds:[FO_VAR_obj_dude];      // source
+		mov  edx, dword ptr ds:[FO_VAR_target_stack];  // target
+		call BarterPriceHook_Script;
+		pop  ecx;
+		pop  edx;
+		cmp  cRet, 2;
+		cmovnb eax, rets[4];
+		mov  offersGoodsCost, eax;
+		retn;
+	}
+}
+
+static const DWORD OverrideCostRet = 0x474D44;
+static void __declspec(naked) OverrideCost_BarterPriceHack() {
+	__asm {
+		mov eax, offersGoodsCost;
+		jmp OverrideCostRet;
 	}
 }
 
 static void __declspec(naked) UseSkillHook() {
 	__asm {
-		hookbegin(4);
-		mov args[0], eax; // user
-		mov args[4], edx; // target
-		mov args[8], ebx; // skill id
+		HookBegin;
+		mov args[0], eax;  // user
+		mov args[4], edx;  // target
+		mov args[8], ebx;  // skill id
 		mov args[12], ecx; // skill bonus
 		pushad;
-		push HOOK_USESKILL;
-		call RunHookScript;
+	}
+
+	argCount = 4;
+	RunHookScript(HOOK_USESKILL);
+	EndHook();
+
+	__asm {
 		popad;
 		cmp cRet, 1;
-		jl  defaulthandler;
+		jb  defaultHandler;
 		cmp rets[0], -1;
-		je defaulthandler;
+		je  defaultHandler;
 		mov eax, rets[0];
-		jmp end;
-defaulthandler:
-		call fo::funcoffs::skill_use_;
-end:
-		hookend;
 		retn;
+defaultHandler:
+		jmp fo::funcoffs::skill_use_;
 	}
 }
 
 static void __declspec(naked) StealCheckHook() {
 	__asm {
-		hookbegin(4);
-		mov args[0], eax; // thief
-		mov args[4], edx; // target
-		mov args[8], ebx; // item
+		HookBegin;
+		mov args[0], eax;  // thief
+		mov args[4], edx;  // target
+		mov args[8], ebx;  // item
 		mov args[12], ecx; // is planting
 		pushad;
-		push HOOK_STEAL;
-		call RunHookScript;
+	}
+
+	argCount = 4;
+	RunHookScript(HOOK_STEAL);
+	EndHook();
+
+	__asm {
 		popad;
 		cmp cRet, 1;
-		jl  defaulthandler;
+		jb  defaultHandler;
 		cmp rets[0], -1;
-		je defaulthandler;
+		je  defaultHandler;
 		mov eax, rets[0];
-		jmp end;
-defaulthandler:
-		call fo::funcoffs::skill_check_stealing_;
-end:
-		hookend;
 		retn;
+defaultHandler:
+		jmp fo::funcoffs::skill_check_stealing_;
+	}
+}
+
+static void __stdcall PerceptionRangeHook_Script(int type) {
+	__asm {
+		HookBegin;
+		mov  args[0], eax; // watcher
+		mov  args[4], edx; // target
+		call fo::funcoffs::is_within_perception_;
+		mov  args[8], eax; // check result
+		push eax;
+	}
+
+	args[3] = type;
+
+	argCount = 4;
+	RunHookScript(HOOK_WITHINPERCEPTION);
+	EndHook();
+
+	__asm {
+		pop eax;
+		cmp cRet, 1;
+		cmovnb eax, rets[0];
 	}
 }
 
 static void __declspec(naked) PerceptionRangeHook() {
 	__asm {
-		hookbegin(3);
-		mov args[0], eax; // watcher
-		mov args[4], edx; // target
-		call fo::funcoffs::is_within_perception_;
-		mov args[8], eax; // check result
-		pushad;
-		push HOOK_WITHINPERCEPTION;
-		call RunHookScript;
-		popad;
-		cmp cRet, 1;
-		jl  end;
-		mov eax, rets[0];
-end:
-		hookend;
+		push ecx;
+		push 0;
+		call PerceptionRangeHook_Script;
+		pop  ecx;
 		retn;
 	}
 }
 
-// jmp here, not call
-static const DWORD PerceptionRangeBonusHack_back = 0x456BA7;
-static const DWORD PerceptionRangeBonusHack_skip_blocking_check = 0x456BDC;
-static void __declspec(naked) PerceptionRangeBonusHack() {
+static void __declspec(naked) PerceptionRangeSeeHook() {
 	__asm {
-		call PerceptionRangeHook;
-		cmp eax, 2;
-		jne nevermind;
-		mov dword ptr[esp + 16], 1;
-		jmp PerceptionRangeBonusHack_skip_blocking_check;
+		push ecx;
+		push 1;
+		call PerceptionRangeHook_Script;
+		pop  ecx;
+		cmp  eax, 2;
+		jne  nevermind; // normal return
+		dec  eax;
+		mov  dword ptr[esp + 0x2C - 0x1C + 4], eax; // set 1, skip blocking check
+		dec  eax;
 nevermind:
-		jmp PerceptionRangeBonusHack_back;
+		retn;
+	}
+}
+
+static void __declspec(naked) PerceptionRangeHearHook() {
+	__asm {
+		push ecx;
+		push 2;
+		call PerceptionRangeHook_Script;
+		pop  ecx;
+		retn;
 	}
 }
 
 static constexpr long maxGasAmount = 80000;
-static void CarTravelHookScript() {
+static void CarTravelHook_Script() {
 	BeginHook();
 	argCount = 2;
 	// calculate vanilla speed
@@ -251,14 +247,13 @@ static const DWORD CarTravelHack_back = 0x4BFF43;
 static void __declspec(naked) CarTravelHack() {
 	__asm {
 		pushad;
-		call CarTravelHookScript;
+		call CarTravelHook_Script;
 		popad;
 		jmp CarTravelHack_back;
 	}
 }
 
-static int newGVarValue;
-static void _stdcall GlobalVarHookScript(DWORD number, int value) {
+static void __fastcall GlobalVarHook_Script(DWORD number, int value) {
 	int old = fo::var::game_global_vars[number];
 
 	BeginHook();
@@ -268,38 +263,37 @@ static void _stdcall GlobalVarHookScript(DWORD number, int value) {
 	RunHookScript(HOOK_SETGLOBALVAR);
 	EndHook();
 
-	if (cRet == 1) value = rets[0];
+	if (cRet > 0) value = rets[0];
 
 	if (number == fo::GVAR_PLAYER_REPUTATION && displayKarmaChanges) {
 		int diff = value - old;
 		if (diff != 0) Karma::DisplayKarma(diff);
 	}
-	newGVarValue = value;
 }
 
 static void __declspec(naked) SetGlobalVarHook() {
 	__asm {
 		pushad;
-		push edx; // value
-		push eax; // number
-		call GlobalVarHookScript;
+		mov ecx, eax;              // number
+		call GlobalVarHook_Script; // edx - value
 		popad;
-		mov edx, newGVarValue;
+		cmp cRet, 1;
+		cmovnb edx, dword ptr rets[0];
 		jmp fo::funcoffs::game_set_global_var_;
 	}
 }
 
 static int restTicks;
-static void _stdcall RestTimerHookScript() {
+static void _stdcall RestTimerHook_Script() {
 	DWORD addrHook;
 	__asm {
 		mov addrHook, ebx;
+		HookBegin;
 		mov args[0], eax;
 		mov args[8], ecx;
 		mov args[12], edx;
 	}
 
-	BeginHook();
 	argCount = 4;
 	addrHook -= 5;
 	if (addrHook == 0x499CA1 || addrHook == 0x499B63) {
@@ -316,93 +310,148 @@ static void _stdcall RestTimerHookScript() {
 static void __declspec(naked) RestTimerLoopHook() {
 	__asm {
 		pushad;
-		mov ebx, [esp + 32];
-		mov ecx, [esp + 36 + 0x40]; // hours_
-		mov edx, [esp + 36 + 0x44]; // minutes_
-		call RestTimerHookScript;
+		mov  ebx, [esp + 32];
+		mov  ecx, [esp + 36 + 0x40]; // hours_
+		mov  edx, [esp + 36 + 0x44]; // minutes_
+		call RestTimerHook_Script;
 		popad;
-		cmp cRet, 1;
-		jl skip;
-		cmp rets[0], 1;
-		jnz skip;
-		mov edi, 1;
+		cmp  cRet, 1;
+		jb   skip;
+		cmp  rets[0], 1;
+		cmovz edi, rets[0];
 skip:
-		jmp fo::funcoffs::set_game_time_;
+		jmp  fo::funcoffs::set_game_time_;
 	}
 }
 
 static void __declspec(naked) RestTimerEscapeHook() {
 	__asm {
-		cmp eax, 0x1B; // ESC ASCII code
-		jnz skip;
+		cmp  eax, 0x1B; // ESC ASCII code
+		jnz  skip;
 		pushad;
-		mov ebx, [esp + 32];
-		mov ecx, [esp + 36 + 0x40]; // hours_
-		mov edx, [esp + 36 + 0x44]; // minutes_
-		call RestTimerHookScript;
+		mov  ebx, [esp + 32];
+		mov  ecx, [esp + 36 + 0x40]; // hours_
+		mov  edx, [esp + 36 + 0x44]; // minutes_
+		call RestTimerHook_Script;
 		popad;
-		cmp cRet, 1;
-		jl skip;
-		cmp rets[0], 0;
-		jnz skip;
-		mov edi, 0; // cancel escape
-		retn;
+		mov  edi, 1;
+		cmp  cRet, 1;
+		jb   skip;
+		cmp  rets[0], 0;
+		cmovz edi, rets[0]; // ret 0 for cancel escape
 skip:
-		mov edi, 1;
 		retn;
 	}
 }
 
-void InitMiscHookScripts() {
-	LoadHookScript("hs_useobjon", HOOK_USEOBJON);
-	HookCalls(UseObjOnHook, { 0x49C606, 0x473619 });
+static int __fastcall ExplosiveTimerHook_Script(DWORD type, DWORD item, DWORD time) {
 
-	// the following hooks allows to catch drug use of AI and from action cursor
-	HookCalls(UseObjOnHook_item_d_take_drug, {
-		0x4285DF, // ai_check_drugs
-		0x4286F8, // ai_check_drugs
-		0x4287F8, // ai_check_drugs
-		0x473573 // inven_action_cursor
-	});
+	BeginHook();
+	argCount = 3;
 
-	LoadHookScript("hs_barterprice", HOOK_BARTERPRICE);
+	args[0] = time;
+	args[1] = item;
+	args[2] = (type == 11) ? fo::ROLL_FAILURE : fo::ROLL_SUCCESS;
+
+	RunHookScript(HOOK_EXPLOSIVETIMER);
+	EndHook();
+
+	int result = 0;
+	if (cRet > 0 && rets[0] >= 0) {
+		if (rets[0] > 18000) rets[0] = 18000;  // max 30 minutes
+		if (cRet < 2 || (rets[1] < fo::ROLL_CRITICAL_FAILURE || rets[1] > fo::ROLL_CRITICAL_SUCCESS)) {
+			result--;       // use vanilla type
+		} else {
+			result++;       // use returned type
+		}
+	}
+	return result;
+}
+
+static void _declspec(naked) ExplosiveTimerHook() {
+	using namespace fo;
+	__asm {
+		push eax;
+		push edx;
+		push ecx;
+		//-------
+		push edi;                       // time in ticks
+		call ExplosiveTimerHook_Script; // ecx - type, edx - item
+		cmp  eax, 0;
+		pop  ecx;
+		pop  edx;
+		pop  eax;
+		jz   end;
+		mov  eax, rets[0];           // time in ticks
+		jl   end;
+		mov  ecx, 8;                 // type SUCCESS
+		cmp  rets[4], ROLL_FAILURE;
+		jg   end;
+		add  ecx, 3;                 // type FAILURE (11)
+end:
+		call fo::funcoffs::queue_add_;
+		retn;
+	}
+}
+
+void Inject_BarterPriceHook() {
 	HookCalls(BarterPriceHook, {
 		0x474D4C,
 		0x475735,
 		0x475762
 	});
+	HookCall(0X47551A, PC_BarterPriceHook);
+	MakeJump(0x474D3F, OverrideCost_BarterPriceHack); // just overrides cost of offered goods
+}
 
-	LoadHookScript("hs_useobj", HOOK_USEOBJ);
-	HookCalls(UseObjHook, { 0x42AEBF, 0x473607, 0x49C12E });
-
-	LoadHookScript("hs_useskill", HOOK_USESKILL);
+void Inject_UseSkillHook() {
 	HookCalls(UseSkillHook, { 0x49C48F, 0x49D12E });
+}
 
-	LoadHookScript("hs_steal", HOOK_STEAL);
+void Inject_StealCheckHook() {
 	HookCalls(StealCheckHook, { 0x4749A2, 0x474A69 });
+}
 
-	LoadHookScript("hs_withinperception", HOOK_WITHINPERCEPTION);
+void Inject_WithinPerceptionHook() {
 	HookCalls(PerceptionRangeHook, {
 		0x429157,
 		0x42B4ED,
 		0x42BC87,
 		0x42BC9F,
 		0x42BD04,
-		0x458403
 	});
-	MakeJump(0x456BA2, PerceptionRangeBonusHack);
+	HookCall(0x456BA2, PerceptionRangeSeeHook);
+	HookCall(0x458403, PerceptionRangeHearHook);
+}
 
-	LoadHookScript("hs_cartravel", HOOK_CARTRAVEL);
+void Inject_CarTravelHook() {
 	MakeJump(0x4BFEF1, CarTravelHack);
 	BlockCall(0x4BFF6E); // vanilla wnCarUseGas(100) call
+}
 
-	LoadHookScript("hs_setglobalvar", HOOK_SETGLOBALVAR);
+void Inject_SetGlobalVarHook() {
 	HookCall(0x455A6D, SetGlobalVarHook);
+}
 
-	LoadHookScript("hs_resttimer", HOOK_RESTTIMER);
+void Inject_RestTimerHook() {
 	HookCalls(RestTimerLoopHook, { 0x499B4B, 0x499BE0, 0x499D2C, 0x499DF2 });
 	MakeCalls(RestTimerEscapeHook, { 0x499B63, 0x499CA1 });
+}
 
+void Inject_ExplosiveTimerHook() {
+	HookCall(0x49BDC4, ExplosiveTimerHook);
+}
+
+void InitMiscHookScripts() {
+
+	LoadHookScript("hs_barterprice", HOOK_BARTERPRICE);
+	LoadHookScript("hs_useskill", HOOK_USESKILL);
+	LoadHookScript("hs_steal", HOOK_STEAL);
+	LoadHookScript("hs_withinperception", HOOK_WITHINPERCEPTION);
+	LoadHookScript("hs_cartravel", HOOK_CARTRAVEL);
+	LoadHookScript("hs_setglobalvar", HOOK_SETGLOBALVAR);
+	LoadHookScript("hs_resttimer", HOOK_RESTTIMER);
+	LoadHookScript("hs_explosivetimer", HOOK_EXPLOSIVETIMER);
 }
 
 }

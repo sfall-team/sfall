@@ -18,6 +18,7 @@
 #define INTFACELOOT (0x10000)
 #define BARTER      (0x20000)
 #define HEROWIN     (0x40000)
+#define DIALOGVIEW  (0x80000)
 
 //Valid arguments to register_hook
 #define HOOK_TOHIT            (0)
@@ -52,6 +53,8 @@
 #define HOOK_SETGLOBALVAR     (29)
 #define HOOK_RESTTIMER        (30)
 #define HOOK_GAMEMODECHANGE   (31)
+#define HOOK_USEANIMOBJ       (32)
+#define HOOK_EXPLOSIVETIMER   (33)
 
 //Valid arguments to list_begin
 #define LIST_CRITTERS    (0)
@@ -223,6 +226,7 @@
 #define attack_is_aimed                       sfall_func0("attack_is_aimed")
 #define car_gas_amount                        sfall_func0("car_gas_amount")
 #define critter_inven_obj2(obj, type)         sfall_func2("critter_inven_obj2", obj, type)
+#define dialog_message(text)                  sfall_func1("dialog_message", text)
 #define display_stats                         sfall_func0("display_stats")
 #define exec_map_update_scripts               sfall_func0("exec_map_update_scripts")
 #define floor2(value)                         sfall_func1("floor2", value)
@@ -232,10 +236,12 @@
 #define get_ini_sections(file)                sfall_func1("get_ini_sections", file)
 #define get_map_enter_position                sfall_func0("get_map_enter_position")
 #define get_outline(obj)                      sfall_func1("get_outline", obj)
+#define get_string_pointer(text)              sfall_func1("get_string_pointer", text)
 #define intface_hide                          sfall_func0("intface_hide")
 #define intface_is_hidden                     sfall_func0("intface_is_hidden")
 #define intface_redraw                        sfall_func0("intface_redraw")
 #define intface_show                          sfall_func0("intface_show")
+#define inventory_redraw(invSide)             sfall_func1("inventory_redraw", invSide)
 #define item_weight(obj)                      sfall_func1("item_weight", obj)
 #define lock_is_jammed(obj)                   sfall_func1("lock_is_jammed", obj)
 #define outlined_object                       sfall_func0("outlined_object")

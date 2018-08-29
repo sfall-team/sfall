@@ -27,6 +27,7 @@
 #include "HookScripts\DeathHs.h"
 #include "HookScripts\HexBlockingHs.h"
 #include "HookScripts\InventoryHs.h"
+#include "HookScripts\ObjectHs.h"
 #include "HookScripts\MiscHs.h"
 #include "LoadGameHook.h"
 
@@ -35,6 +36,52 @@
 namespace sfall
 {
 
+typedef void(*HookInjectFunc)();
+struct HooksInjectInfo {
+	int id;
+	HookInjectFunc inject;
+	bool isInject;
+};
+
+static HooksInjectInfo injectHooks[] = {
+	{HOOK_TOHIT,            Inject_ToHitHook,            false},
+	{HOOK_AFTERHITROLL,     Inject_AfterHitRollHook,     false},
+	{HOOK_CALCAPCOST,       Inject_CalcApCostHook,       false},
+	{HOOK_DEATHANIM1,       Inject_DeathAnim1Hook,       false},
+	{HOOK_DEATHANIM2,       Inject_DeathAnim2Hook,       false},
+	{HOOK_COMBATDAMAGE,     Inject_CombatDamageHook,     false},
+	{HOOK_ONDEATH,          Inject_OnDeathHook,          false},
+	{HOOK_FINDTARGET,       Inject_FindTargetHook,       false},
+	{HOOK_USEOBJON,         Inject_UseObjOnHook,         false},
+	{HOOK_REMOVEINVENOBJ,   Inject_RemoveInvenObjHook,   false},
+	{HOOK_BARTERPRICE,      Inject_BarterPriceHook,      false},
+	{HOOK_MOVECOST,         Inject_MoveCostHook,         false},
+	{HOOK_HEXMOVEBLOCKING,  Inject_HexMoveBlockHook,     false},
+	{HOOK_HEXAIBLOCKING,    Inject_HexIABlockHook,       false},
+	{HOOK_HEXSHOOTBLOCKING, Inject_HexShootBlockHook,    false},
+	{HOOK_HEXSIGHTBLOCKING, Inject_HexSightBlockHook,    false},
+	{HOOK_ITEMDAMAGE,       Inject_ItemDamageHook,       false},
+	{HOOK_AMMOCOST,         Inject_AmmoCostHook,         false},
+	{HOOK_USEOBJ,           Inject_UseObjHook,           false},
+	{HOOK_KEYPRESS,         nullptr,                      true}, // no embed code to the engine
+	{HOOK_MOUSECLICK,       nullptr,                      true}, // no embed code to the engine
+	{HOOK_USESKILL,         Inject_UseSkillHook,         false},
+	{HOOK_STEAL,            Inject_StealCheckHook,       false},
+	{HOOK_WITHINPERCEPTION, Inject_WithinPerceptionHook, false},
+	{HOOK_INVENTORYMOVE,    Inject_InventoryMoveHook,    false},
+	{HOOK_INVENWIELD,       Inject_InvenWieldHook,       false},
+	{HOOK_ADJUSTFID,        nullptr,                      true}, // always embedded to the engine
+	{HOOK_COMBATTURN,       Inject_CombatTurnHook,       false},
+	{HOOK_CARTRAVEL,        Inject_CarTravelHook,        false},
+	{HOOK_SETGLOBALVAR,     Inject_SetGlobalVarHook,     false},
+	{HOOK_RESTTIMER,        Inject_RestTimerHook,        false},
+	{HOOK_GAMEMODECHANGE,   nullptr,                      true}, // always embedded to the engine
+	{HOOK_USEANIMOBJ,       Inject_UseAnimateObjHook,    false},
+	{HOOK_EXPLOSIVETIMER,   Inject_ExplosiveTimerHook,   false},
+	{HOOK_DESCRIPTIONOBJ,   Inject_DescriptionObjHook,   false},
+};
+
+bool HookScripts::injectAllHooks;
 DWORD initingHookScripts;
 
 // BEGIN HOOKS
@@ -64,7 +111,7 @@ void _stdcall MouseClickHook(DWORD button, bool pressed) {
 	EndHook();
 }
 
-void _stdcall GameModeChangeHook(DWORD exit) {
+void HookScripts::GameModeChangeHook(DWORD exit) {
 	BeginHook();
 	argCount = 1;
 	args[0] = exit;
@@ -100,11 +147,22 @@ void _stdcall SetHSReturn(DWORD d) {
 	}
 }
 
+void HookScripts::InjectingHook(int hookId) {
+	if (!injectHooks[hookId].isInject && injectHooks[hookId].id == hookId) {
+		injectHooks[hookId].isInject = true;
+		injectHooks[hookId].inject();
+	}
+}
+
+bool HookScripts::IsInjectHook(int hookId) {
+	return injectHooks[hookId].isInject;
+}
+
 void _stdcall RegisterHook(fo::Program* script, int id, int procNum) {
 	if (id >= numHooks) return;
 	for (std::vector<HookScript>::iterator it = hooks[id].begin(); it != hooks[id].end(); ++it) {
 		if (it->prog.ptr == script) {
-			if (procNum == 0) hooks[id].erase(it); // unregister 
+			if (procNum == 0) hooks[id].erase(it); // unregister
 			return;
 		}
 	}
@@ -116,16 +174,18 @@ void _stdcall RegisterHook(fo::Program* script, int id, int procNum) {
 		hook.callback = procNum;
 		hook.isGlobalScript = true;
 		hooks[id].push_back(hook);
+		HookScripts::InjectingHook(id); // inject hook to engine code
 	}
 }
 
-static void HookScriptInit2() {
+static void HookScriptInit() {
 	dlogr("Loading hook scripts", DL_HOOK|DL_INIT);
 
 	InitCombatHookScripts();
 	InitDeathHookScripts();
 	InitHexBlockingHookScripts();
 	InitInventoryHookScripts();
+	InitObjectHookScripts();
 	InitMiscHookScripts();
 
 	LoadHookScript("hs_keypress", HOOK_KEYPRESS);
@@ -143,7 +203,7 @@ void HookScriptClear() {
 
 void LoadHookScripts() {
 	isGlobalScriptLoading = 1; // this should allow to register global exported variables
-	HookScriptInit2();
+	HookScriptInit();
 	initingHookScripts = 1;
 	for (int i = 0; i < numHooks; i++) {
 		if (hooks[i].size()) {
@@ -167,6 +227,8 @@ void HookScripts::init() {
 	OnKeyPressed() += KeyPressHook;
 	OnMouseClick() += MouseClickHook;
 	LoadGameHook::OnGameModeChange() += GameModeChangeHook;
+
+	HookScripts::injectAllHooks = (isDebug && (GetConfigInt("Debugging", "InjectAllGameHooks", 0) != 0));
 }
 
 }

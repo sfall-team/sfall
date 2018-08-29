@@ -54,6 +54,12 @@ int _fastcall GetItemType(GameObject* item);
 
 _declspec(noinline) GameObject* GetItemPtrSlot(GameObject* critter, InvenType slot);
 
+long& GetActiveItemMode();
+
+GameObject* GetActiveItem();
+
+bool HeroIsFemale();
+
 // Print text to surface
 void PrintText(char *displayText, BYTE colorIndex, DWORD x, DWORD y, DWORD textWidth, DWORD destWidth, BYTE *surface);
 // gets the height of the currently selected font

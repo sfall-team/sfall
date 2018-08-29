@@ -19,11 +19,53 @@
 #include "..\main.h"
 #include "..\FalloutEngine\Fallout2.h"
 #include "..\Logging.h"
-
+#include "LoadGameHook.h"
 #include "LoadOrder.h"
 
 namespace sfall
 {
+
+static const char* msgFemaleFolder = "dialog_female\\%s.msg";
+static bool isFemale    = false;
+static bool femaleCheck = false;  // flag for check female dialog file
+static DWORD format;
+
+static void CheckPlayerGender() {
+	isFemale = fo::HeroIsFemale();
+}
+
+static const DWORD scr_get_dialog_msg_file_Back = 0x4A6BD2;
+static void __declspec(naked) scr_get_dialog_msg_file_hack1() {
+	__asm {
+		cmp  isFemale, 1;
+		jnz  default;
+		mov  format, eax;
+		mov  femaleCheck, 1;
+		push msgFemaleFolder;
+		jmp  scr_get_dialog_msg_file_Back;
+default:
+		push FO_VAR_aDialogS_msg;            // default "dialog\%s.msg"
+		jmp  scr_get_dialog_msg_file_Back;
+	}
+}
+
+static void __declspec(naked) scr_get_dialog_msg_file_hack2() {
+	__asm {
+		cmp  eax, 1;          // checking existence of msg file
+		mov  eax, 0x4A6C0E;
+		jz   exist;
+		cmp  femaleCheck, 1;
+		jnz  error;           // no exist default msg file
+		push format;
+		push FO_VAR_aDialogS_msg;          // default "dialog\%s.msg"
+		mov  femaleCheck, 0;               // reset flag
+		jmp  scr_get_dialog_msg_file_Back; // check default msg file
+error:
+		mov  eax, 0x4A6BFA;   // jump to Error
+exist:
+		jmp  eax;
+	}
+}
 
 static void __declspec(naked) removeDatabase() {
 	__asm {
@@ -100,6 +142,14 @@ void LoadOrder::init() {
 		HookCall(0x44436D, &game_init_databases_hook);
 		SafeWrite8(0x4DFAEC, 0x1D); // error correction
 		dlogr(" Done", DL_INIT);
+	}
+
+	if (GetConfigInt("Misc", "FemaleDialogMsgs", 0)) {
+		dlog("Applying alternative female dialog files patch.", DL_INIT);
+		MakeJump(0x4A6BCD, scr_get_dialog_msg_file_hack1);
+		MakeJump(0x4A6BF5, scr_get_dialog_msg_file_hack2);
+		dlogr(" Done", DL_INIT);
+		LoadGameHook::OnAfterGameStarted() += CheckPlayerGender;
 	}
 }
 

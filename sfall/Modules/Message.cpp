@@ -29,6 +29,7 @@ namespace sfall
 {
 
 ExtraGameMessageListsMap gExtraGameMsgLists;
+std::vector<std::string> msgFileList;
 
 fo::MessageNode *GetMsgNode(fo::MessageList *msgList, int msgRef) {
 	if (msgList != nullptr && msgList->numMsgs > 0) {
@@ -64,16 +65,25 @@ char* GetMsg(fo::MessageList *msgList, int msgRef, int msgNum) {
 }
 
 void ReadExtraGameMsgFiles() {
-	auto msgFileList = GetConfigList("Misc", "ExtraGameMsgFileList", "", 512);
 	if (msgFileList.size() > 0) {
+		int number = 0;
 		for (auto& msgName : msgFileList) {
-			std::string path = "game\\" + msgName + ".msg";
+			std::string path = "game\\";
+			auto n = msgName.find(':');
+			if (n == std::string::npos) {
+				path += msgName;
+			} else {
+				path += msgName.substr(0, n);
+				number = std::stoi(msgName.substr(n + 1), nullptr, 0);
+			}
+			path += ".msg";
 			fo::MessageList* list = new fo::MessageList();
 			if (fo::func::message_load(list, (char*)path.data()) == 1) {
-				gExtraGameMsgLists.insert(std::make_pair(0x2000 + gExtraGameMsgLists.size(), list));
+				gExtraGameMsgLists.insert(std::make_pair(0x2000 + number, list));
 			} else {
 				delete list;
 			}
+			number++;
 		}
 	}
 }
@@ -86,9 +96,11 @@ void ClearReadExtraGameMsgFiles() {
 	}
 
 	gExtraGameMsgLists.clear();
+	msgFileList.clear();
 }
 
 void Message::init() {
+	msgFileList = GetConfigList("Misc", "ExtraGameMsgFileList", "", 512);
 	LoadGameHook::OnBeforeGameStart() += ReadExtraGameMsgFiles;
 }
 

@@ -67,11 +67,11 @@ void __declspec() op_set_viewport_x();
 
 void __declspec() op_set_viewport_y();
 
-void __declspec() op_show_iface_tag();
+void sf_show_iface_tag(OpcodeContext&);
 
-void __declspec() op_hide_iface_tag();
+void sf_hide_iface_tag(OpcodeContext&);
 
-void __declspec() op_is_iface_tag_active();
+void sf_is_iface_tag_active(OpcodeContext&);
 
 void sf_intface_redraw(OpcodeContext&);
 
@@ -90,6 +90,10 @@ void sf_set_cursor_mode(OpcodeContext&);
 void sf_display_stats(OpcodeContext&);
 
 void sf_set_iface_tag_text(OpcodeContext&);
+
+void sf_inventory_redraw(OpcodeContext&);
+
+void sf_dialog_message(OpcodeContext&);
 
 }
 }

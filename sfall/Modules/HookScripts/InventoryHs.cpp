@@ -15,6 +15,7 @@ static const DWORD RemoveObjHookRet = 0x477497;
 static void __declspec(naked) RemoveObjHook() {
 	__asm {
 		mov ecx, [esp + 8]; // call addr
+		HookBegin;
 		mov args[0], eax;
 		mov args[4], edx;
 		mov args[8], ebx;
@@ -22,7 +23,6 @@ static void __declspec(naked) RemoveObjHook() {
 		pushad;
 	}
 
-	BeginHook();
 	argCount = 4;
 	RunHookScript(HOOK_REMOVEINVENOBJ);
 	EndHook();
@@ -38,6 +38,7 @@ static void __declspec(naked) RemoveObjHook() {
 
 static void __declspec(naked) MoveCostHook() {
 	__asm {
+		HookBegin;
 		mov  args[0], eax;
 		mov  args[4], edx;
 		call fo::funcoffs::critter_compute_ap_from_distance_
@@ -45,7 +46,6 @@ static void __declspec(naked) MoveCostHook() {
 		pushad;
 	}
 
-	BeginHook();
 	argCount = 3;
 	RunHookScript(HOOK_MOVECOST);
 	EndHook();
@@ -53,7 +53,7 @@ static void __declspec(naked) MoveCostHook() {
 	__asm {
 		popad;
 		cmp cRet, 1;
-		cmovge eax, rets[0];
+		cmovge eax, dword ptr rets[0];
 		retn;
 	}
 }
@@ -78,16 +78,19 @@ static int __fastcall SwitchHandHook_Script(fo::GameObject* item, fo::GameObject
 	if (itemReplaced && fo::GetItemType(itemReplaced) == fo::item_type_weapon && fo::GetItemType(item) == fo::item_type_ammo) {
 		return -1; // to prevent inappropriate hook call after dropping ammo on weapon
 	}
+
 	BeginHook();
 	argCount = 3;
+
 	args[0] = (addr < 0x47136D) ? 1 : 2;    // slot: 1 - left, 2 - right
 	args[1] = (DWORD)item;
 	args[2] = (DWORD)itemReplaced;
+
 	RunHookScript(HOOK_INVENTORYMOVE);
-	int tmp = PartyControl::SwitchHandHook(item);
-	if (tmp != -1) {
+	int result = PartyControl::SwitchHandHook(item);
+	if (result != -1) {
 		cRetTmp = 0;
-		SetHSReturn(tmp);
+		SetHSReturn(result);
 	}
 	EndHook();
 
@@ -162,10 +165,11 @@ skip:
 // - if 0 is returned while dropping caps, selected amount - 1 will still disappear from inventory (fixed)
 static DWORD nextHookDropSkip = 0;
 static int dropResult = -1;
+static const DWORD InvenActionObjDropRet = 0x473874;
 static void __declspec(naked) InvenActionCursorObjDropHook() {
 	if (nextHookDropSkip) {
 		nextHookDropSkip = 0;
-		dropResult = -1;
+		goto skipHook;
 	} else {
 		__asm {
 			pushad;
@@ -180,6 +184,7 @@ static void __declspec(naked) InvenActionCursorObjDropHook() {
 	}
 
 	if (dropResult == -1) {
+skipHook:
 		_asm call fo::funcoffs::obj_drop_;
 	}
 	_asm retn;
@@ -189,10 +194,28 @@ capsMultiDrop:
 	if (dropResult == -1) {
 		nextHookDropSkip = 1;
 		_asm call fo::funcoffs::item_remove_mult_;
-	} else {
-		_asm mov dword ptr [esp], 0x473874;  // no caps drop
+		_asm retn;
 	}
-	_asm retn;
+	_asm add esp, 4;
+	_asm jmp InvenActionObjDropRet;    // no caps drop
+}
+
+static void __declspec(naked) InvenActionExplosiveDropHack() {
+	__asm {
+		pushad;
+		xor  ecx, ecx;                       // no itemReplace
+		push 6;                              // event: item drop ground
+		call InventoryMoveHook_Script;       // edx - item
+		cmp  eax, -1;                        // ret value
+		popad;
+		jnz noDrop;
+		mov dword ptr ds:[FO_VAR_dropped_explosive], ebp; // overwritten engine code (ebp = 1)
+		mov nextHookDropSkip, ebp;
+		retn;
+noDrop:
+		add esp, 4;
+		jmp InvenActionObjDropRet;           // no drop
+	}
 }
 
 static int __fastcall DropIntoContainer(DWORD ptrCont, DWORD item, DWORD addrCall) {
@@ -255,7 +278,7 @@ donothing:
 
 /* Common InvenWield hook */
 static void InvenWieldHook_Script(int flag) {
-	BeginHook();
+
 	argCount = 4;
 	args[3] = flag;  // invenwield flag
 	RunHookScript(HOOK_INVENWIELD);
@@ -265,6 +288,7 @@ static void InvenWieldHook_Script(int flag) {
 static void _declspec(naked) InvenWieldFuncHook() {
 	using namespace fo;
 	__asm {
+		HookBegin;
 		mov args[0], eax; // critter
 		mov args[4], edx; // item
 		mov args[8], ebx; // slot
@@ -288,6 +312,7 @@ static void _declspec(naked) InvenWieldFuncHook() {
 // called when unwielding weapons
 static void _declspec(naked) InvenUnwieldFuncHook() {
 	__asm {
+		HookBegin;
 		mov args[0], eax;   // critter
 		mov args[8], edx;   // slot
 		pushad;
@@ -310,6 +335,7 @@ static void _declspec(naked) InvenUnwieldFuncHook() {
 
 static void _declspec(naked) CorrectFidForRemovedItemHook() {
 	__asm {
+		HookBegin;
 		mov args[0], eax; // critter
 		mov args[4], edx; // item
 		mov args[8], ebx; // item flag
@@ -345,14 +371,15 @@ void AdjustFidHook(DWORD vanillaFid) {
 	EndHook();
 }
 
-void InitInventoryHookScripts() {
-	LoadHookScript("hs_removeinvenobj", HOOK_REMOVEINVENOBJ);
+void Inject_RemoveInvenObjHook() {
 	MakeJump(0x477492, RemoveObjHook); // old 0x477490
+}
 
-	LoadHookScript("hs_movecost", HOOK_MOVECOST);
+void Inject_MoveCostHook() {
 	HookCalls(MoveCostHook, { 0x417665, 0x44B88A });
+}
 
-	LoadHookScript("hs_inventorymove", HOOK_INVENTORYMOVE);
+void Inject_InventoryMoveHook() {
 	HookCalls(SwitchHandHook, {
 		0x4712E3, // left slot
 		0x47136D  // right slot
@@ -367,13 +394,24 @@ void InitInventoryHookScripts() {
 		0x473851, 0x47386F,
 		0x47379A  // caps multi drop
 	});
+	MakeCall(0x473807, InvenActionExplosiveDropHack);  // drop active explosives
+	SafeWrite8(0x47380C, 0x90);
+}
 
-	LoadHookScript("hs_invenwield", HOOK_INVENWIELD);
+void Inject_InvenWieldHook() {
 	HookCalls(InvenWieldFuncHook, { 0x47275E, 0x495FDF });
 	HookCalls(InvenUnwieldFuncHook, { 0x45967D, 0x472A5A, 0x495F0B });
 	HookCalls(CorrectFidForRemovedItemHook, { 0x45680C, 0x45C4EA });
+}
 
+void InitInventoryHookScripts() {
+
+	LoadHookScript("hs_removeinvenobj", HOOK_REMOVEINVENOBJ);
+	LoadHookScript("hs_movecost", HOOK_MOVECOST);
+	LoadHookScript("hs_inventorymove", HOOK_INVENTORYMOVE);
+	LoadHookScript("hs_invenwield", HOOK_INVENWIELD);
 	LoadHookScript("hs_adjustfid", HOOK_ADJUSTFID);
+
 	Inventory::OnAdjustFid() += AdjustFidHook;
 }
 

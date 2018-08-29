@@ -1,9 +1,16 @@
+#ifndef NDEBUG
+#include <list>
+#endif
+
 #include "main.h"
 
 #pragma warning(disable:4996)
 
 namespace sfall 
 {
+#ifndef NDEBUG
+std::list<long> writeAddress;
+#endif
 
 void SafeWriteBytes(DWORD addr, BYTE* data, int count) {
 	DWORD	oldProtect;
@@ -47,6 +54,18 @@ void _stdcall SafeWriteStr(DWORD addr, const char* data) {
 
 void HookCall(DWORD addr, void* func) {
 	SafeWrite32(addr+1, (DWORD)func - (addr+5));
+#ifndef NDEBUG
+	bool exist = false;
+	for (const auto &wa : writeAddress) {
+		if (addr == wa) {
+			exist = true;
+			char buf[512];
+			sprintf_s(buf, "Memory writing conflict at address 0x%x. The address has already been overwritten by other code.", addr);
+			MessageBoxA(0, buf, "Conflict Detected", MB_TASKMODAL);
+		}
+	}
+	if (!exist) writeAddress.push_back(addr);
+#endif
 }
 
 void MakeCall(DWORD addr, void* func) {

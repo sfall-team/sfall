@@ -23,15 +23,11 @@
 #define LEGAL_COPYRIGHT "Copyright (C) 2006-2018, sfall team"
 
 #define VERSION_MAJOR 4
-#define VERSION_MINOR 0
-#define VERSION_BUILD 5
+#define VERSION_MINOR 1
+#define VERSION_BUILD 0
 #define VERSION_REV 0
 
-#ifdef WIN2K
-#define VERSION_STRING "4.0.5 win2k"
-#else
-#define VERSION_STRING "4.0.5"
-#endif
+#define VERSION_STRING "4.1.0"
 
 #define CHECK_VAL  (4)
 

@@ -26,6 +26,7 @@
 #include "AI.h"
 #include "FileSystem.h"
 #include "HeroAppearance.h"
+#include "HookScripts.h"
 #include "PartyControl.h"
 #include "Perks.h"
 #include "ScriptExtender.h"
@@ -73,6 +74,10 @@ DWORD InCombat() {
 	return (inLoop & COMBAT) ? 1 : 0;
 }
 
+DWORD InDialog() {
+	return (inLoop & DIALOG) ? 1 : 0;
+}
+
 DWORD GetLoopFlags() {
 	return inLoop;
 }
@@ -95,7 +100,7 @@ void _stdcall SetInLoop(DWORD mode, LoopFlag flag) {
 	} else {
 		ClearLoopFlag(flag);
 	}
-	GameModeChange(0);
+	HookScripts::GameModeChangeHook(0);
 }
 
 void GetSavePath(char* buf, char* ftype) {
@@ -498,6 +503,31 @@ static void __declspec(naked) AutomapHook() {
 	}
 }
 
+static void __declspec(naked) DialogReviewInitHook() {
+	__asm {
+		call fo::funcoffs::gdReviewInit_;
+		test eax, eax;
+		jnz  error;
+		push ecx;
+		_InLoop2(1, DIALOGVIEW);
+		pop ecx;
+		xor eax, eax;
+error:
+		retn;
+	}
+}
+
+static void __declspec(naked) DialogReviewExitHook() {
+	__asm {
+		push ecx;
+		push eax;
+		_InLoop2(0, DIALOGVIEW);
+		pop eax;
+		pop ecx;
+		jmp fo::funcoffs::gdReviewExit_;
+	}
+}
+
 void LoadGameHook::init() {
 	saveInCombatFix = GetConfigInt("Misc", "SaveInCombatFix", 1);
 	if (saveInCombatFix > 2) saveInCombatFix = 0;
@@ -547,6 +577,8 @@ void LoadGameHook::init() {
 			0x4A4565});
 	HookCalls(BarterInventoryHook, {0x4466C7});
 	HookCalls(AutomapHook, {0x44396D, 0x479519});
+	HookCall(0x445CA7, DialogReviewInitHook);
+	HookCall(0x445D30, DialogReviewExitHook);
 }
 
 Delegate<>& LoadGameHook::OnGameInit() {
