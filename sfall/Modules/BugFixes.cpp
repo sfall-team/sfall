@@ -613,12 +613,40 @@ static void __declspec(naked) op_wield_obj_critter_adjust_ac_hook() {
 static void __declspec(naked) MultiHexFix() {
 	__asm {
 		xor  ecx, ecx;                      // argument value for make_path_func: ecx=0 (rotation data arg)
-		test byte ptr ds:[ebx+0x25], 0x08;  // is target multihex?
-		mov  ebx, dword ptr ds:[ebx+0x4];   // argument value for make_path_func: target's tilenum (end_tile)
+		test [ebx + flags + 1], 0x08;       // is target multihex?
+		mov  ebx, [ebx + tile];             // argument value for make_path_func: target's tilenum (end_tile)
 		je   end;                           // skip if not multihex
 		inc  ebx;                           // otherwise, increase tilenum by 1
 end:
 		retn;                               // call make_path_func (at 0x429024, 0x429175)
+	}
+}
+
+static const DWORD ai_move_steps_closer_run_tile_ret = 0x42A155;
+static const DWORD ai_move_steps_closer_run_object_ret = 0x42A169;
+static void __declspec(naked) MultiHexCombatRunFix() {
+	__asm {
+		test [edi + flags + 1], 0x08; // is target multihex?
+		jnz  runObject;
+		test [esi + flags + 1], 0x08; // is source multihex?
+		jnz  runObject;
+		jmp  ai_move_steps_closer_run_tile_ret;
+runObject:
+		jmp  ai_move_steps_closer_run_object_ret;
+	}
+}
+
+static const DWORD ai_move_steps_closer_move_tile_ret = 0x42A17E;
+static const DWORD ai_move_steps_closer_move_object_ret = 0x42A192;
+static void __declspec(naked) MultiHexCombatMoveFix() {
+	__asm {
+		test [edi + flags + 1], 0x08; // is target multihex?
+		jnz  moveObject;
+		test [esi + flags + 1], 0x08; // is source multihex?
+		jnz  moveObject;
+		jmp  ai_move_steps_closer_move_tile_ret;
+moveObject:
+		jmp  ai_move_steps_closer_move_object_ret;
 	}
 }
 
@@ -1510,8 +1538,8 @@ void BugFixes::init()
 		MakeCall(0x42901F, MultiHexFix);
 		MakeCall(0x429170, MultiHexFix);
 		// Fix for multihex critters moving too close and overlapping their targets in combat
-		SafeWrite8(0x42A153, 0xEB); // jmp loc_42A169 (skip register_object_run_to_tile_)
-		SafeWrite8(0x42A17C, 0xEB); // jmp loc_42A192 (skip register_object_move_to_tile_)
+		MakeJump(0x42A14F, MultiHexCombatRunFix);
+		MakeJump(0x42A178, MultiHexCombatMoveFix);
 		dlogr(" Done", DL_INIT);
 	//}
 
