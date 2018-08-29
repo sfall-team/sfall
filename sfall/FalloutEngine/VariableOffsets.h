@@ -38,6 +38,7 @@
 #define FO_VAR_curr_pc_stat               0x6681AC
 #define FO_VAR_curr_stack                 0x59E96C
 #define FO_VAR_cursor_line                0x664514
+#define FO_VAR_DarkGreenColor             0x6A3A90
 #define FO_VAR_dialogue_state             0x518714
 #define FO_VAR_dialogue_switch_mode       0x518718
 #define FO_VAR_dialog_target              0x518848
