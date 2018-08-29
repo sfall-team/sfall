@@ -91,5 +91,7 @@ void sf_unjam_lock(OpcodeContext&);
 
 void sf_set_unjam_locks_time(OpcodeContext&);
 
+void sf_item_make_explosive(OpcodeContext&);
+
 }
 }

@@ -78,6 +78,7 @@ static HooksInjectInfo injectHooks[] = {
 	{HOOK_GAMEMODECHANGE,   nullptr,                      true}, // always embedded to the engine
 	{HOOK_USEANIMOBJ,       Inject_UseAnimateObjHook,    false},
 	{HOOK_EXPLOSIVETIMER,   Inject_ExplosiveTimerHook,   false},
+	{HOOK_DESCRIPTIONOBJ,   Inject_DescriptionObjHook,   false},
 };
 
 bool HookScripts::injectAllHooks;
@@ -110,7 +111,7 @@ void _stdcall MouseClickHook(DWORD button, bool pressed) {
 	EndHook();
 }
 
-void _stdcall GameModeChangeHook(DWORD exit) {
+void HookScripts::GameModeChangeHook(DWORD exit) {
 	BeginHook();
 	argCount = 1;
 	args[0] = exit;
@@ -151,6 +152,10 @@ void HookScripts::InjectingHook(int hookId) {
 		injectHooks[hookId].isInject = true;
 		injectHooks[hookId].inject();
 	}
+}
+
+bool HookScripts::IsInjectHook(int hookId) {
+	return injectHooks[hookId].isInject;
 }
 
 void _stdcall RegisterHook(fo::Program* script, int id, int procNum) {

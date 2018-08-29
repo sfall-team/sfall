@@ -10,133 +10,196 @@
 namespace sfall
 {
 
+static DWORD __fastcall BarterPriceHook_Script(register fo::GameObject* source, register fo::GameObject* target, DWORD callAddr) {
+
+	int computeCost = fo::func::barter_compute_value(source, target);
+
+	BeginHook();
+	argCount = 9;
+
+	args[0] = (DWORD)source;
+	args[1] = (DWORD)target;
+	args[2] = computeCost;
+
+	fo::GameObject* bTable = (fo::GameObject*)fo::var::btable;
+	args[3] = (DWORD)bTable;
+	args[4] = fo::func::item_caps_total(bTable);
+	args[5] = fo::func::item_total_cost(bTable);
+
+	fo::GameObject* pTable = (fo::GameObject*)fo::var::ptable;
+	args[6] = (DWORD)pTable;
+	int pcCost = fo::func::item_total_cost(pTable);
+	args[7] = pcCost;
+
+	args[8] = (DWORD)(callAddr == 0x474D51); // check offers button
+
+	RunHookScript(HOOK_BARTERPRICE);
+	EndHook();
+
+	return (callAddr == 0x47551F) ? pcCost : computeCost;
+}
+
 static void __declspec(naked) BarterPriceHook() {
 	__asm {
-		hookbegin(9);
-		mov args[0], eax;
-		mov args[4], edx;
-		call fo::funcoffs::barter_compute_value_;
-		mov edx, ds:[FO_VAR_btable];
-		mov args[8], eax;
-		mov args[12], edx;
-		xchg eax, edx;
-		call fo::funcoffs::item_caps_total_;
-		mov args[16], eax;
-		mov eax, ds:[FO_VAR_btable];
-		call fo::funcoffs::item_total_cost_;
-		mov args[20], eax;
-		mov eax, ds:[FO_VAR_ptable];
-		mov args[24], eax;
-		call fo::funcoffs::item_total_cost_;
-		mov args[28], eax;
-		xor eax, eax;
-		mov edx, [esp]; // check offers button
-		cmp edx, 0x474D51; // last address on call stack
-		jne skip;
-		inc eax;
+		push edx;
+		push ecx;
+		//-------
+		push [esp + 8];               // address on call stack
+		mov  ecx, eax;                // source
+		call BarterPriceHook_Script;  // edx - target
+		pop  ecx;
+		pop  edx;
+		cmp  cRet, 1;
+		jb   skip;
+		cmp  rets[0], -1;
+		cmovg eax, rets[0];
 skip:
-		mov args[32], eax;
-		mov eax, args[8];
-		pushad;
-		push HOOK_BARTERPRICE;
-		call RunHookScript;
-		popad;
-		cmp cRet, 1;
-		jl end;
-		mov eax, rets[0];
-end:
-		hookend;
 		retn;
+	}
+}
+
+static DWORD offersGoodsCost; // keep last cost
+static void __declspec(naked) PC_BarterPriceHook() {
+	__asm {
+		push edx;
+		push ecx;
+		//-------
+		push [esp + 8];                                // address on call stack
+		mov  ecx, dword ptr ds:[FO_VAR_obj_dude];      // source
+		mov  edx, dword ptr ds:[FO_VAR_target_stack];  // target
+		call BarterPriceHook_Script;
+		pop  ecx;
+		pop  edx;
+		cmp  cRet, 2;
+		cmovnb eax, rets[4];
+		mov  offersGoodsCost, eax;
+		retn;
+	}
+}
+
+static const DWORD OverrideCostRet = 0x474D44;
+static void __declspec(naked) OverrideCost_BarterPriceHack() {
+	__asm {
+		mov eax, offersGoodsCost;
+		jmp OverrideCostRet;
 	}
 }
 
 static void __declspec(naked) UseSkillHook() {
 	__asm {
-		hookbegin(4);
-		mov args[0], eax; // user
-		mov args[4], edx; // target
-		mov args[8], ebx; // skill id
+		HookBegin;
+		mov args[0], eax;  // user
+		mov args[4], edx;  // target
+		mov args[8], ebx;  // skill id
 		mov args[12], ecx; // skill bonus
 		pushad;
-		push HOOK_USESKILL;
-		call RunHookScript;
+	}
+
+	argCount = 4;
+	RunHookScript(HOOK_USESKILL);
+	EndHook();
+
+	__asm {
 		popad;
 		cmp cRet, 1;
-		jl  defaulthandler;
+		jb  defaultHandler;
 		cmp rets[0], -1;
-		je defaulthandler;
+		je  defaultHandler;
 		mov eax, rets[0];
-		jmp end;
-defaulthandler:
-		call fo::funcoffs::skill_use_;
-end:
-		hookend;
 		retn;
+defaultHandler:
+		jmp fo::funcoffs::skill_use_;
 	}
 }
 
 static void __declspec(naked) StealCheckHook() {
 	__asm {
-		hookbegin(4);
-		mov args[0], eax; // thief
-		mov args[4], edx; // target
-		mov args[8], ebx; // item
+		HookBegin;
+		mov args[0], eax;  // thief
+		mov args[4], edx;  // target
+		mov args[8], ebx;  // item
 		mov args[12], ecx; // is planting
 		pushad;
-		push HOOK_STEAL;
-		call RunHookScript;
+	}
+
+	argCount = 4;
+	RunHookScript(HOOK_STEAL);
+	EndHook();
+
+	__asm {
 		popad;
 		cmp cRet, 1;
-		jl  defaulthandler;
+		jb  defaultHandler;
 		cmp rets[0], -1;
-		je defaulthandler;
+		je  defaultHandler;
 		mov eax, rets[0];
-		jmp end;
-defaulthandler:
-		call fo::funcoffs::skill_check_stealing_;
-end:
-		hookend;
 		retn;
+defaultHandler:
+		jmp fo::funcoffs::skill_check_stealing_;
+	}
+}
+
+static void __stdcall PerceptionRangeHook_Script(int type) {
+	__asm {
+		HookBegin;
+		mov  args[0], eax; // watcher
+		mov  args[4], edx; // target
+		call fo::funcoffs::is_within_perception_;
+		mov  args[8], eax; // check result
+		push eax;
+	}
+
+	args[3] = type;
+
+	argCount = 4;
+	RunHookScript(HOOK_WITHINPERCEPTION);
+	EndHook();
+
+	__asm {
+		pop eax;
+		cmp cRet, 1;
+		cmovnb eax, rets[0];
 	}
 }
 
 static void __declspec(naked) PerceptionRangeHook() {
 	__asm {
-		hookbegin(3);
-		mov args[0], eax; // watcher
-		mov args[4], edx; // target
-		call fo::funcoffs::is_within_perception_;
-		mov args[8], eax; // check result
-		pushad;
-		push HOOK_WITHINPERCEPTION;
-		call RunHookScript;
-		popad;
-		cmp cRet, 1;
-		jl  end;
-		mov eax, rets[0];
-end:
-		hookend;
+		push ecx;
+		push 0;
+		call PerceptionRangeHook_Script;
+		pop  ecx;
 		retn;
 	}
 }
 
-// jmp here, not call
-static const DWORD PerceptionRangeBonusHack_back = 0x456BA7;
-static const DWORD PerceptionRangeBonusHack_skip_blocking_check = 0x456BDC;
-static void __declspec(naked) PerceptionRangeBonusHack() {
+static void __declspec(naked) PerceptionRangeSeeHook() {
 	__asm {
-		call PerceptionRangeHook;
-		cmp eax, 2;
-		jne nevermind;
-		mov dword ptr[esp + 16], 1;
-		jmp PerceptionRangeBonusHack_skip_blocking_check;
+		push ecx;
+		push 1;
+		call PerceptionRangeHook_Script;
+		pop  ecx;
+		cmp  eax, 2;
+		jne  nevermind; // normal return
+		dec  eax;
+		mov  dword ptr[esp + 0x2C - 0x1C + 4], eax; // set 1, skip blocking check
+		dec  eax;
 nevermind:
-		jmp PerceptionRangeBonusHack_back;
+		retn;
+	}
+}
+
+static void __declspec(naked) PerceptionRangeHearHook() {
+	__asm {
+		push ecx;
+		push 2;
+		call PerceptionRangeHook_Script;
+		pop  ecx;
+		retn;
 	}
 }
 
 static constexpr long maxGasAmount = 80000;
-static void CarTravelHookScript() {
+static void CarTravelHook_Script() {
 	BeginHook();
 	argCount = 2;
 	// calculate vanilla speed
@@ -184,13 +247,13 @@ static const DWORD CarTravelHack_back = 0x4BFF43;
 static void __declspec(naked) CarTravelHack() {
 	__asm {
 		pushad;
-		call CarTravelHookScript;
+		call CarTravelHook_Script;
 		popad;
 		jmp CarTravelHack_back;
 	}
 }
 
-static void __fastcall GlobalVarHookScript(DWORD number, int value) {
+static void __fastcall GlobalVarHook_Script(DWORD number, int value) {
 	int old = fo::var::game_global_vars[number];
 
 	BeginHook();
@@ -211,17 +274,17 @@ static void __fastcall GlobalVarHookScript(DWORD number, int value) {
 static void __declspec(naked) SetGlobalVarHook() {
 	__asm {
 		pushad;
-		mov ecx, eax;             // number
-		call GlobalVarHookScript; // edx - value
+		mov ecx, eax;              // number
+		call GlobalVarHook_Script; // edx - value
 		popad;
 		cmp cRet, 1;
-		cmovae edx, dword ptr rets[0];
+		cmovnb edx, dword ptr rets[0];
 		jmp fo::funcoffs::game_set_global_var_;
 	}
 }
 
 static int restTicks;
-static void _stdcall RestTimerHookScript() {
+static void _stdcall RestTimerHook_Script() {
 	DWORD addrHook;
 	__asm {
 		mov addrHook, ebx;
@@ -247,34 +310,34 @@ static void _stdcall RestTimerHookScript() {
 static void __declspec(naked) RestTimerLoopHook() {
 	__asm {
 		pushad;
-		mov ebx, [esp + 32];
-		mov ecx, [esp + 36 + 0x40]; // hours_
-		mov edx, [esp + 36 + 0x44]; // minutes_
-		call RestTimerHookScript;
+		mov  ebx, [esp + 32];
+		mov  ecx, [esp + 36 + 0x40]; // hours_
+		mov  edx, [esp + 36 + 0x44]; // minutes_
+		call RestTimerHook_Script;
 		popad;
-		cmp cRet, 1;
-		jl skip;
-		cmp rets[0], 1;
+		cmp  cRet, 1;
+		jb   skip;
+		cmp  rets[0], 1;
 		cmovz edi, rets[0];
 skip:
-		jmp fo::funcoffs::set_game_time_;
+		jmp  fo::funcoffs::set_game_time_;
 	}
 }
 
 static void __declspec(naked) RestTimerEscapeHook() {
 	__asm {
-		cmp eax, 0x1B; // ESC ASCII code
-		jnz skip;
+		cmp  eax, 0x1B; // ESC ASCII code
+		jnz  skip;
 		pushad;
-		mov ebx, [esp + 32];
-		mov ecx, [esp + 36 + 0x40]; // hours_
-		mov edx, [esp + 36 + 0x44]; // minutes_
-		call RestTimerHookScript;
+		mov  ebx, [esp + 32];
+		mov  ecx, [esp + 36 + 0x40]; // hours_
+		mov  edx, [esp + 36 + 0x44]; // minutes_
+		call RestTimerHook_Script;
 		popad;
-		mov edi, 1;
-		cmp cRet, 1;
-		jl skip;
-		cmp rets[0], 0;
+		mov  edi, 1;
+		cmp  cRet, 1;
+		jb   skip;
+		cmp  rets[0], 0;
 		cmovz edi, rets[0]; // ret 0 for cancel escape
 skip:
 		retn;
@@ -296,7 +359,7 @@ static int __fastcall ExplosiveTimerHook_Script(DWORD type, DWORD item, DWORD ti
 	int result = 0;
 	if (cRet > 0 && rets[0] >= 0) {
 		if (rets[0] > 18000) rets[0] = 18000;  // max 30 minutes
-		if (cRet < 2) {
+		if (cRet < 2 || (rets[1] < fo::ROLL_CRITICAL_FAILURE || rets[1] > fo::ROLL_CRITICAL_SUCCESS)) {
 			result--;       // use vanilla type
 		} else {
 			result++;       // use returned type
@@ -306,6 +369,7 @@ static int __fastcall ExplosiveTimerHook_Script(DWORD type, DWORD item, DWORD ti
 }
 
 static void _declspec(naked) ExplosiveTimerHook() {
+	using namespace fo;
 	__asm {
 		push eax;
 		push edx;
@@ -321,7 +385,7 @@ static void _declspec(naked) ExplosiveTimerHook() {
 		mov  eax, rets[0];           // time in ticks
 		jl   end;
 		mov  ecx, 8;                 // type SUCCESS
-		cmp  rets[4], 1;
+		cmp  rets[4], ROLL_FAILURE;
 		jg   end;
 		add  ecx, 3;                 // type FAILURE (11)
 end:
@@ -336,6 +400,8 @@ void Inject_BarterPriceHook() {
 		0x475735,
 		0x475762
 	});
+	HookCall(0X47551A, PC_BarterPriceHook);
+	MakeJump(0x474D3F, OverrideCost_BarterPriceHack); // just overrides cost of offered goods
 }
 
 void Inject_UseSkillHook() {
@@ -353,9 +419,9 @@ void Inject_WithinPerceptionHook() {
 		0x42BC87,
 		0x42BC9F,
 		0x42BD04,
-		0x458403
 	});
-	MakeJump(0x456BA2, PerceptionRangeBonusHack);
+	HookCall(0x456BA2, PerceptionRangeSeeHook);
+	HookCall(0x458403, PerceptionRangeHearHook);
 }
 
 void Inject_CarTravelHook() {

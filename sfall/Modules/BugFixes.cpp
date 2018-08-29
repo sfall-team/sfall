@@ -50,6 +50,14 @@ static void __declspec(naked) PipAlarm_hack() {
 	}
 }
 
+static void __declspec(naked) PipStatus_hook() {
+	__asm {
+		call fo::funcoffs::ListHoloDiskTitles_;
+		mov  dword ptr ds:[FO_VAR_holodisk], ebx;
+		retn;
+	}
+}
+
 // corrects saving script blocks (to *.sav file) by properly accounting for actual number of scripts to be saved
 static void __declspec(naked) scr_write_ScriptNode_hook() {
 	__asm {
@@ -624,7 +632,7 @@ static void __declspec(naked) action_melee_hack() {
 		cmp  ebx, OBJ_TYPE_CRITTER                // check if object FID type flag is set to critter
 		jne  end                                  // if object not a critter leave jump condition flags
 		// set to skip dodge animation
-		test byte ptr [eax + damageFlags], DAM_KNOCKED_OUT or DAM_KNOCKED_DOWN    // (original code) 
+		test byte ptr [eax + damageFlags], DAM_KNOCKED_OUT or DAM_KNOCKED_DOWN    // (original code)
 		jnz  end
 		mov  edx, 0x4113FE
 end:
@@ -1142,6 +1150,173 @@ static void __declspec(naked) compute_damage_hack() {
 	}
 }
 
+static int  currDescLen = 0;
+static char textBuf[355];
+static bool showItemDescription = false;
+static void __stdcall AppendText(const char* text, const char* desc) {
+	if (showItemDescription && currDescLen == 0) {
+		strncpy_s(textBuf, desc, 161);
+		int len = strlen(textBuf);
+		if (len > 160) {
+			len = 158;
+			textBuf[len++] = '.';
+			textBuf[len++] = '.';
+			textBuf[len++] = '.';
+		}
+		textBuf[len++] = ' ';
+		textBuf[len] = 0;
+		currDescLen  = len;
+	} else if (currDescLen == 0) {
+		textBuf[0] = 0;
+	}
+
+	strncat(textBuf, text, 64);
+	currDescLen += strlen(text);
+	if (currDescLen < 300) {
+		textBuf[currDescLen++] = '.';
+		textBuf[currDescLen++] = ' ';
+		textBuf[currDescLen] = 0;
+	}
+}
+
+static void __declspec(naked) obj_examine_func_hack_ammo0() {
+	__asm {
+		cmp  dword ptr [esp + 0x1AC - 0x14 + 4], 0x445448; // gdialogDisplayMsg_
+		jnz  skip;
+		pushad;
+		push esi;
+		push eax;
+		call AppendText;
+		popad;
+		retn;
+skip:
+		jmp  dword ptr [esp + 0x1AC - 0x14 + 4];
+	}
+}
+
+static void __declspec(naked) obj_examine_func_hack_ammo1() {
+	__asm {
+		cmp  dword ptr [esp + 0x1AC - 0x14 + 4], 0x445448; // gdialogDisplayMsg_
+		jnz  skip;
+		pushad;
+		push 0;
+		push eax;
+		call AppendText;
+		mov  currDescLen, 0;
+		popad;
+		lea  eax, [textBuf];
+		jmp  fo::funcoffs::gdialogDisplayMsg_;
+skip:
+		jmp  dword ptr [esp + 0x1AC - 0x14 + 4];
+	}
+}
+
+static void __declspec(naked) obj_examine_func_hack_weapon() {
+	__asm {
+		cmp  dword ptr [esp + 0x1AC - 0x14], 0x445448; // gdialogDisplayMsg_
+		jnz  skip;
+		pushad;
+		push esi;
+		push eax;
+		call AppendText;
+		mov  eax, currDescLen;
+		sub  eax, 2;
+		mov  byte ptr textBuf[eax], 0; // cutoff last character
+		mov  currDescLen, 0;
+		popad;
+		lea  eax, [textBuf];
+skip:
+		mov  ecx, 0x49B63C;
+		jmp  ecx;
+	}
+}
+
+static DWORD expSwiftLearner; // experience points for print
+static void __declspec(naked) statPCAddExperienceCheckPMs_hack() {
+	__asm {
+		mov  expSwiftLearner, edi;
+		mov  eax, dword ptr ds:[FO_VAR_Experience_];
+		retn;
+	}
+}
+
+static void __declspec(naked) combat_give_exps_hook() {
+	__asm {
+		call fo::funcoffs::stat_pc_add_experience_;
+		mov  ebx, expSwiftLearner;
+		retn;
+	}
+}
+
+static void __declspec(naked) loot_container_exp_hack() {
+	__asm {
+		mov  edx, [esp + 0x150 - 0x18];  // experience
+		xchg edx, eax;
+		call fo::funcoffs::stat_pc_add_experience_;
+		// engine code
+		cmp  edx, 1;                     // from eax
+		jnz  skip;
+		push expSwiftLearner;
+		mov  ebx, [esp + 0x154 - 0x78 + 0x0C]; // msgfile.message
+		push ebx;
+		lea  eax, [esp + 0x158 - 0x150]; // buf
+		push eax;
+		call fo::funcoffs::sprintf_;
+		add  esp, 0x0C;
+		mov  eax, esp;
+		call fo::funcoffs::display_print_;
+		// end code
+skip:
+		mov eax, 0x4745E3;
+		jmp eax;
+	}
+}
+
+static void __declspec(naked) wmRndEncounterOccurred_hook() {
+	__asm {
+		call fo::funcoffs::stat_pc_add_experience_;
+		cmp  ecx, 110;
+		jnb  skip;
+		push expSwiftLearner;
+		// engine code
+		push edx;
+		lea  eax, [esp + 0x08 + 4];
+		push eax;
+		call fo::funcoffs::sprintf_;
+		add  esp, 0x0C;
+		lea  eax, [esp + 4];
+		call fo::funcoffs::display_print_;
+		// end code
+skip:
+		retn;
+	}
+}
+
+static void __declspec(naked) op_obj_can_see_obj_hack() {
+	__asm {
+		mov  eax, [esp + 0x2C - 0x28 + 4];  // source
+		mov  ecx, [eax + tile];             // source.tile
+		cmp  ecx, -1;
+		jz   end;
+		mov  eax, [eax + elevation];    // source.elev
+		mov  edi, [edx + elevation];    // target.elev
+		cmp  eax, edi;                  // check source.elev == target.elev
+		retn;
+end:
+		dec  ecx;  // reset ZF
+		retn;
+	}
+}
+
+static void __declspec(naked) op_obj_can_hear_obj_hack() {
+	__asm {
+		mov eax, [esp + 0x28 - 0x28 + 4];  // target
+		mov edx, [esp + 0x28 - 0x24 + 4];  // source
+		retn;
+	}
+}
+
+
 void BugFixes::init()
 {
 	#ifndef NDEBUG
@@ -1161,9 +1336,13 @@ void BugFixes::init()
 	//}
 
 	// Fixes for clickability issue in Pip-Boy and exploit that allows to rest in places where you shouldn't be able to rest
-	dlog("Applying fix for Pip-Boy rest exploit.", DL_INIT);
+	dlog("Applying fix for Pip-Boy clickability issues and rest exploit.", DL_INIT);
 	MakeCall(0x4971C7, pipboy_hack);
 	MakeCall(0x499530, PipAlarm_hack);
+	// Fix for clickability issue of holodisk list
+	HookCall(0x497E9F, PipStatus_hook);
+	SafeWrite16(0x497E8C, 0xD389); // mov ebx, edx
+	SafeWrite32(0x497E8E, 0x90909090);
 	dlogr(" Done", DL_INIT);
 
 	// Fix for "Too Many Items" bug
@@ -1460,12 +1639,54 @@ void BugFixes::init()
 	// Fix for critters killed in combat by scripting still being able to move in their combat turn if the distance parameter
 	// in their AI packages is set to stay_close/charge, or NPCsTryToSpendExtraAP is enabled
 	HookCall(0x42A1A8, ai_move_steps_closer_hook); // 0x42B24D
-	
+
 	// Fix instant death critical
 	dlog("Applying instant death fix.", DL_INIT);
 	MakeJump(0x424BA2, compute_damage_hack);
 	dlogr(" Done", DL_INIT);
 
+	// Fix missing AC/DR mod stats when examining ammo in barter screen
+	dlog("Applying fix for displaying ammo stats in barter screen.", DL_INIT);
+	MakeCalls(obj_examine_func_hack_ammo0, {0x49B4AD, 0x49B504});
+	SafeWrite16(0x49B4B2, 0x9090);
+	SafeWrite16(0x49B509, 0x9090);
+	MakeCall(0x49B563, obj_examine_func_hack_ammo1);
+	SafeWrite16(0x49B568, 0x9090);
+	dlogr(" Done", DL_INIT);
+
+	// Display full item description for weapon/ammo in barter screen
+	showItemDescription = (GetConfigInt("Misc", "FullItemDescInBarter", 0) != 0);
+	if (showItemDescription) {
+		dlog("Applying full item description in barter patch.", DL_INIT);
+		HookCall(0x49B452, obj_examine_func_hack_weapon); // it's jump
+		dlogr(" Done", DL_INIT);
+	}
+
+	// Display experience points with the bonus from Swift Learner perk when gained from non-scripted situations
+	if (GetConfigInt("Misc", "DisplaySwiftLearnerExp", 1) != 0) {
+		dlog("Applying Swift Learner exp display patch.", DL_INIT);
+		MakeCall(0x4AFAEF, statPCAddExperienceCheckPMs_hack);
+		HookCall(0x4221E2, combat_give_exps_hook);
+		MakeJump(0x4745AE, loot_container_exp_hack);
+		SafeWrite16(0x4C0AB1, 0x23EB); // jmps 0x4C0AD6
+		HookCall(0x4C0AEB, wmRndEncounterOccurred_hook);
+		dlogr(" Done", DL_INIT);
+	}
+
+	// Fix for obj_can_see_obj not checking if source and target objects are on the same elevation before calling
+	// is_within_perception_
+	MakeCall(0x456B63, op_obj_can_see_obj_hack);
+	SafeWrite16(0x456B76, 0x23EB); // jmp loc_456B9B (skip unused engine code)
+
+	// Fix broken op_obj_can_hear_obj_ function
+	if (GetConfigInt("Misc", "ObjCanHearObjFix", 0) != 0) {
+		dlog("Applying obj_can_hear_obj fix.", DL_INIT);
+		SafeWrite8(0x4583D8, 0x3B); // jz loc_458414
+		SafeWrite8(0x4583DE, 0x74); // jz loc_458414
+		MakeCall(0x4583E0, op_obj_can_hear_obj_hack);
+		SafeWrite8(0x4583E5, 0x90);
+		dlogr(" Done", DL_INIT);
+	}
 }
 
 }

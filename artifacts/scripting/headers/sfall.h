@@ -18,6 +18,7 @@
 #define INTFACELOOT (0x10000)
 #define BARTER      (0x20000)
 #define HEROWIN     (0x40000)
+#define DIALOGVIEW  (0x80000)
 
 //Valid arguments to register_hook
 #define HOOK_TOHIT            (0)
@@ -142,7 +143,9 @@
 #define set_attack_is_explosion(x)            metarule2_explosions(4, x, 0)
 #define set_attack_is_explosion_fire          set_attack_is_explosion(DMG_fire)
 #define set_explosion_radius(grenade, rocket) metarule2_explosions(5, grenade, rocket)
-
+#define get_explosion_damage(itemPid)         metarule2_explosions(6, pid, 0)
+#define set_dynamite_damage(minDmg, maxDmg)   metarule2_explosions(7, minDmg, maxDmg)
+#define set_plastic_damage(minDmg, maxDmg)    metarule2_explosions(8, minDmg, maxDmg)
 
 #define GAME_MSG_COMBAT      (0)
 #define GAME_MSG_AI          (1)
@@ -223,6 +226,7 @@
 #define attack_is_aimed                       sfall_func0("attack_is_aimed")
 #define car_gas_amount                        sfall_func0("car_gas_amount")
 #define critter_inven_obj2(obj, type)         sfall_func2("critter_inven_obj2", obj, type)
+#define dialog_message(text)                  sfall_func1("dialog_message", text)
 #define display_stats                         sfall_func0("display_stats")
 #define exec_map_update_scripts               sfall_func0("exec_map_update_scripts")
 #define floor2(value)                         sfall_func1("floor2", value)
@@ -232,6 +236,7 @@
 #define get_ini_sections(file)                sfall_func1("get_ini_sections", file)
 #define get_map_enter_position                sfall_func0("get_map_enter_position")
 #define get_outline(obj)                      sfall_func1("get_outline", obj)
+#define get_string_pointer(text)              sfall_func1("get_string_pointer", text)
 #define intface_hide                          sfall_func0("intface_hide")
 #define intface_is_hidden                     sfall_func0("intface_is_hidden")
 #define intface_redraw                        sfall_func0("intface_redraw")
@@ -255,3 +260,4 @@
 #define spatial_radius(obj)                   sfall_func1("spatial_radius", obj)
 #define tile_refresh_display                  sfall_func0("tile_refresh_display")
 #define unjam_lock(obj)                       sfall_func1("unjam_lock", obj)
+#define item_make_explosive(pid, activePid, min, max) sfall_func4("item_make_explosive", pid, activePid, min, max)

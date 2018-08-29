@@ -349,5 +349,9 @@ void sf_floor2(OpcodeContext& ctx) {
 	ctx.setReturn(static_cast<int>(floor(ctx.arg(0).asFloat())));
 }
 
+void sf_get_string_pointer(OpcodeContext& ctx) {
+	ctx.setReturn(reinterpret_cast<long>(ctx.arg(0).asString()), DataType::INT);
+}
+
 }
 }
