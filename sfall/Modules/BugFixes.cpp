@@ -609,14 +609,14 @@ static void __declspec(naked) op_wield_obj_critter_adjust_ac_hook() {
 	}
 }
 
-// Haenlomal
+// Haenlomal: Check path to critter for attack
 static void __declspec(naked) MultiHexFix() {
 	__asm {
 		xor  ecx, ecx;                      // argument value for make_path_func: ecx=0 (rotation data arg)
 		test [ebx + flags + 1], 0x08;       // is target multihex?
 		mov  ebx, [ebx + tile];             // argument value for make_path_func: target's tilenum (end_tile)
 		je   end;                           // skip if not multihex
-		inc  ebx;                           // otherwise, increase tilenum by 1 (почему это нужно увеличивать на единицу?)
+		inc  ebx;                           // otherwise, increase tilenum by 1
 end:
 		retn;                               // call make_path_func (at 0x429024, 0x429175)
 	}
@@ -626,13 +626,17 @@ static const DWORD ai_move_steps_closer_move_object_ret = 0x42A192;
 static void __declspec(naked) MultiHexCombatMoveFix() {
 	__asm {
 		test [edi + flags + 1], 0x08; // target is multihex?
-		jnz  moveObject;
+		jnz  multiHex;
 		test [esi + flags + 1], 0x08; // source is multihex?
-		jnz  moveObject;
-		retn;
-moveObject:
+		jz   moveTile;
+multiHex:
+		mov  edx, [esp + 4];          // source goto tile
+		cmp  [edi + tile], edx;       // target tile
+		jnz  moveTile;
 		add  esp, 4;
 		jmp  ai_move_steps_closer_move_object_ret;
+moveTile:
+		retn;
 	}
 }
 
@@ -640,13 +644,17 @@ static const DWORD ai_move_steps_closer_run_object_ret = 0x42A169;
 static void __declspec(naked) MultiHexCombatRunFix() {
 	__asm {
 		test [edi + flags + 1], 0x08; // target is multihex?
-		jnz  runObject;
+		jnz  multiHex;
 		test [esi + flags + 1], 0x08; // source is multihex?
-		jnz  runObject;
-		retn;
-runObject:
+		jz   runTile;
+multiHex:
+		mov  edx, [esp + 4];          // source goto tile
+		cmp  [edi + tile], edx;       // target tile
+		jnz  runTile;
 		add  esp, 4;
 		jmp  ai_move_steps_closer_run_object_ret;
+runTile:
+		retn;
 	}
 }
 
@@ -1556,14 +1564,14 @@ void BugFixes::init()
 		dlogr(" Done", DL_INIT);
 	//}
 
-	// Fixed movement of multihex critters in combat
-	MakeCalls(MultiHexFix, { 0x42901F, 0x429170 });
-	if (GetConfigInt("Misc", "MultiHexPathingFix", 0)) {
+	//if (GetConfigInt("Misc", "MultiHexPathingFix", 0)) {
 		dlog("Applying MultiHex Pathing Fix.", DL_INIT);
+		MakeCalls(MultiHexFix, { 0x42901F, 0x429170 });
+		// Fix for multihex critters moving too close and overlapping their targets in combat
 		MakeCall(0x42A14F, MultiHexCombatRunFix, 1);
 		MakeCall(0x42A178, MultiHexCombatMoveFix, 1);
 		dlogr(" Done", DL_INIT);
-	}
+	//}
 
 	// Fix the impact in itself in case of a miss hit for multihex critters when using throwing weapon
 	// Note: in fact, the bug is in tile_num_beyond_ and related functions, in case of fix, this crutch will need to be removed
@@ -1755,9 +1763,22 @@ void BugFixes::init()
 		dlogr(" Done", DL_INIT);
 	}
 
-	// Fix code: Wrong item was pass to the function, to check the perk of the object
-	HookCall(0x42954B, ai_best_weapon_hook);
-
+	// Fix: The wrong item was passed to the function to check the presence of perk at the weapon
+	int bestWeaponPerkMod = GetConfigInt("Misc", "AIBestWeaponPerkFix", 0);
+	if (bestWeaponPerkMod > 0) {
+		dlog("Applying AI best weapon choose fix.", DL_INIT);
+		HookCall(0x42954B, ai_best_weapon_hook);
+		// also corrected calculate weapon perk modifier: multiply by 2 + modificator (default modifier should be set to 5)
+		if (bestWeaponPerkMod > 1) {
+			if (bestWeaponPerkMod > 100) bestWeaponPerkMod = 100;
+			SafeWriteBatch<DWORD>(bestWeaponPerkMod, {0x42955F, 0x4296E8});
+			SafeWrite16(0x42955C, 0xD201);  // add edx, edx
+			SafeWrite8(0x42955E,  0xB8);    // mov eax, imm
+			SafeWrite16(0x4296E5, 0xD201);  // add edx, edx
+			SafeWrite8(0x4296E7,  0xB8);    // mov eax, imm
+		}
+		dlogr(" Done", DL_INIT);
+	}
 }
 
 }

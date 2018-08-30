@@ -67,7 +67,6 @@ continue:
 	}
 }
 
-static bool GoToTile = false;
 static DWORD __cdecl sf_ai_move_steps_closer(fo::GameObject* source, fo::GameObject* target, DWORD* distPtr) {
 	DWORD distance, shotTile = 0;
 
@@ -94,7 +93,6 @@ static DWORD __cdecl sf_ai_move_steps_closer(fo::GameObject* source, fo::GameObj
 			shotTile = 0;
 		} else {
 			*distPtr = distance;
-			GoToTile = true;
 		}
 	}
 	return shotTile;
@@ -127,38 +125,38 @@ end:
 static const DWORD ai_move_to_object_ret = 0x42A192;
 static void __declspec(naked) ai_move_steps_closer_hack_move() {
 	__asm {
-		cmp  GoToTile, 1;
-		jnz  skip;
-		mov  GoToTile, 0;
-		retn;
-skip:
+		mov  edx, [esp + 4];          // source goto tile
+		cmp  [edi + tile], edx;       // target tile
+		jnz  moveTile;
+
 		test [edi + flags + 1], 0x08; // target is multihex?
 		jnz  moveObject;
 		test [esi + flags + 1], 0x08; // source is multihex?
-		jnz  moveObject;
-		retn;
+		jz   moveTile;
 moveObject:
 		add  esp, 4;
 		jmp  ai_move_to_object_ret;
+moveTile:
+		retn; // move to tile
 	}
 }
 
 static const DWORD ai_run_to_object_ret = 0x42A169;
 static void __declspec(naked) ai_move_steps_closer_hack_run() {
 	__asm {
-		cmp  GoToTile, 1;
-		jnz  skip;
-		mov  GoToTile, 0;
-		retn;
-skip:
+		mov  edx, [esp + 4];          // source goto tile
+		cmp  [edi + tile], edx;       // target tile
+		jnz  runTile;
+
 		test [edi + flags + 1], 0x08; // target is multihex?
 		jnz  runObject;
 		test [esi + flags + 1], 0x08; // source is multihex?
-		jnz  runObject;
-		retn;
+		jz   runTile;
 runObject:
 		add  esp, 4;
 		jmp  ai_run_to_object_ret;
+runTile:
+		retn; // run to tile
 	}
 }
 
@@ -174,9 +172,10 @@ static fo::GameObject* __stdcall sf_ai_search_weapon_environ(fo::GameObject* sou
 		for (int i = 0; i < numObjects; i++)
 		{
 			fo::GameObject* itemGround = (fo::GameObject*)objectsList[i];
-			if (fo::func::item_get_type(itemGround) == fo::item_type_weapon) {
-				if (fo::func::obj_dist(source, itemGround) > source->critter.movePoints + 1) break;
+			if (item && item->protoId == itemGround->protoId) continue;
+			if (fo::func::obj_dist(source, itemGround) > source->critter.movePoints + 1) break;
 
+			if (fo::func::item_get_type(itemGround) == fo::item_type_weapon) {
 				if (fo::func::ai_can_use_weapon(source, itemGround, fo::AttackType::ATKTYPE_RWEAPON_PRIMARY)) {
 					if (fo::func::ai_best_weapon(source, item, itemGround, target) == itemGround) {
 						item = itemGround;
@@ -200,6 +199,7 @@ static void __fastcall sf_ai_search_weapon(fo::GameObject* source, fo::GameObjec
 	{
 		fo::GameObject* item = fo::func::inven_find_type(source, fo::item_type_weapon, &slotNum);
 		if (!item) break;
+		if (itemHand && itemHand->protoId == item->protoId) continue;
 
 		if ((source->critter.movePoints >= fo::func::item_w_primary_mp_cost(item))
 			&& fo::func::ai_can_use_weapon(source, item, fo::AttackType::ATKTYPE_RWEAPON_PRIMARY)
@@ -211,12 +211,14 @@ static void __fastcall sf_ai_search_weapon(fo::GameObject* source, fo::GameObjec
 	}
 
 	if ((LookupOnGround || !itemHand) && source->critter.movePoints >= 3 && fo::func::critter_body_type(source) == fo::BodyType::Biped) {
-		fo::GameObject* itemGround = sf_ai_search_weapon_environ(source, target, bestWeapon);
+		fo::GameObject* itemGround = sf_ai_search_weapon_environ(source, bestWeapon, target);
 		if (itemGround && (!bestWeapon || itemGround->protoId != bestWeapon->protoId)) {
+			if (bestWeapon && fo::func::item_cost(itemGround) < fo::func::item_cost(bestWeapon) + 50) goto notRetrieve;
 			itemGround = fo::func::ai_retrieve_object(source, itemGround);
 			if (itemGround) bestWeapon = itemGround;
 		}
 	}
+notRetrieve:
 
 	if (bestWeapon && (!itemHand || itemHand->protoId != bestWeapon->protoId)) {
 		*weapon = (DWORD)bestWeapon;
