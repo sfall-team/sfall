@@ -414,11 +414,113 @@ void EnableSuperSaving() {
 	MakeCalls(AddPageOffset03, {0x47E756});
 }
 
+static void GetSaveFileTime(char* filename, FILETIME* ftSlot) {
+	char fname[65];
+	sprintf_s(fname, "%s\\%s", fo::var::patches, filename);
+
+	HANDLE hFile = CreateFile(fname, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+	if (hFile != INVALID_HANDLE_VALUE) {
+		GetFileTime(hFile, NULL, NULL, ftSlot);
+		CloseHandle(hFile);
+	} else {
+		ftSlot->dwHighDateTime = 0;
+		ftSlot->dwLowDateTime = 0;
+	};
+}
+
+static const char* commentFmt = "%02d/%02d/%d - %02d:%02d:%02d";
+static void CreateSaveComment(char* bufstr) {
+
+	SYSTEMTIME stUTC, stLocal;
+	GetSystemTime(&stUTC);
+	SystemTimeToTzSpecificLocalTime(NULL, &stUTC, &stLocal);
+
+	char buf[30];
+	sprintf_s(buf, commentFmt, stLocal.wDay, stLocal.wMonth, stLocal.wYear, stLocal.wHour, stLocal.wMinute, stLocal.wSecond);
+	strcpy(bufstr, buf);
+}
+
+static DWORD QuickSavePage = 0,
+	         AutoQuickSave = 0;
+
+static FILETIME ftPrevSlot;
+static DWORD __stdcall QuickSaveGame(fo::DbFile* file, char* filename) {
+
+	unsigned int currSlot = fo::var::slot_cursor;
+
+	if (file) { // This slot is not empty 
+		fo::func::db_fclose(file);
+
+		FILETIME ftCurrSlot;
+		GetSaveFileTime(filename, &ftCurrSlot);
+
+		if (currSlot == 0 || ftCurrSlot.dwHighDateTime > ftPrevSlot.dwHighDateTime || (ftCurrSlot.dwHighDateTime == ftPrevSlot.dwHighDateTime 
+			                                                                           && ftCurrSlot.dwLowDateTime > ftPrevSlot.dwLowDateTime)) {
+			ftPrevSlot.dwHighDateTime = ftCurrSlot.dwHighDateTime;
+			ftPrevSlot.dwLowDateTime  = ftCurrSlot.dwLowDateTime;
+
+			if (++currSlot > 9 || currSlot > AutoQuickSave) {
+				currSlot = 0;
+			} else {
+				fo::var::slot_cursor = currSlot;
+				return 0x47B929; // check next slot
+			}
+		}
+	}
+
+	// Save to slot
+	fo::var::slot_cursor = currSlot;
+	fo::LSData* saveData = (fo::LSData*)FO_VAR_LSData;
+	CreateSaveComment(saveData[currSlot].comment);
+	fo::var::quick_done = 1;
+
+	return 0x47B9A4; // normal return
+}
+
+static void __declspec(naked) SaveGame_hack0() {
+	__asm {
+		mov  ds:[FO_VAR_flptr], eax;
+		push ecx;
+		push edi;
+		push eax;
+		call QuickSaveGame;
+		pop  ecx;
+		jmp  eax;
+	}
+}
+
+static void __declspec(naked) SaveGame_hack1() {
+	__asm {
+		mov ds:[FO_VAR_slot_cursor], 0;
+		mov eax, QuickSavePage;
+		mov LSPageOffset, eax;
+		retn;
+	}
+}
+
 void ExtraSaveSlots::init() {
-	if (GetConfigInt("Misc", "ExtraSaveSlots", 0)) {
+	
+	bool ExtraSaveSlots = (GetConfigInt("Misc", "ExtraSaveSlots", 0) != 0);
+	if (ExtraSaveSlots) {
 		dlog("Running EnableSuperSaving()", DL_INIT);
 		EnableSuperSaving();
 		dlogr(" Done", DL_INIT);
+	}
+
+	AutoQuickSave = GetConfigInt("Misc", "AutoQuickSave", 0);
+	if (AutoQuickSave > 0) {
+		if (AutoQuickSave > 9999) AutoQuickSave = 9999;
+
+		QuickSavePage = 10 * static_cast<long>(floor(AutoQuickSave / 10.0));
+		AutoQuickSave -= QuickSavePage + 1;    // reserved slot count
+
+		if (ExtraSaveSlots && QuickSavePage > 0) {
+			MakeCall(0x47B923, SaveGame_hack1, 1);
+		} else {
+			SafeWrite8(0x47B923, 0x89);
+			SafeWrite32(0x47B924, 0x5193B83D); // mov [slot_cursor], edi(0)
+		}
+		MakeJump(0x47B984, SaveGame_hack0);
 	}
 }
 

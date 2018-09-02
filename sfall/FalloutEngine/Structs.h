@@ -640,4 +640,28 @@ struct Window {
 	long drawFuncP;
 };
 
+#pragma pack(1)
+struct LSData {
+	char signature[24];
+	short majorVer;
+	short minorVer;
+	char charR;
+	char playerName[32];
+	char comment[30];
+	char unused1;
+	short realMonth;
+	short realDay;
+	short realYear;
+	short unused2;
+	long realTime;
+	short gameMonth;
+	short gameDay;
+	short gameYear;
+	short unused3;
+	long gameTime;
+	short mapElev;
+	short mapNumber;
+	char mapName[16];
+};
+
 }
