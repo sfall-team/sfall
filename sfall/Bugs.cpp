@@ -619,6 +619,42 @@ end:
 	}
 }
 
+static const DWORD ai_move_steps_closer_run_object_ret = 0x42A169;
+static void __declspec(naked) MultiHexCombatRunFix() {
+	__asm {
+		test byte ptr ds:[edi + 0x25], 0x08; // is target multihex?
+		jnz  multiHex;
+		test byte ptr ds:[esi + 0x25], 0x08; // is source multihex?
+		jz   runTile;
+multiHex:
+		mov  edx, dword ptr ds:[esp + 0x4];  // source's destination tilenum
+		cmp  dword ptr ds:[edi + 0x4], edx;  // target's tilenum
+		jnz  runTile;
+		add  esp, 4;
+		jmp  ai_move_steps_closer_run_object_ret;
+runTile:
+		retn;
+	}
+}
+
+static const DWORD ai_move_steps_closer_move_object_ret = 0x42A192;
+static void __declspec(naked) MultiHexCombatMoveFix() {
+	__asm {
+		test byte ptr ds:[edi + 0x25], 0x08; // is target multihex?
+		jnz  multiHex;
+		test byte ptr ds:[esi + 0x25], 0x08; // is source multihex?
+		jz   moveTile;
+multiHex:
+		mov  edx, dword ptr ds:[esp + 0x4];  // source's destination tilenum
+		cmp  dword ptr ds:[edi + 0x4], edx;  // target's tilenum
+		jnz  moveTile;
+		add  esp, 4;
+		jmp  ai_move_steps_closer_move_object_ret;
+moveTile:
+		retn;
+	}
+}
+
 //checks if an attacked object is a critter before attempting dodge animation
 static void __declspec(naked) action_melee_hack() {
 	__asm {
@@ -1360,8 +1396,10 @@ void BugsInit()
 		MakeCall(0x42901F, MultiHexFix);
 		MakeCall(0x429170, MultiHexFix);
 		// Fix for multihex critters moving too close and overlapping their targets in combat
-		SafeWrite8(0x42A153, 0xEB); // jmp loc_42A169 (skip register_object_run_to_tile_)
-		SafeWrite8(0x42A17C, 0xEB); // jmp loc_42A192 (skip register_object_move_to_tile_)
+		MakeCall(0x42A14F, MultiHexCombatRunFix);
+		SafeWrite8(0x42A154, 0x90);
+		MakeCall(0x42A178, MultiHexCombatMoveFix);
+		SafeWrite8(0x42A17D, 0x90);
 		dlogr(" Done", DL_INIT);
 	//}
 
@@ -1509,5 +1547,9 @@ void BugsInit()
 	SafeWrite16(0x456B76, 0x23EB); // jmp loc_456B9B (skip unused engine code)
 
 	// Fix for critters not checking weapon perks properly when searching for the best weapon
-	HookCall(0x42954B, ai_best_weapon_hook);
+	if (GetPrivateProfileIntA("Misc", "AIBestWeaponFix", 0, ini)) {
+		dlog("Applying AI best weapon choice fix.", DL_INIT);
+		HookCall(0x42954B, ai_best_weapon_hook);
+		dlogr(" Done", DL_INIT);
+	}
 }
