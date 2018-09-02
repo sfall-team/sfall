@@ -50,6 +50,7 @@ namespace sfall
 	_asm call SetInLoop }
 
 static Delegate<> onGameInit;
+static Delegate<> onGameExit;
 static Delegate<> onGameReset;
 static Delegate<> onBeforeGameStart;
 static Delegate<> onAfterGameStarted;
@@ -290,6 +291,10 @@ static void __stdcall GameInitialized() {
 	onGameInit.invoke();
 }
 
+static void __stdcall GameExit() {
+	onGameExit.invoke();
+}
+
 static void __declspec(naked) main_init_system_hook() {
 	__asm {
 		pushad;
@@ -326,6 +331,15 @@ static void __declspec(naked) before_game_exit_hook() {
 		call GameModeChange;
 		popad;
 		jmp fo::funcoffs::map_exit_;
+	}
+}
+
+static void __declspec(naked) after_game_exit_hook() {
+	__asm {
+		pushad;
+		call GameExit;
+		popad;
+		jmp fo::funcoffs::main_menu_create_;
 	}
 }
 
@@ -556,6 +570,7 @@ void LoadGameHook::init() {
 				0x47F491, // PrepLoad_ (the very first step during save game loading)
 			});
 	HookCalls(before_game_exit_hook, {0x480ACE, 0x480BC7});
+	HookCalls(after_game_exit_hook, {0x480AEB, 0x480BE4});
 
 	HookCalls(WorldMapHook, {0x483668, 0x4A4073});
 	HookCalls(WorldMapHook2, {0x4C4855});
@@ -583,6 +598,10 @@ void LoadGameHook::init() {
 
 Delegate<>& LoadGameHook::OnGameInit() {
 	return onGameInit;
+}
+
+Delegate<>& LoadGameHook::OnGameExit() {
+	return onGameExit;
 }
 
 Delegate<>& LoadGameHook::OnGameReset() {
