@@ -464,13 +464,10 @@ void QuestListPatch() {
 
 	MakeCall(0x4974E4, StartPipboy_hack);
 
-	MakeCall(0x497173, pipboy_hack_action);
-	SafeWrite8(0x497178, 0x90);
+	MakeCall(0x497173, pipboy_hack_action, 1);
 
-	MakeCall(0x4971B2, pipboy_hack_press0);
-	SafeWrite8(0x4971B7, 0x90);
-	MakeCall(0x497183, pipboy_hack_press1);
-	SafeWrite8(0x497188, 0x90);
+	MakeCall(0x4971B2, pipboy_hack_press0, 1);
+	MakeCall(0x497183, pipboy_hack_press1, 1);
 
 	MakeCall(0x4971D9, pipboy_hack_back);
 	HookCall(0x497219, pipboy_hook);

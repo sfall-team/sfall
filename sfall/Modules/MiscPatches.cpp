@@ -831,8 +831,7 @@ void DisplaySecondWeaponRangePatch() {
 void KeepWeaponSelectModePatch() {
 	if (GetConfigInt("Misc", "KeepWeaponSelectMode", 1)) {
 		dlog("Applying keep weapon select mode patch.", DL_INIT);
-		MakeCall(0x4714EC, switch_hand_hack);
-		SafeWrite8(0x4714F1, 0x90);
+		MakeCall(0x4714EC, switch_hand_hack, 1);
 		dlogr(" Done", DL_INIT);
 	}
 }

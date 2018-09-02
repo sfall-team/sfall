@@ -1660,12 +1660,9 @@ void BugFixes::init()
 		// Fix for the engine not checking player's inventory properly when putting items into the bag/backpack in the hands
 		MakeJump(0x4715DB, switch_hand_hack);
 		// Fix to ignore player's equipped items when opening bag/backpack
-		MakeCall(0x471B7F, inven_item_wearing); // inven_right_hand_
-		SafeWrite8(0x471B84, 0x90); // nop
-		MakeCall(0x471BCB, inven_item_wearing); // inven_left_hand_
-		SafeWrite8(0x471BD0, 0x90); // nop
-		MakeCall(0x471C17, inven_item_wearing); // inven_worn_
-		SafeWrite8(0x471C1C, 0x90); // nop
+		MakeCall(0x471B7F, inven_item_wearing, 1); // inven_right_hand_
+		MakeCall(0x471BCB, inven_item_wearing, 1); // inven_left_hand_
+		MakeCall(0x471C17, inven_item_wearing, 1); // inven_worn_
 		// Fix crash when trying to open bag/backpack on the table in the bartering interface
 		MakeCall(0x473191, inven_action_cursor_hack);
 		dlogr(" Done", DL_INIT);
@@ -1758,8 +1755,7 @@ void BugFixes::init()
 		dlog("Applying obj_can_hear_obj fix.", DL_INIT);
 		SafeWrite8(0x4583D8, 0x3B); // jz loc_458414
 		SafeWrite8(0x4583DE, 0x74); // jz loc_458414
-		MakeCall(0x4583E0, op_obj_can_hear_obj_hack);
-		SafeWrite8(0x4583E5, 0x90);
+		MakeCall(0x4583E0, op_obj_can_hear_obj_hack, 1);
 		dlogr(" Done", DL_INIT);
 	}
 
