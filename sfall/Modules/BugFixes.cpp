@@ -622,31 +622,39 @@ end:
 	}
 }
 
-static const DWORD ai_move_steps_closer_run_tile_ret = 0x42A155;
 static const DWORD ai_move_steps_closer_run_object_ret = 0x42A169;
 static void __declspec(naked) MultiHexCombatRunFix() {
 	__asm {
 		test [edi + flags + 1], 0x08; // is target multihex?
-		jnz  runObject;
+		jnz  multiHex;
 		test [esi + flags + 1], 0x08; // is source multihex?
-		jnz  runObject;
-		jmp  ai_move_steps_closer_run_tile_ret;
-runObject:
+		jz   runTile;
+multiHex:
+		mov  edx, [esp + 4];          // source's destination tilenum
+		cmp  [edi + tile], edx;       // target's tilenum
+		jnz  runTile;
+		add  esp, 4;
 		jmp  ai_move_steps_closer_run_object_ret;
+runTile:
+		retn;
 	}
 }
 
-static const DWORD ai_move_steps_closer_move_tile_ret = 0x42A17E;
 static const DWORD ai_move_steps_closer_move_object_ret = 0x42A192;
 static void __declspec(naked) MultiHexCombatMoveFix() {
 	__asm {
 		test [edi + flags + 1], 0x08; // is target multihex?
-		jnz  moveObject;
+		jnz  multiHex;
 		test [esi + flags + 1], 0x08; // is source multihex?
-		jnz  moveObject;
-		jmp  ai_move_steps_closer_move_tile_ret;
-moveObject:
+		jz   moveTile;
+multiHex:
+		mov  edx, [esp + 4];          // source's destination tilenum
+		cmp  [edi + tile], edx;       // target's tilenum
+		jnz  moveTile;
+		add  esp, 4;
 		jmp  ai_move_steps_closer_move_object_ret;
+moveTile:
+		retn;
 	}
 }
 
@@ -1538,8 +1546,10 @@ void BugFixes::init()
 		MakeCall(0x42901F, MultiHexFix);
 		MakeCall(0x429170, MultiHexFix);
 		// Fix for multihex critters moving too close and overlapping their targets in combat
-		MakeJump(0x42A14F, MultiHexCombatRunFix);
-		MakeJump(0x42A178, MultiHexCombatMoveFix);
+		MakeCall(0x42A14F, MultiHexCombatRunFix);
+		SafeWrite8(0x42A154, 0x90);
+		MakeCall(0x42A178, MultiHexCombatMoveFix);
+		SafeWrite8(0x42A17D, 0x90);
 		dlogr(" Done", DL_INIT);
 	//}
 
@@ -1701,7 +1711,7 @@ void BugFixes::init()
 	}
 
 	// Display experience points with the bonus from Swift Learner perk when gained from non-scripted situations
-	if (GetConfigInt("Misc", "DisplaySwiftLearnerExp", 1) != 0) {
+	if (GetConfigInt("Misc", "DisplaySwiftLearnerExp", 1)) {
 		dlog("Applying Swift Learner exp display patch.", DL_INIT);
 		MakeCall(0x4AFAEF, statPCAddExperienceCheckPMs_hack);
 		HookCall(0x4221E2, combat_give_exps_hook);
@@ -1717,7 +1727,7 @@ void BugFixes::init()
 	SafeWrite16(0x456B76, 0x23EB); // jmp loc_456B9B (skip unused engine code)
 
 	// Fix broken op_obj_can_hear_obj_ function
-	if (GetConfigInt("Misc", "ObjCanHearObjFix", 0) != 0) {
+	if (GetConfigInt("Misc", "ObjCanHearObjFix", 0)) {
 		dlog("Applying obj_can_hear_obj fix.", DL_INIT);
 		SafeWrite8(0x4583D8, 0x3B); // jz loc_458414
 		SafeWrite8(0x4583DE, 0x74); // jz loc_458414
@@ -1727,7 +1737,11 @@ void BugFixes::init()
 	}
 
 	// Fix for critters not checking weapon perks properly when searching for the best weapon
-	HookCall(0x42954B, ai_best_weapon_hook);
+	if (GetConfigInt("Misc", "AIBestWeaponFix", 0)) {
+		dlog("Applying AI best weapon choice fix.", DL_INIT);
+		HookCall(0x42954B, ai_best_weapon_hook);
+		dlogr(" Done", DL_INIT);
+	}
 }
 
 }
