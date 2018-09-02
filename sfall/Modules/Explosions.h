@@ -27,6 +27,8 @@ class Explosions : public Module {
 public:
 	const char* name() { return "Explosions"; }
 	void init();
+
+	static void AddToExplosives(DWORD pid, DWORD activePid, DWORD minDmg, DWORD maxDmg);
 };
 
 int _stdcall ExplosionsMetaruleFunc(int mode, int arg1, int arg2);
