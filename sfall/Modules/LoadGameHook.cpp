@@ -276,9 +276,9 @@ static void __stdcall NewGame_After() {
 static void __declspec(naked) main_load_new_hook() {
 	__asm {
 		pushad;
-		push eax;
+		mov  esi, eax;     // keep
 		call NewGame_Before;
-		pop eax;
+		mov  eax, esi;     // restore
 		call fo::funcoffs::main_load_new_;
 		call NewGame_After;
 		popad;

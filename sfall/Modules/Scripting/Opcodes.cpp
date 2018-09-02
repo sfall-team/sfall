@@ -192,10 +192,9 @@ void __declspec(naked) defaultOpcodeHandler() {
 }
 
 void InitNewOpcodes() {
-	bool AllowUnsafeScripting = isDebug
-		&& GetPrivateProfileIntA("Debugging", "AllowUnsafeScripting", 0, ::sfall::ddrawIni) != 0;
-
 	dlogr("Adding additional opcodes", DL_SCRIPT);
+
+	bool AllowUnsafeScripting = GetPrivateProfileIntA("Debugging", "AllowUnsafeScripting", 0, ::sfall::ddrawIni) != 0;
 	if (AllowUnsafeScripting) {
 		dlogr("  Unsafe opcodes enabled.", DL_SCRIPT);
 	} else {

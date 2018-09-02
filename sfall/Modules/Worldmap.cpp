@@ -424,7 +424,7 @@ void StartingStatePatches() {
 	if (ViewportY != -1) {
 		dlog("Applying starting y view patch.", DL_INIT);
 		SafeWrite32(FO_VAR_wmWorldOffsetY, ViewportY);
-		HookCall(0x4BCF07, &ViewportHook);
+		if (ViewportX == -1) HookCall(0x4BCF07, &ViewportHook);
 		dlogr(" Done", DL_INIT);
 	}
 }

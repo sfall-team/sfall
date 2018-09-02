@@ -45,8 +45,12 @@ static void __declspec(naked) MainMenuTextYHook() {
 	}
 }
 
-static const DWORD MainMenuTextRet = 0x4817B0;
+#ifdef NDEBUG
 static const char* VerString1 = "SFALL " VERSION_STRING;
+#else
+static const char* VerString1 = "SFALL " VERSION_STRING " Rev.Debug";
+#endif
+static const DWORD MainMenuTextRet = 0x4817B0;
 static DWORD OverrideColour;
 static void __declspec(naked) FontColour() {
 	__asm {
