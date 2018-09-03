@@ -32,6 +32,9 @@ public:
 	// Invoked when the game has initialized (game_init_ was called).
 	static Delegate<>& OnGameInit();
 
+	// Invoked when the game exits to main menu
+	static Delegate<>& OnGameExit();
+
 	// Invoked when game state is being reset (before loading a save, after quitting, etc.)
 	static Delegate<>& OnGameReset();
 
