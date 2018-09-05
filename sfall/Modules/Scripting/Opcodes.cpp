@@ -67,6 +67,9 @@ static SfallOpcodeInfo opcodeInfoArray[] = {
 	{0x1dc, "show_iface_tag", sf_show_iface_tag, 1, false, {ARG_INT}},
 	{0x1dd, "hide_iface_tag", sf_hide_iface_tag, 1, false, {ARG_INT}},
 	{0x1de, "is_iface_tag_active", sf_is_iface_tag_active, 1, true, {ARG_INT}},
+	{0x1e1, "set_critical_table", sf_set_critical_table, 5, false, {ARG_INT}},
+	{0x1e2, "get_critical_table", sf_get_critical_table, 4, true, {ARG_INT}},
+	{0x1e3, "reset_critical_table", sf_reset_critical_table, 4, false, {ARG_INT}},
 	{0x1ec, "sqrt", sf_sqrt, 1, true, {ARG_NUMBER}},
 	{0x1ed, "abs", sf_abs, 1, true, {ARG_NUMBER}},
 	{0x1ee, "sin", sf_sin, 1, true, {ARG_NUMBER}},
@@ -194,19 +197,13 @@ void __declspec(naked) defaultOpcodeHandler() {
 void InitNewOpcodes() {
 	dlogr("Adding additional opcodes", DL_SCRIPT);
 
-	bool AllowUnsafeScripting = (GetPrivateProfileIntA("Debugging", "AllowUnsafeScripting", 0, ::sfall::ddrawIni) != 0);
-	if (AllowUnsafeScripting) {
-		dlogr("  Unsafe opcodes enabled.", DL_SCRIPT);
-	} else {
-		dlogr("  Unsafe opcodes disabled.", DL_SCRIPT);
-	}
-
 	SafeWrite32(0x46E370, opcodeCount);	//Maximum number of allowed opcodes
 	SafeWrite32(0x46ce34, (DWORD)opcodes);	//cmp check to make sure opcode exists
 	SafeWrite32(0x46ce6c, (DWORD)opcodes);	//call that actually jumps to the opcode
 	SafeWrite32(0x46e390, (DWORD)opcodes);	//mov that writes to the opcode
 
-	if (AllowUnsafeScripting) {
+	if (GetPrivateProfileIntA("Debugging", "AllowUnsafeScripting", 0, ::sfall::ddrawIni)) {
+		dlogr("  Unsafe opcodes enabled.", DL_SCRIPT);
 		opcodes[0x156] = op_read_byte;
 		opcodes[0x157] = op_read_short;
 		opcodes[0x158] = op_read_int;
@@ -218,8 +215,10 @@ void InitNewOpcodes() {
 		for (int i = 0x1d2; i < 0x1dc; i++) {
 			opcodes[i] = op_call_offset;
 		}
-
+	} else {
+		dlogr("  Unsafe opcodes disabled.", DL_SCRIPT);
 	}
+
 	opcodes[0x15a] = op_set_pc_base_stat;
 	opcodes[0x15b] = op_set_pc_extra_stat;
 	opcodes[0x15c] = op_get_pc_base_stat;
@@ -330,9 +329,6 @@ void InitNewOpcodes() {
 	opcodes[0x1ce] = op_set_hp_per_level_mod;
 	opcodes[0x1df] = op_get_bodypart_hit_modifier;
 	opcodes[0x1e0] = op_set_bodypart_hit_modifier;
-	opcodes[0x1e1] = op_set_critical_table;
-	opcodes[0x1e2] = op_get_critical_table;
-	opcodes[0x1e3] = op_reset_critical_table;
 	opcodes[0x1e4] = op_get_sfall_arg;
 	opcodes[0x1e5] = op_set_sfall_return;
 	opcodes[0x1e6] = op_set_unspent_ap_bonus;

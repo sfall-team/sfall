@@ -986,100 +986,42 @@ end:
 	}
 }
 
-void __declspec(naked) op_set_critical_table() {
-	__asm {
-		pushad;
-		mov ecx, eax;
-		xor ebx, ebx;
-		mov edx, 5;
-loops:
-		mov eax, ecx;
-		call fo::funcoffs::interpretPopShort_;
-		cmp ax, VAR_TYPE_INT;
-		jz skip1;
-		inc ebx;
-skip1:
-		mov eax, ecx;
-		call fo::funcoffs::interpretPopLong_;
-		push eax;
-		dec dx;
-		jnz loops;
-		test ebx, ebx;
-		jnz fail;
-		call SetCriticalTable;
-		jmp end;
-fail:
-		add esp, 20;
-end:
-		popad;
-		retn;
+void sf_set_critical_table(OpcodeContext& ctx) {
+	DWORD critter = ctx.arg(0).asInt(),
+		bodypart  = ctx.arg(1).asInt(),
+		slot      = ctx.arg(2).asInt(),
+		element   = ctx.arg(3).asInt();
+
+	if (critter >= Criticals::critTableCount || bodypart >= 9 || slot >= 6 || element >= 7) {
+		ctx.printOpcodeError("set_critical_table() - arguments values out of range.");
+	} else {
+		Criticals::SetCriticalTable(critter, bodypart, slot, element, ctx.arg(4).asInt());
 	}
 }
 
-void __declspec(naked) op_get_critical_table() {
-	__asm {
-		pushad;
-		mov edi, eax;
-		xor ebx, ebx;
-		mov dl, 4;
-loops:
-		mov eax, edi;
-		call fo::funcoffs::interpretPopShort_;
-		cmp ax, VAR_TYPE_INT;
-		jz skip1;
-		inc ebx;
-skip1:
-		mov eax, edi;
-		call fo::funcoffs::interpretPopLong_;
-		push eax;
-		dec dx;
-		jnz loops;
-		test ebx, ebx;
-		jz fail;
-		call ResetCriticalTable;
-		mov edx, eax;
-		jmp end;
-fail:
-		add esp, 16;
-		xor edx, edx;
-end:
-		mov eax, edi;
-		call fo::funcoffs::interpretPushLong_;
-		mov eax, edi;
-		mov edx, VAR_TYPE_INT;
-		call fo::funcoffs::interpretPushShort_;
-		popad;
-		retn;
+void sf_get_critical_table(OpcodeContext& ctx) {
+	DWORD critter = ctx.arg(0).asInt(),
+		bodypart  = ctx.arg(1).asInt(),
+		slot      = ctx.arg(2).asInt(),
+		element   = ctx.arg(3).asInt();
+
+	if (critter >= Criticals::critTableCount || bodypart >= 9 || slot >= 6 || element >= 7) {
+		ctx.printOpcodeError("get_critical_table() - arguments values out of range.");
+	} else {
+		ctx.setReturn(Criticals::GetCriticalTable(critter, bodypart, slot, element));
 	}
 }
 
-void __declspec(naked) op_reset_critical_table() {
-	__asm {
-		pushad;
-		mov ecx, eax;
-		xor ebx, ebx;
-		mov dl, 4;
-loops:
-		mov eax, ecx;
-		call fo::funcoffs::interpretPopShort_;
-		cmp ax, VAR_TYPE_INT;
-		jz skip1;
-		inc ebx;
-skip1:
-		mov eax, ecx;
-		call fo::funcoffs::interpretPopLong_;
-		push eax;
-		dec dx;
-		jnz loops;
-		test ebx, ebx;
-		jz fail;
-		call ResetCriticalTable;
-		jmp end;
-fail:
-		add esp, 16;
-end:
-		popad;
-		retn;
+void sf_reset_critical_table(OpcodeContext& ctx) {
+	DWORD critter = ctx.arg(0).asInt(),
+		bodypart  = ctx.arg(1).asInt(),
+		slot      = ctx.arg(2).asInt(),
+		element   = ctx.arg(3).asInt();
+
+	if (critter >= Criticals::critTableCount || bodypart >= 9 || slot >= 6 || element >= 7) {
+		ctx.printOpcodeError("reset_critical_table() - arguments values out of range.");
+	} else {
+		Criticals::ResetCriticalTable(critter, bodypart, slot, element);
 	}
 }
 
