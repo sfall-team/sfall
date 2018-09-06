@@ -1383,6 +1383,21 @@ static void __declspec(naked) ai_best_weapon_hook() {
 	}
 }
 
+static void __declspec(naked) wmSetupRandomEncounter_hook() {
+	__asm {
+		push eax;                  // text 2 
+		push edi;                  // text 1
+		push 0x500B64;             // fmt '%s %s'
+		lea  eax, textBuf;
+		mov  edi, eax;
+		push eax;                  // buf
+		call fo::funcoffs::sprintf_;
+		add  esp, 16;
+		mov  eax, edi;
+		jmp  fo::funcoffs::display_print_;
+	}
+}
+
 void BugFixes::init()
 {
 	#ifndef NDEBUG
@@ -1564,7 +1579,7 @@ void BugFixes::init()
 		dlogr(" Done", DL_INIT);
 	//}
 
-	//if (GetConfigInt("Misc", "MultiHexPathingFix", 0)) {
+	//if (GetConfigInt("Misc", "MultiHexPathingFix", 1)) {
 		dlog("Applying MultiHex Pathing Fix.", DL_INIT);
 		MakeCalls(MultiHexFix, { 0x42901F, 0x429170 });
 		// Fix for multihex critters moving too close and overlapping their targets in combat
@@ -1760,7 +1775,7 @@ void BugFixes::init()
 	}
 
 	// Fix: The wrong item was passed to the function to check the presence of perk at the weapon
-	int bestWeaponPerkMod = GetConfigInt("Misc", "AIBestWeaponPerkFix", 0);
+	int bestWeaponPerkMod = GetConfigInt("Misc", "AIBestWeaponFix", 0);
 	if (bestWeaponPerkMod > 0) {
 		dlog("Applying AI best weapon choose fix.", DL_INIT);
 		HookCall(0x42954B, ai_best_weapon_hook);
@@ -1775,6 +1790,12 @@ void BugFixes::init()
 		}
 		dlogr(" Done", DL_INIT);
 	}
+
+	// Fix of the display of the description of the encounter, when two lines were displayed instead of one (Crafty)
+	SafeWrite32(0x4C1011, 0x9090C789); // mov edi, eax;
+	SafeWrite8(0x4C1015, 0x90);
+	HookCall(0x4C1042, wmSetupRandomEncounter_hook);
+
 }
 
 }

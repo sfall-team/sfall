@@ -276,7 +276,7 @@ end:
 }
 //----------------------------------
 
-static void _cdecl CombatAttackHook(DWORD source, DWORD target) {
+static void _cdecl CombatAttackHook(const DWORD source, const DWORD target) {
 	sources[target] = source;
 	targets[source] = target;
 }

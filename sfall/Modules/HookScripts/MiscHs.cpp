@@ -90,7 +90,7 @@ void SourceUseSkillOnInit() { sourceSkillOn = fo::var::obj_dude; }
 
 static char resultSkillOn;
 static long bakupCombatState;
-static void __cdecl UseSkillOnHook_Script(DWORD source, DWORD target, register DWORD skillId) {
+static void __cdecl UseSkillOnHook_Script(const DWORD source, const DWORD target, const register DWORD skillId) {
 
 	BeginHook();
 	argCount = 3;

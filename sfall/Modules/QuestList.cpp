@@ -179,7 +179,7 @@ static void AddPage(int lines) {
 }
 
 // Print quests page text
-static long __cdecl QuestsPrint(const char* text, int width, DWORD* buf, BYTE* count) {
+static long __cdecl QuestsPrint(const char* text, const int width, DWORD* buf, BYTE* count) {
 
 	look_quests++; // quests counter
 

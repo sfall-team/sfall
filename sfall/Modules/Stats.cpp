@@ -219,14 +219,10 @@ void Stats::init() {
 
 	LoadGameHook::OnGameReset() += StatsReset;
 
-	SafeWrite8(0x4AEF48, 0xE9);
-	HookCall(0x4AEF48, GetCurrentStatHook1);
-	SafeWrite8(0x4AF3AF, 0xE9);
-	HookCall(0x4AF3AF, GetCurrentStatHook2);
-	SafeWrite8(0x4AF56A, 0xE9);
-	HookCall(0x4AF56A, SetCurrentStatHook);
-	SafeWrite8(0x4AF09C, 0xE9);
-	HookCall(0x4AF09C, ApplyApAcBonus);
+	MakeJump(0x4AEF48, GetCurrentStatHook1);
+	MakeJump(0x4AF3AF, GetCurrentStatHook2, 2);
+	MakeJump(0x4AF56A, SetCurrentStatHook, 2);
+	MakeJump(0x4AF09C, ApplyApAcBonus);
 
 	auto xpTableList = GetConfigList("Misc", "XPTable", "", 2048);
 	size_t numLevels = xpTableList.size();
