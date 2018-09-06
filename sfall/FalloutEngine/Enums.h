@@ -213,6 +213,15 @@ enum ObjType : char
 	OBJ_TYPE_SPATIAL = 6
 };
 
+enum ArtType : char
+{
+	OBJ_TYPE_INTRFACE   = 6,
+	OBJ_TYPE_INVEN      = 7,
+	OBJ_TYPE_HEAD       = 8,
+	OBJ_TYPE_BACKGROUND = 9,
+	OBJ_TYPE_SKILLDEX   = 10
+};
+
 // Some FO2 PIDs possibly used by engine
 enum ProtoId : long
 {
@@ -587,6 +596,30 @@ enum InvenType : long
 	INVEN_TYPE_LEFT_HAND = 2,
 };
 
+enum AttackType : long
+{
+	ATKTYPE_LWEAPON_PRIMARY   = 0,
+	ATKTYPE_LWEAPON_SECONDARY = 1,
+	ATKTYPE_RWEAPON_PRIMARY   = 2,
+	ATKTYPE_RWEAPON_SECONDARY = 3,
+	ATKTYPE_PUNCH             = 4,
+	ATKTYPE_KICK              = 5,
+	ATKTYPE_LWEAPON_RELOAD    = 6,
+	ATKTYPE_RWEAPON_RELOAD    = 7,
+	ATKTYPE_STRONGPUNCH       = 8,
+	ATKTYPE_HAMMERPUNCH       = 9,
+	ATKTYPE_HAYMAKER          = 10,
+	ATKTYPE_JAB               = 11,
+	ATKTYPE_PALMSTRIKE        = 12,
+	ATKTYPE_PIERCINGSTRIKE    = 13,
+	ATKTYPE_STRONGKICK        = 14,
+	ATKTYPE_SNAPKICK          = 15,
+	ATKTYPE_POWERKICK         = 16,
+	ATKTYPE_HIPKICK           = 17,
+	ATKTYPE_HOOKKICK          = 18,
+	ATKTYPE_PIERCINGKICK      = 19
+};
+
 #define OBJFLAG_CAN_WEAR_ITEMS (0xf000000)
 
 #define OBJFLAG_HELD_IN_RIGHT (0x10000)
@@ -607,5 +640,53 @@ enum RollResult
 	ROLL_SUCCESS = 0x2,
 	ROLL_CRITICAL_SUCCESS = 0x3,
 };
+
+namespace Fields {
+	enum CommonObj : long
+	{
+		id                = 0x00,
+		tile              = 0x04,
+		x                 = 0x08,
+		y                 = 0x0C,
+		sx                = 0x10,
+		sy                = 0x14,
+		frm               = 0x18,
+		rotation          = 0x1C,
+		artFid            = 0x20,
+		flags             = 0x24,
+		elevation         = 0x28,
+		inventory         = 0x2C,
+		protoId           = 0x64,
+		cid               = 0x68,
+		lightDistance     = 0x6C,
+		lightIntensity    = 0x70,
+		outline           = 0x74,
+		scriptId          = 0x78,
+		owner             = 0x7C,
+		scriptIndex       = 0x80,
+	};
+
+	enum CritterObj : long 
+	{	
+		reaction          = 0x38,
+		combatState       = 0x3C,
+		movePoints        = 0x40,
+		damageFlags       = 0x44,
+		damageLastTurn    = 0x48,
+		aiPacket          = 0x4C,
+		teamNum           = 0x50,
+		whoHitMe          = 0x54,
+		health            = 0x58,
+		rads              = 0x5C,
+		poison            = 0x60,
+	};
+
+	enum ItemObj : long
+	{
+		updatedFlags      = 0x38,
+		charges           = 0x3C,
+		ammoPid           = 0x40,
+	};
+}
 
 }

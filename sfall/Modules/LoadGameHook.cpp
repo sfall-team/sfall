@@ -26,6 +26,7 @@
 #include "AI.h"
 #include "FileSystem.h"
 #include "HeroAppearance.h"
+#include "HookScripts.h"
 #include "PartyControl.h"
 #include "Perks.h"
 #include "ScriptExtender.h"
@@ -49,6 +50,7 @@ namespace sfall
 	_asm call SetInLoop }
 
 static Delegate<> onGameInit;
+static Delegate<> onGameExit;
 static Delegate<> onGameReset;
 static Delegate<> onBeforeGameStart;
 static Delegate<> onAfterGameStarted;
@@ -73,6 +75,10 @@ DWORD InCombat() {
 	return (inLoop & COMBAT) ? 1 : 0;
 }
 
+DWORD InDialog() {
+	return (inLoop & DIALOG) ? 1 : 0;
+}
+
 DWORD GetLoopFlags() {
 	return inLoop;
 }
@@ -95,7 +101,7 @@ void _stdcall SetInLoop(DWORD mode, LoopFlag flag) {
 	} else {
 		ClearLoopFlag(flag);
 	}
-	GameModeChange(0);
+	HookScripts::GameModeChangeHook(0);
 }
 
 void GetSavePath(char* buf, char* ftype) {
@@ -285,6 +291,10 @@ static void __stdcall GameInitialized() {
 	onGameInit.invoke();
 }
 
+static void __stdcall GameExit() {
+	onGameExit.invoke();
+}
+
 static void __declspec(naked) main_init_system_hook() {
 	__asm {
 		pushad;
@@ -321,6 +331,15 @@ static void __declspec(naked) before_game_exit_hook() {
 		call GameModeChange;
 		popad;
 		jmp fo::funcoffs::map_exit_;
+	}
+}
+
+static void __declspec(naked) after_game_exit_hook() {
+	__asm {
+		pushad;
+		call GameExit;
+		popad;
+		jmp fo::funcoffs::main_menu_create_;
 	}
 }
 
@@ -498,6 +517,31 @@ static void __declspec(naked) AutomapHook() {
 	}
 }
 
+static void __declspec(naked) DialogReviewInitHook() {
+	__asm {
+		call fo::funcoffs::gdReviewInit_;
+		test eax, eax;
+		jnz  error;
+		push ecx;
+		_InLoop2(1, DIALOGVIEW);
+		pop ecx;
+		xor eax, eax;
+error:
+		retn;
+	}
+}
+
+static void __declspec(naked) DialogReviewExitHook() {
+	__asm {
+		push ecx;
+		push eax;
+		_InLoop2(0, DIALOGVIEW);
+		pop eax;
+		pop ecx;
+		jmp fo::funcoffs::gdReviewExit_;
+	}
+}
+
 void LoadGameHook::init() {
 	saveInCombatFix = GetConfigInt("Misc", "SaveInCombatFix", 1);
 	if (saveInCombatFix > 2) saveInCombatFix = 0;
@@ -526,6 +570,7 @@ void LoadGameHook::init() {
 				0x47F491, // PrepLoad_ (the very first step during save game loading)
 			});
 	HookCalls(before_game_exit_hook, {0x480ACE, 0x480BC7});
+	HookCalls(after_game_exit_hook, {0x480AEB, 0x480BE4});
 
 	HookCalls(WorldMapHook, {0x483668, 0x4A4073});
 	HookCalls(WorldMapHook2, {0x4C4855});
@@ -547,10 +592,16 @@ void LoadGameHook::init() {
 			0x4A4565});
 	HookCalls(BarterInventoryHook, {0x4466C7});
 	HookCalls(AutomapHook, {0x44396D, 0x479519});
+	HookCall(0x445CA7, DialogReviewInitHook);
+	HookCall(0x445D30, DialogReviewExitHook);
 }
 
 Delegate<>& LoadGameHook::OnGameInit() {
 	return onGameInit;
+}
+
+Delegate<>& LoadGameHook::OnGameExit() {
+	return onGameExit;
 }
 
 Delegate<>& LoadGameHook::OnGameReset() {

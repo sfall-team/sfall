@@ -1,4 +1,4 @@
-/*
+﻿/*
  *    sfall
  *    Copyright (C) 2011  Timeslip
  *
@@ -37,23 +37,15 @@ static DWORD maxItemSize;
 static DWORD reloadWeaponKey = 0;
 static DWORD itemFastMoveKey = 0;
 
-long& GetActiveItemMode() {
-	return fo::var::itemButtonItems[fo::var::itemCurrentItem].mode;
-}
-
-fo::GameObject* GetActiveItem() {
-	return fo::var::itemButtonItems[fo::var::itemCurrentItem].item;
-}
-
 void InventoryKeyPressedHook(DWORD dxKey, bool pressed, DWORD vKey) {
 	// TODO: move this out into a script
 	if (pressed && reloadWeaponKey && dxKey == reloadWeaponKey && IsMapLoaded() && (GetLoopFlags() & ~(COMBAT | PCOMBAT)) == 0) {
 		DWORD maxAmmo, curAmmo;
-		fo::GameObject* item = GetActiveItem();
+		fo::GameObject* item = fo::GetActiveItem();
 		maxAmmo = fo::func::item_w_max_ammo(item);
 		curAmmo = fo::func::item_w_curr_ammo(item);
 		if (maxAmmo != curAmmo) {
-			long &currentMode = GetActiveItemMode();
+			long &currentMode = fo::GetActiveItemMode();
 			long previusMode = currentMode;
 			currentMode = 5; // reload mode
 			fo::func::intface_use_item();
@@ -450,66 +442,65 @@ static void __declspec(naked) inven_ap_cost_hook() {
 	}
 }
 
-static const DWORD add_check_for_item_ammo_cost_back = 0x4266EE;
-// adds check for weapons which require more than 1 ammo for single shot (super cattle prod & mega power fist)
-static void __declspec(naked) add_check_for_item_ammo_cost() {
+static DWORD __fastcall add_check_for_item_ammo_cost(register fo::GameObject* weapon, DWORD hitMode) {
+	DWORD rounds = 1;
+	DWORD anim = fo::func::item_w_anim_weap(weapon, hitMode);
+	if (anim == fo::Animation::ANIM_fire_burst || anim == fo::Animation::ANIM_fire_continuous) {
+		rounds = fo::func::item_w_rounds(weapon); // ammo in burst
+	}
+
+	if (HookScripts::IsInjectHook(HOOK_AMMOCOST)) {
+		AmmoCostHook_Script(1, weapon, &rounds);  // get rounds cost from hook
+	}
+
+	DWORD currAmmo = fo::func::item_w_curr_ammo(weapon);
+
+	DWORD cost = 1; // default cost
+	if (currAmmo > 0) cost = (DWORD)ceilf((float)rounds / currAmmo);
+
+	return (cost > currAmmo) ? 0 : 1;   // 0 - this will force "Out of ammo", 1 - this will force success (enough ammo)
+}
+
+// adds check for weapons which require more than 1 ammo for single shot (super cattle prod & mega power fist) and burst rounds
+static void __declspec(naked) combat_check_bad_shot_hook() {
 	__asm {
-		push    edx
-		push    ebx
-		sub     esp, 4
-		call    fo::funcoffs::item_w_curr_ammo_
-		mov     ebx, eax
-		mov     eax, ecx // weapon
-		mov     edx, esp
-		mov     dword ptr [esp], 1
-		pushad
-		push    1 // hook type
-		call    AmmoCostHookWrapper
-		add     esp, 4
-		popad
-		mov     eax, [esp]
-		cmp     eax, ebx
-		jle     enoughammo
-		xor     eax, eax // this will force "Out of ammo"
-		jmp     end
-enoughammo:
-		mov     eax, 1 // this will force success
-end:
-		add     esp, 4
-		pop     ebx
-		pop     edx
-		jmp     add_check_for_item_ammo_cost_back; // jump back
+		push edx;
+		push ebx;
+		push ecx;         // weapon
+		mov  edx, edi;    // hitMode
+		call add_check_for_item_ammo_cost;
+		pop  ecx;
+		pop  ebx;
+		pop  edx;
+		retn;
 	}
 }
 
-static const DWORD divide_burst_rounds_by_ammo_cost_back = 0x4234B9;
-static void __declspec(naked) divide_burst_rounds_by_ammo_cost() {
+static DWORD __fastcall divide_burst_rounds_by_ammo_cost(fo::GameObject* weapon, register DWORD currAmmo, DWORD burstRounds) {
+	DWORD rounds = 1; // default multiply
+
+	if (HookScripts::IsInjectHook(HOOK_AMMOCOST)) {
+		rounds = burstRounds;            // rounds in burst (количество патронов израсходуемое в очереди)
+		AmmoCostHook_Script(2, weapon, &rounds);
+	}
+
+	DWORD cost = burstRounds * rounds;    // so much ammo is required for this burst (количество патронов в очереди умноженное на 1 или на значения возвращаемое из скрипта)
+	if (cost > currAmmo) cost = currAmmo; // if cost ammo more than current ammo, set it to current
+
+	return (cost / rounds);               // divide back to get proper number of rounds for damage calculations
+}
+
+static void __declspec(naked) compute_spray_hack() {
 	__asm {
-		// ecx - current ammo, eax - burst rounds; need to set ebp
-		push edx
-		sub     esp, 4
-		mov     ebp, eax
-		mov     eax, edx // weapon
-		mov     dword ptr [esp], 1
-		mov     edx, esp // *rounds
-		pushad
-		push    2
-		call    AmmoCostHookWrapper
-		add     esp, 4
-		popad
-		mov     edx, 0
-		mov     eax, ebp // rounds in burst
-		imul    dword ptr [esp] // so much ammo is required for this burst
-		cmp     eax, ecx
-		jle     skip
-		mov     eax, ecx // if more than current ammo, set it to current
-skip:
-		idiv    dword ptr [esp] // divide back to get proper number of rounds for damage calculations
-		mov     ebp, eax
-		add     esp, 4
-		pop edx
-		// end overwriten code
-		jmp     divide_burst_rounds_by_ammo_cost_back; // jump back
+		push edx;         // weapon
+		push ecx;         // current ammo in weapon
+		xchg ecx, edx;
+		push eax;         // eax - rounds in burst attack, need to set ebp
+		call divide_burst_rounds_by_ammo_cost;
+		mov  ebp, eax;    // overwriten code (в ebp устанавливаем правильное значение)
+		pop  ecx;
+		pop  edx;
+		retn;
 	}
 }
 
@@ -868,8 +859,9 @@ void Inventory::init() {
 	}
 
 	if (GetConfigInt("Misc", "CheckWeaponAmmoCost", 0)) {
-		MakeJump(0x4266E9, add_check_for_item_ammo_cost);
-		MakeJump(0x4234B3, divide_burst_rounds_by_ammo_cost);
+		HookCall(0x4266E9, combat_check_bad_shot_hook);
+		MakeCall(0x4234B3, compute_spray_hack);
+		SafeWrite8(0x4234B8, 0x90);
 	}
 
 	reloadWeaponKey = GetConfigInt("Input", "ReloadWeaponKey", 0);

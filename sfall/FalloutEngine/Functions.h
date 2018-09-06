@@ -36,6 +36,8 @@ namespace func
 
 bool __stdcall art_exists(long artFid);
 
+long __fastcall _word_wrap(const char* text, int maxWidth, DWORD* buf, BYTE* count);
+
 // Returns the name of the critter
 const char* __stdcall critter_name(GameObject* critter);
 

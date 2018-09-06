@@ -371,14 +371,15 @@ void AdjustFidHook(DWORD vanillaFid) {
 	EndHook();
 }
 
-void InitInventoryHookScripts() {
-	LoadHookScript("hs_removeinvenobj", HOOK_REMOVEINVENOBJ);
+void Inject_RemoveInvenObjHook() {
 	MakeJump(0x477492, RemoveObjHook); // old 0x477490
+}
 
-	LoadHookScript("hs_movecost", HOOK_MOVECOST);
+void Inject_MoveCostHook() {
 	HookCalls(MoveCostHook, { 0x417665, 0x44B88A });
+}
 
-	LoadHookScript("hs_inventorymove", HOOK_INVENTORYMOVE);
+void Inject_InventoryMoveHook() {
 	HookCalls(SwitchHandHook, {
 		0x4712E3, // left slot
 		0x47136D  // right slot
@@ -395,13 +396,22 @@ void InitInventoryHookScripts() {
 	});
 	MakeCall(0x473807, InvenActionExplosiveDropHack);  // drop active explosives
 	SafeWrite8(0x47380C, 0x90);
+}
 
-	LoadHookScript("hs_invenwield", HOOK_INVENWIELD);
+void Inject_InvenWieldHook() {
 	HookCalls(InvenWieldFuncHook, { 0x47275E, 0x495FDF });
 	HookCalls(InvenUnwieldFuncHook, { 0x45967D, 0x472A5A, 0x495F0B });
 	HookCalls(CorrectFidForRemovedItemHook, { 0x45680C, 0x45C4EA });
+}
 
+void InitInventoryHookScripts() {
+
+	LoadHookScript("hs_removeinvenobj", HOOK_REMOVEINVENOBJ);
+	LoadHookScript("hs_movecost", HOOK_MOVECOST);
+	LoadHookScript("hs_inventorymove", HOOK_INVENTORYMOVE);
+	LoadHookScript("hs_invenwield", HOOK_INVENWIELD);
 	LoadHookScript("hs_adjustfid", HOOK_ADJUSTFID);
+
 	Inventory::OnAdjustFid() += AdjustFidHook;
 }
 

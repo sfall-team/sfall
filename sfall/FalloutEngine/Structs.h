@@ -100,7 +100,7 @@ struct GameObject {
 
 	union {
 		struct {
-			char gap_38[4];
+			char updatedFlags[4];
 			// for weapons - ammo in magazine, for ammo - amount of ammo in last ammo pack
 			long charges;
 			// current type of ammo loaded in magazine
@@ -151,8 +151,8 @@ struct ComputeAttackResult {
 	GameObject* target;
 	long targetTile;
 	long bodyPart;
-	long damage;
-	long flags;
+	long targetDamage;
+	long targetFlags;
 	long knockbackValue;
 	GameObject* mainTarget;
 	long numExtras;
@@ -638,6 +638,30 @@ struct Window {
 	long unknown6;
 	long unknown7;
 	long drawFuncP;
+};
+
+#pragma pack(1)
+struct LSData {
+	char signature[24];
+	short majorVer;
+	short minorVer;
+	char charR;
+	char playerName[32];
+	char comment[30];
+	char unused1;
+	short realMonth;
+	short realDay;
+	short realYear;
+	short unused2;
+	long realTime;
+	short gameMonth;
+	short gameDay;
+	short gameYear;
+	short unused3;
+	long gameTime;
+	short mapElev;
+	short mapNumber;
+	char mapName[16];
 };
 
 }

@@ -7,6 +7,7 @@
 namespace sfall
 {
 using namespace fo;
+using namespace Fields;
 
 DWORD WeightOnBody = 0;
 
@@ -83,7 +84,7 @@ skip:
 
 static void __declspec(naked) protinst_default_use_item_hack() {
 	__asm {
-		mov  eax, dword ptr [edx+0x64]            // eax = target pid
+		mov  eax, dword ptr [edx + protoId]       // eax = target pid
 		cmp  eax, PID_DRIVABLE_CAR
 		je   isCar
 		cmp  eax, PID_CAR_TRUNK
@@ -308,7 +309,7 @@ static void __declspec(naked) invenWieldFunc_item_get_type_hook() {
 		call fo::funcoffs::item_remove_mult_
 		xchg ebx, eax
 		mov  eax, esi
-		test cl, 0x2                              // Right hand?
+		test cl, INVEN_TYPE_LEFT_HAND             // Right hand?
 		jz   leftHand                             // No
 		call fo::funcoffs::inven_right_hand_
 		jmp  removeFlag
@@ -551,7 +552,7 @@ static void __declspec(naked) drop_ammo_into_weapon_hook() {
 		mov  edx, [esp+0x24+4]                    // from_slot
 		cmp  edx, 1006                            // Hands?
 		jge  skip                                 // Yes
-		lea  edx, [eax+0x2C]                      // Inventory
+		lea  edx, [eax + inventory]               // Inventory
 		mov  ecx, [edx]                           // itemsCount
 		jcxz skip                                 // inventory is empty (another excess check, but leave it)
 		mov  edx, [edx+8]                         // FirstItem
@@ -612,8 +613,8 @@ static void __declspec(naked) op_wield_obj_critter_adjust_ac_hook() {
 static void __declspec(naked) MultiHexFix() {
 	__asm {
 		xor  ecx, ecx;                      // argument value for make_path_func: ecx=0 (rotation data arg)
-		test byte ptr ds:[ebx+0x25], 0x08;  // is target multihex?
-		mov  ebx, dword ptr ds:[ebx+0x4];   // argument value for make_path_func: target's tilenum (end_tile)
+		test [ebx + flags + 1], 0x08;       // is target multihex?
+		mov  ebx, [ebx + tile];             // argument value for make_path_func: target's tilenum (end_tile)
 		je   end;                           // skip if not multihex
 		inc  ebx;                           // otherwise, increase tilenum by 1
 end:
@@ -624,13 +625,13 @@ end:
 static const DWORD ai_move_steps_closer_run_object_ret = 0x42A169;
 static void __declspec(naked) MultiHexCombatRunFix() {
 	__asm {
-		test byte ptr ds:[edi + 0x25], 0x08; // is target multihex?
+		test [edi + flags + 1], 0x08; // is target multihex?
 		jnz  multiHex;
-		test byte ptr ds:[esi + 0x25], 0x08; // is source multihex?
+		test [esi + flags + 1], 0x08; // is source multihex?
 		jz   runTile;
 multiHex:
-		mov  edx, dword ptr ds:[esp + 0x4];  // source's destination tilenum
-		cmp  dword ptr ds:[edi + 0x4], edx;  // target's tilenum
+		mov  edx, [esp + 4];          // source's destination tilenum
+		cmp  [edi + tile], edx;       // target's tilenum
 		jnz  runTile;
 		add  esp, 4;
 		jmp  ai_move_steps_closer_run_object_ret;
@@ -642,13 +643,13 @@ runTile:
 static const DWORD ai_move_steps_closer_move_object_ret = 0x42A192;
 static void __declspec(naked) MultiHexCombatMoveFix() {
 	__asm {
-		test byte ptr ds:[edi + 0x25], 0x08; // is target multihex?
+		test [edi + flags + 1], 0x08; // is target multihex?
 		jnz  multiHex;
-		test byte ptr ds:[esi + 0x25], 0x08; // is source multihex?
+		test [esi + flags + 1], 0x08; // is source multihex?
 		jz   moveTile;
 multiHex:
-		mov  edx, dword ptr ds:[esp + 0x4];  // source's destination tilenum
-		cmp  dword ptr ds:[edi + 0x4], edx;  // target's tilenum
+		mov  edx, [esp + 4];          // source's destination tilenum
+		cmp  [edi + tile], edx;       // target's tilenum
 		jnz  moveTile;
 		add  esp, 4;
 		jmp  ai_move_steps_closer_move_object_ret;
@@ -661,13 +662,13 @@ moveTile:
 static void __declspec(naked) action_melee_hack() {
 	__asm {
 		mov  edx, 0x4113DC
-		mov  ebx, [eax+0x20]                      // objStruct->FID
+		mov  ebx, [eax + artFid]                  // objStruct->FID
 		and  ebx, 0x0F000000
 		sar  ebx, 0x18
 		cmp  ebx, OBJ_TYPE_CRITTER                // check if object FID type flag is set to critter
 		jne  end                                  // if object not a critter leave jump condition flags
 		// set to skip dodge animation
-		test byte ptr [eax+0x44], 0x3             // (original code) DAM_KNOCKED_OUT or DAM_KNOCKED_DOWN
+		test byte ptr [eax + damageFlags], DAM_KNOCKED_OUT or DAM_KNOCKED_DOWN    // (original code)
 		jnz  end
 		mov  edx, 0x4113FE
 end:
@@ -678,13 +679,13 @@ end:
 static void __declspec(naked) action_ranged_hack() {
 	__asm {
 		mov  edx, 0x411B6D
-		mov  ebx, [eax+0x20]                      // objStruct->FID
+		mov  ebx, [eax + artFid]                  // objStruct->FID
 		and  ebx, 0x0F000000
 		sar  ebx, 0x18
 		cmp  ebx, OBJ_TYPE_CRITTER                // check if object FID type flag is set to critter
 		jne  end                                  // if object not a critter leave jump condition flags
 		// set to skip dodge animation
-		test byte ptr [eax+0x44], 0x3             // (original code) DAM_KNOCKED_OUT or DAM_KNOCKED_DOWN
+		test byte ptr [eax + damageFlags], DAM_KNOCKED_OUT or DAM_KNOCKED_DOWN    // (original code)
 		jnz  end
 		mov  edx, 0x411BD2
 end:
@@ -694,12 +695,12 @@ end:
 
 static void __declspec(naked) set_new_results_hack() {
 	__asm {
-		test ah, 0x1                              // DAM_KNOCKED_OUT?
+		test ah, DAM_KNOCKED_OUT                  // DAM_KNOCKED_OUT?
 		jz   end                                  // No
 		mov  eax, esi
 		xor  edx, edx
 		inc  edx                                  // type = knockout
-		jmp  fo::funcoffs::queue_remove_this_                   // Remove knockout from queue (if there is one)
+		jmp  fo::funcoffs::queue_remove_this_     // Remove knockout from queue (if there is one)
 end:
 		pop  eax                                  // Destroy the return address
 		push 0x424FC6
@@ -710,12 +711,12 @@ end:
 static void __declspec(naked) critter_wake_clear_hack() {
 	__asm {
 		jne  end                                  // This is not a critter
-		mov  dl, [esi+0x44]
-		test dl, 0x80                             // DAM_DEAD?
+		mov  dl, [esi + damageFlags]
+		test dl, DAM_DEAD                         // DAM_DEAD?
 		jnz  end                                  // This is a corpse
-		and  dl, 0xFE                             // Unset DAM_KNOCKED_OUT
-		or   dl, 0x2                              // Set DAM_KNOCKED_DOWN
-		mov  [esi+0x44], dl
+		and  dl, ~DAM_KNOCKED_OUT                 // 0xFE Unset DAM_KNOCKED_OUT
+		or   dl, DAM_KNOCKED_DOWN                 // Set DAM_KNOCKED_DOWN
+		mov  [esi + damageFlags], dl
 end:
 		xor  eax, eax
 		inc  eax
@@ -730,11 +731,11 @@ static void __declspec(naked) obj_load_func_hack() {
 	__asm {
 		test byte ptr [eax+0x25], 0x4             // Temp_
 		jnz  end
-		mov  edi, [eax+0x64]
+		mov  edi, [eax + protoId]
 		shr  edi, 0x18
 		cmp  edi, OBJ_TYPE_CRITTER
 		jne  skip
-		test byte ptr [eax+0x44], 0x2             // DAM_KNOCKED_DOWN?
+		test byte ptr [eax + damageFlags], DAM_KNOCKED_DOWN
 		jz   clear                                // No
 		pushad
 		xor  ecx, ecx
@@ -745,7 +746,7 @@ static void __declspec(naked) obj_load_func_hack() {
 		call fo::funcoffs::queue_add_
 		popad
 clear:
-		and  word ptr [eax+0x44], 0x7FFD          // not (DAM_LOSE_TURN or DAM_KNOCKED_DOWN)
+		and  word ptr [eax + damageFlags], ~(DAM_LOSE_TURN or DAM_KNOCKED_DOWN) // 0x7FFD
 skip:
 		push 0x488F14
 		retn
@@ -757,7 +758,7 @@ end:
 
 static void __declspec(naked) partyMemberPrepLoadInstance_hook() {
 	__asm {
-		and  word ptr [eax+0x44], 0x7FFD          // not (DAM_LOSE_TURN or DAM_KNOCKED_DOWN)
+		and  word ptr [eax + damageFlags], ~(DAM_LOSE_TURN or DAM_KNOCKED_DOWN) // 0x7FFD
 		jmp  fo::funcoffs::dude_stand_
 	}
 }
@@ -765,10 +766,10 @@ static void __declspec(naked) partyMemberPrepLoadInstance_hook() {
 static void __declspec(naked) combat_ctd_init_hack() {
 	__asm {
 		mov  [esi+0x24], eax                      // ctd.targetTile
-		mov  eax, [ebx+0x54]                      // pobj.who_hit_me
+		mov  eax, [ebx + whoHitMe]                // pobj.who_hit_me
 		inc  eax
 		jnz  end
-		mov  [ebx+0x54], eax                      // pobj.who_hit_me
+		mov  [ebx + whoHitMe], eax                // pobj.who_hit_me
 end:
 		push 0x422F11
 		retn
@@ -781,8 +782,8 @@ static void __declspec(naked) obj_save_hack() {
 		jz   end
 		dec  eax
 		mov  edx, [esp+0x1C]                      // combat_data
-		mov  eax, [eax+0x68]                      // pobj.who_hit_me.cid
-		test byte ptr ds:[FO_VAR_combat_state], 1       // in combat?
+		mov  eax, [eax + cid]                     // pobj.who_hit_me.cid
+		test byte ptr ds:[FO_VAR_combat_state], 1 // in combat?
 		jz   clear                                // No
 		cmp  dword ptr [edx], 0                   // in combat?
 		jne  skip                                 // Yes
@@ -801,7 +802,7 @@ static void __declspec(naked) action_explode_hack() {
 	using fo::ScriptProc::destroy_p_proc;
 	__asm {
 		mov  edx, destroy_p_proc
-		mov  eax, [esi+0x78]                      // pobj.sid
+		mov  eax, [esi + scriptId]                // pobj.sid
 		call fo::funcoffs::exec_script_proc_
 		xor  edx, edx
 		dec  edx
@@ -821,9 +822,9 @@ static void __declspec(naked) action_explode_hack1() {
 
 static void __declspec(naked) barter_attempt_transaction_hack() {
 	__asm {
-		cmp  dword ptr [eax+0x64], PID_ACTIVE_GEIGER_COUNTER
+		cmp  dword ptr [eax + protoId], PID_ACTIVE_GEIGER_COUNTER
 		je   found
-		cmp  dword ptr [eax+0x64], PID_ACTIVE_STEALTH_BOY
+		cmp  dword ptr [eax + protoId], PID_ACTIVE_STEALTH_BOY
 		je   found
 		mov  eax, 0x474D34
 		jmp  eax
@@ -856,10 +857,10 @@ static void __declspec(naked) combat_hack() {
 skip:
 		pop  edx
 		xchg edx, eax                             // eax = source, edx = Max action points
-		mov  [eax+0x40], edx                      // pobj.curr_mp
-		test byte ptr ds:[FO_VAR_combat_state], 1       // in combat?
+		mov  [eax + movePoints], edx              // pobj.curr_mp
+		test byte ptr ds:[FO_VAR_combat_state], 1 // in combat?
 		jz   end                                  // No
-		mov  edx, [eax+0x68]                      // pobj.cid
+		mov  edx, [eax + cid]                     // pobj.cid
 		cmp  edx, -1
 		je   end
 		push eax
@@ -968,19 +969,19 @@ static void __declspec(naked) switch_hand_hack() {
 		mov  eax, ds:[FO_VAR_inven_dude]
 		push eax
 		mov  [edi], ebp
-		inc  ecx
+		inc  ecx                                   // if ecx == -1
 		jz   skip
 		xor  ebx, ebx
 		inc  ebx
 		mov  edx, ebp
 		call fo::funcoffs::item_remove_mult_
 skip:
-		pop  edx
+		pop  edx                                  // _inven_dude
 		mov  eax, ebp
 		call fo::funcoffs::item_get_type_
 		cmp  eax, item_type_container
 		jne  end
-		mov  [ebp+0x7C], edx                      // iobj.owner = _inven_dude
+		mov  [ebp + owner], edx                   // iobj.owner = _inven_dude
 end:
 		pop  ebp
 		pop  edi
@@ -993,7 +994,7 @@ static void __declspec(naked) inven_item_wearing() {
 	__asm {
 		mov  esi, ds:[FO_VAR_inven_dude]
 		xchg ebx, eax                             // ebx = source
-		mov  eax, [esi+0x20]
+		mov  eax, [esi + artFid]
 		and  eax, 0xF000000
 		sar  eax, 0x18
 		test eax, eax                             // check if object FID type flag is set to item
@@ -1006,7 +1007,7 @@ static void __declspec(naked) inven_item_wearing() {
 		call fo::funcoffs::obj_top_environment_
 		test eax, eax                             // has an owner?
 		jz   skip                                 // No
-		mov  ecx, [eax+0x20]
+		mov  ecx, [eax + artFid]
 		and  ecx, 0xF000000
 		sar  ecx, 0x18
 		cmp  ecx, OBJ_TYPE_CRITTER                // check if object FID type flag is set to critter
@@ -1091,7 +1092,7 @@ static void __declspec(naked) combat_display_hack() {
 	__asm {
 		mov  ebx, 0x42536B;
 		je   end;                                 // This is a critter
-		cmp  dword ptr [ecx+0x78], -1;            // Does the target have a script?
+		cmp  dword ptr [ecx + scriptId], -1;      // Does the target have a script?
 		jne  end;                                 // Yes
 		mov  ebx, 0x425413;
 end:
@@ -1156,11 +1157,173 @@ map_leave:
 static void __declspec(naked) ai_move_steps_closer_hook() {
 	__asm {
 		call  fo::funcoffs::combat_turn_run_;
-		movzx dx, word ptr [esi + 0x44]; // combat_data.results
+		movzx dx, word ptr [esi + damageFlags]; // combat_data.results
 		test  dx, DAM_DEAD or DAM_KNOCKED_OUT or DAM_LOSE_TURN;
 		jz    end;
-		mov   [esi + 0x40], 0;           // pobj.curr_mp (source reset ap)
+		mov   [esi + movePoints], 0;            // pobj.curr_mp (source reset ap)
 end:
+		retn;
+	}
+}
+
+//zero damage insta death criticals fix (moved from compute_damage hook)
+static void __fastcall InstantDeathFix(fo::ComputeAttackResult &ctd) {
+	if (ctd.targetDamage == 0 && (ctd.targetFlags & fo::DamageFlag::DAM_DEAD)) {
+		ctd.targetDamage++; // set 1 hp damage
+	}
+}
+
+static const DWORD ComputeDamageRet = 0x424BA7;
+static void __declspec(naked) compute_damage_hack() {
+	__asm {
+		mov  ecx, esi; // ctd
+		call InstantDeathFix;
+		// overwritted engine code
+		add  esp, 0x34;
+		pop  ebp;
+		pop  edi;
+		jmp  ComputeDamageRet;
+	}
+}
+
+static int  currDescLen = 0;
+static char textBuf[355];
+static bool showItemDescription = false;
+static void __stdcall AppendText(const char* text, const char* desc) {
+	if (showItemDescription && currDescLen == 0) {
+		strncpy_s(textBuf, desc, 161);
+		int len = strlen(textBuf);
+		if (len > 160) {
+			len = 158;
+			textBuf[len++] = '.';
+			textBuf[len++] = '.';
+			textBuf[len++] = '.';
+		}
+		textBuf[len++] = ' ';
+		textBuf[len] = 0;
+		currDescLen  = len;
+	} else if (currDescLen == 0) {
+		textBuf[0] = 0;
+	}
+
+	strncat(textBuf, text, 64);
+	currDescLen += strlen(text);
+	if (currDescLen < 300) {
+		textBuf[currDescLen++] = '.';
+		textBuf[currDescLen++] = ' ';
+		textBuf[currDescLen] = 0;
+	}
+}
+
+static void __declspec(naked) obj_examine_func_hack_ammo0() {
+	__asm {
+		cmp  dword ptr [esp + 0x1AC - 0x14 + 4], 0x445448; // gdialogDisplayMsg_
+		jnz  skip;
+		pushad;
+		push esi;
+		push eax;
+		call AppendText;
+		popad;
+		retn;
+skip:
+		jmp  dword ptr [esp + 0x1AC - 0x14 + 4];
+	}
+}
+
+static void __declspec(naked) obj_examine_func_hack_ammo1() {
+	__asm {
+		cmp  dword ptr [esp + 0x1AC - 0x14 + 4], 0x445448; // gdialogDisplayMsg_
+		jnz  skip;
+		pushad;
+		push 0;
+		push eax;
+		call AppendText;
+		mov  currDescLen, 0;
+		popad;
+		lea  eax, [textBuf];
+		jmp  fo::funcoffs::gdialogDisplayMsg_;
+skip:
+		jmp  dword ptr [esp + 0x1AC - 0x14 + 4];
+	}
+}
+
+static void __declspec(naked) obj_examine_func_hack_weapon() {
+	__asm {
+		cmp  dword ptr [esp + 0x1AC - 0x14], 0x445448; // gdialogDisplayMsg_
+		jnz  skip;
+		pushad;
+		push esi;
+		push eax;
+		call AppendText;
+		mov  eax, currDescLen;
+		sub  eax, 2;
+		mov  byte ptr textBuf[eax], 0; // cutoff last character
+		mov  currDescLen, 0;
+		popad;
+		lea  eax, [textBuf];
+skip:
+		mov  ecx, 0x49B63C;
+		jmp  ecx;
+	}
+}
+
+static DWORD expSwiftLearner; // experience points for print
+static void __declspec(naked) statPCAddExperienceCheckPMs_hack() {
+	__asm {
+		mov  expSwiftLearner, edi;
+		mov  eax, dword ptr ds:[FO_VAR_Experience_];
+		retn;
+	}
+}
+
+static void __declspec(naked) combat_give_exps_hook() {
+	__asm {
+		call fo::funcoffs::stat_pc_add_experience_;
+		mov  ebx, expSwiftLearner;
+		retn;
+	}
+}
+
+static void __declspec(naked) loot_container_exp_hack() {
+	__asm {
+		mov  edx, [esp + 0x150 - 0x18];  // experience
+		xchg edx, eax;
+		call fo::funcoffs::stat_pc_add_experience_;
+		// engine code
+		cmp  edx, 1;                     // from eax
+		jnz  skip;
+		push expSwiftLearner;
+		mov  ebx, [esp + 0x154 - 0x78 + 0x0C]; // msgfile.message
+		push ebx;
+		lea  eax, [esp + 0x158 - 0x150]; // buf
+		push eax;
+		call fo::funcoffs::sprintf_;
+		add  esp, 0x0C;
+		mov  eax, esp;
+		call fo::funcoffs::display_print_;
+		// end code
+skip:
+		mov eax, 0x4745E3;
+		jmp eax;
+	}
+}
+
+static void __declspec(naked) wmRndEncounterOccurred_hook() {
+	__asm {
+		call fo::funcoffs::stat_pc_add_experience_;
+		cmp  ecx, 110;
+		jnb  skip;
+		push expSwiftLearner;
+		// engine code
+		push edx;
+		lea  eax, [esp + 0x08 + 4];
+		push eax;
+		call fo::funcoffs::sprintf_;
+		add  esp, 0x0C;
+		lea  eax, [esp + 4];
+		call fo::funcoffs::display_print_;
+		// end code
+skip:
 		retn;
 	}
 }
@@ -1168,15 +1331,23 @@ end:
 static void __declspec(naked) op_obj_can_see_obj_hack() {
 	__asm {
 		mov  eax, [esp + 0x2C - 0x28 + 4];  // source
-		mov  ecx, [eax + 4];                // source.tile
+		mov  ecx, [eax + tile];             // source.tile
 		cmp  ecx, -1;
 		jz   end;
-		mov  eax, [eax + 0x28];         // source.elev
-		mov  edi, [edx + 0x28];         // target.elev
+		mov  eax, [eax + elevation];    // source.elev
+		mov  edi, [edx + elevation];    // target.elev
 		cmp  eax, edi;                  // check source.elev == target.elev
 		retn;
 end:
 		dec  ecx;  // reset ZF
+		retn;
+	}
+}
+
+static void __declspec(naked) op_obj_can_hear_obj_hack() {
+	__asm {
+		mov eax, [esp + 0x28 - 0x28 + 4];  // target
+		mov edx, [esp + 0x28 - 0x24 + 4];  // source
 		retn;
 	}
 }
@@ -1191,6 +1362,10 @@ static void __declspec(naked) ai_best_weapon_hook() {
 
 void BugFixes::init()
 {
+	#ifndef NDEBUG
+		if (isDebug && (GetConfigInt("Debugging", "BugFixes", 1) == 0)) return;
+	#endif
+
 	//if (GetConfigInt("Misc", "SharpshooterFix", 1)) {
 		dlog("Applying Sharpshooter patch.", DL_INIT);
 		// http://www.nma-fallout.com/threads/fo2-engine-tweaks-sfall.178390/page-119#post-4050162
@@ -1513,10 +1688,53 @@ void BugFixes::init()
 	// in their AI packages is set to stay_close/charge, or NPCsTryToSpendExtraAP is enabled
 	HookCall(0x42A1A8, ai_move_steps_closer_hook); // 0x42B24D
 
+	// Fix instant death critical
+	dlog("Applying instant death fix.", DL_INIT);
+	MakeJump(0x424BA2, compute_damage_hack);
+	dlogr(" Done", DL_INIT);
+
+	// Fix missing AC/DR mod stats when examining ammo in barter screen
+	dlog("Applying fix for displaying ammo stats in barter screen.", DL_INIT);
+	MakeCalls(obj_examine_func_hack_ammo0, {0x49B4AD, 0x49B504});
+	SafeWrite16(0x49B4B2, 0x9090);
+	SafeWrite16(0x49B509, 0x9090);
+	MakeCall(0x49B563, obj_examine_func_hack_ammo1);
+	SafeWrite16(0x49B568, 0x9090);
+	dlogr(" Done", DL_INIT);
+
+	// Display full item description for weapon/ammo in barter screen
+	showItemDescription = (GetConfigInt("Misc", "FullItemDescInBarter", 0) != 0);
+	if (showItemDescription) {
+		dlog("Applying full item description in barter patch.", DL_INIT);
+		HookCall(0x49B452, obj_examine_func_hack_weapon); // it's jump
+		dlogr(" Done", DL_INIT);
+	}
+
+	// Display experience points with the bonus from Swift Learner perk when gained from non-scripted situations
+	if (GetConfigInt("Misc", "DisplaySwiftLearnerExp", 1)) {
+		dlog("Applying Swift Learner exp display patch.", DL_INIT);
+		MakeCall(0x4AFAEF, statPCAddExperienceCheckPMs_hack);
+		HookCall(0x4221E2, combat_give_exps_hook);
+		MakeJump(0x4745AE, loot_container_exp_hack);
+		SafeWrite16(0x4C0AB1, 0x23EB); // jmps 0x4C0AD6
+		HookCall(0x4C0AEB, wmRndEncounterOccurred_hook);
+		dlogr(" Done", DL_INIT);
+	}
+
 	// Fix for obj_can_see_obj not checking if source and target objects are on the same elevation before calling
 	// is_within_perception_
 	MakeCall(0x456B63, op_obj_can_see_obj_hack);
 	SafeWrite16(0x456B76, 0x23EB); // jmp loc_456B9B (skip unused engine code)
+
+	// Fix broken op_obj_can_hear_obj_ function
+	if (GetConfigInt("Misc", "ObjCanHearObjFix", 0)) {
+		dlog("Applying obj_can_hear_obj fix.", DL_INIT);
+		SafeWrite8(0x4583D8, 0x3B); // jz loc_458414
+		SafeWrite8(0x4583DE, 0x74); // jz loc_458414
+		MakeCall(0x4583E0, op_obj_can_hear_obj_hack);
+		SafeWrite8(0x4583E5, 0x90);
+		dlogr(" Done", DL_INIT);
+	}
 
 	// Fix for critters not checking weapon perks properly when searching for the best weapon
 	if (GetConfigInt("Misc", "AIBestWeaponFix", 0)) {
