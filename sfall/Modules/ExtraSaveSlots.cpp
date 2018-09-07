@@ -440,8 +440,7 @@ static void CreateSaveComment(char* bufstr) {
 	strcpy(bufstr, buf);
 }
 
-static DWORD QuickSavePage = 0,
-	         AutoQuickSave = 0;
+static DWORD quickSavePage = 0, autoQuickSave = 0;
 
 static FILETIME ftPrevSlot;
 static DWORD __stdcall QuickSaveGame(fo::DbFile* file, char* filename) {
@@ -459,7 +458,7 @@ static DWORD __stdcall QuickSaveGame(fo::DbFile* file, char* filename) {
 			ftPrevSlot.dwHighDateTime = ftCurrSlot.dwHighDateTime;
 			ftPrevSlot.dwLowDateTime  = ftCurrSlot.dwLowDateTime;
 
-			if (++currSlot > 9 || currSlot > AutoQuickSave) {
+			if (++currSlot > autoQuickSave) {
 				currSlot = 0;
 			} else {
 				fo::var::slot_cursor = currSlot;
@@ -492,7 +491,7 @@ static void __declspec(naked) SaveGame_hack0() {
 static void __declspec(naked) SaveGame_hack1() {
 	__asm {
 		mov ds:[FO_VAR_slot_cursor], 0;
-		mov eax, QuickSavePage;
+		mov eax, quickSavePage;
 		mov LSPageOffset, eax;
 		retn;
 	}
@@ -500,25 +499,27 @@ static void __declspec(naked) SaveGame_hack1() {
 
 void ExtraSaveSlots::init() {
 	
-	bool ExtraSaveSlots = (GetConfigInt("Misc", "ExtraSaveSlots", 0) != 0);
-	if (ExtraSaveSlots) {
+	bool extraSaveSlots = (GetConfigInt("Misc", "ExtraSaveSlots", 0) != 0);
+	if (extraSaveSlots) {
 		dlog("Running EnableSuperSaving()", DL_INIT);
 		EnableSuperSaving();
 		dlogr(" Done", DL_INIT);
 	}
 
-	AutoQuickSave = GetConfigInt("Misc", "AutoQuickSave", 0);
-	if (AutoQuickSave > 0) {
-		if (AutoQuickSave > 9999) AutoQuickSave = 9999;
+	autoQuickSave = GetConfigInt("Misc", "AutoQuickSave", 0);
+	if (autoQuickSave > 0) {
+		if (autoQuickSave > 10) autoQuickSave = 10;
 
-		QuickSavePage = 10 * static_cast<long>(floor(AutoQuickSave / 10.0));
-		AutoQuickSave -= QuickSavePage + 1;    // reserved slot count
+		quickSavePage = GetConfigInt("Misc", "AutoQuickSavePage", 0);
+		if (quickSavePage > 999) quickSavePage = 999;
 
-		if (ExtraSaveSlots && QuickSavePage > 0) {
+		autoQuickSave--; // reserved slot count
+
+		if (extraSaveSlots && quickSavePage > 0) {
 			MakeCall(0x47B923, SaveGame_hack1, 1);
 		} else {
 			SafeWrite8(0x47B923, 0x89);
-			SafeWrite32(0x47B924, 0x5193B83D); // mov [slot_cursor], edi(0)
+			SafeWrite32(0x47B924, 0x5193B83D); // mov [slot_cursor], edi = 0
 		}
 		MakeJump(0x47B984, SaveGame_hack0);
 	}
