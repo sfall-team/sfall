@@ -1409,6 +1409,32 @@ static void __declspec(naked) wmSetupRandomEncounter_hook() {
 	}
 }
 
+int __stdcall ItemCountFix(fo::GameObject* who, fo::GameObject* item) {
+	int count = 0;
+	for (int i = 0; i < who->invenSize; i++) {
+		auto tableItem = &who->invenTable[i];
+		if (tableItem->object == item) {
+			count += tableItem->count;
+		} else if (fo::func::item_get_type(tableItem->object) == fo::item_type_container) {
+			count += ItemCountFix(tableItem->object, item);
+		}
+	}
+	return count;
+}
+
+void __declspec(naked) item_count_hack() {
+	__asm {
+		push ecx;
+		push edx; // save state
+		push edx; // item
+		push eax; // container-object
+		call ItemCountFix;
+		pop  edx;
+		pop  ecx; // restore
+		retn;
+	}
+}
+
 void BugFixes::init()
 {
 	#ifndef NDEBUG
@@ -1809,6 +1835,9 @@ void BugFixes::init()
 
 	// Fix the inability to sell/transfer items in barter when the dude/party member does not have enough place in inventory
 	HookCalls(barter_attempt_transaction_hook_weight, {0x474C73, 0x474CCA});
+
+	// Fix item_count function returning incorrect value when there is a container-item inside
+	MakeJump(0x47808C, item_count_hack); // replacing item_count_ function
 
 }
 
