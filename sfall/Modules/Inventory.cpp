@@ -802,8 +802,56 @@ void __declspec(naked) do_move_timer_hook() {
 		mov dword ptr [esp], 0x476920;
 		retn;
 end:
-		call fo::funcoffs::setup_move_timer_win_;
+		jmp fo::funcoffs::setup_move_timer_win_;
+	}
+}
+
+static fo::GameObject* __fastcall PartyMemberBestWeapon(register fo::GameObject* partyMember, register int slot, DWORD* backRet) {
+
+	fo::GameObject* handItem = fo::func::inven_right_hand(partyMember);
+	if (handItem == nullptr) return nullptr; // normal behavior
+
+	if (fo::func::inven_unwield(partyMember, slot) != 0) { // have successfully removed it (check result from hs_invenwield)
+		*backRet = 0x44952E;
+		return nullptr; // unwield behavior
+	}
+
+	fo::GameObject* bestItem = fo::func::ai_search_inven_weap(partyMember, 0, 0);
+	if (bestItem != nullptr && bestItem->protoId == handItem->protoId) {
+		*backRet = 0x44952E;
+		return nullptr; // unwield behavior
+	}
+
+	*backRet = 0x449511;
+	return bestItem;   // wield behavior
+}
+
+static void __declspec(naked) gdControl_hook_weapon() {
+using namespace fo::Fields;
+	__asm {
+		push esp;                   // backRet
+		mov  ecx, eax;              // ecx - partyMember
+		call PartyMemberBestWeapon; // edx - slot
 		retn;
+	}
+}
+
+static fo::GameObject* __fastcall PartyMemberBestArmor(register fo::GameObject* partyMember) {
+
+	fo::GameObject* wornItem = fo::func::inven_worn(partyMember);
+	fo::GameObject* bestItem = fo::func::ai_search_inven_armor(partyMember);
+
+	if ((wornItem && bestItem == nullptr) || (bestItem && wornItem && bestItem->protoId == wornItem->protoId)) {
+		fo::func::correctFidForRemovedItem(partyMember, wornItem, 0); // unwield behavior
+		return nullptr;
+	}
+	return bestItem; // normal behavior
+}
+
+static void __declspec(naked) gdControl_hook_armor() {
+	__asm {
+		mov ecx, eax;              // ecx - partyMember
+		jmp PartyMemberBestArmor;
 	}
 }
 
@@ -905,12 +953,16 @@ void Inventory::init() {
 
 	// Fix item_count function returning incorrect value when there is a container-item inside
 	MakeJump(0x47808C, ItemCountFix); // replacing item_count_ function
+
+	// Party members buttons best weapon/armor - unwield behavior (from Crafty)
+	if (GetConfigInt("Misc", "PartyMemberTakeOffItem", 0)) {
+		HookCall(0x4494FC, gdControl_hook_weapon);
+		HookCall(0x449570, gdControl_hook_armor);
+	}
 }
 
 Delegate<DWORD>& Inventory::OnAdjustFid() {
 	return onAdjustFid;
 }
-
-
 
 }

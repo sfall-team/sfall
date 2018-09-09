@@ -859,6 +859,17 @@ found:
 	}
 }
 
+static void __declspec(naked) barter_attempt_transaction_hook_weight() {
+	__asm {
+		call fo::funcoffs::item_total_weight_;
+		test eax, eax;
+		jnz  skip;
+		xor  edx, edx;
+skip:
+		retn;
+	}
+}
+
 static void __declspec(naked) item_m_turn_off_hook() {
 	__asm {
 		and  byte ptr [eax+0x25], 0xDF            // Rest flag of used items
@@ -1795,6 +1806,9 @@ void BugFixes::init()
 	SafeWrite32(0x4C1011, 0x9090C789); // mov edi, eax;
 	SafeWrite8(0x4C1015, 0x90);
 	HookCall(0x4C1042, wmSetupRandomEncounter_hook);
+
+	// Fix the inability to sell/transfer items in barter when the dude/party member does not have enough place in inventory
+	HookCalls(barter_attempt_transaction_hook_weight, {0x474C73, 0x474CCA});
 
 }
 
