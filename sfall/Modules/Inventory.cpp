@@ -38,7 +38,6 @@ static DWORD reloadWeaponKey = 0;
 static DWORD itemFastMoveKey = 0;
 
 void InventoryKeyPressedHook(DWORD dxKey, bool pressed, DWORD vKey) {
-	// TODO: move this out into a script
 	if (pressed && reloadWeaponKey && dxKey == reloadWeaponKey && IsMapLoaded() && (GetLoopFlags() & ~(COMBAT | PCOMBAT)) == 0) {
 		DWORD maxAmmo, curAmmo;
 		fo::GameObject* item = fo::GetActiveItem();
@@ -61,7 +60,7 @@ void InventoryKeyPressedHook(DWORD dxKey, bool pressed, DWORD vKey) {
 	}
 }
 
-//TODO: Do we actually want to include this in the limit anyway?
+/////////////////////////////////////////////////////////////////
 static __declspec(naked) DWORD item_total_size(void* critter) {
 	__asm {
 		push    ebx;
@@ -381,47 +380,33 @@ static __declspec(naked) void InvenObjExamineFuncHook() {
 		retn;
 	}
 }
+/////////////////////////////////////////////////////////////////
 
 static std::string superStimMsg;
-static int _stdcall SuperStimFix2(fo::GameObject* item, fo::GameObject* target) {
-	if (!item || !target) return 0;
-	DWORD itm_pid = item->protoId, target_pid = target->protoId;
-	if ((target_pid & 0xff000000) != 0x01000000) return 0;
-	if ((itm_pid & 0xff000000) != 0) return 0;
-	if ((itm_pid & 0xffffff) != 144) return 0;
-	DWORD curr_hp, max_hp;
-	curr_hp = fo::func::stat_level(target, fo::STAT_current_hp);
-	max_hp = fo::func::stat_level(target, fo::STAT_max_hit_points);
-	if (curr_hp < max_hp) return 0;
+static int __fastcall SuperStimFix(fo::GameObject* item, fo::GameObject* target) {
+	if (item->protoId != fo::PID_SUPER_STIMPAK || !target || (target->protoId & 0xFF000000) != (fo::OBJ_TYPE_CRITTER << 24)) return 0; // 0x01000000
+
+	long max_hp = fo::func::stat_level(target, fo::STAT_max_hit_points);
+	if (target->critter.health < max_hp) return 0;
+
 	fo::func::display_print(superStimMsg.c_str());
-	return 1;
+	return -1;
 }
 
-static const DWORD UseItemHookRet = 0x49C3D3;
-static void __declspec(naked) SuperStimFix() {
+static const DWORD protinst_use_item_on_Ret = 0x49C5F4;
+static void __declspec(naked) protinst_use_item_on_hack() {
 	__asm {
-		push eax;
 		push ecx;
-		push edx;
-
-		push edx;
-		push ebx;
-		call SuperStimFix2;
-		pop edx;
-		pop ecx;
+		mov  ecx, ebx;     // ecx - item
+		call SuperStimFix; // edx - target
+		pop  ecx;
 		test eax, eax;
-		jz end;
-		pop eax;
-		xor eax, eax;
+		jnz  end;
+		mov  ebp, -1;      // overwritten engine code
 		retn;
 end:
-		pop eax;
-		push ecx;
-		push esi;
-		push edi;
-		push ebp;
-		sub esp, 0x14;
-		jmp UseItemHookRet;
+		add  esp, 4;       // destroy ret
+		jmp  protinst_use_item_on_Ret; // exit
 	}
 }
 
@@ -480,7 +465,7 @@ static DWORD __fastcall divide_burst_rounds_by_ammo_cost(fo::GameObject* weapon,
 	DWORD rounds = 1; // default multiply
 
 	if (HookScripts::IsInjectHook(HOOK_AMMOCOST)) {
-		rounds = burstRounds;            // rounds in burst (количество патронов израсходуемое в очереди)
+		rounds = burstRounds;             // rounds in burst (количество патронов израсходуемое в очереди)
 		AmmoCostHook_Script(2, weapon, &rounds);
 	}
 
@@ -875,7 +860,7 @@ void Inventory::init() {
 
 	if (GetConfigInt("Misc", "SuperStimExploitFix", 0)) {
 		superStimMsg = Translate("sfall", "SuperStimExploitMsg", "You cannot use a super stim on someone who is not injured!");
-		MakeJump(0x49C3CC, SuperStimFix);
+		MakeCall(0x49C3D9, protinst_use_item_on_hack);
 	}
 
 	if (GetConfigInt("Misc", "CheckWeaponAmmoCost", 0)) {
