@@ -1359,6 +1359,21 @@ static void __declspec(naked) ai_best_weapon_hook() {
 	}
 }
 
+static void __declspec(naked) wmSetupRandomEncounter_hook() {
+	__asm {
+		push eax;                  // text 2
+		push edi;                  // text 1
+		push 0x500B64;             // fmt '%s %s'
+		lea  eax, textBuf;
+		mov  edi, eax;
+		push eax;                  // buf
+		call fo::funcoffs::sprintf_;
+		add  esp, 16;
+		mov  eax, edi;
+		jmp  fo::funcoffs::display_print_;
+	}
+}
+
 
 void BugFixes::init()
 {
@@ -1742,6 +1757,11 @@ void BugFixes::init()
 		HookCall(0x42954B, ai_best_weapon_hook);
 		dlogr(" Done", DL_INIT);
 	}
+
+	// Fix for the encounter description being displayed in two lines instead of one
+	SafeWrite32(0x4C1011, 0x9090C789); // mov edi, eax;
+	SafeWrite8(0x4C1015, 0x90);
+	HookCall(0x4C1042, wmSetupRandomEncounter_hook);
 }
 
 }
