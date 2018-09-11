@@ -21,6 +21,8 @@
 void CritInit();
 void CritLoad();
 
-void _stdcall SetCriticalTable(DWORD critter, DWORD bodypart, DWORD slot, DWORD element, DWORD value);
-DWORD _stdcall GetCriticalTable(DWORD critter, DWORD bodypart, DWORD slot, DWORD element);
-void _stdcall ResetCriticalTable(DWORD critter, DWORD bodypart, DWORD slot, DWORD element);
+extern const DWORD CritTableCount;
+
+void SetCriticalTable(DWORD critter, DWORD bodypart, DWORD slot, DWORD element, DWORD value);
+DWORD GetCriticalTable(DWORD critter, DWORD bodypart, DWORD slot, DWORD element);
+void ResetCriticalTable(DWORD critter, DWORD bodypart, DWORD slot, DWORD element);

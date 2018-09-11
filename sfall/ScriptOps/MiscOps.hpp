@@ -950,100 +950,57 @@ end:
 	}
 }
 
+static void funcSetCriticalTable2() {
+	DWORD critter = opHandler.arg(0).asInt(),
+		bodypart  = opHandler.arg(1).asInt(),
+		slot      = opHandler.arg(2).asInt(),
+		element   = opHandler.arg(3).asInt();
+
+	if (critter >= CritTableCount || bodypart >= 9 || slot >= 6 || element >= 7) {
+		opHandler.printOpcodeError("set_critical_table() - argument values out of range.");
+	} else {
+		SetCriticalTable(critter, bodypart, slot, element, opHandler.arg(4).asInt());
+	}
+}
+
 static void __declspec(naked) funcSetCriticalTable() {
-	__asm {
-		pushad;
-		mov ecx, eax;
-		xor ebx, ebx;
-		mov edx, 5;
-loops:
-		mov eax, ecx;
-		call interpretPopShort_;
-		cmp ax, VAR_TYPE_INT;
-		jz skip1;
-		inc ebx;
-skip1:
-		mov eax, ecx;
-		call interpretPopLong_;
-		push eax;
-		dec dx;
-		jnz loops;
-		test ebx, ebx;
-		jnz fail;
-		call SetCriticalTable;
-		jmp end;
-fail:
-		add esp, 20;
-end:
-		popad;
-		retn;
+	_WRAP_OPCODE(funcSetCriticalTable2, 5, 0)
+}
+
+static void funcGetCriticalTable2() {
+	DWORD critter = opHandler.arg(0).asInt(),
+		bodypart  = opHandler.arg(1).asInt(),
+		slot      = opHandler.arg(2).asInt(),
+		element   = opHandler.arg(3).asInt();
+
+	if (critter >= CritTableCount || bodypart >= 9 || slot >= 6 || element >= 7) {
+		opHandler.printOpcodeError("get_critical_table() - argument values out of range.");
+	} else {
+		opHandler.setReturn(GetCriticalTable(critter, bodypart, slot, element), DATATYPE_INT);
 	}
 }
+
 static void __declspec(naked) funcGetCriticalTable() {
-	__asm {
-		pushad;
-		mov edi, eax;
-		xor ebx, ebx;
-		mov dl, 4;
-loops:
-		mov eax, edi;
-		call interpretPopShort_;
-		cmp ax, VAR_TYPE_INT;
-		jz skip1;
-		inc ebx;
-skip1:
-		mov eax, edi;
-		call interpretPopLong_;
-		push eax;
-		dec dx;
-		jnz loops;
-		test ebx, ebx;
-		jz fail;
-		call ResetCriticalTable;
-		mov edx, eax;
-		jmp end;
-fail:
-		add esp, 16;
-		xor edx, edx;
-end:
-		mov eax, edi;
-		call interpretPushLong_;
-		mov eax, edi;
-		mov edx, VAR_TYPE_INT;
-		call interpretPushShort_;
-		popad;
-		retn;
+	_WRAP_OPCODE(funcGetCriticalTable2, 4, 1)
+}
+
+static void funcResetCriticalTable2() {
+	DWORD critter = opHandler.arg(0).asInt(),
+		bodypart  = opHandler.arg(1).asInt(),
+		slot      = opHandler.arg(2).asInt(),
+		element   = opHandler.arg(3).asInt();
+
+	if (critter >= CritTableCount || bodypart >= 9 || slot >= 6 || element >= 7) {
+		opHandler.printOpcodeError("reset_critical_table() - argument values out of range.");
+	} else {
+		ResetCriticalTable(critter, bodypart, slot, element);
 	}
 }
+
 static void __declspec(naked) funcResetCriticalTable() {
-	__asm {
-		pushad;
-		mov ecx, eax;
-		xor ebx, ebx;
-		mov dl, 4;
-loops:
-		mov eax, ecx;
-		call interpretPopShort_;
-		cmp ax, VAR_TYPE_INT;
-		jz skip1;
-		inc ebx;
-skip1:
-		mov eax, ecx;
-		call interpretPopLong_;
-		push eax;
-		dec dx;
-		jnz loops;
-		test ebx, ebx;
-		jz fail;
-		call ResetCriticalTable;
-		jmp end;
-fail:
-		add esp, 16;
-end:
-		popad;
-		retn;
-	}
+	_WRAP_OPCODE(funcResetCriticalTable2, 4, 0)
 }
+
 static void __declspec(naked) SetApAcBonus() {
 	__asm {
 		push ecx;
