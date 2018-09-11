@@ -717,6 +717,7 @@ end:
 	}
 }
 
+static const DWORD SetNewResults_Ret = 0x424FC6;
 static void __declspec(naked) set_new_results_hack() {
 	__asm {
 		test ah, DAM_KNOCKED_OUT                  // DAM_KNOCKED_OUT?
@@ -726,9 +727,8 @@ static void __declspec(naked) set_new_results_hack() {
 		inc  edx                                  // type = knockout
 		jmp  fo::funcoffs::queue_remove_this_     // Remove knockout from queue (if there is one)
 end:
-		pop  eax                                  // Destroy the return address
-		push 0x424FC6
-		retn
+		add  esp, 4;                              // Destroy the return address
+		jmp  SetNewResults_Ret;
 	}
 }
 
@@ -1159,12 +1159,12 @@ end:
 	}
 }
 
+static const DWORD PartyMemberGetCurLevel_Ret = 0x495FFC;
 static void __declspec(naked) partyMemberGetCurLevel_hack() {
 	__asm {
 		mov  esi, 0xFFFFFFFF; // initialize party member index
 		mov  edi, dword ptr ds:[FO_VAR_partyMemberMaxCount];
-		push 0x495FFC;
-		retn;
+		jmp  PartyMemberGetCurLevel_Ret;
 	}
 }
 
@@ -1254,11 +1254,9 @@ static void __declspec(naked) obj_examine_func_hack_ammo0() {
 	__asm {
 		cmp  dword ptr [esp + 0x1AC - 0x14 + 4], 0x445448; // gdialogDisplayMsg_
 		jnz  skip;
-		pushad;
 		push esi;
 		push eax;
 		call AppendText;
-		popad;
 		retn;
 skip:
 		jmp  dword ptr [esp + 0x1AC - 0x14 + 4];
@@ -1269,12 +1267,10 @@ static void __declspec(naked) obj_examine_func_hack_ammo1() {
 	__asm {
 		cmp  dword ptr [esp + 0x1AC - 0x14 + 4], 0x445448; // gdialogDisplayMsg_
 		jnz  skip;
-		pushad;
 		push 0;
 		push eax;
 		call AppendText;
 		mov  currDescLen, 0;
-		popad;
 		lea  eax, [textBuf];
 		jmp  fo::funcoffs::gdialogDisplayMsg_;
 skip:
@@ -1282,11 +1278,11 @@ skip:
 	}
 }
 
+static const DWORD ObjExamineFuncWeapon_Ret = 0x49B63C;
 static void __declspec(naked) obj_examine_func_hack_weapon() {
 	__asm {
 		cmp  dword ptr [esp + 0x1AC - 0x14], 0x445448; // gdialogDisplayMsg_
 		jnz  skip;
-		pushad;
 		push esi;
 		push eax;
 		call AppendText;
@@ -1294,11 +1290,9 @@ static void __declspec(naked) obj_examine_func_hack_weapon() {
 		sub  eax, 2;
 		mov  byte ptr textBuf[eax], 0; // cutoff last character
 		mov  currDescLen, 0;
-		popad;
 		lea  eax, [textBuf];
 skip:
-		mov  ecx, 0x49B63C;
-		jmp  ecx;
+		jmp  ObjExamineFuncWeapon_Ret;
 	}
 }
 
@@ -1319,6 +1313,7 @@ static void __declspec(naked) combat_give_exps_hook() {
 	}
 }
 
+static const DWORD LootContainerExp_Ret = 0x4745E3;
 static void __declspec(naked) loot_container_exp_hack() {
 	__asm {
 		mov  edx, [esp + 0x150 - 0x18];  // experience
@@ -1338,8 +1333,7 @@ static void __declspec(naked) loot_container_exp_hack() {
 		call fo::funcoffs::display_print_;
 		// end code
 skip:
-		mov eax, 0x4745E3;
-		jmp eax;
+		jmp  LootContainerExp_Ret;
 	}
 }
 
@@ -1396,12 +1390,11 @@ static void __declspec(naked) ai_best_weapon_hook() {
 
 static void __declspec(naked) wmSetupRandomEncounter_hook() {
 	__asm {
-		push eax;                  // text 2 
+		push eax;                  // text 2
 		push edi;                  // text 1
 		push 0x500B64;             // fmt '%s %s'
-		lea  eax, textBuf;
-		mov  edi, eax;
-		push eax;                  // buf
+		lea  edi, textBuf;
+		push edi;                  // buf
 		call fo::funcoffs::sprintf_;
 		add  esp, 16;
 		mov  eax, edi;
@@ -1409,7 +1402,7 @@ static void __declspec(naked) wmSetupRandomEncounter_hook() {
 	}
 }
 
-int __stdcall ItemCountFix(fo::GameObject* who, fo::GameObject* item) {
+static int __stdcall ItemCountFix(fo::GameObject* who, fo::GameObject* item) {
 	int count = 0;
 	for (int i = 0; i < who->invenSize; i++) {
 		auto tableItem = &who->invenTable[i];
@@ -1422,7 +1415,7 @@ int __stdcall ItemCountFix(fo::GameObject* who, fo::GameObject* item) {
 	return count;
 }
 
-void __declspec(naked) item_count_hack() {
+static void __declspec(naked) item_count_hack() {
 	__asm {
 		push ecx;
 		push edx; // save state
@@ -1431,6 +1424,26 @@ void __declspec(naked) item_count_hack() {
 		call ItemCountFix;
 		pop  edx;
 		pop  ecx; // restore
+		retn;
+	}
+}
+
+static void __declspec(naked) inven_obj_examine_func_hack() {
+	__asm {
+		mov edx, dword ptr ds:[0x519064]; // inven_display_msg_line
+		cmp edx, 2; // >2
+		ja  fix;
+		retn;
+fix:
+		cmp edx, 5; // 4 lines
+		ja  limit;
+		dec edx;
+		sub eax, 3;
+		mul edx;
+		add eax, 3;
+		retn;
+limit:
+		mov eax, 30;
 		retn;
 	}
 }
@@ -1838,6 +1851,9 @@ void BugFixes::init()
 
 	// Fix item_count function returning incorrect value when there is a container-item inside
 	MakeJump(0x47808C, item_count_hack); // replacing item_count_ function
+
+	// Fix draw line, correction of the line position if the items name is carry to a new line
+	MakeCall(0x472F5F, inven_obj_examine_func_hack, 1);
 
 }
 

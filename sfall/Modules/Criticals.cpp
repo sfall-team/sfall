@@ -107,7 +107,7 @@ static void CritTableLoad() {
 		constexpr int size = 6 * 9 * sizeof(fo::CritInfo);
 		constexpr int sizeF = 19 * size;
 		memcpy(loadCritTable, fo::var::crit_succ_eff, sizeF);
-		memset(&loadCritTable[19], -1, sizeF);
+		memset(&loadCritTable[19], 0, sizeF);
 		memcpy(&loadCritTable[38], fo::var::pc_crit_succ_eff, size); // PC crit table
 
 		if (mode == 3) {
