@@ -67,6 +67,9 @@ static SfallOpcodeInfo opcodeInfoArray[] = {
 	{0x1dc, "show_iface_tag", sf_show_iface_tag, 1, false, {ARG_INT}},
 	{0x1dd, "hide_iface_tag", sf_hide_iface_tag, 1, false, {ARG_INT}},
 	{0x1de, "is_iface_tag_active", sf_is_iface_tag_active, 1, true, {ARG_INT}},
+	{0x1e1, "set_critical_table", sf_set_critical_table, 5, false, {ARG_INT, ARG_INT, ARG_INT, ARG_INT, ARG_INT}},
+	{0x1e2, "get_critical_table", sf_get_critical_table, 4, true, {ARG_INT, ARG_INT, ARG_INT, ARG_INT}},
+	{0x1e3, "reset_critical_table", sf_reset_critical_table, 4, false, {ARG_INT, ARG_INT, ARG_INT, ARG_INT}},
 	{0x1ec, "sqrt", sf_sqrt, 1, true, {ARG_NUMBER}},
 	{0x1ed, "abs", sf_abs, 1, true, {ARG_NUMBER}},
 	{0x1ee, "sin", sf_sin, 1, true, {ARG_NUMBER}},
@@ -101,7 +104,7 @@ static SfallOpcodeInfo opcodeInfoArray[] = {
 	{0x237, "atoi", sf_atoi, 1, true, {ARG_STRING}},
 	{0x238, "atof", sf_atof, 1, true, {ARG_STRING}},
 	{0x239, "scan_array", sf_scan_array, 2, true, {ARG_OBJECT, ARG_ANY}},
-	
+
 	{0x24e, "substr", sf_substr, 3, true, {ARG_STRING, ARG_INT, ARG_INT}},
 	{0x24f, "strlen", sf_strlen, 1, true, {ARG_STRING}},
 	{0x250, "sprintf", sf_sprintf, 2, true, {ARG_STRING, ARG_ANY}},
@@ -144,7 +147,7 @@ static SfallOpcodeInfo opcodeInfoArray[] = {
 	{0x275, "obj_is_carrying_obj", sf_obj_is_carrying_obj, 2, true, {ARG_OBJECT, ARG_OBJECT}},
 
 	// universal opcodes:
-	{0x276, "sfall_func0", HandleMetarule, 1, true}, 
+	{0x276, "sfall_func0", HandleMetarule, 1, true},
 	{0x277, "sfall_func1", HandleMetarule, 2, true},
 	{0x278, "sfall_func2", HandleMetarule, 3, true},
 	{0x279, "sfall_func3", HandleMetarule, 4, true},
@@ -165,7 +168,7 @@ void InitOpcodeInfoTable() {
 	}
 }
 
-// Default handler for Sfall Opcodes. 
+// Default handler for Sfall Opcodes.
 // Searches current opcode in Opcode Info table and executes the appropriate handler.
 void __stdcall defaultOpcodeHandlerStdcall(fo::Program* program, DWORD opcodeOffset) {
 	int opcode = opcodeOffset / 4;
@@ -331,9 +334,6 @@ void InitNewOpcodes() {
 	}
 	opcodes[0x1df] = op_get_bodypart_hit_modifier;
 	opcodes[0x1e0] = op_set_bodypart_hit_modifier;
-	opcodes[0x1e1] = op_set_critical_table;
-	opcodes[0x1e2] = op_get_critical_table;
-	opcodes[0x1e3] = op_reset_critical_table;
 	opcodes[0x1e4] = op_get_sfall_arg;
 	opcodes[0x1e5] = op_set_sfall_return;
 	opcodes[0x1e6] = op_set_unspent_ap_bonus;

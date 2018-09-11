@@ -27,10 +27,12 @@ class Criticals : public Module {
 public:
 	const char* name() { return "Criticals"; }
 	void init();
-};
 
-void _stdcall SetCriticalTable(DWORD critter, DWORD bodypart, DWORD slot, DWORD element, DWORD value);
-DWORD _stdcall GetCriticalTable(DWORD critter, DWORD bodypart, DWORD slot, DWORD element);
-void _stdcall ResetCriticalTable(DWORD critter, DWORD bodypart, DWORD slot, DWORD element);
+	static const DWORD critTableCount;
+
+	static void SetCriticalTable(DWORD critter, DWORD bodypart, DWORD slot, DWORD element, DWORD value);
+	static DWORD GetCriticalTable(DWORD critter, DWORD bodypart, DWORD slot, DWORD element);
+	static void ResetCriticalTable(DWORD critter, DWORD bodypart, DWORD slot, DWORD element);
+};
 
 }

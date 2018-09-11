@@ -90,11 +90,11 @@ void __declspec() op_get_bodypart_hit_modifier();
 
 void __declspec() op_set_bodypart_hit_modifier();
 
-void __declspec() op_set_critical_table();
+void sf_set_critical_table(OpcodeContext&);
 
-void __declspec() op_get_critical_table();
+void sf_get_critical_table(OpcodeContext&);
 
-void __declspec() op_reset_critical_table();
+void sf_reset_critical_table(OpcodeContext&);
 
 void __declspec() op_set_unspent_ap_bonus();
 
