@@ -1219,13 +1219,27 @@ static void __declspec(naked) wmSetupRandomEncounter_hook() {
 		push eax;                  // text 2
 		push edi;                  // text 1
 		push 0x500B64;             // fmt '%s %s'
-		lea  eax, worldMapMsg;
-		mov  edi, eax;
-		push eax;                  // buf
+		lea  edi, worldMapMsg;
+		push edi;                  // buf
 		call sprintf_;
 		add  esp, 16;
 		mov  eax, edi;
 		jmp  display_print_;
+	}
+}
+
+static void __declspec(naked) inven_obj_examine_func_hack() {
+	__asm {
+		mov edx, dword ptr ds:[0x519064]; // inven_display_msg_line
+		cmp edx, 2; // 2 or more lines
+		ja  fix;
+		retn;
+fix:
+		dec edx;
+		sub eax, 3;
+		mul edx;
+		add eax, 3;
+		retn;
 	}
 }
 
@@ -1573,4 +1587,8 @@ void BugsInit()
 	SafeWrite32(0x4C1011, 0x9090C789); // mov edi, eax;
 	SafeWrite8(0x4C1015, 0x90);
 	HookCall(0x4C1042, wmSetupRandomEncounter_hook);
+
+	// Fix for the underline position in the inventory display window when the item name is longer than one line
+	MakeCall(0x472F5F, inven_obj_examine_func_hack);
+	SafeWrite8(0x472F64, 0x90);
 }
