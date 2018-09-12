@@ -205,6 +205,39 @@ static void __declspec(naked) stat_recalc_derived() {
 	}
 }
 
+static const DWORD StatSetBaseRet = 0x4AF559;
+static void __declspec(naked) stat_set_base_hack() {
+	using namespace fo;
+	__asm {
+		cmp  ecx, STAT_unused;
+		je   allow;
+		cmp  ecx, STAT_better_crit;
+		jl   notAllow;
+		cmp  ecx, STAT_dmg_resist_explosion;
+		jg   notAllow;
+allow:
+		pop  eax;      // destroy ret addr
+		jmp  StatSetBaseRet;
+notAllow:
+		mov  eax, -1;  // overwritten engine code
+		retn;
+	}
+}
+
+static const DWORD SetCritterStatRet = 0x455D8A;
+static void __declspec(naked) op_set_critter_stat_hack() {
+	using namespace fo;
+	__asm {
+		cmp  dword ptr [esp + 0x2C - 0x28 + 4], STAT_unused;
+		je   allow;
+		mov  ebx, 3;  // overwritten engine code
+		retn;
+allow:
+		add  esp, 4;  // destroy ret addr
+		jmp  SetCritterStatRet;
+	}
+}
+
 void StatsReset() {
 	for (int i = 0; i < fo::STAT_max_stat; i++) {
 		statMaximumsPC[i] = statMaximumsNPC[i] = fo::var::stat_data[i].maxValue;
@@ -223,6 +256,10 @@ void Stats::init() {
 	MakeJump(0x4AF3AF, GetCurrentStatHook2, 2);
 	MakeJump(0x4AF56A, SetCurrentStatHook, 2);
 	MakeJump(0x4AF09C, ApplyApAcBonus);
+
+	// Allow to change the statistics STAT_unused and STAT_better_crit - STAT_dmg_resist_explosion for set_critter_stat function
+	MakeCall(0x4AF54E, stat_set_base_hack);
+	MakeCall(0x455D65, op_set_critter_stat_hack); // STAT_unused for other critters
 
 	auto xpTableList = GetConfigList("Misc", "XPTable", "", 2048);
 	size_t numLevels = xpTableList.size();

@@ -32,8 +32,9 @@ namespace sfall
 
 static Delegate<DWORD> onAdjustFid;
 
-static DWORD mode;
-static DWORD maxItemSize;
+static DWORD sizeLimitMode;
+static DWORD invSizeMaxLimit;
+
 static DWORD reloadWeaponKey = 0;
 static DWORD itemFastMoveKey = 0;
 
@@ -61,81 +62,27 @@ void InventoryKeyPressedHook(DWORD dxKey, bool pressed, DWORD vKey) {
 }
 
 /////////////////////////////////////////////////////////////////
-static __declspec(naked) DWORD item_total_size(void* critter) {
-	__asm {
-		push    ebx;
-		push    ecx;
-		push    edx;
-		push    esi;
-		push    edi;
-		push    ebp;
-		mov     ebp, eax;
-		test    eax, eax;
-		jz      loc_477F33;
-		lea     edi, [eax+2Ch];
-		xor     edx, edx;
-		mov     ebx, [edi];
-		xor     esi, esi;
-		test    ebx, ebx;
-		jle     loc_477ED3;
-		xor     ebx, ebx;
-loc_477EB7:
-		mov     ecx, [edi+8];
-		mov     eax, [ecx+ebx];
-		call    fo::funcoffs::item_size_
-		imul    eax, [ecx+ebx+4];
-		add     ebx, 8;
-		inc     edx;
-		mov     ecx, [edi];
-		add     esi, eax;
-		cmp     edx, ecx;
-		jl      loc_477EB7;
-loc_477ED3:
-		mov     eax, [ebp+20h];
-		and     eax, 0F000000h;
-		sar     eax, 18h;
-		cmp     eax, 1;
-		jnz     loc_477F31;
-		mov     eax, ebp;
-		call    fo::funcoffs::inven_right_hand_
-		mov     edx, eax;
-		test    eax, eax;
-		jz      loc_477EFD;
-		test    byte ptr [eax+27h], 2;
-		jnz     loc_477EFD;
-		call    fo::funcoffs::item_size_
-		add     esi, eax;
-loc_477EFD:
-		mov     eax, ebp;
-		call    fo::funcoffs::inven_left_hand_
-		test    eax, eax;
-		jz      loc_477F19;
-		cmp     edx, eax;
-		jz      loc_477F19;
-		test    byte ptr [eax+27h], 1;
-		jnz     loc_477F19;
-		call    fo::funcoffs::item_size_
-		add     esi, eax;
-loc_477F19:
-		mov     eax, ebp;
-		call    fo::funcoffs::inven_worn_
-		test    eax, eax;
-		jz      loc_477F31;
-		test    byte ptr [eax+27h], 4;
-		jnz     loc_477F31;
-		call    fo::funcoffs::item_size_
-		add     esi, eax;
-loc_477F31:
-		mov     eax, esi;
-loc_477F33:
-		pop     ebp;
-		pop     edi;
-		pop     esi;
-		pop     edx;
-		pop     ecx;
-		pop     ebx;
-		retn;
+static DWORD __stdcall sf_item_total_size(fo::GameObject* critter) {
+
+	int totalSize = fo::func::item_c_curr_size(critter);
+
+	if ((critter->artFid & 0xF000000) == (fo::OBJ_TYPE_CRITTER << 24)) {
+		fo::GameObject* item = fo::func::inven_right_hand(critter);
+		if (item && !(item->flags & fo::ObjectFlag::Right_Hand)) {
+			totalSize += fo::func::item_size(item);
+		}
+
+		fo::GameObject* itemL = fo::func::inven_left_hand(critter);
+		if (itemL && item != itemL && !(itemL->flags & fo::ObjectFlag::Left_Hand)) {
+			totalSize += fo::func::item_size(itemL);
+		}
+
+		item = fo::func::inven_worn(critter);
+		if (item && !(item->flags & fo::ObjectFlag::Worn)) {
+			totalSize += fo::func::item_size(item);
+		}
 	}
+	return totalSize;
 }
 
 /*static const DWORD ObjPickupFail=0x49B70D;
@@ -152,239 +99,235 @@ end:
 	}
 }*/
 
-static __declspec(naked) int CritterCheck() {
-	__asm {
-		push ebx;
-		push edx;
-		sub esp, 4;
-		mov ebx, eax;
+static int __stdcall CritterGetMaxSize(fo::GameObject* critter) {
 
-		cmp eax, dword ptr ds:[FO_VAR_obj_dude];
-		je single;
-		test mode, 3;
-		jnz run;
-		test mode, 2;
-		jz fail;
-		call fo::funcoffs::isPartyMember_;
+	if (critter == fo::var::obj_dude) return invSizeMaxLimit;
+
+	if (sizeLimitMode != 3) { // selected mode 1 or 2
+		if (!(sizeLimitMode & 2) || !(fo::func::isPartyMember(critter))) return 0; // if mode 2 is selected, check this party member, otherwise 0
+	}
+
+	int statSize = 0;
+	fo::Proto* proto = fo::GetProto(critter->protoId);
+	if (proto != nullptr) {
+		statSize = proto->critter.base.unarmedDamage + proto->critter.bonus.unarmedDamage; // The unused stat in the base + extra block
+	}
+	return (statSize > 0) ? statSize : 100; // 100 - default value, for all critters if not set stats
+}
+
+static __declspec(naked) void critterIsOverloaded_hack() {
+	__asm {
+		and  eax, 0xFF;
+		jnz  end;
+		push ecx;
+		push ebx;                // critter
+		call CritterGetMaxSize;
 		test eax, eax;
-		jz end;
-run:
-		test mode, 8;
-		jz single;
-		mov edx, esp;
-		mov eax, ebx;
-		call fo::funcoffs::proto_ptr_;
-		mov eax, [esp];
-		mov eax, [eax + 0xB0 + 40]; //The unused stat in the extra block
-		jmp end;
-single:
-		mov eax, maxItemSize;
-		jmp end;
-fail:
-		xor eax, eax;
+		jz   skip;
+		push ebx;
+		mov  ebx, eax;           // ebx = MaxSize
+		call sf_item_total_size;
+		cmp  eax, ebx;
+		setg al;                 // if CurrSize > MaxSize
+		and  eax, 0xFF;
+skip:
+		pop  ecx;
 end:
-		add esp, 4;
-		pop edx;
-		pop ebx;
 		retn;
 	}
 }
 
-static const DWORD IsOverloadedEnd = 0x42E68D;
-static __declspec(naked) void CritterIsOverloadedHook() {
-	__asm {
-		and eax, 0xff;
-		jnz end;
-		mov eax, ebx;
-		call CritterCheck;
-		test eax, eax;
-		jz end;
-		xchg eax, ebx;
-		call item_total_size;
-		cmp eax, ebx;
-		setg al;
-		and eax, 0xff;
-end:
-		jmp IsOverloadedEnd;
+static int __fastcall CanAddedItems(fo::GameObject* critter, fo::GameObject* item, int count) {
+
+	int sizeMax = CritterGetMaxSize(critter);
+	if (sizeMax > 0) {
+		int itemsSize = fo::func::item_size(item) * count;
+		if (itemsSize + (int)sf_item_total_size(critter) > sizeMax) return -6; // TODO: Switch this to a lower number, and add custom error messages.
 	}
+	return 0;
 }
 
-static const DWORD ItemAddMultiRet = 0x4772A6;
-static const DWORD ItemAddMultiFail = 0x4771C7;
-static __declspec(naked) void ItemAddMultiHook1() {
+static const DWORD ItemAddMultRet  = 0x4772A6;
+static const DWORD ItemAddMultFail = 0x4771C7;
+static __declspec(naked) void item_add_mult_hack() {
 	__asm {
-		push ebp;
-		mov eax, ecx;
-		call CritterCheck;
+		push ecx;
+		push ebx;           // items count
+		mov  edx, esi;      // item
+		call CanAddedItems; // ecx - source;
+		pop  ecx;
 		test eax, eax;
-		jz end;
-		mov ebp, eax;
-		mov eax, esi;
-		call fo::funcoffs::item_size_
-		mov edx, eax;
-		imul edx, ebx;
-		mov eax, ecx;
-		call item_total_size;
-		add edx, eax;
-		cmp edx, ebp;
-		jle end;
-		mov eax, -6; //TODO: Switch this to a lower number, and add custom error messages.
-		pop ebp;
-		jmp ItemAddMultiFail;
-end:
-		pop ebp;
-		jmp ItemAddMultiRet;
-	}
-}
-
-static __declspec(naked) void ItemAddMultiHook2() {
-	__asm {
-		cmp eax, edi;
-		jl fail;
-		jmp ItemAddMultiHook1;
+		jnz  fail;
+		jmp  ItemAddMultRet;
 fail:
-		mov eax, -6;
-		jmp ItemAddMultiFail;
+		jmp  ItemAddMultFail;
 	}
 }
 
-static const DWORD BarterAttemptTransactionHook1Fail = 0x474C81;
-static const DWORD BarterAttemptTransactionHook1End = 0x474CA8;
-static __declspec(naked) void BarterAttemptTransactionHook1() {
+static __declspec(naked) void item_add_mult_hack_container() {
 	__asm {
-		cmp eax, edx;
-		jg fail;
-		mov eax, edi;
-		call CritterCheck;
+		/* cmp eax, edi */
+		mov  eax, -6;
+		jl   fail;
+		//-------
+		push ecx;
+		push ebx;           // items count
+		mov  edx, esi;      // item
+		call CanAddedItems; // ecx - source;
+		pop  ecx;
 		test eax, eax;
-		jz end;
-		mov edx, eax;
-		mov eax, edi;
-		call item_total_size;
-		sub edx, eax;
-		mov eax, ebp;
-		call item_total_size;
-		cmp eax, edx;
-		jle end;
+		jnz  fail;
+		jmp  ItemAddMultRet;
 fail:
-		mov esi, 0x1f;
-		jmp BarterAttemptTransactionHook1Fail;
-end:
-		jmp BarterAttemptTransactionHook1End;
+		jmp  ItemAddMultFail;
 	}
 }
 
-static const DWORD BarterAttemptTransactionHook2Fail = 0x474CD8;
-static const DWORD BarterAttemptTransactionHook2End = 0x474D01;
-static __declspec(naked) void BarterAttemptTransactionHook2() {
+static int __fastcall BarterAttemptTransaction(fo::GameObject* critter, fo::GameObject* targetTable) {
+
+	int size = CritterGetMaxSize(critter);
+	if (size == 0) return 1;
+
+	int sizeTable = sf_item_total_size(targetTable);
+	if (sizeTable == 0) return 1;
+
+	size -= sf_item_total_size(critter);
+	return (sizeTable <= size) ? 1 : 0;
+}
+
+static const DWORD BarterAttemptTransactionPCFail = 0x474C81;
+static const DWORD BarterAttemptTransactionPCRet  = 0x474CA8;
+static __declspec(naked) void barter_attempt_transaction_hack_pc() {
 	__asm {
-		cmp eax, edx;
-		jg fail;
-		mov eax, ebx;
-		call CritterCheck;
+		/* cmp  eax, edx */
+		jg   fail;    // if is no free weight
+		//------
+		mov  ecx, edi;
+		mov  edx, ebp;
+		call BarterAttemptTransaction;
 		test eax, eax;
-		jz end;
-		mov edx, eax;
-		mov eax, ebx;
-		call item_total_size;
-		sub edx, eax;
-		mov eax, esi;
-		call item_total_size;
-		cmp eax, edx;
-		jle end;
+		jz   fail;
+		jmp  BarterAttemptTransactionPCRet;
 fail:
-		mov ecx, 0x20;
-		jmp BarterAttemptTransactionHook2Fail;
-end:
-		jmp BarterAttemptTransactionHook2End;
+		mov  esi, 31;
+		jmp  BarterAttemptTransactionPCFail;
 	}
 }
 
-static char SizeStr[16];
+static const DWORD BarterAttemptTransactionPMFail = 0x474CD8;
+static const DWORD BarterAttemptTransactionPMRet  = 0x474D01;
+static __declspec(naked) void barter_attempt_transaction_hack_pm() {
+	__asm {
+		/* cmp  eax, edx */
+		jg   fail;    // if is no free weight
+		//------
+		mov  ecx, ebx;
+		mov  edx, esi;
+		call BarterAttemptTransaction;
+		test eax, eax;
+		jz   fail;
+		jmp  BarterAttemptTransactionPMRet;
+fail:
+		mov  ecx, 32;
+		jmp  BarterAttemptTransactionPMFail;
+	}
+}
+
 static char InvenFmt[32];
 static const char* InvenFmt1 = "%s %d/%d  %s %d/%d";
 static const char* InvenFmt2 = "%s %d/%d";
+static const char* InvenFmt3 = "%d/%d | %d/%d";
 
-static const char* _stdcall GetInvenMsg() {
-	const char* tmp = fo::MessageSearch(&fo::var::inventry_message_file, 35);
-	if (!tmp) return "S:";
-	else return tmp;
+static void __cdecl DisplaySizeStats(fo::GameObject* critter, const char* &message, DWORD &size, DWORD &sizeMax) {
+
+	int limitMax = CritterGetMaxSize(critter);
+	if (limitMax == 0) {
+		strcpy(InvenFmt, InvenFmt2); // default fmt
+		return;
+	}
+
+	sizeMax = limitMax;
+	size = sf_item_total_size(critter);
+
+	const char* msg = fo::MessageSearch(&fo::var::inventry_message_file, 35);
+	message = (msg != nullptr) ? msg : "";
+
+	strcpy(InvenFmt, InvenFmt1);
 }
 
-static void _stdcall strcpy_wrapper(char* buf, const char* str) {
-	strcpy(buf, str);
-}
-
-static const DWORD DisplayStatsEnd = 0x4725E5;
-static __declspec(naked) void DisplayStatsHook() {
+static const DWORD DisplayStatsRet = 0x4725E5;
+static __declspec(naked) void display_stats_hack() {
+	using namespace fo;
 	__asm {
-		call CritterCheck;
-		jz nolimit;
-		push eax;
-		mov eax, ds:[FO_VAR_stack];
-		push ecx;
-		push InvenFmt1;
-		push offset InvenFmt;
-		call strcpy_wrapper;
-		pop ecx;
-		mov eax, ds:[FO_VAR_stack];
-		call item_total_size;
-		push eax;
-		push ecx;
-		call GetInvenMsg;
-		pop ecx;
-		push eax;
-		jmp end;
-nolimit:
-		push ecx;
-		push InvenFmt2;
-		push offset InvenFmt;
-		call strcpy_wrapper;
-		pop ecx;
-		push eax;
-		push eax;
-		push eax;
-end:
-		mov eax, ds:[FO_VAR_stack];
-		mov edx, 0xc;
-		jmp DisplayStatsEnd;
+		mov  ecx, esp;
+		sub  ecx, 4;
+		push ecx;   // sizeMax
+		sub  ecx, 4;
+		push ecx;   // size
+		sub  ecx, 4;
+		push ecx;   // size message
+		push eax;   // critter
+		call DisplaySizeStats;
+		pop  eax;
+		mov  edx, STAT_carry_amt;
+		jmp  DisplayStatsRet;
 	}
 }
 
 static char SizeMsgBuf[32];
-static const char* _stdcall FmtSizeMsg(int size) {
-	if(size==1) {
-		const char* tmp = fo::MessageSearch(&fo::var::proto_main_msg_file, 543);
-		if(!tmp) strcpy_s(SizeMsgBuf, "It occupies 1 unit.");
-		else sprintf(SizeMsgBuf, tmp, size);
+static const char* _stdcall SizeInfoMessage(fo::GameObject* item) {
+
+	int size = fo::func::item_size(item);
+	if (size == 1) {
+		const char* message = fo::MessageSearch(&fo::var::proto_main_msg_file, 543);
+		if (message == nullptr)
+			strcpy(SizeMsgBuf, "It occupies 1 unit.");
+		else
+			strncpy_s(SizeMsgBuf, message, 31);
 	} else {
-		const char* tmp = fo::MessageSearch(&fo::var::proto_main_msg_file, 542);
-		if(!tmp) sprintf(SizeMsgBuf, "It occupies %d units.", size);
-		else sprintf(SizeMsgBuf, tmp, size);
+		const char* message = fo::MessageSearch(&fo::var::proto_main_msg_file, 542);
+		if (message == nullptr)
+			sprintf(SizeMsgBuf, "It occupies %d units.", size);
+		else
+			_snprintf_s(SizeMsgBuf, 31, message, size);
 	}
 	return SizeMsgBuf;
 }
 
-static __declspec(naked) void InvenObjExamineFuncHook() {
+static __declspec(naked) void inven_obj_examine_func_hook() {
 	__asm {
-		call fo::funcoffs::inven_display_msg_
+		call fo::funcoffs::inven_display_msg_;
 		push edx;
 		push ecx;
-		mov eax, esi;
-		call fo::funcoffs::item_size_
-		push eax;
-		call FmtSizeMsg;
-		pop ecx;
-		pop edx;
-		call fo::funcoffs::inven_display_msg_
-		retn;
+		push esi;
+		call SizeInfoMessage;
+		pop  ecx;
+		pop  edx;
+		jmp  fo::funcoffs::inven_display_msg_;
+	}
+}
+
+static const DWORD ControlUpdateInfoRet = 0x44912A;
+static void __declspec(naked) gdControlUpdateInfo_hack() {
+	using namespace fo;
+	__asm {
+		mov  ebx, eax;
+		push eax;               // critter
+		call CritterGetMaxSize;
+		push eax;               // sizeMax
+		push ebx;
+		call sf_item_total_size;
+		push eax;               // size
+		mov  eax, ebx;
+		mov  edx, STAT_carry_amt;
+		jmp  ControlUpdateInfoRet;
 	}
 }
 /////////////////////////////////////////////////////////////////
 
 static std::string superStimMsg;
 static int __fastcall SuperStimFix(fo::GameObject* item, fo::GameObject* target) {
-	if (item->protoId != fo::PID_SUPER_STIMPAK || !target || (target->protoId & 0xFF000000) != (fo::OBJ_TYPE_CRITTER << 24)) return 0; // 0x01000000
+	if (item->protoId != fo::PID_SUPER_STIMPAK || !target || (target->protoId & 0xFF000000) != (fo::OBJ_TYPE_CRITTER << 24)) return 0;
 
 	long max_hp = fo::func::stat_level(target, fo::STAT_max_hit_points);
 	if (target->critter.health < max_hp) return 0;
@@ -743,6 +686,7 @@ void __declspec(naked) adjust_fid_replacement() {
 	}
 }
 
+static const DWORD DoMoveTimer_Ret = 0x476920;
 void __declspec(naked) do_move_timer_hook() {
 	__asm {
 		cmp eax, 4;
@@ -755,11 +699,11 @@ void __declspec(naked) do_move_timer_hook() {
 	__asm {
 		test eax, eax;
 		popad;
-		jz end;
-		mov dword ptr [esp], 0x476920;
-		retn;
+		jz   end;
+		add  esp, 4;    // destroy ret
+		jmp  DoMoveTimer_Ret;
 end:
-		jmp fo::funcoffs::setup_move_timer_win_;
+		jmp  fo::funcoffs::setup_move_timer_win_;
 	}
 }
 
@@ -822,40 +766,43 @@ void Inventory::init() {
 
 	MakeJump(fo::funcoffs::adjust_fid_, adjust_fid_replacement);
 
-	mode = GetConfigInt("Misc", "CritterInvSizeLimitMode", 0);
-	invenapcost = GetConfigInt("Misc", "InventoryApCost", 4);
-	invenapqpreduction = GetConfigInt("Misc", "QuickPocketsApCostReduction", 2);
-	MakeJump(0x46E80B, inven_ap_cost_hook);
-	if (mode > 7) {
-		mode = 0;
-	}
-	if (mode >= 4) {
-		mode -= 4;
-		SafeWrite8(0x477EB3, 0xeb);
-	}
-	if (mode) {
-		maxItemSize = GetConfigInt("Misc", "CritterInvSizeLimit", 100);
+	sizeLimitMode = GetConfigInt("Misc", "CritterInvSizeLimitMode", 0);
+	if (sizeLimitMode > 0 && sizeLimitMode <= 7) {
+		if (sizeLimitMode >= 4) {
+			sizeLimitMode -= 4;
+			SafeWrite8(0x477EB3, 0xEB);
+		}
+		invSizeMaxLimit = GetConfigInt("Misc", "CritterInvSizeLimit", 100);
 
-		//Check item_add_multi (picking stuff from the floor, etc.)
-		HookCall(0x4771BD, &ItemAddMultiHook1);
-		MakeJump(0x47726D, ItemAddMultiHook2);
-		MakeJump(0x42E688, CritterIsOverloadedHook);
+		// Check item_add_multi (picking stuff from the floor, etc.)
+		HookCall(0x4771BD, item_add_mult_hack); // jle addr
+		SafeWrite16(0x47726F, 0x9090);
+		MakeJump(0x477271, item_add_mult_hack_container);
+		MakeCall(0x42E688, critterIsOverloaded_hack);
 
-		//Check capacity of player and barteree when bartering
-		MakeJump(0x474C78, BarterAttemptTransactionHook1);
-		MakeJump(0x474CCF, BarterAttemptTransactionHook2);
+		// Check capacity of player and barteree when bartering
+		SafeWrite16(0x474C7A, 0x9090);
+		MakeJump(0x474C7C, barter_attempt_transaction_hack_pc);
+		SafeWrite16(0x474CD1, 0x9090);
+		MakeJump(0x474CD3, barter_attempt_transaction_hack_pm);
 
-		//Display total weight on the inventory screen
+		// Display total weight/size on the inventory screen
+		MakeJump(0x4725E0, display_stats_hack);
 		SafeWrite32(0x4725FF, (DWORD)&InvenFmt);
-		MakeJump(0x4725E0, DisplayStatsHook);
 		SafeWrite8(0x47260F, 0x20);
-		SafeWrite32(0x4725F9, 0x9c + 0xc);
-		SafeWrite8(0x472606, 0x10 + 0xc);
+		SafeWrite32(0x4725F9, 0x9C + 0x0C);
+		SafeWrite8(0x472606, 0x10 + 0x0C);
 		SafeWrite32(0x472632, 150);
 		SafeWrite8(0x472638, 0);
 
-		//Display item weight when examining
-		HookCall(0x472FFE, &InvenObjExamineFuncHook);
+		// Display item size when examining
+		HookCall(0x472FFE, inven_obj_examine_func_hook);
+
+		// Display the current and max size for the party member in the control panel
+		MakeJump(0x449125, gdControlUpdateInfo_hack);
+		SafeWrite32(0x44913E, (DWORD)InvenFmt3);
+		SafeWrite8(0x449145, 0x0C + 0x08);
+		SafeWrite8(0x449150, 0x10 + 0x08);
 	}
 
 	if (GetConfigInt("Misc", "SuperStimExploitFix", 0)) {
@@ -870,6 +817,10 @@ void Inventory::init() {
 	}
 
 	reloadWeaponKey = GetConfigInt("Input", "ReloadWeaponKey", 0);
+
+	invenapcost = GetConfigInt("Misc", "InventoryApCost", 4);
+	invenapqpreduction = GetConfigInt("Misc", "QuickPocketsApCostReduction", 2);
+	MakeJump(0x46E80B, inven_ap_cost_hook);
 
 	if (GetConfigInt("Misc", "StackEmptyWeapons", 0)) {
 		MakeJump(0x4736C6, inven_action_cursor_hack);
