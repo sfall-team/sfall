@@ -383,45 +383,34 @@ static __declspec(naked) void InvenObjExamineFuncHook() {
 }
 
 static std::string superStimMsg;
-static int _stdcall SuperStimFix2(fo::GameObject* item, fo::GameObject* target) {
-	if (!item || !target) return 0;
-	DWORD itm_pid = item->protoId, target_pid = target->protoId;
-	if ((target_pid & 0xff000000) != 0x01000000) return 0;
-	if ((itm_pid & 0xff000000) != 0) return 0;
-	if ((itm_pid & 0xffffff) != 144) return 0;
+static int __fastcall SuperStimFix2(fo::GameObject* item, fo::GameObject* target) {
+	if (item->protoId != fo::PID_SUPER_STIMPAK || !target || (target->protoId & 0xFF000000) != (fo::OBJ_TYPE_CRITTER << 24)) { // 0x01000000
+		return 0;
+	}
+
 	DWORD curr_hp, max_hp;
 	curr_hp = fo::func::stat_level(target, fo::STAT_current_hp);
 	max_hp = fo::func::stat_level(target, fo::STAT_max_hit_points);
 	if (curr_hp < max_hp) return 0;
+
 	fo::func::display_print(superStimMsg.c_str());
-	return 1;
+	return -1;
 }
 
-static const DWORD UseItemHookRet = 0x49C3D3;
+static const DWORD UseItemHookRet = 0x49C5F4;
 static void __declspec(naked) SuperStimFix() {
 	__asm {
-		push eax;
 		push ecx;
-		push edx;
-
-		push edx;
-		push ebx;
-		call SuperStimFix2;
-		pop edx;
-		pop ecx;
+		mov  ecx, ebx;       // ecx - item
+		call SuperStimFix2;  // edx - target
+		pop  ecx;
 		test eax, eax;
-		jz end;
-		pop eax;
-		xor eax, eax;
+		jnz  end;
+		mov  ebp, -1;        // overwritten engine code
 		retn;
 end:
-		pop eax;
-		push ecx;
-		push esi;
-		push edi;
-		push ebp;
-		sub esp, 0x14;
-		jmp UseItemHookRet;
+		add  esp, 4;         // destroy ret
+		jmp  UseItemHookRet; // exit
 	}
 }
 
@@ -855,7 +844,7 @@ void Inventory::init() {
 
 	if (GetConfigInt("Misc", "SuperStimExploitFix", 0)) {
 		superStimMsg = Translate("sfall", "SuperStimExploitMsg", "You cannot use a super stim on someone who is not injured!");
-		MakeJump(0x49C3CC, SuperStimFix);
+		MakeCall(0x49C3D9, SuperStimFix);
 	}
 
 	if (GetConfigInt("Misc", "CheckWeaponAmmoCost", 0)) {

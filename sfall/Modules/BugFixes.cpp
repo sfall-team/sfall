@@ -1219,11 +1219,9 @@ static void __declspec(naked) obj_examine_func_hack_ammo0() {
 	__asm {
 		cmp  dword ptr [esp + 0x1AC - 0x14 + 4], 0x445448; // gdialogDisplayMsg_
 		jnz  skip;
-		pushad;
 		push esi;
 		push eax;
 		call AppendText;
-		popad;
 		retn;
 skip:
 		jmp  dword ptr [esp + 0x1AC - 0x14 + 4];
@@ -1234,12 +1232,10 @@ static void __declspec(naked) obj_examine_func_hack_ammo1() {
 	__asm {
 		cmp  dword ptr [esp + 0x1AC - 0x14 + 4], 0x445448; // gdialogDisplayMsg_
 		jnz  skip;
-		pushad;
 		push 0;
 		push eax;
 		call AppendText;
 		mov  currDescLen, 0;
-		popad;
 		lea  eax, [textBuf];
 		jmp  fo::funcoffs::gdialogDisplayMsg_;
 skip:
@@ -1247,11 +1243,11 @@ skip:
 	}
 }
 
+static const DWORD ObjExamineFuncWeapon_Ret = 0x49B63C;
 static void __declspec(naked) obj_examine_func_hack_weapon() {
 	__asm {
 		cmp  dword ptr [esp + 0x1AC - 0x14], 0x445448; // gdialogDisplayMsg_
 		jnz  skip;
-		pushad;
 		push esi;
 		push eax;
 		call AppendText;
@@ -1259,11 +1255,9 @@ static void __declspec(naked) obj_examine_func_hack_weapon() {
 		sub  eax, 2;
 		mov  byte ptr textBuf[eax], 0; // cutoff last character
 		mov  currDescLen, 0;
-		popad;
 		lea  eax, [textBuf];
 skip:
-		mov  ecx, 0x49B63C;
-		jmp  ecx;
+		jmp  ObjExamineFuncWeapon_Ret;
 	}
 }
 
@@ -1284,6 +1278,7 @@ static void __declspec(naked) combat_give_exps_hook() {
 	}
 }
 
+static const DWORD LootContainerExp_Ret = 0x4745E3;
 static void __declspec(naked) loot_container_exp_hack() {
 	__asm {
 		mov  edx, [esp + 0x150 - 0x18];  // experience
@@ -1303,8 +1298,7 @@ static void __declspec(naked) loot_container_exp_hack() {
 		call fo::funcoffs::display_print_;
 		// end code
 skip:
-		mov eax, 0x4745E3;
-		jmp eax;
+		jmp  LootContainerExp_Ret;
 	}
 }
 
@@ -1364,13 +1358,27 @@ static void __declspec(naked) wmSetupRandomEncounter_hook() {
 		push eax;                  // text 2
 		push edi;                  // text 1
 		push 0x500B64;             // fmt '%s %s'
-		lea  eax, textBuf;
-		mov  edi, eax;
-		push eax;                  // buf
+		lea  edi, textBuf;
+		push edi;                  // buf
 		call fo::funcoffs::sprintf_;
 		add  esp, 16;
 		mov  eax, edi;
 		jmp  fo::funcoffs::display_print_;
+	}
+}
+
+static void __declspec(naked) inven_obj_examine_func_hack() {
+	__asm {
+		mov edx, dword ptr ds:[0x519064]; // inven_display_msg_line
+		cmp edx, 2; // 2 or more lines
+		ja  fix;
+		retn;
+fix:
+		dec edx;
+		sub eax, 3;
+		mul edx;
+		add eax, 3;
+		retn;
 	}
 }
 
@@ -1762,6 +1770,10 @@ void BugFixes::init()
 	SafeWrite32(0x4C1011, 0x9090C789); // mov edi, eax;
 	SafeWrite8(0x4C1015, 0x90);
 	HookCall(0x4C1042, wmSetupRandomEncounter_hook);
+
+	// Fix for the underline position in the inventory display window when the item name is longer than one line
+	MakeCall(0x472F5F, inven_obj_examine_func_hack);
+	SafeWrite8(0x472F64, 0x90);
 }
 
 }
