@@ -210,6 +210,8 @@ static void _stdcall LoadGame_Before() {
 
 // called whenever game is being reset (prior to loading a save or when returning to main menu)
 static void _stdcall GameReset(DWORD isGameLoad) {
+	if (!mapLoaded) return; // preventing resetting when a new game not been started(loading saved game from main menu)
+
 	onGameReset.invoke();
 	inLoop = 0;
 	mapLoaded = false;

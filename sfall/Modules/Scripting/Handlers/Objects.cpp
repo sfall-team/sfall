@@ -289,7 +289,7 @@ void sf_get_party_members(OpcodeContext& ctx) {
 	auto partyMemberList = fo::var::partyMemberList;
 	for (int i = 0; i < actualCount; i++) {
 		auto obj = reinterpret_cast<fo::GameObject*>(partyMemberList[i * 4]);
-		if (includeHidden || (obj->type() == fo::OBJ_TYPE_CRITTER && !fo::func::critter_is_dead(obj) && !(obj->flags & fo::ObjectFlag::Mouse_3d))) {
+		if (includeHidden || (obj->Type() == fo::OBJ_TYPE_CRITTER && !fo::func::critter_is_dead(obj) && !(obj->flags & fo::ObjectFlag::Mouse_3d))) {
 			arrays[arrayId].push_back((long)obj);
 		}
 	}
@@ -373,7 +373,7 @@ void sf_item_weight(OpcodeContext& ctx) {
 
 void sf_set_dude_obj(OpcodeContext& ctx) {
 	auto obj = ctx.arg(0).asObject();
-	if (obj->type() == fo::ObjType::OBJ_TYPE_CRITTER) {
+	if (obj->Type() == fo::ObjType::OBJ_TYPE_CRITTER) {
 		PartyControl::SwitchToCritter(obj);
 	} else {
 		ctx.printOpcodeError("Object is not a critter!");

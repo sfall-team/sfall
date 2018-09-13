@@ -132,8 +132,11 @@ struct GameObject {
 	GameObject* owner;
 	long scriptIndex;
 
-	inline char type() {
-		return protoId >> 24;
+	inline char Type() {
+		return (protoId >> 24);
+	}
+	inline char TypeFid() {
+		return (artFid >> 24);
 	}
 };
 

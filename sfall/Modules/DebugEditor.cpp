@@ -86,7 +86,7 @@ static void RunEditorInternal(SOCKET &s) {
 		for (int tile = 0; tile < 40000; tile++) {
 			fo::GameObject* obj = fo::func::obj_find_first_at_tile(elv, tile);
 			while (obj) {
-				if ((obj->type()) == fo::OBJ_TYPE_CRITTER) {
+				if ((obj->Type()) == fo::OBJ_TYPE_CRITTER) {
 					vec.push_back(reinterpret_cast<DWORD*>(obj));
 				}
 				obj = fo::func::obj_find_next_at_tile();
