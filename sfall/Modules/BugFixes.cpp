@@ -11,6 +11,8 @@ using namespace Fields;
 
 DWORD WeightOnBody = 0;
 
+static char tempBuffer[355];
+
 static void __declspec(naked) SharpShooterFix() {
 	__asm {
 		call fo::funcoffs::stat_level_                          // Perception
@@ -1222,31 +1224,30 @@ static void __declspec(naked) compute_damage_hack() {
 }
 
 static int  currDescLen = 0;
-static char textBuf[355];
 static bool showItemDescription = false;
 static void __stdcall AppendText(const char* text, const char* desc) {
 	if (showItemDescription && currDescLen == 0) {
-		strncpy_s(textBuf, desc, 161);
-		int len = strlen(textBuf);
+		strncpy_s(tempBuffer, desc, 161);
+		int len = strlen(tempBuffer);
 		if (len > 160) {
 			len = 158;
-			textBuf[len++] = '.';
-			textBuf[len++] = '.';
-			textBuf[len++] = '.';
+			tempBuffer[len++] = '.';
+			tempBuffer[len++] = '.';
+			tempBuffer[len++] = '.';
 		}
-		textBuf[len++] = ' ';
-		textBuf[len] = 0;
+		tempBuffer[len++] = ' ';
+		tempBuffer[len] = 0;
 		currDescLen  = len;
 	} else if (currDescLen == 0) {
-		textBuf[0] = 0;
+		tempBuffer[0] = 0;
 	}
 
-	strncat(textBuf, text, 64);
+	strncat(tempBuffer, text, 64);
 	currDescLen += strlen(text);
 	if (currDescLen < 300) {
-		textBuf[currDescLen++] = '.';
-		textBuf[currDescLen++] = ' ';
-		textBuf[currDescLen] = 0;
+		tempBuffer[currDescLen++] = '.';
+		tempBuffer[currDescLen++] = ' ';
+		tempBuffer[currDescLen] = 0;
 	}
 }
 
@@ -1271,7 +1272,7 @@ static void __declspec(naked) obj_examine_func_hack_ammo1() {
 		push eax;
 		call AppendText;
 		mov  currDescLen, 0;
-		lea  eax, [textBuf];
+		lea  eax, [tempBuffer];
 		jmp  fo::funcoffs::gdialogDisplayMsg_;
 skip:
 		jmp  dword ptr [esp + 0x1AC - 0x14 + 4];
@@ -1288,9 +1289,9 @@ static void __declspec(naked) obj_examine_func_hack_weapon() {
 		call AppendText;
 		mov  eax, currDescLen;
 		sub  eax, 2;
-		mov  byte ptr textBuf[eax], 0; // cutoff last character
+		mov  byte ptr tempBuffer[eax], 0; // cutoff last character
 		mov  currDescLen, 0;
-		lea  eax, [textBuf];
+		lea  eax, [tempBuffer];
 skip:
 		jmp  ObjExamineFuncWeapon_Ret;
 	}
@@ -1393,7 +1394,7 @@ static void __declspec(naked) wmSetupRandomEncounter_hook() {
 		push eax;                  // text 2
 		push edi;                  // text 1
 		push 0x500B64;             // fmt '%s %s'
-		lea  edi, textBuf;
+		lea  edi, tempBuffer;
 		push edi;                  // buf
 		call fo::funcoffs::sprintf_;
 		add  esp, 16;
@@ -1854,6 +1855,9 @@ void BugFixes::init()
 
 	// Fix draw line, correction of the line position if the items name is carry to a new line
 	MakeCall(0x472F5F, inven_obj_examine_func_hack, 1);
+
+	// Fix the width of the displayed player name in inventory
+	SafeWrite32(0x471E48, 140);
 
 }
 

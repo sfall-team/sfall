@@ -37,6 +37,7 @@ static char mapName[65];
 static char configName[65];
 static char patchName[65];
 static char versionString[65];
+static char tempBuffer[65];
 
 static const char* debugLog = "LOG";
 static const char* debugGnw = "GNW";
@@ -59,6 +60,23 @@ static const DWORD FastShotFixF1[] = {
 
 static const DWORD script_dialog_msgs[] = {
 	0x4A50C2, 0x4A5169, 0x4A52FA, 0x4A5302, 0x4A6B86, 0x4A6BE0, 0x4A6C37,
+};
+
+static const long StatsDisplayTable[14] = {
+	fo::Stat::STAT_ac,
+	fo::Stat::STAT_dmg_thresh,
+	fo::Stat::STAT_dmg_thresh_laser,
+	fo::Stat::STAT_dmg_thresh_fire,
+	fo::Stat::STAT_dmg_thresh_plasma,
+	fo::Stat::STAT_dmg_thresh_explosion,
+	fo::Stat::STAT_dmg_thresh_electrical,
+	-1,
+	fo::Stat::STAT_dmg_resist,
+	fo::Stat::STAT_dmg_resist_laser,
+	fo::Stat::STAT_dmg_resist_fire,
+	fo::Stat::STAT_dmg_resist_plasma,
+	fo::Stat::STAT_dmg_resist_explosion,
+	fo::Stat::STAT_dmg_resist_electrical
 };
 
 static void __declspec(naked) Combat_p_procFix() {
@@ -436,6 +454,91 @@ skip:
 		retn;
 end:
 		jmp  fo::funcoffs::obj_dist_;
+	}
+}
+
+static char electricalMsg[10];
+static void __declspec(naked) display_stats_hook_electrical() {
+	__asm {
+		test edi, edi;
+		jz   incNum;
+		cmp  edi, 6;
+		jz   message;
+		jmp  fo::funcoffs::message_search_;
+incNum:
+		inc  [esp + 0xF0 - 0x20 + 4];           // message number
+		inc  [esp + 0xF0 - 0x68 + 4];           // msgfile.number
+		jmp  fo::funcoffs::message_search_;
+message:
+		//mov  ebx, 100;                        // message number from INVENTRY.MSG
+		//mov  [esp + 0xF0 - 0x68 + 4], ebx;    // msgfile.number
+		//call fo::funcoffs::message_search_;
+		//test eax, eax;
+		//jnz  skip;
+		lea  eax, electricalMsg;
+		mov  [esp + 0xF0 - 0x68+0x0C + 4], eax; // msgfile.message
+		mov  eax, 1;
+//skip:
+		retn;
+	}
+}
+
+static int  displayElectricalStat;
+static char hitPointMsg[8];
+static const char* hpFmt = "%s %d/%d";
+static long __fastcall HealthPointText(fo::GameObject* critter) {
+
+	int maxHP = fo::func::stat_level(critter, fo::STAT_max_hit_points);
+	int curHP = fo::func::stat_level(critter, fo::STAT_current_hp);
+
+	if (displayElectricalStat > 1) {
+		const char* msg = fo::MessageSearch(&fo::var::inventry_message_file, 7); // default text
+		sprintf(tempBuffer, hpFmt, msg, curHP, maxHP);
+		return 0;
+	} else {
+		sprintf(tempBuffer, hpFmt, hitPointMsg, curHP, maxHP);
+	}
+
+	int widthText = 0;
+	_asm lea  eax, tempBuffer;
+	_asm call ds:[FO_VAR_text_width];
+	_asm mov  widthText, eax;
+
+	return 145 - widthText; // x position text
+}
+
+static void __declspec(naked) display_stats_hook_hp() {
+	using namespace fo;
+	__asm {
+		push esi;
+		mov  esi, eax;                        // critter
+		cmp  displayElectricalStat, 2;
+		jge  noName;
+		call fo::funcoffs::critter_name_;
+		xor  edx, edx;
+do:		                                      // name cutoff, max 10 characters
+		inc  edx;
+		cmp  [eax + edx], 32;                 // whitespace
+		jz   break;
+		cmp  edx, 10;
+		jnz  do;
+break:
+		mov  [eax][edx], 0;
+		mov  edx, eax;                        // DisplayText
+		xor  eax, eax;
+		mov  al, ds:[FO_VAR_GreenColor];
+		push eax;
+		mov  eax, edi;                        // ToSurface
+		call ds:[FO_VAR_text_to_buf];
+		mov  ebx, 100;                        // TxtWidth
+noName:
+		mov  ecx, esi;                        // critter
+		call HealthPointText;
+		add  edi, eax;                        // x shift position
+		lea  eax, tempBuffer;                 // DisplayText
+		mov  ecx, 499;                        // ToWidth
+		pop  esi;
+		retn;
 	}
 }
 
@@ -828,6 +931,20 @@ void DisplaySecondWeaponRangePatch() {
 	}
 }
 
+void DisplayElectricalStatPatch() {
+	displayElectricalStat = GetConfigInt("Misc", "DisplayElectricalResist", 0);
+	if (displayElectricalStat) {
+		dlog("Applying display of the electrical resist stat of armor patch.", DL_INIT);
+		Translate("sfall", "DisplayStatHP", "HP:", hitPointMsg, 8); // short variant
+		Translate("sfall", "DisplayStatEL", "  Electric", electricalMsg, 10);
+		HookCall(0x471E55, display_stats_hook_hp);
+		HookCall(0x471FA7, display_stats_hook_electrical);
+		SafeWrite32(0x471D72, (DWORD)&StatsDisplayTable);
+		SafeWrite32(0x471D8B, (DWORD)&StatsDisplayTable[7]);
+		dlogr(" Done", DL_INIT);
+	}
+}
+
 void KeepWeaponSelectModePatch() {
 	if (GetConfigInt("Misc", "KeepWeaponSelectMode", 1)) {
 		dlog("Applying keep weapon select mode patch.", DL_INIT);
@@ -861,7 +978,7 @@ void DisableLoadingGameSettingPatch() {
 		CodeData PatchData;
 		if (skipLoading == 2) SafeWriteBatch<CodeData>(PatchData, {0x49341C, 0x49343B});
 		SafeWriteBatch<CodeData>(PatchData, {0x493450, 0x493465, 0x49347A, 0x49348F, 0x4934A4, 0x4934B9, 0x4934CE, 0x4934E3,
-		                                  0x4934F8, 0x49350D, 0x493522, 0x493547, 0x493558, 0x493569, 0x49357A});
+		                                     0x4934F8, 0x49350D, 0x493522, 0x493547, 0x493558, 0x493569, 0x49357A});
 		dlogr(" Done", DL_INIT);
 	}
 }
@@ -937,6 +1054,7 @@ void MiscPatches::init() {
 	DisableHorriganPatch();
 
 	DisplaySecondWeaponRangePatch();
+	DisplayElectricalStatPatch();
 	KeepWeaponSelectModePatch();
 
 	PartyMemberSkillPatch();
