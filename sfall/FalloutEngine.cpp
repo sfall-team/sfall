@@ -633,6 +633,13 @@ int __stdcall ItemGetType(TGameObj* item) {
 	}
 }
 
+int __stdcall ItemSize(TGameObj* item) {
+	__asm {
+		mov eax, item
+		call item_size_
+	}
+}
+
 int _stdcall IsPartyMember(TGameObj* obj) {
 	__asm {
 		mov eax, obj
@@ -646,21 +653,6 @@ int _stdcall PartyMemberGetCurrentLevel(TGameObj* obj) {
 		call partyMemberGetCurLevel_
 	}
 }
-
-TGameObj* __stdcall GetInvenWeaponLeft(TGameObj* obj) {
-	__asm {
-		mov eax, obj
-		call inven_left_hand_
-	}
-}
-
-TGameObj* __stdcall GetInvenWeaponRight(TGameObj* obj) {
-	__asm {
-		mov eax, obj
-		call inven_right_hand_
-	}
-}
-
 
 char* GetProtoPtr(DWORD pid) {
 	char* proto;
@@ -825,16 +817,22 @@ const char* __stdcall FindCurrentProc(TProgram* program) {
 }
 
 TGameObj* __stdcall InvenWorn(TGameObj* critter) {
-	__asm mov eax, critter
-	__asm call inven_worn_
+	__asm {
+		mov eax, critter
+		call inven_worn_
+	}
 }
 
 TGameObj* __stdcall InvenLeftHand(TGameObj* critter) {
-	__asm mov eax, critter
-	__asm call inven_left_hand_
+	__asm {
+		mov eax, critter
+		call inven_left_hand_
+	}
 }
 
 TGameObj* __stdcall InvenRightHand(TGameObj* critter) {
-	__asm mov eax, critter
-	__asm call inven_right_hand_
+	__asm {
+		mov eax, critter
+		call inven_right_hand_
+	}
 }

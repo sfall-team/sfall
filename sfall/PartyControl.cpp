@@ -142,7 +142,7 @@ static void TakeControlOfNPC(TGameObj* npc) {
 
 	// deduce active hand by weapon anim code
 	char critterAnim = (npc->artFID & 0xF000) >> 12; // current weapon as seen in hands
-	if (AnimCodeByWeapon(GetInvenWeaponLeft(npc)) == critterAnim) { // definitely left hand..
+	if (AnimCodeByWeapon(InvenLeftHand(npc)) == critterAnim) { // definitely left hand..
 		*ptr_itemCurrentItem = 0;
 	} else {
 		*ptr_itemCurrentItem = 1;

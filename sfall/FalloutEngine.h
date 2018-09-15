@@ -865,14 +865,13 @@ extern const DWORD getmsg_; // eax - msg file addr, ebx - message ID, edx - int[
 // TODO: move these to different namespace
 int _stdcall IsPartyMember(TGameObj* obj);
 int _stdcall PartyMemberGetCurrentLevel(TGameObj* obj);
-TGameObj* __stdcall GetInvenWeaponLeft(TGameObj* obj);
-TGameObj* __stdcall GetInvenWeaponRight(TGameObj* obj);
 char* GetProtoPtr(DWORD pid);
 char AnimCodeByWeapon(TGameObj* weapon);
 // Displays message in main UI console window
 void DisplayConsoleMessage(const char* msg);
 const char* _stdcall GetMessageStr(DWORD fileAddr, DWORD messageId);
 int __stdcall ItemGetType(TGameObj* item);
+int __stdcall ItemSize(TGameObj* item);
 
 // Change the name of playable character
 void CritterPcSetName(const char* newName);
