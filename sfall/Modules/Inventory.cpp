@@ -1,4 +1,4 @@
-﻿/*
+/*
  *    sfall
  *    Copyright (C) 2011  Timeslip
  *
@@ -407,11 +407,11 @@ static DWORD __fastcall divide_burst_rounds_by_ammo_cost(fo::GameObject* weapon,
 	DWORD rounds = 1; // default multiply
 
 	if (HookScripts::IsInjectHook(HOOK_AMMOCOST)) {
-		rounds = burstRounds;            // rounds in burst (количество патронов израсходуемое в очереди)
+		rounds = burstRounds;            // rounds in burst
 		AmmoCostHook_Script(2, weapon, &rounds);
 	}
 
-	DWORD cost = burstRounds * rounds;    // so much ammo is required for this burst (количество патронов в очереди умноженное на 1 или на значения возвращаемое из скрипта)
+	DWORD cost = burstRounds * rounds;    // so much ammo is required for this burst
 	if (cost > currAmmo) cost = currAmmo; // if cost ammo more than current ammo, set it to current
 
 	return (cost / rounds);               // divide back to get proper number of rounds for damage calculations
@@ -424,7 +424,7 @@ static void __declspec(naked) compute_spray_hack() {
 		xchg ecx, edx;
 		push eax;         // eax - rounds in burst attack, need to set ebp
 		call divide_burst_rounds_by_ammo_cost;
-		mov  ebp, eax;    // overwriten code (в ebp устанавливаем правильное значение)
+		mov  ebp, eax;    // overwriten code
 		pop  ecx;
 		pop  edx;
 		retn;
