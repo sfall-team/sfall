@@ -1449,6 +1449,36 @@ limit:
 	}
 }
 
+int tagSkill4LevelBase = -1;
+static void __declspec(naked) SliderBtn_hook_down() {
+	__asm {
+		call fo::funcoffs::skill_level_;
+		cmp  tagSkill4LevelBase, -1;
+		jnz  fix;
+		retn;
+fix:
+		cmp  ds:[FO_VAR_tag_skill + 3 * 4], ebx;  // _tag_skill4, ebx = _skill_cursor
+		jnz  skip;
+		cmp  eax, tagSkill4LevelBase;             // curr > x2      
+		jg   skip;
+		xor  eax, eax;
+skip:
+		retn;
+	}
+}
+
+static void __declspec(naked) Add4thTagSkill_hook() {
+	__asm {
+		mov  edi, eax;
+		call fo::funcoffs::skill_set_tags_;
+		mov  eax, ds:[FO_VAR_obj_dude];
+		mov  edx, dword ptr ds:[edi + 3 * 4];    // _temp_tag_skill4
+		call fo::funcoffs::skill_level_;
+		mov  tagSkill4LevelBase, eax;            // x2
+		retn;
+	}
+}
+
 void BugFixes::init()
 {
 	#ifndef NDEBUG
@@ -1858,6 +1888,12 @@ void BugFixes::init()
 
 	// Fix the width of the displayed player name in inventory
 	SafeWrite32(0x471E48, 140);
+
+	// Fix the exploit of skill points when getting a perk Tag
+	dlog("Applying fix the exploit of skill points from perk Tag.", DL_INIT);
+	HookCall(0x43B463, SliderBtn_hook_down);
+	HookCall(0x43D7DD, Add4thTagSkill_hook);
+	dlogr(" Done", DL_INIT);
 
 }
 

@@ -24,6 +24,7 @@
 #include "..\version.h"
 
 #include "AI.h"
+#include "BugFixes.h"
 #include "FileSystem.h"
 #include "HeroAppearance.h"
 #include "HookScripts.h"
@@ -441,6 +442,7 @@ success:
 		call PerksAcceptCharScreen;
 end:
 		_InLoop2(0, CHARSCREEN);
+		mov tagSkill4LevelBase, -1; // for fixed exploit perk Tag
 		popad;
 		retn;
 	}
