@@ -87,7 +87,6 @@ static DWORD __stdcall sf_item_total_size(fo::GameObject* critter) {
 
 /*static const DWORD ObjPickupFail=0x49B70D;
 static const DWORD ObjPickupEnd=0x49B6F8;
-static const DWORD size_limit;
 static __declspec(naked) void  ObjPickupHook() {
 	__asm {
 		cmp edi, ds:[FO_VAR_obj_dude];
@@ -790,8 +789,6 @@ void Inventory::init() {
 		// Check capacity of player and barteree when bartering
 		SafeWrite16(0x474C7A, 0x9090);
 		MakeJump(0x474C7C, barter_attempt_transaction_hack_pc);
-		SafeWrite16(0x474CD1, 0x9090);
-		MakeJump(0x474CD3, barter_attempt_transaction_hack_pm);
 
 		// Display total weight/size on the inventory screen
 		MakeJump(0x4725E0, display_stats_hack);
@@ -799,17 +796,23 @@ void Inventory::init() {
 		SafeWrite8(0x47260F, 0x20);
 		SafeWrite32(0x4725F9, 0x9C + 0x0C);
 		SafeWrite8(0x472606, 0x10 + 0x0C);
-		SafeWrite32(0x472632, 150);
-		SafeWrite8(0x472638, 0);
+		SafeWrite32(0x472632, 160); // width
+		SafeWrite8(0x472638, 0);    // x offset position
 
 		// Display item size when examining
 		HookCall(0x472FFE, inven_obj_examine_func_hook);
 
-		// Display the current and max size for the party member in the control panel
-		MakeJump(0x449125, gdControlUpdateInfo_hack);
-		SafeWrite32(0x44913E, (DWORD)InvenFmt3);
-		SafeWrite8(0x449145, 0x0C + 0x08);
-		SafeWrite8(0x449150, 0x10 + 0x08);
+		if (sizeLimitMode > 1) {
+			// Check capacity of party member when bartering
+			SafeWrite16(0x474CD1, 0x9090);
+			MakeJump(0x474CD3, barter_attempt_transaction_hack_pm);
+
+			// Display the current/max size for the party member in the control panel
+			MakeJump(0x449125, gdControlUpdateInfo_hack);
+			SafeWrite32(0x44913E, (DWORD)InvenFmt3);
+			SafeWrite8(0x449145, 0x0C + 0x08);
+			SafeWrite8(0x449150, 0x10 + 0x08);
+		}
 	}
 
 	if (GetConfigInt("Misc", "SuperStimExploitFix", 0)) {
