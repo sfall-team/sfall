@@ -13,4 +13,6 @@ public:
 
 extern int tagSkill4LevelBase;
 
+extern void ResetBodyState();
+
 }

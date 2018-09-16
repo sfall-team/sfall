@@ -498,7 +498,8 @@ static void __declspec(naked) LootContainerHook() {
 		_InLoop(1, INTFACELOOT);
 		call fo::funcoffs::loot_container_;
 		_InLoop(0, INTFACELOOT);
-		retn;
+		jmp  ResetBodyState; // reset object pointer after trading/exchanging, is used in calculating the weight/size of the equipment and hidden items of the NPC
+		//retn;
 	}
 }
 
@@ -508,6 +509,7 @@ static void __declspec(naked) BarterInventoryHook() {
 		push [ESP + 4];
 		call fo::funcoffs::barter_inventory_;
 		_InLoop(0, BARTER);
+		call ResetBodyState;;
 		retn 4;
 	}
 }

@@ -182,12 +182,12 @@ fail:
 	}
 }
 
-static int __fastcall BarterAttemptTransaction(fo::GameObject* critter, fo::GameObject* targetTable) {
+static int __fastcall BarterAttemptTransaction(fo::GameObject* critter, fo::GameObject* table) {
 
 	int size = CritterGetMaxSize(critter);
 	if (size == 0) return 1;
 
-	int sizeTable = sf_item_total_size(targetTable);
+	int sizeTable = sf_item_total_size(table);
 	if (sizeTable == 0) return 1;
 
 	size -= sf_item_total_size(critter);
@@ -201,8 +201,8 @@ static __declspec(naked) void barter_attempt_transaction_hack_pc() {
 		/* cmp  eax, edx */
 		jg   fail;    // if is no free weight
 		//------
-		mov  ecx, edi;
-		mov  edx, ebp;
+		mov  ecx, edi;                   // source (pc)
+		mov  edx, ebp;                   // npc table
 		call BarterAttemptTransaction;
 		test eax, eax;
 		jz   fail;
@@ -220,8 +220,8 @@ static __declspec(naked) void barter_attempt_transaction_hack_pm() {
 		/* cmp  eax, edx */
 		jg   fail;    // if is no free weight
 		//------
-		mov  ecx, ebx;
-		mov  edx, esi;
+		mov  ecx, ebx;                  // target (npc)
+		mov  edx, esi;                  // pc table
 		call BarterAttemptTransaction;
 		test eax, eax;
 		jz   fail;
@@ -776,7 +776,11 @@ void Inventory::init() {
 	if (sizeLimitMode > 0 && sizeLimitMode <= 7) {
 		if (sizeLimitMode >= 4) {
 			sizeLimitMode -= 4;
+			// item_total_weight_ patch
 			SafeWrite8(0x477EB3, 0xEB);
+			SafeWrite8(0x477EF5, 0);
+			SafeWrite8(0x477F11, 0);
+			SafeWrite8(0x477F29, 0);
 		}
 		invSizeMaxLimit = GetConfigInt("Misc", "CritterInvSizeLimit", 100);
 
