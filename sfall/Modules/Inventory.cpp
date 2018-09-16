@@ -229,9 +229,8 @@ fail:
 	}
 }
 
-static char SizeStr[16];
 static char InvenFmt[32];
-static const char* InvenFmt1 = "%s %d/%d  %s %d/%d";
+static const char* InvenFmt1 = "%s %d/%d %s %d/%d";
 static const char* InvenFmt2 = "%s %d/%d";
 static const char* InvenFmt3 = "%d/%d | %d/%d";
 
@@ -758,11 +757,9 @@ void Inventory::init() {
 		MakeJump(0x477271, item_add_mult_hack_container);
 		MakeCall(0x42E688, critterIsOverloaded_hack);
 
-		// Check capacity of player and barteree when bartering
+		// Check player's capacity when bartering
 		SafeWrite16(0x474C7A, 0x9090);
 		MakeJump(0x474C7C, barter_attempt_transaction_hack_pc);
-		SafeWrite16(0x474CD1, 0x9090);
-		MakeJump(0x474CD3, barter_attempt_transaction_hack_pm);
 
 		// Display total weight/size on the inventory screen
 		MakeJump(0x4725E0, display_stats_hack);
@@ -770,17 +767,23 @@ void Inventory::init() {
 		SafeWrite8(0x47260F, 0x20);
 		SafeWrite32(0x4725F9, 0x9C + 0x0C);
 		SafeWrite8(0x472606, 0x10 + 0x0C);
-		SafeWrite32(0x472632, 150);
-		SafeWrite8(0x472638, 0);
+		SafeWrite32(0x472632, 150); // width
+		SafeWrite8(0x472638, 0);    // x offset position
 
 		// Display item size when examining
 		HookCall(0x472FFE, inven_obj_examine_func_hook);
 
-		// Display party member's current/max inventory size on the combat control panel
-		MakeJump(0x449125, gdControlUpdateInfo_hack);
-		SafeWrite32(0x44913E, (DWORD)InvenFmt3);
-		SafeWrite8(0x449145, 0x0C + 0x08);
-		SafeWrite8(0x449150, 0x10 + 0x08);
+		if (sizeLimitMode > 1) {
+			// Check party member's capacity when bartering
+			SafeWrite16(0x474CD1, 0x9090);
+			MakeJump(0x474CD3, barter_attempt_transaction_hack_pm);
+
+			// Display party member's current/max inventory size on the combat control panel
+			MakeJump(0x449125, gdControlUpdateInfo_hack);
+			SafeWrite32(0x44913E, (DWORD)InvenFmt3);
+			SafeWrite8(0x449145, 0x0C + 0x08);
+			SafeWrite8(0x449150, 0x10 + 0x08);
+		}
 	}
 
 	invenapcost = GetConfigInt("Misc", "InventoryApCost", 4);
