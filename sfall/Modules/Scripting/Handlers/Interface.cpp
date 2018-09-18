@@ -442,5 +442,19 @@ void sf_dialog_message(OpcodeContext& ctx) {
 	}
 }
 
+void sf_create_win(OpcodeContext& ctx) {
+	int flags = (ctx.arg(5).type() != DataType::NONE)
+		? ctx.arg(5).asInt()
+		: fo::WinFlags::MoveOnTop;
+
+	if (fo::func::createWindow(ctx.arg(0).asString(),
+		ctx.arg(1).asInt(), ctx.arg(2).asInt(), /* y, x */
+		ctx.arg(3).asInt(), ctx.arg(4).asInt(), /* w, h */
+		256, flags) == -1)
+	{
+		ctx.printOpcodeError("create_win() - couldn't create window.");
+	}
+}
+
 }
 }

@@ -31,7 +31,9 @@ namespace script
 {
 
 // Example handler. Feel free to add handlers in other files.
+#ifndef NDEBUG
 void sf_test(OpcodeContext&);
+#endif
 
 // returns current contents of metarule table
 void sf_get_metarule_table(OpcodeContext&);

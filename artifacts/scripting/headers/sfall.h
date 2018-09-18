@@ -227,6 +227,8 @@
 
 #define attack_is_aimed                       sfall_func0("attack_is_aimed")
 #define car_gas_amount                        sfall_func0("car_gas_amount")
+#define create_win(winName, x, y, w, h)       sfall_func5("create_win", winName, x, y, w, h)
+#define create_win_flag(winName, x, y, w, h, flag) sfall_func6("create_win", winName, x, y, w, h, flag)
 #define critter_inven_obj2(obj, type)         sfall_func2("critter_inven_obj2", obj, type)
 #define dialog_message(text)                  sfall_func1("dialog_message", text)
 #define display_stats                         sfall_func0("display_stats")
@@ -239,6 +241,7 @@
 #define get_map_enter_position                sfall_func0("get_map_enter_position")
 #define get_outline(obj)                      sfall_func1("get_outline", obj)
 #define get_string_pointer(text)              sfall_func1("get_string_pointer", text)
+#define get_current_size(obj)                  sfall_func1("get_current_size", obj)
 #define intface_hide                          sfall_func0("intface_hide")
 #define intface_is_hidden                     sfall_func0("intface_is_hidden")
 #define intface_redraw                        sfall_func0("intface_redraw")
@@ -262,4 +265,4 @@
 #define spatial_radius(obj)                   sfall_func1("spatial_radius", obj)
 #define tile_refresh_display                  sfall_func0("tile_refresh_display")
 #define unjam_lock(obj)                       sfall_func1("unjam_lock", obj)
-#define item_make_explosive(pid, activePid, min, max) sfall_func4("item_make_explosive", pid, activePid, min, max)
+#define item_make_explosive(pid, aPid, min, max) sfall_func4("item_make_explosive", pid, aPid, min, max)

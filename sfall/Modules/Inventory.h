@@ -33,6 +33,7 @@ public:
 	static Delegate<DWORD>& OnAdjustFid();
 };
 
-void _stdcall SetInvenApCost(int a);
+void _stdcall SetInvenApCost(int);
+DWORD _stdcall sf_item_total_size(fo::GameObject*);
 
 }

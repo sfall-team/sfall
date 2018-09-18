@@ -18,6 +18,7 @@
 
 #include "..\..\..\FalloutEngine\Fallout2.h"
 #include "..\..\Explosions.h"
+#include "..\..\Inventory.h"
 #include "..\..\Knockback.h"
 #include "..\..\PartyControl.h"
 #include "..\..\ScriptExtender.h"
@@ -420,8 +421,12 @@ void sf_item_make_explosive(OpcodeContext& ctx) {
 	if (pid > 0 && pidActive > 0) {
 		Explosions::AddToExplosives(pid, pidActive, min, max);
 	} else {
-		ctx.printOpcodeError("item_make_explosive() - PID's arguments must be greater 0.");
+		ctx.printOpcodeError("item_make_explosive() - invalid PID number, must be greater than zero.");
 	}
+}
+
+void sf_get_current_size(OpcodeContext& ctx) {
+	ctx.setReturn(sf_item_total_size(ctx.arg(0).asObject()));
 }
 
 }

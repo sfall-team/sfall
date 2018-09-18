@@ -983,6 +983,14 @@ void DisableLoadingGameSettingPatch() {
 	}
 }
 
+void InterfaceNotMoveOnTop() {
+	if (GetConfigInt("Misc", "InterfaceNotMoveOnTop", 0)) {
+		SafeWrite8(0x46ECE9, fo::WinFlags::Exclusive);  // Player Inteface/Loot/UseOn
+		SafeWrite8(0x445978, fo::WinFlags::Exclusive);  // DialogReView
+		SafeWrite8(0x41B966, fo::WinFlags::Exclusive);  // Automap
+	}
+}
+
 void MiscPatches::init() {
 	mapName[64] = 0;
 	if (GetConfigString("Misc", "StartingMap", "", mapName, 64)) {
@@ -1060,6 +1068,7 @@ void MiscPatches::init() {
 	PartyMemberSkillPatch();
 
 	DisableLoadingGameSettingPatch();
+	InterfaceNotMoveOnTop();
 }
 
 void MiscPatches::exit() {

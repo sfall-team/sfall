@@ -513,6 +513,14 @@ Note: this function does not work for pid's dynamite and plastic explosives
 > void sfall_func1("dialog_message", string text)
 - displays a message in the NPC response window in dialog or barter screen
 
+> int sfall_func1("get_current_size", object)
+- returns the current inventory size of the container or the critter
+
+> void sfall_func5("create_win", string winName, int x, int y, int width, int height)
+> void sfall_func6("create_win", string winName, int x, int y, int width, int height, int flags)
+- the same as the vanilla CreateWin function, but it creates a window with the MoveOnTop flag, allows to set additional flags for the created window
+- MoveOnTop flag allows to place the created window over of the game interface
+
 ------------------------
 ------ MORE INFO -------
 ------------------------

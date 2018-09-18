@@ -62,7 +62,7 @@ void InventoryKeyPressedHook(DWORD dxKey, bool pressed, DWORD vKey) {
 }
 
 /////////////////////////////////////////////////////////////////
-static DWORD __stdcall sf_item_total_size(fo::GameObject* critter) {
+DWORD __stdcall sf_item_total_size(fo::GameObject* critter) {
 
 	int totalSize = fo::func::item_c_curr_size(critter);
 

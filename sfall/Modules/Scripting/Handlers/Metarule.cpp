@@ -79,6 +79,7 @@ static const SfallMetarule* currentMetarule;
 static const SfallMetarule metarules[] = {
 	{"attack_is_aimed", sf_attack_is_aimed, 0, 0},
 	{"car_gas_amount", sf_car_gas_amount, 0, 0},
+	{"create_win", sf_create_win, 5, 6, {ARG_STRING, ARG_INT, ARG_INT, ARG_INT, ARG_INT, ARG_INT}},
 	{"critter_inven_obj2", sf_critter_inven_obj2, 2, 2, {ARG_OBJECT, ARG_INT}},
 	{"dialog_message", sf_dialog_message, 1, 1, {ARG_STRING}},
 	{"display_stats", sf_display_stats, 0, 0},
@@ -92,12 +93,13 @@ static const SfallMetarule metarules[] = {
 	{"get_metarule_table", sf_get_metarule_table, 0, 0},
 	{"get_outline", sf_get_outline, 1, 1, {ARG_OBJECT}},
 	{"get_string_pointer", sf_get_string_pointer, 1, 1, {ARG_STRING}},
+	{"get_current_size", sf_get_current_size, 1, 1, {ARG_OBJECT}},
 	{"intface_hide", sf_intface_hide, 0, 0},
 	{"intface_is_hidden", sf_intface_is_hidden, 0, 0},
 	{"intface_redraw", sf_intface_redraw, 0, 0},
 	{"intface_show", sf_intface_show, 0, 0},
 	{"inventory_redraw", sf_inventory_redraw, 1, 1, {ARG_INT}},
-  {"item_make_explosive", sf_item_make_explosive, 3, 4, {ARG_INT, ARG_INT, ARG_INT, ARG_INT}},
+	{"item_make_explosive", sf_item_make_explosive, 3, 4, {ARG_INT, ARG_INT, ARG_INT, ARG_INT}},
 	{"item_weight", sf_item_weight, 1, 1, {ARG_OBJECT}},
 	{"lock_is_jammed", sf_lock_is_jammed, 1, 1, {ARG_OBJECT}},
 	{"outlined_object", sf_outlined_object, 0, 0},
@@ -116,37 +118,10 @@ static const SfallMetarule metarules[] = {
 	{"spatial_radius", sf_spatial_radius, 1, 1, {ARG_OBJECT}},
 	{"tile_refresh_display", sf_tile_refresh_display, 0, 0},
 	{"unjam_lock", sf_unjam_lock, 1, 1, {ARG_OBJECT}},
+	#ifndef NDEBUG 
 	{"validate_test", sf_test, 2, 5, {ARG_INT, ARG_NUMBER, ARG_STRING, ARG_OBJECT, ARG_ANY}},
+	#endif
 };
-
-
-static std::string sf_test_stringBuf;
-void sf_test(OpcodeContext& ctx) {
-	std::ostringstream sstream;
-	sstream << "sfall_funcX(\"test\"";
-	for (int i = 0; i < ctx.numArgs(); i++) {
-		const ScriptValue &arg = ctx.arg(i);
-		sstream << ", ";
-		switch (arg.type()) {
-			case DataType::INT:
-				sstream << arg.asInt();
-				break;
-			case DataType::FLOAT:
-				sstream << arg.asFloat();
-				break;
-			case DataType::STR:
-				sstream << '"' << arg.asString() << '"';
-				break;
-			default:
-				sstream << "???";
-				break;
-		}
-	}
-	sstream << ")";
-
-	sf_test_stringBuf = sstream.str();
-	ctx.setReturn(sf_test_stringBuf.c_str());
-}
 
 // returns current contents of metarule table
 void sf_get_metarule_table(OpcodeContext& ctx) {
@@ -205,6 +180,36 @@ void HandleMetarule(OpcodeContext& ctx) {
 		ctx.printOpcodeError("sfall_funcX(name, ...) - name must be string.");
 	}
 }
+
+#ifndef NDEBUG
+static std::string sf_test_stringBuf;
+void sf_test(OpcodeContext& ctx) {
+	std::ostringstream sstream;
+	sstream << "sfall_funcX(\"test\"";
+	for (int i = 0; i < ctx.numArgs(); i++) {
+		const ScriptValue &arg = ctx.arg(i);
+		sstream << ", ";
+		switch (arg.type()) {
+			case DataType::INT:
+				sstream << arg.asInt();
+				break;
+			case DataType::FLOAT:
+				sstream << arg.asFloat();
+				break;
+			case DataType::STR:
+				sstream << '"' << arg.asString() << '"';
+				break;
+			default:
+				sstream << "???";
+				break;
+		}
+	}
+	sstream << ")";
+
+	sf_test_stringBuf = sstream.str();
+	ctx.setReturn(sf_test_stringBuf.c_str());
+}
+#endif
 
 }
 }
