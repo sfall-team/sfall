@@ -11,4 +11,6 @@ public:
 	void init();
 };
 
+extern void ResetBodyState();
+
 }

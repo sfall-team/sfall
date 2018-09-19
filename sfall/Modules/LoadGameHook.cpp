@@ -24,6 +24,7 @@
 #include "..\version.h"
 
 #include "AI.h"
+#include "Bugfixes.h"
 #include "FileSystem.h"
 #include "HeroAppearance.h"
 #include "HookScripts.h"
@@ -494,16 +495,18 @@ static void __declspec(naked) LootContainerHook() {
 		_InLoop(1, INTFACELOOT);
 		call fo::funcoffs::loot_container_;
 		_InLoop(0, INTFACELOOT);
-		retn;
+		jmp  ResetBodyState; // reset object pointer used in calculating the weight/size of equipped and hidden items on NPCs after exiting loot/barter screens
+		//retn;
 	}
 }
 
 static void __declspec(naked) BarterInventoryHook() {
 	__asm {
 		_InLoop(1, BARTER);
-		push [ESP + 4];
+		push [esp + 4];
 		call fo::funcoffs::barter_inventory_;
 		_InLoop(0, BARTER);
+		call ResetBodyState;
 		retn 4;
 	}
 }

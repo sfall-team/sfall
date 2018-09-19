@@ -9,11 +9,19 @@ namespace sfall
 using namespace fo;
 using namespace Fields;
 
-DWORD WeightOnBody = 0;
+static DWORD critterBody = 0;
+static DWORD sizeOnBody = 0;
+static DWORD weightOnBody = 0;
+
+void ResetBodyState() {
+	_asm mov critterBody, 0;
+	_asm mov sizeOnBody, 0;
+	_asm mov weightOnBody, 0;
+}
 
 static void __declspec(naked) SharpShooterFix() {
 	__asm {
-		call fo::funcoffs::stat_level_                          // Perception
+		call fo::funcoffs::stat_level_            // Perception
 		cmp  edi, dword ptr ds:[FO_VAR_obj_dude]
 		jne  end
 		xchg ecx, eax
@@ -397,84 +405,128 @@ end:
 	}
 }
 
+// Calculate weight & size of equipped items
 static void __declspec(naked) loot_container_hack() {
 	__asm {
-		mov  eax, [esp+0x114+0x4]
-		test eax, eax
-		jz   noLeftWeapon
-		call fo::funcoffs::item_weight_
+		mov  critterBody, ebp;                    // target
+		push esi;
+		mov  esi, [esp + 0x114 + 8];              // item lhand
+		mov  sizeOnBody, esi;
+		mov  eax, esi;
+		test esi, esi;
+		jz   noLeftWeapon;
+		call fo::funcoffs::item_size_;
+		mov  sizeOnBody, eax;
+		mov  eax, esi;
+		call fo::funcoffs::item_weight_;
 noLeftWeapon:
-		mov  WeightOnBody, eax
-		mov  eax, [esp+0x118+0x4]
-		test eax, eax
-		jz   noRightWeapon
-		call fo::funcoffs::item_weight_
+		mov  weightOnBody, eax;
+		mov  esi, [esp + 0x118 + 8];              // item rhand
+		test esi, esi;
+		jz   noRightWeapon;
+		mov  eax, esi;
+		call fo::funcoffs::item_size_;
+		add  sizeOnBody, eax;
+		mov  eax, esi;
+		call fo::funcoffs::item_weight_;
+		add  weightOnBody, eax;
 noRightWeapon:
-		add  WeightOnBody, eax
-		mov  eax, [esp+0x11C+0x4]
-		test eax, eax
-		jz   noArmor
-		call fo::funcoffs::item_weight_
+		mov  esi, [esp + 0x11C + 8];              // item armor
+		test esi, esi;
+		jz   noArmor;
+		mov  eax, esi;
+		call fo::funcoffs::item_size_;
+		add  sizeOnBody, eax;
+		mov  eax, esi;
+		call fo::funcoffs::item_weight_;
+		add  weightOnBody, eax;
 noArmor:
-		add  WeightOnBody, eax
-		xor  eax, eax
-		inc  eax
-		inc  eax
-		retn
+		mov  esi, [esp + 0xF8 + 8]; // check JESSE_CONTAINER
+		mov  eax, esi;
+		call fo::funcoffs::item_c_curr_size_;
+		add  sizeOnBody, eax;
+		mov  eax, esi;
+		call fo::funcoffs::item_total_weight_;
+		add  weightOnBody, eax;
+		pop  esi;
+		mov  eax, 2; // overwritten code
+		retn;
 	}
 }
 
-static void __declspec(naked) barter_inventory_hack() {
+static void __declspec(naked) barter_inventory_hook() {
 	__asm {
-		mov  eax, [esp+0x20+0x4]
-		test eax, eax
-		jz   noArmor
-		call fo::funcoffs::item_weight_
+		mov  critterBody, eax;                         // target
+		call fo::funcoffs::item_move_all_hidden_;
+		push esi;
+		mov  esi, [esp + 0x20 + 8];                    // armor
+		mov  sizeOnBody, esi;
+		mov  eax, esi;
+		test eax, eax;
+		jz   noArmor;
+		call fo::funcoffs::item_size_;
+		mov  sizeOnBody, eax
+		mov  eax, esi;
+		call fo::funcoffs::item_weight_;
 noArmor:
-		mov  WeightOnBody, eax
-		mov  eax, [esp+0x1C+0x4]
-		test eax, eax
-		jnz  haveWeapon
-		cmp  dword ptr ds:[FO_VAR_dialog_target_is_party], eax
-		jne  end                                  // This is a party member
-		mov  eax, [esp+0x18+0x4]
-		test eax, eax
-		jz   end
+		mov  weightOnBody, eax;
+		mov  esi, [esp + 0x1C + 8];                    // weapon
+		test esi, esi;
+		jnz  haveWeapon;
+		cmp  ds:[FO_VAR_dialog_target_is_party], esi;  // esi = 0
+		jne  skip;                                     // This is a party member
+		mov  eax, [esp + 0x18 + 8];                    // item_weapon
+		test eax, eax;
+		jz   skip;
 haveWeapon:
-		call fo::funcoffs::item_weight_
-		add  WeightOnBody, eax
-end:
-		mov  ebx, PID_JESSE_CONTAINER
-		retn
+		mov  eax, esi;
+		call fo::funcoffs::item_size_;
+		add  sizeOnBody, eax;
+		mov  eax, esi;
+		call fo::funcoffs::item_weight_;
+		add  weightOnBody, eax;
+skip:
+		mov  esi, [esp + 0x10 + 8]; // check JESSE_CONTAINER
+		mov  eax, esi;
+		call fo::funcoffs::item_c_curr_size_;
+		add  sizeOnBody, eax
+		mov  eax, esi;
+		call fo::funcoffs::item_total_weight_;
+		add  weightOnBody, eax
+		pop  esi;
+		retn;
 	}
 }
 
-static void __declspec(naked) barter_attempt_transaction_hook() {
+// Add weightOnBody to item_total_weight_ function
+static void __declspec(naked) item_total_weight_hack() {
 	__asm {
-		call fo::funcoffs::stat_level_                          // eax = Max weight
-		sub  eax, WeightOnBody                    // Accounting for weight of target's equipped armor and weapon
-		retn
+		xor edx, edx;
+		mov ebx, [edi];                          // Inventory.inv_size
+		xor esi, esi;
+		//------
+		cmp eax, dword ptr ds:[FO_VAR_obj_dude]; // eax - source
+		jz  skip;
+		cmp critterBody, eax;                    // if condition is true, then now it's exchanging/bartering with source object
+		cmovz esi, weightOnBody;                 // take the weight of target's equipped items into account
+skip:
+		retn;
 	}
 }
 
-static DWORD Looting = 0;
-static void __declspec(naked) move_inventory_hook() {
+// Add sizeOnBody to item_c_curr_size_ function
+static void __declspec(naked) item_c_curr_size_hack() {
 	__asm {
-		inc  Looting
-		call fo::funcoffs::move_inventory_
-		dec  Looting
-		retn
-	}
-}
-
-static void __declspec(naked) item_add_mult_hook() {
-	__asm {
-		call fo::funcoffs::stat_level_                          // eax = Max weight
-		cmp  Looting, 0
-		je   end
-		sub  eax, WeightOnBody                    // Accounting for weight of target's equipped armor and weapon
-end:
-		retn
+		xor esi, esi;
+		mov edx, [ecx];                          // Inventory.inv_size
+		xor edi, edi;
+		//------
+		cmp eax, dword ptr ds:[FO_VAR_obj_dude]; // eax - source
+		jz  skip;
+		cmp critterBody, eax;                    // if condition is true, then now it's exchanging/bartering with source object
+		cmovz edi, sizeOnBody;                   // take the size of target's equipped items into account
+skip:
+		retn;
 	}
 }
 
@@ -1479,14 +1531,15 @@ void BugFixes::init()
 	HookCall(0x437B26, &StatButtonDown_hook);
 	dlogr(" Done", DL_INIT);
 
-	// Fix for not counting in the weight of equipped items on NPC when stealing or bartering
+	// Fix for not counting in the weight/size of equipped items on NPC when stealing or bartering
 	//if (GetConfigInt("Misc", "NPCWeightFix", 1)) {
 		dlog("Applying fix for not counting in weight of equipped items on NPC.", DL_INIT);
 		MakeCall(0x473B4E, loot_container_hack);
-		MakeCall(0x47588A, barter_inventory_hack);
-		HookCall(0x474CB8, &barter_attempt_transaction_hook);
-		HookCall(0x4742AD, &move_inventory_hook);
-		HookCall(0x4771B5, &item_add_mult_hook);
+		HookCall(0x4758AB, barter_inventory_hook);
+		MakeCall(0x477EAB, item_total_weight_hack);
+		SafeWrite8(0x477EB0, 0x90);
+		MakeCall(0x479A2F, item_c_curr_size_hack);
+		SafeWrite8(0x479A34, 0x90);
 		dlogr(" Done", DL_INIT);
 	//}
 
