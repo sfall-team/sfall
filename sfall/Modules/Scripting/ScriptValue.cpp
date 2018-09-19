@@ -89,10 +89,10 @@ unsigned long ScriptValue::rawValue() const {
 
 int ScriptValue::asInt() const {
 	switch (_type) {
-	case DataType::FLOAT:
-		return static_cast<int>(_val.f);
 	case DataType::INT:
 		return _val.i;
+	case DataType::FLOAT:
+		return static_cast<int>(_val.f);
 	default:
 		return 0;
 	}
@@ -100,10 +100,10 @@ int ScriptValue::asInt() const {
 
 bool ScriptValue::asBool() const {
 	switch (_type) {
-	case DataType::FLOAT:
-		return static_cast<int>(_val.f) != 0;
 	case DataType::INT:
 		return _val.i != 0;
+	case DataType::FLOAT:
+		return static_cast<int>(_val.f) != 0;
 	default:
 		return true;
 	}
