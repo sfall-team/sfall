@@ -52,11 +52,11 @@ bool IsMapLoaded() {
 }
 
 DWORD InWorldMap() {
-	return (InLoop&WORLDMAP) ? 1 : 0;
+	return (InLoop & WORLDMAP) ? 1 : 0;
 }
 
 DWORD InCombat() {
-	return (InLoop&COMBAT) ? 1 : 0;
+	return (InLoop & COMBAT) ? 1 : 0;
 }
 
 DWORD GetCurrentLoops() {

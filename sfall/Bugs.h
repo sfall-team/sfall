@@ -1,5 +1,5 @@
 #pragma once
 
-extern DWORD WeightOnBody;
+extern void ResetBodyState();
 
 void BugsInit();

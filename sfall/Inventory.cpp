@@ -92,32 +92,8 @@ void InventoryKeyPressedHook(DWORD dxKey, bool pressed, DWORD vKey) {
 	}
 }
 
-
-/*static DWORD _stdcall item_total_size(void* critter) {
-	//TODO: Don't really want to be overwriting stuff like this after init. Rewrite properly.
-	HookCall(0x477EBD, (void*)0x477B68);
-	HookCall(0x477EF6, (void*)0x477B68);
-	HookCall(0x477F12, (void*)0x477B68);
-	HookCall(0x477F2A, (void*)0x477B68);
-
-	DWORD result;
-	__asm {
-		mov eax, critter;
-		call item_total_weight_;
-		mov result, eax;
-	}
-
-	HookCall(0x477EBD, (void*)0x477B88);
-	HookCall(0x477EF6, (void*)0x477B88);
-	HookCall(0x477F12, (void*)0x477B88);
-	HookCall(0x477F2A, (void*)0x477B88);
-
-	return result;
-}*/
-
 /////////////////////////////////////////////////////////////////
 static DWORD __stdcall sf_item_total_size(TGameObj* critter) {
-
 	int totalSize;
 	__asm {
 		mov  eax, critter;
@@ -127,17 +103,17 @@ static DWORD __stdcall sf_item_total_size(TGameObj* critter) {
 
 	if ((critter->artFID & 0xF000000) == (OBJ_TYPE_CRITTER << 24)) {
 		TGameObj* item = InvenRightHand(critter);
-		if (item && !(item->flags & OBJFLAG_HELD_IN_RIGHT << 8)) {
+		if (item && !(item->flags & 0x2000000)) {
 			totalSize += ItemSize(item);
 		}
 
 		TGameObj* itemL = InvenLeftHand(critter);
-		if (itemL && item != itemL && !(itemL->flags & OBJFLAG_HELD_IN_LEFT << 8)) {
+		if (itemL && item != itemL && !(itemL->flags & 0x1000000)) {
 			totalSize += ItemSize(itemL);
 		}
 
 		item = InvenWorn(critter);
-		if (item && !(item->flags & OBJFLAG_WORN << 8)) {
+		if (item && !(item->flags & 0x4000000)) {
 			totalSize += ItemSize(item);
 		}
 	}
@@ -240,11 +216,11 @@ fail:
 	}
 }
 
-static int __fastcall BarterAttemptTransaction(TGameObj* critter, TGameObj* targetTable) {
+static int __fastcall BarterAttemptTransaction(TGameObj* critter, TGameObj* table) {
 	int size = CritterGetMaxSize(critter);
 	if (size == 0) return 1;
 
-	int sizeTable = sf_item_total_size(targetTable);
+	int sizeTable = sf_item_total_size(table);
 	if (sizeTable == 0) return 1;
 
 	size -= sf_item_total_size(critter);
@@ -258,8 +234,8 @@ static __declspec(naked) void barter_attempt_transaction_hack_pc() {
 		/* cmp  eax, edx */
 		jg   fail;    // if there's no available weight
 		//------
-		mov  ecx, edi;
-		mov  edx, ebp;
+		mov  ecx, edi;                  // source (pc)
+		mov  edx, ebp;                  // npc table
 		call BarterAttemptTransaction;
 		test eax, eax;
 		jz   fail;
@@ -277,8 +253,8 @@ static __declspec(naked) void barter_attempt_transaction_hack_pm() {
 		/* cmp  eax, edx */
 		jg   fail;    // if there's no available weight
 		//------
-		mov  ecx, ebx;
-		mov  edx, esi;
+		mov  ecx, ebx;                  // target (npc)
+		mov  edx, esi;                  // pc table
 		call BarterAttemptTransaction;
 		test eax, eax;
 		jz   fail;
@@ -286,6 +262,26 @@ static __declspec(naked) void barter_attempt_transaction_hack_pm() {
 fail:
 		mov  ecx, 32;
 		jmp  BarterAttemptTransactionPMFail;
+	}
+}
+
+static __declspec(naked) void loot_container_hook_btn() {
+	__asm {
+		push ecx;
+		push edx;                            // source current weight
+		mov  edx, eax;                       // target
+		mov  ecx, [esp + 0x150 - 0x1C + 12]; // source
+		call BarterAttemptTransaction;
+		pop  edx;
+		pop  ecx;
+		test eax, eax;
+		jz   fail;
+		mov  eax, ebp;                       // target
+		jmp  item_total_weight_;
+fail:
+		mov  eax, edx;
+		inc  eax;                            // weight + 1
+		retn;
 	}
 }
 
@@ -716,7 +712,11 @@ void InventoryInit() {
 	if (sizeLimitMode > 0 && sizeLimitMode <= 7) {
 		if (sizeLimitMode >= 4) {
 			sizeLimitMode -= 4;
+			// item_total_weight_ patch
 			SafeWrite8(0x477EB3, 0xEB);
+			SafeWrite8(0x477EF5, 0);
+			SafeWrite8(0x477F11, 0);
+			SafeWrite8(0x477F29, 0);
 		}
 		invSizeMaxLimit = GetPrivateProfileInt("Misc", "CritterInvSizeLimit", 100, ini);
 
@@ -729,6 +729,9 @@ void InventoryInit() {
 		// Check player's capacity when bartering
 		SafeWrite16(0x474C7A, 0x9090);
 		MakeJump(0x474C7C, barter_attempt_transaction_hack_pc);
+
+		// Check player's capacity when using "Take All" button
+		HookCall(0x47410B, loot_container_hook_btn);
 
 		// Display total weight/size on the inventory screen
 		MakeJump(0x4725E0, display_stats_hack);
