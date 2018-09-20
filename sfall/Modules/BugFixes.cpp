@@ -1531,6 +1531,36 @@ static void __declspec(naked) Add4thTagSkill_hook() {
 	}
 }
 
+static BYTE retrievePtr = 0;
+static void __declspec(naked) ai_retrieve_object_hook() {
+	__asm {
+		mov  retrievePtr, 1;
+		mov  edx, ebx;                          // object ptr
+		call fo::funcoffs::inven_find_id_;      // check prt (fix behavior)
+		mov  retrievePtr, 0;
+		test eax, eax;
+		jz   tryFindId;
+		retn;
+tryFindId:
+		mov  eax, ecx;                          // source
+		mov  edx, [ebx];                        // obj.id
+		jmp  fo::funcoffs::inven_find_id_;      // vanilla behavior
+	}
+}
+
+static void __declspec(naked) inven_find_id_hack() {
+	__asm {
+		mov  ebx, [edi + ebx];                 // inv.item
+		test retrievePtr, 0xFF;
+		jnz  fix;
+		cmp  ecx, [ebx];                       // obj.id == obj.id
+		retn;
+fix:
+		cmp  ecx, ebx;                         // object ptr == object ptr
+		retn;
+	}
+}
+
 void BugFixes::init()
 {
 	#ifndef NDEBUG
@@ -1946,6 +1976,11 @@ void BugFixes::init()
 	HookCall(0x43D7DD, Add4thTagSkill_hook);
 	dlogr(" Done", DL_INIT);
 
+	// Fix of the ai_retrieve_object engine function, when instead of the specified object returned another item of inventory with the same ID
+	dlog("Applying fix the ai_retrieve_object engine function.", DL_INIT);
+	HookCall(0x429D7B, ai_retrieve_object_hook);
+	MakeCall(0x472708, inven_find_id_hack);
+	dlogr(" Done", DL_INIT);
 }
 
 }
