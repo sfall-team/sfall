@@ -229,6 +229,26 @@ fail:
 	}
 }
 
+static __declspec(naked) void loot_container_hook_btn() {
+	__asm {
+		push ecx;
+		push edx;                               // source current weight
+		mov  edx, eax;                          // target
+		mov  ecx, [esp + 0x150 - 0x1C + 12];    // source
+		call BarterAttemptTransaction;
+		pop  edx;
+		pop  ecx;
+		test eax, eax;
+		jz   fail;
+		mov  eax, ebp;                          // target
+		jmp  fo::funcoffs::item_total_weight_;
+fail:
+		mov  eax, edx;
+		inc  eax;                               // weight + 1
+		retn;
+	}
+}
+
 static char InvenFmt[32];
 static const char* InvenFmt1 = "%s %d/%d %s %d/%d";
 static const char* InvenFmt2 = "%s %d/%d";
@@ -764,6 +784,9 @@ void Inventory::init() {
 		// Check player's capacity when bartering
 		SafeWrite16(0x474C7A, 0x9090);
 		MakeJump(0x474C7C, barter_attempt_transaction_hack_pc);
+
+		// Check player's capacity when using "Take All" button
+		HookCall(0x47410B, loot_container_hook_btn);
 
 		// Display total weight/size on the inventory screen
 		MakeJump(0x4725E0, display_stats_hack);
