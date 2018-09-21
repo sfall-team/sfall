@@ -26,7 +26,6 @@ namespace script
 class OpcodeContext;
 
 void __declspec() op_force_encounter();
-
 void __declspec() op_force_encounter_with_flags();
 
 // world_map_functions
@@ -35,20 +34,20 @@ void __declspec() op_in_world_map();
 void __declspec() op_get_game_mode();
 
 void __declspec() op_get_world_map_x_pos();
-
 void __declspec() op_get_world_map_y_pos();
-
 void __declspec() op_set_world_map_pos();
 
 void sf_set_car_intface_art(OpcodeContext&);
 
 void sf_set_map_enter_position(OpcodeContext&);
-
 void sf_get_map_enter_position(OpcodeContext&);
 
 void sf_set_rest_heal_time(OpcodeContext&);
 
 void sf_set_rest_mode(OpcodeContext&);
+
+void sf_set_rest_on_map(OpcodeContext&);
+void sf_get_rest_on_map(OpcodeContext&);
 
 }
 }

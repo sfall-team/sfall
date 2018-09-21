@@ -983,10 +983,10 @@ void DisableLoadingGameSettingPatch() {
 	}
 }
 
-void InterfaceNotMoveOnTop() {
-	if (GetConfigInt("Misc", "InterfaceNotMoveOnTop", 0)) {
+void InterfaceDontMoveOnTop() {
+	if (GetConfigInt("Misc", "InterfaceDontMoveOnTop", 0)) {
 		SafeWrite8(0x46ECE9, fo::WinFlags::Exclusive);  // Player Inteface/Loot/UseOn
-		SafeWrite8(0x445978, fo::WinFlags::Exclusive);  // DialogReView
+		//SafeWrite8(0x445978, fo::WinFlags::Exclusive);  // DialogReView (need fix)
 		SafeWrite8(0x41B966, fo::WinFlags::Exclusive);  // Automap
 	}
 }
@@ -1068,7 +1068,7 @@ void MiscPatches::init() {
 	PartyMemberSkillPatch();
 
 	DisableLoadingGameSettingPatch();
-	InterfaceNotMoveOnTop();
+	InterfaceDontMoveOnTop();
 }
 
 void MiscPatches::exit() {

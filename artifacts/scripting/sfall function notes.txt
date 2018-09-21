@@ -513,13 +513,23 @@ Note: this function does not work for pid's dynamite and plastic explosives
 > void sfall_func1("dialog_message", string text)
 - displays a message in the NPC response window in dialog or barter screen
 
-> int sfall_func1("get_current_size", object)
+> int sfall_func1("get_current_inven_size", object)
 - returns the current inventory size of the container or the critter
 
 > void sfall_func5("create_win", string winName, int x, int y, int width, int height)
 > void sfall_func6("create_win", string winName, int x, int y, int width, int height, int flags)
 - the same as the vanilla CreateWin function, but it creates a window with the MoveOnTop flag, allows to set additional flags for the created window
 - MoveOnTop flag allows to place the created window over of the game interface
+
+> void sfall_func3("set_can_rest_on_map", int mapNum, int elev, bool value)
+- enable/disable rest on the map for the specified level
+- mapNum index of the map from the maps.txt file
+- passing the value -1 of the argument elev, to sets the value for all map elevations
+
+> int sfall_func2("get_can_rest_on_map", int mapNum, int elev)
+- returns the set value for the map after using the set_can_rest_on_map function
+- if the value for the map was not previously set, returned the value -1
+- the can_rest_here values from the maps.txt file are ignored
 
 ------------------------
 ------ MORE INFO -------

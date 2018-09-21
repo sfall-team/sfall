@@ -33,6 +33,7 @@
 #include "ScriptExtender.h"
 #include "Scripting\Arrays.h"
 #include "ExtraSaveSlots.h"
+#include "Worldmap.h"
 
 #include "LoadGameHook.h"
 
@@ -131,6 +132,14 @@ static void _stdcall SaveGame2() {
 		fo::DisplayPrint(saveSfallDataFailMsg);
 		fo::func::gsound_play_sfx_file("IISXXXX1");
 	}
+
+	GetSavePath(buf, "db");
+	h = CreateFileA(buf, GENERIC_WRITE, 0, 0, CREATE_ALWAYS, 0, 0);
+	if (h != INVALID_HANDLE_VALUE) {
+		Worldmap::SaveData(h);
+	}
+	CloseHandle(h);
+
 	GetSavePath(buf, "fs");
 	h = CreateFileA(buf, GENERIC_WRITE, 0, 0, CREATE_ALWAYS, 0, 0);
 	if (h != INVALID_HANDLE_VALUE) {
@@ -207,23 +216,33 @@ static void _stdcall LoadGame_Before() {
 	} else {
 		dlogr("Cannot read sfallgv.sav - assuming non-sfall save.", DL_MAIN);
 	}
+
+	GetSavePath(buf, "db");
+	h = CreateFileA(buf, GENERIC_READ, FILE_SHARE_READ, 0, OPEN_EXISTING, 0, 0);
+	if (h != INVALID_HANDLE_VALUE) {
+		dlog("Loading data from sfalldb.sav file...", DL_INIT);
+		Worldmap::LoadData(h);
+		CloseHandle(h);
+		dlogr(" Done", DL_INIT);
+	} else {
+		dlogr("Cannot read sfalldb.sav file.", DL_INIT);
+	}
 }
 
 // called whenever game is being reset (prior to loading a save or when returning to main menu)
 static void _stdcall GameReset(DWORD isGameLoad) {
-	if (!mapLoaded) return; // preventing resetting when a new game not been started(loading saved game from main menu)
-
-	onGameReset.invoke();
+	if (mapLoaded) { // preventing resetting when a new game not been started(loading saved game from main menu)
+		onGameReset.invoke();
+		if (isDebug) {
+			char* str = (isGameLoad) ? "on Load" : "on Exit";
+			fo::func::debug_printf("\n[SFALL: State reset %s]", str);
+		}
+	}
 	inLoop = 0;
 	mapLoaded = false;
 
 	if (isGameLoad) {
 		LoadGame_Before();
-	}
-
-	if (isDebug) {
-		char* str = (isGameLoad) ? "on Load" : "on Exit";
-		fo::func::debug_printf("\n[SFALL: State reset %s]\n", str);
 	}
 }
 
