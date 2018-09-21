@@ -558,3 +558,12 @@ static void sf_critter_inven_obj2() {
 		opHandler.printOpcodeError("critter_inven_obj2() - invalid type.");
 	}
 }
+
+static void sf_get_current_inven_size() {
+	TGameObj* invenObj = opHandler.arg(0).asObject();
+	if (invenObj != nullptr) {
+		opHandler.setReturn(sf_item_total_size(invenObj), DATATYPE_INT);
+	} else {
+		opHandler.setReturn(-1);
+	}
+}

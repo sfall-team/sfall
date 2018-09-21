@@ -385,6 +385,9 @@ Some utility/math functions are available:
 - works just like vanilla floor function, but returns correct integers for negative values
 - vanilla floor function works exactly the same as ceil for negative values, much like trunc in C/C++
 
+> int sfall_func1("get_current_inven_size", object)
+- returns the current inventory size of the container or the critter
+
 ------------------------
 ------ MORE INFO -------
 ------------------------

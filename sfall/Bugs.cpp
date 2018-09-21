@@ -470,7 +470,7 @@ noArmor:
 		mov  esi, [esp + 0x1C + 8];                    // weapon
 		test esi, esi;
 		jnz  haveWeapon;
-		cmp  ds:[_dialog_target_is_party], esi;  // esi = 0
+		cmp  ds:[_dialog_target_is_party], esi;        // esi = 0
 		jne  skip;                                     // This is a party member
 		mov  eax, [esp + 0x18 + 8];                    // item_weapon
 		test eax, eax;

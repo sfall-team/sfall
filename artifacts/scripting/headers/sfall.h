@@ -192,6 +192,7 @@
 #define critter_inven_obj2(obj, type)         sfall_func2("critter_inven_obj2", obj, type)
 #define exec_map_update_scripts               sfall_func0("exec_map_update_scripts")
 #define floor2(value)                         sfall_func1("floor2", value)
+#define get_current_inven_size(obj)           sfall_func1("get_current_inven_size", obj)
 #define intface_hide                          sfall_func0("intface_hide")
 #define intface_is_hidden                     sfall_func0("intface_is_hidden")
 #define intface_redraw                        sfall_func0("intface_redraw")

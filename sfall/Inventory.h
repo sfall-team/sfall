@@ -19,6 +19,7 @@
 #pragma once
 
 void _stdcall SetInvenApCost(int a);
+DWORD __stdcall sf_item_total_size(TGameObj* critter);
 void InventoryInit();
 void InventoryReset();
 void InventoryKeyPressedHook(DWORD dxKey, bool pressed, DWORD vKey);

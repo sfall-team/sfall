@@ -103,17 +103,18 @@ static void sf_get_metarule_table() {
 		- minArgs/maxArgs - minimum and maximum number of arguments allowed for this function
 */
 static const SfallMetarule metaruleArray[] = {
-	{"get_metarule_table", sf_get_metarule_table, 0, 0},
-	{"validate_test", sf_test, 2, 5},
-	{"spatial_radius", sf_spatial_radius, 1, 1},
 	{"critter_inven_obj2", sf_critter_inven_obj2, 2, 2},
-	{"intface_redraw", sf_intface_redraw, 0, 0},
-	{"intface_show", sf_intface_show, 0, 0},
+	{"exec_map_update_scripts", sf_exec_map_update_scripts, 0, 0},
+	{"floor2", sf_floor2, 1, 1},
+	{"get_current_inven_size", sf_get_current_inven_size, 1, 1},
+	{"get_metarule_table", sf_get_metarule_table, 0, 0},
 	{"intface_hide", sf_intface_hide, 0, 0},
 	{"intface_is_hidden", sf_intface_is_hidden, 0, 0},
-	{"exec_map_update_scripts", sf_exec_map_update_scripts, 0, 0},
+	{"intface_redraw", sf_intface_redraw, 0, 0},
+	{"intface_show", sf_intface_show, 0, 0},
 	{"set_ini_setting", sf_set_ini_setting, 2, 2},
-	{"floor2", sf_floor2, 1, 1},
+	{"spatial_radius", sf_spatial_radius, 1, 1},
+	{"validate_test", sf_test, 2, 5},
 };
 
 static void InitMetaruleTable() {

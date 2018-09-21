@@ -93,7 +93,7 @@ void InventoryKeyPressedHook(DWORD dxKey, bool pressed, DWORD vKey) {
 }
 
 /////////////////////////////////////////////////////////////////
-static DWORD __stdcall sf_item_total_size(TGameObj* critter) {
+DWORD __stdcall sf_item_total_size(TGameObj* critter) {
 	int totalSize;
 	__asm {
 		mov  eax, critter;
@@ -103,17 +103,17 @@ static DWORD __stdcall sf_item_total_size(TGameObj* critter) {
 
 	if ((critter->artFID & 0xF000000) == (OBJ_TYPE_CRITTER << 24)) {
 		TGameObj* item = InvenRightHand(critter);
-		if (item && !(item->flags & 0x2000000)) {
+		if (item && !(item->flags & 0x2000000)) { // ObjectFlag Right_Hand
 			totalSize += ItemSize(item);
 		}
 
 		TGameObj* itemL = InvenLeftHand(critter);
-		if (itemL && item != itemL && !(itemL->flags & 0x1000000)) {
+		if (itemL && item != itemL && !(itemL->flags & 0x1000000)) { // ObjectFlag Left_Hand
 			totalSize += ItemSize(itemL);
 		}
 
 		item = InvenWorn(critter);
-		if (item && !(item->flags & 0x4000000)) {
+		if (item && !(item->flags & 0x4000000)) { // ObjectFlag Worn
 			totalSize += ItemSize(item);
 		}
 	}
