@@ -34,5 +34,6 @@ public:
 };
 
 void _stdcall SetInvenApCost(int a);
+DWORD __stdcall sf_item_total_size(fo::GameObject* critter);
 
 }

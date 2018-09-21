@@ -228,6 +228,7 @@
 #define display_stats                         sfall_func0("display_stats")
 #define exec_map_update_scripts               sfall_func0("exec_map_update_scripts")
 #define floor2(value)                         sfall_func1("floor2", value)
+#define get_current_inven_size(obj)           sfall_func1("get_current_inven_size", obj)
 #define get_cursor_mode                       sfall_func0("get_cursor_mode")
 #define get_flags(obj)                        sfall_func1("get_flags", obj)
 #define get_ini_section(file, sect)           sfall_func2("get_ini_section", file, sect)

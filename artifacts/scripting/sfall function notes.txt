@@ -497,6 +497,9 @@ Some utility/math functions are available:
 > void sfall_func1("dialog_message", string text)
 - displays a message in the NPC response window in dialog or barter screen
 
+> int sfall_func1("get_current_inven_size", object)
+- returns the current inventory size of the container or the critter
+
 ------------------------
 ------ MORE INFO -------
 ------------------------

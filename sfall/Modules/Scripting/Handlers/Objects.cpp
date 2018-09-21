@@ -18,6 +18,7 @@
 
 #include "..\..\..\FalloutEngine\Fallout2.h"
 #include "..\..\Knockback.h"
+#include "..\..\Inventory.h"
 #include "..\..\PartyControl.h"
 #include "..\..\ScriptExtender.h"
 #include "..\Arrays.h"
@@ -424,6 +425,10 @@ void sf_set_unjam_locks_time(OpcodeContext& ctx) {
 	} else {
 		ScriptExtender::SetAutoUnjamLockTime(time);
 	}
+}
+
+void sf_get_current_inven_size(OpcodeContext& ctx) {
+	ctx.setReturn(sf_item_total_size(ctx.arg(0).asObject()));
 }
 
 }
