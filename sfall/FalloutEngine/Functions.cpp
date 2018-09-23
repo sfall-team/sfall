@@ -388,6 +388,11 @@ long __stdcall win_register_button(DWORD winRef, long xPos, long yPos, long widt
 		WRAP_WATCOM_CALL6(name##_, arg1, arg2, arg3, arg4, arg5, arg6) \
 	}
 
+#define WRAP_WATCOM_FUNC7(retType, name, arg1t, arg1, arg2t, arg2, arg3t, arg3, arg4t, arg4, arg5t, arg5, arg6t, arg6, arg7t, arg7) \
+	retType __stdcall name(arg1t arg1, arg2t arg2, arg3t arg3, arg4t arg4, arg5t arg5, arg6t arg6, arg7t arg7) { \
+		WRAP_WATCOM_CALL7(name##_, arg1, arg2, arg3, arg4, arg5, arg6, arg7) \
+	}
+
 #include "Functions_def.h"
 
 }

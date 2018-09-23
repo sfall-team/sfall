@@ -689,4 +689,20 @@ namespace Fields {
 	};
 }
 
+namespace WinFlags {
+	enum WinButtonFlags : long
+	{
+		OwnerFlag             = 0x1,
+		UnknownFlag2          = 0x2,
+		MoveOnTop             = 0x4,
+		Hidden                = 0x8,
+		Exclusive             = 0x10,
+		Transparent           = 0x20,
+		UnknownFlag40         = 0x40,
+		UnknownFlag80         = 0x80,
+		scriptWindow          = 0x100,
+		itsButton             = 0x10000,
+	};
+}
+
 }

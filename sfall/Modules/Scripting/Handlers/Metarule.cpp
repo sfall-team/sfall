@@ -79,6 +79,7 @@ static const SfallMetarule* currentMetarule;
 static const SfallMetarule metarules[] = {
 	{"attack_is_aimed", sf_attack_is_aimed, 0, 0},
 	{"car_gas_amount", sf_car_gas_amount, 0, 0},
+	{"create_win", sf_create_win, 5, 6, {ARG_STRING, ARG_INT, ARG_INT, ARG_INT, ARG_INT, ARG_INT}},
 	{"critter_inven_obj2", sf_critter_inven_obj2, 2, 2, {ARG_OBJECT, ARG_INT}},
 	{"dialog_message", sf_dialog_message, 1, 1, {ARG_STRING}},
 	{"display_stats", sf_display_stats, 0, 0},

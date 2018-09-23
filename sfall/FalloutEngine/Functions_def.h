@@ -25,6 +25,7 @@ WRAP_WATCOM_FUNC4(BYTE*, art_ptr_lock_data, long, frmId, long, frameNum, long, r
 WRAP_WATCOM_FUNC4(BYTE*, art_lock, long, frmId, DWORD*, lockPtr, long*, widthOut, long*, heightOut)
 WRAP_WATCOM_FUNC1(long, art_ptr_unlock, DWORD, lockId)
 WRAP_WATCOM_FUNC2(long, barter_compute_value, GameObject*, source, GameObject*, target)
+WRAP_WATCOM_FUNC7(long, createWindow, const char*, winName, long, x, long, y, long, width, long, height, long, bgColorIndex, long, flags)
 WRAP_WATCOM_FUNC1(void*, dbase_open, const char*, fileName)
 WRAP_WATCOM_FUNC1(void, dbase_close, void*, dbPtr)
 WRAP_WATCOM_FUNC3(long, db_freadShortCount, DbFile*, file, WORD*, dest, long, count)

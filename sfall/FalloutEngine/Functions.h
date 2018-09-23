@@ -219,6 +219,9 @@ long __stdcall win_register_button(DWORD winRef, long xPos, long yPos, long widt
 #define WRAP_WATCOM_FUNC6(retType, name, arg1t, arg1, arg2t, arg2, arg3t, arg3, arg4t, arg4, arg5t, arg5, arg6t, arg6) \
 	retType __stdcall name(arg1t arg1, arg2t arg2, arg3t arg3, arg4t arg4, arg5t arg5, arg6t arg6);
 
+#define WRAP_WATCOM_FUNC7(retType, name, arg1t, arg1, arg2t, arg2, arg3t, arg3, arg4t, arg4, arg5t, arg5, arg6t, arg6, arg7t, arg7) \
+	retType __stdcall name(arg1t arg1, arg2t arg2, arg3t arg3, arg4t arg4, arg5t arg5, arg6t arg6, arg7t arg7);
+
 #include "Functions_def.h"
 
 #undef WRAP_WATCOM_FUNC0
@@ -228,7 +231,7 @@ long __stdcall win_register_button(DWORD winRef, long xPos, long yPos, long widt
 #undef WRAP_WATCOM_FUNC4
 #undef WRAP_WATCOM_FUNC5
 #undef WRAP_WATCOM_FUNC6
-//#undef WRAP_WATCOM_FUNC7
+#undef WRAP_WATCOM_FUNC7
 
 }
 }
