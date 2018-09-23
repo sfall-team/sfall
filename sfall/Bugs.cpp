@@ -1312,6 +1312,36 @@ fix:
 	}
 }
 
+static BYTE retrievePtr = 0;
+static void __declspec(naked) ai_retrieve_object_hook() {
+	__asm {
+		mov  retrievePtr, 1;
+		mov  edx, ebx;                          // object ptr
+		call inven_find_id_;                    // check prt (fix behavior)
+		mov  retrievePtr, 0;
+		test eax, eax;
+		jz   tryFindId;
+		retn;
+tryFindId:
+		mov  eax, ecx;                          // source
+		mov  edx, [ebx];                        // obj.id
+		jmp  inven_find_id_;                    // vanilla behavior
+	}
+}
+
+static void __declspec(naked) inven_find_id_hack() {
+	__asm {
+		mov  ebx, [edi + ebx];                 // inv.item
+		test retrievePtr, 0xFF;
+		jnz  fix;
+		cmp  ecx, [ebx];                       // obj.id == obj.id
+		retn;
+fix:
+		cmp  ecx, ebx;                         // object ptr == object ptr
+		retn;
+	}
+}
+
 
 void BugsInit()
 {
@@ -1651,7 +1681,7 @@ void BugsInit()
 	MakeCall(0x456B63, op_obj_can_see_obj_hack);
 	SafeWrite16(0x456B76, 0x23EB); // jmp loc_456B9B (skip unused engine code)
 
-	// Fix for critters not checking weapon perks properly when searching for the best weapon
+	// Fix for AI not checking weapon perks properly when searching for the best weapon
 	if (GetPrivateProfileIntA("Misc", "AIBestWeaponFix", 0, ini)) {
 		dlog("Applying AI best weapon choice fix.", DL_INIT);
 		HookCall(0x42954B, ai_best_weapon_hook);
@@ -1666,4 +1696,11 @@ void BugsInit()
 	// Fix for the underline position in the inventory display window when the item name is longer than one line
 	MakeCall(0x472F5F, inven_obj_examine_func_hack);
 	SafeWrite8(0x472F64, 0x90);
+
+	// Fix for ai_retrieve_object_ engine function not returning the requested object when there are different objects
+	// with the same ID
+	dlog("Applying ai_retrieve_object engine function fix.", DL_INIT);
+	HookCall(0x429D7B, ai_retrieve_object_hook);
+	MakeCall(0x472708, inven_find_id_hack);
+	dlogr(" Done", DL_INIT);
 }

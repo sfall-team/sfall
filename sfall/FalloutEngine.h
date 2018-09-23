@@ -554,6 +554,7 @@ extern const DWORD intface_get_attack_;
 extern const DWORD invenUnwieldFunc_; // (int critter@<eax>, int slot@<edx>, int a3@<ebx>) - int result (-1 on error, 0 on success)
 extern const DWORD invenWieldFunc_; // (int who@<eax>, int item@<edx>, int a3@<ecx>, int slot@<ebx>) - int result (-1 on error, 0 on success)
 extern const DWORD inven_display_msg_;
+extern const DWORD inven_find_id_;
 extern const DWORD inven_left_hand_;
 extern const DWORD inven_pid_is_carried_ptr_;
 extern const DWORD inven_right_hand_;

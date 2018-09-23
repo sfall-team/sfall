@@ -376,6 +376,7 @@ const DWORD intface_get_attack_ = 0x45EF6C;
 const DWORD invenUnwieldFunc_ = 0x472A64;
 const DWORD invenWieldFunc_ = 0x472768;
 const DWORD inven_display_msg_ = 0x472D24;
+const DWORD inven_find_id_ = 0x4726EC;
 const DWORD inven_left_hand_ = 0x471BBC;
 const DWORD inven_pid_is_carried_ptr_ = 0x471CA0;
 const DWORD inven_right_hand_ = 0x471B70;

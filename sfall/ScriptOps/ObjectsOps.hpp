@@ -564,6 +564,6 @@ static void sf_get_current_inven_size() {
 	if (invenObj != nullptr) {
 		opHandler.setReturn(sf_item_total_size(invenObj), DATATYPE_INT);
 	} else {
-		opHandler.setReturn(-1);
+		opHandler.setReturn(-1, DATATYPE_INT);
 	}
 }
