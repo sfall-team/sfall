@@ -25,39 +25,41 @@ namespace sfall
 namespace script
 {
 
-void __declspec() op_fs_create();
+class OpcodeContext;
 
-void __declspec() op_fs_copy();
+void sf_fs_create(OpcodeContext&);
 
-void __declspec() op_fs_find();
+void sf_fs_copy(OpcodeContext&);
 
-void __declspec() op_fs_write_byte();
+void sf_fs_find(OpcodeContext&);
 
-void __declspec() op_fs_write_short();
+void sf_fs_write_byte(OpcodeContext&);
 
-void __declspec() op_fs_write_int();
+void sf_fs_write_short(OpcodeContext&);
 
-void __declspec() op_fs_write_string();
+void sf_fs_write_int(OpcodeContext&);
 
-void __declspec() op_fs_write_bstring();
+void sf_fs_write_string(OpcodeContext&);
 
-void __declspec() op_fs_read_byte();
+void sf_fs_write_bstring(OpcodeContext&);
 
-void __declspec() op_fs_read_short();
+void sf_fs_read_byte(OpcodeContext&);
 
-void __declspec() op_fs_read_int();
+void sf_fs_read_short(OpcodeContext&);
 
-void __declspec() op_fs_read_float();
+void sf_fs_read_int(OpcodeContext&);
 
-void __declspec() op_fs_delete();
+void sf_fs_read_float(OpcodeContext&);
 
-void __declspec() op_fs_size();
+void sf_fs_delete(OpcodeContext&);
 
-void __declspec() op_fs_pos();
+void sf_fs_size(OpcodeContext&);
 
-void __declspec() op_fs_seek();
+void sf_fs_pos(OpcodeContext&);
 
-void __declspec() op_fs_resize();
+void sf_fs_seek(OpcodeContext&);
+
+void sf_fs_resize(OpcodeContext&);
 
 }
 }

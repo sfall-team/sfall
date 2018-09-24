@@ -77,7 +77,25 @@ static SfallOpcodeInfo opcodeInfoArray[] = {
 	{0x1f0, "tan", sf_tan, 1, true, {ARG_NUMBER}},
 	{0x1f1, "arctan", sf_arctan, 2, true, {ARG_NUMBER, ARG_NUMBER}},
 	{0x1f5, "get_script", sf_get_script, 1, true},
+	{0x1f7, "fs_create", sf_fs_create, 2, true, {ARG_STRING, ARG_INT}},
+	{0x1f8, "fs_copy", sf_fs_copy, 2, true, {ARG_STRING, ARG_STRING}},
+	{0x1f9, "fs_find", sf_fs_find, 1, true, {ARG_STRING}},
+	{0x1fa, "fs_write_byte", sf_fs_write_byte, 2, false, {ARG_INT, ARG_INT}},
+	{0x1fb, "fs_write_short", sf_fs_write_short, 2, false, {ARG_INT, ARG_INT}},
+	{0x1fc, "fs_write_int", sf_fs_write_int, 2, false, {ARG_INT, ARG_INT}},
+	{0x1fd, "fs_write_int", sf_fs_write_int, 2, false, {ARG_INT, ARG_INT}},
+	{0x1fe, "fs_write_string", sf_fs_write_string, 2, false, {ARG_INT, ARG_STRING}},
+	{0x1ff, "fs_delete", sf_fs_delete, 1, false, {ARG_INT}},
+	{0x200, "fs_size", sf_fs_size, 1, true, {ARG_INT}},
+	{0x201, "fs_pos", sf_fs_pos, 1, true, {ARG_INT}},
+	{0x202, "fs_seek", sf_fs_seek, 2, false, {ARG_INT, ARG_INT}},
+	{0x203, "fs_resize", sf_fs_resize, 2, false, {ARG_INT, ARG_INT}},
 	{0x207, "register_hook", sf_register_hook, 1, false, {ARG_INT}},
+	{0x208, "fs_write_bstring", sf_fs_write_bstring, 2, false, {ARG_INT, ARG_STRING}},
+	{0x209, "fs_read_byte", sf_fs_read_byte, 1, true, {ARG_INT}},
+	{0x20a, "fs_read_short", sf_fs_read_short, 1, true, {ARG_INT}},
+	{0x20b, "fs_read_int", sf_fs_read_int, 1, true, {ARG_INT}},
+	{0x20c, "fs_read_float", sf_fs_read_float, 1, true, {ARG_INT}},
 	{0x20d, "list_begin", sf_list_begin, 1, true, {ARG_INT}},
 	{0x20e, "list_next", sf_list_next, 1, true, {ARG_INT}},
 	{0x20f, "list_end", sf_list_end, 1, false, {ARG_INT}},
@@ -347,27 +365,9 @@ void InitNewOpcodes() {
 	opcodes[0x1f4] = op_set_script;
 
 	opcodes[0x1f6] = op_nb_create_char;
-	opcodes[0x1f7] = op_fs_create;
-	opcodes[0x1f8] = op_fs_copy;
-	opcodes[0x1f9] = op_fs_find;
-	opcodes[0x1fa] = op_fs_write_byte;
-	opcodes[0x1fb] = op_fs_write_short;
-	opcodes[0x1fc] = op_fs_write_int;
-	opcodes[0x1fd] = op_fs_write_int;
-	opcodes[0x1fe] = op_fs_write_string;
-	opcodes[0x1ff] = op_fs_delete;
-	opcodes[0x200] = op_fs_size;
-	opcodes[0x201] = op_fs_pos;
-	opcodes[0x202] = op_fs_seek;
-	opcodes[0x203] = op_fs_resize;
 	opcodes[0x204] = op_get_proto_data;
 	opcodes[0x205] = op_set_proto_data;
 	opcodes[0x206] = op_set_self;
-	opcodes[0x208] = op_fs_write_bstring;
-	opcodes[0x209] = op_fs_read_byte;
-	opcodes[0x20a] = op_fs_read_short;
-	opcodes[0x20b] = op_fs_read_int;
-	opcodes[0x20c] = op_fs_read_float;
 	opcodes[0x213] = op_hero_select_win;
 	opcodes[0x214] = op_set_hero_race;
 	opcodes[0x215] = op_set_hero_style;
