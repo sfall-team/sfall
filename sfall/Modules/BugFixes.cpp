@@ -1,5 +1,6 @@
 #include "..\main.h"
 #include "..\FalloutEngine\Fallout2.h"
+#include "LoadGameHook.h"
 #include "ScriptExtender.h"
 
 #include "BugFixes.h"
@@ -21,9 +22,13 @@ void ResetBodyState() {
 	_asm mov weightOnBody, 0;
 }
 
+void GameInitialization() {
+	*(DWORD*)FO_VAR_gDialogMusicVol = *(DWORD*)FO_VAR_background_volume; // fix dialog music
+}
+
 static void __declspec(naked) SharpShooterFix() {
 	__asm {
-		call fo::funcoffs::stat_level_                          // Perception
+		call fo::funcoffs::stat_level_            // Perception
 		cmp  edi, dword ptr ds:[FO_VAR_obj_dude]
 		jne  end
 		xchg ecx, eax
@@ -1561,11 +1566,35 @@ fix:
 	}
 }
 
+static DWORD op_start_gdialog_ret = 0x456F4B;
+static void __declspec(naked) op_start_gdialog_hack() {
+	__asm {
+		mov  ebx, ds:[FO_VAR_dialog_target];
+		mov  ebx, [ebx + protoId];
+		shr  ebx, 0x18;
+		cmp  ebx, OBJ_TYPE_CRITTER;
+		jz   fix;
+		cmp  edx, -1;
+		jz   skip;
+		retn;
+fix:
+		cmp  eax, -1;
+		jnz  skip;
+		retn;
+skip:
+		add  esp, 4; // destroy ret
+		jmp  op_start_gdialog_ret;
+	}
+}
+
 void BugFixes::init()
 {
 	#ifndef NDEBUG
 		if (isDebug && (GetConfigInt("Debugging", "BugFixes", 1) == 0)) return;
 	#endif
+
+	// Missing game initialization
+	LoadGameHook::OnGameInit() = GameInitialization;
 
 	//if (GetConfigInt("Misc", "SharpshooterFix", 1)) {
 		dlog("Applying Sharpshooter patch.", DL_INIT);
@@ -1753,7 +1782,7 @@ void BugFixes::init()
 	// Fix the impact in itself in case of a miss hit for multihex critters when using throwing weapon
 	// Note: in fact, the bug is in tile_num_beyond_ and related functions, in case of fix, this crutch will need to be removed
 	if (GetConfigInt("Misc", "MultiHexSelfHitFix", 0) != 0) {
-		dlog("Applying multihex critter miss hit fix.", DL_INIT);
+		dlog("Applying multihex critter self hit fix.", DL_INIT);
 		HookCalls(MultiHexAIMissHitFix, { 0x423B44, 0x42315D });
 		dlogr(" Done", DL_INIT);
 	}
@@ -1912,7 +1941,7 @@ void BugFixes::init()
 	}
 
 	// Display experience points with the bonus from Swift Learner perk when gained from non-scripted situations
-	if (GetConfigInt("Misc", "DisplaySwiftLearnerExp", 1) != 0) {
+	if (GetConfigInt("Misc", "DisplaySwiftLearnerExp", 1)) {
 		dlog("Applying Swift Learner exp display patch.", DL_INIT);
 		MakeCall(0x4AFAEF, statPCAddExperienceCheckPMs_hack);
 		HookCall(0x4221E2, combat_give_exps_hook);
@@ -1928,7 +1957,7 @@ void BugFixes::init()
 	SafeWrite16(0x456B76, 0x23EB); // jmp loc_456B9B (skip unused engine code)
 
 	// Fix broken op_obj_can_hear_obj_ function
-	if (GetConfigInt("Misc", "ObjCanHearObjFix", 0) != 0) {
+	if (GetConfigInt("Misc", "ObjCanHearObjFix", 0)) {
 		dlog("Applying obj_can_hear_obj fix.", DL_INIT);
 		SafeWrite8(0x4583D8, 0x3B); // jz loc_458414
 		SafeWrite8(0x4583DE, 0x74); // jz loc_458414
@@ -1981,6 +2010,13 @@ void BugFixes::init()
 	HookCall(0x429D7B, ai_retrieve_object_hook);
 	MakeCall(0x472708, inven_find_id_hack);
 	dlogr(" Done", DL_INIT);
+
+	// Fix argument 'mood' for opcode start_gdialog, the argument value for the talking head was not taken into account
+	if (GetConfigInt("Misc", "StartGDialogFix", 0)) {
+		dlog("Applying argument fix for the opcode start_gdialog.", DL_INIT);
+		MakeCall(0x456F03, op_start_gdialog_hack);
+		dlogr(" Done", DL_INIT);
+	}
 }
 
 }

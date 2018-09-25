@@ -66,6 +66,7 @@
 #define FO_VAR_game_user_wants_to_quit    0x5186CC
 #define FO_VAR_gcsd                       0x51094C
 #define FO_VAR_gdBarterMod                0x51873C
+#define FO_VAR_gDialogMusicVol            0x5187D8
 #define FO_VAR_gdNumOptions               0x5186D8
 #define FO_VAR_gIsSteal                   0x51D430
 #define FO_VAR_glblmode                   0x5709D0
