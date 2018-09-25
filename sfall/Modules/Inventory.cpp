@@ -643,34 +643,6 @@ end:
 	}
 }
 
-int __stdcall ItemCountFixStdcall(fo::GameObject* who, fo::GameObject* item) {
-	int count = 0;
-	for (int i = 0; i < who->invenSize; i++) {
-		auto tableItem = &who->invenTable[i];
-		if (tableItem->object == item) {
-			count += tableItem->count;
-		} else if (fo::func::item_get_type(tableItem->object) == fo::item_type_container) {
-			count += ItemCountFixStdcall(tableItem->object, item);
-		}
-	}
-	return count;
-}
-
-void __declspec(naked) ItemCountFix() {
-	__asm {
-		push ebx;
-		push ecx;
-		push edx; // save state
-		push edx; // item
-		push eax; // container-object
-		call ItemCountFixStdcall;
-		pop edx;
-		pop ecx;
-		pop ebx; // restore
-		retn;
-	}
-}
-
 // reimplementation of adjust_fid engine function
 // Differences from vanilla:
 // - doesn't use art_vault_guy_num as default art, uses current critter FID instead
@@ -866,9 +838,6 @@ void Inventory::init() {
 		MakeCall(0x4759F1, barter_inventory_hack2);
 		fo::var::max = 100;
 	};
-
-	// Fix item_count function returning incorrect value when there is a container-item inside
-	MakeJump(0x47808C, ItemCountFix); // replacing item_count_ function
 }
 
 Delegate<DWORD>& Inventory::OnAdjustFid() {

@@ -1099,6 +1099,34 @@ end:
 	}
 }
 
+static int __stdcall ItemCountFixStdcall(fo::GameObject* who, fo::GameObject* item) {
+	int count = 0;
+	for (int i = 0; i < who->invenSize; i++) {
+		auto tableItem = &who->invenTable[i];
+		if (tableItem->object == item) {
+			count += tableItem->count;
+		} else if (fo::func::item_get_type(tableItem->object) == fo::item_type_container) {
+			count += ItemCountFixStdcall(tableItem->object, item);
+		}
+	}
+	return count;
+}
+
+static void __declspec(naked) ItemCountFix() {
+	__asm {
+		push ebx;
+		push ecx;
+		push edx; // save state
+		push edx; // item
+		push eax; // container-object
+		call ItemCountFixStdcall;
+		pop edx;
+		pop ecx;
+		pop ebx; // restore
+		retn;
+	}
+}
+
 static void __declspec(naked) Save_as_ASCII_hack() {
 	__asm {
 		mov  edx, STAT_sequence;
@@ -1579,11 +1607,11 @@ void BugFixes::init()
 		dlogr(" Done", DL_INIT);
 	//}
 
-	// Corrects the max text width of item weight in trading interface to be 64 (was 80), which matches the table width
+	// Corrects the max text width of the item weight in trading interface to be 64 (was 80), which matches the table width
 	SafeWrite32(0x475541, 64);
 	SafeWrite32(0x475789, 64);
 
-	// Corrects the max text width of player name in inventory to be 140 (was 80), which matches the width for item name
+	// Corrects the max text width of the player name in inventory to be 140 (was 80), which matches the width for item name
 	SafeWrite32(0x471E48, 140);
 
 	//if (GetConfigInt("Misc", "InventoryDragIssuesFix", 1)) {
@@ -1760,6 +1788,9 @@ void BugFixes::init()
 
 	// Fix crash when clicking on empty space in the inventory list opened by "Use Inventory Item On" (backpack) action icon
 	MakeCall(0x471A94, use_inventory_on_hack);
+
+	// Fix item_count function returning incorrect value when there is a container-item inside
+	MakeJump(0x47808C, ItemCountFix); // replacing item_count_ function
 
 	// Fix for Sequence stat value not being printed correctly when using "print to file" option
 	MakeJump(0x4396F5, Save_as_ASCII_hack);
