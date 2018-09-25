@@ -113,28 +113,6 @@ static void __declspec(naked) WorldMapHook() {
 	}
 }
 
-static void __declspec(naked) WorldMapEncPatch1() {
-	__asm {
-		inc dword ptr ds : [FO_VAR_wmLastRndTime]
-		call fo::funcoffs::wmPartyWalkingStep_;
-		retn;
-	}
-}
-
-static void __declspec(naked) WorldMapEncPatch2() {
-	__asm {
-		mov dword ptr ds : [FO_VAR_wmLastRndTime], 0;
-		retn;
-	}
-}
-
-static void __declspec(naked) WorldMapEncPatch3() {
-	__asm {
-		mov eax, ds:[FO_VAR_wmLastRndTime];
-		retn;
-	}
-}
-
 static DWORD WorldMapEncounterRate;
 static void __declspec(naked) wmWorldMapFunc_hook() {
 	__asm {
@@ -181,7 +159,7 @@ static void __declspec(naked) wmTownMapFunc_hack() {
 		je   end
 		retn
 end:
-		pop  eax                                  // destroy the return address
+		add  esp, 4                               // Destroy the return address
 		push 0x4C4976
 		retn
 	}
@@ -215,21 +193,19 @@ static __declspec(naked) void PathfinderFix() {
 	using namespace fo;
 	__asm {
 		push eax;
-		mov eax, ds:[FO_VAR_obj_dude];
-		mov edx, PERK_pathfinder;
+		mov  eax, ds:[FO_VAR_obj_dude];
+		mov  edx, PERK_pathfinder;
 		call fo::funcoffs::perk_level_;
 		push eax;
 		call PathfinderFix2;
-		call fo::funcoffs::inc_game_time_;
-		retn;
+		jmp  fo::funcoffs::inc_game_time_;
 	}
 }
 
 static void __declspec(naked) wmInterfaceInit_text_font_hook() {
 	__asm {
 		mov  eax, 0x65; // normal text font
-		call fo::funcoffs::text_font_;
-		retn;
+		jmp  fo::funcoffs::text_font_;
 	}
 }
 
