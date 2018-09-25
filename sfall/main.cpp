@@ -185,13 +185,12 @@ static DWORD _stdcall PathfinderFix2(DWORD perkLevel, DWORD ticks) {
 static __declspec(naked) void PathfinderFix() {
 	__asm {
 		push eax;
-		mov eax, ds:[_obj_dude];
-		mov edx, PERK_pathfinder;
+		mov  eax, ds:[_obj_dude];
+		mov  edx, PERK_pathfinder;
 		call perk_level_;
 		push eax;
 		call PathfinderFix2;
-		call inc_game_time_;
-		retn;
+		jmp  inc_game_time_;
 	}
 }
 
@@ -724,7 +723,7 @@ static void __declspec(naked) wmTownMapFunc_hack() {
 		je   end
 		retn
 end:
-		pop  eax                                  // destroy the return address
+		add  esp, 4                               // Destroy the return address
 		push 0x4C4976
 		retn
 	}
@@ -793,8 +792,7 @@ static void __declspec(naked) display_stats_hook() {
 static void __declspec(naked) wmInterfaceInit_text_font_hook() {
 	__asm {
 		mov  eax, 0x65; // normal text font
-		call text_font_;
-		retn;
+		jmp  text_font_;
 	}
 }
 

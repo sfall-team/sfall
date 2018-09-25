@@ -345,7 +345,7 @@ static void __declspec(naked) is_supper_bonus_hack() {
 		cmp  eax, 10
 		jle  end
 skip:
-		pop  eax                                  // Destroy the return address
+		add  esp, 4                               // Destroy the return address
 		xor  eax, eax
 		inc  eax
 		pop  edx
@@ -362,7 +362,7 @@ static void __declspec(naked) PrintBasicStat_hack() {
 		jle  skip
 		cmp  eax, 10
 		jg   end
-		pop  ebx                                  // Destroy the return address
+		add  esp, 4                               // Destroy the return address
 		push 0x434C21
 		retn
 skip:
@@ -392,7 +392,7 @@ static void __declspec(naked) StatButtonDown_hook() {
 		call stat_level_
 		cmp  eax, 1
 		jg   end
-		pop  eax                                  // Destroy the return address
+		add  esp, 4                               // Destroy the return address
 		xor  eax, eax
 		inc  eax
 		mov  [esp+0xC], eax
@@ -768,7 +768,7 @@ static void __declspec(naked) set_new_results_hack() {
 		inc  edx                                  // type = knockout
 		jmp  queue_remove_this_                   // Remove knockout from queue (if there is one)
 end:
-		pop  eax                                  // Destroy the return address
+		add  esp, 4                               // Destroy the return address
 		push 0x424FC6
 		retn
 	}
@@ -1111,7 +1111,7 @@ end:
 	}
 }
 
-int __stdcall ItemCountFixStdcall(TGameObj* who, TGameObj* item) {
+static int __stdcall ItemCountFixStdcall(TGameObj* who, TGameObj* item) {
 	int count = 0;
 	for (int i = 0; i < who->invenCount; i++) {
 		TInvenRec* tableItem = &who->invenTablePtr[i];
@@ -1124,7 +1124,7 @@ int __stdcall ItemCountFixStdcall(TGameObj* who, TGameObj* item) {
 	return count;
 }
 
-void __declspec(naked) ItemCountFix() {
+static void __declspec(naked) ItemCountFix() {
 	__asm {
 		push ebx;
 		push ecx;
@@ -1304,10 +1304,15 @@ static void __declspec(naked) inven_obj_examine_func_hack() {
 		ja  fix;
 		retn;
 fix:
+		cmp edx, 9; // 8 lines (half of the display window)
+		ja  limit;
 		dec edx;
 		sub eax, 3;
 		mul edx;
 		add eax, 3;
+		retn;
+limit:
+		mov eax, 57;
 		retn;
 	}
 }
@@ -1452,9 +1457,12 @@ void BugsInit()
 		dlogr(" Done", DL_INIT);
 	//}
 
-	// Corrects "Weight of items" text element width to be 64 (and not 80), which matches container element width
-	SafeWrite8(0x475541, 64);
-	SafeWrite8(0x475789, 64);
+	// Corrects the max text width of the item weight in trading interface to be 64 (was 80), which matches the table width
+	SafeWrite32(0x475541, 64);
+	SafeWrite32(0x475789, 64);
+
+	// Corrects the max text width of the player name in inventory to be 140 (was 80), which matches the width for item name
+	SafeWrite32(0x471E48, 140);
 
 	//if (GetPrivateProfileIntA("Misc", "InventoryDragIssuesFix", 1, ini)) {
 		dlog("Applying inventory reverse order issues fix.", DL_INIT);
