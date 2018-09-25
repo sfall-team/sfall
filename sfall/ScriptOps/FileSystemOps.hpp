@@ -23,509 +23,138 @@
 #include "ScriptExtender.h"
 
 //file system functions
+static void fs_create2() {
+	opHandler.setReturn(FScreate(opHandler.arg(0).asString(), opHandler.arg(1).asInt()), DATATYPE_INT);
+}
+
 static void __declspec(naked) fs_create() {
-	__asm {
-		pushad;
-		mov edi, eax;
-		call interpretPopShort_;
-		mov ebx, eax;
-		mov eax, edi;
-		call interpretPopLong_;
-		mov esi, eax;
-		mov eax, edi;
-		call interpretPopShort_;
-		mov edx, eax;
-		mov eax, edi;
-		call interpretPopLong_;
-		cmp dx, VAR_TYPE_STR2;
-		jz next;
-		cmp dx, VAR_TYPE_STR;
-		jnz fail;
-next:
-		cmp bx, VAR_TYPE_INT;
-		jnz fail;
-		mov ebx, eax;
-		mov eax, edi;
-		call interpretGetString_;
-		push esi;
-		push eax;
-		call FScreate;
-		mov edx, eax;
-		jmp end;
-fail:
-		xor edx, edx;
-		dec edx;
-end:
-		mov eax, edi;
-		call interpretPushLong_;
-		mov eax, edi;
-		mov edx, VAR_TYPE_INT;
-		call interpretPushShort_;
-		popad;
-		retn;
-	}
+	_WRAP_OPCODE(fs_create2, 2, 1)
 }
+
+static void fs_copy2() {
+	opHandler.setReturn(FScopy(opHandler.arg(0).asString(), opHandler.arg(1).asString()), DATATYPE_INT);
+}
+
 static void __declspec(naked) fs_copy() {
-	__asm {
-		pushad;
-		mov ebp, eax;
-		call interpretPopShort_;
-		mov edi, eax;
-		mov eax, ebp;
-		call interpretPopLong_;
-		mov ecx, eax;
-		mov eax, ebp;
-		call interpretPopShort_;
-		mov esi, eax;
-		mov eax, ebp;
-		call interpretPopLong_;
-		cmp di, VAR_TYPE_STR2;
-		jz next;
-		cmp di, VAR_TYPE_STR;
-		jnz fail;
-next:
-		cmp si, VAR_TYPE_STR2;
-		jz next2;
-		cmp si, VAR_TYPE_STR;
-		jnz fail;
-next2:
-		mov ebx, eax;
-		mov edx, esi;
-		mov eax, ebp;
-		call interpretGetString_;
-		mov esi, eax;
-		mov ebx, ecx;
-		mov edx, edi;
-		mov eax, ebp;
-		call interpretGetString_;
-		push eax;
-		push esi;
-		call FScopy;
-		jmp end;
-fail:
-		xor edx, edx;
-		dec edx;
-end:
-		mov eax, ebp;
-		call interpretPushLong_;
-		mov eax, ebp;
-		mov edx, VAR_TYPE_INT;
-		call interpretPushShort_;
-		popad;
-		retn;
-	}
+	_WRAP_OPCODE(fs_copy2, 2, 1)
 }
+
+static void fs_find2() {
+	opHandler.setReturn(FSfind(opHandler.arg(0).asString()), DATATYPE_INT);
+}
+
 static void __declspec(naked) fs_find() {
-	__asm {
-		pushad;
-		mov ebp, eax;
-		call interpretPopShort_;
-		mov edi, eax;
-		mov eax, ebp;
-		call interpretPopLong_;
-		cmp di, VAR_TYPE_STR2;
-		jz next;
-		cmp di, VAR_TYPE_STR;
-		jnz fail;
-next:
-		mov ebx, eax;
-		mov edx, edi;
-		mov eax, ebp;
-		call interpretGetString_;
-		push eax;
-		call FSfind;
-		mov edx, eax;
-		jmp end;
-fail:
-		xor edx, edx;
-		dec edx;
-end:
-		mov eax, ebp;
-		call interpretPushLong_;
-		mov eax, ebp;
-		mov edx, VAR_TYPE_INT;
-		call interpretPushShort_;
-		popad;
-		retn;
-	}
+	_WRAP_OPCODE(fs_find2, 1, 1)
 }
+
+static void fs_write_byte2() {
+	FSwrite_byte(opHandler.arg(0).asInt(), opHandler.arg(1).asInt());
+}
+
 static void __declspec(naked) fs_write_byte() {
-	__asm {
-		pushad;
-		mov ebp, eax;
-		call interpretPopShort_;
-		mov edi, eax;
-		mov eax, ebp;
-		call interpretPopLong_;
-		mov ecx, eax;
-		mov eax, ebp;
-		call interpretPopShort_;
-		mov esi, eax;
-		mov eax, ebp;
-		call interpretPopLong_;
-		cmp di, VAR_TYPE_INT;
-		jnz end;
-		cmp si, VAR_TYPE_INT;
-		jnz end;
-		push ecx;
-		push eax;
-		call FSwrite_byte;
-end:
-		popad;
-		retn;
-	}
+	_WRAP_OPCODE(fs_write_byte2, 2, 0)
 }
+
+static void fs_write_short2() {
+	FSwrite_short(opHandler.arg(0).asInt(), opHandler.arg(1).asInt());
+}
+
 static void __declspec(naked) fs_write_short() {
-	__asm {
-		pushad;
-		mov ebp, eax;
-		call interpretPopShort_;
-		mov edi, eax;
-		mov eax, ebp;
-		call interpretPopLong_;
-		mov ecx, eax;
-		mov eax, ebp;
-		call interpretPopShort_;
-		mov esi, eax;
-		mov eax, ebp;
-		call interpretPopLong_;
-		cmp di, VAR_TYPE_INT;
-		jnz end;
-		cmp si, VAR_TYPE_INT;
-		jnz end;
-		push ecx;
-		push eax;
-		call FSwrite_short;
-end:
-		popad;
-		retn;
-	}
+	_WRAP_OPCODE(fs_write_short2, 2, 0)
 }
+
+static void fs_write_int2() {
+	FSwrite_int(opHandler.arg(0).asInt(), opHandler.arg(1).asInt());
+}
+
 static void __declspec(naked) fs_write_int() {
-	__asm {
-		pushad;
-		mov ebp, eax;
-		call interpretPopShort_;
-		mov edi, eax;
-		mov eax, ebp;
-		call interpretPopLong_;
-		mov ecx, eax;
-		mov eax, ebp;
-		call interpretPopShort_;
-		mov esi, eax;
-		mov eax, ebp;
-		call interpretPopLong_;
-		cmp di, VAR_TYPE_INT;
-		jnz end;
-		cmp si, VAR_TYPE_INT;
-		jz next;
-		cmp si, VAR_TYPE_FLOAT;
-		jnz end;
-next:
-		push ecx;
-		push eax;
-		call FSwrite_int;
-end:
-		popad;
-		retn;
-	}
+	_WRAP_OPCODE(fs_write_int2, 2, 0)
 }
+
+static void fs_write_string2() {
+	FSwrite_string(opHandler.arg(0).asInt(), opHandler.arg(1).asString());
+}
+
 static void __declspec(naked) fs_write_string() {
-	__asm {
-		pushad;
-		mov edi, eax;
-		call interpretPopShort_;
-		mov ebx, eax;
-		mov eax, edi;
-		call interpretPopLong_;
-		mov esi, eax;
-		mov eax, edi;
-		call interpretPopShort_;
-		mov edx, eax;
-		mov eax, edi;
-		call interpretPopLong_;
-		mov ebp, eax;
-		cmp bx, VAR_TYPE_STR2;
-		jz next;
-		cmp bx, VAR_TYPE_STR;
-		jnz end;
-next:
-		cmp dx, VAR_TYPE_INT;
-		jnz end;
-		mov edx, ebx;
-		mov ebx, esi;
-		mov eax, edi;
-		call interpretGetString_;
-		push eax;
-		push ebp;
-		call FSwrite_string;
-end:
-		popad;
-		retn;
-	}
+	_WRAP_OPCODE(fs_write_string2, 2, 0)
 }
+
+static void fs_write_bstring2() {
+	FSwrite_bstring(opHandler.arg(0).asInt(), opHandler.arg(1).asString());
+}
+
 static void __declspec(naked) fs_write_bstring() {
-	__asm {
-		pushad;
-		mov edi, eax;
-		call interpretPopShort_;
-		mov ebx, eax;
-		mov eax, edi;
-		call interpretPopLong_;
-		mov esi, eax;
-		mov eax, edi;
-		call interpretPopShort_;
-		mov edx, eax;
-		mov eax, edi;
-		call interpretPopLong_;
-		mov ebp, eax;
-		cmp bx, VAR_TYPE_STR2;
-		jz next;
-		cmp bx, VAR_TYPE_STR;
-		jnz end;
-next:
-		cmp dx, VAR_TYPE_INT;
-		jnz end;
-		mov edx, ebx;
-		mov ebx, esi;
-		mov eax, edi;
-		call interpretGetString_;
-		push eax;
-		push ebp;
-		call FSwrite_bstring;
-end:
-		popad;
-		retn;
-	}
+	_WRAP_OPCODE(fs_write_bstring2, 2, 0)
 }
+
+static void fs_read_byte2() {
+	opHandler.setReturn(FSread_byte(opHandler.arg(0).asInt()), DATATYPE_INT);
+}
+
 static void __declspec(naked) fs_read_byte() {
-	__asm {
-		pushad;
-		mov ebp, eax;
-		call interpretPopShort_;
-		mov edi, eax;
-		mov eax, ebp;
-		call interpretPopLong_;
-		cmp di, VAR_TYPE_INT;
-		jnz fail;
-		push eax;
-		call FSread_byte;
-		mov edx, eax;
-		jmp end;
-fail:
-		xor edx, edx;
-		dec edx;
-end:
-		mov eax, ebp;
-		call interpretPushLong_;
-		mov eax, ebp;
-		mov edx, VAR_TYPE_INT;
-		call interpretPushShort_;
-		popad;
-		retn;
-	}
+	_WRAP_OPCODE(fs_read_byte2, 1, 1)
 }
+
+static void fs_read_short2() {
+	opHandler.setReturn(FSread_short(opHandler.arg(0).asInt()), DATATYPE_INT);
+}
+
 static void __declspec(naked) fs_read_short() {
-	__asm {
-		pushad;
-		mov ebp, eax;
-		call interpretPopShort_;
-		mov edi, eax;
-		mov eax, ebp;
-		call interpretPopLong_;
-		cmp di, VAR_TYPE_INT;
-		jnz fail;
-		push eax;
-		call FSread_short;
-		mov edx, eax;
-		jmp end;
-fail:
-		xor edx, edx;
-		dec edx;
-end:
-		mov eax, ebp;
-		call interpretPushLong_;
-		mov eax, ebp;
-		mov edx, VAR_TYPE_INT;
-		call interpretPushShort_;
-		popad;
-		retn;
-	}
+	_WRAP_OPCODE(fs_read_short2, 1, 1)
 }
+
+static void fs_read_int2() {
+	opHandler.setReturn(FSread_int(opHandler.arg(0).asInt()), DATATYPE_INT);
+}
+
 static void __declspec(naked) fs_read_int() {
-	__asm {
-		pushad;
-		mov ebp, eax;
-		call interpretPopShort_;
-		mov edi, eax;
-		mov eax, ebp;
-		call interpretPopLong_;
-		cmp di, VAR_TYPE_INT;
-		jnz fail;
-		push eax;
-		call FSread_int;
-		mov edx, eax;
-		jmp end;
-fail:
-		xor edx, edx;
-		dec edx;
-end:
-		mov eax, ebp;
-		call interpretPushLong_;
-		mov eax, ebp;
-		mov edx, VAR_TYPE_INT;
-		call interpretPushShort_;
-		popad;
-		retn;
-	}
+	_WRAP_OPCODE(fs_read_int2, 1, 1)
 }
+
+static void fs_read_float2() {
+	opHandler.setReturn(FSread_int(opHandler.arg(0).asInt()), DATATYPE_FLOAT);
+}
+
 static void __declspec(naked) fs_read_float() {
-	__asm {
-		pushad;
-		mov ebp, eax;
-		call interpretPopShort_;
-		mov edi, eax;
-		mov eax, ebp;
-		call interpretPopLong_;
-		cmp di, VAR_TYPE_INT;
-		jnz fail;
-		push eax;
-		call FSread_int;
-		mov edx, eax;
-		jmp end;
-fail:
-		xor edx, edx;
-		dec edx;
-end:
-		mov eax, ebp;
-		call interpretPushLong_;
-		mov eax, ebp;
-		mov edx, VAR_TYPE_FLOAT;
-		call interpretPushShort_;
-		popad;
-		retn;
-	}
+	_WRAP_OPCODE(fs_read_float2, 1, 1)
 }
+
+static void fs_delete2() {
+	FSdelete(opHandler.arg(0).asInt());
+}
+
 static void __declspec(naked) fs_delete() {
-	__asm {
-		pushad;
-		mov ebp, eax;
-		call interpretPopShort_;
-		mov edi, eax;
-		mov eax, ebp;
-		call interpretPopLong_;
-		cmp di, VAR_TYPE_INT;
-		jnz end
-		push eax;
-		call FSdelete;
-end:
-		popad;
-		retn;
-	}
+	_WRAP_OPCODE(fs_delete2, 1, 0)
 }
+
+static void fs_size2() {
+	opHandler.setReturn(FSsize(opHandler.arg(0).asInt()), DATATYPE_INT);
+}
+
 static void __declspec(naked) fs_size() {
-	__asm {
-		pushad;
-		mov ebp, eax;
-		call interpretPopShort_;
-		mov edi, eax;
-		mov eax, ebp;
-		call interpretPopLong_;
-		cmp di, VAR_TYPE_INT;
-		jnz fail;
-		push eax;
-		call FSsize;
-		mov edx, eax;
-		jmp end;
-fail:
-		xor edx, edx;
-		dec edx;
-end:
-		mov eax, ebp;
-		call interpretPushLong_;
-		mov eax, ebp;
-		mov edx, VAR_TYPE_INT;
-		call interpretPushShort_;
-		popad;
-		retn;
-	}
+	_WRAP_OPCODE(fs_size2, 1, 1)
 }
+
+static void fs_pos2() {
+	opHandler.setReturn(FSpos(opHandler.arg(0).asInt()), DATATYPE_INT);
+}
+
 static void __declspec(naked) fs_pos() {
-	__asm {
-		pushad;
-		mov ebp, eax;
-		call interpretPopShort_;
-		mov edi, eax;
-		mov eax, ebp;
-		call interpretPopLong_;
-		cmp di, VAR_TYPE_INT;
-		jnz fail;
-		push eax;
-		call FSpos;
-		mov edx, eax;
-		jmp end;
-fail:
-		xor edx, edx;
-		dec edx;
-end:
-		mov eax, ebp;
-		call interpretPushLong_;
-		mov eax, ebp;
-		mov edx, VAR_TYPE_INT;
-		call interpretPushShort_;
-		popad;
-		retn;
-	}
+	_WRAP_OPCODE(fs_pos2, 1, 1)
 }
+
+static void fs_seek2() {
+	FSseek(opHandler.arg(0).asInt(), opHandler.arg(1).asInt());
+}
+
 static void __declspec(naked) fs_seek() {
-	__asm {
-		pushad;
-		mov ebp, eax;
-		call interpretPopShort_;
-		mov edi, eax;
-		mov eax, ebp;
-		call interpretPopLong_;
-		mov ecx, eax;
-		mov eax, ebp;
-		call interpretPopShort_;
-		mov esi, eax;
-		mov eax, ebp;
-		call interpretPopLong_;
-		cmp di, VAR_TYPE_INT;
-		jnz end;
-		cmp si, VAR_TYPE_INT;
-		jnz end;
-		push ecx;
-		push eax;
-		call FSseek;
-end:
-		popad;
-		retn;
-	}
+	_WRAP_OPCODE(fs_seek2, 2, 0)
 }
+
+static void fs_resize2() {
+	FSresize(opHandler.arg(0).asInt(), opHandler.arg(1).asInt());
+}
+
 static void __declspec(naked) fs_resize() {
-	__asm {
-		pushad;
-		mov ebp, eax;
-		call interpretPopShort_;
-		mov edi, eax;
-		mov eax, ebp;
-		call interpretPopLong_;
-		mov ecx, eax;
-		mov eax, ebp;
-		call interpretPopShort_;
-		mov esi, eax;
-		mov eax, ebp;
-		call interpretPopLong_;
-		cmp di, VAR_TYPE_INT;
-		jnz end;
-		cmp si, VAR_TYPE_INT;
-		jnz end;
-		push ecx;
-		push eax;
-		call FSresize;
-end:
-		popad;
-		retn;
-	}
+	_WRAP_OPCODE(fs_resize2, 2, 0)
 }
