@@ -58,6 +58,7 @@ static Delegate<> onBeforeGameStart;
 static Delegate<> onAfterGameStarted;
 static Delegate<> onAfterNewGame;
 static Delegate<DWORD> onGameModeChange;
+static Delegate<> onBeforeGameClose;
 
 static DWORD inLoop = 0;
 static DWORD saveInCombatFix;
@@ -317,6 +318,10 @@ static void __stdcall GameExit() {
 	onGameExit.invoke();
 }
 
+static void __stdcall GameClose() {
+	onBeforeGameClose.invoke();
+}
+
 static void __declspec(naked) main_init_system_hook() {
 	__asm {
 		pushad;
@@ -362,6 +367,15 @@ static void __declspec(naked) after_game_exit_hook() {
 		call GameExit;
 		popad;
 		jmp fo::funcoffs::main_menu_create_;
+	}
+}
+
+static void __declspec(naked) game_close_hook() {
+	__asm {
+		pushad;
+		call GameClose;
+		popad;
+		jmp fo::funcoffs::game_exit_;
 	}
 }
 
@@ -596,6 +610,10 @@ void LoadGameHook::init() {
 			});
 	HookCalls(before_game_exit_hook, {0x480ACE, 0x480BC7});
 	HookCalls(after_game_exit_hook, {0x480AEB, 0x480BE4});
+	HookCalls(game_close_hook, {
+				0x480CA7,  // gnw_main_
+				//0x480D45 // main_exit_system_ (never called)
+			});
 
 	HookCalls(WorldMapHook, {0x483668, 0x4A4073});
 	HookCalls(WorldMapHook2, {0x4C4855});
@@ -647,6 +665,10 @@ Delegate<>& LoadGameHook::OnAfterNewGame() {
 
 Delegate<DWORD>& LoadGameHook::OnGameModeChange() {
 	return onGameModeChange;
+}
+
+Delegate<>& LoadGameHook::OnBeforeGameClose() {
+	return onBeforeGameClose;
 }
 
 }
