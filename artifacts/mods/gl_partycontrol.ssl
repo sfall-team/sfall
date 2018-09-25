@@ -11,6 +11,8 @@
 
 */
 
+#define SFALL_SC_EVALUATION   (true) // ScriptEditor 4.0: Automatic script compilation with -s option
+
 #include "..\headers\define.h"
 #include "..\headers\command.h"
 #include "main.h"
@@ -67,6 +69,7 @@ procedure start begin
       controlMode := GetConfig("CombatControl", "Mode", 0);
       displayName := GetConfig("CombatControl", "DisplayName", 0);
       displayNameColor := GetConfig("CombatControl", "DisplayNameColor", 0);
+      if (controlMode == 1 and GetIniConfig("Debugging", "Enable", 0, "ddraw.ini") == 0) then controlMode := 2;
       if (controlMode > 2) then controlMode := 0;
       if (displayName < 5 or displayName > 9) then displayName := 0;
       if (controlMode > 0) then begin

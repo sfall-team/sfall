@@ -13,108 +13,85 @@
    NOTE: this script requires compiler from sfall modderspack with -s option
    (short circuit evaluation)
 
-   version 1.0
+   version 1.1
 
 **/
 
+#define SFALL_SC_EVALUATION   (true) // ScriptEditor 4.0: Automatic script compilation with -s option
+
 #include "main.h"
-//#include "..\..\..\!SRC\headers\define.h"
 
-#define CRITTER_IS_DEAD    (1)
-#define PID_MOTION_SENSOR  (59)
-#define NO_HIGHLIGHT(obj)  (get_flags(obj) bwand FLAG_NOHIGHLIGHT)
-#define NO_STEAL(obj)      (get_proto_data(obj_pid(obj), PROTO_CR_FLAGS) bwand CFLG_NOSTEAL)
+#define PID_MOTION_SENSOR        (59)
+#define PID_CAR_TRUNK            (455)
 
-variable configSection := "Highlighting";
-variable highlightKey;
-variable isHighlight;
-variable alsoContainer;
-variable alsoCorpse;
-variable checkLOS;
-variable outlineColor;
-variable motionScanner;
-variable highlightFailMsg1;
-variable highlightFailMsg2;
+#define NO_HIGHLIGHT(obj)        (get_flags(obj) bwand FLAG_NOHIGHLIGHT)
+#define NO_STEAL(obj)            (get_proto_data(obj_pid(obj), PROTO_CR_FLAGS) bwand CFLG_NOSTEAL)
 
-procedure ToggleHighlightObject(variable obj, variable enable) begin
-   if obj and (not enable or not checkLOS or not obj_blocking_line(dude_obj, tile_num(obj), BLOCKING_TYPE_SHOOT)) then begin
-      if (alsoContainer and obj_item_subtype(obj) == item_type_container) or (not NO_HIGHLIGHT(obj)) then begin
-         if (enable) then set_outline(obj, outlineColor);
-         else set_outline(obj, 0);
-      end
-   end
+#define OBJECT_IS_EMPTY(obj)     (critter_inven_obj2(obj, INVEN_TYPE_INV_COUNT) == 0)
+
+#define FLAG_CRT_LOOK            (0x200000) // unused flag #22
+#define SET_OBJECT_USED(obj)     if obj_item_subtype(objPtr) == item_type_container then   \
+                                    set_flags(obj, (get_flags(obj) bwor FLAG_USED));       \
+                                 else set_flags(obj, (get_flags(obj) bwor FLAG_CRT_LOOK))
+
+#define FLAG_DISCOVER            (0x100000) // unused flag #21
+#define SET_OBJ_DISCOVER(obj)    set_flags(obj, (get_flags(obj) bwor FLAG_DISCOVER))
+#define CHECK_OBJ_DISCOVER(obj)  (get_flags(obj) bwand FLAG_DISCOVER)
+
+#define NeedCharges              (motionScanner >= 2)
+
+#define configSection            "Highlighting"
+
+variable begin
+   isHighlight;
+   highlightKey;
+   alsoContainer;
+   alsoCorpse;
+   checkLOS;
+   motionScanner;
+
+   highlightFailMsg1;
+   highlightFailMsg2;
+
+   outlineColor;
+   defOutlineColor;
+   lookOutlineColor;
+   emptyOutlineColor;
+
+   once;
 end
 
-procedure ToggleHighlight(variable enable) begin
-   variable obj;
-   foreach obj in list_as_array(LIST_GROUNDITEMS) begin
-      if obj != outlined_object then begin
-         call ToggleHighlightObject(obj, enable);
-      end
-   end
-   if (alsoCorpse) then begin
-      foreach obj in list_as_array(LIST_CRITTERS) begin
-         if critter_state(obj) == CRITTER_IS_DEAD and not NO_STEAL(obj) then begin
-            call ToggleHighlightObject(obj, enable);
-         end
-      end
-   end
-   tile_refresh_display;
-end
-
-procedure KeyPressHandler begin
-   variable pressed := get_sfall_arg,
-            scanCode := get_sfall_arg,
-            scanner, charges;
-
-   if scanCode == highlightKey then begin
-      if pressed then begin
-         isHighlight := true;
-         if motionScanner then begin
-            scanner := obj_carrying_pid_obj(dude_obj, PID_MOTION_SENSOR);
-            if scanner then begin
-               if motionScanner >= 2 then begin
-                  charges := get_weapon_ammo_count(scanner);
-                  if charges > 0 then begin
-                     set_weapon_ammo_count(scanner, charges - 1);
-                     intface_redraw;
-                     call ToggleHighlight(true);
-                  end else begin
-                     display_msg(highlightFailMsg2);
-                  end
-               end else begin
-                  call ToggleHighlight(true);
-               end
-            end else begin
-               display_msg(highlightFailMsg1);
-            end
-         end else begin
-            call ToggleHighlight(true);
-         end
-      end else begin
-         isHighlight := false;
-         call ToggleHighlight(false);
-      end
-   end
-end
-
-procedure CombatTurnHandler begin
-   if isHighlight then begin
-      isHighlight := false;
-      call ToggleHighlight(false);
-   end
-end
+procedure start;
+procedure KeyPressHandler;
+procedure CombatTurnHandler;
+procedure CheckMotionSensor;
+procedure ToggleHighlight(variable enable);
+procedure ToggleHighlightObject(variable obj, variable enable, variable container);
+procedure GetHighlightColor(variable obj, variable container);
+procedure CheckTileObjects(variable array);
+procedure CheckLineOfSight(variable object);
+procedure CheckObjectUsed(variable objPtr);
 
 procedure start begin
-   if game_loaded and (sfall_ver_major >= 4) then begin
+
+   variable objectArray;
+
+   if game_loaded then begin
+
+      if (sfall_ver_major < 4) then return;
+
       call InitConfigs;
 
-      highlightKey := GetConfig(configSection, "Key", 0);
-      alsoContainer := GetConfig(configSection, "Containers", 0);
-      alsoCorpse := GetConfig(configSection, "Corpses", 0);
-      checkLOS := GetConfig(configSection, "CheckLOS", 0);
+      highlightKey := GetConfig(configSection, "Key", 42);
+      alsoContainer := GetConfig(configSection, "Containers", 1);
+      alsoCorpse := GetConfig(configSection, "Corpses", 1);
+      checkLOS := GetConfig(configSection, "CheckLOS", 1);
+
       outlineColor := GetConfig(configSection, "OutlineColor", 16);
-      if (outlineColor < 1) then outlineColor := 64;
+      defOutlineColor := GetConfig(configSection, "DefaultOutlineColor", 32);
+      lookOutlineColor := GetConfig(configSection, "LooêOutlineColor", 64);
+      emptyOutlineColor := GetConfig(configSection, "EmptyOutlineColor", 4);
+
       motionScanner := GetConfig(configSection, "MotionScanner", 0);
 
       highlightFailMsg1 := Translate("HighlightFail1", "You aren't carrying a motion sensor.");
@@ -122,5 +99,170 @@ procedure start begin
 
       register_hook_proc(HOOK_KEYPRESS, KeyPressHandler);
       register_hook_proc(HOOK_COMBATTURN, CombatTurnHandler);
+
+      if (alsoCorpse or alsoContainer) then begin
+         set_global_script_type(1);
+         set_global_script_repeat(100);
+      end
    end
+   else begin
+      if(get_game_mode bwAnd INTFACELOOT) then begin
+         if not(once) then begin
+            once := true;
+            objectArray := tile_get_objs(tile_num_in_direction(dude_tile, obj_get_rot(dude_obj), 1), dude_elevation);
+            if CheckTileObjects(objectArray) == false then
+               call CheckTileObjects(tile_get_objs(dude_tile, dude_elevation)); //second check
+         end
+      end
+      else if (once) then once := false;
+   end
+end
+
+procedure KeyPressHandler begin
+/*
+   int     arg1 - event type: 1 - pressed, 0 - released
+   int     arg2 - key DX scancode
+*/
+   variable pressed     := get_sfall_arg,
+            hKeyIsPress := (get_sfall_arg == highlightKey);
+
+   pressed := (pressed and hKeyIsPress);
+   if pressed and motionScanner and (CheckMotionSensor == false) then
+      pressed := false;
+
+   if (pressed or isHighlight) then begin
+      isHighlight := pressed;
+      call ToggleHighlight(pressed);
+   end
+end
+
+procedure CombatTurnHandler begin
+
+   if (isHighlight) then begin
+      isHighlight := false;
+      call ToggleHighlight(false);
+   end
+
+end
+
+procedure CheckMotionSensor begin
+   variable scanner := obj_carrying_pid_obj(dude_obj, PID_MOTION_SENSOR),
+            charges, result := true;
+
+   if scanner then begin
+      if NeedCharges then begin
+         charges := get_weapon_ammo_count(scanner);
+         if charges > 0 then begin
+            set_weapon_ammo_count(scanner, charges - 1);
+            intface_redraw;
+         end
+         else begin
+            display_msg(highlightFailMsg2);
+            result := false;
+         end
+      end
+   end
+   else begin
+      display_msg(highlightFailMsg1);
+      result := false;
+   end
+
+   return result;
+end
+
+procedure ToggleHighlight(variable enable) begin
+   variable obj, IsContainer;
+
+   foreach obj in list_as_array(LIST_GROUNDITEMS) begin
+      if obj != outlined_object then begin
+         if elevation(obj) != dude_elevation then
+            continue;
+         IsContainer := (alsoContainer and (obj_item_subtype(obj) == item_type_container));
+         if (IsContainer and obj_pid(obj) == PID_CAR_TRUNK) then
+            continue;
+         call ToggleHighlightObject(obj, enable, IsContainer);
+      end
+   end
+   if (alsoCorpse) then begin
+      foreach obj in list_as_array(LIST_CRITTERS) begin
+         if critter_state(obj) == CRITTER_IS_DEAD and not NO_STEAL(obj) then begin
+            if elevation(obj) != dude_elevation then
+               continue;
+            call ToggleHighlightObject(obj, enable, false);
+         end
+      end
+   end
+   tile_refresh_display;
+end
+
+procedure ToggleHighlightObject(variable obj, variable enable, variable container) begin
+
+   if (obj) then begin
+      if (((checkLOS >= 2) or (container and checkLOS == 1)) and not(motionScanner)) and not(CHECK_OBJ_DISCOVER(obj)) then begin
+         if CheckLineOfSight(obj) then
+            SET_OBJ_DISCOVER(obj);
+         else
+            return;
+      end
+      if (container) or (not NO_HIGHLIGHT(obj) or NeedCharges) then begin
+         if (enable) then
+            set_outline(obj, GetHighlightColor(obj, container));
+         else
+            set_outline(obj, 0);
+      end
+   end
+end
+
+procedure GetHighlightColor(variable obj, variable container) begin
+   variable color;
+
+   if container or obj_type(obj) == OBJ_TYPE_CRITTER then begin
+      if (CheckObjectUsed(obj)) then begin
+         if (OBJECT_IS_EMPTY(obj)) then
+            color := emptyOutlineColor;
+         else
+            color := lookOutlineColor;
+      end else
+         color := defOutlineColor;
+   end else
+      color := outlineColor;
+
+   return color;
+end
+
+procedure CheckTileObjects(variable array) begin
+   variable objPtr;
+
+   foreach (objPtr in array) begin
+      if (objPtr != dude_obj and (obj_type(objPtr) == OBJ_TYPE_CRITTER and not(CheckObjectUsed(objPtr))))
+      or obj_item_subtype(objPtr) == item_type_container then begin
+         SET_OBJECT_USED(objPtr);
+         return true;
+      end
+   end
+
+   return false;
+end
+
+procedure CheckLineOfSight(variable object) begin
+   variable tile, result := true;
+
+   if (tile_distance_objs(dude_obj, object) > 3) then begin
+      tile := tile_num(object);
+      if (obj_blocking_tile(tile, dude_elevation, BLOCKING_TYPE_SIGHT)) then
+         tile := tile_num_in_direction(tile, rotation_to_tile(tile, dude_tile), 1);
+
+      result := (obj_blocking_line(dude_obj, tile, BLOCKING_TYPE_SIGHT) == 0);
+   end
+
+   return result;
+end
+
+procedure CheckObjectUsed(variable objPtr) begin
+
+   if obj_type(objPtr) == OBJ_TYPE_CRITTER then
+      return (get_flags(objPtr) bwand FLAG_CRT_LOOK);
+   else
+      return (get_flags(objPtr) bwand FLAG_USED);
+
 end
