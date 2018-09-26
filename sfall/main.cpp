@@ -129,10 +129,10 @@ static void InitModules() {
 
 	// initialize all modules
 	manager.add<BugFixes>();    // fixes should be applied at the beginning
-	manager.add<SpeedPatch>();
 	manager.add<Graphics>();
 	manager.add<Input>();
 	manager.add<Movies>();
+	manager.add<SpeedPatch>();
 	manager.add<PlayerModel>();
 	manager.add<Worldmap>();
 	manager.add<Stats>();

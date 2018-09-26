@@ -173,7 +173,11 @@ static fo::GameObject* __stdcall sf_ai_search_weapon_environ(fo::GameObject* sou
 		{
 			fo::GameObject* itemGround = (fo::GameObject*)objectsList[i];
 			if (item && item->protoId == itemGround->protoId) continue;
+
 			if (fo::func::obj_dist(source, itemGround) > source->critter.movePoints + 1) break;
+			// check real path distance
+			int toDistObject = fo::func::make_path_func(source, source->tile, itemGround->tile, 0, 0, (void*)fo::funcoffs::obj_blocking_at_);
+			if (toDistObject > source->critter.movePoints + 1) continue;
 
 			if (fo::func::item_get_type(itemGround) == fo::item_type_weapon) {
 				if (fo::func::ai_can_use_weapon(source, itemGround, fo::AttackType::ATKTYPE_RWEAPON_PRIMARY)) {
@@ -193,6 +197,9 @@ static void __fastcall sf_ai_search_weapon(fo::GameObject* source, fo::GameObjec
 
 	fo::GameObject* itemHand   = fo::func::inven_right_hand(source); // current item
 	fo::GameObject* bestWeapon = itemHand;
+	#ifndef NDEBUG
+		if (itemHand) fo::func::debug_printf("\n[AI] HandPid: %d", itemHand->protoId);
+	#endif
 
 	DWORD slotNum = -1;
 	while (true)
@@ -209,22 +216,50 @@ static void __fastcall sf_ai_search_weapon(fo::GameObject* source, fo::GameObjec
 			bestWeapon = fo::func::ai_best_weapon(source, bestWeapon, item, target);
 		}
 	}
+	#ifndef NDEBUG
+		if (bestWeapon) fo::func::debug_printf("\n[AI] BestWeaponPid: %d", bestWeapon->protoId);
+	#endif
 
 	if ((LookupOnGround || !itemHand) && source->critter.movePoints >= 3 && fo::func::critter_body_type(source) == fo::BodyType::Biped) {
+		int toDistTarget = fo::func::make_path_func(source, source->tile, target->tile, 0, 0, (void*)fo::funcoffs::obj_blocking_at_);
+		if ((source->critter.movePoints - 3) >= toDistTarget) goto notRetrieve;
+
 		fo::GameObject* itemGround = sf_ai_search_weapon_environ(source, bestWeapon, target);
-		if (itemGround && (!bestWeapon || itemGround->protoId != bestWeapon->protoId)) {
-			if (bestWeapon && fo::func::item_cost(itemGround) < fo::func::item_cost(bestWeapon) + 50) goto notRetrieve;
-			itemGround = fo::func::ai_retrieve_object(source, itemGround);
-			if (itemGround) bestWeapon = itemGround;
+		#ifndef NDEBUG
+			if (itemGround) fo::func::debug_printf("\n[AI] OnGroundPid: %d", itemGround->protoId);
+		#endif
+		if (itemGround != bestWeapon) {
+			if (itemGround && (!bestWeapon || itemGround->protoId != bestWeapon->protoId)) {
+				if (bestWeapon && fo::func::item_cost(itemGround) < fo::func::item_cost(bestWeapon) + 50) goto notRetrieve;
+				#ifndef NDEBUG
+					fo::func::debug_printf("\n[AI] TryRetrievePid: %d MP: %d", itemGround->protoId, source->critter.movePoints);
+				#endif
+				fo::GameObject* itemRetrieve = fo::func::ai_retrieve_object(source, itemGround);
+				#ifndef NDEBUG
+					int pid = (itemRetrieve) ? itemRetrieve->protoId : 0;
+					fo::func::debug_printf("\n[AI] PickupPid: %d MP: %d", pid, source->critter.movePoints);
+				#endif
+				if (itemRetrieve && itemRetrieve->protoId == itemGround->protoId) {
+					// if there is not enough action points to use the weapon, then just pick up this item
+					bestWeapon = (source->critter.movePoints >= fo::func::item_w_primary_mp_cost(itemRetrieve)) ? itemRetrieve : nullptr;
+				}
+			}
 		}
 	}
 notRetrieve:
+	#ifndef NDEBUG
+		fo::func::debug_printf("\n[AI] BestWeaponPid: %d MP: %d", ((bestWeapon) ? bestWeapon->protoId : 0), source->critter.movePoints);
+	#endif
 
 	if (bestWeapon && (!itemHand || itemHand->protoId != bestWeapon->protoId)) {
+		//if (itemHand && fo::func::item_cost(bestWeapon) < fo::func::item_cost(itemHand) + 25) return;
 		*weapon = (DWORD)bestWeapon;
 		*hitMode = fo::func::ai_pick_hit_mode(source, bestWeapon, target);
 		fo::func::inven_wield(source, bestWeapon, fo::InvenType::INVEN_TYPE_RIGHT_HAND);
 		_asm call fo::funcoffs::combat_turn_run_;
+		#ifndef NDEBUG
+			fo::func::debug_printf("\n[AI] WieldPid: %d MP: %d", bestWeapon->protoId, source->critter.movePoints);
+		#endif
 	}
 }
 
@@ -387,20 +422,12 @@ void AI::init() {
 
 DWORD _stdcall AIGetLastAttacker(DWORD target) {
 	iter itr = sources.find(target);
-	if(itr == sources.end()) {
-		return 0;
-	} else {
-		return itr->second;
-	}
+	return (itr != sources.end()) ? itr->second: 0;
 }
 
 DWORD _stdcall AIGetLastTarget(DWORD source) {
 	iter itr = targets.find(source);
-	if(itr == targets.end()) {
-		return 0;
-	} else {
-		return itr->second;
-	}
+	return (itr != targets.end()) ? itr->second : 0;
 }
 
 void _stdcall AICombatStart() {
