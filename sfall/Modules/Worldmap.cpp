@@ -16,6 +16,7 @@
 *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <map>
 #include <math.h>
 
 #include "..\main.h"
@@ -32,6 +33,12 @@ static Delegate<> onWorldmapLoop;
 static DWORD ViewportX;
 static DWORD ViewportY;
 
+struct levelRest {
+	char level[4];
+};
+std::map<int, levelRest> mapRestInfo;
+
+static bool restMap;
 static bool restMode;
 static bool restTime;
 
@@ -206,6 +213,24 @@ static void __declspec(naked) wmInterfaceInit_text_font_hook() {
 	__asm {
 		mov  eax, 0x65; // normal text font
 		jmp  fo::funcoffs::text_font_;
+	}
+}
+
+static void __declspec(naked) critter_can_obj_dude_rest_hook() {
+	using namespace fo;
+	__asm {
+		push eax;
+		mov  ecx, eax;  // elevation
+		mov  edx, dword ptr ds:[FO_VAR_map_number];
+		call Worldmap::GetRestMapLevel;
+		xor  edx, edx;
+		cmp  eax, edx;
+		jge  skip;
+		pop  eax;
+		jmp  fo::funcoffs::wmMapCanRestHere_;
+skip:
+		add  esp, 4;
+		retn;           // overrides
 	}
 }
 
@@ -413,6 +438,31 @@ void WorldMapFontPatch() {
 	}
 }
 
+void Worldmap::SaveData(HANDLE file) {
+	DWORD sizeWrite, count = mapRestInfo.size();
+	WriteFile(file, &count, 4, &sizeWrite, 0);
+	std::map<int, levelRest>::iterator it;
+	for (it = mapRestInfo.begin(); it != mapRestInfo.end(); it++) {
+		WriteFile(file, &it->first, 4, &sizeWrite, 0);
+		WriteFile(file, &it->second, sizeof(levelRest), &sizeWrite, 0);
+	}
+}
+
+void Worldmap::LoadData(HANDLE file) {
+	DWORD count, sizeRead;
+	ReadFile(file, &count, 4, &sizeRead, 0);
+	if (sizeRead != 4) return;
+	if (!restMap) HookCall(0x42E57A, critter_can_obj_dude_rest_hook);
+	for (DWORD i = 0; i < count; i++) {
+		DWORD mID;
+		levelRest elevData;
+		ReadFile(file, &mID, 4, &sizeRead, 0);
+		ReadFile(file, &elevData, sizeof(levelRest), &sizeRead, 0);
+		mapRestInfo.insert(std::make_pair(mID, elevData));
+	}
+	restMap = true;
+}
+
 void Worldmap::init() {
 	PathfinderFixInit();
 	StartingStatePatches();
@@ -426,6 +476,7 @@ void Worldmap::init() {
 		SetCarInterfaceArt(0x1B1);
 		if (restTime) SetRestHealTime(180);
 		RestRestore();
+		mapRestInfo.clear();
 	};
 }
 
@@ -463,6 +514,43 @@ void Worldmap::SetRestMode(DWORD mode) {
 		SafeWrite16(0x499FD4, 0x9090);
 		SafeWrite16(0x499E93, 0x8FEB); // jmp  0x499E24
 	}
+}
+
+void Worldmap::SetRestMapLevel(int mapId, long elev, bool canRest) {
+	auto keyIt = mapRestInfo.find(mapId);
+	if (keyIt != mapRestInfo.end()) {
+		if (elev == -1) {
+			keyIt->second.level[++elev] = canRest;
+			keyIt->second.level[++elev] = canRest;
+			elev++;
+		}
+		keyIt->second.level[elev] = canRest;
+	} else {
+		if (!restMap) {
+			HookCall(0x42E57A, critter_can_obj_dude_rest_hook);
+			restMap = true;
+		}
+
+		levelRest elevData = {-1, -1, -1, -1};
+		std::pair<int, levelRest> info (mapId, elevData);
+		if (elev == -1) {
+			info.second.level[++elev] = canRest;
+			info.second.level[++elev] = canRest;
+			elev++;
+		}
+		info.second.level[elev] = canRest;
+		mapRestInfo.insert(info);
+	}
+}
+
+long __fastcall Worldmap::GetRestMapLevel(long elev, int mapId) {
+	if (mapRestInfo.empty()) return -1;
+
+	auto keyIt = mapRestInfo.find(mapId);
+	if (keyIt != mapRestInfo.end()) {
+		return keyIt->second.level[elev];
+	}
+	return -1;
 }
 
 }

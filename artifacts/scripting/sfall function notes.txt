@@ -505,6 +505,17 @@ Some utility/math functions are available:
 - works just like vanilla CreateWin function, but creates a window with MoveOnTop flag if flags argument is not specified, and allows to set additional flags for the created window
 - MoveOnTop flag allows the created window to be placed on top of the game interface
 
+> void sfall_func3("set_can_rest_on_map", int mapNum, int elev, bool value)
+- allows/disallows to rest on the map for the specified level, overrides the can_rest_here values in maps.txt
+- mapNum is the map index from maps.txt
+- passing -1 to the elev argument will set the rest value for all map elevations
+- the set rest value will be stored in sfalldb.sav file (in savegame)
+
+> int sfall_func2("get_can_rest_on_map", int mapNum, int elev)
+- returns the set rest value of the map after using the set_can_rest_on_map function
+- returns -1 if the rest value of the map was not previously set (i.e. no data for the map in sfalldb.sav)
+- the can_rest_here values in maps.txt are ignored
+
 ------------------------
 ------ MORE INFO -------
 ------------------------
