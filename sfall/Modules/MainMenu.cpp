@@ -46,11 +46,11 @@ static void __declspec(naked) MainMenuTextYHook() {
 }
 
 #ifdef NDEBUG
-static const char* VerString1 = "SFALL " VERSION_STRING;
+static const char* VerString1 = "SFALL " VERSION_STRING " - Extended";
 #else
 static const char* VerString1 = "SFALL " VERSION_STRING " Rev.Debug";
 #endif
-static const DWORD MainMenuTextRet = 0x4817B0;
+
 static DWORD OverrideColour;
 static void __declspec(naked) FontColour() {
 	__asm {
@@ -65,28 +65,36 @@ skip:
 	}
 }
 
+static const DWORD MainMenuTextRet = 0x4817B0;
 static void __declspec(naked) MainMenuTextHook() {
 	__asm {
-		mov edi, [esp];
-		sub edi, 12; //shift yposition up by 12
-		mov [esp], edi;
-		mov ebp, ecx;
-		push eax;
+		mov  esi, eax;                // winptr
+		mov  ebp, ecx;                // keep xpos
+		mov  edi, [esp];              // ypos
+		mov  eax, edi;
+		sub  eax, 12;                 // shift y position up by 12
+		mov  [esp], eax;
 		call FontColour;
-		mov [esp+8], eax;
-		pop eax;
+		mov  [esp + 4], eax;          // colour
+		mov  eax, esi;
+		mov  esi, edx;                // keep buff fallout
 		call fo::funcoffs::win_print_;
+		// sfall print
+		mov  eax, esi;
+		call ds:[FO_VAR_text_width];
+		add  ebp, eax;               // xpos shift (right align)
 		call FontColour;
-		push eax;//colour
-		mov edx, VerString1;//msg
-		xor ebx, ebx;//font
-		mov ecx, ebp;
-		dec ecx; //xpos
-		add edi, 12;
-		push edi; //ypos
-		mov eax, dword ptr ds:[FO_VAR_main_window];//winptr
+		push eax;                    // colour
+		mov  edx, VerString1;        // msg
+		mov  eax, edx;
+		call ds:[FO_VAR_text_width];
+		mov  ecx, ebp;               // xpos
+		sub  ecx, eax;               // left shift position
+		push edi;                    // ypos
+		xor  ebx, ebx;               // font
+		mov  eax, dword ptr ds:[FO_VAR_main_window]; // winptr
 		call fo::funcoffs::win_print_;
-		jmp MainMenuTextRet;
+		jmp  MainMenuTextRet;
 	}
 }
 

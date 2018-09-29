@@ -8,7 +8,7 @@ BEGIN
 	BEGIN
 		BLOCK "04090000"
 		BEGIN
-		VALUE "FileDescription", "sfall, built for " TARGETVERSION
+		VALUE "FileDescription", "sFall extended version by Mr.Stalin, for " TARGETVERSION
 		VALUE "FileVersion", VERSION_STRING
 		VALUE "InternalName", "sfall"
 		VALUE "LegalCopyright", LEGAL_COPYRIGHT
