@@ -49,7 +49,6 @@ void _stdcall HandleMapUpdateForScripts(DWORD procId);
 
 // TODO: move to a better place
 static int idle;
-static int unjamTimeState;
 
 struct GlobalScript {
 	ScriptProgram prog;
@@ -532,14 +531,6 @@ void ClearGlobalScripts() {
 	hit_location_penalty[8] = static_cast<long>(GetConfigInt("Misc", "BodyHit_Torso_Uncalled", 0));
 	//skillpoints per level mod
 	SafeWrite8(0x43C27a, 5);
-	//restore obj_unjam_all_locks_
-	if (unjamTimeState) {
-		SafeWrite8(0x4A364A, 0xE8);
-		SafeWrite32(0x4A364B, 0xFFFF9E69);
-		SafeWrite8(0x4831DA, 0x7C);
-		SafeWrite8(0x4831D9, 24);
-		unjamTimeState = 0;
-	}
 }
 
 void RunScriptProc(ScriptProgram* prog, const char* procName) {
@@ -681,23 +672,6 @@ void SetGlobals(GlobalVar* globals) {
 	while(itr != globalVars.end()) {
 		itr->second = globals[i++].val;
 		itr++;
-	}
-}
-
-void ScriptExtender::SetAutoUnjamLockTime(DWORD time) {
-	if (!unjamTimeState) {
-		BlockCall(0x4A364A); // disable auto unjam at midnight
-	}
-
-	if (time > 0) {
-		SafeWrite8(0x4831D9, (BYTE)time);
-		if (unjamTimeState == 2) {
-			SafeWrite8(0x4831DA, 0x7C);
-		}
-		unjamTimeState = 1;
-	} else {
-		SafeWrite8(0x4831DA, 0xEB); // disable auto unjam
-		unjamTimeState = 2;
 	}
 }
 

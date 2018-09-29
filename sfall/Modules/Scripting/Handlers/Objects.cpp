@@ -20,6 +20,7 @@
 #include "..\..\Explosions.h"
 #include "..\..\Inventory.h"
 #include "..\..\Knockback.h"
+#include "..\..\Objects.h"
 #include "..\..\PartyControl.h"
 #include "..\..\ScriptExtender.h"
 #include "..\Arrays.h"
@@ -403,7 +404,7 @@ void sf_set_unjam_locks_time(OpcodeContext& ctx) {
 	if (time < 0 || time > 127) {
 		ctx.printOpcodeError("set_unjam_locks_time() - time argument must be in the range of 0 to 127.");
 	} else {
-		ScriptExtender::SetAutoUnjamLockTime(time);
+		Objects::SetAutoUnjamLockTime(time);
 	}
 }
 
