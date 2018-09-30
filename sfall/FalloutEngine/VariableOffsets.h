@@ -16,6 +16,7 @@
 #define FO_VAR_aTextSCuts                 0x501A8C
 #define FO_VAR_aTextSCutsS                0x503530
 #define FO_VAR_aTextSCutsSS               0x50B01C
+#define FO_VAR_background_volume          0x518E88
 #define FO_VAR_bboxslot                   0x5970E0
 #define FO_VAR_bckgnd                     0x5707A4
 #define FO_VAR_black_palette              0x663FD0
@@ -63,6 +64,7 @@
 #define FO_VAR_game_user_wants_to_quit    0x5186CC
 #define FO_VAR_gcsd                       0x51094C
 #define FO_VAR_gdBarterMod                0x51873C
+#define FO_VAR_gDialogMusicVol            0x5187D8
 #define FO_VAR_gdNumOptions               0x5186D8
 #define FO_VAR_gIsSteal                   0x51D430
 #define FO_VAR_glblmode                   0x5709D0
@@ -112,6 +114,7 @@
 #define FO_VAR_map_number                 0x631D88
 #define FO_VAR_map_state                  0x631D28
 #define FO_VAR_master_db_handle           0x58E948
+#define FO_VAR_master_volume              0x518E84
 #define FO_VAR_max                        0x56FB50
 #define FO_VAR_maxScriptNum               0x51C7CC
 #define FO_VAR_Meet_Frank_Horrigan        0x672E04
@@ -177,7 +180,10 @@
 #define FO_VAR_scriptListInfo             0x51C7C8
 #define FO_VAR_skill_data                 0x51D118
 #define FO_VAR_slot_cursor                0x5193B8
-#define FO_VAR_sneak_working              0x56D77C // DWORD var 
+#define FO_VAR_sndfx_volume               0x518E90
+#define FO_VAR_sneak_working              0x56D77C // DWORD var
+#define FO_VAR_sound_music_path1          0x518E78
+#define FO_VAR_sound_music_path2          0x518E7C
 #define FO_VAR_square                     0x631E40
 #define FO_VAR_squares                    0x66BE08
 #define FO_VAR_stack                      0x59E86C

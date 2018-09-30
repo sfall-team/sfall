@@ -1,5 +1,6 @@
 #include "..\main.h"
 #include "..\FalloutEngine\Fallout2.h"
+#include "LoadGameHook.h"
 #include "ScriptExtender.h"
 
 #include "BugFixes.h"
@@ -17,6 +18,10 @@ void ResetBodyState() {
 	_asm mov critterBody, 0;
 	_asm mov sizeOnBody, 0;
 	_asm mov weightOnBody, 0;
+}
+
+void GameInitialization() {
+	*(DWORD*)FO_VAR_gDialogMusicVol = *(DWORD*)FO_VAR_background_volume; // fix dialog music
 }
 
 static void __declspec(naked) SharpShooterFix() {
@@ -1525,6 +1530,9 @@ void BugFixes::init()
 	#ifndef NDEBUG
 		if (isDebug && (GetConfigInt("Debugging", "BugFixes", 1) == 0)) return;
 	#endif
+
+	// Missing game initialization
+	LoadGameHook::OnGameInit() = GameInitialization;
 
 	//if (GetConfigInt("Misc", "SharpshooterFix", 1)) {
 		dlog("Applying Sharpshooter patch.", DL_INIT);

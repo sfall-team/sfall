@@ -163,7 +163,9 @@ VAR_(scr_size,                   DWORD)
 VAR_(scriptListInfo,             ScriptListInfoItem*)  // dynamic array
 VARA(skill_data,                 SkillInfo, SKILL_count)
 VAR_(slot_cursor,                DWORD)
-VAR_(sneak_working,              DWORD) // DWORD var 
+VAR_(sneak_working,              DWORD) // DWORD var
+VAR_(sound_music_path1,          char*)
+VAR_(sound_music_path2,          char*)
 VAR_(square,                     DWORD)
 VAR_(squares,                    DWORD*)
 VAR_(stack,                      DWORD)
