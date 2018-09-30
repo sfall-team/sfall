@@ -1275,6 +1275,14 @@ end:
 	}
 }
 
+static void __declspec(naked) op_obj_can_hear_obj_hack() {
+	__asm {
+		mov eax, [esp + 0x28 - 0x28 + 4];  // target
+		mov edx, [esp + 0x28 - 0x24 + 4];  // source
+		retn;
+	}
+}
+
 static void __declspec(naked) ai_best_weapon_hook() {
 	__asm {
 		mov eax, [esp + 0xF4 - 0x10 + 4]; // prev.item
@@ -1344,6 +1352,27 @@ static void __declspec(naked) inven_find_id_hack() {
 fix:
 		cmp  ecx, ebx;                         // object ptr == object ptr
 		retn;
+	}
+}
+
+static DWORD op_start_gdialog_ret = 0x456F4B;
+static void __declspec(naked) op_start_gdialog_hack() {
+	__asm {
+		mov  ebx, ds:[_dialog_target];
+		mov  ebx, [ebx + 0x64];
+		shr  ebx, 0x18;
+		cmp  ebx, OBJ_TYPE_CRITTER;
+		jz   fix;
+		cmp  edx, -1;
+		jz   skip;
+		retn;
+fix:
+		cmp  eax, -1;
+		jnz  skip;
+		retn;
+skip:
+		add  esp, 4;                              // Destroy the return address
+		jmp  op_start_gdialog_ret;
 	}
 }
 
@@ -1689,6 +1718,16 @@ void BugsInit()
 	MakeCall(0x456B63, op_obj_can_see_obj_hack);
 	SafeWrite16(0x456B76, 0x23EB); // jmp loc_456B9B (skip unused engine code)
 
+	// Fix broken op_obj_can_hear_obj_ function
+	if (GetPrivateProfileIntA("Misc", "ObjCanHearObjFix", 0, ini)) {
+		dlog("Applying obj_can_hear_obj fix.", DL_INIT);
+		SafeWrite8(0x4583D8, 0x3B); // jz loc_458414
+		SafeWrite8(0x4583DE, 0x74); // jz loc_458414
+		MakeCall(0x4583E0, op_obj_can_hear_obj_hack);
+		SafeWrite8(0x4583E5, 0x90);
+		dlogr(" Done", DL_INIT);
+	}
+
 	// Fix for AI not checking weapon perks properly when searching for the best weapon
 	if (GetPrivateProfileIntA("Misc", "AIBestWeaponFix", 0, ini)) {
 		dlog("Applying AI best weapon choice fix.", DL_INIT);
@@ -1711,4 +1750,11 @@ void BugsInit()
 	HookCall(0x429D7B, ai_retrieve_object_hook);
 	MakeCall(0x472708, inven_find_id_hack);
 	dlogr(" Done", DL_INIT);
+
+	// Fix for the "mood" argument of start_gdialog function being ignored for talking heads
+	if (GetPrivateProfileIntA("Misc", "StartGDialogFix", 0, ini)) {
+		dlog("Applying start_gdialog argument fix.", DL_INIT);
+		MakeCall(0x456F03, op_start_gdialog_hack);
+		dlogr(" Done", DL_INIT);
+	}
 }

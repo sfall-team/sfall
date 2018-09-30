@@ -735,17 +735,14 @@ static void PerkSetup() {
 	}
 
 	//perk_owed hooks
-	MakeCall(0x4AFB2F, LevelUpHook);//replaces 'mov edx, ds:[PlayerLevel]
+	MakeCall(0x4AFB2F, LevelUpHook); //replaces 'mov edx, ds:[PlayerLevel]
 	SafeWrite8(0x4AFB34, 0x90);
 
 	SafeWrite8(0x43C2EC, 0xEB); //skip the block of code which checks if the player has gained a perk (now handled in level up code)
 
-	SafeWrite8(0x43C362, 0xE8);                 //call sub_43401C, dec byte ptr ds:[0x570A29]
-	SafeWrite32(0x43C363, 0x43410C - 0x43C367); //replaces call sub_43401C, mov byte ptr ds:[0x570A29], 0
-	SafeWrite8(0x43C367, 0x3E);
-	SafeWrite16(0x43C368, 0x0DFE);
-	SafeWrite32(0x43C36A, 0x00570A29);
-	SafeWrite8(0x43C36e, 0x90);
+	//Disable losing unused perks
+	SafeWrite16(0x43C369, 0x0DFE); // dec  byte ptr ds:_free_perk
+	SafeWrite8(0x43C370, 0xB1);    // jmp  0x43C322
 }
 static int _stdcall stat_get_base_direct(DWORD statID) {
 	DWORD result;
