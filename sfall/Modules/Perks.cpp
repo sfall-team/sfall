@@ -1006,6 +1006,12 @@ void PerksReset() {
 	SafeWrite8(0x478AC4, 0xBA);
 	SafeWrite32(0x478AC5, 0x23);
 	PerkFreqOverride = 0;
+
+	//Reset some settable game values back to the defaults
+	//Perk level mod
+	SafeWrite32(0x496880, 0x019078);
+	//Pyromaniac bonus
+	SafeWrite8(0x424AB6, 5);
 }
 
 void Perks::save(HANDLE file) {

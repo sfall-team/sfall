@@ -82,7 +82,6 @@ std::unordered_map<fo::Program*, fo::GameObject*> selfOverrideMap;
 typedef std::unordered_map<std::string, ExportedVar> ExportedVarsMap;
 static ExportedVarsMap globalExportedVars;
 DWORD isGlobalScriptLoading = 0;
-DWORD modifiedIni;
 
 std::unordered_map<__int64, int> globalVars;
 typedef std::unordered_map<__int64, int> :: iterator glob_itr;
@@ -506,31 +505,6 @@ void ClearGlobalScripts() {
 	selfOverrideMap.clear();
 	globalExportedVars.clear();
 	HookScriptClear();
-
-	//Reset some settable game values back to the defaults
-	//Pyromaniac bonus
-	SafeWrite8(0x424AB6, 5);
-	//xp mod
-	SafeWrite8(0x4AFAB8, 0x53);
-	SafeWrite32(0x4AFAB9, 0x55575651);
-	//Perk level mod
-	SafeWrite32(0x496880, 0x00019078);
-	//HP bonus
-	SafeWrite8(0x4AFBC1, 2);
-	// TODO: move this elsewhere
-	//Bodypart hit chances
-	using fo::var::hit_location_penalty;
-	hit_location_penalty[0] = static_cast<long>(GetConfigInt("Misc", "BodyHit_Head", -40));
-	hit_location_penalty[1] = static_cast<long>(GetConfigInt("Misc", "BodyHit_Left_Arm", -30));
-	hit_location_penalty[2] = static_cast<long>(GetConfigInt("Misc", "BodyHit_Right_Arm", -30));
-	hit_location_penalty[3] = static_cast<long>(GetConfigInt("Misc", "BodyHit_Torso_Uncalled", 0));
-	hit_location_penalty[4] = static_cast<long>(GetConfigInt("Misc", "BodyHit_Right_Leg", -20));
-	hit_location_penalty[5] = static_cast<long>(GetConfigInt("Misc", "BodyHit_Left_Leg", -20));
-	hit_location_penalty[6] = static_cast<long>(GetConfigInt("Misc", "BodyHit_Eyes", -60));
-	hit_location_penalty[7] = static_cast<long>(GetConfigInt("Misc", "BodyHit_Groin", -30));
-	hit_location_penalty[8] = static_cast<long>(GetConfigInt("Misc", "BodyHit_Torso_Uncalled", 0));
-	//skillpoints per level mod
-	SafeWrite8(0x43C27a, 5);
 }
 
 void RunScriptProc(ScriptProgram* prog, const char* procName) {
@@ -695,7 +669,6 @@ void ScriptExtender::init() {
 		SafeWrite8(0x4C9F12, 0x6A); // push
 		SafeWrite8(0x4C9F13, idle);
 	}
-	modifiedIni = GetConfigInt("Main", "ModifiedIni", 0);
 	
 	arraysBehavior = GetConfigInt("Misc", "arraysBehavior", 1);
 	if (arraysBehavior > 0) {

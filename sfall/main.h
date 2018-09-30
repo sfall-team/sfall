@@ -61,5 +61,6 @@ std::string Translate(const char* section, const char* setting, const char* defa
 size_t Translate(const char* section, const char* setting, const char* defaultValue, char* buffer, size_t bufSize = 128);
 
 extern const char ddrawIni[];
+extern DWORD modifiedIni;
 
 }

@@ -84,6 +84,7 @@ bool isDebug = false;
 const char ddrawIni[] = ".\\ddraw.ini";
 static char ini[65];
 static char translationIni[65];
+DWORD modifiedIni;
 
 unsigned int GetConfigInt(const char* section, const char* setting, int defaultValue) {
 	return GetPrivateProfileIntA(section, setting, defaultValue, ini);
@@ -268,6 +269,7 @@ inline void SfallInit() {
 	}
 
 	GetConfigString("Main", "TranslationsINI", "./Translations.ini", translationIni, 65);
+	modifiedIni = GetConfigInt("Main", "ModifiedIni", 0);
 
 	InitModules();
 }

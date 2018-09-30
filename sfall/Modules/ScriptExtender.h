@@ -93,6 +93,5 @@ ScriptProgram* GetGlobalScriptProgram(fo::Program* scriptPtr);
 // variables
 static char regAnimCombatCheck = 1;
 extern DWORD isGlobalScriptLoading;
-extern DWORD modifiedIni;
 
 }
