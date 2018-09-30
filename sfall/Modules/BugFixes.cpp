@@ -1498,6 +1498,27 @@ fix:
 	}
 }
 
+static DWORD op_start_gdialog_ret = 0x456F4B;
+static void __declspec(naked) op_start_gdialog_hack() {
+	__asm {
+		mov  ebx, ds:[FO_VAR_dialog_target];
+		mov  ebx, [ebx + protoId];
+		shr  ebx, 0x18;
+		cmp  ebx, OBJ_TYPE_CRITTER;
+		jz   fix;
+		cmp  edx, -1;
+		jz   skip;
+		retn;
+fix:
+		cmp  eax, -1;
+		jnz  skip;
+		retn;
+skip:
+		add  esp, 4;                              // Destroy the return address
+		jmp  op_start_gdialog_ret;
+	}
+}
+
 
 void BugFixes::init()
 {
@@ -1904,6 +1925,13 @@ void BugFixes::init()
 	HookCall(0x429D7B, ai_retrieve_object_hook);
 	MakeCall(0x472708, inven_find_id_hack);
 	dlogr(" Done", DL_INIT);
+
+	// Fix for the "mood" argument of start_gdialog function being ignored for talking heads
+	if (GetConfigInt("Misc", "StartGDialogFix", 0)) {
+		dlog("Applying start_gdialog argument fix.", DL_INIT);
+		MakeCall(0x456F03, op_start_gdialog_hack);
+		dlogr(" Done", DL_INIT);
+	}
 }
 
 }
