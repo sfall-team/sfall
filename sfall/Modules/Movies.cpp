@@ -426,7 +426,6 @@ LRESULT CALLBACK SoundWndProc(HWND wnd, UINT msg, WPARAM w, LPARAM l) {
 	return DefWindowProc(wnd, msg, w, l);
 }
 
-
 static void CreateSndWnd() {
 	dlog("Creating sfall sound windows.", DL_INIT);
 	if (Graphics::mode == 0) CoInitialize(0);
@@ -503,8 +502,6 @@ static bool IsMute(bool type) {
 	}
 	return (value == 0);
 }
-
-
 
 static sDSSound* PlayingSound(wchar_t* path, bool loop) {
 	if (!soundwindow) CreateSndWnd();
