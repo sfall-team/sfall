@@ -230,33 +230,6 @@ void sf_sprintf(OpcodeContext& ctx) {
 	);
 }
 
-// fix for vanilla negate operator not working on floats
-static const DWORD NegateFixHook_Back = 0x46AB79;
-void __declspec(naked) NegateFixHook() {
-	__asm {
-		mov     ebx, edi;
-		lea     edx, [ecx + 36];
-		mov     eax, [ecx + 28];
-		cmp     si, VAR_TYPE_FLOAT;
-		jne     notfloat;
-		push    ebx;
-		fld[esp];
-		fchs;
-		fstp[esp];
-		pop     ebx;
-		call    fo::funcoffs::pushLongStack_;
-		mov     edx, VAR_TYPE_FLOAT;
-		jmp     end;
-notfloat:
-		neg     ebx
-		call    fo::funcoffs::pushLongStack_;
-		mov     edx, VAR_TYPE_INT;
-end:
-		mov     eax, ecx;
-		jmp     NegateFixHook_Back;
-	}
-}
-
 void sf_power(OpcodeContext& ctx) {
 	const ScriptValue &base = ctx.arg(0),
 					  &power = ctx.arg(1);

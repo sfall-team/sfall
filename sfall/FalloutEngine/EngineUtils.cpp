@@ -110,17 +110,17 @@ bool HeroIsFemale() {
 //---------------------------------------------------------
 //print text to surface
 void PrintText(char *DisplayText, BYTE ColourIndex, DWORD Xpos, DWORD Ypos, DWORD TxtWidth, DWORD ToWidth, BYTE *ToSurface) {
-	DWORD posOffset = Ypos*ToWidth + Xpos;
+	DWORD posOffset = Ypos * ToWidth + Xpos;
 	__asm {
-		xor eax, eax
-		MOV AL, ColourIndex
-		push eax
-		mov edx, DisplayText
-		mov ebx, TxtWidth
-		mov ecx, ToWidth
-		mov eax, ToSurface
-		add eax, posOffset
-		call dword ptr ds:[FO_VAR_text_to_buf]
+		xor  eax, eax;
+		mov  al, ColourIndex;
+		push eax;
+		mov  edx, DisplayText;
+		mov  ebx, TxtWidth;
+		mov  ecx, ToWidth;
+		mov  eax, ToSurface;
+		add  eax, posOffset;
+		call dword ptr ds:[FO_VAR_text_to_buf];
 	}
 }
 
@@ -129,8 +129,8 @@ void PrintText(char *DisplayText, BYTE ColourIndex, DWORD Xpos, DWORD Ypos, DWOR
 DWORD GetTextHeight() {
 	DWORD TxtHeight;
 	__asm {
-		call dword ptr ds:[FO_VAR_text_height] //get text height
-		mov TxtHeight, eax
+		call dword ptr ds:[FO_VAR_text_height]; //get text height
+		mov  TxtHeight, eax;
 	}
 	return TxtHeight;
 }
@@ -140,9 +140,9 @@ DWORD GetTextHeight() {
 DWORD GetTextWidth(char *TextMsg) {
 	DWORD TxtWidth;
 	__asm {
-		mov eax, TextMsg
-		call dword ptr ds:[FO_VAR_text_width] //get text width
-		mov TxtWidth, eax
+		mov  eax, TextMsg;
+		call dword ptr ds:[FO_VAR_text_width]; //get text width
+		mov  TxtWidth, eax;
 	}
 	return TxtWidth;
 }
@@ -152,9 +152,9 @@ DWORD GetTextWidth(char *TextMsg) {
 DWORD GetCharWidth(char CharVal) {
 	DWORD charWidth;
 	__asm {
-		mov al, CharVal
-		call dword ptr ds:[FO_VAR_text_char_width]
-		mov charWidth, eax
+		mov  al, CharVal;
+		call dword ptr ds:[FO_VAR_text_char_width];
+		mov  charWidth, eax;
 	}
 	return charWidth;
 }
@@ -164,9 +164,9 @@ DWORD GetCharWidth(char CharVal) {
 DWORD GetMaxTextWidth(char *TextMsg) {
 	DWORD msgWidth;
 	__asm {
-		mov eax, TextMsg
-		call dword ptr ds:[FO_VAR_text_mono_width]
-		mov msgWidth, eax
+		mov  eax, TextMsg;
+		call dword ptr ds:[FO_VAR_text_mono_width];
+		mov  msgWidth, eax;
 	}
 	return msgWidth;
 }
@@ -176,8 +176,8 @@ DWORD GetMaxTextWidth(char *TextMsg) {
 DWORD GetCharGapWidth() {
 	DWORD gapWidth;
 	__asm {
-		call dword ptr ds:[FO_VAR_text_spacing]
-		mov gapWidth, eax
+		call dword ptr ds:[FO_VAR_text_spacing];
+		mov  gapWidth, eax;
 	}
 	return gapWidth;
 }
@@ -187,8 +187,8 @@ DWORD GetCharGapWidth() {
 DWORD GetMaxCharWidth() {
 	DWORD charWidth = 0;
 	__asm {
-		call dword ptr ds:[FO_VAR_text_max]
-		mov charWidth, eax
+		call dword ptr ds:[FO_VAR_text_max];
+		mov  charWidth, eax;
 	}
 	return charWidth;
 }

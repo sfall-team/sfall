@@ -26,6 +26,28 @@ void GameInitialization() {
 	*(DWORD*)FO_VAR_gDialogMusicVol = *(DWORD*)FO_VAR_background_volume; // fix dialog music
 }
 
+// fix for vanilla negate operator not working on floats
+static const DWORD NegateFixHook_Back = 0x46AB77;
+void __declspec(naked) NegateFixHack() {
+	__asm {
+		mov  eax, [ecx + 0x1C];
+		cmp  si, VAR_TYPE_FLOAT;
+		je   isFloat;
+		neg  ebx;
+		retn;
+isFloat:
+		push ebx;
+		fld[esp];
+		fchs;
+		fstp[esp];
+		pop  ebx;
+		call fo::funcoffs::pushLongStack_;
+		mov  edx, VAR_TYPE_FLOAT;
+		add  esp, 4;                  // destroy return
+		jmp  NegateFixHook_Back;
+	}
+}
+
 static void __declspec(naked) SharpShooterFix() {
 	__asm {
 		call fo::funcoffs::stat_level_            // Perception
@@ -1595,6 +1617,16 @@ void BugFixes::init()
 
 	// Missing game initialization
 	LoadGameHook::OnGameInit() = GameInitialization;
+
+	// Fix vanilla negate operator on float values
+	MakeCall(0x46AB68, NegateFixHack);
+	// Fix incorrect int-to-float conversion
+	// for op_mult:
+	SafeWrite16(0x46A3F4, 0x04DB); // replace operator to "fild 32bit"
+	SafeWrite16(0x46A3A8, 0x04DB);
+	// for op_div:
+	SafeWrite16(0x46A566, 0x04DB);
+	SafeWrite16(0x46A4E7, 0x04DB);
 
 	//if (GetConfigInt("Misc", "SharpshooterFix", 1)) {
 		dlog("Applying Sharpshooter patch.", DL_INIT);

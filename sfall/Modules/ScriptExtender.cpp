@@ -36,7 +36,6 @@
 #include "Scripting\Arrays.h"
 #include "Scripting\Opcodes.h"
 #include "Scripting\OpcodeContext.h"
-#include "Scripting\Handlers\Utils.h"
 
 #include "ScriptExtender.h"
 
@@ -45,7 +44,7 @@ namespace sfall
 
 using namespace script;
 
-void _stdcall HandleMapUpdateForScripts(DWORD procId);
+static DWORD _stdcall HandleMapUpdateForScripts(const DWORD procId);
 
 // TODO: move to a better place
 static int idle;
@@ -98,7 +97,7 @@ static const DWORD scr_ptr_back = fo::funcoffs::scr_ptr_ + 5;
 static const DWORD scr_find_sid_from_program = fo::funcoffs::scr_find_sid_from_program_ + 5;
 static const DWORD scr_find_obj_from_program = fo::funcoffs::scr_find_obj_from_program_ + 7;
 
-DWORD _stdcall FindSidHook2(fo::Program* script) {
+static DWORD _stdcall FindSid(fo::Program* script) {
 	std::unordered_map<fo::Program*, fo::GameObject*>::iterator overrideIt = selfOverrideMap.find(script);
 	if (overrideIt != selfOverrideMap.end()) {
 		DWORD scriptId = overrideIt->second->scriptId;
@@ -119,43 +118,45 @@ DWORD _stdcall FindSidHook2(fo::Program* script) {
 	return -1; // change nothing
 }
 
-static void __declspec(naked) FindSidHook() {
+static void __declspec(naked) FindSidHack() {
 	__asm {
-		sub esp, 4;
-		pushad;
 		push eax;
-		call FindSidHook2;
-		mov [esp+32], eax; // to save value after popad
-		popad;
-		add esp, 4;
-		cmp [esp-4], -1;
-		jz end;
-		cmp [esp-4], -2;
-		jz override_script;
-		mov eax, [esp-4];
+		push edx;
+		push ecx;
+		push eax;
+		call FindSid;
+		pop  ecx;
+		pop  edx;
+		cmp  eax, -1;  // eax = scriptId
+		jz   end;
+		cmp  eax, -2;
+		jz   override_script;
+		add  esp, 4;
 		retn;
 override_script:
 		test edx, edx;
-		jz end;
-		lea eax, overrideScriptStruct;
-		mov [edx], eax;
-		mov eax, -2;
+		jz   end;
+		add  esp, 4;
+		lea  eax, overrideScriptStruct;
+		mov  [edx], eax;
+		mov  eax, -2;
 		retn;
 end:
+		pop  eax;
 		push ebx;
 		push ecx;
 		push edx;
 		push esi;
 		push ebp;
-		jmp scr_find_sid_from_program;
+		jmp  scr_find_sid_from_program;
 	}
 }
 
-static void __declspec(naked) ScrPtrHook() {
+static void __declspec(naked) ScrPtrHack() {
 	__asm {
-		cmp eax, -2;
-		jnz end;
-		xor eax, eax;
+		cmp  eax, -2;
+		jnz  end;
+		xor  eax, eax;
 		retn;
 end:
 		push ebx;
@@ -163,24 +164,24 @@ end:
 		push esi;
 		push edi;
 		push ebp;
-		jmp scr_ptr_back;
+		jmp  scr_ptr_back;
 	}
 }
 
-static void __declspec(naked) ExecMapScriptsHook() {
+static const DWORD ExecMapScriptsRet = 0x4A67F5;
+static void __declspec(naked) ExecMapScriptsHack() {
 	__asm {
-		sub esp, 32;
-		mov [esp+12], eax;
-		pushad;
-		push eax; // int procId
+		push edi;
+		push ebp;
+		sub  esp, 0x20;
+		//------
+		push eax; // procId
 		call HandleMapUpdateForScripts;
-		popad;
-		push 0x4A67F9; // jump back
-		retn;
+		jmp  ExecMapScriptsRet;
 	}
 }
 
-static DWORD __stdcall GetGlobalExportedVarPtr(const char* name) {
+static DWORD __cdecl GetGlobalExportedVarPtr(const char* name) {
 	std::string str(name);
 	ExportedVarsMap::iterator it = globalExportedVars.find(str);
 	//dlog_f("\n Trying to find exported var %s... ", DL_MAIN, name);
@@ -191,11 +192,10 @@ static DWORD __stdcall GetGlobalExportedVarPtr(const char* name) {
 	return 0;
 }
 
-static DWORD __stdcall CreateGlobalExportedVar(DWORD scr, const char* name) {
+static void __stdcall CreateGlobalExportedVar(DWORD scr, const char* name) {
 	//dlog_f("\nTrying to export variable %s (%d)\n", DL_MAIN, name, isGlobalScriptLoading);
 	std::string str(name);
 	globalExportedVars[str] = ExportedVar(); // add new
-	return 1;
 }
 
 /*
@@ -208,68 +208,53 @@ static DWORD __stdcall CreateGlobalExportedVar(DWORD scr, const char* name) {
 */
 static void __declspec(naked) Export_FetchOrStore_FindVar_Hook() {
 	__asm {
-		push eax;
-		push edx;
 		push ecx;
-		push ebx;
-		push edx // char* varName
-		call GetGlobalExportedVarPtr;
+		push edx;                      // varName
+		call GetGlobalExportedVarPtr;  //_cdecl
+		pop  edx;
+		pop  ecx;
 		test eax, eax
-		jz proceedNormal;
-		pop ebx;
-		pop ecx;
-		pop edx;
-		pop edx;
-		sub eax, 0x24; // adjust pointer for the code
+		jz   proceedNormal;
+		sub  eax, 0x24; // adjust pointer for the code
 		retn;
-
-	proceedNormal:
-		pop ebx;
-		pop ecx;
-		pop edx;
-		pop eax;
-		call fo::funcoffs::findVar_
-		retn
+proceedNormal:
+		mov  eax, edx;  // varName
+		jmp  fo::funcoffs::findVar_;
 	}
 }
 
-static const DWORD Export_Export_FindVar_back1 = 0x4414CD;
-static const DWORD Export_Export_FindVar_back2 = 0x4414AC;
+static const DWORD Export_Export_FindVar_back = 0x4414AE;
 static void __declspec(naked) Export_Export_FindVar_Hook() {
 	__asm {
-		pushad;
-		mov eax, isGlobalScriptLoading;
-		test eax, eax;
-		jz proceedNormal;
-		push edx; // char* - var name
+		cmp  isGlobalScriptLoading, 0;
+		jz   proceedNormal;
+		push edx; // var name
 		push ebp; // script ptr
 		call CreateGlobalExportedVar;
-		popad;
-		jmp Export_Export_FindVar_back2; // if sfall exported var, jump to the end of function
-
+		xor  eax, eax;
+		add  esp, 4;                      // destroy return
+		jmp  Export_Export_FindVar_back;  // if sfall exported var, jump to the end of function
 proceedNormal:
-		popad;
-		call fo::funcoffs::findVar_;  // else - proceed normal
-		jmp Export_Export_FindVar_back1;
+		jmp  fo::funcoffs::findVar_;      // else - proceed normal
 	}
 }
 
 // this hook prevents sfall scripts from being removed after switching to another map, since normal script engine re-loads completely
-static void _stdcall FreeProgramHook2(fo::Program* progPtr) {
+static void _stdcall FreeProgram(fo::Program* progPtr) {
 	if (isGameLoading || (sfallProgsMap.find(progPtr) == sfallProgsMap.end())) { // only delete non-sfall scripts or when actually loading the game
-		__asm {
-			mov eax, progPtr;
-			call fo::funcoffs::interpretFreeProgram_;
-		}
+		_asm mov  eax, progPtr;
+		_asm call fo::funcoffs::interpretFreeProgram_;
 	}
 }
 
 static void __declspec(naked) FreeProgramHook() {
 	__asm {
-		pushad;
+		push ecx;
+		push edx;
 		push eax;
-		call FreeProgramHook2;
-		popad;
+		call FreeProgram;
+		pop  edx;
+		pop  ecx;
 		retn;
 	}
 }
@@ -421,7 +406,7 @@ bool _stdcall IsGameScript(const char* filename) {
 	return false;
 }
 
-void LoadGLobalScriptsByMask(const std::string& fileMask) {
+static void LoadGLobalScriptsByMask(const std::string& fileMask) {
 	char* *filenames;
 	auto basePath = fileMask.substr(0, fileMask.find_last_of("\\/") + 1);
 	ToLowerCase(basePath);
@@ -459,7 +444,7 @@ void LoadGLobalScriptsByMask(const std::string& fileMask) {
 }
 
 // this runs after the game was loaded/started
-void LoadGlobalScripts() {
+static void LoadGlobalScripts() {
 	isGameLoading = false;
 	LoadHookScripts();
 	dlogr("Loading global scripts", DL_SCRIPT|DL_INIT);
@@ -468,7 +453,6 @@ void LoadGlobalScripts() {
 		LoadGLobalScriptsByMask(mask);
 	}
 	dlogr("Finished loading global scripts", DL_SCRIPT|DL_INIT);
-	//ButtonsReload();
 }
 
 bool _stdcall ScriptHasLoaded(fo::Program* script) {
@@ -497,7 +481,7 @@ void _stdcall RegAnimCombatCheck(DWORD newValue) {
 }
 
 // this runs before actually loading/starting the game
-void ClearGlobalScripts() {
+static void ClearGlobalScripts() {
 	isGameLoading = true;
 	checkedScripts.clear();
 	sfallProgsMap.clear();
@@ -563,17 +547,17 @@ static void RunGlobalScriptsOnMainLoop() {
 	RunGlobalScripts(0, 3);
 }
 
-void RunGlobalScriptsOnInput() {
+static void RunGlobalScriptsOnInput() {
 	if (IsMapLoaded()) {
 		RunGlobalScripts(1, 1);
 	}
 }
 
-void RunGlobalScriptsOnWorldMap() {
+static void RunGlobalScriptsOnWorldMap() {
 	RunGlobalScripts(2, 3);
 }
 
-void _stdcall HandleMapUpdateForScripts(DWORD procId) {
+static DWORD _stdcall HandleMapUpdateForScripts(const DWORD procId) {
 	if (procId == fo::ScriptProc::map_enter_p_proc) {
 		// map changed, all game objects were destroyed and scripts detached, need to re-insert global scripts into the game
 		for (SfallProgsMap::iterator it = sfallProgsMap.begin(); it != sfallProgsMap.end(); it++) {
@@ -582,6 +566,8 @@ void _stdcall HandleMapUpdateForScripts(DWORD procId) {
 	}
 	RunGlobalScriptsAtProc(procId); // gl* scripts of types 0 and 3
 	RunHookScriptsAtProc(procId); // all hs_ scripts
+
+	return procId; // restore eax (don't delete)
 }
 
 // run all global scripts of types 0 and 3 at specific procedure (if exist)
@@ -617,7 +603,7 @@ void SaveGlobals(HANDLE h) {
 	}
 }
 
-void ClearGlobals() {
+static void ClearGlobals() {
 	globalVars.clear();
 	for (array_itr it = arrays.begin(); it != arrays.end(); ++it) {
 		it->second.clear();
@@ -678,26 +664,18 @@ void ScriptExtender::init() {
 		dlogr("Arrays in backward-compatiblity mode.", DL_SCRIPT);
 	}
 
-	MakeJump(0x4A390C, FindSidHook);
-	MakeJump(0x4A5E34, ScrPtrHook);
+	MakeJump(0x4A390C, FindSidHack);
+	MakeJump(0x4A5E34, ScrPtrHack);
 	memset(&overrideScriptStruct, 0, sizeof(fo::ScriptInstance));
 
-	MakeJump(0x4A67F2, ExecMapScriptsHook);
+	MakeJump(0x4A67F0, ExecMapScriptsHack);
 
 	// this patch makes it possible to export variables from sfall global scripts
-	MakeJump(0x4414C8, Export_Export_FindVar_Hook);
-	HookCall(0x441285, &Export_FetchOrStore_FindVar_Hook); // store
-	HookCall(0x4413D9, &Export_FetchOrStore_FindVar_Hook); // fetch
-
-	// fix vanilla negate operator on float values
-	MakeJump(0x46AB63, NegateFixHook);
-	// fix incorrect int-to-float conversion
-	// op_mult:
-	SafeWrite16(0x46A3F4, 0x04DB); // replace operator to "fild 32bit"
-	SafeWrite16(0x46A3A8, 0x04DB);
-	// op_div:
-	SafeWrite16(0x46A566, 0x04DB);
-	SafeWrite16(0x46A4E7, 0x04DB);
+	HookCall(0x4414C8, Export_Export_FindVar_Hook);
+	HookCalls(Export_FetchOrStore_FindVar_Hook, {
+		0x441285, // store
+		0x4413D9  // fetch
+	});
 
 	HookCall(0x46E141, FreeProgramHook);
 

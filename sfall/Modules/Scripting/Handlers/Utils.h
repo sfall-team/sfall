@@ -53,8 +53,6 @@ void sf_ord(OpcodeContext&);
 
 void sf_typeof(OpcodeContext&);
 
-void __declspec() NegateFixHook();
-
 void sf_power(OpcodeContext&);
 
 void sf_log(OpcodeContext&);
