@@ -1556,6 +1556,7 @@ static void _stdcall OnExit() {
 	ConsoleExit();
 	AnimationsAtOnceExit();
 	HeroAppearanceModExit();
+	MoviesExit();
 	//SoundExit();
 }
 

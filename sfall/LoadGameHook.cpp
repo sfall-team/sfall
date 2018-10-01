@@ -20,6 +20,7 @@
 
 #include "AI.h"
 #include "Arrays.h"
+#include "Bugs.h"
 #include "Console.h"
 #include "Criticals.h"
 #include "FalloutEngine.h"
@@ -241,6 +242,19 @@ static void __declspec(naked) EndLoadHook() {
 	}
 }
 
+static void _stdcall GameInitialized() {
+	GameInitialization();
+}
+
+static void __declspec(naked) GameInitHook() {
+	__asm {
+		pushad;
+		call GameInitialized;
+		popad;
+		jmp main_init_system_;
+	}
+}
+
 static void NewGame2() {
 	ResetState(0);
 
@@ -284,6 +298,19 @@ static void __declspec(naked) MainMenuHook() {
 		popad;
 		call main_menu_loop_;
 		retn;
+	}
+}
+
+static void _stdcall GameClose() {
+	WipeSounds();
+}
+
+static void __declspec(naked) GameCloseHook() {
+	__asm {
+		pushad;
+		call GameClose;
+		popad;
+		jmp game_exit_;
 	}
 }
 
@@ -453,6 +480,7 @@ void LoadGameHookInit() {
 		SafeWrite8(0x4C06D8, 0xEB); // skip the Horrigan encounter check
 	}
 
+	HookCall(0x4809BA, GameInitHook); // 4.x backporting
 	HookCall(0x480AB3, NewGame);
 
 	HookCall(0x47C72C, LoadSlot);
@@ -467,6 +495,9 @@ void LoadGameHookInit() {
 	HookCall(0x48FCFF, SaveGame);
 
 	HookCall(0x480A28, MainMenuHook);
+	// 4.x backporting
+	HookCall(0x480CA7, GameCloseHook); // gnw_main_
+	//HookCall(0x480D45, GameCloseHook); // main_exit_system_ (never called)
 
 	HookCall(0x483668, WorldMapHook);
 	HookCall(0x4A4073, WorldMapHook);

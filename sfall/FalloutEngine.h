@@ -36,6 +36,7 @@
 #define _art_name                   0x56C9E4
 #define _art_vault_guy_num          0x5108A4
 #define _art_vault_person_nums      0x5108A8
+#define _background_volume          0x518E88
 #define _bckgnd                     0x5707A4
 #define _black_palette              0x663FD0
 #define _bottom_line                0x664524
@@ -78,6 +79,7 @@
 #define _game_user_wants_to_quit    0x5186CC
 #define _gcsd                       0x51094C
 #define _gdBarterMod                0x51873C
+#define _gDialogMusicVol            0x5187D8
 #define _gdNumOptions               0x5186D8
 #define _gIsSteal                   0x51D430
 #define _glblmode                   0x5709D0
@@ -125,6 +127,7 @@
 #define _map_global_vars            0x51956C
 #define _map_state                  0x631D28
 #define _master_db_handle           0x58E948
+#define _master_volume              0x518E84
 #define _max                        0x56FB50
 #define _maxScriptNum               0x51C7CC
 #define _Meet_Frank_Horrigan        0x672E04
@@ -180,7 +183,10 @@
 #define _scriptListInfo             0x51C7C8
 #define _skill_data                 0x51D118
 #define _slot_cursor                0x5193B8
-#define _sneak_working              0x56D77C // DWORD var 
+#define _sndfx_volume               0x518E90
+#define _sneak_working              0x56D77C // DWORD var
+#define _sound_music_path1          0x518E78
+#define _sound_music_path2          0x518E7C
 #define _square                     0x631E40
 #define _squares                    0x66BE08
 #define _stack                      0x59E86C
@@ -363,7 +369,9 @@ extern DWORD* ptr_scr_size;
 extern DWORD* ptr_scriptListInfo;
 extern DWORD* ptr_skill_data;
 extern DWORD* ptr_slot_cursor;
-extern DWORD* ptr_sneak_working; // DWORD var 
+extern DWORD* ptr_sneak_working; // DWORD var
+extern char** ptr_sound_music_path1;
+extern char** ptr_sound_music_path2;
 extern DWORD* ptr_square;
 extern DWORD* ptr_squares;
 extern DWORD* ptr_stack;
@@ -508,6 +516,7 @@ extern const DWORD fadeSystemPalette_;
 extern const DWORD findVar_;
 extern const DWORD folder_print_line_;
 extern const DWORD frame_ptr_;
+extern const DWORD game_exit_;
 extern const DWORD game_get_global_var_;
 extern const DWORD game_help_;
 extern const DWORD game_set_global_var_;
@@ -524,6 +533,9 @@ extern const DWORD gmouse_set_cursor_;
 extern const DWORD GNW_find_;
 extern const DWORD GNW95_process_message_;
 extern const DWORD gsnd_build_weapon_sfx_name_;
+extern const DWORD gsound_background_pause_;
+extern const DWORD gsound_background_stop_;
+extern const DWORD gsound_background_unpause_;
 extern const DWORD gsound_play_sfx_file_;
 extern const DWORD handle_inventory_;
 extern const DWORD inc_game_time_;
@@ -612,6 +624,7 @@ extern const DWORD loadProgram_; // loads script from scripts/ folder by file na
 extern const DWORD LoadSlot_;
 extern const DWORD loot_container_;
 extern const DWORD main_game_loop_;
+extern const DWORD main_init_system_;
 extern const DWORD main_menu_hide_;
 extern const DWORD main_menu_loop_;
 // (int aObjFrom<eax>, int aTileFrom<edx>, char* aPathPtr<ecx>, int aTileTo<ebx>, int a5, int (__fastcall *a6)(_DWORD, _DWORD)) 
@@ -746,6 +759,7 @@ extern const DWORD skill_points_;
 extern const DWORD skill_set_tags_; // eax - pointer to array DWORD, edx - number of elements to write
 extern const DWORD skill_use_;
 extern const DWORD skilldex_select_;
+extern const DWORD soundDelete_;
 extern const DWORD sprintf_;
 extern const DWORD square_num_;
 extern const DWORD stat_get_base_direct_;

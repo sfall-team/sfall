@@ -15,6 +15,10 @@ void ResetBodyState() {
 	_asm mov weightOnBody, 0;
 }
 
+void GameInitialization() {
+	*(DWORD*)_gDialogMusicVol = *(DWORD*)_background_volume; // fix dialog music
+}
+
 static void __declspec(naked) SharpShooterFix() {
 	__asm {
 		call stat_level_                          // Perception
