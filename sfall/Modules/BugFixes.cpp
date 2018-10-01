@@ -1,5 +1,6 @@
 #include "..\main.h"
 #include "..\FalloutEngine\Fallout2.h"
+#include "LoadGameHook.h"
 #include "ScriptExtender.h"
 
 #include "BugFixes.h"
@@ -9,11 +10,23 @@ namespace sfall
 using namespace fo;
 using namespace Fields;
 
-DWORD WeightOnBody = 0;
+static DWORD critterBody = 0;
+static DWORD sizeOnBody = 0;
+static DWORD weightOnBody = 0;
+
+void ResetBodyState() {
+	_asm mov critterBody, 0;
+	_asm mov sizeOnBody, 0;
+	_asm mov weightOnBody, 0;
+}
+
+void GameInitialization() {
+	*(DWORD*)FO_VAR_gDialogMusicVol = *(DWORD*)FO_VAR_background_volume; // fix dialog music
+}
 
 static void __declspec(naked) SharpShooterFix() {
 	__asm {
-		call fo::funcoffs::stat_level_                          // Perception
+		call fo::funcoffs::stat_level_            // Perception
 		cmp  edi, dword ptr ds:[FO_VAR_obj_dude]
 		jne  end
 		xchg ecx, eax
@@ -332,6 +345,7 @@ skip:
 		jmp  fo::funcoffs::item_get_type_
 	}
 }
+
 static void __declspec(naked) is_supper_bonus_hack() {
 	__asm {
 		add  eax, ecx
@@ -340,7 +354,7 @@ static void __declspec(naked) is_supper_bonus_hack() {
 		cmp  eax, 10
 		jle  end
 skip:
-		pop  eax                                  // Destroy the return address
+		add  esp, 4                               // Destroy the return address
 		xor  eax, eax
 		inc  eax
 		pop  edx
@@ -357,7 +371,7 @@ static void __declspec(naked) PrintBasicStat_hack() {
 		jle  skip
 		cmp  eax, 10
 		jg   end
-		pop  ebx                                  // Destroy the return address
+		add  esp, 4                               // Destroy the return address
 		push 0x434C21
 		retn
 skip:
@@ -387,7 +401,7 @@ static void __declspec(naked) StatButtonDown_hook() {
 		call fo::funcoffs::stat_level_
 		cmp  eax, 1
 		jg   end
-		pop  eax                                  // Destroy the return address
+		add  esp, 4                               // Destroy the return address
 		xor  eax, eax
 		inc  eax
 		mov  [esp+0xC], eax
@@ -397,84 +411,128 @@ end:
 	}
 }
 
+// Calculate weight & size of equipped items
 static void __declspec(naked) loot_container_hack() {
 	__asm {
-		mov  eax, [esp+0x114+0x4]
-		test eax, eax
-		jz   noLeftWeapon
-		call fo::funcoffs::item_weight_
+		mov  critterBody, ebp;                    // target
+		push esi;
+		mov  esi, [esp + 0x114 + 8];              // item lhand
+		mov  sizeOnBody, esi;
+		mov  eax, esi;
+		test esi, esi;
+		jz   noLeftWeapon;
+		call fo::funcoffs::item_size_;
+		mov  sizeOnBody, eax;
+		mov  eax, esi;
+		call fo::funcoffs::item_weight_;
 noLeftWeapon:
-		mov  WeightOnBody, eax
-		mov  eax, [esp+0x118+0x4]
-		test eax, eax
-		jz   noRightWeapon
-		call fo::funcoffs::item_weight_
+		mov  weightOnBody, eax;
+		mov  esi, [esp + 0x118 + 8];              // item rhand
+		test esi, esi;
+		jz   noRightWeapon;
+		mov  eax, esi;
+		call fo::funcoffs::item_size_;
+		add  sizeOnBody, eax;
+		mov  eax, esi;
+		call fo::funcoffs::item_weight_;
+		add  weightOnBody, eax;
 noRightWeapon:
-		add  WeightOnBody, eax
-		mov  eax, [esp+0x11C+0x4]
-		test eax, eax
-		jz   noArmor
-		call fo::funcoffs::item_weight_
+		mov  esi, [esp + 0x11C + 8];              // item armor
+		test esi, esi;
+		jz   noArmor;
+		mov  eax, esi;
+		call fo::funcoffs::item_size_;
+		add  sizeOnBody, eax;
+		mov  eax, esi;
+		call fo::funcoffs::item_weight_;
+		add  weightOnBody, eax;
 noArmor:
-		add  WeightOnBody, eax
-		xor  eax, eax
-		inc  eax
-		inc  eax
-		retn
+		mov  esi, [esp + 0xF8 + 8]; // check JESSE_CONTAINER
+		mov  eax, esi;
+		call fo::funcoffs::item_c_curr_size_;
+		add  sizeOnBody, eax;
+		mov  eax, esi;
+		call fo::funcoffs::item_total_weight_;
+		add  weightOnBody, eax;
+		pop  esi;
+		mov  eax, 2; // overwritten code
+		retn;
 	}
 }
 
-static void __declspec(naked) barter_inventory_hack() {
+static void __declspec(naked) barter_inventory_hook() {
 	__asm {
-		mov  eax, [esp+0x20+0x4]
-		test eax, eax
-		jz   noArmor
-		call fo::funcoffs::item_weight_
+		mov  critterBody, eax;                         // target
+		call fo::funcoffs::item_move_all_hidden_;
+		push esi;
+		mov  esi, [esp + 0x20 + 8];                    // armor
+		mov  sizeOnBody, esi;
+		mov  eax, esi;
+		test eax, eax;
+		jz   noArmor;
+		call fo::funcoffs::item_size_;
+		mov  sizeOnBody, eax
+		mov  eax, esi;
+		call fo::funcoffs::item_weight_;
 noArmor:
-		mov  WeightOnBody, eax
-		mov  eax, [esp+0x1C+0x4]
-		test eax, eax
-		jnz  haveWeapon
-		cmp  dword ptr ds:[FO_VAR_dialog_target_is_party], eax
-		jne  end                                  // This is a party member
-		mov  eax, [esp+0x18+0x4]
-		test eax, eax
-		jz   end
+		mov  weightOnBody, eax;
+		mov  esi, [esp + 0x1C + 8];                    // weapon
+		test esi, esi;
+		jnz  haveWeapon;
+		cmp  ds:[FO_VAR_dialog_target_is_party], esi;  // esi = 0
+		jne  skip;                                     // This is a party member
+		mov  eax, [esp + 0x18 + 8];                    // item_weapon
+		test eax, eax;
+		jz   skip;
 haveWeapon:
-		call fo::funcoffs::item_weight_
-		add  WeightOnBody, eax
-end:
-		mov  ebx, PID_JESSE_CONTAINER
-		retn
+		mov  eax, esi;
+		call fo::funcoffs::item_size_;
+		add  sizeOnBody, eax;
+		mov  eax, esi;
+		call fo::funcoffs::item_weight_;
+		add  weightOnBody, eax;
+skip:
+		mov  esi, [esp + 0x10 + 8]; // check JESSE_CONTAINER
+		mov  eax, esi;
+		call fo::funcoffs::item_c_curr_size_;
+		add  sizeOnBody, eax
+		mov  eax, esi;
+		call fo::funcoffs::item_total_weight_;
+		add  weightOnBody, eax
+		pop  esi;
+		retn;
 	}
 }
 
-static void __declspec(naked) barter_attempt_transaction_hook() {
+// Add weightOnBody to item_total_weight_ function
+static void __declspec(naked) item_total_weight_hack() {
 	__asm {
-		call fo::funcoffs::stat_level_                          // eax = Max weight
-		sub  eax, WeightOnBody                    // Accounting for weight of target's equipped armor and weapon
-		retn
+		xor edx, edx;
+		mov ebx, [edi];                          // Inventory.inv_size
+		xor esi, esi;
+		//------
+		cmp eax, dword ptr ds:[FO_VAR_obj_dude]; // eax - source
+		jz  skip;
+		cmp critterBody, eax;                    // if condition is true, then now it's exchanging/bartering with source object
+		cmovz esi, weightOnBody;                 // take the weight of target's equipped items into account
+skip:
+		retn;
 	}
 }
 
-static DWORD Looting = 0;
-static void __declspec(naked) move_inventory_hook() {
+// Add sizeOnBody to item_c_curr_size_ function
+static void __declspec(naked) item_c_curr_size_hack() {
 	__asm {
-		inc  Looting
-		call fo::funcoffs::move_inventory_
-		dec  Looting
-		retn
-	}
-}
-
-static void __declspec(naked) item_add_mult_hook() {
-	__asm {
-		call fo::funcoffs::stat_level_                          // eax = Max weight
-		cmp  Looting, 0
-		je   end
-		sub  eax, WeightOnBody                    // Accounting for weight of target's equipped armor and weapon
-end:
-		retn
+		xor esi, esi;
+		mov edx, [ecx];                          // Inventory.inv_size
+		xor edi, edi;
+		//------
+		cmp eax, dword ptr ds:[FO_VAR_obj_dude]; // eax - source
+		jz  skip;
+		cmp critterBody, eax;                    // if condition is true, then now it's exchanging/bartering with source object
+		cmovz edi, sizeOnBody;                   // take the size of target's equipped items into account
+skip:
+		retn;
 	}
 }
 
@@ -702,7 +760,7 @@ static void __declspec(naked) set_new_results_hack() {
 		inc  edx                                  // type = knockout
 		jmp  fo::funcoffs::queue_remove_this_     // Remove knockout from queue (if there is one)
 end:
-		pop  eax                                  // Destroy the return address
+		add  esp, 4                               // Destroy the return address
 		push 0x424FC6
 		retn
 	}
@@ -1046,6 +1104,34 @@ end:
 	}
 }
 
+static int __stdcall ItemCountFixStdcall(fo::GameObject* who, fo::GameObject* item) {
+	int count = 0;
+	for (int i = 0; i < who->invenSize; i++) {
+		auto tableItem = &who->invenTable[i];
+		if (tableItem->object == item) {
+			count += tableItem->count;
+		} else if (fo::func::item_get_type(tableItem->object) == fo::item_type_container) {
+			count += ItemCountFixStdcall(tableItem->object, item);
+		}
+	}
+	return count;
+}
+
+static void __declspec(naked) ItemCountFix() {
+	__asm {
+		push ebx;
+		push ecx;
+		push edx; // save state
+		push edx; // item
+		push eax; // container-object
+		call ItemCountFixStdcall;
+		pop edx;
+		pop ecx;
+		pop ebx; // restore
+		retn;
+	}
+}
+
 static void __declspec(naked) Save_as_ASCII_hack() {
 	__asm {
 		mov  edx, STAT_sequence;
@@ -1219,11 +1305,9 @@ static void __declspec(naked) obj_examine_func_hack_ammo0() {
 	__asm {
 		cmp  dword ptr [esp + 0x1AC - 0x14 + 4], 0x445448; // gdialogDisplayMsg_
 		jnz  skip;
-		pushad;
 		push esi;
 		push eax;
 		call AppendText;
-		popad;
 		retn;
 skip:
 		jmp  dword ptr [esp + 0x1AC - 0x14 + 4];
@@ -1234,12 +1318,10 @@ static void __declspec(naked) obj_examine_func_hack_ammo1() {
 	__asm {
 		cmp  dword ptr [esp + 0x1AC - 0x14 + 4], 0x445448; // gdialogDisplayMsg_
 		jnz  skip;
-		pushad;
 		push 0;
 		push eax;
 		call AppendText;
 		mov  currDescLen, 0;
-		popad;
 		lea  eax, [textBuf];
 		jmp  fo::funcoffs::gdialogDisplayMsg_;
 skip:
@@ -1247,11 +1329,11 @@ skip:
 	}
 }
 
+static const DWORD ObjExamineFuncWeapon_Ret = 0x49B63C;
 static void __declspec(naked) obj_examine_func_hack_weapon() {
 	__asm {
 		cmp  dword ptr [esp + 0x1AC - 0x14], 0x445448; // gdialogDisplayMsg_
 		jnz  skip;
-		pushad;
 		push esi;
 		push eax;
 		call AppendText;
@@ -1259,11 +1341,9 @@ static void __declspec(naked) obj_examine_func_hack_weapon() {
 		sub  eax, 2;
 		mov  byte ptr textBuf[eax], 0; // cutoff last character
 		mov  currDescLen, 0;
-		popad;
 		lea  eax, [textBuf];
 skip:
-		mov  ecx, 0x49B63C;
-		jmp  ecx;
+		jmp  ObjExamineFuncWeapon_Ret;
 	}
 }
 
@@ -1284,6 +1364,7 @@ static void __declspec(naked) combat_give_exps_hook() {
 	}
 }
 
+static const DWORD LootContainerExp_Ret = 0x4745E3;
 static void __declspec(naked) loot_container_exp_hack() {
 	__asm {
 		mov  edx, [esp + 0x150 - 0x18];  // experience
@@ -1303,8 +1384,7 @@ static void __declspec(naked) loot_container_exp_hack() {
 		call fo::funcoffs::display_print_;
 		// end code
 skip:
-		mov eax, 0x4745E3;
-		jmp eax;
+		jmp  LootContainerExp_Ret;
 	}
 }
 
@@ -1359,12 +1439,100 @@ static void __declspec(naked) ai_best_weapon_hook() {
 	}
 }
 
+static void __declspec(naked) wmSetupRandomEncounter_hook() {
+	__asm {
+		push eax;                  // text 2
+		push edi;                  // text 1
+		push 0x500B64;             // fmt '%s %s'
+		lea  edi, textBuf;
+		push edi;                  // buf
+		call fo::funcoffs::sprintf_;
+		add  esp, 16;
+		mov  eax, edi;
+		jmp  fo::funcoffs::display_print_;
+	}
+}
+
+static void __declspec(naked) inven_obj_examine_func_hack() {
+	__asm {
+		mov edx, dword ptr ds:[0x519064]; // inven_display_msg_line
+		cmp edx, 2; // 2 or more lines
+		ja  fix;
+		retn;
+fix:
+		cmp edx, 9; // 8 lines (half of the display window)
+		ja  limit;
+		dec edx;
+		sub eax, 3;
+		mul edx;
+		add eax, 3;
+		retn;
+limit:
+		mov eax, 57;
+		retn;
+	}
+}
+
+static BYTE retrievePtr = 0;
+static void __declspec(naked) ai_retrieve_object_hook() {
+	__asm {
+		mov  retrievePtr, 1;
+		mov  edx, ebx;                          // object ptr
+		call fo::funcoffs::inven_find_id_;      // check prt (fix behavior)
+		mov  retrievePtr, 0;
+		test eax, eax;
+		jz   tryFindId;
+		retn;
+tryFindId:
+		mov  eax, ecx;                          // source
+		mov  edx, [ebx];                        // obj.id
+		jmp  fo::funcoffs::inven_find_id_;      // vanilla behavior
+	}
+}
+
+static void __declspec(naked) inven_find_id_hack() {
+	__asm {
+		mov  ebx, [edi + ebx];                 // inv.item
+		test retrievePtr, 0xFF;
+		jnz  fix;
+		cmp  ecx, [ebx];                       // obj.id == obj.id
+		retn;
+fix:
+		cmp  ecx, ebx;                         // object ptr == object ptr
+		retn;
+	}
+}
+
+static DWORD op_start_gdialog_ret = 0x456F4B;
+static void __declspec(naked) op_start_gdialog_hack() {
+	__asm {
+		mov  ebx, ds:[FO_VAR_dialog_target];
+		mov  ebx, [ebx + protoId];
+		shr  ebx, 0x18;
+		cmp  ebx, OBJ_TYPE_CRITTER;
+		jz   fix;
+		cmp  edx, -1;
+		jz   skip;
+		retn;
+fix:
+		cmp  eax, -1;
+		jnz  skip;
+		retn;
+skip:
+		add  esp, 4;                              // Destroy the return address
+		jmp  op_start_gdialog_ret;
+	}
+}
+
 
 void BugFixes::init()
 {
 	#ifndef NDEBUG
 		if (isDebug && (GetConfigInt("Debugging", "BugFixes", 1) == 0)) return;
 	#endif
+
+	// Missing game initialization
+	LoadGameHook::OnGameInit() = GameInitialization;
 
 	//if (GetConfigInt("Misc", "SharpshooterFix", 1)) {
 		dlog("Applying Sharpshooter patch.", DL_INIT);
@@ -1456,20 +1624,24 @@ void BugFixes::init()
 	HookCall(0x437B26, &StatButtonDown_hook);
 	dlogr(" Done", DL_INIT);
 
-	// Fix for not counting in the weight of equipped items on NPC when stealing or bartering
+	// Fix for not counting in the weight/size of equipped items on NPC when stealing or bartering
 	//if (GetConfigInt("Misc", "NPCWeightFix", 1)) {
 		dlog("Applying fix for not counting in weight of equipped items on NPC.", DL_INIT);
 		MakeCall(0x473B4E, loot_container_hack);
-		MakeCall(0x47588A, barter_inventory_hack);
-		HookCall(0x474CB8, &barter_attempt_transaction_hook);
-		HookCall(0x4742AD, &move_inventory_hook);
-		HookCall(0x4771B5, &item_add_mult_hook);
+		HookCall(0x4758AB, barter_inventory_hook);
+		MakeCall(0x477EAB, item_total_weight_hack);
+		SafeWrite8(0x477EB0, 0x90);
+		MakeCall(0x479A2F, item_c_curr_size_hack);
+		SafeWrite8(0x479A34, 0x90);
 		dlogr(" Done", DL_INIT);
 	//}
 
-	// Corrects "Weight of items" text element width to be 64 (and not 80), which matches container element width
-	SafeWrite8(0x475541, 64);
-	SafeWrite8(0x475789, 64);
+	// Corrects the max text width of the item weight in trading interface to be 64 (was 80), which matches the table width
+	SafeWrite32(0x475541, 64);
+	SafeWrite32(0x475789, 64);
+
+	// Corrects the max text width of the player name in inventory to be 140 (was 80), which matches the width for item name
+	SafeWrite32(0x471E48, 140);
 
 	//if (GetConfigInt("Misc", "InventoryDragIssuesFix", 1)) {
 		dlog("Applying inventory reverse order issues fix.", DL_INIT);
@@ -1646,6 +1818,9 @@ void BugFixes::init()
 	// Fix crash when clicking on empty space in the inventory list opened by "Use Inventory Item On" (backpack) action icon
 	MakeCall(0x471A94, use_inventory_on_hack);
 
+	// Fix item_count function returning incorrect value when there is a container-item inside
+	MakeJump(0x47808C, ItemCountFix); // replacing item_count_ function
+
 	// Fix for Sequence stat value not being printed correctly when using "print to file" option
 	MakeJump(0x4396F5, Save_as_ASCII_hack);
 
@@ -1736,10 +1911,33 @@ void BugFixes::init()
 		dlogr(" Done", DL_INIT);
 	}
 
-	// Fix for critters not checking weapon perks properly when searching for the best weapon
+	// Fix for AI not checking weapon perks properly when searching for the best weapon
 	if (GetConfigInt("Misc", "AIBestWeaponFix", 0)) {
 		dlog("Applying AI best weapon choice fix.", DL_INIT);
 		HookCall(0x42954B, ai_best_weapon_hook);
+		dlogr(" Done", DL_INIT);
+	}
+
+	// Fix for the encounter description being displayed in two lines instead of one
+	SafeWrite32(0x4C1011, 0x9090C789); // mov edi, eax;
+	SafeWrite8(0x4C1015, 0x90);
+	HookCall(0x4C1042, wmSetupRandomEncounter_hook);
+
+	// Fix for the underline position in the inventory display window when the item name is longer than one line
+	MakeCall(0x472F5F, inven_obj_examine_func_hack);
+	SafeWrite8(0x472F64, 0x90);
+
+	// Fix for ai_retrieve_object_ engine function not returning the requested object when there are different objects
+	// with the same ID
+	dlog("Applying ai_retrieve_object engine function fix.", DL_INIT);
+	HookCall(0x429D7B, ai_retrieve_object_hook);
+	MakeCall(0x472708, inven_find_id_hack);
+	dlogr(" Done", DL_INIT);
+
+	// Fix for the "mood" argument of start_gdialog function being ignored for talking heads
+	if (GetConfigInt("Misc", "StartGDialogFix", 0)) {
+		dlog("Applying start_gdialog argument fix.", DL_INIT);
+		MakeCall(0x456F03, op_start_gdialog_hack);
 		dlogr(" Done", DL_INIT);
 	}
 }

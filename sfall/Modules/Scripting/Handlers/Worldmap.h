@@ -50,5 +50,9 @@ void sf_set_rest_heal_time(OpcodeContext&);
 
 void sf_set_rest_mode(OpcodeContext&);
 
+void sf_set_rest_on_map(OpcodeContext&);
+
+void sf_get_rest_on_map(OpcodeContext&);
+
 }
 }

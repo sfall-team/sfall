@@ -24,6 +24,7 @@
 #include "..\version.h"
 
 #include "AI.h"
+#include "Bugfixes.h"
 #include "FileSystem.h"
 #include "HeroAppearance.h"
 #include "HookScripts.h"
@@ -32,6 +33,7 @@
 #include "ScriptExtender.h"
 #include "Scripting\Arrays.h"
 #include "ExtraSaveSlots.h"
+#include "Worldmap.h"
 
 #include "LoadGameHook.h"
 
@@ -56,6 +58,7 @@ static Delegate<> onBeforeGameStart;
 static Delegate<> onAfterGameStarted;
 static Delegate<> onAfterNewGame;
 static Delegate<DWORD> onGameModeChange;
+static Delegate<> onBeforeGameClose;
 
 static DWORD inLoop = 0;
 static DWORD saveInCombatFix;
@@ -130,6 +133,14 @@ static void _stdcall SaveGame2() {
 		fo::DisplayPrint(saveSfallDataFailMsg);
 		fo::func::gsound_play_sfx_file("IISXXXX1");
 	}
+
+	GetSavePath(buf, "db");
+	h = CreateFileA(buf, GENERIC_WRITE, 0, 0, CREATE_ALWAYS, 0, 0);
+	if (h != INVALID_HANDLE_VALUE) {
+		Worldmap::SaveData(h);
+	}
+	CloseHandle(h);
+
 	GetSavePath(buf, "fs");
 	h = CreateFileA(buf, GENERIC_WRITE, 0, 0, CREATE_ALWAYS, 0, 0);
 	if (h != INVALID_HANDLE_VALUE) {
@@ -206,6 +217,17 @@ static void _stdcall LoadGame_Before() {
 	} else {
 		dlogr("Cannot read sfallgv.sav - assuming non-sfall save.", DL_MAIN);
 	}
+
+	GetSavePath(buf, "db");
+	h = CreateFileA(buf, GENERIC_READ, FILE_SHARE_READ, 0, OPEN_EXISTING, 0, 0);
+	if (h != INVALID_HANDLE_VALUE) {
+		dlog("Loading data from sfalldb.sav...", DL_INIT);
+		Worldmap::LoadData(h);
+		CloseHandle(h);
+		dlogr(" Done", DL_INIT);
+	} else {
+		dlogr("Cannot read sfalldb.sav.", DL_INIT);
+	}
 }
 
 // called whenever game is being reset (prior to loading a save or when returning to main menu)
@@ -277,9 +299,9 @@ static void __stdcall NewGame_After() {
 static void __declspec(naked) main_load_new_hook() {
 	__asm {
 		pushad;
-		push eax;
+		mov  esi, eax;      // keep
 		call NewGame_Before;
-		pop eax;
+		mov  eax, esi;      // restore
 		call fo::funcoffs::main_load_new_;
 		call NewGame_After;
 		popad;
@@ -293,6 +315,10 @@ static void __stdcall GameInitialized() {
 
 static void __stdcall GameExit() {
 	onGameExit.invoke();
+}
+
+static void __stdcall GameClose() {
+	onBeforeGameClose.invoke();
 }
 
 static void __declspec(naked) main_init_system_hook() {
@@ -340,6 +366,15 @@ static void __declspec(naked) after_game_exit_hook() {
 		call GameExit;
 		popad;
 		jmp fo::funcoffs::main_menu_create_;
+	}
+}
+
+static void __declspec(naked) game_close_hook() {
+	__asm {
+		pushad;
+		call GameClose;
+		popad;
+		jmp fo::funcoffs::game_exit_;
 	}
 }
 
@@ -494,16 +529,18 @@ static void __declspec(naked) LootContainerHook() {
 		_InLoop(1, INTFACELOOT);
 		call fo::funcoffs::loot_container_;
 		_InLoop(0, INTFACELOOT);
-		retn;
+		jmp  ResetBodyState; // reset object pointer used in calculating the weight/size of equipped and hidden items on NPCs after exiting loot/barter screens
+		//retn;
 	}
 }
 
 static void __declspec(naked) BarterInventoryHook() {
 	__asm {
 		_InLoop(1, BARTER);
-		push [ESP + 4];
+		push [esp + 4];
 		call fo::funcoffs::barter_inventory_;
 		_InLoop(0, BARTER);
+		call ResetBodyState;
 		retn 4;
 	}
 }
@@ -571,6 +608,10 @@ void LoadGameHook::init() {
 			});
 	HookCalls(before_game_exit_hook, {0x480ACE, 0x480BC7});
 	HookCalls(after_game_exit_hook, {0x480AEB, 0x480BE4});
+	HookCalls(game_close_hook, {
+				0x480CA7, // gnw_main_
+				//0x480D45 // main_exit_system_ (never called)
+			});
 
 	HookCalls(WorldMapHook, {0x483668, 0x4A4073});
 	HookCalls(WorldMapHook2, {0x4C4855});
@@ -622,6 +663,10 @@ Delegate<>& LoadGameHook::OnAfterNewGame() {
 
 Delegate<DWORD>& LoadGameHook::OnGameModeChange() {
 	return onGameModeChange;
+}
+
+Delegate<>& LoadGameHook::OnBeforeGameClose() {
+	return onBeforeGameClose;
 }
 
 }

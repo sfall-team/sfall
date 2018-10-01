@@ -855,6 +855,15 @@ void KeepWeaponSelectModePatch() {
 	}
 }
 
+void InterfaceDontMoveOnTopPatch() {
+	if (GetConfigInt("Misc", "InterfaceDontMoveOnTop", 0)) {
+		dlog("Applying InterfaceDontMoveOnTop patch.", DL_INIT);
+		SafeWrite8(0x46ECE9, fo::WinFlags::Exclusive); // Player Inventory/Loot/UseOn
+		SafeWrite8(0x41B966, fo::WinFlags::Exclusive); // Automap
+		dlogr(" Done", DL_INIT);
+	}
+}
+
 void MiscPatches::init() {
 	mapName[64] = 0;
 	if (GetConfigString("Misc", "StartingMap", "", mapName, 64)) {
@@ -929,6 +938,7 @@ void MiscPatches::init() {
 
 	DisplaySecondWeaponRangePatch();
 	KeepWeaponSelectModePatch();
+	InterfaceDontMoveOnTopPatch();
 }
 
 void MiscPatches::exit() {

@@ -49,6 +49,9 @@ public:
 
 	// Invoked when the game mode is changed.
 	static Delegate<DWORD>& OnGameModeChange();
+
+	// Invoked before the game exits to windows
+	static Delegate<>& OnBeforeGameClose();
 };
 
 // True if some map was loaded, false when on the main menu

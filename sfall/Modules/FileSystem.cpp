@@ -36,17 +36,17 @@ struct fsFile {
 
 std::vector<fsFile> files;
 
-static DWORD loadedtiles=0;
+static DWORD loadedtiles = 0;
 static DWORD retval;
-static bool UsingFileSystem=false;
+static bool UsingFileSystem = false;
 
 struct openFile {
 	DWORD pos;
 	fsFile* file;
 
 	openFile(fsFile* pFile) {
-		pos=0;
-		file=pFile;
+		pos = 0;
+		file = pFile;
 	}
 };
 
@@ -610,7 +610,9 @@ DWORD _stdcall FScopy(const char* path, const char* source) {
 	fsFile* fsfile = 0;
 	for (DWORD i = 0; i < files.size(); i++) {
 		if (!files[i].data) {
-			result = i; fsfile = &files[i]; break;
+			result = i;
+			fsfile = &files[i];
+			break;
 		}
 	}
 	if (!fsfile) {

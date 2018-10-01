@@ -100,7 +100,7 @@ public:
 		HRESULT hr;
 		//Set the device
 		hr = pAllocNotify->SetD3DDevice(d3d9Device, d3d9->GetAdapterMonitor(0));
-		//if(hr!=S_OK) return hr;
+		//if (hr != S_OK) return hr;
 
 		lpAllocInfo->dwFlags |= VMR9AllocFlag_TextureSurface;
 		lpAllocInfo->Pool = D3DPOOL_SYSTEMMEM;
@@ -164,14 +164,6 @@ struct sDSTexture {
 	IMediaControl *pControl;
 	CAllocator *pMyAlloc;
 	IMediaSeeking *pSeek;
-};
-
-struct sDSSound {
-	DWORD id;
-	IGraphBuilder *pGraph;
-	IMediaControl *pControl;
-	IMediaSeeking *pSeek;
-	IMediaEventEx *pEvent;
 };
 
 static IDirect3DTexture9* tex;
@@ -253,24 +245,23 @@ DWORD CreateDSGraph(wchar_t* path, IDirect3DTexture9** tex, sDSTexture* result) 
 }
 
 static DWORD PlayFrameHook3() {
-	__asm {
-		xor eax, eax;
-		call fo::funcoffs::GNW95_process_message_; //windows message pump
-	}
 	PlayMovieFrame();
 	if (GetAsyncKeyState(VK_ESCAPE)) return 0;
+
 	_int64 pos, end;
 	info.pSeek->GetCurrentPosition(&pos);
 	info.pSeek->GetStopPosition(&end);
-	if (end == pos) return 0;
-	else return 1;
+
+	return (end == pos) ? 0 : 1;
 }
 
 static void __declspec(naked) PlayFrameHook1() {
 	__asm {
 		push ecx;
+		xor  eax, eax;
+		call fo::funcoffs::GNW95_process_message_; //windows message pump
 		call PlayFrameHook3;
-		pop ecx;
+		pop  ecx;
 		retn;
 	}
 }
@@ -283,7 +274,7 @@ static void __declspec(naked) PlayFrameHook2() {
 	}
 }
 
-static DWORD _stdcall PlayMovieHook2(DWORD id) {
+static DWORD _cdecl PreparePlayMovie(const DWORD id) {
 	//Get file path in unicode
 	wchar_t path[MAX_PATH];
 	char* master_patches = fo::var::patches;
@@ -316,50 +307,61 @@ static DWORD _stdcall PlayMovieHook2(DWORD id) {
 	return 1;
 }
 
-static void _stdcall PlayMovieHook3() {
-	SafeWrite32(0x44E938, 0x3934c);
-	SafeWrite32(0x44E94A, 0x7a22a);
+static void _stdcall PlayMovieRestore() {
+	SafeWrite32(0x44E938, 0x3934C);
+	SafeWrite32(0x44E94A, 0x7A22A);
 	FreeMovie(&info);
 }
 
-static const DWORD PlayMovieAddr = 0x44E690;
-static void __declspec(naked) PlayMovieHook() {
+static const DWORD gmovie_play_addr = 0x44E695;
+static void __declspec(naked) gmovie_play_hack() {
 	__asm {
-		cmp eax, MaxMovies;
-		jge fail;
+		cmp  eax, MaxMovies;
+		jge  failPlayAvi;
 		push ecx;
-		push ebx;
 		push edx;
 		push eax;
-		push eax;
-		call PlayMovieHook2;
+		call PreparePlayMovie;
 		test eax,eax;
-		jnz playavi;
-		pop eax;
-		pop edx;
-		pop ebx;
-		pop ecx;
-		call PlayMovieAddr;
+		pop  eax;
+		pop  edx;
+		pop  ecx;
+		jz   failPlayAvi;
+		push offset return; // return here
+failPlayAvi:
+		push ebx;
+		push ecx;
+		push esi;
+		push edi;
+		push ebp;
+		jmp  gmovie_play_addr;
+return:
+		push ecx;
+		call PlayMovieRestore;
+		pop  ecx;
+		xor  eax, eax;
 		retn;
-playavi:
-		pop eax;
-		pop edx;
-		call PlayMovieAddr;
-		call PlayMovieHook3;
-		pop ebx;
-		pop ecx;
-		xor eax, eax;
-		retn;
-fail:
-		jmp PlayMovieAddr;
 	}
 }
+/////////////////////////////////////////////////////////////////////////////
+
+struct sDSSound {
+	DWORD id;
+	IGraphBuilder *pGraph;
+	IMediaControl *pControl;
+	IMediaSeeking *pSeek;
+	IMediaEventEx *pEvent;
+	IBasicAudio   *pAudio;
+};
 
 static std::vector<sDSSound*> playingSounds;
 static std::vector<sDSSound*> loopingSounds;
+
 DWORD playID = 0;
 DWORD loopID = 0;
-static HWND soundwindow=0;
+static HWND soundwindow = 0;
+static void* musicLoopPtr = nullptr;
+//static char playingMusicFile[256];
 
 static void FreeSound(sDSSound* sound) {
 	sound->pEvent->SetNotifyWindow(0, WM_APP, 0);
@@ -367,20 +369,22 @@ static void FreeSound(sDSSound* sound) {
 	SAFERELEASE(sound->pSeek);
 	SAFERELEASE(sound->pControl);
 	SAFERELEASE(sound->pGraph);
+	SAFERELEASE(sound->pAudio);
 	delete sound;
 }
 
 void WipeSounds() {
-	for(DWORD d=0;d<playingSounds.size();d++) FreeSound(playingSounds[d]);
-	for(DWORD d=0;d<loopingSounds.size();d++) FreeSound(loopingSounds[d]);
+	for (DWORD i = 0; i < playingSounds.size(); i++) FreeSound(playingSounds[i]);
+	for (DWORD i = 0; i < loopingSounds.size(); i++) FreeSound(loopingSounds[i]);
 	playingSounds.clear();
 	loopingSounds.clear();
+	musicLoopPtr = nullptr;
 }
 
 LRESULT CALLBACK SoundWndProc(HWND wnd, UINT msg, WPARAM w, LPARAM l) {
 	if (msg == WM_APP) {
 		DWORD id = l;
-		sDSSound* dssound = 0;
+		sDSSound* dssound = nullptr;
 		if (id & 0x80000000) {
 			for (DWORD i = 0; i < loopingSounds.size(); i++) {
 				if (loopingSounds[i]->id == id) {
@@ -422,54 +426,134 @@ LRESULT CALLBACK SoundWndProc(HWND wnd, UINT msg, WPARAM w, LPARAM l) {
 	return DefWindowProc(wnd, msg, w, l);
 }
 
-static sDSSound* LoadSound(wchar_t* path, bool loop) {
-	if (!soundwindow) {
-		WNDCLASSEX wcx;
+static void CreateSndWnd() {
+	dlog("Creating sfall sound windows.", DL_INIT);
+	if (Graphics::mode == 0) CoInitialize(0);
 
-		memset(&wcx, 0, sizeof(wcx));
-		wcx.cbSize = sizeof(wcx);
-		wcx.lpfnWndProc = SoundWndProc;
-		wcx.hInstance = GetModuleHandleA(0);
-		wcx.lpszClassName = "SfallSndWnd";
+	WNDCLASSEX wcx;
+	memset(&wcx, 0, sizeof(wcx));
+	wcx.cbSize = sizeof(wcx);
+	wcx.lpfnWndProc = SoundWndProc;
+	wcx.hInstance = GetModuleHandleA(0);
+	wcx.lpszClassName = "SfallSndWnd";
 
-		RegisterClassEx(&wcx);
-		soundwindow = CreateWindow("SfallSndWnd", "SndWnd", 0, 0, 0, 0, 0, HWND_MESSAGE, 0, GetModuleHandleA(0), 0);
+	RegisterClassEx(&wcx);
+	soundwindow = CreateWindow("SfallSndWnd", "SndWnd", 0, 0, 0, 0, 0, HWND_MESSAGE, 0, GetModuleHandleA(0), 0);
+	dlogr(" Done", DL_INIT);
+}
+
+void _stdcall PauseSfallSound(sDSSound* ptr) {
+	ptr->pControl->Pause();
+}
+
+void _stdcall ResumeSfallSound(sDSSound* ptr) {
+	ptr->pControl->Run();
+}
+
+static long CalculateVolumeDB(long masterVolume, long passVolume) {
+	const int volOffset = -100;  // maximum volume
+	const int minVolume = -2048;
+
+	float multiply = (32767.0f / masterVolume);
+	float volume = (((float)passVolume / 32767.0f) * 100.0f) / multiply; // calculate %
+	volume = (minVolume * volume) / 100.0f;
+	return static_cast<long>(minVolume - volume) + volOffset;
+}
+
+static void __cdecl SfallSoundVolume(sDSSound* sound, int type, long passVolume) {
+	long loopVolume, sfxVolume, masterVolume = *(DWORD*)FO_VAR_master_volume;
+
+	if (masterVolume > 0 && passVolume > 0) {
+		loopVolume = CalculateVolumeDB(masterVolume, passVolume);
+		if (type = 2) sfxVolume = CalculateVolumeDB(masterVolume, *(DWORD*)FO_VAR_sndfx_volume);
+	} else {
+		if (masterVolume == 0) {
+			loopVolume = sfxVolume = -9999; // mute
+		} else if (type = 0) { // for music
+			if (musicLoopPtr) {
+				StopSfallSound(musicLoopPtr);
+				musicLoopPtr = nullptr;
+			}
+			return;
+		}
 	}
+
+	if (sound) {
+		sound->pAudio->put_Volume(loopVolume);
+	} else {
+		for(DWORD i = 0; i < loopingSounds.size(); i++) {
+			loopingSounds[i]->pAudio->put_Volume(loopVolume);
+		}
+		if (type = 2) { // sfx
+			for(DWORD i = 0; i < playingSounds.size(); i++) {
+				playingSounds[i]->pAudio->put_Volume(sfxVolume);
+			}
+		}
+	}
+}
+
+static bool IsMute(bool type) {
+	//if (*(DWORD*)FO_VAR_master_volume == 0) return true;
+	int value;
+	if (type) {
+		value = *(DWORD*)FO_VAR_background_volume;
+	} else {
+		value = *(DWORD*)FO_VAR_sndfx_volume;
+	}
+	return (value == 0);
+}
+
+static sDSSound* PlayingSound(wchar_t* path, bool loop) {
+	if (!soundwindow) CreateSndWnd();
+	if (IsMute(loop)) return nullptr;
+
 	sDSSound* result = new sDSSound();
 
-	DWORD id;
-
-	if (loop)id = loopID++;
-	else id = playID++;
+	DWORD id = (loop) ? loopID++ : playID++;
 	if (loop) id |= 0x80000000;
 	result->id = id;
 
-	CoCreateInstance(CLSID_FilterGraph, 0, CLSCTX_INPROC, IID_IGraphBuilder, (void**)&result->pGraph);
+	HRESULT hr = CoCreateInstance(CLSID_FilterGraph, 0, CLSCTX_INPROC, IID_IGraphBuilder, (void**)&result->pGraph);
+	if (hr != S_OK) {
+		dlog_f("Error CoCreateInstance: %d", DL_INIT, hr);
+		return nullptr;
+	}
 	result->pGraph->QueryInterface(IID_IMediaControl, (void**)&result->pControl);
-	if (loop) result->pGraph->QueryInterface(IID_IMediaSeeking, (void**)&result->pSeek);
-	else result->pSeek = 0;
+
+	if (loop)
+		result->pGraph->QueryInterface(IID_IMediaSeeking, (void**)&result->pSeek);
+	else
+		result->pSeek = nullptr;
+
 	result->pGraph->QueryInterface(IID_IMediaEventEx, (void**)&result->pEvent);
 	result->pEvent->SetNotifyWindow((OAHWND)soundwindow, WM_APP, id);
+	result->pGraph->QueryInterface(IID_IBasicAudio, (void**)&result->pAudio);
+
 	result->pControl->RenderFile(path);
 	result->pControl->Run();
 
-	if (loop) loopingSounds.push_back(result);
-	else playingSounds.push_back(result);
-
+	if (loop) {
+		loopingSounds.push_back(result);
+		SfallSoundVolume(result, 0, *(DWORD*)FO_VAR_background_volume); // music
+	} else {
+		playingSounds.push_back(result);
+		SfallSoundVolume(result, 1, *(DWORD*)FO_VAR_sndfx_volume);
+	}
 	return result;
 }
 
 static const wchar_t *SoundExtensions[] = { L"mp3", L"wma", L"wav" };
-static void _stdcall SoundLoadHook2(const void*, const char* path) {
-	if (!path || strlen(path) < 4) return;
+static bool _cdecl SoundFileLoad(DWORD called, const char* path) {
+	if (!path || strlen(path) < 4) return false;
 	wchar_t buf[256];
 	mbstowcs_s(0, buf, path, 256);
 
 	//CleanupSounds();
 
 	bool found = false;
+	int len = wcslen(buf) - 3;
 	for (int i = 0; i < 3; i++) {
-		buf[wcslen(buf) - 3] = 0;
+		buf[len] = 0;
 		wcscat_s(buf, SoundExtensions[i]);
 
 		HANDLE h = CreateFileW(buf, GENERIC_READ, FILE_SHARE_READ, 0, OPEN_EXISTING, 0, 0);
@@ -478,17 +562,41 @@ static void _stdcall SoundLoadHook2(const void*, const char* path) {
 		found = true;
 		break;
 	}
-	if (!found) return;
 
-	LoadSound(buf, true);
+	bool music = (called == 0x45092B); // from gsound_background_play_
+	if (music && musicLoopPtr != nullptr) {
+		//if (found && strcmp(path, playingMusicFile) == 0) return true; // don't stop music
+		StopSfallSound(musicLoopPtr);
+		musicLoopPtr = nullptr;
+	}
+	if (!found) return false;
+
+	if (music) {
+		//strcpy_s(playingMusicFile, path);
+		musicLoopPtr = PlayingSound(buf, true); // music loop
+		if (!musicLoopPtr) return false;
+	} else {
+		if (!PlayingSound(buf, false)) return false;
+	}
+	return true;
 }
 
-void* _stdcall PlaySfallSound(const char* path, int loop) {
+static void __fastcall MakeMusicPath(const char* file) {
+	const char* pathFmt = "%s%s.ACM";
+	char pathBuf[256];
+
+	sprintf_s(pathBuf, pathFmt, fo::var::sound_music_path1, file);
+	if (SoundFileLoad(0x45092B, pathBuf)) return;
+
+	sprintf_s(pathBuf, pathFmt, fo::var::sound_music_path2, file);
+	SoundFileLoad(0x45092B, pathBuf);
+}
+
+void* _stdcall PlaySfallSound(const char* path, bool loop) {
 	wchar_t buf[256];
 	mbstowcs_s(0, buf, path, 256);
-	if (loop) return LoadSound(buf, true);
-	LoadSound(buf, false);
-	return 0;
+	sDSSound* result = PlayingSound(buf, loop);
+	return (loop) ? result: 0;
 }
 
 void _stdcall StopSfallSound(void* _ptr) {
@@ -502,41 +610,146 @@ void _stdcall StopSfallSound(void* _ptr) {
 	}
 }
 
-static const DWORD SoundLoadHookRet=0x4AD49E;
-static void __declspec(naked) SoundLoadHook() {
+static const DWORD SoundLoadHackRet = 0x4AD49E;
+static const DWORD SoundLoadHackEnd = 0x4AD4B6;
+static void __declspec(naked) soundLoad_hack() {
 	__asm {
-		push eax;
-		push ecx;
-		push edx;
-		push edx;
-		push eax;
-		call SoundLoadHook2;
-		pop edx;
-		pop ecx;
-		pop eax;
-		push ebx;
 		push esi;
 		push edi;
 		push ebp;
-		mov ebx, eax;
-		jmp SoundLoadHookRet;
+		mov  ebx, eax;
+		// end engine code
+		push ecx;
+		push edx;
+		push [esp + 24];
+		call SoundFileLoad;
+		add  esp, 4;
+		pop  edx;
+		pop  ecx;
+		test al, al;
+		jnz  playSfall;
+		jmp  SoundLoadHackRet;  // play acm
+playSfall:
+		jmp  SoundLoadHackEnd;  // don't play acm (force error)
+	}
+}
+
+static void __declspec(naked) gsound_background_play_hook() {
+	__asm {
+		mov  esi, eax;                   // store
+		mov  ecx, ebp;                   // file
+		call MakeMusicPath;
+		mov  eax, esi;                   // restore eax
+		jmp  fo::funcoffs::soundDelete_;
+	}
+}
+
+static void __declspec(naked) gmovie_play_hook_stop() {
+	__asm {
+		mov  eax, musicLoopPtr;
+		test eax, eax;
+		jz   skip;
+		push ecx;
+		push edx;
+		push eax;
+		call StopSfallSound;
+		xor  eax, eax;
+		mov  musicLoopPtr, eax;
+		pop  edx;
+		pop  ecx;
+		retn;
+skip:
+		jmp  fo::funcoffs::gsound_background_stop_;
+	}
+}
+
+static void __declspec(naked) gmovie_play_hook_pause() {
+	__asm {
+		mov  eax, musicLoopPtr;
+		test eax, eax;
+		jz   skip;
+		push ecx;
+		push edx;
+		push eax;
+		call PauseSfallSound;
+		pop  edx;
+		pop  ecx;
+		retn;
+skip:
+		jmp  fo::funcoffs::gsound_background_pause_;
+	}
+}
+
+static void __declspec(naked) gmovie_play_hook_unpause() {
+	__asm {
+		mov  eax, musicLoopPtr;
+		test eax, eax;
+		jz   skip;
+		push ecx;
+		push edx;
+		push eax;
+		call ResumeSfallSound;
+		pop  edx;
+		pop  ecx;
+		retn;
+skip:
+		jmp  fo::funcoffs::gsound_background_unpause_;
+	}
+}
+
+static void __declspec(naked) gsound_background_volume_set_hack() {
+	__asm {
+		mov  dword ptr ds:[FO_VAR_background_volume], eax;
+		push ecx;
+		mov  ecx, musicLoopPtr;
+		test ecx, ecx;
+		jz   skip;
+		push edx;
+		push eax;
+		push 0;
+		push ecx;
+		call SfallSoundVolume;
+		add  esp, 8;
+		pop  eax;
+		pop  edx;
+skip:
+		pop  ecx;
+		retn;
+	}
+}
+
+static void __declspec(naked) gsound_master_volume_set_hack() {
+	__asm {
+		mov  dword ptr ds:[FO_VAR_master_volume], edx;
+		push eax;
+		push ecx;
+		push edx;
+		push dword ptr ds:[FO_VAR_background_volume];
+		push 2;
+		push 0;
+		call SfallSoundVolume;
+		add  esp, 12;
+		pop  edx;
+		pop  ecx;
+		pop  eax;
+		retn;
 	}
 }
 
 static const DWORD Artimer1DaysCheckJmp = 0x4A3790;
 static const DWORD Artimer1DaysCheckJmpLess = 0x4A37A9;
 static DWORD Artimer1DaysCheckTimer;
-static void __declspec(naked) Artimer1DaysCheckHook() {
+static void __declspec(naked) Artimer1DaysCheckHack() {
 	__asm {
 		cmp edx, Artimer1DaysCheckTimer;
-		jl less;
+		jl  less;
 		jmp Artimer1DaysCheckJmp;
 less:
 		jmp Artimer1DaysCheckJmpLess;
 	}
 }
 
-void SkipOpeningMoviesPatch() {	
+void SkipOpeningMoviesPatch() {
 	if (GetConfigInt("Misc", "SkipOpeningMovies", 0)) {
 		dlog("Skipping opening movies.", DL_INIT);
 		SafeWrite16(0x4809C7, 0x1CEB);            // jmps 0x4809E5
@@ -548,9 +761,10 @@ void Movies::init() {
 	dlog("Applying movie patch.", DL_INIT);
 
 	LoadGameHook::OnGameReset() += WipeSounds;
+	LoadGameHook::OnBeforeGameClose() += WipeSounds;
 
 	if (*((DWORD*)0x00518DA0) != 0x00503300) {
-		dlog("Error!", DL_INIT);
+		dlog("Error: The value at address 0x00518DA0 is not equal to 0x00503300.", DL_INIT);
 	}
 	for (int i = 0; i < MaxMovies; i++) {
 		MoviePtrs[i] = (DWORD)&MoviePaths[65 * i];
@@ -570,24 +784,25 @@ void Movies::init() {
 	SafeWrite32(0x44E75E, (DWORD)MoviePtrs);
 	SafeWrite32(0x44E78A, (DWORD)MoviePtrs);
 	dlog(".", DL_INIT);
-	if (Graphics::mode != 0) {
-		HookCall(0x440C4F, PlayMovieHook);
-		HookCall(0x45A1D0, PlayMovieHook);
-		HookCall(0x4809CB, PlayMovieHook);
-		HookCall(0x4809D4, PlayMovieHook);
-		HookCall(0x4809E0, PlayMovieHook);
-		HookCall(0x480A66, PlayMovieHook);
-		HookCall(0x480A72, PlayMovieHook);
-		HookCall(0x480A9A, PlayMovieHook);
-		HookCall(0x4810CA, PlayMovieHook);
-		HookCall(0x4993B3, PlayMovieHook);
-		HookCall(0x4A37CD, PlayMovieHook);
-	}
-	dlog(".", DL_INIT);
-	if (GetConfigInt("Sound", "AllowDShowSound", 0)) {
-		MakeJump(0x4AD498, SoundLoadHook);
+	if (Graphics::mode != 0 && GetConfigInt("Graphics", "AllowDShowMovies", 0)) { // TODO: implementation not working
+		MakeJump(0x44E690, gmovie_play_hack);
 	}
 	dlogr(" Done", DL_INIT);
+
+	int allowDShowSound = GetConfigInt("Sound", "AllowDShowSound", 0);
+	if (allowDShowSound > 0) {
+		MakeJump(0x4AD499, soundLoad_hack);
+		HookCalls(gmovie_play_hook_stop, {0x44E80A, 0x445280}); // only play looping music
+		HookCalls(gmovie_play_hook_pause, {0x44E816});
+		HookCalls(gmovie_play_hook_unpause, {0x44EA84});
+		MakeCall(0x450525, gsound_background_volume_set_hack);
+		MakeCall(0x4503CA, gsound_master_volume_set_hack);
+		SafeWrite8(0x4503CF, 0x90);
+		if (allowDShowSound > 1) {
+			HookCall(0x450851, gsound_background_play_hook);
+		}
+		CreateSndWnd();
+	}
 
 	DWORD tmp;
 	tmp = SimplePatch<DWORD>(0x4A36EC, "Misc", "MovieTimer_artimer4", 360, 0);
@@ -599,12 +814,16 @@ void Movies::init() {
 		char s[255];
 		sprintf_s(s, "Applying patch: MovieTimer_artimer1 = %d. ", Artimer1DaysCheckTimer);
 		dlog(s, DL_INIT);
-		MakeJump(0x4A378B, Artimer1DaysCheckHook);
+		MakeJump(0x4A378B, Artimer1DaysCheckHack);
 		dlogr("Done", DL_INIT);
 	}
 
 	// Should be AFTER the PlayMovieHook setup above
 	SkipOpeningMoviesPatch();
+}
+
+void Movies::exit() {
+	if (soundwindow && Graphics::mode == 0) CoUninitialize();
 }
 
 }
