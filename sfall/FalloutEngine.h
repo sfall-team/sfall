@@ -450,6 +450,7 @@ extern const DWORD compute_damage_;
 extern const DWORD config_set_value_;
 extern const DWORD container_exit_;
 extern const DWORD correctFidForRemovedItem_; // (int critter@<eax>, int oldArmor@<edx>, int removeSlotsFlags@<ebx>)
+extern const DWORD createWindow_;
 extern const DWORD credits_;
 extern const DWORD credits_get_next_line_;
 extern const DWORD critter_body_type_;
@@ -941,3 +942,6 @@ void __declspec() DebugPrintf(const char* fmt, ...);
 
 // returns the name of current procedure by program pointer
 const char* __stdcall FindCurrentProc(TProgram* program);
+
+// creates a window with the name and flags
+int __stdcall CreateWindowFunc(const char* winName, DWORD x, DWORD y, DWORD width, DWORD height, DWORD bgColorIndex, DWORD flags);

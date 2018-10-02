@@ -1545,6 +1545,13 @@ static void DllMain2() {
 		dlogr(" Done", DL_INIT);
 	}
 
+	if (GetPrivateProfileIntA("Misc", "InterfaceDontMoveOnTop", 0, ini)) {
+		dlog("Applying InterfaceDontMoveOnTop patch.", DL_INIT);
+		SafeWrite8(0x46ECE9, 0x10); // set only Exclusive flag for Player Inventory/Loot/UseOn
+		SafeWrite8(0x41B966, 0x10); // set only Exclusive flag for Automap
+		dlogr(" Done", DL_INIT);
+	}
+
 	dlogr("Leave DllMain2", DL_MAIN);
 }
 

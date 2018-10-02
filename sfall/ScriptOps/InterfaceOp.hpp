@@ -467,3 +467,20 @@ static void sf_intface_is_hidden() {
 	}
 	opHandler.setReturn(isHidden);
 }
+
+static void sf_create_win() {
+	int flags;
+	if (opHandler.numArgs() == 6) {
+		flags = opHandler.arg(5).asInt();
+	} else {
+		flags = 0x4; // MoveOnTop
+	}
+
+	if (CreateWindowFunc(opHandler.arg(0).asString(),
+		opHandler.arg(1).asInt(), opHandler.arg(2).asInt(), // y, x
+		opHandler.arg(3).asInt(), opHandler.arg(4).asInt(), // w, h
+		256, flags) == -1)
+	{
+		opHandler.printOpcodeError("create_win() - couldn't create window.");
+	}
+}

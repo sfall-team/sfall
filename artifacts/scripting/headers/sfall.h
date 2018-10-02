@@ -189,6 +189,8 @@
 #define party_member_list_all           party_member_list(1)
 
 
+#define create_win(winName, x, y, w, h)       sfall_func5("create_win", winName, x, y, w, h)
+#define create_win_flag(winName, x, y, w, h, flag) sfall_func6("create_win", winName, x, y, w, h, flag)
 #define critter_inven_obj2(obj, type)         sfall_func2("critter_inven_obj2", obj, type)
 #define exec_map_update_scripts               sfall_func0("exec_map_update_scripts")
 #define floor2(value)                         sfall_func1("floor2", value)

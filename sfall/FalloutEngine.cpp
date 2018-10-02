@@ -265,6 +265,7 @@ const DWORD compute_damage_ = 0x4247B8;
 const DWORD config_set_value_ = 0x42C160;
 const DWORD container_exit_ = 0x476394;
 const DWORD correctFidForRemovedItem_ = 0x45409C;
+const DWORD createWindow_ = 0x4B7F3C;
 const DWORD credits_ = 0x42C860;
 const DWORD credits_get_next_line_ = 0x42CE6C;
 const DWORD critter_body_type_ = 0x42DDC4;
@@ -846,5 +847,18 @@ TGameObj* __stdcall InvenRightHand(TGameObj* critter) {
 	__asm {
 		mov eax, critter
 		call inven_right_hand_
+	}
+}
+
+int __stdcall CreateWindowFunc(const char* winName, DWORD x, DWORD y, DWORD width, DWORD height, DWORD bgColorIndex, DWORD flags) {
+	__asm {
+		push flags
+		push bgColorIndex
+		push height
+		mov ecx, width
+		mov ebx, y
+		mov edx, x
+		mov eax, winName
+		call createWindow_
 	}
 }

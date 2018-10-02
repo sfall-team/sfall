@@ -388,6 +388,11 @@ Some utility/math functions are available:
 > int sfall_func1("get_current_inven_size", object)
 - returns the current inventory size of the container or the critter
 
+> void sfall_func5("create_win", string winName, int x, int y, int width, int height)
+> void sfall_func6("create_win", string winName, int x, int y, int width, int height, int flags)
+- works just like vanilla CreateWin function, but creates a window with MoveOnTop flag if flags argument is not specified, and allows to set additional flags for the created window
+- MoveOnTop flag allows the created window to be placed on top of the game interface
+
 ------------------------
 ------ MORE INFO -------
 ------------------------
