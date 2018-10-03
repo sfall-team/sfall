@@ -46,7 +46,6 @@ using namespace script;
 
 static DWORD _stdcall HandleMapUpdateForScripts(const DWORD procId);
 
-// TODO: move to a better place
 static int idle;
 
 struct GlobalScript {
@@ -70,6 +69,7 @@ struct ExportedVar {
 	ExportedVar() : val(0), type(VAR_TYPE_INT) {}
 };
 
+static std::vector<std::string> globalScriptPathList;
 static std::vector<fo::Program*> checkedScripts;
 static std::vector<GlobalScript> globalScripts;
 // a map of all sfall programs (global and hook scripts) by thier scriptPtr
@@ -87,7 +87,6 @@ typedef std::unordered_map<__int64, int> :: iterator glob_itr;
 typedef std::unordered_map<__int64, int> :: const_iterator glob_citr;
 typedef std::pair<__int64, int> glob_pair;
 
-DWORD addUnarmedStatToGetYear = 0;
 DWORD availableGlobalScriptTypes = 0;
 bool isGameLoading;
 
@@ -399,6 +398,7 @@ ScriptProgram* GetGlobalScriptProgram(fo::Program* scriptPtr) {
 }
 
 bool _stdcall IsGameScript(const char* filename) {
+	if ((filename[0] != 'g' || filename[1] != 'l') && (filename[0] != 'h' || filename[1] != 's')) return true;
 	// TODO: write better solution
 	for (int i = 0; i < fo::var::maxScriptNum; i++) {
 		if (strcmp(filename, fo::var::scriptListInfo[i].fileName) == 0) return true;
@@ -409,7 +409,6 @@ bool _stdcall IsGameScript(const char* filename) {
 static void LoadGLobalScriptsByMask(const std::string& fileMask) {
 	char* *filenames;
 	auto basePath = fileMask.substr(0, fileMask.find_last_of("\\/") + 1);
-	ToLowerCase(basePath);
 	int count = fo::func::db_get_file_list(fileMask.c_str(), &filenames);
 
 	// TODO: refactor script programs
@@ -448,8 +447,7 @@ static void LoadGlobalScripts() {
 	isGameLoading = false;
 	LoadHookScripts();
 	dlogr("Loading global scripts", DL_SCRIPT|DL_INIT);
-	auto maskList = GetConfigList("Scripts", "GlobalScriptPaths", "scripts\\gl*.int", 255);
-	for (auto& mask : maskList) {
+	for (auto& mask : globalScriptPathList) {
 		LoadGLobalScriptsByMask(mask);
 	}
 	dlogr("Finished loading global scripts", DL_SCRIPT|DL_INIT);
@@ -529,7 +527,6 @@ static void ResetStateAfterFrame() {
 }
 
 static inline void RunGlobalScripts(int mode1, int mode2) {
-	// TODO: move processor idle out?
 	if (idle > -1 && idle <= 127) {
 		Sleep(idle);
 	}
@@ -565,7 +562,7 @@ static DWORD _stdcall HandleMapUpdateForScripts(const DWORD procId) {
 		}
 	}
 	RunGlobalScriptsAtProc(procId); // gl* scripts of types 0 and 3
-	RunHookScriptsAtProc(procId); // all hs_ scripts
+	RunHookScriptsAtProc(procId);   // all hs_ scripts
 
 	return procId; // restore eax (don't delete)
 }
@@ -648,7 +645,11 @@ void ScriptExtender::init() {
 	OnInputLoop() += RunGlobalScriptsOnInput;
 	Worldmap::OnWorldmapLoop() += RunGlobalScriptsOnWorldMap;
 
-	// TODO: move out?
+	globalScriptPathList = GetConfigList("Scripts", "GlobalScriptPaths", "scripts\\gl*.int", 255);
+	for (int i = 0; i < globalScriptPathList.size(); i++) {
+		ToLowerCase(globalScriptPathList[i]);
+	}
+
 	idle = GetConfigInt("Misc", "ProcessorIdle", -1);
 	if (idle > -1 && idle <= 127) {
 		fo::var::idle_func = reinterpret_cast<DWORD>(Sleep);

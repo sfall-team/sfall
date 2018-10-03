@@ -8,6 +8,7 @@ namespace sfall
 {
 
 static int unjamTimeState;
+static int maxCountProto = 512;
 
 void Objects::SetAutoUnjamLockTime(DWORD time) {
 	if (!unjamTimeState) BlockCall(0x4A364A); // disable auto unjam at midnight
@@ -34,10 +35,41 @@ void RestoreObjUnjamAllLocks() {
 	}
 }
 
+static void __declspec(naked) proto_ptr_hack() {
+	__asm {
+		mov  ecx, maxCountProto;
+		cmp  ecx, 4096;
+		jae  skip;
+		cmp  eax, ecx;
+		jb   end;
+		add  ecx, 256;
+		mov  maxCountProto, ecx;
+skip:
+		cmp  eax, ecx;
+end:
+		retn;
+	}
+}
+
+void Objects::LoadProtoAutoMaxLimit() {
+	if (maxCountProto != -1) {
+		MakeCall(0x4A21B2, proto_ptr_hack);
+	}
+}
+
 void Objects::init() {
-	LoadGameHook::OnGameReset() += [] () {
+	LoadGameHook::OnGameReset() += []() {
 		RestoreObjUnjamAllLocks();
 	};
+
+	int maxlimit = GetConfigInt("Misc", "LoadProtoMaxLimit", -1);
+	if (maxlimit != -1) {
+		maxCountProto = -1;
+		if (maxlimit >= 512) {
+			if (maxlimit > 4096) maxlimit = 4096;
+			SafeWrite32(0x4A21B3, maxlimit);
+		}
+	}
 }
 
 }

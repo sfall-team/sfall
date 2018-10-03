@@ -27,9 +27,11 @@
 #include "..\..\Knockback.h"
 #include "..\..\MiscPatches.h"
 #include "..\..\Movies.h"
+#include "..\..\Objects.h"
 #include "..\..\PlayerModel.h"
 #include "..\..\ScriptExtender.h"
 #include "..\..\Stats.h"
+#include "..\..\Worldmap.h"
 #include "..\Arrays.h"
 #include "..\OpcodeContext.h"
 
@@ -1129,99 +1131,34 @@ end:
 //numbers subgame functions
 void __declspec(naked) op_nb_create_char() {
 	__asm {
-		/*pushad;
-		push eax;
-		call NumbersCreateChar;
-		mov edx, eax;
-		pop eax;
-		mov ecx, eax;
-		call fo::funcoffs::interpretPushLong_;
-		mov eax, ecx;
-		mov edx, VAR_TYPE_INT;
-		call fo::funcoffs::interpretPushShort_;
-		popad;*/
 		retn;
 	}
 }
 
-void __declspec(naked) op_get_proto_data() {
-	__asm {
-		pushad;
-		sub esp, 4;
-		mov ebp, eax;
-		call fo::funcoffs::interpretPopShort_;
-		mov edi, eax;
-		mov eax, ebp;
-		call fo::funcoffs::interpretPopLong_;
-		mov ecx, eax;
-		mov eax, ebp;
-		call fo::funcoffs::interpretPopShort_;
-		mov esi, eax;
-		mov eax, ebp;
-		call fo::funcoffs::interpretPopLong_;
-		cmp di, VAR_TYPE_INT;
-		jnz fail;
-		cmp si, VAR_TYPE_INT;
-		jnz fail;
-		mov edx, esp;
-		call fo::funcoffs::proto_ptr_;
-		mov eax, [esp];
-		test eax, eax;
-		jz fail;
-		mov edx, [eax+ecx/**4*/];
-		jmp end;
-fail:
-		xor edx, edx;
-		dec edx;
-end:
-		mov eax, ebp;
-		call fo::funcoffs::interpretPushLong_;
-		mov eax, ebp;
-		mov edx, VAR_TYPE_INT;
-		call fo::funcoffs::interpretPushShort_;
-		add esp, 4;
-		popad;
-		retn;
+void sf_get_proto_data(OpcodeContext& ctx) {
+	fo::Proto* protoPtr;
+	int pid = ctx.arg(0).rawValue();
+	int result = fo::func::proto_ptr(pid, &protoPtr);
+	if (result != -1) {
+		result = *(long*)((BYTE*)protoPtr + ctx.arg(1).rawValue());
+	} else {
+		ctx.printOpcodeError("get_proto_data() - failed to load a prototype id: %d", pid);
 	}
+	ctx.setReturn(result);
 }
 
-void __declspec(naked) op_set_proto_data() {
-	__asm {
-		pushad;
-		sub esp, 4;
-		mov ebp, eax;
-		call fo::funcoffs::interpretPopShort_;
-		mov edi, eax;
-		mov eax, ebp;
-		call fo::funcoffs::interpretPopLong_;
-		mov ecx, eax;
-		mov eax, ebp;
-		call fo::funcoffs::interpretPopShort_;
-		mov esi, eax;
-		mov eax, ebp;
-		call fo::funcoffs::interpretPopLong_;
-		mov ebx, eax;
-		mov eax, ebp;
-		call fo::funcoffs::interpretPopShort_;
-		xchg eax, ebp;
-		call fo::funcoffs::interpretPopLong_;
-		cmp di, VAR_TYPE_INT;
-		jnz end;
-		cmp si, VAR_TYPE_INT;
-		jnz end;
-		cmp bp, VAR_TYPE_INT;
-		jnz end;
-		//mov eax, [eax+0x64];
-		mov edx, esp;
-		call fo::funcoffs::proto_ptr_;
-		mov eax, [esp];
-		test eax, eax;
-		jz end;
-		mov [eax+ebx/**4*/], ecx;
-end:
-		add esp, 4;
-		popad;
-		retn;
+static bool protoMaxLimitPatch = false;
+void sf_set_proto_data(OpcodeContext& ctx) {
+	fo::Proto* protoPtr;
+	int pid = ctx.arg(0).rawValue();
+	if (fo::func::proto_ptr(pid, &protoPtr) != -1) {
+		*(long*)((BYTE*)protoPtr + ctx.arg(1).rawValue()) = ctx.arg(2).rawValue();
+		if (!protoMaxLimitPatch) {
+			Objects::LoadProtoAutoMaxLimit();
+			protoMaxLimitPatch = true;
+		}
+	} else {
+		ctx.printOpcodeError("set_proto_data() - failed to load a prototype id: %d", pid);
 	}
 }
 

@@ -90,7 +90,7 @@ void OpcodeContext::printOpcodeError(const char* fmt, ...) const {
 	va_end(args);
 
 	const char* procName = fo::func::findCurrentProc(_program);
-	fo::func::debug_printf("\nOPCODE ERROR: %s\n   Current script: %s, procedure %s.", msg, _program->fileName, procName);
+	fo::func::debug_printf("\nOPCODE ERROR: %s\n > Script: %s, procedure %s.", msg, _program->fileName, procName);
 }
 
 bool OpcodeContext::validateArguments(const OpcodeArgumentType argTypes[], const char* opcodeName) const {

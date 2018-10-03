@@ -65,9 +65,6 @@ DWORD _stdcall GetGlobalVarInt(DWORD var);
 
 void _stdcall SetSelfObject(fo::Program* script, fo::GameObject* obj);
 
-extern DWORD addUnarmedStatToGetYear;
-extern DWORD availableGlobalScriptTypes;
-
 void SetAppearanceGlobals(int race, int style);
 void GetAppearanceGlobals(int *race, int *style);
 
@@ -92,5 +89,6 @@ ScriptProgram* GetGlobalScriptProgram(fo::Program* scriptPtr);
 // variables
 static char regAnimCombatCheck = 1;
 extern DWORD isGlobalScriptLoading;
+extern DWORD availableGlobalScriptTypes;
 
 }

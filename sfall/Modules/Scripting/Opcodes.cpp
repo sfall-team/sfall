@@ -77,6 +77,8 @@ static SfallOpcodeInfo opcodeInfoArray[] = {
 	{0x1f0, "tan", sf_tan, 1, true, {ARG_NUMBER}},
 	{0x1f1, "arctan", sf_arctan, 2, true, {ARG_NUMBER, ARG_NUMBER}},
 	{0x1f5, "get_script", sf_get_script, 1, true},
+	{0x204, "get_proto_data", sf_get_proto_data, 2, true, {ARG_INT, ARG_INT}},
+	{0x205, "set_proto_data", sf_set_proto_data, 3, false, {ARG_INT, ARG_INT, ARG_INT}},
 	{0x207, "register_hook", sf_register_hook, 1, false, {ARG_INT}},
 	{0x20d, "list_begin", sf_list_begin, 1, true, {ARG_INT}},
 	{0x20e, "list_next", sf_list_next, 1, true, {ARG_INT}},
@@ -170,7 +172,7 @@ void InitOpcodeInfoTable() {
 
 // Default handler for Sfall Opcodes. 
 // Searches current opcode in Opcode Info table and executes the appropriate handler.
-void __stdcall defaultOpcodeHandlerStdcall(fo::Program* program, DWORD opcodeOffset) {
+void __fastcall defaultOpcodeHandlerCall(fo::Program* program, DWORD opcodeOffset) {
 	int opcode = opcodeOffset / 4;
 	auto iter = opcodeInfoMap.find(opcode);
 	if (iter != opcodeInfoMap.end()) {
@@ -185,11 +187,14 @@ void __stdcall defaultOpcodeHandlerStdcall(fo::Program* program, DWORD opcodeOff
 // Default handler for Sfall opcodes (naked function for integration with the engine).
 void __declspec(naked) defaultOpcodeHandler() {
 	__asm {
-		pushad;
-		push edx;
 		push eax;
-		call defaultOpcodeHandlerStdcall;
-		popad;
+		push ecx;
+		push edx;
+		mov  ecx, eax;                 // ecx - program
+		call defaultOpcodeHandlerCall; // edx - opcodeOffset
+		pop  edx;
+		pop  ecx;
+		pop  eax;
 		retn;
 	}
 }
@@ -355,8 +360,6 @@ void InitNewOpcodes() {
 	opcodes[0x201] = op_fs_pos;
 	opcodes[0x202] = op_fs_seek;
 	opcodes[0x203] = op_fs_resize;
-	opcodes[0x204] = op_get_proto_data;
-	opcodes[0x205] = op_set_proto_data;
 	opcodes[0x206] = op_set_self;
 	opcodes[0x208] = op_fs_write_bstring;
 	opcodes[0x209] = op_fs_read_byte;
