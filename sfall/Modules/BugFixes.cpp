@@ -25,14 +25,15 @@ void GameInitialization() {
 }
 
 // fix for vanilla negate operator not working on floats
-static const DWORD NegateFixHack_Back = 0x46AB79;
+static const DWORD NegateFixHack_Back = 0x46AB77;
 static void __declspec(naked) NegateFixHack() {
 	__asm {
-		mov  ebx, edi;
-		lea  edx, [ecx + 36];
-		mov  eax, [ecx + 28];
+		mov  eax, [ecx + 0x1C];
 		cmp  si, VAR_TYPE_FLOAT;
-		jne  notfloat;
+		je   isFloat;
+		neg  ebx;
+		retn;
+isFloat:
 		push ebx;
 		fld[esp];
 		fchs;
@@ -40,13 +41,7 @@ static void __declspec(naked) NegateFixHack() {
 		pop  ebx;
 		call fo::funcoffs::pushLongStack_;
 		mov  edx, VAR_TYPE_FLOAT;
-		jmp  end;
-notfloat:
-		neg  ebx
-		call fo::funcoffs::pushLongStack_;
-		mov  edx, VAR_TYPE_INT;
-end:
-		mov  eax, ecx;
+		add  esp, 4;                              // Destroy the return address
 		jmp  NegateFixHack_Back;
 	}
 }
@@ -1562,7 +1557,7 @@ void BugFixes::init()
 	LoadGameHook::OnGameInit() = GameInitialization;
 
 	// fix vanilla negate operator on float values
-	MakeJump(0x46AB63, NegateFixHack);
+	MakeJump(0x46AB68, NegateFixHack);
 	// fix incorrect int-to-float conversion
 	// op_mult:
 	SafeWrite16(0x46A3F4, 0x04DB); // replace operator to "fild 32bit"
