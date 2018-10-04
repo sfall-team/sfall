@@ -239,6 +239,7 @@
     <ClInclude Include="Modules\MiscPatches.h" />
     <ClInclude Include="Modules\Karma.h" />
     <ClInclude Include="Modules\LoadOrder.h" />
+    <ClInclude Include="Modules\Objects.h" />
     <ClInclude Include="Modules\PlayerModel.h" />
     <ClInclude Include="Modules\SpeedPatch.h" />
     <ClInclude Include="Modules\Worldmap.h" />
@@ -325,6 +326,7 @@
     <ClCompile Include="Modules\MiscPatches.cpp" />
     <ClCompile Include="Modules\Karma.cpp" />
     <ClCompile Include="Modules\LoadOrder.cpp" />
+    <ClCompile Include="Modules\Objects.cpp" />
     <ClCompile Include="Modules\PlayerModel.cpp" />
     <ClCompile Include="Modules\SpeedPatch.cpp" />
     <ClCompile Include="Modules\Worldmap.cpp" />

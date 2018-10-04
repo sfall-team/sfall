@@ -484,7 +484,7 @@ void QuestListPatch() {
 void QuestList::init() {
 	questsButtonsType = GetConfigInt("Misc", "UseScrollingQuestsList", 0);
 	if (questsButtonsType > 0) {
-		dlog("Applying quests list patch ", DL_INIT);
+		dlog("Applying quests list patch.", DL_INIT);
 		QuestListPatch();
 
 		questsScrollButtonsX = GetConfigInt("Misc", "QuestsScrollButtonsX", 140);

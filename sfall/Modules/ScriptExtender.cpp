@@ -50,7 +50,6 @@ void _stdcall HandleMapUpdateForScripts(DWORD procId);
 
 // TODO: move to a better place
 static int idle;
-static int unjamTimeState;
 
 struct GlobalScript {
 	ScriptProgram prog;
@@ -91,7 +90,6 @@ typedef std::unordered_map<__int64, int> :: iterator glob_itr;
 typedef std::unordered_map<__int64, int> :: const_iterator glob_citr;
 typedef std::pair<__int64, int> glob_pair;
 
-DWORD addUnarmedStatToGetYear = 0;
 DWORD availableGlobalScriptTypes = 0;
 bool isGameLoading;
 
@@ -417,6 +415,7 @@ ScriptProgram* GetGlobalScriptProgram(fo::Program* scriptPtr) {
 }
 
 bool _stdcall IsGameScript(const char* filename) {
+	if ((filename[0] != 'g' || filename[1] != 'l') && (filename[0] != 'h' || filename[1] != 's')) return true;
 	// TODO: write better solution
 	for (int i = 0; i < fo::var::maxScriptNum; i++) {
 		if (strcmp(filename, fo::var::scriptListInfo[i].fileName) == 0) return true;
@@ -508,39 +507,6 @@ void ClearGlobalScripts() {
 	selfOverrideMap.clear();
 	globalExportedVars.clear();
 	HookScriptClear();
-
-	//Reset some settable game values back to the defaults
-	//Pyromaniac bonus
-	SafeWrite8(0x424AB6, 5);
-	//xp mod
-	SafeWrite8(0x4AFAB8, 0x53);
-	SafeWrite32(0x4AFAB9, 0x55575651);
-	//Perk level mod
-	SafeWrite32(0x496880, 0x00019078);
-	//HP bonus
-	SafeWrite8(0x4AFBC1, 2);
-	// TODO: move this elsewhere
-	//Bodypart hit chances
-	using fo::var::hit_location_penalty;
-	hit_location_penalty[0] = static_cast<long>(GetConfigInt("Misc", "BodyHit_Head", -40));
-	hit_location_penalty[1] = static_cast<long>(GetConfigInt("Misc", "BodyHit_Left_Arm", -30));
-	hit_location_penalty[2] = static_cast<long>(GetConfigInt("Misc", "BodyHit_Right_Arm", -30));
-	hit_location_penalty[3] = static_cast<long>(GetConfigInt("Misc", "BodyHit_Torso_Uncalled", 0));
-	hit_location_penalty[4] = static_cast<long>(GetConfigInt("Misc", "BodyHit_Right_Leg", -20));
-	hit_location_penalty[5] = static_cast<long>(GetConfigInt("Misc", "BodyHit_Left_Leg", -20));
-	hit_location_penalty[6] = static_cast<long>(GetConfigInt("Misc", "BodyHit_Eyes", -60));
-	hit_location_penalty[7] = static_cast<long>(GetConfigInt("Misc", "BodyHit_Groin", -30));
-	hit_location_penalty[8] = static_cast<long>(GetConfigInt("Misc", "BodyHit_Torso_Uncalled", 0));
-	//skillpoints per level mod
-	SafeWrite8(0x43C27a, 5);
-	//restore obj_unjam_all_locks_
-	if (unjamTimeState) {
-		SafeWrite8(0x4A364A, 0xE8);
-		SafeWrite32(0x4A364B, 0xFFFF9E69);
-		SafeWrite8(0x4831DA, 0x7C);
-		SafeWrite8(0x4831D9, 24);
-		unjamTimeState = 0;
-	}
 }
 
 void RunScriptProc(ScriptProgram* prog, const char* procName) {
@@ -685,23 +651,6 @@ void SetGlobals(GlobalVar* globals) {
 	}
 }
 
-void ScriptExtender::SetAutoUnjamLockTime(DWORD time) {
-	if (!unjamTimeState) {
-		BlockCall(0x4A364A); // disable auto unjam at midnight
-	}
-
-	if (time > 0) {
-		SafeWrite8(0x4831D9, (BYTE)time);
-		if (unjamTimeState == 2) {
-			SafeWrite8(0x4831DA, 0x7C);
-		}
-		unjamTimeState = 1;
-	} else {
-		SafeWrite8(0x4831DA, 0xEB); // disable auto unjam
-		unjamTimeState = 2;
-	}
-}
-
 void ScriptExtender::init() {
 	LoadGameHook::OnAfterGameStarted() += LoadGlobalScripts;
 	LoadGameHook::OnGameReset() += [] () {
@@ -743,18 +692,10 @@ void ScriptExtender::init() {
 
 	// this patch makes it possible to export variables from sfall global scripts
 	MakeJump(0x4414C8, Export_Export_FindVar_Hook);
-	HookCall(0x441285, &Export_FetchOrStore_FindVar_Hook); // store
-	HookCall(0x4413D9, &Export_FetchOrStore_FindVar_Hook); // fetch
-
-	// fix vanilla negate operator on float values
-	MakeJump(0x46AB63, NegateFixHook);
-	// fix incorrect int-to-float conversion
-	// op_mult:
-	SafeWrite16(0x46A3F4, 0x04DB); // replace operator to "fild 32bit"
-	SafeWrite16(0x46A3A8, 0x04DB);
-	// op_div:
-	SafeWrite16(0x46A566, 0x04DB);
-	SafeWrite16(0x46A4E7, 0x04DB);
+	HookCalls(Export_FetchOrStore_FindVar_Hook, {
+		0x441285, // store
+		0x4413D9  // fetch
+	});
 
 	HookCall(0x46E141, FreeProgramHook);
 

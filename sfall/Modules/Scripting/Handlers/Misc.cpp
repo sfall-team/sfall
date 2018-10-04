@@ -30,6 +30,7 @@
 #include "..\..\PlayerModel.h"
 #include "..\..\ScriptExtender.h"
 #include "..\..\Stats.h"
+#include "..\..\Worldmap.h"
 #include "..\Arrays.h"
 #include "..\OpcodeContext.h"
 

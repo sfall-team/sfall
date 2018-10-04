@@ -217,7 +217,17 @@ void StatsReset() {
 void Stats::init() {
 	StatsReset();
 
-	LoadGameHook::OnGameReset() += StatsReset;
+	LoadGameHook::OnGameReset() += []() {
+		StatsReset();
+		//Reset some settable game values back to the defaults
+		//xp mod
+		SafeWrite8(0x4AFAB8, 0x53);
+		SafeWrite32(0x4AFAB9, 0x55575651);
+		//HP bonus
+		SafeWrite8(0x4AFBC1, 2);
+		//skillpoints per level mod
+		SafeWrite8(0x43C27a, 5);
+	};
 
 	SafeWrite8(0x4AEF48, 0xE9);
 	HookCall(0x4AEF48, GetCurrentStatHook1);

@@ -53,6 +53,7 @@
 #include "Modules\Message.h"
 #include "Modules\MiscPatches.h"
 #include "Modules\Movies.h"
+#include "Modules\Objects.h"
 #include "Modules\PartyControl.h"
 #include "Modules\Perks.h"
 #include "Modules\PlayerModel.h"
@@ -133,6 +134,7 @@ static void InitModules() {
 	manager.add<Graphics>();
 	manager.add<Input>();
 	manager.add<Movies>();
+	manager.add<Objects>();
 	manager.add<PlayerModel>();
 	manager.add<Worldmap>();
 	manager.add<Stats>();
