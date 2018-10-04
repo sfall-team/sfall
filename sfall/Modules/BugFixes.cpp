@@ -1557,7 +1557,7 @@ void BugFixes::init()
 	LoadGameHook::OnGameInit() = GameInitialization;
 
 	// fix vanilla negate operator on float values
-	MakeJump(0x46AB68, NegateFixHack);
+	MakeCall(0x46AB68, NegateFixHack);
 	// fix incorrect int-to-float conversion
 	// op_mult:
 	SafeWrite16(0x46A3F4, 0x04DB); // replace operator to "fild 32bit"
