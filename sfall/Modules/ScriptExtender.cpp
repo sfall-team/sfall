@@ -25,6 +25,7 @@
 #include "..\FalloutEngine\Fallout2.h"
 #include "..\InputFuncs.h"
 #include "..\Logging.h"
+#include "..\SimplePatch.h"
 #include "..\Version.h"
 #include "..\Utils.h"
 #include "BarBoxes.h"
@@ -722,7 +723,10 @@ void ScriptExtender::init() {
 		SafeWrite8(0x4C9F13, idle);
 	}
 	modifiedIni = GetConfigInt("Main", "ModifiedIni", 0);
-	
+
+	// increase the processing limit of proto_ptr_ engine function
+	SimplePatch<DWORD>(0x4A21B3, "Misc", "ProtoProcessingLimit", 512, 512, 16384);
+
 	arraysBehavior = GetConfigInt("Misc", "arraysBehavior", 1);
 	if (arraysBehavior > 0) {
 		arraysBehavior = 1; // only 1 and 0 allowed at this time
