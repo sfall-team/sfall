@@ -36,6 +36,7 @@ extern char translationIni[65];
 extern char dmModelName[65];
 extern char dfModelName[65];
 
+extern DWORD AddUnarmedStatToGetYear;
 extern bool npcautolevel;
 
 template<typename T> 

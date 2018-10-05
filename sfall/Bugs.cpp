@@ -19,6 +19,28 @@ void GameInitialization() {
 	*(DWORD*)_gDialogMusicVol = *(DWORD*)_background_volume; // fix dialog music
 }
 
+// fix for vanilla negate operator not working on floats
+static const DWORD NegateFixHack_Back = 0x46AB77;
+static void __declspec(naked) NegateFixHack() {
+	__asm {
+		mov  eax, [ecx + 0x1C];
+		cmp  si, VAR_TYPE_FLOAT;
+		je   isFloat;
+		neg  ebx;
+		retn;
+isFloat:
+		push ebx;
+		fld[esp];
+		fchs;
+		fstp[esp];
+		pop  ebx;
+		call pushLongStack_;
+		mov  edx, VAR_TYPE_FLOAT;
+		add  esp, 4;                              // Destroy the return address
+		jmp  NegateFixHack_Back;
+	}
+}
+
 static void __declspec(naked) SharpShooterFix() {
 	__asm {
 		call stat_level_                          // Perception
@@ -1383,6 +1405,16 @@ skip:
 
 void BugsInit()
 {
+	// fix vanilla negate operator on float values
+	MakeCall(0x46AB68, NegateFixHack);
+	// fix incorrect int-to-float conversion
+	// op_mult:
+	SafeWrite16(0x46A3F4, 0x04DB); // replace operator to "fild 32bit"
+	SafeWrite16(0x46A3A8, 0x04DB);
+	// op_div:
+	SafeWrite16(0x46A566, 0x04DB);
+	SafeWrite16(0x46A4E7, 0x04DB);
+
 	//if (GetPrivateProfileIntA("Misc", "SharpshooterFix", 1, ini)) {
 		dlog("Applying Sharpshooter patch.", DL_INIT);
 		// http://www.nma-fallout.com/threads/fo2-engine-tweaks-sfall.178390/page-119#post-4050162

@@ -60,9 +60,6 @@ int GetNumGlobals();
 void GetGlobals(sGlobalVar* globals);
 void SetGlobals(sGlobalVar* globals);
 
-extern DWORD AddUnarmedStatToGetYear;
-extern DWORD AvailableGlobalScriptTypes;
-
 void SetAppearanceGlobals(int race, int style);
 void GetAppearanceGlobals(int *race, int *style);
 
@@ -89,6 +86,7 @@ char* _stdcall mysubstr(char* str, int pos, int length);
 // variables
 static char reg_anim_combat_check = 1;
 extern DWORD isGlobalScriptLoading;
+extern DWORD AvailableGlobalScriptTypes;
 
 // types for script variables
 #define VAR_TYPE_INT    (0xC001)

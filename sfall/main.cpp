@@ -84,6 +84,7 @@ static const char* debugGnw = "GNW";
 
 static const char* musicOverridePath = "data\\sound\\music\\";
 
+DWORD AddUnarmedStatToGetYear = 0;
 bool npcautolevel;
 
 static int* scriptDialog = nullptr;

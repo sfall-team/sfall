@@ -639,10 +639,10 @@ int GetFont(void) {
 //---------------------------------------------------------
 //print text to surface
 void PrintText(char *DisplayText, BYTE ColourIndex, DWORD Xpos, DWORD Ypos, DWORD TxtWidth, DWORD ToWidth, BYTE *ToSurface) {
-	DWORD posOffset = Ypos*ToWidth + Xpos;
+	DWORD posOffset = Ypos * ToWidth + Xpos;
 	__asm {
 		xor eax, eax
-		MOV AL, ColourIndex
+		mov al, ColourIndex
 		push eax
 		mov edx, DisplayText
 		mov ebx, TxtWidth

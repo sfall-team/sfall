@@ -742,33 +742,6 @@ static void __declspec(naked) op_typeof() {
 	}
 }
 
-// fix for vanilla negate operator not working on floats
-static const DWORD NegateFixHook_Back = 0x46AB79;
-static void __declspec(naked) NegateFixHook() {
-	__asm {
-		mov     ebx, edi;
-		lea     edx, [ecx+36];
-		mov     eax, [ecx+28];
-		cmp     si, VAR_TYPE_FLOAT;
-		jne     notfloat;
-		push    ebx;
-		fld     [esp];
-		fchs
-		fstp    [esp];
-		pop     ebx;
-		call    pushLongStack_
-		mov     edx, VAR_TYPE_FLOAT
-		jmp     end
-notfloat:
-		neg     ebx
-		call    pushLongStack_
-		mov     edx, VAR_TYPE_INT
-end:
-		mov     eax, ecx
-		jmp     NegateFixHook_Back;
-	}
-}
-
 static void funcPow2() {
 	const ScriptValue &base = opHandler.arg(0),
 					  &power = opHandler.arg(1);
