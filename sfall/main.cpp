@@ -538,34 +538,6 @@ end:
 	}
 }
 
-// Fix crash when the quest list is too long
-static bool outRangeFlag = false;
-static void __declspec(naked) PipStatus_hook_printfix() {
-	__asm {
-		test outRangeFlag, 0xFF;
-		jnz  force;
-		call _word_wrap_;
-		push eax;
-		movzx eax, word ptr [esp + 0x49C + 8];
-		dec  eax;
-		shl  eax, 1;
-		add  eax, dword ptr ds:[_cursor_line];
-		cmp  eax, dword ptr ds:[_bottom_line]; // check max
-		jb   skip;
-		mov  eax, dword ptr ds:[_quest_count];
-		sub  eax, 2;
-		mov  dword ptr [esp + 0x4BC - 0x24 + 8], eax; // set last counter
-		mov  outRangeFlag, 1;
-skip:
-		pop  eax;
-		retn;
-force:
-		or   eax, -1; // force log error "out of range"
-		mov  outRangeFlag, 0;
-		retn;
-	}
-}
-
 static void __declspec(naked) intface_rotate_numbers_hack() {
 	__asm {
 		push edi
@@ -1277,13 +1249,8 @@ static void DllMain2() {
 	dlogr("Running CreditsInit().", DL_INIT);
 	CreditsInit();
 
-	if (GetPrivateProfileIntA("Misc", "UseScrollingQuestsList", 0, ini)) {
-		dlog("Applying quests list patch.", DL_INIT);
-		QuestListInit();
-		dlogr(" Done", DL_INIT);
-	} else {
-		HookCall(0x498186, PipStatus_hook_printfix); // fix "out of range" bug when printing a list of quests
-	}
+	dlogr("Running QuestListInit().", DL_INIT);
+	QuestListInit();
 
 	dlog("Applying premade characters patch.", DL_INIT);
 	PremadeInit();

@@ -89,93 +89,32 @@ static void __declspec(naked) load_page_offsets(void) {
 }
 
 //------------------------------------------
+static void CreateButtons() {
+	DWORD winRef = *(DWORD*)_lsgwin;
+	// left button -10       | X | Y | W | H |HOn |HOff |BDown |BUp |PicUp |PicDown |? |ButType
+	WinRegisterButton(winRef, 100, 56, 24, 20, -1, 0x500, 0x54B, 0x14B, 0, 0, 0, 32);
+	// left button -100
+	WinRegisterButton(winRef,  68, 56, 24, 20, -1, 0x500, 0x549, 0x149, 0, 0, 0, 32);
+	// right button +10
+	WinRegisterButton(winRef, 216, 56, 24, 20, -1, 0x500, 0x54D, 0x14D, 0, 0, 0, 32);
+	// right button +100
+	WinRegisterButton(winRef, 248, 56, 24, 20, -1, 0x500, 0x551, 0x151, 0, 0, 0, 32);
+	// Set Number button
+	WinRegisterButton(winRef, 140, 56, 60, 20, -1, -1, 'p', -1, 0, 0, 0, 32);
+}
+
 static void __declspec(naked) create_page_buttons(void) {
 	__asm {
-		// left button -10
-		push 32 // ButType
-		push 0 // ? always 0
-		push 0 // PicDown
-		push 0 // PicUp
-		push 0x14B // ButtUp left button
-		push 0x54B // ButtDown
-		push 0x500 // HovOff
-		push -1 // HovOn
-		push 20 // Height
-		mov  ecx, 24 // Width
-		mov  edx, 100 // Xpos
-		mov  ebx, 56 // Ypos
-		mov  eax, dword ptr ds:[_lsgwin] // WinRef
-		call win_register_button_
-		// left button -100
-		push 32 // ButType
-		push 0 // ? always 0
-		push 0 // PicDown
-		push 0 // PicUp
-		push 0x149 // ButtUp PGUP button
-		push 0x549 // ButtDown
-		push 0x500 // HovOff
-		push -1 // HovOn
-		push 20 // Height
-		mov  ecx, 24 // Width
-		mov  edx, 68 // Xpos
-		mov  ebx, 56 // Ypos
-		mov  eax, dword ptr ds:[_lsgwin] // WinRef
-		call win_register_button_ // create button function
-		// right button +10
-		push 32 // ButType
-		push 0 // ? always 0
-		push 0 // PicDown
-		push 0 // PicUp
-		push 0x14D // ButtUp right button
-		push 0x54D // ButtDown
-		push 0x500 // HovOff
-		push -1 // HovOn
-		push 20 // Height
-		mov  ecx, 24 // Width
-		mov  edx, 216 // Xpos
-		mov  ebx, 56 // Ypos
-		mov  eax, dword ptr ds:[_lsgwin] // WinRef
-		call win_register_button_ // create button function
-		// right button +100
-		push 32 // ButType
-		push 0 // ? always 0
-		push 0 // PicDown
-		push 0 // PicUp
-		push 0x151 // ButtUp PGDN button
-		push 0x551 // ButtDown
-		push 0x500 // HovOff
-		push -1 // HovOn
-		push 20 // Height
-		mov  ecx, 24 // Width
-		mov  edx, 248 // Xpos
-		mov  ebx, 56 // Ypos
-		mov  eax, dword ptr ds:[_lsgwin] // WinRef
-		call win_register_button_ // create button function
-		// Set Number button
-		push 32 // ButType
-		push 0 // ? always 0
-		push 0 // PicDown
-		push 0 // PicUp
-		push -1 // ButtUp
-		push 'p' // ButtDown
-		push -1 // HovOff
-		push -1 // HovOn
-		push 20 // Height
-		mov  ecx, 60 // Width
-		mov  edx, 140 // Xpos
-		mov  ebx, 56 // Ypos
-		mov  eax, dword ptr ds:[_lsgwin] // WinRef
-		call win_register_button_ // create button function
-
+		call CreateButtons;
 		// restore original code
-		mov  eax, 0x65
-		ret
+		mov  eax, 0x65;
+		ret;
 	}
 }
 
 //------------------------------------------------------
 void SetPageNum() {
-	int WinRef = *(DWORD*)_lsgwin; // load/save winref
+	DWORD WinRef = *(DWORD*)_lsgwin; // load/save winref
 	if (WinRef == NULL) {
 		return;
 	}
@@ -270,87 +209,58 @@ void SetPageNum() {
 }
 
 //------------------------------------------
-static void __declspec(naked) check_page_buttons(void) {
-/*
-0047BD49  |> 3D 48010000            |CMP EAX,148
-0047BD4E  |. 75 2E                  |JNZ SHORT fallout2.0047BD7E
-0047BD50  |. 8B15 B8935100          |MOV EDX,DWORD PTR DS:[5193B8]
-0047BD56  |. 4A                     |DEC EDX
-0047BD57  |. 8915 B8935100          |MOV DWORD PTR DS:[5193B8],EDX
-0047BD5D  |. 85D2                   |TEST EDX,EDX
-0047BD5F  |. 7D 07                  |JGE SHORT fallout2.0047BD68
-0047BD61  |. 31C0                   |XOR EAX,EAX
-0047BD63  |. A3 B8935100            |MOV DWORD PTR DS:[5193B8],EAX
-0047BD68  |> B9 FFFFFFFF            |MOV ECX,-1                          // button pressed exit check
-0047BD6D  |. BA 01000000            |MOV EDX,1
-0047BD72  |. 898C24 28020000        |MOV DWORD PTR SS:[ESP+228],ECX
-0047BD79  |. E9 7B010000            |JMP fallout2.0047BEF9
-*/
+static long __fastcall CheckPage(long button) {
+	switch (button) {
+		case 0x14B:                        // left button
+			if (LSPageOffset >= 10) LSPageOffset -= 10;
+			__asm call gsound_red_butt_press_;
+			break;
+		case 0x149:                        // fast left PGUP button
+			if (LSPageOffset < 100) {
+				LSPageOffset = 0;          // First Page
+			} else {
+				LSPageOffset -= 100;
+			}
+			__asm call gsound_red_butt_press_;
+			break;
+		case 0x14D:                        // right button
+			if (LSPageOffset <= 9980) LSPageOffset += 10;
+			__asm call gsound_red_butt_press_;
+			break;
+		case 0x151:                        // fast right PGDN button
+			if (LSPageOffset > 9890) {
+				LSPageOffset = 9990;       // Last Page
+			} else {
+				LSPageOffset += 100;
+			}
+			__asm call gsound_red_butt_press_;
+			break;
+		case 'p':                          // p/P button pressed - start SetPageNum func
+		case 'P':
+			SetPageNum();
+			break;
+		default:
+			if (button < 0x500) return 1;  // button in down state
+	}
 
+	LSButtDN = button;
+	return 0;
+}
+
+static void __declspec(naked) check_page_buttons(void) {
 	__asm {
-		cmp  eax, 0x14B // left button
-		jnz  CheckFastLeft
-		cmp  LSPageOffset, 10
-		jl   SetRet
-		sub  LSPageOffset, 10
-		jmp  SetRet
-CheckFastLeft:
-		cmp  eax, 0x149 // fast left PGUP button
-		jnz  CheckRight
-		cmp  LSPageOffset, 100
-		jl   FirstPage
-		sub  LSPageOffset, 100
-		jmp  SetRet
-FirstPage:
-		mov  LSPageOffset, 0
-		jmp  SetRet
-CheckRight:
-		cmp  eax, 0x14D // right button
-		jnz  CheckFastRight
-		cmp  LSPageOffset, 9980
-		jg   SetRet
-		add  LSPageOffset, 10
-		jmp  SetRet
-CheckFastRight:
-		cmp  eax, 0x151 // fast right PGDN button
-		jnz  CheckSetNumber
-		cmp  LSPageOffset, 9890
-		jg   LastPage
-		add  LSPageOffset, 100
-		jmp  SetRet
-LastPage:
-		mov  LSPageOffset, 9990
-		jmp  SetRet
-CheckSetNumber:
-		cmp  eax, 'p' // p button pressed - start SetPageNum func
-		jnz  CheckSetNumber2
-		pushad
-		call SetPageNum
-		popad
-		jmp  SetRet
-CheckSetNumber2:
-		cmp  eax, 'P' // P button pressed - start SetPageNum func
-		jnz  CheckButtonDown
-		pushad
-		call  SetPageNum
-		popad
-		jmp  SetRet
-CheckButtonDown:
-		cmp  eax, 0x500 // button in down state
-		jl   CheckUp
-SetRet:
-		mov  LSButtDN, eax
-		push esi
-		mov  esi, 0x47E5D0  // reset page save list func
-		call esi
-		pop  esi
-		add  dword ptr ds:[esp], 26 // set return to button pressed code
-		jmp  EndFunc
+		pushad;
+		mov  ecx, eax;
+		call CheckPage;
+		test eax, eax;
+		popad;
+		jnz  CheckUp;
+		add  dword ptr ds:[esp], 26;        // set return to button pressed code
+		jmp  GetSlotList_;    // reset page save list func
 CheckUp:
 		// restore original code
-		cmp  eax, 0x148 // up button
-EndFunc:
-		ret
+		cmp  eax, 0x148;                    // up button
+		ret;
 	}
 }
 

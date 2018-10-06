@@ -514,7 +514,7 @@ UNLSTDfrm *LoadUnlistedFrm(char *FrmName, unsigned int folderRef) {
 /////////////////////////////////////////////////////////////////WINDOW FUNCTIONS////////////////////////////////////////////////////////////////////////
 
 //-----------------------------------------------------------------------------------------------
-int CreateWin(DWORD x, DWORD y, DWORD width, DWORD height, DWORD BGColourIndex, DWORD flags) {
+int AddWin(DWORD x, DWORD y, DWORD width, DWORD height, DWORD BGColourIndex, DWORD flags) {
 	int WinRef;
 	__asm {
 		push flags
@@ -586,30 +586,6 @@ void RedrawWin(int WinRef) {
 }
 
 /////////////////////////////////////////////////////////////////BUTTON FUNCTIONS////////////////////////////////////////////////////////////////////////
-
-//---------------------------------------------------------------------------------------------------------------------------------------------------------------------
-int CreateButton(int WinRef, DWORD Xpos, DWORD Ypos, DWORD Width, DWORD Height, DWORD HovOn, DWORD HovOff,
-                 DWORD ButtDown, DWORD ButtUp, BYTE *PicUp, BYTE *PicDown, DWORD ButType) {
-	int ret_val;
-	__asm {
-		push ButType //button type: 0x10 = move window pos, 0x20 or 0x0 = regular click, 0x23 = toggle click
-		push 0x0 //? always 0
-		push PicDown //0//button down pic index
-		push PicUp //0//button up pic index
-		push ButtUp
-		push ButtDown
-		push HovOff
-		push HovOn
-		push Height
-		mov ecx, Width
-		mov edx, Xpos
-		mov ebx, Ypos
-		mov eax, WinRef
-		call win_register_button_
-		mov ret_val, eax
-	}
-	return ret_val;
-}
 
 //-----------------------------
 int check_buttons(void) {
@@ -1490,7 +1466,7 @@ void _stdcall HeroSelectWindow(int RaceStyleFlag) {
 	DWORD ResWidth = *(DWORD*)0x4CAD6B;
 	DWORD ResHeight = *(DWORD*)0x4CAD66;
 
-	int WinRef = CreateWin(ResWidth/2 - 242, (ResHeight - 100)/2 - 65, 484, 230, 100, 0x4);
+	int WinRef = AddWin(ResWidth/2 - 242, (ResHeight - 100)/2 - 65, 484, 230, 100, 0x4);
 	if (WinRef == -1) return;
 
 	int mouseWasHidden = IsMouseHidden();
@@ -1539,17 +1515,17 @@ void _stdcall HeroSelectWindow(int RaceStyleFlag) {
 	DWORD MenuUObj, MenuDObj;
 	BYTE *MenuUSurface = GetFrmSurface(LoadFrm(6, 299), 0, 0, &MenuUObj); //MENUUP Frm
 	BYTE *MenuDSurface = GetFrmSurface(LoadFrm(6, 300), 0, 0, &MenuDObj); //MENUDOWN Frm
-	CreateButton(WinRef, 116, 181, 26, 26, -1, -1, -1, 0x0D, MenuUSurface, MenuDSurface, 0x20);
+	WinRegisterButton(WinRef, 116, 181, 26, 26, -1, -1, -1, 0x0D, MenuUSurface, MenuDSurface, 0, 0x20);
 
 	DWORD DidownUObj, DidownDObj;
 	BYTE *DidownUSurface = GetFrmSurface(LoadFrm(6, 93), 0, 0, &DidownUObj); //MENUUP Frm
 	BYTE *DidownDSurface = GetFrmSurface(LoadFrm(6, 94), 0, 0, &DidownDObj); //MENUDOWN Frm
-	CreateButton(WinRef, 28, 84, 24, 25, -1, -1, -1, 0x150, DidownUSurface, DidownDSurface, 0x20);
+	WinRegisterButton(WinRef, 28, 84, 24, 25, -1, -1, -1, 0x150, DidownUSurface, DidownDSurface, 0, 0x20);
 
 	DWORD DiupUObj, DiupDObj;
 	BYTE *DiupUSurface = GetFrmSurface(LoadFrm(6, 100), 0, 0, &DiupUObj); //MENUUP Frm
 	BYTE *DiupDSurface = GetFrmSurface(LoadFrm(6, 101), 0, 0, &DiupDObj); //MENUDOWN Frm
-	CreateButton(WinRef, 28, 59, 23, 24, -1, -1, -1, 0x148, DiupUSurface, DiupDSurface, 0x20);
+	WinRegisterButton(WinRef, 28, 59, 23, 24, -1, -1, -1, 0x148, DiupUSurface, DiupDSurface, 0, 0x20);
 
 	int oldFont;
 	oldFont = GetFont();
@@ -1990,8 +1966,8 @@ static void __declspec(naked) AddCharScrnButtons(void) {
 	WinRef = *(DWORD*)_edit_win; //char screen window ref
 
 	//race and style buttons
-	CreateButton(WinRef, 332, 0, 82, 32, -1, -1, 0x501, -1, 0, 0, 0);
-	CreateButton(WinRef, 332, 226, 82, 32, -1, -1, 0x502, -1, 0, 0, 0);
+	WinRegisterButton(WinRef, 332, 0, 82, 32, -1, -1, 0x501, -1, 0, 0, 0, 0);
+	WinRegisterButton(WinRef, 332, 226, 82, 32, -1, -1, 0x502, -1, 0, 0, 0, 0);
 
 	if (*(DWORD*)_glblmode == 1) { //equals 1 if new char screen - equals 0 if ingame char screen
 		if (NewButt01Surface == NULL) {
@@ -2019,12 +1995,12 @@ static void __declspec(naked) AddCharScrnButtons(void) {
 		if (GetFileAttributes("Appearance\\hmR01S00\0") != INVALID_FILE_ATTRIBUTES || GetFileAttributes("Appearance\\hfR01S00\0") != INVALID_FILE_ATTRIBUTES ||
 			GetFileAttributes("Appearance\\hmR01S00.dat\0") != INVALID_FILE_ATTRIBUTES || GetFileAttributes("Appearance\\hfR01S00.dat\0") != INVALID_FILE_ATTRIBUTES) {
 			//race selection buttons
-			CreateButton(WinRef, 348, 37, 20, 18, -1, -1, -1, 0x511, NewButt01Surface, NewButt01Surface + (20*18), 0x20);
-			CreateButton(WinRef, 373, 37, 20, 18, -1, -1, -1, 0x513, NewButt01Surface + (20*18*2), NewButt01Surface + (20*18*3), 0x20);
+			WinRegisterButton(WinRef, 348, 37, 20, 18, -1, -1, -1, 0x511, NewButt01Surface, NewButt01Surface + (20*18), 0, 0x20);
+			WinRegisterButton(WinRef, 373, 37, 20, 18, -1, -1, -1, 0x513, NewButt01Surface + (20*18*2), NewButt01Surface + (20*18*3), 0, 0x20);
 		}
 		//style selection buttons
-		CreateButton(WinRef, 348, 199, 20, 18, -1, -1, -1, 0x512, NewButt01Surface, NewButt01Surface+(20*18), 0x20);
-		CreateButton(WinRef, 373, 199, 20, 18, -1, -1, -1, 0x514, NewButt01Surface + (20*18*2), NewButt01Surface + (20*18*3), 0x20);
+		WinRegisterButton(WinRef, 348, 199, 20, 18, -1, -1, -1, 0x512, NewButt01Surface, NewButt01Surface+(20*18), 0, 0x20);
+		WinRegisterButton(WinRef, 373, 199, 20, 18, -1, -1, -1, 0x514, NewButt01Surface + (20*18*2), NewButt01Surface + (20*18*3), 0, 0x20);
 	}
 
 	__asm {

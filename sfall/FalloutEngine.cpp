@@ -133,6 +133,12 @@ TGameObj** ptr_obj_dude               = reinterpret_cast<TGameObj**>(_obj_dude);
 DWORD* ptr_objectTable                = reinterpret_cast<DWORD*>(_objectTable);
 DWORD* ptr_objItemOutlineState        = reinterpret_cast<DWORD*>(_objItemOutlineState);
 DWORD* ptr_optionRect                 = reinterpret_cast<DWORD*>(_optionRect);
+DWORD* ptr_optionsButtonDown          = reinterpret_cast<DWORD*>(_optionsButtonDown);
+DWORD* ptr_optionsButtonDown1         = reinterpret_cast<DWORD*>(_optionsButtonDown1);
+DWORD* ptr_optionsButtonDownKey       = reinterpret_cast<DWORD*>(_optionsButtonDownKey);
+DWORD* ptr_optionsButtonUp            = reinterpret_cast<DWORD*>(_optionsButtonUp);
+DWORD* ptr_optionsButtonUp1           = reinterpret_cast<DWORD*>(_optionsButtonUp1);
+DWORD* ptr_optionsButtonUpKey         = reinterpret_cast<DWORD*>(_optionsButtonUpKey);
 DWORD* ptr_outlined_object            = reinterpret_cast<DWORD*>(_outlined_object);
 DWORD* ptr_partyMemberAIOptions       = reinterpret_cast<DWORD*>(_partyMemberAIOptions);
 DWORD* ptr_partyMemberCount           = reinterpret_cast<DWORD*>(_partyMemberCount);
@@ -326,6 +332,7 @@ const DWORD elevator_end_ = 0x43F6D0;
 const DWORD elevator_start_ = 0x43F324;
 const DWORD endgame_slideshow_ = 0x43F788;
 const DWORD EndLoad_ = 0x47F4C8;
+const DWORD EndPipboy_ = 0x497828;
 const DWORD exec_script_proc_ = 0x4A4810;
 const DWORD executeProcedure_ = 0x46DD2C;
 const DWORD findCurrentProc_ = 0x467160;
@@ -342,6 +349,7 @@ const DWORD gdialog_barter_cleanup_tables_ = 0x448660;
 const DWORD gdialog_barter_pressed_ = 0x44A52C;
 const DWORD gdialogDisplayMsg_ = 0x445448;
 const DWORD gdProcess_ = 0x4465C0;
+const DWORD GetSlotList_ = 0x47E5D0;
 const DWORD get_input_ = 0x4C8B78;
 const DWORD get_time_ = 0x4C9370;
 const DWORD getmsg_ = 0x48504C; // eax - msg file addr, ebx - message ID, edx - int[4]  - loads string from MSG file preloaded in memory
@@ -354,6 +362,8 @@ const DWORD gsound_background_pause_ = 0x450B50;
 const DWORD gsound_background_stop_ = 0x450AB4;
 const DWORD gsound_background_unpause_ = 0x450B64;
 const DWORD gsound_play_sfx_file_ = 0x4519A8;
+const DWORD gsound_red_butt_press_ = 0x451970;
+const DWORD gsound_red_butt_release_ = 0x451978;
 const DWORD handle_inventory_ = 0x46E7B0;
 const DWORD inc_game_time_ = 0x4A34CC;
 const DWORD inc_stat_ = 0x4AF5D4;
@@ -612,6 +622,7 @@ const DWORD win_line_ = 0x4D6B24;
 const DWORD win_print_ = 0x4D684C;
 const DWORD win_register_button_ = 0x4D8260;
 const DWORD win_register_button_disable_ = 0x4D8674;
+const DWORD win_register_button_sound_func_ = 0x4D87F8;
 const DWORD win_show_ = 0x4D6DAC;
 const DWORD wmInterfaceScrollTabsStart_ = 0x4C219C;
 const DWORD wmPartyWalkingStep_ = 0x4C1F90;
@@ -850,7 +861,7 @@ TGameObj* __stdcall InvenRightHand(TGameObj* critter) {
 	}
 }
 
-int __stdcall CreateWindowFunc(const char* winName, DWORD x, DWORD y, DWORD width, DWORD height, DWORD bgColorIndex, DWORD flags) {
+long __stdcall CreateWindowFunc(const char* winName, long x, long y, long width, long height, long bgColorIndex, long flags) {
 	__asm {
 		push flags
 		push bgColorIndex
@@ -860,5 +871,33 @@ int __stdcall CreateWindowFunc(const char* winName, DWORD x, DWORD y, DWORD widt
 		mov edx, x
 		mov eax, winName
 		call createWindow_
+	}
+}
+
+long __stdcall WinRegisterButton(DWORD winRef, long xPos, long yPos, long width, long height, long hoverOn, long hoverOff, long buttonDown, long buttonUp, BYTE* pictureUp, BYTE* pictureDown, long arg12, long buttonType) {
+	__asm {
+		push buttonType
+		push arg12
+		push pictureDown
+		push pictureUp
+		push buttonUp
+		push buttonDown
+		push hoverOff
+		push hoverOn
+		push height
+		mov ecx, width
+		mov ebx, yPos
+		mov edx, xPos
+		mov eax, winRef
+		call win_register_button_
+	}
+}
+
+long __fastcall WordWrap(const char* text, int maxWidth, DWORD* buf, BYTE* count) {
+	__asm {
+		mov eax, ecx
+		mov ecx, count
+		mov ebx, buf
+		call _word_wrap_
 	}
 }

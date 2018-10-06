@@ -147,6 +147,12 @@
 #define _objectTable                0x639DA0
 #define _objItemOutlineState        0x519798
 #define _optionRect                 0x58ECC0
+#define _optionsButtonDown          0x59D400
+#define _optionsButtonDown1         0x570518
+#define _optionsButtonDownKey       0x518F2C
+#define _optionsButtonUp            0x59D3FC
+#define _optionsButtonUp1           0x570514
+#define _optionsButtonUpKey         0x518F28
 #define _outlined_object            0x518D94
 #define _partyMemberAIOptions       0x519DB8
 #define _partyMemberCount           0x519DAC
@@ -336,6 +342,12 @@ extern TGameObj** ptr_obj_dude;
 extern DWORD* ptr_objectTable;
 extern DWORD* ptr_objItemOutlineState;
 extern DWORD* ptr_optionRect;
+extern DWORD* ptr_optionsButtonDown;
+extern DWORD* ptr_optionsButtonDown1;
+extern DWORD* ptr_optionsButtonDownKey;
+extern DWORD* ptr_optionsButtonUp;
+extern DWORD* ptr_optionsButtonUp1;
+extern DWORD* ptr_optionsButtonUpKey;
 extern DWORD* ptr_outlined_object;
 extern DWORD* ptr_partyMemberAIOptions;
 extern DWORD* ptr_partyMemberCount;
@@ -511,6 +523,7 @@ extern const DWORD elevator_end_;
 extern const DWORD elevator_start_;
 extern const DWORD endgame_slideshow_;
 extern const DWORD EndLoad_;
+extern const DWORD EndPipboy_;
 extern const DWORD exec_script_proc_; // unsigned int aScriptID<eax>, int aProcId<edx>
 extern const DWORD executeProcedure_; // <eax> - programPtr, <edx> - procNumber
 extern const DWORD fadeSystemPalette_;
@@ -526,6 +539,7 @@ extern const DWORD gdialog_barter_cleanup_tables_;
 extern const DWORD gdialog_barter_pressed_;
 extern const DWORD gdialogDisplayMsg_;
 extern const DWORD gdProcess_;
+extern const DWORD GetSlotList_;
 extern const DWORD get_input_;
 extern const DWORD get_time_;
 extern const DWORD getmsg_;
@@ -538,6 +552,8 @@ extern const DWORD gsound_background_pause_;
 extern const DWORD gsound_background_stop_;
 extern const DWORD gsound_background_unpause_;
 extern const DWORD gsound_play_sfx_file_;
+extern const DWORD gsound_red_butt_press_;
+extern const DWORD gsound_red_butt_release_;
 extern const DWORD handle_inventory_;
 extern const DWORD inc_game_time_;
 extern const DWORD inc_stat_;
@@ -799,6 +815,7 @@ extern const DWORD win_line_;
 extern const DWORD win_print_;
 extern const DWORD win_register_button_;
 extern const DWORD win_register_button_disable_;
+extern const DWORD win_register_button_sound_func_;
 extern const DWORD win_show_;
 extern const DWORD wmInterfaceScrollTabsStart_;
 extern const DWORD wmPartyWalkingStep_;
@@ -944,4 +961,9 @@ void __declspec() DebugPrintf(const char* fmt, ...);
 const char* __stdcall FindCurrentProc(TProgram* program);
 
 // creates a window with the name and flags
-int __stdcall CreateWindowFunc(const char* winName, DWORD x, DWORD y, DWORD width, DWORD height, DWORD bgColorIndex, DWORD flags);
+long __stdcall CreateWindowFunc(const char* winName, long x, long y, long width, long height, long bgColorIndex, long flags);
+
+// creates a button
+long __stdcall WinRegisterButton(DWORD winRef, long xPos, long yPos, long width, long height, long hoverOn, long hoverOff, long buttonDown, long buttonUp, BYTE* pictureUp, BYTE* pictureDown, long arg12, long buttonType);
+
+long __fastcall WordWrap(const char* text, int maxWidth, DWORD* buf, BYTE* count);
