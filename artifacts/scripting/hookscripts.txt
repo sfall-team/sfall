@@ -558,3 +558,21 @@ int     arg3 - skill used
 
 int     ret1 - a new critter who used the skill, pass -1 to cancel the skill use, 0 - for skip this return argument
 int     ret2 - pass 1 to allow the use of skill in combat (only for dude or critter under control of the player)
+
+-------------------------------------------
+
+HOOK_ONEXPLOSION (hs_onexplosion.int)
+
+Runs before the explosion, checking all the tiles in the radius of this explosion.
+The tiles checking is interrupted when 6 additional targets(critters) are received.
+
+int     arg1 - event, sets to 1 in cases of checking without causing damage to objects
+Critter arg2 - the attacker critter
+int     arg3 - the explosion tile
+int     arg4 - checked tile in explosion radius
+Obj     arg5 - first found object on checked tile
+Critter arg6 - the target critter, may be 0 or equal to attacker
+int     arg7 - sets to 1 when using throwing weapons (like grenades), 0 otherwise
+
+int     ret1 - overrides the found object on the checked tile, pass 0 to skip the object
+

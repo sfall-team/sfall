@@ -57,6 +57,7 @@
 #define HOOK_EXPLOSIVETIMER   (33)
 #define HOOK_DESCRIPTIONOBJ   (34)
 #define HOOK_USESKILLON       (35)
+#define HOOK_ONEXPLOSION      (36)
 
 //Valid arguments to list_begin
 #define LIST_CRITTERS    (0)

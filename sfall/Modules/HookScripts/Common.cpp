@@ -25,15 +25,23 @@ DWORD cRetTmp; // how many return values were set by specific hook script (when 
 std::vector<HookScript> hooks[numHooks];
 
 void LoadHookScript(const char* name, int id) {
-	if (id >= numHooks) return;
+	if (id >= numHooks || IsGameScript(name)) return;
 
+	bool fullpath = false;
 	char filename[MAX_PATH];
-	sprintf(filename, "scripts\\%s.int", name);
-	if (fo::func::db_access(filename) && !IsGameScript(name)) {
-		ScriptProgram prog;
+	if (HookScripts::hookScriptPathFmt.empty()) {
+		sprintf(filename, "scripts\\%s.int", name);
+	} else {
+		sprintf_s(filename, HookScripts::hookScriptPathFmt.c_str(), name);
+		name = filename;
+		fullpath = true;
+	}
+
+	ScriptProgram prog;
+	if (fo::func::db_access(filename)) {
 		dlog(">", DL_HOOK);
-		dlog(name, DL_HOOK);
-		LoadScriptProgram(prog, name);
+		dlog(filename, DL_HOOK);
+		LoadScriptProgram(prog, name, fullpath);
 		if (prog.ptr) {
 			dlogr(" Done", DL_HOOK);
 			HookScript hook;
@@ -42,12 +50,11 @@ void LoadHookScript(const char* name, int id) {
 			hook.isGlobalScript = false;
 			hooks[id].push_back(hook);
 			AddProgramToMap(prog);
-			if (!HookScripts::injectAllHooks) HookScripts::InjectingHook(id); // inject hook to engine code
 		} else {
 			dlogr(" Error!", DL_HOOK);
 		}
 	}
-	if (HookScripts::injectAllHooks) HookScripts::InjectingHook(id);
+	if (HookScripts::injectAllHooks || prog.ptr != nullptr) HookScripts::InjectingHook(id); // inject hook to engine code
 }
 
 void _stdcall BeginHook() {

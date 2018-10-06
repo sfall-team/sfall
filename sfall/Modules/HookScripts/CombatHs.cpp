@@ -344,6 +344,51 @@ normalTurn:
 	}
 }
 
+fo::GameObject* __fastcall ComputeExplosionOnExtrasHook_Script(fo::GameObject* object, DWORD checkTile, fo::ComputeAttackResult* ctdSource, DWORD isCheck, DWORD isThrowing, fo::GameObject* who) {
+	fo::GameObject* result = object;
+
+	BeginHook();
+	argCount = 7;
+
+	args[0] = isCheck;
+	args[1] = (DWORD)ctdSource->attacker;
+	args[2] = ctdSource->targetTile;
+	args[3] = checkTile;
+	args[4] = (DWORD)object;
+	args[5] = (DWORD)who;
+	args[6] = isThrowing;
+
+	RunHookScript(HOOK_ONEXPLOSION);
+
+	if (cRet > 0) result = (fo::GameObject*)rets[0]; // override object
+
+	EndHook();
+	return result;
+}
+
+static void _declspec(naked) ComputeExplosionOnExtrasHook() {
+	__asm {
+		cmp  dword ptr [esp + 0x34 + 4], 0x429533;  // skip hook when AI assesses the situation in choosing the best weapon
+		jz   end;
+		cmp  dword ptr [esp + 0x34 + 4], 0x4296BC;
+		jnz  hook;
+end:
+		jmp  fo::funcoffs::obj_blocking_at_;
+hook:
+		push ecx;
+		push eax;                                   // who (target/source)
+		call fo::funcoffs::obj_blocking_at_;
+		push [esp + 0x34 - 0x24 + 12];              // isThrowing
+		push [esp + 0x34 - 0x34 + 16];              // isCheck (bypass damage)
+		push esi;                                   // source ctd
+		mov  ecx, eax;                              // object
+		mov  edx, edi;                              // check tile
+		call ComputeExplosionOnExtrasHook_Script;
+		pop  ecx;
+		retn;
+	}
+}
+
 void Inject_ToHitHook() {
 	HookCalls(ToHitHook, {
 		0x421686, // combat_safety_invalidate_weapon_func_
@@ -407,6 +452,10 @@ void Inject_CombatTurnHook() {
 	HookCalls(CombatTurnHook, { 0x422D87, 0x422E20 });
 }
 
+void Inject_OnExplosionHook() {
+	HookCall(0x423D70, ComputeExplosionOnExtrasHook);
+}
+
 void InitCombatHookScripts() {
 
 	LoadHookScript("hs_tohit", HOOK_TOHIT);
@@ -417,7 +466,7 @@ void InitCombatHookScripts() {
 	LoadHookScript("hs_itemdamage", HOOK_ITEMDAMAGE);
 	LoadHookScript("hs_ammocost", HOOK_AMMOCOST);
 	LoadHookScript("hs_combatturn", HOOK_COMBATTURN);
-
+	LoadHookScript("hs_onexplosion", HOOK_ONEXPLOSION);
 }
 
 }

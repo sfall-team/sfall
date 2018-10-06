@@ -62,6 +62,7 @@ enum HookType
 	HOOK_EXPLOSIVETIMER   = 33,
 	HOOK_DESCRIPTIONOBJ   = 34,
 	HOOK_USESKILLON       = 35,
+	HOOK_ONEXPLOSION      = 36,
 	HOOK_COUNT
 };
 
@@ -70,6 +71,8 @@ class HookScripts : public Module {
 public:
 	const char* name() { return "HookScripts"; }
 	void init();
+
+	static std::string hookScriptPathFmt;
 
 	static void InjectingHook(int hookId);
 	static bool IsInjectHook(int hookId);

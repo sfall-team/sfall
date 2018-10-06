@@ -22,6 +22,7 @@
 #include "..\main.h"
 #include "..\FalloutEngine\Fallout2.h"
 #include "..\InputFuncs.h"
+#include "..\Utils.h"
 #include "HookScripts\Common.h"
 #include "HookScripts\CombatHs.h"
 #include "HookScripts\DeathHs.h"
@@ -35,6 +36,8 @@
 
 namespace sfall
 {
+
+std::string HookScripts::hookScriptPathFmt;
 
 typedef void(*HookInjectFunc)();
 struct HooksInjectInfo {
@@ -80,6 +83,7 @@ static HooksInjectInfo injectHooks[] = {
 	{HOOK_EXPLOSIVETIMER,   Inject_ExplosiveTimerHook,   false},
 	{HOOK_DESCRIPTIONOBJ,   Inject_DescriptionObjHook,   false},
 	{HOOK_USESKILLON,       Inject_UseSkillOnHook,       false},
+	{HOOK_ONEXPLOSION,      Inject_OnExplosionHook,      false},
 };
 
 bool HookScripts::injectAllHooks;
@@ -229,6 +233,17 @@ void HookScripts::init() {
 	OnMouseClick() += MouseClickHook;
 	LoadGameHook::OnGameModeChange() += GameModeChangeHook;
 	LoadGameHook::OnAfterGameStarted() += SourceUseSkillOnInit;
+
+	hookScriptPathFmt = GetConfigString("Scripts", "HookScriptPath", "", 255);
+	if (!hookScriptPathFmt.empty()) {
+		ToLowerCase(hookScriptPathFmt);
+		int len = hookScriptPathFmt.length();
+		if (hookScriptPathFmt[len - 1] != '\\' ) {
+			hookScriptPathFmt += "\\%s.int";
+		} else {
+			hookScriptPathFmt += "%s.int";
+		}
+	}
 
 	HookScripts::injectAllHooks = (isDebug && (GetConfigInt("Debugging", "InjectAllGameHooks", 0) != 0));
 }
