@@ -531,6 +531,9 @@ Note: this function does not work for pid's dynamite and plastic explosives
 - if the value for the map was not previously set, returned the value -1
 - the can_rest_here values from the maps.txt file are ignored
 
+> object sfall_func0("dialog_obj")
+- returns a pointer to the object(critter) with which the dialogue/trading is conducted
+
 ------------------------
 ------ MORE INFO -------
 ------------------------

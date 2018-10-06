@@ -646,7 +646,7 @@ void ScriptExtender::init() {
 	Worldmap::OnWorldmapLoop() += RunGlobalScriptsOnWorldMap;
 
 	globalScriptPathList = GetConfigList("Scripts", "GlobalScriptPaths", "scripts\\gl*.int", 255);
-	for (int i = 0; i < globalScriptPathList.size(); i++) {
+	for (unsigned int i = 0; i < globalScriptPathList.size(); i++) {
 		ToLowerCase(globalScriptPathList[i]);
 	}
 

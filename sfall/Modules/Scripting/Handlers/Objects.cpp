@@ -20,6 +20,7 @@
 #include "..\..\Explosions.h"
 #include "..\..\Inventory.h"
 #include "..\..\Knockback.h"
+#include "..\..\LoadGameHook.h"
 #include "..\..\Objects.h"
 #include "..\..\PartyControl.h"
 #include "..\..\ScriptExtender.h"
@@ -428,6 +429,10 @@ void sf_item_make_explosive(OpcodeContext& ctx) {
 
 void sf_get_current_size(OpcodeContext& ctx) {
 	ctx.setReturn(sf_item_total_size(ctx.arg(0).asObject()));
+}
+
+void sf_get_dialog_object(OpcodeContext& ctx) {
+	ctx.setReturn(InDialog() ? fo::var::dialog_target : 0);
 }
 
 }
