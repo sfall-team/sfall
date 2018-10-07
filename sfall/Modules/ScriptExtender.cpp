@@ -661,9 +661,6 @@ void ScriptExtender::init() {
 	}
 	modifiedIni = GetConfigInt("Main", "ModifiedIni", 0);
 
-	// increase the processing limit of proto_ptr_ engine function
-	SimplePatch<DWORD>(0x4A21B3, "Misc", "ProtoProcessingLimit", 512, 512, 16384);
-
 	arraysBehavior = GetConfigInt("Misc", "arraysBehavior", 1);
 	if (arraysBehavior > 0) {
 		arraysBehavior = 1; // only 1 and 0 allowed at this time

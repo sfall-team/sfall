@@ -11,6 +11,7 @@ public:
 	void init();
 
 	static void SetAutoUnjamLockTime(DWORD time);
+	static void LoadProtoAutoMaxLimit();
 };
 
 }
