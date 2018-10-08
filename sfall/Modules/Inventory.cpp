@@ -37,6 +37,7 @@ static DWORD invSizeMaxLimit;
 
 static DWORD reloadWeaponKey = 0;
 static DWORD itemFastMoveKey = 0;
+static DWORD skipFromContainer = 0;
 
 void InventoryKeyPressedHook(DWORD dxKey, bool pressed, DWORD vKey) {
 	if (pressed && reloadWeaponKey && dxKey == reloadWeaponKey && IsMapLoaded() && (GetLoopFlags() & ~(COMBAT | PCOMBAT)) == 0) {
@@ -696,10 +697,17 @@ static void __declspec(naked) do_move_timer_hook() {
 		pushad;
 	}
 
-	KeyDown(itemFastMoveKey);
+	KeyDown(itemFastMoveKey); // check pressed
 
 	__asm {
+		cmp  skipFromContainer, 0;
+		jz   noSkip;
+		cmp  dword ptr [esp + 0x14 + 36], 0x474A43;
+		jnz  noSkip;
 		test eax, eax;
+		setz al;
+noSkip:
+		test eax, eax;  // set if pressed
 		popad;
 		jz   end;
 		add  esp, 4;    // destroy ret
@@ -816,7 +824,7 @@ void Inventory::init() {
 		HookCall(0x4772AA, item_add_mult_hook);
 	}
 
-	// Do not call the 'Move Items' window when using drap and drop to reload weapons in the inventory
+	// Do not call the 'Move Items' window when using drag and drop to reload weapons in the inventory
 	int ReloadReserve = GetConfigInt("Misc", "ReloadReserve", -1);
 	if (ReloadReserve >= 0) {
 		SafeWrite32(0x47655F, ReloadReserve);     // mov  eax, ReloadReserve
@@ -828,6 +836,8 @@ void Inventory::init() {
 	itemFastMoveKey = GetConfigInt("Input", "ItemFastMoveKey", DIK_LCONTROL);
 	if (itemFastMoveKey > 0) {
 		HookCall(0x476897, do_move_timer_hook);
+		// Do not call the 'Move Items' window when drag and drop from containers
+		skipFromContainer = GetConfigInt("Misc", "FastMoveFromContainer", 0);
 	}
 
 	if (GetConfigInt("Misc", "ItemCounterDefaultMax", 0)) {
