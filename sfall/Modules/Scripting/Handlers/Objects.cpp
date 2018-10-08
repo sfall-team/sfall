@@ -19,6 +19,7 @@
 #include "..\..\..\FalloutEngine\Fallout2.h"
 #include "..\..\Knockback.h"
 #include "..\..\Inventory.h"
+#include "..\..\LoadGameHook.h"
 #include "..\..\Objects.h"
 #include "..\..\PartyControl.h"
 #include "..\..\ScriptExtender.h"
@@ -430,6 +431,10 @@ void sf_set_unjam_locks_time(OpcodeContext& ctx) {
 
 void sf_get_current_inven_size(OpcodeContext& ctx) {
 	ctx.setReturn(sf_item_total_size(ctx.arg(0).asObject()));
+}
+
+void sf_get_dialog_object(OpcodeContext& ctx) {
+	ctx.setReturn(InDialog() ? fo::var::dialog_target : 0);
 }
 
 }

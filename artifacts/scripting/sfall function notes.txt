@@ -516,6 +516,9 @@ Some utility/math functions are available:
 - returns -1 if the rest value of the map was not previously set (i.e. no data for the map in sfalldb.sav)
 - the can_rest_here values in maps.txt are ignored
 
+> object sfall_func0("dialog_obj")
+- returns the object (critter) the player is having a conversation or bartering with
+
 ------------------------
 ------ MORE INFO -------
 ------------------------
