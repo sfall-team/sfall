@@ -1117,84 +1117,69 @@ static void __declspec(naked) NBCreateChar() {
 	}
 }
 
-static void __declspec(naked) get_proto_data() {
-	__asm {
-		pushad;
-		sub esp, 4;
-		mov ebp, eax;
-		call interpretPopShort_;
-		mov edi, eax;
-		mov eax, ebp;
-		call interpretPopLong_;
-		mov ecx, eax;
-		mov eax, ebp;
-		call interpretPopShort_;
-		mov esi, eax;
-		mov eax, ebp;
-		call interpretPopLong_;
-		cmp di, VAR_TYPE_INT;
-		jnz fail;
-		cmp si, VAR_TYPE_INT;
-		jnz fail;
-		mov edx, esp;
-		call proto_ptr_;
-		mov eax, [esp];
-		test eax, eax;
-		jz fail;
-		mov edx, [eax+ecx/**4*/];
-		jmp end;
-fail:
-		xor edx, edx;
-		dec edx;
-end:
-		mov eax, ebp;
-		call interpretPushLong_;
-		mov eax, ebp;
-		mov edx, VAR_TYPE_INT;
-		call interpretPushShort_;
-		add esp, 4;
-		popad;
-		retn;
+static void _stdcall get_proto_data2() {
+	const ScriptValue &pidArg = opHandler.arg(0),
+					  &offsetArg = opHandler.arg(1);
+	if (pidArg.isInt() && offsetArg.isInt()) { // argument validation
+		char* protoPtr;
+		char* *protoPtrRef = &protoPtr;
+		int pid = pidArg.asInt();
+		int result;
+		__asm {
+			mov  edx, protoPtrRef;
+			mov  eax, pid;
+			call proto_ptr_;
+			mov  result, eax;
+		}
+		if (result != -1) {
+			result = *(long*)((BYTE*)protoPtr + offsetArg.asInt());
+		} else {
+			opHandler.printOpcodeError("get_proto_data() - failed to load a prototype id: %d", pid);
+		}
+		opHandler.setReturn(result);
+	} else {
+		opHandler.printOpcodeError("get_proto_data() - invalid arguments.");
+		opHandler.setReturn(-1);
 	}
 }
-static void __declspec(naked) set_proto_data() {
-	__asm {
-		pushad;
-		sub esp, 4;
-		mov ebp, eax;
-		call interpretPopShort_;
-		mov edi, eax;
-		mov eax, ebp;
-		call interpretPopLong_;
-		mov ecx, eax;
-		mov eax, ebp;
-		call interpretPopShort_;
-		mov esi, eax;
-		mov eax, ebp;
-		call interpretPopLong_;
-		mov ebx, eax;
-		mov eax, ebp;
-		call interpretPopShort_;
-		xchg eax, ebp;
-		call interpretPopLong_;
-		cmp di, VAR_TYPE_INT;
-		jnz end;
-		cmp si, VAR_TYPE_INT;
-		jnz end;
-		cmp bp, VAR_TYPE_INT;
-		jnz end;
-		//mov eax, [eax+0x64];
-		mov edx, esp;
-		call proto_ptr_;
-		mov eax, [esp];
-		test eax, eax;
-		jz end;
-		mov [eax+ebx/**4*/], ecx;
-end:
-		add esp, 4;
-		popad;
-		retn;
+
+static void __declspec(naked) get_proto_data() {
+	_WRAP_OPCODE(get_proto_data2, 2, 1)
+}
+
+static bool protoMaxLimitPatch = false;
+static void _stdcall set_proto_data2() {
+	const ScriptValue &pidArg = opHandler.arg(0),
+					  &offsetArg = opHandler.arg(1),
+					  &valueArg = opHandler.arg(2);
+	if (pidArg.isInt() && offsetArg.isInt() && valueArg.isInt()) { // argument validation
+		char* protoPtr;
+		char* *protoPtrRef = &protoPtr;
+		int pid = pidArg.asInt();
+		int result;
+		__asm {
+			mov  edx, protoPtrRef;
+			mov  eax, pid;
+			call proto_ptr_;
+			mov  result, eax;
+		}
+		if (result != -1) {
+			*(long*)((BYTE*)protoPtr + offsetArg.asInt()) = valueArg.asInt();
+			if (!protoMaxLimitPatch) {
+				LoadProtoAutoMaxLimit();
+				protoMaxLimitPatch = true;
+			}
+		} else {
+			opHandler.printOpcodeError("set_proto_data() - failed to load a prototype id: %d", pid);
+		}
+	} else {
+		opHandler.printOpcodeError("set_proto_data() - invalid arguments.");
+		opHandler.setReturn(-1);
 	}
+}
+
+static void __declspec(naked) set_proto_data() {
+	_WRAP_OPCODE(set_proto_data2, 3, 0)
 }
 
 static void __declspec(naked) funcHeroSelectWin() {//for opening the appearance selection window

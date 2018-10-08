@@ -21,14 +21,14 @@
 #define WEAPON_2HAND          512  // 0x00000200 - 2Hnd (weapon is two-handed)
 
 #define ATKMODE_PRI_NONE        0
-#define ATKMODE_PRI_PUNCH       1
-#define ATKMODE_PRI_KICK        2
-#define ATKMODE_PRI_SWING       3
-#define ATKMODE_PRI_THRUST      4
-#define ATKMODE_PRI_THROW       5
-#define ATKMODE_PRI_SINGLE      6
-#define ATKMODE_PRI_BURST       7
-#define ATKMODE_PRI_FLAME       8
+#define ATKMODE_PRI_PUNCH       1  // 0001
+#define ATKMODE_PRI_KICK        2  // 0010
+#define ATKMODE_PRI_SWING       3  // 0011
+#define ATKMODE_PRI_THRUST      4  // 0100
+#define ATKMODE_PRI_THROW       5  // 0101
+#define ATKMODE_PRI_SINGLE      6  // 0110
+#define ATKMODE_PRI_BURST       7  // 0111
+#define ATKMODE_PRI_FLAME       8  // 1000
 #define ATKMODE_SEC_NONE        0
 #define ATKMODE_SEC_PUNCH      16  // 0x00000010
 #define ATKMODE_SEC_KICK       32  // 0x00000020
@@ -75,15 +75,21 @@
 // offsets for get_proto_data
 #define PROTO_PID             (1)
 #define PROTO_TEXTID          (4)
+#define PROTO_FID             (8)
 
 // items
+#define PROTO_IT_LDIST       (12)
+#define PROTO_IT_LINT        (16)
+#define PROTO_IT_FLAG        (20)
 #define PROTO_IT_FLAGS       (24)
+#define PROTO_IT_SCRIPTID    (28)
 #define PROTO_IT_TYPE        (32)
 #define PROTO_IT_MATERIAL   (108)
 #define PROTO_IT_SIZE       (112)
 #define PROTO_IT_WEIGHT     (116)
 #define PROTO_IT_COST       (120)
 #define PROTO_IT_INV_FID    (124)
+#define PROTO_IT_SOUND      (128)  // byte
 
 // weapons
 #define PROTO_WP_ANIM        (36)
@@ -161,7 +167,11 @@
 #define PROTO_DR_ADDICT_DELAY   (100)
 
 // critters
-#define PROTO_CR_FLAGS           (32)
+#define PROTO_CR_LDIST           (20)
+#define PROTO_CR_LINT            (24)
+#define PROTO_CR_FLAG            (28)
+#define PROTO_CR_FLAGS           (32)  // Critter Flags
+#define PROTO_CR_SCRIPTID        (36)
 #define PROTO_CR_HEAD_FID        (40)
 #define PROTO_CR_AI_PACKET       (44)
 #define PROTO_CR_TEAM_NUM        (48)

@@ -42,6 +42,7 @@ typedef struct {
 } sScriptProgram;
 
 void ScriptExtenderSetup();
+void LoadProtoAutoMaxLimit();
 bool _stdcall isGameScript(const char* filename);
 void LoadGlobalScripts();
 void ClearGlobalScripts();

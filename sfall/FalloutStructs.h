@@ -61,11 +61,11 @@ struct TGameObj
 	char gap_44[16];
 	long lastTarget;
 	char gap_58[12];
-	long pid;
+	DWORD pid;
 	long cid;
 	long lightDistance;
 	long lightIntensity;
-	char outline[4];
+	DWORD outline;
 	long scriptID;
 	TGameObj* owner;
 	long script_index;
@@ -100,16 +100,18 @@ struct TComputeAttack
 struct TScript
 {
 	long script_id;
-	char gap_4[4];
+	long next;
+	// first 3 bits - elevation, rest - tile number
 	long elevation_and_tile;
 	long spatial_radius;
-	char gap_10[4];
+	long flags;
 	long script_index;
 	TProgram *program_ptr;
 	long self_obj_id;
-	char gap_20[8];
+	long local_var_offset;
+	long num_local_vars;
 	long scr_return;
-	char gap_2C[4];
+	long action;
 	long fixed_param;
 	TGameObj *self_obj;
 	TGameObj *source_obj;
