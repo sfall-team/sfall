@@ -149,6 +149,7 @@
 #define get_explosion_damage(itemPid)         metarule2_explosions(6, pid, 0)
 #define set_dynamite_damage(minDmg, maxDmg)   metarule2_explosions(7, minDmg, maxDmg)
 #define set_plastic_damage(minDmg, maxDmg)    metarule2_explosions(8, minDmg, maxDmg)
+#define set_explosion_max_targets(x)          metarule2_explosions(9, x, 0)
 
 #define GAME_MSG_COMBAT      (0)
 #define GAME_MSG_AI          (1)

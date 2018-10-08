@@ -48,6 +48,7 @@ static bool onlyOnce = false;
 static bool lightingEnabled = false;
 static bool explosionsMetaruleReset = false;
 static bool explosionsDamageReset = true;
+static bool explosionMaxTargetReset = false;
 
 static const DWORD ranged_attack_lighting_fix_back = 0x4118F8;
 
@@ -400,6 +401,7 @@ enum MetaruleExplosionsMode {
 	EXPL_GET_EXPLOSION_DAMAGE = 6,
 	EXPL_SET_DYNAMITE_EXPLOSION_DAMAGE = 7,
 	EXPL_SET_PLASTIC_EXPLOSION_DAMAGE = 8,
+	EXPL_SET_EXPLOSION_MAX_TARGET = 9,
 };
 
 int _stdcall ExplosionsMetaruleFunc(int mode, int arg1, int arg2) {
@@ -439,6 +441,14 @@ int _stdcall ExplosionsMetaruleFunc(int mode, int arg1, int arg2) {
 		case EXPL_SET_PLASTIC_EXPLOSION_DAMAGE:
 			SetExplosionDamage(fo::ProtoId::PID_PLASTIC_EXPLOSIVES, arg1, arg2);
 			return 0;
+		case EXPL_SET_EXPLOSION_MAX_TARGET:
+			if (arg1 > 0 && arg1 < 7) {
+				SafeWrite8(0x423C93, arg1);
+				explosionMaxTargetReset = true;
+			} else {
+				return 0;
+			}
+			break;
 		default:
 			return -1;
 	}
@@ -461,6 +471,12 @@ void ResetExplosionSettings() {
 	for (int i = 0; i < numDmgChecks; i++) {
 		SafeWrite8(explosion_dmg_check_adr[i], fo::DamageType::DMG_explosion);
 	}
+	// explosion max target
+	if (explosionMaxTargetReset) {
+		SafeWrite8(0x423C93, 6);
+		explosionMaxTargetReset = false;
+	}
+
 	explosionsMetaruleReset = false;
 }
 
@@ -490,7 +506,6 @@ void Explosions::init() {
 		MakeJump(0x4118E1, ranged_attack_lighting_fix);
 		MakeJump(0x410A4A, fire_dance_lighting_fix1);
 		MakeJump(0x415A3F, anim_set_check_light_fix); // this allows to change light intensity
-
 		dlogr(" Done", DL_INIT);
 	}
 
@@ -500,8 +515,10 @@ void Explosions::init() {
 	// after each combat attack, reset metarule_explosions settings
 	MainLoopHook::OnAfterCombatAttack() += ResetExplosionSettings;
 
-	LoadGameHook::OnGameReset() += ResetExplosionRadius;
-	LoadGameHook::OnGameReset() += SetDefaultExplosionDamage;
+	LoadGameHook::OnGameReset() += []() {
+		ResetExplosionRadius();
+		SetDefaultExplosionDamage();
+	};
 }
 
 }

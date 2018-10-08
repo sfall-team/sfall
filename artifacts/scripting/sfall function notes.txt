@@ -244,6 +244,9 @@ was made as a dirty easy hack to allow dynamically change some explosion paramet
 > void set_plastic_damage(minDmg, maxDmg)
 - sets the minimum and maximum damage for an explosion of plastic explosive.
 
+> void set_explosion_max_targets(x)
+- sets the maximum number of targets for an explosion, valid range 1-6 (default value is 6)
+
 Some utility/math functions are available:
 
 > array string_split(string, split)
