@@ -48,6 +48,43 @@ isFloat:
 	}
 }
 
+static const DWORD UnarmedAttacksFixEnd = 0x423A0D;
+static void __declspec(naked) compute_attack_hack() {
+	__asm {
+		mov  ecx, 5;                        // 5% chance of critical hit
+		cmp  edx, ATKTYPE_POWERKICK;        // Power Kick
+		je   RollCheck;
+		cmp  edx, ATKTYPE_HAMMERPUNCH;      // Hammer Punch
+		je   RollCheck; 
+		add  ecx, 5;                        // 10% chance of critical hit
+		cmp  edx, ATKTYPE_HOOKKICK;         // Hook Kick
+		je   RollCheck;
+		cmp  edx, ATKTYPE_JAB;              // Jab
+		je   RollCheck;
+		add  ecx, 5;                        // 15% chance of critical hit
+		cmp  edx, ATKTYPE_HAYMAKER;         // Haymaker
+		je   RollCheck;
+		add  ecx, 5;                        // 20% chance of critical hit
+		cmp  edx, ATKTYPE_PALMSTRIKE;       // Palm Strike
+		je   RollCheck;
+		add  ecx, 20;                       // 40% chance of critical hit
+		cmp  edx, ATKTYPE_PIERCINGSTRIKE;   // Piercing Strike
+		je   RollCheck;
+		cmp  edx, ATKTYPE_PIERCINGKICK;     // Piercing Kick
+		jne  end;
+		add  ecx, 10;                       // 50% chance of critical hit
+RollCheck:
+		mov  edx, 100;
+		mov  eax, 1;
+		call fo::funcoffs::roll_random_;
+		cmp  eax, ecx;                      // Check chance
+		jg   end;
+		mov  ebx, ROLL_CRITICAL_SUCCESS;    // Upgrade to critical hit
+end:
+		jmp  UnarmedAttacksFixEnd;
+	}
+}
+
 static void __declspec(naked) SharpShooterFix() {
 	__asm {
 		call fo::funcoffs::stat_level_            // Perception
@@ -1609,6 +1646,18 @@ skip:
 	}
 }
 
+static void __declspec(naked) item_w_range_hook() {
+	__asm {
+		call fo::funcoffs::stat_level_;  // get ST
+		lea  ecx, [eax + ebx];           // ebx - bonus "Heave Ho"
+		sub  ecx, 10;                    // compare ST + bonus <= 10
+		jbe  skip;
+		sub  ebx, ecx;                   // cutoff
+skip:
+		retn;
+	}
+}
+
 void BugFixes::init()
 {
 	#ifndef NDEBUG
@@ -1627,6 +1676,12 @@ void BugFixes::init()
 	// for op_div:
 	SafeWrite16(0x46A566, 0x04DB);
 	SafeWrite16(0x46A4E7, 0x04DB);
+
+	//if(GetConfigInt("Misc", "SpecialUnarmedAttacksFix", 1)) {
+	dlog("Applying Special Unarmed Attacks fix.", DL_INIT);
+	MakeJump(0x42394D, compute_attack_hack);
+	dlogr(" Done", DL_INIT);
+	//}
 
 	//if (GetConfigInt("Misc", "SharpshooterFix", 1)) {
 		dlog("Applying Sharpshooter patch.", DL_INIT);
@@ -2054,6 +2109,9 @@ void BugFixes::init()
 	SafeWrite16(0x43C369, 0x0DFE);   // replaces mov byte ptr ds:[0x570A29], dh > dec byte ptr ds:[0x570A29]
 	// If there are unused perks, then call the selection window of perks
 	SafeWrite8(0x43C370, 0xB1);      // jump 0x43C322
+
+	// Fix for "Heave Ho" perk, increase strength stat above 10
+	HookCall(0x478AD9, item_w_range_hook);
 }
 
 }
