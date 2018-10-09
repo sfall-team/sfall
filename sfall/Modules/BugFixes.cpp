@@ -1628,20 +1628,12 @@ fix:
 static DWORD op_start_gdialog_ret = 0x456F4B;
 static void __declspec(naked) op_start_gdialog_hack() {
 	__asm {
-		mov  ebx, ds:[FO_VAR_dialog_target];
-		mov  ebx, [ebx + protoId];
-		shr  ebx, 0x18;
-		cmp  ebx, OBJ_TYPE_CRITTER;
-		jz   fix;
-		cmp  edx, -1;
-		jz   skip;
+		cmp  eax, -1;                                 // check mood arg
+		jnz  useMood;
+		mov  eax, dword ptr [esp + 0x3C - 0x30 + 4];  // fix dialog_target (overwritten engine code)
 		retn;
-fix:
-		cmp  eax, -1;
-		jnz  skip;
-		retn;
-skip:
-		add  esp, 4; // destroy ret
+useMood:
+		add  esp, 4;                                  // destroy return
 		jmp  op_start_gdialog_ret;
 	}
 }
@@ -1651,7 +1643,7 @@ static void __declspec(naked) item_w_range_hook() {
 		call fo::funcoffs::stat_level_;  // get ST
 		lea  ecx, [eax + ebx];           // ebx - bonus "Heave Ho"
 		sub  ecx, 10;                    // compare ST + bonus <= 10
-		jbe  skip;
+		jle  skip;
 		sub  ebx, ecx;                   // cutoff
 skip:
 		retn;
@@ -2101,7 +2093,7 @@ void BugFixes::init()
 	// Fix argument 'mood' for opcode start_gdialog, the argument value for the talking head was not taken into account
 	if (GetConfigInt("Misc", "StartGDialogFix", 0)) {
 		dlog("Applying argument fix for the opcode start_gdialog.", DL_INIT);
-		MakeCall(0x456F03, op_start_gdialog_hack);
+		MakeCall(0x456F08, op_start_gdialog_hack);
 		dlogr(" Done", DL_INIT);
 	}
 
