@@ -46,6 +46,43 @@ isFloat:
 	}
 }
 
+static const DWORD UnarmedAttacksFixEnd = 0x423A0D;
+static void __declspec(naked) UnarmedAttacksFix() {
+	__asm {
+		mov  ecx, 5;                        // 5% chance of critical hit
+		cmp  edx, ATKTYPE_POWERKICK;        // Power Kick
+		je   RollCheck;
+		cmp  edx, ATKTYPE_HAMMERPUNCH;      // Hammer Punch
+		je   RollCheck;
+		add  ecx, 5;                        // 10% chance of critical hit
+		cmp  edx, ATKTYPE_HOOKKICK;         // Hook Kick
+		je   RollCheck;
+		cmp  edx, ATKTYPE_JAB;              // Jab
+		je   RollCheck;
+		add  ecx, 5;                        // 15% chance of critical hit
+		cmp  edx, ATKTYPE_HAYMAKER;         // Haymaker
+		je   RollCheck;
+		add  ecx, 5;                        // 20% chance of critical hit
+		cmp  edx, ATKTYPE_PALMSTRIKE;       // Palm Strike
+		je   RollCheck;
+		add  ecx, 20;                       // 40% chance of critical hit
+		cmp  edx, ATKTYPE_PIERCINGSTRIKE;   // Piercing Strike
+		je   RollCheck;
+		cmp  edx, ATKTYPE_PIERCINGKICK;     // Piercing Kick
+		jne  end;
+		add  ecx, 10;                       // 50% chance of critical hit
+RollCheck:
+		mov  edx, 100;
+		mov  eax, 1;
+		call fo::funcoffs::roll_random_;
+		cmp  eax, ecx;                      // Check chance
+		jg   end;
+		mov  ebx, ROLL_CRITICAL_SUCCESS;    // Upgrade to critical hit
+end:
+		jmp  UnarmedAttacksFixEnd;
+	}
+}
+
 static void __declspec(naked) SharpShooterFix() {
 	__asm {
 		call fo::funcoffs::stat_level_            // Perception
@@ -1538,6 +1575,18 @@ useMood:
 	}
 }
 
+static void __declspec(naked) item_w_range_hook() {
+	__asm {
+		call fo::funcoffs::stat_level_;  // get ST
+		lea  ecx, [eax + ebx];           // ebx - bonus from "Heave Ho!"
+		sub  ecx, 10;                    // compare ST + bonus <= 10
+		jbe  skip;
+		sub  ebx, ecx;                   // cutoff
+skip:
+		retn;
+	}
+}
+
 
 void BugFixes::init()
 {
@@ -1557,6 +1606,12 @@ void BugFixes::init()
 	// op_div:
 	SafeWrite16(0x46A566, 0x04DB);
 	SafeWrite16(0x46A4E7, 0x04DB);
+
+	//if(GetConfigInt("Misc", "SpecialUnarmedAttacksFix", 1)) {
+	dlog("Applying Special Unarmed Attacks fix.", DL_INIT);
+	MakeJump(0x42394D, UnarmedAttacksFix);
+	dlogr(" Done", DL_INIT);
+	//}
 
 	//if (GetConfigInt("Misc", "SharpshooterFix", 1)) {
 		dlog("Applying Sharpshooter patch.", DL_INIT);
@@ -1964,6 +2019,9 @@ void BugFixes::init()
 		MakeCall(0x456F08, op_start_gdialog_hack);
 		dlogr(" Done", DL_INIT);
 	}
+
+	// Fix for "Heave Ho!" perk increasing strength stat above 10 when determining the max range of thrown weapons
+	HookCall(0x478AD9, item_w_range_hook);
 }
 
 }
