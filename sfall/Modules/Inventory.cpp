@@ -837,7 +837,7 @@ void Inventory::init() {
 	if (itemFastMoveKey > 0) {
 		HookCall(0x476897, do_move_timer_hook);
 		// Do not call the 'Move Items' window when drag and drop from containers
-		skipFromContainer = GetConfigInt("Misc", "FastMoveFromContainer", 0);
+		skipFromContainer = GetConfigInt("Input", "FastMoveFromContainer", 0);
 	}
 
 	if (GetConfigInt("Misc", "ItemCounterDefaultMax", 0)) {

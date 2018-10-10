@@ -530,13 +530,12 @@ static __declspec(naked) void CommonDmgRngDispFix_hook() {
 	__asm {
 		mov  ebx, eax;                                 // Store pointer to critter
 		call fo::funcoffs::stat_level_;                // Get Melee Damage
-		mov  ecx, eax;                                 // Store Melee Damage value
+		xchg ebx, eax;                                 // Store Melee Damage value
 		mov  edx, PERK_bonus_hth_damage;               // perk_level_ argument: PERK_bonus_hth_damage
-		mov  eax, ebx;
 		call fo::funcoffs::perk_level_;                // Otherwise, get rank of Bonus HtH Damage
 		shl  eax, 1;                                   // Multiply by 2
-		sub  ecx, eax;                                 // Subtract from Melee Damage
-		mov  eax, ecx;                                 // Move back to eax in preparation of push
+		sub  ebx, eax;                                 // Subtract from Melee Damage
+		mov  eax, ebx;                                 // Move back to eax in preparation of push
 		retn;
 	}
 }
