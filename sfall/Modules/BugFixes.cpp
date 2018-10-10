@@ -1580,7 +1580,7 @@ static void __declspec(naked) item_w_range_hook() {
 		call fo::funcoffs::stat_level_;  // get ST
 		lea  ecx, [eax + ebx];           // ebx - bonus from "Heave Ho!"
 		sub  ecx, 10;                    // compare ST + bonus <= 10
-		jbe  skip;
+		jle  skip;
 		sub  ebx, ecx;                   // cutoff
 skip:
 		retn;
@@ -1608,9 +1608,9 @@ void BugFixes::init()
 	SafeWrite16(0x46A4E7, 0x04DB);
 
 	//if(GetConfigInt("Misc", "SpecialUnarmedAttacksFix", 1)) {
-	dlog("Applying Special Unarmed Attacks fix.", DL_INIT);
-	MakeJump(0x42394D, UnarmedAttacksFix);
-	dlogr(" Done", DL_INIT);
+		dlog("Applying Special Unarmed Attacks fix.", DL_INIT);
+		MakeJump(0x42394D, UnarmedAttacksFix);
+		dlogr(" Done", DL_INIT);
 	//}
 
 	//if (GetConfigInt("Misc", "SharpshooterFix", 1)) {
