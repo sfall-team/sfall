@@ -373,7 +373,15 @@ static OpcodeHandler opHandler;
 static const SfallOpcodeMetadata opcodeMetaArray[] = {
 	{sf_create_win, "create_win", {DATATYPE_MASK_STR, DATATYPE_MASK_INT, DATATYPE_MASK_INT, DATATYPE_MASK_INT, DATATYPE_MASK_INT, DATATYPE_MASK_INT}},
 	{sf_critter_inven_obj2, "critter_inven_obj2", {DATATYPE_MASK_VALID_OBJ, DATATYPE_MASK_INT}},
+	{sf_get_current_inven_size, "get_current_inven_size", {DATATYPE_MASK_VALID_OBJ}},
+	{sf_get_flags, "get_flags", {DATATYPE_MASK_VALID_OBJ}},
+	{sf_get_outline, "get_outline", {DATATYPE_MASK_VALID_OBJ}},
+	{sf_item_weight, "item_weight", {DATATYPE_MASK_VALID_OBJ}},
+	{sf_set_cursor_mode, "set_cursor_mode", {DATATYPE_MASK_INT}},
+	{sf_set_flags, "set_flags", {DATATYPE_MASK_VALID_OBJ, DATATYPE_MASK_INT}},
 	{sf_set_ini_setting, "set_ini_setting", {DATATYPE_MASK_STR, DATATYPE_MASK_INT | DATATYPE_MASK_STR}},
+	{sf_set_map_enter_position, "set_map_enter_position", {DATATYPE_MASK_INT, DATATYPE_MASK_INT, DATATYPE_MASK_INT}},
+	{sf_set_outline, "set_outline", {DATATYPE_MASK_VALID_OBJ, DATATYPE_MASK_INT}},
 	{sf_spatial_radius, "spatial_radius", {DATATYPE_MASK_VALID_OBJ}},
 	{sf_test, "validate_test", {DATATYPE_MASK_INT, DATATYPE_MASK_INT | DATATYPE_MASK_FLOAT, DATATYPE_MASK_STR, DATATYPE_NONE}},
 	//{op_message_str_game, {}}

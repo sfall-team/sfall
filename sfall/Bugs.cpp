@@ -1436,7 +1436,7 @@ static void __declspec(naked) item_w_range_hook() {
 		call stat_level_;                // get ST
 		lea  ecx, [eax + ebx];           // ebx - bonus from "Heave Ho!"
 		sub  ecx, 10;                    // compare ST + bonus <= 10
-		jbe  skip;
+		jle  skip;
 		sub  ebx, ecx;                   // cutoff
 skip:
 		retn;

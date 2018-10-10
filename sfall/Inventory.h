@@ -18,7 +18,7 @@
 
 #pragma once
 
-void _stdcall SetInvenApCost(int a);
+void _stdcall SetInvenApCost(int cost);
 DWORD __stdcall sf_item_total_size(TGameObj* critter);
 void InventoryInit();
 void InventoryReset();

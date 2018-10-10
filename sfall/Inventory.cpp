@@ -34,6 +34,7 @@ static DWORD sizeLimitMode;
 static DWORD invSizeMaxLimit;
 static DWORD ReloadWeaponKey = 0;
 static DWORD ItemFastMoveKey = 0;
+static DWORD SkipFromContainer = 0;
 
 struct sMessage {
 	DWORD number;
@@ -413,20 +414,20 @@ end:
 	}
 }
 
-static int invenapcost;
-static char invenapqpreduction;
-void _stdcall SetInvenApCost(int a) {
-	invenapcost = a;
+static int invenApCost, invenApCostDef;
+static char invenApQPReduction;
+void _stdcall SetInvenApCost(int cost) {
+	invenApCost = cost;
 }
-static const DWORD inven_ap_cost_hook_ret = 0x46E816;
-static void __declspec(naked) inven_ap_cost_hook() {
+static const DWORD inven_ap_cost_hack_ret = 0x46E816;
+static void __declspec(naked) inven_ap_cost_hack() {
 	_asm {
-		movzx ebx, byte ptr invenapqpreduction;
+		movzx ebx, byte ptr invenApQPReduction;
 		mul bl;
-		mov edx, invenapcost;
+		mov edx, invenApCost;
 		sub edx, eax;
 		mov eax, edx;
-		jmp inven_ap_cost_hook_ret;
+		jmp inven_ap_cost_hack_ret;
 	}
 }
 
@@ -434,31 +435,31 @@ static const DWORD add_check_for_item_ammo_cost_back = 0x4266EE;
 // adds check for weapons which require more than 1 ammo for single shot (super cattle prod & mega power fist)
 static void __declspec(naked) add_check_for_item_ammo_cost() {
 	__asm {
-		push    edx
-		push    ebx
-		sub     esp, 4
-		call    item_w_cur_ammo_
-		mov     ebx, eax
-		mov     eax, ecx // weapon
-		mov     edx, esp
-		mov     dword ptr [esp], 1
+		push edx
+		push ebx
+		sub  esp, 4
+		call item_w_cur_ammo_
+		mov  ebx, eax
+		mov  eax, ecx // weapon
+		mov  edx, esp
+		mov  dword ptr [esp], 1
 		pushad
-		push    1 // hook type
-		call    AmmoCostHookWrapper
-		add     esp, 4
+		push 1 // hook type
+		call AmmoCostHookWrapper
+		add  esp, 4
 		popad
-		mov     eax, [esp]
-		cmp     eax, ebx
-		jle     enoughammo
-		xor     eax, eax // this will force "Out of ammo"
-		jmp     end
+		mov  eax, [esp]
+		cmp  eax, ebx
+		jle  enoughammo
+		xor  eax, eax // this will force "Out of ammo"
+		jmp  end
 enoughammo:
-		mov     eax, 1 // this will force success
+		mov  eax, 1 // this will force success
 end:
-		add     esp, 4
-		pop     ebx
-		pop     edx
-		jmp     add_check_for_item_ammo_cost_back; // jump back
+		add  esp, 4
+		pop  ebx
+		pop  edx
+		jmp  add_check_for_item_ammo_cost_back; // jump back
 	}
 }
 
@@ -467,74 +468,72 @@ static void __declspec(naked) divide_burst_rounds_by_ammo_cost() {
 	__asm {
 		// ecx - current ammo, eax - burst rounds; need to set ebp
 		push edx
-		sub     esp, 4
-		mov     ebp, eax
-		mov     eax, edx // weapon
-		mov     dword ptr [esp], 1
-		mov     edx, esp // *rounds
+		sub  esp, 4
+		mov  ebp, eax
+		mov  eax, edx // weapon
+		mov  dword ptr [esp], 1
+		mov  edx, esp // *rounds
 		pushad
-		push    2
-		call    AmmoCostHookWrapper
-		add     esp, 4
+		push 2
+		call AmmoCostHookWrapper
+		add  esp, 4
 		popad
-		mov     edx, 0
-		mov     eax, ebp // rounds in burst
-		imul    dword ptr [esp] // so much ammo is required for this burst
-		cmp     eax, ecx
-		jle     skip
-		mov     eax, ecx // if more than current ammo, set it to current
+		mov  edx, 0
+		mov  eax, ebp // rounds in burst
+		imul dword ptr [esp] // so much ammo is required for this burst
+		cmp  eax, ecx
+		jle  skip
+		mov  eax, ecx // if more than current ammo, set it to current
 skip:
-		idiv    dword ptr [esp] // divide back to get proper number of rounds for damage calculations
-		mov     ebp, eax
-		add     esp, 4
-		pop edx
+		idiv dword ptr [esp] // divide back to get proper number of rounds for damage calculations
+		mov  ebp, eax
+		add  esp, 4
+		pop  edx
 		// end overwriten code
-		jmp     divide_burst_rounds_by_ammo_cost_back; // jump back
+		jmp  divide_burst_rounds_by_ammo_cost_back; // jump back
 	}
 }
 
 static void __declspec(naked) SetDefaultAmmo() {
 	__asm {
-		push    eax
-		push    ebx
-		push    edx
-		xchg    eax, edx
-		mov     ebx, eax
-		call    item_get_type_
-		cmp     eax, item_type_weapon // is it item_type_weapon?
-		jne     end // no
-		cmp     dword ptr [ebx+0x3C], 0 // is there any ammo in the weapon?
-		jne     end // yes
-		sub     esp, 4
-		mov     edx, esp
-		mov     eax, [ebx+0x64] // eax = weapon pid
-		call    proto_ptr_
-		mov     edx, [esp]
-		mov     eax, [edx+0x5C] // eax = default ammo pid
-		mov     [ebx+0x40], eax // set current ammo proto
-		add     esp, 4
+		push ecx;
+		mov  ecx, edx;                     // ecx = item
+		mov  eax, edx;
+		call item_get_type_;
+		cmp  eax, item_type_weapon;        // is it item_type_weapon?
+		jne  end;                          // no
+		cmp  dword ptr [ecx + 0x3C], 0;    // is there any ammo in the weapon?
+		jne  end;                          // yes
+		sub  esp, 4;
+		mov  edx, esp;
+		mov  eax, [ecx + 0x64];            // eax = weapon pid
+		call proto_ptr_;
+		mov  edx, [esp];
+		mov  eax, [edx + 0x5C];            // eax = default ammo pid
+		mov  [ecx + 0x40], eax;            // set current ammo proto
+		add  esp, 4;
 end:
-		pop     edx
-		pop     ebx
-		pop     eax
-		retn
+		pop  ecx;
+		retn;
 	}
 }
 
-static const DWORD inven_action_cursor_hack_End = 0x4736CB;
 static void __declspec(naked) inven_action_cursor_hack() {
 	__asm {
-		mov     edx, [esp+0x1C]
-		call    SetDefaultAmmo
-		cmp     dword ptr [esp+0x18], 0
-		jmp     inven_action_cursor_hack_End
+		mov  edx, [esp + 0x6C - 0x50 + 4];         // source_item
+		call SetDefaultAmmo;
+		cmp  dword ptr [esp + 0x6C - 0x54 + 4], 0; // overwritten engine code
+		retn;
 	}
 }
 
 static void __declspec(naked) item_add_mult_hook() {
 	__asm {
-		call    SetDefaultAmmo
-		jmp     item_add_force_
+		push edx;
+		call SetDefaultAmmo;
+		pop  edx;
+		mov  eax, ecx;    // restore
+		jmp  item_add_force_;
 	}
 }
 
@@ -565,7 +564,7 @@ end:
 	}
 }
 
-static void __declspec(naked) loot_container_hack2() {
+static void __declspec(naked) loot_container_hack_scroll() {
 	__asm {
 		cmp  esi, 0x150                           // source_down
 		je   scroll
@@ -603,7 +602,7 @@ end:
 	}
 }
 
-static void __declspec(naked) barter_inventory_hack2() {
+static void __declspec(naked) barter_inventory_hack_scroll() {
 	__asm {
 		push edx
 		push ecx
@@ -685,24 +684,31 @@ end:
 	}
 }
 
-void __declspec(naked) do_move_timer_hook() {
+static const DWORD DoMoveTimer_Ret = 0x476920;
+static void __declspec(naked) do_move_timer_hook() {
 	__asm {
 		cmp eax, 4;
 		jnz end;
 		pushad;
 	}
 
-	KeyDown(ItemFastMoveKey);
+	KeyDown(ItemFastMoveKey); // check pressed
 
 	__asm {
+		cmp  SkipFromContainer, 0;
+		jz   noSkip;
+		cmp  dword ptr [esp + 0x14 + 36], 0x474A43;
+		jnz  noSkip;
 		test eax, eax;
+		setz al;
+noSkip:
+		test eax, eax;  // set if pressed
 		popad;
-		jz end;
-		mov dword ptr [esp], 0x476920;
-		retn;
+		jz   end;
+		add  esp, 4;    // destroy ret
+		jmp  DoMoveTimer_Ret;
 end:
-		call setup_move_timer_win_;
-		retn;
+		jmp  setup_move_timer_win_;
 	}
 }
 
@@ -758,9 +764,9 @@ void InventoryInit() {
 		}
 	}
 
-	invenapcost = GetPrivateProfileInt("Misc", "InventoryApCost", 4, ini);
-	invenapqpreduction = GetPrivateProfileInt("Misc", "QuickPocketsApCostReduction", 2, ini);
-	MakeJump(0x46E80B, inven_ap_cost_hook);
+	invenApCost = invenApCostDef = GetPrivateProfileInt("Misc", "InventoryApCost", 4, ini);
+	invenApQPReduction = GetPrivateProfileInt("Misc", "QuickPocketsApCostReduction", 2, ini);
+	MakeJump(0x46E80B, inven_ap_cost_hack);
 
 	if(GetPrivateProfileInt("Misc", "SuperStimExploitFix", 0, ini)) {
 		GetPrivateProfileString("sfall", "SuperStimExploitMsg", "You cannot use a super stim on someone who is not injured!", SuperStimMsg, 128, translationIni);
@@ -775,8 +781,8 @@ void InventoryInit() {
 	ReloadWeaponKey = GetPrivateProfileInt("Input", "ReloadWeaponKey", 0, ini);
 
 	if (GetPrivateProfileIntA("Misc", "StackEmptyWeapons", 0, ini)) {
-		MakeJump(0x4736C6, inven_action_cursor_hack);
-		HookCall(0x4772AA, &item_add_mult_hook);
+		MakeCall(0x4736C6, inven_action_cursor_hack);
+		HookCall(0x4772AA, item_add_mult_hook);
 	}
 
 	// Do not call the 'Move Items' window when using drap and drop to reload weapons in the inventory
@@ -791,6 +797,8 @@ void InventoryInit() {
 	ItemFastMoveKey = GetPrivateProfileIntA("Input", "ItemFastMoveKey", DIK_LCONTROL, ini);
 	if (ItemFastMoveKey > 0) {
 		HookCall(0x476897, do_move_timer_hook);
+		// Do not call the 'Move Items' window when taking items from containers or corpses
+		SkipFromContainer = GetPrivateProfileIntA("Input", "FastMoveFromContainer", 0, ini);
 	}
 
 	if (GetPrivateProfileIntA("Misc", "ItemCounterDefaultMax", 0, ini)) {
@@ -806,11 +814,12 @@ void InventoryInit() {
 
 	// Enable mouse scroll control in barter and loot screens when the cursor is hovering over other lists
 	if (UseScrollWheel) {
-		MakeCall(0x473E66, loot_container_hack2);
-		MakeCall(0x4759F1, barter_inventory_hack2);
+		MakeCall(0x473E66, loot_container_hack_scroll);
+		MakeCall(0x4759F1, barter_inventory_hack_scroll);
 		*((DWORD*)_max) = 100;
 	};
 }
+
 void InventoryReset() {
-	invenapcost=GetPrivateProfileInt("Misc", "InventoryApCost", 4, ini);
+	invenApCost = invenApCostDef;
 }
