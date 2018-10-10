@@ -1528,19 +1528,11 @@ fix:
 static DWORD op_start_gdialog_ret = 0x456F4B;
 static void __declspec(naked) op_start_gdialog_hack() {
 	__asm {
-		mov  ebx, ds:[FO_VAR_dialog_target];
-		mov  ebx, [ebx + protoId];
-		shr  ebx, 0x18;
-		cmp  ebx, OBJ_TYPE_CRITTER;
-		jz   fix;
-		cmp  edx, -1;
-		jz   skip;
+		cmp  eax, -1;                                 // check mood arg
+		jnz  useMood;
+		mov  eax, dword ptr [esp + 0x3C - 0x30 + 4];  // fix dialog_target (overwritten engine code)
 		retn;
-fix:
-		cmp  eax, -1;
-		jnz  skip;
-		retn;
-skip:
+useMood:
 		add  esp, 4;                              // Destroy the return address
 		jmp  op_start_gdialog_ret;
 	}
@@ -1969,7 +1961,7 @@ void BugFixes::init()
 	// Fix for the "mood" argument of start_gdialog function being ignored for talking heads
 	if (GetConfigInt("Misc", "StartGDialogFix", 0)) {
 		dlog("Applying start_gdialog argument fix.", DL_INIT);
-		MakeCall(0x456F03, op_start_gdialog_hack);
+		MakeCall(0x456F08, op_start_gdialog_hack);
 		dlogr(" Done", DL_INIT);
 	}
 }
