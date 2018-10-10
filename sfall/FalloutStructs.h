@@ -116,9 +116,11 @@ struct TScript
 	TGameObj *self_obj;
 	TGameObj *source_obj;
 	TGameObj *target_obj;
+	long action_num;
 	long script_overrides;
-	char field_44;
-	char gap_45[15];
+	char gap_48[4];
+	long how_much;
+	char gap_50[4];
 	long procedure_table[28];
 };
 #pragma pack(pop)

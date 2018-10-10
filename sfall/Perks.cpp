@@ -604,9 +604,9 @@ static void __declspec(naked) HeaveHoHook() {
 		call stat_level_;
 		lea  ebx, [0+eax*4];
 		sub  ebx, eax;
-		cmp  ebx, esi;
-		jle  lower;
-		mov  ebx, esi;
+		cmp  ebx, esi;      // ebx = dist (3*ST), esi = max dist weapon
+		jle  lower;         // jump if dist <= max
+		mov  ebx, esi;      // dist = max
 lower:
 		mov  eax, ecx;
 		mov  edx, PERK_heave_ho;
@@ -615,12 +615,12 @@ lower:
 		sub  ecx, eax;
 		sub  ecx, eax;
 		mov  eax, ecx;
-		add  eax, ebx;
+		add  eax, ebx;      // distance = dist + (PERK_heave_ho * 6)
 		push 0x478AFC;
 		retn;
 	}
 }
-void _stdcall ApplyHeaveHoFix() {
+void _stdcall ApplyHeaveHoFix() { // not really a fix
 	MakeJump(0x478AC4, HeaveHoHook);
 	Perks[PERK_heave_ho].Str = 0;
 }

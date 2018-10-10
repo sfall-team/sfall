@@ -559,11 +559,43 @@ static void sf_critter_inven_obj2() {
 	}
 }
 
-static void sf_get_current_inven_size() {
-	TGameObj* invenObj = opHandler.arg(0).asObject();
-	if (invenObj != nullptr) {
-		opHandler.setReturn(sf_item_total_size(invenObj), DATATYPE_INT);
-	} else {
-		opHandler.setReturn(-1, DATATYPE_INT);
+static void sf_set_outline() {
+	TGameObj* obj = opHandler.arg(0).asObject();
+	int color = opHandler.arg(1).asInt();
+	obj->outline = color;
+}
+
+static void sf_get_outline() {
+	TGameObj* obj = opHandler.arg(0).asObject();
+	opHandler.setReturn(obj->outline, DATATYPE_INT);
+}
+
+static void sf_set_flags() {
+	TGameObj* obj = opHandler.arg(0).asObject();
+	int flags = opHandler.arg(1).asInt();
+	obj->flags = flags;
+}
+
+static void sf_get_flags() {
+	TGameObj* obj = opHandler.arg(0).asObject();
+	opHandler.setReturn(obj->flags);
+}
+
+static void sf_outlined_object() {
+	opHandler.setReturn(*ptr_outlined_object, DATATYPE_INT);
+}
+
+static void sf_item_weight() {
+	TGameObj* item = opHandler.arg(0).asObject();
+	int weight;
+	__asm {
+		mov  eax, item;
+		call item_weight_;
+		mov  weight, eax;
 	}
+	opHandler.setReturn(weight);
+}
+
+static void sf_get_current_inven_size() {
+	opHandler.setReturn(sf_item_total_size(opHandler.arg(0).asObject()), DATATYPE_INT);
 }

@@ -385,6 +385,54 @@ Some utility/math functions are available:
 - works just like vanilla floor function, but returns correct integers for negative values
 - vanilla floor function works exactly the same as ceil for negative values, much like trunc in C/C++
 
+> int sfall_func1("item_weight", object)
+- gets the current weight of an object
+
+> int sfall_func1("get_outline", object)
+- gets the current outline color for an object
+
+> void sfall_func2("set_outline", object, int color)
+- sets the outline color of an object
+- 0 means or any value above 0x00FFFFFF disables the outline
+- call "tile_refresh_display" after changing outline of objects to properly redraw the scene
+
+> int sfall_func1("get_flags", object)
+- gets the current value of object flags (see define_extra.h for available flags)
+
+> void sfall_func2("set_flags", object, int flags)
+- sets the current flags of an object
+- all flags are rewritten with given integer, so first get current flags with "get_flags" and use bwor/bwand to set/remove specific flag
+
+> void sfall_func0("tile_refresh_display")
+- redraws the game scene (tiles, walls, objects, etc.)
+
+> object sfall_func0("outlined_object")
+- returns an object that is currently highlighted by hovering the mouse above it
+
+> int sfall_func0("get_cursor_mode")
+- returns the current cursor mode (0 - movement cursor, 1 - command cursor, 2 - targeting cursor)
+- mode 4 to 10 are Skilldex skills (yellow targeting cursor)
+
+> void sfall_func1("set_cursor_mode", int mode)
+- sets the current cursor mode
+
+> void sfall_func0("display_stats")
+- displays player stats in the inventory screen display window
+- works only in opened inventory
+
+> array sfall_func0("get_map_enter_position")
+- returns an array of the player's position data (index 0 - tile, 1 - elevation, 2 - rotation) when entering the map through exit grids
+- if entering from the world map, the tile value will be -1
+- should be called in map_enter_p_proc procedure to get the correct position data
+
+> void sfall_func3("set_map_enter_position", int tile, int elevation, int rotation)
+- overrides the player's entry position when entering the map through exit grids
+- setting the tile to 0 will put the player on the start hex (default tile and elevation) of the map
+- works only in map_enter_p_proc procedure
+
+> int sfall_func0("attack_is_aimed")
+- returns 1 if the aimed attack mode is selected, 0 otherwise
+
 > int sfall_func1("get_current_inven_size", object)
 - returns the current inventory size of the container or the critter
 

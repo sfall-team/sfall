@@ -1286,19 +1286,27 @@ static void __declspec(naked) refresh_pc_art() {
 		retn;
 	}
 }
+
+static void _stdcall intface_attack_type() {
+	__asm {
+		sub esp, 8;
+		lea edx, [esp];
+		lea eax, [esp+4];
+		call intface_get_attack_;
+		pop edx; // is_secondary
+		pop ecx; // hit_mode
+	}
+}
+
 static void __declspec(naked) get_attack_type() {
 	__asm {
 		push edx;
 		push ecx;
 		push eax;
-		sub esp, 8;
-		lea edx, [esp];
-		lea eax, [esp+4];
-		call intface_get_attack_;
-		add esp, 4; // is_secondary
+		call intface_attack_type;
+		mov edx, ecx; // hit_mode
 		test eax, eax;
 		jz skip;
-		add esp, 4;
 		// get reload
 		cmp ds:[_interfaceWindow], eax;
 		jz end;
@@ -1307,17 +1315,21 @@ static void __declspec(naked) get_attack_type() {
 		cmp ds:[_itemButtonItems+5+edx], 1; // .itsWeapon
 		jnz end;
 		lea eax, [ecx+6];
-		jmp end;
-skip:
-		pop eax; // hit_mode
 end:
+		mov edx, eax; // result
+skip:
 		pop ecx;
-		_RET_VAL_INT(ecx);
+		mov eax, ecx;
+		call interpretPushLong_;
+		mov eax, ecx;
+		mov edx, VAR_TYPE_INT;
+		call interpretPushShort_;
 		pop ecx;
 		pop edx;
 		retn;
 	}
 }
+
 static void __declspec(naked) play_sfall_sound() {
 	__asm {
 		pushad
@@ -1639,6 +1651,16 @@ end:
 	}
 	_RET_VAL_INT(ebp)
 	_OP_END
+}
+
+static void sf_attack_is_aimed() {
+	int is_secondary, result;
+	__asm {
+		call intface_attack_type;
+		mov result, eax;
+		mov is_secondary, edx;
+	}
+	opHandler.setReturn((result != -1) ? is_secondary : 0);
 }
 
 static void sf_exec_map_update_scripts() {

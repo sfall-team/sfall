@@ -103,18 +103,31 @@ static void sf_get_metarule_table() {
 		- minArgs/maxArgs - minimum and maximum number of arguments allowed for this function
 */
 static const SfallMetarule metaruleArray[] = {
+	{"attack_is_aimed", sf_attack_is_aimed, 0, 0},
 	{"critter_inven_obj2", sf_critter_inven_obj2, 2, 2},
 	{"create_win", sf_create_win, 5, 6},
+	{"display_stats", sf_display_stats, 0, 0},
 	{"exec_map_update_scripts", sf_exec_map_update_scripts, 0, 0},
 	{"floor2", sf_floor2, 1, 1},
 	{"get_current_inven_size", sf_get_current_inven_size, 1, 1},
+	{"get_cursor_mode", sf_get_cursor_mode, 0, 0},
+	{"get_flags", sf_get_flags, 1, 1},
+	{"get_map_enter_position", sf_get_map_enter_position, 0, 0},
 	{"get_metarule_table", sf_get_metarule_table, 0, 0},
+	{"get_outline", sf_get_outline, 1, 1},
 	{"intface_hide", sf_intface_hide, 0, 0},
 	{"intface_is_hidden", sf_intface_is_hidden, 0, 0},
 	{"intface_redraw", sf_intface_redraw, 0, 0},
 	{"intface_show", sf_intface_show, 0, 0},
+	{"item_weight", sf_item_weight, 1, 1},
+	{"outlined_object", sf_outlined_object, 0, 0},
+	{"set_cursor_mode", sf_set_cursor_mode, 1, 1},
+	{"set_flags", sf_set_flags, 2, 2},
 	{"set_ini_setting", sf_set_ini_setting, 2, 2},
+	{"set_map_enter_position", sf_set_map_enter_position, 3, 3},
+	{"set_outline", sf_set_outline, 2, 2},
 	{"spatial_radius", sf_spatial_radius, 1, 1},
+	{"tile_refresh_display", sf_tile_refresh_display, 0, 0},
 	{"validate_test", sf_test, 2, 5},
 };
 
@@ -163,6 +176,8 @@ static void _stdcall op_sfall_metarule_handler() {
 			opHandler.setArgShift(1);
 			if (ValidateMetaruleArguments(currentMetarule)) {
 				currentMetarule->func();
+			} else {
+				opHandler.setReturn(-1);
 			}
 		} else {
 			opHandler.printOpcodeError("sfall_funcX(name, ...) - name '%s' is unknown.", name);

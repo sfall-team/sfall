@@ -615,126 +615,56 @@ end:
    }
 }
 
-static void __declspec(naked) DisplayBonusRangedDmg() {
+static void __declspec(naked) DisplayBonusRangedDmg_hook() {
 	__asm {
-		mov  edx, PERK_bonus_ranged_damage
-		mov  eax, dword ptr ds:[_stack]
-		call perk_level_
-		shl  eax, 1
-		add  dword ptr [esp+4*4], eax             // min_dmg
-		add  dword ptr [esp+4*5], eax             // max_dmg
-		jmp  sprintf_
+		mov  edx, PERK_bonus_ranged_damage;
+		mov  eax, dword ptr ds:[_stack];
+		call perk_level_;
+		shl  eax, 1;
+		add  dword ptr [esp + 4 * 4], eax;             // min_dmg + perk bonus
+		add  dword ptr [esp + 4 * 5], eax;             // max_dmg + perk bonus
+		jmp  sprintf_;
 	}
 }
 
-static void __declspec(naked) DisplayBonusHtHDmg1() {
+static void __declspec(naked) DisplayBonusHtHDmg1_hook() {
 	__asm {
-		mov  edx, PERK_bonus_hth_damage
-		mov  eax, dword ptr ds:[_stack]
-		call perk_level_
-		shl  eax, 1
-		add  dword ptr [esp+4*4], eax             // min_dmg
-		jmp  sprintf_
+		mov  edx, PERK_bonus_hth_damage;
+		mov  eax, dword ptr ds:[_stack];
+		call perk_level_;
+		shl  eax, 1;
+		add  dword ptr [esp + 4 * 4], eax;             // min_dmg + bonus
+		jmp  sprintf_;
 	}
 }
 
-static void __declspec(naked) DisplayBonusHtHDmg2() {
+static const DWORD DisplayBonusHtHDmg2Exit = 0x472569;
+static void __declspec(naked) DisplayBonusHtHDmg2_hack() {
 	__asm {
-		push eax
-		call stat_level_
-		pop  ecx
-		add  eax, 2
-		push eax
-		xchg ecx, eax
-		mov  edx, PERK_bonus_hth_damage
-		call perk_level_
-		shl  eax, 1
-		add  eax, 1
-		push eax
-		mov  eax, dword ptr [esp+0x98+0x4]
-		push eax
-		push 0x509EDC                             // '%s %d-%d'
-		lea  eax, [esp+0xC+0x4]
-		push eax
-		call sprintf_
-		add  esp, 4*5
-		push 0x472569
-		retn
-	}
-}
-
-static const DWORD UnarmedAttacksFixEnd=0x423A0D;
-static void __declspec(naked) UnarmedAttacksFix() {
-	__asm {
-		cmp edx,0x10;				// Power Kick
-		je PowKickHPunch;
-		cmp edx,0x9;				// Hammer Punch
-		jnz HKickJabCheck;
-PowKickHPunch:
-		mov edx,0x64;
-		mov eax,0x1;
-		call roll_random_;
-		cmp eax,0x5;				// 5% chance of critical hit
-		jle CriticalHit;
-		jmp end;
-HKickJabCheck:
-		mov eax,dword ptr ds:[esi+0x4];		// get hit_mode
-		cmp eax,0x12;				// Hook Kick
-		je HKickJab;
-		cmp eax,0xb;				// Jab
-		jnz Haymaker;
-HKickJab:
-		mov edx,0x64;
-		mov eax,0x1;
-		call roll_random_;
-		cmp eax,0xa;				// 10% chance of critical hit
-		jle CriticalHit;
-		jmp end;
-Haymaker:
-		cmp dword ptr ds:[esi+0x4],0xa;		// Haymaker
-		jnz PalmStrike;
-		mov edx,0x64;
-		mov eax,0x1;
-		call roll_random_;
-		cmp eax,0xf;				// 15% chance of critical hit
-		jle CriticalHit;
-		jmp end;
-PalmStrike:
-		cmp dword ptr ds:[esi+0x4],0xc;		// Palm Strike
-		jnz PiercingStrike;
-		mov edx,0x64;
-		mov eax,0x1;
-		call roll_random_;
-		cmp eax,0x14;				// 20% chance of critical hit
-		jle CriticalHit;
-		jmp end;
-PiercingStrike:
-		cmp dword ptr ds:[esi+0x4],0xd;		// Piercing Strike
-		jnz PiercingKick;
-		mov edx,0x64;
-		mov eax,0x1;
-		call roll_random_;
-		cmp eax,0x28;				// 40% chance of critical hit
-		jle CriticalHit;
-		jmp end;
-PiercingKick:
-		cmp dword ptr ds:[esi+0x4],0x13;	// Piercing Kick
-		jnz end;
-		mov edx,0x64;
-		mov eax,0x1;
-		call roll_random_;
-		cmp eax,0x32;				// 50% chance of critical hit
-		jg end;
-CriticalHit:
-		mov ebx,0x3;				// Upgrade to critical hit
-end:
-		jmp UnarmedAttacksFixEnd;
+		mov  ecx, eax;
+		call stat_level_;
+		add  eax, 2;
+		push eax;                                      // max dmg
+		mov  edx, PERK_bonus_hth_damage;
+		mov  eax, ecx;
+		call perk_level_;
+		shl  eax, 1;
+		add  eax, 1;
+		push eax;                                      // min dmg + bonus
+		mov  ecx, dword ptr[esp + 0x98 + 0x4];
+		push ecx;                                      // message
+		push 0x509EDC;                                 // '%s %d-%d'
+		lea  eax, [esp + 0x0C + 0x4];
+		push eax;                                      // buf
+		call sprintf_;
+		add  esp, 0x10 + 0x4;
+		jmp  DisplayBonusHtHDmg2Exit;
 	}
 }
 
 void AmmoModInit() {
 	int formula;
-	if (formula=GetPrivateProfileIntA("Misc", "DamageFormula", 0, ini)) {
+	if (formula = GetPrivateProfileIntA("Misc", "DamageFormula", 0, ini)) {
 		switch (formula) {
 		case 1:
 			MakeJump(0x424995, DamageFunction1);
@@ -753,6 +683,7 @@ void AmmoModInit() {
 			break;
 		}
 	}
+
 	int BonusHtHDmgFix = GetPrivateProfileIntA("Misc", "BonusHtHDamageFix", 1, ini);
 	int DisplayBonusDmg = GetPrivateProfileIntA("Misc", "DisplayBonusDamage", 0, ini);
 	if (BonusHtHDmgFix) {
@@ -767,17 +698,13 @@ void AmmoModInit() {
 		MakeJump(0x47854C, HtHDamageFix1b);
 		dlogr(" Done", DL_INIT);
 	}
-	//if(GetPrivateProfileIntA("Misc", "SpecialUnarmedAttacksFix", 1, ini)) {
-		dlog("Applying Special Unarmed Attacks fix.", DL_INIT);
-		MakeJump(0x42394D, UnarmedAttacksFix);
-		dlogr(" Done", DL_INIT);
-	//}
+
 	if (DisplayBonusDmg) {
 		dlog("Applying Display Bonus Damage patch.", DL_INIT);
-		HookCall(0x4722DD, &DisplayBonusRangedDmg);
+		HookCall(0x4722DD, DisplayBonusRangedDmg_hook);
 		if (BonusHtHDmgFix) {
-			HookCall(0x472309, &DisplayBonusHtHDmg1);
-			MakeJump(0x472546, DisplayBonusHtHDmg2);
+			HookCall(0x472309, DisplayBonusHtHDmg1_hook);
+			MakeJump(0x472546, DisplayBonusHtHDmg2_hack);
 		}
 		dlogr(" Done", DL_INIT);
 	}

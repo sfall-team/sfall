@@ -20,6 +20,7 @@
 
 #include "main.h"
 #include "input.h"
+#include "LoadGameHook.h"
 #include "ScriptExtender.h"
 
 
@@ -452,20 +453,48 @@ static void sf_intface_redraw() {
 }
 
 static void sf_intface_show() {
-	__asm call intface_show_
+	__asm call intface_show_;
 }
 
 static void sf_intface_hide() {
-	__asm call intface_hide_
+	__asm call intface_hide_;
 }
 
 static void sf_intface_is_hidden() {
 	int isHidden;
 	__asm {
-		call intface_is_hidden_
+		call intface_is_hidden_;
 		mov isHidden, eax;
 	}
 	opHandler.setReturn(isHidden);
+}
+
+static void sf_tile_refresh_display() {
+	__asm call tile_refresh_display_;
+}
+
+static void sf_get_cursor_mode() {
+	int cursorMode;
+	__asm {
+		call gmouse_3d_get_mode_;
+		mov  cursorMode, eax;
+	}
+	opHandler.setReturn(cursorMode);
+}
+
+static void sf_set_cursor_mode() {
+	int cursorMode = opHandler.arg(0).asInt();
+	__asm {
+		mov  eax, cursorMode;
+		call gmouse_3d_set_mode_;
+	}
+}
+
+static void sf_display_stats() {
+// calling the function outside of inventory screen will crash the game
+	if (GetCurrentLoops() & INVENTORY) {
+		__asm call display_stats_;
+	}
 }
 
 static void sf_create_win() {

@@ -41,6 +41,43 @@ isFloat:
 	}
 }
 
+static const DWORD UnarmedAttacksFixEnd = 0x423A0D;
+static void __declspec(naked) UnarmedAttacksFix() {
+	__asm {
+		mov  ecx, 5;                        // 5% chance of critical hit
+		cmp  edx, 0x10;                     // Power Kick
+		je   RollCheck;
+		cmp  edx, 0x09;                     // Hammer Punch
+		je   RollCheck;
+		add  ecx, 5;                        // 10% chance of critical hit
+		cmp  edx, 0x12;                     // Hook Kick
+		je   RollCheck;
+		cmp  edx, 0x0B;                     // Jab
+		je   RollCheck;
+		add  ecx, 5;                        // 15% chance of critical hit
+		cmp  edx, 0x0A;                     // Haymaker
+		je   RollCheck;
+		add  ecx, 5;                        // 20% chance of critical hit
+		cmp  edx, 0x0C;                     // Palm Strike
+		je   RollCheck;
+		add  ecx, 20;                       // 40% chance of critical hit
+		cmp  edx, 0x0D;                     // Piercing Strike
+		je   RollCheck;
+		cmp  edx, 0x13;                     // Piercing Kick
+		jne  end;
+		add  ecx, 10;                       // 50% chance of critical hit
+RollCheck:
+		mov  edx, 100;
+		mov  eax, 1;
+		call roll_random_;
+		cmp  eax, ecx;                      // Check chance
+		jg   end;
+		mov  ebx, 3;                        // Upgrade to critical hit
+end:
+		jmp  UnarmedAttacksFixEnd;
+	}
+}
+
 static void __declspec(naked) SharpShooterFix() {
 	__asm {
 		call stat_level_                          // Perception
@@ -1384,21 +1421,25 @@ fix:
 static DWORD op_start_gdialog_ret = 0x456F4B;
 static void __declspec(naked) op_start_gdialog_hack() {
 	__asm {
-		mov  ebx, ds:[_dialog_target];
-		mov  ebx, [ebx + 0x64];
-		shr  ebx, 0x18;
-		cmp  ebx, OBJ_TYPE_CRITTER;
-		jz   fix;
-		cmp  edx, -1;
-		jz   skip;
+		cmp  eax, -1;                                 // check mood arg
+		jnz  useMood;
+		mov  eax, dword ptr [esp + 0x3C - 0x30 + 4];  // fix dialog_target (overwritten engine code)
 		retn;
-fix:
-		cmp  eax, -1;
-		jnz  skip;
-		retn;
-skip:
+useMood:
 		add  esp, 4;                              // Destroy the return address
 		jmp  op_start_gdialog_ret;
+	}
+}
+
+static void __declspec(naked) item_w_range_hook() {
+	__asm {
+		call stat_level_;                // get ST
+		lea  ecx, [eax + ebx];           // ebx - bonus from "Heave Ho!"
+		sub  ecx, 10;                    // compare ST + bonus <= 10
+		jbe  skip;
+		sub  ebx, ecx;                   // cutoff
+skip:
+		retn;
 	}
 }
 
@@ -1414,6 +1455,12 @@ void BugsInit()
 	// op_div:
 	SafeWrite16(0x46A566, 0x04DB);
 	SafeWrite16(0x46A4E7, 0x04DB);
+
+	//if(GetPrivateProfileIntA("Misc", "SpecialUnarmedAttacksFix", 1, ini)) {
+		dlog("Applying Special Unarmed Attacks fix.", DL_INIT);
+		MakeJump(0x42394D, UnarmedAttacksFix);
+		dlogr(" Done", DL_INIT);
+	//}
 
 	//if (GetPrivateProfileIntA("Misc", "SharpshooterFix", 1, ini)) {
 		dlog("Applying Sharpshooter patch.", DL_INIT);
@@ -1790,7 +1837,10 @@ void BugsInit()
 	// Fix for the "mood" argument of start_gdialog function being ignored for talking heads
 	if (GetPrivateProfileIntA("Misc", "StartGDialogFix", 0, ini)) {
 		dlog("Applying start_gdialog argument fix.", DL_INIT);
-		MakeCall(0x456F03, op_start_gdialog_hack);
+		MakeCall(0x456F08, op_start_gdialog_hack);
 		dlogr(" Done", DL_INIT);
 	}
+
+	// Fix for "Heave Ho!" perk increasing strength stat above 10 when determining the max range of thrown weapons
+	HookCall(0x478AD9, item_w_range_hook);
 }

@@ -19,6 +19,7 @@
 #pragma once
 
 #include "main.h"
+#include "Arrays.h"
 #include "ScriptExtender.h"
 
 
@@ -208,4 +209,28 @@ end:
 		pop ebx;
 		retn;
 	}
+}
+
+static void sf_set_map_enter_position() {
+	int tile = opHandler.arg(0).asInt();
+	int elev = opHandler.arg(1).asInt();
+	int rot = opHandler.arg(2).asInt();
+
+	if (tile > -1 && tile < 40000) {
+		*ptr_tile = tile;
+	}
+	if (elev > -1 && elev < 3) {
+		*ptr_elevation = elev;
+	}
+	if (rot > -1 && rot < 6) {
+		*ptr_rotation = rot;
+	}
+}
+
+static void sf_get_map_enter_position() {
+	DWORD id = TempArray(3, 0);
+	arrays[id].val[0].set((long)*ptr_tile);
+	arrays[id].val[1].set((long)*ptr_elevation);
+	arrays[id].val[2].set((long)*ptr_rotation);
+	opHandler.setReturn(id, DATATYPE_INT);
 }

@@ -66,6 +66,7 @@
 #define _drugInfoList               0x5191CC
 #define _edit_win                   0x57060C
 #define _Educated                   0x57082C
+#define _elevation                  0x631D2C
 #define _Experience_                0x6681B4
 #define _fallout_game_time          0x51C720
 #define _flptr                      0x614808
@@ -184,6 +185,7 @@
 #define _read_callback              0x51DEEC
 #define _RedColor                   0x6AB4D0
 #define _retvals                    0x43EA7C
+#define _rotation                   0x631D34
 #define _sad                        0x530014
 #define _scr_size                   0x6AC9F0
 #define _scriptListInfo             0x51C7C8
@@ -215,6 +217,7 @@
 #define _text_spacing               0x51E3CC
 #define _text_to_buf                0x51E3B8
 #define _text_width                 0x51E3C0
+#define _tile                       0x631D30
 #define _title_color                0x56D750
 #define _title_font                 0x56D748
 #define _trait_data                 0x51DB84
@@ -266,6 +269,7 @@ extern DWORD* ptr_dialog_target_is_party;
 extern DWORD* ptr_drugInfoList;
 extern DWORD* ptr_edit_win;
 extern DWORD* ptr_Educated;
+extern DWORD* ptr_elevation;
 extern DWORD* ptr_Experience_;
 extern DWORD* ptr_fallout_game_time;
 extern DWORD* ptr_flptr;
@@ -376,6 +380,7 @@ extern DWORD* ptr_quick_done;
 extern DWORD* ptr_read_callback;
 extern DWORD* ptr_RedColor;
 extern DWORD* ptr_retvals;
+extern DWORD* ptr_rotation;
 extern DWORD* ptr_sad;
 extern DWORD* ptr_scr_size;
 extern DWORD* ptr_scriptListInfo;
@@ -406,6 +411,7 @@ extern DWORD* ptr_text_mono_width;
 extern DWORD* ptr_text_spacing;
 extern DWORD* ptr_text_to_buf;
 extern DWORD* ptr_text_width;
+extern DWORD* ptr_tile;
 extern DWORD* ptr_title_color;
 extern DWORD* ptr_title_font;
 extern DWORD* ptr_trait_data;
@@ -543,6 +549,8 @@ extern const DWORD GetSlotList_;
 extern const DWORD get_input_;
 extern const DWORD get_time_;
 extern const DWORD getmsg_;
+extern const DWORD gmouse_3d_get_mode_;
+extern const DWORD gmouse_3d_set_mode_;
 extern const DWORD gmouse_is_scrolling_;
 extern const DWORD gmouse_set_cursor_;
 extern const DWORD GNW_find_;
