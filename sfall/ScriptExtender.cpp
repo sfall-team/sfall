@@ -125,6 +125,17 @@ public:
 		}
 	}
 
+	bool asBool() const {
+		switch (_type) {
+		case DATATYPE_FLOAT:
+			return static_cast<int>(_val.f) != 0;
+		case DATATYPE_INT:
+			return _val.i != 0;
+		default:
+			return true;
+		}
+	}
+
 	float asFloat() const {
 		switch (_type) {
 		case DATATYPE_FLOAT:
@@ -376,6 +387,7 @@ static const SfallOpcodeMetadata opcodeMetaArray[] = {
 	{sf_get_current_inven_size, "get_current_inven_size", {DATATYPE_MASK_VALID_OBJ}},
 	{sf_get_flags, "get_flags", {DATATYPE_MASK_VALID_OBJ}},
 	{sf_get_outline, "get_outline", {DATATYPE_MASK_VALID_OBJ}},
+	{sf_inventory_redraw, "inventory_redraw", {DATATYPE_MASK_INT}},
 	{sf_item_weight, "item_weight", {DATATYPE_MASK_VALID_OBJ}},
 	{sf_set_cursor_mode, "set_cursor_mode", {DATATYPE_MASK_INT}},
 	{sf_set_flags, "set_flags", {DATATYPE_MASK_VALID_OBJ, DATATYPE_MASK_INT}},

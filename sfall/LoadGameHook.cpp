@@ -451,6 +451,36 @@ static void __declspec(naked) HandleInventoryHook() {
 	}
 }
 
+static void __declspec(naked) UseInventoryOnHook() {
+	__asm {
+		or InLoop, INTFACEUSE;
+		call use_inventory_on_;
+		and InLoop, (-1 ^ INTFACEUSE);
+		retn;
+	}
+}
+
+static void __declspec(naked) LootContainerHook() {
+	__asm {
+		or InLoop, INTFACELOOT;
+		call loot_container_;
+		and InLoop, (-1 ^ INTFACELOOT);
+		jmp  ResetBodyState; // reset object pointer used in calculating the weight/size of equipped and hidden items on NPCs after exiting loot/barter screens
+		//retn;
+	}
+}
+
+static void __declspec(naked) BarterInventoryHook() {
+	__asm {
+		or InLoop, BARTER;
+		push [esp + 4];
+		call barter_inventory_;
+		and InLoop, (-1 ^ BARTER);
+		call ResetBodyState;
+		retn 4;
+	}
+}
+
 static void __declspec(naked) AutomapHook() {
 	__asm {
 		or InLoop, AUTOMAP;
@@ -526,6 +556,11 @@ void LoadGameHookInit() {
 	HookCall(0x4434AC, SkilldexHook);
 	HookCall(0x44C7BD, SkilldexHook);
 	HookCall(0x443357, HandleInventoryHook);
+	HookCall(0x44C6FB, UseInventoryOnHook);
+	HookCall(0x4746EC, LootContainerHook);
+	HookCall(0x4A4369, LootContainerHook);
+	HookCall(0x4A4565, LootContainerHook);
+	HookCall(0x4466C7, BarterInventoryHook);
 	HookCall(0x44396D, AutomapHook);
 	HookCall(0x479519, AutomapHook);
 }

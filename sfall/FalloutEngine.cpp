@@ -614,6 +614,7 @@ const DWORD trait_get_ = 0x4B3B54;
 const DWORD trait_init_ = 0x4B39F0;
 const DWORD trait_level_ = 0x4B3BC8;
 const DWORD trait_set_ = 0x4B3B48;
+const DWORD use_inventory_on_ = 0x4717E4;
 const DWORD _word_wrap_ = 0x4BC6F0;
 const DWORD win_add_ = 0x4D6238;
 const DWORD win_delete_ = 0x4D6468;
@@ -904,5 +905,31 @@ long __fastcall WordWrap(const char* text, int maxWidth, DWORD* buf, BYTE* count
 		mov ecx, count
 		mov ebx, buf
 		call _word_wrap_
+	}
+}
+
+void __stdcall RedrawWin(DWORD winRef) {
+	__asm {
+		mov eax, winRef
+		call win_draw_
+	}
+}
+
+void __stdcall DisplayInventory(long inventoryOffset, long visibleOffset, long mode) {
+	__asm {
+		mov ebx, mode
+		mov edx, visibleOffset
+		mov eax, inventoryOffset
+		call display_inventory_
+	}
+}
+
+void __stdcall DisplayTargetInventory(long inventoryOffset, long visibleOffset, DWORD* targetInventory, long mode) {
+	__asm {
+		mov ecx, mode
+		mov ebx, targetInventory
+		mov edx, visibleOffset
+		mov eax, inventoryOffset
+		call display_target_inventory_
 	}
 }

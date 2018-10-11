@@ -810,6 +810,7 @@ extern const DWORD trait_get_;
 extern const DWORD trait_init_;
 extern const DWORD trait_level_;
 extern const DWORD trait_set_;
+extern const DWORD use_inventory_on_;
 extern const DWORD _word_wrap_;
 extern const DWORD win_add_;
 extern const DWORD win_delete_;
@@ -975,3 +976,9 @@ long __stdcall CreateWindowFunc(const char* winName, long x, long y, long width,
 long __stdcall WinRegisterButton(DWORD winRef, long xPos, long yPos, long width, long height, long hoverOn, long hoverOff, long buttonDown, long buttonUp, BYTE* pictureUp, BYTE* pictureDown, long arg12, long buttonType);
 
 long __fastcall WordWrap(const char* text, int maxWidth, DWORD* buf, BYTE* count);
+
+void __stdcall RedrawWin(DWORD winRef);
+
+void __stdcall DisplayInventory(long inventoryOffset, long visibleOffset, long mode);
+
+void __stdcall DisplayTargetInventory(long inventoryOffset, long visibleOffset, DWORD* targetInventory, long mode);

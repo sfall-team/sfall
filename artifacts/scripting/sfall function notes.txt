@@ -433,6 +433,10 @@ Some utility/math functions are available:
 > int sfall_func0("attack_is_aimed")
 - returns 1 if the aimed attack mode is selected, 0 otherwise
 
+> void sfall_func1("inventory_redraw", int invSide)
+- redraws inventory list in the inventory/use inventory item on/loot/barter screens
+- invSide specifies which side needs to be redrawn: 0 - the player, 1 - target (container/NPC in loot/barter screens)
+
 > int sfall_func1("get_current_inven_size", object)
 - returns the current inventory size of the container or the critter
 

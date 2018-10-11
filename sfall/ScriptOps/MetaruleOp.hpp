@@ -119,6 +119,7 @@ static const SfallMetarule metaruleArray[] = {
 	{"intface_is_hidden", sf_intface_is_hidden, 0, 0},
 	{"intface_redraw", sf_intface_redraw, 0, 0},
 	{"intface_show", sf_intface_show, 0, 0},
+	{"inventory_redraw", sf_inventory_redraw, 1, 1},
 	{"item_weight", sf_item_weight, 1, 1},
 	{"outlined_object", sf_outlined_object, 0, 0},
 	{"set_cursor_mode", sf_set_cursor_mode, 1, 1},

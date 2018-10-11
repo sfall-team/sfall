@@ -590,23 +590,6 @@ skip:
 	}
 }
 
-// simple hooks from 4.x LoadGameHook.cpp without new game mode flags
-static void __declspec(naked) LootContainerWrapper() {
-	__asm {
-		call loot_container_;
-		jmp  ResetBodyState;
-	}
-}
-
-static void __declspec(naked) BarterInventoryWrapper() {
-	__asm {
-		push [esp + 4];
-		call barter_inventory_;
-		call ResetBodyState;
-		retn 4;
-	}
-}
-
 static void __declspec(naked) inven_pickup_hack() {
 	__asm {
 		mov  edx, ds:[_pud]
@@ -1561,11 +1544,6 @@ void BugsInit()
 		SafeWrite8(0x477EB0, 0x90);
 		MakeCall(0x479A2F, item_c_curr_size_hack);
 		SafeWrite8(0x479A34, 0x90);
-		// Reset object pointer after exiting loot/barter screens
-		HookCall(0x4746EC, LootContainerWrapper);
-		HookCall(0x4A4369, LootContainerWrapper);
-		HookCall(0x4A4565, LootContainerWrapper);
-		HookCall(0x4466C7, BarterInventoryWrapper);
 		dlogr(" Done", DL_INIT);
 	//}
 

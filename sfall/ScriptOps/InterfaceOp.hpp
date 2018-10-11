@@ -497,6 +497,33 @@ static void sf_display_stats() {
 	}
 }
 
+static void sf_inventory_redraw() {
+	int mode = -1;
+	DWORD loopFlag = GetCurrentLoops();
+	if (loopFlag & INVENTORY) {
+		mode = 0;
+	} else if (loopFlag & INTFACEUSE) {
+		mode = 1;
+	} else if (loopFlag & INTFACELOOT) {
+		mode = 2;
+	} else if (loopFlag & BARTER) {
+		mode = 3;
+	} else {
+		return;
+	}
+
+	if (!opHandler.arg(0).asBool()) {
+		int* stack_offset = (int*)_stack_offset;
+		stack_offset[*ptr_curr_stack * 4] = 0;
+		DisplayInventory(0, -1, mode);
+	} else if (mode >= 2) {
+		int* target_stack_offset = (int*)_target_stack_offset;
+		target_stack_offset[*ptr_target_curr_stack * 4] = 0;
+		DisplayTargetInventory(0, -1, (DWORD*)*ptr_target_pud, mode);
+		RedrawWin(*ptr_i_wid);
+	}
+}
+
 static void sf_create_win() {
 	int flags;
 	if (opHandler.numArgs() == 6) {
