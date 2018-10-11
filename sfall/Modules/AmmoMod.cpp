@@ -510,117 +510,66 @@ end:
 		jmp DamageFunctionReturn;		// Otherwise, exit loop
 	}
 }
+////////////////////////////////////////////////////////////////////////////////
 
-static const DWORD MeleeDmgDispExit = 0x435C11;
-static const DWORD MeleeDmgPrintExit = 0x439926;
-static const DWORD MeleeExit = 0x47226D;
-static const DWORD UnarmedExit = 0x472556;
-static const DWORD FixaEnd = 0x4784B0;
-static const DWORD FixbEnd = 0x478553;
-
-static __declspec(naked) void MeleeDmgDispFix() {
+static __declspec(naked) void MeleeDmgDisplayPrintFix_hook() {
 	__asm {
-		call fo::funcoffs::stat_level_;			// Get Melee Damage
-		mov ecx, eax;				// Store value
-		mov eax, dword ptr ds : [FO_VAR_obj_dude];	// Get pointer to PC
-		mov edx, PERK_bonus_hth_damage;		// perk_level_ argument: PERK_bonus_hth_damage
-		call fo::funcoffs::perk_level_;			// Get rank of Bonus HtH Damage
-		shl eax, 0x1;				// Multiply by 2
-		sub ecx, eax;				// Subtract from Melee Damage
-		mov eax, ecx;				// Move back to eax in preparation of push
-		jmp MeleeDmgDispExit;
+		call fo::funcoffs::stat_level_;                // Get Melee Damage
+		mov  ecx, eax;                                 // Store value
+		mov  edx, PERK_bonus_hth_damage;               // perk_level_ argument: PERK_bonus_hth_damage
+		mov  eax, dword ptr ds:[FO_VAR_obj_dude];      // Get pointer to PC
+		call fo::funcoffs::perk_level_;                // Get rank of Bonus HtH Damage
+		shl  eax, 1;                                   // Multiply by 2
+		sub  ecx, eax;                                 // Subtract from Melee Damage
+		mov  eax, ecx;                                 // Move back to eax in preparation of push
+		retn;
 	}
 }
 
-static __declspec(naked) void MeleeDmgPrintFix() {
+static __declspec(naked) void CommonDmgRngDispFix_hook() {
 	__asm {
-		call fo::funcoffs::stat_level_;			// Get Melee Damage
-		mov ebx, eax;				// Store value
-		mov eax, dword ptr ds : [FO_VAR_obj_dude];	// Get pointer to PC
-		mov edx, PERK_bonus_hth_damage;		// perk_level_ argument: PERK_bonus_hth_damage
-		call fo::funcoffs::perk_level_;			// Get rank of Bonus HtH Damage
-		shl eax, 0x1;				// Multiply by 2
-		sub ebx, eax;				// Subtract from Melee Damage
-		mov eax, ebx;				// Move back to eax in preparation of push
-		mov ebx, 0x27a;				// Facilitates printing to file
-		jmp MeleeDmgPrintExit;
+		mov  ebx, eax;                                 // Store pointer to critter
+		call fo::funcoffs::stat_level_;                // Get Melee Damage
+		xchg ebx, eax;                                 // Store Melee Damage value
+		mov  edx, PERK_bonus_hth_damage;               // perk_level_ argument: PERK_bonus_hth_damage
+		call fo::funcoffs::perk_level_;                // Get rank of Bonus HtH Damage
+		shl  eax, 1;                                   // Multiply by 2
+		sub  ebx, eax;                                 // Subtract from Melee Damage
+		mov  eax, ebx;                                 // Move back to eax in preparation of push
+		retn;
 	}
 }
 
-static __declspec(naked) void MeleeWeapDmgRngDispFix() {
+static __declspec(naked) void HtHDamageFix1a_hack() {
 	__asm {
-		call fo::funcoffs::stat_level_;			// Get Melee Damage
-		mov ebx, eax;				// Store Melee Damage value
-		mov edx, dword ptr ds : [FO_VAR_stack];		// Get pointer to critter
-		mov eax, dword ptr ds : [FO_VAR_obj_dude];	// Get pointer to PC
-		cmp eax, edx;				// Is PC == critter?
-		jnz end;					// exit if no
-		mov edx, PERK_bonus_hth_damage;		// perk_level_ argument: PERK_bonus_hth_damage
-		call fo::funcoffs::perk_level_;			// Otherwise, get rank of Bonus HtH Damage
-		shl eax, 0x1;				// Multiply by 2
-		sub ebx, eax;				// Subtract from Melee Damage
+		xor  edx, edx;
+		cmp  ecx, dword ptr ds:[FO_VAR_obj_dude];      // Is the critter == PC?
+		jnz  skip;                                     // Skip if no
+		mov  edx, PERK_bonus_hth_damage;               // perk_level_ argument: PERK_bonus_hth_damage
+		mov  eax, ecx;                                 // pointer to PC
+		call fo::funcoffs::perk_level_;                // Return Rank_of_Bonus_HtH_Damage_perk
+		shl  eax, 1;                                   // Rank_of_Bonus_HtH_Damage_perk *= 2
+		mov  edx, eax;                                 // Min_Damage = Rank_of_Bonus_HtH_Damage_perk
+skip:
+		add  edx, 1;                                   // Min_Damage += 1
+		retn;
+	}
+}
+
+static __declspec(naked) void HtHDamageFix1b_hook() {
+	__asm {
+		call fo::funcoffs::stat_level_;                // Get Total_Melee_Damage
+		cmp  ecx, dword ptr ds:[FO_VAR_obj_dude];      // Is the critter == PC?
+		jnz  end;                                      // Skip to exit if no
+		push eax;
+		mov  edx, PERK_bonus_hth_damage;               // perk_level_ argument: PERK_bonus_hth_damage
+		mov  eax, ecx;                                 // pointer to PC
+		call fo::funcoffs::perk_level_;                // Return Rank_of_Bonus_HtH_Damage_perk
+		shl  eax, 1;                                   // Rank_of_Bonus_HtH_Damage_perk *= 2
+		add  dword ptr [esp + 0x24 - 0x20 + 8], eax;   // Min_Damage += Rank_of_Bonus_HtH_Damage_perk
+		pop  eax;
 end:
-		jmp MeleeExit;
-	}
-}
-
-static __declspec(naked) void UnarmedDmgRngDispFix() {
-	__asm {
-		mov ebx, eax;				// Store Melee Damage value
-		mov edx, dword ptr ds : [FO_VAR_stack];		// Get pointer to critter
-		mov eax, dword ptr ds : [FO_VAR_obj_dude];	// Get pointer to PC
-		cmp eax, edx;				// Is PC == critter?
-		jnz end;					// exit if no
-		mov edx, PERK_bonus_hth_damage;		// perk_level_ argument: PERK_bonus_hth_damage
-		call fo::funcoffs::perk_level_;			// Otherwise, get rank of Bonus HtH Damage
-		shl eax, 0x1;				// Multiply by 2
-		sub ebx, eax;				// Subtract to Melee Damage
-end:
-		mov eax, ebx;				// Move back to eax in prepartion of push
-		add eax, 0x2;				// Add 2 (max unarmed damage value)
-		push eax;					// push to print string
-		mov eax, dword ptr ss : [esp + 0x98];
-		jmp UnarmedExit;
-	}
-}
-
-static __declspec(naked) void HtHDamageFix1a() {
-	using namespace fo;
-	__asm {
-		mov eax, ecx;				// stat_level_ argument: pointer to critter
-		mov edx, STAT_melee_dmg;		// stat_level_ argument: fo::STAT_melee_dmg
-		call fo::funcoffs::stat_level_;			// Get Total_Melee_Damage
-		add eax, 2;					// Total_Melee_Damage += 2
-		mov dword ptr ss : [esp], eax;			// Max_Damage = Total_Melee_Damage
-		xor edx, edx;
-		mov eax, dword ptr ds : [FO_VAR_obj_dude];	// Get pointer to PC
-		cmp ecx, eax;				// Is the critter == PC?
-		jnz ajmp;					// Skip to ajmp if no
-		mov edx, PERK_bonus_hth_damage;		// perk_level_ argument: PERK_bonus_hth_damage
-		call fo::funcoffs::perk_level_;			// Return Rank_of_Bonus_HtH_Damage_perk
-		shl eax, 0x1;				// Rank_of_Bonus_HtH_Damage_perk *= 2
-		mov edx, eax;				// Min_Damage = Rank_of_Bonus_HtH_Damage_perk
-ajmp:
-		add edx, 1;					// Min_Damage += 1
-		mov dword ptr ss : [esp + 0x4], edx;		// Store Min_Damage
-		sub esi, 0x8;				// Set up for switch statement beyond jump
-		jmp FixaEnd;
-	}
-}
-
-static __declspec(naked) void HtHDamageFix1b() {
-	__asm {
-		call fo::funcoffs::stat_level_;			// Get Total_Melee_Damage
-		mov ebp, eax;
-		mov eax, dword ptr ds : [FO_VAR_obj_dude];	// Get pointer to PC
-		cmp ecx, eax;				// Is the critter == PC?
-		jnz end;					// Skip to exit if no
-		mov edx, PERK_bonus_hth_damage;		// perk_level_ argument: PERK_bonus_hth_damage
-		call fo::funcoffs::perk_level_;			// Return Rank_of_Bonus_HtH_Damage_perk
-		shl eax, 0x1;				// Rank_of_Bonus_HtH_Damage_perk *= 2
-		add dword ptr ss : [esp + 0x4], eax;	// Min_Damage += Rank_of_Bonus_HtH_Damage_perk
-end:
-		jmp FixbEnd;
+		retn;
 	}
 }
 
@@ -697,14 +646,18 @@ void AmmoMod::init() {
 	int DisplayBonusDmg = GetConfigInt("Misc", "DisplayBonusDamage", 0);
 	if (BonusHtHDmgFix) {
 		dlog("Applying Bonus HtH Damage Perk fix.", DL_INIT);
-		MakeJump(0x435C0C, MeleeDmgDispFix);
-		MakeJump(0x43991C, MeleeDmgPrintFix);
-		if (!DisplayBonusDmg) {
-			MakeJump(0x472266, MeleeWeapDmgRngDispFix);
-			MakeJump(0x47254B, UnarmedDmgRngDispFix);
+		if (!DisplayBonusDmg) {                               // Subtract damage from perk bonus (vanilla displaying)
+			HookCalls(MeleeDmgDisplayPrintFix_hook, {
+				0x435C0C,                                     // DisplayFix (ListDrvdStats_)
+				0x439921                                      // PrintFix   (Save_as_ASCII_)
+			});
+			HookCalls(CommonDmgRngDispFix_hook, {
+				0x472266,                                     // MeleeWeap  (display_stats_)
+				0x472546                                      // Unarmed    (display_stats_)
+			});
 		}
-		MakeJump(0x478492, HtHDamageFix1a);
-		MakeJump(0x47854C, HtHDamageFix1b);
+		MakeCall(0x478492, HtHDamageFix1a_hack);              // Unarmed    (item_w_damage_)
+		HookCall(0x47854C, HtHDamageFix1b_hook);              // MeleeWeap  (item_w_damage_)
 		dlogr(" Done", DL_INIT);
 	}
 
