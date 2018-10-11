@@ -350,102 +350,78 @@ end:
 	}
 }
 
+static void ShowIfaceTag2() {
+	const ScriptValue &tagArg = opHandler.arg(0);
+	if (tagArg.isInt()) {
+		int tag = tagArg.asInt();
+		if (tag == 3 || tag == 4) {
+			__asm mov  eax, tag;
+			__asm call pc_flag_on_;
+		} else {
+			AddBox(tag);
+		}
+	} else {
+		opHandler.printOpcodeError("show_iface_tag() - argument is not an integer.");
+	}
+}
+
 static void __declspec(naked) ShowIfaceTag() {
-	__asm {
-		pushad;
-		mov ecx, eax;
-		call interpretPopShort_;
-		mov edx, eax;
-		mov eax, ecx;
-		call interpretPopLong_;
-		cmp dx, VAR_TYPE_INT;
-		jnz end;
-		cmp eax, 3;
-		je falloutfunc;
-		cmp eax, 4;
-		je falloutfunc;
-		push eax;
-		call AddBox;
-		call refresh_box_bar_win_;
-		jmp end;
-falloutfunc:
-		call pc_flag_on_;
-end:
-		popad;
-		retn;
+	_WRAP_OPCODE(ShowIfaceTag2, 1, 0)
+}
+
+static void HideIfaceTag2() {
+	const ScriptValue &tagArg = opHandler.arg(0);
+	if (tagArg.isInt()) {
+		int tag = tagArg.asInt();
+		if (tag == 3 || tag == 4) {
+			__asm mov  eax, tag;
+			__asm call pc_flag_off_;
+		} else {
+			RemoveBox(tag);
+		}
+	} else {
+		opHandler.printOpcodeError("hide_iface_tag() - argument is not an integer.");
 	}
 }
+
 static void __declspec(naked) HideIfaceTag() {
-	__asm {
-		pushad;
-		mov ecx, eax;
-		call interpretPopShort_;
-		mov edx, eax;
-		mov eax, ecx;
-		call interpretPopLong_;
-		cmp dx, VAR_TYPE_INT;
-		jnz end;
-		cmp eax, 3;
-		je falloutfunc;
-		cmp eax, 4;
-		je falloutfunc;
-		push eax;
-		call RemoveBox;
-		call refresh_box_bar_win_;
-		jmp end;
-falloutfunc:
-		call pc_flag_off_;
-end:
-		popad;
-		retn;
+	_WRAP_OPCODE(HideIfaceTag2, 1, 0)
+}
+
+static void IsIfaceTagActive2() {
+	const ScriptValue &tagArg = opHandler.arg(0);
+	if (tagArg.isInt()) {
+		bool result = false;
+		int tag = tagArg.asInt();
+		if (tag >= 0 && tag < 5) {
+			if (tag == 1 || tag == 2) { // Poison/Radiation
+				tag += 2;
+				int* boxslot = (int*)_bboxslot;
+				for (int i = 0; i < 6; i++) {
+					int value = boxslot[i];
+					if (value == tag || value == -1) {
+						result = (value != -1);
+						break;
+					}
+				}
+			} else { // Sneak/Level/Addict
+				TGameObj* obj = *ptr_obj_dude;
+				char* proto = GetProtoPtr(obj->pid);
+				int flagBit = 1 << tag;
+				result = ((*(int*)(proto + 0x20) & flagBit) != 0);
+			}
+		} else {
+			result = GetBox(tag);
+		}
+		opHandler.setReturn(result);
+	} else {
+		opHandler.printOpcodeError("is_iface_tag_active() - argument is not an integer.");
+		opHandler.setReturn(-1);
 	}
 }
+
 static void __declspec(naked) IsIfaceTagActive() {
-	__asm {
-		pushad;
-		sub esp, 4;
-		mov ebx, eax;
-		call interpretPopShort_;
-		mov edx, eax;
-		mov eax, ebx;
-		call interpretPopLong_;
-		cmp dx, VAR_TYPE_INT;
-		jnz fail;
-		cmp eax, 3;
-		je falloutfunc;
-		cmp eax, 4;
-		je falloutfunc;
-		push eax;
-		call GetBox;
-		mov edx, eax;
-		jmp end;
-falloutfunc:
-		mov ecx, eax;
-		mov eax, dword ptr ds:[_obj_dude];
-		mov edx, esp;
-		mov eax, [eax+0x64];
-		call proto_ptr_;
-		mov edx, 1;
-		shl edx, cl;
-		mov ecx, [esp];
-		mov eax, [ecx+0x20];
-		and eax, edx;
-		jz fail;
-		xor edx, edx;
-		inc edx;
-		jmp end;
-fail:
-		xor edx, edx;
-end:
-		mov eax, ebx;
-		call interpretPushLong_;
-		mov eax, ebx;
-		mov edx, VAR_TYPE_INT;
-		call interpretPushShort_;
-		add esp, 4;
-		popad;
-		retn;
-	}
+	_WRAP_OPCODE(IsIfaceTagActive2, 1, 1)
 }
 
 static void sf_intface_redraw() {

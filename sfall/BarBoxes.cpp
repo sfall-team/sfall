@@ -88,17 +88,19 @@ void BarBoxesInit() {
 	}
 }
 
-int _stdcall GetBox(int i) {
-	if (i < 5 || i > 9) return 0;
-	return boxesEnabled[i - 5];
+bool GetBox(int i) {
+	if (i < 5 || i > 9) return false;
+	return (boxesEnabled[i - 5] != 0);
 }
 
-void _stdcall AddBox(int i) {
+void AddBox(int i) {
 	if (i < 5 || i > 9) return;
 	boxesEnabled[i - 5] = 1;
+	__asm call refresh_box_bar_win_;
 }
 
-void _stdcall RemoveBox(int i) {
+void RemoveBox(int i) {
 	if (i < 5 || i > 9) return;
 	boxesEnabled[i - 5] = 0;
+	__asm call refresh_box_bar_win_;
 }

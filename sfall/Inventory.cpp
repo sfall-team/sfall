@@ -785,7 +785,7 @@ void InventoryInit() {
 		HookCall(0x4772AA, item_add_mult_hook);
 	}
 
-	// Do not call the 'Move Items' window when using drap and drop to reload weapons in the inventory
+	// Do not call the 'Move Items' window when using drag and drop to reload weapons in the inventory
 	int ReloadReserve = GetPrivateProfileIntA("Misc", "ReloadReserve", -1, ini);
 	if (ReloadReserve >= 0) {
 		SafeWrite32(0x47655F, ReloadReserve);     // mov  eax, ReloadReserve

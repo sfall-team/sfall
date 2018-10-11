@@ -37,6 +37,7 @@
 #define _art_vault_guy_num          0x5108A4
 #define _art_vault_person_nums      0x5108A8
 #define _background_volume          0x518E88
+#define _bboxslot                   0x5970E0
 #define _bckgnd                     0x5707A4
 #define _black_palette              0x663FD0
 #define _bottom_line                0x664524
