@@ -474,6 +474,7 @@ success:
 		call PerksAcceptCharScreen;
 end:
 		_InLoop2(0, CHARSCREEN);
+		mov tagSkill4LevelBase, -1; // for fixing Tag! perk exploit
 		popad;
 		retn;
 	}
