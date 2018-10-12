@@ -411,6 +411,7 @@ success:
 end:
 		popad;
 		and InLoop, (-1 ^ CHARSCREEN);
+		mov tagSkill4LevelBase, -1; // for fixing Tag! perk exploit
 		retn;
 	}
 }

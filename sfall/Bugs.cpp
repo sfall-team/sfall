@@ -1371,6 +1371,36 @@ limit:
 	}
 }
 
+int tagSkill4LevelBase = -1;
+static void __declspec(naked) SliderBtn_hook_down() {
+	__asm {
+		call skill_level_;
+		cmp  tagSkill4LevelBase, -1;
+		jnz  fix;
+		retn;
+fix:
+		cmp  ds:[_tag_skill + 3 * 4], ebx;  // _tag_skill4, ebx = _skill_cursor
+		jnz  skip;
+		cmp  eax, tagSkill4LevelBase;             // curr > x2
+		jg   skip;
+		xor  eax, eax;
+skip:
+		retn;
+	}
+}
+
+static void __declspec(naked) Add4thTagSkill_hook() {
+	__asm {
+		mov  edi, eax;
+		call skill_set_tags_;
+		mov  eax, ds:[_obj_dude];
+		mov  edx, dword ptr ds:[edi + 3 * 4];    // _temp_tag_skill4
+		call skill_level_;
+		mov  tagSkill4LevelBase, eax;            // x2
+		retn;
+	}
+}
+
 static BYTE retrievePtr = 0;
 static void __declspec(naked) ai_retrieve_object_hook() {
 	__asm {
@@ -1805,6 +1835,14 @@ void BugsInit()
 	MakeCall(0x472F5F, inven_obj_examine_func_hack);
 	SafeWrite8(0x472F64, 0x90);
 
+	// Fix for the exploit that allows you to gain excessive skill points from Tag! perk before leaving the character screen
+	//if (GetPrivateProfileIntA("Misc", "TagPerkFix", 1, ini)) {
+		dlog("Applying fix for Tag! exploit.", DL_INIT);
+		HookCall(0x43B463, SliderBtn_hook_down);
+		HookCall(0x43D7DD, Add4thTagSkill_hook);
+		dlogr(" Done", DL_INIT);
+	//}
+
 	// Fix for ai_retrieve_object_ engine function not returning the requested object when there are different objects
 	// with the same ID
 	dlog("Applying ai_retrieve_object engine function fix.", DL_INIT);
@@ -1819,6 +1857,6 @@ void BugsInit()
 		dlogr(" Done", DL_INIT);
 	}
 
-	// Fix for "Heave Ho!" perk increasing strength stat above 10 when determining the max range of thrown weapons
+	// Fix for Heave Ho! perk increasing Strength stat above 10 when determining the maximum range of thrown weapons
 	HookCall(0x478AD9, item_w_range_hook);
 }
