@@ -22,9 +22,23 @@
 #include "FileSystem.h"
 #include "ScriptExtender.h"
 
+static void FSOpcodeInvalidArgs(const char* opcodeName) {
+	opHandler.printOpcodeError("%s - invalid arguments.", opcodeName);
+}
+
 //file system functions
 static void fs_create2() {
-	opHandler.setReturn(FScreate(opHandler.arg(0).asString(), opHandler.arg(1).asInt()), DATATYPE_INT);
+	const ScriptValue &pathArg = opHandler.arg(0),
+					  &sizeArg = opHandler.arg(1);
+
+	if (pathArg.isString() && sizeArg.isInt()) {
+		const char* path = pathArg.asString();
+		int size = sizeArg.asInt();
+		opHandler.setReturn(FScreate(path, size), DATATYPE_INT);
+	} else {
+		FSOpcodeInvalidArgs("fs_create()");
+		opHandler.setReturn(-1);
+	}
 }
 
 static void __declspec(naked) fs_create() {
@@ -32,7 +46,17 @@ static void __declspec(naked) fs_create() {
 }
 
 static void fs_copy2() {
-	opHandler.setReturn(FScopy(opHandler.arg(0).asString(), opHandler.arg(1).asString()), DATATYPE_INT);
+	const ScriptValue &pathArg = opHandler.arg(0),
+					  &srcArg = opHandler.arg(1);
+
+	if (pathArg.isString() && srcArg.isString()) {
+		const char* path = pathArg.asString();
+		const char* src = srcArg.asString();
+		opHandler.setReturn(FScopy(path, src), DATATYPE_INT);
+	} else {
+		FSOpcodeInvalidArgs("fs_copy()");
+		opHandler.setReturn(-1);
+	}
 }
 
 static void __declspec(naked) fs_copy() {
@@ -40,7 +64,15 @@ static void __declspec(naked) fs_copy() {
 }
 
 static void fs_find2() {
-	opHandler.setReturn(FSfind(opHandler.arg(0).asString()), DATATYPE_INT);
+	const ScriptValue &pathArg = opHandler.arg(0);
+
+	if (pathArg.isString()) {
+		const char* path = pathArg.asString();
+		opHandler.setReturn(FSfind(path), DATATYPE_INT);
+	} else {
+		FSOpcodeInvalidArgs("fs_find()");
+		opHandler.setReturn(-1);
+	}
 }
 
 static void __declspec(naked) fs_find() {
@@ -48,7 +80,15 @@ static void __declspec(naked) fs_find() {
 }
 
 static void fs_write_byte2() {
-	FSwrite_byte(opHandler.arg(0).asInt(), opHandler.arg(1).asInt());
+	const ScriptValue &idArg = opHandler.arg(0),
+					  &dataArg = opHandler.arg(1);
+
+	if (idArg.isInt() && dataArg.isInt()) {
+		int id = idArg.asInt(), data = dataArg.asInt();
+		FSwrite_byte(id, data);
+	} else {
+		FSOpcodeInvalidArgs("fs_write_byte()");
+	}
 }
 
 static void __declspec(naked) fs_write_byte() {
@@ -56,7 +96,15 @@ static void __declspec(naked) fs_write_byte() {
 }
 
 static void fs_write_short2() {
-	FSwrite_short(opHandler.arg(0).asInt(), opHandler.arg(1).asInt());
+	const ScriptValue &idArg = opHandler.arg(0),
+					  &dataArg = opHandler.arg(1);
+
+	if (idArg.isInt() && dataArg.isInt()) {
+		int id = idArg.asInt(), data = dataArg.asInt();
+		FSwrite_short(id, data);
+	} else {
+		FSOpcodeInvalidArgs("fs_write_short()");
+	}
 }
 
 static void __declspec(naked) fs_write_short() {
@@ -64,7 +112,15 @@ static void __declspec(naked) fs_write_short() {
 }
 
 static void fs_write_int2() {
-	FSwrite_int(opHandler.arg(0).asInt(), opHandler.arg(1).asInt());
+	const ScriptValue &idArg = opHandler.arg(0),
+					  &dataArg = opHandler.arg(1);
+
+	if (idArg.isInt() && (dataArg.isInt() || dataArg.isFloat())) {
+		int id = idArg.asInt(), data = dataArg.asInt();
+		FSwrite_int(id, data);
+	} else {
+		FSOpcodeInvalidArgs("fs_write_int()");
+	}
 }
 
 static void __declspec(naked) fs_write_int() {
@@ -72,7 +128,16 @@ static void __declspec(naked) fs_write_int() {
 }
 
 static void fs_write_string2() {
-	FSwrite_string(opHandler.arg(0).asInt(), opHandler.arg(1).asString());
+	const ScriptValue &idArg = opHandler.arg(0),
+					  &dataArg = opHandler.arg(1);
+
+	if (idArg.isInt() && dataArg.isString()) {
+		int id = idArg.asInt();
+		const char* data = dataArg.asString();
+		FSwrite_string(id, data);
+	} else {
+		FSOpcodeInvalidArgs("fs_write_string()");
+	}
 }
 
 static void __declspec(naked) fs_write_string() {
@@ -80,7 +145,16 @@ static void __declspec(naked) fs_write_string() {
 }
 
 static void fs_write_bstring2() {
-	FSwrite_bstring(opHandler.arg(0).asInt(), opHandler.arg(1).asString());
+	const ScriptValue &idArg = opHandler.arg(0),
+					  &dataArg = opHandler.arg(1);
+
+	if (idArg.isInt() && dataArg.isString()) {
+		int id = idArg.asInt();
+		const char* data = dataArg.asString();
+		FSwrite_bstring(id, data);
+	} else {
+		FSOpcodeInvalidArgs("fs_write_bstring()");
+	}
 }
 
 static void __declspec(naked) fs_write_bstring() {
@@ -88,7 +162,15 @@ static void __declspec(naked) fs_write_bstring() {
 }
 
 static void fs_read_byte2() {
-	opHandler.setReturn(FSread_byte(opHandler.arg(0).asInt()), DATATYPE_INT);
+	const ScriptValue &idArg = opHandler.arg(0);
+
+	if (idArg.isInt()) {
+		int id = idArg.asInt();
+		opHandler.setReturn(FSread_byte(id), DATATYPE_INT);
+	} else {
+		FSOpcodeInvalidArgs("fs_read_byte()");
+		opHandler.setReturn(-1);
+	}
 }
 
 static void __declspec(naked) fs_read_byte() {
@@ -96,7 +178,15 @@ static void __declspec(naked) fs_read_byte() {
 }
 
 static void fs_read_short2() {
-	opHandler.setReturn(FSread_short(opHandler.arg(0).asInt()), DATATYPE_INT);
+	const ScriptValue &idArg = opHandler.arg(0);
+
+	if (idArg.isInt()) {
+		int id = idArg.asInt();
+		opHandler.setReturn(FSread_short(id), DATATYPE_INT);
+	} else {
+		FSOpcodeInvalidArgs("fs_read_short()");
+		opHandler.setReturn(-1);
+	}
 }
 
 static void __declspec(naked) fs_read_short() {
@@ -104,7 +194,15 @@ static void __declspec(naked) fs_read_short() {
 }
 
 static void fs_read_int2() {
-	opHandler.setReturn(FSread_int(opHandler.arg(0).asInt()), DATATYPE_INT);
+	const ScriptValue &idArg = opHandler.arg(0);
+
+	if (idArg.isInt()) {
+		int id = idArg.asInt();
+		opHandler.setReturn(FSread_int(id), DATATYPE_INT);
+	} else {
+		FSOpcodeInvalidArgs("fs_read_int()");
+		opHandler.setReturn(-1);
+	}
 }
 
 static void __declspec(naked) fs_read_int() {
@@ -112,7 +210,15 @@ static void __declspec(naked) fs_read_int() {
 }
 
 static void fs_read_float2() {
-	opHandler.setReturn(FSread_int(opHandler.arg(0).asInt()), DATATYPE_FLOAT);
+	const ScriptValue &idArg = opHandler.arg(0);
+
+	if (idArg.isInt()) {
+		int id = idArg.asInt();
+		opHandler.setReturn(FSread_int(id), DATATYPE_FLOAT);
+	} else {
+		FSOpcodeInvalidArgs("fs_read_float()");
+		opHandler.setReturn(-1);
+	}
 }
 
 static void __declspec(naked) fs_read_float() {
@@ -120,7 +226,14 @@ static void __declspec(naked) fs_read_float() {
 }
 
 static void fs_delete2() {
-	FSdelete(opHandler.arg(0).asInt());
+	const ScriptValue &idArg = opHandler.arg(0);
+
+	if (idArg.isInt()) {
+		int id = idArg.asInt();
+		FSdelete(id);
+	} else {
+		FSOpcodeInvalidArgs("fs_delete()");
+	}
 }
 
 static void __declspec(naked) fs_delete() {
@@ -128,7 +241,15 @@ static void __declspec(naked) fs_delete() {
 }
 
 static void fs_size2() {
-	opHandler.setReturn(FSsize(opHandler.arg(0).asInt()), DATATYPE_INT);
+	const ScriptValue &idArg = opHandler.arg(0);
+
+	if (idArg.isInt()) {
+		int id = idArg.asInt();
+		opHandler.setReturn(FSsize(id), DATATYPE_INT);
+	} else {
+		FSOpcodeInvalidArgs("fs_size()");
+		opHandler.setReturn(-1);
+	}
 }
 
 static void __declspec(naked) fs_size() {
@@ -136,7 +257,15 @@ static void __declspec(naked) fs_size() {
 }
 
 static void fs_pos2() {
-	opHandler.setReturn(FSpos(opHandler.arg(0).asInt()), DATATYPE_INT);
+	const ScriptValue &idArg = opHandler.arg(0);
+
+	if (idArg.isInt()) {
+		int id = idArg.asInt();
+		opHandler.setReturn(FSpos(id), DATATYPE_INT);
+	} else {
+		FSOpcodeInvalidArgs("fs_pos()");
+		opHandler.setReturn(-1);
+	}
 }
 
 static void __declspec(naked) fs_pos() {
@@ -144,7 +273,15 @@ static void __declspec(naked) fs_pos() {
 }
 
 static void fs_seek2() {
-	FSseek(opHandler.arg(0).asInt(), opHandler.arg(1).asInt());
+	const ScriptValue &idArg = opHandler.arg(0),
+					  &posArg = opHandler.arg(1);
+
+	if (idArg.isInt() && posArg.isInt()) {
+		int id = idArg.asInt(), pos = posArg.asInt();
+		FSseek(id, pos);
+	} else {
+		FSOpcodeInvalidArgs("fs_pos()");
+	}
 }
 
 static void __declspec(naked) fs_seek() {
@@ -152,7 +289,15 @@ static void __declspec(naked) fs_seek() {
 }
 
 static void fs_resize2() {
-	FSresize(opHandler.arg(0).asInt(), opHandler.arg(1).asInt());
+	const ScriptValue &idArg = opHandler.arg(0),
+					  &sizeArg = opHandler.arg(1);
+
+	if (idArg.isInt() && sizeArg.isInt()) {
+		int id = idArg.asInt(), size = sizeArg.asInt();
+		FSresize(id, size);
+	} else {
+		FSOpcodeInvalidArgs("fs_resize()");
+	}
 }
 
 static void __declspec(naked) fs_resize() {

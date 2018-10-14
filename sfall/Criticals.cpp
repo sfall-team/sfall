@@ -23,6 +23,7 @@
 #include "FalloutEngine.h"
 #include "Logging.h"
 
+static const char* CritTableFile = ".\\CriticalOverrides.ini";
 static const DWORD CritTableCount = 2 * 19 + 1;            // Number of species in new critical table
 //static const DWORD origCritTableSize = 6 * 9 * 20;         // Number of entries in original table
 static const DWORD CritTableSize = 6 * 9 * CritTableCount; // Number of entries in new critical table
@@ -97,7 +98,7 @@ void CritLoad() {
 					int slot1 = crit + part * 6 + critter * 9 * 6;
 					int slot2 = crit + part * 6 + ((critter == 19) ? 38 : critter) * 9 * 6;
 					for (int i = 0; i < 7; i++) {
-						baseCritTable[slot2].values[i] = GetPrivateProfileIntA(section, CritNames[i], defaultTable[slot1].values[i], ".\\CriticalOverrides.ini");
+						baseCritTable[slot2].values[i] = GetPrivateProfileIntA(section, CritNames[i], defaultTable[slot1].values[i], CritTableFile);
 						if (IsDebug) {
 							char logmsg[256];
 							if (baseCritTable[slot2].values[i] != defaultTable[slot1].values[i]) {
@@ -120,11 +121,11 @@ void CritLoad() {
 			for (int critter = 0; critter < CritTableCount; critter++) {
 				sprintf_s(buf, "c_%02d", critter);
 				int all;
-				if (!(all = GetPrivateProfileIntA(buf, "Enabled", 0, ".\\CriticalOverrides.ini"))) continue;
+				if (!(all = GetPrivateProfileIntA(buf, "Enabled", 0, CritTableFile))) continue;
 				for (int part = 0; part < 9; part++) {
 					if (all < 2) {
 						sprintf_s(buf2, "Part_%d", part);
-						if (!GetPrivateProfileIntA(buf, buf2, 0, ".\\CriticalOverrides.ini")) continue;
+						if (!GetPrivateProfileIntA(buf, buf2, 0, CritTableFile)) continue;
 					}
 
 					sprintf_s(buf2, "c_%02d_%d", critter, part);
@@ -132,7 +133,7 @@ void CritLoad() {
 						int slot = crit + part * 6 + critter * 9 * 6;
 						for (int i = 0; i < 7; i++) {
 							sprintf_s(buf3, "e%d_%s", crit, CritNames[i]);
-							baseCritTable[slot].values[i] = GetPrivateProfileIntA(buf2, buf3, baseCritTable[slot].values[i], ".\\CriticalOverrides.ini");
+							baseCritTable[slot].values[i] = GetPrivateProfileIntA(buf2, buf3, baseCritTable[slot].values[i], CritTableFile);
 						}
 					}
 				}
