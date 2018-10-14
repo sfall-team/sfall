@@ -280,7 +280,7 @@ static void fs_seek2() {
 		int id = idArg.asInt(), pos = posArg.asInt();
 		FSseek(id, pos);
 	} else {
-		FSOpcodeInvalidArgs("fs_pos()");
+		FSOpcodeInvalidArgs("fs_seek()");
 	}
 }
 
