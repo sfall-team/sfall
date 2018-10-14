@@ -28,6 +28,7 @@
 namespace sfall
 {
 
+static const char* critTableFile = ".\\CriticalOverrides.ini";
 const DWORD Criticals::critTableCount = 2 * 19 + 1; // Number of species in new critical table
 
 static DWORD mode;
@@ -86,7 +87,7 @@ void CritLoad() {
 					fo::CritInfo& newEffect = baseCritTable[newCritter][part][crit];
 					fo::CritInfo& defaultEffect = fo::var::crit_succ_eff[critter][part][crit];
 					for (int i = 0; i < 7; i++) {
-						newEffect.values[i] = GetPrivateProfileIntA(section, critNames[i], defaultEffect.values[i], ".\\CriticalOverrides.ini");
+						newEffect.values[i] = GetPrivateProfileIntA(section, critNames[i], defaultEffect.values[i], critTableFile);
 						if (isDebug) {
 							char logmsg[256];
 							if (newEffect.values[i] != defaultEffect.values[i]) {
@@ -109,11 +110,11 @@ void CritLoad() {
 			for (int critter = 0; critter < Criticals::critTableCount; critter++) {
 				sprintf_s(buf, "c_%02d", critter);
 				int all;
-				if (!(all = GetPrivateProfileIntA(buf, "Enabled", 0, ".\\CriticalOverrides.ini"))) continue;
+				if (!(all = GetPrivateProfileIntA(buf, "Enabled", 0, critTableFile))) continue;
 				for (int part = 0; part < 9; part++) {
 					if (all < 2) {
 						sprintf_s(buf2, "Part_%d", part);
-						if (!GetPrivateProfileIntA(buf, buf2, 0, ".\\CriticalOverrides.ini")) continue;
+						if (!GetPrivateProfileIntA(buf, buf2, 0, critTableFile)) continue;
 					}
 
 					sprintf_s(buf2, "c_%02d_%d", critter, part);
@@ -121,7 +122,7 @@ void CritLoad() {
 						fo::CritInfo& effect = baseCritTable[critter][part][crit];
 						for (int i = 0; i < 7; i++) {
 							sprintf_s(buf3, "e%d_%s", crit, critNames[i]);
-							effect.values[i] = GetPrivateProfileIntA(buf2, buf3, effect.values[i], ".\\CriticalOverrides.ini");
+							effect.values[i] = GetPrivateProfileIntA(buf2, buf3, effect.values[i], critTableFile);
 						}
 					}
 				}
@@ -244,10 +245,9 @@ void CriticalTableOverride() {
 void RemoveCriticalTimeLimitsPatch() {
 	if (GetConfigInt("Misc", "RemoveCriticalTimelimits", 0)) {
 		dlog("Removing critical time limits.", DL_INIT);
-		SafeWrite8(0x42412B, 0x90);
-		BlockCall(0x42412C);
-		SafeWrite16(0x4A3052, 0x9090);
-		SafeWrite16(0x4A3093, 0x9090);
+		SafeWrite8(0x424118, 0xEB);               // jmps 0x424131
+		SafeWrite8(0x4A3053, 0x0);
+		SafeWrite8(0x4A3094, 0x0);
 		dlogr(" Done", DL_INIT);
 	}
 }

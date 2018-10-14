@@ -495,7 +495,7 @@ void NpcAutoLevelPatch() {
 
 	if (GetConfigInt("Misc", "OverrideArtCacheSize", 0)) {
 		dlog("Applying override art cache size patch.", DL_INIT);
-		SafeWrite32(0x418867, 0x90909090);
+		SafeWrite8(0x41886A, 0x0);
 		SafeWrite32(0x418872, 256);
 		dlogr(" Done", DL_INIT);
 	}
@@ -581,7 +581,7 @@ void FashShotTraitFix() {
 		break;
 	case 2:
 		dlog("Applying Fast Shot Trait Fix. (Fallout 1 version)", DL_INIT);
-		SafeWrite16(0x478C9F, 0x9090);
+		SafeWrite8(0x478CA0, 0x0);
 		for (int i = 0; i < sizeof(FastShotFixF1) / 4; i++) {
 			HookCall(FastShotFixF1[i], (void*)0x478C7D);
 		}
@@ -705,7 +705,7 @@ void MotionScannerFlagsPatch() {
 		if (flags & 1) MakeJump(0x41BBE9, ScannerAutomapHook);
 		if (flags & 2) {
 			// automap_
-			SafeWrite16(0x41BC24, 0x9090);
+			SafeWrite8(0x41BC25, 0x0);
 			BlockCall(0x41BC3C);
 			// item_m_use_charged_item_
 			SafeWrite8(0x4794B3, 0x5E); // jbe short 0x479512

@@ -216,7 +216,7 @@ Some additional reg_anim_* functions were introduced. They all work in the same 
 > void reg_anim_turn_towards(object, tile/target, delay)
 - makes object change its direction to face given tile num or target object.
 
-> int metarule2_explosions(int arg1, int arg2, int arg3)
+> int/array metarule2_explosions(int arg1, int arg2, int arg3)
 was made as a dirty easy hack to allow dynamically change some explosion parameters (ranged attack). All changed parameters are reset to vanilla state automatically after each attack action. Following macros are available in sfall.h:
 
 > void set_attack_explosion_pattern(x, y)
@@ -234,6 +234,17 @@ was made as a dirty easy hack to allow dynamically change some explosion paramet
 > void set_explosion_radius(grenade, rocket)
 - sets a permanent radius of the explosion for grenades and/or rockets. Passing 0 means not changing the corresponding radius.
 - changed radius will be reset each time the player reloads the game.
+
+> array get_explosion_damage(itemPid)
+- returns array of the minimum and maximum damage of the explosive item.
+
+> void set_dynamite_damage(minDmg, maxDmg)
+- sets the minimum and maximum damage for Dynamite.
+- changed damage will be reset each time the player reloads the game.
+
+> void set_plastic_damage(minDmg, maxDmg)
+- sets the minimum and maximum damage for Plastic Explosives.
+- changed damage will be reset each time the player reloads the game.
 
 
 Some utility/math functions are available:
@@ -491,6 +502,15 @@ Some utility/math functions are available:
 - redraws inventory list in the inventory/use inventory item on/loot/barter screens
 - invSide specifies which side needs to be redrawn: 0 - the player, 1 - target (container/NPC in loot/barter screens)
 
+> void sfall_func3("item_make_explosive", int pid, int activePid, int damage)
+> void sfall_func4("item_make_explosive", int pid, int activePid, int min, int max)
+- makes the specified item (pid) an explosive item like Dynamite or Plastic Explosives
+- activePid is for an item with an active timer, can be the same as the pid argument
+- the item proto must be "Misc Item" type and have "Use" action flag
+- min/max are the minimum and maximum explosion damage
+- using the function on an item that is already set as an explosive will override its previous settings
+- NOTE: this function does not work for pid's of Dynamite and Plastic Explosives
+
 > int sfall_func1("get_string_pointer", string text)
 - returns a pointer to a string variable or to a text
 
@@ -502,7 +522,7 @@ Some utility/math functions are available:
 
 > void sfall_func5("create_win", string winName, int x, int y, int width, int height)
 > void sfall_func6("create_win", string winName, int x, int y, int width, int height, int flags)
-- works just like vanilla CreateWin function, but creates a window with MoveOnTop flag if flags argument is not specified, and allows to set additional flags for the created window
+- works just like vanilla CreateWin function, but creates a window with MoveOnTop flag if the flags argument is not specified, and allows to set additional flags for the created window
 - MoveOnTop flag allows the created window to be placed on top of the game interface
 
 > void sfall_func3("set_can_rest_on_map", int mapNum, int elev, bool value)
