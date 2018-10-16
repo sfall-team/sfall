@@ -329,9 +329,9 @@ void PartyControl::init() {
 
 	// Show current level & AC & addict flag
 	HookCall(0x44926F, gdControlUpdateInfo_hook);
-	Translate("sfall", "LvlMsg", "State:", levelMsg, 12);
-	Translate("sfall", "ACMsg", "AC:", armorClassMsg, 12);
-	Translate("sfall", "AddictMsg", "Addiction", addictMsg, 16);
+	Translate("sfall", "PartyLvlMsg", "Level:", levelMsg, 12);
+	Translate("sfall", "PartyACMsg", "AC:", armorClassMsg, 12);
+	Translate("sfall", "PartyAddictMsg", "Addiction", addictMsg, 16);
 }
 
 }

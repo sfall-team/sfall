@@ -77,9 +77,9 @@ void Criticals::ResetCriticalTable(DWORD critter, DWORD bodypart, DWORD slot, DW
 	critTable[critter][bodypart][slot].values[element] = loadCritTable[critter][bodypart][slot].values[element];
 }
 
-static void CritTableLoad() {
+static int CritTableLoad() {
 	if (mode == 1) {
-		dlogr("Setting up critical hit table using CriticalOverrides.ini", DL_CRITICALS);
+		dlog("\n Setting up critical hit table using CriticalOverrides.ini file", DL_CRITICALS);
 		char section[16];
 		memset(loadCritTable, 0, sizeof(critTable));
 		for (DWORD critter = 0; critter < 20; critter++) {
@@ -94,7 +94,7 @@ static void CritTableLoad() {
 						if (isDebug) {
 							char logmsg[256];
 							if (newEffect.values[i] != defaultEffect.values[i]) {
-								sprintf_s(logmsg, "Entry %s value %d changed from %d to %d", section, i, defaultEffect.values[i], newEffect.values[i]);
+								sprintf_s(logmsg, "  Entry %s value %d changed from %d to %d", section, i, defaultEffect.values[i], newEffect.values[i]);
 								dlogr(logmsg, DL_CRITICALS);
 							}
 						}
@@ -103,7 +103,7 @@ static void CritTableLoad() {
 			}
 		}
 	} else {
-		if (mode != 4) dlogr("Setting up critical hit table using RP fixes", DL_CRITICALS);
+		if (mode != 4) dlog("\n Setting up critical hit table using RP fixes", DL_CRITICALS);
 		constexpr int size = 6 * 9 * sizeof(fo::CritInfo);
 		constexpr int sizeF = 19 * size;
 		memcpy(loadCritTable, fo::var::crit_succ_eff, sizeF);
@@ -111,6 +111,7 @@ static void CritTableLoad() {
 		memcpy(&loadCritTable[38], fo::var::pc_crit_succ_eff, size); // PC crit table
 
 		if (mode == 3) {
+			dlog(" and CriticalOverrides.ini file", DL_CRITICALS);
 			char buf[32], buf2[32], buf3[32];
 			for (int critter = 0; critter < Criticals::critTableCount; critter++) {
 				sprintf_s(buf, "c_%02d", critter);
@@ -133,7 +134,14 @@ static void CritTableLoad() {
 								if (size == 0) continue;
 								int value = 0;
 								for (int j = 0; j < size; j++) {
-									value |= std::stoi(valStr[j], nullptr, 0);
+									try {
+										value |= std::stoi(valStr[j], nullptr, 0);
+									} catch (...) {
+										char msgbuff[128];
+										sprintf_s(msgbuff, "Incorrect value of the EffectFlags parameter in the section [%s] of the table.", buf2);
+										MessageBoxA(0, msgbuff, "Critical table file", MB_TASKMODAL);
+										return -1;
+									}
 								}
 								effect.values[i] = value;
 							} else {
@@ -145,13 +153,13 @@ static void CritTableLoad() {
 			}
 		}
 	}
-	dlogr("Completed critical hit table.", DL_CRITICALS);
+	return 0;
 }
 
 #define SetEntry(critter, bodypart, effect, param, value) fo::var::crit_succ_eff[critter][bodypart][effect].values[param] = value;
 
 static void CriticalTableOverride() {
-	dlog("Initializing critical table override.", DL_INIT);
+	dlog("Initializing critical table override...", DL_INIT);
 	playerCrit = &critTable[38];
 	SafeWrite32(0x423F96, (DWORD)playerCrit);
 	SafeWrite32(0x423FB3, (DWORD)critTable);
@@ -253,16 +261,19 @@ static void CriticalTableOverride() {
 		SetEntry(18, 7, 5, 5, 7101);
 	}
 
-	CritTableLoad();
+	if (CritTableLoad()) {
+		dlogr(". Failure initializing critical hit table from file.", DL_INIT);
+	} else {
+		dlogr(". Completed applying critical hit table.", DL_INIT);
+	}
 	Inited = true;
-	dlogr(" Done", DL_INIT);
 }
 #undef SetEntry
 
 static void RemoveCriticalTimeLimitsPatch() {
 	if (GetConfigInt("Misc", "RemoveCriticalTimelimits", 0)) {
 		dlog("Removing critical time limits.", DL_INIT);
-		SafeMemSet(0x42412B, 0x90, 6);
+		SafeWrite8(0x424118, 0xEB);  // jump to 0x424131
 		SafeWrite16(0x4A3052, 0x9090);
 		SafeWrite16(0x4A3093, 0x9090);
 		dlogr(" Done", DL_INIT);

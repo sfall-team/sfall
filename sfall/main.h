@@ -36,6 +36,9 @@ namespace sfall
 	#define isDebug false
 #endif
 
+// Trap for Debugger
+#define BREAKPOINT  _asm int 3
+
 // Gets the integer value from Sfall configuration INI file.
 unsigned int GetConfigInt(const char* section, const char* setting, int defaultValue);
 
