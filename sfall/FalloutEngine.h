@@ -60,6 +60,7 @@
 #define _curr_pc_stat               0x6681AC
 #define _curr_stack                 0x59E96C
 #define _cursor_line                0x664514
+#define _DarkGreenColor             0x6A3A90
 #define _dialog_target              0x518848
 #define _dialog_target_is_party     0x51884C
 #define _dialogue_state             0x518714
@@ -983,3 +984,7 @@ void __stdcall RedrawWin(DWORD winRef);
 void __stdcall DisplayInventory(long inventoryOffset, long visibleOffset, long mode);
 
 void __stdcall DisplayTargetInventory(long inventoryOffset, long visibleOffset, DWORD* targetInventory, long mode);
+
+long __stdcall StatLevel(TGameObj* critter, long statId);
+
+long __stdcall QueueFindFirst(TGameObj* object, long qType);

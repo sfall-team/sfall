@@ -933,3 +933,19 @@ void __stdcall DisplayTargetInventory(long inventoryOffset, long visibleOffset, 
 		call display_target_inventory_
 	}
 }
+
+long __stdcall StatLevel(TGameObj* critter, long statId) {
+	__asm {
+		mov edx, statId
+		mov eax, critter
+		call stat_level_
+	}
+}
+
+long __stdcall QueueFindFirst(TGameObj* object, long qType) {
+	__asm {
+		mov edx, qType
+		mov eax, object
+		call queue_find_first_
+	}
+}

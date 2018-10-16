@@ -28,6 +28,7 @@
 #include "main.h"
 #include "Define.h"
 #include "FalloutEngine.h"
+#include "HeroAppearance.h"
 #include "PartyControl.h"
 #if (_MSC_VER < 1600)
 #include "Cpp11_emu.h"
@@ -346,6 +347,43 @@ end:
 	}
 }
 
+static char levelMsg[12], armorClassMsg[12], addictMsg[16];
+static void __fastcall PartyMemberPrintStat(BYTE* surface, DWORD toWidth) {
+	const char* fmt = "%s %d";
+	char lvlMsg[16], acMsg[16];
+
+	TGameObj* partyMember = (TGameObj*)*ptr_dialog_target;
+	int xPos = 350;
+
+	int level = PartyMemberGetCurrentLevel(partyMember);
+	sprintf_s(lvlMsg, fmt, levelMsg, level);
+
+	BYTE color = *(BYTE*)_GreenColor;
+	int widthText = GetTextWidth(lvlMsg);
+	PrintText(lvlMsg, color, xPos - widthText, 96, widthText, toWidth, surface);
+
+	int ac = StatLevel(partyMember, STAT_ac);
+	sprintf_s(acMsg, fmt, armorClassMsg, ac);
+
+	xPos -= GetTextWidth(armorClassMsg) + 20;
+	PrintText(acMsg, color, xPos, 167, GetTextWidth(acMsg), toWidth, surface);
+
+	color = (QueueFindFirst(partyMember, 2)) ? *(BYTE*)_RedColor : *(BYTE*)_DarkGreenColor;
+	widthText = GetTextWidth(addictMsg);
+	PrintText(addictMsg, color, 350 - widthText, 148, widthText, toWidth, surface);
+}
+
+static void __declspec(naked) gdControlUpdateInfo_hook() {
+	__asm {
+		mov  edi, eax; // keep fontnum
+		mov  ecx, ebp;
+		mov  edx, esi;
+		call PartyMemberPrintStat;
+		mov  eax, edi;
+		jmp  text_font_;
+	}
+}
+
 void PartyControlInit() {
 	Mode = GetPrivateProfileIntA("Misc", "ControlCombat", 0, ini);
 	if (Mode > 2) 
@@ -381,6 +419,12 @@ void PartyControlInit() {
 		HookCall(0x41279A, &pc_flag_toggle_hook);
 	} else
 		dlogr("  Disabled.", DL_INIT);
+
+	// display party member's current level & AC & addict flag
+	HookCall(0x44926F, gdControlUpdateInfo_hook);
+	GetPrivateProfileString("sfall", "PartyLvlMsg", "Lvl:", levelMsg, 12, translationIni);
+	GetPrivateProfileString("sfall", "PartyACMsg", "AC:", armorClassMsg, 12, translationIni);
+	GetPrivateProfileString("sfall", "PartyAddictMsg", "Addict", addictMsg, 16, translationIni);
 }
 
 void __stdcall PartyControlReset() {

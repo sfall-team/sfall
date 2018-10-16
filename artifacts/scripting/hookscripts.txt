@@ -162,8 +162,8 @@ critter arg1  - The target
 critter arg2  - The attacker
 int     arg3  - The amount of damage to the target
 int     arg4  - The amount of damage to the attacker
-int     arg5  - The special effect flags for the target
-int     arg6  - The special effect flags for the attacker
+int     arg5  - The special effect flags for the target (use bwand DAM_* to check specific flags)
+int     arg6  - The special effect flags for the attacker (use bwand DAM_* to check specific flags)
 int     arg7  - The weapon used in the attack
 int     arg8  - The bodypart that was struck
 int     arg9  - Damage Multiplier (this is divided by 2, so a value of 3 does 1.5x damage, and 8 does 4x damage. Usually it's 2, but with Silent Death perk and the corresponding attack conditions, it's 4; for critical hits, the value is taken from the critical table)
