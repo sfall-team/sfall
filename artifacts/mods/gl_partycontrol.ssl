@@ -21,6 +21,7 @@ variable
    pidList,
    displayName,
    displayNameColor,
+   maxBoxCount,
    inControl := false,
    hasGeckoSkinning := false;
 
@@ -57,6 +58,7 @@ procedure combatturn_handler begin
 end
 
 procedure gamemodechange_handler begin
+   if has_trait(TRAIT_PERK, real_dude_obj, PERK_gecko_skinning_perk) then hasGeckoSkinning := true;
    if not(get_game_mode BWAND COMBAT) then inControl := false;
 end
 
@@ -65,14 +67,15 @@ procedure start begin
       set_perk_ranks(PERK_gecko_skinning_perk, 1);
       set_perk_level(PERK_gecko_skinning_perk, 999); // prevent it from appearing in the perk selection window
       controlMode := GetConfig("CombatControl", "Mode", 0);
-      displayName := GetConfig("CombatControl", "DisplayName", 0);
-      displayNameColor := GetConfig("CombatControl", "DisplayNameColor", 0);
       if (controlMode > 2) then controlMode := 0;
-      if (displayName < 5 or displayName > 9) then displayName := 0;
       if (controlMode > 0) then begin
          pidList := GetConfigListInt("CombatControl", "PIDList");
          fix_array(pidList);
-         if has_trait(TRAIT_PERK, dude_obj, PERK_gecko_skinning_perk) then hasGeckoSkinning := true;
+         maxBoxCount := get_ini_setting("ddraw.ini|Misc|BoxBarCount") + 4;
+         displayName := GetConfig("CombatControl", "DisplayName", 0);
+         displayNameColor := GetConfig("CombatControl", "DisplayNameColor", 0);
+         if (maxBoxCount < 9) then maxBoxCount := 9;
+         if (displayName < 5 or displayName > maxBoxCount) then displayName := 0;
 
          register_hook_proc(HOOK_COMBATTURN, combatturn_handler);
          register_hook_proc(HOOK_GAMEMODECHANGE, gamemodechange_handler);
