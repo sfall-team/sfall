@@ -23,6 +23,7 @@
 #include "Bugs.h"
 #include "Console.h"
 #include "Criticals.h"
+#include "Explosions.h"
 #include "FalloutEngine.h"
 #include "FileSystem.h"
 #include "Graphics.h"
@@ -78,6 +79,7 @@ static void _stdcall ResetState(DWORD onLoad) {
 	InventoryReset();
 	RegAnimCombatCheck(1);
 	AfterAttackCleanup();
+	ResetExplosionRadius();
 	PartyControlReset();
 }
 

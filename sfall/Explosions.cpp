@@ -23,6 +23,7 @@
 #include "ScriptExtender.h"
 
 static bool lightingEnabled = false;
+static bool explosionsMetaruleReset = false;
 
 static const DWORD ranged_attack_lighting_fix_back = 0x4118F8;
 
@@ -96,7 +97,6 @@ static void __declspec(naked) explosion_lighting_fix2() {
 	}
 }
 
-
 DWORD _stdcall LogThis(DWORD value1, DWORD value2, DWORD value3) {
 	dlog_f("anim_set_check__light_fix: object 0x%X, something 0x%X, radius 0x%X", DL_MAIN, value1, value2, value3);
 	return value1;
@@ -147,12 +147,14 @@ static void __declspec(naked) fire_dance_lighting_fix1() {
 }
 
 
-
-static const DWORD explosion_dmg_check_adr[] = {0x411709, 0x4119FC, 0x411C08, 0x4517C1, 0x423BC8};
+static const DWORD explosion_dmg_check_adr[] = {0x411709, 0x4119FC, 0x411C08, 0x4517C1, 0x423BC8, 0x42381A};
 static const DWORD explosion_art_adr[] = {0x411A19, 0x411A29, 0x411A35, 0x411A3C};
 static const DWORD explosion_art_defaults[] = {10, 2, 31, 29};
 static const DWORD explosion_radius_grenade = 0x479183;
 static const DWORD explosion_radius_rocket  = 0x47918B;
+
+static DWORD set_expl_radius_grenade = 2;
+static DWORD set_expl_radius_rocket  = 3;
 
 static const size_t numArtChecks = sizeof(explosion_art_adr) / sizeof(explosion_art_adr[0]);
 static const size_t numDmgChecks = sizeof(explosion_dmg_check_adr) / sizeof(explosion_dmg_check_adr[0]);
@@ -161,8 +163,14 @@ static const size_t numDmgChecks = sizeof(explosion_dmg_check_adr) / sizeof(expl
 #define EXPL_FORCE_EXPLOSION_ART        (2)
 #define EXPL_FORCE_EXPLOSION_RADIUS     (3)
 #define EXPL_FORCE_EXPLOSION_DMGTYPE    (4)
+#define EXPL_STATIC_EXPLOSION_RADIUS    (5)
 
-DWORD _stdcall ExplosionsMetaruleFunc(DWORD mode, DWORD arg1, DWORD arg2) {
+static void SetExplosionRadius(int arg1, int arg2) {
+	SafeWrite32(explosion_radius_grenade, arg1);
+	SafeWrite32(explosion_radius_rocket, arg2);
+}
+
+int _stdcall ExplosionsMetaruleFunc(int mode, int arg1, int arg2) {
 	switch (mode) {
 	case EXPL_FORCE_EXPLOSION_PATTERN:
 		if (arg1) {
@@ -179,19 +187,27 @@ DWORD _stdcall ExplosionsMetaruleFunc(DWORD mode, DWORD arg1, DWORD arg2) {
 		}
 		break;
 	case EXPL_FORCE_EXPLOSION_RADIUS:
-		SafeWrite32(explosion_radius_grenade, arg1);
-		SafeWrite32(explosion_radius_rocket, arg1);
+		SetExplosionRadius(arg1, arg1);
 		break;
 	case EXPL_FORCE_EXPLOSION_DMGTYPE:
 		for (int i = 0; i < numDmgChecks; i++) {
 			SafeWrite8(explosion_dmg_check_adr[i], (BYTE)arg1);
 		}
 		break;
+	case EXPL_STATIC_EXPLOSION_RADIUS:
+		if (arg1 > 0) set_expl_radius_grenade = arg1;
+		if (arg2 > 0) set_expl_radius_rocket = arg2;
+		SetExplosionRadius(set_expl_radius_grenade, set_expl_radius_rocket);
+		break;
+	default:
+		return -1;
 	}
+	if (mode != EXPL_STATIC_EXPLOSION_RADIUS) explosionsMetaruleReset = true;
 	return 0;
 }
 
 void ResetExplosionSettings() {
+	if (!explosionsMetaruleReset) return;
 	// explosion pattern
 	explosion_effect_starting_dir = 0;
 	SafeWrite8(0x411B54, 6); // last direction
@@ -200,15 +216,20 @@ void ResetExplosionSettings() {
 		SafeWrite32(explosion_art_adr[i], explosion_art_defaults[i]);
 	}
 	// explosion radiuses
-	SafeWrite32(explosion_radius_grenade, 2);
-	SafeWrite32(explosion_radius_rocket, 3);
+	SetExplosionRadius(set_expl_radius_grenade, set_expl_radius_rocket);
 	// explosion dmgtype
 	for (int i = 0; i < numDmgChecks; i++) {
 		SafeWrite8(explosion_dmg_check_adr[i], 6);
 	}
+	explosionsMetaruleReset = false;
 }
 
-void ExplosionLightingInit() {
+void ResetExplosionRadius() {
+	if (set_expl_radius_grenade != 2 || set_expl_radius_rocket != 3)
+		SetExplosionRadius(2, 3);
+}
+
+void ExplosionInit() {
 	MakeJump(0x411AB4, explosion_effect_hook); // required for explosions_metarule
 
 	lightingEnabled = GetPrivateProfileIntA("Misc", "ExplosionsEmitLight", 0, ini) != 0;
@@ -220,4 +241,10 @@ void ExplosionLightingInit() {
 
 		dlogr(" Done", DL_INIT);
 	}
+
+	DWORD tmp;
+	tmp = SimplePatch<DWORD>(0x4A2873, "Misc", "Dynamite_DmgMax", 50, 0, 9999);
+	SimplePatch<DWORD>(0x4A2878, "Misc", "Dynamite_DmgMin", 30, 0, tmp);
+	tmp = SimplePatch<DWORD>(0x4A287F, "Misc", "PlasticExplosive_DmgMax", 80, 0, 9999);
+	SimplePatch<DWORD>(0x4A2884, "Misc", "PlasticExplosive_DmgMin", 40, 0, tmp);
 }

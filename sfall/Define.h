@@ -1,16 +1,15 @@
 #pragma once
 
 // PIDS of some items
+#define PID_MOTION_SENSOR            59
+#define PID_SUPER_STIMPAK            144
 #define PID_ACTIVE_GEIGER_COUNTER    207
 #define PID_ACTIVE_STEALTH_BOY       210
-#define PID_CAR_TRUNK                455
-
-#define PID_DRIVABLE_CAR             33555441
 #define PID_JET                      259
+#define PID_CAR_TRUNK                455
 #define PID_JESSE_CONTAINER          467
-#define PID_MOTION_SENSOR            59
 #define PID_Player                   16777216
-#define PID_SUPER_STIMPAK            144
+#define PID_DRIVABLE_CAR             33555441
 
 //XXXXXXXXXXXXXXXXXXXXX
 //XX Critter defines XX
