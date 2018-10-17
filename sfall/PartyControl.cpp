@@ -421,10 +421,14 @@ void PartyControlInit() {
 		dlogr("  Disabled.", DL_INIT);
 
 	// display party member's current level & AC & addict flag
-	HookCall(0x44926F, gdControlUpdateInfo_hook);
-	GetPrivateProfileString("sfall", "PartyLvlMsg", "Lvl:", levelMsg, 12, translationIni);
-	GetPrivateProfileString("sfall", "PartyACMsg", "AC:", armorClassMsg, 12, translationIni);
-	GetPrivateProfileString("sfall", "PartyAddictMsg", "Addict", addictMsg, 16, translationIni);
+	if (GetPrivateProfileIntA("Misc", "DisplayNPCExtraInfo", 0, ini)) {
+		dlog("Applying display NPC extra info patch.", DL_INIT);
+		HookCall(0x44926F, gdControlUpdateInfo_hook);
+		GetPrivateProfileString("sfall", "PartyLvlMsg", "Lvl:", levelMsg, 12, translationIni);
+		GetPrivateProfileString("sfall", "PartyACMsg", "AC:", armorClassMsg, 12, translationIni);
+		GetPrivateProfileString("sfall", "PartyAddictMsg", "Addict", addictMsg, 16, translationIni);
+		dlogr(" Done", DL_INIT);
+	}
 }
 
 void __stdcall PartyControlReset() {
