@@ -47,7 +47,7 @@ std::vector<explosiveInfo> explosives;
 static bool onlyOnce = false;
 static bool lightingEnabled = false;
 static bool explosionsMetaruleReset = false;
-static bool explosionsDamageReset = true;
+static bool explosionsDamageReset = false;
 
 static const DWORD ranged_attack_lighting_fix_back = 0x4118F8;
 
@@ -339,15 +339,16 @@ static const DWORD explosion_art_defaults[] = {10, 2, 31, 29};
 static const DWORD explosion_radius_grenade = 0x479183;
 static const DWORD explosion_radius_rocket  = 0x47918B;
 
-static const DWORD dynamite_min_dmg = 0x4A2878;
-static const DWORD dynamite_max_dmg = 0x4A2873;
-static const DWORD plastic_min_dmg  = 0x4A2884;
-static const DWORD plastic_max_dmg  = 0x4A287F;
-static DWORD dynamite_min_setting;
-static DWORD dynamite_max_setting;
-static DWORD plastic_min_setting;
-static DWORD plastic_max_setting;
+static const DWORD dynamite_min_dmg_addr = 0x4A2878;
+static const DWORD dynamite_max_dmg_addr = 0x4A2873;
+static const DWORD plastic_min_dmg_addr  = 0x4A2884;
+static const DWORD plastic_max_dmg_addr  = 0x4A287F;
 
+// default values
+static DWORD dynamite_minDmg;
+static DWORD dynamite_maxDmg;
+static DWORD plastic_minDmg;
+static DWORD plastic_maxDmg;
 static DWORD set_expl_radius_grenade = 2;
 static DWORD set_expl_radius_rocket  = 3;
 
@@ -374,12 +375,12 @@ static void SetExplosionDamage(int pid, int min, int max) {
 	explosionsDamageReset = true;
 	switch (pid) {
 		case fo::ProtoId::PID_DYNAMITE:
-			SafeWrite32(dynamite_min_dmg, min);
-			SafeWrite32(dynamite_max_dmg, max);
+			SafeWrite32(dynamite_min_dmg_addr, min);
+			SafeWrite32(dynamite_max_dmg_addr, max);
 			break;
 		case fo::ProtoId::PID_PLASTIC_EXPLOSIVES:
-			SafeWrite32(plastic_min_dmg, min);
-			SafeWrite32(plastic_max_dmg, max);
+			SafeWrite32(plastic_min_dmg_addr, min);
+			SafeWrite32(plastic_max_dmg_addr, max);
 			break;
 	}
 }
@@ -388,12 +389,12 @@ static int GetExplosionDamage(int pid) {
 	DWORD min = 0, max = 0;
 	switch (pid) {
 		case fo::ProtoId::PID_DYNAMITE:
-			min = *(DWORD*)dynamite_min_dmg;
-			max = *(DWORD*)dynamite_max_dmg;
+			min = *(DWORD*)dynamite_min_dmg_addr;
+			max = *(DWORD*)dynamite_max_dmg_addr;
 			break;
 		case fo::ProtoId::PID_PLASTIC_EXPLOSIVES:
-			min = *(DWORD*)plastic_min_dmg;
-			max = *(DWORD*)plastic_max_dmg;
+			min = *(DWORD*)plastic_min_dmg_addr;
+			max = *(DWORD*)plastic_max_dmg_addr;
 			break;
 		default:
 			GetDamage(pid, min, max);
@@ -477,10 +478,10 @@ static void ResetExplosionDamage() {
 	if (!explosives.empty()) explosives.clear();
 
 	if (!explosionsDamageReset) return;
-	SafeWrite32(dynamite_max_dmg, dynamite_max_setting);
-	SafeWrite32(dynamite_min_dmg, dynamite_min_setting);
-	SafeWrite32(plastic_max_dmg, plastic_max_setting);
-	SafeWrite32(plastic_min_dmg, plastic_min_setting);
+	SafeWrite32(dynamite_max_dmg_addr, dynamite_maxDmg);
+	SafeWrite32(dynamite_min_dmg_addr, dynamite_minDmg);
+	SafeWrite32(plastic_max_dmg_addr, plastic_maxDmg);
+	SafeWrite32(plastic_min_dmg_addr, plastic_minDmg);
 	explosionsDamageReset = false;
 }
 
@@ -497,11 +498,10 @@ void Explosions::init() {
 	}
 
 	// initialize explosives
-	dynamite_max_setting = SimplePatch<DWORD>(dynamite_max_dmg, "Misc", "Dynamite_DmgMax", 50, 0, 9999);
-	dynamite_min_setting = SimplePatch<DWORD>(dynamite_min_dmg, "Misc", "Dynamite_DmgMin", 30, 0, dynamite_max_setting);
-	plastic_max_setting = SimplePatch<DWORD>(plastic_max_dmg, "Misc", "PlasticExplosive_DmgMax", 80, 0, 9999);
-	plastic_min_setting = SimplePatch<DWORD>(plastic_min_dmg, "Misc", "PlasticExplosive_DmgMin", 40, 0, plastic_max_setting);
-	if (!explosives.empty()) explosives.clear();
+	dynamite_maxDmg = SimplePatch<DWORD>(dynamite_max_dmg_addr, "Misc", "Dynamite_DmgMax", 50, 0, 9999);
+	dynamite_minDmg = SimplePatch<DWORD>(dynamite_min_dmg_addr, "Misc", "Dynamite_DmgMin", 30, 0, dynamite_maxDmg);
+	plastic_maxDmg = SimplePatch<DWORD>(plastic_max_dmg_addr, "Misc", "PlasticExplosive_DmgMax", 80, 0, 9999);
+	plastic_minDmg = SimplePatch<DWORD>(plastic_min_dmg_addr, "Misc", "PlasticExplosive_DmgMin", 40, 0, plastic_maxDmg);
 
 	// after each combat attack, reset metarule_explosions settings
 	MainLoopHook::OnAfterCombatAttack() += ResetExplosionSettings;

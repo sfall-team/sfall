@@ -274,10 +274,14 @@ void PartyControl::init() {
 	HookCalls(pc_flag_toggle_hook, { 0x4124F1, 0x41279A });
 
 	// display party member's current level & AC & addict flag
-	HookCall(0x44926F, gdControlUpdateInfo_hook);
-	Translate("sfall", "PartyLvlMsg", "Lvl:", levelMsg, 12);
-	Translate("sfall", "PartyACMsg", "AC:", armorClassMsg, 12);
-	Translate("sfall", "PartyAddictMsg", "Addict", addictMsg, 16);
+	if (GetConfigInt("Misc", "DisplayNPCExtraInfo", 0)) {
+		dlog("Applying display NPC extra info patch.", DL_INIT);
+		HookCall(0x44926F, gdControlUpdateInfo_hook);
+		Translate("sfall", "PartyLvlMsg", "Lvl:", levelMsg, 12);
+		Translate("sfall", "PartyACMsg", "AC:", armorClassMsg, 12);
+		Translate("sfall", "PartyAddictMsg", "Addict", addictMsg, 16);
+		dlogr(" Done", DL_INIT);
+	}
 }
 
 }
