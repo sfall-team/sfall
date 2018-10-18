@@ -287,6 +287,7 @@ static void ResetDevice(bool CreateNew) {
 
 	bool software = false;
 	if (CreateNew) {
+		dlog("Create d3d9Device...", DL_MAIN);
 		if (FAILED(d3d9->CreateDevice(0, D3DDEVTYPE_HAL, window, D3DCREATE_PUREDEVICE | D3DCREATE_HARDWARE_VERTEXPROCESSING | D3DCREATE_MULTITHREADED | D3DCREATE_FPU_PRESERVE, &params, &d3d9Device))) {
 			software = true;
 			d3d9->CreateDevice(0, D3DDEVTYPE_HAL, window, D3DCREATE_SOFTWARE_VERTEXPROCESSING | D3DCREATE_MULTITHREADED | D3DCREATE_FPU_PRESERVE, &params, &d3d9Device);
@@ -319,7 +320,11 @@ static void ResetDevice(bool CreateNew) {
 	ShaderVertices[2].x = ResWidth - 0.5f;
 	ShaderVertices[3].y = ResHeight - 0.5f;
 	ShaderVertices[3].x = ResWidth - 0.5f;
-	d3d9Device->CreateTexture(ResWidth, ResHeight, 1, D3DUSAGE_DYNAMIC, GPUBlt ? D3DFMT_A8 : D3DFMT_X8R8G8B8, D3DPOOL_DEFAULT, &Tex, 0);
+	if (d3d9Device->CreateTexture(ResWidth, ResHeight, 1, D3DUSAGE_DYNAMIC, GPUBlt ? D3DFMT_A8 : D3DFMT_X8R8G8B8, D3DPOOL_DEFAULT, &Tex, 0) != D3D_OK) {
+		d3d9Device->CreateTexture(ResWidth, ResHeight, 1, D3DUSAGE_DYNAMIC, D3DFMT_X8R8G8B8, D3DPOOL_DEFAULT, &Tex, 0);
+		GPUBlt = 0;
+		dlog(" Error: D3DFMT_A8 unsupported texture format. Now CPU is used to convert the palette.", DL_MAIN);
+	}
 	d3d9Device->CreateTexture(ResWidth, ResHeight, 1, D3DUSAGE_RENDERTARGET, D3DFMT_X8R8G8B8, D3DPOOL_DEFAULT, &sTex1, 0);
 	d3d9Device->CreateTexture(ResWidth, ResHeight, 1, D3DUSAGE_RENDERTARGET, D3DFMT_X8R8G8B8, D3DPOOL_DEFAULT, &sTex2, 0);
 	if (GPUBlt) {
@@ -366,6 +371,8 @@ static void ResetDevice(bool CreateNew) {
 	d3d9Device->SetRenderState(D3DRS_ZENABLE, false);
 	d3d9Device->SetRenderState(D3DRS_CULLMODE, 2);
 	//d3d9Device->SetRenderState(D3DRS_TEXTUREFACTOR, 0);
+
+	if (CreateNew) dlogr(" Done.", DL_MAIN);
 }
 
 static void Present() {
@@ -956,6 +963,7 @@ public:
 			ResetDevice(true);
 			CoInitialize(0);
 		}
+		dlog("Created d3d9 device window...", DL_MAIN);
 
 		if (Graphics::mode == 5) {
 			SetWindowLong(a, GWL_STYLE, WS_OVERLAPPED | WS_CAPTION | WS_BORDER);
@@ -971,6 +979,8 @@ public:
 			r.top = 0;
 			SetWindowPos(a, HWND_NOTOPMOST, 0, 0, r.right, r.bottom, SWP_DRAWFRAME | SWP_FRAMECHANGED | SWP_SHOWWINDOW);
 		}
+
+		dlogr(" Done.", DL_MAIN);
 		return DD_OK;
 	}
 
@@ -979,6 +989,8 @@ public:
 };
 
 HRESULT _stdcall FakeDirectDrawCreate2_Init(void*, IDirectDraw** b, void*) {
+	dlog("Initialization Direct3D...", DL_MAIN);
+
 	ResWidth = *(DWORD*)0x4CAD6B;
 	ResHeight = *(DWORD*)0x4CAD66;
 
@@ -1022,6 +1034,8 @@ HRESULT _stdcall FakeDirectDrawCreate2_Init(void*, IDirectDraw** b, void*) {
 	rcpres[1] = 1.0f / (float)gHeight;
 
 	*b = (IDirectDraw*)new FakeDirectDraw2();
+
+	dlogr(" Done.", DL_MAIN);
 	return DD_OK;
 }
 
