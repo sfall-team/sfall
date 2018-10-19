@@ -421,7 +421,7 @@ void PartyControlInit() {
 		dlogr("  Disabled.", DL_INIT);
 
 	// display party member's current level & AC & addict flag
-	if (GetPrivateProfileIntA("Misc", "DisplayNPCExtraInfo", 0, ini)) {
+	if (GetPrivateProfileIntA("Misc", "PartyMemberExtraInfo", 0, ini)) {
 		dlog("Applying display NPC extra info patch.", DL_INIT);
 		HookCall(0x44926F, gdControlUpdateInfo_hook);
 		GetPrivateProfileString("sfall", "PartyLvlMsg", "Lvl:", levelMsg, 12, translationIni);

@@ -196,17 +196,16 @@ static __declspec(naked) void PathfinderFix() {
 }
 
 static double FadeMulti;
-static __declspec(naked) void FadeHook() {
+static __declspec(naked) void palette_fade_to_hook() {
 	__asm {
-		pushf;
+		//pushf;
 		push ebx;
 		fild [esp];
 		fmul FadeMulti;
 		fistp [esp];
-		pop ebx;
-		popf;
-		call fadeSystemPalette_;
-		retn;
+		pop  ebx;
+		//popf;
+		jmp  fadeSystemPalette_;
 	}
 }
 
@@ -809,9 +808,11 @@ static void DllMain2() {
 	//}
 
 	GraphicsMode = GetPrivateProfileIntA("Graphics", "Mode", 0, ini);
-	if (GraphicsMode != 4 && GraphicsMode != 5) GraphicsMode = 0;
+	if (GraphicsMode != 4 && GraphicsMode != 5) {
+		GraphicsMode = 0;
+	}
 	if (GraphicsMode == 4 || GraphicsMode == 5) {
-		dlog("Applying dx9 graphics patch.", DL_INIT);
+		dlog("Applying DX9 graphics patch.", DL_INIT);
 #ifdef WIN2K
 #define _DLL_NAME "d3dx9_42.dll"
 #else
@@ -824,14 +825,14 @@ static void DllMain2() {
 		} else {
 			FreeLibrary(h);
 		}
-		SafeWrite8(0x50FB6B, '2');
-		dlogr(" Done", DL_INIT);
 #undef _DLL_NAME
+		SafeWrite8(0x50FB6B, '2'); // Set call DirectDrawCreate2
+		dlogr(" Done", DL_INIT);
 	}
 	tmp = GetPrivateProfileIntA("Graphics", "FadeMultiplier", 100, ini);
 	if (tmp != 100) {
 		dlog("Applying fade patch.", DL_INIT);
-		HookCall(0x493B16, &FadeHook);
+		HookCall(0x493B16, palette_fade_to_hook);
 		FadeMulti = ((double)tmp) / 100.0;
 		dlogr(" Done", DL_INIT);
 	}
@@ -1528,6 +1529,7 @@ static void _stdcall OnExit() {
 	AnimationsAtOnceExit();
 	HeroAppearanceModExit();
 	MoviesExit();
+	GraphicsExit();
 	//SoundExit();
 }
 

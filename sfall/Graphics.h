@@ -19,7 +19,8 @@
 #pragma once
 
 extern DWORD GraphicsMode;
-void graphics_OnGameLoad();
+void GraphicsResetOnGameLoad();
+void GraphicsExit();
 
 int _stdcall GetShaderVersion();
 int _stdcall LoadShader(const char*);

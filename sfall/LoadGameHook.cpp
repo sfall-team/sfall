@@ -71,7 +71,7 @@ static void _stdcall ResetState(DWORD onLoad) {
 	ClearGlobals();
 	ForceGraphicsRefresh(0);
 	WipeSounds();
-	if (GraphicsMode > 3) graphics_OnGameLoad();
+	if (GraphicsMode > 3) GraphicsResetOnGameLoad();
 	Knockback_OnGameLoad();
 	Skills_OnGameLoad();
 	InLoop = 0;

@@ -238,7 +238,6 @@ void ExplosionInit() {
 		MakeJump(0x4118E1, ranged_attack_lighting_fix);
 		MakeJump(0x410A4A, fire_dance_lighting_fix1);
 		MakeJump(0x415A3F, anim_set_check__light_fix); // this allows to change light intensity
-
 		dlogr(" Done", DL_INIT);
 	}
 
