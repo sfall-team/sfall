@@ -27,6 +27,7 @@ class Graphics : public Module {
 public:
 	const char* name() { return "Graphics"; }
 	void init();
+	void exit() override;
 
 	static DWORD mode;
 };

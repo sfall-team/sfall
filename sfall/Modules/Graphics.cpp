@@ -18,9 +18,13 @@
 
 #ifdef _DEBUG
 #define D3D_DEBUG_INFO
-#define DEBUGMESS(a) OutputDebugStringA(a)
+#define DEBUGMESS(a, b) OutputDebugStringA(a b)
 #else
-#define DEBUGMESS(a)
+#ifndef NDEBUG
+#define DEBUGMESS(a, b) fo::func::debug_printf(a, b)
+#else
+#define DEBUGMESS(a, b)
+#endif
 #endif
 
 #include <d3d9.h>
@@ -45,12 +49,18 @@ namespace sfall
 typedef HRESULT (_stdcall *DDrawCreateProc)(void*, IDirectDraw**, void*);
 typedef IDirect3D9* (_stdcall *D3DCreateProc)(UINT version);
 
-#define UNUSEDFUNCTION { DEBUGMESS("Unused function called: " __FUNCTION__); return DDERR_GENERIC; }
+#define UNUSEDFUNCTION { DEBUGMESS("\n[SFALL] Unused function called: %s", __FUNCTION__); return DDERR_GENERIC; }
 #define SAFERELEASE(a) { if (a) { a->Release(); a = 0; } }
 
 static DWORD ResWidth;
 static DWORD ResHeight;
 static DWORD GPUBlt;
+
+static BYTE* titlesBuffer = nullptr;
+static DWORD movieHeight = 0;
+//static DWORD movieWidth = 0;
+static DWORD yoffset;
+//static DWORD xoffset;
 
 static bool DeviceLost = false;
 static DDSURFACEDESC surfaceDesc;
@@ -221,13 +231,11 @@ void _stdcall DeactivateShader(DWORD d) {
 }
 
 int _stdcall GetShaderTexture(DWORD d, DWORD id) {
-	if (d >= shaders.size() || !shaders[d].Effect || id < 1 || id>128) return -1;
+	if (id < 1 || id > 128 || d >= shaders.size() || !shaders[d].Effect) return -1;
 	IDirect3DBaseTexture9* tex = 0;
-	char buf[8];
-	buf[0] = 't';	buf[1] = 'e'; buf[2] = 'x';
+	char buf[8] = "tex";
 	_itoa_s(id, &buf[3], 4, 10);
-	if (FAILED(shaders[d].Effect->GetTexture(buf, &tex))) return -1;
-	if (!tex) return -1;
+	if (FAILED(shaders[d].Effect->GetTexture(buf, &tex)) || !tex) return -1;
 	tex->Release();
 	for (DWORD i = 0; i < shaderTextures.size(); i++) {
 		if (shaderTextures[i] == tex) return i;
@@ -279,6 +287,7 @@ static void ResetDevice(bool CreateNew) {
 
 	bool software = false;
 	if (CreateNew) {
+		dlog("Creating D3D9 Device...", DL_MAIN);
 		if (FAILED(d3d9->CreateDevice(0, D3DDEVTYPE_HAL, window, D3DCREATE_PUREDEVICE | D3DCREATE_HARDWARE_VERTEXPROCESSING | D3DCREATE_MULTITHREADED | D3DCREATE_FPU_PRESERVE, &params, &d3d9Device))) {
 			software = true;
 			d3d9->CreateDevice(0, D3DDEVTYPE_HAL, window, D3DCREATE_SOFTWARE_VERTEXPROCESSING | D3DCREATE_MULTITHREADED | D3DCREATE_FPU_PRESERVE, &params, &d3d9Device);
@@ -311,7 +320,11 @@ static void ResetDevice(bool CreateNew) {
 	ShaderVertices[2].x = ResWidth - 0.5f;
 	ShaderVertices[3].y = ResHeight - 0.5f;
 	ShaderVertices[3].x = ResWidth - 0.5f;
-	d3d9Device->CreateTexture(ResWidth, ResHeight, 1, D3DUSAGE_DYNAMIC, GPUBlt ? D3DFMT_A8 : D3DFMT_X8R8G8B8, D3DPOOL_DEFAULT, &Tex, 0);
+	if (d3d9Device->CreateTexture(ResWidth, ResHeight, 1, D3DUSAGE_DYNAMIC, GPUBlt ? D3DFMT_A8 : D3DFMT_X8R8G8B8, D3DPOOL_DEFAULT, &Tex, 0) != D3D_OK) {
+		d3d9Device->CreateTexture(ResWidth, ResHeight, 1, D3DUSAGE_DYNAMIC, D3DFMT_X8R8G8B8, D3DPOOL_DEFAULT, &Tex, 0);
+		GPUBlt = 0;
+		dlog(" Error: D3DFMT_A8 unsupported texture format. Now CPU is used to convert the palette.", DL_MAIN);
+	}
 	d3d9Device->CreateTexture(ResWidth, ResHeight, 1, D3DUSAGE_RENDERTARGET, D3DFMT_X8R8G8B8, D3DPOOL_DEFAULT, &sTex1, 0);
 	d3d9Device->CreateTexture(ResWidth, ResHeight, 1, D3DUSAGE_RENDERTARGET, D3DFMT_X8R8G8B8, D3DPOOL_DEFAULT, &sTex2, 0);
 	if (GPUBlt) {
@@ -353,10 +366,13 @@ static void ResetDevice(bool CreateNew) {
 	d3d9Device->SetTexture(0, Tex);
 	d3d9Device->SetStreamSource(0, vBuffer, 0, sizeof(MyVertex));
 
-	d3d9Device->SetRenderState(D3DRS_ALPHABLENDENABLE, false);
-	d3d9Device->SetRenderState(D3DRS_ALPHATESTENABLE, false);
+	d3d9Device->SetRenderState(D3DRS_ALPHABLENDENABLE, false); // default false
+	d3d9Device->SetRenderState(D3DRS_ALPHATESTENABLE, false);  // default false
 	d3d9Device->SetRenderState(D3DRS_ZENABLE, false);
 	d3d9Device->SetRenderState(D3DRS_CULLMODE, 2);
+	//d3d9Device->SetRenderState(D3DRS_TEXTUREFACTOR, 0);
+
+	if (CreateNew) dlogr(" Done.", DL_MAIN);
 }
 
 static void Present() {
@@ -410,7 +426,7 @@ static void Present() {
 	if (d3d9Device->Present(0, 0, 0, 0) == D3DERR_DEVICELOST) {
 		d3d9Device->SetTexture(0, 0);
 		SAFERELEASE(Tex)
-			SAFERELEASE(backbuffer);
+		SAFERELEASE(backbuffer);
 		SAFERELEASE(sSurf1);
 		SAFERELEASE(sSurf2);
 		SAFERELEASE(sTex1);
@@ -434,7 +450,8 @@ void RefreshGraphics() {
 	//d3d9Device->SetFVF(D3DFVF_XYZRHW|D3DFVF_TEX1);
 	d3d9Device->SetStreamSource(0, vBuffer, 0, sizeof(MyVertex));
 	d3d9Device->SetRenderTarget(0, sSurf1);
-	if (GPUBlt&&shaders.size()) {
+
+	if (GPUBlt && shaders.size()) {
 		UINT unused;
 		gpuBltEffect->Begin(&unused, 0);
 		gpuBltEffect->BeginPass(0);
@@ -448,8 +465,9 @@ void RefreshGraphics() {
 	}
 	for (int d = shaders.size() - 1; d >= 0; d--) {
 		if (!shaders[d].Effect || !shaders[d].Active) continue;
-		if (shaders[d].mode2 && !(shaders[d].mode2&GetLoopFlags())) continue;
+		if (shaders[d].mode2 && !(shaders[d].mode2 & GetLoopFlags())) continue;
 		if (shaders[d].mode&GetLoopFlags()) continue;
+
 		if (shaders[d].ehTicks) shaders[d].Effect->SetInt(shaders[d].ehTicks, GetTickCount());
 		UINT passes;
 		shaders[d].Effect->Begin(&passes, 0);
@@ -463,6 +481,7 @@ void RefreshGraphics() {
 		shaders[d].Effect->End();
 		d3d9Device->SetTexture(0, sTex2);
 	}
+
 	d3d9Device->SetStreamSource(0, vBuffer2, 0, sizeof(MyVertex));
 	d3d9Device->SetRenderTarget(0, backbuffer);
 	if (GPUBlt && !shaders.size()) {
@@ -543,10 +562,11 @@ void _stdcall SetHeadTex(IDirect3DTexture9* tex, int width, int height, int xoff
 		size[1] = (14.0f + yoff + (200 - height) / 2)*rcpres[1];
 		gpuBltEffect->SetFloatArray(gpuBltHeadCorner, size, 2);
 		gpuBltEffect->SetTechnique("T1");
-	} else gpuBltEffect->SetTechnique("T0");
+	} else
+		gpuBltEffect->SetTechnique("T0");
 }
 
-void graphics_OnGameLoad() {
+void GraphicsResetOnGameLoad() {
 	for (DWORD d = 0; d < shaders.size(); d++) SAFERELEASE(shaders[d].Effect);
 	shaders.clear();
 }
@@ -559,7 +579,7 @@ public:
 		Refs = 1;
 	}
 
-// IUnknown methods
+	// IUnknown methods
 	HRESULT _stdcall QueryInterface(REFIID, LPVOID*) {
 		return E_NOINTERFACE;
 	}
@@ -581,25 +601,23 @@ public:
 	HRESULT _stdcall Initialize(LPDIRECTDRAW, DWORD, LPPALETTEENTRY) { UNUSEDFUNCTION; }
 
 	HRESULT _stdcall SetEntries(DWORD, DWORD b, DWORD c, LPPALETTEENTRY d) {
-		if (b + c > 256 || c == 0) return DDERR_INVALIDPARAMS;
+		if (c == 0 || b + c > 256) return DDERR_INVALIDPARAMS;
+
+		CopyMemory(&palette[b], d, c * 4);
 		if (GPUBlt) {
-			if (!gpuPalette) {
-				CopyMemory(&palette[b], d, c * 4);
-			} else {
+			if (gpuPalette) {
 				D3DLOCKED_RECT rect;
 				if (!FAILED(gpuPalette->LockRect(0, &rect, 0, D3DLOCK_DISCARD))) {
-					CopyMemory(&palette[b], d, c * 4);
 					CopyMemory(rect.pBits, palette, 256 * 4);
 					gpuPalette->UnlockRect(0);
 				}
 			}
 		} else {
-			CopyMemory(&palette[b], d, c * 4);
-			for (DWORD i = b; i < b + c; i++) {
+			for (DWORD i = b; i < b + c; i++) { // swap color R <> B
 				//palette[i]&=0x00ffffff;
-				BYTE temp = *(BYTE*)((DWORD)&palette[i] + 0);
-				*(BYTE*)((DWORD)&palette[i] + 0) = *(BYTE*)((DWORD)&palette[i] + 2);
-				*(BYTE*)((DWORD)&palette[i] + 2) = temp;
+				BYTE clr = *(BYTE*)((DWORD)&palette[i]);
+				*(BYTE*)((DWORD)&palette[i]) = *(BYTE*)((DWORD)&palette[i] + 2);
+				*(BYTE*)((DWORD)&palette[i] + 2) = clr;
 			}
 		}
 		return DD_OK;
@@ -611,12 +629,14 @@ private:
 	ULONG Refs;
 	bool Primary;
 	BYTE* lockTarget;
+	static bool IsPlayMovie;
+	static bool subTitlesShow;
 
 public:
 	FakeSurface2(bool primary) {
 		Refs = 1;
 		Primary = primary;
-		lockTarget = new BYTE[ResWidth*ResHeight];
+		lockTarget = new BYTE[ResWidth * ResHeight];
 	}
 
 	// IUnknown methods
@@ -630,7 +650,7 @@ public:
 
 	ULONG _stdcall Release() {
 		if (!--Refs) {
-			delete lockTarget;
+			delete[] lockTarget;
 			delete this;
 			return 0;
 		} else return Refs;
@@ -640,44 +660,71 @@ public:
 	HRESULT _stdcall AddAttachedSurface(LPDIRECTDRAWSURFACE) { UNUSEDFUNCTION; }
 	HRESULT _stdcall AddOverlayDirtyRect(LPRECT) { UNUSEDFUNCTION; }
 
-	HRESULT _stdcall Blt(LPRECT a, LPDIRECTDRAWSURFACE b, LPRECT c, DWORD d, LPDDBLTFX e) {
+	HRESULT _stdcall Blt(LPRECT a, LPDIRECTDRAWSURFACE b, LPRECT c, DWORD d, LPDDBLTFX e) { // for game movies (is not primary)
+		//if (((FakeSurface2*)b)->Primary) return DD_OK; // for testing
+
+		IsPlayMovie = true;
+		movieHeight = (a->bottom - a->top);
+		yoffset = (ResHeight - movieHeight) / 2;
+		//movieWidth = (a->right - a->left);
+		//xoffset = (ResWidth - movieWidth) / 2;
+
 		BYTE* lockTarget = ((FakeSurface2*)b)->lockTarget;
 		D3DLOCKED_RECT dRect;
-		Tex->LockRect(0, &dRect, 0, 0);
-		if (!GPUBlt) dRect.Pitch /= 4;
-		DWORD yoffset = (ResHeight - 320) / 2;
-		DWORD xoffset = (ResWidth - 640) / 2;
+		Tex->LockRect(0, &dRect, a, 0);
+		DWORD width = ResWidth;
+		int pitch = dRect.Pitch;
 		if (GPUBlt) {
 			char* pBits = (char*)dRect.pBits;
-			for (DWORD y = 0; y < 320; y++) {
-				CopyMemory(&pBits[(y + yoffset)*dRect.Pitch + xoffset], &lockTarget[y * 640], 640);
-			}
-			for (DWORD y = 0; y < yoffset; y++)                   ZeroMemory(&pBits[y*dRect.Pitch], ResWidth);
-			for (DWORD y = ResHeight - yoffset; y < ResHeight; y++) ZeroMemory(&pBits[y*dRect.Pitch], ResWidth);
-			if (ResWidth > 640) {
-				for (DWORD y = yoffset; y < ResHeight - yoffset; y++) {
-					ZeroMemory(&pBits[y*dRect.Pitch], xoffset);
-					ZeroMemory(&pBits[y*dRect.Pitch + (ResWidth - xoffset)], xoffset);
+			if (subTitlesShow) {
+				subTitlesShow = false;
+				DWORD bottom = yoffset + movieHeight;
+				for (DWORD y = 0; y < ResHeight; y++) {
+					if (y < yoffset || y > bottom) {  // copy excluding video region
+						CopyMemory(&pBits[(y - yoffset) * pitch], &titlesBuffer[y * width], width);
+					}
 				}
 			}
+			for (DWORD y = 0; y < movieHeight; y++) {
+				CopyMemory(&pBits[y * pitch], &lockTarget[y * width], width);
+			}
+			//if (ResWidth > 640) {
+			//	for (DWORD y = yoffset; y < ResHeight - yoffset; y++) {
+			//		ZeroMemory(&pBits[y*dRect.Pitch], xoffset);
+			//		ZeroMemory(&pBits[y*dRect.Pitch + (ResWidth - xoffset)], xoffset);
+			//	}
+			//}
 		} else {
-			for (DWORD y = 0; y < 320; y++) {
-				for (DWORD x = 0; x < 640; x++) {
-					((DWORD*)dRect.pBits)[(y + yoffset)*dRect.Pitch + x + xoffset] = palette[lockTarget[y * 640 + x]];
+			pitch /= 4;
+			if (subTitlesShow) {
+				subTitlesShow = false;
+				DWORD bottom = yoffset + movieHeight;
+				for (DWORD y = 0; y < ResHeight; y++) {
+					if (y < yoffset || y > bottom) {
+						int yyp = (y - yoffset) * pitch;
+						int yw = y * width;
+						for (DWORD x = 0; x < width; x++) { 
+							((DWORD*)dRect.pBits)[yyp + x] = palette[titlesBuffer[yw + x]];
+						}
+					}
 				}
 			}
-			for (DWORD x = 0; x < ResWidth; x++) {
-				for (DWORD y = 0; y < yoffset; y++) ((DWORD*)dRect.pBits)[(y)*dRect.Pitch + x] = 0;
-				for (DWORD y = ResHeight - yoffset; y < ResHeight; y++) ((DWORD*)dRect.pBits)[(y)*dRect.Pitch + x] = 0;
-			}
-			if (ResWidth > 640) {
-				for (DWORD y = yoffset; y < ResHeight - yoffset; y++) {
-					for (DWORD x = 0; x < xoffset; x++) ((DWORD*)dRect.pBits)[(y)*dRect.Pitch + x] = 0;
-					for (DWORD x = ResWidth - xoffset; x < ResWidth; x++) ((DWORD*)dRect.pBits)[(y)*dRect.Pitch + x] = 0;
+			for (DWORD y = 0; y < movieHeight; y++) {
+				int yp = y * pitch;
+				int yw = y * width;
+				for (DWORD x = 0; x < width; x++) {
+					((DWORD*)dRect.pBits)[yp + x] = palette[lockTarget[yw + x]];
 				}
 			}
+			//if (ResWidth > 640) {
+			//	for (DWORD y = yoffset; y < ResHeight - yoffset; y++) {
+			//		for (DWORD x = 0; x < xoffset; x++) ((DWORD*)dRect.pBits)[(y)*dRect.Pitch + x] = 0;
+			//		for (DWORD x = ResWidth - xoffset; x < ResWidth; x++) ((DWORD*)dRect.pBits)[(y)*dRect.Pitch + x] = 0;
+			//	}
+			//}
 		}
 		Tex->UnlockRect(0);
+
 		if (!DeviceLost) {
 			d3d9Device->SetStreamSource(0, vBuffer2, 0, sizeof(MyVertex));
 			d3d9Device->SetTexture(0, Tex);
@@ -719,21 +766,27 @@ public:
 	HRESULT _stdcall IsLost() { UNUSEDFUNCTION; }
 
 	HRESULT _stdcall Lock(LPRECT a, LPDDSURFACEDESC b, DWORD c, HANDLE d) {
-		if (!Primary) *b = movieDesc;
-		else *b = surfaceDesc;
+		*b = (Primary) ? surfaceDesc : movieDesc;
 		b->lpSurface = lockTarget;
 		return DD_OK;
 	}
 
 	HRESULT _stdcall ReleaseDC(HDC) { UNUSEDFUNCTION; }
-	HRESULT _stdcall Restore() { UNUSEDFUNCTION; }
+	HRESULT _stdcall Restore() { UNUSEDFUNCTION; } // call from fallout2.exe - 0x4CB907
 	HRESULT _stdcall SetClipper(LPDIRECTDRAWCLIPPER) { UNUSEDFUNCTION; }
 	HRESULT _stdcall SetColorKey(DWORD, LPDDCOLORKEY) { UNUSEDFUNCTION; }
 	HRESULT _stdcall SetOverlayPosition(LONG, LONG) { UNUSEDFUNCTION; }
 	HRESULT _stdcall SetPalette(LPDIRECTDRAWPALETTE) { return DD_OK; }
 
-	HRESULT _stdcall Unlock(LPVOID) {
-		if (Primary&&d3d9Device) {
+#define FASTCOPY(a) __asm {                    \
+	_asm movzx eax, byte ptr ds:[esi]          \
+	_asm mov eax, dword ptr ds:[ebx + eax * 4] \
+	_asm inc esi                               \
+	_asm mov dword ptr ds:[edi + a], eax       \
+}
+
+	HRESULT _stdcall Unlock(LPVOID) { // common game (is primary)
+		if (Primary && d3d9Device) {
 			if (DeviceLost) {
 				if (d3d9Device->TestCooperativeLevel() == D3DERR_DEVICENOTRESET) {
 					ResetDevice(false);
@@ -743,75 +796,84 @@ public:
 			if (!DeviceLost) {
 				D3DLOCKED_RECT dRect;
 				Tex->LockRect(0, &dRect, 0, 0);
-				if (!GPUBlt) dRect.Pitch /= 4;
+				int pitch = dRect.Pitch;
+				DWORD width = ResWidth;
 				if (GPUBlt) {
-					char* target = (char*)dRect.pBits;
-					for (DWORD y = 0; y < ResHeight; y++) CopyMemory(&target[y*dRect.Pitch], &lockTarget[y*ResWidth], ResWidth);
+					char* pBits = (char*)dRect.pBits;
+					if (IsPlayMovie) { // for subtitles
+						subTitlesShow = true;
+						if (!titlesBuffer) titlesBuffer = new BYTE[ResWidth * ResHeight]();
+						DWORD bottom = (yoffset + movieHeight);
+						for (DWORD y = 0; y < ResHeight; y++) {
+							if (y < yoffset || y > bottom) CopyMemory(&titlesBuffer[y * width], &lockTarget[y * width], width); //copy subtitles region to buffer
+						}
+					} else {
+						for (DWORD y = 0; y < ResHeight; y++) {
+							CopyMemory(&pBits[y * pitch], &lockTarget[y * width], width);
+						}
+					}
 				} else {
-					if (!(ResWidth % 8)) {
-						DWORD target = (DWORD)(&lockTarget[0]);
-						DWORD palette2 = (DWORD)(&palette[0]);
-						dRect.Pitch = (dRect.Pitch - ResWidth) * 4;
-						DWORD ResWidth2 = ResWidth / 8;
+					DWORD* pBits = (DWORD*)dRect.pBits;
+					pitch /= 4;
+					if (IsPlayMovie) { // for subtitles
+						subTitlesShow = true;
+						if (!titlesBuffer) titlesBuffer = new BYTE[ResWidth * ResHeight]();
+						DWORD bottom = (yoffset + movieHeight);
+						for (DWORD y = 0; y < ResHeight; y++) {
+							if (y >= yoffset && y <= bottom) continue;
+							int yw = y * width;
+							for (DWORD x = 0; x < width; x++) {
+								titlesBuffer[yw + x] = lockTarget[yw + x];
+							}
+						}
+					} else if (!(ResWidth % 8)) {
+						DWORD* target = (DWORD*)&lockTarget[0];
+						pitch = (pitch - ResWidth) * 4;
+						DWORD width = ResWidth / 8;
 						__asm {
 							mov esi, target;
 							mov edi, dRect.pBits;
-							mov ebx, palette2;
-							xor edx, edx;
+							lea ebx, [palette];
+							mov edx, ResHeight;
 start:
-							mov ecx, ResWidth2;
+							mov ecx, width;
 start2:
-							movzx eax, byte ptr ds : [esi];
-							mov eax, dword ptr ds : [ebx + eax * 4];
-							mov dword ptr ds : [edi], eax;
-							movzx eax, byte ptr ds : [esi + 1];
-							mov eax, dword ptr ds : [ebx + eax * 4];
-							mov dword ptr ds : [edi + 4], eax;
-							movzx eax, byte ptr ds : [esi + 2];
-							mov eax, dword ptr ds : [ebx + eax * 4];
-							mov dword ptr ds : [edi + 8], eax;
-							movzx eax, byte ptr ds : [esi + 3];
-							mov eax, dword ptr ds : [ebx + eax * 4];
-							mov dword ptr ds : [edi + 12], eax;
-							movzx eax, byte ptr ds : [esi + 4];
-							mov eax, dword ptr ds : [ebx + eax * 4];
-							mov dword ptr ds : [edi + 16], eax;
-							movzx eax, byte ptr ds : [esi + 5];
-							mov eax, dword ptr ds : [ebx + eax * 4];
-							mov dword ptr ds : [edi + 20], eax;
-							movzx eax, byte ptr ds : [esi + 6];
-							mov eax, dword ptr ds : [ebx + eax * 4];
-							mov dword ptr ds : [edi + 24], eax;
-							movzx eax, byte ptr ds : [esi + 7];
-							mov eax, dword ptr ds : [ebx + eax * 4];
-							mov dword ptr ds : [edi + 28], eax;
+							movzx eax, byte ptr ds:[esi];
+							mov eax, dword ptr ds:[ebx + eax * 4];
+							inc esi;
+							mov dword ptr ds:[edi], eax;
+							FASTCOPY(4)
+							FASTCOPY(8)
+							FASTCOPY(12)
+							FASTCOPY(16)
+							FASTCOPY(20)
+							FASTCOPY(24)
+							FASTCOPY(28)
+							lea edi, [edi + 32];
 
-							add esi, 8;
-							add edi, 32;
-
-							loop start2;
-							inc edx;
-							add edi, dRect.Pitch;
-							cmp edx, ResHeight;
-							jl start;
+							dec ecx;
+							jnz start2;
+							add edi, pitch;
+							dec edx;
+							jnz start;
 						}
 					} else {
-						DWORD pitch2, width2 = 0;
-						WORD pitch = (WORD)dRect.Pitch;
-						WORD width = (WORD)ResWidth;
-						DWORD* target = ((DWORD*)dRect.pBits);
-						for (WORD y = 0; y < ResHeight; y++) {
-							pitch2 = y*pitch;
-							width2 = y*width;
-							for (DWORD x = 0; x < ResWidth; x++) {
-								target[pitch2 + x] = palette[lockTarget[width2 + x]];
+						for (DWORD y = 0; y < ResHeight; y++) {
+							int yp = y * pitch;
+							int yw = y * width;
+							for (DWORD x = 0; x < width; x++) {
+								pBits[yp + x] = palette[lockTarget[yw + x]];
 							}
 						}
 					}
 				}
 				Tex->UnlockRect(0);
-				RefreshGraphics();
+				if (!IsPlayMovie) {
+					subTitlesShow = false;
+					RefreshGraphics();
+				};
 			}
+			IsPlayMovie = false;
 		}
 		return DD_OK;
 	}
@@ -820,6 +882,9 @@ start2:
 	HRESULT _stdcall UpdateOverlayDisplay(DWORD) { UNUSEDFUNCTION; }
 	HRESULT _stdcall UpdateOverlayZOrder(DWORD, LPDIRECTDRAWSURFACE) { UNUSEDFUNCTION; }
 };
+
+bool FakeSurface2::IsPlayMovie;
+bool FakeSurface2::subTitlesShow;
 
 class FakeDirectDraw2 : IDirectDraw
 {
@@ -868,11 +933,15 @@ public:
 		return DD_OK;
 	}
 
-	HRESULT _stdcall CreateSurface(LPDDSURFACEDESC a, LPDIRECTDRAWSURFACE * b, IUnknown * c) {
-		if(a->dwFlags==1&&a->ddsCaps.dwCaps==DDSCAPS_PRIMARYSURFACE) *b=(IDirectDrawSurface*)new FakeSurface2(true);
-		else *b=(IDirectDrawSurface*)new FakeSurface2(false);
+	HRESULT _stdcall CreateSurface(LPDDSURFACEDESC a, LPDIRECTDRAWSURFACE* b, IUnknown* c) {
+		if (a->dwFlags == 1 && a->ddsCaps.dwCaps == DDSCAPS_PRIMARYSURFACE)
+			*b = (IDirectDrawSurface*)new FakeSurface2(true);
+		else
+			*b = (IDirectDrawSurface*)new FakeSurface2(false);
+
 		return DD_OK;
 	}
+
 	HRESULT _stdcall DuplicateSurface(LPDIRECTDRAWSURFACE, LPDIRECTDRAWSURFACE *) { UNUSEDFUNCTION; }
 	HRESULT _stdcall EnumDisplayModes(DWORD, LPDDSURFACEDESC, LPVOID, LPDDENUMMODESCALLBACK) { UNUSEDFUNCTION; }
 	HRESULT _stdcall EnumSurfaces(DWORD, LPDDSURFACEDESC, LPVOID,LPDDENUMSURFACESCALLBACK) { UNUSEDFUNCTION; }
@@ -886,6 +955,7 @@ public:
 	HRESULT _stdcall GetVerticalBlankStatus(LPBOOL) { UNUSEDFUNCTION; }
 	HRESULT _stdcall Initialize(GUID *) { UNUSEDFUNCTION; }
 	HRESULT _stdcall RestoreDisplayMode() { return DD_OK; }
+
 	HRESULT _stdcall SetCooperativeLevel(HWND a, DWORD b) {
 		window = a;
 
@@ -893,6 +963,7 @@ public:
 			ResetDevice(true);
 			CoInitialize(0);
 		}
+		dlog("Creating D3D9 Device window...", DL_MAIN);
 
 		if (Graphics::mode == 5) {
 			SetWindowLong(a, GWL_STYLE, WS_OVERLAPPED | WS_CAPTION | WS_BORDER);
@@ -908,13 +979,18 @@ public:
 			r.top = 0;
 			SetWindowPos(a, HWND_NOTOPMOST, 0, 0, r.right, r.bottom, SWP_DRAWFRAME | SWP_FRAMECHANGED | SWP_SHOWWINDOW);
 		}
+
+		dlogr(" Done.", DL_MAIN);
 		return DD_OK;
 	}
+
 	HRESULT _stdcall SetDisplayMode(DWORD, DWORD, DWORD) {	return DD_OK; }
 	HRESULT _stdcall WaitForVerticalBlank(DWORD, HANDLE) { UNUSEDFUNCTION; }
 };
 
-HRESULT _stdcall FakeDirectDrawCreate2_graphics(void*, IDirectDraw** b, void*) {
+HRESULT _stdcall FakeDirectDrawCreate2_Init(void*, IDirectDraw** b, void*) {
+	dlog("Initializing Direct3D...", DL_MAIN);
+
 	ResWidth = *(DWORD*)0x4CAD6B;
 	ResHeight = *(DWORD*)0x4CAD66;
 
@@ -937,7 +1013,7 @@ HRESULT _stdcall FakeDirectDrawCreate2_graphics(void*, IDirectDraw** b, void*) {
 	surfaceDesc.lPitch = ResWidth;
 	movieDesc = surfaceDesc;
 	movieDesc.lPitch = 640;
-	movieDesc.dwHeight = 320;
+	movieDesc.dwHeight = 480;
 	movieDesc.dwWidth = 640;
 
 	gWidth = GetConfigInt("Graphics", "GraphicsWidth", 0);
@@ -958,21 +1034,22 @@ HRESULT _stdcall FakeDirectDrawCreate2_graphics(void*, IDirectDraw** b, void*) {
 	rcpres[1] = 1.0f / (float)gHeight;
 
 	*b = (IDirectDraw*)new FakeDirectDraw2();
+
+	dlogr(" Done.", DL_MAIN);
 	return DD_OK;
 }
 
 static double fadeMulti;
-static __declspec(naked) void FadeHook() {
+static __declspec(naked) void palette_fade_to_hook() {
 	__asm {
-		pushf;
+		//pushf;
 		push ebx;
 		fild[esp];
 		fmul fadeMulti;
 		fistp[esp];
-		pop ebx;
-		popf;
-		call fo::funcoffs::fadeSystemPalette_;
-		retn;
+		pop  ebx;
+		//popf;
+		jmp  fo::funcoffs::fadeSystemPalette_;
 	}
 }
 
@@ -991,20 +1068,27 @@ void Graphics::init() {
 		} else {
 			FreeLibrary(h);
 		}
-		SafeWrite8(0x50FB6B, '2');
-		dlogr(" Done", DL_INIT);
 #undef _DLL_NAME
+		SafeWrite8(0x50FB6B, '2'); // Set call DirectDrawCreate2
+		dlogr(" Done", DL_INIT);
 	}
 	fadeMulti = GetConfigInt("Graphics", "FadeMultiplier", 100);
 	if (fadeMulti != 100) {
 		dlog("Applying fade patch.", DL_INIT);
-		HookCall(0x493B16, &FadeHook);
+		HookCall(0x493B16, palette_fade_to_hook);
 		fadeMulti = ((double)fadeMulti) / 100.0;
 		dlogr(" Done", DL_INIT);
 	}
 
 	if (Graphics::mode > 3) {
-		LoadGameHook::OnGameReset() += graphics_OnGameLoad;
+		LoadGameHook::OnGameReset() += GraphicsResetOnGameLoad;
+	}
+}
+
+void Graphics::exit() {
+	if (Graphics::mode != 0) {
+		if (titlesBuffer) delete[] titlesBuffer;
+		CoUninitialize();
 	}
 }
 
@@ -1012,5 +1096,5 @@ void Graphics::init() {
 
 // This should be in global namespace
 HRESULT _stdcall FakeDirectDrawCreate2(void* a, IDirectDraw** b, void* c) {
-	return sfall::FakeDirectDrawCreate2_graphics(a, b, c);
+	return sfall::FakeDirectDrawCreate2_Init(a, b, c);
 }
