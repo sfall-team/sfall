@@ -299,8 +299,7 @@ skip:
 	}
 }
 
-static DWORD __fastcall ActionButtons(register DWORD key)
-{
+static DWORD __fastcall ActionButtons(register DWORD key) {
 	buttonsPressed = false;
 	if (key == 0x300) { // up
 		if (curent_quest_page == 0) return -1;
@@ -324,8 +323,7 @@ static DWORD __fastcall ActionButtons(register DWORD key)
 	return -1;
 }
 
-static void __declspec(naked) pipboy_hack_action()
-{
+static void __declspec(naked) pipboy_hack_action() {
 	__asm {
 		test calledflag, 0xFF;
 		jz   skip;
