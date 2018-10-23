@@ -11,7 +11,6 @@ namespace sfall
 {
 
 static DWORD __fastcall BarterPriceHook_Script(register fo::GameObject* source, register fo::GameObject* target, DWORD callAddr) {
-
 	int computeCost = fo::func::barter_compute_value(source, target);
 
 	BeginHook();
@@ -253,7 +252,7 @@ static void __declspec(naked) CarTravelHack() {
 	}
 }
 
-static void __fastcall GlobalVarHook_Script(DWORD number, int value) {
+static void __fastcall GlobalVarHook_Script(register DWORD number, register int value) {
 	int old = fo::var::game_global_vars[number];
 
 	BeginHook();
@@ -274,12 +273,12 @@ static void __fastcall GlobalVarHook_Script(DWORD number, int value) {
 static void __declspec(naked) SetGlobalVarHook() {
 	__asm {
 		pushad;
-		mov ecx, eax;              // number
+		mov  ecx, eax;             // number
 		call GlobalVarHook_Script; // edx - value
 		popad;
-		cmp cRet, 1;
+		cmp  cRet, 1;
 		cmovnb edx, dword ptr rets[0];
-		jmp fo::funcoffs::game_set_global_var_;
+		jmp  fo::funcoffs::game_set_global_var_;
 	}
 }
 
@@ -345,7 +344,6 @@ skip:
 }
 
 static int __fastcall ExplosiveTimerHook_Script(DWORD type, DWORD item, DWORD time) {
-
 	BeginHook();
 	argCount = 3;
 

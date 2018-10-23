@@ -125,11 +125,8 @@ void SetPageNum() {
 	unsigned int TxtWidth = 0;
 
 	DWORD NewTick = 0, OldTick = 0;
-	int button = 0;
-	int exitFlag = 0;
-	char blip = '_';
-	char Number[5];
-	int numpos = 0;
+	int button = 0, exitFlag = 0, numpos = 0;
+	char Number[5], blip = '_';
 
 	DWORD tempPageOffset = -1;
 
@@ -349,13 +346,11 @@ static void __declspec(naked) AddPageOffset01(void) {
 // getting info for the 10 currently displayed save slots from save.dats
 static void __declspec(naked) AddPageOffset02(void) {
 	__asm {
-		pop  edx // pop ret addr
-		mov  eax, 0x50A514  // ASCII "SAVE.DAT"
-		push eax
-		lea  eax, dword ptr ds:[ebx+1]
-		add  eax, LSPageOffset // add page num offset
-		push edx // push ret addr
-		ret
+		push 0x50A514;          // ASCII "SAVE.DAT"
+		lea  eax, [ebx + 1];
+		add  eax, LSPageOffset; // add page num offset
+		mov  edx, 0x47E5E9;     // ret addr
+		jmp  edx;
 	}
 }
 
@@ -397,9 +392,7 @@ void EnableSuperSaving() {
 		0x4808D3
 	});
 
-	MakeCalls(AddPageOffset02, {0x47E5E1});
-	SafeWrite16(0x47E5E6, 0x9090);
-	SafeWrite8(0x47E5E8, 0x90);
+	MakeJump(0x47E5E1, AddPageOffset02);
 
 	MakeCalls(AddPageOffset03, {0x47E756});
 }
