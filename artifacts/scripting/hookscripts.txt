@@ -544,3 +544,17 @@ An example usage would be to add an additional description to the item based on 
 Obj     arg1 - the item
 
 int     ret1 - a pointer to the new text received by using "get_string_pointer" function
+
+-------------------------------------------
+
+HOOK_USESKILLON (hs_useskillon.int)
+
+Runs before using any skill on any object. Lets you override the critter that uses the skill.
+NOTE: the user critter can't be overridden when using Steal skill.
+
+Critter arg1 - The user critter (usually dude_obj)
+Obj     arg2 - the target object/critter
+int     arg3 - skill being used
+
+int     ret1 - a new critter to override the user critter. Pass -1 to cancel the skill use, pass 0 to skip this return value
+int     ret2 - pass 1 to allow the skill being used in combat (only for dude_obj or critter being controlled by the player)

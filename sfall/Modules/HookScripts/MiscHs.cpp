@@ -392,6 +392,85 @@ end:
 	}
 }
 
+static fo::GameObject* sourceSkillOn = nullptr;
+void SourceUseSkillOnInit() { sourceSkillOn = fo::var::obj_dude; }
+
+static char resultSkillOn;
+static long bakupCombatState;
+static void __cdecl UseSkillOnHook_Script(DWORD source, DWORD target, register DWORD skillId) {
+	BeginHook();
+	argCount = 3;
+
+	args[0] = source;  // user
+	args[1] = target;  // target
+	args[2] = skillId; // skill id
+
+	sourceSkillOn = fo::var::obj_dude;
+	resultSkillOn = 0;
+	bakupCombatState = -1;
+
+	RunHookScript(HOOK_USESKILLON);
+	EndHook();
+
+	if (skillId != fo::Skill::SKILL_STEAL && cRet > 0) { // not work for steal skill
+		if (rets[0] != 0) {
+			resultSkillOn = (rets[0] == -1) ? -1 : 1;
+			if (resultSkillOn == 1) {
+				sourceSkillOn = (fo::GameObject*)rets[0];
+			}
+		}
+		if (resultSkillOn != -1 && cRet > 1 && rets[1] == 1) {
+			bakupCombatState = fo::var::combat_state;
+			fo::var::combat_state = 0;
+		}
+	}
+}
+
+static void __declspec(naked) UseSkillOnHook() {
+	__asm {
+		push ecx;
+		push ebx;                    // skill id
+		push edx;                    // target
+		push eax;                    // user
+		call UseSkillOnHook_Script;
+		pop  eax;
+		pop  edx;
+		add  esp, 4; // ebx
+		pop  ecx;
+		cmp  resultSkillOn, -1;      // skip handler
+		jnz  handler;
+		retn;
+handler:
+		jmp  fo::funcoffs::action_use_skill_on_;
+	}
+}
+
+static void __declspec(naked) UseSkillOnHack() {
+	__asm {
+		cmp bakupCombatState, -1;
+		jz  skip;
+		mov ebp, bakupCombatState;
+		mov dword ptr ds:[FO_VAR_combat_state], ebp;
+skip:
+		cmp resultSkillOn, 0;
+		jz  default;
+		mov edi, sourceSkillOn;
+		retn;  // flag ZF = 0
+default:
+		// engine code
+		cmp eax, dword ptr ds:[FO_VAR_obj_dude];
+		retn;
+	}
+}
+
+static void __declspec(naked) skill_use_hack() {
+	__asm {
+		cmp   ebp, dword ptr ds:[FO_VAR_obj_dude];
+		setnz al;
+		retn;
+	}
+}
+
 void Inject_BarterPriceHook() {
 	HookCalls(BarterPriceHook, {
 		0x474D4C,
@@ -440,6 +519,16 @@ void Inject_ExplosiveTimerHook() {
 	HookCall(0x49BDC4, ExplosiveTimerHook);
 }
 
+void Inject_UseSkillOnHook() {
+	HookCalls(UseSkillOnHook, { 0x44C3CA, 0x44C81C });
+	MakeCall(0x4127BA, UseSkillOnHack);
+	SafeWrite8(0x4127BF, 0x90);
+	MakeCalls(skill_use_hack, {0x4AB05D, 0x4AB558, 0x4ABA60}); // fix checking obj_dude's target
+	// replace source skill user
+	SafeWriteBatch<DWORD>((DWORD)&sourceSkillOn, {0x4AAF47, 0x4AB051, 0x4AB3FB, 0x4AB550, 0x4AB8FA, 0x4ABA54});
+	SafeWriteBatch<DWORD>((DWORD)&sourceSkillOn, {0x4AB0EF, 0x4AB5C0, 0x4ABAF2}); // fix for time
+}
+
 void InitMiscHookScripts() {
 
 	LoadHookScript("hs_barterprice", HOOK_BARTERPRICE);
@@ -450,6 +539,7 @@ void InitMiscHookScripts() {
 	LoadHookScript("hs_setglobalvar", HOOK_SETGLOBALVAR);
 	LoadHookScript("hs_resttimer", HOOK_RESTTIMER);
 	LoadHookScript("hs_explosivetimer", HOOK_EXPLOSIVETIMER);
+	LoadHookScript("hs_useskillon", HOOK_USESKILLON);
 }
 
 }

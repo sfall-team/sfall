@@ -279,7 +279,7 @@ static bool LoadOriginalDll(DWORD dwReason) {
 	switch (dwReason) {
 		case DLL_PROCESS_ATTACH:
 			char path[MAX_PATH];
-			CopyMemory(path + GetSystemDirectory(path , MAX_PATH - 10), "\\ddraw.dll", 11); // path to original dll
+			CopyMemory(path + GetSystemDirectoryA(path , MAX_PATH - 10), "\\ddraw.dll", 11); // path to original dll
 			ddraw.dll = LoadLibrary(path);
 			if (!ddraw.dll || ddraw.dll == INVALID_HANDLE_VALUE) {
 				MessageBox(0, "Cannot load the original ddraw.dll library.", "sfall", MB_ICONERROR);
