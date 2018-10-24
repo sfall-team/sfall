@@ -67,7 +67,7 @@ continue:
 	}
 }
 
-static DWORD __cdecl sf_ai_move_steps_closer(fo::GameObject* source, fo::GameObject* target, DWORD* distPtr) {
+static DWORD __fastcall sf_ai_move_steps_closer(fo::GameObject* source, fo::GameObject* target, DWORD* distPtr) {
 	DWORD distance, shotTile = 0;
 
 	char rotationData[256];
@@ -92,7 +92,7 @@ static DWORD __cdecl sf_ai_move_steps_closer(fo::GameObject* source, fo::GameObj
 		if (source->critter.movePoints < needAP) {
 			shotTile = 0;
 		} else {
-			*distPtr = distance;
+			*distPtr = distance;  // change distance in ebp register
 		}
 	}
 	return shotTile;
@@ -103,19 +103,19 @@ static void __declspec(naked) ai_move_steps_closer_hook() {
 		cmp  dword ptr [esp + 0x1C + 4], 0x42AC5A;  // calls from try attack: shot blocked
 		jnz  end;
 		push ecx;
-		push ebp;  // dist
-		push esp;  // distPtr
 		push edx;
 		push eax;
-		call sf_ai_move_steps_closer;
+		push ebp;  // distance
+		push esp;                     // distPtr
+		mov  ecx, eax;                // source
+		call sf_ai_move_steps_closer; // edx - target
 		test eax, eax;
 		jz   skip;
-		mov [ebx], eax;
+		mov [ebx], eax; // replace target tile
 skip:
+		pop  ebp;
 		pop  eax;
 		pop  edx;
-		add  esp, 4;
-		pop  ebp;
 		pop  ecx;
 end:
 		jmp  fo::funcoffs::cai_retargetTileFromFriendlyFire_;
@@ -311,7 +311,7 @@ end:
 }
 //----------------------------------
 
-static void _cdecl CombatAttackHook(const DWORD source, const DWORD target) {
+static void __fastcall CombatAttackHook(DWORD source, DWORD target) {
 	sources[target] = source;
 	targets[source] = target;
 }
@@ -321,7 +321,8 @@ static void __declspec(naked) combat_attack_hook() {
 		push ecx;
 		push edx;
 		push eax;
-		call CombatAttackHook;
+		mov  ecx, eax;         // source
+		call CombatAttackHook; // edx - target
 		pop  eax;
 		pop  edx;
 		pop  ecx;

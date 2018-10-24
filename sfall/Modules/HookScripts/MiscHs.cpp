@@ -90,7 +90,7 @@ void SourceUseSkillOnInit() { sourceSkillOn = fo::var::obj_dude; }
 
 static char resultSkillOn;
 static long bakupCombatState;
-static void __cdecl UseSkillOnHook_Script(const DWORD source, const DWORD target, const register DWORD skillId) {
+static void __fastcall UseSkillOnHook_Script(DWORD source, DWORD target, register DWORD skillId) {
 
 	BeginHook();
 	argCount = 3;
@@ -122,15 +122,15 @@ static void __cdecl UseSkillOnHook_Script(const DWORD source, const DWORD target
 
 static void __declspec(naked) UseSkillOnHook() {
 	__asm {
+		push eax;
 		push ecx;
+		push edx;
 		push ebx;                    // skill id
-		push edx;                    // target
-		push eax;                    // user
-		call UseSkillOnHook_Script;
-		pop  eax;
+		mov  ecx, eax;               // user
+		call UseSkillOnHook_Script;  // edx - target
 		pop  edx;
-		add  esp, 4; // ebx
 		pop  ecx;
+		pop  eax;
 		cmp  resultSkillOn, -1;      // skip handler
 		jnz  handler;
 		retn;

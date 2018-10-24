@@ -179,7 +179,7 @@ static void AddPage(int lines) {
 }
 
 // Print quests page text
-static long __cdecl QuestsPrint(const char* text, const int width, DWORD* buf, BYTE* count) {
+static long __fastcall QuestsPrint(const char* text, int width, DWORD* buf, BYTE* count) {
 
 	look_quests++; // quests counter
 
@@ -227,10 +227,11 @@ static void __declspec(naked) PipStatus_hack_print() {
 		push ecx;
 		push ebx;
 		push edx;
-		push eax;
-		call QuestsPrint;
-		add  esp, 4; // eax
-		pop  edx;    // restore reg. and align stack for __cdecl call
+		push ecx;         // count
+		push ebx;         // buf
+		mov  ecx, eax;    // text
+		call QuestsPrint; // edx - width
+		pop  edx;
 		pop  ebx;
 		pop  ecx;
 		cmp  eax, 0;
