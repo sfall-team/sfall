@@ -829,11 +829,11 @@ static void DllMain2() {
 		SafeWrite8(0x50FB6B, '2'); // Set call DirectDrawCreate2
 		dlogr(" Done", DL_INIT);
 	}
-	tmp = GetPrivateProfileIntA("Graphics", "FadeMultiplier", 100, ini);
-	if (tmp != 100) {
+	FadeMulti = GetPrivateProfileIntA("Graphics", "FadeMultiplier", 100, ini);
+	if (FadeMulti != 100) {
 		dlog("Applying fade patch.", DL_INIT);
 		HookCall(0x493B16, palette_fade_to_hook);
-		FadeMulti = ((double)tmp) / 100.0;
+		FadeMulti = ((double)FadeMulti) / 100.0;
 		dlogr(" Done", DL_INIT);
 	}
 
@@ -1608,7 +1608,7 @@ static bool LoadOriginalDll(DWORD dwReason) {
 	return false;
 }
 
-bool _stdcall DllMain(HANDLE hDllHandle, DWORD dwReason, LPVOID  lpreserved) {
+bool _stdcall DllMain(HANDLE hDllHandle, DWORD dwReason, LPVOID lpreserved) {
 	if (LoadOriginalDll(dwReason)) {
 		// enabling debugging features
 		IsDebug = (GetPrivateProfileIntA("Debugging", "Enable", 0, ".\\ddraw.ini") != 0);
