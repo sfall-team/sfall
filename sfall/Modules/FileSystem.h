@@ -28,8 +28,10 @@ public:
 	const char* name() { return "FileSystem"; }
 	void init();
 
+	static bool UsingFileSystem;
+
 	// save FileSystem data to a save game file
-	static void save(HANDLE h);
+	static void Save(HANDLE h);
 };
 
 DWORD _stdcall FScreate(const char* path, int size);

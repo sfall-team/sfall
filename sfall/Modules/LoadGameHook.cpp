@@ -138,15 +138,16 @@ static void _stdcall SaveGame2() {
 	h = CreateFileA(buf, GENERIC_WRITE, 0, 0, CREATE_ALWAYS, 0, 0);
 	if (h != INVALID_HANDLE_VALUE) {
 		Worldmap::SaveData(h);
+		CloseHandle(h);
 	}
-	CloseHandle(h);
-
+	
+	if (!FileSystem::UsingFileSystem) return;
 	GetSavePath(buf, "fs");
 	h = CreateFileA(buf, GENERIC_WRITE, 0, 0, CREATE_ALWAYS, 0, 0);
 	if (h != INVALID_HANDLE_VALUE) {
-		FileSystem::save(h);
+		FileSystem::Save(h);
+		CloseHandle(h);
 	}
-	CloseHandle(h);
 }
 
 static std::string saveFailMsg;

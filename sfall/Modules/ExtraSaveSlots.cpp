@@ -509,11 +509,11 @@ void ExtraSaveSlots::init() {
 	autoQuickSave = GetConfigInt("Misc", "AutoQuickSave", 0);
 	if (autoQuickSave > 0) {
 		if (autoQuickSave > 10) autoQuickSave = 10;
+		autoQuickSave--; // reserved slot count
 
 		quickSavePage = GetConfigInt("Misc", "AutoQuickSavePage", 0);
 		if (quickSavePage > 999) quickSavePage = 999;
-
-		autoQuickSave--; // reserved slot count
+		quickSavePage *= 10;
 
 		if (extraSaveSlots && quickSavePage > 0) {
 			MakeCall(0x47B923, SaveGame_hack1, 1);

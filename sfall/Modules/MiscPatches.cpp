@@ -22,7 +22,6 @@
 #include "..\main.h"
 #include "..\FalloutEngine\Fallout2.h"
 #include "..\SimplePatch.h"
-#include "Graphics.h"
 #include "ScriptExtender.h"
 #include "LoadGameHook.h"
 
@@ -338,21 +337,15 @@ fail:
 	}
 }
 
-static void __declspec(naked) objCanSeeObj_ShootThru_Fix() {//(EAX *objStruct, EDX hexNum1, EBX hexNum2, ECX ?, stack1 **ret_objStruct, stack2 flags)
+static void __declspec(naked) op_obj_can_see_obj_hook() {
 	__asm {
-		push esi
-		push edi
-
-		push fo::funcoffs::obj_shoot_blocking_at_ //arg3 check hex objects func pointer
-		mov esi, 0x20//arg2 flags, 0x20 = check shootthru
-		push esi
-		mov edi, dword ptr ss : [esp + 0x14] //arg1 **ret_objStruct
-		push edi
-		call fo::funcoffs::make_straight_path_func_;//(EAX *objStruct, EDX hexNum1, EBX hexNum2, ECX ?, stack1 **ret_objStruct, stack2 flags, stack3 *check_hex_objs_func)
-
-		pop edi
-		pop esi
-		ret 0x8
+		push fo::funcoffs::obj_shoot_blocking_at_;   // check hex objects func pointer
+		push 0x20;                                   // flags, 0x20 = check ShootThru
+		mov  ecx, dword ptr [esp + 0x0C];            // buf **ret_objStruct
+		push ecx;
+		xor  ecx, ecx;
+		call fo::funcoffs::make_straight_path_func_; // EAX *objStruct, EDX hexNum1, EBX hexNum2, ECX 0, stack1 **ret_objStruct, stack2 flags, stack3 *check_hex_objs_func
+		retn 8;
 	}
 }
 
@@ -547,6 +540,15 @@ static const DWORD EncounterTableSize[] = {
 	0x4C0815, 0x4C0D4A, 0x4C0FD4,
 };
 
+static void __declspec(naked) win_debug_hook() {
+	__asm {
+		call fo::funcoffs::debug_log_;
+		xor  eax, eax;
+		cmp  ds:[FO_VAR_GNW_win_init_flag], eax;
+		retn;
+	}
+}
+
 void DebugModePatch() {
 	if (isDebug) {
 		DWORD dbgMode = GetPrivateProfileIntA("Debugging", "DebugMode", 0, ".\\ddraw.ini");
@@ -560,10 +562,15 @@ void DebugModePatch() {
 				SafeWrite32(0x444A6E, 0x90909090);
 			}
 			SafeWrite8(0x4C6D9B, 0xB8);            // mov  eax, GNW/LOG
-			if (dbgMode == 2) {
+			if (dbgMode & 2) {
 				SafeWrite32(0x4C6D9C, (DWORD)debugLog);
-			}
-			else {
+				if (dbgMode & 1) {
+					SafeWrite16(0x4C6E75, 0x66EB); // jmps 0x4C6EDD
+					SafeWrite8(0x4C6EF2, 0xEB);
+					SafeWrite8(0x4C7034, 0x0);
+					MakeCall(0x4DC319, win_debug_hook, 2);
+				}
+			} else {
 				SafeWrite32(0x4C6D9C, (DWORD)debugGnw);
 			}
 			dlogr(" Done", DL_INIT);
@@ -825,7 +832,7 @@ void DisablePipboyAlarmPatch() {
 void ObjCanSeeShootThroughPatch() {
 	if (GetConfigInt("Misc", "ObjCanSeeObj_ShootThru_Fix", 0)) {
 		dlog("Applying ObjCanSeeObj ShootThru Fix.", DL_INIT);
-		SafeWrite32(0x456BC7, (DWORD)&objCanSeeObj_ShootThru_Fix - 0x456BCB);
+		HookCall(0x456BC6, op_obj_can_see_obj_hook);
 		dlogr(" Done", DL_INIT);
 	}
 }
