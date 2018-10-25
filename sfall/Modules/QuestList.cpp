@@ -178,7 +178,7 @@ static void AddPage(int lines) {
 }
 
 // Print quests page text
-static long __fastcall QuestsPrint(const char* text, const int width, DWORD* buf, BYTE* count) {
+static long __fastcall QuestsPrint(const char* text, int width, DWORD* buf, BYTE* count) {
 	look_quests++; // quests counter
 
 	if (outRangeFlag) {

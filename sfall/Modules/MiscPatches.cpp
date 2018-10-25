@@ -347,14 +347,19 @@ fail:
 	}
 }
 
-static void __declspec(naked) op_obj_can_see_obj_hook() {
+static void __declspec(naked) op_obj_can_see_obj_hook() { // (EAX *objStruct, EDX hexNum1, EBX hexNum2, ECX ?, stack1 **ret_objStruct, stack2 flags)
 	__asm {
 		push esi;
 		push edi;
-		push fo::funcoffs::obj_shoot_blocking_at_;  // arg3 check hex objects func pointer
-		mov  esi, 0x20;                             // arg2 flags, 0x20 = check shootthru
-		push 0x4163B7;
-		retn;
+		push fo::funcoffs::obj_shoot_blocking_at_;   // arg3 check hex objects func pointer
+		mov  esi, 0x20;                              // arg2 flags, 0x20 = check shootthru
+		push esi;
+		mov  edi, dword ptr ss:[esp + 0x14];         // arg1 **ret_objStruct
+		push edi;
+		call fo::funcoffs::make_straight_path_func_; // (EAX *objStruct, EDX hexNum1, EBX hexNum2, ECX ?, stack1 **ret_objStruct, stack2 flags, stack3 *check_hex_objs_func)
+		pop  edi;
+		pop  esi;
+		retn 8;
 	}
 }
 

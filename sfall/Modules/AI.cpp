@@ -47,7 +47,7 @@ DWORD _stdcall AIGetLastTarget(DWORD source) {
 	else return itr->second;
 }
 
-static void __fastcall CombatAttackHook(const DWORD source, const DWORD target) {
+static void __fastcall CombatAttackHook(DWORD source, DWORD target) {
 	sources[target] = source;
 	targets[source] = target;
 }
