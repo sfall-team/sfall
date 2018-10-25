@@ -182,7 +182,7 @@ static void __declspec(naked) ExecMapScriptsHack() {
 	}
 }
 
-static DWORD __cdecl GetGlobalExportedVarPtr(const char* name) {
+static DWORD __fastcall GetGlobalExportedVarPtr(const char* name) {
 	std::string str(name);
 	ExportedVarsMap::iterator it = globalExportedVars.find(str);
 	//dlog_f("\n Trying to find exported var %s... ", DL_MAIN, name);
@@ -210,8 +210,9 @@ static void __stdcall CreateGlobalExportedVar(DWORD scr, const char* name) {
 static void __declspec(naked) Export_FetchOrStore_FindVar_Hook() {
 	__asm {
 		push ecx;
-		push edx;                      // varName
-		call GetGlobalExportedVarPtr;  //_cdecl
+		push edx;
+		mov  ecx, edx;                 // varName
+		call GetGlobalExportedVarPtr;
 		pop  edx;
 		pop  ecx;
 		test eax, eax

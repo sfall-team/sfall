@@ -347,21 +347,14 @@ fail:
 	}
 }
 
-static void __declspec(naked) objCanSeeObj_ShootThru_Fix() {//(EAX *objStruct, EDX hexNum1, EBX hexNum2, ECX ?, stack1 **ret_objStruct, stack2 flags)
+static void __declspec(naked) op_obj_can_see_obj_hook() {
 	__asm {
-		push esi
-		push edi
-
-		push fo::funcoffs::obj_shoot_blocking_at_ //arg3 check hex objects func pointer
-		mov esi, 0x20//arg2 flags, 0x20 = check shootthru
-		push esi
-		mov edi, dword ptr ss : [esp + 0x14] //arg1 **ret_objStruct
-		push edi
-		call fo::funcoffs::make_straight_path_func_;//(EAX *objStruct, EDX hexNum1, EBX hexNum2, ECX ?, stack1 **ret_objStruct, stack2 flags, stack3 *check_hex_objs_func)
-
-		pop edi
-		pop esi
-		ret 0x8
+		push esi;
+		push edi;
+		push fo::funcoffs::obj_shoot_blocking_at_;  // arg3 check hex objects func pointer
+		mov  esi, 0x20;                             // arg2 flags, 0x20 = check shootthru
+		push 0x4163B7;
+		retn;
 	}
 }
 
@@ -391,7 +384,6 @@ static void __declspec(naked) display_stats_hook() {
 }
 
 static void __fastcall SwapHandSlots(fo::GameObject* item, DWORD* toSlot) {
-
 	if (fo::GetItemType(item) != fo::item_type_weapon && *toSlot
 		 && fo::GetItemType((fo::GameObject*)*toSlot) != fo::item_type_weapon) {
 		return;
@@ -758,7 +750,7 @@ void DisablePipboyAlarmPatch() {
 void ObjCanSeeShootThroughPatch() {
 	if (GetConfigInt("Misc", "ObjCanSeeObj_ShootThru_Fix", 0)) {
 		dlog("Applying ObjCanSeeObj ShootThru Fix.", DL_INIT);
-		SafeWrite32(0x456BC7, (DWORD)&objCanSeeObj_ShootThru_Fix - 0x456BCB);
+		HookCall(0x456BC6, op_obj_can_see_obj_hook);
 		dlogr(" Done", DL_INIT);
 	}
 }

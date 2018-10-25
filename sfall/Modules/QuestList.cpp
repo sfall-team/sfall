@@ -99,7 +99,6 @@ end:
 }
 
 static void ResetPageValues() {
-
 	if (total_quests_pages > 0) pageQuest.resize(1);
 
 	pageFlag = false;
@@ -179,8 +178,7 @@ static void AddPage(int lines) {
 }
 
 // Print quests page text
-static long __cdecl QuestsPrint(const char* text, int width, DWORD* buf, BYTE* count) {
-
+static long __fastcall QuestsPrint(const char* text, const int width, DWORD* buf, BYTE* count) {
 	look_quests++; // quests counter
 
 	if (outRangeFlag) {
@@ -227,10 +225,11 @@ static void __declspec(naked) PipStatus_hack_print() {
 		push ecx;
 		push ebx;
 		push edx;
-		push eax;
-		call QuestsPrint;
-		add  esp, 4; // eax
-		pop  edx;    // restore reg. and align stack for __cdecl call
+		push ecx;         // count
+		push ebx;         // buf
+		mov  ecx, eax;    // text
+		call QuestsPrint; // edx - width
+		pop  edx;
 		pop  ebx;
 		pop  ecx;
 		cmp  eax, 0;
@@ -247,8 +246,7 @@ jbreak:
 
 static char bufPage[16];
 static const char* format = "%s %d %s %d";
-static void __declspec(naked) PrintPages()
-{
+static void __declspec(naked) PrintPages() {
 	__asm {
 		// total pages
 		mov  eax, total_quests_pages;
@@ -459,7 +457,6 @@ skip:
 }
 
 void QuestListPatch() {
-
 	MakeCall(0x4974E4, StartPipboy_hack);
 
 	MakeCall(0x497173, pipboy_hack_action);
