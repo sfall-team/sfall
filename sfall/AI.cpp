@@ -40,19 +40,22 @@ DWORD _stdcall AIGetLastTarget(DWORD source) {
 	else return itr->second;
 }
 
-static void _stdcall CombatAttackHook(DWORD source, DWORD target) {
-	sources[target]=source;
-	targets[source]=target;
+static void __fastcall CombatAttackHook(DWORD source, DWORD target) {
+	sources[target] = source;
+	targets[source] = target;
 }
 
 static void __declspec(naked) combat_attack_hook() {
 	_asm {
-		pushad;
+		push ecx;
 		push edx;
 		push eax;
-		call CombatAttackHook;
-		popad;
-		jmp combat_attack_;
+		mov  ecx, eax;         // source
+		call CombatAttackHook; // edx - target
+		pop  eax;
+		pop  edx;
+		pop  ecx;
+		jmp  combat_attack_;
 	}
 }
 
