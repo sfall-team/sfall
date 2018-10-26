@@ -125,50 +125,50 @@ static void RunEditorInternal(SOCKET &s) {
 		if (code == CODE_EXIT) break;
 		int id, val;
 		switch (code) {
-		case 0:
-			InternalRecv(s, &id, 4);
-			InternalRecv(s, &val, 4);
-			fo::var::game_global_vars[id] = val;
+			case 0:
+				InternalRecv(s, &id, 4);
+				InternalRecv(s, &val, 4);
+				fo::var::game_global_vars[id] = val;
+				break;
+			case 1:
+				InternalRecv(s, &id, 4);
+				InternalRecv(s, &val, 4);
+				fo::var::map_global_vars[id] = val;
+				break;
+			case 2:
+				InternalRecv(s, &id, 4);
+				InternalSend(s, vec[id], 0x74);
+				break;
+			case 3:
+				InternalRecv(s, &id, 4);
+				InternalRecv(s, vec[id], 0x74);
+				break;
+			case 4:
+				InternalRecv(s, &id, 4);
+				InternalRecv(s, &val, 4);
+				sglobals[id].val = val;
+				break;
+			case 9:
+			{
+				InternalRecv(s, &id, 4);
+				DWORD *types = new DWORD[arrays[id * 3 + 1]];
+				char *data = new char[arrays[id * 3 + 1] * arrays[id * 3 + 2]];
+				script::DEGetArray(arrays[id * 3], types, data);
+				InternalSend(s, types, arrays[id * 3 + 1] * 4);
+				InternalSend(s, data, arrays[id * 3 + 1] * arrays[id * 3 + 2]);
+				delete[] data;
+				delete[] types;
+			}
 			break;
-		case 1:
-			InternalRecv(s, &id, 4);
-			InternalRecv(s, &val, 4);
-			fo::var::map_global_vars[id] = val;
+			case 10:
+			{
+				InternalRecv(s, &id, 4);
+				char *data = new char[arrays[id * 3 + 1] * arrays[id * 3 + 2]];
+				InternalRecv(s, data, arrays[id * 3 + 1] * arrays[id * 3 + 2]);
+				script::DESetArray(arrays[id * 3], 0, data);
+				delete[] data;
+			}
 			break;
-		case 2:
-			InternalRecv(s, &id, 4);
-			InternalSend(s, vec[id], 0x74);
-			break;
-		case 3:
-			InternalRecv(s, &id, 4);
-			InternalRecv(s, vec[id], 0x74);
-			break;
-		case 4:
-			InternalRecv(s, &id, 4);
-			InternalRecv(s, &val, 4);
-			sglobals[id].val = val;
-			break;
-		case 9:
-		{
-			InternalRecv(s, &id, 4);
-			DWORD *types = new DWORD[arrays[id * 3 + 1]];
-			char *data = new char[arrays[id * 3 + 1] * arrays[id * 3 + 2]];
-			script::DEGetArray(arrays[id * 3], types, data);
-			InternalSend(s, types, arrays[id * 3 + 1] * 4);
-			InternalSend(s, data, arrays[id * 3 + 1] * arrays[id * 3 + 2]);
-			delete[] data;
-			delete[] types;
-		}
-		break;
-		case 10:
-		{
-			InternalRecv(s, &id, 4);
-			char *data = new char[arrays[id * 3 + 1] * arrays[id * 3 + 2]];
-			InternalRecv(s, data, arrays[id * 3 + 1] * arrays[id * 3 + 2]);
-			script::DESetArray(arrays[id * 3], 0, data);
-			delete[] data;
-		}
-		break;
 		}
 	}
 
@@ -241,9 +241,10 @@ void RunDebugEditor() {
 static DWORD debugEditorKey = 0;
 
 void DebugEditor::init() {
+	if (!isDebug) return;
 	debugEditorKey = GetConfigInt("Input", "DebugEditorKey", 0);
 	if (debugEditorKey != 0) {
-		OnKeyPressed() += [](DWORD scanCode, bool pressed, DWORD vkCode) {
+		OnKeyPressed() += [](DWORD scanCode, bool pressed) {
 			if (scanCode == debugEditorKey && pressed && IsMapLoaded()) {
 				RunDebugEditor();
 			}

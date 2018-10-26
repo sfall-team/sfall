@@ -39,7 +39,7 @@ static DWORD reloadWeaponKey = 0;
 static DWORD itemFastMoveKey = 0;
 static DWORD skipFromContainer = 0;
 
-void InventoryKeyPressedHook(DWORD dxKey, bool pressed, DWORD vKey) {
+void InventoryKeyPressedHook(DWORD dxKey, bool pressed) {
 	if (pressed && reloadWeaponKey && dxKey == reloadWeaponKey && IsMapLoaded() && (GetLoopFlags() & ~(COMBAT | PCOMBAT)) == 0) {
 		DWORD maxAmmo, curAmmo;
 		fo::GameObject* item = fo::GetActiveItem();

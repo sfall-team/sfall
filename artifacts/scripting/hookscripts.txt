@@ -162,8 +162,8 @@ critter arg1  - The target
 critter arg2  - The attacker
 int     arg3  - The amount of damage to the target
 int     arg4  - The amount of damage to the attacker
-int     arg5  - The special effect flags for the target
-int     arg6  - The special effect flags for the attacker
+int     arg5  - The special effect flags for the target (use bwand DAM_* to check specific flags)
+int     arg6  - The special effect flags for the attacker (use bwand DAM_* to check specific flags)
 int     arg7  - The weapon used in the attack
 int     arg8  - The bodypart that was struck
 int     arg9  - Damage Multiplier (this is divided by 2, so a value of 3 does 1.5x damage, and 8 does 4x damage. Usually it's 2, but with Silent Death perk and the corresponding attack conditions, it's 4; for critical hits, the value is taken from the critical table)
@@ -341,10 +341,13 @@ HOOK_KEYPRESS (hs_keypress.int)
 Runs once every time when any key was pressed or released.
 DX codes: (see dik.h header)
 VK codes: http://msdn.microsoft.com/en-us/library/windows/desktop/dd375731%28v=vs.85%29.aspx
+NOTE: if you want to override a key, the new key DX scancode should be the same for both pressed and released events.
 
 int     arg1 - event type: 1 - pressed, 0 - released
 int     arg2 - key DX scancode
 int     arg3 - key VK code (very similar to ASCII codes)
+
+int     ret1 - overrides the pressed key (a new key DX scancode or 0 for no override)
 
 -------------------------------------------
 
@@ -552,12 +555,12 @@ HOOK_USESKILLON (hs_useskillon.int)
 Runs before using skills on the object. Allows to override the critter that used the skill.
 Note: When using the Steal skill, the critter can't be override.
 
-Critter arg1 - the user critter (usually dude_obj)
+Critter arg1 - The user critter (usually dude_obj)
 Obj     arg2 - the target object/critter
 int     arg3 - skill used
 
 int     ret1 - a new critter who used the skill, pass -1 to cancel the skill use, 0 - for skip this return argument
-int     ret2 - pass 1 to allow the use of skill in combat (only for dude or critter under control of the player)
+int     ret2 - pass 1 to allow the skill being used in combat (only for dude_obj or critter being controlled by the player)
 
 -------------------------------------------
 

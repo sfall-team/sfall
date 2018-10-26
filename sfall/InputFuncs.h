@@ -34,7 +34,7 @@ void SetMPos(int x, int y);
 DWORD _stdcall KeyDown(DWORD key);
 void _stdcall TapKey(DWORD key);
 
-typedef Delegate<DWORD, bool, DWORD> KeyPressedDelegate;
+typedef Delegate<DWORD, bool> KeyPressedDelegate;
 typedef Delegate<DWORD, bool> MouseClickedDelegate;
 
 KeyPressedDelegate& OnKeyPressed();
