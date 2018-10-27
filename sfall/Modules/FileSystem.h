@@ -28,8 +28,9 @@ public:
 	const char* name() { return "FileSystem"; }
 	void init();
 
+	static bool UsingFileSystem;
 	// save FileSystem data to a save game file
-	static void save(HANDLE h);
+	static void Save(HANDLE h);
 };
 
 DWORD _stdcall FScreate(const char* path, int size);
@@ -45,7 +46,7 @@ void _stdcall FSwrite_bstring(DWORD id, const char* data);
 int _stdcall FSread_byte(DWORD id);
 int _stdcall FSread_short(DWORD id);
 int _stdcall FSread_int(DWORD id);
- void _stdcall FSdelete(DWORD id);
+void _stdcall FSdelete(DWORD id);
 DWORD _stdcall FSsize(DWORD id);
 DWORD _stdcall FSpos(DWORD id);
 void _stdcall FSseek(DWORD id, DWORD pos);

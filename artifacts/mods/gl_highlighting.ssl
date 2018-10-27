@@ -67,7 +67,7 @@ procedure KeyPressHandler begin
             scanCode := get_sfall_arg,
             scanner, charges;
 
-   if scanCode == highlightKey then begin
+   if scanCode == highlightKey and not(get_game_mode bwand INTFACELOOT) then begin
       if pressed then begin
          isHighlight := true;
          if motionScanner then begin
@@ -105,6 +105,13 @@ procedure CombatTurnHandler begin
    end
 end
 
+procedure GameModeChangeHandler begin
+   if isHighlight and (get_game_mode bwand INTFACELOOT) then begin
+      isHighlight := false;
+      call ToggleHighlight(false);
+   end
+end
+
 procedure start begin
    if game_loaded and (sfall_ver_major >= 4) then begin
       call InitConfigs;
@@ -122,5 +129,6 @@ procedure start begin
 
       register_hook_proc(HOOK_KEYPRESS, KeyPressHandler);
       register_hook_proc(HOOK_COMBATTURN, CombatTurnHandler);
+      register_hook_proc(HOOK_GAMEMODECHANGE, GameModeChangeHandler);
    end
 end
