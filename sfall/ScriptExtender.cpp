@@ -1722,11 +1722,13 @@ void LoadGlobalScripts() {
 			isGlobalScriptLoading = 0;
 		}
 	}
+
 	__asm {
 		xor  edx, edx
 		lea  eax, filenames
 		call db_free_file_list_
 	}
+
 	dlogr("Finished loading global scripts.", DL_SCRIPT|DL_INIT);
 }
 

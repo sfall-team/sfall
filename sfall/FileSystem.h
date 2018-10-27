@@ -18,6 +18,8 @@
 
 #pragma once
 
+extern bool UsingFileSystem;
+
 void FileSystemInit();
 void FileSystemReset();
 void FileSystemSave(HANDLE h);
@@ -35,7 +37,7 @@ void _stdcall FSwrite_bstring(DWORD id, const char* data);
 int _stdcall FSread_byte(DWORD id);
 int _stdcall FSread_short(DWORD id);
 int _stdcall FSread_int(DWORD id);
- void _stdcall FSdelete(DWORD id);
+void _stdcall FSdelete(DWORD id);
 DWORD _stdcall FSsize(DWORD id);
 DWORD _stdcall FSpos(DWORD id);
 void _stdcall FSseek(DWORD id, DWORD pos);

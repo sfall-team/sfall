@@ -88,6 +88,7 @@
 #define _glblmode                   0x5709D0
 #define _gmouse_current_cursor      0x518C0C
 #define _gmovie_played_list         0x596C78
+#define _GNW_win_init_flag          0x51E3E0
 #define _GreenColor                 0x6A3CB0
 #define _gsound_initialized         0x518E30
 #define _hit_location_penalty       0x510954
@@ -506,6 +507,7 @@ extern const DWORD db_get_file_list_;
 extern const DWORD db_read_to_buf_;
 extern const DWORD dbase_close_;
 extern const DWORD dbase_open_;
+extern const DWORD debug_log_;
 extern const DWORD debug_printf_;
 extern const DWORD debug_register_env_;
 extern const DWORD determine_to_hit_func_;

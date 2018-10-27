@@ -110,12 +110,14 @@ static void _stdcall SaveGame2() {
 		DisplayConsoleMessage(SaveSfallDataFailMsg);
 		PlaySfx("IISXXXX1");
 	}
+
+	if (!UsingFileSystem) return;
 	GetSavePath(buf, "fs");
 	h = CreateFileA(buf, GENERIC_WRITE, 0, 0, CREATE_ALWAYS, 0, 0);
 	if (h != INVALID_HANDLE_VALUE) {
 		FileSystemSave(h);
+		CloseHandle(h);
 	}
-	CloseHandle(h);
 }
 
 static char SaveFailMsg[128];

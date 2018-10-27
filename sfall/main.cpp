@@ -658,18 +658,14 @@ fail:
 	}
 }
 
-static void __declspec(naked) op_obj_can_see_obj_hook() { // (EAX *objStruct, EDX hexNum1, EBX hexNum2, ECX ?, stack1 **ret_objStruct, stack2 flags)
+static void __declspec(naked) op_obj_can_see_obj_hook() {
 	__asm {
-		push esi;
-		push edi;
-		push obj_shoot_blocking_at_;         // arg3 check hex objects func pointer
-		mov  esi, 0x20;                      // arg2 flags, 0x20 = check shootthru
-		push esi;
-		mov  edi, dword ptr ss:[esp + 0x14]; // arg1 **ret_objStruct
-		push edi;
-		call make_straight_path_func_;       // (EAX *objStruct, EDX hexNum1, EBX hexNum2, ECX ?, stack1 **ret_objStruct, stack2 flags, stack3 *check_hex_objs_func)
-		pop  edi;
-		pop  esi;
+		push obj_shoot_blocking_at_;      // check hex objects func pointer
+		push 0x20;                        // flags, 0x20 = check shootthru
+		mov  ecx, dword ptr [esp + 0x0C]; // buf **ret_objStruct
+		push ecx;
+		xor  ecx, ecx;
+		call make_straight_path_func_;    // (EAX *objStruct, EDX hexNum1, EBX hexNum2, ECX 0, stack1 **ret_objStruct, stack2 flags, stack3 *check_hex_objs_func)
 		retn 8;
 	}
 }
@@ -763,6 +759,16 @@ static void __declspec(naked) wmInterfaceInit_text_font_hook() {
 	__asm {
 		mov  eax, 0x65; // normal text font
 		jmp  text_font_;
+	}
+}
+
+static void __declspec(naked) win_debug_hook() {
+	__asm {
+		call debug_log_;
+		xor  eax, eax;
+		cmp  ds:[_GNW_win_init_flag], eax;
+		push 0x4DC320;
+		retn;
 	}
 }
 
@@ -1102,8 +1108,17 @@ static void DllMain2() {
 				SafeWrite32(0x444A6E, 0x90909090);
 			}
 			SafeWrite8(0x4C6D9B, 0xB8);            // mov  eax, GNW/LOG
-			if (tmp == 2) SafeWrite32(0x4C6D9C, (DWORD)debugLog);
-			else SafeWrite32(0x4C6D9C, (DWORD)debugGnw);
+			if (tmp & 2) {
+				SafeWrite32(0x4C6D9C, (DWORD)debugLog);
+				if (tmp & 1) {
+					SafeWrite16(0x4C6E75, 0x66EB); // jmps 0x4C6EDD
+					SafeWrite8(0x4C6EF2, 0xEB);
+					SafeWrite8(0x4C7034, 0x0);
+					MakeJump(0x4DC319, win_debug_hook);
+				}
+			} else {
+				SafeWrite32(0x4C6D9C, (DWORD)debugGnw);
+			}
 			dlogr(" Done", DL_INIT);
 		}
 	}

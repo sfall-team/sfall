@@ -310,6 +310,7 @@ const DWORD db_get_file_list_ = 0x4C6628;
 const DWORD db_read_to_buf_ = 0x4C5DD4;
 const DWORD dbase_close_ = 0x4E5270;
 const DWORD dbase_open_ = 0x4E4F58;
+const DWORD debug_log_ = 0x4C7028;
 const DWORD debug_printf_ = 0x4C6F48;
 const DWORD debug_register_env_ = 0x4C6D90;
 const DWORD determine_to_hit_func_ = 0x4243A8;

@@ -36,7 +36,7 @@ std::vector<fsFile> files;
 
 static DWORD loadedtiles = 0;
 static DWORD retval;
-static bool UsingFileSystem = false;
+bool UsingFileSystem = false;
 
 struct openFile {
 	DWORD pos;
@@ -446,12 +446,9 @@ void FileSystemReset() {
 		for (DWORD i = files.size() - 1; i >= loadedtiles; i--) files.erase(files.begin() + i);
 	}
 }
+
 void FileSystemSave(HANDLE h) {
 	DWORD count = 0, unused;
-	if (!UsingFileSystem) {
-		WriteFile(h, &count, 4, &unused, 0);
-		return;
-	}
 	for (DWORD i = 0; i < files.size(); i++) {
 		if (files[i].data) count++;
 	}
