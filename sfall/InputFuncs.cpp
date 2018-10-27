@@ -192,7 +192,7 @@ public:
 		return RealDevice->Unacquire();
 	}
 
-//Only called for the mouse
+	//Only called for the mouse
 	HRESULT _stdcall GetDeviceState(DWORD a, LPVOID b) {
 		if (forcingGraphicsRefresh) RefreshGraphics();
 		if (DeviceType != kDeviceType_MOUSE) {
@@ -274,8 +274,12 @@ public:
 			HRESULT hr = RealDevice->GetDeviceData(a, b, c, d);
 			if (FAILED(hr) || !b || !(*c)) return hr;
 			for (DWORD i = 0; i < *c; i++) {
-				keysDown[b[i].dwOfs] = b[i].dwData & 0x80;
-				onKeyPressed.invoke(b[i].dwOfs, (b[i].dwData & 0x80) > 0, MapVirtualKeyEx(b[i].dwOfs, MAPVK_VSC_TO_VK, keyboardLayout));
+				DWORD dxKey = b[i].dwOfs;
+				DWORD state = b[i].dwData & 0x80;
+
+				onKeyPressed.invoke(&dxKey, (state > 0), MapVirtualKeyEx(dxKey, MAPVK_VSC_TO_VK, keyboardLayout));
+				if (dxKey != b[i].dwOfs && dxKey > 0) b[i].dwOfs = dxKey; // Override key
+				keysDown[b[i].dwOfs] = state;
 			}
 			return hr;
 		}

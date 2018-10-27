@@ -243,8 +243,8 @@ static DWORD debugEditorKey = 0;
 void DebugEditor::init() {
 	debugEditorKey = GetConfigInt("Input", "DebugEditorKey", 0);
 	if (debugEditorKey != 0) {
-		OnKeyPressed() += [](DWORD scanCode, bool pressed, DWORD vkCode) {
-			if (scanCode == debugEditorKey && pressed && IsMapLoaded()) {
+		OnKeyPressed() += [](DWORD* scanCode, bool pressed, DWORD vkCode) {
+			if (*scanCode == debugEditorKey && pressed && IsMapLoaded()) {
 				RunDebugEditor();
 			}
 		};
