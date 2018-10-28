@@ -63,5 +63,5 @@ void HookScriptClear();
 extern DWORD InitingHookScripts;
 extern void __declspec() AmmoCostHookWrapper();
 void _stdcall MouseClickHook(DWORD button, bool pressed);
-void _stdcall KeyPressHook(DWORD dxKey, bool pressed, DWORD vKey);
+DWORD _stdcall KeyPressHook(DWORD dxKey, bool pressed, DWORD vKey);
 void _stdcall RunHookScriptsAtProc(DWORD procId);

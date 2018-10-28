@@ -257,12 +257,19 @@ public:
 
 		RunGlobalScripts2();
 
-		if (!b || bufferedPresses.empty() || (d&DIGDD_PEEK)) {
+		if (!b || bufferedPresses.empty() || (d & DIGDD_PEEK)) {
 			HRESULT hr = RealDevice->GetDeviceData(a, b, c, d);
 			if (FAILED(hr) || !b || !(*c)) return hr;
+			DWORD keyOverride, oldState;
 			for (DWORD i = 0; i < *c; i++) {
+				oldState = KeysDown[b[i].dwOfs];
 				KeysDown[b[i].dwOfs] = b[i].dwData & 0x80;
-				KeyPressHook(b[i].dwOfs, (b[i].dwData & 0x80) > 0, MapVirtualKeyEx(b[i].dwOfs, MAPVK_VSC_TO_VK, keyboardLayout));
+				keyOverride = KeyPressHook(b[i].dwOfs, (b[i].dwData & 0x80) > 0, MapVirtualKeyEx(b[i].dwOfs, MAPVK_VSC_TO_VK, keyboardLayout));
+				if (keyOverride != 0) {
+					KeysDown[b[i].dwOfs] = oldState;
+					b[i].dwOfs = keyOverride;
+					KeysDown[b[i].dwOfs] = b[i].dwData & 0x80;
+				}
 			}
 			if (KeysDown[DebugEditorKey]) RunDebugEditor();
 			return hr;

@@ -25,6 +25,7 @@
 #include "FalloutEngine.h"
 #include "HookScripts.h"
 #include "Inventory.h"
+#include "LoadGameHook.h"
 #include "Logging.h"
 #include "PartyControl.h"
 #include "ScriptExtender.h"
@@ -761,18 +762,27 @@ void __declspec(naked) AmmoCostHookWrapper() {
 	}
 }
 
-void _stdcall KeyPressHook( DWORD dxKey, bool pressed, DWORD vKey )
-{
+DWORD _stdcall KeyPressHook(DWORD dxKey, bool pressed, DWORD vKey) {
+	if (!IsMapLoaded()) {
+		return 0;
+	}
+	DWORD result = 0;
 	BeginHook();
 	ArgCount = 3;
 	args[0] = (DWORD)pressed;
 	args[1] = dxKey;
 	args[2] = vKey;
 	RunHookScript(HOOK_KEYPRESS);
+	if (cRet != 0) dxKey = result = rets[0];
 	InventoryKeyPressedHook(dxKey, pressed, vKey);
 	EndHook();
+	return result;
 }
+
 void _stdcall MouseClickHook(DWORD button, bool pressed) {
+	if (!IsMapLoaded()) {
+		return;
+	}
 	BeginHook();
 	ArgCount = 2;
 	args[0] = (DWORD)pressed;

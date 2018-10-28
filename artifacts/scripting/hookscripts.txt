@@ -340,10 +340,13 @@ HOOK_KEYPRESS (hs_keypress.int)
 Runs once every time when any key was pressed or released.
 DX codes: (see dik.h header)
 VK codes: http://msdn.microsoft.com/en-us/library/windows/desktop/dd375731%28v=vs.85%29.aspx
+NOTE: if you want to override a key, the new key DX scancode should be the same for both pressed and released events.
 
 int     arg1 - event type: 1 - pressed, 0 - released
 int     arg2 - key DX scancode
 int     arg3 - key VK code (very similar to ASCII codes)
+
+int     ret1 - overrides the pressed key (a new key DX scancode or 0 for no override)
 
 -------------------------------------------
 
