@@ -1824,8 +1824,7 @@ void BugFixes::init()
 
 	//if (GetConfigInt("Misc", "MultiHexPathingFix", 1)) {
 		dlog("Applying MultiHex Pathing Fix.", DL_INIT);
-		MakeCall(0x42901F, MultiHexFix);
-		MakeCall(0x429170, MultiHexFix);
+		MakeCalls(MultiHexFix, {0x42901F, 0x429170});
 		// Fix for multihex critters moving too close and overlapping their targets in combat
 		MakeCall(0x42A14F, MultiHexCombatRunFix);
 		SafeWrite8(0x42A154, 0x90);

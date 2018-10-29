@@ -76,6 +76,7 @@ public:
 	static bool injectAllHooks;
 
 	static void GameModeChangeHook(DWORD exit);
+	static void KeyPressHook(DWORD* dxKey, bool pressed, DWORD vKey);
 };
 
 DWORD _stdcall GetHSArgCount();

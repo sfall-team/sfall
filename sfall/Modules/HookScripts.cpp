@@ -87,7 +87,7 @@ DWORD initingHookScripts;
 
 // BEGIN HOOKS
 
-void _stdcall KeyPressHook(DWORD* dxKey, bool pressed, DWORD vKey) {
+void HookScripts::KeyPressHook(DWORD* dxKey, bool pressed, DWORD vKey) {
 	if (!IsMapLoaded()) {
 		return;
 	}
@@ -226,7 +226,6 @@ void _stdcall RunHookScriptsAtProc(DWORD procId) {
 }
 
 void HookScripts::init() {
-	OnKeyPressed() += KeyPressHook;
 	OnMouseClick() += MouseClickHook;
 	LoadGameHook::OnGameModeChange() += GameModeChangeHook;
 	LoadGameHook::OnAfterGameStarted() += SourceUseSkillOnInit;

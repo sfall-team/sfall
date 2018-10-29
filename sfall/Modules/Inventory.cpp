@@ -38,9 +38,9 @@ static DWORD reloadWeaponKey = 0;
 static DWORD itemFastMoveKey = 0;
 static DWORD skipFromContainer = 0;
 
-void InventoryKeyPressedHook(DWORD* dxKey, bool pressed, DWORD vKey) {
+void InventoryKeyPressedHook(DWORD dxKey, bool pressed) {
 	// TODO: move this out into a script
-	if (pressed && reloadWeaponKey && *dxKey == reloadWeaponKey && IsMapLoaded() && (GetLoopFlags() & ~(COMBAT | PCOMBAT)) == 0) {
+	if (pressed && reloadWeaponKey && dxKey == reloadWeaponKey && IsMapLoaded() && (GetLoopFlags() & ~(COMBAT | PCOMBAT)) == 0) {
 		DWORD maxAmmo, curAmmo;
 		fo::GameObject* item = fo::GetActiveItem();
 		maxAmmo = fo::func::item_w_max_ammo(item);
@@ -87,7 +87,6 @@ DWORD __stdcall sf_item_total_size(fo::GameObject* critter) {
 
 /*static const DWORD ObjPickupFail=0x49B70D;
 static const DWORD ObjPickupEnd=0x49B6F8;
-static const DWORD size_limit;
 static __declspec(naked) void  ObjPickupHook() {
 	__asm {
 		cmp edi, ds:[FO_VAR_obj_dude];
@@ -836,7 +835,7 @@ void Inventory::init() {
 
 	// Move items out of bag/backpack and back into the main inventory list by dragging them to character's image
 	// (similar to Fallout 1 behavior)
-	HookCall(0x471457, &inven_pickup_hook);
+	HookCall(0x471457, inven_pickup_hook);
 
 	// Move items to player's main inventory instead of the opened bag/backpack when confirming a trade
 	SafeWrite32(0x475CF2, FO_VAR_stack);
@@ -852,7 +851,5 @@ void Inventory::init() {
 Delegate<DWORD>& Inventory::OnAdjustFid() {
 	return onAdjustFid;
 }
-
-
 
 }

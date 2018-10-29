@@ -264,21 +264,7 @@ int CheckFile(char*FileName, DWORD *size_out) {
 
 //-----------------------------------------
 char _stdcall GetSex(void) {
-	using fo::STAT_gender;
-	char sex;
-	__asm {
-		mov edx, STAT_gender //sex stat ref
-		mov eax, dword ptr ds:[FO_VAR_obj_dude] //hero state structure
-		call fo::funcoffs::stat_level_ //get Player stat val
-		test eax, eax //male=0, female=1
-		jne Female
-		mov sex, 'M'
-		jmp EndFunc
-Female:
-		mov sex, 'F'
-EndFunc:
-	}
-	return sex;
+	return (fo::HeroIsFemale()) ? 'F' : 'M';
 }
 
 // functions to load and save appearance globals
