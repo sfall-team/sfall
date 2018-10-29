@@ -21,6 +21,8 @@
 
 #include "..\main.h"
 #include "..\FalloutEngine\Fallout2.h"
+#include "HookScripts\InventoryHs.h"
+#include "HookScripts.h"
 #include "LoadGameHook.h"
 
 #include "PartyControl.h"
@@ -33,6 +35,7 @@ bool isControllingNPC = false;
 static DWORD controlMode;
 static std::vector<WORD> allowedCritterPids;
 static int delayedExperience;
+static bool switchHandHookInjected = false;
 
 static struct DudeState {
 	fo::GameObject* obj_dude = nullptr;
@@ -166,7 +169,7 @@ static void __stdcall DisplayCantDoThat() {
 // 1 skip handler, -1 don't skip
 int __stdcall PartyControl::SwitchHandHook(fo::GameObject* item) {
 	// don't allow to use the weapon, if no art exist for it
-	if (fo::func::item_get_type(item) == fo::ItemType::item_type_weapon && isControllingNPC) {
+	if (isControllingNPC && fo::func::item_get_type(item) == fo::ItemType::item_type_weapon) {
 		int fId = fo::var::obj_dude->artFid;
 		long weaponCode = fo::AnimCodeByWeapon(item);
 		fId = (fId & 0xffff0fff) | (weaponCode << 12);
@@ -215,12 +218,15 @@ bool PartyControl::IsNpcControlled() {
 
 void PartyControl::SwitchToCritter(fo::GameObject* critter) {
 	if (isControllingNPC) {
-		RestoreRealDudeState();
+		if (critter == nullptr || critter == realDude.obj_dude) RestoreRealDudeState();
 	} else {
 		SaveRealDudeState();
 	}
 	if (critter != nullptr && critter != realDude.obj_dude) {
 		SetCurrentDude(critter);
+		if (switchHandHookInjected) return;
+		switchHandHookInjected = true;
+		if (!HookScripts::IsInjectHook(HOOK_INVENTORYMOVE)) Inject_SwitchHandHook();
 	}
 }
 
