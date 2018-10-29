@@ -569,7 +569,7 @@ HOOK_ONEXPLOSION (hs_onexplosion.int)
 Runs before the explosion, checking all the tiles in the radius of this explosion.
 The tiles checking is interrupted when 6 additional targets(critters) are received.
 
-int     arg1 - event, sets to 1 in cases of checking without causing damage to objects
+int     arg1 - event, sets to 1 in the case of checking (without causing damage) objects in the radius of the explosion
 Critter arg2 - the attacker critter
 int     arg3 - the explosion tile
 int     arg4 - checked tile in explosion radius
