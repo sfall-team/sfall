@@ -424,7 +424,7 @@ HRESULT _stdcall FakeDirectInputCreate(HINSTANCE a, DWORD b, IDirectInputA** c, 
 	BackgroundKeyboard = GetPrivateProfileInt("Input", "BackgroundKeyboard", 0, ini) != 0;
 	BackgroundMouse = GetPrivateProfileInt("Input", "BackgroundMouse", 0, ini) != 0;
 
-	DebugEditorKey = GetPrivateProfileInt("Input", "DebugEditorKey", 0, ini);
+	if (IsDebug) DebugEditorKey = GetPrivateProfileInt("Input", "DebugEditorKey", 0, ini);
 
 	*c = (IDirectInputA*)new FakeDirectInput(*c);
 

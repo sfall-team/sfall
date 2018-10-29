@@ -1134,7 +1134,7 @@ void _stdcall RegisterHook( DWORD script, DWORD id, DWORD procNum )
 }
 
 static void LoadHookScript(const char* name, int id) {
-	if (id >= numHooks) return;
+	if (id >= numHooks || isGameScript(name)) return;
 
 	char filename[MAX_PATH];
 	sprintf(filename, "scripts\\%s.int", name);
@@ -1145,7 +1145,7 @@ static void LoadHookScript(const char* name, int id) {
 		mov  fileExist, al
 	}
 
-	if (fileExist && !isGameScript(name)) {
+	if (fileExist) {
 		sScriptProgram prog;
 		dlog(">", DL_HOOK);
 		dlog(name, DL_HOOK);
@@ -1158,7 +1158,9 @@ static void LoadHookScript(const char* name, int id) {
 			hook.isGlobalScript = false;
 			hooks[id].push_back(hook);
 			AddProgramToMap(prog);
-		} else dlogr(" Error!", DL_HOOK);
+		} else {
+			dlogr(" Error!", DL_HOOK);
+		}
 	}
 }
 
