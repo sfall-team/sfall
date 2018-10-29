@@ -7,7 +7,7 @@
    NOTE: this script requires compiler from sfall modderspack with -s option
    (short circuit evaluation)
 
-   version 1.0
+   version 1.1
 
 */
 
@@ -17,68 +17,120 @@
 #include "..\headers\command.h"
 #include "main.h"
 
+
+procedure start;
+procedure AllowControl(variable pid);
+procedure CombaTurn_Handler;
+procedure InventoryMove_Handler;
+procedure GameModeChange_Handler;
+
 variable
-   configSection := "CombatControl",
    controlMode,
+   noCheckArray,
    pidList,
    displayName,
    displayNameColor,
    inControl := false,
+   hasAwareness := false,
    hasGeckoSkinning := false;
 
 
-procedure combatturn_handler begin
+procedure AllowControl(variable pid) begin
+
+   if (noCheckArray or scan_array(pidList, pid bwand 0xFFFFFF) != -1) and (party_member_obj(pid)) then return true;
+
+   return false;
+end
+
+procedure CombaTurn_Handler begin
    variable
       status := get_sfall_arg,
       critter := get_sfall_arg,
-      arg3 := get_sfall_arg,
+      //arg3 := get_sfall_arg,
       pid;
+   //display_msg("Combat Turn: " + status + ", by "  + obj_name(critter) + ", arg3: " + arg3);
 
-   // display_msg("Combat Turn: " + status + ", by "  + obj_name(critter) + ", arg3: " + arg3);
    pid := obj_pid(critter);
-   if (status == 1
-      and (len_array(pidList) == 0 or scan_array(pidList, pid bwand 0xFFFFFF) != -1)
-      and (controlMode == 1 or party_member_obj(pid))) then begin
-      if not(critter == real_dude_obj) then begin
-         set_dude_obj(critter);
+   if (status == 1 and (AllowControl(pid) or controlMode == 1)) then begin
+      set_dude_obj(critter);
+      if (critter != real_dude_obj) then begin
          if hasGeckoSkinning then critter_add_trait(critter, TRAIT_PERK, PERK_gecko_skinning_perk, 1);
+         if hasAwareness then critter_add_trait(critter, TRAIT_PERK, PERK_bonus_awareness, 1);
          inControl := true;
       end
       if inControl then begin
+         set_outline(critter, OUTLINE_GREY);
          // center the screen on the controlled critter and remove roof tiles
          move_to(dude_obj, dude_tile, dude_elevation);
-         if displayName then begin
+         if (displayName and critter != real_dude_obj) then begin
             set_iface_tag_text(displayName, obj_name(critter), displayNameColor);
             show_iface_tag(displayName);
          end
       end
-   end else if inControl then begin
-      set_dude_obj(real_dude_obj);
-      if displayName then hide_iface_tag(displayName);
+   end else if (inControl) then begin
+      if (displayName) then hide_iface_tag(displayName);
+      if (AllowControl(pid) == false) then begin
+         set_dude_obj(real_dude_obj);
+         move_to(dude_obj, dude_tile, dude_elevation);
+      end
    end
 end
 
-procedure gamemodechange_handler begin
-   if not(get_game_mode BWAND COMBAT) then inControl := false;
+procedure GameModeChange_Handler begin
+   if (inControl and not(get_game_mode BWAND COMBAT)) then begin
+      inControl := false;
+      set_dude_obj(real_dude_obj);
+      move_to(dude_obj, dude_tile, dude_elevation);
+   end
+end
+
+procedure InventoryMove_Handler begin
+/*
+   int     arg1 - Target slot (0 - main backpack, 1 - left hand, 2 - right hand, 3 - armor slot, 4 - weapon, when reloading it by dropping ammo, 5 - container, like bag/backpack, 6 - dropping on the ground)
+   Item    arg2 - Item being moved
+   Item    arg3 - Item being replaced, weapon being reloaded, or container being filled (can be 0)
+
+   int     ret1 - Override setting (-1 - use engine handler, any other value - prevent relocation of item/reloading weapon)
+*/
+   if (inControl and get_sfall_arg == 3) then begin // armor slot
+      if (obj_pid(dude_obj) == PID_MARCUS or proto_data(obj_pid(dude_obj), cr_body_type) != CR_BODY_BIPED) then begin
+         display_msg(message_str_game(GAME_MSG_PROTO, 675));
+         set_sfall_return(true);
+      end
+   end
 end
 
 procedure start begin
    if game_loaded and (sfall_ver_major >= 4) then begin
-      set_perk_ranks(PERK_gecko_skinning_perk, 1);
-      set_perk_level(PERK_gecko_skinning_perk, 999); // prevent it from appearing in the perk selection window
+      variable configSection := "CombatControl";
       controlMode := GetConfig("CombatControl", "Mode", 0);
-      displayName := GetConfig("CombatControl", "DisplayName", 0);
-      displayNameColor := GetConfig("CombatControl", "DisplayNameColor", 0);
-      if (controlMode == 1 and GetIniConfig("Debugging", "Enable", 0, "ddraw.ini") == 0) then controlMode := 2;
-      if (controlMode > 2) then controlMode := 0;
-      if (displayName < 5 or displayName > 9) then displayName := 0;
+      if (controlMode > 2) then begin
+         controlMode := 0;
+      end else if (controlMode == 1 and GetIniConfig("Debugging", "Enable", 0, "ddraw.ini") == 0) then begin
+         controlMode := 2;
+      end
+
       if (controlMode > 0) then begin
+         variable maxBoxCount := get_ini_setting("ddraw.ini|Misc|BoxBarCount");
+         if (maxBoxCount == -1) then maxBoxCount := 9; else maxBoxCount += 4;
+
+         displayName := GetConfig("CombatControl", "DisplayName", 0);
+         if (displayName < 5 or displayName > maxBoxCount) then displayName := 0;
+         if (displayName) then displayNameColor := GetConfig("CombatControl", "DisplayNameColor", 0);
+
+         set_perk_ranks(PERK_gecko_skinning_perk, 1);
+         set_perk_level(PERK_gecko_skinning_perk, 999); // prevent it from appearing in the perk selection window
+
          pidList := GetConfigListInt("CombatControl", "PIDList");
          fix_array(pidList);
-         if has_trait(TRAIT_PERK, dude_obj, PERK_gecko_skinning_perk) then hasGeckoSkinning := true;
+         noCheckArray := (len_array(pidList) == 0);
 
-         register_hook_proc(HOOK_COMBATTURN, combatturn_handler);
-         register_hook_proc(HOOK_GAMEMODECHANGE, gamemodechange_handler);
+         if has_trait(TRAIT_PERK, dude_obj, PERK_gecko_skinning_perk) then hasGeckoSkinning := true;
+         if has_trait(TRAIT_PERK, dude_obj, PERK_bonus_awareness) then hasAwareness := true;
+
+         register_hook_proc(HOOK_COMBATTURN, CombaTurn_Handler);
+         register_hook_proc(HOOK_GAMEMODECHANGE, GameModeChange_Handler);
+         register_hook_proc(HOOK_INVENTORYMOVE, InventoryMove_Handler);
       end
    end
 end
