@@ -87,15 +87,15 @@ static void __declspec(naked) load_page_offsets(void) {
 static void CreateButtons() {
 	DWORD winRef = fo::var::lsgwin;
 	// left button -10                   | X | Y | W | H |HOn |HOff |BDown |BUp |PicUp |PicDown |? |ButType
-	fo::func::win_register_button(winRef, 100, 56, 24, 20, -1, 0x500, 0x54B, 0x14B, 0, 0, 0, 32);
+	fo::func::win_register_button(winRef, 100, 60, 24, 20, -1, 0x500, 0x54B, 0x14B, 0, 0, 0, 32);
 	// left button -100
-	fo::func::win_register_button(winRef,  68, 56, 24, 20, -1, 0x500, 0x549, 0x149, 0, 0, 0, 32);
+	fo::func::win_register_button(winRef,  68, 60, 24, 20, -1, 0x500, 0x549, 0x149, 0, 0, 0, 32);
 	// right button +10
-	fo::func::win_register_button(winRef, 216, 56, 24, 20, -1, 0x500, 0x54D, 0x14D, 0, 0, 0, 32);
+	fo::func::win_register_button(winRef, 216, 60, 24, 20, -1, 0x500, 0x54D, 0x14D, 0, 0, 0, 32);
 	// right button +100
-	fo::func::win_register_button(winRef, 248, 56, 24, 20, -1, 0x500, 0x551, 0x151, 0, 0, 0, 32);
+	fo::func::win_register_button(winRef, 248, 60, 24, 20, -1, 0x500, 0x551, 0x151, 0, 0, 0, 32);
 	// Set Number button
-	fo::func::win_register_button(winRef, 140, 56, 60, 20, -1, -1, 'p', -1, 0, 0, 0, 32);
+	fo::func::win_register_button(winRef, 140, 60, 60, 20, -1, -1, 'p', -1, 0, 0, 0, 32);
 }
 
 static void __declspec(naked) create_page_buttons(void) {
@@ -160,7 +160,7 @@ void SetPageNum() {
 				memset(SaveLoadWin->surface + y + 170 - TxtMaxWidth / 2, 0xCF, TxtMaxWidth);
 			}
 
-			fo::PrintText(TempText, ConsoleGold, 170 - TxtWidth / 2, 60, TxtWidth, SaveLoadWin->width, SaveLoadWin->surface);
+			fo::PrintText(TempText, ConsoleGold, 170 - TxtWidth / 2, 64, TxtWidth, SaveLoadWin->width, SaveLoadWin->surface);
 			fo::func::win_draw(winRef);
 		}
 
@@ -279,16 +279,16 @@ void DrawPageText() {
 	sprintf_s(TempText, 32, "[ %d ]", LSPageOffset / 10 + 1);
 
 	unsigned int TxtWidth = fo::GetTextWidth(TempText);
-	fo::PrintText(TempText, Colour, 170 - TxtWidth / 2, 60, TxtWidth, SaveLoadWin->width, SaveLoadWin->surface);
+	fo::PrintText(TempText, Colour, 170 - TxtWidth / 2, 64, TxtWidth, SaveLoadWin->width, SaveLoadWin->surface);
 
 	if (LSButtDN == 0x549) {
 		Colour = ConsoleGold;
-	} else { 
+	} else {
 		Colour = ConsoleGreen;
 	}
 	strcpy_s(TempText, 12, "<<");
 	TxtWidth = fo::GetTextWidth(TempText);
-	fo::PrintText(TempText, Colour, 80 - TxtWidth / 2, 60, TxtWidth, SaveLoadWin->width, SaveLoadWin->surface);
+	fo::PrintText(TempText, Colour, 80 - TxtWidth / 2, 64, TxtWidth, SaveLoadWin->width, SaveLoadWin->surface);
 
 	if (LSButtDN == 0x54B) {
 		Colour = ConsoleGold;
@@ -297,7 +297,7 @@ void DrawPageText() {
 	}
 	strcpy_s(TempText, 12, "<");
 	TxtWidth = fo::GetTextWidth(TempText);
-	fo::PrintText(TempText, Colour, 112 - TxtWidth / 2, 60, TxtWidth, SaveLoadWin->width, SaveLoadWin->surface);
+	fo::PrintText(TempText, Colour, 112 - TxtWidth / 2, 64, TxtWidth, SaveLoadWin->width, SaveLoadWin->surface);
 
 	if (LSButtDN == 0x551) {
 		Colour = ConsoleGold;
@@ -306,7 +306,7 @@ void DrawPageText() {
 	}
 	strcpy_s(TempText, 12, ">>");
 	TxtWidth = fo::GetTextWidth(TempText);
-	fo::PrintText(TempText, Colour, 260 - TxtWidth / 2, 60, TxtWidth, SaveLoadWin->width, SaveLoadWin->surface);
+	fo::PrintText(TempText, Colour, 260 - TxtWidth / 2, 64, TxtWidth, SaveLoadWin->width, SaveLoadWin->surface);
 
 	if (LSButtDN == 0x54D) {
 		Colour = ConsoleGold;
@@ -315,7 +315,7 @@ void DrawPageText() {
 	}
 	strcpy_s(TempText, 12, ">");
 	TxtWidth = fo::GetTextWidth(TempText);
-	fo::PrintText(TempText, Colour, 228 - TxtWidth / 2, 60, TxtWidth, SaveLoadWin->width, SaveLoadWin->surface);
+	fo::PrintText(TempText, Colour, 228 - TxtWidth / 2, 64, TxtWidth, SaveLoadWin->width, SaveLoadWin->surface);
 
 	SaveLoadWin = nullptr;
 }
@@ -429,7 +429,7 @@ static FILETIME ftPrevSlot;
 static DWORD __stdcall QuickSaveGame(fo::DbFile* file, char* filename) {
 	unsigned int currSlot = fo::var::slot_cursor;
 
-	if (file) { // This slot is not empty 
+	if (file) { // This slot is not empty
 		fo::func::db_fclose(file);
 		FILETIME ftCurrSlot;
 		GetSaveFileTime(filename, &ftCurrSlot);
