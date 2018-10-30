@@ -246,6 +246,9 @@ was made as a dirty easy hack to allow dynamically change some explosion paramet
 - sets the minimum and maximum damage for Plastic Explosives.
 - changed damage will be reset each time the player reloads the game.
 
+> void set_explosion_max_targets(x)
+- sets the maximum number of additional targets for an explosion, valid range: 1..6 (default is 6)
+
 
 Some utility/math functions are available:
 

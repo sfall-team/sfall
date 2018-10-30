@@ -57,6 +57,7 @@
 #define HOOK_EXPLOSIVETIMER   (33)
 #define HOOK_DESCRIPTIONOBJ   (34)
 #define HOOK_USESKILLON       (35)
+#define HOOK_ONEXPLOSION      (36)
 
 //Valid arguments to list_begin
 #define LIST_CRITTERS    (0)
@@ -148,6 +149,7 @@
 #define get_explosion_damage(itemPid)         metarule2_explosions(6, itemPid, 0)
 #define set_dynamite_damage(minDmg, maxDmg)   metarule2_explosions(7, minDmg, maxDmg)
 #define set_plastic_damage(minDmg, maxDmg)    metarule2_explosions(8, minDmg, maxDmg)
+#define set_explosion_max_targets(x)          metarule2_explosions(9, x, 0)
 
 
 #define GAME_MSG_COMBAT      (0)

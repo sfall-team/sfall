@@ -48,6 +48,7 @@ static bool onlyOnce = false;
 static bool lightingEnabled = false;
 static bool explosionsMetaruleReset = false;
 static bool explosionsDamageReset = false;
+static bool explosionMaxTargetReset = false;
 
 static const DWORD ranged_attack_lighting_fix_back = 0x4118F8;
 
@@ -363,7 +364,8 @@ enum MetaruleExplosionsMode {
 	EXPL_STATIC_EXPLOSION_RADIUS = 5,
 	EXPL_GET_EXPLOSION_DAMAGE = 6,
 	EXPL_SET_DYNAMITE_EXPLOSION_DAMAGE = 7,
-	EXPL_SET_PLASTIC_EXPLOSION_DAMAGE = 8
+	EXPL_SET_PLASTIC_EXPLOSION_DAMAGE = 8,
+	EXPL_SET_EXPLOSION_MAX_TARGET = 9,
 };
 
 static void SetExplosionRadius(int arg1, int arg2) {
@@ -444,6 +446,14 @@ int _stdcall ExplosionsMetaruleFunc(int mode, int arg1, int arg2) {
 		case EXPL_SET_PLASTIC_EXPLOSION_DAMAGE:
 			SetExplosionDamage(fo::ProtoId::PID_PLASTIC_EXPLOSIVES, arg1, arg2);
 			return 0;
+		case EXPL_SET_EXPLOSION_MAX_TARGET:
+			if (arg1 > 0 && arg1 < 7) {
+				SafeWrite8(0x423C93, arg1);
+				explosionMaxTargetReset = true;
+			} else {
+				return 0;
+			}
+			break;
 		default:
 			return -1;
 	}
@@ -465,6 +475,11 @@ void ResetExplosionSettings() {
 	// explosion dmgtype
 	for (int i = 0; i < numDmgChecks; i++) {
 		SafeWrite8(explosion_dmg_check_adr[i], fo::DamageType::DMG_explosion);
+	}
+	// explosion max target count
+	if (explosionMaxTargetReset) {
+		SafeWrite8(0x423C93, 6);
+		explosionMaxTargetReset = false;
 	}
 	explosionsMetaruleReset = false;
 }

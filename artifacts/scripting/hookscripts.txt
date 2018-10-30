@@ -561,3 +561,20 @@ int     arg3 - skill being used
 
 int     ret1 - a new critter to override the user critter. Pass -1 to cancel the skill use, pass 0 to skip this return value
 int     ret2 - pass 1 to allow the skill being used in combat (only for dude_obj or critter being controlled by the player)
+
+-------------------------------------------
+
+HOOK_ONEXPLOSION (hs_onexplosion.int)
+
+Runs when an explosion occurs and Fallout is checking all the tiles within the explosion radius for targets.
+The tile checking will be interrupted when 6 additional targets (critters) are received.
+
+int     arg1 - event type: 1 - when the explosion is from an explosive item, 0 - otherwise
+Critter arg2 - The attacker
+int     arg3 - The tile on which the explosion occurs
+int     arg4 - checked tile within the explosion radius
+Obj     arg5 - first found object on the checked tile as an additional target
+Critter arg6 - The target critter, may be 0 or equal to the attacker
+int     arg7 - 1 when using throwing weapons (e.g. grenades), 0 otherwise
+
+int     ret1 - overrides the found object on the checked tile, pass 0 to skip the object

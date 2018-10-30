@@ -40,7 +40,6 @@ static void __declspec(naked) ToHitHook() {
 }
 
 static void __fastcall AfterHitRollHook_Script(fo::ComputeAttackResult &ctd, DWORD hitChance, DWORD hit) {
-
 	BeginHook();
 	argCount = 5;
 
@@ -125,7 +124,6 @@ static void __declspec(naked) CalcApCostHook2() {
 }
 
 static void __fastcall ComputeDamageHook_Script(fo::ComputeAttackResult &ctd, DWORD rounds, DWORD multiply) {
-
 	BeginHook();
 	argCount = 12;
 
@@ -168,7 +166,7 @@ static void __declspec(naked) ComputeDamageHook() {
 		push eax;         // store ctd
 		call fo::funcoffs::compute_damage_;
 		pop  ecx;         // restore ctd (eax)
-		pop  edx;         // restore num rounds                  
+		pop  edx;         // restore num rounds
 		call ComputeDamageHook_Script;
 		pop  ecx;
 		retn;
@@ -176,7 +174,6 @@ static void __declspec(naked) ComputeDamageHook() {
 }
 
 static void __fastcall FindTargetHook_Script(DWORD* target, DWORD attacker) {
-
 	BeginHook();
 	argCount = 5;
 
@@ -281,7 +278,7 @@ static void __declspec(naked) AmmoCostHook() {
 		cmp dword ptr [esp + 0x1C + 4], ANIM_fire_continuous;
 		jg skip;
 		mov  ecx, 3;               // hook type burst
-skip:		
+skip:
 		xchg eax, edx;
 		push eax;                  // rounds in attack
 		call AmmoCostHook_Script;  // edx - weapon
@@ -341,6 +338,51 @@ static void _declspec(naked) CombatAddNoncoms_CombatTurnHack() {
 		mov  ecx, [esp];
 normalTurn:
 		jmp  CombatHack_add_noncoms_back;
+	}
+}
+
+fo::GameObject* __fastcall ComputeExplosionOnExtrasHook_Script(fo::GameObject* object, DWORD checkTile, fo::ComputeAttackResult* ctdSource, DWORD isCheck, DWORD isThrowing, fo::GameObject* who) {
+	fo::GameObject* result = object;
+
+	BeginHook();
+	argCount = 7;
+
+	args[0] = isCheck;
+	args[1] = (DWORD)ctdSource->attacker;
+	args[2] = ctdSource->targetTile;
+	args[3] = checkTile;
+	args[4] = (DWORD)object;
+	args[5] = (DWORD)who;
+	args[6] = isThrowing;
+
+	RunHookScript(HOOK_ONEXPLOSION);
+
+	if (cRet > 0) result = (fo::GameObject*)rets[0]; // override object
+
+	EndHook();
+	return result;
+}
+
+static void _declspec(naked) ComputeExplosionOnExtrasHook() {
+	__asm {
+		cmp  dword ptr [esp + 0x34 + 4], 0x429533;  // skip hook when AI assesses the situation in choosing the best weapon
+		jz   end;
+		cmp  dword ptr [esp + 0x34 + 4], 0x4296BC;
+		jnz  hook;
+end:
+		jmp  fo::funcoffs::obj_blocking_at_;
+hook:
+		push ecx;
+		push eax;                                   // who (target/source)
+		call fo::funcoffs::obj_blocking_at_;
+		push [esp + 0x34 - 0x24 + 12];              // isThrowing
+		push [esp + 0x34 - 0x34 + 16];              // isCheck (bypass damage)
+		push esi;                                   // source ctd
+		mov  ecx, eax;                              // object
+		mov  edx, edi;                              // check tile
+		call ComputeExplosionOnExtrasHook_Script;
+		pop  ecx;
+		retn;
 	}
 }
 
@@ -407,8 +449,11 @@ void Inject_CombatTurnHook() {
 	HookCalls(CombatTurnHook, { 0x422D87, 0x422E20 });
 }
 
-void InitCombatHookScripts() {
+void Inject_OnExplosionHook() {
+	HookCall(0x423D70, ComputeExplosionOnExtrasHook);
+}
 
+void InitCombatHookScripts() {
 	LoadHookScript("hs_tohit", HOOK_TOHIT);
 	LoadHookScript("hs_afterhitroll", HOOK_AFTERHITROLL);
 	LoadHookScript("hs_calcapcost", HOOK_CALCAPCOST);
@@ -417,7 +462,7 @@ void InitCombatHookScripts() {
 	LoadHookScript("hs_itemdamage", HOOK_ITEMDAMAGE);
 	LoadHookScript("hs_ammocost", HOOK_AMMOCOST);
 	LoadHookScript("hs_combatturn", HOOK_COMBATTURN);
-
+	LoadHookScript("hs_onexplosion", HOOK_ONEXPLOSION);
 }
 
 }

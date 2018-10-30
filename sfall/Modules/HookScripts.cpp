@@ -80,6 +80,7 @@ static HooksInjectInfo injectHooks[] = {
 	{HOOK_EXPLOSIVETIMER,   Inject_ExplosiveTimerHook,   false},
 	{HOOK_DESCRIPTIONOBJ,   Inject_DescriptionObjHook,   false},
 	{HOOK_USESKILLON,       Inject_UseSkillOnHook,       false},
+	{HOOK_ONEXPLOSION,      Inject_OnExplosionHook,      false},
 };
 
 bool HookScripts::injectAllHooks;
