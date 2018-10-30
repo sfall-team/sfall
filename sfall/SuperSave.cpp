@@ -92,15 +92,15 @@ static void __declspec(naked) load_page_offsets(void) {
 static void CreateButtons() {
 	DWORD winRef = *(DWORD*)_lsgwin;
 	// left button -10       | X | Y | W | H |HOn |HOff |BDown |BUp |PicUp |PicDown |? |ButType
-	WinRegisterButton(winRef, 100, 56, 24, 20, -1, 0x500, 0x54B, 0x14B, 0, 0, 0, 32);
+	WinRegisterButton(winRef, 100, 60, 24, 20, -1, 0x500, 0x54B, 0x14B, 0, 0, 0, 32);
 	// left button -100
-	WinRegisterButton(winRef,  68, 56, 24, 20, -1, 0x500, 0x549, 0x149, 0, 0, 0, 32);
+	WinRegisterButton(winRef,  68, 60, 24, 20, -1, 0x500, 0x549, 0x149, 0, 0, 0, 32);
 	// right button +10
-	WinRegisterButton(winRef, 216, 56, 24, 20, -1, 0x500, 0x54D, 0x14D, 0, 0, 0, 32);
+	WinRegisterButton(winRef, 216, 60, 24, 20, -1, 0x500, 0x54D, 0x14D, 0, 0, 0, 32);
 	// right button +100
-	WinRegisterButton(winRef, 248, 56, 24, 20, -1, 0x500, 0x551, 0x151, 0, 0, 0, 32);
+	WinRegisterButton(winRef, 248, 60, 24, 20, -1, 0x500, 0x551, 0x151, 0, 0, 0, 32);
 	// Set Number button
-	WinRegisterButton(winRef, 140, 56, 60, 20, -1, -1, 'p', -1, 0, 0, 0, 32);
+	WinRegisterButton(winRef, 140, 60, 60, 20, -1, -1, 'p', -1, 0, 0, 0, 32);
 }
 
 static void __declspec(naked) create_page_buttons(void) {
@@ -165,7 +165,7 @@ void SetPageNum() {
 				memset(SaveLoadWin->surface + y + 170 - TxtMaxWidth / 2, 0xCF, TxtMaxWidth);
 			}
 
-			PrintText(TempText, ConsoleGold, 170 - TxtWidth / 2, 60, TxtWidth, SaveLoadWin->width, SaveLoadWin->surface);
+			PrintText(TempText, ConsoleGold, 170 - TxtWidth / 2, 64, TxtWidth, SaveLoadWin->width, SaveLoadWin->surface);
 			RedrawWin(WinRef);
 		}
 
@@ -285,7 +285,7 @@ void DrawPageText() {
 	sprintf_s(TempText, 32, "[ %d ]", LSPageOffset / 10 + 1);
 
 	unsigned int TxtWidth = GetTextWidth(TempText);
-	PrintText(TempText, Colour, 170 - TxtWidth / 2, 60, TxtWidth, SaveLoadWin->width, SaveLoadWin->surface);
+	PrintText(TempText, Colour, 170 - TxtWidth / 2, 64, TxtWidth, SaveLoadWin->width, SaveLoadWin->surface);
 
 	if (LSButtDN == 0x549) {
 		Colour = ConsoleGold;
@@ -294,7 +294,7 @@ void DrawPageText() {
 	}
 	strcpy_s(TempText, 12, "<<");
 	TxtWidth = GetTextWidth(TempText);
-	PrintText(TempText, Colour, 80 - TxtWidth / 2, 60, TxtWidth, SaveLoadWin->width, SaveLoadWin->surface);
+	PrintText(TempText, Colour, 80 - TxtWidth / 2, 64, TxtWidth, SaveLoadWin->width, SaveLoadWin->surface);
 
 	if (LSButtDN == 0x54B) {
 		Colour = ConsoleGold;
@@ -303,7 +303,7 @@ void DrawPageText() {
 	}
 	strcpy_s(TempText, 12, "<");
 	TxtWidth = GetTextWidth(TempText);
-	PrintText(TempText, Colour, 112 - TxtWidth / 2, 60, TxtWidth, SaveLoadWin->width, SaveLoadWin->surface);
+	PrintText(TempText, Colour, 112 - TxtWidth / 2, 64, TxtWidth, SaveLoadWin->width, SaveLoadWin->surface);
 
 	if (LSButtDN == 0x551) {
 		Colour = ConsoleGold;
@@ -312,7 +312,7 @@ void DrawPageText() {
 	}
 	strcpy_s(TempText, 12, ">>");
 	TxtWidth = GetTextWidth(TempText);
-	PrintText(TempText, Colour, 260 - TxtWidth / 2, 60, TxtWidth, SaveLoadWin->width, SaveLoadWin->surface);
+	PrintText(TempText, Colour, 260 - TxtWidth / 2, 64, TxtWidth, SaveLoadWin->width, SaveLoadWin->surface);
 
 	if (LSButtDN == 0x54D) {
 		Colour = ConsoleGold;
@@ -321,7 +321,7 @@ void DrawPageText() {
 	}
 	strcpy_s(TempText, 12, ">");
 	TxtWidth = GetTextWidth(TempText);
-	PrintText(TempText, Colour, 228 - TxtWidth / 2, 60, TxtWidth, SaveLoadWin->width, SaveLoadWin->surface);
+	PrintText(TempText, Colour, 228 - TxtWidth / 2, 64, TxtWidth, SaveLoadWin->width, SaveLoadWin->surface);
 
 	SaveLoadWin = NULL;
 }
