@@ -38,7 +38,7 @@ std::vector<fsFile> files;
 
 static DWORD loadedtiles = 0;
 static DWORD retval;
-static bool UsingFileSystem = false;
+bool FileSystem::UsingFileSystem = false;
 
 struct openFile {
 	DWORD pos;
@@ -439,7 +439,7 @@ end:
 }
 
 void FileSystemReset() {
-	if (!UsingFileSystem) return;
+	if (!FileSystem::UsingFileSystem) return;
 	for (DWORD i = loadedtiles; i < files.size(); i++) {
 		if (files[i].data) delete[] files[i].data;
 	}
@@ -449,12 +449,8 @@ void FileSystemReset() {
 	}
 }
 
-void FileSystem::save(HANDLE h) {
+void FileSystem::Save(HANDLE h) {
 	DWORD count = 0, unused;
-	if (!UsingFileSystem) {
-		WriteFile(h, &count, 4, &unused, 0);
-		return;
-	}
 	for (DWORD i = 0; i < files.size(); i++) {
 		if (files[i].data) count++;
 	}
@@ -482,7 +478,7 @@ static void FileSystemLoad() {
 				ReadFile(h, &file.length, 128 + 8, &read, 0);
 				file.data = new char[file.length];
 				ReadFile(h, file.data, file.length, &read, 0);
-				if (UsingFileSystem) files.push_back(file);
+				if (FileSystem::UsingFileSystem) files.push_back(file);
 			}
 		}
 		CloseHandle(h);
@@ -501,7 +497,7 @@ static void __declspec(naked) FSLoadHook() {
 }
 
 void FileSystemInit() {
-	UsingFileSystem = true;
+	FileSystem::UsingFileSystem = true;
 	MakeJump(0x47CCE2, FSLoadHook);
 
 	HookCall(0x4C5DBD, &asm_xfclose);

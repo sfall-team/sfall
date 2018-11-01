@@ -272,6 +272,9 @@
     <ClInclude Include="Modules\HookScripts\ObjectHs.h">
       <Filter>Modules\HookScripts</Filter>
     </ClInclude>
+    <ClInclude Include="Modules\Objects.h">
+      <Filter>Modules</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
@@ -503,6 +506,9 @@
     </ClCompile>
     <ClCompile Include="Modules\HookScripts\ObjectHs.cpp">
       <Filter>Modules\HookScripts</Filter>
+    </ClCompile>
+    <ClCompile Include="Modules\Objects.cpp">
+      <Filter>Modules</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

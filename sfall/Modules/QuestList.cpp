@@ -99,7 +99,6 @@ end:
 }
 
 static void ResetPageValues() {
-
 	if (total_quests_pages > 0) pageQuest.resize(1);
 
 	pageFlag = false;
@@ -179,8 +178,7 @@ static void AddPage(int lines) {
 }
 
 // Print quests page text
-static long __cdecl QuestsPrint(const char* text, int width, DWORD* buf, BYTE* count) {
-
+static long __fastcall QuestsPrint(const char* text, int width, DWORD* buf, BYTE* count) {
 	look_quests++; // quests counter
 
 	if (outRangeFlag) {
@@ -227,10 +225,11 @@ static void __declspec(naked) PipStatus_hack_print() {
 		push ecx;
 		push ebx;
 		push edx;
-		push eax;
-		call QuestsPrint;
-		add  esp, 4; // eax
-		pop  edx;    // restore reg. and align stack for __cdecl call
+		push ecx;         // count
+		push ebx;         // buf
+		mov  ecx, eax;    // text
+		call QuestsPrint; // edx - width
+		pop  edx;
 		pop  ebx;
 		pop  ecx;
 		cmp  eax, 0;
@@ -247,8 +246,7 @@ jbreak:
 
 static char bufPage[16];
 static const char* format = "%s %d %s %d";
-static void __declspec(naked) PrintPages()
-{
+static void __declspec(naked) PrintPages() {
 	__asm {
 		// total pages
 		mov  eax, total_quests_pages;
@@ -304,8 +302,7 @@ skip:
 	}
 }
 
-static DWORD __fastcall ActionButtons(register DWORD key)
-{
+static DWORD __fastcall ActionButtons(register DWORD key) {
 	buttonsPressed = false;
 	if (key == 0x300) { // up
 		if (curent_quest_page == 0) return -1;
@@ -329,8 +326,7 @@ static DWORD __fastcall ActionButtons(register DWORD key)
 	return -1;
 }
 
-static void __declspec(naked) pipboy_hack_action()
-{
+static void __declspec(naked) pipboy_hack_action() {
 	__asm {
 		test calledflag, 0xFF;
 		jz   skip;
@@ -461,7 +457,6 @@ skip:
 }
 
 void QuestListPatch() {
-
 	MakeCall(0x4974E4, StartPipboy_hack);
 
 	MakeCall(0x497173, pipboy_hack_action);
@@ -484,7 +479,7 @@ void QuestListPatch() {
 void QuestList::init() {
 	questsButtonsType = GetConfigInt("Misc", "UseScrollingQuestsList", 0);
 	if (questsButtonsType > 0) {
-		dlog("Applying quests list patch ", DL_INIT);
+		dlog("Applying quests list patch.", DL_INIT);
 		QuestListPatch();
 
 		questsScrollButtonsX = GetConfigInt("Misc", "QuestsScrollButtonsX", 140);

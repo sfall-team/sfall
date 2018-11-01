@@ -11,6 +11,8 @@ public:
 	void init();
 };
 
+extern int tagSkill4LevelBase;
+
 extern void ResetBodyState();
 
 }

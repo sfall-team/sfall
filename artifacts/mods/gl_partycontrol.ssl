@@ -21,6 +21,7 @@ variable
    pidList,
    displayName,
    displayNameColor,
+   maxBoxCount,
    inControl := false,
    hasGeckoSkinning := false;
 
@@ -45,7 +46,7 @@ procedure combatturn_handler begin
       if inControl then begin
          // center the screen on the controlled critter and remove roof tiles
          move_to(dude_obj, dude_tile, dude_elevation);
-         if displayName then begin
+         if (displayName and critter != real_dude_obj) then begin
             set_iface_tag_text(displayName, obj_name(critter), displayNameColor);
             show_iface_tag(displayName);
          end
@@ -57,25 +58,37 @@ procedure combatturn_handler begin
 end
 
 procedure gamemodechange_handler begin
+   if has_trait(TRAIT_PERK, real_dude_obj, PERK_gecko_skinning_perk) then hasGeckoSkinning := true;
    if not(get_game_mode BWAND COMBAT) then inControl := false;
 end
 
+procedure inventorymove_handler begin
+   if (inControl and get_sfall_arg == 3) then begin // armor slot
+      if (obj_pid(dude_obj) == PID_MARCUS or proto_data(obj_pid(dude_obj), cr_body_type) != CR_BODY_BIPED) then begin
+         display_msg(message_str_game(GAME_MSG_PROTO, 675));
+         set_sfall_return(true);
+      end
+   end
+end
+
 procedure start begin
-   if game_loaded and (sfall_ver_major >= 4) then begin
+   if (game_loaded and sfall_ver_major >= 4) then begin
       set_perk_ranks(PERK_gecko_skinning_perk, 1);
       set_perk_level(PERK_gecko_skinning_perk, 999); // prevent it from appearing in the perk selection window
       controlMode := GetConfig("CombatControl", "Mode", 0);
-      displayName := GetConfig("CombatControl", "DisplayName", 0);
-      displayNameColor := GetConfig("CombatControl", "DisplayNameColor", 0);
       if (controlMode > 2) then controlMode := 0;
-      if (displayName < 5 or displayName > 9) then displayName := 0;
       if (controlMode > 0) then begin
          pidList := GetConfigListInt("CombatControl", "PIDList");
          fix_array(pidList);
-         if has_trait(TRAIT_PERK, dude_obj, PERK_gecko_skinning_perk) then hasGeckoSkinning := true;
+         maxBoxCount := get_ini_setting("ddraw.ini|Misc|BoxBarCount") + 4;
+         displayName := GetConfig("CombatControl", "DisplayName", 0);
+         displayNameColor := GetConfig("CombatControl", "DisplayNameColor", 0);
+         if (maxBoxCount < 9) then maxBoxCount := 9;
+         if (displayName < 5 or displayName > maxBoxCount) then displayName := 0;
 
          register_hook_proc(HOOK_COMBATTURN, combatturn_handler);
          register_hook_proc(HOOK_GAMEMODECHANGE, gamemodechange_handler);
+         register_hook_proc(HOOK_INVENTORYMOVE, inventorymove_handler);
       end
    end
 end

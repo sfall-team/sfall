@@ -41,4 +41,6 @@ public:
 	static long __fastcall GetRestMapLevel(long elev, int mapId);
 };
 
+extern DWORD addUnarmedStatToGetYear;
+
 }

@@ -21,6 +21,8 @@
 
 #include "..\main.h"
 #include "..\FalloutEngine\Fallout2.h"
+#include "HookScripts\InventoryHs.h"
+#include "HookScripts.h"
 #include "LoadGameHook.h"
 
 #include "PartyControl.h"
@@ -33,6 +35,7 @@ bool isControllingNPC = false;
 static DWORD controlMode;
 static std::vector<WORD> allowedCritterPids;
 static int delayedExperience;
+static bool switchHandHookInjected = false;
 
 static struct DudeState {
 	fo::GameObject* obj_dude = nullptr;
@@ -166,7 +169,7 @@ static void __stdcall DisplayCantDoThat() {
 // 1 skip handler, -1 don't skip
 int __stdcall PartyControl::SwitchHandHook(fo::GameObject* item) {
 	// don't allow to use the weapon, if no art exist for it
-	if (fo::func::item_get_type(item) == fo::ItemType::item_type_weapon && isControllingNPC) {
+	if (isControllingNPC && fo::func::item_get_type(item) == fo::ItemType::item_type_weapon) {
 		int fId = fo::var::obj_dude->artFid;
 		long weaponCode = fo::AnimCodeByWeapon(item);
 		fId = (fId & 0xffff0fff) | (weaponCode << 12);
@@ -215,12 +218,15 @@ bool PartyControl::IsNpcControlled() {
 
 void PartyControl::SwitchToCritter(fo::GameObject* critter) {
 	if (isControllingNPC) {
-		RestoreRealDudeState();
+		if (critter == nullptr || critter == realDude.obj_dude) RestoreRealDudeState();
 	} else {
 		SaveRealDudeState();
 	}
 	if (critter != nullptr && critter != realDude.obj_dude) {
 		SetCurrentDude(critter);
+		if (switchHandHookInjected) return;
+		switchHandHookInjected = true;
+		if (!HookScripts::IsInjectHook(HOOK_INVENTORYMOVE)) Inject_SwitchHandHook();
 	}
 }
 
@@ -230,11 +236,58 @@ fo::GameObject* PartyControl::RealDudeObject() {
 		: fo::var::obj_dude;
 }
 
+static char levelMsg[12], armorClassMsg[12], addictMsg[16];
+static void __fastcall PartyMemberPrintStat(BYTE* surface, DWORD toWidth) {
+	const char* fmt = "%s %d";
+	char lvlMsg[16], acMsg[16];
+
+	fo::GameObject* partyMember = (fo::GameObject*)fo::var::dialog_target;
+	int xPos = 350;
+
+	int level = fo::func::partyMemberGetCurLevel(partyMember);
+	sprintf_s(lvlMsg, fmt, levelMsg, level);
+
+	BYTE color = fo::var::GreenColor;
+	int widthText = fo::GetTextWidth(lvlMsg);
+	fo::PrintText(lvlMsg, color, xPos - widthText, 96, widthText, toWidth, surface);
+
+	int ac = fo::func::stat_level(partyMember, fo::STAT_ac);
+	sprintf_s(acMsg, fmt, armorClassMsg, ac);
+
+	xPos -= fo::GetTextWidth(armorClassMsg) + 20;
+	fo::PrintText(acMsg, color, xPos, 167, fo::GetTextWidth(acMsg), toWidth, surface);
+
+	color = (fo::func::queue_find_first(partyMember, 2)) ? fo::var::RedColor : fo::var::DarkGreenColor;
+	widthText = fo::GetTextWidth(addictMsg);
+	fo::PrintText(addictMsg, color, 350 - widthText, 148, widthText, toWidth, surface);
+}
+
+static void __declspec(naked) gdControlUpdateInfo_hook() {
+	__asm {
+		mov  edi, eax; // keep fontnum
+		mov  ecx, ebp;
+		mov  edx, esi;
+		call PartyMemberPrintStat;
+		mov  eax, edi;
+		jmp  fo::funcoffs::text_font_;
+	}
+}
+
 void PartyControl::init() {
 	LoadGameHook::OnGameReset() += PartyControlReset;
 
 	HookCall(0x454218, stat_pc_add_experience_hook); // call inside op_give_exp_points_hook
 	HookCalls(pc_flag_toggle_hook, { 0x4124F1, 0x41279A });
+
+	// display party member's current level & AC & addict flag
+	if (GetConfigInt("Misc", "PartyMemberExtraInfo", 0)) {
+		dlog("Applying display NPC extra info patch.", DL_INIT);
+		HookCall(0x44926F, gdControlUpdateInfo_hook);
+		Translate("sfall", "PartyLvlMsg", "Lvl:", levelMsg, 12);
+		Translate("sfall", "PartyACMsg", "AC:", armorClassMsg, 12);
+		Translate("sfall", "PartyAddictMsg", "Addict", addictMsg, 16);
+		dlogr(" Done", DL_INIT);
+	}
 }
 
 }

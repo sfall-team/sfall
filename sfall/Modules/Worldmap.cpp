@@ -292,6 +292,7 @@ void WorldLimitsPatches() {
 	}
 }
 
+DWORD addUnarmedStatToGetYear = 0;
 void TimeLimitPatch() {
 	int limit = GetConfigInt("Misc", "TimeLimit", 13);
 	if (limit == -2) {

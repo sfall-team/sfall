@@ -36,8 +36,9 @@ static DWORD sizeLimitMode;
 static DWORD invSizeMaxLimit;
 static DWORD reloadWeaponKey = 0;
 static DWORD itemFastMoveKey = 0;
+static DWORD skipFromContainer = 0;
 
-void InventoryKeyPressedHook(DWORD dxKey, bool pressed, DWORD vKey) {
+void InventoryKeyPressedHook(DWORD dxKey, bool pressed) {
 	// TODO: move this out into a script
 	if (pressed && reloadWeaponKey && dxKey == reloadWeaponKey && IsMapLoaded() && (GetLoopFlags() & ~(COMBAT | PCOMBAT)) == 0) {
 		DWORD maxAmmo, curAmmo;
@@ -86,7 +87,6 @@ DWORD __stdcall sf_item_total_size(fo::GameObject* critter) {
 
 /*static const DWORD ObjPickupFail=0x49B70D;
 static const DWORD ObjPickupEnd=0x49B6F8;
-static const DWORD size_limit;
 static __declspec(naked) void  ObjPickupHook() {
 	__asm {
 		cmp edi, ds:[FO_VAR_obj_dude];
@@ -371,20 +371,20 @@ end:
 	}
 }
 
-static int invenapcost;
-static char invenapqpreduction;
-void _stdcall SetInvenApCost(int a) {
-	invenapcost = a;
+static int invenApCost, invenApCostDef;
+static char invenApQPReduction;
+void _stdcall SetInvenApCost(int cost) {
+	invenApCost = cost;
 }
-static const DWORD inven_ap_cost_hook_ret = 0x46E816;
-static void __declspec(naked) inven_ap_cost_hook() {
+static const DWORD inven_ap_cost_hack_ret = 0x46E816;
+static void __declspec(naked) inven_ap_cost_hack() {
 	_asm {
-		movzx ebx, byte ptr invenapqpreduction;
+		movzx ebx, byte ptr invenApQPReduction;
 		mul bl;
-		mov edx, invenapcost;
+		mov edx, invenApCost;
 		sub edx, eax;
 		mov eax, edx;
-		jmp inven_ap_cost_hook_ret;
+		jmp inven_ap_cost_hack_ret;
 	}
 }
 
@@ -452,47 +452,46 @@ static void __declspec(naked) compute_spray_hack() {
 
 static void __declspec(naked) SetDefaultAmmo() {
 	using namespace fo;
+	using namespace Fields;
 	__asm {
-		push    eax
-		push    ebx
-		push    edx
-		xchg    eax, edx
-		mov     ebx, eax
-		call    fo::funcoffs::item_get_type_
-		cmp     eax, item_type_weapon // is it item_type_weapon?
-		jne     end // no
-		cmp     dword ptr [ebx+0x3C], 0 // is there any ammo in the weapon?
-		jne     end // yes
-		sub     esp, 4
-		mov     edx, esp
-		mov     eax, [ebx+0x64] // eax = weapon pid
-		call    fo::funcoffs::proto_ptr_
-		mov     edx, [esp]
-		mov     eax, [edx+0x5C] // eax = default ammo pid
-		mov     [ebx+0x40], eax // set current ammo proto
-		add     esp, 4
+		push ecx;
+		mov  ecx, edx;                     // ecx = item
+		mov  eax, edx;
+		call fo::funcoffs::item_get_type_;
+		cmp  eax, item_type_weapon;        // is it item_type_weapon?
+		jne  end;                          // no
+		cmp  dword ptr [ecx + charges], 0; // is there any ammo in the weapon?
+		jne  end;                          // yes
+		sub  esp, 4;
+		mov  edx, esp;
+		mov  eax, [ecx + protoId];         // eax = weapon pid
+		call fo::funcoffs::proto_ptr_;
+		mov  edx, [esp];
+		mov  eax, [edx + 0x5C];            // eax = default ammo pid
+		mov  [ecx + ammoPid], eax;         // set current ammo proto
+		add  esp, 4;
 end:
-		pop     edx
-		pop     ebx
-		pop     eax
-		retn
+		pop  ecx;
+		retn;
 	}
 }
 
-static const DWORD inven_action_cursor_hack_End = 0x4736CB;
 static void __declspec(naked) inven_action_cursor_hack() {
 	__asm {
-		mov     edx, [esp+0x1C]
-		call    SetDefaultAmmo
-		cmp     dword ptr [esp+0x18], 0
-		jmp     inven_action_cursor_hack_End
+		mov  edx, [esp + 0x6C - 0x50 + 4];         // source_item
+		call SetDefaultAmmo;
+		cmp  dword ptr [esp + 0x6C - 0x54 + 4], 0; // overwritten engine code
+		retn;
 	}
 }
 
 static void __declspec(naked) item_add_mult_hook() {
 	__asm {
-		call    SetDefaultAmmo
-		jmp     fo::funcoffs::item_add_force_
+		push edx;
+		call SetDefaultAmmo;
+		pop  edx;
+		mov  eax, ecx;    // restore
+		jmp  fo::funcoffs::item_add_force_;
 	}
 }
 
@@ -523,7 +522,7 @@ end:
 	}
 }
 
-static void __declspec(naked) loot_container_hack2() {
+static void __declspec(naked) loot_container_hack_scroll() {
 	__asm {
 		cmp  esi, 0x150                           // source_down
 		je   scroll
@@ -561,7 +560,7 @@ end:
 	}
 }
 
-static void __declspec(naked) barter_inventory_hack2() {
+static void __declspec(naked) barter_inventory_hack_scroll() {
 	__asm {
 		push edx
 		push ecx
@@ -704,29 +703,36 @@ void __declspec(naked) adjust_fid_replacement() {
 	}
 }
 
-void __declspec(naked) do_move_timer_hook() {
+static const DWORD DoMoveTimer_Ret = 0x476920;
+static void __declspec(naked) do_move_timer_hook() {
 	__asm {
 		cmp eax, 4;
 		jnz end;
 		pushad;
 	}
 
-	KeyDown(itemFastMoveKey);
+	KeyDown(itemFastMoveKey); // check pressed
 
 	__asm {
+		cmp  skipFromContainer, 0;
+		jz   noSkip;
+		cmp  dword ptr [esp + 0x14 + 36], 0x474A43;
+		jnz  noSkip;
 		test eax, eax;
+		setz al;
+noSkip:
+		test eax, eax;  // set if pressed
 		popad;
-		jz end;
-		mov dword ptr [esp], 0x476920;
-		retn;
+		jz   end;
+		add  esp, 4;    // destroy ret
+		jmp  DoMoveTimer_Ret;
 end:
-		call fo::funcoffs::setup_move_timer_win_;
-		retn;
+		jmp  fo::funcoffs::setup_move_timer_win_;
 	}
 }
 
 void InventoryReset() {
-	invenapcost = GetConfigInt("Misc", "InventoryApCost", 4);
+	invenApCost = invenApCostDef;
 }
 
 void Inventory::init() {
@@ -785,9 +791,9 @@ void Inventory::init() {
 		}
 	}
 
-	invenapcost = GetConfigInt("Misc", "InventoryApCost", 4);
-	invenapqpreduction = GetConfigInt("Misc", "QuickPocketsApCostReduction", 2);
-	MakeJump(0x46E80B, inven_ap_cost_hook);
+	invenApCost = invenApCostDef = GetConfigInt("Misc", "InventoryApCost", 4);
+	invenApQPReduction = GetConfigInt("Misc", "QuickPocketsApCostReduction", 2);
+	MakeJump(0x46E80B, inven_ap_cost_hack);
 
 	if (GetConfigInt("Misc", "SuperStimExploitFix", 0)) {
 		superStimMsg = Translate("sfall", "SuperStimExploitMsg", "You cannot use a super stim on someone who is not injured!");
@@ -803,11 +809,11 @@ void Inventory::init() {
 	reloadWeaponKey = GetConfigInt("Input", "ReloadWeaponKey", 0);
 
 	if (GetConfigInt("Misc", "StackEmptyWeapons", 0)) {
-		MakeJump(0x4736C6, inven_action_cursor_hack);
-		HookCall(0x4772AA, &item_add_mult_hook);
+		MakeCall(0x4736C6, inven_action_cursor_hack);
+		HookCall(0x4772AA, item_add_mult_hook);
 	}
 
-	// Do not call the 'Move Items' window when using drap and drop to reload weapons in the inventory
+	// Do not call the 'Move Items' window when using drag and drop to reload weapons in the inventory
 	int ReloadReserve = GetConfigInt("Misc", "ReloadReserve", -1);
 	if (ReloadReserve >= 0) {
 		SafeWrite32(0x47655F, ReloadReserve);     // mov  eax, ReloadReserve
@@ -819,6 +825,8 @@ void Inventory::init() {
 	itemFastMoveKey = GetConfigInt("Input", "ItemFastMoveKey", DIK_LCONTROL);
 	if (itemFastMoveKey > 0) {
 		HookCall(0x476897, do_move_timer_hook);
+		// Do not call the 'Move Items' window when taking items from containers or corpses
+		skipFromContainer = GetConfigInt("Input", "FastMoveFromContainer", 0);
 	}
 
 	if (GetConfigInt("Misc", "ItemCounterDefaultMax", 0)) {
@@ -827,15 +835,15 @@ void Inventory::init() {
 
 	// Move items out of bag/backpack and back into the main inventory list by dragging them to character's image
 	// (similar to Fallout 1 behavior)
-	HookCall(0x471457, &inven_pickup_hook);
+	HookCall(0x471457, inven_pickup_hook);
 
 	// Move items to player's main inventory instead of the opened bag/backpack when confirming a trade
 	SafeWrite32(0x475CF2, FO_VAR_stack);
 
 	// Enable mouse scroll control in barter and loot screens when the cursor is hovering over other lists
 	if (useScrollWheel) {
-		MakeCall(0x473E66, loot_container_hack2);
-		MakeCall(0x4759F1, barter_inventory_hack2);
+		MakeCall(0x473E66, loot_container_hack_scroll);
+		MakeCall(0x4759F1, barter_inventory_hack_scroll);
 		fo::var::max = 100;
 	};
 }
@@ -843,7 +851,5 @@ void Inventory::init() {
 Delegate<DWORD>& Inventory::OnAdjustFid() {
 	return onAdjustFid;
 }
-
-
 
 }

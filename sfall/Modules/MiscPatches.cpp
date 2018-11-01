@@ -22,7 +22,6 @@
 #include "..\main.h"
 #include "..\FalloutEngine\Fallout2.h"
 #include "..\SimplePatch.h"
-#include "Graphics.h"
 #include "ScriptExtender.h"
 #include "LoadGameHook.h"
 
@@ -347,21 +346,15 @@ fail:
 	}
 }
 
-static void __declspec(naked) objCanSeeObj_ShootThru_Fix() {//(EAX *objStruct, EDX hexNum1, EBX hexNum2, ECX ?, stack1 **ret_objStruct, stack2 flags)
+static void __declspec(naked) op_obj_can_see_obj_hook() {
 	__asm {
-		push esi
-		push edi
-
-		push fo::funcoffs::obj_shoot_blocking_at_ //arg3 check hex objects func pointer
-		mov esi, 0x20//arg2 flags, 0x20 = check shootthru
-		push esi
-		mov edi, dword ptr ss : [esp + 0x14] //arg1 **ret_objStruct
-		push edi
-		call fo::funcoffs::make_straight_path_func_;//(EAX *objStruct, EDX hexNum1, EBX hexNum2, ECX ?, stack1 **ret_objStruct, stack2 flags, stack3 *check_hex_objs_func)
-
-		pop edi
-		pop esi
-		ret 0x8
+		push fo::funcoffs::obj_shoot_blocking_at_;   // check hex objects func pointer
+		push 0x20;                                   // flags, 0x20 = check shootthru
+		mov  ecx, dword ptr [esp + 0x0C];            // buf **ret_objStruct
+		push ecx;
+		xor  ecx, ecx;
+		call fo::funcoffs::make_straight_path_func_; // (EAX *objStruct, EDX hexNum1, EBX hexNum2, ECX 0, stack1 **ret_objStruct, stack2 flags, stack3 *check_hex_objs_func)
+		retn 8;
 	}
 }
 
@@ -391,7 +384,6 @@ static void __declspec(naked) display_stats_hook() {
 }
 
 static void __fastcall SwapHandSlots(fo::GameObject* item, DWORD* toSlot) {
-
 	if (fo::GetItemType(item) != fo::item_type_weapon && *toSlot
 		 && fo::GetItemType((fo::GameObject*)*toSlot) != fo::item_type_weapon) {
 		return;
@@ -448,10 +440,38 @@ end:
 	}
 }
 
+static void __declspec(naked) action_use_skill_on_hook() {
+	__asm { // eax = dude_obj, edx = target, ebp = party_member
+		cmp  eax, edx;
+		jnz  end;                     // jump if target != dude_obj
+		mov  edx, ebp;
+		call fo::funcoffs::obj_dist_; // check distance between dude_obj and party_member
+		cmp  eax, 1;                  // if the distance is greater than 1, then reset the register
+		jg   skip;
+		inc  eax;
+		retn;
+skip:
+		xor  eax, eax;
+		retn;
+end:
+		jmp  fo::funcoffs::obj_dist_;
+	}
+}
+
 static const DWORD EncounterTableSize[] = {
 	0x4BD1A3, 0x4BD1D9, 0x4BD270, 0x4BD604, 0x4BDA14, 0x4BDA44, 0x4BE707,
 	0x4C0815, 0x4C0D4A, 0x4C0FD4,
 };
+
+static void __declspec(naked) win_debug_hook() {
+	__asm {
+		call fo::funcoffs::debug_log_;
+		xor  eax, eax;
+		cmp  ds:[FO_VAR_GNW_win_init_flag], eax;
+		push 0x4DC320;
+		retn;
+	}
+}
 
 void DebugModePatch() {
 	if (isDebug) {
@@ -466,10 +486,15 @@ void DebugModePatch() {
 				SafeWrite32(0x444A6E, 0x90909090);
 			}
 			SafeWrite8(0x4C6D9B, 0xB8);            // mov  eax, GNW/LOG
-			if (dbgMode == 2) {
+			if (dbgMode & 2) {
 				SafeWrite32(0x4C6D9C, (DWORD)debugLog);
-			}
-			else {
+				if (dbgMode & 1) {
+					SafeWrite16(0x4C6E75, 0x66EB); // jmps 0x4C6EDD
+					SafeWrite8(0x4C6EF2, 0xEB);
+					SafeWrite8(0x4C7034, 0x0);
+					MakeJump(0x4DC319, win_debug_hook);
+				}
+			} else {
 				SafeWrite32(0x4C6D9C, (DWORD)debugGnw);
 			}
 			dlogr(" Done", DL_INIT);
@@ -495,7 +520,7 @@ void NpcAutoLevelPatch() {
 
 	if (GetConfigInt("Misc", "OverrideArtCacheSize", 0)) {
 		dlog("Applying override art cache size patch.", DL_INIT);
-		SafeWrite32(0x418867, 0x90909090);
+		SafeWrite8(0x41886A, 0x0);
 		SafeWrite32(0x418872, 256);
 		dlogr(" Done", DL_INIT);
 	}
@@ -581,7 +606,7 @@ void FashShotTraitFix() {
 		break;
 	case 2:
 		dlog("Applying Fast Shot Trait Fix. (Fallout 1 version)", DL_INIT);
-		SafeWrite16(0x478C9F, 0x9090);
+		SafeWrite8(0x478CA0, 0x0);
 		for (int i = 0; i < sizeof(FastShotFixF1) / 4; i++) {
 			HookCall(FastShotFixF1[i], (void*)0x478C7D);
 		}
@@ -705,7 +730,7 @@ void MotionScannerFlagsPatch() {
 		if (flags & 1) MakeJump(0x41BBE9, ScannerAutomapHook);
 		if (flags & 2) {
 			// automap_
-			SafeWrite16(0x41BC24, 0x9090);
+			SafeWrite8(0x41BC25, 0x0);
 			BlockCall(0x41BC3C);
 			// item_m_use_charged_item_
 			SafeWrite8(0x4794B3, 0x5E); // jbe short 0x479512
@@ -740,7 +765,7 @@ void DisablePipboyAlarmPatch() {
 void ObjCanSeeShootThroughPatch() {
 	if (GetConfigInt("Misc", "ObjCanSeeObj_ShootThru_Fix", 0)) {
 		dlog("Applying ObjCanSeeObj ShootThru Fix.", DL_INIT);
-		SafeWrite32(0x456BC7, (DWORD)&objCanSeeObj_ShootThru_Fix - 0x456BCB);
+		HookCall(0x456BC6, op_obj_can_see_obj_hook);
 		dlogr(" Done", DL_INIT);
 	}
 }
@@ -779,12 +804,6 @@ void AlwaysReloadMsgs() {
 		dlog("Applying always reload messages patch.", DL_INIT);
 		SafeWrite8(0x4A6B8D, 0x0);
 		dlogr(" Done", DL_INIT);
-	}
-}
-
-void RemoveWindowRoundingPatch() {
-	if(GetConfigInt("Misc", "RemoveWindowRounding", 0)) {
-		SafeWrite16(0x4B8090, 0x04EB);            // jmps 0x4B8096
 	}
 }
 
@@ -855,6 +874,36 @@ void KeepWeaponSelectModePatch() {
 	}
 }
 
+void PartyMemberSkillPatch() {
+	// Fixed getting distance from source to target when using skills
+	// Note: this will cause the party member to apply his/her skill when you use First Aid/Doctor skill on the player, but only if
+	// the player is standing next to the party member. Because the related engine function is not fully implemented, enabling
+	// this option without a global script that overrides First Aid/Doctor functions has very limited usefulness
+	if (GetConfigInt("Misc", "PartyMemberSkillFix", 0) != 0) {
+		dlog("Applying party member using First Aid/Doctor skill patch.", DL_INIT);
+		HookCall(0x412836, action_use_skill_on_hook);
+		dlogr(" Done", DL_INIT);
+	}
+	// Small code patch for HOOK_USESKILLON (change obj_dude to source)
+	SafeWrite32(0x4128F3, 0x90909090);
+	SafeWrite16(0x4128F7, 0xFE39); // cmp esi, _obj_dude -> cmp esi, edi
+}
+
+void SkipLoadingGameSettingsPatch() {
+	int skipLoading = GetConfigInt("Misc", "SkipLoadingGameSettings", 0);
+	if (skipLoading) {
+		dlog("Applying skip loading game settings from a saved game patch.", DL_INIT);
+		BlockCall(0x493421);
+		SafeWrite8(0x4935A8, 0x1F);
+		SafeWrite32(0x4935AB, 0x90901B75);
+		CodeData PatchData;
+		if (skipLoading == 2) SafeWriteBatch<CodeData>(PatchData, {0x49341C, 0x49343B});
+		SafeWriteBatch<CodeData>(PatchData, {0x493450, 0x493465, 0x49347A, 0x49348F, 0x4934A4, 0x4934B9, 0x4934CE, 0x4934E3,
+		                                     0x4934F8, 0x49350D, 0x493522, 0x493547, 0x493558, 0x493569, 0x49357A});
+		dlogr(" Done", DL_INIT);
+	}
+}
+
 void InterfaceDontMoveOnTopPatch() {
 	if (GetConfigInt("Misc", "InterfaceDontMoveOnTop", 0)) {
 		dlog("Applying InterfaceDontMoveOnTop patch.", DL_INIT);
@@ -862,6 +911,19 @@ void InterfaceDontMoveOnTopPatch() {
 		SafeWrite8(0x41B966, fo::WinFlags::Exclusive); // Automap
 		dlogr(" Done", DL_INIT);
 	}
+}
+
+void BodypartHitChances() {
+	using fo::var::hit_location_penalty;
+	hit_location_penalty[0] = static_cast<long>(GetConfigInt("Misc", "BodyHit_Head", -40));
+	hit_location_penalty[1] = static_cast<long>(GetConfigInt("Misc", "BodyHit_Left_Arm", -30));
+	hit_location_penalty[2] = static_cast<long>(GetConfigInt("Misc", "BodyHit_Right_Arm", -30));
+	hit_location_penalty[3] = static_cast<long>(GetConfigInt("Misc", "BodyHit_Torso_Uncalled", 0));
+	hit_location_penalty[4] = static_cast<long>(GetConfigInt("Misc", "BodyHit_Right_Leg", -20));
+	hit_location_penalty[5] = static_cast<long>(GetConfigInt("Misc", "BodyHit_Left_Leg", -20));
+	hit_location_penalty[6] = static_cast<long>(GetConfigInt("Misc", "BodyHit_Eyes", -60));
+	hit_location_penalty[7] = static_cast<long>(GetConfigInt("Misc", "BodyHit_Groin", -30));
+	hit_location_penalty[8] = static_cast<long>(GetConfigInt("Misc", "BodyHit_Torso_Uncalled", 0));
 }
 
 void MiscPatches::init() {
@@ -894,6 +956,8 @@ void MiscPatches::init() {
 		dlogr(" Done", DL_INIT);
 	}
 
+	LoadGameHook::OnBeforeGameStart() += BodypartHitChances; // set on start & load
+
 	CombatProcFix();
 	DebugModePatch();
 	NpcAutoLevelPatch();
@@ -908,7 +972,6 @@ void MiscPatches::init() {
 	ApplyNpcExtraApPatch();
 
 	SkilldexImagesPatch();
-	RemoveWindowRoundingPatch();
 
 	SpeedInterfaceCounterAnimsPatch();
 	ScienceOnCrittersPatch();
@@ -938,6 +1001,10 @@ void MiscPatches::init() {
 
 	DisplaySecondWeaponRangePatch();
 	KeepWeaponSelectModePatch();
+
+	PartyMemberSkillPatch();
+
+	SkipLoadingGameSettingsPatch();
 	InterfaceDontMoveOnTopPatch();
 }
 

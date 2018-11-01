@@ -61,6 +61,8 @@ enum HookType
 	HOOK_USEANIMOBJ       = 32,
 	HOOK_EXPLOSIVETIMER   = 33,
 	HOOK_DESCRIPTIONOBJ   = 34,
+	HOOK_USESKILLON       = 35,
+	HOOK_ONEXPLOSION      = 36,
 	HOOK_COUNT
 };
 
@@ -75,6 +77,7 @@ public:
 	static bool injectAllHooks;
 
 	static void GameModeChangeHook(DWORD exit);
+	static void KeyPressHook(DWORD* dxKey, bool pressed, DWORD vKey);
 };
 
 DWORD _stdcall GetHSArgCount();

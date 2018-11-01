@@ -79,6 +79,8 @@ static HooksInjectInfo injectHooks[] = {
 	{HOOK_USEANIMOBJ,       Inject_UseAnimateObjHook,    false},
 	{HOOK_EXPLOSIVETIMER,   Inject_ExplosiveTimerHook,   false},
 	{HOOK_DESCRIPTIONOBJ,   Inject_DescriptionObjHook,   false},
+	{HOOK_USESKILLON,       Inject_UseSkillOnHook,       false},
+	{HOOK_ONEXPLOSION,      Inject_OnExplosionHook,      false},
 };
 
 bool HookScripts::injectAllHooks;
@@ -86,16 +88,17 @@ DWORD initingHookScripts;
 
 // BEGIN HOOKS
 
-void _stdcall KeyPressHook(DWORD dxKey, bool pressed, DWORD vKey) {
+void HookScripts::KeyPressHook(DWORD* dxKey, bool pressed, DWORD vKey) {
 	if (!IsMapLoaded()) {
 		return;
 	}
 	BeginHook();
 	argCount = 3;
 	args[0] = (DWORD)pressed;
-	args[1] = dxKey;
+	args[1] = *dxKey;
 	args[2] = vKey;
 	RunHookScript(HOOK_KEYPRESS);
+	if (cRet != 0) *dxKey = rets[0];
 	EndHook();
 }
 
@@ -224,9 +227,9 @@ void _stdcall RunHookScriptsAtProc(DWORD procId) {
 }
 
 void HookScripts::init() {
-	OnKeyPressed() += KeyPressHook;
 	OnMouseClick() += MouseClickHook;
 	LoadGameHook::OnGameModeChange() += GameModeChangeHook;
+	LoadGameHook::OnAfterGameStarted() += SourceUseSkillOnInit;
 
 	HookScripts::injectAllHooks = (isDebug && (GetConfigInt("Debugging", "InjectAllGameHooks", 0) != 0));
 }

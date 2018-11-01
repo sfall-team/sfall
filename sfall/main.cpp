@@ -53,6 +53,7 @@
 #include "Modules\Message.h"
 #include "Modules\MiscPatches.h"
 #include "Modules\Movies.h"
+#include "Modules\Objects.h"
 #include "Modules\PartyControl.h"
 #include "Modules\Perks.h"
 #include "Modules\PlayerModel.h"
@@ -133,6 +134,7 @@ static void InitModules() {
 	manager.add<Graphics>();
 	manager.add<Input>();
 	manager.add<Movies>();
+	manager.add<Objects>();
 	manager.add<PlayerModel>();
 	manager.add<Worldmap>();
 	manager.add<Stats>();
@@ -203,7 +205,7 @@ static void CompatModeCheck(HKEY root, const char* filepath, int extra) {
 
 inline void SfallInit() {
 	// enabling debugging features
- 	isDebug = (GetPrivateProfileIntA("Debugging", "Enable", 0, ::sfall::ddrawIni) != 0);
+	isDebug = (GetPrivateProfileIntA("Debugging", "Enable", 0, ::sfall::ddrawIni) != 0);
 	if (isDebug) {
 		LoggingInit();
 	}
@@ -272,8 +274,50 @@ inline void SfallInit() {
 
 }
 
+ddrawDll ddraw;
+static bool LoadOriginalDll(DWORD dwReason) {
+	switch (dwReason) {
+		case DLL_PROCESS_ATTACH:
+			char path[MAX_PATH];
+			CopyMemory(path + GetSystemDirectoryA(path , MAX_PATH - 10), "\\ddraw.dll", 11); // path to original dll
+			ddraw.dll = LoadLibrary(path);
+			if (!ddraw.dll || ddraw.dll == INVALID_HANDLE_VALUE) {
+				MessageBox(0, "Cannot load the original ddraw.dll library.", "sfall", MB_ICONERROR);
+				ExitProcess(-1);
+				break;
+			}
+			ddraw.AcquireDDThreadLock          = GetProcAddress(ddraw.dll, "AcquireDDThreadLock");
+			ddraw.CheckFullscreen              = GetProcAddress(ddraw.dll, "CheckFullscreen");
+			ddraw.CompleteCreateSysmemSurface  = GetProcAddress(ddraw.dll, "CompleteCreateSysmemSurface");
+			ddraw.D3DParseUnknownCommand       = GetProcAddress(ddraw.dll, "D3DParseUnknownCommand");
+			ddraw.DDGetAttachedSurfaceLcl      = GetProcAddress(ddraw.dll, "DDGetAttachedSurfaceLcl");
+			ddraw.DDInternalLock               = GetProcAddress(ddraw.dll, "DDInternalLock");
+			ddraw.DDInternalUnlock             = GetProcAddress(ddraw.dll, "DDInternalUnlock");
+			ddraw.DSoundHelp                   = GetProcAddress(ddraw.dll, "DSoundHelp");
+			ddraw.DirectDrawCreateClipper      = GetProcAddress(ddraw.dll, "DirectDrawCreateClipper");
+			ddraw.DirectDrawCreate             = GetProcAddress(ddraw.dll, "DirectDrawCreate");
+			ddraw.DirectDrawCreateEx           = GetProcAddress(ddraw.dll, "DirectDrawCreateEx");
+			ddraw.DirectDrawEnumerateA         = GetProcAddress(ddraw.dll, "DirectDrawEnumerateA");
+			ddraw.DirectDrawEnumerateExA       = GetProcAddress(ddraw.dll, "DirectDrawEnumerateExA");
+			ddraw.DirectDrawEnumerateExW       = GetProcAddress(ddraw.dll, "DirectDrawEnumerateExW");
+			ddraw.DirectDrawEnumerateW         = GetProcAddress(ddraw.dll, "DirectDrawEnumerateW");
+			//ddraw.DllCanUnloadNow            = GetProcAddress(ddraw.dll, "DllCanUnloadNow");
+			//ddraw.DllGetClassObject          = GetProcAddress(ddraw.dll, "DllGetClassObject");
+			ddraw.GetDDSurfaceLocal            = GetProcAddress(ddraw.dll, "GetDDSurfaceLocal");
+			ddraw.GetOLEThunkData              = GetProcAddress(ddraw.dll, "GetOLEThunkData");
+			ddraw.GetSurfaceFromDC             = GetProcAddress(ddraw.dll, "GetSurfaceFromDC");
+			ddraw.RegisterSpecialCase          = GetProcAddress(ddraw.dll, "RegisterSpecialCase");
+			ddraw.ReleaseDDThreadLock          = GetProcAddress(ddraw.dll, "ReleaseDDThreadLock");
+			return true;
+		case DLL_PROCESS_DETACH:
+			FreeLibrary(ddraw.dll);
+			break;
+	}
+	return false;
+}
+
 bool _stdcall DllMain(HANDLE hDllHandle, DWORD dwReason, LPVOID lpreserved) {
-	if (dwReason == DLL_PROCESS_ATTACH) {
+	if (LoadOriginalDll(dwReason)) {
 		sfall::SfallInit();
 	}
 	return true;

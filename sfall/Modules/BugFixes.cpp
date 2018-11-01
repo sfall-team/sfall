@@ -24,6 +24,65 @@ void GameInitialization() {
 	*(DWORD*)FO_VAR_gDialogMusicVol = *(DWORD*)FO_VAR_background_volume; // fix dialog music
 }
 
+// fix for vanilla negate operator not working on floats
+static const DWORD NegateFixHack_Back = 0x46AB77;
+static void __declspec(naked) NegateFixHack() {
+	__asm {
+		mov  eax, [ecx + 0x1C];
+		cmp  si, VAR_TYPE_FLOAT;
+		je   isFloat;
+		neg  ebx;
+		retn;
+isFloat:
+		push ebx;
+		fld[esp];
+		fchs;
+		fstp[esp];
+		pop  ebx;
+		call fo::funcoffs::pushLongStack_;
+		mov  edx, VAR_TYPE_FLOAT;
+		add  esp, 4;                              // Destroy the return address
+		jmp  NegateFixHack_Back;
+	}
+}
+
+static const DWORD UnarmedAttacksFixEnd = 0x423A0D;
+static void __declspec(naked) UnarmedAttacksFix() {
+	__asm {
+		mov  ecx, 5;                        // 5% chance of critical hit
+		cmp  edx, ATKTYPE_POWERKICK;        // Power Kick
+		je   RollCheck;
+		cmp  edx, ATKTYPE_HAMMERPUNCH;      // Hammer Punch
+		je   RollCheck;
+		add  ecx, 5;                        // 10% chance of critical hit
+		cmp  edx, ATKTYPE_HOOKKICK;         // Hook Kick
+		je   RollCheck;
+		cmp  edx, ATKTYPE_JAB;              // Jab
+		je   RollCheck;
+		add  ecx, 5;                        // 15% chance of critical hit
+		cmp  edx, ATKTYPE_HAYMAKER;         // Haymaker
+		je   RollCheck;
+		add  ecx, 5;                        // 20% chance of critical hit
+		cmp  edx, ATKTYPE_PALMSTRIKE;       // Palm Strike
+		je   RollCheck;
+		add  ecx, 20;                       // 40% chance of critical hit
+		cmp  edx, ATKTYPE_PIERCINGSTRIKE;   // Piercing Strike
+		je   RollCheck;
+		cmp  edx, ATKTYPE_PIERCINGKICK;     // Piercing Kick
+		jne  end;
+		add  ecx, 10;                       // 50% chance of critical hit
+RollCheck:
+		mov  edx, 100;
+		mov  eax, 1;
+		call fo::funcoffs::roll_random_;
+		cmp  eax, ecx;                      // Check chance
+		jg   end;
+		mov  ebx, ROLL_CRITICAL_SUCCESS;    // Upgrade to critical hit
+end:
+		jmp  UnarmedAttacksFixEnd;
+	}
+}
+
 static void __declspec(naked) SharpShooterFix() {
 	__asm {
 		call fo::funcoffs::stat_level_            // Perception
@@ -1264,7 +1323,7 @@ static void __declspec(naked) compute_damage_hack() {
 	__asm {
 		mov  ecx, esi; // ctd
 		call InstantDeathFix;
-		// overwritted engine code
+		// overwritten engine code
 		add  esp, 0x34;
 		pop  ebp;
 		pop  edi;
@@ -1473,6 +1532,36 @@ limit:
 	}
 }
 
+int tagSkill4LevelBase = -1;
+static void __declspec(naked) SliderBtn_hook_down() {
+	__asm {
+		call fo::funcoffs::skill_level_;
+		cmp  tagSkill4LevelBase, -1;
+		jnz  fix;
+		retn;
+fix:
+		cmp  ds:[FO_VAR_tag_skill + 3 * 4], ebx;  // _tag_skill4, ebx = _skill_cursor
+		jnz  skip;
+		cmp  eax, tagSkill4LevelBase;             // curr > x2
+		jg   skip;
+		xor  eax, eax;
+skip:
+		retn;
+	}
+}
+
+static void __declspec(naked) Add4thTagSkill_hook() {
+	__asm {
+		mov  edi, eax;
+		call fo::funcoffs::skill_set_tags_;
+		mov  eax, ds:[FO_VAR_obj_dude];
+		mov  edx, dword ptr ds:[edi + 3 * 4];    // _temp_tag_skill4
+		call fo::funcoffs::skill_level_;
+		mov  tagSkill4LevelBase, eax;            // x2
+		retn;
+	}
+}
+
 static BYTE retrievePtr = 0;
 static void __declspec(naked) ai_retrieve_object_hook() {
 	__asm {
@@ -1506,21 +1595,25 @@ fix:
 static DWORD op_start_gdialog_ret = 0x456F4B;
 static void __declspec(naked) op_start_gdialog_hack() {
 	__asm {
-		mov  ebx, ds:[FO_VAR_dialog_target];
-		mov  ebx, [ebx + protoId];
-		shr  ebx, 0x18;
-		cmp  ebx, OBJ_TYPE_CRITTER;
-		jz   fix;
-		cmp  edx, -1;
-		jz   skip;
+		cmp  eax, -1;                                 // check mood arg
+		jnz  useMood;
+		mov  eax, dword ptr [esp + 0x3C - 0x30 + 4];  // fix dialog_target (overwritten engine code)
 		retn;
-fix:
-		cmp  eax, -1;
-		jnz  skip;
-		retn;
-skip:
+useMood:
 		add  esp, 4;                              // Destroy the return address
 		jmp  op_start_gdialog_ret;
+	}
+}
+
+static void __declspec(naked) item_w_range_hook() {
+	__asm {
+		call fo::funcoffs::stat_level_;  // get ST
+		lea  ecx, [eax + ebx];           // ebx - bonus from "Heave Ho!"
+		sub  ecx, 10;                    // compare ST + bonus <= 10
+		jle  skip;
+		sub  ebx, ecx;                   // cutoff
+skip:
+		retn;
 	}
 }
 
@@ -1532,7 +1625,23 @@ void BugFixes::init()
 	#endif
 
 	// Missing game initialization
-	LoadGameHook::OnGameInit() = GameInitialization;
+	LoadGameHook::OnGameInit() += GameInitialization;
+
+	// fix vanilla negate operator on float values
+	MakeCall(0x46AB68, NegateFixHack);
+	// fix incorrect int-to-float conversion
+	// op_mult:
+	SafeWrite16(0x46A3F4, 0x04DB); // replace operator to "fild 32bit"
+	SafeWrite16(0x46A3A8, 0x04DB);
+	// op_div:
+	SafeWrite16(0x46A566, 0x04DB);
+	SafeWrite16(0x46A4E7, 0x04DB);
+
+	//if(GetConfigInt("Misc", "SpecialUnarmedAttacksFix", 1)) {
+		dlog("Applying Special Unarmed Attacks fix.", DL_INIT);
+		MakeJump(0x42394D, UnarmedAttacksFix);
+		dlogr(" Done", DL_INIT);
+	//}
 
 	//if (GetConfigInt("Misc", "SharpshooterFix", 1)) {
 		dlog("Applying Sharpshooter patch.", DL_INIT);
@@ -1715,8 +1824,7 @@ void BugFixes::init()
 
 	//if (GetConfigInt("Misc", "MultiHexPathingFix", 1)) {
 		dlog("Applying MultiHex Pathing Fix.", DL_INIT);
-		MakeCall(0x42901F, MultiHexFix);
-		MakeCall(0x429170, MultiHexFix);
+		MakeCalls(MultiHexFix, {0x42901F, 0x429170});
 		// Fix for multihex critters moving too close and overlapping their targets in combat
 		MakeCall(0x42A14F, MultiHexCombatRunFix);
 		SafeWrite8(0x42A154, 0x90);
@@ -1927,6 +2035,14 @@ void BugFixes::init()
 	MakeCall(0x472F5F, inven_obj_examine_func_hack);
 	SafeWrite8(0x472F64, 0x90);
 
+	// Fix for the exploit that allows you to gain excessive skill points from Tag! perk before leaving the character screen
+	//if (GetConfigInt("Misc", "TagPerkFix", 1)) {
+		dlog("Applying fix for Tag! exploit.", DL_INIT);
+		HookCall(0x43B463, SliderBtn_hook_down);
+		HookCall(0x43D7DD, Add4thTagSkill_hook);
+		dlogr(" Done", DL_INIT);
+	//}
+
 	// Fix for ai_retrieve_object_ engine function not returning the requested object when there are different objects
 	// with the same ID
 	dlog("Applying ai_retrieve_object engine function fix.", DL_INIT);
@@ -1937,9 +2053,12 @@ void BugFixes::init()
 	// Fix for the "mood" argument of start_gdialog function being ignored for talking heads
 	if (GetConfigInt("Misc", "StartGDialogFix", 0)) {
 		dlog("Applying start_gdialog argument fix.", DL_INIT);
-		MakeCall(0x456F03, op_start_gdialog_hack);
+		MakeCall(0x456F08, op_start_gdialog_hack);
 		dlogr(" Done", DL_INIT);
 	}
+
+	// Fix for Heave Ho! perk increasing Strength stat above 10 when determining the maximum range of thrown weapons
+	HookCall(0x478AD9, item_w_range_hook);
 }
 
 }

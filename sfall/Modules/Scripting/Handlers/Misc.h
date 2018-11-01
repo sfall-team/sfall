@@ -109,9 +109,9 @@ void __declspec() op_set_palette();
 //numbers subgame functions
 void __declspec() op_nb_create_char();
 
-void __declspec() op_get_proto_data();
+void sf_get_proto_data(OpcodeContext&);
 
-void __declspec() op_set_proto_data();
+void sf_set_proto_data(OpcodeContext&);
 
 void __declspec() op_hero_select_win() ;
 
