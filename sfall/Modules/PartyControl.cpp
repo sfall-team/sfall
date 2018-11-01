@@ -247,7 +247,7 @@ static fo::GameObject* __fastcall PartyMemberBestWeapon(register fo::GameObject*
 	}
 
 	fo::GameObject* bestItem = fo::func::ai_search_inven_weap(partyMember, 0, 0);
-	if (bestItem != nullptr && bestItem->protoId == handItem->protoId) {
+	if (bestItem == nullptr || bestItem->protoId == handItem->protoId) {
 		*backRet = 0x44952E;
 		return nullptr; // unwield behavior
 	}
