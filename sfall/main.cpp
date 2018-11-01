@@ -1253,10 +1253,6 @@ static void DllMain2() {
 	if (tmp != 293) SafeWrite32(0x518D64, tmp);
 	dlogr(" Done", DL_INIT);
 
-	if (GetPrivateProfileIntA("Misc", "RemoveWindowRounding", 0, ini)) {
-		SafeWrite16(0x4B8090, 0x04EB);            // jmps 0x4B8096
-	}
-
 	dlogr("Running TilesInit().", DL_INIT);
 	TilesInit();
 
