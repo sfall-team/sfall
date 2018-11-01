@@ -167,7 +167,7 @@ static void __declspec(naked) ComputeDamageHook() {
 		call fo::funcoffs::compute_damage_;
 		pop  ecx;         // restore ctd (eax)
 		pop  edx;         // restore num rounds
-		call ComputeDamageHook_Script;
+		call ComputeDamageHook_Script;  // stack - arg multiply
 		pop  ecx;
 		retn;
 	}
@@ -341,7 +341,7 @@ normalTurn:
 	}
 }
 
-fo::GameObject* __fastcall ComputeExplosionOnExtrasHook_Script(fo::GameObject* object, DWORD checkTile, fo::ComputeAttackResult* ctdSource, DWORD isCheck, DWORD isThrowing, fo::GameObject* who) {
+fo::GameObject* __fastcall ComputeExplosionOnExtrasHook_Script(fo::GameObject* object, DWORD isCheck, DWORD checkTile, fo::ComputeAttackResult* ctdSource, DWORD isThrowing, fo::GameObject* who) {
 	fo::GameObject* result = object;
 
 	BeginHook();
@@ -376,11 +376,15 @@ hook:
 		push eax;                                   // who (target/source)
 		call fo::funcoffs::obj_blocking_at_;
 		push [esp + 0x34 - 0x24 + 12];              // isThrowing
-		push [esp + 0x34 - 0x34 + 16];              // isCheck (bypass damage)
+		xor  edx, edx;
+		cmp  dword ptr [esp + 0x34 + 16], 0x412F11; // check called from action_explode_
+		jz   skip;
+		mov  edx, [esp + 0x34 - 0x34 + 16];         // isCheck (bypass damage)
+skip:
 		push esi;                                   // source ctd
+		push edi;                                   // check tile
 		mov  ecx, eax;                              // object
-		mov  edx, edi;                              // check tile
-		call ComputeExplosionOnExtrasHook_Script;
+		call ComputeExplosionOnExtrasHook_Script;   // edx - isCheck
 		pop  ecx;
 		retn;
 	}

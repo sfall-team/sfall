@@ -807,12 +807,6 @@ void AlwaysReloadMsgs() {
 	}
 }
 
-void RemoveWindowRoundingPatch() {
-	if(GetConfigInt("Misc", "RemoveWindowRounding", 0)) {
-		SafeWrite16(0x4B8090, 0x04EB);            // jmps 0x4B8096
-	}
-}
-
 void InventoryCharacterRotationSpeedPatch() {
 	DWORD setting = GetConfigInt("Misc", "SpeedInventoryPCRotation", 166);
 	if (setting != 166 && setting <= 1000) {
@@ -978,7 +972,6 @@ void MiscPatches::init() {
 	ApplyNpcExtraApPatch();
 
 	SkilldexImagesPatch();
-	RemoveWindowRoundingPatch();
 
 	SpeedInterfaceCounterAnimsPatch();
 	ScienceOnCrittersPatch();
