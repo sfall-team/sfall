@@ -368,9 +368,11 @@ static void __fastcall PartyMemberPrintStat(BYTE* surface, DWORD toWidth) {
 	xPos -= GetTextWidth(armorClassMsg) + 20;
 	PrintText(acMsg, color, xPos, 167, GetTextWidth(acMsg), toWidth, surface);
 
-	color = (QueueFindFirst(partyMember, 2)) ? *(BYTE*)_RedColor : *(BYTE*)_DarkGreenColor;
-	widthText = GetTextWidth(addictMsg);
-	PrintText(addictMsg, color, 350 - widthText, 148, widthText, toWidth, surface);
+	if (QueueFindFirst(partyMember, 2)) {
+		color = *(BYTE*)_RedColor;
+		widthText = GetTextWidth(addictMsg);
+		PrintText(addictMsg, color, 350 - widthText, 148, widthText, toWidth, surface);
+	}
 }
 
 static void __declspec(naked) gdControlUpdateInfo_hook() {
