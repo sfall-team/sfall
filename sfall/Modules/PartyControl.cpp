@@ -257,9 +257,11 @@ static void __fastcall PartyMemberPrintStat(BYTE* surface, DWORD toWidth) {
 	xPos -= fo::GetTextWidth(armorClassMsg) + 20;
 	fo::PrintText(acMsg, color, xPos, 167, fo::GetTextWidth(acMsg), toWidth, surface);
 
-	color = (fo::func::queue_find_first(partyMember, 2)) ? fo::var::RedColor : fo::var::DarkGreenColor;
-	widthText = fo::GetTextWidth(addictMsg);
-	fo::PrintText(addictMsg, color, 350 - widthText, 148, widthText, toWidth, surface);
+	if (fo::func::queue_find_first(partyMember, 2)) {
+		color = fo::var::RedColor;
+		widthText = fo::GetTextWidth(addictMsg);
+		fo::PrintText(addictMsg, color, 350 - widthText, 148, widthText, toWidth, surface);
+	}
 }
 
 static void __declspec(naked) gdControlUpdateInfo_hook() {
