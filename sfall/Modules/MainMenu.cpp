@@ -55,12 +55,12 @@ static DWORD OverrideColour;
 static void __declspec(naked) FontColour() {
 	__asm {
 		cmp OverrideColour, 0;
-		je skip;
+		je  skip;
 		mov eax, OverrideColour;
 		retn;
 skip:
 		movzx eax, byte ptr ds:[0x6A8B33];
-		or eax, 0x6000000;
+		or  eax, 0x6000000;
 		retn;
 	}
 }
@@ -99,26 +99,24 @@ static void __declspec(naked) MainMenuTextHook() {
 }
 
 void MainMenu::init() {
-	int tmp;
-
-	if (tmp = GetConfigInt("Misc", "MainMenuCreditsOffsetX", 0)) {
-		SafeWrite32(0x481753, 0xf + tmp);
+	int offset;
+	if (offset = GetConfigInt("Misc", "MainMenuCreditsOffsetX", 0)) {
+		SafeWrite32(0x481753, 0xF + offset);
 	}
-	if (tmp = GetConfigInt("Misc", "MainMenuCreditsOffsetY", 0)) {
-		SafeWrite32(0x48175C, 0x1cc + tmp);
+	if (offset = GetConfigInt("Misc", "MainMenuCreditsOffsetY", 0)) {
+		SafeWrite32(0x48175C, 460 + offset);
 	}
-	if (tmp = GetConfigInt("Misc", "MainMenuOffsetX", 0)) {
-		SafeWrite32(0x48187C, 0x1e + tmp);
-		MainMenuTextOffset = tmp;
+	if (offset = GetConfigInt("Misc", "MainMenuOffsetX", 0)) {
+		SafeWrite32(0x48187C, 0x1E + offset);
+		MainMenuTextOffset = offset;
 	}
-	if (tmp = GetConfigInt("Misc", "MainMenuOffsetY", 0)) {
-		MainMenuYOffset = tmp;
-		MainMenuTextOffset += tmp * 640;
+	if (offset = GetConfigInt("Misc", "MainMenuOffsetY", 0)) {
+		MainMenuYOffset = offset;
+		MainMenuTextOffset += offset * 640;
 		MakeJump(0x481844, MainMenuButtonYHook);
 	}
 	if (MainMenuTextOffset) {
-		SafeWrite8(0x481933, 0x90);
-		MakeCall(0x481934, MainMenuTextYHook);
+		MakeCall(0x481933, MainMenuTextYHook, 1);
 	}
 
 	MakeJump(0x4817AB, MainMenuTextHook);

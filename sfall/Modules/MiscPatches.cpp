@@ -874,7 +874,7 @@ void AlwaysReloadMsgs() {
 	}
 }
 
-void RemoveWindowRoundingPatch() {
+void RemoveWindowRoundingPatch() { // TODO: Узнать для чего конкретно предназначалась эта опция (удалено из ddraw.ini)
 	if(GetConfigInt("Misc", "RemoveWindowRounding", 0)) {
 		SafeWrite16(0x4B8090, 0x04EB);            // jmps 0x4B8096
 	}
