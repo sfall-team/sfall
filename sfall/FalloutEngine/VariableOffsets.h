@@ -43,7 +43,9 @@
 #define FO_VAR_curr_pc_stat               0x6681AC
 #define FO_VAR_curr_stack                 0x59E96C
 #define FO_VAR_cursor_line                0x664514
+#define FO_VAR_DARK_GREY_Color            0x6A59D8
 #define FO_VAR_DarkGreenColor             0x6A3A90
+#define FO_VAR_DarkGreenGreyColor         0x6A3DF1
 #define FO_VAR_dialogue_state             0x518714
 #define FO_VAR_dialogue_switch_mode       0x518718
 #define FO_VAR_dialog_target              0x518848
@@ -106,6 +108,7 @@
 #define FO_VAR_last_level                 0x5707B4
 #define FO_VAR_Level_                     0x6681B0
 #define FO_VAR_Lifegiver                  0x570854
+#define FO_VAR_LIGHT_GREY_Color           0x6A76BF
 #define FO_VAR_list_com                   0x56D394
 #define FO_VAR_list_total                 0x56D37C
 #define FO_VAR_loadingGame                0x5194C4
