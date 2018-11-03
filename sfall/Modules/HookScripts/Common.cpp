@@ -27,21 +27,21 @@ std::vector<HookScript> hooks[numHooks];
 void LoadHookScript(const char* name, int id) {
 	if (id >= numHooks || IsGameScript(name)) return;
 
-	bool fullpath = false;
+	bool usePath = false;
 	char filename[MAX_PATH];
 	if (HookScripts::hookScriptPathFmt.empty()) {
 		sprintf(filename, "scripts\\%s.int", name);
 	} else {
 		sprintf_s(filename, HookScripts::hookScriptPathFmt.c_str(), name);
 		name = filename;
-		fullpath = true;
+		usePath = true;
 	}
 
 	ScriptProgram prog;
 	if (fo::func::db_access(filename)) {
 		dlog(">", DL_HOOK);
 		dlog(filename, DL_HOOK);
-		LoadScriptProgram(prog, name, fullpath);
+		LoadScriptProgram(prog, name, usePath);
 		if (prog.ptr) {
 			dlogr(" Done", DL_HOOK);
 			HookScript hook;

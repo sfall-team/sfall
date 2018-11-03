@@ -40,7 +40,7 @@ struct GlobalVar {
 };
 
 typedef struct {
-	fo::Program* ptr;
+	fo::Program* ptr = nullptr;
 	int procLookup[fo::ScriptProc::count];
 	char initialized;
 } ScriptProgram;
