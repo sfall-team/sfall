@@ -104,6 +104,7 @@ static const SfallMetarule metarules[] = {
 	{"item_make_explosive", sf_item_make_explosive, 3, 4, {ARG_INT, ARG_INT, ARG_INT, ARG_INT}},
 	{"item_weight", sf_item_weight, 1, 1, {ARG_OBJECT}},
 	{"lock_is_jammed", sf_lock_is_jammed, 1, 1, {ARG_OBJECT}},
+	{"obj_under_cursor", sf_obj_under_cursor, 2, 2, {ARG_INT, ARG_INT}},
 	{"outlined_object", sf_outlined_object, 0, 0},
 	{"real_dude_obj", sf_real_dude_obj, 0, 0},
 	{"set_can_rest_on_map", sf_set_rest_on_map, 3, 3, {ARG_INT, ARG_INT, ARG_INT}},

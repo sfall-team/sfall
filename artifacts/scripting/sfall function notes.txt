@@ -542,6 +542,11 @@ Some utility/math functions are available:
 > object sfall_func0("dialog_obj")
 - returns the object (critter) the player is having a conversation or bartering with
 
+> object sfall_func2("obj_under_cursor", int crSwitch, int inclDude)
+- returns the object under the cursor
+- crSwitch must be -1 or 1: -1 - checks items/critters/scenery/walls, 1 - only checks critters and ignores their cover (roof tiles, walls, scenery, etc.)
+- passing 0 to the inclDude argument will ignore dude_obj
+
 ------------------------
 ------ MORE INFO -------
 ------------------------

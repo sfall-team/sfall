@@ -1722,5 +1722,16 @@ void sf_get_ini_section(OpcodeContext& ctx) {
 	ctx.setReturn(arrayId);
 }
 
+void sf_obj_under_cursor(OpcodeContext& ctx) {
+	int crSwitch = ctx.arg(0).asInt(),
+		inclDude = ctx.arg(1).asInt();
+
+	if (crSwitch != -1 && crSwitch != 1) {
+		ctx.printOpcodeError("obj_under_cursor() - crSwitch value must be -1 or 1.");
+	} else {
+		ctx.setReturn(fo::func::object_under_mouse(crSwitch, inclDude, fo::var::map_elevation));
+	}
+}
+
 }
 }

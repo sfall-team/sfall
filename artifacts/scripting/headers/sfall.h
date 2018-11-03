@@ -255,6 +255,7 @@
 #define item_make_explosive(pid, aPid, min, max)        sfall_func4("item_make_explosive", pid, aPid, min, max)
 #define item_weight(obj)                                sfall_func1("item_weight", obj)
 #define lock_is_jammed(obj)                             sfall_func1("lock_is_jammed", obj)
+#define obj_under_cursor(crSwitch, inclDude)            sfall_func2("obj_under_cursor", crSwitch, inclDude)
 #define outlined_object                                 sfall_func0("outlined_object")
 #define real_dude_obj                                   sfall_func0("real_dude_obj")
 #define set_can_rest_on_map(map, elev, value)           sfall_func3("set_can_rest_on_map", map, elev, value)

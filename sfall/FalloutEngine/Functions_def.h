@@ -73,6 +73,7 @@ WRAP_WATCOM_FUNC2(long, obj_pid_new, fo::GameObject*, object, long, pid)
 // checks/unjams jammed locks
 WRAP_WATCOM_FUNC1(long, obj_lock_is_jammed, GameObject*, object)
 WRAP_WATCOM_FUNC1(void, obj_unjam_lock, GameObject*, object)
+WRAP_WATCOM_FUNC3(long, object_under_mouse, long, crSwitch, long, inclDude, long, elevation)
 WRAP_WATCOM_FUNC6(long, pick_death, GameObject*, attacker, GameObject*, target, GameObject*, weapon, long, amount, long, anim, long, hitFromBack)
 WRAP_WATCOM_FUNC2(long, queue_find_first, GameObject*, object, long, qType)
 WRAP_WATCOM_FUNC3(long, register_object_animate, GameObject*, object, long, anim, long, delay)
