@@ -539,6 +539,12 @@ Some utility/math functions are available:
 > object sfall_func0("dialog_obj")
 - returns a pointer to the object(critter) with which the dialogue/trading is conducted
 
+> object sfall_func2("obj_under_cursor", bool onlyCritter, bool includeDude)
+- returns the object under the cursor
+- onlyCritter: True  - only checks critters and ignores their cover (roof tiles, walls, scenery, etc.)
+               False - checks all objects (can't check critters under objects)
+- passing False to the includeDude argument will ignore dude_obj
+
 ------------------------
 ------ MORE INFO -------
 ------------------------

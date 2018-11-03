@@ -146,10 +146,11 @@
 #define set_attack_is_explosion(x)            metarule2_explosions(4, x, 0)
 #define set_attack_is_explosion_fire          set_attack_is_explosion(DMG_fire)
 #define set_explosion_radius(grenade, rocket) metarule2_explosions(5, grenade, rocket)
-#define get_explosion_damage(itemPid)         metarule2_explosions(6, pid, 0)
+#define get_explosion_damage(itemPid)         metarule2_explosions(6, itemPid, 0)
 #define set_dynamite_damage(minDmg, maxDmg)   metarule2_explosions(7, minDmg, maxDmg)
 #define set_plastic_damage(minDmg, maxDmg)    metarule2_explosions(8, minDmg, maxDmg)
 #define set_explosion_max_targets(x)          metarule2_explosions(9, x, 0)
+
 
 #define GAME_MSG_COMBAT      (0)
 #define GAME_MSG_AI          (1)
@@ -251,8 +252,10 @@
 #define intface_redraw                                 sfall_func0("intface_redraw")
 #define intface_show                                   sfall_func0("intface_show")
 #define inventory_redraw(invSide)                      sfall_func1("inventory_redraw", invSide)
+#define item_make_explosive(pid, aPid, min, max)       sfall_func4("item_make_explosive", pid, aPid, min, max)
 #define item_weight(obj)                               sfall_func1("item_weight", obj)
 #define lock_is_jammed(obj)                            sfall_func1("lock_is_jammed", obj)
+#define obj_under_cursor(onlyCritter, includeDude)     sfall_func2("obj_under_cursor", onlyCritter, includeDude)
 #define outlined_object                                sfall_func0("outlined_object")
 #define real_dude_obj                                  sfall_func0("real_dude_obj")
 #define set_can_rest_on_map(map, elev, value)          sfall_func3("set_can_rest_on_map", map, elev, value)
@@ -270,4 +273,3 @@
 #define spatial_radius(obj)                            sfall_func1("spatial_radius", obj)
 #define tile_refresh_display                           sfall_func0("tile_refresh_display")
 #define unjam_lock(obj)                                sfall_func1("unjam_lock", obj)
-#define item_make_explosive(pid, aPid, min, max)       sfall_func4("item_make_explosive", pid, aPid, min, max)

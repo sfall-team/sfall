@@ -97,5 +97,7 @@ void sf_get_current_size(OpcodeContext&);
 
 void sf_get_dialog_object(OpcodeContext&);
 
+void sf_get_obj_under_cursor(OpcodeContext&);
+
 }
 }
