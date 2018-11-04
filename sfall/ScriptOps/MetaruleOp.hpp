@@ -121,6 +121,8 @@ static const SfallMetarule metaruleArray[] = {
 	{"intface_show", sf_intface_show, 0, 0},
 	{"inventory_redraw", sf_inventory_redraw, 1, 1},
 	{"item_weight", sf_item_weight, 1, 1},
+	{"lock_is_jammed", sf_lock_is_jammed, 1, 1},
+	{"obj_under_cursor", sf_obj_under_cursor, 2, 2},
 	{"outlined_object", sf_outlined_object, 0, 0},
 	{"set_cursor_mode", sf_set_cursor_mode, 1, 1},
 	{"set_flags", sf_set_flags, 2, 2},
@@ -129,6 +131,7 @@ static const SfallMetarule metaruleArray[] = {
 	{"set_outline", sf_set_outline, 2, 2},
 	{"spatial_radius", sf_spatial_radius, 1, 1},
 	{"tile_refresh_display", sf_tile_refresh_display, 0, 0},
+	{"unjam_lock", sf_unjam_lock, 1, 1},
 	{"validate_test", sf_test, 2, 5},
 };
 

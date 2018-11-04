@@ -596,6 +596,25 @@ static void sf_item_weight() {
 	opHandler.setReturn(weight);
 }
 
+static void sf_lock_is_jammed() {
+	TGameObj* obj = opHandler.arg(0).asObject();
+	int result;
+	__asm {
+		mov  eax, obj;
+		call obj_lock_is_jammed_;
+		mov  result, eax;
+	}
+	opHandler.setReturn(result);
+}
+
+static void sf_unjam_lock() {
+	TGameObj* obj = opHandler.arg(0).asObject();
+	__asm {
+		mov  eax, obj;
+		call obj_unjam_lock_;
+	}
+}
+
 static void sf_get_current_inven_size() {
 	opHandler.setReturn(sf_item_total_size(opHandler.arg(0).asObject()), DATATYPE_INT);
 }

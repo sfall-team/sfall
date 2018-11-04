@@ -1693,3 +1693,18 @@ static void sf_set_ini_setting() {
 		break;
 	}
 }
+
+static void sf_obj_under_cursor() {
+	int crSwitch = opHandler.arg(0).asBool() ? 1 : -1,
+		inclDude = opHandler.arg(1).rawValue(),
+		obj;
+
+	__asm {
+		mov  ebx, dword ptr ds:[_map_elevation];
+		mov  edx, inclDude;
+		mov  eax, crSwitch;
+		call object_under_mouse_;
+		mov  obj, eax;
+	}
+	opHandler.setReturn(obj);
+}

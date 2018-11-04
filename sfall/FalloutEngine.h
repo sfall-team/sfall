@@ -694,6 +694,7 @@ extern const DWORD obj_find_first_at_;
 extern const DWORD obj_find_first_at_tile_; //  <eax>(int elevation<eax>, int tile<edx>)
 extern const DWORD obj_find_next_at_;
 extern const DWORD obj_find_next_at_tile_; // no args
+extern const DWORD obj_lock_is_jammed_;
 extern const DWORD obj_new_sid_inst_;
 extern const DWORD obj_outline_object_;
 extern const DWORD obj_pid_new_;
@@ -704,8 +705,10 @@ extern const DWORD obj_set_light_; // <eax>(int aObj<eax>, signed int aDist<edx>
 extern const DWORD obj_shoot_blocking_at_;
 extern const DWORD obj_sight_blocking_at_;
 extern const DWORD obj_top_environment_;
+extern const DWORD obj_unjam_lock_;
 extern const DWORD obj_use_book_;
 extern const DWORD obj_use_power_on_car_;
+extern const DWORD object_under_mouse_;
 extern const DWORD OptionWindow_;
 extern const DWORD palette_set_to_;
 extern const DWORD partyMemberCopyLevelInfo_;
