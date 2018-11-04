@@ -186,10 +186,10 @@ static void __fastcall FindTargetHook_Script(DWORD* target, DWORD attacker) {
 	RunHookScript(HOOK_FINDTARGET);
 
 	if (cRet >= 4) {
-		target[0] = args[1];
-		target[1] = args[2];
-		target[2] = args[3];
-		target[3] = args[4];
+		target[0] = rets[0];
+		target[1] = rets[1];
+		target[2] = rets[2];
+		target[3] = rets[3];
 	}
 	EndHook();
 }

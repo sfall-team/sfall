@@ -1723,14 +1723,7 @@ void sf_get_ini_section(OpcodeContext& ctx) {
 }
 
 void sf_obj_under_cursor(OpcodeContext& ctx) {
-	int crSwitch = ctx.arg(0).asInt(),
-		inclDude = ctx.arg(1).asInt();
-
-	if (crSwitch != -1 && crSwitch != 1) {
-		ctx.printOpcodeError("obj_under_cursor() - crSwitch value must be -1 or 1.");
-	} else {
-		ctx.setReturn(fo::func::object_under_mouse(crSwitch, inclDude, fo::var::map_elevation));
-	}
+	ctx.setReturn(fo::func::object_under_mouse(ctx.arg(0).asBool() ? 1 : -1, ctx.arg(1).rawValue(), fo::var::map_elevation));
 }
 
 }
