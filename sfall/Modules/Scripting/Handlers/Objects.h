@@ -99,5 +99,7 @@ void sf_get_dialog_object(OpcodeContext&);
 
 void sf_get_obj_under_cursor(OpcodeContext&);
 
+void sf_get_loot_object(OpcodeContext& ctx) ;
+
 }
 }

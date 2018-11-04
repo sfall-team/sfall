@@ -189,9 +189,9 @@ static void __fastcall FindTargetHook_Script(DWORD* target, DWORD attacker) {
 
 	if (cRet > 0) {
 		if (rets[0] != -1) target[0] = rets[0];
-		if (rets[1] != -1) target[1] = rets[1];
-		if (rets[2] != -1) target[2] = rets[2];
-		if (rets[3] != -1) target[3] = rets[3];
+		if (cRet > 1 && rets[1] != -1) target[1] = rets[1];
+		if (cRet > 2 && rets[2] != -1) target[2] = rets[2];
+		if (cRet > 3 && rets[3] != -1) target[3] = rets[3];
 	}
 	EndHook();
 }

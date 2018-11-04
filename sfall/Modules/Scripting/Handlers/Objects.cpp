@@ -439,5 +439,9 @@ void sf_get_obj_under_cursor(OpcodeContext& ctx) {
 	ctx.setReturn(fo::func::object_under_mouse(ctx.arg(0).asBool() ? 1 : -1, ctx.arg(1).rawValue(), fo::var::map_elevation));
 }
 
+void sf_get_loot_object(OpcodeContext& ctx) {
+	ctx.setReturn((GetLoopFlags() & INTFACELOOT) ? LoadGameHook::LootTarget : 0);
+}
+
 }
 }

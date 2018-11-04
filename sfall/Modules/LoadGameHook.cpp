@@ -60,6 +60,8 @@ static Delegate<> onAfterNewGame;
 static Delegate<DWORD> onGameModeChange;
 static Delegate<> onBeforeGameClose;
 
+DWORD LoadGameHook::LootTarget = 0;
+
 static DWORD inLoop = 0;
 static DWORD saveInCombatFix;
 static bool disableHorrigan = false;
@@ -529,6 +531,7 @@ static void __declspec(naked) UseInventoryOnHook() {
 
 static void __declspec(naked) LootContainerHook() {
 	__asm {
+		mov  LoadGameHook::LootTarget, edx;
 		_InLoop(1, INTFACELOOT);
 		call fo::funcoffs::loot_container_;
 		_InLoop(0, INTFACELOOT);
