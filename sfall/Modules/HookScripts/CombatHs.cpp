@@ -185,27 +185,22 @@ static void __fastcall FindTargetHook_Script(DWORD* target, DWORD attacker) {
 
 	RunHookScript(HOOK_FINDTARGET);
 
-	if (cRet >= 4) {
-		target[0] = rets[0];
-		target[1] = rets[1];
-		target[2] = rets[2];
-		target[3] = rets[3];
+	if (cRet > 0) {
+		if (rets[0] != -1) target[0] = rets[0];
+		if (cRet > 1 && rets[1] != -1) target[1] = rets[1];
+		if (cRet > 2 && rets[2] != -1) target[2] = rets[2];
+		if (cRet > 3 && rets[3] != -1) target[3] = rets[3];
 	}
 	EndHook();
 }
 
 static void __declspec(naked) FindTargetHook() {
 	__asm {
-		pushad;
-		mov  ecx, eax;     // targets (base)
-		mov  edx, esi;     // attacker
-		call FindTargetHook_Script;
-		popad;
-		cmp  cRet, 4;
-		jge  skip;
+		push eax;
 		call fo::funcoffs::qsort_;
-skip:
-		retn;
+		pop  ecx;          // targets (base)
+		mov  edx, esi;     // attacker
+		jmp  FindTargetHook_Script;
 	}
 }
 

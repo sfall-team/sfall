@@ -456,5 +456,9 @@ void sf_get_dialog_object(OpcodeContext& ctx) {
 	ctx.setReturn(InDialog() ? fo::var::dialog_target : 0);
 }
 
+void sf_get_loot_object(OpcodeContext& ctx) {
+	ctx.setReturn((GetLoopFlags() & INTFACELOOT) ? LoadGameHook::LootTarget : 0);
+}
+
 }
 }

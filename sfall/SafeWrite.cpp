@@ -47,19 +47,19 @@ void _stdcall SafeWrite32(DWORD addr, DWORD data) {
 void _stdcall SafeWriteStr(DWORD addr, const char* data) {
 	DWORD	oldProtect;
 
-	VirtualProtect((void *)addr, strlen(data)+1, PAGE_EXECUTE_READWRITE, &oldProtect);
+	VirtualProtect((void *)addr, strlen(data) + 1, PAGE_EXECUTE_READWRITE, &oldProtect);
 	strcpy((char *)addr, data);
-	VirtualProtect((void *)addr, strlen(data)+1, oldProtect, &oldProtect);
+	VirtualProtect((void *)addr, strlen(data) + 1, oldProtect, &oldProtect);
 }
 
 void HookCall(DWORD addr, void* func) {
-	SafeWrite32(addr+1, (DWORD)func - (addr+5));
+	SafeWrite32(addr + 1, (DWORD)func - (addr + 5));
 #ifndef NDEBUG
 	bool exist = false;
 	for (const auto &wa : writeAddress) {
 		if (addr == wa) {
 			exist = true;
-			char buf[512];
+			char buf[256];
 			sprintf_s(buf, "Memory writing conflict at address 0x%x. The address has already been overwritten by other code.", addr);
 			MessageBoxA(0, buf, "Conflict Detected", MB_TASKMODAL);
 		}

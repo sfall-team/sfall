@@ -540,12 +540,15 @@ Some utility/math functions are available:
 - the can_rest_here values in maps.txt are ignored
 
 > object sfall_func0("dialog_obj")
-- returns the object (critter) the player is having a conversation or bartering with
+- returns a pointer to the object (critter) the player is having a conversation or bartering with
 
 > object sfall_func2("obj_under_cursor", bool crSwitch, bool inclDude)
 - returns the object under the cursor on the main game screen
 - crSwitch: True - only checks critters and ignores their cover (roof tiles, walls, scenery, etc.), False - checks all objects (can't check critters under objects)
 - passing False to the inclDude argument will ignore dude_obj
+
+> object sfall_func0("loot_obj")
+- returns a pointer to the target object (container or critter) of the loot screen
 
 ------------------------
 ------ MORE INFO -------
