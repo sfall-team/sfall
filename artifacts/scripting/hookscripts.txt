@@ -189,7 +189,7 @@ Critter arg1 - The critter that just died
 
 HOOK_FINDTARGET (hs_findtarget.int)
 
-Runs when the ai is trying to pick a target in combat. Fallout first chooses a list of 4 likely suspects, then normally sorts them in order of weakness/distance/etc depending on the ai caps of the attacker. This hook replaces that sorting function, allowing you to sort the targets in some arbitrary way. Use sfall_return to give the 4 targets, in order of preference. All 4 must be given if you want to override normal sorting; if you want to specify less than 4 targets fill in the extra spaces with 0's. If you do not give 4 targets, the NPCs normal sorting mechanism will be used.
+Runs when the ai is trying to pick a target in combat. Fallout first chooses a list of 4 likely suspects, then normally sorts them in order of weakness/distance/etc depending on the ai caps of the attacker. This hook replaces that sorting function, allowing you to sort the targets in some arbitrary way. Use sfall_return to give the 4 targets, in order of preference. All 4 must be given if you want to override normal sorting; if you want to specify less than 4 targets, fill in the extra spaces with 0's. If you do not give 4 targets, the NPCs normal sorting mechanism will be used.
 
 The return values can include critters that weren't in the list of possible targets, but the additional targets may still be discarded later on in the combat turn if they are out of the attackers perception or the chance of a successful hit is too low. The list of possible targets often includes duplicated entries.
 

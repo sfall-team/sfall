@@ -1305,6 +1305,67 @@ end:
 	}
 }
 
+static DWORD expSwiftLearner; // experience points for print
+static void __declspec(naked) statPCAddExperienceCheckPMs_hack() {
+	__asm {
+		mov  expSwiftLearner, edi;
+		mov  eax, dword ptr ds:[_Experience_];
+		retn;
+	}
+}
+
+static void __declspec(naked) combat_give_exps_hook() {
+	__asm {
+		call stat_pc_add_experience_;
+		mov  ebx, expSwiftLearner;
+		retn;
+	}
+}
+
+static const DWORD LootContainerExp_Ret = 0x4745E3;
+static void __declspec(naked) loot_container_exp_hack() {
+	__asm {
+		mov  edx, [esp + 0x150 - 0x18];  // experience
+		xchg edx, eax;
+		call stat_pc_add_experience_;
+		// engine code
+		cmp  edx, 1;                     // from eax
+		jnz  skip;
+		push expSwiftLearner;
+		mov  ebx, [esp + 0x154 - 0x78 + 0x0C]; // msgfile.message
+		push ebx;
+		lea  eax, [esp + 0x158 - 0x150]; // buf
+		push eax;
+		call sprintf_;
+		add  esp, 0x0C;
+		mov  eax, esp;
+		call display_print_;
+		// end code
+skip:
+		jmp  LootContainerExp_Ret;
+	}
+}
+
+static void __declspec(naked) wmRndEncounterOccurred_hook() {
+	__asm {
+		call stat_pc_add_experience_;
+		cmp  ecx, 110;
+		jnb  skip;
+		push expSwiftLearner;
+		// engine code
+		push edx;
+		lea  eax, [esp + 0x08 + 4];
+		push eax;
+		call sprintf_;
+		add  esp, 0x0C;
+		lea  eax, [esp + 4];
+		call display_print_;
+		// end code
+skip:
+		retn;
+	}
+}
+
 static void __declspec(naked) op_obj_can_see_obj_hack() {
 	__asm {
 		mov  eax, [esp + 0x2C - 0x28 + 4];  // source
@@ -1803,6 +1864,17 @@ void BugsInit()
 	// Fix for critters killed in combat by scripting still being able to move in their combat turn if the distance parameter
 	// in their AI packages is set to stay_close/charge, or NPCsTryToSpendExtraAP is enabled
 	HookCall(0x42A1A8, ai_move_steps_closer_hook); // 0x42B24D
+
+	// Display experience points with the bonus from Swift Learner perk when gained from non-scripted situations
+	if (GetPrivateProfileIntA("Misc", "DisplaySwiftLearnerExp", 1, ini)) {
+		dlog("Applying Swift Learner exp display patch.", DL_INIT);
+		MakeCall(0x4AFAEF, statPCAddExperienceCheckPMs_hack);
+		HookCall(0x4221E2, combat_give_exps_hook);
+		MakeJump(0x4745AE, loot_container_exp_hack);
+		SafeWrite16(0x4C0AB1, 0x23EB); // jmps 0x4C0AD6
+		HookCall(0x4C0AEB, wmRndEncounterOccurred_hook);
+		dlogr(" Done", DL_INIT);
+	}
 
 	// Fix for obj_can_see_obj not checking if source and target objects are on the same elevation before calling
 	// is_within_perception_

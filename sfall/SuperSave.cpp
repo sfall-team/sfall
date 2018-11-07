@@ -143,11 +143,7 @@ void SetPageNum() {
 		if (NewTick - OldTick > 166) { // time to draw
 			OldTick = NewTick;
 
-			if (blip == '_') {
-				blip = ' ';
-			} else {
-				blip = '_';
-			}
+			blip = (blip == '_') ? ' ' : '_';
 
 			sprintf_s(TempText, 32, "#%d%c", tempPageOffset / 10 + 1, '_');
 			if (tempPageOffset == -1) {
