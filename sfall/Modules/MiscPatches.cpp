@@ -141,6 +141,7 @@ c15:
 		jmp fo::funcoffs::art_get_code_;
 	}
 }
+
 static void __declspec(naked) intface_rotate_numbers_hack() {
 	__asm {
 		push edi
@@ -656,7 +657,7 @@ void SpeedInterfaceCounterAnimsPatch() {
 		break;
 	case 2:
 		dlog("Applying SpeedInterfaceCounterAnims patch. (Instant)", DL_INIT);
-		SafeWrite32(0x460BB6, 0x90DB3190);
+		SafeWrite32(0x460BB6, 0x90DB3190); // xor ebx, ebx
 		dlogr(" Done", DL_INIT);
 		break;
 	}

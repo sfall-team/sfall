@@ -31,6 +31,7 @@ namespace sfall
 {
 
 bool isControllingNPC = false;
+bool skipCounterAnim  = false;
 
 static DWORD controlMode;
 static std::vector<WORD> allowedCritterPids;
@@ -76,6 +77,8 @@ static void SaveRealDudeState() {
 	//real_map_elevation = fo::var::map_elevation;
 	realDude.sneak_working = fo::var::sneak_working;
 	fo::SkillGetTags(realDude.tag_skill, 4);
+
+	if (skipCounterAnim) SafeWriteBatch<BYTE>(0, {0x422BDE, 0x4229EC}); // no animate
 }
 
 // take control of the NPC
@@ -157,8 +160,9 @@ static void RestoreRealDudeState() {
 		fo::func::stat_pc_add_experience(delayedExperience);
 	}
 
-	fo::func::intface_redraw();
+	if (skipCounterAnim) SafeWriteBatch<BYTE>(1, {0x422BDE, 0x4229EC}); // restore
 
+	fo::func::intface_redraw();
 	isControllingNPC = false;
 }
 
@@ -326,6 +330,8 @@ void PartyControl::init() {
 
 	HookCall(0x454218, stat_pc_add_experience_hook); // call inside op_give_exp_points_hook
 	HookCalls(pc_flag_toggle_hook, { 0x4124F1, 0x41279A });
+
+	skipCounterAnim = (GetConfigInt("Misc", "SpeedInterfaceCounterAnims", 0) == 3);
 
 	// Party members buttons best weapon/armor - unwield behavior (from Crafty)
 	if (GetConfigInt("Misc", "PartyMemberTakeOffItem", 0)) {
