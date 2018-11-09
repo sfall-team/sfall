@@ -33,90 +33,84 @@ static DWORD statMinimumsPC[fo::STAT_max_stat];
 static DWORD statMaximumsNPC[fo::STAT_max_stat];
 static DWORD statMinimumsNPC[fo::STAT_max_stat];
 
-static DWORD cCritter;
+static fo::GameObject* cCritter;
 
 static DWORD xpTable[99];
+static int StatFormulas[33 * 2];
+static int StatShifts[33 * 7];
+static double StatMulti[33 * 7];
 
-static void __declspec(naked) GetCurrentStatHook1() {
+DWORD standardApAcBonus = 4;
+DWORD extraApAcBonus = 4;
+
+static const DWORD StatLevelHack_Ret = 0x4AEF52;
+static void __declspec(naked) stat_level_hack() {
 	__asm {
 		mov cCritter, eax;
-		push ebx;
-		push ecx;
-		push esi;
-		push edi;
-		push ebp;
-		push 0x4AEF4D;
-		retn;
+		sub esp, 8;
+		mov ebx, eax;
+		jmp StatLevelHack_Ret;
 	}
 }
 
-static void __declspec(naked) GetCurrentStatHook2() {
+static DWORD __fastcall check_stat_level(register DWORD value, DWORD stat) {
+	DWORD valLimit;
+	if (cCritter == fo::var::obj_dude) {
+		valLimit = statMinimumsPC[stat];
+		if (value < valLimit) return valLimit;
+		valLimit = statMaximumsPC[stat];
+		if (value > valLimit) return valLimit;
+	} else {
+		valLimit = statMinimumsNPC[stat];
+		if (value < valLimit) return valLimit;
+		valLimit = statMaximumsNPC[stat];
+		if (value > valLimit) return valLimit;
+	}
+	return value;
+}
+
+static const DWORD StatLevelHackCheck_Ret = 0x4AF3D7;
+static void __declspec(naked) stat_level_hack_check() {
 	__asm {
-		shl esi, 2;
-		mov eax, cCritter;
-		cmp eax, dword ptr ds:[FO_VAR_obj_dude];
-		je pc;
-		cmp ecx, statMinimumsNPC[esi];
-		jg npc1;
-		mov eax, statMinimumsNPC[esi];
-		jmp end;
-npc1:
-		cmp ecx, statMaximumsNPC[esi];
-		jl npc2;
-		mov eax, statMaximumsNPC[esi];
-		jmp end;
-npc2:
-		mov eax, ecx;
-		jmp end;
-pc:
-		cmp ecx, statMinimumsPC[esi];
-		jge pc1;
-		mov eax, statMinimumsPC[esi];
-		jmp end;
-pc1:
-		cmp ecx, statMaximumsPC[esi];
-		jle pc2;
-		mov eax, statMaximumsPC[esi];
-		jmp end;
-pc2:
-		mov eax, ecx;
-end:
-		push 0x4AF3D7;
-		retn;
+		mov  edx, esi;
+		call check_stat_level; // ecx - value stat
+		jmp  StatLevelHackCheck_Ret;
 	}
 }
 
-static void __declspec(naked) SetCurrentStatHook() {
+static const DWORD StatSetBaseHack_RetMin = 0x4AF57E;
+static const DWORD StatSetBaseHack_RetMax = 0x4AF591;
+static const DWORD StatSetBaseHack_Ret    = 0x4AF59C;
+static void __declspec(naked) stat_set_base_hack_check() {
 	__asm {
 		cmp esi, dword ptr ds:[FO_VAR_obj_dude];
-		je pc;
-		cmp ebx, statMinimumsNPC[ecx*4];
-		jl fail;
-		cmp ebx, statMaximumsNPC[ecx*4];
-		jg fail;
-		jmp end;
+		jz  pc;
+		cmp ebx, statMinimumsNPC[eax];
+		jl  failMin;
+		cmp ebx, statMaximumsNPC[eax];
+		jg  failMax;
+		jmp StatSetBaseHack_Ret;
 pc:
-		cmp ebx, statMinimumsPC[ecx*4];
-		jl fail;
-		cmp ebx, statMaximumsPC[ecx*4];
-		jg fail;
-		jmp end;
-fail:
-		push 0x4AF57E;
-		retn;
-end:
-		push 0x4AF59C;
-		retn;
+		cmp ebx, statMinimumsPC[eax];
+		jl  failMin;
+		cmp ebx, statMaximumsPC[eax];
+		jg  failMax;
+		jmp StatSetBaseHack_Ret;
+failMin:
+		jmp StatSetBaseHack_RetMin;
+failMax:
+		jmp StatSetBaseHack_RetMax;
 	}
 }
 
 static void __declspec(naked) GetLevelXPHook() {
 	__asm {
 		dec eax;
-		mov eax, [xpTable+eax*4];
-		ret;
+		mov eax, [xpTable + eax * 4];
+		retn;
 	}
 }
+
 static void __declspec(naked) GetNextLevelXPHook() {
 	__asm {
 		mov eax, ds:[FO_VAR_Level_];
@@ -124,83 +118,58 @@ static void __declspec(naked) GetNextLevelXPHook() {
 	}
 }
 
-unsigned short standardApAcBonus = 4;
-unsigned short extraApAcBonus = 4;
 static const DWORD ApAcRetAddr = 0x4AF0A4;
-static void __declspec(naked) ApplyApAcBonus() {
+static void __declspec(naked) CalcApToAcBonus() {
 	using namespace fo;
+	using namespace Fields;
 	__asm {
-		push edi;
-		push edx;
-		cmp [esp+12], 2;
-		jge h2hEvade;
-		xor edi, edi;
-		jmp standard;
-h2hEvade:
-		mov edx, PERK_hth_evade_perk;
-		mov eax, dword ptr ds:[FO_VAR_obj_dude];
+		xor  eax, eax;
+		mov  edi, [ebx + movePoints];
+		test edi, edi;
+		jz   end;
+		cmp  [esp + 0x1C - 0x18], 2;     // pc have perk h2hEvade (2 - vanilla bonus)
+		jb   standard;
+		mov  edx, PERK_hth_evade_perk;
+		mov  eax, dword ptr ds:[FO_VAR_obj_dude];
 		call fo::funcoffs::perk_level_;
-		imul ax, extraApAcBonus;
-		imul ax, [ebx+0x40];
-		mov edi, eax;
+		imul eax, extraApAcBonus;        // bonus = perkLvl * extraApBonus
+		imul eax, edi;                   // perkBonus = bonus * curAP
 standard:
-		mov eax, [ebx+0x40];
-		imul ax, standardApAcBonus;
-		add eax, edi;
-		shr eax, 2;
-		pop edx;
-		pop edi;
-		jmp ApAcRetAddr;
+		imul edi, standardApAcBonus;     // stdBonus = curAP * standardApBonus
+		add  eax, edi;                   // bonus = perkBonus + stdBonus
+		shr  eax, 2;                     // acBonus = bonus / 4
+end:
+		jmp  ApAcRetAddr;
 	}
 }
 
-static int StatFormulas[33 * 2];
-static int StatShifts[33 * 7];
-static double StatMulti[33 * 7];
-static int __declspec(naked) _stdcall StatLevel(void* critter, int id) {
-	__asm {
-		mov eax, [esp+4];
-		mov edx, [esp+8];
-		call fo::funcoffs::stat_level_;
-		retn 8;
-	}
-}
-
-static void __declspec(naked) _stdcall ProtoPtr(DWORD pid, int** proto) {
-	__asm {
-		mov eax, [esp+4];
-		mov edx, [esp+8];
-		call fo::funcoffs::proto_ptr_;
-		retn 8;
-	}
-}
-
-static void _stdcall StatRecalcDerived(DWORD* critter) {
+static void _stdcall StatRecalcDerived(fo::GameObject* critter) {
 	int basestats[7];
-	for (int i = 0; i < 7; i++) basestats[i] = StatLevel(critter, i);
-	int* proto;
-	ProtoPtr(critter[25], &proto);
+	for (int i = fo::Stat::STAT_st; i <= fo::Stat::STAT_lu; i++) basestats[i] = fo::func::stat_level(critter, i);
 
-	for (int i = 7; i <= 32; i++) {
-		if (i >= 17 && i <= 30) continue;
+	int* proto;
+	fo::func::proto_ptr(critter->protoId, (fo::Proto**)&proto);
+
+	for (int i = fo::Stat::STAT_max_hit_points; i <= fo::Stat::STAT_poison_resist; i++) {
+		if (i >= fo::Stat::STAT_dmg_thresh && i <= fo::Stat::STAT_dmg_resist_explosion) continue;
 
 		double sum = 0;
-		for (int j = 0; j < 7; j++) {
-			sum += (basestats[j] + StatShifts[i * 7 + j])*StatMulti[i * 7 + j];
+		for (int j = fo::Stat::STAT_st; j <= fo::Stat::STAT_lu; j++) {
+			sum += (basestats[j] + StatShifts[i * 7 + j]) * StatMulti[i * 7 + j];
 		}
 		proto[i + 9] = StatFormulas[i * 2] + (int)floor(sum);
 		if (proto[i + 9] < StatFormulas[i * 2 + 1]) proto[i + 9] = StatFormulas[i * 2 + 1];
 	}
 }
 
-static void __declspec(naked) stat_recalc_derived() {
+static void __declspec(naked) stat_recalc_derived_hack() {
 	__asm {
 		push edx;
 		push ecx;
 		push eax;
 		call StatRecalcDerived;
-		pop ecx;
-		pop edx;
+		pop  ecx;
+		pop  edx;
 		retn;
 	}
 }
@@ -225,18 +194,14 @@ void Stats::init() {
 		SafeWrite32(0x4AFAB9, 0x55575651);
 		//HP bonus
 		SafeWrite8(0x4AFBC1, 2);
-		//skillpoints per level mod
-		SafeWrite8(0x43C27a, 5);
+		//skill points per level mod
+		SafeWrite8(0x43C27A, 5);
 	};
 
-	SafeWrite8(0x4AEF48, 0xE9);
-	HookCall(0x4AEF48, GetCurrentStatHook1);
-	SafeWrite8(0x4AF3AF, 0xE9);
-	HookCall(0x4AF3AF, GetCurrentStatHook2);
-	SafeWrite8(0x4AF56A, 0xE9);
-	HookCall(0x4AF56A, SetCurrentStatHook);
-	SafeWrite8(0x4AF09C, 0xE9);
-	HookCall(0x4AF09C, ApplyApAcBonus);
+	MakeJump(0x4AEF4D, stat_level_hack);
+	MakeJump(0x4AF3AF, stat_level_hack_check);
+	MakeJump(0x4AF571, stat_set_base_hack_check);
+	MakeJump(0x4AF09C, CalcApToAcBonus); // stat_level_
 
 	auto xpTableList = GetConfigList("Misc", "XPTable", "", 2048);
 	size_t numLevels = xpTableList.size();
@@ -257,38 +222,44 @@ void Stats::init() {
 
 	auto statsFile = GetConfigString("Misc", "DerivedStats", "", 2048);
 	if (statsFile.size() > 0) {
-		MakeJump(0x4AF6FC, stat_recalc_derived);
+		MakeJump(0x4AF6FC, stat_recalc_derived_hack); // overrides function
+
 		memset(StatFormulas, 0, sizeof(StatFormulas));
 		memset(StatShifts, 0, sizeof(StatShifts));
 		memset(StatMulti, 0, sizeof(StatMulti));
 
-		StatFormulas[7 * 2] = 15; //max hp
-		StatMulti[7 * 7 + 0] = 1;
-		StatMulti[7 * 7 + 2] = 2;
-		StatFormulas[8 * 2] = 5; //max ap
-		StatMulti[8 * 7 + 5] = 0.5;
-		StatMulti[9 * 7 + 5] = 1; //ac
-		StatFormulas[11 * 2 + 1] = 1; //melee damage
-		StatShifts[11 * 7 + 0] = -5;
-		StatMulti[11 * 7 + 0] = 1;
-		StatFormulas[12 * 2] = 25; //carry weight
-		StatMulti[12 * 7 + 0] = 25;
-		StatMulti[13 * 7 + 1] = 2; //sequence
-		StatFormulas[14 * 2 + 1] = 1; //heal rate
-		StatMulti[14 * 7 + 2] = 1.0 / 3.0;
-		StatMulti[15 * 7 + 6] = 1; //critical chance
-		StatMulti[31 * 7 + 2] = 2; //rad resist
-		StatMulti[32 * 7 + 2] = 5; //poison resist
+		StatFormulas[7 * 2]      = 15;     // max hp
+		StatMulti[7 * 7 + 0]     = 1;
+		StatMulti[7 * 7 + 2]     = 2;
+
+		StatFormulas[8 * 2]      = 5;      // max ap
+		StatMulti[8 * 7 + 5]     = 0.5;
+
+		StatMulti[9 * 7 + 5]     = 1;      // ac
+		StatFormulas[11 * 2 + 1] = 1;      // melee damage
+		StatShifts[11 * 7 + 0]   = -5;
+		StatMulti[11 * 7 + 0]    = 1;
+
+		StatFormulas[12 * 2]     = 25;     // carry weight
+		StatMulti[12 * 7 + 0]    = 25;
+
+		StatMulti[13 * 7 + 1]    = 2;      // sequence
+		StatFormulas[14 * 2 + 1] = 1;      // heal rate
+		StatMulti[14 * 7 + 2]    = 1.0 / 3.0;
+
+		StatMulti[15 * 7 + 6]    = 1;      // critical chance
+		StatMulti[31 * 7 + 2]    = 2;      // rad resist
+		StatMulti[32 * 7 + 2]    = 5;      // poison resist
 
 		char key[6], buf2[256], buf3[256];
 		statsFile = ".\\" + statsFile;
-		for (int i = 7; i <= 32; i++) {
-			if (i >= 17 && i <= 30) continue;
+		for (int i = fo::Stat::STAT_max_hit_points; i <= fo::Stat::STAT_poison_resist; i++) {
+			if (i >= fo::Stat::STAT_dmg_thresh && i <= fo::Stat::STAT_dmg_resist_explosion) continue;
 
 			_itoa(i, key, 10);
 			StatFormulas[i * 2] = GetPrivateProfileInt(key, "base", StatFormulas[i * 2], statsFile.c_str());
 			StatFormulas[i * 2 + 1] = GetPrivateProfileInt(key, "min", StatFormulas[i * 2 + 1], statsFile.c_str());
-			for (int j = 0; j < 7; j++) {
+			for (int j = 0; j < fo::Stat::STAT_max_hit_points; j++) {
 				sprintf(buf2, "shift%d", j);
 				StatShifts[i * 7 + j] = GetPrivateProfileInt(key, buf2, StatShifts[i * 7 + 0], statsFile.c_str());
 				sprintf(buf2, "multi%d", j);
