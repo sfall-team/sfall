@@ -23,6 +23,7 @@
 #include "Bugs.h"
 #include "Console.h"
 #include "Criticals.h"
+#include "Define.h"
 #include "Explosions.h"
 #include "FalloutEngine.h"
 #include "FileSystem.h"
@@ -128,15 +129,11 @@ static DWORD _stdcall combatSaveTest() {
 			DisplayConsoleMessage(SaveFailMsg);
 			return 0;
 		}
-		DWORD ap;
-		DWORD bonusmove;
+		int ap = StatLevel(*ptr_obj_dude, STAT_max_move_points);
+		int bonusmove;
 		__asm {
-			mov edx, 8;
+			mov edx, PERK_bonus_move;
 			mov eax, ds:[_obj_dude];
-			call stat_level_;
-			mov ap, eax;
-			mov eax, ds:[_obj_dude];
-			mov edx, 3;
 			call perk_level_;
 			mov bonusmove, eax;
 		}

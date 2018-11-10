@@ -1012,19 +1012,20 @@ static void __declspec(naked) SetApAcBonus() {
 		call interpretPopLong_;
 		cmp dx, VAR_TYPE_INT;
 		jnz end;
-		mov StandardApAcBonus, ax;
+		mov StandardApAcBonus, eax;
 end:
 		pop edx;
 		pop ecx;
 		retn;
 	}
 }
+
 static void __declspec(naked) GetApAcBonus() {
 	__asm {
 		push ecx;
 		push edx;
 		mov ecx, eax;
-		movzx edx, StandardApAcBonus;
+		mov edx, StandardApAcBonus;
 		call interpretPushLong_;
 		mov eax, ecx;
 		mov edx, VAR_TYPE_INT;
@@ -1034,6 +1035,7 @@ static void __declspec(naked) GetApAcBonus() {
 		retn;
 	}
 }
+
 static void __declspec(naked) SetApAcEBonus() {
 	__asm {
 		push ecx;
@@ -1045,19 +1047,20 @@ static void __declspec(naked) SetApAcEBonus() {
 		call interpretPopLong_;
 		cmp dx, VAR_TYPE_INT;
 		jnz end;
-		mov ExtraApAcBonus, ax;
+		mov ExtraApAcBonus, eax;
 end:
 		pop edx;
 		pop ecx;
 		retn;
 	}
 }
+
 static void __declspec(naked) GetApAcEBonus() {
 	__asm {
 		push ecx;
 		push edx;
 		mov ecx, eax;
-		movzx edx, ExtraApAcBonus;
+		mov edx, ExtraApAcBonus;
 		call interpretPushLong_;
 		mov eax, ecx;
 		mov edx, VAR_TYPE_INT;
@@ -1088,9 +1091,9 @@ next:
 		//call palette_set_to_;
 		mov eax, ecx;
 		call interpretGetString_;
-  call loadColorTable_
-		mov eax, _cmap
-  call palette_set_to_
+		call loadColorTable_;
+		mov eax, _cmap;
+		call palette_set_to_;
 end:
 		pop edx;
 		pop ecx;

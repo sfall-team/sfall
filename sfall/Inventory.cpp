@@ -381,16 +381,8 @@ static int __fastcall SuperStimFix2(TGameObj* item, TGameObj* target) {
 	}
 
 	DWORD curr_hp, max_hp;
-	__asm {
-		mov eax, target;
-		mov edx, STAT_current_hp
-		call stat_level_
-		mov curr_hp, eax;
-		mov eax, target;
-		mov edx, STAT_max_hit_points
-		call stat_level_
-		mov max_hp, eax;
-	}
+	curr_hp = StatLevel(target, STAT_current_hp);
+	max_hp = StatLevel(target, STAT_max_hit_points);
 	if (curr_hp < max_hp) return 0;
 
 	DisplayConsoleMessage(SuperStimMsg);

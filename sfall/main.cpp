@@ -1290,7 +1290,7 @@ static void DllMain2() {
 		break;
 	case 2:
 		dlog("Applying SpeedInterfaceCounterAnims patch. (Instant)", DL_INIT);
-		SafeWrite32(0x460BB6, 0x90DB3190);
+		SafeWrite32(0x460BB6, 0x90DB3190); // xor ebx, ebx
 		dlogr(" Done", DL_INIT);
 		break;
 	}

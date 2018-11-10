@@ -36,6 +36,7 @@
 
 static DWORD Mode;
 static int IsControllingNPC = 0;
+static bool SkipCounterAnim  = false;
 static std::vector<WORD> Chars;
 static int DelayedExperience;
 
@@ -103,6 +104,11 @@ static void SaveRealDudeState() {
 	//real_map_elevation = *ptr_map_elevation;
 	real_sneak_working = *ptr_sneak_working;
 	SkillGetTags(real_tag_skill, 4);
+
+	if (SkipCounterAnim) {
+		SafeWrite8(0x4229EC, 0); // no animate
+		SafeWrite8(0x422BDE, 0);
+	}
 }
 
 // take control of the NPC
@@ -187,6 +193,11 @@ static void RestoreRealDudeState() {
 		StatPcAddExperience(DelayedExperience);
 	}
 
+
+	if (SkipCounterAnim) {
+		SafeWrite8(0x4229EC, 1); // restore
+		SafeWrite8(0x422BDE, 1);
+	}
 	InterfaceRedraw();
 
 	SetInventoryCheck(false);
@@ -421,6 +432,8 @@ void PartyControlInit() {
 		HookCall(0x41279A, &pc_flag_toggle_hook);
 	} else
 		dlogr("  Disabled.", DL_INIT);
+
+	SkipCounterAnim = (GetPrivateProfileIntA("Misc", "SpeedInterfaceCounterAnims", 0, ini) == 3);
 
 	// display party member's current level & AC & addict flag
 	if (GetPrivateProfileIntA("Misc", "PartyMemberExtraInfo", 0, ini)) {

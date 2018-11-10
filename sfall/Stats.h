@@ -24,5 +24,5 @@ void _stdcall SetPCStatMax(int stat, int i);
 void _stdcall SetPCStatMin(int stat, int i);
 void _stdcall SetNPCStatMax(int stat, int i);
 void _stdcall SetNPCStatMin(int stat, int i);
-extern unsigned short StandardApAcBonus;
-extern unsigned short ExtraApAcBonus;
+extern DWORD StandardApAcBonus;
+extern DWORD ExtraApAcBonus;
