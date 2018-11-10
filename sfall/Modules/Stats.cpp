@@ -228,28 +228,28 @@ void Stats::init() {
 		memset(StatShifts, 0, sizeof(StatShifts));
 		memset(StatMulti, 0, sizeof(StatMulti));
 
-		StatFormulas[7 * 2]      = 15;     // max hp
+		StatFormulas[7 * 2]      = 15;      // max hp
 		StatMulti[7 * 7 + 0]     = 1;
 		StatMulti[7 * 7 + 2]     = 2;
 
-		StatFormulas[8 * 2]      = 5;      // max ap
+		StatFormulas[8 * 2]      = 5;       // max ap
 		StatMulti[8 * 7 + 5]     = 0.5;
 
-		StatMulti[9 * 7 + 5]     = 1;      // ac
-		StatFormulas[11 * 2 + 1] = 1;      // melee damage
+		StatMulti[9 * 7 + 5]     = 1;       // ac
+		StatFormulas[11 * 2 + 1] = 1;       // melee damage
 		StatShifts[11 * 7 + 0]   = -5;
 		StatMulti[11 * 7 + 0]    = 1;
 
-		StatFormulas[12 * 2]     = 25;     // carry weight
+		StatFormulas[12 * 2]     = 25;      // carry weight
 		StatMulti[12 * 7 + 0]    = 25;
 
-		StatMulti[13 * 7 + 1]    = 2;      // sequence
-		StatFormulas[14 * 2 + 1] = 1;      // heal rate
+		StatMulti[13 * 7 + 1]    = 2;       // sequence
+		StatFormulas[14 * 2 + 1] = 1;       // heal rate
 		StatMulti[14 * 7 + 2]    = 1.0 / 3.0;
 
-		StatMulti[15 * 7 + 6]    = 1;      // critical chance
-		StatMulti[31 * 7 + 2]    = 2;      // rad resist
-		StatMulti[32 * 7 + 2]    = 5;      // poison resist
+		StatMulti[15 * 7 + 6]    = 1;       // critical chance
+		StatMulti[31 * 7 + 2]    = 2;       // rad resist
+		StatMulti[32 * 7 + 2]    = 5;       // poison resist
 
 		char key[6], buf2[256], buf3[256];
 		statsFile = ".\\" + statsFile;
