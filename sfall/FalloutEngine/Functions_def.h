@@ -22,6 +22,8 @@ WRAP_WATCOM_FFUNC3(bool, ai_can_use_weapon, GameObject*, critter, GameObject*, i
 WRAP_WATCOM_FFUNC3(long, ai_have_ammo, GameObject*, critter, GameObject*, item, DWORD*, buf)
 WRAP_WATCOM_FFUNC3(long, ai_pick_hit_mode, GameObject*, source, GameObject*, item, GameObject*, target)
 WRAP_WATCOM_FFUNC3(GameObject*, ai_search_inven_weap, GameObject*, source, long, apCheck, GameObject*, target)
+WRAP_WATCOM_FFUNC4(long, combat_check_bad_shot, GameObject*, source, GameObject*, target, long, hitMode, long, isSecondary)
+WRAP_WATCOM_FFUNC5(bool, combat_is_shot_blocked, GameObject*, source, DWORD, tileSource, DWORD, tileTarget, GameObject*, target, long*, accumulator)
 WRAP_WATCOM_FFUNC3(void, correctFidForRemovedItem, GameObject*, critter, GameObject*, item, long, slotFlag)
 WRAP_WATCOM_FFUNC7(long, createWindow, const char*, winName, DWORD, x, DWORD, y, DWORD, width, DWORD, height, long, color, long, flags)
 WRAP_WATCOM_FFUNC3(GameObject*, inven_find_type, GameObject*, critter, long, itemType, DWORD*, buf)
@@ -34,6 +36,7 @@ WRAP_WATCOM_FFUNC4(void, qsort, void*, base, long, number, long, elSize, DWORD, 
 WRAP_WATCOM_FFUNC3(long, tile_num_in_direction, long, tile, long, rotation,long, distance)
 
 // stdcall
+WRAP_WATCOM_FUNC1(AIcap*, ai_cap, GameObject*, critter)
 WRAP_WATCOM_FUNC2(GameObject*, ai_retrieve_object, GameObject*, critter, GameObject*, item)
 WRAP_WATCOM_FUNC2(GameObject*, ai_search_environ, GameObject*, critter, long, itemType)
 WRAP_WATCOM_FUNC1(GameObject*, ai_search_inven_armor, GameObject*, critter)
@@ -83,7 +86,9 @@ WRAP_WATCOM_FUNC2(long, item_w_compute_ammo_cost, GameObject*, item, DWORD*, rou
 WRAP_WATCOM_FUNC1(long, item_w_curr_ammo, GameObject*, item)
 WRAP_WATCOM_FUNC1(long, item_w_max_ammo, GameObject*, item)
 WRAP_WATCOM_FUNC1(long, item_w_primary_mp_cost, GameObject*, item)
+WRAP_WATCOM_FUNC2(long, item_w_range, GameObject*, critter, long, hitMode)
 WRAP_WATCOM_FUNC1(long, item_w_rounds, GameObject*, item)
+WRAP_WATCOM_FUNC1(long, item_w_secondary_mp_cost, GameObject*, item)
 WRAP_WATCOM_FUNC2(long, item_w_subtype, GameObject*, item, long, hitMode)
 WRAP_WATCOM_FUNC1(long, item_weight, GameObject*, item)
 // returns light level at given tile
@@ -127,6 +132,7 @@ WRAP_WATCOM_FUNC1(long, register_object_must_erase, GameObject*, object)
 // WRAP_WATCOM_FUNC3(long, register_object_run_to_tile_, GameObject*, object;
 WRAP_WATCOM_FUNC3(long, register_object_take_out, GameObject*, object, long, holdFrameId, long, nothing)
 WRAP_WATCOM_FUNC3(long, register_object_turn_towards, GameObject*, object, long, tileNum, long, nothing)
+WRAP_WATCOM_FUNC2(long, roll_random, long, minValue, long, maxValue)
 // adds experience points to PC
 WRAP_WATCOM_FUNC1(void, stat_pc_add_experience, long, amount)
 // redraws the whole screen

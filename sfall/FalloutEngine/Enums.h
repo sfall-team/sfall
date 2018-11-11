@@ -721,4 +721,35 @@ namespace WinFlags {
 	};
 }
 
+namespace AIpref {
+	enum distance : long
+	{
+		stay_close            = 0,
+		charge                = 1,
+		snipe                 = 2,
+		on_your_own           = 3,
+		stay                  = 4
+	};
+
+	enum disposition : long 
+	{	
+		 none                 = 0,
+		 custom               = 1,
+		 coward               = 2,
+		 defensive            = 3,
+		 aggressive           = 4,
+		 berserk              = 5
+	};
+
+	enum attack_who_mode : long
+	{
+		 whomever_attacking_me = 0,
+		 strongest             = 1,
+		 weakest               = 2,
+		 whomever              = 3,
+		 closest               = 4,
+		 no_attack_mode        = -1
+	};
+}
+
 }

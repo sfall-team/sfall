@@ -24,7 +24,7 @@
 #include "..\FalloutEngine\Fallout2.h"
 #include "..\SafeWrite.h"
 
-namespace sfall 
+namespace sfall
 {
 using namespace fo;
 using namespace Fields;
@@ -67,28 +67,46 @@ continue:
 	}
 }
 
+static DWORD sf_check_critters_on_fireline(fo::GameObject* object, DWORD checkTile, DWORD team) {
+	if (object && object->Type() == ObjType::OBJ_TYPE_CRITTER && object->critter.teamNum != team) { // not friendly fire
+		fo::GameObject*	obj = nullptr;
+		fo::func::make_straight_path_func(object, object->tile, checkTile, 0, (DWORD*)&obj, 32, (void*)fo::funcoffs::obj_shoot_blocking_at_);
+		if (!sf_check_critters_on_fireline(obj, checkTile, team)) return 0;
+	}
+	return (DWORD)object;
+}
+
 static DWORD __fastcall sf_ai_move_steps_closer(fo::GameObject* source, fo::GameObject* target, DWORD* distPtr) {
 	DWORD distance, shotTile = 0;
 
 	char rotationData[256];
 	long pathLength = fo::func::make_path_func(source, source->tile, target->tile, rotationData, 0, (void*)fo::funcoffs::obj_blocking_at_);
 
+	long dist = source->critter.movePoints + 1;
+	if (dist < pathLength) pathLength = dist;
+
 	long checkTile = source->tile;
 	for (int i = 0; i < pathLength; i++)
 	{
 		checkTile = fo::func::tile_num_in_direction(checkTile, rotationData[i], 1);
 
-		DWORD object = 0;
-		fo::func::make_straight_path_func(target, target->tile, checkTile, 0, &object, 32, (void*)fo::funcoffs::obj_shoot_blocking_at_);
-		if (!object) {
+		fo::GameObject* object = nullptr;
+		fo::func::make_straight_path_func(target, target->tile, checkTile, 0, (DWORD*)&object, 32, (void*)fo::funcoffs::obj_shoot_blocking_at_);
+		if (!sf_check_critters_on_fireline(object, checkTile, source->critter.teamNum)) {
 			shotTile = checkTile;
 			distance = i + 1;
 			break;
 		}
 	}
-
 	if (shotTile) {
-		int needAP = distance + fo::func::item_w_primary_mp_cost(fo::func::inven_right_hand(source));
+		fo::GameObject* itemHand = fo::func::inven_right_hand(source);
+		int minCost = 100;
+		int cost = fo::func::item_w_primary_mp_cost(itemHand);
+		if (cost > 0) minCost = cost;
+		cost = fo::func::item_w_secondary_mp_cost(itemHand);
+		if (cost > 0 && cost < minCost) minCost = cost;
+
+		int needAP = distance + minCost;
 		if (source->critter.movePoints < needAP) {
 			shotTile = 0;
 		} else {
@@ -283,6 +301,90 @@ end:
 	}
 }
 
+static bool __fastcall sf_ai_check_target(fo::GameObject* source, fo::GameObject* target) {
+
+	int distance = fo::func::obj_dist(source, target);
+	if (distance == 0) return false;
+
+	bool shotIsBlock = fo::func::combat_is_shot_blocked(source, source->tile, target->tile, target, 0);
+
+	int pathToTarget = fo::func::make_path_func(source, source->tile, target->tile, 0, 0, (void*)fo::funcoffs::obj_blocking_at_);
+	if (shotIsBlock && !pathToTarget) { // shot and move block to target
+		return true;                    // picking alternate target
+	}
+
+	fo::AIcap* cap = fo::func::ai_cap(source);
+	if (shotIsBlock && pathToTarget > 1) { // shot block to target, can move
+		switch (cap->disposition) {
+		case AIpref::aggressive:
+			pathToTarget /= 2;
+			break;
+		case AIpref::berserk: // ai berserk never does not change its target if the move-path to the target is not blocked
+			pathToTarget = 1;
+			break;
+		case AIpref::defensive:
+			pathToTarget += 5;
+			break;
+		}
+		if (pathToTarget > (source->critter.movePoints * 2)) {
+			return true; // target is far -> picking alternate target
+		}
+	}
+	else if (!shotIsBlock) { // can shot to target
+		fo::GameObject* itemHand = fo::func::inven_right_hand(source); // current item
+		if (!itemHand && !pathToTarget) return true; // no item and move block to target -> picking alternate target
+		if (!itemHand) return false;
+
+		fo::Proto* proto = GetProto(itemHand->protoId);
+		if (proto && proto->item.type == ItemType::item_type_weapon) {
+			int hitMode = fo::func::ai_pick_hit_mode(source, itemHand, target);
+			int maxRange = fo::func::item_w_range(source, hitMode);
+			int diff = distance - maxRange;
+			if (diff > 0) {
+				if (!pathToTarget // move block to target and shot out of range -> picking alternate target
+					|| cap->disposition == AIpref::coward || diff > fo::func::roll_random(8, 12)) return true;
+			}
+		} // can shot or move, and item not weapon
+	} // can shot and move / can move and block shot / can shot and block move
+	return false;
+}
+
+static const char* reTargetMsg = "\n[AI] I can't get at my target. Picking alternate.";
+
+static const DWORD ai_danger_source_hack_find_Pick = 0x42908C;
+static const DWORD ai_danger_source_hack_find_Ret  = 0x4290BB;
+static void __declspec(naked) ai_danger_source_hack_find() {
+	__asm {
+		push eax;
+		push edx;
+		mov  edx, eax;
+		mov  ecx, esi;
+		call sf_ai_check_target;
+		pop  edx;
+		test al, al;
+		pop  eax;
+		jnz  reTarget;
+		add  esp, 0x1C;
+		pop  ebp;
+		pop  edi;
+		jmp  ai_danger_source_hack_find_Ret;
+reTarget:
+		push reTargetMsg;
+		call fo::funcoffs::debug_printf_;
+		add  esp, 4;
+		jmp  ai_danger_source_hack_find_Pick;
+	}
+}
+
+static void __declspec(naked) ai_danger_source_hack() {
+	__asm {
+		mov  eax, esi;
+		call fo::funcoffs::ai_get_attack_who_value_;
+		mov  dword ptr [esp + 0x34 - 0x1C + 4], eax; // attack_who
+		retn;
+	}
+}
+
 static DWORD RetryCombatLastAP;
 static DWORD RetryCombatMinAP;
 static void __declspec(naked) RetryCombatHook() {
@@ -381,11 +483,11 @@ void AI::init() {
 
 	//HookCall(0x42AE1D, ai_attack_hook);
 	//HookCall(0x42AE5C, ai_attack_hook);
-	HookCall(0x426A95, combat_attack_hook);
-	HookCall(0x42A796, combat_attack_hook);
+	HookCall(0x426A95, combat_attack_hook);  // combat_attack_this_
+	HookCall(0x42A796, combat_attack_hook);  // ai_attack_
 
-	MakeJump(0x45F6AF, BlockCombatHook1);
-	HookCall(0x4432A6, BlockCombatHook2);
+	MakeJump(0x45F6AF, BlockCombatHook1);    // intface_use_item_
+	HookCall(0x4432A6, BlockCombatHook2);    // game_handle_input_
 	combatBlockedMessage = Translate("sfall", "BlockedCombat", "You cannot enter combat at this time.");
 
 	// Combat AI improve and fixes
@@ -394,7 +496,7 @@ void AI::init() {
 	// if no suitable weapon is found, then are search the nearby objects(weapons) on the ground to pick-up them
 	// This fix prevents pick-up of the object located on the ground, if npc does not have the full amount of AP (ie, the action does occur at not the beginning of its turn)
 	// or if there is not enough AP to pick up the object on the ground. Npc will not spend its AP for inappropriate use
-	if (GetConfigInt("CombatAI", "ItemPickUpFix", 0) != 0) {
+	if (GetConfigInt("CombatAI", "ItemPickUpFix", 0)) {
 		HookCall(0x429CAF, ai_search_environ_hook);
 	}
 
@@ -406,10 +508,24 @@ void AI::init() {
 	}
 
 	// Checks the movement path for the possibility à shot, if the shot to the target is blocked
-	if (GetConfigInt("CombatAI", "CheckShotOnMove", 0) != 0) {
+	if (GetConfigInt("CombatAI", "CheckShotOnMove", 0)) {
 		HookCall(0x42A125, ai_move_steps_closer_hook);
 		MakeCall(0x42A178, ai_move_steps_closer_hack_move, 1);
 		MakeCall(0x42A14F, ai_move_steps_closer_hack_run, 1);
+	}
+
+	// Enables the ability to use the AttackWho value from the AI-packet for the NPC
+	if (GetConfigInt("CombatAI", "NPCAttackWhoFix", 0)) {
+		MakeCall(0x428F70, ai_danger_source_hack, 3);
+	}
+
+	switch (GetConfigInt("CombatAI", "TryToFindTargets", 0)) {
+	case 1:
+		MakeJump(0x4290B6, ai_danger_source_hack_find);
+		break;
+	case 2:
+		SafeWrite16(0x4290B3, 0xDFEB); // jmp 0x429094
+		SafeWrite8(0x4290B5, 0x90);
 	}
 
 	RetryCombatMinAP = GetConfigInt("CombatAI", "NPCsTryToSpendExtraAP", -1);
