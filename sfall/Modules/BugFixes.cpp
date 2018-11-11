@@ -1650,6 +1650,17 @@ skip:
 	}
 }
 
+static void __declspec(naked) determine_to_hit_func_hook() {
+	__asm {
+		test [esp + 0x38 + 0x8 + 4], 1; // isRange
+		jz   noRange;
+		jmp  fo::funcoffs::obj_dist_with_tile_;
+noRange:
+		mov  eax, 1;                   // set distance
+		retn;
+	}
+}
+
 void BugFixes::init()
 {
 	#ifndef NDEBUG
@@ -2102,8 +2113,14 @@ void BugFixes::init()
 	// If there are unused perks, then call the selection window of perks
 	SafeWrite8(0x43C370, 0xB1);      // jump 0x43C322
 
-	// Fix for "Heave Ho" perk, increase strength stat above 10
+	// Fix for Heave Ho! perk, don't increase Strength stat above 10 when determining the maximum range of thrown weapons
+	dlog("Applying Heave Ho! perk fix.", DL_INIT);
 	HookCall(0x478AD9, item_w_range_hook);
+	dlogr(" Done", DL_INIT);
+
+	// Fix determine_to_hit_func_ don't consider distance for calculate hit chance when using the 'no_range' flag
+	HookCall(0x4244C3, determine_to_hit_func_hook);
+
 }
 
 }

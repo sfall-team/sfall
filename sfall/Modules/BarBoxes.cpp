@@ -25,10 +25,6 @@
 namespace sfall
 {
 
-static const DWORD DisplayBoxesRet1 = 0x4615A8;
-static const DWORD DisplayBoxesRet2 = 0x4615BE;
-static const DWORD SetIndexBoxRet   = 0x4612E8;
-
 int BarBoxes::boxCount;      // total count box
 static int actualBoxCount;
 static int sizeBox;
@@ -58,6 +54,8 @@ static const DWORD bboxMemAddr[] = {
 	0x461266, 0x4612AC, 0x461374, 0x4613E8, 0x461479, 0x46148C, 0x4616BB,
 };
 
+static const DWORD DisplayBoxesRet1 = 0x4615A8;
+static const DWORD DisplayBoxesRet2 = 0x4615BE;
 static void __declspec(naked) DisplayBoxesHack() {
 	__asm {
 		mov  edx, [boxesEnabled];
@@ -109,6 +107,7 @@ end:
 	}
 }
 
+static const DWORD SetIndexBoxRet   = 0x4612E8;
 static void __declspec(naked) BarBoxesIndexHack() {
 	__asm {
 		mov eax, ds:[0x4612E2]; // fontnum
@@ -138,20 +137,18 @@ static void ReconstructBarBoxes() {
 	}
 }
 
+static BYTE restoreData[] = { 0x31, 0xD2, 0x89, 0x94, 0x24 }; // xor edx, edx mov...
 static void ResetBoxes() {
 	for (int i = 0; i < actualBoxCount; i++) {
 		boxesEnabled[i] = false;
 		boxes[i + 5].colour = colorBakup[i];
 	}
-
 	if (!setCustomBoxText) return;
 
 	//Restore boxes
 	SafeWrite32(0x461343, 0x00023D05); // call getmsg_
 	ReconstructBarBoxes();
-	SafeWrite8(0x461243, 0x31);
-	SafeWrite32(0x461244, 0x249489D2);
-
+	SafeWriteBytes(0x461243, restoreData, 5);
 	setCustomBoxText = false;
 }
 
@@ -190,8 +187,8 @@ void BarBoxes::SetText(int box, const char* text, DWORD color) {
 	}
 
 	if (!setCustomBoxText) {
-		MakeCall(0x461342, BarBoxesTextHack);
-		MakeJump(0x461243, BarBoxesIndexHack);
+		MakeCall(0x461342, BarBoxesTextHack);   // construct_box_bar_win_
+		MakeJump(0x461243, BarBoxesIndexHack);  // construct_box_bar_win_
 		setCustomBoxText = true;
 	}
 
