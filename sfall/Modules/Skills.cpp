@@ -128,7 +128,7 @@ static int _stdcall GetStatBonusHook2(const fo::SkillInfo* info, int skill, int 
 	for (int i = fo::Stat::STAT_st; i <= fo::Stat::STAT_lu; i++) {
 		result += fo::func::stat_level(critter, i) * multipliers[skill * 7 + i];
 	}
-	result += points*info->skillPointMulti;
+	result += points * info->skillPointMulti;
 	result += info->base;
 	return (int)result;
 }
