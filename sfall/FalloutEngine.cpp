@@ -490,6 +490,7 @@ const DWORD obj_change_fid_ = 0x48AA3C;
 const DWORD obj_connect_ = 0x489EC4;
 const DWORD obj_destroy_ = 0x49B9A0;
 const DWORD obj_dist_ = 0x48BBD4;
+const DWORD obj_dist_with_tile_ = 0x48BC08;
 const DWORD obj_erase_object_ = 0x48B0FC;
 const DWORD obj_find_first_at_ = 0x48B48C;
 const DWORD obj_find_first_at_tile_ = 0x48B5A8;

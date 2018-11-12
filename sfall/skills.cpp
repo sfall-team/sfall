@@ -139,7 +139,7 @@ static int _stdcall GetStatBonusHook2(const SkillInfo* info, int skill, int poin
 	for (int i = STAT_st; i <= STAT_lu; i++) {
 		result += StatLevel(critter, i) * multipliers[skill * 7 + i];
 	}
-	result += points*info->skillPointMulti;
+	result += points * info->skillPointMulti;
 	result += info->base;
 	return (int)result;
 }
