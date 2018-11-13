@@ -195,6 +195,8 @@ long __stdcall stat_level(GameObject* critter, long statId);
 // pictureUp/pictureDown - pointers to a surface
 long __stdcall win_register_button(DWORD winRef, long xPos, long yPos, long width, long height, long hoverOn, long hoverOff, long buttonDown, long buttonUp, BYTE* pictureUp, BYTE* pictureDown, long arg12, long buttonType);
 
+void __stdcall DialogOut(const char* text);
+
 
 // X-Macro for wrapper functions.
 

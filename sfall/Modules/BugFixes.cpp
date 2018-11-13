@@ -1661,6 +1661,17 @@ noRange:
 	}
 }
 
+static void __declspec(naked) process_rads_hook() {
+	__asm {
+		mov  ebx, dword ptr ds:[FO_VAR_game_user_wants_to_quit];
+		mov  dword ptr ds:[FO_VAR_game_user_wants_to_quit], 0;
+		push eax;
+		call fo::func::DialogOut;
+		mov  dword ptr ds:[FO_VAR_game_user_wants_to_quit], ebx;
+		retn;
+	}
+}
+
 void BugFixes::init()
 {
 	#ifndef NDEBUG
@@ -2120,6 +2131,9 @@ void BugFixes::init()
 
 	// Fix determine_to_hit_func_ don't consider distance for calculate hit chance when using the 'no_range' flag
 	HookCall(0x4244C3, determine_to_hit_func_hook);
+
+	// Show pop-up messages box about death from radiation
+	HookCall(0x42D733, process_rads_hook);
 
 }
 
