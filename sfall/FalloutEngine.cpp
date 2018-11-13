@@ -904,6 +904,23 @@ long __stdcall WinRegisterButton(DWORD winRef, long xPos, long yPos, long width,
 	}
 }
 
+void __stdcall DialogOut(const char* text) {
+	__asm {
+		push 1           // flag
+		xor  eax, eax 
+		push eax         // ColorMsg
+		push eax         // DisplayMsg
+		mov  al, ds:[0x6AB718]
+		push eax         // ColorIndex
+		push 0x74        // y
+		mov  ecx, 0xC0   // x
+		mov  eax, text   // DisplayText
+		xor  ebx, ebx    // ?
+		xor  edx, edx    // ?
+		call dialog_out_
+	}
+}
+
 long __fastcall WordWrap(const char* text, int maxWidth, DWORD* buf, BYTE* count) {
 	__asm {
 		mov eax, ecx

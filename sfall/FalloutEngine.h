@@ -983,6 +983,8 @@ long __stdcall CreateWindowFunc(const char* winName, long x, long y, long width,
 // creates a button
 long __stdcall WinRegisterButton(DWORD winRef, long xPos, long yPos, long width, long height, long hoverOn, long hoverOff, long buttonDown, long buttonUp, BYTE* pictureUp, BYTE* pictureDown, long arg12, long buttonType);
 
+void __stdcall DialogOut(const char* text);
+
 long __fastcall WordWrap(const char* text, int maxWidth, DWORD* buf, BYTE* count);
 
 void __stdcall RedrawWin(DWORD winRef);

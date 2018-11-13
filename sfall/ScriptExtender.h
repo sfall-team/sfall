@@ -37,7 +37,7 @@ struct sGlobalVar {
 #define SCRIPT_PROC_MAX (27)
 typedef struct {
 	DWORD ptr;
-	DWORD procLookup[SCRIPT_PROC_MAX+1];
+	DWORD procLookup[SCRIPT_PROC_MAX + 1];
 	char initialized;
 } sScriptProgram;
 

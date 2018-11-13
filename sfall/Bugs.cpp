@@ -1528,6 +1528,18 @@ noRange:
 	}
 }
 
+static void __declspec(naked) process_rads_hook() {
+	__asm {
+		push eax;
+		call display_print_;
+		mov  ebx, dword ptr ds:[_game_user_wants_to_quit];
+		mov  dword ptr ds:[_game_user_wants_to_quit], 0;
+		call DialogOut;
+		mov  dword ptr ds:[_game_user_wants_to_quit], ebx;
+		retn;
+	}
+}
+
 
 void BugsInit()
 {
@@ -1947,4 +1959,7 @@ void BugsInit()
 
 	// Fix for determine_to_hit_func_ engine function taking distance into account when called from determine_to_hit_no_range_
 	HookCall(0x4244C3, determine_to_hit_func_hook);
+
+	// Display a pop-up messages box about death from radiation
+	HookCall(0x42D733, process_rads_hook);
 }
