@@ -1628,6 +1628,19 @@ noRange:
 	}
 }
 
+static void __declspec(naked) process_rads_hook() {
+	__asm {
+		call fo::funcoffs::display_print_;
+		mov  eax, [esp + 0x20 - 0x14 + 4]; // death from radiation msg
+		mov  ebx, dword ptr ds:[FO_VAR_game_user_wants_to_quit];
+		mov  dword ptr ds:[FO_VAR_game_user_wants_to_quit], 0;
+		push eax;
+		call fo::func::DialogOut;
+		mov  dword ptr ds:[FO_VAR_game_user_wants_to_quit], ebx;
+		retn;
+	}
+}
+
 
 void BugFixes::init()
 {
@@ -2075,6 +2088,9 @@ void BugFixes::init()
 
 	// Fix for determine_to_hit_func_ engine function taking distance into account when called from determine_to_hit_no_range_
 	HookCall(0x4244C3, determine_to_hit_func_hook);
+
+	// Display death from radiation sickness message in a pop-up message box
+	HookCall(0x42D733, process_rads_hook);
 }
 
 }
