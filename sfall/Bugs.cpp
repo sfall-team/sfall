@@ -3,6 +3,7 @@
 #include "Bugs.h"
 #include "Define.h"
 #include "FalloutEngine.h"
+#include "LoadGameHook.h"
 #include "ScriptExtender.h"
 
 static DWORD critterBody = 0;
@@ -1530,8 +1531,14 @@ noRange:
 
 static void __declspec(naked) process_rads_hook() {
 	__asm {
-		push eax;
+		push eax; // death message for DialogOut
 		call display_print_;
+		call GetCurrentLoops;
+		test eax, PIPBOY;
+		jz   skip;
+		mov  eax, 1;
+		call gmouse_set_cursor_;
+skip:
 		mov  ebx, dword ptr ds:[_game_user_wants_to_quit];
 		mov  dword ptr ds:[_game_user_wants_to_quit], 0;
 		call DialogOut;
