@@ -1630,8 +1630,14 @@ noRange:
 
 static void __declspec(naked) process_rads_hook() {
 	__asm {
-		push eax;
+		push eax; // death message for DialogOut
 		call fo::funcoffs::display_print_;
+		call GetLoopFlags;
+		test eax, PIPBOY;
+		jz   skip;
+		mov  eax, 1;
+		call fo::funcoffs::gmouse_set_cursor_;
+skip:
 		mov  ebx, dword ptr ds:[FO_VAR_game_user_wants_to_quit];
 		mov  dword ptr ds:[FO_VAR_game_user_wants_to_quit], 0;
 		call fo::func::DialogOut;
