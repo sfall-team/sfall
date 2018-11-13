@@ -1656,16 +1656,23 @@ static void __declspec(naked) determine_to_hit_func_hook() {
 		jz   noRange;
 		jmp  fo::funcoffs::obj_dist_with_tile_;
 noRange:
-		mov  eax, 1;                   // set distance
+		mov  eax, 1;                    // set distance
 		retn;
 	}
 }
 
 static void __declspec(naked) process_rads_hook() {
 	__asm {
+		push eax; // death message for DialogOut
+		call fo::funcoffs::display_print_;
+		call GetLoopFlags;
+		test eax, PIPBOY;
+		jz   skip;
+		mov  eax, 1;
+		call fo::funcoffs::gmouse_set_cursor_;
+skip:
 		mov  ebx, dword ptr ds:[FO_VAR_game_user_wants_to_quit];
 		mov  dword ptr ds:[FO_VAR_game_user_wants_to_quit], 0;
-		push eax;
 		call fo::func::DialogOut;
 		mov  dword ptr ds:[FO_VAR_game_user_wants_to_quit], ebx;
 		retn;
