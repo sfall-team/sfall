@@ -30,8 +30,6 @@ class ScriptExtender : public Module {
 public:
 	const char* name() { return "ScriptExtender"; }
 	void init();
-
-	static void SetAutoUnjamLockTime(DWORD time);
 };
 
 #pragma pack(8)
@@ -42,7 +40,7 @@ struct GlobalVar {
 };
 
 typedef struct {
-	fo::Program* ptr;
+	fo::Program* ptr = nullptr;
 	int procLookup[fo::ScriptProc::count];
 	char initialized;
 } ScriptProgram;
