@@ -26,12 +26,13 @@ static void __declspec(naked) UseObjOnHook() {
 		popad;
 		cmp cRet, 1;
 		jl  defaultHandler;
+		cmp rets[0], -1;
+		jz  defaultHandler;
 		mov eax, rets[0];
 		retn;
 
 defaultHandler:
-		call fo::funcoffs::protinst_use_item_on_;
-		retn;
+		jmp fo::funcoffs::protinst_use_item_on_;
 	}
 }
 
@@ -52,12 +53,13 @@ static void __declspec(naked) Drug_UseObjOnHook() {
 		popad;
 		cmp cRet, 1;
 		jl  defaultHandler;
+		cmp rets[0], -1;
+		jz  defaultHandler;
 		mov eax, rets[0];
 		retn;
 
 defaultHandler:
-		call fo::funcoffs::item_d_take_drug_;
-		retn;
+		jmp fo::funcoffs::item_d_take_drug_;
 	}
 }
 
@@ -78,13 +80,12 @@ static void __declspec(naked) UseObjHook() {
 		cmp cRet, 1;
 		jl  defaultHandler;
 		cmp rets[0], -1;
-		je defaultHandler;
+		je  defaultHandler;
 		mov eax, rets[0];
 		retn;
 
 defaultHandler:
-		call fo::funcoffs::protinst_use_item_;
-		retn;
+		jmp fo::funcoffs::protinst_use_item_;
 	}
 }
 
@@ -106,24 +107,24 @@ static void __fastcall UseAnimateObjHook_Script(DWORD critter, DWORD animCode, D
 // Before animation of using map object
 static void __declspec(naked) UseAnimateObjHook() {
 	__asm {
-		cmp dword ptr [esp], 0x412292 + 5;
+		cmp  dword ptr [esp], 0x412292 + 5;
 		pushad;
-		jne contr;
+		jne  contr;
 		push ebp;                      // map object
-		jmp next;
+		jmp  next;
 contr:
 		push edi;                      // map object
 next:
-		mov ecx, eax;                  // source critter
+		mov  ecx, eax;                 // source critter
 		call UseAnimateObjHook_Script; // edx - anim code
 		popad;
-		cmp cRet, 0;
-		jle skip;
-		cmp rets[0], -1;
-		jle end;
-		mov edx, rets[0];
+		cmp  cRet, 0;
+		jle  skip;
+		cmp  rets[0], -1;
+		jle  end;
+		mov  edx, rets[0];
 skip:
-		call fo::funcoffs::register_object_animate_;
+		jmp  fo::funcoffs::register_object_animate_;
 end:
 		retn;
 	}
