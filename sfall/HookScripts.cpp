@@ -453,11 +453,13 @@ static void __declspec(naked) UseObjOnHook() {
 		call RunHookScript;
 		popad;
 		cmp cRet, 1;
-		jl	defaulthandler;
+		jl  defaulthandler;
+		cmp rets[0], -1;
+		jz  defaulthandler;
 		mov eax, rets[0];
 		jmp end
 defaulthandler:
-		call protinst_use_item_on_
+		call protinst_use_item_on_;
 end:
 		hookend;
 		retn;
@@ -475,7 +477,9 @@ static void __declspec(naked) UseObjOnHook_item_d_take_drug() {
 		call RunHookScript;
 		popad;
 		cmp cRet, 1;
-		jl	defaulthandler;
+		jl  defaulthandler;
+		cmp rets[0], -1;
+		jz  defaulthandler;
 		mov eax, rets[0];
 		jmp end
 defaulthandler:
@@ -496,9 +500,9 @@ static void __declspec(naked) UseObjHook() {
 		call RunHookScript;
 		popad;
 		cmp cRet, 1;
-		jl	defaulthandler;
+		jl  defaulthandler;
 		cmp rets[0], -1;
-		je defaulthandler;
+		je  defaulthandler;
 		mov eax, rets[0];
 		jmp end;
 defaulthandler:
