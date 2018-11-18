@@ -580,3 +580,28 @@ int     arg7 - sets to 1 when using throwing weapons (like grenades), 0 otherwis
 
 int     ret1 - overrides the found object on the checked tile, pass 0 to skip the object
 
+-------------------------------------------
+
+HOOK_SUBCOMBATDAMAGE (hs_subcombatdmg.int)
+
+This hook overrides the vanilla damage calculation formula.
+Runs when:
+1) Before the game calculates how much damage each target will get. This includes primary target as well as all extras (explosions and bursts).
+2) AI decides whether it is safe to use area attack (burst, grenades), if he might hit friendlies.
+Does not run for misses, or non-combat damage like dynamite explosions, and if one of the damage formulas is selected in ddraw.ini
+
+Critter arg1 - the attacker
+Critter arg2 - the target
+Obj     arg3 - the weapon used in the attack
+int     arg4 - attack Type (see ATKTYPE_* constants)
+int     arg5 - number of bullets actually hit the target (1 for melee attacks)
+int     arg6 - calculated DR resistance value
+int     arg7 - calculated DT resistance value
+int     arg8 - calculated bonus ranged damage from perk
+int     arg9 - damage multiplier (this is divided by 2, so a value of 3 does 1.5x damage, and 8 does 4x damage)
+int     arg10 - combat difficulty value (125 - hard, 100 - normal, 75 - easy)
+int     arg11 - the calculated amount of damage (usually 0, required when use multiple script hooks of calculating damage and using the set_sfall_arg function)
+mixed   arg12 - compute attack results (see C_ATTACK_* values)
+
+int     ret1 - the return amount of the damage
+

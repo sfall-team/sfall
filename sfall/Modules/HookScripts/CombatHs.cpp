@@ -1,5 +1,6 @@
 #include "..\..\FalloutEngine\Fallout2.h"
 #include "..\..\SafeWrite.h"
+#include "..\AmmoMod.h"
 #include "..\HookScripts.h"
 #include "Common.h"
 
@@ -172,6 +173,59 @@ static void __declspec(naked) ComputeDamageHook() {
 		call ComputeDamageHook_Script;  // stack - arg multiply
 		pop  ecx;
 		retn;
+	}
+}
+
+static void __fastcall SubComputeDamageHook_Script(fo::ComputeAttackResult &ctd, DWORD armorDR, DWORD* accumulatedDamage, DWORD armorDT, DWORD bonusRangedDamage, DWORD rounds, DWORD multiplyDamage, DWORD difficulty) {
+	// calculated internal ammo mod damage
+	switch (AmmoMod::formula) {
+	case 1:
+	case 2:
+		AmmoMod::DamageGlovz(ctd, accumulatedDamage, rounds, armorDT, armorDR, bonusRangedDamage, multiplyDamage, difficulty);
+		return;
+	case 5:
+		AmmoMod::DamageYAAM(ctd, accumulatedDamage, rounds, armorDT, armorDR, bonusRangedDamage, multiplyDamage, difficulty);
+		return;
+	}
+	
+	BeginHook();
+	argCount = 12;
+
+	args[0] = (DWORD)ctd.attacker;
+	args[1] = (DWORD)ctd.target;
+	args[2] = (DWORD)ctd.weapon;
+	args[3] = (DWORD)ctd.hitMode;
+	args[4] = rounds;
+	args[5] = armorDR;
+	args[6] = armorDT;
+	args[7] = bonusRangedDamage;
+	args[8] = multiplyDamage;
+	args[9] = difficulty;
+	args[10] = *accumulatedDamage;
+	args[11] = (DWORD)&ctd;
+
+	RunHookScript(HOOK_SUBCOMBATDAMAGE);
+
+	if (cRet == 1) *accumulatedDamage = rets[0];
+	EndHook();
+}
+
+static void __declspec(naked) SubComputeDamageHook() {
+	__asm {
+		mov  ecx, dword ptr [esp + 0x20];      // Difficulty
+		push ecx;
+		mov  eax, dword ptr [esp + 0x24 + 4];  // MultiplyDamage
+		push eax;
+		mov  ecx, dword ptr [esp + 0x1C + 8];  // Rounds
+		push ecx;
+		mov  eax, dword ptr [esp + 0x18 + 12]; // BonusRangedDamage
+		push eax;
+		mov  ecx, dword ptr [esp + 0x28 + 16]; // ResistDT
+		push ecx;
+		push edi;                              // AccumulatedDamage
+		mov  ecx, esi;                         // cdt
+		push 0x424A63;                         // return to address
+		jmp  SubComputeDamageHook_Script;      // edx - ResistDR
 	}
 }
 
@@ -454,6 +508,10 @@ void Inject_OnExplosionHook() {
 	HookCall(0x423D70, ComputeExplosionOnExtrasHook);
 }
 
+void Inject_SubCombatDamageHook() {
+	MakeJump(0x42499C, SubComputeDamageHook);
+}
+
 void InitCombatHookScripts() {
 
 	LoadHookScript("hs_tohit", HOOK_TOHIT);
@@ -465,6 +523,8 @@ void InitCombatHookScripts() {
 	LoadHookScript("hs_ammocost", HOOK_AMMOCOST);
 	LoadHookScript("hs_combatturn", HOOK_COMBATTURN);
 	LoadHookScript("hs_onexplosion", HOOK_ONEXPLOSION);
+	LoadHookScript("hs_subcombatdmg", HOOK_SUBCOMBATDAMAGE);
+
 }
 
 }

@@ -63,6 +63,7 @@ enum HookType
 	HOOK_DESCRIPTIONOBJ   = 34,
 	HOOK_USESKILLON       = 35,
 	HOOK_ONEXPLOSION      = 36,
+	HOOK_SUBCOMBATDAMAGE  = 37,
 	HOOK_COUNT
 };
 
@@ -74,9 +75,9 @@ public:
 
 	static std::string hookScriptPathFmt;
 
+	static bool injectAllHooks;
 	static void InjectingHook(int hookId);
 	static bool IsInjectHook(int hookId);
-	static bool injectAllHooks;
 
 	static void GameModeChangeHook(DWORD exit);
 	static void KeyPressHook(DWORD* dxKey, bool pressed, DWORD vKey);
