@@ -14,6 +14,8 @@ static DWORD critterBody = 0;
 static DWORD sizeOnBody = 0;
 static DWORD weightOnBody = 0;
 
+static char textBuf[355];
+
 void ResetBodyState() {
 	_asm mov critterBody, 0;
 	_asm mov sizeOnBody, 0;
@@ -810,6 +812,7 @@ end:
 	}
 }
 
+static const DWORD SetNewResults_Ret = 0x424FC6;
 static void __declspec(naked) set_new_results_hack() {
 	__asm {
 		test ah, DAM_KNOCKED_OUT                  // DAM_KNOCKED_OUT?
@@ -820,8 +823,7 @@ static void __declspec(naked) set_new_results_hack() {
 		jmp  fo::funcoffs::queue_remove_this_     // Remove knockout from queue (if there is one)
 end:
 		add  esp, 4                               // Destroy the return address
-		push 0x424FC6
-		retn
+		jmp  SetNewResults_Ret
 	}
 }
 
@@ -1331,8 +1333,7 @@ static void __declspec(naked) compute_damage_hack() {
 	}
 }
 
-static int  currDescLen = 0;
-static char textBuf[355];
+static int currDescLen = 0;
 static bool showItemDescription = false;
 static void __stdcall AppendText(const char* text, const char* desc) {
 	if (showItemDescription && currDescLen == 0) {
