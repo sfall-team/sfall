@@ -2,6 +2,7 @@
 #include "..\..\SafeWrite.h"
 #include "..\HookScripts.h"
 #include "..\Karma.h"
+#include "..\LoadGameHook.h"
 #include "Common.h"
 
 #include "MiscHs.h"
@@ -336,15 +337,17 @@ static void __declspec(naked) CarTravelHack() {
 static void __fastcall GlobalVarHook_Script(register DWORD number, register int value) {
 	int old = fo::var::game_global_vars[number];
 
-	BeginHook();
-	argCount = 2;
-	args[0] = number;
-	args[1] = value;
-	RunHookScript(HOOK_SETGLOBALVAR);
-	EndHook();
+	if (HookScripts::hookSetGlobalVar && IsMapLoaded()) { // don't execute hook until loading sfall scripts
+		BeginHook();
+		argCount = 2;
+		args[0] = number;
+		args[1] = value;
 
-	if (cRet > 0) value = rets[0];
+		RunHookScript(HOOK_SETGLOBALVAR);
 
+		if (cRet > 0) value = rets[0];
+		EndHook();
+	}
 	if (number == fo::GVAR_PLAYER_REPUTATION && displayKarmaChanges) {
 		int diff = value - old;
 		if (diff != 0) Karma::DisplayKarma(diff);
@@ -353,10 +356,14 @@ static void __fastcall GlobalVarHook_Script(register DWORD number, register int 
 
 static void __declspec(naked) SetGlobalVarHook() {
 	__asm {
-		pushad;
+		push eax;
+		push ecx;
+		push edx;
 		mov  ecx, eax;             // number
 		call GlobalVarHook_Script; // edx - value
-		popad;
+		pop  edx;
+		pop  ecx;
+		pop  eax;
 		cmp  cRet, 1;
 		cmovnb edx, dword ptr rets[0];
 		jmp  fo::funcoffs::game_set_global_var_;
@@ -540,7 +547,7 @@ void InitMiscHookScripts() {
 	LoadHookScript("hs_steal", HOOK_STEAL);
 	LoadHookScript("hs_withinperception", HOOK_WITHINPERCEPTION);
 	LoadHookScript("hs_cartravel", HOOK_CARTRAVEL);
-	LoadHookScript("hs_setglobalvar", HOOK_SETGLOBALVAR);
+	HookScripts::hookSetGlobalVar = LoadHookScript("hs_setglobalvar", HOOK_SETGLOBALVAR);
 	LoadHookScript("hs_resttimer", HOOK_RESTTIMER);
 	LoadHookScript("hs_explosivetimer", HOOK_EXPLOSIVETIMER);
 

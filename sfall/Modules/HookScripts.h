@@ -75,6 +75,9 @@ public:
 
 	static std::string hookScriptPathFmt;
 
+	static bool hookSetGlobalVar;
+	static bool hookAdjustFid;
+
 	static bool injectAllHooks;
 	static void InjectingHook(int hookId);
 	static bool IsInjectHook(int hookId);
