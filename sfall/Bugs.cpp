@@ -10,6 +10,8 @@ static DWORD critterBody = 0;
 static DWORD sizeOnBody = 0;
 static DWORD weightOnBody = 0;
 
+static char textBuf[355];
+
 void ResetBodyState() {
 	_asm mov critterBody, 0;
 	_asm mov sizeOnBody, 0;
@@ -806,6 +808,7 @@ end:
 	}
 }
 
+static const DWORD SetNewResults_Ret = 0x424FC6;
 static void __declspec(naked) set_new_results_hack() {
 	__asm {
 		test ah, 0x1                              // DAM_KNOCKED_OUT?
@@ -816,8 +819,7 @@ static void __declspec(naked) set_new_results_hack() {
 		jmp  queue_remove_this_                   // Remove knockout from queue (if there is one)
 end:
 		add  esp, 4                               // Destroy the return address
-		push 0x424FC6
-		retn
+		jmp  SetNewResults_Ret
 	}
 }
 
@@ -1306,6 +1308,80 @@ end:
 	}
 }
 
+static int currDescLen = 0;
+static bool showItemDescription = false;
+static void __stdcall AppendText(const char* text, const char* desc) {
+	if (showItemDescription && currDescLen == 0) {
+		strncpy_s(textBuf, desc, 161);
+		int len = strlen(textBuf);
+		if (len > 160) {
+			len = 158;
+			textBuf[len++] = '.';
+			textBuf[len++] = '.';
+			textBuf[len++] = '.';
+		}
+		textBuf[len++] = ' ';
+		textBuf[len] = 0;
+		currDescLen  = len;
+	} else if (currDescLen == 0) {
+		textBuf[0] = 0;
+	}
+
+	strncat(textBuf, text, 64);
+	currDescLen += strlen(text);
+	if (currDescLen < 300) {
+		textBuf[currDescLen++] = '.';
+		textBuf[currDescLen++] = ' ';
+		textBuf[currDescLen] = 0;
+	}
+}
+
+static void __declspec(naked) obj_examine_func_hack_ammo0() {
+	__asm {
+		cmp  dword ptr [esp + 0x1AC - 0x14 + 4], 0x445448; // gdialogDisplayMsg_
+		jnz  skip;
+		push esi;
+		push eax;
+		call AppendText;
+		retn;
+skip:
+		jmp  dword ptr [esp + 0x1AC - 0x14 + 4];
+	}
+}
+
+static void __declspec(naked) obj_examine_func_hack_ammo1() {
+	__asm {
+		cmp  dword ptr [esp + 0x1AC - 0x14 + 4], 0x445448; // gdialogDisplayMsg_
+		jnz  skip;
+		push 0;
+		push eax;
+		call AppendText;
+		mov  currDescLen, 0;
+		lea  eax, [textBuf];
+		jmp  gdialogDisplayMsg_;
+skip:
+		jmp  dword ptr [esp + 0x1AC - 0x14 + 4];
+	}
+}
+
+static const DWORD ObjExamineFuncWeapon_Ret = 0x49B63C;
+static void __declspec(naked) obj_examine_func_hack_weapon() {
+	__asm {
+		cmp  dword ptr [esp + 0x1AC - 0x14], 0x445448; // gdialogDisplayMsg_
+		jnz  skip;
+		push esi;
+		push eax;
+		call AppendText;
+		mov  eax, currDescLen;
+		sub  eax, 2;
+		mov  byte ptr textBuf[eax], 0; // cutoff last character
+		mov  currDescLen, 0;
+		lea  eax, [textBuf];
+skip:
+		jmp  ObjExamineFuncWeapon_Ret;
+	}
+}
+
 static DWORD expSwiftLearner; // experience points for print
 static void __declspec(naked) statPCAddExperienceCheckPMs_hack() {
 	__asm {
@@ -1398,13 +1474,12 @@ static void __declspec(naked) ai_best_weapon_hook() {
 	}
 }
 
-static char worldMapMsg[128];
 static void __declspec(naked) wmSetupRandomEncounter_hook() {
 	__asm {
 		push eax;                  // text 2
 		push edi;                  // text 1
 		push 0x500B64;             // fmt '%s %s'
-		lea  edi, worldMapMsg;
+		lea  edi, textBuf;
 		push edi;                  // buf
 		call sprintf_;
 		add  esp, 16;
@@ -1894,6 +1969,24 @@ void BugsInit()
 	// Fix for critters killed in combat by scripting still being able to move in their combat turn if the distance parameter
 	// in their AI packages is set to stay_close/charge, or NPCsTryToSpendExtraAP is enabled
 	HookCall(0x42A1A8, ai_move_steps_closer_hook); // 0x42B24D
+
+	// Fix missing AC/DR mod stats when examining ammo in barter screen
+	dlog("Applying fix for displaying ammo stats in barter screen.", DL_INIT);
+	MakeCall(0x49B4AD, obj_examine_func_hack_ammo0);
+	SafeWrite16(0x49B4B2, 0x9090);
+	MakeCall(0x49B504, obj_examine_func_hack_ammo0);
+	SafeWrite16(0x49B509, 0x9090);
+	MakeCall(0x49B563, obj_examine_func_hack_ammo1);
+	SafeWrite16(0x49B568, 0x9090);
+	dlogr(" Done", DL_INIT);
+
+	// Display full item description for weapon/ammo in barter screen
+	showItemDescription = (GetPrivateProfileIntA("Misc", "FullItemDescInBarter", 0, ini) != 0);
+	if (showItemDescription) {
+		dlog("Applying full item description in barter patch.", DL_INIT);
+		HookCall(0x49B452, obj_examine_func_hack_weapon); // it's jump
+		dlogr(" Done", DL_INIT);
+	}
 
 	// Display experience points with the bonus from Swift Learner perk when gained from non-scripted situations
 	if (GetPrivateProfileIntA("Misc", "DisplaySwiftLearnerExp", 1, ini)) {

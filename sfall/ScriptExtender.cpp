@@ -1007,36 +1007,39 @@ end:
 
 static void __declspec(naked) MainGameLoopHook() {
 	__asm {
-		push ebx;
+		call get_input_;
 		push ecx;
 		push edx;
-		call get_input_
 		push eax;
 		call RunGlobalScripts1;
-		pop eax;
-		pop edx;
-		pop ecx;
-		pop ebx;
+		pop  eax;
+		pop  edx;
+		pop  ecx;
 		retn;
 	}
 }
 
 static void __declspec(naked) CombatLoopHook() {
 	__asm {
-		pushad;
+		push ecx;
+		push edx;
+		push eax;
 		call RunGlobalScripts1;
-		popad;
-		jmp  get_input_
+		pop  eax;
+		pop  edx;
+		pop  ecx;
+		jmp  get_input_;
 	}
 }
 
 static void __declspec(naked) AfterCombatAttackHook() {
 	__asm {
-		pushad;
+		push ecx;
+		push edx;
 		call AfterAttackCleanup;
-		popad;
+		pop  edx;
+		pop  ecx;
 		mov  eax, 1;
-		push 0x4230DA;
 		retn;
 	}
 }
@@ -1305,7 +1308,7 @@ void ScriptExtenderSetup() {
 	MakeJump(0x4A5E34, ScrPtrHack);
 	memset(&OverrideScriptStruct, 0, sizeof(TScript));
 
-	MakeJump(0x4230D5, AfterCombatAttackHook);
+	MakeCall(0x4230D5, AfterCombatAttackHook);
 	MakeJump(0x4A67F0, ExecMapScriptsHack);
 
 	// this patch makes it possible to export variables from sfall global scripts
