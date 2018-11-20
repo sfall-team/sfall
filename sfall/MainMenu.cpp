@@ -24,7 +24,7 @@
 static DWORD MainMenuYOffset;
 static DWORD MainMenuTextOffset;
 
-static const DWORD MainMenuButtonYHookRet=0x48184A;
+static const DWORD MainMenuButtonYHookRet = 0x48184A;
 static void __declspec(naked) MainMenuButtonYHook() {
 	__asm {
 		xor edi, edi;
@@ -41,7 +41,7 @@ static void __declspec(naked) MainMenuTextYHook() {
 	}
 }
 
-static const DWORD MainMenuTextRet=0x4817B0;
+static const DWORD MainMenuTextRet = 0x4817B0;
 static const char* VerString1 = "SFALL " VERSION_STRING;
 static DWORD OverrideColour;
 static void __declspec(naked) FontColour() {
@@ -56,6 +56,7 @@ skip:
 		retn;
 	}
 }
+
 static void __declspec(naked) MainMenuTextHook() {
 	__asm {
 		mov edi, [esp];
@@ -82,29 +83,31 @@ static void __declspec(naked) MainMenuTextHook() {
 }
 
 void MainMenuInit() {
-	int tmp;
+	int offset;
 
-	if(tmp=GetPrivateProfileIntA("Misc", "MainMenuCreditsOffsetX", 0, ini)) {
-		SafeWrite32(0x481753, 0xf+tmp);
+	if (offset = GetPrivateProfileIntA("Misc", "MainMenuCreditsOffsetX", 0, ini)) {
+		SafeWrite32(0x481753, 15 + offset);
 	}
-	if(tmp=GetPrivateProfileIntA("Misc", "MainMenuCreditsOffsetY", 0, ini)) {
-		SafeWrite32(0x48175C, 0x1cc+tmp);
+	if (offset = GetPrivateProfileIntA("Misc", "MainMenuCreditsOffsetY", 0, ini)) {
+		SafeWrite32(0x48175C, 460 + offset);
 	}
-	if(tmp=GetPrivateProfileIntA("Misc", "MainMenuOffsetX", 0, ini)) {
-		SafeWrite32(0x48187C, 0x1e+tmp);
-		MainMenuTextOffset=tmp;
+	if (offset = GetPrivateProfileIntA("Misc", "MainMenuOffsetX", 0, ini)) {
+		SafeWrite32(0x48187C, 30 + offset);
+		MainMenuTextOffset = offset;
 	}
-	if(tmp=GetPrivateProfileIntA("Misc", "MainMenuOffsetY", 0, ini)) {
-		MainMenuYOffset=tmp;
-		MainMenuTextOffset+=tmp*640;
+	if (offset = GetPrivateProfileIntA("Misc", "MainMenuOffsetY", 0, ini)) {
+		MainMenuYOffset = offset;
+		MainMenuTextOffset += offset * 640;
 		MakeJump(0x481844, MainMenuButtonYHook);
 	}
-	if(MainMenuTextOffset) {
+	if (MainMenuTextOffset) {
 		SafeWrite8(0x481933, 0x90);
 		MakeCall(0x481934, MainMenuTextYHook);
 	}
 
 	MakeJump(0x4817AB, MainMenuTextHook);
-	OverrideColour=GetPrivateProfileInt("Misc", "MainMenuFontColour", 0, ini);
-	if(OverrideColour) MakeCall(0x48174C, FontColour);
+	OverrideColour = GetPrivateProfileInt("Misc", "MainMenuFontColour", 0, ini);
+	if (OverrideColour) {
+		MakeCall(0x48174C, FontColour);
+	}
 }
