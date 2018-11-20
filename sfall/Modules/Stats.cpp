@@ -53,8 +53,8 @@ static void __declspec(naked) stat_level_hack() {
 	}
 }
 
-static DWORD __fastcall check_stat_level(register DWORD value, DWORD stat) {
-	DWORD valLimit;
+static int __fastcall check_stat_level(register int value, int stat) {
+	int valLimit;
 	if (cCritter == fo::var::obj_dude) {
 		valLimit = statMinimumsPC[stat];
 		if (value < valLimit) return valLimit;

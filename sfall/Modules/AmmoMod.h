@@ -27,6 +27,8 @@ class AmmoMod : public Module {
 public:
 	const char* name() { return "AmmoMod"; }
 	void init();
+
+	static int formula;
 };
 
 }
