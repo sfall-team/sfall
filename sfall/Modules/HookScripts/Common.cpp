@@ -24,8 +24,8 @@ DWORD cRetTmp; // how many return values were set by specific hook script (when 
 
 std::vector<HookScript> hooks[numHooks];
 
-void LoadHookScript(const char* name, int id) {
-	if (id >= numHooks || IsGameScript(name)) return;
+bool LoadHookScript(const char* name, int id) {
+	if (id >= numHooks || IsGameScript(name)) return false;
 
 	char filename[MAX_PATH];
 	sprintf(filename, "scripts\\%s.int", name);
@@ -46,7 +46,9 @@ void LoadHookScript(const char* name, int id) {
 			dlogr(" Error!", DL_HOOK);
 		}
 	}
-	if (HookScripts::injectAllHooks || prog.ptr != nullptr) HookScripts::InjectingHook(id); // inject hook to engine code
+	bool hookIsLoaded = (prog.ptr != nullptr);
+	if (hookIsLoaded || HookScripts::injectAllHooks) HookScripts::InjectingHook(id); // inject hook to engine code
+	return hookIsLoaded;
 }
 
 void _stdcall BeginHook() {
@@ -61,6 +63,9 @@ void _stdcall BeginHook() {
 		}
 	}
 	callDepth++;
+	#ifndef NDEBUG
+		dlog_f("Begin running hook, current depth: %d\n", DL_HOOK, callDepth);
+	#endif
 }
 
 static void _stdcall RunSpecificHookScript(HookScript *hook) {
@@ -87,6 +92,9 @@ void _stdcall RunHookScript(DWORD hook) {
 }
 
 void _stdcall EndHook() {
+	#ifndef NDEBUG
+		dlog_f("End running hook, current depth: %d\n", DL_HOOK, callDepth);
+	#endif
 	callDepth--;
 	if (callDepth && callDepth <= maxDepth) {
 		argCount = lastCount[callDepth - 1];

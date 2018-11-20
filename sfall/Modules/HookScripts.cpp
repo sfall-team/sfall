@@ -86,10 +86,16 @@ static HooksInjectInfo injectHooks[] = {
 bool HookScripts::injectAllHooks;
 DWORD initingHookScripts;
 
-// BEGIN HOOKS
+// flags for checking if these hooks have script
+bool HookScripts::hookSetGlobalVar = false;
+bool HookScripts::hookAdjustFid = false;
+static bool hookKeyPress = false;
+static bool hookMouseClick = false;
+static bool hookGameModeChange = false;
 
+// BEGIN HOOKS
 void HookScripts::KeyPressHook(DWORD* dxKey, bool pressed, DWORD vKey) {
-	if (!IsMapLoaded()) {
+	if (!hookKeyPress || !IsMapLoaded()) {
 		return;
 	}
 	BeginHook();
@@ -103,7 +109,7 @@ void HookScripts::KeyPressHook(DWORD* dxKey, bool pressed, DWORD vKey) {
 }
 
 void _stdcall MouseClickHook(DWORD button, bool pressed) {
-	if (!IsMapLoaded()) {
+	if (!hookMouseClick || !IsMapLoaded()) {
 		return;
 	}
 	BeginHook();
@@ -115,13 +121,13 @@ void _stdcall MouseClickHook(DWORD button, bool pressed) {
 }
 
 void HookScripts::GameModeChangeHook(DWORD exit) {
+	if (!hookGameModeChange) return;
 	BeginHook();
 	argCount = 1;
 	args[0] = exit;
 	RunHookScript(HOOK_GAMEMODECHANGE);
 	EndHook();
 }
-
 // END HOOKS
 
 DWORD _stdcall GetHSArgCount() {
@@ -177,7 +183,24 @@ void _stdcall RegisterHook(fo::Program* script, int id, int procNum) {
 		hook.callback = procNum;
 		hook.isGlobalScript = true;
 		hooks[id].push_back(hook);
-		HookScripts::InjectingHook(id); // inject hook to engine code
+		switch (id) {
+		case HOOK_KEYPRESS:
+			hookKeyPress = true;
+			break;
+		case HOOK_MOUSECLICK:
+			hookMouseClick = true;
+			break;
+		case HOOK_ADJUSTFID:
+			HookScripts::hookAdjustFid = true;
+			break;
+		case HOOK_GAMEMODECHANGE:
+			hookGameModeChange = true;
+			break;
+		case HOOK_SETGLOBALVAR: // this should be placed to last without the break keyword
+			HookScripts::hookSetGlobalVar = true;
+		default:
+			HookScripts::InjectingHook(id); // inject hook to engine code
+		}
 	}
 }
 
@@ -191,9 +214,9 @@ static void HookScriptInit() {
 	InitObjectHookScripts();
 	InitMiscHookScripts();
 
-	LoadHookScript("hs_keypress", HOOK_KEYPRESS);
-	LoadHookScript("hs_mouseclick", HOOK_MOUSECLICK);
-	LoadHookScript("hs_gamemodechange", HOOK_GAMEMODECHANGE);
+	hookKeyPress = LoadHookScript("hs_keypress", HOOK_KEYPRESS);
+	hookMouseClick = LoadHookScript("hs_mouseclick", HOOK_MOUSECLICK);
+	hookGameModeChange = LoadHookScript("hs_gamemodechange", HOOK_GAMEMODECHANGE);
 
 	dlogr("Finished loading hook scripts", DL_HOOK|DL_INIT);
 }

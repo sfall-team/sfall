@@ -72,9 +72,12 @@ public:
 	const char* name() { return "HookScripts"; }
 	void init();
 
+	static bool hookSetGlobalVar;
+	static bool hookAdjustFid;
+
+	static bool injectAllHooks;
 	static void InjectingHook(int hookId);
 	static bool IsInjectHook(int hookId);
-	static bool injectAllHooks;
 
 	static void GameModeChangeHook(DWORD exit);
 	static void KeyPressHook(DWORD* dxKey, bool pressed, DWORD vKey);
