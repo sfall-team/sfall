@@ -20,6 +20,7 @@
 #include <set>
 #include <string>
 #include <unordered_map>
+#include <map>
 
 #include "..\main.h"
 #include "..\FalloutEngine\Fallout2.h"
@@ -70,6 +71,8 @@ struct ExportedVar {
 };
 
 static std::vector<std::string> globalScriptPathList;
+static std::map<std::string, std::string> globalScriptFilesList;
+
 static std::vector<fo::Program*> checkedScripts;
 static std::vector<GlobalScript> globalScripts;
 // a map of all sfall programs (global and hook scripts) by thier scriptPtr
@@ -407,50 +410,69 @@ bool _stdcall IsGameScript(const char* filename) {
 	return false;
 }
 
-static void LoadGLobalScriptsByMask(const std::string& fileMask) {
-	char* *filenames;
-	auto basePath = fileMask.substr(0, fileMask.find_last_of("\\/") + 1);
-	int count = fo::func::db_get_file_list(fileMask.c_str(), &filenames);
-
-	// TODO: refactor script programs
+static void LoadGLobalScripts() {
 	ScriptProgram prog;
-	for (int i = 0; i < count; i++) {
-		char* name = _strlwr(filenames[i]);
-		std::string baseName(name);
-		baseName = baseName.substr(0, baseName.find_last_of('.'));
-		if (basePath != fo::var::script_path_base || !IsGameScript(baseName.c_str())) {
-			dlog(">", DL_SCRIPT);
-			std::string fullPath(basePath);
-			fullPath += name;
-			dlog(fullPath, DL_SCRIPT);
-			isGlobalScriptLoading = 1;
-			LoadScriptProgram(prog, fullPath.c_str(), true);
-			if (prog.ptr) {
-				dlogr(" Done", DL_SCRIPT);
-				DWORD idx;
-				GlobalScript gscript = GlobalScript(prog);
-				idx = globalScripts.size();
-				globalScripts.push_back(gscript);
-				AddProgramToMap(prog);
-				// initialize script (start proc will be executed for the first time) -- this needs to be after script is added to "globalScripts" array
-				InitScriptProgram(prog);
-			} else {
-				dlogr(" Error!", DL_SCRIPT);
-			}
-			isGlobalScriptLoading = 0;
+	for (auto& item : globalScriptFilesList)
+	{
+		auto scriptFile = item.second;
+		dlog(">" + scriptFile, DL_SCRIPT);
+		isGlobalScriptLoading = 1;
+		LoadScriptProgram(prog, scriptFile.c_str(), true);
+		if (prog.ptr) {
+			dlogr(" Done", DL_SCRIPT);
+			GlobalScript gscript = GlobalScript(prog);
+			//DWORD idx = globalScripts.size();
+			globalScripts.push_back(gscript);
+			AddProgramToMap(prog);
+			// initialize script (start proc will be executed for the first time) -- this needs to be after script is added to "globalScripts" array
+			InitScriptProgram(prog);
+		} else {
+			dlogr(" Error!", DL_SCRIPT);
 		}
+		isGlobalScriptLoading = 0;
 	}
-	fo::func::db_free_file_list(&filenames, 0);
+}
+
+static void PrepareGlobalScriptsListByMask() {
+	for (auto& fileMask : globalScriptPathList)
+	{
+		char** filenames;
+		auto basePath = fileMask.substr(0, fileMask.find_last_of("\\/") + 1); // path to scripts without mask
+		int count = fo::func::db_get_file_list(fileMask.c_str(), &filenames);
+		
+		for (int i = 0; i < count; i++) {
+			char* name = _strlwr(filenames[i]); // name of the script in lower case
+			std::string baseName(name);
+			baseName = baseName.substr(0, baseName.find_last_of('.')); // script name without extension
+			if (basePath != fo::var::script_path_base || !IsGameScript(baseName.c_str())) {
+				std::string fullPath(basePath);
+				fullPath += name;
+				// preventing loading of global scripts the same name from different directories
+				if (globalScriptFilesList.find(baseName) != globalScriptFilesList.end()) {
+					fo::func::debug_printf("\n[SFALL] Script %s not be executed. A script the same name already exists in another directory.", fullPath);
+					continue;
+				}
+				globalScriptFilesList.insert(std::make_pair(baseName, fullPath));
+			}
+		}
+		fo::func::db_free_file_list(&filenames, 0);
+	}
+	globalScriptPathList.clear(); // clear path list, it is no longer needed
 }
 
 // this runs after the game was loaded/started
 static void LoadGlobalScripts() {
+	static bool listIsPrepared = false;
 	isGameLoading = false;
-	LoadHookScripts();
+
+	LoadHookScripts(); // TODO: need to reorganize hooks loading
+
 	dlogr("Loading global scripts", DL_SCRIPT|DL_INIT);
-	for (auto& mask : globalScriptPathList) {
-		LoadGLobalScriptsByMask(mask);
+	if (!listIsPrepared) { // runs only once
+		PrepareGlobalScriptsListByMask();
+		listIsPrepared = true;
 	}
+	LoadGLobalScripts();
 	dlogr("Finished loading global scripts", DL_SCRIPT|DL_INIT);
 }
 
