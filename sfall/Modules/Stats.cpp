@@ -72,8 +72,8 @@ static int __fastcall check_stat_level(register int value, int stat) {
 static const DWORD StatLevelHackCheck_Ret = 0x4AF3D7;
 static void __declspec(naked) stat_level_hack_check() {
 	__asm {
-		mov  edx, esi;
-		call check_stat_level; // ecx - value stat
+		mov  edx, esi;         // stat
+		call check_stat_level; // ecx - value
 		jmp  StatLevelHackCheck_Ret;
 	}
 }
