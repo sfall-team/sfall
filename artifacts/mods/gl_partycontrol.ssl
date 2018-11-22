@@ -71,7 +71,6 @@ procedure CombaTurn_Handler begin
       if (displayName) then hide_iface_tag(displayName);
       if (AllowControl(pid) == false) then begin
          set_dude_obj(real_dude_obj);
-         move_to(dude_obj, dude_tile, dude_elevation);
       end
    end
 end

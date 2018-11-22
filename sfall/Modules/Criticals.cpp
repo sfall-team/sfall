@@ -22,7 +22,6 @@
 #include "..\FalloutEngine\Fallout2.h"
 #include "..\Logging.h"
 #include "LoadGameHook.h"
-#include "Utils.h"
 
 #include "Criticals.h"
 
@@ -79,7 +78,7 @@ void Criticals::ResetCriticalTable(DWORD critter, DWORD bodypart, DWORD slot, DW
 
 static int CritTableLoad() {
 	if (mode == 1) {
-		dlog("\n Setting up critical hit table using CriticalOverrides.ini file", DL_CRITICALS);
+		dlog("\n  Setting up critical hit table using CriticalOverrides.ini file", DL_CRITICALS);
 		char section[16];
 		memset(loadCritTable, 0, sizeof(critTable));
 		for (DWORD critter = 0; critter < 20; critter++) {
@@ -103,7 +102,7 @@ static int CritTableLoad() {
 			}
 		}
 	} else {
-		if (mode != 4) dlog("\n Setting up critical hit table using RP fixes", DL_CRITICALS);
+		if (mode != 4) dlog("\n  Setting up critical hit table using RP fixes", DL_CRITICALS);
 		constexpr int size = 6 * 9 * sizeof(fo::CritInfo);
 		constexpr int sizeF = 19 * size;
 		memcpy(loadCritTable, fo::var::crit_succ_eff, sizeF);

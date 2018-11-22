@@ -18,7 +18,7 @@ enum CodeType : BYTE {
 #ifndef NDEBUG
 std::list<long> writeAddress;
 
-void CheckConflict(DWORD addr) {
+static void CheckConflict(DWORD addr) {
 	bool exist = false;
 	for (const auto &wa : writeAddress) {
 		if (addr == wa) {
@@ -32,7 +32,7 @@ void CheckConflict(DWORD addr) {
 }
 #endif
 
-void _stdcall SafeWriteFunc(BYTE code, DWORD addr, void* func) {
+static void _stdcall SafeWriteFunc(BYTE code, DWORD addr, void* func) {
 	DWORD oldProtect, data = (DWORD)func - (addr + 5);
 
 	VirtualProtect((void *)addr, 5, PAGE_EXECUTE_READWRITE, &oldProtect);
@@ -45,7 +45,7 @@ void _stdcall SafeWriteFunc(BYTE code, DWORD addr, void* func) {
 #endif
 }
 
-void _stdcall SafeWriteFunc(BYTE code, DWORD addr, void* func, DWORD len) {
+static _declspec(noinline) void _stdcall SafeWriteFunc(BYTE code, DWORD addr, void* func, DWORD len) {
 	DWORD oldProtect,
 		protectLen = len + 5,
 		addrMem = addr + 5,
@@ -54,10 +54,9 @@ void _stdcall SafeWriteFunc(BYTE code, DWORD addr, void* func, DWORD len) {
 	VirtualProtect((void *)addr, protectLen, PAGE_EXECUTE_READWRITE, &oldProtect);
 	*((BYTE*)addr) = code;
 	*((DWORD*)(addr + 1)) = data;
-	if (len > 1) {
-		memset((void*)addrMem, CodeType::Nop, len);
-	} else {
-		*((DWORD*)(addrMem)) = CodeType::Nop;
+
+	for (unsigned int i = 0; i < len; i++) {
+		*((BYTE*)(addrMem + i)) = CodeType::Nop;
 	}
 	VirtualProtect((void *)addr, protectLen, oldProtect, &oldProtect);
 
