@@ -462,14 +462,14 @@ static void PrepareGlobalScriptsListByMask() {
 
 // this runs after the game was loaded/started
 static void LoadGlobalScripts() {
+	static bool listIsPrepared = false;
 	isGameLoading = false;
 	LoadHookScripts();
 	dlogr("Loading global scripts", DL_SCRIPT|DL_INIT);
-	globalScriptPathList = GetConfigList("Scripts", "GlobalScriptPaths", "scripts\\gl*.int", 255);
-	for (unsigned int i = 0; i < globalScriptPathList.size(); i++) {
-		ToLowerCase(globalScriptPathList[i]);
+	if (!listIsPrepared) { // runs only once
+		PrepareGlobalScriptsListByMask();
+		listIsPrepared = true;
 	}
-	PrepareGlobalScriptsListByMask();
 	LoadGlobalScriptsList();
 	dlogr("Finished loading global scripts", DL_SCRIPT|DL_INIT);
 }
@@ -665,6 +665,11 @@ void ScriptExtender::init() {
 	MainLoopHook::OnCombatLoop() += RunGlobalScriptsOnMainLoop;
 	OnInputLoop() += RunGlobalScriptsOnInput;
 	Worldmap::OnWorldmapLoop() += RunGlobalScriptsOnWorldMap;
+
+	globalScriptPathList = GetConfigList("Scripts", "GlobalScriptPaths", "scripts\\gl*.int", 255);
+	for (unsigned int i = 0; i < globalScriptPathList.size(); i++) {
+		ToLowerCase(globalScriptPathList[i]);
+	}
 
 	idle = GetConfigInt("Misc", "ProcessorIdle", -1);
 	if (idle > -1 && idle <= 127) {
