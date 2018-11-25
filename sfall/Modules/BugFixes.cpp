@@ -1647,6 +1647,80 @@ skip:
 	}
 }
 
+static DWORD firstItemDrug = -1;
+static const DWORD ai_check_drugs_hack_Ret = 0x42878B;
+static void __declspec(naked) ai_check_drugs_hack_break() {
+	__asm {
+		mov  eax, -1;
+		cmp  firstItemDrug, eax;
+		jnz  firstDrugs;
+		add  esp, 4;
+		jmp  ai_check_drugs_hack_Ret;      // break loop
+firstDrugs:
+		mov  dword ptr [esp + 4], eax;     // buf
+		mov  edi, firstItemDrug;
+		mov  ebx, edi;
+		mov  firstItemDrug, eax;
+		retn;                              // use drug
+	}
+}
+
+static void __declspec(naked) ai_check_drugs_hack_check() {
+	__asm {
+		test [esp + 0x34 - 0x30 + 4], 1;   // check NoInvenItem flag
+		jnz  skip;
+		cmp  dword ptr [edx + 0xAC], -1;   // Chemical Preference Number (cap.chem_primary_desire)
+		jnz  checkDrugs;
+skip:
+		xor  ebx, ebx;                     // set zero flag for skipping preference list check
+		retn;
+checkDrugs:
+		cmp  ebx, [edx + 0xAC];            // Chemical Preference Number
+		retn;
+	}
+}
+
+static const DWORD ai_check_drugs_hack_Loop = 0x428675;
+static void __declspec(naked) ai_check_drugs_hack_use() {
+	__asm {
+		cmp  eax, 3;
+		jge  beginLoop;
+		retn;                              // use drug
+beginLoop:
+		cmp  firstItemDrug, -1;
+		jnz  skip;
+		mov  firstItemDrug, edi;           // keep drug item
+skip:
+		add  esp, 4;
+		jmp  ai_check_drugs_hack_Loop;     // goto begin loop
+	}
+}
+
+static const DWORD config_get_values_hack_Get = 0x42C13F;
+static const DWORD config_get_values_hack_OK = 0x42C14D;
+static const DWORD config_get_values_hack_Fail = 0x42C131;
+static void __declspec(naked) config_get_values_hack() {
+	__asm {
+		cmp ebp, 1;                        // counter value
+		jl  getOK;
+		jz  getLast;
+		// if ebp > 1
+		mov eax, [esp + 0x100];
+		cmp [eax], 0;                      // check char
+		jz  getFail;
+		mov eax, dword ptr [esp + 0x114];  // total num of values
+		sub eax, ebp;
+		cmp eax, 1;
+		ja  getFail;
+getLast:
+		jmp config_get_values_hack_Get;    // get last value
+getOK:
+		jmp config_get_values_hack_OK;
+getFail:
+		jmp config_get_values_hack_Fail;
+	}
+}
+
 
 void BugFixes::init()
 {
@@ -2097,6 +2171,21 @@ void BugFixes::init()
 
 	// Display a pop-up messages box about death from radiation
 	HookCall(0x42D733, process_rads_hook);
+
+	// Fix for AI not checking chem_primary_desire setting in AI.txt for drug use preference
+	if (GetConfigInt("Misc", "AIDrugUsePerfFix", 0)) {
+		dlog("Applying AI drug use preference fix.", DL_INIT);
+		MakeCall(0x42869D, ai_check_drugs_hack_break);
+		MakeCall(0x4286AB, ai_check_drugs_hack_check);
+		SafeWrite16(0x4286B0, 0x7490); // jnz > jz
+		SafeWrite8(0x4286C5, 0x75);    // jz  > jnz
+		MakeCall(0x4286C7, ai_check_drugs_hack_use);
+		dlogr(" Done", DL_INIT);
+	}
+
+	// Fix for config_get_values_ engine function not getting the last value in a list if the list has less than the requested
+	// number of values (for chem_primary_desire)
+	MakeJump(0x42C12C, config_get_values_hack);
 }
 
 }
