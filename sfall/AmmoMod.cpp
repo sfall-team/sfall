@@ -35,7 +35,7 @@ static __declspec(naked) void DamageGlovz() {
 		jle  end;                             // exit
 begin:
 		mov  dword ptr ss:[esp + 0x30], 0;    // clear value
-		mov  edx, dword ptr ds:[esi + 4];     // get pointer to weapon being used by an attacker (I think)
+		mov  edx, dword ptr ds:[esi + 4];     // get the hit mode of weapon being used by attacker
 		mov  eax, dword ptr ds:[esi];         // get pointer to critter attacking
 		call item_w_damage_;                  // get the raw damage value
 		mov  ebx, dword ptr ss:[esp + 0x18];  // get the bonus ranged damage value
@@ -49,7 +49,7 @@ rdJmp:
 		mov  edx, dword ptr ss:[esp + 0x28];  // get the armorDT value
 		cmp  edx, 0;                          // compare the armorDT value to 0
 		jle  bJmp;                            // if the armorDT value is less than or equal to 0 then goto bJmp
-		mov  eax, dword ptr ds:[esi + 0x8];   // get pointer to critters ammo being used in their weapon (I think)
+		mov  eax, dword ptr ds:[esi + 0x8];   // get pointer to critter's weapon
 		call item_w_dam_div_;                 // get the ammoY value
 		cmp  eax, 0;                          // compare the ammoY value to 0
 		jg   aJmp;                            // if the ammoY value is greater than 0 then goto aJmp
@@ -130,7 +130,7 @@ cJmp:
 sdrJmp:
 		sub  edx, 20;                         // subtract 20 from the armorDR value
 aSubCJmp:
-		mov  eax, dword ptr ds:[esi + 0x8];   // get pointer to ammo being used in the critters weapon (I think)
+		mov  eax, dword ptr ds:[esi + 0x8];   // get pointer to critter's weapon
 		call item_w_dr_adjust_;               // get the ammoDRM value
 		cmp  eax, 0;                          // compare the ammoDRM value to 0
 		jl   adrJmp;                          // if the ammoDRM value is less than 0 then goto adrJmp
@@ -141,7 +141,7 @@ aSubCJmp:
 adrJmp:
 		add  edx, eax;                        // add the ammoDRM value to the armorDR value
 bSubCJmp:
-		mov  eax, dword ptr ds:[esi + 0x8];   // get pointer to ammo being used in the critters weapon (I think)
+		mov  eax, dword ptr ds:[esi + 0x8];   // get pointer to critter's weapon
 		call item_w_dam_mult_;                // get the ammoX value
 		cmp  eax, 0;                          // compare the ammoX value to 0
 		jg   cSubCJmp;                        // if the ammoX value is greater than 0 then goto cSubCJmp;
@@ -159,11 +159,11 @@ divThree:
 		sub  ebx, eax;                        // subtract the damage resisted value from the ND value
 		jmp  eJmp;                            // goto eJmp
 dJmp:
-		mov  eax, dword ptr ds:[esi + 0x8];   // get pointer to ammo being used in the critters weapon (I think)
+		mov  eax, dword ptr ds:[esi + 0x8];   // get pointer to critter's weapon
 		call item_w_dam_mult_;                // get the ammoX value
 		cmp  eax, 1;                          // compare the ammoX value to 1
 		jle  bSubDJmp;                        // if the ammoX value is less than or equal to 1 then goto bSubDJmp;
-		mov  eax, dword ptr ds:[esi + 0x8];   // get pointer to critters ammo being used in their weapon (I think)
+		mov  eax, dword ptr ds:[esi + 0x8];   // get pointer to critter's weapon
 		call item_w_dam_div_;                 // get the ammoY value
 		cmp  eax, 1;                          // compare the ammoY value to 1
 		jle  aSubDJmp;                        // if the ammoY value is less than or equal to 1 then goto aSubDJmp
@@ -185,7 +185,7 @@ divFive:
 		add  ebx, eax;                        // add the quotient value to the ND value
 		jmp  eJmp;                            // goto eJmp
 bSubDJmp:
-		mov  eax, dword ptr ds:[esi + 0x8];   // get pointer to critters ammo being used in their weapon (I think)
+		mov  eax, dword ptr ds:[esi + 0x8];   // get pointer to critter's weapon
 		call item_w_dam_div_;                 // get the ammoY value
 		cmp  eax, 1;                          // compare the ammoY value to 1
 		jle  eJmp;                            // goto eJmp
@@ -441,12 +441,6 @@ void AmmoModInit() {
 		case 2:
 			MakeJump(0x424995, DamageGlovz);
 			break;
-		/*case 3:
-			MakeJump(0x424995, DamageFunction3);
-			break;
-		case 4:
-			MakeJump(0x424995, DamageFunction4);
-			break;*/
 		case 5:
 			MakeJump(0x424995, DamageYAAM);
 			break;

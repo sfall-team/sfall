@@ -792,13 +792,13 @@ void MoviesInit() {
 		CreateSndWnd();
 	}
 
-	DWORD tmp;
-	tmp = SimplePatch<DWORD>(0x4A36EC, "Misc", "MovieTimer_artimer4", 360, 0);
-	tmp = SimplePatch<DWORD>(0x4A3747, "Misc", "MovieTimer_artimer3", 270, 0, tmp);
-	tmp = SimplePatch<DWORD>(0x4A376A, "Misc", "MovieTimer_artimer2", 180, 0, tmp);
+	DWORD days;
+	days = SimplePatch<DWORD>(0x4A36EC, "Misc", "MovieTimer_artimer4", 360, 0);
+	days = SimplePatch<DWORD>(0x4A3747, "Misc", "MovieTimer_artimer3", 270, 0, days);
+	days = SimplePatch<DWORD>(0x4A376A, "Misc", "MovieTimer_artimer2", 180, 0, days);
 	Artimer1DaysCheckTimer = GetPrivateProfileIntA("Misc", "MovieTimer_artimer1", 90, ini);
 	if (Artimer1DaysCheckTimer != 90) {
-		Artimer1DaysCheckTimer = max(0, min(tmp, Artimer1DaysCheckTimer));
+		Artimer1DaysCheckTimer = max(0, min(days, Artimer1DaysCheckTimer));
 		char s[255];
 		sprintf_s(s, "Applying patch: MovieTimer_artimer1 = %d. ", Artimer1DaysCheckTimer);
 		dlog(s, DL_INIT);
