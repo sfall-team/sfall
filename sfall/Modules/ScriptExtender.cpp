@@ -449,7 +449,7 @@ static void PrepareGlobalScriptsListByMask() {
 				fullPath += name;
 				// preventing loading of global scripts the same name from different directories
 				if (globalScriptFilesList.find(baseName) != globalScriptFilesList.end()) {
-					fo::func::debug_printf("\n[SFALL] Script %s not be executed. A script the same name already exists in another directory.", fullPath);
+					fo::func::debug_printf("\n[SFALL] Script %s will not be executed. A script the same name already exists in another directory.", fullPath);
 					continue;
 				}
 				globalScriptFilesList.insert(std::make_pair(baseName, fullPath));

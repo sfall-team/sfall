@@ -357,7 +357,7 @@ static void _declspec(naked) CombatTurnHook() {
 		_asm retn;        // exit hook
 	}
 
-// set_sfall_return not used, proceed normally
+	// set_sfall_return not used, proceed normally
 	__asm {
 		popad;
 		call fo::funcoffs::combat_turn_;
@@ -365,7 +365,7 @@ static void _declspec(naked) CombatTurnHook() {
 		pushad;
 	}
 
-	cRet = 0; // reset number of return values
+	//cRet = 0; // reset number of return values
 	RunHookScript(HOOK_COMBATTURN); // End of turn
 	EndHook();
 

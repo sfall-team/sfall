@@ -87,15 +87,14 @@ static void _stdcall RunSpecificHookScript(HookScript *hook) {
 }
 
 void _stdcall RunHookScript(DWORD hook) {
+	cRet = 0;
 	if (hooks[hook].size()) {
 		if (isDebug) dlogh("Running hook %d, which has %0d entries attached\n", hook, hooks[hook].size());
-		cRet = 0;
 		for (int i = hooks[hook].size() - 1; i >= 0; i--) {
 			RunSpecificHookScript(&hooks[hook][i]);
 		}
 	} else {
 		cArg = 0;
-		cRet = 0;
 	}
 }
 

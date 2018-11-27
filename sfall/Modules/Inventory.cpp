@@ -682,7 +682,7 @@ static void __declspec(naked) adjust_fid_hack_replacement() {
 	__asm {
 		push ecx;
 		push edx;
-		call adjust_fid_replacement;
+		call adjust_fid_replacement;    // return fid
 		pop  edx;
 		pop  ecx;
 		retn;
