@@ -267,4 +267,49 @@
 #define WPN_ANIM_MINIGUN            (0x09) // (L)
 #define WPN_ANIM_ROCKET_LAUNCHER    (0x0A) // (M)
 
+// Compute attack result fields
+#define C_ATTACK_SOURCE             (0x00)
+#define C_ATTACK_HIT_MODE           (0x04)
+#define C_ATTACK_WEAPON             (0x08)
+#define C_ATTACK_DAMAGE_SOURCE      (0x10) // Amount
+#define C_ATTACK_FLAGS_SOURCE       (0x14) // see DAM_* values in define.h
+#define C_ATTACK_ROUNDS             (0x18)
+#define C_ATTACK_TARGET             (0x20)
+#define C_ATTACK_BODY_PART          (0x28)
+#define C_ATTACK_DAMAGE_TARGET      (0x2C) // Amount
+#define C_ATTACK_FLAGS_TARGET       (0x30) // see DAM_*
+#define C_ATTACK_KNOCKBACK_VALUE    (0x34)
+#define C_ATTACK_MAIN_TARGET        (0x38)
+#define C_ATTACK_AROUND_NUMBER      (0x3C) // The number of critters around the target
+#define C_ATTACK_TARGET1            (0x40)
+#define C_ATTACK_TARGET2            (0x44)
+#define C_ATTACK_TARGET3            (0x48)
+#define C_ATTACK_TARGET4            (0x4C)
+#define C_ATTACK_TARGET5            (0x50)
+#define C_ATTACK_TARGET6            (0x54)
+#define C_ATTACK_BODY_PART1         (0x58)
+#define C_ATTACK_BODY_PART2         (0x5C)
+#define C_ATTACK_BODY_PART3         (0x60)
+#define C_ATTACK_BODY_PART4         (0x64)
+#define C_ATTACK_BODY_PART5         (0x68)
+#define C_ATTACK_BODY_PART6         (0x6C)
+#define C_ATTACK_DAMAGE_TARGET1     (0x70) // Amount
+#define C_ATTACK_DAMAGE_TARGET2     (0x74)
+#define C_ATTACK_DAMAGE_TARGET3     (0x78)
+#define C_ATTACK_DAMAGE_TARGET4     (0x7C)
+#define C_ATTACK_DAMAGE_TARGET5     (0x80)
+#define C_ATTACK_DAMAGE_TARGET6     (0x84)
+#define C_ATTACK_FLAGS_TARGET1      (0x88) // see DAM_*
+#define C_ATTACK_FLAGS_TARGET2      (0x8C)
+#define C_ATTACK_FLAGS_TARGET3      (0x90)
+#define C_ATTACK_FLAGS_TARGET4      (0x94)
+#define C_ATTACK_FLAGS_TARGET5      (0x98)
+#define C_ATTACK_FLAGS_TARGET6      (0x9C)
+#define C_ATTACK_KNOCKBACK_VALUE1   (0xA0)
+#define C_ATTACK_KNOCKBACK_VALUE2   (0xA4)
+#define C_ATTACK_KNOCKBACK_VALUE3   (0xA8)
+#define C_ATTACK_KNOCKBACK_VALUE4   (0xAC)
+#define C_ATTACK_KNOCKBACK_VALUE5   (0xB0)
+#define C_ATTACK_KNOCKBACK_VALUE6   (0xB4)
+
 #endif // DEFINE_EXTRA_H

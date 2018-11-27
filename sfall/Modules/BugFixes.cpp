@@ -2172,7 +2172,7 @@ void BugFixes::init()
 	// Display a pop-up messages box about death from radiation
 	HookCall(0x42D733, process_rads_hook);
 
-	// Fix for AI not checking chem_primary_desire setting in AI.txt for drug use preference
+	// Fix for AI not taking chem_primary_desire in AI.txt as drug use preference when using drugs in their inventory
 	if (GetConfigInt("Misc", "AIDrugUsePerfFix", 0)) {
 		dlog("Applying AI drug use preference fix.", DL_INIT);
 		MakeCall(0x42869D, ai_check_drugs_hack_break);
