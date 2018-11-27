@@ -16,5 +16,6 @@ void Inject_ItemDamageHook();
 void Inject_AmmoCostHook();
 void Inject_CombatTurnHook();
 void Inject_OnExplosionHook();
+void Inject_SubCombatDamageHook();
 
 }

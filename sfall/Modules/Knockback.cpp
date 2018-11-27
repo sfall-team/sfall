@@ -53,8 +53,6 @@ static ChanceModifier baseHitChance;
 static ChanceModifier basePickpocket;
 
 static bool hookedAimedShot;
-static const DWORD aimedShotRet1 = 0x478EE4;
-static const DWORD aimedShotRet2 = 0x478EEA;
 static std::vector<DWORD> disabledAS;
 static std::vector<DWORD> forcedAS;
 
@@ -138,7 +136,7 @@ static void __declspec(naked) PickpocketHook() {
 		pop  ebx;
 		pop  ecx;
 		pop  edx;
-		mov[esp + 84], eax;
+		mov  [esp + 84], eax;
 		push 0x4ABC6F;
 		retn;
 	}
@@ -304,6 +302,8 @@ static int _stdcall AimedShotTest(DWORD pid) {
 	return 0;
 }
 
+static const DWORD aimedShotRet1 = 0x478EE4;
+static const DWORD aimedShotRet2 = 0x478EEA;
 static void __declspec(naked) AimedShotHook() {
 	__asm {
 		push eax;
