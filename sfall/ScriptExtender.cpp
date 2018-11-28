@@ -1323,8 +1323,11 @@ void ScriptExtenderSetup() {
 	HookCall(0x421FC1, CombatOverHook);
 
 	dlogr("Adding additional opcodes", DL_SCRIPT);
-	if (AllowUnsafeScripting) dlogr("  Unsafe opcodes enabled.", DL_SCRIPT);
-	else dlogr("  Unsafe opcodes disabled.", DL_SCRIPT);
+	if (AllowUnsafeScripting) {
+		dlogr("  Unsafe opcodes enabled.", DL_SCRIPT);
+	} else {
+		dlogr("  Unsafe opcodes disabled.", DL_SCRIPT);
+	}
 
 	SafeWrite32(0x46E370, 0x300);	//Maximum number of allowed opcodes
 	SafeWrite32(0x46ce34, (DWORD)opcodes);	//cmp check to make sure opcode exists

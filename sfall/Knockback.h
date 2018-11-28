@@ -18,12 +18,12 @@
 
 #pragma once
 
-void _stdcall SetPickpocketMax(DWORD critter, DWORD maximum, DWORD mod);
-void _stdcall SetHitChanceMax(DWORD critter, DWORD maximum, DWORD mod);
-void _stdcall KnockbackSetMod(DWORD id, DWORD type, float val, DWORD on);
-void _stdcall KnockbackRemoveMod(DWORD id, DWORD on);
+void _stdcall SetPickpocketMax(TGameObj* critter, DWORD maximum, DWORD mod);
+void _stdcall SetHitChanceMax(TGameObj* critter, DWORD maximum, DWORD mod);
+void _stdcall KnockbackSetMod(TGameObj* id, DWORD type, float val, DWORD on);
+void _stdcall KnockbackRemoveMod(TGameObj* id, DWORD on);
 void KnockbackInit();
 void Knockback_OnGameLoad();
-void _stdcall SetNoBurstMode(DWORD critter, DWORD on);
+void _stdcall SetNoBurstMode(TGameObj* critter, DWORD on);
 void _stdcall DisableAimedShots(DWORD pid);
 void _stdcall ForceAimedShots(DWORD pid);

@@ -107,7 +107,7 @@ endDiv:
 		je   divFive;                         // goto divFive
 		cmp  dword ptr ss:[esp + 0x30], 6;    // compare value to 6
 		je   divSix;                          // goto divSix
-		cmp  dword ptr ss:[esp + 0x30], 7;    // compare value to 7
+		cmp  dword ptr ss:[esp + 0x30], 7;    // compare value to 7 (added for v5.1 tweak)
 		je   divSeven;                        // goto divSeven
 		sub  ebx, eax;                        // subtract the new armorDT value from the RD value
 		jmp  cJmp;                            // goto cJmp

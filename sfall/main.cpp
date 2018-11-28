@@ -430,7 +430,7 @@ static void _stdcall SetKarma(int value) {
 	}
 	old=value-old;
 	char buf[64];
-	if (old==0) return;
+	if (old == 0) return;
 	if (old > 0) {
 		sprintf_s(buf, KarmaGainMsg, old);
 	} else {
@@ -438,6 +438,7 @@ static void _stdcall SetKarma(int value) {
 	}
 	DisplayConsoleMessage(buf);
 }
+
 static void __declspec(naked) SetGlobalVarWrapper() {
 	__asm {
 		test eax, eax;
@@ -450,6 +451,7 @@ end:
 		jmp game_set_global_var_;
 	}
 }
+
 static void __declspec(naked) ReloadHook() {
 	__asm {
 		push eax;
@@ -472,6 +474,7 @@ static void __declspec(naked) ReloadHook() {
 		jmp gsound_play_sfx_file_;
 	}
 }
+
 static const DWORD CorpseHitFix2_continue_loop1 = 0x48B99B;
 static void __declspec(naked) CorpseHitFix2() {
 	__asm {
@@ -492,6 +495,7 @@ really_end:
 		retn;
 	}
 }
+
 static const DWORD CorpseHitFix2_continue_loop2 = 0x48BA0B;
 // same logic as above, for different loop
 static void __declspec(naked) CorpseHitFix2b() {
