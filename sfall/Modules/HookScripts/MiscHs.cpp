@@ -253,17 +253,16 @@ static void __declspec(naked) CarTravelHack() {
 	}
 }
 
-static void __fastcall GlobalVarHook_Script(register DWORD number, register int value) {
+static long __fastcall GlobalVarHook_Script(register DWORD number, register int value) {
 	int old = fo::var::game_global_vars[number];
 
-	if (HookScripts::hookSetGlobalVar && IsMapLoaded()) { // don't execute hook until loading sfall scripts
+	if (IsMapLoaded() && HookScripts::HookHasScript(HOOK_SETGLOBALVAR)) { // IsMapLoaded - don't execute hook until loading sfall scripts
 		BeginHook();
 		argCount = 2;
 		args[0] = number;
 		args[1] = value;
 
 		RunHookScript(HOOK_SETGLOBALVAR);
-
 		if (cRet > 0) value = rets[0];
 		EndHook();
 	}
@@ -271,6 +270,7 @@ static void __fastcall GlobalVarHook_Script(register DWORD number, register int 
 		int diff = value - old;
 		if (diff != 0) Karma::DisplayKarma(diff);
 	}
+	return value;
 }
 
 static void __declspec(naked) SetGlobalVarHook() {
@@ -282,9 +282,9 @@ static void __declspec(naked) SetGlobalVarHook() {
 		call GlobalVarHook_Script; // edx - value
 		pop  edx;
 		pop  ecx;
+		cmp  eax, edx;             // if return value != set value
+		cmovne edx, eax;
 		pop  eax;
-		cmp  cRet, 1;
-		cmovnb edx, dword ptr rets[0];
 		jmp  fo::funcoffs::game_set_global_var_;
 	}
 }
@@ -543,7 +543,7 @@ void InitMiscHookScripts() {
 	LoadHookScript("hs_steal", HOOK_STEAL);
 	LoadHookScript("hs_withinperception", HOOK_WITHINPERCEPTION);
 	LoadHookScript("hs_cartravel", HOOK_CARTRAVEL);
-	HookScripts::hookSetGlobalVar = LoadHookScript("hs_setglobalvar", HOOK_SETGLOBALVAR);
+	LoadHookScript("hs_setglobalvar", HOOK_SETGLOBALVAR);
 	LoadHookScript("hs_resttimer", HOOK_RESTTIMER);
 	LoadHookScript("hs_explosivetimer", HOOK_EXPLOSIVETIMER);
 	LoadHookScript("hs_useskillon", HOOK_USESKILLON);

@@ -361,7 +361,7 @@ static void _declspec(naked) CorrectFidForRemovedItemHook() {
 }
 
 void AdjustFidHook(DWORD vanillaFid) {
-	if (!HookScripts::hookAdjustFid) return;
+	if (!HookScripts::HookHasScript(HOOK_ADJUSTFID)) return;
 
 	BeginHook();
 	argCount = 1;
@@ -416,7 +416,7 @@ void InitInventoryHookScripts() {
 	LoadHookScript("hs_movecost", HOOK_MOVECOST);
 	LoadHookScript("hs_inventorymove", HOOK_INVENTORYMOVE);
 	LoadHookScript("hs_invenwield", HOOK_INVENWIELD);
-	HookScripts::hookAdjustFid = LoadHookScript("hs_adjustfid", HOOK_ADJUSTFID);
+	LoadHookScript("hs_adjustfid", HOOK_ADJUSTFID);
 
 	Inventory::OnAdjustFid() += AdjustFidHook;
 }

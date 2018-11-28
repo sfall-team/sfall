@@ -87,16 +87,9 @@ static HooksInjectInfo injectHooks[] = {
 bool HookScripts::injectAllHooks;
 DWORD initingHookScripts;
 
-// flags for checking if these hooks have script
-bool HookScripts::hookSetGlobalVar = false;
-bool HookScripts::hookAdjustFid = false;
-static bool hookKeyPress = false;
-static bool hookMouseClick = false;
-static bool hookGameModeChange = false;
-
 // BEGIN HOOKS
 void HookScripts::KeyPressHook(DWORD* dxKey, bool pressed, DWORD vKey) {
-	if (!hookKeyPress || !IsMapLoaded()) {
+	if (!IsMapLoaded() || !HookHasScript(HOOK_KEYPRESS)) {
 		return;
 	}
 	BeginHook();
@@ -110,7 +103,7 @@ void HookScripts::KeyPressHook(DWORD* dxKey, bool pressed, DWORD vKey) {
 }
 
 void _stdcall MouseClickHook(DWORD button, bool pressed) {
-	if (!hookMouseClick || !IsMapLoaded()) {
+	if (!IsMapLoaded() || !HookScripts::HookHasScript(HOOK_MOUSECLICK)) {
 		return;
 	}
 	BeginHook();
@@ -122,7 +115,7 @@ void _stdcall MouseClickHook(DWORD button, bool pressed) {
 }
 
 void HookScripts::GameModeChangeHook(DWORD exit) {
-	if (!hookGameModeChange) return;
+	if (!HookHasScript(HOOK_GAMEMODECHANGE)) return;
 	BeginHook();
 	argCount = 1;
 	args[0] = exit;
@@ -136,12 +129,14 @@ DWORD _stdcall GetHSArgCount() {
 }
 
 DWORD _stdcall GetHSArg() {
-	if (cArg == argCount) return 0;
-	else return args[cArg++];
+	if (cArg == argCount)
+		return 0;
+	else
+		return args[cArg++];
 }
 
 void _stdcall SetHSArg(DWORD id, DWORD value) {
-	if(id<argCount) args[id]=value;
+	if (id < argCount) args[id] = value;
 }
 
 DWORD* _stdcall GetHSArgs() {
@@ -168,6 +163,10 @@ bool HookScripts::IsInjectHook(int hookId) {
 	return injectHooks[hookId].isInject;
 }
 
+bool HookScripts::HookHasScript(int hookId) {
+	return (hooks[hookId].empty() == false);
+}
+
 void _stdcall RegisterHook(fo::Program* script, int id, int procNum) {
 	if (id >= numHooks) return;
 	for (std::vector<HookScript>::iterator it = hooks[id].begin(); it != hooks[id].end(); ++it) {
@@ -186,19 +185,10 @@ void _stdcall RegisterHook(fo::Program* script, int id, int procNum) {
 		hooks[id].push_back(hook);
 		switch (id) {
 		case HOOK_KEYPRESS:
-			hookKeyPress = true;
-			break;
 		case HOOK_MOUSECLICK:
-			hookMouseClick = true;
-			break;
 		case HOOK_ADJUSTFID:
-			HookScripts::hookAdjustFid = true;
-			break;
 		case HOOK_GAMEMODECHANGE:
-			hookGameModeChange = true;
 			break;
-		case HOOK_SETGLOBALVAR: // this should be placed to last without the break keyword
-			HookScripts::hookSetGlobalVar = true;
 		default:
 			HookScripts::InjectingHook(id); // inject hook to engine code
 		}
@@ -215,9 +205,9 @@ static void HookScriptInit() {
 	InitObjectHookScripts();
 	InitMiscHookScripts();
 
-	hookKeyPress = LoadHookScript("hs_keypress", HOOK_KEYPRESS);
-	hookMouseClick = LoadHookScript("hs_mouseclick", HOOK_MOUSECLICK);
-	hookGameModeChange = LoadHookScript("hs_gamemodechange", HOOK_GAMEMODECHANGE);
+	LoadHookScript("hs_keypress", HOOK_KEYPRESS);
+	LoadHookScript("hs_mouseclick", HOOK_MOUSECLICK);
+	LoadHookScript("hs_gamemodechange", HOOK_GAMEMODECHANGE);
 
 	dlogr("Finished loading hook scripts", DL_HOOK|DL_INIT);
 }

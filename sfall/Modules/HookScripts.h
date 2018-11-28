@@ -73,8 +73,7 @@ public:
 	const char* name() { return "HookScripts"; }
 	void init();
 
-	static bool hookSetGlobalVar;
-	static bool hookAdjustFid;
+	static bool HookHasScript(int hookId);
 
 	static bool injectAllHooks;
 	static void InjectingHook(int hookId);

@@ -693,12 +693,13 @@ DWORD __stdcall adjust_fid_replacement2() {
 	return var::i_fid;
 }
 
-void __declspec(naked) adjust_fid_replacement() {
+static void __declspec(naked) adjust_fid_replacement() {
 	__asm {
-		pushad;
-		call adjust_fid_replacement2;
-		popad;
-		mov eax, [FO_VAR_i_fid];
+		push ecx;
+		push edx;
+		call adjust_fid_replacement2; // return fid
+		pop  edx;
+		pop  ecx;
 		retn;
 	}
 }
