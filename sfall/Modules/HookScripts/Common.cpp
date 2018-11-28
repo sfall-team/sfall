@@ -1,26 +1,30 @@
-#include "..\..\FalloutEngine\Fallout2.h"
+﻿#include "..\..\FalloutEngine\Fallout2.h"
 
 #include "Common.h"
 
 namespace sfall
 {
 
-constexpr int maxArgs = 16;
+constexpr int maxArgs  = 16;
 constexpr int maxDepth = 8;
 
-DWORD args[maxArgs]; // current hook arguments
-DWORD oldargs[maxArgs * maxDepth];
-DWORD* argPtr;
-DWORD rets[16]; // current hook return values
+struct {
+	DWORD argCount;
+	DWORD cArg;
+	DWORD cRet;
+	DWORD oldArgs[maxArgs];
+	DWORD oldRets[maxRets];
+} savedArgs[maxDepth];
 
-DWORD firstArg = 0;
-DWORD callDepth;
-DWORD lastCount[maxDepth];
+static DWORD callDepth;
+
+DWORD args[maxArgs]; // current hook arguments
+DWORD rets[maxRets]; // current hook return values
 
 DWORD argCount;
-DWORD cArg; // how many arguments were taken by current hook script
-DWORD cRet; // how many return values were set by current hook script
-DWORD cRetTmp; // how many return values were set by specific hook script (when using register_hook)
+DWORD cArg;          // how many arguments were taken by current hook script
+DWORD cRet;          // how many return values were set by current hook script
+DWORD cRetTmp;       // how many return values were set by specific hook script (when using register_hook)
 
 std::vector<HookScript> hooks[numHooks];
 
@@ -61,14 +65,23 @@ bool LoadHookScript(const char* name, int id) {
 
 void _stdcall BeginHook() {
 	if (callDepth <= maxDepth) {
+		// save all values of the current hook, if during the execution of the current hook, another hook was called
 		if (callDepth) {
-			lastCount[callDepth - 1] = argCount;
-			memcpy(&oldargs[maxArgs * (callDepth - 1)], args, maxArgs * sizeof(DWORD));
+			int cDepth = callDepth - 1;
+			savedArgs[cDepth].argCount = argCount;                                     // number of arguments of the current hook
+			savedArgs[cDepth].cArg = cArg;                                             // current count of taken arguments
+			savedArgs[cDepth].cRet = cRet;                                             // number of returned arguments for the current hook
+			memcpy(&savedArgs[cDepth].oldArgs, args, argCount * sizeof(DWORD));        // values of the arguments
+			if (cRet) memcpy(&savedArgs[cDepth].oldRets, rets, cRet * sizeof(DWORD));  // returned values
+
+			// for debuging
+			/*dlog_f("Saved cArgs/cRet: %d / %d(%d)\n", DL_HOOK, savedArgs[cDepth].argCount, savedArgs[cDepth].cRet, cRetTmp);
+			for (unsigned int i = 0; i < maxArgs; i++) {
+				dlogh("Saved Args/Rets: %d / %d\n", savedArgs[cDepth].oldArgs[i], ((i < maxRets) ? savedArgs[cDepth].oldRets[i] : -1));
+			}*/
 		}
-		argPtr = args;
-		for (DWORD i = 0; i < callDepth; i++) {
-			argPtr += lastCount[i];
-		}
+	} else {
+		MessageBoxA(0, "Exceeded depth limit for hook execution!", "sfall: Hooks depth", MB_TASKMODAL);
 	}
 	callDepth++;
 	#ifndef NDEBUG
@@ -94,7 +107,7 @@ void _stdcall RunHookScript(DWORD hook) {
 			RunSpecificHookScript(&hooks[hook][i]);
 		}
 	} else {
-		cArg = 0;
+		cArg = 0; // for what purpose is it here?
 	}
 }
 
@@ -104,8 +117,19 @@ void _stdcall EndHook() {
 	#endif
 	callDepth--;
 	if (callDepth && callDepth <= maxDepth) {
-		argCount = lastCount[callDepth - 1];
-		memcpy(args, &oldargs[maxArgs * (callDepth - 1)], maxArgs * sizeof(DWORD));
+		// restored all saved values of the previous hook
+		int cDepth = callDepth - 1;
+		argCount = savedArgs[cDepth].argCount;
+		cArg = savedArgs[cDepth].cArg;
+		cRet = cRetTmp = savedArgs[cDepth].cRet;  // also restore current count of the number of returned arguments
+		memcpy(args, &savedArgs[cDepth].oldArgs, argCount * sizeof(DWORD));
+		if (cRet) memcpy(rets, &savedArgs[cDepth].oldRets, cRet * sizeof(DWORD));
+
+		// for debuging
+		/*dlog_f("Restored cArgs/cRet: %d / %d(%d)\n", DL_HOOK, argCount, cRet, cRetTmp);
+		for (unsigned int i = 0; i < maxArgs; i++) {
+			dlogh("Restored Args/Rets: %d / %d\n", args[i], ((i < maxRets) ? rets[i] : -1));
+		}*/
 	}
 }
 
