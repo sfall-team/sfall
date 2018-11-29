@@ -82,17 +82,16 @@ static DWORD __fastcall CalcKnockbackMod(int knockValue, int damage, fo::GameObj
 	return (DWORD)floor(result);
 }
 
-static const DWORD compute_damage_hack_ret = 0x424B7D;
 static void __declspec(naked) compute_damage_hack() {
 	__asm {
-		mov  eax, [esp + 0x14];
+		mov  eax, [esp + 0x14 + 4];
 		push eax;               // Target
 		mov  eax, [esi];
 		push eax;               // Attacker
 		mov  eax, [esi + 8];
 		push eax;               // Weapon
 		call CalcKnockbackMod;  // ecx - Knockback value (5 or 10), edx - Damage
-		jmp  compute_damage_hack_ret;
+		retn;
 	}
 }
 
@@ -121,7 +120,6 @@ static int __fastcall PickpocketMod(int base, fo::GameObject* critter) {
 	return min(base + basePickpocket.mod, basePickpocket.maximum);
 }
 
-static const DWORD skill_check_stealing_hack_ret = 0x4ABC6F;
 static void __declspec(naked) skill_check_stealing_hack() {
 	__asm {
 		push edx;
@@ -131,8 +129,7 @@ static void __declspec(naked) skill_check_stealing_hack() {
 		call PickpocketMod;
 		pop  ecx;
 		pop  edx;
-		mov  [esp + 0x54], eax;
-		jmp  skill_check_stealing_hack_ret;
+		retn;
 	}
 }
 
@@ -145,14 +142,13 @@ static int __fastcall HitChanceMod(int base, fo::GameObject* critter) {
 	return min(base + baseHitChance.mod, baseHitChance.maximum);
 }
 
-static const DWORD determine_to_hit_func_hack_ret = 0x42479B;
 static void __declspec(naked) determine_to_hit_func_hack() {
 	__asm {
 		mov  edx, edi;          // critter
 		mov  ecx, esi;          // base (calculated hit chance)
 		call HitChanceMod;
 		mov  esi, eax;
-		jmp  determine_to_hit_func_hack_ret;
+		retn;
 	}
 }
 
@@ -165,7 +161,6 @@ static long __fastcall CheckDisableBurst(fo::GameObject* critter) {
 	return 0;
 }
 
-static const DWORD ai_pick_hit_mode_hack_ret = 0x429E4A;
 static void __declspec(naked) ai_pick_hit_mode_hack() {
 	__asm {
 		mov  ebx, [eax + 0x94]; // cap->area_attack_mode
@@ -177,7 +172,7 @@ static void __declspec(naked) ai_pick_hit_mode_hack() {
 		cmovnz ebx, eax;
 		pop  ecx;
 		pop  eax;
-		jmp  ai_pick_hit_mode_hack_ret;
+		retn;
 	}
 }
 
@@ -355,12 +350,20 @@ static void Knockback_OnGameLoad() {
 }
 
 void Knockback::init() {
-	MakeJump(0x424B76, compute_damage_hack);        // KnockbackMod
+	MakeCall(0x424B76, compute_damage_hack);        // KnockbackMod
+	SafeWrite16(0x424B7B, 0x9090);
 	MakeJump(0x4136D3, compute_dmg_damage_hack);    // for op_critter_dmg
-	MakeJump(0x424791, determine_to_hit_func_hack); // HitChanceMod
-	MakeJump(0x4ABC62, skill_check_stealing_hack);  // PickpocketMod
+
+	MakeCall(0x424791, determine_to_hit_func_hack); // HitChanceMod
+	BlockCall(0x424796);
+
+	MakeCall(0x4ABC62, skill_check_stealing_hack);  // PickpocketMod
+	SafeWrite8(0x4ABC67, 0x89);                     // mov [esp + 0x54], eax
+	SafeWrite32(0x4ABC6B, 0x90909090);
+
 	// Actually disables all secondary attacks for the critter, regardless of whether the weapon has a burst attack
-	MakeJump(0x429E44, ai_pick_hit_mode_hack);      // NoBurst
+	MakeCall(0x429E44, ai_pick_hit_mode_hack);      // NoBurst
+	SafeWrite8(0x429E49, 0x90);
 
 	LoadGameHook::OnGameReset() += Knockback_OnGameLoad;
 }
