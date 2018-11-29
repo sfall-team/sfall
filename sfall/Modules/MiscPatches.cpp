@@ -469,7 +469,6 @@ static void __declspec(naked) win_debug_hook() {
 		call fo::funcoffs::debug_log_;
 		xor  eax, eax;
 		cmp  ds:[FO_VAR_GNW_win_init_flag], eax;
-		push 0x4DC320;
 		retn;
 	}
 }
