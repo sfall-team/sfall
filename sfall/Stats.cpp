@@ -114,14 +114,13 @@ static void __declspec(naked) GetNextLevelXPHook() {
 	}
 }
 
-static const DWORD ApAcRetAddr = 0x4AF0A4;
 static void __declspec(naked) CalcApToAcBonus() {
 	__asm {
 		xor  eax, eax;
 		mov  edi, [ebx + 0x40];
 		test edi, edi;
 		jz   end;
-		cmp  [esp + 0x1C - 0x18], 2;     // pc have perk h2hEvade (2 - vanilla bonus)
+		cmp  [esp + 0x1C - 0x18 + 4], 2; // pc have perk h2hEvade (2 - vanilla bonus)
 		jb   standard;
 		mov  edx, PERK_hth_evade_perk;
 		mov  eax, dword ptr ds:[_obj_dude];
@@ -133,7 +132,7 @@ standard:
 		add  eax, edi;                   // bonus = perkBonus + stdBonus
 		shr  eax, 2;                     // acBonus = bonus / 4
 end:
-		jmp  ApAcRetAddr;
+		retn;
 	}
 }
 
@@ -191,8 +190,10 @@ void StatsInit() {
 
 	MakeJump(0x4AEF4D, stat_level_hack);
 	MakeJump(0x4AF3AF, stat_level_hack_check);
+	SafeWrite16(0x4AF3B4, 0x9090);
 	MakeJump(0x4AF571, stat_set_base_hack_check);
-	MakeJump(0x4AF09C, CalcApToAcBonus); // stat_level_
+	MakeCall(0x4AF09C, CalcApToAcBonus); // stat_level_
+	SafeMemSet(0x4AF0A1, 0x90, 3);
 
 	char table[2048];
 	GetPrivateProfileString("Misc", "XPTable", "", table, 2048, ini);
