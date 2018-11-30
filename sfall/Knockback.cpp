@@ -346,8 +346,7 @@ void Knockback_OnGameLoad() {
 }
 
 void KnockbackInit() {
-	MakeCall(0x424B76, compute_damage_hack);        // KnockbackMod
-	SafeWrite16(0x424B7B, 0x9090);
+	MakeCall(0x424B76, compute_damage_hack, 2);        // KnockbackMod
 	MakeJump(0x4136D3, compute_dmg_damage_hack);    // for op_critter_dmg
 
 	MakeCall(0x424791, determine_to_hit_func_hack); // HitChanceMod
@@ -358,6 +357,5 @@ void KnockbackInit() {
 	SafeWrite32(0x4ABC6B, 0x90909090);
 
 	// Actually disables all secondary attacks for the critter, regardless of whether the weapon has a burst attack
-	MakeCall(0x429E44, ai_pick_hit_mode_hack);      // NoBurst
-	SafeWrite8(0x429E49, 0x90);
+	MakeCall(0x429E44, ai_pick_hit_mode_hack, 1);      // NoBurst
 }

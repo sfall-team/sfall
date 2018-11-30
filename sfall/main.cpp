@@ -1119,8 +1119,7 @@ static void DllMain2() {
 					SafeWrite16(0x4C6E75, 0x66EB); // jmps 0x4C6EDD
 					SafeWrite8(0x4C6EF2, 0xEB);
 					SafeWrite8(0x4C7034, 0x0);
-					MakeCall(0x4DC319, win_debug_hook);
-					SafeWrite16(0x4DC31E, 0x9090);
+					MakeCall(0x4DC319, win_debug_hook, 2);
 				}
 			} else {
 				SafeWrite32(0x4C6D9C, (DWORD)debugGnw);

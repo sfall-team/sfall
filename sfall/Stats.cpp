@@ -189,11 +189,10 @@ void StatsInit() {
 	StatsReset();
 
 	MakeJump(0x4AEF4D, stat_level_hack);
-	MakeJump(0x4AF3AF, stat_level_hack_check);
-	SafeWrite16(0x4AF3B4, 0x9090);
+	MakeJump(0x4AF3AF, stat_level_hack_check, 2);
 	MakeJump(0x4AF571, stat_set_base_hack_check);
-	MakeCall(0x4AF09C, CalcApToAcBonus); // stat_level_
-	SafeMemSet(0x4AF0A1, 0x90, 3);
+
+	MakeCall(0x4AF09C, CalcApToAcBonus, 3); // stat_level_
 
 	char table[2048];
 	GetPrivateProfileString("Misc", "XPTable", "", table, 2048, ini);

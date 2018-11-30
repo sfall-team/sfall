@@ -51,9 +51,19 @@ void MakeCall(DWORD addr, void* func) {
 	HookCall(addr, func);
 }
 
+void MakeCall(DWORD addr, void* func, int len) {
+	SafeMemSet(addr + 5, 0x90, len);
+	MakeCall(addr, func);
+}
+
 void MakeJump(DWORD addr, void* func) {
 	SafeWrite8(addr, 0xE9);
 	HookCall(addr, func);
+}
+
+void MakeJump(DWORD addr, void* func, int len) {
+	SafeMemSet(addr + 5, 0x90, len);
+	MakeJump(addr, func);
 }
 
 void SafeMemSet(DWORD addr, BYTE val, int len) {
@@ -63,6 +73,7 @@ void SafeMemSet(DWORD addr, BYTE val, int len) {
 	memset((void*)addr, val, len);
 	VirtualProtect((void *)addr, len, oldProtect, &oldProtect);
 }
+
 void BlockCall(DWORD addr) {
 	SafeMemSet(addr, 0x90, 5);
 }

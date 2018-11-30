@@ -43,8 +43,8 @@ static sElevator Elevators[ElevatorCount];
 static DWORD Menus[ElevatorCount];
 
 void SetElevator(DWORD id, DWORD index, DWORD value) {
-	if(id>=ElevatorCount||index>=12) return;
-	*(DWORD*)(((DWORD)&Elevators[id])+index*4)=value;
+	if (id >= ElevatorCount || index >= 12) return;
+	*(DWORD*)(((DWORD)&Elevators[id]) + index * 4) = value;
 }
 
 static void __declspec(naked) GetMenuHook() {
@@ -70,6 +70,7 @@ static void __declspec(naked) UnknownHook() {
 		ret;
 	}
 }
+
 static void __declspec(naked) UnknownHook2() {
 	__asm {
 		push ebx;
@@ -87,51 +88,50 @@ static void __declspec(naked) GetNumButtonsHook1() {
 		lea  esi, Menus;
 		mov  eax, [esi+edi*4];
 		mov  eax, [_btncnt+eax*4];
-		push 0x43F064;
 		retn;
 	}
 }
+
 static void __declspec(naked) GetNumButtonsHook2() {
 	__asm {
 		lea  edx, Menus;
 		mov  eax, [edx+edi*4];
 		mov  eax, [_btncnt+eax*4];
-		push 0x43F18B;
 		retn;
 	}
 }
+
 static void __declspec(naked) GetNumButtonsHook3() {
 	__asm {
 		lea  eax, Menus;
 		mov  eax, [eax+edi*4];
 		mov  eax, [_btncnt+eax*4];
-		push 0x43F1EB;
 		retn;
 	}
 }
 
 void ResetElevators() {
-	memcpy(Elevators, (void*)_retvals, sizeof(sElevator)*24);
-	memset(&Elevators[24], 0, sizeof(sElevator)*(ElevatorCount-24));
-	for(int i=0;i<24;i++) Menus[i]=i;
-	for(int i=24;i<ElevatorCount;i++) Menus[i]=0;
+	memcpy(Elevators, (void*)_retvals, sizeof(sElevator) * 24);
+	memset(&Elevators[24], 0, sizeof(sElevator) * (ElevatorCount - 24));
+	for (int i = 0; i < 24; i++) Menus[i] = i;
+	for (int i = 24; i < ElevatorCount; i++) Menus[i] = 0;
 	char section[4];
-	if(File) {
-		for(int i=0;i<ElevatorCount;i++) {
+	if (File) {
+		for (int i = 0; i < ElevatorCount; i++) {
 			_itoa_s(i, section, 10);
-			Menus[i]=GetPrivateProfileIntA(section, "Image", Menus[i], File);
-			Elevators[i].ID1=GetPrivateProfileIntA(section, "ID1", Elevators[i].ID1, File);
-			Elevators[i].ID2=GetPrivateProfileIntA(section, "ID2", Elevators[i].ID2, File);
-			Elevators[i].ID3=GetPrivateProfileIntA(section, "ID3", Elevators[i].ID3, File);
-			Elevators[i].ID4=GetPrivateProfileIntA(section, "ID4", Elevators[i].ID4, File);
-			Elevators[i].Elevation1=GetPrivateProfileIntA(section, "Elevation1", Elevators[i].Elevation1, File);
-			Elevators[i].Elevation2=GetPrivateProfileIntA(section, "Elevation2", Elevators[i].Elevation2, File);
-			Elevators[i].Elevation3=GetPrivateProfileIntA(section, "Elevation3", Elevators[i].Elevation3, File);
-			Elevators[i].Elevation4=GetPrivateProfileIntA(section, "Elevation4", Elevators[i].Elevation4, File);
-			Elevators[i].Tile1=GetPrivateProfileIntA(section, "Tile1", Elevators[i].Tile1, File);
-			Elevators[i].Tile2=GetPrivateProfileIntA(section, "Tile2", Elevators[i].Tile2, File);
-			Elevators[i].Tile3=GetPrivateProfileIntA(section, "Tile3", Elevators[i].Tile3, File);
-			Elevators[i].Tile4=GetPrivateProfileIntA(section, "Tile4", Elevators[i].Tile4, File);
+			Menus[i] = GetPrivateProfileIntA(section, "Image", Menus[i], File);
+			Elevators[i].ID1 = GetPrivateProfileIntA(section, "ID1", Elevators[i].ID1, File);
+			Elevators[i].ID2 = GetPrivateProfileIntA(section, "ID2", Elevators[i].ID2, File);
+			Elevators[i].ID3 = GetPrivateProfileIntA(section, "ID3", Elevators[i].ID3, File);
+			Elevators[i].ID4 = GetPrivateProfileIntA(section, "ID4", Elevators[i].ID4, File);
+			Elevators[i].Elevation1 = GetPrivateProfileIntA(section, "Elevation1", Elevators[i].Elevation1, File);
+			Elevators[i].Elevation2 = GetPrivateProfileIntA(section, "Elevation2", Elevators[i].Elevation2, File);
+			Elevators[i].Elevation3 = GetPrivateProfileIntA(section, "Elevation3", Elevators[i].Elevation3, File);
+			Elevators[i].Elevation4 = GetPrivateProfileIntA(section, "Elevation4", Elevators[i].Elevation4, File);
+			Elevators[i].Tile1 = GetPrivateProfileIntA(section, "Tile1", Elevators[i].Tile1, File);
+			Elevators[i].Tile2 = GetPrivateProfileIntA(section, "Tile2", Elevators[i].Tile2, File);
+			Elevators[i].Tile3 = GetPrivateProfileIntA(section, "Tile3", Elevators[i].Tile3, File);
+			Elevators[i].Tile4 = GetPrivateProfileIntA(section, "Tile4", Elevators[i].Tile4, File);
 		}
 	}
 }
@@ -139,9 +139,11 @@ void ResetElevators() {
 void ElevatorsInit(char* file) {
 	strcpy_s(File, ".\\");
 	strcat_s(File, file);
+
 	HookCall(0x43EF83, GetMenuHook);
 	HookCall(0x43F141, UnknownHook);
 	HookCall(0x43F2D2, UnknownHook2);
+
 	SafeWrite8(0x43EF76, (BYTE)ElevatorCount);
 	SafeWrite32(0x43EFA4, (DWORD)Elevators);
 	SafeWrite32(0x43EFB9, (DWORD)Elevators);
@@ -150,11 +152,9 @@ void ElevatorsInit(char* file) {
 	SafeWrite32(0x43F309, (DWORD)&Elevators[0].Elevation1);
 	SafeWrite32(0x43F315, (DWORD)&Elevators[0].Tile1);
 
-	SafeWrite8(0x43F05D, 0xe9);
-	HookCall(0x43F05D, GetNumButtonsHook1);
-	SafeWrite8(0x43F184, 0xe9);
-	HookCall(0x43F184, GetNumButtonsHook2);
-	SafeWrite8(0x43F1E4, 0xe9);
-	HookCall(0x43F1E4, GetNumButtonsHook3);
+	MakeCall(0x43F05D, GetNumButtonsHook1, 2);
+	MakeCall(0x43F184, GetNumButtonsHook2, 2);
+	MakeCall(0x43F1E4, GetNumButtonsHook3, 2);
+
 	ResetElevators();
 }

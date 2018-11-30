@@ -949,6 +949,17 @@ found:
 	}
 }
 
+static void __declspec(naked) barter_attempt_transaction_hook_weight() {
+	__asm {
+		call item_total_weight_;
+		test eax, eax;
+		jnz  skip;
+		xor  edx, edx;
+skip:
+		retn;
+	}
+}
+
 static void __declspec(naked) item_m_turn_off_hook() {
 	__asm {
 		and  byte ptr [eax+0x25], 0xDF            // Rest flag of used items
@@ -1083,14 +1094,14 @@ static void __declspec(naked) switch_hand_hack() {
 		mov  eax, ds:[_inven_dude]
 		push eax
 		mov  [edi], ebp
-		inc  ecx
+		inc  ecx                                   // if ecx == -1
 		jz   skip
 		xor  ebx, ebx
 		inc  ebx
 		mov  edx, ebp
 		call item_remove_mult_
 skip:
-		pop  edx
+		pop  edx                                  // _inven_dude
 		mov  eax, ebp
 		call item_get_type_
 		cmp  eax, item_type_container
@@ -1192,7 +1203,6 @@ static void __declspec(naked) Save_as_ASCII_hack() {
 	__asm {
 		mov  edx, STAT_sequence;
 		mov  ebx, 626; // line index in EDITOR.MSG
-		push 0x4396FC; // call stat_level_
 		retn;
 	}
 }
@@ -1270,7 +1280,6 @@ static void __declspec(naked) partyMemberGetCurLevel_hack() {
 	__asm {
 		mov  esi, 0xFFFFFFFF; // initialize party member index
 		mov  edi, dword ptr ds:[_partyMemberMaxCount];
-		push 0x495FFC;
 		retn;
 	}
 }
@@ -1810,16 +1819,14 @@ void BugsInit()
 		dlog("Applying fix for not counting in weight of equipped items on NPC.", DL_INIT);
 		MakeCall(0x473B4E, loot_container_hack);
 		HookCall(0x4758AB, barter_inventory_hook);
-		MakeCall(0x477EAB, item_total_weight_hack);
-		SafeWrite8(0x477EB0, 0x90);
-		MakeCall(0x479A2F, item_c_curr_size_hack);
-		SafeWrite8(0x479A34, 0x90);
+		MakeCall(0x477EAB, item_total_weight_hack, 1);
+		MakeCall(0x479A2F, item_c_curr_size_hack, 1);
 		dlogr(" Done", DL_INIT);
 	//}
 
 	// Corrects the max text width of the item weight in trading interface to be 64 (was 80), which matches the table width
-	SafeWrite32(0x475541, 64);
-	SafeWrite32(0x475789, 64);
+	SafeWrite8(0x475541, 64);
+	SafeWrite8(0x475789, 64);
 
 	// Corrects the max text width of the player name in inventory to be 140 (was 80), which matches the width for item name
 	SafeWrite32(0x471E48, 140);
@@ -1899,10 +1906,8 @@ void BugsInit()
 		MakeCall(0x42901F, MultiHexFix);
 		MakeCall(0x429170, MultiHexFix);
 		// Fix for multihex critters moving too close and overlapping their targets in combat
-		MakeCall(0x42A14F, MultiHexCombatRunFix);
-		SafeWrite8(0x42A154, 0x90);
-		MakeCall(0x42A178, MultiHexCombatMoveFix);
-		SafeWrite8(0x42A17D, 0x90);
+		MakeCall(0x42A14F, MultiHexCombatRunFix, 1);
+		MakeCall(0x42A178, MultiHexCombatMoveFix, 1);
 		dlogr(" Done", DL_INIT);
 	//}
 
@@ -1985,12 +1990,9 @@ void BugsInit()
 		// Fix for the engine not checking player's inventory properly when putting items into the bag/backpack in the hands
 		MakeJump(0x4715DB, switch_hand_hack);
 		// Fix to ignore player's equipped items when opening bag/backpack
-		MakeCall(0x471B7F, inven_item_wearing); // inven_right_hand_
-		SafeWrite8(0x471B84, 0x90); // nop
-		MakeCall(0x471BCB, inven_item_wearing); // inven_left_hand_
-		SafeWrite8(0x471BD0, 0x90); // nop
-		MakeCall(0x471C17, inven_item_wearing); // inven_worn_
-		SafeWrite8(0x471C1C, 0x90); // nop
+		MakeCall(0x471B7F, inven_item_wearing, 1); // inven_right_hand_
+		MakeCall(0x471BCB, inven_item_wearing, 1); // inven_left_hand_
+		MakeCall(0x471C17, inven_item_wearing, 1); // inven_worn_
 		// Fix crash when trying to open bag/backpack on the table in the bartering interface
 		MakeCall(0x473191, inven_action_cursor_hack);
 		dlogr(" Done", DL_INIT);
@@ -2003,7 +2005,7 @@ void BugsInit()
 	MakeJump(0x47808C, ItemCountFix); // replacing item_count_ function
 
 	// Fix for Sequence stat value not being printed correctly when using "print to file" option
-	MakeJump(0x4396F5, Save_as_ASCII_hack);
+	MakeCall(0x4396F5, Save_as_ASCII_hack, 2);
 
 	// Fix for Bonus Move APs being replenished when you save and load the game in combat
 	//if (GetPrivateProfileIntA("Misc", "BonusMoveFix", 1, ini)) {
@@ -2028,7 +2030,7 @@ void BugsInit()
 	//}
 
 	// Fix crash when calling partyMemberGetCurLevel_ on a critter that has no data in party.txt
-	MakeJump(0x495FF6, partyMemberGetCurLevel_hack);
+	MakeCall(0x495FF6, partyMemberGetCurLevel_hack, 1);
 
 	// Fix for player's base EMP DR not being properly initialized when creating a new character and then starting the game
 	HookCall(0x4A22DF, &ResetPlayer_hook);
@@ -2046,12 +2048,9 @@ void BugsInit()
 
 	// Fix missing AC/DR mod stats when examining ammo in barter screen
 	dlog("Applying fix for displaying ammo stats in barter screen.", DL_INIT);
-	MakeCall(0x49B4AD, obj_examine_func_hack_ammo0);
-	SafeWrite16(0x49B4B2, 0x9090);
-	MakeCall(0x49B504, obj_examine_func_hack_ammo0);
-	SafeWrite16(0x49B509, 0x9090);
-	MakeCall(0x49B563, obj_examine_func_hack_ammo1);
-	SafeWrite16(0x49B568, 0x9090);
+	MakeCall(0x49B4AD, obj_examine_func_hack_ammo0, 2);
+	MakeCall(0x49B504, obj_examine_func_hack_ammo0, 2);
+	MakeCall(0x49B563, obj_examine_func_hack_ammo1, 2);
 	dlogr(" Done", DL_INIT);
 
 	// Display full item description for weapon/ammo in barter screen
@@ -2083,8 +2082,7 @@ void BugsInit()
 		dlog("Applying obj_can_hear_obj fix.", DL_INIT);
 		SafeWrite8(0x4583D8, 0x3B); // jz loc_458414
 		SafeWrite8(0x4583DE, 0x74); // jz loc_458414
-		MakeCall(0x4583E0, op_obj_can_hear_obj_hack);
-		SafeWrite8(0x4583E5, 0x90);
+		MakeCall(0x4583E0, op_obj_can_hear_obj_hack, 1);
 		dlogr(" Done", DL_INIT);
 	}
 
@@ -2100,9 +2098,12 @@ void BugsInit()
 	SafeWrite8(0x4C1015, 0x90);
 	HookCall(0x4C1042, wmSetupRandomEncounter_hook);
 
+	// Fix for unable to sell/give items in barter screen when the player/party member is overloaded
+	HookCall(0x474C73, barter_attempt_transaction_hook_weight);
+	HookCall(0x474CCA, barter_attempt_transaction_hook_weight);
+
 	// Fix for the underline position in the inventory display window when the item name is longer than one line
-	MakeCall(0x472F5F, inven_obj_examine_func_hack);
-	SafeWrite8(0x472F64, 0x90);
+	MakeCall(0x472F5F, inven_obj_examine_func_hack, 1);
 
 	// Fix for the exploit that allows you to gain excessive skill points from Tag! perk before leaving the character screen
 	//if (GetPrivateProfileIntA("Misc", "TagPerkFix", 1, ini)) {
