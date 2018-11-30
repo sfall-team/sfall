@@ -105,8 +105,7 @@ void MainMenu::init() {
 		MakeJump(0x481844, MainMenuButtonYHook);
 	}
 	if (MainMenuTextOffset) {
-		SafeWrite8(0x481933, 0x90);
-		MakeCall(0x481934, MainMenuTextYHook);
+		MakeCall(0x481933, MainMenuTextYHook, 1);
 	}
 
 	MakeJump(0x4817AB, MainMenuTextHook);

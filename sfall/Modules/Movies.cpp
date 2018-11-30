@@ -796,8 +796,7 @@ void Movies::init() {
 		HookCalls(gmovie_play_hook_pause, {0x44E816});
 		HookCalls(gmovie_play_hook_unpause, {0x44EA84});
 		MakeCall(0x450525, gsound_background_volume_set_hack);
-		MakeCall(0x4503CA, gsound_master_volume_set_hack);
-		SafeWrite8(0x4503CF, 0x90);
+		MakeCall(0x4503CA, gsound_master_volume_set_hack, 1);
 		if (allowDShowSound > 1) {
 			HookCall(0x450851, gsound_background_play_hook);
 		}

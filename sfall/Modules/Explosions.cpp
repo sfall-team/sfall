@@ -314,10 +314,8 @@ static void apply_expl_hack() {
 	MakeCall(0x49BCC7, obj_use_explosive_hack);        // check explosives
 	MakeCall(0x49BD56, obj_use_explosive_active_hack); // set active explosive
 	MakeCall(0x4A2865, queue_do_explosion_hack);       // set damage explosive
-	MakeCall(0x4737F2, inven_action_cursor_drop_hack); // check drop explosives
-	SafeWrite8(0x4737F7, 0x90);
-	MakeCall(0x49C005, protinstTestDroppedExplosive_hack); // check drop explosives
-	SafeWrite8(0x49C00A, 0x90);
+	MakeCall(0x4737F2, inven_action_cursor_drop_hack, 1); // check drop explosives
+	MakeCall(0x49C005, protinstTestDroppedExplosive_hack, 1); // check drop explosives
 }
 
 void Explosions::AddToExplosives(DWORD pid, DWORD activePid, DWORD minDmg, DWORD maxDmg) {

@@ -73,9 +73,19 @@ void MakeCall(DWORD addr, void* func) {
 	HookCall(addr, func);
 }
 
+void MakeCall(DWORD addr, void* func, int len) {
+	SafeMemSet(addr + 5, 0x90, len);
+	MakeCall(addr, func);
+}
+
 void MakeJump(DWORD addr, void* func) {
 	SafeWrite8(addr, 0xE9);
 	HookCall(addr, func);
+}
+
+void MakeJump(DWORD addr, void* func, int len) {
+	SafeMemSet(addr + 5, 0x90, len);
+	MakeJump(addr, func);
 }
 
 void HookCalls(void* func, std::initializer_list<DWORD> addrs) {

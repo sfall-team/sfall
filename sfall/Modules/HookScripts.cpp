@@ -129,10 +129,7 @@ DWORD _stdcall GetHSArgCount() {
 }
 
 DWORD _stdcall GetHSArg() {
-	if (cArg == argCount)
-		return 0;
-	else
-		return args[cArg++];
+	return (cArg == argCount) ? 0 : args[cArg++];
 }
 
 void _stdcall SetHSArg(DWORD id, DWORD value) {
@@ -143,9 +140,9 @@ DWORD* _stdcall GetHSArgs() {
 	return args;
 }
 
-void _stdcall SetHSReturn(DWORD d) {
-	if (cRetTmp < 8) {
-		rets[cRetTmp++] = d;
+void _stdcall SetHSReturn(DWORD value) {
+	if (cRetTmp < maxRets) {
+		rets[cRetTmp++] = value;
 	}
 	if (cRetTmp > cRet) {
 		cRet = cRetTmp;

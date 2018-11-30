@@ -491,8 +491,7 @@ void ExtraSaveSlots::init() {
 		}
 
 		if (extraSaveSlots) {
-			MakeCall(0x47B923, SaveGame_hack1);
-			SafeWrite8(0x47B928, 0x90);
+			MakeCall(0x47B923, SaveGame_hack1, 1);
 		} else {
 			SafeWrite8(0x47B923, 0x89);
 			SafeWrite32(0x47B924, 0x5193B83D); // mov [slot_cursor], edi(0)

@@ -528,8 +528,7 @@ void Inject_ExplosiveTimerHook() {
 
 void Inject_UseSkillOnHook() {
 	HookCalls(UseSkillOnHook, { 0x44C3CA, 0x44C81C });
-	MakeCall(0x4127BA, UseSkillOnHack);
-	SafeWrite8(0x4127BF, 0x90);
+	MakeCall(0x4127BA, UseSkillOnHack, 1);
 	MakeCalls(skill_use_hack, {0x4AB05D, 0x4AB558, 0x4ABA60}); // fix checking obj_dude's target
 	// replace source skill user
 	SafeWriteBatch<DWORD>((DWORD)&sourceSkillOn, {0x4AAF47, 0x4AB051, 0x4AB3FB, 0x4AB550, 0x4AB8FA, 0x4ABA54});

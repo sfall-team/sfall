@@ -73,7 +73,6 @@ static void __declspec(naked) GetNumButtonsHook1() {
 		lea  esi, menus;
 		mov  eax, [esi+edi*4];
 		mov  eax, [FO_VAR_btncnt + eax*4];
-		push 0x43F064;
 		retn;
 	}
 }
@@ -83,7 +82,6 @@ static void __declspec(naked) GetNumButtonsHook2() {
 		lea  edx, menus;
 		mov  eax, [edx+edi*4];
 		mov  eax, [FO_VAR_btncnt + eax*4];
-		push 0x43F18B;
 		retn;
 	}
 }
@@ -93,7 +91,6 @@ static void __declspec(naked) GetNumButtonsHook3() {
 		lea  eax, menus;
 		mov  eax, [eax+edi*4];
 		mov  eax, [FO_VAR_btncnt+eax*4];
-		push 0x43F1EB;
 		retn;
 	}
 }
@@ -124,9 +121,11 @@ void ResetElevators() {
 void ElevatorsInit(const char* file) {
 	strcpy_s(elevFile, ".\\");
 	strcat_s(elevFile, file);
+
 	HookCall(0x43EF83, GetMenuHook);
 	HookCall(0x43F141, UnknownHook);
 	HookCall(0x43F2D2, UnknownHook2);
+
 	SafeWrite8(0x43EF76, (BYTE)elevatorCount);
 	SafeWrite32(0x43EFA4, (DWORD)elevatorExits);
 	SafeWrite32(0x43EFB9, (DWORD)elevatorExits);
@@ -135,12 +134,10 @@ void ElevatorsInit(const char* file) {
 	SafeWrite32(0x43F309, (DWORD)&elevatorExits[0][0].elevation);
 	SafeWrite32(0x43F315, (DWORD)&elevatorExits[0][0].tile);
 
-	SafeWrite8(0x43F05D, 0xe9);
-	HookCall(0x43F05D, GetNumButtonsHook1);
-	SafeWrite8(0x43F184, 0xe9);
-	HookCall(0x43F184, GetNumButtonsHook2);
-	SafeWrite8(0x43F1E4, 0xe9);
-	HookCall(0x43F1E4, GetNumButtonsHook3);
+	MakeCall(0x43F05D, GetNumButtonsHook1, 2);
+	MakeCall(0x43F184, GetNumButtonsHook2, 2);
+	MakeCall(0x43F1E4, GetNumButtonsHook3, 2);
+
 	ResetElevators();
 }
 

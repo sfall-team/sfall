@@ -400,8 +400,7 @@ void Inject_InventoryMoveHook() {
 		0x473851, 0x47386F,
 		0x47379A  // caps multi drop
 	});
-	MakeCall(0x473807, InvenActionExplosiveDropHack);  // drop active explosives
-	SafeWrite8(0x47380C, 0x90);
+	MakeCall(0x473807, InvenActionExplosiveDropHack, 1);  // drop active explosives
 }
 
 void Inject_InvenWieldHook() {
