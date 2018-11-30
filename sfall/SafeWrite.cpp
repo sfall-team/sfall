@@ -40,9 +40,9 @@ static void _stdcall SafeWriteFunc(BYTE code, DWORD addr, void* func) {
 	*((DWORD*)(addr + 1)) = data;
 	VirtualProtect((void *)addr, 5, oldProtect, &oldProtect);
 
-#ifndef NDEBUG
-	CheckConflict(addr);
-#endif
+	#ifndef NDEBUG
+		CheckConflict(addr);
+	#endif
 }
 
 static _declspec(noinline) void _stdcall SafeWriteFunc(BYTE code, DWORD addr, void* func, DWORD len) {
@@ -60,9 +60,9 @@ static _declspec(noinline) void _stdcall SafeWriteFunc(BYTE code, DWORD addr, vo
 	}
 	VirtualProtect((void *)addr, protectLen, oldProtect, &oldProtect);
 
-#ifndef NDEBUG
-	CheckConflict(addr);
-#endif
+	#ifndef NDEBUG
+		CheckConflict(addr);
+	#endif
 }
 
 void SafeWriteBytes(DWORD addr, BYTE* data, int count) {
@@ -107,9 +107,9 @@ void _stdcall SafeWriteStr(DWORD addr, const char* data) {
 
 void HookCall(DWORD addr, void* func) {
 	SafeWrite32(addr + 1, (DWORD)func - (addr + 5));
-#ifndef NDEBUG
-	CheckConflict(addr);
-#endif
+	#ifndef NDEBUG
+		CheckConflict(addr);
+	#endif
 }
 
 void MakeCall(DWORD addr, void* func) {
@@ -150,6 +150,9 @@ void SafeMemSet(DWORD addr, BYTE val, int len) {
 
 void BlockCall(DWORD addr) {
 	SafeMemSet(addr, CodeType::Nop, 5);
+	#ifndef NDEBUG
+		CheckConflict(addr);
+	#endif
 }
 
 }

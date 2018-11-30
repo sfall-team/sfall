@@ -56,10 +56,10 @@ void dlog_f(const char *fmt, int type, ...) {
 	}
 }
 
-void dlogh(const char *fmt, long arg1, long arg2) {
+void dlogh(const char *fmt, long arg1, long arg2, long arg3) {
 	if (DL_HOOK & DebugTypes) {
 		char buf[1024];
-		_snprintf_s(buf, sizeof(buf), _TRUNCATE, fmt, arg1, arg2);
+		_snprintf_s(buf, sizeof(buf), _TRUNCATE, fmt, arg1, arg2, arg3);
 		Log << buf;
 		Log.flush();
 	}

@@ -32,7 +32,7 @@ namespace sfall
 void dlog(const std::string&, int type);
 void dlogr(const std::string&, int type);
 void dlog_f(const char *format, int type, ...);
-void dlogh(const char *format, long, long);
+void dlogh(const char *format, long, long, long);
 void LoggingInit();
 
 }
@@ -40,5 +40,5 @@ void LoggingInit();
 #define dlog(a,b)
 #define dlogr(a,b)
 #define dlog_f(a, b, ...)
-#define dlogh(a, b, c)
+#define dlogh(a, b, c, d)
 #endif
