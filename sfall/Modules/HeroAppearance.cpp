@@ -401,7 +401,7 @@ void _stdcall SetHeroArt(int NewArtFlag) {
 		mov eax, dword ptr ds:[eax + 0x20] //get hero FrmID
 		xor edx, edx
 		mov dx, ax
-		and dh, 0xFF00 //mask out current weapon flag
+		and dh, 0x0F //mask out current weapon flag
 		cmp edx, critterListSize //check if critter LST index is in Hero range
 		jg IsHero
 		cmp NewArtFlag, 1

@@ -62,7 +62,9 @@ bool LoadHookScript(const char* name, int id) {
 		}
 	}
 	bool hookIsLoaded = (prog.ptr != nullptr);
-	if (hookIsLoaded || HookScripts::injectAllHooks) HookScripts::InjectingHook(id); // inject hook to engine code
+	if (hookIsLoaded || (id != HOOK_SUBCOMBATDAMAGE && HookScripts::injectAllHooks)) {
+		HookScripts::InjectingHook(id); // inject hook to engine code
+	}
 	return hookIsLoaded;
 }
 
