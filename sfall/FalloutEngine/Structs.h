@@ -696,8 +696,8 @@ struct AIcap {
 	long attack_who;
 	long chem_use;
 	long chem_primary_desire;
-	long field_B0;
-	long field_B4;
+	long chem_primary_desire1;
+	long chem_primary_desire2;
 	long disposition;
 	long body_type;
 	long general_type;

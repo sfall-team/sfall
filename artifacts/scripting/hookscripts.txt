@@ -599,9 +599,9 @@ int     arg6 - calculated DR resistance value
 int     arg7 - calculated DT resistance value
 int     arg8 - calculated bonus ranged damage from perk
 int     arg9 - damage multiplier (this is divided by 2, so a value of 3 does 1.5x damage, and 8 does 4x damage)
-int     arg10 - combat difficulty value (125 - hard, 100 - normal, 75 - easy)
+int     arg10 - combat difficulty value (125 - hard, 100 - normal, 75 - easy), for player or party members is always 100
 int     arg11 - the calculated amount of damage (usually 0, required when use multiple script hooks of calculating damage and using the set_sfall_arg function)
-mixed   arg12 - compute attack results (see C_ATTACK_* values)
+mixed   arg12 - compute attack results, to get/set values, use the functions "get/set_object_data" of the sfall_funcX (also see C_ATTACK_* offset values)
 
 int     ret1 - the return amount of the damage
 

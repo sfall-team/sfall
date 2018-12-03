@@ -548,6 +548,17 @@ Some utility/math functions are available:
 > object sfall_func0("loot_obj")
 - returns a pointer to the object (container, critter) with which the exchange occurs
 
+> int sfall_func2("get_object_data", object, int offset)
+- returns the data of the object at the specified offset (see OBJ_DATA_* constants offsets in define_extra.h)
+
+> int sfall_func3("set_object_data", object, int offset, int data)
+- sets the data by offset for the specified object
+
+> int sfall_func2("get_object_ai_data", object, int aiParam)
+- returns the setting value from the AI-packet the specified object
+- pass the value of the required parameter to the aiParam argument to get AI value (see AI_CAP_* constants in define_extra.h)
+
+
 ------------------------
 ------ MORE INFO -------
 ------------------------
