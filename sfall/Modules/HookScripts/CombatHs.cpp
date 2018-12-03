@@ -30,17 +30,17 @@ static void __declspec(naked) ToHitHook() {
 
 	argCount = 7;
 	RunHookScript(HOOK_TOHIT);
-	EndHook();
 
 	__asm {
 		popad;
 		cmp  cRet, 1;
 		cmovnb eax, rets[0];
+		HookEnd;
 		retn 8;
 	}
 }
 
-static void __fastcall AfterHitRollHook_Script(fo::ComputeAttackResult &ctd, DWORD hitChance, DWORD hit) {
+static DWORD __fastcall AfterHitRollHook_Script(fo::ComputeAttackResult &ctd, DWORD hitChance, DWORD hit) {
 
 	BeginHook();
 	argCount = 5;
@@ -52,29 +52,33 @@ static void __fastcall AfterHitRollHook_Script(fo::ComputeAttackResult &ctd, DWO
 	args[4] = hitChance;
 
 	RunHookScript(HOOK_AFTERHITROLL);
-	if (cRet > 1) {
-		ctd.bodyPart = rets[1];
-		if (cRet > 2) ctd.target = (fo::GameObject*)rets[2];
+	if (cRet > 0) {
+		hit = rets[0];
+		if (cRet > 1) {
+			ctd.bodyPart = rets[1];
+			if (cRet > 2) ctd.target = (fo::GameObject*)rets[2];
+		}
 	}
 	EndHook();
+
+	return hit;
 }
 
-static const DWORD AfterHitRollAddr = 0x423898;
 static void __declspec(naked) AfterHitRollHook() {
 	using namespace fo;
 	__asm {
-		pushad;
+		push ecx;
+		push edx;
 		mov  ecx, esi;                 // ctd
-		mov  edx, [esp + 0x18 + 32];   // hit chance
+		mov  edx, [esp + 0x18 + 12];   // hit chance
 		push eax;                      // was it a hit?
 		call AfterHitRollHook_Script;
-		popad;
-		cmp  cRet, 1;
-		cmovnb eax, rets[0];
+		pop  edx;
+		pop  ecx;
 		// engine code
 		mov  ebx, eax;
 		cmp  ebx, ROLL_FAILURE;
-		jmp  AfterHitRollAddr;
+		retn;
 	}
 }
 
@@ -91,12 +95,12 @@ static void __declspec(naked) CalcApCostHook() {
 
 	argCount = 4;
 	RunHookScript(HOOK_CALCAPCOST);
-	EndHook();
 
 	__asm {
 		popad;
 		cmp cRet, 1;
 		cmovnb eax, rets[0];
+		HookEnd;
 		retn;
 	}
 }
@@ -115,12 +119,12 @@ static void __declspec(naked) CalcApCostHook2() {
 
 	argCount = 4;
 	RunHookScript(HOOK_CALCAPCOST);
-	EndHook();
 
 	__asm {
 		popad;
 		cmp cRet, 1;
 		cmovnb eax, rets[0];
+		HookEnd;
 		retn;
 	}
 }
@@ -278,19 +282,19 @@ static void __declspec(naked) ItemDamageHook() {
 
 	argCount = 6;
 	RunHookScript(HOOK_ITEMDAMAGE);
-	EndHook();
 
 	_asm popad;
 	if (cRet > 0) {
-		_asm mov eax, rets[0];
+		_asm mov eax, rets[0];     // set min
 		if (cRet > 1) {
-			_asm mov edx, rets[4];
+			_asm mov edx, rets[4]; // set max
 		} else {
-			_asm retn;
+			HookEnd;
+			_asm retn;             // no calc random
 		}
 	}
-	_asm call fo::funcoffs::roll_random_;
-	_asm retn;
+	HookEnd;
+	_asm jmp fo::funcoffs::roll_random_;
 }
 
 int __fastcall AmmoCostHook_Script(DWORD hookType, fo::GameObject* weapon, DWORD* rounds) {
@@ -350,16 +354,15 @@ static void _declspec(naked) CombatTurnHook() {
 	argCount = 3;
 	RunHookScript(HOOK_COMBATTURN); // Start of turn
 
+	_asm popad;
 	if (cRet > 0) {
-		EndHook();
-		_asm popad;
 		_asm mov eax, rets[0];
+		HookEnd;
 		_asm retn;        // exit hook
 	}
 
 	// set_sfall_return not used, proceed normally
 	__asm {
-		popad;
 		call fo::funcoffs::combat_turn_;
 		mov  args[0], eax;
 		pushad;
@@ -367,12 +370,12 @@ static void _declspec(naked) CombatTurnHook() {
 
 	//cRet = 0; // reset number of return values
 	RunHookScript(HOOK_COMBATTURN); // End of turn
-	EndHook();
 
 	__asm {
 		popad;
 		cmp cRet, 1;
 		cmovnb eax, rets[0]; // override result of turn
+		HookEnd;
 		retn;
 	}
 }
@@ -455,7 +458,7 @@ void Inject_ToHitHook() {
 }
 
 void Inject_AfterHitRollHook() {
-	MakeJump(0x423893, AfterHitRollHook);
+	MakeCall(0x423893, AfterHitRollHook);
 }
 
 void Inject_CalcApCostHook() {

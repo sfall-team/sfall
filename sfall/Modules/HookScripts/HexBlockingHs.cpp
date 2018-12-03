@@ -31,12 +31,12 @@ return:
 
 	argCount = 4;
 	RunHookScript(HOOK_HEXMOVEBLOCKING);
-	EndHook();
 
 	__asm {
 		popad;
 		cmp cRet, 1;
 		cmovnb eax, rets[0];
+		HookEnd;
 		retn;
 	}
 }
@@ -54,12 +54,12 @@ static void __declspec(naked) HexABlockingHook() {
 
 	argCount = 4;
 	RunHookScript(HOOK_HEXAIBLOCKING);
-	EndHook();
 
 	__asm {
 		popad;
 		cmp cRet, 1;
 		cmovnb eax, rets[0];
+		HookEnd;
 		retn;
 	}
 }
@@ -77,12 +77,12 @@ static void __declspec(naked) HexShootBlockingHook() {
 
 	argCount = 4;
 	RunHookScript(HOOK_HEXSHOOTBLOCKING);
-	EndHook();
 
 	__asm {
 		popad;
 		cmp cRet, 1;
 		cmovnb eax, rets[0];
+		HookEnd;
 		retn;
 	}
 }
@@ -100,12 +100,12 @@ static void __declspec(naked) HexSightBlockingHook() {
 
 	argCount = 4;
 	RunHookScript(HOOK_HEXSIGHTBLOCKING);
-	EndHook();
 
 	__asm {
 		popad;
 		cmp cRet, 1;
 		cmovnb eax, rets[0];
+		HookEnd;
 		retn;
 	}
 }
