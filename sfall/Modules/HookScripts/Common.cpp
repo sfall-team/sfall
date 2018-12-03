@@ -13,6 +13,7 @@ struct {
 	DWORD argCount;
 	DWORD cArg;
 	DWORD cRet;
+	DWORD cRetTmp;
 	DWORD oldArgs[maxArgs];
 	DWORD oldRets[maxRets];
 } savedArgs[maxDepth];
@@ -57,6 +58,17 @@ bool LoadHookScript(const char* name, int id) {
 	return hookIsLoaded;
 }
 
+// List of hooks that are not allowed to be called recursively
+static bool CheckRecursiveHooks(DWORD hook) {
+	if (hook == currentRunHook) {
+		switch (hook) {
+		case HOOK_SETGLOBALVAR:
+			return true;
+		}
+	}
+	return false;
+}
+
 void _stdcall BeginHook() {
 	if (callDepth && callDepth <= maxDepth) {
 		// save all values of the current hook if another hook was called during the execution of the current hook
@@ -65,6 +77,7 @@ void _stdcall BeginHook() {
 		savedArgs[cDepth].argCount = argCount;                                     // number of arguments of the current hook
 		savedArgs[cDepth].cArg = cArg;                                             // current count of taken arguments
 		savedArgs[cDepth].cRet = cRet;                                             // number of return values for the current hook
+		savedArgs[cDepth].cRetTmp = cRetTmp;
 		memcpy(&savedArgs[cDepth].oldArgs, args, argCount * sizeof(DWORD));        // values of the arguments
 		if (cRet) memcpy(&savedArgs[cDepth].oldRets, rets, cRet * sizeof(DWORD));  // return values
 
@@ -94,7 +107,7 @@ void _stdcall RunHookScript(DWORD hook) {
 	cRet = 0;
 	if (hooks[hook].size()) {
 		if (callDepth > 1) {
-			if (hook == currentRunHook || callDepth > 8) {
+			if (CheckRecursiveHooks(hook) || callDepth > 8) {
 				fo::func::debug_printf("\n[SFALL] The hook ID: %d cannot be executed.", hook);
 				dlog_f("The hook %d cannot be executed due to exceeded depth limit or recursive calls\n", DL_MAIN, hook);
 				return;
@@ -104,6 +117,13 @@ void _stdcall RunHookScript(DWORD hook) {
 		dlog_f("Running hook %d, which has %0d entries attached, depth: %d\n", DL_HOOK, hook, hooks[hook].size(), callDepth);
 		for (int i = hooks[hook].size() - 1; i >= 0; i--) {
 			RunSpecificHookScript(&hooks[hook][i]);
+
+			// for debugging
+			/*dlog_f("> Hook: %d, script entry: %d done\n", DL_HOOK, hook, i);
+			dlog_f("> Check cArg/cRet: %d / %d(%d)\n", DL_HOOK, cArg, cRet, cRetTmp);
+			for (unsigned int i = 0; i < maxArgs; i++) {
+				dlog_f("> Check Args/Rets: %d / %d\n", DL_HOOK, args[i], ((i < maxRets) ? rets[i] : -1));
+			}*/
 		}
 	} else {
 		cArg = 0;
@@ -115,21 +135,26 @@ void _stdcall EndHook() {
 		dlog_f("End running hook %d, current depth: %d\n", DL_HOOK, currentRunHook, callDepth);
 	#endif
 	callDepth--;
-	if (callDepth && callDepth <= maxDepth) {
-		// restore all saved values of the previous hook
-		int cDepth = callDepth - 1;
-		currentRunHook = savedArgs[cDepth].hookID;
-		argCount = savedArgs[cDepth].argCount;
-		cArg = savedArgs[cDepth].cArg;
-		cRet = cRetTmp = savedArgs[cDepth].cRet;  // also restore current count of the number of return values
-		memcpy(args, &savedArgs[cDepth].oldArgs, argCount * sizeof(DWORD));
-		if (cRet) memcpy(rets, &savedArgs[cDepth].oldRets, cRet * sizeof(DWORD));
+	if (callDepth) {
+		if (callDepth <= maxDepth) {
+			// restore all saved values of the previous hook
+			int cDepth = callDepth - 1;
+			currentRunHook = savedArgs[cDepth].hookID;
+			argCount = savedArgs[cDepth].argCount;
+			cArg = savedArgs[cDepth].cArg;
+			cRet = savedArgs[cDepth].cRet;
+			cRetTmp = savedArgs[cDepth].cRetTmp;  // also restore current count of the number of return values
+			memcpy(args, &savedArgs[cDepth].oldArgs, argCount * sizeof(DWORD));
+			if (cRet) memcpy(rets, &savedArgs[cDepth].oldRets, cRet * sizeof(DWORD));
 
-		// for debugging
-		/*dlog_f("Restored cArgs/cRets: %d / %d(%d)\n", DL_HOOK, argCount, cRet, cRetTmp);
-		for (unsigned int i = 0; i < maxArgs; i++) {
-			dlog_f("Restored Args/Rets: %d / %d\n", args[i], ((i < maxRets) ? rets[i] : -1));
-		}*/
+			// for debugging
+			/*dlog_f("Restored cArgs/cRets: %d / %d(%d)\n", DL_HOOK, argCount, cRet, cRetTmp);
+			for (unsigned int i = 0; i < maxArgs; i++) {
+				dlog_f("Restored Args/Rets: %d / %d\n", args[i], ((i < maxRets) ? rets[i] : -1));
+			}*/
+		}
+	} else {
+		currentRunHook = -1;
 	}
 }
 

@@ -86,12 +86,12 @@ static void __declspec(naked) CalcDeathAnim2Hook() {
 	argCount = 5;
 	args[0] = -1;     // weaponPid
 	RunHookScript(HOOK_DEATHANIM2);
-	EndHook();
 
 	__asm {
 		popad;
 		cmp cRet, 1;
 		cmovnb eax, rets[0];
+		HookEnd;
 		retn;
 	}
 }
