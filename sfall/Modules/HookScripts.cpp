@@ -81,7 +81,7 @@ static HooksInjectInfo injectHooks[] = {
 	{HOOK_DESCRIPTIONOBJ,   Inject_DescriptionObjHook,   false},
 	{HOOK_USESKILLON,       Inject_UseSkillOnHook,       false},
 	{HOOK_ONEXPLOSION,      Inject_OnExplosionHook,      false},
-	{HOOK_SUBCOMBATDAMAGE,  Inject_SubCombatDamageHook,  false},
+	{HOOK_SUBCOMBATDAMAGE,  Inject_SubCombatDamageHook,  false}, // replace the code logic
 };
 
 bool HookScripts::injectAllHooks;

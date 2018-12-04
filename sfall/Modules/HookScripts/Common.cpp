@@ -54,7 +54,9 @@ bool LoadHookScript(const char* name, int id) {
 		}
 	}
 	bool hookIsLoaded = (prog.ptr != nullptr);
-	if (hookIsLoaded || HookScripts::injectAllHooks) HookScripts::InjectingHook(id); // inject hook to engine code
+	if (hookIsLoaded || (id != HOOK_SUBCOMBATDAMAGE && HookScripts::injectAllHooks)) {
+		HookScripts::InjectingHook(id); // inject hook to engine code
+	}
 	return hookIsLoaded;
 }
 
@@ -82,7 +84,7 @@ void _stdcall BeginHook() {
 		if (cRet) memcpy(&savedArgs[cDepth].oldRets, rets, cRet * sizeof(DWORD));  // return values
 
 		// for debugging
-		/*dlog_f("Saved cArgs/cRet: %d / %d(%d)\n", DL_HOOK, savedArgs[cDepth].argCount, savedArgs[cDepth].cRet, cRetTmp);
+		/*dlog_f("\nSaved cArgs/cRets: %d / %d(%d)\n", DL_HOOK, savedArgs[cDepth].argCount, savedArgs[cDepth].cRet, cRetTmp);
 		for (unsigned int i = 0; i < maxArgs; i++) {
 			dlog_f("Saved Args/Rets: %d / %d\n", DL_HOOK, savedArgs[cDepth].oldArgs[i], ((i < maxRets) ? savedArgs[cDepth].oldRets[i] : -1));
 		}*/

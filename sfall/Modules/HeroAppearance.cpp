@@ -401,7 +401,7 @@ void _stdcall SetHeroArt(int NewArtFlag) {
 		mov eax, dword ptr ds:[eax + 0x20] //get hero FrmID
 		xor edx, edx
 		mov dx, ax
-		and dh, 0xFF00 //mask out current weapon flag
+		and dh, 0x0F //mask out current weapon flag
 		cmp edx, critterListSize //check if critter LST index is in Hero range
 		jg IsHero
 		cmp NewArtFlag, 1
@@ -1727,44 +1727,36 @@ void EnableHeroAppearanceMod() {
 	racePathPtr->pDat = nullptr;
 
 	//Check if new Appearance char scrn button pushed
-	SafeWrite32(0x431E9E, (DWORD)&CheckCharScrnButtons - 0x431EA2);
+	HookCall(0x431E9D, CheckCharScrnButtons);
 
 	//Destroy new Appearance button mem after use
-	SafeWrite16(0x4329D8, 0xE890);
-	SafeWrite32(0x4329DA, (DWORD)&CharScrnEnd - 0x4329DE);
+	MakeCall(0x4329D8, CharScrnEnd, 1);
 
 	//Check if sex has changed and reset char appearance
-	SafeWrite8(0x4322E8, 0xe8);
-	SafeWrite32(0x4322E9, (DWORD)&SexScrnEnd - 0x4322ED);
+	HookCall(0x4322E8, SexScrnEnd);
 
 	//Load New Hero Art
-	SafeWrite16(0x4DEEE5, 0xE890);
-	SafeWrite32(0x4DEEE7, (DWORD)&LoadNewHeroArt - 0x4DEEEB);
+	MakeCall(0x4DEEE5, LoadNewHeroArt, 1);
 
 	//Divert critter frm file name function exit for file checking
 	SafeWrite8(0x419520, 0xEB); //divert func exit
 	SafeWrite32(0x419521, 0x9090903E);
 
 	//Check if new hero art exists otherwise use regular art
-	SafeWrite8(0x419560, 0xE8);
-	SafeWrite32(0x419561, (DWORD)&CheckHeroExist - 0x419565);
+	MakeCall(0x419560, CheckHeroExist);
 
 	//Double size of critter art index creating a new area for hero art
-	SafeWrite16(0x4196AA, 0xE890);
-	SafeWrite32(0x4196AC, (DWORD)&DoubleArt - 0x4196B0);
+	MakeCall(0x4196AA, DoubleArt, 1);
 
 	//Add new hero critter names at end of critter list
-	SafeWrite8(0x418B39, 0xE8);
-	SafeWrite32(0x418B3A, (DWORD)&AddHeroCritNames - 0x418B3E);
+	MakeCall(0x418B39, AddHeroCritNames);
 
 	//Shift base hero critter art offset up into hero section
-	SafeWrite8(0x49F9DA, 0xE8);
-	SafeWrite32(0x49F9DB, (DWORD)&AdjustHeroBaseArt - 0x49F9DF);
+	MakeCall(0x49F9DA, AdjustHeroBaseArt);
 
 	//Adjust hero art index offset when changing armor
-	//SafeWrite8(0x4717D6, 0xE8);
-	//SafeWrite32(0x4717D7, (DWORD)&AdjustHeroArmorArt - 0x4717DB);
-	SafeWrite32(0x4717D2, (DWORD)&AdjustHeroArmorArt - 0x4717D6);
+	//MakeCall(0x4717D6, AdjustHeroArmorArt);
+	HookCall(0x4717D1, AdjustHeroArmorArt);
 
 	//Hijack Save Hero State Structure fuction address 9CD54800
 	//Return hero art index offset back to normal before saving
@@ -1773,71 +1765,65 @@ void EnableHeroAppearanceMod() {
 
 
 	//Tag Skills text x pos
-	SafeWrite32(0x433372, 0x24826+36); //Tag Skills text x pos1
-	SafeWrite32(0x4362BE, 0x24826+36); //Tag Skills text x pos2
-	SafeWrite32(0x4362F2, 0x20A+36); //Tag Skills num counter2 x pos1
-	SafeWrite32(0x43631E, 0x20A+36); //Tag Skills num counter2 x pos2
+	SafeWrite32(0x433372, 0x24826 + 36); //Tag Skills text x pos1
+	SafeWrite32(0x4362BE, 0x24826 + 36); //Tag Skills text x pos2
+	SafeWrite32(0x4362F2, 0x20A + 36); //Tag Skills num counter2 x pos1
+	SafeWrite32(0x43631E, 0x20A + 36); //Tag Skills num counter2 x pos2
 
 	//Add new Appearance mod buttons
-	SafeWrite8(0x43A788, 0xe8);
-	SafeWrite32(0x43A789, (DWORD)&AddCharScrnButtons - 0x43A78D);
+	MakeCall(0x43A788, AddCharScrnButtons);
 
 	//Mod char scrn background and add new app mod graphics. also adjust tag/skill button x pos
-	SafeWrite8(0x432B92, 0xe8);
-	SafeWrite32(0x432B93, (DWORD)&FixCharScrnBack - 0x432B97);
+	MakeCall(0x432B92, FixCharScrnBack);
 
 	//skill points
-	SafeWrite32(0x436262, 0x24810+36); //Skill Points text x pos
-	SafeWrite32(0x43628A, 0x20A+36); //Skill Points num counter x pos1
-	SafeWrite32(0x43B5B2, 0x20A+36); //Skill Points num counter x pos2
+	SafeWrite32(0x436262, 0x24810 + 36); //Skill Points text x pos
+	SafeWrite32(0x43628A, 0x20A + 36); //Skill Points num counter x pos1
+	SafeWrite32(0x43B5B2, 0x20A + 36); //Skill Points num counter x pos2
 
 	//make room for char view window
-	SafeWrite32(0x433678, 347+76); //shift skill buttons right 80
-	SafeWrite32(0x4363CE, 380+68); //shift skill name text right 80
-	SafeWrite32(0x43641C, 573+10); //shift skill % num text right 80
-	SafeWrite32(0x43A74C, 223-76+10); // skill list mouse area button width
-	SafeWrite32(0x43A75B, 370+76); // skill list mouse area button xpos
-	SafeWrite32(0x436220, 0x0DFC+68); //"skill" text xpos
-	SafeWrite32(0x43A71E, 0xDF-68); //skill button width
-	SafeWrite32(0x43A72A, 0x178+68); //skill button xpos
+	SafeWrite32(0x433678, 347 + 76); //shift skill buttons right 80
+	SafeWrite32(0x4363CE, 380 + 68); //shift skill name text right 80
+	SafeWrite32(0x43641C, 573 + 10); //shift skill % num text right 80
+	SafeWrite32(0x43A74C, 223 - 76 + 10); // skill list mouse area button width
+	SafeWrite32(0x43A75B, 370 + 76); // skill list mouse area button xpos
+	SafeWrite32(0x436220, 0x0DFC + 68); //"skill" text xpos
+	SafeWrite32(0x43A71E, 0xDF - 68); //skill button width
+	SafeWrite32(0x43A72A, 0x178 + 68); //skill button xpos
 
 	//redraw area for skill list
-	SafeWrite32(0x4361C4, 370+76); //xpos
-	SafeWrite32(0x4361D9, 270-76); //width
-	SafeWrite32(0x4361DE, 370+76); //xpos
+	SafeWrite32(0x4361C4, 370 + 76); //xpos
+	SafeWrite32(0x4361D9, 270 - 76); //width
+	SafeWrite32(0x4361DE, 370 + 76); //xpos
 
 	//skill slider thingy
-	SafeWrite32(0x43647C, 592+3); //xpos
-	SafeWrite32(0x4364FA, 614+3); //plus button xpos
-	SafeWrite32(0x436567, 614+3); //minus button xpos
+	SafeWrite32(0x43647C, 592 + 3); //xpos
+	SafeWrite32(0x4364FA, 614 + 3); //plus button xpos
+	SafeWrite32(0x436567, 614 + 3); //minus button xpos
 
 	//fix for Char Screen note position was x484 y309 now x383 y308
-	//SafeWrite32(0x43AB55, 308*640+483); //minus button xpos
+	//SafeWrite32(0x43AB55, 308 * 640 + 483); //minus button xpos
 
 	//Adjust PC SFX Name
-	SafeWrite8(0x4510EB, 0xE8);
-	SafeWrite32(0x4510EC, (DWORD)&FixPcSFX - 0x4510F0);
-	SafeWrite16(0x4510F0, 0x9090);
+	MakeCall(0x4510EB, FixPcSFX, 2);
 
 	//Set path to normal before printing or saving character details
-	//SafeWrite32(0x43235A, (DWORD)&FixCharScrnSaveNPrint - 0x43235E);
+	//HookCall(0x432359, FixCharScrnSaveNPrint);
 
 	//Load Appearance data from GCD file------------
 	SafeWrite16(0x42DF5D, 0x9056); //push esi "*FileStream"
-	SafeWrite32(0x42DF60, (DWORD)&LoadGCDAppearance - 0x42DF64);
+	HookCall(0x42DF5F, LoadGCDAppearance);
 
 	//Save Appearance data to GCD file------------
 	SafeWrite16(0x42E161, 0x9056); //push esi "*FileStream"
-	SafeWrite32(0x42E164, (DWORD)&SaveGCDAppearance - 0x42E168);
+	HookCall(0x42E163, SaveGCDAppearance);
 
 	//Reset Appearance when selecting "Create Character" from the New Char screen------
-	SafeWrite8(0x4A7405, 0xE8);
-	SafeWrite32(0x4A7406, (DWORD)&CreateCharReset - 0x4A740A);
+	MakeCall(0x4A7405, CreateCharReset);
 
 	//Fixes missing console critical hit messages when PC is attacked.
 	//00426135  |.  25 FF0F0000                      AND EAX,00000FFF
-	SafeWrite8(0x426135, 0xE8);
-	SafeWrite32(0x426136, (DWORD)&FixPcCriticalHitMsg - 0x42613A);
+	MakeCall(0x426135, FixPcCriticalHitMsg);
 
 	//Force Criticals For Testing
 	//00423A8F  |. /2E:FF249D 7C374200    JMP DWORD PTR CS:[EBX*4+42377C]
