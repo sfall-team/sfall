@@ -1,8 +1,10 @@
 
-*0x8156 - int   read_byte(int address)
-*0x8157 - int   read_short(int address)
-*0x8158 - int   read_int(int address)
-*0x8159 - string read_string(int address)
+* These functions require AllowUnsafeScripting to be enabled in ddraw.ini
+
+0x8156 - int   read_byte(int address)
+0x8157 - int   read_short(int address)
+0x8158 - int   read_int(int address)
+0x8159 - string read_string(int address)
 
 *0x81cf - void  write_byte(int address, int value)
 *0x81d0 - void  write_short(int address, int value)
@@ -356,7 +358,3 @@
 0x827a - any sfall_func4(string funcName, arg1, arg2, arg3, arg4)
 0x827b - any sfall_func5(string funcName, arg1, arg2, arg3, arg4, arg5)
 0x827c - any sfall_func6(string funcName, arg1, arg2, arg3, arg4, arg5, arg6)
-
-
-* These functions require AllowUnsafeScripting to be enabled in ddraw.ini
-

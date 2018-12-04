@@ -440,9 +440,10 @@ static void CreateSaveComment(char* bufstr) {
 	strcpy(bufstr, buf);
 }
 
-static DWORD quickSavePage = 0, autoQuickSave = 0;
-
+static DWORD autoQuickSave = 0;
+static long quickSavePage = 0;
 static FILETIME ftPrevSlot;
+
 static DWORD __stdcall QuickSaveGame(fo::DbFile* file, char* filename) {
 
 	unsigned int currSlot = fo::var::slot_cursor;
@@ -513,9 +514,9 @@ void ExtraSaveSlots::init() {
 
 		quickSavePage = GetConfigInt("Misc", "AutoQuickSavePage", 0);
 		if (quickSavePage > 999) quickSavePage = 999;
-		quickSavePage *= 10;
 
-		if (extraSaveSlots && quickSavePage > 0) {
+		if (extraSaveSlots && quickSavePage > -1) {
+			quickSavePage *= 10;
 			MakeCall(0x47B923, SaveGame_hack1, 1);
 		} else {
 			SafeWrite8(0x47B923, 0x89);

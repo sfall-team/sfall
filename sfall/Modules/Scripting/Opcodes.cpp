@@ -209,10 +209,6 @@ void InitNewOpcodes() {
 
 	if (GetPrivateProfileIntA("Debugging", "AllowUnsafeScripting", 0, ::sfall::ddrawIni)) {
 		dlogr("  Unsafe opcodes enabled.", DL_SCRIPT);
-		opcodes[0x156] = op_read_byte;
-		opcodes[0x157] = op_read_short;
-		opcodes[0x158] = op_read_int;
-		opcodes[0x159] = op_read_string;
 		opcodes[0x1cf] = op_write_byte;
 		opcodes[0x1d0] = op_write_short;
 		opcodes[0x1d1] = op_write_int;
@@ -223,6 +219,10 @@ void InitNewOpcodes() {
 	} else {
 		dlogr("  Unsafe opcodes disabled.", DL_SCRIPT);
 	}
+	opcodes[0x156] = op_read_byte;
+	opcodes[0x157] = op_read_short;
+	opcodes[0x158] = op_read_int;
+	opcodes[0x159] = op_read_string;
 
 	opcodes[0x15a] = op_set_pc_base_stat;
 	opcodes[0x15b] = op_set_pc_extra_stat;
