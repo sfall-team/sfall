@@ -461,6 +461,12 @@ Some utility/math functions are available:
 - crSwitch: True - only checks critters and ignores their cover (roof tiles, walls, scenery, etc.), False - checks all objects (can't check critters under objects)
 - passing False to the inclDude argument will ignore dude_obj
 
+> int sfall_func2("get_object_data", object, int offset)
+- returns the data at the specified offset of an object (see OBJ_DATA_* constants in define_extra.h for offsets)
+
+> void sfall_func3("set_object_data", object, int offset, int data)
+- sets the data at the specified offset of an object
+
 ------------------------
 ------ MORE INFO -------
 ------------------------

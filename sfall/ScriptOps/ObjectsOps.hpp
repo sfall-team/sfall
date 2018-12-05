@@ -618,3 +618,13 @@ static void sf_unjam_lock() {
 static void sf_get_current_inven_size() {
 	opHandler.setReturn(sf_item_total_size(opHandler.arg(0).asObject()), DATATYPE_INT);
 }
+
+static void sf_get_object_data() {
+	BYTE* object_ptr = (BYTE*)opHandler.arg(0).asObject();
+	opHandler.setReturn(*(long*)(object_ptr + opHandler.arg(1).asInt()), DATATYPE_INT);
+}
+
+static void sf_set_object_data() {
+	BYTE* object_ptr = (BYTE*)opHandler.arg(0).asObject();
+	*(long*)(object_ptr + opHandler.arg(1).asInt()) = opHandler.arg(2).asInt();
+}

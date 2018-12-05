@@ -166,7 +166,7 @@ int     arg5  - The special effect flags for the target (use bwand DAM_* to chec
 int     arg6  - The special effect flags for the attacker (use bwand DAM_* to check specific flags)
 int     arg7  - The weapon used in the attack
 int     arg8  - The bodypart that was struck
-int     arg9  - Damage Multiplier (this is divided by 2, so a value of 3 does 1.5x damage, and 8 does 4x damage. Usually it's 2, but with Silent Death perk and the corresponding attack conditions, it's 4; for critical hits, the value is taken from the critical table)
+int     arg9  - Damage Multiplier (this is divided by 2, so a value of 3 does 1.5x damage, and 8 does 4x damage. Usually it's 2; for critical hits, the value is taken from the critical table; with Silent Death perk and the corresponding attack conditions, the value will be doubled)
 int     arg10 - Number of bullets actually hit the target (1 for melee attacks)
 int     arg11 - The amount of knockback to the target
 int     arg12 - Attack Type (see ATKTYPE_* constants)
@@ -432,7 +432,7 @@ HOOK_INVENWIELD (hs_invenwield.int)
 Runs before wielding or unwielding an armor or a weapon by a critter (except when using inventory by PC).
 An example usage would be to change critter art depending on armor being used or to dynamically customize weapon animations.
 NOTE: when replacing a previously wielded armor or weapon, the unwielding hook will not be executed.
-If you need to rely on this, try checking if armor/weapon already equipped when wielding hook is executed.
+If you need to rely on this, try checking if armor/weapon is already equipped when wielding hook is executed.
 
 Critter arg1 - critter
 Obj     arg2 - item being wielded or unwielded (weapon/armor), may be 0 when unwielding (object is valid only if the item is unwielded by move_obj_inven_to_obj() or rm_obj_from_inven())

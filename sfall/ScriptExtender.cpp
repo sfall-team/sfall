@@ -386,6 +386,7 @@ static const SfallOpcodeMetadata opcodeMetaArray[] = {
 	{sf_critter_inven_obj2, "critter_inven_obj2", {DATATYPE_MASK_VALID_OBJ, DATATYPE_MASK_INT}},
 	{sf_get_current_inven_size, "get_current_inven_size", {DATATYPE_MASK_VALID_OBJ}},
 	{sf_get_flags, "get_flags", {DATATYPE_MASK_VALID_OBJ}},
+	{sf_get_object_data, "get_object_data", {DATATYPE_MASK_VALID_OBJ, DATATYPE_MASK_INT}},
 	{sf_get_outline, "get_outline", {DATATYPE_MASK_VALID_OBJ}},
 	{sf_inventory_redraw, "inventory_redraw", {DATATYPE_MASK_INT}},
 	{sf_item_weight, "item_weight", {DATATYPE_MASK_VALID_OBJ}},
@@ -395,6 +396,7 @@ static const SfallOpcodeMetadata opcodeMetaArray[] = {
 	{sf_set_flags, "set_flags", {DATATYPE_MASK_VALID_OBJ, DATATYPE_MASK_INT}},
 	{sf_set_ini_setting, "set_ini_setting", {DATATYPE_MASK_STR, DATATYPE_MASK_INT | DATATYPE_MASK_STR}},
 	{sf_set_map_enter_position, "set_map_enter_position", {DATATYPE_MASK_INT, DATATYPE_MASK_INT, DATATYPE_MASK_INT}},
+	{sf_set_object_data, "set_object_data", {DATATYPE_MASK_VALID_OBJ, DATATYPE_MASK_INT, DATATYPE_MASK_INT}},
 	{sf_set_outline, "set_outline", {DATATYPE_MASK_VALID_OBJ, DATATYPE_MASK_INT}},
 	{sf_spatial_radius, "spatial_radius", {DATATYPE_MASK_VALID_OBJ}},
 	{sf_unjam_lock, "unjam_lock", {DATATYPE_MASK_VALID_OBJ}},
@@ -1334,12 +1336,10 @@ void ScriptExtenderSetup() {
 	SafeWrite32(0x46ce6c, (DWORD)opcodes);	//call that actually jumps to the opcode
 	SafeWrite32(0x46e390, (DWORD)opcodes);	//mov that writes to the opcode
 
-	if (AllowUnsafeScripting) {
-		opcodes[0x156] = ReadByte;
-		opcodes[0x157] = ReadShort;
-		opcodes[0x158] = ReadInt;
-		opcodes[0x159] = ReadString;
-	}
+	opcodes[0x156] = ReadByte;
+	opcodes[0x157] = ReadShort;
+	opcodes[0x158] = ReadInt;
+	opcodes[0x159] = ReadString;
 	opcodes[0x15a] = SetPCBaseStat;
 	opcodes[0x15b] = SetPCExtraStat;
 	opcodes[0x15c] = GetPCBaseStat;

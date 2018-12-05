@@ -1,8 +1,8 @@
 
-*0x8156 - int   read_byte(int address)
-*0x8157 - int   read_short(int address)
-*0x8158 - int   read_int(int address)
-*0x8159 - string read_string(int address)
+0x8156 - int   read_byte(int address)
+0x8157 - int   read_short(int address)
+0x8158 - int   read_int(int address)
+0x8159 - string read_string(int address)
 
 *0x81cf - void  write_byte(int address, int value)
 *0x81d0 - void  write_short(int address, int value)
