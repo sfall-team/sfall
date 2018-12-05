@@ -267,7 +267,98 @@
 #define WPN_ANIM_MINIGUN            (0x09) // (L)
 #define WPN_ANIM_ROCKET_LAUNCHER    (0x0A) // (M)
 
-// Compute attack result fields
+// AI data parameters
+#define AI_CAP_AGGRESSION              (0)
+#define AI_CAP_AREA_ATTACK_MODE        (1)
+#define AI_CAP_ATTACK_WHO              (2)
+#define AI_CAP_BEST_WEAPON             (3)
+#define AI_CAP_CHEM_USE                (4)
+#define AI_CAP_DISPOSITION             (5)
+#define AI_CAP_DISTANCE                (6)
+#define AI_CAP_MAX_DISTANCE            (7)
+#define AI_CAP_MIN_HP                  (8)
+#define AI_CAP_MIN_TO_HIT              (9)
+#define AI_CAP_HURT_TOO_MUCH           (10) // DAM_BLIND/DAM_CRIP_* flags
+#define AI_CAP_RUN_AWAY_MODE           (11)
+#define AI_CAP_SECONDARY_FREQ          (12)
+#define AI_CAP_CALLED_FREQ             (13)
+#define AI_CAP_CHEM_PRIMARY_DESIRE     (14) // array pid list
+
+// AI attack area mode values
+#define ai_area_always                 (0)
+#define ai_area_sometimes              (1)
+#define ai_area_be_sure                (2)
+#define ai_area_be_careful             (3)
+#define ai_area_be_absolutely_sure     (4)
+
+// AI attack who mode values
+#define ai_attack_no_pref              (-1)
+#define ai_attack_whomever_attacking_me (0)
+#define ai_attack_strongest            (1)
+#define ai_attack_weakest              (2)
+#define ai_attack_whomever             (3)
+#define ai_attack_closest              (4)
+
+// AI run away mode values
+#define ai_run_away_none               (0)
+#define ai_run_away_coward             (1)
+#define ai_run_away_finger_hurts       (3)
+#define ai_run_away_bleeding           (4)
+#define ai_run_away_not_feeling_good   (5)
+#define ai_run_away_tourniquet         (6)
+#define ai_run_away_never              (7)
+
+// AI disposition values
+#define ai_disposition_none            (0)
+#define ai_disposition_custom          (1)
+#define ai_disposition_coward          (2)
+#define ai_disposition_defensive       (3)
+#define ai_disposition_aggressive      (4)
+#define ai_disposition_berserk         (5)
+
+// AI distance values
+#define ai_distance_stay_close         (0)
+#define ai_distance_charge             (1)
+#define ai_distance_snipe              (2)
+#define ai_distance_on_your_own        (3)
+#define ai_distance_stay               (4)
+
+// AI best weapon pref values
+#define ai_weapon_no_pref              (0)
+#define ai_weapon_melee                (1)
+#define ai_weapon_melee_over_ranged    (2)
+#define ai_weapon_ranged_over_melee    (3)
+#define ai_weapon_ranged               (4)
+#define ai_weapon_unarmed              (5)
+#define ai_weapon_unarmed_over_thrown  (6)
+#define ai_weapon_random               (7)
+
+// AI chem use mode values
+#define ai_chem_clean                  (0)
+#define ai_chem_stims_when_hurt_little (1) // use only stimpak/super stimpak/healing powder
+#define ai_chem_stims_when_hurt_lots   (2) // use only stimpak/super stimpak/healing powder
+#define ai_chem_sometimes              (3)
+#define ai_chem_anytime                (4)
+#define ai_chem_always                 (5)
+
+// common object data offsets
+#define OBJ_DATA_TILENUM            (0x04)
+#define OBJ_DATA_CUR_FRM            (0x18) // current frame number
+#define OBJ_DATA_ROTATION           (0x1C)
+#define OBJ_DATA_FID                (0x20)
+#define OBJ_DATA_ELEVATION          (0x28)
+#define OBJ_DATA_PID                (0x64)
+#define OBJ_DATA_CID                (0x68)
+#define OBJ_DATA_SID                (0x78)
+// items
+#define OBJ_DATA_CUR_CHARGES        (0x3C)
+// critters
+#define OBJ_DATA_COMBAT_STATE       (0x3C) // flags: 1 - combat, 2 - target is out of range, 4 - flee
+#define OBJ_DATA_CUR_ACTION_POINT   (0x40)
+#define OBJ_DATA_DAMAGE_LAST_TURN   (0x48)
+#define OBJ_DATA_WHO_HIT_ME         (0x54)
+
+// compute attack result data offsets
 #define C_ATTACK_SOURCE             (0x00)
 #define C_ATTACK_HIT_MODE           (0x04)
 #define C_ATTACK_WEAPON             (0x08)

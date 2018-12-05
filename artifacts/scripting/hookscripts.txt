@@ -598,7 +598,7 @@ int     arg6 - Target's Damage Resistance (DR) value (affected by critical hit e
 int     arg7 - Target's Damage Threshold (DT) value (affected by critical hit effects, perks, traits, and special unarmed attacks)
 int     arg8 - Bonus ranged damage from the perk
 int     arg9 - Damage Multiplier (this is divided by 2, so a value of 3 does 1.5x damage, and 8 does 4x damage. Usually it's 2; for critical hits, the value is taken from the critical table; with Silent Death perk and the corresponding attack conditions, the value will be doubled)
-int     arg10 - Combat Difficulty multiplier (125 - rough, 100 - normal, 75 - wimpy)
+int     arg10 - Combat Difficulty multiplier (125 - rough, 100 - normal, 75 - wimpy; for player or party members it's always 100)
 int     arg11 - The calculated amount of damage (usually 0, required when using multiple hook scripts to calculate damage and using the set_sfall_arg function)
 mixed   arg12 - Computed attack results (see C_ATTACK_* for offsets and use read_int(arg12 + offset) to get the data)
 

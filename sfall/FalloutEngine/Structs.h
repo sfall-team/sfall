@@ -664,4 +664,34 @@ struct LSData {
 	char mapName[16];
 };
 
+#pragma pack(1)
+struct AIcap {
+	long name;
+	long packet_num;
+	long max_dist;
+	long min_to_hit;
+	long min_hp;
+	long aggression;
+	long hurt_too_much;
+	long secondary_freq;
+	long called_freq;
+	long font;
+	long color;
+	long outline_color;
+	long chance;
+	long combat_message_data[24];
+	long area_attack_mode;
+	long run_away_mode;
+	long best_weapon;
+	long distance;
+	long attack_who;
+	long chem_use;
+	long chem_primary_desire;
+	long chem_primary_desire1;
+	long chem_primary_desire2;
+	long disposition;
+	long body_type;
+	long general_type;
+};
+
 }
