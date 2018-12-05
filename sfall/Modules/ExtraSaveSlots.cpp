@@ -418,12 +418,12 @@ static void CreateSaveComment(char* bufstr) {
 	strcpy(bufstr, buf);
 }
 
-static DWORD autoQuickSave = 0;
+static long autoQuickSave = 0;
 static long quickSavePage = 0;
 
 static FILETIME ftPrevSlot;
 static DWORD __stdcall QuickSaveGame(fo::DbFile* file, char* filename) {
-	unsigned int currSlot = fo::var::slot_cursor;
+	int currSlot = fo::var::slot_cursor;
 
 	if (file) { // This slot is not empty
 		fo::func::db_fclose(file);
