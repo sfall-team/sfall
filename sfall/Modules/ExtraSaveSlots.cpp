@@ -419,7 +419,7 @@ static void CreateSaveComment(char* bufstr) {
 }
 
 static DWORD autoQuickSave = 0;
-static DWORD quickSavePage = 0;
+static long quickSavePage = 0;
 
 static FILETIME ftPrevSlot;
 static DWORD __stdcall QuickSaveGame(fo::DbFile* file, char* filename) {
@@ -433,7 +433,7 @@ static DWORD __stdcall QuickSaveGame(fo::DbFile* file, char* filename) {
 			|| (ftCurrSlot.dwHighDateTime == ftPrevSlot.dwHighDateTime && ftCurrSlot.dwLowDateTime > ftPrevSlot.dwLowDateTime)) {
 			ftPrevSlot.dwHighDateTime = ftCurrSlot.dwHighDateTime;
 			ftPrevSlot.dwLowDateTime  = ftCurrSlot.dwLowDateTime;
-			if (++currSlot > 9 || currSlot > autoQuickSave) {
+			if (++currSlot > autoQuickSave) {
 				currSlot = 0;
 			} else {
 				fo::var::slot_cursor = currSlot;
@@ -481,20 +481,20 @@ void ExtraSaveSlots::init() {
 	}
 
 	autoQuickSave = GetConfigInt("Misc", "AutoQuickSave", 0);
-	quickSavePage = GetConfigInt("Misc", "AutoQuickSavePage", 0);
-	if (autoQuickSave >= 1 && autoQuickSave <= 10) {
+	if (autoQuickSave > 0) {
 		dlog("Applying auto quick save patch.", DL_INIT);
-		autoQuickSave--;
-		if (quickSavePage > 0) {
-			if (quickSavePage > 1000) quickSavePage = 1000;
-			quickSavePage = (quickSavePage - 1) * 10;
-		}
+		if (autoQuickSave > 10) autoQuickSave = 10;
+		autoQuickSave--; // reserved slot count
 
-		if (extraSaveSlots) {
+		quickSavePage = GetConfigInt("Misc", "AutoQuickSavePage", 0);
+		if (quickSavePage > 1000) quickSavePage = 1000;
+
+		if (extraSaveSlots && quickSavePage > 0) {
+			quickSavePage = (quickSavePage - 1) * 10;
 			MakeCall(0x47B923, SaveGame_hack1, 1);
 		} else {
 			SafeWrite8(0x47B923, 0x89);
-			SafeWrite32(0x47B924, 0x5193B83D); // mov [slot_cursor], edi(0)
+			SafeWrite32(0x47B924, 0x5193B83D); // mov [slot_cursor], edi = 0
 		}
 		MakeJump(0x47B984, SaveGame_hack0);
 		dlogr(" Done", DL_INIT);
