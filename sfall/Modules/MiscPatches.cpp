@@ -123,6 +123,7 @@ c15:
 		jmp fo::funcoffs::art_get_code_;
 	}
 }
+
 static void __declspec(naked) intface_rotate_numbers_hack() {
 	__asm {
 		push edi
@@ -468,7 +469,6 @@ static void __declspec(naked) win_debug_hook() {
 		call fo::funcoffs::debug_log_;
 		xor  eax, eax;
 		cmp  ds:[FO_VAR_GNW_win_init_flag], eax;
-		push 0x4DC320;
 		retn;
 	}
 }
@@ -492,7 +492,7 @@ void DebugModePatch() {
 					SafeWrite16(0x4C6E75, 0x66EB); // jmps 0x4C6EDD
 					SafeWrite8(0x4C6EF2, 0xEB);
 					SafeWrite8(0x4C7034, 0x0);
-					MakeJump(0x4DC319, win_debug_hook);
+					MakeCall(0x4DC319, win_debug_hook, 2);
 				}
 			} else {
 				SafeWrite32(0x4C6D9C, (DWORD)debugGnw);
@@ -580,7 +580,7 @@ void SpeedInterfaceCounterAnimsPatch() {
 		break;
 	case 2:
 		dlog("Applying SpeedInterfaceCounterAnims patch. (Instant)", DL_INIT);
-		SafeWrite32(0x460BB6, 0x90DB3190);
+		SafeWrite32(0x460BB6, 0x90DB3190); // xor ebx, ebx
 		dlogr(" Done", DL_INIT);
 		break;
 	}
@@ -868,8 +868,7 @@ void DisplaySecondWeaponRangePatch() {
 void KeepWeaponSelectModePatch() {
 	if (GetConfigInt("Misc", "KeepWeaponSelectMode", 1)) {
 		dlog("Applying keep weapon select mode patch.", DL_INIT);
-		MakeCall(0x4714EC, switch_hand_hack);
-		SafeWrite8(0x4714F1, 0x90);
+		MakeCall(0x4714EC, switch_hand_hack, 1);
 		dlogr(" Done", DL_INIT);
 	}
 }

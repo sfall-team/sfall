@@ -456,5 +456,78 @@ void sf_get_dialog_object(OpcodeContext& ctx) {
 	ctx.setReturn(InDialog() ? fo::var::dialog_target : 0);
 }
 
+void sf_get_loot_object(OpcodeContext& ctx) {
+	ctx.setReturn((GetLoopFlags() & INTFACELOOT) ? LoadGameHook::LootTarget : 0);
+}
+
+void sf_get_object_data(OpcodeContext& ctx) {
+	BYTE* object_ptr = (BYTE*)ctx.arg(0).asObject();
+	ctx.setReturn(*(long*)(object_ptr + ctx.arg(1).asInt()), DataType::INT);
+}
+
+void sf_set_object_data(OpcodeContext& ctx) {
+	BYTE* object_ptr = (BYTE*)ctx.arg(0).asObject();
+	*(long*)(object_ptr + ctx.arg(1).asInt()) = ctx.arg(2).asInt();
+}
+
+void sf_get_object_ai_data(OpcodeContext& ctx) {
+	fo::AIcap* cap = fo::func::ai_cap(ctx.arg(0).asObject());
+	DWORD arrayId, value = -1;
+	switch (ctx.arg(1).asInt()) {
+	case 0:
+		value = cap->aggression;
+		break;
+	case 1:
+		value = cap->area_attack_mode;
+		break;
+	case 2:
+		value = cap->attack_who;
+		break;
+	case 3:
+		value = cap->best_weapon;
+		break;
+	case 4:
+		value = cap->chem_use;
+		break;
+	case 5:
+		value = cap->disposition;
+		break;
+	case 6:
+		value = cap->distance;
+		break;
+	case 7:
+		value = cap->max_dist;
+		break;
+	case 8:
+		value = cap->min_hp;
+		break;
+	case 9:
+		value = cap->min_to_hit;
+		break;
+	case 10:
+		value = cap->hurt_too_much; // DAM_BLIND/DAM_CRIP_* flags
+		break;
+	case 11:
+		value = cap->run_away_mode;
+		break;
+	case 12:
+		value = cap->secondary_freq;
+		break;
+	case 13:
+		value = cap->called_freq;
+		break;
+	case 14:
+		arrayId = TempArray(3, 0);
+		arrays[arrayId].val[0].set(cap->chem_primary_desire);
+		arrays[arrayId].val[1].set(cap->chem_primary_desire1);
+		arrays[arrayId].val[2].set(cap->chem_primary_desire2);
+		value = arrayId;
+		break;
+	default:
+		ctx.printOpcodeError("get_object_ai_data() - invalid AI parameter.");
+	}
+	ctx.setReturn(value, DataType::INT);
+}
+
 }
 }

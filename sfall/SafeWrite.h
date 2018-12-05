@@ -36,7 +36,9 @@ void _stdcall SafeWriteBatch(T data, std::initializer_list<DWORD> addrs) {
 void _stdcall SafeWriteStr(DWORD addr, const char* data);
 void HookCall(DWORD addr, void* func);
 void MakeCall(DWORD addr, void* func);
+void MakeCall(DWORD addr, void* func, int len);
 void MakeJump(DWORD addr, void* func);
+void MakeJump(DWORD addr, void* func, int len);
 void BlockCall(DWORD addr);
 void SafeMemSet(DWORD addr, BYTE val, int len);
 void SafeWriteBytes(DWORD addr, BYTE* data, int count);

@@ -20,18 +20,20 @@ static void __declspec(naked) UseObjOnHook() {
 
 	argCount = 3;
 	RunHookScript(HOOK_USEOBJON);
-	EndHook();
 
 	__asm {
 		popad;
 		cmp cRet, 1;
 		jl  defaultHandler;
+		cmp rets[0], -1;
+		jz  defaultHandler;
 		mov eax, rets[0];
+		HookEnd;
 		retn;
 
 defaultHandler:
-		call fo::funcoffs::protinst_use_item_on_;
-		retn;
+		HookEnd;
+		jmp fo::funcoffs::protinst_use_item_on_;
 	}
 }
 
@@ -46,18 +48,20 @@ static void __declspec(naked) Drug_UseObjOnHook() {
 
 	argCount = 3;
 	RunHookScript(HOOK_USEOBJON);
-	EndHook();
 
 	__asm {
 		popad;
 		cmp cRet, 1;
 		jl  defaultHandler;
+		cmp rets[0], -1;
+		jz  defaultHandler;
 		mov eax, rets[0];
+		HookEnd;
 		retn;
 
 defaultHandler:
-		call fo::funcoffs::item_d_take_drug_;
-		retn;
+		HookEnd;
+		jmp fo::funcoffs::item_d_take_drug_;
 	}
 }
 
@@ -71,25 +75,24 @@ static void __declspec(naked) UseObjHook() {
 	
 	argCount = 2;
 	RunHookScript(HOOK_USEOBJ);
-	EndHook();
 
 	__asm {
 		popad;
 		cmp cRet, 1;
 		jl  defaultHandler;
 		cmp rets[0], -1;
-		je defaultHandler;
+		je  defaultHandler;
 		mov eax, rets[0];
+		HookEnd;
 		retn;
 
 defaultHandler:
-		call fo::funcoffs::protinst_use_item_;
-		retn;
+		HookEnd;
+		jmp fo::funcoffs::protinst_use_item_;
 	}
 }
 
-static void __fastcall UseAnimateObjHook_Script(DWORD critter, DWORD animCode, DWORD object) {
-
+static DWORD __fastcall UseAnimateObjHook_Script(DWORD critter, DWORD animCode, DWORD object) {
 	BeginHook();
 	argCount = 3;
 
@@ -98,59 +101,73 @@ static void __fastcall UseAnimateObjHook_Script(DWORD critter, DWORD animCode, D
 	args[2] = animCode;
 
 	RunHookScript(HOOK_USEANIMOBJ);
+
+	if (cRet > 0) {
+		if (static_cast<long>(rets[0]) <= 64) {
+			animCode = rets[0]; // new anim code
+		}
+	}
 	EndHook();
 
-	if (cRet > 0 && static_cast<long>(rets[0]) > 64) cRet = 0;
+	return animCode;
 }
 
 // Before animation of using map object
 static void __declspec(naked) UseAnimateObjHook() {
 	__asm {
-		cmp dword ptr [esp], 0x412292 + 5;
-		pushad;
-		jne contr;
+		cmp  dword ptr [esp], 0x412292 + 5;
+		push eax;
+		push ecx;
+		jne  contr;
 		push ebp;                      // map object
-		jmp next;
+		jmp  next;
 contr:
 		push edi;                      // map object
 next:
-		mov ecx, eax;                  // source critter
+		mov  ecx, eax;                 // source critter
 		call UseAnimateObjHook_Script; // edx - anim code
-		popad;
-		cmp cRet, 0;
-		jle skip;
-		cmp rets[0], -1;
-		jle end;
-		mov edx, rets[0];
-skip:
-		call fo::funcoffs::register_object_animate_;
+		pop  ecx;
+		cmp  eax, -1;                  // return anim code
+		jle  end;                      // goto no animate
+		mov  edx, eax;                 // restore vanilla or hook anim code
+		pop  eax;
+		jmp  fo::funcoffs::register_object_animate_;
 end:
+		pop  eax;
 		retn;
 	}
 }
 
-static void __stdcall DescriptionObjHook_Script(DWORD object) {
+static DWORD __stdcall DescriptionObjHook_Script(DWORD object) {
 	BeginHook();
 	argCount = 1;
 
 	args[0] = object;
 
 	RunHookScript(HOOK_DESCRIPTIONOBJ);
+
+	DWORD textPrt = (cRet > 0) ? rets[0] : 0;
 	EndHook();
+
+	return textPrt;
 }
 
 static void __declspec(naked) DescriptionObjHook() {
 	__asm {
-		pushad;
+		push eax;
+		push edx;
+		push ecx;
 		push eax;          // object
 		call DescriptionObjHook_Script;
-		popad;
-		cmp  cRet, 1;
-		jb   skip;
-		mov  eax, rets[0]; // pointer to text
+		pop  ecx;
+		pop  edx;
+		test eax, eax;     // pointer to text
+		jz   skip;
+		add  esp, 4;       // destroy push eax
 		retn;
 skip:
-		jmp fo::funcoffs::item_description_;
+		pop  eax;
+		jmp  fo::funcoffs::item_description_;
 	}
 }
 

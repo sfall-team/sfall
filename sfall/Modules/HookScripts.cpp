@@ -81,15 +81,15 @@ static HooksInjectInfo injectHooks[] = {
 	{HOOK_DESCRIPTIONOBJ,   Inject_DescriptionObjHook,   false},
 	{HOOK_USESKILLON,       Inject_UseSkillOnHook,       false},
 	{HOOK_ONEXPLOSION,      Inject_OnExplosionHook,      false},
+	{HOOK_SUBCOMBATDAMAGE,  Inject_SubCombatDamageHook,  false}, // replace the code logic
 };
 
 bool HookScripts::injectAllHooks;
 DWORD initingHookScripts;
 
 // BEGIN HOOKS
-
 void HookScripts::KeyPressHook(DWORD* dxKey, bool pressed, DWORD vKey) {
-	if (!IsMapLoaded()) {
+	if (!IsMapLoaded() || !HookHasScript(HOOK_KEYPRESS)) {
 		return;
 	}
 	BeginHook();
@@ -103,7 +103,7 @@ void HookScripts::KeyPressHook(DWORD* dxKey, bool pressed, DWORD vKey) {
 }
 
 void _stdcall MouseClickHook(DWORD button, bool pressed) {
-	if (!IsMapLoaded()) {
+	if (!IsMapLoaded() || !HookScripts::HookHasScript(HOOK_MOUSECLICK)) {
 		return;
 	}
 	BeginHook();
@@ -115,13 +115,13 @@ void _stdcall MouseClickHook(DWORD button, bool pressed) {
 }
 
 void HookScripts::GameModeChangeHook(DWORD exit) {
+	if (!HookHasScript(HOOK_GAMEMODECHANGE)) return;
 	BeginHook();
 	argCount = 1;
 	args[0] = exit;
 	RunHookScript(HOOK_GAMEMODECHANGE);
 	EndHook();
 }
-
 // END HOOKS
 
 DWORD _stdcall GetHSArgCount() {
@@ -129,21 +129,20 @@ DWORD _stdcall GetHSArgCount() {
 }
 
 DWORD _stdcall GetHSArg() {
-	if (cArg == argCount) return 0;
-	else return args[cArg++];
+	return (cArg == argCount) ? 0 : args[cArg++];
 }
 
 void _stdcall SetHSArg(DWORD id, DWORD value) {
-	if(id<argCount) args[id]=value;
+	if (id < argCount) args[id] = value;
 }
 
 DWORD* _stdcall GetHSArgs() {
 	return args;
 }
 
-void _stdcall SetHSReturn(DWORD d) {
-	if (cRetTmp < 8) {
-		rets[cRetTmp++] = d;
+void _stdcall SetHSReturn(DWORD value) {
+	if (cRetTmp < maxRets) {
+		rets[cRetTmp++] = value;
 	}
 	if (cRetTmp > cRet) {
 		cRet = cRetTmp;
@@ -159,6 +158,10 @@ void HookScripts::InjectingHook(int hookId) {
 
 bool HookScripts::IsInjectHook(int hookId) {
 	return injectHooks[hookId].isInject;
+}
+
+bool HookScripts::HookHasScript(int hookId) {
+	return (hooks[hookId].empty() == false);
 }
 
 void _stdcall RegisterHook(fo::Program* script, int id, int procNum) {
@@ -177,7 +180,15 @@ void _stdcall RegisterHook(fo::Program* script, int id, int procNum) {
 		hook.callback = procNum;
 		hook.isGlobalScript = true;
 		hooks[id].push_back(hook);
-		HookScripts::InjectingHook(id); // inject hook to engine code
+		switch (id) {
+		case HOOK_KEYPRESS:
+		case HOOK_MOUSECLICK:
+		case HOOK_ADJUSTFID:
+		case HOOK_GAMEMODECHANGE:
+			break;
+		default:
+			HookScripts::InjectingHook(id); // inject hook to engine code
+		}
 	}
 }
 

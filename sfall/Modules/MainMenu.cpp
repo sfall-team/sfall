@@ -87,26 +87,25 @@ static void __declspec(naked) MainMenuTextHook() {
 }
 
 void MainMenu::init() {
-	int tmp;
+	int offset;
 
-	if (tmp = GetConfigInt("Misc", "MainMenuCreditsOffsetX", 0)) {
-		SafeWrite32(0x481753, 0xf + tmp);
+	if (offset = GetConfigInt("Misc", "MainMenuCreditsOffsetX", 0)) {
+		SafeWrite32(0x481753, 15 + offset);
 	}
-	if (tmp = GetConfigInt("Misc", "MainMenuCreditsOffsetY", 0)) {
-		SafeWrite32(0x48175C, 0x1cc + tmp);
+	if (offset = GetConfigInt("Misc", "MainMenuCreditsOffsetY", 0)) {
+		SafeWrite32(0x48175C, 460 + offset);
 	}
-	if (tmp = GetConfigInt("Misc", "MainMenuOffsetX", 0)) {
-		SafeWrite32(0x48187C, 0x1e + tmp);
-		MainMenuTextOffset = tmp;
+	if (offset = GetConfigInt("Misc", "MainMenuOffsetX", 0)) {
+		SafeWrite32(0x48187C, 30 + offset);
+		MainMenuTextOffset = offset;
 	}
-	if (tmp = GetConfigInt("Misc", "MainMenuOffsetY", 0)) {
-		MainMenuYOffset = tmp;
-		MainMenuTextOffset += tmp * 640;
+	if (offset = GetConfigInt("Misc", "MainMenuOffsetY", 0)) {
+		MainMenuYOffset = offset;
+		MainMenuTextOffset += offset * 640;
 		MakeJump(0x481844, MainMenuButtonYHook);
 	}
 	if (MainMenuTextOffset) {
-		SafeWrite8(0x481933, 0x90);
-		MakeCall(0x481934, MainMenuTextYHook);
+		MakeCall(0x481933, MainMenuTextYHook, 1);
 	}
 
 	MakeJump(0x4817AB, MainMenuTextHook);

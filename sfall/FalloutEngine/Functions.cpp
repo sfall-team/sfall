@@ -352,6 +352,23 @@ long __stdcall win_register_button(DWORD winRef, long xPos, long yPos, long widt
 	}
 }
 
+void __stdcall DialogOut(const char* text) {
+	__asm {
+		push 1;          // flag
+		xor  eax, eax;
+		push eax;        // ColorMsg
+		push eax;        // DisplayMsg
+		mov  al, ds:[0x6AB718];
+		push eax;        // ColorIndex
+		push 0x74;       // y
+		mov  ecx, 0xC0;  // x
+		mov  eax, text;  // DisplayText
+		xor  ebx, ebx;   // ?
+		xor  edx, edx;   // ?
+		call fo::funcoffs::dialog_out_;
+	}
+}
+
 
 #define WRAP_WATCOM_FUNC0(retType, name) \
 	retType __stdcall name() { \

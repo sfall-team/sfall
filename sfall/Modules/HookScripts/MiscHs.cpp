@@ -2,6 +2,7 @@
 #include "..\..\SafeWrite.h"
 #include "..\HookScripts.h"
 #include "..\Karma.h"
+#include "..\LoadGameHook.h"
 #include "Common.h"
 
 #include "MiscHs.h"
@@ -10,6 +11,8 @@
 namespace sfall
 {
 
+// TODO: For now the hook gets executed twice, the first time for the player and the second time for the trader.
+// it is necessary to change the implementation so that the hook only gets executed once
 static DWORD __fastcall BarterPriceHook_Script(register fo::GameObject* source, register fo::GameObject* target, DWORD callAddr) {
 	int computeCost = fo::func::barter_compute_value(source, target);
 
@@ -33,9 +36,19 @@ static DWORD __fastcall BarterPriceHook_Script(register fo::GameObject* source, 
 	args[8] = (DWORD)(callAddr == 0x474D51); // check offers button
 
 	RunHookScript(HOOK_BARTERPRICE);
+
+	bool isPCHook = (callAddr == 0x47551F);
+	int cost = isPCHook ? pcCost : computeCost;
+	if (cRet > 0) {
+		if (isPCHook) {
+			if (cRet > 1) cost = rets[1];     // new cost for pc
+		} else if ((int)rets[0] > -1) {
+			cost = rets[0];                   // new cost for trader
+		}
+	}
 	EndHook();
 
-	return (callAddr == 0x47551F) ? pcCost : computeCost;
+	return cost;
 }
 
 static void __declspec(naked) BarterPriceHook() {
@@ -48,11 +61,6 @@ static void __declspec(naked) BarterPriceHook() {
 		call BarterPriceHook_Script;  // edx - target
 		pop  ecx;
 		pop  edx;
-		cmp  cRet, 1;
-		jb   skip;
-		cmp  rets[0], -1;
-		cmovg eax, rets[0];
-skip:
 		retn;
 	}
 }
@@ -69,8 +77,6 @@ static void __declspec(naked) PC_BarterPriceHook() {
 		call BarterPriceHook_Script;
 		pop  ecx;
 		pop  edx;
-		cmp  cRet, 2;
-		cmovnb eax, rets[4];
 		mov  offersGoodsCost, eax;
 		retn;
 	}
@@ -96,7 +102,6 @@ static void __declspec(naked) UseSkillHook() {
 
 	argCount = 4;
 	RunHookScript(HOOK_USESKILL);
-	EndHook();
 
 	__asm {
 		popad;
@@ -105,8 +110,10 @@ static void __declspec(naked) UseSkillHook() {
 		cmp rets[0], -1;
 		je  defaultHandler;
 		mov eax, rets[0];
+		HookEnd;
 		retn;
 defaultHandler:
+		HookEnd;
 		jmp fo::funcoffs::skill_use_;
 	}
 }
@@ -123,7 +130,6 @@ static void __declspec(naked) StealCheckHook() {
 
 	argCount = 4;
 	RunHookScript(HOOK_STEAL);
-	EndHook();
 
 	__asm {
 		popad;
@@ -132,33 +138,33 @@ static void __declspec(naked) StealCheckHook() {
 		cmp rets[0], -1;
 		je  defaultHandler;
 		mov eax, rets[0];
+		HookEnd;
 		retn;
 defaultHandler:
+		HookEnd;
 		jmp fo::funcoffs::skill_check_stealing_;
 	}
 }
 
-static void __stdcall PerceptionRangeHook_Script(int type) {
+static long __stdcall PerceptionRangeHook_Script(int type) {
+	long result;
 	__asm {
 		HookBegin;
 		mov  args[0], eax; // watcher
 		mov  args[4], edx; // target
 		call fo::funcoffs::is_within_perception_;
-		mov  args[8], eax; // check result
-		push eax;
+		mov  result, eax;  // check result
 	}
-
+	args[2] = result;
 	args[3] = type;
 
 	argCount = 4;
 	RunHookScript(HOOK_WITHINPERCEPTION);
+
+	if (cRet > 0) result = rets[0];
 	EndHook();
 
-	__asm {
-		pop eax;
-		cmp cRet, 1;
-		cmovnb eax, rets[0];
-	}
+	return result;
 }
 
 static void __declspec(naked) PerceptionRangeHook() {
@@ -252,38 +258,44 @@ static void __declspec(naked) CarTravelHack() {
 	}
 }
 
-static void __fastcall GlobalVarHook_Script(register DWORD number, register int value) {
+static long __fastcall GlobalVarHook_Script(register DWORD number, register int value) {
 	int old = fo::var::game_global_vars[number];
 
-	BeginHook();
-	argCount = 2;
-	args[0] = number;
-	args[1] = value;
-	RunHookScript(HOOK_SETGLOBALVAR);
-	EndHook();
+	if (IsMapLoaded() && HookScripts::HookHasScript(HOOK_SETGLOBALVAR)) { // IsMapLoaded - don't execute hook until loading sfall scripts
+		BeginHook();
+		argCount = 2;
+		args[0] = number;
+		args[1] = value;
 
-	if (cRet > 0) value = rets[0];
-
+		RunHookScript(HOOK_SETGLOBALVAR);
+		if (cRet > 0) value = rets[0];
+		EndHook();
+	}
 	if (number == fo::GVAR_PLAYER_REPUTATION && displayKarmaChanges) {
 		int diff = value - old;
 		if (diff != 0) Karma::DisplayKarma(diff);
 	}
+	return value;
 }
 
 static void __declspec(naked) SetGlobalVarHook() {
 	__asm {
-		pushad;
+		push eax;
+		push ecx;
+		push edx;
 		mov  ecx, eax;             // number
 		call GlobalVarHook_Script; // edx - value
-		popad;
-		cmp  cRet, 1;
-		cmovnb edx, dword ptr rets[0];
+		pop  edx;
+		pop  ecx;
+		cmp  eax, edx;             // if return value != set value
+		cmovne edx, eax;
+		pop  eax;
 		jmp  fo::funcoffs::game_set_global_var_;
 	}
 }
 
 static int restTicks;
-static void _stdcall RestTimerHook_Script() {
+static long _stdcall RestTimerHook_Script() {
 	DWORD addrHook;
 	__asm {
 		mov addrHook, ebx;
@@ -303,41 +315,55 @@ static void _stdcall RestTimerHook_Script() {
 		args[1] = (addrHook == 0x499DF2 || (args[2] == 0 && addrHook == 0x499BE0)) ? 1 : 0;
 	}
 	RunHookScript(HOOK_RESTTIMER);
+
+	long result = -1;
+	if (cRet > 0) {
+		result = (rets[0] != 0) ? 1 : 0;
+	}
 	EndHook();
+
+	return result;
 }
 
 static void __declspec(naked) RestTimerLoopHook() {
 	__asm {
-		pushad;
-		mov  ebx, [esp + 32];
-		mov  ecx, [esp + 36 + 0x40]; // hours_
-		mov  edx, [esp + 36 + 0x44]; // minutes_
+		push eax;
+		push edx;
+		push ecx;
+		push ebx;
+		mov  ebx, [esp + 16];
+		mov  ecx, [esp + 20 + 0x40]; // hours_
+		mov  edx, [esp + 20 + 0x44]; // minutes_
 		call RestTimerHook_Script;
-		popad;
-		cmp  cRet, 1;
-		jb   skip;
-		cmp  rets[0], 1;
-		cmovz edi, rets[0];
-skip:
+		pop  ebx;
+		pop  ecx;
+		pop  edx;
+		cmp  eax, 0;
+		cmovge edi, eax;             // return 1 to interrupt resting
+		pop  eax;
 		jmp  fo::funcoffs::set_game_time_;
 	}
 }
 
 static void __declspec(naked) RestTimerEscapeHook() {
 	__asm {
+		mov  edi, 1;    // engine code
 		cmp  eax, 0x1B; // ESC ASCII code
 		jnz  skip;
-		pushad;
-		mov  ebx, [esp + 32];
-		mov  ecx, [esp + 36 + 0x40]; // hours_
-		mov  edx, [esp + 36 + 0x44]; // minutes_
+		push eax;
+		push edx;
+		push ecx;
+		push ebx;
+		mov  ebx, [esp + 16];
+		mov  ecx, [esp + 20 + 0x40]; // hours_
+		mov  edx, [esp + 20 + 0x44]; // minutes_
 		call RestTimerHook_Script;
-		popad;
-		mov  edi, 1;
-		cmp  cRet, 1;
-		jb   skip;
-		cmp  rets[0], 0;
-		cmovz edi, rets[0]; // ret 0 for cancel escape
+		pop  ebx;
+		pop  ecx;
+		pop  edx;
+		cmp  eax, 0;
+		cmovge edi, eax;             // return 0 for cancel ESC key
+		pop  eax;
 skip:
 		retn;
 	}
@@ -352,7 +378,6 @@ static int __fastcall ExplosiveTimerHook_Script(DWORD type, DWORD item, DWORD ti
 	args[2] = (type == 11) ? fo::ROLL_FAILURE : fo::ROLL_SUCCESS;
 
 	RunHookScript(HOOK_EXPLOSIVETIMER);
-	EndHook();
 
 	int result = 0;
 	if (cRet > 0 && rets[0] >= 0) {
@@ -387,8 +412,8 @@ static void _declspec(naked) ExplosiveTimerHook() {
 		jg   end;
 		add  ecx, 3;                 // type FAILURE (11)
 end:
-		call fo::funcoffs::queue_add_;
-		retn;
+		HookEnd;
+		jmp  fo::funcoffs::queue_add_;
 	}
 }
 
@@ -410,7 +435,6 @@ static void __fastcall UseSkillOnHook_Script(DWORD source, DWORD target, registe
 	bakupCombatState = -1;
 
 	RunHookScript(HOOK_USESKILLON);
-	EndHook();
 
 	if (skillId != fo::Skill::SKILL_STEAL && cRet > 0) { // not work for steal skill
 		if (rets[0] != 0) {
@@ -424,6 +448,7 @@ static void __fastcall UseSkillOnHook_Script(DWORD source, DWORD target, registe
 			fo::var::combat_state = 0;
 		}
 	}
+	EndHook();
 }
 
 static void __declspec(naked) UseSkillOnHook() {
@@ -521,9 +546,9 @@ void Inject_ExplosiveTimerHook() {
 
 void Inject_UseSkillOnHook() {
 	HookCalls(UseSkillOnHook, { 0x44C3CA, 0x44C81C });
-	MakeCall(0x4127BA, UseSkillOnHack);
-	SafeWrite8(0x4127BF, 0x90);
+	MakeCall(0x4127BA, UseSkillOnHack, 1);
 	MakeCalls(skill_use_hack, {0x4AB05D, 0x4AB558, 0x4ABA60}); // fix checking obj_dude's target
+
 	// replace source skill user
 	SafeWriteBatch<DWORD>((DWORD)&sourceSkillOn, {0x4AAF47, 0x4AB051, 0x4AB3FB, 0x4AB550, 0x4AB8FA, 0x4ABA54});
 	SafeWriteBatch<DWORD>((DWORD)&sourceSkillOn, {0x4AB0EF, 0x4AB5C0, 0x4ABAF2}); // fix for time

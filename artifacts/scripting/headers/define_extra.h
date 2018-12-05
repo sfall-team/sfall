@@ -234,26 +234,26 @@
 #define CALIBER_7_62MM              (18)
 
 // hidden perks
-#define PERK_add_nuka            (53)
-#define PERK_add_buffout         (54)
-#define PERK_add_mentats         (55)
-#define PERK_add_psycho          (56)
-#define PERK_add_radaway         (57)
-#define PERK_weapon_long_range   (58)
-#define PERK_weapon_accurate     (59)
-#define PERK_weapon_penetrate    (60)
-#define PERK_weapon_knockback    (61)
-#define PERK_armor_powered       (62)
-#define PERK_armor_combat        (63)
-#define PERK_weapon_scope_range  (64)
-#define PERK_weapon_fast_reload  (65)
-#define PERK_weapon_night_sight  (66)
-#define PERK_weapon_flameboy     (67)
-#define PERK_armor_advanced_1    (68)
-#define PERK_armor_advanced_2    (69)
-#define PERK_add_jet             (70)
-#define PERK_add_tragic          (71)
-#define PERK_armor_charisma      (72)
+#define PERK_add_nuka               (53)
+#define PERK_add_buffout            (54)
+#define PERK_add_mentats            (55)
+#define PERK_add_psycho             (56)
+#define PERK_add_radaway            (57)
+#define PERK_weapon_long_range      (58)
+#define PERK_weapon_accurate        (59)
+#define PERK_weapon_penetrate       (60)
+#define PERK_weapon_knockback       (61)
+#define PERK_armor_powered          (62)
+#define PERK_armor_combat           (63)
+#define PERK_weapon_scope_range     (64)
+#define PERK_weapon_fast_reload     (65)
+#define PERK_weapon_night_sight     (66)
+#define PERK_weapon_flameboy        (67)
+#define PERK_armor_advanced_1       (68)
+#define PERK_armor_advanced_2       (69)
+#define PERK_add_jet                (70)
+#define PERK_add_tragic             (71)
+#define PERK_armor_charisma         (72)
 
 #define WPN_ANIM_NONE               (0x00) // (A)
 #define WPN_ANIM_KNIFE              (0x01) // (D)
@@ -266,5 +266,141 @@
 #define WPN_ANIM_BIG_GUN            (0x08) // (K)
 #define WPN_ANIM_MINIGUN            (0x09) // (L)
 #define WPN_ANIM_ROCKET_LAUNCHER    (0x0A) // (M)
+
+// AI data parameters
+#define AI_CAP_AGGRESSION              (0)
+#define AI_CAP_AREA_ATTACK_MODE        (1)
+#define AI_CAP_ATTACK_WHO              (2)
+#define AI_CAP_BEST_WEAPON             (3)
+#define AI_CAP_CHEM_USE                (4)
+#define AI_CAP_DISPOSITION             (5)
+#define AI_CAP_DISTANCE                (6)
+#define AI_CAP_MAX_DISTANCE            (7)
+#define AI_CAP_MIN_HP                  (8)
+#define AI_CAP_MIN_TO_HIT              (9)
+#define AI_CAP_HURT_TOO_MUCH           (10) // DAM_BLIND/DAM_CRIP_* flags
+#define AI_CAP_RUN_AWAY_MODE           (11)
+#define AI_CAP_SECONDARY_FREQ          (12)
+#define AI_CAP_CALLED_FREQ             (13)
+#define AI_CAP_CHEM_PRIMARY_DESIRE     (14) // array pid list
+
+// AI attack area mode values
+#define ai_area_always                 (0)
+#define ai_area_sometimes              (1)
+#define ai_area_be_sure                (2)
+#define ai_area_be_careful             (3)
+#define ai_area_be_absolutely_sure     (4)
+
+// AI attack who mode values
+#define ai_attack_no_pref              (-1)
+#define ai_attack_whomever_attacking_me (0)
+#define ai_attack_strongest            (1)
+#define ai_attack_weakest              (2)
+#define ai_attack_whomever             (3)
+#define ai_attack_closest              (4)
+
+// AI run away mode values
+#define ai_run_away_none               (0)
+#define ai_run_away_coward             (1)
+#define ai_run_away_finger_hurts       (3)
+#define ai_run_away_bleeding           (4)
+#define ai_run_away_not_feeling_good   (5)
+#define ai_run_away_tourniquet         (6)
+#define ai_run_away_never              (7)
+
+// AI disposition values
+#define ai_disposition_none            (0)
+#define ai_disposition_custom          (1)
+#define ai_disposition_coward          (2)
+#define ai_disposition_defensive       (3)
+#define ai_disposition_aggressive      (4)
+#define ai_disposition_berserk         (5)
+
+// AI distance values
+#define ai_distance_stay_close         (0)
+#define ai_distance_charge             (1)
+#define ai_distance_snipe              (2)
+#define ai_distance_on_your_own        (3)
+#define ai_distance_stay               (4)
+
+// AI best weapon pref values
+#define ai_weapon_no_pref              (0)
+#define ai_weapon_melee                (1)
+#define ai_weapon_melee_over_ranged    (2)
+#define ai_weapon_ranged_over_melee    (3)
+#define ai_weapon_ranged               (4)
+#define ai_weapon_unarmed              (5)
+#define ai_weapon_unarmed_over_thrown  (6)
+#define ai_weapon_random               (7)
+
+// AI chem use mode values
+#define ai_chem_clean                  (0)
+#define ai_chem_stims_when_hurt_little (1) // use only stimpak/super stimpak/healing powder
+#define ai_chem_stims_when_hurt_lots   (2) // use only stimpak/super stimpak/healing powder
+#define ai_chem_sometimes              (3)
+#define ai_chem_anytime                (4)
+#define ai_chem_always                 (5)
+
+// common object data offsets
+#define OBJ_DATA_TILENUM            (0x04)
+#define OBJ_DATA_CUR_FRM            (0x18) // current frame number
+#define OBJ_DATA_ROTATION           (0x1C)
+#define OBJ_DATA_FID                (0x20)
+#define OBJ_DATA_ELEVATION          (0x28)
+#define OBJ_DATA_PID                (0x64)
+#define OBJ_DATA_CID                (0x68)
+#define OBJ_DATA_SID                (0x78)
+// items
+#define OBJ_DATA_CUR_CHARGES        (0x3C)
+// critters
+#define OBJ_DATA_COMBAT_STATE       (0x3C) // flags: 1 - combat, 2 - target is out of range, 4 - flee
+#define OBJ_DATA_CUR_ACTION_POINT   (0x40)
+#define OBJ_DATA_DAMAGE_LAST_TURN   (0x48)
+#define OBJ_DATA_WHO_HIT_ME         (0x54)
+
+// compute attack result data offsets
+#define C_ATTACK_SOURCE             (0x00)
+#define C_ATTACK_HIT_MODE           (0x04)
+#define C_ATTACK_WEAPON             (0x08)
+#define C_ATTACK_DAMAGE_SOURCE      (0x10) // Amount
+#define C_ATTACK_FLAGS_SOURCE       (0x14) // see DAM_* values in define.h
+#define C_ATTACK_ROUNDS             (0x18)
+#define C_ATTACK_TARGET             (0x20)
+#define C_ATTACK_BODY_PART          (0x28)
+#define C_ATTACK_DAMAGE_TARGET      (0x2C) // Amount
+#define C_ATTACK_FLAGS_TARGET       (0x30) // see DAM_*
+#define C_ATTACK_KNOCKBACK_VALUE    (0x34)
+#define C_ATTACK_MAIN_TARGET        (0x38)
+#define C_ATTACK_AROUND_NUMBER      (0x3C) // The number of critters around the target
+#define C_ATTACK_TARGET1            (0x40)
+#define C_ATTACK_TARGET2            (0x44)
+#define C_ATTACK_TARGET3            (0x48)
+#define C_ATTACK_TARGET4            (0x4C)
+#define C_ATTACK_TARGET5            (0x50)
+#define C_ATTACK_TARGET6            (0x54)
+#define C_ATTACK_BODY_PART1         (0x58)
+#define C_ATTACK_BODY_PART2         (0x5C)
+#define C_ATTACK_BODY_PART3         (0x60)
+#define C_ATTACK_BODY_PART4         (0x64)
+#define C_ATTACK_BODY_PART5         (0x68)
+#define C_ATTACK_BODY_PART6         (0x6C)
+#define C_ATTACK_DAMAGE_TARGET1     (0x70) // Amount
+#define C_ATTACK_DAMAGE_TARGET2     (0x74)
+#define C_ATTACK_DAMAGE_TARGET3     (0x78)
+#define C_ATTACK_DAMAGE_TARGET4     (0x7C)
+#define C_ATTACK_DAMAGE_TARGET5     (0x80)
+#define C_ATTACK_DAMAGE_TARGET6     (0x84)
+#define C_ATTACK_FLAGS_TARGET1      (0x88) // see DAM_*
+#define C_ATTACK_FLAGS_TARGET2      (0x8C)
+#define C_ATTACK_FLAGS_TARGET3      (0x90)
+#define C_ATTACK_FLAGS_TARGET4      (0x94)
+#define C_ATTACK_FLAGS_TARGET5      (0x98)
+#define C_ATTACK_FLAGS_TARGET6      (0x9C)
+#define C_ATTACK_KNOCKBACK_VALUE1   (0xA0)
+#define C_ATTACK_KNOCKBACK_VALUE2   (0xA4)
+#define C_ATTACK_KNOCKBACK_VALUE3   (0xA8)
+#define C_ATTACK_KNOCKBACK_VALUE4   (0xAC)
+#define C_ATTACK_KNOCKBACK_VALUE5   (0xB0)
+#define C_ATTACK_KNOCKBACK_VALUE6   (0xB4)
 
 #endif // DEFINE_EXTRA_H

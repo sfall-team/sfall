@@ -165,5 +165,7 @@ void sf_get_ini_sections(OpcodeContext&);
 
 void sf_get_ini_section(OpcodeContext&);
 
+void sf_obj_under_cursor(OpcodeContext&);
+
 }
 }

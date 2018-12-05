@@ -97,5 +97,13 @@ void sf_get_current_inven_size(OpcodeContext&);
 
 void sf_get_dialog_object(OpcodeContext&);
 
+void sf_get_loot_object(OpcodeContext&);
+
+void sf_get_object_data(OpcodeContext&);
+
+void sf_set_object_data(OpcodeContext&);
+
+void sf_get_object_ai_data(OpcodeContext&);
+
 }
 }

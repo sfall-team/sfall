@@ -1038,7 +1038,7 @@ void __declspec(naked) op_set_unspent_ap_bonus() {
 		call fo::funcoffs::interpretPopLong_;
 		cmp dx, VAR_TYPE_INT;
 		jnz end;
-		mov standardApAcBonus, ax;
+		mov standardApAcBonus, eax;
 end:
 		pop edx;
 		pop ecx;
@@ -1051,7 +1051,7 @@ void __declspec(naked) op_get_unspent_ap_bonus() {
 		push ecx;
 		push edx;
 		mov ecx, eax;
-		movzx edx, standardApAcBonus;
+		mov edx, standardApAcBonus;
 		call fo::funcoffs::interpretPushLong_;
 		mov eax, ecx;
 		mov edx, VAR_TYPE_INT;
@@ -1073,7 +1073,7 @@ void __declspec(naked) op_set_unspent_ap_perk_bonus() {
 		call fo::funcoffs::interpretPopLong_;
 		cmp dx, VAR_TYPE_INT;
 		jnz end;
-		mov extraApAcBonus, ax;
+		mov extraApAcBonus, eax;
 end:
 		pop edx;
 		pop ecx;
@@ -1086,7 +1086,7 @@ void __declspec(naked) op_get_unspent_ap_perk_bonus() {
 		push ecx;
 		push edx;
 		mov ecx, eax;
-		movzx edx, extraApAcBonus;
+		mov edx, extraApAcBonus;
 		call fo::funcoffs::interpretPushLong_;
 		mov eax, ecx;
 		mov edx, VAR_TYPE_INT;
@@ -1720,6 +1720,10 @@ void sf_get_ini_section(OpcodeContext& ctx) {
 		}
 	}
 	ctx.setReturn(arrayId);
+}
+
+void sf_obj_under_cursor(OpcodeContext& ctx) {
+	ctx.setReturn(fo::func::object_under_mouse(ctx.arg(0).asBool() ? 1 : -1, ctx.arg(1).rawValue(), fo::var::map_elevation));
 }
 
 }

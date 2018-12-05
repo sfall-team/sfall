@@ -14,6 +14,8 @@ static DWORD critterBody = 0;
 static DWORD sizeOnBody = 0;
 static DWORD weightOnBody = 0;
 
+static char textBuf[355];
+
 void ResetBodyState() {
 	_asm mov critterBody, 0;
 	_asm mov sizeOnBody, 0;
@@ -810,6 +812,7 @@ end:
 	}
 }
 
+static const DWORD SetNewResults_Ret = 0x424FC6;
 static void __declspec(naked) set_new_results_hack() {
 	__asm {
 		test ah, DAM_KNOCKED_OUT                  // DAM_KNOCKED_OUT?
@@ -820,8 +823,7 @@ static void __declspec(naked) set_new_results_hack() {
 		jmp  fo::funcoffs::queue_remove_this_     // Remove knockout from queue (if there is one)
 end:
 		add  esp, 4                               // Destroy the return address
-		push 0x424FC6
-		retn
+		jmp  SetNewResults_Ret
 	}
 }
 
@@ -949,6 +951,17 @@ found:
 		call fo::funcoffs::item_m_turn_off_
 		mov  eax, 0x474D17
 		jmp  eax                                  // Is there any other activated items among the ones being sold?
+	}
+}
+
+static void __declspec(naked) barter_attempt_transaction_hook_weight() {
+	__asm {
+		call fo::funcoffs::item_total_weight_;
+		test eax, eax;
+		jnz  skip;
+		xor  edx, edx;
+skip:
+		retn;
 	}
 }
 
@@ -1195,7 +1208,6 @@ static void __declspec(naked) Save_as_ASCII_hack() {
 	__asm {
 		mov  edx, STAT_sequence;
 		mov  ebx, 626; // line index in EDITOR.MSG
-		push 0x4396FC; // call stat_level_
 		retn;
 	}
 }
@@ -1273,7 +1285,6 @@ static void __declspec(naked) partyMemberGetCurLevel_hack() {
 	__asm {
 		mov  esi, 0xFFFFFFFF; // initialize party member index
 		mov  edi, dword ptr ds:[FO_VAR_partyMemberMaxCount];
-		push 0x495FFC;
 		retn;
 	}
 }
@@ -1331,8 +1342,7 @@ static void __declspec(naked) compute_damage_hack() {
 	}
 }
 
-static int  currDescLen = 0;
-static char textBuf[355];
+static int currDescLen = 0;
 static bool showItemDescription = false;
 static void __stdcall AppendText(const char* text, const char* desc) {
 	if (showItemDescription && currDescLen == 0) {
@@ -1617,6 +1627,109 @@ skip:
 	}
 }
 
+static void __declspec(naked) determine_to_hit_func_hook() {
+	__asm {
+		test [esp + 0x38 + 0x8 + 4], 1; // isRange
+		jz   noRange;
+		jmp  fo::funcoffs::obj_dist_with_tile_;
+noRange:
+		mov  eax, 1;                    // set distance
+		retn;
+	}
+}
+
+static void __declspec(naked) process_rads_hook() {
+	__asm {
+		push eax; // death message for DialogOut
+		call fo::funcoffs::display_print_;
+		call GetLoopFlags;
+		test eax, PIPBOY;
+		jz   skip;
+		mov  eax, 1;
+		call fo::funcoffs::gmouse_set_cursor_;
+skip:
+		mov  ebx, dword ptr ds:[FO_VAR_game_user_wants_to_quit];
+		mov  dword ptr ds:[FO_VAR_game_user_wants_to_quit], 0;
+		call fo::func::DialogOut;
+		mov  dword ptr ds:[FO_VAR_game_user_wants_to_quit], ebx;
+		retn;
+	}
+}
+
+static DWORD firstItemDrug = -1;
+static const DWORD ai_check_drugs_hack_Ret = 0x42878B;
+static void __declspec(naked) ai_check_drugs_hack_break() {
+	__asm {
+		mov  eax, -1;
+		cmp  firstItemDrug, eax;
+		jnz  firstDrugs;
+		add  esp, 4;
+		jmp  ai_check_drugs_hack_Ret;      // break loop
+firstDrugs:
+		mov  dword ptr [esp + 4], eax;     // buf
+		mov  edi, firstItemDrug;
+		mov  ebx, edi;
+		mov  firstItemDrug, eax;
+		retn;                              // use drug
+	}
+}
+
+static void __declspec(naked) ai_check_drugs_hack_check() {
+	__asm {
+		test [esp + 0x34 - 0x30 + 4], 1;   // check NoInvenItem flag
+		jnz  skip;
+		cmp  dword ptr [edx + 0xAC], -1;   // Chemical Preference Number (cap.chem_primary_desire)
+		jnz  checkDrugs;
+skip:
+		xor  ebx, ebx;                     // set zero flag for skipping preference list check
+		retn;
+checkDrugs:
+		cmp  ebx, [edx + 0xAC];            // Chemical Preference Number
+		retn;
+	}
+}
+
+static const DWORD ai_check_drugs_hack_Loop = 0x428675;
+static void __declspec(naked) ai_check_drugs_hack_use() {
+	__asm {
+		cmp  eax, 3;
+		jge  beginLoop;
+		retn;                              // use drug
+beginLoop:
+		cmp  firstItemDrug, -1;
+		jnz  skip;
+		mov  firstItemDrug, edi;           // keep drug item
+skip:
+		add  esp, 4;
+		jmp  ai_check_drugs_hack_Loop;     // goto begin loop
+	}
+}
+
+static const DWORD config_get_values_hack_Get = 0x42C13F;
+static const DWORD config_get_values_hack_OK = 0x42C14D;
+static const DWORD config_get_values_hack_Fail = 0x42C131;
+static void __declspec(naked) config_get_values_hack() {
+	__asm {
+		cmp ebp, 1;                        // counter value
+		jl  getOK;
+		jz  getLast;
+		// if ebp > 1
+		mov eax, [esp + 0x100];
+		cmp [eax], 0;                      // check char
+		jz  getFail;
+		mov eax, dword ptr [esp + 0x114];  // total num of values
+		sub eax, ebp;
+		cmp eax, 1;
+		ja  getFail;
+getLast:
+		jmp config_get_values_hack_Get;    // get last value
+getOK:
+		jmp config_get_values_hack_OK;
+getFail:
+		jmp config_get_values_hack_Fail;
+	}
+}
+
 
 void BugFixes::init()
 {
@@ -1738,16 +1851,14 @@ void BugFixes::init()
 		dlog("Applying fix for not counting in weight of equipped items on NPC.", DL_INIT);
 		MakeCall(0x473B4E, loot_container_hack);
 		HookCall(0x4758AB, barter_inventory_hook);
-		MakeCall(0x477EAB, item_total_weight_hack);
-		SafeWrite8(0x477EB0, 0x90);
-		MakeCall(0x479A2F, item_c_curr_size_hack);
-		SafeWrite8(0x479A34, 0x90);
+		MakeCall(0x477EAB, item_total_weight_hack, 1);
+		MakeCall(0x479A2F, item_c_curr_size_hack, 1);
 		dlogr(" Done", DL_INIT);
 	//}
 
 	// Corrects the max text width of the item weight in trading interface to be 64 (was 80), which matches the table width
-	SafeWrite32(0x475541, 64);
-	SafeWrite32(0x475789, 64);
+	SafeWrite8(0x475541, 64);
+	SafeWrite8(0x475789, 64);
 
 	// Corrects the max text width of the player name in inventory to be 140 (was 80), which matches the width for item name
 	SafeWrite32(0x471E48, 140);
@@ -1826,10 +1937,8 @@ void BugFixes::init()
 		dlog("Applying MultiHex Pathing Fix.", DL_INIT);
 		MakeCalls(MultiHexFix, {0x42901F, 0x429170});
 		// Fix for multihex critters moving too close and overlapping their targets in combat
-		MakeCall(0x42A14F, MultiHexCombatRunFix);
-		SafeWrite8(0x42A154, 0x90);
-		MakeCall(0x42A178, MultiHexCombatMoveFix);
-		SafeWrite8(0x42A17D, 0x90);
+		MakeCall(0x42A14F, MultiHexCombatRunFix, 1);
+		MakeCall(0x42A178, MultiHexCombatMoveFix, 1);
 		dlogr(" Done", DL_INIT);
 	//}
 
@@ -1912,12 +2021,9 @@ void BugFixes::init()
 		// Fix for the engine not checking player's inventory properly when putting items into the bag/backpack in the hands
 		MakeJump(0x4715DB, switch_hand_hack);
 		// Fix to ignore player's equipped items when opening bag/backpack
-		MakeCall(0x471B7F, inven_item_wearing); // inven_right_hand_
-		SafeWrite8(0x471B84, 0x90); // nop
-		MakeCall(0x471BCB, inven_item_wearing); // inven_left_hand_
-		SafeWrite8(0x471BD0, 0x90); // nop
-		MakeCall(0x471C17, inven_item_wearing); // inven_worn_
-		SafeWrite8(0x471C1C, 0x90); // nop
+		MakeCall(0x471B7F, inven_item_wearing, 1); // inven_right_hand_
+		MakeCall(0x471BCB, inven_item_wearing, 1); // inven_left_hand_
+		MakeCall(0x471C17, inven_item_wearing, 1); // inven_worn_
 		// Fix crash when trying to open bag/backpack on the table in the bartering interface
 		MakeCall(0x473191, inven_action_cursor_hack);
 		dlogr(" Done", DL_INIT);
@@ -1930,7 +2036,7 @@ void BugFixes::init()
 	MakeJump(0x47808C, ItemCountFix); // replacing item_count_ function
 
 	// Fix for Sequence stat value not being printed correctly when using "print to file" option
-	MakeJump(0x4396F5, Save_as_ASCII_hack);
+	MakeCall(0x4396F5, Save_as_ASCII_hack, 2);
 
 	// Fix for Bonus Move APs being replenished when you save and load the game in combat
 	//if (GetConfigInt("Misc", "BonusMoveFix", 1)) {
@@ -1955,7 +2061,7 @@ void BugFixes::init()
 	//}
 
 	// Fix crash when calling partyMemberGetCurLevel_ on a critter that has no data in party.txt
-	MakeJump(0x495FF6, partyMemberGetCurLevel_hack);
+	MakeCall(0x495FF6, partyMemberGetCurLevel_hack, 1);
 
 	// Fix for player's base EMP DR not being properly initialized when creating a new character and then starting the game
 	HookCall(0x4A22DF, &ResetPlayer_hook);
@@ -1981,8 +2087,7 @@ void BugFixes::init()
 	MakeCalls(obj_examine_func_hack_ammo0, {0x49B4AD, 0x49B504});
 	SafeWrite16(0x49B4B2, 0x9090);
 	SafeWrite16(0x49B509, 0x9090);
-	MakeCall(0x49B563, obj_examine_func_hack_ammo1);
-	SafeWrite16(0x49B568, 0x9090);
+	MakeCall(0x49B563, obj_examine_func_hack_ammo1, 2);
 	dlogr(" Done", DL_INIT);
 
 	// Display full item description for weapon/ammo in barter screen
@@ -2014,8 +2119,7 @@ void BugFixes::init()
 		dlog("Applying obj_can_hear_obj fix.", DL_INIT);
 		SafeWrite8(0x4583D8, 0x3B); // jz loc_458414
 		SafeWrite8(0x4583DE, 0x74); // jz loc_458414
-		MakeCall(0x4583E0, op_obj_can_hear_obj_hack);
-		SafeWrite8(0x4583E5, 0x90);
+		MakeCall(0x4583E0, op_obj_can_hear_obj_hack, 1);
 		dlogr(" Done", DL_INIT);
 	}
 
@@ -2031,9 +2135,11 @@ void BugFixes::init()
 	SafeWrite8(0x4C1015, 0x90);
 	HookCall(0x4C1042, wmSetupRandomEncounter_hook);
 
+	// Fix for unable to sell/give items in barter screen when the player/party member is overloaded
+	HookCalls(barter_attempt_transaction_hook_weight, {0x474C73, 0x474CCA});
+
 	// Fix for the underline position in the inventory display window when the item name is longer than one line
-	MakeCall(0x472F5F, inven_obj_examine_func_hack);
-	SafeWrite8(0x472F64, 0x90);
+	MakeCall(0x472F5F, inven_obj_examine_func_hack, 1);
 
 	// Fix for the exploit that allows you to gain excessive skill points from Tag! perk before leaving the character screen
 	//if (GetConfigInt("Misc", "TagPerkFix", 1)) {
@@ -2058,7 +2164,30 @@ void BugFixes::init()
 	}
 
 	// Fix for Heave Ho! perk increasing Strength stat above 10 when determining the maximum range of thrown weapons
+	dlog("Applying Heave Ho! perk fix.", DL_INIT);
 	HookCall(0x478AD9, item_w_range_hook);
+	dlogr(" Done", DL_INIT);
+
+	// Fix for determine_to_hit_func_ engine function taking distance into account when called from determine_to_hit_no_range_
+	HookCall(0x4244C3, determine_to_hit_func_hook);
+
+	// Display a pop-up messages box about death from radiation
+	HookCall(0x42D733, process_rads_hook);
+
+	// Fix for AI not taking chem_primary_desire in AI.txt as drug use preference when using drugs in their inventory
+	if (GetConfigInt("Misc", "AIDrugUsePerfFix", 0)) {
+		dlog("Applying AI drug use preference fix.", DL_INIT);
+		MakeCall(0x42869D, ai_check_drugs_hack_break);
+		MakeCall(0x4286AB, ai_check_drugs_hack_check);
+		SafeWrite16(0x4286B0, 0x7490); // jnz > jz
+		SafeWrite8(0x4286C5, 0x75);    // jz  > jnz
+		MakeCall(0x4286C7, ai_check_drugs_hack_use);
+		dlogr(" Done", DL_INIT);
+	}
+
+	// Fix for config_get_values_ engine function not getting the last value in a list if the list has less than the requested
+	// number of values (for chem_primary_desire)
+	MakeJump(0x42C12C, config_get_values_hack);
 }
 
 }

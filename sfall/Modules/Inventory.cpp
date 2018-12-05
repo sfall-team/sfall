@@ -693,12 +693,13 @@ DWORD __stdcall adjust_fid_replacement2() {
 	return var::i_fid;
 }
 
-void __declspec(naked) adjust_fid_replacement() {
+static void __declspec(naked) adjust_fid_replacement() {
 	__asm {
-		pushad;
-		call adjust_fid_replacement2;
-		popad;
-		mov eax, [FO_VAR_i_fid];
+		push ecx;
+		push edx;
+		call adjust_fid_replacement2; // return fid
+		pop  edx;
+		pop  ecx;
 		retn;
 	}
 }
@@ -802,8 +803,7 @@ void Inventory::init() {
 
 	if (GetConfigInt("Misc", "CheckWeaponAmmoCost", 0)) {
 		HookCall(0x4266E9, combat_check_bad_shot_hook);
-		MakeCall(0x4234B3, compute_spray_hack);
-		SafeWrite8(0x4234B8, 0x90);
+		MakeCall(0x4234B3, compute_spray_hack, 1);
 	}
 
 	reloadWeaponKey = GetConfigInt("Input", "ReloadWeaponKey", 0);

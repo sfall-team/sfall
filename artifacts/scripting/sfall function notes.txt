@@ -48,7 +48,7 @@ set_fake_trait and set_fake_perk can be used to add additional traits and perks 
 
 has_fake_trait and has_fake_perk return the number of levels the player has of the perks/traits with the given name.
 
-perk_add_mode, set_selectable_perk, set_perkbox_title, hide_real_perks, show_real_perks and clear_selectable_perks control the behaviour of the select a perk box. set_selectable_perk can be used to add additional items by setting the 'active' parameter to 1, and to remove them again by setting it to 0. set_perkbox_title can be used to change the title of the box, or by using "" it will be set back to the default. hide and show_real_perks can be used to prevent the dialog from displaying any of the original 119 perks. perk_add_mode modifies what happens when a fake perk is selected from the perks dialog. It is treated as a set of flags - if bit 1 is set then it is added to the players traits, if bit 2 is set it is added to the players perks, and if bit 3 is set it is removed from the list of selectable perks. The default is 0x2. clear_selectable_perks restores the dialog to it's default state.
+perk_add_mode, set_selectable_perk, set_perkbox_title, hide_real_perks, show_real_perks and clear_selectable_perks control the behaviour of the select a perk box. set_selectable_perk can be used to add additional items by setting the 'active' parameter to 1, and to remove them again by setting it to 0. set_perkbox_title can be used to change the title of the box, or by using "" it will be set back to the default. hide and show_real_perks can be used to prevent the dialog from displaying any of the original 119 perks. perk_add_mode modifies what happens when a fake perk is selected from the perks dialog. It is treated as a set of flags - if bit 1 is set then it is added to the players traits, if bit 2 is set it is added to the players perks, and if bit 3 is set it is removed from the list of selectable perks. The default is 0x2. clear_selectable_perks restores the dialog to its default state.
 
 show_iface_tag, hide_iface_tag and is_iface_tag_active relate to the boxes that appear above the interface such as SNEAK and LEVEL. You can use 3 for LEVEL and 4 for ADDICT, or the range from 5 to (4 + the value of BoxBarCount in ddraw.ini) for custom boxes. Remember to add your messages to intrface.msg and set up the font colours in ddraw.ini if you're going to use custom boxes. Starting from sfall 4.1, is_iface_tag_active can also be used to check 0 for SNEAK, 1 for POISONED, and 2 for RADIATED.
 
@@ -98,7 +98,7 @@ array - array ID to be used with array-related functions (actually an integer)
 ----------------------------------------------
 
 > int game_loaded()
-- returns 1 the first time it is called after a new game or game load, and 0 any time after. It works on an individual basis for each script, so one script wont interfere with others. It's primary use is for global scripts, so that they know when to call set_global_script_repeat, but it can be called from normal scripts too.
+- returns 1 the first time it is called after a new game or game load, and 0 any time after. It works on an individual basis for each script, so one script wont interfere with others. Its primary use is for global scripts, so that they know when to call set_global_script_repeat, but it can be called from normal scripts too.
 
 > void inc_npc_level(string npc)
 - takes an NPC name as an argument. The NPC must be in your party. This function ignores player level requirements and the minimum 3 player level delay between NPC level gains. It also ignores the random element, regardless of sfall's NPCAutoLevel setting.
@@ -223,13 +223,13 @@ was made as a dirty easy hack to allow dynamically change some explosion paramet
 - currently y is not used and x means: 1 - reduced explosion pattern (3 effects are spawned instead of 7), 0 - full pattern
 
 > void set_attack_explosion_art(x, y)
-- y not used and x is a misc frame ID (last 3 bytes, without object type) to use for the next explosion.
+- y is not used and x is a misc frame ID (last 3 bytes, without object type) to use for the next explosion.
 
 > void set_attack_explosion_radius(x)
 - changes radius at which explosion will hit secondary targets for the next attack (from the experiments it is limited to something around 8 by the engine)
 
 > void set_attack_is_explosion_fire
-- if you call this right before using a weapon with fire damage type, it will produce explosion effects (and radius damage) just like "explosion" type, but all targets will still receive fire damage.
+- if you call this right before using a weapon with fire damage type (e.g. in HOOK_AFTERHITROLL), it will produce explosion effects (and radius damage) just like "explosion" type, but all targets will still receive fire damage.
 
 > void set_explosion_radius(grenade, rocket)
 - sets a permanent radius of the explosion for grenades and/or rockets. Passing 0 means not changing the corresponding radius.
@@ -540,7 +540,25 @@ Some utility/math functions are available:
 - the can_rest_here values in maps.txt are ignored
 
 > object sfall_func0("dialog_obj")
-- returns the object (critter) the player is having a conversation or bartering with
+- returns a pointer to the object (critter) the player is having a conversation or bartering with
+
+> object sfall_func2("obj_under_cursor", bool crSwitch, bool inclDude)
+- returns the object under the cursor on the main game screen
+- crSwitch: True - only checks critters and ignores their cover (roof tiles, walls, scenery, etc.), False - checks all objects (can't check critters under objects)
+- passing False to the inclDude argument will ignore dude_obj
+
+> object sfall_func0("loot_obj")
+- returns a pointer to the target object (container or critter) of the loot screen
+
+> int sfall_func2("get_object_data", object, int offset)
+- returns the data at the specified offset of an object (see OBJ_DATA_* constants in define_extra.h for offsets)
+
+> void sfall_func3("set_object_data", object, int offset, int data)
+- sets the data at the specified offset of an object
+
+> int sfall_func2("get_object_ai_data", object, int aiParam)
+- returns the setting value from the AI packet of an object (critter)
+- use AI_CAP_* constants from define_extra.h for the aiParam argument to get AI value
 
 ------------------------
 ------ MORE INFO -------

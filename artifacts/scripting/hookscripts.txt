@@ -166,7 +166,7 @@ int     arg5  - The special effect flags for the target (use bwand DAM_* to chec
 int     arg6  - The special effect flags for the attacker (use bwand DAM_* to check specific flags)
 int     arg7  - The weapon used in the attack
 int     arg8  - The bodypart that was struck
-int     arg9  - Damage Multiplier (this is divided by 2, so a value of 3 does 1.5x damage, and 8 does 4x damage. Usually it's 2, but with Silent Death perk and the corresponding attack conditions, it's 4; for critical hits, the value is taken from the critical table)
+int     arg9  - Damage Multiplier (this is divided by 2, so a value of 3 does 1.5x damage, and 8 does 4x damage. Usually it's 2; for critical hits, the value is taken from the critical table; with Silent Death perk and the corresponding attack conditions, the value will be doubled)
 int     arg10 - Number of bullets actually hit the target (1 for melee attacks)
 int     arg11 - The amount of knockback to the target
 int     arg12 - Attack Type (see ATKTYPE_* constants)
@@ -189,7 +189,7 @@ Critter arg1 - The critter that just died
 
 HOOK_FINDTARGET (hs_findtarget.int)
 
-Runs when the ai is trying to pick a target in combat. Fallout first chooses a list of 4 likely suspects, then normally sorts them in order of weakness/distance/etc depending on the ai caps of the attacker. This hook replaces that sorting function, allowing you to sort the targets in some arbitrary way. Use sfall_return to give the 4 targets, in order of preference. All 4 must be given if you want to override normal sorting; if you want to specify less than 4 targets fill in the extra spaces with 0's. If you do not give 4 targets, the NPCs normal sorting mechanism will be used.
+Runs when the ai is trying to pick a target in combat. Fallout first chooses a list of 4 likely suspects, then normally sorts them in order of weakness/distance/etc depending on the ai caps of the attacker. This hook replaces that sorting function, allowing you to sort the targets in some arbitrary way. Use sfall_return to give the 4 targets, in order of preference. If you want to specify less than 4 targets, fill in the extra spaces with 0's. Pass -1 to skip the return value.
 
 The return values can include critters that weren't in the list of possible targets, but the additional targets may still be discarded later on in the combat turn if they are out of the attackers perception or the chance of a successful hit is too low. The list of possible targets often includes duplicated entries.
 
@@ -434,7 +434,7 @@ HOOK_INVENWIELD (hs_invenwield.int)
 Runs before wielding or unwielding an armor or a weapon by a critter (except when using inventory by PC).
 An example usage would be to change critter art depending on armor being used or to dynamically customize weapon animations.
 NOTE: when replacing a previously wielded armor or weapon, the unwielding hook will not be executed.
-If you need to rely on this, try checking if armor/weapon already equipped when wielding hook is executed.
+If you need to rely on this, try checking if armor/weapon is already equipped when wielding hook is executed.
 
 Critter arg1 - critter
 Obj     arg2 - item being wielded or unwielded (weapon/armor)
@@ -578,3 +578,28 @@ Critter arg6 - The target critter, may be 0 or equal to the attacker
 int     arg7 - 1 when using throwing weapons (e.g. grenades), 0 otherwise
 
 int     ret1 - overrides the found object on the checked tile, pass 0 to skip the object
+
+-------------------------------------------
+
+HOOK_SUBCOMBATDAMAGE (hs_subcombatdmg.int)
+
+This hook overrides the vanilla damage calculation formula.
+Runs when:
+1) Before the game calculates how much damage each target will get. This includes primary target as well as all extras (explosions and bursts).
+2) AI decides whether it is safe to use area attack (burst, grenades), if he might hit friendlies.
+Does not run for misses, non-combat damage like dynamite explosions, or if one of the damage formulas is selected in ddraw.ini.
+
+Critter arg1 - The attacker
+Critter arg2 - The target
+Obj     arg3 - The weapon used in the attack
+int     arg4 - Attack Type (see ATKTYPE_* constants)
+int     arg5 - Number of bullets actually hit the target (1 for melee attacks)
+int     arg6 - Target's Damage Resistance (DR) value (affected by critical hit effects, perks, traits, and special unarmed attacks)
+int     arg7 - Target's Damage Threshold (DT) value (affected by critical hit effects, perks, traits, and special unarmed attacks)
+int     arg8 - Bonus ranged damage from the perk
+int     arg9 - Damage Multiplier (this is divided by 2, so a value of 3 does 1.5x damage, and 8 does 4x damage. Usually it's 2; for critical hits, the value is taken from the critical table; with Silent Death perk and the corresponding attack conditions, the value will be doubled)
+int     arg10 - Combat Difficulty multiplier (125 - rough, 100 - normal, 75 - wimpy; for player or party members it's always 100)
+int     arg11 - The calculated amount of damage (usually 0, required when using multiple hook scripts to calculate damage and using the set_sfall_arg function)
+mixed   arg12 - Computed attack results (see C_ATTACK_* for offsets and use get/set_object_data functions to get/set the data)
+
+int     ret1 - The returned amount of damage

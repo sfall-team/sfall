@@ -31,6 +31,7 @@ namespace sfall
 {
 
 bool isControllingNPC = false;
+bool skipCounterAnim  = false;
 
 static DWORD controlMode;
 static std::vector<WORD> allowedCritterPids;
@@ -76,6 +77,8 @@ static void SaveRealDudeState() {
 	//real_map_elevation = fo::var::map_elevation;
 	realDude.sneak_working = fo::var::sneak_working;
 	fo::SkillGetTags(realDude.tag_skill, 4);
+
+	if (skipCounterAnim) SafeWriteBatch<BYTE>(0, {0x422BDE, 0x4229EC}); // no animate
 }
 
 // take control of the NPC
@@ -157,6 +160,7 @@ static void RestoreRealDudeState() {
 		fo::func::stat_pc_add_experience(delayedExperience);
 	}
 
+	if (skipCounterAnim) SafeWriteBatch<BYTE>(1, {0x422BDE, 0x4229EC}); // restore
 	fo::func::intface_redraw();
 
 	isControllingNPC = false;
@@ -257,9 +261,11 @@ static void __fastcall PartyMemberPrintStat(BYTE* surface, DWORD toWidth) {
 	xPos -= fo::GetTextWidth(armorClassMsg) + 20;
 	fo::PrintText(acMsg, color, xPos, 167, fo::GetTextWidth(acMsg), toWidth, surface);
 
-	color = (fo::func::queue_find_first(partyMember, 2)) ? fo::var::RedColor : fo::var::DarkGreenColor;
-	widthText = fo::GetTextWidth(addictMsg);
-	fo::PrintText(addictMsg, color, 350 - widthText, 148, widthText, toWidth, surface);
+	if (fo::func::queue_find_first(partyMember, 2)) {
+		color = fo::var::RedColor;
+		widthText = fo::GetTextWidth(addictMsg);
+		fo::PrintText(addictMsg, color, 350 - widthText, 148, widthText, toWidth, surface);
+	}
 }
 
 static void __declspec(naked) gdControlUpdateInfo_hook() {
@@ -278,6 +284,8 @@ void PartyControl::init() {
 
 	HookCall(0x454218, stat_pc_add_experience_hook); // call inside op_give_exp_points_hook
 	HookCalls(pc_flag_toggle_hook, { 0x4124F1, 0x41279A });
+
+	skipCounterAnim = (GetConfigInt("Misc", "SpeedInterfaceCounterAnims", 0) == 3);
 
 	// display party member's current level & AC & addict flag
 	if (GetConfigInt("Misc", "PartyMemberExtraInfo", 0)) {

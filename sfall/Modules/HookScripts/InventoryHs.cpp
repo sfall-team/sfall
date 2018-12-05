@@ -41,26 +41,25 @@ static void __declspec(naked) MoveCostHook() {
 		HookBegin;
 		mov  args[0], eax;
 		mov  args[4], edx;
-		call fo::funcoffs::critter_compute_ap_from_distance_
+		call fo::funcoffs::critter_compute_ap_from_distance_;
 		mov  args[8], eax;
 		pushad;
 	}
 
 	argCount = 3;
 	RunHookScript(HOOK_MOVECOST);
-	EndHook();
 
 	__asm {
 		popad;
 		cmp cRet, 1;
-		cmovge eax, dword ptr rets[0];
+		cmovge eax, rets[0];
+		HookEnd;
 		retn;
 	}
 }
 
 /* Common inventory move hook */
 static int __fastcall InventoryMoveHook_Script(DWORD itemReplace, DWORD item, int type) {
-
 	BeginHook();
 	argCount = 3;
 
@@ -69,9 +68,11 @@ static int __fastcall InventoryMoveHook_Script(DWORD itemReplace, DWORD item, in
 	args[2] = itemReplace;  // item being replaced here
 
 	RunHookScript(HOOK_INVENTORYMOVE);
+
+	int result = (cRet > 0) ? rets[0] : -1;
 	EndHook();
 
-	return (cRet > 0) ? rets[0] : -1;
+	return result;
 }
 
 static int __fastcall SwitchHandHook_Script(fo::GameObject* item, fo::GameObject* itemReplaced, DWORD addr) {
@@ -92,9 +93,10 @@ static int __fastcall SwitchHandHook_Script(fo::GameObject* item, fo::GameObject
 		cRetTmp = 0;
 		SetHSReturn(result);
 	}
+	result = (cRet > 0) ? rets[0] : -1;
 	EndHook();
 
-	return (cRet > 0) ? rets[0] : -1;
+	return result;
 }
 
 /*
@@ -277,12 +279,16 @@ donothing:
 }
 
 /* Common InvenWield hook */
-static void InvenWieldHook_Script(int flag) {
-
+static bool InvenWieldHook_Script(int flag) {
 	argCount = 4;
 	args[3] = flag;  // invenwield flag
+
 	RunHookScript(HOOK_INVENWIELD);
+
+	bool result = (cRet == 0 || rets[0] == -1);
 	EndHook();
+
+	return result;
 }
 
 static void _declspec(naked) InvenWieldFuncHook() {
@@ -302,11 +308,14 @@ static void _declspec(naked) InvenWieldFuncHook() {
 
 	InvenWieldHook_Script(1); // wield flag
 
-	_asm popad;
-	if (cRet == 0 || rets[0] == -1) {
-		_asm call funcoffs::invenWieldFunc_;
+	__asm {
+		test al, al;
+		popad;
+		jz   skip;
+		jmp  funcoffs::invenWieldFunc_;
+skip:
+		retn;
 	}
-	_asm retn;
 }
 
 // called when unwielding weapons
@@ -326,11 +335,14 @@ static void _declspec(naked) InvenUnwieldFuncHook() {
 
 	InvenWieldHook_Script(0); // unwield flag
 
-	_asm popad;
-	if (cRet == 0 || rets[0] == -1) {
-		_asm call fo::funcoffs::invenUnwieldFunc_;
+	__asm {
+		test al, al;
+		popad;
+		jz   skip;
+		jmp  fo::funcoffs::invenUnwieldFunc_;
+skip:
+		retn;
 	}
-	_asm retn;
 }
 
 static void _declspec(naked) CorrectFidForRemovedItemHook() {
@@ -353,14 +365,19 @@ static void _declspec(naked) CorrectFidForRemovedItemHook() {
 
 	InvenWieldHook_Script(0); // unwield flag (armor by default)
 
-	_asm popad;
-	if (cRet == 0 || rets[0] == -1) {
-		_asm call fo::funcoffs::correctFidForRemovedItem_;
+	__asm {
+		test al, al;
+		popad;
+		jz   skip;
+		jmp  fo::funcoffs::correctFidForRemovedItem_;
+skip:
+		retn;
 	}
-	_asm retn;
 }
 
 void AdjustFidHook(DWORD vanillaFid) {
+	if (!HookScripts::HookHasScript(HOOK_ADJUSTFID)) return;
+
 	BeginHook();
 	argCount = 1;
 	args[0] = vanillaFid;
@@ -398,8 +415,7 @@ void Inject_InventoryMoveHook() {
 		0x473851, 0x47386F,
 		0x47379A  // caps multi drop
 	});
-	MakeCall(0x473807, InvenActionExplosiveDropHack);  // drop active explosives
-	SafeWrite8(0x47380C, 0x90);
+	MakeCall(0x473807, InvenActionExplosiveDropHack, 1);  // drop active explosives
 }
 
 void Inject_InvenWieldHook() {

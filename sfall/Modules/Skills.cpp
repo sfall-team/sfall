@@ -122,31 +122,20 @@ void _stdcall SetSkillMax(DWORD critter, DWORD maximum) {
 }
 
 double* multipliers;
-static const DWORD StatBonusHookRet = 0x4AA5D6;
 
-static int __declspec(naked) _stdcall stat_level(void* critter, int stat) {
-	__asm {
-		push edx;
-		mov eax, [esp+8];
-		mov edx, [esp+12];
-		call fo::funcoffs::stat_level_;
-		pop edx;
-		ret 8;
-	}
-}
-
-static int _stdcall GetStatBonusHook2(const fo::SkillInfo* info, int skill, int points, void* critter) {
+static int _stdcall GetStatBonusHook2(const fo::SkillInfo* info, int skill, int points, fo::GameObject* critter) {
 	double result = 0;
-	for (int i = 0; i < 7; i++) {
-		result += stat_level(critter, i)*multipliers[skill * 7 + i];
+	for (int i = fo::Stat::STAT_st; i <= fo::Stat::STAT_lu; i++) {
+		result += fo::func::stat_level(critter, i) * multipliers[skill * 7 + i];
 	}
-	result += points*info->skillPointMulti;
+	result += points * info->skillPointMulti;
 	result += info->base;
 	return (int)result;
 }
 
 //On input, ebx contains the skill id, ecx contains the critter, edx contains the skill id, edi contains a SkillInfo*, ebp contains the number of skill points
-//On exit ebx, ecx, edi, ebp are preserved, esi contains skill base + stat bonus + skillpoints*multiplier
+//On exit ebx, ecx, edi, ebp are preserved, esi contains skill base + stat bonus + skillpoints * multiplier
+static const DWORD StatBonusHookRet = 0x4AA5D6;
 static void __declspec(naked) GetStatBonusHook() {
 	__asm {
 		push edx;

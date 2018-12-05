@@ -86,12 +86,12 @@ static void __declspec(naked) CalcDeathAnim2Hook() {
 	argCount = 5;
 	args[0] = -1;     // weaponPid
 	RunHookScript(HOOK_DEATHANIM2);
-	EndHook();
 
 	__asm {
 		popad;
 		cmp cRet, 1;
 		cmovnb eax, rets[0];
+		HookEnd;
 		retn;
 	}
 }
@@ -130,8 +130,9 @@ static void __declspec(naked) OnDeathHook2() {
 
 void Inject_DeathAnim1Hook() {
 	registerHookDeathAnim1 = true;
-	if (registerHookDeathAnim2) return;
-	HookCall(0x4109DE, CalcDeathAnimHook);
+	if (!registerHookDeathAnim2) {
+		HookCall(0x4109DE, CalcDeathAnimHook);
+	}
 }
 
 void Inject_DeathAnim2Hook() {
@@ -141,8 +142,9 @@ void Inject_DeathAnim2Hook() {
 		0x4109BF
 	});
 	registerHookDeathAnim2 = true;
-	if (registerHookDeathAnim1) return;
-	HookCall(0x4109DE, CalcDeathAnimHook);
+	if (!registerHookDeathAnim1) {
+		HookCall(0x4109DE, CalcDeathAnimHook);
+	}
 }
 
 void Inject_OnDeathHook() {

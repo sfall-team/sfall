@@ -20,12 +20,12 @@
 #include <set>
 #include <string>
 #include <unordered_map>
+#include <map>
 
 #include "..\main.h"
 #include "..\FalloutEngine\Fallout2.h"
 #include "..\InputFuncs.h"
 #include "..\Logging.h"
-#include "..\SimplePatch.h"
 #include "..\Version.h"
 #include "..\Utils.h"
 #include "BarBoxes.h"
@@ -47,7 +47,6 @@ using namespace script;
 
 static DWORD _stdcall HandleMapUpdateForScripts(const DWORD procId);
 
-// TODO: move to a better place
 static int idle;
 
 struct GlobalScript {
@@ -70,6 +69,9 @@ struct ExportedVar {
 	int val;
 	ExportedVar() : val(0), type(VAR_TYPE_INT) {}
 };
+
+static std::vector<std::string> globalScriptPathList;
+static std::map<std::string, std::string> globalScriptFilesList;
 
 static std::vector<fo::Program*> checkedScripts;
 static std::vector<GlobalScript> globalScripts;
@@ -176,7 +178,7 @@ static void __declspec(naked) ExecMapScriptsHack() {
 		push ebp;
 		sub  esp, 0x20;
 		//------
-		push eax; // int procId
+		push eax; // procId
 		call HandleMapUpdateForScripts;
 		jmp  ExecMapScriptsRet;
 	}
@@ -411,52 +413,64 @@ bool _stdcall IsGameScript(const char* filename) {
 	return false;
 }
 
-void LoadGLobalScriptsByMask(const std::string& fileMask) {
-	char* *filenames;
-	auto basePath = fileMask.substr(0, fileMask.find_last_of("\\/") + 1);
-	ToLowerCase(basePath);
-	int count = fo::func::db_get_file_list(fileMask.c_str(), &filenames);
-
-	// TODO: refactor script programs
+static void LoadGlobalScriptsList() {
 	ScriptProgram prog;
-	for (int i = 0; i < count; i++) {
-		char* name = _strlwr(filenames[i]);
-		std::string baseName(name);
-		baseName = baseName.substr(0, baseName.find_last_of('.'));
-		if (basePath != fo::var::script_path_base || !IsGameScript(baseName.c_str())) {
-			dlog(">", DL_SCRIPT);
-			std::string fullPath(basePath);
-			fullPath += name;
-			dlog(fullPath, DL_SCRIPT);
-			isGlobalScriptLoading = 1;
-			LoadScriptProgram(prog, fullPath.c_str(), true);
-			if (prog.ptr) {
-				dlogr(" Done", DL_SCRIPT);
-				DWORD idx;
-				GlobalScript gscript = GlobalScript(prog);
-				idx = globalScripts.size();
-				globalScripts.push_back(gscript);
-				AddProgramToMap(prog);
-				// initialize script (start proc will be executed for the first time) -- this needs to be after script is added to "globalScripts" array
-				InitScriptProgram(prog);
-			} else {
-				dlogr(" Error!", DL_SCRIPT);
-			}
-			isGlobalScriptLoading = 0;
+	for (auto& item : globalScriptFilesList) {
+		auto scriptFile = item.second;
+		dlog(">" + scriptFile, DL_SCRIPT);
+		isGlobalScriptLoading = 1;
+		LoadScriptProgram(prog, scriptFile.c_str(), true);
+		if (prog.ptr) {
+			dlogr(" Done", DL_SCRIPT);
+			GlobalScript gscript = GlobalScript(prog);
+			globalScripts.push_back(gscript);
+			AddProgramToMap(prog);
+			// initialize script (start proc will be executed for the first time) -- this needs to be after script is added to "globalScripts" array
+			InitScriptProgram(prog);
+		} else {
+			dlogr(" Error!", DL_SCRIPT);
 		}
+		isGlobalScriptLoading = 0;
 	}
-	fo::func::db_free_file_list(&filenames, 0);
+}
+
+static void PrepareGlobalScriptsListByMask() {
+	for (auto& fileMask : globalScriptPathList) {
+		char** filenames;
+		auto basePath = fileMask.substr(0, fileMask.find_last_of("\\/") + 1); // path to scripts without mask
+		int count = fo::func::db_get_file_list(fileMask.c_str(), &filenames);
+
+		for (int i = 0; i < count; i++) {
+			char* name = _strlwr(filenames[i]); // name of the script in lower case
+			std::string baseName(name);
+			baseName = baseName.substr(0, baseName.find_last_of('.')); // script name without extension
+			if (basePath != fo::var::script_path_base || !IsGameScript(baseName.c_str())) {
+				std::string fullPath(basePath);
+				fullPath += name;
+				// prevent loading global scripts with the same name from different directories
+				if (globalScriptFilesList.find(baseName) != globalScriptFilesList.end()) {
+					fo::func::debug_printf("\n[SFALL] Script: %s will not be executed. A script with the same name already exists in another directory.", fullPath);
+					continue;
+				}
+				globalScriptFilesList.insert(std::make_pair(baseName, fullPath));
+			}
+		}
+		fo::func::db_free_file_list(&filenames, 0);
+	}
+	globalScriptPathList.clear(); // clear path list, it is no longer needed
 }
 
 // this runs after the game was loaded/started
-void LoadGlobalScripts() {
+static void LoadGlobalScripts() {
+	static bool listIsPrepared = false;
 	isGameLoading = false;
 	LoadHookScripts();
 	dlogr("Loading global scripts", DL_SCRIPT|DL_INIT);
-	auto maskList = GetConfigList("Scripts", "GlobalScriptPaths", "scripts\\gl*.int", 255);
-	for (auto& mask : maskList) {
-		LoadGLobalScriptsByMask(mask);
+	if (!listIsPrepared) { // runs only once
+		PrepareGlobalScriptsListByMask();
+		listIsPrepared = true;
 	}
+	LoadGlobalScriptsList();
 	dlogr("Finished loading global scripts", DL_SCRIPT|DL_INIT);
 }
 
@@ -486,7 +500,7 @@ void _stdcall RegAnimCombatCheck(DWORD newValue) {
 }
 
 // this runs before actually loading/starting the game
-void ClearGlobalScripts() {
+static void ClearGlobalScripts() {
 	isGameLoading = true;
 	checkedScripts.clear();
 	sfallProgsMap.clear();
@@ -534,11 +548,10 @@ static void ResetStateAfterFrame() {
 }
 
 static inline void RunGlobalScripts(int mode1, int mode2) {
-	// TODO: move processor idle out?
 	if (idle > -1 && idle <= 127) {
 		Sleep(idle);
 	}
-	for (DWORD d=0; d<globalScripts.size(); d++) {
+	for (DWORD d = 0; d < globalScripts.size(); d++) {
 		if (globalScripts[d].repeat
 			&& (globalScripts[d].mode == mode1 || globalScripts[d].mode == mode2)
 			&& ++globalScripts[d].count >= globalScripts[d].repeat) {
@@ -552,13 +565,13 @@ static void RunGlobalScriptsOnMainLoop() {
 	RunGlobalScripts(0, 3);
 }
 
-void RunGlobalScriptsOnInput() {
+static void RunGlobalScriptsOnInput() {
 	if (IsMapLoaded()) {
 		RunGlobalScripts(1, 1);
 	}
 }
 
-void RunGlobalScriptsOnWorldMap() {
+static void RunGlobalScriptsOnWorldMap() {
 	RunGlobalScripts(2, 3);
 }
 
@@ -570,7 +583,7 @@ static DWORD _stdcall HandleMapUpdateForScripts(const DWORD procId) {
 		}
 	}
 	RunGlobalScriptsAtProc(procId); // gl* scripts of types 0 and 3
-	RunHookScriptsAtProc(procId); // all hs_ scripts
+	RunHookScriptsAtProc(procId);   // all hs_ scripts
 
 	return procId; // restore eax (don't delete)
 }
@@ -608,7 +621,7 @@ void SaveGlobals(HANDLE h) {
 	}
 }
 
-void ClearGlobals() {
+static void ClearGlobals() {
 	globalVars.clear();
 	for (array_itr it = arrays.begin(); it != arrays.end(); ++it) {
 		it->second.clear();
@@ -653,7 +666,11 @@ void ScriptExtender::init() {
 	OnInputLoop() += RunGlobalScriptsOnInput;
 	Worldmap::OnWorldmapLoop() += RunGlobalScriptsOnWorldMap;
 
-	// TODO: move out?
+	globalScriptPathList = GetConfigList("Scripts", "GlobalScriptPaths", "scripts\\gl*.int", 255);
+	for (unsigned int i = 0; i < globalScriptPathList.size(); i++) {
+		ToLowerCase(globalScriptPathList[i]);
+	}
+
 	idle = GetConfigInt("Misc", "ProcessorIdle", -1);
 	if (idle > -1 && idle <= 127) {
 		fo::var::idle_func = reinterpret_cast<DWORD>(Sleep);

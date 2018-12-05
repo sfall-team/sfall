@@ -233,12 +233,10 @@ void InitNewOpcodes() {
 	SafeWrite32(0x46ce6c, (DWORD)opcodes);	//call that actually jumps to the opcode
 	SafeWrite32(0x46e390, (DWORD)opcodes);	//mov that writes to the opcode
 
-	if (AllowUnsafeScripting) {
-		opcodes[0x156] = op_read_byte;
-		opcodes[0x157] = op_read_short;
-		opcodes[0x158] = op_read_int;
-		opcodes[0x159] = op_read_string;
-	}
+	opcodes[0x156] = op_read_byte;
+	opcodes[0x157] = op_read_short;
+	opcodes[0x158] = op_read_int;
+	opcodes[0x159] = op_read_string;
 	opcodes[0x15a] = op_set_pc_base_stat;
 	opcodes[0x15b] = op_set_pc_extra_stat;
 	opcodes[0x15c] = op_get_pc_base_stat;

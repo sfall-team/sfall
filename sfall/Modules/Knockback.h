@@ -29,10 +29,10 @@ public:
 	void init();
 };
 
-void _stdcall SetPickpocketMax(DWORD critter, DWORD maximum, DWORD mod);
-void _stdcall SetHitChanceMax(DWORD critter, DWORD maximum, DWORD mod);
-void _stdcall KnockbackSetMod(DWORD id, DWORD type, float val, DWORD on);
-void _stdcall KnockbackRemoveMod(DWORD id, DWORD on);
+void _stdcall SetPickpocketMax(fo::GameObject* critter, DWORD maximum, DWORD mod);
+void _stdcall SetHitChanceMax(fo::GameObject* critter, DWORD maximum, DWORD mod);
+void _stdcall KnockbackSetMod(fo::GameObject* id, DWORD type, float val, DWORD on);
+void _stdcall KnockbackRemoveMod(fo::GameObject* id, DWORD on);
 
 void _stdcall SetNoBurstMode(fo::GameObject* critter, bool on);
 void _stdcall DisableAimedShots(DWORD pid);

@@ -45,7 +45,7 @@ void dlogr(const std::string& a, int type) {
 }
 
 void dlog_f(const char *fmt, int type, ...) {
-	if (isDebug) {
+	if (isDebug && (type == DL_MAIN || (type & DebugTypes))) {
 		va_list args;
 		va_start(args, type);
 		char buf[4096];

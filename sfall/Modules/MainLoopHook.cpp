@@ -24,44 +24,47 @@ void AfterCombatAttackHook2() {
 
 static void __declspec(naked) MainGameLoopHook() {
 	__asm {
-		push ebx;
+		call fo::funcoffs::get_input_;
 		push ecx;
 		push edx;
-		call fo::funcoffs::get_input_
 		push eax;
 		call MainGameLoopHook2;
-		pop eax;
-		pop edx;
-		pop ecx;
-		pop ebx;
+		pop  eax;
+		pop  edx;
+		pop  ecx;
 		retn;
 	}
 }
 
 static void __declspec(naked) CombatLoopHook() {
 	__asm {
-		pushad;
+		push ecx;
+		push edx;
+		push eax;
 		call CombatLoopHook2;
-		popad;
-		jmp  fo::funcoffs::get_input_
+		pop  eax;
+		pop  edx;
+		pop  ecx;
+		jmp  fo::funcoffs::get_input_;
 	}
 }
 
 static void __declspec(naked) AfterCombatAttackHook() {
 	__asm {
-		pushad;
+		push ecx;
+		push edx;
 		call AfterCombatAttackHook2;
-		popad;
+		pop  edx;
+		pop  ecx;
 		mov  eax, 1;
-		push 0x4230DA;
 		retn;
 	}
 }
 
 void MainLoopHook::init() {
-	HookCall(0x480E7B, MainGameLoopHook); //hook the main game loop
-	HookCall(0x422845, CombatLoopHook); //hook the combat loop
-	MakeJump(0x4230D5, AfterCombatAttackHook);
+	HookCall(0x480E7B, MainGameLoopHook);       // hook the main game loop
+	HookCall(0x422845, CombatLoopHook);         // hook the combat loop
+	MakeCall(0x4230D5, AfterCombatAttackHook);
 }
 
 Delegate<>& MainLoopHook::OnMainLoop() {

@@ -325,13 +325,13 @@ void __declspec(naked) op_get_critter_base_stat() {
 		mov ecx, eax;
 		call fo::funcoffs::interpretPopShort_;
 		push eax
-			mov eax, ecx;
+		mov eax, ecx;
 		call fo::funcoffs::interpretPopLong_;
 		mov edi, eax;
 		mov eax, ecx;
 		call fo::funcoffs::interpretPopShort_;
 		push eax
-			mov eax, ecx;
+		mov eax, ecx;
 		call fo::funcoffs::interpretPopLong_;
 		//eax contains the critter pointer, and edi contains the stat id
 		//Check args are valid
@@ -383,13 +383,13 @@ void __declspec(naked) op_get_critter_extra_stat() {
 		mov ecx, eax;
 		call fo::funcoffs::interpretPopShort_;
 		push eax
-			mov eax, ecx;
+		mov eax, ecx;
 		call fo::funcoffs::interpretPopLong_;
 		mov edi, eax;
 		mov eax, ecx;
 		call fo::funcoffs::interpretPopShort_;
 		push eax
-			mov eax, ecx;
+		mov eax, ecx;
 		call fo::funcoffs::interpretPopLong_;
 		//eax contains the critter pointer, and edi contains the stat id
 		//Check args are valid
@@ -476,7 +476,7 @@ end:
 		//Restore registers and return
 		add esp, 12;
 		popad
-			retn;
+		retn;
 	}
 }
 
@@ -525,7 +525,7 @@ end:
 		//Restore registers and return
 		add esp, 8;
 		popad
-			retn;
+		retn;
 	}
 }
 
@@ -556,7 +556,7 @@ void __declspec(naked) op_get_available_skill_points() {
 		mov edx, VAR_TYPE_INT;
 		mov eax, ecx;
 		call fo::funcoffs::interpretPushShort_
-			popad;
+		popad;
 		retn;
 	}
 }
@@ -645,11 +645,11 @@ void __declspec(naked) op_set_critter_current_ap() {
 		jnz end;
 		mov[eax + 0x40], ebx;
 		mov ecx, ds:[FO_VAR_obj_dude]
-			cmp ecx, eax;
+		cmp ecx, eax;
 		jne end;
 		mov eax, ebx;
 		mov edx, ds:[FO_VAR_combat_free_move]
-			call fo::funcoffs::intface_update_move_points_;
+		call fo::funcoffs::intface_update_move_points_;
 end:
 		//Restore registers and return
 		pop esi;
@@ -727,7 +727,7 @@ void __declspec(naked) op_set_critter_hit_chance_mod() {
 		push edi;
 		mov edi, eax;
 		xor ebx, ebx
-			call fo::funcoffs::interpretPopShort_;
+		call fo::funcoffs::interpretPopShort_;
 		cmp ax, VAR_TYPE_INT;
 		cmovne ebx, edi;
 		mov eax, edi;
@@ -769,7 +769,7 @@ void __declspec(naked) op_set_base_hit_chance_mod() {
 		push edi;
 		mov edi, eax;
 		xor ebx, ebx
-			call fo::funcoffs::interpretPopShort_;
+		call fo::funcoffs::interpretPopShort_;
 		cmp ax, VAR_TYPE_INT;
 		cmovne ebx, edi;
 		mov eax, edi;
@@ -804,7 +804,7 @@ void __declspec(naked) op_set_critter_pickpocket_mod() {
 		push edi;
 		mov edi, eax;
 		xor ebx, ebx
-			call fo::funcoffs::interpretPopShort_;
+		call fo::funcoffs::interpretPopShort_;
 		cmp ax, VAR_TYPE_INT;
 		cmovne ebx, edi;
 		mov eax, edi;
@@ -846,7 +846,7 @@ void __declspec(naked) op_set_base_pickpocket_mod() {
 		push edi;
 		mov edi, eax;
 		xor ebx, ebx
-			call fo::funcoffs::interpretPopShort_;
+		call fo::funcoffs::interpretPopShort_;
 		cmp ax, VAR_TYPE_INT;
 		cmovne ebx, edi;
 		mov eax, edi;
@@ -881,7 +881,7 @@ void __declspec(naked) op_set_critter_skill_mod() {
 		push edi;
 		mov edi, eax;
 		xor ebx, ebx
-			call fo::funcoffs::interpretPopShort_;
+		call fo::funcoffs::interpretPopShort_;
 		cmp ax, VAR_TYPE_INT;
 		cmovne ebx, edi;
 		mov eax, edi;
@@ -915,7 +915,7 @@ void __declspec(naked) op_set_base_skill_mod() {
 		push edi;
 		mov edi, eax;
 		xor ebx, ebx
-			call fo::funcoffs::interpretPopShort_;
+		call fo::funcoffs::interpretPopShort_;
 		cmp ax, VAR_TYPE_INT;
 		cmovne ebx, edi;
 		mov eax, edi;

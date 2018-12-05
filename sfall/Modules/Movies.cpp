@@ -796,21 +796,20 @@ void Movies::init() {
 		HookCalls(gmovie_play_hook_pause, {0x44E816});
 		HookCalls(gmovie_play_hook_unpause, {0x44EA84});
 		MakeCall(0x450525, gsound_background_volume_set_hack);
-		MakeCall(0x4503CA, gsound_master_volume_set_hack);
-		SafeWrite8(0x4503CF, 0x90);
+		MakeCall(0x4503CA, gsound_master_volume_set_hack, 1);
 		if (allowDShowSound > 1) {
 			HookCall(0x450851, gsound_background_play_hook);
 		}
 		CreateSndWnd();
 	}
 
-	DWORD tmp;
-	tmp = SimplePatch<DWORD>(0x4A36EC, "Misc", "MovieTimer_artimer4", 360, 0);
-	tmp = SimplePatch<DWORD>(0x4A3747, "Misc", "MovieTimer_artimer3", 270, 0, tmp);
-	tmp = SimplePatch<DWORD>(0x4A376A, "Misc", "MovieTimer_artimer2", 180, 0, tmp);
+	DWORD days;
+	days = SimplePatch<DWORD>(0x4A36EC, "Misc", "MovieTimer_artimer4", 360, 0);
+	days = SimplePatch<DWORD>(0x4A3747, "Misc", "MovieTimer_artimer3", 270, 0, days);
+	days = SimplePatch<DWORD>(0x4A376A, "Misc", "MovieTimer_artimer2", 180, 0, days);
 	Artimer1DaysCheckTimer = GetConfigInt("Misc", "MovieTimer_artimer1", 90);
 	if (Artimer1DaysCheckTimer != 90) {
-		Artimer1DaysCheckTimer = max(0, min(tmp, Artimer1DaysCheckTimer));
+		Artimer1DaysCheckTimer = max(0, min(days, Artimer1DaysCheckTimer));
 		char s[255];
 		sprintf_s(s, "Applying patch: MovieTimer_artimer1 = %d. ", Artimer1DaysCheckTimer);
 		dlog(s, DL_INIT);
