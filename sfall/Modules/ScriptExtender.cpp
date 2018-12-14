@@ -92,6 +92,7 @@ typedef std::pair<__int64, int> glob_pair;
 
 DWORD availableGlobalScriptTypes = 0;
 bool isGameLoading;
+bool doNotSearchScriptFiles;
 
 fo::ScriptInstance overrideScriptStruct;
 
@@ -402,7 +403,7 @@ ScriptProgram* GetGlobalScriptProgram(fo::Program* scriptPtr) {
 }
 
 bool _stdcall IsGameScript(const char* filename) {
-	if ((filename[0] != 'g' || filename[1] != 'l') && (filename[0] != 'h' || filename[1] != 's')) return true;
+	if (strlen(filename) > 8) return false;
 	// TODO: write better solution
 	for (int i = 0; i < fo::var::maxScriptNum; i++) {
 		if (strcmp(filename, fo::var::scriptListInfo[i].fileName) == 0) return true;
@@ -434,6 +435,7 @@ static void LoadGLobalScripts() {
 }
 
 static void PrepareGlobalScriptsListByMask() {
+	globalScriptFilesList.clear();
 	for (auto& fileMask : globalScriptPathList)
 	{
 		char** filenames;
@@ -457,7 +459,6 @@ static void PrepareGlobalScriptsListByMask() {
 		}
 		fo::func::db_free_file_list(&filenames, 0);
 	}
-	globalScriptPathList.clear(); // clear path list, it is no longer needed
 }
 
 // this runs after the game was loaded/started
@@ -465,12 +466,13 @@ static void LoadGlobalScripts() {
 	static bool listIsPrepared = false;
 	isGameLoading = false;
 
-	LoadHookScripts(); // TODO: need to reorganize hooks loading
+	LoadHookScripts();
 
 	dlogr("Loading global scripts", DL_SCRIPT|DL_INIT);
-	if (!listIsPrepared) { // runs only once
+	if (!listIsPrepared) { // only once
 		PrepareGlobalScriptsListByMask();
-		listIsPrepared = true;
+		listIsPrepared = doNotSearchScriptFiles;
+		if (listIsPrepared) globalScriptPathList.clear(); // clear path list, it is no longer needed
 	}
 	LoadGLobalScripts();
 	dlogr("Finished loading global scripts", DL_SCRIPT|DL_INIT);
@@ -687,6 +689,8 @@ void ScriptExtender::init() {
 	} else {
 		dlogr("Arrays in backward-compatiblity mode.", DL_SCRIPT);
 	}
+
+	doNotSearchScriptFiles = (GetConfigInt("Debugging", "AlwaysFindScripts", 0) == 0);
 
 	MakeJump(0x4A390C, FindSidHack);
 	MakeJump(0x4A5E34, ScrPtrHack);

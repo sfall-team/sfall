@@ -31,24 +31,33 @@ DWORD cRetTmp;       // how many return values were set by specific hook script 
 
 std::vector<HookScript> hooks[numHooks];
 
-bool LoadHookScript(const char* name, int id) {
-	if (id >= numHooks || IsGameScript(name)) return false;
+void LoadHookScript(const char* name, int id) {
+	//if (id >= numHooks || IsGameScript(name)) return;
+	char filePath[MAX_PATH];
 
-	bool usePath = false;
-	char filename[MAX_PATH];
-	if (HookScripts::hookScriptPathFmt.empty()) {
-		sprintf(filename, "scripts\\%s.int", name);
+	bool customPath = !HookScripts::hookScriptPathFmt.empty();
+	if (!customPath) {
+		sprintf(filePath, "scripts\\%s.int", name);
 	} else {
-		sprintf_s(filename, HookScripts::hookScriptPathFmt.c_str(), name);
-		name = filename;
-		usePath = true;
+		sprintf_s(filePath, HookScripts::hookScriptPathFmt.c_str(), name);
+		name = filePath;
 	}
 
+	bool hookIsLoaded = LoadHookScriptFile(filePath, name, id, customPath);
+	if (hookIsLoaded || (HookScripts::injectAllHooks && id != HOOK_SUBCOMBATDAMAGE)) {
+		HookScripts::InjectingHook(id); // inject hook to engine code
+
+		if (!hookIsLoaded) return;
+		HookFile hookFile = { id, filePath, name };
+		HookScripts::hookScriptFilesList.push_back(hookFile);
+	}
+}
+
+bool LoadHookScriptFile(std::string filePath, const char* name, int id, bool fullPath) {
 	ScriptProgram prog;
-	if (fo::func::db_access(filename)) {
-		dlog(">", DL_HOOK);
-		dlog(filename, DL_HOOK);
-		LoadScriptProgram(prog, name, usePath);
+	if (fo::func::db_access(filePath.c_str())) {
+		dlog(">" + filePath, DL_HOOK);
+		LoadScriptProgram(prog, name, fullPath);
 		if (prog.ptr) {
 			dlogr(" Done", DL_HOOK);
 			HookScript hook;
@@ -61,11 +70,7 @@ bool LoadHookScript(const char* name, int id) {
 			dlogr(" Error!", DL_HOOK);
 		}
 	}
-	bool hookIsLoaded = (prog.ptr != nullptr);
-	if (hookIsLoaded || (id != HOOK_SUBCOMBATDAMAGE && HookScripts::injectAllHooks)) {
-		HookScripts::InjectingHook(id); // inject hook to engine code
-	}
-	return hookIsLoaded;
+	return (prog.ptr != nullptr);
 }
 
 // List of hooks that are denied recursive calls

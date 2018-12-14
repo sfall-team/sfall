@@ -38,6 +38,7 @@ namespace sfall
 {
 
 std::string HookScripts::hookScriptPathFmt;
+std::vector<HookFile> HookScripts::hookScriptFilesList;
 
 typedef void(*HookInjectFunc)();
 struct HooksInjectInfo {
@@ -198,17 +199,29 @@ void _stdcall RegisterHook(fo::Program* script, int id, int procNum) {
 static void HookScriptInit() {
 	dlogr("Loading hook scripts", DL_HOOK|DL_INIT);
 
-	InitCombatHookScripts();
-	InitDeathHookScripts();
-	InitHexBlockingHookScripts();
-	InitInventoryHookScripts();
-	InitObjectHookScripts();
-	InitMiscHookScripts();
+	static bool hooksFilesLoaded = false;
+	if (!hooksFilesLoaded) { // hook files are already put to list
+		HookScripts::hookScriptFilesList.clear();
 
-	LoadHookScript("hs_keypress", HOOK_KEYPRESS);
-	LoadHookScript("hs_mouseclick", HOOK_MOUSECLICK);
-	LoadHookScript("hs_gamemodechange", HOOK_GAMEMODECHANGE);
+		InitCombatHookScripts();
+		InitDeathHookScripts();
+		InitHexBlockingHookScripts();
+		InitInventoryHookScripts();
+		InitObjectHookScripts();
+		InitMiscHookScripts();
 
+		LoadHookScript("hs_keypress", HOOK_KEYPRESS);
+		LoadHookScript("hs_mouseclick", HOOK_MOUSECLICK);
+		LoadHookScript("hs_gamemodechange", HOOK_GAMEMODECHANGE);
+
+		hooksFilesLoaded = doNotSearchScriptFiles;
+	} else {
+		bool customPath = !HookScripts::hookScriptPathFmt.empty();
+		for (auto& hook : HookScripts::hookScriptFilesList)
+		{
+			LoadHookScriptFile(hook.filePath, hook.name.c_str(), hook.id, customPath);
+		}
+	}
 	dlogr("Finished loading hook scripts", DL_HOOK|DL_INIT);
 }
 
@@ -224,7 +237,7 @@ void LoadHookScripts() {
 	initingHookScripts = 1;
 	for (int i = 0; i < numHooks; i++) {
 		if (hooks[i].size()) {
-			InitScriptProgram(hooks[i][0].prog);// zero hook is always hs_*.int script because Hook scripts are loaded BEFORE global scripts
+			InitScriptProgram(hooks[i][0].prog); // zero hook is always hs_*.int script because Hook scripts are loaded BEFORE global scripts
 		}
 	}
 	isGlobalScriptLoading = 0;

@@ -34,7 +34,9 @@ extern DWORD cArg;    // how many arguments were taken by current hook script
 extern DWORD cRet;    // how many return values were set by current hook script
 extern DWORD cRetTmp; // how many return values were set by specific hook script (when using register_hook)
 
-bool LoadHookScript(const char* name, int id);
+void LoadHookScript(const char* name, int id);
+bool LoadHookScriptFile(std::string filePath, const char* name, int id, bool fullPath);
+
 void _stdcall BeginHook();
 void _stdcall RunHookScript(DWORD hook);
 void _stdcall EndHook();

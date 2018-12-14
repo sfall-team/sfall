@@ -67,6 +67,12 @@ enum HookType
 	HOOK_COUNT
 };
 
+struct HookFile {
+	int id;
+	std::string filePath;
+	std::string name;
+};
+
 class HookScripts : public Module {
 
 public:
@@ -74,6 +80,7 @@ public:
 	void init();
 
 	static std::string hookScriptPathFmt;
+	static std::vector<HookFile> hookScriptFilesList;
 
 	static bool HookHasScript(int hookId);
 
