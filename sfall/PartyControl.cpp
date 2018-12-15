@@ -193,7 +193,6 @@ static void RestoreRealDudeState() {
 		StatPcAddExperience(DelayedExperience);
 	}
 
-
 	if (SkipCounterAnim) {
 		SafeWrite8(0x4229EC, 1); // restore
 		SafeWrite8(0x422BDE, 1);

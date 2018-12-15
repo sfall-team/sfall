@@ -1684,7 +1684,7 @@ sScriptProgram* GetGlobalScriptProgram(DWORD scriptPtr) {
 }
 
 bool _stdcall isGameScript(const char* filename) {
-	if ((filename[0] != 'g' || filename[1] != 'l') && (filename[0] != 'h' || filename[1] != 's')) return true;
+	if (strlen(filename) > 8) return false;
 	for (DWORD i = 0; i < *(DWORD*)_maxScriptNum; i++) {
 		if (strcmp(filename, (char*)(*(DWORD*)_scriptListInfo + i * 20)) == 0) return true;
 	}
@@ -1760,13 +1760,9 @@ void ClearGlobalScripts() {
 	HookScriptClear();
 
 	//Reset some settable game values back to the defaults
-	//Pyromaniac bonus
-	SafeWrite8(0x424AB6, 5);
 	//xp mod
 	SafeWrite8(0x4AFAB8, 0x53);
 	SafeWrite32(0x4AFAB9, 0x55575651);
-	//Perk level mod
-	SafeWrite32(0x496880, 0x00019078);
 	//HP bonus
 	SafeWrite8(0x4AFBC1, 2);
 	//Stat ranges
@@ -1781,7 +1777,7 @@ void ClearGlobalScripts() {
 	*((DWORD*)0x51096C) = GetPrivateProfileIntA("Misc", "BodyHit_Eyes",           0xFFFFFFC4, ini);
 	*((DWORD*)0x510970) = GetPrivateProfileIntA("Misc", "BodyHit_Groin",          0xFFFFFFE2, ini);
 	*((DWORD*)0x510974) = GetPrivateProfileIntA("Misc", "BodyHit_Torso_Uncalled", 0x00000000, ini);
-	//skillpoints per level mod
+	//skill points per level mod
 	SafeWrite8(0x43C27a, 5);
 }
 
