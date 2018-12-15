@@ -184,7 +184,7 @@ void _stdcall SetFakePerk(char* name, int level, int image, char* desc) {
 			if (!strcmp(name, fakePerks[i].Name)) {
 				fakePerks[i].Level = level;
 				fakePerks[i].Image = image;
-				strcpy_s(fakePerks[i].Desc, desc);
+				strncpy_s(fakePerks[i].Desc, desc, _TRUNCATE);
 				return;
 			}
 		}
@@ -192,8 +192,8 @@ void _stdcall SetFakePerk(char* name, int level, int image, char* desc) {
 		memset(&fp, 0, sizeof(FakePerk));
 		fp.Level = level;
 		fp.Image = image;
-		strcpy_s(fp.Name, name);
-		strcpy_s(fp.Desc, desc);
+		strncpy_s(fp.Name, name, _TRUNCATE);
+		strncpy_s(fp.Desc, desc, _TRUNCATE);
 		fakePerks.push_back(fp);
 	}
 }
@@ -212,7 +212,7 @@ void _stdcall SetFakeTrait(char* name, int level, int image, char* desc) {
 			if (!strcmp(name, fakeTraits[i].Name)) {
 				fakeTraits[i].Level = level;
 				fakeTraits[i].Image = image;
-				strcpy_s(fakeTraits[i].Desc, desc);
+				strncpy_s(fakeTraits[i].Desc, desc, _TRUNCATE);
 				return;
 			}
 		}
@@ -220,8 +220,8 @@ void _stdcall SetFakeTrait(char* name, int level, int image, char* desc) {
 		memset(&fp, 0, sizeof(FakePerk));
 		fp.Level = level;
 		fp.Image = image;
-		strcpy_s(fp.Name, name);
-		strcpy_s(fp.Desc, desc);
+		strncpy_s(fp.Name, name, _TRUNCATE);
+		strncpy_s(fp.Desc, desc, _TRUNCATE);
 		fakeTraits.push_back(fp);
 	}
 }
@@ -274,7 +274,7 @@ static void __declspec(naked) GetFakePerk() {
 }
 
 static FakePerk* _stdcall GetFakeSPerk2(int id) {
-	return &fakeSelectablePerks[id-PERK_count];
+	return &fakeSelectablePerks[id - PERK_count];
 }
 
 static void __declspec(naked) GetFakeSPerk() {
@@ -965,12 +965,12 @@ void _stdcall SetPerkValue(int id, int value, DWORD offset) {
 
 void _stdcall SetPerkName(int id, char* value) {
 	if (id < 0 || id >= PERK_count) return;
-	strcpy_s(&Name[id * 64], 64, value);
+	strncpy_s(&Name[id * 64], 64, value, _TRUNCATE);
 }
 
 void _stdcall SetPerkDesc(int id, char* value) {
 	if (id < 0 || id >= PERK_count) return;
-	strcpy_s(&Desc[id * 1024], 1024, value);
+	strncpy_s(&Desc[id * 1024], 1024, value, _TRUNCATE);
 	perks[id].description = &Desc[1024 * id];
 }
 
@@ -1000,9 +1000,7 @@ void PerksReset() {
 }
 
 void Perks::save(HANDLE file) {
-	DWORD count;
-	DWORD unused;
-	count = fakeTraits.size();
+	DWORD unused, count = fakeTraits.size();
 	WriteFile(file, &count, 4, &unused, 0);
 	for (DWORD i = 0; i < count; i++) {
 		WriteFile(file, &fakeTraits[i], sizeof(FakePerk), &unused, 0);
@@ -1020,8 +1018,7 @@ void Perks::save(HANDLE file) {
 }
 
 bool Perks::load(HANDLE file) {
-	DWORD count;
-	DWORD size;
+	DWORD count, size;
 	ReadFile(file, &count, 4, &size, 0);
 	if (size != 4) return false;
 	for (DWORD i = 0; i < count; i++) {
