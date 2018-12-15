@@ -40,6 +40,7 @@ WRAP_WATCOM_FUNC4(void, display_target_inventory, long, inventoryOffset, long, v
 WRAP_WATCOM_FUNC2(long, combat_turn, GameObject*, critter, long, isDudeTurn)
 WRAP_WATCOM_FUNC1(long, critter_is_dead, GameObject*, critter)
 WRAP_WATCOM_FUNC1(void, EndLoad, DbFile*, file)
+WRAP_WATCOM_FUNC1(long, folder_print_line, const char*, text)
 WRAP_WATCOM_FUNC1(long, game_get_global_var, long, globalVar)
 WRAP_WATCOM_FUNC1(void, gdialogDisplayMsg, const char*, message)
 WRAP_WATCOM_FUNC1(long, gmouse_3d_set_mode, long, mode)
@@ -105,6 +106,7 @@ WRAP_WATCOM_FUNC1(long, register_object_must_erase, GameObject*, object)
 // WRAP_WATCOM_FUNC3(long, register_object_run_to_tile_, GameObject*, object;
 WRAP_WATCOM_FUNC3(long, register_object_take_out, GameObject*, object, long, holdFrameId, long, nothing)
 WRAP_WATCOM_FUNC3(long, register_object_turn_towards, GameObject*, object, long, tileNum, long, nothing)
+WRAP_WATCOM_FUNC2(long, stat_get_base_direct, GameObject*, critter, long, statID)
 // adds experience points to PC
 WRAP_WATCOM_FUNC1(void, stat_pc_add_experience, long, amount)
 // redraws the whole screen
