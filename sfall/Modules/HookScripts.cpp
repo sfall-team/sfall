@@ -214,7 +214,7 @@ static void HookScriptInit() {
 		LoadHookScript("hs_mouseclick", HOOK_MOUSECLICK);
 		LoadHookScript("hs_gamemodechange", HOOK_GAMEMODECHANGE);
 
-		hooksFilesLoaded = doNotSearchScriptFiles;
+		hooksFilesLoaded = !alwaysFindScripts;
 	} else {
 		bool customPath = !HookScripts::hookScriptPathFmt.empty();
 		for (auto& hook : HookScripts::hookScriptFilesList)
@@ -269,7 +269,7 @@ void HookScripts::init() {
 		}
 	}
 
-	HookScripts::injectAllHooks = (isDebug && (GetConfigInt("Debugging", "InjectAllGameHooks", 0) != 0));
+	HookScripts::injectAllHooks = isDebug && (GetPrivateProfileIntA("Debugging", "InjectAllGameHooks", 0, sfall::ddrawIni) != 0);
 }
 
 }

@@ -94,6 +94,6 @@ ScriptProgram* GetGlobalScriptProgram(fo::Program* scriptPtr);
 static char regAnimCombatCheck = 1;
 extern DWORD isGlobalScriptLoading;
 extern DWORD availableGlobalScriptTypes;
-extern bool doNotSearchScriptFiles;
+extern bool alwaysFindScripts;
 
 }

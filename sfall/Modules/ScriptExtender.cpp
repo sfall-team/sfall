@@ -92,7 +92,7 @@ typedef std::pair<__int64, int> glob_pair;
 
 DWORD availableGlobalScriptTypes = 0;
 bool isGameLoading;
-bool doNotSearchScriptFiles;
+bool alwaysFindScripts;
 
 fo::ScriptInstance overrideScriptStruct;
 
@@ -471,7 +471,7 @@ static void LoadGlobalScripts() {
 	dlogr("Loading global scripts", DL_SCRIPT|DL_INIT);
 	if (!listIsPrepared) { // only once
 		PrepareGlobalScriptsListByMask();
-		listIsPrepared = doNotSearchScriptFiles;
+		listIsPrepared = !alwaysFindScripts;
 		if (listIsPrepared) globalScriptPathList.clear(); // clear path list, it is no longer needed
 	}
 	LoadGLobalScripts();
@@ -690,7 +690,7 @@ void ScriptExtender::init() {
 		dlogr("Arrays in backward-compatiblity mode.", DL_SCRIPT);
 	}
 
-	doNotSearchScriptFiles = (GetConfigInt("Debugging", "AlwaysFindScripts", 0) == 0);
+	alwaysFindScripts = isDebug && (GetPrivateProfileIntA("Debugging", "AlwaysFindScripts", 0, sfall::ddrawIni) != 0);
 
 	MakeJump(0x4A390C, FindSidHack);
 	MakeJump(0x4A5E34, ScrPtrHack);

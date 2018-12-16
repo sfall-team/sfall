@@ -89,7 +89,7 @@ procedure start begin
 
       outlineColor := GetConfig(configSection, "OutlineColor", 16);
       defOutlineColor := GetConfig(configSection, "DefaultOutlineColor", 32);
-      lookOutlineColor := GetConfig(configSection, "LooêOutlineColor", 64);
+      lookOutlineColor := GetConfig(configSection, "LookOutlineColor", 64);
       emptyOutlineColor := GetConfig(configSection, "EmptyOutlineColor", 4);
 
       motionScanner := GetConfig(configSection, "MotionScanner", 0);

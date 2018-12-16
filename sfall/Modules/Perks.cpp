@@ -49,12 +49,12 @@ static TraitInfo traits[TRAIT_count];
 struct FakePerk {
 	int Level;
 	int Image;
-	char Name[maxNameLen] = {0};
-	char Desc[maxDescLen] = {0};
+	char Name[maxNameLen];
+	char Desc[maxDescLen];
 
 	FakePerk() {}
 
-	FakePerk(char* name, int level, int image, char* desc) {
+	FakePerk(char* name, int level, int image, char* desc) : Name {0}, Desc {0} {
 		Level = level;
 		Image = image;
 		strncpy_s(Name, name, _TRUNCATE);
@@ -529,7 +529,7 @@ normalPerk:
 		jl   end;
 		cmp  edx, PERK_gain_luck_perk;
 		jg   end;
-		inc  ds:[edx * 4 + (FO_VAR_pc_proto + 0x24 - (PERK_gain_strength_perk) * 4)]; // base_stat_srength
+		inc  ds:[edx * 4 + (FO_VAR_pc_proto + 0x24 - PERK_gain_strength_perk * 4)]; // base_stat_srength
 end:
 		retn;
 	}
