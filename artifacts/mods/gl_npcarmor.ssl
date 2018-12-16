@@ -49,17 +49,31 @@ procedure check_weapon_change(variable critter, variable item, variable isWield)
       if isWield then begin
          newWeaponAnim := get_proto_data(obj_pid(item), PROTO_WP_ANIM);
          weaponAnimList := string_split(npc["WeaponAnims"], ",");
-         if newWeaponAnim then begin
+         if newWeaponAnim then begin // anim code 0 - none/unarmed
             foreach (i in weaponAnimList) begin
                if (newWeaponAnim == atoi(i)) then return -1;
             end
             return 0;
-         end else begin // anim code 0 - none/unarmed
-            return -1;
          end
       end
    end
    return -1;
+end
+
+procedure search_alt_weapon(variable critter) begin
+   variable obj, res, i := 0;
+   obj := inven_ptr(critter, 0);
+   while (obj) do begin
+      if (obj_item_subtype(obj) == item_type_weapon) then begin
+         res := check_weapon_change(critter, obj, 1);
+         if (res == -1) then begin
+            wield_obj_critter(critter, obj);
+            break;
+         end
+      end
+      i++;
+      obj := inven_ptr(critter, i);
+   end
 end
 
 // for NPCs when they change armor/weapon themselves
@@ -80,6 +94,9 @@ procedure invenwield_handler begin
    if (critter and item and slot == INVEN_TYPE_RIGHT_HAND) then begin
       canWield := check_weapon_change(critter, item, isWorn);
       set_sfall_return(canWield);
+      if (canWield != -1) then begin
+         call search_alt_weapon(critter);
+      end
    end
 end
 
