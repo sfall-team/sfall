@@ -53,12 +53,13 @@ procedure check_weapon_change(variable critter, variable item, variable isWield)
             foreach (i in weaponAnimList) begin
                if (newWeaponAnim == atoi(i)) then return -1;
             end
+            return 0;
          end else begin // anim code 0 - none/unarmed
             return -1;
          end
       end
    end
-   return 0;
+   return -1;
 end
 
 // for NPCs when they change armor/weapon themselves
@@ -76,7 +77,7 @@ procedure invenwield_handler begin
       end
    end
 
-   if (critter and item and (slot == INVEN_TYPE_RIGHT_HAND or slot == INVEN_TYPE_LEFT_HAND)) then begin
+   if (critter and item and slot == INVEN_TYPE_RIGHT_HAND) then begin
       canWield := check_weapon_change(critter, item, isWorn);
       set_sfall_return(canWield);
    end
