@@ -24,17 +24,18 @@
 #include "FalloutEngine.h"
 #include "Perks.h"
 
-//static const BYTE PerksUsed = 121;
+static const int maxNameLen = 64;   // don't change size
+static const int maxDescLen = 1024; // don't change size
 
-static char Name[64 * PERK_count];
-static char Desc[1024 * PERK_count];
-static char tName[64 * TRAIT_count];
-static char tDesc[1024 * TRAIT_count];
+static char Name[maxNameLen * PERK_count];
+static char Desc[maxDescLen * PERK_count];
+static char tName[maxNameLen * TRAIT_count];
+static char tDesc[maxDescLen * TRAIT_count];
 static char perksFile[MAX_PATH];
 static bool disableTraits[TRAIT_count];
 static DWORD* pc_trait = (DWORD*)_pc_trait;
 
-#define check_trait(a) !disableTraits[a] && (pc_trait[0] == a || pc_trait[1] == a)
+#define check_trait(id) !disableTraits[id] && (pc_trait[0] == id || pc_trait[1] == id)
 
 static DWORD addPerkMode = 2;
 
@@ -73,8 +74,8 @@ static TraitStruct Traits[TRAIT_count];
 struct FakePerk {
 	int Level;
 	int Image;
-	char Name[64];
-	char Desc[1024];
+	char Name[maxNameLen];
+	char Desc[maxDescLen];
 };
 
 std::vector<FakePerk> fakeTraits;
@@ -183,7 +184,7 @@ void _stdcall SetSelectablePerk(char* name, int level, int image, char* desc) {
 			if (!strcmp(name, fakeSelectablePerks[i].Name)) {
 				fakeSelectablePerks[i].Level = level;
 				fakeSelectablePerks[i].Image = image;
-				strcpy_s(fakeSelectablePerks[i].Desc, desc);
+				strncpy_s(fakeSelectablePerks[i].Desc, desc, _TRUNCATE);
 				return;
 			}
 		}
@@ -191,8 +192,8 @@ void _stdcall SetSelectablePerk(char* name, int level, int image, char* desc) {
 		memset(&fp, 0, sizeof(FakePerk));
 		fp.Level = level;
 		fp.Image = image;
-		strcpy_s(fp.Name, name);
-		strcpy_s(fp.Desc, desc);
+		strncpy_s(fp.Name, name, _TRUNCATE);
+		strncpy_s(fp.Desc, desc, _TRUNCATE);
 		fakeSelectablePerks.push_back(fp);
 	}
 }
@@ -594,7 +595,7 @@ normalPerk:
 		jl   end;
 		cmp  edx, PERK_gain_luck_perk;
 		jg   end;
-		inc  ds:[edx*4 + (_pc_proto + 0x24 - PERK_gain_strength_perk * 4)]; // base_stat_srength
+		inc  ds:[edx * 4 + (_pc_proto + 0x24 - PERK_gain_strength_perk * 4)]; // base_stat_srength
 end:
 		retn;
 	}
@@ -691,11 +692,11 @@ static void PerkSetup() {
 		char num[4];
 		for (int i = 0; i < PERK_count; i++) {
 			_itoa_s(i, num, 10);
-			if (GetPrivateProfileString(num, "Name", "", &Name[i * 64], 63, perksFile)) {
-				Perks[i].Name = &Name[i * 64];
+			if (GetPrivateProfileString(num, "Name", "", &Name[i * maxNameLen], maxNameLen - 1, perksFile)) {
+				Perks[i].Name = &Name[i * maxNameLen];
 			}
-			if (GetPrivateProfileString(num, "Desc", "", &Desc[i * 1024], 1023, perksFile)) {
-				Perks[i].Desc = &Desc[i * 1024];
+			if (GetPrivateProfileString(num, "Desc", "", &Desc[i * maxDescLen], maxDescLen - 1, perksFile)) {
+				Perks[i].Desc = &Desc[i * maxDescLen];
 			}
 			int value;
 			value = GetPrivateProfileInt(num, "Image", -99999, perksFile);
@@ -736,13 +737,13 @@ static void PerkSetup() {
 	}
 
 	for (int i = 0; i < PERK_count; i++) {
-		if (Perks[i].Name != &Name[64 * i]) {
-			strcpy_s(&Name[64 * i], 64, Perks[i].Name);
-			Perks[i].Name = &Name[64 * i];
+		if (Perks[i].Name != &Name[maxNameLen * i]) {
+			strcpy_s(&Name[maxNameLen * i], maxNameLen, Perks[i].Name);
+			Perks[i].Name = &Name[maxNameLen * i];
 		}
-		if (Perks[i].Desc&&Perks[i].Desc != &Desc[1024 * i]) {
-			strcpy_s(&Desc[1024 * i], 1024, Perks[i].Desc);
-			Perks[i].Desc = &Desc[1024 * i];
+		if (Perks[i].Desc && Perks[i].Desc != &Desc[maxDescLen * i]) {
+			strcpy_s(&Desc[maxDescLen * i], maxDescLen, Perks[i].Desc);
+			Perks[i].Desc = &Desc[maxDescLen * i];
 		}
 	}
 
@@ -908,11 +909,11 @@ static void TraitSetup() {
 		char* num2 = &num[1];
 		for (int i = 0; i < TRAIT_count; i++) {
 			_itoa_s(i, num2, 4, 10);
-			if (GetPrivateProfileString(num, "Name", "", &tName[i * 64], 63, perksFile)) {
-				Traits[i].Name = &tName[i * 64];
+			if (GetPrivateProfileString(num, "Name", "", &tName[i * maxNameLen], maxNameLen - 1, perksFile)) {
+				Traits[i].Name = &tName[i * maxNameLen];
 			}
-			if (GetPrivateProfileString(num, "Desc", "", &tDesc[i * 1024], 1023, perksFile)) {
-				Traits[i].Desc = &tDesc[i * 1024];
+			if (GetPrivateProfileString(num, "Desc", "", &tDesc[i * maxDescLen], maxDescLen - 1, perksFile)) {
+				Traits[i].Desc = &tDesc[i * maxDescLen];
 			}
 			int value;
 			value = GetPrivateProfileInt(num, "Image", -99999, perksFile);
@@ -982,13 +983,13 @@ static void TraitSetup() {
 	}
 
 	for (int i = 0; i < TRAIT_count; i++) {
-		if (Traits[i].Name != &tName[64 * i]) {
-			strcpy_s(&tName[64 * i], 64, Traits[i].Name);
-			Traits[i].Name = &tName[64 * i];
+		if (Traits[i].Name != &tName[maxNameLen * i]) {
+			strcpy_s(&tName[maxNameLen * i], maxNameLen, Traits[i].Name);
+			Traits[i].Name = &tName[maxNameLen * i];
 		}
-		if (Traits[i].Desc&&Traits[i].Desc != &tDesc[1024 * i]) {
-			strcpy_s(&tDesc[1024 * i], 1024, Traits[i].Desc);
-			Traits[i].Desc = &tDesc[1024 * i];
+		if (Traits[i].Desc && Traits[i].Desc != &tDesc[maxDescLen * i]) {
+			strcpy_s(&tDesc[maxDescLen * i], maxDescLen, Traits[i].Desc);
+			Traits[i].Desc = &tDesc[maxDescLen * i];
 		}
 	}
 }
@@ -1012,13 +1013,13 @@ void _stdcall SetPerkValue(int id, int value, DWORD offset) {
 
 void _stdcall SetPerkName(int id, char* value) {
 	if (id < 0 || id >= PERK_count) return;
-	strncpy_s(&Name[id * 64], 64, value, _TRUNCATE);
+	strncpy_s(&Name[id * maxNameLen], maxNameLen, value, _TRUNCATE);
 }
 
 void _stdcall SetPerkDesc(int id, char* value) {
 	if (id < 0 || id >= PERK_count) return;
-	strncpy_s(&Desc[id * 1024], 1024, value, _TRUNCATE);
-	Perks[id].Desc = &Desc[1024 * id];
+	strncpy_s(&Desc[id * maxDescLen], maxDescLen, value, _TRUNCATE);
+	Perks[id].Desc = &Desc[maxDescLen * id];
 }
 
 void PerksReset() {
