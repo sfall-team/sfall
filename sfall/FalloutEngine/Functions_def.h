@@ -109,11 +109,12 @@ WRAP_WATCOM_FUNC3(long, register_object_turn_towards, GameObject*, object, long,
 WRAP_WATCOM_FUNC2(long, stat_get_base_direct, GameObject*, critter, long, statID)
 // adds experience points to PC
 WRAP_WATCOM_FUNC1(void, stat_pc_add_experience, long, amount)
+WRAP_WATCOM_FUNC1(long, text_font, long, fontNum)
 // redraws the whole screen
 WRAP_WATCOM_FUNC0(void, tile_refresh_display)
 // redraws the given rectangle on screen
 WRAP_WATCOM_FUNC2(void, tile_refresh_rect, BoundRect*, boundRect, long, elevation)
-WRAP_WATCOM_FUNC1(long, text_font, long, fontNum)
+WRAP_WATCOM_FUNC1(long, trait_level, long, traitID)
 WRAP_WATCOM_FUNC6(DWORD, win_add, long, x, long, y, long, width, long, height, long, bgColorIndex, long, flags)
 WRAP_WATCOM_FUNC1(void, win_show, DWORD, winRef)
 WRAP_WATCOM_FUNC1(void, win_hide, DWORD, winRef)

@@ -28,14 +28,17 @@ namespace sfall
 {
 using namespace fo;
 
-static char Name[64 * PERK_count];
-static char Desc[1024 * PERK_count];
-static char tName[64 * TRAIT_count];
-static char tDesc[1024 * TRAIT_count];
+constexpr int maxNameLen = 64;   // don't change size
+constexpr int maxDescLen = 1024; // don't change size
+
+static char Name[maxNameLen * PERK_count];
+static char Desc[maxDescLen * PERK_count];
+static char tName[maxNameLen * TRAIT_count];
+static char tDesc[maxDescLen * TRAIT_count];
 static char perksFile[MAX_PATH];
 static bool disableTraits[TRAIT_count];
 
-#define check_trait(a) !disableTraits[a] && (var::pc_trait[0] == a || var::pc_trait[1] == a)
+#define check_trait(id) !disableTraits[id] && (var::pc_trait[0] == id || var::pc_trait[1] == id)
 
 static DWORD addPerkMode = 2;
 
@@ -46,8 +49,17 @@ static TraitInfo traits[TRAIT_count];
 struct FakePerk {
 	int Level;
 	int Image;
-	char Name[64];
-	char Desc[1024];
+	char Name[maxNameLen] = {0};
+	char Desc[maxDescLen] = {0};
+
+	FakePerk() {}
+
+	FakePerk(char* name, int level, int image, char* desc) {
+		Level = level;
+		Image = image;
+		strncpy_s(Name, name, _TRUNCATE);
+		strncpy_s(Desc, desc, _TRUNCATE);
+	}
 };
 
 std::vector<FakePerk> fakeTraits;
@@ -80,39 +92,32 @@ void _stdcall SetPerkFreq(int i) {
 	PerkFreqOverride = i;
 }
 
-static bool _stdcall IsTraitDisabled(int id) {
+static bool IsTraitDisabled(int id) {
 	return disableTraits[id];
+}
+
+static long _stdcall LevelUp() {
+	int eachLevel = PerkFreqOverride;
+
+	if (!eachLevel) {
+		if (!IsTraitDisabled(TRAIT_skilled) && fo::func::trait_level(TRAIT_skilled)) { // Check if the player has the skilled trait
+			eachLevel = 4;
+		} else {
+			eachLevel = 3;
+		}
+	}
+
+	int level = fo::var::Level_; // Get players level
+	if (!((level + 1) % eachLevel)) fo::var::free_perk++; // Increment the number of perks owed
+	return level;
 }
 
 static void __declspec(naked) LevelUpHack() {
 	__asm {
 		push ecx;
-		mov  ecx, PerkFreqOverride;
-		test ecx, ecx;
-		jnz  afterSkilled;
-		push TRAIT_skilled;
-		call IsTraitDisabled;
-		test al, al;
-		jnz  notSkilled;
-		mov  eax, TRAIT_skilled;
-		call fo::funcoffs::trait_level_; // Check if the player has the skilled trait
-		test eax, eax;
-		jz   notSkilled;
-		mov  ecx, 4;
-		jmp  afterSkilled;
-notSkilled:
-		mov  ecx, 3;
-afterSkilled:
-		mov  eax, ds:[FO_VAR_Level_];    // Get players level
-		inc  eax;
-		xor  edx, edx;
-		div  ecx;
-		test edx, edx;
-		jnz  end;
-		inc  byte ptr ds:[FO_VAR_free_perk]; // Increment the number of perks owed
-end:
+		call LevelUp;
+		mov  edx, eax; // player level
 		pop  ecx;
-		mov  edx, ds:[FO_VAR_Level_];
 		retn;
 	}
 }
@@ -142,9 +147,9 @@ void _stdcall SetPerkboxTitle(char* name) {
 	}
 }
 
-void _stdcall SetSelectablePerk(char* name, int level, int image, char* desc) {
-	if (level < 0 || level > 1) return;
-	if (level == 0) {
+void _stdcall SetSelectablePerk(char* name, int active, int image, char* desc) {
+	if (active < 0 || active > 1) return;
+	if (active == 0) {
 		for (DWORD i = 0; i < fakeSelectablePerks.size(); i++) {
 			if (!strcmp(name, fakeSelectablePerks[i].Name)) {
 				fakeSelectablePerks.erase(fakeSelectablePerks.begin() + i);
@@ -154,19 +159,13 @@ void _stdcall SetSelectablePerk(char* name, int level, int image, char* desc) {
 	} else {
 		for (DWORD i = 0; i < fakeSelectablePerks.size(); i++) {
 			if (!strcmp(name, fakeSelectablePerks[i].Name)) {
-				fakeSelectablePerks[i].Level = level;
+				fakeSelectablePerks[i].Level = active;
 				fakeSelectablePerks[i].Image = image;
-				strcpy_s(fakeSelectablePerks[i].Desc, desc);
+				strncpy_s(fakeSelectablePerks[i].Desc, desc, _TRUNCATE);
 				return;
 			}
 		}
-		FakePerk fp;
-		memset(&fp, 0, sizeof(FakePerk));
-		fp.Level = level;
-		fp.Image = image;
-		strcpy_s(fp.Name, name);
-		strcpy_s(fp.Desc, desc);
-		fakeSelectablePerks.push_back(fp);
+		fakeSelectablePerks.push_back(FakePerk(name, active, image, desc));
 	}
 }
 
@@ -188,19 +187,13 @@ void _stdcall SetFakePerk(char* name, int level, int image, char* desc) {
 				return;
 			}
 		}
-		FakePerk fp;
-		memset(&fp, 0, sizeof(FakePerk));
-		fp.Level = level;
-		fp.Image = image;
-		strncpy_s(fp.Name, name, _TRUNCATE);
-		strncpy_s(fp.Desc, desc, _TRUNCATE);
-		fakePerks.push_back(fp);
+		fakePerks.push_back(FakePerk(name, level, image, desc));
 	}
 }
 
-void _stdcall SetFakeTrait(char* name, int level, int image, char* desc) {
-	if (level < 0 || level > 1) return;
-	if (level == 0) {
+void _stdcall SetFakeTrait(char* name, int active, int image, char* desc) {
+	if (active < 0 || active > 1) return;
+	if (active == 0) {
 		for (DWORD i = 0; i < fakeTraits.size(); i++) {
 			if (!strcmp(name, fakeTraits[i].Name)) {
 				fakeTraits.erase(fakeTraits.begin() + i);
@@ -210,50 +203,22 @@ void _stdcall SetFakeTrait(char* name, int level, int image, char* desc) {
 	} else {
 		for (DWORD i = 0; i < fakeTraits.size(); i++) {
 			if (!strcmp(name, fakeTraits[i].Name)) {
-				fakeTraits[i].Level = level;
+				fakeTraits[i].Level = active;
 				fakeTraits[i].Image = image;
 				strncpy_s(fakeTraits[i].Desc, desc, _TRUNCATE);
 				return;
 			}
 		}
-		FakePerk fp;
-		memset(&fp, 0, sizeof(FakePerk));
-		fp.Level = level;
-		fp.Image = image;
-		strncpy_s(fp.Name, name, _TRUNCATE);
-		strncpy_s(fp.Desc, desc, _TRUNCATE);
-		fakeTraits.push_back(fp);
+		fakeTraits.push_back(FakePerk(name, active, image, desc));
 	}
 }
 
-static DWORD _stdcall HaveFakeTraits2() {
+static DWORD _stdcall HaveFakeTraits() {
 	return fakeTraits.size();
 }
 
-static void __declspec(naked) HaveFakeTraits() {
-	__asm {
-		push ecx;
-		push edx;
-		call HaveFakeTraits2;
-		pop  edx;
-		pop  ecx;
-		retn;
-	}
-}
-
-static DWORD _stdcall HaveFakePerks2() {
+static DWORD _stdcall HaveFakePerks() {
 	return fakePerks.size();
-}
-
-static void __declspec(naked) HaveFakePerks() {
-	__asm {
-		push ecx;
-		push edx;
-		call HaveFakePerks2;
-		pop  edx;
-		pop  ecx;
-		retn;
-	}
 }
 
 static FakePerk* _stdcall GetFakePerk2(int id) {
@@ -311,35 +276,34 @@ static void __declspec(naked) GetFakeSPerkLevel() {
 	}
 }
 
-static DWORD _stdcall HandleFakeTraits(int id) {
+static DWORD HandleFakeTraits(int value) {
 	for (DWORD i = 0; i < fakeTraits.size(); i++) {
-		if (fo::func::folder_print_line(fakeTraits[i].Name) && !id) {
-			id = 1;
+		if (fo::func::folder_print_line(fakeTraits[i].Name) && !value) {
+			value = 1;
 			var::folder_card_fid = fakeTraits[i].Image;
 			var::folder_card_title = (DWORD)fakeTraits[i].Name;
 			var::folder_card_title2 = 0;
 			var::folder_card_desc = (DWORD)fakeTraits[i].Desc;
 		}
 	}
-	return id;
+	return value;
+}
+
+static long _fastcall PlayerHasPerk(int* value) {
+	*value = HandleFakeTraits(*value);
+
+	for	(int i = 0; i < PERK_count; i++) {
+		if (fo::func::perk_level(fo::var::obj_dude, i)) return 1;
+	}
+	return fakePerks.size();
 }
 
 static void __declspec(naked) PlayerHasPerkHack() {
 	__asm {
-		push ecx;
-		call HandleFakeTraits;
-		mov  ecx, eax;
-		xor  ebx, ebx;
-oloop:
-		mov  eax, ds:[FO_VAR_obj_dude];
-		mov  edx, ebx;
-		call fo::funcoffs::perk_level_;
-		test eax, eax;
-		jnz  win;
-		inc  ebx;
-		cmp  ebx, PERK_count;
-		jl   oloop;
-		call HaveFakePerks;
+		push ecx;            // value
+		mov  ecx, esp;       // ptr to value
+		call PlayerHasPerk;
+		pop  ecx;            // value from HandleFakeTraits
 		test eax, eax;
 		jnz  win;
 		mov  eax, 0x434446;
@@ -352,7 +316,9 @@ win:
 
 static void __declspec(naked) PlayerHasTraitHook() {
 	__asm {
+		push ecx;
 		call HaveFakeTraits;
+		pop  ecx;
 		test eax, eax;
 		jz   end;
 		mov  eax, 0x43425B;
@@ -417,7 +383,9 @@ end:
 static void __declspec(naked) EndPerkLoopHack() {
 	__asm {
 		jl   cLoop;          // if ebx < 119
+		push ecx;
 		call HaveFakePerks;
+		pop  ecx;
 		add  eax, PERK_count;
 		cmp  ebx, eax;
 		jl   cLoop;
@@ -645,11 +613,11 @@ static void PerkSetup() {
 		char num[4];
 		for (int i = 0; i < PERK_count; i++) {
 			_itoa_s(i, num, 10);
-			if (GetPrivateProfileString(num, "Name", "", &Name[i * 64], 63, perksFile)) {
-				perks[i].name = &Name[i * 64];
+			if (GetPrivateProfileString(num, "Name", "", &Name[i * maxNameLen], maxNameLen - 1, perksFile)) {
+				perks[i].name = &Name[i * maxNameLen];
 			}
-			if (GetPrivateProfileString(num, "Desc", "", &Desc[i * 1024], 1023, perksFile)) {
-				perks[i].description = &Desc[i * 1024];
+			if (GetPrivateProfileString(num, "Desc", "", &Desc[i * maxDescLen], maxDescLen - 1, perksFile)) {
+				perks[i].description = &Desc[i * maxDescLen];
 			}
 			int value;
 			value = GetPrivateProfileInt(num, "Image", -99999, perksFile);
@@ -690,13 +658,13 @@ static void PerkSetup() {
 	}
 
 	for (int i = 0; i < PERK_count; i++) {
-		if (perks[i].name != &Name[64 * i]) {
-			strcpy_s(&Name[64 * i], 64, perks[i].name);
-			perks[i].name = &Name[64 * i];
+		if (perks[i].name != &Name[maxNameLen * i]) {
+			strcpy_s(&Name[maxNameLen * i], maxNameLen, perks[i].name);
+			perks[i].name = &Name[maxNameLen * i];
 		}
-		if (perks[i].description&&perks[i].description != &Desc[1024 * i]) {
-			strcpy_s(&Desc[1024 * i], 1024, perks[i].description);
-			perks[i].description = &Desc[1024 * i];
+		if (perks[i].description && perks[i].description != &Desc[maxDescLen * i]) {
+			strcpy_s(&Desc[maxDescLen * i], maxDescLen, perks[i].description);
+			perks[i].description = &Desc[maxDescLen * i];
 		}
 	}
 
@@ -855,11 +823,11 @@ static void TraitSetup() {
 		char* num2 = &num[1];
 		for (int i = 0; i < TRAIT_count; i++) {
 			_itoa_s(i, num2, 4, 10);
-			if (GetPrivateProfileString(num, "Name", "", &tName[i * 64], 63, perksFile)) {
-				traits[i].name = &tName[i * 64];
+			if (GetPrivateProfileString(num, "Name", "", &tName[i * maxNameLen], maxNameLen - 1, perksFile)) {
+				traits[i].name = &tName[i * maxNameLen];
 			}
-			if (GetPrivateProfileString(num, "Desc", "", &tDesc[i * 1024], 1023, perksFile)) {
-				traits[i].description = &tDesc[i * 1024];
+			if (GetPrivateProfileString(num, "Desc", "", &tDesc[i * maxDescLen], maxDescLen - 1, perksFile)) {
+				traits[i].description = &tDesc[i * maxDescLen];
 			}
 			int value;
 			value = GetPrivateProfileInt(num, "Image", -99999, perksFile);
@@ -929,13 +897,13 @@ static void TraitSetup() {
 	}
 
 	for (int i = 0; i < TRAIT_count; i++) {
-		if (traits[i].name != &tName[64 * i]) {
-			strcpy_s(&tName[64 * i], 64, traits[i].name);
-			traits[i].name = &tName[64 * i];
+		if (traits[i].name != &tName[maxNameLen * i]) {
+			strcpy_s(&tName[maxNameLen * i], maxNameLen, traits[i].name);
+			traits[i].name = &tName[maxNameLen * i];
 		}
-		if (traits[i].description&&traits[i].description != &tDesc[1024 * i]) {
-			strcpy_s(&tDesc[1024 * i], 1024, traits[i].description);
-			traits[i].description = &tDesc[1024 * i];
+		if (traits[i].description && traits[i].description != &tDesc[maxDescLen * i]) {
+			strcpy_s(&tDesc[maxDescLen * i], maxDescLen, traits[i].description);
+			traits[i].description = &tDesc[maxDescLen * i];
 		}
 	}
 }
@@ -959,13 +927,13 @@ void _stdcall SetPerkValue(int id, int value, DWORD offset) {
 
 void _stdcall SetPerkName(int id, char* value) {
 	if (id < 0 || id >= PERK_count) return;
-	strncpy_s(&Name[id * 64], 64, value, _TRUNCATE);
+	strncpy_s(&Name[id * maxNameLen], maxNameLen, value, _TRUNCATE);
 }
 
 void _stdcall SetPerkDesc(int id, char* value) {
 	if (id < 0 || id >= PERK_count) return;
-	strncpy_s(&Desc[id * 1024], 1024, value, _TRUNCATE);
-	perks[id].description = &Desc[1024 * id];
+	strncpy_s(&Desc[id * maxDescLen], maxDescLen, value, _TRUNCATE);
+	perks[id].description = &Desc[maxDescLen * id];
 }
 
 void PerksReset() {
