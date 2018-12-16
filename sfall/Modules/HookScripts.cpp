@@ -221,7 +221,7 @@ void LoadHookScripts() {
 	initingHookScripts = 1;
 	for (int i = 0; i < numHooks; i++) {
 		if (hooks[i].size()) {
-			InitScriptProgram(hooks[i][0].prog);// zero hook is always hs_*.int script because Hook scripts are loaded BEFORE global scripts
+			InitScriptProgram(hooks[i][0].prog); // zero hook is always hs_*.int script because Hook scripts are loaded BEFORE global scripts
 		}
 	}
 	isGlobalScriptLoading = 0;
@@ -242,7 +242,8 @@ void HookScripts::init() {
 	LoadGameHook::OnGameModeChange() += GameModeChangeHook;
 	LoadGameHook::OnAfterGameStarted() += SourceUseSkillOnInit;
 
-	HookScripts::injectAllHooks = (isDebug && (GetConfigInt("Debugging", "InjectAllGameHooks", 0) != 0));
+	HookScripts::injectAllHooks = isDebug && (GetPrivateProfileIntA("Debugging", "InjectAllGameHooks", 0, ::sfall::ddrawIni) != 0);
+	if (HookScripts::injectAllHooks) dlogr("Injecting all game hooks", DL_HOOK);
 }
 
 }

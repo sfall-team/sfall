@@ -561,7 +561,7 @@ normalPerk:
 		jl   end;
 		cmp  edx, PERK_gain_luck_perk;
 		jg   end;
-		inc  ds:[edx * 4 + (FO_VAR_pc_proto + 0x24 - (PERK_gain_strength_perk) * 4)]; // base_stat_srength
+		inc  ds:[edx * 4 + (FO_VAR_pc_proto + 0x24 - PERK_gain_strength_perk * 4)]; // base_stat_srength
 end:
 		retn;
 	}

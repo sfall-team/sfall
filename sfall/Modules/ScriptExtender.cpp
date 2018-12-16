@@ -93,6 +93,7 @@ typedef std::pair<__int64, int> glob_pair;
 
 DWORD availableGlobalScriptTypes = 0;
 bool isGameLoading;
+bool alwaysFindScripts;
 
 fo::ScriptInstance overrideScriptStruct;
 
@@ -405,7 +406,7 @@ ScriptProgram* GetGlobalScriptProgram(fo::Program* scriptPtr) {
 }
 
 bool _stdcall IsGameScript(const char* filename) {
-	if ((filename[0] != 'g' || filename[1] != 'l') && (filename[0] != 'h' || filename[1] != 's')) return true;
+	if (strlen(filename) > 8) return false;
 	// TODO: write better solution
 	for (int i = 0; i < fo::var::maxScriptNum; i++) {
 		if (strcmp(filename, fo::var::scriptListInfo[i].fileName) == 0) return true;
@@ -435,6 +436,7 @@ static void LoadGlobalScriptsList() {
 }
 
 static void PrepareGlobalScriptsListByMask() {
+	globalScriptFilesList.clear();
 	for (auto& fileMask : globalScriptPathList) {
 		char** filenames;
 		auto basePath = fileMask.substr(0, fileMask.find_last_of("\\/") + 1); // path to scripts without mask
@@ -457,7 +459,6 @@ static void PrepareGlobalScriptsListByMask() {
 		}
 		fo::func::db_free_file_list(&filenames, 0);
 	}
-	globalScriptPathList.clear(); // clear path list, it is no longer needed
 }
 
 // this runs after the game was loaded/started
@@ -466,9 +467,10 @@ static void LoadGlobalScripts() {
 	isGameLoading = false;
 	LoadHookScripts();
 	dlogr("Loading global scripts", DL_SCRIPT|DL_INIT);
-	if (!listIsPrepared) { // runs only once
+	if (!listIsPrepared) { // only once
 		PrepareGlobalScriptsListByMask();
-		listIsPrepared = true;
+		listIsPrepared = !alwaysFindScripts;
+		if (listIsPrepared) globalScriptPathList.clear(); // clear path list, it is no longer needed
 	}
 	LoadGlobalScriptsList();
 	dlogr("Finished loading global scripts", DL_SCRIPT|DL_INIT);
@@ -686,6 +688,9 @@ void ScriptExtender::init() {
 	} else {
 		dlogr("Arrays in backward-compatiblity mode.", DL_SCRIPT);
 	}
+
+	alwaysFindScripts = isDebug && (GetPrivateProfileIntA("Debugging", "AlwaysFindScripts", 0, ::sfall::ddrawIni) != 0);
+	if (alwaysFindScripts) dlogr("Always searching for global scripts behavior enabled.", DL_SCRIPT);
 
 	MakeJump(0x4A390C, FindSidHack);
 	MakeJump(0x4A5E34, ScrPtrHack);

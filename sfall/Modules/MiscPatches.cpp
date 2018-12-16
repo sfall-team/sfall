@@ -475,7 +475,7 @@ static void __declspec(naked) win_debug_hook() {
 
 void DebugModePatch() {
 	if (isDebug) {
-		DWORD dbgMode = GetPrivateProfileIntA("Debugging", "DebugMode", 0, ".\\ddraw.ini");
+		DWORD dbgMode = GetPrivateProfileIntA("Debugging", "DebugMode", 0, ::sfall::ddrawIni);
 		if (dbgMode) {
 			dlog("Applying debugmode patch.", DL_INIT);
 			//If the player is using an exe with the debug patch already applied, just skip this block without erroring
@@ -792,7 +792,7 @@ void DialogueFix() {
 }
 
 void DontDeleteProtosPatch() {
-	if (isDebug && GetPrivateProfileIntA("Debugging", "DontDeleteProtos", 0, ".\\ddraw.ini")) {
+	if (isDebug && GetPrivateProfileIntA("Debugging", "DontDeleteProtos", 0, ::sfall::ddrawIni)) {
 		dlog("Applying permanent protos patch.", DL_INIT);
 		SafeWrite8(0x48007E, 0xEB);
 		dlogr(" Done", DL_INIT);
