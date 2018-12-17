@@ -84,7 +84,7 @@ namespace sfall
 bool isDebug = false;
 
 const char ddrawIni[] = ".\\ddraw.ini";
-static char ini[65];
+static char ini[65] = ".\\";
 static char translationIni[65];
 
 unsigned int GetConfigInt(const char* section, const char* setting, int defaultValue) {
@@ -257,12 +257,11 @@ inline void SfallInit() {
 	}
 
 	if (cmdlineexists && strlen(cmdline)) {
-		strcpy_s(ini, ".\\");
-		strcat_s(ini, cmdline);
 		HANDLE h = CreateFileA(cmdline, GENERIC_READ, 0, 0, OPEN_EXISTING, 0, 0);
-		if (h != INVALID_HANDLE_VALUE)
+		if (h != INVALID_HANDLE_VALUE) {
 			CloseHandle(h);
-		else {
+			strcat_s(ini, cmdline);
+		} else {
 			MessageBox(0, "You gave a command line argument to fallout, but it couldn't be matched to a file\n" \
 						"Using default ddraw.ini instead", "Warning", MB_TASKMODAL);
 			strcpy_s(ini, ::sfall::ddrawIni);
