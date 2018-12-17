@@ -68,7 +68,7 @@ ddrawDll ddraw;
 
 bool IsDebug = false;
 
-char ini[65];
+char ini[65] = ".\\";
 char translationIni[65];
 
 static char mapName[65];
@@ -1673,14 +1673,13 @@ bool _stdcall DllMain(HANDLE hDllHandle, DWORD dwReason, LPVOID lpreserved) {
 		}
 
 		if (cmdlineexists && strlen(cmdline)) {
-			strcpy_s(ini, ".\\");
-			strcat_s(ini, cmdline);
 			HANDLE h = CreateFileA(cmdline, GENERIC_READ, 0, 0, OPEN_EXISTING, 0, 0);
-			if (h != INVALID_HANDLE_VALUE)
+			if (h != INVALID_HANDLE_VALUE) {
 				CloseHandle(h);
-			else {
+				strcat_s(ini, cmdline);
+			} else {
 				MessageBox(0, "You gave a command line argument to fallout, but it couldn't be matched to a file\n" \
-					"Using default ddraw.ini instead", "Warning", MB_TASKMODAL);
+							"Using default ddraw.ini instead", "Warning", MB_TASKMODAL);
 				strcpy_s(ini, ".\\ddraw.ini");
 			}
 		} else {
