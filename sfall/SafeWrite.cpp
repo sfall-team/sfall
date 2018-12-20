@@ -2,6 +2,35 @@
 
 #pragma warning(disable:4996)
 
+static const BYTE CodeType_Call = 0xE8;
+static const BYTE CodeType_Jump = 0xE9;
+static const BYTE CodeType_Nop = 0x90;
+
+static void _stdcall SafeWriteFunc(BYTE code, DWORD addr, void* func) {
+	DWORD oldProtect, data = (DWORD)func - (addr + 5);
+
+	VirtualProtect((void *)addr, 5, PAGE_EXECUTE_READWRITE, &oldProtect);
+	*((BYTE*)addr) = code;
+	*((DWORD*)(addr + 1)) = data;
+	VirtualProtect((void *)addr, 5, oldProtect, &oldProtect);
+}
+
+static __declspec(noinline) void _stdcall SafeWriteFunc(BYTE code, DWORD addr, void* func, DWORD len) {
+	DWORD oldProtect,
+		protectLen = len + 5,
+		addrMem = addr + 5,
+		data = (DWORD)func - addrMem;
+
+	VirtualProtect((void *)addr, protectLen, PAGE_EXECUTE_READWRITE, &oldProtect);
+	*((BYTE*)addr) = code;
+	*((DWORD*)(addr + 1)) = data;
+
+	for (unsigned int i = 0; i < len; i++) {
+		*((BYTE*)(addrMem + i)) = CodeType_Nop;
+	}
+	VirtualProtect((void *)addr, protectLen, oldProtect, &oldProtect);
+}
+
 void SafeWriteBytes(DWORD addr, BYTE* data, int count) {
 	DWORD	oldProtect;
 
@@ -47,23 +76,19 @@ void HookCall(DWORD addr, void* func) {
 }
 
 void MakeCall(DWORD addr, void* func) {
-	SafeWrite8(addr, 0xE8);
-	HookCall(addr, func);
+	SafeWriteFunc(CodeType_Call, addr, func);
 }
 
 void MakeCall(DWORD addr, void* func, int len) {
-	SafeMemSet(addr + 5, 0x90, len);
-	MakeCall(addr, func);
+	SafeWriteFunc(CodeType_Call, addr, func, len);
 }
 
 void MakeJump(DWORD addr, void* func) {
-	SafeWrite8(addr, 0xE9);
-	HookCall(addr, func);
+	SafeWriteFunc(CodeType_Jump, addr, func);
 }
 
 void MakeJump(DWORD addr, void* func, int len) {
-	SafeMemSet(addr + 5, 0x90, len);
-	MakeJump(addr, func);
+	SafeWriteFunc(CodeType_Jump, addr, func, len);
 }
 
 void SafeMemSet(DWORD addr, BYTE val, int len) {
@@ -75,5 +100,5 @@ void SafeMemSet(DWORD addr, BYTE val, int len) {
 }
 
 void BlockCall(DWORD addr) {
-	SafeMemSet(addr, 0x90, 5);
+	SafeMemSet(addr, CodeType_Nop, 5);
 }
