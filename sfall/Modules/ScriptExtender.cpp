@@ -444,8 +444,12 @@ static void PrepareGlobalScriptsListByMask() {
 		
 		for (int i = 0; i < count; i++) {
 			char* name = _strlwr(filenames[i]); // name of the script in lower case
+
 			std::string baseName(name);
-			baseName = baseName.substr(0, baseName.find_last_of('.')); // script name without extension
+			int lastDot = baseName.find_last_of('.');
+			if ((baseName.length() - lastDot) > 4) continue; // skip files of the wrong extension (bug in db_get_file_list fuction)
+
+			baseName = baseName.substr(0, lastDot); // script name without extension
 			if (basePath != fo::var::script_path_base || !IsGameScript(baseName.c_str())) {
 				std::string fullPath(basePath);
 				fullPath += name;
