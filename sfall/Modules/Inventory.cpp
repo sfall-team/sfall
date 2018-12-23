@@ -631,7 +631,7 @@ end:
 // Differences from vanilla:
 // - doesn't use art_vault_guy_num as default art, uses current critter FID instead
 // - invokes onAdjustFid delegate that allows to hook into FID calculation
-DWORD __stdcall adjust_fid_replacement() {
+DWORD __stdcall Inventory::adjust_fid_replacement() {
 	using namespace fo;
 
 	DWORD fid;
@@ -682,7 +682,7 @@ static void __declspec(naked) adjust_fid_hack_replacement() {
 	__asm {
 		push ecx;
 		push edx;
-		call adjust_fid_replacement;    // return fid
+		call Inventory::adjust_fid_replacement; // return fid
 		pop  edx;
 		pop  ecx;
 		retn;

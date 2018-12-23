@@ -20,7 +20,6 @@
 #define FO_VAR_bboxslot                   0x5970E0
 #define FO_VAR_bckgnd                     0x5707A4
 #define FO_VAR_black_palette              0x663FD0
-#define FO_VAR_BlueColor                  0x6A38EF
 #define FO_VAR_bottom_line                0x664524
 #define FO_VAR_btable                     0x59E944
 #define FO_VAR_btncnt                     0x43EA1C
@@ -43,9 +42,6 @@
 #define FO_VAR_curr_pc_stat               0x6681AC
 #define FO_VAR_curr_stack                 0x59E96C
 #define FO_VAR_cursor_line                0x664514
-#define FO_VAR_DARK_GREY_Color            0x6A59D8
-#define FO_VAR_DarkGreenColor             0x6A3A90
-#define FO_VAR_DarkGreenGreyColor         0x6A3DF1
 #define FO_VAR_dialogue_state             0x518714
 #define FO_VAR_dialogue_switch_mode       0x518718
 #define FO_VAR_dialog_target              0x518848
@@ -65,6 +61,7 @@
 #define FO_VAR_folder_card_title2         0x5705BC
 #define FO_VAR_frame_time                 0x5709C4
 #define FO_VAR_free_perk                  0x570A29
+#define FO_VAR_frstc_draw1                0x5707D8
 #define FO_VAR_game_global_vars           0x5186C0
 #define FO_VAR_game_user_wants_to_quit    0x5186CC
 #define FO_VAR_gcsd                       0x51094C
@@ -76,8 +73,6 @@
 #define FO_VAR_gmouse_current_cursor      0x518C0C
 #define FO_VAR_gmovie_played_list         0x596C78
 #define FO_VAR_GNW_win_init_flag          0x51E3E0
-#define FO_VAR_GoodColor                  0x6AB4EF
-#define FO_VAR_GreenColor                 0x6A3CB0
 #define FO_VAR_gsound_initialized         0x518E30
 #define FO_VAR_hit_location_penalty       0x510954
 #define FO_VAR_holo_flag                  0x664529
@@ -108,7 +103,6 @@
 #define FO_VAR_last_level                 0x5707B4
 #define FO_VAR_Level_                     0x6681B0
 #define FO_VAR_Lifegiver                  0x570854
-#define FO_VAR_LIGHT_GREY_Color           0x6A76BF
 #define FO_VAR_list_com                   0x56D394
 #define FO_VAR_list_total                 0x56D37C
 #define FO_VAR_loadingGame                0x5194C4
@@ -137,6 +131,7 @@
 #define FO_VAR_name_sort_list             0x56FCB0
 #define FO_VAR_num_game_global_vars       0x5186C4
 #define FO_VAR_num_map_global_vars        0x519574
+#define FO_VAR_card_old_fid1              0x5709EC
 #define FO_VAR_obj_dude                   0x6610B8
 #define FO_VAR_objectTable                0x639DA0
 #define FO_VAR_objItemOutlineState        0x519798
@@ -162,7 +157,6 @@
 #define FO_VAR_pc_proto                   0x51C370
 #define FO_VAR_pc_trait                   0x66BE40
 #define FO_VAR_pc_trait2                  0x66BE44
-#define FO_VAR_PeanutButter               0x6A82F3
 #define FO_VAR_perk_data                  0x519DCC
 #define FO_VAR_perkLevelDataList          0x51C120
 #define FO_VAR_pip_win                    0x6644C4
@@ -178,7 +172,6 @@
 #define FO_VAR_queue                      0x6648C0
 #define FO_VAR_quick_done                 0x5193BC
 #define FO_VAR_read_callback              0x51DEEC
-#define FO_VAR_RedColor                   0x6AB4D0
 #define FO_VAR_retvals                    0x43EA7C
 #define FO_VAR_rotation                   0x631D34
 #define FO_VAR_sad                        0x530014
@@ -219,7 +212,6 @@
 #define FO_VAR_trait_data                 0x51DB84
 #define FO_VAR_view_page                  0x664520
 #define FO_VAR_wd_obj                     0x59E98C
-#define FO_VAR_WhiteColor                 0x6AB8CF
 #define FO_VAR_wmAreaInfoList             0x51DDF8
 #define FO_VAR_wmLastRndTime              0x51DEA0
 #define FO_VAR_wmWorldOffsetX             0x51DE2C
@@ -227,4 +219,17 @@
 #define FO_VAR_world_xpos                 0x672E0C
 #define FO_VAR_world_ypos                 0x672E10
 #define FO_VAR_WorldMapCurrArea           0x672E08
+
+// colour
+#define FO_VAR_BlueColor                  0x6A38EF
+#define FO_VAR_DARK_GREY_Color            0x6A59D8
+#define FO_VAR_DarkGreenColor             0x6A3A90
+#define FO_VAR_DarkGreenGreyColor         0x6A3DF1
+#define FO_VAR_DullPinkColor              0x6AB718
+#define FO_VAR_GoodColor                  0x6AB4EF
+#define FO_VAR_GreenColor                 0x6A3CB0
+#define FO_VAR_LIGHT_GREY_Color           0x6A76BF
+#define FO_VAR_PeanutButter               0x6A82F3
+#define FO_VAR_RedColor                   0x6AB4D0
+#define FO_VAR_WhiteColor                 0x6AB8CF
 #define FO_VAR_YellowColor                0x6AB8BB

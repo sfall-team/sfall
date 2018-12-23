@@ -1753,6 +1753,17 @@ getFail:
 	}
 }
 
+static void __declspec(naked) db_freadInt_hook() {
+	__asm {
+		call fo::funcoffs::xfread_;
+		test eax, eax;
+		jnz  skip;
+		dec  eax;
+skip:
+		retn;
+	}
+}
+
 void BugFixes::init()
 {
 	#ifndef NDEBUG
@@ -2229,6 +2240,9 @@ void BugFixes::init()
 
 	// Fix getting values (for chem_primary_desire), the function could not get the values, if the config was set to less than the required values
 	MakeJump(0x42C12C, config_get_values_hack);
+
+	// Fix returned result value
+	HookCall(0x4C6162, db_freadInt_hook); // TODO: Resolve conflict in FileSystem.cpp
 }
 
 }

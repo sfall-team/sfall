@@ -28,11 +28,13 @@ public:
 	const char* name() { return "HeroAppearance"; }
 
 	void init();
-
 	void exit() override;
+
+	static bool appModEnabled;
+
 };
 
-void _stdcall HeroSelectWindow(int RaceStyleFlag);
+void _stdcall HeroSelectWindow(int raceStyleFlag);
 void _stdcall SetHeroStyle(int newStyleVal);
 void _stdcall SetHeroRace(int newRaceVal);
 void _stdcall LoadHeroAppearance(void);
