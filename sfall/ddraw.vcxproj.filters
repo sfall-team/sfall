@@ -73,9 +73,6 @@
     <ClInclude Include="Modules\KillCounter.h">
       <Filter>Modules</Filter>
     </ClInclude>
-    <ClInclude Include="Modules\Knockback.h">
-      <Filter>Modules</Filter>
-    </ClInclude>
     <ClInclude Include="Modules\LoadGameHook.h">
       <Filter>Modules</Filter>
     </ClInclude>
@@ -275,6 +272,9 @@
     <ClInclude Include="Modules\Objects.h">
       <Filter>Modules</Filter>
     </ClInclude>
+    <ClInclude Include="Modules\Combat.h">
+      <Filter>Modules</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
@@ -330,9 +330,6 @@
       <Filter>Modules</Filter>
     </ClCompile>
     <ClCompile Include="Modules\KillCounter.cpp">
-      <Filter>Modules</Filter>
-    </ClCompile>
-    <ClCompile Include="Modules\Knockback.cpp">
       <Filter>Modules</Filter>
     </ClCompile>
     <ClCompile Include="Modules\LoadGameHook.cpp">
@@ -508,6 +505,9 @@
       <Filter>Modules\HookScripts</Filter>
     </ClCompile>
     <ClCompile Include="Modules\Objects.cpp">
+      <Filter>Modules</Filter>
+    </ClCompile>
+    <ClCompile Include="Modules\Combat.cpp">
       <Filter>Modules</Filter>
     </ClCompile>
   </ItemGroup>

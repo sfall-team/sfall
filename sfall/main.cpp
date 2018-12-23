@@ -30,6 +30,7 @@
 #include "Modules\Books.h"
 #include "Modules\BugFixes.h"
 #include "Modules\BurstMods.h"
+#include "Modules\Combat.h"
 #include "Modules\Console.h"
 #include "Modules\CRC.h"
 #include "Modules\Credits.h"
@@ -45,7 +46,6 @@
 #include "Modules\Inventory.h"
 #include "Modules\Karma.h"
 #include "Modules\KillCounter.h"
-#include "Modules\knockback.h"
 #include "Modules\LoadGameHook.h"
 #include "Modules\LoadOrder.h"
 #include "Modules\MainMenu.h"
@@ -146,7 +146,7 @@ static void InitModules() {
 	manager.add<LoadGameHook>();
 	manager.add<MainLoopHook>();
 	manager.add<Perks>();
-	manager.add<Knockback>();
+	manager.add<Combat>();
 	manager.add<Skills>();
 	manager.add<FileSystem>();
 	manager.add<Criticals>();

@@ -23,7 +23,7 @@
 #include "..\main.h"
 
 #include "..\FalloutEngine\Fallout2.h"
-#include "Knockback.h"
+#include "Combat.h"
 #include "LoadGameHook.h"
 
 #include "Skills.h"

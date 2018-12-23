@@ -20,11 +20,11 @@
 
 #include "..\..\..\FalloutEngine\Fallout2.h"
 #include "..\..\AI.h"
+#include "..\..\Combat.h"
 #include "..\..\Criticals.h"
 #include "..\..\HeroAppearance.h"
 #include "..\..\Inventory.h"
 #include "..\..\KillCounter.h"
-#include "..\..\Knockback.h"
 #include "..\..\MiscPatches.h"
 #include "..\..\Movies.h"
 #include "..\..\Objects.h"
