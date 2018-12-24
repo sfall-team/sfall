@@ -56,6 +56,10 @@ struct ddrawDll {
 	#define IsDebug false
 #endif
 
+// Macros for quick replacement of pushad/popad assembler opcodes
+#define pushadc __asm push eax __asm push edx __asm push ecx
+#define popadc __asm pop ecx __asm pop edx __asm pop eax
+
 extern char ini[65];
 extern char translationIni[65];
 

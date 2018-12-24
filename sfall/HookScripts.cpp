@@ -67,8 +67,8 @@ static DWORD cArg;    // how many arguments were taken by current hook script
 static DWORD cRet;    // how many return values were set by current hook script
 static DWORD cRetTmp; // how many return values were set by specific hook script (when using register_hook)
 
-#define hookbegin(a) __asm pushad __asm call BeginHook __asm popad __asm mov argCount, a
-#define hookend __asm pushad __asm call EndHook __asm popad
+#define hookbegin(a) pushadc __asm call BeginHook popadc __asm mov argCount, a
+#define hookend pushadc __asm call EndHook popadc
 
 static void _stdcall BeginHook() {
 	if (callDepth && callDepth <= maxDepth) {

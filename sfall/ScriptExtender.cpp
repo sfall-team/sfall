@@ -1260,7 +1260,6 @@ end:
 void LoadProtoAutoMaxLimit() {
 	if (maxCountProto != -1) {
 		MakeCall(0x4A21B2, proto_ptr_hack);
-		dlogr("Proto patch.", DL_INIT);
 	}
 }
 
@@ -1712,12 +1711,17 @@ void LoadGlobalScripts() {
 	sScriptProgram prog;
 	for (DWORD i = 0; i < count; i++) {
 		name = _strlwr((char*)filenames[i]);
-		name[strlen(name) - 4] = 0;
-		if (!isGameScript(name)) {
+
+		std::string baseName(name);
+		int lastDot = baseName.find_last_of('.');
+		if ((baseName.length() - lastDot) > 4) continue; // skip files with invalid extension (bug in db_get_file_list fuction)
+
+		baseName = baseName.substr(0, lastDot); // script name without extension
+		if (!isGameScript(baseName.c_str())) {
 			dlog(">", DL_SCRIPT);
 			dlog(name, DL_SCRIPT);
 			isGlobalScriptLoading = 1;
-			LoadScriptProgram(prog, name);
+			LoadScriptProgram(prog, baseName.c_str());
 			if (prog.ptr) {
 				dlogr(" Done", DL_SCRIPT);
 				DWORD idx;
@@ -1727,7 +1731,9 @@ void LoadGlobalScripts() {
 				AddProgramToMap(prog);
 				// initialize script (start proc will be executed for the first time) -- this needs to be after script is added to "globalScripts" array
 				InitScriptProgram(prog);
-			} else dlogr(" Error!", DL_SCRIPT);
+			} else {
+				dlogr(" Error!", DL_SCRIPT);
+			}
 			isGlobalScriptLoading = 0;
 		}
 	}

@@ -89,7 +89,6 @@ void GetSavePath(char* buf, char* ftype) {
 }
 
 static char SaveSfallDataFailMsg[128];
-
 static void _stdcall SaveGame2() {
 	char buf[MAX_PATH];
 	GetSavePath(buf, "gv");
@@ -122,7 +121,7 @@ static void _stdcall SaveGame2() {
 }
 
 static char SaveFailMsg[128];
-static DWORD _stdcall combatSaveTest() {
+static DWORD _stdcall CombatSaveTest() {
 	if (!SaveInCombatFix && !IsNpcControlled()) return 1;
 	if (InLoop & COMBAT) {
 		if (SaveInCombatFix == 2 || IsNpcControlled() || !(InLoop & PCOMBAT)) {
@@ -147,27 +146,24 @@ static DWORD _stdcall combatSaveTest() {
 
 static void __declspec(naked) SaveGame() {
 	__asm {
-		push ebx;
 		push ecx;
 		push edx;
 		push eax; // save Mode parameter
-		call combatSaveTest;
+		call CombatSaveTest;
 		test eax, eax;
-		pop edx; // recall Mode parameter
-		jz end;
-		mov eax, edx;
-
+		pop  edx; // recall Mode parameter
+		jz   end;
+		mov  eax, edx;
 		or InLoop, SAVEGAME;
 		call SaveGame_;
 		and InLoop, (-1 ^ SAVEGAME);
-		cmp eax, 1;
-		jne end;
-		call SaveGame2;
-		mov eax, 1;
+		cmp  eax, 1;
+		jne  end;
+		call SaveGame2; // save sfall.sav
+		mov  eax, 1;
 end:
-		pop edx;
-		pop ecx;
-		pop ebx;
+		pop  edx;
+		pop  ecx;
 		retn;
 	}
 }
@@ -215,20 +211,18 @@ static void __declspec(naked) LoadSlot() {
 
 static void __declspec(naked) LoadGame() {
 	__asm {
-		push ebx;
 		push ecx;
 		push edx;
 		or InLoop, LOADGAME;
 		call LoadGame_;
 		and InLoop, (-1 ^ LOADGAME);
-		cmp eax, 1;
-		jne end;
+		cmp  eax, 1;
+		jne  end;
 		call LoadGame2_After;
-		mov eax, 1;
+		mov  eax, 1;
 end:
-		pop edx;
-		pop ecx;
-		pop ebx;
+		pop  edx;
+		pop  ecx;
 		retn;
 	}
 }
@@ -236,9 +230,9 @@ end:
 static void __declspec(naked) EndLoadHook() {
 	__asm {
 		call EndLoad_;
-		pushad;
+		pushadc;
 		call LoadHeroAppearance;
-		popad;
+		popadc;
 		retn;
 	}
 }
@@ -249,9 +243,9 @@ static void _stdcall GameInitialized() {
 
 static void __declspec(naked) GameInitHook() {
 	__asm {
-		pushad;
+		pushadc;
 		call GameInitialized;
-		popad;
+		popadc;
 		jmp main_init_system_;
 	}
 }
@@ -308,9 +302,9 @@ static void _stdcall GameClose() {
 
 static void __declspec(naked) GameCloseHook() {
 	__asm {
-		pushad;
+		pushadc;
 		call GameClose;
-		popad;
+		popadc;
 		jmp game_exit_;
 	}
 }
@@ -318,7 +312,7 @@ static void __declspec(naked) GameCloseHook() {
 static void __declspec(naked) WorldMapHook() {
 	__asm {
 		or InLoop, WORLDMAP;
-		xor eax, eax;
+		xor  eax, eax;
 		call wmWorldMapFunc_;
 		and InLoop, (-1 ^ WORLDMAP);
 		retn;
@@ -336,15 +330,15 @@ static void __declspec(naked) WorldMapHook2() {
 
 static void __declspec(naked) CombatHook() {
 	__asm {
-		pushad;
+		pushadc;
 		call AICombatStart;
-		popad
 		or InLoop, COMBAT;
+		popadc;
 		call combat_;
-		pushad;
+		pushadc;
 		call AICombatEnd;
-		popad
 		and InLoop, (-1 ^ COMBAT);
+		popadc;
 		retn;
 	}
 }
@@ -397,12 +391,12 @@ static void __declspec(naked) HelpMenuHook() {
 
 static void __declspec(naked) CharacterHook() {
 	__asm {
+		pushadc;
 		or InLoop, CHARSCREEN;
-		pushad;
 		call PerksEnterCharScreen;
-		popad;
+		popadc;
 		call editor_design_;
-		pushad;
+		pushadc;
 		test eax, eax;
 		jz success;
 		call PerksCancelCharScreen;
@@ -410,9 +404,9 @@ static void __declspec(naked) CharacterHook() {
 success:
 		call PerksAcceptCharScreen;
 end:
-		popad;
 		and InLoop, (-1 ^ CHARSCREEN);
 		mov tagSkill4LevelBase, -1; // for fixing Tag! perk exploit
+		popadc;
 		retn;
 	}
 }
@@ -512,7 +506,7 @@ void LoadGameHookInit() {
 		SafeWrite8(0x4C06D8, 0xEB); // skip the Horrigan encounter check
 	}
 
-	HookCall(0x4809BA, GameInitHook); // 4.x backporting
+	HookCall(0x4809BA, GameInitHook); // 4.x backport
 	HookCall(0x480AB3, NewGame);
 
 	HookCall(0x47C72C, LoadSlot);
@@ -527,7 +521,7 @@ void LoadGameHookInit() {
 	HookCall(0x48FCFF, SaveGame);
 
 	HookCall(0x480A28, MainMenuHook);
-	// 4.x backporting
+	// 4.x backport
 	HookCall(0x480CA7, GameCloseHook); // gnw_main_
 	//HookCall(0x480D45, GameCloseHook); // main_exit_system_ (never called)
 

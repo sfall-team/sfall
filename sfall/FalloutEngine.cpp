@@ -663,38 +663,38 @@ const DWORD xvfprintf_ = 0x4DF1AC;
 
 int __stdcall ItemGetType(TGameObj* item) {
 	__asm {
-		mov eax, item
-		call item_get_type_
+		mov  eax, item;
+		call item_get_type_;
 	}
 }
 
 int __stdcall ItemSize(TGameObj* item) {
 	__asm {
-		mov eax, item
-		call item_size_
+		mov  eax, item;
+		call item_size_;
 	}
 }
 
 int _stdcall IsPartyMember(TGameObj* obj) {
 	__asm {
-		mov eax, obj
-		call isPartyMember_
+		mov  eax, obj;
+		call isPartyMember_;
 	}
 }
 
 int _stdcall PartyMemberGetCurrentLevel(TGameObj* obj) {
 	__asm {
-		mov eax, obj
-		call partyMemberGetCurLevel_
+		mov  eax, obj;
+		call partyMemberGetCurLevel_;
 	}
 }
 
 char* GetProtoPtr(DWORD pid) {
 	char* proto;
 	__asm {
-		mov eax, pid
-		lea edx, proto
-		call proto_ptr_
+		mov  eax, pid;
+		lea  edx, proto;
+		call proto_ptr_;
 	}
 	return proto;
 }
@@ -711,8 +711,8 @@ char AnimCodeByWeapon(TGameObj* weapon) {
 
 void DisplayConsoleMessage(const char* msg) {
 	__asm {
-		mov eax, msg
-		call display_print_
+		mov  eax, msg;
+		call display_print_;
 	}
 }
 
@@ -721,11 +721,11 @@ const char* _stdcall GetMessageStr(DWORD fileAddr, DWORD messageId) {
 	DWORD buf = (DWORD)mesg_buf;
 	const char* result;
 	__asm {
-		mov eax, fileAddr
-		mov ebx, messageId
-		mov edx, buf
-		call getmsg_
-		mov result, eax
+		mov  eax, fileAddr;
+		mov  ebx, messageId;
+		mov  edx, buf;
+		call getmsg_;
+		mov result, eax;
 	}
 	return result;
 }
@@ -733,16 +733,16 @@ const char* _stdcall GetMessageStr(DWORD fileAddr, DWORD messageId) {
 // Change the name of playable character
 void CritterPcSetName(const char* newName) {
 	__asm {
-		mov eax, newName
-		call critter_pc_set_name_
+		mov  eax, newName;
+		call critter_pc_set_name_;
 	}
 }
 
 // Returns the name of the critter
 const char* __stdcall CritterName(TGameObj* critter) {
 	__asm {
-		mov eax, critter
-		call critter_name_
+		mov  eax, critter;
+		call critter_name_;
 	}
 }
 
@@ -751,9 +751,9 @@ void SkillGetTags(int* result, DWORD num) {
 		num = 4;
 	}
 	__asm {
-		mov eax, result
-		mov edx, num
-		call skill_get_tags_
+		mov  eax, result;
+		mov  edx, num;
+		call skill_get_tags_;
 	}
 }
 
@@ -762,212 +762,212 @@ void SkillSetTags(int* tags, DWORD num) {
 		num = 4;
 	}
 	__asm {
-		mov eax, tags
-		mov edx, num
-		call skill_set_tags_
+		mov  eax, tags;
+		mov  edx, num;
+		call skill_set_tags_;
 	}
 }
 
 int __stdcall ScrPtr(int scriptId, TScript** scriptPtr) {
 	__asm {
-		mov eax, scriptId;
-		mov edx, scriptPtr;
+		mov  eax, scriptId;
+		mov  edx, scriptPtr;
 		call scr_ptr_;
 	}
 }
 
 // redraws the main game interface windows (useful after changing some data like active hand, etc.)
 void InterfaceRedraw() {
-	__asm call intface_redraw_
+	__asm call intface_redraw_;
 }
 
 // pops value type from Data stack (must be followed by InterpretPopLong)
 DWORD __stdcall InterpretPopShort(TProgram* scriptPtr) {
 	__asm {
-		mov eax, scriptPtr
-		call interpretPopShort_
+		mov  eax, scriptPtr;
+		call interpretPopShort_;
 	}
 }
 
 // pops value from Data stack (must be preceded by InterpretPopShort)
 DWORD __stdcall InterpretPopLong(TProgram* scriptPtr) {
 	__asm {
-		mov eax, scriptPtr
-		call interpretPopLong_
+		mov  eax, scriptPtr;
+		call interpretPopLong_;
 	}
 }
 
 // pushes value to Data stack (must be followed by InterpretPushShort)
 void __stdcall InterpretPushLong(TProgram* scriptPtr, DWORD val) {
 	__asm {
-		mov edx, val
-		mov eax, scriptPtr
-		call interpretPushLong_
+		mov  edx, val;
+		mov  eax, scriptPtr;
+		call interpretPushLong_;
 	}
 }
 
 // pushes value type to Data stack (must be preceded by InterpretPushLong)
 void __stdcall InterpretPushShort(TProgram* scriptPtr, DWORD valType) {
 	__asm {
-		mov edx, valType
-		mov eax, scriptPtr
-		call interpretPushShort_
+		mov  edx, valType;
+		mov  eax, scriptPtr;
+		call interpretPushShort_;
 	}
 }
 
 DWORD __stdcall InterpretAddString(TProgram* scriptPtr, const char* strval) {
 	__asm {
-		mov edx, strval
-		mov eax, scriptPtr
-		call interpretAddString_
+		mov  edx, strval;
+		mov  eax, scriptPtr;
+		call interpretAddString_;
 	}
 }
 
 const char* __stdcall InterpretGetString(TProgram* scriptPtr, DWORD strId, DWORD dataType) {
 	__asm {
-		mov edx, dataType
-		mov ebx, strId
-		mov eax, scriptPtr
-		call interpretGetString_
+		mov  edx, dataType;
+		mov  ebx, strId;
+		mov  eax, scriptPtr;
+		call interpretGetString_;
 	}
 }
 
 void __declspec(naked) InterpretError(const char* fmt, ...) {
 	__asm {
-		jmp interpretError_
+		jmp interpretError_;
 	}
 }
 
 void __declspec(naked) DebugPrintf(const char* fmt, ...) {
 	__asm {
-		jmp debug_printf_
+		jmp debug_printf_;
 	}
 }
 
 const char* __stdcall FindCurrentProc(TProgram* program) {
 	__asm {
-		mov eax, program
-		call findCurrentProc_
+		mov  eax, program;
+		call findCurrentProc_;
 	}
 }
 
 TGameObj* __stdcall InvenWorn(TGameObj* critter) {
 	__asm {
-		mov eax, critter
-		call inven_worn_
+		mov  eax, critter;
+		call inven_worn_;
 	}
 }
 
 TGameObj* __stdcall InvenLeftHand(TGameObj* critter) {
 	__asm {
-		mov eax, critter
-		call inven_left_hand_
+		mov  eax, critter;
+		call inven_left_hand_;
 	}
 }
 
 TGameObj* __stdcall InvenRightHand(TGameObj* critter) {
 	__asm {
-		mov eax, critter
-		call inven_right_hand_
+		mov  eax, critter;
+		call inven_right_hand_;
 	}
 }
 
 long __stdcall CreateWindowFunc(const char* winName, long x, long y, long width, long height, long bgColorIndex, long flags) {
 	__asm {
-		push flags
-		push bgColorIndex
-		push height
-		mov ecx, width
-		mov ebx, y
-		mov edx, x
-		mov eax, winName
-		call createWindow_
+		push flags;
+		push bgColorIndex;
+		push height;
+		mov  ecx, width;
+		mov  ebx, y;
+		mov  edx, x;
+		mov  eax, winName;
+		call createWindow_;
 	}
 }
 
 long __stdcall WinRegisterButton(DWORD winRef, long xPos, long yPos, long width, long height, long hoverOn, long hoverOff, long buttonDown, long buttonUp, BYTE* pictureUp, BYTE* pictureDown, long arg12, long buttonType) {
 	__asm {
-		push buttonType
-		push arg12
-		push pictureDown
-		push pictureUp
-		push buttonUp
-		push buttonDown
-		push hoverOff
-		push hoverOn
-		push height
-		mov ecx, width
-		mov ebx, yPos
-		mov edx, xPos
-		mov eax, winRef
-		call win_register_button_
+		push buttonType;
+		push arg12;
+		push pictureDown;
+		push pictureUp;
+		push buttonUp;
+		push buttonDown;
+		push hoverOff;
+		push hoverOn;
+		push height;
+		mov  ecx, width;
+		mov  ebx, yPos;
+		mov  edx, xPos;
+		mov  eax, winRef;
+		call win_register_button_;
 	}
 }
 
 void __stdcall DialogOut(const char* text) {
 	__asm {
-		push 1           // flag
-		xor  eax, eax 
-		push eax         // ColorMsg
-		push eax         // DisplayMsg
-		mov  al, ds:[0x6AB718]
-		push eax         // ColorIndex
-		push 0x74        // y
-		mov  ecx, 0xC0   // x
-		mov  eax, text   // DisplayText
-		xor  ebx, ebx    // ?
-		xor  edx, edx    // ?
-		call dialog_out_
+		push 1;          // flag
+		xor  eax, eax;
+		push eax;        // ColorMsg
+		push eax;        // DisplayMsg
+		mov  al, byte ptr ds:[0x6AB718];
+		push eax;        // ColorIndex
+		push 0x74;       // y
+		mov  ecx, 0xC0;  // x
+		mov  eax, text;  // DisplayText
+		xor  ebx, ebx;   // ?
+		xor  edx, edx;   // ?
+		call dialog_out_;
 	}
 }
 
 long __fastcall WordWrap(const char* text, int maxWidth, DWORD* buf, BYTE* count) {
 	__asm {
-		mov eax, ecx
-		mov ecx, count
-		mov ebx, buf
-		call _word_wrap_
+		mov  eax, ecx;
+		mov  ecx, count;
+		mov  ebx, buf;
+		call _word_wrap_;
 	}
 }
 
 void __stdcall RedrawWin(DWORD winRef) {
 	__asm {
-		mov eax, winRef
-		call win_draw_
+		mov  eax, winRef;
+		call win_draw_;
 	}
 }
 
 void __stdcall DisplayInventory(long inventoryOffset, long visibleOffset, long mode) {
 	__asm {
-		mov ebx, mode
-		mov edx, visibleOffset
-		mov eax, inventoryOffset
-		call display_inventory_
+		mov  ebx, mode;
+		mov  edx, visibleOffset;
+		mov  eax, inventoryOffset;
+		call display_inventory_;
 	}
 }
 
 void __stdcall DisplayTargetInventory(long inventoryOffset, long visibleOffset, DWORD* targetInventory, long mode) {
 	__asm {
-		mov ecx, mode
-		mov ebx, targetInventory
-		mov edx, visibleOffset
-		mov eax, inventoryOffset
-		call display_target_inventory_
+		mov  ecx, mode;
+		mov  ebx, targetInventory;
+		mov  edx, visibleOffset;
+		mov  eax, inventoryOffset;
+		call display_target_inventory_;
 	}
 }
 
 long __stdcall StatLevel(TGameObj* critter, long statId) {
 	__asm {
-		mov edx, statId
-		mov eax, critter
-		call stat_level_
+		mov  edx, statId;
+		mov  eax, critter;
+		call stat_level_;
 	}
 }
 
 long __stdcall QueueFindFirst(TGameObj* object, long qType) {
 	__asm {
-		mov edx, qType
-		mov eax, object
-		call queue_find_first_
+		mov  edx, qType;
+		mov  eax, object;
+		call queue_find_first_;
 	}
 }

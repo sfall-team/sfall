@@ -380,7 +380,7 @@ static int __fastcall SuperStimFix2(TGameObj* item, TGameObj* target) {
 		return 0;
 	}
 
-	DWORD curr_hp, max_hp;
+	long curr_hp, max_hp;
 	curr_hp = StatLevel(target, STAT_current_hp);
 	max_hp = StatLevel(target, STAT_max_hit_points);
 	if (curr_hp < max_hp) return 0;
