@@ -247,7 +247,7 @@ static fo::GameObject* __fastcall PartyMemberBestWeapon(register fo::GameObject*
 
 	if (fo::func::inven_unwield(partyMember, slot) != 0) { // have successfully removed it (check result from hs_invenwield)
 		*backRet = 0x44952E;
-		return nullptr; // unwield behavior
+		return nullptr; // skip wield behavior
 	}
 
 	fo::GameObject* bestItem = fo::func::ai_search_inven_weap(partyMember, 0, 0);
@@ -275,8 +275,9 @@ static fo::GameObject* __fastcall PartyMemberBestArmor(register fo::GameObject* 
 	fo::GameObject* bestItem = fo::func::ai_search_inven_armor(partyMember);
 
 	if ((wornItem && bestItem == nullptr) || (bestItem && wornItem && bestItem->protoId == wornItem->protoId)) {
-		fo::func::correctFidForRemovedItem(partyMember, wornItem, 0); // unwield behavior
-		return nullptr;
+		if (CorrectFidForRemovedItem_HookRun(partyMember, wornItem) == 0) {
+			return nullptr; // unwield behavior
+		}
 	}
 	return bestItem; // normal behavior
 }

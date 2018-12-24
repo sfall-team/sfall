@@ -69,7 +69,7 @@ procedure CombaTurn_Handler begin
       end
    end else if (inControl) then begin
       if (displayName) then hide_iface_tag(displayName);
-      if (AllowControl(pid) == false) then begin
+      if (status == -1 or AllowControl(pid) == false) then begin
          set_dude_obj(real_dude_obj);
       end
    end
@@ -78,7 +78,9 @@ end
 procedure GameModeChange_Handler begin
    if (inControl and not(get_game_mode BWAND COMBAT)) then begin
       inControl := false;
-      set_dude_obj(real_dude_obj);
+      if (dude_obj != real_dude_obj) then begin
+         set_dude_obj(real_dude_obj);
+      end
       move_to(dude_obj, dude_tile, dude_elevation);
    end
 end

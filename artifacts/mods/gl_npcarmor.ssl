@@ -9,9 +9,11 @@
    NOTE: this script requires compiler from sfall modderspack with -s option
    (short circuit evaluation)
 
-   version 1.1
+   version 1.1 - for ext.
 
 */
+
+#define SFALL_SC_EVALUATION   (true) // Automatic script compilation with -s option
 
 #include "main.h"
 
@@ -22,7 +24,9 @@ variable
    modIni := "npcarmor.ini",
    defaultFids,
    armorPidMap, // maps armor PID to it's "type" - leather armor, metal, power armor, etc.
-   npcMap;
+   npcMap,
+   altWeapon,
+   unWieldWeapon;
 
 procedure check_armor_change(variable critter, variable item, variable isWorn) begin
    variable npc, armorType, fid;
@@ -49,16 +53,38 @@ procedure check_weapon_change(variable critter, variable item, variable isWield)
       if isWield then begin
          newWeaponAnim := get_proto_data(obj_pid(item), PROTO_WP_ANIM);
          weaponAnimList := string_split(npc["WeaponAnims"], ",");
-         if newWeaponAnim then begin
+         if newWeaponAnim then begin // anim code 0 - none/unarmed
             foreach (i in weaponAnimList) begin
                if (newWeaponAnim == atoi(i)) then return -1;
             end
-         end else begin // anim code 0 - none/unarmed
-            return -1;
+            return 0;
          end
+      end else begin
+         unWieldWeapon := obj_pid(item);
       end
    end
-   return 0;
+   return -1;
+end
+
+procedure search_alt_weapon(variable critter) begin
+   variable obj, res, i := 0;
+   obj := inven_ptr(critter, 0);
+   while (obj) do begin
+      if (obj_item_subtype(obj) == item_type_weapon) then begin
+         if (unWieldWeapon == 0 or unWieldWeapon != obj_pid(obj)) then begin
+            res := check_weapon_change(critter, obj, 1);
+            if (res == -1) then begin
+               altWeapon := obj;
+               wield_obj_critter(critter, obj);
+               altWeapon := 0;
+               break;
+            end
+         end
+      end
+      i++;
+      obj := inven_ptr(critter, i);
+   end
+   unWieldWeapon := 0;
 end
 
 // for NPCs when they change armor/weapon themselves
@@ -74,11 +100,16 @@ procedure invenwield_handler begin
       if (fid != -1) then begin
          art_change_fid_num(critter, fid);
       end
+      return;
    end
 
-   if (critter and item and (slot == INVEN_TYPE_RIGHT_HAND or slot == INVEN_TYPE_LEFT_HAND)) then begin
+   if (critter and item and slot == INVEN_TYPE_RIGHT_HAND) then begin
+      if (altWeapon == item) then return;
       canWield := check_weapon_change(critter, item, isWorn);
       set_sfall_return(canWield);
+      if (canWield != -1) then begin
+         call search_alt_weapon(critter);
+      end
    end
 end
 
