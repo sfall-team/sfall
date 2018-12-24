@@ -186,6 +186,8 @@
       <AssemblerListingLocation>$(IntDir)/%(RelativeDir)/</AssemblerListingLocation>
       <ObjectFileName>$(IntDir)/%(RelativeDir)/</ObjectFileName>
       <ForcedIncludeFiles>stdafx.h;%(ForcedIncludeFiles)</ForcedIncludeFiles>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <AdditionalOptions>/Gw %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <AdditionalDependencies>kernel32.lib;user32.lib;d3d9.lib;d3dx9.lib;Strmiids.lib;dinput.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -282,7 +284,7 @@
     <ClInclude Include="InputFuncs.h" />
     <ClInclude Include="Modules\Inventory.h" />
     <ClInclude Include="Modules\KillCounter.h" />
-    <ClInclude Include="Modules\Knockback.h" />
+    <ClInclude Include="Modules\Combat.h" />
     <ClInclude Include="Modules\LoadGameHook.h" />
     <ClInclude Include="Modules\MainMenu.h" />
     <ClInclude Include="Modules\Message.h" />
@@ -351,7 +353,7 @@
     <ClCompile Include="Modules\HookScripts.cpp" />
     <ClCompile Include="Modules\Inventory.cpp" />
     <ClCompile Include="Modules\KillCounter.cpp" />
-    <ClCompile Include="Modules\Knockback.cpp" />
+    <ClCompile Include="Modules\Combat.cpp" />
     <ClCompile Include="Modules\LoadGameHook.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Modules\MainMenu.cpp" />

@@ -358,7 +358,7 @@ void __stdcall DialogOut(const char* text) {
 		xor  eax, eax;
 		push eax;        // ColorMsg
 		push eax;        // DisplayMsg
-		mov  al, ds:[0x6AB718];
+		mov  al, byte ptr ds:[0x6AB718];
 		push eax;        // ColorIndex
 		push 0x74;       // y
 		mov  ecx, 0xC0;  // x

@@ -45,7 +45,7 @@ static void _stdcall SafeWriteFunc(BYTE code, DWORD addr, void* func) {
 	#endif
 }
 
-static _declspec(noinline) void _stdcall SafeWriteFunc(BYTE code, DWORD addr, void* func, DWORD len) {
+static __declspec(noinline) void _stdcall SafeWriteFunc(BYTE code, DWORD addr, void* func, DWORD len) {
 	DWORD oldProtect,
 		protectLen = len + 5,
 		addrMem = addr + 5,

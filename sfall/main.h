@@ -62,6 +62,10 @@ namespace sfall
 	#define isDebug false
 #endif
 
+// Macros for quick replacement of pushad/popad assembler opcodes
+#define pushadc _asm push eax _asm push edx _asm push ecx
+#define popadc _asm pop ecx _asm pop edx _asm pop eax
+
 // Gets the integer value from Sfall configuration INI file.
 unsigned int GetConfigInt(const char* section, const char* setting, int defaultValue);
 

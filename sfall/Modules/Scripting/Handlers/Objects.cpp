@@ -17,8 +17,8 @@
  */
 
 #include "..\..\..\FalloutEngine\Fallout2.h"
+#include "..\..\Combat.h"
 #include "..\..\Explosions.h"
-#include "..\..\Knockback.h"
 #include "..\..\Inventory.h"
 #include "..\..\LoadGameHook.h"
 #include "..\..\Objects.h"

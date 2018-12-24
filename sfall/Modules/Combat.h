@@ -23,9 +23,9 @@
 namespace sfall
 {
 
-class Knockback : public Module {
+class Combat : public Module {
 public:
-	const char* name() { return "Knockback"; }
+	const char* name() { return "Combat"; }
 	void init();
 };
 

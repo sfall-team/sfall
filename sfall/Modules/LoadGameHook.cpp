@@ -24,7 +24,7 @@
 #include "..\version.h"
 
 #include "AI.h"
-#include "Bugfixes.h"
+#include "BugFixes.h"
 #include "FileSystem.h"
 #include "HeroAppearance.h"
 #include "HookScripts.h"
@@ -40,16 +40,14 @@
 namespace sfall
 {
 
-#define _InLoop(type, flag) __asm { \
-	_asm pushad \
-	_asm push flag \
-	_asm push type \
-	_asm call SetInLoop \
-	_asm popad }
 #define _InLoop2(type, flag) __asm { \
 	_asm push flag \
 	_asm push type \
 	_asm call SetInLoop }
+#define _InLoop(type, flag) __asm { \
+	pushadc              \
+	_InLoop2(type, flag) \
+	popadc }
 
 static Delegate<> onGameInit;
 static Delegate<> onGameExit;
@@ -172,28 +170,27 @@ static DWORD _stdcall CombatSaveTest() {
 
 static void __declspec(naked) SaveGame_hook() {
 	__asm {
-		push ebx;
 		push ecx;
 		push edx;
 		push eax; // save Mode parameter
 		call CombatSaveTest;
 		test eax, eax;
-		pop edx; // recall Mode parameter (pop eax)
+		pop  edx; // recall Mode parameter (pop eax)
 		jz end;
-		mov eax, edx;
-
-		_InLoop(1, SAVEGAME);
+		push edx;
+		_InLoop2(1, SAVEGAME);
+		pop  eax;
 		call fo::funcoffs::SaveGame_;
-		_InLoop(0, SAVEGAME);
-		cmp eax, 1;
-		jne end;
-		// save sfall.sav
-		call SaveGame2;
-		mov eax, 1;
+		push eax;
+		_InLoop2(0, SAVEGAME);
+		pop  eax;
+		cmp  eax, 1;
+		jne  end;
+		call SaveGame2; // save sfall.sav
+		mov  eax, 1;
 end:
-		pop edx;
-		pop ecx;
-		pop ebx;
+		pop  edx;
+		pop  ecx;
 		retn;
 	}
 }
@@ -235,17 +232,18 @@ static void _stdcall LoadGame_Before() {
 
 // called whenever game is being reset (prior to loading a save or when returning to main menu)
 static void _stdcall GameReset(DWORD isGameLoad) {
-	onGameReset.invoke();
+	if (mapLoaded) { // prevent resetting when a new game has not been started (loading saved game from main menu)
+		onGameReset.invoke();
+		if (isDebug) {
+			char* str = (isGameLoad) ? "on Load" : "on Exit";
+			fo::func::debug_printf("\n[SFALL: State reset %s]\n", str);
+		}
+	}
 	inLoop = 0;
 	mapLoaded = false;
 
 	if (isGameLoad) {
 		LoadGame_Before();
-	}
-
-	if (isDebug) {
-		char* str = (isGameLoad) ? "on Load" : "on Exit";
-		fo::func::debug_printf("\n[SFALL: State reset %s]\n", str);
 	}
 }
 
@@ -260,17 +258,15 @@ static void __declspec(naked) LoadGame_hook() {
 		_InLoop(1, LOADGAME);
 		call fo::funcoffs::LoadGame_;
 		_InLoop(0, LOADGAME);
-		cmp eax, 1;
-		jne end;
+		cmp  eax, 1;
+		jne  end;
 		// Invoked
-		push ebx;
 		push ecx;
 		push edx;
 		call LoadGame_After;
-		mov eax, 1;
-		pop edx;
-		pop ecx;
-		pop ebx;
+		mov  eax, 1;
+		pop  edx;
+		pop  ecx;
 end:
 		retn;
 	}
@@ -279,9 +275,9 @@ end:
 static void __declspec(naked) EndLoadHook() {
 	__asm {
 		call fo::funcoffs::EndLoad_;
-		pushad;
+		pushadc;
 		call LoadHeroAppearance;
-		popad;
+		popadc;
 		retn;
 	}
 }
@@ -301,14 +297,12 @@ static void __stdcall NewGame_After() {
 
 static void __declspec(naked) main_load_new_hook() {
 	__asm {
-		pushad;
-		mov  esi, eax;      // keep
+		push eax;
 		call NewGame_Before;
-		mov  eax, esi;      // restore
+		pop  eax;
 		call fo::funcoffs::main_load_new_;
-		call NewGame_After;
-		popad;
-		retn;
+		jmp  NewGame_After;
+		//retn;
 	}
 }
 
@@ -326,57 +320,57 @@ static void __stdcall GameClose() {
 
 static void __declspec(naked) main_init_system_hook() {
 	__asm {
-		pushad;
+		pushadc;
 		call GameInitialized;
-		popad;
+		popadc;
 		jmp fo::funcoffs::main_init_system_;
 	}
 }
 
 static void __declspec(naked) game_reset_hook() {
 	__asm {
-		pushad;
+		pushadc;
 		push 0;
 		call GameReset; // reset all sfall modules before resetting the game data
-		popad;
+		popadc;
 		jmp fo::funcoffs::game_reset_;
 	}
 }
 
 static void __declspec(naked) game_reset_on_load_hook() {
 	__asm {
-		pushad;
+		pushadc;
 		push 1;
 		call GameReset; // reset all sfall modules before resetting the game data
-		popad;
+		popadc;
 		jmp fo::funcoffs::game_reset_;
 	}
 }
 
 static void __declspec(naked) before_game_exit_hook() {
 	__asm {
-		pushad;
+		pushadc;
 		push 1;
 		call GameModeChange;
-		popad;
+		popadc;
 		jmp fo::funcoffs::map_exit_;
 	}
 }
 
 static void __declspec(naked) after_game_exit_hook() {
 	__asm {
-		pushad;
+		pushadc;
 		call GameExit;
-		popad;
+		popadc;
 		jmp fo::funcoffs::main_menu_create_;
 	}
 }
 
 static void __declspec(naked) game_close_hook() {
 	__asm {
-		pushad;
+		pushadc;
 		call GameClose;
-		popad;
+		popadc;
 		jmp fo::funcoffs::game_exit_;
 	}
 }
@@ -384,7 +378,7 @@ static void __declspec(naked) game_close_hook() {
 static void __declspec(naked) WorldMapHook() {
 	__asm {
 		_InLoop(1, WORLDMAP);
-		xor eax, eax;
+		xor  eax, eax;
 		call fo::funcoffs::wmWorldMapFunc_;
 		_InLoop(0, WORLDMAP);
 		retn;
@@ -402,15 +396,15 @@ static void __declspec(naked) WorldMapHook2() {
 
 static void __declspec(naked) CombatHook() {
 	__asm {
-		pushad;
+		pushadc;
 		call AICombatStart;
 		_InLoop2(1, COMBAT);
-		popad;
+		popadc;
 		call fo::funcoffs::combat_;
-		pushad;
+		pushadc;
 		call AICombatEnd;
 		_InLoop2(0, COMBAT);
-		popad;
+		popadc;
 		retn;
 	}
 }
@@ -463,12 +457,12 @@ static void __declspec(naked) HelpMenuHook() {
 
 static void __declspec(naked) CharacterHook() {
 	__asm {
-		pushad;
+		pushadc;
 		_InLoop2(1, CHARSCREEN);
 		call PerksEnterCharScreen;
-		popad;
+		popadc;
 		call fo::funcoffs::editor_design_;
-		pushad;
+		pushadc;
 		test eax, eax;
 		jz success;
 		call PerksCancelCharScreen;
@@ -478,7 +472,7 @@ success:
 end:
 		_InLoop2(0, CHARSCREEN);
 		mov tagSkill4LevelBase, -1; // for fixing Tag! perk exploit
-		popad;
+		popadc;
 		retn;
 	}
 }

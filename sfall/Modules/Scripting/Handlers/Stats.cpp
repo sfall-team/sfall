@@ -17,8 +17,8 @@
  */
 
 #include "..\..\..\FalloutEngine\Fallout2.h"
+#include "..\..\Combat.h"
 #include "..\..\Criticals.h"
-#include "..\..\Knockback.h"
 #include "..\..\ScriptExtender.h"
 #include "..\..\Skills.h"
 #include "..\..\Stats.h"

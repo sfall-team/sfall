@@ -23,7 +23,7 @@
 #include "..\FalloutEngine\Fallout2.h"
 #include "LoadGameHook.h"
 
-#include "Knockback.h"
+#include "Combat.h"
 
 namespace sfall
 {
@@ -349,7 +349,7 @@ static void Knockback_OnGameLoad() {
 	forcedAS.clear();
 }
 
-void Knockback::init() {
+void Combat::init() {
 	MakeCall(0x424B76, compute_damage_hack, 2);        // KnockbackMod
 	MakeJump(0x4136D3, compute_dmg_damage_hack);    // for op_critter_dmg
 
