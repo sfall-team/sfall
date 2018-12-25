@@ -1058,6 +1058,7 @@ skip:
 		jl defaulthandler;
 		cmp rets[0], -1;
 		je defaulthandler;
+		mov eax, -1;
 		jmp end;
 defaulthandler:
 		call invenWieldFunc_;
@@ -1087,6 +1088,7 @@ notlefthand:
 		jl defaulthandler;
 		cmp rets[0], -1;
 		je defaulthandler;
+		mov eax, -1;
 		jmp end;
 defaulthandler:
 		call invenUnwieldFunc_;
@@ -1119,6 +1121,7 @@ notlefthand:
 		jl defaulthandler;
 		cmp rets[0], -1;
 		je defaulthandler;
+		mov eax, -1;
 		jmp end;
 defaulthandler:
 		call correctFidForRemovedItem_;
