@@ -40,8 +40,34 @@ struct SkillModifier {
 static std::vector<SkillModifier> skillMaxMods;
 static SkillModifier baseSkillMax;
 static BYTE skillCosts[512 * fo::SKILL_count];
+
 static DWORD basedOnPoints;
 static double* multipliers;
+
+static std::vector<ChanceModifier> pickpocketMods;
+static ChanceModifier basePickpocket;
+
+static int _fastcall PickpocketMod(int base, fo::GameObject* critter) {
+	for (DWORD i = 0; i < pickpocketMods.size(); i++) {
+		if (critter == pickpocketMods[i].id) {
+			return min(base + pickpocketMods[i].mod, pickpocketMods[i].maximum);
+		}
+	}
+	return min(base + basePickpocket.mod, basePickpocket.maximum);
+}
+
+static void __declspec(naked) skill_check_stealing_hack() {
+	__asm {
+		push edx;
+		push ecx;
+		mov  edx, esi;          // critter
+		mov  ecx, eax;          // base (calculate chance)
+		call PickpocketMod;
+		pop  ecx;
+		pop  edx;
+		retn;
+	}
+}
 
 static int _fastcall CheckSkillMax(DWORD critter, int base) {
 	for (DWORD i = 0; i < skillMaxMods.size(); i++) {
@@ -179,7 +205,31 @@ void _stdcall SetSkillMax(DWORD critter, DWORD maximum) {
 	skillMaxMods.push_back(cm);
 }
 
+void _stdcall SetPickpocketMax(fo::GameObject* critter, DWORD maximum, DWORD mod) {
+	if ((DWORD)critter == -1) {
+		basePickpocket.maximum = maximum;
+		basePickpocket.mod = mod;
+		return;
+	}
+	for (DWORD i = 0; i < pickpocketMods.size(); i++) {
+		if (critter == pickpocketMods[i].id) {
+			pickpocketMods[i].maximum = maximum;
+			pickpocketMods[i].mod = mod;
+			return;
+		}
+	}
+	ChanceModifier cm;
+	cm.id = critter;
+	cm.maximum = maximum;
+	cm.mod = mod;
+	pickpocketMods.push_back(cm);
+}
+
 static void Reset_OnGameLoad() {
+	pickpocketMods.clear();
+	basePickpocket.maximum = 95;
+	basePickpocket.mod = 0;
+
 	skillMaxMods.clear();
 	baseSkillMax.maximum = 300;
 	baseSkillMax.mod = 0;
@@ -189,6 +239,10 @@ void Skills::init() {
 	MakeJump(0x4AA63C, skill_level_hack, 1);
 	MakeCall(0x4AA847, skill_inc_point_force_hack);
 	MakeCall(0x4AA725, skill_inc_point_hack);
+
+	MakeCall(0x4ABC62, skill_check_stealing_hack);  // PickpocketMod
+	SafeWrite8(0x4ABC67, 0x89);                     // mov [esp + 0x54], eax
+	SafeWrite32(0x4ABC6B, 0x90909090);
 
 	char buf[512], key[16], file[64];
 	auto skillsFile = GetConfigString("Misc", "SkillsFile", "");

@@ -29,7 +29,12 @@ public:
 	void init();
 };
 
-void _stdcall SetPickpocketMax(fo::GameObject* critter, DWORD maximum, DWORD mod);
+struct ChanceModifier {
+	fo::GameObject* id;
+	int maximum { 95 };
+	int mod { 0 };
+};
+
 void _stdcall SetHitChanceMax(fo::GameObject* critter, DWORD maximum, DWORD mod);
 void _stdcall KnockbackSetMod(fo::GameObject* id, DWORD type, float val, DWORD on);
 void _stdcall KnockbackRemoveMod(fo::GameObject* id, DWORD on);

@@ -30,5 +30,6 @@ public:
 };
 
 void _stdcall SetSkillMax(DWORD critter, DWORD maximum);
+void _stdcall SetPickpocketMax(fo::GameObject* critter, DWORD maximum, DWORD mod);
 
 }
