@@ -32,15 +32,28 @@ namespace sfall
 {
 
 struct SkillModifier {
-	DWORD id { 0 };
-	int maximum { 300 };
-	int mod { 0 };
+	fo::GameObject* id;
+	int maximum;
+	//int mod;
+
+	SkillModifier() : maximum(300)/*, mod(0)*/ {}
+
+	SkillModifier(fo::GameObject* critter, int max) {
+		id = critter;
+		maximum = max;
+		//mod = mod;
+	}
+
+	void SetDefault() {
+		maximum = 300;
+		//mod = 0;
+	}
 };
 
 static std::vector<SkillModifier> skillMaxMods;
 static SkillModifier baseSkillMax;
-static BYTE skillCosts[512 * fo::SKILL_count];
 
+static BYTE skillCosts[512 * fo::SKILL_count];
 static DWORD basedOnPoints;
 static double* multipliers;
 
@@ -69,7 +82,7 @@ static void __declspec(naked) skill_check_stealing_hack() {
 	}
 }
 
-static int _fastcall CheckSkillMax(DWORD critter, int base) {
+static int _fastcall CheckSkillMax(fo::GameObject* critter, int base) {
 	for (DWORD i = 0; i < skillMaxMods.size(); i++) {
 		if (critter == skillMaxMods[i].id) {
 			return min(base, skillMaxMods[i].maximum);
@@ -119,7 +132,7 @@ static int _fastcall GetStatBonus( fo::GameObject* critter, const fo::SkillInfo*
 	for (int i = 0; i < 7; i++) {
 		result += fo::func::stat_level(critter, i) * multipliers[skill * 7 + i];
 	}
-	result += points*info->skillPointMulti;
+	result += points * info->skillPointMulti;
 	result += info->base;
 	return (int)result;
 }
@@ -187,8 +200,8 @@ static void __declspec(naked) skill_dec_point_hook_cost() {
 	}
 }
 
-void _stdcall SetSkillMax(DWORD critter, DWORD maximum) {
-	if (critter == -1) {
+void _stdcall SetSkillMax(fo::GameObject* critter, int maximum) {
+	if ((DWORD)critter == -1) {
 		baseSkillMax.maximum = maximum;
 		return;
 	}
@@ -198,11 +211,7 @@ void _stdcall SetSkillMax(DWORD critter, DWORD maximum) {
 			return;
 		}
 	}
-	SkillModifier cm;
-	cm.id = critter;
-	cm.maximum = maximum;
-	cm.mod = 0;
-	skillMaxMods.push_back(cm);
+	skillMaxMods.push_back(SkillModifier(critter, maximum));
 }
 
 void _stdcall SetPickpocketMax(fo::GameObject* critter, DWORD maximum, DWORD mod) {
@@ -218,21 +227,15 @@ void _stdcall SetPickpocketMax(fo::GameObject* critter, DWORD maximum, DWORD mod
 			return;
 		}
 	}
-	ChanceModifier cm;
-	cm.id = critter;
-	cm.maximum = maximum;
-	cm.mod = mod;
-	pickpocketMods.push_back(cm);
+	pickpocketMods.push_back(ChanceModifier(critter, maximum, mod));
 }
 
 static void Reset_OnGameLoad() {
 	pickpocketMods.clear();
-	basePickpocket.maximum = 95;
-	basePickpocket.mod = 0;
+	basePickpocket.SetDefault();
 
 	skillMaxMods.clear();
-	baseSkillMax.maximum = 300;
-	baseSkillMax.mod = 0;
+	baseSkillMax.SetDefault();
 }
 
 void Skills::init() {

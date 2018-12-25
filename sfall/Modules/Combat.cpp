@@ -205,11 +205,7 @@ void _stdcall SetHitChanceMax(fo::GameObject* critter, DWORD maximum, DWORD mod)
 			return;
 		}
 	}
-	ChanceModifier cm;
-	cm.id = critter;
-	cm.maximum = maximum;
-	cm.mod = mod;
-	hitChanceMods.push_back(cm);
+	hitChanceMods.push_back(ChanceModifier(critter, maximum, mod));
 }
 
 void _stdcall SetNoBurstMode(fo::GameObject* critter, bool on) {
@@ -283,8 +279,7 @@ void _stdcall ForceAimedShots(DWORD pid) {
 }
 
 static void ResetOnGameLoad() {
-	baseHitChance.maximum = 95;
-	baseHitChance.mod = 0;
+	baseHitChance.SetDefault();
 	mTargets.clear();
 	mAttackers.clear();
 	mWeapons.clear();
