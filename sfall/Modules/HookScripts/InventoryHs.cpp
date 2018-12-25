@@ -288,7 +288,7 @@ static bool InvenWieldHook_Script(int flag) {
 	bool result = (cRet == 0 || rets[0] == -1);
 	EndHook();
 
-	return result;
+	return result; // True - use engine handler
 }
 
 static void _declspec(naked) InvenWieldFuncHook() {
@@ -314,6 +314,7 @@ static void _declspec(naked) InvenWieldFuncHook() {
 		jz   skip;
 		jmp  funcoffs::invenWieldFunc_;
 skip:
+		mov  eax, -1;
 		retn;
 	}
 }
@@ -341,6 +342,7 @@ static void _declspec(naked) InvenUnwieldFuncHook() {
 		jz   skip;
 		jmp  fo::funcoffs::invenUnwieldFunc_;
 skip:
+		mov  eax, -1;
 		retn;
 	}
 }
@@ -371,6 +373,7 @@ static void _declspec(naked) CorrectFidForRemovedItemHook() {
 		jz   skip;
 		jmp  fo::funcoffs::correctFidForRemovedItem_;
 skip:
+		mov  eax, -1;
 		retn;
 	}
 }
@@ -419,9 +422,19 @@ void Inject_InventoryMoveHook() {
 }
 
 void Inject_InvenWieldHook() {
-	HookCalls(InvenWieldFuncHook, { 0x47275E, 0x495FDF });
-	HookCalls(InvenUnwieldFuncHook, { 0x45967D, 0x472A5A, 0x495F0B });
-	HookCalls(CorrectFidForRemovedItemHook, { 0x45680C, 0x45C4EA });
+	HookCalls(InvenWieldFuncHook, {
+		0x47275E, // inven_wield_
+		0x495FDF  // partyMemberCopyLevelInfo_
+	});
+	HookCalls(InvenUnwieldFuncHook, {
+		0x45967D, // op_metarule_
+		0x472A5A, // inven_unwield_
+		0x495F0B  // partyMemberCopyLevelInfo_
+	});
+	HookCalls(CorrectFidForRemovedItemHook, {
+		0x45680C, // op_rm_obj_from_inven_
+		0x45C4EA  // op_move_obj_inven_to_obj_
+	});
 }
 
 void InitInventoryHookScripts() {

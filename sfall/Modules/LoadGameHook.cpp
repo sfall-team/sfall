@@ -176,7 +176,7 @@ static void __declspec(naked) SaveGame_hook() {
 		call CombatSaveTest;
 		test eax, eax;
 		pop  edx; // recall Mode parameter (pop eax)
-		jz end;
+		jz   end;
 		push edx;
 		_InLoop2(1, SAVEGAME);
 		pop  eax;

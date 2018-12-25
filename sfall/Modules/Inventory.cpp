@@ -345,7 +345,7 @@ static int __fastcall SuperStimFix2(fo::GameObject* item, fo::GameObject* target
 		return 0;
 	}
 
-	DWORD curr_hp, max_hp;
+	long curr_hp, max_hp;
 	curr_hp = fo::func::stat_level(target, fo::STAT_current_hp);
 	max_hp = fo::func::stat_level(target, fo::STAT_max_hit_points);
 	if (curr_hp < max_hp) return 0;
@@ -646,7 +646,7 @@ end:
 // Differences from vanilla:
 // - doesn't use art_vault_guy_num as default art, uses current critter FID instead
 // - invokes onAdjustFid delegate that allows to hook into FID calculation
-DWORD __stdcall adjust_fid_replacement2() {
+DWORD __stdcall Inventory::adjust_fid_replacement() {
 	using namespace fo;
 
 	DWORD fid;
@@ -693,11 +693,11 @@ DWORD __stdcall adjust_fid_replacement2() {
 	return var::i_fid;
 }
 
-static void __declspec(naked) adjust_fid_replacement() {
+static void __declspec(naked) adjust_fid_hack_replacement() {
 	__asm {
 		push ecx;
 		push edx;
-		call adjust_fid_replacement2; // return fid
+		call Inventory::adjust_fid_replacement; // return fid
 		pop  edx;
 		pop  ecx;
 		retn;
@@ -740,7 +740,7 @@ void Inventory::init() {
 	OnKeyPressed() += InventoryKeyPressedHook;
 	LoadGameHook::OnGameReset() += InventoryReset;
 
-	MakeJump(fo::funcoffs::adjust_fid_, adjust_fid_replacement);
+	MakeJump(fo::funcoffs::adjust_fid_, adjust_fid_hack_replacement);
 
 	sizeLimitMode = GetConfigInt("Misc", "CritterInvSizeLimitMode", 0);
 	if (sizeLimitMode > 0 && sizeLimitMode <= 7) {
