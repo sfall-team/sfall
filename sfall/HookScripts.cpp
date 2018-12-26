@@ -994,7 +994,7 @@ static void _declspec(naked) UseArmorHack() {
 		mov args[0], 3;
 		mov eax, [esp+24]; // item
 		mov args[4], eax;
-  		mov eax, ds:[_i_worn]
+		mov eax, ds:[_i_worn]
 		mov args[8], eax;
 		pushad;
 		push HOOK_INVENTORYMOVE;

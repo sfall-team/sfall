@@ -18,6 +18,6 @@
 
 #pragma once
 
-void _stdcall SetSkillMax(DWORD critter, DWORD maximum);
+void _stdcall SetSkillMax(TGameObj* critter, int maximum);
 void SkillsInit();
 void Skills_OnGameLoad();
