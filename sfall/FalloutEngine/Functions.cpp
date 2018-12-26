@@ -138,6 +138,11 @@ long __stdcall db_get_file_list(const char* searchMask, char* * *fileList) {
 	WRAP_WATCOM_CALL2(db_get_file_list_, searchMask, fileList)
 }
 
+// Check fallout paths for file
+long __stdcall CheckFile(char *fileName, DWORD *sizeOut) {
+	WRAP_WATCOM_CALL2(db_dir_entry_, fileName, sizeOut)
+}
+
 // prints message to debug.log file
 void __declspec(naked) debug_printf(const char* fmt, ...) {
 	__asm jmp fo::funcoffs::debug_printf_
@@ -366,6 +371,20 @@ void __stdcall DialogOut(const char* text) {
 		xor  ebx, ebx;   // ?
 		xor  edx, edx;   // ?
 		call fo::funcoffs::dialog_out_;
+	}
+}
+
+void __fastcall DrawWinLine(int winRef, DWORD startXPos, DWORD endXPos, DWORD startYPos, DWORD endYPos, BYTE colour) {
+	__asm {
+		xor  eax, eax;
+		mov  al, colour;
+		push eax;
+		push endYPos;
+		mov  eax, ecx; // winRef
+		mov  ecx, endXPos;
+		mov  ebx, startYPos;
+		//mov  edx, xStartPos;
+		call fo::funcoffs::win_line_;
 	}
 }
 

@@ -31,10 +31,12 @@
 namespace sfall
 {
 
-bool appModEnabled = false; // check if Appearance mod enabled for script functions
+bool HeroAppearance::appModEnabled = false; // check if Appearance mod enabled for script functions
+
+const char* appearancePathFmt = "Appearance\\h%cR%02dS%02d%s";
 
 // char scrn surfaces
-BYTE *newButt01Surface = nullptr;
+BYTE *newButtonSurface = nullptr;
 BYTE *charScrnBackSurface = nullptr;
 
 // char scrn critter rotation vars
@@ -111,14 +113,9 @@ struct UnlistedFrm {
 	}
 };
 
-//--------------------------------------------------
-DWORD BuildFrmId(DWORD LstRef, DWORD LstNum) {
-	return fo::func::art_id(LstRef, LstNum, 0, 0, 0);
-}
-
 /////////////////////////////////////////////////////////////////UNLISTED FRM FUNCTIONS////////////////////////////////////////////////////////////////////////
 
-bool LoadFrmHeader(UnlistedFrm *frmHeader, fo::DbFile* frmStream) {
+static bool LoadFrmHeader(UnlistedFrm *frmHeader, fo::DbFile* frmStream) {
 	if (fo::func::db_freadInt(frmStream, &frmHeader->version) == -1)
 		return false;
 	else if (fo::func::db_freadShort(frmStream, &frmHeader->FPS) == -1)
@@ -139,7 +136,7 @@ bool LoadFrmHeader(UnlistedFrm *frmHeader, fo::DbFile* frmStream) {
 	return true;
 }
 
-bool LoadFrmFrame(UnlistedFrm::Frame *frame, fo::DbFile* frmStream) {
+static bool LoadFrmFrame(UnlistedFrm::Frame *frame, fo::DbFile* frmStream) {
 
 	//FRMframe *frameHeader = (FRMframe*)frameMEM;
 	//BYTE* frameBuff = frame + sizeof(FRMframe);
@@ -162,14 +159,14 @@ bool LoadFrmFrame(UnlistedFrm::Frame *frame, fo::DbFile* frmStream) {
 	return true;
 }
 
-UnlistedFrm *LoadUnlistedFrm(char *FrmName, unsigned int folderRef) {
+UnlistedFrm *LoadUnlistedFrm(char *frmName, unsigned int folderRef) {
 
-	if (folderRef > 10) return nullptr;
+	if (folderRef > fo::OBJ_TYPE_SKILLDEX) return nullptr;
 
-	char*artfolder = (char*)(0x51073C + folderRef * 32); // address of art type name
+	char *artfolder = fo::var::art[folderRef].path; // address of art type name
 	char frmPath[MAX_PATH];
 
-	sprintf_s(frmPath, MAX_PATH, "art\\%s\\%s\0", artfolder, FrmName);
+	sprintf_s(frmPath, MAX_PATH, "art\\%s\\%s", artfolder, frmName);
 
 	UnlistedFrm *frm = new UnlistedFrm;
 
@@ -196,7 +193,9 @@ UnlistedFrm *LoadUnlistedFrm(char *FrmName, unsigned int folderRef) {
 					}
 				}
 				oriOffset_new += frm->numFrames;
-			} else frm->oriOffset[ori] = 0;
+			} else {
+				frm->oriOffset[ori] = 0;
+			}
 		}
 
 		fo::func::db_fclose(frmStream);
@@ -209,80 +208,125 @@ UnlistedFrm *LoadUnlistedFrm(char *FrmName, unsigned int folderRef) {
 
 /////////////////////////////////////////////////////////////////TEXT FUNCTIONS////////////////////////////////////////////////////////////////////////
 
-void SetFont(long ref) {
+static void SetFont(long ref) {
 	fo::func::text_font(ref);
 }
 
-long GetFont() {
+static long GetFont() {
 	return fo::var::curr_font_num;
+}
+
+/*
+int WordWrap(char *TextMsg, DWORD lineLength, WORD *lineNum, WORD *lineOffsets) {
+	int retVal;
+	__asm {
+		mov ebx, lineOffsets
+		mov ecx, lineNum
+		mov edx, lineLength
+		mov eax, TextMsg
+		call fo::funcoffs::_word_wrap_
+		mov retVal, eax
+	}
+	return retVal;
+}
+*/
+
+static bool CreateWordWrapList(char *TextMsg, DWORD WrapWidth, DWORD *lineNum, LineNode *StartLine) {
+	*lineNum = 1;
+
+	if (fo::GetMaxCharWidth() >= WrapWidth) return false;
+	if (fo::GetTextWidth(TextMsg) < WrapWidth) return true;
+
+	DWORD GapWidth = fo::GetCharGapWidth();
+
+	StartLine->next = new LineNode;
+	LineNode *NextLine = StartLine->next;
+
+	DWORD lineWidth = 0, wordWidth = 0, i = 0;
+	char CurrentChar;
+
+	while (TextMsg[i] != '\0') {
+		CurrentChar = TextMsg[i++];
+
+		int cWidth = fo::GetCharWidth(CurrentChar) + GapWidth;
+		lineWidth += cWidth;
+		wordWidth += cWidth;
+
+		if (lineWidth <= WrapWidth) {
+			if (isspace(CurrentChar) || CurrentChar == '-') {
+				NextLine->offset = i;
+				wordWidth = 0;
+			}
+		} else {
+			if (isspace(CurrentChar)) {
+				NextLine->offset = i;
+				wordWidth = 0;
+			}
+			lineWidth = wordWidth;
+			wordWidth = 0;
+			CurrentChar = '\0';
+			*lineNum += 1;
+			NextLine->next = new LineNode;
+			NextLine = NextLine->next;
+		}
+		if (TextMsg[i] == '\0') NextLine->offset = 0;
+	}
+	return true;
+}
+
+static void DeleteWordWrapList(LineNode *CurrentLine) {
+	LineNode *NextLine = nullptr;
+
+	while (CurrentLine != nullptr) {
+		NextLine = CurrentLine->next;
+		delete CurrentLine;
+		CurrentLine = NextLine;
+	}
 }
 
 /////////////////////////////////////////////////////////////////DAT FUNCTIONS////////////////////////////////////////////////////////////////////////
 
-void* LoadDat(char*fileName) {
+static void* LoadDat(char*fileName) {
 	return fo::func::dbase_open(fileName);
 }
 
-void UnloadDat(void *dat) {
+static void UnloadDat(void *dat) {
 	fo::func::dbase_close(dat);
 }
 
 /////////////////////////////////////////////////////////////////OTHER FUNCTIONS////////////////////////////////////////////////////////////////////////
 
-/*
-void DrawLineX(int WinRef, DWORD XStartPos, DWORD XEndPos, DWORD Ypos, BYTE ColourIndex) {
-	__asm {
-		xor eax, eax
-		mov al, ColourIndex
-		push eax
-		mov ebx, Ypos
-		push ebx
-		mov ecx, XEndPos
-		mov edx, XStartPos
-		mov eax, WinRef
-
-		call fo::funcoffs::win_line_
-	}
+static DWORD BuildFrmId(DWORD lstRef, DWORD lstNum) {
+	return fo::func::art_id(lstRef, lstNum, 0, 0, 0);
 }
-*/
 
-void PlayAcm(char *AcmName) {
+static void PlayAcm(char *acmName) {
 	__asm {
-		mov  eax, AcmName;
+		mov  eax, acmName;
 		call fo::funcoffs::gsound_play_sfx_file_;
 	}
 }
 
-// Check fallout paths for file
-int __cdecl CheckFile(char *FileName, DWORD *size_out) {
-	int retVal = 0;
-	__asm {
-		mov  edx, size_out;
-		mov  eax, FileName;
-		call fo::funcoffs::db_dir_entry_;
-		mov  retVal, eax;
-	}
-	return retVal;
-}
-
 /////////////////////////////////////////////////////////////////APP MOD FUNCTIONS////////////////////////////////////////////////////////////////////////
 
-char _stdcall GetSex() {
+static char GetSex() {
 	return (fo::HeroIsFemale()) ? 'F' : 'M';
 }
 
 // functions to load and save appearance globals
-void SetAppearanceGlobals(int race, int style) {
+static void SetAppearanceGlobals(int race, int style) {
 	SetGlobalVar("HAp_Race", race);
 	SetGlobalVar("HApStyle", style);
 }
 
-void GetAppearanceGlobals(int *race, int *style) {
+static void GetAppearanceGlobals(int *race, int *style) {
 	*race = GetGlobalVar("HAp_Race");
 	*style = GetGlobalVar("HApStyle");
 }
 
-int _stdcall LoadHeroDat(unsigned int Race, unsigned int Style) {
+static __declspec(noinline) int _stdcall LoadHeroDat(unsigned int race, unsigned int style, bool flush = false) {
+
+	if (flush) fo::func::art_flush();
 
 	if (heroPathPtr->pDat) { // unload previous Dats
 		UnloadDat(heroPathPtr->pDat);
@@ -295,12 +339,15 @@ int _stdcall LoadHeroDat(unsigned int Race, unsigned int Style) {
 		racePathPtr->isDat = 0;
 	}
 
-	sprintf_s(heroPathPtr->path, 64, "Appearance\\h%cR%02dS%02d.dat\0", GetSex(), Race, Style);
-	if (GetFileAttributes(heroPathPtr->path) != INVALID_FILE_ATTRIBUTES) { // check if Dat exists for selected appearance
+	const char sex = GetSex();
+
+	sprintf_s(heroPathPtr->path, 64, appearancePathFmt, sex, race, style, ".dat");
+	int result = GetFileAttributes(heroPathPtr->path);
+	if (result != INVALID_FILE_ATTRIBUTES && !(result & FILE_ATTRIBUTE_DIRECTORY)) { // check if Dat exists for selected appearance
 		heroPathPtr->pDat = LoadDat(heroPathPtr->path);
 		heroPathPtr->isDat = 1;
 	} else {
-		sprintf_s(heroPathPtr->path, 64, "Appearance\\h%cR%02dS%02d\0", GetSex(), Race, Style);
+		sprintf_s(heroPathPtr->path, 64, appearancePathFmt, sex, race, style, "");
 		if (GetFileAttributes(heroPathPtr->path) == INVALID_FILE_ATTRIBUTES) // check if folder exists for selected appearance
 			return -1;
 	}
@@ -308,13 +355,14 @@ int _stdcall LoadHeroDat(unsigned int Race, unsigned int Style) {
 	tempPathPtr = &heroPathPtr; // set path for selected appearance
 	heroPathPtr->next = &fo::var::paths[0];
 
-	if (Style != 0) {
-		sprintf_s(racePathPtr->path, 64, "Appearance\\h%cR%02dS%02d.dat\0", GetSex(), Race, 0);
-		if (GetFileAttributes(racePathPtr->path) != INVALID_FILE_ATTRIBUTES) { // check if Dat exists for selected race base appearance
+	if (style != 0) {
+		sprintf_s(racePathPtr->path, 64, appearancePathFmt, sex, race, 0, ".dat");
+		int result = GetFileAttributes(racePathPtr->path);
+		if (result != INVALID_FILE_ATTRIBUTES && !(result & FILE_ATTRIBUTE_DIRECTORY)) { // check if Dat exists for selected race base appearance
 			racePathPtr->pDat = LoadDat(racePathPtr->path);
 			racePathPtr->isDat = 1;
 		} else {
-			sprintf_s(racePathPtr->path, 64, "Appearance\\h%cR%02dS%02d\0", GetSex(), Race, 0);
+			sprintf_s(racePathPtr->path, 64, appearancePathFmt, sex, race, 0, "");
 		}
 
 		if (GetFileAttributes(racePathPtr->path) != INVALID_FILE_ATTRIBUTES) { // check if folder/Dat exists for selected race base appearance
@@ -342,29 +390,22 @@ setPath:
 
 static void __declspec(naked) CheckHeroExist() {
 	__asm {
-		//pushad
-		cmp  esi, critterArraySize; // check if loading hero art
-		jle  EndFunc;
-
+		cmp  esi, critterArraySize;       // check if loading hero art
+		jle  endFunc;
 		sub  esp, 4;
-		lea  ebx, [esp];
-		push ebx;
-		push FO_VAR_art_name; // critter art file name address
-		//call CheckHeroFile // check if art file exists
-		call CheckFile;
-		add  esp, 12;
-		cmp  eax, -1;
-		jne  EndFunc;
-
-		//pop eax // drop func ret address
+		lea  edx, [esp];                  // size out
+		mov  eax, FO_VAR_art_name;        // critter art file name address (file name)
+		call fo::funcoffs::db_dir_entry_; // check art file exists
 		add  esp, 4;
+		cmp  eax, -1;
+		jne  endFunc;
+
 		// if file not found load regular critter art instead
 		sub  esi, critterArraySize;
-		//popad
+		add  esp, 4;                      // drop func ret address
 		mov  eax, 0x4194E2;
 		jmp  eax;
-EndFunc:
-		//popad
+endFunc:
 		mov  eax, FO_VAR_art_name;
 		retn;
 	}
@@ -373,10 +414,7 @@ EndFunc:
 // adjust base hero art if num below hero art range
 static void __declspec(naked) AdjustHeroBaseArt() {
 	__asm {
-		//cmp eax, critterListSize
-		//jg EndFunc
 		add eax, critterListSize;
-//EndFunc:
 		mov dword ptr ds:[FO_VAR_art_vault_guy_num], eax;
 		retn;
 	}
@@ -392,255 +430,164 @@ static void AdjustHeroArmorArt(DWORD fid) {
 	}
 }
 
-void _stdcall SetHeroArt(int NewArtFlag) {
-	__asm {
-		mov  eax, dword ptr ds:[FO_VAR_obj_dude]; // hero state struct
-		mov  eax, dword ptr ds:[eax + 0x20];      // get hero FrmID
-		xor  edx, edx;
-		mov  dx, ax;
-		and  dh, 0x0F;             // mask out current weapon flag
-		cmp  edx, critterListSize; // check if critter LST index is in Hero range
-		jg   IsHero;
-		cmp  NewArtFlag, 1;
-		jne  EndFunc;
-		add  eax, critterListSize; // shift index up into hero range
-		jmp  SetArt;
-IsHero:
-		cmp  NewArtFlag, 0;
-		jne  EndFunc;
-		sub  eax, critterListSize; // shift index down into normal critter range
-SetArt:
-		mov  ebx, 0; // SomePtr
-		mov  edx, eax;
-		mov  eax, dword ptr ds:[FO_VAR_obj_dude]; // hero state struct
-		mov  dword ptr ds:[eax + 0x20], edx;      // copy new FrmID to hero state struct
-		//call obj_change_fid_ // set critter FrmID function
-EndFunc:
+static void _stdcall SetHeroArt(bool newArtFlag) {
+
+	fo::GameObject* hero = fo::var::obj_dude; // hero state struct
+	long heroFID = hero->artFid;              // get hero FrmID
+	DWORD fidBase = heroFID & 0xFFF;          // mask out current weapon flag
+
+	if (fidBase > critterListSize) {          // check if critter LST index is in Hero range
+		if (!newArtFlag) {
+			heroFID -= critterListSize;       // shift index down into normal critter range
+			hero->artFid = heroFID;
+		}
+	} else if (newArtFlag) {
+		heroFID += critterListSize;           // shift index up into hero range
+		hero->artFid = heroFID;               // set new FrmID to hero state struct
 	}
 }
 
 // return hero art val to normal before saving
 static void __declspec(naked) SavCritNumFix() {
 	__asm {
-		push eax;
+		push ecx;
 		push edx;
-		push 0; // set hero FrmID LST index to normal range before saving
+		push eax;
+		push 0;                            // set hero FrmID LST index to normal range before saving
 		call SetHeroArt;
-		pop  edx;
 		pop  eax;
 		call fo::funcoffs::obj_save_dude_; // save current hero state structure fuction
 		push eax;
-		push edx;
-		push 1; // return hero FrmID LST index back to hero art range after saving hero state structure
+		push 1;                            // return hero FrmID LST index back to hero art range after saving hero state structure
 		call SetHeroArt;
-		pop  edx;
 		pop  eax;
+		pop  edx;
+		pop  ecx;
 		retn;
 	}
 }
 
 static void __declspec(naked) DoubleArt() {
 	__asm {
-		cmp dword ptr ss:[esp + 0xCC], 0x510774; // check if loading critter lst. 0x510774= addr of critter list size val
-		jne EndFunc;
+		cmp dword ptr ss:[esp + 0xCC], 0x510774; // check if loading critter lst. 0x510774 = addr of critter list size val
+		jne endFunc;
 		shl edi, 1;                              // double critter list size to add room for hero art
-EndFunc:
-		mov eax, ecx;
-		xor ebx, ebx;
-		xor edx, edx;
-		retn;
+endFunc:
+		jmp fo::funcoffs::db_fseek_;
 	}
 }
 
 // create a duplicate list of critter names at the end with an additional '_' character at the beginning of its name
-void FixCritList() {
+static long _stdcall AddHeroCritNames() { // art_init_
 	auto &critterArt = fo::var::art[fo::OBJ_TYPE_CRITTER];
 	critterListSize = critterArt.total / 2;
 	critterArraySize = critterListSize * 13;
 
 	char *CritList = critterArt.names;              // critter list offset
-	char *HeroList = CritList + (critterArraySize); // set start of hero critter list after regular critter list
+	char *HeroList = CritList + critterArraySize;   // set start of hero critter list after regular critter list
 
-	memset(HeroList, '\0', critterArraySize);
+	memset(HeroList, 0, critterArraySize);
 
 	for (DWORD i = 0; i < critterListSize; i++) {   // copy critter name list to hero name list
-		*HeroList = '_';                            // insert a '_' char at the front of new hero critt names. -fallout wont load the same name twice
+		*HeroList = '_';                            // insert a '_' char at the front of new hero critt names. fallout wont load the same name twice
 		memcpy(HeroList + 1, CritList, 11);
 		HeroList += 13;
 		CritList += 13;
 	}
+	return critterArt.total;
 }
 
-static void __declspec(naked) AddHeroCritNames() {  // art_init_
-	__asm {
-		call FixCritList; // insert names for hero critters
-		mov  eax, dword ptr ds:[FO_VAR_art + 0x3C];
-		retn;
-	}
-}
+///////////////////////////////////////////////////////////////GRAPHICS HERO FUNCTIONS//////////////////////////////////////////////////////////////////////
 
-/////////////////////////////////////////////////////////////////GRAPHICS FUNCTIONS////////////////////////////////////////////////////////////////////////
-
-void sub_draw(long subWidth, long subHeight, long fromWidth, long fromHeight, long fromX, long fromY, BYTE *fromBuff,
-              long toWidth, long toHeight, long toX, long toY, BYTE *toBuff, int maskRef) {
-
-	fromBuff = fromBuff + fromY*fromWidth + fromX;
-	toBuff = toBuff + toY*toWidth + toX;
-
-	for (long h = 0; h < subHeight; h++) {
-		for (long w = 0; w < subWidth; w++) {
-			if (fromBuff[w] != maskRef)
-				toBuff[w] = fromBuff[w];
-		}
-		fromBuff += fromWidth;
-		toBuff += toWidth;
-	}
-}
-
-void DrawPC() {
-	RECT critRect;
-	__asm {
-		/*
-		lea ebx, //-out- RECT*
-		mov eax, dword ptr ds:[FO_VAR_obj_dude] // critter struct
-		mov edx, dword ptr ds:[eax + 0x20] // new frmId
-		call obj_change_fid_ // set new critt FrmID func
-		*/
-		lea  edx, critRect;                       // out critter RECT*
-		mov  eax, dword ptr ds:[FO_VAR_obj_dude]; // dude critter struct
-		call fo::funcoffs::obj_bound_;            // get critter rect func
-
-		mov  edx, dword ptr ds:[FO_VAR_obj_dude]; // dude critter struct
-		lea  eax, critRect;                       // RECT*
-		mov  edx, dword ptr ds:[edx + 0x28];      // map level the dude is on
-		call fo::funcoffs::tile_refresh_rect_;    // draw rect area func
-	}
+static void DrawPC() {
+	fo::RedrawObject(fo::var::obj_dude);
 }
 
 // scan inventory items for armor and weapons currently being worn or wielded and setup matching FrmID for PC
-void _stdcall RefreshPCArt() {
-	__asm {
-		call fo::funcoffs::proto_dude_update_gender_; // refresh PC base model art
+void UpdateHeroArt() {
+	auto iD = fo::var::inven_dude;
+	auto iR = fo::var::i_rhand;
+	auto iL = fo::var::i_lhand;
+	auto iW = fo::var::i_worn;
 
-		mov  eax, dword ptr ds:[FO_VAR_obj_dude];     // PC state struct
-		mov  dword ptr ds:[FO_VAR_inven_dude], eax;   // inventory temp pointer to PC state struct
-		mov  eax, dword ptr ds:[FO_VAR_inven_dude];
-		lea  edx, dword ptr ds:[eax + 0x2C];
-		mov  dword ptr ds:[FO_VAR_pud], edx;          // PC inventory
+	fo::var::i_rhand = 0;
+	fo::var::i_lhand = 0;
+	fo::var::i_worn = 0;
 
-		xor  eax, eax;
-		xor  edx, edx; // itemListOffset
-		xor  ebx, ebx; // itemNum
+	fo::var::inven_dude = fo::var::obj_dude;
+	int invenSize = fo::var::obj_dude->invenSize;
+	//fo::var::pud = invenSize;
 
-		mov  dword ptr ds:[FO_VAR_i_rhand], eax; // item2
-		mov  dword ptr ds:[FO_VAR_i_worn], eax;  // armor
-		mov  dword ptr ds:[FO_VAR_i_lhand], eax; // item1
-		jmp  LoopStart;
+	for (int itemNum = 0; itemNum < invenSize; itemNum++) {
+		fo::GameObject* item = fo::var::obj_dude->invenTable[itemNum].object; // PC inventory item list + itemListOffset
 
-CheckNextItem:
-		mov  eax, dword ptr ds:[eax + 0x8]; // PC inventory item list
-		mov  eax, dword ptr ds:[edx + eax]; // PC inventory item list + itemListOffset
-
-		test byte ptr ds:[eax + 0x27], 1; // if item in item1 slot
-		jnz  IsItem1;
-		test byte ptr ds:[eax + 0x27], 2; // if item in item2 slot
-		jnz  IsItem2;
-		test byte ptr ds:[eax + 0x27], 4; // if item in armor slot
-		jnz  IsArmor;
-		jmp  SetNextItem;
-
-IsItem1:
-		mov  dword ptr ds:[FO_VAR_i_lhand], eax; // set item1
-		test byte ptr ds:[eax + 0x27], 2;        // check if same item type also in item2 slot
-		jz   SetNextItem;
-
-IsItem2:
-		mov  dword ptr ds:[FO_VAR_i_rhand], eax; // set item2
-		jmp  SetNextItem;
-
-IsArmor:
-		mov  dword ptr ds:[FO_VAR_i_worn], eax; // set armor
-
-SetNextItem:
-		inc  ebx;    // itemNum++
-		add  edx, 8; // itemListOffset + itemsize
-LoopStart:
-		mov  eax, dword ptr ds:[FO_VAR_pud]; // PC inventory
-		cmp  ebx, dword ptr ds:[eax];        // size of item list
-		jl   CheckNextItem;
-
-		// inventory function - setup pc FrmID and store at address _i_fid
-		call fo::funcoffs::adjust_fid_;
-
-		// copy new FrmID to hero state struct
-		mov  edx, dword ptr ds:[FO_VAR_i_fid];
-		mov  eax, dword ptr ds:[FO_VAR_inven_dude];
-		mov  dword ptr ds:[eax + 0x20], edx;
-		//call fo::funcoffs::obj_change_fid_
-
-		xor  eax, eax;
-		mov  dword ptr ds:[FO_VAR_i_rhand], eax; // item2
-		mov  dword ptr ds:[FO_VAR_i_worn], eax;  // armor
-		mov  dword ptr ds:[FO_VAR_i_lhand], eax; // item1
-	}
-
-	if (!appModEnabled) return;
-
-	if (LoadHeroDat(currentRaceVal, currentStyleVal) != 0) {     // if load fails
-		currentStyleVal = 0;                                     // set style to default
-		if (LoadHeroDat(currentRaceVal, currentStyleVal) != 0) { // if race fails with style at default
-			currentRaceVal = 0;                                  // set race to default
-			LoadHeroDat(currentRaceVal, currentStyleVal);
+		if (item->flags & fo::ObjectFlag::Right_Hand) {
+			fo::var::i_rhand = item;
+		}
+		else if (item->flags & fo::ObjectFlag::Left_Hand) {
+			fo::var::i_lhand = item;
+		}
+		else if (item->flags & fo::ObjectFlag::Worn) {
+			fo::var::i_worn = item;
 		}
 	}
-	fo::func::art_flush();
+
+	// inventory function - setup pc FrmID and store at address _i_fid
+	fo::var::obj_dude->artFid = Inventory::adjust_fid_replacement(); // adjust_fid_
+
+	fo::var::inven_dude = iD;
+	fo::var::i_rhand = iR;
+	fo::var::i_lhand = iL;
+	fo::var::i_worn = iW;
+}
+
+void _stdcall RefreshPCArt() {
+	fo::func::proto_dude_update_gender(); // refresh PC base model art
+
+	UpdateHeroArt();
 	DrawPC();
 }
 
 void _stdcall LoadHeroAppearance() {
-	if (!appModEnabled) return;
+	if (!HeroAppearance::appModEnabled) return;
 
 	GetAppearanceGlobals(&currentRaceVal, &currentStyleVal);
-	fo::func::art_flush();
-	LoadHeroDat(currentRaceVal, currentStyleVal);
-	SetHeroArt(1);
+	LoadHeroDat(currentRaceVal, currentStyleVal, true);
+	SetHeroArt(true);
 	DrawPC();
 }
 
 void _stdcall SetNewCharAppearanceGlobals() {
-	if (!appModEnabled) return;
+	if (!HeroAppearance::appModEnabled) return;
 
 	if (currentRaceVal > 0 || currentStyleVal > 0) {
 		SetAppearanceGlobals(currentRaceVal, currentStyleVal);
 	}
 }
 
+// op_set_hero_style
 void _stdcall SetHeroStyle(int newStyleVal) {
-	if (!appModEnabled || newStyleVal == currentStyleVal) return;
+	if (!HeroAppearance::appModEnabled || newStyleVal == currentStyleVal) return;
 
-	fo::func::art_flush();
-
-	if (LoadHeroDat(currentRaceVal, newStyleVal) != 0) {  // if new style cannot be set
+	if (LoadHeroDat(currentRaceVal, newStyleVal, true) != 0) {  // if new style cannot be set
 		if (currentRaceVal == 0 && newStyleVal == 0) {
-			currentStyleVal = 0;                          // ignore error if appearance = default
+			currentStyleVal = 0;                                // ignore error if appearance = default
 		} else {
-			LoadHeroDat(currentRaceVal, currentStyleVal); // reload original style
+			LoadHeroDat(currentRaceVal, currentStyleVal);       // reload original style
 		}
 	} else {
 		currentStyleVal = newStyleVal;
 	}
-
 	SetAppearanceGlobals(currentRaceVal, currentStyleVal);
 	DrawPC();
 }
 
+// op_set_hero_race
 void _stdcall SetHeroRace(int newRaceVal) {
 
-	if (!appModEnabled || newRaceVal == currentRaceVal) return;
+	if (!HeroAppearance::appModEnabled || newRaceVal == currentRaceVal) return;
 
-	fo::func::art_flush();
-
-	if (LoadHeroDat(newRaceVal, 0) != 0) {                // if new race fails with style at 0
+	if (LoadHeroDat(newRaceVal, 0, true) != 0) {          // if new race fails with style at 0
 		if (newRaceVal == 0) {
 			currentRaceVal = 0;
 			currentStyleVal = 0;                          // ignore if appearance = default
@@ -655,82 +602,67 @@ void _stdcall SetHeroRace(int newRaceVal) {
 	DrawPC();
 }
 
-bool CreateWordWrapList(char *TextMsg, DWORD WrapWidth, DWORD *lineNum, LineNode *StartLine) {
-	*lineNum = 1;
-
-	if (fo::GetMaxCharWidth() >= WrapWidth) return false;
-
-	if (fo::GetTextWidth(TextMsg) < WrapWidth) return true;
-
-	DWORD GapWidth = fo::GetCharGapWidth();
-
-	StartLine->next = new LineNode;
-	LineNode *NextLine = StartLine->next;
-
-	DWORD lineWidth = 0, wordWidth = 0;
-
-	char CurrentChar = '\0';
-	DWORD i = 0;
-
-	while (TextMsg[i] != '\0') {
-		CurrentChar = TextMsg[i];
-
-		lineWidth = lineWidth + fo::GetCharWidth(CurrentChar) + GapWidth;
-		wordWidth = wordWidth + fo::GetCharWidth(CurrentChar) + GapWidth;
-
-		if (lineWidth <= WrapWidth) {
-			if (isspace(CurrentChar) || CurrentChar == '-') {
-				NextLine->offset = i + 1;
-				wordWidth = 0;
-			}
-		} else {
-			if (isspace(CurrentChar)) {
-				NextLine->offset = i + 1;
-				wordWidth = 0;
-			}
-			lineWidth = wordWidth;
-			wordWidth = 0;
-			CurrentChar = '\0';
-			*lineNum = *lineNum + 1;
-			NextLine->next = new LineNode;
-			NextLine = NextLine->next;
-		}
-
-		i++;
-		if (TextMsg[i] == '\0') NextLine->offset = 0;
-	}
-	return true;
-}
-
-/*
-int WordWrap(char *TextMsg, DWORD lineLength, WORD *lineNum, WORD *lineOffsets) {
-	int retVal;
+// Reset Appearance when selecting "Create Character" from the New Char screen
+static void __declspec(naked) CreateCharReset() {
 	__asm {
-		mov ebx, lineOffsets
-		mov ecx, lineNum
-		mov edx, lineLength
-		mov eax, TextMsg
-		call fo::funcoffs::_word_wrap_
-		mov retVal, eax
+		cmp  currentStyleVal, 0;
+		jnz  reset;
+		cmp  currentRaceVal, 0;
+		jz   endFunc;
+reset:  // set race and style to defaults
+		push edx;
+		push ecx;
+		xor  eax, eax;
+		mov  currentRaceVal, eax;
+		mov  currentStyleVal, eax;
+		push eax; // flush
+		push eax;
+		push eax;
+		call LoadHeroDat;
+		pop  ecx;
+		pop  edx;
+		call fo::funcoffs::proto_dude_update_gender_;
+endFunc:
+		mov  eax, 1;
+		retn;
 	}
-	return retVal;
 }
-*/
 
-void DeleteWordWrapList(LineNode *CurrentLine) {
-	LineNode *NextLine = nullptr;
+/////////////////////////////////////////////////////////////////INTERFACE FUNCTIONS///////////////////////////////////////////////////////////////////////
 
-	while (CurrentLine != nullptr) {
-		NextLine = CurrentLine->next;
-		delete CurrentLine;
-		CurrentLine = NextLine;
+static void sub_draw(long subWidth, long subHeight, long fromWidth, long fromHeight, long fromX, long fromY, BYTE *fromBuff,
+					 long toWidth, long toHeight, long toX, long toY, BYTE *toBuff, int maskRef) {
+
+	fromBuff += fromY * fromWidth + fromX;
+	toBuff += toY * toWidth + toX;
+
+	for (long h = 0; h < subHeight; h++) {
+		for (long w = 0; w < subWidth; w++) {
+			if (fromBuff[w] != maskRef)
+				toBuff[w] = fromBuff[w];
+		}
+		fromBuff += fromWidth;
+		toBuff += toWidth;
 	}
 }
 
-void DrawPCConsole() {
+static void DrawBody(DWORD critNum, BYTE* surface) {
+	DWORD critFrmLock;
+
+	fo::FrmFrameData *critFrm = fo::func::art_ptr_lock(BuildFrmId(1, critNum), &critFrmLock);
+	DWORD critWidth = fo::func::art_frame_width(critFrm, 0, charRotOri);
+	DWORD critHeight = fo::func::art_frame_length(critFrm, 0, charRotOri);
+	BYTE *critSurface = fo::func::art_frame_data(critFrm, 0, charRotOri);
+	sub_draw(critWidth, critHeight, critWidth, critHeight, 0, 0, critSurface, 70, 102, 35 - critWidth / 2, 51 - critHeight / 2, surface, 0);
+
+	fo::func::art_ptr_unlock(critFrmLock);
+	critSurface = nullptr;
+}
+
+static void DrawPCConsole() {
 
 	DWORD NewTick = *(DWORD*)0x5709C4;  // char scrn gettickcount ret
-	DWORD RotSpeed = *(DWORD*)0x47066B; // get rotation speed -inventory rotation speed
+	DWORD RotSpeed = *(DWORD*)0x47066B; // get rotation speed - inventory rotation speed
 
 	if (charRotTick > NewTick) charRotTick = NewTick;
 
@@ -748,114 +680,80 @@ void DrawPCConsole() {
 		fo::Window *WinInfo = fo::func::GNW_find(WinRef);
 
 		BYTE *ConSurface = new BYTE [70 * 102];
-
 		sub_draw(70, 102, 640, 480, 338, 78, charScrnBackSurface, 70, 102, 0, 0, ConSurface, 0);
-		//sub_draw(70, 102, widthBG, heightBG, xPosBG, yPosBG, BGSurface, 70, 102, 0, 0, ConSurface, 0);
 
-		//DWORD CritNum = fo::var::art_vault_guy_num; // pointer to current base hero critter FrmId
+		//DWORD critNum = fo::var::art_vault_guy_num; // pointer to current base hero critter FrmId
 		DWORD critNum = fo::var::obj_dude->artFid; // pointer to current armored hero critter FrmId
-		DWORD critFrmLock;
-		fo::FrmFrameData *critFrm;
-		//DWORD PcCritOri = 0;
-		DWORD critWidth;
-		DWORD critHeight;
-		BYTE *critSurface;
+		DrawBody(critNum, ConSurface);
 
-		critFrm = fo::func::art_ptr_lock(BuildFrmId(1, critNum), &critFrmLock);
-		critWidth = fo::func::art_frame_width(critFrm, 0, charRotOri);
-		critHeight = fo::func::art_frame_length(critFrm, 0, charRotOri);
-		critSurface = fo::func::art_frame_data(critFrm, 0, charRotOri);
-
-		sub_draw(critWidth, critHeight, critWidth, critHeight, 0, 0, critSurface, 70, 102, 35 - critWidth / 2, 51 - critHeight / 2, ConSurface, 0);
-
-		BYTE ConsoleGreen = fo::var::GreenColor; // palette offset stored in mem - text colour
-		BYTE ConsoleGold = fo::var::YellowColor; // palette offset stored in mem - text colour
-
-		BYTE styleColour = ConsoleGreen, raceColour = ConsoleGreen;
-		if (fo::var::info_line == 0x501) {
-			raceColour = ConsoleGold;
-		} else if (fo::var::info_line == 0x502) {
-			styleColour = ConsoleGold;
-		}
-/*
-		int oldFont = GetFont(); // store current font
-		SetFont(0x65);           // set font for consol text
-		char TextBuf[12];
-
-		sprintf_s(TextBuf, 12, "%2d\0", CurrentRaceVal);
-		PrintText(TextBuf, raceColour, 2, 2, 64, 70, ConSurface);
-
-		sprintf_s(TextBuf, 12, "%2d\0", currentStyleVal);
-		PrintText(TextBuf, styleColour, 5, 88, 64, 70, ConSurface);
-
-		SetFont(oldFont); // restore previous font
-*/
-		//sub_draw(70, 102, 70, 102, 0, 0, ConSurface, 640, 480, 338, 78, WinSurface, 0);
 		sub_draw(70, 102, 70, 102, 0, 0, ConSurface, WinInfo->width, WinInfo->height, 338, 78, WinInfo->surface, 0);
 
-		fo::func::art_ptr_unlock(critFrmLock);
-		critSurface = nullptr;
 		delete[] ConSurface;
 		WinInfo = nullptr;
+
 		fo::func::win_draw(WinRef);
 	}
 }
 
-void DrawCharNote(bool Style, int WinRef, DWORD xPosWin, DWORD yPosWin, BYTE *BGSurface, DWORD xPosBG, DWORD yPosBG, DWORD widthBG, DWORD heightBG) {
+/*
+void DrawCharNote(DWORD LstNum, char *TitleTxt, char *AltTitleTxt, char *Message) {
+	__asm {
+		mov  ecx, message      //dword ptr ds:[FO_VAR_folder_card_desc]
+		mov  ebx, alttitletxt  //dword ptr ds:[FO_VAR_folder_card_title2]
+		mov  edx, titletxt     //dword ptr ds:[FO_VAR_folder_card_title]
+		mov  eax, lstnum       //dword ptr ds:[FO_VAR_folder_card_fid]
+		call fo::funcoffs::drawcard_
+	}
+}
+*/
+
+static void DrawCharNote(bool style, int winRef, DWORD xPosWin, DWORD yPosWin, BYTE *BGSurface, DWORD xPosBG, DWORD yPosBG, DWORD widthBG, DWORD heightBG) {
 	fo::MessageList MsgList;
 	char *TitleMsg = nullptr;
 	char *InfoMsg = nullptr;
 
-	char *MsgFileName = (!Style) ? "game\\AppRace.msg" : "game\\AppStyle.msg";
+	char *MsgFileName = (style) ? "game\\AppStyle.msg" : "game\\AppRace.msg";
 
 	if (fo::func::message_load(&MsgList, MsgFileName) == 1) {
 		TitleMsg = GetMsg(&MsgList, 100, 2);
 		InfoMsg = GetMsg(&MsgList, 101, 2);
 	}
 
-	BYTE colour = *(BYTE*)0x6A38D0; // brown
+	fo::Window *winInfo = fo::func::GNW_find(winRef);
 
-	fo::Window *WinInfo = fo::func::GNW_find(WinRef);
-
-	BYTE *PadSurface;
-	PadSurface = new BYTE [280*168];
+	BYTE *PadSurface = new BYTE [280 * 168];
 	sub_draw(280, 168, widthBG, heightBG, xPosBG, yPosBG, BGSurface, 280, 168, 0, 0, PadSurface, 0);
 
-	UnlistedFrm *frm = (Style) ? LoadUnlistedFrm("AppStyle.frm", 10) : LoadUnlistedFrm("AppRace.frm", 10);
-
+	UnlistedFrm *frm = LoadUnlistedFrm((style) ? "AppStyle.frm" : "AppRace.frm", fo::OBJ_TYPE_SKILLDEX);
 	if (frm) {
 		sub_draw(frm->frames[0].width, frm->frames[0].height, frm->frames[0].width, frm->frames[0].height, 0, 0, frm->frames[0].indexBuff, 280, 168, 136, 37, PadSurface, 0); // cover buttons pics bottom
-		//sub_draw(frm->width, frm->height, frm->width, frm->height, 0, 0, frm->surface, 280, 168, 136, 37, PadSurface, 0); // cover buttons pics bottom
-		//sub_draw(frm->width, frm->height, frm->width, frm->height, 0, 0, frm->surface, 280, 168, 135, 36, PadSurface, 0); // cover buttons pics bottom
 		delete frm;
 	}
 
 	int oldFont = GetFont(); // store current font
 	SetFont(0x66);           // set font for title
 
-	DWORD textHeight = fo::GetTextHeight();
+	DWORD textHeight;
+	BYTE colour = *(BYTE*)FO_VAR_colorTable; // black color
 
 	if (TitleMsg != nullptr) {
+		textHeight = fo::GetTextHeight();
 		fo::PrintText(TitleMsg, colour, 0, 0, 265, 280, PadSurface);
-		//DrawLineX(WinRef, 348, 613, 272 + textHeight, colour);
-		//DrawLineX(WinRef, 348, 613, 273 + textHeight, colour);
+		// draw line
 		memset(PadSurface + 280*textHeight, colour, 265);
 		memset(PadSurface + 280*(textHeight + 1), colour, 265);
 	}
 
-	SetFont(0x65); // set font for info
-
-	textHeight = fo::GetTextHeight();
-
 	DWORD lineNum = 0;
-
 	LineNode *StartLine = new LineNode;
 	LineNode *CurrentLine, *NextLine;
 
 	if (InfoMsg != nullptr) {
+		SetFont(0x65); // set font for info
+		textHeight = fo::GetTextHeight();
+
 		if (CreateWordWrapList(InfoMsg, 160, &lineNum, StartLine)) {
 			int lineHeight = 43;
-			char TempChar = 0;
 
 			if (lineNum == 1) {
 				fo::PrintText(InfoMsg, colour, 0, lineHeight, 280, 280, PadSurface);
@@ -865,47 +763,39 @@ void DrawCharNote(bool Style, int WinRef, DWORD xPosWin, DWORD yPosWin, BYTE *BG
 
 				for (DWORD line = 0; line < lineNum; line++) {
 					NextLine = CurrentLine->next;
-					TempChar = InfoMsg[NextLine->offset]; //[line+1]];
+					char TempChar = InfoMsg[NextLine->offset]; //[line+1]];
 					InfoMsg[NextLine->offset] = '\0';
-					fo::PrintText(InfoMsg+CurrentLine->offset, colour, 0, lineHeight, 280, 280, PadSurface);
+					fo::PrintText(InfoMsg + CurrentLine->offset, colour, 0, lineHeight, 280, 280, PadSurface);
 					InfoMsg[NextLine->offset] = TempChar;
-					lineHeight = lineHeight + textHeight + 1;
+					lineHeight += textHeight + 1;
 					CurrentLine = NextLine;
 				}
 			}
 		}
 	}
+	sub_draw(280, 168, 280, 168, 0, 0, PadSurface, winInfo->width, winInfo->height, xPosWin, yPosWin, winInfo->surface, 0);
 
-	sub_draw(280, 168, 280, 168, 0, 0, PadSurface, WinInfo->width, WinInfo->height, xPosWin, yPosWin, WinInfo->surface, 0);
-
-	DeleteWordWrapList(StartLine);
-	CurrentLine = nullptr;
-	NextLine = nullptr;
-	delete[]PadSurface;
-	WinInfo = nullptr;
 	SetFont(oldFont); // restore previous font
 	fo::func::message_exit(&MsgList);
-	//RedrawWin(fo::var::edit_win);
+
+	*(long*)FO_VAR_card_old_fid1 = -1; // reset fid
+
+	DeleteWordWrapList(StartLine);
+	delete[]PadSurface;
+	CurrentLine = nullptr;
+	NextLine = nullptr;
+	winInfo = nullptr;
 }
 
-/*
-void DrawCharNote(DWORD LstNum, char *TitleTxt, char *AltTitleTxt, char *Message) {
-	__asm {
-		MOV ECX,Message//100//DWORD PTR ds:[FO_VAR_folder_card_desc]
-		MOV EBX,AltTitleTxt//DWORD PTR ds:[FO_VAR_folder_card_title2]
-		MOV EDX,TitleTxt//DWORD PTR ds:[FO_VAR_folder_card_title]
-		MOV EAX,LstNum//11//LstNum//DWORD PTR ds:[FO_VAR_folder_card_fid]
-		CALL fo::funcoffs::DrawCard_
-	}
+static void _stdcall DrawCharNoteNewChar(bool type) {
+	DrawCharNote(type, fo::var::edit_win, 348, 272, charScrnBackSurface, 348, 272, 640, 480);
 }
-*/
 
-void _stdcall HeroSelectWindow(int RaceStyleFlag) {
+// op_hero_select_win
+void _stdcall HeroSelectWindow(int raceStyleFlag) {
+	if (!HeroAppearance::appModEnabled) return;
 
-	if (!appModEnabled) return;
-
-	bool isStyle = (RaceStyleFlag != 0); // TRUE
-
+	bool isStyle = (raceStyleFlag != 0);
 	DWORD resWidth = *(DWORD*)0x4CAD6B;
 	DWORD resHeight = *(DWORD*)0x4CAD66;
 
@@ -913,17 +803,13 @@ void _stdcall HeroSelectWindow(int RaceStyleFlag) {
 	if (winRef == -1) return;
 
 	int mouseWasHidden = fo::var::mouse_is_hidden;
-	if (mouseWasHidden) {
-		fo::func::mouse_show();
-	}
+	if (mouseWasHidden) fo::func::mouse_show();
 
 	int oldMouse = fo::var::gmouse_current_cursor;
 	fo::func::gmouse_set_cursor(1);
 
 	BYTE *winSurface = fo::func::win_get_buf(winRef);
-
-	BYTE *mainSurface;
-	mainSurface = new BYTE [484 * 230];
+	BYTE *mainSurface = new BYTE [484 * 230];
 
 	DWORD tempObj;
 	BYTE *tempSurface;
@@ -970,13 +856,10 @@ void _stdcall HeroSelectWindow(int RaceStyleFlag) {
 	BYTE *DiupDSurface = fo::func::art_ptr_lock_data(BuildFrmId(6, 101), 0, 0, &DiupDObj); // MENUDOWN Frm
 	fo::func::win_register_button(winRef, 28, 59, 23, 24, -1, -1, -1, 0x148, DiupUSurface, DiupDSurface, 0, 0x20);
 
-	int oldFont;
-	oldFont = GetFont();
+	int oldFont = GetFont();
 	SetFont(0x67);
-	BYTE textColour = *(BYTE*)0x6A82F3; // PeanutButter colour -palette offset stored in mem
 
 	char titleText[16];
-	DWORD titleTextWidth;
 	// Get alternate text from ini if available
 	if (isStyle) {
 		Translate("AppearanceMod", "StyleText", "Style", titleText, 16);
@@ -984,8 +867,8 @@ void _stdcall HeroSelectWindow(int RaceStyleFlag) {
 		Translate("AppearanceMod", "RaceText", "Race", titleText, 16);
 	}
 
-	titleTextWidth = fo::GetTextWidth(titleText);
-
+	BYTE textColour = fo::var::PeanutButter; // PeanutButter colour - palette offset stored in mem
+	DWORD titleTextWidth = fo::GetTextWidth(titleText);
 	fo::PrintText(titleText, textColour, 94 - titleTextWidth / 2, 10, titleTextWidth, 484, mainSurface);
 
 	DWORD titleTextHeight = fo::GetTextHeight();
@@ -994,140 +877,119 @@ void _stdcall HeroSelectWindow(int RaceStyleFlag) {
 	memset(mainSurface + 484 * (10 + titleTextHeight + 1) + 94 - titleTextWidth / 2, textColour, titleTextWidth);
 
 	sub_draw(484, 230, 484, 230, 0, 0, mainSurface, 484, 230, 0, 0, winSurface, 0);
-
 	fo::func::win_show(winRef);
+
+	SetFont(0x65);
+
+	BYTE *ConDraw = new BYTE [70 * 102];
+
+	int button = 0;
+	bool drawFlag = true; // redraw flag for char note pad
+
+	DWORD RotSpeed = *(DWORD*)0x47066B; // get rotation speed - inventory rotation speed
+	DWORD RedrawTick = 0, NewTick = 0, OldTick = 0;
+
+	DWORD critNum = fo::var::art_vault_guy_num; // pointer to current base hero critter FrmID
+	//DWORD critNum = fo::var::obj_dude->artFID;  // pointer to current armored hero critter FrmID
 
 	int raceVal = currentRaceVal, styleVal = currentStyleVal; // show default style when setting race
 	if (!isStyle) styleVal = 0;
-	LoadHeroDat(raceVal, styleVal);
-
-	BYTE *ConDraw;
-	ConDraw = new BYTE [70 * 102];
-
-	//char TextBuf[12];
-
-	DWORD NewTick = 0, OldTick = 0;
-
-	textColour = fo::var::GreenColor; // ConsoleGreen colour -palette offset stored in mem
-	SetFont(0x65);
-
-	DWORD CritNum = fo::var::art_vault_guy_num; // pointer to current base hero critter FrmID
-	//DWORD CritNum = fo::var::obj_dude->artFID; // pointer to current armored hero critter FrmID
-	fo::FrmFrameData *CritFrm;
-	DWORD CritFrmObj = 0, CritOri = 0, CritWidth = 0, CritHeight = 0;
-	BYTE *CritSurface = nullptr;
-
-	int button = 0, exitMenu = 0;
-
-	bool drawFlag = true; // redraw flag for char note pad
-
-	DWORD RotSpeed = *(DWORD*)0x47066B; // get rotation speed -inventory rotation speed
-
-	DWORD RedrawTick = 0;
+	LoadHeroDat(raceVal, styleVal, true);
 
 	SetLoopFlag(LoopFlag::HEROWIN);
 
-	while (!exitMenu) {           // main loop
+	while (true) {                // main loop
 		NewTick = GetTickCount(); // timer for redraw
 		if (OldTick > NewTick) OldTick = NewTick;
 
 		if (NewTick - OldTick > RotSpeed) { // time to rotate critter
 			OldTick = NewTick;
-			if (CritOri < 5)
-				CritOri++;
+			if (charRotOri < 5)
+				charRotOri++;
 			else
-				CritOri = 0;
+				charRotOri = 0;
 		}
-
 		if (RedrawTick > NewTick) RedrawTick = NewTick;
 
 		if (NewTick - RedrawTick > 60) { // time to redraw
 			RedrawTick = NewTick;
+
 			sub_draw(70, 102, 484, 230, 66, 53, mainSurface, 70, 102, 0, 0, ConDraw, 0);
-
-			CritFrm = fo::func::art_ptr_lock(BuildFrmId(1, CritNum), &CritFrmObj);
-			CritWidth = fo::func::art_frame_width(CritFrm, 0, CritOri);
-			CritHeight = fo::func::art_frame_length(CritFrm, 0, CritOri);
-			CritSurface = fo::func::art_frame_data(CritFrm, 0, CritOri);
-			sub_draw(CritWidth, CritHeight, CritWidth, CritHeight, 0, 0, CritSurface, 70, 102, 35 - CritWidth / 2, 51 - CritHeight / 2, ConDraw, 0);
-			fo::func::art_ptr_unlock(CritFrmObj);
-			CritSurface = nullptr;
-/*
-			if (isStyle) sprintf_s(TextBuf, 12, "%2d\0", styleVal);
-			else sprintf_s(TextBuf, 12, "%2d\0", raceVal);
-
-			PrintText(TextBuf, textColour, 2, 2, 64, 70, ConDraw);
-*/
+			DrawBody(critNum, ConDraw);
 			sub_draw(70, 102, 70, 102, 0, 0, ConDraw, 484, 230, 66, 53, winSurface, 0);
 
-			if (drawFlag) DrawCharNote(isStyle, winRef, 190, 29, mainSurface, 190, 29, 484, 230);
-			drawFlag = false;
-
+			if (drawFlag) {
+				DrawCharNote(isStyle, winRef, 190, 29, mainSurface, 190, 29, 484, 230);
+				drawFlag = false;
+			}
 			fo::func::win_draw(winRef);
 		}
 
 		button = fo::func::get_input();
 		if (button == 0x148) { // previous style/race -up arrow button pushed
-			drawFlag = true;
 			PlayAcm("ib1p1xx1");
-			fo::func::art_flush();
 
 			if (isStyle) {
-				if (styleVal > 0) styleVal--;
-				if (LoadHeroDat(raceVal, styleVal) != 0) {
+				if (styleVal == 0) continue;
+				styleVal--;
+				if (LoadHeroDat(raceVal, styleVal, true) != 0) {
 					styleVal = 0;
 					LoadHeroDat(raceVal, styleVal);
 				}
+				drawFlag = true;
 			} else { // Race
-				if (raceVal > 0) {
-					styleVal = 0;
-					raceVal--;
-				}
-				if (LoadHeroDat(raceVal, styleVal) != 0) {
+				if (raceVal == 0) continue;
+				raceVal--;
+				styleVal = 0;
+				if (LoadHeroDat(raceVal, styleVal, true) != 0) {
 					raceVal = 0;
 					LoadHeroDat(raceVal, styleVal);
 				}
+				drawFlag = true;
 			}
-		} else if (button == 0x150) { // Next style/race -down arrow button pushed
-			drawFlag = true;
+		} else if (button == 0x150) { // Next style/race - down arrow button pushed
 			PlayAcm("ib1p1xx1");
-			fo::func::art_flush();
 
 			if (isStyle) {
 				styleVal++;
-				if (LoadHeroDat(raceVal, styleVal) != 0) {
+				if (LoadHeroDat(raceVal, styleVal, true) != 0) {
 					styleVal--;
 					LoadHeroDat(raceVal, styleVal);
+				} else {
+					drawFlag = true;
 				}
 			} else { // Race
-				styleVal = 0;
 				raceVal++;
-				if (LoadHeroDat(raceVal, styleVal) != 0) {
+				if (LoadHeroDat(raceVal, 0, true) != 0) {
 					raceVal--;
 					LoadHeroDat(raceVal, styleVal);
+				} else {
+					styleVal = 0;
+					drawFlag = true;
 				}
 			}
-		} else if (button == 0x0D) { // save and exit -Enter button pushed
-			exitMenu = -1;
+		} else if (button == 0x0D) { // save and exit - Enter button pushed
+			PlayAcm("ib1p1xx1");
 			if (!isStyle && currentRaceVal == raceVal) { // return style to previous value if no race change
 				styleVal = currentStyleVal;
 			}
 			currentRaceVal = raceVal;
 			currentStyleVal = styleVal;
-		} else if (button == 0x1B) { // exit -ESC button pushed
-			exitMenu = -1;
+			break;
+		} else if (button == 0x1B) { // exit - ESC button pushed
+			break;
 		}
 	}
 
 	ClearLoopFlag(LoopFlag::HEROWIN);
 
-	fo::func::art_flush();
-	LoadHeroDat(currentRaceVal, currentStyleVal);
+	LoadHeroDat(currentRaceVal, currentStyleVal, true);
 	SetAppearanceGlobals(currentRaceVal, currentStyleVal);
 
 	fo::func::win_delete(winRef);
 	delete[]mainSurface;
 	delete[]ConDraw;
+
 	fo::func::art_ptr_unlock(MenuUObj);
 	fo::func::art_ptr_unlock(MenuDObj);
 	MenuUSurface = nullptr;
@@ -1146,12 +1008,10 @@ void _stdcall HeroSelectWindow(int RaceStyleFlag) {
 	SetFont(oldFont);
 	fo::func::gmouse_set_cursor(oldMouse);
 
-	if (mouseWasHidden) {
-		fo::func::mouse_hide();
-	}
+	if (mouseWasHidden) fo::func::mouse_hide();
 }
 
-void FixTextHighLight() {
+static void FixTextHighLight() {
 	__asm {
 		// redraw special text
 		mov  eax, 7;
@@ -1174,39 +1034,33 @@ void FixTextHighLight() {
 	}
 }
 
-void _stdcall DrawCharNoteNewChar(bool Style) {
-	DrawCharNote(Style, fo::var::edit_win, 348, 272, charScrnBackSurface, 348, 272, 640, 480);
-}
-
-int _stdcall CheckCharButtons() {
+static int _stdcall CheckCharButtons() {
 	int button = fo::func::get_input();
-
-	int raceVal = currentRaceVal;
-	int styleVal = currentStyleVal;
 
 	int drawFlag = -1;
 
-	if (fo::var::info_line == 0x503) {
-		button = 0x501;
-	} else if (fo::var::info_line == 0x504) {
-		button = 0x502;
-	} else if (fo::var::info_line == 0x501 || fo::var::info_line == 0x502) {
+	int infoLine = fo::var::info_line;
+	if (infoLine == 0x503 || infoLine == 0x504) {
+		fo::var::info_line -= 2;
+		*(DWORD*)FO_VAR_frstc_draw1 = 1;
+		DrawCharNoteNewChar(infoLine != 0x503);
+	} else if (infoLine == 0x501 || infoLine == 0x502) {
 		switch (button) {
 		case 0x14B: // button left
 		case 0x14D: // button right
 			if (fo::var::glblmode == 1) { // if in char creation scrn
-				if (fo::var::info_line == 0x501) {
+				if (infoLine == 0x501) {
 					button = button + 0x3C6;
-				} else if (fo::var::info_line == 0x502) {
+				} else if (infoLine == 0x502) {
 					button = button + 0x3C6 + 1;
 				}
 			}
 			break;
 		case 0x148: // button up
 		case 0x150: // button down
-			if (fo::var::info_line == 0x501) {
+			if (infoLine == 0x501) {
 				button = 0x502;
-			} else if (fo::var::info_line == 0x502) {
+			} else if (infoLine == 0x502) {
 				button = 0x501;
 			}
 			break;
@@ -1218,94 +1072,104 @@ int _stdcall CheckCharButtons() {
 		case 0x1F6: // button cancel
 		case 'c':   // button cancel
 		case 'C':   // button cancel
-			if (fo::var::info_line == 0x501) { // for redrawing note when reentering char screen
-				fo::var::info_line = 0x503;
-			} else {
-				fo::var::info_line = 0x504;
-			}
-			break;
-		default:
+			fo::var::info_line += 2; // 0x503/0x504 for redrawing note when reentering char screen
 			break;
 		}
 	}
 
 	switch (button) {
 	case 0x9: // tab button pushed
-		if (fo::var::info_line >= 0x3D && fo::var::info_line < 0x4F) { // if menu ref in last menu go to race
-			button = 0x501;
+		if (infoLine < 0x3D || infoLine >= 0x4F) { // if menu ref in last menu go to race
+			break;
+		}
+		button = 0x501;
+	case 0x501: // race title button pushed
+		if (infoLine != 0x501) {
+			fo::var::info_line = 0x501;
+			drawFlag = 3;
+		}
+		break;
+	case 0x502: // style title button pushed
+		if (infoLine != 0x502) {
+			fo::var::info_line = 0x502;
+			drawFlag = 2;
+		}
+		break;
+	case 0x511: // race left button pushed
+		if (currentRaceVal == 0) {
+			drawFlag = 4;
+			break;
+		}
+		currentStyleVal = 0; // reset style
+		currentRaceVal--;
+		if (LoadHeroDat(currentRaceVal, currentStyleVal, true) != 0) {
+			currentRaceVal = 0;
+			LoadHeroDat(currentRaceVal, currentStyleVal);
+		}
+		drawFlag = 1;
+		break;
+	case 0x513: // race right button pushed
+		currentRaceVal++;
+
+		if (LoadHeroDat(currentRaceVal, 0, true) != 0) {
+			currentRaceVal--;
+			LoadHeroDat(currentRaceVal, currentStyleVal);
+			drawFlag = 4;
+		} else {
+			currentStyleVal = 0; // reset style
+			drawFlag = 1;
+		}
+		break;
+	case 0x512: // style left button pushed
+		if (currentStyleVal == 0) {
+			drawFlag = 4;
+			break;
+		}
+		currentStyleVal--;
+		if (LoadHeroDat(currentRaceVal, currentStyleVal, true)) {
+			currentStyleVal = 0;
+			LoadHeroDat(currentRaceVal, currentStyleVal, true);
+		}
+		drawFlag = 0;
+		break;
+	case 0x514: // style right button pushed
+		currentStyleVal++;
+
+		if (LoadHeroDat(currentRaceVal, currentStyleVal, true) != 0) {
+			currentStyleVal--;
+			LoadHeroDat(currentRaceVal, currentStyleVal);
+			drawFlag = 4;
+		} else {
 			drawFlag = 0;
 		}
 		break;
-	case 0x501: // race button pushed
-		drawFlag = 0;
-		break;
-	case 0x502: // style button pushed
-		drawFlag = 1;
-		break;
-	case 0x511: // race left button pushed
-		fo::func::art_flush();
-
-		if (raceVal > 0) {
-			styleVal = 0;
-			raceVal--;
-		}
-		if (LoadHeroDat(raceVal, styleVal) != 0) {
-			raceVal = 0;
-			LoadHeroDat(raceVal, styleVal);
-		}
-		drawFlag = 0;
-		break;
-	case 0x513: // race right button pushed
-		fo::func::art_flush();
-
-		styleVal = 0;
-		raceVal++;
-		if (LoadHeroDat(raceVal, styleVal) != 0) {
-			raceVal--;
-			LoadHeroDat(raceVal, styleVal);
-		}
-		drawFlag = 0;
-		break;
-	case 0x512: // style left button pushed
-		fo::func::art_flush();
-
-		if (styleVal > 0) styleVal--;
-		if (LoadHeroDat(raceVal, styleVal) != 0) {
-			styleVal = 0;
-			LoadHeroDat(raceVal, styleVal);
-		}
-		drawFlag = 1;
-		break;
-	case 0x514: // style right button pushed
-		fo::func::art_flush();
-
-		styleVal++;
-		if (LoadHeroDat(raceVal, styleVal) != 0) {
-			styleVal--;
-			LoadHeroDat(raceVal, styleVal);
-		}
-		drawFlag = 1;
-		break;
-	default:
-		break;
 	}
-	currentRaceVal = raceVal;
-	currentStyleVal = styleVal;
 
-	if (drawFlag == 1) {
-		PlayAcm("ib3p1xx1");
-		fo::var::info_line = 0x502;
+	if (drawFlag != -1) {
+		bool style = false; // Race;
+		switch (drawFlag) {
+		case 0:
+			fo::var::info_line = 0x502;
+			style = true;
+			goto play;
+		case 1:
+			fo::var::info_line = 0x501;
+		play:
+			PlayAcm("ib3p1xx1");
+			break;
+		case 2:
+			style = true;
+		case 3:
+			PlayAcm("ISDXXXX1");
+			break;
+		default:
+			PlayAcm("IB3LU1X1");
+			return button;
+		}
 		FixTextHighLight();
-		DrawCharNoteNewChar(1);
-		//DrawCharNote(1, fo::var::edit_win, 348, 272, CharScrnBackSurface, 348, 272, 640, 480);
-	} else if (drawFlag == 0) {
-		PlayAcm("ib3p1xx1");
-		fo::var::info_line = 0x501;
-		FixTextHighLight();
-		DrawCharNoteNewChar(0);
-		//DrawCharNote(0, fo::var::edit_win, 348, 272, CharScrnBackSurface, 348, 272, 640, 480);
+		DrawCharNoteNewChar(style);
 	}
-	DrawPCConsole(); //(fo::var::edit_win, 338, 78, CharScrnBackSurface, 338, 78, 640, 480);
+	DrawPCConsole();
 
 	return button;
 }
@@ -1314,162 +1178,148 @@ static void __declspec(naked) CheckCharScrnButtons() {
 	__asm {
 		call CheckCharButtons;
 		cmp  eax, 0x500;
-		jl   EndFunc;
+		jl   endFunc;
 		cmp  eax, 0x515;
-		jg   EndFunc;
-		pop  eax;      // ditch old ret addr
+		jg   endFunc;
+		add  esp, 4;   // ditch old ret addr
 		push 0x431E8A; // recheck buttons if app mod button
-EndFunc:
+endFunc:
 		retn;
 	}
 }
 
-void DeleteCharSurfaces() {
-	delete[] newButt01Surface;
-	newButt01Surface = nullptr;
-	delete[] charScrnBackSurface;
-	charScrnBackSurface = nullptr;
-}
+static void __fastcall HeroGenderChange(long gender) {
+	// get PC stat current gender
+	long newGender = fo::func::stat_level(fo::var::obj_dude, fo::STAT_gender);
+	if (newGender == gender) return;      // check if gender has been changed
 
-static void __declspec(naked) CharScrnEnd(void) {
-	__asm {
-		pushad;
-		call DeleteCharSurfaces;
-		popad;
-		mov  ebp, dword ptr ds:[FO_VAR_info_line];
-		retn;
+	long baseModel = (newGender)          // check if male 0
+		? *(DWORD*)0x5108AC               // base female model
+		: fo::var::art_vault_person_nums; // base male model
+
+	// adjust base hero art
+	baseModel += critterListSize;
+	fo::var::art_vault_guy_num = baseModel;
+
+	// reset race and style to defaults
+	currentRaceVal = 0;
+	currentStyleVal = 0;
+	LoadHeroDat(0, 0);
+
+	fo::func::proto_dude_update_gender();
+
+	// Check If Race or Style selected to redraw info note
+	int infoLine = fo::var::info_line;
+	if (infoLine == 0x501 || infoLine == 0x502) {
+		DrawCharNoteNewChar(infoLine != 0x501);
 	}
 }
 
-static void __declspec(naked) SexScrnEnd(void) {
+static void __declspec(naked) SexScrnEnd() {
 	using namespace fo;
 	__asm {
-		pushad;
+		push edx;
 		mov  edx, STAT_gender;
 		mov  eax, dword ptr ds:[FO_VAR_obj_dude];
 		call fo::funcoffs::stat_level_; // get PC stat current gender
-		mov  ecx, eax;
+		mov  ecx, eax;                  // gender
 		call fo::funcoffs::SexWindow_;  // call gender selection window
-		mov  edx, STAT_gender;
-		mov  eax, dword ptr ds:[FO_VAR_obj_dude];
-		call fo::funcoffs::stat_level_; // get PC stat current gender
-		cmp  ecx, eax;                  // check if gender has been changed
-		je   EndFunc;
-
+/*
 		xor  ebx, ebx;
-		//cmp byte ptr ds:[FO_VAR_gmovie_played_list + 0x3], 1 // check if wearing vault suit
-		//jne NoVaultSuit
-		//mov ebx, 0x8
-//NoVaultSuit:
-		test eax, eax; // check if male 0
-		jnz  IsFemale;
+		cmp byte ptr ds:[FO_VAR_gmovie_played_list + 0x3], 1 // check if wearing vault suit
+		jne NoVaultSuit
+		mov ebx, 0x8
+NoVaultSuit:
 		mov  eax, dword ptr ds:[ebx + FO_VAR_art_vault_person_nums]; // base male model
-		jmp  ChangeSex;
-IsFemale:
-		mov  eax, dword ptr ds:[ebx + 0x5108AC]; // base female model
-ChangeSex:
-		call AdjustHeroBaseArt;
-		//mov dword ptr ds:[FO_VAR_art_vault_guy_num], eax // current base dude model
-		mov  eax, dword ptr ds:[FO_VAR_obj_dude]; // dude state structure
-		call fo::funcoffs::inven_worn_;
-		// reset race and style to defaults
-		mov  currentRaceVal, 0;
-		mov  currentStyleVal, 0;
-		push 0;
-		push 0;
-		call LoadHeroDat;
-		call RefreshPCArt;
-		// Check If Race or Style selected to redraw info note
-		cmp  dword ptr ds:[FO_VAR_info_line], 0x501;
-		jne  CheckIfStyle;
-		push 0;
-		call DrawCharNoteNewChar;
-CheckIfStyle:
-		cmp  dword ptr ds:[FO_VAR_info_line], 0x502;
-		jne  EndFunc;
-		push 1;
-		call DrawCharNoteNewChar;
-EndFunc:
-		popad;
+*/
+		call HeroGenderChange;
+		pop  edx;
 		retn;
 	}
 }
 
-static void __declspec(naked) AddCharScrnButtons(void) {
+// Create race and style selection buttons when creating a character
+static void __declspec(naked) AddCharScrnButtons() {
 	__asm {
-		push ebp; // prolog
+		pushad; // prolog
 		mov  ebp, esp;
 		sub  esp, __LOCAL_SIZE;
-		pushad;
 	}
 
 	int WinRef;
 	WinRef = fo::var::edit_win; // char screen window ref
 
-	// race and style buttons
+	// race and style title buttons
 	fo::func::win_register_button(WinRef, 332, 0, 82, 32, -1, -1, 0x501, -1, 0, 0, 0, 0);
 	fo::func::win_register_button(WinRef, 332, 226, 82, 32, -1, -1, 0x502, -1, 0, 0, 0, 0);
 
 	if (fo::var::glblmode == 1) { // equals 1 if new char screen - equals 0 if ingame char screen
-		if (newButt01Surface == nullptr) {
-			newButt01Surface = new BYTE [20 * 18 * 4];
+		if (newButtonSurface == nullptr) {
+			newButtonSurface = new BYTE [20 * 18 * 4];
 
 			DWORD frmLock; // frm objects for char screen Appearance button
 			BYTE *frmSurface;
 
-			frmSurface = fo::func::art_ptr_lock_data(BuildFrmId(6, 122), 0, 0, &frmLock); //SLUFrm
-			sub_draw(20, 18, 20, 18, 0, 0, frmSurface, 20, 18*4, 0, 0, newButt01Surface, 0x0);
+			frmSurface = fo::func::art_ptr_lock_data(BuildFrmId(6, 122), 0, 0, &frmLock); // SLUFrm
+			sub_draw(20, 18, 20, 18, 0, 0, frmSurface, 20, 18 * 4, 0, 0, newButtonSurface, 0);
 			fo::func::art_ptr_unlock(frmLock);
-			frmSurface = fo::func::art_ptr_lock_data(BuildFrmId(6, 123), 0, 0, &frmLock); //SLDFrm
-			sub_draw(20, 18, 20, 18, 0, 0, frmSurface, 20, 18*4, 0, 18, newButt01Surface, 0x0);
+
+			frmSurface = fo::func::art_ptr_lock_data(BuildFrmId(6, 123), 0, 0, &frmLock); // SLDFrm
+			sub_draw(20, 18, 20, 18, 0, 0, frmSurface, 20, 18 * 4, 0, 18, newButtonSurface, 0);
 			fo::func::art_ptr_unlock(frmLock);
-			frmSurface = fo::func::art_ptr_lock_data(BuildFrmId(6, 124), 0, 0, &frmLock); //SRUFrm
-			sub_draw(20, 18, 20, 18, 0, 0, frmSurface, 20, 18*4, 0, 18 * 2, newButt01Surface, 0x0);
+
+			frmSurface = fo::func::art_ptr_lock_data(BuildFrmId(6, 124), 0, 0, &frmLock); // SRUFrm
+			sub_draw(20, 18, 20, 18, 0, 0, frmSurface, 20, 18 * 4, 0, 18 * 2, newButtonSurface, 0);
 			fo::func::art_ptr_unlock(frmLock);
-			frmSurface = fo::func::art_ptr_lock_data(BuildFrmId(6, 125), 0, 0, &frmLock); //SRDFrm
-			sub_draw(20, 18, 20, 18, 0, 0, frmSurface, 20, 18*4, 0, 18 * 3, newButt01Surface, 0x0);
+
+			frmSurface = fo::func::art_ptr_lock_data(BuildFrmId(6, 125), 0, 0, &frmLock); // SRDFrm
+			sub_draw(20, 18, 20, 18, 0, 0, frmSurface, 20, 18 * 4, 0, 18 * 3, newButtonSurface, 0);
 			fo::func::art_ptr_unlock(frmLock);
+
 			frmSurface = nullptr;
 		}
 
 		// check if Data exists for other races male or female, and if so enable race selection buttons
-		if (GetFileAttributes("Appearance\\hmR01S00\0") != INVALID_FILE_ATTRIBUTES || GetFileAttributes("Appearance\\hfR01S00\0") != INVALID_FILE_ATTRIBUTES ||
-			GetFileAttributes("Appearance\\hmR01S00.dat\0") != INVALID_FILE_ATTRIBUTES || GetFileAttributes("Appearance\\hfR01S00.dat\0") != INVALID_FILE_ATTRIBUTES) {
+		if (GetFileAttributes("Appearance\\hmR01S00") != INVALID_FILE_ATTRIBUTES || GetFileAttributes("Appearance\\hfR01S00") != INVALID_FILE_ATTRIBUTES ||
+			GetFileAttributes("Appearance\\hmR01S00.dat") != INVALID_FILE_ATTRIBUTES || GetFileAttributes("Appearance\\hfR01S00.dat") != INVALID_FILE_ATTRIBUTES) {
 			// race selection buttons
-			fo::func::win_register_button(WinRef, 348, 37, 20, 18, -1, -1, -1, 0x511, newButt01Surface, newButt01Surface + (20 * 18), 0, 0x20);
-			fo::func::win_register_button(WinRef, 373, 37, 20, 18, -1, -1, -1, 0x513, newButt01Surface + (20 * 18 * 2), newButt01Surface + (20 * 18 * 3), 0, 0x20);
+			fo::func::win_register_button(WinRef, 348, 37, 20, 18, -1, -1, -1, 0x511, newButtonSurface, newButtonSurface + (20 * 18), 0, 0x20);
+			fo::func::win_register_button(WinRef, 373, 37, 20, 18, -1, -1, -1, 0x513, newButtonSurface + (20 * 18 * 2), newButtonSurface + (20 * 18 * 3), 0, 0x20);
 		}
-		// style selection buttons
-		fo::func::win_register_button(WinRef, 348, 199, 20, 18, -1, -1, -1, 0x512, newButt01Surface, newButt01Surface + (20 * 18), 0, 0x20);
-		fo::func::win_register_button(WinRef, 373, 199, 20, 18, -1, -1, -1, 0x514, newButt01Surface + (20 * 18 * 2), newButt01Surface + (20 * 18 * 3), 0, 0x20);
+		// check if Data exists for other styles male or female, and if so enable style selection buttons
+		if (GetFileAttributes("Appearance\\hmR00S01") != INVALID_FILE_ATTRIBUTES || GetFileAttributes("Appearance\\hfR00S01") != INVALID_FILE_ATTRIBUTES ||
+			GetFileAttributes("Appearance\\hmR00S01.dat") != INVALID_FILE_ATTRIBUTES || GetFileAttributes("Appearance\\hfR00S01.dat") != INVALID_FILE_ATTRIBUTES) {
+			// style selection buttons
+			fo::func::win_register_button(WinRef, 348, 199, 20, 18, -1, -1, -1, 0x512, newButtonSurface, newButtonSurface + (20 * 18), 0, 0x20);
+			fo::func::win_register_button(WinRef, 373, 199, 20, 18, -1, -1, -1, 0x514, newButtonSurface + (20 * 18 * 2), newButtonSurface + (20 * 18 * 3), 0, 0x20);
+		}
 	}
 
 	__asm {
-		popad;
 		mov  esp, ebp; // epilog
-		pop  ebp;
+		popad;
 		// move tag skills button to fit Appearance interface
-		mov  edx, 0x1AA; // 0x18C+36 was 0x18C tag/skills button xpos
+		mov  edx, 396 + 30; // tag/skills button xpos offset
 		retn;
 	}
 }
 
-static void __declspec(naked) FixCharScrnBack(void) {
+// Loading or creating a background image for the character creation/editing interface
+static void __declspec(naked) FixCharScrnBack() {
 	__asm {
 		mov  dword ptr ds:[FO_VAR_bckgnd], eax; // surface ptr for char scrn back
-		test eax, eax; // check if frm loaded ok
-		je   EndFunc;
-
-		push ebp; // prolog
+		test eax, eax;                          // check if frm loaded ok
+		je   endFunc;
+		// prolog
+		pushad;
 		mov  ebp, esp;
 		sub  esp, __LOCAL_SIZE;
-		pushad;
 	}
 
 	if (charScrnBackSurface == nullptr) {
 		charScrnBackSurface = new BYTE [640 * 480];
 
-		UnlistedFrm *frm = LoadUnlistedFrm((*(long*)FO_VAR_glblmode) ? "AppChCrt.frm" : "AppChEdt.frm", 6);
+		UnlistedFrm *frm = LoadUnlistedFrm((fo::var::glblmode) ? "AppChCrt.frm" : "AppChEdt.frm", fo::OBJ_TYPE_INTRFACE);
 
 		if (frm != nullptr) {
 			sub_draw(640, 480, 640, 480, 0, 0, frm->frames[0].indexBuff, 640, 480, 0, 0, charScrnBackSurface, 0);
@@ -1481,16 +1331,16 @@ static void __declspec(naked) FixCharScrnBack(void) {
 			sub_draw(640, 480, 640, 480, 0, 0, OldCharScrnBackSurface, 640, 480, 0, 0, charScrnBackSurface, 0);
 
 			// copy Tag Skill Counter background to the right
-			sub_draw(38, 26, 640, 480, 519, 228, OldCharScrnBackSurface, 640, 480, 519+36, 228, charScrnBackSurface, 0);
+			sub_draw(38, 26, 640, 480, 519, 228, OldCharScrnBackSurface, 640, 480, 519 + 36, 228, charScrnBackSurface, 0);
+
 			// copy a blank part of the Tag Skill Bar hiding the old counter
 			sub_draw(38, 26, 640, 480, 460, 228, OldCharScrnBackSurface, 640, 480, 519, 228, charScrnBackSurface, 0);
 
 			sub_draw(36, 258, 640, 480, 332, 0, OldCharScrnBackSurface, 640, 480, 408, 0, charScrnBackSurface, 0); // shift behind button rail
 			sub_draw(6, 32, 640, 480, 331, 233, OldCharScrnBackSurface, 640, 480, 330, 6, charScrnBackSurface, 0); // shadow for style/race button
 
-
 			DWORD FrmObj, FrmMaskObj; // frm objects for char screen Appearance button
-			BYTE *FrmSurface,*FrmMaskSurface;
+			BYTE *FrmSurface, *FrmMaskSurface;
 
 			FrmSurface = fo::func::art_ptr_lock_data(BuildFrmId(6, 113), 0, 0, &FrmObj);
 			sub_draw(81, 132, 292, 376, 163, 20, FrmSurface, 640, 480, 331, 63, charScrnBackSurface, 0);  // char view win
@@ -1537,48 +1387,64 @@ static void __declspec(naked) FixCharScrnBack(void) {
 			FrmSurface = nullptr;
 		}
 
-		int oldFont;
-		oldFont = GetFont();
+		int oldFont = GetFont();
 		SetFont(0x67);
-		BYTE PeanutButter;
-		PeanutButter = *(BYTE*)0x6A82F3; // palette offset stored in mem
-		char RaceText[8], StyleText[8];
-		DWORD raceTextWidth, styleTextWidth;
 
+		char RaceText[8], StyleText[8];
 		// Get alternate text from ini if available
 		Translate("AppearanceMod", "RaceText", "Race", RaceText, 8);
 		Translate("AppearanceMod", "StyleText", "Style", StyleText, 8);
 
-		raceTextWidth = fo::GetTextWidth(RaceText);
-		styleTextWidth = fo::GetTextWidth(StyleText);
+		DWORD raceTextWidth = fo::GetTextWidth(RaceText);
+		DWORD styleTextWidth = fo::GetTextWidth(StyleText);
+
+		BYTE PeanutButter = fo::var::PeanutButter; // palette offset stored in mem
 
 		fo::PrintText(RaceText, PeanutButter, 372 - raceTextWidth / 2, 6, raceTextWidth, 640, charScrnBackSurface);
 		fo::PrintText(StyleText, PeanutButter, 372 - styleTextWidth / 2, 231, styleTextWidth, 640, charScrnBackSurface);
 		SetFont(oldFont);
 	}
 
+	fo::var::bckgnd = charScrnBackSurface; // surface ptr for char scrn back
+
 	__asm {
-		popad;
 		mov esp, ebp; // epilog
-		pop ebp;
-		mov eax, charScrnBackSurface;
-		mov dword ptr ds:[FO_VAR_bckgnd], eax; // surface ptr for char scrn back
-EndFunc:
+		popad;
+endFunc:
 		retn;
 	}
 }
 
-// Adjust PC SFX Name. Skip Underscore char at the start of PC App Name
+static void DeleteCharSurfaces() {
+	delete[] newButtonSurface;
+	newButtonSurface = nullptr;
+
+	delete[] charScrnBackSurface;
+	charScrnBackSurface = nullptr;
+}
+
+static void __declspec(naked) CharScrnEnd() {
+	__asm {
+		push eax;
+		call DeleteCharSurfaces;
+		pop  eax;
+		mov  ebp, dword ptr ds:[FO_VAR_info_line];
+		retn;
+	}
+}
+
+//////////////////////////////////////////////////////////////////////FIX FUNCTIONS////////////////////////////////////////////////////////////////////////
+
+// Adjust PC SFX acm name. Skip Underscore char at the start of PC App Name
 static void __declspec(naked) FixPcSFX() {
 	__asm {
-		mov ah, byte ptr ds:[ebx];
-		cmp ah, 0x5F; // check if Name begins with an '_' character
-		jne ExitFunc;
-		add ebx, 1;   // shift address to next char
-ExitFunc:
+		cmp byte ptr ds:[ebx], 0x5F; // check if Name begins with an '_' character
+		jne endFunc;
+		inc ebx;                     // shift address to next char
+endFunc:
 		// restore original code
 		mov eax, ebx;
-		cmp dword ptr ds:[0x518E30], 0; // TODO: use constant
+		cmp dword ptr ds:[FO_VAR_gsound_initialized], 0;
 		retn;
 	}
 }
@@ -1588,12 +1454,12 @@ ExitFunc:
 static void __declspec(naked) FixCharScrnSaveNPrint() {
 	__asm {
 		push TempPathPtr //store current path
-		mov eax, _paths
-		mov TempPathPtr, eax //set path to normal
+		mov  eax, _paths
+		mov  TempPathPtr, eax //set path to normal
 		push esi
 		call OptionWindow_ //call char-scrn menu function
-		pop esi
-		pop TempPathPtr //restore stored path
+		pop  esi
+		pop  TempPathPtr //restore stored path
 
 		call RefreshPCArt
 		ret
@@ -1601,75 +1467,52 @@ static void __declspec(naked) FixCharScrnSaveNPrint() {
 }
 */
 
+static void __declspec(naked) FixPcCriticalHitMsg() {
+	__asm {
+		cmp eax, critterListSize; // check if critter art in PC range
+		jle endFunc;
+		sub eax, critterListSize; // shift critter art index down out of hero range
+endFunc:
+		jmp fo::funcoffs::art_alias_num_;
+	}
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 // Load Appearance data from GCD file
-void _stdcall LoadGCDAppearance(fo::DbFile* fileStream) {
+static void __fastcall LoadGCDAppearance(fo::DbFile* fileStream) {
 	currentRaceVal = 0;
 	currentStyleVal = 0;
 	DWORD temp;
-	if (fo::func::db_freadInt(fileStream, &temp) != -1) {
+	if (fo::func::db_freadInt(fileStream, &temp) != -1 && temp < 100) {
 		currentRaceVal = (int)temp;
-		if (fo::func::db_freadInt(fileStream, &temp) != -1) {
+		if (fo::func::db_freadInt(fileStream, &temp) != -1 && temp < 100) {
 			currentStyleVal = (int)temp;
 		}
 	}
-
-	// reset hero appearance
-	fo::func::art_flush();
-	LoadHeroDat(currentRaceVal, currentStyleVal);
-	RefreshPCArt();
-
 	fo::func::db_fclose(fileStream);
+
+	// load hero appearance
+	if (LoadHeroDat(currentRaceVal, currentStyleVal, true) != 0) { // if load fails
+		currentStyleVal = 0;                                       // set style to default
+		if (LoadHeroDat(currentRaceVal, currentStyleVal) != 0) {   // if race fails with style at default
+			currentRaceVal = 0;                                    // set race to default
+			LoadHeroDat(currentRaceVal, currentStyleVal);
+		}
+	}
+	fo::func::proto_dude_update_gender();
 }
 
 // Save Appearance data to GCD file
-void _stdcall SaveGCDAppearance(fo::DbFile *FileStream) {
+static void __fastcall SaveGCDAppearance(fo::DbFile *FileStream) {
 	if (fo::func::db_fwriteInt(FileStream, (DWORD)currentRaceVal) != -1) {
 		fo::func::db_fwriteInt(FileStream, (DWORD)currentStyleVal);
 	}
 	fo::func::db_fclose(FileStream);
 }
 
-// Reset Appearance when selecting "Create Character" from the New Char screen------
-static void __declspec(naked) CreateCharReset() {
-	__asm {
-		xor  eax, eax;
-		mov  currentRaceVal, eax; // reset race and style to defaults
-		mov  currentStyleVal, eax;
-		push eax;
-		push eax;
-		call LoadHeroDat;
-		call RefreshPCArt;
-		mov  eax, 1;
-		retn;
-	}
-}
-
-void HeroAppearanceModExit() {
-	if (!appModEnabled) return;
-
-	if (heroPathPtr) {
-		delete[] heroPathPtr->path;
-		delete heroPathPtr;
-	}
-	if (racePathPtr) {
-		delete[] racePathPtr->path;
-		delete racePathPtr;
-	}
-}
-
-static void __declspec(naked) FixPcCriticalHitMsg() {
-	__asm {
-		and eax, 0x00000FFF;
-		cmp eax, critterListSize; // check if critter art in PC range
-		jle EndFunc;
-		sub eax, critterListSize; // shift critter art index down out of hero range
-EndFunc:
-		retn;
-	}
-}
-
-void EnableHeroAppearanceMod() {
-	appModEnabled = true;
+static void EnableHeroAppearanceMod() {
+	HeroAppearance::appModEnabled = true;
 
 	// setup paths
 	heroPathPtr = new fo::PathNode;
@@ -1702,7 +1545,7 @@ void EnableHeroAppearanceMod() {
 	MakeCall(0x419560, CheckHeroExist);
 
 	// Double size of critter art index creating a new area for hero art (art_read_lst_)
-	MakeCall(0x4196AA, DoubleArt, 1);
+	HookCall(0x4196B0, DoubleArt);
 
 	// Add new hero critter names at end of critter list (art_init_)
 	MakeCall(0x418B39, AddHeroCritNames);
@@ -1717,22 +1560,22 @@ void EnableHeroAppearanceMod() {
 	// Return hero art index offset back to normal before saving
 	SafeWrite32(0x519400, (DWORD)&SavCritNumFix);
 
-	// Tag Skills text x pos
-	SafeWrite32(0x433372, 0x24826 + 36); // Tag Skills text x pos1
-	SafeWrite32(0x4362BE, 0x24826 + 36); // Tag Skills text x pos2
-	SafeWrite32(0x4362F2, 0x20A + 36);   // Tag Skills num counter2 x pos1
-	SafeWrite32(0x43631E, 0x20A + 36);   // Tag Skills num counter2 x pos2
-
 	// Add new Appearance mod buttons (RegInfoAreas_)
 	MakeCall(0x43A788, AddCharScrnButtons);
 
 	// Mod char scrn background and add new app mod graphics. also adjust tag/skill button x pos (CharEditStart_)
 	MakeCall(0x432B92, FixCharScrnBack);
 
+	// Tag Skills text x pos
+	SafeWrite32(0x433372, 0x24826 + 36);  // Tag Skills text x pos1
+	SafeWrite32(0x4362BE, 0x24826 + 36);  // Tag Skills text x pos2
+	SafeWrite32(0x4362F2, 522 + 36);      // Tag Skills num counter2 x pos1
+	SafeWrite32(0x43631E, 522 + 36);      // Tag Skills num counter2 x pos2
+
 	// skill points
-	SafeWrite32(0x436262, 0x24810 + 36); // Skill Points text x pos
-	SafeWrite32(0x43628A, 0x20A + 36);   // Skill Points num counter x pos1
-	SafeWrite32(0x43B5B2, 0x20A + 36);   // Skill Points num counter x pos2
+	SafeWrite32(0x436262, 0x24810 + 36);  // Skill Points text x pos
+	SafeWrite32(0x43628A, 522 + 36);      // Skill Points num counter x pos1
+	SafeWrite32(0x43B5B2, 522 + 36);      // Skill Points num counter x pos2
 
 	// make room for char view window
 	SafeWrite32(0x433678, 347 + 76);      // shift skill buttons right 80
@@ -1740,9 +1583,9 @@ void EnableHeroAppearanceMod() {
 	SafeWrite32(0x43641C, 573 + 10);      // shift skill % num text right 80
 	SafeWrite32(0x43A74C, 223 - 76 + 10); // skill list mouse area button width
 	SafeWrite32(0x43A75B, 370 + 76);      // skill list mouse area button xpos
-	SafeWrite32(0x436220, 0x0DFC + 68);   // skill text xpos
-	SafeWrite32(0x43A71E, 0xDF - 68);     // skill button width
-	SafeWrite32(0x43A72A, 0x178 + 68);    // skill button xpos
+	SafeWrite32(0x436220, 3580 + 68);     // skill text xpos
+	SafeWrite32(0x43A71E, 223 - 68);      // skill button width
+	SafeWrite32(0x43A72A, 376 + 68);      // skill button xpos
 
 	// redraw area for skill list
 	SafeWrite32(0x4361C4, 370 + 76); // xpos
@@ -1750,9 +1593,9 @@ void EnableHeroAppearanceMod() {
 	SafeWrite32(0x4361DE, 370 + 76); // xpos
 
 	// skill slider thingy
-	SafeWrite32(0x43647C, 592 + 3); // xpos
-	SafeWrite32(0x4364FA, 614 + 3); // plus button xpos
-	SafeWrite32(0x436567, 614 + 3); // minus button xpos
+	SafeWrite32(0x43647C, 592 + 3);  // xpos
+	SafeWrite32(0x4364FA, 614 + 3);  // plus button xpos
+	SafeWrite32(0x436567, 614 + 3);  // minus button xpos
 
 	// fix for Char Screen note position was x484 y309 now x383 y308
 	//SafeWrite32(0x43AB55, 308 * 640 + 483); // minus button xpos
@@ -1764,22 +1607,35 @@ void EnableHeroAppearanceMod() {
 	//HookCall(0x432359, FixCharScrnSaveNPrint);
 
 	// Load Appearance data from GCD file (pc_load_data_)
-	SafeWrite16(0x42DF5D, 0x9056); // push esi "*FileStream"
+	SafeWrite8(0x42DF5E, 0xF1); // mov ecx, esi "*FileStream"
 	HookCall(0x42DF5F, LoadGCDAppearance);
 
 	// Save Appearance data to GCD file (pc_save_data_)
-	SafeWrite16(0x42E161, 0x9056); // push esi "*FileStream"
+	SafeWrite8(0x42E162, 0xF1); // mov ecx, esi "*FileStream"
 	HookCall(0x42E163, SaveGCDAppearance);
 
 	// Reset Appearance when selecting "Create Character" from the New Char screen (select_character_)
 	MakeCall(0x4A7405, CreateCharReset);
 
 	// Fixes missing console critical hit messages when PC is attacked. (combat_get_loc_name_)
-	MakeCall(0x426135, FixPcCriticalHitMsg);
+	HookCall(0x42613A, FixPcCriticalHitMsg);
 
 	// Force Criticals For Testing
 	//SafeWrite32(0x423A8F, 0x90909090);
 	//SafeWrite32(0x423A93, 0x90909090);
+}
+
+static void HeroAppearanceModExit() {
+	if (!HeroAppearance::appModEnabled) return;
+
+	if (heroPathPtr) {
+		delete[] heroPathPtr->path;
+		delete heroPathPtr;
+	}
+	if (racePathPtr) {
+		delete[] racePathPtr->path;
+		delete racePathPtr;
+	}
 }
 
 void HeroAppearance::init() {

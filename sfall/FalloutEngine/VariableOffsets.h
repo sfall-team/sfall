@@ -59,6 +59,7 @@
 #define FO_VAR_folder_card_title2         0x5705BC
 #define FO_VAR_frame_time                 0x5709C4
 #define FO_VAR_free_perk                  0x570A29
+#define FO_VAR_frstc_draw1                0x5707D8
 #define FO_VAR_game_global_vars           0x5186C0
 #define FO_VAR_game_user_wants_to_quit    0x5186CC
 #define FO_VAR_gcsd                       0x51094C
@@ -128,6 +129,7 @@
 #define FO_VAR_name_sort_list             0x56FCB0
 #define FO_VAR_num_game_global_vars       0x5186C4
 #define FO_VAR_num_map_global_vars        0x519574
+#define FO_VAR_card_old_fid1              0x5709EC
 #define FO_VAR_obj_dude                   0x6610B8
 #define FO_VAR_objectTable                0x639DA0
 #define FO_VAR_objItemOutlineState        0x519798
