@@ -605,3 +605,17 @@ mixed   arg12 - compute attack results, to get/set values, use the functions "ge
 
 int     ret1 - the return amount of the damage
 
+-------------------------------------------
+
+HOOK_SETLIGHTING (hs_setlighting.int)
+
+Runs each time before the light level for the object or map is set.
+Allows you to override the set light level.
+
+Obj     arg1 - the object, or -1 in cases where the light level is sets for the map
+int     arg2 - light intensity
+int     arg3 - radius of light
+
+int     ret1 - the return new intensity, the value of the range 0-65535
+int     ret2 - the return new radius, the value of the range 0-32 (set only for the object)
+

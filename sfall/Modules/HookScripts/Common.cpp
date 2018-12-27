@@ -78,6 +78,7 @@ static bool CheckRecursiveHooks(DWORD hook) {
 	if (hook == currentRunHook) {
 		switch (hook) {
 		case HOOK_SETGLOBALVAR:
+		case HOOK_SETLIGHTING:
 			return true;
 		}
 	}
