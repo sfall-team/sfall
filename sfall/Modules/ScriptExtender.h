@@ -20,6 +20,7 @@
 
 #include "..\main.h"
 #include "..\FalloutEngine\Structs.h"
+#include "..\Delegate.h"
 
 #include "Module.h"
 
@@ -30,6 +31,9 @@ class ScriptExtender : public Module {
 public:
 	const char* name() { return "ScriptExtender"; }
 	void init();
+
+	// Called before map exit
+	static Delegate<>& OnMapExit();
 };
 
 #pragma pack(8)

@@ -10,6 +10,18 @@ namespace sfall
 static int unjamTimeState;
 static int maxCountProto = 512;
 
+long Objects::uniqueID = UniqueID::Start; // saving to sfallgv.sav
+
+// Assigns a new unique identifier to an object if it has not been previously assigned
+// the identifier is saved with the object in the saved game and this can used in various script
+long Objects::SetObjectUniqueID(fo::GameObject* obj) {
+	if (obj->id > UniqueID::Start || obj == fo::var::obj_dude) return obj->id; // dude id = 1800. TODO: perhaps his id needs to be changed to 0x10000000
+
+	if ((DWORD)uniqueID >= UniqueID::End) uniqueID = UniqueID::Start;
+	obj->id = ++uniqueID;
+	return uniqueID;
+}
+
 void Objects::SetAutoUnjamLockTime(DWORD time) {
 	if (!unjamTimeState) BlockCall(0x4A364A); // disable auto unjam at midnight
 

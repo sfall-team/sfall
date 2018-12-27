@@ -45,6 +45,8 @@ namespace sfall
 
 using namespace script;
 
+static Delegate<> onMapExit;
+
 static DWORD _stdcall HandleMapUpdateForScripts(const DWORD procId);
 
 static int idle;
@@ -75,9 +77,11 @@ static std::map<std::string, std::string> globalScriptFilesList;
 
 static std::vector<fo::Program*> checkedScripts;
 static std::vector<GlobalScript> globalScripts;
+
 // a map of all sfall programs (global and hook scripts) by thier scriptPtr
 typedef std::unordered_map<fo::Program*, ScriptProgram> SfallProgsMap;
 static SfallProgsMap sfallProgsMap;
+
 // a map scriptPtr => self_obj  to override self_obj for all script types using set_self
 std::unordered_map<fo::Program*, fo::GameObject*> selfOverrideMap;
 
@@ -593,6 +597,8 @@ static DWORD _stdcall HandleMapUpdateForScripts(const DWORD procId) {
 	RunGlobalScriptsAtProc(procId); // gl* scripts of types 0 and 3
 	RunHookScriptsAtProc(procId);   // all hs_ scripts
 
+	if (procId == fo::ScriptProc::map_exit_p_proc) onMapExit.invoke();
+
 	return procId; // restore eax (don't delete)
 }
 
@@ -716,6 +722,10 @@ void ScriptExtender::init() {
 	HookCall(0x421FC1, CombatOverHook);
 
 	InitNewOpcodes();
+}
+
+Delegate<>& ScriptExtender::OnMapExit() {
+	return onMapExit;
 }
 
 }
