@@ -1996,6 +1996,6 @@ void SetAppearanceGlobals(int race, int style) {
 }
 
 void GetAppearanceGlobals(int *race, int *style) {
-	*race=GetGlobalVar2("HAp_Race");
-	*style=GetGlobalVar2("HApStyle");
+	*race = GetGlobalVar2("HAp_Race");
+	*style = GetGlobalVar2("HApStyle");
 }

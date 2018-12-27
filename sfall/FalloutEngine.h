@@ -44,6 +44,7 @@
 #define _btable                     0x59E944
 #define _btncnt                     0x43EA1C
 #define _CarCurrArea                0x672E68
+#define _card_old_fid1              0x5709EC
 #define _character_points           0x518538
 #define _cmap                       0x51DF34
 #define _colorTable                 0x6A38D0
@@ -60,7 +61,6 @@
 #define _curr_pc_stat               0x6681AC
 #define _curr_stack                 0x59E96C
 #define _cursor_line                0x664514
-#define _DarkGreenColor             0x6A3A90
 #define _dialog_target              0x518848
 #define _dialog_target_is_party     0x51884C
 #define _dialogue_state             0x518714
@@ -78,6 +78,7 @@
 #define _folder_card_title2         0x5705BC
 #define _frame_time                 0x5709C4
 #define _free_perk                  0x570A29
+#define _frstc_draw1                0x5707D8
 #define _game_global_vars           0x5186C0
 #define _game_user_wants_to_quit    0x5186CC
 #define _gcsd                       0x51094C
@@ -89,7 +90,6 @@
 #define _gmouse_current_cursor      0x518C0C
 #define _gmovie_played_list         0x596C78
 #define _GNW_win_init_flag          0x51E3E0
-#define _GreenColor                 0x6A3CB0
 #define _gsound_initialized         0x518E30
 #define _hit_location_penalty       0x510954
 #define _holo_flag                  0x664529
@@ -186,7 +186,6 @@
 #define _queue                      0x6648C0
 #define _quick_done                 0x5193BC
 #define _read_callback              0x51DEEC
-#define _RedColor                   0x6AB4D0
 #define _retvals                    0x43EA7C
 #define _rotation                   0x631D34
 #define _sad                        0x530014
@@ -233,6 +232,15 @@
 #define _world_xpos                 0x672E0C
 #define _world_ypos                 0x672E10
 #define _WorldMapCurrArea           0x672E08
+
+// colors
+#define _BlueColor                  0x6A38EF
+#define _DarkGreenColor             0x6A3A90
+#define _GoodColor                  0x6AB4EF
+#define _GreenColor                 0x6A3CB0
+#define _PeanutButter               0x6A82F3
+#define _RedColor                   0x6AB4D0
+#define _WhiteColor                 0x6AB8CF
 #define _YellowColor                0x6AB8BB
 
 // variables
@@ -440,6 +448,7 @@ extern const DWORD adjust_ac_;
 extern const DWORD adjust_fid_;
 extern const DWORD ai_search_inven_armor_;
 extern const DWORD ai_try_attack_;
+extern const DWORD art_alias_num_;
 extern const DWORD art_exists_;
 extern const DWORD art_flush_;
 extern const DWORD art_frame_data_;

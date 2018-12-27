@@ -243,6 +243,7 @@ const DWORD adjust_ac_ = 0x4715F8;
 const DWORD adjust_fid_ = 0x4716E8;
 const DWORD ai_search_inven_armor_ = 0x429A6C;
 const DWORD ai_try_attack_ = 0x42A7D8;
+const DWORD art_alias_num_ = 0x419998;
 const DWORD art_exists_ = 0x4198C8; // eax - frameID, used for critter FIDs
 const DWORD art_flush_ = 0x41927C;
 const DWORD art_frame_data_ = 0x419870;

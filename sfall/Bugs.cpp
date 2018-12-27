@@ -1705,6 +1705,17 @@ getFail:
 	}
 }
 
+static void __declspec(naked) db_freadInt_hook() {
+	__asm {
+		call xfread_;
+		test eax, eax;
+		jnz  skip;
+		dec  eax;
+skip:
+		retn;
+	}
+}
+
 
 void BugsInit()
 {
@@ -2152,4 +2163,7 @@ void BugsInit()
 	// Fix for config_get_values_ engine function not getting the last value in a list if the list has less than the requested
 	// number of values (for chem_primary_desire)
 	MakeJump(0x42C12C, config_get_values_hack);
+
+	// Fix returned result value
+	HookCall(0x4C6162, db_freadInt_hook); // TODO: Resolve conflict in FileSystem.cpp
 }

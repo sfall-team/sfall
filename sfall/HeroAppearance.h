@@ -45,7 +45,7 @@ int check_buttons(void);
 void EnableHeroAppearanceMod();
 void HeroAppearanceModExit();
 
-void _stdcall HeroSelectWindow(int RaceStyleFlag);
+void _stdcall HeroSelectWindow(int raceStyleFlag);
 void _stdcall SetHeroStyle(int newStyleVal);
 void _stdcall SetHeroRace(int newRaceVal);
 void _stdcall LoadHeroAppearance(void);
