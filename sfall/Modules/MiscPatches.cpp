@@ -1012,6 +1012,15 @@ void BodypartHitChances() {
 	hit_location_penalty[8] = static_cast<long>(GetConfigInt("Misc", "BodyHit_Torso_Uncalled", 0));
 }
 
+static const DWORD walkDistanceAddr[] = {
+	0x411FF0, 0x4121C4, 0x412475, 0x412906,
+};
+
+void WalkDistance() {
+	int distance = GetConfigInt("Misc", "UseWalkDistance", 3) + 2;
+	if (distance > 1 && distance < 5) SafeWriteBatch<BYTE>(distance, walkDistanceAddr); // 5 default
+}
+
 void MiscPatches::init() {
 	mapName[64] = 0;
 	if (GetConfigString("Misc", "StartingMap", "", mapName, 64)) {
@@ -1092,6 +1101,8 @@ void MiscPatches::init() {
 
 	DisableLoadingGameSettingPatch();
 	InterfaceDontMoveOnTop();
+
+	WalkDistance();
 }
 
 void MiscPatches::exit() {
