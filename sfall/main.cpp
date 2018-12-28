@@ -143,6 +143,10 @@ static const DWORD PutAwayWeapon[] = {
 	0x472996, // invenWieldFunc_
 };
 
+static const DWORD WalkDistanceAddr[] = {
+	0x411FF0, 0x4121C4, 0x412475, 0x412906,
+};
+
 static __declspec(naked) void GetDateWrapper() {
 	__asm {
 		push ecx;
@@ -1528,6 +1532,15 @@ static void DllMain2() {
 		dlog("Applying InterfaceDontMoveOnTop patch.", DL_INIT);
 		SafeWrite8(0x46ECE9, 0x10); // set only Exclusive flag for Player Inventory/Loot/UseOn
 		SafeWrite8(0x41B966, 0x10); // set only Exclusive flag for Automap
+		dlogr(" Done", DL_INIT);
+	}
+
+	tmp = GetPrivateProfileIntA("Misc", "UseWalkDistance", 3, ini) + 2;
+	if (tmp > 1 && tmp < 5) {
+		dlog("Applying walk distance for using objects patch.", DL_INIT);
+		for (int i = 0; i < sizeof(WalkDistanceAddr) / 4; i++) {
+			SafeWrite8(WalkDistanceAddr[i], (BYTE)tmp); // default is 5
+		}
 		dlogr(" Done", DL_INIT);
 	}
 
