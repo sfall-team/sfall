@@ -25,6 +25,7 @@
 #include "Define.h"
 #include "FalloutEngine.h"
 #include "Knockback.h"
+#include "ScriptExtender.h"
 
 struct SkillInfo {
 	const char* name;
@@ -43,7 +44,7 @@ struct SkillInfo {
 };
 
 struct SkillModifier {
-	TGameObj* id;
+	long id;
 	int maximum;
 	int mod;
 };
@@ -56,7 +57,7 @@ static double* multipliers;
 
 static int __fastcall CheckSkillMax(TGameObj* critter, int base) {
 	for (DWORD i = 0; i < SkillMaxMods.size(); i++) {
-		if (critter == SkillMaxMods[i].id) {
+		if (critter->ID == SkillMaxMods[i].id) {
 			return min(base, SkillMaxMods[i].maximum);
 		}
 	}
@@ -177,14 +178,16 @@ void _stdcall SetSkillMax(TGameObj* critter, int maximum) {
 		BaseSkillMax.maximum = maximum;
 		return;
 	}
+
+	long id = SetObjectUniqueID(critter);
 	for (DWORD i = 0; i < SkillMaxMods.size(); i++) {
-		if (critter == SkillMaxMods[i].id) {
+		if (id == SkillMaxMods[i].id) {
 			SkillMaxMods[i].maximum = maximum;
 			return;
 		}
 	}
 	SkillModifier cm;
-	cm.id = critter;
+	cm.id = id;
 	cm.maximum = maximum;
 	cm.mod = 0;
 	SkillMaxMods.push_back(cm);

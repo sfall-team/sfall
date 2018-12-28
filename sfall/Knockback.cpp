@@ -23,11 +23,12 @@
 
 #include "FalloutEngine.h"
 #include "Knockback.h"
+#include "ScriptExtender.h"
 
-static std::vector<TGameObj*> NoBursts;
+static std::vector<long> NoBursts; // object id
 
 struct KnockbackModifier {
-	TGameObj* id;
+	long id;
 	DWORD type;
 	double value;
 };
@@ -37,7 +38,7 @@ static std::vector<KnockbackModifier> mAttackers;
 static std::vector<KnockbackModifier> mWeapons;
 
 struct ChanceModifier {
-	TGameObj* id;
+	long id;
 	int maximum;
 	int mod;
 };
@@ -52,10 +53,10 @@ static bool hookedAimedShot;
 static std::vector<DWORD> disabledAS;
 static std::vector<DWORD> forcedAS;
 
-static double ApplyModifiers(std::vector<KnockbackModifier>* mods, TGameObj* id, double val) {
+static double ApplyModifiers(std::vector<KnockbackModifier>* mods, TGameObj* object, double val) {
 	for (DWORD i = 0; i < mods->size(); i++) {
 		KnockbackModifier* mod = &(*mods)[i];
-		if (mod->id == id) {
+		if (mod->id == object->ID) {
 			switch (mod->type) {
 			case 0:
 				val = mod->value;
@@ -109,7 +110,7 @@ static void __declspec(naked) compute_dmg_damage_hack() {
 
 static int __fastcall PickpocketMod(int base, TGameObj* critter) {
 	for (DWORD i = 0; i < PickpocketMods.size(); i++) {
-		if (critter == PickpocketMods[i].id) {
+		if (critter->ID == PickpocketMods[i].id) {
 			return min(base + PickpocketMods[i].mod, PickpocketMods[i].maximum);
 		}
 	}
@@ -131,7 +132,7 @@ static void __declspec(naked) skill_check_stealing_hack() {
 
 static int __fastcall HitChanceMod(int base, TGameObj* critter) {
 	for (DWORD i = 0; i < HitChanceMods.size(); i++) {
-		if (critter == HitChanceMods[i].id) {
+		if (critter->ID == HitChanceMods[i].id) {
 			return min(base + HitChanceMods[i].mod, HitChanceMods[i].maximum);
 		}
 	}
@@ -150,7 +151,7 @@ static void __declspec(naked) determine_to_hit_func_hack() {
 
 static long __fastcall CheckDisableBurst(TGameObj* critter) {
 	for (DWORD i = 0; i < NoBursts.size(); i++) {
-		if (NoBursts[i] == critter) {
+		if (NoBursts[i] == critter->ID) {
 			return 10; // Disable Burst (area_attack_mode - non-existent value)
 		}
 	}
@@ -172,7 +173,7 @@ static void __declspec(naked) ai_pick_hit_mode_hack() {
 	}
 }
 
-void _stdcall KnockbackSetMod(TGameObj* id, DWORD type, float val, DWORD on) {
+void _stdcall KnockbackSetMod(TGameObj* object, DWORD type, float val, DWORD on) {
 	std::vector<KnockbackModifier>* mods;
 	switch (on) {
 	case 0:
@@ -187,6 +188,8 @@ void _stdcall KnockbackSetMod(TGameObj* id, DWORD type, float val, DWORD on) {
 	default:
 		return;
 	}
+
+	long id = SetObjectUniqueID(object);
 	KnockbackModifier mod = { id, type, (double)val };
 	for (DWORD i = 0; i < mods->size(); i++) {
 		if ((*mods)[i].id == id) {
@@ -197,7 +200,7 @@ void _stdcall KnockbackSetMod(TGameObj* id, DWORD type, float val, DWORD on) {
 	mods->push_back(mod);
 }
 
-void _stdcall KnockbackRemoveMod(TGameObj* id, DWORD on) {
+void _stdcall KnockbackRemoveMod(TGameObj* object, DWORD on) {
 	std::vector<KnockbackModifier>* mods;
 	switch (on) {
 	case 0:
@@ -213,7 +216,7 @@ void _stdcall KnockbackRemoveMod(TGameObj* id, DWORD on) {
 		return;
 	}
 	for (DWORD i = 0; i < mods->size(); i++) {
-		if ((*mods)[i].id == id) {
+		if ((*mods)[i].id == object->ID) {
 			mods->erase(mods->begin() + i);
 			return;
 		}
@@ -226,15 +229,17 @@ void _stdcall SetHitChanceMax(TGameObj* critter, DWORD maximum, DWORD mod) {
 		BaseHitChance.mod = mod;
 		return;
 	}
+
+	long id = SetObjectUniqueID(critter);
 	for (DWORD i = 0; i < HitChanceMods.size(); i++) {
-		if (critter == HitChanceMods[i].id) {
+		if (id == HitChanceMods[i].id) {
 			HitChanceMods[i].maximum = maximum;
 			HitChanceMods[i].mod = mod;
 			return;
 		}
 	}
 	ChanceModifier cm;
-	cm.id = critter;
+	cm.id = id;
 	cm.maximum = maximum;
 	cm.mod = mod;
 	HitChanceMods.push_back(cm);
@@ -246,28 +251,33 @@ void _stdcall SetPickpocketMax(TGameObj* critter, DWORD maximum, DWORD mod) {
 		BasePickpocket.mod = mod;
 		return;
 	}
+
+	long id = SetObjectUniqueID(critter);
 	for (DWORD i = 0; i < PickpocketMods.size(); i++) {
-		if (critter == PickpocketMods[i].id) {
+		if (id == PickpocketMods[i].id) {
 			PickpocketMods[i].maximum = maximum;
 			PickpocketMods[i].mod = mod;
 			return;
 		}
 	}
 	ChanceModifier cm;
-	cm.id = critter;
+	cm.id = id;
 	cm.maximum = maximum;
 	cm.mod = mod;
 	PickpocketMods.push_back(cm);
 }
 
 void _stdcall SetNoBurstMode(TGameObj* critter, DWORD on) {
+	if (critter == *ptr_obj_dude) return;
+
+	long id = SetObjectUniqueID(critter);
 	for (DWORD i = 0; i < NoBursts.size(); i++) {
-		if (NoBursts[i] == critter) {
+		if (NoBursts[i] == id) {
 			if (!on) NoBursts.erase(NoBursts.begin() + i); // off
 			return;
 		}
 	}
-	if (on) NoBursts.push_back(critter);
+	if (on) NoBursts.push_back(id);
 }
 
 static int __fastcall AimedShotTest(DWORD pid) {

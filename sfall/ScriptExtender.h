@@ -18,6 +18,7 @@
 
 #pragma once
 #include "main.h"
+#include "FalloutStructs.h"
 
 // TODO: replace with enum class
 enum SfallDataType {
@@ -25,6 +26,11 @@ enum SfallDataType {
 	DATATYPE_INT,
 	DATATYPE_FLOAT,
 	DATATYPE_STR
+};
+
+enum UniqueID {
+	UID_START = 0x10000000,
+	UID_END   = 0x7FFFFFFF
 };
 
 #pragma pack(8)
@@ -88,6 +94,10 @@ char* _stdcall mysubstr(char* str, int pos, int length);
 static char reg_anim_combat_check = 1;
 extern DWORD isGlobalScriptLoading;
 extern DWORD AvailableGlobalScriptTypes;
+
+// object's unique id
+extern long objUniqueID;
+long SetObjectUniqueID(TGameObj* obj);
 
 // types for script variables
 #define VAR_TYPE_INT    (0xC001)

@@ -1263,6 +1263,18 @@ void LoadProtoAutoMaxLimit() {
 	}
 }
 
+long objUniqueID = UID_START; // saving to sfallgv.sav
+
+// Assigns a new unique identifier to an object if it has not been previously assigned
+// the identifier is saved with the object in the saved game and this can used in various script
+long SetObjectUniqueID(TGameObj* obj) {
+	if (obj->ID > UID_START || obj == *ptr_obj_dude) return obj->ID; // dude id = 1800. TODO: perhaps his id needs to be changed to 0x10000000
+
+	if ((DWORD)objUniqueID >= UID_END) objUniqueID = UID_START;
+	obj->ID = ++objUniqueID;
+	return objUniqueID;
+}
+
 void ScriptExtenderSetup() {
 	bool AllowUnsafeScripting = IsDebug
 		&& GetPrivateProfileIntA("Debugging", "AllowUnsafeScripting", 0, ".\\ddraw.ini") != 0;
