@@ -22,16 +22,17 @@
 #include "..\main.h"
 #include "..\FalloutEngine\Fallout2.h"
 #include "LoadGameHook.h"
+#include "Objects.h"
 
 #include "Combat.h"
 
 namespace sfall
 {
 
-static std::vector<fo::GameObject*> noBursts;
+static std::vector<long> noBursts; // object id
 
 struct KnockbackModifier {
-	fo::GameObject* id;
+	long id;
 	DWORD type;
 	double value;
 };
@@ -47,10 +48,10 @@ static bool hookedAimedShot;
 static std::vector<DWORD> disabledAS;
 static std::vector<DWORD> forcedAS;
 
-static double ApplyModifiers(std::vector<KnockbackModifier>* mods, fo::GameObject* id, double val) {
+static double ApplyModifiers(std::vector<KnockbackModifier>* mods, fo::GameObject* object, double val) {
 	for (DWORD i = 0; i < mods->size(); i++) {
 		KnockbackModifier* mod = &(*mods)[i];
-		if (mod->id == id) {
+		if (mod->id == object->id) {
 			switch (mod->type) {
 			case 0:
 				val = mod->value;
@@ -104,7 +105,7 @@ static void __declspec(naked) compute_dmg_damage_hack() {
 
 static int __fastcall HitChanceMod(int base, fo::GameObject* critter) {
 	for (DWORD i = 0; i < hitChanceMods.size(); i++) {
-		if (critter == hitChanceMods[i].id) {
+		if (critter->id == hitChanceMods[i].id) {
 			return min(base + hitChanceMods[i].mod, hitChanceMods[i].maximum);
 		}
 	}
@@ -123,7 +124,7 @@ static void __declspec(naked) determine_to_hit_func_hack() {
 
 static long __fastcall CheckDisableBurst(fo::GameObject* critter) {
 	for (size_t i = 0; i < noBursts.size(); i++) {
-		if (noBursts[i] == critter) {
+		if (noBursts[i] == critter->id) {
 			return 10; // Disable Burst (area_attack_mode - non-existent value)
 		}
 	}
@@ -145,7 +146,7 @@ static void __declspec(naked) ai_pick_hit_mode_hack() {
 	}
 }
 
-void _stdcall KnockbackSetMod(fo::GameObject* id, DWORD type, float val, DWORD on) {
+void _stdcall KnockbackSetMod(fo::GameObject* object, DWORD type, float val, DWORD on) {
 	std::vector<KnockbackModifier>* mods;
 	switch (on) {
 	case 0:
@@ -160,6 +161,8 @@ void _stdcall KnockbackSetMod(fo::GameObject* id, DWORD type, float val, DWORD o
 	default:
 		return;
 	}
+
+	long id = Objects::SetObjectUniqueID(object);
 	KnockbackModifier mod = { id, type, (double)val };
 	for (DWORD i = 0; i < mods->size(); i++) {
 		if ((*mods)[i].id == id) {
@@ -170,7 +173,7 @@ void _stdcall KnockbackSetMod(fo::GameObject* id, DWORD type, float val, DWORD o
 	mods->push_back(mod);
 }
 
-void _stdcall KnockbackRemoveMod(fo::GameObject* id, DWORD on) {
+void _stdcall KnockbackRemoveMod(fo::GameObject* object, DWORD on) {
 	std::vector<KnockbackModifier>* mods;
 	switch (on) {
 	case 0:
@@ -186,7 +189,7 @@ void _stdcall KnockbackRemoveMod(fo::GameObject* id, DWORD on) {
 		return;
 	}
 	for (DWORD i = 0; i < mods->size(); i++) {
-		if ((*mods)[i].id == id) {
+		if ((*mods)[i].id == object->id) {
 			mods->erase(mods->begin() + i);
 			return;
 		}
@@ -199,24 +202,29 @@ void _stdcall SetHitChanceMax(fo::GameObject* critter, DWORD maximum, DWORD mod)
 		baseHitChance.mod = mod;
 		return;
 	}
+
+	long id = Objects::SetObjectUniqueID(critter);
 	for (DWORD i = 0; i < hitChanceMods.size(); i++) {
-		if (critter == hitChanceMods[i].id) {
+		if (id == hitChanceMods[i].id) {
 			hitChanceMods[i].maximum = maximum;
 			hitChanceMods[i].mod = mod;
 			return;
 		}
 	}
-	hitChanceMods.push_back(ChanceModifier(critter, maximum, mod));
+	hitChanceMods.push_back(ChanceModifier(id, maximum, mod));
 }
 
 void _stdcall SetNoBurstMode(fo::GameObject* critter, bool on) {
+	if (critter == fo::var::obj_dude) return;
+
+	long id = Objects::SetObjectUniqueID(critter);
 	for (size_t i = 0; i < noBursts.size(); i++) {
-		if (noBursts[i] == critter) {
+		if (noBursts[i] == id) {
 			if (!on) noBursts.erase(noBursts.begin() + i); // off
 			return;
 		}
 	}
-	if (on) noBursts.push_back(critter);
+	if (on) noBursts.push_back(id);
 }
 
 static int __fastcall AimedShotTest(DWORD pid) {

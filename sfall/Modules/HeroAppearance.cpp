@@ -740,8 +740,8 @@ static void DrawCharNote(bool style, int winRef, DWORD xPosWin, DWORD yPosWin, B
 		textHeight = fo::GetTextHeight();
 		fo::PrintText(TitleMsg, colour, 0, 0, 265, 280, PadSurface);
 		// draw line
-		memset(PadSurface + 280*textHeight, colour, 265);
-		memset(PadSurface + 280*(textHeight + 1), colour, 265);
+		memset(PadSurface + 280 * textHeight, colour, 265);
+		memset(PadSurface + 280 * (textHeight + 1), colour, 265);
 	}
 
 	DWORD lineNum = 0;

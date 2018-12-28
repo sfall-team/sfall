@@ -28,6 +28,7 @@
 #include "FileSystem.h"
 #include "HeroAppearance.h"
 #include "HookScripts.h"
+#include "Objects.h"
 #include "PartyControl.h"
 #include "Perks.h"
 #include "ScriptExtender.h"
@@ -122,7 +123,7 @@ static void _stdcall SaveGame2() {
 	HANDLE h = CreateFileA(buf, GENERIC_WRITE, 0, 0, CREATE_ALWAYS, 0, 0);
 	if (h != INVALID_HANDLE_VALUE) {
 		SaveGlobals(h);
-		WriteFile(h, &unused, 4, &size, 0);
+		WriteFile(h, &Objects::uniqueID, 4, &size, 0); // save unique id counter
 		unused++;
 		WriteFile(h, &unused, 4, &size, 0);
 		Perks::save(h);
@@ -206,10 +207,13 @@ static void _stdcall LoadGame_Before() {
 
 	HANDLE h = CreateFileA(buf, GENERIC_READ, FILE_SHARE_READ, 0, OPEN_EXISTING, 0, 0);
 	if (h != INVALID_HANDLE_VALUE) {
-		DWORD size, unused[2];
+		DWORD size, unused;
 		LoadGlobals(h);
-		ReadFile(h, &unused, 8, &size, 0);
-		if (size == 8) {
+		long uID = 0;
+		ReadFile(h, &uID, 4, &size, 0);
+		if (uID > UniqueID::Start) Objects::uniqueID = uID;
+		ReadFile(h, &unused, 4, &size, 0);
+		if (size == 4) {
 			Perks::load(h);
 			script::LoadArrays(h);
 		}

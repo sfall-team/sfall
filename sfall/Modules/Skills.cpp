@@ -25,6 +25,7 @@
 #include "..\FalloutEngine\Fallout2.h"
 #include "Combat.h"
 #include "LoadGameHook.h"
+#include "Objects.h"
 
 #include "Skills.h"
 
@@ -32,14 +33,14 @@ namespace sfall
 {
 
 struct SkillModifier {
-	fo::GameObject* id;
+	long id;
 	int maximum;
 	//int mod;
 
-	SkillModifier() : maximum(300)/*, mod(0)*/ {}
+	SkillModifier() : id(0), maximum(300)/*, mod(0)*/ {}
 
-	SkillModifier(fo::GameObject* critter, int max) {
-		id = critter;
+	SkillModifier(long id, int max) {
+		id = id;
 		maximum = max;
 		//mod = mod;
 	}
@@ -62,7 +63,7 @@ static ChanceModifier basePickpocket;
 
 static int __fastcall PickpocketMod(int base, fo::GameObject* critter) {
 	for (DWORD i = 0; i < pickpocketMods.size(); i++) {
-		if (critter == pickpocketMods[i].id) {
+		if (critter->id == pickpocketMods[i].id) {
 			return min(base + pickpocketMods[i].mod, pickpocketMods[i].maximum);
 		}
 	}
@@ -84,7 +85,7 @@ static void __declspec(naked) skill_check_stealing_hack() {
 
 static int __fastcall CheckSkillMax(fo::GameObject* critter, int base) {
 	for (DWORD i = 0; i < skillMaxMods.size(); i++) {
-		if (critter == skillMaxMods[i].id) {
+		if (critter->id == skillMaxMods[i].id) {
 			return min(base, skillMaxMods[i].maximum);
 		}
 	}
@@ -205,13 +206,15 @@ void _stdcall SetSkillMax(fo::GameObject* critter, int maximum) {
 		baseSkillMax.maximum = maximum;
 		return;
 	}
+
+	long id = Objects::SetObjectUniqueID(critter);
 	for (DWORD i = 0; i < skillMaxMods.size(); i++) {
-		if (critter == skillMaxMods[i].id) {
+		if (id == skillMaxMods[i].id) {
 			skillMaxMods[i].maximum = maximum;
 			return;
 		}
 	}
-	skillMaxMods.push_back(SkillModifier(critter, maximum));
+	skillMaxMods.push_back(SkillModifier(id, maximum));
 }
 
 void _stdcall SetPickpocketMax(fo::GameObject* critter, DWORD maximum, DWORD mod) {
@@ -220,14 +223,16 @@ void _stdcall SetPickpocketMax(fo::GameObject* critter, DWORD maximum, DWORD mod
 		basePickpocket.mod = mod;
 		return;
 	}
+
+	long id = Objects::SetObjectUniqueID(critter);
 	for (DWORD i = 0; i < pickpocketMods.size(); i++) {
-		if (critter == pickpocketMods[i].id) {
+		if (id == pickpocketMods[i].id) {
 			pickpocketMods[i].maximum = maximum;
 			pickpocketMods[i].mod = mod;
 			return;
 		}
 	}
-	pickpocketMods.push_back(ChanceModifier(critter, maximum, mod));
+	pickpocketMods.push_back(ChanceModifier(id, maximum, mod));
 }
 
 void Skills_OnGameLoad() {
