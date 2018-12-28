@@ -60,6 +60,10 @@ static const DWORD script_dialog_msgs[] = {
 	0x4A50C2, 0x4A5169, 0x4A52FA, 0x4A5302, 0x4A6B86, 0x4A6BE0, 0x4A6C37,
 };
 
+static const DWORD walkDistanceAddr[] = {
+	0x411FF0, 0x4121C4, 0x412475, 0x412906,
+};
+
 static void __declspec(naked) Combat_p_procFix() {
 	__asm {
 		push eax;
@@ -925,6 +929,15 @@ void BodypartHitChances() {
 	hit_location_penalty[8] = static_cast<long>(GetConfigInt("Misc", "BodyHit_Torso_Uncalled", 0));
 }
 
+void UseWalkDistancePatch() {
+	int distance = GetConfigInt("Misc", "UseWalkDistance", 3) + 2;
+	if (distance > 1 && distance < 5) {
+		dlog("Applying walk distance for using objects patch.", DL_INIT);
+		SafeWriteBatch<BYTE>(distance, walkDistanceAddr); // default is 5
+		dlogr(" Done", DL_INIT);
+	}
+}
+
 void MiscPatches::init() {
 	mapName[64] = 0;
 	if (GetConfigString("Misc", "StartingMap", "", mapName, 64)) {
@@ -1005,6 +1018,8 @@ void MiscPatches::init() {
 
 	SkipLoadingGameSettingsPatch();
 	InterfaceDontMoveOnTopPatch();
+
+	UseWalkDistancePatch();
 }
 
 void MiscPatches::exit() {
