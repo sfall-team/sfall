@@ -285,7 +285,7 @@ void Criticals::init() {
 	if (mode < 0 || mode > 4) mode = 0;
 	if (mode) {
 		CriticalTableOverride();
-		LoadGameHook::OnAfterGameStarted() += []() {
+		LoadGameHook::OnBeforeGameStart() += []() {
 			memcpy(critTable, loadCritTable, sizeof(critTable)); // Apply loaded critical table
 		};
 	}

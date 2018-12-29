@@ -61,6 +61,10 @@ static const DWORD script_dialog_msgs[] = {
 	0x4A50C2, 0x4A5169, 0x4A52FA, 0x4A5302, 0x4A6B86, 0x4A6BE0, 0x4A6C37,
 };
 
+static const DWORD walkDistanceAddr[] = {
+	0x411FF0, 0x4121C4, 0x412475, 0x412906,
+};
+
 static const long StatsDisplayTable[14] = {
 	fo::Stat::STAT_ac,
 	fo::Stat::STAT_dmg_thresh,
@@ -991,11 +995,20 @@ void DisableLoadingGameSettingPatch() {
 	}
 }
 
-void InterfaceDontMoveOnTop() {
+void InterfaceDontMoveOnTopPatch() {
 	if (GetConfigInt("Misc", "InterfaceDontMoveOnTop", 0)) {
 		SafeWrite8(0x46ECE9, fo::WinFlags::Exclusive);  // Player Inteface/Loot/UseOn
 		//SafeWrite8(0x445978, fo::WinFlags::Exclusive);  // DialogReView (need fix)
 		SafeWrite8(0x41B966, fo::WinFlags::Exclusive);  // Automap
+	}
+}
+
+void UseWalkDistancePatch() {
+	int distance = GetConfigInt("Misc", "UseWalkDistance", 3) + 2;
+	if (distance > 1 && distance < 5) {
+		dlog("Applying walk distance for using objects patch.", DL_INIT);
+		SafeWriteBatch<BYTE>(distance, walkDistanceAddr); // 5 default
+		dlogr(" Done", DL_INIT);
 	}
 }
 
@@ -1010,15 +1023,6 @@ void BodypartHitChances() {
 	hit_location_penalty[6] = static_cast<long>(GetConfigInt("Misc", "BodyHit_Eyes", -60));
 	hit_location_penalty[7] = static_cast<long>(GetConfigInt("Misc", "BodyHit_Groin", -30));
 	hit_location_penalty[8] = static_cast<long>(GetConfigInt("Misc", "BodyHit_Torso_Uncalled", 0));
-}
-
-static const DWORD walkDistanceAddr[] = {
-	0x411FF0, 0x4121C4, 0x412475, 0x412906,
-};
-
-void WalkDistance() {
-	int distance = GetConfigInt("Misc", "UseWalkDistance", 3) + 2;
-	if (distance > 1 && distance < 5) SafeWriteBatch<BYTE>(distance, walkDistanceAddr); // 5 default
 }
 
 void MiscPatches::init() {
@@ -1100,9 +1104,9 @@ void MiscPatches::init() {
 	PartyMemberSkillPatch();
 
 	DisableLoadingGameSettingPatch();
-	InterfaceDontMoveOnTop();
+	InterfaceDontMoveOnTopPatch();
 
-	WalkDistance();
+	UseWalkDistancePatch();
 }
 
 void MiscPatches::exit() {
