@@ -480,150 +480,134 @@ static void __declspec(naked) item_add_mult_hook() {
 	}
 }
 
-static void __declspec(naked) inven_pickup_hook() {
+static void __declspec(naked) inven_pickup_hack() {
 	__asm {
-		mov  eax, ds:[FO_VAR_i_wid]
-		call fo::funcoffs::GNW_find_
-		mov  ebx, [eax+0x8+0x0]                   // ebx = _i_wid.rect.x
-		mov  ecx, [eax+0x8+0x4]                   // ecx = _i_wid.rect.y
-		mov  eax, 176
-		add  eax, ebx                             // x_start
-		add  ebx, 176+60                          // x_end
-		mov  edx, 37
-		add  edx, ecx                             // y_start
-		add  ecx, 37+100                          // y_end
-		call fo::funcoffs::mouse_click_in_
-		test eax, eax
-		jz   end
-		mov  edx, ds:[FO_VAR_curr_stack]
-		test edx, edx
-		jnz  end
-		cmp  edi, 1006                            // Hands?
-		jae  skip                                 // Yes
-skip:
-		xor  eax, eax
-end:
-		retn
+		mov  eax, ds:[FO_VAR_i_wid];
+		call fo::funcoffs::GNW_find_;
+		mov  ebx, [eax + 8 + 0];                  // ebx = _i_wid.rect.x
+		mov  ecx, [eax + 8 + 4];                  // ecx = _i_wid.rect.y
+		lea  eax, [ebx + 176];                    // x_start
+		add  ebx, 176 + 60;                       // x_end
+		lea  edx, [ecx + 37];                     // y_start
+		add  ecx, 37 + 100;                       // y_end
+		retn;
 	}
 }
 
 static void __declspec(naked) loot_container_hack_scroll() {
 	__asm {
-		cmp  esi, 0x150                           // source_down
-		je   scroll
-		cmp  esi, 0x148                           // source_up
-		jne  end
+		cmp  esi, 0x150;                          // source_down
+		je   scroll;
+		cmp  esi, 0x148;                          // source_up
+		jne  end;
 scroll:
-		push edx
-		push ecx
-		push ebx
-		mov  eax, ds:[FO_VAR_i_wid]
-		call fo::funcoffs::GNW_find_
-		mov  ebx, [eax+0x8+0x0]                   // ebx = _i_wid.rect.x
-		mov  ecx, [eax+0x8+0x4]                   // ecx = _i_wid.rect.y
-		mov  eax, 297
-		add  eax, ebx                             // x_start
-		add  ebx, 297+64                          // x_end
-		mov  edx, 37
-		add  edx, ecx                             // y_start
-		add  ecx, 37+6*48                         // y_end
-		call fo::funcoffs::mouse_click_in_
-		pop  ebx
-		pop  ecx
-		pop  edx
-		test eax, eax
-		jz   end
-		cmp  esi, 0x150                           // source_down
-		je   targetDown
-		mov  esi, 0x18D                           // target_up
-		jmp  end
+		mov  eax, ds:[FO_VAR_i_wid];
+		call fo::funcoffs::GNW_find_;
+		push edx;
+		push ecx;
+		push ebx;
+		mov  ebx, [eax + 8 + 0];                  // ebx = _i_wid.rect.x
+		mov  ecx, [eax + 8 + 4];                  // ecx = _i_wid.rect.y
+		lea  eax, [ebx + 297];                    // x_start
+		add  ebx, 297 + 64;                       // x_end
+		lea  edx, [ecx + 37];                     // y_start
+		add  ecx, 37 + 6 * 48;                    // y_end
+		call fo::funcoffs::mouse_click_in_;
+		pop  ebx;
+		pop  ecx;
+		pop  edx;
+		test eax, eax;
+		jz   end;
+		cmp  esi, 0x150;                          // source_down
+		je   targetDown;
+		mov  esi, 0x18D;                          // target_up
+		jmp  end;
 targetDown:
-		mov  esi, 0x191                           // target_down
+		mov  esi, 0x191;                          // target_down
 end:
-		mov  eax, ds:[FO_VAR_curr_stack]
-		retn
+		mov  eax, ds:[FO_VAR_curr_stack];
+		retn;
 	}
 }
 
 static void __declspec(naked) barter_inventory_hack_scroll() {
 	__asm {
-		push edx
-		push ecx
-		push ebx
-		xchg esi, eax
-		cmp  esi, 0x150                           // source_down
-		je   scroll
-		cmp  esi, 0x148                           // source_up
-		jne  end
+		mov  esi, eax;
+		cmp  esi, 0x150;                          // source_down
+		je   scroll;
+		cmp  esi, 0x148;                          // source_up
+		jne  skip;
 scroll:
-		mov  eax, ds:[FO_VAR_i_wid]
-		call fo::funcoffs::GNW_find_
-		mov  ebx, [eax+0x8+0x0]                   // ebx = _i_wid.rect.x
-		mov  ecx, [eax+0x8+0x4]                   // ecx = _i_wid.rect.y
-		push ebx
-		push ecx
-		mov  eax, 395
-		add  eax, ebx                             // x_start
-		add  ebx, 395+64                          // x_end
-		mov  edx, 35
-		add  edx, ecx                             // y_start
-		add  ecx, 35+3*48                         // y_end
-		call fo::funcoffs::mouse_click_in_
-		pop  ecx
-		pop  ebx
-		test eax, eax
-		jz   notTargetScroll
-		cmp  esi, 0x150                           // source_down
-		je   targetDown
-		mov  esi, 0x18D                           // target_up
-		jmp  end
+		mov  eax, ds:[FO_VAR_i_wid];
+		call fo::funcoffs::GNW_find_;
+		push edx;
+		push ecx;
+		push ebx;
+		push ebp;
+		push edi;
+		mov  ebp, [eax + 8 + 0];
+		mov  edi, [eax + 8 + 4];
+		mov  ebx, ebp;                            // ebx = _i_wid.rect.x
+		mov  ecx, edi;                            // ecx = _i_wid.rect.y
+		lea  eax, [ebp + 395];                    // x_start
+		add  ebx, 395 + 64;                       // x_end
+		lea  edx, [edi + 35];                     // y_start
+		add  ecx, 35 + 3 * 48;                    // y_end
+		call fo::funcoffs::mouse_click_in_;
+		test eax, eax;
+		jz   notTargetScroll;
+		cmp  esi, 0x150;                          // source_down
+		je   targetDown;
+		mov  esi, 0x18D;                          // target_up
+		jmp  end;
 targetDown:
-		mov  esi, 0x191                           // target_down
-		jmp  end
+		mov  esi, 0x191;                          // target_down
+		jmp  end;
+
 notTargetScroll:
-		push ebx
-		push ecx
-		mov  eax, 250
-		add  eax, ebx                             // x_start
-		add  ebx, 250+64                          // x_end
-		mov  edx, 20
-		add  edx, ecx                             // y_start
-		add  ecx, 20+3*48                         // y_end
-		call fo::funcoffs::mouse_click_in_
-		pop  ecx
-		pop  ebx
-		test eax, eax
-		jz   notTargetBarter
-		cmp  esi, 0x150                           // source_down
-		je   barterTargetDown
-		mov  esi, 0x184                           // target_barter_up
-		jmp  end
+		mov  ebx, ebp;
+		mov  ecx, edi;
+		lea  eax, [ebp + 250];                    // x_start
+		add  ebx, 250 + 64;                       // x_end
+		lea  edx, [edi + 20];                     // y_start
+		add  ecx, 20 + 3 * 48;                    // y_end
+		call fo::funcoffs::mouse_click_in_;
+		test eax, eax;
+		jz   notTargetBarter;
+		cmp  esi, 0x150;                          // source_down
+		je   barterTargetDown;
+		mov  esi, 0x184;                          // target_barter_up
+		jmp  end;
 barterTargetDown:
-		mov  esi, 0x176                           // target_barter_down
-		jmp  end
+		mov  esi, 0x176;                          // target_barter_down
+		jmp  end;
+
 notTargetBarter:
-		mov  eax, 165
-		add  eax, ebx                             // x_start
-		add  ebx, 165+64                          // x_end
-		mov  edx, 20
-		add  edx, ecx                             // y_start
-		add  ecx, 20+3*48                         // y_end
-		call fo::funcoffs::mouse_click_in_
-		test eax, eax
-		jz   end
-		cmp  esi, 0x150                           // source_down
-		je   barterSourceDown
-		mov  esi, 0x149                           // source_barter_up
-		jmp  end
+		mov  ebx, ebp;
+		mov  ecx, edi;
+		lea  eax, [ebp + 165];                    // x_start
+		add  ebx, 165 + 64;                       // x_end
+		lea  edx, [edi + 20];                     // y_start
+		add  ecx, 20 + 3 * 48;                    // y_end
+		call fo::funcoffs::mouse_click_in_;
+		test eax, eax;
+		jz   end;
+		cmp  esi, 0x150;                          // source_down
+		je   barterSourceDown;
+		mov  esi, 0x149;                          // source_barter_up
+		jmp  end;
 barterSourceDown:
-		mov  esi, 0x151                           // source_barter_down
+		mov  esi, 0x151;                          // source_barter_down
 end:
-		pop  ebx
-		pop  ecx
-		pop  edx
-		mov  eax, esi
-		cmp  eax, 0x11
-		retn
+		pop  edi;
+		pop  ebp;
+		pop  ebx;
+		pop  ecx;
+		pop  edx;
+		mov  eax, esi;
+skip:
+		cmp  eax, 0x11;
+		retn;
 	}
 }
 
@@ -694,7 +678,7 @@ static void __declspec(naked) do_move_timer_hook() {
 	__asm {
 		cmp eax, 4;
 		jnz end;
-		pushad;
+		pushadc;
 	}
 
 	KeyDown(itemFastMoveKey); // check pressed
@@ -702,13 +686,13 @@ static void __declspec(naked) do_move_timer_hook() {
 	__asm {
 		cmp  skipFromContainer, 0;
 		jz   noSkip;
-		cmp  dword ptr [esp + 0x14 + 36], 0x474A43;
+		cmp  dword ptr [esp + 0x14 + 16], 0x474A43;
 		jnz  noSkip;
 		test eax, eax;
 		setz al;
 noSkip:
 		test eax, eax;  // set if pressed
-		popad;
+		popadc;
 		jz   end;
 		add  esp, 4;    // destroy ret
 		jmp  DoMoveTimer_Ret;
@@ -845,7 +829,7 @@ void Inventory::init() {
 	}
 
 	// Move items out of bag/backpack and back into the main inventory list by dragging them to character's image (similar to Fallout 1 behavior)
-	HookCall(0x471457, inven_pickup_hook);
+	MakeCall(0x471452, inven_pickup_hack);
 
 	// Move items to player's main inventory instead of the opened bag/backpack when confirming a trade
 	SafeWrite32(0x475CF2, FO_VAR_stack);

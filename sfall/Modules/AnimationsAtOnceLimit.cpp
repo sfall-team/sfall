@@ -163,7 +163,6 @@ static DWORD __fastcall AnimCombatFix(DWORD* scr, BYTE combatFlag) {
 	if (combatFlag & 2) {              // combat flag is set
 		_asm call fo::funcoffs::combat_anim_finished_;
 	}
-
 	return animAddr;
 }
 
@@ -171,7 +170,7 @@ static void __declspec(naked) anim_set_end_hack() {
 	__asm {
 		call AnimCombatFix;
 		mov  [eax][esi], ebx;
-		push 0x415DF2;
+		xor  dl, dl; // goto 0x415DF2;
 		retn;
 	}
 }
@@ -315,7 +314,7 @@ void AnimationsAtOnce::init() {
 		dlogr(" Done", DL_INIT);
 	}
 	// Fix for calling anim() functions in combat
-	MakeJump(0x415DE2, anim_set_end_hack);
+	MakeCall(0x415DE2, anim_set_end_hack, 1);
 
 	// Fix crash when the critter goes through a door with animation trigger
 	MakeJump(0x41755E, object_move_hack);
