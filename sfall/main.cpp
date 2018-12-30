@@ -140,6 +140,7 @@ static void InitModules() {
 	manager.add<PlayerModel>();
 	manager.add<Worldmap>();
 	manager.add<Stats>();
+	manager.add<Criticals>();
 	manager.add<ScriptExtender>();
 	manager.add<HookScripts>();
 	manager.add<LoadGameHook>();
@@ -148,7 +149,6 @@ static void InitModules() {
 	manager.add<Combat>();
 	manager.add<Skills>();
 	manager.add<FileSystem>();
-	manager.add<Criticals>();
 	manager.add<LoadOrder>();
 	manager.add<Karma>();
 	manager.add<Tiles>();

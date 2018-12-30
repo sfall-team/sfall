@@ -916,6 +916,15 @@ void InterfaceDontMoveOnTopPatch() {
 	}
 }
 
+void UseWalkDistancePatch() {
+	int distance = GetConfigInt("Misc", "UseWalkDistance", 3) + 2;
+	if (distance > 1 && distance < 5) {
+		dlog("Applying walk distance for using objects patch.", DL_INIT);
+		SafeWriteBatch<BYTE>(distance, walkDistanceAddr); // default is 5
+		dlogr(" Done", DL_INIT);
+	}
+}
+
 void BodypartHitChances() {
 	using fo::var::hit_location_penalty;
 	hit_location_penalty[0] = static_cast<long>(GetConfigInt("Misc", "BodyHit_Head", -40));
@@ -927,15 +936,6 @@ void BodypartHitChances() {
 	hit_location_penalty[6] = static_cast<long>(GetConfigInt("Misc", "BodyHit_Eyes", -60));
 	hit_location_penalty[7] = static_cast<long>(GetConfigInt("Misc", "BodyHit_Groin", -30));
 	hit_location_penalty[8] = static_cast<long>(GetConfigInt("Misc", "BodyHit_Torso_Uncalled", 0));
-}
-
-void UseWalkDistancePatch() {
-	int distance = GetConfigInt("Misc", "UseWalkDistance", 3) + 2;
-	if (distance > 1 && distance < 5) {
-		dlog("Applying walk distance for using objects patch.", DL_INIT);
-		SafeWriteBatch<BYTE>(distance, walkDistanceAddr); // default is 5
-		dlogr(" Done", DL_INIT);
-	}
 }
 
 void MiscPatches::init() {

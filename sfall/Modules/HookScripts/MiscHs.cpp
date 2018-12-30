@@ -369,50 +369,48 @@ skip:
 	}
 }
 
-static int __fastcall ExplosiveTimerHook_Script(DWORD type, DWORD item, DWORD time) {
+static int __fastcall ExplosiveTimerHook_Script(DWORD* type, DWORD item, DWORD time) {
 	BeginHook();
 	argCount = 3;
 
 	args[0] = time;
 	args[1] = item;
-	args[2] = (type == 11) ? fo::ROLL_FAILURE : fo::ROLL_SUCCESS;
+	args[2] = (*type == 11) ? fo::ROLL_FAILURE : fo::ROLL_SUCCESS;
 
 	RunHookScript(HOOK_EXPLOSIVETIMER);
 
-	int result = 0;
-	if (cRet > 0 && rets[0] >= 0) {
-		if (rets[0] > 18000) rets[0] = 18000;  // max 30 minutes
-		if (cRet < 2 || (rets[1] < fo::ROLL_CRITICAL_FAILURE || rets[1] > fo::ROLL_CRITICAL_SUCCESS)) {
-			result--;       // use vanilla type
-		} else {
-			result++;       // use returned type
+	time = -1;
+	if (cRet > 0 && (long)rets[0] >= 0) {
+		time = min(rets[0], 18000); // max 30 minutes
+		if (cRet > 1) {
+			int typeRet = rets[1];
+			if (typeRet >= fo::ROLL_CRITICAL_FAILURE && typeRet <= fo::ROLL_CRITICAL_SUCCESS) {
+				*type = (typeRet > fo::ROLL_FAILURE) ? 8 : 11; // returned new type (8 = SUCCESS, 11 = FAILURE)
+			}
 		}
 	}
-	return result;
+	EndHook();
+	return time;
 }
 
 static void _declspec(naked) ExplosiveTimerHook() {
-	using namespace fo;
 	__asm {
-		push eax;
+		push eax; // time in ticks for queue_add_
 		push edx;
-		push ecx;
 		//-------
-		push edi;                       // time in ticks
+		push ecx;
+		mov  ecx, esp;                  // ptr to type
+		push edi;                       // time in ticks (w/o failure penalty)
 		call ExplosiveTimerHook_Script; // ecx - type, edx - item
-		cmp  eax, 0;
 		pop  ecx;
 		pop  edx;
+		cmp  eax, -1; // return new time in ticks
+		jne  skip;
 		pop  eax;
-		jz   end;
-		mov  eax, rets[0];           // time in ticks
-		jl   end;
-		mov  ecx, 8;                 // type SUCCESS
-		cmp  rets[4], ROLL_FAILURE;
-		jg   end;
-		add  ecx, 3;                 // type FAILURE (11)
+		jmp  end;
+skip:
+		add  esp, 4;
 end:
-		HookEnd;
 		jmp  fo::funcoffs::queue_add_;
 	}
 }

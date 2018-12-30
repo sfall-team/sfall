@@ -102,10 +102,8 @@ static DWORD __fastcall UseAnimateObjHook_Script(DWORD critter, DWORD animCode, 
 
 	RunHookScript(HOOK_USEANIMOBJ);
 
-	if (cRet > 0) {
-		if (static_cast<long>(rets[0]) <= 64) {
-			animCode = rets[0]; // new anim code
-		}
+	if (cRet > 0 && static_cast<long>(rets[0]) <= 64) {
+		animCode = rets[0]; // new anim code
 	}
 	EndHook();
 
