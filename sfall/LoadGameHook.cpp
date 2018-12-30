@@ -177,7 +177,6 @@ static void _stdcall LoadGame2_Before() {
 
 	dlog_f("Loading save game: %s\n", DL_MAIN, buf);
 
-	ClearGlobals();
 	HANDLE h = CreateFileA(buf, GENERIC_READ, FILE_SHARE_READ, 0, OPEN_EXISTING, 0, 0);
 	if (h != INVALID_HANDLE_VALUE) {
 		DWORD size, unused;
@@ -197,8 +196,8 @@ static void _stdcall LoadGame2_Before() {
 }
 
 static void _stdcall LoadGame2_After() {
-	LoadGlobalScripts();
 	CritLoad();
+	LoadGlobalScripts();
 	mapLoaded = true;
 }
 
@@ -260,8 +259,8 @@ static void NewGame2() {
 
 	SetNewCharAppearanceGlobals();
 
-	LoadGlobalScripts();
 	CritLoad();
+	LoadGlobalScripts();
 	LoadHeroAppearance();
 	mapLoaded = true;
 }
