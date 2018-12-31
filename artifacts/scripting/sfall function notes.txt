@@ -141,7 +141,7 @@ array - array ID to be used with array-related functions (actually an integer)
 - In this case use force_encounter_with_flags with the ENCOUNTER_FLAG_NO_CAR flag set.
 
 > int get_light_level()
-- ambient light level in range 0..65535
+- ambient light level in range 0..65536
 - The value returned by get_light_level may not exactly match that set by set_light_level, as set_light_level applies modifiers from the night vision perk.
 
 > void set_map_time_multi(float multi)
@@ -310,7 +310,7 @@ Some utility/math functions are available:
 - this calls an internal engine function which is used to determine the perception range of critters (which you can override using HOOK_WITHINPERCEPTION)
 
 > int tile_light(int elevation, int tileNum)
-- returns light intensity at the given tile in range from 0 to 65535
+- returns light intensity at the given tile in range from 0 to 65536
 
 > object obj_blocking_line(object objFrom, int tileTo, int blockingType)
 - returns first object which blocks direct linear path from objFrom to tileTo using selected blocking function (see BLOCKING_TYPE_* constants in sfall.h)
