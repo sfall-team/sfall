@@ -39,10 +39,10 @@ struct SkillModifier {
 
 	SkillModifier() : id(0), maximum(300)/*, mod(0)*/ {}
 
-	SkillModifier(long id, int max) {
-		id = id;
+	SkillModifier(long _id, int max) {
+		id = _id;
 		maximum = max;
-		//mod = mod;
+		//mod = _mod;
 	}
 
 	void SetDefault() {

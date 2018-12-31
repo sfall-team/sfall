@@ -54,11 +54,11 @@ struct FakePerk {
 
 	FakePerk() {}
 
-	FakePerk(char* name, int level, int image, char* desc) : Name {0}, Desc {0} {
-		Level = level;
-		Image = image;
-		strncpy_s(Name, name, _TRUNCATE);
-		strncpy_s(Desc, desc, _TRUNCATE);
+	FakePerk(char* _name, int _level, int _image, char* _desc) : Name {0}, Desc {0} {
+		Level = _level;
+		Image = _image;
+		strncpy_s(Name, _name, _TRUNCATE);
+		strncpy_s(Desc, _desc, _TRUNCATE);
 	}
 };
 

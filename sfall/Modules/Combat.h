@@ -36,10 +36,10 @@ struct ChanceModifier {
 
 	ChanceModifier() : id(0), maximum(95), mod(0) {}
 
-	ChanceModifier(long id, int max, int mod) {
-		id = id;
+	ChanceModifier(long _id, int max, int _mod) {
+		id = _id;
 		maximum = max;
-		mod = mod;
+		mod = _mod;
 	}
 
 	void SetDefault() {
