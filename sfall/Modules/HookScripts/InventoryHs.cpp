@@ -237,7 +237,7 @@ static void __declspec(naked) DropIntoContainerHack() {
 		pushadc;
 		mov  ecx, ebp;                // contaner ptr
 		mov  edx, esi;                // item
-		mov  eax, [esp + 0x10 + 32];  // call address
+		mov  eax, [esp + 0x10 + 12];  // call address
 		push eax;
 		call DropIntoContainer;
 		cmp  eax, -1;                // ret value
@@ -264,10 +264,10 @@ static void _declspec(naked) DropAmmoIntoWeaponHack() {
 	__asm {
 		pushadc;
 		mov  ecx, ebp;              // weapon ptr
-		mov  edx, [esp + 32];       // item var: ammo_
-		push 4;                    // event: weapon reloading
+		mov  edx, [esp + 12];       // item var: ammo_
+		push 4;                     // event: weapon reloading
 		call InventoryMoveHook_Script;
-		cmp  eax, -1;              // ret value
+		cmp  eax, -1;               // ret value
 		popadc;
 		jne  donothing;
 		mov  ebx, 1;   // overwritten code
