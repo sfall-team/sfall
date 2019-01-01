@@ -162,7 +162,7 @@ skip:
 		call combat_anim_finished_;
 end:
 		mov  [edi][esi], ebx;
-		push 0x415DF2;
+		xor  dl, dl; // goto 0x415DF2;
 		retn;
 	}
 }
@@ -226,7 +226,7 @@ void ApplyAnimationsAtOncePatches(signed char aniMax) {
 		SafeWrite32(animMaxSizeCheck[i], animRecordSize * aniMax);
 	}
 
-	//divert old animation structure list pointers to newly alocated memory
+	//divert old animation structure list pointers to newly allocated memory
 
 	//struct array 1///////////////////
 
@@ -356,7 +356,7 @@ void AnimationsAtOnceInit() {
 		dlogr(" Done", DL_INIT);
 	}
 	// Fix for calling anim() functions in combat
-	MakeJump(0x415DE2, anim_set_end_hack);
+	MakeCall(0x415DE2, anim_set_end_hack, 1);
 
 	// Fix crash when the critter goes through a door with animation trigger
 	MakeJump(0x41755E, object_move_hack);

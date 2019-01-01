@@ -20,50 +20,45 @@
 
 #include "Logging.h"
 
-static DWORD compute_spray_center_mult;
-static DWORD compute_spray_center_div;
-static DWORD compute_spray_target_mult;
-static DWORD compute_spray_target_div;
+static long compute_spray_center_mult;
+static long compute_spray_center_div;
+static long compute_spray_target_mult;
+static long compute_spray_target_div;
+
+static long __fastcall ComputeSpray(DWORD* roundsLeftOut, DWORD* roundsRightOut, DWORD totalRounds, DWORD* roundsCenterOut) {
+	// roundsCenter = totalRounds * mult / div
+	long result = totalRounds * compute_spray_center_mult;
+	long roundsCenter = result / compute_spray_center_div;
+	if (result % compute_spray_center_div) roundsCenter++; // if remainder then round up
+
+	if (roundsCenter == 0) roundsCenter = 1;
+	*roundsCenterOut = roundsCenter;
+
+	long roundsLeft = (totalRounds - roundsCenter) / 2;
+	*roundsLeftOut = roundsLeft;
+	*roundsRightOut = totalRounds - roundsCenter - roundsLeft;
+
+	// roundsMainTarget = roundsCenter * mult / div
+	result = roundsCenter * compute_spray_target_mult;
+	long roundsMainTarget = result / compute_spray_target_div;
+
+	return (result % compute_spray_target_div) ? ++roundsMainTarget : roundsMainTarget; // if remainder then round up
+}
 
 static const DWORD compute_spray_rounds_back = 0x42353A;
 static void __declspec(naked) compute_spray_rounds_distribution() {
 	__asm {
-		// ebp - totalRounds
-		mov     eax, ebp; // roundsCenter = totalRounds * mult / div
-		mov     ebx, compute_spray_center_mult;
-		imul    ebx; // multiply eax by ebx and store result in edx:eax
-		mov     ebx, compute_spray_center_div; // divisor
-		idiv    ebx; // divide edx:eax by ebx and store result in eax (edx)
-		test    edx, edx; // if remainder (edx) is not 0
-		jz      divEnd1;
-		inc     eax; // round up
-divEnd1:
-		mov     [esp+16], eax; // roundsCenter
-		test    eax, eax; // if (roundsCenter == 0)
-		jnz     loc_42350F;
-		mov     [esp+16], 1; // roundsCenter = 1;
-loc_42350F:
-		mov     eax, ebp; // roundsLeft = (totalRounds - roundsCenter) / 2
-		sub     eax, [esp+16]; // - roundsCenter
-		sar     eax, 1; // /2
-		mov     [esp+8], eax; // roundsLeft
-		mov     eax, ebp; // roundsRight = totalRounds - roundsCenter - roundsLeft
-		sub     eax, [esp+16];
-		sub     eax, [esp+8];
-		mov     [esp+4], eax; // roundsRight
-		mov     eax, [esp+16]; // roundsMainTarget = roundsCenter * mult / div
-		mov     ebx, compute_spray_target_mult;
-		imul    ebx;
-		mov     ebx, compute_spray_target_div;
-		idiv    ebx;
-		test    edx, edx; // if remainder (edx) is not 0
-		jz      divEnd2;
-		inc     eax; // round up
-divEnd2:
-		mov     ebp, eax;
-		mov     ebx, [esp+16];
-		// at this point, eax should contain the same value as ebp (roundsMainTarget); ebx should contain value of roundsCenter
-		jmp     compute_spray_rounds_back;
+		push ecx;
+		lea  ecx, [esp + 8 + 4];  // roundsLeft - out
+		lea  edx, [esp + 4 + 4];  // roundsRight - out
+		lea  eax, [esp + 16 + 4];
+		push eax;                 // roundsCenter - out
+		push ebp;                 // totalRounds
+		call ComputeSpray;
+		pop  ecx;
+		mov  ebp, eax;
+		mov  ebx, [esp + 16];
+		jmp  compute_spray_rounds_back; // at this point, eax should contain the same value as ebp (roundsMainTarget); ebx should contain value of roundsCenter
 	}
 }
 
@@ -73,16 +68,20 @@ void ComputeSprayModInit() {
 		dlog("Applying ComputeSpray changes.", DL_INIT);
 		compute_spray_center_mult = GetPrivateProfileIntA("Misc", "ComputeSpray_CenterMult", 1, ini);
 		compute_spray_center_div =  GetPrivateProfileIntA("Misc", "ComputeSpray_CenterDiv", 3, ini);
-		if (compute_spray_center_div < 1)
+		if (compute_spray_center_div < 1) {
 			compute_spray_center_div = 1;
-		if (compute_spray_center_mult > compute_spray_center_div)
+		}
+		if (compute_spray_center_mult > compute_spray_center_div) {
 			compute_spray_center_mult = compute_spray_center_div;
+		}
 		compute_spray_target_mult = GetPrivateProfileIntA("Misc", "ComputeSpray_TargetMult", 1, ini);
 		compute_spray_target_div =  GetPrivateProfileIntA("Misc", "ComputeSpray_TargetDiv", 2, ini);
-		if (compute_spray_target_div < 1)
+		if (compute_spray_target_div < 1) {
 			compute_spray_target_div = 1;
-		if (compute_spray_target_mult > compute_spray_target_div)
+		}
+		if (compute_spray_target_mult > compute_spray_target_div) {
 			compute_spray_target_mult = compute_spray_target_div;
+		}
 		MakeJump(0x4234F1, compute_spray_rounds_distribution);
 		dlogr(" Done", DL_INIT);
 	}
