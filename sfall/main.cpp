@@ -169,6 +169,7 @@ static void InitModules() {
 	manager.add<Message>();
 	manager.add<Elevators>();
 	manager.add<DebugEditor>();
+	manager.add<KillCounter>();
 
 	manager.add<AI>();
 	manager.add<AmmoMod>();

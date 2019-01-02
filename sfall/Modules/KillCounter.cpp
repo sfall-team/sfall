@@ -25,83 +25,59 @@
 namespace sfall
 {
 
-static int usingExtraKillTypes;
-bool UsingExtraKillTypes() { return usingExtraKillTypes != 0; }
+static const DWORD extraKillTypesCountAddr[] = {
+	0x42D8AF, // critter_kill_count_
+	0x42D881, // critter_kill_count_inc_
+	0x42D980, // GetKillTypeName
+	0x42D990,
+	0x42D9C0, // GetKillTypeDesc
+	0x42D9D0,
+	0x4344E4, // Change char sheet to loop through the extra kill types
+};
 
-//Fallout's idea of _fastcall seems to be different to VS2005's.
-//Might as well do this in asm, or the custom prolog code would end up being longer than the function
-static DWORD __declspec(naked) ReadKillCounter(DWORD killtype) {
-	//if(killtype>38) return 0;
-	//return ((WORD*)_pc_kill_counts)[killtype];
+static int usingExtraKillTypes = 0;
+
+bool UsingExtraKillTypes() {
+	return usingExtraKillTypes != 0;
+}
+
+static DWORD __declspec(naked) ReadKillCounter() {
 	__asm {
-		cmp eax, 38;
-		jle func;
-		xor eax, eax;
-		ret;
-func:
-		push ebx;
-		lea ebx, ds:[FO_VAR_pc_kill_counts+eax*2];
-		xor eax,eax;
-		mov ax, word ptr [ebx]
-		pop ebx;
-		ret;
+		movzx eax, word ptr ds:[FO_VAR_pc_kill_counts][eax * 2];
+		retn;
 	}
 }
 
-static void __declspec(naked) IncKillCounter(DWORD killtype) {
-	//if(killtype>38) return;
-	//((WORD*)_pc_kill_counts)[killtype]++;
+static void __declspec(naked) IncKillCounter() {
 	__asm {
-		cmp eax, 38;
-		jle func;
-		ret;
-func:
-		push ebx;
-		lea ebx, ds:[FO_VAR_pc_kill_counts+eax*2];
-		xor eax, eax;
-		mov ax, word ptr [ebx];
-		inc ax;
-		mov word ptr [ebx], ax;
-		pop ebx;
-		ret;
+		inc  bx;
+		mov  word ptr ds:[FO_VAR_pc_kill_counts][edx], bx;
+		retn;
    }
 }
 
-void KillCounterInit(bool use) {
-	if (!use) {
-		usingExtraKillTypes = 0;
-		return;
-	}
+static void KillCounterInit() {
 	usingExtraKillTypes = 1;
 
-	//Overwrite the function that reads the kill counter with my own
-	HookCall(0x4344BF, &ReadKillCounter);
-	HookCall(0x43A162, &ReadKillCounter);
-	HookCall(0x4571D8, &ReadKillCounter);
+	// Overwrite the critter_kill_count_ function that reads the kill counter
+	MakeCall(0x42D8B5, ReadKillCounter, 2);
 
-	//Overwrite the function that increments the kill counter with my own
-	HookCall(0x425144, &IncKillCounter);
+	// Overwrite the critter_kill_count_inc_ function that increments the kill counter
+	MakeCall(0x42D89C, IncKillCounter, 1);
+	SafeWrite8(0x42D88E, 0x45); // lea edx, [eax * 2]
+	SafeWrite8(0x42D899, 0x90); // inc ebx > nop
 
-	//Edit the GetKillTypeName function to accept kill types over 0x13
-	SafeWrite8(0x42D980, 38);
-	SafeWrite8(0x42D990, 38);
-
-	//And the same for GetKillTypeDesc
-	SafeWrite8(0x42D9C0, 38);
-	SafeWrite8(0x42D9D0, 38);
+	// Edit the functions to accept kill types over 19
+	SafeWriteBatch<BYTE>(38, extraKillTypesCountAddr);
 	SafeWrite32(0x42D9DD, 1488);
 
-	//Change char sheet to loop through the extra kill types
-	SafeWrite8(0x4344E4, 38);
 }
 
 void KillCounter::init() {
 	if (GetConfigInt("Misc", "ExtraKillTypes", 0)) {
 		dlog("Applying extra kill types patch.", DL_INIT);
-		KillCounterInit(true);
+		KillCounterInit();
 		dlogr(" Done", DL_INIT);
-	} else {
-		KillCounterInit(false);
 	}
 }
 

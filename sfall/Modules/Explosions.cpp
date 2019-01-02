@@ -44,7 +44,6 @@ struct explosiveInfo {
 
 std::vector<explosiveInfo> explosives;
 
-static bool onlyOnce = false;
 static bool lightingEnabled = false;
 static bool explosionsMetaruleReset = false;
 static bool explosionsDamageReset = false;
@@ -55,47 +54,44 @@ static const DWORD ranged_attack_lighting_fix_back = 0x4118F8;
 // enable lighting for flying projectile, based on projectile PID data (light intensity & radius)
 static void __declspec(naked) ranged_attack_lighting_fix() {
 	__asm {
-		mov eax, [esp+40];   // projectile ptr - 1st arg
-		mov ecx, [eax+0x70]; // check existing light intensity
-		cmp ecx, 0;			 // if non-zero, skip obj_set_light call
-		jnz skip;
-		mov ecx, [esp+0x1C]; // protoPtr of projectile
-		mov edx, [ecx+0x0C]; // light radius - 2nd arg
-		mov ebx, [ecx+0x10]; // light intensity - 4th arg
-		xor ecx, ecx; // unknown(0) - 3rd argument
+		mov  eax, [esp + 40];             // source projectile ptr - 1st arg
+		mov  ecx, [eax + lightIntensity]; // check existing light intensity
+		test ecx, ecx;                    // if non-zero, skip obj_set_light call
+		jnz  skip;
+		mov  ecx, [esp + 0x1C]; // protoPtr of projectile
+		mov  edx, [ecx + 0x0C]; // light radius - 2nd arg
+		mov  ebx, [ecx + 0x10]; // light intensity - 4th arg
+		xor  ecx, ecx;          // unknown(0) - 3rd argument
 		call fo::funcoffs::obj_set_light_;
 skip:
-		jmp ranged_attack_lighting_fix_back; // jump back
+		jmp  ranged_attack_lighting_fix_back; // jump back
 	}
 }
-
-// misc functions from the engine..
-//static const DWORD register_object_play_sfx = 0x41541C;
 
 static const DWORD explosion_effect_hook_back = 0x411AB9;
 static DWORD explosion_effect_starting_dir = 0;
 static void __declspec(naked) explosion_effect_hook() {
 	__asm {
-		mov     bl, lightingEnabled
-		test    bl, bl
-		jz      usevanilla
-		xor     ebx, ebx
-		call    fo::funcoffs::register_object_animate_
-		jmp     next
+		mov  bl, lightingEnabled;
+		test bl, bl;
+		jz   usevanilla;
+		xor  ebx, ebx;
+		call fo::funcoffs::register_object_animate_;
+		jmp  next;
 usevanilla:
-		xor     ebx, ebx
-		call    fo::funcoffs::register_object_animate_and_hide_
+		xor  ebx, ebx;
+		call fo::funcoffs::register_object_animate_and_hide_;
 next:
-		mov     al, lightingEnabled
-		test    al, al
-		jz      skiplight
-		mov     eax, [esp+40]; // projectile ptr - 1st arg
-		mov     edx, 0xFFFF0008; // maximum radius + intensity (see anim_set_check__light_fix)
-		mov     ebx, 0
-		call    fo::funcoffs::register_object_light_;
+		mov  al, lightingEnabled;
+		test al, al;
+		jz   skiplight;
+		mov  eax, [esp + 40]; // projectile ptr - 1st arg
+		mov  edx, 0xFFFF0008; // maximum radius + intensity (see anim_set_check_light_fix)
+		xor  ebx, ebx;
+		call fo::funcoffs::register_object_light_;
 skiplight:
-		mov     edi, explosion_effect_starting_dir; // starting direction
-		jmp     explosion_effect_hook_back; // jump back
+		mov  edi, explosion_effect_starting_dir; // starting direction
+		jmp  explosion_effect_hook_back;         // jump back
 	}
 }
 
@@ -103,22 +99,21 @@ static const DWORD explosion_lighting_fix2_back = 0x412FC7;
 // enable lighting for central explosion object (action_explode)
 static void __declspec(naked) explosion_lighting_fix2() {
 	__asm {
-		mov     eax, [esp+24]
-		mov     edx, 1 // turn on
-		mov     ebx, 0
-		call    fo::funcoffs::register_object_funset_
+		mov  eax, [esp + 24];
+		mov  edx, 1; // turn on
+		xor  ebx, ebx;
+		call fo::funcoffs::register_object_funset_;
 
-		mov     eax, [esp+24]; // explosion obj ptr
-		mov     edx, 0xFFFF0008; // maximum radius + intensity (see anim_set_check__light_fix)
-		mov     ebx, 0
-		call    fo::funcoffs::register_object_light_;
+		mov  eax, [esp + 24]; // explosion obj ptr
+		mov  edx, 0xFFFF0008; // maximum radius + intensity (see anim_set_check__light_fix)
+		xor  ebx, ebx;
+		call fo::funcoffs::register_object_light_;
 
-		mov     eax, [esp+24]
-		xor     edx, edx
-		mov     ebx, 0
-		call    fo::funcoffs::register_object_animate_
-
-		jmp     explosion_lighting_fix2_back; // jump back
+		mov  eax, [esp + 24];
+		xor  edx, edx;
+		xor  ebx, ebx;
+		call fo::funcoffs::register_object_animate_;
+		jmp  explosion_lighting_fix2_back; // jump back
 	}
 }
 
@@ -130,21 +125,21 @@ DWORD _stdcall LogThis(DWORD value1, DWORD value2, DWORD value3) {
 static const DWORD anim_set_check_light_back = 0x415A4C;
 static void __declspec(naked) anim_set_check_light_fix() {
 	__asm {
-		mov     eax, [esi+4] // object
-		lea     ecx, [esp+16]  // unknown.. something related to next "tile_refresh_rect" call?
-		mov     edx, [esi+12] // radius set in "reg_anim_light"
-		mov     ebx, edx
-		shr     ebx, 16 // take highest 2 bytes
-		test    ebx, ebx
-		jz      nothingspecial
+		mov  eax, [esi + 4];   // object
+		lea  ecx, [esp + 16];  // unknown.. something related to next "tile_refresh_rect" call?
+		mov  edx, [esi + 12];  // radius set in "reg_anim_light"
+		mov  ebx, edx;
+		shr  ebx, 16;          // take highest 2 bytes
+		test ebx, ebx;
+		jz   nothingspecial;
 		// special case
-		and     edx, 0xFF  // use lowest byte as radius, highest 2 bytes as intensity
-		inc     ebx
-		jmp     end
+		and  edx, 0xFF;        // use lowest byte as radius, highest 2 bytes as intensity
+		inc  ebx;
+		jmp  end;
 nothingspecial:
-		mov     ebx, [eax+112] // object current light intensity (original behavior)
+		mov  ebx, [eax + 112]; // object current light intensity (original behavior)
 end:
-		jmp     anim_set_check_light_back; // jump back right to the "obj_set_light" call
+		jmp  anim_set_check_light_back; // jump back right to the "obj_set_light" call
 	}
 }
 
@@ -154,20 +149,19 @@ static void __declspec(naked) fire_dance_lighting_fix1() {
 	__asm {
 		push edx;
 		push ebx;
-		mov     eax, esi; // projectile ptr - 1st arg
-		mov     edx, 0xFFFF0002; // maximum radius + intensity (see anim_set_check__light_fix)
-		mov     ebx, 0
-		call    fo::funcoffs::register_object_light_;
-		mov     eax, esi;
-		pop     ebx;
-		pop     edx;
-		call    fo::funcoffs::register_object_animate_; // overwritten call
-		mov     eax, esi; // projectile ptr - 1st arg
-		mov     edx, 0x00010000; // maximum radius + intensity (see anim_set_check__light_fix)
-		mov     ebx, -1
-		call    fo::funcoffs::register_object_light_;
-
-		jmp     fire_dance_lighting_back; // jump back
+		mov  eax, esi;        // projectile ptr - 1st arg
+		mov  edx, 0xFFFF0002; // maximum radius + intensity (see anim_set_check__light_fix)
+		xor  ebx, ebx;
+		call fo::funcoffs::register_object_light_;
+		mov  eax, esi;
+		pop  ebx;
+		pop  edx;
+		call fo::funcoffs::register_object_animate_; // overwritten call
+		mov  eax, esi;                               // projectile ptr - 1st arg
+		mov  edx, 0x00010000;                        // maximum radius + intensity (see anim_set_check__light_fix)
+		mov  ebx, -1;
+		call fo::funcoffs::register_object_light_;
+		jmp  fire_dance_lighting_back; // jump back
 	}
 }
 //-----------------------------------------------------------------
@@ -216,15 +210,15 @@ static void __declspec(naked) obj_use_explosive_hack() {
 		cmp  edx, PID_PLASTIC_EXPLOSIVES;
 		jz   end;
 		// end engine code
-		pushad;
+		push edx;
 		mov  ecx, edx;
 		call CheckExplosives;
+		pop  edx;
 		test eax, eax;
-		popad;
 		jnz  end;
 		retn;
 end:
-		mov dword ptr [esp], 0x49BCE0;
+		mov  dword ptr [esp], 0x49BCE0;
 		retn;
 	}
 }
@@ -235,19 +229,13 @@ static void __declspec(naked) obj_use_explosive_active_hack() {
 		cmp  eax, PID_PLASTIC_EXPLOSIVES;
 		jz   end;
 		// end engine code
-		push ebx;
-		push ecx;
-		push edx;
 		mov  ecx, eax;
 		call CheckExplosives;
-		pop  edx;
-		pop  ecx;
-		pop  ebx;
 		test eax, eax;
 		jz   skipSet;
 		mov  dword ptr [esi + protoId], eax; // change item pid to active;
 skipSet:
-		mov dword ptr [esp], 0x49BD62;
+		mov  dword ptr [esp], 0x49BD62;
 end:
 		retn;
 	}
@@ -256,7 +244,7 @@ end:
 static void __declspec(naked) queue_do_explosion_hack() {
 	using namespace fo;
 	__asm {
-	    cmp  edx, PID_ACTIVE_DYNAMITE;
+		cmp  edx, PID_ACTIVE_DYNAMITE;
 		jz   dynamite;
 		cmp  edx, PID_ACTIVE_PLASTIC_EXPLOSIVE;
 		jz   end;
@@ -283,11 +271,9 @@ static void __declspec(naked) inven_action_cursor_drop_hack() {
 		jz   end;
 		// end engine code
 		push eax;
-		push ecx;
 		mov  ecx, ebx;
 		call CheckActiveExplosives;
 		test eax, eax; // check in engine
-		pop  ecx;
 		pop  eax;
 end:
 		retn;
@@ -308,7 +294,6 @@ end:
 }
 
 static void apply_hack() {
-	onlyOnce = true;
 	MakeCall(0x49BCC7, obj_use_explosive_hack);        // check explosives
 	MakeCall(0x49BD56, obj_use_explosive_active_hack); // set active explosive
 	MakeCall(0x4A2865, queue_do_explosion_hack);       // set damage explosive
@@ -317,6 +302,7 @@ static void apply_hack() {
 }
 
 void Explosions::AddToExplosives(DWORD pid, DWORD activePid, DWORD minDmg, DWORD maxDmg) {
+	static bool onlyOnce = false;
 	for (unsigned int i = 0; i < explosives.size(); i++) {
 		if (explosives[i].pid == pid) {
 			explosives.erase(explosives.begin() + i);
@@ -325,7 +311,10 @@ void Explosions::AddToExplosives(DWORD pid, DWORD activePid, DWORD minDmg, DWORD
 	}
 	explosives.push_back({ pid, activePid, minDmg, maxDmg });
 
-	if (!onlyOnce) apply_hack();
+	if (!onlyOnce) {
+		apply_hack();
+		onlyOnce = true;
+	}
 }
 
 //----------------------------------------------------------------------------
