@@ -131,7 +131,7 @@ static void InitModules() {
 	auto& manager = ModuleManager::getInstance();
 
 	// initialize all modules
-	manager.add<BugFixes>();
+	manager.add<BugFixes>();    // fixes should be applied at the beginning
 	manager.add<SpeedPatch>();
 	manager.add<Graphics>();
 	manager.add<Input>();
@@ -168,6 +168,7 @@ static void InitModules() {
 	manager.add<Message>();
 	manager.add<Elevators>();
 	manager.add<DebugEditor>();
+	manager.add<KillCounter>();
 
 	manager.add<AI>();
 	manager.add<AmmoMod>();
