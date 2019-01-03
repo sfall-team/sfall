@@ -1017,9 +1017,9 @@ static void DllMain2() {
 
 	if (GetPrivateProfileIntA("Misc", "ExtraKillTypes", 0, ini)) {
 		dlog("Applying extra kill types patch.", DL_INIT);
-		KillCounterInit(true);
+		KillCounterInit();
 		dlogr(" Done", DL_INIT);
-	} else KillCounterInit(false);
+	}
 
 	//if (GetPrivateProfileIntA("Misc", "ScriptExtender", 0, ini)) {
 		dlog("Applying script extender patch.", DL_INIT);
