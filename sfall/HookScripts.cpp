@@ -340,7 +340,7 @@ static void __declspec(naked) CalcDeathAnimHook2() {
 		hookbegin(5);
 		call check_death_; // call original function
 		mov args[0], -1; // weaponPid, -1
-		mov	ebx, [esp+60]
+		mov ebx, [esp+60];
 		mov args[4], ebx; // attacker
 		mov args[8], esi; // target
 		mov ebx, [esp+12]
@@ -779,12 +779,12 @@ static void __declspec(naked) AmmoCostHook_internal() {
 	__asm {
 		pushad;
 		mov args[0], eax; //weapon
-		mov ebx, [edx]
+		mov ebx, [edx];
 		mov args[4], ebx; //rounds in attack
 		call item_w_compute_ammo_cost_;
-		cmp eax, -1
-		je fail
-		mov ebx, [edx]
+		cmp eax, -1;
+		je fail;
+		mov ebx, [edx];
 		mov args[8], ebx; //rounds as computed by game
 
 		push HOOK_AMMOCOST;
@@ -792,12 +792,12 @@ static void __declspec(naked) AmmoCostHook_internal() {
 		popad;
 		cmp cRet, 0;
 		je end;
-		mov eax, rets[0]
+		mov eax, rets[0];
 		mov [edx], eax; // override result
-		mov eax, 0
+		xor eax, eax;
 		jmp end;
 fail:
-		popad
+		popad;
 end:
 		hookend;
 		retn;
@@ -807,7 +807,7 @@ end:
 static void __declspec(naked) AmmoCostHook() {
 	__asm {
 		hookbegin(4);
-		mov args[12], 0 // type of hook
+		mov args[12], 0; // type of hook
 		jmp AmmoCostHook_internal;
 	}
 }
@@ -915,7 +915,7 @@ static void __declspec(naked) PerceptionRangeHook() {
 		call RunHookScript;
 		popad;
 		cmp cRet, 1;
-		jl	end;
+		jl end;
 		mov eax, rets[0];
 end:
 		hookend;
@@ -1131,15 +1131,15 @@ end:
 	}
 }
 
-static const DWORD DropAmmoIntoWeaponHack_back = 0x47658D; // proceed with reloading
+//static const DWORD DropAmmoIntoWeaponHack_back = 0x47658D; // proceed with reloading
 static const DWORD DropAmmoIntoWeaponHack_return = 0x476643;
-static void _declspec(naked) DropAmmoIntoWeaponHack() {
+static void _declspec(naked) DropAmmoIntoWeaponHook() {
 	__asm {
 		hookbegin(3);
 		mov args[0], 4;
-		mov eax, [esp];
+		mov eax, [esp+4]; // item var: ammo_
 		mov args[4], eax;
-		mov args[8], ebp;
+		mov args[8], ebp; // weapon ptr
 		pushad;
 		push HOOK_INVENTORYMOVE;
 		call RunHookScript;
@@ -1150,11 +1150,14 @@ static void _declspec(naked) DropAmmoIntoWeaponHack() {
 		jne donothing;
 proceedreloading:
 		hookend;
-		mov ebx, 1; // overwritten code
-		jmp DropAmmoIntoWeaponHack_back;
+		mov eax, ebp; // weapon, edx - ammo
+		jmp item_w_can_reload_;
+		//mov ebx, 1; // overwritten code
+		//jmp DropAmmoIntoWeaponHack_back;
 donothing:
 		hookend;
-		mov eax, 0;
+		add esp, 4;   // destroy return address
+		xor eax, eax; // result 0
 		jmp DropAmmoIntoWeaponHack_return;
 	}
 }
@@ -1376,12 +1379,8 @@ static void HookScriptInit2() {
 	HookCall(0x4712E3, &SwitchHandHook); // left slot
 	HookCall(0x47136D, &SwitchHandHook); // right slot
 	MakeJump(0x4713A3, UseArmorHack);
-	//HookCall(0x4711B3, &DropIntoContainerHook);
-	//HookCall(0x47147C, &DropIntoContainerHook);
 	HookCall(0x471200, &MoveInventoryHook);
-	//HookCall(0x4712C7, &DropAmmoIntoWeaponHook);
-	//HookCall(0x471351, &DropAmmoIntoWeaponHook);
-	MakeJump(0x476588, DropAmmoIntoWeaponHack);
+	HookCall(0x476549, &DropAmmoIntoWeaponHook); // old 0x476588
 
 	LoadHookScript("hs_invenwield", HOOK_INVENWIELD);
 	HookCall(0x47275E, &invenWieldFunc_Hook);
