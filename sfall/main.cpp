@@ -70,6 +70,7 @@ bool IsDebug = false;
 
 char ini[65] = ".\\";
 char translationIni[65];
+DWORD modifiedIni;
 
 static char mapName[65];
 static char configName[65];
@@ -1700,6 +1701,7 @@ bool _stdcall DllMain(HANDLE hDllHandle, DWORD dwReason, LPVOID lpreserved) {
 		}
 
 		GetPrivateProfileStringA("Main", "TranslationsINI", "./Translations.ini", translationIni, 65, ini);
+		modifiedIni = GetPrivateProfileIntA("Main", "ModifiedIni", 0, ini);
 
 		DllMain2();
 	}

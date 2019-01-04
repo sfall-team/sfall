@@ -1424,7 +1424,7 @@ end:
 		retn;
 	}
 }
-static DWORD modifiedIni;
+
 static void __declspec(naked) modified_ini() {
 	__asm {
 		pushad;
@@ -1438,6 +1438,7 @@ static void __declspec(naked) modified_ini() {
 		retn;
 	}
 }
+
 static void __declspec(naked) force_aimed_shots() {
 	__asm {
 		push ecx;

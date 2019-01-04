@@ -1297,7 +1297,6 @@ void ScriptExtenderSetup() {
 		SafeWrite8(0x4C9F12, 0x6A); // push
 		SafeWrite8(0x4C9F13, idle);
 	}
-	modifiedIni = GetPrivateProfileIntA("Main", "ModifiedIni", 0, ini);
 
 	int maxlimit = GetPrivateProfileIntA("Misc", "LoadProtoMaxLimit", -1, ini);
 	if (maxlimit != -1) {

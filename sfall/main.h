@@ -62,6 +62,7 @@ struct ddrawDll {
 
 extern char ini[65];
 extern char translationIni[65];
+extern DWORD modifiedIni;
 
 extern char dmModelName[65];
 extern char dfModelName[65];
