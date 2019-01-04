@@ -1,0 +1,86 @@
+/*
+
+   Sfall game play mods
+
+   NOTE: this script requires compiler from sfall modderspack with -s option
+   (short circuit evaluation)
+
+   version 1.0
+
+*/
+
+#define SFALL_SC_EVALUATION   (true) // ScriptEditor 4.0: Automatic script compilation with -s option
+
+#include "main.h"
+
+#define  DUDE_INVEN           read_int(0x519058)
+
+procedure start;
+procedure InventoryMoveHandler;
+procedure KeyPressHandler;
+
+procedure start begin
+   variable sfall_version;
+
+   if game_loaded then begin
+      sfall_version := (100 * sfall_ver_major) + (10 * sfall_ver_minor) + sfall_ver_build;
+      //isUnsafe := GetIniConfig("Debugging", "AllowUnsafeScripting", 0, "ddraw.ini");
+
+      register_hook_proc(HOOK_KEYPRESS, KeyPressHandler);
+
+      if (sfall_version >= 414 and (GetConfig("Interface", "QuickAmmoReload", 0) > 0)
+      and GetIniConfig("Misc", "ReloadReserve", -1, "ddraw.ini") > -1) then begin
+         register_hook_proc(HOOK_INVENTORYMOVE, InventoryMoveHandler);
+      end
+   end
+end
+
+procedure InventoryMoveHandler begin
+/*
+   int     arg1 - Target slot (0 - main backpack, 1 - left hand, 2 - right hand, 3 - armor slot, 4 - weapon, when reloading it by dropping ammo, 5 - container, like bag/backpack, 6 - dropping on the ground)
+   Item    arg2 - Item being moved
+   Item    arg3 - Item being replaced, weapon being reloaded, or container being filled (can be 0)
+
+   int     ret1 - Override setting (-1 - use engine handler, any other value - prevent relocation of item/reloading weapon)
+*/
+   variable event := get_sfall_arg,
+            itemAmmo := get_sfall_arg,
+            itemWeapon := get_sfall_arg,
+            cAmmo, ammoPid, ammoObj, inven;
+
+   if (event == 4) then begin
+      cAmmo := get_weapon_ammo_count(itemWeapon);
+      if (cAmmo == 0) then return;
+
+      ammoPid := get_weapon_ammo_pid(itemWeapon);
+      if (obj_pid(itemAmmo) == ammoPid) then return;
+
+      inven := DUDE_INVEN;
+      if (obj_is_carrying_obj(inven, itemWeapon) > 1) then return;
+
+      // force unload
+      set_weapon_ammo_count(itemWeapon, 0);
+      // add ammo to inventory
+      ammoObj := create_object(ammoPid, 0, 0);
+      set_weapon_ammo_count(ammoObj, cAmmo);
+      add_obj_to_inven(inven, ammoObj);
+   end
+end
+
+procedure KeyPressHandler begin
+/*
+   int     arg1 - event type: 1 - pressed, 0 - released
+   int     arg2 - key DX scancode
+   int     arg3 - key VK code (very similar to ASCII codes)
+
+   int     ret1 - overrides the pressed key (a new key DX scancode or 0 for no override)
+*/
+   variable pressed := get_sfall_arg,
+            scancodeDX  := get_sfall_arg;
+
+   // Close inventory when re-pressing the 'I' key
+   if (pressed and scancodeDX == DIK_I and (get_game_mode bwand INVENTORY)) then begin
+      tap_key(DIK_ESCAPE);
+   end
+
+end
