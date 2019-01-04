@@ -88,7 +88,6 @@ std::unordered_map<fo::Program*, fo::GameObject*> selfOverrideMap;
 typedef std::unordered_map<std::string, ExportedVar> ExportedVarsMap;
 static ExportedVarsMap globalExportedVars;
 DWORD isGlobalScriptLoading = 0;
-DWORD modifiedIni;
 
 std::unordered_map<__int64, int> globalVars;
 typedef std::unordered_map<__int64, int> :: iterator glob_itr;
@@ -689,7 +688,6 @@ void ScriptExtender::init() {
 		SafeWrite8(0x4C9F12, 0x6A); // push
 		SafeWrite8(0x4C9F13, idle);
 	}
-	modifiedIni = GetConfigInt("Main", "ModifiedIni", 0);
 
 	arraysBehavior = GetConfigInt("Misc", "arraysBehavior", 1);
 	if (arraysBehavior > 0) {
