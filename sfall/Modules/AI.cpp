@@ -210,6 +210,21 @@ static fo::GameObject* __stdcall sf_ai_search_weapon_environ(fo::GameObject* sou
 	return item;
 }
 
+static fo::GameObject* sf_ai_skill_weapon(fo::GameObject* source, fo::GameObject* pWeapon, fo::GameObject* sWeapon) {
+	if (!pWeapon) return sWeapon;
+	if (!sWeapon) return pWeapon;
+
+	int pSkill = fo::func::item_w_skill(pWeapon, fo::AttackType::ATKTYPE_RWEAPON_PRIMARY);
+	int sSkill = fo::func::item_w_skill(sWeapon, fo::AttackType::ATKTYPE_RWEAPON_PRIMARY);
+
+	if (pSkill == sSkill) return sWeapon;
+
+	int pLevel = fo::func::skill_level(source, pSkill);
+	int sLevel = fo::func::skill_level(source, sSkill) + 10;
+
+	return (pLevel > sLevel) ? pWeapon : sWeapon;
+}
+
 bool LookupOnGround = false;
 static void __fastcall sf_ai_search_weapon(fo::GameObject* source, fo::GameObject* target, DWORD* weapon, DWORD* hitMode) {
 
@@ -238,7 +253,9 @@ static void __fastcall sf_ai_search_weapon(fo::GameObject* source, fo::GameObjec
 		if (bestWeapon) fo::func::debug_printf("\n[AI] BestWeaponPid: %d", bestWeapon->protoId);
 	#endif
 
-	if ((LookupOnGround || !itemHand) && source->critter.movePoints >= 3 && fo::func::critter_body_type(source) == fo::BodyType::Biped) {
+	if (itemHand != bestWeapon)	bestWeapon = sf_ai_skill_weapon(source, itemHand, bestWeapon);
+
+	if ((LookupOnGround /*|| !itemHand*/) && source->critter.movePoints >= 3 && fo::func::critter_body_type(source) == fo::BodyType::Biped) {
 		int toDistTarget = fo::func::make_path_func(source, source->tile, target->tile, 0, 0, (void*)fo::funcoffs::obj_blocking_at_);
 		if ((source->critter.movePoints - 3) >= toDistTarget) goto notRetrieve;
 
@@ -246,9 +263,13 @@ static void __fastcall sf_ai_search_weapon(fo::GameObject* source, fo::GameObjec
 		#ifndef NDEBUG
 			if (itemGround) fo::func::debug_printf("\n[AI] OnGroundPid: %d", itemGround->protoId);
 		#endif
+
 		if (itemGround != bestWeapon) {
 			if (itemGround && (!bestWeapon || itemGround->protoId != bestWeapon->protoId)) {
 				if (bestWeapon && fo::func::item_cost(itemGround) < fo::func::item_cost(bestWeapon) + 50) goto notRetrieve;
+				fo::GameObject* item = sf_ai_skill_weapon(source, bestWeapon, itemGround);
+				if (item != itemGround) goto notRetrieve;
+
 				#ifndef NDEBUG
 					fo::func::debug_printf("\n[AI] TryRetrievePid: %d MP: %d", itemGround->protoId, source->critter.movePoints);
 				#endif
@@ -270,7 +291,6 @@ notRetrieve:
 	#endif
 
 	if (bestWeapon && (!itemHand || itemHand->protoId != bestWeapon->protoId)) {
-		//if (itemHand && fo::func::item_cost(bestWeapon) < fo::func::item_cost(itemHand) + 25) return;
 		*weapon = (DWORD)bestWeapon;
 		*hitMode = fo::func::ai_pick_hit_mode(source, bestWeapon, target);
 		fo::func::inven_wield(source, bestWeapon, fo::InvenType::INVEN_TYPE_RIGHT_HAND);
@@ -381,6 +401,19 @@ static void __declspec(naked) ai_danger_source_hack() {
 		mov  eax, esi;
 		call fo::funcoffs::ai_get_attack_who_value_;
 		mov  dword ptr [esp + 0x34 - 0x1C + 4], eax; // attack_who
+		retn;
+	}
+}
+
+static void __declspec(naked) ai_try_attack_hook_switch_fix() {
+	__asm {
+		mov  eax, [eax + movePoints];
+		test eax, eax;
+		jz   noSwitch; // if movePoints == 0
+		mov  eax, esi;
+		jmp  fo::funcoffs::ai_switch_weapons_;
+noSwitch:
+		mov  eax, -1;  // force exit from ai_try_attack_
 		retn;
 	}
 }
@@ -526,6 +559,11 @@ void AI::init() {
 	case 2:
 		SafeWrite16(0x4290B3, 0xDFEB); // jmp 0x429094
 		SafeWrite8(0x4290B5, 0x90);
+	}
+
+	// Fixed an attempt to switching weapons when zero action points
+	if (GetConfigInt("CombatAI", "SwitchWeaponFix", 0)) {
+		HookCall(0x42AB57, ai_try_attack_hook_switch_fix);
 	}
 
 	RetryCombatMinAP = GetConfigInt("CombatAI", "NPCsTryToSpendExtraAP", -1);
