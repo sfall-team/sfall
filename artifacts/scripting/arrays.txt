@@ -151,14 +151,16 @@ Example:
 
 *mixed means any type
 
-> int create_array(int size, int nothing):
+> int create_array(int size, int flags):
 - creates permanent array (but not "saved")
 - if size is >= 0, creates list with given size
 - if size == -1, creates map (associative array)
-- second argument is not used yet, just use 0
+- flags: passed a value of 2 for the argument creates an lookup associative array in which it is not possible to update the value of an existing key,
+  this type of array allows you to store a zero key value
+- NOTE: in earlier versions up to 4.1.4 second argument is not used, just use 0
 - returns arrayID (valid until array is deleted)
 
-> int temp_array(int size, int nothing):
+> int temp_array(int size, int flags):
 - works exactly like "create_array", only created array becomes "temporary"
 
 > void fix_array(int arrayID):
@@ -169,6 +171,7 @@ Example:
 - if used on list, "key" must be numeric and within valid index range (0..size-1)
 - if used on map, key can be of any type
 - to "unset" a value from map, just set it to zero (0)
+  NOTE: to add a value of 0 for the key, use the float value of 0.0
 - this works exactly like statement:
     arrayID[key] := value;
 

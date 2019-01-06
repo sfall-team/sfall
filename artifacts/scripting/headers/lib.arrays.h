@@ -20,6 +20,9 @@
 /*
   Generic array functions
 */
+// returns True if the specified key exists in the associative array
+procedure map_contains_key(variable arrayMap, variable key);
+
 // push new item at the end of array, returns array
 procedure array_push(variable array, variable item);
 
@@ -150,6 +153,15 @@ procedure load_collection(variable name);
 // IMPLEMENTATION
 
 #define ARRAY_SET_BLOCK_SIZE  (10)
+
+
+procedure map_contains_key(variable arrayMap, variable key) begin
+  variable i;
+  for (i := 0; i < len_array(arrayMap); i++) begin
+      if (array_key(arrayMap, i) == key) then return true;
+  end
+  return false;
+end
 
 /**
  * Returns first index of zero value
