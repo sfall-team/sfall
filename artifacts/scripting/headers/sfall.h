@@ -128,14 +128,18 @@
 #define array_exists(array)         (len_array(array) != -1)
 // remove all elements from array
 #define clear_array(array)          resize_array(array, 0)
-// sort array in ascending order
+// sort array or map by key in ascending order
 #define sort_array(array)           resize_array(array, -2)
-// sort array in descending order
+// sort array or map by key in descending order
 #define sort_array_reverse(array)   resize_array(array, -3)
-// reverse elements in list
+// reverse elements in list/map
 #define reverse_array(array)        resize_array(array, -4)
-// randomly shuffle elements in list
+// randomly shuffle elements in list/map
 #define shuffle_array(array)        resize_array(array, -5)
+// sort map in ascending order by value
+#define sort_map_value(array)       resize_array(array, -6)
+// sort map in descending order by value
+#define sort_map_value_desc(array)  resize_array(array, -7)
 // remove element from map or just replace value with 0 for list
 #define unset_array(array, item)    set_array(array, item, 0)
 // same as "key_pressed" but checks VK codes instead of DX codes
