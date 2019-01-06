@@ -59,10 +59,10 @@ void sf_get_array(OpcodeContext& ctx) {
 			auto str = Substring(ctx.arg(0).asString(), ctx.arg(1).asInt(), 1);
 			ctx.setReturn(str);
 		} else {
-			ctx.printOpcodeError("get_array - index must be numeric when used on a string.");
+			ctx.printOpcodeError("get_array() - index must be numeric when used on a string.");
 		}
 	} else {
-		ctx.printOpcodeError("get-array - argument 0 must be an array ID or a string.");
+		ctx.printOpcodeError("get_array() - argument 0 must be an array ID or a string.");
 	}
 }
 
@@ -77,7 +77,9 @@ void sf_len_array(OpcodeContext& ctx) {
 }
 
 void sf_resize_array(OpcodeContext& ctx) {
-	ResizeArray(ctx.arg(0).asInt(), ctx.arg(1).asInt());
+	if (ResizeArray(ctx.arg(0).asInt(), ctx.arg(1).asInt())) {
+		ctx.printOpcodeError("resize_array() - array sorting error.");
+	}
 }
 
 void sf_temp_array(OpcodeContext& ctx) {

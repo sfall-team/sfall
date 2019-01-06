@@ -109,7 +109,7 @@ DWORD sArrayElement::getHashStatic(DWORD value, DataType type) {
 		str = (const char*)value;
 		int i;
 		DWORD res;
-		for (i=0, res=0; str[i]!='\0'; i++) {
+		for (i = 0, res = 0; str[i] != '\0'; i++) {
 			res = ((res << 5) + res) + str[i];
 		}
 		return res;
@@ -197,28 +197,28 @@ void LoadArraysOld(HANDLE h) {
 	dlogr("Loading arrays (old fmt)", DL_MAIN);
 	DWORD count, unused, id, j;
 	ReadFile(h, &count, 4, &unused, 0);
-	if(unused!=4) return;
+	if (unused != 4) return;
 	sArrayVarOld var;
 	sArrayVar varN;
-	for(DWORD i=0;i<count;i++) {
+	for (DWORD i = 0; i < count; i++) {
 		ReadFile(h, &id, 4, &unused, 0);
 		ReadFile(h, &var, 8, &unused, 0);
-		var.types=new DWORD[var.len];
-		var.data=new char[var.len*var.datalen];
-		ReadFile(h, var.types, 4*var.len, &unused, 0);
+		var.types = new DWORD[var.len];
+		var.data = new char[var.len * var.datalen];
+		ReadFile(h, var.types, 4 * var.len, &unused, 0);
 		ReadFile(h, var.data, var.len*var.datalen, &unused, 0);
 		varN.flags = 0;
 		varN.val.resize(var.len);
-		for (j=0; j<var.len; j++) {
+		for (j = 0; j < var.len; j++) {
 			switch (var.types[j]) {
 			case DataType::INT:
-				varN.val[j].set(*(long*)(&var.data[var.datalen*j]));
+				varN.val[j].set(*(long*)(&var.data[var.datalen * j]));
 				break;
 			case DataType::FLOAT:
-				varN.val[j].set(*(float*)(&var.data[var.datalen*j]));
+				varN.val[j].set(*(float*)(&var.data[var.datalen * j]));
 				break;
 			case DataType::STR:
-				varN.val[j].set(&var.data[var.datalen*j], var.datalen - 1);
+				varN.val[j].set(&var.data[var.datalen * j], var.datalen - 1);
 				break;
 			}
 		}
@@ -238,7 +238,7 @@ void LoadArrays(HANDLE h) {
 	if (unused != 4) return;
 	sArrayVar arrayVar;
 	nextarrayid = 1;
-	for (DWORD i=0; i<count; i++) {
+	for (DWORD i = 0; i < count; i++) {
 		LoadArrayElement(&arrayVar.key, h);
 		if (static_cast<long>(arrayVar.key.type) > 4 || arrayVar.key.intVal == 0) { // partial compatibility with 3.4
 			arrayVar.key.intVal = static_cast<long>(arrayVar.key.type);
@@ -248,7 +248,7 @@ void LoadArrays(HANDLE h) {
 		ReadFile(h, &elCount, 4, &unused, 0); // actual number of elements: keys+values
 		bool isAssoc = arrayVar.isAssoc();
 		arrayVar.val.resize(elCount);
-		for (j=0; j<elCount; j++) { // normal and associative arrays stored and loaded equally
+		for (j = 0; j < elCount; j++) { // normal and associative arrays stored and loaded equally
 			LoadArrayElement(&arrayVar.val[j], h);
 			if (isAssoc && (j % 2) == 0) { // only difference is that keyHash is filled with appropriate indexes
 				arrayVar.keyHash[arrayVar.val[j]] = j;
@@ -298,12 +298,12 @@ int GetNumArrays() {
 }
 
 void GetArrays(int* _arrays) {
-	int pos=0;
-	array_citr itr=arrays.begin();
-	while(itr!=arrays.end()) {
-		_arrays[pos++]=itr->first;
-		_arrays[pos++]=itr->second.size();
-		_arrays[pos++]=itr->second.flags;
+	int pos = 0;
+	array_citr itr = arrays.begin();
+	while (itr != arrays.end()) {
+		_arrays[pos++] = itr->first;
+		_arrays[pos++] = itr->second.size();
+		_arrays[pos++] = itr->second.flags;
 		itr++;
 	}
 }
@@ -315,7 +315,7 @@ void DEGetArray(int id, DWORD* types, void* data) {
 }
 
 void DESetArray(int id, const DWORD* types, const void* data) {
-	//if(types) memcpy(arrays[id].types, types, arrays[id].len*4);
+	//if (types) memcpy(arrays[id].types, types, arrays[id].len * 4);
 	//memcpy(arrays[id].data, data, arrays[id].len*arrays[id].datalen);
 }
 
@@ -332,19 +332,19 @@ DWORD _stdcall CreateArray(int len, DWORD nothing) {
 	if (!var.isAssoc()) {
 		var.val.resize(len);
 	}
-	while(arrays.find(nextarrayid)!=arrays.end()) nextarrayid++;
+	while (arrays.find(nextarrayid) != arrays.end()) nextarrayid++;
 	if (nextarrayid == 0) nextarrayid++;
 	if (arraysBehavior == 0) {
 		var.key = sArrayElement(nextarrayid, DataType::INT);
 		savedArrays[var.key] = nextarrayid;
 	}
 	stackArrayId = nextarrayid;
-	arrays[nextarrayid]=var;
+	arrays[nextarrayid] = var;
 	return nextarrayid++;
 }
 
 DWORD _stdcall TempArray(DWORD len, DWORD nothing) {
-	DWORD id=CreateArray(len, nothing);
+	DWORD id = CreateArray(len, nothing);
 	tempArrays.insert(id);
 	return id;
 }
@@ -425,8 +425,8 @@ void _stdcall SetArray(DWORD id, const ScriptValue& key, const ScriptValue& val,
 	if (arrays[id].isAssoc()) {
 		sArrayElement sEl(key.rawValue(), key.type());
 		ArrayKeysMap::iterator elIter = arr.keyHash.find(sEl);
-		el = (elIter != arr.keyHash.end()) 
-			? elIter->second 
+		el = (elIter != arr.keyHash.end())
+			? elIter->second
 			: -1;
 		if (val.isInt() && val.asInt() == 0 && allowUnset) {
 			// after assigning zero to a key, no need to store it, because "get_array" returns 0 for non-existent keys: try unset
@@ -464,27 +464,84 @@ void _stdcall SetArray(DWORD id, const ScriptValue& key, const ScriptValue& val,
 }
 
 int _stdcall LenArray(DWORD id) {
-	if(arrays.find(id)==arrays.end()) return -1;
+	if (arrays.find(id)==arrays.end()) return -1;
 	else return arrays[id].size();
 }
 
-void _stdcall ResizeArray(DWORD id, int newlen) {
-	if (arrays.find(id) == arrays.end() || arrays[id].size() == newlen) return;
+template <class T>
+void ListSort(std::vector<T> &arr, int type) {
+	switch (type) {
+	case ARRAY_ACTION_SORT:    // sort ascending
+		std::sort(arr.begin(), arr.end());
+		break;
+	case ARRAY_ACTION_RSORT:   // sort descending
+		std::sort(arr.rbegin(), arr.rend());
+		break;
+	case ARRAY_ACTION_REVERSE: // reverse elements
+		std::reverse(arr.rbegin(), arr.rend());
+		break;
+	case ARRAY_ACTION_SHUFFLE: // shuffle elements
+		std::random_shuffle(arr.rbegin(), arr.rend());
+		break;
+	}
+}
+
+void MapSort(sArrayVar& arr, int type) {
+	std::vector<std::pair<sArrayElement, sArrayElement>> map;
+	bool sortByValue = false;
+	if (type < ARRAY_ACTION_SHUFFLE) {
+		type += 4;
+		sortByValue = true;
+	}
+
+	sArrayElement key, val;
+	for (size_t i = 0; i < arr.val.size(); ++i) {
+		if (sortByValue) {
+			val = arr.val[i++];    // map key > value
+			key = arr.val[i];      // map value > key
+		} else {
+			key = arr.val[i];      // key
+			val = arr.val[++i];    // value
+		}
+		map.emplace_back(std::make_pair(key, val));
+	}
+	ListSort(map, type);
+
+	arr.val.clear();
+	arr.keyHash.clear();
+	for (size_t i = 0; i < map.size(); ++i) {
+		auto el = arr.val.size();
+		if (sortByValue) {
+			arr.val.emplace_back(map[i].second); // map value > key
+			arr.val.emplace_back(map[i].first);  // map key > value
+		} else {
+			arr.val.emplace_back(map[i].first);
+			arr.val.emplace_back(map[i].second);
+		}
+		arr.keyHash[arr.val[el]] = el;
+	}
+}
+
+long _stdcall ResizeArray(DWORD id, int newlen) {
+	if (newlen == -1 || arrays.find(id) == arrays.end() || arrays[id].size() == newlen) return 0;
 	sArrayVar &arr = arrays[id];
 	if (arr.isAssoc()) {
 		// only allow to reduce number of elements (adding range of elements is meaningless for maps)
-		if (newlen < arrays[id].size()) {
+		if (newlen >= 0 && newlen < arrays[id].size()) {
 			ArrayKeysMap::iterator itHash;
 			std::vector<sArrayElement>::iterator itVal;
-			int actualLen = newlen*2;
+			int actualLen = newlen * 2;
 			for (itVal = arr.val.begin() + actualLen; itVal != arr.val.end(); itVal += 2) {
 				if ((itHash = arr.keyHash.find(*itVal)) != arr.keyHash.end())
 					arr.keyHash.erase(itHash);
 			}
 			arr.clearRange(actualLen);
 			arr.val.resize(actualLen);
+		} else if (newlen < 0) {
+			if (newlen < (ARRAY_ACTION_SHUFFLE - 2)) return -1;
+			MapSort(arr, newlen);
 		}
-		return;
+		return 0;
 	}
 	if (newlen >= 0) { // actual resize
 		if (newlen > ARRAY_MAX_SIZE) // safety
@@ -493,21 +550,10 @@ void _stdcall ResizeArray(DWORD id, int newlen) {
 			arr.clearRange(newlen);
 		arr.val.resize(newlen);
 	} else { // special functions for lists...
-		switch (newlen) {
-		case ARRAY_ACTION_SORT: // sort ascending
-			std::sort(arr.val.begin(), arr.val.end());
-			break;
-		case ARRAY_ACTION_RSORT: // sort descending
-			std::sort(arr.val.rbegin(), arr.val.rend());
-			break;
-		case ARRAY_ACTION_REVERSE: // reverse elements
-			std::reverse(arr.val.rbegin(), arr.val.rend());
-			break;
-		case ARRAY_ACTION_SHUFFLE: // shuffle elements
-			std::random_shuffle(arr.val.rbegin(), arr.val.rend());
-			break;
-		}
+		if (newlen < ARRAY_ACTION_SHUFFLE) return -1;
+		ListSort(arr.val, newlen);
 	}
+	return 0;
 }
 
 void _stdcall FixArray(DWORD id) {
@@ -526,7 +572,7 @@ ScriptValue _stdcall ScanArray(DWORD id, const ScriptValue& val) {
 				 (val.isString() && strcmp(el.strVal, val.asString()) == 0)) {
 				 if (arrays[id].isAssoc()) { // return key instead of index for associative arrays
 					 return ScriptValue(
-						 static_cast<DataType>(arrays[id].val[i].type), 
+						 static_cast<DataType>(arrays[id].val[i].type),
 						 static_cast<DWORD>(arrays[id].val[i].intVal)
 					 );
 				 } else {
