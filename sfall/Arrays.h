@@ -87,13 +87,14 @@ class sArrayVar
 {
 public:
 	DWORD flags;
-	sArrayElement key; // array associated key, if it was saved
+	sArrayElement key;    // array associated key, if it was saved
 	ArrayKeysMap keyHash; // key element => element index, for faster lookup
 	std::vector<sArrayElement> val; // list of values or key=>value pairs (even - keys, odd - values)
 
 	bool isAssoc() const {
 		return (flags & ARRAYFLAG_ASSOC);
 	}
+
 	// logical array size (number of elements for normal arrays; number of key=>value pairs for associative)
 	int size() const {
 		return isAssoc() 
@@ -109,6 +110,7 @@ public:
 	}
 
 	sArrayVar() : flags(0), key() {}
+
 	// free memory used by strings
 	void clear() {
 		clearRange(0);

@@ -2,6 +2,7 @@
 #include <algorithm>
 
 #include "Arrays.h"
+#include "FalloutEngine.h"
 #include "ScriptExtender.h"
 
 /*
@@ -11,7 +12,7 @@ DWORD arraysBehavior = 1; // 0 - backward compatible with pre-3.4, 1 - permanent
 // arrays map: arrayId => arrayVar
 ArraysMap arrays;
 // auto-incremented ID
-DWORD nextarrayid=1;
+DWORD nextarrayid = 1;
 // temp arrays: set of arrayId
 std::set<DWORD> tempArrays;
 // saved arrays: arrayKey => arrayId
@@ -101,7 +102,7 @@ DWORD sArrayElement::getHashStatic(DWORD value, DWORD type) {
 		str = (const char*)value;
 		int i;
 		DWORD res;
-		for (i=0, res=0; str[i]!='\0'; i++) {
+		for (i = 0, res = 0; str[i] != '\0'; i++) {
 			res = ((res << 5) + res) + str[i];
 		}
 		return res;
@@ -189,28 +190,28 @@ void LoadArraysOld(HANDLE h) {
 	dlogr("Loading arrays (old fmt)", DL_MAIN);
 	DWORD count, unused, id, j;
 	ReadFile(h, &count, 4, &unused, 0);
-	if(unused!=4) return;
+	if (unused != 4) return;
 	sArrayVarOld var;
 	sArrayVar varN;
-	for(DWORD i=0;i<count;i++) {
+	for (DWORD i = 0; i < count; i++) {
 		ReadFile(h, &id, 4, &unused, 0);
 		ReadFile(h, &var, 8, &unused, 0);
-		var.types=new DWORD[var.len];
-		var.data=new char[var.len*var.datalen];
-		ReadFile(h, var.types, 4*var.len, &unused, 0);
+		var.types = new DWORD[var.len];
+		var.data = new char[var.len * var.datalen];
+		ReadFile(h, var.types, 4 * var.len, &unused, 0);
 		ReadFile(h, var.data, var.len*var.datalen, &unused, 0);
 		varN.flags = 0;
 		varN.val.resize(var.len);
-		for (j=0; j<var.len; j++) {
+		for (j = 0; j < var.len; j++) {
 			switch (var.types[j]) {
 			case DATATYPE_INT:
-				varN.val[j].set(*(long*)(&var.data[var.datalen*j]));
+				varN.val[j].set(*(long*)(&var.data[var.datalen * j]));
 				break;
 			case DATATYPE_FLOAT:
-				varN.val[j].set(*(float*)(&var.data[var.datalen*j]));
+				varN.val[j].set(*(float*)(&var.data[var.datalen * j]));
 				break;
 			case DATATYPE_STR:
-				varN.val[j].set(&var.data[var.datalen*j], var.datalen - 1);
+				varN.val[j].set(&var.data[var.datalen * j], var.datalen - 1);
 				break;
 			}
 		}
@@ -230,7 +231,7 @@ void LoadArrays(HANDLE h) {
 	if (unused != 4) return;
 	sArrayVar arrayVar;
 	nextarrayid = 1;
-	for (DWORD i=0; i<count; i++) {
+	for (DWORD i = 0; i < count; i++) {
 		LoadArrayElement(&arrayVar.key, h);
 		if (arrayVar.key.type > 4 || arrayVar.key.intVal == 0) { // partial compatibility with 3.4
 			arrayVar.key.intVal = arrayVar.key.type;
@@ -240,7 +241,7 @@ void LoadArrays(HANDLE h) {
 		ReadFile(h, &elCount, 4, &unused, 0); // actual number of elements: keys+values
 		bool isAssoc = arrayVar.isAssoc();
 		arrayVar.val.resize(elCount);
-		for (j=0; j<elCount; j++) { // normal and associative arrays stored and loaded equally
+		for (j = 0; j < elCount; j++) { // normal and associative arrays stored and loaded equally
 			LoadArrayElement(&arrayVar.val[j], h);
 			if (isAssoc && (j % 2) == 0) { // only difference is that keyHash is filled with appropriate indexes
 				arrayVar.keyHash[arrayVar.val[j]] = j;
@@ -288,23 +289,26 @@ void SaveArrays(HANDLE h) {
 int GetNumArrays() {
 	return arrays.size();
 }
+
 void GetArrays(int* _arrays) {
-	int pos=0;
-	array_citr itr=arrays.begin();
-	while(itr!=arrays.end()) {
-		_arrays[pos++]=itr->first;
-		_arrays[pos++]=itr->second.size();
-		_arrays[pos++]=itr->second.flags;
+	int pos = 0;
+	array_citr itr = arrays.begin();
+	while (itr != arrays.end()) {
+		_arrays[pos++] = itr->first;
+		_arrays[pos++] = itr->second.size();
+		_arrays[pos++] = itr->second.flags;
 		itr++;
 	}
 }
+
 // those too are not really used yet in FalloutClient (AFAIK) -- phobos2077
 void DEGetArray(int id, DWORD* types, void* data) {
 	//memcpy(types, arrays[id].types, arrays[id].len*4);
 	//memcpy(data, arrays[id].data, arrays[id].len*arrays[id].datalen);
 }
+
 void DESetArray(int id, const DWORD* types, const void* data) {
-	//if(types) memcpy(arrays[id].types, types, arrays[id].len*4);
+	//if (types) memcpy(arrays[id].types, types, arrays[id].len * 4);
 	//memcpy(arrays[id].data, data, arrays[id].len*arrays[id].datalen);
 }
 
@@ -362,21 +366,23 @@ DWORD _stdcall CreateArray(int len, DWORD nothing) {
 	if (!var.isAssoc()) {
 		var.val.resize(len);
 	}
-	while(arrays.find(nextarrayid)!=arrays.end()) nextarrayid++;
+	while (arrays.find(nextarrayid) != arrays.end()) nextarrayid++;
 	if (nextarrayid == 0) nextarrayid++;
 	if (arraysBehavior == 0) {
 		var.key = sArrayElement(nextarrayid, DATATYPE_INT);
 		savedArrays[var.key] = nextarrayid;
 	}
 	stackArrayId = nextarrayid;
-	arrays[nextarrayid]=var;
+	arrays[nextarrayid] = var;
 	return nextarrayid++;
 }
+
 DWORD _stdcall TempArray(DWORD len, DWORD nothing) {
-	DWORD id=CreateArray(len, nothing);
+	DWORD id = CreateArray(len, nothing);
 	tempArrays.insert(id);
 	return id;
 }
+
 void _stdcall FreeArray(DWORD id) {
 	array_itr it = arrays.find(id);
 	if (it != arrays.end()) {
@@ -429,7 +435,7 @@ DWORD _stdcall GetArray(DWORD id, DWORD key, DWORD keyType, DWORD* resultType) {
 		// check for invalid index
 		if (el < 0 || el >= arr.size()) return 0;
 	}
-	switch(arr.val[el].type) {
+	switch (arr.val[el].type) {
 	case DATATYPE_NONE:  return 0;
 	case DATATYPE_INT:
 		return *(DWORD *)&arr.val[el].intVal;
@@ -486,25 +492,29 @@ void _stdcall SetArray(DWORD id, DWORD key, DWORD keyType, DWORD val, DWORD valT
 		}
 	}
 }
+
 int _stdcall LenArray(DWORD id) {
-	if(arrays.find(id)==arrays.end()) return -1;
+	if (arrays.find(id)==arrays.end()) return -1;
 	else return arrays[id].size();
 }
+
 void _stdcall ResizeArray(DWORD id, int newlen) {
-	if (arrays.find(id) == arrays.end() || arrays[id].size() == newlen) return;
+	if (newlen == -1 || arrays.find(id) == arrays.end() || arrays[id].size() == newlen) return;
 	sArrayVar &arr = arrays[id];
 	if (arr.isAssoc()) {
 		// only allow to reduce number of elements (adding range of elements is meaningless for maps)
-		if (newlen < arrays[id].size()) {
+		if (newlen >= 0 && newlen < arrays[id].size()) {
 			ArrayKeysMap::iterator itHash;
 			std::vector<sArrayElement>::iterator itVal;
-			int actualLen = newlen*2;
+			int actualLen = newlen * 2;
 			for (itVal = arr.val.begin() + actualLen; itVal != arr.val.end(); itVal += 2) {
 				if ((itHash = arr.keyHash.find(*itVal)) != arr.keyHash.end())
 					arr.keyHash.erase(itHash);
 			}
 			arr.clearRange(actualLen);
 			arr.val.resize(actualLen);
+		} else if (newlen < 0) {
+			DebugPrintf("\nOPCODE ERROR: resize_array() - array sorting error.");
 		}
 		return;
 	}
@@ -515,6 +525,10 @@ void _stdcall ResizeArray(DWORD id, int newlen) {
 			arr.clearRange(newlen);
 		arr.val.resize(newlen);
 	} else { // special functions for lists...
+		if (newlen < ARRAY_ACTION_SHUFFLE) {
+			DebugPrintf("\nOPCODE ERROR: resize_array() - array sorting error.");
+			return;
+		}
 		switch (newlen) {
 		case ARRAY_ACTION_SORT: // sort ascending
 			std::sort(arr.val.begin(), arr.val.end());
@@ -531,9 +545,11 @@ void _stdcall ResizeArray(DWORD id, int newlen) {
 		}
 	}
 }
+
 void _stdcall FixArray(DWORD id) {
 	tempArrays.erase(id);
 }
+
 int _stdcall ScanArray(DWORD id, DWORD val, DWORD datatype, DWORD* resultType) {
 	*resultType = VAR_TYPE_INT;
 	datatype = getSfallTypeByScriptType(datatype);
