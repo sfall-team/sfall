@@ -319,16 +319,19 @@ void DESetArray(int id, const DWORD* types, const void* data) {
 	//memcpy(arrays[id].data, data, arrays[id].len*arrays[id].datalen);
 }
 
-
 /*
 	Array manipulation functions for script operators
 	TODO: move somewhere else
 */
 
-DWORD _stdcall CreateArray(int len, DWORD nothing) {
+DWORD _stdcall CreateArray(int len, DWORD flags) {
 	sArrayVar var;
-	if (len < 0) var.flags |= ARRAYFLAG_ASSOC;
-	else if (len > ARRAY_MAX_SIZE) len = ARRAY_MAX_SIZE; // safecheck
+	var.flags = (flags & 0xFFFFFFFE); // reset 1 bit
+	if (len < 0) {
+		var.flags |= ARRAYFLAG_ASSOC;
+	} else if (len > ARRAY_MAX_SIZE) {
+		len = ARRAY_MAX_SIZE; // safecheck
+	}
 	if (!var.isAssoc()) {
 		var.val.resize(len);
 	}
@@ -343,8 +346,8 @@ DWORD _stdcall CreateArray(int len, DWORD nothing) {
 	return nextarrayid++;
 }
 
-DWORD _stdcall TempArray(DWORD len, DWORD nothing) {
-	DWORD id = CreateArray(len, nothing);
+DWORD _stdcall TempArray(DWORD len, DWORD flags) {
+	DWORD id = CreateArray(len, flags);
 	tempArrays.insert(id);
 	return id;
 }
@@ -428,7 +431,11 @@ void _stdcall SetArray(DWORD id, const ScriptValue& key, const ScriptValue& val,
 		el = (elIter != arr.keyHash.end())
 			? elIter->second
 			: -1;
-		if (val.isInt() && val.asInt() == 0 && allowUnset) {
+
+		bool lookupMap = (arr.flags & ARRAYFLAG_CONSTVAL) != 0;
+		if (lookupMap && el != -1) return; // don't update value of key
+
+		if (allowUnset && !lookupMap && (val.isInt() && val.rawValue() == 0)) {
 			// after assigning zero to a key, no need to store it, because "get_array" returns 0 for non-existent keys: try unset
 			if (el >= 0) {
 				// remove from hashtable
@@ -464,12 +471,12 @@ void _stdcall SetArray(DWORD id, const ScriptValue& key, const ScriptValue& val,
 }
 
 int _stdcall LenArray(DWORD id) {
-	if (arrays.find(id)==arrays.end()) return -1;
+	if (arrays.find(id) == arrays.end()) return -1;
 	else return arrays[id].size();
 }
 
 template <class T>
-void ListSort(std::vector<T> &arr, int type) {
+static void ListSort(std::vector<T> &arr, int type) {
 	switch (type) {
 	case ARRAY_ACTION_SORT:    // sort ascending
 		std::sort(arr.begin(), arr.end());
@@ -486,7 +493,7 @@ void ListSort(std::vector<T> &arr, int type) {
 	}
 }
 
-void MapSort(sArrayVar& arr, int type) {
+static void MapSort(sArrayVar& arr, int type) {
 	std::vector<std::pair<sArrayElement, sArrayElement>> map;
 	bool sortByValue = false;
 	if (type < ARRAY_ACTION_SHUFFLE) {
@@ -568,17 +575,17 @@ ScriptValue _stdcall ScanArray(DWORD id, const ScriptValue& val) {
 	for (size_t i = 0; i < arrays[id].val.size(); i += step) {
 		sArrayElement &el = arrays[id].val[i + step - 1];
 		if (el.type == val.type()) {
-			 if ((!val.isString() && static_cast<DWORD>(el.intVal) == val.rawValue()) ||
-				 (val.isString() && strcmp(el.strVal, val.asString()) == 0)) {
-				 if (arrays[id].isAssoc()) { // return key instead of index for associative arrays
-					 return ScriptValue(
-						 static_cast<DataType>(arrays[id].val[i].type),
-						 static_cast<DWORD>(arrays[id].val[i].intVal)
-					 );
-				 } else {
-					 return ScriptValue(static_cast<int>(i));
-				 }
-			 }
+			if ((!val.isString() && static_cast<DWORD>(el.intVal) == val.rawValue()) ||
+				(val.isString() && strcmp(el.strVal, val.asString()) == 0)) {
+				if (arrays[id].isAssoc()) { // return key instead of index for associative arrays
+					return ScriptValue(
+						static_cast<DataType>(arrays[id].val[i].type),
+						static_cast<DWORD>(arrays[id].val[i].intVal)
+					);
+				} else {
+					return ScriptValue(static_cast<int>(i));
+				}
+			}
 		}
 	}
 	return ScriptValue(-1);

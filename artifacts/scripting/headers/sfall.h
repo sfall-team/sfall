@@ -117,6 +117,10 @@
 #define create_array_map            (create_array(-1, 0))
 // create temporary map
 #define temp_array_map              (temp_array(-1, 0))
+// create persistent lookup map (see arrays.txt for details)
+#define create_lookup_map           (create_array(-1, 2))
+// create temporary lookup map
+#define temp_lookup_map             (temp_array(-1, 2))
 // true if array is map, false otherwise
 #define array_is_map(x)             (array_key(x, -1) == 1)
 // returns temp list with names of all arrays saved with save_array() in alphabetical order

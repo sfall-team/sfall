@@ -9,21 +9,21 @@ Array elements are accessed by index or key. For example:
 
     // this code puts some string in array "list" at index 5:
     list[5] := "Value";
-    
+
 
 There are 2 different types of arrays currently available:
 1) Lists - a set of values with specific size (number of elements), where all elements have numeric indexes starting from zero (0) up to array length minus one.
 For example:
-    
+
     // this creates list with 3 elements. Element "A" has index 0, element "B" has index 1, element "C" - 2
     list := ["A", "B", "C"];
-    
+
 Limitations:
 - all indexes are numeric, starting from 0;
 - to assign value to a specific index, you must first resize array to contain this index
 (for example, if list is of size 3 (indexes from 0 to 2), you can't assign value to index 4 unless you change list size to 5 first).
 
-    
+
 2) Maps (or associative arrays) - a set of key=>value pairs, where all elements (values) are accessed by corresponding keys.
 Differences from list:
 - maps don't have specific size (to assign values, you don't need to resize array first);
@@ -37,24 +37,24 @@ Both array types have their pros and cons and are suited for different tasks.
 Basically arrays are implemented using number of new operators (scripting functions). But for ease of use, there are some new syntax elements:
 
 1) Accessing elements. Use square brackets:
-    
+
     display_msg(arr[5]);
     mymap["price"] := 515.23;
-    
+
 2) Alternative accessing for maps. Use dot:
 
     display_msg(mymap.name);
     mymap.price := 232.23;
-    
+
 3) Array expressions. Create and fill arrays with just one expression:
 
     // create list with 5 values
     [5, 777, 0, 3.14, "Cool Value"]
-    
+
     // create map:
     {5: "Five", "health": 50, "speed": 0.252}
-    
-NOTES: 
+
+NOTES:
 - make sure to call "fix_array" if you want new array to be available in the next frame or "save_array" if you want to use it for a longer period
 (see next section for details)
 
@@ -64,16 +64,16 @@ NOTES:
     foreach (item in myarray) begin
         // this block is executed for each array element, where "item" contains current value on each step
     end
-    
+
     // alternative syntax:
     foreach (key: item in myarray) begin
         // "key" will contain current key (or numeric index, for lists)
     end
 
 See "Script editor\docs\sslc readme.txt" file for full information on new SSL syntax features.
-    
+
 >>> STORING ARRAYS <<<
-    
+
 Apart from lists/maps arrays are divided by how they are stored.
 There a 3 types of arrays:
 
@@ -85,21 +85,21 @@ where you create temp_array, it will not be available next time your global scri
 This type of arrays are always available (by their ID) until you start a new game or load a saved game (at which point they are deleted).
 
 3) Saved. If you want your array to really stay for a while, use function "save_array" to make any array "saved". However, they are, like permanent arrays,
-"deleted" from memory when loading game. In order to use them properly, you must load them from the savegame using "load_array" whenever you want to use them. 
+"deleted" from memory when loading game. In order to use them properly, you must load them from the savegame using "load_array" whenever you want to use them.
 Example:
-    
+
     variable savedArray;
     procedure start begin
         if game_loaded then begin
             savedArray := load_array("traps");
         end else begin
             foreach trap in traps begin
-                .... 
+                ....
             end
         end
     end
-   
-   
+
+
 
 >>> PRACTICAL EXAMPLES <<<
 
@@ -114,8 +114,8 @@ Example:
 
     // call it:
     call give_item(dude_obj, {PID_SHOTGUN: 1, PID_SHOTGUN_SHELLS: 4, PID_STIMPAK: 3});
-    
-    
+
+
 > Create arrays of objects (maps) for advanced scripting:
 
     variable traps;
@@ -130,14 +130,14 @@ Example:
             traps[k] := load_array("trap_"+k); // each object is stored separately
         end
     end
-    
+
     procedure add_trap(variable trapArray) begin
         variable index;
         index := len_array(traps);
         save_array("trap_"+k, trapArray);
         array_push(traps, trapArray);
     end
-    
+
     // use them:
     foreach trap in traps begin
         if (self_elevation == trap["elev"] and tile_distance(self_tile, trap["tile"]) < trap["radius"]) then
@@ -151,14 +151,16 @@ Example:
 
 *mixed means any type
 
-> int create_array(int size, int nothing):
+> int create_array(int size, int flags):
 - creates permanent array (but not "saved")
 - if size is >= 0, creates list with given size
 - if size == -1, creates map (associative array)
-- second argument is not used yet, just use 0
+- if size == -1 and flags == 2, creates a "lookup" map in which the values of existing keys are read-only and can't be updated.
+This type of array allows you to store a zero (0) value for a key
+- NOTE: in earlier versions (up to 4.1.3/3.8.13) the second argument is not used, just use 0
 - returns arrayID (valid until array is deleted)
 
-> int temp_array(int size, int nothing):
+> int temp_array(int size, int flags):
 - works exactly like "create_array", only created array becomes "temporary"
 
 > void fix_array(int arrayID):
@@ -169,6 +171,7 @@ Example:
 - if used on list, "key" must be numeric and within valid index range (0..size-1)
 - if used on map, key can be of any type
 - to "unset" a value from map, just set it to zero (0)
+- NOTE: to add a value of 0 for the key, use the float value of 0.0
 - this works exactly like statement:
     arrayID[key] := value;
 
@@ -182,7 +185,7 @@ Example:
 - changes array size
 - applicable to maps too, but only to reduce elements
 - there are number of special negative values of "size" which perform various operations on the array,
-use macros sort_array, sort_array_reverse, reverse_array, shuffle_array  from sfall.h header
+use macros sort_array, sort_array_reverse, reverse_array, shuffle_array from sfall.h header
 
 > void free_array(int arrayID):
 - deletes any array
