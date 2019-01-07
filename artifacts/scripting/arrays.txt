@@ -169,6 +169,7 @@ Example:
 - if used on list, "key" must be numeric and within valid index range (0..size-1)
 - if used on map, key can be of any type
 - to "unset" a value from map, just set it to zero (0)
+- NOTE: to add a value of 0 for the key, use the float value (0.0)
 - this works exactly like statement:
     arrayID[key] := value;
 

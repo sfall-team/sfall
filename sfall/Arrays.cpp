@@ -498,6 +498,60 @@ int _stdcall LenArray(DWORD id) {
 	else return arrays[id].size();
 }
 
+template <class T>
+static void ListSort(std::vector<T> &arr, int type) {
+	switch (type) {
+	case ARRAY_ACTION_SORT:    // sort ascending
+		std::sort(arr.begin(), arr.end());
+		break;
+	case ARRAY_ACTION_RSORT:   // sort descending
+		std::sort(arr.rbegin(), arr.rend());
+		break;
+	case ARRAY_ACTION_REVERSE: // reverse elements
+		std::reverse(arr.rbegin(), arr.rend());
+		break;
+	case ARRAY_ACTION_SHUFFLE: // shuffle elements
+		std::random_shuffle(arr.rbegin(), arr.rend());
+		break;
+	}
+}
+
+static void MapSort(sArrayVar& arr, int type) {
+	std::vector<std::pair<sArrayElement, sArrayElement>> map;
+	bool sortByValue = false;
+	if (type < ARRAY_ACTION_SHUFFLE) {
+		type += 4;
+		sortByValue = true;
+	}
+
+	sArrayElement key, val;
+	for (size_t i = 0; i < arr.val.size(); ++i) {
+		if (sortByValue) {
+			val = arr.val[i++];    // map key > value
+			key = arr.val[i];      // map value > key
+		} else {
+			key = arr.val[i];      // key
+			val = arr.val[++i];    // value
+		}
+		map.push_back(std::make_pair(key, val));
+	}
+	ListSort(map, type);
+
+	arr.val.clear();
+	arr.keyHash.clear();
+	for (size_t i = 0; i < map.size(); ++i) {
+		size_t el = arr.val.size();
+		if (sortByValue) {
+			arr.val.push_back(map[i].second); // map value > key
+			arr.val.push_back(map[i].first);  // map key > value
+		} else {
+			arr.val.push_back(map[i].first);
+			arr.val.push_back(map[i].second);
+		}
+		arr.keyHash[arr.val[el]] = el;
+	}
+}
+
 void _stdcall ResizeArray(DWORD id, int newlen) {
 	if (newlen == -1 || arrays.find(id) == arrays.end() || arrays[id].size() == newlen) return;
 	sArrayVar &arr = arrays[id];
@@ -514,7 +568,11 @@ void _stdcall ResizeArray(DWORD id, int newlen) {
 			arr.clearRange(actualLen);
 			arr.val.resize(actualLen);
 		} else if (newlen < 0) {
-			DebugPrintf("\nOPCODE ERROR: resize_array() - array sorting error.");
+			if (newlen < (ARRAY_ACTION_SHUFFLE - 2)) {
+				DebugPrintf("\nOPCODE ERROR: resize_array() - array sorting error.");
+				return;
+			}
+			MapSort(arr, newlen);
 		}
 		return;
 	}
@@ -529,20 +587,7 @@ void _stdcall ResizeArray(DWORD id, int newlen) {
 			DebugPrintf("\nOPCODE ERROR: resize_array() - array sorting error.");
 			return;
 		}
-		switch (newlen) {
-		case ARRAY_ACTION_SORT: // sort ascending
-			std::sort(arr.val.begin(), arr.val.end());
-			break;
-		case ARRAY_ACTION_RSORT: // sort descending
-			std::sort(arr.val.rbegin(), arr.val.rend());
-			break;
-		case ARRAY_ACTION_REVERSE: // reverse elements
-			std::reverse(arr.val.rbegin(), arr.val.rend());
-			break;
-		case ARRAY_ACTION_SHUFFLE: // shuffle elements
-			std::random_shuffle(arr.val.rbegin(), arr.val.rend());
-			break;
-		}
+		ListSort(arr.val, newlen);
 	}
 }
 
