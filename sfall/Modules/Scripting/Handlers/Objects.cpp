@@ -251,8 +251,11 @@ void sf_make_path(OpcodeContext& ctx) {
 		 type = ctx.arg(2).asInt();
 	auto func = getBlockingFunc(type);
 
+	// if the object is not a critter, then there is no need to check tile (tileTo) for blocking
+	long checkFlag = (objFrom->Type() == fo::OBJ_TYPE_CRITTER);
+
 	char pathData[800];
-	long pathLength = fo::func::make_path_func(objFrom, objFrom->tile, tileTo, pathData, 1, (void*)func);
+	long pathLength = fo::func::make_path_func(objFrom, objFrom->tile, tileTo, pathData, checkFlag, (void*)func);
 	auto arrayId = TempArray(pathLength, 0);
 	for (int i = 0; i < pathLength; i++) {
 		arrays[arrayId].val[i].set((long)pathData[i]);
