@@ -11,13 +11,22 @@
 
 #define SFALL_SC_EVALUATION   (true) // ScriptEditor 4.0: Automatic script compilation with -s option
 
+#include "..\headers\define.h"
+#include "..\headers\command.h"
 #include "main.h"
 
 #define  DUDE_INVEN           read_int(0x519058)
 
 procedure start;
+
 procedure InventoryMoveHandler;
 procedure KeyPressHandler;
+
+procedure pickup_ground_items;
+procedure pickup_info();
+procedure distance_sort(variable array);
+
+variable pickupKey, pickupItem;
 
 procedure start begin
    variable sfall_version;
@@ -28,9 +37,13 @@ procedure start begin
 
       register_hook_proc(HOOK_KEYPRESS, KeyPressHandler);
 
-      if (sfall_version >= 414 and (GetConfig("Interface", "QuickAmmoReload", 0) > 0)
-      and GetIniConfig("Misc", "ReloadReserve", -1, "ddraw.ini") > -1) then begin
-         register_hook_proc(HOOK_INVENTORYMOVE, InventoryMoveHandler);
+      if (sfall_version >= 414) then begin
+         pickupKey := GetConfig("Inventory", "PickupItemKey", 0);
+
+         if ((GetConfig("Inventory", "QuickAmmoReload", 0) > 0)
+         and GetIniConfig("Misc", "ReloadReserve", -1, "ddraw.ini") > -1) then begin
+            register_hook_proc(HOOK_INVENTORYMOVE, InventoryMoveHandler);
+         end
       end
    end
 end
@@ -76,11 +89,76 @@ procedure KeyPressHandler begin
    int     ret1 - overrides the pressed key (a new key DX scancode or 0 for no override)
 */
    variable pressed := get_sfall_arg,
-            scancodeDX  := get_sfall_arg;
+            keyDX   := get_sfall_arg;
 
-   // Close inventory when re-pressing the 'I' key
-   if (pressed and scancodeDX == DIK_I and (get_game_mode bwand INVENTORY)) then begin
-      tap_key(DIK_ESCAPE);
+   if (pressed) then begin
+       // Close inventory when re-pressing the 'I' key
+      if (keyDX == DIK_I and (get_game_mode bwand INVENTORY)) then begin
+         tap_key(DIK_ESCAPE);
+      end
+      else if (keyDX == DIK_S and (get_game_mode bwand SKILLDEX)) then begin
+         tap_key(DIK_ESCAPE);
+      end
+      else if (keyDX == DIK_Z and (get_game_mode bwand PIPBOY)) then begin
+         tap_key(DIK_ESCAPE);
+      end
+      else if (keyDX == DIK_A and combat_is_initialized) then begin
+         if get_cursor_mode != CURSOR_TARGETING then
+            set_cursor_mode(CURSOR_TARGETING);
+         else
+            set_cursor_mode(CURSOR_MOVEMENT);
+      end
+      else if (not(pickupItem) and keyDX == pickupKey and (get_game_mode == 0)) then begin
+         call pickup_ground_items;
+      end
    end
+end
 
+procedure pickup_ground_items begin
+   variable item, itemPid, weight, dist, walkDist,
+            itemsArray := distance_sort(list_as_array(LIST_GROUNDITEMS));
+
+   foreach (dist: item in itemsArray) begin
+      if (dist > 1) then begin
+         if (obj_blocking_line(item, dude_tile, BLOCKING_TYPE_SIGHT)) then continue;
+         walkDist := len_array(path_find_to(item, dude_tile, BLOCKING_TYPE_BLOCK));
+         if (walkDist == 0 or walkDist > 6) then continue;
+      end
+      itemPid := obj_pid(item);
+      if (itemPid != PID_ACTIVE_DYNAMITE and itemPid != PID_ACTIVE_PLASTIC_EXPLOSIVE) then begin
+         weight := item_weight(item);
+         if (weight + who_carry_amount(dude_obj) > get_critter_stat(dude_obj, STAT_carry_amt)) then begin
+            weight := -1;
+            continue; // next item
+         end
+         weight := 0;
+
+         // pickup object
+         set_self(dude_obj);
+         pickup_obj(item);
+         pickupItem := item;
+         walkDist /= 2;
+         call pickup_info in walkDist;
+         break; // exit loop
+      end
+   end
+   if weight == -1 then display_msg(mstr_misc(8000)); // You carry too much
+end
+
+procedure pickup_info() begin
+   display_msg(sprintf(mstr_misc(8002), obj_name(pickupItem)));
+   pickupItem := 0;
+end
+
+procedure distance_sort(variable array) begin
+   variable dist, item,
+            sortArray := create_array(-1, 2);
+
+   foreach (item in array) begin
+       dist := tile_distance_objs(item, dude_obj);
+       if (dist > 3 or obj_item_subtype(item) == item_type_container) then continue;
+       sortArray[dist] := item;
+   end
+   sort_array(sortArray);
+   return sortArray;
 end
