@@ -561,8 +561,8 @@ void AI::init() {
 		SafeWrite8(0x4290B5, 0x90);
 	}
 
-	// Fixed an attempt to switching weapons when zero action points
-	if (GetConfigInt("CombatAI", "SwitchWeaponFix", 0)) {
+	// Fixed bug switching weapons when action points is zero
+	if (GetConfigInt("CombatAI", "NPCSwitchingWeaponFix", 0)) {
 		HookCall(0x42AB57, ai_try_attack_hook_switch_fix);
 	}
 
