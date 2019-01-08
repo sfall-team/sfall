@@ -1722,9 +1722,5 @@ void sf_get_ini_section(OpcodeContext& ctx) {
 	ctx.setReturn(arrayId);
 }
 
-void sf_obj_under_cursor(OpcodeContext& ctx) {
-	ctx.setReturn(fo::func::object_under_mouse(ctx.arg(0).asBool() ? 1 : -1, ctx.arg(1).rawValue(), fo::var::map_elevation));
-}
-
 }
 }

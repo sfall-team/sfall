@@ -212,28 +212,6 @@ void sf_set_weapon_ammo_count(OpcodeContext& ctx) {
 	obj->item.charges = ctx.arg(1).asInt();
 }
 
-static DWORD _stdcall obj_blocking_at_wrapper(DWORD obj, DWORD tile, DWORD elevation, DWORD func) {
-	__asm {
-		mov eax, obj;
-		mov edx, tile;
-		mov ebx, elevation;
-		call func;
-	}
-}
-
-static DWORD _stdcall make_straight_path_func_wrapper(fo::GameObject* obj, DWORD tileFrom, DWORD a3, DWORD tileTo, DWORD* result, DWORD a6, DWORD func) {
-	__asm {
-		mov eax, obj;
-		mov edx, tileFrom;
-		mov ecx, a3;
-		mov ebx, tileTo;
-		push func;
-		push a6;
-		push result;
-		call fo::funcoffs::make_straight_path_func_;
-	}
-}
-
 #define BLOCKING_TYPE_BLOCK		(0)
 #define BLOCKING_TYPE_SHOOT		(1)
 #define BLOCKING_TYPE_AI		(2)
@@ -259,21 +237,25 @@ static DWORD getBlockingFunc(DWORD type) {
 void sf_make_straight_path(OpcodeContext& ctx) {
 	auto objFrom = ctx.arg(0).asObject();
 	DWORD tileTo = ctx.arg(1).asInt(),
-		type = ctx.arg(2).asInt(),
-		resultObj, arg6;
-	arg6 = (type == BLOCKING_TYPE_SHOOT) ? 32 : 0;
-	make_straight_path_func_wrapper(objFrom, objFrom->tile, 0, tileTo, &resultObj, arg6, getBlockingFunc(type));
+		  type = ctx.arg(2).asInt();
+
+	long flag = (type == BLOCKING_TYPE_SHOOT) ? 32 : 0;
+	DWORD resultObj = 0;
+	fo::func::make_straight_path_func(objFrom, objFrom->tile, tileTo, 0, &resultObj, flag, (void*)getBlockingFunc(type));
 	ctx.setReturn(resultObj, DataType::INT);
 }
 
 void sf_make_path(OpcodeContext& ctx) {
 	auto objFrom = ctx.arg(0).asObject();
 	auto tileTo = ctx.arg(1).asInt(),
-		type = ctx.arg(2).asInt();
+		 type = ctx.arg(2).asInt();
 	auto func = getBlockingFunc(type);
-	long pathLength, a5 = 1;
+
+	// if the object is not a critter, then there is no need to check tile (tileTo) for blocking
+	long checkFlag = (objFrom->type() == fo::OBJ_TYPE_CRITTER);
+
 	char pathData[800];
-	pathLength = fo::func::make_path_func(objFrom, objFrom->tile, tileTo, pathData, a5, (void*)func);
+	long pathLength = fo::func::make_path_func(objFrom, objFrom->tile, tileTo, pathData, checkFlag, (void*)func);
 	auto arrayId = TempArray(pathLength, 0);
 	for (int i = 0; i < pathLength; i++) {
 		arrays[arrayId].val[i].set((long)pathData[i]);
@@ -283,15 +265,15 @@ void sf_make_path(OpcodeContext& ctx) {
 
 void sf_obj_blocking_at(OpcodeContext& ctx) {
 	DWORD tile = ctx.arg(0).asInt(),
-		elevation = ctx.arg(1).asInt(),
-		type = ctx.arg(2).asInt(),
-		resultObj;
-	resultObj = obj_blocking_at_wrapper(0, tile, elevation, getBlockingFunc(type));
-	if (resultObj && type == BLOCKING_TYPE_SHOOT && (*(DWORD*)(resultObj + 39) & 0x80)) { // don't know what this flag means, copy-pasted from the engine code
+		  elevation = ctx.arg(1).asInt(),
+		  type = ctx.arg(2).asInt();
+
+	fo::GameObject* resultObj = fo::func::obj_blocking_at_wrapper(0, tile, elevation, (void*)getBlockingFunc(type));
+	if (resultObj && type == BLOCKING_TYPE_SHOOT && (resultObj->flags & fo::ObjectFlag::ShootThru)) { // don't know what this flag means, copy-pasted from the engine code
 		// this check was added because the engine always does exactly this when using shoot blocking checks
-		resultObj = 0;
+		resultObj = nullptr;
 	}
-	ctx.setReturn(resultObj, DataType::INT);
+	ctx.setReturn((DWORD)resultObj, DataType::INT);
 }
 
 void sf_tile_get_objects(OpcodeContext& ctx) {
@@ -454,6 +436,10 @@ void sf_get_current_inven_size(OpcodeContext& ctx) {
 
 void sf_get_dialog_object(OpcodeContext& ctx) {
 	ctx.setReturn(InDialog() ? fo::var::dialog_target : 0);
+}
+
+void sf_get_obj_under_cursor(OpcodeContext& ctx) {
+	ctx.setReturn(fo::func::object_under_mouse(ctx.arg(0).asBool() ? 1 : -1, ctx.arg(1).rawValue(), fo::var::map_elevation));
 }
 
 void sf_get_loot_object(OpcodeContext& ctx) {

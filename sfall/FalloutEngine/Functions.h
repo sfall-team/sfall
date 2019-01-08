@@ -36,8 +36,6 @@ namespace func
 
 bool __stdcall art_exists(long artFid);
 
-long __fastcall _word_wrap(const char* text, int maxWidth, DWORD* buf, BYTE* count);
-
 // Returns the name of the critter
 const char* __stdcall critter_name(GameObject* critter);
 
@@ -162,6 +160,8 @@ long __stdcall message_load(MessageList *msgList, const char *msgFilePath);
 // destroys message list
 long __stdcall message_exit(MessageList *msgList);
 
+GameObject* __fastcall obj_blocking_at_wrapper(GameObject* obj, DWORD tile, DWORD elevation, void* func);
+
 GameObject* __stdcall obj_find_first_at_tile(long elevation, long tileNum);
 
 GameObject* __stdcall obj_find_next_at_tile();
@@ -221,8 +221,27 @@ void __stdcall DialogOut(const char* text);
 #define WRAP_WATCOM_FUNC6(retType, name, arg1t, arg1, arg2t, arg2, arg3t, arg3, arg4t, arg4, arg5t, arg5, arg6t, arg6) \
 	retType __stdcall name(arg1t arg1, arg2t arg2, arg3t arg3, arg4t arg4, arg5t arg5, arg6t arg6);
 
-#define WRAP_WATCOM_FUNC7(retType, name, arg1t, arg1, arg2t, arg2, arg3t, arg3, arg4t, arg4, arg5t, arg5, arg6t, arg6, arg7t, arg7) \
-	retType __stdcall name(arg1t arg1, arg2t arg2, arg3t arg3, arg4t arg4, arg5t arg5, arg6t arg6, arg7t arg7);
+
+#define WRAP_WATCOM_FFUNC1(retType, name, arg1t, arg1) \
+	retType __fastcall name(arg1t arg1);
+
+#define WRAP_WATCOM_FFUNC2(retType, name, arg1t, arg1, arg2t, arg2) \
+	retType __fastcall name(arg1t arg1, arg2t arg2);
+
+#define WRAP_WATCOM_FFUNC3(retType, name, arg1t, arg1, arg2t, arg2, arg3t, arg3) \
+	retType __fastcall name(arg1t arg1, arg2t arg2, arg3t arg3);
+
+#define WRAP_WATCOM_FFUNC4(retType, name, arg1t, arg1, arg2t, arg2, arg3t, arg3, arg4t, arg4) \
+	retType __fastcall name(arg1t arg1, arg2t arg2, arg3t arg3, arg4t arg4);
+
+#define WRAP_WATCOM_FFUNC5(retType, name, arg1t, arg1, arg2t, arg2, arg3t, arg3, arg4t, arg4, arg5t, arg5) \
+	retType __fastcall name(arg1t arg1, arg2t arg2, arg3t arg3, arg4t arg4, arg5t arg5);
+
+#define WRAP_WATCOM_FFUNC6(retType, name, arg1t, arg1, arg2t, arg2, arg3t, arg3, arg4t, arg4, arg5t, arg5, arg6t, arg6) \
+	retType __fastcall name(arg1t arg1, arg2t arg2, arg3t arg3, arg4t arg4, arg5t arg5, arg6t arg6);
+
+#define WRAP_WATCOM_FFUNC7(retType, name, arg1t, arg1, arg2t, arg2, arg3t, arg3, arg4t, arg4, arg5t, arg5, arg6t, arg6, arg7t, arg7) \
+	retType __fastcall name(arg1t arg1, arg2t arg2, arg3t arg3, arg4t arg4, arg5t arg5, arg6t arg6, arg7t arg7);
 
 #include "Functions_def.h"
 
@@ -233,7 +252,15 @@ void __stdcall DialogOut(const char* text);
 #undef WRAP_WATCOM_FUNC4
 #undef WRAP_WATCOM_FUNC5
 #undef WRAP_WATCOM_FUNC6
-#undef WRAP_WATCOM_FUNC7
+//#undef WRAP_WATCOM_FUNC7
+
+#undef WRAP_WATCOM_FFUNC1
+#undef WRAP_WATCOM_FFUNC2
+#undef WRAP_WATCOM_FFUNC3
+#undef WRAP_WATCOM_FFUNC4
+#undef WRAP_WATCOM_FFUNC5
+#undef WRAP_WATCOM_FFUNC6
+#undef WRAP_WATCOM_FFUNC7
 
 }
 }

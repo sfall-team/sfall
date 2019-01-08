@@ -14,6 +14,14 @@
 	NOTES: be careful not to use reserved words, including ASM instructions (push, pop, mov, div, etc.)
 */
 
+// For functions that have 3 or more arguments, it is preferable to use the fastcall calling convention
+// because the compiler builds the better/optimized code when calling the engine functions
+WRAP_WATCOM_FFUNC4(long, _word_wrap, const char*, text, int, maxWidth, DWORD*, buf, BYTE*, count)
+WRAP_WATCOM_FFUNC7(long, createWindow, const char*, winName, long, x, long, y, long, width, long, height, long, bgColorIndex, long, flags)
+WRAP_WATCOM_FFUNC7(void, make_straight_path_func, fo::GameObject*, objFrom, DWORD, tileFrom, DWORD, tileTo, void*, rotationPtr, DWORD*, result, long, flags, void*, func)
+WRAP_WATCOM_FFUNC3(long, object_under_mouse, long, crSwitch, long, inclDude, long, elevation)
+
+// stdcall
 WRAP_WATCOM_FUNC1(AIcap*, ai_cap, GameObject*, critter)
 WRAP_WATCOM_FUNC1(Program*, allocateProgram, const char*, filePath)
 WRAP_WATCOM_FUNC0(void, art_flush)
@@ -26,7 +34,6 @@ WRAP_WATCOM_FUNC4(BYTE*, art_ptr_lock_data, long, frmId, long, frameNum, long, r
 WRAP_WATCOM_FUNC4(BYTE*, art_lock, long, frmId, DWORD*, lockPtr, long*, widthOut, long*, heightOut)
 WRAP_WATCOM_FUNC1(long, art_ptr_unlock, DWORD, lockId)
 WRAP_WATCOM_FUNC2(long, barter_compute_value, GameObject*, source, GameObject*, target)
-WRAP_WATCOM_FUNC7(long, createWindow, const char*, winName, long, x, long, y, long, width, long, height, long, bgColorIndex, long, flags)
 WRAP_WATCOM_FUNC1(void*, dbase_open, const char*, fileName)
 WRAP_WATCOM_FUNC1(void, dbase_close, void*, dbPtr)
 WRAP_WATCOM_FUNC3(long, db_freadShortCount, DbFile*, file, WORD*, dest, long, count)
@@ -79,7 +86,6 @@ WRAP_WATCOM_FUNC2(long, obj_pid_new, fo::GameObject*, object, long, pid)
 // checks/unjams jammed locks
 WRAP_WATCOM_FUNC1(long, obj_lock_is_jammed, GameObject*, object)
 WRAP_WATCOM_FUNC1(void, obj_unjam_lock, GameObject*, object)
-WRAP_WATCOM_FUNC3(long, object_under_mouse, long, crSwitch, long, inclDude, long, elevation)
 WRAP_WATCOM_FUNC6(long, pick_death, GameObject*, attacker, GameObject*, target, GameObject*, weapon, long, amount, long, anim, long, hitFromBack)
 WRAP_WATCOM_FUNC0(void, proto_dude_update_gender)
 WRAP_WATCOM_FUNC2(long, queue_find_first, GameObject*, object, long, qType)

@@ -549,7 +549,7 @@ static void RunScript(GlobalScript* script) {
 */
 static void ResetStateAfterFrame() {
 	if (tempArrays.size()) {
- 		for (std::set<DWORD>::iterator it = tempArrays.begin(); it != tempArrays.end(); ++it)
+		for (std::set<DWORD>::iterator it = tempArrays.begin(); it != tempArrays.end(); ++it)
 			FreeArray(*it);
 		tempArrays.clear();
 	}
