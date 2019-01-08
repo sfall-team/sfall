@@ -123,7 +123,7 @@ static const SfallMetarule metaruleArray[] = {
 	{"inventory_redraw", sf_inventory_redraw, 1, 1},
 	{"item_weight", sf_item_weight, 1, 1},
 	{"lock_is_jammed", sf_lock_is_jammed, 1, 1},
-	{"obj_under_cursor", sf_obj_under_cursor, 2, 2},
+	{"obj_under_cursor", sf_get_obj_under_cursor, 2, 2},
 	{"outlined_object", sf_outlined_object, 0, 0},
 	{"set_cursor_mode", sf_set_cursor_mode, 1, 1},
 	{"set_flags", sf_set_flags, 2, 2},

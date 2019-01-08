@@ -154,18 +154,19 @@ static __declspec(naked) void GetDateWrapper() {
 		push esi;
 		push ebx;
 		call game_time_date_;
-		mov ecx, ds:[_pc_proto + 0x4C];
-		pop esi;
+		mov  ecx, ds:[_pc_proto + 0x4C];
+		pop  esi;
 		test esi, esi;
-		jz end;
-		add ecx, [esi];
-		mov [esi], ecx;
+		jz   end;
+		add  ecx, [esi];
+		mov  [esi], ecx;
 end:
-		pop esi;
-		pop ecx;
+		pop  esi;
+		pop  ecx;
 		retn;
 	}
 }
+
 static void TimerReset() {
 	*((DWORD*)_fallout_game_time) = 0;
 	*((DWORD*)_pc_proto + 0x4C) += 13;
@@ -216,43 +217,42 @@ static __declspec(naked) void palette_fade_to_hook() {
 	}
 }
 
-static int mapSlotsScrollMax=27 * (17 - 7);
-
+static int mapSlotsScrollMax = 27 * (17 - 7);
 static __declspec(naked) void ScrollCityListHook() {
 	__asm {
 		push ebx;
-		mov ebx, ds:[0x672F10];
+		mov  ebx, ds:[0x672F10];
 		test eax, eax;
-		jl up;
-		cmp ebx, mapSlotsScrollMax;
-		je end;
-		jmp run;
+		jl   up;
+		cmp  ebx, mapSlotsScrollMax;
+		je   end;
+		jmp  run;
 up:
 		test ebx, ebx;
-		jz end;
+		jz   end;
 run:
 		call wmInterfaceScrollTabsStart_;
 end:
-		pop ebx;
+		pop  ebx;
 		retn;
 	}
 }
 
-static DWORD wp_delay;
-static void __declspec(naked) worldmap_patch() {
+static DWORD worldMapDelay;
+static void __declspec(naked) WorldMapFpsPatch() {
 	__asm {
-		pushad;
+		pushadc;
 		call RunGlobalScripts3;
-		mov ecx, wp_delay;
+		mov ecx, worldMapDelay;
 tck:
-		mov eax, ds:[0x50fb08];
+		mov  eax, ds:[0x50fb08];
 		call elapsed_time_;
-		cmp eax, ecx;
-		jl tck;
+		cmp  eax, ecx;
+		jl   tck;
 		call get_time_;
-		mov ds:[0x50fb08], eax;
-		popad;
-		jmp get_input_;
+		mov  ds:[0x50fb08], eax;
+		popadc;
+		jmp  get_input_;
 	}
 }
 
@@ -323,20 +323,20 @@ end_cppf:
 //Only used if the world map speed patch is disabled, so that world map scripts are still run
 static void __declspec(naked) WorldMapHook() {
 	__asm {
-		pushad;
+		pushadc;
 		call RunGlobalScripts3;
-		popad;
-		jmp get_input_;
+		popadc;
+		jmp  get_input_;
 	}
 }
 
 static void __declspec(naked) ViewportHook() {
 	__asm {
 		call wmWorldMapLoadTempData_;
-		mov eax, ViewportX;
-		mov ds:[_wmWorldOffsetX], eax
-		mov eax, ViewportY;
-		mov ds:[_wmWorldOffsetY], eax;
+		mov  eax, ViewportX;
+		mov  ds:[_wmWorldOffsetX], eax;
+		mov  eax, ViewportY;
+		mov  ds:[_wmWorldOffsetY], eax;
 		retn;
 	}
 }
@@ -576,26 +576,27 @@ end:
 static DWORD KarmaFrmCount;
 static DWORD* KarmaFrms;
 static int* KarmaPoints;
-static DWORD _stdcall DrawCardHook2() {
+static DWORD _stdcall DrawCard() {
 	int rep = **(int**)_game_global_vars;
 	for (DWORD i = 0; i < KarmaFrmCount - 1; i++) {
 		if (rep < KarmaPoints[i]) return KarmaFrms[i];
 	}
 	return KarmaFrms[KarmaFrmCount - 1];
 }
-static void __declspec(naked) DrawCardHook() {
+
+static void __declspec(naked) DrawInfoWin_hook() {
 	__asm {
-		cmp ds:[0x5707D0], 10;
-		jne skip;
-		cmp eax, 0x30;
-		jne skip;
+		cmp  ds:[0x5707D0], 10;
+		jne  skip;
+		cmp  eax, 0x30;
+		jne  skip;
 		push ecx;
 		push edx;
-		call DrawCardHook2;
-		pop edx;
-		pop ecx;
+		call DrawCard;
+		pop  edx;
+		pop  ecx;
 skip:
-		jmp DrawCard_;
+		jmp  DrawCard_;
 	}
 }
 
@@ -683,26 +684,26 @@ static void __declspec(naked) op_obj_can_see_obj_hook() {
 
 static void __declspec(naked) wmTownMapFunc_hack() {
 	__asm {
-		cmp  edx, 0x31
-		jl   end
-		cmp  edx, ecx
-		jge  end
-		push edx
-		sub  edx, 0x31
-		lea  eax, ds:0[edx*8]
-		sub  eax, edx
-		pop  edx
-		cmp  dword ptr [edi+eax*4+0x0], 0         // Visited
-		je   end
-		cmp  dword ptr [edi+eax*4+0x4], -1        // Xpos
-		je   end
-		cmp  dword ptr [edi+eax*4+0x8], -1        // Ypos
-		je   end
-		retn
+		cmp  edx, 0x31;
+		jl   end;
+		cmp  edx, ecx;
+		jge  end;
+		push edx;
+		sub  edx, 0x31;
+		lea  eax, ds:0[edx*8];
+		sub  eax, edx;
+		pop  edx;
+		cmp  dword ptr [edi+eax*4+0x0], 0;        // Visited
+		je   end;
+		cmp  dword ptr [edi+eax*4+0x4], -1;       // Xpos
+		je   end;
+		cmp  dword ptr [edi+eax*4+0x8], -1;       // Ypos
+		je   end;
+		retn;
 end:
-		add  esp, 4                               // Destroy the return address
-		push 0x4C4976
-		retn
+		add  esp, 4;                              // destroy the return address
+		push 0x4C4976;
+		retn;
 	}
 }
 
@@ -972,7 +973,7 @@ static void DllMain2() {
 	if (ViewportY != -1) {
 		dlog("Applying starting y view patch.", DL_INIT);
 		SafeWrite32(_wmWorldOffsetY, ViewportY);
-		HookCall(0x4BCF07, &ViewportHook);
+		if (ViewportX == -1) HookCall(0x4BCF07, &ViewportHook);
 		dlogr(" Done", DL_INIT);
 	}
 
@@ -989,8 +990,8 @@ static void DllMain2() {
 		if (*(DWORD*)0x4BFE5E != 0x8D16) {
 			dlogr(" Failed", DL_INIT);
 		} else {
-			wp_delay = GetPrivateProfileInt("Misc", "WorldMapDelay2", 66, ini);
-			HookCall(0x4BFE5D, worldmap_patch);
+			worldMapDelay = GetPrivateProfileInt("Misc", "WorldMapDelay2", 66, ini);
+			HookCall(0x4BFE5D, WorldMapFpsPatch);
 			AvailableGlobalScriptTypes |= 2;
 			dlogr(" Done", DL_INIT);
 		}
@@ -1327,7 +1328,7 @@ static void DllMain2() {
 			ptr = ptr2 + 1;
 		}
 		KarmaPoints[KarmaFrmCount - 2] = atoi(ptr);
-		HookCall(0x4367A9, DrawCardHook);
+		HookCall(0x4367A9, DrawInfoWin_hook);
 		dlogr(" Done", DL_INIT);
 	}
 

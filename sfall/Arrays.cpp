@@ -528,6 +528,8 @@ static void ListSort(std::vector<T> &arr, int type) {
 
 static void MapSort(sArrayVar& arr, int type) {
 	std::vector<std::pair<sArrayElement, sArrayElement>> map;
+	map.reserve(arr.val.size());
+
 	bool sortByValue = false;
 	if (type < ARRAY_ACTION_SHUFFLE) {
 		type += 4;

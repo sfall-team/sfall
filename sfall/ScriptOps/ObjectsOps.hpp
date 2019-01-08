@@ -19,6 +19,7 @@
 #pragma once
 
 #include "main.h"
+
 #include "Inventory.h"
 #include "ScriptExtender.h"
 #if (_MSC_VER < 1600)
@@ -56,7 +57,7 @@ end:
 	}
 }
 
-// TODO: rewrite 
+// TODO: rewrite
 static void __declspec(naked) SetScript() {
 	__asm {
 		pushad;
@@ -148,7 +149,7 @@ static void _stdcall op_create_spatial2() {
 	__asm {
 		mov eax, scriptId;
 		mov edx, 1; // start_p_proc
-		call exec_script_proc_; 
+		call exec_script_proc_;
 		mov eax, scriptPtr;
 		mov eax, [eax + 0x18]; // program pointer
 		call scr_find_obj_from_program_;
@@ -334,23 +335,22 @@ end:
 	}
 }
 
-static DWORD _stdcall obj_blocking_at_wrapper(DWORD obj, DWORD tile, DWORD elevation, DWORD func) {
+static TGameObj* __fastcall obj_blocking_at_wrapper(TGameObj* obj, DWORD tile, DWORD elevation, void* func) {
 	__asm {
-		mov eax, obj;
-		mov edx, tile;
-		mov ebx, elevation;
+		mov  eax, ecx;
+		mov  ebx, elevation;
 		call func;
 	}
 }
 
-static DWORD _stdcall make_straight_path_func_wrapper(DWORD obj, DWORD tileFrom, DWORD a3, DWORD tileTo, DWORD* result, DWORD a6, DWORD func) {
+static DWORD _stdcall make_straight_path_func_wrapper(TGameObj* objFrom, DWORD tileFrom, void* rotationPtr, DWORD tileTo, DWORD* result, long flags, void* func) {
 	__asm {
-		mov eax, obj;
-		mov edx, tileFrom;
-		mov ecx, a3;
-		mov ebx, tileTo;
+		mov  eax, objFrom;
+		mov  edx, tileFrom;
+		mov  ecx, rotationPtr;
+		mov  ebx, tileTo;
 		push func;
-		push a6;
+		push flags;
 		push result;
 		call make_straight_path_func_;
 	}
@@ -364,27 +364,28 @@ static DWORD _stdcall make_straight_path_func_wrapper(DWORD obj, DWORD tileFrom,
 
 static DWORD getBlockingFunc(DWORD type) {
 	switch (type) {
-		case BLOCKING_TYPE_BLOCK: default: 
+		case BLOCKING_TYPE_BLOCK: default:
 			return obj_blocking_at_;
-		case BLOCKING_TYPE_SHOOT: 
+		case BLOCKING_TYPE_SHOOT:
 			return obj_shoot_blocking_at_;
-		case BLOCKING_TYPE_AI: 
+		case BLOCKING_TYPE_AI:
 			return obj_ai_blocking_at_;
-		case BLOCKING_TYPE_SIGHT: 
+		case BLOCKING_TYPE_SIGHT:
 			return obj_sight_blocking_at_;
-		//case 4: 
+		//case 4:
 		//	return obj_scroll_blocking_at_;
-			
+
 	}
 }
 
 static void _stdcall op_make_straight_path2() {
-	DWORD objFrom	= opHandler.arg(0).asInt(),
-		  tileTo	= opHandler.arg(1).asInt(),
-		  type		= opHandler.arg(2).asInt(),
-		  resultObj, arg6;
-	arg6 = (type == BLOCKING_TYPE_SHOOT) ? 32 : 0;
-	make_straight_path_func_wrapper(objFrom, *(DWORD*)(objFrom + 4), 0, tileTo, &resultObj, arg6, getBlockingFunc(type));
+	TGameObj* objFrom = opHandler.arg(0).asObject();
+	DWORD tileTo = opHandler.arg(1).asInt(),
+		  type = opHandler.arg(2).asInt();
+
+	long flag = (type == BLOCKING_TYPE_SHOOT) ? 32 : 0;
+	DWORD resultObj = 0;
+	make_straight_path_func_wrapper(objFrom, objFrom->tile, 0, tileTo, &resultObj, flag, (void*)getBlockingFunc(type));
 	opHandler.setReturn(resultObj, DATATYPE_INT);
 }
 
@@ -393,18 +394,20 @@ static void __declspec(naked) op_make_straight_path() {
 }
 
 static void _stdcall op_make_path2() {
-	DWORD objFrom = opHandler.arg(0).asInt(),
-		tileFrom = 0,
+	TGameObj* objFrom = opHandler.arg(0).asObject();
+	DWORD tileFrom = 0,
 		tileTo = opHandler.arg(1).asInt(),
 		type = opHandler.arg(2).asInt(),
-		func = getBlockingFunc(type),
-		arr;
-	long pathLength, a5 = 1;
+		func = getBlockingFunc(type);
+
 	if (!objFrom) {
 		opHandler.setReturn(0, DATATYPE_INT);
 		return;
 	}
-	tileFrom = *(DWORD*)(objFrom + 4);
+	// if the object is not a critter, then there is no need to check tile (tileTo) for blocking
+	long pathLength, checkFlag = (objFrom->pid >> 24 == OBJ_TYPE_CRITTER);
+
+	tileFrom = objFrom->tile;
 	char pathData[800];
 	char* pathDataPtr = pathData;
 	__asm {
@@ -413,15 +416,15 @@ static void _stdcall op_make_path2() {
 		mov ecx, pathDataPtr;
 		mov ebx, tileTo;
 		push func;
-		push a5;
+		push checkFlag;
 		call make_path_func_;
 		mov pathLength, eax;
 	}
-	arr = TempArray(pathLength, 0);
-	for (int i=0; i < pathLength; i++) {
-		arrays[arr].val[i].set((long)pathData[i]);
+	DWORD arrayId = TempArray(pathLength, 0);
+	for (int i = 0; i < pathLength; i++) {
+		arrays[arrayId].val[i].set((long)pathData[i]);
 	}
-	opHandler.setReturn(arr, DATATYPE_INT);
+	opHandler.setReturn(arrayId, DATATYPE_INT);
 }
 
 static void __declspec(naked) op_make_path() {
@@ -431,14 +434,14 @@ static void __declspec(naked) op_make_path() {
 static void _stdcall op_obj_blocking_at2() {
 	DWORD tile = opHandler.arg(0).asInt(),
 		  elevation = opHandler.arg(1).asInt(),
-		  type = opHandler.arg(2).asInt(), 
-		  resultObj;
-	resultObj = obj_blocking_at_wrapper(0, tile, elevation, getBlockingFunc(type));
-	if (resultObj && type == BLOCKING_TYPE_SHOOT && (*(DWORD*)(resultObj + 39) & 0x80)) { // don't know what this flag means, copy-pasted from the engine code
+		  type = opHandler.arg(2).asInt();
+
+	TGameObj* resultObj = obj_blocking_at_wrapper(0, tile, elevation, (void*)getBlockingFunc(type));
+	if (resultObj && type == BLOCKING_TYPE_SHOOT && (resultObj->flags & 0x80000000)) { // don't know what this flag means, copy-pasted from the engine code
 		// this check was added because the engine always does exactly this when using shoot blocking checks
-		resultObj = 0;
+		resultObj = nullptr;
 	}
-	opHandler.setReturn(resultObj, DATATYPE_INT);
+	opHandler.setReturn((DWORD)resultObj, DATATYPE_INT);
 }
 
 static void __declspec(naked) op_obj_blocking_at() {
@@ -447,7 +450,7 @@ static void __declspec(naked) op_obj_blocking_at() {
 
 static void _stdcall op_tile_get_objects2() {
 	DWORD tile = opHandler.arg(0).asInt(),
-		elevation = opHandler.arg(1).asInt(), 
+		elevation = opHandler.arg(1).asInt(),
 		obj;
 	DWORD arrayId = TempArray(0, 4);
 	__asm {
@@ -617,6 +620,21 @@ static void sf_unjam_lock() {
 
 static void sf_get_current_inven_size() {
 	opHandler.setReturn(sf_item_total_size(opHandler.arg(0).asObject()), DATATYPE_INT);
+}
+
+static void sf_get_obj_under_cursor() {
+	int crSwitch = opHandler.arg(0).asBool() ? 1 : -1,
+		inclDude = opHandler.arg(1).rawValue(),
+		obj;
+
+	__asm {
+		mov  ebx, dword ptr ds:[_map_elevation];
+		mov  edx, inclDude;
+		mov  eax, crSwitch;
+		call object_under_mouse_;
+		mov  obj, eax;
+	}
+	opHandler.setReturn(obj);
 }
 
 static void sf_get_object_data() {

@@ -391,7 +391,7 @@ static const SfallOpcodeMetadata opcodeMetaArray[] = {
 	{sf_inventory_redraw, "inventory_redraw", {DATATYPE_MASK_INT}},
 	{sf_item_weight, "item_weight", {DATATYPE_MASK_VALID_OBJ}},
 	{sf_lock_is_jammed, "lock_is_jammed", {DATATYPE_MASK_VALID_OBJ}},
-	{sf_obj_under_cursor, "obj_under_cursor", {DATATYPE_MASK_INT, DATATYPE_MASK_INT}},
+	{sf_get_obj_under_cursor, "obj_under_cursor", {DATATYPE_MASK_INT, DATATYPE_MASK_INT}},
 	{sf_set_cursor_mode, "set_cursor_mode", {DATATYPE_MASK_INT}},
 	{sf_set_flags, "set_flags", {DATATYPE_MASK_VALID_OBJ, DATATYPE_MASK_INT}},
 	{sf_set_ini_setting, "set_ini_setting", {DATATYPE_MASK_STR, DATATYPE_MASK_INT | DATATYPE_MASK_STR}},
