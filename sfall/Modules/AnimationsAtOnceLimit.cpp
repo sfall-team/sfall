@@ -171,7 +171,7 @@ static void __declspec(naked) anim_set_end_hack() {
 	__asm {
 		call AnimCombatFix;
 		mov  [eax][esi], ebx;
-		push 0x415DF2;
+		xor  dl, dl; // goto 0x415DF2;
 		retn;
 	}
 }
@@ -228,6 +228,8 @@ void ApplyAnimationsAtOncePatches(signed char aniMax) {
 	SafeWriteBatch<DWORD>(animRecordSize * aniMax, animMaxSizeCheck);
 
 	//divert old animation structure list pointers to newly allocated memory
+
+	//struct array 1///////////////////
 
 	//old addr 0x54C1B4
 	SafeWriteBatch<DWORD>(animSetAddr, { 0x413A9E });
@@ -315,7 +317,7 @@ void AnimationsAtOnce::init() {
 		dlogr(" Done", DL_INIT);
 	}
 	// Fix for calling anim() functions in combat
-	MakeJump(0x415DE2, anim_set_end_hack);
+	MakeCall(0x415DE2, anim_set_end_hack, 1);
 
 	// Fix crash when the critter goes through a door with animation trigger
 	MakeJump(0x41755E, object_move_hack);

@@ -102,10 +102,8 @@ static DWORD __fastcall UseAnimateObjHook_Script(DWORD critter, DWORD animCode, 
 
 	RunHookScript(HOOK_USEANIMOBJ);
 
-	if (cRet > 0) {
-		if (static_cast<long>(rets[0]) <= 64) {
-			animCode = rets[0]; // new anim code
-		}
+	if (cRet > 0 && static_cast<long>(rets[0]) <= 64) {
+		animCode = rets[0]; // new anim code
 	}
 	EndHook();
 
@@ -171,6 +169,72 @@ skip:
 	}
 }
 
+static bool __fastcall SetLightingHook_Script(DWORD* intensity, DWORD* radius, DWORD object) {
+	BeginHook();
+	argCount = 3;
+
+	args[0] = object;
+	args[1] = *intensity;
+	args[2] = *radius;
+	RunHookScript(HOOK_SETLIGHTING);
+
+	bool result = false;
+	if (cRet > 0) {
+		int light = rets[0];
+		if (light < 0) light = 0;
+		*intensity = light;
+		if (cRet > 1 && object != -1) {
+			int dist = rets[1];
+			if (dist < 0) dist = 0;
+			*radius = dist;
+		}
+		result = true;
+	}
+	EndHook();
+	return result;
+}
+
+static void __declspec(naked) SetObjectLightHook() {
+	__asm {
+		pushadc;
+		push ebp;
+		mov  edx, esp;  // &radius
+		push ebx;
+		mov  ecx, esp;  // &intensity
+		push esi;       // object
+		call SetLightingHook_Script;
+		test al, al;
+		jz   skip;
+		pop  ebx;       // return intensity value
+		pop  ebp;       // return radius value
+		jmp  end;
+skip:
+		add  esp, 8;
+end:
+		popadc;
+		jmp  fo::funcoffs::obj_turn_off_light_;
+	}
+}
+
+static void __declspec(naked) SetMapLightHook() {
+	__asm {
+		push ecx;
+		push ebx;
+		mov  ecx, esp;  // &intensity
+		push -1;        // no object (it's a map)
+		mov  edx, esp;  // no radius
+		call SetLightingHook_Script;
+		add  esp, 4;
+		test al, al;
+		jz   skip;
+		mov  ebx, [esp - 4]; // return intensity value
+skip:
+		pop  ecx;
+		cmp  ebx, dword ptr ds:[0x47A93D]; // get miminal ambient light intensity (16384)
+		retn;
+	}
+}
+
 void Inject_UseObjOnHook() {
 	HookCalls(UseObjOnHook, { 0x49C606, 0x473619 });
 
@@ -195,12 +259,18 @@ void Inject_DescriptionObjHook() {
 	HookCall(0x48C925, DescriptionObjHook);
 }
 
+void Inject_SetLightingHook() {
+	HookCall(0x48ACA0, SetObjectLightHook);
+	MakeCall(0x47A934, SetMapLightHook, 1);
+}
+
 void InitObjectHookScripts() {
 
 	LoadHookScript("hs_useobjon", HOOK_USEOBJON);
 	LoadHookScript("hs_useobj", HOOK_USEOBJ);
 	LoadHookScript("hs_useanimobj", HOOK_USEANIMOBJ);
 	LoadHookScript("hs_descriptionobj", HOOK_DESCRIPTIONOBJ);
+	LoadHookScript("hs_setlighting", HOOK_SETLIGHTING);
 }
 
 }

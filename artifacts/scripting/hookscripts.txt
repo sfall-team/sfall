@@ -603,3 +603,16 @@ int     arg11 - The calculated amount of damage (usually 0, required when using 
 mixed   arg12 - Computed attack results (see C_ATTACK_* for offsets and use get/set_object_data functions to get/set the data)
 
 int     ret1 - The returned amount of damage
+
+-------------------------------------------
+
+HOOK_SETLIGHTING (hs_setlighting.int)
+
+Runs before setting the light level for an object or a map. You can override the result.
+
+Obj     arg1 - the object being set, or -1 when setting the light level for a map
+int     arg2 - the light intensity
+int     arg3 - the light radius, or -1 when setting the light level for a map
+
+int     ret1 - overrides the light intensity. Intensity range is from 0 to 65536
+int     ret2 - overrides the light radius. Radius range is from 0 to 8 (works only for the object)

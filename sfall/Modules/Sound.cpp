@@ -6,62 +6,67 @@
 namespace sfall
 {
 
-static char attackerSnd[8];
-static char targetSnd[8];
+static char attackerSnd[9] = {0};
+static char targetSnd[9] = {0}; 
 
-static void __declspec(naked) MsgCopy() {
+static void __declspec(naked) combatai_msg_hook() {
 	__asm {
-		mov edi, [esp+0xc];
-		pushad;
-		cmp eax, FO_VAR_target_str;
-		jne attacker;
-		lea eax, targetSnd;
-		jmp end;
+		mov  edi, [esp + 0xC]; // lip file from msg
+		push eax;
+		cmp  eax, FO_VAR_target_str;
+		jne  attacker;
+		lea  eax, targetSnd;
+		jmp  skip;
 attacker:
-		lea eax, attackerSnd;
-end:
-		mov edx, edi;
-		mov ebx, 8;
+		lea  eax, attackerSnd;
+skip:
+		push edx;
+		push ebx;
+		mov  edx, edi;
+		mov  ebx, 8;
 		call fo::funcoffs::strncpy_;
-		popad;
-		jmp fo::funcoffs::strncpy_;
+		pop  ebx;
+		pop  edx;
+		pop  eax;
+		jmp  fo::funcoffs::strncpy_;
 	}
 }
 
-static void __declspec(naked) DisplayMsg() {
+static void __declspec(naked) ai_print_msg_hook() {
 	__asm {
-		pushad;
-		cmp edx, FO_VAR_target_str;
-		jne attacker;
-		lea eax, targetSnd;
-		jmp end;
+		push eax;
+		cmp  edx, FO_VAR_target_str;
+		jne  attacker;
+		lea  eax, targetSnd;
+		jmp  skip;
 attacker:
-		lea eax, attackerSnd;
-end:
-		mov ebx, [eax];
-		test bl, bl;
-		jz skip;
-		call fo::funcoffs::gsound_play_sfx_file_;
+		lea  eax, attackerSnd;
 skip:
-		popad;
-		jmp fo::funcoffs::text_object_create_;
+		push ecx;
+		mov  ecx, [eax];
+		test cl, cl;
+		jz   end;
+		call fo::funcoffs::gsound_play_sfx_file_;
+end:
+		pop  ecx;
+		pop  eax;
+		jmp  fo::funcoffs::text_object_create_;
 	}
 }
 
 void Sound::init() {
-	int tmp;
-	if (tmp = GetConfigInt("Sound", "NumSoundBuffers", 0)) {
-		SafeWrite8(0x451129, (BYTE)tmp);
+	if (int sBuff = GetConfigInt("Sound", "NumSoundBuffers", 0)) {
+		SafeWrite8(0x451129, (BYTE)sBuff);
 	}
 
 	if (GetConfigInt("Sound", "AllowSoundForFloats", 0)) {
-		HookCall(0x42B7C7, MsgCopy);
-		HookCall(0x42B849, DisplayMsg);
-	}
+		HookCall(0x42B7C7, combatai_msg_hook); // copy msg
+		HookCall(0x42B849, ai_print_msg_hook);
 
-	//Yes, I did leave this in on purpose. Will be of use to anyone trying to add in the sound effects
-	if (GetConfigInt("Sound", "Test_ForceFloats", 0)) {
-		SafeWrite8(0x42B772, 0xeb);
+		//Yes, I did leave this in on purpose. Will be of use to anyone trying to add in the sound effects
+		if (isDebug && GetConfigInt("Sound", "Test_ForceFloats", 0)) {
+			SafeWrite8(0x42B6F5, 0xEB); // bypass chance
+		}
 	}
 }
 

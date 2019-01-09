@@ -37,6 +37,9 @@
     <ClInclude Include="Modules\BurstMods.h">
       <Filter>Modules</Filter>
     </ClInclude>
+    <ClInclude Include="Modules\Combat.h">
+      <Filter>Modules</Filter>
+    </ClInclude>
     <ClInclude Include="Modules\Console.h">
       <Filter>Modules</Filter>
     </ClInclude>
@@ -71,9 +74,6 @@
       <Filter>Modules</Filter>
     </ClInclude>
     <ClInclude Include="Modules\KillCounter.h">
-      <Filter>Modules</Filter>
-    </ClInclude>
-    <ClInclude Include="Modules\Knockback.h">
       <Filter>Modules</Filter>
     </ClInclude>
     <ClInclude Include="Modules\LoadGameHook.h">
@@ -296,6 +296,9 @@
     <ClCompile Include="Modules\BurstMods.cpp">
       <Filter>Modules</Filter>
     </ClCompile>
+    <ClCompile Include="Modules\Combat.cpp">
+      <Filter>Modules</Filter>
+    </ClCompile>
     <ClCompile Include="Modules\Console.cpp">
       <Filter>Modules</Filter>
     </ClCompile>
@@ -330,9 +333,6 @@
       <Filter>Modules</Filter>
     </ClCompile>
     <ClCompile Include="Modules\KillCounter.cpp">
-      <Filter>Modules</Filter>
-    </ClCompile>
-    <ClCompile Include="Modules\Knockback.cpp">
       <Filter>Modules</Filter>
     </ClCompile>
     <ClCompile Include="Modules\LoadGameHook.cpp">

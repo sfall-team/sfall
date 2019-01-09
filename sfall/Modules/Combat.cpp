@@ -22,16 +22,17 @@
 #include "..\main.h"
 #include "..\FalloutEngine\Fallout2.h"
 #include "LoadGameHook.h"
+#include "Objects.h"
 
-#include "Knockback.h"
+#include "Combat.h"
 
 namespace sfall
 {
 
-static std::vector<fo::GameObject*> noBursts;
+static std::vector<long> noBursts; // object id
 
 struct KnockbackModifier {
-	fo::GameObject* id;
+	long id;
 	DWORD type;
 	double value;
 };
@@ -40,26 +41,17 @@ static std::vector<KnockbackModifier> mTargets;
 static std::vector<KnockbackModifier> mAttackers;
 static std::vector<KnockbackModifier> mWeapons;
 
-struct ChanceModifier {
-	fo::GameObject* id;
-	int maximum { 95 };
-	int mod { 0 };
-};
-
 static std::vector<ChanceModifier> hitChanceMods;
-static std::vector<ChanceModifier> pickpocketMods;
-
 static ChanceModifier baseHitChance;
-static ChanceModifier basePickpocket;
 
 static bool hookedAimedShot;
 static std::vector<DWORD> disabledAS;
 static std::vector<DWORD> forcedAS;
 
-static double ApplyModifiers(std::vector<KnockbackModifier>* mods, fo::GameObject* id, double val) {
+static double ApplyModifiers(std::vector<KnockbackModifier>* mods, fo::GameObject* object, double val) {
 	for (DWORD i = 0; i < mods->size(); i++) {
 		KnockbackModifier* mod = &(*mods)[i];
-		if (mod->id == id) {
+		if (mod->id == object->id) {
 			switch (mod->type) {
 			case 0:
 				val = mod->value;
@@ -111,31 +103,9 @@ static void __declspec(naked) compute_dmg_damage_hack() {
 	}
 }
 
-static int __fastcall PickpocketMod(int base, fo::GameObject* critter) {
-	for (DWORD i = 0; i < pickpocketMods.size(); i++) {
-		if (critter == pickpocketMods[i].id) {
-			return min(base + pickpocketMods[i].mod, pickpocketMods[i].maximum);
-		}
-	}
-	return min(base + basePickpocket.mod, basePickpocket.maximum);
-}
-
-static void __declspec(naked) skill_check_stealing_hack() {
-	__asm {
-		push edx;
-		push ecx;
-		mov  edx, esi;          // critter
-		mov  ecx, eax;          // base (calculated chance)
-		call PickpocketMod;
-		pop  ecx;
-		pop  edx;
-		retn;
-	}
-}
-
 static int __fastcall HitChanceMod(int base, fo::GameObject* critter) {
 	for (DWORD i = 0; i < hitChanceMods.size(); i++) {
-		if (critter == hitChanceMods[i].id) {
+		if (critter->id == hitChanceMods[i].id) {
 			return min(base + hitChanceMods[i].mod, hitChanceMods[i].maximum);
 		}
 	}
@@ -154,7 +124,7 @@ static void __declspec(naked) determine_to_hit_func_hack() {
 
 static long __fastcall CheckDisableBurst(fo::GameObject* critter) {
 	for (size_t i = 0; i < noBursts.size(); i++) {
-		if (noBursts[i] == critter) {
+		if (noBursts[i] == critter->id) {
 			return 10; // Disable Burst (area_attack_mode - non-existent value)
 		}
 	}
@@ -176,7 +146,7 @@ static void __declspec(naked) ai_pick_hit_mode_hack() {
 	}
 }
 
-void _stdcall KnockbackSetMod(fo::GameObject* id, DWORD type, float val, DWORD on) {
+void _stdcall KnockbackSetMod(fo::GameObject* object, DWORD type, float val, DWORD on) {
 	std::vector<KnockbackModifier>* mods;
 	switch (on) {
 	case 0:
@@ -191,6 +161,8 @@ void _stdcall KnockbackSetMod(fo::GameObject* id, DWORD type, float val, DWORD o
 	default:
 		return;
 	}
+
+	long id = Objects::SetObjectUniqueID(object);
 	KnockbackModifier mod = { id, type, (double)val };
 	for (DWORD i = 0; i < mods->size(); i++) {
 		if ((*mods)[i].id == id) {
@@ -201,7 +173,7 @@ void _stdcall KnockbackSetMod(fo::GameObject* id, DWORD type, float val, DWORD o
 	mods->push_back(mod);
 }
 
-void _stdcall KnockbackRemoveMod(fo::GameObject* id, DWORD on) {
+void _stdcall KnockbackRemoveMod(fo::GameObject* object, DWORD on) {
 	std::vector<KnockbackModifier>* mods;
 	switch (on) {
 	case 0:
@@ -217,7 +189,7 @@ void _stdcall KnockbackRemoveMod(fo::GameObject* id, DWORD on) {
 		return;
 	}
 	for (DWORD i = 0; i < mods->size(); i++) {
-		if ((*mods)[i].id == id) {
+		if ((*mods)[i].id == object->id) {
 			mods->erase(mods->begin() + i);
 			return;
 		}
@@ -230,48 +202,29 @@ void _stdcall SetHitChanceMax(fo::GameObject* critter, DWORD maximum, DWORD mod)
 		baseHitChance.mod = mod;
 		return;
 	}
+
+	long id = Objects::SetObjectUniqueID(critter);
 	for (DWORD i = 0; i < hitChanceMods.size(); i++) {
-		if (critter == hitChanceMods[i].id) {
+		if (id == hitChanceMods[i].id) {
 			hitChanceMods[i].maximum = maximum;
 			hitChanceMods[i].mod = mod;
 			return;
 		}
 	}
-	ChanceModifier cm;
-	cm.id = critter;
-	cm.maximum = maximum;
-	cm.mod = mod;
-	hitChanceMods.push_back(cm);
-}
-
-void _stdcall SetPickpocketMax(fo::GameObject* critter, DWORD maximum, DWORD mod) {
-	if ((DWORD)critter == -1) {
-		basePickpocket.maximum = maximum;
-		basePickpocket.mod = mod;
-		return;
-	}
-	for (DWORD i = 0; i < pickpocketMods.size(); i++) {
-		if (critter == pickpocketMods[i].id) {
-			pickpocketMods[i].maximum = maximum;
-			pickpocketMods[i].mod = mod;
-			return;
-		}
-	}
-	ChanceModifier cm;
-	cm.id = critter;
-	cm.maximum = maximum;
-	cm.mod = mod;
-	pickpocketMods.push_back(cm);
+	hitChanceMods.push_back(ChanceModifier(id, maximum, mod));
 }
 
 void _stdcall SetNoBurstMode(fo::GameObject* critter, bool on) {
+	if (critter == fo::var::obj_dude) return;
+
+	long id = Objects::SetObjectUniqueID(critter);
 	for (size_t i = 0; i < noBursts.size(); i++) {
-		if (noBursts[i] == critter) {
+		if (noBursts[i] == id) {
 			if (!on) noBursts.erase(noBursts.begin() + i); // off
 			return;
 		}
 	}
-	if (on) noBursts.push_back(critter);
+	if (on) noBursts.push_back(id);
 }
 
 static int __fastcall AimedShotTest(DWORD pid) {
@@ -334,36 +287,28 @@ void _stdcall ForceAimedShots(DWORD pid) {
 	forcedAS.push_back(pid);
 }
 
-static void Knockback_OnGameLoad() {
-	baseHitChance.maximum = 95;
-	baseHitChance.mod = 0;
-	basePickpocket.maximum = 95;
-	basePickpocket.mod = 0;
+static void Combat_OnGameLoad() {
+	baseHitChance.SetDefault();
 	mTargets.clear();
 	mAttackers.clear();
 	mWeapons.clear();
 	hitChanceMods.clear();
-	pickpocketMods.clear();
 	noBursts.clear();
 	disabledAS.clear();
 	forcedAS.clear();
 }
 
-void Knockback::init() {
-	MakeCall(0x424B76, compute_damage_hack, 2);        // KnockbackMod
+void Combat::init() {
+	MakeCall(0x424B76, compute_damage_hack, 2);     // KnockbackMod
 	MakeJump(0x4136D3, compute_dmg_damage_hack);    // for op_critter_dmg
 
 	MakeCall(0x424791, determine_to_hit_func_hack); // HitChanceMod
 	BlockCall(0x424796);
 
-	MakeCall(0x4ABC62, skill_check_stealing_hack);  // PickpocketMod
-	SafeWrite8(0x4ABC67, 0x89);                     // mov [esp + 0x54], eax
-	SafeWrite32(0x4ABC6B, 0x90909090);
-
 	// Actually disables all secondary attacks for the critter, regardless of whether the weapon has a burst attack
-	MakeCall(0x429E44, ai_pick_hit_mode_hack, 1);      // NoBurst
+	MakeCall(0x429E44, ai_pick_hit_mode_hack, 1);   // NoBurst
 
-	LoadGameHook::OnGameReset() += Knockback_OnGameLoad;
+	LoadGameHook::OnGameReset() += Combat_OnGameLoad;
 }
 
 }

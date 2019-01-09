@@ -261,6 +261,12 @@ struct ElevatorExit {
 };
 
 #pragma pack(1)
+struct ElevatorFrms {
+	DWORD main;
+	DWORD buttons;
+};
+
+#pragma pack(1)
 struct FrmFile {
 	long id;			//0x00
 	long unused;		//0x04

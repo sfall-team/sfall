@@ -174,12 +174,12 @@ static void __declspec(naked) InvenActionCursorObjDropHook() {
 		goto skipHook;
 	} else {
 		__asm {
-			pushad;
+			pushadc;
 			xor  ecx, ecx;                       // no itemReplace
 			push 6;                              // event: item drop ground
 			call InventoryMoveHook_Script;       // edx - item
 			mov  dropResult, eax;                // ret value
-			popad;
+			popadc;
 			cmp  dword ptr [esp], 0x47379A + 5;  // caps call address
 			jz   capsMultiDrop;
 		}
@@ -204,19 +204,19 @@ capsMultiDrop:
 
 static void __declspec(naked) InvenActionExplosiveDropHack() {
 	__asm {
-		pushad;
+		pushadc;
 		xor  ecx, ecx;                       // no itemReplace
 		push 6;                              // event: item drop ground
 		call InventoryMoveHook_Script;       // edx - item
 		cmp  eax, -1;                        // ret value
-		popad;
-		jnz noDrop;
-		mov dword ptr ds:[FO_VAR_dropped_explosive], ebp; // overwritten engine code (ebp = 1)
-		mov nextHookDropSkip, ebp;
+		popadc;
+		jnz  noDrop;
+		mov  dword ptr ds:[FO_VAR_dropped_explosive], ebp; // overwritten engine code (ebp = 1)
+		mov  nextHookDropSkip, ebp;
 		retn;
 noDrop:
-		add esp, 4;
-		jmp InvenActionObjDropRet;           // no drop
+		add  esp, 4;
+		jmp  InvenActionObjDropRet;           // no drop
 	}
 }
 
@@ -234,19 +234,19 @@ static const DWORD DropIntoContainer_back = 0x47649D; // normal operation
 static const DWORD DropIntoContainer_skip = 0x476503;
 static void __declspec(naked) DropIntoContainerHack() {
 	__asm {
-		pushad;
-		mov ecx, ebp;                // contaner ptr
-		mov edx, esi;                // item
-		mov eax, [esp + 0x10 + 32];  // call address
+		pushadc;
+		mov  ecx, ebp;                // contaner ptr
+		mov  edx, esi;                // item
+		mov  eax, [esp + 0x10 + 12];  // call address
 		push eax;
 		call DropIntoContainer;
-		cmp  eax, -1;                // ret value
-		popad;
+		cmp  eax, -1;                 // ret value
+		popadc;
 		jne  skipdrop;
-		jmp DropIntoContainer_back;
+		jmp  DropIntoContainer_back;
 skipdrop:
-		mov eax, -1;
-		jmp DropIntoContainer_skip;
+		mov  eax, -1;
+		jmp  DropIntoContainer_skip;
 	}
 }
 
@@ -254,27 +254,29 @@ static const DWORD DropIntoContainerRet = 0x471481;
 static void __declspec(naked) DropIntoContainerHandSlotHack() {
 	__asm {
 		call fo::funcoffs::drop_into_container_;
-		jmp DropIntoContainerRet;
+		jmp  DropIntoContainerRet;
 	}
 }
 
-static const DWORD DropAmmoIntoWeaponHack_back = 0x47658D; // proceed with reloading
+//static const DWORD DropAmmoIntoWeaponHack_back = 0x47658D; // proceed with reloading
 static const DWORD DropAmmoIntoWeaponHack_return = 0x476643;
-static void _declspec(naked) DropAmmoIntoWeaponHack() {
+static void _declspec(naked) DropAmmoIntoWeaponHook() {
 	__asm {
-		pushad;
-		mov ecx, ebp;              // weapon ptr
-		mov edx, [esp + 32];       // item var: ammo_
-		push 4;                    // event: weapon reloading
+		pushadc;
+		mov  ecx, ebp;              // weapon ptr
+		mov  edx, [esp + 16];       // item var: ammo_
+		push 4;                     // event: weapon reloading
 		call InventoryMoveHook_Script;
-		cmp  eax, -1;              // ret value
-		popad;
+		cmp  eax, -1;               // ret value
+		popadc;
 		jne  donothing;
-		mov ebx, 1;   // overwritten code
-		jmp DropAmmoIntoWeaponHack_back;
+		jmp  fo::funcoffs::item_w_can_reload_;
+		//mov  ebx, 1;   // overwritten code
+		//jmp  DropAmmoIntoWeaponHack_back;
 donothing:
-		xor eax, eax; // result 0
-		jmp DropAmmoIntoWeaponHack_return;
+		add  esp, 4;   // destroy return address
+		xor  eax, eax; // result 0
+		jmp  DropAmmoIntoWeaponHack_return;
 	}
 }
 
@@ -288,7 +290,7 @@ static bool InvenWieldHook_Script(int flag) {
 	bool result = (cRet == 0 || rets[0] == -1);
 	EndHook();
 
-	return result;
+	return result; // True - use engine handler
 }
 
 static void _declspec(naked) InvenWieldFuncHook() {
@@ -314,6 +316,7 @@ static void _declspec(naked) InvenWieldFuncHook() {
 		jz   skip;
 		jmp  funcoffs::invenWieldFunc_;
 skip:
+		mov  eax, -1;
 		retn;
 	}
 }
@@ -341,6 +344,7 @@ static void _declspec(naked) InvenUnwieldFuncHook() {
 		jz   skip;
 		jmp  fo::funcoffs::invenUnwieldFunc_;
 skip:
+		mov  eax, -1;
 		retn;
 	}
 }
@@ -371,6 +375,7 @@ static void _declspec(naked) CorrectFidForRemovedItemHook() {
 		jz   skip;
 		jmp  fo::funcoffs::correctFidForRemovedItem_;
 skip:
+		mov  eax, -1;
 		retn;
 	}
 }
@@ -410,7 +415,7 @@ void Inject_InventoryMoveHook() {
 	MakeJump(0x471338, DropIntoContainerHandSlotHack);
 	MakeJump(0x4712AB, DropIntoContainerHandSlotHack);
 	HookCall(0x471200, MoveInventoryHook);
-	MakeJump(0x476588, DropAmmoIntoWeaponHack);
+	HookCall(0x476549, DropAmmoIntoWeaponHook); // old 0x476588
 	HookCalls(InvenActionCursorObjDropHook, {
 		0x473851, 0x47386F,
 		0x47379A  // caps multi drop
@@ -419,9 +424,19 @@ void Inject_InventoryMoveHook() {
 }
 
 void Inject_InvenWieldHook() {
-	HookCalls(InvenWieldFuncHook, { 0x47275E, 0x495FDF });
-	HookCalls(InvenUnwieldFuncHook, { 0x45967D, 0x472A5A, 0x495F0B });
-	HookCalls(CorrectFidForRemovedItemHook, { 0x45680C, 0x45C4EA });
+	HookCalls(InvenWieldFuncHook, {
+		0x47275E, // inven_wield_
+		0x495FDF  // partyMemberCopyLevelInfo_
+	});
+	HookCalls(InvenUnwieldFuncHook, {
+		0x45967D, // op_metarule_
+		0x472A5A, // inven_unwield_
+		0x495F0B  // partyMemberCopyLevelInfo_
+	});
+	HookCalls(CorrectFidForRemovedItemHook, {
+		0x45680C, // op_rm_obj_from_inven_
+		0x45C4EA  // op_move_obj_inven_to_obj_
+	});
 }
 
 void InitInventoryHookScripts() {

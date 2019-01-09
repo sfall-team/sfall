@@ -62,6 +62,10 @@ namespace sfall
 	#define isDebug false
 #endif
 
+// Macros for quick replacement of pushad/popad assembler opcodes
+#define pushadc __asm push eax __asm push edx __asm push ecx
+#define popadc __asm pop ecx __asm pop edx __asm pop eax
+
 // Gets the integer value from Sfall configuration INI file.
 unsigned int GetConfigInt(const char* section, const char* setting, int defaultValue);
 
@@ -87,5 +91,6 @@ std::string Translate(const char* section, const char* setting, const char* defa
 size_t Translate(const char* section, const char* setting, const char* defaultValue, char* buffer, size_t bufSize = 128);
 
 extern const char ddrawIni[];
+extern DWORD modifiedIni;
 
 }

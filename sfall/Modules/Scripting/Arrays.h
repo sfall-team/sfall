@@ -82,6 +82,7 @@ struct sArrayVarOld
 };
 
 #define ARRAYFLAG_ASSOC		(1) // is map
+#define ARRAYFLAG_CONSTVAL	(2) // don't update value of key if the key exists in map
 
 typedef std::unordered_map<sArrayElement, DWORD, sArrayElement_HashFunc, sArrayElement_EqualFunc> ArrayKeysMap;
 
@@ -96,13 +97,14 @@ class sArrayVar
 {
 public:
 	DWORD flags;
-	sArrayElement key; // array associated key, if it was saved
+	sArrayElement key;    // array associated key, if it was saved
 	ArrayKeysMap keyHash; // key element => element index, for faster lookup
 	std::vector<sArrayElement> val; // list of values or key=>value pairs (even - keys, odd - values)
 
 	bool isAssoc() const {
 		return (flags & ARRAYFLAG_ASSOC);
 	}
+
 	// logical array size (number of elements for normal arrays; number of key=>value pairs for associative)
 	int size() const {
 		return isAssoc() 
@@ -118,6 +120,7 @@ public:
 	}
 
 	sArrayVar() : flags(0), key() {}
+
 	// free memory used by strings
 	void clear() {
 		clearRange(0);
@@ -152,9 +155,9 @@ void DEGetArray(int id, DWORD* types, void* data);
 void DESetArray(int id, const DWORD* types, const void* data);
 
 // creates new normal (persistent) array. len == -1 specifies associative array (map)
-DWORD _stdcall CreateArray(int len, DWORD nothing);
+DWORD _stdcall CreateArray(int len, DWORD flags);
 // same as CreateArray, but creates temporary array instead (will die at the end of the frame)
-DWORD _stdcall TempArray(DWORD len, DWORD nothing);
+DWORD _stdcall TempArray(DWORD len, DWORD flags);
 // destroys array
 void _stdcall FreeArray(DWORD id);
 /*
@@ -168,7 +171,7 @@ void _stdcall SetArray(DWORD id, const ScriptValue& key, const ScriptValue& val,
 // number of elements in list or pairs in map
 int _stdcall LenArray(DWORD id);
 // change array size (only works with list)
-void _stdcall ResizeArray(DWORD id, int newlen);
+long _stdcall ResizeArray(DWORD id, int newlen);
 // make temporary array persistent 
 void _stdcall FixArray(DWORD id);
 // searches for a given element in array and returns it's index (for list) or key (for map) or int(-1) if not found

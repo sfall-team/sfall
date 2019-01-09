@@ -23,16 +23,34 @@
 namespace sfall
 {
 
-class Knockback : public Module {
+class Combat : public Module {
 public:
-	const char* name() { return "Knockback"; }
+	const char* name() { return "Combat"; }
 	void init();
 };
 
-void _stdcall SetPickpocketMax(fo::GameObject* critter, DWORD maximum, DWORD mod);
+struct ChanceModifier {
+	long id;
+	int maximum;
+	int mod;
+
+	ChanceModifier() : id(0), maximum(95), mod(0) {}
+
+	ChanceModifier(long _id, int max, int _mod) {
+		id = _id;
+		maximum = max;
+		mod = _mod;
+	}
+
+	void SetDefault() {
+		maximum = 95;
+		mod = 0;
+	}
+};
+
 void _stdcall SetHitChanceMax(fo::GameObject* critter, DWORD maximum, DWORD mod);
-void _stdcall KnockbackSetMod(fo::GameObject* id, DWORD type, float val, DWORD on);
-void _stdcall KnockbackRemoveMod(fo::GameObject* id, DWORD on);
+void _stdcall KnockbackSetMod(fo::GameObject* object, DWORD type, float val, DWORD on);
+void _stdcall KnockbackRemoveMod(fo::GameObject* object, DWORD on);
 
 void _stdcall SetNoBurstMode(fo::GameObject* critter, bool on);
 void _stdcall DisableAimedShots(DWORD pid);

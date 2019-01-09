@@ -41,7 +41,7 @@ static std::string karmaGainMsg;
 static std::string karmaLossMsg;
 bool displayKarmaChanges;
 
-static DWORD _stdcall DrawCardHook2() {
+static DWORD _stdcall DrawCard() {
 	int reputation = fo::var::game_global_vars[fo::GVAR_PLAYER_REPUTATION];
 	for (auto& info : karmaFrms) {
 		if (reputation < info.points) {
@@ -51,19 +51,19 @@ static DWORD _stdcall DrawCardHook2() {
 	return karmaFrms.end()->frm;
 }
 
-static void __declspec(naked) DrawCardHook() {
+static void __declspec(naked) DrawInfoWin_hook() {
 	__asm {
-		cmp ds : [FO_VAR_info_line], 10;
-		jne skip;
-		cmp eax, 0x30;
-		jne skip;
+		cmp  ds:[FO_VAR_info_line], 10;
+		jne  skip;
+		cmp  eax, 0x30;
+		jne  skip;
 		push ecx;
 		push edx;
-		call DrawCardHook2;
-		pop edx;
-		pop ecx;
+		call DrawCard;
+		pop  edx;
+		pop  ecx;
 skip:
-		jmp fo::funcoffs::DrawCard_;
+		jmp  fo::funcoffs::DrawCard_;
 	}
 }
 
@@ -101,7 +101,7 @@ void ApplyKarmaFRMsPatch() {
 				? atoi(karmaPointsList[i].c_str())
 				: INT_MAX;
 		}
-		HookCall(0x4367A9, DrawCardHook);
+		HookCall(0x4367A9, DrawInfoWin_hook);
 
 		dlogr(" Done", DL_INIT);
 	}

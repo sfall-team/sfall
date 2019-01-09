@@ -20,11 +20,11 @@
 
 #include "..\..\..\FalloutEngine\Fallout2.h"
 #include "..\..\AI.h"
+#include "..\..\Combat.h"
 #include "..\..\Criticals.h"
 #include "..\..\HeroAppearance.h"
 #include "..\..\Inventory.h"
 #include "..\..\KillCounter.h"
-#include "..\..\Knockback.h"
 #include "..\..\MiscPatches.h"
 #include "..\..\Movies.h"
 #include "..\..\Objects.h"
@@ -1720,10 +1720,6 @@ void sf_get_ini_section(OpcodeContext& ctx) {
 		}
 	}
 	ctx.setReturn(arrayId);
-}
-
-void sf_obj_under_cursor(OpcodeContext& ctx) {
-	ctx.setReturn(fo::func::object_under_mouse(ctx.arg(0).asBool() ? 1 : -1, ctx.arg(1).rawValue(), fo::var::map_elevation));
 }
 
 }

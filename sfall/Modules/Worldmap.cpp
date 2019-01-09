@@ -48,15 +48,15 @@ static __declspec(naked) void GetDateWrapper() {
 		push esi;
 		push ebx;
 		call fo::funcoffs::game_time_date_;
-		mov ecx, ds:[FO_VAR_pc_proto + 0x4C];
-		pop esi;
+		mov  ecx, ds:[FO_VAR_pc_proto + 0x4C];
+		pop  esi;
 		test esi, esi;
-		jz end;
-		add ecx, [esi];
-		mov[esi], ecx;
+		jz   end;
+		add  ecx, [esi];
+		mov  [esi], ecx;
 end:
-		pop esi;
-		pop ecx;
+		pop  esi;
+		pop  ecx;
 		retn;
 	}
 }
@@ -71,19 +71,19 @@ static int mapSlotsScrollMax = 27 * (17 - 7);
 static __declspec(naked) void ScrollCityListHook() {
 	__asm {
 		push ebx;
-		mov ebx, ds:[0x672F10];
+		mov  ebx, ds:[0x672F10];
 		test eax, eax;
-		jl up;
-		cmp ebx, mapSlotsScrollMax;
-		je end;
-		jmp run;
+		jl   up;
+		cmp  ebx, mapSlotsScrollMax;
+		je   end;
+		jmp  run;
 up:
 		test ebx, ebx;
-		jz end;
+		jz   end;
 run:
 		call fo::funcoffs::wmInterfaceScrollTabsStart_;
 end:
-		pop ebx;
+		pop  ebx;
 		retn;
 	}
 }
@@ -95,28 +95,28 @@ static void __stdcall WorldmapLoopHook() {
 static DWORD worldMapDelay;
 static void __declspec(naked) WorldMapFpsPatch() {
 	__asm {
-		pushad;
+		pushadc;
 		call WorldmapLoopHook;
-		mov ecx, worldMapDelay;
+		mov  ecx, worldMapDelay;
 tck:
-		mov eax, ds : [0x50fb08];
+		mov  eax, ds:[0x50fb08];
 		call fo::funcoffs::elapsed_time_;
-		cmp eax, ecx;
-		jl tck;
+		cmp  eax, ecx;
+		jl   tck;
 		call fo::funcoffs::get_time_;
-		mov ds : [0x50fb08], eax;
-		popad;
-		jmp fo::funcoffs::get_input_;
+		mov  ds:[0x50fb08], eax;
+		popadc;
+		jmp  fo::funcoffs::get_input_;
 	}
 }
 
 //Only used if the world map speed patch is disabled, so that world map scripts are still run
 static void __declspec(naked) WorldMapHook() {
 	__asm {
-		pushad;
+		pushadc;
 		call WorldmapLoopHook;
-		popad;
-		jmp fo::funcoffs::get_input_;
+		popadc;
+		jmp  fo::funcoffs::get_input_;
 	}
 }
 
@@ -139,36 +139,36 @@ static void __declspec(naked) wmRndEncounterOccurred_hack() {
 static void __declspec(naked) ViewportHook() {
 	__asm {
 		call fo::funcoffs::wmWorldMapLoadTempData_;
-		mov eax, ViewportX;
-		mov ds : [FO_VAR_wmWorldOffsetX], eax
-		mov eax, ViewportY;
-		mov ds : [FO_VAR_wmWorldOffsetY], eax;
+		mov  eax, ViewportX;
+		mov  ds:[FO_VAR_wmWorldOffsetX], eax;
+		mov  eax, ViewportY;
+		mov  ds:[FO_VAR_wmWorldOffsetY], eax;
 		retn;
 	}
 }
 
 static void __declspec(naked) wmTownMapFunc_hack() {
 	__asm {
-		cmp  edx, 0x31
-		jl   end
-		cmp  edx, ecx
-		jge  end
-		push edx
-		sub  edx, 0x31
-		lea  eax, ds:0[edx*8]
-		sub  eax, edx
-		pop  edx
-		cmp  dword ptr [edi+eax*4+0x0], 0         // Visited
-		je   end
-		cmp  dword ptr [edi+eax*4+0x4], -1        // Xpos
-		je   end
-		cmp  dword ptr [edi+eax*4+0x8], -1        // Ypos
-		je   end
-		retn
+		cmp  edx, 0x31;
+		jl   end;
+		cmp  edx, ecx;
+		jge  end;
+		push edx;
+		sub  edx, 0x31;
+		lea  eax, ds:0[edx*8];
+		sub  eax, edx;
+		pop  edx;
+		cmp  dword ptr [edi+eax*4+0x0], 0;        // Visited
+		je   end;
+		cmp  dword ptr [edi+eax*4+0x4], -1;       // Xpos
+		je   end;
+		cmp  dword ptr [edi+eax*4+0x8], -1;       // Ypos
+		je   end;
+		retn;
 end:
-		add  esp, 4                               // Destroy the return address
-		push 0x4C4976
-		retn
+		add  esp, 4;                              // destroy the return address
+		push 0x4C4976;
+		retn;
 	}
 }
 
@@ -187,7 +187,7 @@ static __declspec(naked) void PathfinderFix3() {
 }
 
 static DWORD _stdcall PathfinderFix2(DWORD perkLevel, DWORD ticks) {
-	double d = MapMulti*MapMulti2;
+	double d = MapMulti * MapMulti2;
 	if (perkLevel == 1) d *= 0.75;
 	else if (perkLevel == 2) d *= 0.5;
 	else if (perkLevel == 3) d *= 0.25;
@@ -426,7 +426,7 @@ void StartingStatePatches() {
 	if (ViewportY != -1) {
 		dlog("Applying starting y view patch.", DL_INIT);
 		SafeWrite32(FO_VAR_wmWorldOffsetY, ViewportY);
-		HookCall(0x4BCF07, &ViewportHook);
+		if (ViewportX == -1) HookCall(0x4BCF07, &ViewportHook);
 		dlogr(" Done", DL_INIT);
 	}
 }
@@ -509,7 +509,7 @@ void Worldmap::SetRestMode(DWORD mode) {
 	}
 	if (mode & 2) { // bit2 - disable resting on maps with "can_rest_here=No" in Maps.txt, even if there are no other critters
 		SafeWrite8(0x42E587, 0xE9);
-		SafeWrite32(0x42E588, 0x00000094); // jmp  0x42E620
+		SafeWrite32(0x42E588, 0x94); // jmp  0x42E620
 	}
 	if (mode & 4) { // bit3 - disable healing during resting
 		SafeWrite16(0x499FD4, 0x9090);

@@ -39,7 +39,7 @@ void _stdcall BeginHook();
 void _stdcall RunHookScript(DWORD hook);
 void _stdcall EndHook();
 
-#define HookBegin __asm pushad __asm call BeginHook __asm popad
-#define HookEnd __asm pushad __asm call EndHook __asm popad
+#define HookBegin pushadc __asm call BeginHook popadc
+#define HookEnd pushadc __asm call EndHook popadc
 
 }

@@ -30,6 +30,7 @@
 #include "Modules\Books.h"
 #include "Modules\BugFixes.h"
 #include "Modules\BurstMods.h"
+#include "Modules\Combat.h"
 #include "Modules\Console.h"
 #include "Modules\CRC.h"
 #include "Modules\Credits.h"
@@ -45,7 +46,6 @@
 #include "Modules\Inventory.h"
 #include "Modules\Karma.h"
 #include "Modules\KillCounter.h"
-#include "Modules\knockback.h"
 #include "Modules\LoadGameHook.h"
 #include "Modules\LoadOrder.h"
 #include "Modules\MainMenu.h"
@@ -84,8 +84,9 @@ namespace sfall
 bool isDebug = false;
 
 const char ddrawIni[] = ".\\ddraw.ini";
-static char ini[65];
+static char ini[65] = ".\\";
 static char translationIni[65];
+DWORD modifiedIni;
 
 unsigned int GetConfigInt(const char* section, const char* setting, int defaultValue) {
 	return GetPrivateProfileIntA(section, setting, defaultValue, ini);
@@ -131,7 +132,7 @@ static void InitModules() {
 	auto& manager = ModuleManager::getInstance();
 
 	// initialize all modules
-	manager.add<BugFixes>();
+	manager.add<BugFixes>();    // fixes should be applied at the beginning
 	manager.add<SpeedPatch>();
 	manager.add<Graphics>();
 	manager.add<Input>();
@@ -140,15 +141,15 @@ static void InitModules() {
 	manager.add<PlayerModel>();
 	manager.add<Worldmap>();
 	manager.add<Stats>();
+	manager.add<Criticals>();
 	manager.add<ScriptExtender>();
 	manager.add<HookScripts>();
 	manager.add<LoadGameHook>();
 	manager.add<MainLoopHook>();
 	manager.add<Perks>();
-	manager.add<Knockback>();
+	manager.add<Combat>();
 	manager.add<Skills>();
 	manager.add<FileSystem>();
-	manager.add<Criticals>();
 	manager.add<LoadOrder>();
 	manager.add<Karma>();
 	manager.add<Tiles>();
@@ -168,6 +169,7 @@ static void InitModules() {
 	manager.add<Message>();
 	manager.add<Elevators>();
 	manager.add<DebugEditor>();
+	manager.add<KillCounter>();
 
 	manager.add<AI>();
 	manager.add<AmmoMod>();
@@ -257,12 +259,11 @@ inline void SfallInit() {
 	}
 
 	if (cmdlineexists && strlen(cmdline)) {
-		strcpy_s(ini, ".\\");
-		strcat_s(ini, cmdline);
 		HANDLE h = CreateFileA(cmdline, GENERIC_READ, 0, 0, OPEN_EXISTING, 0, 0);
-		if (h != INVALID_HANDLE_VALUE)
+		if (h != INVALID_HANDLE_VALUE) {
 			CloseHandle(h);
-		else {
+			strcat_s(ini, cmdline);
+		} else {
 			MessageBox(0, "You gave a command line argument to fallout, but it couldn't be matched to a file\n" \
 						"Using default ddraw.ini instead", "Warning", MB_TASKMODAL);
 			strcpy_s(ini, ::sfall::ddrawIni);
@@ -272,6 +273,7 @@ inline void SfallInit() {
 	}
 
 	GetConfigString("Main", "TranslationsINI", "./Translations.ini", translationIni, 65);
+	modifiedIni = GetConfigInt("Main", "ModifiedIni", 0);
 
 	InitModules();
 }

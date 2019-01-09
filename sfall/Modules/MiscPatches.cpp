@@ -60,6 +60,10 @@ static const DWORD script_dialog_msgs[] = {
 	0x4A50C2, 0x4A5169, 0x4A52FA, 0x4A5302, 0x4A6B86, 0x4A6BE0, 0x4A6C37,
 };
 
+static const DWORD walkDistanceAddr[] = {
+	0x411FF0, 0x4121C4, 0x412475, 0x412906,
+};
+
 static void __declspec(naked) Combat_p_procFix() {
 	__asm {
 		push eax;
@@ -475,7 +479,7 @@ static void __declspec(naked) win_debug_hook() {
 
 void DebugModePatch() {
 	if (isDebug) {
-		DWORD dbgMode = GetPrivateProfileIntA("Debugging", "DebugMode", 0, ".\\ddraw.ini");
+		DWORD dbgMode = GetPrivateProfileIntA("Debugging", "DebugMode", 0, ::sfall::ddrawIni);
 		if (dbgMode) {
 			dlog("Applying debugmode patch.", DL_INIT);
 			//If the player is using an exe with the debug patch already applied, just skip this block without erroring
@@ -792,7 +796,7 @@ void DialogueFix() {
 }
 
 void DontDeleteProtosPatch() {
-	if (isDebug && GetPrivateProfileIntA("Debugging", "DontDeleteProtos", 0, ".\\ddraw.ini")) {
+	if (isDebug && GetPrivateProfileIntA("Debugging", "DontDeleteProtos", 0, ::sfall::ddrawIni)) {
 		dlog("Applying permanent protos patch.", DL_INIT);
 		SafeWrite8(0x48007E, 0xEB);
 		dlogr(" Done", DL_INIT);
@@ -912,6 +916,15 @@ void InterfaceDontMoveOnTopPatch() {
 	}
 }
 
+void UseWalkDistancePatch() {
+	int distance = GetConfigInt("Misc", "UseWalkDistance", 3) + 2;
+	if (distance > 1 && distance < 5) {
+		dlog("Applying walk distance for using objects patch.", DL_INIT);
+		SafeWriteBatch<BYTE>(distance, walkDistanceAddr); // default is 5
+		dlogr(" Done", DL_INIT);
+	}
+}
+
 void BodypartHitChances() {
 	using fo::var::hit_location_penalty;
 	hit_location_penalty[0] = static_cast<long>(GetConfigInt("Misc", "BodyHit_Head", -40));
@@ -1005,6 +1018,8 @@ void MiscPatches::init() {
 
 	SkipLoadingGameSettingsPatch();
 	InterfaceDontMoveOnTopPatch();
+
+	UseWalkDistancePatch();
 }
 
 void MiscPatches::exit() {

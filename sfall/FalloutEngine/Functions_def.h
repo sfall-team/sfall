@@ -14,6 +14,14 @@
 	NOTES: be careful not to use reserved words, including ASM instructions (push, pop, mov, div, etc.)
 */
 
+// For functions that have 3 or more arguments, it is preferable to use the fastcall calling convention
+// because the compiler builds the better/optimized code when calling the engine functions
+WRAP_WATCOM_FFUNC4(long, _word_wrap, const char*, text, int, maxWidth, DWORD*, buf, BYTE*, count)
+WRAP_WATCOM_FFUNC7(long, createWindow, const char*, winName, long, x, long, y, long, width, long, height, long, bgColorIndex, long, flags)
+WRAP_WATCOM_FFUNC7(void, make_straight_path_func, fo::GameObject*, objFrom, DWORD, tileFrom, DWORD, tileTo, void*, rotationPtr, DWORD*, result, long, flags, void*, func)
+WRAP_WATCOM_FFUNC3(long, object_under_mouse, long, crSwitch, long, inclDude, long, elevation)
+
+// stdcall
 WRAP_WATCOM_FUNC1(AIcap*, ai_cap, GameObject*, critter)
 WRAP_WATCOM_FUNC1(Program*, allocateProgram, const char*, filePath)
 WRAP_WATCOM_FUNC0(void, art_flush)
@@ -26,7 +34,6 @@ WRAP_WATCOM_FUNC4(BYTE*, art_ptr_lock_data, long, frmId, long, frameNum, long, r
 WRAP_WATCOM_FUNC4(BYTE*, art_lock, long, frmId, DWORD*, lockPtr, long*, widthOut, long*, heightOut)
 WRAP_WATCOM_FUNC1(long, art_ptr_unlock, DWORD, lockId)
 WRAP_WATCOM_FUNC2(long, barter_compute_value, GameObject*, source, GameObject*, target)
-WRAP_WATCOM_FUNC7(long, createWindow, const char*, winName, long, x, long, y, long, width, long, height, long, bgColorIndex, long, flags)
 WRAP_WATCOM_FUNC1(void*, dbase_open, const char*, fileName)
 WRAP_WATCOM_FUNC1(void, dbase_close, void*, dbPtr)
 WRAP_WATCOM_FUNC3(long, db_freadShortCount, DbFile*, file, WORD*, dest, long, count)
@@ -40,6 +47,7 @@ WRAP_WATCOM_FUNC4(void, display_target_inventory, long, inventoryOffset, long, v
 WRAP_WATCOM_FUNC2(long, combat_turn, GameObject*, critter, long, isDudeTurn)
 WRAP_WATCOM_FUNC1(long, critter_is_dead, GameObject*, critter)
 WRAP_WATCOM_FUNC1(void, EndLoad, DbFile*, file)
+WRAP_WATCOM_FUNC1(long, folder_print_line, const char*, text)
 WRAP_WATCOM_FUNC1(long, game_get_global_var, long, globalVar)
 WRAP_WATCOM_FUNC1(void, gdialogDisplayMsg, const char*, message)
 WRAP_WATCOM_FUNC1(long, gmouse_3d_set_mode, long, mode)
@@ -78,8 +86,8 @@ WRAP_WATCOM_FUNC2(long, obj_pid_new, fo::GameObject*, object, long, pid)
 // checks/unjams jammed locks
 WRAP_WATCOM_FUNC1(long, obj_lock_is_jammed, GameObject*, object)
 WRAP_WATCOM_FUNC1(void, obj_unjam_lock, GameObject*, object)
-WRAP_WATCOM_FUNC3(long, object_under_mouse, long, crSwitch, long, inclDude, long, elevation)
 WRAP_WATCOM_FUNC6(long, pick_death, GameObject*, attacker, GameObject*, target, GameObject*, weapon, long, amount, long, anim, long, hitFromBack)
+WRAP_WATCOM_FUNC0(void, proto_dude_update_gender)
 WRAP_WATCOM_FUNC2(long, queue_find_first, GameObject*, object, long, qType)
 WRAP_WATCOM_FUNC3(long, register_object_animate, GameObject*, object, long, anim, long, delay)
 WRAP_WATCOM_FUNC3(long, register_object_animate_and_hide, GameObject*, object, long, anim, long, delay)
@@ -105,13 +113,15 @@ WRAP_WATCOM_FUNC1(long, register_object_must_erase, GameObject*, object)
 // WRAP_WATCOM_FUNC3(long, register_object_run_to_tile_, GameObject*, object;
 WRAP_WATCOM_FUNC3(long, register_object_take_out, GameObject*, object, long, holdFrameId, long, nothing)
 WRAP_WATCOM_FUNC3(long, register_object_turn_towards, GameObject*, object, long, tileNum, long, nothing)
+WRAP_WATCOM_FUNC2(long, stat_get_base_direct, GameObject*, critter, long, statID)
 // adds experience points to PC
 WRAP_WATCOM_FUNC1(void, stat_pc_add_experience, long, amount)
+WRAP_WATCOM_FUNC1(long, text_font, long, fontNum)
 // redraws the whole screen
 WRAP_WATCOM_FUNC0(void, tile_refresh_display)
 // redraws the given rectangle on screen
 WRAP_WATCOM_FUNC2(void, tile_refresh_rect, BoundRect*, boundRect, long, elevation)
-WRAP_WATCOM_FUNC1(long, text_font, long, fontNum)
+WRAP_WATCOM_FUNC1(long, trait_level, long, traitID)
 WRAP_WATCOM_FUNC6(DWORD, win_add, long, x, long, y, long, width, long, height, long, bgColorIndex, long, flags)
 WRAP_WATCOM_FUNC1(void, win_show, DWORD, winRef)
 WRAP_WATCOM_FUNC1(void, win_hide, DWORD, winRef)

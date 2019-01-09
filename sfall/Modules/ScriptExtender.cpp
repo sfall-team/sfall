@@ -45,6 +45,8 @@ namespace sfall
 
 using namespace script;
 
+static Delegate<> onMapExit;
+
 static DWORD _stdcall HandleMapUpdateForScripts(const DWORD procId);
 
 static int idle;
@@ -75,16 +77,17 @@ static std::map<std::string, std::string> globalScriptFilesList;
 
 static std::vector<fo::Program*> checkedScripts;
 static std::vector<GlobalScript> globalScripts;
+
 // a map of all sfall programs (global and hook scripts) by thier scriptPtr
 typedef std::unordered_map<fo::Program*, ScriptProgram> SfallProgsMap;
 static SfallProgsMap sfallProgsMap;
+
 // a map scriptPtr => self_obj  to override self_obj for all script types using set_self
 std::unordered_map<fo::Program*, fo::GameObject*> selfOverrideMap;
 
 typedef std::unordered_map<std::string, ExportedVar> ExportedVarsMap;
 static ExportedVarsMap globalExportedVars;
 DWORD isGlobalScriptLoading = 0;
-DWORD modifiedIni;
 
 std::unordered_map<__int64, int> globalVars;
 typedef std::unordered_map<__int64, int> :: iterator glob_itr;
@@ -93,6 +96,7 @@ typedef std::pair<__int64, int> glob_pair;
 
 DWORD availableGlobalScriptTypes = 0;
 bool isGameLoading;
+bool alwaysFindScripts;
 
 fo::ScriptInstance overrideScriptStruct;
 
@@ -405,7 +409,7 @@ ScriptProgram* GetGlobalScriptProgram(fo::Program* scriptPtr) {
 }
 
 bool _stdcall IsGameScript(const char* filename) {
-	if ((filename[0] != 'g' || filename[1] != 'l') && (filename[0] != 'h' || filename[1] != 's')) return true;
+	if (strlen(filename) > 8) return false;
 	// TODO: write better solution
 	for (int i = 0; i < fo::var::maxScriptNum; i++) {
 		if (strcmp(filename, fo::var::scriptListInfo[i].fileName) == 0) return true;
@@ -435,6 +439,7 @@ static void LoadGlobalScriptsList() {
 }
 
 static void PrepareGlobalScriptsListByMask() {
+	globalScriptFilesList.clear();
 	for (auto& fileMask : globalScriptPathList) {
 		char** filenames;
 		auto basePath = fileMask.substr(0, fileMask.find_last_of("\\/") + 1); // path to scripts without mask
@@ -442,8 +447,12 @@ static void PrepareGlobalScriptsListByMask() {
 
 		for (int i = 0; i < count; i++) {
 			char* name = _strlwr(filenames[i]); // name of the script in lower case
+
 			std::string baseName(name);
-			baseName = baseName.substr(0, baseName.find_last_of('.')); // script name without extension
+			int lastDot = baseName.find_last_of('.');
+			if ((baseName.length() - lastDot) > 4) continue; // skip files with invalid extension (bug in db_get_file_list fuction)
+
+			baseName = baseName.substr(0, lastDot); // script name without extension
 			if (basePath != fo::var::script_path_base || !IsGameScript(baseName.c_str())) {
 				std::string fullPath(basePath);
 				fullPath += name;
@@ -457,7 +466,6 @@ static void PrepareGlobalScriptsListByMask() {
 		}
 		fo::func::db_free_file_list(&filenames, 0);
 	}
-	globalScriptPathList.clear(); // clear path list, it is no longer needed
 }
 
 // this runs after the game was loaded/started
@@ -466,9 +474,10 @@ static void LoadGlobalScripts() {
 	isGameLoading = false;
 	LoadHookScripts();
 	dlogr("Loading global scripts", DL_SCRIPT|DL_INIT);
-	if (!listIsPrepared) { // runs only once
+	if (!listIsPrepared) { // only once
 		PrepareGlobalScriptsListByMask();
-		listIsPrepared = true;
+		listIsPrepared = !alwaysFindScripts;
+		if (listIsPrepared) globalScriptPathList.clear(); // clear path list, it is no longer needed
 	}
 	LoadGlobalScriptsList();
 	dlogr("Finished loading global scripts", DL_SCRIPT|DL_INIT);
@@ -540,7 +549,7 @@ static void RunScript(GlobalScript* script) {
 */
 static void ResetStateAfterFrame() {
 	if (tempArrays.size()) {
- 		for (std::set<DWORD>::iterator it = tempArrays.begin(); it != tempArrays.end(); ++it)
+		for (std::set<DWORD>::iterator it = tempArrays.begin(); it != tempArrays.end(); ++it)
 			FreeArray(*it);
 		tempArrays.clear();
 	}
@@ -584,6 +593,8 @@ static DWORD _stdcall HandleMapUpdateForScripts(const DWORD procId) {
 	}
 	RunGlobalScriptsAtProc(procId); // gl* scripts of types 0 and 3
 	RunHookScriptsAtProc(procId);   // all hs_ scripts
+
+	if (procId == fo::ScriptProc::map_exit_p_proc) onMapExit.invoke();
 
 	return procId; // restore eax (don't delete)
 }
@@ -677,7 +688,6 @@ void ScriptExtender::init() {
 		SafeWrite8(0x4C9F12, 0x6A); // push
 		SafeWrite8(0x4C9F13, idle);
 	}
-	modifiedIni = GetConfigInt("Main", "ModifiedIni", 0);
 
 	arraysBehavior = GetConfigInt("Misc", "arraysBehavior", 1);
 	if (arraysBehavior > 0) {
@@ -686,6 +696,9 @@ void ScriptExtender::init() {
 	} else {
 		dlogr("Arrays in backward-compatiblity mode.", DL_SCRIPT);
 	}
+
+	alwaysFindScripts = isDebug && (GetPrivateProfileIntA("Debugging", "AlwaysFindScripts", 0, ::sfall::ddrawIni) != 0);
+	if (alwaysFindScripts) dlogr("Always searching for global scripts behavior enabled.", DL_SCRIPT);
 
 	MakeJump(0x4A390C, FindSidHack);
 	MakeJump(0x4A5E34, ScrPtrHack);
@@ -707,6 +720,10 @@ void ScriptExtender::init() {
 	HookCall(0x421FC1, CombatOverHook);
 
 	InitNewOpcodes();
+}
+
+Delegate<>& ScriptExtender::OnMapExit() {
+	return onMapExit;
 }
 
 }

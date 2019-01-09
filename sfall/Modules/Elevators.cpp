@@ -27,70 +27,74 @@ namespace sfall
 static const int exitsPerElevator = 4;
 static const int vanillaElevatorCount = 24;
 static const int elevatorCount = 50;
-static char elevFile[MAX_PATH];
 
-static fo::ElevatorExit elevatorExits[elevatorCount][exitsPerElevator];
-static DWORD menus[elevatorCount];
+static char elevFile[MAX_PATH] = ".\\";
+
+static DWORD elevatorType[elevatorCount];
+static fo::ElevatorExit elevatorExits[elevatorCount][exitsPerElevator]; // _retvals
+static fo::ElevatorFrms elevatorsFrms[elevatorCount];                   // _intotal
+static DWORD elevatorsBtnCount[elevatorCount];                          // _btncount
 
 static void __declspec(naked) GetMenuHook() {
 	__asm {
-		push ebx;
-		lea ebx, menus;
-		shl eax, 2;
-		mov eax, [ebx+eax];
-		call fo::funcoffs::elevator_start_;
-		pop ebx;
-		ret;
+		lea  edx, elevatorType;
+		shl  eax, 2;
+		mov  eax, [edx + eax];
+		jmp  fo::funcoffs::elevator_start_;
 	}
 }
 
-static void __declspec(naked) UnknownHook() {
+static void __declspec(naked) CheckHotKeysHook() {
 	__asm {
+		cmp  eax, vanillaElevatorCount;
+		jge  skip; // skip hotkeys data
 		push ebx;
-		lea ebx, menus;
-		shl eax, 2;
-		mov eax, [ebx+eax];
+		lea  ebx, elevatorType;
+		shl  eax, 2;
+		mov  eax, [ebx + eax];
 		call fo::funcoffs::Check4Keys_;
-		pop ebx;
-		ret;
+		pop  ebx;
+		retn;
+skip:
+		xor  eax, eax;
+		retn;
 	}
 }
 
+/*
 static void __declspec(naked) UnknownHook2() {
 	__asm {
-		push ebx;
-		lea ebx, menus;
-		shl eax, 2;
-		mov eax, [ebx+eax];
-		call fo::funcoffs::elevator_end_;
-		pop ebx;
-		ret;
+		lea  edx, elevatorType;
+		shl  eax, 2;
+		mov  eax, [edx + eax];
+		jmp  fo::funcoffs::elevator_end_;
 	}
 }
+*/
 
 static void __declspec(naked) GetNumButtonsHook1() {
 	__asm {
-		lea  esi, menus;
-		mov  eax, [esi+edi*4];
-		mov  eax, [FO_VAR_btncnt + eax*4];
+		lea  esi, elevatorType;
+		mov  eax, [esi + edi * 4];
+		mov  eax, [elevatorsBtnCount + eax * 4];
 		retn;
 	}
 }
 
 static void __declspec(naked) GetNumButtonsHook2() {
 	__asm {
-		lea  edx, menus;
-		mov  eax, [edx+edi*4];
-		mov  eax, [FO_VAR_btncnt + eax*4];
+		lea  edx, elevatorType;
+		mov  eax, [edx + edi * 4];
+		mov  eax, [elevatorsBtnCount + eax * 4];
 		retn;
 	}
 }
 
 static void __declspec(naked) GetNumButtonsHook3() {
 	__asm {
-		lea  eax, menus;
-		mov  eax, [eax+edi*4];
-		mov  eax, [FO_VAR_btncnt+eax*4];
+		lea  eax, elevatorType;
+		mov  eax, [eax + edi * 4];
+		mov  eax, [elevatorsBtnCount + eax * 4];
 		retn;
 	}
 }
@@ -98,13 +102,28 @@ static void __declspec(naked) GetNumButtonsHook3() {
 void ResetElevators() {
 	memcpy(elevatorExits, fo::var::retvals, sizeof(fo::ElevatorExit) * vanillaElevatorCount * exitsPerElevator);
 	memset(&elevatorExits[vanillaElevatorCount], 0, sizeof(fo::ElevatorExit) * (elevatorCount - vanillaElevatorCount) * exitsPerElevator);
-	for (int i = 0; i < vanillaElevatorCount; i++) menus[i] = i;
-	for (int i = vanillaElevatorCount; i < elevatorCount; i++) menus[i] = 0;
+
+	memcpy(elevatorsFrms, (void*)FO_VAR_intotal, sizeof(fo::ElevatorFrms) * vanillaElevatorCount);
+	memset(&elevatorsFrms[vanillaElevatorCount], 0, sizeof(fo::ElevatorFrms) * (elevatorCount - vanillaElevatorCount));
+
+	memcpy(elevatorsBtnCount, (void*)FO_VAR_btncnt, sizeof(DWORD) * vanillaElevatorCount);
+
+	for (int i = 0; i < vanillaElevatorCount; i++) elevatorType[i] = i;
+	for (int i = vanillaElevatorCount; i < elevatorCount; i++) elevatorType[i] = 0;
+
 	char section[4];
 	if (elevFile) {
 		for (int i = 0; i < elevatorCount; i++) {
 			_itoa_s(i, section, 10);
-			menus[i] = GetPrivateProfileIntA(section, "Image", menus[i], elevFile);
+			int type = GetPrivateProfileIntA(section, "Image", elevatorType[i], elevFile);
+			elevatorType[i] = min(type, elevatorCount - 1);
+			if (i >= vanillaElevatorCount) {
+				int cBtn = GetPrivateProfileIntA(section, "ButtonCount", 2, elevFile);
+				if (cBtn > exitsPerElevator) cBtn = exitsPerElevator;
+				elevatorsBtnCount[i] = max(2, cBtn);
+			}
+			elevatorsFrms[i].main = GetPrivateProfileIntA(section, "MainFrm", elevatorsFrms[i].main, elevFile);
+			elevatorsFrms[i].buttons = GetPrivateProfileIntA(section, "ButtonsFrm", elevatorsFrms[i].buttons, elevFile);
 			char setting[32];
 			for (int j = 0; j < exitsPerElevator; j++) {
 				sprintf_s(setting, "ID%d", j + 1);
@@ -119,21 +138,26 @@ void ResetElevators() {
 }
 
 void ElevatorsInit(const char* file) {
-	strcpy_s(elevFile, ".\\");
 	strcat_s(elevFile, file);
 
 	HookCall(0x43EF83, GetMenuHook);
-	HookCall(0x43F141, UnknownHook);
-	HookCall(0x43F2D2, UnknownHook2);
+	HookCall(0x43F141, CheckHotKeysHook);
+	//HookCall(0x43F2D2, UnknownHook2); // unused
 
 	SafeWrite8(0x43EF76, (BYTE)elevatorCount);
 	SafeWrite32(0x43EFA4, (DWORD)elevatorExits);
 	SafeWrite32(0x43EFB9, (DWORD)elevatorExits);
-	SafeWrite32(0x43EFEA, (DWORD)&elevatorExits[0][0].tile);
 	SafeWrite32(0x43F2FC, (DWORD)elevatorExits);
-	SafeWrite32(0x43F309, (DWORD)&elevatorExits[0][0].elevation);
+	SafeWrite32(0x43EFEA, (DWORD)&elevatorExits[0][0].tile);
 	SafeWrite32(0x43F315, (DWORD)&elevatorExits[0][0].tile);
+	SafeWrite32(0x43F309, (DWORD)&elevatorExits[0][0].elevation);
 
+	SafeWrite32(0x43F438, (DWORD)&elevatorsFrms[0].main);
+	SafeWrite32(0x43F475, (DWORD)&elevatorsFrms[0].buttons);
+
+	// _btncnt
+	SafeWrite32(0x43F65E, (DWORD)elevatorsBtnCount);
+	SafeWrite32(0x43F6BB, (DWORD)elevatorsBtnCount);
 	MakeCall(0x43F05D, GetNumButtonsHook1, 2);
 	MakeCall(0x43F184, GetNumButtonsHook2, 2);
 	MakeCall(0x43F1E4, GetNumButtonsHook3, 2);
