@@ -123,6 +123,7 @@ static void __declspec(naked) skill_inc_point_hack() {
 		call CheckSkillMax;
 		pop  edx;             // skill level (from eax)
 		cmp  edx, eax;        // eax = max
+		mov  eax, edx;        // restore skill level
 		pop  ecx;
 		retn;
 	}
