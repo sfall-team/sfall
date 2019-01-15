@@ -38,7 +38,11 @@ void sf_sqrt(OpcodeContext& ctx) {
 }
 
 void sf_abs(OpcodeContext& ctx) {
-	ctx.setReturn(abs(ctx.arg(0).asFloat()));
+	if (ctx.arg(0).isInt()) {
+		ctx.setReturn(abs(ctx.arg(0).asInt()));
+	} else {
+		ctx.setReturn(abs(ctx.arg(0).asFloat()));
+	}
 }
 
 void sf_sin(OpcodeContext& ctx) {
