@@ -56,7 +56,7 @@ static SkillModifier baseSkillMax;
 
 static BYTE skillCosts[512 * fo::SKILL_count];
 static DWORD basedOnPoints;
-static double* multipliers;
+static double* multipliers = nullptr;
 
 static std::vector<ChanceModifier> pickpocketMods;
 static ChanceModifier basePickpocket;
@@ -136,7 +136,7 @@ static int _fastcall GetStatBonus(fo::GameObject* critter, const fo::SkillInfo* 
 	}
 	result += points * info->skillPointMulti;
 	result += info->base;
-	return (int)result;
+	return static_cast<int>(result);
 }
 
 //On input, ebx/edx contains the skill id, ecx contains the critter, edi contains a SkillInfo*, ebp contains the number of skill points
@@ -145,9 +145,9 @@ static const DWORD StatBonusHookRet = 0x4AA5D6;
 static void __declspec(naked) skill_level_hack_bonus() {
 	__asm {
 		push ecx;
-		push ebp;
-		push ebx;
-		mov  edx, edi;
+		push ebp;          // points
+		push ebx;          // skill
+		mov  edx, edi;     // info
 		call GetStatBonus; // ecx - critter
 		mov  esi, eax;
 		pop  ecx;
@@ -253,13 +253,15 @@ void Skills::init() {
 	SafeWrite8(0x4ABC67, 0x89);                     // mov [esp + 0x54], eax
 	SafeWrite32(0x4ABC6B, 0x90909090);
 
-	char buf[512], key[16], file[64];
+	char buf[512], key[16];
 	auto skillsFile = GetConfigString("Misc", "SkillsFile", "");
-	if (skillsFile.size() > 0) {
+	if (!skillsFile.empty()) {
 		fo::SkillInfo *skills = fo::var::skill_data;
-		sprintf(file, ".\\%s", skillsFile.c_str());
-		multipliers = new double[7 * fo::SKILL_count];
-		memset(multipliers, 0, 7 * fo::SKILL_count * sizeof(double));
+
+		skillsFile = ".\\" + skillsFile;
+		const char* file = skillsFile.c_str();
+
+		multipliers = new double[7 * fo::SKILL_count]();
 
 		for (int i = 0; i < fo::SKILL_count; i++) {
 			sprintf(key, "Skill%d", i);
@@ -276,7 +278,8 @@ void Skills::init() {
 						case 'i': multipliers[i * 7 + 4] = m; break;
 						case 'a': multipliers[i * 7 + 5] = m; break;
 						case 'l': multipliers[i * 7 + 6] = m; break;
-						default: continue;
+						default:
+							MessageBoxA(0, "Error: Used invalid 's.p.e.c.i.a.l' stats character.", "Skills file config", MB_TASKMODAL);
 						}
 					}
 					tok = strtok(0, "|");
