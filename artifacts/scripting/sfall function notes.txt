@@ -278,7 +278,7 @@ Some utility/math functions are available:
 > float sqrt(float x)
 - square root of x
 
-> float abs(float x)
+> int/float abs(int/float x)
 - absolute (positive) value of x
 
 > float sin(float x)

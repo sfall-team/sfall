@@ -26,6 +26,9 @@
 #include "FalloutEngine.h"
 #include "Knockback.h"
 #include "ScriptExtender.h"
+#if (_MSC_VER < 1600)
+#include "Cpp11_emu.h"
+#endif
 
 struct SkillInfo {
 	const char* name;
@@ -53,7 +56,7 @@ static std::vector<SkillModifier> SkillMaxMods;
 static SkillModifier BaseSkillMax;
 static BYTE skillCosts[512 * SKILL_count];
 static DWORD basedOnPoints;
-static double* multipliers;
+static double* multipliers = nullptr;
 
 static int __fastcall CheckSkillMax(TGameObj* critter, int base) {
 	for (DWORD i = 0; i < SkillMaxMods.size(); i++) {
@@ -108,7 +111,7 @@ static int __fastcall GetStatBonus(TGameObj* critter, const SkillInfo* info, int
 	}
 	result += points * info->skillPointMulti;
 	result += info->base;
-	return (int)result;
+	return static_cast<int>(result);
 }
 
 //On input, ebx/edx contains the skill id, ecx contains the critter, edi contains a SkillInfo*, ebp contains the number of skill points
@@ -117,9 +120,9 @@ static const DWORD StatBonusHookRet = 0x4AA5D6;
 static void __declspec(naked) skill_level_hack_bonus() {
 	__asm {
 		push ecx;
-		push ebp;
-		push ebx;
-		mov  edx, edi;
+		push ebp;          // points
+		push ebx;          // skill
+		mov  edx, edi;     // info
 		call GetStatBonus; // ecx - critter
 		mov  esi, eax;
 		pop  ecx;
@@ -228,7 +231,8 @@ void SkillsInit() {
 						case 'i': multipliers[i * 7 + 4] = m; break;
 						case 'a': multipliers[i * 7 + 5] = m; break;
 						case 'l': multipliers[i * 7 + 6] = m; break;
-						default: continue;
+						default:
+							dlogr("Warning : Invalid character for SPECIAL stats in the skills file.", DL_INIT);
 						}
 					}
 					tok = strtok(0, "|");

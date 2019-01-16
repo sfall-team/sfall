@@ -67,45 +67,20 @@ end:
 		retn;
 	}
 }
-static void __declspec(naked) funcAbs() {
-	__asm {
-		pushad;
-		sub esp, 4;
-		mov ecx, eax;
-		call interpretPopShort_;
-		mov ebx, eax;
-		mov eax, ecx;
-		call interpretPopLong_;
-		cmp bx, VAR_TYPE_INT;
-		jnz arg1l2;
-		mov [esp], eax;
-		fild [esp];
-		jmp calc;
-arg1l2:
-		cmp bx, VAR_TYPE_FLOAT;
-		jnz fail;
-		mov [esp], eax;
-		fld [esp];
-calc:
-		fabs;
-		fstp [esp];
-		mov edx, [esp];
-		jmp end;
-fail:
-		fldz;
-		fstp [esp];
-		mov edx, [esp];
-end:
-		mov eax, ecx;
-		call interpretPushLong_;
-		mov edx, VAR_TYPE_FLOAT;
-		mov eax, ecx;
-		call interpretPushShort_;
-		add esp, 4;
-		popad;
-		retn;
+
+static void funcAbs2() {
+	const ScriptValue &value = opHandler.arg(0);
+	if (value.isInt()) {
+		opHandler.setReturn(abs(value.asInt()));
+	} else {
+		opHandler.setReturn(abs(value.asFloat()));
 	}
 }
+
+static void __declspec(naked) funcAbs() {
+	_WRAP_OPCODE(funcAbs2, 1, 1)
+}
+
 static void __declspec(naked) funcSin() {
 	__asm {
 		pushad;
