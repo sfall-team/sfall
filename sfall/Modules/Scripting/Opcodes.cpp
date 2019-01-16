@@ -67,9 +67,9 @@ static SfallOpcodeInfo opcodeInfoArray[] = {
 	{0x1dc, "show_iface_tag", sf_show_iface_tag, 1, false, {ARG_INT}},
 	{0x1dd, "hide_iface_tag", sf_hide_iface_tag, 1, false, {ARG_INT}},
 	{0x1de, "is_iface_tag_active", sf_is_iface_tag_active, 1, true, {ARG_INT}},
-	{0x1e1, "set_critical_table", sf_set_critical_table, 5, false, {ARG_INT}},
-	{0x1e2, "get_critical_table", sf_get_critical_table, 4, true, {ARG_INT}},
-	{0x1e3, "reset_critical_table", sf_reset_critical_table, 4, false, {ARG_INT}},
+	{0x1e1, "set_critical_table", sf_set_critical_table, 5, false, {ARG_INT, ARG_INT, ARG_INT, ARG_INT, ARG_INT}},
+	{0x1e2, "get_critical_table", sf_get_critical_table, 4, true, {ARG_INT, ARG_INT, ARG_INT, ARG_INT}},
+	{0x1e3, "reset_critical_table", sf_reset_critical_table, 4, false, {ARG_INT, ARG_INT, ARG_INT, ARG_INT}},
 	{0x1ec, "sqrt", sf_sqrt, 1, true, {ARG_NUMBER}},
 	{0x1ed, "abs", sf_abs, 1, true, {ARG_NUMBER}},
 	{0x1ee, "sin", sf_sin, 1, true, {ARG_NUMBER}},
@@ -77,9 +77,28 @@ static SfallOpcodeInfo opcodeInfoArray[] = {
 	{0x1f0, "tan", sf_tan, 1, true, {ARG_NUMBER}},
 	{0x1f1, "arctan", sf_arctan, 2, true, {ARG_NUMBER, ARG_NUMBER}},
 	{0x1f5, "get_script", sf_get_script, 1, true},
+
+	{0x1f7, "fs_create", sf_fs_create, 2, true, {ARG_STRING, ARG_INT}},
+	{0x1f8, "fs_copy", sf_fs_copy, 2, true, {ARG_STRING, ARG_STRING}},
+	{0x1f9, "fs_find", sf_fs_find, 1, true, {ARG_STRING}},
+	{0x1fa, "fs_write_byte", sf_fs_write_byte, 2, false, {ARG_INT, ARG_INT}},
+	{0x1fb, "fs_write_short", sf_fs_write_short, 2, false, {ARG_INT, ARG_INT}},
+	{0x1fc, "fs_write_int", sf_fs_write_int, 2, false, {ARG_INT, ARG_INT}},
+	{0x1fd, "fs_write_int", sf_fs_write_int, 2, false, {ARG_INT, ARG_INT}},
+	{0x1fe, "fs_write_string", sf_fs_write_string, 2, false, {ARG_INT, ARG_STRING}},
+	{0x1ff, "fs_delete", sf_fs_delete, 1, false, {ARG_INT}},
+	{0x200, "fs_size", sf_fs_size, 1, true, {ARG_INT}},
+	{0x201, "fs_pos", sf_fs_pos, 1, true, {ARG_INT}},
+	{0x202, "fs_seek", sf_fs_seek, 2, false, {ARG_INT, ARG_INT}},
+	{0x203, "fs_resize", sf_fs_resize, 2, false, {ARG_INT, ARG_INT}},
 	{0x204, "get_proto_data", sf_get_proto_data, 2, true, {ARG_INT, ARG_INT}},
 	{0x205, "set_proto_data", sf_set_proto_data, 3, false, {ARG_INT, ARG_INT, ARG_INT}},
 	{0x207, "register_hook", sf_register_hook, 1, false, {ARG_INT}},
+	{0x208, "fs_write_bstring", sf_fs_write_bstring, 2, false, {ARG_INT, ARG_STRING}},
+	{0x209, "fs_read_byte", sf_fs_read_byte, 1, true, {ARG_INT}},
+	{0x20a, "fs_read_short", sf_fs_read_short, 1, true, {ARG_INT}},
+	{0x20b, "fs_read_int", sf_fs_read_int, 1, true, {ARG_INT}},
+	{0x20c, "fs_read_float", sf_fs_read_float, 1, true, {ARG_INT}},
 	{0x20d, "list_begin", sf_list_begin, 1, true, {ARG_INT}},
 	{0x20e, "list_next", sf_list_next, 1, true, {ARG_INT}},
 	{0x20f, "list_end", sf_list_end, 1, false, {ARG_INT}},
@@ -106,7 +125,7 @@ static SfallOpcodeInfo opcodeInfoArray[] = {
 	{0x237, "atoi", sf_atoi, 1, true, {ARG_STRING}},
 	{0x238, "atof", sf_atof, 1, true, {ARG_STRING}},
 	{0x239, "scan_array", sf_scan_array, 2, true, {ARG_OBJECT, ARG_ANY}},
-	
+
 	{0x24e, "substr", sf_substr, 3, true, {ARG_STRING, ARG_INT, ARG_INT}},
 	{0x24f, "strlen", sf_strlen, 1, true, {ARG_STRING}},
 	{0x250, "sprintf", sf_sprintf, 2, true, {ARG_STRING, ARG_ANY}},
@@ -149,7 +168,7 @@ static SfallOpcodeInfo opcodeInfoArray[] = {
 	{0x275, "obj_is_carrying_obj", sf_obj_is_carrying_obj, 2, true, {ARG_OBJECT, ARG_OBJECT}},
 
 	// universal opcodes:
-	{0x276, "sfall_func0", HandleMetarule, 1, true}, 
+	{0x276, "sfall_func0", HandleMetarule, 1, true},
 	{0x277, "sfall_func1", HandleMetarule, 2, true},
 	{0x278, "sfall_func2", HandleMetarule, 3, true},
 	{0x279, "sfall_func3", HandleMetarule, 4, true},
@@ -170,7 +189,7 @@ void InitOpcodeInfoTable() {
 	}
 }
 
-// Default handler for Sfall Opcodes. 
+// Default handler for Sfall Opcodes.
 // Searches current opcode in Opcode Info table and executes the appropriate handler.
 void __fastcall defaultOpcodeHandlerCall(fo::Program* program, DWORD opcodeOffset) {
 	int opcode = opcodeOffset / 4;
@@ -347,25 +366,7 @@ void InitNewOpcodes() {
 	opcodes[0x1f4] = op_set_script;
 
 	opcodes[0x1f6] = op_nb_create_char;
-	opcodes[0x1f7] = op_fs_create;
-	opcodes[0x1f8] = op_fs_copy;
-	opcodes[0x1f9] = op_fs_find;
-	opcodes[0x1fa] = op_fs_write_byte;
-	opcodes[0x1fb] = op_fs_write_short;
-	opcodes[0x1fc] = op_fs_write_int;
-	opcodes[0x1fd] = op_fs_write_int;
-	opcodes[0x1fe] = op_fs_write_string;
-	opcodes[0x1ff] = op_fs_delete;
-	opcodes[0x200] = op_fs_size;
-	opcodes[0x201] = op_fs_pos;
-	opcodes[0x202] = op_fs_seek;
-	opcodes[0x203] = op_fs_resize;
 	opcodes[0x206] = op_set_self;
-	opcodes[0x208] = op_fs_write_bstring;
-	opcodes[0x209] = op_fs_read_byte;
-	opcodes[0x20a] = op_fs_read_short;
-	opcodes[0x20b] = op_fs_read_int;
-	opcodes[0x20c] = op_fs_read_float;
 	opcodes[0x213] = op_hero_select_win;
 	opcodes[0x214] = op_set_hero_race;
 	opcodes[0x215] = op_set_hero_style;
