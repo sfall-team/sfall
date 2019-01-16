@@ -36,23 +36,22 @@ struct fsFile {
 
 std::vector<fsFile> files;
 
-static DWORD loadedtiles = 0;
-static DWORD retval;
+static DWORD loadedFiles = 0;
 bool FileSystem::UsingFileSystem = false;
 
-struct openFile {
+struct OpenFile {
 	DWORD pos;
 	fsFile* file;
 
-	openFile(fsFile* pFile) {
-		pos=0;
-		file=pFile;
+	OpenFile(fsFile* pFile) {
+		pos = 0;
+		file = pFile;
 	}
 };
 
 struct sFile {
 	DWORD type;
-	openFile* file;
+	OpenFile* file;
 };
 
 static void _stdcall xfclose(sFile* file) {
@@ -62,19 +61,15 @@ static void _stdcall xfclose(sFile* file) {
 
 static void __declspec(naked) asm_xfclose(sFile* file) {
 	__asm {
-		pushad;
-		mov ecx, [eax];
-		cmp cl, 3;
-		jnz end;
+		cmp  [eax], 3; // byte
+		jnz  end;
+		pushadc;
 		push eax;
 		call xfclose;
-		mov retval, eax;
-		popad;
-		mov eax, retval;
+		popadc;
 		retn;
 end:
-		popad;
-		jmp fo::funcoffs::xfclose_;
+		jmp  fo::funcoffs::xfclose_;
 	}
 }
 
@@ -83,7 +78,7 @@ static sFile* _stdcall xfopen(const char* path, const char* mode) {
 		if (!_stricmp(path, files[i].name)) {
 			sFile* file = new sFile();
 			file->type = 3;
-			file->file = new openFile(&files[i]);
+			file->file = new OpenFile(&files[i]);
 			return file;
 		}
 	}
@@ -92,19 +87,19 @@ static sFile* _stdcall xfopen(const char* path, const char* mode) {
 
 static __declspec(naked) sFile* asm_xfopen(const char* path, const char* mode) {
 	__asm {
-		pushad;
+		pushadc;
 		push edx;
 		push eax;
 		call xfopen;
+		pop  ecx;
+		pop  edx;
 		test eax, eax;
-		jz end;
-		mov retval, eax;
-		popad;
-		mov eax, retval;
+		jz   end;
+		add  esp, 4;
 		retn;
 end:
-		popad;
-		jmp fo::funcoffs::xfopen_;
+		pop  eax;
+		jmp  fo::funcoffs::xfopen_;
 	}
 }
 
@@ -115,18 +110,14 @@ static int _stdcall xvfprintf() {
 
 static __declspec(naked) int asm_xvfprintf(sFile* file, const char* format, void* vaargs) {
 	__asm {
-		pushad;
-		mov ecx, [eax];
-		cmp cl, 3;
-		jnz end;
+		cmp  [eax], 3;
+		jnz  end;
+		push ecx;
 		call xvfprintf;
-		mov retval, eax;
-		popad;
-		mov eax, retval;
+		pop  ecx;
 		retn;
 end:
-		popad;
-		jmp fo::funcoffs::xvfprintf_;
+		jmp  fo::funcoffs::xvfprintf_;
 	}
 }
 
@@ -137,19 +128,18 @@ static int _stdcall xfgetc(sFile* file) {
 
 static __declspec(naked) int asm_xfgetc(sFile* file) {
 	__asm {
-		pushad;
-		mov ecx, [eax];
-		cmp cl, 3;
-		jnz end;
+		cmp  [eax], 3;
+		jnz  end;
+		push edx;
+		push ecx;
+
 		push eax;
 		call xfgetc;
-		mov retval, eax;
-		popad;
-		mov eax, retval;
+		pop  ecx;
+		pop  edx;
 		retn;
 end:
-		popad;
-		jmp fo::funcoffs::xfgetc_;
+		jmp  fo::funcoffs::xfgetc_;
 	}
 }
 
@@ -170,21 +160,18 @@ static char* _stdcall xfgets(char* buf, int max_count, sFile* file) {
 
 static __declspec(naked) char* asm_xfgets(char* buf, int max_count, sFile* file) {
 	__asm {
-		pushad;
-		mov ecx, [ebx];
-		cmp cl, 3;
-		jnz end;
+		cmp  [ebx], 3;
+		jnz  end;
+		push ecx;
+
 		push ebx;
 		push edx;
 		push eax;
 		call xfgets;
-		mov retval, eax;
-		popad;
-		mov eax, retval;
+		pop  ecx;
 		retn;
 end:
-		popad;
-		jmp fo::funcoffs::xfgets_;
+		jmp  fo::funcoffs::xfgets_;
 	}
 }
 
@@ -194,20 +181,17 @@ static int _stdcall xfputc(int c, sFile* file) {
 
 static __declspec(naked) int asm_xfputc(int c, sFile* file) {
 	__asm {
-		pushad;
-		mov ecx, [edx];
-		cmp cl, 3;
-		jnz end;
+		cmp  [edx], 3;
+		jnz  end;
+		push ecx;
+
 		push edx;
 		push eax;
 		call xfputc;
-		mov retval, eax;
-		popad;
-		mov eax, retval;
+		pop  ecx;
 		retn;
 end:
-		popad;
-		jmp fo::funcoffs::xfputc_;
+		jmp  fo::funcoffs::xfputc_;
 	}
 }
 
@@ -217,20 +201,17 @@ static int _stdcall xfputs(const char* str, sFile* file) {
 
 static __declspec(naked) int asm_xfputs(const char* str, sFile* file) {
 	__asm {
-		pushad;
-		mov ecx, [edx];
-		cmp cl, 3;
-		jnz end;
+		cmp  [edx], 3;
+		jnz  end;
+		push ecx;
+
 		push edx;
 		push eax;
 		call xfputs;
-		mov retval, eax;
-		popad;
-		mov eax, retval;
+		pop  ecx;
 		retn;
 end:
-		popad;
-		jmp fo::funcoffs::xfputs_;
+		jmp  fo::funcoffs::xfputs_;
 	}
 }
 
@@ -243,24 +224,21 @@ static int _stdcall xfungetc(int c, sFile* file) {
 
 static __declspec(naked) int asm_xfungetc(int c, sFile* file) {
 	__asm {
-		pushad;
-		mov ecx, [edx];
-		cmp cl, 3;
-		jnz end;
+		cmp  [edx], 3;
+		jnz  end;
+		push ecx;
+
 		push edx;
 		push eax;
 		call xfungetc;
-		mov retval, eax;
-		popad;
-		mov eax, retval;
+		pop  ecx;
 		retn;
 end:
-		popad;
-		jmp fo::funcoffs::xungetc_;
+		jmp  fo::funcoffs::xungetc_;
 	}
 }
 
-static int _stdcall xfread(void* buf, int elsize, int count, sFile* file) {
+static int _fastcall xfread(sFile* file, int elsize, void* buf, int count) {
 	for (int i = 0; i < count; i++) {
 		if (file->file->pos + elsize >= file->file->file->length) return i;
 		memcpy(buf, &file->file->file->data[file->file->pos], elsize);
@@ -271,60 +249,44 @@ static int _stdcall xfread(void* buf, int elsize, int count, sFile* file) {
 
 static __declspec(naked) int asm_xfread(void* buf, int elsize, int count, sFile* file) {
 	__asm {
-		pushad;
-		mov edi, [ecx];
-		cmp di, 3;
-		jnz end;
-		push ecx;
-		push ebx;
-		push edx;
-		push eax;
-		call xfread;
-		mov retval, eax;
-		popad;
-		mov eax, retval;
+		cmp  [ecx], 3;
+		jnz  end;
+		push ebx;    // count
+		push eax;    // buf
+		call xfread; // ecx - file, edx - elsize
 		retn;
 end:
-		popad;
-		jmp fo::funcoffs::xfread_;
+		jmp  fo::funcoffs::xfread_;
 	}
 }
 
-static int _stdcall xfwrite(const void* buf, int elsize, int count, sFile* file) {
+static int _fastcall xfwrite(sFile* file, int elsize, const void* buf, int count) {
 	return 0;
 }
 
 static __declspec(naked) int asm_xfwrite(const void* buf, int elsize, int count, sFile* file) {
 	__asm {
-		pushad;
-		mov edi, [ecx];
-		cmp di, 3;
-		jnz end;
-		push ecx;
-		push ebx;
-		push edx;
-		push eax;
-		call xfwrite;
-		mov retval, eax;
-		popad;
-		mov eax, retval;
+		cmp  [ecx], 3;
+		jnz  end;
+		push ebx;       // count
+		push eax;       // buf
+		call xfwrite;   // ecx - file, edx - elsize
 		retn;
 end:
-		popad;
-		jmp fo::funcoffs::xfwrite_;
+		jmp  fo::funcoffs::xfwrite_;
 	}
 }
 
 static int _stdcall xfseek(sFile* file, long pos, int origin) {
 	switch(origin) {
+		case 0:
+			file->file->pos = pos;
+			break;
 		case 1:
-			file->file->pos+=pos;
+			file->file->pos += pos;
 			break;
 		case 2:
-			file->file->pos=file->file->file->length+pos;
-			break;
-		case 0:
-			file->file->pos=pos;
+			file->file->pos = file->file->file->length + pos;
 			break;
 	}
 	return 0;
@@ -332,21 +294,18 @@ static int _stdcall xfseek(sFile* file, long pos, int origin) {
 
 static __declspec(naked) int asm_xfseek(sFile* file, long pos, int origin) {
 	__asm {
-		pushad;
-		mov ecx, [eax];
-		cmp cl, 3;
-		jnz end;
+		cmp  [eax], 3;
+		jnz  end;
+		push ecx;
+
 		push ebx;
 		push edx;
 		push eax;
 		call xfseek;
-		mov retval, eax;
-		popad;
-		mov eax, retval;
+		pop  ecx;
 		retn;
 end:
-		popad;
-		jmp fo::funcoffs::xfseek_;
+		jmp  fo::funcoffs::xfseek_;
 	}
 }
 
@@ -356,63 +315,59 @@ static long _stdcall xftell(sFile* file) {
 
 static __declspec(naked) long asm_xftell(sFile* file) {
 	__asm {
-		pushad;
-		mov ecx, [eax];
-		cmp cl, 3;
-		jnz end;
+		cmp  [eax], 3;
+		jnz  end;
+		push edx;
+		push ecx;
+
 		push eax;
 		call xftell;
-		mov retval, eax;
-		popad;
-		mov eax, retval;
+		pop  ecx;
+		pop  edx;
 		retn;
 end:
-		popad;
 		jmp fo::funcoffs::xftell_;
 	}
 }
 
 static void _stdcall xfrewind(sFile* file) {
-	file->file->pos=0;
+	file->file->pos = 0;
 }
 static __declspec(naked) void asm_xfrewind(sFile* file) {
 	__asm {
-		pushad;
-		mov ecx, [eax];
-		cmp cl, 3;
-		jnz end;
+		cmp  [eax], 3;
+		jnz  end;
+		pushadc;
 		push eax;
 		call xfrewind;
-		mov retval, eax;
-		popad;
-		mov eax, retval;
+		popadc;
 		retn;
 end:
-		popad;
-		jmp fo::funcoffs::xrewind_;
+		jmp  fo::funcoffs::xrewind_;
 	}
 }
 
 static int _stdcall xfeof(sFile* file) {
-	if(file->file->pos>=file->file->file->length) return 1;
-	else return 0;
+	if(file->file->pos >= file->file->file->length) {
+		return 1;
+	}
+	return 0;
 }
 
 static __declspec(naked) int asm_xfeof(sFile* file) {
 	__asm {
-		pushad;
-		mov ecx, [eax];
-		cmp cl, 3;
-		jnz end;
+		cmp  [eax], 3;
+		jnz  end;
+		push edx;
+		push ecx;
+
 		push eax;
 		call xfeof;
-		mov retval, eax;
-		popad;
-		mov eax, retval;
+		pop  ecx;
+		pop  edx;
 		retn;
 end:
-		popad;
-		jmp fo::funcoffs::xfeof_;
+		jmp  fo::funcoffs::xfeof_;
 	}
 }
 
@@ -422,30 +377,30 @@ static int _stdcall xfilelength(sFile* file) {
 
 static __declspec(naked) int asm_xfilelength(sFile* file) {
 	__asm {
-		pushad;
-		mov ecx, [eax];
-		cmp cl, 3;
-		jnz end;
+		cmp  [eax], 3;
+		jnz  end;
+		push edx;
+		push ecx;
+
 		push eax;
 		call xfilelength;
-		mov retval, eax;
-		popad;
-		mov eax, retval;
+		pop  ecx;
+		pop  edx;
 		retn;
 end:
-		popad;
-		jmp fo::funcoffs::xfilelength_;
+		jmp  fo::funcoffs::xfilelength_;
 	}
 }
 
 void FileSystemReset() {
-	if (!FileSystem::UsingFileSystem) return;
-	for (DWORD i = loadedtiles; i < files.size(); i++) {
+	//if (!FileSystem::UsingFileSystem) return;
+	for (DWORD i = loadedFiles; i < files.size(); i++) {
 		if (files[i].data) delete[] files[i].data;
 	}
-	if (!loadedtiles) files.clear();
+	if (!loadedFiles)
+		files.clear();
 	else {
-		for (DWORD i = files.size() - 1; i >= loadedtiles; i--) files.erase(files.begin() + i);
+		for (DWORD i = files.size() - 1; i >= loadedFiles; i--) files.erase(files.begin() + i);
 	}
 }
 
@@ -478,7 +433,7 @@ static void FileSystemLoad() {
 				ReadFile(h, &file.length, 128 + 8, &read, 0);
 				file.data = new char[file.length];
 				ReadFile(h, file.data, file.length, &read, 0);
-				if (FileSystem::UsingFileSystem) files.push_back(file);
+				files.push_back(file);
 			}
 		}
 		CloseHandle(h);
@@ -488,62 +443,41 @@ static void FileSystemLoad() {
 static const DWORD LoadHookRetAddr=0x47CCEE;
 static void __declspec(naked) FSLoadHook() {
 	__asm {
-		pushad;
+		pushadc;
 		call FileSystemLoad;
-		popad;
-		mov esi, 1;
-		jmp LoadHookRetAddr;
+		popadc;
+		mov  esi, 1;
+		jmp  LoadHookRetAddr;
 	}
 }
 
 void FileSystemInit() {
 	FileSystem::UsingFileSystem = true;
+
 	MakeJump(0x47CCE2, FSLoadHook);
-
-	HookCall(0x4C5DBD, &asm_xfclose);
-	HookCall(0x4C5EA5, &asm_xfclose);
-	HookCall(0x4C5EB4, &asm_xfclose);
-
-	HookCall(0x4C5DA9, &asm_xfopen);
-	HookCall(0x4C5E16, &asm_xfopen);
-	HookCall(0x4C5EC8, &asm_xfopen);
+	
+	HookCalls(asm_xfclose, {0x4C5DBD, 0x4C5EA5, 0x4C5EB4});
+	HookCalls(asm_xfopen, {0x4C5DA9, 0x4C5E16, 0x4C5EC8});
 
 	HookCall(0x4C5F04, &asm_xvfprintf);
 
-	HookCall(0x4C5F31, &asm_xfgetc);
-	HookCall(0x4C5F64, &asm_xfgetc);
+	HookCalls(asm_xfgetc, {0x4C5F31, 0x4C5F64});
+	HookCalls(asm_xfgets, {0x4C5F85, 0x4C5FD3});
+	HookCalls(asm_xfputc, {0x4C5FE4, 0x4C61B5, 0x4C61E2, 0x4C61FE, 0x4C6479, 0x4C64B3, 0x4C64D2});
 
-	HookCall(0x4C5F85, &asm_xfgets);
-	HookCall(0x4C5FD3, &asm_xfgets);
+	HookCall(0x4C5FEC, asm_xfputs);
+	HookCall(0x4C5FF4, asm_xfungetc);
 
-	HookCall(0x4C5FE4, &asm_xfputc);
-	HookCall(0x4C61B5, &asm_xfputc);
-	HookCall(0x4C61E2, &asm_xfputc);
-	HookCall(0x4C61FE, &asm_xfputc);
-	HookCall(0x4C6479, &asm_xfputc);
-	HookCall(0x4C64B3, &asm_xfputc);
-	HookCall(0x4C64D2, &asm_xfputc);
+	HookCalls(asm_xfread, {0x4C5E5C, 0x4C5E8A, 0x4C5E9E, 0x4C603D, 0x4C6076, 0x4C60AA});
+	HookCall(0x4C6162, asm_xfread); // for fix
 
-	HookCall(0x4C5FEC, &asm_xfputs);
-	HookCall(0x4C5FF4, &asm_xfungetc);
+	HookCall(0x4C60B8, asm_xfwrite);
+	HookCall(0x4C60C0, asm_xfseek);
+	HookCall(0x4C60C8, asm_xftell);
+	HookCall(0x4C60D0, asm_xfrewind);
+	HookCall(0x4C60D8, asm_xfeof);
 
-	HookCall(0x4C5E5C, &asm_xfread);
-	HookCall(0x4C5E8A, &asm_xfread);
-	HookCall(0x4C5E9E, &asm_xfread);
-	HookCall(0x4C603D, &asm_xfread);
-	HookCall(0x4C6076, &asm_xfread);
-	HookCall(0x4C60AA, &asm_xfread);
-	HookCall(0x4C6162, &asm_xfread);
-
-	HookCall(0x4C60B8, &asm_xfwrite);
-	HookCall(0x4C60C0, &asm_xfseek);
-	HookCall(0x4C60C8, &asm_xftell);
-	HookCall(0x4C60D0, &asm_xfrewind);
-	HookCall(0x4C60D8, &asm_xfeof);
-
-	HookCall(0x4C5DB4, &asm_xfilelength);
-	HookCall(0x4C5E2D, &asm_xfilelength);
-	HookCall(0x4C68BC, &asm_xfilelength);
+	HookCalls(asm_xfilelength, {0x4C5DB4, 0x4C5E2D, 0x4C68BC});
 }
 
 DWORD _stdcall FScreate(const char* path, int size) {
@@ -566,7 +500,7 @@ DWORD _stdcall FScreate(const char* path, int size) {
 }
 
 DWORD _stdcall FScreateFromData(const char* path, void* data, int size) {
-	loadedtiles++;
+	loadedFiles++;
 	fsFile file;
 	file.data = new char[size];
 	memcpy(file.data, data, size);
@@ -580,33 +514,40 @@ DWORD _stdcall FScreateFromData(const char* path, void* data, int size) {
 DWORD _stdcall FScopy(const char* path, const char* source) {
 	int result = FSfind(path);
 	if (result != -1) return result;
+
 	DWORD fsize;
 	sFile* file;
+
 	const char* mode = "r";
 	__asm {
-		mov eax, source;
-		mov edx, mode;
+		mov  eax, source;
+		mov  edx, mode;
 		call fo::funcoffs::xfopen_;
-		mov file, eax;
+		mov  file, eax;
 	}
 	if (!file) return -1;
+
 	__asm {
-		mov eax, file;
+		mov  eax, file;
 		call fo::funcoffs::xfilelength_;
-		mov fsize, eax;
+		mov  fsize, eax;
 	}
+
 	char* fdata = new char[fsize];
 	__asm {
-		mov eax, file;
+		mov  eax, file;
 		call fo::funcoffs::xfclose_;
-		mov eax, source;
-		mov edx, fdata;
+		mov  eax, source;
+		mov  edx, fdata;
 		call fo::funcoffs::db_read_to_buf_;
 	}
+
 	fsFile* fsfile = 0;
 	for (DWORD i = 0; i < files.size(); i++) {
 		if (!files[i].data) {
-			result = i; fsfile = &files[i]; break;
+			result = i;
+			fsfile = &files[i];
+			break;
 		}
 	}
 	if (!fsfile) {
@@ -618,6 +559,7 @@ DWORD _stdcall FScopy(const char* path, const char* source) {
 	strcpy_s(fsfile->name, path);
 	fsfile->length = fsize;
 	fsfile->wpos = 0;
+
 	return result;
 }
 
