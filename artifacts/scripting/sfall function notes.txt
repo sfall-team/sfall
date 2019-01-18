@@ -559,6 +559,9 @@ Some utility/math functions are available:
 - returns the setting value from the AI packet of an object (critter)
 - use AI_CAP_* constants from define_extra.h for the aiParam argument to get AI value
 
+> void sfall_func0("art_cache_clear")
+- clears the cache of frm graphic files loaded into memory
+
 ------------------------
 ------ MORE INFO -------
 ------------------------

@@ -238,6 +238,7 @@
 #define party_member_list_all           party_member_list(1)
 
 
+#define art_cache_clear                                sfall_func0("art_cache_clear")
 #define attack_is_aimed                                sfall_func0("attack_is_aimed")
 #define car_gas_amount                                 sfall_func0("car_gas_amount")
 #define create_win(winName, x, y, w, h)                sfall_func5("create_win", winName, x, y, w, h)
