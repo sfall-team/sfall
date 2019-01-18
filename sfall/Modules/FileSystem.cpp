@@ -27,20 +27,18 @@
 namespace sfall
 {
 
+#define MAX_FILE_SIZE    0xA00000
+
 struct fsFile {
-	char* data;
+	BYTE* data;
 	DWORD length;
 	char name[128];
-	DWORD wpos;
+	DWORD wpos; // current fs read/write position
+	BYTE isSave;
 };
 
-std::vector<fsFile> files;
-
-static DWORD loadedFiles = 0;
-bool FileSystem::UsingFileSystem = false;
-
 struct OpenFile {
-	DWORD pos;
+	DWORD pos;  // current xread/xwrite position
 	fsFile* file;
 
 	OpenFile(fsFile* pFile) {
@@ -51,11 +49,16 @@ struct OpenFile {
 
 struct sFile {
 	DWORD type;
-	OpenFile* file;
+	OpenFile* openFile;
 };
 
+std::vector<fsFile> files;
+
+static DWORD loadedFiles = 0; // used for internal sfall data
+bool FileSystem::UsingFileSystem = false;
+
 static void _stdcall xfclose(sFile* file) {
-	delete file->file;
+	delete file->openFile;
 	delete file;
 }
 
@@ -78,7 +81,7 @@ static sFile* _stdcall xfopen(const char* path, const char* mode) {
 		if (!_stricmp(path, files[i].name)) {
 			sFile* file = new sFile();
 			file->type = 3;
-			file->file = new OpenFile(&files[i]);
+			file->openFile = new OpenFile(&files[i]);
 			return file;
 		}
 	}
@@ -121,9 +124,9 @@ end:
 	}
 }
 
-static int _stdcall xfgetc(sFile* file) {
-	if (file->file->pos >= file->file->file->length) return -1;
-	return file->file->file->data[file->file->pos++];
+static DWORD _stdcall xfgetc(sFile* file) {
+	if (file->openFile->pos >= file->openFile->file->length) return -1;
+	return static_cast<DWORD>(file->openFile->file->data[file->openFile->pos++]);
 }
 
 static __declspec(naked) int asm_xfgetc(sFile* file) {
@@ -144,7 +147,7 @@ end:
 }
 
 static char* _stdcall xfgets(char* buf, int max_count, sFile* file) {
-	if (file->file->pos >= file->file->file->length) return 0;
+	if (file->openFile->pos >= file->openFile->file->length) return 0;
 	for (int i = 0; i < max_count; i++) {
 		int c = xfgetc(file);
 		if (c == -1) {
@@ -216,9 +219,9 @@ end:
 }
 
 static int _stdcall xfungetc(int c, sFile* file) {
-	if (file->file->pos == 0) return -1;
-	if (file->file->file->data[file->file->pos - 1] != c) return -1;
-	file->file->pos--;
+	if (file->openFile->pos == 0) return -1;
+	if (file->openFile->file->data[file->openFile->pos - 1] != static_cast<BYTE>(c)) return -1;
+	file->openFile->pos--;
 	return c;
 }
 
@@ -240,9 +243,10 @@ end:
 
 static int _fastcall xfread(sFile* file, int elsize, void* buf, int count) {
 	for (int i = 0; i < count; i++) {
-		if (file->file->pos + elsize >= file->file->file->length) return i;
-		memcpy(buf, &file->file->file->data[file->file->pos], elsize);
-		file->file->pos += elsize;
+		if (file->openFile->pos + elsize > file->openFile->file->length) return i;
+
+		memcpy(buf, &file->openFile->file->data[file->openFile->pos], elsize);
+		file->openFile->pos += elsize;
 	}
 	return count;
 }
@@ -280,13 +284,13 @@ end:
 static int _stdcall xfseek(sFile* file, long pos, int origin) {
 	switch(origin) {
 		case 0:
-			file->file->pos = pos;
+			file->openFile->pos = pos;
 			break;
 		case 1:
-			file->file->pos += pos;
+			file->openFile->pos += pos;
 			break;
 		case 2:
-			file->file->pos = file->file->file->length + pos;
+			file->openFile->pos = file->openFile->file->length + pos;
 			break;
 	}
 	return 0;
@@ -310,7 +314,7 @@ end:
 }
 
 static long _stdcall xftell(sFile* file) {
-	return file->file->pos;
+	return file->openFile->pos;
 }
 
 static __declspec(naked) long asm_xftell(sFile* file) {
@@ -331,8 +335,9 @@ end:
 }
 
 static void _stdcall xfrewind(sFile* file) {
-	file->file->pos = 0;
+	file->openFile->pos = 0;
 }
+
 static __declspec(naked) void asm_xfrewind(sFile* file) {
 	__asm {
 		cmp  [eax], 3;
@@ -348,7 +353,7 @@ end:
 }
 
 static int _stdcall xfeof(sFile* file) {
-	if(file->file->pos >= file->file->file->length) {
+	if(file->openFile->pos >= file->openFile->file->length) {
 		return 1;
 	}
 	return 0;
@@ -372,7 +377,7 @@ end:
 }
 
 static int _stdcall xfilelength(sFile* file) {
-	return file->file->file->length;
+	return file->openFile->file->length;
 }
 
 static __declspec(naked) int asm_xfilelength(sFile* file) {
@@ -393,25 +398,25 @@ end:
 }
 
 void FileSystemReset() {
-	//if (!FileSystem::UsingFileSystem) return;
+	if (files.empty()) return;
 	for (DWORD i = loadedFiles; i < files.size(); i++) {
 		if (files[i].data) delete[] files[i].data;
 	}
 	if (!loadedFiles)
 		files.clear();
 	else {
-		for (DWORD i = files.size() - 1; i >= loadedFiles; i--) files.erase(files.begin() + i);
+		files.erase(files.begin() + loadedFiles, files.end() - 1);
 	}
 }
 
 void FileSystem::Save(HANDLE h) {
 	DWORD count = 0, unused;
-	for (DWORD i = 0; i < files.size(); i++) {
-		if (files[i].data) count++;
+	for (DWORD i = loadedFiles; i < files.size(); i++) {
+		if (files[i].isSave && files[i].data) count++;
 	}
 	WriteFile(h, &count, 4, &unused, 0);
-	for (DWORD i = 0; i < files.size(); i++) {
-		if (files[i].data) {
+	for (DWORD i = loadedFiles; i < files.size(); i++) {
+		if (files[i].isSave && files[i].data) {
 			WriteFile(h, &files[i].length, 128 + 8, &unused, 0);
 			WriteFile(h, files[i].data, files[i].length, &unused, 0);
 		}
@@ -431,8 +436,9 @@ static void FileSystemLoad() {
 			for (DWORD i = 0; i < count; i++) {
 				fsFile file;
 				ReadFile(h, &file.length, 128 + 8, &read, 0);
-				file.data = new char[file.length];
+				file.data = new BYTE[file.length];
 				ReadFile(h, file.data, file.length, &read, 0);
+				file.isSave = 1;
 				files.push_back(file);
 			}
 		}
@@ -455,7 +461,7 @@ void FileSystemInit() {
 	FileSystem::UsingFileSystem = true;
 
 	MakeJump(0x47CCE2, FSLoadHook);
-	
+
 	HookCalls(asm_xfclose, {0x4C5DBD, 0x4C5EA5, 0x4C5EB4});
 	HookCalls(asm_xfopen, {0x4C5DA9, 0x4C5E16, 0x4C5EC8});
 
@@ -480,21 +486,11 @@ void FileSystemInit() {
 	HookCalls(asm_xfilelength, {0x4C5DB4, 0x4C5E2D, 0x4C68BC});
 }
 
-DWORD _stdcall FScreate(const char* path, int size) {
-	for (DWORD i = 0; i < files.size(); i++) {
-		if (!files[i].data) {
-			files[i].data = new char[size];
-			strcpy_s(files[i].name, path);
-			files[i].length = size;
-			files[i].wpos = 0;
-			return i;
-		}
-	}
-	fsFile file;
-	file.data = new char[size];
+DWORD NewFile(fsFile &file, const char* path, int size) {
 	strcpy_s(file.name, path);
 	file.length = size;
 	file.wpos = 0;
+	file.isSave = 0;
 	files.push_back(file);
 	return files.size() - 1;
 }
@@ -502,13 +498,27 @@ DWORD _stdcall FScreate(const char* path, int size) {
 DWORD _stdcall FScreateFromData(const char* path, void* data, int size) {
 	loadedFiles++;
 	fsFile file;
-	file.data = new char[size];
+	file.data = new BYTE[size];
 	memcpy(file.data, data, size);
-	strcpy_s(file.name, path);
-	file.length = size;
-	file.wpos = 0;
-	files.push_back(file);
-	return files.size() - 1;
+
+	return NewFile(file, path, size); // return file index in vector
+}
+
+DWORD _stdcall FScreate(const char* path, int size) {
+	if (size > MAX_FILE_SIZE) return -1;  // size limit 10Mb
+	for (DWORD i = 0; i < files.size(); i++) {
+		if (!files[i].data) {
+			files[i].data = new BYTE[size];
+			strcpy_s(files[i].name, path);
+			files[i].length = size;
+			files[i].wpos = 0;
+			return i;
+		}
+	}
+	fsFile file;
+	file.data = new BYTE[size];
+
+	return NewFile(file, path, size); // return file index in vector
 }
 
 DWORD _stdcall FScopy(const char* path, const char* source) {
@@ -533,7 +543,7 @@ DWORD _stdcall FScopy(const char* path, const char* source) {
 		mov  fsize, eax;
 	}
 
-	char* fdata = new char[fsize];
+	BYTE* fdata = new BYTE[fsize];
 	__asm {
 		mov  eax, file;
 		call fo::funcoffs::xfclose_;
@@ -542,7 +552,7 @@ DWORD _stdcall FScopy(const char* path, const char* source) {
 		call fo::funcoffs::db_read_to_buf_;
 	}
 
-	fsFile* fsfile = 0;
+	fsFile* fsfile = nullptr;
 	for (DWORD i = 0; i < files.size(); i++) {
 		if (!files[i].data) {
 			result = i;
@@ -553,14 +563,15 @@ DWORD _stdcall FScopy(const char* path, const char* source) {
 	if (!fsfile) {
 		files.push_back(fsFile());
 		result = files.size() - 1;
-		fsfile = &files[result];
+		fsfile = &files.back();
 	}
 	fsfile->data = fdata;
 	strcpy_s(fsfile->name, path);
 	fsfile->length = fsize;
 	fsfile->wpos = 0;
+	fsfile->isSave = 0;
 
-	return result;
+	return result; // return file index in vector
 }
 
 DWORD _stdcall FSfind(const char* path) {
@@ -580,26 +591,21 @@ void _stdcall FSwrite_byte(DWORD id, int data) {
 void _stdcall FSwrite_short(DWORD id, int data) {
 	if (id >= files.size() || !files[id].data) return;
 	if (files[id].wpos + 2 > files[id].length) return;
-	char data2[2];
-	memcpy(data2, &data, 2);
-	char c = data2[0];
-	data2[0] = data2[1];
-	data2[1] = c;
-	for (int i = 0; i < 2; i++) files[id].data[files[id].wpos++] = data2[i];
+
+	char* data2 = (char*)&data;
+	data2++;
+	// write & reverse bytes
+	for (int i = 0; i < 2; i++) files[id].data[files[id].wpos++] = *(data2 - i);
 }
 
 void _stdcall FSwrite_int(DWORD id, int data) {
 	if (id >= files.size() || !files[id].data) return;
 	if (files[id].wpos + 4 > files[id].length) return;
-	char data2[4];
-	memcpy(data2, &data, 4);
-	char c = data2[1];
-	data2[1] = data2[2];
-	data2[2] = c;
-	c = data2[0];
-	data2[0] = data2[3];
-	data2[3] = c;
-	for (int i = 0; i < 4; i++) files[id].data[files[id].wpos++] = data2[i];
+
+	char* data2 = (char*)&data;
+	data2 += 3;
+	// write & reverse bytes
+	for (int i = 0; i < 4; i++) files[id].data[files[id].wpos++] = *(data2 - i);
 }
 
 void _stdcall FSwrite_string(DWORD id, const char* data) {
@@ -625,25 +631,22 @@ int _stdcall FSread_byte(DWORD id) {
 int _stdcall FSread_short(DWORD id) {
 	if (id >= files.size() || !files[id].data) return 0;
 	if (files[id].wpos + 2 > files[id].length) return 0;
+
 	char data[2];
 	data[1] = files[id].data[files[id].wpos++];
 	data[0] = files[id].data[files[id].wpos++];
-	short result;
-	memcpy(&result, data, 2);
-	return result;
+
+	return static_cast<int>(*(short*)data);
 }
 
 int _stdcall FSread_int(DWORD id) {
 	if (id >= files.size() || !files[id].data) return 0;
 	if (files[id].wpos + 4 > files[id].length) return 0;
+
 	char data[4];
-	data[3] = files[id].data[files[id].wpos++];
-	data[2] = files[id].data[files[id].wpos++];
-	data[1] = files[id].data[files[id].wpos++];
-	data[0] = files[id].data[files[id].wpos++];
-	int result;
-	memcpy(&result, data, 4);
-	return result;
+	for (int i = 3; i >= 0; i--) data[i] = files[id].data[files[id].wpos++];
+
+	return *(int*)data;
 }
 
 void _stdcall FSdelete(DWORD id) {
@@ -672,9 +675,13 @@ void _stdcall FSseek(DWORD id, DWORD pos) {
 }
 
 void _stdcall FSresize(DWORD id, DWORD size) {
-	if (id >= files.size() || !files[id].data) return;
-	char* buf = files[id].data;
-	files[id].data = new char[size];
+	if (id >= files.size() || !files[id].data || (size != -1 && size > MAX_FILE_SIZE)) return; // size limit 10Mb
+	if (size == -1) {
+		files[id].isSave = 1;
+		return;
+	}
+	BYTE* buf = files[id].data;
+	files[id].data = new BYTE[size];
 	CopyMemory(files[id].data, buf, min(files[id].length, size));
 	files[id].length = size;
 	files[id].wpos = 0;
@@ -684,9 +691,8 @@ void _stdcall FSresize(DWORD id, DWORD size) {
 void FileSystem::init() {
 	if (GetConfigInt("Misc", "UseFileSystemOverride", 0)) {
 		FileSystemInit();
-
-		LoadGameHook::OnGameReset() += FileSystemReset;
 	}
+	LoadGameHook::OnGameReset() += FileSystemReset;
 }
 
 }
