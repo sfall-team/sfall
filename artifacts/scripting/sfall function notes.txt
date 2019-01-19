@@ -60,7 +60,7 @@ get/set_unspent_ap_bonus alter the AC bonus you receive per unused action point 
 
 nb_* functions are reserved for the brotherhood tactical training mod, and should be avoided.
 
-The fs_* functions are used to manipulate a virtual file system. Files saved here should have paths relative to the data folder, and use backslashes as the directory separator. They will take precedence over files stored in the normal data folder. They will also be saved into save games, so be avoid creating large files. Using fs_copy followed by fs_read_xxx, you can read the contents of existing files.
+The fs_* functions are used to manipulate a virtual file system. Files saved here should have paths relative to the data folder, and use backslashes as the directory separator. They will take precedence over files stored in the normal data folder. They will also be saved into save games if you set a flag for them using fs_resize(fileId, -1), so be avoid creating large files. Using fs_copy followed by fs_read_xxx, you can read the contents of existing files.
 
 get/set_proto_data are used to manipulate the in memory copies of the .pro files Fallout makes when they are loaded. The offset refers to the offset in memory from the start of the proto to the element you are reading. Changes are not stored on disc, and are not permanent. If you modify the protos, and then Fallout subsequently reloads the file your changes will be lost.
 
