@@ -23,6 +23,7 @@ extern bool UsingFileSystem;
 void FileSystemInit();
 void FileSystemReset();
 void FileSystemSave(HANDLE h);
+bool FileSystemIsEmpty();
 
 DWORD _stdcall FScreate(const char* path, int size);
 DWORD _stdcall FScreateFromData(const char* path, void* data, int size);
@@ -31,7 +32,6 @@ DWORD _stdcall FSfind(const char* path);
 void _stdcall FSwrite_byte(DWORD id, int data);
 void _stdcall FSwrite_short(DWORD id, int data);
 void _stdcall FSwrite_int(DWORD id, int data);
-//void _stdcall fs_write_float(DWORD id, int data);
 void _stdcall FSwrite_string(DWORD id, const char* data);
 void _stdcall FSwrite_bstring(DWORD id, const char* data);
 int _stdcall FSread_byte(DWORD id);

@@ -86,19 +86,22 @@ static const DWORD xfilelengthAddr[] = {
 	0x4C5DB4, 0x4C5E2D, 0x4C68BC,
 };
 
-static void _stdcall xfclose(sFile* file) {
+static long _stdcall xfclose(sFile* file) {
 	delete file->opnFile;
 	delete file;
+	return 0;
 }
 
 static void __declspec(naked) asm_xfclose(sFile* file) {
 	__asm {
 		cmp  [eax], 3; // byte
 		jnz  end;
-		pushadc;
+		push edx;
+		push ecx;
 		push eax;
 		call xfclose;
-		popadc;
+		pop  ecx;
+		pop  edx;
 		retn;
 end:
 		jmp  xfclose_;
@@ -288,6 +291,25 @@ end:
 	}
 }
 
+static __declspec(naked) int asm_xfread_fix(void* buf, int elsize, int count, sFile* file) {
+	__asm {
+		cmp  [ecx], 3;
+		jnz  end;
+		push ebx;    // count
+		push eax;    // buf
+		call xfread; // ecx - file, edx - elsize
+		retn;
+end:
+		call xfread_;
+		// fix
+		test eax, eax;
+		jnz  skip;
+		dec  eax;
+skip:
+		retn;
+	}
+}
+
 static int __fastcall xfwrite(sFile* file, int elsize, const void* buf, int count) {
 	return 0;
 }
@@ -444,7 +466,6 @@ void FileSystemSave(HANDLE h) {
 }
 
 static void FileSystemLoad() {
-	FileSystemReset();
 	char buf[MAX_PATH];
 	GetSavePath(buf, "fs");
 
@@ -477,12 +498,8 @@ static void __declspec(naked) FSLoadHook() {
 	}
 }
 
-void FileSystemInit() {
-	UsingFileSystem = true;
-
+static void FileSystemOverride() {
 	int i;
-
-	MakeJump(0x47CCE2, FSLoadHook);
 
 	for (i = 0; i < sizeof(xfcloseAddr) / 4; i++) {
 		HookCall(xfcloseAddr[i], asm_xfclose);
@@ -509,7 +526,7 @@ void FileSystemInit() {
 	for (i = 0; i < sizeof(xfreadAddr) / 4; i++) {
 		HookCall(xfreadAddr[i], asm_xfread);
 	}
-	HookCall(0x4C6162, asm_xfread); // for fix
+	HookCall(0x4C6162, asm_xfread_fix); // with bug fix from BugFixes.cpp
 
 	HookCall(0x4C60B8, asm_xfwrite);
 	HookCall(0x4C60C0, asm_xfseek);
@@ -522,7 +539,7 @@ void FileSystemInit() {
 	}
 }
 
-DWORD NewFile(fsFile &file, const char* path, int size) {
+static DWORD NewFile(fsFile &file, const char* path, int size) {
 	strcpy_s(file.name, path);
 	file.length = size;
 	file.wpos = 0;
@@ -722,4 +739,16 @@ void _stdcall FSresize(DWORD id, DWORD size) {
 	files[id].length = size;
 	files[id].wpos = 0;
 	delete[] buf;
+}
+
+bool FileSystemIsEmpty() {
+	return (int)(files.size() - loadedFiles) <= 0;
+}
+
+void FileSystemInit() {
+	if (GetPrivateProfileIntA("Misc", "UseFileSystemOverride", 0, ini)) {
+		FileSystemOverride();
+		UsingFileSystem = true;
+	}
+	MakeJump(0x47CCE2, FSLoadHook); // LoadGame_
 }

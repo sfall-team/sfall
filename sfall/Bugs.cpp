@@ -2164,6 +2164,6 @@ void BugsInit()
 	// number of values (for chem_primary_desire)
 	MakeJump(0x42C12C, config_get_values_hack);
 
-	// Fix returned result value
-	HookCall(0x4C6162, db_freadInt_hook); // TODO: Resolve conflict in FileSystem.cpp
+	// Fix returned result value when the file is missing
+	HookCall(0x4C6162, db_freadInt_hook);
 }

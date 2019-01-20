@@ -1107,6 +1107,8 @@ static void DllMain2() {
 		dlogr(" Done", DL_INIT);
 	}
 
+	FileSystemInit();
+
 	if (IsDebug) {
 		tmp = GetPrivateProfileIntA("Debugging", "DebugMode", 0, ".\\ddraw.ini");
 		if (tmp) {
@@ -1162,10 +1164,6 @@ static void DllMain2() {
 		dlog("Applying elevator patch.", DL_INIT);
 		ElevatorsInit(elevPath);
 		dlogr(" Done", DL_INIT);
-	}
-
-	if (GetPrivateProfileIntA("Misc", "UseFileSystemOverride", 0, ini)) {
-		FileSystemInit();
 	}
 
 	if (GetPrivateProfileIntA("Misc", "AdditionalWeaponAnims", 0, ini)) {

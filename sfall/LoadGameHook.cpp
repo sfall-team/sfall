@@ -111,7 +111,7 @@ static void _stdcall SaveGame2() {
 		PlaySfx("IISXXXX1");
 	}
 
-	if (!UsingFileSystem) return;
+	if (FileSystemIsEmpty()) return;
 	GetSavePath(buf, "fs");
 	h = CreateFileA(buf, GENERIC_WRITE, 0, 0, CREATE_ALWAYS, 0, 0);
 	if (h != INVALID_HANDLE_VALUE) {
