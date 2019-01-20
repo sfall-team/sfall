@@ -68,6 +68,7 @@ public:
 
 	// returns string value or empty string if value is not string type
 	const char* asString() const;
+	const char* String() const;
 
 	// returns value as object pointer or nullptr if value is not integer
 	fo::GameObject* asObject() const;

@@ -132,6 +132,10 @@ fo::GameObject* ScriptValue::asObject() const {
 		: nullptr;
 }
 
+const char* ScriptValue::String() const {
+	return _val.str;
+}
+
 DataType ScriptValue::type() const {
 	return _type;
 }
