@@ -467,6 +467,9 @@ Some utility/math functions are available:
 > void sfall_func3("set_object_data", object, int offset, int data)
 - sets the data at the specified offset of an object
 
+> void sfall_func0("art_cache_clear")
+- clears the cache of FRM image files loaded into memory
+
 ------------------------
 ------ MORE INFO -------
 ------------------------

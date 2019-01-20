@@ -103,6 +103,7 @@ static void sf_get_metarule_table() {
 		- minArgs/maxArgs - minimum and maximum number of arguments allowed for this function
 */
 static const SfallMetarule metaruleArray[] = {
+	{"art_cache_clear", sf_art_cache_flush, 0, 0},
 	{"attack_is_aimed", sf_attack_is_aimed, 0, 0},
 	{"critter_inven_obj2", sf_critter_inven_obj2, 2, 2},
 	{"create_win", sf_create_win, 5, 6},

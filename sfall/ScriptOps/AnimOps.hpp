@@ -195,3 +195,7 @@ end:
 	_RET_VAL_INT(ebp)
 	_OP_END
 }
+
+static void sf_art_cache_flush() {
+	__asm call art_flush_;
+}

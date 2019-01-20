@@ -214,6 +214,7 @@
 #define party_member_list_all           party_member_list(1)
 
 
+#define art_cache_clear                                 sfall_func0("art_cache_clear")
 #define attack_is_aimed                                 sfall_func0("attack_is_aimed")
 #define create_win(winName, x, y, w, h)                 sfall_func5("create_win", winName, x, y, w, h)
 #define create_win_flag(winName, x, y, w, h, flag)      sfall_func6("create_win", winName, x, y, w, h, flag)
