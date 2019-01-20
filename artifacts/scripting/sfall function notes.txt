@@ -163,8 +163,9 @@ array - array ID to be used with array-related functions (actually an integer)
 - overrides the scripts self_obj for the next function call.
 - It is primarily used to allow the calling of functions which take an implicit self_obj parameter (e.g. drop_obj) from global scripts, but it can also be used from normal scripts;
 - self_obj will revert back to its original value after the next function call.
-- calling self_obj(0) will also revert self_obj to original value
+- calling self_obj(0) will also revert self_obj to original value, it is recommended to use this after each use of set_self in normal scripts, in order to avoid unforeseen side-effects
 - source_obj, target_obj, and similar functions will not work if preceded by "set_self"
+- Note: For the use_obj_on_obj vanilla function to work correctly, required dual use of the set_self function.
 
 > void mod_skill_points_per_level(int x)
 - accepts a value of between -100 and 100, and modifies the number of skill points the player receives when they level up.
