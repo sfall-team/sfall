@@ -142,7 +142,7 @@ static void _stdcall SaveGame2() {
 		CloseHandle(h);
 	}
 	
-	if (!FileSystem::UsingFileSystem) return;
+	if (FileSystem::IsEmpty()) return;
 	GetSavePath(buf, "fs");
 	h = CreateFileA(buf, GENERIC_WRITE, 0, 0, CREATE_ALWAYS, 0, 0);
 	if (h != INVALID_HANDLE_VALUE) {

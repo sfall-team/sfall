@@ -32,6 +32,7 @@ public:
 
 	// save FileSystem data to a save game file
 	static void Save(HANDLE h);
+	static bool IsEmpty();
 };
 
 DWORD _stdcall FScreate(const char* path, int size);
@@ -41,13 +42,12 @@ DWORD _stdcall FSfind(const char* path);
 void _stdcall FSwrite_byte(DWORD id, int data);
 void _stdcall FSwrite_short(DWORD id, int data);
 void _stdcall FSwrite_int(DWORD id, int data);
-//void _stdcall fs_write_float(DWORD id, int data);
 void _stdcall FSwrite_string(DWORD id, const char* data);
 void _stdcall FSwrite_bstring(DWORD id, const char* data);
 int _stdcall FSread_byte(DWORD id);
 int _stdcall FSread_short(DWORD id);
 int _stdcall FSread_int(DWORD id);
- void _stdcall FSdelete(DWORD id);
+void _stdcall FSdelete(DWORD id);
 DWORD _stdcall FSsize(DWORD id);
 DWORD _stdcall FSpos(DWORD id);
 void _stdcall FSseek(DWORD id, DWORD pos);

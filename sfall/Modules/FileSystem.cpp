@@ -57,19 +57,22 @@ std::vector<fsFile> files;
 static DWORD loadedFiles = 0; // used for internal sfall data
 bool FileSystem::UsingFileSystem = false;
 
-static void _stdcall xfclose(sFile* file) {
+static long _stdcall xfclose(sFile* file) {
 	delete file->openFile;
 	delete file;
+	return 0;
 }
 
 static void __declspec(naked) asm_xfclose(sFile* file) {
 	__asm {
 		cmp  [eax], 3; // byte
 		jnz  end;
-		pushadc;
+		push edx;
+		push ecx;
 		push eax;
 		call xfclose;
-		popadc;
+		pop  ecx;
+		pop  edx;
 		retn;
 end:
 		jmp  fo::funcoffs::xfclose_;
@@ -264,6 +267,25 @@ end:
 	}
 }
 
+static __declspec(naked) int asm_xfread_fix(void* buf, int elsize, int count, sFile* file) {
+	__asm {
+		cmp  [ecx], 3;
+		jnz  end;
+		push ebx;    // count
+		push eax;    // buf
+		call xfread; // ecx - file, edx - elsize
+		retn;
+end:
+		call fo::funcoffs::xfread_;
+		// fix
+		test eax, eax;
+		jnz  skip;
+		dec  eax;
+skip:
+		retn;
+	}
+}
+
 static int _fastcall xfwrite(sFile* file, int elsize, const void* buf, int count) {
 	return 0;
 }
@@ -397,7 +419,7 @@ end:
 	}
 }
 
-void FileSystemReset() {
+static void FileSystemReset() {
 	if (files.empty()) return;
 	for (DWORD i = loadedFiles; i < files.size(); i++) {
 		if (files[i].data) delete[] files[i].data;
@@ -424,7 +446,6 @@ void FileSystem::Save(HANDLE h) {
 }
 
 static void FileSystemLoad() {
-	FileSystemReset();
 	char buf[MAX_PATH];
 	GetSavePath(buf, "fs");
 
@@ -457,15 +478,12 @@ static void __declspec(naked) FSLoadHook() {
 	}
 }
 
-void FileSystemInit() {
-	FileSystem::UsingFileSystem = true;
-
-	MakeJump(0x47CCE2, FSLoadHook);
+static void FileSystemInit() {
 
 	HookCalls(asm_xfclose, {0x4C5DBD, 0x4C5EA5, 0x4C5EB4});
 	HookCalls(asm_xfopen, {0x4C5DA9, 0x4C5E16, 0x4C5EC8});
 
-	HookCall(0x4C5F04, &asm_xvfprintf);
+	HookCall(0x4C5F04, asm_xvfprintf);
 
 	HookCalls(asm_xfgetc, {0x4C5F31, 0x4C5F64});
 	HookCalls(asm_xfgets, {0x4C5F85, 0x4C5FD3});
@@ -475,7 +493,7 @@ void FileSystemInit() {
 	HookCall(0x4C5FF4, asm_xfungetc);
 
 	HookCalls(asm_xfread, {0x4C5E5C, 0x4C5E8A, 0x4C5E9E, 0x4C603D, 0x4C6076, 0x4C60AA});
-	HookCall(0x4C6162, asm_xfread); // for fix
+	HookCall(0x4C6162, asm_xfread_fix); // with fixed bug from BugFixes.cpp
 
 	HookCall(0x4C60B8, asm_xfwrite);
 	HookCall(0x4C60C0, asm_xfseek);
@@ -486,7 +504,7 @@ void FileSystemInit() {
 	HookCalls(asm_xfilelength, {0x4C5DB4, 0x4C5E2D, 0x4C68BC});
 }
 
-DWORD NewFile(fsFile &file, const char* path, int size) {
+static DWORD NewFile(fsFile &file, const char* path, int size) {
 	strcpy_s(file.name, path);
 	file.length = size;
 	file.wpos = 0;
@@ -688,10 +706,17 @@ void _stdcall FSresize(DWORD id, DWORD size) {
 	delete[] buf;
 }
 
+bool FileSystem::IsEmpty() {
+	return (int)(files.size() - loadedFiles) <= 0;
+}
+
 void FileSystem::init() {
 	if (GetConfigInt("Misc", "UseFileSystemOverride", 0)) {
 		FileSystemInit();
+		UsingFileSystem = true;
 	}
+	MakeJump(0x47CCE2, FSLoadHook); // LoadGame_
+
 	LoadGameHook::OnGameReset() += FileSystemReset;
 }
 
