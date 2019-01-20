@@ -20,6 +20,7 @@
 #include "..\..\ScriptExtender.h"
 #include "..\Arrays.h"
 #include "..\OpcodeContext.h"
+#include "Anims.h"
 #include "Interface.h"
 #include "Misc.h"
 #include "Objects.h"
@@ -77,6 +78,7 @@ static const SfallMetarule* currentMetarule;
 		- arg1, arg2, ... - argument types for automatic validation
 */
 static const SfallMetarule metarules[] = {
+	{"art_cache_clear", sf_art_cache_flush, 0, 0},
 	{"attack_is_aimed", sf_attack_is_aimed, 0, 0},
 	{"car_gas_amount", sf_car_gas_amount, 0, 0},
 	{"create_win", sf_create_win, 5, 6, {ARG_STRING, ARG_INT, ARG_INT, ARG_INT, ARG_INT, ARG_INT}},

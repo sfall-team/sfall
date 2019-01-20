@@ -36,5 +36,7 @@ void sf_reg_anim_take_out(OpcodeContext&);
 void sf_reg_anim_turn_towards(OpcodeContext&);
 void sf_explosions_metarule(OpcodeContext&);
 
+void sf_art_cache_flush(OpcodeContext&);
+
 }
 }
