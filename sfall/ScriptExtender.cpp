@@ -116,10 +116,10 @@ public:
 
 	int asInt() const {
 		switch (_type) {
-		case DATATYPE_FLOAT:
-			return static_cast<int>(_val.f);
 		case DATATYPE_INT:
 			return _val.i;
+		case DATATYPE_FLOAT:
+			return static_cast<int>(_val.f);
 		default:
 			return 0;
 		}
@@ -127,10 +127,10 @@ public:
 
 	bool asBool() const {
 		switch (_type) {
-		case DATATYPE_FLOAT:
-			return static_cast<int>(_val.f) != 0;
 		case DATATYPE_INT:
 			return _val.i != 0;
+		case DATATYPE_FLOAT:
+			return static_cast<int>(_val.f) != 0;
 		default:
 			return true;
 		}
@@ -157,6 +157,10 @@ public:
 		return (_type == DATATYPE_INT)
 			? _val.gObj
 			: nullptr;
+	}
+
+	const char* String() const {
+		return _val.str;
 	}
 
 	SfallDataType type() const {
@@ -562,171 +566,120 @@ static void __declspec(naked) GetGlobalScriptTypes() {
 
 static void SetGlobalVarInternal(__int64 var, int val) {
 	glob_itr itr = globalVars.find(var);
-	if (itr == globalVars.end()) globalVars.insert(glob_pair(var, val));
-	else {
-		if (val == 0) globalVars.erase(itr); // applies for both float 0.0 and integer 0
-		else itr->second = val;
+	if (itr == globalVars.end()) {
+		globalVars.insert(glob_pair(var, val));
+	} else {
+		if (val == 0) {
+			globalVars.erase(itr); // applies for both float 0.0 and integer 0
+		} else {
+			itr->second = val;
+		}
 	}
 }
 
-static void _stdcall SetGlobalVar2(const char* var, int val) {
-	if (strlen(var) != 8) return;
+static long SetGlobalVar2(const char* var, int val) {
+	if (strlen(var) != 8) {
+		return -1;
+	}
 	SetGlobalVarInternal(*(__int64*)var, val);
+	return 0;
 }
 
-static void _stdcall SetGlobalVar2Int(DWORD var, int val) {
+static void SetGlobalVar2Int(DWORD var, int val) {
 	SetGlobalVarInternal(var, val);
 }
 
-static void __declspec(naked) SetGlobalVar() {
-	__asm {
-		push ebx;
-		push ecx;
-		push edx;
-		push edi;
-		push esi;
-		mov edi, eax;
-		call interpretPopShort_;
-		mov eax, edi;
-		call interpretPopLong_;
-		mov esi, eax;
-		mov eax, edi;
-		call interpretPopShort_;
-		mov edx, eax;
-		mov eax, edi;
-		call interpretPopLong_;
-		cmp dx, VAR_TYPE_STR2;
-		jz next;
-		cmp dx, VAR_TYPE_STR;
-		jz next;
-		cmp dx, VAR_TYPE_INT;
-		jnz end;
-		push esi;
-		push eax;
-		call SetGlobalVar2Int;
-		jmp end;
-next:
-		mov ebx, eax;
-		mov eax, edi;
-		call interpretGetString_;
-		push esi;
-		push eax;
-		call SetGlobalVar2;
-end:
-		pop esi;
-		pop edi;
-		pop edx;
-		pop ecx;
-		pop ebx;
-		retn;
+static void SetGlobalVarFunc() {
+	const ScriptValue &varArg = opHandler.arg(0),
+					  &valArg = opHandler.arg(1);
+
+	if ((varArg.isInt() || varArg.isString()) && (valArg.isInt() || valArg.isFloat())) {
+		if (varArg.isString()) {
+			if (SetGlobalVar2(varArg.String(), valArg.rawValue())) {
+				opHandler.printOpcodeError("set_sfall_global() - The name of the global variable must consist of 8 characters.");
+			}
+		} else {
+			SetGlobalVar2Int(varArg.rawValue(), valArg.rawValue());
+		}
+	} else {
+		opHandler.printOpcodeError("set_sfall_global() - invalid arguments.");
 	}
 }
 
-static DWORD GetGlobalVarInternal(__int64 val) {
-	glob_citr itr = globalVars.find(val);
-	if (itr == globalVars.end()) return 0;
-	else return itr->second;
+static void __declspec(naked) SetGlobalVar() {
+	_WRAP_OPCODE(SetGlobalVarFunc, 2, 0)
 }
 
-static DWORD _stdcall GetGlobalVar2(const char* var) {
-	if (strlen(var) != 8) return 0;
+static long GetGlobalVarInternal(__int64 val) {
+	glob_citr itr = globalVars.find(val);
+	if (itr == globalVars.end()) {
+		return 0;
+	} else {
+		return itr->second;
+	}
+}
+
+static long GetGlobalVar2(const char* var) {
+	if (strlen(var) != 8) {
+		return 0;
+	}
 	return GetGlobalVarInternal(*(__int64*)var);
 }
 
-static DWORD _stdcall GetGlobalVar2Int(DWORD var) {
+static long GetGlobalVar2Int(DWORD var) {
 	return GetGlobalVarInternal(var);
 }
 
+static void GetGlobalVarIntFunc() {
+	const ScriptValue &varArg = opHandler.arg(0);
+	long result = 0;
+
+	if (varArg.isInt() || varArg.isString()) {
+		if (varArg.isString()) {
+			const char* var = varArg.String();
+			if (strlen(var) != 8) {
+				opHandler.printOpcodeError("get_sfall_global_int() - The name of the global variable must consist of 8 characters.");
+			} else {
+				result = GetGlobalVarInternal(*(__int64*)var);
+			}
+		} else {
+			result = GetGlobalVar2Int(varArg.rawValue());
+		}
+		opHandler.setReturn(result, DATATYPE_INT);
+	} else {
+		opHandler.printOpcodeError("get_sfall_global_int() - argument is not an integer or a string.");
+		opHandler.setReturn(-1);
+	}
+}
+
 static void __declspec(naked) GetGlobalVarInt() {
-	__asm {
-		push ebx;
-		push ecx;
-		push edx;
-		push edi;
-		push esi;
-		xor edx, edx;
-		mov edi, eax;
-		call interpretPopShort_;
-		mov esi, eax;
-		mov eax, edi;
-		call interpretPopLong_;
-		cmp si, VAR_TYPE_STR2;
-		jz next;
-		cmp si, VAR_TYPE_STR;
-		jz next;
-		cmp si, VAR_TYPE_INT;
-		jnz end;
-		push eax;
-		call GetGlobalVar2Int;
-		mov edx, eax;
-		jmp end;
-next:
-		mov edx, esi;
-		mov ebx, eax;
-		mov eax, edi;
-		call interpretGetString_;
-		push eax;
-		call GetGlobalVar2;
-		mov edx, eax;
-end:
-		mov eax, edi;
-		call interpretPushLong_;
-		mov edx, VAR_TYPE_INT;
-		mov eax, edi;
-		call interpretPushShort_;
-		pop esi;
-		pop edi;
-		pop edx;
-		pop ecx;
-		pop ebx;
-		retn;
+	_WRAP_OPCODE(GetGlobalVarIntFunc, 1, 1)
+}
+
+static void GetGlobalVarFloatFunc() {
+	const ScriptValue &varArg = opHandler.arg(0);
+	long result = 0;
+
+	if (varArg.isInt() || varArg.isString()) {
+		if (varArg.isString()) {
+			const char* var = varArg.String();
+			if (strlen(var) != 8) {
+				opHandler.printOpcodeError("get_sfall_global_float() - The name of the global variable must consist of 8 characters.");
+			} else {
+				result = GetGlobalVarInternal(*(__int64*)var);
+			}
+		} else {
+			result = GetGlobalVar2Int(varArg.rawValue());
+		}
+		opHandler.setReturn(result, DATATYPE_FLOAT);
+	} else {
+		opHandler.printOpcodeError("get_sfall_global_float() - argument is not an integer or a string.");
+		opHandler.setReturn(-1);
 	}
 }
 
 static void __declspec(naked) GetGlobalVarFloat() {
-	__asm {
-		push ebx;
-		push ecx;
-		push edx;
-		push edi;
-		push esi;
-		xor edx, edx;
-		mov edi, eax;
-		call interpretPopShort_;
-		mov esi, eax;
-		mov eax, edi;
-		call interpretPopLong_;
-		cmp si, VAR_TYPE_STR2;
-		jz next;
-		cmp si, VAR_TYPE_STR;
-		jz next;
-		cmp si, VAR_TYPE_INT;
-		jnz end;
-		push eax;
-		call GetGlobalVar2Int;
-		mov edx, eax;
-		jmp end;
-next:
-		mov edx, esi;
-		mov ebx, eax;
-		mov eax, edi;
-		call interpretGetString_;
-		push eax;
-		call GetGlobalVar2;
-		mov edx, eax;
-end:
-		mov eax, edi;
-		call interpretPushLong_;
-		mov edx, VAR_TYPE_FLOAT;
-		mov eax, edi;
-		call interpretPushShort_;
-		pop esi;
-		pop edi;
-		pop edx;
-		pop ecx;
-		pop ebx;
-		retn;
-	}
+	_WRAP_OPCODE(GetGlobalVarFloatFunc, 1, 1)
 }
 
 static void __declspec(naked) GetSfallArg() {
@@ -1053,7 +1006,7 @@ static void __declspec(naked) ExecMapScriptsHack() {
 		push ebp;
 		sub  esp, 0x20;
 		//------
-		push eax; // int procId
+		push eax; // procId
 		call HandleMapUpdateForScripts;
 		jmp  ExecMapScriptsRet;
 	}
@@ -1122,7 +1075,7 @@ proceedNormal:
 static void _stdcall FreeProgramHook2(DWORD progPtr) {
 	if (isGameLoading || (sfallProgsMap.find(progPtr) == sfallProgsMap.end())) { // only delete non-sfall scripts or when actually loading the game
 		__asm {
-			mov eax, progPtr;
+			mov  eax, progPtr;
 			call interpretFreeProgram_;
 		}
 	}
