@@ -62,15 +62,13 @@ int GetNumGlobals();
 void GetGlobals(GlobalVar* globals);
 void SetGlobals(GlobalVar* globals);
 
-void _stdcall SetGlobalVar(const char* var, int val);
-void _stdcall SetGlobalVarInt(DWORD var, int val);
-DWORD _stdcall GetGlobalVar(const char* var);
-DWORD _stdcall GetGlobalVarInt(DWORD var);
+long SetGlobalVar(const char* var, int val);
+void SetGlobalVarInt(DWORD var, int val);
+long GetGlobalVar(const char* var);
+long GetGlobalVarInt(DWORD var);
+long GetGlobalVarInternal(__int64 val);
 
 void _stdcall SetSelfObject(fo::Program* script, fo::GameObject* obj);
-
-void SetAppearanceGlobals(int race, int style);
-void GetAppearanceGlobals(int *race, int *style);
 
 void _stdcall RegAnimCombatCheck(DWORD newValue);
 

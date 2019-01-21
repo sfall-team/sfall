@@ -64,6 +64,11 @@ typedef std::unordered_map<int, const SfallOpcodeInfo*> OpcodeInfoMapType;
 // }
 static SfallOpcodeInfo opcodeInfoArray[] = {
 	{0x16c, "key_pressed", sf_key_pressed, 1, true},
+
+	{0x19d, "set_sfall_global", sf_set_sfall_global, 2, false, {ARG_INTSTR, ARG_NUMBER}},
+	{0x19e, "get_sfall_global_int", sf_get_sfall_global_int, 1, true, {ARG_INTSTR}},
+	{0x19f, "get_sfall_global_float", sf_get_sfall_global_float, 1, true, {ARG_INTSTR}},
+
 	{0x1dc, "show_iface_tag", sf_show_iface_tag, 1, false, {ARG_INT}},
 	{0x1dd, "hide_iface_tag", sf_hide_iface_tag, 1, false, {ARG_INT}},
 	{0x1de, "is_iface_tag_active", sf_is_iface_tag_active, 1, true, {ARG_INT}},
@@ -295,9 +300,6 @@ void InitNewOpcodes() {
 	opcodes[0x19a] = op_remove_attacker_knockback;
 	opcodes[0x19b] = op_set_global_script_type;
 	opcodes[0x19c] = op_available_global_script_types;
-	opcodes[0x19d] = op_set_sfall_global;
-	opcodes[0x19e] = op_get_sfall_global_int;
-	opcodes[0x19f] = op_get_sfall_global_float;
 	opcodes[0x1a0] = op_set_pickpocket_max;
 	opcodes[0x1a1] = op_set_hit_chance_max;
 	opcodes[0x1a2] = op_set_skill_max;

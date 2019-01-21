@@ -33,11 +33,11 @@ void __declspec() op_set_global_script_type();
 
 void __declspec() op_available_global_script_types();
 
-void __declspec() op_set_sfall_global();
+void sf_set_sfall_global(OpcodeContext&);
 
-void __declspec() op_get_sfall_global_int();
+void sf_get_sfall_global_int(OpcodeContext&);
 
-void __declspec() op_get_sfall_global_float();
+void sf_get_sfall_global_float(OpcodeContext&);
 
 void __declspec() op_get_sfall_arg();
 
