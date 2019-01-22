@@ -1764,6 +1764,27 @@ skip:
 	}
 }
 
+static void __declspec(naked) op_attack_hook() {
+	__asm {
+		mov esi, dword ptr [esp + 0x3C + 4];   // free_move
+		mov ebx, dword ptr [esp + 0x40 + 4];   // add amount damage to target
+		jmp fo::funcoffs::gdialogActive_;
+	}
+}
+
+static void __declspec(naked) combat_attack_hack() {
+	__asm {
+		mov  ebx, ds:[FO_VAR_main_ctd + 0x2C]; // amountTarget
+		test ebx, ebx;
+		jz   end;
+		retn;
+end:
+		add  esp, 4;
+		mov  ebx, 0x423039;
+		jmp  ebx;
+	}
+}
+
 void BugFixes::init()
 {
 	#ifndef NDEBUG
@@ -2243,6 +2264,25 @@ void BugFixes::init()
 
 	// Fix returned result value, when the readable file is missing
 	HookCall(0x4C6162, db_freadInt_hook);
+
+	// Fixes the unused arguments called_shot/num_attack of the attack_complex() function, also changes the behavior for the flags arguments
+	// called_shot - additional damage, when the damage received to target above the specified minimum
+	// num_attack  - the number of free points to move
+	// flag_attacker - not used, must be 0, or not equal to the flag_target argument when want to specify flags for the target
+	if (GetConfigInt("Misc", "AttackComplexFix", 0)) {
+		dlog("Applying attack_complex script function fix.", DL_INIT);
+		HookCall(0x456D4A, op_attack_hook);
+		SafeWrite8(0x456D61, 0x74); // mov [esp+x], esi
+		SafeWrite8(0x456D92, 0x5C); // mov [esp+x], ebx
+		SafeWrite8(0x456D98, 0x94); // setnz > setz (fix set result flags)
+		dlogr(" Done", DL_INIT);
+	}
+
+	// Fix the attack_complex() script function that causes minimal damage to the target when the attacker misses
+	MakeCall(0x422FE5, combat_attack_hack, 1);
+
+	// Fix the critter_mod_skill() script function for a negative amount value
+	SafeWrite8(0x45B910, 0x7E); // jbe > jle
 }
 
 }
