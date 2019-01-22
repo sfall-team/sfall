@@ -556,6 +556,7 @@ extern const DWORD game_set_global_var_;
 extern const DWORD game_time_date_;
 extern const DWORD gdialog_barter_cleanup_tables_;
 extern const DWORD gdialog_barter_pressed_;
+extern const DWORD gdialogActive_;
 extern const DWORD gdialogDisplayMsg_;
 extern const DWORD gdProcess_;
 extern const DWORD GetSlotList_;

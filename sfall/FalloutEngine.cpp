@@ -352,6 +352,7 @@ const DWORD game_set_global_var_ = 0x443C98;
 const DWORD game_time_date_ = 0x4A3338;
 const DWORD gdialog_barter_cleanup_tables_ = 0x448660;
 const DWORD gdialog_barter_pressed_ = 0x44A52C;
+const DWORD gdialogActive_ = 0x444D2C;
 const DWORD gdialogDisplayMsg_ = 0x445448;
 const DWORD gdProcess_ = 0x4465C0;
 const DWORD GetSlotList_ = 0x47E5D0;

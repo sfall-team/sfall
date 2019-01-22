@@ -1716,6 +1716,19 @@ skip:
 	}
 }
 
+static void __declspec(naked) combat_attack_hack() {
+	__asm {
+		mov  ebx, ds:[_main_ctd + 0x2C]; // amountTarget
+		test ebx, ebx;
+		jz   end;
+		retn;
+end:
+		add  esp, 4;
+		mov  ebx, 0x423039;
+		jmp  ebx;
+	}
+}
+
 
 void BugsInit()
 {
@@ -2166,4 +2179,10 @@ void BugsInit()
 
 	// Fix returned result value when the file is missing
 	HookCall(0x4C6162, db_freadInt_hook);
+
+	// Fix for attack_complex still causing minimum damage to the target when the attacker misses
+	MakeCall(0x422FE5, combat_attack_hack, 1);
+
+	// Fix for critter_mod_skill taking a negative amount value as a positive
+	SafeWrite8(0x45B910, 0x7E); // jbe > jle
 }
