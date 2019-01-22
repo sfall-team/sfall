@@ -271,7 +271,7 @@ proceedNormal:
 }
 
 // this hook prevents sfall scripts from being removed after switching to another map, since normal script engine re-loads completely
-static void _stdcall FreeProgramHook2(fo::Program* progPtr) {
+static void _stdcall FreeProgram(fo::Program* progPtr) {
 	if (isGameLoading || (sfallProgsMap.find(progPtr) == sfallProgsMap.end())) { // only delete non-sfall scripts or when actually loading the game
 		__asm {
 			mov  eax, progPtr;
@@ -285,7 +285,7 @@ static void __declspec(naked) FreeProgramHook() {
 		push ecx;
 		push edx;
 		push eax;
-		call FreeProgramHook2;
+		call FreeProgram;
 		pop  edx;
 		pop  ecx;
 		retn;
@@ -387,14 +387,14 @@ void _stdcall SetSelfObject(fo::Program* script, fo::GameObject* obj) {
 	std::unordered_map<fo::Program*, SelfOverrideObj>::iterator it = selfOverrideMap.find(script);
 	bool isFind = (it != selfOverrideMap.end());
 	if (obj) {
-		if (isFind)
-			if (it->second.object == obj)
+		if (isFind) {
+			if (it->second.object == obj) {
 				it->second.counter = 2;
-			else {
+			} else {
 				it->second.object = obj;
 				it->second.counter = 0;
 			}
-		else {
+		} else {
 			selfOverrideMap[script] = {obj, 0};
 		}
 	} else {
@@ -642,9 +642,9 @@ void _stdcall RunGlobalScriptsAtProc(DWORD procId) {
 void LoadGlobals(HANDLE h) {
 	DWORD count, unused;
 	ReadFile(h, &count, 4, &unused, 0);
-	if (unused!=4) return;
+	if (unused != 4) return;
 	GlobalVar var;
-	for (DWORD i = 0; i<count; i++) {
+	for (DWORD i = 0; i < count; i++) {
 		ReadFile(h, &var, sizeof(GlobalVar), &unused, 0);
 		globalVars.insert(glob_pair(var.id, var.val));
 	}
@@ -690,7 +690,7 @@ void GetGlobals(GlobalVar* globals) {
 void SetGlobals(GlobalVar* globals) {
 	glob_itr itr = globalVars.begin();
 	int i = 0;
-	while(itr != globalVars.end()) {
+	while (itr != globalVars.end()) {
 		itr->second = globals[i++].val;
 		itr++;
 	}
