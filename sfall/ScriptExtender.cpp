@@ -447,13 +447,25 @@ struct sExportedVar {
 	sExportedVar() : val(0), type(VAR_TYPE_INT) {}
 };
 
+struct SelfOverrideObj {
+	TGameObj* object;
+	char counter;
+
+	bool UnSetSelf() {
+		if (counter) counter--;
+		return counter == 0;
+	}
+};
+
 static std::vector<DWORD> checkedScripts;
 static std::vector<sGlobalScript> globalScripts;
+
 // a map of all sfall programs (global and hook scripts) by thier scriptPtr
 typedef stdext::hash_map<DWORD, sScriptProgram> SfallProgsMap;
 static SfallProgsMap sfallProgsMap;
+
 // a map scriptPtr => self_obj  to override self_obj for all script types using set_self
-stdext::hash_map<DWORD, TGameObj*> selfOverrideMap;
+stdext::hash_map<DWORD, SelfOverrideObj> selfOverrideMap;
 
 typedef std::tr1::unordered_map<std::string, sExportedVar> ExportedVarsMap;
 static ExportedVarsMap globalExportedVars;
@@ -468,7 +480,7 @@ static void* opcodes[0x300];
 DWORD AvailableGlobalScriptTypes = 0;
 bool isGameLoading;
 
-TScript OverrideScriptStruct;
+TScript OverrideScriptStruct = {0};
 
 //eax contains the script pointer, edx contains the opcode*4
 
@@ -792,13 +804,24 @@ static void __declspec(naked) InitHook() {
 }
 
 static void _stdcall set_self2(DWORD script, TGameObj* obj) {
+	stdext::hash_map<DWORD, SelfOverrideObj>::iterator it = selfOverrideMap.find(script);
+	bool isFind = (it != selfOverrideMap.end());
 	if (obj) {
-		selfOverrideMap[script] = obj;
-	} else {
-		stdext::hash_map<DWORD, TGameObj*>::iterator it = selfOverrideMap.find(script);
-		if (it != selfOverrideMap.end()) {
-			selfOverrideMap.erase(it);
+		if (isFind) {
+			if (it->second.object == obj) {
+				it->second.counter = 2;
+			} else {
+				it->second.object = obj;
+				it->second.counter = 0;
+			}
+		} else {
+			SelfOverrideObj self;
+			self.object = obj;
+			self.counter = 0;
+			selfOverrideMap[script] = self;
 		}
+	} else {
+		if (isFind) selfOverrideMap.erase(it);
 	}
 }
 
@@ -890,16 +913,17 @@ static const DWORD scr_find_sid_from_program = scr_find_sid_from_program_ + 5;
 static const DWORD scr_find_obj_from_program = scr_find_obj_from_program_ + 7;
 
 static DWORD _stdcall FindSid(DWORD script) {
-	stdext::hash_map<DWORD, TGameObj*>::iterator overrideIt = selfOverrideMap.find(script);
+	stdext::hash_map<DWORD, SelfOverrideObj>::iterator overrideIt = selfOverrideMap.find(script);
 	if (overrideIt != selfOverrideMap.end()) {
-		DWORD scriptId = overrideIt->second->scriptID;
+		DWORD scriptId = overrideIt->second.object->scriptID; // script
+		OverrideScriptStruct.script_id = scriptId;
 		if (scriptId != -1) {
-			selfOverrideMap.erase(overrideIt);
+			if (overrideIt->second.UnSetSelf()) selfOverrideMap.erase(overrideIt);
 			return scriptId; // returns the real scriptId of object if it is scripted
 		}
-		OverrideScriptStruct.self_obj = overrideIt->second;
-		OverrideScriptStruct.target_obj = overrideIt->second;
-		selfOverrideMap.erase(overrideIt); // this reverts self_obj back to original value for next function calls
+		OverrideScriptStruct.self_obj = overrideIt->second.object;
+		OverrideScriptStruct.target_obj = overrideIt->second.object;
+		if (overrideIt->second.UnSetSelf()) selfOverrideMap.erase(overrideIt); // this reverts self_obj back to original value for next function calls
 		return -2; // override struct
 	}
 	// this will allow to use functions like roll_vs_skill, etc without calling set_self (they don't really need self object)
@@ -927,11 +951,15 @@ static void __declspec(naked) FindSidHack() {
 		retn;
 override_script:
 		test edx, edx;
-		jz   end;
+		jz   skip;
 		add  esp, 4;
 		lea  eax, OverrideScriptStruct;
 		mov  [edx], eax;
 		mov  eax, -2;
+		retn;
+skip:
+		add  esp, 4;
+		dec  eax; // set -3;
 		retn;
 end:
 		pop  eax;
@@ -947,7 +975,15 @@ end:
 static void __declspec(naked) ScrPtrHack() {
 	__asm {
 		cmp  eax, -2;
-		jnz  end;
+		jnz  skip;
+		xor  eax, eax;
+		retn;
+skip:
+		cmp  eax, -3;
+		jne  end;
+		lea  eax, OverrideScriptStruct;
+		mov  [edx], eax;
+		mov  esi, [eax]; // script.id 
 		xor  eax, eax;
 		retn;
 end:
@@ -1072,7 +1108,7 @@ proceedNormal:
 }
 
 // this hook prevents sfall scripts from being removed after switching to another map, since normal script engine re-loads completely
-static void _stdcall FreeProgramHook2(DWORD progPtr) {
+static void _stdcall FreeProgram(DWORD progPtr) {
 	if (isGameLoading || (sfallProgsMap.find(progPtr) == sfallProgsMap.end())) { // only delete non-sfall scripts or when actually loading the game
 		__asm {
 			mov  eax, progPtr;
@@ -1086,7 +1122,7 @@ static void __declspec(naked) FreeProgramHook() {
 		push ecx;
 		push edx;
 		push eax;
-		call FreeProgramHook2;
+		call FreeProgram;
 		pop  edx;
 		pop  ecx;
 		retn;
@@ -1271,7 +1307,6 @@ void ScriptExtenderSetup() {
 
 	MakeJump(0x4A390C, FindSidHack);
 	MakeJump(0x4A5E34, ScrPtrHack);
-	memset(&OverrideScriptStruct, 0, sizeof(TScript));
 
 	MakeCall(0x4230D5, AfterCombatAttackHook);
 	MakeJump(0x4A67F0, ExecMapScriptsHack);
@@ -1788,7 +1823,7 @@ static void RunScript(sGlobalScript* script) {
 	- reset reg_anim_* combatstate checks
 */
 static void ResetStateAfterFrame() {
-	if (tempArrays.size()) {
+	if (!tempArrays.empty()) {
 		for (std::set<DWORD>::iterator it = tempArrays.begin(); it != tempArrays.end(); ++it)
 			FreeArray(*it);
 		tempArrays.clear();
