@@ -55,7 +55,7 @@ static void __declspec(naked) compute_attack_hack() {
 		cmp  edx, ATKTYPE_POWERKICK;        // Power Kick
 		je   RollCheck;
 		cmp  edx, ATKTYPE_HAMMERPUNCH;      // Hammer Punch
-		je   RollCheck; 
+		je   RollCheck;
 		add  ecx, 5;                        // 10% chance of critical hit
 		cmp  edx, ATKTYPE_HOOKKICK;         // Hook Kick
 		je   RollCheck;
@@ -1575,7 +1575,7 @@ static void __declspec(naked) SliderBtn_hook_down() {
 fix:
 		cmp  ds:[FO_VAR_tag_skill + 3 * 4], ebx;  // _tag_skill4, ebx = _skill_cursor
 		jnz  skip;
-		cmp  eax, tagSkill4LevelBase;             // curr > x2      
+		cmp  eax, tagSkill4LevelBase;             // curr > x2
 		jg   skip;
 		xor  eax, eax;
 skip:
@@ -1782,6 +1782,38 @@ end:
 		add  esp, 4;
 		mov  ebx, 0x423039;
 		jmp  ebx;
+	}
+}
+
+static void __declspec(naked) op_use_obj_on_obj_hack() {
+	__asm {
+		test eax, eax;
+		jz   fail;
+		mov  edx, [eax + protoId];     // source
+		shr  edx, 24;
+		cmp  dword ptr [esp + 4], eax; // target != source
+		jne  skip;
+		xor  edx, edx; // for call obj_use_item_on_ instead of action_use_an_item_on_object_
+skip:
+		retn;
+fail:
+		add  esp, 4;
+		mov  edx, 0x45C3A3; // exit func
+		jmp  edx;
+	}
+}
+
+static void __declspec(naked) op_use_obj_hack() {
+	__asm {
+		test eax, eax;
+		jz   fail;
+		mov  edx, [eax + protoId]; // source
+		shr  edx, 24;
+		retn;
+fail:
+		add  esp, 4;
+		mov  edx, 0x456ABA; // exit func
+		jmp  edx;
 	}
 }
 
@@ -2265,9 +2297,8 @@ void BugFixes::init()
 	// Fix returned result value, when the readable file is missing
 	HookCall(0x4C6162, db_freadInt_hook);
 
-	// Fixes the unused arguments called_shot/num_attack of the attack_complex() function, also changes the behavior for the flags arguments
-	// called_shot - additional damage, when the damage received to target above the specified minimum
-	// num_attack  - the number of free points to move
+	// Fixes the unused arguments called_shot/num_attack of the attack_complex function, also changes the behavior for the flags arguments
+	// called_shot - additional damage, num_attack - bonus to action points
 	// flag_attacker - not used, must be 0, or not equal to the flag_target argument when want to specify flags for the target
 	if (GetConfigInt("Misc", "AttackComplexFix", 0)) {
 		dlog("Applying attack_complex script function fix.", DL_INIT);
@@ -2278,11 +2309,25 @@ void BugFixes::init()
 		dlogr(" Done", DL_INIT);
 	}
 
-	// Fix the attack_complex() script function that causes minimal damage to the target when the attacker misses
+	// Fix the attack_complex script function that causes minimal damage to the target when the attacker misses
 	MakeCall(0x422FE5, combat_attack_hack, 1);
 
-	// Fix the critter_mod_skill() script function for a negative amount value
+	// Fix the critter_mod_skill script function for a negative amount value
 	SafeWrite8(0x45B910, 0x7E); // jbe > jle
+
+	// Fix a crash for use_obj/use_obj_on_obj script functions, when functions are incorrectly called without using set_self in global scripts
+	// also change the behavior of the use_obj_on_obj function, if the object uses the item on self, then the another function is called (this is not a bug fix)
+	MakeCall(0x45C376, op_use_obj_on_obj_hack, 1);
+	MakeCall(0x456A92, op_use_obj_hack, 1);
+
+	// Fix script functions pickup_obj/drop_obj/use_obj, change get pointer from script.target to script.self
+	// script.target - contains a wrong pointer, which may vary depending on the situations in the game
+	SafeWriteBatch<BYTE>(0x34, {
+		0x456554, // op_pickup_obj_
+		0x456600, // op_drop_obj_
+		0x456A6D, // op_use_obj_
+		0x456AA4  // op_use_obj_
+	});
 }
 
 }

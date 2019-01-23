@@ -318,6 +318,9 @@ void AnimationsAtOnce::init() {
 
 	// Fix crash when the critter goes through a door with animation trigger
 	MakeJump(0x41755E, object_move_hack);
+
+	// Allow the "Magic Hand" animation when used the item on
+	SafeWrite16(0x4120B8, 0x9090); // fix action_use_an_item_on_object_
 }
 
 void AnimationsAtOnce::exit() {
