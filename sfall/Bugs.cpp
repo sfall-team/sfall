@@ -1729,6 +1729,14 @@ end:
 	}
 }
 
+static void __declspec(naked) op_attack_hook() {
+	__asm {
+		mov esi, dword ptr [esp + 0x3C + 4];   // free_move
+		mov ebx, dword ptr [esp + 0x40 + 4];   // add amount damage to target
+		jmp gdialogActive_;
+	}
+}
+
 
 void BugsInit()
 {
@@ -2185,4 +2193,18 @@ void BugsInit()
 
 	// Fix for critter_mod_skill taking a negative amount value as a positive
 	SafeWrite8(0x45B910, 0x7E); // jbe > jle
+
+	// Fix and repurpose the unused called_shot/num_attack arguments of attack_complex function
+	// also change the behavior of the result flags arguments
+	// called_shot - additional damage, when the damage received by the target is above the specified minimum
+	// num_attacks - the number of free action points on the first turn only
+	// attacker_results - unused, must be 0 or not equal to the target_results argument when specifying result flags for the target
+	if (GetPrivateProfileIntA("Misc", "AttackComplexFix", 0, ini)) {
+		dlog("Applying attack_complex fix.", DL_INIT);
+		HookCall(0x456D4A, op_attack_hook);
+		SafeWrite8(0x456D61, 0x74); // mov [esp+x], esi
+		SafeWrite8(0x456D92, 0x5C); // mov [esp+x], ebx
+		SafeWrite8(0x456D98, 0x94); // setnz > setz (fix setting result flags)
+		dlogr(" Done", DL_INIT);
+	}
 }
