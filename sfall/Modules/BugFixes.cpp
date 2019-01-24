@@ -17,9 +17,9 @@ static DWORD weightOnBody = 0;
 static char textBuf[355];
 
 void ResetBodyState() {
-	_asm mov critterBody, 0;
-	_asm mov sizeOnBody, 0;
-	_asm mov weightOnBody, 0;
+	__asm mov critterBody, 0;
+	__asm mov sizeOnBody, 0;
+	__asm mov weightOnBody, 0;
 }
 
 void GameInitialization() {
@@ -1762,6 +1762,34 @@ static void __declspec(naked) op_attack_hook() {
 	}
 }
 
+static void __declspec(naked) op_use_obj_on_obj_hack() {
+	__asm {
+		test eax, eax;
+		jz   fail;
+		mov  edx, [eax + protoId]; // source
+		shr  edx, 24;
+		retn;
+fail:
+		add  esp, 4;
+		mov  edx, 0x45C3A3; // exit func
+		jmp  edx;
+	}
+}
+
+static void __declspec(naked) op_use_obj_hack() {
+	__asm {
+		test eax, eax;
+		jz   fail;
+		mov  edx, [eax + protoId]; // source
+		shr  edx, 24;
+		retn;
+fail:
+		add  esp, 4;
+		mov  edx, 0x456ABA; // exit func
+		jmp  edx;
+	}
+}
+
 
 void BugFixes::init()
 {
@@ -2243,6 +2271,19 @@ void BugFixes::init()
 		SafeWrite8(0x456D98, 0x94); // setnz > setz (fix setting result flags)
 		dlogr(" Done", DL_INIT);
 	}
+
+	// Fix crash when calling use_obj/use_obj_on_obj without using set_self in global scripts
+	MakeCall(0x45C376, op_use_obj_on_obj_hack, 1);
+	MakeCall(0x456A92, op_use_obj_hack, 1);
+
+	// Fix pickup_obj/drop_obj/use_obj functions, change them to get pointer from script.self instead of script.target
+	// script.target contains an incorrect pointer, which may vary depending on the situations in the game
+	SafeWriteBatch<BYTE>(0x34, { // script.target > script.self
+		0x456554, // op_pickup_obj_
+		0x456600, // op_drop_obj_
+		0x456A6D, // op_use_obj_
+		0x456AA4  // op_use_obj_
+	});
 }
 
 }
