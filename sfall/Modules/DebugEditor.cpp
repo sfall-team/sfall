@@ -43,6 +43,8 @@ namespace sfall
 #define CODE_GET_ARRAY   (9)
 #define CODE_SET_ARRAY   (10)
 
+static DWORD debugEditorKey = 0;
+
 static bool SetBlocking(SOCKET s, bool block) {
 	DWORD d = !block;
 	ioctlsocket(s, FIONBIO, &d);
@@ -125,30 +127,30 @@ static void RunEditorInternal(SOCKET &s) {
 		if (code == CODE_EXIT) break;
 		int id, val;
 		switch (code) {
-			case 0:
-				InternalRecv(s, &id, 4);
-				InternalRecv(s, &val, 4);
-				fo::var::game_global_vars[id] = val;
-				break;
-			case 1:
-				InternalRecv(s, &id, 4);
-				InternalRecv(s, &val, 4);
-				fo::var::map_global_vars[id] = val;
-				break;
-			case 2:
-				InternalRecv(s, &id, 4);
-				InternalSend(s, vec[id], 0x74);
-				break;
-			case 3:
-				InternalRecv(s, &id, 4);
-				InternalRecv(s, vec[id], 0x74);
-				break;
-			case 4:
-				InternalRecv(s, &id, 4);
-				InternalRecv(s, &val, 4);
-				sglobals[id].val = val;
-				break;
-			case 9:
+		case 0:
+			InternalRecv(s, &id, 4);
+			InternalRecv(s, &val, 4);
+			fo::var::game_global_vars[id] = val;
+			break;
+		case 1:
+			InternalRecv(s, &id, 4);
+			InternalRecv(s, &val, 4);
+			fo::var::map_global_vars[id] = val;
+			break;
+		case 2:
+			InternalRecv(s, &id, 4);
+			InternalSend(s, vec[id], 0x74);
+			break;
+		case 3:
+			InternalRecv(s, &id, 4);
+			InternalRecv(s, vec[id], 0x74);
+			break;
+		case 4:
+			InternalRecv(s, &id, 4);
+			InternalRecv(s, &val, 4);
+			sglobals[id].val = val;
+			break;
+		case 9:
 			{
 				InternalRecv(s, &id, 4);
 				DWORD *types = new DWORD[arrays[id * 3 + 1]];
@@ -160,7 +162,7 @@ static void RunEditorInternal(SOCKET &s) {
 				delete[] types;
 			}
 			break;
-			case 10:
+		case 10:
 			{
 				InternalRecv(s, &id, 4);
 				char *data = new char[arrays[id * 3 + 1] * arrays[id * 3 + 2]];
@@ -238,7 +240,19 @@ void RunDebugEditor() {
 	WSACleanup();
 }
 
-static DWORD debugEditorKey = 0;
+static void __declspec(naked) dbg_error_hack() {
+	__asm {
+		cmp ebx, 1;
+		je  hide;
+		sub esp, 0x104;
+		retn;
+hide:
+		add esp, 4; // destroy this return addr
+		pop esi;
+		pop ecx;
+		retn;
+	}
+}
 
 void DebugEditor::init() {
 	if (!isDebug) return;
@@ -249,6 +263,10 @@ void DebugEditor::init() {
 				RunDebugEditor();
 			}
 		};
+	}
+
+	if (GetPrivateProfileIntA("Debugging", "HideObjIsNullMsg", 0, sfall::ddrawIni)) {
+		MakeCall(0x453FD2, dbg_error_hack, 1);
 	}
 }
 
