@@ -26,7 +26,7 @@ procedure pickup_ground_items;
 procedure pickup_info();
 procedure distance_sort(variable array);
 
-variable pickupKey, pickupItem;
+variable pickupKey, pickupItem, temp;
 
 procedure start begin
    variable sfall_version;
@@ -44,6 +44,18 @@ procedure start begin
          and GetIniConfig("Misc", "ReloadReserve", -1, "ddraw.ini") > -1) then begin
             register_hook_proc(HOOK_INVENTORYMOVE, InventoryMoveHandler);
          end
+      end
+
+      // Fix the lighting of the map from the night vision perk when loading the game
+      if has_trait(TRAIT_PERK, dude_obj, PERK_night_vision) then begin
+         temp := get_light_level;
+         if (temp < 40960) then begin
+            temp := round(((temp - 16384) * 100) / 24576.0);
+         end
+         else if (temp > 40960) then begin
+            temp := round(((temp - 40960) * 100) / 24576.0);
+         end else temp := 50;
+         set_light_level(temp); // refresh lighting
       end
    end
 end

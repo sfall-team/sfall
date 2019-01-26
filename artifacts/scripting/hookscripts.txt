@@ -465,7 +465,7 @@ Runs before and after each turn in combat (for both PC and NPC).
 
 int     arg1 - event type: 1 - start of turn, 0 - normal end of turn, -1 - combat ended abruptly (by script or by pressing Enter during PC turn)
 int     arg2 - critter doing the turn
-int     arg3 - unknown boolean argument
+boolean arg3 - sets to 1 at the beginning of the player’s turn, after the game has been loaded, 0 - otherwise
 
 int     ret1 - pass 1 at the start of turn to skip the turn, pass -1 at the end of turn to force end of combat
 
