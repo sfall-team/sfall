@@ -1168,13 +1168,13 @@ end:
 
 static void __declspec(naked) use_inventory_on_hack() {
 	__asm {
-		inc  ecx
-		mov  edx, [eax]                           // Inventory.inv_size
-		sub  edx, ecx
-		jge  end
-		mov  edx, [eax]                           // Inventory.inv_size
+		inc  ecx;
+		mov  edx, [eax];                          // Inventory.inv_size
+		sub  edx, ecx;
+		jge  end;
+		mov  edx, [eax];                          // Inventory.inv_size
 end:
-		retn
+		retn;
 	}
 }
 
@@ -1592,7 +1592,7 @@ static void __declspec(naked) op_start_gdialog_hack() {
 		mov  eax, dword ptr [esp + 0x3C - 0x30 + 4];  // fix dialog_target (overwritten engine code)
 		retn;
 useMood:
-		add  esp, 4;                              // Destroy the return address
+		add  esp, 4;                                  // Destroy the return address
 		jmp  op_start_gdialog_ret;
 	}
 }
@@ -1746,9 +1746,9 @@ static void __declspec(naked) op_attack_hook() {
 
 static void __declspec(naked) op_use_obj_on_obj_hack() {
 	__asm {
-		test eax, eax;
+		test eax, eax; // source
 		jz   fail;
-		mov  edx, [eax + 0x64]; // source
+		mov  edx, [eax + 0x64];
 		shr  edx, 24;
 		retn;
 fail:
@@ -1760,15 +1760,32 @@ fail:
 
 static void __declspec(naked) op_use_obj_hack() {
 	__asm {
-		test eax, eax;
+		test eax, eax; // source
 		jz   fail;
-		mov  edx, [eax + 0x64]; // source
+		mov  edx, [eax + 0x64];
 		shr  edx, 24;
 		retn;
 fail:
 		add  esp, 4;
 		mov  edx, 0x456ABA; // exit func
 		jmp  edx;
+	}
+}
+
+static const DWORD combat_End = 0x422E45;
+static const DWORD combat_Load = 0x422E91;
+static void __declspec(naked) combat_hack_load() {
+	__asm {
+		cmp  eax, -1;
+		je   skip;
+		retn;
+skip:
+		add  esp, 4; // destroy addr
+		cmp  ds:[_combat_end_due_to_load], 0;
+		jnz  isLoad;
+		jmp  combat_End;
+isLoad:
+		jmp  combat_Load;
 	}
 }
 
@@ -1795,7 +1812,7 @@ void BugsInit()
 		dlog("Applying Sharpshooter patch.", DL_INIT);
 		// http://www.nma-fallout.com/threads/fo2-engine-tweaks-sfall.178390/page-119#post-4050162
 		// by Slider2k
-		HookCall(0x4244AB, &SharpShooterFix); // hooks stat_level_() call in detemine_to_hit_func_()
+		HookCall(0x4244AB, SharpShooterFix); // hooks stat_level_() call in detemine_to_hit_func_()
 		// // removes this line by making unconditional jump:
 		// if ( who == obj_dude )
 		//     dist -= 2 * perk_level_(obj_dude, PERK_sharpshooter);
@@ -1816,8 +1833,8 @@ void BugsInit()
 	// Fix for "Too Many Items" bug
 	//if (GetPrivateProfileIntA("Misc", "TooManyItemsBugFix", 1, ini)) {
 		dlog("Applying preventive patch for \"Too Many Items\" bug.", DL_INIT);
-		HookCall(0x4A596A, &scr_write_ScriptNode_hook);
-		HookCall(0x4A59C1, &scr_write_ScriptNode_hook);
+		HookCall(0x4A596A, scr_write_ScriptNode_hook);
+		HookCall(0x4A59C1, scr_write_ScriptNode_hook);
 		dlogr(" Done", DL_INIT);
 	//}
 
@@ -1838,7 +1855,7 @@ void BugsInit()
 
 	// Fix crash when leaving the map while waiting for someone to die of a super stimpak overdose
 	dlog("Applying fix for \"leaving the map while waiting for a super stimpak overdose death\" crash.", DL_INIT);
-	HookCall(0x4A27E7, &queue_clear_type_mem_free_hook); // hooks mem_free_()
+	HookCall(0x4A27E7, queue_clear_type_mem_free_hook); // hooks mem_free_()
 	dlogr(" Done", DL_INIT);
 
 	// Evil bug! If party member has the same armor type in inventory as currently equipped, then
@@ -1846,14 +1863,14 @@ void BugsInit()
 	// The same happens if you just order NPC to remove the armor through dialogue.
 	//if (GetPrivateProfileIntA("Misc", "ArmorCorruptsNPCStatsFix", 1, ini)) {
 		dlog("Applying fix for armor reducing NPC original stats when removed.", DL_INIT);
-		HookCall(0x495F3B, &partyMemberCopyLevelInfo_stat_level_hook);
-		HookCall(0x45419B, &correctFidForRemovedItem_adjust_ac_hook);
+		HookCall(0x495F3B, partyMemberCopyLevelInfo_stat_level_hook);
+		HookCall(0x45419B, correctFidForRemovedItem_adjust_ac_hook);
 		dlogr(" Done", DL_INIT);
 	//}
 
 	// Fix of invalid stats when party member gains a level while being on drugs
 	dlog("Applying fix for addicted party member level up bug.", DL_INIT);
-	HookCall(0x495D5C, &partyMemberCopyLevelInfo_hook);
+	HookCall(0x495D5C, partyMemberCopyLevelInfo_hook);
 	dlogr(" Done", DL_INIT);
 
 	// Allow 9 options (lines of text) to be displayed correctly in a dialog window
@@ -1865,7 +1882,7 @@ void BugsInit()
 
 	// Fix for "Unlimited Ammo" exploit
 	dlog("Applying fix for Unlimited Ammo exploit.", DL_INIT);
-	HookCall(0x472957, &invenWieldFunc_item_get_type_hook); // hooks item_get_type_()
+	HookCall(0x472957, invenWieldFunc_item_get_type_hook); // hooks item_get_type_()
 	dlogr(" Done", DL_INIT);
 
 	// Fix for negative values in Skilldex window ("S")
@@ -1877,8 +1894,8 @@ void BugsInit()
 	dlog("Applying fix for negative SPECIAL values in character creation.", DL_INIT);
 	MakeCall(0x43DF6F, is_supper_bonus_hack);
 	MakeCall(0x434BFF, PrintBasicStat_hack);
-	HookCall(0x437AB4, &StatButtonUp_hook);
-	HookCall(0x437B26, &StatButtonDown_hook);
+	HookCall(0x437AB4, StatButtonUp_hook);
+	HookCall(0x437B26, StatButtonDown_hook);
 	dlogr(" Done", DL_INIT);
 
 	// Fix for not counting in the weight/size of equipped items on NPC when stealing or bartering
@@ -1907,7 +1924,7 @@ void BugsInit()
 		// also for reverse order error
 		MakeJump(0x47114A, inven_pickup_hack2);
 		// Fix for using only one box of ammo when a weapon is above the ammo in the inventory list
-		HookCall(0x476598, &drop_ammo_into_weapon_hook);
+		HookCall(0x476598, drop_ammo_into_weapon_hook);
 		dlogr(" Done", DL_INIT);
 	//}
 
@@ -1919,13 +1936,13 @@ void BugsInit()
 
 	//if (GetPrivateProfileIntA("Misc", "BlackSkilldexFix", 1, ini)) {
 		dlog("Applying black Skilldex patch.", DL_INIT);
-		HookCall(0x497D0F, &PipStatus_AddHotLines_hook);
+		HookCall(0x497D0F, PipStatus_AddHotLines_hook);
 		dlogr(" Done", DL_INIT);
 	//}
 
 	//if (GetPrivateProfileIntA("Misc", "FixWithdrawalPerkDescCrash", 1, ini)) {
 		dlog("Applying withdrawal perk description crash fix.", DL_INIT);
-		HookCall(0x47A501, &perform_withdrawal_start_display_print_hook);
+		HookCall(0x47A501, perform_withdrawal_start_display_print_hook);
 		dlogr(" Done", DL_INIT);
 	//}
 
@@ -1964,7 +1981,7 @@ void BugsInit()
 	//if (GetPrivateProfileIntA("Misc", "WieldObjCritterFix", 1, ini)) {
 		dlog("Applying wield_obj_critter fix.", DL_INIT);
 		SafeWrite8(0x456912, 0x1E);
-		HookCall(0x45697F, &op_wield_obj_critter_adjust_ac_hook);
+		HookCall(0x45697F, op_wield_obj_critter_adjust_ac_hook);
 		dlogr(" Done", DL_INIT);
 	//}
 
@@ -1991,7 +2008,7 @@ void BugsInit()
 		MakeCall(0x424F8E, set_new_results_hack);
 		MakeJump(0x42E46E, critter_wake_clear_hack);
 		MakeJump(0x488EF3, obj_load_func_hack);
-		HookCall(0x4949B2, &partyMemberPrepLoadInstance_hook);
+		HookCall(0x4949B2, partyMemberPrepLoadInstance_hook);
 		dlogr(" Done", DL_INIT);
 	//}
 
@@ -2010,7 +2027,7 @@ void BugsInit()
 		SafeWrite8(0x478115, 0xBA);
 		SafeWrite8(0x478138, 0xBA);
 		MakeJump(0x474D22, barter_attempt_transaction_hack);
-		HookCall(0x4798B1, &item_m_turn_off_hook);
+		HookCall(0x4798B1, item_m_turn_off_hook);
 		dlogr(" Done", DL_INIT);
 	}
 
@@ -2045,7 +2062,7 @@ void BugsInit()
 	// Fix for display issues when calling gdialog_mod_barter with critters with no "Barter" flag set
 	//if (GetPrivateProfileIntA("Misc", "gdBarterDispFix", 1, ini)) {
 		dlog("Applying gdialog_mod_barter display fix.", DL_INIT);
-		HookCall(0x448250, &gdActivateBarter_hook);
+		HookCall(0x448250, gdActivateBarter_hook);
 		dlogr(" Done", DL_INIT);
 	//}
 
@@ -2077,7 +2094,7 @@ void BugsInit()
 	// Fix for Bonus Move APs being replenished when you save and load the game in combat
 	//if (GetPrivateProfileIntA("Misc", "BonusMoveFix", 1, ini)) {
 		dlog("Applying fix for Bonus Move exploit.", DL_INIT);
-		HookCall(0x420E93, &combat_load_hook);
+		HookCall(0x420E93, combat_load_hook);
 		MakeCall(0x422A06, combat_turn_hack);
 		dlogr(" Done", DL_INIT);
 	//}
@@ -2092,7 +2109,7 @@ void BugsInit()
 	//if (GetPrivateProfileIntA("Misc", "SilentDeathFix", 1, ini)) {
 		dlog("Applying Silent Death patch.", DL_INIT);
 		SafeWrite8(0x4238DF, 0x8C); // jl loc_423A0D
-		HookCall(0x423A99, &compute_attack_hook);
+		HookCall(0x423A99, compute_attack_hook);
 		dlogr(" Done", DL_INIT);
 	//}
 
@@ -2100,7 +2117,7 @@ void BugsInit()
 	MakeCall(0x495FF6, partyMemberGetCurLevel_hack, 1);
 
 	// Fix for player's base EMP DR not being properly initialized when creating a new character and then starting the game
-	HookCall(0x4A22DF, &ResetPlayer_hook);
+	HookCall(0x4A22DF, ResetPlayer_hook);
 
 	// Fix for add_mult_objs_to_inven only adding 500 of an object when the value of "count" argument is over 99999
 	SafeWrite32(0x45A2A0, 0x1869F); // 99999
@@ -2227,7 +2244,9 @@ void BugsInit()
 	MakeCall(0x422FE5, combat_attack_hack, 1);
 
 	// Fix for critter_mod_skill taking a negative amount value as a positive
+	dlog("Applying critter_mod_skill fix.", DL_INIT);
 	SafeWrite8(0x45B910, 0x7E); // jbe > jle
+	dlogr(" Done", DL_INIT);
 
 	// Fix and repurpose the unused called_shot/num_attack arguments of attack_complex function
 	// also change the behavior of the result flags arguments
@@ -2249,7 +2268,15 @@ void BugsInit()
 
 	// Fix pickup_obj/drop_obj/use_obj functions, change them to get pointer from script.self instead of script.target
 	// script.target contains an incorrect pointer, which may vary depending on the situations in the game
+	dlog("Applying pickup_obj/drop_obj/use_obj fix.", DL_INIT);
 	for (int i = 0; i < sizeof(ScriptTargetAddr) / 4; i++) {
 		SafeWrite8(ScriptTargetAddr[i], 0x34); // script.target > script.self
 	}
+	dlogr(" Done", DL_INIT);
+
+	// Fix for critters not attacking the player in combat when loading a game saved in combat mode
+	BlockCall(0x48D6F0); // obj_fix_combat_cid_for_dude_
+
+	// Fix for the player's turn being skipped when loading a game saved in combat mode
+	MakeCall(0x422E25, combat_hack_load);
 }

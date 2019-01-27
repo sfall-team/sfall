@@ -48,6 +48,7 @@
 #define _character_points           0x518538
 #define _cmap                       0x51DF34
 #define _colorTable                 0x6A38D0
+#define _combat_end_due_to_load     0x517F98
 #define _combat_free_move           0x56D39C
 #define _combat_list                0x56D390
 #define _combat_state               0x510944
