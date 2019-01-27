@@ -168,7 +168,6 @@ static void InitModules() {
 	manager.add<Explosions>();
 	manager.add<Message>();
 	manager.add<Elevators>();
-	manager.add<DebugEditor>();
 	manager.add<KillCounter>();
 
 	manager.add<AI>();
@@ -177,6 +176,7 @@ static void InitModules() {
 	manager.add<BarBoxes>();
 	manager.add<HeroAppearance>();
 	manager.add<MiscPatches>();
+	manager.add<DebugEditor>();
 
 	manager.initAll();
 

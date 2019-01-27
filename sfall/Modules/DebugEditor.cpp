@@ -43,6 +43,11 @@ namespace sfall
 #define CODE_GET_ARRAY   (9)
 #define CODE_SET_ARRAY   (10)
 
+static const char* debugLog = "LOG";
+static const char* debugGnw = "GNW";
+
+static DWORD debugEditorKey = 0;
+
 static bool SetBlocking(SOCKET s, bool block) {
 	DWORD d = !block;
 	ioctlsocket(s, FIONBIO, &d);
@@ -149,7 +154,7 @@ static void RunEditorInternal(SOCKET &s) {
 			sglobals[id].val = val;
 			break;
 		case 9:
-		{
+			{
 			InternalRecv(s, &id, 4);
 			DWORD *types = new DWORD[arrays[id * 3 + 1]];
 			char *data = new char[arrays[id * 3 + 1] * arrays[id * 3 + 2]];
@@ -158,17 +163,17 @@ static void RunEditorInternal(SOCKET &s) {
 			InternalSend(s, data, arrays[id * 3 + 1] * arrays[id * 3 + 2]);
 			delete[] data;
 			delete[] types;
-		}
-		break;
+			}
+			break;
 		case 10:
-		{
+			{
 			InternalRecv(s, &id, 4);
 			char *data = new char[arrays[id * 3 + 1] * arrays[id * 3 + 2]];
 			InternalRecv(s, data, arrays[id * 3 + 1] * arrays[id * 3 + 2]);
 			script::DESetArray(arrays[id * 3], 0, data);
 			delete[] data;
-		}
-		break;
+			}
+			break;
 		}
 	}
 
@@ -238,10 +243,60 @@ void RunDebugEditor() {
 	WSACleanup();
 }
 
-static DWORD debugEditorKey = 0;
+static void __declspec(naked) dbg_error_hack() {
+	__asm {
+		cmp  ebx, 1;
+		je   hide;
+		sub  esp, 0x104;
+		retn;
+hide:
+		add  esp, 4; // destroy this return addr
+		pop  esi;
+		pop  ecx;
+		retn;
+	}
+}
+
+static void __declspec(naked) win_debug_hook() {
+	__asm {
+		call fo::funcoffs::debug_log_;
+		xor  eax, eax;
+		cmp  ds:[FO_VAR_GNW_win_init_flag], eax;
+		retn;
+	}
+}
+
+void DebugModePatch() {
+	DWORD dbgMode = GetPrivateProfileIntA("Debugging", "DebugMode", 0, ::sfall::ddrawIni);
+	if (dbgMode) {
+		dlog("Applying debugmode patch.", DL_INIT);
+		//If the player is using an exe with the debug patch already applied, just skip this block without erroring
+		if (*((DWORD*)0x444A64) != 0x082327E8) {
+			SafeWrite32(0x444A64, 0x082327E8); // call debug_register_env_
+			SafeWrite32(0x444A68, 0x0120E900); // jmp  0x444B8E
+			SafeWrite8(0x444A6D, 0);
+			SafeWrite32(0x444A6E, 0x90909090);
+		}
+		SafeWrite8(0x4C6D9B, 0xB8);            // mov  eax, GNW/LOG
+		if (dbgMode & 2) {
+			SafeWrite32(0x4C6D9C, (DWORD)debugLog);
+			if (dbgMode & 1) {
+				SafeWrite16(0x4C6E75, 0x66EB); // jmps 0x4C6EDD
+				SafeWrite8(0x4C6EF2, 0xEB);
+				SafeWrite8(0x4C7034, 0x0);
+				MakeCall(0x4DC319, win_debug_hook, 2);
+			}
+		} else {
+			SafeWrite32(0x4C6D9C, (DWORD)debugGnw);
+		}
+		dlogr(" Done", DL_INIT);
+	}
+}
 
 void DebugEditor::init() {
 	if (!isDebug) return;
+	DebugModePatch();
+
 	debugEditorKey = GetConfigInt("Input", "DebugEditorKey", 0);
 	if (debugEditorKey != 0) {
 		OnKeyPressed() += [](DWORD scanCode, bool pressed) {
@@ -249,6 +304,10 @@ void DebugEditor::init() {
 				RunDebugEditor();
 			}
 		};
+	}
+
+	if (GetPrivateProfileIntA("Debugging", "HideObjIsNullMsg", 0, ::sfall::ddrawIni)) {
+		MakeCall(0x453FD2, dbg_error_hack, 1);
 	}
 }
 
