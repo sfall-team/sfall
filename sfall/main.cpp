@@ -33,6 +33,7 @@
 #include "Credits.h"
 #include "Criticals.h"
 #include "Define.h"
+#include "DebugEditor.h"
 #include "Elevators.h"
 #include "Explosions.h"
 #include "FalloutEngine.h"
@@ -81,9 +82,6 @@ static char smModelName[65];
 char dmModelName[65];
 static char sfModelName[65];
 char dfModelName[65];
-
-static const char* debugLog = "LOG";
-static const char* debugGnw = "GNW";
 
 static const char* musicOverridePath = "data\\sound\\music\\";
 
@@ -774,15 +772,6 @@ static void __declspec(naked) wmInterfaceInit_text_font_hook() {
 	}
 }
 
-static void __declspec(naked) win_debug_hook() {
-	__asm {
-		call debug_log_;
-		xor  eax, eax;
-		cmp  ds:[_GNW_win_init_flag], eax;
-		retn;
-	}
-}
-
 static void DllMain2() {
 	//SafeWrite8(0x4B15E8, 0xc3);
 	//SafeWrite8(0x4B30C4, 0xc3); //this is the one I need to override for bigger tiles
@@ -1109,32 +1098,7 @@ static void DllMain2() {
 
 	FileSystemInit();
 
-	if (IsDebug) {
-		tmp = GetPrivateProfileIntA("Debugging", "DebugMode", 0, ".\\ddraw.ini");
-		if (tmp) {
-			dlog("Applying debugmode patch.", DL_INIT);
-			//If the player is using an exe with the debug patch already applied, just skip this block without erroring
-			if (*((DWORD*)0x444A64) != 0x082327E8) {
-				SafeWrite32(0x444A64, 0x082327E8); // call debug_register_env_
-				SafeWrite32(0x444A68, 0x0120E900); // jmp  0x444B8E
-				SafeWrite8(0x444A6D, 0);
-				SafeWrite32(0x444A6E, 0x90909090);
-			}
-			SafeWrite8(0x4C6D9B, 0xB8);            // mov  eax, GNW/LOG
-			if (tmp & 2) {
-				SafeWrite32(0x4C6D9C, (DWORD)debugLog);
-				if (tmp & 1) {
-					SafeWrite16(0x4C6E75, 0x66EB); // jmps 0x4C6EDD
-					SafeWrite8(0x4C6EF2, 0xEB);
-					SafeWrite8(0x4C7034, 0x0);
-					MakeCall(0x4DC319, win_debug_hook, 2);
-				}
-			} else {
-				SafeWrite32(0x4C6D9C, (DWORD)debugGnw);
-			}
-			dlogr(" Done", DL_INIT);
-		}
-	}
+	DebugEditorInit();
 
 	npcautolevel = GetPrivateProfileIntA("Misc", "NPCAutoLevel", 0, ini) != 0;
 	if (npcautolevel) {
