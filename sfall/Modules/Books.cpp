@@ -22,12 +22,11 @@
 
 #include "Books.h"
 
-namespace sfall 
+namespace sfall
 {
 
 static int BooksCount = 0;
-static const int BooksMax = 30;
-static char iniBooks[MAX_PATH];
+static const int BooksMax = 50;
 
 struct sBook {
 	DWORD bookPid;
@@ -35,10 +34,10 @@ struct sBook {
 	DWORD skill;
 };
 
-static sBook books[BooksMax];
+static sBook* books = nullptr;
 
-static sBook* _stdcall FindBook(DWORD pid) {
-	for (int i = 0; i < BooksCount; i++) {
+static sBook* __fastcall FindBook(DWORD pid) {
+	for (int i = BooksCount; i >= 0; i--) {
 		if (books[i].bookPid == pid) {
 			return &books[i];
 		}
@@ -49,73 +48,77 @@ static sBook* _stdcall FindBook(DWORD pid) {
 static const DWORD obj_use_book_hook_back = 0x49BA5A;
 static void __declspec(naked) obj_use_book_hook() {
 	__asm {
-		push eax;
+		mov  edi, -1;
+		mov  ecx, eax;
 		call FindBook;
 		test eax, eax;
-		jnz found;
-		mov edi, -1;
-		jmp end;
-found:
-		mov edi, [eax + 4];
-		mov ecx, [eax + 8];
-end:
-		jmp obj_use_book_hook_back;
+		cmovnz edi, [eax + 4]; // msgID
+		cmovnz ecx, [eax + 8]; // skill
+		jmp  obj_use_book_hook_back;
 	}
 }
 
-void LoadVanillaBooks() {
-	int i = BooksCount;
+static void LoadVanillaBooks() {
 	// book of science
-	books[i + 0].bookPid = 73;
-	books[i + 0].msgID = 802;
-	books[i + 0].skill = 12;
+	books[0].bookPid = 73;
+	books[0].msgID = 802;
+	books[0].skill = 12;
 	// Dean's electronics
-	books[i + 1].bookPid = 76;
-	books[i + 1].msgID = 803;
-	books[i + 1].skill = 13;
+	books[1].bookPid = 76;
+	books[1].msgID = 803;
+	books[1].skill = 13;
 	// First Aid
-	books[i + 2].bookPid = 80;
-	books[i + 2].msgID = 804;
-	books[i + 2].skill = 6;
+	books[2].bookPid = 80;
+	books[2].msgID = 804;
+	books[2].skill = 6;
 	// Guns & Bullets
-	books[i + 3].bookPid = 102;
-	books[i + 3].msgID = 805;
-	books[i + 3].skill = 0;
+	books[3].bookPid = 102;
+	books[3].msgID = 805;
+	books[3].skill = 0;
 	// Scouts Handbook
-	books[i + 4].bookPid = 86;
-	books[i + 4].msgID = 806;
-	books[i + 4].skill = 17;
-	BooksCount += 5;
+	books[4].bookPid = 86;
+	books[4].msgID = 806;
+	books[4].skill = 17;
 }
 
 void Books::init() {
 	auto booksFile = GetConfigString("Misc", "BooksFile", "", MAX_PATH);
-	if (booksFile.size() > 0) {
-		sprintf(iniBooks, ".\\%s", booksFile.c_str());
+	if (!booksFile.empty()) {
 		dlog("Applying books patch...", DL_INIT);
-		memset(books, 0, sizeof(sBook)*BooksCount);
+		const char* iniBooks = booksFile.insert(0, ".\\").c_str();
 
-		int i, n = 0, count;
-		if (GetPrivateProfileIntA("main", "overrideVanilla", 0, iniBooks) == 0) {
-			LoadVanillaBooks();
-		}
-		count = GetPrivateProfileIntA("main", "count", 0, iniBooks);
+		bool includeVanilla = (GetPrivateProfileIntA("main", "overrideVanilla", 0, iniBooks) == 0);
+		if (includeVanilla) BooksCount = 5;
 
-		char section[4];
-		for (i = 1; i <= count; i++) {
-			_itoa_s(i, section, 10);
-			if (BooksCount >= BooksMax) break;
-			if (books[BooksCount].bookPid = GetPrivateProfileIntA(section, "PID", 0, iniBooks)) {
-				books[BooksCount].msgID = GetPrivateProfileIntA(section, "TextID", 0, iniBooks);
-				books[BooksCount].skill = GetPrivateProfileIntA(section, "Skill", 0, iniBooks);
-				n++;
-				BooksCount++;
+		int count = max(0, GetPrivateProfileIntA("main", "count", 0, iniBooks));
+		if (count > BooksMax) count = BooksMax;
+
+		int n = 0;
+		if (count > 0) {
+			books = new sBook[BooksCount + count];
+
+			if (includeVanilla) LoadVanillaBooks();
+
+			char section[4];
+			for (int i = 1; i <= count; i++) {
+				_itoa_s(i, section, 10);
+				if (books[BooksCount].bookPid = GetPrivateProfileIntA(section, "PID", 0, iniBooks)) {
+					books[BooksCount].msgID = GetPrivateProfileIntA(section, "TextID", 0, iniBooks);
+					books[BooksCount].skill = GetPrivateProfileIntA(section, "Skill", 0, iniBooks);
+					BooksCount++;
+					n++;
+				}
 			}
-		}
+			BooksCount--; // set to last index
 
-		MakeJump(0x49B9FB, obj_use_book_hook);
+			MakeJump(0x49B9FB, obj_use_book_hook);
+		}
 		dlog_f(" (%d/%d books) Done\n", DL_INIT, n, count);
 	}
+}
+
+void Books::exit() {
+	if (books) delete[] books;
 }
 
 }
