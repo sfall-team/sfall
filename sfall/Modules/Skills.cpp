@@ -258,9 +258,7 @@ void Skills::init() {
 	if (!skillsFile.empty()) {
 		fo::SkillInfo *skills = fo::var::skill_data;
 
-		skillsFile = ".\\" + skillsFile;
-		const char* file = skillsFile.c_str();
-
+		const char* file = skillsFile.insert(0, ".\\").c_str();
 		multipliers = new double[7 * fo::SKILL_count]();
 
 		for (int i = 0; i < fo::SKILL_count; i++) {

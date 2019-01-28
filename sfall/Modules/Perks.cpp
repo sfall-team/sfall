@@ -31,11 +31,12 @@ using namespace fo;
 constexpr int maxNameLen = 64;   // don't change size
 constexpr int maxDescLen = 1024; // don't change size
 
-static char Name[maxNameLen * PERK_count];
-static char Desc[maxDescLen * PERK_count];
-static char tName[maxNameLen * TRAIT_count];
-static char tDesc[maxDescLen * TRAIT_count];
 static char perksFile[MAX_PATH];
+
+static char Name[maxNameLen * PERK_count] = {0};
+static char Desc[maxDescLen * PERK_count] = {0};
+static char tName[maxNameLen * TRAIT_count] = {0};
+static char tDesc[maxDescLen * TRAIT_count] = {0};
 static bool disableTraits[TRAIT_count];
 
 #define check_trait(id) !disableTraits[id] && (var::pc_trait[0] == id || var::pc_trait[1] == id)
@@ -70,8 +71,8 @@ static DWORD RemoveTraitID;
 static DWORD RemovePerkID;
 static DWORD RemoveSelectableID;
 
-static DWORD TraitSkillBonuses[TRAIT_count * 18];
-static DWORD TraitStatBonuses[TRAIT_count * (STAT_max_derived + 1)];
+static DWORD TraitSkillBonuses[TRAIT_count * 18] = {0};
+static DWORD TraitStatBonuses[TRAIT_count * (STAT_max_derived + 1)] = {0};
 
 static DWORD IgnoringDefaultPerks = 0;
 static char PerkBoxTitle[33];
@@ -599,8 +600,6 @@ static void PerkSetup() {
 	MakeCall(0x4AFB2F, LevelUpHack, 1); // replaces 'mov edx, ds:[PlayerLevel]
 	SafeWrite8(0x43C2EC, 0xEB);         // skip the block of code which checks if the player has gained a perk (now handled in level up code)
 
-	memset(Name, 0, sizeof(Name));
-	memset(Desc, 0, sizeof(Desc));
 	memcpy(perks, var::perk_data, sizeof(PerkInfo) * PERK_count);
 
 	// _perk_data
@@ -610,7 +609,7 @@ static void PerkSetup() {
 	SafeWrite32(0x496BF5, (DWORD)perks + 8);
 	SafeWrite32(0x496AD4, (DWORD)perks + 12);
 
-	if (strlen(perksFile)) {
+	if (perksFile[0] != '\0') {
 		char num[4];
 		for (int i = 0; i < PERK_count; i++) {
 			_itoa_s(i, num, 10);
@@ -811,11 +810,7 @@ static void TraitSetup() {
 	MakeJump(0x4B3C7C, TraitAdjustStatHack);  // trait_adjust_stat_
 	MakeJump(0x4B40FC, TraitAdjustSkillHack); // trait_adjust_skill_
 
-	memset(tName, 0, sizeof(tName));
-	memset(tDesc, 0, sizeof(tDesc));
 	memcpy(traits, var::trait_data, sizeof(TraitInfo) * TRAIT_count);
-	memset(TraitStatBonuses, 0, sizeof(TraitStatBonuses));
-	memset(TraitSkillBonuses, 0, sizeof(TraitSkillBonuses));
 
 	// _trait_data
 	SafeWrite32(0x4B3A81, (DWORD)traits);
@@ -824,7 +819,7 @@ static void TraitSetup() {
 	SafeWrite32(0x4B3BA0, (DWORD)traits + 4);
 	SafeWrite32(0x4B3BC0, (DWORD)traits + 8);
 
-	if (strlen(perksFile)) {
+	if (perksFile[0] != '\0') {
 		char buf[512], num[5] = {'t'};
 		char* num2 = &num[1];
 		for (int i = 0; i < TRAIT_count; i++) {
@@ -1064,7 +1059,7 @@ void Perks::init() {
 	for (int i = STAT_st; i <= STAT_lu; i++) SafeWrite8(GainStatPerks[i][0], (BYTE)GainStatPerks[i][1]);
 
 	HookCall(0x442729, PerkInitWrapper);      // game_init_
-	if (GetConfigString("Misc", "PerksFile", "", &perksFile[2], MAX_PATH)) {
+	if (GetConfigString("Misc", "PerksFile", "", &perksFile[2], MAX_PATH - 3)) {
 		perksFile[0] = '.';
 		perksFile[1] = '\\';
 		HookCall(0x44272E, TraitInitWrapper); // game_init_

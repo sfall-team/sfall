@@ -43,7 +43,7 @@ static const char* critNames[] = {
 	"FailMessage",
 };
 
-static fo::CritInfo loadCritTable[Criticals::critTableCount][9][6]; // Loaded table from CriticalOverrides.ini (with bug fixes and default engine values)
+static fo::CritInfo loadCritTable[Criticals::critTableCount][9][6] = {0}; // Loaded table from CriticalOverrides.ini (with bug fixes and default engine values)
 
 static fo::CritInfo critTable[Criticals::critTableCount][9][6];
 static fo::CritInfo (*playerCrit)[9][6];
@@ -80,7 +80,6 @@ static int CritTableLoad() {
 	if (mode == 1) {
 		dlog("\n  Setting up critical hit table using CriticalOverrides.ini file", DL_CRITICALS);
 		char section[16];
-		memset(loadCritTable, 0, sizeof(critTable));
 		for (DWORD critter = 0; critter < 20; critter++) {
 			for (DWORD part = 0; part < 9; part++) {
 				for (DWORD crit = 0; crit < 6; crit++) {
@@ -106,7 +105,7 @@ static int CritTableLoad() {
 		constexpr int size = 6 * 9 * sizeof(fo::CritInfo);
 		constexpr int sizeF = 19 * size;
 		memcpy(loadCritTable, fo::var::crit_succ_eff, sizeF);
-		memset(&loadCritTable[19], 0, sizeF);
+		//memset(&loadCritTable[19], 0, sizeF);
 		memcpy(&loadCritTable[38], fo::var::pc_crit_succ_eff, size); // PC crit table
 
 		if (mode == 3) {

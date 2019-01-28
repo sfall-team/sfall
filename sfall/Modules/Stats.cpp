@@ -36,9 +36,9 @@ static DWORD statMinimumsNPC[fo::STAT_max_stat];
 static fo::GameObject* cCritter;
 
 static DWORD xpTable[99];
-static int StatFormulas[33 * 2];
-static int StatShifts[33 * 7];
-static double StatMulti[33 * 7];
+static int StatFormulas[33 * 2] = {0};
+static int StatShifts[33 * 7]   = {0};
+static double StatMulti[33 * 7] = {0};
 
 DWORD standardApAcBonus = 4;
 DWORD extraApAcBonus = 4;
@@ -257,13 +257,9 @@ void Stats::init() {
 		SafeWrite8(0x4AFB1B, static_cast<BYTE>(numLevels));
 	}
 
-	auto statsFile = GetConfigString("Misc", "DerivedStats", "", 2048);
-	if (statsFile.size() > 0) {
+	auto statsFile = GetConfigString("Misc", "DerivedStats", "", MAX_PATH);
+	if (!statsFile.empty()) {
 		MakeJump(0x4AF6FC, stat_recalc_derived_hack); // overrides function
-
-		memset(StatFormulas, 0, sizeof(StatFormulas));
-		memset(StatShifts, 0, sizeof(StatShifts));
-		memset(StatMulti, 0, sizeof(StatMulti));
 
 		StatFormulas[7 * 2]      = 15;     // max hp
 		StatMulti[7 * 7 + 0]     = 1;
@@ -289,19 +285,20 @@ void Stats::init() {
 		StatMulti[32 * 7 + 2]    = 5;      // poison resist
 
 		char key[6], buf2[256], buf3[256];
-		statsFile = ".\\" + statsFile;
+		const char* statFile = statsFile.insert(0, ".\\").c_str();
+
 		for (int i = fo::Stat::STAT_max_hit_points; i <= fo::Stat::STAT_poison_resist; i++) {
 			if (i >= fo::Stat::STAT_dmg_thresh && i <= fo::Stat::STAT_dmg_resist_explosion) continue;
 
 			_itoa(i, key, 10);
-			StatFormulas[i * 2] = GetPrivateProfileInt(key, "base", StatFormulas[i * 2], statsFile.c_str());
-			StatFormulas[i * 2 + 1] = GetPrivateProfileInt(key, "min", StatFormulas[i * 2 + 1], statsFile.c_str());
+			StatFormulas[i * 2] = GetPrivateProfileInt(key, "base", StatFormulas[i * 2], statFile);
+			StatFormulas[i * 2 + 1] = GetPrivateProfileInt(key, "min", StatFormulas[i * 2 + 1], statFile);
 			for (int j = 0; j < fo::Stat::STAT_max_hit_points; j++) {
 				sprintf(buf2, "shift%d", j);
-				StatShifts[i * 7 + j] = GetPrivateProfileInt(key, buf2, StatShifts[i * 7 + 0], statsFile.c_str());
+				StatShifts[i * 7 + j] = GetPrivateProfileInt(key, buf2, StatShifts[i * 7 + 0], statFile);
 				sprintf(buf2, "multi%d", j);
 				_gcvt(StatMulti[i * 7 + j], 16, buf3);
-				GetPrivateProfileStringA(key, buf2, buf3, buf2, 256, statsFile.c_str());
+				GetPrivateProfileStringA(key, buf2, buf3, buf2, 256, statFile);
 				StatMulti[i * 7 + j] = atof(buf2);
 			}
 		}
