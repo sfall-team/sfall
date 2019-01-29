@@ -32,9 +32,9 @@ static DWORD StatMinimumsNPC[STAT_max_stat];
 static TGameObj* cCritter;
 
 static DWORD xpTable[99];
-static int StatFormulas[33 * 2];
-static int StatShifts[33 * 7];
-static double StatMulti[33 * 7];
+static int StatFormulas[33 * 2] = {0};
+static int StatShifts[33 * 7] = {0};
+static double StatMulti[33 * 7] = {0};
 
 DWORD StandardApAcBonus = 4;
 DWORD ExtraApAcBonus = 4;
@@ -218,13 +218,9 @@ void StatsInit() {
 		SafeWrite8(0x4AFB1B, (BYTE)(level + 1));
 	}
 
-	GetPrivateProfileStringA("Misc", "DerivedStats", "", table, 2048, ini);
+	GetPrivateProfileStringA("Misc", "DerivedStats", "", table, MAX_PATH, ini);
 	if (strlen(table)) {
 		MakeJump(0x4AF6FC, stat_recalc_derived_hack); // overrides function
-
-		memset(StatFormulas, 0, sizeof(StatFormulas));
-		memset(StatShifts, 0, sizeof(StatShifts));
-		memset(StatMulti, 0, sizeof(StatMulti));
 
 		StatFormulas[7 * 2]      = 15;      // max hp
 		StatMulti[7 * 7 + 0]     = 1;

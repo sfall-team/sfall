@@ -47,10 +47,10 @@ struct sElevatorFrms {
 	DWORD buttons;
 };
 
-static DWORD elevatorType[elevatorCount];
-static sElevator elevators[elevatorCount];         // _retvals
-static sElevatorFrms elevatorsFrms[elevatorCount]; // _intotal
-static DWORD elevatorsBtnCount[elevatorCount];     // _btncount
+static DWORD elevatorType[elevatorCount] = {0};
+static sElevator elevators[elevatorCount] = {0};         // _retvals
+static sElevatorFrms elevatorsFrms[elevatorCount] = {0}; // _intotal
+static DWORD elevatorsBtnCount[elevatorCount] = {0};     // _btncount
 
 static void __declspec(naked) GetMenuHook() {
 	__asm {
@@ -117,16 +117,19 @@ static void __declspec(naked) GetNumButtonsHook3() {
 }
 
 void ResetElevators() {
+	//memset(&elevators[vanillaElevatorCount], 0, sizeof(sElevator) * (elevatorCount - vanillaElevatorCount));
+	//memset(&elevatorsFrms[vanillaElevatorCount], 0, sizeof(sElevatorFrms) * (elevatorCount - vanillaElevatorCount));
+	//for (int i = vanillaElevatorCount; i < elevatorCount; i++) elevatorType[i] = 0;
+}
+
+static void LoadElevators() {
+	//ResetElevators();
+
 	memcpy(elevators, (void*)_retvals, sizeof(sElevator) * vanillaElevatorCount);
-	memset(&elevators[vanillaElevatorCount], 0, sizeof(sElevator) * (elevatorCount - vanillaElevatorCount));
-
 	memcpy(elevatorsFrms, (void*)_intotal, sizeof(sElevatorFrms) * vanillaElevatorCount);
-	memset(&elevatorsFrms[vanillaElevatorCount], 0, sizeof(sElevatorFrms) * (elevatorCount - vanillaElevatorCount));
-
 	memcpy(elevatorsBtnCount, (void*)_btncnt, sizeof(DWORD) * vanillaElevatorCount);
 
 	for (int i = 0; i < vanillaElevatorCount; i++) elevatorType[i] = i;
-	for (int i = vanillaElevatorCount; i < elevatorCount; i++) elevatorType[i] = 0;
 
 	char section[4];
 	if (elevFile) {
@@ -183,5 +186,5 @@ void ElevatorsInit(char* file) {
 	MakeCall(0x43F184, GetNumButtonsHook2, 2);
 	MakeCall(0x43F1E4, GetNumButtonsHook3, 2);
 
-	ResetElevators();
+	LoadElevators();
 }

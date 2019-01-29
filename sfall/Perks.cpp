@@ -27,11 +27,12 @@
 static const int maxNameLen = 64;   // don't change size
 static const int maxDescLen = 1024; // don't change size
 
-static char Name[maxNameLen * PERK_count];
-static char Desc[maxDescLen * PERK_count];
-static char tName[maxNameLen * TRAIT_count];
-static char tDesc[maxDescLen * TRAIT_count];
 static char perksFile[MAX_PATH];
+
+static char Name[maxNameLen * PERK_count] = {0};
+static char Desc[maxDescLen * PERK_count] = {0};
+static char tName[maxNameLen * TRAIT_count] = {0};
+static char tDesc[maxDescLen * TRAIT_count] = {0};
 static bool disableTraits[TRAIT_count];
 static DWORD* pc_trait = (DWORD*)_pc_trait;
 
@@ -86,8 +87,8 @@ static DWORD RemoveTraitID;
 static DWORD RemovePerkID;
 static DWORD RemoveSelectableID;
 
-static DWORD TraitSkillBonuses[TRAIT_count * 18];
-static DWORD TraitStatBonuses[TRAIT_count * (STAT_max_derived + 1)];
+static DWORD TraitSkillBonuses[TRAIT_count * 18] = {0};
+static DWORD TraitStatBonuses[TRAIT_count * (STAT_max_derived + 1)] = {0};
 
 static DWORD IgnoringDefaultPerks = 0;
 static char PerkBoxTitle[33];
@@ -673,8 +674,6 @@ static void PerkSetup() {
 	MakeCall(0x4AFB2F, LevelUpHack, 1); // replaces 'mov edx, ds:[PlayerLevel]'
 	SafeWrite8(0x43C2EC, 0xEB); // skip the block of code which checks if the player has gained a perk (now handled in level up code)
 
-	memset(Name, 0, sizeof(Name));
-	memset(Desc, 0, sizeof(Desc));
 	memcpy(Perks, (void*)_perk_data, sizeof(PerkStruct) * PERK_count);
 
 	// _perk_data
@@ -688,7 +687,7 @@ static void PerkSetup() {
 	SafeWrite32(0x496BF5, (DWORD)Perks + 8);
 	SafeWrite32(0x496AD4, (DWORD)Perks + 12);
 
-	if (strlen(perksFile)) {
+	if (perksFile[0] != '\0') {
 		char num[4];
 		for (int i = 0; i < PERK_count; i++) {
 			_itoa_s(i, num, 10);
@@ -857,12 +856,21 @@ static void __declspec(naked) TraitAdjustStatHack() {
 
 static int _stdcall trait_adjust_skill_override(DWORD skillID) {
 	int result = 0;
-	if (pc_trait[0] != -1) result += TraitSkillBonuses[skillID * TRAIT_count + pc_trait[0]];
-	if (pc_trait[1] != -1) result += TraitSkillBonuses[skillID * TRAIT_count + pc_trait[1]];
-	if (check_trait(TRAIT_gifted)) result -= 10;
+	if (pc_trait[0] != -1) {
+		result += TraitSkillBonuses[skillID * TRAIT_count + pc_trait[0]];
+	}
+	if (pc_trait[1] != -1) {
+		result += TraitSkillBonuses[skillID * TRAIT_count + pc_trait[1]];
+	}
+	if (check_trait(TRAIT_gifted)) {
+		result -= 10;
+	}
 	if (check_trait(TRAIT_good_natured)) {
-		if (skillID <= SKILL_THROWING) result -= 10;
-		else if (skillID == SKILL_FIRST_AID || skillID == SKILL_DOCTOR || skillID == SKILL_CONVERSANT || skillID == SKILL_BARTER) result += 15;
+		if (skillID <= SKILL_THROWING) {
+			result -= 10;
+		} else if (skillID == SKILL_FIRST_AID || skillID == SKILL_DOCTOR || skillID == SKILL_CONVERSANT || skillID == SKILL_BARTER) {
+			result += 15;
+		}
 	}
 	return result;
 }
@@ -891,11 +899,7 @@ static void TraitSetup() {
 	MakeJump(0x4B3C7C, TraitAdjustStatHack);  // trait_adjust_stat_
 	MakeJump(0x4B40FC, TraitAdjustSkillHack); // trait_adjust_skill_
 
-	memset(tName, 0, sizeof(tName));
-	memset(tDesc, 0, sizeof(tDesc));
 	memcpy(Traits, (void*)_trait_data, sizeof(TraitStruct) * TRAIT_count);
-	memset(TraitStatBonuses, 0, sizeof(TraitStatBonuses));
-	memset(TraitSkillBonuses, 0, sizeof(TraitSkillBonuses));
 
 	// _trait_data
 	SafeWrite32(0x4B3A81, (DWORD)Traits);
@@ -904,7 +908,7 @@ static void TraitSetup() {
 	SafeWrite32(0x4B3BA0, (DWORD)Traits + 4);
 	SafeWrite32(0x4B3BC0, (DWORD)Traits + 8);
 
-	if (strlen(perksFile)) {
+	if (perksFile[0] != '\0') {
 		char buf[512], num[5] = {'t'};
 		char* num2 = &num[1];
 		for (int i = 0; i < TRAIT_count; i++) {
@@ -1143,7 +1147,7 @@ void PerksInit() {
 	for (int i = STAT_st; i <= STAT_lu; i++) SafeWrite8(GainStatPerks[i][0], (BYTE)GainStatPerks[i][1]);
 
 	HookCall(0x442729, PerkInitWrapper);      // game_init_
-	if (GetPrivateProfileString("Misc", "PerksFile", "", &perksFile[2], MAX_PATH, ini)) {
+	if (GetPrivateProfileString("Misc", "PerksFile", "", &perksFile[2], MAX_PATH - 3, ini)) {
 		perksFile[0] = '.';
 		perksFile[1] = '\\';
 		HookCall(0x44272E, TraitInitWrapper); // game_init_
