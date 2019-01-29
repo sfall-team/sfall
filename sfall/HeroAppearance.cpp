@@ -24,9 +24,6 @@
 #include "HeroAppearance.h"
 #include "Message.h"
 #include "ScriptExtender.h"
-#if (_MSC_VER < 1600)
-#include "Cpp11_emu.h"
-#endif
 
 bool appModEnabled = false; // check if Appearance mod enabled for script fuctions
 

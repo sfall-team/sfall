@@ -61,9 +61,6 @@
 #include "Tiles.h"
 #include "timer.h"
 #include "version.h"
-#if (_MSC_VER < 1600)
-#include "Cpp11_emu.h"
-#endif
 
 ddrawDll ddraw;
 
@@ -1517,6 +1514,7 @@ static void _stdcall OnExit() {
 	}
 	ClearReadExtraGameMsgFiles();
 	ConsoleExit();
+	BooksExit();
 	AnimationsAtOnceExit();
 	HeroAppearanceModExit();
 	MoviesExit();

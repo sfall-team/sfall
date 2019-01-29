@@ -27,9 +27,6 @@
 #include "Graphics.h"
 #include "Logging.h"
 #include "movies.h"
-#if (_MSC_VER < 1600)
-#include "Cpp11_emu.h"
-#endif
 
 static DWORD MoviePtrs[MaxMovies];
 char MoviePaths[MaxMovies * 65];

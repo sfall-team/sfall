@@ -30,9 +30,6 @@
 #include "FalloutEngine.h"
 #include "HeroAppearance.h"
 #include "PartyControl.h"
-#if (_MSC_VER < 1600)
-#include "Cpp11_emu.h"
-#endif
 
 static DWORD Mode;
 static int IsControllingNPC = 0;

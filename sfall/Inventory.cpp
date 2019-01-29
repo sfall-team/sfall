@@ -26,9 +26,6 @@
 #include "input.h"
 #include "Inventory.h"
 #include "LoadGameHook.h"
-#if (_MSC_VER < 1600)
-#include "Cpp11_emu.h"
-#endif
 
 static DWORD sizeLimitMode;
 static DWORD invSizeMaxLimit;

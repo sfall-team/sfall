@@ -42,9 +42,6 @@
 #include "input.h"
 #include "LoadGameHook.h"
 #include "Version.h"
-#if (_MSC_VER < 1600)
-#include "Cpp11_emu.h"
-#endif
 
 typedef HRESULT (_stdcall *DDrawCreateProc)(void*, IDirectDraw**, void*);
 typedef IDirect3D9* (_stdcall *D3DCreateProc)(UINT version);
