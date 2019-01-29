@@ -28,12 +28,12 @@ static const int exitsPerElevator = 4;
 static const int vanillaElevatorCount = 24;
 static const int elevatorCount = 50;
 
-static char elevFile[MAX_PATH] = ".\\";
+//static char elevFile[MAX_PATH] = ".\\";
 
-static DWORD elevatorType[elevatorCount];
-static fo::ElevatorExit elevatorExits[elevatorCount][exitsPerElevator]; // _retvals
-static fo::ElevatorFrms elevatorsFrms[elevatorCount];                   // _intotal
-static DWORD elevatorsBtnCount[elevatorCount];                          // _btncount
+static DWORD elevatorType[elevatorCount] = {0};
+static fo::ElevatorExit elevatorExits[elevatorCount][exitsPerElevator] = {0}; // _retvals
+static fo::ElevatorFrms elevatorsFrms[elevatorCount] = {0};                   // _intotal
+static DWORD elevatorsBtnCount[elevatorCount] = {0};                          // _btncount
 
 static void __declspec(naked) GetMenuHook() {
 	__asm {
@@ -100,16 +100,19 @@ static void __declspec(naked) GetNumButtonsHook3() {
 }
 
 void ResetElevators() {
+	//memset(&elevatorExits[vanillaElevatorCount], 0, sizeof(fo::ElevatorExit) * (elevatorCount - vanillaElevatorCount) * exitsPerElevator);
+	//memset(&elevatorsFrms[vanillaElevatorCount], 0, sizeof(fo::ElevatorFrms) * (elevatorCount - vanillaElevatorCount));
+	//for (int i = vanillaElevatorCount; i < elevatorCount; i++) elevatorType[i] = 0;
+}
+
+static void LoadElevators(const char* elevFile) {
+	//ResetElevators();
+
 	memcpy(elevatorExits, fo::var::retvals, sizeof(fo::ElevatorExit) * vanillaElevatorCount * exitsPerElevator);
-	memset(&elevatorExits[vanillaElevatorCount], 0, sizeof(fo::ElevatorExit) * (elevatorCount - vanillaElevatorCount) * exitsPerElevator);
-
 	memcpy(elevatorsFrms, (void*)FO_VAR_intotal, sizeof(fo::ElevatorFrms) * vanillaElevatorCount);
-	memset(&elevatorsFrms[vanillaElevatorCount], 0, sizeof(fo::ElevatorFrms) * (elevatorCount - vanillaElevatorCount));
-
 	memcpy(elevatorsBtnCount, (void*)FO_VAR_btncnt, sizeof(DWORD) * vanillaElevatorCount);
 
 	for (int i = 0; i < vanillaElevatorCount; i++) elevatorType[i] = i;
-	for (int i = vanillaElevatorCount; i < elevatorCount; i++) elevatorType[i] = 0;
 
 	char section[4];
 	if (elevFile) {
@@ -137,9 +140,7 @@ void ResetElevators() {
 	}
 }
 
-void ElevatorsInit(const char* file) {
-	strcat_s(elevFile, file);
-
+void ElevatorsInit() {
 	HookCall(0x43EF83, GetMenuHook);
 	HookCall(0x43F141, CheckHotKeysHook);
 	//HookCall(0x43F2D2, UnknownHook2); // unused
@@ -161,15 +162,14 @@ void ElevatorsInit(const char* file) {
 	MakeCall(0x43F05D, GetNumButtonsHook1, 2);
 	MakeCall(0x43F184, GetNumButtonsHook2, 2);
 	MakeCall(0x43F1E4, GetNumButtonsHook3, 2);
-
-	ResetElevators();
 }
 
 void Elevators::init() {
 	auto elevPath = GetConfigString("Misc", "ElevatorsFile", "", MAX_PATH);
-	if (elevPath.size() > 0) {
+	if (!elevPath.empty()) {
 		dlogr("Applying elevator patch.", DL_INIT);
-		ElevatorsInit(elevPath.c_str());
+		ElevatorsInit();
+		LoadElevators(elevPath.insert(0, ".\\").c_str());
 	}
 }
 
