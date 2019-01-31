@@ -167,9 +167,10 @@ void ElevatorsInit() {
 void Elevators::init() {
 	auto elevPath = GetConfigString("Misc", "ElevatorsFile", "", MAX_PATH);
 	if (!elevPath.empty()) {
-		dlogr("Applying elevator patch.", DL_INIT);
+		dlog("Applying elevator patch.", DL_INIT);
 		ElevatorsInit();
 		LoadElevators(elevPath.insert(0, ".\\").c_str());
+		dlogr(" Done", DL_INIT);
 	}
 }
 
