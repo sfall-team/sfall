@@ -21,20 +21,21 @@
 #include "BarBoxes.h"
 #include "FalloutEngine.h"
 
-static const DWORD DisplayBoxesRet1 = 0x4615A8;
-static const DWORD DisplayBoxesRet2 = 0x4615BE;
 struct sBox {
 	DWORD msg;
 	DWORD colour;
 	void* mem;
 };
-static sBox boxes[10];
-static DWORD boxesEnabled[5];
+
+static sBox boxes[10] = {0};
+static DWORD boxesEnabled[5] = {0};
 
 static const DWORD bboxMemAddr[] = {
 	0x461266, 0x4612AC, 0x461374, 0x4613E8, 0x461479, 0x46148C, 0x4616BB,
 };
 
+static const DWORD DisplayBoxesRet1 = 0x4615A8;
+static const DWORD DisplayBoxesRet2 = 0x4615BE;
 static void __declspec(naked) DisplayBoxesHook() {
 	__asm {
 		mov ebx, 0;
@@ -64,8 +65,6 @@ void BarBoxesInit() {
 	SafeWrite32(0x4612FE, (DWORD)boxes + 4); //.colour
 	SafeWrite32(0x46133C, (DWORD)boxes + 0); //.msg
 
-	memset(boxes, 0, 12 * 10);
-	memset(boxesEnabled, 0, 5 * 4);
 	memcpy(boxes, (void*)0x518FE8, 12 * 5);
 
 	for (int i = 5; i < 10; i++) {

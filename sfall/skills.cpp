@@ -210,8 +210,7 @@ void SkillsInit() {
 		SkillInfo *skills = (SkillInfo*)_skill_data;
 
 		sprintf(file, ".\\%s", buf);
-		multipliers = new double[7 * SKILL_count];
-		memset(multipliers, 0, 7 * SKILL_count * sizeof(double));
+		multipliers = new double[7 * SKILL_count]();
 
 		for (int i = 0; i < SKILL_count; i++) {
 			sprintf(key, "Skill%d", i);

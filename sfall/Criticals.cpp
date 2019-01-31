@@ -90,7 +90,6 @@ void CritLoad() {
 	if (mode == 1) {
 		dlogr("Setting up critical hit table using CriticalOverrides.ini", DL_CRITICALS);
 		char section[16];
-		memset(baseCritTable, 0, CritTableSize * sizeof(CritStruct));
 		for (DWORD critter = 0; critter < 20; critter++) {
 			for (DWORD part = 0; part < 9; part++) {
 				for (DWORD crit = 0; crit < 6; crit++) {
@@ -113,8 +112,8 @@ void CritLoad() {
 	} else {
 		dlogr("Setting up critical hit table using RP fixes", DL_CRITICALS);
 		memcpy(baseCritTable, defaultTable, 6 * 9 * 19 * sizeof(CritStruct));
-		memset(&baseCritTable[6 * 9 * 19], 0, 6 * 9 * 19 * sizeof(CritStruct));
-		memcpy(&baseCritTable[6 * 9 * 38], (void*)_pc_crit_succ_eff, 6 * 9 * sizeof(CritStruct)); // PC crit table
+		//memset(&baseCritTable[6 * 9 * 19], 0, 6 * 9 * 19 * sizeof(CritStruct));
+		memcpy(&baseCritTable[6 * 9 * 38], (CritStruct*)_pc_crit_succ_eff, 6 * 9 * sizeof(CritStruct)); // PC crit table
 
 		if (mode == 3) {
 			char buf[32], buf2[32], buf3[32];
@@ -145,6 +144,7 @@ void CritLoad() {
 }
 
 #define SetEntry(critter, bodypart, effect, param, value) defaultTable[critter * 9 * 6 + bodypart * 6 + effect].values[param] = value;
+
 void CritInit() {
 	mode = GetPrivateProfileIntA("Misc", "OverrideCriticalTable", 2, ini);
 	if (mode < 0 || mode > 3) mode = 0;
@@ -152,13 +152,13 @@ void CritInit() {
 	if (!mode) return;
 
 	dlog("Initializing critical table override.", DL_INIT);
-	baseCritTable = new CritStruct[CritTableSize];
+	baseCritTable = new CritStruct[CritTableSize]();
 	critTable = new CritStruct[CritTableSize];
 	playerCrit = &critTable[6 * 9 * 38];
 	SafeWrite32(0x423F96, (DWORD)playerCrit);
 	SafeWrite32(0x423FB3, (DWORD)critTable);
 
-	if (mode == 2 || mode == 3) {
+	if (mode == 2 || mode == 3) { // bug fixes
 		CritStruct* defaultTable = (CritStruct*)_crit_succ_eff;
 
 		SetEntry(2, 4, 1, 4, 0);
