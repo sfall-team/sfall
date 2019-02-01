@@ -647,7 +647,12 @@ enum BodyType : long
 #define CRITTER_EYEDAMAGE     (0x40)
 
 
-#define WEAPON_TWO_HANDED      (0x200)
+#define WEAPON_TWO_HANDED     (0x200)
+
+enum TicksTime : unsigned long
+{
+	ONE_GAME_YEAR         = 315360000
+};
 
 enum RollResult
 {

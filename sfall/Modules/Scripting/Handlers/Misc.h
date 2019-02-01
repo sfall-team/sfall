@@ -37,7 +37,7 @@ void __declspec() op_set_df_model();
 
 void __declspec() op_set_movie_path();
 
-void __declspec() op_get_year();
+void sf_get_year(OpcodeContext&);
 
 void __declspec() op_game_loaded();
 
