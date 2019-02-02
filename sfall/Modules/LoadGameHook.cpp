@@ -119,13 +119,13 @@ static void _stdcall SaveGame2() {
 
 	dlog_f("Saving game: %s\n", DL_MAIN, buf);
 
-	DWORD size, unused = 0;
+	DWORD size, data;
 	HANDLE h = CreateFileA(buf, GENERIC_WRITE, 0, 0, CREATE_ALWAYS, 0, 0);
 	if (h != INVALID_HANDLE_VALUE) {
 		SaveGlobals(h);
 		WriteFile(h, &Objects::uniqueID, 4, &size, 0); // save unique id counter
-		unused++;
-		WriteFile(h, &unused, 4, &size, 0);
+		data = Worldmap::GetAddedYears(false) << 16;   // save to high bytes (short)
+		WriteFile(h, &data, 4, &size, 0);
 		Perks::save(h);
 		script::SaveArrays(h);
 		CloseHandle(h);
@@ -207,12 +207,13 @@ static void _stdcall LoadGame_Before() {
 
 	HANDLE h = CreateFileA(buf, GENERIC_READ, FILE_SHARE_READ, 0, OPEN_EXISTING, 0, 0);
 	if (h != INVALID_HANDLE_VALUE) {
-		DWORD size, unused;
+		DWORD size, data;
 		LoadGlobals(h);
 		long uID = 0;
 		ReadFile(h, &uID, 4, &size, 0);
 		if (uID > UniqueID::Start) Objects::uniqueID = uID;
-		ReadFile(h, &unused, 4, &size, 0);
+		ReadFile(h, &data, 4, &size, 0);
+		Worldmap::SetAddedYears(data >> 16);
 		if (size == 4) {
 			Perks::load(h);
 			script::LoadArrays(h);

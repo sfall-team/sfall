@@ -63,7 +63,8 @@ typedef std::unordered_map<int, const SfallOpcodeInfo*> OpcodeInfoMapType;
 //    { argument 1 type, argument 2 type, ...}
 // }
 static SfallOpcodeInfo opcodeInfoArray[] = {
-	{0x16c, "key_pressed", sf_key_pressed, 1, true},
+	{0x163, "get_year", sf_get_year, 0, true},
+	{0x16c, "key_pressed", sf_key_pressed, 1, true, {ARG_INT}},
 
 	{0x19d, "set_sfall_global", sf_set_sfall_global, 2, false, {ARG_INTSTR, ARG_NUMBER}},
 	{0x19e, "get_sfall_global_int", sf_get_sfall_global_int, 1, true, {ARG_INTSTR}},
@@ -251,7 +252,6 @@ void InitNewOpcodes() {
 	opcodes[0x160] = op_get_critter_base_stat;
 	opcodes[0x161] = op_get_critter_extra_stat;
 	opcodes[0x162] = op_tap_key;
-	opcodes[0x163] = op_get_year;
 	opcodes[0x164] = op_game_loaded;
 	opcodes[0x165] = op_graphics_funcs_available;
 	opcodes[0x166] = op_load_shader;

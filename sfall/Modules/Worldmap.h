@@ -39,8 +39,9 @@ public:
 	static void SetRestMode(DWORD mode);
 	static void SetRestMapLevel(int mapId, long elev, bool canRest);
 	static long __fastcall GetRestMapLevel(long elev, int mapId);
-};
 
-extern DWORD addUnarmedStatToGetYear;
+	static DWORD GetAddedYears(bool isCheck = true);
+	static void SetAddedYears(DWORD years);
+};
 
 }
