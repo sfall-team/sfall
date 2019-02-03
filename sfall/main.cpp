@@ -114,8 +114,8 @@ static DWORD AddrGetLocalTime;
 static DWORD ViewportX;
 static DWORD ViewportY;
 
-static const DWORD GetDateAddr[] = {
-	0x4392F8, 0x443808, 0x47E127, 0x4975A2, 0x497712, 0x4979C9, 0x4C3CB5,
+static const DWORD ScrollCityListAddr[] = {
+	0x4C04B9, 0x4C04C8, 0x4C4A34, 0x4C4A3D,
 };
 
 static const DWORD FastShotFixF1[] = {
@@ -143,57 +143,113 @@ static const DWORD WalkDistanceAddr[] = {
 	0x411FF0, 0x4121C4, 0x412475, 0x412906,
 };
 
-static __declspec(naked) void GetDateWrapper() {
+#define ONE_GAME_YEAR (315360000UL)
+
+static bool addYear = false; // used as additional years indicator
+static DWORD addedYears = 0;
+void SetAddedYears(DWORD years) {
+	addedYears = years;
+}
+
+DWORD GetAddedYears(bool isCheck) {
+	return (isCheck && !addYear) ? 0 : addedYears;
+}
+
+static __declspec(naked) void TimeDateFix() {
 	__asm {
-		push ecx;
-		push esi;
-		push ebx;
-		call game_time_date_;
-		mov  ecx, ds:[_pc_proto + 0x4C];
-		pop  esi;
-		test esi, esi;
+		test edi, edi; // year buf
 		jz   end;
-		add  ecx, [esi];
-		mov  [esi], ecx;
+		add  esi, addedYears;
+		mov  [edi], esi;
 end:
-		pop  esi;
-		pop  ecx;
 		retn;
 	}
 }
 
 static void TimerReset() {
-	*((DWORD*)_fallout_game_time) = 0;
-	*((DWORD*)_pc_proto + 0x4C) += 13;
+	__asm push ecx;
+
+	const DWORD time = ONE_GAME_YEAR * 13;
+	*ptr_fallout_game_time -= time;
+	addedYears += 13;
+
+	// fix queue time
+	Queue* queue = (Queue*)(*ptr_queue);
+	while (queue) {
+		if (queue->time > time) {
+			queue->time -= time;
+		} else {
+			queue->time = 0;
+		}
+		queue = queue->next;
+	}
+	__asm pop ecx;
 }
 
-static double TickFrac = 0;
-static double MapMulti = 1;
-static double MapMulti2 = 1;
-void _stdcall SetMapMulti(float d) { MapMulti2 = d; }
-static __declspec(naked) void PathfinderFix3() {
+static __declspec(naked) void script_chk_timed_events_hack() {
 	__asm {
-		xor eax, eax;
+		mov  eax, dword ptr ds:[_fallout_game_time];
+		inc  eax;
+		mov  dword ptr ds:[_fallout_game_time], eax;
+		cmp  eax, ONE_GAME_YEAR * 13;
+		jae  reset;
+		retn;
+reset:
+		jmp  TimerReset;
+	}
+}
+
+static __declspec(naked) void set_game_time_hack() {
+	__asm {
+		mov  dword ptr ds:[_fallout_game_time], eax;
+		mov  edx, eax;
+		call IsMapLoaded;
+		test al, al;
+		jz   end;
+		cmp  edx, ONE_GAME_YEAR * 13;
+		jb   end;
+		call TimerReset;
+end:
+		xor  edx, edx;
 		retn;
 	}
 }
-static DWORD _stdcall PathfinderFix2(DWORD perkLevel, DWORD ticks) {
-	double d = MapMulti * MapMulti2;
-	if (perkLevel == 1) d *= 0.75;
-	else if (perkLevel == 2) d *= 0.5;
-	else if (perkLevel == 3) d *= 0.25;
-	d = ((double)ticks) * d + TickFrac;
-	TickFrac = modf(d, &d);
-	return (DWORD)d;
+
+static double tickFract = 0.0;
+static double mapMultiMod = 1.0;
+static float scriptMapMulti = 1.0;
+void _stdcall SetMapMulti(float value) {
+	scriptMapMulti = value;
 }
+
+static DWORD _stdcall PathfinderCalc(DWORD perkLevel, DWORD ticks) {
+	double multi = mapMultiMod * scriptMapMulti;
+
+	switch (perkLevel) {
+	case 1:
+		multi *= 0.75;
+		break;
+	case 2:
+		multi *= 0.5;
+		break;
+	case 3:
+		multi *= 0.25;
+		break;
+	}
+	multi = ((double)ticks) * multi + tickFract;
+	tickFract = modf(multi, &multi);
+
+	return static_cast<DWORD>(multi);
+}
+
 static __declspec(naked) void PathfinderFix() {
 	__asm {
-		push eax;
+		push eax; // ticks
 		mov  eax, ds:[_obj_dude];
 		mov  edx, PERK_pathfinder;
 		call perk_level_;
 		push eax;
-		call PathfinderFix2;
+		call PathfinderCalc;
 		jmp  inc_game_time_;
 	}
 }
@@ -213,39 +269,73 @@ static __declspec(naked) void palette_fade_to_hook() {
 }
 
 static int mapSlotsScrollMax = 27 * (17 - 7);
-static __declspec(naked) void ScrollCityListHook() {
+static __declspec(naked) void ScrollCityListFix() {
 	__asm {
 		push ebx;
 		mov  ebx, ds:[0x672F10];
 		test eax, eax;
 		jl   up;
 		cmp  ebx, mapSlotsScrollMax;
-		je   end;
-		jmp  run;
+		pop  ebx;
+		jne  run;
+		retn;
 up:
 		test ebx, ebx;
-		jz   end;
-run:
-		call wmInterfaceScrollTabsStart_;
-end:
 		pop  ebx;
+		jnz  run;
 		retn;
+run:
+		jmp  wmInterfaceScrollTabsStart_;
 	}
 }
 
 static DWORD worldMapDelay;
+static DWORD worldMapTicks;
+static DWORD worldMapAdjustDelay = 4;
 static void __declspec(naked) WorldMapFpsPatch() {
 	__asm {
 		pushadc;
+		push dword ptr ds:[_last_buttons];
+		push dword ptr ds:[0x6AC7B0]; // _mouse_buttons
+		xor  ecx, ecx;
+loopDelay:
+		call process_bk_;
+		dec  ecx;
+		jg   subLoop;   // jmp ecx > -1
 		call RunGlobalScripts3;
-		mov ecx, worldMapDelay;
-tck:
-		mov  eax, ds:[0x50fb08];
+		mov  ecx, worldMapAdjustDelay; // adjust invoke frequency
+subLoop:
+		mov  eax, worldMapTicks;
 		call elapsed_time_;
-		cmp  eax, ecx;
-		jl   tck;
+		cmp  eax, 10;   // delay
+		jle  subLoop;
+		cmp  eax, worldMapDelay;
+		jl   loopDelay; // elapsed < worldMapDelay
+
 		call get_time_;
-		mov  ds:[0x50fb08], eax;
+		mov  worldMapTicks, eax;
+		pop  dword ptr ds:[0x6AC7B0]; // _mouse_buttons
+		pop  dword ptr ds:[_last_buttons];
+		popadc;
+		jmp  get_input_;
+	}
+}
+
+static void __declspec(naked) WorldMapFpsPatch2() {
+	__asm {
+		pushadc;
+loopDelay:
+		call RunGlobalScripts3;
+subLoop:
+		mov  eax, worldMapTicks;
+		call elapsed_time_;
+		test eax, eax;  // 1 min delay
+		jz   subLoop;
+		cmp  eax, worldMapDelay;
+		jl   loopDelay; // elapsed < worldMapDelay
+
+		call get_time_;
+		mov  worldMapTicks, eax;
 		popadc;
 		jmp  get_input_;
 	}
@@ -315,8 +405,8 @@ end_cppf:
 	}
 }
 
-//Only used if the world map speed patch is disabled, so that world map scripts are still run
-static void __declspec(naked) WorldMapHook() {
+// Only used if the world map speed patch is disabled, so that world map scripts are still run
+static void __declspec(naked) wmWorldMap_hook() {
 	__asm {
 		pushadc;
 		call RunGlobalScripts3;
@@ -649,8 +739,8 @@ bjmp:
 	}
 }
 
-static const DWORD ScannerHookRet=0x41BC1D;
-static const DWORD ScannerHookFail=0x41BC65;
+static const DWORD ScannerHookRet = 0x41BC1D;
+static const DWORD ScannerHookFail = 0x41BC65;
 static void __declspec(naked) ScannerAutomapHook() {
 	__asm {
 		mov eax, ds:[_obj_dude];
@@ -679,26 +769,20 @@ static void __declspec(naked) op_obj_can_see_obj_hook() {
 
 static void __declspec(naked) wmTownMapFunc_hack() {
 	__asm {
-		cmp  edx, 0x31;
-		jl   end;
-		cmp  edx, ecx;
-		jge  end;
-		push edx;
-		sub  edx, 0x31;
-		lea  eax, ds:0[edx*8];
-		sub  eax, edx;
-		pop  edx;
-		cmp  dword ptr [edi+eax*4+0x0], 0;        // Visited
+		cmp  dword ptr [edi][eax * 4 + 0], 0;  // Visited
 		je   end;
-		cmp  dword ptr [edi+eax*4+0x4], -1;       // Xpos
+		cmp  dword ptr [edi][eax * 4 + 4], -1; // Xpos
 		je   end;
-		cmp  dword ptr [edi+eax*4+0x8], -1;       // Ypos
+		cmp  dword ptr [edi][eax * 4 + 8], -1; // Ypos
 		je   end;
+		// engine code
+		mov  edx, [edi][eax * 4 + 0xC];
+		mov  [esi], edx
 		retn;
 end:
-		add  esp, 4;                              // destroy the return address
-		push 0x4C4976;
-		retn;
+		add  esp, 4;                           // destroy the return address
+		mov  eax, 0x4C4976;
+		jmp  eax;
 	}
 }
 
@@ -917,17 +1001,16 @@ static void DllMain2() {
 		dlogr(" Done", DL_INIT);
 	}
 
-	date = GetPrivateProfileInt("Misc", "LocalMapXLimit", 0, ini);
-	if (date) {
+	tmp = GetPrivateProfileInt("Misc", "LocalMapXLimit", 0, ini);
+	if (tmp) {
 		dlog("Applying local map x limit patch.", DL_INIT);
-		SafeWrite32(0x4B13B9, date);
+		SafeWrite32(0x4B13B9, tmp);
 		dlogr(" Done", DL_INIT);
 	}
-
-	date = GetPrivateProfileInt("Misc", "LocalMapYLimit", 0, ini);
-	if (date) {
+	tmp = GetPrivateProfileInt("Misc", "LocalMapYLimit", 0, ini);
+	if (tmp) {
 		dlog("Applying local map y limit patch.", DL_INIT);
-		SafeWrite32(0x4B13C7, date);
+		SafeWrite32(0x4B13C7, tmp);
 		dlogr(" Done", DL_INIT);
 	}
 
@@ -951,48 +1034,54 @@ static void DllMain2() {
 	if (ViewportX != -1) {
 		dlog("Applying starting x view patch.", DL_INIT);
 		SafeWrite32(_wmWorldOffsetX, ViewportX);
-		HookCall(0x4BCF07, &ViewportHook);
 		dlogr(" Done", DL_INIT);
 	}
-
 	ViewportY = GetPrivateProfileInt("Misc", "ViewYPos", -1, ini);
 	if (ViewportY != -1) {
 		dlog("Applying starting y view patch.", DL_INIT);
 		SafeWrite32(_wmWorldOffsetY, ViewportY);
-		if (ViewportX == -1) HookCall(0x4BCF07, &ViewportHook);
 		dlogr(" Done", DL_INIT);
 	}
+	if (ViewportX != -1 || ViewportY != -1) HookCall(0x4BCF07, ViewportHook); // game_reset_
 
 	//if (GetPrivateProfileIntA("Misc", "PathfinderFix", 0, ini)) {
-		dlog("Applying pathfinder patch.", DL_INIT);
-		HookCall(0x4C1FF1, &PathfinderFix3);
-		HookCall(0x4C1C78, &PathfinderFix);
-		MapMulti = (double)GetPrivateProfileIntA("Misc", "WorldMapTimeMod", 100, ini) / 100.0;
+		dlog("Applying Pathfinder patch.", DL_INIT);
+		SafeWrite16(0x4C1FF6, 0x9090);     // wmPartyWalkingStep_
+		HookCall(0x4C1C78, PathfinderFix); // wmGameTimeIncrement_
+		mapMultiMod = (double)GetPrivateProfileIntA("Misc", "WorldMapTimeMod", 100, ini) / 100.0;
 		dlogr(" Done", DL_INIT);
 	//}
 
+	bool fpsPatchOK = (*(DWORD*)0x4BFE5E == 0x8D16);
 	if (GetPrivateProfileInt("Misc", "WorldMapFPSPatch", 0, ini)) {
 		dlog("Applying world map fps patch.", DL_INIT);
-		if (*(DWORD*)0x4BFE5E != 0x8D16) {
+		if (!fpsPatchOK) {
 			dlogr(" Failed", DL_INIT);
 		} else {
-			worldMapDelay = GetPrivateProfileInt("Misc", "WorldMapDelay2", 66, ini);
-			HookCall(0x4BFE5D, WorldMapFpsPatch);
-			AvailableGlobalScriptTypes |= 2;
+			int delay = GetPrivateProfileInt("Misc", "WorldMapDelay2", 66, ini);
+			worldMapDelay = max(1, delay);
 			dlogr(" Done", DL_INIT);
 		}
-	} else {
-		if (*(DWORD*)0x4BFE5E == 0x8D16) {
-			HookCall(0x4BFE5D, WorldMapHook);
-			AvailableGlobalScriptTypes |= 2;
+	}
+	if (fpsPatchOK) {
+		void* func;
+		if (worldMapDelay == 0) {
+			func = wmWorldMap_hook;
+		} else if (worldMapDelay > 15)  {
+			worldMapAdjustDelay += worldMapDelay / 10;
+			func = WorldMapFpsPatch;
+		} else {
+			func = WorldMapFpsPatch2;
 		}
+		HookCall(0x4BFE5D, func);
+		AvailableGlobalScriptTypes |= 2;
 	}
 
 	if (GetPrivateProfileIntA("Misc", "WorldMapEncounterFix", 0, ini)) {
 		dlog("Applying world map encounter patch.", DL_INIT);
 		WorldMapEncounterRate = GetPrivateProfileIntA("Misc", "WorldMapEncounterRate", 5, ini);
 		SafeWrite32(0x4C232D, 0x01EBC031);        // xor eax, eax; jmps 0x4C2332
-		HookCall(0x4BFEE0, &wmWorldMapFunc_hook);
+		HookCall(0x4BFEE0, wmWorldMapFunc_hook);
 		MakeCall(0x4C0667, wmRndEncounterOccurred_hack);
 		dlogr(" Done", DL_INIT);
 	}
@@ -1035,10 +1124,9 @@ static void DllMain2() {
 
 	//if (GetPrivateProfileIntA("Misc", "WorldMapCitiesListFix", 0, ini)) {
 		dlog("Applying world map cities list patch.", DL_INIT);
-		HookCall(0x4C04B9, &ScrollCityListHook);
-		HookCall(0x4C04C8, &ScrollCityListHook);
-		HookCall(0x4C4A34, &ScrollCityListHook);
-		HookCall(0x4C4A3D, &ScrollCityListHook);
+		for (int i = 0; i < sizeof(ScrollCityListAddr) / 4; i++) {
+			HookCall(ScrollCityListAddr[i], ScrollCityListFix);
+		}
 		dlogr(" Done", DL_INIT);
 	//}
 
@@ -1055,8 +1143,9 @@ static void DllMain2() {
 		dlog("Applying world map slots patch.", DL_INIT);
 		if (tmp < 7) tmp = 7;
 		mapSlotsScrollMax = (tmp - 7) * 27;
-		if (tmp < 25) SafeWrite32(0x4C21FD, 230 - (tmp - 17) * 27);
-		else {
+		if (tmp < 25) {
+			SafeWrite32(0x4C21FD, 230 - (tmp - 17) * 27);
+		} else {
 			SafeWrite8(0x4C21FC, 0xC2);
 			SafeWrite32(0x4C21FD, 2 + 27 * (tmp - 26));
 		}
@@ -1064,28 +1153,20 @@ static void DllMain2() {
 	}
 
 	int limit = GetPrivateProfileIntA("Misc", "TimeLimit", 13, ini);
-	if (limit == -2) limit = 14;
-	if (limit == -3) {
-		dlog("Applying time limit patch (-3).", DL_INIT);
-		limit = -1;
-		AddUnarmedStatToGetYear = 1;
-
-		for (int i = 0; i < sizeof(GetDateAddr) / 4; i++) {
-			HookCall(GetDateAddr[i], &GetDateWrapper);
-		}
-		dlogr(" Done", DL_INIT);
+	if (limit == -2 || limit == -3) {
+		addYear = true;
+		MakeCall(0x4A33B8, TimeDateFix, 1); // game_time_date_
+		limit = -1; // also reset time
 	}
-	if (limit <= 14 && limit >= -1 && limit != 13) {
+	if (limit >= -1 && limit < 13) {
 		dlog("Applying time limit patch.", DL_INIT);
 		if (limit == -1) {
-			HookCall(0x4A34F9, &TimerReset);
-			HookCall(0x4A3551, &TimerReset);
-
-			SafeMemSet(0x4A34EF, 0x90, 10);
-			SafeMemSet(0x4A34FE, 0x90, 6);
-
-			SafeMemSet(0x4A3547, 0x90, 10);
-			SafeMemSet(0x4A3556, 0x90, 6);
+			MakeCall(0x4A3DF5, script_chk_timed_events_hack, 1);
+			MakeCall(0x4A3488, set_game_time_hack);
+			MakeCall(0x4A34EF, TimerReset); // inc_game_time_
+			MakeCall(0x4A3547, TimerReset); // inc_game_time_in_seconds_
+			SafeMemSet(0x4A34F4, 0x90, 16);
+			SafeMemSet(0x4A354C, 0x90, 16);
 		} else {
 			SafeWrite8(0x4A34EC, limit);
 			SafeWrite8(0x4A3544, limit);
@@ -1441,7 +1522,7 @@ static void DllMain2() {
 
 	if (GetPrivateProfileIntA("Misc", "TownMapHotkeysFix", 1, ini)) {
 		dlog("Applying town map hotkeys patch.", DL_INIT);
-		MakeCall(0x4C4945, wmTownMapFunc_hack);
+		MakeCall(0x4C495A, wmTownMapFunc_hack, 1);
 		dlogr(" Done", DL_INIT);
 	}
 

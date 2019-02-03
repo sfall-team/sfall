@@ -295,7 +295,7 @@
 #define CRITTER_EYEDAMAGE     (0x40)
 
 
-#define WEAPON_TWO_HANDED      (0x200)
+#define WEAPON_TWO_HANDED     (0x200)
 
 
 #define ROLL_CRITICAL_FAILURE (0)

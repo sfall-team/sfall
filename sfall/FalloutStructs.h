@@ -166,3 +166,14 @@ struct TProgram
 	long *procTablePtr;
 };
 #pragma pack(pop)
+
+#pragma pack(push, 1)
+struct Queue
+{
+	DWORD time;
+	long type;
+	TGameObj* object;
+	long data;
+	Queue* next;
+};
+#pragma pack(pop)

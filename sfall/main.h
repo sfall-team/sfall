@@ -70,8 +70,10 @@ extern DWORD modifiedIni;
 extern char dmModelName[65];
 extern char dfModelName[65];
 
-extern DWORD AddUnarmedStatToGetYear;
 extern bool npcautolevel;
+
+DWORD GetAddedYears(bool isCheck = true);
+void SetAddedYears(DWORD years);
 
 template<typename T> 
 T SimplePatch(DWORD addr, const char* iniSection, const char* iniKey, T defaultValue, T minValue = 0, T maxValue = INT_MAX)
