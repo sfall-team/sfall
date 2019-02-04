@@ -1067,7 +1067,7 @@ static void DllMain2() {
 		void* func;
 		if (worldMapDelay == 0) {
 			func = wmWorldMap_hook;
-		} else if (worldMapDelay > 15)  {
+		} else if (worldMapDelay > 15) {
 			worldMapAdjustDelay += worldMapDelay / 10;
 			func = WorldMapFpsPatch;
 		} else {
@@ -1080,7 +1080,7 @@ static void DllMain2() {
 	if (GetPrivateProfileIntA("Misc", "WorldMapEncounterFix", 0, ini)) {
 		dlog("Applying world map encounter patch.", DL_INIT);
 		WorldMapEncounterRate = GetPrivateProfileIntA("Misc", "WorldMapEncounterRate", 5, ini);
-		SafeWrite32(0x4C232D, 0x01EBC031);        // xor eax, eax; jmps 0x4C2332
+		SafeWrite32(0x4C232D, 0x01EBC031); // xor eax, eax; jmps 0x4C2332 (wmInterfaceInit_)
 		HookCall(0x4BFEE0, wmWorldMapFunc_hook);
 		MakeCall(0x4C0667, wmRndEncounterOccurred_hack);
 		dlogr(" Done", DL_INIT);
@@ -1146,7 +1146,7 @@ static void DllMain2() {
 		if (tmp < 25) {
 			SafeWrite32(0x4C21FD, 230 - (tmp - 17) * 27);
 		} else {
-			SafeWrite8(0x4C21FC, 0xC2);
+			SafeWrite8(0x4C21FC, 0xC2); // sub > add
 			SafeWrite32(0x4C21FD, 2 + 27 * (tmp - 26));
 		}
 		dlogr(" Done", DL_INIT);

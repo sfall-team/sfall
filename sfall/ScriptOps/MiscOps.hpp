@@ -149,19 +149,31 @@ end:
 	}
 }
 
-static void GetYear2() {
-	int year = 0;
+static void __declspec(naked) GetYear() {
 	__asm {
+		push ebx;
+		push ecx;
+		push edx;
+		push edi;
+		mov edi, eax;
+		sub esp, 4;
 		xor eax, eax;
 		xor edx, edx;
-		lea ebx, year;
+		mov ebx, esp;
 		call game_time_date_;
+		mov edx, [esp];
+		mov eax, edi;
+		call interpretPushLong_;
+		mov edx, VAR_TYPE_INT;
+		mov eax, edi;
+		call interpretPushShort_;
+		add esp, 4;
+		pop edi;
+		pop edx;
+		pop ecx;
+		pop ebx;
+		retn;
 	}
-	opHandler.setReturn(year);
-}
-
-static void __declspec(naked) GetYear() {
-	_WRAP_OPCODE(GetYear2, 0, 1)
 }
 
 static void __declspec(naked) GameLoaded() {
