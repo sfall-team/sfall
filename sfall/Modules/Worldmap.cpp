@@ -147,20 +147,20 @@ static void __declspec(naked) WorldMapFpsPatch() {
 		push dword ptr ds:[FO_VAR_last_buttons];
 		push dword ptr ds:[0x6AC7B0]; // _mouse_button
 		mov  esi, worldMapTicks;
-		mov  ebx, esi;
+		mov  ebx, esi;                // previous ticks
 loopDelay:
 		call WorldmapLoop_Hook;
 		call fo::funcoffs::process_bk_;
 subLoop:
 		call GetTickCount; // current ticks
 		mov  edx, eax;
-		sub  eax, ebx;     // get elapsed time
-		cmp  eax, 5;       // adjust invoke frequency
-		jl   subLoop;      // elapsed < invoke
+		sub  eax, ebx;     // get elapsed time (cur.ticks - prev.ticks)
+		cmp  eax, 10;      // delay - GetTickCount returns minimum difference of 15 units
+		jb   subLoop;      // elapsed < invoke delay
 		mov  ebx, edx;
-		sub  edx, esi;     // get elapsed time
+		sub  edx, esi;     // get elapsed time (cur.ticks - worldMapTicks)
 		cmp  edx, worldMapDelay;
-		jl   loopDelay;    // elapsed < worldMapDelay
+		jb   loopDelay;    // elapsed < worldMapDelay
 
 		pop  dword ptr ds:[0x6AC7B0]; // _mouse_button
 		pop  dword ptr ds:[FO_VAR_last_buttons];
@@ -180,12 +180,11 @@ subLoop:
 		call GetTickCount; // current ticks
 		mov  edx, eax;
 		sub  eax, ebx;     // get elapsed time
-		test eax, eax;     // delay for invoke
 		jz   subLoop;
 		mov  ebx, edx;
 		sub  edx, esi;     // get elapsed time
 		cmp  edx, worldMapDelay;
-		jl   loopDelay;    // elapsed < worldMapDelay
+		jb   loopDelay;    // elapsed < worldMapDelay
 
 		call GetTickCount;
 		mov  worldMapTicks, eax;
@@ -200,27 +199,6 @@ static void __declspec(naked) wmWorldMap_hook() {
 		call WorldmapLoop_Hook;
 		popadc;
 		jmp  fo::funcoffs::get_input_;
-	}
-}
-
-static void __declspec(naked) WorldMapEncPatch1() {
-	__asm {
-		inc dword ptr ds:[FO_VAR_wmLastRndTime];
-		jmp fo::funcoffs::wmPartyWalkingStep_;
-	}
-}
-
-static void __declspec(naked) WorldMapEncPatch2() {
-	__asm {
-		mov dword ptr ds:[FO_VAR_wmLastRndTime], 0;
-		retn;
-	}
-}
-
-static void __declspec(naked) WorldMapEncPatch3() {
-	__asm {
-		mov eax, ds:[FO_VAR_wmLastRndTime];
-		retn;
 	}
 }
 
@@ -375,7 +353,7 @@ void WorldLimitsPatches() {
 		if (wmSlots < 25)
 			SafeWrite32(0x4C21FD, 230 - (wmSlots - 17) * 27);
 		else {
-			SafeWrite8(0x4C21FC, 0xC2);
+			SafeWrite8(0x4C21FC, 0xC2); // sub > add
 			SafeWrite32(0x4C21FD, 2 + 27 * (wmSlots - 26));
 		}
 		dlogr(" Done", DL_INIT);
@@ -394,7 +372,10 @@ void TimeLimitPatch() {
 		if (limit == -1) {
 			MakeCall(0x4A3DF5, script_chk_timed_events_hack, 1);
 			MakeCall(0x4A3488, set_game_time_hack);
-			MakeCalls(TimerReset, {0x4A34EF, 0x4A3547}); // inc_game_time_/inc_game_time_in_seconds_
+			MakeCalls(TimerReset, {
+				0x4A34EF, // inc_game_time_
+				0x4A3547  // inc_game_time_in_seconds_
+			});
 			SafeMemSet(0x4A34F4, 0x90, 16);
 			SafeMemSet(0x4A354C, 0x90, 16);
 		} else {
@@ -441,7 +422,7 @@ void WorldmapFpsPatch() {
 	if (GetConfigInt("Misc", "WorldMapEncounterFix", 0)) {
 		dlog("Applying world map encounter patch.", DL_INIT);
 		WorldMapEncounterRate = GetConfigInt("Misc", "WorldMapEncounterRate", 5);
-		SafeWrite32(0x4C232D, 0x01EBC031);        // xor eax, eax; jmps 0x4C2332
+		SafeWrite32(0x4C232D, 0x01EBC031); // xor eax, eax; jmps 0x4C2332 (wmInterfaceInit_)
 		HookCall(0x4BFEE0, wmWorldMapFunc_hook);
 		MakeCall(0x4C0667, wmRndEncounterOccurred_hack);
 		dlogr(" Done", DL_INIT);
