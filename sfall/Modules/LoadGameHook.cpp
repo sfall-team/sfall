@@ -130,9 +130,7 @@ static void _stdcall SaveGame2() {
 		script::SaveArrays(h);
 		CloseHandle(h);
 	} else {
-		dlogr("ERROR creating sfallgv!", DL_MAIN);
-		fo::DisplayPrint(saveSfallDataFailMsg);
-		fo::func::gsound_play_sfx_file("IISXXXX1");
+		goto errorSave;
 	}
 
 	GetSavePath(buf, "db");
@@ -140,15 +138,26 @@ static void _stdcall SaveGame2() {
 	if (h != INVALID_HANDLE_VALUE) {
 		Worldmap::SaveData(h);
 		CloseHandle(h);
+	} else {
+		goto errorSave;
 	}
-	
+
 	if (FileSystem::IsEmpty()) return;
 	GetSavePath(buf, "fs");
 	h = CreateFileA(buf, GENERIC_WRITE, 0, 0, CREATE_ALWAYS, 0, 0);
 	if (h != INVALID_HANDLE_VALUE) {
 		FileSystem::Save(h);
 		CloseHandle(h);
+	} else {
+		goto errorSave;
 	}
+
+	return;
+/////////////////////////////////////////////////
+errorSave:
+	dlog_f("ERROR creating: %s\n", DL_MAIN, buf);
+	fo::DisplayPrint(saveSfallDataFailMsg);
+	fo::func::gsound_play_sfx_file("IISXXXX1");
 }
 
 static std::string saveFailMsg;
@@ -197,7 +206,7 @@ end:
 }
 
 // Called right before savegame slot is being loaded
-static void _stdcall LoadGame_Before() {
+static bool LoadGame_Before() {
 	onBeforeGameStart.invoke();
 
 	char buf[MAX_PATH];
@@ -208,35 +217,38 @@ static void _stdcall LoadGame_Before() {
 	HANDLE h = CreateFileA(buf, GENERIC_READ, FILE_SHARE_READ, 0, OPEN_EXISTING, 0, 0);
 	if (h != INVALID_HANDLE_VALUE) {
 		DWORD size, data;
-		LoadGlobals(h);
+		if (LoadGlobals(h)) goto errorLoad;
 		long uID = 0;
 		ReadFile(h, &uID, 4, &size, 0);
 		if (uID > UniqueID::Start) Objects::uniqueID = uID;
 		ReadFile(h, &data, 4, &size, 0);
 		Worldmap::SetAddedYears(data >> 16);
-		if (size == 4) {
-			Perks::load(h);
-			script::LoadArrays(h);
-		}
+		if (size != 4 || !Perks::load(h) || script::LoadArrays(h)) goto errorLoad;
 		CloseHandle(h);
 	} else {
-		dlogr("Cannot read sfallgv.sav - assuming non-sfall save.", DL_MAIN);
+		dlogr("Cannot open sfallgv.sav - assuming non-sfall save.", DL_MAIN);
 	}
 
 	GetSavePath(buf, "db");
+	dlog("Loading data from sfalldb.sav file...\n", DL_MAIN);
 	h = CreateFileA(buf, GENERIC_READ, FILE_SHARE_READ, 0, OPEN_EXISTING, 0, 0);
 	if (h != INVALID_HANDLE_VALUE) {
-		dlog("Loading data from sfalldb.sav file...", DL_INIT);
-		Worldmap::LoadData(h);
+		if (Worldmap::LoadData(h)) goto errorLoad;
 		CloseHandle(h);
-		dlogr(" Done", DL_INIT);
 	} else {
-		dlogr("Cannot read sfalldb.sav file.", DL_INIT);
+		dlogr("Cannot open sfalldb.sav file.", DL_MAIN);
 	}
+
+	return false;
+/////////////////////////////////////////////////
+errorLoad:
+	CloseHandle(h);
+	dlog_f(" Error data reading: %s file\n", DL_MAIN, buf);
+	return (true & !isDebug);
 }
 
 // called whenever game is being reset (prior to loading a save or when returning to main menu)
-static void _stdcall GameReset(DWORD isGameLoad) {
+static bool _stdcall GameReset(DWORD isGameLoad) {
 	if (mapLoaded) { // preventing resetting when a new game not been started(loading saved game from main menu)
 		onGameReset.invoke();
 		if (isDebug) {
@@ -247,9 +259,7 @@ static void _stdcall GameReset(DWORD isGameLoad) {
 	inLoop = 0;
 	mapLoaded = false;
 
-	if (isGameLoad) {
-		LoadGame_Before();
-	}
+	return (isGameLoad) ? LoadGame_Before() : false;
 }
 
 // Called after game was loaded from a save
@@ -347,8 +357,15 @@ static void __declspec(naked) game_reset_on_load_hook() {
 		pushadc;
 		push 1;
 		call GameReset; // reset all sfall modules before resetting the game data
+		test eax, eax;
 		popadc;
+		jnz  errorLoad;
 		jmp fo::funcoffs::game_reset_;
+errorLoad:
+		mov  eax, -1;
+		add  esp, 4;
+		pop  edx;
+		retn;
 	}
 }
 

@@ -117,7 +117,7 @@ static const DWORD scr_find_obj_from_program = fo::funcoffs::scr_find_obj_from_p
 static DWORD _stdcall FindSid(fo::Program* script) {
 	std::unordered_map<fo::Program*, SelfOverrideObj>::iterator overrideIt = selfOverrideMap.find(script);
 	if (overrideIt != selfOverrideMap.end()) {
-		DWORD scriptId = overrideIt->second.object->scriptId; // script 
+		DWORD scriptId = overrideIt->second.object->scriptId; // script
 		overrideScriptStruct.id = scriptId;
 		if (scriptId != -1) {
 			if (overrideIt->second.UnSetSelf()) selfOverrideMap.erase(overrideIt);
@@ -185,7 +185,7 @@ skip:
 		jne  end;
 		lea  eax, overrideScriptStruct;
 		mov  [edx], eax;
-		mov  esi, [eax]; // script.id 
+		mov  esi, [eax]; // script.id
 		xor  eax, eax;
 		retn;
 end:
@@ -402,7 +402,7 @@ void _stdcall SetSelfObject(fo::Program* script, fo::GameObject* obj) {
 
 // loads script from .int file into a sScriptProgram struct, filling script pointer and proc lookup table
 void LoadScriptProgram(ScriptProgram &prog, const char* fileName, bool fullPath) {
-	fo::Program* scriptPtr = fullPath 
+	fo::Program* scriptPtr = fullPath
 		? fo::func::allocateProgram(fileName)
 		: fo::func::loadProgram(fileName);
 
@@ -477,7 +477,7 @@ static void PrepareGlobalScriptsListByMask() {
 		char** filenames;
 		auto basePath = fileMask.substr(0, fileMask.find_last_of("\\/") + 1); // path to scripts without mask
 		int count = fo::func::db_get_file_list(fileMask.c_str(), &filenames);
-		
+
 		for (int i = 0; i < count; i++) {
 			char* name = _strlwr(filenames[i]); // name of the script in lower case
 
@@ -642,15 +642,16 @@ void _stdcall RunGlobalScriptsAtProc(DWORD procId) {
 	}
 }
 
-void LoadGlobals(HANDLE h) {
+bool LoadGlobals(HANDLE h) {
 	DWORD count, unused;
 	ReadFile(h, &count, 4, &unused, 0);
-	if (unused!=4) return;
+	if (unused != 4) return true;
 	GlobalVar var;
-	for (DWORD i = 0; i<count; i++) {
+	for (DWORD i = 0; i < count; i++) {
 		ReadFile(h, &var, sizeof(GlobalVar), &unused, 0);
 		globalVars.insert(glob_pair(var.id, var.val));
 	}
+	return false;
 }
 
 void SaveGlobals(HANDLE h) {
@@ -676,8 +677,8 @@ static void ClearGlobals() {
 	savedArrays.clear();
 }
 
-int GetNumGlobals() { 
-	return globalVars.size(); 
+int GetNumGlobals() {
+	return globalVars.size();
 }
 
 void GetGlobals(GlobalVar* globals) {
@@ -723,7 +724,7 @@ void ScriptExtender::init() {
 		SafeWrite8(0x4C9F12, 0x6A); // push
 		SafeWrite8(0x4C9F13, idle);
 	}
-	
+
 	arraysBehavior = GetConfigInt("Misc", "arraysBehavior", 1);
 	if (arraysBehavior > 0) {
 		arraysBehavior = 1; // only 1 and 0 allowed at this time

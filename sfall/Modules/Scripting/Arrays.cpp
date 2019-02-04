@@ -193,23 +193,23 @@ void LoadArrayElement(sArrayElement* el, HANDLE h)
 	}
 }
 
-void LoadArraysOld(HANDLE h) {
+static bool LoadArraysOld(HANDLE h) {
 	dlogr("Loading arrays (old fmt)", DL_MAIN);
 	DWORD count, unused, id, j;
 	ReadFile(h, &count, 4, &unused, 0);
-	if(unused!=4) return;
+	if(unused != 4) return true;
 	sArrayVarOld var;
 	sArrayVar varN;
-	for(DWORD i=0;i<count;i++) {
+	for(DWORD i = 0;i < count; i++) {
 		ReadFile(h, &id, 4, &unused, 0);
 		ReadFile(h, &var, 8, &unused, 0);
-		var.types=new DWORD[var.len];
-		var.data=new char[var.len*var.datalen];
-		ReadFile(h, var.types, 4*var.len, &unused, 0);
-		ReadFile(h, var.data, var.len*var.datalen, &unused, 0);
+		var.types = new DWORD[var.len];
+		var.data = new char[var.len*var.datalen];
+		ReadFile(h, var.types, 4 * var.len, &unused, 0);
+		ReadFile(h, var.data, var.len * var.datalen, &unused, 0);
 		varN.flags = 0;
 		varN.val.resize(var.len);
-		for (j=0; j<var.len; j++) {
+		for (j = 0; j < var.len; j++) {
 			switch (var.types[j]) {
 			case DataType::INT:
 				varN.val[j].set(*(long*)(&var.data[var.datalen*j]));
@@ -228,14 +228,15 @@ void LoadArraysOld(HANDLE h) {
 		arrays.insert(array_pair(id, varN));
 		savedArrays[varN.key] = id;
 	}
+	return false;
 }
 
-void LoadArrays(HANDLE h) {
+bool LoadArrays(HANDLE h) {
 	DWORD count, elCount, unused, j;
-	LoadArraysOld(h);
+	if (LoadArraysOld(h)) return true;
 	dlogr("Loading arrays (new fmt)", DL_MAIN);
 	ReadFile(h, &count, 4, &unused, 0);
-	if (unused != 4) return;
+	if (unused != 4) return true;
 	sArrayVar arrayVar;
 	nextarrayid = 1;
 	for (DWORD i=0; i<count; i++) {
@@ -260,6 +261,7 @@ void LoadArrays(HANDLE h) {
 		savedArrays[arrayVar.key] = nextarrayid++;
 		arrayVar.keyHash.clear();
 	}
+	return false;
 }
 
 void SaveArrays(HANDLE h) {

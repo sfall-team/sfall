@@ -55,7 +55,7 @@ bool _stdcall IsGameScript(const char* filename);
 
 void _stdcall RunGlobalScriptsAtProc(DWORD procId);
 
-void LoadGlobals(HANDLE h);
+bool LoadGlobals(HANDLE h);
 void SaveGlobals(HANDLE h);
 
 int GetNumGlobals();
