@@ -47,7 +47,6 @@ static int mapSlotsScrollMax = 27 * (17 - 7);
 
 static DWORD worldMapDelay;
 static DWORD worldMapTicks;
-static DWORD worldMapAdjustDelay = 4;
 
 static DWORD WorldMapEncounterRate;
 
@@ -146,49 +145,50 @@ static void __stdcall WorldmapLoopHook() {
 
 static void __declspec(naked) WorldMapFpsPatch() {
 	__asm {
-		pushadc;
 		push dword ptr ds:[FO_VAR_last_buttons];
 		push dword ptr ds:[0x6AC7B0]; // _mouse_buttons
-		xor  ecx, ecx;
+		mov  esi, worldMapTicks;
+		mov  ebx, esi;                // previous ticks
 loopDelay:
-		call fo::funcoffs::process_bk_;
-		dec  ecx;
-		jg   subLoop;   // jmp ecx > -1
 		call WorldmapLoopHook;
-		mov  ecx, worldMapAdjustDelay; // adjust invoke frequency
+		call fo::funcoffs::process_bk_;
 subLoop:
-		mov  eax, worldMapTicks;
-		call fo::funcoffs::elapsed_time_;
-		cmp  eax, 10;   // delay
-		jle  subLoop;
-		cmp  eax, worldMapDelay;
-		jl   loopDelay; // elapsed < worldMapDelay
+		call GetTickCount; // current ticks
+		mov  edx, eax;
+		sub  eax, ebx;     // get elapsed time (cur.ticks - prev.ticks)
+		cmp  eax, 10;      // delay - GetTickCount returns minimum difference of 15 units
+		jb   subLoop;      // elapsed < invoke delay
+		mov  ebx, edx;
+		sub  edx, esi;     // get elapsed time (cur.ticks - worldMapTicks)
+		cmp  edx, worldMapDelay;
+		jb   loopDelay;    // elapsed < worldMapDelay
 
-		call fo::funcoffs::get_time_;
-		mov  worldMapTicks, eax;
 		pop  dword ptr ds:[0x6AC7B0]; // _mouse_buttons
 		pop  dword ptr ds:[FO_VAR_last_buttons];
-		popadc;
+		call GetTickCount;
+		mov  worldMapTicks, eax;
 		jmp  fo::funcoffs::get_input_;
 	}
 }
 
 static void __declspec(naked) WorldMapFpsPatch2() {
 	__asm {
-		pushadc;
+		mov  esi, worldMapTicks;
+		mov  ebx, esi;
 loopDelay:
 		call WorldmapLoopHook;
 subLoop:
-		mov  eax, worldMapTicks;
-		call fo::funcoffs::elapsed_time_;
-		test eax, eax;  // 1 min delay
+		call GetTickCount; // current ticks
+		mov  edx, eax;
+		sub  eax, ebx;     // get elapsed time
 		jz   subLoop;
-		cmp  eax, worldMapDelay;
-		jl   loopDelay; // elapsed < worldMapDelay
+		mov  ebx, edx;
+		sub  edx, esi;     // get elapsed time
+		cmp  edx, worldMapDelay;
+		jb   loopDelay;    // elapsed < worldMapDelay
 
-		call fo::funcoffs::get_time_;
+		call GetTickCount;
 		mov  worldMapTicks, eax;
-		popadc;
 		jmp  fo::funcoffs::get_input_;
 	}
 }
@@ -354,7 +354,7 @@ void WorldLimitsPatches() {
 		if (wmSlots < 25) {
 			SafeWrite32(0x4C21FD, 230 - (wmSlots - 17) * 27);
 		} else {
-			SafeWrite8(0x4C21FC, 0xC2);
+			SafeWrite8(0x4C21FC, 0xC2); // sub > add
 			SafeWrite32(0x4C21FD, 2 + 27 * (wmSlots - 26));
 		}
 		dlogr(" Done", DL_INIT);
@@ -373,7 +373,10 @@ void TimeLimitPatch() {
 		if (limit == -1) {
 			MakeCall(0x4A3DF5, script_chk_timed_events_hack, 1);
 			MakeCall(0x4A3488, set_game_time_hack);
-			MakeCalls(TimerReset, {0x4A34EF, 0x4A3547}); // inc_game_time_/inc_game_time_in_seconds_
+			MakeCalls(TimerReset, {
+				0x4A34EF, // inc_game_time_
+				0x4A3547  // inc_game_time_in_seconds_
+			});
 			SafeMemSet(0x4A34F4, 0x90, 16);
 			SafeMemSet(0x4A354C, 0x90, 16);
 		} else {
@@ -408,8 +411,7 @@ void WorldmapFpsPatch() {
 		void* func;
 		if (worldMapDelay == 0) {
 			func = wmWorldMap_hook;
-		} else if (worldMapDelay > 15)  {
-			worldMapAdjustDelay += worldMapDelay / 10;
+		} else if (worldMapDelay > 25) {
 			func = WorldMapFpsPatch;
 		} else {
 			func = WorldMapFpsPatch2;
@@ -421,7 +423,7 @@ void WorldmapFpsPatch() {
 	if (GetConfigInt("Misc", "WorldMapEncounterFix", 0)) {
 		dlog("Applying world map encounter patch.", DL_INIT);
 		WorldMapEncounterRate = GetConfigInt("Misc", "WorldMapEncounterRate", 5);
-		SafeWrite32(0x4C232D, 0x01EBC031);        // xor eax, eax; jmps 0x4C2332
+		SafeWrite32(0x4C232D, 0x01EBC031); // xor eax, eax; jmps 0x4C2332 (wmInterfaceInit_)
 		HookCall(0x4BFEE0, wmWorldMapFunc_hook);
 		MakeCall(0x4C0667, wmRndEncounterOccurred_hack);
 		dlogr(" Done", DL_INIT);
@@ -485,7 +487,7 @@ void StartingStatePatches() {
 		SafeWrite32(FO_VAR_wmWorldOffsetY, ViewportY);
 		dlogr(" Done", DL_INIT);
 	}
-	if (ViewportX != -1 || ViewportY != 1) HookCall(0x4BCF07, ViewportHook); // game_reset_
+	if (ViewportX != -1 || ViewportY != -1) HookCall(0x4BCF07, ViewportHook); // game_reset_
 }
 
 void WorldMapFontPatch() {
