@@ -357,7 +357,7 @@ static void __declspec(naked) game_reset_on_load_hook() {
 		pushadc;
 		push 1;
 		call GameReset; // reset all sfall modules before resetting the game data
-		test eax, eax;
+		test al, al;
 		popadc;
 		jnz  errorLoad;
 		jmp fo::funcoffs::game_reset_;

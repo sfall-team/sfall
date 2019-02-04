@@ -9,6 +9,7 @@ class Input : public Module {
 public:
 	const char* name() { return "InputPatch"; }
 	void init();
+	void exit() override;
 };
 
 }
