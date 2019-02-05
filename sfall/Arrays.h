@@ -136,8 +136,7 @@ extern std::set<DWORD> tempArrays;
 // saved arrays: arrayKey => arrayId
 extern ArrayKeysMap savedArrays;
 
-void LoadArraysOld(HANDLE h);
-void LoadArrays(HANDLE h);
+bool LoadArrays(HANDLE h);
 void SaveArrays(HANDLE h);
 int GetNumArrays();
 void GetArrays(int* arrays);

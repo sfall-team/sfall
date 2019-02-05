@@ -59,7 +59,7 @@ void RunGlobalScripts3();
 void _stdcall RunGlobalScriptsAtProc(DWORD procId);
 void AfterAttackCleanup();
 
-void LoadGlobals(HANDLE h);
+bool LoadGlobals(HANDLE h);
 void SaveGlobals(HANDLE h);
 void ClearGlobals();
 

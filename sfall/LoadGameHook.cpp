@@ -106,9 +106,7 @@ static void _stdcall SaveGame2() {
 		SaveArrays(h);
 		CloseHandle(h);
 	} else {
-		dlogr("ERROR creating sfallgv!", DL_MAIN);
-		DisplayConsoleMessage(SaveSfallDataFailMsg);
-		PlaySfx("IISXXXX1");
+		goto errorSave;
 	}
 
 	if (FileSystemIsEmpty()) return;
@@ -117,7 +115,16 @@ static void _stdcall SaveGame2() {
 	if (h != INVALID_HANDLE_VALUE) {
 		FileSystemSave(h);
 		CloseHandle(h);
+	} else {
+		goto errorSave;
 	}
+
+	return;
+//////////////////////////////////////////////////
+errorSave:
+	dlog_f("ERROR creating: %s\n", DL_MAIN, buf);
+	DisplayConsoleMessage(SaveSfallDataFailMsg);
+	PlaySfx("IISXXXX1");
 }
 
 static char SaveFailMsg[128];
@@ -180,20 +187,23 @@ static void _stdcall LoadGame2_Before() {
 	HANDLE h = CreateFileA(buf, GENERIC_READ, FILE_SHARE_READ, 0, OPEN_EXISTING, 0, 0);
 	if (h != INVALID_HANDLE_VALUE) {
 		DWORD size, data;
-		LoadGlobals(h);
+		if (LoadGlobals(h)) goto errorLoad;
 		long uID = 0;
 		ReadFile(h, &uID, 4, &size, 0);
 		if (uID > UID_START) objUniqueID = uID;
 		ReadFile(h, &data, 4, &size, 0);
 		SetAddedYears(data >> 16);
-		if (size == 4) {
-			PerksLoad(h);
-			LoadArrays(h);
-		}
+		if (size != 4 || !PerksLoad(h) || LoadArrays(h)) goto errorLoad;
 		CloseHandle(h);
 	} else {
-		dlogr("Cannot read sfallgv.sav - assuming non-sfall save.", DL_MAIN);
+		dlogr("Cannot open sfallgv.sav - assuming non-sfall save.", DL_MAIN);
 	}
+
+	return;
+//////////////////////////////////////////////////
+errorLoad:
+	CloseHandle(h);
+	dlog_f("ERROR reading data: %s\n", DL_MAIN, buf);
 }
 
 static void _stdcall LoadGame2_After() {
