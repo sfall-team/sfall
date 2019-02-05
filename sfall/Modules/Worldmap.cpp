@@ -508,19 +508,21 @@ void Worldmap::SaveData(HANDLE file) {
 	}
 }
 
-void Worldmap::LoadData(HANDLE file) {
+bool Worldmap::LoadData(HANDLE file) {
 	DWORD count, sizeRead;
 	ReadFile(file, &count, 4, &sizeRead, 0);
-	if (sizeRead != 4) return;
+	if (sizeRead != 4) return true;
 	if (!restMap) HookCall(0x42E57A, critter_can_obj_dude_rest_hook);
 	for (DWORD i = 0; i < count; i++) {
 		DWORD mID;
 		levelRest elevData;
 		ReadFile(file, &mID, 4, &sizeRead, 0);
 		ReadFile(file, &elevData, sizeof(levelRest), &sizeRead, 0);
+		if (sizeRead != sizeof(levelRest)) return true;
 		mapRestInfo.insert(std::make_pair(mID, elevData));
 	}
 	restMap = true;
+	return false;
 }
 
 void _stdcall SetMapMulti(float value) {

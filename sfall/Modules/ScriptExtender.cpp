@@ -639,15 +639,16 @@ void _stdcall RunGlobalScriptsAtProc(DWORD procId) {
 	}
 }
 
-void LoadGlobals(HANDLE h) {
+bool LoadGlobals(HANDLE h) {
 	DWORD count, unused;
 	ReadFile(h, &count, 4, &unused, 0);
-	if (unused != 4) return;
+	if (unused != 4) return true;
 	GlobalVar var;
 	for (DWORD i = 0; i < count; i++) {
 		ReadFile(h, &var, sizeof(GlobalVar), &unused, 0);
 		globalVars.insert(glob_pair(var.id, var.val));
 	}
+	return false;
 }
 
 void SaveGlobals(HANDLE h) {
