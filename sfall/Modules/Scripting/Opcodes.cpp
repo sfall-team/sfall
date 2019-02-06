@@ -51,7 +51,7 @@ static const short opcodeCount = 0x300;
 // Other half is filled by sfall here.
 static void* opcodes[opcodeCount];
 
-typedef std::unordered_map<int, const SfallOpcodeInfo*> OpcodeInfoMapType;
+typedef std::unordered_map<short, const SfallOpcodeInfo*> OpcodeInfoMapType;
 
 // Opcode Table. Add additional (sfall) opcodes here.
 // Format: {
@@ -63,114 +63,115 @@ typedef std::unordered_map<int, const SfallOpcodeInfo*> OpcodeInfoMapType;
 //    { argument 1 type, argument 2 type, ...}
 // }
 static SfallOpcodeInfo opcodeInfoArray[] = {
-	{0x163, "get_year", sf_get_year, 0, true},
-	{0x16c, "key_pressed", sf_key_pressed, 1, true, {ARG_INT}},
+	{0x163, "get_year",                  sf_get_year,                  0, true},
+	{0x16c, "key_pressed",               sf_key_pressed,               1, true,  {ARG_INT}},
 
-	{0x19d, "set_sfall_global", sf_set_sfall_global, 2, false, {ARG_INTSTR, ARG_NUMBER}},
-	{0x19e, "get_sfall_global_int", sf_get_sfall_global_int, 1, true, {ARG_INTSTR}},
-	{0x19f, "get_sfall_global_float", sf_get_sfall_global_float, 1, true, {ARG_INTSTR}},
+	{0x19d, "set_sfall_global",          sf_set_sfall_global,          2, false, {ARG_INTSTR, ARG_NUMBER}},
+	{0x19e, "get_sfall_global_int",      sf_get_sfall_global_int,      1, true,  {ARG_INTSTR}},
+	{0x19f, "get_sfall_global_float",    sf_get_sfall_global_float,    1, true,  {ARG_INTSTR}},
 
-	{0x1dc, "show_iface_tag", sf_show_iface_tag, 1, false, {ARG_INT}},
-	{0x1dd, "hide_iface_tag", sf_hide_iface_tag, 1, false, {ARG_INT}},
-	{0x1de, "is_iface_tag_active", sf_is_iface_tag_active, 1, true, {ARG_INT}},
-	{0x1e1, "set_critical_table", sf_set_critical_table, 5, false, {ARG_INT, ARG_INT, ARG_INT, ARG_INT, ARG_INT}},
-	{0x1e2, "get_critical_table", sf_get_critical_table, 4, true, {ARG_INT, ARG_INT, ARG_INT, ARG_INT}},
-	{0x1e3, "reset_critical_table", sf_reset_critical_table, 4, false, {ARG_INT, ARG_INT, ARG_INT, ARG_INT}},
-	{0x1ec, "sqrt", sf_sqrt, 1, true, {ARG_NUMBER}},
-	{0x1ed, "abs", sf_abs, 1, true, {ARG_NUMBER}},
-	{0x1ee, "sin", sf_sin, 1, true, {ARG_NUMBER}},
-	{0x1ef, "cos", sf_cos, 1, true, {ARG_NUMBER}},
-	{0x1f0, "tan", sf_tan, 1, true, {ARG_NUMBER}},
-	{0x1f1, "arctan", sf_arctan, 2, true, {ARG_NUMBER, ARG_NUMBER}},
-	{0x1f5, "get_script", sf_get_script, 1, true},
-	{0x1f7, "fs_create", sf_fs_create, 2, true, {ARG_STRING, ARG_INT}},
-	{0x1f8, "fs_copy", sf_fs_copy, 2, true, {ARG_STRING, ARG_STRING}},
-	{0x1f9, "fs_find", sf_fs_find, 1, true, {ARG_STRING}},
-	{0x1fa, "fs_write_byte", sf_fs_write_byte, 2, false, {ARG_INT, ARG_INT}},
-	{0x1fb, "fs_write_short", sf_fs_write_short, 2, false, {ARG_INT, ARG_INT}},
-	{0x1fc, "fs_write_int", sf_fs_write_int, 2, false, {ARG_INT, ARG_INT}},
-	{0x1fd, "fs_write_int", sf_fs_write_int, 2, false, {ARG_INT, ARG_INT}},
-	{0x1fe, "fs_write_string", sf_fs_write_string, 2, false, {ARG_INT, ARG_STRING}},
-	{0x1ff, "fs_delete", sf_fs_delete, 1, false, {ARG_INT}},
-	{0x200, "fs_size", sf_fs_size, 1, true, {ARG_INT}},
-	{0x201, "fs_pos", sf_fs_pos, 1, true, {ARG_INT}},
-	{0x202, "fs_seek", sf_fs_seek, 2, false, {ARG_INT, ARG_INT}},
-	{0x203, "fs_resize", sf_fs_resize, 2, false, {ARG_INT, ARG_INT}},
-	{0x204, "get_proto_data", sf_get_proto_data, 2, true, {ARG_INT, ARG_INT}},
-	{0x205, "set_proto_data", sf_set_proto_data, 3, false, {ARG_INT, ARG_INT, ARG_INT}},
-	{0x207, "register_hook", sf_register_hook, 1, false, {ARG_INT}},
-	{0x208, "fs_write_bstring", sf_fs_write_bstring, 2, false, {ARG_INT, ARG_STRING}},
-	{0x209, "fs_read_byte", sf_fs_read_byte, 1, true, {ARG_INT}},
-	{0x20a, "fs_read_short", sf_fs_read_short, 1, true, {ARG_INT}},
-	{0x20b, "fs_read_int", sf_fs_read_int, 1, true, {ARG_INT}},
-	{0x20c, "fs_read_float", sf_fs_read_float, 1, true, {ARG_INT}},
-	{0x20d, "list_begin", sf_list_begin, 1, true, {ARG_INT}},
-	{0x20e, "list_next", sf_list_next, 1, true, {ARG_INT}},
-	{0x20f, "list_end", sf_list_end, 1, false, {ARG_INT}},
-	{0x210, "sfall_ver_major", sf_sfall_ver_major, 0, true},
-	{0x211, "sfall_ver_minor", sf_sfall_ver_minor, 0, true},
-	{0x212, "sfall_ver_build", sf_sfall_ver_build, 0, true},
-	{0x216, "set_critter_burst_disable", sf_set_critter_burst_disable, 2, false},
-	{0x217, "get_weapon_ammo_pid", sf_get_weapon_ammo_pid, 1, true, {ARG_OBJECT}},
-	{0x218, "set_weapon_ammo_pid", sf_set_weapon_ammo_pid, 2, false, {ARG_OBJECT, ARG_INT}},
-	{0x219, "get_weapon_ammo_count", sf_get_weapon_ammo_count, 1, true, {ARG_OBJECT}},
-	{0x21a, "set_weapon_ammo_count", sf_set_weapon_ammo_count, 2, false, {ARG_OBJECT, ARG_INT}},
-	{0x21e, "get_mouse_buttons", sf_get_mouse_buttons, 0, true},
+	{0x1dc, "show_iface_tag",            sf_show_iface_tag,            1, false, {ARG_INT}},
+	{0x1dd, "hide_iface_tag",            sf_hide_iface_tag,            1, false, {ARG_INT}},
+	{0x1de, "is_iface_tag_active",       sf_is_iface_tag_active,       1, true,  {ARG_INT}},
+	{0x1e1, "set_critical_table",        sf_set_critical_table,        5, false, {ARG_INT, ARG_INT, ARG_INT, ARG_INT, ARG_INT}},
+	{0x1e2, "get_critical_table",        sf_get_critical_table,        4, true,  {ARG_INT, ARG_INT, ARG_INT, ARG_INT}},
+	{0x1e3, "reset_critical_table",      sf_reset_critical_table,      4, false, {ARG_INT, ARG_INT, ARG_INT, ARG_INT}},
+	{0x1ec, "sqrt",                      sf_sqrt,                      1, true,  {ARG_NUMBER}},
+	{0x1ed, "abs",                       sf_abs,                       1, true,  {ARG_NUMBER}},
+	{0x1ee, "sin",                       sf_sin,                       1, true,  {ARG_NUMBER}},
+	{0x1ef, "cos",                       sf_cos,                       1, true,  {ARG_NUMBER}},
+	{0x1f0, "tan",                       sf_tan,                       1, true,  {ARG_NUMBER}},
+	{0x1f1, "arctan",                    sf_arctan,                    2, true,  {ARG_NUMBER, ARG_NUMBER}},
+	{0x1f5, "get_script",                sf_get_script,                1, true,  {ARG_OBJECT}},
 
-	{0x22d, "create_array", sf_create_array, 2, true, {ARG_INT, ARG_INT}},
-	{0x22e, "set_array", sf_set_array, 3, false, {ARG_OBJECT, ARG_ANY, ARG_ANY}},
-	{0x22f, "get_array", sf_get_array, 2, true, {ARG_ANY, ARG_ANY}}, // can also be used on strings
-	{0x230, "free_array", sf_free_array, 1, false, {ARG_OBJECT}},
-	{0x231, "len_array", sf_len_array, 1, true, {ARG_INT}},
-	{0x232, "resize_array", sf_resize_array, 2, false, {ARG_OBJECT, ARG_INT}},
-	{0x233, "temp_array", sf_temp_array, 2, true, {ARG_INT, ARG_INT}},
-	{0x234, "fix_array", sf_fix_array, 1, false, {ARG_INT}},
-	{0x235, "string_split", sf_string_split, 2, true, {ARG_STRING, ARG_STRING}},
-	{0x236, "list_as_array", sf_list_as_array, 1, true, {ARG_INT}},
-	{0x237, "atoi", sf_atoi, 1, true, {ARG_STRING}},
-	{0x238, "atof", sf_atof, 1, true, {ARG_STRING}},
-	{0x239, "scan_array", sf_scan_array, 2, true, {ARG_OBJECT, ARG_ANY}},
+	{0x1f7, "fs_create",                 sf_fs_create,                 2, true,  {ARG_STRING, ARG_INT}},
+	{0x1f8, "fs_copy",                   sf_fs_copy,                   2, true,  {ARG_STRING, ARG_STRING}},
+	{0x1f9, "fs_find",                   sf_fs_find,                   1, true,  {ARG_STRING}},
+	{0x1fa, "fs_write_byte",             sf_fs_write_byte,             2, false, {ARG_INT, ARG_INT}},
+	{0x1fb, "fs_write_short",            sf_fs_write_short,            2, false, {ARG_INT, ARG_INT}},
+	{0x1fc, "fs_write_int",              sf_fs_write_int,              2, false, {ARG_INT, ARG_INT}},
+	{0x1fd, "fs_write_int",              sf_fs_write_int,              2, false, {ARG_INT, ARG_INT}},
+	{0x1fe, "fs_write_string",           sf_fs_write_string,           2, false, {ARG_INT, ARG_STRING}},
+	{0x1ff, "fs_delete",                 sf_fs_delete,                 1, false, {ARG_INT}},
+	{0x200, "fs_size",                   sf_fs_size,                   1, true,  {ARG_INT}},
+	{0x201, "fs_pos",                    sf_fs_pos,                    1, true,  {ARG_INT}},
+	{0x202, "fs_seek",                   sf_fs_seek,                   2, false, {ARG_INT, ARG_INT}},
+	{0x203, "fs_resize",                 sf_fs_resize,                 2, false, {ARG_INT, ARG_INT}},
+	{0x204, "get_proto_data",            sf_get_proto_data,            2, true,  {ARG_INT, ARG_INT}},
+	{0x205, "set_proto_data",            sf_set_proto_data,            3, false, {ARG_INT, ARG_INT, ARG_INT}},
+	{0x207, "register_hook",             sf_register_hook,             1, false, {ARG_INT}},
+	{0x208, "fs_write_bstring",          sf_fs_write_bstring,          2, false, {ARG_INT, ARG_STRING}},
+	{0x209, "fs_read_byte",              sf_fs_read_byte,              1, true,  {ARG_INT}},
+	{0x20a, "fs_read_short",             sf_fs_read_short,             1, true,  {ARG_INT}},
+	{0x20b, "fs_read_int",               sf_fs_read_int,               1, true,  {ARG_INT}},
+	{0x20c, "fs_read_float",             sf_fs_read_float,             1, true,  {ARG_INT}},
+	{0x20d, "list_begin",                sf_list_begin,                1, true,  {ARG_INT}},
+	{0x20e, "list_next",                 sf_list_next,                 1, true,  {ARG_INT}},
+	{0x20f, "list_end",                  sf_list_end,                  1, false, {ARG_INT}},
+	{0x210, "sfall_ver_major",           sf_sfall_ver_major,           0, true},
+	{0x211, "sfall_ver_minor",           sf_sfall_ver_minor,           0, true},
+	{0x212, "sfall_ver_build",           sf_sfall_ver_build,           0, true},
+	{0x216, "set_critter_burst_disable", sf_set_critter_burst_disable, 2, false, {ARG_OBJECT, ARG_INT}},
+	{0x217, "get_weapon_ammo_pid",       sf_get_weapon_ammo_pid,       1, true,  {ARG_OBJECT}},
+	{0x218, "set_weapon_ammo_pid",       sf_set_weapon_ammo_pid,       2, false, {ARG_OBJECT, ARG_INT}},
+	{0x219, "get_weapon_ammo_count",     sf_get_weapon_ammo_count,     1, true,  {ARG_OBJECT}},
+	{0x21a, "set_weapon_ammo_count",     sf_set_weapon_ammo_count,     2, false, {ARG_OBJECT, ARG_INT}},
+	{0x21e, "get_mouse_buttons",         sf_get_mouse_buttons,         0, true},
 
-	{0x24e, "substr", sf_substr, 3, true, {ARG_STRING, ARG_INT, ARG_INT}},
-	{0x24f, "strlen", sf_strlen, 1, true, {ARG_STRING}},
-	{0x250, "sprintf", sf_sprintf, 2, true, {ARG_STRING, ARG_ANY}},
-	{0x251, "charcode", sf_ord, 1, true, {ARG_STRING}},
+	{0x22d, "create_array",              sf_create_array,              2, true,  {ARG_INT, ARG_INT}},
+	{0x22e, "set_array",                 sf_set_array,                 3, false, {ARG_OBJECT, ARG_ANY, ARG_ANY}},
+	{0x22f, "get_array",                 sf_get_array,                 2, true,  {ARG_ANY, ARG_ANY}}, // can also be used on strings
+	{0x230, "free_array",                sf_free_array,                1, false, {ARG_OBJECT}},
+	{0x231, "len_array",                 sf_len_array,                 1, true,  {ARG_INT}},
+	{0x232, "resize_array",              sf_resize_array,              2, false, {ARG_OBJECT, ARG_INT}},
+	{0x233, "temp_array",                sf_temp_array,                2, true,  {ARG_INT, ARG_INT}},
+	{0x234, "fix_array",                 sf_fix_array,                 1, false, {ARG_INT}},
+	{0x235, "string_split",              sf_string_split,              2, true,  {ARG_STRING, ARG_STRING}},
+	{0x236, "list_as_array",             sf_list_as_array,             1, true,  {ARG_INT}},
+	{0x237, "atoi",                      sf_atoi,                      1, true,  {ARG_STRING}},
+	{0x238, "atof",                      sf_atof,                      1, true,  {ARG_STRING}},
+	{0x239, "scan_array",                sf_scan_array,                2, true,  {ARG_OBJECT, ARG_ANY}},
+
+	{0x24e, "substr",                    sf_substr,                    3, true,  {ARG_STRING, ARG_INT, ARG_INT}},
+	{0x24f, "strlen",                    sf_strlen,                    1, true,  {ARG_STRING}},
+	{0x250, "sprintf",                   sf_sprintf,                   2, true,  {ARG_STRING, ARG_ANY}},
+	{0x251, "charcode",                  sf_ord,                       1, true,  {ARG_STRING}},
 	// 0x252 // RESERVED
-	{0x253, "typeof", sf_typeof, 1, true},
+	{0x253, "typeof",                    sf_typeof,                    1, true,  {ARG_ANY}},
 
-	{0x254, "save_array", sf_save_array, 2, false, {ARG_ANY, ARG_OBJECT}},
-	{0x255, "load_array", sf_load_array, 1, true, {ARG_ANY}},
-	{0x256, "array_key", sf_get_array_key, 2, true, {ARG_INT, ARG_INT}},
-	{0x257, "arrayexpr", sf_stack_array, 2, true, {ARG_ANY, ARG_ANY}},
+	{0x254, "save_array",                sf_save_array,                2, false, {ARG_ANY, ARG_OBJECT}},
+	{0x255, "load_array",                sf_load_array,                1, true,  {ARG_ANY}},
+	{0x256, "array_key",                 sf_get_array_key,             2, true,  {ARG_INT, ARG_INT}},
+	{0x257, "arrayexpr",                 sf_stack_array,               2, true,  {ARG_ANY, ARG_ANY}},
 	// 0x258 // RESERVED for arrays
 	// 0x259 // RESERVED for arrays
 
-	{0x25a, "reg_anim_destroy", sf_reg_anim_destroy, 1, false, {ARG_OBJECT}},
+	{0x25a, "reg_anim_destroy",          sf_reg_anim_destroy,          1, false, {ARG_OBJECT}},
 	{0x25b, "reg_anim_animate_and_hide", sf_reg_anim_animate_and_hide, 3, false, {ARG_OBJECT, ARG_INT, ARG_INT}},
-	{0x25c, "reg_anim_combat_check", sf_reg_anim_combat_check, 1, false, {ARG_INT}},
-	{0x25d, "reg_anim_light", sf_reg_anim_light, 3, false, {ARG_OBJECT, ARG_INT, ARG_INT}},
-	{0x25e, "reg_anim_change_fid", sf_reg_anim_change_fid, 3, false, {ARG_OBJECT, ARG_INT, ARG_INT}},
-	{0x25f, "reg_anim_take_out", sf_reg_anim_take_out, 3, false, {ARG_OBJECT, ARG_INT, ARG_INT}},
-	{0x260, "reg_anim_turn_towards", sf_reg_anim_turn_towards, 3, false, {ARG_OBJECT, ARG_INT, ARG_INT}},
+	{0x25c, "reg_anim_combat_check",     sf_reg_anim_combat_check,     1, false, {ARG_INT}},
+	{0x25d, "reg_anim_light",            sf_reg_anim_light,            3, false, {ARG_OBJECT, ARG_INT, ARG_INT}},
+	{0x25e, "reg_anim_change_fid",       sf_reg_anim_change_fid,       3, false, {ARG_OBJECT, ARG_INT, ARG_INT}},
+	{0x25f, "reg_anim_take_out",         sf_reg_anim_take_out,         3, false, {ARG_OBJECT, ARG_INT, ARG_INT}},
+	{0x260, "reg_anim_turn_towards",     sf_reg_anim_turn_towards,     3, false, {ARG_OBJECT, ARG_INT, ARG_INT}},
 
-	{0x261, "metarule2_explosions", sf_explosions_metarule, 3, true, {ARG_INT, ARG_INT, ARG_INT}},
-	{0x262, "register_hook_proc", sf_register_hook, 2, false, {ARG_INT, ARG_INT}},
-	{0x263, "power", sf_power, 2, true, {ARG_NUMBER, ARG_NUMBER}},
-	{0x264, "log", sf_log, 1, true, {ARG_NUMBER}},
-	{0x265, "exponent", sf_exponent, 1, true, {ARG_NUMBER}},
-	{0x266, "ceil", sf_ceil, 1, true, {ARG_NUMBER}},
-	{0x267, "round", sf_round, 1, true, {ARG_NUMBER}},
-	{0x26b, "message_str_game", sf_message_str_game, 2, true, {ARG_INT, ARG_INT}},
-	{0x26c, "sneak_success", sf_sneak_success, 0, true},
-	{0x26d, "tile_light", sf_tile_light, 2, true, {ARG_INT, ARG_INT}},
-	{0x26e, "obj_blocking_line", sf_make_straight_path, 3, true, {ARG_OBJECT, ARG_INT, ARG_INT}},
-	{0x26f, "obj_blocking_tile", sf_obj_blocking_at, 3, true, {ARG_INT, ARG_INT, ARG_INT}},
-	{0x270, "tile_get_objs", sf_tile_get_objects, 2, true, {ARG_INT, ARG_INT}},
-	{0x271, "party_member_list", sf_get_party_members, 1, true, {ARG_INT}},
-	{0x272, "path_find_to", sf_make_path, 3, true, {ARG_OBJECT, ARG_INT, ARG_INT}},
-	{0x273, "create_spatial", sf_create_spatial, 4, true, {ARG_INT, ARG_INT, ARG_INT, ARG_INT}},
-	{0x274, "art_exists", sf_art_exists, 1, true, {ARG_INT}},
-	{0x275, "obj_is_carrying_obj", sf_obj_is_carrying_obj, 2, true, {ARG_OBJECT, ARG_OBJECT}},
+	{0x261, "metarule2_explosions",      sf_explosions_metarule,       3, true,  {ARG_INT, ARG_INT, ARG_INT}},
+	{0x262, "register_hook_proc",        sf_register_hook,             2, false, {ARG_INT, ARG_INT}},
+	{0x263, "power",                     sf_power,                     2, true,  {ARG_NUMBER, ARG_NUMBER}},
+	{0x264, "log",                       sf_log,                       1, true,  {ARG_NUMBER}},
+	{0x265, "exponent",                  sf_exponent,                  1, true,  {ARG_NUMBER}},
+	{0x266, "ceil",                      sf_ceil,                      1, true,  {ARG_NUMBER}},
+	{0x267, "round",                     sf_round,                     1, true,  {ARG_NUMBER}},
+	{0x26b, "message_str_game",          sf_message_str_game,          2, true,  {ARG_INT, ARG_INT}},
+	{0x26c, "sneak_success",             sf_sneak_success,             0, true},
+	{0x26d, "tile_light",                sf_tile_light,                2, true,  {ARG_INT, ARG_INT}},
+	{0x26e, "obj_blocking_line",         sf_make_straight_path,        3, true,  {ARG_OBJECT, ARG_INT, ARG_INT}},
+	{0x26f, "obj_blocking_tile",         sf_obj_blocking_at,           3, true,  {ARG_INT, ARG_INT, ARG_INT}},
+	{0x270, "tile_get_objs",             sf_tile_get_objects,          2, true,  {ARG_INT, ARG_INT}},
+	{0x271, "party_member_list",         sf_get_party_members,         1, true,  {ARG_INT}},
+	{0x272, "path_find_to",              sf_make_path,                 3, true,  {ARG_OBJECT, ARG_INT, ARG_INT}},
+	{0x273, "create_spatial",            sf_create_spatial,            4, true,  {ARG_INT, ARG_INT, ARG_INT, ARG_INT}},
+	{0x274, "art_exists",                sf_art_exists,                1, true,  {ARG_INT}},
+	{0x275, "obj_is_carrying_obj",       sf_obj_is_carrying_obj,       2, true,  {ARG_OBJECT, ARG_OBJECT}},
 
 	// universal opcodes:
 	{0x276, "sfall_func0", HandleMetarule, 1, true},
@@ -190,6 +191,7 @@ OpcodeInfoMapType opcodeInfoMap;
 void InitOpcodeInfoTable() {
 	int length = sizeof(opcodeInfoArray) / sizeof(opcodeInfoArray[0]);
 	for (int i = 0; i < length; ++i) {
+		// key: opcode, value: reference to opcode element in the opcodeInfoArray array
 		opcodeInfoMap[opcodeInfoArray[i].opcode] = &opcodeInfoArray[i];
 	}
 }
@@ -211,14 +213,10 @@ void __fastcall defaultOpcodeHandlerCall(fo::Program* program, DWORD opcodeOffse
 // Default handler for Sfall opcodes (naked function for integration with the engine).
 void __declspec(naked) defaultOpcodeHandler() {
 	__asm {
-		push eax;
 		push ecx;
-		push edx;
 		mov  ecx, eax;                 // ecx - program
 		call defaultOpcodeHandlerCall; // edx - opcodeOffset
-		pop  edx;
 		pop  ecx;
-		pop  eax;
 		retn;
 	}
 }
@@ -234,10 +232,10 @@ void InitNewOpcodes() {
 		dlogr("  Unsafe opcodes disabled.", DL_SCRIPT);
 	}
 
-	SafeWrite32(0x46E370, opcodeCount);	//Maximum number of allowed opcodes
-	SafeWrite32(0x46ce34, (DWORD)opcodes);	//cmp check to make sure opcode exists
-	SafeWrite32(0x46ce6c, (DWORD)opcodes);	//call that actually jumps to the opcode
-	SafeWrite32(0x46e390, (DWORD)opcodes);	//mov that writes to the opcode
+	SafeWrite32(0x46E370, opcodeCount);    // Maximum number of allowed opcodes
+	SafeWrite32(0x46CE34, (DWORD)opcodes); // cmp check to make sure opcode exists
+	SafeWrite32(0x46CE6C, (DWORD)opcodes); // call that actually jumps to the opcode
+	SafeWrite32(0x46E390, (DWORD)opcodes); // mov that writes to the opcode
 
 	opcodes[0x156] = op_read_byte;
 	opcodes[0x157] = op_read_short;

@@ -26,10 +26,11 @@ namespace script
 {
 
 enum class DataType : unsigned long {
-	NONE = 0,
-	INT,
-	FLOAT,
-	STR
+	NONE  = 0,
+	INT   = VAR_TYPE_INT,
+	FLOAT = VAR_TYPE_FLOAT,
+	STR   = VAR_TYPE_STR,
+	//STR2  = VAR_TYPE_STR2
 };
 
 /*
@@ -57,6 +58,10 @@ public:
 
 	unsigned long rawValue() const;
 
+	float floatValue() const;
+
+	const char* strValue() const;
+
 	// returns value as integer, converting if needed
 	int asInt() const;
 
@@ -68,7 +73,6 @@ public:
 
 	// returns string value or empty string if value is not string type
 	const char* asString() const;
-	const char* String() const;
 
 	// returns value as object pointer or nullptr if value is not integer
 	fo::GameObject* asObject() const;

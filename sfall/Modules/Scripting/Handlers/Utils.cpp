@@ -39,7 +39,7 @@ void sf_sqrt(OpcodeContext& ctx) {
 
 void sf_abs(OpcodeContext& ctx) {
 	if (ctx.arg(0).isInt()) {
-		ctx.setReturn(abs(ctx.arg(0).asInt()));
+		ctx.setReturn(abs((int)ctx.arg(0).rawValue()));
 	} else {
 		ctx.setReturn(abs(ctx.arg(0).asFloat()));
 	}
@@ -87,7 +87,16 @@ void sf_ord(OpcodeContext& ctx) {
 }
 
 void sf_typeof(OpcodeContext& ctx) {
-	ctx.setReturn(static_cast<int>(ctx.arg(0).type()));
+	int typeOf = 0;
+	switch (ctx.arg(0).type()) {
+	case DataType::STR:
+		typeOf = 3;
+	case DataType::FLOAT:
+		typeOf = 2;
+	case DataType::INT:
+		typeOf = 1;
+	}
+	ctx.setReturn(typeOf);
 }
 
 static int _stdcall StringSplit(const char* str, const char* split) {
@@ -219,7 +228,7 @@ static char* _stdcall sprintf_lite(const char* format, ScriptValue value) {
 	}
 	sprintfbuf = new char[buflen + 1];
 	if (value.isFloat()) {
-		_snprintf(sprintfbuf, buflen, newfmt, value.asFloat());
+		_snprintf(sprintfbuf, buflen, newfmt, value.floatValue());
 	} else {
 		_snprintf(sprintfbuf, buflen, newfmt, value.rawValue());
 	}
@@ -239,7 +248,7 @@ void sf_power(OpcodeContext& ctx) {
 					  &power = ctx.arg(1);
 	float result = 0.0;
 	if (power.isFloat())
-		result = pow(base.asFloat(), power.asFloat());
+		result = pow(base.asFloat(), power.floatValue());
 	else
 		result = pow(base.asFloat(), power.asInt());
 
@@ -271,31 +280,6 @@ void sf_round(OpcodeContext& ctx) {
 	}
 	ctx.setReturn(argI);
 }
-
-// TODO: move to FalloutEngine module
-#define CASTMSG(adr) reinterpret_cast<fo::MessageList*>(adr)
-static const fo::MessageList* gameMsgFiles[] =
-{ CASTMSG(0x56D368)     // COMBAT
-, CASTMSG(0x56D510)     // AI
-, CASTMSG(0x56D754)     // SCRNAME
-, CASTMSG(0x58E940)     // MISC
-, CASTMSG(0x58EA98)     // CUSTOM
-, CASTMSG(0x59E814)     // INVENTRY
-, CASTMSG(0x59E980)     // ITEM
-, CASTMSG(0x613D28)     // LSGAME
-, CASTMSG(0x631D48)     // MAP
-, CASTMSG(0x6637E8)     // OPTIONS
-, CASTMSG(0x6642D4)     // PERK
-, CASTMSG(0x664348)     // PIPBOY
-, CASTMSG(0x664410)     // QUESTS
-, CASTMSG(0x6647FC)     // PROTO
-, CASTMSG(0x667724)     // SCRIPT
-, CASTMSG(0x668080)     // SKILL
-, CASTMSG(0x6680F8)     // SKILLDEX
-, CASTMSG(0x66817C)     // STAT
-, CASTMSG(0x66BE38)     // TRAIT
-, CASTMSG(0x672FB0) };  // WORLDMAP
-#undef CASTMSG
 
 void sf_message_str_game(OpcodeContext& ctx) {
 	const char* msg = nullptr;

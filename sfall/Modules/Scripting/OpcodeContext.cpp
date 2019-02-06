@@ -134,24 +134,24 @@ void OpcodeContext::handleOpcode(ScriptingFunctionHandler func, const OpcodeArgu
 	if (validateArguments(argTypes, opcodeName)) {
 		func(*this);
 	} else if (_hasReturn) {
-		// is a common practice to return -1 in case of errors in fallout engine
-		setReturn(-1);
+		setReturn(-1); // is a common practice to return -1 in case of errors in fallout engine
 	}
-
 	_pushReturnValue();
 }
 
-void __stdcall OpcodeContext::handleOpcodeStatic(fo::Program* program, DWORD opcodeOffset, ScriptingFunctionHandler func, int argNum, bool hasReturn) {
+void __stdcall OpcodeContext::handleOpcodeStatic(fo::Program* program, DWORD opcodeOffset, ScriptingFunctionHandler func, char argNum, bool hasReturn) {
 	// for each opcode create new context on stack (no allocations at this point)
 	OpcodeContext currentContext(program, opcodeOffset / 4, argNum, hasReturn);
 	// handle the opcode using provided handler
 	currentContext.handleOpcode(func);
 }
 
+/*
 const char* OpcodeContext::getSfallTypeName(DWORD dataType) {
 	switch (dataType) {
 		case DataType::NONE:
 			return "(none)";
+//		case DataType::STR2:
 		case DataType::STR:
 			return "string";
 		case DataType::FLOAT:
@@ -162,12 +162,12 @@ const char* OpcodeContext::getSfallTypeName(DWORD dataType) {
 			return "(unknown)";
 	}
 }
+*/
 
 DataType OpcodeContext::getSfallTypeByScriptType(DWORD varType) {
-	varType &= 0xffff;
-	switch (varType) {
-		case VAR_TYPE_STR:
+	switch (varType & 0xFFFF) {
 		case VAR_TYPE_STR2:
+		case VAR_TYPE_STR:
 			return DataType::STR;
 		case VAR_TYPE_FLOAT:
 			return DataType::FLOAT;
@@ -177,25 +177,13 @@ DataType OpcodeContext::getSfallTypeByScriptType(DWORD varType) {
 	}
 }
 
-DWORD OpcodeContext::getScriptTypeBySfallType(DataType dataType) {
-	switch (dataType) {
-		case DataType::STR:
-			return VAR_TYPE_STR;
-		case DataType::FLOAT:
-			return VAR_TYPE_FLOAT;
-		case DataType::INT:
-		default:
-			return VAR_TYPE_INT;
-	}
-}
-
-void OpcodeContext::_popArguments() {	
+void OpcodeContext::_popArguments() {
 	// process arguments on stack (reverse order)
 	for (int i = _numArgs - 1; i >= 0; i--) {
 		// get argument from stack
 		DWORD rawValueType = fo::func::interpretPopShort(_program);
 		DWORD rawValue = fo::func::interpretPopLong(_program);
-		DataType type = static_cast<DataType>(getSfallTypeByScriptType(rawValueType));
+		DataType type = getSfallTypeByScriptType(rawValueType);
 
 		// retrieve string argument
 		if (type == DataType::STR) {
@@ -209,15 +197,14 @@ void OpcodeContext::_popArguments() {
 void OpcodeContext::_pushReturnValue() {
 	if (_hasReturn) {
 		if (_ret.type() == DataType::NONE) {
-			// if no value was set in handler, force return 0 to avoid stack error
-			_ret = ScriptValue(0);
+			_ret = ScriptValue(0); // if no value was set in handler, force return 0 to avoid stack error
 		}
 		DWORD rawResult = _ret.rawValue();
 		if (_ret.type() == DataType::STR) {
-			rawResult = fo::func::interpretAddString(_program, _ret.asString());
+			rawResult = fo::func::interpretAddString(_program, _ret.strValue());
 		}
 		fo::func::interpretPushLong(_program, rawResult);
-		fo::func::interpretPushShort(_program, getScriptTypeBySfallType(_ret.type()));
+		fo::func::interpretPushShort(_program, static_cast<DWORD>(_ret.type()));
 	}
 }
 
