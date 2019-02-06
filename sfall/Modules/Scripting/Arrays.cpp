@@ -581,7 +581,7 @@ ScriptValue _stdcall ScanArray(DWORD id, const ScriptValue& val) {
 		sArrayElement &el = arrays[id].val[i + step - 1];
 		if (el.type == val.type()) {
 			 if ((!val.isString() && static_cast<DWORD>(el.intVal) == val.rawValue()) ||
-				 (val.isString() && strcmp(el.strVal, val.asString()) == 0)) {
+				 (val.isString() && strcmp(el.strVal, val.strValue()) == 0)) {
 				 if (arrays[id].isAssoc()) { // return key instead of index for associative arrays
 					 return ScriptValue(
 						 static_cast<DataType>(arrays[id].val[i].type),

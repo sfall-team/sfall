@@ -49,10 +49,10 @@ struct SfallMetarule {
 	ScriptingFunctionHandler func;
 
 	// minimum number of arguments
-	int minArgs;
+	short minArgs;
 
 	// maximum number of arguments
-	int maxArgs;
+	short maxArgs;
 
 	// argument validation settings
 	OpcodeArgumentType argValidation[OP_MAX_ARGUMENTS];
@@ -128,20 +128,20 @@ static const SfallMetarule metarules[] = {
 	{"spatial_radius",          sf_spatial_radius,          1, 1, {ARG_OBJECT}},
 	{"tile_refresh_display",    sf_tile_refresh_display,    0, 0},
 	{"unjam_lock",              sf_unjam_lock,              1, 1, {ARG_OBJECT}},
-	#ifndef NDEBUG 
+	#ifndef NDEBUG
 	{"validate_test", sf_test, 2, 5, {ARG_INT, ARG_NUMBER, ARG_STRING, ARG_OBJECT, ARG_ANY}},
 	#endif
 };
 
 // returns current contents of metarule table
-void sf_get_metarule_table(OpcodeContext& ctx) {
-	DWORD arr = TempArray(metaruleTable.size(), 0);
+static void sf_get_metarule_table(OpcodeContext& ctx) {
+	DWORD arrId = TempArray(metaruleTable.size(), 0);
 	int i = 0;
 	for (auto it = metaruleTable.begin(); it != metaruleTable.end(); it++) {
-		arrays[arr].val[i].set(it->first.c_str());
+		arrays[arrId].val[i].set(it->first.c_str());
 		i++;
 	}
-	ctx.setReturn(arr, DataType::INT);
+	ctx.setReturn(arrId, DataType::INT);
 }
 
 void InitMetaruleTable() {
@@ -160,8 +160,8 @@ static bool ValidateMetaruleArguments(OpcodeContext& ctx, const SfallMetarule* m
 			metaruleInfo->name,
 			argCount,
 			metaruleInfo->minArgs,
-			metaruleInfo->maxArgs);
-
+			metaruleInfo->maxArgs
+		);
 		return false;
 	} else {
 		return ctx.validateArguments(metaruleInfo->argValidation, metaruleInfo->name);
@@ -171,7 +171,7 @@ static bool ValidateMetaruleArguments(OpcodeContext& ctx, const SfallMetarule* m
 void HandleMetarule(OpcodeContext& ctx) {
 	const ScriptValue &nameArg = ctx.arg(0);
 	if (nameArg.isString()) {
-		const char* name = nameArg.asString();
+		const char* name = nameArg.strValue();
 		MetaruleTableType::iterator lookup = metaruleTable.find(name);
 		if (lookup != metaruleTable.end()) {
 			currentMetarule = lookup->second;

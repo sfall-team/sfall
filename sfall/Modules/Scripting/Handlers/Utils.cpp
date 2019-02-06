@@ -39,7 +39,7 @@ void sf_sqrt(OpcodeContext& ctx) {
 
 void sf_abs(OpcodeContext& ctx) {
 	if (ctx.arg(0).isInt()) {
-		ctx.setReturn(abs(ctx.arg(0).asInt()));
+		ctx.setReturn(abs((int)ctx.arg(0).rawValue()));
 	} else {
 		ctx.setReturn(abs(ctx.arg(0).asFloat()));
 	}
@@ -87,7 +87,16 @@ void sf_ord(OpcodeContext& ctx) {
 }
 
 void sf_typeof(OpcodeContext& ctx) {
-	ctx.setReturn(static_cast<int>(ctx.arg(0).type()));
+	int typeOf = 0;
+	switch (ctx.arg(0).type()) {
+	case DataType::STR:
+		typeOf = 3;
+	case DataType::FLOAT:
+		typeOf = 2;
+	case DataType::INT:
+		typeOf = 1;
+	}
+	ctx.setReturn(typeOf);
 }
 
 static int _stdcall StringSplit(const char* str, const char* split) {
@@ -219,7 +228,7 @@ static char* _stdcall sprintf_lite(const char* format, ScriptValue value) {
 	}
 	sprintfbuf = new char[buflen + 1];
 	if (value.isFloat()) {
-		_snprintf(sprintfbuf, buflen, newfmt, value.asFloat());
+		_snprintf(sprintfbuf, buflen, newfmt, value.floatValue());
 	} else {
 		_snprintf(sprintfbuf, buflen, newfmt, value.rawValue());
 	}
@@ -239,7 +248,7 @@ void sf_power(OpcodeContext& ctx) {
 					  &power = ctx.arg(1);
 	float result = 0.0;
 	if (power.isFloat())
-		result = pow(base.asFloat(), power.asFloat());
+		result = pow(base.asFloat(), power.floatValue());
 	else
 		result = pow(base.asFloat(), power.asInt());
 

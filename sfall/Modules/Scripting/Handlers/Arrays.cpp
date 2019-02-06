@@ -52,11 +52,11 @@ void sf_set_array(OpcodeContext& ctx) {
 void sf_get_array(OpcodeContext& ctx) {
 	if  (ctx.arg(0).isInt()) {
 		ctx.setReturn(
-			GetArray(ctx.arg(0).asInt(), ctx.arg(1))
+			GetArray(ctx.arg(0).rawValue(), ctx.arg(1))
 		);
 	} else if (ctx.arg(0).isString()) {
 		if (ctx.arg(1).isInt()) {
-			auto str = Substring(ctx.arg(0).asString(), ctx.arg(1).asInt(), 1);
+			auto str = Substring(ctx.arg(0).strValue(), ctx.arg(1).rawValue(), 1);
 			ctx.setReturn(str);
 		} else {
 			ctx.printOpcodeError("get_array() - index must be numeric when used on a string.");

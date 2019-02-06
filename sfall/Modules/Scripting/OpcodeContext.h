@@ -29,7 +29,7 @@ namespace sfall
 namespace script
 {
 
-#define OP_MAX_ARGUMENTS	(10)
+#define OP_MAX_ARGUMENTS	(8)
 
 class OpcodeContext;
 
@@ -47,7 +47,7 @@ enum OpcodeArgumentType {
 
 typedef struct SfallOpcodeInfo {
 	// opcode number
-	int opcode;
+	short opcode;
 
 	// opcode name
 	const char name[32];
@@ -124,13 +124,11 @@ public:
 	void handleOpcode(ScriptingFunctionHandler func, const OpcodeArgumentType argTypes[], const char* opcodeName);
 
 	// handles opcode using default instance
-	static void __stdcall handleOpcodeStatic(fo::Program* program, DWORD opcodeOffset, ScriptingFunctionHandler func, int argNum, bool hasReturn);
+	static void __stdcall handleOpcodeStatic(fo::Program* program, DWORD opcodeOffset, ScriptingFunctionHandler func, char argNum, bool hasReturn);
 
-	static const char* getSfallTypeName(DWORD dataType);
+	//static const char* getSfallTypeName(DWORD dataType);
 
 	static DataType getSfallTypeByScriptType(DWORD varType);
-
-	static DWORD getScriptTypeBySfallType(DataType dataType);
 
 private:
 	// pops arguments from data stack

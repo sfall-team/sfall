@@ -170,27 +170,17 @@ void sf_spatial_radius(OpcodeContext& ctx) {
 }
 
 void sf_get_script(OpcodeContext& ctx) {
-	if (ctx.arg(0).isInt()) {
-		auto obj = ctx.arg(0).asObject();
-		ctx.setReturn(obj->scriptIndex);
-	} else {
-		ctx.setReturn(-1);
-	}
+	auto obj = ctx.arg(0).asObject();
+	ctx.setReturn(obj->scriptIndex);
 }
 
 void sf_set_critter_burst_disable(OpcodeContext& ctx) {
-	if (ctx.arg(0).isInt() && ctx.arg(0).isInt()) {
-		SetNoBurstMode(ctx.arg(0).asObject(), ctx.arg(1).asBool());
-	}
+	SetNoBurstMode(ctx.arg(0).asObject(), ctx.arg(1).asBool());
 }
 
 void sf_get_weapon_ammo_pid(OpcodeContext& ctx) {
-	if (ctx.arg(0).isInt()) {
-		auto obj = ctx.arg(0).asObject();
-		ctx.setReturn(obj->item.ammoPid);
-	} else {
-		ctx.setReturn(-1);
-	}
+	auto obj = ctx.arg(0).asObject();
+	ctx.setReturn(obj->item.ammoPid);
 }
 
 void sf_set_weapon_ammo_pid(OpcodeContext& ctx) {
@@ -199,12 +189,8 @@ void sf_set_weapon_ammo_pid(OpcodeContext& ctx) {
 }
 
 void sf_get_weapon_ammo_count(OpcodeContext& ctx) {
-	if (ctx.arg(0).isInt()) {
-		auto obj = ctx.arg(0).asObject();
-		ctx.setReturn(obj->item.charges);
-	} else {
-		ctx.setReturn(-1);
-	}
+	auto obj = ctx.arg(0).asObject();
+	ctx.setReturn(obj->item.charges);
 }
 
 void sf_set_weapon_ammo_count(OpcodeContext& ctx) {
@@ -311,15 +297,13 @@ void sf_obj_is_carrying_obj(OpcodeContext& ctx) {
 	const ScriptValue &invenObjArg = ctx.arg(0),
 		&itemObjArg = ctx.arg(1);
 
-	if (invenObjArg.isInt() && itemObjArg.isInt()) {
-		fo::GameObject *invenObj = (fo::GameObject*)invenObjArg.asObject(),
-			*itemObj = (fo::GameObject*)itemObjArg.asObject();
-		if (invenObj != nullptr && itemObj != nullptr) {
-			for (int i = 0; i < invenObj->invenSize; i++) {
-				if (invenObj->invenTable[i].object == itemObj) {
-					num = invenObj->invenTable[i].count;
-					break;
-				}
+	fo::GameObject *invenObj = invenObjArg.asObject(),
+		*itemObj = itemObjArg.asObject();
+	if (invenObj != nullptr && itemObj != nullptr) {
+		for (int i = 0; i < invenObj->invenSize; i++) {
+			if (invenObj->invenTable[i].object == itemObj) {
+				num = invenObj->invenTable[i].count;
+				break;
 			}
 		}
 	}
