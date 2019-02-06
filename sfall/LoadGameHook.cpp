@@ -176,7 +176,7 @@ end:
 }
 
 // should be called before savegame is loaded
-static void _stdcall LoadGame2_Before() {
+static bool _stdcall LoadGame2_Before() {
 	ResetState(1);
 
 	char buf[MAX_PATH];
@@ -199,11 +199,12 @@ static void _stdcall LoadGame2_Before() {
 		dlogr("Cannot open sfallgv.sav - assuming non-sfall save.", DL_MAIN);
 	}
 
-	return;
+	return false;
 //////////////////////////////////////////////////
 errorLoad:
 	CloseHandle(h);
 	dlog_f("ERROR reading data: %s\n", DL_MAIN, buf);
+	return (true & !IsDebug);
 }
 
 static void _stdcall LoadGame2_After() {
@@ -216,8 +217,12 @@ static void __declspec(naked) LoadSlot() {
 	__asm {
 		pushad;
 		call LoadGame2_Before;
+		test al, al;
 		popad;
-		call LoadSlot_;
+		jnz  errorLoad;
+		jmp  LoadSlot_;
+errorLoad:
+		mov  eax, -1;
 		retn;
 	}
 }
@@ -284,8 +289,7 @@ static void __declspec(naked) NewGame() {
 		mov  al, DisableHorrigan;
 		mov  byte ptr ds:[_Meet_Frank_Horrigan], al;
 		popad;
-		call main_game_loop_;
-		retn;
+		jmp  main_game_loop_;
 	}
 }
 
@@ -304,8 +308,7 @@ static void __declspec(naked) MainMenuHook() {
 		mov  byte ptr ds:[_gmovie_played_list + 0x3], al;
 		call ReadExtraGameMsgFilesIfNeeded;
 		popad;
-		call main_menu_loop_;
-		retn;
+		jmp  main_menu_loop_;
 	}
 }
 

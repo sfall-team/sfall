@@ -106,7 +106,6 @@ static const DWORD offsetsC[] = {
 static const DWORD getLocalTimePos = 0x4FDF58;
 
 static const DWORD dinputPos = 0x50FB70;
-static const DWORD DDrawPos = 0x50FB5C;
 
 static DWORD AddrGetTickCount;
 static DWORD AddrGetLocalTime;
