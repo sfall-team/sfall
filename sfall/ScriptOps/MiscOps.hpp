@@ -1673,7 +1673,7 @@ static void sf_set_ini_setting() {
 	const ScriptValue &argVal = opHandler.arg(1);
 
 	if (argVal.isInt()) {
-		_itoa_s(argVal.asInt(), IniStrBuffer, 10);
+		_itoa_s(argVal.rawValue(), IniStrBuffer, 10);
 	} else {
 		strcpy_s(IniStrBuffer, argVal.asString());
 	}

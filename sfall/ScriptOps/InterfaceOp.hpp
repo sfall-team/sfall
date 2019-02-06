@@ -257,16 +257,16 @@ next:
 
 		mov ecx, eax;
 		mov eax, 3;
-		push 1;
-		mov al, ds:[0x006AB718];
-		push eax;
-		push 0;
-		push eax;
-		push 0x74;
-		mov ecx, 0xC0;
-		mov eax, esi;
-		xor ebx, ebx;
-		xor edx, edx;
+		push 1;         // arg10
+		mov al, byte ptr ds:[0x6AB718];
+		push eax;       // a9
+		push 0;         // *DisplayText
+		push eax;       // ColorIndex
+		push 0x74;      // y
+		mov ecx, 0xC0;  // x
+		mov eax, esi;   // text
+		xor ebx, ebx;   // ?
+		xor edx, edx;   // ?
 		call dialog_out_;
 		//xor eax, eax;
 end:

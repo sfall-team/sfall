@@ -520,8 +520,8 @@ static void _stdcall op_obj_is_carrying_obj2() {
 					  &itemObjArg = opHandler.arg(1);
 
 	if (invenObjArg.isInt() && itemObjArg.isInt()) {
-		TGameObj *invenObj = (TGameObj*)invenObjArg.asObject(),
-				 *itemObj = (TGameObj*)itemObjArg.asObject();
+		TGameObj *invenObj = invenObjArg.asObject(),
+				 *itemObj = itemObjArg.asObject();
 		if (invenObj != nullptr && itemObj != nullptr) {
 			for (int i = 0; i < invenObj->invenCount; i++) {
 				if (invenObj->invenTablePtr[i].object == itemObj) {

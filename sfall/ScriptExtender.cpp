@@ -39,7 +39,7 @@
 static DWORD _stdcall HandleMapUpdateForScripts(const DWORD procId);
 
 // variables for new opcodes
-#define OP_MAX_ARGUMENTS	(10)
+#define OP_MAX_ARGUMENTS	(8)
 
 // masks for argument validation
 #define DATATYPE_MASK_INT		(1 << DATATYPE_INT)
@@ -156,8 +156,12 @@ public:
 			: nullptr;
 	}
 
-	const char* String() const {
+	const char* strValue() const {
 		return _val.str;
+	}
+
+	float floatValue() const {
+		return _val.f;
 	}
 
 	SfallDataType type() const {
@@ -333,12 +337,11 @@ public:
 		// process return value
 		if (hasReturn) {
 			if (_ret.type() == DATATYPE_NONE) {
-				// if no value was set in handler, force return 0 to avoid stack error
-				_ret = ScriptValue(0);
+				_ret = ScriptValue(0); // if no value was set in handler, force return 0 to avoid stack error
 			}
 			DWORD rawResult = _ret.rawValue();
 			if (_ret.type() == DATATYPE_STR) {
-				rawResult = InterpretAddString(program, _ret.asString());
+				rawResult = InterpretAddString(program, _ret.strValue());
 			}
 			InterpretPushLong(program, rawResult);
 			InterpretPushShort(program, getScriptTypeBySfallType(_ret.type()));
@@ -604,7 +607,7 @@ static void SetGlobalVarFunc() {
 
 	if ((varArg.isInt() || varArg.isString()) && (valArg.isInt() || valArg.isFloat())) {
 		if (varArg.isString()) {
-			if (SetGlobalVar2(varArg.String(), valArg.rawValue())) {
+			if (SetGlobalVar2(varArg.strValue(), valArg.rawValue())) {
 				opHandler.printOpcodeError("set_sfall_global() - The name of the global variable must consist of 8 characters.");
 			}
 		} else {
@@ -645,7 +648,7 @@ static void GetGlobalVarIntFunc() {
 
 	if (varArg.isInt() || varArg.isString()) {
 		if (varArg.isString()) {
-			const char* var = varArg.String();
+			const char* var = varArg.strValue();
 			if (strlen(var) != 8) {
 				opHandler.printOpcodeError("get_sfall_global_int() - The name of the global variable must consist of 8 characters.");
 			} else {
@@ -671,7 +674,7 @@ static void GetGlobalVarFloatFunc() {
 
 	if (varArg.isInt() || varArg.isString()) {
 		if (varArg.isString()) {
-			const char* var = varArg.String();
+			const char* var = varArg.strValue();
 			if (strlen(var) != 8) {
 				opHandler.printOpcodeError("get_sfall_global_float() - The name of the global variable must consist of 8 characters.");
 			} else {
@@ -1326,10 +1329,10 @@ void ScriptExtenderSetup() {
 		dlogr("  Unsafe opcodes disabled.", DL_SCRIPT);
 	}
 
-	SafeWrite32(0x46E370, 0x300);	//Maximum number of allowed opcodes
-	SafeWrite32(0x46ce34, (DWORD)opcodes);	//cmp check to make sure opcode exists
-	SafeWrite32(0x46ce6c, (DWORD)opcodes);	//call that actually jumps to the opcode
-	SafeWrite32(0x46e390, (DWORD)opcodes);	//mov that writes to the opcode
+	SafeWrite32(0x46E370, 0x300);          // Maximum number of allowed opcodes
+	SafeWrite32(0x46CE34, (DWORD)opcodes); // cmp check to make sure opcode exists
+	SafeWrite32(0x46CE6C, (DWORD)opcodes); // call that actually jumps to the opcode
+	SafeWrite32(0x46E390, (DWORD)opcodes); // mov that writes to the opcode
 
 	opcodes[0x156] = ReadByte;
 	opcodes[0x157] = ReadShort;

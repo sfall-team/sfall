@@ -82,13 +82,13 @@ static void sf_test() {
 
 // returns current contents of metarule table
 static void sf_get_metarule_table() {
-	DWORD arr = TempArray(metaruleTable.size(), 0);
+	DWORD arrId = TempArray(metaruleTable.size(), 0);
 	int i = 0;
 	for (MetaruleTableType::iterator it = metaruleTable.begin(); it != metaruleTable.end(); it++) {
-		arrays[arr].val[i].set(it->first.c_str());
+		arrays[arrId].val[i].set(it->first.c_str());
 		i++;
 	}
-	opHandler.setReturn(arr, DATATYPE_INT);
+	opHandler.setReturn(arrId, DATATYPE_INT);
 }
 
 /*
@@ -155,8 +155,8 @@ static bool ValidateMetaruleArguments(const SfallMetarule* metaruleInfo) {
 			metaruleInfo->name,
 			argCount,
 			metaruleInfo->minArgs,
-			metaruleInfo->maxArgs);
-
+			metaruleInfo->maxArgs
+		);
 		return false;
 	} else {
 		// check if metadata is available for this handler
@@ -174,7 +174,7 @@ static bool ValidateMetaruleArguments(const SfallMetarule* metaruleInfo) {
 static void _stdcall op_sfall_metarule_handler() {
 	const ScriptValue &nameArg = opHandler.arg(0);
 	if (nameArg.isString()) {
-		const char* name = nameArg.asString();
+		const char* name = nameArg.strValue();
 		MetaruleTableType::iterator lookup = metaruleTable.find(name);
 		if (lookup != metaruleTable.end()) {
 			currentMetarule = lookup->second;

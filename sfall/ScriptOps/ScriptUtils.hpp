@@ -71,7 +71,7 @@ end:
 static void funcAbs2() {
 	const ScriptValue &value = opHandler.arg(0);
 	if (value.isInt()) {
-		opHandler.setReturn(abs(value.asInt()));
+		opHandler.setReturn(abs((int)value.rawValue()));
 	} else {
 		opHandler.setReturn(abs(value.asFloat()));
 	}
@@ -723,7 +723,7 @@ static void funcPow2() {
 	float result = 0.0;
 	if (!base.isString() && !power.isString()) {
 		if (power.isFloat())
-			result = pow(base.asFloat(), power.asFloat());
+			result = pow(base.asFloat(), power.floatValue());
 		else
 			result = pow(base.asFloat(), power.asInt());
 
@@ -784,27 +784,28 @@ static void __declspec(naked) funcRound() {
 */
 
 // TODO: move to FalloutEngine module
-static const DWORD game_msg_files[] =
-	{ 0x56D368     // COMBAT
-	, 0x56D510     // AI
-	, 0x56D754     // SCRNAME
-	, 0x58E940     // MISC
-	, 0x58EA98     // CUSTOM
-	, 0x59E814     // INVENTRY
-	, 0x59E980     // ITEM
-	, 0x613D28     // LSGAME
-	, 0x631D48     // MAP
-	, 0x6637E8     // OPTIONS
-	, 0x6642D4     // PERK
-	, 0x664348     // PIPBOY
-	, 0x664410     // QUESTS
-	, 0x6647FC     // PROTO
-	, 0x667724     // SCRIPT
-	, 0x668080     // SKILL
-	, 0x6680F8     // SKILLDEX
-	, 0x66817C     // STAT
-	, 0x66BE38     // TRAIT
-	, 0x672FB0 };  // WORLDMAP
+static const DWORD game_msg_files[] = {
+	0x56D368, // COMBAT
+	0x56D510, // AI
+	0x56D754, // SCRNAME
+	0x58E940, // MISC
+	0x58EA98, // CUSTOM
+	0x59E814, // INVENTRY
+	0x59E980, // ITEM
+	0x613D28, // LSGAME
+	0x631D48, // MAP
+	0x6637E8, // OPTIONS
+	0x6642D4, // PERK
+	0x664348, // PIPBOY
+	0x664410, // QUESTS
+	0x6647FC, // PROTO
+	0x667724, // SCRIPT
+	0x668080, // SKILL
+	0x6680F8, // SKILLDEX
+	0x66817C, // STAT
+	0x66BE38, // TRAIT
+	0x672FB0, // WORLDMAP
+};
 
 // TODO: move to FalloutEngine
 static const DWORD* proto_msg_files = (DWORD*)0x006647AC;

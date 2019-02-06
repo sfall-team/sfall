@@ -335,10 +335,9 @@ const char* _stdcall GetSfallTypeName(DWORD dataType) {
 }
 
 DWORD _stdcall getSfallTypeByScriptType(DWORD varType) {
-	varType &= 0xffff;
-	switch (varType) {
-		case VAR_TYPE_STR:
+	switch (varType & 0xFFFF) {
 		case VAR_TYPE_STR2:
+		case VAR_TYPE_STR:
 			return DATATYPE_STR;
 		case VAR_TYPE_FLOAT:
 			return DATATYPE_FLOAT;
