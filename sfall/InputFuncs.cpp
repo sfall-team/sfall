@@ -49,7 +49,7 @@ static double mousePartX;
 static double mousePartY;
 
 #define MAX_KEYS (264)
-static DWORD keysDown[MAX_KEYS];
+static DWORD keysDown[MAX_KEYS] = {0};
 
 static int mouseX;
 static int mouseY;
@@ -125,9 +125,9 @@ void _stdcall TapKey(DWORD key) {
 	data.dwTimeStamp = 0;
 	data.dwSequence = 0;
 	data.dwOfs = key;
-	data.dwData = 0x80;
+	data.dwData = 0x80; // flag pressed
 	bufferedPresses.push(data);
-	data.dwData = 0x00;
+	data.dwData = 0x00; // flag released
 	bufferedPresses.push(data);
 }
 
@@ -193,7 +193,7 @@ public:
 		return RealDevice->Unacquire();
 	}
 
-	//Only called for the mouse
+	// Only called for the mouse
 	HRESULT _stdcall GetDeviceState(DWORD a, LPVOID b) {
 		if (forcingGraphicsRefresh) RefreshGraphics();
 		if (DeviceType != kDeviceType_MOUSE) {
@@ -212,10 +212,10 @@ public:
 			MouseState.rgbButtons[1] = tmp;
 		}
 		if (adjustMouseSpeed) {
-			double d = ((double)MouseState.lX)*mouseSpeedMod + mousePartX;
+			double d = ((double)MouseState.lX) * mouseSpeedMod + mousePartX;
 			mousePartX = modf(d, &d);
 			MouseState.lX = (LONG)d;
-			d = ((double)MouseState.lY)*mouseSpeedMod + mousePartY;
+			d = ((double)MouseState.lY) * mouseSpeedMod + mousePartY;
 			mousePartY = modf(d, &d);
 			MouseState.lY = (LONG)d;
 		}
@@ -263,7 +263,7 @@ public:
 		return 0;
 	}
 
-	//Only called for the keyboard
+	// Only called for the keyboard
 	HRESULT _stdcall GetDeviceData(DWORD a, DIDEVICEOBJECTDATA* b, DWORD* c, DWORD d) {
 		if (DeviceType != kDeviceType_KEYBOARD) {
 			return RealDevice->GetDeviceData(a, b, c, d);
@@ -271,7 +271,7 @@ public:
 
 		onInputLoop.invoke();
 
-		if (!b || bufferedPresses.empty() || (d&DIGDD_PEEK)) {
+		if (!b || bufferedPresses.empty() || (d & DIGDD_PEEK)) {
 			HRESULT hr = RealDevice->GetDeviceData(a, b, c, d);
 			if (FAILED(hr) || !b || !(*c)) return hr;
 			for (DWORD i = 0; i < *c; i++) {
@@ -295,7 +295,7 @@ public:
 	}
 
 	HRESULT _stdcall SetDataFormat(const DIDATAFORMAT* a) {
-		if (formatLock&&oldFormat.dwSize) return RealDevice->SetDataFormat(&oldFormat);
+		if (formatLock && oldFormat.dwSize) return RealDevice->SetDataFormat(&oldFormat);
 		memcpy(&oldFormat, a, sizeof(DIDATAFORMAT));
 		return RealDevice->SetDataFormat(a);
 	}
@@ -305,8 +305,8 @@ public:
 	}
 
 	HRESULT _stdcall SetCooperativeLevel(HWND a, DWORD b) {
-		if (DeviceType == kDeviceType_KEYBOARD&&backgroundKeyboard) b = DISCL_BACKGROUND | DISCL_NONEXCLUSIVE;
-		if (DeviceType == kDeviceType_MOUSE&&backgroundMouse) b = DISCL_BACKGROUND | DISCL_NONEXCLUSIVE;
+		if (DeviceType == kDeviceType_KEYBOARD && backgroundKeyboard) b = DISCL_BACKGROUND | DISCL_NONEXCLUSIVE;
+		if (DeviceType == kDeviceType_MOUSE && backgroundMouse) b = DISCL_BACKGROUND | DISCL_NONEXCLUSIVE;
 		return RealDevice->SetCooperativeLevel(a, b);
 	}
 
@@ -362,8 +362,8 @@ public:
 
 	/*** IDirectInput8A methods ***/
 	HRESULT _stdcall CreateDevice(REFGUID r, IDirectInputDeviceA** device, IUnknown* unused) {
-		GUID GUID_SysMouse = { 0x6F1D2B60, 0xD5A0, 0x11CF, { 0xBF,0xC7,0x44,0x45,0x53,0x54,0x00,0x00} };
-		GUID GUID_SysKeyboard = { 0x6F1D2B61, 0xD5A0, 0x11CF, { 0xBF,0xC7,0x44,0x45,0x53,0x54,0x00,0x00} };
+		GUID GUID_SysMouse    = { 0x6F1D2B60, 0xD5A0, 0x11CF, { 0xBF, 0xC7, 0x44, 0x45, 0x53, 0x54, 0x00, 0x00} };
+		GUID GUID_SysKeyboard = { 0x6F1D2B61, 0xD5A0, 0x11CF, { 0xBF, 0xC7, 0x44, 0x45, 0x53, 0x54, 0x00, 0x00} };
 
 		if (r != GUID_SysKeyboard && r != GUID_SysMouse) {
 			return RealInput->CreateDevice(r, device, unused);
@@ -406,7 +406,6 @@ public:
 };
 
 inline void InitInputFeatures() {
-	ZeroMemory(keysDown, sizeof(keysDown));
 
 	reverseMouse = GetConfigInt("Input", "ReverseMouseButtons", 0) != 0;
 

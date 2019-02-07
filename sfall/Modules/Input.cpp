@@ -105,7 +105,7 @@ void Input::init() {
 	}
 
 	LoadGameHook::OnGameReset() += []() {
-		ForceGraphicsRefresh(0);
+		ForceGraphicsRefresh(0); // disable refresh
 	};
 }
 
