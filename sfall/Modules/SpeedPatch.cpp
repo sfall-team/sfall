@@ -40,7 +40,7 @@ static const DWORD offsets[] = {
 };
 
 DWORD sf_GetTickCount = (DWORD)&GetTickCount;
-//DWORD sf_GetLocalTime;
+DWORD sf_GetLocalTime;
 
 static bool enabled = true;
 static bool toggled = false;
@@ -165,7 +165,7 @@ void SpeedPatch::init() {
 		toggleKey = GetConfigInt("Input", "SpeedToggleKey", 0);
 
 		sf_GetTickCount = (DWORD)&FakeGetTickCount;
-		//sf_GetLocalTime = (DWORD)&FakeGetLocalTime;
+		sf_GetLocalTime = (DWORD)&FakeGetLocalTime;
 
 		int size = sizeof(offsets) / 4;
 		if (GetConfigInt("Speed", "AffectPlayback", 0) == 0) {
@@ -175,7 +175,7 @@ void SpeedPatch::init() {
 		for (int i = 0; i < size; i++) {
 			SafeWrite32(offsets[i], (DWORD)&sf_GetTickCount);
 		}
-		SafeWrite32(0x4FDF58, (DWORD)&FakeGetLocalTime);
+		SafeWrite32(0x4FDF58, (DWORD)&sf_GetLocalTime);
 
 		TimerInit();
 		dlogr(" Done", DL_INIT);
