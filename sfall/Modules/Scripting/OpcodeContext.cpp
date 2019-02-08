@@ -151,7 +151,6 @@ const char* OpcodeContext::getSfallTypeName(DWORD dataType) {
 	switch (dataType) {
 		case DataType::NONE:
 			return "(none)";
-//		case DataType::STR2:
 		case DataType::STR:
 			return "string";
 		case DataType::FLOAT:
@@ -174,6 +173,18 @@ DataType OpcodeContext::getSfallTypeByScriptType(DWORD varType) {
 		case VAR_TYPE_INT:
 		default:
 			return DataType::INT;
+	}
+}
+
+DWORD OpcodeContext::getScriptTypeBySfallType(DataType dataType) {
+	switch (dataType) {
+		case DataType::STR:
+			return VAR_TYPE_STR;
+		case DataType::FLOAT:
+			return VAR_TYPE_FLOAT;
+		case DataType::INT:
+		default:
+			return VAR_TYPE_INT;
 	}
 }
 
@@ -204,7 +215,7 @@ void OpcodeContext::_pushReturnValue() {
 			rawResult = fo::func::interpretAddString(_program, _ret.strValue());
 		}
 		fo::func::interpretPushLong(_program, rawResult);
-		fo::func::interpretPushShort(_program, static_cast<DWORD>(_ret.type()));
+		fo::func::interpretPushShort(_program, getScriptTypeBySfallType(_ret.type()));
 	}
 }
 

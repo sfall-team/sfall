@@ -27,10 +27,9 @@ namespace script
 
 enum class DataType : unsigned long {
 	NONE  = 0,
-	INT   = VAR_TYPE_INT,
-	FLOAT = VAR_TYPE_FLOAT,
-	STR   = VAR_TYPE_STR,
-	//STR2  = VAR_TYPE_STR2
+	INT   = 1,
+	FLOAT = 2,
+	STR   = 3,
 };
 
 /*
