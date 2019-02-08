@@ -17,7 +17,6 @@
  */
 
 #include "..\..\FalloutEngine\Fallout2.h"
-#include "..\..\InputFuncs.h"
 #include "..\KillCounter.h"
 
 #include "Handlers\Anims.h"
@@ -258,7 +257,7 @@ void InitNewOpcodes() {
 	opcodes[0x169] = op_deactivate_shader;
 	opcodes[0x16a] = op_set_global_script_repeat;
 	opcodes[0x16b] = op_input_funcs_available;
-	opcodes[0x16c] = defaultOpcodeHandler;
+
 	opcodes[0x16d] = op_set_shader_int;
 	opcodes[0x16e] = op_set_shader_float;
 	opcodes[0x16f] = op_set_shader_vector;

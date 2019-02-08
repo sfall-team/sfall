@@ -23,6 +23,7 @@
 #include "..\FalloutEngine\Fallout2.h"
 #include "LoadGameHook.h"
 #include "ScriptExtender.h"
+#include "SpeedPatch.h"
 
 #include "Worldmap.h"
 
@@ -153,7 +154,7 @@ loopDelay:
 		call WorldmapLoopHook;
 		call fo::funcoffs::process_bk_;
 subLoop:
-		call GetTickCount; // current ticks
+		call ds:[sf_GetTickCount]; // current ticks
 		mov  edx, eax;
 		sub  eax, ebx;     // get elapsed time (cur.ticks - prev.ticks)
 		cmp  eax, 10;      // delay - GetTickCount returns minimum difference of 15 units
@@ -165,7 +166,7 @@ subLoop:
 
 		pop  dword ptr ds:[0x6AC7B0]; // _mouse_buttons
 		pop  dword ptr ds:[FO_VAR_last_buttons];
-		call GetTickCount;
+		call ds:[sf_GetTickCount];
 		mov  worldMapTicks, eax;
 		jmp  fo::funcoffs::get_input_;
 	}
@@ -178,7 +179,7 @@ static void __declspec(naked) WorldMapFpsPatch2() {
 loopDelay:
 		call WorldmapLoopHook;
 subLoop:
-		call GetTickCount; // current ticks
+		call ds:[sf_GetTickCount]; // current ticks
 		mov  edx, eax;
 		sub  eax, ebx;     // get elapsed time
 		jz   subLoop;
@@ -187,7 +188,7 @@ subLoop:
 		cmp  edx, worldMapDelay;
 		jb   loopDelay;    // elapsed < worldMapDelay
 
-		call GetTickCount;
+		call ds:[sf_GetTickCount];
 		mov  worldMapTicks, eax;
 		jmp  fo::funcoffs::get_input_;
 	}

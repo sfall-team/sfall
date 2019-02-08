@@ -21,91 +21,99 @@
 #include "..\main.h"
 #include "..\FalloutEngine\Fallout2.h"
 #include "..\InputFuncs.h"
+#include "LoadGameHook.h"
 
 #include "SpeedPatch.h"
 
 namespace sfall
 {
 
-//GetTickCount calls
-static const DWORD offsetsA[] = {
-	0x4C8D34, 0x4C9375, 0x4C9384, 0x4C93C0, 0x4C93E8, 0x4C9D2E, 0x4FE01E,
-};
-
-//Delayed GetTickCount calls
-static const DWORD offsetsB[] = {
+static const DWORD offsets[] = {
+	// GetTickCount calls
+	0x4C9375, 0x4C93E8, 0x4C93C0, 0x4FE01E,
+	0x4C9384, 0x4C9D2E, 0x4C8D34,
+	// Delayed GetTickCount calls
 	0x4FDF64,
+	// timeGetTime calls
+	0x4A3179, 0x4A325D, 0x4F482B, 0x4FE036,
+	0x4F4E53, 0x4F5542, 0x4F56CC, 0x4F59C6, // for mve
 };
 
-//timeGetTime calls
-static const DWORD offsetsC[] = {
-	0x4A3179, 0x4A325D, 0x4F482B, 0x4F4E53, 0x4F5542, 0x4F56CC, 0x4F59C6,
-	0x4FE036,
-};
+DWORD sf_GetTickCount = (DWORD)&GetTickCount;
+//DWORD sf_GetLocalTime;
 
-static const DWORD getLocalTimePos = 0x4FDF58;
-static DWORD addrGetTickCount;
-static DWORD addrGetLocalTime;
+static bool enabled = true;
+static bool toggled = false;
+static bool slideShow = false;
 
-static bool Enabled;
-static bool Toggled;
+static double multi;
+static DWORD storedTickCount = 0;
+static DWORD lastTickCount;
+static double tickCountFraction = 0.0;
 
-static double Multi;
-static DWORD StoredTickCount;
-static DWORD LastTickCount;
-static double TickCountFraction;
+static __int64 startTime;
 
-static __int64 StartTime;
+static struct SpeedCfg {
+	int key;
+	double multiplier;
+} *speed = nullptr;
 
-static double Multipliers[10];
-static int Keys[10];
-static int ModKey;
-static int ToggleKey;
+static int modKey;
+static int toggleKey;
 
-DWORD _stdcall FakeGetTickCount() {
-	//Keyboard control
-	if (!ModKey || (ModKey > 0 && KeyDown(ModKey))
-		|| (ModKey == -1 && (KeyDown(DIK_LCONTROL) || KeyDown(DIK_RCONTROL)))
-		|| (ModKey == -2 && (KeyDown(DIK_LMENU) || KeyDown(DIK_RMENU)))
-		|| (ModKey == -3 && (KeyDown(DIK_LSHIFT) || KeyDown(DIK_RSHIFT)))
-		) {
-
-		for (int i = 0; i < 10; i++) if (Keys[i] && KeyDown(Keys[i])) {
-			Multi = Multipliers[i];
-		}
-
-		if (ToggleKey&&KeyDown(ToggleKey)) {
-			if (!Toggled) {
-				Toggled = true;
-				Enabled = !Enabled;
+static DWORD _stdcall FakeGetTickCount() {
+	// Keyboard control
+	if (modKey && ((modKey > 0 && KeyDown(modKey))
+		|| (modKey == -1 && (KeyDown(DIK_LCONTROL) || KeyDown(DIK_RCONTROL)))
+		|| (modKey == -2 && (KeyDown(DIK_LMENU)    || KeyDown(DIK_RMENU)))
+		|| (modKey == -3 && (KeyDown(DIK_LSHIFT)   || KeyDown(DIK_RSHIFT)))))
+	{
+		if (toggleKey && KeyDown(toggleKey)) {
+			if (!toggled) {
+				toggled = true;
+				enabled = !enabled;
 			}
 		} else {
-			Toggled = false;
+			toggled = false;
+			for (int i = 0; i < 10; i++) {
+				int key = speed[i].key;
+				if (key && KeyDown(key)) {
+					multi = speed[i].multiplier;
+					break;
+				}
+			}
 		}
 	}
 
-	DWORD NewTickCount = GetTickCount();
-	//Just in case someone's been running their computer for 49 days straight
-	if (NewTickCount < LastTickCount) {
-		NewTickCount = LastTickCount;
-		return StoredTickCount;
+	DWORD newTickCount = GetTickCount();
+	// Just in case someone's been running their computer for 49 days straight
+	if (newTickCount < lastTickCount) {
+		newTickCount = lastTickCount;
+		return storedTickCount;
 	}
 
-	//Multiply the tick count difference by the multiplier
-	double add = (double)(NewTickCount - LastTickCount)*(Enabled ? Multi : 1.0);
-	LastTickCount = NewTickCount;
-	TickCountFraction += modf(add, &add);
-	StoredTickCount += (DWORD)add;
-	if (TickCountFraction > 1) {
-		TickCountFraction -= 1;
-		StoredTickCount++;
+	double elapsed = (double)(newTickCount - lastTickCount);
+	lastTickCount = newTickCount;
+
+	// Multiply the tick count difference by the multiplier
+	if (enabled && !slideShow
+		&& !(GetLoopFlags() & (LoopFlag::INVENTORY | LoopFlag::INTFACEUSE | LoopFlag::INTFACELOOT | LoopFlag::DIALOG)))
+	{
+		elapsed *= multi;
+		tickCountFraction += modf(elapsed, &elapsed);
 	}
-	return StoredTickCount;
+	storedTickCount += (DWORD)elapsed;
+
+	if (tickCountFraction > 1.0) {
+		tickCountFraction -= 1.0;
+		storedTickCount++;
+	}
+	return storedTickCount;
 }
 
 void _stdcall FakeGetLocalTime(LPSYSTEMTIME time) {
-	__int64 CurrentTime = StartTime + StoredTickCount * 10000;
-	FileTimeToSystemTime((FILETIME*)&CurrentTime, time);
+	__int64 currentTime = startTime + storedTickCount * 10000;
+	FileTimeToSystemTime((FILETIME*)&currentTime, time);
 }
 
 //Could divide 'uDelay' by 'Multi', but doesn't seem to have any effect.
@@ -117,56 +125,65 @@ MMRESULT _stdcall fTimeKillEvent(UINT id) {
 	return timeKillEvent(id);
 }*/
 
+static void __declspec(naked) scripts_check_state_hook() {
+	__asm {
+		inc  slideShow;
+		call fo::funcoffs::endgame_slideshow_;
+		dec  slideShow;
+		retn;
+	}
+}
+
 void TimerInit() {
-	StoredTickCount = 0;
-	LastTickCount = GetTickCount();
-	TickCountFraction = 0;
-	Multi = (double)GetConfigInt("Speed", "SpeedMultiInitial", 100) / 100.0;
-	Enabled = true;
-	Toggled = false;
+	lastTickCount = GetTickCount();
 
 	SYSTEMTIME time;
 	GetLocalTime(&time);
-	SystemTimeToFileTime(&time, (FILETIME*)&StartTime);
+	SystemTimeToFileTime(&time, (FILETIME*)&startTime);
 
-	ModKey = GetConfigInt("Input", "SpeedModKey", -1);
-	ToggleKey = GetConfigInt("Input", "SpeedToggleKey", 0);
-	char c[2];
-	char key[12];
+	speed = new SpeedCfg[10];
+
+	char buf[2], spKey[10] = "SpeedKey#";
+	char spMulti[12] = "SpeedMulti#";
 	for (int i = 0; i < 10; i++) {
-		_itoa_s(i, c, 10);
-		strcpy_s(key, "SpeedKey");
-		strcat_s(key, c);
-		Keys[i] = GetConfigInt("Input", key, 0);
-		strcpy_s(key, "SpeedMulti");
-		strcat_s(key, c);
-		Multipliers[i] = GetConfigInt("Speed", key, 0x00) / 100.0;
+		_itoa_s(i, buf, 10);
+		spKey[8] = spMulti[10] = buf[0];
+		speed[i].key = GetConfigInt("Input", spKey, 0);
+		speed[i].multiplier = GetConfigInt("Speed", spMulti, 0) / 100.0;
 	}
 }
 
 void SpeedPatch::init() {
 	if (GetConfigInt("Speed", "Enable", 0)) {
+		modKey = GetConfigInt("Input", "SpeedModKey", 0);
+		int init = GetConfigInt("Speed", "SpeedMultiInitial", 100);
+		if (init == 100 && !modKey) return;
+
 		dlog("Applying speed patch.", DL_INIT);
-		addrGetTickCount = (DWORD)&FakeGetTickCount;
-		addrGetLocalTime = (DWORD)&FakeGetLocalTime;
 
-		for (int i = 0; i < sizeof(offsetsA) / 4; i++) {
-			SafeWrite32(offsetsA[i], (DWORD)&addrGetTickCount);
-		}
-		dlog(".", DL_INIT);
-		for (int i = 0; i < sizeof(offsetsB) / 4; i++) {
-			SafeWrite32(offsetsB[i], (DWORD)&addrGetTickCount);
-		}
-		dlog(".", DL_INIT);
-		for (int i = 0; i < sizeof(offsetsC) / 4; i++) {
-			SafeWrite32(offsetsC[i], (DWORD)&addrGetTickCount);
-		}
-		dlog(".", DL_INIT);
+		multi = (double)init / 100.0;
+		toggleKey = GetConfigInt("Input", "SpeedToggleKey", 0);
 
-		SafeWrite32(getLocalTimePos, (DWORD)&addrGetLocalTime);
+		sf_GetTickCount = (DWORD)&FakeGetTickCount;
+		//sf_GetLocalTime = (DWORD)&FakeGetLocalTime;
+
+		int size = sizeof(offsets) / 4;
+		if (GetConfigInt("Speed", "AffectPlayback", 0) == 0) {
+			size -= 4;
+			HookCall(0x4A433E, scripts_check_state_hook);
+		}
+		for (int i = 0; i < size; i++) {
+			SafeWrite32(offsets[i], (DWORD)&sf_GetTickCount);
+		}
+		SafeWrite32(0x4FDF58, (DWORD)&FakeGetLocalTime);
+
 		TimerInit();
 		dlogr(" Done", DL_INIT);
 	}
+}
+
+void SpeedPatch::exit() {
+	if (speed) delete[] speed;
 }
 
 }
