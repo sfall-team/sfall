@@ -87,29 +87,6 @@ bool npcautolevel;
 
 static int* scriptDialog = nullptr;
 
-//GetTickCount calls
-static const DWORD offsetsA[] = {
-	0x4C8D34, 0x4C9375, 0x4C9384, 0x4C93C0, 0x4C93E8, 0x4C9D2E, 0x4FE01E,
-};
-
-//Delayed GetTickCount calls
-static const DWORD offsetsB[] = {
-	0x4FDF64,
-};
-
-//timeGetTime calls
-static const DWORD offsetsC[] = {
-	0x4A3179, 0x4A325D, 0x4F482B, 0x4F4E53, 0x4F5542, 0x4F56CC, 0x4F59C6,
-	0x4FE036,
-};
-
-static const DWORD getLocalTimePos = 0x4FDF58;
-
-static const DWORD dinputPos = 0x50FB70;
-
-static DWORD AddrGetTickCount;
-static DWORD AddrGetLocalTime;
-
 static DWORD ViewportX;
 static DWORD ViewportY;
 
@@ -290,51 +267,61 @@ run:
 
 static DWORD worldMapDelay;
 static DWORD worldMapTicks;
-static DWORD worldMapAdjustDelay = 4;
 static void __declspec(naked) WorldMapFpsPatch() {
 	__asm {
-		pushadc;
 		push dword ptr ds:[_last_buttons];
 		push dword ptr ds:[0x6AC7B0]; // _mouse_buttons
-		xor  ecx, ecx;
+		mov  esi, worldMapTicks;
+		mov  ebx, esi;                // previous ticks
 loopDelay:
-		call process_bk_;
-		dec  ecx;
-		jg   subLoop;   // jmp ecx > -1
 		call RunGlobalScripts3;
-		mov  ecx, worldMapAdjustDelay; // adjust invoke frequency
+		call process_bk_;
 subLoop:
-		mov  eax, worldMapTicks;
-		call elapsed_time_;
-		cmp  eax, 10;   // delay
-		jle  subLoop;
-		cmp  eax, worldMapDelay;
-		jl   loopDelay; // elapsed < worldMapDelay
+		call ds:[sf_GetTickCount]; // current ticks
+		mov  edx, eax;
+		sub  eax, ebx;     // get elapsed time (cur.ticks - prev.ticks)
+		cmp  eax, 10;      // delay - GetTickCount returns minimum difference of 15 units
+		jb   subLoop;      // elapsed < invoke delay
+		mov  ebx, edx;
+		sub  edx, esi;     // get elapsed time (cur.ticks - worldMapTicks)
+		cmp  edx, worldMapDelay;
+		jb   loopDelay;    // elapsed < worldMapDelay
 
-		call get_time_;
-		mov  worldMapTicks, eax;
 		pop  dword ptr ds:[0x6AC7B0]; // _mouse_buttons
 		pop  dword ptr ds:[_last_buttons];
-		popadc;
+		call ds:[sf_GetTickCount];
+		mov  worldMapTicks, eax;
 		jmp  get_input_;
 	}
 }
 
 static void __declspec(naked) WorldMapFpsPatch2() {
 	__asm {
-		pushadc;
+		mov  esi, worldMapTicks;
+		mov  ebx, esi;
 loopDelay:
 		call RunGlobalScripts3;
 subLoop:
-		mov  eax, worldMapTicks;
-		call elapsed_time_;
-		test eax, eax;  // 1 min delay
+		call ds:[sf_GetTickCount]; // current ticks
+		mov  edx, eax;
+		sub  eax, ebx;     // get elapsed time
 		jz   subLoop;
-		cmp  eax, worldMapDelay;
-		jl   loopDelay; // elapsed < worldMapDelay
+		mov  ebx, edx;
+		sub  edx, esi;     // get elapsed time
+		cmp  edx, worldMapDelay;
+		jb   loopDelay;    // elapsed < worldMapDelay
 
-		call get_time_;
+		call ds:[sf_GetTickCount];
 		mov  worldMapTicks, eax;
+		jmp  get_input_;
+	}
+}
+
+// Only used if the world map speed patch is disabled, so that world map scripts are still run
+static void __declspec(naked) wmWorldMap_hook() {
+	__asm {
+		pushadc;
+		call RunGlobalScripts3;
 		popadc;
 		jmp  get_input_;
 	}
@@ -401,16 +388,6 @@ end_cppf:
 		call stat_level_;
 
 		retn;
-	}
-}
-
-// Only used if the world map speed patch is disabled, so that world map scripts are still run
-static void __declspec(naked) wmWorldMap_hook() {
-	__asm {
-		pushadc;
-		call RunGlobalScripts3;
-		popadc;
-		jmp  get_input_;
 	}
 }
 
@@ -861,32 +838,11 @@ static void DllMain2() {
 	dlogr("Running BugsInit().", DL_INIT);
 	BugsInit();
 
-	if (GetPrivateProfileIntA("Speed", "Enable", 0, ini)) {
-		dlog("Applying speed patch.", DL_INIT);
-		AddrGetTickCount = (DWORD)&FakeGetTickCount;
-		AddrGetLocalTime = (DWORD)&FakeGetLocalTime;
-
-		for (int i = 0; i < sizeof(offsetsA) / 4; i++) {
-			SafeWrite32(offsetsA[i], (DWORD)&AddrGetTickCount);
-		}
-		dlog(".", DL_INIT);
-		for (int i = 0; i < sizeof(offsetsB) / 4; i++) {
-			SafeWrite32(offsetsB[i], (DWORD)&AddrGetTickCount);
-		}
-		dlog(".", DL_INIT);
-		for (int i = 0; i < sizeof(offsetsC) / 4; i++) {
-			SafeWrite32(offsetsC[i], (DWORD)&AddrGetTickCount);
-		}
-		dlog(".", DL_INIT);
-
-		SafeWrite32(getLocalTimePos, (DWORD)&AddrGetLocalTime);
-		TimerInit();
-		dlogr(" Done", DL_INIT);
-	}
+	SpeedPatchInit();
 
 	//if (GetPrivateProfileIntA("Input", "Enable", 0, ini)) {
 		dlog("Applying input patch.", DL_INIT);
-		SafeWriteStr(dinputPos, "ddraw.dll");
+		SafeWriteStr(0x50FB70, "ddraw.dll");
 		AvailableGlobalScriptTypes |= 1;
 		dlogr(" Done", DL_INIT);
 	//}
@@ -1052,12 +1008,12 @@ static void DllMain2() {
 	//}
 
 	bool fpsPatchOK = (*(DWORD*)0x4BFE5E == 0x8D16);
-	if (GetPrivateProfileInt("Misc", "WorldMapFPSPatch", 0, ini)) {
+	if (GetPrivateProfileIntA("Misc", "WorldMapFPSPatch", 0, ini)) {
 		dlog("Applying world map fps patch.", DL_INIT);
 		if (!fpsPatchOK) {
 			dlogr(" Failed", DL_INIT);
 		} else {
-			int delay = GetPrivateProfileInt("Misc", "WorldMapDelay2", 66, ini);
+			int delay = GetPrivateProfileIntA("Misc", "WorldMapDelay2", 66, ini);
 			worldMapDelay = max(1, delay);
 			dlogr(" Done", DL_INIT);
 		}
@@ -1066,8 +1022,7 @@ static void DllMain2() {
 		void* func;
 		if (worldMapDelay == 0) {
 			func = wmWorldMap_hook;
-		} else if (worldMapDelay > 15) {
-			worldMapAdjustDelay += worldMapDelay / 10;
+		} else if (worldMapDelay > 25) {
 			func = WorldMapFpsPatch;
 		} else {
 			func = WorldMapFpsPatch2;
@@ -1592,6 +1547,7 @@ static void _stdcall OnExit() {
 	if (scriptDialog != nullptr) {
 		delete[] scriptDialog;
 	}
+	SpeedPatchExit();
 	ClearReadExtraGameMsgFiles();
 	ConsoleExit();
 	BooksExit();

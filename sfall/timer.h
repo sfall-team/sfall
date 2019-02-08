@@ -18,6 +18,8 @@
 
 #pragma once
 
-DWORD _stdcall FakeGetTickCount();
+extern DWORD sf_GetTickCount;
+
 void _stdcall FakeGetLocalTime(LPSYSTEMTIME);
-void TimerInit();
+void SpeedPatchInit();
+void SpeedPatchExit();
