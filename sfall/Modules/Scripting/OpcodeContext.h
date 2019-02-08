@@ -130,6 +130,8 @@ public:
 
 	static DataType getSfallTypeByScriptType(DWORD varType);
 
+	static DWORD getScriptTypeBySfallType(DataType dataType);
+
 private:
 	// pops arguments from data stack
 	void _popArguments();

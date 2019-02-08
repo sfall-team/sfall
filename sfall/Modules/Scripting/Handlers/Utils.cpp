@@ -87,16 +87,7 @@ void sf_ord(OpcodeContext& ctx) {
 }
 
 void sf_typeof(OpcodeContext& ctx) {
-	int typeOf = 0;
-	switch (ctx.arg(0).type()) {
-	case DataType::STR:
-		typeOf = 3;
-	case DataType::FLOAT:
-		typeOf = 2;
-	case DataType::INT:
-		typeOf = 1;
-	}
-	ctx.setReturn(typeOf);
+	ctx.setReturn(static_cast<int>(ctx.arg(0).type()));
 }
 
 static int _stdcall StringSplit(const char* str, const char* split) {
