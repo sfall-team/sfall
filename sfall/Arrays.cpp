@@ -9,29 +9,25 @@
 	GLOBAL variable for arrays
 */
 DWORD arraysBehavior = 1; // 0 - backward compatible with pre-3.4, 1 - permanent arrays don't get stored in savegames by default
+
 // arrays map: arrayId => arrayVar
 ArraysMap arrays;
 // auto-incremented ID
-DWORD nextarrayid = 1;
+DWORD nextArrayID = 1;
 // temp arrays: set of arrayId
 std::set<DWORD> tempArrays;
 // saved arrays: arrayKey => arrayId
 ArrayKeysMap savedArrays;
-
 // special array ID for array expressions
 DWORD stackArrayId;
 
 static char get_all_arrays_special_key[] = "...all_arrays...";
 
-sArrayElement::sArrayElement() : len(0), intVal(0), type(DATATYPE_NONE)
-{
-
-}
+sArrayElement::sArrayElement() : len(0), intVal(0), type(DATATYPE_NONE) { }
 
 sArrayElement::sArrayElement( DWORD _val, DWORD _dataType ) : len(0), type(_dataType), intVal(_val)
 {
-	if (DATATYPE_STR == _dataType)
-		len = strlen((char*)_val);
+	if (DATATYPE_STR == _dataType) len = strlen((char*)_val);
 }
 
 sArrayElement::sArrayElement(const long& other)
@@ -41,8 +37,7 @@ sArrayElement::sArrayElement(const long& other)
 
 void sArrayElement::clear()
 {
-	if (type == DATATYPE_STR && strVal)
-		delete[] strVal;
+	if (strVal && type == DATATYPE_STR) delete[] strVal;
 }
 
 void sArrayElement::setByType( DWORD val, DWORD dataType )
@@ -78,10 +73,8 @@ void sArrayElement::set( const char* val, int _len /*= -1*/ )
 {
 	clear();
 	type = DATATYPE_STR;
-	if (_len == -1)
-		_len = strlen(val);
-	if (_len > ARRAY_MAX_STRING-1) // memory safety
-		_len = ARRAY_MAX_STRING-1;
+	if (_len == -1) _len = strlen(val);
+	if (_len >= ARRAY_MAX_STRING) _len = ARRAY_MAX_STRING - 1; // memory safety
 	len = _len + 1;
 	strVal = new char[len];
 	memcpy(strVal, val, _len);
@@ -97,15 +90,14 @@ void sArrayElement::unset()
 
 DWORD sArrayElement::getHashStatic(DWORD value, DWORD type) {
 	switch (type) {
-	case DATATYPE_STR:
-		const char* str;
-		str = (const char*)value;
-		int i;
-		DWORD res;
-		for (i = 0, res = 0; str[i] != '\0'; i++) {
+	case DATATYPE_STR: {
+		const char* str = (const char*)value;
+		DWORD res = 0;
+		for (int i = 0; str[i] != '\0'; i++) {
 			res = ((res << 5) + res) + str[i];
 		}
 		return res;
+	}
 	case DATATYPE_INT:
 	case DATATYPE_FLOAT:
 		return value;
@@ -116,9 +108,8 @@ DWORD sArrayElement::getHashStatic(DWORD value, DWORD type) {
 
 bool sArrayElement::operator<( const sArrayElement &el ) const
 {
-	if (type < el.type) {
-		return true;
-	} else if (type == el.type) {
+	if (type < el.type) return true;
+	if (type == el.type) {
 		switch (type) {
 		case DATATYPE_STR:
 			return strcmp(strVal, el.strVal) < 0;
@@ -128,15 +119,14 @@ bool sArrayElement::operator<( const sArrayElement &el ) const
 		default:
 			return intVal < el.intVal;
 		}
-	} else {
-		return false;
 	}
+	return false;
 }
 
 bool sArrayElement_EqualFunc::operator()( const sArrayElement &elA, const sArrayElement &elB ) const
 {
-	if (elA.type != elB.type)
-		return false;
+	if (elA.type != elB.type) return false;
+
 	switch (elA.type) {
 	case DATATYPE_STR:
 		return strcmp(elA.strVal, elB.strVal) == 0;
@@ -150,8 +140,7 @@ bool sArrayElement_EqualFunc::operator()( const sArrayElement &elA, const sArray
 
 void sArrayVar::clearRange( int from, int to /*= -1*/ )
 {
-	if (to == -1)
-		to = val.size();
+	if (to == -1) to = val.size();
 	std::vector<sArrayElement>::iterator it, itTo = val.begin() + to;
 	for (it = val.begin() + from; it < itTo; ++it) {
 		it->clear();
@@ -170,7 +159,7 @@ void SaveArrayElement(sArrayElement* el, HANDLE h)
 	}
 }
 
-void LoadArrayElement(sArrayElement* el, HANDLE h)
+bool LoadArrayElement(sArrayElement* el, HANDLE h)
 {
 	DWORD unused;
 	ReadFile(h, &el->type, 4, &unused, 0);
@@ -180,29 +169,37 @@ void LoadArrayElement(sArrayElement* el, HANDLE h)
 			el->strVal = new char[el->len];
 			ReadFile(h, el->strVal, el->len, &unused, 0);
 		} else
-			el->strVal = NULL;
+			el->strVal = nullptr;
 	} else {
 		ReadFile(h, &el->intVal, 4, &unused, 0);
 	}
+	return (el->len) ? (unused != el->len) : (unused != 4);
 }
 
 static bool LoadArraysOld(HANDLE h) {
 	dlogr("Loading arrays (old fmt)", DL_MAIN);
-	DWORD count, unused, id, j;
-	ReadFile(h, &count, 4, &unused, 0);
+
+	DWORD count, unused, id;
+	ReadFile(h, &count, 4, &unused, 0); // count of saved arrays
 	if (unused != 4) return true;
+
 	sArrayVarOld var;
 	sArrayVar varN;
+
 	for (DWORD i = 0; i < count; i++) {
 		ReadFile(h, &id, 4, &unused, 0);
 		ReadFile(h, &var, 8, &unused, 0);
+		if (unused != 8) return true;
+
 		var.types = new DWORD[var.len];
 		var.data = new char[var.len * var.datalen];
-		ReadFile(h, var.types, 4 * var.len, &unused, 0);
-		ReadFile(h, var.data, var.len * var.datalen, &unused, 0);
+
+		ReadFile(h, var.types, (4 * var.len), &unused, 0);
+		ReadFile(h, var.data, (var.len * var.datalen), &unused, 0);
+
 		varN.flags = 0;
 		varN.val.resize(var.len);
-		for (j = 0; j < var.len; j++) {
+		for (size_t j = 0; j < var.len; j++) {
 			switch (var.types[j]) {
 			case DATATYPE_INT:
 				varN.val[j].set(*(long*)(&var.data[var.datalen * j]));
@@ -217,6 +214,7 @@ static bool LoadArraysOld(HANDLE h) {
 		}
 		delete[] var.types;
 		delete[] var.data;
+
 		varN.key = sArrayElement(id, DATATYPE_INT);
 		arrays.insert(array_pair(id, varN));
 		savedArrays[varN.key] = id;
@@ -225,43 +223,51 @@ static bool LoadArraysOld(HANDLE h) {
 }
 
 bool LoadArrays(HANDLE h) {
-	DWORD count, elCount, unused, j;
+	nextArrayID = 1;
+
 	if (LoadArraysOld(h)) return true;
+
 	dlogr("Loading arrays (new fmt)", DL_MAIN);
-	ReadFile(h, &count, 4, &unused, 0);
+
+	DWORD count, unused, elCount;
+	ReadFile(h, &count, 4, &unused, 0); // count of saved arrays
 	if (unused != 4) return true;
+
 	sArrayVar arrayVar;
-	nextarrayid = 1;
 	for (DWORD i = 0; i < count; i++) {
-		LoadArrayElement(&arrayVar.key, h);
+		if (LoadArrayElement(&arrayVar.key, h)) return true;
 		if (arrayVar.key.type > 4 || arrayVar.key.intVal == 0) { // partial compatibility with 3.4
 			arrayVar.key.intVal = arrayVar.key.type;
 			arrayVar.key.type = DATATYPE_INT;
 		}
+
 		ReadFile(h, &arrayVar.flags, 4, &unused, 0);
 		ReadFile(h, &elCount, 4, &unused, 0); // actual number of elements: keys+values
+		if (unused != 4) return true;
+
 		bool isAssoc = arrayVar.isAssoc();
 		arrayVar.val.resize(elCount);
-		for (j = 0; j < elCount; j++) { // normal and associative arrays stored and loaded equally
-			LoadArrayElement(&arrayVar.val[j], h);
+		for (size_t j = 0; j < elCount; j++) { // normal and associative arrays stored and loaded equally
+			if (LoadArrayElement(&arrayVar.val[j], h)) return true;
 			if (isAssoc && (j % 2) == 0) { // only difference is that keyHash is filled with appropriate indexes
 				arrayVar.keyHash[arrayVar.val[j]] = j;
 			}
 		}
-		while (arrays.find(nextarrayid) != arrays.end()) nextarrayid++;
-		if (nextarrayid == 0) nextarrayid++;
-		arrays.insert(array_pair(nextarrayid, arrayVar));
-		savedArrays[arrayVar.key] = nextarrayid++;
+		while (arrays.find(nextArrayID) != arrays.end()) nextArrayID++;
+		if (nextArrayID == 0) nextArrayID++;
+
+		arrays.insert(array_pair(nextArrayID, arrayVar));
+		savedArrays[arrayVar.key] = nextArrayID++;
 		arrayVar.keyHash.clear();
 	}
 	return false;
 }
 
 void SaveArrays(HANDLE h) {
-	DWORD count, elCount, unused;
-	array_itr arIt;
-	count = 0;
+	DWORD elCount, unused, count = 0;
 	WriteFile(h, &count, 4, &unused, 0); // this is for backward compatibility with 3.3-
+
+	array_itr arIt;
 	ArrayKeysMap::iterator it = savedArrays.begin();
 	while (it != savedArrays.end()) {
 		arIt = arrays.find(it->second);
@@ -273,6 +279,7 @@ void SaveArrays(HANDLE h) {
 		}
 	}
 	WriteFile(h, &count, 4, &unused, 0);
+
 	for (it = savedArrays.begin(); it != savedArrays.end(); ++it) {
 		arIt = arrays.find(it->second);
 		if (arIt != arrays.end()) {
@@ -370,15 +377,17 @@ DWORD _stdcall CreateArray(int len, DWORD flags) {
 	if (!var.isAssoc()) {
 		var.val.resize(len);
 	}
-	while (arrays.find(nextarrayid) != arrays.end()) nextarrayid++;
-	if (nextarrayid == 0) nextarrayid++;
+
+	while (arrays.find(nextArrayID) != arrays.end()) nextArrayID++;
+	if (nextArrayID == 0) nextArrayID++;
+
 	if (arraysBehavior == 0) {
-		var.key = sArrayElement(nextarrayid, DATATYPE_INT);
-		savedArrays[var.key] = nextarrayid;
+		var.key = sArrayElement(nextArrayID, DATATYPE_INT);
+		savedArrays[var.key] = nextArrayID;
 	}
-	stackArrayId = nextarrayid;
-	arrays[nextarrayid] = var;
-	return nextarrayid++;
+	stackArrayId = nextArrayID;
+	arrays[nextArrayID] = var;
+	return nextArrayID++;
 }
 
 DWORD _stdcall TempArray(DWORD len, DWORD flags) {
@@ -440,7 +449,8 @@ DWORD _stdcall GetArray(DWORD id, DWORD key, DWORD keyType, DWORD* resultType) {
 		if (el < 0 || el >= arr.size()) return 0;
 	}
 	switch (arr.val[el].type) {
-	case DATATYPE_NONE:  return 0;
+	case DATATYPE_NONE:
+		return 0;
 	case DATATYPE_INT:
 		return *(DWORD *)&arr.val[el].intVal;
 	case DATATYPE_FLOAT:
@@ -505,8 +515,8 @@ void _stdcall SetArray(DWORD id, DWORD key, DWORD keyType, DWORD val, DWORD valT
 }
 
 int _stdcall LenArray(DWORD id) {
-	if (arrays.find(id)==arrays.end()) return -1;
-	else return arrays[id].size();
+	if (arrays.find(id) == arrays.end()) return -1;
+	return arrays[id].size();
 }
 
 template <class T>
@@ -634,6 +644,7 @@ DWORD _stdcall LoadArray(DWORD key, DWORD keyType) {
 	int dataType = getSfallTypeByScriptType(keyType);
 	if (dataType != DATATYPE_INT || key != 0) { // returns arrayId by it's key (ignoring int(0) because it is used to "unsave" array)
 		sArrayElement keyEl = sArrayElement(key, dataType);
+
 		if (keyEl.type == DATATYPE_STR && strcmp(keyEl.strVal, get_all_arrays_special_key) == 0) { // this is a special case to get temp array containing all saved arrays
 			DWORD tmpArrId = TempArray(savedArrays.size(), 0);
 			if (tmpArrId > 0) {

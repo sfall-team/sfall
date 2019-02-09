@@ -1195,6 +1195,8 @@ void _stdcall RegisterHook(DWORD script, DWORD id, DWORD procNum) {
 			return;
 		}
 	}
+	if (procNum == 0) return; // prevent registration to first location in procedure when reusing "unregister" method
+
 	sScriptProgram *prog = GetGlobalScriptProgram(script);
 	if (prog) {
 		dlog_f("Global script %08x registered as hook id %d\n", DL_HOOK, script, id);
