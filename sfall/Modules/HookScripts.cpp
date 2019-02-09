@@ -177,6 +177,8 @@ void _stdcall RegisterHook(fo::Program* script, int id, int procNum) {
 			return;
 		}
 	}
+	if (procNum == 0) return; // prevent registration to first location procedure when reused "unregister" method
+
 	ScriptProgram *prog = GetGlobalScriptProgram(script);
 	if (prog) {
 		dlog_f("Global script %08x registered as hook id %d\n", DL_HOOK, script, id);
