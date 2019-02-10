@@ -293,9 +293,18 @@ void DebugModePatch() {
 	}
 }
 
+void DontDeleteProtosPatch() {
+	if (GetPrivateProfileIntA("Debugging", "DontDeleteProtos", 0, sfall::ddrawIni)) {
+		dlog("Applying permanent protos patch.", DL_INIT);
+		SafeWrite8(0x48007E, 0xEB);
+		dlogr(" Done", DL_INIT);
+	}
+}
+
 void DebugEditor::init() {
 	if (!isDebug) return;
 	DebugModePatch();
+	DontDeleteProtosPatch();
 
 	debugEditorKey = GetConfigInt("Input", "DebugEditorKey", 0);
 	if (debugEditorKey != 0) {

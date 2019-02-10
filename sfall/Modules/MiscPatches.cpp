@@ -807,14 +807,6 @@ void DialogueFix() {
 	}
 }
 
-void DontDeleteProtosPatch() {
-	if (isDebug && GetPrivateProfileIntA("Debugging", "DontDeleteProtos", 0, sfall::ddrawIni)) {
-		dlog("Applying permanent protos patch.", DL_INIT);
-		SafeWrite8(0x48007E, 0xEB);
-		dlogr(" Done", DL_INIT);
-	}
-}
-
 void AlwaysReloadMsgs() {
 	if (GetConfigInt("Misc", "AlwaysReloadMsgs", 0)) {
 		dlog("Applying always reload messages patch.", DL_INIT);
@@ -1019,7 +1011,7 @@ void MiscPatches::init() {
 	CombatProcFix();
 	NpcAutoLevelPatch();
 	DialogueFix();
-	DontDeleteProtosPatch();
+
 	AdditionalWeaponAnimsPatch();
 	MultiPatchesPatch();
 	AlwaysReloadMsgs();
