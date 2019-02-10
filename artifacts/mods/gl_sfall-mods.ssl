@@ -49,6 +49,7 @@ procedure start begin
       // Fix the lighting of the map from the night vision perk when loading the game
       if has_trait(TRAIT_PERK, dude_obj, PERK_night_vision) then begin
          temp := get_light_level;
+         if (temp > 65535) then return; // 100%
          if (temp < 40960) then begin
             temp := round(((temp - 16384) * 100) / 24576.0);
          end
