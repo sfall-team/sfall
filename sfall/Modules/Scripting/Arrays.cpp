@@ -76,16 +76,16 @@ void sArrayElement::set( float val )
 	floatVal = val;
 }
 
-void sArrayElement::set( const char* val, int _len /*= -1*/ )
+void sArrayElement::set( const char* val, int sLen /*= -1*/ )
 {
 	clear();
 	type = DataType::STR;
-	if (_len == -1) _len = strlen(val);
-	if (_len >= ARRAY_MAX_STRING) _len = ARRAY_MAX_STRING - 1; // memory safety
-	len = _len + 1;
+	if (sLen == -1) sLen = strlen(val);
+	if (sLen >= ARRAY_MAX_STRING) sLen = ARRAY_MAX_STRING - 1; // memory safety
+	len = sLen + 1;
 	strVal = new char[len];
-	memcpy(strVal, val, _len);
-	strVal[_len] = '\0';
+	memcpy(strVal, val, sLen);
+	strVal[sLen] = '\0';
 }
 
 void sArrayElement::unset()
