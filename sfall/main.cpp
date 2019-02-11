@@ -1171,12 +1171,6 @@ static void DllMain2() {
 		dlogr(" Done", DL_INIT);
 	}
 
-	if (IsDebug && GetPrivateProfileIntA("Debugging", "DontDeleteProtos", 0, ".\\ddraw.ini")) {
-		dlog("Applying permanent protos patch.", DL_INIT);
-		SafeWrite8(0x48007E, 0xEB);
-		dlogr(" Done", DL_INIT);
-	}
-
 	CritInit();
 
 	if (GetPrivateProfileIntA("Misc", "MultiPatches", 0, ini)) {

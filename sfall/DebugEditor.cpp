@@ -295,9 +295,18 @@ void DebugModePatch() {
 	}
 }
 
+void DontDeleteProtosPatch() {
+	if (GetPrivateProfileIntA("Debugging", "DontDeleteProtos", 0, ".\\ddraw.ini")) {
+		dlog("Applying permanent protos patch.", DL_INIT);
+		SafeWrite8(0x48007E, 0xEB);
+		dlogr(" Done", DL_INIT);
+	}
+}
+
 void DebugEditorInit() {
 	if (!IsDebug) return;
 	DebugModePatch();
+	DontDeleteProtosPatch();
 
 	if (GetPrivateProfileIntA("Debugging", "HideObjIsNullMsg", 0, ".\\ddraw.ini")) {
 		MakeCall(0x453FD2, dbg_error_hack, 1);
