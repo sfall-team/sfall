@@ -49,9 +49,7 @@ void __declspec(naked) op_input_funcs_available() {
 }
 
 void sf_key_pressed(OpcodeContext& ctx) {
-	if (ctx.arg(0).isInt()) {
-		ctx.setReturn(static_cast<int>(KeyDown(ctx.arg(0).asInt())));
-	}
+	ctx.setReturn(static_cast<int>(KeyDown(ctx.arg(0).rawValue())));
 }
 
 void __declspec(naked) op_tap_key() {
@@ -209,16 +207,16 @@ next:
 
 		mov ecx, eax;
 		mov eax, 3;
-		push 1;
-		mov al, ds:[0x006AB718];
-		push eax;
-		push 0;
-		push eax;
-		push 0x74;
-		mov ecx, 0xC0;
-		mov eax, esi;
-		xor ebx, ebx;
-		xor edx, edx;
+		push 1;         // arg10
+		mov al, byte ptr ds:[0x6AB718];
+		push eax;       // a9
+		push 0;         // *DisplayText
+		push eax;       // ColorIndex
+		push 0x74;      // y
+		mov ecx, 0xC0;  // x
+		mov eax, esi;   // text
+		xor ebx, ebx;   // ?
+		xor edx, edx;   // ?
 		call fo::funcoffs::dialog_out_;
 		//xor eax, eax;
 end:

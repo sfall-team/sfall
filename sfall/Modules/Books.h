@@ -27,6 +27,7 @@ class Books : public Module {
 public:
 	const char* name() { return "Books"; }
 	void init();
+	void exit() override;
 };
 
 }

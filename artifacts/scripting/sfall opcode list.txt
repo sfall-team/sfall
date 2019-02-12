@@ -219,7 +219,7 @@
 0x81e9 - int  get_unspent_ap_perk_bonus()
 
 0x81ec - float sqrt(float)
-0x81ed - float abs(float)
+0x81ed - int/float abs(int/float)
 0x81ee - float sin(float)
 0x81ef - float cos(float)
 0x81f0 - float tan(float)

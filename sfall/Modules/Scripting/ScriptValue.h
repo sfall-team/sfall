@@ -26,10 +26,10 @@ namespace script
 {
 
 enum class DataType : unsigned long {
-	NONE = 0,
-	INT,
-	FLOAT,
-	STR
+	NONE  = 0,
+	INT   = 1,
+	FLOAT = 2,
+	STR   = 3,
 };
 
 /*
@@ -56,6 +56,10 @@ public:
 	bool isString() const;
 
 	unsigned long rawValue() const;
+
+	float floatValue() const;
+
+	const char* strValue() const;
 
 	// returns value as integer, converting if needed
 	int asInt() const;

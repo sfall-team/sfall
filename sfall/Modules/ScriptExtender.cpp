@@ -72,6 +72,16 @@ struct ExportedVar {
 	ExportedVar() : val(0), type(VAR_TYPE_INT) {}
 };
 
+struct SelfOverrideObj {
+	fo::GameObject* object;
+	char counter;
+
+	bool UnSetSelf() {
+		if (counter) counter--;
+		return counter == 0;
+	}
+};
+
 static std::vector<std::string> globalScriptPathList;
 static std::map<std::string, std::string> globalScriptFilesList;
 
@@ -83,7 +93,7 @@ typedef std::unordered_map<fo::Program*, ScriptProgram> SfallProgsMap;
 static SfallProgsMap sfallProgsMap;
 
 // a map scriptPtr => self_obj  to override self_obj for all script types using set_self
-std::unordered_map<fo::Program*, fo::GameObject*> selfOverrideMap;
+std::unordered_map<fo::Program*, SelfOverrideObj> selfOverrideMap;
 
 typedef std::unordered_map<std::string, ExportedVar> ExportedVarsMap;
 static ExportedVarsMap globalExportedVars;
@@ -98,23 +108,24 @@ DWORD availableGlobalScriptTypes = 0;
 bool isGameLoading;
 bool alwaysFindScripts;
 
-fo::ScriptInstance overrideScriptStruct;
+fo::ScriptInstance overrideScriptStruct = {0};
 
 static const DWORD scr_ptr_back = fo::funcoffs::scr_ptr_ + 5;
 static const DWORD scr_find_sid_from_program = fo::funcoffs::scr_find_sid_from_program_ + 5;
 static const DWORD scr_find_obj_from_program = fo::funcoffs::scr_find_obj_from_program_ + 7;
 
 static DWORD _stdcall FindSid(fo::Program* script) {
-	std::unordered_map<fo::Program*, fo::GameObject*>::iterator overrideIt = selfOverrideMap.find(script);
+	std::unordered_map<fo::Program*, SelfOverrideObj>::iterator overrideIt = selfOverrideMap.find(script);
 	if (overrideIt != selfOverrideMap.end()) {
-		DWORD scriptId = overrideIt->second->scriptId;
+		DWORD scriptId = overrideIt->second.object->scriptId; // script
+		overrideScriptStruct.id = scriptId;
 		if (scriptId != -1) {
-			selfOverrideMap.erase(overrideIt);
+			if (overrideIt->second.UnSetSelf()) selfOverrideMap.erase(overrideIt);
 			return scriptId; // returns the real scriptId of object if it is scripted
 		}
-		overrideScriptStruct.selfObject = overrideIt->second;
-		overrideScriptStruct.targetObject = overrideIt->second;
-		selfOverrideMap.erase(overrideIt); // this reverts self_obj back to original value for next function calls
+		overrideScriptStruct.selfObject = overrideIt->second.object;
+		overrideScriptStruct.targetObject = overrideIt->second.object;
+		if (overrideIt->second.UnSetSelf()) selfOverrideMap.erase(overrideIt); // this reverts self_obj back to original value for next function calls
 		return -2; // override struct
 	}
 	// this will allow to use functions like roll_vs_skill, etc without calling set_self (they don't really need self object)
@@ -142,11 +153,15 @@ static void __declspec(naked) FindSidHack() {
 		retn;
 override_script:
 		test edx, edx;
-		jz   end;
+		jz   skip;
 		add  esp, 4;
 		lea  eax, overrideScriptStruct;
 		mov  [edx], eax;
 		mov  eax, -2;
+		retn;
+skip:
+		add  esp, 4;
+		dec  eax; // set -3;
 		retn;
 end:
 		pop  eax;
@@ -162,7 +177,15 @@ end:
 static void __declspec(naked) ScrPtrHack() {
 	__asm {
 		cmp  eax, -2;
-		jnz  end;
+		jnz  skip;
+		xor  eax, eax;
+		retn;
+skip:
+		cmp  eax, -3;
+		jne  end;
+		lea  eax, overrideScriptStruct;
+		mov  [edx], eax;
+		mov  esi, [eax]; // script.id
 		xor  eax, eax;
 		retn;
 end:
@@ -248,7 +271,7 @@ proceedNormal:
 }
 
 // this hook prevents sfall scripts from being removed after switching to another map, since normal script engine re-loads completely
-static void _stdcall FreeProgramHook2(fo::Program* progPtr) {
+static void _stdcall FreeProgram(fo::Program* progPtr) {
 	if (isGameLoading || (sfallProgsMap.find(progPtr) == sfallProgsMap.end())) { // only delete non-sfall scripts or when actually loading the game
 		__asm {
 			mov  eax, progPtr;
@@ -262,7 +285,7 @@ static void __declspec(naked) FreeProgramHook() {
 		push ecx;
 		push edx;
 		push eax;
-		call FreeProgramHook2;
+		call FreeProgram;
 		pop  edx;
 		pop  ecx;
 		retn;
@@ -328,18 +351,19 @@ static void SetGlobalVarInternal(__int64 var, int val) {
 	}
 }
 
-void _stdcall SetGlobalVarInt(DWORD var, int val) {
+void SetGlobalVarInt(DWORD var, int val) {
 	SetGlobalVarInternal(var, val);
 }
 
-void _stdcall SetGlobalVar(const char* var, int val) {
+long SetGlobalVar(const char* var, int val) {
 	if (strlen(var) != 8) {
-		return;
+		return -1;
 	}
 	SetGlobalVarInternal(*(__int64*)var, val);
+	return 0;
 }
 
-static DWORD GetGlobalVarInternal(__int64 val) {
+long GetGlobalVarInternal(__int64 val) {
 	glob_citr itr = globalVars.find(val);
 	if (itr == globalVars.end()) {
 		return 0;
@@ -348,25 +372,33 @@ static DWORD GetGlobalVarInternal(__int64 val) {
 	}
 }
 
-DWORD _stdcall GetGlobalVar(const char* var) {
+long GetGlobalVar(const char* var) {
 	if (strlen(var) != 8) {
 		return 0;
 	}
 	return GetGlobalVarInternal(*(__int64*)var);
 }
 
-DWORD _stdcall GetGlobalVarInt(DWORD var) {
+long GetGlobalVarInt(DWORD var) {
 	return GetGlobalVarInternal(var);
 }
 
 void _stdcall SetSelfObject(fo::Program* script, fo::GameObject* obj) {
+	std::unordered_map<fo::Program*, SelfOverrideObj>::iterator it = selfOverrideMap.find(script);
+	bool isFind = (it != selfOverrideMap.end());
 	if (obj) {
-		selfOverrideMap[script] = obj;
-	} else {
-		std::unordered_map<fo::Program*, fo::GameObject*>::iterator it = selfOverrideMap.find(script);
-		if (it != selfOverrideMap.end()) {
-			selfOverrideMap.erase(it);
+		if (isFind) {
+			if (it->second.object == obj) {
+				it->second.counter = 2;
+			} else {
+				it->second.object = obj;
+				it->second.counter = 0;
+			}
+		} else {
+			selfOverrideMap[script] = {obj, 0};
 		}
+	} else {
+		if (isFind) selfOverrideMap.erase(it);
 	}
 }
 
@@ -548,7 +580,7 @@ static void RunScript(GlobalScript* script) {
 	- reset reg_anim_* combatstate checks
 */
 static void ResetStateAfterFrame() {
-	if (tempArrays.size()) {
+	if (!tempArrays.empty()) {
 		for (std::set<DWORD>::iterator it = tempArrays.begin(); it != tempArrays.end(); ++it)
 			FreeArray(*it);
 		tempArrays.clear();
@@ -607,15 +639,16 @@ void _stdcall RunGlobalScriptsAtProc(DWORD procId) {
 	}
 }
 
-void LoadGlobals(HANDLE h) {
+bool LoadGlobals(HANDLE h) {
 	DWORD count, unused;
 	ReadFile(h, &count, 4, &unused, 0);
-	if (unused!=4) return;
+	if (unused != 4) return true;
 	GlobalVar var;
-	for (DWORD i = 0; i<count; i++) {
+	for (DWORD i = 0; i < count; i++) {
 		ReadFile(h, &var, sizeof(GlobalVar), &unused, 0);
 		globalVars.insert(glob_pair(var.id, var.val));
 	}
+	return false;
 }
 
 void SaveGlobals(HANDLE h) {
@@ -658,7 +691,7 @@ void GetGlobals(GlobalVar* globals) {
 void SetGlobals(GlobalVar* globals) {
 	glob_itr itr = globalVars.begin();
 	int i = 0;
-	while(itr != globalVars.end()) {
+	while (itr != globalVars.end()) {
 		itr->second = globals[i++].val;
 		itr++;
 	}
@@ -702,7 +735,6 @@ void ScriptExtender::init() {
 
 	MakeJump(0x4A390C, FindSidHack);
 	MakeJump(0x4A5E34, ScrPtrHack);
-	memset(&overrideScriptStruct, 0, sizeof(fo::ScriptInstance));
 
 	MakeJump(0x4A67F0, ExecMapScriptsHack);
 

@@ -43,10 +43,12 @@ static const char* critNames[] = {
 	"FailMessage",
 };
 
-static fo::CritInfo baseCritTable[Criticals::critTableCount][9][6]; // Base critical table set up via enabling OverrideCriticalTable in ddraw.ini
+static fo::CritInfo baseCritTable[Criticals::critTableCount][9][6] = {0}; // Base critical table set up via enabling OverrideCriticalTable in ddraw.ini
 static fo::CritInfo critTable[Criticals::critTableCount][9][6];
 static fo::CritInfo (*playerCrit)[9][6];
+
 static bool Inited = false;
+
 static const char* errorTable = "\nError: %s - function requires enabling OverrideCriticalTable in ddraw.ini.";
 
 void Criticals::SetCriticalTable(DWORD critter, DWORD bodypart, DWORD slot, DWORD element, DWORD value) {
@@ -73,12 +75,11 @@ void Criticals::ResetCriticalTable(DWORD critter, DWORD bodypart, DWORD slot, DW
 	critTable[critter][bodypart][slot].values[element] = baseCritTable[critter][bodypart][slot].values[element];
 }
 
-void CritLoad() {
+static void CritLoad() {
 	if (!Inited) return;
 	if (mode == 1) {
 		dlogr("Setting up critical hit table using CriticalOverrides.ini", DL_CRITICALS);
 		char section[16];
-		memset(baseCritTable, 0, sizeof(critTable));
 		for (DWORD critter = 0; critter < 20; critter++) {
 			for (DWORD part = 0; part < 9; part++) {
 				for (DWORD crit = 0; crit < 6; crit++) {
@@ -102,8 +103,8 @@ void CritLoad() {
 	} else {
 		dlogr("Setting up critical hit table using RP fixes", DL_CRITICALS);
 		memcpy(baseCritTable, fo::var::crit_succ_eff, sizeof(critTable));
-		memset(&baseCritTable[19], 0, 6 * 9 * 19 * sizeof(fo::CritInfo));
-		memcpy(&baseCritTable[38], &fo::var::pc_crit_succ_eff, 6 * 9 * sizeof(fo::CritInfo)); // PC crit table
+		//memset(&baseCritTable[19], 0, 6 * 9 * 19 * sizeof(fo::CritInfo));
+		memcpy(&baseCritTable[38], fo::var::pc_crit_succ_eff, 6 * 9 * sizeof(fo::CritInfo)); // PC crit table
 
 		if (mode == 3) {
 			char buf[32], buf2[32], buf3[32];
@@ -134,13 +135,14 @@ void CritLoad() {
 }
 
 #define SetEntry(critter, bodypart, effect, param, value) fo::var::crit_succ_eff[critter][bodypart][effect].values[param] = value;
-void CriticalTableOverride() {
+
+static void CriticalTableOverride() {
 	dlog("Initializing critical table override.", DL_INIT);
 	playerCrit = &critTable[38];
 	SafeWrite32(0x423F96, (DWORD)playerCrit);
 	SafeWrite32(0x423FB3, (DWORD)critTable);
 
-	if (mode == 2 || mode == 3) {
+	if (mode == 2 || mode == 3) { // bug fixes
 		SetEntry(2, 4, 1, 4, 0);
 		SetEntry(2, 4, 1, 5, 5216);
 		SetEntry(2, 4, 1, 6, 5000);
@@ -242,7 +244,7 @@ void CriticalTableOverride() {
 }
 #undef SetEntry
 
-void RemoveCriticalTimeLimitsPatch() {
+static void RemoveCriticalTimeLimitsPatch() {
 	if (GetConfigInt("Misc", "RemoveCriticalTimelimits", 0)) {
 		dlog("Removing critical time limits.", DL_INIT);
 		SafeWrite8(0x424118, 0xEB);               // jmps 0x424131

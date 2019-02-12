@@ -31,7 +31,7 @@
 #include "..\..\PlayerModel.h"
 #include "..\..\ScriptExtender.h"
 #include "..\..\Stats.h"
-#include "..\..\Worldmap.h"
+//#include "..\..\Worldmap.h"
 #include "..\Arrays.h"
 #include "..\OpcodeContext.h"
 
@@ -167,36 +167,15 @@ end:
 	}
 }
 
-void __declspec(naked) op_get_year() {
+void sf_get_year(OpcodeContext& ctx) {
+	int year = 0;
 	__asm {
-		push ebx;
-		push ecx;
-		push edx;
-		push edi;
-		mov edi, eax;
-		sub esp, 4;
 		xor eax, eax;
 		xor edx, edx;
-		mov ebx, esp;
+		lea ebx, year;
 		call fo::funcoffs::game_time_date_;
-		mov edx, [esp];
-		mov eax, addUnarmedStatToGetYear;
-		test eax, eax;
-		jz end;
-		add edx, ds:[FO_VAR_pc_proto + 0x4C];
-end:
-		mov eax, edi;
-		call fo::funcoffs::interpretPushLong_;
-		mov edx, VAR_TYPE_INT;
-		mov eax, edi;
-		call fo::funcoffs::interpretPushShort_;
-		add esp, 4;
-		pop edi;
-		pop edx;
-		pop ecx;
-		pop ebx;
-		retn;
 	}
+	ctx.setReturn(year);
 }
 
 void __declspec(naked) op_game_loaded() {
@@ -1658,7 +1637,7 @@ void sf_set_ini_setting(OpcodeContext& ctx) {
 	const ScriptValue &argVal = ctx.arg(1);
 
 	if (argVal.isInt()) {
-		_itoa_s(argVal.asInt(), IniStrBuffer, 10);
+		_itoa_s(argVal.rawValue(), IniStrBuffer, 10);
 	} else {
 		strcpy_s(IniStrBuffer, argVal.asString());
 	}

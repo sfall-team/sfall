@@ -700,4 +700,13 @@ struct AIcap {
 	long general_type;
 };
 
+#pragma pack(1)
+struct Queue {
+	DWORD time;
+	long type;
+	GameObject* object;
+	long data;
+	Queue* next;
+};
+
 }

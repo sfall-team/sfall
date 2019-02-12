@@ -96,140 +96,41 @@ void __declspec(naked) op_available_global_script_types() {
 	}
 }
 
-void __declspec(naked) op_set_sfall_global() {
-	__asm {
-		push ebx;
-		push ecx;
-		push edx;
-		push edi;
-		push esi;
-		mov edi, eax;
-		call fo::funcoffs::interpretPopShort_;
-		mov eax, edi;
-		call fo::funcoffs::interpretPopLong_;
-		mov esi, eax;
-		mov eax, edi;
-		call fo::funcoffs::interpretPopShort_;
-		mov edx, eax;
-		mov eax, edi;
-		call fo::funcoffs::interpretPopLong_;
-		cmp dx, VAR_TYPE_STR2;
-		jz next;
-		cmp dx, VAR_TYPE_STR;
-		jz next;
-		cmp dx, VAR_TYPE_INT;
-		jnz end;
-		push esi;
-		push eax;
-		call SetGlobalVarInt;
-		jmp end;
-next:
-		mov ebx, eax;
-		mov eax, edi;
-		call fo::funcoffs::interpretGetString_;
-		push esi;
-		push eax;
-		call SetGlobalVar;
-end:
-		pop esi;
-		pop edi;
-		pop edx;
-		pop ecx;
-		pop ebx;
-		retn;
+void sf_set_sfall_global(OpcodeContext& ctx) {
+	if (ctx.arg(0).isString()) {
+		if (SetGlobalVar(ctx.arg(0).strValue(), ctx.arg(1).rawValue())) {
+			ctx.printOpcodeError("set_sfall_global() - The name of the global variable must consist of 8 characters.");
+		}
+	} else {
+		SetGlobalVarInt(ctx.arg(0).rawValue(), ctx.arg(1).rawValue());
 	}
 }
 
-void __declspec(naked) op_get_sfall_global_int() {
-	__asm {
-		push ebx;
-		push ecx;
-		push edx;
-		push edi;
-		push esi;
-		xor edx, edx;
-		mov edi, eax;
-		call fo::funcoffs::interpretPopShort_;
-		mov esi, eax;
-		mov eax, edi;
-		call fo::funcoffs::interpretPopLong_;
-		cmp si, VAR_TYPE_STR2;
-		jz next;
-		cmp si, VAR_TYPE_STR;
-		jz next;
-		cmp si, VAR_TYPE_INT;
-		jnz end;
-		push eax;
-		call GetGlobalVarInt;
-		mov edx, eax;
-		jmp end;
-next:
-		mov edx, esi;
-		mov ebx, eax;
-		mov eax, edi;
-		call fo::funcoffs::interpretGetString_;
-		push eax;
-		call GetGlobalVar;
-		mov edx, eax;
-end:
-		mov eax, edi;
-		call fo::funcoffs::interpretPushLong_;
-		mov edx, VAR_TYPE_INT;
-		mov eax, edi;
-		call fo::funcoffs::interpretPushShort_;
-		pop esi;
-		pop edi;
-		pop edx;
-		pop ecx;
-		pop ebx;
-		retn;
+static long GetGlobalVarNameString(OpcodeContext& ctx) {
+	const char* var = ctx.arg(0).strValue();
+	if (strlen(var) != 8) {
+		ctx.printOpcodeError("get_sfall_global() - The name of the global variable must consist of 8 characters.");
+		return 0;
 	}
+	return GetGlobalVarInternal(*(__int64*)var);
 }
 
-void __declspec(naked) op_get_sfall_global_float() {
-	__asm {
-		push ebx;
-		push ecx;
-		push edx;
-		push edi;
-		push esi;
-		xor edx, edx;
-		mov edi, eax;
-		call fo::funcoffs::interpretPopShort_;
-		mov esi, eax;
-		mov eax, edi;
-		call fo::funcoffs::interpretPopLong_;
-		cmp si, VAR_TYPE_STR2;
-		jz next;
-		cmp si, VAR_TYPE_STR;
-		jz next;
-		cmp si, VAR_TYPE_INT;
-		jnz end;
-		push eax;
-		call GetGlobalVarInt;
-		mov edx, eax;
-		jmp end;
-next:
-		mov edx, esi;
-		mov ebx, eax;
-		mov eax, edi;
-		call fo::funcoffs::interpretGetString_;
-		push eax;
-		call GetGlobalVar;
-		mov edx, eax;
-end:
-		mov eax, edi;
-		call fo::funcoffs::interpretPushLong_;
-		mov edx, VAR_TYPE_FLOAT;
-		mov eax, edi;
-		call fo::funcoffs::interpretPushShort_;
-		pop esi;
-		pop edi;
-		pop edx;
-		pop ecx;
-		pop ebx;
-		retn;
+static void GetGlobalVar(OpcodeContext& ctx, DataType type) {
+	long result; 
+	if (ctx.arg(0).isString()) {
+		result = GetGlobalVarNameString(ctx);
+	} else {
+		result = GetGlobalVarInt(ctx.arg(0).rawValue());
 	}
+	ctx.setReturn(result, type);
+}
+
+void sf_get_sfall_global_int(OpcodeContext& ctx) {
+	GetGlobalVar(ctx, DataType::INT);
+}
+
+void sf_get_sfall_global_float(OpcodeContext& ctx) {
+	GetGlobalVar(ctx, DataType::FLOAT);
 }
 
 void __declspec(naked) op_get_sfall_arg() {

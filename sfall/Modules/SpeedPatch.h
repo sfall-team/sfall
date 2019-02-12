@@ -27,6 +27,9 @@ class SpeedPatch : public Module {
 public:
 	const char* name() { return "SpeedPatch"; }
 	void init();
+	void exit() override;
 };
+
+extern DWORD sf_GetTickCount;
 
 }

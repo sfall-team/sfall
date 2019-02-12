@@ -1,5 +1,5 @@
-Auto Doors mod for Fallout 2 by Mr.Stalin
------------------------------------------
+Auto Doors mod v1.1 for Fallout 2 by Mr.Stalin
+----------------------------------------------
 
 - allows the player to automatically open/walk through unlocked doors when not in combat
 
