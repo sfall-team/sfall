@@ -237,7 +237,8 @@
 #define party_member_list_critters      party_member_list(0)
 #define party_member_list_all           party_member_list(1)
 
-
+// FuncX macros
+#define add_iface_tag                                  sfall_func0("add_iface_tag")
 #define art_cache_clear                                sfall_func0("art_cache_clear")
 #define attack_is_aimed                                sfall_func0("attack_is_aimed")
 #define car_gas_amount                                 sfall_func0("car_gas_amount")

@@ -78,6 +78,7 @@ static const SfallMetarule* currentMetarule;
 		- arg1, arg2, ... - argument types for automatic validation
 */
 static const SfallMetarule metarules[] = {
+	{"add_iface_tag",           sf_add_iface_tag,           0, 0},
 	{"art_cache_clear",         sf_art_cache_flush,         0, 0},
 	{"attack_is_aimed",         sf_attack_is_aimed,         0, 0},
 	{"car_gas_amount",          sf_car_gas_amount,          0, 0},

@@ -243,7 +243,7 @@ bool LoadArrays(HANDLE h) {
 	sArrayVar arrayVar;
 	for (DWORD i = 0; i < count; i++) {
 		if (LoadArrayElement(&arrayVar.key, h)) return true;
-		if (static_cast<long>(arrayVar.key.type) > 4 || arrayVar.key.intVal == 0) { // partial compatibility with 3.4 / TODO: condition, maybe was meant >= 4 ?
+		if (arrayVar.key.intVal == 0 || static_cast<long>(arrayVar.key.type) >= 4) { // partial compatibility with 3.4
 			arrayVar.key.intVal = static_cast<long>(arrayVar.key.type);
 			arrayVar.key.type = DataType::INT;
 		}
@@ -332,8 +332,6 @@ void DESetArray(int id, const DWORD* types, const void* data) {
 	Array manipulation functions for script operators
 	TODO: move somewhere else
 */
-
-
 DWORD _stdcall CreateArray(int len, DWORD flags) {
 	sArrayVar var;
 	var.flags = (flags & 0xFFFFFFFE); // reset 1 bit
