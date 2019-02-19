@@ -1834,6 +1834,13 @@ isLoad:
 	}
 }
 
+static void __declspec(naked) JesseContainerFid() {
+	__asm {
+		dec edx; // set fid to -1
+		jmp fo::funcoffs::obj_new_;
+	}
+}
+
 void BugFixes::init()
 {
 	#ifndef NDEBUG
@@ -2355,6 +2362,9 @@ void BugFixes::init()
 
 	// Fix missed combat turn by the player when loading savegame in combat mode
 	MakeCall(0x422E25, combat_hack_load);
+
+	// Fix the emerging of the item sprite(reserved.frm) in the upper left corner when the loot/barter interface is open
+	HookCalls(JesseContainerFid, {0x473AC9, 0x475895});
 }
 
 }

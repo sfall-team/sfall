@@ -127,8 +127,8 @@ procedure KeyPressHandler begin
             hKeyIsPress := (get_sfall_arg == highlightKey);
 
    pressed := (pressed and hKeyIsPress);
-   if pressed and motionScanner and (CheckMotionSensor == false) then
-      pressed := false;
+   if (pressed and (get_game_mode bwand bwnot(COMBAT bwor PCOMBAT))) then return; // highlight only in local map mode
+   if (pressed and motionScanner and (CheckMotionSensor == false)) then pressed := false;
 
    if (pressed or isHighlight) then begin
       isHighlight := pressed;
@@ -137,7 +137,7 @@ procedure KeyPressHandler begin
 end
 
 procedure CombatTurnHandler begin
-
+   // remove the highlight if the key is hold
    if (isHighlight) then begin
       isHighlight := false;
       call ToggleHighlight(false);
