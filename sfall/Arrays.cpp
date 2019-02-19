@@ -236,8 +236,8 @@ bool LoadArrays(HANDLE h) {
 	sArrayVar arrayVar;
 	for (DWORD i = 0; i < count; i++) {
 		if (LoadArrayElement(&arrayVar.key, h)) return true;
-		if (arrayVar.key.type > 4 || arrayVar.key.intVal == 0) { // partial compatibility with 3.4
-			arrayVar.key.intVal = arrayVar.key.type;
+		if (arrayVar.key.intVal == 0 || static_cast<long>(arrayVar.key.type) >= 4) { // partial compatibility with 3.4
+			arrayVar.key.intVal = static_cast<long>(arrayVar.key.type);
 			arrayVar.key.type = DATATYPE_INT;
 		}
 

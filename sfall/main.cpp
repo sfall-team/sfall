@@ -418,70 +418,72 @@ c15:
 	}
 }
 
-static void __declspec(naked) removeDatabase() {
+static void __declspec(naked) RemoveDatabase() {
 	__asm {
-		cmp  eax, -1
-		je   end
-		mov  ebx, ds:[_paths]
-		mov  ecx, ebx
+		cmp  eax, -1;
+		je   end;
+		mov  ebx, ds:[_paths];
+		mov  ecx, ebx;
 nextPath:
-		mov  edx, [esp+0x104+4+4]                 // path_patches
-		mov  eax, [ebx]                           // database.path
-		call stricmp_
-		test eax, eax                             // found path?
-		jz   skip                                 // Yes
-		mov  ecx, ebx
-		mov  ebx, [ebx+0xC]                       // database.next
-		jmp  nextPath
+		mov  edx, [esp + 0x104 + 4 + 4];          // path_patches
+		mov  eax, [ebx];                          // database.path
+		call stricmp_;
+		test eax, eax;                            // found path?
+		jz   skip;                                // Yes
+		mov  ecx, ebx;
+		mov  ebx, [ebx + 0xC];                    // database.next
+		jmp  nextPath;
 skip:
-		mov  eax, [ebx+0xC]                       // database.next
-		mov  [ecx+0xC], eax                       // database.next
-		xchg ebx, eax
-		cmp  eax, ecx
-		jne  end
-		mov  ds:[_paths], ebx
+		mov  eax, [ebx + 0xC];                    // database.next
+		mov  [ecx + 0xC], eax;                    // database.next
+		xchg ebx, eax;
+		cmp  eax, ecx;
+		jne  end;
+		mov  ds:[_paths], ebx;
 end:
-		retn
+		retn;
 	}
 }
 
+// Remove master_patches from the load order
 static void __declspec(naked) game_init_databases_hack1() {
 	__asm {
-		call removeDatabase
-		mov  ds:[_master_db_handle], eax
-		retn
+		call RemoveDatabase;
+		mov  ds:[_master_db_handle], eax;         // the pointer of master_patches node will be saved here
+		retn;
 	}
 }
 
+// Remove critter_patches from the load order
 static void __declspec(naked) game_init_databases_hack2() {
 	__asm {
-		cmp  eax, -1
-		je   end
-		mov  eax, ds:[_master_db_handle]
-		mov  eax, [eax]                           // eax = master_patches.path
-		call xremovepath_
-		dec  eax                                  // remove path (critter_patches == master_patches)?
-		jz   end                                  // Yes
-		inc  eax
-		call removeDatabase
+		cmp  eax, -1;
+		je   end;
+		mov  eax, ds:[_master_db_handle];         // pointer to master_patches node
+		mov  eax, [eax];                          // eax = master_patches.path
+		call xremovepath_;
+		dec  eax;                                 // remove path (critter_patches == master_patches)?
+		jz   end;                                 // Yes (jump if 0)
+		inc  eax;
+		call RemoveDatabase;
 end:
-		mov  ds:[_critter_db_handle], eax
-		retn
+		mov  ds:[_critter_db_handle], eax;        // the pointer of critter_patches node will be saved here
+		retn;
 	}
 }
 
 static void __declspec(naked) game_init_databases_hook() {
 // eax = _master_db_handle
 	__asm {
-		mov  ecx, ds:[_critter_db_handle]
-		mov  edx, ds:[_paths]
-		jecxz skip
-		mov  [ecx+0xC], edx                       // critter_patches.next->_paths
-		mov  edx, ecx
+		mov  ecx, ds:[_critter_db_handle];
+		mov  edx, ds:[_paths];
+		jecxz skip;
+		mov  [ecx + 0xC], edx;                    // critter_patches.next->_paths
+		mov  edx, ecx;
 skip:
-		mov  [eax+0xC], edx                       // master_patches.next
-		mov  ds:[_paths], eax
-		retn
+		mov  [eax + 0xC], edx;                    // master_patches.next
+		mov  ds:[_paths], eax;
+		retn;
 	}
 }
 
@@ -494,7 +496,7 @@ static void _stdcall SetKarma(int value) {
 		call game_get_global_var_;
 		mov old, eax;
 	}
-	old=value-old;
+	old = value - old;
 	char buf[64];
 	if (old == 0) return;
 	if (old > 0) {
@@ -586,24 +588,24 @@ static DWORD RetryCombatLastAP;
 static DWORD RetryCombatMinAP;
 static void __declspec(naked) RetryCombatHook() {
 	__asm {
-		mov RetryCombatLastAP, 0;
+		mov  RetryCombatLastAP, 0;
 retry:
-		mov eax, esi;
-		xor edx, edx;
 		call combat_ai_;
 process:
-		cmp dword ptr ds:[_combat_turn_running], 0;
-		jle next;
+		cmp  dword ptr ds:[_combat_turn_running], 0;
+		jle  next;
 		call process_bk_;
-		jmp process;
+		jmp  process;
 next:
-		mov eax, [esi+0x40];
-		cmp eax, RetryCombatMinAP;
-		jl end;
-		cmp eax, RetryCombatLastAP;
-		je end;
-		mov RetryCombatLastAP, eax;
-		jmp retry;
+		mov  eax, [esi + 0x40];
+		cmp  eax, RetryCombatMinAP;
+		jl   end;
+		cmp  eax, RetryCombatLastAP;
+		je   end;
+		mov  RetryCombatLastAP, eax;
+		mov  eax, esi;
+		xor  edx, edx;
+		jmp  retry;
 end:
 		retn;
 	}
@@ -1070,7 +1072,7 @@ static void DllMain2() {
 
 		//Ray's combat_p_proc fix
 		dlog("Applying combat_p_proc fix.", DL_INIT);
-		HookCall(0x425252, &Combat_p_procFix);
+		HookCall(0x425252, Combat_p_procFix);
 		SafeWrite8(0x424DBC, 0xE9);
 		SafeWrite32(0x424DBD, 0x00000034);
 		dlogr(" Done", DL_INIT);
@@ -1173,19 +1175,19 @@ static void DllMain2() {
 
 	CritInit();
 
-	if (GetPrivateProfileIntA("Misc", "MultiPatches", 0, ini)) {
+	//if (GetPrivateProfileIntA("Misc", "MultiPatches", 0, ini)) {
 		dlog("Applying load multiple patches patch.", DL_INIT);
 		SafeWrite8(0x444354, 0x90); // Change step from 2 to 1
 		SafeWrite8(0x44435C, 0xC4); // Disable check
 		dlogr(" Done", DL_INIT);
-	}
+	//}
 
 	if (GetPrivateProfileIntA("Misc", "DataLoadOrderPatch", 0, ini)) {
 		dlog("Applying data load order patch.", DL_INIT);
 		MakeCall(0x444259, game_init_databases_hack1);
 		MakeCall(0x4442F1, game_init_databases_hack2);
-		HookCall(0x44436D, &game_init_databases_hook);
-		SafeWrite8(0x4DFAEC, 0x1D); // error correction
+		HookCall(0x44436D, game_init_databases_hook);
+		SafeWrite8(0x4DFAEC, 0x1D); // error correction (ecx > ebx)
 		dlogr(" Done", DL_INIT);
 	}
 
@@ -1231,7 +1233,7 @@ static void DllMain2() {
 	RetryCombatMinAP = GetPrivateProfileIntA("Misc", "NPCsTryToSpendExtraAP", 0, ini);
 	if (RetryCombatMinAP > 0) {
 		dlog("Applying retry combat patch.", DL_INIT);
-		HookCall(0x422B94, &RetryCombatHook);
+		HookCall(0x422B94, RetryCombatHook); // combat_turn_
 		dlogr(" Done", DL_INIT);
 	}
 
@@ -1446,7 +1448,7 @@ static void DllMain2() {
 
 	if (GetPrivateProfileIntA("Misc", "ObjCanSeeObj_ShootThru_Fix", 0, ini)) {
 		dlog("Applying ObjCanSeeObj ShootThru Fix.", DL_INIT);
-		HookCall(0x456BC6, &op_obj_can_see_obj_hook);
+		HookCall(0x456BC6, op_obj_can_see_obj_hook);
 		dlogr(" Done", DL_INIT);
 	}
 
@@ -1508,13 +1510,13 @@ static void DllMain2() {
 
 	if (GetPrivateProfileIntA("Misc", "DisplaySecondWeaponRange", 1, ini)) {
 		dlog("Applying display second weapon range patch.", DL_INIT);
-		HookCall(0x472201, &display_stats_hook);
+		HookCall(0x472201, display_stats_hook);
 		dlogr(" Done", DL_INIT);
 	}
 
 	if (GetPrivateProfileIntA("Misc", "WorldMapFontPatch", 0, ini)) {
 		dlog("Applying world map font patch.", DL_INIT);
-		HookCall(0x4C2343, &wmInterfaceInit_text_font_hook);
+		HookCall(0x4C2343, wmInterfaceInit_text_font_hook);
 		dlogr(" Done", DL_INIT);
 	}
 
