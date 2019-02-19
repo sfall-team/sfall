@@ -145,10 +145,13 @@ typedef ArraysMap::iterator array_itr;
 typedef std::pair<DWORD, sArrayVar> array_pair;
 
 // auto-incremented ID
-extern DWORD nextarrayid;
+extern DWORD nextArrayID;
+
 extern DWORD arraysBehavior;
+
 // temp arrays: set of arrayId
 extern std::set<DWORD> tempArrays;
+
 // saved arrays: arrayKey => arrayId
 extern ArrayKeysMap savedArrays;
 
