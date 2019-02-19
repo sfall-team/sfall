@@ -7,7 +7,7 @@
    NOTE: this script requires compiler from sfall modderspack with -s option
    (short circuit evaluation)
 
-   version 1.1
+   version 1.2
 
 */
 
@@ -23,13 +23,14 @@ procedure AllowControl(variable pid);
 procedure CombaTurn_Handler;
 procedure InventoryMove_Handler;
 procedure GameModeChange_Handler;
+procedure KeyPress_Handler;
 
 variable
    controlMode,
+   toggleControlKey, toggleControl := true,
    noCheckArray,
    pidList,
-   displayName,
-   displayNameColor,
+   displayName, displayNameColor,
    inControl := false,
    hasAwareness := false,
    hasGeckoSkinning := false;
@@ -38,7 +39,6 @@ variable
 procedure AllowControl(variable pid) begin
 
    if (noCheckArray or scan_array(pidList, pid bwand 0xFFFFFF) != -1) and (party_member_obj(pid)) then return true;
-
    return false;
 end
 
@@ -49,6 +49,8 @@ procedure CombaTurn_Handler begin
       //arg3 := get_sfall_arg,
       pid;
    //display_msg("Combat Turn: " + status + ", by "  + obj_name(critter) + ", arg3: " + arg3);
+
+   if (not(toggleControl)) then return;
 
    pid := obj_pid(critter);
    if (status == 1 and (AllowControl(pid) or controlMode == 1)) then begin
@@ -76,6 +78,12 @@ procedure CombaTurn_Handler begin
 end
 
 procedure GameModeChange_Handler begin
+
+   if (not(inControl) and toggleControl and get_game_mode == COMBAT) then begin
+      hasGeckoSkinning := has_trait(TRAIT_PERK, dude_obj, PERK_gecko_skinning_perk);
+      hasAwareness := has_trait(TRAIT_PERK, dude_obj, PERK_bonus_awareness);
+   end
+
    if (inControl and not(get_game_mode BWAND COMBAT)) then begin
       inControl := false;
       if (dude_obj != real_dude_obj) then begin
@@ -107,17 +115,26 @@ procedure start begin
       controlMode := GetConfig("CombatControl", "Mode", 0);
       if (controlMode > 2) then begin
          controlMode := 0;
-      end else if (controlMode == 1 and GetIniConfig("Debugging", "Enable", 0, "ddraw.ini") == 0) then begin
+      end
+      else if (controlMode == 1 and GetIniConfig("Debugging", "Enable", 0, "ddraw.ini") == 0) then begin
          controlMode := 2;
       end
 
       if (controlMode > 0) then begin
-         variable maxBoxCount := get_ini_setting("ddraw.ini|Misc|BoxBarCount");
-         if (maxBoxCount == -1) then maxBoxCount := 9; else maxBoxCount += 4;
-
+         toggleControlKey := GetConfig("CombatControl", "Key", 0);
          displayName := GetConfig("CombatControl", "DisplayName", 0);
-         if (displayName < 5 or displayName > maxBoxCount) then displayName := 0;
-         if (displayName) then displayNameColor := GetConfig("CombatControl", "DisplayNameColor", 0);
+
+         if (displayName) then begin
+            variable nameTag := sfall_func0("add_iface_tag");
+            debug_msg("NPC control - added new box: " + nameTag);
+            if (nameTag <= 0) then begin // box added ?
+               variable maxBoxCount := get_ini_setting("ddraw.ini|Misc|BoxBarCount");
+               if (maxBoxCount < 0) then maxBoxCount := 9; else maxBoxCount += 4;
+               if (displayName < 5 or displayName > maxBoxCount) then displayName := 0;
+            end
+            else displayName := nameTag;
+            displayNameColor := GetConfig("CombatControl", "DisplayNameColor", 0);
+         end
 
          set_perk_ranks(PERK_gecko_skinning_perk, 1);
          set_perk_level(PERK_gecko_skinning_perk, 999); // prevent it from appearing in the perk selection window
@@ -126,12 +143,26 @@ procedure start begin
          fix_array(pidList);
          noCheckArray := (len_array(pidList) == 0);
 
-         if has_trait(TRAIT_PERK, dude_obj, PERK_gecko_skinning_perk) then hasGeckoSkinning := true;
-         if has_trait(TRAIT_PERK, dude_obj, PERK_bonus_awareness) then hasAwareness := true;
-
+         register_hook_proc(HOOK_KEYPRESS, KeyPress_Handler);
          register_hook_proc(HOOK_COMBATTURN, CombaTurn_Handler);
          register_hook_proc(HOOK_GAMEMODECHANGE, GameModeChange_Handler);
          register_hook_proc(HOOK_INVENTORYMOVE, InventoryMove_Handler);
+      end
+   end
+end
+
+procedure KeyPress_Handler begin
+   if (get_sfall_arg == 0 and get_sfall_arg == toggleControlKey) then begin
+      if (combat_is_initialized and real_dude_obj != dude_obj) then begin
+         display_msg(GetConfigStr("CombatControl", "MsgControl", "Error"));
+         return;
+      end
+      toggleControl := not(toggleControl);
+      if (toggleControl) then begin
+         display_msg(GetConfigStr("CombatControl", "MsgControlOn", "Error"));
+      end
+      else begin
+         display_msg(GetConfigStr("CombatControl", "MsgControlOff", "Error"));
       end
    end
 end
