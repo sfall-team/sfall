@@ -222,6 +222,7 @@
 // colors
 #define FO_VAR_BlueColor                  0x6A38EF
 #define FO_VAR_DarkGreenColor             0x6A3A90
+#define FO_VAR_DullPinkColor              0x6AB718
 #define FO_VAR_GoodColor                  0x6AB4EF
 #define FO_VAR_GreenColor                 0x6A3CB0
 #define FO_VAR_PeanutButter               0x6A82F3

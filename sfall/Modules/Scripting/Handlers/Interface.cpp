@@ -303,6 +303,12 @@ end:
 	}
 }
 
+void sf_add_iface_tag(OpcodeContext &ctx) {
+	int result = BarBoxes::AddExtraBox();
+	if (result == -1) ctx.printOpcodeError("add_iface_tag() - cannot add new tag as the maximum limit of 126 tags has been reached.");
+	ctx.setReturn(result);
+}
+
 void sf_show_iface_tag(OpcodeContext &ctx) {
 	int tag = ctx.arg(0).asInt();
 	if (tag == 3 || tag == 4) {
@@ -396,10 +402,10 @@ void sf_display_stats(OpcodeContext& ctx) {
 
 void sf_set_iface_tag_text(OpcodeContext& ctx) {
 	int boxTag = ctx.arg(0).asInt();
-
 	int maxBox = BarBoxes::MaxBox();
+
 	if (boxTag > 4 && boxTag <= maxBox) {
-		BarBoxes::SetText(boxTag, ctx.arg(1).asString(), ctx.arg(2).asInt());
+		BarBoxes::SetText(boxTag, ctx.arg(1).strValue(), ctx.arg(2).asInt());
 	} else {
 		ctx.printOpcodeError("set_iface_tag_text() - tag value must be in the range of 5 to %d.", maxBox);
 	}
