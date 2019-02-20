@@ -7,7 +7,7 @@
    NOTE: this script requires compiler from sfall modderspack with -s option
    (short circuit evaluation)
 
-   version 1.0
+   version 1.1
 
 */
 
@@ -16,30 +16,32 @@
 #include "main.h"
 
 variable
-   configSection := "CombatControl",
    controlMode,
+   noCheckArray,
    pidList,
    displayName,
    displayNameColor,
-   maxBoxCount,
    inControl := false,
    hasGeckoSkinning := false;
 
+
+procedure AllowControl(variable pid) begin
+   if (noCheckArray or scan_array(pidList, pid bwand 0xFFFFFF) != -1) and (party_member_obj(pid)) then return true;
+   return false;
+end
 
 procedure combatturn_handler begin
    variable
       status := get_sfall_arg,
       critter := get_sfall_arg,
-      arg3 := get_sfall_arg,
+      //arg3 := get_sfall_arg,
       pid;
 
-   // display_msg("Combat Turn: " + status + ", by "  + obj_name(critter) + ", arg3: " + arg3);
+   //display_msg("Combat Turn: " + status + ", by "  + obj_name(critter) + ", arg3: " + arg3);
    pid := obj_pid(critter);
-   if (status == 1
-      and (len_array(pidList) == 0 or scan_array(pidList, pid bwand 0xFFFFFF) != -1)
-      and (controlMode == 1 or party_member_obj(pid))) then begin
-      if not(critter == real_dude_obj) then begin
-         set_dude_obj(critter);
+   if (status == 1 and (AllowControl(pid) or controlMode == 1)) then begin
+      set_dude_obj(critter);
+      if (critter != real_dude_obj) then begin
          if hasGeckoSkinning then critter_add_trait(critter, TRAIT_PERK, PERK_gecko_skinning_perk, 1);
          inControl := true;
       end
@@ -52,14 +54,22 @@ procedure combatturn_handler begin
          end
       end
    end else if inControl then begin
-      set_dude_obj(real_dude_obj);
       if displayName then hide_iface_tag(displayName);
+      if (status == -1 or AllowControl(pid) == false) then begin
+         set_dude_obj(real_dude_obj);
+      end
    end
 end
 
 procedure gamemodechange_handler begin
-   if has_trait(TRAIT_PERK, real_dude_obj, PERK_gecko_skinning_perk) then hasGeckoSkinning := true;
-   if not(get_game_mode BWAND COMBAT) then inControl := false;
+   if not(hasGeckoSkinning) then hasGeckoSkinning := has_trait(TRAIT_PERK, real_dude_obj, PERK_gecko_skinning_perk);
+   if (inControl and not(get_game_mode BWAND COMBAT)) then begin
+      inControl := false;
+      if (dude_obj != real_dude_obj) then begin
+         set_dude_obj(real_dude_obj);
+      end
+      move_to(dude_obj, dude_tile, dude_elevation);
+   end
 end
 
 procedure inventorymove_handler begin
@@ -73,18 +83,33 @@ end
 
 procedure start begin
    if (game_loaded and sfall_ver_major >= 4) then begin
+      variable configSection := "CombatControl";
+
       set_perk_ranks(PERK_gecko_skinning_perk, 1);
       set_perk_level(PERK_gecko_skinning_perk, 999); // prevent it from appearing in the perk selection window
+
       controlMode := GetConfig("CombatControl", "Mode", 0);
       if (controlMode > 2) then controlMode := 0;
       if (controlMode > 0) then begin
+         displayName := GetConfig("CombatControl", "DisplayName", 0);
+
+         if displayName then begin
+            variable nameTag := add_iface_tag;
+            debug_msg("NPC control - added new box: " + nameTag);
+            if (nameTag <= 0) then begin // box added?
+               variable maxBoxCount := get_ini_setting("ddraw.ini|Misc|BoxBarCount");
+               if (maxBoxCount < 0) then maxBoxCount := 9;
+               else maxBoxCount += 4;
+               if (displayName < 5 or displayName > maxBoxCount) then displayName := 0;
+            end else begin
+               displayName := nameTag;
+            end
+            displayNameColor := GetConfig("CombatControl", "DisplayNameColor", 0);
+         end
+
          pidList := GetConfigListInt("CombatControl", "PIDList");
          fix_array(pidList);
-         maxBoxCount := get_ini_setting("ddraw.ini|Misc|BoxBarCount") + 4;
-         displayName := GetConfig("CombatControl", "DisplayName", 0);
-         displayNameColor := GetConfig("CombatControl", "DisplayNameColor", 0);
-         if (maxBoxCount < 9) then maxBoxCount := 9;
-         if (displayName < 5 or displayName > maxBoxCount) then displayName := 0;
+         noCheckArray := (len_array(pidList) == 0);
 
          register_hook_proc(HOOK_COMBATTURN, combatturn_handler);
          register_hook_proc(HOOK_GAMEMODECHANGE, gamemodechange_handler);

@@ -10,21 +10,21 @@
 variable ini := "sfall-mods.ini";
 variable translationIni;
 
-// Gets the integer value from ddraw.ini
+// Gets the integer value from ini
 procedure GetConfig(variable section, variable key, variable def) begin
    variable val := get_ini_setting(ini + "|" + section + "|" + key);
    if val == -1 then val := def;
    return val;
 end
 
-// Gets the string value from ddraw.ini
+// Gets the string value from ini
 procedure GetConfigStr(variable section, variable key, variable def) begin
    variable val := get_ini_string(ini + "|" + section + "|" + key);
    if val == -1 or val == "" then val := def;
    return val;
 end
 
-// Gets the value from ddraw.ini as a temp array of strings
+// Gets the value from ini as a temp array of strings
 procedure GetConfigList(variable section, variable key) begin
    variable val := get_ini_string(ini + "|" + section + "|" + key);
    if val == -1 or val == "" then return [];
@@ -32,7 +32,7 @@ procedure GetConfigList(variable section, variable key) begin
    return string_split(val, ",");
 end
 
-// Gets the value from ddraw.ini as a temp array of ints
+// Gets the value from ini as a temp array of ints
 procedure GetConfigListInt(variable section, variable key) begin
    variable arr, i, item;
 

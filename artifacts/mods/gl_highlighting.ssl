@@ -13,7 +13,7 @@
    NOTE: this script requires compiler from sfall modderspack with -s option
    (short circuit evaluation)
 
-   version 1.0
+   version 1.1
 
 **/
 
@@ -67,7 +67,7 @@ procedure KeyPressHandler begin
             scanCode := get_sfall_arg,
             scanner, charges;
 
-   if scanCode == highlightKey and not(get_game_mode bwand INTFACELOOT) then begin
+   if scanCode == highlightKey and not(get_game_mode bwand (INTFACELOOT bwor BARTER)) then begin
       if pressed then begin
          isHighlight := true;
          if motionScanner then begin
@@ -106,7 +106,7 @@ procedure CombatTurnHandler begin
 end
 
 procedure GameModeChangeHandler begin
-   if isHighlight and (get_game_mode bwand INTFACELOOT) then begin
+   if isHighlight and (get_game_mode bwand (INTFACELOOT bwor BARTER)) then begin
       isHighlight := false;
       call ToggleHighlight(false);
    end
