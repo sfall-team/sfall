@@ -13,10 +13,10 @@ static DWORD weightOnBody = 0;
 static char textBuf[355];
 
 static const DWORD ScriptTargetAddr[] = {
-		0x456554, // op_pickup_obj_
-		0x456600, // op_drop_obj_
-		0x456A6D, // op_use_obj_
-		0x456AA4, // op_use_obj_
+	0x456554, // op_pickup_obj_
+	0x456600, // op_drop_obj_
+	0x456A6D, // op_use_obj_
+	0x456AA4, // op_use_obj_
 };
 
 void ResetBodyState() {
@@ -1789,6 +1789,12 @@ isLoad:
 	}
 }
 
+static void __declspec(naked) JesseContainerFid() {
+	__asm {
+		dec edx; // set fid to -1
+		jmp obj_new_;
+	}
+}
 
 void BugsInit()
 {
@@ -1841,7 +1847,7 @@ void BugsInit()
 	// Fix for cells getting consumed even when the car is already fully charged
 	MakeCall(0x49BE70, obj_use_power_on_car_hack);
 
-	// Fix for being able to charge the car by using cells on other scenary/critters
+	// Fix for being able to charge the car by using cells on other scenery/critters
 	if (GetPrivateProfileIntA("Misc", "CarChargingFix", 1, ini)) {
 		dlog("Applying car charging fix.", DL_INIT);
 		MakeJump(0x49C36D, protinst_default_use_item_hack);
@@ -2130,14 +2136,14 @@ void BugsInit()
 	// in their AI packages is set to stay_close/charge, or NPCsTryToSpendExtraAP is enabled
 	HookCall(0x42A1A8, ai_move_steps_closer_hook); // 0x42B24D
 
-	// Fix missing AC/DR mod stats when examining ammo in barter screen
+	// Fix missing AC/DR mod stats when examining ammo in the barter screen
 	dlog("Applying fix for displaying ammo stats in barter screen.", DL_INIT);
 	MakeCall(0x49B4AD, obj_examine_func_hack_ammo0, 2);
 	MakeCall(0x49B504, obj_examine_func_hack_ammo0, 2);
 	MakeCall(0x49B563, obj_examine_func_hack_ammo1, 2);
 	dlogr(" Done", DL_INIT);
 
-	// Display full item description for weapon/ammo in barter screen
+	// Display full item description for weapon/ammo in the barter screen
 	showItemDescription = (GetPrivateProfileIntA("Misc", "FullItemDescInBarter", 0, ini) != 0);
 	if (showItemDescription) {
 		dlog("Applying full item description in barter patch.", DL_INIT);
@@ -2182,7 +2188,7 @@ void BugsInit()
 	SafeWrite8(0x4C1015, 0x90);
 	HookCall(0x4C1042, wmSetupRandomEncounter_hook);
 
-	// Fix for unable to sell/give items in barter screen when the player/party member is overloaded
+	// Fix for unable to sell/give items in the barter screen when the player/party member is overloaded
 	HookCall(0x474C73, barter_attempt_transaction_hook_weight);
 	HookCall(0x474CCA, barter_attempt_transaction_hook_weight);
 
@@ -2279,4 +2285,8 @@ void BugsInit()
 
 	// Fix for the player's turn being skipped when loading a game saved in combat mode
 	MakeCall(0x422E25, combat_hack_load);
+
+	// Fix for the reserved item FRM being displayed in the top-left corner when in the loot/barter screens
+	HookCall(0x473AC9, JesseContainerFid);
+	HookCall(0x475895, JesseContainerFid);
 }
