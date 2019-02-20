@@ -1807,6 +1807,12 @@ isLoad:
 	}
 }
 
+static void __declspec(naked) JesseContainerFid() {
+	__asm {
+		dec edx; // set fid to -1
+		jmp fo::funcoffs::obj_new_;
+	}
+}
 
 void BugFixes::init()
 {
@@ -2159,7 +2165,7 @@ void BugFixes::init()
 	MakeJump(0x424BA2, compute_damage_hack);
 	dlogr(" Done", DL_INIT);
 
-	// Fix missing AC/DR mod stats when examining ammo in barter screen
+	// Fix missing AC/DR mod stats when examining ammo in the barter screen
 	dlog("Applying fix for displaying ammo stats in barter screen.", DL_INIT);
 	MakeCalls(obj_examine_func_hack_ammo0, {0x49B4AD, 0x49B504});
 	SafeWrite16(0x49B4B2, 0x9090);
@@ -2167,7 +2173,7 @@ void BugFixes::init()
 	MakeCall(0x49B563, obj_examine_func_hack_ammo1, 2);
 	dlogr(" Done", DL_INIT);
 
-	// Display full item description for weapon/ammo in barter screen
+	// Display full item description for weapon/ammo in the barter screen
 	showItemDescription = (GetConfigInt("Misc", "FullItemDescInBarter", 0) != 0);
 	if (showItemDescription) {
 		dlog("Applying full item description in barter patch.", DL_INIT);
@@ -2212,7 +2218,7 @@ void BugFixes::init()
 	SafeWrite8(0x4C1015, 0x90);
 	HookCall(0x4C1042, wmSetupRandomEncounter_hook);
 
-	// Fix for unable to sell/give items in barter screen when the player/party member is overloaded
+	// Fix for unable to sell/give items in the barter screen when the player/party member is overloaded
 	HookCalls(barter_attempt_transaction_hook_weight, {0x474C73, 0x474CCA});
 
 	// Fix for the underline position in the inventory display window when the item name is longer than one line
@@ -2311,6 +2317,9 @@ void BugFixes::init()
 
 	// Fix for the player's turn being skipped when loading a game saved in combat mode
 	MakeCall(0x422E25, combat_hack_load);
+
+	// Fix for the reserved item FRM being displayed in the top-left corner when in the loot/barter screens
+	HookCalls(JesseContainerFid, {0x473AC9, 0x475895});
 }
 
 }
