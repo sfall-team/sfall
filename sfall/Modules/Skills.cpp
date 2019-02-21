@@ -39,8 +39,8 @@ struct SkillModifier {
 
 	SkillModifier() : id(0), maximum(300)/*, mod(0)*/ {}
 
-	SkillModifier(long _id, int max) {
-		id = _id;
+	SkillModifier(long id, int max) {
+		this->id = id;
 		maximum = max;
 		//mod = _mod;
 	}
@@ -60,6 +60,8 @@ static double* multipliers = nullptr;
 
 static std::vector<ChanceModifier> pickpocketMods;
 static ChanceModifier basePickpocket;
+
+static int skillNegPoints;
 
 static int __fastcall PickpocketMod(int base, fo::GameObject* critter) {
 	for (DWORD i = 0; i < pickpocketMods.size(); i++) {
@@ -84,6 +86,8 @@ static void __declspec(naked) skill_check_stealing_hack() {
 }
 
 static int __fastcall CheckSkillMax(fo::GameObject* critter, int base) {
+	base += skillNegPoints; // add the negative skill points after calculating the skill level
+
 	for (DWORD i = 0; i < skillMaxMods.size(); i++) {
 		if (critter->id == skillMaxMods[i].id) {
 			return min(base, skillMaxMods[i].maximum);
@@ -98,6 +102,19 @@ static void __declspec(naked) skill_level_hack() {
 		call CheckSkillMax; // ecx - critter
 		mov  edx, 0x4AA64B;
 		jmp  edx;
+	}
+}
+
+static void __declspec(naked) skill_level_hook() {
+	__asm {
+		mov  skillNegPoints, 0;   // reset value
+		call fo::funcoffs::skill_points_;
+		test eax, eax;
+		jge  skip;                // skip if eax >= 0
+		mov  skillNegPoints, eax; // save the negative skill points
+		xor  eax, eax;
+skip:
+		retn;
 	}
 }
 
@@ -236,7 +253,7 @@ void _stdcall SetPickpocketMax(fo::GameObject* critter, DWORD maximum, DWORD mod
 	pickpocketMods.push_back(ChanceModifier(id, maximum, mod));
 }
 
-void Skills_OnGameLoad() {
+static void Skills_OnGameLoad() {
 	pickpocketMods.clear();
 	basePickpocket.SetDefault();
 
@@ -245,6 +262,7 @@ void Skills_OnGameLoad() {
 }
 
 void Skills::init() {
+	HookCall(0x4AA574, skill_level_hook); // fix for negative skill points
 	MakeJump(0x4AA63C, skill_level_hack, 1);
 	MakeCall(0x4AA847, skill_inc_point_force_hack);
 	MakeCall(0x4AA725, skill_inc_point_hack);

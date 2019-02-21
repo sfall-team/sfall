@@ -293,7 +293,7 @@ static void __declspec(naked) queue_clear_type_mem_free_hook() {
 	}
 }
 
-static void __declspec(naked) partyMemberCopyLevelInfo_stat_level_hook() {
+static void __declspec(naked) partyMemberCopyLevelInfo_hook_stat_level() {
 	__asm {
 nextArmor:
 		mov  eax, esi
@@ -308,7 +308,7 @@ noArmor:
 	}
 }
 
-static void __declspec(naked) correctFidForRemovedItem_adjust_ac_hook() {
+static void __declspec(naked) correctFidForRemovedItem_hook_adjust_ac() {
 	__asm {
 		call fo::funcoffs::adjust_ac_
 nextArmor:
@@ -323,39 +323,39 @@ end:
 	}
 }
 
-static void __declspec(naked) partyMemberCopyLevelInfo_hook() {
+static void __declspec(naked) partyMemberIncLevels_hook() {
 	__asm {
-		push eax
-		call fo::funcoffs::partyMemberCopyLevelInfo_
-		pop  ebx
-		cmp  eax, -1
-		je   end
-		pushad
-		mov  dword ptr ds:[FO_VAR_critterClearObj], ebx
-		mov  edx, fo::funcoffs::critterClearObjDrugs_
-		call fo::funcoffs::queue_clear_type_
-		mov  ecx, 8
-		mov  edi, FO_VAR_drugInfoList
-		mov  esi, ebx
+		mov  ebx, eax;                            // party member pointer
+		call fo::funcoffs::partyMemberCopyLevelInfo_;
+		cmp  eax, -1;
+		je   end;
+		xor  edx, edx;                            // queue type (0)
+		mov  eax, ebx;                            // source
+		call fo::funcoffs::queue_remove_this_;
+		push ecx;
+		push edi;
+		mov  ecx, 8;
+		mov  edi, FO_VAR_drugInfoList;
 loopAddict:
-		mov  eax, dword ptr [edi]                 // eax = drug pid
-		call fo::funcoffs::item_d_check_addict_
-		test eax, eax                             // Has addiction?
-		jz   noAddict                             // No
-		cmp  dword ptr [eax], 0                   // queue_addict.init
-		jne  noAddict                             // Addiction is not active yet
-		mov  edx, dword ptr [eax+0x8]             // queue_addict.perk
-		mov  eax, ebx
-		call fo::funcoffs::perk_add_effect_
+		mov  eax, dword ptr [edi];                // eax = drug pid
+		call fo::funcoffs::item_d_check_addict_;
+		test eax, eax;                            // Has addiction?
+		jz   noAddict;                            // No
+		cmp  dword ptr [eax], 0;                  // queue_addict.init
+		jne  noAddict;                            // Addiction is not active yet
+		mov  edx, dword ptr [eax + 0x8];          // queue_addict.perk
+		mov  eax, ebx;
+		call fo::funcoffs::perk_add_effect_;
 noAddict:
-		add  edi, 12
-		loop loopAddict
-		popad
+		lea  edi, [edi + 12];
+		dec  ecx;
+		jnz  loopAddict;
+		pop  edi;
+		pop  ecx;
 end:
-		retn
+		retn;
 	}
 }
-
 
 static void __declspec(naked) gdProcessUpdate_hack() {
 	__asm {
@@ -1894,14 +1894,14 @@ void BugFixes::init()
 	// The same happens if you just order NPC to remove the armor through dialogue.
 	//if (GetConfigInt("Misc", "ArmorCorruptsNPCStatsFix", 1)) {
 		dlog("Applying fix for armor reducing NPC original stats when removed.", DL_INIT);
-		HookCall(0x495F3B, partyMemberCopyLevelInfo_stat_level_hook);
-		HookCall(0x45419B, correctFidForRemovedItem_adjust_ac_hook);
+		HookCall(0x495F3B, partyMemberCopyLevelInfo_hook_stat_level);
+		HookCall(0x45419B, correctFidForRemovedItem_hook_adjust_ac);
 		dlogr(" Done", DL_INIT);
 	//}
 
 	// Fix of invalid stats when party member gains a level while being on drugs
 	dlog("Applying fix for addicted party member level up bug.", DL_INIT);
-	HookCall(0x495D5C, partyMemberCopyLevelInfo_hook);
+	HookCall(0x495D5C, partyMemberIncLevels_hook);
 	dlogr(" Done", DL_INIT);
 
 	// Allow 9 options (lines of text) to be displayed correctly in a dialog window
@@ -2320,6 +2320,9 @@ void BugFixes::init()
 
 	// Fix for the reserved item FRM being displayed in the top-left corner when in the loot/barter screens
 	HookCalls(JesseContainerFid, {0x473AC9, 0x475895});
+
+	// Fix the return value of has_skill function for incorrect skill numbers
+	SafeWrite32(0x4AA56B, 0);
 }
 
 }
