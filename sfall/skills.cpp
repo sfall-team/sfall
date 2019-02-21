@@ -55,7 +55,11 @@ static BYTE skillCosts[512 * SKILL_count];
 static DWORD basedOnPoints;
 static double* multipliers = nullptr;
 
+static int skillNegPoints;
+
 static int __fastcall CheckSkillMax(TGameObj* critter, int base) {
+	base += skillNegPoints; // add the negative skill points after calculating the skill level
+
 	for (DWORD i = 0; i < SkillMaxMods.size(); i++) {
 		if (critter->ID == SkillMaxMods[i].id) {
 			return min(base, SkillMaxMods[i].maximum);
@@ -70,6 +74,19 @@ static void __declspec(naked) skill_level_hack() {
 		call CheckSkillMax; // ecx - critter
 		mov  edx, 0x4AA64B;
 		jmp  edx;
+	}
+}
+
+static void __declspec(naked) skill_level_hook() {
+	__asm {
+		mov  skillNegPoints, 0;   // reset value
+		call skill_points_;
+		test eax, eax;
+		jge  skip;                // skip if eax >= 0
+		mov  skillNegPoints, eax; // save the negative skill points
+		xor  eax, eax;
+skip:
+		retn;
 	}
 }
 
@@ -166,9 +183,9 @@ next:
 
 static void __declspec(naked) skill_dec_point_hook_cost() {
 	__asm {
-		mov edx, ebx;
-		shl edx, 9;
-		add edx, eax;
+		mov  edx, ebx;
+		shl  edx, 9;
+		add  edx, eax;
 		movzx eax, skillCosts[edx];
 		retn;
 	}
@@ -201,6 +218,7 @@ void Skills_OnGameLoad() {
 }
 
 void SkillsInit() {
+	HookCall(0x4AA574, skill_level_hook); // fix for negative skill points
 	MakeJump(0x4AA63C, skill_level_hack, 1);
 	MakeCall(0x4AA847, skill_inc_point_force_hack);
 	MakeCall(0x4AA725, skill_inc_point_hack);
