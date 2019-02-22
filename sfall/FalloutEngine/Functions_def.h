@@ -140,6 +140,7 @@ WRAP_WATCOM_FUNC1(long, register_object_must_erase, GameObject*, object)
 WRAP_WATCOM_FUNC3(long, register_object_take_out, GameObject*, object, long, holdFrameId, long, nothing)
 WRAP_WATCOM_FUNC3(long, register_object_turn_towards, GameObject*, object, long, tileNum, long, nothing)
 WRAP_WATCOM_FUNC2(long, roll_random, long, minValue, long, maxValue)
+WRAP_WATCOM_FUNC1(long, skill_is_tagged, long, skill)
 WRAP_WATCOM_FUNC2(long, skill_level, GameObject*, critter, long, statID)
 WRAP_WATCOM_FUNC2(long, stat_get_base_direct, GameObject*, critter, long, statID)
 // adds experience points to PC

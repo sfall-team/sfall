@@ -32,6 +32,8 @@
 namespace sfall
 {
 
+#define SKILL_MIN_LIMIT    (-128)
+
 struct SkillModifier {
 	long id;
 	int maximum;
@@ -61,7 +63,7 @@ static double* multipliers = nullptr;
 static std::vector<ChanceModifier> pickpocketMods;
 static ChanceModifier basePickpocket;
 
-static int skillNegValue;
+static int skillNegValue; // skill raw points (w/o limit)
 
 static int _fastcall PickpocketMod(int base, fo::GameObject* critter) {
 	for (DWORD i = 0; i < pickpocketMods.size(); i++) {
@@ -86,8 +88,6 @@ static void __declspec(naked) skill_check_stealing_hack() {
 }
 
 static int _fastcall CheckSkillMax(fo::GameObject* critter, int base) {
-	base += skillNegValue; // subtract the negative skill value after calculating the skill level
-
 	for (DWORD i = 0; i < skillMaxMods.size(); i++) {
 		if (critter->id == skillMaxMods[i].id) {
 			return min(base, skillMaxMods[i].maximum);
@@ -96,10 +96,21 @@ static int _fastcall CheckSkillMax(fo::GameObject* critter, int base) {
 	return min(base, baseSkillMax.maximum);
 }
 
+static int _fastcall SkillNegative(fo::GameObject* critter, int base, int skill) {
+	int rawPoints = skillNegValue;
+	if (rawPoints) {
+		if (rawPoints < SKILL_MIN_LIMIT) rawPoints = SKILL_MIN_LIMIT;
+		if (fo::func::skill_is_tagged(skill)) rawPoints *= 2;
+		base += rawPoints; // subtract the negative skill value after calculating the skill level
+	}
+	return CheckSkillMax(critter, base);
+}
+
 static void __declspec(naked) skill_level_hack() {
 	__asm {
+		push ebx;           // skill
 		mov  edx, esi;      // level skill (base)
-		call CheckSkillMax; // ecx - critter
+		call SkillNegative; // ecx - critter
 		mov  edx, 0x4AA64B;
 		jmp  edx;
 	}
@@ -110,10 +121,23 @@ static void __declspec(naked) skill_level_hook() {
 		mov  skillNegValue, 0;   // reset value
 		call fo::funcoffs::skill_points_;
 		test eax, eax;
-		jge  skip;               // skip if eax >= 0
-		mov  skillNegValue, eax; // save the basic negative skill value 
-		xor  eax, eax;
+		jge  noNeg;              // skip if eax >= 0
+		mov  skillNegValue, eax; // save the skill negative raw value
+		xor  eax, eax;           // set skill points to 0
+noNeg:
+		retn;
+	}
+}
+
+static const DWORD skill_dec_point_limit_Ret = 0x4AAA91;
+static void __declspec(naked) skill_dec_point_hack_limit() {
+	__asm {
+		cmp edi, SKILL_MIN_LIMIT;
+		jle skip; // if raw skill point <= -128
+		add esp, 4;
+		jmp skill_dec_point_limit_Ret;
 skip:
+		mov eax, -2;
 		retn;
 	}
 }
@@ -184,7 +208,10 @@ static void __declspec(naked) skill_inc_point_hack_cost() {
 next:
 		mov  edx, ebx;
 		shl  edx, 9;
+		test eax, eax;
+		jle  skip; // if skill level <= 0
 		add  edx, eax;
+skip:
 		movzx eax, skillCosts[edx]; // eax - cost of the skill
 		jmp  SkillIncCostRet;
 	}
@@ -192,7 +219,7 @@ next:
 
 static const DWORD SkillDecCostRet = 0x4AA98D;
 static void __declspec(naked) skill_dec_point_hack_cost() {
-	__asm { // eax - current skill level, ebx - current skill, ecx - num free skill points
+	__asm { // ecx - current skill level, ebx - current skill, esi - num free skill points
 		mov  edx, basedOnPoints;
 		test edx, edx;
 		jz   next;
@@ -203,7 +230,10 @@ static void __declspec(naked) skill_dec_point_hack_cost() {
 next:
 		mov  edx, ebx;
 		shl  edx, 9;
+		test ecx, ecx;
+		jle  skip; // if skill level <= 0
 		add  edx, ecx;
+skip:
 		movzx eax, skillCosts[edx]; // eax - cost of the skill
 		jmp  SkillDecCostRet;
 	}
@@ -213,7 +243,10 @@ static void __declspec(naked) skill_dec_point_hook_cost() {
 	__asm {
 		mov   edx, ebx;
 		shl   edx, 9;
+		test  eax, eax;
+		jle   skip; // if skill level <= 0
 		add   edx, eax;
+skip:
 		movzx eax, skillCosts[edx];
 		retn;
 	}
@@ -262,10 +295,17 @@ static void ResetOnGameLoad() {
 }
 
 void Skills::init() {
-	HookCall(0x4AA574, skill_level_hook); // fix for negative base value
 	MakeJump(0x4AA63C, skill_level_hack, 1);
 	MakeCall(0x4AA847, skill_inc_point_force_hack);
 	MakeCall(0x4AA725, skill_inc_point_hack);
+
+	// fix for negative base value
+	HookCall(0x4AA574, skill_level_hook);
+	// change the lower limit of the negative value
+	MakeCall(0x4AAA84, skill_dec_point_hack_limit);
+	SafeWrite8(0x4AA91B,  SKILL_MIN_LIMIT);
+	SafeWrite8(0x4AAA1A,  SKILL_MIN_LIMIT);
+	SafeWrite32(0x4AAA23, SKILL_MIN_LIMIT);
 
 	MakeCall(0x4ABC62, skill_check_stealing_hack);  // PickpocketMod
 	SafeWrite8(0x4ABC67, 0x89);                     // mov [esp + 0x54], eax
@@ -318,7 +358,7 @@ void Skills::init() {
 					tok = strtok(0, "|");
 				}
 				while (upto < 512) skillCosts[i * 512 + upto++] = price;
-			} else {
+			} else { // TODO: change to a better implementation instead of a huge array
 				for (int j = 0;   j <= 100; j++) skillCosts[i * 512 + j] = 1;
 				for (int j = 101; j <= 125; j++) skillCosts[i * 512 + j] = 2;
 				for (int j = 126; j <= 150; j++) skillCosts[i * 512 + j] = 3;
