@@ -134,10 +134,10 @@ VAR_(optionsButtonUpKey,         DWORD)
 VAR_(outlined_object,            GameObject*)
 VAR_(partyMemberAIOptions,       DWORD)
 VAR_(partyMemberCount,           DWORD)
-VAR_(partyMemberLevelUpInfoList, DWORD)
+VAR_(partyMemberLevelUpInfoList, DWORD*)
 VAR_(partyMemberList,            DWORD*) // each struct - 4 integers, first integer - objPtr
 VAR_(partyMemberMaxCount,        DWORD)
-VAR_(partyMemberPidList,         DWORD)
+VAR_(partyMemberPidList,         DWORD*)
 VAR_(patches,                    char*)
 VAR_(paths,                      PathNode*)  // array
 VAR2(pc_crit_succ_eff,           CritInfo, 9, 6)  // 9 body parts, 6 effects
