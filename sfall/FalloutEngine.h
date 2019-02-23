@@ -798,6 +798,7 @@ extern const DWORD skill_check_stealing_;
 extern const DWORD skill_dec_point_;
 extern const DWORD skill_get_tags_; // eax - pointer to array DWORD, edx - number of elements to read
 extern const DWORD skill_inc_point_;
+extern const DWORD skill_is_tagged_;
 extern const DWORD skill_level_;
 extern const DWORD skill_points_;
 extern const DWORD skill_set_tags_; // eax - pointer to array DWORD, edx - number of elements to write

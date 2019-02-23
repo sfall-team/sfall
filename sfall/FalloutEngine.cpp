@@ -590,6 +590,7 @@ const DWORD skill_check_stealing_ = 0x4ABBE4;
 const DWORD skill_dec_point_ = 0x4AA8C4;
 const DWORD skill_get_tags_ = 0x4AA508;
 const DWORD skill_inc_point_ = 0x4AA6BC;
+const DWORD skill_is_tagged_ = 0x4AA52C;
 const DWORD skill_level_ = 0x4AA558;
 const DWORD skill_points_ = 0x4AA680;
 const DWORD skill_set_tags_ = 0x4AA4E4;
