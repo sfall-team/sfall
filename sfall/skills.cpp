@@ -82,7 +82,7 @@ static int __fastcall SkillNegative(TGameObj* critter, int base, int skill) {
 		}
 		if (tagged) rawPoints *= 2;
 		base += rawPoints; // add the negative skill points after calculating the skill level
-		if (base < -300) return -300;
+		if (base < 0) return max(-999, base);
 	}
 	return CheckSkillMax(critter, base);
 }
@@ -330,7 +330,9 @@ void SkillsInit() {
 			skills[i].base = GetPrivateProfileIntA("Skills", key, skills[i].base, file);
 
 			sprintf(key, "SkillMulti%d", i);
-			skills[i].skillPointMulti = GetPrivateProfileIntA("Skills", key, skills[i].skillPointMulti, file);
+			int multi = GetPrivateProfileIntA("Skills", key, skills[i].skillPointMulti, file);
+			if (multi < 1) multi = 1; else if (multi > 10) multi = 10;
+			skills[i].skillPointMulti = multi;
 
 			sprintf(key, "SkillImage%d", i);
 			skills[i].image = GetPrivateProfileIntA("Skills", key, skills[i].image, file);

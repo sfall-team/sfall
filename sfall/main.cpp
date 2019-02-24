@@ -83,7 +83,7 @@ char dfModelName[65];
 static const char* musicOverridePath = "data\\sound\\music\\";
 
 DWORD AddUnarmedStatToGetYear = 0;
-bool npcautolevel;
+bool npcAutoLevelEnabled;
 
 static int* scriptDialog = nullptr;
 
@@ -1134,8 +1134,8 @@ static void DllMain2() {
 
 	DebugEditorInit();
 
-	npcautolevel = GetPrivateProfileIntA("Misc", "NPCAutoLevel", 0, ini) != 0;
-	if (npcautolevel) {
+	npcAutoLevelEnabled = GetPrivateProfileIntA("Misc", "NPCAutoLevel", 0, ini) != 0;
+	if (npcAutoLevelEnabled) {
 		dlog("Applying NPC autolevel patch.", DL_INIT);
 		SafeWrite8(0x495CFB, 0xEB);               // jmps 0x495D28 (skip random check)
 		dlogr(" Done", DL_INIT);
