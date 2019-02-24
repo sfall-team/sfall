@@ -243,12 +243,13 @@ int     ret1 - overrides hard-coded handler and selects what should happen with 
 
 HOOK_REMOVEINVENOBJ (hs_removeinvenobj.int)
 
-Runs when an object is removed from a critters inventory for any reason
+Runs when an object is removed from a containers/critters inventory for any reason
 
-critter arg1 - the critter the object is being removed from
+Obj     arg1 - the object is being removed from
 item    arg2 - the item that is being removed
-int     arg3 - a flag, or possibly the number of items to remove
-int     arg4 - The reason the object is being removed. (Actually, the site from which _item_remove_mult was called)
+int     arg3 - the number of items to remove
+int     arg4 - The reason the object is being removed (see RMOBJ_* constants).
+Obj     arg5 - The destination object, when the item is moved to other object, otherwise 0
 
 -------------------------------------------
 
