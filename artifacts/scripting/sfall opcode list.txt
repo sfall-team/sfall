@@ -162,8 +162,8 @@
 0x81a3 - int  eax_available()
 0x81a4 - void set_eax_environment(int environment)
 
-0x81a5 - void inc_npc_level(string npc)
-0x8241 - int  get_npc_level(string npc)
+0x81a5 - void inc_npc_level(string npcName/int pid)
+0x8241 - int  get_npc_level(string npcName/int pid)
 
 0x81a6 - int get_viewport_x()
 0x81a7 - int get_viewport_y()

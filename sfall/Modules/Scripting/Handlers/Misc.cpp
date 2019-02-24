@@ -550,44 +550,51 @@ void __declspec(naked) op_eax_available() {
 	}
 }
 
-static char* NPCToInc;
-static void _stdcall IncNPCLevel4(char* npc) {
-	if (_stricmp(npc, NPCToInc)) {
-		SafeWrite8(0x495C50, 0xE9);
-		SafeWrite32(0x495C51, 0x000001FC);
-	} else {
-		SafeWrite16(0x495C50, 0x840F);	//Want to keep this check intact.
-		SafeWrite32(0x495C52, 0x000001FB);
+static const char* nameNPCToInc;
+static long pidNPCToInc;
+static bool onceNpcLoop;
 
-		//SafeMemSet(0x495C50, 0x90, 6);
-		SafeMemSet(0x495C77, 0x90, 6);     //Check that the player is high enough for the npc to consider this level
-		//SafeMemSet(0x495C8C, 0x90, 6);   //Check that the npc isn't already at its maximum level
-		SafeMemSet(0x495CEC, 0x90, 6);     //Check that the npc hasn't already levelled up recently
+static void __cdecl IncNPCLevel(const char* fmt, const char* name) {
+	fo::GameObject* mObj;
+	__asm {
+		push edx;
+		mov  eax, [ebp + 0x150 - 0x1C + 16]; // ebp <- esp
+		mov  edx, [eax];
+		mov  mObj, edx;
+	}
+
+	if ((pidNPCToInc && (mObj && mObj->protoId == pidNPCToInc)) || (!pidNPCToInc && !_stricmp(name, nameNPCToInc))) {
+		fo::func::debug_printf(fmt, name);
+
+		SafeWrite32(0x495C50, 0x01FB840F); // Want to keep this check intact. (restore)
+
+		SafeMemSet(0x495C77, 0x90, 6);     // Check that the player is high enough for the npc to consider this level
+		//SafeMemSet(0x495C8C, 0x90, 6);   // Check that the npc isn't already at its maximum level
+		SafeMemSet(0x495CEC, 0x90, 6);     // Check that the npc hasn't already levelled up recently
 		if (!npcAutoLevelEnabled) {
-			SafeMemSet(0x495D22, 0x90, 6);  //Random element
+			SafeWrite8(0x495CFB, 0xEB);    // Disable random element
+		}
+		__asm mov [ebp + 0x150 - 0x28 + 16], 255; // set counter for exit loop
+	} else {
+		if (!onceNpcLoop) {
+			SafeWrite32(0x495C50, 0x01FCE9); // set goto next member
+			onceNpcLoop = true;
 		}
 	}
+	__asm pop edx;
 }
 
-static void __declspec(naked) IncNPCLevel3() {
-	__asm {
-		pushad;
-		push eax;
-		call IncNPCLevel4;
-		popad;
-		push 0x495BF9;
-		retn;
-	}
-}
+void sf_inc_npc_level(OpcodeContext& ctx) {
+	nameNPCToInc = ctx.arg(0).asString();
+	pidNPCToInc = ctx.arg(0).asInt(); // set to 0 if passing npc name
+	if (pidNPCToInc == 0 && nameNPCToInc[0] == 0) return;
 
-static void _stdcall IncNPCLevel2(char* npc) {
-	NPCToInc = npc;
-	MakeJump(0x495BEB, IncNPCLevel3);	//Replace the debug output with a jmp
-	__asm {
-		call fo::funcoffs::partyMemberIncLevels_;
-	}
-	SafeWrite16(0x495C50, 0x840F);
-	SafeWrite32(0x495C52, 0x000001FB);
+	MakeCall(0x495BF1, IncNPCLevel);  // Replace the debug output
+	__asm call fo::funcoffs::partyMemberIncLevels_;
+	onceNpcLoop = false;
+
+	// restore code
+	SafeWrite32(0x495C50, 0x01FB840F);
 	SafeWrite16(0x495C77, 0x8C0F);
 	SafeWrite32(0x495C79, 0x000001D4);
 	//SafeWrite16(0x495C8C, 0x8D0F);
@@ -595,112 +602,42 @@ static void _stdcall IncNPCLevel2(char* npc) {
 	SafeWrite16(0x495CEC, 0x850F);
 	SafeWrite32(0x495CEE, 0x00000130);
 	if (!npcAutoLevelEnabled) {
-		SafeWrite16(0x495D22, 0x8F0F);
-		SafeWrite32(0x495D24, 0x00000129);
+		SafeWrite8(0x495CFB, 0x74);
 	}
 }
 
-void __declspec(naked) op_inc_npc_level() {
-	__asm {
-		push ebx;
-		push ecx;
-		push edx;
-		push edi;
-		mov edi, eax;
-		call fo::funcoffs::interpretPopShort_;
-		mov edx, eax;
-		mov eax, edi;
-		call fo::funcoffs::interpretPopLong_;
-		cmp dx, VAR_TYPE_STR2;
-		jz next;
-		cmp dx, VAR_TYPE_STR;
-		jnz end;
-next:
-		mov ebx, eax;
-		mov eax, edi;
-		call fo::funcoffs::interpretGetString_;
-		push eax;
-		call IncNPCLevel2;
-end:
-		pop edi;
-		pop edx;
-		pop ecx;
-		pop ebx;
-		retn;
+void sf_get_npc_level(OpcodeContext& ctx) {
+	int level = -1;
+	DWORD pid = ctx.arg(0).asInt(); // set to 0 if passing npc name
+	if (!pid) {
+		const char *critterName, *name = ctx.arg(0).strValue();
+		if (name[0] != 0) {
+			DWORD* members = fo::var::partyMemberList;
+			for (DWORD i = 0; i < fo::var::partyMemberCount; i++) {
+				__asm {
+					mov  eax, members;
+					mov  eax, [eax];
+					call fo::funcoffs::critter_name_;
+					mov  critterName, eax;
+				}
+				if (!_stricmp(name, critterName)) { // found npc
+					pid = ((fo::GameObject*)*members)->protoId;
+					break;
+				}
+				members += 4;
+			}
+		}
 	}
-}
-
-static int _stdcall get_npc_level2(DWORD numMembers, DWORD maxMembers, DWORD* members, DWORD* pids, DWORD* words, const char* name) {
-	for (DWORD i = 0; i < numMembers; i++) {
-		const char* name2;
-		__asm {
-			mov eax, members;
-			mov eax, [eax];
-			call fo::funcoffs::critter_name_
-			mov name2, eax;
-		}
-		if (_stricmp(name, name2)) {
-			members += 4;
-			continue;
-		}
-
-		DWORD pid = ((DWORD*)members[0])[25];
-		DWORD id = -1;
-		for (DWORD j = 0; j < maxMembers; j++) {
+	if (pid) {
+		DWORD* pids = fo::var::partyMemberPidList;
+		for (DWORD j = 0; j < fo::var::partyMemberMaxCount; j++) {
 			if (pids[j] == pid) {
-				id = j;
+				level = fo::var::partyMemberLevelUpInfoList[j * 3];
 				break;
 			}
 		}
-		if (id == -1) break;
-
-		return words[id * 3];
 	}
-	return 0;
-}
-
-void __declspec(naked) op_get_npc_level() {
-	__asm {
-		push ebx;
-		push ecx;
-		push edx;
-		push edi;
-		mov edi, eax;
-		call fo::funcoffs::interpretPopShort_;
-		mov edx, eax;
-		mov eax, edi;
-		call fo::funcoffs::interpretPopLong_;
-		cmp dx, VAR_TYPE_STR2;
-		jz next;
-		cmp dx, VAR_TYPE_STR;
-		jnz fail;
-next:
-		mov ebx, eax;
-		mov eax, edi;
-		call fo::funcoffs::interpretGetString_;
-		push eax;
-		push ds:[FO_VAR_partyMemberLevelUpInfoList];
-		push ds:[FO_VAR_partyMemberPidList];
-		push ds:[FO_VAR_partyMemberList];
-		push ds:[FO_VAR_partyMemberMaxCount];
-		push ds:[FO_VAR_partyMemberCount];
-		call get_npc_level2;
-		mov edx, eax;
-		jmp end;
-fail:
-		xor edx, edx;
-end:
-		mov eax, edi;
-		call fo::funcoffs::interpretPushLong_;
-		mov eax, edi;
-		mov edx, VAR_TYPE_INT;
-		call fo::funcoffs::interpretPushShort_;
-		pop edi;
-		pop edx;
-		pop ecx;
-		pop ebx;
-		retn;
-	}
+	ctx.setReturn(level);
 }
 
 static int ParseIniSetting(const char* iniString, const char* &key, char section[], char file[]) {
@@ -732,7 +669,7 @@ static char IniStrBuffer[128];
 static DWORD _stdcall GetIniSetting2(const char* c, DWORD string) {
 	const char* key;
 	char section[33], file[67];
-	
+
 	if (ParseIniSetting(c, key, section, file) < 0) {
 		return -1;
 	}

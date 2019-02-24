@@ -72,9 +72,9 @@ void __declspec() op_toggle_active_hand();
 
 void __declspec() op_eax_available();
 
-void __declspec() op_inc_npc_level();
+void sf_inc_npc_level(OpcodeContext&);
 
-void __declspec() op_get_npc_level();
+void sf_get_npc_level(OpcodeContext&);
 
 void __declspec() op_get_ini_setting();
 
