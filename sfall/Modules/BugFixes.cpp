@@ -197,7 +197,7 @@ static void __declspec(naked) item_d_check_addict_hack() {
 		mov  edx, 2                               // type = addiction
 		cmp  eax, -1                              // Has drug_pid?
 		je   skip                                 // No
-		xchg ebx, eax                             // ebx = drug_pid
+		mov  ebx, eax                             // ebx = drug_pid
 		mov  eax, esi                             // eax = who
 		call fo::funcoffs::queue_find_first_
 loopQueue:
@@ -334,8 +334,10 @@ static void __declspec(naked) partyMemberIncLevels_hook() {
 		call fo::funcoffs::queue_remove_this_;
 		push ecx;
 		push edi;
+		push esi;
 		mov  ecx, 8;
 		mov  edi, FO_VAR_drugInfoList;
+		mov  esi, ebx;                            // pointer for fixed item_d_check_addict_
 loopAddict:
 		mov  eax, dword ptr [edi];                // eax = drug pid
 		call fo::funcoffs::item_d_check_addict_;
@@ -350,6 +352,7 @@ noAddict:
 		lea  edi, [edi + 12];
 		dec  ecx;
 		jnz  loopAddict;
+		pop  esi;
 		pop  edi;
 		pop  ecx;
 end:
@@ -879,14 +882,16 @@ static void __declspec(naked) obj_load_func_hack() {
 		jne  skip
 		test byte ptr [eax + damageFlags], DAM_KNOCKED_DOWN
 		jz   clear                                // No
-		pushad
+		pushadc
+		push ebx
 		xor  ecx, ecx
-		inc  ecx
-		xor  ebx, ebx
-		xor  edx, edx
-		xchg edx, eax
+		mov  edx, eax // object
+		mov  ebx, ecx // extramem null
+		mov  eax, ecx // time = 0
+		inc  ecx      // type = 1
 		call fo::funcoffs::queue_add_
-		popad
+		pop  ebx
+		popadc
 clear:
 		and  word ptr [eax + damageFlags], ~(DAM_LOSE_TURN or DAM_KNOCKED_DOWN) // 0x7FFD
 skip:
