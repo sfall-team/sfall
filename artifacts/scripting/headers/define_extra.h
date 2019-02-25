@@ -103,6 +103,7 @@
 #define RMOBJ_RM_MULT_OBJS        4563866
 #define RMOBJ_REPLACE_WEAPON      4658526
 #define RMOBJ_THROW               4266040
+#define RMOBJ_SUB_CONTAINER       4683191  // search and remove the item from a container inside of an inventory
 
 // offsets for get_proto_data
 #define PROTO_PID             (1)
@@ -274,7 +275,7 @@
 #define OBJ_DATA_FID                (0x20)
 #define OBJ_DATA_ELEVATION          (0x28)
 #define OBJ_DATA_PID                (0x64)
-#define OBJ_DATA_CID                (0x68)
+#define OBJ_DATA_CID                (0x68) // combat id, used for savegame
 #define OBJ_DATA_SID                (0x78)
 // items
 #define OBJ_DATA_CUR_CHARGES        (0x3C)

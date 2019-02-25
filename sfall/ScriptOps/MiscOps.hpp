@@ -508,13 +508,11 @@ static void __declspec(naked) GetActiveHand() {
 		retn;
 	}
 }
+
 static void __declspec(naked) ToggleActiveHand() {
 	__asm {
-		push ebx;
 		mov eax, 1;
-		mov ebx, intface_toggle_items_;
-		call ebx;
-		pop ebx;
+		call intface_toggle_items_;
 		retn;
 	}
 }
@@ -601,12 +599,14 @@ static void __declspec(naked) IncNPCLevel() {
 
 static void _stdcall get_npc_level2() {
 	int level = -1;
-	DWORD pid = opHandler.arg(0).asInt(); // set to 0 if passing npc name
-	if (!pid) {
-		const char *critterName, *name = opHandler.arg(0).strValue();
-		if (name[0] != 0) {
-			DWORD* members = *(DWORD**)_partyMemberList;
-			for (DWORD i = 0; i < *(DWORD*)_partyMemberCount; i++) {
+	DWORD findPid = opHandler.arg(0).asInt(); // set to 0 if passing npc name
+	const char *critterName, *name = opHandler.arg(0).asString();
+
+	if (findPid || name[0] != 0) {
+		DWORD pid = 0;
+		DWORD* members = *ptr_partyMemberList;
+		for (DWORD i = 0; i < *ptr_partyMemberCount; i++) {
+			if (!findPid) {
 				__asm {
 					mov  eax, members;
 					mov  eax, [eax];
@@ -617,17 +617,23 @@ static void _stdcall get_npc_level2() {
 					pid = ((TGameObj*)*members)->pid;
 					break;
 				}
-				members += 4;
+			} else {
+				DWORD _pid = ((TGameObj*)*members)->pid;
+				if (findPid == _pid) {
+					pid = _pid;
+					break;
+				}
 			}
+			members += 4;
 		}
-	}
-	if (pid) {
-		DWORD* pids = *(DWORD**)_partyMemberPidList;
-		DWORD* lvlUpInfo = *(DWORD**)_partyMemberLevelUpInfoList;
-		for (DWORD j = 0; j < *(DWORD*)_partyMemberMaxCount; j++) {
-			if (pids[j] == pid) {
-				level = lvlUpInfo[j * 3];
-				break;
+		if (pid) {
+			DWORD* pids = *ptr_partyMemberPidList;
+			DWORD* lvlUpInfo = *ptr_partyMemberLevelUpInfoList;
+			for (DWORD j = 0; j < *ptr_partyMemberMaxCount; j++) {
+				if (pids[j] == pid) {
+					level = lvlUpInfo[j * 3];
+					break;
+				}
 			}
 		}
 	}

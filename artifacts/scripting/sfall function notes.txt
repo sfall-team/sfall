@@ -100,11 +100,12 @@ array - array ID to be used with array-related functions (actually an integer)
 > int game_loaded()
 - returns 1 the first time it is called after a new game or game load, and 0 any time after. It works on an individual basis for each script, so one script wont interfere with others. Its primary use is for global scripts, so that they know when to call set_global_script_repeat, but it can be called from normal scripts too.
 
-> void inc_npc_level(string npc)
-- takes an NPC name as an argument. The NPC must be in your party. This function ignores player level requirements and the minimum 3 player level delay between NPC level gains. It also ignores the random element, regardless of sfall's NPCAutoLevel setting.
+> void inc_npc_level(int pid/string name)
+- takes a party member PID or an NPC name (deprecated, for compatibility with sfall 4.1.5/3.8.15 or earlier) as an argument. The NPC must be in your party.
+- This function ignores player level requirements and the minimum 3 player level delay between NPC level gains. It also ignores the random element, regardless of sfall's NPCAutoLevel setting.
 
-> int get_npc_level(string npc)
-- also takes the NPC name as an argument, and returns the NPC's current level. Again, the NPC needs to be in your party.
+> int get_npc_level(int pid/string name)
+- also takes the party member PID or NPC name (deprecated, for compatibility with sfall 4.1.5/3.8.15 or earlier) as an argument, and returns the NPC's current level. Again, the NPC needs to be in your party.
 
 > void set_car_current_town(int town)
 - changes the current town index for the player's car
