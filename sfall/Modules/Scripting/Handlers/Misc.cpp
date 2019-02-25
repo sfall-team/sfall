@@ -25,9 +25,10 @@
 #include "..\..\HeroAppearance.h"
 #include "..\..\Inventory.h"
 #include "..\..\KillCounter.h"
-#include "..\..\MiscPatches.h"
+//#include "..\..\MiscPatches.h"
 #include "..\..\Movies.h"
 #include "..\..\Objects.h"
+#include "..\..\PartyControl.h"
 #include "..\..\PlayerModel.h"
 #include "..\..\ScriptExtender.h"
 #include "..\..\Stats.h"
@@ -194,36 +195,6 @@ void __declspec(naked) op_game_loaded() {
 		mov edx, VAR_TYPE_INT;
 		mov eax, ecx;
 		call fo::funcoffs::interpretPushShort_;
-		pop edx;
-		pop ecx;
-		pop ebx;
-		retn;
-	}
-}
-
-void __declspec(naked) op_set_map_time_multi() {
-	__asm {
-		push ebx;
-		push ecx;
-		push edx;
-		mov ecx, eax;
-		call fo::funcoffs::interpretPopShort_;
-		mov edx, eax;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPopLong_;
-		cmp dx, VAR_TYPE_FLOAT;
-		jz paramWasFloat;
-		cmp dx, VAR_TYPE_INT;
-		jnz fail;
-		push eax;
-		fild dword ptr [esp];
-		fstp dword ptr [esp];
-		jmp end;
-paramWasFloat:
-		push eax;
-end:
-		call SetMapMulti;
-fail:
 		pop edx;
 		pop ecx;
 		pop ebx;
@@ -1631,6 +1602,16 @@ void sf_get_ini_section(OpcodeContext& ctx) {
 		}
 	}
 	ctx.setReturn(arrayId);
+}
+
+void sf_npc_engine_level_up(OpcodeContext& ctx) {
+	if (ctx.arg(0).asBool()) {
+		if (!npcEngineLevelUp) SafeWrite16(0x4AFC1C, 0x840F); // enable
+		npcEngineLevelUp = true;
+	} else {
+		if (npcEngineLevelUp) SafeWrite16(0x4AFC1C, 0xE990);
+		npcEngineLevelUp = false;
+	}
 }
 
 }

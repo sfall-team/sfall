@@ -39,5 +39,7 @@ public:
 };
 
 extern bool isControllingNPC;
+extern bool npcAutoLevelEnabled;
+extern bool npcEngineLevelUp;
 
 }

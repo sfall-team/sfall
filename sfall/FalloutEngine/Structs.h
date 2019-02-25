@@ -712,4 +712,11 @@ struct Queue {
 	Queue* next;
 };
 
+#pragma pack(1)
+struct DrugInfoList {
+	DWORD itemPid;
+	long addictGvar;
+	long numEffects;
+};
+
 }

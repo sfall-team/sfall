@@ -270,6 +270,7 @@
 #define item_weight(obj)                               sfall_func1("item_weight", obj)
 #define lock_is_jammed(obj)                            sfall_func1("lock_is_jammed", obj)
 #define loot_obj                                       sfall_func0("loot_obj")
+#define npc_engine_level_up                            sfall_func1("npc_engine_level_up", toggle)
 #define obj_under_cursor(crSwitch, inclDude)           sfall_func2("obj_under_cursor", crSwitch, inclDude)
 #define outlined_object                                sfall_func0("outlined_object")
 #define real_dude_obj                                  sfall_func0("real_dude_obj")

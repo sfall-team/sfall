@@ -40,7 +40,7 @@ get/set_critter_current_ap functions should only be used during the target critt
 
 The 'type' value in the weapon knockback functions can be 0 or 1. If 0, the value becomes an absolute distance that targets will be knocked back. If 1, the value is multiplied by the distance they would normally have been knocked back. Weapon knockback modifiers are applied in the order weapon -> attacker -> target, so a x2 weapon wielded by an abs 6 attacker hitting a /2 target will knock the target back 3 squares. The knockback functions will not override the stonewall perk or knockdowns resulting from criticals. knockback values set on weapons or critters are not saved, and must be reset each time the player reloads.
 
-The get/set_sfall_global functions require an 8 character long case sensitive string for the variable name. The variables behave the same as normal Fallout globals, except that they don't have to be declared beforehand in vault13.gam. Trying to get a variable which hasn't been set will always return 0. These functions are intended for use when a patch to a mod requires the addition of a new global variable, a case which would otherwise require the player to start a new game.
+The get/set_sfall_global functions require an 8 characters long case sensitive string for the variable name. The variables behave the same as normal Fallout globals, except that they don't have to be declared beforehand in vault13.gam. Trying to get a variable which hasn't been set will always return 0. These functions are intended for use when a patch to a mod requires the addition of a new global variable, a case which would otherwise require the player to start a new game.
 
 set_pickpocket_max and set_hit_chance_max effect all critters rather than just the player. set_skill_max can't be used to increase the skill cap above 300. set_perk_level_mod sets a modifier between +25 and -25 that is added/subtracted from the players level for the purposes of deciding which perks can be chosen.
 
@@ -60,7 +60,7 @@ get/set_unspent_ap_bonus alter the AC bonus you receive per unused action point 
 
 nb_* functions are reserved for the brotherhood tactical training mod, and should be avoided.
 
-The fs_* functions are used to manipulate a virtual file system. Files saved here should have paths relative to the data folder, and use backslashes as the directory separator. They will take precedence over files stored in the normal data folder. They will also be saved into save games, so be avoid creating large files. The virtual file that needs to be saved in the saved game, you need to set a flag for the file using the fs_resize(fileId, -1) function. Using fs_copy followed by fs_read_xxx, you can read the contents of existing files.
+The fs_* functions are used to manipulate a virtual file system. Files saved here should have paths relative to the data folder, and use backslashes as the directory separator. They will take precedence over files stored in the normal data folder. They will also be saved into save games if you set a flag for them using fs_resize(fileId, -1), so be avoid creating large files. Using fs_copy followed by fs_read_xxx, you can read the contents of existing files.
 
 get/set_proto_data are used to manipulate the in memory copies of the .pro files Fallout makes when they are loaded. The offset refers to the offset in memory from the start of the proto to the element you are reading. Changes are not stored on disc, and are not permanent. If you modify the protos, and then Fallout subsequently reloads the file your changes will be lost.
 
@@ -101,13 +101,13 @@ array - array ID to be used with array-related functions (actually an integer)
 - returns 1 the first time it is called after a new game or game load, and 0 any time after. It works on an individual basis for each script, so one script wont interfere with others. Its primary use is for global scripts, so that they know when to call set_global_script_repeat, but it can be called from normal scripts too.
 
 > void inc_npc_level(int pid/string name)
-- takes an party member PID number as an argument. The NPC must be in your party.
-- or NPC name (DEPRECATED, use for compatibility with older 4.1.5/3.8.15 versions and below)
+- takes an party member PID number as an argument or NPC name (DEPRECATED, use for compatibility with older sfall 4.1.5/3.8.15 or earlier).
+- The NPC must be in your party.
 - This function ignores player level requirements and the minimum 3 player level delay between NPC level gains. It also ignores the random element, regardless of sfall's NPCAutoLevel setting.
 
 > int get_npc_level(int pid/string name)
-- also takes the party member PID number as an argument, and returns the NPC's current level. Again, the NPC needs to be in your party.
-- or NPC name (DEPRECATED, use for compatibility with older 4.1.5/3.8.15 versions and below)
+- also takes the party member PID number or NPC name (DEPRECATED, use for compatibility with older sfall 4.1.5/3.8.15 or earlier) as an argument, and returns the NPC's current level.
+- Again, the NPC needs to be in your party.
 
 > void set_car_current_town(int town)
 - changes the current town index for the player's car
@@ -144,7 +144,7 @@ array - array ID to be used with array-related functions (actually an integer)
 - In this case use force_encounter_with_flags with the ENCOUNTER_FLAG_NO_CAR flag set.
 
 > int get_light_level()
-- ambient light level in range 0..65535
+- ambient light level in range 0..65536
 - The value returned by get_light_level may not exactly match that set by set_light_level, as set_light_level applies modifiers from the night vision perk.
 
 > void set_map_time_multi(float multi)
@@ -166,9 +166,9 @@ array - array ID to be used with array-related functions (actually an integer)
 - overrides the scripts self_obj for the next function call.
 - It is primarily used to allow the calling of functions which take an implicit self_obj parameter (e.g. drop_obj) from global scripts, but it can also be used from normal scripts;
 - self_obj will revert back to its original value after the next function call.
-- calling self_obj(0) will also revert self_obj to original value, it is recommended to use this after each use of set_self in normal scripts, in order to avoid unforeseen side-effects
+- calling self_obj(0) will also revert self_obj to original value. It is recommended to call this after each use of set_self in normal scripts in order to avoid unforeseen side effects.
 - source_obj, target_obj, and similar functions will not work if preceded by "set_self"
-- Note: For the use_obj_on_obj/use_obj vanilla function to work correctly, required twice use of the set_self function.
+- NOTE: for use_obj/use_obj_on_obj vanilla functions to work correctly, it is required to call set_self twice.
 
 > void mod_skill_points_per_level(int x)
 - accepts a value of between -100 and 100, and modifies the number of skill points the player receives when they level up.
@@ -329,7 +329,7 @@ Some utility/math functions are available:
 - this calls an internal engine function which is used to determine the perception range of critters (which you can override using HOOK_WITHINPERCEPTION)
 
 > int tile_light(int elevation, int tileNum)
-- returns light intensity at the given tile in range from 0 to 65535
+- returns light intensity at the given tile in range from 0 to 65536
 
 > object obj_blocking_line(object objFrom, int tileTo, int blockingType)
 - returns first object which blocks direct linear path from objFrom to tileTo using selected blocking function (see BLOCKING_TYPE_* constants in sfall.h)
@@ -501,13 +501,12 @@ Some utility/math functions are available:
 
 > void sfall_func3("set_iface_tag_text", int tag, string text, int color)
 - sets the text messages and colors for custom notification boxes to the interface without the need to add messages to intrface.msg and set up the font colors in ddraw.ini
-- tag value is the same as used in show_iface_tag, hide_iface_tag, and is_iface_tag_active. The valid range is from 5 to (4 + the value of BoxBarCount in ddraw.ini)
-or the number of the last custom box added using the add_ifaca_tag function
+- tag value is the same as used in show_iface_tag, hide_iface_tag, and is_iface_tag_active. The valid range is from 5 to (4 + the value of BoxBarCount in ddraw.ini) or the number of the last custom box added using the add_ifaca_tag function
 - The text is limited to 19 characters
 - available colors: 0 - green, 1 - red, 2 - white, 3 - yellow, 4 - dark yellow, 5 - blue, 6 - purple, 7 - dull pink
 
 > int sfall_func0("add_iface_tag")
-- adds one custom box to the current boxes, and returns the number of the added tag, if the tags limit is exceeded is returned -1 value
+- adds one custom box to the current boxes, and returns the number of the added tag (-1 if the tags limit is exceeded)
 - The maximum number of boxes is limited to 126 tags
 
 > void sfall_func1("inventory_redraw", int invSide)
@@ -516,11 +515,12 @@ or the number of the last custom box added using the add_ifaca_tag function
 
 > void sfall_func3("item_make_explosive", int pid, int activePid, int damage)
 > void sfall_func4("item_make_explosive", int pid, int activePid, int min, int max)
-- makes the specified item(pid) an explosive item (as like dynamite or plastic explosives)
-- activePid for an item with an active timer, can use the same object pid
-- min/max minimum and maximum explosion damage
-- using the function for an item that is already explosive, will override previously made settings
-- Note: this function does not work for pid's dynamite and plastic explosives
+- makes the specified item (pid) an explosive item like Dynamite or Plastic Explosives
+- activePid is for an item with an active timer, can be the same as the pid argument
+- the item proto must be "Misc Item" type and have "Use" action flag
+- min/max are the minimum and maximum explosion damage
+- using the function on an item that is already set as an explosive will override its previous settings
+- NOTE: this function does not work for pid's of Dynamite and Plastic Explosives
 
 > int sfall_func1("get_string_pointer", string text)
 - returns a pointer to a string variable or to a text
@@ -533,13 +533,14 @@ or the number of the last custom box added using the add_ifaca_tag function
 
 > void sfall_func5("create_win", string winName, int x, int y, int width, int height)
 > void sfall_func6("create_win", string winName, int x, int y, int width, int height, int flags)
-- the same as the vanilla CreateWin function, but it creates a window with the MoveOnTop flag, allows to set additional flags for the created window
-- MoveOnTop flag allows to place the created window over of the game interface
+- works just like vanilla CreateWin function, but creates a window with MoveOnTop flag if the flags argument is not specified, and allows to set additional flags for the created window
+- MoveOnTop flag allows the created window to be placed on top of the game interface
 
 > void sfall_func3("set_can_rest_on_map", int mapNum, int elev, bool value)
-- enable/disable rest on the map for the specified level
-- mapNum index of the map from the maps.txt file
-- passing the value -1 of the argument elev, to sets the value for all map elevations
+- allows/disallows to rest on the map for the specified level, overrides the can_rest_here values in maps.txt
+- mapNum is the map index from maps.txt
+- passing -1 to the elev argument will set the rest value for all map elevations
+- the set rest value will be stored in sfalldb.sav file (in savegame)
 
 > int sfall_func2("get_can_rest_on_map", int mapNum, int elev)
 - returns the set value for the map after using the set_can_rest_on_map function
@@ -547,7 +548,7 @@ or the number of the last custom box added using the add_ifaca_tag function
 - the can_rest_here values from the maps.txt file are ignored
 
 > object sfall_func0("dialog_obj")
-- returns a pointer to the object(critter) with which the dialogue/trading is conducted
+- returns a pointer to the object (critter) the player is having a conversation or bartering with
 
 > object sfall_func2("obj_under_cursor", bool onlyCritter, bool includeDude)
 - returns the object under the cursor
@@ -569,7 +570,11 @@ or the number of the last custom box added using the add_ifaca_tag function
 - use AI_CAP_* constants from define_extra.h for the aiParam argument to get AI value
 
 > void sfall_func0("art_cache_clear")
-- clears the cache of frm graphic files loaded into memory
+- clears the cache of FRM image files loaded into memory
+
+> void sfall_func1("npc_engine_level_up", bool toggle)
+- enables/disables the engine function that increases the level of party members in the player leveling process
+- if the engine function is disabled, the process of leveling up party members should be performed by script functions
 
 ------------------------
 ------ MORE INFO -------

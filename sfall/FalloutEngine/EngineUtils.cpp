@@ -19,6 +19,7 @@
 #include <cassert>
 
 #include "Functions.h"
+#include "FunctionOffsets.h"
 #include "Structs.h"
 #include "Variables.h"
 #include "VariableOffsets.h"
@@ -105,6 +106,15 @@ GameObject* GetActiveItem() {
 
 bool HeroIsFemale() {
 	return (fo::func::stat_level(fo::var::obj_dude, fo::Stat::STAT_gender) == fo::Gender::GENDER_FEMALE);
+}
+
+long CheckAddictByPid(fo::GameObject* critter, long pid) {
+	__asm {
+		mov  eax, pid;
+		mov  esi, critter;
+		call fo::funcoffs::item_d_check_addict_;
+	}
+	/* keyword 'return' is not needed, the compiler will do everything correctly */
 }
 
 //---------------------------------------------------------
