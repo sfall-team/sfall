@@ -572,22 +572,24 @@ end:
 static const DWORD RemoveObjHookRet = 0x477497;
 static void __declspec(naked) RemoveObjHook() {
 	__asm {
-		push ecx;
-		mov ecx, [esp+4];
-		hookbegin(4);
-		mov args[0], eax;
-		mov args[4], edx;
-		mov args[8], ebx;
+		mov ecx, [esp + 8]; // call addr
+		hookbegin(5);
+		mov args[0], eax;   // source
+		mov args[4], edx;   // item
+		mov args[8], ebx;   // count
 		mov args[12], ecx;
+		xor esi, esi;
+		xor ecx, 0x47761D;  // from item_move_func_
+		cmovz esi, ebp;     // target
+		mov args[16], esi;
+		push edi;
+		push ebp;
 		pushad;
 		push HOOK_REMOVEINVENOBJ;
 		call RunHookScript;
 		popad;
 		hookend;
-		push esi;
-		push edi;
-		push ebp;
-		sub esp, 0xc;
+		sub esp, 0x0C;
 		jmp RemoveObjHookRet;
 	}
 }
@@ -1321,7 +1323,7 @@ static void HookScriptInit2() {
 	HookCall(0x473573, &UseObjOnHook_item_d_take_drug); // inven_action_cursor
 
 	LoadHookScript("hs_removeinvenobj", HOOK_REMOVEINVENOBJ);
-	MakeJump(0x477490, RemoveObjHook);
+	MakeJump(0x477492, RemoveObjHook); // old 0x477490
 
 	LoadHookScript("hs_barterprice", HOOK_BARTERPRICE);
 	HookCall(0x474D4C, &BarterPriceHook);

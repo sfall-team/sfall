@@ -248,6 +248,7 @@ Obj     arg1 - the owner that the object is being removed from
 item    arg2 - the item that is being removed
 int     arg3 - the number of items to remove
 int     arg4 - The reason the object is being removed (see RMOBJ_* constants)
+Obj     arg5 - The destination object when the item is moved to another object, otherwise 0
 
 -------------------------------------------
 
