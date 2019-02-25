@@ -50,8 +50,10 @@ static void __declspec(naked) obj_use_book_hook() {
 		mov  ecx, eax;
 		call FindBook;
 		test eax, eax;
-		cmovnz edi, [eax + 4]; // msgID
-		cmovnz ecx, [eax + 8]; // skill
+		jz   skip;
+		mov  edi, [eax + 4]; // msgID
+		mov  ecx, [eax + 8]; // skill
+skip:
 		jmp  obj_use_book_hook_back;
 	}
 }
