@@ -608,12 +608,14 @@ void sf_inc_npc_level(OpcodeContext& ctx) {
 
 void sf_get_npc_level(OpcodeContext& ctx) {
 	int level = -1;
-	DWORD pid = ctx.arg(0).asInt(); // set to 0 if passing npc name
-	if (!pid) {
-		const char *critterName, *name = ctx.arg(0).strValue();
-		if (name[0] != 0) {
-			DWORD* members = fo::var::partyMemberList;
-			for (DWORD i = 0; i < fo::var::partyMemberCount; i++) {
+	DWORD findPid = ctx.arg(0).asInt(); // set to 0 if passing npc name
+	const char *critterName, *name = ctx.arg(0).asString();
+
+	if (findPid || name[0] != 0) {
+		DWORD pid = 0;
+		DWORD* members = fo::var::partyMemberList;
+		for (DWORD i = 0; i < fo::var::partyMemberCount; i++) {
+			if (!findPid) {
 				__asm {
 					mov  eax, members;
 					mov  eax, [eax];
@@ -624,16 +626,22 @@ void sf_get_npc_level(OpcodeContext& ctx) {
 					pid = ((fo::GameObject*)*members)->protoId;
 					break;
 				}
-				members += 4;
+			} else {
+				DWORD _pid = ((fo::GameObject*)*members)->protoId;
+				if (findPid == _pid) {
+					pid = _pid;
+					break;
+				}
 			}
+			members += 4;
 		}
-	}
-	if (pid) {
-		DWORD* pids = fo::var::partyMemberPidList;
-		for (DWORD j = 0; j < fo::var::partyMemberMaxCount; j++) {
-			if (pids[j] == pid) {
-				level = fo::var::partyMemberLevelUpInfoList[j * 3];
-				break;
+		if (pid) {
+			DWORD* pids = fo::var::partyMemberPidList;
+			for (DWORD j = 0; j < fo::var::partyMemberMaxCount; j++) {
+				if (pids[j] == pid) {
+					level = fo::var::partyMemberLevelUpInfoList[j * 3];
+					break;
+				}
 			}
 		}
 	}

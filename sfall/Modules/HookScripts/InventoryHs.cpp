@@ -16,22 +16,28 @@ static void __declspec(naked) RemoveObjHook() {
 	__asm {
 		mov ecx, [esp + 8]; // call addr
 		HookBegin;
-		mov args[0], eax;
-		mov args[4], edx;
-		mov args[8], ebx;
+		mov args[0], eax;   // source
+		mov args[4], edx;   // item
+		mov args[8], ebx;   // count
 		mov args[12], ecx;
-		pushad;
+		xor esi, esi;
+		xor ecx, 0x47761D;  // from item_move_func_
+		cmovz esi, ebp;     // target
+		mov  args[16], esi;
+		push edi;
+		push ebp;
+		push eax;
+		push edx;
 	}
 
-	argCount = 4;
+	argCount = 5;
 	RunHookScript(HOOK_REMOVEINVENOBJ);
 	EndHook();
 
 	__asm {
-		popad;
-		push edi;
-		push ebp;
-		sub  esp, 0x0C;
+		pop edx;
+		pop eax;
+		sub esp, 0x0C;
 		jmp RemoveObjHookRet;
 	}
 }
@@ -43,14 +49,14 @@ static void __declspec(naked) MoveCostHook() {
 		mov  args[4], edx;
 		call fo::funcoffs::critter_compute_ap_from_distance_;
 		mov  args[8], eax;
-		pushad;
+		pushadc;
 	}
 
 	argCount = 3;
 	RunHookScript(HOOK_MOVECOST);
 
 	__asm {
-		popad;
+		popadc;
 		cmp cRet, 1;
 		cmovge eax, rets[0];
 		HookEnd;
