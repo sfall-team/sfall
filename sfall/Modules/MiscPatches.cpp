@@ -39,8 +39,6 @@ static char versionString[65];
 
 static int* scriptDialog = nullptr;
 
-bool npcAutoLevelEnabled;
-
 static const DWORD PutAwayWeapon[] = {
 	0x411EA2, // action_climb_ladder_
 	0x412046, // action_use_an_item_on_object_
@@ -466,15 +464,6 @@ static const DWORD EncounterTableSize[] = {
 	0x4BD1A3, 0x4BD1D9, 0x4BD270, 0x4BD604, 0x4BDA14, 0x4BDA44, 0x4BE707,
 	0x4C0815, 0x4C0D4A, 0x4C0FD4,
 };
-
-void NpcAutoLevelPatch() {
-	npcAutoLevelEnabled = GetConfigInt("Misc", "NPCAutoLevel", 0) != 0;
-	if (npcAutoLevelEnabled) {
-		dlog("Applying NPC autolevel patch.", DL_INIT);
-		SafeWrite8(0x495CFB, 0xEB);               // jmps 0x495D28 (skip random check)
-		dlogr(" Done", DL_INIT);
-	}
-}
 
 void AdditionalWeaponAnimsPatch() {
 	if (GetConfigInt("Misc", "AdditionalWeaponAnims", 0)) {
@@ -924,7 +913,6 @@ void MiscPatches::init() {
 	LoadGameHook::OnBeforeGameStart() += BodypartHitChances; // set on start & load
 
 	CombatProcFix();
-	NpcAutoLevelPatch();
 	DialogueFix();
 	AdditionalWeaponAnimsPatch();
 	MultiPatchesPatch();

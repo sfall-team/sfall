@@ -569,6 +569,10 @@ Some utility/math functions are available:
 > void sfall_func0("art_cache_clear")
 - clears the cache of FRM image files loaded into memory
 
+> void sfall_func1("npc_engine_level_up", bool toggle)
+- enables/disables the engine function that increases the level of party members in the player leveling process
+- if the engine function is disabled, the process of leveling up party members should be performed by script functions
+
 ------------------------
 ------ MORE INFO -------
 ------------------------
