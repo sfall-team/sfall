@@ -25,6 +25,7 @@
 #include "KillCounter.h"
 #include "Knockback.h"
 #include "movies.h"
+#include "PartyControl.h"
 #include "ScriptExtender.h"
 
 /*
@@ -198,36 +199,6 @@ static void __declspec(naked) GameLoaded() {
 	}
 }
 
-void _stdcall SetMapMulti(float d);
-static void __declspec(naked) set_map_time_multi() {
-	__asm {
-		push ebx;
-		push ecx;
-		push edx;
-		mov ecx, eax;
-		call interpretPopShort_;
-		mov edx, eax;
-		mov eax, ecx;
-		call interpretPopLong_;
-		cmp dx, VAR_TYPE_FLOAT;
-		jz paramWasFloat;
-		cmp dx, VAR_TYPE_INT;
-		jnz fail;
-		push eax;
-		fild dword ptr [esp];
-		fstp dword ptr [esp];
-		jmp end;
-paramWasFloat:
-		push eax;
-end:
-		call SetMapMulti;
-fail:
-		pop edx;
-		pop ecx;
-		pop ebx;
-		retn;
-	}
-}
 static void __declspec(naked) SetPipBoyAvailable() {
 	__asm {
 		push ebx;
@@ -253,8 +224,6 @@ end:
 	}
 }
 
-
-
 // Kill counters
 static void __declspec(naked) GetKillCounter() {
 	__asm {
@@ -273,7 +242,6 @@ static void __declspec(naked) GetKillCounter() {
 		mov edx, ds:[_pc_kill_counts+eax*4];
 		jmp end;
 fail:
-
 		xor edx, edx;
 end:
 		mov eax, ecx

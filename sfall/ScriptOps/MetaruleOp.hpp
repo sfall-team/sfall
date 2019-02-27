@@ -50,9 +50,9 @@ static MetaruleTableType metaruleTable;
 // currently executed metarule
 static const SfallMetarule* currentMetarule;
 
-static std::string sf_test_stringBuf;
-
 // Example handler. Feel free to add handlers in other files.
+#ifndef NDEBUG
+static std::string sf_test_stringBuf;
 static void sf_test() {
 	std::ostringstream sstream;
 	sstream << "sfall_funcX(\"test\"";
@@ -79,6 +79,7 @@ static void sf_test() {
 	sf_test_stringBuf = sstream.str();
 	opHandler.setReturn(sf_test_stringBuf.c_str());
 }
+#endif
 
 // returns current contents of metarule table
 static void sf_get_metarule_table() {
@@ -135,7 +136,9 @@ static const SfallMetarule metaruleArray[] = {
 	{"spatial_radius",          sf_spatial_radius,          1, 1},
 	{"tile_refresh_display",    sf_tile_refresh_display,    0, 0},
 	{"unjam_lock",              sf_unjam_lock,              1, 1},
+	#ifndef NDEBUG
 	{"validate_test",           sf_test,                    2, 5},
+	#endif
 };
 
 static void InitMetaruleTable() {

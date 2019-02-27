@@ -70,8 +70,6 @@ extern DWORD modifiedIni;
 extern char dmModelName[65];
 extern char dfModelName[65];
 
-extern bool npcAutoLevelEnabled;
-
 DWORD GetAddedYears(bool isCheck = true);
 void SetAddedYears(DWORD years);
 

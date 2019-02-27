@@ -82,9 +82,6 @@ char dfModelName[65];
 
 static const char* musicOverridePath = "data\\sound\\music\\";
 
-DWORD AddUnarmedStatToGetYear = 0;
-bool npcAutoLevelEnabled;
-
 static int* scriptDialog = nullptr;
 
 static DWORD ViewportX;
@@ -1134,13 +1131,6 @@ static void DllMain2() {
 
 	DebugEditorInit();
 
-	npcAutoLevelEnabled = GetPrivateProfileIntA("Misc", "NPCAutoLevel", 0, ini) != 0;
-	if (npcAutoLevelEnabled) {
-		dlog("Applying NPC autolevel patch.", DL_INIT);
-		SafeWrite8(0x495CFB, 0xEB);               // jmps 0x495D28 (skip random check)
-		dlogr(" Done", DL_INIT);
-	}
-
 	if (GetPrivateProfileIntA("Misc", "SingleCore", 1, ini)) {
 		dlog("Applying single core patch.", DL_INIT);
 		HANDLE process = GetCurrentProcess();
@@ -1443,7 +1433,7 @@ static void DllMain2() {
 	AIInit();
 	dlogr(" Done", DL_INIT);
 
-	dlogr("Initializing AI control.", DL_INIT);
+	dlogr("Initializing party control.", DL_INIT);
 	PartyControlInit();
 
 	if (GetPrivateProfileIntA("Misc", "ObjCanSeeObj_ShootThru_Fix", 0, ini)) {

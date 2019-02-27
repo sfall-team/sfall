@@ -211,6 +211,37 @@ end:
 	}
 }
 
+void _stdcall SetMapMulti(float d);
+static void __declspec(naked) set_map_time_multi() {
+	__asm {
+		push ebx;
+		push ecx;
+		push edx;
+		mov ecx, eax;
+		call interpretPopShort_;
+		mov edx, eax;
+		mov eax, ecx;
+		call interpretPopLong_;
+		cmp dx, VAR_TYPE_FLOAT;
+		jz paramWasFloat;
+		cmp dx, VAR_TYPE_INT;
+		jnz fail;
+		push eax;
+		fild dword ptr [esp];
+		fstp dword ptr [esp];
+		jmp end;
+paramWasFloat:
+		push eax;
+end:
+		call SetMapMulti;
+fail:
+		pop edx;
+		pop ecx;
+		pop ebx;
+		retn;
+	}
+}
+
 static void sf_set_map_enter_position() {
 	int tile = opHandler.arg(0).asInt();
 	int elev = opHandler.arg(1).asInt();

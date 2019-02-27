@@ -31,6 +31,8 @@
 #include "HeroAppearance.h"
 #include "PartyControl.h"
 
+bool npcAutoLevelEnabled;
+
 static DWORD Mode;
 static int IsControllingNPC = 0;
 static bool SkipCounterAnim  = false;
@@ -131,8 +133,8 @@ static void TakeControlOfNPC(TGameObj* npc) {
 	CritterPcSetName(CritterName(npc));
 
 	// change level
-	int level = IsPartyMember(npc) 
-		? PartyMemberGetCurrentLevel(npc) 
+	int level = IsPartyMember(npc)
+		? PartyMemberGetCurrentLevel(npc)
 		: 0;
 
 	*ptr_Level_ = level;
@@ -214,7 +216,7 @@ static int _stdcall CombatWrapperInner(TGameObj* obj) {
 		// save "real" dude state
 		SaveRealDudeState();
 		TakeControlOfNPC(obj);
-		
+
 		// Do combat turn
 		int turnResult = CombatTurn(obj);
 
@@ -393,9 +395,18 @@ static void __declspec(naked) gdControlUpdateInfo_hook() {
 	}
 }
 
+static void NpcAutoLevelPatch() {
+	npcAutoLevelEnabled = GetPrivateProfileIntA("Misc", "NPCAutoLevel", 0, ini) != 0;
+	if (npcAutoLevelEnabled) {
+		dlog("Applying NPC autolevel patch.", DL_INIT);
+		SafeWrite8(0x495CFB, 0xEB); // jmps 0x495D28 (skip random check)
+		dlogr(" Done", DL_INIT);
+	}
+}
+
 void PartyControlInit() {
 	Mode = GetPrivateProfileIntA("Misc", "ControlCombat", 0, ini);
-	if (Mode > 2) 
+	if (Mode > 2)
 		Mode = 0;
 	if (Mode > 0) {
 		char pidbuf[512];
@@ -405,7 +416,7 @@ void PartyControlInit() {
 			char* comma;
 			while (true) {
 				comma = strchr(ptr, ',');
-				if (!comma) 
+				if (!comma)
 					break;
 				*comma = 0;
 				if (strlen(ptr) > 0)
@@ -428,6 +439,8 @@ void PartyControlInit() {
 		HookCall(0x41279A, &pc_flag_toggle_hook);
 	} else
 		dlogr("  Disabled.", DL_INIT);
+
+	NpcAutoLevelPatch();
 
 	SkipCounterAnim = (GetPrivateProfileIntA("Misc", "SpeedInterfaceCounterAnims", 0, ini) == 3);
 

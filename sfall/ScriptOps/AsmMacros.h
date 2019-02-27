@@ -13,14 +13,14 @@
 // rscript - 32-bit register where script pointer will be put (it is used for several related functions)
 #define _OP_BEGIN(rscript) __asm \
 {							\
-   __asm pushad				\
-   __asm mov rscript, eax   \
+	__asm pushad			\
+	__asm mov rscript, eax	\
 }
 
 #define _OP_END  __asm \
 {							\
-   __asm popad				\
-   __asm retn				\
+	__asm popad				\
+	__asm retn				\
 }
 
 /*
