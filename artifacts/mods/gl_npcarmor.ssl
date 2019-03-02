@@ -118,7 +118,8 @@ procedure adjustfid_handler begin
       armor := critter_inven_obj(dude_obj, INVEN_TYPE_WORN);
       fid := check_armor_change(dude_obj, armor, armor != 0);
       if (fid != -1) then begin
-         set_sfall_return(fid);
+         variable weapAnim := get_sfall_arg bwand 0xF000;
+         set_sfall_return(fid bwand 0xFFFF0FFF bwor weapAnim);
       end
    end
 end
