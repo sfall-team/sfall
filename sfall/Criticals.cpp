@@ -57,7 +57,9 @@ struct CritStruct {
 static CritStruct* baseCritTable; // Base critical table set up via enabling OverrideCriticalTable in ddraw.ini
 static CritStruct* critTable;
 static CritStruct* playerCrit;
+
 static bool Inited = false;
+
 static const char* errorTable = "\nError: %s - function requires enabling OverrideCriticalTable in ddraw.ini.";
 
 void SetCriticalTable(DWORD critter, DWORD bodypart, DWORD slot, DWORD element, DWORD value) {
@@ -145,12 +147,7 @@ void CritLoad() {
 
 #define SetEntry(critter, bodypart, effect, param, value) defaultTable[critter * 9 * 6 + bodypart * 6 + effect].values[param] = value;
 
-void CritInit() {
-	mode = GetPrivateProfileIntA("Misc", "OverrideCriticalTable", 2, ini);
-	if (mode < 0 || mode > 3) mode = 0;
-
-	if (!mode) return;
-
+static void CriticalTableOverride() {
 	dlog("Initializing critical table override.", DL_INIT);
 	baseCritTable = new CritStruct[CritTableSize]();
 	critTable = new CritStruct[CritTableSize];
@@ -259,4 +256,25 @@ void CritInit() {
 
 	Inited = true;
 	dlogr(" Done", DL_INIT);
+}
+#undef SetEntry
+
+static void RemoveCriticalTimeLimitsPatch() {
+	if (GetPrivateProfileIntA("Misc", "RemoveCriticalTimelimits", 0, ini)) {
+		dlog("Removing critical time limits.", DL_INIT);
+		SafeWrite8(0x424118, 0xEB); // jump to 0x424131
+		SafeWrite8(0x4A3053, 0x0);
+		SafeWrite8(0x4A3094, 0x0);
+		dlogr(" Done", DL_INIT);
+	}
+}
+
+void CritInit() {
+	mode = GetPrivateProfileIntA("Misc", "OverrideCriticalTable", 2, ini);
+	if (mode < 0 || mode > 3) mode = 0;
+	if (mode) {
+		CriticalTableOverride();
+	}
+
+	RemoveCriticalTimeLimitsPatch();
 }

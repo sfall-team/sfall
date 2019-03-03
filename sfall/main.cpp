@@ -1336,14 +1336,6 @@ static void DllMain2() {
 
 	AnimationsAtOnceInit();
 
-	if (GetPrivateProfileIntA("Misc", "RemoveCriticalTimelimits", 0, ini)) {
-		dlog("Removing critical time limits.", DL_INIT);
-		SafeWrite8(0x424118, 0xEB);               // jmps 0x424131
-		SafeWrite8(0x4A3053, 0x0);
-		SafeWrite8(0x4A3094, 0x0);
-		dlogr(" Done", DL_INIT);
-	}
-
 	if (tmp = GetPrivateProfileIntA("Sound", "OverrideMusicDir", 0, ini)) {
 		SafeWrite32(0x4449C2, (DWORD)musicOverridePath);
 		SafeWrite32(0x4449DB, (DWORD)musicOverridePath);

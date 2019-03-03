@@ -2,7 +2,7 @@
 
 #include <algorithm>
 #include <functional>
-#include <memory>
+#include <hash_map>
 #include <vector>
 #include <unordered_map>
 #include <string>
