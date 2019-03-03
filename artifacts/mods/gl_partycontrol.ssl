@@ -15,12 +15,15 @@
 #include "..\headers\command.h"
 #include "main.h"
 
+#define OBJ_DATA_LIGHT_DISTANCE     (0x6C)
+#define OBJ_DATA_LIGHT_INTENSITY    (0x70)
+
 variable
    controlMode,
    noCheckArray,
    pidList,
-   displayName,
-   displayNameColor,
+   lightInt, lightDist, npcControl,
+   displayName, displayNameColor,
    inControl := false,
    hasGeckoSkinning := false;
 
@@ -38,12 +41,26 @@ procedure combatturn_handler begin
       pid;
 
    //display_msg("Combat Turn: " + status + ", by "  + obj_name(critter) + ", arg3: " + arg3);
+   if npcControl then begin
+      if lightInt then lightInt := round((lightInt / 65536.0) * 100); // calc percent of intensity
+      obj_set_light_level(npcControl, lightInt, lightDist);           // restore/off light for NPC
+   end
+
    pid := obj_pid(critter);
    if (status == 1 and (AllowControl(pid) or controlMode == 1)) then begin
       set_dude_obj(critter);
       if (critter != real_dude_obj) then begin
+         if not(npcControl) then obj_set_light_level(real_dude_obj, 0, 0); // dude off light
+         npcControl := critter;
+         lightDist := get_object_data(critter, OBJ_DATA_LIGHT_DISTANCE);
+         lightInt := get_object_data(critter, OBJ_DATA_LIGHT_INTENSITY);
+         obj_set_light_level(critter, 100, 4);
+
          if hasGeckoSkinning then critter_add_trait(critter, TRAIT_PERK, PERK_gecko_skinning_perk, 1);
          inControl := true;
+      end else if npcControl then begin
+         obj_set_light_level(dude_obj, 100, 4); // set default light
+         npcControl := 0;
       end
       if inControl then begin
          // center the screen on the controlled critter and remove roof tiles
@@ -57,6 +74,8 @@ procedure combatturn_handler begin
       if displayName then hide_iface_tag(displayName);
       if (status == -1 or AllowControl(pid) == false) then begin
          set_dude_obj(real_dude_obj);
+         obj_set_light_level(dude_obj, 100, 4);
+         npcControl := 0;
       end
    end
 end
@@ -67,6 +86,8 @@ procedure gamemodechange_handler begin
       inControl := false;
       if (dude_obj != real_dude_obj) then begin
          set_dude_obj(real_dude_obj);
+         obj_set_light_level(dude_obj, 100, 4);
+         npcControl := 0;
       end
       move_to(dude_obj, dude_tile, dude_elevation);
    end
