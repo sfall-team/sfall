@@ -294,6 +294,7 @@
     <ClInclude Include="FalloutEngine\Variables.h" />
     <ClInclude Include="FalloutEngine\Functions.h" />
     <ClInclude Include="FalloutEngine\Functions_def.h" />
+    <ClInclude Include="Modules\Drugs.h" />
     <ClInclude Include="Modules\HookScripts\CombatHs.h" />
     <ClInclude Include="Modules\HookScripts\Common.h" />
     <ClInclude Include="Modules\HookScripts\DeathHs.h" />
@@ -382,6 +383,7 @@
     <ClCompile Include="FalloutEngine\FunctionOffsets.cpp" />
     <ClCompile Include="FalloutEngine\Variables.cpp" />
     <ClCompile Include="FalloutEngine\Functions.cpp" />
+    <ClCompile Include="Modules\Drugs.cpp" />
     <ClCompile Include="Modules\HookScripts\CombatHs.cpp" />
     <ClCompile Include="Modules\HookScripts\Common.cpp" />
     <ClCompile Include="Modules\HookScripts\DeathHs.cpp" />

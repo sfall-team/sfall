@@ -51,6 +51,7 @@ namespace sfall
 	popadc }
 
 static Delegate<> onGameInit;
+static Delegate<> onAfterGameInit;
 static Delegate<> onGameExit;
 static Delegate<> onGameReset;
 static Delegate<> onBeforeGameStart;
@@ -321,8 +322,12 @@ static void __declspec(naked) main_load_new_hook() {
 	}
 }
 
-static void __stdcall GameInitialized() {
+static void __stdcall GameInitialization() {
 	onGameInit.invoke();
+}
+
+static void __stdcall GameInitialized() {
+	onAfterGameInit.invoke();
 }
 
 static void __stdcall GameExit() {
@@ -336,9 +341,13 @@ static void __stdcall GameClose() {
 static void __declspec(naked) main_init_system_hook() {
 	__asm {
 		pushadc;
+		call GameInitialization;
+		popadc;
+		call fo::funcoffs::main_init_system_;
+		pushadc;
 		call GameInitialized;
 		popadc;
-		jmp fo::funcoffs::main_init_system_;
+		retn;
 	}
 }
 
@@ -660,6 +669,10 @@ void LoadGameHook::init() {
 
 Delegate<>& LoadGameHook::OnGameInit() {
 	return onGameInit;
+}
+
+Delegate<>& LoadGameHook::OnAfterGameInit() {
+	return onAfterGameInit;
 }
 
 Delegate<>& LoadGameHook::OnGameExit() {
