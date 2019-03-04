@@ -88,8 +88,7 @@ static bool SetAddictGvar(fo::GameObject* npc) {
 		long pid = Drugs::GetDrugPid(i);
 		if (pid > 0) {
 			long gvarID = Drugs::GetDrugGvar(i);
-			if (gvarID <= 0) continue;
-			if (!fo::CheckAddictByPid(npc, pid)) continue;
+			if (gvarID <= 0 || !fo::CheckAddictByPid(npc, pid)) continue;
 			fo::var::game_global_vars[gvarID] = 1;
 			isAddict = true;
 		}
@@ -169,7 +168,7 @@ static void SetCurrentDude(fo::GameObject* npc) {
 		fo::var::game_global_vars[fo::var::drugInfoList[i].addictGvar] = 1;
 		isAddict = true;
 	}
-	if (realDude.extendAddictGvar) isAddict |= SetAddictGvar(npc); // check additional addictions
+	if (realDude.extendAddictGvar) isAddict |= SetAddictGvar(npc); // check new added addictions
 	fo::ToggleNpcFlag(npc, 4, isAddict); // for show/hide addiction box (fix bug)
 
 	// switch main dude_obj pointers - this should be done last!

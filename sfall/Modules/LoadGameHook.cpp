@@ -138,6 +138,7 @@ static void _stdcall SaveGame2() {
 	h = CreateFileA(buf, GENERIC_WRITE, 0, 0, CREATE_ALWAYS, 0, 0);
 	if (h != INVALID_HANDLE_VALUE) {
 		Worldmap::SaveData(h);
+		BugFixes::DrugsSaveFix(h);
 		CloseHandle(h);
 	} else {
 		goto errorSave;
@@ -235,6 +236,7 @@ static bool LoadGame_Before() {
 	h = CreateFileA(buf, GENERIC_READ, FILE_SHARE_READ, 0, OPEN_EXISTING, 0, 0);
 	if (h != INVALID_HANDLE_VALUE) {
 		if (Worldmap::LoadData(h)) goto errorLoad;
+		if (BugFixes::DrugsLoadFix(h)) goto errorLoad;
 		CloseHandle(h);
 	} else {
 		dlogr("Cannot open sfalldb.sav file.", DL_MAIN);
