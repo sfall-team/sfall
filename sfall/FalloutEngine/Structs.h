@@ -709,6 +709,22 @@ struct Queue {
 	Queue* next;
 };
 
+struct QueueDrug {
+	DWORD pid;
+	fo::Stat stat0;
+	fo::Stat stat1;
+	fo::Stat stat2;
+	long amount0;
+	long amount1;
+	long amount2;
+};
+
+struct QueueAddict {
+	long  init;      // 1 = perk is not active yet
+	DWORD drugPid;
+	fo::Perk perkId; // effect of addiction
+};
+
 #pragma pack(1)
 struct DrugInfoList {
 	DWORD itemPid;

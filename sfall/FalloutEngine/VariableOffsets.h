@@ -48,6 +48,7 @@
 #define FO_VAR_dialog_target_is_party     0x51884C
 #define FO_VAR_dropped_explosive          0x5190E0
 #define FO_VAR_drugInfoList               0x5191CC
+#define FO_VAR_editor_message_file        0x56FCA8
 #define FO_VAR_edit_win                   0x57060C
 #define FO_VAR_Educated                   0x57082C
 #define FO_VAR_elevation                  0x631D2C

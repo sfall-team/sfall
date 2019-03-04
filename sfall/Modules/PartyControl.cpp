@@ -16,8 +16,7 @@
 *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <algorithm>
-#include <vector>
+//#include <algorithm>
 
 #include "..\main.h"
 #include "..\FalloutEngine\Fallout2.h"
@@ -36,8 +35,6 @@ bool npcEngineLevelUp = true;
 bool isControllingNPC = false;
 bool skipCounterAnim  = false;
 
-static DWORD controlMode;
-static std::vector<WORD> allowedCritterPids;
 static int delayedExperience;
 static bool switchHandHookInjected = false;
 
@@ -76,7 +73,6 @@ static void SaveRealDudeState() {
 	realDude.Experience = fo::var::Experience_;
 	realDude.free_perk = fo::var::free_perk;
 	realDude.unspent_skill_points = fo::var::curr_pc_stat[0];
-	//real_map_elevation = fo::var::map_elevation;
 	realDude.sneak_working = fo::var::sneak_working;
 	fo::SkillGetTags(realDude.tag_skill, 4);
 
@@ -154,6 +150,8 @@ static void SetCurrentDude(fo::GameObject* npc) {
 static void RestoreRealDudeState() {
 	assert(realDude.obj_dude != nullptr);
 
+	fo::var::map_elevation = realDude.obj_dude->elevation;
+
 	fo::var::obj_dude = realDude.obj_dude;
 	fo::var::inven_dude = realDude.obj_dude;
 	fo::var::inven_pid = realDude.obj_dude->protoId;
@@ -169,7 +167,6 @@ static void RestoreRealDudeState() {
 	fo::var::Experience_ = realDude.Experience;
 	fo::var::free_perk = realDude.free_perk;
 	fo::var::curr_pc_stat[0] = realDude.unspent_skill_points;
-	//realDude.map_elevation = fo::var::map_elevation; -- why save elevation?
 	fo::var::sneak_working = realDude.sneak_working;
 	fo::SkillSetTags(realDude.tag_skill, 4);
 
