@@ -195,97 +195,95 @@ skip:
 	}
 }
 
-static void __declspec(naked) item_d_check_addict_hack() {
+static void __declspec(naked) item_d_check_addict_hack() { // replace engine function
 	__asm {
-		mov  edx, 2                               // type = addiction
-		cmp  eax, -1                              // Has drug_pid?
-		je   skip                                 // No
-		mov  ebx, eax                             // ebx = drug_pid
-		mov  eax, esi                             // eax = who
-		call queue_find_first_
-loopQueue:
-		test eax, eax                             // Has something in the list?
-		jz   end                                  // No
-		cmp  ebx, dword ptr [eax+0x4]             // drug_pid == queue_addict.drug_pid?
-		je   end                                  // Has specific addiction
-		mov  eax, esi                             // eax = who
-		mov  edx, 2                               // type = addiction
-		call queue_find_next_
-		jmp  loopQueue
+		push 0x47A6A1;                            // return addr
+		mov  edx, 2;                              // type = addiction
+		cmp  eax, -1;                             // Has drug_pid?
+		jne  skip;                                // No
+		mov  eax, dword ptr ds:[_obj_dude];
+		jmp  queue_find_first_;                   // return player addiction
 skip:
-		mov  eax, dword ptr ds:[_obj_dude]
-		call queue_find_first_
+		mov  ebx, eax;                            // ebx = drug_pid
+		mov  eax, esi;                            // eax = who
+		call queue_find_first_;
+loopQueue:
+		test eax, eax;                            // Has something in the list?
+		jz   end;                                 // No
+		cmp  ebx, dword ptr [eax + 0x4];          // drug_pid == queue_addict.drug_pid?
+		je   end;                                 // Has specific addiction
+		mov  eax, esi;                            // eax = who
+		mov  edx, 2;                              // type = addiction
+		call queue_find_next_;
+		jmp  loopQueue;
 end:
-		push 0x47A6A1
-		retn
+		retn;
 	}
 }
 
-static void __declspec(naked) remove_jet_addict() {
+static void __declspec(naked) RemoveJetAddictFunc() {
 	__asm {
-		cmp  eax, dword ptr ds:[_wd_obj]
-		jne  end
-		cmp  dword ptr [edx+0x4], PID_JET         // queue_addict.drug_pid == PID_JET?
-		jne  end
-		xor  eax, eax
-		inc  eax                                  // Delete from queue
-		retn
+		cmp  eax, dword ptr ds:[_wd_obj];
+		jne  end;
+		cmp  dword ptr [edx + 0x4], PID_JET;      // queue_addict.drug_pid == PID_JET?
 end:
-		xor  eax, eax                             // Don't touch
-		retn
+		sete al;  // 1 = Delete from queue, 0 = Don't touch
+		and  eax, 0xFF;
+		retn;
 	}
 }
 
 static void __declspec(naked) item_d_take_drug_hack() {
 	__asm {
-		cmp  dword ptr [eax], 0                   // queue_addict.init
-		jne  skip                                 // Addiction is not active yet
-		mov  edx, PERK_add_jet
-		mov  eax, esi
-		call perform_withdrawal_end_
+		cmp  dword ptr [eax], 0;                  // queue_addict.init
+		jne  skip;                                // Addiction is not active yet
+		mov  edx, PERK_add_jet;
+		mov  eax, esi;
+		call perform_withdrawal_end_;
 skip:
-		mov  dword ptr ds:[_wd_obj], esi
-		mov  eax, 2                               // type = addiction
-		mov  edx, offset remove_jet_addict
-		call queue_clear_type_
-		push 0x479FD1
-		retn
+		mov  dword ptr ds:[_wd_obj], esi;
+		mov  eax, 2;                              // type = addiction
+		mov  edx, offset RemoveJetAddictFunc;
+		call queue_clear_type_;
+		push 0x479FD1;
+		retn;
 	}
 }
 
 static void __declspec(naked) item_d_load_hack() {
 	__asm {
-		sub  esp, 4
-		mov  [ebp], edi                           // edi->queue_drug
-		mov  ecx, 7
-		mov  esi, _drugInfoList+12
+		sub  esp, 4;                              // proto buf
+		mov  [ebp], edi;                          // edi->queue_drug
+		mov  ecx, 7;
+		mov  esi, _drugInfoList + 12;
 loopDrug:
-		cmp  dword ptr [esi+8], 0                 // drugInfoList.numeffects
-		je   nextDrug
-		mov  edx, esp
-		mov  eax, [esi]                           // drugInfoList.pid
-		call proto_ptr_
-		mov  edx, [esp]
-		mov  eax, [edx+0x24]                      // drug.stat0
-		cmp  eax, [edi+0x4]                       // drug.stat0 == queue_drug.stat0?
-		jne  nextDrug                             // No
-		mov  eax, [edx+0x28]                      // drug.stat1
-		cmp  eax, [edi+0x8]                       // drug.stat1 == queue_drug.stat1?
-		jne  nextDrug                             // No
-		mov  eax, [edx+0x2C]                      // drug.stat2
-		cmp  eax, [edi+0xC]                       // drug.stat2 == queue_drug.stat2?
-		je   foundPid                             // Yes
+		cmp  dword ptr [esi + 8], 0;              // drugInfoList.numeffects
+		je   nextDrug;
+		mov  edx, esp;
+		mov  eax, [esi];                          // drugInfoList.pid
+		call proto_ptr_;
+		mov  edx, [esp];
+		mov  eax, [edx + 0x24];                   // drug.stat0
+		cmp  eax, [edi + 0x4];                    // drug.stat0 == queue_drug.stat0?
+		jne  nextDrug;                            // No
+		mov  eax, [edx + 0x28];                   // drug.stat1
+		cmp  eax, [edi + 0x8];                    // drug.stat1 == queue_drug.stat1?
+		jne  nextDrug;                            // No
+		mov  eax, [edx + 0x2C];                   // drug.stat2
+		cmp  eax, [edi + 0xC];                    // drug.stat2 == queue_drug.stat2?
+		je   foundPid;                            // Yes
 nextDrug:
-		add  esi, 12
-		loop loopDrug
+		add  esi, 12;
+		dec  ecx;
+		jnz  loopDrug;
+		jz   end;
 foundPid:
-		jecxz end
-		mov  eax, [esi]                           // drugInfoList.pid
-		mov  [edi], eax                           // queue_drug.drug_pid
+		mov  eax, [esi];                          // drugInfoList.pid
+		mov  [edi], eax;                          // queue_drug.drug_pid
 end:
-		xor  eax, eax
-		add  esp, 4
-		retn
+		xor  eax, eax;
+		add  esp, 4;
+		retn;
 	}
 }
 
@@ -655,7 +653,8 @@ found:
 		add  edx, [esp+0x40]                      // inventory_offset
 		mov  eax, ds:[_pud]
 		mov  ecx, [eax]                           // itemsCount
-		jecxz skip
+		test ecx, ecx
+		jz   skip
 		dec  ecx
 		cmp  edx, ecx
 		ja   skip
@@ -679,13 +678,15 @@ static void __declspec(naked) drop_ammo_into_weapon_hook() {
 		jge  skip                                 // Yes
 		lea  edx, [eax+0x2C]                      // Inventory
 		mov  ecx, [edx]                           // itemsCount
-		jcxz skip                                 // inventory is empty (another excess check, but leave it)
+		test ecx, ecx
+		jz   skip                                 // inventory is empty (another excess check, but leave it)
 		mov  edx, [edx+8]                         // FirstItem
 nextItem:
 		cmp  ebp, [edx]                           // Our weapon?
 		je   foundItem                            // Yes
 		add  edx, 8                               // Go to the next
-		loop nextItem
+		dec  ecx
+		jnz  nextItem
 		jmp  skip                                 // Our weapon is not in inventory
 foundItem:
 		cmp  dword ptr [edx+4], 1                 // Only one weapon?

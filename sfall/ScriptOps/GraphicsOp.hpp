@@ -169,7 +169,7 @@ static void __declspec(naked) funcGetShaderTexture() {
 		mov ebx, [esp];
 		cmp bx, VAR_TYPE_INT;
 		jnz fail;
-		mov ebx, [esp+4];
+		mov ebx, [esp + 4];
 		cmp bx, VAR_TYPE_INT;
 		jnz fail;
 		//set the new value
@@ -181,7 +181,7 @@ static void __declspec(naked) funcGetShaderTexture() {
 		pop ecx;
 		jmp end;
 fail:
-		mov edx, -1
+		mov edx, -1;
 end:
 		//Pass back the result
 		mov eax, ecx;
@@ -213,7 +213,7 @@ static void __declspec(naked) funcSetShaderInt() {
 		mov edi, eax;
 		mov eax, ecx;
 		call interpretPopLong_;
-		mov [esp+8], eax;
+		mov [esp + 8], eax;
 		mov eax, ecx;
 		call interpretPopShort_;
 		mov edx, eax;
@@ -239,7 +239,7 @@ next:
 		mov eax, ecx;
 		mov ebx, ebp;
 		call interpretGetString_;
-		mov [esp+4], eax;
+		mov [esp + 4], eax;
 		call SetShaderInt;
 		jmp end;
 fail:
@@ -269,7 +269,7 @@ static void __declspec(naked) funcSetShaderTexture() {
 		mov edi, eax;
 		mov eax, ecx;
 		call interpretPopLong_;
-		mov [esp+8], eax;
+		mov [esp + 8], eax;
 		mov eax, ecx;
 		call interpretPopShort_;
 		mov edx, eax;
@@ -295,7 +295,7 @@ next:
 		mov eax, ecx;
 		mov ebx, ebp;
 		call interpretGetString_;
-		mov [esp+4], eax;
+		mov [esp + 4], eax;
 		call SetShaderTexture;
 		jmp end;
 fail:
@@ -325,7 +325,7 @@ static void __declspec(naked) funcSetShaderFloat() {
 		mov edi, eax;
 		mov eax, ecx;
 		call interpretPopLong_;
-		mov [esp+8], eax;
+		mov [esp + 8], eax;
 		mov eax, ecx;
 		call interpretPopShort_;
 		mov edx, eax;
@@ -343,8 +343,8 @@ static void __declspec(naked) funcSetShaderFloat() {
 		jz paramWasFloat;
 		cmp di, VAR_TYPE_INT;
 		jnz fail;
-		fild [esp+8];
-		fstp [esp+8];
+		fild [esp + 8];
+		fstp [esp + 8];
 paramWasFloat:
 		cmp dx, VAR_TYPE_STR2;
 		jz next;
@@ -356,7 +356,7 @@ next:
 		mov eax, ecx;
 		mov ebx, ebp;
 		call interpretGetString_;
-		mov [esp+4], eax;
+		mov [esp + 4], eax;
 		call SetShaderFloat;
 		jmp end;
 fail:
@@ -384,35 +384,37 @@ static void __declspec(naked) funcSetShaderVector() {
 argloopstart:
 		mov eax, ebp;
 		call interpretPopShort_;
-		mov word ptr [esp+ecx*2+0x16], ax;
+		mov word ptr [esp + ecx * 2 + 0x16], ax;
 		mov eax, ebp;
 		call interpretPopLong_;
-		mov [esp+ecx*4-0x4], eax;
-		loop argloopstart;
+		mov [esp + ecx * 4 - 0x4], eax;
+		dec ecx;
+		jnz argloopstart;
 		//Error check
 		mov ecx, 4;
 checkloopstart:
-		cmp word ptr [esp+ecx*2+0x1a], VAR_TYPE_FLOAT;
+		cmp word ptr [esp + ecx * 2 + 0x1a], VAR_TYPE_FLOAT;
 		jz paramWasFloat;
-		cmp word ptr [esp+ecx*2+0x1a], VAR_TYPE_INT;
+		cmp word ptr [esp + ecx * 2 + 0x1a], VAR_TYPE_INT;
 		jnz fail;
-		fild [esp+ecx*4+0x4];
-		fstp [esp+ecx*4+0x4];
+		fild [esp + ecx * 4 + 0x4];
+		fstp [esp + ecx * 4 + 0x4];
 paramWasFloat:
-		loop checkloopstart;
-		cmp word ptr [esp+0x1a], VAR_TYPE_STR2;
+		dec ecx;
+		jnz checkloopstart;
+		cmp word ptr [esp + 0x1a], VAR_TYPE_STR2;
 		jz next;
-		cmp word ptr [esp+0x1a], VAR_TYPE_STR;
+		cmp word ptr [esp + 0x1a], VAR_TYPE_STR;
 		jnz fail;
 next:
-		cmp word ptr [esp+0x18], VAR_TYPE_INT;
+		cmp word ptr [esp + 0x18], VAR_TYPE_INT;
 		jnz fail;
 		mov eax, ebp;
-		mov ebx, [esp+4];
+		mov ebx, [esp + 4];
 		xor edx, edx;
-		mov dx, word ptr [esp+0x1a];
+		mov dx, word ptr [esp + 0x1a];
 		call interpretGetString_;
-		mov [esp+4], eax;
+		mov [esp + 4], eax;
 		call SetShaderVector;
 		add esp, 0x12;
 		jmp end;

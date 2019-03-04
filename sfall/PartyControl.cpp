@@ -100,7 +100,6 @@ static void SaveRealDudeState() {
 	real_Experience = *ptr_Experience_;
 	real_free_perk = *ptr_free_perk;
 	real_unspent_skill_points = ptr_curr_pc_stat[0];
-	//real_map_elevation = *ptr_map_elevation;
 	real_sneak_working = *ptr_sneak_working;
 	SkillGetTags(real_tag_skill, 4);
 
@@ -169,6 +168,8 @@ static void TakeControlOfNPC(TGameObj* npc) {
 
 // restores the real dude state
 static void RestoreRealDudeState() {
+	*ptr_map_elevation = real_dude->elevation;
+
 	*ptr_obj_dude = real_dude;
 	*ptr_inven_dude = real_dude;
 
@@ -182,7 +183,6 @@ static void RestoreRealDudeState() {
 	*ptr_Experience_ = real_Experience;
 	*ptr_free_perk = real_free_perk;
 	ptr_curr_pc_stat[0] = real_unspent_skill_points;
-	//real_map_elevation = *ptr_map_elevation; -- why save elevation?
 	*ptr_sneak_working = real_sneak_working;
 	SkillSetTags(real_tag_skill, 4);
 

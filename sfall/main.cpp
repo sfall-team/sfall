@@ -474,7 +474,8 @@ static void __declspec(naked) game_init_databases_hook() {
 	__asm {
 		mov  ecx, ds:[_critter_db_handle];
 		mov  edx, ds:[_paths];
-		jecxz skip;
+		test ecx, ecx;
+		jz   skip;
 		mov  [ecx + 0xC], edx;                    // critter_patches.next->_paths
 		mov  edx, ecx;
 skip:
