@@ -21,6 +21,7 @@
 #include "..\main.h"
 #include "..\FalloutEngine\Fallout2.h"
 #include "HookScripts\InventoryHs.h"
+#include "Drugs.h"
 #include "HookScripts.h"
 #include "LoadGameHook.h"
 
@@ -57,7 +58,43 @@ static struct DudeState {
 	long addictGvar[8];
 	long tag_skill[4];
 	//DWORD bbox_sneak;
+	long* extendAddictGvar = nullptr;
 } realDude;
+
+static void SaveAddictGvarState() {
+	int n = 0;
+	for (int i = 0; i < Drugs::GetDrugCount(); i++) {
+		long gvarID = Drugs::GetDrugGvar(i);
+		if (gvarID > 0) realDude.extendAddictGvar[n++] = fo::var::game_global_vars[gvarID];
+	}
+}
+
+static void RestoreAddictGvarState() {
+	int n = 0;
+	for (int i = 0; i < Drugs::GetDrugCount(); i++) {
+		long gvarID = Drugs::GetDrugGvar(i);
+		if (gvarID > 0) fo::var::game_global_vars[gvarID] = realDude.extendAddictGvar[n++];
+	}
+}
+
+static bool SetAddictGvar(fo::GameObject* npc) {
+	bool isAddict = false;
+	int count = Drugs::GetDrugCount();
+	for (int i = 0; i < count; i++) {
+		long gvarID = Drugs::GetDrugGvar(i);
+		if (gvarID > 0) fo::var::game_global_vars[gvarID] = 0;
+	}
+	for (int i = 0; i < count; i++) {
+		long pid = Drugs::GetDrugPid(i);
+		if (pid > 0) {
+			long gvarID = Drugs::GetDrugGvar(i);
+			if (gvarID <= 0 || !fo::CheckAddictByPid(npc, pid)) continue;
+			fo::var::game_global_vars[gvarID] = 1;
+			isAddict = true;
+		}
+	}
+	return isAddict;
+}
 
 // saves the state of PC before moving control to NPC
 static void SaveRealDudeState() {
@@ -79,6 +116,7 @@ static void SaveRealDudeState() {
 	for (int i = 0; i < 6; i++) realDude.addictGvar[i] = fo::var::game_global_vars[fo::var::drugInfoList[i].addictGvar];
 	realDude.addictGvar[6] = fo::var::game_global_vars[fo::var::drugInfoList[7].addictGvar];
 	realDude.addictGvar[7] = fo::var::game_global_vars[fo::var::drugInfoList[8].addictGvar];
+	if (realDude.extendAddictGvar) SaveAddictGvarState();
 
 	if (skipCounterAnim) SafeWriteBatch<BYTE>(0, {0x422BDE, 0x4229EC}); // no animate
 }
@@ -123,16 +161,15 @@ static void SetCurrentDude(fo::GameObject* npc) {
 		fo::var::itemCurrentItem = 1;
 	}
 
-	long alcoholAddict = 0;
+	bool isAddict = false;
+	for (int i = 0; i < 9; i++) fo::var::game_global_vars[fo::var::drugInfoList[i].addictGvar] = 0;
 	for (int i = 0; i < 9; i++) {
-		long result = fo::CheckAddictByPid(npc, fo::var::drugInfoList[i].itemPid);
-		if (i == 6) {
-			alcoholAddict = result;
-		} else if (i == 7) {
-			result |= alcoholAddict;
-		}
-		fo::var::game_global_vars[fo::var::drugInfoList[i].addictGvar] = result;
+		if (!fo::CheckAddictByPid(npc, fo::var::drugInfoList[i].itemPid)) continue;
+		fo::var::game_global_vars[fo::var::drugInfoList[i].addictGvar] = 1;
+		isAddict = true;
 	}
+	if (realDude.extendAddictGvar) isAddict |= SetAddictGvar(npc); // check new added addictions
+	fo::ToggleNpcFlag(npc, 4, isAddict); // for show/hide addiction box (fix bug)
 
 	// switch main dude_obj pointers - this should be done last!
 	fo::var::obj_dude = npc;
@@ -177,6 +214,7 @@ static void RestoreRealDudeState() {
 	for (int i = 0; i < 6; i++) fo::var::game_global_vars[fo::var::drugInfoList[i].addictGvar] = realDude.addictGvar[i];
 	fo::var::game_global_vars[fo::var::drugInfoList[7].addictGvar] = realDude.addictGvar[6];
 	fo::var::game_global_vars[fo::var::drugInfoList[8].addictGvar] = realDude.addictGvar[7];
+	if (realDude.extendAddictGvar) RestoreAddictGvarState();
 
 	if (skipCounterAnim) SafeWriteBatch<BYTE>(1, {0x422BDE, 0x4229EC}); // restore
 	fo::func::intface_redraw();
@@ -314,6 +352,9 @@ void PartyControl::init() {
 			SafeWrite16(0x4AFC1C, 0x840F);
 		}
 	};
+
+	if (Drugs::addictionGvarCount) realDude.extendAddictGvar = new long[Drugs::addictionGvarCount];
+
 	HookCall(0x454218, stat_pc_add_experience_hook); // call inside op_give_exp_points_hook
 	HookCalls(pc_flag_toggle_hook, { 0x4124F1, 0x41279A });
 
@@ -330,6 +371,10 @@ void PartyControl::init() {
 		Translate("sfall", "PartyAddictMsg", "Addict", addictMsg, 16);
 		dlogr(" Done", DL_INIT);
 	}
+}
+
+void PartyControl::exit() {
+	if (realDude.extendAddictGvar) delete[] realDude.extendAddictGvar;
 }
 
 }

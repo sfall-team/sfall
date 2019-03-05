@@ -117,6 +117,18 @@ long CheckAddictByPid(fo::GameObject* critter, long pid) {
 	/* keyword 'return' is not needed, the compiler will do everything correctly */
 }
 
+void ToggleNpcFlag(fo::GameObject* npc, long flag, bool set) {
+	Proto* protoPtr;
+	if (fo::func::proto_ptr(npc->protoId, &protoPtr) != -1) {
+		long bit = (1 << flag);
+		if (set) {
+			protoPtr->critter.critterFlags |= bit;
+		} else {
+			protoPtr->critter.critterFlags &= ~bit;
+		}
+	}
+}
+
 //---------------------------------------------------------
 //print text to surface
 void PrintText(char *DisplayText, BYTE ColourIndex, DWORD Xpos, DWORD Ypos, DWORD TxtWidth, DWORD ToWidth, BYTE *ToSurface) {

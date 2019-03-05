@@ -1,5 +1,6 @@
 #include "..\main.h"
 #include "..\FalloutEngine\Fallout2.h"
+#include "Drugs.h"
 #include "LoadGameHook.h"
 #include "ScriptExtender.h"
 
@@ -16,13 +17,51 @@ static DWORD weightOnBody = 0;
 
 static char textBuf[355];
 
+std::list<int> drugsPid;
+
+static void __fastcall DrugPidPush(int pid) {
+	drugsPid.push_back(pid);
+}
+
+static int __fastcall DrugPidPop() {
+	if (drugsPid.empty()) return 0;
+	int pid = drugsPid.front();
+	drugsPid.pop_front();
+	return pid;
+}
+
+void BugFixes::DrugsSaveFix(HANDLE file) {
+	DWORD sizeWrite, count = drugsPid.size();
+	WriteFile(file, &count, 4, &sizeWrite, 0);
+	if (!count) return;
+	for (auto it = drugsPid.begin(); it != drugsPid.end(); it++) {
+		int pid = *it;
+		WriteFile(file, &pid, 4, &sizeWrite, 0);
+	}
+	drugsPid.clear();
+	return;
+}
+
+bool BugFixes::DrugsLoadFix(HANDLE file) {
+	DWORD count, sizeRead;
+	ReadFile(file, &count, 4, &sizeRead, 0);
+	//if (sizeRead != 4) return true;
+	for (DWORD i = 0; i < count; i++) {
+		DWORD pid;
+		ReadFile(file, &pid, 4, &sizeRead, 0);
+		if (sizeRead != 4) return true;
+		drugsPid.push_back(pid);
+	}
+	return false;
+}
+
 void ResetBodyState() {
 	__asm mov critterBody, 0;
 	__asm mov sizeOnBody, 0;
 	__asm mov weightOnBody, 0;
 }
 
-void GameInitialization() {
+static void MusicVolInitialization() {
 	*(DWORD*)FO_VAR_gDialogMusicVol = *(DWORD*)FO_VAR_background_volume; // fix dialog music
 }
 
@@ -224,7 +263,7 @@ static void __declspec(naked) RemoveJetAddictFunc() {
 		jne  end;
 		cmp  dword ptr [edx + 0x4], PID_JET;      // queue_addict.drug_pid == PID_JET?
 end:
-		sete al;  // 1 = Delete from queue, 0 = Don't touch
+		sete al;                                  // 1 = Delete from queue, 0 = Don't touch
 		and  eax, 0xFF;
 		retn;
 	}
@@ -247,12 +286,13 @@ skip:
 	}
 }
 
-static void __declspec(naked) item_d_load_hack() {
+static void __declspec(naked) item_d_load_subfix() {
 	__asm {
 		sub  esp, 4;                              // proto buf
-		mov  [ebp], edi;                          // edi->queue_drug
-		mov  ecx, 7;
-		mov  esi, FO_VAR_drugInfoList + 12;
+//		mov  [ebp], edi;                          // edi->queue_drug
+		mov  ecx, 9;                              // vanilla count
+		mov  esi, FO_VAR_drugInfoList;
+		mov  ebx, 12;
 loopDrug:
 		cmp  dword ptr [esi + 8], 0;              // drugInfoList.numeffects
 		je   nextDrug;
@@ -270,16 +310,54 @@ loopDrug:
 		cmp  eax, [edi + 0xC];                    // drug.stat2 == queue_drug.stat2?
 		je   foundPid;                            // Yes
 nextDrug:
-		add  esi, 12;
+		lea  esi, [esi + ebx];
 		dec  ecx;
 		jnz  loopDrug;
+		xor  ebp, ebp;                            // set drug_pid = 0
+		cmp  ebx, 12;
+		jnz  end;                                 // failed, this drug effect was not found
+		// try find in new drugs
+		call Drugs::GetDrugCount;
+		test eax, eax;
 		jz   end;
+		mov  ebx, SIZE_S_DRUGS;                   // sizeof structure
+		mov  ecx, eax;
+		lea  edx, drugs;
+		mov  esi, [edx];
+		jmp  loopDrug;
 foundPid:
-		mov  eax, [esi];                          // drugInfoList.pid
-		mov  [edi], eax;                          // queue_drug.drug_pid
+		mov  ebp, [esi];                          // drugInfoList.pid
 end:
+		mov  [edi], ebp;                          // queue_drug.drug_pid
 		xor  eax, eax;
 		add  esp, 4;
+		retn;
+	}
+}
+
+// take the drug pid from the list after loading sfalldb.sav
+static void __declspec(naked) item_d_load_hack() {
+	__asm {
+		mov  [ebp], edi;                          // edi->queue_drug
+		call DrugPidPop;
+		test eax, eax;
+		jnz  skip;
+		jmp  item_d_load_subfix;                  // if the pid was not saved, then try to find it
+skip:
+		mov  [edi], eax;                          // queue_drug.drug_pid
+		xor  eax, eax;
+		retn;
+	}
+}
+
+// add drug pid to the list to save to sfalldb.sav
+static void __declspec(naked) item_d_save_hack() {
+	__asm {
+		pushadc;
+		mov  ecx, [edx];                          // drug pid
+		call DrugPidPush;
+		popadc;
+		mov  ebx, 3;
 		retn;
 	}
 }
@@ -1827,7 +1905,7 @@ void BugFixes::init()
 	#endif
 
 	// Missing game initialization
-	LoadGameHook::OnGameInit() += GameInitialization;
+	LoadGameHook::OnGameInit() += MusicVolInitialization;
 
 	// fix vanilla negate operator on float values
 	MakeCall(0x46AB68, NegateFixHack);
@@ -1887,18 +1965,8 @@ void BugFixes::init()
 
 	// Fix for gaining stats from more than two doses of a specific chem after save-load
 	dlog("Applying fix for save-load unlimited drug use exploit.", DL_INIT);
-	if (GetConfigInt("Misc", "DrugsSaveFix", 0)) {
-		// games saved while the player is under drug effects will be incompatible
-		// item_d_save_
-		SafeWrite8(0x47A25C, 4);
-		SafeWrite8(0x47A262, 0);
-		// item_d_load_
-		SafeWrite8(0x47A1F6, 4);
-		SafeWrite8(0x47A1FB, 0xCA); // mov edx, esp > mov edx, ecx
-		SafeWrite8(0x47A21B, 0x27); // jnz 0x47A243
-	} else {
-		MakeCall(0x47A243, item_d_load_hack); // partial fix without breaking save game compatibility
-	}
+	MakeCall(0x47A25B, item_d_save_hack);
+	MakeCall(0x47A243, item_d_load_hack);
 	dlogr(" Done", DL_INIT);
 
 	// Fix crash when leaving the map while waiting for someone to die of a super stimpak overdose

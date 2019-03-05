@@ -26,6 +26,7 @@ class PartyControl : public Module {
 public:
 	const char* name() { return "PartyControl"; }
 	void init();
+	void exit() override;
 
 	static int __stdcall SwitchHandHook(fo::GameObject* item);
 
