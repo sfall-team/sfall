@@ -103,7 +103,7 @@
 #define RMOBJ_RM_MULT_OBJS        4563866
 #define RMOBJ_REPLACE_WEAPON      4658526
 #define RMOBJ_THROW               4266040
-#define RMOBJ_SUB_CONTAINER       4683191  // search and remove the item in the nested container of inventory
+#define RMOBJ_SUB_CONTAINER       4683191  // search and remove the item from the nested containers in the inventory
 
 // offsets for get_proto_data
 #define PROTO_PID             (1)
