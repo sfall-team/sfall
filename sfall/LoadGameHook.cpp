@@ -256,7 +256,7 @@ static void __declspec(naked) EndLoadHook() {
 }
 
 static void _stdcall GameInitialized() {
-	GameInitialization();
+	MusicVolInitialization();
 }
 
 static void __declspec(naked) GameInitHook() {

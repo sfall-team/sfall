@@ -3,6 +3,6 @@
 void BugsInit();
 
 void ResetBodyState();
-void GameInitialization();
+void MusicVolInitialization();
 
 extern int tagSkill4LevelBase;

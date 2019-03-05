@@ -25,7 +25,7 @@ void ResetBodyState() {
 	__asm mov weightOnBody, 0;
 }
 
-void GameInitialization() {
+void MusicVolInitialization() {
 	*(DWORD*)_gDialogMusicVol = *(DWORD*)_background_volume; // fix dialog music
 }
 
@@ -227,7 +227,7 @@ static void __declspec(naked) RemoveJetAddictFunc() {
 		jne  end;
 		cmp  dword ptr [edx + 0x4], PID_JET;      // queue_addict.drug_pid == PID_JET?
 end:
-		sete al;  // 1 = Delete from queue, 0 = Don't touch
+		sete al;                                  // 1 = Delete from queue, 0 = Don't touch
 		and  eax, 0xFF;
 		retn;
 	}
@@ -253,7 +253,7 @@ skip:
 static void __declspec(naked) item_d_load_hack() {
 	__asm {
 		sub  esp, 4;                              // proto buf
-		mov  [ebp], edi;                          // edi->queue_drug
+//		mov  [ebp], edi;                          // edi->queue_drug
 		mov  ecx, 7;
 		mov  esi, _drugInfoList + 12;
 loopDrug:
@@ -276,11 +276,11 @@ nextDrug:
 		add  esi, 12;
 		dec  ecx;
 		jnz  loopDrug;
-		jz   end;
+		jmp  end;
 foundPid:
-		mov  eax, [esi];                          // drugInfoList.pid
-		mov  [edi], eax;                          // queue_drug.drug_pid
+		mov  ecx, [esi];                          // drugInfoList.pid
 end:
+		mov  [edi], ecx;                          // queue_drug.drug_pid
 		xor  eax, eax;
 		add  esp, 4;
 		retn;
