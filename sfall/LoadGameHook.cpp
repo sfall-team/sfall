@@ -104,6 +104,7 @@ static void _stdcall SaveGame2() {
 		WriteFile(h, &data, 4, &size, 0);
 		PerksSave(h);
 		SaveArrays(h);
+		DrugsSaveFix(h);
 		CloseHandle(h);
 	} else {
 		goto errorSave;
@@ -194,6 +195,7 @@ static bool _stdcall LoadGame2_Before() {
 		ReadFile(h, &data, 4, &size, 0);
 		SetAddedYears(data >> 16);
 		if (size != 4 || !PerksLoad(h) || LoadArrays(h)) goto errorLoad;
+		if (DrugsLoadFix(h)) goto errorLoad;
 		CloseHandle(h);
 	} else {
 		dlogr("Cannot open sfallgv.sav - assuming non-sfall save.", DL_MAIN);

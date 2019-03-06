@@ -19,6 +19,43 @@ static const DWORD ScriptTargetAddr[] = {
 	0x456AA4, // op_use_obj_
 };
 
+std::list<int> drugsPid;
+
+static void __fastcall DrugPidPush(int pid) {
+	drugsPid.push_back(pid);
+}
+
+static int __fastcall DrugPidPop() {
+	if (drugsPid.empty()) return 0;
+	int pid = drugsPid.front();
+	drugsPid.pop_front();
+	return pid;
+}
+
+void DrugsSaveFix(HANDLE file) {
+	DWORD sizeWrite, count = drugsPid.size();
+	WriteFile(file, &count, 4, &sizeWrite, 0);
+	if (!count) return;
+	for (std::list<int>::iterator it = drugsPid.begin(); it != drugsPid.end(); it++) {
+		int pid = *it;
+		WriteFile(file, &pid, 4, &sizeWrite, 0);
+	}
+	drugsPid.clear();
+	return;
+}
+
+bool DrugsLoadFix(HANDLE file) {
+	DWORD count, sizeRead;
+	ReadFile(file, &count, 4, &sizeRead, 0);
+	for (DWORD i = 0; i < count; i++) {
+		DWORD pid;
+		ReadFile(file, &pid, 4, &sizeRead, 0);
+		if (sizeRead != 4) return true;
+		drugsPid.push_back(pid);
+	}
+	return false;
+}
+
 void ResetBodyState() {
 	__asm mov critterBody, 0;
 	__asm mov sizeOnBody, 0;
@@ -250,11 +287,11 @@ skip:
 	}
 }
 
-static void __declspec(naked) item_d_load_hack() {
+static void __declspec(naked) item_d_load_subfix() {
 	__asm {
 		sub  esp, 4;                              // proto buf
 //		mov  [ebp], edi;                          // edi->queue_drug
-		mov  ecx, 7;
+		mov  ecx, 9;                              // vanilla count
 		mov  esi, _drugInfoList + 12;
 loopDrug:
 		cmp  dword ptr [esi + 8], 0;              // drugInfoList.numeffects
@@ -283,6 +320,33 @@ end:
 		mov  [edi], ecx;                          // queue_drug.drug_pid
 		xor  eax, eax;
 		add  esp, 4;
+		retn;
+	}
+}
+
+// take the drug pid from the list after loading sfallgv.sav
+static void __declspec(naked) item_d_load_hack() {
+	__asm {
+		mov  [ebp], edi;                          // edi->queue_drug
+		call DrugPidPop;
+		test eax, eax;
+		jnz  skip;
+		jmp  item_d_load_subfix;                  // if the pid was not saved, then try to find it
+skip:
+		mov  [edi], eax;                          // queue_drug.drug_pid
+		xor  eax, eax;
+		retn;
+	}
+}
+
+// add drug pid to the list to save to sfallgv.sav
+static void __declspec(naked) item_d_save_hack() {
+	__asm {
+		pushadc;
+		mov  ecx, [edx];                          // drug pid
+		call DrugPidPush;
+		popadc;
+		mov  ebx, 3;
 		retn;
 	}
 }
@@ -1862,6 +1926,7 @@ void BugsInit()
 
 	// Fix for gaining stats from more than two doses of a specific chem after save-load
 	dlog("Applying fix for save-load unlimited drug use exploit.", DL_INIT);
+	MakeCall(0x47A25B, item_d_save_hack);
 	MakeCall(0x47A243, item_d_load_hack);
 	dlogr(" Done", DL_INIT);
 
