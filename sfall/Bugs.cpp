@@ -47,6 +47,7 @@ void DrugsSaveFix(HANDLE file) {
 bool DrugsLoadFix(HANDLE file) {
 	DWORD count, sizeRead;
 	ReadFile(file, &count, 4, &sizeRead, 0);
+	//if (sizeRead != 4) return true;
 	for (DWORD i = 0; i < count; i++) {
 		DWORD pid;
 		ReadFile(file, &pid, 4, &sizeRead, 0);
@@ -292,7 +293,7 @@ static void __declspec(naked) item_d_load_subfix() {
 		sub  esp, 4;                              // proto buf
 //		mov  [ebp], edi;                          // edi->queue_drug
 		mov  ecx, 9;                              // vanilla count
-		mov  esi, _drugInfoList + 12;
+		mov  esi, _drugInfoList;
 loopDrug:
 		cmp  dword ptr [esi + 8], 0;              // drugInfoList.numeffects
 		je   nextDrug;
