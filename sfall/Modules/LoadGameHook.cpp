@@ -129,6 +129,7 @@ static void _stdcall SaveGame2() {
 		WriteFile(h, &data, 4, &size, 0);
 		Perks::save(h);
 		script::SaveArrays(h);
+		BugFixes::DrugsSaveFix(h);
 		CloseHandle(h);
 	} else {
 		goto errorSave;
@@ -138,7 +139,6 @@ static void _stdcall SaveGame2() {
 	h = CreateFileA(buf, GENERIC_WRITE, 0, 0, CREATE_ALWAYS, 0, 0);
 	if (h != INVALID_HANDLE_VALUE) {
 		Worldmap::SaveData(h);
-		BugFixes::DrugsSaveFix(h);
 		CloseHandle(h);
 	} else {
 		goto errorSave;
@@ -226,6 +226,7 @@ static bool LoadGame_Before() {
 		ReadFile(h, &data, 4, &size, 0);
 		Worldmap::SetAddedYears(data >> 16);
 		if (size != 4 || !Perks::load(h) || script::LoadArrays(h)) goto errorLoad;
+		if (BugFixes::DrugsLoadFix(h)) goto errorLoad;
 		CloseHandle(h);
 	} else {
 		dlogr("Cannot open sfallgv.sav - assuming non-sfall save.", DL_MAIN);
@@ -236,7 +237,6 @@ static bool LoadGame_Before() {
 	h = CreateFileA(buf, GENERIC_READ, FILE_SHARE_READ, 0, OPEN_EXISTING, 0, 0);
 	if (h != INVALID_HANDLE_VALUE) {
 		if (Worldmap::LoadData(h)) goto errorLoad;
-		if (BugFixes::DrugsLoadFix(h)) goto errorLoad;
 		CloseHandle(h);
 	} else {
 		dlogr("Cannot open sfalldb.sav.", DL_MAIN);

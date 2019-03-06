@@ -214,7 +214,7 @@ static DWORD getBlockingFunc(DWORD type) {
 		return fo::funcoffs::obj_ai_blocking_at_;
 	case BLOCKING_TYPE_SIGHT:
 		return fo::funcoffs::obj_sight_blocking_at_;
-	//case 4: 
+	//case 4:
 	//	return obj_scroll_blocking_at_;
 
 	}
@@ -494,7 +494,7 @@ void sf_get_object_ai_data(OpcodeContext& ctx) {
 		value = arrayId;
 		break;
 	default:
-		ctx.printOpcodeError("get_object_ai_data() - invalid AI parameter.");
+		ctx.printOpcodeError("get_object_ai_data() - invalid value for AI argument.");
 	}
 	ctx.setReturn(value, DataType::INT);
 }

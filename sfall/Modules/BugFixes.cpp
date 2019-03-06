@@ -290,6 +290,7 @@ static void __declspec(naked) item_d_load_subfix() {
 	__asm {
 		sub  esp, 4;                              // proto buf
 //		mov  [ebp], edi;                          // edi->queue_drug
+		xor  ebp, ebp;                            // set drug_pid = 0
 		mov  ecx, 9;                              // vanilla count
 		mov  esi, FO_VAR_drugInfoList;
 		mov  ebx, 12;
@@ -313,7 +314,6 @@ nextDrug:
 		lea  esi, [esi + ebx];
 		dec  ecx;
 		jnz  loopDrug;
-		xor  ebp, ebp;                            // set drug_pid = 0
 		cmp  ebx, 12;
 		jnz  end;                                 // failed, this drug effect was not found
 		// try find in new drugs
