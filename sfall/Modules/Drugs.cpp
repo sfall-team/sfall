@@ -66,7 +66,7 @@ end:	// force exit func
 static long __fastcall AllowUseDrug(fo::GameObject* critter, DWORD pid) {
 	for (int i = 0; i < drugsCount; i++) {
 		if (drugs[i].drugPid == pid) {
-			if (drugs[i].numEffects == -1) break; // for vanilla drugs
+			if (drugs[i].numEffects == -1) break; // use NumEffects value from engine
 			if (drugs[i].numEffects == 0) return 1;
 			auto queue = (fo::QueueDrug*)fo::func::queue_find_first(critter, 0);
 			if (!queue) return 1;
@@ -217,9 +217,8 @@ static void ResetDrugs() {
 		if (set != -1) {
 			fo::var::drugInfoList[set].numEffects = drugs[i].iniNumEffects;
 			set = -1;
-		} else {
-			drugs[i].numEffects = drugs[i].iniNumEffects;
 		}
+		drugs[i].numEffects = drugs[i].iniNumEffects;
 		drugs[i].addictTimeOff = drugs[i].iniAddictTimeOff;
 	}
 }
@@ -241,11 +240,8 @@ long Drugs::SetDrugNumEffect(long pid, long effect) {
 		if (drugs[i].drugPid == pid) {
 			int set = -1;
 			CheckEngineNumEffects(set, pid);
-			if (set != -1) {
-				fo::var::drugInfoList[set].numEffects = effect;
-			} else {
-				drugs[i].numEffects = effect;
-			}
+			if (set != -1) fo::var::drugInfoList[set].numEffects = effect;
+			drugs[i].numEffects = effect;
 			drugsReset = true;
 			return 0;
 		}
@@ -288,14 +284,16 @@ void Drugs::init() {
 					drugs[drugsCount].addictTimeOff = drugs[drugsCount].iniAddictTimeOff = GetPrivateProfileIntA(section, "AddictTime", 0, iniDrugs);
 					long ef = GetPrivateProfileIntA(section, "NumEffects", -1, iniDrugs);
 					if (set != -1) {
-						if (ef > -1) {
-							drugs[i].iniNumEffects = ef;
-							fo::var::drugInfoList[set].numEffects = ef;
+						if (ef < -1) {
+							ef = -1;
+						} else if (ef > -1) {
+							drugs[drugsCount].iniNumEffects = ef;
+							fo::var::drugInfoList[set].numEffects = ef; // also set to engine
 						} else {
-							drugs[i].iniNumEffects = fo::var::drugInfoList[set].numEffects; // default value from engine
+							drugs[drugsCount].iniNumEffects = fo::var::drugInfoList[set].numEffects; // default value from engine
 						}
 						set = -1;
-						drugs[i].numEffects = set; // set -1, to use the value from the engine
+						drugs[drugsCount].numEffects = ef; // -1 to use the value from the engine
 					} else {
 						drugs[drugsCount].numEffects = drugs[drugsCount].iniNumEffects = max(0, ef);
 						int gvar = GetPrivateProfileIntA(section, "GvarID", 0, iniDrugs);
