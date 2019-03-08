@@ -117,6 +117,7 @@ static const SfallMetarule metarules[] = {
 	{"set_can_rest_on_map",     sf_set_rest_on_map,         3, 3, {ARG_INT, ARG_INT, ARG_INT}},
 	{"set_car_intface_art",     sf_set_car_intface_art,     1, 1, {ARG_INT}},
 	{"set_cursor_mode",         sf_set_cursor_mode,         1, 1, {ARG_INT}},
+	{"set_drugs_data",          sf_set_drugs_data,          3, 3, {ARG_INT, ARG_INT, ARG_INT}},
 	{"set_dude_obj",            sf_set_dude_obj,            1, 1, {ARG_OBJECT}},
 	{"set_flags",               sf_set_flags,               2, 2, {ARG_OBJECT, ARG_INT}},
 	{"set_iface_tag_text",      sf_set_iface_tag_text,      3, 3, {ARG_INT, ARG_STRING, ARG_INT}},

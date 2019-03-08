@@ -292,20 +292,20 @@ void Drugs::init() {
 							drugs[i].iniNumEffects = ef;
 							fo::var::drugInfoList[set].numEffects = ef;
 						} else {
-							drugs[i].iniNumEffects = fo::var::drugInfoList[set].numEffects;
+							drugs[i].iniNumEffects = fo::var::drugInfoList[set].numEffects; // default value from engine
 						}
 						set = -1;
 						drugs[i].numEffects = set; // set -1, to use the value from the engine
-						continue;
-					}
-					drugs[drugsCount].numEffects = drugs[drugsCount].iniNumEffects = max(0, ef);
-					int gvar = GetPrivateProfileIntA(section, "GvarID", 0, iniDrugs);
-					drugs[drugsCount].gvarID = max(0, gvar); // not allow negative values
-					if (gvar) {
-						int msg = GetPrivateProfileIntA(section, "TextID", -1, iniDrugs);
-						drugs[drugsCount].msgID = (msg > 0) ? msg : -1;
-						drugs[drugsCount].frmID = GetPrivateProfileIntA(section, "FrmID", -1, iniDrugs);
-						addictionGvarCount++;
+					} else {
+						drugs[drugsCount].numEffects = drugs[drugsCount].iniNumEffects = max(0, ef);
+						int gvar = GetPrivateProfileIntA(section, "GvarID", 0, iniDrugs);
+						drugs[drugsCount].gvarID = max(0, gvar); // not allow negative values
+						if (gvar) {
+							int msg = GetPrivateProfileIntA(section, "TextID", -1, iniDrugs);
+							drugs[drugsCount].msgID = (msg > 0) ? msg : -1;
+							drugs[drugsCount].frmID = GetPrivateProfileIntA(section, "FrmID", -1, iniDrugs);
+							addictionGvarCount++;
+						}
 					}
 					drugsCount++;
 				}
@@ -315,7 +315,7 @@ void Drugs::init() {
 				MakeCall(0x43C15C, list_karma_hack, 2);
 				MakeCall(0x47A5B8, pid_to_gvar_hack, 1);
 				MakeCall(0x47A50C, perform_withdrawal_start_hack);
-				SafeWrite32(0x47A523, 0x9090EBD1); // shr ebx, 1
+				SafeWrite32(0x47A523, 0x9090EBD1); // shr ebx, 1 (fix for trait drug addict)
 				SafeWrite8(0x47A527, 0x90);
 
 				if (addictionGvarCount) {

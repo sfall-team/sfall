@@ -18,6 +18,7 @@
 
 #include "..\..\..\FalloutEngine\Fallout2.h"
 #include "..\..\Combat.h"
+#include "..\..\Drugs.h"
 #include "..\..\Explosions.h"
 #include "..\..\Inventory.h"
 #include "..\..\LoadGameHook.h"
@@ -497,6 +498,25 @@ void sf_get_object_ai_data(OpcodeContext& ctx) {
 		ctx.printOpcodeError("get_object_ai_data() - invalid value for AI argument.");
 	}
 	ctx.setReturn(value, DataType::INT);
+}
+
+void sf_set_drugs_data(OpcodeContext& ctx) {
+	int type = ctx.arg(0).rawValue();
+	int pid = ctx.arg(1).rawValue();
+	int val = ctx.arg(2).rawValue();
+	int result;
+	switch (type) {
+	case 0:
+		result = Drugs::SetDrugNumEffect(pid, val);
+		break;
+	case 1:
+		result = Drugs::SetDrugAddictTimeOff(pid, val);
+		break;
+	default:
+		ctx.printOpcodeError("set_drugs_data() - invalid value for type argument.");
+		return;
+	}
+	if (result) ctx.printOpcodeError("set_drugs_data() - drug PID not found in the configuration file.");
 }
 
 }

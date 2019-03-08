@@ -335,7 +335,7 @@ end:
 	}
 }
 
-// take the drug pid from the list after loading sfalldb.sav
+// take the drug pid from the list after loading sfallgv.sav
 static void __declspec(naked) item_d_load_hack() {
 	__asm {
 		mov  [ebp], edi;                          // edi->queue_drug
@@ -350,7 +350,7 @@ skip:
 	}
 }
 
-// add drug pid to the list to save to sfalldb.sav
+// add drug pid to the list to save to sfallgv.sav
 static void __declspec(naked) item_d_save_hack() {
 	__asm {
 		pushadc;

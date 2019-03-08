@@ -573,6 +573,11 @@ Some utility/math functions are available:
 - enables/disables the engine function that increases the level of party members in the player leveling process
 - if the engine function is disabled, the process of leveling up party members should be performed by script functions
 
+> void sfall_func3("set_drugs_data", int type, int pid, int value)
+- overrides the parameters of drugs set in the configuration file (DrugsFile setting in ddraw.ini)
+- type: 0 - changes the value of NumEffects for the drug (see Drugs.ini for the description of NumEffects)
+        1 - changes the duration of the addiction effect for the drug (a value of 1 = one game minute)
+
 ------------------------
 ------ MORE INFO -------
 ------------------------
