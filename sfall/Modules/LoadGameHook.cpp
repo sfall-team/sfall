@@ -653,7 +653,7 @@ void LoadGameHook::init() {
 	HookCalls(EscMenuHook2, {0x4433BE});
 	HookCalls(OptionsMenuHook, {0x48FCE4, 0x48FD17, 0x48FD4D, 0x48FD6A, 0x48FD87, 0x48FDB3});
 	HookCalls(HelpMenuHook, {0x443A50});
-	HookCalls(CharacterHook, {0x443320, 0x4A73EB, 0x4A740A});
+	HookCalls(CharacterHook, {0x443320}); // 0x4A73EB, 0x4A740A for create character
 	HookCalls(DialogHook, {0x445748});
 	HookCalls(PipboyHook, {0x443463, 0x443605});
 	HookCalls(SkilldexHook, {0x4434AC, 0x44C7BD});
