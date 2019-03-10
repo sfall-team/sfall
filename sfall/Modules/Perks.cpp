@@ -32,7 +32,7 @@ constexpr int maxNameLen = 64;   // don't change size
 constexpr int maxDescLen = 512;  // don't change size
 const int descLen = 256;         // maximum text length for interface
 
-static char perksFile[MAX_PATH];
+static char perksFile[MAX_PATH] = {0};
 
 // TODO: Replace to dynamic massive
 static char Name[maxNameLen * PERK_count] = {0};
@@ -264,10 +264,6 @@ void _stdcall SetFakeTrait(char* name, int active, int image, char* desc) {
 	}
 }
 
-static DWORD _stdcall HaveFakeTraits() {
-	return fakeTraits.size();
-}
-
 static DWORD _stdcall HaveFakePerks() {
 	return fakePerks.size();
 }
@@ -309,7 +305,8 @@ static long _fastcall GetFakeSelectPerkImage(int id) {
 static FakePerk* _fastcall GetFakeSelectPerk(int id) {
 	if (id < startFakeID) {
 		int i = PerkSearchID(id);
-		return (i != -1) ? (FakePerk*)&extPerks[i] : 0; // Warning: if the id is not found, an exception will occur for the game!
+		if (i < 0) i = 0; // if id is not found
+		return (FakePerk*)&extPerks[i];
 	}
 	return &fakeSelectablePerks[id - startFakeID];
 }
@@ -331,38 +328,32 @@ static long _fastcall PlayerHasPerk(int* isSelectPtr) {
 	*isSelectPtr = HandleFakeTraits(*isSelectPtr);
 
 	for	(int i = 0; i < PERK_count; i++) {
-		if (fo::func::perk_level(fo::var::obj_dude, i)) return 1;
+		if (fo::func::perk_level(fo::var::obj_dude, i)) return 0x43438A; // print perks
 	}
-	return !fakePerks.empty();
+	return (!fakePerks.empty()) ? 0x43438A : 0x434446; // skip print perks
+}
+
+static DWORD _fastcall HaveFakeTraits(int* isSelectPtr) {
+	return (fakeTraits.empty()) ? PlayerHasPerk(isSelectPtr) : 0x43425B;
 }
 
 static void __declspec(naked) PlayerHasPerkHack() {
 	__asm {
-		push ecx;            // value
-		mov  ecx, esp;       // ptr to value
+		push ecx;            // isSelect
+		mov  ecx, esp;       // ptr to isSelect
 		call PlayerHasPerk;
 		pop  ecx;            // value from HandleFakeTraits
-		test eax, eax;
-		jnz  win;
-		mov  eax, 0x434446;
-		jmp  eax;
-win:
-		mov  eax, 0x43438A;
 		jmp  eax;
 	}
 }
 
 static void __declspec(naked) PlayerHasTraitHook() {
 	__asm {
-		push ecx;
+		push ecx;            // isSelect
+		mov  ecx, esp;       // ptr to isSelect
 		call HaveFakeTraits;
-		pop  ecx;
-		test eax, eax;
-		jz   end;
-		mov  eax, 0x43425B;
+		pop  ecx;            // value from HandleFakeTraits
 		jmp  eax;
-end:
-		jmp  PlayerHasPerkHack;
 	}
 }
 
@@ -425,6 +416,8 @@ fake:
 }
 
 // Searching all available perks for the player to display them in the character's interface
+static const DWORD EndPerkLoopExit = 0x434446;
+static const DWORD EndPerkLoopCont = 0x4343A5;
 static void __declspec(naked) EndPerkLoopHack() {
 	__asm {
 		jl   cLoop;           // if ebx < 119
@@ -434,11 +427,9 @@ static void __declspec(naked) EndPerkLoopHack() {
 		add  eax, PERK_count; // total = count perks + vanilla count
 		cmp  ebx, eax;        // if perkId < total then continue
 		jl   cLoop;
-		mov  eax, 0x434446;   // exit loop
-		jmp  eax;
+		jmp  EndPerkLoopExit; // exit loop
 cLoop:
-		mov  eax, 0x4343A5;   // continue loop
-		jmp  eax;
+		jmp  EndPerkLoopCont; // continue loop
 	}
 }
 
@@ -447,16 +438,16 @@ cLoop:
 static DWORD _stdcall HandleExtraSelectablePerks(DWORD available, DWORD* data) {
 	size_t count = extPerks.size();
 	for (size_t i = 0; i < count; i++) {
-		if (available >= 119) break; // exit loop if the buffer is full
+		if (available >= 119) break; // exit if the buffer is overfull
 		if (fo::func::perk_can_add(fo::var::obj_dude, extPerks[i].id)) data[available++] = extPerks[i].id;
 	}
 	count = fakeSelectablePerks.size();
 	for (size_t i = 0; i < count; i++) {
 		if (available >= 119) break;
-		// for fake perks, their ID must begin the number 256
+		// for fake perks, their ID should start from 256
 		data[available++] = startFakeID + i; //*(WORD*)(_name_sort_list + (offset+i)*8)=(WORD)(PERK_count+i);
 	}
-	return available; // total number of perks available the selection
+	return available; // total number of perks available for selection
 }
 
 static void __declspec(naked) GetAvailablePerksHook() {
@@ -544,7 +535,11 @@ fake:
 
 static void PerkSkillMod(fo::GameObject* critter, long skill, long mod, long type) {
 	if (mod == 0 || skill >= fo::SKILL_count) return;
-	if (fo::func::skill_is_tagged(skill)) mod *= 2;
+	if (mod < 0) {
+		type = !type;
+		mod = -mod;
+	}
+	if (fo::func::skill_is_tagged(skill)) mod /= 2;
 	do {
 		if (type) {
 			fo::func::skill_inc_point_force(critter, skill);
@@ -599,7 +594,7 @@ static void _stdcall AddFakePerk(DWORD perkID) {
 		fo::func::perk_add_effect(fo::var::obj_dude, perkID);
 		return;
 	}
-	// for fake perk behavior
+	// behavior for fake perk/trait
 	perkID -= startFakeID;
 	if (addPerkMode & 1) { // add perk to trait
 		count = fakeTraits.size();
@@ -1324,11 +1319,7 @@ void PerksCancelCharScreen() {
 	if (RemovePerkID.size() > 1) RemovePerkID.sort(); // sorting to correctly remove from the end
 	while (!RemovePerkID.empty()) {
 		int index = RemovePerkID.back();
-		if (!--fakePerks[index].Level) {
-			//int perkID = fakePerks[index].id;
-			//if (perkID != -1) fo::func::perk_remove_effect(fo::var::obj_dude, perkID);
-			fakePerks.erase(fakePerks.begin() + index);
-		}
+		if (!--fakePerks[index].Level) fakePerks.erase(fakePerks.begin() + index);
 		RemovePerkID.pop_back();
 	}
 }
@@ -1354,7 +1345,7 @@ void Perks::init() {
 		perksFile[0] = '.';
 		perksFile[1] = '\\';
 		HookCall(0x44272E, TraitInitWrapper); // game_init_
-	} //else perksFile[0] = 0;
+	}
 
 	LoadGameHook::OnGameReset() += PerksReset;
 }
