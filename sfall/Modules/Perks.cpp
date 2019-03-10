@@ -1279,16 +1279,22 @@ void _stdcall AddPerkMode(DWORD mode) {
 	addPerkMode = mode;
 }
 
-DWORD _stdcall HasFakePerk(char* name) {
+DWORD HasFakePerk(const char* name, long id) {
+	if (id < PERK_count && name[0] == 0) return 0;
 	for (DWORD i = 0; i < fakePerks.size(); i++) {
-		if (!strcmp(name, fakePerks[i].Name)) {
-			return fakePerks[i].Level; // current perk level
+		if (id) {
+			if (fakePerks[i].id == id) return fakePerks[i].Level;
+		} else {
+			if (!strcmp(name, fakePerks[i].Name)) {
+				return fakePerks[i].Level; // current perk level
+			}
 		}
 	}
 	return 0;
 }
 
-DWORD _stdcall HasFakeTrait(char* name) {
+DWORD _stdcall HasFakeTrait(const char* name) {
+	if (name[0] == 0) return 0;
 	for (DWORD i = 0; i < fakeTraits.size(); i++) {
 		if (!strcmp(name, fakeTraits[i].Name)) {
 			return 1;
