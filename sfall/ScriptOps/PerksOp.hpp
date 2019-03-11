@@ -85,7 +85,7 @@ static void __declspec(naked) GetPerkAvailable() {
 		jge fail;
 		mov edx, eax;
 		mov eax, ds:[_obj_dude];
-		call perk_make_list_;
+		call perk_can_add_;
 		mov edx, eax;
 		jmp end;
 fail:

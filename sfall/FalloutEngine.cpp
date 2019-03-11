@@ -526,6 +526,7 @@ const DWORD pc_flag_toggle_ = 0x42E2B0;
 const DWORD perform_withdrawal_end_ = 0x47A558;
 const DWORD perk_add_ = 0x496A5C;
 const DWORD perk_add_effect_ = 0x496BFC;
+const DWORD perk_can_add_ = 0x49680C;
 const DWORD perk_description_ = 0x496BB4;
 const DWORD perk_init_ = 0x4965A0;
 const DWORD perk_level_ = 0x496B78;
