@@ -562,8 +562,8 @@ void LoadGameHookInit() {
 	HookCall(0x48FDB3, OptionsMenuHook);
 	HookCall(0x443A50, HelpMenuHook);
 	HookCall(0x443320, CharacterHook);
-	HookCall(0x4A73EB, CharacterHook);
-	HookCall(0x4A740A, CharacterHook);
+	//HookCall(0x4A73EB, CharacterHook); // character creation
+	//HookCall(0x4A740A, CharacterHook); // character creation
 	HookCall(0x445748, DialogHook);
 	HookCall(0x443463, PipboyHook);
 	HookCall(0x443605, PipboyHook);

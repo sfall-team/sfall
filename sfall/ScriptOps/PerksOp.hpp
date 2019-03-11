@@ -445,37 +445,25 @@ end:
 }
 static void __declspec(naked) fIgnoreDefaultPerks() {
 	__asm {
-		push ebx;
 		push ecx;
-		push edx;
 		call IgnoreDefaultPerks;
-		pop edx;
-		pop ecx;
-		pop ebx;
+		pop  ecx;
 		retn;
 	}
 }
 static void __declspec(naked) fRestoreDefaultPerks() {
 	__asm {
-		push ebx;
 		push ecx;
-		push edx;
 		call RestoreDefaultPerks;
-		pop edx;
-		pop ecx;
-		pop ebx;
+		pop  ecx;
 		retn;
 	}
 }
 static void __declspec(naked) fClearSelectablePerks() {
 	__asm {
-		push ebx;
 		push ecx;
-		push edx;
 		call ClearSelectablePerks;
-		pop edx;
-		pop ecx;
-		pop ebx;
+		pop  ecx;
 		retn;
 	}
 }
@@ -623,13 +611,9 @@ end:
 
 static void __declspec(naked) fApplyHeaveHoFix() {
 	__asm {
-		push ebx;
 		push ecx;
-		push edx;
 		call ApplyHeaveHoFix;
-		pop edx;
-		pop ecx;
-		pop ebx;
+		pop  ecx;
 		retn;
 	}
 }
