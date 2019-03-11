@@ -19,6 +19,7 @@
 #include "..\..\..\FalloutEngine\Fallout2.h"
 #include "..\..\Perks.h"
 #include "..\..\ScriptExtender.h"
+#include "..\OpcodeContext.h"
 
 #include "Perks.h"
 
@@ -56,9 +57,9 @@ void __declspec(naked) op_set_perk_owed() {
 		cmp eax, 250;
 		jg end;
 		mov byte ptr ds : [FO_VAR_free_perk], al
-			end :
+end:
 		popad
-			retn;
+		retn;
 	}
 }
 
@@ -76,38 +77,16 @@ void __declspec(naked) op_set_perk_freq() {
 		call SetPerkFreq;
 end:
 		popad
-			retn;
+		retn;
 	}
 }
 
-void __declspec(naked) op_get_perk_available() {
-	__asm {
-		pushad;
-		mov ecx, eax;
-		call fo::funcoffs::interpretPopShort_;
-		mov edx, eax;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPopLong_;
-		cmp dx, VAR_TYPE_INT;
-		jnz fail;
-		cmp eax, PERK_count;
-		jge fail;
-		mov edx, eax;
-		mov eax, ds:[FO_VAR_obj_dude];
-		call fo::funcoffs::perk_make_list_;
-		mov edx, eax;
-		jmp end;
-fail:
-		xor edx, edx;
-end:
-		mov eax, ecx;
-		call fo::funcoffs::interpretPushLong_;
-		mov edx, VAR_TYPE_INT;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPushShort_;
-		popad;
-		retn;
+void sf_get_perk_available(OpcodeContext& ctx) {
+	int result = 0, perkId = ctx.arg(0).rawValue();
+	if (perkId >= 0 && perkId < 256) { // start fake id
+		result = fo::func::perk_can_add(fo::var::obj_dude, perkId);
 	}
+	ctx.setReturn(result);
 }
 
 void __declspec(naked) op_set_perk_name() {
@@ -461,77 +440,33 @@ end:
 
 void __declspec(naked) op_hide_real_perks() {
 	__asm {
-		push ebx;
 		push ecx;
-		push edx;
 		call IgnoreDefaultPerks;
-		pop edx;
-		pop ecx;
-		pop ebx;
+		pop  ecx;
 		retn;
 	}
 }
 
 void __declspec(naked) op_show_real_perks() {
 	__asm {
-		push ebx;
 		push ecx;
-		push edx;
 		call RestoreDefaultPerks;
-		pop edx;
-		pop ecx;
-		pop ebx;
+		pop  ecx;
 		retn;
 	}
 }
 
 void __declspec(naked) op_clear_selectable_perks() {
 	__asm {
-		push ebx;
 		push ecx;
-		push edx;
 		call ClearSelectablePerks;
-		pop edx;
-		pop ecx;
-		pop ebx;
+		pop  ecx;
 		retn;
 	}
 }
 
-void __declspec(naked) op_has_fake_perk() {
-	__asm {
-		push ebx;
-		push ecx;
-		push edx;
-		push edi;
-		mov edi, eax;
-		call fo::funcoffs::interpretPopShort_;
-		mov edx, eax;
-		mov eax, edi;
-		call fo::funcoffs::interpretPopLong_;
-		cmp dx, VAR_TYPE_STR2;
-		jz next;
-		cmp dx, VAR_TYPE_STR;
-		jnz end;
-next:
-		mov ebx, eax;
-		mov eax, edi;
-		call fo::funcoffs::interpretGetString_;
-		push eax;
-		call HasFakePerk;
-end:
-		mov edx, eax;
-		mov eax, edi;
-		call fo::funcoffs::interpretPushLong_;
-		mov eax, edi;
-		mov edx, VAR_TYPE_INT;
-		call fo::funcoffs::interpretPushShort_;
-		pop edi;
-		pop edx;
-		pop ecx;
-		pop ebx;
-		retn;
-	}
+void sf_has_fake_perk(OpcodeContext& ctx) {
+	ctx.setReturn(HasFakePerk(ctx.arg(0).asString(), ctx.arg(0).asInt()));
 }
 
 void __declspec(naked) op_has_fake_trait() {
@@ -645,13 +580,9 @@ end:
 
 void __declspec(naked) op_apply_heaveho_fix() {
 	__asm {
-		push ebx;
 		push ecx;
-		push edx;
 		call ApplyHeaveHoFix;
-		pop edx;
-		pop ecx;
-		pop ebx;
+		pop  ecx;
 		retn;
 	}
 }

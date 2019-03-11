@@ -65,10 +65,13 @@ static SfallOpcodeInfo opcodeInfoArray[] = {
 	{0x163, "get_year",                  sf_get_year,                  0, true},
 	{0x16c, "key_pressed",               sf_key_pressed,               1, true,  {ARG_INT}},
 
+	{0x190, "get_perk_available",        sf_get_perk_available,        1, true,  {ARG_INT}},
 	{0x19d, "set_sfall_global",          sf_set_sfall_global,          2, false, {ARG_INTSTR, ARG_NUMBER}},
 	{0x19e, "get_sfall_global_int",      sf_get_sfall_global_int,      1, true,  {ARG_INTSTR}},
 	{0x19f, "get_sfall_global_float",    sf_get_sfall_global_float,    1, true,  {ARG_INTSTR}},
 	{0x1a5, "inc_npc_level",             sf_inc_npc_level,             1, false, {ARG_INTSTR}},
+
+	{0x1c1, "has_fake_perk",             sf_has_fake_perk,             1, true,  {ARG_INTSTR}},
 
 	{0x1dc, "show_iface_tag",            sf_show_iface_tag,            1, false, {ARG_INT}},
 	{0x1dd, "hide_iface_tag",            sf_hide_iface_tag,            1, false, {ARG_INT}},
@@ -286,7 +289,6 @@ void InitNewOpcodes() {
 	}
 	opcodes[0x18e] = op_get_perk_owed;
 	opcodes[0x18f] = op_set_perk_owed;
-	opcodes[0x190] = op_get_perk_available;
 	opcodes[0x191] = op_get_critter_current_ap;
 	opcodes[0x192] = op_set_critter_current_ap;
 	opcodes[0x193] = op_active_hand;
@@ -331,7 +333,6 @@ void InitNewOpcodes() {
 	opcodes[0x1be] = op_set_perkbox_title;
 	opcodes[0x1bf] = op_hide_real_perks;
 	opcodes[0x1c0] = op_show_real_perks;
-	opcodes[0x1c1] = op_has_fake_perk;
 	opcodes[0x1c2] = op_has_fake_trait;
 	opcodes[0x1c3] = op_perk_add_mode;
 	opcodes[0x1c4] = op_clear_selectable_perks;

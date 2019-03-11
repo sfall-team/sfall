@@ -185,7 +185,7 @@
 0x81be - void set_perkbox_title(string title)
 0x81bf - void hide_real_perks()
 0x81c0 - void show_real_perks()
-0x81c1 - int has_fake_perk(string name)
+0x81c1 - int has_fake_perk(string name/int extraPerkID)
 0x81c2 - int has_fake_trait(string name)
 0x81c3 - void perk_add_mode(int type)
 0x81c4 - void clear_selectable_perks()

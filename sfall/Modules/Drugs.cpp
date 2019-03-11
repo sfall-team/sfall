@@ -238,6 +238,7 @@ long Drugs::GetDrugGvar(long n) {
 long Drugs::SetDrugNumEffect(long pid, long effect) {
 	for (int i = 0; i < drugsCount; i++) {
 		if (drugs[i].drugPid == pid) {
+			if (effect < 0) effect = 0;
 			int set = -1;
 			CheckEngineNumEffects(set, pid);
 			if (set != -1) fo::var::drugInfoList[set].numEffects = effect;
@@ -252,6 +253,7 @@ long Drugs::SetDrugNumEffect(long pid, long effect) {
 long Drugs::SetDrugAddictTimeOff(long pid, long time) {
 	for (int i = 0; i < drugsCount; i++) {
 		if (drugs[i].drugPid == pid) {
+			if (time < 0) time = 0;
 			drugs[i].addictTimeOff = time;
 			drugsReset = true;
 			return 0;
