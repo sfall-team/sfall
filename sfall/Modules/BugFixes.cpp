@@ -301,6 +301,8 @@ loopDrug:
 		mov  edx, esp;
 		mov  eax, [esi];                          // drugInfoList.pid
 		call fo::funcoffs::proto_ptr_;
+		test eax, eax;
+		js   nextDrug;                            // -1 - can't open proto
 		mov  edx, [esp];
 		mov  eax, [edx + 0x24];                   // drug.stat0
 		cmp  eax, [edi + 0x4];                    // drug.stat0 == queue_drug.stat0?
@@ -1923,6 +1925,23 @@ static void __declspec(naked) JesseContainerFid() {
 	}
 }
 
+static void __declspec(naked) ai_search_inven_weap_hook() {
+	__asm {
+		call fo::funcoffs::item_w_subtype_;
+		cmp  eax, THROWING;
+		jne  fix;
+		retn;
+fix:
+		xor  eax, eax;
+		mov  edx, [esi + ammoPid];
+		test edx, edx;
+		js   skip;
+		mov  eax, GUNS; // set GUNS if have ammo pid
+skip:
+		retn;
+	}
+}
+
 void BugFixes::init()
 {
 	#ifndef NDEBUG
@@ -2451,6 +2470,11 @@ void BugFixes::init()
 
 	// Fix the return value of the has_skill function for the wrong skill number
 	SafeWrite32(0x4AA56B, 0);
+
+	// Fix reloading of melee/unarmed weapons when the NPC has no ammo
+	dlog("Applying fix for NPC stuck in a loop of reloading melee/unarmed weapons.", DL_INIT);
+	HookCall(0x429A2B, ai_search_inven_weap_hook);
+	dlogr(" Done", DL_INIT);
 }
 
 }
