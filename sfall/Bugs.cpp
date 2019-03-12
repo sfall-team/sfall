@@ -300,6 +300,8 @@ loopDrug:
 		mov  edx, esp;
 		mov  eax, [esi];                          // drugInfoList.pid
 		call proto_ptr_;
+		test eax, eax;
+		js   nextDrug;                            // -1 - can't open proto
 		mov  edx, [esp];
 		mov  eax, [edx + 0x24];                   // drug.stat0
 		cmp  eax, [edi + 0x4];                    // drug.stat0 == queue_drug.stat0?
@@ -1867,6 +1869,22 @@ static void __declspec(naked) JesseContainerFid() {
 	}
 }
 
+static void __declspec(naked) ai_search_inven_weap_hook() {
+	__asm {
+		call item_w_subtype_;
+		cmp  eax, 2; // check if subtype <= MELEE
+		jbe  fix;
+		retn;
+fix:
+		mov  edx, [esi + 0x40];
+		test edx, edx;
+		js   skip;
+		mov  eax, 4; // set GUNS if has ammo pid
+skip:
+		retn;
+	}
+}
+
 void BugsInit()
 {
 	// fix vanilla negate operator on float values
@@ -2364,4 +2382,9 @@ void BugsInit()
 
 	// Fix the return value of has_skill function for incorrect skill numbers
 	SafeWrite32(0x4AA56B, 0);
+
+	// Fix for NPC stuck in a loop of reloading melee/unarmed weapons when out of ammo
+	dlog("Applying fix for NPC stuck in a loop of reloading melee/unarmed weapons.", DL_INIT);
+	HookCall(0x429A2B , ai_search_inven_weap_hook);
+	dlogr(" Done", DL_INIT);
 }

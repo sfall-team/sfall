@@ -452,14 +452,15 @@ end:
 	}
 }
 
+// Search all available perks for the player to display them in the character screen
 static const DWORD EndPerkLoopExit = 0x434446;
 static const DWORD EndPerkLoopCont = 0x4343A5;
 static void __declspec(naked) EndPerkLoopHack() {
 	__asm {
 		jl   cLoop;           // if ebx < 119
-		call HaveFakePerks;
-		add  eax, PERK_count;
-		cmp  ebx, eax;
+		call HaveFakePerks;   // return perks count
+		add  eax, PERK_count; // total = perks count + vanilla count
+		cmp  ebx, eax;        // if perkId < total then continue
 		jl   cLoop;
 		jmp  EndPerkLoopExit; // exit loop
 cLoop:

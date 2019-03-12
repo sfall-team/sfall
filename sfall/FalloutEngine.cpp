@@ -445,6 +445,7 @@ const DWORD item_w_mp_cost_ = 0x478B24;
 const DWORD item_w_perk_ = 0x478D58;
 const DWORD item_w_range_ = 0x478A1C;
 const DWORD item_w_rounds_ = 0x478D80;
+const DWORD item_w_subtype_ = 0x478280;
 const DWORD item_w_try_reload_ = 0x478768;
 const DWORD item_w_unload_ = 0x478F80;
 const DWORD item_weight_ = 0x477B88;

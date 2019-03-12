@@ -650,6 +650,7 @@ extern const DWORD item_w_mp_cost_;
 extern const DWORD item_w_perk_;
 extern const DWORD item_w_range_;
 extern const DWORD item_w_rounds_;
+extern const DWORD item_w_subtype_;
 extern const DWORD item_w_try_reload_;
 extern const DWORD item_w_unload_;
 extern const DWORD item_weight_;
