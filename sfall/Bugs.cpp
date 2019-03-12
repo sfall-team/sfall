@@ -1872,10 +1872,11 @@ static void __declspec(naked) JesseContainerFid() {
 static void __declspec(naked) ai_search_inven_weap_hook() {
 	__asm {
 		call item_w_subtype_;
-		cmp  eax, 2; // check if subtype <= MELEE
-		jbe  fix;
+		cmp  eax, 3; // check subtype == THROWING
+		jne  fix;
 		retn;
 fix:
+		xor  eax, eax;
 		mov  edx, [esi + 0x40];
 		test edx, edx;
 		js   skip;
@@ -2385,6 +2386,6 @@ void BugsInit()
 
 	// Fix for NPC stuck in a loop of reloading melee/unarmed weapons when out of ammo
 	dlog("Applying fix for NPC stuck in a loop of reloading melee/unarmed weapons.", DL_INIT);
-	HookCall(0x429A2B , ai_search_inven_weap_hook);
+	HookCall(0x429A2B, ai_search_inven_weap_hook);
 	dlogr(" Done", DL_INIT);
 }
