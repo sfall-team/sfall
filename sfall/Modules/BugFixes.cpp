@@ -312,6 +312,15 @@ loopDrug:
 		jne  nextDrug;                            // No
 		mov  eax, [edx + 0x2C];                   // drug.stat2
 		cmp  eax, [edi + 0xC];                    // drug.stat2 == queue_drug.stat2?
+		jne  nextDrug;                            // No
+		mov  eax, [edx + 0x30];                   // drug.amount0
+		cmp  eax, [edi + 0x10];                   // drug.amount0 == queue_drug.amount0?
+		jne  nextDrug;                            // No
+		mov  eax, [edx + 0x34];                   // drug.amount1
+		cmp  eax, [edi + 0x14];                   // drug.amount1 == queue_drug.amount1?
+		jne  nextDrug;                            // No
+		mov  eax, [edx + 0x38];                   // drug.amount2
+		cmp  eax, [edi + 0x18];                   // drug.amount2 == queue_drug.amount2?
 		je   foundPid;                            // Yes
 nextDrug:
 		lea  esi, [esi + ebx];
@@ -1942,6 +1951,57 @@ skip:
 	}
 }
 
+static void __declspec(naked) map_age_dead_critters_hack() {
+	__asm {
+		test ecx, ecx; // dead_bodies_age
+		jz   skip;     // if (dead_bodies_age == No) exit func
+		cmp  dword ptr [esp + 0x3C - 0x30 + 4], 0;
+skip:
+		retn;
+	}
+}
+
+static void __declspec(naked) partyFixMultipleMembers_hook() {
+	__asm {
+		mov  edx, [esi + protoId];
+		sar  edx, 24;
+		cmp  edx, OBJ_TYPE_CRITTER;
+		jne  noDrop;                        // not critter
+		test [esi + damageFlags], DAM_DEAD;
+		jnz  isDead;
+		cmp  dword ptr [esi + health], 0;
+		jg   noBlood;                       // is not dead
+isDead:
+		// create generic blood
+		sub  esp, 4;
+		mov  eax, esp                       // object buf
+		mov  edx, 0x5000004;                // pid
+		call fo::funcoffs::obj_pid_new_;
+		add  esp, 4;
+		cmp  eax, -1;
+		je   noBlood;
+		mov  eax, [esp - 4];                // object
+		mov  ebx, [esi + elevation];
+		mov  edx, [esi + tile];
+		xor  ecx, ecx;
+		call fo::funcoffs::obj_move_to_tile_;
+noBlood:
+		mov  eax, [esi + protoId];
+		mov  edx, 0x40;                     // noDrop flag
+		call fo::funcoffs::critter_flag_check_;
+		test eax, eax;
+		mov  eax, esi;
+		jnz  noDrop;                        // flag is set
+		mov  edx, [esi + tile];
+		call fo::funcoffs::item_drop_all_;
+		mov  eax, esi;
+noDrop:
+		xor  edx, edx;
+		call fo::funcoffs::obj_erase_object_;
+		retn;
+	}
+}
+
 void BugFixes::init()
 {
 	#ifndef NDEBUG
@@ -2475,6 +2535,18 @@ void BugFixes::init()
 	dlog("Applying fix for NPC stuck in a loop of reloading melee/unarmed weapons.", DL_INIT);
 	HookCall(0x429A2B, ai_search_inven_weap_hook);
 	dlogr(" Done", DL_INIT);
+
+	// Fix to the critters not self healing when entering the map, if the 'dead_bodies_age=No' option is set
+	dlog("Applying fix the critters self healing when entering the map.", DL_INIT);
+	MakeCall(0x483356, map_age_dead_critters_hack);
+	SafeWrite32(0x4832A0, 0x9090C189); // mov ecx, eax (keep dead_bodies_age flag)
+	dlogr(" Done", DL_INIT);
+	// also fix a non-initializing zero value of a local variable to correct time remove corpses and blood
+	SafeWrite32(0x4832A4, 0x0C245489); // mov [esp + var_30], edx
+
+	// Fix the destroy of the party member corpse when loading the map
+	HookCall(0x4957B8, partyFixMultipleMembers_hook);
 }
+
 
 }

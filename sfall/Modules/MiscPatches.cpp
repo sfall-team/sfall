@@ -995,6 +995,13 @@ void MiscPatches::init() {
 		dlogr(" Done", DL_INIT);
 	}
 
+	int days = GetConfigInt("Misc", "DestroyNPCCorpse", 6);
+	if (days != 6) {
+		if (days < 1) days = 1;
+		if (days > 13) days = 13;
+		SafeWrite32(0x483348, days * 24);
+	}
+
 	LoadGameHook::OnBeforeGameStart() += BodypartHitChances; // set on start & load
 
 	CombatProcFix();
