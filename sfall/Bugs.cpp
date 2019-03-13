@@ -311,6 +311,15 @@ loopDrug:
 		jne  nextDrug;                            // No
 		mov  eax, [edx + 0x2C];                   // drug.stat2
 		cmp  eax, [edi + 0xC];                    // drug.stat2 == queue_drug.stat2?
+		jne  nextDrug;                            // No
+		mov  eax, [edx + 0x30];                   // drug.amount0
+		cmp  eax, [edi + 0x10];                   // drug.amount0 == queue_drug.amount0?
+		jne  nextDrug;                            // No
+		mov  eax, [edx + 0x34];                   // drug.amount1
+		cmp  eax, [edi + 0x14];                   // drug.amount1 == queue_drug.amount1?
+		jne  nextDrug;                            // No
+		mov  eax, [edx + 0x38];                   // drug.amount2
+		cmp  eax, [edi + 0x18];                   // drug.amount2 == queue_drug.amount2?
 		je   foundPid;                            // Yes
 nextDrug:
 		add  esi, 12;
@@ -1872,7 +1881,7 @@ static void __declspec(naked) JesseContainerFid() {
 static void __declspec(naked) ai_search_inven_weap_hook() {
 	__asm {
 		call item_w_subtype_;
-		cmp  eax, 3; // check subtype == THROWING
+		cmp  eax, 3; // check if subtype == THROWING
 		jne  fix;
 		retn;
 fix:
@@ -1881,6 +1890,16 @@ fix:
 		test edx, edx;
 		js   skip;
 		mov  eax, 4; // set GUNS if has ammo pid
+skip:
+		retn;
+	}
+}
+
+static void __declspec(naked) map_age_dead_critters_hack() {
+	__asm {
+		test ecx, ecx; // dead_bodies_age
+		jz   skip;     // if (dead_bodies_age == No) exit func
+		cmp  dword ptr [esp + 0x3C - 0x30 + 4], 0;
 skip:
 		retn;
 	}
@@ -2387,5 +2406,13 @@ void BugsInit()
 	// Fix for NPC stuck in a loop of reloading melee/unarmed weapons when out of ammo
 	dlog("Applying fix for NPC stuck in a loop of reloading melee/unarmed weapons.", DL_INIT);
 	HookCall(0x429A2B, ai_search_inven_weap_hook);
+	dlogr(" Done", DL_INIT);
+
+	// Fix for critters not being healed over time when entering the map if 'dead_bodies_age=No' is set in maps.txt
+	dlog("Applying fix for the self-healing of critters when entering the map.", DL_INIT);
+	MakeCall(0x483356, map_age_dead_critters_hack);
+	SafeWrite32(0x4832A0, 0x9090C189); // mov ecx, eax (keep dead_bodies_age flag)
+	// also fix the zero initialization of a local variable to correct time for removing corpses and blood
+	SafeWrite32(0x4832A4, 0x0C245489); // mov [esp + var_30], edx
 	dlogr(" Done", DL_INIT);
 }
