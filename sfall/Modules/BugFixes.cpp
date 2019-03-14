@@ -76,9 +76,9 @@ static void __declspec(naked) NegateFixHack() {
 		retn;
 isFloat:
 		push ebx;
-		fld[esp];
+		fld  [esp];
 		fchs;
-		fstp[esp];
+		fstp [esp];
 		pop  ebx;
 		call fo::funcoffs::pushLongStack_;
 		mov  edx, VAR_TYPE_FLOAT;
@@ -1936,6 +1936,47 @@ skip:
 	}
 }
 
+static void __declspec(naked) partyFixMultipleMembers_hook() {
+	__asm {
+		mov  edx, [esi + protoId];
+		sar  edx, 24;
+		cmp  edx, OBJ_TYPE_CRITTER;
+		jne  noDrop;                        // not critter
+		test [esi + damageFlags], DAM_DEAD;
+		jnz  isDead;
+		cmp  dword ptr [esi + health], 0;
+		jg   noBlood;                       // is not dead
+isDead:
+		// create generic blood
+		sub  esp, 4;
+		mov  eax, esp                       // object buf
+		mov  edx, 0x5000004;                // pid
+		call fo::funcoffs::obj_pid_new_;
+		add  esp, 4;
+		cmp  eax, -1;
+		je   noBlood;
+		mov  eax, [esp - 4];                // object
+		mov  ebx, [esi + elevation];
+		mov  edx, [esi + tile];
+		xor  ecx, ecx;
+		call fo::funcoffs::obj_move_to_tile_;
+noBlood:
+		mov  eax, [esi + protoId];
+		mov  edx, 0x40;                     // noDrop flag
+		call fo::funcoffs::critter_flag_check_;
+		test eax, eax;
+		mov  eax, esi;
+		jnz  noDrop;                        // flag is set
+		mov  edx, [esi + tile];
+		call fo::funcoffs::item_drop_all_;
+		mov  eax, esi;
+noDrop:
+		xor  edx, edx;
+		call fo::funcoffs::obj_erase_object_;
+		retn;
+	}
+}
+
 void BugFixes::init()
 {
 	#ifndef NDEBUG
@@ -2453,12 +2494,15 @@ void BugFixes::init()
 	dlogr(" Done", DL_INIT);
 
 	// Fix for critters not being healed over time when entering the map if 'dead_bodies_age=No' is set in maps.txt
+	// also fix the zero initialization of a local variable to correct time for removing corpses and blood
 	dlog("Applying fix for the self-healing of critters when entering the map.", DL_INIT);
 	MakeCall(0x483356, map_age_dead_critters_hack);
 	SafeWrite32(0x4832A0, 0x9090C189); // mov ecx, eax (keep dead_bodies_age flag)
-	// also fix the zero initialization of a local variable to correct time for removing corpses and blood
 	SafeWrite32(0x4832A4, 0x0C245489); // mov [esp + var_30], edx
 	dlogr(" Done", DL_INIT);
+
+	// Fix for the removal of party member's corpse when loading the map
+	HookCall(0x4957B8, partyFixMultipleMembers_hook);
 }
 
 }
