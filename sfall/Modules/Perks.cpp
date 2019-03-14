@@ -30,7 +30,7 @@ using namespace fo;
 
 constexpr int maxNameLen = 64;   // don't change size
 constexpr int maxDescLen = 512;  // don't change size
-const int descLen = 256;         // maximum text length for interface
+static const int descLen = 256;  // maximum text length for interface
 
 static char perksFile[MAX_PATH] = {0};
 
@@ -207,7 +207,8 @@ void _stdcall SetSelectablePerk(char* name, int active, int image, char* desc) {
 			if (!strcmp(name, fakeSelectablePerks[i].Name)) {
 				fakeSelectablePerks[i].Level = active;
 				fakeSelectablePerks[i].Image = image;
-				strncpy_s(fakeSelectablePerks[i].Desc, desc, _TRUNCATE);
+				strncpy(fakeSelectablePerks[i].Desc, desc, descLen - 1);
+				fakeSelectablePerks[i].Desc[descLen - 1] = 0;
 				return;
 			}
 		}
@@ -231,7 +232,8 @@ void _stdcall SetFakePerk(char* name, int level, int image, char* desc) {
 			if (!strcmp(name, fakePerks[i].Name)) {
 				fakePerks[i].Level = level;
 				fakePerks[i].Image = image;
-				strncpy_s(fakePerks[i].Desc, desc, _TRUNCATE);
+				strncpy(fakePerks[i].Desc, desc, descLen - 1);
+				fakePerks[i].Desc[descLen - 1] = 0;
 				return;
 			}
 		}
@@ -255,7 +257,8 @@ void _stdcall SetFakeTrait(char* name, int active, int image, char* desc) {
 			if (!strcmp(name, fakeTraits[i].Name)) {
 				fakeTraits[i].Level = active;
 				fakeTraits[i].Image = image;
-				strncpy_s(fakeTraits[i].Desc, desc, _TRUNCATE);
+				strncpy(fakeTraits[i].Desc, desc, descLen - 1);
+				fakeTraits[i].Desc[descLen - 1] = 0;
 				return;
 			}
 		}

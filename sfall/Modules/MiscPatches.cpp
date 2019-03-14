@@ -995,11 +995,16 @@ void MiscPatches::init() {
 		dlogr(" Done", DL_INIT);
 	}
 
-	int days = GetConfigInt("Misc", "DestroyNPCCorpse", 6);
-	if (days != 6) {
-		if (days < 1) days = 1;
-		if (days > 13) days = 13;
-		SafeWrite32(0x483348, days * 24);
+	int time = GetConfigInt("Misc", "CorpseDeleteTime", 6); // time in days
+	if (time != 6) {
+		if (time <= 0) {
+			time = 12; // hours
+		} else if (time > 13) {
+			time = 13 * 24;
+		} else {
+			time *= 24;
+		}
+		SafeWrite32(0x483348, time);
 	}
 
 	LoadGameHook::OnBeforeGameStart() += BodypartHitChances; // set on start & load

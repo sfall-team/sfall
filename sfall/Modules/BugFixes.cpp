@@ -1981,6 +1981,7 @@ isDead:
 		cmp  eax, -1;
 		je   noBlood;
 		mov  eax, [esp - 4];                // object
+//		mov  [eax + frm], 3;                // set frame
 		mov  ebx, [esi + elevation];
 		mov  edx, [esi + tile];
 		xor  ecx, ecx;
