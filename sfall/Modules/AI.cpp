@@ -67,6 +67,63 @@ continue:
 	}
 }
 
+static bool __fastcall sf_critter_have_ammo(fo::GameObject* critter, fo::GameObject* weapon) {
+	DWORD slotNum = -1;
+	while (true) {
+		fo::GameObject* ammo = fo::func::inven_find_type(critter, fo::item_type_ammo, &slotNum);
+		if (!ammo) break;
+		if (fo::func::item_w_can_reload(weapon, ammo)) return true;
+	}
+	return false;
+}
+
+static DWORD __fastcall sf_check_ammo(fo::GameObject* weapon, fo::GameObject* critter) {
+	if (sf_critter_have_ammo(critter, weapon)) return 1;
+
+	long result = 0;
+	long maxDist = fo::func::stat_level(critter, STAT_pe) + 5;
+	long* objectsList = nullptr;
+	long numObjects = fo::func::obj_create_list(-1, critter->elevation, fo::ObjType::OBJ_TYPE_ITEM, &objectsList);
+	if (numObjects > 0) {
+		fo::var::combat_obj = critter;
+		fo::func::qsort(objectsList, numObjects, 4, fo::funcoffs::compare_nearer_);
+		for (int i = 0; i < numObjects; i++)
+		{
+			fo::GameObject* itemGround = (fo::GameObject*)objectsList[i];
+			if (fo::func::obj_dist(critter, itemGround) > maxDist) break;
+			if (fo::func::item_get_type(itemGround) == fo::item_type_ammo) {
+				if (fo::func::item_w_can_reload(weapon, itemGround)) {
+					result = 1;
+					break;
+				}
+			}
+		}
+		fo::func::obj_delete_list(objectsList);
+	}
+	return result; // 0 - no have ammo
+}
+
+static void __declspec(naked) ai_search_environ_hook_weapon() {
+	__asm {
+		call fo::funcoffs::ai_can_use_weapon_;
+		test eax, eax;
+		jnz  checkAmmo;
+		retn;
+checkAmmo:
+		mov  edx, [esp + 4]; // base
+		mov  eax, [edx + ecx];
+		cmp  dword ptr [eax + charges], 0; // ammo count
+		jnz  end;
+		push ecx;
+		mov  ecx, eax;       // weapon
+		mov  edx, esi;       // source
+		call sf_check_ammo;
+		pop  ecx;
+end:
+		retn;
+	}
+}
+
 static DWORD sf_check_critters_on_fireline(fo::GameObject* object, DWORD checkTile, DWORD team) {
 	if (object && object->Type() == ObjType::OBJ_TYPE_CRITTER && object->critter.teamNum != team) { // not friendly fire
 		fo::GameObject*	obj = nullptr;
@@ -242,11 +299,13 @@ static void __fastcall sf_ai_search_weapon(fo::GameObject* source, fo::GameObjec
 		if (itemHand && itemHand->protoId == item->protoId) continue;
 
 		if ((source->critter.movePoints >= fo::func::item_w_primary_mp_cost(item))
-			&& fo::func::ai_can_use_weapon(source, item, fo::AttackType::ATKTYPE_RWEAPON_PRIMARY)
-			&& (fo::func::item_w_subtype(item, fo::AttackType::ATKTYPE_RWEAPON_PRIMARY) != fo::AttackSubType::GUNS
-			|| fo::func::item_w_curr_ammo(item) || fo::func::ai_have_ammo(source, item, 0)))
+			&& fo::func::ai_can_use_weapon(source, item, fo::AttackType::ATKTYPE_RWEAPON_PRIMARY))
 		{
-			bestWeapon = fo::func::ai_best_weapon(source, bestWeapon, item, target);
+			if (item->item.ammoPid == -1 || fo::func::item_w_subtype(item, fo::AttackType::ATKTYPE_RWEAPON_PRIMARY) == fo::AttackSubType::THROWING
+				|| (fo::func::item_w_curr_ammo(item) || sf_critter_have_ammo(source, item)))
+			{
+				bestWeapon = fo::func::ai_best_weapon(source, bestWeapon, item, target);
+			}
 		}
 	}
 	#ifndef NDEBUG
@@ -531,6 +590,11 @@ void AI::init() {
 	// or if there is not enough AP to pick up the object on the ground. Npc will not spend its AP for inappropriate use
 	if (GetConfigInt("CombatAI", "ItemPickUpFix", 0)) {
 		HookCall(0x429CAF, ai_search_environ_hook);
+	}
+
+	// Don't pickup a weapon if its magazine is empty and there are no ammo for it
+	if (GetConfigInt("CombatAI", "WeaponPickupFix", 0)) {
+		HookCall(0x429CF2, ai_search_environ_hook_weapon);
 	}
 
 	// Before starting his turn npc will always check if it has better weapons in inventory, than there is a current weapon
