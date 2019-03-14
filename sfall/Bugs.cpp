@@ -78,9 +78,9 @@ static void __declspec(naked) NegateFixHack() {
 		retn;
 isFloat:
 		push ebx;
-		fld[esp];
+		fld  [esp];
 		fchs;
-		fstp[esp];
+		fstp [esp];
 		pop  ebx;
 		call pushLongStack_;
 		mov  edx, VAR_TYPE_FLOAT;
@@ -864,13 +864,13 @@ moveTile:
 static void __declspec(naked) action_melee_hack() {
 	__asm {
 		mov  edx, 0x4113DC
-		mov  ebx, [eax+0x20]                      // objStruct->FID
+		mov  ebx, [eax + 0x20]                    // objStruct->FID
 		and  ebx, 0x0F000000
 		sar  ebx, 0x18
 		cmp  ebx, OBJ_TYPE_CRITTER                // check if object FID type flag is set to critter
 		jne  end                                  // if object not a critter leave jump condition flags
 		// set to skip dodge animation
-		test byte ptr [eax+0x44], 0x3             // (original code) DAM_KNOCKED_OUT or DAM_KNOCKED_DOWN
+		test byte ptr [eax + 0x44], DAM_KNOCKED_OUT or DAM_KNOCKED_DOWN    // (original code)
 		jnz  end
 		mov  edx, 0x4113FE
 end:
@@ -881,13 +881,13 @@ end:
 static void __declspec(naked) action_ranged_hack() {
 	__asm {
 		mov  edx, 0x411B6D
-		mov  ebx, [eax+0x20]                      // objStruct->FID
+		mov  ebx, [eax + 0x20]                    // objStruct->FID
 		and  ebx, 0x0F000000
 		sar  ebx, 0x18
 		cmp  ebx, OBJ_TYPE_CRITTER                // check if object FID type flag is set to critter
 		jne  end                                  // if object not a critter leave jump condition flags
 		// set to skip dodge animation
-		test byte ptr [eax+0x44], 0x3             // (original code) DAM_KNOCKED_OUT or DAM_KNOCKED_DOWN
+		test byte ptr [eax + 0x44], DAM_KNOCKED_OUT or DAM_KNOCKED_DOWN    // (original code)
 		jnz  end
 		mov  edx, 0x411BD2
 end:
@@ -898,7 +898,7 @@ end:
 static const DWORD SetNewResults_Ret = 0x424FC6;
 static void __declspec(naked) set_new_results_hack() {
 	__asm {
-		test ah, 0x1                              // DAM_KNOCKED_OUT?
+		test ah, DAM_KNOCKED_OUT                  // DAM_KNOCKED_OUT?
 		jz   end                                  // No
 		mov  eax, esi
 		xor  edx, edx
@@ -913,12 +913,12 @@ end:
 static void __declspec(naked) critter_wake_clear_hack() {
 	__asm {
 		jne  end                                  // This is not a critter
-		mov  dl, [esi+0x44]
-		test dl, 0x80                             // DAM_DEAD?
+		mov  dl, [esi + 0x44]
+		test dl, DAM_DEAD                         // DAM_DEAD?
 		jnz  end                                  // This is a corpse
-		and  dl, 0xFE                             // Unset DAM_KNOCKED_OUT
-		or   dl, 0x2                              // Set DAM_KNOCKED_DOWN
-		mov  [esi+0x44], dl
+		and  dl, ~DAM_KNOCKED_OUT                 // 0xFE Unset DAM_KNOCKED_OUT
+		or   dl, DAM_KNOCKED_DOWN                 // Set DAM_KNOCKED_DOWN
+		mov  [esi + 0x44], dl
 end:
 		xor  eax, eax
 		inc  eax
@@ -933,11 +933,11 @@ static void __declspec(naked) obj_load_func_hack() {
 	__asm {
 		test byte ptr [eax+0x25], 0x4             // Temp_
 		jnz  end
-		mov  edi, [eax+0x64]
+		mov  edi, [eax + 0x64]
 		shr  edi, 0x18
 		cmp  edi, OBJ_TYPE_CRITTER
 		jne  skip
-		test byte ptr [eax+0x44], 0x2             // DAM_KNOCKED_DOWN?
+		test byte ptr [eax + 0x44], DAM_KNOCKED_DOWN
 		jz   clear                                // No
 		pushadc
 		push ebx
@@ -950,7 +950,7 @@ static void __declspec(naked) obj_load_func_hack() {
 		pop  ebx
 		popadc
 clear:
-		and  word ptr [eax+0x44], 0x7FFD          // not (DAM_LOSE_TURN or DAM_KNOCKED_DOWN)
+		and  word ptr [eax + 0x44], ~(DAM_LOSE_TURN or DAM_KNOCKED_DOWN) // 0x7FFD
 skip:
 		push 0x488F14
 		retn
@@ -962,7 +962,7 @@ end:
 
 static void __declspec(naked) partyMemberPrepLoadInstance_hook() {
 	__asm {
-		and  word ptr [eax+0x44], 0x7FFD          // not (DAM_LOSE_TURN or DAM_KNOCKED_DOWN)
+		and  word ptr [eax + 0x44], ~(DAM_LOSE_TURN or DAM_KNOCKED_DOWN) // 0x7FFD
 		jmp  dude_stand_
 	}
 }
@@ -1905,6 +1905,47 @@ skip:
 	}
 }
 
+static void __declspec(naked) partyFixMultipleMembers_hook() {
+	__asm {
+		mov  edx, [esi + 0x64];
+		sar  edx, 24;
+		cmp  edx, OBJ_TYPE_CRITTER;
+		jne  noDrop;                        // not critter
+		test [esi + 0x44], DAM_DEAD;
+		jnz  isDead;
+		cmp  dword ptr [esi + 0x58], 0;
+		jg   noBlood;                       // is not dead
+isDead:
+		// create generic blood
+		sub  esp, 4;
+		mov  eax, esp                       // object buf
+		mov  edx, 0x5000004;                // pid
+		call obj_pid_new_;
+		add  esp, 4;
+		cmp  eax, -1;
+		je   noBlood;
+		mov  eax, [esp - 4];                // object
+		mov  ebx, [esi + 0x28];             // critter.elev
+		mov  edx, [esi + 0x04];             // critter.tile
+		xor  ecx, ecx;
+		call obj_move_to_tile_;
+noBlood:
+		mov  eax, [esi + 0x64];
+		mov  edx, 0x40;                     // noDrop flag
+		call critter_flag_check_;
+		test eax, eax;
+		mov  eax, esi;
+		jnz  noDrop;                        // flag is set
+		mov  edx, [esi + 0x04];             // critter.tile
+		call item_drop_all_;
+		mov  eax, esi;
+noDrop:
+		xor  edx, edx;
+		call obj_erase_object_;
+		retn;
+	}
+}
+
 void BugsInit()
 {
 	// fix vanilla negate operator on float values
@@ -2409,10 +2450,13 @@ void BugsInit()
 	dlogr(" Done", DL_INIT);
 
 	// Fix for critters not being healed over time when entering the map if 'dead_bodies_age=No' is set in maps.txt
+	// also fix the zero initialization of a local variable to correct time for removing corpses and blood
 	dlog("Applying fix for the self-healing of critters when entering the map.", DL_INIT);
 	MakeCall(0x483356, map_age_dead_critters_hack);
 	SafeWrite32(0x4832A0, 0x9090C189); // mov ecx, eax (keep dead_bodies_age flag)
-	// also fix the zero initialization of a local variable to correct time for removing corpses and blood
 	SafeWrite32(0x4832A4, 0x0C245489); // mov [esp + var_30], edx
 	dlogr(" Done", DL_INIT);
+
+	// Fix for the removal of party member's corpse when loading the map
+	HookCall(0x4957B8, partyFixMultipleMembers_hook);
 }

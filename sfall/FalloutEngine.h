@@ -487,6 +487,7 @@ extern const DWORD credits_get_next_line_;
 extern const DWORD critter_body_type_;
 extern const DWORD critter_can_obj_dude_rest_;
 extern const DWORD critter_compute_ap_from_distance_;
+extern const DWORD critter_flag_check_;
 extern const DWORD critter_get_hits_;
 extern const DWORD critter_is_dead_; // eax - critter
 extern const DWORD critter_kill_;
@@ -623,6 +624,7 @@ extern const DWORD item_c_max_size_;
 extern const DWORD item_caps_total_;
 extern const DWORD item_d_check_addict_;
 extern const DWORD item_d_take_drug_;
+extern const DWORD item_drop_all_;
 extern const DWORD item_get_type_;
 extern const DWORD item_m_cell_pid_;
 extern const DWORD item_m_dec_charges_;
