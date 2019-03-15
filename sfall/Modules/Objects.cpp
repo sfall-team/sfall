@@ -14,8 +14,10 @@ long Objects::uniqueID = UniqueID::Start; // saving to sfallgv.sav
 
 // Assigns a new unique identifier to an object if it has not been previously assigned
 // the identifier is saved with the object in the saved game and this can used in various script
+// player have ID = 18000, all party members have ID = 18000 + its pid (number file of prototype)
 long Objects::SetObjectUniqueID(fo::GameObject* obj) {
-	if (obj->id > UniqueID::Start || obj == fo::var::obj_dude) return obj->id; // dude id = 1800. TODO: perhaps his id needs to be changed to 0x10000000
+	long id = obj->id;
+	if (id > UniqueID::Start || obj == fo::var::obj_dude || (id >= 18000 && id < 83536)) return id; // 65535 maximum possible number of prototypes
 
 	if ((DWORD)uniqueID >= UniqueID::End) uniqueID = UniqueID::Start;
 	obj->id = ++uniqueID;

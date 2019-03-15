@@ -1042,10 +1042,9 @@ void sf_get_proto_data(OpcodeContext& ctx) {
 
 static bool protoMaxLimitPatch = false;
 void sf_set_proto_data(OpcodeContext& ctx) {
-	fo::Proto* protoPtr;
+	//fo::Proto* protoPtr;
 	int pid = ctx.arg(0).rawValue();
-	if (fo::func::proto_ptr(pid, &protoPtr) != -1) {
-		*(long*)((BYTE*)protoPtr + ctx.arg(1).rawValue()) = ctx.arg(2).rawValue();
+	if (Stats::SetProtoData(pid, ctx.arg(1).rawValue(), ctx.arg(2).rawValue()) != -1) {
 		if (!protoMaxLimitPatch) {
 			Objects::LoadProtoAutoMaxLimit();
 			protoMaxLimitPatch = true;
@@ -1053,9 +1052,18 @@ void sf_set_proto_data(OpcodeContext& ctx) {
 	} else {
 		ctx.printOpcodeError("set_proto_data() - failed to load a prototype id: %d", pid);
 	}
+	/*if (fo::func::proto_ptr(pid, &protoPtr) != -1) {
+		*(long*)((BYTE*)protoPtr + ctx.arg(1).rawValue()) = ctx.arg(2).rawValue();
+		if (!protoMaxLimitPatch) {
+			Objects::LoadProtoAutoMaxLimit();
+			protoMaxLimitPatch = true;
+		}
+	} else {
+		ctx.printOpcodeError("set_proto_data() - failed to load a prototype id: %d", pid);
+	}*/
 }
 
-void __declspec(naked) op_hero_select_win() {//for opening the appearance selection window
+void __declspec(naked) op_hero_select_win() { // for opening the appearance selection window
 	__asm {
 		push ebx;
 		push ecx;
@@ -1082,7 +1090,7 @@ end:
 	}
 }
 
-void __declspec(naked) op_set_hero_style() {//for setting the hero style/appearance takes an 1 int
+void __declspec(naked) op_set_hero_style() { // for setting the hero style/appearance takes an 1 int
 	__asm {
 		push ebx;
 		push ecx;
@@ -1109,7 +1117,7 @@ end:
 	}
 }
 
-void __declspec(naked) op_set_hero_race() {// for setting the hero race takes an 1 int
+void __declspec(naked) op_set_hero_race() { // for setting the hero race takes an 1 int
 	__asm {
 		push ebx;
 		push ecx;

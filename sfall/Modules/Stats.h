@@ -27,6 +27,13 @@ class Stats : public Module {
 public:
 	const char* name() { return "Stats"; }
 	void init();
+
+	static long GetStat(fo::GameObject* critter, long stat, long offset);
+	static void SetStat(fo::GameObject* critter, long stat, long amount, long offset);
+	static long SetProtoData(long pid, long offset, long amount);
+
+	static void SaveStatData(HANDLE file);
+	static bool LoadStatData(HANDLE file);
 };
 
 void _stdcall SetPCStatMax(int stat, int i);

@@ -25,6 +25,7 @@
 
 #include "AI.h"
 #include "BugFixes.h"
+#include "ExtraSaveSlots.h"
 #include "FileSystem.h"
 #include "HeroAppearance.h"
 #include "HookScripts.h"
@@ -33,7 +34,7 @@
 #include "Perks.h"
 #include "ScriptExtender.h"
 #include "Scripting\Arrays.h"
-#include "ExtraSaveSlots.h"
+#include "Stats.h"
 #include "Worldmap.h"
 
 #include "LoadGameHook.h"
@@ -139,6 +140,7 @@ static void _stdcall SaveGame2() {
 	h = CreateFileA(buf, GENERIC_WRITE, 0, 0, CREATE_ALWAYS, 0, 0);
 	if (h != INVALID_HANDLE_VALUE) {
 		Worldmap::SaveData(h);
+		Stats::SaveStatData(h);
 		CloseHandle(h);
 	} else {
 		goto errorSave;
@@ -236,7 +238,7 @@ static bool LoadGame_Before() {
 	dlog("Loading data from sfalldb.sav file...\n", DL_MAIN);
 	h = CreateFileA(buf, GENERIC_READ, FILE_SHARE_READ, 0, OPEN_EXISTING, 0, 0);
 	if (h != INVALID_HANDLE_VALUE) {
-		if (Worldmap::LoadData(h)) goto errorLoad;
+		if (Worldmap::LoadData(h) || Stats::LoadStatData(h)) goto errorLoad;
 		CloseHandle(h);
 	} else {
 		dlogr("Cannot open sfalldb.sav file.", DL_MAIN);

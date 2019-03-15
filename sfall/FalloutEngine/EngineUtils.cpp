@@ -129,6 +129,18 @@ void ToggleNpcFlag(fo::GameObject* npc, long flag, bool set) {
 	}
 }
 
+bool IsPartyMember(fo::GameObject* critter) {
+	if (critter->id < 18000) return false;
+	size_t patryCount = fo::var::partyMemberMaxCount;
+	if (patryCount) {
+		DWORD* memberPids = fo::var::partyMemberPidList; // pids from party.txt
+		for (size_t i = 0; i < patryCount; i++) {
+			if (memberPids[i] == critter->protoId) return true;;
+		}
+	}
+	return false;
+}
+
 //---------------------------------------------------------
 //print text to surface
 void PrintText(char *DisplayText, BYTE ColourIndex, DWORD Xpos, DWORD Ypos, DWORD TxtWidth, DWORD ToWidth, BYTE *ToSurface) {
