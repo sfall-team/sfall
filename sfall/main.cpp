@@ -734,7 +734,7 @@ fail:
 static void __declspec(naked) op_obj_can_see_obj_hook() {
 	__asm {
 		push obj_shoot_blocking_at_;      // check hex objects func pointer
-		push 0x20;                        // flags, 0x20 = check shootthru
+		push 0x20;                        // flags, 0x20 = check ShootThru
 		mov  ecx, dword ptr [esp + 0x0C]; // buf **ret_objStruct
 		push ecx;
 		xor  ecx, ecx;
@@ -1516,6 +1516,20 @@ static void DllMain2() {
 		for (int i = 0; i < sizeof(WalkDistanceAddr) / 4; i++) {
 			SafeWrite8(WalkDistanceAddr[i], (BYTE)tmp); // default is 5
 		}
+		dlogr(" Done", DL_INIT);
+	}
+
+	int time = GetPrivateProfileIntA("Misc", "CorpseDeleteTime", 6, ini); // time in days
+	if (time != 6) {
+		dlog("Applying corpse deletion time patch.", DL_INIT);
+		if (time <= 0) {
+			time = 12; // hours
+		} else if (time > 13) {
+			time = 13 * 24;
+		} else {
+			time *= 24;
+		}
+		SafeWrite32(0x483348, time);
 		dlogr(" Done", DL_INIT);
 	}
 

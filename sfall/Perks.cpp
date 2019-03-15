@@ -25,19 +25,21 @@
 #include "Perks.h"
 
 static const int maxNameLen = 64;   // don't change size
-static const int maxDescLen = 1024; // don't change size
+static const int maxDescLen = 512;  // don't change size
+static const int descLen = 256;     // maximum text length for interface
 
 static char perksFile[MAX_PATH] = {0};
 
 static char Name[maxNameLen * PERK_count] = {0};
-static char Desc[maxDescLen * PERK_count] = {0};
+static char Desc[descLen * PERK_count] = {0};
 static char tName[maxNameLen * TRAIT_count] = {0};
-static char tDesc[maxDescLen * TRAIT_count] = {0};
+static char tDesc[descLen * TRAIT_count] = {0};
 static char PerkBoxTitle[33];
 
 #define check_trait(id) !disableTraits[id] && (pc_trait[0] == id || pc_trait[1] == id)
 
 static DWORD addPerkMode = 2;
+static bool perksReInit = false;
 
 struct TraitStruct {
 	char* Name;
@@ -76,15 +78,16 @@ struct FakePerk {
 	int Image;
 	char Name[maxNameLen];
 	char Desc[maxDescLen];
+	char reserve[512]; // empty block
 };
 
 std::vector<FakePerk> fakeTraits;
 std::vector<FakePerk> fakePerks;
 std::vector<FakePerk> fakeSelectablePerks;
 
-static DWORD RemoveTraitID;
-static DWORD RemovePerkID;
-static DWORD RemoveSelectableID;
+static std::list<int> RemoveTraitID;
+static std::list<int> RemovePerkID;
+static std::list<int> RemoveSelectableID;
 
 static DWORD TraitSkillBonuses[TRAIT_count * 18] = {0};
 static DWORD TraitStatBonuses[TRAIT_count * (STAT_max_derived + 1)] = {0};
@@ -186,7 +189,8 @@ void _stdcall SetSelectablePerk(char* name, int active, int image, char* desc) {
 			if (!strcmp(name, fakeSelectablePerks[i].Name)) {
 				fakeSelectablePerks[i].Level = active;
 				fakeSelectablePerks[i].Image = image;
-				strncpy_s(fakeSelectablePerks[i].Desc, desc, _TRUNCATE);
+				strncpy(fakeSelectablePerks[i].Desc, desc, descLen - 1);
+				fakeSelectablePerks[i].Desc[descLen - 1] = 0;
 				return;
 			}
 		}
@@ -215,7 +219,8 @@ void _stdcall SetFakePerk(char* name, int level, int image, char* desc) {
 			if (!strcmp(name, fakePerks[i].Name)) {
 				fakePerks[i].Level = level;
 				fakePerks[i].Image = image;
-				strncpy_s(fakePerks[i].Desc, desc, _TRUNCATE);
+				strncpy(fakePerks[i].Desc, desc, descLen - 1);
+				fakePerks[i].Desc[descLen - 1] = 0;
 				return;
 			}
 		}
@@ -244,7 +249,8 @@ void _stdcall SetFakeTrait(char* name, int active, int image, char* desc) {
 			if (!strcmp(name, fakeTraits[i].Name)) {
 				fakeTraits[i].Level = active;
 				fakeTraits[i].Image = image;
-				strncpy_s(fakeTraits[i].Desc, desc, _TRUNCATE);
+				strncpy(fakeTraits[i].Desc, desc, descLen - 1);
+				fakeTraits[i].Desc[descLen - 1] = 0;
 				return;
 			}
 		}
@@ -343,7 +349,7 @@ static void __declspec(naked) GetFakeSPerkLevel() {
 	}
 }
 
-static DWORD _stdcall HandleFakeTraits(int id) {
+static DWORD _stdcall HandleFakeTraits(int isSelect) {
 	for (DWORD i = 0; i < fakeTraits.size(); i++) {
 		DWORD a = (DWORD)fakeTraits[i].Name;
 		__asm {
@@ -351,15 +357,15 @@ static DWORD _stdcall HandleFakeTraits(int id) {
 			call folder_print_line_;
 			mov  a, eax;
 		}
-		if (a && !id) {
-			id = 1;
+		if (a && !isSelect) {
+			isSelect = 1;
 			*(DWORD*)_folder_card_fid = fakeTraits[i].Image;
 			*(DWORD*)_folder_card_title = (DWORD)fakeTraits[i].Name;
 			*(DWORD*)_folder_card_title2 = 0;
 			*(DWORD*)_folder_card_desc = (DWORD)fakeTraits[i].Desc;
 		}
 	}
-	return id;
+	return isSelect;
 }
 
 static void __declspec(naked) PlayerHasPerkHack() {
@@ -468,12 +474,14 @@ cLoop:
 	}
 }
 
-static DWORD _stdcall HandleExtraSelectablePerks(DWORD offset, DWORD* data) {
+// Build a table of perks ID numbers available for selection
+// data buffer has limited size for 119 perks
+static DWORD _stdcall HandleExtraSelectablePerks(DWORD available, DWORD* data) {
 	for (DWORD i = 0; i < fakeSelectablePerks.size(); i++) {
-		//*(WORD*)(_name_sort_list + (offset+i)*8)=(WORD)(PERK_count+i);
-		data[offset + i] = PERK_count + i;
+		if (available >= 119) break; // exit if the buffer is overfull
+		data[available++] = PERK_count + i; //*(WORD*)(_name_sort_list + (offset+i)*8)=(WORD)(PERK_count+i);
 	}
-	return offset + fakeSelectablePerks.size();
+	return available; // total number of perks available for selection
 }
 
 static void __declspec(naked) GetAvailablePerksHook() {
@@ -546,6 +554,7 @@ end:
 	}
 }
 
+// Adds the selected perk to the player
 static void _stdcall AddFakePerk(DWORD perkID) {
 	perkID -= PERK_count;
 	if (addPerkMode & 1) {
@@ -553,10 +562,11 @@ static void _stdcall AddFakePerk(DWORD perkID) {
 		for (DWORD d = 0; d < fakeTraits.size(); d++) {
 			if (!strcmp(fakeTraits[d].Name, fakeSelectablePerks[perkID].Name)) {
 				matched = true;
+				break;
 			}
 		}
 		if (!matched) {
-			RemoveTraitID = fakeTraits.size();
+			RemoveTraitID.push_back(fakeTraits.size());
 			fakeTraits.push_back(fakeSelectablePerks[perkID]);
 		}
 	}
@@ -564,22 +574,24 @@ static void _stdcall AddFakePerk(DWORD perkID) {
 		bool matched = false;
 		for (DWORD d = 0; d < fakePerks.size(); d++) {
 			if (!strcmp(fakePerks[d].Name, fakeSelectablePerks[perkID].Name)) {
-				RemovePerkID = d;
+				RemovePerkID.push_back(d);
 				fakePerks[d].Level++;
 				matched = true;
+				break;
 			}
 		}
 		if (!matched) {
-			RemovePerkID = fakePerks.size();
+			RemovePerkID.push_back(fakePerks.size());
 			fakePerks.push_back(fakeSelectablePerks[perkID]);
 		}
 	}
 	if (addPerkMode & 4) {
-		RemoveSelectableID = perkID;
+		RemoveSelectableID.push_back(perkID);
 		//fakeSelectablePerks.remove_at(perkID);
 	}
 }
 
+// Adds perk from selection window to player
 static void __declspec(naked) AddPerkHook() {
 	__asm {
 		cmp  edx, PERK_count;
@@ -638,7 +650,7 @@ void _stdcall ApplyHeaveHoFix() { // not really a fix
 	perkHeaveHoModFix = true;
 }
 
-static void PerkSetup() {
+static void PerkEngineInit() {
 	// Character screen (list_perks_)
 	HookCall(0x434256, PlayerHasTraitHook); // jz func
 	MakeJump(0x43436B, PlayerHasPerkHack);
@@ -679,19 +691,26 @@ static void PerkSetup() {
 	MakeCall(0x4AFB2F, LevelUpHack, 1); // replaces 'mov edx, ds:[PlayerLevel]'
 	SafeWrite8(0x43C2EC, 0xEB); // skip the block of code which checks if the player has gained a perk (now handled in level up code)
 
-	memcpy(Perks, (void*)_perk_data, sizeof(PerkStruct) * PERK_count);
+	// Disable losing unused perks
+	SafeWrite16(0x43C369, 0x0DFE); // dec  byte ptr ds:_free_perk
+	SafeWrite8(0x43C370, 0xB1);    // jmp  0x43C322
+}
 
-	// _perk_data
-	SafeWrite32(0x496669, (DWORD)Perks);
-	SafeWrite32(0x496837, (DWORD)Perks);
-	SafeWrite32(0x496BAD, (DWORD)Perks);
-	SafeWrite32(0x496C41, (DWORD)Perks);
-	SafeWrite32(0x496D25, (DWORD)Perks);
-	SafeWrite32(0x496696, (DWORD)Perks + 4);
-	SafeWrite32(0x496BD1, (DWORD)Perks + 4);
-	SafeWrite32(0x496BF5, (DWORD)Perks + 8);
-	SafeWrite32(0x496AD4, (DWORD)Perks + 12);
+static void PerkSetup() {
+	memcpy(Perks, (void*)_perk_data, sizeof(PerkStruct) * PERK_count); // copy vanilla data
 
+	if (!perksReInit) {
+		// _perk_data
+		SafeWrite32(0x496669, (DWORD)Perks);
+		SafeWrite32(0x496837, (DWORD)Perks);
+		SafeWrite32(0x496BAD, (DWORD)Perks);
+		SafeWrite32(0x496C41, (DWORD)Perks);
+		SafeWrite32(0x496D25, (DWORD)Perks);
+		SafeWrite32(0x496696, (DWORD)Perks + 4);
+		SafeWrite32(0x496BD1, (DWORD)Perks + 4);
+		SafeWrite32(0x496BF5, (DWORD)Perks + 8);
+		SafeWrite32(0x496AD4, (DWORD)Perks + 12);
+	}
 	if (perksFile[0] != '\0') {
 		char num[4];
 		for (int i = 0; i < PERK_count; i++) {
@@ -699,8 +718,8 @@ static void PerkSetup() {
 			if (GetPrivateProfileString(num, "Name", "", &Name[i * maxNameLen], maxNameLen - 1, perksFile)) {
 				Perks[i].Name = &Name[i * maxNameLen];
 			}
-			if (GetPrivateProfileString(num, "Desc", "", &Desc[i * maxDescLen], maxDescLen - 1, perksFile)) {
-				Perks[i].Desc = &Desc[i * maxDescLen];
+			if (GetPrivateProfileString(num, "Desc", "", &Desc[i * descLen], descLen - 1, perksFile)) {
+				Perks[i].Desc = &Desc[i * descLen];
 			}
 			int value;
 			value = GetPrivateProfileInt(num, "Image", -99999, perksFile);
@@ -739,21 +758,7 @@ static void PerkSetup() {
 			if (value != -99999) Perks[i].Lck = value;
 		}
 	}
-
-	for (int i = 0; i < PERK_count; i++) {
-		if (Perks[i].Name != &Name[maxNameLen * i]) {
-			strcpy_s(&Name[maxNameLen * i], maxNameLen, Perks[i].Name);
-			Perks[i].Name = &Name[maxNameLen * i];
-		}
-		if (Perks[i].Desc && Perks[i].Desc != &Desc[maxDescLen * i]) {
-			strcpy_s(&Desc[maxDescLen * i], maxDescLen, Perks[i].Desc);
-			Perks[i].Desc = &Desc[maxDescLen * i];
-		}
-	}
-
-	// Disable losing unused perks
-	SafeWrite16(0x43C369, 0x0DFE); // dec  byte ptr ds:_free_perk
-	SafeWrite8(0x43C370, 0xB1);    // jmp  0x43C322
+	perksReInit = false;
 }
 
 static __declspec(naked) void PerkInitWrapper() {
@@ -767,6 +772,8 @@ static __declspec(naked) void PerkInitWrapper() {
 		retn;
 	}
 }
+
+/////////////////////////// TRAIT FUNCTIONS ///////////////////////////////////
 
 static int _stdcall stat_get_base_direct(DWORD statID) {
 	DWORD result;
@@ -921,8 +928,8 @@ static void TraitSetup() {
 			if (GetPrivateProfileString(num, "Name", "", &tName[i * maxNameLen], maxNameLen - 1, perksFile)) {
 				Traits[i].Name = &tName[i * maxNameLen];
 			}
-			if (GetPrivateProfileString(num, "Desc", "", &tDesc[i * maxDescLen], maxDescLen - 1, perksFile)) {
-				Traits[i].Desc = &tDesc[i * maxDescLen];
+			if (GetPrivateProfileString(num, "Desc", "", &tDesc[i * descLen], descLen - 1, perksFile)) {
+				Traits[i].Desc = &tDesc[i * descLen];
 			}
 			int value;
 			value = GetPrivateProfileInt(num, "Image", -99999, perksFile);
@@ -990,17 +997,6 @@ static void TraitSetup() {
 			}
 		}
 	}
-
-	for (int i = 0; i < TRAIT_count; i++) {
-		if (Traits[i].Name != &tName[maxNameLen * i]) {
-			strcpy_s(&tName[maxNameLen * i], maxNameLen, Traits[i].Name);
-			Traits[i].Name = &tName[maxNameLen * i];
-		}
-		if (Traits[i].Desc && Traits[i].Desc != &tDesc[maxDescLen * i]) {
-			strcpy_s(&tDesc[maxDescLen * i], maxDescLen, Traits[i].Desc);
-			Traits[i].Desc = &tDesc[maxDescLen * i];
-		}
-	}
 }
 
 static __declspec(naked) void TraitInitWrapper() {
@@ -1015,20 +1011,26 @@ static __declspec(naked) void TraitInitWrapper() {
 	}
 }
 
+///////////////////////////////////////////////////////////////////////////////
+
 void _stdcall SetPerkValue(int id, int value, DWORD offset) {
 	if (id < 0 || id >= PERK_count) return;
 	*(DWORD*)((DWORD)(&Perks[id]) + offset) = value;
+	perksReInit = true;
 }
 
 void _stdcall SetPerkName(int id, char* value) {
 	if (id < 0 || id >= PERK_count) return;
 	strncpy_s(&Name[id * maxNameLen], maxNameLen, value, _TRUNCATE);
+	Perks[id].Name = &Name[maxNameLen * id];
+	perksReInit = true;
 }
 
 void _stdcall SetPerkDesc(int id, char* value) {
 	if (id < 0 || id >= PERK_count) return;
-	strncpy_s(&Desc[id * maxDescLen], maxDescLen, value, _TRUNCATE);
-	Perks[id].Desc = &Desc[maxDescLen * id];
+	strncpy_s(&Desc[id * descLen], descLen, value, _TRUNCATE);
+	Perks[id].Desc = &Desc[descLen * id];
+	perksReInit = true;
 }
 
 void PerksReset() {
@@ -1055,6 +1057,7 @@ void PerksReset() {
 		SafeWrite32(0x478AC5, 0x23);
 		perkHeaveHoModFix = false;
 	}
+	if (perksReInit) PerkSetup(); // restore perk data
 }
 
 void PerksSave(HANDLE file) {
@@ -1131,27 +1134,40 @@ void _stdcall ClearSelectablePerks() {
 }
 
 void PerksEnterCharScreen() {
-	RemoveTraitID = -1;
-	RemovePerkID = -1;
-	RemoveSelectableID = -1;
+	RemoveTraitID.clear();
+	RemovePerkID.clear();
+	RemoveSelectableID.clear();
 }
 
 void PerksCancelCharScreen() {
-	if (RemoveTraitID != -1) {
-		fakeTraits.erase(fakeTraits.begin() + RemoveTraitID);
+	if (RemoveTraitID.size() > 1) RemoveTraitID.sort();
+	while (!RemoveTraitID.empty()) {
+		fakeTraits.erase(fakeTraits.begin() + RemoveTraitID.back());
+		RemoveTraitID.pop_back();
 	}
-	if (RemovePerkID != -1) {
-		if (!--fakePerks[RemovePerkID].Level) fakePerks.erase(fakePerks.begin() + RemovePerkID);
+	if (RemovePerkID.size() > 1) RemovePerkID.sort(); // sorting to correctly remove from the end
+	while (!RemovePerkID.empty()) {
+		int index = RemovePerkID.back();
+		if (!--fakePerks[index].Level) fakePerks.erase(fakePerks.begin() + index);
+		RemovePerkID.pop_back();
 	}
 }
 
 void PerksAcceptCharScreen() {
-	if (RemoveSelectableID != -1) fakeSelectablePerks.erase(fakeSelectablePerks.begin() + RemoveSelectableID);
+	if (RemoveSelectableID.size() > 1) {
+		RemoveSelectableID.sort();
+		RemoveSelectableID.unique();
+	}
+	while (!RemoveSelectableID.empty()) {
+		fakeSelectablePerks.erase(fakeSelectablePerks.begin() + RemoveSelectableID.back());
+		RemoveSelectableID.pop_back();
+	}
 }
 
 void PerksInit() {
 	for (int i = STAT_st; i <= STAT_lu; i++) SafeWrite8(GainStatPerks[i][0], (BYTE)GainStatPerks[i][1]);
 
+	PerkEngineInit();
 	HookCall(0x442729, PerkInitWrapper);      // game_init_
 	if (GetPrivateProfileString("Misc", "PerksFile", "", &perksFile[2], MAX_PATH - 3, ini)) {
 		perksFile[0] = '.';

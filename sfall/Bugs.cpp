@@ -1925,6 +1925,7 @@ isDead:
 		cmp  eax, -1;
 		je   noBlood;
 		mov  eax, [esp - 4];                // object
+//		mov  [eax + 0x18], 3;               // set frame
 		mov  ebx, [esi + 0x28];             // critter.elev
 		mov  edx, [esi + 0x04];             // critter.tile
 		xor  ecx, ecx;
