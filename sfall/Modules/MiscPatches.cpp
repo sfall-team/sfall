@@ -351,7 +351,7 @@ fail:
 static void __declspec(naked) op_obj_can_see_obj_hook() {
 	__asm {
 		push fo::funcoffs::obj_shoot_blocking_at_;   // check hex objects func pointer
-		push 0x20;                                   // flags, 0x20 = check shootthru
+		push 0x20;                                   // flags, 0x20 = check ShootThru
 		mov  ecx, dword ptr [esp + 0x0C];            // buf **ret_objStruct
 		push ecx;
 		xor  ecx, ecx;
@@ -907,6 +907,20 @@ void MiscPatches::init() {
 		dlog("Applying override art cache size patch.", DL_INIT);
 		SafeWrite8(0x41886A, 0x0);
 		SafeWrite32(0x418872, 256);
+		dlogr(" Done", DL_INIT);
+	}
+
+	int time = GetConfigInt("Misc", "CorpseDeleteTime", 6); // time in days
+	if (time != 6) {
+		dlog("Applying corpse deletion time patch.", DL_INIT);
+		if (time <= 0) {
+			time = 12; // hours
+		} else if (time > 13) {
+			time = 13 * 24;
+		} else {
+			time *= 24;
+		}
+		SafeWrite32(0x483348, time);
 		dlogr(" Done", DL_INIT);
 	}
 

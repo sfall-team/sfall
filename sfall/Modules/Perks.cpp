@@ -30,7 +30,7 @@ using namespace fo;
 
 constexpr int maxNameLen = 64;   // don't change size
 constexpr int maxDescLen = 512;  // don't change size
-const int descLen = 256;         // maximum text length for interface
+static const int descLen = 256;  // maximum text length for interface
 
 static char perksFile[MAX_PATH] = {0};
 
@@ -206,7 +206,8 @@ void _stdcall SetSelectablePerk(char* name, int active, int image, char* desc) {
 			if (!strcmp(name, fakeSelectablePerks[i].Name)) {
 				fakeSelectablePerks[i].Level = active;
 				fakeSelectablePerks[i].Image = image;
-				strncpy_s(fakeSelectablePerks[i].Desc, desc, _TRUNCATE);
+				strncpy(fakeSelectablePerks[i].Desc, desc, descLen - 1);
+				fakeSelectablePerks[i].Desc[descLen - 1] = 0;
 				return;
 			}
 		}
@@ -230,7 +231,8 @@ void _stdcall SetFakePerk(char* name, int level, int image, char* desc) {
 			if (!strcmp(name, fakePerks[i].Name)) {
 				fakePerks[i].Level = level;
 				fakePerks[i].Image = image;
-				strncpy_s(fakePerks[i].Desc, desc, _TRUNCATE);
+				strncpy(fakePerks[i].Desc, desc, descLen - 1);
+				fakePerks[i].Desc[descLen - 1] = 0;
 				return;
 			}
 		}
@@ -254,7 +256,8 @@ void _stdcall SetFakeTrait(char* name, int active, int image, char* desc) {
 			if (!strcmp(name, fakeTraits[i].Name)) {
 				fakeTraits[i].Level = active;
 				fakeTraits[i].Image = image;
-				strncpy_s(fakeTraits[i].Desc, desc, _TRUNCATE);
+				strncpy(fakeTraits[i].Desc, desc, descLen - 1);
+				fakeTraits[i].Desc[descLen - 1] = 0;
 				return;
 			}
 		}
@@ -806,9 +809,15 @@ static void PerkEngineInit() {
 	// perk_owed hooks
 	MakeCall(0x4AFB2F, LevelUpHack, 1); // replaces 'mov edx, ds:[PlayerLevel]'
 	SafeWrite8(0x43C2EC, 0xEB); // skip the block of code which checks if the player has gained a perk (now handled in level up code)
+
+	// Disable losing unused perks
+	SafeWrite16(0x43C369, 0x0DFE); // dec  byte ptr ds:_free_perk
+	SafeWrite8(0x43C370, 0xB1);    // jmp  0x43C322
 }
 
 static void PerkSetup() {
+	memcpy(perks, var::perk_data, sizeof(PerkInfo) * PERK_count); // copy vanilla data
+
 	if (!perksReInit) {
 		// _perk_data
 		SafeWriteBatch<DWORD>((DWORD)perks, {0x496669, 0x496837, 0x496BAD, 0x496C41, 0x496D25});
@@ -817,8 +826,6 @@ static void PerkSetup() {
 		SafeWrite32(0x496BF5, (DWORD)perks + 8);
 		SafeWrite32(0x496AD4, (DWORD)perks + 12);
 	}
-	memcpy(perks, var::perk_data, sizeof(PerkInfo) * PERK_count); // copy vanilla data
-
 	if (perksFile[0] != '\0') {
 		char num[4];
 		for (int i = 0; i < PERK_count; i++) {
@@ -925,10 +932,6 @@ static void PerkSetup() {
 		}
 	}
 	perksReInit = false;
-
-	// Disable losing unused perks
-	SafeWrite16(0x43C369, 0x0DFE); // dec  byte ptr ds:_free_perk
-	SafeWrite8(0x43C370, 0xB1);    // jmp  0x43C322
 }
 
 static __declspec(naked) void PerkInitWrapper() {
