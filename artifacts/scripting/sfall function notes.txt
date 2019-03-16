@@ -44,7 +44,7 @@ The get/set_sfall_global functions require an 8 characters long case sensitive s
 
 set_pickpocket_max and set_hit_chance_max effect all critters rather than just the player. set_skill_max can't be used to increase the skill cap above 300. set_perk_level_mod sets a modifier between +25 and -25 that is added/subtracted from the players level for the purposes of deciding which perks can be chosen.
 
-set_fake_trait and set_fake_perk can be used to add additional traits and perks to the character screen. They will be saved correctly when the player saves and reloads games, but by themselves they will have no further effect on the character. For perks, the allowed range for levels is between 0 and 100; setting the level to 0 removes that perk. For traits, the level must be 0 or 1. The image is a numeric id that corresponds to an entry in skilldex.lst. The name is limited to 64 characters and the description to 1024 characters by sfall, but internal Fallout limits may be lower.
+set_fake_trait and set_fake_perk can be used to add additional traits and perks to the character screen. They will be saved correctly when the player saves and reloads games, but by themselves they will have no further effect on the character. For perks, the allowed range for levels is between 0 and 100; setting the level to 0 removes that perk. For traits, the level must be 0 or 1. The image is a numeric id that corresponds to an entry in skilldex.lst. The name is limited to 63 characters and the description to 255 characters by sfall, but internal Fallout limits may be lower.
 
 has_fake_trait and has_fake_perk return the number of levels the player has of the perks/traits with the given name.
 
