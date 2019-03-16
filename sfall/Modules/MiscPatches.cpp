@@ -1007,6 +1007,9 @@ void MiscPatches::init() {
 		SafeWrite32(0x483348, time);
 	}
 
+	int gvar = GetConfigInt("Misc", "SpecialDeathGVAR", fo::GVAR_MODOC_SHITTY_DEATH);
+	if (gvar != fo::GVAR_MODOC_SHITTY_DEATH) SafeWrite32(0x440C2A, gvar);
+
 	LoadGameHook::OnBeforeGameStart() += BodypartHitChances; // set on start & load
 
 	CombatProcFix();
