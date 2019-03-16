@@ -92,29 +92,31 @@ void sf_typeof(OpcodeContext& ctx) {
 
 static int _stdcall StringSplit(const char* str, const char* split) {
 	int id;
-	if (strlen(split) == 0) {
-		id = TempArray(strlen(str), 4);
-		for (DWORD i = 0; i < strlen(str); i++) {
+	size_t count, splitLen = strlen(split);
+	if (!splitLen) {
+		count = strlen(str);
+		id = TempArray(count, 0);
+		for (DWORD i = 0; i < count; i++) {
 			arrays[id].val[i].set(&str[i], 1);
 		}
 	} else {
-		int count = 1;
+		count = 1;
 		const char *ptr = str, *newptr;
 		while (true) {
 			newptr = strstr(ptr, split);
 			if (!newptr) break;
 			count++;
-			ptr = newptr + strlen(split);
+			ptr = newptr + splitLen;
 		}
 		id = TempArray(count, 0);
 		ptr = str;
 		count = 0;
 		while (true) {
 			newptr = strstr(ptr, split);
-			int len = newptr ? newptr - ptr : strlen(ptr);
+			int len = (newptr) ? newptr - ptr : strlen(ptr);
 			arrays[id].val[count++].set(ptr, len);
 			if (!newptr) break;
-			ptr = newptr + strlen(split);
+			ptr = newptr + splitLen;
 		}
 	}
 	return id;

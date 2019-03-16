@@ -71,7 +71,7 @@ struct PerkInfoExt {
 static std::vector<PerkInfoExt> extPerks;
 
 struct FakePerk {
-	int Level; // current level (max 99)
+	int Level; // current level (max 100)
 	int Image;
 	char Name[maxNameLen];
 	char Desc[maxDescLen];

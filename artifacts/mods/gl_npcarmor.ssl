@@ -96,7 +96,11 @@ procedure invenwield_handler begin
    if (critter and item and slot == INVEN_TYPE_WORN) then begin
       fid := check_armor_change(critter, item, isWorn);
       if (fid != -1) then begin
-         art_change_fid_num(critter, fid);
+         if art_exists(fid) then begin
+            art_change_fid_num(critter, fid);
+         end else begin
+            debug_msg("Error: NPC Armor mod: missing FID.");
+         end
       end
       return;
    end
@@ -119,7 +123,12 @@ procedure adjustfid_handler begin
       fid := check_armor_change(dude_obj, armor, armor != 0);
       if (fid != -1) then begin
          variable weapAnim := get_sfall_arg bwand 0xF000;
-         set_sfall_return(fid bwand 0xFFFF0FFF bwor weapAnim);
+         variable newFid := fid bwand 0xFFFF0FFF bwor weapAnim;
+         if art_exists(newFid) then begin
+            set_sfall_return(newFid);
+         end else begin
+            debug_msg("Error: NPC Armor mod: missing FID.");
+         end
       end
    end
 end
