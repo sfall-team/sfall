@@ -1533,6 +1533,9 @@ static void DllMain2() {
 		dlogr(" Done", DL_INIT);
 	}
 
+	int gvar = GetPrivateProfileIntA("Misc", "SpecialDeathGVAR", 491, ini); // GVAR_MODOC_SHITTY_DEATH
+	if (gvar != 491) SafeWrite32(0x440C2A, gvar);
+
 	dlogr("Leave DllMain2", DL_MAIN);
 }
 

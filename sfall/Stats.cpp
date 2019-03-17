@@ -256,7 +256,7 @@ void StatsInit() {
 			StatFormulas[i * 2 + 1] = GetPrivateProfileInt(key, "min", StatFormulas[i * 2 + 1], table);
 			for (int j = 0; j < STAT_max_hit_points; j++) {
 				sprintf(buf2, "shift%d", j);
-				StatShifts[i * 7 + j] = GetPrivateProfileInt(key, buf2, StatShifts[i * 7 + 0], table);
+				StatShifts[i * 7 + j] = GetPrivateProfileInt(key, buf2, StatShifts[i * 7 + j], table);
 				sprintf(buf2, "multi%d", j);
 				_gcvt(StatMulti[i * 7 + j], 16, buf3);
 				GetPrivateProfileStringA(key, buf2, buf3, buf2, 256, table);
