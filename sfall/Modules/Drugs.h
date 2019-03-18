@@ -1,6 +1,6 @@
 /*
  *    sfall
- *    Copyright (C) 2008-2016  The sfall team
+ *    Copyright (C) 2008-2019  The sfall team
  *
  *    This program is free software: you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
@@ -18,29 +18,40 @@
 
 #pragma once
 
-#include <string>
-#include <sstream>
-#include <unordered_map>
-
-#include "..\..\..\main.h"
-#include "..\..\ScriptExtender.h"
+#include "Module.h"
 
 namespace sfall
 {
-namespace script
-{
 
-// Example handler. Feel free to add handlers in other files.
-#ifndef NDEBUG
-void sf_test(OpcodeContext&);
-#endif
+class Drugs : public Module {
+public:
+	const char* name() { return "Drugs"; }
+	void init();
+	void exit() override;
 
-// returns current contents of metarule table
-void sf_get_metarule_table(OpcodeContext&);
+	static long addictionGvarCount;
 
-void InitMetaruleTable();
+	static long GetDrugCount();
+	static long GetDrugPid(long n);
+	static long GetDrugGvar(long n);
 
-void HandleMetarule(OpcodeContext& ctx);
+	static long SetDrugNumEffect(long pid, long effect);
+	static long SetDrugAddictTimeOff(long pid, long time);
+};
 
-}
+#define SIZE_S_DRUGS    (32)
+
+struct sDrugs {
+	DWORD drugPid;      // don't move
+	long gvarID;        // don't move
+	long numEffects;    // don't move
+	long addictTimeOff;
+	long msgID;
+	long frmID;
+	long iniNumEffects;
+	long iniAddictTimeOff;
+};
+
+extern sDrugs *drugs;
+
 }

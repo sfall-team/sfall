@@ -16,12 +16,12 @@
 *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <algorithm>
-#include <vector>
+//#include <algorithm>
 
 #include "..\main.h"
 #include "..\FalloutEngine\Fallout2.h"
 #include "HookScripts\InventoryHs.h"
+#include "Drugs.h"
 #include "HookScripts.h"
 #include "LoadGameHook.h"
 
@@ -30,11 +30,12 @@
 namespace sfall
 {
 
+bool npcAutoLevelEnabled;
+bool npcEngineLevelUp = true;
+
 bool isControllingNPC = false;
 bool skipCounterAnim  = false;
 
-static DWORD controlMode;
-static std::vector<WORD> allowedCritterPids;
 static int delayedExperience;
 static bool switchHandHookInjected = false;
 
@@ -54,11 +55,46 @@ static struct DudeState {
 	DWORD itemCurrentItem;
 	fo::ItemButtonItem itemButtonItems[2];
 	long perkLevelDataList[fo::PERK_count];
-	//DWORD drug_gvar[6];
-	//DWORD jet_gvar;
+	long addictGvar[8];
 	long tag_skill[4];
 	//DWORD bbox_sneak;
+	long* extendAddictGvar = nullptr;
 } realDude;
+
+static void SaveAddictGvarState() {
+	int n = 0;
+	for (int i = 0; i < Drugs::GetDrugCount(); i++) {
+		long gvarID = Drugs::GetDrugGvar(i);
+		if (gvarID > 0) realDude.extendAddictGvar[n++] = fo::var::game_global_vars[gvarID];
+	}
+}
+
+static void RestoreAddictGvarState() {
+	int n = 0;
+	for (int i = 0; i < Drugs::GetDrugCount(); i++) {
+		long gvarID = Drugs::GetDrugGvar(i);
+		if (gvarID > 0) fo::var::game_global_vars[gvarID] = realDude.extendAddictGvar[n++];
+	}
+}
+
+static bool SetAddictGvar(fo::GameObject* npc) {
+	bool isAddict = false;
+	int count = Drugs::GetDrugCount();
+	for (int i = 0; i < count; i++) {
+		long gvarID = Drugs::GetDrugGvar(i);
+		if (gvarID > 0) fo::var::game_global_vars[gvarID] = 0;
+	}
+	for (int i = 0; i < count; i++) {
+		long pid = Drugs::GetDrugPid(i);
+		if (pid > 0) {
+			long gvarID = Drugs::GetDrugGvar(i);
+			if (gvarID <= 0 || !fo::CheckAddictByPid(npc, pid)) continue;
+			fo::var::game_global_vars[gvarID] = 1;
+			isAddict = true;
+		}
+	}
+	return isAddict;
+}
 
 // saves the state of PC before moving control to NPC
 static void SaveRealDudeState() {
@@ -74,9 +110,13 @@ static void SaveRealDudeState() {
 	realDude.Experience = fo::var::Experience_;
 	realDude.free_perk = fo::var::free_perk;
 	realDude.unspent_skill_points = fo::var::curr_pc_stat[0];
-	//real_map_elevation = fo::var::map_elevation;
 	realDude.sneak_working = fo::var::sneak_working;
 	fo::SkillGetTags(realDude.tag_skill, 4);
+
+	for (int i = 0; i < 6; i++) realDude.addictGvar[i] = fo::var::game_global_vars[fo::var::drugInfoList[i].addictGvar];
+	realDude.addictGvar[6] = fo::var::game_global_vars[fo::var::drugInfoList[7].addictGvar];
+	realDude.addictGvar[7] = fo::var::game_global_vars[fo::var::drugInfoList[8].addictGvar];
+	if (realDude.extendAddictGvar) SaveAddictGvarState();
 
 	if (skipCounterAnim) SafeWriteBatch<BYTE>(0, {0x422BDE, 0x4229EC}); // no animate
 }
@@ -100,8 +140,8 @@ static void SetCurrentDude(fo::GameObject* npc) {
 	fo::func::critter_pc_set_name(fo::func::critter_name(npc));
 
 	// change level
-	int level = fo::func::isPartyMember(npc) 
-		? fo::func::partyMemberGetCurLevel(npc) 
+	int level = fo::func::isPartyMember(npc)
+		? fo::func::partyMemberGetCurLevel(npc)
 		: 0;
 
 	fo::var::Level_ = level;
@@ -121,6 +161,16 @@ static void SetCurrentDude(fo::GameObject* npc) {
 		fo::var::itemCurrentItem = 1;
 	}
 
+	bool isAddict = false;
+	for (int i = 0; i < 9; i++) fo::var::game_global_vars[fo::var::drugInfoList[i].addictGvar] = 0;
+	for (int i = 0; i < 9; i++) {
+		if (!fo::CheckAddictByPid(npc, fo::var::drugInfoList[i].itemPid)) continue;
+		fo::var::game_global_vars[fo::var::drugInfoList[i].addictGvar] = 1;
+		isAddict = true;
+	}
+	if (realDude.extendAddictGvar) isAddict |= SetAddictGvar(npc); // check new added addictions
+	fo::ToggleNpcFlag(npc, 4, isAddict); // for show/hide addiction box (fix bug)
+
 	// switch main dude_obj pointers - this should be done last!
 	fo::var::obj_dude = npc;
 	fo::var::inven_dude = npc;
@@ -137,6 +187,8 @@ static void SetCurrentDude(fo::GameObject* npc) {
 static void RestoreRealDudeState() {
 	assert(realDude.obj_dude != nullptr);
 
+	fo::var::map_elevation = realDude.obj_dude->elevation;
+
 	fo::var::obj_dude = realDude.obj_dude;
 	fo::var::inven_dude = realDude.obj_dude;
 	fo::var::inven_pid = realDude.obj_dude->protoId;
@@ -152,13 +204,17 @@ static void RestoreRealDudeState() {
 	fo::var::Experience_ = realDude.Experience;
 	fo::var::free_perk = realDude.free_perk;
 	fo::var::curr_pc_stat[0] = realDude.unspent_skill_points;
-	//realDude.map_elevation = fo::var::map_elevation; -- why save elevation?
 	fo::var::sneak_working = realDude.sneak_working;
 	fo::SkillSetTags(realDude.tag_skill, 4);
 
 	if (delayedExperience > 0) {
 		fo::func::stat_pc_add_experience(delayedExperience);
 	}
+
+	for (int i = 0; i < 6; i++) fo::var::game_global_vars[fo::var::drugInfoList[i].addictGvar] = realDude.addictGvar[i];
+	fo::var::game_global_vars[fo::var::drugInfoList[7].addictGvar] = realDude.addictGvar[6];
+	fo::var::game_global_vars[fo::var::drugInfoList[8].addictGvar] = realDude.addictGvar[7];
+	if (realDude.extendAddictGvar) RestoreAddictGvarState();
 
 	if (skipCounterAnim) SafeWriteBatch<BYTE>(1, {0x422BDE, 0x4229EC}); // restore
 	fo::func::intface_redraw();
@@ -279,11 +335,30 @@ static void __declspec(naked) gdControlUpdateInfo_hook() {
 	}
 }
 
+static void NpcAutoLevelPatch() {
+	npcAutoLevelEnabled = GetConfigInt("Misc", "NPCAutoLevel", 0) != 0;
+	if (npcAutoLevelEnabled) {
+		dlog("Applying NPC autolevel patch.", DL_INIT);
+		SafeWrite8(0x495CFB, 0xEB); // jmps 0x495D28 (skip random check)
+		dlogr(" Done", DL_INIT);
+	}
+}
+
 void PartyControl::init() {
-	LoadGameHook::OnGameReset() += PartyControlReset;
+	LoadGameHook::OnGameReset() += []() {
+		PartyControlReset();
+		if (!npcEngineLevelUp) {
+			npcEngineLevelUp = true;
+			SafeWrite16(0x4AFC1C, 0x840F);
+		}
+	};
+
+	if (Drugs::addictionGvarCount) realDude.extendAddictGvar = new long[Drugs::addictionGvarCount];
 
 	HookCall(0x454218, stat_pc_add_experience_hook); // call inside op_give_exp_points_hook
 	HookCalls(pc_flag_toggle_hook, { 0x4124F1, 0x41279A });
+
+	NpcAutoLevelPatch();
 
 	skipCounterAnim = (GetConfigInt("Misc", "SpeedInterfaceCounterAnims", 0) == 3);
 
@@ -296,6 +371,10 @@ void PartyControl::init() {
 		Translate("sfall", "PartyAddictMsg", "Addict", addictMsg, 16);
 		dlogr(" Done", DL_INIT);
 	}
+}
+
+void PartyControl::exit() {
+	if (realDude.extendAddictGvar) delete[] realDude.extendAddictGvar;
 }
 
 }

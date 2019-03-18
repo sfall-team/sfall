@@ -37,6 +37,8 @@ static bool femaleCheck = false;  // flag for check female dialog file
 static DWORD format;
 static bool cutsPatch   = false;
 
+static std::vector<std::string> patchFiles;
+
 static void CheckPlayerGender() {
 	isFemale = fo::HeroIsFemale();
 
@@ -66,7 +68,7 @@ static void __declspec(naked) scr_get_dialog_msg_file_hack1() {
 		push msgFemaleFolder;
 		jmp  scr_get_dialog_msg_file_Back;
 default:
-		push FO_VAR_aDialogS_msg;            // default "dialog\%s.msg"
+		push FO_VAR_aDialogS_msg;          // default "dialog\%s.msg"
 		jmp  scr_get_dialog_msg_file_Back;
 	}
 }
@@ -99,81 +101,102 @@ static void __declspec(naked) gnw_main_hack() {
 	}
 }
 
-static void __declspec(naked) removeDatabase() {
-	__asm {
-		cmp  eax, -1
-		je   end
-		mov  ebx, ds:[FO_VAR_paths]
-		mov  ecx, ebx
-nextPath:
-		mov  edx, [esp+0x104+4+4]                 // path_patches
-		mov  eax, [ebx]                           // database.path
-		call fo::funcoffs::stricmp_
-		test eax, eax                             // found path?
-		jz   skip                                 // Yes
-		mov  ecx, ebx
-		mov  ebx, [ebx+0xC]                       // database.next
-		jmp  nextPath
-skip:
-		mov  eax, [ebx+0xC]                       // database.next
-		mov  [ecx+0xC], eax                       // database.next
-		xchg ebx, eax
-		cmp  eax, ecx
-		jne  end
-		mov  ds:[FO_VAR_paths], ebx
-end:
-		retn
+static fo::PathNode* __fastcall RemoveDatabase(const char* pathPatches) {
+	auto paths = fo::var::paths; // curr.node (beginning of the load order)
+	auto _paths = paths;         // prev.node
+
+	while (paths) {
+		if (_stricmp(paths->path, pathPatches) == 0) { // found path
+			fo::PathNode* nextPaths = paths->next;     // pointer to the node of the next path
+// TODO: need to check if this condition is used correctly
+			if (paths != _paths)
+				_paths->next = nextPaths;              // replace the pointer in the previous node, removing the current(found) path from the load order
+			else                                       // if the current node is equal to the previous node
+				fo::var::paths = nextPaths;            // set the next node at the beginning of the load order
+			return paths;                              // return the pointer of the current removed node (save the pointer)
+		}
+		_paths = paths;      // prev.node <- curr.node
+		paths = paths->next; // take a pointer to the next path from the current node
 	}
+	return nullptr; // it's possible that this will create an exceptional situation for the game, although such a situation should not arise
 }
 
+// Remove master_patches from the load order
 static void __declspec(naked) game_init_databases_hack1() {
 	__asm {
-		call removeDatabase
-		mov  ds:[FO_VAR_master_db_handle], eax
-		retn
+		cmp  eax, -1;
+		je   skip;
+		mov  ecx, [esp + 0x104 + 4]; // path_patches
+		call RemoveDatabase;
+skip:
+		mov  ds:[FO_VAR_master_db_handle], eax;   // the pointer of master_patches node will be saved here
+		retn;
 	}
 }
 
+// Remove critter_patches from the load order
 static void __declspec(naked) game_init_databases_hack2() {
 	__asm {
-		cmp  eax, -1
-		je   end
-		mov  eax, ds:[FO_VAR_master_db_handle]
-		mov  eax, [eax]                           // eax = master_patches.path
-		call fo::funcoffs::xremovepath_
-		dec  eax                                  // remove path (critter_patches == master_patches)?
-		jz   end                                  // Yes
-		inc  eax
-		call removeDatabase
+		cmp  eax, -1;
+		je   end;
+		mov  eax, ds:[FO_VAR_master_db_handle];   // pointer to master_patches node
+		mov  eax, [eax];                          // eax = master_patches.path
+		call fo::funcoffs::xremovepath_;
+		dec  eax;                                 // remove path (critter_patches == master_patches)?
+		jz   end;                                 // Yes (jump if 0)
+		mov  ecx, [esp + 0x104 + 4];              // path_patches
+		call RemoveDatabase;
 end:
-		mov  ds:[FO_VAR_critter_db_handle], eax
-		retn
+		mov  ds:[FO_VAR_critter_db_handle], eax;  // the pointer of critter_patches node will be saved here
+		retn;
 	}
 }
 
-static void __declspec(naked) game_init_databases_hook() {
-// eax = _master_db_handle
-	__asm {
-		mov  ecx, ds:[FO_VAR_critter_db_handle]
-		mov  edx, ds:[FO_VAR_paths]
-		jecxz skip
-		mov  [ecx+0xC], edx                       // critter_patches.next->_paths
-		mov  edx, ecx
-skip:
-		mov  [eax+0xC], edx                       // master_patches.next
-		mov  ds:[FO_VAR_paths], eax
-		retn
+static void __stdcall InitExtraPatches() {
+	for (auto it = patchFiles.begin(); it != patchFiles.end(); it++) {
+		fo::func::db_init(it->c_str(), 0);
+	}
+}
+
+static void __fastcall game_init_databases_hook() {
+	fo::PathNode* master_patches;
+	__asm mov master_patches, eax;        // eax = _master_db_handle
+
+	if (!patchFiles.empty()) InitExtraPatches();
+
+	fo::PathNode* critter_patches = (fo::PathNode*)fo::var::critter_db_handle;
+	fo::PathNode* paths = fo::var::paths; // beginning of the load order
+	// insert master_patches/critter_patches at the beginning of the load order
+	if (critter_patches) {
+		critter_patches->next = paths;    // critter_patches.next -> paths
+		paths = critter_patches;
+	}
+	master_patches->next = paths;         // master_patches.next -> paths
+	fo::var::paths = master_patches;      // set master_patches node at the beginning of the load order
+}
+
+static void GetExtraPatches() {
+	char patchFile[12] = "PatchFile";
+	for (int i = 0; i < 100; i++) {
+		_itoa(i, &patchFile[9], 10);
+		auto patch = GetConfigString("ExtraPatches", patchFile, "", MAX_PATH);
+		if (patch.empty() || GetFileAttributes(patch.c_str()) == INVALID_FILE_ATTRIBUTES) continue;
+		patchFiles.push_back(patch);
 	}
 }
 
 void LoadOrder::init() {
+	GetExtraPatches();
+
 	if (GetConfigInt("Misc", "DataLoadOrderPatch", 0)) {
 		dlog("Applying data load order patch.", DL_INIT);
 		MakeCall(0x444259, game_init_databases_hack1);
 		MakeCall(0x4442F1, game_init_databases_hack2);
-		HookCall(0x44436D, &game_init_databases_hook);
-		SafeWrite8(0x4DFAEC, 0x1D); // error correction
+		HookCall(0x44436D, game_init_databases_hook);
+		SafeWrite8(0x4DFAEC, 0x1D); // error correction (ecx > ebx)
 		dlogr(" Done", DL_INIT);
+	} else if (!patchFiles.empty()) {
+		HookCall(0x44436D, InitExtraPatches);
 	}
 
 	femaleMsgs = GetConfigInt("Misc", "FemaleDialogMsgs", 0);

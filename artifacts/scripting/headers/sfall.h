@@ -237,7 +237,8 @@
 #define party_member_list_critters      party_member_list(0)
 #define party_member_list_all           party_member_list(1)
 
-
+// sfall_funcX macros
+#define add_iface_tag                                   sfall_func0("add_iface_tag")
 #define art_cache_clear                                 sfall_func0("art_cache_clear")
 #define attack_is_aimed                                 sfall_func0("attack_is_aimed")
 #define car_gas_amount                                  sfall_func0("car_gas_amount")
@@ -269,12 +270,14 @@
 #define item_weight(obj)                                sfall_func1("item_weight", obj)
 #define lock_is_jammed(obj)                             sfall_func1("lock_is_jammed", obj)
 #define loot_obj                                        sfall_func0("loot_obj")
+#define npc_engine_level_up(toggle)                     sfall_func1("npc_engine_level_up", toggle)
 #define obj_under_cursor(crSwitch, inclDude)            sfall_func2("obj_under_cursor", crSwitch, inclDude)
 #define outlined_object                                 sfall_func0("outlined_object")
 #define real_dude_obj                                   sfall_func0("real_dude_obj")
 #define set_can_rest_on_map(map, elev, value)           sfall_func3("set_can_rest_on_map", map, elev, value)
 #define set_car_intface_art(artIndex)                   sfall_func1("set_car_intface_art", artIndex)
 #define set_cursor_mode(mode)                           sfall_func1("set_cursor_mode", mode)
+#define set_drugs_data(type, pid, value)                sfall_func3("set_drugs_data", type, pid, value)
 #define set_dude_obj(critter)                           sfall_func1("set_dude_obj", critter)
 #define set_flags(obj, flags)                           sfall_func2("set_flags", obj, flags)
 #define set_iface_tag_text(tag, text, color)            sfall_func3("set_iface_tag_text", tag, text, color)

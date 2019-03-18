@@ -12,13 +12,13 @@ public:
 	void init();
 	void exit() override;
 
-	static int  MaxBox() { return boxCount - 1; } 
+	static int  MaxBox() { return boxCount - 1; }
 	static void SetText(int box, const char* text, DWORD color);
 
 	static bool GetBox(int);
 	static void AddBox(int);
 	static void RemoveBox(int);
-
+	static long AddExtraBox();
 };
 
 }

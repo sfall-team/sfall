@@ -51,6 +51,7 @@ namespace sfall
 	popadc }
 
 static Delegate<> onGameInit;
+static Delegate<> onAfterGameInit;
 static Delegate<> onGameExit;
 static Delegate<> onGameReset;
 static Delegate<> onBeforeGameStart;
@@ -128,6 +129,7 @@ static void _stdcall SaveGame2() {
 		WriteFile(h, &data, 4, &size, 0);
 		Perks::save(h);
 		script::SaveArrays(h);
+		BugFixes::DrugsSaveFix(h);
 		CloseHandle(h);
 	} else {
 		goto errorSave;
@@ -224,6 +226,7 @@ static bool LoadGame_Before() {
 		ReadFile(h, &data, 4, &size, 0);
 		Worldmap::SetAddedYears(data >> 16);
 		if (size != 4 || !Perks::load(h) || script::LoadArrays(h)) goto errorLoad;
+		if (BugFixes::DrugsLoadFix(h)) goto errorLoad;
 		CloseHandle(h);
 	} else {
 		dlogr("Cannot open sfallgv.sav - assuming non-sfall save.", DL_MAIN);
@@ -321,8 +324,12 @@ static void __declspec(naked) main_load_new_hook() {
 	}
 }
 
-static void __stdcall GameInitialized() {
+static void __stdcall GameInitialization() {
 	onGameInit.invoke();
+}
+
+static void __stdcall GameInitialized() {
+	onAfterGameInit.invoke();
 }
 
 static void __stdcall GameExit() {
@@ -336,9 +343,13 @@ static void __stdcall GameClose() {
 static void __declspec(naked) main_init_system_hook() {
 	__asm {
 		pushadc;
+		call GameInitialization;
+		popadc;
+		call fo::funcoffs::main_init_system_;
+		pushadc;
 		call GameInitialized;
 		popadc;
-		jmp fo::funcoffs::main_init_system_;
+		retn;
 	}
 }
 
@@ -642,7 +653,7 @@ void LoadGameHook::init() {
 	HookCalls(EscMenuHook2, {0x4433BE});
 	HookCalls(OptionsMenuHook, {0x48FCE4, 0x48FD17, 0x48FD4D, 0x48FD6A, 0x48FD87, 0x48FDB3});
 	HookCalls(HelpMenuHook, {0x443A50});
-	HookCalls(CharacterHook, {0x443320, 0x4A73EB, 0x4A740A});
+	HookCalls(CharacterHook, {0x443320}); // 0x4A73EB, 0x4A740A for character creation
 	HookCalls(DialogHook, {0x445748});
 	HookCalls(PipboyHook, {0x443463, 0x443605});
 	HookCalls(SkilldexHook, {0x4434AC, 0x44C7BD});
@@ -660,6 +671,10 @@ void LoadGameHook::init() {
 
 Delegate<>& LoadGameHook::OnGameInit() {
 	return onGameInit;
+}
+
+Delegate<>& LoadGameHook::OnAfterGameInit() {
+	return onAfterGameInit;
 }
 
 Delegate<>& LoadGameHook::OnGameExit() {

@@ -1,5 +1,6 @@
 #include "..\main.h"
 #include "..\FalloutEngine\Fallout2.h"
+#include "Drugs.h"
 #include "LoadGameHook.h"
 #include "ScriptExtender.h"
 
@@ -16,13 +17,51 @@ static DWORD weightOnBody = 0;
 
 static char textBuf[355];
 
+std::list<int> drugsPid;
+
+static void __fastcall DrugPidPush(int pid) {
+	drugsPid.push_back(pid);
+}
+
+static int __fastcall DrugPidPop() {
+	if (drugsPid.empty()) return 0;
+	int pid = drugsPid.front();
+	drugsPid.pop_front();
+	return pid;
+}
+
+void BugFixes::DrugsSaveFix(HANDLE file) {
+	DWORD sizeWrite, count = drugsPid.size();
+	WriteFile(file, &count, 4, &sizeWrite, 0);
+	if (!count) return;
+	for (auto it = drugsPid.begin(); it != drugsPid.end(); it++) {
+		int pid = *it;
+		WriteFile(file, &pid, 4, &sizeWrite, 0);
+	}
+	drugsPid.clear();
+	return;
+}
+
+bool BugFixes::DrugsLoadFix(HANDLE file) {
+	DWORD count, sizeRead;
+	ReadFile(file, &count, 4, &sizeRead, 0);
+	//if (sizeRead != 4) return true;
+	for (DWORD i = 0; i < count; i++) {
+		DWORD pid;
+		ReadFile(file, &pid, 4, &sizeRead, 0);
+		if (sizeRead != 4) return true;
+		drugsPid.push_back(pid);
+	}
+	return false;
+}
+
 void ResetBodyState() {
 	__asm mov critterBody, 0;
 	__asm mov sizeOnBody, 0;
 	__asm mov weightOnBody, 0;
 }
 
-void GameInitialization() {
+static void MusicVolInitialization() {
 	*(DWORD*)FO_VAR_gDialogMusicVol = *(DWORD*)FO_VAR_background_volume; // fix dialog music
 }
 
@@ -37,9 +76,9 @@ static void __declspec(naked) NegateFixHack() {
 		retn;
 isFloat:
 		push ebx;
-		fld[esp];
+		fld  [esp];
 		fchs;
-		fstp[esp];
+		fstp [esp];
 		pop  ebx;
 		call fo::funcoffs::pushLongStack_;
 		mov  edx, VAR_TYPE_FLOAT;
@@ -192,97 +231,145 @@ skip:
 	}
 }
 
-static void __declspec(naked) item_d_check_addict_hack() {
+static void __declspec(naked) item_d_check_addict_hack() { // replace engine function
 	__asm {
-		mov  edx, 2                               // type = addiction
-		cmp  eax, -1                              // Has drug_pid?
-		je   skip                                 // No
-		xchg ebx, eax                             // ebx = drug_pid
-		mov  eax, esi                             // eax = who
-		call fo::funcoffs::queue_find_first_
-loopQueue:
-		test eax, eax                             // Has something in the list?
-		jz   end                                  // No
-		cmp  ebx, dword ptr [eax+0x4]             // drug_pid == queue_addict.drug_pid?
-		je   end                                  // Has specific addiction
-		mov  eax, esi                             // eax = who
-		mov  edx, 2                               // type = addiction
-		call fo::funcoffs::queue_find_next_
-		jmp  loopQueue
+		push 0x47A6A1;                            // return addr
+		mov  edx, 2;                              // type = addiction
+		cmp  eax, -1;                             // Has drug_pid?
+		jne  skip;                                // No
+		mov  eax, dword ptr ds:[FO_VAR_obj_dude];
+		jmp  fo::funcoffs::queue_find_first_;     // return player addiction
 skip:
-		mov  eax, dword ptr ds:[FO_VAR_obj_dude]
-		call fo::funcoffs::queue_find_first_
+		mov  ebx, eax;                            // ebx = drug_pid
+		mov  eax, esi;                            // eax = who
+		call fo::funcoffs::queue_find_first_;
+loopQueue:
+		test eax, eax;                            // Has something in the list?
+		jz   end;                                 // No
+		cmp  ebx, dword ptr [eax + 0x4];          // drug_pid == queue_addict.drug_pid?
+		je   end;                                 // Has specific addiction
+		mov  eax, esi;                            // eax = who
+		mov  edx, 2;                              // type = addiction
+		call fo::funcoffs::queue_find_next_;
+		jmp  loopQueue;
 end:
-		push 0x47A6A1
-		retn
+		retn;
 	}
 }
 
-static void __declspec(naked) remove_jet_addict() {
+static void __declspec(naked) RemoveJetAddictFunc() {
 	__asm {
-		cmp  eax, dword ptr ds:[FO_VAR_wd_obj]
-		jne  end
-		cmp  dword ptr [edx+0x4], PID_JET         // queue_addict.drug_pid == PID_JET?
-		jne  end
-		xor  eax, eax
-		inc  eax                                  // Delete from queue
-		retn
+		cmp  eax, dword ptr ds:[FO_VAR_wd_obj];
+		jne  end;
+		cmp  dword ptr [edx + 0x4], PID_JET;      // queue_addict.drug_pid == PID_JET?
 end:
-		xor  eax, eax                             // Don't touch
-		retn
+		sete al;                                  // 1 = Delete from queue, 0 = Don't touch
+		and  eax, 0xFF;
+		retn;
 	}
 }
 
 static void __declspec(naked) item_d_take_drug_hack() {
 	__asm {
-		cmp  dword ptr [eax], 0                   // queue_addict.init
-		jne  skip                                 // Addiction is not active yet
-		mov  edx, PERK_add_jet
-		mov  eax, esi
-		call fo::funcoffs::perform_withdrawal_end_
+		cmp  dword ptr [eax], 0;                  // queue_addict.init
+		jne  skip;                                // Addiction is not active yet
+		mov  edx, PERK_add_jet;
+		mov  eax, esi;
+		call fo::funcoffs::perform_withdrawal_end_;
 skip:
-		mov  dword ptr ds:[FO_VAR_wd_obj], esi
-		mov  eax, 2                               // type = addiction
-		mov  edx, offset remove_jet_addict
-		call fo::funcoffs::queue_clear_type_
-		push 0x479FD1
-		retn
+		mov  dword ptr ds:[FO_VAR_wd_obj], esi;
+		mov  eax, 2;                              // type = addiction
+		mov  edx, offset RemoveJetAddictFunc;
+		call fo::funcoffs::queue_clear_type_;
+		push 0x479FD1;
+		retn;
 	}
 }
 
+static void __declspec(naked) item_d_load_subfix() {
+	__asm {
+		sub  esp, 4;                              // proto buf
+//		mov  [ebp], edi;                          // edi->queue_drug
+		xor  ebp, ebp;                            // set drug_pid = 0
+		mov  ecx, 9;                              // vanilla count
+		mov  esi, FO_VAR_drugInfoList;
+		mov  ebx, 12;
+loopDrug:
+		cmp  dword ptr [esi + 8], 0;              // drugInfoList.numeffects
+		je   nextDrug;
+		mov  edx, esp;
+		mov  eax, [esi];                          // drugInfoList.pid
+		call fo::funcoffs::proto_ptr_;
+		test eax, eax;
+		js   nextDrug;                            // -1 - can't open proto
+		mov  edx, [esp];
+		mov  eax, [edx + 0x24];                   // drug.stat0
+		cmp  eax, [edi + 0x4];                    // drug.stat0 == queue_drug.stat0?
+		jne  nextDrug;                            // No
+		mov  eax, [edx + 0x28];                   // drug.stat1
+		cmp  eax, [edi + 0x8];                    // drug.stat1 == queue_drug.stat1?
+		jne  nextDrug;                            // No
+		mov  eax, [edx + 0x2C];                   // drug.stat2
+		cmp  eax, [edi + 0xC];                    // drug.stat2 == queue_drug.stat2?
+		jne  nextDrug;                            // No
+		mov  eax, [edx + 0x30];                   // drug.amount0
+		cmp  eax, [edi + 0x10];                   // drug.amount0 == queue_drug.amount0?
+		jne  nextDrug;                            // No
+		mov  eax, [edx + 0x34];                   // drug.amount1
+		cmp  eax, [edi + 0x14];                   // drug.amount1 == queue_drug.amount1?
+		jne  nextDrug;                            // No
+		mov  eax, [edx + 0x38];                   // drug.amount2
+		cmp  eax, [edi + 0x18];                   // drug.amount2 == queue_drug.amount2?
+		je   foundPid;                            // Yes
+nextDrug:
+		lea  esi, [esi + ebx];
+		dec  ecx;
+		jnz  loopDrug;
+		cmp  ebx, 12;
+		jnz  end;                                 // failed, this drug effect was not found
+		// try find in new drugs
+		call Drugs::GetDrugCount;
+		test eax, eax;
+		jz   end;
+		mov  ebx, SIZE_S_DRUGS;                   // sizeof structure
+		mov  ecx, eax;
+		lea  edx, drugs;
+		mov  esi, [edx];
+		jmp  loopDrug;
+foundPid:
+		mov  ebp, [esi];                          // drugInfoList.pid
+end:
+		mov  [edi], ebp;                          // queue_drug.drug_pid
+		xor  eax, eax;
+		add  esp, 4;
+		retn;
+	}
+}
+
+// take the drug pid from the list after loading sfallgv.sav
 static void __declspec(naked) item_d_load_hack() {
 	__asm {
-		sub  esp, 4
-		mov  [ebp], edi                           // edi->queue_drug
-		mov  ecx, 7
-		mov  esi, FO_VAR_drugInfoList + 12
-loopDrug:
-		cmp  dword ptr [esi+8], 0                 // drugInfoList.numeffects
-		je   nextDrug
-		mov  edx, esp
-		mov  eax, [esi]                           // drugInfoList.pid
-		call fo::funcoffs::proto_ptr_
-		mov  edx, [esp]
-		mov  eax, [edx+0x24]                      // drug.stat0
-		cmp  eax, [edi+0x4]                       // drug.stat0 == queue_drug.stat0?
-		jne  nextDrug                             // No
-		mov  eax, [edx+0x28]                      // drug.stat1
-		cmp  eax, [edi+0x8]                       // drug.stat1 == queue_drug.stat1?
-		jne  nextDrug                             // No
-		mov  eax, [edx+0x2C]                      // drug.stat2
-		cmp  eax, [edi+0xC]                       // drug.stat2 == queue_drug.stat2?
-		je   foundPid                             // Yes
-nextDrug:
-		add  esi, 12
-		loop loopDrug
-foundPid:
-		jecxz end
-		mov  eax, [esi]                           // drugInfoList.pid
-		mov  [edi], eax                           // queue_drug.drug_pid
-end:
-		xor  eax, eax
-		add  esp, 4
-		retn
+		mov  [ebp], edi;                          // edi->queue_drug
+		call DrugPidPop;
+		test eax, eax;
+		jnz  skip;
+		jmp  item_d_load_subfix;                  // if the pid was not saved, then try to find it
+skip:
+		mov  [edi], eax;                          // queue_drug.drug_pid
+		xor  eax, eax;
+		retn;
+	}
+}
+
+// add drug pid to the list to save to sfallgv.sav
+static void __declspec(naked) item_d_save_hack() {
+	__asm {
+		pushadc;
+		mov  ecx, [edx];                          // drug pid
+		call DrugPidPush;
+		popadc;
+		mov  ebx, 3;
+		retn;
 	}
 }
 
@@ -293,7 +380,7 @@ static void __declspec(naked) queue_clear_type_mem_free_hook() {
 	}
 }
 
-static void __declspec(naked) partyMemberCopyLevelInfo_stat_level_hook() {
+static void __declspec(naked) partyMemberCopyLevelInfo_hook_stat_level() {
 	__asm {
 nextArmor:
 		mov  eax, esi
@@ -308,7 +395,7 @@ noArmor:
 	}
 }
 
-static void __declspec(naked) correctFidForRemovedItem_adjust_ac_hook() {
+static void __declspec(naked) correctFidForRemovedItem_hook_adjust_ac() {
 	__asm {
 		call fo::funcoffs::adjust_ac_
 nextArmor:
@@ -323,39 +410,42 @@ end:
 	}
 }
 
-static void __declspec(naked) partyMemberCopyLevelInfo_hook() {
+static void __declspec(naked) partyMemberIncLevels_hook() {
 	__asm {
-		push eax
-		call fo::funcoffs::partyMemberCopyLevelInfo_
-		pop  ebx
-		cmp  eax, -1
-		je   end
-		pushad
-		mov  dword ptr ds:[FO_VAR_critterClearObj], ebx
-		mov  edx, fo::funcoffs::critterClearObjDrugs_
-		call fo::funcoffs::queue_clear_type_
-		mov  ecx, 8
-		mov  edi, FO_VAR_drugInfoList
-		mov  esi, ebx
+		mov  ebx, eax;                            // party member pointer
+		call fo::funcoffs::partyMemberCopyLevelInfo_;
+		cmp  eax, -1;
+		je   end;
+		xor  edx, edx;                            // queue type (0)
+		mov  eax, ebx;                            // source
+		call fo::funcoffs::queue_remove_this_;
+		push ecx;
+		push edi;
+		push esi;
+		mov  ecx, 8;
+		mov  edi, FO_VAR_drugInfoList;
+		mov  esi, ebx;                            // pointer for fixed item_d_check_addict_
 loopAddict:
-		mov  eax, dword ptr [edi]                 // eax = drug pid
-		call fo::funcoffs::item_d_check_addict_
-		test eax, eax                             // Has addiction?
-		jz   noAddict                             // No
-		cmp  dword ptr [eax], 0                   // queue_addict.init
-		jne  noAddict                             // Addiction is not active yet
-		mov  edx, dword ptr [eax+0x8]             // queue_addict.perk
-		mov  eax, ebx
-		call fo::funcoffs::perk_add_effect_
+		mov  eax, dword ptr [edi];                // eax = drug pid
+		call fo::funcoffs::item_d_check_addict_;
+		test eax, eax;                            // Has addiction?
+		jz   noAddict;                            // No
+		cmp  dword ptr [eax], 0;                  // queue_addict.init
+		jne  noAddict;                            // Addiction is not active yet
+		mov  edx, dword ptr [eax + 0x8];          // queue_addict.perk
+		mov  eax, ebx;
+		call fo::funcoffs::perk_add_effect_;
 noAddict:
-		add  edi, 12
-		loop loopAddict
-		popad
+		lea  edi, [edi + 12];
+		dec  ecx;
+		jnz  loopAddict;
+		pop  esi;
+		pop  edi;
+		pop  ecx;
 end:
-		retn
+		retn;
 	}
 }
-
 
 static void __declspec(naked) gdProcessUpdate_hack() {
 	__asm {
@@ -649,7 +739,8 @@ found:
 		add  edx, [esp+0x40]                      // inventory_offset
 		mov  eax, ds:[FO_VAR_pud]
 		mov  ecx, [eax]                           // itemsCount
-		jecxz skip
+		test ecx, ecx
+		jz   skip
 		dec  ecx
 		cmp  edx, ecx
 		ja   skip
@@ -673,13 +764,15 @@ static void __declspec(naked) drop_ammo_into_weapon_hook() {
 		jge  skip                                 // Yes
 		lea  edx, [eax + inventory]               // Inventory
 		mov  ecx, [edx]                           // itemsCount
-		jcxz skip                                 // inventory is empty (another excess check, but leave it)
+		test ecx, ecx
+		jz   skip                                 // inventory is empty (another excess check, but leave it)
 		mov  edx, [edx+8]                         // FirstItem
 nextItem:
 		cmp  ebp, [edx]                           // Our weapon?
 		je   foundItem                            // Yes
 		add  edx, 8                               // Go to the next
-		loop nextItem
+		dec  ecx
+		jnz  nextItem
 		jmp  skip                                 // Our weapon is not in inventory
 foundItem:
 		cmp  dword ptr [edx+4], 1                 // Only one weapon?
@@ -856,14 +949,16 @@ static void __declspec(naked) obj_load_func_hack() {
 		jne  skip
 		test byte ptr [eax + damageFlags], DAM_KNOCKED_DOWN
 		jz   clear                                // No
-		pushad
+		pushadc
+		push ebx
 		xor  ecx, ecx
-		inc  ecx
-		xor  ebx, ebx
-		xor  edx, edx
-		xchg edx, eax
+		mov  edx, eax // object
+		mov  ebx, ecx // extramem null
+		mov  eax, ecx // time = 0
+		inc  ecx      // type = 1
 		call fo::funcoffs::queue_add_
-		popad
+		pop  ebx
+		popadc
 clear:
 		and  word ptr [eax + damageFlags], ~(DAM_LOSE_TURN or DAM_KNOCKED_DOWN) // 0x7FFD
 skip:
@@ -1807,6 +1902,81 @@ isLoad:
 	}
 }
 
+static void __declspec(naked) JesseContainerFid() {
+	__asm {
+		dec edx; // set fid to -1
+		jmp fo::funcoffs::obj_new_;
+	}
+}
+
+static void __declspec(naked) ai_search_inven_weap_hook() {
+	__asm {
+		call fo::funcoffs::item_w_subtype_;
+		cmp  eax, THROWING;
+		jne  fix;
+		retn;
+fix:
+		xor  eax, eax;
+		mov  edx, [esi + ammoPid];
+		test edx, edx;
+		js   skip;
+		mov  eax, GUNS; // set GUNS if has ammo pid
+skip:
+		retn;
+	}
+}
+
+static void __declspec(naked) map_age_dead_critters_hack() {
+	__asm {
+		test ecx, ecx; // dead_bodies_age
+		jz   skip;     // if (dead_bodies_age == No) exit func
+		cmp  dword ptr [esp + 0x3C - 0x30 + 4], 0;
+skip:
+		retn;
+	}
+}
+
+static void __declspec(naked) partyFixMultipleMembers_hook() {
+	__asm {
+		mov  edx, [esi + protoId];
+		sar  edx, 24;
+		cmp  edx, OBJ_TYPE_CRITTER;
+		jne  noDrop;                        // not critter
+		test [esi + damageFlags], DAM_DEAD;
+		jnz  isDead;
+		cmp  dword ptr [esi + health], 0;
+		jg   noBlood;                       // is not dead
+isDead:
+		// create generic blood
+		sub  esp, 4;
+		mov  eax, esp                       // object buf
+		mov  edx, 0x5000004;                // pid
+		call fo::funcoffs::obj_pid_new_;
+		add  esp, 4;
+		cmp  eax, -1;
+		je   noBlood;
+		mov  eax, [esp - 4];                // object
+//		mov  [eax + frm], 3;                // set frame
+		mov  ebx, [esi + elevation];
+		mov  edx, [esi + tile];
+		xor  ecx, ecx;
+		call fo::funcoffs::obj_move_to_tile_;
+noBlood:
+		mov  eax, [esi + protoId];
+		mov  edx, 0x40;                     // noDrop flag
+		call fo::funcoffs::critter_flag_check_;
+		test eax, eax;
+		mov  eax, esi;
+		jnz  noDrop;                        // flag is set
+		mov  edx, [esi + tile];
+		call fo::funcoffs::item_drop_all_;
+		mov  eax, esi;
+noDrop:
+		xor  edx, edx;
+		call fo::funcoffs::obj_erase_object_;
+		retn;
+	}
+}
 
 void BugFixes::init()
 {
@@ -1815,7 +1985,7 @@ void BugFixes::init()
 	#endif
 
 	// Missing game initialization
-	LoadGameHook::OnGameInit() += GameInitialization;
+	LoadGameHook::OnGameInit() += MusicVolInitialization;
 
 	// fix vanilla negate operator on float values
 	MakeCall(0x46AB68, NegateFixHack);
@@ -1875,6 +2045,7 @@ void BugFixes::init()
 
 	// Fix for gaining stats from more than two doses of a specific chem after save-load
 	dlog("Applying fix for save-load unlimited drug use exploit.", DL_INIT);
+	MakeCall(0x47A25B, item_d_save_hack);
 	MakeCall(0x47A243, item_d_load_hack);
 	dlogr(" Done", DL_INIT);
 
@@ -1888,14 +2059,14 @@ void BugFixes::init()
 	// The same happens if you just order NPC to remove the armor through dialogue.
 	//if (GetConfigInt("Misc", "ArmorCorruptsNPCStatsFix", 1)) {
 		dlog("Applying fix for armor reducing NPC original stats when removed.", DL_INIT);
-		HookCall(0x495F3B, partyMemberCopyLevelInfo_stat_level_hook);
-		HookCall(0x45419B, correctFidForRemovedItem_adjust_ac_hook);
+		HookCall(0x495F3B, partyMemberCopyLevelInfo_hook_stat_level);
+		HookCall(0x45419B, correctFidForRemovedItem_hook_adjust_ac);
 		dlogr(" Done", DL_INIT);
 	//}
 
 	// Fix of invalid stats when party member gains a level while being on drugs
 	dlog("Applying fix for addicted party member level up bug.", DL_INIT);
-	HookCall(0x495D5C, partyMemberCopyLevelInfo_hook);
+	HookCall(0x495D5C, partyMemberIncLevels_hook);
 	dlogr(" Done", DL_INIT);
 
 	// Allow 9 options (lines of text) to be displayed correctly in a dialog window
@@ -2159,7 +2330,7 @@ void BugFixes::init()
 	MakeJump(0x424BA2, compute_damage_hack);
 	dlogr(" Done", DL_INIT);
 
-	// Fix missing AC/DR mod stats when examining ammo in barter screen
+	// Fix missing AC/DR mod stats when examining ammo in the barter screen
 	dlog("Applying fix for displaying ammo stats in barter screen.", DL_INIT);
 	MakeCalls(obj_examine_func_hack_ammo0, {0x49B4AD, 0x49B504});
 	SafeWrite16(0x49B4B2, 0x9090);
@@ -2167,7 +2338,7 @@ void BugFixes::init()
 	MakeCall(0x49B563, obj_examine_func_hack_ammo1, 2);
 	dlogr(" Done", DL_INIT);
 
-	// Display full item description for weapon/ammo in barter screen
+	// Display full item description for weapon/ammo in the barter screen
 	showItemDescription = (GetConfigInt("Misc", "FullItemDescInBarter", 0) != 0);
 	if (showItemDescription) {
 		dlog("Applying full item description in barter patch.", DL_INIT);
@@ -2212,7 +2383,7 @@ void BugFixes::init()
 	SafeWrite8(0x4C1015, 0x90);
 	HookCall(0x4C1042, wmSetupRandomEncounter_hook);
 
-	// Fix for unable to sell/give items in barter screen when the player/party member is overloaded
+	// Fix for unable to sell/give items in the barter screen when the player/party member is overloaded
 	HookCalls(barter_attempt_transaction_hook_weight, {0x474C73, 0x474CCA});
 
 	// Fix for the underline position in the inventory display window when the item name is longer than one line
@@ -2311,6 +2482,28 @@ void BugFixes::init()
 
 	// Fix for the player's turn being skipped when loading a game saved in combat mode
 	MakeCall(0x422E25, combat_hack_load);
+
+	// Fix for the reserved item FRM being displayed in the top-left corner when in the loot/barter screens
+	HookCalls(JesseContainerFid, {0x473AC9, 0x475895});
+
+	// Fix the return value of has_skill function for incorrect skill numbers
+	SafeWrite32(0x4AA56B, 0);
+
+	// Fix for NPC stuck in a loop of reloading melee/unarmed weapons when out of ammo
+	dlog("Applying fix for NPC stuck in a loop of reloading melee/unarmed weapons.", DL_INIT);
+	HookCall(0x429A2B, ai_search_inven_weap_hook);
+	dlogr(" Done", DL_INIT);
+
+	// Fix for critters not being healed over time when entering the map if 'dead_bodies_age=No' is set in maps.txt
+	// also fix the zero initialization of a local variable to correct time for removing corpses and blood
+	dlog("Applying fix for the self-healing of critters when entering the map.", DL_INIT);
+	MakeCall(0x483356, map_age_dead_critters_hack);
+	SafeWrite32(0x4832A0, 0x9090C189); // mov ecx, eax (keep dead_bodies_age flag)
+	SafeWrite32(0x4832A4, 0x0C245489); // mov [esp + var_30], edx
+	dlogr(" Done", DL_INIT);
+
+	// Fix for the removal of party member's corpse when loading the map
+	HookCall(0x4957B8, partyFixMultipleMembers_hook);
 }
 
 }

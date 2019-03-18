@@ -60,6 +60,10 @@ GameObject* GetActiveItem();
 
 bool HeroIsFemale();
 
+long CheckAddictByPid(fo::GameObject* critter, long pid);
+
+void ToggleNpcFlag(fo::GameObject* npc, long flag, bool set);
+
 // Print text to surface
 void PrintText(char *displayText, BYTE colorIndex, DWORD x, DWORD y, DWORD textWidth, DWORD destWidth, BYTE *surface);
 // gets the height of the currently selected font

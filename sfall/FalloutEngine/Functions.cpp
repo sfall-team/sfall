@@ -160,6 +160,10 @@ long __stdcall db_get_file_list(const char* searchMask, char* * *fileList) {
 	WRAP_WATCOM_CALL2(db_get_file_list_, searchMask, fileList)
 }
 
+long __stdcall db_init(const char* path_dat, const char* path_patches) {
+	WRAP_WATCOM_CALL3(db_init_, path_dat, 0, path_patches)
+}
+
 // Check fallout paths for file
 long __stdcall CheckFile(char *fileName, DWORD *sizeOut) {
 	WRAP_WATCOM_CALL2(db_dir_entry_, fileName, sizeOut)

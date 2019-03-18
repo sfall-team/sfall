@@ -247,7 +247,7 @@ static void CriticalTableOverride() {
 static void RemoveCriticalTimeLimitsPatch() {
 	if (GetConfigInt("Misc", "RemoveCriticalTimelimits", 0)) {
 		dlog("Removing critical time limits.", DL_INIT);
-		SafeWrite8(0x424118, 0xEB);               // jmps 0x424131
+		SafeWrite8(0x424118, 0xEB); // jump to 0x424131
 		SafeWrite8(0x4A3053, 0x0);
 		SafeWrite8(0x4A3094, 0x0);
 		dlogr(" Done", DL_INIT);

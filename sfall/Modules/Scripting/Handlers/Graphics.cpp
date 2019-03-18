@@ -224,7 +224,7 @@ void __declspec(naked) op_set_shader_int() {
 		mov edi, eax;
 		mov eax, ecx;
 		call fo::funcoffs::interpretPopLong_;
-		mov[esp + 8], eax;
+		mov [esp + 8], eax;
 		mov eax, ecx;
 		call fo::funcoffs::interpretPopShort_;
 		mov edx, eax;
@@ -236,7 +236,7 @@ void __declspec(naked) op_set_shader_int() {
 		mov esi, eax;
 		mov eax, ecx;
 		call fo::funcoffs::interpretPopLong_;
-		mov[esp], eax;
+		mov [esp], eax;
 		//Error check
 		cmp di, VAR_TYPE_INT;
 		jnz fail;
@@ -250,7 +250,7 @@ next:
 		mov eax, ecx;
 		mov ebx, ebp;
 		call fo::funcoffs::interpretGetString_;
-		mov[esp + 4], eax;
+		mov [esp + 4], eax;
 		call SetShaderInt;
 		jmp end;
 fail:
@@ -281,7 +281,7 @@ void __declspec(naked) op_set_shader_texture() {
 		mov edi, eax;
 		mov eax, ecx;
 		call fo::funcoffs::interpretPopLong_;
-		mov[esp + 8], eax;
+		mov [esp + 8], eax;
 		mov eax, ecx;
 		call fo::funcoffs::interpretPopShort_;
 		mov edx, eax;
@@ -293,7 +293,7 @@ void __declspec(naked) op_set_shader_texture() {
 		mov esi, eax;
 		mov eax, ecx;
 		call fo::funcoffs::interpretPopLong_;
-		mov[esp], eax;
+		mov [esp], eax;
 		//Error check
 		cmp di, VAR_TYPE_INT;
 		jnz fail;
@@ -307,7 +307,7 @@ next:
 		mov eax, ecx;
 		mov ebx, ebp;
 		call fo::funcoffs::interpretGetString_;
-		mov[esp + 4], eax;
+		mov [esp + 4], eax;
 		call SetShaderTexture;
 		jmp end;
 fail:
@@ -338,7 +338,7 @@ void __declspec(naked) op_set_shader_float() {
 		mov edi, eax;
 		mov eax, ecx;
 		call fo::funcoffs::interpretPopLong_;
-		mov[esp + 8], eax;
+		mov [esp + 8], eax;
 		mov eax, ecx;
 		call fo::funcoffs::interpretPopShort_;
 		mov edx, eax;
@@ -350,14 +350,14 @@ void __declspec(naked) op_set_shader_float() {
 		mov esi, eax;
 		mov eax, ecx;
 		call fo::funcoffs::interpretPopLong_;
-		mov[esp], eax;
+		mov [esp], eax;
 		//Error check
 		cmp di, VAR_TYPE_FLOAT;
 		jz paramWasFloat;
 		cmp di, VAR_TYPE_INT;
 		jnz fail;
-		fild[esp + 8];
-		fstp[esp + 8];
+		fild [esp + 8];
+		fstp [esp + 8];
 paramWasFloat:
 		cmp dx, VAR_TYPE_STR2;
 		jz next;
@@ -369,7 +369,7 @@ next:
 		mov eax, ecx;
 		mov ebx, ebp;
 		call fo::funcoffs::interpretGetString_;
-		mov[esp + 4], eax;
+		mov [esp + 4], eax;
 		call SetShaderFloat;
 		jmp end;
 fail:
@@ -398,35 +398,37 @@ void __declspec(naked) op_set_shader_vector() {
 argloopstart:
 		mov eax, ebp;
 		call fo::funcoffs::interpretPopShort_;
-		mov word ptr[esp + ecx * 2 + 0x16], ax;
+		mov word ptr [esp + ecx * 2 + 0x16], ax;
 		mov eax, ebp;
 		call fo::funcoffs::interpretPopLong_;
-		mov[esp + ecx * 4 - 0x4], eax;
-		loop argloopstart;
+		mov [esp + ecx * 4 - 0x4], eax;
+		dec ecx;
+		jnz argloopstart;
 		//Error check
 		mov ecx, 4;
 checkloopstart:
-		cmp word ptr[esp + ecx * 2 + 0x1a], VAR_TYPE_FLOAT;
+		cmp word ptr [esp + ecx * 2 + 0x1a], VAR_TYPE_FLOAT;
 		jz paramWasFloat;
-		cmp word ptr[esp + ecx * 2 + 0x1a], VAR_TYPE_INT;
+		cmp word ptr [esp + ecx * 2 + 0x1a], VAR_TYPE_INT;
 		jnz fail;
-		fild[esp + ecx * 4 + 0x4];
-		fstp[esp + ecx * 4 + 0x4];
+		fild [esp + ecx * 4 + 0x4];
+		fstp [esp + ecx * 4 + 0x4];
 paramWasFloat:
-		loop checkloopstart;
-		cmp word ptr[esp + 0x1a], VAR_TYPE_STR2;
+		dec ecx;
+		jnz checkloopstart;
+		cmp word ptr [esp + 0x1a], VAR_TYPE_STR2;
 		jz next;
-		cmp word ptr[esp + 0x1a], VAR_TYPE_STR;
+		cmp word ptr [esp + 0x1a], VAR_TYPE_STR;
 		jnz fail;
 next:
-		cmp word ptr[esp + 0x18], VAR_TYPE_INT;
+		cmp word ptr [esp + 0x18], VAR_TYPE_INT;
 		jnz fail;
 		mov eax, ebp;
 		mov ebx, [esp + 4];
 		xor edx, edx;
-		mov dx, word ptr[esp + 0x1a];
+		mov dx, word ptr [esp + 0x1a];
 		call fo::funcoffs::interpretGetString_;
-		mov[esp + 4], eax;
+		mov [esp + 4], eax;
 		call SetShaderVector;
 		add esp, 0x12;
 		jmp end;

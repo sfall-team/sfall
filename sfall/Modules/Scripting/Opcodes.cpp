@@ -65,9 +65,13 @@ static SfallOpcodeInfo opcodeInfoArray[] = {
 	{0x163, "get_year",                  sf_get_year,                  0, true},
 	{0x16c, "key_pressed",               sf_key_pressed,               1, true,  {ARG_INT}},
 
+	{0x190, "get_perk_available",        sf_get_perk_available,        1, true,  {ARG_INT}},
 	{0x19d, "set_sfall_global",          sf_set_sfall_global,          2, false, {ARG_INTSTR, ARG_NUMBER}},
 	{0x19e, "get_sfall_global_int",      sf_get_sfall_global_int,      1, true,  {ARG_INTSTR}},
 	{0x19f, "get_sfall_global_float",    sf_get_sfall_global_float,    1, true,  {ARG_INTSTR}},
+	{0x1a5, "inc_npc_level",             sf_inc_npc_level,             1, false, {ARG_INTSTR}},
+
+	{0x1c1, "has_fake_perk",             sf_has_fake_perk,             1, true,  {ARG_INTSTR}},
 
 	{0x1dc, "show_iface_tag",            sf_show_iface_tag,            1, false, {ARG_INT}},
 	{0x1dd, "hide_iface_tag",            sf_hide_iface_tag,            1, false, {ARG_INT}},
@@ -130,6 +134,7 @@ static SfallOpcodeInfo opcodeInfoArray[] = {
 	{0x237, "atoi",                      sf_atoi,                      1, true,  {ARG_STRING}},
 	{0x238, "atof",                      sf_atof,                      1, true,  {ARG_STRING}},
 	{0x239, "scan_array",                sf_scan_array,                2, true,  {ARG_OBJECT, ARG_ANY}},
+	{0x241, "get_npc_level",             sf_get_npc_level,             1, true,  {ARG_INTSTR}},
 
 	{0x24e, "substr",                    sf_substr,                    3, true,  {ARG_STRING, ARG_INT, ARG_INT}},
 	{0x24f, "strlen",                    sf_strlen,                    1, true,  {ARG_STRING}},
@@ -284,7 +289,6 @@ void InitNewOpcodes() {
 	}
 	opcodes[0x18e] = op_get_perk_owed;
 	opcodes[0x18f] = op_set_perk_owed;
-	opcodes[0x190] = op_get_perk_available;
 	opcodes[0x191] = op_get_critter_current_ap;
 	opcodes[0x192] = op_set_critter_current_ap;
 	opcodes[0x193] = op_active_hand;
@@ -302,7 +306,6 @@ void InitNewOpcodes() {
 	opcodes[0x1a2] = op_set_skill_max;
 	opcodes[0x1a3] = op_eax_available;
 	//opcodes[0x1a4] = op_set_eax_environment;
-	opcodes[0x1a5] = op_inc_npc_level;
 	opcodes[0x1a6] = op_get_viewport_x;
 	opcodes[0x1a7] = op_get_viewport_y;
 	opcodes[0x1a8] = op_set_viewport_x;
@@ -330,7 +333,6 @@ void InitNewOpcodes() {
 	opcodes[0x1be] = op_set_perkbox_title;
 	opcodes[0x1bf] = op_hide_real_perks;
 	opcodes[0x1c0] = op_show_real_perks;
-	opcodes[0x1c1] = op_has_fake_perk;
 	opcodes[0x1c2] = op_has_fake_trait;
 	opcodes[0x1c3] = op_perk_add_mode;
 	opcodes[0x1c4] = op_clear_selectable_perks;
@@ -398,7 +400,6 @@ void InitNewOpcodes() {
 	opcodes[0x23e] = op_force_aimed_shots;
 	opcodes[0x23f] = op_disable_aimed_shots;
 	opcodes[0x240] = op_mark_movie_played;
-	opcodes[0x241] = op_get_npc_level;
 	opcodes[0x242] = op_set_critter_skill_points;
 	opcodes[0x243] = op_get_critter_skill_points;
 	opcodes[0x244] = op_set_available_skill_points;

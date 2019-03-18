@@ -52,8 +52,10 @@ static void __declspec(naked) obj_use_book_hook() {
 		mov  ecx, eax;
 		call FindBook;
 		test eax, eax;
-		cmovnz edi, [eax + 4]; // msgID
-		cmovnz ecx, [eax + 8]; // skill
+		jz   skip;
+		mov  edi, [eax + 4]; // msgID
+		mov  ecx, [eax + 8]; // skill
+skip:
 		jmp  obj_use_book_hook_back;
 	}
 }
@@ -90,11 +92,11 @@ void Books::init() {
 		bool includeVanilla = (GetPrivateProfileIntA("main", "overrideVanilla", 0, iniBooks) == 0);
 		if (includeVanilla) BooksCount = 5;
 
-		int count = max(0, GetPrivateProfileIntA("main", "count", 0, iniBooks));
-		if (count > BooksMax) count = BooksMax;
+		int count = GetPrivateProfileIntA("main", "count", 0, iniBooks);
 
 		int n = 0;
 		if (count > 0) {
+			if (count > BooksMax) count = BooksMax;
 			books = new sBook[BooksCount + count];
 
 			if (includeVanilla) LoadVanillaBooks();

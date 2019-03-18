@@ -41,8 +41,6 @@ void sf_get_year(OpcodeContext&);
 
 void __declspec() op_game_loaded();
 
-void __declspec() op_set_map_time_multi();
-
 void __declspec() op_set_pipboy_available();
 
 // Kill counters
@@ -72,9 +70,9 @@ void __declspec() op_toggle_active_hand();
 
 void __declspec() op_eax_available();
 
-void __declspec() op_inc_npc_level();
+void sf_inc_npc_level(OpcodeContext&);
 
-void __declspec() op_get_npc_level();
+void sf_get_npc_level(OpcodeContext&);
 
 void __declspec() op_get_ini_setting();
 
@@ -164,6 +162,8 @@ void sf_set_ini_setting(OpcodeContext&);
 void sf_get_ini_sections(OpcodeContext&);
 
 void sf_get_ini_section(OpcodeContext&);
+
+void sf_npc_engine_level_up(OpcodeContext&);
 
 }
 }

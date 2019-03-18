@@ -36,6 +36,7 @@
 #include "Modules\Credits.h"
 #include "Modules\Criticals.h"
 #include "Modules\DebugEditor.h"
+#include "Modules\Drugs.h"
 #include "Modules\Elevators.h"
 #include "Modules\Explosions.h"
 #include "Modules\FileSystem.h"
@@ -162,6 +163,7 @@ static void InitModules() {
 	manager.add<ExtraSaveSlots>();
 	manager.add<Inventory>();
 	manager.add<MainMenu>();
+	manager.add<Drugs>();       // should be loaded before PartyControl
 	manager.add<PartyControl>();
 	manager.add<BurstMods>();
 	manager.add<Books>();

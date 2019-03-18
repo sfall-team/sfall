@@ -37,9 +37,6 @@
     <ClInclude Include="Modules\BurstMods.h">
       <Filter>Modules</Filter>
     </ClInclude>
-    <ClInclude Include="Modules\Combat.h">
-      <Filter>Modules</Filter>
-    </ClInclude>
     <ClInclude Include="Modules\Console.h">
       <Filter>Modules</Filter>
     </ClInclude>
@@ -275,6 +272,12 @@
     <ClInclude Include="Modules\Objects.h">
       <Filter>Modules</Filter>
     </ClInclude>
+    <ClInclude Include="Modules\Combat.h">
+      <Filter>Modules</Filter>
+    </ClInclude>
+    <ClInclude Include="Modules\Drugs.h">
+      <Filter>Modules</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
@@ -294,9 +297,6 @@
       <Filter>Modules</Filter>
     </ClCompile>
     <ClCompile Include="Modules\BurstMods.cpp">
-      <Filter>Modules</Filter>
-    </ClCompile>
-    <ClCompile Include="Modules\Combat.cpp">
       <Filter>Modules</Filter>
     </ClCompile>
     <ClCompile Include="Modules\Console.cpp">
@@ -508,6 +508,12 @@
       <Filter>Modules\HookScripts</Filter>
     </ClCompile>
     <ClCompile Include="Modules\Objects.cpp">
+      <Filter>Modules</Filter>
+    </ClCompile>
+    <ClCompile Include="Modules\Combat.cpp">
+      <Filter>Modules</Filter>
+    </ClCompile>
+    <ClCompile Include="Modules\Drugs.cpp">
       <Filter>Modules</Filter>
     </ClCompile>
   </ItemGroup>

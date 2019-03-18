@@ -39,8 +39,6 @@ static char versionString[65];
 
 static int* scriptDialog = nullptr;
 
-bool npcAutoLevelEnabled;
-
 static const DWORD PutAwayWeapon[] = {
 	0x411EA2, // action_climb_ladder_
 	0x412046, // action_use_an_item_on_object_
@@ -284,25 +282,27 @@ really_end:
 static DWORD RetryCombatLastAP;
 static DWORD RetryCombatMinAP;
 static void __declspec(naked) RetryCombatHook() {
+	using namespace fo;
+	using namespace Fields;
 	__asm {
-		mov RetryCombatLastAP, 0;
+		mov  RetryCombatLastAP, 0;
 retry:
-		mov eax, esi;
-		xor edx, edx;
 		call fo::funcoffs::combat_ai_;
 process:
-		cmp dword ptr ds:[FO_VAR_combat_turn_running], 0;
-		jle next;
+		cmp  dword ptr ds:[FO_VAR_combat_turn_running], 0;
+		jle  next;
 		call fo::funcoffs::process_bk_;
-		jmp process;
+		jmp  process;
 next:
-		mov eax, [esi+0x40];
-		cmp eax, RetryCombatMinAP;
-		jl end;
-		cmp eax, RetryCombatLastAP;
-		je end;
-		mov RetryCombatLastAP, eax;
-		jmp retry;
+		mov  eax, [esi + movePoints];
+		cmp  eax, RetryCombatMinAP;
+		jl   end;
+		cmp  eax, RetryCombatLastAP;
+		je   end;
+		mov  RetryCombatLastAP, eax;
+		mov  eax, esi;
+		xor  edx, edx;
+		jmp  retry;
 end:
 		retn;
 	}
@@ -351,7 +351,7 @@ fail:
 static void __declspec(naked) op_obj_can_see_obj_hook() {
 	__asm {
 		push fo::funcoffs::obj_shoot_blocking_at_;   // check hex objects func pointer
-		push 0x20;                                   // flags, 0x20 = check shootthru
+		push 0x20;                                   // flags, 0x20 = check ShootThru
 		mov  ecx, dword ptr [esp + 0x0C];            // buf **ret_objStruct
 		push ecx;
 		xor  ecx, ecx;
@@ -464,15 +464,6 @@ static const DWORD EncounterTableSize[] = {
 	0x4BD1A3, 0x4BD1D9, 0x4BD270, 0x4BD604, 0x4BDA14, 0x4BDA44, 0x4BE707,
 	0x4C0815, 0x4C0D4A, 0x4C0FD4,
 };
-
-void NpcAutoLevelPatch() {
-	npcAutoLevelEnabled = GetConfigInt("Misc", "NPCAutoLevel", 0) != 0;
-	if (npcAutoLevelEnabled) {
-		dlog("Applying NPC autolevel patch.", DL_INIT);
-		SafeWrite8(0x495CFB, 0xEB);               // jmps 0x495D28 (skip random check)
-		dlogr(" Done", DL_INIT);
-	}
-}
 
 void AdditionalWeaponAnimsPatch() {
 	if (GetConfigInt("Misc", "AdditionalWeaponAnims", 0)) {
@@ -619,19 +610,19 @@ void DontTurnOffSneakIfYouRunPatch() {
 void CombatProcFix() {
 	//Ray's combat_p_proc fix
 	dlog("Applying combat_p_proc fix.", DL_INIT);
-	SafeWrite32(0x0425253, ((DWORD)&Combat_p_procFix) - 0x0425257);
-	SafeWrite8(0x0424dbc, 0xE9);
-	SafeWrite32(0x0424dbd, 0x00000034);
+	HookCall(0x425252, Combat_p_procFix);
+	SafeWrite8(0x424DBC, 0xE9);
+	SafeWrite32(0x424DBD, 0x00000034);
 	dlogr(" Done", DL_INIT);
 }
 
 void MultiPatchesPatch() {
-	if (GetConfigInt("Misc", "MultiPatches", 0)) {
+	//if (GetConfigInt("Misc", "MultiPatches", 0)) {
 		dlog("Applying load multiple patches patch.", DL_INIT);
 		SafeWrite8(0x444354, 0x90); // Change step from 2 to 1
 		SafeWrite8(0x44435C, 0xC4); // Disable check
 		dlogr(" Done", DL_INIT);
-	}
+	//}
 }
 
 void PlayIdleAnimOnReloadPatch() {
@@ -655,7 +646,7 @@ void ApplyNpcExtraApPatch() {
 	RetryCombatMinAP = GetConfigInt("Misc", "NPCsTryToSpendExtraAP", 0);
 	if (RetryCombatMinAP > 0) {
 		dlog("Applying retry combat patch.", DL_INIT);
-		HookCall(0x422B94, &RetryCombatHook);
+		HookCall(0x422B94, RetryCombatHook); // combat_turn_
 		dlogr(" Done", DL_INIT);
 	}
 }
@@ -919,10 +910,26 @@ void MiscPatches::init() {
 		dlogr(" Done", DL_INIT);
 	}
 
+	int time = GetConfigInt("Misc", "CorpseDeleteTime", 6); // time in days
+	if (time != 6) {
+		dlog("Applying corpse deletion time patch.", DL_INIT);
+		if (time <= 0) {
+			time = 12; // hours
+		} else if (time > 13) {
+			time = 13 * 24;
+		} else {
+			time *= 24;
+		}
+		SafeWrite32(0x483348, time);
+		dlogr(" Done", DL_INIT);
+	}
+
+	int gvar = GetConfigInt("Misc", "SpecialDeathGVAR", fo::GVAR_MODOC_SHITTY_DEATH);
+	if (gvar != fo::GVAR_MODOC_SHITTY_DEATH) SafeWrite32(0x440C2A, gvar);
+
 	LoadGameHook::OnBeforeGameStart() += BodypartHitChances; // set on start & load
 
 	CombatProcFix();
-	NpcAutoLevelPatch();
 	DialogueFix();
 	AdditionalWeaponAnimsPatch();
 	MultiPatchesPatch();

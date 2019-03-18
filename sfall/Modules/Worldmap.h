@@ -44,4 +44,6 @@ public:
 	static void SetAddedYears(DWORD years);
 };
 
+void _stdcall SetMapMulti(float d);
+
 }

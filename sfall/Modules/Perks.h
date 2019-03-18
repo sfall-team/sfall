@@ -50,8 +50,8 @@ void _stdcall IgnoreDefaultPerks();
 void _stdcall RestoreDefaultPerks();
 
 void _stdcall AddPerkMode(DWORD mode);
-DWORD _stdcall HasFakePerk(char* name);
-DWORD _stdcall HasFakeTrait(char* name);
+DWORD HasFakePerk(const char* name, long id);
+DWORD _stdcall HasFakeTrait(const char* name);
 void _stdcall ClearSelectablePerks();
 
 void _stdcall SetPerkFreq(int i);

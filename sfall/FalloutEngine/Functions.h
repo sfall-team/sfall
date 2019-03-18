@@ -76,6 +76,8 @@ long __stdcall db_fwriteByteCount(DbFile* file, const BYTE* cptr, long count);
 // returns number of elements in *fileList
 long __stdcall db_get_file_list(const char* searchMask, char* * *fileList);
 
+long __stdcall db_init(const char* path_dat, const char* path_patches);
+
 // prints message to debug.log file
 void __declspec() debug_printf(const char* fmt, ...);
 

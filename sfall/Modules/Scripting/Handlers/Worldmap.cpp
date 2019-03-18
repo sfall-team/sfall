@@ -227,6 +227,36 @@ end:
 	}
 }
 
+void __declspec(naked) op_set_map_time_multi() {
+	__asm {
+		push ebx;
+		push ecx;
+		push edx;
+		mov ecx, eax;
+		call fo::funcoffs::interpretPopShort_;
+		mov edx, eax;
+		mov eax, ecx;
+		call fo::funcoffs::interpretPopLong_;
+		cmp dx, VAR_TYPE_FLOAT;
+		jz paramWasFloat;
+		cmp dx, VAR_TYPE_INT;
+		jnz fail;
+		push eax;
+		fild dword ptr [esp];
+		fstp dword ptr [esp];
+		jmp end;
+paramWasFloat:
+		push eax;
+end:
+		call SetMapMulti;
+fail:
+		pop edx;
+		pop ecx;
+		pop ebx;
+		retn;
+	}
+}
+
 void sf_set_car_intface_art(OpcodeContext& ctx) {
 	Worldmap::SetCarInterfaceArt(ctx.arg(0).asInt());
 }

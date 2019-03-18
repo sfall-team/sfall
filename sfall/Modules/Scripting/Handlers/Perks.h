@@ -29,7 +29,7 @@ void __declspec() op_set_perk_owed();
 
 void __declspec() op_set_perk_freq();
 
-void __declspec() op_get_perk_available();
+void sf_get_perk_available(OpcodeContext&);
 
 void __declspec() op_set_perk_name();
 
@@ -51,7 +51,7 @@ void __declspec() op_show_real_perks();
 
 void __declspec() op_clear_selectable_perks();
 
-void __declspec() op_has_fake_perk();
+void sf_has_fake_perk(OpcodeContext&);
 
 void __declspec() op_has_fake_trait();
 

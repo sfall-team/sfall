@@ -35,9 +35,5 @@ struct CodeData {
 	BYTE  db = 0x90;
 };
 
-extern bool npcAutoLevelEnabled;
-
-void _stdcall SetMapMulti(float d);
-
 }
 

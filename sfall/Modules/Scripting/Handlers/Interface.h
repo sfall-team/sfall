@@ -67,6 +67,8 @@ void __declspec() op_set_viewport_x();
 
 void __declspec() op_set_viewport_y();
 
+void sf_add_iface_tag(OpcodeContext&);
+
 void sf_show_iface_tag(OpcodeContext&);
 
 void sf_hide_iface_tag(OpcodeContext&);

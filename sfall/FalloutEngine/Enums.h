@@ -231,6 +231,7 @@ enum ProtoId : long
 	PID_STIMPAK = 40,
 	PID_BOTTLE_CAPS = 41,
 	PID_FIRST_AID_KIT = 47,
+	PID_RADAWAY = 48,
 	PID_ANTIDOTE = 49,
 	PID_DYNAMITE = 51,
 	PID_GEIGER_COUNTER = 52,
@@ -253,6 +254,8 @@ enum ProtoId : long
 	PID_NUKA_COLA = 106,
 	PID_RAD_X = 109,
 	PID_PSYCHO = 110,
+	PID_BEER = 124,
+	PID_BOOZE = 125,
 	PID_SUPER_STIMPAK = 144,
 	PID_ACTIVE_FLARE = 205,
 	PID_ACTIVE_DYNAMITE = 206,
@@ -264,9 +267,11 @@ enum ProtoId : long
 	PID_CHEMISTRY_MANUAL = 237,
 	PID_JET = 259,
 	PID_JET_ANTIDOTE = 260,
+	PID_DECK_OF_TRAGIC_CARDS = 306,
 	PID_GECK = 366,
 	PID_CAR_TRUNK = 455,
 	PID_JESSE_CONTAINER = 467,
+
 	PID_Player = 16777216,
 	PID_DRIVABLE_CAR = 33555441
 };
@@ -618,6 +623,22 @@ enum AttackType : long
 	ATKTYPE_HIPKICK           = 17,
 	ATKTYPE_HOOKKICK          = 18,
 	ATKTYPE_PIERCINGKICK      = 19
+};
+
+enum AttackSubType : long
+{
+	NONE                      = 0,
+	UNARMED                   = 1,
+	MELEE                     = 2,
+	THROWING                  = 3,
+	GUNS                      = 4
+};
+
+enum BodyType : long
+{
+	Biped                     = 0,
+	Quadruped                 = 1,
+	Robotic                   = 2
 };
 
 #define OBJFLAG_CAN_WEAR_ITEMS (0xf000000)
