@@ -795,66 +795,47 @@ static void _stdcall DrawCharNoteNewChar(bool type) {
 void _stdcall HeroSelectWindow(int raceStyleFlag) {
 	if (!HeroAppearance::appModEnabled) return;
 
+	UnlistedFrm *frm = LoadUnlistedFrm("AppHeroWin.frm", fo::OBJ_TYPE_INTRFACE);
+	if (frm == nullptr) {
+		fo::func::debug_printf("\nApperanceMod: art\\intrface\\AppHeroWin.frm file not found.");
+		return;
+	}
+
 	bool isStyle = (raceStyleFlag != 0);
 	DWORD resWidth = *(DWORD*)0x4CAD6B;
 	DWORD resHeight = *(DWORD*)0x4CAD66;
 
 	int winRef = fo::func::win_add(resWidth / 2 - 242, (resHeight - 100) / 2 - 65, 484, 230, 100, 0x4);
-	if (winRef == -1) return;
+	if (winRef == -1) {
+		delete frm;
+		return;
+	}
 
 	int mouseWasHidden = fo::var::mouse_is_hidden;
 	if (mouseWasHidden) fo::func::mouse_show();
-
 	int oldMouse = fo::var::gmouse_current_cursor;
 	fo::func::gmouse_set_cursor(1);
 
 	BYTE *winSurface = fo::func::win_get_buf(winRef);
 	BYTE *mainSurface = new BYTE [484 * 230];
 
-	DWORD tempObj;
-	BYTE *tempSurface;
-	// perkwin
-	tempSurface = fo::func::art_ptr_lock_data(BuildFrmId(6, 86), 0, 0, &tempObj);
-	sub_draw(484, 230, 573, 230, 89, 0, tempSurface, 484, 230, 0, 0, mainSurface, 0);
-	sub_draw(13, 230, 573, 230, 0, 0, tempSurface, 484, 230, 0, 0, mainSurface, 0);
-	fo::func::art_ptr_unlock(tempObj);
-
-	// opbase
-	tempSurface = fo::func::art_ptr_lock_data(BuildFrmId(6, 220), 0, 0, &tempObj);
-	sub_draw(164, 217, 164, 217, 0, 0, tempSurface, 484, 230, 12, 4, mainSurface, 0);
-	fo::func::art_ptr_unlock(tempObj);
-
-	// use
-	tempSurface = fo::func::art_ptr_lock_data(BuildFrmId(6, 113), 0, 0, &tempObj);
-	sub_draw(138, 132, 292, 376, 128, 20, tempSurface, 484, 230, 25, 38, mainSurface, 0);
-	sub_draw(2, 132, 292, 376, 23, 224, tempSurface, 484, 230, 25, 38, mainSurface, 0);
-	sub_draw(12, 4, 292, 376, 135, 148, tempSurface, 484, 230, 25, 166, mainSurface, 0);
-	fo::func::art_ptr_unlock(tempObj);
-
-	// barter
-	tempSurface = fo::func::art_ptr_lock_data(BuildFrmId(6, 111), 0, 0, &tempObj);
-	sub_draw(25, 52, 640, 191, 190, 54, tempSurface, 484, 230, 27, 57, mainSurface, 0); // button background up down
-	fo::func::art_ptr_unlock(tempObj);
-
-	// loot
-	tempSurface = fo::func::art_ptr_lock_data(BuildFrmId(6, 114), 0, 0, &tempObj);
-	sub_draw(116, 27, 537, 376, 392, 325, tempSurface, 484, 230, 36, 180, mainSurface, 0); // button background "done"
-	fo::func::art_ptr_unlock(tempObj);
+	sub_draw(484, 230, 484, 230, 0, 0, frm->frames[0].indexBuff, 484, 230, 0, 0, mainSurface, 0);
+	delete frm;
 
 	DWORD MenuUObj, MenuDObj;
 	BYTE *MenuUSurface = fo::func::art_ptr_lock_data(BuildFrmId(6, 299), 0, 0, &MenuUObj); // MENUUP Frm
 	BYTE *MenuDSurface = fo::func::art_ptr_lock_data(BuildFrmId(6, 300), 0, 0, &MenuDObj); // MENUDOWN Frm
-	fo::func::win_register_button(winRef, 116, 181, 26, 26, -1, -1, -1, 0x0D, MenuUSurface, MenuDSurface, 0, 0x20);
+	fo::func::win_register_button(winRef, 115, 181, 26, 26, -1, -1, -1, 0x0D, MenuUSurface, MenuDSurface, 0, 0x20);
 
 	DWORD DidownUObj, DidownDObj;
 	BYTE *DidownUSurface = fo::func::art_ptr_lock_data(BuildFrmId(6, 93), 0, 0, &DidownUObj); // MENUUP Frm
 	BYTE *DidownDSurface = fo::func::art_ptr_lock_data(BuildFrmId(6, 94), 0, 0, &DidownDObj); // MENUDOWN Frm
-	fo::func::win_register_button(winRef, 28, 84, 24, 25, -1, -1, -1, 0x150, DidownUSurface, DidownDSurface, 0, 0x20);
+	fo::func::win_register_button(winRef, 25, 84, 24, 25, -1, -1, -1, 0x150, DidownUSurface, DidownDSurface, 0, 0x20);
 
 	DWORD DiupUObj, DiupDObj;
 	BYTE *DiupUSurface = fo::func::art_ptr_lock_data(BuildFrmId(6, 100), 0, 0, &DiupUObj); // MENUUP Frm
 	BYTE *DiupDSurface = fo::func::art_ptr_lock_data(BuildFrmId(6, 101), 0, 0, &DiupDObj); // MENUDOWN Frm
-	fo::func::win_register_button(winRef, 28, 59, 23, 24, -1, -1, -1, 0x148, DiupUSurface, DiupDSurface, 0, 0x20);
+	fo::func::win_register_button(winRef, 25, 59, 23, 24, -1, -1, -1, 0x148, DiupUSurface, DiupDSurface, 0, 0x20);
 
 	int oldFont = GetFont();
 	SetFont(0x67);
@@ -869,12 +850,11 @@ void _stdcall HeroSelectWindow(int raceStyleFlag) {
 
 	BYTE textColour = fo::var::PeanutButter; // PeanutButter colour - palette offset stored in mem
 	DWORD titleTextWidth = fo::GetTextWidth(titleText);
-	fo::PrintText(titleText, textColour, 94 - titleTextWidth / 2, 10, titleTextWidth, 484, mainSurface);
+	fo::PrintText(titleText, textColour, 92 - titleTextWidth / 2, 10, titleTextWidth, 484, mainSurface);
 
-	DWORD titleTextHeight = fo::GetTextHeight();
-	// Title underline
-	memset(mainSurface + 484 * (10 + titleTextHeight) + 94 - titleTextWidth / 2, textColour, titleTextWidth);
-	memset(mainSurface + 484 * (10 + titleTextHeight + 1) + 94 - titleTextWidth / 2, textColour, titleTextWidth);
+	Translate("AppearanceMod", "DoneBtn", "Done", titleText, 16);
+	titleTextWidth = fo::GetTextWidth(titleText);
+	fo::PrintText(titleText, textColour, 80 - titleTextWidth / 2, 185, titleTextWidth, 484, mainSurface);
 
 	sub_draw(484, 230, 484, 230, 0, 0, mainSurface, 484, 230, 0, 0, winSurface, 0);
 	fo::func::win_show(winRef);
