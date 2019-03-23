@@ -478,7 +478,7 @@ UNLSTDfrm *LoadUnlistedFrm(char *frmName, unsigned int folderRef) {
 
 		DWORD oriOffset_1st = frm->oriOffset[0];
 		DWORD oriOffset_new = 0;
-		frm->frames = new UNLSTDframe[6*frm->numFrames];
+		frm->frames = new UNLSTDframe[6 * frm->numFrames];
 		for (int ori = 0; ori < 6; ori++) {
 			if (ori == 0 || frm->oriOffset[ori] != oriOffset_1st) {
 				frm->oriOffset[ori] = oriOffset_new;
@@ -1357,66 +1357,47 @@ static void _stdcall DrawCharNoteNewChar(bool type) {
 void _stdcall HeroSelectWindow(int raceStyleFlag) {
 	if (!appModEnabled) return;
 
+	UNLSTDfrm *frm = LoadUnlistedFrm("AppHeroWin.frm", 6);
+	if (frm == nullptr) {
+		DebugPrintf("\nApperanceMod: art\\intrface\\AppHeroWin.frm file not found.");
+		return;
+	}
+
 	bool isStyle = (raceStyleFlag != 0);
 	DWORD resWidth = *(DWORD*)0x4CAD6B;
 	DWORD resHeight = *(DWORD*)0x4CAD66;
 
 	int winRef = AddWin(resWidth / 2 - 242, (resHeight - 100) / 2 - 65, 484, 230, 100, 0x4);
-	if (winRef == -1) return;
+	if (winRef == -1) {
+		delete frm;
+		return;
+	}
 
 	int mouseWasHidden = IsMouseHidden();
 	if (mouseWasHidden) ShowMouse();
-
 	int oldMouse = GetMousePic();
 	SetMousePic(1);
 
 	BYTE *winSurface = GetWinSurface(winRef);
 	BYTE *mainSurface = new BYTE [484 * 230];
 
-	DWORD tempObj;
-	BYTE *tempSurface;
-	// perkwin
-	tempSurface = GetFrmSurface(BuildFrmId(6, 86), 0, 0, &tempObj);
-	sub_draw(484, 230, 573, 230, 89, 0, tempSurface, 484, 230, 0, 0, mainSurface, 0);
-	sub_draw(13, 230, 573, 230, 0, 0, tempSurface, 484, 230, 0, 0, mainSurface, 0);
-	UnloadFrm(tempObj);
-
-	// opbase
-	tempSurface = GetFrmSurface(BuildFrmId(6, 220), 0, 0, &tempObj);
-	sub_draw(164, 217, 164, 217, 0, 0, tempSurface, 484, 230, 12, 4, mainSurface, 0);
-	UnloadFrm(tempObj);
-
-	// use
-	tempSurface = GetFrmSurface(BuildFrmId(6, 113), 0, 0, &tempObj);
-	sub_draw(138, 132, 292, 376, 128, 20, tempSurface, 484, 230, 25, 38, mainSurface, 0);
-	sub_draw(2, 132, 292, 376, 23, 224, tempSurface, 484, 230, 25, 38, mainSurface, 0);
-	sub_draw(12, 4, 292, 376, 135, 148, tempSurface, 484, 230, 25, 166, mainSurface, 0);
-	UnloadFrm(tempObj);
-
-	// barter
-	tempSurface = GetFrmSurface(BuildFrmId(6, 111), 0, 0, &tempObj);
-	sub_draw(25, 52, 640, 191, 190, 54, tempSurface, 484, 230, 27, 57, mainSurface, 0); // button background up down
-	UnloadFrm(tempObj);
-
-	// loot
-	tempSurface = GetFrmSurface(BuildFrmId(6, 114), 0, 0, &tempObj);
-	sub_draw(116, 27, 537, 376, 392, 325, tempSurface, 484, 230, 36, 180, mainSurface, 0); // button background "done"
-	UnloadFrm(tempObj);
+	sub_draw(484, 230, 484, 230, 0, 0, frm->frames[0].indexBuff, 484, 230, 0, 0, mainSurface, 0);
+	delete frm;
 
 	DWORD MenuUObj, MenuDObj;
 	BYTE *MenuUSurface = GetFrmSurface(BuildFrmId(6, 299), 0, 0, &MenuUObj); // MENUUP Frm
 	BYTE *MenuDSurface = GetFrmSurface(BuildFrmId(6, 300), 0, 0, &MenuDObj); // MENUDOWN Frm
-	WinRegisterButton(winRef, 116, 181, 26, 26, -1, -1, -1, 0x0D, MenuUSurface, MenuDSurface, 0, 0x20);
+	WinRegisterButton(winRef, 115, 181, 26, 26, -1, -1, -1, 0x0D, MenuUSurface, MenuDSurface, 0, 0x20);
 
 	DWORD DidownUObj, DidownDObj;
 	BYTE *DidownUSurface = GetFrmSurface(BuildFrmId(6, 93), 0, 0, &DidownUObj); // MENUUP Frm
 	BYTE *DidownDSurface = GetFrmSurface(BuildFrmId(6, 94), 0, 0, &DidownDObj); // MENUDOWN Frm
-	WinRegisterButton(winRef, 28, 84, 24, 25, -1, -1, -1, 0x150, DidownUSurface, DidownDSurface, 0, 0x20);
+	WinRegisterButton(winRef, 25, 84, 24, 25, -1, -1, -1, 0x150, DidownUSurface, DidownDSurface, 0, 0x20);
 
 	DWORD DiupUObj, DiupDObj;
 	BYTE *DiupUSurface = GetFrmSurface(BuildFrmId(6, 100), 0, 0, &DiupUObj); // MENUUP Frm
 	BYTE *DiupDSurface = GetFrmSurface(BuildFrmId(6, 101), 0, 0, &DiupDObj); // MENUDOWN Frm
-	WinRegisterButton(winRef, 28, 59, 23, 24, -1, -1, -1, 0x148, DiupUSurface, DiupDSurface, 0, 0x20);
+	WinRegisterButton(winRef, 25, 59, 23, 24, -1, -1, -1, 0x148, DiupUSurface, DiupDSurface, 0, 0x20);
 
 	int oldFont = GetFont();
 	SetFont(0x67);
@@ -1431,12 +1412,11 @@ void _stdcall HeroSelectWindow(int raceStyleFlag) {
 
 	BYTE textColour = *(BYTE*)_PeanutButter; // PeanutButter colour - palette offset stored in mem
 	DWORD titleTextWidth = GetTextWidth(titleText);
-	PrintText(titleText, textColour, 94 - titleTextWidth / 2, 10, titleTextWidth, 484, mainSurface);
+	PrintText(titleText, textColour, 92 - titleTextWidth / 2, 10, titleTextWidth, 484, mainSurface);
 
-	DWORD titleTextHeight = GetTextHeight();
-	// Title underline
-	memset(mainSurface + 484 * (10 + titleTextHeight) + 94 - titleTextWidth / 2, textColour, titleTextWidth);
-	memset(mainSurface + 484 * (10 + titleTextHeight + 1) + 94 - titleTextWidth / 2, textColour, titleTextWidth);
+	GetPrivateProfileString("AppearanceMod", "DoneBtn", "Done", titleText, 16, translationIni);
+	titleTextWidth = GetTextWidth(titleText);
+	PrintText(titleText, textColour, 80 - titleTextWidth / 2, 185, titleTextWidth, 484, mainSurface);
 
 	sub_draw(484, 230, 484, 230, 0, 0, mainSurface, 484, 230, 0, 0, winSurface, 0);
 	ShowWin(winRef);
