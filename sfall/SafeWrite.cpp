@@ -6,7 +6,7 @@
 
 #pragma warning(disable:4996)
 
-namespace sfall 
+namespace sfall
 {
 
 enum CodeType : BYTE {
@@ -129,13 +129,13 @@ void MakeJump(DWORD addr, void* func, int len) {
 }
 
 void HookCalls(void* func, std::initializer_list<DWORD> addrs) {
-	for (auto addr : addrs) {
+	for (auto& addr : addrs) {
 		HookCall(addr, func);
 	}
 }
 
 void MakeCalls(void* func, std::initializer_list<DWORD> addrs) {
-	for (auto addr : addrs) {
+	for (auto& addr : addrs) {
 		MakeCall(addr, func);
 	}
 }
@@ -149,7 +149,12 @@ void SafeMemSet(DWORD addr, BYTE val, int len) {
 }
 
 void BlockCall(DWORD addr) {
-	SafeMemSet(addr, CodeType::Nop, 5);
+	DWORD oldProtect;
+
+	VirtualProtect((void *)addr, 4, PAGE_EXECUTE_READWRITE, &oldProtect);
+	*(DWORD*)addr = 0x00441F0F; // long NOP (0F1F4400-XX)
+	VirtualProtect((void *)addr, 4, oldProtect, &oldProtect);
+
 	#ifndef NDEBUG
 		CheckConflict(addr);
 	#endif
