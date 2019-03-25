@@ -210,7 +210,7 @@ void _stdcall SetHitChanceMax(fo::GameObject* critter, DWORD maximum, DWORD mod)
 			return;
 		}
 	}
-	hitChanceMods.push_back(ChanceModifier(id, maximum, mod));
+	hitChanceMods.emplace_back(id, maximum, mod);
 }
 
 void _stdcall SetNoBurstMode(fo::GameObject* critter, bool on) {
