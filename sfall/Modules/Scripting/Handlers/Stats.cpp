@@ -22,6 +22,7 @@
 #include "..\..\ScriptExtender.h"
 #include "..\..\Skills.h"
 #include "..\..\Stats.h"
+#include "..\OpcodeContext.h"
 
 #include "Stats.h"
 
@@ -194,6 +195,16 @@ end:
 	}
 }
 
+void sf_set_critter_base_stat(OpcodeContext& ctx) {
+		fo::GameObject* obj = ctx.arg(0).asObject(); 
+	if (obj->Type() == fo::OBJ_TYPE_CRITTER && obj->protoId != fo::PID_Player) { 
+		int stat = ctx.arg(1).rawValue();
+		if (stat >= 0 && stat < fo::STAT_max_stat) Stats::SetStat(obj, stat, ctx.arg(2).rawValue(), 9);
+	} else {
+		ctx.printOpcodeError("set_critter_base_stat() - the object is not a critter.");
+	}
+}
+/*
 void __declspec(naked) op_set_critter_base_stat() {
 	__asm {
 		//Store registers
@@ -253,7 +264,17 @@ end:
 		retn;
 	}
 }
-
+*/
+void sf_set_critter_extra_stat(OpcodeContext& ctx) {
+	fo::GameObject* obj = ctx.arg(0).asObject(); 
+	if (obj->Type() == fo::OBJ_TYPE_CRITTER && obj->protoId != fo::PID_Player) { 
+		int stat = ctx.arg(1).rawValue();
+		if (stat >= 0 && stat < fo::STAT_max_stat) Stats::SetStat(obj, stat, ctx.arg(2).rawValue(), 44); // fo::func::stat_set_bonus(obj, ctx.arg(1).rawValue(), ctx.arg(2).rawValue());
+	} else {
+		ctx.printOpcodeError("set_critter_extra_stat() - the object is not a critter.");
+	}
+}
+/*
 void __declspec(naked) op_set_critter_extra_stat() {
 	__asm {
 		//Store registers
@@ -313,7 +334,19 @@ end:
 		retn;
 	}
 }
-
+*/
+void sf_get_critter_base_stat(OpcodeContext& ctx) {
+	int result = 0;
+	fo::GameObject* obj = ctx.arg(0).asObject(); 
+	if (obj->Type() == fo::OBJ_TYPE_CRITTER && obj->protoId != fo::PID_Player) {
+		int stat = ctx.arg(1).rawValue();
+		if (stat >= 0 && stat < fo::STAT_max_stat) result = Stats::GetStat(obj, stat, 9);
+	} else {
+		ctx.printOpcodeError("get_critter_base_stat() - the object is not a critter.");
+	}
+	ctx.setReturn(result);
+}
+/*
 void __declspec(naked) op_get_critter_base_stat() {
 	__asm {
 		//Store registers
@@ -371,7 +404,19 @@ end:
 		retn;
 	}
 }
-
+*/
+void sf_get_critter_extra_stat(OpcodeContext& ctx) {
+	int result = 0;
+	fo::GameObject* obj = ctx.arg(0).asObject();
+	if (obj->Type() == fo::OBJ_TYPE_CRITTER && obj->protoId != fo::PID_Player) { 
+		int stat = ctx.arg(1).rawValue();
+		if (stat >= 0 && stat < fo::STAT_max_stat) result = Stats::GetStat(obj, stat, 44); // analog fo::func::stat_get_bonus(obj, stat);
+	} else {
+		ctx.printOpcodeError("get_critter_extra_stat() - the object is not a critter.");
+	}
+	ctx.setReturn(result);
+}
+/*
 void __declspec(naked) op_get_critter_extra_stat() {
 	__asm {
 		//Store registers
@@ -429,7 +474,7 @@ end:
 		retn;
 	}
 }
-
+*/
 void __declspec(naked) op_set_critter_skill_points() {
 	__asm {
 		pushad;
