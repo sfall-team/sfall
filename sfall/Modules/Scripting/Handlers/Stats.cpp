@@ -31,450 +31,93 @@ namespace sfall
 namespace script
 {
 
-void __declspec(naked) op_set_pc_base_stat() {
-	__asm {
-		//Store registers
-		push ebx;
-		push ecx;
-		push edx;
-		push edi;
-		push esi;
-		//Get function args
-		mov ecx, eax;
-		call fo::funcoffs::interpretPopShort_;
-		mov esi, eax;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPopLong_;
-		mov edi, eax;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPopShort_;
-		mov edx, eax;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPopLong_;
-		//eax now contains the stat ID, edi contains its new value
-		//Check args are valid
-		cmp dx, VAR_TYPE_INT;
-		jnz end;
-		cmp si, VAR_TYPE_INT;
-		jnz end;
-		test eax, eax;
-		jl end;
-		cmp eax, 0x23; //23, 24 and 25 are valid, but stored elsewhere. Ignore for now.
-		jge end;
-		//set the new value
-		mov ds : [eax * 4 + 0x51C394], edi;
-end:
-		//Restore registers and return
-		pop esi;
-		pop edi;
-		pop edx;
-		pop ecx;
-		pop ebx;
-		retn;
+const char* invalidStat   = "stat number out of range";
+const char* objNotCritter = "the object is not a critter";
+
+void sf_set_pc_base_stat(OpcodeContext& ctx) {
+	int stat = ctx.arg(0).rawValue();
+	if (stat >= 0 && stat < fo::STAT_max_stat) {
+		((long*)FO_VAR_pc_proto)[9 + stat] = ctx.arg(1).rawValue();
+	} else {
+		ctx.printOpcodeError("set_pc_base_stat() - %s.", invalidStat);
 	}
 }
 
-void __declspec(naked) op_set_pc_extra_stat() {
-	__asm {
-		//Store registers
-		push ebx;
-		push ecx;
-		push edx;
-		push edi;
-		push esi;
-		//Get function args
-		mov ecx, eax;
-		call fo::funcoffs::interpretPopShort_;
-		mov esi, eax;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPopLong_;
-		mov edi, eax;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPopShort_;
-		mov edx, eax;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPopLong_;
-		//eax now contains the stat ID, edi contains its new value
-		//Check args are valid
-		cmp dx, VAR_TYPE_INT;
-		jnz end;
-		cmp si, VAR_TYPE_INT;
-		jnz end;
-		test eax, eax;
-		jl end;
-		cmp eax, 0x23; //23, 24 and 25 are valid, but stored elsewhere. Ignore for now.
-		jge end;
-		//set the new value
-		mov ds : [eax * 4 + 0x51C420], edi;
-end:
-		//Restore registers and return
-		pop esi;
-		pop edi;
-		pop edx;
-		pop ecx;
-		pop ebx;
-		retn;
+void sf_set_pc_extra_stat(OpcodeContext& ctx) {
+	int stat = ctx.arg(0).rawValue();
+	if (stat >= 0 && stat < fo::STAT_max_stat) {
+		((long*)FO_VAR_pc_proto)[44 + stat] = ctx.arg(1).rawValue();
+	} else {
+		ctx.printOpcodeError("set_pc_extra_stat() - %s.", invalidStat);
 	}
 }
 
-void __declspec(naked) op_get_pc_base_stat() {
-	__asm {
-		//Store registers
-		push ebx;
-		push ecx;
-		push edx;
-		//Get function args
-		mov ecx, eax;
-		call fo::funcoffs::interpretPopShort_;
-		mov edx, eax;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPopLong_;
-		//Check arg is valid
-		cmp dx, VAR_TYPE_INT;
-		jnz fail;
-		test eax, eax;
-		jl fail;
-		cmp eax, 0x23; //23, 24 and 25 are valid, but stored elsewhere. Ignore for now.
-		jge fail;
-		//set the new value
-		mov edx, ds:[eax * 4 + 0x51C394];
-		jmp end;
-fail:
-		xor edx, edx;
-end:
-		//Pass back the result
-		mov eax, ecx;
-		call fo::funcoffs::interpretPushLong_;
-		mov edx, VAR_TYPE_INT;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPushShort_;
-		//Restore registers and return
-		pop edx;
-		pop ecx;
-		pop ebx;
-		retn;
+void sf_get_pc_base_stat(OpcodeContext& ctx) {
+	int value = 0,
+		stat = ctx.arg(0).rawValue();
+	if (stat >= 0 && stat < fo::STAT_max_stat) {
+		value = ((long*)FO_VAR_pc_proto)[9 + stat];
+	} else {
+		ctx.printOpcodeError("get_pc_base_stat() - %s.", invalidStat);
 	}
+	ctx.setReturn(value);
 }
 
-void __declspec(naked) op_get_pc_extra_stat() {
-	__asm {
-		//Store registers
-		push ebx;
-		push ecx;
-		push edx;
-		//Get function args
-		mov ecx, eax;
-		call fo::funcoffs::interpretPopShort_;
-		mov edx, eax;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPopLong_;
-		//Check arg is valid
-		cmp dx, VAR_TYPE_INT;
-		jnz fail;
-		test eax, eax;
-		jl fail;
-		cmp eax, 0x23; //23, 24 and 25 are valid, but stored elsewhere. Ignore for now.
-		jge fail;
-		//set the new value
-		mov edx, ds:[eax * 4 + 0x51C420];
-		jmp end;
-fail:
-		xor edx, edx;
-end:
-		//Pass back the result
-		mov eax, ecx;
-		call fo::funcoffs::interpretPushLong_;
-		mov edx, VAR_TYPE_INT;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPushShort_;
-		//Restore registers and return
-		pop edx;
-		pop ecx;
-		pop ebx;
-		retn;
+void sf_get_pc_extra_stat(OpcodeContext& ctx) {
+	int value = 0,
+		stat = ctx.arg(0).rawValue();
+	if (stat >= 0 && stat < fo::STAT_max_stat) {
+		value = ((long*)FO_VAR_pc_proto)[44 + stat];
+	} else {
+		ctx.printOpcodeError("get_pc_extra_stat() - %s.", invalidStat);
 	}
+	ctx.setReturn(value);
 }
 
 void sf_set_critter_base_stat(OpcodeContext& ctx) {
-		fo::GameObject* obj = ctx.arg(0).asObject(); 
-	if (obj->Type() == fo::OBJ_TYPE_CRITTER && obj->protoId != fo::PID_Player) { 
+	fo::GameObject* obj = ctx.arg(0).asObject();
+	if (obj->Type() == fo::OBJ_TYPE_CRITTER && obj->protoId != fo::PID_Player) {
 		int stat = ctx.arg(1).rawValue();
 		if (stat >= 0 && stat < fo::STAT_max_stat) Stats::SetStat(obj, stat, ctx.arg(2).rawValue(), 9);
 	} else {
-		ctx.printOpcodeError("set_critter_base_stat() - the object is not a critter.");
+		ctx.printOpcodeError("set_critter_base_stat() - %s.", objNotCritter);
 	}
 }
-/*
-void __declspec(naked) op_set_critter_base_stat() {
-	__asm {
-		//Store registers
-		push ebx;
-		push ecx;
-		push edx;
-		push edi;
-		push esi;
-		//Get function args
-		mov ecx, eax;
-		call fo::funcoffs::interpretPopShort_;
-		push eax;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPopLong_;
-		mov edi, eax;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPopShort_;
-		push eax;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPopLong_;
-		mov esi, eax;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPopShort_;
-		push eax;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPopLong_;
-		//eax now contains the critter ID, esi the stat ID, and edi the new value
-		//Check args are valid
-		mov ebx, [esp];
-		cmp bx, VAR_TYPE_INT;
-		jnz end;
-		mov ebx, [esp + 4];
-		cmp bx, VAR_TYPE_INT;
-		jnz end;
-		mov ebx, [esp + 8];
-		cmp bx, VAR_TYPE_INT;
-		jnz end;
-		test esi, esi;
-		jl end;
-		cmp esi, 0x23; //23, 24 and 25 are valid, but stored elsewhere. Ignore for now.
-		jge end;
-		//set the new value
-		mov edx, esp;
-		mov eax, [eax + 0x64];
-		call fo::funcoffs::proto_ptr_;
-		mov eax, [esp];
-		add eax, 0x20;
-		mov ds : [eax + esi * 4 + 4], edi;
-end:
-		//Restore registers and return
-		add esp, 12;
-		pop esi;
-		pop edi;
-		pop edx;
-		pop ecx;
-		pop ebx;
-		retn;
-	}
-}
-*/
+
 void sf_set_critter_extra_stat(OpcodeContext& ctx) {
-	fo::GameObject* obj = ctx.arg(0).asObject(); 
-	if (obj->Type() == fo::OBJ_TYPE_CRITTER && obj->protoId != fo::PID_Player) { 
+	fo::GameObject* obj = ctx.arg(0).asObject();
+	if (obj->Type() == fo::OBJ_TYPE_CRITTER && obj->protoId != fo::PID_Player) {
 		int stat = ctx.arg(1).rawValue();
-		if (stat >= 0 && stat < fo::STAT_max_stat) Stats::SetStat(obj, stat, ctx.arg(2).rawValue(), 44); // fo::func::stat_set_bonus(obj, ctx.arg(1).rawValue(), ctx.arg(2).rawValue());
+		if (stat >= 0 && stat < fo::STAT_max_stat) Stats::SetStat(obj, stat, ctx.arg(2).rawValue(), 44);
 	} else {
-		ctx.printOpcodeError("set_critter_extra_stat() - the object is not a critter.");
+		ctx.printOpcodeError("set_critter_extra_stat() - %s.", objNotCritter);
 	}
 }
-/*
-void __declspec(naked) op_set_critter_extra_stat() {
-	__asm {
-		//Store registers
-		push ebx;
-		push ecx;
-		push edx;
-		push edi;
-		push esi;
-		//Get function args
-		mov ecx, eax;
-		call fo::funcoffs::interpretPopShort_;
-		push eax;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPopLong_;
-		mov edi, eax;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPopShort_;
-		push eax;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPopLong_;
-		mov esi, eax;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPopShort_;
-		push eax;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPopLong_;
-		//eax now contains the critter ID, esi the stat ID, and edi the new value
-		//Check args are valid
-		mov ebx, [esp];
-		cmp bx, VAR_TYPE_INT;
-		jnz end;
-		mov ebx, [esp + 4];
-		cmp bx, VAR_TYPE_INT;
-		jnz end;
-		mov ebx, [esp + 8];
-		cmp bx, VAR_TYPE_INT;
-		jnz end;
-		test esi, esi;
-		jl end;
-		cmp esi, 0x23; //23, 24 and 25 are valid, but stored elsewhere. Ignore for now.
-		jge end;
-		//set the new value
-		mov edx, esp;
-		mov eax, [eax + 0x64];
-		call fo::funcoffs::proto_ptr_;
-		mov eax, [esp];
-		add eax, 0x20;
-		mov ds : [eax + esi * 4 + 0x90], edi;
-end:
-		//Restore registers and return
-		add esp, 12;
-		pop esi;
-		pop edi;
-		pop edx;
-		pop ecx;
-		pop ebx;
-		retn;
-	}
-}
-*/
+
 void sf_get_critter_base_stat(OpcodeContext& ctx) {
 	int result = 0;
-	fo::GameObject* obj = ctx.arg(0).asObject(); 
+	fo::GameObject* obj = ctx.arg(0).asObject();
 	if (obj->Type() == fo::OBJ_TYPE_CRITTER && obj->protoId != fo::PID_Player) {
 		int stat = ctx.arg(1).rawValue();
 		if (stat >= 0 && stat < fo::STAT_max_stat) result = Stats::GetStat(obj, stat, 9);
 	} else {
-		ctx.printOpcodeError("get_critter_base_stat() - the object is not a critter.");
+		ctx.printOpcodeError("get_critter_base_stat() - %s.", objNotCritter);
 	}
 	ctx.setReturn(result);
 }
-/*
-void __declspec(naked) op_get_critter_base_stat() {
-	__asm {
-		//Store registers
-		push ebx;
-		push ecx;
-		push edx;
-		push edi;
-		//Get function args
-		mov ecx, eax;
-		call fo::funcoffs::interpretPopShort_;
-		push eax
-			mov eax, ecx;
-		call fo::funcoffs::interpretPopLong_;
-		mov edi, eax;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPopShort_;
-		push eax
-			mov eax, ecx;
-		call fo::funcoffs::interpretPopLong_;
-		//eax contains the critter pointer, and edi contains the stat id
-		//Check args are valid
-		mov ebx, [esp];
-		cmp bx, VAR_TYPE_INT;
-		jnz fail;
-		mov ebx, [esp + 4];
-		cmp bx, VAR_TYPE_INT;
-		jnz fail;
-		test edi, edi;
-		jl fail;
-		cmp edi, 0x23; //23, 24 and 25 are valid, but stored elsewhere. Ignore for now.
-		jge fail;
-		//set the new value
-		mov edx, esp;
-		mov eax, [eax + 0x64];
-		call fo::funcoffs::proto_ptr_;
-		mov eax, [esp];
-		add eax, 0x20;
-		mov edx, ds:[eax + edi * 4 + 4];
-		jmp end;
-fail:
-		xor edx, edx;
-end:
-		//Pass back the result
-		mov eax, ecx;
-		call fo::funcoffs::interpretPushLong_;
-		mov edx, VAR_TYPE_INT;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPushShort_;
-		//Restore registers and return
-		add esp, 8;
-		pop edi;
-		pop edx;
-		pop ecx;
-		pop ebx;
-		retn;
-	}
-}
-*/
+
 void sf_get_critter_extra_stat(OpcodeContext& ctx) {
 	int result = 0;
 	fo::GameObject* obj = ctx.arg(0).asObject();
-	if (obj->Type() == fo::OBJ_TYPE_CRITTER && obj->protoId != fo::PID_Player) { 
+	if (obj->Type() == fo::OBJ_TYPE_CRITTER && obj->protoId != fo::PID_Player) {
 		int stat = ctx.arg(1).rawValue();
-		if (stat >= 0 && stat < fo::STAT_max_stat) result = Stats::GetStat(obj, stat, 44); // analog fo::func::stat_get_bonus(obj, stat);
+		if (stat >= 0 && stat < fo::STAT_max_stat) result = Stats::GetStat(obj, stat, 44);
 	} else {
-		ctx.printOpcodeError("get_critter_extra_stat() - the object is not a critter.");
+		ctx.printOpcodeError("get_critter_extra_stat() - %s.", objNotCritter);
 	}
 	ctx.setReturn(result);
 }
-/*
-void __declspec(naked) op_get_critter_extra_stat() {
-	__asm {
-		//Store registers
-		push ebx;
-		push ecx;
-		push edx;
-		push edi;
-		//Get function args
-		mov ecx, eax;
-		call fo::funcoffs::interpretPopShort_;
-		push eax
-			mov eax, ecx;
-		call fo::funcoffs::interpretPopLong_;
-		mov edi, eax;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPopShort_;
-		push eax
-			mov eax, ecx;
-		call fo::funcoffs::interpretPopLong_;
-		//eax contains the critter pointer, and edi contains the stat id
-		//Check args are valid
-		mov ebx, [esp];
-		cmp bx, VAR_TYPE_INT;
-		jnz fail;
-		mov ebx, [esp + 4];
-		cmp bx, VAR_TYPE_INT;
-		jnz fail;
-		test edi, edi;
-		jl fail;
-		cmp edi, 0x23; //23, 24 and 25 are valid, but stored elsewhere. Ignore for now.
-		jge fail;
-		//set the new value
-		mov edx, esp;
-		mov eax, [eax + 0x64];
-		call fo::funcoffs::proto_ptr_;
-		mov eax, [esp];
-		add eax, 0x20;
-		mov edx, ds:[eax + edi * 4 + 0x90];
-		jmp end;
-fail:
-		xor edx, edx;
-end:
-		//Pass back the result
-		mov eax, ecx;
-		call fo::funcoffs::interpretPushLong_;
-		mov edx, VAR_TYPE_INT;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPushShort_;
-		//Restore registers and return
-		add esp, 8;
-		pop edi;
-		pop edx;
-		pop ecx;
-		pop ebx;
-		retn;
-	}
-}
-*/
+
 void __declspec(naked) op_set_critter_skill_points() {
 	__asm {
 		pushad;
