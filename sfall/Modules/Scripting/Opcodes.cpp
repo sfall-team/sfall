@@ -62,6 +62,14 @@ typedef std::unordered_map<short, const SfallOpcodeInfo*> OpcodeInfoMapType;
 //    { argument 1 type, argument 2 type, ...}
 // }
 static SfallOpcodeInfo opcodeInfoArray[] = {
+	{0x15a, "set_pc_base_stat",          sf_set_pc_base_stat,          2, false, {ARG_INT, ARG_INT}},
+	{0x15b, "set_pc_extra_stat",         sf_set_pc_extra_stat,         2, false, {ARG_INT, ARG_INT}},
+	{0x15c, "get_pc_base_stat",          sf_get_pc_base_stat,          1, true,  {ARG_INT}},
+	{0x15d, "get_pc_extra_stat",         sf_get_pc_extra_stat,         1, true,  {ARG_INT}},
+	{0x15e, "set_critter_base_stat",     sf_set_critter_base_stat,     3, false, {ARG_OBJECT, ARG_INT, ARG_INT}},
+	{0x15f, "set_critter_extra_stat",    sf_set_critter_extra_stat,    3, false, {ARG_OBJECT, ARG_INT, ARG_INT}},
+	{0x160, "get_critter_base_stat",     sf_get_critter_base_stat,     2, true,  {ARG_OBJECT, ARG_INT}},
+	{0x161, "get_critter_extra_stat",    sf_get_critter_extra_stat,    2, true,  {ARG_OBJECT, ARG_INT}},
 	{0x163, "get_year",                  sf_get_year,                  0, true},
 	{0x16c, "key_pressed",               sf_key_pressed,               1, true,  {ARG_INT}},
 
@@ -245,14 +253,7 @@ void InitNewOpcodes() {
 	opcodes[0x157] = op_read_short;
 	opcodes[0x158] = op_read_int;
 	opcodes[0x159] = op_read_string;
-	opcodes[0x15a] = op_set_pc_base_stat;
-	opcodes[0x15b] = op_set_pc_extra_stat;
-	opcodes[0x15c] = op_get_pc_base_stat;
-	opcodes[0x15d] = op_get_pc_extra_stat;
-	opcodes[0x15e] = op_set_critter_base_stat;
-	opcodes[0x15f] = op_set_critter_extra_stat;
-	opcodes[0x160] = op_get_critter_base_stat;
-	opcodes[0x161] = op_get_critter_extra_stat;
+
 	opcodes[0x162] = op_tap_key;
 	opcodes[0x164] = op_game_loaded;
 	opcodes[0x165] = op_graphics_funcs_available;

@@ -440,7 +440,7 @@ cLoop:
 static DWORD _stdcall HandleExtraSelectablePerks(DWORD available, DWORD* data) {
 	size_t count = extPerks.size();
 	for (size_t i = 0; i < count; i++) {
-		if (available >= 119) break; // exit if the buffer is overfull
+		if (available >= 119) return available; // exit if the buffer is overfull
 		if (fo::func::perk_can_add(fo::var::obj_dude, extPerks[i].id)) data[available++] = extPerks[i].id;
 	}
 	count = fakeSelectablePerks.size();

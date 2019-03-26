@@ -6,7 +6,7 @@
 
 #pragma warning(disable:4996)
 
-namespace sfall 
+namespace sfall
 {
 
 enum CodeType : BYTE {
@@ -129,13 +129,13 @@ void MakeJump(DWORD addr, void* func, int len) {
 }
 
 void HookCalls(void* func, std::initializer_list<DWORD> addrs) {
-	for (auto addr : addrs) {
+	for (auto& addr : addrs) {
 		HookCall(addr, func);
 	}
 }
 
 void MakeCalls(void* func, std::initializer_list<DWORD> addrs) {
-	for (auto addr : addrs) {
+	for (auto& addr : addrs) {
 		MakeCall(addr, func);
 	}
 }

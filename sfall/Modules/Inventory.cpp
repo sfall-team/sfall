@@ -66,7 +66,7 @@ void InventoryKeyPressedHook(DWORD dxKey, bool pressed) {
 DWORD __stdcall sf_item_total_size(fo::GameObject* critter) {
 	int totalSize = fo::func::item_c_curr_size(critter);
 
-	if ((critter->artFid & 0xF000000) == (fo::OBJ_TYPE_CRITTER << 24)) {
+	if (critter->TypeFid() == fo::OBJ_TYPE_CRITTER) {
 		fo::GameObject* item = fo::func::inven_right_hand(critter);
 		if (item && !(item->flags & fo::ObjectFlag::Right_Hand)) {
 			totalSize += fo::func::item_size(item);
@@ -341,7 +341,7 @@ static void __declspec(naked) gdControlUpdateInfo_hack() {
 
 static std::string superStimMsg;
 static int __fastcall SuperStimFix2(fo::GameObject* item, fo::GameObject* target) {
-	if (item->protoId != fo::PID_SUPER_STIMPAK || !target || (target->protoId & 0xFF000000) != (fo::OBJ_TYPE_CRITTER << 24)) { // 0x01000000
+	if (item->protoId != fo::PID_SUPER_STIMPAK || !target || target->Type() != fo::OBJ_TYPE_CRITTER) {
 		return 0;
 	}
 
@@ -632,7 +632,7 @@ DWORD __stdcall Inventory::adjust_fid_replacement() {
 	using namespace fo;
 
 	DWORD fid;
-	if ((var::inven_dude->artFid & 0xF000000) >> 24 == OBJ_TYPE_CRITTER) {
+	if (var::inven_dude->TypeFid() == fo::OBJ_TYPE_CRITTER) {
 		DWORD frameNum;
 		DWORD weaponAnimCode = 0;
 		if (PartyControl::IsNpcControlled()) {

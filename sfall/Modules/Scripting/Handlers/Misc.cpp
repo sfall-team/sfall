@@ -883,6 +883,8 @@ end:
 	}
 }
 
+static char* valueOutRange = "argument values out of range";
+
 void sf_set_critical_table(OpcodeContext& ctx) {
 	DWORD critter = ctx.arg(0).asInt(),
 		bodypart  = ctx.arg(1).asInt(),
@@ -890,7 +892,7 @@ void sf_set_critical_table(OpcodeContext& ctx) {
 		element   = ctx.arg(3).asInt();
 
 	if (critter >= Criticals::critTableCount || bodypart >= 9 || slot >= 6 || element >= 7) {
-		ctx.printOpcodeError("set_critical_table() - argument values out of range.");
+		ctx.printOpcodeError("set_critical_table() - %s.", valueOutRange);
 	} else {
 		Criticals::SetCriticalTable(critter, bodypart, slot, element, ctx.arg(4).asInt());
 	}
@@ -903,7 +905,7 @@ void sf_get_critical_table(OpcodeContext& ctx) {
 		element   = ctx.arg(3).asInt();
 
 	if (critter >= Criticals::critTableCount || bodypart >= 9 || slot >= 6 || element >= 7) {
-		ctx.printOpcodeError("get_critical_table() - argument values out of range.");
+		ctx.printOpcodeError("get_critical_table() - %s.", valueOutRange);
 	} else {
 		ctx.setReturn(Criticals::GetCriticalTable(critter, bodypart, slot, element));
 	}
@@ -916,7 +918,7 @@ void sf_reset_critical_table(OpcodeContext& ctx) {
 		element   = ctx.arg(3).asInt();
 
 	if (critter >= Criticals::critTableCount || bodypart >= 9 || slot >= 6 || element >= 7) {
-		ctx.printOpcodeError("reset_critical_table() - argument values out of range.");
+		ctx.printOpcodeError("reset_critical_table() - %s.", valueOutRange);
 	} else {
 		Criticals::ResetCriticalTable(critter, bodypart, slot, element);
 	}
@@ -1041,6 +1043,9 @@ void __declspec(naked) op_nb_create_char() {
 	}
 }
 
+static char* failedLoad = "failed to load a prototype id";
+static bool protoMaxLimitPatch = false;
+
 void sf_get_proto_data(OpcodeContext& ctx) {
 	fo::Proto* protoPtr;
 	int pid = ctx.arg(0).rawValue();
@@ -1048,27 +1053,24 @@ void sf_get_proto_data(OpcodeContext& ctx) {
 	if (result != -1) {
 		result = *(long*)((BYTE*)protoPtr + ctx.arg(1).rawValue());
 	} else {
-		ctx.printOpcodeError("get_proto_data() - failed to load a prototype id: %d", pid);
+		ctx.printOpcodeError("get_proto_data() - %s: %d", failedLoad, pid);
 	}
 	ctx.setReturn(result);
 }
 
-static bool protoMaxLimitPatch = false;
 void sf_set_proto_data(OpcodeContext& ctx) {
-	fo::Proto* protoPtr;
 	int pid = ctx.arg(0).rawValue();
-	if (fo::func::proto_ptr(pid, &protoPtr) != -1) {
-		*(long*)((BYTE*)protoPtr + ctx.arg(1).rawValue()) = ctx.arg(2).rawValue();
+	if (Stats::SetProtoData(pid, ctx.arg(1).rawValue(), ctx.arg(2).rawValue()) != -1) {
 		if (!protoMaxLimitPatch) {
 			Objects::LoadProtoAutoMaxLimit();
 			protoMaxLimitPatch = true;
 		}
 	} else {
-		ctx.printOpcodeError("set_proto_data() - failed to load a prototype id: %d", pid);
+		ctx.printOpcodeError("set_proto_data() - %s: %d", failedLoad, pid);
 	}
 }
 
-void __declspec(naked) op_hero_select_win() {//for opening the appearance selection window
+void __declspec(naked) op_hero_select_win() { // for opening the appearance selection window
 	__asm {
 		push ebx;
 		push ecx;
@@ -1095,7 +1097,7 @@ end:
 	}
 }
 
-void __declspec(naked) op_set_hero_style() {//for setting the hero style/appearance takes an 1 int
+void __declspec(naked) op_set_hero_style() { // for setting the hero style/appearance takes an 1 int
 	__asm {
 		push ebx;
 		push ecx;
@@ -1122,7 +1124,7 @@ end:
 	}
 }
 
-void __declspec(naked) op_set_hero_race() {// for setting the hero race takes an 1 int
+void __declspec(naked) op_set_hero_race() { // for setting the hero race takes an 1 int
 	__asm {
 		push ebx;
 		push ecx;
