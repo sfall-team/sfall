@@ -277,7 +277,7 @@ public:
 				printOpcodeError(
 					"%s() - argument #%d has invalid type: %s.", 
 					opcodeName, 
-					i,
+					++i,
 					GetSfallTypeName(argI.type()));
 
 				return false;
@@ -285,7 +285,7 @@ public:
 				printOpcodeError(
 					"%s() - argument #%d is null.", 
 					opcodeName, 
-					i);
+					++i);
 
 				return false;
 			}

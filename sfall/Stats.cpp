@@ -49,7 +49,7 @@ static void __declspec(naked) stat_level_hack() {
 	}
 }
 
-static int __fastcall check_stat_level(register int value, int stat) {
+static int __fastcall check_stat_level(register int value, DWORD stat) {
 	int valLimit;
 	if (cCritter == *ptr_obj_dude) {
 		valLimit = StatMinimumsPC[stat];

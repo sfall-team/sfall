@@ -873,6 +873,8 @@ end:
 	}
 }
 
+static char* valueOutRange = "argument values out of range";
+
 static void funcSetCriticalTable2() {
 	DWORD critter = opHandler.arg(0).asInt(),
 		bodypart  = opHandler.arg(1).asInt(),
@@ -880,7 +882,7 @@ static void funcSetCriticalTable2() {
 		element   = opHandler.arg(3).asInt();
 
 	if (critter >= CritTableCount || bodypart >= 9 || slot >= 6 || element >= 7) {
-		opHandler.printOpcodeError("set_critical_table() - argument values out of range.");
+		opHandler.printOpcodeError("set_critical_table() - %s.", valueOutRange);
 	} else {
 		SetCriticalTable(critter, bodypart, slot, element, opHandler.arg(4).asInt());
 	}
@@ -897,7 +899,7 @@ static void funcGetCriticalTable2() {
 		element   = opHandler.arg(3).asInt();
 
 	if (critter >= CritTableCount || bodypart >= 9 || slot >= 6 || element >= 7) {
-		opHandler.printOpcodeError("get_critical_table() - argument values out of range.");
+		opHandler.printOpcodeError("get_critical_table() - %s.", valueOutRange);
 	} else {
 		opHandler.setReturn(GetCriticalTable(critter, bodypart, slot, element), DATATYPE_INT);
 	}
@@ -914,7 +916,7 @@ static void funcResetCriticalTable2() {
 		element   = opHandler.arg(3).asInt();
 
 	if (critter >= CritTableCount || bodypart >= 9 || slot >= 6 || element >= 7) {
-		opHandler.printOpcodeError("reset_critical_table() - argument values out of range.");
+		opHandler.printOpcodeError("reset_critical_table() - %s.", valueOutRange);
 	} else {
 		ResetCriticalTable(critter, bodypart, slot, element);
 	}
@@ -1043,6 +1045,9 @@ static void __declspec(naked) NBCreateChar() {
 	}
 }
 
+static char* failedLoad = "failed to load a prototype id";
+static bool protoMaxLimitPatch = false;
+
 static void _stdcall get_proto_data2() {
 	const ScriptValue &pidArg = opHandler.arg(0),
 					  &offsetArg = opHandler.arg(1);
@@ -1060,7 +1065,7 @@ static void _stdcall get_proto_data2() {
 		if (result != -1) {
 			result = *(long*)((BYTE*)protoPtr + offsetArg.asInt());
 		} else {
-			opHandler.printOpcodeError("get_proto_data() - failed to load a prototype id: %d", pid);
+			opHandler.printOpcodeError("get_proto_data() - %s: %d", failedLoad, pid);
 		}
 		opHandler.setReturn(result);
 	} else {
@@ -1073,7 +1078,6 @@ static void __declspec(naked) get_proto_data() {
 	_WRAP_OPCODE(get_proto_data2, 2, 1)
 }
 
-static bool protoMaxLimitPatch = false;
 static void _stdcall set_proto_data2() {
 	const ScriptValue &pidArg = opHandler.arg(0),
 					  &offsetArg = opHandler.arg(1),
@@ -1096,7 +1100,7 @@ static void _stdcall set_proto_data2() {
 				protoMaxLimitPatch = true;
 			}
 		} else {
-			opHandler.printOpcodeError("set_proto_data() - failed to load a prototype id: %d", pid);
+			opHandler.printOpcodeError("set_proto_data() - %s: %d", failedLoad, pid);
 		}
 	} else {
 		opHandler.printOpcodeError("set_proto_data() - invalid arguments.");
@@ -1108,7 +1112,7 @@ static void __declspec(naked) set_proto_data() {
 	_WRAP_OPCODE(set_proto_data2, 3, 0)
 }
 
-static void __declspec(naked) funcHeroSelectWin() {//for opening the appearance selection window
+static void __declspec(naked) funcHeroSelectWin() { // for opening the appearance selection window
 	__asm {
 		push ebx;
 		push ecx;
@@ -1134,7 +1138,7 @@ end:
 		retn;
 	}
 }
-static void __declspec(naked) funcSetHeroStyle() {//for setting the hero style/appearance takes an 1 int
+static void __declspec(naked) funcSetHeroStyle() { // for setting the hero style/appearance takes an 1 int
 	__asm {
 		push ebx;
 		push ecx;
@@ -1160,7 +1164,7 @@ end:
 		retn;
 	}
 }
-static void __declspec(naked) funcSetHeroRace() {// for setting the hero race takes an 1 int
+static void __declspec(naked) funcSetHeroRace() { // for setting the hero race takes an 1 int
 	__asm {
 		push ebx;
 		push ecx;
