@@ -115,6 +115,8 @@
 #define FO_VAR_map_global_vars            0x51956C
 #define FO_VAR_map_number                 0x631D88
 #define FO_VAR_map_state                  0x631D28
+#define FO_VAR_mapEntranceElevation       0x519558
+#define FO_VAR_mapEntranceTileNum         0x51955C
 #define FO_VAR_master_db_handle           0x58E948
 #define FO_VAR_master_volume              0x518E84
 #define FO_VAR_max                        0x56FB50
