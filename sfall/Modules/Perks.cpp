@@ -80,7 +80,7 @@ struct FakePerk {
 
 	FakePerk() {}
 
-	FakePerk(char* _name, int _level, int _image, char* _desc) : id(-1), Name {0}, Desc {0}, reserve {0} {
+	FakePerk(char* _name, int _level, int _image, char* _desc, short _id = -1) : id(_id), Name {0}, Desc {0}, reserve {0} {
 		Level = _level;
 		Image = _image;
 		strncpy_s(this->Name, _name, _TRUNCATE);
@@ -212,7 +212,7 @@ void _stdcall SetSelectablePerk(char* name, int active, int image, char* desc) {
 			}
 		}
 		if (size == fakeSelectablePerks.capacity()) fakeSelectablePerks.reserve(size + 10);
-		fakeSelectablePerks.push_back(FakePerk(name, active, image, desc));
+		fakeSelectablePerks.emplace_back(name, active, image, desc);
 	}
 }
 
@@ -237,7 +237,7 @@ void _stdcall SetFakePerk(char* name, int level, int image, char* desc) {
 			}
 		}
 		if (size == fakePerks.capacity()) fakePerks.reserve(size + 10);
-		fakePerks.push_back(FakePerk(name, level, image, desc));
+		fakePerks.emplace_back(name, level, image, desc);
 	}
 }
 
@@ -262,7 +262,7 @@ void _stdcall SetFakeTrait(char* name, int active, int image, char* desc) {
 			}
 		}
 		if (size == fakeTraits.capacity()) fakeTraits.reserve(size + 5);
-		fakeTraits.push_back(FakePerk(name, active, image, desc));
+		fakeTraits.emplace_back(name, active, image, desc);
 	}
 }
 
@@ -589,9 +589,7 @@ static void _stdcall AddFakePerk(DWORD perkID) {
 		if (!matched) { // add to fakePerks
 			RemovePerkID.push_back(count);    // index of the added perk
 			int index = PerkSearchID(perkID);
-			FakePerk perk(extPerks[index].Name, 1, extPerks[index].data.image, extPerks[index].Desc);
-			perk.id	= extPerks[index].id;     // same as perkID
-			fakePerks.emplace_back(perk);
+			fakePerks.emplace_back(extPerks[index].Name, 1, extPerks[index].data.image, extPerks[index].Desc, extPerks[index].id); // id same as perkID
 		}
 		fo::func::perk_add_effect(fo::var::obj_dude, perkID);
 		return;

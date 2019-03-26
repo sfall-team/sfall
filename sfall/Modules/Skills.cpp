@@ -267,7 +267,7 @@ void _stdcall SetSkillMax(fo::GameObject* critter, int maximum) {
 			return;
 		}
 	}
-	skillMaxMods.push_back(SkillModifier(id, maximum));
+	skillMaxMods.emplace_back(id, maximum);
 }
 
 void _stdcall SetPickpocketMax(fo::GameObject* critter, DWORD maximum, DWORD mod) {
@@ -285,7 +285,7 @@ void _stdcall SetPickpocketMax(fo::GameObject* critter, DWORD maximum, DWORD mod
 			return;
 		}
 	}
-	pickpocketMods.push_back(ChanceModifier(id, maximum, mod));
+	pickpocketMods.emplace_back(id, maximum, mod);
 }
 
 static void Skills_OnGameLoad() {

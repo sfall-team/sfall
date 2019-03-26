@@ -506,8 +506,8 @@ static void ListSort(std::vector<T> &arr, int type) {
 }
 
 static void MapSort(sArrayVar& arr, int type) {
-	std::vector<std::pair<sArrayElement, sArrayElement>> map;
-	map.reserve(arr.val.size());
+	std::vector<std::pair<sArrayElement, sArrayElement>> vmap;
+	vmap.reserve(arr.val.size());
 
 	bool sortByValue = false;
 	if (type < ARRAY_ACTION_SHUFFLE) {
@@ -524,20 +524,20 @@ static void MapSort(sArrayVar& arr, int type) {
 			key = arr.val[i];      // key
 			val = arr.val[++i];    // value
 		}
-		map.emplace_back(std::make_pair(key, val));
+		vmap.emplace_back(key, val);
 	}
-	ListSort(map, type);
+	ListSort(vmap, type);
 
 	arr.val.clear();
 	arr.keyHash.clear();
-	for (size_t i = 0; i < map.size(); ++i) {
+	for (size_t i = 0; i < vmap.size(); ++i) {
 		auto el = arr.val.size();
 		if (sortByValue) {
-			arr.val.emplace_back(map[i].second); // map value > key
-			arr.val.emplace_back(map[i].first);  // map key > value
+			arr.val.emplace_back(vmap[i].second); // map value > key
+			arr.val.emplace_back(vmap[i].first);  // map key > value
 		} else {
-			arr.val.emplace_back(map[i].first);
-			arr.val.emplace_back(map[i].second);
+			arr.val.emplace_back(vmap[i].first);
+			arr.val.emplace_back(vmap[i].second);
 		}
 		arr.keyHash[arr.val[el]] = el;
 	}
