@@ -131,6 +131,8 @@
 #define _map_elevation              0x519578
 #define _map_global_vars            0x51956C
 #define _map_state                  0x631D28
+#define _mapEntranceElevation       0x519558
+#define _mapEntranceTileNum         0x51955C
 #define _master_db_handle           0x58E948
 #define _master_volume              0x518E84
 #define _max                        0x56FB50
