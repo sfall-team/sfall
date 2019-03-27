@@ -136,6 +136,7 @@
 #define FO_VAR_num_map_global_vars        0x519574
 #define FO_VAR_card_old_fid1              0x5709EC
 #define FO_VAR_obj_dude                   0x6610B8
+#define FO_VAR_obj_seen                   0x662445
 #define FO_VAR_objectTable                0x639DA0
 #define FO_VAR_objItemOutlineState        0x519798
 #define FO_VAR_optionRect                 0x58ECC0
