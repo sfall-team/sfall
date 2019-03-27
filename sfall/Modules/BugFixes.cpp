@@ -1393,14 +1393,29 @@ static void __declspec(naked) ResetPlayer_hook() {
 	}
 }
 
+static const DWORD obj_move_to_tile_Ret = 0x48A74E;
 static void __declspec(naked) obj_move_to_tile_hack() {
 	__asm {
-		cmp  ds:[FO_VAR_map_state], 0;
-		jz   map_leave;
-		pop  eax;
-		push 0x48A74E;
-map_leave:
+		cmp  dword ptr ds:[FO_VAR_map_state], 0; // map number, -1 exit to worldmap
+		jz   mapLeave;
+		add  esp, 4;
+		jmp  obj_move_to_tile_Ret;
+mapLeave:
 		mov  ebx, 16;
+		retn;
+	}
+}
+
+static void __declspec(naked) map_load_file_hack() {
+	__asm {
+		cmp  dword ptr ds:[FO_VAR_map_state], 0; // map number, -1 exit to worldmap
+		jle  skip;
+		mov  eax, ds:[FO_VAR_elevation];
+		mov  ds:[FO_VAR_mapEntranceElevation], eax;
+		mov  edx, ds:[FO_VAR_rotation];
+		mov  eax, ds:[FO_VAR_tile];
+skip:
+		mov  ds:[FO_VAR_mapEntranceTileNum], eax;
 		retn;
 	}
 }
@@ -2320,6 +2335,8 @@ void BugFixes::init()
 	// Fix for being at incorrect hex after map change when the exit hex in source map is at the same position as
 	// some exit hex in destination map
 	MakeCall(0x48A704, obj_move_to_tile_hack);
+	// Fix for player's position when entering a map
+	MakeCall(0x482C95, map_load_file_hack);
 
 	// Fix for critters killed in combat by scripting still being able to move in their combat turn if the distance parameter
 	// in their AI packages is set to stay_close/charge, or NPCsTryToSpendExtraAP is enabled
