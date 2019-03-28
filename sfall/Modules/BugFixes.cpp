@@ -1406,16 +1406,18 @@ mapLeave:
 	}
 }
 
-static void __declspec(naked) map_load_file_hack() {
+static void __declspec(naked) obj_move_to_tile_hack_seen() {
 	__asm {
+		cmp  ds:[FO_VAR_loadingGame], 0;         // loading save game
+		jnz  fix;
+		// if (map_state <= 0 && mapEntranceTileNum != -1) then fix
 		cmp  dword ptr ds:[FO_VAR_map_state], 0; // map number, -1 exit to worldmap
 		jle  skip;
-		mov  eax, ds:[FO_VAR_elevation];
-		mov  ds:[FO_VAR_mapEntranceElevation], eax;
-		mov  edx, ds:[FO_VAR_rotation];
-		mov  eax, ds:[FO_VAR_tile];
+		cmp  dword ptr ds:[FO_VAR_mapEntranceTileNum], -1;
+		jne  fix;
 skip:
-		mov  ds:[FO_VAR_mapEntranceTileNum], eax;
+		or  byte ptr ds:[FO_VAR_obj_seen][eax], dl;
+fix:
 		retn;
 	}
 }
@@ -2335,8 +2337,6 @@ void BugFixes::init()
 	// Fix for being at incorrect hex after map change when the exit hex in source map is at the same position as
 	// some exit hex in destination map
 	MakeCall(0x48A704, obj_move_to_tile_hack);
-	// Fix for player's position when entering a map
-	MakeCall(0x482C95, map_load_file_hack);
 
 	// Fix for critters killed in combat by scripting still being able to move in their combat turn if the distance parameter
 	// in their AI packages is set to stay_close/charge, or NPCsTryToSpendExtraAP is enabled
@@ -2521,6 +2521,9 @@ void BugFixes::init()
 
 	// Fix for the removal of party member's corpse when loading the map
 	HookCall(0x4957B8, partyFixMultipleMembers_hook);
+
+	// Fix for unexplored areas being revealed on the automap when entering a map
+	MakeCall(0x48A76B, obj_move_to_tile_hack_seen, 1);
 }
 
 }
