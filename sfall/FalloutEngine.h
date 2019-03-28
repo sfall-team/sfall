@@ -151,6 +151,7 @@
 #define _num_game_global_vars       0x5186C4
 #define _num_map_global_vars        0x519574
 #define _obj_dude                   0x6610B8
+#define _obj_seen                   0x662445
 #define _objectTable                0x639DA0
 #define _objItemOutlineState        0x519798
 #define _optionRect                 0x58ECC0
