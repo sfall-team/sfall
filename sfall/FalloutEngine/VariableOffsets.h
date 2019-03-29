@@ -47,6 +47,7 @@
 #define FO_VAR_dialogue_switch_mode       0x518718
 #define FO_VAR_dialog_target              0x518848
 #define FO_VAR_dialog_target_is_party     0x51884C
+#define FO_VAR_displayMapList             0x41B560 
 #define FO_VAR_dropped_explosive          0x5190E0
 #define FO_VAR_drugInfoList               0x5191CC
 #define FO_VAR_editor_message_file        0x56FCA8
@@ -218,13 +219,15 @@
 #define FO_VAR_wd_obj                     0x59E98C
 #define FO_VAR_wmAreaInfoList             0x51DDF8
 #define FO_VAR_wmLastRndTime              0x51DEA0
+#define FO_VAR_wmMaxMapNum                0x51DE10
 #define FO_VAR_wmWorldOffsetX             0x51DE2C
 #define FO_VAR_wmWorldOffsetY             0x51DE30
+#define FO_VAR_wmYesNoStrs                0x51DD90
 #define FO_VAR_world_xpos                 0x672E0C
 #define FO_VAR_world_ypos                 0x672E10
 #define FO_VAR_WorldMapCurrArea           0x672E08
 
-// colour
+// colors
 #define FO_VAR_BlueColor                  0x6A38EF
 #define FO_VAR_DARK_GREY_Color            0x6A59D8
 #define FO_VAR_DarkGreenColor             0x6A3A90

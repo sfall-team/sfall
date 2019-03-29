@@ -1010,6 +1010,9 @@ void MiscPatches::init() {
 	int gvar = GetConfigInt("Misc", "SpecialDeathGVAR", fo::GVAR_MODOC_SHITTY_DEATH);
 	if (gvar != fo::GVAR_MODOC_SHITTY_DEATH) SafeWrite32(0x440C2A, gvar);
 
+	// Removal hardcoding for maps with indexes 19 and 37
+	if (GetConfigInt("Misc", "DisableSpecialMapIDs", 0)) SafeWriteBatch<BYTE>(0, {0x4836D6, 0x4836DB});
+
 	LoadGameHook::OnBeforeGameStart() += BodypartHitChances; // set on start & load
 
 	CombatProcFix();

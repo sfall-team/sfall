@@ -2020,6 +2020,28 @@ noDrop:
 	}
 }
 
+static void __declspec(naked) PrintAutoMapList() {
+	__asm {
+		mov  eax, ds:[FO_VAR_wmMaxMapNum];
+		cmp  eax, AUTOMAP_MAX;
+		jb   skip;
+		mov  eax, AUTOMAP_MAX;
+skip:
+		retn;
+	}
+}
+
+static void __declspec(naked) automap_pip_save_hook() {
+	__asm {
+		mov  eax, ds:[FO_VAR_map_number];
+		cmp  eax, AUTOMAP_MAX;
+		jb   skip;
+		xor  eax, eax;
+skip:
+		retn;
+	}
+}
+
 void BugFixes::init()
 {
 	#ifndef NDEBUG
@@ -2565,11 +2587,15 @@ void BugFixes::init()
 	// Fix the destroy of the party member corpse when loading the map
 	HookCall(0x4957B8, partyFixMultipleMembers_hook);
 
-	// Fix fog for automap, when the entrance to the map the objects were seen where the player had not yet
+	// Fix for unexplored areas being revealed on the automap when entering a map
 	MakeCall(0x48A76B, obj_move_to_tile_hack_seen, 1);
 
-	// Fix a player’s position when entering to the maps with indexes 19 and 37 through the exit grid or using transition objects (remove hardcoding)
-	SafeWriteBatch<BYTE>(0, {0x4836D6, 0x4836DB});
+	// Fix of the overflow of the Automap tables when the amount of maps in maps.txt is more than 160
+	HookCall(0x41C0FC, automap_pip_save_hook);
+	HookCalls(PrintAutoMapList, {
+		0x499212, // PrintAMList_
+		0x499013  // PrintAMelevList_
+	});
 }
 
 
