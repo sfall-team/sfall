@@ -1,0 +1,66 @@
+/*******************************************************************************
+        Name: Ammo Rebalance Mod
+        Location: Scripts
+        Description: Modifies prototypes ammo from INI file format sfall2 by Crafty
+
+            Created: sFall Script Editor
+*******************************************************************************/
+
+/* Include Files */
+//#include "define.h"
+//#include "command.h"
+#include "main.h"
+
+/* Defines */
+
+/* Script Procedures */
+procedure start;
+procedure map_enter_p_proc;
+
+/* Local variables which do not need to be saved between map changes */
+variable begin
+   iniAmmo;
+   ammoData;
+end
+
+procedure start begin
+variable i := 1, sectionAmmo;
+
+   if game_loaded then begin
+      iniAmmo := get_ini_setting("ddraw.ini|Misc|DamageFormula");
+        switch (iniAmmo) begin
+         //case 1 : iniAmmo := "AmmoGlovz.ini";
+         //case 2 : iniAmmo := "AmmoGlovz.ini";
+         case 5 : iniAmmo := "AmmoYAAM.ini";
+         default : iniAmmo := GetConfigStr("Misc", "AmmoFile", "");
+      end
+      if (iniAmmo == "") then return;
+
+      ammoData := create_array_map;
+      sectionAmmo := get_ini_section(iniAmmo, "" + i);
+
+      while (sectionAmmo.pid) do begin
+         variable ammo := create_array_map; // create permanent arrays
+         ammo.dam_mult := atoi(sectionAmmo.dam_mult);
+         ammo.dam_div  := atoi(sectionAmmo.dam_div);
+         ammo.dr_adjust  := atoi(sectionAmmo.dr_adjust);
+         ammo.ac_adjust  := atoi(sectionAmmo.ac_adjust);
+         ammoData[atoi(sectionAmmo.pid)] := ammo;
+         i++;
+         sectionAmmo := get_ini_section(iniAmmo, "" + i);
+      end
+      call map_enter_p_proc;
+      debug_msg("AmmoMod: Applying modificators to ammo prototypes.");
+   end
+end
+
+procedure map_enter_p_proc begin
+   variable values, pid;
+
+   foreach (pid : values in ammoData) begin
+      set_proto_data(pid, PROTO_AM_DMG_MULT, values.dam_mult);
+      set_proto_data(pid, PROTO_AM_DMG_DIV, values.dam_div);
+      set_proto_data(pid, PROTO_AM_DR_MOD, values.dr_adjust);
+      set_proto_data(pid, PROTO_AM_AC_MOD, values.ac_adjust);
+   end
+end
