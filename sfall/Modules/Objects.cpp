@@ -24,6 +24,18 @@ long Objects::SetObjectUniqueID(fo::GameObject* obj) {
 	return uniqueID;
 }
 
+static void __declspec(naked) new_obj_id_hook() {
+	__asm {
+		mov  eax, 83535;
+		cmp  dword ptr ds:[FO_VAR_cur_id], eax;
+		jle  pickNewID;
+		retn;
+pickNewID: // skip PM range (18000 - 83535)
+		mov  ds:[FO_VAR_cur_id], eax;
+		jmp  fo::funcoffs::new_obj_id_;
+	}
+}
+
 void Objects::SetAutoUnjamLockTime(DWORD time) {
 	if (!unjamTimeState) BlockCall(0x4A364A); // disable auto unjam at midnight
 
@@ -84,6 +96,9 @@ void Objects::init() {
 			SafeWrite32(0x4A21B3, maxlimit);
 		}
 	}
+
+	HookCall(0x4A38A5, new_obj_id_hook);
+	SafeWrite8(0x4A38B3, 0x90); // fix increment ID
 }
 
 }

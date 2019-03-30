@@ -341,6 +341,16 @@ end:
 	}
 }
 
+static void __declspec(naked) PrintAMList_hook() {
+	__asm {
+		cmp ebp, 20;  // max count lines
+		jle skip;
+		mov ebp, 20;
+skip:
+		jmp fo::funcoffs::qsort_;
+	}
+}
+
 static void RestRestore() {
 	if (!restMode) return;
 	restMode = false;
@@ -533,6 +543,15 @@ void WorldMapFontPatch() {
 	}
 }
 
+void PipBoyAutoMapsPatch() {
+	if (GetConfigInt("Misc", "PipBoyAutomap", 0)) {
+		MakeCall(0x4BF931, wmMapInit_hack, 2);
+		HookCall(0x499240, PrintAMList_hook);
+		SafeWrite32(0x41B8B7, (DWORD)AutomapPipboyList);
+		memcpy(AutomapPipboyList, (void*)FO_VAR_displayMapList, sizeof(AutomapPipboyList)); // copy vanilla data
+	}
+}
+
 void Worldmap::SaveData(HANDLE file) {
 	DWORD sizeWrite, count = mapRestInfo.size();
 	WriteFile(file, &count, 4, &sizeWrite, 0);
@@ -653,6 +672,7 @@ void Worldmap::init() {
 	WorldLimitsPatches();
 	WorldmapFpsPatch();
 	WorldMapFontPatch();
+	PipBoyAutoMapsPatch();
 
 	LoadGameHook::OnGameReset() += []() {
 		SetCarInterfaceArt(433); // set index
@@ -660,10 +680,6 @@ void Worldmap::init() {
 		RestRestore();
 		mapRestInfo.clear();
 	};
-
-	MakeCall(0x4BF931, wmMapInit_hack, 2);
-	SafeWrite32(0x41B8B7, (DWORD)AutomapPipboyList);
-	memcpy(AutomapPipboyList, (void*)FO_VAR_displayMapList, 151 * 4); // copy vanilla data
 }
 
 Delegate<>& Worldmap::OnWorldmapLoop() {

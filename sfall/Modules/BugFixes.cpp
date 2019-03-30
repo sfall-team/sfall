@@ -2042,6 +2042,24 @@ skip:
 	}
 }
 
+static DWORD dudeScriptID;
+static void __declspec(naked) obj_load_dude_hook0() {
+	__asm {
+		mov  eax, ds:[FO_VAR_obj_dude];
+		mov  eax, [eax + scriptId];
+		mov  dudeScriptID, eax;
+		retn;
+	}
+}
+
+static void __declspec(naked) obj_load_dude_hook1() {
+	__asm {
+		mov  ebx, dudeScriptID;
+		mov  [eax + scriptId], ebx;
+		retn;
+	}
+}
+
 void BugFixes::init()
 {
 	#ifndef NDEBUG
@@ -2590,12 +2608,18 @@ void BugFixes::init()
 	// Fix for unexplored areas being revealed on the automap when entering a map
 	MakeCall(0x48A76B, obj_move_to_tile_hack_seen, 1);
 
-	// Fix of the overflow of the Automap tables when the amount of maps in maps.txt is more than 160
+	// Fix for the overflow of the automap tables when the number of maps in maps.txt is more than 160
 	HookCall(0x41C0FC, automap_pip_save_hook);
 	HookCalls(PrintAutoMapList, {
 		0x499212, // PrintAMList_
 		0x499013  // PrintAMelevList_
 	});
+
+	// Fix creation of a duplicate obj_dude script for player when loading a saved game
+	HookCall(0x48D63E, obj_load_dude_hook0);
+	HookCall(0x48D666, obj_load_dude_hook1);
+	BlockCall(0x48D675);
+	BlockCall(0x48D69D);
 }
 
 
