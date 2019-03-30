@@ -651,8 +651,9 @@ enum BodyType : long
 #define CRITTER_BROKEN_LARM   (0x20)
 #define CRITTER_EYEDAMAGE     (0x40)
 
-
 #define WEAPON_TWO_HANDED     (0x200)
+
+#define AUTOMAP_MAX           (160)
 
 enum TicksTime : unsigned long
 {

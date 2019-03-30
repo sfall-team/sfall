@@ -1995,6 +1995,28 @@ noDrop:
 	}
 }
 
+static void __declspec(naked) PrintAutoMapList() {
+	__asm {
+		mov  eax, ds:[FO_VAR_wmMaxMapNum];
+		cmp  eax, AUTOMAP_MAX;
+		jb   skip;
+		mov  eax, AUTOMAP_MAX;
+skip:
+		retn;
+	}
+}
+
+static void __declspec(naked) automap_pip_save_hook() {
+	__asm {
+		mov  eax, ds:[FO_VAR_map_number];
+		cmp  eax, AUTOMAP_MAX;
+		jb   skip;
+		xor  eax, eax;
+skip:
+		retn;
+	}
+}
+
 void BugFixes::init()
 {
 	#ifndef NDEBUG
@@ -2524,6 +2546,13 @@ void BugFixes::init()
 
 	// Fix for unexplored areas being revealed on the automap when entering a map
 	MakeCall(0x48A76B, obj_move_to_tile_hack_seen, 1);
+
+	// Fix for the overflow of the automap tables when the number of maps in maps.txt is more than 160
+	HookCall(0x41C0FC, automap_pip_save_hook);
+	HookCalls(PrintAutoMapList, {
+		0x499212, // PrintAMList_
+		0x499013  // PrintAMelevList_
+	});
 }
 
 }
