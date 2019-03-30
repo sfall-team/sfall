@@ -294,9 +294,9 @@
 #define CRITTER_BROKEN_LARM   (0x20)
 #define CRITTER_EYEDAMAGE     (0x40)
 
-
 #define WEAPON_TWO_HANDED     (0x200)
 
+#define AUTOMAP_MAX           (160)
 
 #define ROLL_CRITICAL_FAILURE (0)
 #define ROLL_FAILURE          (1)

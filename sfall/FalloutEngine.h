@@ -130,6 +130,7 @@
 #define _main_window                0x5194F0
 #define _map_elevation              0x519578
 #define _map_global_vars            0x51956C
+#define _map_number                 0x631D88
 #define _map_state                  0x631D28
 #define _mapEntranceElevation       0x519558
 #define _mapEntranceTileNum         0x51955C
@@ -231,6 +232,7 @@
 #define _wd_obj                     0x59E98C
 #define _wmAreaInfoList             0x51DDF8
 #define _wmLastRndTime              0x51DEA0
+#define _wmMaxMapNum                0x51DE10
 #define _wmWorldOffsetX             0x51DE2C
 #define _wmWorldOffsetY             0x51DE30
 #define _world_xpos                 0x672E0C

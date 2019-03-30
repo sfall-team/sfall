@@ -1964,6 +1964,28 @@ noDrop:
 	}
 }
 
+static void __declspec(naked) PrintAutoMapList() {
+	__asm {
+		mov  eax, ds:[_wmMaxMapNum];
+		cmp  eax, AUTOMAP_MAX;
+		jb   skip;
+		mov  eax, AUTOMAP_MAX;
+skip:
+		retn;
+	}
+}
+
+static void __declspec(naked) automap_pip_save_hook() {
+	__asm {
+		mov  eax, ds:[_map_number];
+		cmp  eax, AUTOMAP_MAX;
+		jb   skip;
+		xor  eax, eax;
+skip:
+		retn;
+	}
+}
+
 void BugsInit()
 {
 	// fix vanilla negate operator on float values
@@ -2480,4 +2502,9 @@ void BugsInit()
 
 	// Fix for unexplored areas being revealed on the automap when entering a map
 	MakeCall(0x48A76B, obj_move_to_tile_hack_seen, 1);
+
+	// Fix for the overflow of the automap tables when the number of maps in maps.txt is more than 160
+	HookCall(0x41C0FC, automap_pip_save_hook);
+	HookCall(0x499212, PrintAutoMapList); // PrintAMList_
+	HookCall(0x499013, PrintAutoMapList); // PrintAMelevList_
 }

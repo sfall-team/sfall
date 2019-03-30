@@ -1536,6 +1536,14 @@ static void DllMain2() {
 	int gvar = GetPrivateProfileIntA("Misc", "SpecialDeathGVAR", 491, ini); // GVAR_MODOC_SHITTY_DEATH
 	if (gvar != 491) SafeWrite32(0x440C2A, gvar);
 
+	// Remove hardcoding for maps with IDs 19 and 37
+	if (GetPrivateProfileIntA("Misc", "DisableSpecialMapIDs", 0, ini)) {
+		dlog("Applying disable special map IDs patch.", DL_INIT);
+		SafeWrite8(0x4836D6, 0);
+		SafeWrite8(0x4836DB, 0);
+		dlogr(" Done", DL_INIT);
+	}
+
 	dlogr("Leave DllMain2", DL_MAIN);
 }
 
