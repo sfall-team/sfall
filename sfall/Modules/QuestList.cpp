@@ -489,7 +489,7 @@ void QuestList::init() {
 
 		dlogr(" Done", DL_INIT);
 	} else {
-		HookCall(0x498186, PipStatus_hook_printfix); // fix "out of range" bug when printing a list of quests
+		HookCall(0x498186, PipStatus_hook_printfix); // fix "out of bounds" bug when printing a list of quests
 	}
 }
 

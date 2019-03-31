@@ -687,7 +687,6 @@ void EncounterTableSizePatch() {
 		for (int i = 0; i < sizeof(EncounterTableSize) / 4; i++) {
 			SafeWrite32(EncounterTableSize[i], nsize);
 		}
-		SafeWrite8(0x4BDB17, (BYTE)tableSize);
 		dlogr(" Done", DL_INIT);
 	}
 }
