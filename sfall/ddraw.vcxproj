@@ -257,7 +257,7 @@
     <ClInclude Include="Stats.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="Tiles.h" />
-    <ClInclude Include="timer.h" />
+    <ClInclude Include="SpeedPatch.h" />
     <ClInclude Include="version.h" />
     <ClInclude Include="Logging.h" />
     <ClInclude Include="resource.h" />
@@ -311,7 +311,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Win2K|Win32'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="Tiles.cpp" />
-    <ClCompile Include="timer.cpp" />
+    <ClCompile Include="SpeedPatch.cpp" />
     <ClCompile Include="Logging.cpp" />
     <ClCompile Include="SuperSave.cpp" />
   </ItemGroup>

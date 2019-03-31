@@ -56,10 +56,10 @@
 #include "ScriptExtender.h"
 #include "skills.h"
 #include "sound.h"
+#include "SpeedPatch.h"
 #include "stats.h"
 #include "SuperSave.h"
 #include "Tiles.h"
-#include "timer.h"
 #include "version.h"
 
 ddrawDll ddraw;
@@ -838,6 +838,7 @@ static void DllMain2() {
 	dlogr("Running BugsInit().", DL_INIT);
 	BugsInit();
 
+	dlogr("Running SpeedPatchInit().", DL_INIT);
 	SpeedPatchInit();
 
 	//if (GetPrivateProfileIntA("Input", "Enable", 0, ini)) {
@@ -877,7 +878,10 @@ static void DllMain2() {
 		dlogr(" Done", DL_INIT);
 	}
 
+	dlogr("Running AmmoModInit().", DL_INIT);
 	AmmoModInit();
+
+	dlogr("Running MoviesInit().", DL_INIT);
 	MoviesInit();
 
 	mapName[64] = 0;
@@ -1128,8 +1132,10 @@ static void DllMain2() {
 		dlogr(" Done", DL_INIT);
 	}
 
+	dlogr("Running FileSystemInit().", DL_INIT);
 	FileSystemInit();
 
+	dlogr("Running DebugEditorInit().", DL_INIT);
 	DebugEditorInit();
 
 	if (GetPrivateProfileIntA("Misc", "SingleCore", 1, ini)) {
@@ -1164,6 +1170,7 @@ static void DllMain2() {
 		dlogr(" Done", DL_INIT);
 	}
 
+	dlogr("Running CritInit().", DL_INIT);
 	CritInit();
 
 	//if (GetPrivateProfileIntA("Misc", "MultiPatches", 0, ini)) {
@@ -1212,12 +1219,6 @@ static void DllMain2() {
 	if (GetPrivateProfileIntA("Misc", "EnableHeroAppearanceMod", 0, ini)) {
 		dlog("Setting up Appearance Char Screen buttons.", DL_INIT);
 		EnableHeroAppearanceMod();
-		dlogr(" Done", DL_INIT);
-	}
-
-	if (GetPrivateProfileIntA("Misc", "SkipOpeningMovies", 0, ini)) {
-		dlog("Skipping opening movies.", DL_INIT);
-		SafeWrite16(0x4809C7, 0x1CEB);            // jmps 0x4809E5
 		dlogr(" Done", DL_INIT);
 	}
 
@@ -1335,6 +1336,7 @@ static void DllMain2() {
 	dlogr("Patching out ereg call.", DL_INIT);
 	BlockCall(0x4425E6);
 
+	dlogr("Running AnimationsAtOnceInit().", DL_INIT);
 	AnimationsAtOnceInit();
 
 	if (tmp = GetPrivateProfileIntA("Sound", "OverrideMusicDir", 0, ini)) {
@@ -1436,8 +1438,11 @@ static void DllMain2() {
 	}
 
 	// phobos2077:
+	dlogr("Running ComputeSprayModInit().", DL_INIT);
 	ComputeSprayModInit();
+	dlogr("Running ExplosionInit().", DL_INIT);
 	ExplosionInit();
+	dlogr("Running BooksInit().", DL_INIT);
 	BooksInit();
 	DWORD addrs[2] = {0x45F9DE, 0x45FB33};
 	SimplePatch<WORD>(addrs, 2, "Misc", "CombatPanelAnimDelay", 1000, 0, 65535);

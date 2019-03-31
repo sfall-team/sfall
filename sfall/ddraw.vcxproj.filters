@@ -90,7 +90,7 @@
     <ClInclude Include="Tiles.h">
       <Filter>Headers</Filter>
     </ClInclude>
-    <ClInclude Include="timer.h">
+    <ClInclude Include="SpeedPatch.h">
       <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="version.h">
@@ -282,7 +282,7 @@
     <ClCompile Include="Tiles.cpp">
       <Filter>Source</Filter>
     </ClCompile>
-    <ClCompile Include="timer.cpp">
+    <ClCompile Include="SpeedPatch.cpp">
       <Filter>Source</Filter>
     </ClCompile>
     <ClCompile Include="SuperSave.cpp">

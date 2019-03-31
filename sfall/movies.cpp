@@ -744,6 +744,14 @@ less:
 	}
 }
 
+void SkipOpeningMoviesPatch() {
+	if (GetPrivateProfileIntA("Misc", "SkipOpeningMovies", 0, ini)) {
+		dlog("Skipping opening movies.", DL_INIT);
+		SafeWrite16(0x4809C7, 0x1CEB);            // jmps 0x4809E5
+		dlogr(" Done", DL_INIT);
+	}
+}
+
 void MoviesInit() {
 	dlog("Applying movie patch.", DL_INIT);
 
@@ -801,6 +809,9 @@ void MoviesInit() {
 		MakeJump(0x4A378B, Artimer1DaysCheckHack);
 		dlogr("Done", DL_INIT);
 	}
+
+	// Should be AFTER the PlayMovieHook setup above
+	SkipOpeningMoviesPatch();
 }
 
 void MoviesExit() {

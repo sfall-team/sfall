@@ -58,6 +58,7 @@
 #define _critter_db_handle          0x58E94C
 #define _critterClearObj            0x518438
 #define _crnt_func                  0x664508
+#define _cur_id                     0x51C7D4
 #define _curr_font_num              0x51E3B0
 #define _curr_pc_stat               0x6681AC
 #define _curr_stack                 0x59E96C
@@ -699,6 +700,7 @@ extern const DWORD mouse_hide_;
 extern const DWORD mouse_in_;
 extern const DWORD mouse_show_;
 extern const DWORD move_inventory_;
+extern const DWORD new_obj_id_;
 extern const DWORD NixHotLines_;
 extern const DWORD nrealloc_;
 extern const DWORD obj_ai_blocking_at_;

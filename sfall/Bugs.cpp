@@ -1397,7 +1397,7 @@ mapLeave:
 
 static void __declspec(naked) obj_move_to_tile_hack_seen() {
 	__asm {
-		cmp  ds:[_loadingGame], 0;         // loading save game
+		cmp  ds:[_loadingGame], 0;         // loading saved game
 		jnz  fix;
 		// if (map_state <= 0 && mapEntranceTileNum != -1) then fix
 		cmp  dword ptr ds:[_map_state], 0; // map number, -1 exit to worldmap
@@ -1986,6 +1986,24 @@ skip:
 	}
 }
 
+static DWORD dudeScriptID;
+static void __declspec(naked) obj_load_dude_hook0() {
+	__asm {
+		mov  eax, ds:[_obj_dude];
+		mov  eax, [eax + 0x78];
+		mov  dudeScriptID, eax;
+		retn;
+	}
+}
+
+static void __declspec(naked) obj_load_dude_hook1() {
+	__asm {
+		mov  ebx, dudeScriptID;
+		mov  [eax + 0x78], ebx;
+		retn;
+	}
+}
+
 void BugsInit()
 {
 	// fix vanilla negate operator on float values
@@ -2507,4 +2525,10 @@ void BugsInit()
 	HookCall(0x41C0FC, automap_pip_save_hook);
 	HookCall(0x499212, PrintAutoMapList); // PrintAMList_
 	HookCall(0x499013, PrintAutoMapList); // PrintAMelevList_
+
+	// Fix for a duplicate obj_dude script being created when loading a saved game
+	HookCall(0x48D63E, obj_load_dude_hook0);
+	HookCall(0x48D666, obj_load_dude_hook1);
+	BlockCall(0x48D675);
+	BlockCall(0x48D69D);
 }

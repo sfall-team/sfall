@@ -486,6 +486,7 @@ const DWORD mouse_hide_ = 0x4CA534;
 const DWORD mouse_in_ = 0x4CA8C8;
 const DWORD mouse_show_ = 0x4CA34C;
 const DWORD move_inventory_ = 0x474708;
+const DWORD new_obj_id_ = 0x4A386C;
 const DWORD NixHotLines_ = 0x4999C0;
 const DWORD nrealloc_ = 0x4F1669;
 const DWORD obj_ai_blocking_at_ = 0x48BA20;
