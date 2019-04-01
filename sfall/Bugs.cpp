@@ -2004,6 +2004,16 @@ static void __declspec(naked) obj_load_dude_hook1() {
 	}
 }
 
+static void __declspec(naked) PrintAMList_hook() {
+	__asm {
+		cmp ebp, 20; // max line count
+		jle skip;
+		mov ebp, 20;
+skip:
+		jmp qsort_;
+	}
+}
+
 void BugsInit()
 {
 	// fix vanilla negate operator on float values
@@ -2531,4 +2541,7 @@ void BugsInit()
 	HookCall(0x48D666, obj_load_dude_hook1);
 	BlockCall(0x48D675);
 	BlockCall(0x48D69D);
+
+	// Fix "out of bounds" bug when printing the automap list
+	HookCall(0x499240, PrintAMList_hook);
 }
