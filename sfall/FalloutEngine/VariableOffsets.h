@@ -47,7 +47,7 @@
 #define FO_VAR_dialogue_switch_mode       0x518718
 #define FO_VAR_dialog_target              0x518848
 #define FO_VAR_dialog_target_is_party     0x51884C
-#define FO_VAR_displayMapList             0x41B560 
+#define FO_VAR_displayMapList             0x41B560
 #define FO_VAR_dropped_explosive          0x5190E0
 #define FO_VAR_drugInfoList               0x5191CC
 #define FO_VAR_editor_message_file        0x56FCA8
