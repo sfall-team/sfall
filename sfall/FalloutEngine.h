@@ -67,6 +67,7 @@
 #define _dialog_target_is_party     0x51884C
 #define _dialogue_state             0x518714
 #define _dialogue_switch_mode       0x518718
+#define _displayMapList             0x41B560
 #define _drugInfoList               0x5191CC
 #define _edit_win                   0x57060C
 #define _Educated                   0x57082C
@@ -236,6 +237,7 @@
 #define _wmMaxMapNum                0x51DE10
 #define _wmWorldOffsetX             0x51DE2C
 #define _wmWorldOffsetY             0x51DE30
+#define _wmYesNoStrs                0x51DD90
 #define _world_xpos                 0x672E0C
 #define _world_ypos                 0x672E10
 #define _WorldMapCurrArea           0x672E08
@@ -484,6 +486,7 @@ extern const DWORD combat_should_end_;
 extern const DWORD combat_turn_;
 extern const DWORD combat_turn_run_;
 extern const DWORD compute_damage_;
+extern const DWORD config_get_string_;
 extern const DWORD config_set_value_;
 extern const DWORD container_exit_;
 extern const DWORD correctFidForRemovedItem_; // (int critter@<eax>, int oldArmor@<edx>, int removeSlotsFlags@<ebx>)
@@ -828,6 +831,7 @@ extern const DWORD stat_set_bonus_;
 extern const DWORD stat_set_defaults_;
 extern const DWORD stricmp_;
 extern const DWORD strncpy_;
+extern const DWORD strParseStrFromList_;
 extern const DWORD switch_hand_;
 extern const DWORD talk_to_translucent_trans_buf_to_buf_;
 extern const DWORD text_font_;

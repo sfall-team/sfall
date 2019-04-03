@@ -84,6 +84,8 @@ static const char* musicOverridePath = "data\\sound\\music\\";
 
 static int* scriptDialog = nullptr;
 
+static DWORD AutomapPipboyList[AUTOMAP_MAX];
+
 static DWORD ViewportX;
 static DWORD ViewportY;
 
@@ -115,8 +117,6 @@ static const DWORD PutAwayWeapon[] = {
 static const DWORD WalkDistanceAddr[] = {
 	0x411FF0, 0x4121C4, 0x412475, 0x412906,
 };
-
-#define ONE_GAME_YEAR (315360000UL)
 
 static bool addYear = false; // used as additional years indicator
 static DWORD addedYears = 0;
@@ -762,6 +762,46 @@ end:
 	}
 }
 
+static void __declspec(naked) wmInterfaceInit_text_font_hook() {
+	__asm {
+		mov  eax, 0x65; // normal text font
+		jmp  text_font_;
+	}
+}
+
+static const char* automap = "automap"; // no/yes overrides the value in the table to display the automap in pipboy
+static void __declspec(naked) wmMapInit_hack() {
+	__asm {
+		mov  esi, [esp + 0xA0 - 0x20 + 4];       // curent map number
+		cmp  esi, AUTOMAP_MAX;
+		jge  end;
+		lea  eax, [esp + 4];                     // file
+		lea  edx, [esp + 0xA0 - 0x50 + 4];       // section
+		mov  ebx, automap;                       // key
+		lea  ecx, [esp + 0xA0 - 0x24 + 4];       // value buf
+		call config_get_string_;
+		test eax, eax;
+		jz   end;
+		mov  ecx, 2;                             // max index
+		mov  ebx, _wmYesNoStrs;
+		lea  eax, [esp + 0xA0 - 0x24 + 4];       // key value
+		sub  esp, 4;
+		mov  edx, esp;                           // index buf
+		call strParseStrFromList_;
+		cmp  eax, -1;
+		jz   skip;
+		mov  edx, [esp];                         // value index
+		dec  edx;
+		mov  [AutomapPipboyList][esi * 4], edx;  // no = -1, yes = 0
+skip:
+		add  esp, 4;
+end:
+		inc  esi;
+		mov  [esp + 0xA0 - 0x20 + 4], esi;
+		retn;
+	}
+}
+
 static void __declspec(naked) register_object_take_out_hack() {
 	__asm {
 		push ecx
@@ -819,13 +859,6 @@ static void __declspec(naked) display_stats_hook() {
 		pop ecx;
 		pop eax;
 		jmp item_w_range_;
-	}
-}
-
-static void __declspec(naked) wmInterfaceInit_text_font_hook() {
-	__asm {
-		mov  eax, 0x65; // normal text font
-		jmp  text_font_;
 	}
 }
 
@@ -1464,6 +1497,20 @@ static void DllMain2() {
 		dlogr(" Done", DL_INIT);
 	}
 
+	if (GetPrivateProfileIntA("Misc", "WorldMapFontPatch", 0, ini)) {
+		dlog("Applying world map font patch.", DL_INIT);
+		HookCall(0x4C2343, wmInterfaceInit_text_font_hook);
+		dlogr(" Done", DL_INIT);
+	}
+
+	//if (GetPrivateProfileIntA("Misc", "PipBoyAutomaps", 0, ini)) {
+		dlog("Applying Pip-Boy automaps patch.", DL_INIT);
+		MakeCall(0x4BF931, wmMapInit_hack, 2);
+		SafeWrite32(0x41B8B7, (DWORD)AutomapPipboyList);
+		memcpy(AutomapPipboyList, (void*)_displayMapList, sizeof(AutomapPipboyList)); // copy vanilla data
+		dlogr(" Done", DL_INIT);
+	//}
+
 	if (GetPrivateProfileIntA("Misc", "DontTurnOffSneakIfYouRun", 0, ini)) {
 		dlog("Applying DontTurnOffSneakIfYouRun patch.", DL_INIT);
 		SafeWrite8(0x418135, 0xEB);
@@ -1499,12 +1546,6 @@ static void DllMain2() {
 	if (GetPrivateProfileIntA("Misc", "DisplaySecondWeaponRange", 1, ini)) {
 		dlog("Applying display second weapon range patch.", DL_INIT);
 		HookCall(0x472201, display_stats_hook);
-		dlogr(" Done", DL_INIT);
-	}
-
-	if (GetPrivateProfileIntA("Misc", "WorldMapFontPatch", 0, ini)) {
-		dlog("Applying world map font patch.", DL_INIT);
-		HookCall(0x4C2343, wmInterfaceInit_text_font_hook);
 		dlogr(" Done", DL_INIT);
 	}
 

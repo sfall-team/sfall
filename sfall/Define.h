@@ -298,6 +298,8 @@
 
 #define AUTOMAP_MAX           (160)
 
+#define ONE_GAME_YEAR         (315360000UL)
+
 #define ROLL_CRITICAL_FAILURE (0)
 #define ROLL_FAILURE          (1)
 #define ROLL_SUCCESS          (2)
