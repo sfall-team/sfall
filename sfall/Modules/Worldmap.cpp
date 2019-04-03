@@ -535,13 +535,13 @@ void WorldMapFontPatch() {
 }
 
 void PipBoyAutomapsPatch() {
-	if (GetConfigInt("Misc", "PipBoyAutomaps", 0)) {
+	//if (GetConfigInt("Misc", "PipBoyAutomaps", 0)) {
 		dlog("Applying Pip-Boy automaps patch.", DL_INIT);
 		MakeCall(0x4BF931, wmMapInit_hack, 2);
 		SafeWrite32(0x41B8B7, (DWORD)AutomapPipboyList);
 		memcpy(AutomapPipboyList, (void*)FO_VAR_displayMapList, sizeof(AutomapPipboyList)); // copy vanilla data
 		dlogr(" Done", DL_INIT);
-	}
+	//}
 }
 
 void Worldmap::SaveData(HANDLE file) {
