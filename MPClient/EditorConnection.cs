@@ -11,12 +11,13 @@ namespace FalloutClient {
 
         public readonly int[] Globals;
         public readonly int[] MapVars;
-        public readonly uint[] Critters;
+        public readonly uint[,] Critters;
         public readonly ulong[] SGlobalKeys;
         public readonly int[] sGlobals;
         public readonly uint[] Arrays;
         public readonly int[] ArrayLengths;
         public readonly int[] ArrayDataSizes;
+        public readonly bool[] ArrayIsMap;
 
         public EditorConnection() {
             System.Threading.Thread.Sleep(1000);
@@ -31,7 +32,8 @@ namespace FalloutClient {
             Arrays=new uint[br.ReadInt32()];
             ArrayLengths=new int[Arrays.Length];
             ArrayDataSizes=new int[Arrays.Length];
-            Critters=new uint[br.ReadInt32()];
+            ArrayIsMap=new bool[Arrays.Length];
+            Critters=new uint[br.ReadInt32(), 2];
 
             for(int i=0;i<Globals.Length;i++) Globals[i]=br.ReadInt32();
             for(int i=0;i<MapVars.Length;i++) MapVars[i]=br.ReadInt32();
@@ -40,12 +42,16 @@ namespace FalloutClient {
                 sGlobals[i]=br.ReadInt32();
                 br.ReadInt32();
             }
-            for(int i=0;i<Arrays.Length;i++) {
-                Arrays[i]=br.ReadUInt32();
-                ArrayLengths[i]=br.ReadInt32();
-                ArrayDataSizes[i]=br.ReadInt32();
+            for(int i = 0; i < Arrays.Length; i++) {
+                Arrays[i] = br.ReadUInt32();
+                ArrayIsMap[i] = (br.ReadInt32() != 0);
+                ArrayLengths[i] = br.ReadInt32();
+                ArrayDataSizes[i] = br.ReadInt32();
             }
-            for(int i=0;i<Critters.Length;i++) Critters[i]=br.ReadUInt32();
+            for(int i = 0; i < Critters.Length / 2; i++) {
+                Critters[i, 0] = br.ReadUInt32();
+                Critters[i, 1] = br.ReadUInt32();
+            }
         }
 
         public void Close() {

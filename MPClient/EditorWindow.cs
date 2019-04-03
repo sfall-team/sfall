@@ -14,16 +14,20 @@ namespace FalloutClient {
             this.values=values;
             InitializeComponent();
             dataGridView1.SuspendLayout();
-            if(names==null) for(int i=0;i<types.Length;i++) dataGridView1.Rows.Add(i.ToString(), types[i].ToString(), values[i]);
-            else for(int i=0;i<types.Length;i++) dataGridView1.Rows.Add(names[i], types[i].ToString(), values[i]);
+            if(names==null)
+                for(int i=0;i<types.Length;i++) dataGridView1.Rows.Add(i.ToString(), types[i].ToString(), values[i]);
+            else
+                for(int i=0;i<types.Length;i++) dataGridView1.Rows.Add("0x" + (i * 4).ToString("x").ToUpper() + names[i], types[i].ToString(), values[i]);
             dataGridView1.ResumeLayout();
         }
 
         public static string[] ShowEditor(string[] names, DataType[] types, string[] values) {
-            EditorWindow editor=new EditorWindow(names, types, values);
+            EditorWindow editor = new EditorWindow(names, types, values);
             editor.ShowDialog();
-            if(editor.save) return editor.values;
-            else return null;
+            if (editor.save)
+                return editor.values;
+            else
+                return null;
         }
 
         private bool CheckInput(DataType type, string str) {
