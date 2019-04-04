@@ -12,20 +12,24 @@ namespace FalloutClient {
         private readonly string[] values;
         private bool save;
 
-        private EditorWindow(string[] names, DataType[] types, string[] values) {
+        private EditorWindow(string[] names, DataType[] types, string[] values, bool isMap) {
             this.types = types;
             this.values = values;
             InitializeComponent();
             dataGridView1.SuspendLayout();
             if (names == null)
-                for (int i = 0; i < types.Length; i++) dataGridView1.Rows.Add(i.ToString(), types[i].ToString(), values[i]);
+                for (int i = 0; i < types.Length; i++) {
+                    string element = i.ToString();
+                    if (isMap && (i % 2) == 0) element += " - Key";
+                    dataGridView1.Rows.Add(element, types[i].ToString(), values[i]);
+                }
             else
-                for (int i = 0; i < types.Length; i++) dataGridView1.Rows.Add("0x" + (i * 4).ToString("x").ToUpper() + names[i], types[i].ToString(), values[i]);
+                for (int i = 0; i < types.Length; i++) dataGridView1.Rows.Add("[0x" + (i * 4).ToString("x").ToUpper() + "]" + names[i], types[i].ToString(), values[i]);
             dataGridView1.ResumeLayout();
         }
 
-        public static string[] ShowEditor(string[] names, DataType[] types, string[] values) {
-            EditorWindow editor = new EditorWindow(names, types, values);
+        public static string[] ShowEditor(string[] names, DataType[] types, string[] values, bool isMap = false) {
+            EditorWindow editor = new EditorWindow(names, types, values, isMap);
             editor.ShowDialog();
             if (editor.save)
                 return editor.values;

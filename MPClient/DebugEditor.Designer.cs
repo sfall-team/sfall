@@ -24,16 +24,16 @@
         /// </summary>
         private void InitializeComponent() {
             this.dataGridView1 = new System.Windows.Forms.DataGridView();
+            this.Column0 = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.Column1 = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.Column2 = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.Column3 = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.bGlobals = new System.Windows.Forms.Button();
             this.bMapVars = new System.Windows.Forms.Button();
             this.bCritters = new System.Windows.Forms.Button();
             this.bSGlobals = new System.Windows.Forms.Button();
             this.bArrays = new System.Windows.Forms.Button();
             this.bEdit = new System.Windows.Forms.Button();
-            this.Column0 = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.Column1 = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.Column2 = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.Column3 = new System.Windows.Forms.DataGridViewTextBoxColumn();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
             this.SuspendLayout();
             // 
@@ -45,7 +45,7 @@
             this.dataGridView1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
                         | System.Windows.Forms.AnchorStyles.Left)
                         | System.Windows.Forms.AnchorStyles.Right)));
-            this.dataGridView1.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.DisableResizing;
+            this.dataGridView1.ColumnHeadersHeight = 22;
             this.dataGridView1.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
             this.Column0,
             this.Column1,
@@ -55,77 +55,13 @@
             this.dataGridView1.MultiSelect = false;
             this.dataGridView1.Name = "dataGridView1";
             this.dataGridView1.RowHeadersVisible = false;
+            this.dataGridView1.RowHeadersWidthSizeMode = System.Windows.Forms.DataGridViewRowHeadersWidthSizeMode.DisableResizing;
             this.dataGridView1.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
-            this.dataGridView1.Size = new System.Drawing.Size(443, 233);
+            this.dataGridView1.Size = new System.Drawing.Size(561, 354);
             this.dataGridView1.TabIndex = 0;
             this.dataGridView1.CellDoubleClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.dataGridView1_CellDoubleClick);
             this.dataGridView1.CellEndEdit += new System.Windows.Forms.DataGridViewCellEventHandler(this.dataGridView1_CellEndEdit);
-            // 
-            // bGlobals
-            // 
-            this.bGlobals.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.bGlobals.Location = new System.Drawing.Point(12, 251);
-            this.bGlobals.Name = "bGlobals";
-            this.bGlobals.Size = new System.Drawing.Size(100, 23);
-            this.bGlobals.TabIndex = 1;
-            this.bGlobals.Text = "Globals";
-            this.bGlobals.UseVisualStyleBackColor = true;
-            this.bGlobals.Click += new System.EventHandler(this.bGlobals_Click);
-            // 
-            // bMapVars
-            // 
-            this.bMapVars.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.bMapVars.Location = new System.Drawing.Point(118, 251);
-            this.bMapVars.Name = "bMapVars";
-            this.bMapVars.Size = new System.Drawing.Size(100, 23);
-            this.bMapVars.TabIndex = 2;
-            this.bMapVars.Text = "Map variables";
-            this.bMapVars.UseVisualStyleBackColor = true;
-            this.bMapVars.Click += new System.EventHandler(this.bMapVars_Click);
-            // 
-            // bCritters
-            // 
-            this.bCritters.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.bCritters.Location = new System.Drawing.Point(12, 280);
-            this.bCritters.Name = "bCritters";
-            this.bCritters.Size = new System.Drawing.Size(100, 23);
-            this.bCritters.TabIndex = 3;
-            this.bCritters.Text = "Critters";
-            this.bCritters.UseVisualStyleBackColor = true;
-            this.bCritters.Click += new System.EventHandler(this.bCritters_Click);
-            // 
-            // bSGlobals
-            // 
-            this.bSGlobals.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.bSGlobals.Location = new System.Drawing.Point(249, 251);
-            this.bSGlobals.Name = "bSGlobals";
-            this.bSGlobals.Size = new System.Drawing.Size(100, 23);
-            this.bSGlobals.TabIndex = 4;
-            this.bSGlobals.Text = "sfall globals";
-            this.bSGlobals.UseVisualStyleBackColor = true;
-            this.bSGlobals.Click += new System.EventHandler(this.bSGlobals_Click);
-            // 
-            // bArrays
-            // 
-            this.bArrays.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.bArrays.Location = new System.Drawing.Point(355, 251);
-            this.bArrays.Name = "bArrays";
-            this.bArrays.Size = new System.Drawing.Size(100, 23);
-            this.bArrays.TabIndex = 5;
-            this.bArrays.Text = "sfall arrays";
-            this.bArrays.UseVisualStyleBackColor = true;
-            this.bArrays.Click += new System.EventHandler(this.bArrays_Click);
-            // 
-            // bEdit
-            // 
-            this.bEdit.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.bEdit.Location = new System.Drawing.Point(355, 280);
-            this.bEdit.Name = "bEdit";
-            this.bEdit.Size = new System.Drawing.Size(100, 23);
-            this.bEdit.TabIndex = 6;
-            this.bEdit.Text = "Edit";
-            this.bEdit.UseVisualStyleBackColor = true;
-            this.bEdit.Click += new System.EventHandler(this.bEdit_Click);
+            this.dataGridView1.RowsAdded += new System.Windows.Forms.DataGridViewRowsAddedEventHandler(this.dataGridView1_RowsAdded);
             // 
             // Column0
             // 
@@ -151,11 +87,77 @@
             this.Column3.HeaderText = "Value (Float)";
             this.Column3.Name = "Column3";
             // 
+            // bGlobals
+            // 
+            this.bGlobals.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.bGlobals.Location = new System.Drawing.Point(12, 372);
+            this.bGlobals.Name = "bGlobals";
+            this.bGlobals.Size = new System.Drawing.Size(100, 23);
+            this.bGlobals.TabIndex = 1;
+            this.bGlobals.Text = "Globals";
+            this.bGlobals.UseVisualStyleBackColor = true;
+            this.bGlobals.Click += new System.EventHandler(this.bGlobals_Click);
+            // 
+            // bMapVars
+            // 
+            this.bMapVars.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.bMapVars.Location = new System.Drawing.Point(118, 372);
+            this.bMapVars.Name = "bMapVars";
+            this.bMapVars.Size = new System.Drawing.Size(100, 23);
+            this.bMapVars.TabIndex = 2;
+            this.bMapVars.Text = "Map variables";
+            this.bMapVars.UseVisualStyleBackColor = true;
+            this.bMapVars.Click += new System.EventHandler(this.bMapVars_Click);
+            // 
+            // bCritters
+            // 
+            this.bCritters.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.bCritters.Location = new System.Drawing.Point(12, 401);
+            this.bCritters.Name = "bCritters";
+            this.bCritters.Size = new System.Drawing.Size(100, 23);
+            this.bCritters.TabIndex = 3;
+            this.bCritters.Text = "Critters";
+            this.bCritters.UseVisualStyleBackColor = true;
+            this.bCritters.Click += new System.EventHandler(this.bCritters_Click);
+            // 
+            // bSGlobals
+            // 
+            this.bSGlobals.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.bSGlobals.Location = new System.Drawing.Point(367, 372);
+            this.bSGlobals.Name = "bSGlobals";
+            this.bSGlobals.Size = new System.Drawing.Size(100, 23);
+            this.bSGlobals.TabIndex = 4;
+            this.bSGlobals.Text = "sfall globals";
+            this.bSGlobals.UseVisualStyleBackColor = true;
+            this.bSGlobals.Click += new System.EventHandler(this.bSGlobals_Click);
+            // 
+            // bArrays
+            // 
+            this.bArrays.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.bArrays.Location = new System.Drawing.Point(473, 372);
+            this.bArrays.Name = "bArrays";
+            this.bArrays.Size = new System.Drawing.Size(100, 23);
+            this.bArrays.TabIndex = 5;
+            this.bArrays.Text = "sfall arrays";
+            this.bArrays.UseVisualStyleBackColor = true;
+            this.bArrays.Click += new System.EventHandler(this.bArrays_Click);
+            // 
+            // bEdit
+            // 
+            this.bEdit.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.bEdit.Location = new System.Drawing.Point(473, 401);
+            this.bEdit.Name = "bEdit";
+            this.bEdit.Size = new System.Drawing.Size(100, 23);
+            this.bEdit.TabIndex = 6;
+            this.bEdit.Text = "Edit";
+            this.bEdit.UseVisualStyleBackColor = true;
+            this.bEdit.Click += new System.EventHandler(this.bEdit_Click);
+            // 
             // DebugEditor
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(467, 315);
+            this.ClientSize = new System.Drawing.Size(585, 436);
             this.Controls.Add(this.bEdit);
             this.Controls.Add(this.bArrays);
             this.Controls.Add(this.bSGlobals);
