@@ -41,6 +41,13 @@
 static const char* debugLog = "LOG";
 static const char* debugGnw = "GNW";
 
+struct sArray {
+	DWORD id;
+	long  isMap;
+	long  size;
+	long  flag;
+};
+
 static bool SetBlocking(SOCKET s, bool block) {
 	DWORD d = !block;
 	ioctlsocket(s, FIONBIO, &d);
@@ -115,15 +122,16 @@ static void RunEditorInternal(SOCKET &s) {
 
 	sGlobalVar* sglobals=new sGlobalVar[numSGlobals];
 	GetGlobals(sglobals);
-	int* arrays = new int[numArrays * 3];
-	GetArrays(arrays);
+	sArray* arrays = new sArray[numArrays];
+	GetArrays((int*)arrays);
 
 	InternalSend(s, *(void**)_game_global_vars, 4 * numGlobals);
 	InternalSend(s, *(void**)_map_global_vars, 4 * numMapVars);
 	InternalSend(s, sglobals, sizeof(sGlobalVar) * numSGlobals);
-	InternalSend(s, arrays, numArrays * 3 * 4);
+	InternalSend(s, arrays, numArrays * sizeof(sArray));
 	for (int i = 0; i < numCritters; i++) {
 		InternalSend(s, &vec[i][25], 4);
+		InternalSend(s, &vec[i], 4);
 	}
 
 	while (true) {
@@ -142,38 +150,44 @@ static void RunEditorInternal(SOCKET &s) {
 			InternalRecv(s, &val, 4);
 			(*(DWORD**)_map_global_vars)[id] = val;
 			break;
-		case 2:
+		case 2: // Retrieve Critter
 			InternalRecv(s, &id, 4);
-			InternalSend(s, vec[id], 0x74);
+			InternalSend(s, vec[id], 0x84);
 			break;
-		case 3:
+		case 3: // Set Critter
 			InternalRecv(s, &id, 4);
-			InternalRecv(s, vec[id], 0x74);
+			InternalRecv(s, vec[id], 0x84);
 			break;
 		case 4:
 			InternalRecv(s, &id, 4);
 			InternalRecv(s, &val, 4);
 			sglobals[id].val = val;
 			break;
-		case 9:
+		case 9: // get array values
 			{
-			InternalRecv(s, &id, 4);
-			DWORD *types = new DWORD[arrays[id * 3 + 1]];
-			char *data = new char[arrays[id * 3 + 1] * arrays[id * 3 + 2]];
-			DEGetArray(arrays[id * 3], types, data);
-			InternalSend(s, types, arrays[id * 3 + 1] * 4);
-			InternalSend(s, data, arrays[id * 3 + 1] * arrays[id * 3 + 2]);
-			delete[] data;
-			delete[] types;
+				InternalRecv(s, &id, 4);
+				DWORD *types = new DWORD[arrays[id].size * 2]; // type, len
+				DEGetArray(arrays[id].id, types, nullptr);
+				int dataLen = 0;
+				for (long i = 0; i < arrays[id].size; i++) {
+					dataLen += types[i * 2 + 1];
+				}
+				char *data = new char[dataLen];
+				DEGetArray(arrays[id].id, nullptr, data);
+				InternalSend(s, types, arrays[id].size * 8);
+				InternalSend(s, data, dataLen);
+				delete[] data;
+				delete[] types;
 			}
 			break;
-		case 10:
+		case 10: // set array values
 			{
-			InternalRecv(s, &id, 4);
-			char *data = new char[arrays[id * 3 + 1] * arrays[id * 3 + 2]];
-			InternalRecv(s, data, arrays[id * 3 + 1] * arrays[id * 3 + 2]);
-			DESetArray(arrays[id * 3], 0, data);
-			delete[] data;
+				//InternalRecv(s, &id, 4);
+				//InternalRecv(s, &val, 4);
+				//char *data = new char[arrays[id].size * arrays[id * 3 + 2]];
+				//InternalRecv(s, data, arrays[id].size * arrays[id * 3 + 2]);
+				//DESetArray(arrays[id].id, 0, data);
+				//delete[] data;
 			}
 			break;
 		}

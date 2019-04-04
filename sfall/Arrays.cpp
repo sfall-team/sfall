@@ -303,19 +303,37 @@ void GetArrays(int* _arrays) {
 	int pos = 0;
 	array_citr itr = arrays.begin();
 	while (itr != arrays.end()) {
-		_arrays[pos++] = itr->first;
-		_arrays[pos++] = itr->second.size();
+		_arrays[pos++] = itr->first; // array id
+		_arrays[pos++] = itr->second.isAssoc() ? 1 : 0;
+		_arrays[pos++] = itr->second.val.size();
 		_arrays[pos++] = itr->second.flags;
 		itr++;
 	}
 }
 
-// those too are not really used yet in FalloutClient (AFAIK) -- phobos2077
-void DEGetArray(int id, DWORD* types, void* data) {
-	//memcpy(types, arrays[id].types, arrays[id].len*4);
-	//memcpy(data, arrays[id].data, arrays[id].len*arrays[id].datalen);
+void DEGetArray(int id, DWORD* types, char* data) {
+	int pos = 0;
+	if (types != nullptr) {
+		for (size_t i = 0; i < arrays[id].val.size(); i++) {
+			const sArrayElement& arVal = arrays[id].val[i];
+			types[pos++] = (DWORD)arVal.type;
+			types[pos++] = (arVal.type == DATATYPE_STR) ? arVal.len : 4; // in bytes
+		}
+	} else {
+		for (size_t i = 0; i < arrays[id].val.size(); i++) {
+			const sArrayElement& arVal = arrays[id].val[i];
+			if (arVal.type != DATATYPE_STR) {
+				*(long*)(data + pos) = arVal.intVal;
+				pos += 4;
+			} else {
+				strcpy(data + pos, arVal.strVal);
+				pos += arVal.len;
+			}
+		}
+	}
 }
 
+// those too are not really used yet in FalloutClient (AFAIK) -- phobos2077
 void DESetArray(int id, const DWORD* types, const void* data) {
 	//if (types) memcpy(arrays[id].types, types, arrays[id].len * 4);
 	//memcpy(arrays[id].data, data, arrays[id].len*arrays[id].datalen);

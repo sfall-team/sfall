@@ -151,7 +151,7 @@ void SaveArrays(HANDLE h);
 int GetNumArrays();
 void GetArrays(int* arrays);
 
-void DEGetArray(int id, DWORD* types, void* data);
+void DEGetArray(int id, DWORD* types, char* data);
 void DESetArray(int id, const DWORD* types, const void* data);
 
 const char* _stdcall GetSfallTypeName(DWORD dataType);
