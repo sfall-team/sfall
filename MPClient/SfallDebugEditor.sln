@@ -1,6 +1,6 @@
 Microsoft Visual Studio Solution File, Format Version 11.00
 # Visual Studio 2010
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MPClient", "MPClient.csproj", "{80ED0DCE-100E-4EC9-A79D-2FBFA4CAD1E3}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SfallDebugEditor", "SfallDebugEditor.csproj", "{80ED0DCE-100E-4EC9-A79D-2FBFA4CAD1E3}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

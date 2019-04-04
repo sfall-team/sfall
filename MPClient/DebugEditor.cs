@@ -4,14 +4,16 @@ using System.ComponentModel;
 using System.Drawing;
 using System.Text;
 using System.Windows.Forms;
-using File=System.IO.File;
-using StreamReader=System.IO.StreamReader;
-using MemoryStream=System.IO.MemoryStream;
-using BinaryReader=System.IO.BinaryReader;
-using BinaryWriter=System.IO.BinaryWriter;
+using File = System.IO.File;
+using StreamReader = System.IO.StreamReader;
+using MemoryStream = System.IO.MemoryStream;
+using BinaryReader = System.IO.BinaryReader;
+using BinaryWriter = System.IO.BinaryWriter;
 
 namespace FalloutClient {
-    public partial class DebugEditor : Form {
+
+    public partial class DebugEditor : Form
+    {
         [System.Runtime.InteropServices.StructLayout(System.Runtime.InteropServices.LayoutKind.Explicit)]
         private struct ByteConverter {
             [System.Runtime.InteropServices.FieldOffset(0)]
@@ -20,86 +22,91 @@ namespace FalloutClient {
             private float f;
 
             public int GetAsInt(float f) {
-                this.f=f;
+                this.f = f;
                 return i;
             }
             public float GetAsFloat(int i) {
-                this.i=i;
+                this.i = i;
                 return f;
             }
             public byte[] GetAsBytes(ulong ul) {
-                byte[] b=new byte[8];
-                for(int i=0;i<8;i++) b[i]=(byte)((ul&((ulong)0xff<<(i*8)))>>(i*8));
+                byte[] b = new byte[8];
+                for (int i = 0; i < 8; i++) b[i] = (byte)((ul & ((ulong)0xff << (i * 8))) >> (i * 8));
                 return b;
             }
         }
 
-        private static ByteConverter converter=new ByteConverter();
+        private static ByteConverter converter = new ByteConverter();
 
         private enum Mode { Globals, MapVars, SGlobals, Arrays, Critters }
 
         private readonly EditorConnection connection;
         private Mode mode;
 
-        private readonly Dictionary<int, string> GlobNames=new Dictionary<int, string>();
-        private readonly Dictionary<uint, string> CritNames=new Dictionary<uint, string>();
+        private readonly Dictionary<int, string> GlobNames = new Dictionary<int, string>();
+        private readonly Dictionary<uint, string> CritNames = new Dictionary<uint, string>();
 
         private void Redraw() {
             dataGridView1.SuspendLayout();
             dataGridView1.Rows.Clear();
-            switch(mode) {
+            switch (mode) {
             case Mode.Globals:
-                Column2.ReadOnly=false;
-                Column3.ReadOnly=false;
-                Column2.HeaderText="Value (Int)";
-                Column3.HeaderText="Value (Float)";
-                bEdit.Enabled=false;
-                for(int i=0;i<connection.Globals.Length;i++) {
-                    string name=GlobNames.ContainsKey(i)?GlobNames[i]:"";
+                Column2.ReadOnly = false;
+                Column3.ReadOnly = false;
+                Column2.HeaderText = "Value (Int)";
+                Column3.HeaderText = "Value (Float)";
+                bEdit.Enabled = false;
+                for (int i = 0; i < connection.Globals.Length; i++) {
+                    string name = GlobNames.ContainsKey(i) ? GlobNames[i] : "";
                     dataGridView1.Rows.Add(i, name, connection.Globals[i], converter.GetAsFloat(connection.Globals[i]));
                 }
                 break;
             case Mode.MapVars:
-                Column2.ReadOnly=false;
-                Column3.ReadOnly=false;
-                Column2.HeaderText="Value (Int)";
-                Column3.HeaderText="Value (Float)";
-                bEdit.Enabled=false;
-                for(int i=0;i<connection.MapVars.Length;i++) {
+                Column2.ReadOnly = false;
+                Column3.ReadOnly = false;
+                Column2.HeaderText = "Value (Int)";
+                Column3.HeaderText = "Value (Float)";
+                bEdit.Enabled = false;
+                for (int i = 0; i < connection.MapVars.Length; i++) {
                     dataGridView1.Rows.Add(i, "", connection.MapVars[i], converter.GetAsFloat(connection.MapVars[i]));
                 }
                 break;
             case Mode.SGlobals:
-                Column2.ReadOnly=false;
-                Column3.ReadOnly=false;
-                Column2.HeaderText="Value (Int)";
-                Column3.HeaderText="Value (Float)";
-                bEdit.Enabled=false;
-                for(int i=0;i<connection.SGlobalKeys.Length;i++) {
-                    string s=connection.SGlobalKeys[i]>0xffffffff?new string(System.Text.ASCIIEncoding.ASCII.GetChars(converter.GetAsBytes(connection.SGlobalKeys[i]))):("0x"+connection.SGlobalKeys[i].ToString("x"));
+                Column2.ReadOnly = false;
+                Column3.ReadOnly = false;
+                Column2.HeaderText = "Value (Int)";
+                Column3.HeaderText = "Value (Float)";
+                bEdit.Enabled = false;
+                for (int i = 0; i < connection.SGlobalKeys.Length; i++) {
+                    string s = connection.SGlobalKeys[i] > 0xffffffff
+                        ? new string(System.Text.ASCIIEncoding.ASCII.GetChars(converter.GetAsBytes(connection.SGlobalKeys[i])))
+                        : (connection.SGlobalKeys[i].ToString());
                     dataGridView1.Rows.Add(s, "", connection.sGlobals[i], converter.GetAsFloat(connection.sGlobals[i]));
                 }
                 break;
             case Mode.Arrays:
-                Column2.ReadOnly=true;
-                Column3.ReadOnly=true;
-                Column2.HeaderText="Array length";
-                Column3.HeaderText="Element size";
-                bEdit.Enabled=true;
-                for(int i=0;i<connection.Arrays.Length;i++) {
-                    dataGridView1.Rows.Add(connection.Arrays[i], "", connection.ArrayLengths[i], connection.ArrayDataSizes[i]);
+                Column2.ReadOnly = true;
+                Column3.ReadOnly = true;
+                Column2.HeaderText = "Array size";
+                Column3.HeaderText = "Array flags";
+                bEdit.Enabled = true;
+                for (int i = 0; i < connection.Arrays.Length; i++) {
+                    bool isMap = connection.ArrayIsMap[i];
+                    int  arrlen = connection.ArrayLengths[i];
+                    if (isMap) arrlen /= 2;
+                    dataGridView1.Rows.Add(connection.Arrays[i], isMap ? "Map" : "", arrlen, "0x" + connection.ArrayDataSizes[i].ToString("x").ToUpper());
                 }
                 break;
             case Mode.Critters:
-                Column2.ReadOnly=true;
-                Column3.ReadOnly=true;
-                Column2.HeaderText="pid";
-                Column3.HeaderText="";
-                bEdit.Enabled=true;
-                for(int i=0;i<connection.Critters.Length;i++) {
-                    uint modcrit=(connection.Critters[i]&0xfffff);
-                    string name=CritNames.ContainsKey(modcrit)?CritNames[modcrit]:"";
-                    dataGridView1.Rows.Add(i+1, name, connection.Critters[i].ToString("x"), "");
+                Column2.ReadOnly = true;
+                Column3.ReadOnly = true;
+                Column2.HeaderText = "Pid";
+                Column3.HeaderText = "Pointer";
+                bEdit.Enabled = true;
+                for (int i = 0; i < connection.Critters.Length / 2; i++) {
+                    uint modcrit = (connection.Critters[i, 0] & 0xfffff);
+                    string name = CritNames.ContainsKey(modcrit) ? CritNames[modcrit] : "";
+                    dataGridView1.Rows.Add(i + 1, name, connection.Critters[i, 0].ToString("x").ToUpper(), connection.Critters[i, 1].ToString());
                 }
                 break;
             }
@@ -108,21 +115,29 @@ namespace FalloutClient {
 
         internal DebugEditor(EditorConnection connection) {
             InitializeComponent();
-            this.connection=connection;
-            mode=Mode.Globals;
-            if(File.Exists("globals.txt")) {
-                StreamReader sr=new StreamReader("globals.txt");
-                while(!sr.EndOfStream) {
-                    string[] line=sr.ReadLine().Split(' ');
-                    GlobNames[int.Parse(line[0])]=line[1];
+            this.connection = connection;
+            mode = Mode.Globals;
+            if (File.Exists(".\\data\\data\\vault13.gam")) {
+                StreamReader sr=new StreamReader(".\\data\\data\\vault13.gam");
+                int gvar = 0;
+                while (!sr.EndOfStream) {
+                    string line = sr.ReadLine().TrimStart();
+                    if (line.StartsWith("GVAR_")) GlobNames[gvar++] = line.Remove(line.IndexOf(':')).TrimEnd();
+                }
+                sr.Close();
+            } else if (File.Exists("globals.txt")) {
+                StreamReader sr = new StreamReader("globals.txt");
+                while (!sr.EndOfStream) {
+                    string[] line = sr.ReadLine().Split(' ');
+                    GlobNames[int.Parse(line[0])] = line[1];
                 }
                 sr.Close();
             }
-            if(File.Exists("critters.txt")) {
-                StreamReader sr=new StreamReader("critters.txt");
-                while(!sr.EndOfStream) {
-                    string line=sr.ReadLine();
-                    CritNames[uint.Parse(line.Remove(line.IndexOf(' ')))]=line.Substring(line.IndexOf(' ')+1);
+            if (File.Exists("critters.txt")) {
+                StreamReader sr = new StreamReader("critters.txt");
+                while (!sr.EndOfStream) {
+                    string line = sr.ReadLine();
+                    CritNames[uint.Parse(line.Remove(line.IndexOf(' ')))] = line.Substring(line.IndexOf(' ') + 1);
                 }
                 sr.Close();
             }
@@ -135,65 +150,65 @@ namespace FalloutClient {
         }
 
         private void bGlobals_Click(object sender, EventArgs e) {
-            mode=Mode.Globals;
+            mode = Mode.Globals;
             Redraw();
         }
 
         private void bMapVars_Click(object sender, EventArgs e) {
-            mode=Mode.MapVars;
+            mode = Mode.MapVars;
             Redraw();
         }
 
         private void bSGlobals_Click(object sender, EventArgs e) {
-            mode=Mode.SGlobals;
+            mode = Mode.SGlobals;
             Redraw();
         }
 
         private void bArrays_Click(object sender, EventArgs e) {
-            mode=Mode.Arrays;
+            mode = Mode.Arrays;
             Redraw();
         }
 
         private void bCritters_Click(object sender, EventArgs e) {
-            mode=Mode.Critters;
+            mode = Mode.Critters;
             Redraw();
         }
 
         private void dataGridView1_CellEndEdit(object sender, DataGridViewCellEventArgs e) {
-            int[] array=null;
+            int[] array = null;
             DataTypeSend dts;
-            switch(mode) {
+            switch (mode) {
             case Mode.Globals:
-                array=connection.Globals;
-                dts=DataTypeSend.SetGlobal;
+                array = connection.Globals;
+                dts = DataTypeSend.SetGlobal;
                 break;
             case Mode.MapVars:
-                array=connection.MapVars;
-                dts=DataTypeSend.SetMapVar;
+                array = connection.MapVars;
+                dts = DataTypeSend.SetMapVar;
                 break;
             case Mode.SGlobals:
-                array=connection.sGlobals;
-                dts=DataTypeSend.SetSGlobal;
+                array = connection.sGlobals;
+                dts = DataTypeSend.SetSGlobal;
                 break;
             default:
                 return;
             }
-            if(e.ColumnIndex==2) {
+            if (e.ColumnIndex == 2) {
                 int val;
-                if(!int.TryParse(dataGridView1.Rows[e.RowIndex].Cells[e.ColumnIndex].Value.ToString(), out val)) {
-                    dataGridView1.Rows[e.RowIndex].Cells[e.ColumnIndex].Value=array[e.RowIndex];
+                if (!int.TryParse(dataGridView1.Rows[e.RowIndex].Cells[e.ColumnIndex].Value.ToString(), out val)) {
+                    dataGridView1.Rows[e.RowIndex].Cells[e.ColumnIndex].Value = array[e.RowIndex];
                 } else {
-                    array[e.RowIndex]=val;
+                    array[e.RowIndex] = val;
                     connection.WriteDataType(dts);
                     connection.WriteInt(e.RowIndex);
                     connection.WriteInt(val);
                 }
             } else {
                 float val;
-                if(!float.TryParse(dataGridView1.Rows[e.RowIndex].Cells[e.ColumnIndex].Value.ToString(), out val)) {
-                    dataGridView1.Rows[e.RowIndex].Cells[e.ColumnIndex].Value=array[e.RowIndex];
+                if (!float.TryParse(dataGridView1.Rows[e.RowIndex].Cells[e.ColumnIndex].Value.ToString(), out val)) {
+                    dataGridView1.Rows[e.RowIndex].Cells[e.ColumnIndex].Value = array[e.RowIndex];
                 } else {
-                    array[e.RowIndex]=converter.GetAsInt(val);
+                    array[e.RowIndex] = converter.GetAsInt(val);
                     connection.WriteDataType(dts);
                     connection.WriteInt(e.RowIndex);
                     connection.WriteInt(converter.GetAsInt(val));
@@ -202,43 +217,49 @@ namespace FalloutClient {
         }
 
         private void bEdit_Click(object sender, EventArgs e) {
-            if(dataGridView1.SelectedRows.Count!=1) return;
-            int i=dataGridView1.SelectedRows[0].Index;
-            switch(mode) {
+            if (dataGridView1.SelectedRows.Count == 0) return;
+            int i = dataGridView1.SelectedRows[0].Index;
+            switch (mode) {
             case Mode.Arrays: {
-                    DataType[] types=new DataType[connection.ArrayLengths[i]];
-                    string[] strings=new string[connection.ArrayLengths[i]];
-                    connection.WriteDataType(DataTypeSend.GetArray);
-                    connection.WriteInt(i);
-                    for(int j=0;j<strings.Length;j++) types[j]=(DataType)connection.ReadInt();
-                    byte[] buf=connection.ReadBytes(connection.ArrayLengths[i]*connection.ArrayDataSizes[i]);
+                    DataType[] types = new DataType[connection.ArrayLengths[i]];
+                    int[] lenType = new int[connection.ArrayLengths[i]];
+                    string[] strings = new string[connection.ArrayLengths[i]];
+                    connection.WriteDataType(DataTypeSend.GetArray); // code
+                    connection.WriteInt(i); // index
+                    int lenData = 0;
+                    for (int j = 0; j < strings.Length; j++) {
+                        types[j] = (DataType)connection.ReadInt();
+                        lenType[j] = connection.ReadInt(); // len data of type
+                        lenData += lenType[j];
+                    }
+                    byte[] buf = connection.ReadBytes(lenData); // read data
                     MemoryStream ms=new MemoryStream(buf);
                     BinaryReader br=new BinaryReader(ms);
-                    for(int j=0;j<strings.Length;j++) {
-                        ms.Position=j*connection.ArrayDataSizes[i];
-                        switch(types[j]) {
+                    ms.Position = 0;
+                    for (int j = 0; j < strings.Length; j++) {
+                        switch (types[j]) {
                         case DataType.Int:
-                            strings[j]=br.ReadInt32().ToString();
+                            strings[j] = br.ReadInt32().ToString();
                             break;
                         case DataType.Float:
-                            strings[j]=br.ReadSingle().ToString();
+                            strings[j] = br.ReadSingle().ToString();
                             break;
                         case DataType.String:
-                            byte[] bytes=br.ReadBytes(connection.ArrayDataSizes[i]);
-                            strings[j]=System.Text.Encoding.ASCII.GetString(bytes, 0, Array.IndexOf<byte>(bytes, 0));
+                            byte[] bytes = br.ReadBytes(lenType[j]);
+                            strings[j] = System.Text.Encoding.ASCII.GetString(bytes, 0, lenType[j] - 1); //Array.IndexOf<byte>(bytes, 0)
                             break;
                         }
                     }
                     br.Close();
-                    strings=EditorWindow.ShowEditor(null, types, strings);
-                    if(strings!=null) {
+                    strings = EditorWindow.ShowEditor(null, types, strings);
+                    if (strings != null) { // save
                         connection.WriteDataType(DataTypeSend.SetArray);
                         connection.WriteInt(i);
-                        ms=new MemoryStream(connection.ArrayLengths[i]*connection.ArrayDataSizes[i]);
+                        ms = new MemoryStream(connection.ArrayLengths[i] * connection.ArrayDataSizes[i]);
                         BinaryWriter bw=new BinaryWriter(ms);
-                        for(int j=0;j<strings.Length;j++) {
-                            ms.Position=j*connection.ArrayDataSizes[i];
-                            switch(types[j]) {
+                        for (int j = 0; j < strings.Length; j++) {
+                            ms.Position = j * connection.ArrayDataSizes[i];
+                            switch (types[j]) {
                             case DataType.Int:
                                 bw.Write(int.Parse(strings[j]));
                                 break;
@@ -247,54 +268,71 @@ namespace FalloutClient {
                                 break;
                             case DataType.String:
                                 byte[] bytes=System.Text.Encoding.ASCII.GetBytes(strings[j]);
-                                if(bytes.Length<connection.ArrayDataSizes[i]) bw.Write(bytes);
-                                else bw.Write(bytes, 0, connection.ArrayDataSizes[i]-1);
+                                if (bytes.Length < connection.ArrayDataSizes[i]) bw.Write(bytes);
+                                else bw.Write(bytes, 0, connection.ArrayDataSizes[i] - 1);
                                 bw.Write(0);
                                 break;
                             }
                         }
-                        connection.WriteBytes(ms.GetBuffer(), 0, connection.ArrayLengths[i]*connection.ArrayDataSizes[i]);
+                        connection.WriteBytes(ms.GetBuffer(), 0, connection.ArrayLengths[i] * connection.ArrayDataSizes[i]);
                         bw.Close();
                     }
                 }
                 break;
             case Mode.Critters: {
-                    DataType[] types=new DataType[29];
-                    string[] strings=new string[29];
-                    string[] names=new string[29];
+                    DataType[] types=new DataType[33];
+                    string[] strings=new string[33];
+                    string[] names=new string[33];
                     connection.WriteDataType(DataTypeSend.RetrieveCritter);
                     connection.WriteInt(i);
-                    BinaryReader br=new BinaryReader(new System.IO.MemoryStream(connection.ReadBytes(29*4)));
-                    for(int j=0;j<29;j++) {
-                        types[j]=DataType.Int;
-                        strings[j]=br.ReadInt32().ToString();
-                        names[j]="0x"+(j*4).ToString("x");
+                    BinaryReader br=new BinaryReader(new System.IO.MemoryStream(connection.ReadBytes(33 * 4)));
+                    for (int j = 0; j < 33; j++) {
+                        types[j] = DataType.Int;
+                        strings[j] = br.ReadInt32().ToString();
                     }
                     br.Close();
-                    names[1]="Tile";
-                    names[10]="Elevation";
-                    names[11]="Inventory count";
-                    names[13]="Inventory pointer";
-                    names[16]="Current AP";
-                    names[17]="Crippled limbs";
-                    names[22]="HP";
-                    names[23]="Rads";
-                    names[24]="Poison";
-                    names[25]="Proto ID";
-                    strings=EditorWindow.ShowEditor(names, types, strings);
-                    if(strings!=null) {
-                        MemoryStream ms=new MemoryStream(29*4);
-                        BinaryWriter bw=new BinaryWriter(ms);
-                        for(int j=0;j<29;j++) bw.Write(int.Parse(strings[j]));
+                    names[0] = " ID";
+                    names[1] = " Tile";
+                    names[6] = " Current frame";
+                    names[7] = " Rotation";
+                    names[8] = " FID";
+                    names[9] = " Flags";
+                    names[10] = " Elevation";
+                    names[11] = " Inventory count";
+                    names[13] = " Inventory pointer";
+                    names[14] = " Reaction";
+                    names[15] = " Combat state";
+                    names[16] = " Current AP";
+                    names[17] = " Combat flags";
+                    names[18] = " Last Turn Damage";
+                    names[19] = " AI Packet";
+                    names[20] = " Team";
+                    names[21] = " Who hit me";
+                    names[22] = " HP";
+                    names[23] = " Rads";
+                    names[24] = " Poison";
+                    names[25] = " Proto ID";
+                    names[26] = " Combat ID";
+                    names[29] = " Outline flags";
+                    names[30] = " Script ID";
+                    names[32] = " Script index";
+                    strings = EditorWindow.ShowEditor(names, types, strings);
+                    if (strings != null) {
+                        MemoryStream ms = new MemoryStream(33 * 4);
+                        BinaryWriter bw = new BinaryWriter(ms);
+                        for (int j = 0; j < 33; j++) bw.Write(int.Parse(strings[j]));
                         connection.WriteDataType(DataTypeSend.SetCritter);
                         connection.WriteInt(i);
-                        connection.WriteBytes(ms.GetBuffer(), 0, 29*4);
+                        connection.WriteBytes(ms.GetBuffer(), 0, 33 * 4);
                         bw.Close();
                     }
-
                 }
                 break;
             }
+        }
+
+        private void dataGridView1_CellDoubleClick(object sender, DataGridViewCellEventArgs e) {
+            bEdit.PerformClick();
         }
     }
 }
