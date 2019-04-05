@@ -2060,6 +2060,16 @@ static void __declspec(naked) obj_load_dude_hook1() {
 	}
 }
 
+static void __declspec(naked) PrintAMList_hook() {
+	__asm {
+		cmp ebp, 20; // max line count
+		jle skip;
+		mov ebp, 20;
+skip:
+		jmp fo::funcoffs::qsort_;
+	}
+}
+
 void BugFixes::init()
 {
 	#ifndef NDEBUG
@@ -2614,6 +2624,9 @@ void BugFixes::init()
 		0x499212, // PrintAMList_
 		0x499013  // PrintAMelevList_
 	});
+
+	// Fix "out of bounds" bug when printing the automap list
+	HookCall(0x499240, PrintAMList_hook);
 
 	// Fix creation of a duplicate obj_dude script for player when loading a saved game
 	HookCall(0x48D63E, obj_load_dude_hook0);

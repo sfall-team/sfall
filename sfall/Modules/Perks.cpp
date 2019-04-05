@@ -34,7 +34,6 @@ static const int descLen = 256;  // maximum text length for interface
 
 static char perksFile[MAX_PATH] = {0};
 
-// TODO: Replace to dynamic massive
 static char Name[maxNameLen * PERK_count] = {0};
 static char Desc[descLen * PERK_count] = {0};
 static char tName[maxNameLen * TRAIT_count] = {0};
@@ -93,7 +92,7 @@ std::vector<FakePerk> fakeTraits;
 std::vector<FakePerk> fakePerks;
 std::vector<FakePerk> fakeSelectablePerks; // available perks for selection in the perk selection list
 
-static std::list<int> RemoveTraitID;
+static long RemoveTraitID = -1;
 static std::list<int> RemovePerkID;
 static std::list<int> RemoveSelectableID;
 
@@ -606,7 +605,7 @@ static void _stdcall AddFakePerk(DWORD perkID) {
 			}
 		}
 		if (!matched) {
-			RemoveTraitID.push_back(count); // index of the added trait
+			if (RemoveTraitID == -1) RemoveTraitID = count; // index of the added trait
 			fakeTraits.push_back(fakeSelectablePerks[perkID]);
 		}
 	}
@@ -1312,16 +1311,14 @@ void _stdcall ClearSelectablePerks() {
 }
 
 void PerksEnterCharScreen() {
-	RemoveTraitID.clear();
+	RemoveTraitID = -1;
 	RemovePerkID.clear();
 	RemoveSelectableID.clear();
 }
 
 void PerksCancelCharScreen() {
-	if (RemoveTraitID.size() > 1) RemoveTraitID.sort();
-	while (!RemoveTraitID.empty()) {
-		fakeTraits.erase(fakeTraits.begin() + RemoveTraitID.back());
-		RemoveTraitID.pop_back();
+	if (RemoveTraitID != -1) {
+		fakeTraits.erase(fakeTraits.begin() + RemoveTraitID, fakeTraits.end());
 	}
 	if (RemovePerkID.size() > 1) RemovePerkID.sort(); // sorting to correctly remove from the end
 	while (!RemovePerkID.empty()) {

@@ -43,14 +43,13 @@ static const char* critNames[] = {
 	"FailMessage",
 };
 
-static fo::CritInfo loadCritTable[Criticals::critTableCount][9][6] = {0}; // Loaded table from CriticalOverrides.ini (with bug fixes and default engine values)
-
+static fo::CritInfo baseCritTable[Criticals::critTableCount][9][6] = {0}; // Loaded base table from CriticalOverrides.ini (with bug fixes and default engine values)
 static fo::CritInfo critTable[Criticals::critTableCount][9][6];
 static fo::CritInfo (*playerCrit)[9][6];
 
 static bool Inited = false;
 
-static const char* errorTable = "\nError: %s - to use this function, need to set the OverrideCriticalTable option in the ddraw.ini file.";
+static const char* errorTable = "\nError: %s - function requires enabling OverrideCriticalTable in ddraw.ini.";
 
 void Criticals::SetCriticalTable(DWORD critter, DWORD bodypart, DWORD slot, DWORD element, DWORD value) {
 	if (!Inited) {
@@ -73,7 +72,7 @@ void Criticals::ResetCriticalTable(DWORD critter, DWORD bodypart, DWORD slot, DW
 		fo::func::debug_printf(errorTable, "reset_critical_table()");
 		return;
 	}
-	critTable[critter][bodypart][slot].values[element] = loadCritTable[critter][bodypart][slot].values[element];
+	critTable[critter][bodypart][slot].values[element] = baseCritTable[critter][bodypart][slot].values[element];
 }
 
 static int CritTableLoad() {
@@ -85,7 +84,7 @@ static int CritTableLoad() {
 				for (DWORD crit = 0; crit < 6; crit++) {
 					sprintf_s(section, "c_%02d_%d_%d", critter, part, crit);
 					DWORD newCritter = (critter == 19) ? 38 : critter;
-					fo::CritInfo& newEffect = loadCritTable[newCritter][part][crit];
+					fo::CritInfo& newEffect = baseCritTable[newCritter][part][crit];
 					fo::CritInfo& defaultEffect = fo::var::crit_succ_eff[critter][part][crit];
 					for (int i = 0; i < 7; i++) {
 						newEffect.values[i] = GetPrivateProfileIntA(section, critNames[i], defaultEffect.values[i], critTableFile);
@@ -104,9 +103,9 @@ static int CritTableLoad() {
 		if (mode != 4) dlog("\n  Setting up critical hit table using RP fixes", DL_CRITICALS);
 		constexpr int size = 6 * 9 * sizeof(fo::CritInfo);
 		constexpr int sizeF = 19 * size;
-		memcpy(loadCritTable, fo::var::crit_succ_eff, sizeF);
-		//memset(&loadCritTable[19], 0, sizeF);
-		memcpy(&loadCritTable[38], fo::var::pc_crit_succ_eff, size); // PC crit table
+		memcpy(baseCritTable, fo::var::crit_succ_eff, sizeF);
+		//memset(&baseCritTable[19], 0, sizeF);
+		memcpy(&baseCritTable[38], fo::var::pc_crit_succ_eff, size); // PC crit table
 
 		if (mode == 3) {
 			dlog(" and CriticalOverrides.ini file", DL_CRITICALS);
@@ -123,7 +122,7 @@ static int CritTableLoad() {
 
 					sprintf_s(buf2, "c_%02d_%d", critter, part);
 					for (int crit = 0; crit < 6; crit++) {
-						fo::CritInfo& effect = loadCritTable[critter][part][crit];
+						fo::CritInfo& effect = baseCritTable[critter][part][crit];
 						for (int i = 0; i < 7; i++) {
 							sprintf_s(buf3, "e%d_%s", crit, critNames[i]);
 							if (i == 1) { // EffectFlags
@@ -285,7 +284,7 @@ void Criticals::init() {
 	if (mode) {
 		CriticalTableOverride();
 		LoadGameHook::OnBeforeGameStart() += []() {
-			memcpy(critTable, loadCritTable, sizeof(critTable)); // Apply loaded critical table
+			memcpy(critTable, baseCritTable, sizeof(critTable)); // Apply loaded critical table
 		};
 	}
 

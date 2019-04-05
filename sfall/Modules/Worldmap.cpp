@@ -341,16 +341,6 @@ end:
 	}
 }
 
-static void __declspec(naked) PrintAMList_hook() {
-	__asm {
-		cmp ebp, 20;  // max count lines
-		jle skip;
-		mov ebp, 20;
-skip:
-		jmp fo::funcoffs::qsort_;
-	}
-}
-
 static void RestRestore() {
 	if (!restMode) return;
 	restMode = false;
@@ -544,12 +534,13 @@ void WorldMapFontPatch() {
 }
 
 void PipBoyAutoMapsPatch() {
-	if (GetConfigInt("Misc", "PipBoyAutomap", 0)) {
+	//if (GetConfigInt("Misc", "PipBoyAutomap", 0)) {
+		dlog("Applying Pip-Boy automaps patch.", DL_INIT);
 		MakeCall(0x4BF931, wmMapInit_hack, 2);
-		HookCall(0x499240, PrintAMList_hook);
 		SafeWrite32(0x41B8B7, (DWORD)AutomapPipboyList);
 		memcpy(AutomapPipboyList, (void*)FO_VAR_displayMapList, sizeof(AutomapPipboyList)); // copy vanilla data
-	}
+		dlogr(" Done", DL_INIT);
+	//}
 }
 
 void Worldmap::SaveData(HANDLE file) {
