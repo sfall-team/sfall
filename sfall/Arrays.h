@@ -152,7 +152,7 @@ int GetNumArrays();
 void GetArrays(int* arrays);
 
 void DEGetArray(int id, DWORD* types, char* data);
-void DESetArray(int id, const DWORD* types, const void* data);
+void DESetArray(int id, const DWORD* types, const char* data);
 
 const char* _stdcall GetSfallTypeName(DWORD dataType);
 DWORD _stdcall getSfallTypeByScriptType(DWORD varType);

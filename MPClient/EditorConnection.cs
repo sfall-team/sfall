@@ -18,7 +18,7 @@ namespace FalloutClient {
         public readonly int[] sGlobals;
         public readonly uint[] Arrays;
         public readonly int[] ArrayLengths;
-        public readonly int[] ArrayDataSizes;
+        public readonly int[] ArrayFlag;
         public readonly bool[] ArrayIsMap;
 
         public EditorConnection() {
@@ -33,7 +33,7 @@ namespace FalloutClient {
             sGlobals = new int[SGlobalKeys.Length];
             Arrays = new uint[br.ReadInt32()];
             ArrayLengths = new int[Arrays.Length];
-            ArrayDataSizes = new int[Arrays.Length];
+            ArrayFlag = new int[Arrays.Length];
             ArrayIsMap = new bool[Arrays.Length];
             Critters = new uint[br.ReadInt32(), 2];
 
@@ -48,7 +48,7 @@ namespace FalloutClient {
                 Arrays[i] = br.ReadUInt32();
                 ArrayIsMap[i] = (br.ReadInt32() != 0);
                 ArrayLengths[i] = br.ReadInt32();
-                ArrayDataSizes[i] = br.ReadInt32();
+                ArrayFlag[i] = br.ReadInt32();
             }
             for (int i = 0; i < Critters.Length / 2; i++) {
                 Critters[i, 0] = br.ReadUInt32();

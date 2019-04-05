@@ -15,7 +15,8 @@ namespace FalloutClient {
             if (args.Length == 1 && args[0] == "-debugedit") {
                 Application.Run(new DebugEditor(new EditorConnection()));
             } else {
-                throw new Exception("Multiplayer is no longer supported");
+                MessageBox.Show("The debug editor can only be run from the game.",
+                    "sfall Debug Editor", MessageBoxButtons.OK, MessageBoxIcon.Stop);
             }
         }
     }

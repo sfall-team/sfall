@@ -47,36 +47,27 @@ namespace FalloutClient {
         private readonly Dictionary<uint, string> CritNames = new Dictionary<uint, string>();
 
         private void Redraw() {
+            bEdit.Enabled = false;
+            Column2.ReadOnly = false;
+            Column3.ReadOnly = false;
+            Column2.HeaderText = "Value (Int)";
+            Column3.HeaderText = "Value (Float)";
+            dataGridView1.SelectionMode = DataGridViewSelectionMode.CellSelect;
             dataGridView1.SuspendLayout();
             dataGridView1.Rows.Clear();
             switch (mode) {
             case Mode.Globals:
-                Column2.ReadOnly = false;
-                Column3.ReadOnly = false;
-                Column2.HeaderText = "Value (Int)";
-                Column3.HeaderText = "Value (Float)";
-                bEdit.Enabled = false;
                 for (int i = 0; i < connection.Globals.Length; i++) {
                     string name = GlobNames.ContainsKey(i) ? GlobNames[i] : "";
                     dataGridView1.Rows.Add(i, name, connection.Globals[i], converter.GetAsFloat(connection.Globals[i]));
                 }
                 break;
             case Mode.MapVars:
-                Column2.ReadOnly = false;
-                Column3.ReadOnly = false;
-                Column2.HeaderText = "Value (Int)";
-                Column3.HeaderText = "Value (Float)";
-                bEdit.Enabled = false;
                 for (int i = 0; i < connection.MapVars.Length; i++) {
                     dataGridView1.Rows.Add(i, "", connection.MapVars[i], converter.GetAsFloat(connection.MapVars[i]));
                 }
                 break;
             case Mode.SGlobals:
-                Column2.ReadOnly = false;
-                Column3.ReadOnly = false;
-                Column2.HeaderText = "Value (Int)";
-                Column3.HeaderText = "Value (Float)";
-                bEdit.Enabled = false;
                 for (int i = 0; i < connection.SGlobalKeys.Length; i++) {
                     string s = connection.SGlobalKeys[i] > 0xffffffff
                         ? new string(System.Text.ASCIIEncoding.ASCII.GetChars(converter.GetAsBytes(connection.SGlobalKeys[i])))
@@ -85,6 +76,7 @@ namespace FalloutClient {
                 }
                 break;
             case Mode.Arrays:
+                dataGridView1.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
                 Column2.ReadOnly = true;
                 Column3.ReadOnly = true;
                 Column2.HeaderText = "Array size";
@@ -94,13 +86,14 @@ namespace FalloutClient {
                     bool isMap = connection.ArrayIsMap[i];
                     int  arrlen = connection.ArrayLengths[i];
                     if (isMap) arrlen /= 2;
-                    dataGridView1.Rows.Add(connection.Arrays[i], isMap ? "Map" : "", arrlen, "0x" + connection.ArrayDataSizes[i].ToString("x").ToUpper());
+                    dataGridView1.Rows.Add(connection.Arrays[i], isMap ? "Map" : "", arrlen, "0x" + connection.ArrayFlag[i].ToString("x").ToUpper());
                 }
                 break;
             case Mode.Critters:
+                dataGridView1.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
                 Column2.ReadOnly = true;
                 Column3.ReadOnly = true;
-                Column2.HeaderText = "Pid";
+                Column2.HeaderText = "PID";
                 Column3.HeaderText = "Pointer";
                 bEdit.Enabled = true;
                 for (int i = 0; i < connection.Critters.Length / 2; i++) {
@@ -194,8 +187,9 @@ namespace FalloutClient {
                 return;
             }
             if (e.ColumnIndex == 2) {
+                string str = dataGridView1.Rows[e.RowIndex].Cells[e.ColumnIndex].Value.ToString();
                 int val;
-                if (!int.TryParse(dataGridView1.Rows[e.RowIndex].Cells[e.ColumnIndex].Value.ToString(), out val)) {
+                if (str == null || !int.TryParse(str, out val)) {
                     dataGridView1.Rows[e.RowIndex].Cells[e.ColumnIndex].Value = array[e.RowIndex];
                 } else {
                     array[e.RowIndex] = val;
@@ -204,8 +198,9 @@ namespace FalloutClient {
                     connection.WriteInt(val);
                 }
             } else {
+                string str = dataGridView1.Rows[e.RowIndex].Cells[e.ColumnIndex].Value.ToString();
                 float val;
-                if (!float.TryParse(dataGridView1.Rows[e.RowIndex].Cells[e.ColumnIndex].Value.ToString(), out val)) {
+                if (str == null || !float.TryParse(str, out val)) {
                     dataGridView1.Rows[e.RowIndex].Cells[e.ColumnIndex].Value = array[e.RowIndex];
                 } else {
                     array[e.RowIndex] = converter.GetAsInt(val);
@@ -218,7 +213,7 @@ namespace FalloutClient {
 
         private void bEdit_Click(object sender, EventArgs e) {
             if (dataGridView1.SelectedRows.Count == 0) return;
-            int i = dataGridView1.SelectedRows[0].Index;
+            int i = (int)dataGridView1.SelectedRows[0].Tag;
             switch (mode) {
             case Mode.Arrays: {
                     DataType[] types = new DataType[connection.ArrayLengths[i]];
@@ -233,9 +228,7 @@ namespace FalloutClient {
                         lenData += lenType[j];
                     }
                     byte[] buf = connection.ReadBytes(lenData); // read data
-                    MemoryStream ms=new MemoryStream(buf);
-                    BinaryReader br=new BinaryReader(ms);
-                    ms.Position = 0;
+                    BinaryReader br = new BinaryReader(new MemoryStream(buf));
                     for (int j = 0; j < strings.Length; j++) {
                         switch (types[j]) {
                         case DataType.Int:
@@ -246,19 +239,16 @@ namespace FalloutClient {
                             break;
                         case DataType.String:
                             byte[] bytes = br.ReadBytes(lenType[j]);
-                            strings[j] = System.Text.Encoding.ASCII.GetString(bytes, 0, lenType[j] - 1); //Array.IndexOf<byte>(bytes, 0)
+                            strings[j] = System.Text.Encoding.ASCII.GetString(bytes, 0, Array.IndexOf<byte>(bytes, 0));
                             break;
                         }
                     }
                     br.Close();
-                    strings = EditorWindow.ShowEditor(null, types, strings);
+                    strings = EditorWindow.ShowEditor(this, null, types, strings, connection.ArrayIsMap[i]);
                     if (strings != null) { // save
-                        connection.WriteDataType(DataTypeSend.SetArray);
-                        connection.WriteInt(i);
-                        ms = new MemoryStream(connection.ArrayLengths[i] * connection.ArrayDataSizes[i]);
-                        BinaryWriter bw=new BinaryWriter(ms);
+                        MemoryStream ms = new MemoryStream(lenData);
+                        BinaryWriter bw = new BinaryWriter(ms);
                         for (int j = 0; j < strings.Length; j++) {
-                            ms.Position = j * connection.ArrayDataSizes[i];
                             switch (types[j]) {
                             case DataType.Int:
                                 bw.Write(int.Parse(strings[j]));
@@ -267,25 +257,31 @@ namespace FalloutClient {
                                 bw.Write(float.Parse(strings[j]));
                                 break;
                             case DataType.String:
-                                byte[] bytes=System.Text.Encoding.ASCII.GetBytes(strings[j]);
-                                if (bytes.Length < connection.ArrayDataSizes[i]) bw.Write(bytes);
-                                else bw.Write(bytes, 0, connection.ArrayDataSizes[i] - 1);
-                                bw.Write(0);
+                                byte[] bytes = System.Text.Encoding.ASCII.GetBytes(strings[j]);
+                                if (bytes.Length < lenType[j])
+                                    bw.Write(bytes);
+                                else
+                                    bw.Write(bytes, 0, lenType[j] - 1);
+                                bw.Write((byte)0);
                                 break;
                             }
                         }
-                        connection.WriteBytes(ms.GetBuffer(), 0, connection.ArrayLengths[i] * connection.ArrayDataSizes[i]);
+                        // send data to sfall
+                        connection.WriteDataType(DataTypeSend.SetArray);
+                        connection.WriteInt(i); // index
+                        connection.WriteInt(lenData);
+                        connection.WriteBytes(ms.GetBuffer(), 0, lenData);
                         bw.Close();
                     }
                 }
                 break;
             case Mode.Critters: {
-                    DataType[] types=new DataType[33];
-                    string[] strings=new string[33];
-                    string[] names=new string[33];
+                    DataType[] types = new DataType[33];
+                    string[] strings = new string[33];
+                    string[] names = new string[33];
                     connection.WriteDataType(DataTypeSend.RetrieveCritter);
                     connection.WriteInt(i);
-                    BinaryReader br=new BinaryReader(new System.IO.MemoryStream(connection.ReadBytes(33 * 4)));
+                    BinaryReader br = new BinaryReader(new System.IO.MemoryStream(connection.ReadBytes(33 * 4)));
                     for (int j = 0; j < 33; j++) {
                         types[j] = DataType.Int;
                         strings[j] = br.ReadInt32().ToString();
@@ -316,7 +312,7 @@ namespace FalloutClient {
                     names[29] = " Outline flags";
                     names[30] = " Script ID";
                     names[32] = " Script index";
-                    strings = EditorWindow.ShowEditor(names, types, strings);
+                    strings = EditorWindow.ShowEditor(this, names, types, strings);
                     if (strings != null) {
                         MemoryStream ms = new MemoryStream(33 * 4);
                         BinaryWriter bw = new BinaryWriter(ms);
@@ -333,6 +329,10 @@ namespace FalloutClient {
 
         private void dataGridView1_CellDoubleClick(object sender, DataGridViewCellEventArgs e) {
             bEdit.PerformClick();
+        }
+
+        private void dataGridView1_RowsAdded(object sender, DataGridViewRowsAddedEventArgs e) {
+            dataGridView1.Rows[e.RowIndex].Tag = e.RowIndex;
         }
     }
 }

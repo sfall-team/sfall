@@ -197,6 +197,7 @@
 #define _rotation                   0x631D34
 #define _sad                        0x530014
 #define _scr_size                   0x6AC9F0
+#define _script_engine_running      0x51C714
 #define _scriptListInfo             0x51C7C8
 #define _skill_data                 0x51D118
 #define _slot_cursor                0x5193B8
