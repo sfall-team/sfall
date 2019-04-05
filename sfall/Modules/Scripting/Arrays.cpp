@@ -340,10 +340,24 @@ void DEGetArray(int id, DWORD* types, char* data) {
 	}
 }
 
-// those too are not really used yet in FalloutClient (AFAIK) -- phobos2077
-void DESetArray(int id, const DWORD* types, const void* data) {
-	//if (types) memcpy(arrays[id].types, types, arrays[id].len * 4);
-	//memcpy(arrays[id].data, data, arrays[id].len*arrays[id].datalen);
+void DESetArray(int id, const DWORD* types, const char* data) {
+	int pos = 0;
+	for (size_t i = 0; i < arrays[id].val.size(); i++) {
+		auto& arVal = arrays[id].val[i];
+		switch (arVal.type) {
+		case DataType::INT:
+			arVal.intVal = *(long*)(data + pos);
+			pos += 4;
+			break;
+		case DataType::FLOAT:
+			arVal.floatVal = *(float*)(data + pos);
+			pos += 4;
+			break;
+		case DataType::STR:
+			strcpy(arVal.strVal, data + pos);
+			pos += arVal.len;
+		}
+	}
 }
 
 /*

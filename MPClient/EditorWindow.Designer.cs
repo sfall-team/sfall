@@ -109,6 +109,7 @@
             this.Controls.Add(this.bCancel);
             this.Controls.Add(this.bSave);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.SizableToolWindow;
+            this.MinimumSize = new System.Drawing.Size(300, 200);
             this.Name = "EditorWindow";
             this.Text = "Editor Values";
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).EndInit();

@@ -180,8 +180,9 @@
 #define FO_VAR_retvals                    0x43EA7C
 #define FO_VAR_rotation                   0x631D34
 #define FO_VAR_sad                        0x530014
-#define FO_VAR_script_path_base           0x51C710
 #define FO_VAR_scr_size                   0x6AC9F0
+#define FO_VAR_script_engine_running      0x51C714
+#define FO_VAR_script_path_base           0x51C710
 #define FO_VAR_scriptListInfo             0x51C7C8
 #define FO_VAR_skill_data                 0x51D118
 #define FO_VAR_slot_cursor                0x5193B8
