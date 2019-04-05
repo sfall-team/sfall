@@ -205,6 +205,10 @@ void intface_redraw() {
 	WRAP_WATCOM_CALL0(intface_redraw_)
 }
 
+void process_bk() {
+	WRAP_WATCOM_CALL0(process_bk_)
+}
+
 long __stdcall interpret(Program* program, long arg2) {
 	WRAP_WATCOM_CALL2(interpret_, program, arg2)
 }

@@ -102,6 +102,8 @@ void __stdcall gsound_play_sfx_file(const char* name);
 // redraws the main game interface windows (useful after changing some data like active hand, etc.)
 void intface_redraw();
 
+void process_bk();
+
 long __stdcall interpret(Program* program, long arg2);
 
 // finds procedure ID for given script program pointer and procedure name

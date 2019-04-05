@@ -28,9 +28,11 @@ namespace FalloutClient {
             dataGridView1.ResumeLayout();
         }
 
-        public static string[] ShowEditor(string[] names, DataType[] types, string[] values, bool isMap = false) {
+        public static string[] ShowEditor(DebugEditor form, string[] names, DataType[] types, string[] values, bool isMap = false) {
+            form.redrawTimer.Start();
             EditorWindow editor = new EditorWindow(names, types, values, isMap);
             editor.ShowDialog();
+            form.redrawTimer.Stop();
             if (editor.save)
                 return editor.values;
             else
@@ -51,7 +53,7 @@ namespace FalloutClient {
 
         private void dataGridView1_CellEndEdit(object sender, DataGridViewCellEventArgs e) {
             string str = (string)dataGridView1.Rows[e.RowIndex].Cells[e.ColumnIndex].Value;
-            if (CheckInput(types[e.RowIndex], str))
+            if (str != null && CheckInput(types[e.RowIndex], str))
                 values[e.RowIndex] = str;
             else
                 dataGridView1.Rows[e.RowIndex].Cells[e.ColumnIndex].Value = values[e.RowIndex];
