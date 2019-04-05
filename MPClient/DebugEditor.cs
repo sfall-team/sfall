@@ -235,6 +235,9 @@ namespace FalloutClient {
                     BinaryReader br = new BinaryReader(new MemoryStream(buf));
                     for (int j = 0; j < strings.Length; j++) {
                         switch (types[j]) {
+                        case DataType.None:
+                            br.BaseStream.Position += 4;
+                            break;
                         case DataType.Int:
                             strings[j] = br.ReadInt32().ToString();
                             break;
@@ -254,6 +257,9 @@ namespace FalloutClient {
                         BinaryWriter bw = new BinaryWriter(ms);
                         for (int j = 0; j < strings.Length; j++) {
                             switch (types[j]) {
+                            case DataType.None:
+                                bw.BaseStream.Position += 4;
+                                break;
                             case DataType.Int:
                                 bw.Write(int.Parse(strings[j]));
                                 break;

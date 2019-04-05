@@ -15,7 +15,7 @@ namespace FalloutClient {
             if (args.Length == 1 && args[0] == "-debugedit") {
                 Application.Run(new DebugEditor(new EditorConnection()));
             } else {
-                MessageBox.Show("The debugger can be run only from the game.",
+                MessageBox.Show("The debug editor can only be run from the game.",
                     "sfall debug editor", MessageBoxButtons.OK, MessageBoxIcon.Stop);
             }
         }

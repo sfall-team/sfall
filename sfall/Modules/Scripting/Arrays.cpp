@@ -345,6 +345,9 @@ void DESetArray(int id, const DWORD* types, const char* data) {
 	for (size_t i = 0; i < arrays[id].val.size(); i++) {
 		auto& arVal = arrays[id].val[i];
 		switch (arVal.type) {
+		case DataType::NONE:
+			pos += 4;
+			break;
 		case DataType::INT:
 			arVal.intVal = *(long*)(data + pos);
 			pos += 4;

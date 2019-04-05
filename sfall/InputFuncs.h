@@ -31,6 +31,7 @@ extern bool middleMouseDown;
 void SetMDown(bool down, bool right);
 void SetMPos(int x, int y);
 
+void FlushInputBuffer();
 DWORD _stdcall KeyDown(DWORD key);
 void _stdcall TapKey(DWORD key);
 
@@ -42,6 +43,8 @@ MouseClickedDelegate& OnMouseClick();
 Delegate<>& OnInputLoop();
 
 void GetMouse(int* x, int* y);
+
+void _stdcall ForceGraphicsRefresh(DWORD);
 
 #define DIK_ESCAPE          0x01
 #define DIK_1               0x02
@@ -189,7 +192,5 @@ void GetMouse(int* x, int* y);
  *  Alternate names for keys originally not used on US keyboards.
  */
 #define DIK_CIRCUMFLEX      DIK_PREVTRACK       /* Japanese keyboard */
-
-void _stdcall ForceGraphicsRefresh(DWORD);
 
 }
