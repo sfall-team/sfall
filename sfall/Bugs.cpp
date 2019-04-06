@@ -2536,12 +2536,12 @@ void BugsInit()
 	HookCall(0x499212, PrintAutoMapList); // PrintAMList_
 	HookCall(0x499013, PrintAutoMapList); // PrintAMelevList_
 
+	// Fix "out of bounds" bug when printing the automap list
+	HookCall(0x499240, PrintAMList_hook);
+
 	// Fix for a duplicate obj_dude script being created when loading a saved game
 	HookCall(0x48D63E, obj_load_dude_hook0);
 	HookCall(0x48D666, obj_load_dude_hook1);
 	BlockCall(0x48D675);
 	BlockCall(0x48D69D);
-
-	// Fix "out of bounds" bug when printing the automap list
-	HookCall(0x499240, PrintAMList_hook);
 }

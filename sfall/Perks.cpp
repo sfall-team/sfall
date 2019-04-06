@@ -85,7 +85,7 @@ std::vector<FakePerk> fakeTraits;
 std::vector<FakePerk> fakePerks;
 std::vector<FakePerk> fakeSelectablePerks;
 
-static std::list<int> RemoveTraitID;
+static long RemoveTraitID = -1;
 static std::list<int> RemovePerkID;
 static std::list<int> RemoveSelectableID;
 
@@ -566,7 +566,7 @@ static void _stdcall AddFakePerk(DWORD perkID) {
 			}
 		}
 		if (!matched) {
-			RemoveTraitID.push_back(fakeTraits.size());
+			if (RemoveTraitID == -1) RemoveTraitID = fakeTraits.size();
 			fakeTraits.push_back(fakeSelectablePerks[perkID]);
 		}
 	}
@@ -1134,16 +1134,14 @@ void _stdcall ClearSelectablePerks() {
 }
 
 void PerksEnterCharScreen() {
-	RemoveTraitID.clear();
+	RemoveTraitID = -1;
 	RemovePerkID.clear();
 	RemoveSelectableID.clear();
 }
 
 void PerksCancelCharScreen() {
-	if (RemoveTraitID.size() > 1) RemoveTraitID.sort();
-	while (!RemoveTraitID.empty()) {
-		fakeTraits.erase(fakeTraits.begin() + RemoveTraitID.back());
-		RemoveTraitID.pop_back();
+	if (RemoveTraitID != -1) {
+		fakeTraits.erase(fakeTraits.begin() + RemoveTraitID, fakeTraits.end());
 	}
 	if (RemovePerkID.size() > 1) RemovePerkID.sort(); // sorting to correctly remove from the end
 	while (!RemovePerkID.empty()) {

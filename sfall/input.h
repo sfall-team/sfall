@@ -30,6 +30,8 @@ void _stdcall TapKey(DWORD key);
 
 void GetMouse(int* x, int* y);
 
+void _stdcall ForceGraphicsRefresh(DWORD);
+
 #define DIK_ESCAPE          0x01
 #define DIK_1               0x02
 #define DIK_2               0x03
@@ -176,5 +178,3 @@ void GetMouse(int* x, int* y);
  *  Alternate names for keys originally not used on US keyboards.
  */
 #define DIK_CIRCUMFLEX      DIK_PREVTRACK       /* Japanese keyboard */
-
-void _stdcall ForceGraphicsRefresh(DWORD);
