@@ -74,7 +74,7 @@ struct ProtoModify {
 				std::forward_as_tuple(newProto, objPID));
 		} else {
 			s_proto = it->second.proto;
-			if (s_proto == nullptr) { // prototype has not been created yet
+			if (s_proto == nullptr) { // prototype has not been created
 				it->second.sharedCount = CreateProtoMem(it, defaultProto, s_proto);
 				it->second.proto = s_proto;
 			}
@@ -504,7 +504,7 @@ bool Stats::LoadStatData(HANDLE file) {
 		if (sizeRead != 20) return true;
 		s_baseStatProto.emplace_back(data);
 		if (protoMem.find(data.objID) == protoMem.end()) {
-			protoMem.emplace(data.objID, data.objPID); // protoMem[data.objID] = ProtoMem(data.objPID);
+			protoMem.emplace(data.objID, data.objPID);
 		}
 	}
 	ReadFile(file, &count, 4, &sizeRead, 0);

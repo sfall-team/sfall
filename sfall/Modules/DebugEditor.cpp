@@ -202,6 +202,7 @@ static void RunEditorInternal(SOCKET &s) {
 	delete[] sglobals;
 	delete[] arrays;
 
+	FlushInputBuffer();
 	*(DWORD*)FO_VAR_script_engine_running = 1;
 }
 
