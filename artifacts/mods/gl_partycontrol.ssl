@@ -26,6 +26,7 @@ procedure CombaTurn_Handler;
 procedure InventoryMove_Handler;
 procedure GameModeChange_Handler;
 procedure KeyPress_Handler;
+procedure InvenWield_Handler;
 
 variable
    controlMode,
@@ -169,6 +170,7 @@ procedure start begin
          register_hook_proc(HOOK_COMBATTURN, CombaTurn_Handler);
          register_hook_proc(HOOK_GAMEMODECHANGE, GameModeChange_Handler);
          register_hook_proc(HOOK_INVENTORYMOVE, InventoryMove_Handler);
+         register_hook_proc(HOOK_INVENWIELD, InvenWield_Handler);
       end
    end
 end
@@ -187,4 +189,13 @@ procedure KeyPress_Handler begin
          display_msg(GetConfigStr("CombatControl", "MsgControlOff", "Error"));
       end
    end
+end
+
+procedure InvenWield_Handler begin
+   variable critter := get_sfall_arg,
+            item  := get_sfall_arg,
+            slot  := get_sfall_arg,
+            event := get_sfall_arg;
+   // Fix of duplicate weapons when equipment
+   if (event and AllowControl(obj_pid(critter))) then set_flags(item, get_flags(item) bwand bwnot(FLAG_LEFT_HAND bwor FLAG_RIGHT_HAND));
 end
