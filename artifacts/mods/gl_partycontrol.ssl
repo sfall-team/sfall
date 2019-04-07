@@ -109,8 +109,8 @@ procedure invenwield_handler begin
       event := get_sfall_arg;
 
    // Fix weapon duplication when equipping in combat
-   if (event and AllowControl(obj_pid(critter))) then begin
-      set_flags(item, get_flags(item) bwand bwnot(FLAG_LEFT_HAND bwor FLAG_RIGHT_HAND));
+   if (event and slot == INVEN_TYPE_RIGHT_HAND and AllowControl(obj_pid(critter))) then begin
+      set_flags(item, get_flags(item) bwand bwnot(FLAG_LEFT_HAND));
    end
 end
 

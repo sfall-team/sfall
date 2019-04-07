@@ -180,6 +180,7 @@
             this.Controls.Add(this.dataGridView1);
             this.MinimumSize = new System.Drawing.Size(450, 300);
             this.Name = "DebugEditor";
+            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "sfall Debug Editor";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.DebugEditor_FormClosing);
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).EndInit();
