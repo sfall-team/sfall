@@ -91,14 +91,32 @@ static void __declspec(naked) ai_search_inven_weap_hook() {
 		push ecx;
 		mov  ecx, eax;                      // weapon
 		mov  edx, ATKTYPE_RWEAPON_PRIMARY;  // hitMode
-		call add_check_for_item_ammo_cost;
-		mov  ebx, eax;                      // result
-		mov  ecx, esi;
-		mov  edx, ATKTYPE_RWEAPON_SECONDARY;
-		call add_check_for_item_ammo_cost;
-		and  eax, ebx; // enough ammo?
+		call add_check_for_item_ammo_cost;  // enough ammo?
 		pop  ecx;
 		retn;
+	}
+}
+
+// switching weapon mode from secondary to primary if there are not enough ammo to shoot
+static const DWORD ai_try_attack_searh_ammo = 0x42AA1E;
+static const DWORD ai_try_attack_continue = 0x42A929;
+static void __declspec(naked) ai_try_attack_hook() {
+	using namespace fo;
+	using namespace Fields;
+	__asm {
+		mov  ebx, [esp + 0x364 - 0x38]; // hit mode
+		cmp  ebx, ATKTYPE_RWEAPON_SECONDARY;
+		jne  searhAmmo;
+		mov  edx, [esp + 0x364 - 0x3C]; // weapon
+		mov  eax, [edx + charges];      // curr ammo
+		test eax, eax;
+		jnz  tryAttack;                 // have ammo
+searhAmmo:
+		jmp  ai_try_attack_searh_ammo;
+tryAttack:
+		mov  ebx, ATKTYPE_RWEAPON_PRIMARY;
+		mov  [esp + 0x364 - 0x38], ebx; // change hit mode
+		jmp  ai_try_attack_continue;
 	}
 }
 
@@ -394,6 +412,7 @@ void Combat::init() {
 		HookCall(0x4266E9, combat_check_bad_shot_hook);
 		MakeCall(0x4234B3, compute_spray_hack, 1);
 		HookCall(0x429A37, ai_search_inven_weap_hook);
+		HookCall(0x42A95D, ai_try_attack_hook); // jz func
 	}
 	LoadGameHook::OnGameReset() += ResetOnGameLoad;
 }
