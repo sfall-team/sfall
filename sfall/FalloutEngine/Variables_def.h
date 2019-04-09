@@ -165,7 +165,7 @@ VAR_(RedColor,                   BYTE)
 VAR_(rotation,                   DWORD)
 VAR2(retvals,                    ElevatorExit, 24, 4)  // 24 elevators, 4 exits each
 VAR_(script_path_base,           const char*)
-VAR_(scr_size,                   DWORD)
+VAR_(scr_size,                   BoundRect)
 VAR_(scriptListInfo,             ScriptListInfoItem*)  // dynamic array
 VARA(skill_data,                 SkillInfo, SKILL_count)
 VAR_(slot_cursor,                DWORD)
