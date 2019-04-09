@@ -324,12 +324,12 @@ HOOK_AMMOCOST (hs_ammocost.int)
 
 Runs when calculating ammo cost for a weapon. Doesn't affect damage, only how much ammo is spent.
 By default, weapon will shoot when at least 1 round is left, regardless of ammo cost calculations.
-To add proper check for ammo before shooting and proper calculation of number of burst rounds, set Misc.CheckWeaponAmmoCost=1 in ddraw.ini
+To add proper check for ammo before shooting and proper calculation of number of burst rounds (hook type 1 and 2 in arg4), set Misc.CheckWeaponAmmoCost=1 in ddraw.ini
 
 Item    arg1 - weapon
 int     arg2 - Number of bullets in burst (1 for single shots)
 int     arg3 - Ammo cost calculated by original function (this is basically 2 for Super Cattle Prod and Mega Power Fist)
-int     arg4 - Type of hook (0 - when subtracting ammo after attack, 1 - when checking for "out of ammo" before attack)
+int     arg4 - Type of hook (0 - when subtracting ammo after single shot attack, 1 - when checking for "out of ammo" before attack, 2 - when calculating number of burst rounds, 3 - when subtracting ammo after burst attack)
 
 int     ret1 - new ammo cost value (set to 0 for unlimited ammo)
 

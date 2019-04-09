@@ -437,7 +437,7 @@ const DWORD item_w_anim_code_ = 0x478DA8;
 const DWORD item_w_anim_weap_ = 0x47860C;
 const DWORD item_w_can_reload_ = 0x478874;
 const DWORD item_w_compute_ammo_cost_ = 0x4790AC;
-const DWORD item_w_cur_ammo_ = 0x4786A0;
+const DWORD item_w_curr_ammo_ = 0x4786A0;
 const DWORD item_w_dam_div_ = 0x479294;
 const DWORD item_w_dam_mult_ = 0x479230;
 const DWORD item_w_damage_ = 0x478448;
@@ -791,6 +791,10 @@ void InterfaceRedraw() {
 	__asm call intface_redraw_;
 }
 
+void __stdcall ProcessBk() {
+	__asm call process_bk_;
+}
+
 // pops value type from Data stack (must be followed by InterpretPopLong)
 DWORD __stdcall InterpretPopShort(TProgram* scriptPtr) {
 	__asm {
@@ -979,5 +983,36 @@ long __stdcall QueueFindFirst(TGameObj* object, long qType) {
 		mov  edx, qType;
 		mov  eax, object;
 		call queue_find_first_;
+	}
+}
+
+// for the backported AmmoCostHook from 4.x
+long __stdcall ItemWAnimWeap(TGameObj* item, DWORD hitMode) {
+	__asm {
+		mov  edx, hitMode;
+		mov  eax, item;
+		call item_w_anim_weap_;
+	}
+}
+
+long __stdcall ItemWComputeAmmoCost(TGameObj* item, DWORD* rounds) {
+	__asm {
+		mov  edx, rounds;
+		mov  eax, item;
+		call item_w_compute_ammo_cost_;
+	}
+}
+
+long __stdcall ItemWCurrAmmo(TGameObj* item) {
+	__asm {
+		mov  eax, item;
+		call item_w_curr_ammo_;
+	}
+}
+
+long __stdcall ItemWRounds(TGameObj* item) {
+	__asm {
+		mov  eax, item;
+		call item_w_rounds_;
 	}
 }

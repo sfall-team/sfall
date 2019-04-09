@@ -67,7 +67,7 @@ void InventoryKeyPressedHook(DWORD dxKey, bool pressed, DWORD vKey) {
 			call item_w_max_ammo_;
 			mov maxAmmo, eax;
 			mov eax, item;
-			call item_w_cur_ammo_;
+			call item_w_curr_ammo_;
 			mov curAmmo, eax;
 		}
 		if (maxAmmo != curAmmo) {
@@ -420,66 +420,93 @@ static void __declspec(naked) inven_ap_cost_hack() {
 	}
 }
 
-static const DWORD add_check_for_item_ammo_cost_back = 0x4266EE;
-// adds check for weapons which require more than 1 ammo for single shot (super cattle prod & mega power fist)
-static void __declspec(naked) add_check_for_item_ammo_cost() {
+static DWORD __fastcall add_check_for_item_ammo_cost(register TGameObj* weapon, DWORD hitMode) {
+	DWORD rounds = 1;
+
+	DWORD anim = ItemWAnimWeap(weapon, hitMode);
+	if (anim == 46 || anim == 47) {   // ANIM_fire_burst or ANIM_fire_continuous
+		rounds = ItemWRounds(weapon); // ammo in burst
+	}
+	AmmoCostHook_Script(1, weapon, &rounds); // get rounds cost from hook
+	DWORD currAmmo = ItemWCurrAmmo(weapon);
+
+	DWORD cost = 1; // default cost
+	if (currAmmo > 0) {
+		cost = rounds / currAmmo;
+		if (rounds % currAmmo) cost++; // round up
+	}
+	return (cost > currAmmo) ? 0 : 1;  // 0 - this will force "Out of ammo", 1 - this will force success (enough ammo)
+}
+
+// adds check for weapons which require more than 1 ammo for single shot (super cattle prod & mega power fist) and burst rounds
+static void __declspec(naked) combat_check_bad_shot_hook() {
 	__asm {
-		push edx
-		push ebx
-		sub  esp, 4
-		call item_w_cur_ammo_
-		mov  ebx, eax
-		mov  eax, ecx // weapon
-		mov  edx, esp
-		mov  dword ptr [esp], 1
-		pushad
-		push 1 // hook type
-		call AmmoCostHookWrapper
-		add  esp, 4
-		popad
-		mov  eax, [esp]
-		cmp  eax, ebx
-		jle  enoughammo
-		xor  eax, eax // this will force "Out of ammo"
-		jmp  end
-enoughammo:
-		mov  eax, 1 // this will force success
-end:
-		add  esp, 4
-		pop  ebx
-		pop  edx
-		jmp  add_check_for_item_ammo_cost_back; // jump back
+		push edx;
+		push ecx;         // weapon
+		mov  edx, edi;    // hitMode
+		call add_check_for_item_ammo_cost;
+		pop  ecx;
+		pop  edx;
+		retn;
 	}
 }
 
-static const DWORD divide_burst_rounds_by_ammo_cost_back = 0x4234B9;
-static void __declspec(naked) divide_burst_rounds_by_ammo_cost() {
+// check if there is enough ammo to shoot
+static void __declspec(naked) ai_search_inven_weap_hook() {
 	__asm {
-		// ecx - current ammo, eax - burst rounds; need to set ebp
-		push edx
-		sub  esp, 4
-		mov  ebp, eax
-		mov  eax, edx // weapon
-		mov  dword ptr [esp], 1
-		mov  edx, esp // *rounds
-		pushad
-		push 2
-		call AmmoCostHookWrapper
-		add  esp, 4
-		popad
-		mov  edx, 0
-		mov  eax, ebp // rounds in burst
-		imul dword ptr [esp] // so much ammo is required for this burst
-		cmp  eax, ecx
-		jle  skip
-		mov  eax, ecx // if more than current ammo, set it to current
-skip:
-		idiv dword ptr [esp] // divide back to get proper number of rounds for damage calculations
-		mov  ebp, eax
-		add  esp, 4
-		pop  edx
-		// end overwriten code
-		jmp  divide_burst_rounds_by_ammo_cost_back; // jump back
+		push ecx;
+		mov  ecx, eax;                      // weapon
+		mov  edx, 2;                        // hitMode - ATKTYPE_RWEAPON_PRIMARY
+		call add_check_for_item_ammo_cost;  // enough ammo?
+		pop  ecx;
+		retn;
+	}
+}
+
+// switch weapon mode from secondary to primary if there is not enough ammo to shoot
+static const DWORD ai_try_attack_search_ammo = 0x42AA1E;
+static const DWORD ai_try_attack_continue = 0x42A929;
+static void __declspec(naked) ai_try_attack_hook() {
+	__asm {
+		mov  ebx, [esp + 0x364 - 0x38]; // hit mode
+		cmp  ebx, 3;                    // ATKTYPE_RWEAPON_SECONDARY
+		jne  searchAmmo;
+		mov  edx, [esp + 0x364 - 0x3C]; // weapon
+		mov  eax, [edx + 0x3C];         // curr ammo
+		test eax, eax;
+		jnz  tryAttack;                 // have ammo
+searchAmmo:
+		jmp  ai_try_attack_search_ammo;
+tryAttack:
+		mov  ebx, 2;                    // ATKTYPE_RWEAPON_PRIMARY
+		mov  [esp + 0x364 - 0x38], ebx; // change hit mode
+		jmp  ai_try_attack_continue;
+	}
+}
+
+static DWORD __fastcall divide_burst_rounds_by_ammo_cost(TGameObj* weapon, register DWORD currAmmo, DWORD burstRounds) {
+	DWORD rounds = 1; // default multiply
+
+	rounds = burstRounds;                 // rounds in burst
+	AmmoCostHook_Script(2, weapon, &rounds);
+
+	DWORD cost = burstRounds * rounds;    // so much ammo is required for this burst
+	if (cost > currAmmo) cost = currAmmo; // if cost ammo more than current ammo, set it to current
+
+	return (cost / rounds);               // divide back to get proper number of rounds for damage calculations
+}
+
+static void __declspec(naked) compute_spray_hack() {
+	__asm {
+		push edx;         // weapon
+		push ecx;         // current ammo in weapon
+		xchg ecx, edx;
+		push eax;         // eax - rounds in burst attack, need to set ebp
+		call divide_burst_rounds_by_ammo_cost;
+		mov  ebp, eax;    // overwriten code
+		pop  ecx;
+		pop  edx;
+		retn;
 	}
 }
 
@@ -745,8 +772,10 @@ void InventoryInit() {
 	}
 
 	if(GetPrivateProfileInt("Misc", "CheckWeaponAmmoCost", 0, ini)) {
-		MakeJump(0x4266E9, add_check_for_item_ammo_cost);
-		MakeJump(0x4234B3, divide_burst_rounds_by_ammo_cost);
+		HookCall(0x4266E9, combat_check_bad_shot_hook);
+		HookCall(0x429A37, ai_search_inven_weap_hook);
+		HookCall(0x42A95D, ai_try_attack_hook); // jz func
+		MakeCall(0x4234B3, compute_spray_hack, 1);
 	}
 
 	ReloadWeaponKey = GetPrivateProfileInt("Input", "ReloadWeaponKey", 0, ini);

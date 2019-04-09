@@ -49,7 +49,7 @@ struct sArray {
 };
 
 static void DEGameWinRedraw() {
-	__asm call process_bk_;
+	ProcessBk();
 }
 
 static bool SetBlocking(SOCKET s, bool block) {

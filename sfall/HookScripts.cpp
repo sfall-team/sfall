@@ -777,51 +777,46 @@ end:
 	}
 }
 
-static void __declspec(naked) AmmoCostHook_internal() {
-	__asm {
-		pushad;
-		mov args[0], eax; //weapon
-		mov ebx, [edx];
-		mov args[4], ebx; //rounds in attack
-		call item_w_compute_ammo_cost_;
-		cmp eax, -1;
-		je fail;
-		mov ebx, [edx];
-		mov args[8], ebx; //rounds as computed by game
+// code backported from 4.x
+int __fastcall AmmoCostHook_Script(DWORD hookType, TGameObj* weapon, DWORD* rounds) {
+	int result = 0;
 
-		push HOOK_AMMOCOST;
-		call RunHookScript;
-		popad;
-		cmp cRet, 0;
-		je end;
-		mov eax, rets[0];
-		mov [edx], eax; // override result
-		xor eax, eax;
-		jmp end;
-fail:
-		popad;
-end:
-		hookend;
-		retn;
+	BeginHook();
+	argCount = 4;
+
+	args[0] = (DWORD)weapon;
+	args[1] = *rounds;          // rounds in attack
+	args[3] = hookType;
+
+	if (hookType == 2) {        // burst hook
+		*rounds = 1;            // set default multiply for check burst attack
+	} else {
+		result = ItemWComputeAmmoCost(weapon, rounds);
+		if (result == -1) goto failed; // failed computed
 	}
+	args[2] = *rounds;          // rounds as computed by game (cost)
+
+	RunHookScript(HOOK_AMMOCOST);
+
+	if (cRet > 0) *rounds = rets[0]; // override rounds
+
+failed:
+	EndHook();
+	return result;
 }
 
 static void __declspec(naked) AmmoCostHook() {
 	__asm {
-		hookbegin(4);
-		mov args[12], 0; // type of hook
-		jmp AmmoCostHook_internal;
-	}
-}
-
-void __declspec(naked) AmmoCostHookWrapper() {
-	__asm {
-		hookbegin(4);
-		push eax;
-		mov eax, [esp+8]; // hook type
-		mov args[12], eax;
-		pop eax;
-		call AmmoCostHook_internal;
+		xor  ecx, ecx;             // type of hook (0)
+		cmp  dword ptr [esp + 0x1C + 4], 46; // ANIM_fire_burst
+		jl   skip;
+		cmp  dword ptr [esp + 0x1C + 4], 47; // ANIM_fire_continuous
+		jg   skip;
+		mov  ecx, 3;               // hook type burst
+skip:
+		xchg eax, edx;
+		push eax;                  // rounds in attack
+		call AmmoCostHook_Script;  // edx - weapon
 		retn;
 	}
 }

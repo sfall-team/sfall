@@ -456,10 +456,11 @@ extern const DWORD add_bar_box_;
 extern const DWORD AddHotLines_;
 extern const DWORD adjust_ac_;
 extern const DWORD adjust_fid_;
+extern const DWORD ai_can_use_weapon_; //  (TGameObj *aCritter<eax>, int aWeapon<edx>, int a2Or3<ebx>) returns 1 or 0
 extern const DWORD ai_search_inven_armor_;
 extern const DWORD ai_try_attack_;
 extern const DWORD art_alias_num_;
-extern const DWORD art_exists_;
+extern const DWORD art_exists_; // eax - frameID, used for critter FIDs
 extern const DWORD art_flush_;
 extern const DWORD art_frame_data_;
 extern const DWORD art_frame_length_;
@@ -574,7 +575,7 @@ extern const DWORD gdProcess_;
 extern const DWORD GetSlotList_;
 extern const DWORD get_input_;
 extern const DWORD get_time_;
-extern const DWORD getmsg_;
+extern const DWORD getmsg_; // eax - msg file addr, ebx - message ID, edx - int[4]  - loads string from MSG file preloaded in memory
 extern const DWORD gmouse_3d_get_mode_;
 extern const DWORD gmouse_3d_set_mode_;
 extern const DWORD gmouse_is_scrolling_;
@@ -592,6 +593,8 @@ extern const DWORD handle_inventory_;
 extern const DWORD inc_game_time_;
 extern const DWORD inc_stat_;
 extern const DWORD insert_withdrawal_;
+extern const DWORD interface_disable_;
+extern const DWORD interface_enable_;
 extern const DWORD interpret_; // <eax> - programPtr, <edx> - ??? (-1)
 extern const DWORD interpretAddString_;
 extern const DWORD interpretFindProcedure_; // get proc number (different for each script) by name: *<eax> - scriptPtr, char* <edx> - proc name
@@ -602,25 +605,26 @@ extern const DWORD interpretPopShort_;
 extern const DWORD interpretPushLong_;
 extern const DWORD interpretPushShort_;
 extern const DWORD interpretError_; 
+extern const DWORD intface_get_attack_;
+extern const DWORD intface_hide_;
+extern const DWORD intface_is_hidden_;
+extern const DWORD intface_item_reload_; // no args
 extern const DWORD intface_redraw_; // no args
-extern const DWORD intface_toggle_item_state_;
+extern const DWORD intface_show_;
+extern const DWORD intface_toggle_item_state_; // no args
 extern const DWORD intface_toggle_items_;
 extern const DWORD intface_update_ac_;
 extern const DWORD intface_update_hit_points_;
 extern const DWORD intface_update_items_;
 extern const DWORD intface_update_move_points_;
-extern const DWORD intface_use_item_;
-extern const DWORD intface_show_;
-extern const DWORD intface_hide_;
-extern const DWORD intface_is_hidden_;
-extern const DWORD intface_get_attack_;
+extern const DWORD intface_use_item_; // no args
 extern const DWORD invenUnwieldFunc_; // (int critter@<eax>, int slot@<edx>, int a3@<ebx>) - int result (-1 on error, 0 on success)
 extern const DWORD invenWieldFunc_; // (int who@<eax>, int item@<edx>, int a3@<ecx>, int slot@<ebx>) - int result (-1 on error, 0 on success)
 extern const DWORD inven_display_msg_;
 extern const DWORD inven_find_id_;
-extern const DWORD inven_left_hand_;
+extern const DWORD inven_left_hand_; // eax - object
 extern const DWORD inven_pid_is_carried_ptr_;
-extern const DWORD inven_right_hand_;
+extern const DWORD inven_right_hand_; // eax - object
 extern const DWORD inven_unwield_;
 extern const DWORD inven_wield_;
 extern const DWORD inven_worn_;
@@ -651,13 +655,13 @@ extern const DWORD item_w_anim_code_;
 extern const DWORD item_w_anim_weap_;
 extern const DWORD item_w_can_reload_;
 extern const DWORD item_w_compute_ammo_cost_; // signed int aWeapon<eax>, int *aRoundsSpent<edx>
-extern const DWORD item_w_cur_ammo_;
+extern const DWORD item_w_curr_ammo_; // eax - object
 extern const DWORD item_w_dam_div_;
 extern const DWORD item_w_dam_mult_;
 extern const DWORD item_w_damage_;
 extern const DWORD item_w_damage_type_;
 extern const DWORD item_w_dr_adjust_;
-extern const DWORD item_w_max_ammo_;
+extern const DWORD item_w_max_ammo_; // eax - object
 extern const DWORD item_w_mp_cost_;
 extern const DWORD item_w_perk_;
 extern const DWORD item_w_range_;
@@ -721,6 +725,8 @@ extern const DWORD obj_find_first_at_tile_; //  <eax>(int elevation<eax>, int ti
 extern const DWORD obj_find_next_at_;
 extern const DWORD obj_find_next_at_tile_; // no args
 extern const DWORD obj_lock_is_jammed_;
+extern const DWORD obj_move_to_tile_;  // int aObj<eax>, int aTile<edx>, int aElev<ebx>
+extern const DWORD obj_new_;  // int aObj*<eax>, int aPid<ebx>
 extern const DWORD obj_new_sid_inst_;
 extern const DWORD obj_outline_object_;
 extern const DWORD obj_pid_new_;
@@ -731,6 +737,7 @@ extern const DWORD obj_set_light_; // <eax>(int aObj<eax>, signed int aDist<edx>
 extern const DWORD obj_shoot_blocking_at_;
 extern const DWORD obj_sight_blocking_at_;
 extern const DWORD obj_top_environment_;
+extern const DWORD obj_turn_off_;  // int aObj<eax>, int ???<edx>
 extern const DWORD obj_unjam_lock_;
 extern const DWORD obj_use_book_;
 extern const DWORD obj_use_power_on_car_;
@@ -768,7 +775,7 @@ extern const DWORD process_bk_;
 extern const DWORD protinst_use_item_;
 extern const DWORD protinst_use_item_on_;
 extern const DWORD proto_dude_update_gender_;
-extern const DWORD proto_ptr_;
+extern const DWORD proto_ptr_; // eax - PID, edx - int** - pointer to a pointer to a proto struct
 extern const DWORD pushLongStack_;
 extern const DWORD qsort_;
 extern const DWORD queue_add_;
@@ -895,32 +902,6 @@ extern const DWORD xvfprintf_;
 * 2) Call _stdcall functions from (1), write those entirely in C++ (with little ASM blocks only to call engine functions, when you are too lazy to add wrapper)
 */
 
-extern const DWORD item_get_type_;
-extern const DWORD inven_left_hand_; // eax - object
-extern const DWORD inven_right_hand_; // eax - object
-extern const DWORD proto_ptr_; // eax - PID, edx - int** - pointer to a pointer to a proto struct
-extern const DWORD ai_can_use_weapon_; //  (TGameObj *aCritter<eax>, int aWeapon<edx>, int a2Or3<ebx>) returns 1 or 0
-extern const DWORD item_w_max_ammo_; // eax - object
-extern const DWORD item_w_cur_ammo_; // eax - object
-
-
-// Interface
-extern const DWORD interface_disable_;
-extern const DWORD interface_enable_;
-extern const DWORD intface_toggle_items_;
-extern const DWORD intface_item_reload_; // no args
-extern const DWORD intface_toggle_item_state_; // no args
-extern const DWORD intface_use_item_; // no args
-
-// objects
-extern const DWORD obj_new_;  // int aObj*<eax>, int aPid<ebx>
-extern const DWORD obj_turn_off_;  // int aObj<eax>, int ???<edx>
-extern const DWORD obj_move_to_tile_;  // int aObj<eax>, int aTile<edx>, int aElev<ebx>
-
-extern const DWORD art_exists_; // eax - frameID, used for critter FIDs
-
-extern const DWORD getmsg_; // eax - msg file addr, ebx - message ID, edx - int[4]  - loads string from MSG file preloaded in memory
-
 #define MSG_FILE_COMBAT		(0x56D368)
 #define MSG_FILE_AI			(0x56D510)
 #define MSG_FILE_SCRNAME	(0x56D754)
@@ -969,6 +950,8 @@ void SkillSetTags(int* tags, DWORD num);
 
 // redraws the main game interface windows (useful after changing some data like active hand, etc.)
 void InterfaceRedraw();
+
+void __stdcall ProcessBk();
 
 // critter worn item (armor)
 TGameObj* __stdcall InvenWorn(TGameObj* critter);
@@ -1024,3 +1007,9 @@ void __stdcall DisplayTargetInventory(long inventoryOffset, long visibleOffset, 
 long __stdcall StatLevel(TGameObj* critter, long statId);
 
 long __stdcall QueueFindFirst(TGameObj* object, long qType);
+
+// for the backported AmmoCostHook from 4.x
+long __stdcall ItemWAnimWeap(TGameObj* item, DWORD hitMode);
+long __stdcall ItemWComputeAmmoCost(TGameObj* item, DWORD* rounds);
+long __stdcall ItemWCurrAmmo(TGameObj* item);
+long __stdcall ItemWRounds(TGameObj* item);
