@@ -410,9 +410,9 @@ void Combat::init() {
 
 	if (GetConfigInt("Misc", "CheckWeaponAmmoCost", 0)) {
 		HookCall(0x4266E9, combat_check_bad_shot_hook);
-		MakeCall(0x4234B3, compute_spray_hack, 1);
 		HookCall(0x429A37, ai_search_inven_weap_hook);
 		HookCall(0x42A95D, ai_try_attack_hook); // jz func
+		MakeCall(0x4234B3, compute_spray_hack, 1);
 	}
 	LoadGameHook::OnGameReset() += Combat_OnGameLoad;
 }
