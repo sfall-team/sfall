@@ -154,6 +154,9 @@ static void _stdcall RunHookScript(DWORD hook) {
 		}
 	} else {
 		cArg = 0;
+		#ifndef NDEBUG
+			dlog_f(">>> Try running hook ID: %d\n", DL_HOOK, hook);
+		#endif
 	}
 }
 
