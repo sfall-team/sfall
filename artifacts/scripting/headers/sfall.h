@@ -60,6 +60,7 @@
 #define HOOK_ONEXPLOSION      (36)
 #define HOOK_SUBCOMBATDAMAGE  (37)
 #define HOOK_SETLIGHTING      (38)
+#define HOOK_SNEAK            (39)
 
 //Valid arguments to list_begin
 #define LIST_CRITTERS    (0)

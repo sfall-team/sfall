@@ -225,6 +225,32 @@ defaultHandler:
 	}
 }
 
+static void __declspec(naked) SneakCheckHook() {
+	__asm {
+		HookBegin;
+		mov esi, ds:[FO_VAR_sneak_working];
+		mov args[0], esi; // 1 = successful sneak
+		mov args[4], eax; // timer
+		mov args[8], edx; // critter
+		pushadc;
+	}
+
+	argCount = 3;
+	RunHookScript(HOOK_SNEAK);
+
+	__asm {
+		popadc;
+		cmp  cRet, 1;
+		jb   skip;
+		mov  esi, rets[0];
+		mov  ds:[FO_VAR_sneak_working], esi;
+		cmova eax, rets[4]; // override timer
+skip:
+		HookEnd;
+		jmp  fo::funcoffs::queue_add_;
+	}
+}
+
 static long __stdcall PerceptionRangeHook_Script(int type) {
 	long result;
 	__asm {
@@ -513,6 +539,10 @@ void Inject_StealCheckHook() {
 	HookCalls(StealCheckHook, { 0x4749A2, 0x474A69 });
 }
 
+void Inject_SneakCheckHook() {
+	HookCall(0x42E3D9, SneakCheckHook);
+}
+
 void Inject_WithinPerceptionHook() {
 	HookCalls(PerceptionRangeHook, {
 		0x429157,
@@ -558,6 +588,7 @@ void InitMiscHookScripts() {
 	LoadHookScript("hs_useskillon", HOOK_USESKILLON);
 	LoadHookScript("hs_useskill", HOOK_USESKILL);
 	LoadHookScript("hs_steal", HOOK_STEAL);
+	LoadHookScript("hs_sneak", HOOK_SNEAK);
 	LoadHookScript("hs_withinperception", HOOK_WITHINPERCEPTION);
 	LoadHookScript("hs_cartravel", HOOK_CARTRAVEL);
 	LoadHookScript("hs_setglobalvar", HOOK_SETGLOBALVAR);

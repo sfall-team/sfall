@@ -617,3 +617,17 @@ int     arg3 - the light radius, or -1 when setting the light level for a map
 
 int     ret1 - overrides the light intensity. Intensity range is from 0 to 65536
 int     ret2 - overrides the light radius. Radius range is from 0 to 8 (works only for the object)
+
+-------------------------------------------
+
+HOOK_SNEAK (hs_sneak.int)
+
+Runs when the Sneak skill is activated, or when the game rolls another Sneak check after the duration for the current one is over.
+You can override the result of a random Sneak check or the duration time for the current result.
+
+int     arg1 - Sneak check result: 1 - success, 0 - failure
+int     arg2 - the duration in ticks for the current Sneak check (time is based on the Sneak skill level)
+Critter arg3 - the critter (usually dude_obj)
+
+int     ret1 - overrides the Sneak check result
+int     ret2 - overrides the duration time for the current result
