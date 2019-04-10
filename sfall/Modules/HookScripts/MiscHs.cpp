@@ -207,14 +207,14 @@ static void __declspec(naked) StealCheckHook() {
 		mov args[4], edx;  // target
 		mov args[8], ebx;  // item
 		mov args[12], ecx; // is planting
-		pushad;
+		pushadc;
 	}
 
 	argCount = 4;
 	RunHookScript(HOOK_STEAL);
 
 	__asm {
-		popad;
+		popadc;
 		cmp cRet, 1;
 		jb  defaultHandler;
 		cmp rets[0], -1;
@@ -226,6 +226,32 @@ static void __declspec(naked) StealCheckHook() {
 defaultHandler:
 		HookEnd;
 		jmp fo::funcoffs::skill_check_stealing_;
+	}
+}
+
+static void __declspec(naked) SneakCheckHook() {
+	__asm {
+		HookBegin;
+		mov esi, ds:[FO_VAR_sneak_working];
+		mov args[0], esi; // 1 = sneak succeeding
+		mov args[4], eax; // time of work
+		mov args[8], edx; // critter
+		pushadc;
+	}
+
+	argCount = 3;
+	RunHookScript(HOOK_SNEAK);
+
+	__asm {
+		popadc;
+		cmp  cRet, 1;
+		jb   skip;
+		mov  esi, rets[0];
+		mov  ds:[FO_VAR_sneak_working], esi;
+		cmova eax, rets[4]; // override timer
+skip:
+		HookEnd;
+		jmp  fo::funcoffs::queue_add_;
 	}
 }
 
@@ -469,7 +495,7 @@ static int __fastcall ExplosiveTimerHook_Script(DWORD* type, DWORD item, DWORD t
 		if (cRet > 1) {
 			int typeRet = rets[1];
 			if (typeRet >= fo::ROLL_CRITICAL_FAILURE && typeRet <= fo::ROLL_CRITICAL_SUCCESS) {
-				*type = (typeRet > fo::ROLL_FAILURE) ? 8 : 11; // returned new type (8 = SUCCESS, 11 = FAILURE) 
+				*type = (typeRet > fo::ROLL_FAILURE) ? 8 : 11; // returned new type (8 = SUCCESS, 11 = FAILURE)
 			}
 		}
 	}
@@ -515,6 +541,10 @@ void Inject_UseSkillHook() {
 
 void Inject_StealCheckHook() {
 	HookCalls(StealCheckHook, { 0x4749A2, 0x474A69 });
+}
+
+void Inject_SneakCheckHook() {
+	HookCall(0x42E3D9, SneakCheckHook);
 }
 
 void Inject_WithinPerceptionHook() {
@@ -563,6 +593,7 @@ void InitMiscHookScripts() {
 	LoadHookScript("hs_useskillon", HOOK_USESKILLON);
 	LoadHookScript("hs_useskill", HOOK_USESKILL);
 	LoadHookScript("hs_steal", HOOK_STEAL);
+	LoadHookScript("hs_sneak", HOOK_SNEAK);
 	LoadHookScript("hs_withinperception", HOOK_WITHINPERCEPTION);
 	LoadHookScript("hs_cartravel", HOOK_CARTRAVEL);
 	LoadHookScript("hs_setglobalvar", HOOK_SETGLOBALVAR);

@@ -143,6 +143,9 @@ void _stdcall RunHookScript(DWORD hook) {
 		}
 	} else {
 		cArg = 0; // for what purpose is it here?
+		#ifndef NDEBUG
+			dlogh(">>> Try running hook ID: %d\n", hook, 0, 0);
+		#endif
 	}
 }
 

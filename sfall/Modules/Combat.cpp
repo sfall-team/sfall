@@ -98,7 +98,7 @@ static void __declspec(naked) ai_search_inven_weap_hook() {
 }
 
 // switching weapon mode from secondary to primary if there are not enough ammo to shoot
-static const DWORD ai_try_attack_searh_ammo = 0x42AA1E;
+static const DWORD ai_try_attack_search_ammo = 0x42AA1E;
 static const DWORD ai_try_attack_continue = 0x42A929;
 static void __declspec(naked) ai_try_attack_hook() {
 	using namespace fo;
@@ -106,13 +106,13 @@ static void __declspec(naked) ai_try_attack_hook() {
 	__asm {
 		mov  ebx, [esp + 0x364 - 0x38]; // hit mode
 		cmp  ebx, ATKTYPE_RWEAPON_SECONDARY;
-		jne  searhAmmo;
+		jne  searchAmmo;
 		mov  edx, [esp + 0x364 - 0x3C]; // weapon
 		mov  eax, [edx + charges];      // curr ammo
 		test eax, eax;
 		jnz  tryAttack;                 // have ammo
-searhAmmo:
-		jmp  ai_try_attack_searh_ammo;
+searchAmmo:
+		jmp  ai_try_attack_search_ammo;
 tryAttack:
 		mov  ebx, ATKTYPE_RWEAPON_PRIMARY;
 		mov  [esp + 0x364 - 0x38], ebx; // change hit mode

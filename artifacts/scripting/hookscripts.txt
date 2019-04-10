@@ -620,3 +620,17 @@ int     arg3 - radius of light
 int     ret1 - the return new intensity, the value of the range 0-65535
 int     ret2 - the return new radius, the value of the range 0-32 (set only for the object)
 
+-------------------------------------------
+
+HOOK_SNEAK (hs_sneak.int)
+
+Runs when the Sneak skill is active.
+You can override the result of a random Sneak check or the time of duration for the current result.
+
+int     arg1 - sneak check result, 1 - succeeding, 0 - failing
+int     arg2 - the duration in game ticks for the current sneak check (time depends on the level of the Sneak skill)
+Critter arg3 - the critter (usually dude_obj)
+
+int     ret1 - overrides the result of sneak checking
+int     ret2 - return the new time for the next check
+
