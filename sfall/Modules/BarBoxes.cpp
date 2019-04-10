@@ -31,7 +31,7 @@ static int initCount = 5;                 // init config counter (5 - vanilla bo
 static int sizeBox, setBoxIndex = 5;
 
 static long newBoxSlot[16];
-static long maxSlots;                     // maximum number of slots for the current game window resolution
+static long maxSlots = 6;                 // maximum number of slots for the current game window resolution
 static long ifaceWidth;
 
 #define sSize    (12)

@@ -326,10 +326,10 @@ static void __declspec(naked) AmmoCostHook() {
 	using namespace fo;
 	__asm {
 		xor  ecx, ecx;             // type of hook (0)
-		cmp dword ptr [esp + 0x1C + 4], ANIM_fire_burst;
-		jl skip;
-		cmp dword ptr [esp + 0x1C + 4], ANIM_fire_continuous;
-		jg skip;
+		cmp  dword ptr [esp + 0x1C + 4], ANIM_fire_burst;
+		jl   skip;
+		cmp  dword ptr [esp + 0x1C + 4], ANIM_fire_continuous;
+		jg   skip;
 		mov  ecx, 3;               // hook type burst
 skip:
 		xchg eax, edx;

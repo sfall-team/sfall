@@ -6,6 +6,7 @@ namespace sfall
 	void SourceUseSkillOnInit();
 
 	void Inject_BarterPriceHook();
+	void Inject_UseSkillOnHook();
 	void Inject_UseSkillHook();
 	void Inject_StealCheckHook();
 	void Inject_WithinPerceptionHook();
@@ -13,5 +14,4 @@ namespace sfall
 	void Inject_SetGlobalVarHook();
 	void Inject_RestTimerHook();
 	void Inject_ExplosiveTimerHook();
-	void Inject_UseSkillOnHook();
 }

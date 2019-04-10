@@ -105,17 +105,22 @@
 #define RMOBJ_THROW               4266040
 #define RMOBJ_SUB_CONTAINER       4683191  // search and remove the item from a container inside of an inventory
 
-// offsets for get_proto_data
+// common prototype offsets for get/set_proto_data
 #define PROTO_PID             (1)
 #define PROTO_TEXTID          (4)
 #define PROTO_FID             (8)
+#define PROTO_LDIST          (12)
+#define PROTO_LINT           (16)
+#define PROTO_FLAG           (20)
+#define PROTO_FLAG_EXT       (24)
+#define PROTO_SCRIPTID       (28)
 
 // items
-#define PROTO_IT_LDIST       (12)
-#define PROTO_IT_LINT        (16)
-#define PROTO_IT_FLAG        (20)
-#define PROTO_IT_FLAGS       (24)
-#define PROTO_IT_SCRIPTID    (28)
+#define PROTO_IT_LDIST       PROTO_LDIST
+#define PROTO_IT_LINT        PROTO_LINT
+#define PROTO_IT_FLAG        PROTO_FLAG
+#define PROTO_IT_FLAGS       PROTO_FLAG_EXT
+#define PROTO_IT_SCRIPTID    PROTO_SCRIPTID
 #define PROTO_IT_TYPE        (32)
 #define PROTO_IT_MATERIAL   (108)
 #define PROTO_IT_SIZE       (112)
@@ -200,18 +205,31 @@
 #define PROTO_DR_ADDICT_DELAY   (100)
 
 // critters
-#define PROTO_CR_LDIST           (20)
-#define PROTO_CR_LINT            (24)
-#define PROTO_CR_FLAG            (28)
-#define PROTO_CR_FLAGS           (32)  // Critter Flags
-#define PROTO_CR_SCRIPTID        (36)
-#define PROTO_CR_HEAD_FID        (40)
-#define PROTO_CR_AI_PACKET       (44)
-#define PROTO_CR_TEAM_NUM        (48)
-#define PROTO_CR_BODY_TYPE      (388)
-#define PROTO_CR_KILL_EXP       (392)
-#define PROTO_CR_KILL_TYPE      (396)
-#define PROTO_CR_DMG_TYPE       (400)
+#define PROTO_CR_FLAGS                   (32)  // Critter Flags
+#define PROTO_CR_BONUS_SRENGTH          (176)
+#define PROTO_CR_BONUS_PRCEPTION        (180)
+#define PROTO_CR_BONUS_ENDURANCE        (184)
+#define PROTO_CR_BONUS_CHARISMA         (188)
+#define PROTO_CR_BONUS_INTELLIGENCE     (192)
+#define PROTO_CR_BONUS_AGILITY          (196)
+#define PROTO_CR_BONUS_LUCK             (200)
+#define PROTO_CR_BONUS_HP               (204)
+#define PROTO_CR_BONUS_AP               (208)
+#define PROTO_CR_BONUS_AC               (212)
+#define PROTO_CR_BONUS_UNARMED_DAMAGE   (216)
+#define PROTO_CR_BONUS_MELEE_DAMAGE     (220)
+#define PROTO_CR_BONUS_CARRY_WEIGHT     (224)
+#define PROTO_CR_BONUS_SEQUENCE         (228)
+#define PROTO_CR_BONUS_HEALING_RATE     (232)
+#define PROTO_CR_BONUS_CRITICAL_CHANCE  (236)
+#define PROTO_CR_BONUS_BETTER_CRITICALS (240)
+#define PROTO_CR_BODY_TYPE              (388)
+#define PROTO_CR_KILL_EXP               (392)
+#define PROTO_CR_KILL_TYPE              (396)
+#define PROTO_CR_DMG_TYPE               (400)
+#define PROTO_CR_HEAD_FID               (404)
+#define PROTO_CR_AI_PACKET              (408)
+#define PROTO_CR_TEAM_NUM               (412)
 
 // weapon calibers
 #define CALIBER_NONE                 (0)
@@ -279,11 +297,11 @@
 #define AI_CAP_MAX_DISTANCE            (7)
 #define AI_CAP_MIN_HP                  (8)
 #define AI_CAP_MIN_TO_HIT              (9)
-#define AI_CAP_HURT_TOO_MUCH           (10) // DAM_BLIND/DAM_CRIP_* flags
-#define AI_CAP_RUN_AWAY_MODE           (11)
-#define AI_CAP_SECONDARY_FREQ          (12)
-#define AI_CAP_CALLED_FREQ             (13)
-#define AI_CAP_CHEM_PRIMARY_DESIRE     (14) // array pid list
+#define AI_CAP_HURT_TOO_MUCH          (10) // DAM_BLIND/DAM_CRIP_* flags
+#define AI_CAP_RUN_AWAY_MODE          (11)
+#define AI_CAP_SECONDARY_FREQ         (12)
+#define AI_CAP_CALLED_FREQ            (13)
+#define AI_CAP_CHEM_PRIMARY_DESIRE    (14) // array pid list
 
 // AI attack area mode values
 #define ai_area_always                 (0)

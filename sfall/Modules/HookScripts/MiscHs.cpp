@@ -90,6 +90,85 @@ static void __declspec(naked) OverrideCost_BarterPriceHack() {
 	}
 }
 
+static fo::GameObject* sourceSkillOn = nullptr;
+void SourceUseSkillOnInit() { sourceSkillOn = fo::var::obj_dude; }
+
+static char resultSkillOn;
+static long bakupCombatState;
+static void __fastcall UseSkillOnHook_Script(DWORD source, DWORD target, register DWORD skillId) {
+	BeginHook();
+	argCount = 3;
+
+	args[0] = source;  // user
+	args[1] = target;  // target
+	args[2] = skillId; // skill id
+
+	sourceSkillOn = fo::var::obj_dude;
+	resultSkillOn = 0;
+	bakupCombatState = -1;
+
+	RunHookScript(HOOK_USESKILLON);
+
+	if (skillId != fo::Skill::SKILL_STEAL && cRet > 0) { // not work for steal skill
+		if (rets[0] != 0) {
+			resultSkillOn = (rets[0] == -1) ? -1 : 1;
+			if (resultSkillOn == 1) {
+				sourceSkillOn = (fo::GameObject*)rets[0];
+			}
+		}
+		if (resultSkillOn != -1 && cRet > 1 && rets[1] == 1) {
+			bakupCombatState = fo::var::combat_state;
+			fo::var::combat_state = 0;
+		}
+	}
+	EndHook();
+}
+
+static void __declspec(naked) UseSkillOnHook() {
+	__asm {
+		push eax;
+		push ecx;
+		push edx;
+		push ebx;                    // skill id
+		mov  ecx, eax;               // user
+		call UseSkillOnHook_Script;  // edx - target
+		pop  edx;
+		pop  ecx;
+		pop  eax;
+		cmp  resultSkillOn, -1;      // skip handler
+		jnz  handler;
+		retn;
+handler:
+		jmp  fo::funcoffs::action_use_skill_on_;
+	}
+}
+
+static void __declspec(naked) UseSkillOnHack() {
+	__asm {
+		cmp bakupCombatState, -1;
+		jz  skip;
+		mov ebp, bakupCombatState;
+		mov dword ptr ds:[FO_VAR_combat_state], ebp;
+skip:
+		cmp resultSkillOn, 0;
+		jz  default;
+		mov edi, sourceSkillOn;
+		retn;  // flag ZF = 0
+default:
+		// engine code
+		cmp eax, dword ptr ds:[FO_VAR_obj_dude];
+		retn;
+	}
+}
+
+static void __declspec(naked) skill_use_hack() {
+	__asm {
+		cmp   ebp, dword ptr ds:[FO_VAR_obj_dude];
+		setnz al;
+		retn;
+	}
+}
+
 static void __declspec(naked) UseSkillHook() {
 	__asm {
 		HookBegin;
@@ -125,14 +204,14 @@ static void __declspec(naked) StealCheckHook() {
 		mov args[4], edx;  // target
 		mov args[8], ebx;  // item
 		mov args[12], ecx; // is planting
-		pushad;
+		pushadc;
 	}
 
 	argCount = 4;
 	RunHookScript(HOOK_STEAL);
 
 	__asm {
-		popad;
+		popadc;
 		cmp cRet, 1;
 		jb  defaultHandler;
 		cmp rets[0], -1;
@@ -415,84 +494,6 @@ end:
 	}
 }
 
-static fo::GameObject* sourceSkillOn = nullptr;
-void SourceUseSkillOnInit() { sourceSkillOn = fo::var::obj_dude; }
-
-static char resultSkillOn;
-static long bakupCombatState;
-static void __fastcall UseSkillOnHook_Script(DWORD source, DWORD target, register DWORD skillId) {
-	BeginHook();
-	argCount = 3;
-
-	args[0] = source;  // user
-	args[1] = target;  // target
-	args[2] = skillId; // skill id
-
-	sourceSkillOn = fo::var::obj_dude;
-	resultSkillOn = 0;
-	bakupCombatState = -1;
-
-	RunHookScript(HOOK_USESKILLON);
-
-	if (skillId != fo::Skill::SKILL_STEAL && cRet > 0) { // not work for steal skill
-		if (rets[0] != 0) {
-			resultSkillOn = (rets[0] == -1) ? -1 : 1;
-			if (resultSkillOn == 1) {
-				sourceSkillOn = (fo::GameObject*)rets[0];
-			}
-		}
-		if (resultSkillOn != -1 && cRet > 1 && rets[1] == 1) {
-			bakupCombatState = fo::var::combat_state;
-			fo::var::combat_state = 0;
-		}
-	}
-	EndHook();
-}
-
-static void __declspec(naked) UseSkillOnHook() {
-	__asm {
-		push eax;
-		push ecx;
-		push edx;
-		push ebx;                    // skill id
-		mov  ecx, eax;               // user
-		call UseSkillOnHook_Script;  // edx - target
-		pop  edx;
-		pop  ecx;
-		pop  eax;
-		cmp  resultSkillOn, -1;      // skip handler
-		jnz  handler;
-		retn;
-handler:
-		jmp  fo::funcoffs::action_use_skill_on_;
-	}
-}
-
-static void __declspec(naked) UseSkillOnHack() {
-	__asm {
-		cmp bakupCombatState, -1;
-		jz  skip;
-		mov ebp, bakupCombatState;
-		mov dword ptr ds:[FO_VAR_combat_state], ebp;
-skip:
-		cmp resultSkillOn, 0;
-		jz  default;
-		mov edi, sourceSkillOn;
-		retn;  // flag ZF = 0
-default:
-		// engine code
-		cmp eax, dword ptr ds:[FO_VAR_obj_dude];
-		retn;
-	}
-}
-
-static void __declspec(naked) skill_use_hack() {
-	__asm {
-		cmp   ebp, dword ptr ds:[FO_VAR_obj_dude];
-		setnz al;
-		retn;
-	}
-}
 
 void Inject_BarterPriceHook() {
 	HookCalls(BarterPriceHook, {
@@ -553,8 +554,8 @@ void Inject_UseSkillOnHook() {
 }
 
 void InitMiscHookScripts() {
-
 	LoadHookScript("hs_barterprice", HOOK_BARTERPRICE);
+	LoadHookScript("hs_useskillon", HOOK_USESKILLON);
 	LoadHookScript("hs_useskill", HOOK_USESKILL);
 	LoadHookScript("hs_steal", HOOK_STEAL);
 	LoadHookScript("hs_withinperception", HOOK_WITHINPERCEPTION);
@@ -562,7 +563,6 @@ void InitMiscHookScripts() {
 	LoadHookScript("hs_setglobalvar", HOOK_SETGLOBALVAR);
 	LoadHookScript("hs_resttimer", HOOK_RESTTIMER);
 	LoadHookScript("hs_explosivetimer", HOOK_EXPLOSIVETIMER);
-	LoadHookScript("hs_useskillon", HOOK_USESKILLON);
 }
 
 }
