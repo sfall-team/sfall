@@ -287,6 +287,27 @@ donothing:
 	}
 }
 
+static void __declspec(naked) PickupObjectHack() {
+	__asm {
+		cmp  edi, ds:[FO_VAR_obj_dude];
+		je   runHook;
+		xor  edx, edx; // engine handler
+		retn;
+runHook:
+		push eax;
+		push ecx;
+		mov  edx, ecx;
+		xor  ecx, ecx;                 // no itemReplace
+		push 7;                        // event: item pickup
+		call InventoryMoveHook_Script; // edx - item
+		mov  edx, eax;                 // ret value
+		pop  ecx;
+		pop  eax;
+		inc  edx; // 0 - engine handler, otherwise cancel pickup
+		retn;
+	}
+}
+
 /* Common InvenWield hook */
 static bool InvenWieldHook_Script(int flag) {
 	argCount = 4;
@@ -428,6 +449,11 @@ void Inject_InventoryMoveHook() {
 		0x47379A  // caps multi drop
 	});
 	MakeCall(0x473807, InvenActionExplosiveDropHack, 1);  // drop active explosives
+
+	MakeCall(0x49B660, PickupObjectHack);
+	SafeWrite32(0x49B665, 0x850FD285); // test edx, edx
+	SafeWrite32(0x49B669, 0xC2);       // jnz  0x49B72F
+	SafeWrite8(0x49B66E, 0xFE); // cmp edi > cmp esi
 }
 
 void Inject_InvenWieldHook() {
