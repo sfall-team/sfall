@@ -361,6 +361,7 @@
 #define ai_chem_always                 (5)
 
 // common object data offsets
+#define OBJ_DATA_ID                 (0x00)
 #define OBJ_DATA_TILENUM            (0x04)
 #define OBJ_DATA_CUR_FRM            (0x18) // current frame number
 #define OBJ_DATA_ROTATION           (0x1C)

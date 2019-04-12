@@ -519,5 +519,9 @@ void sf_set_drugs_data(OpcodeContext& ctx) {
 	if (result) ctx.printOpcodeError("set_drugs_data() - drug PID not found in the configuration file.");
 }
 
+void sf_set_unique_id(OpcodeContext& ctx) {
+	ctx.setReturn(Objects::SetObjectUniqueID(ctx.arg(0).asObject()));
+}
+
 }
 }

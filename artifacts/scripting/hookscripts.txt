@@ -416,17 +416,16 @@ HOOK_INVENTORYMOVE (hs_inventorymove.int)
 Runs before moving items between inventory slots in dude interface. You can override the action.
 What you can NOT do with this hook:
 - force moving items to inappropriate slots (like gun in armor slot)
-- block picking up items
 What you can do:
 - restrict player from using specific weapons or armors
 - add AP costs for all inventory movement including reloading
 - apply or remove some special scripted effects depending on PC's armor
 
-int     arg1 - Target slot (0 - main backpack, 1 - left hand, 2 - right hand, 3 - armor slot, 4 - weapon, when reloading it by dropping ammo, 5 - container, like bag/backpack, 6 - dropping on the ground)
+int     arg1 - Target slot (0 - main backpack, 1 - left hand, 2 - right hand, 3 - armor slot, 4 - weapon, when reloading it by dropping ammo, 5 - container, like bag/backpack, 6 - dropping on the ground, 7 - picking up item)
 Item    arg2 - Item being moved
 Item    arg3 - Item being replaced, weapon being reloaded, or container being filled (can be 0)
 
-int     ret1 - Override setting (-1 - use engine handler, any other value - prevent relocation of item/reloading weapon)
+int     ret1 - Override setting (-1 - use engine handler, any other value - prevent relocation of item/reloading weapon/picking up item)
 
 -------------------------------------------
 
@@ -626,8 +625,8 @@ Runs when the Sneak skill is activated, or when the game rolls another Sneak che
 You can override the result of a random Sneak check or the duration time for the current result.
 
 int     arg1 - Sneak check result: 1 - success, 0 - failure
-int     arg2 - the duration in ticks for the current Sneak check (time is based on the Sneak skill level)
+int     arg2 - the duration in ticks for the current Sneak check (time depends on Sneak skill level)
 Critter arg3 - the critter (usually dude_obj)
 
-int     ret1 - overrides the Sneak check result
+int     ret1 - overrides the result of the Sneak check
 int     ret2 - overrides the duration time for the current result

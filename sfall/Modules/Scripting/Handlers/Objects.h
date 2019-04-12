@@ -109,5 +109,7 @@ void sf_get_object_ai_data(OpcodeContext&);
 
 void sf_set_drugs_data(OpcodeContext&);
 
+void sf_set_unique_id(OpcodeContext&);
+
 }
 }

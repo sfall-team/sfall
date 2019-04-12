@@ -22,7 +22,7 @@
 #include "..\FalloutEngine\Fallout2.h"
 #include "..\InputFuncs.h"
 #include "PartyControl.h"
-#include "HookScripts.h"
+//#include "HookScripts.h"
 #include "LoadGameHook.h"
 
 #include "Inventory.h"
