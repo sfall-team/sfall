@@ -6,12 +6,15 @@ EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
+		DevXP|Win32 = DevXP|Win32
 		Release|Win32 = Release|Win32
 		Win2K|Win32 = Win2K|Win32
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{FB9023DA-CA5E-4704-B601-407810963EF0}.Debug|Win32.ActiveCfg = Debug|Win32
 		{FB9023DA-CA5E-4704-B601-407810963EF0}.Debug|Win32.Build.0 = Debug|Win32
+		{FB9023DA-CA5E-4704-B601-407810963EF0}.DevXP|Win32.ActiveCfg = DevXP|Win32
+		{FB9023DA-CA5E-4704-B601-407810963EF0}.DevXP|Win32.Build.0 = DevXP|Win32
 		{FB9023DA-CA5E-4704-B601-407810963EF0}.Release|Win32.ActiveCfg = Release|Win32
 		{FB9023DA-CA5E-4704-B601-407810963EF0}.Release|Win32.Build.0 = Release|Win32
 		{FB9023DA-CA5E-4704-B601-407810963EF0}.Win2K|Win32.ActiveCfg = Win2K|Win32

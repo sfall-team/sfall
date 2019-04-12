@@ -556,23 +556,27 @@ end:
 
 // Adds the selected perk to the player
 static void _stdcall AddFakePerk(DWORD perkID) {
+	size_t count;
+	bool matched = false;
+	// behavior for fake perk/trait
 	perkID -= PERK_count;
-	if (addPerkMode & 1) {
-		bool matched = false;
-		for (DWORD d = 0; d < fakeTraits.size(); d++) {
+	if (addPerkMode & 1) { // add perk to trait
+		count = fakeTraits.size();
+		for (size_t d = 0; d < count; d++) {
 			if (!strcmp(fakeTraits[d].Name, fakeSelectablePerks[perkID].Name)) {
 				matched = true;
 				break;
 			}
 		}
 		if (!matched) {
-			if (RemoveTraitID == -1) RemoveTraitID = fakeTraits.size();
+			if (RemoveTraitID == -1) RemoveTraitID = count; // index of the added trait
 			fakeTraits.push_back(fakeSelectablePerks[perkID]);
 		}
 	}
-	if (addPerkMode & 2) {
-		bool matched = false;
-		for (DWORD d = 0; d < fakePerks.size(); d++) {
+	if (addPerkMode & 2) { // default mode
+		matched = false;
+		count = fakePerks.size();
+		for (size_t d = 0; d < count; d++) {
 			if (!strcmp(fakePerks[d].Name, fakeSelectablePerks[perkID].Name)) {
 				RemovePerkID.push_back(d);
 				fakePerks[d].Level++;
@@ -580,12 +584,12 @@ static void _stdcall AddFakePerk(DWORD perkID) {
 				break;
 			}
 		}
-		if (!matched) {
-			RemovePerkID.push_back(fakePerks.size());
+		if (!matched) { // add to fakePerks
+			RemovePerkID.push_back(count); // index of the added perk
 			fakePerks.push_back(fakeSelectablePerks[perkID]);
 		}
 	}
-	if (addPerkMode & 4) {
+	if (addPerkMode & 4) { // delete from selectable perks
 		RemoveSelectableID.push_back(perkID);
 		//fakeSelectablePerks.remove_at(perkID);
 	}

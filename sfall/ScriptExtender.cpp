@@ -402,6 +402,7 @@ static const SfallOpcodeMetadata opcodeMetaArray[] = {
 	{sf_set_map_enter_position, "set_map_enter_position", {DATATYPE_MASK_INT, DATATYPE_MASK_INT, DATATYPE_MASK_INT}},
 	{sf_set_object_data,        "set_object_data",        {DATATYPE_MASK_VALID_OBJ, DATATYPE_MASK_INT, DATATYPE_MASK_INT}},
 	{sf_set_outline,            "set_outline",            {DATATYPE_MASK_VALID_OBJ, DATATYPE_MASK_INT}},
+	{sf_set_unique_id,          "set_unique_id",          {DATATYPE_MASK_VALID_OBJ}},
 	{sf_spatial_radius,         "spatial_radius",         {DATATYPE_MASK_VALID_OBJ}},
 	{sf_unjam_lock,             "unjam_lock",             {DATATYPE_MASK_VALID_OBJ}},
 	#ifndef NDEBUG

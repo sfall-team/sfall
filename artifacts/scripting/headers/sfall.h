@@ -243,6 +243,7 @@
 #define set_map_enter_position(tile, elev, rot)         sfall_func3("set_map_enter_position", tile, elev, rot)
 #define set_object_data(obj, offset, value)             sfall_func3("set_object_data", obj, offset, value)
 #define set_outline(obj, color)                         sfall_func2("set_outline", obj, color)
+#define set_unique_id(object)                           sfall_func1("set_unique_id", object)
 #define spatial_radius(obj)                             sfall_func1("spatial_radius", obj)
 #define tile_refresh_display                            sfall_func0("tile_refresh_display")
 #define unjam_lock(obj)                                 sfall_func1("unjam_lock", obj)

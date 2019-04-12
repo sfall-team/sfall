@@ -643,3 +643,7 @@ static void sf_set_object_data() {
 	BYTE* object_ptr = (BYTE*)opHandler.arg(0).asObject();
 	*(long*)(object_ptr + opHandler.arg(1).asInt()) = opHandler.arg(2).asInt();
 }
+
+static void sf_set_unique_id() {
+	opHandler.setReturn(SetObjectUniqueID(opHandler.arg(0).asObject()), DATATYPE_INT);
+}
