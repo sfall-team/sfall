@@ -611,7 +611,7 @@ static void _stdcall AddFakePerk(DWORD perkID) {
 	}
 	if (addPerkMode & 2) { // default mode
 		matched = false;
-		count = fakeTraits.size();
+		count = fakePerks.size();
 		for (size_t d = 0; d < count; d++) {
 			if (!strcmp(fakePerks[d].Name, fakeSelectablePerks[perkID].Name)) {
 				RemovePerkID.push_back(d);
