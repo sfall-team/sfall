@@ -2070,6 +2070,28 @@ skip:
 	}
 }
 
+static void __declspec(naked) exec_script_proc_hack() {
+	__asm {
+		mov  eax, [esi + 0x58];
+		test eax, eax;
+		ja   end;
+		inc  eax; // start handler
+end:
+		retn;
+	}
+}
+
+static void __declspec(naked) exec_script_proc_hack1() {
+	__asm {
+		mov  esi, [edi + 0x58];
+		test esi, esi;
+		ja   end;
+		inc  esi; // start handler
+end:
+		retn;
+	}
+}
+
 void BugFixes::init()
 {
 	#ifndef NDEBUG
@@ -2633,6 +2655,10 @@ void BugFixes::init()
 	HookCall(0x48D666, obj_load_dude_hook1);
 	BlockCall(0x48D675);
 	BlockCall(0x48D69D);
+
+	// Fix for the correct calling of the 'start' script procedure, in the absence of a standard handler procedure
+	MakeCall(0x4A4926, exec_script_proc_hack);
+	MakeCall(0x4A4979, exec_script_proc_hack1);
 }
 
 
