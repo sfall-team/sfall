@@ -36,6 +36,19 @@ pickNewID: // skip PM range (18000 - 83535)
 	}
 }
 
+static void __declspec(naked) item_identical_hack() {
+	using namespace fo::Fields;
+	__asm {
+		mov  eax, [edi]; // item id
+		cmp  eax, Start; // Unique ID
+		jg   notIdentical;
+		mov  eax, [esi + scriptId];
+		cmp  eax, ebx;
+notIdentical:
+		retn;
+	}
+}
+
 void Objects::SetAutoUnjamLockTime(DWORD time) {
 	if (!unjamTimeState) BlockCall(0x4A364A); // disable auto unjam at midnight
 
@@ -99,6 +112,10 @@ void Objects::init() {
 
 	HookCall(0x4A38A5, new_obj_id_hook);
 	SafeWrite8(0x4A38B3, 0x90); // fix increment ID
+
+	if (GetConfigInt("Debugging", "PlaceUniqueItemIntoStack", 0) == 0) {
+		MakeCall(0x477A0E, item_identical_hack); // don't put to item stack
+	}
 }
 
 }

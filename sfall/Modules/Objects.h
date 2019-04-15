@@ -4,7 +4,7 @@ namespace sfall
 {
 
 enum UniqueID {
-	Start = 0x10000000,
+	Start = 0x0FFFFFFF, // start at 0x10000000
 	End   = 0x7FFFFFFF
 };
 
