@@ -1008,6 +1008,8 @@ long __stdcall StatLevel(TGameObj* critter, long statId);
 
 long __stdcall QueueFindFirst(TGameObj* object, long qType);
 
+long __stdcall NewObjId();
+
 // for the backported AmmoCostHook from 4.x
 long __stdcall ItemWAnimWeap(TGameObj* item, DWORD hitMode);
 long __stdcall ItemWComputeAmmoCost(TGameObj* item, DWORD* rounds);

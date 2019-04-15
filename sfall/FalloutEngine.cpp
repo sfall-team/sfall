@@ -986,6 +986,10 @@ long __stdcall QueueFindFirst(TGameObj* object, long qType) {
 	}
 }
 
+long __stdcall NewObjId() {
+	__asm call new_obj_id_;
+}
+
 // for the backported AmmoCostHook from 4.x
 long __stdcall ItemWAnimWeap(TGameObj* item, DWORD hitMode) {
 	__asm {

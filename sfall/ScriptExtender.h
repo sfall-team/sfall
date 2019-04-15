@@ -29,7 +29,7 @@ enum SfallDataType {
 };
 
 enum UniqueID {
-	UID_START = 0x10000000,
+	UID_START = 0x0FFFFFFF, // start at 0x10000000
 	UID_END   = 0x7FFFFFFF
 };
 
