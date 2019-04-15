@@ -66,6 +66,7 @@
 #include "Modules\Sound.h"
 #include "Modules\SpeedPatch.h"
 #include "Modules\Stats.h"
+#include "Modules\TalkingHeads.h"
 #include "Modules\ExtraSaveSlots.h"
 #include "Modules\Tiles.h"
 #include "Modules\Worldmap.h"
@@ -178,6 +179,7 @@ static void InitModules() {
 	manager.add<BarBoxes>();
 	manager.add<HeroAppearance>();
 	manager.add<MiscPatches>();
+	manager.add<TalkingHeads>();
 	manager.add<DebugEditor>();
 
 	manager.initAll();

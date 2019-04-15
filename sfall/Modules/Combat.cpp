@@ -275,8 +275,10 @@ void _stdcall KnockbackSetMod(fo::GameObject* object, DWORD type, float val, DWO
 
 void _stdcall KnockbackRemoveMod(fo::GameObject* object, DWORD on) {
 	std::vector<KnockbackModifier>* mods;
+	int id = object->id;
 	switch (on) {
 	case 0:
+		object->id = fo::func::new_obj_id(); // revert to engine range id
 		mods = &mWeapons;
 		break;
 	case 1:
@@ -289,7 +291,7 @@ void _stdcall KnockbackRemoveMod(fo::GameObject* object, DWORD on) {
 		return;
 	}
 	for (DWORD i = 0; i < mods->size(); i++) {
-		if ((*mods)[i].id == object->id) {
+		if ((*mods)[i].id == id) {
 			mods->erase(mods->begin() + i);
 			return;
 		}

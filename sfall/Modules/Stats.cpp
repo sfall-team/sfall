@@ -29,7 +29,7 @@
 namespace sfall
 {
 
-static long* _fastcall GetProto(fo::GameObject*);
+static long* __fastcall GetProto(fo::GameObject*);
 
 struct ProtoMem {
 	long* proto;
@@ -285,7 +285,7 @@ static long ApplyAllStatsToProto(const protoMem_iterator &iter, long* &proto_out
 }
 
 // Returns the prototype NPC located in memory
-static long* _fastcall GetProto(fo::GameObject* critter) {
+static long* __fastcall GetProto(fo::GameObject* critter) {
 	if (protoMem.empty() || critter == fo::var::obj_dude) return nullptr;
 	if (lastGetProtoID.id == critter->id) return lastGetProtoID.proto;
 
@@ -358,7 +358,7 @@ static void AddStatToProto(long stat, fo::GameObject* critter, long amount, long
 	SetStatValue(vec.back().s_proto, offset, amount); // set value to individuals prototype
 }
 
-static void _fastcall SetStatToProto(long stat, fo::GameObject* critter, long amount, long* protoBase, long offset, bool isSaved) {
+static void __fastcall SetStatToProto(long stat, fo::GameObject* critter, long amount, long* protoBase, long offset, bool isSaved) {
 	if (critter != fo::var::obj_dude) {
 		if (isNotPartyMemberPid == critter->protoId || !IsPartyMember(critter)) {
 			isNotPartyMemberPid = critter->protoId;

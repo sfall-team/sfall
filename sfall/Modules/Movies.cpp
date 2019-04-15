@@ -274,7 +274,7 @@ static void __declspec(naked) PlayFrameHook2() {
 	}
 }
 
-static DWORD _cdecl PreparePlayMovie(const DWORD id) {
+static DWORD __cdecl PreparePlayMovie(const DWORD id) {
 	//Get file path in unicode
 	wchar_t path[MAX_PATH];
 	char* master_patches = fo::var::patches;
@@ -543,7 +543,7 @@ static sDSSound* PlayingSound(wchar_t* path, bool loop) {
 }
 
 static const wchar_t *SoundExtensions[] = { L"mp3", L"wma", L"wav" };
-static bool _cdecl SoundFileLoad(DWORD called, const char* path) {
+static bool __cdecl SoundFileLoad(DWORD called, const char* path) {
 	if (!path || strlen(path) < 4) return false;
 	wchar_t buf[256];
 	mbstowcs_s(0, buf, path, 256);

@@ -18,6 +18,7 @@
 // because the compiler builds the better/optimized code when calling the engine functions
 WRAP_WATCOM_FFUNC4(long, _word_wrap, const char*, text, int, maxWidth, DWORD*, buf, BYTE*, count)
 WRAP_WATCOM_FFUNC7(long, createWindow, const char*, winName, long, x, long, y, long, width, long, height, long, bgColorIndex, long, flags)
+WRAP_WATCOM_FFUNC3(long, frame_ptr, FrmFrameData*, frm, long, rotation, long, frame)
 WRAP_WATCOM_FFUNC7(void, make_straight_path_func, fo::GameObject*, objFrom, DWORD, tileFrom, DWORD, tileTo, void*, rotationPtr, DWORD*, result, long, flags, void*, func)
 WRAP_WATCOM_FFUNC3(long, object_under_mouse, long, crSwitch, long, inclDude, long, elevation)
 
@@ -80,6 +81,7 @@ WRAP_WATCOM_FUNC0(void, mouse_show)
 WRAP_WATCOM_FUNC0(void, mouse_hide)
 // calculates path and returns it's length
 WRAP_WATCOM_FUNC6(long, make_path_func, GameObject*, objectFrom, long, tileFrom, long, tileTo, char*, pathDataBuffer, long, arg5, void*, blockingFunc)
+WRAP_WATCOM_FUNC0(long, new_obj_id)
 // calculates bounding box (rectangle) for a given object
 WRAP_WATCOM_FUNC2(void, obj_bound, GameObject*, object, BoundRect*, boundRect)
 WRAP_WATCOM_FUNC2(long, obj_erase_object, GameObject*, object, BoundRect*, boundRect)
