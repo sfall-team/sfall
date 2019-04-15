@@ -520,7 +520,15 @@ void sf_set_drugs_data(OpcodeContext& ctx) {
 }
 
 void sf_set_unique_id(OpcodeContext& ctx) {
-	ctx.setReturn(Objects::SetObjectUniqueID(ctx.arg(0).asObject()));
+	fo::GameObject* obj = ctx.arg(0).asObject();
+	long id;
+	if (ctx.arg(1).asInt() == -1) {
+		id = fo::func::new_obj_id();
+		obj->id = id;
+	} else {
+		id = Objects::SetObjectUniqueID(obj);
+	}
+	ctx.setReturn(id);
 }
 
 }

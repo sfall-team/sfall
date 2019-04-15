@@ -1,5 +1,6 @@
 #include "..\main.h"
 #include "..\FalloutEngine\Fallout2.h"
+#include "Combat.h"
 #include "LoadGameHook.h"
 
 #include "Objects.h"
@@ -10,7 +11,7 @@ namespace sfall
 static int unjamTimeState;
 static int maxCountProto = 512;
 
-long Objects::uniqueID = UniqueID::Start; // saving to sfallgv.sav
+long Objects::uniqueID = UniqueID::Start; // current counter id, saving to sfallgv.sav
 
 // Assigns a new unique identifier to an object if it has not been previously assigned
 // the identifier is saved with the object in the saved game and this can used in various script
@@ -24,6 +25,46 @@ long Objects::SetObjectUniqueID(fo::GameObject* obj) {
 	return uniqueID;
 }
 
+// Assigns a unique ID in the negative range (0x8FFFFFFF - 0xFFFFFFFE)
+long Objects::SetSpecialID(fo::GameObject* obj) {
+	long id = obj->id;
+	if (id < -1 || id > UniqueID::Start) return id;
+
+	if ((DWORD)uniqueID >= UniqueID::End) uniqueID = UniqueID::Start;
+	id = ++uniqueID + UniqueID::End;
+	obj->id = id;
+	return id;
+}
+
+void Objects::SetNewEngineID(fo::GameObject* obj) {
+	if (obj->id > UniqueID::Start) return;
+	obj->id = fo::func::new_obj_id();
+}
+
+static bool _fastcall CheckSpecialID(long id) {
+	if (Combat::mWeapons.empty()) return false;
+	for (auto& weapon : Combat::mWeapons) {
+		if (id == weapon.id) return true;
+	}
+	return false;
+}
+
+static void __declspec(naked) item_identical_hack() {
+	using namespace fo::Fields;
+	__asm {
+		mov  ecx, [edi]; // item id
+		cmp  ecx, Start; // start unique ID
+		jg   notIdentical;
+		call CheckSpecialID;
+		test al, al;
+		jnz  notIdentical;
+		mov  eax, [esi + scriptId];
+		cmp  eax, ebx;
+notIdentical:
+		retn; // if ZF == 0 then item is not identical
+	}
+}
+
 static void __declspec(naked) new_obj_id_hook() {
 	__asm {
 		mov  eax, 83535;
@@ -33,19 +74,6 @@ static void __declspec(naked) new_obj_id_hook() {
 pickNewID: // skip PM range (18000 - 83535)
 		mov  ds:[FO_VAR_cur_id], eax;
 		jmp  fo::funcoffs::new_obj_id_;
-	}
-}
-
-static void __declspec(naked) item_identical_hack() {
-	using namespace fo::Fields;
-	__asm {
-		mov  eax, [edi]; // item id
-		cmp  eax, Start; // Unique ID
-		jg   notIdentical;
-		mov  eax, [esi + scriptId];
-		cmp  eax, ebx;
-notIdentical:
-		retn;
 	}
 }
 
@@ -113,9 +141,9 @@ void Objects::init() {
 	HookCall(0x4A38A5, new_obj_id_hook);
 	SafeWrite8(0x4A38B3, 0x90); // fix increment ID
 
-	if (GetConfigInt("Debugging", "PlaceUniqueItemIntoStack", 0) == 0) {
-		MakeCall(0x477A0E, item_identical_hack); // don't put to item stack
-	}
+	//if (GetConfigInt("Misc", "StackableUniqueItems", 0) == 0) {
+		MakeCall(0x477A0E, item_identical_hack); // don't put to stack
+	//}
 }
 
 }

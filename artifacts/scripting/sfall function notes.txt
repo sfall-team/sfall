@@ -582,10 +582,13 @@ Some utility/math functions are available:
         1 - changes the duration of the addiction effect for the drug (value 1 equals one game minute)
 
 > int sfall_func1("set_unique_id", object)
-- assigns a unique ID number to the object and return it. If a unique number has already been assigned to an object, then ID number is returned without reassignment
-- to just get the current ID number of an object, use the sfall_func2("get_object_data", object, OBJ_DATA_ID) function
+> int sfall_func1("set_unique_id", object, int flag)
+- assigns an unique ID number to the object and returns it. If an unique ID number has already been assigned to an object, then ID number is returned without reassignment
+- items that have unique IDs in the inventory will not stack with other items of the same type
+- to just get the current ID number of an object, use sfall_func2("get_object_data", object, OBJ_DATA_ID) function
 - unique ID numbers are saved in your savegame, and have a range from 0x10000000 to 0x7FFFFFFF
-- there is also a unique range for the player and party members from 18000 to 83535
+- there is also an unique ID number range for the player and party members from 18000 to 83535
+- to assign a new ID number to the object from the range by the game engine, use a function with two arguments, with a value of -1 for the flag argument
 
 ------------------------
 ------ MORE INFO -------
