@@ -30,11 +30,17 @@
 namespace sfall
 {
 
+struct KnockbackModifier {
+	long id;
+	DWORD type;
+	double value;
+};
+
 static std::vector<long> noBursts; // object id
 
 static std::vector<KnockbackModifier> mTargets;
 static std::vector<KnockbackModifier> mAttackers;
-std::vector<KnockbackModifier> Combat::mWeapons;
+static std::vector<KnockbackModifier> mWeapons;
 
 static std::vector<ChanceModifier> hitChanceMods;
 static ChanceModifier baseHitChance;
@@ -162,7 +168,7 @@ static double ApplyModifiers(std::vector<KnockbackModifier>* mods, fo::GameObjec
 
 static DWORD _fastcall CalcKnockbackMod(int knockValue, int damage, fo::GameObject* weapon, fo::GameObject* attacker, fo::GameObject* target) {
 	double result = (double)damage / (double)knockValue;
-	result = ApplyModifiers(&Combat::mWeapons, weapon, result);
+	result = ApplyModifiers(&mWeapons, weapon, result);
 	result = ApplyModifiers(&mAttackers, attacker, result);
 	result = ApplyModifiers(&mTargets, target, result);
 	return (DWORD)floor(result);
@@ -245,7 +251,7 @@ void _stdcall KnockbackSetMod(fo::GameObject* object, DWORD type, float val, DWO
 	switch (on) {
 	case 0:
 		if (object->Type() != fo::OBJ_TYPE_ITEM) return;
-		mods = &Combat::mWeapons;
+		mods = &mWeapons;
 		break;
 	case 1:
 		if (object->Type() != fo::OBJ_TYPE_CRITTER) return;
@@ -276,7 +282,7 @@ void _stdcall KnockbackRemoveMod(fo::GameObject* object, DWORD on) {
 	std::vector<KnockbackModifier>* mods;
 	switch (on) {
 	case 0:
-		mods = &Combat::mWeapons;
+		mods = &mWeapons;
 		break;
 	case 1:
 		mods = &mTargets;
@@ -391,7 +397,7 @@ static void ResetOnGameLoad() {
 	baseHitChance.SetDefault();
 	mTargets.clear();
 	mAttackers.clear();
-	Combat::mWeapons.clear();
+	mWeapons.clear();
 	hitChanceMods.clear();
 	noBursts.clear();
 	disabledAS.clear();
