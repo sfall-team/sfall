@@ -27,6 +27,7 @@ procedure InventoryMove_Handler;
 procedure GameModeChange_Handler;
 procedure KeyPress_Handler;
 procedure InvenWield_Handler;
+procedure SetGlobalVar_Handler;
 
 variable
    controlMode,
@@ -171,6 +172,10 @@ procedure start begin
          register_hook_proc(HOOK_GAMEMODECHANGE, GameModeChange_Handler);
          register_hook_proc(HOOK_INVENTORYMOVE, InventoryMove_Handler);
          register_hook_proc(HOOK_INVENWIELD, InvenWield_Handler);
+
+         if (GetConfig("CombatControl", "GainReputation", 0) == 0) then begin
+             register_hook_proc(HOOK_SETGLOBALVAR, SetGlobalVar_Handler);
+         end
       end
    end
 end
@@ -199,5 +204,14 @@ procedure InvenWield_Handler begin
    // Fix of duplicate weapons when equipment
    if (event and slot == INVEN_TYPE_RIGHT_HAND and AllowControl(obj_pid(critter))) then begin
       set_flags(item, get_flags(item) bwand bwnot(FLAG_LEFT_HAND));
+   end
+end
+
+procedure SetGlobalVar_Handler begin
+   if (inControl and get_sfall_arg == GVAR_PLAYER_REPUTATION) then begin
+      variable value := global_var(GVAR_PLAYER_REPUTATION);
+      if (get_sfall_arg > value) then begin
+         set_sfall_return(value);
+      end
    end
 end
