@@ -18,6 +18,9 @@ public:
 	static long uniqueID;
 
 	static long SetObjectUniqueID(fo::GameObject* obj);
+	static long SetSpecialID(fo::GameObject* obj);
+	static void SetNewEngineID(fo::GameObject* obj);
+
 	static void SetAutoUnjamLockTime(DWORD time);
 	static void LoadProtoAutoMaxLimit();
 };

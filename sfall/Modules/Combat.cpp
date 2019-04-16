@@ -32,15 +32,9 @@ namespace sfall
 
 static std::vector<long> noBursts; // object id
 
-struct KnockbackModifier {
-	long id;
-	DWORD type;
-	double value;
-};
-
 static std::vector<KnockbackModifier> mTargets;
 static std::vector<KnockbackModifier> mAttackers;
-static std::vector<KnockbackModifier> mWeapons;
+std::vector<KnockbackModifier> Combat::mWeapons;
 
 static std::vector<ChanceModifier> hitChanceMods;
 static ChanceModifier baseHitChance;
@@ -168,7 +162,7 @@ static double ApplyModifiers(std::vector<KnockbackModifier>* mods, fo::GameObjec
 
 static DWORD __fastcall CalcKnockbackMod(int knockValue, int damage, fo::GameObject* weapon, fo::GameObject* attacker, fo::GameObject* target) {
 	double result = (double)damage / (double)knockValue;
-	result = ApplyModifiers(&mWeapons, weapon, result);
+	result = ApplyModifiers(&Combat::mWeapons, weapon, result);
 	result = ApplyModifiers(&mAttackers, attacker, result);
 	result = ApplyModifiers(&mTargets, target, result);
 	return (DWORD)floor(result);
@@ -250,19 +244,25 @@ void _stdcall KnockbackSetMod(fo::GameObject* object, DWORD type, float val, DWO
 	std::vector<KnockbackModifier>* mods;
 	switch (on) {
 	case 0:
-		mods = &mWeapons;
+		if (object->Type() != fo::OBJ_TYPE_ITEM) return;
+		mods = &Combat::mWeapons;
 		break;
 	case 1:
+		if (object->Type() != fo::OBJ_TYPE_CRITTER) return;
 		mods = &mTargets;
 		break;
 	case 2:
+		if (object->Type() != fo::OBJ_TYPE_CRITTER) return;
 		mods = &mAttackers;
 		break;
 	default:
 		return;
 	}
 
-	long id = Objects::SetObjectUniqueID(object);
+	long id = (on == 0)
+			? Objects::SetSpecialID(object)
+			: Objects::SetObjectUniqueID(object);
+
 	KnockbackModifier mod = { id, type, (double)val };
 	for (DWORD i = 0; i < mods->size(); i++) {
 		if ((*mods)[i].id == id) {
@@ -275,11 +275,9 @@ void _stdcall KnockbackSetMod(fo::GameObject* object, DWORD type, float val, DWO
 
 void _stdcall KnockbackRemoveMod(fo::GameObject* object, DWORD on) {
 	std::vector<KnockbackModifier>* mods;
-	int id = object->id;
 	switch (on) {
 	case 0:
-		object->id = fo::func::new_obj_id(); // revert to engine range id
-		mods = &mWeapons;
+		mods = &Combat::mWeapons;
 		break;
 	case 1:
 		mods = &mTargets;
@@ -291,8 +289,9 @@ void _stdcall KnockbackRemoveMod(fo::GameObject* object, DWORD on) {
 		return;
 	}
 	for (DWORD i = 0; i < mods->size(); i++) {
-		if ((*mods)[i].id == id) {
+		if ((*mods)[i].id == object->id) {
 			mods->erase(mods->begin() + i);
+			if (on == 0) Objects::SetNewEngineID(object); // revert to engine range id
 			return;
 		}
 	}
@@ -304,7 +303,7 @@ void _stdcall SetHitChanceMax(fo::GameObject* critter, DWORD maximum, DWORD mod)
 		baseHitChance.mod = mod;
 		return;
 	}
-
+	if (critter->Type() != fo::OBJ_TYPE_CRITTER) return;
 	long id = Objects::SetObjectUniqueID(critter);
 	for (DWORD i = 0; i < hitChanceMods.size(); i++) {
 		if (id == hitChanceMods[i].id) {
@@ -317,7 +316,7 @@ void _stdcall SetHitChanceMax(fo::GameObject* critter, DWORD maximum, DWORD mod)
 }
 
 void _stdcall SetNoBurstMode(fo::GameObject* critter, bool on) {
-	if (critter == fo::var::obj_dude) return;
+	if (critter == fo::var::obj_dude || critter->Type() != fo::OBJ_TYPE_CRITTER) return;
 
 	long id = Objects::SetObjectUniqueID(critter);
 	for (size_t i = 0; i < noBursts.size(); i++) {
@@ -393,7 +392,7 @@ static void Combat_OnGameLoad() {
 	baseHitChance.SetDefault();
 	mTargets.clear();
 	mAttackers.clear();
-	mWeapons.clear();
+	Combat::mWeapons.clear();
 	hitChanceMods.clear();
 	noBursts.clear();
 	disabledAS.clear();
