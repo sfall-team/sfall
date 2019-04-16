@@ -98,6 +98,8 @@ extern DWORD AvailableGlobalScriptTypes;
 // object's unique id
 extern long objUniqueID;
 long SetObjectUniqueID(TGameObj* obj);
+long SetSpecialID(TGameObj* obj);
+void SetNewEngineID(TGameObj* obj);
 
 // types for script variables
 #define VAR_TYPE_INT    (0xC001)

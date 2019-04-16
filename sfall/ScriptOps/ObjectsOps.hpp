@@ -645,5 +645,13 @@ static void sf_set_object_data() {
 }
 
 static void sf_set_unique_id() {
-	opHandler.setReturn(SetObjectUniqueID(opHandler.arg(0).asObject()), DATATYPE_INT);
+	TGameObj* obj = opHandler.arg(0).asObject();
+	long id;
+	if (opHandler.numArgs() == 2 && opHandler.arg(1).asInt() == -1) {
+		id = NewObjId();
+		obj->ID = id;
+	} else {
+		id = SetObjectUniqueID(obj);
+	}
+	opHandler.setReturn(id, DATATYPE_INT);
 }

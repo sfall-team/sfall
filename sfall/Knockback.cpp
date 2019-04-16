@@ -27,15 +27,9 @@
 
 static std::vector<long> NoBursts; // object id
 
-struct KnockbackModifier {
-	long id;
-	DWORD type;
-	double value;
-};
-
 static std::vector<KnockbackModifier> mTargets;
 static std::vector<KnockbackModifier> mAttackers;
-static std::vector<KnockbackModifier> mWeapons;
+std::vector<KnockbackModifier> Knockback_mWeapons;
 
 struct ChanceModifier {
 	long id;
@@ -73,7 +67,7 @@ static double ApplyModifiers(std::vector<KnockbackModifier>* mods, TGameObj* obj
 
 static DWORD __fastcall CalcKnockbackMod(int knockValue, int damage, TGameObj* weapon, TGameObj* attacker, TGameObj* target) {
 	double result = (double)damage / (double)knockValue;
-	result = ApplyModifiers(&mWeapons, weapon, result);
+	result = ApplyModifiers(&Knockback_mWeapons, weapon, result);
 	result = ApplyModifiers(&mAttackers, attacker, result);
 	result = ApplyModifiers(&mTargets, target, result);
 	return (DWORD)floor(result);
@@ -177,19 +171,25 @@ void _stdcall KnockbackSetMod(TGameObj* object, DWORD type, float val, DWORD on)
 	std::vector<KnockbackModifier>* mods;
 	switch (on) {
 	case 0:
-		mods = &mWeapons;
+		if (object->pid >> 24 != OBJ_TYPE_ITEM) return;
+		mods = &Knockback_mWeapons;
 		break;
 	case 1:
+		if (object->pid >> 24 != OBJ_TYPE_CRITTER) return;
 		mods = &mTargets;
 		break;
 	case 2:
+		if (object->pid >> 24 != OBJ_TYPE_CRITTER) return;
 		mods = &mAttackers;
 		break;
 	default:
 		return;
 	}
 
-	long id = SetObjectUniqueID(object);
+	long id = (on == 0)
+			? SetSpecialID(object)
+			: SetObjectUniqueID(object);
+
 	KnockbackModifier mod = { id, type, (double)val };
 	for (DWORD i = 0; i < mods->size(); i++) {
 		if ((*mods)[i].id == id) {
@@ -202,11 +202,9 @@ void _stdcall KnockbackSetMod(TGameObj* object, DWORD type, float val, DWORD on)
 
 void _stdcall KnockbackRemoveMod(TGameObj* object, DWORD on) {
 	std::vector<KnockbackModifier>* mods;
-	int id = object->ID;
 	switch (on) {
 	case 0:
-		object->ID = NewObjId(); // revert to engine range id
-		mods = &mWeapons;
+		mods = &Knockback_mWeapons;
 		break;
 	case 1:
 		mods = &mTargets;
@@ -218,8 +216,9 @@ void _stdcall KnockbackRemoveMod(TGameObj* object, DWORD on) {
 		return;
 	}
 	for (DWORD i = 0; i < mods->size(); i++) {
-		if ((*mods)[i].id == id) {
+		if ((*mods)[i].id == object->ID) {
 			mods->erase(mods->begin() + i);
+			if (on == 0) SetNewEngineID(object); // revert to engine range id
 			return;
 		}
 	}
@@ -231,7 +230,7 @@ void _stdcall SetHitChanceMax(TGameObj* critter, DWORD maximum, DWORD mod) {
 		BaseHitChance.mod = mod;
 		return;
 	}
-
+	if (critter->pid >> 24 != OBJ_TYPE_CRITTER) return;
 	long id = SetObjectUniqueID(critter);
 	for (DWORD i = 0; i < HitChanceMods.size(); i++) {
 		if (id == HitChanceMods[i].id) {
@@ -270,7 +269,7 @@ void _stdcall SetPickpocketMax(TGameObj* critter, DWORD maximum, DWORD mod) {
 }
 
 void _stdcall SetNoBurstMode(TGameObj* critter, DWORD on) {
-	if (critter == *ptr_obj_dude) return;
+	if (critter == *ptr_obj_dude || critter->pid >> 24 != OBJ_TYPE_CRITTER) return;
 
 	long id = SetObjectUniqueID(critter);
 	for (DWORD i = 0; i < NoBursts.size(); i++) {
@@ -349,7 +348,7 @@ void Knockback_OnGameLoad() {
 	BasePickpocket.mod = 0;
 	mTargets.clear();
 	mAttackers.clear();
-	mWeapons.clear();
+	Knockback_mWeapons.clear();
 	HitChanceMods.clear();
 	PickpocketMods.clear();
 	NoBursts.clear();

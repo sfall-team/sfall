@@ -18,6 +18,14 @@
 
 #pragma once
 
+struct KnockbackModifier {
+	long id;
+	DWORD type;
+	double value;
+};
+
+extern std::vector<KnockbackModifier> Knockback_mWeapons;
+
 void _stdcall SetPickpocketMax(TGameObj* critter, DWORD maximum, DWORD mod);
 void _stdcall SetHitChanceMax(TGameObj* critter, DWORD maximum, DWORD mod);
 void _stdcall KnockbackSetMod(TGameObj* object, DWORD type, float val, DWORD on);

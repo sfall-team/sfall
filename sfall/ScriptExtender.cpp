@@ -31,6 +31,7 @@
 #include "FalloutEngine.h"
 #include "HookScripts.h"
 #include "input.h"
+#include "Knockback.h"
 #include "LoadGameHook.h"
 #include "Logging.h"
 #include "ScriptExtender.h"
@@ -402,7 +403,7 @@ static const SfallOpcodeMetadata opcodeMetaArray[] = {
 	{sf_set_map_enter_position, "set_map_enter_position", {DATATYPE_MASK_INT, DATATYPE_MASK_INT, DATATYPE_MASK_INT}},
 	{sf_set_object_data,        "set_object_data",        {DATATYPE_MASK_VALID_OBJ, DATATYPE_MASK_INT, DATATYPE_MASK_INT}},
 	{sf_set_outline,            "set_outline",            {DATATYPE_MASK_VALID_OBJ, DATATYPE_MASK_INT}},
-	{sf_set_unique_id,          "set_unique_id",          {DATATYPE_MASK_VALID_OBJ}},
+	{sf_set_unique_id,          "set_unique_id",          {DATATYPE_MASK_VALID_OBJ, DATATYPE_MASK_INT}},
 	{sf_spatial_radius,         "spatial_radius",         {DATATYPE_MASK_VALID_OBJ}},
 	{sf_unjam_lock,             "unjam_lock",             {DATATYPE_MASK_VALID_OBJ}},
 	#ifndef NDEBUG
@@ -1269,6 +1270,45 @@ long SetObjectUniqueID(TGameObj* obj) {
 	return objUniqueID;
 }
 
+// Assigns a unique ID in the negative range (0x8FFFFFFF - 0xFFFFFFFE)
+long SetSpecialID(TGameObj* obj) {
+	long id = obj->ID;
+	if (id < -1 || id > UID_START) return id;
+
+	if ((DWORD)objUniqueID >= UID_END) objUniqueID = UID_START;
+	id = ++objUniqueID + UID_END;
+	obj->ID = id;
+	return id;
+}
+
+void SetNewEngineID(TGameObj* obj) {
+	if (obj->ID > UID_START) return;
+	obj->ID = NewObjId();
+}
+
+static bool __fastcall CheckSpecialID(long id) {
+	if (Knockback_mWeapons.empty()) return false;
+	for (std::vector<KnockbackModifier>::iterator it = Knockback_mWeapons.begin(); it != Knockback_mWeapons.end(); ++it) {
+		if (id == it->id) return true;
+	}
+	return false;
+}
+
+static void __declspec(naked) item_identical_hack() {
+	__asm {
+		mov  ecx, [edi]; // item id
+		cmp  ecx, UID_START; // start unique ID
+		jg   notIdentical;
+		call CheckSpecialID;
+		test al, al;
+		jnz  notIdentical;
+		mov  eax, [esi + 0x78]; // scriptID
+		cmp  eax, ebx;
+notIdentical:
+		retn; // if ZF == 0 then item is not identical
+	}
+}
+
 static void __declspec(naked) new_obj_id_hook() {
 	__asm {
 		mov  eax, 83535;
@@ -1315,6 +1355,10 @@ void ScriptExtenderSetup() {
 
 	HookCall(0x4A38A5, new_obj_id_hook);
 	SafeWrite8(0x4A38B3, 0x90); // fix ID increment
+
+	//if (GetPrivateProfileIntA("Misc", "StackableUniqueItems", 0, ini) == 0) {
+		MakeCall(0x477A0E, item_identical_hack); // don't put to item stack
+	//}
 
 	arraysBehavior = GetPrivateProfileIntA("Misc", "arraysBehavior", 1, ini);
 	if (arraysBehavior > 0) {
