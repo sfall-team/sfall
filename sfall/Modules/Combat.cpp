@@ -246,25 +246,22 @@ static void __declspec(naked) ai_pick_hit_mode_hack() {
 	}
 }
 
-void _stdcall KnockbackSetMod(fo::GameObject* object, DWORD type, float val, DWORD on) {
+void _stdcall KnockbackSetMod(fo::GameObject* object, DWORD type, float val, DWORD mode) {
 	std::vector<KnockbackModifier>* mods;
-	switch (on) {
+	switch (mode) {
 	case 0:
-		if (object->Type() != fo::OBJ_TYPE_ITEM) return;
 		mods = &mWeapons;
 		break;
 	case 1:
-		if (object->Type() != fo::OBJ_TYPE_CRITTER) return;
 		mods = &mTargets;
 		break;
 	case 2:
-		if (object->Type() != fo::OBJ_TYPE_CRITTER) return;
 		mods = &mAttackers;
 		break;
 	default: return;
 	}
 
-	long id = (on == 0)
+	long id = (mode == 0)
 			? Objects::SetSpecialID(object)
 			: Objects::SetObjectUniqueID(object);
 
@@ -278,9 +275,9 @@ void _stdcall KnockbackSetMod(fo::GameObject* object, DWORD type, float val, DWO
 	mods->push_back(mod);
 }
 
-void _stdcall KnockbackRemoveMod(fo::GameObject* object, DWORD on) {
+void _stdcall KnockbackRemoveMod(fo::GameObject* object, DWORD mode) {
 	std::vector<KnockbackModifier>* mods;
-	switch (on) {
+	switch (mode) {
 	case 0:
 		mods = &mWeapons;
 		break;
@@ -296,7 +293,7 @@ void _stdcall KnockbackRemoveMod(fo::GameObject* object, DWORD on) {
 	for (DWORD i = 0; i < mods->size(); i++) {
 		if ((*mods)[i].id == object->id) {
 			mods->erase(mods->begin() + i);
-			if (on == 0) Objects::SetNewEngineID(object); // revert to engine range id
+			if (mode == 0) Objects::SetNewEngineID(object); // revert to engine range id
 			return;
 		}
 	}

@@ -296,117 +296,48 @@ end:
 	}
 }
 
-//Knockback
-void __declspec(naked) SetKnockback() {
-	__asm {
-		sub esp, 0xc;
-		mov ecx, eax;
-		//Get args
-		call fo::funcoffs::interpretPopShort_; //First arg type
-		mov edi, eax;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPopLong_;  //First arg
-		mov [esp+8], eax;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPopShort_; //Second arg type
-		mov edx, eax;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPopLong_;  //Second arg
-		mov [esp+4], eax;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPopShort_; //Third arg type
-		mov esi, eax;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPopLong_;  //Third arg
-		mov [esp], eax;
-		//Error check
-		cmp di, VAR_TYPE_FLOAT;
-		jz paramWasFloat;
-		cmp di, VAR_TYPE_INT;
-		jnz fail;
-		fild [esp+8];
-		fstp [esp+8];
-paramWasFloat:
-		cmp dx, VAR_TYPE_INT;
-		jnz fail;
-		cmp si, VAR_TYPE_INT;
-		jnz fail;
-		call KnockbackSetMod;
-		jmp end;
-fail:
-		add esp, 0x10;
-end:
-		popad;
-		retn;
+void sf_set_object_knockback(OpcodeContext& ctx) {
+	int mode = 0;
+	switch (ctx.opcode()) {
+	case 0x196:
+		mode = 1;
+		break;
+	case 0x197:
+		mode = 2;
+		break;
+	default: break;
 	}
+	fo::GameObject* object = ctx.arg(0).asObject();
+	if (mode) {
+		if (object->Type() != fo::OBJ_TYPE_CRITTER) {
+			if (mode == 1) {
+				ctx.printOpcodeError("set_target_knockback() - the object is not a critter.");
+			} else {
+				ctx.printOpcodeError("set_attacker_knockback() - the object is not a critter.");
+			}
+			return;
+		}
+	} else {
+		if (object->Type() != fo::OBJ_TYPE_ITEM) {
+			ctx.printOpcodeError("set_weapon_knockback() - the object is not a item.");
+			return;
+		}
+	}
+	KnockbackSetMod(object, ctx.arg(1).rawValue(), ctx.arg(2).asFloat(), mode);
 }
 
-void __declspec(naked) op_set_weapon_knockback() {
-	__asm {
-		pushad;
-		push 0;
-		jmp SetKnockback;
+void sf_remove_object_knockback(OpcodeContext& ctx) {
+	int mode = 0;
+	switch (ctx.opcode()) {
+	case 0x199:
+		mode = 1;
+		break;
+	case 0x19a:
+		mode = 2;
+		break;
+	default: break;
 	}
-}
-
-void __declspec(naked) op_set_target_knockback() {
-	__asm {
-		pushad;
-		push 1;
-		jmp SetKnockback;
-	}
-}
-
-void __declspec(naked) op_set_attacker_knockback() {
-	__asm {
-		pushad;
-		push 2;
-		jmp SetKnockback;
-	}
-}
-
-static void __declspec(naked) RemoveKnockback() {
-	__asm {
-		mov ecx, eax;
-		call fo::funcoffs::interpretPopShort_;
-		mov edx, eax;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPopLong_;
-		cmp dx, VAR_TYPE_INT;
-		jnz fail;
-		push eax;
-		call KnockbackRemoveMod;
-		jmp end;
-fail:
-		add esp, 4;
-end:
-		popad;
-		retn;
-	}
-}
-
-void __declspec(naked) op_remove_weapon_knockback() {
-	__asm {
-		pushad;
-		push 0;
-		jmp RemoveKnockback;
-	}
-}
-
-void __declspec(naked) op_remove_target_knockback() {
-	__asm {
-		pushad;
-		push 1;
-		jmp RemoveKnockback;
-	}
-}
-
-void __declspec(naked) op_remove_attacker_knockback() {
-	__asm {
-		pushad;
-		push 2;
-		jmp RemoveKnockback;
-	}
+	KnockbackRemoveMod(ctx.arg(0).asObject(), mode);
 }
 
 void __declspec(naked) op_get_kill_counter2() {
@@ -496,14 +427,12 @@ void __declspec(naked) op_active_hand() {
 void __declspec(naked) op_toggle_active_hand() {
 	__asm {
 		mov eax, 1;
-		call fo::funcoffs::intface_toggle_items_;
-		retn;
+		jmp fo::funcoffs::intface_toggle_items_;
 	}
 }
 
 void __declspec(naked) op_eax_available() {
 	__asm {
-		push ebx;
 		push eax;
 		push edx;
 		push edi;
@@ -516,7 +445,6 @@ void __declspec(naked) op_eax_available() {
 		pop edi;
 		pop edx;
 		pop ecx;
-		pop ebx;
 		retn;
 	}
 }
@@ -745,7 +673,7 @@ result:
 }
 
 static DWORD _stdcall GetTickCount2() {
-	return GetTickCount();
+	return GetTickCount(); //timeGetTime
 }
 
 void __declspec(naked) op_get_uptime() {

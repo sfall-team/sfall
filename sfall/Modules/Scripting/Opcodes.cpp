@@ -74,6 +74,12 @@ static SfallOpcodeInfo opcodeInfoArray[] = {
 	{0x16c, "key_pressed",               sf_key_pressed,               1, true,  {ARG_INT}},
 
 	{0x190, "get_perk_available",        sf_get_perk_available,        1, true,  {ARG_INT}},
+	{0x195, "set_weapon_knockback",      sf_set_object_knockback,      3, false, {ARG_OBJECT, ARG_INT, ARG_NUMBER}},
+	{0x196, "set_target_knockback",      sf_set_object_knockback,      3, false, {ARG_OBJECT, ARG_INT, ARG_NUMBER}},
+	{0x197, "set_attacker_knockback",    sf_set_object_knockback,      3, false, {ARG_OBJECT, ARG_INT, ARG_NUMBER}},
+	{0x198, "remove_weapon_knockback",   sf_remove_object_knockback,   1, false, {ARG_OBJECT}},
+	{0x199, "remove_target_knockback",   sf_remove_object_knockback,   1, false, {ARG_OBJECT}},
+	{0x19a, "remove_attacker_knockback", sf_remove_object_knockback,   1, false, {ARG_OBJECT}},
 	{0x19d, "set_sfall_global",          sf_set_sfall_global,          2, false, {ARG_INTSTR, ARG_NUMBER}},
 	{0x19e, "get_sfall_global_int",      sf_get_sfall_global_int,      1, true,  {ARG_INTSTR}},
 	{0x19f, "get_sfall_global_float",    sf_get_sfall_global_float,    1, true,  {ARG_INTSTR}},
@@ -295,12 +301,6 @@ void InitNewOpcodes() {
 	opcodes[0x192] = op_set_critter_current_ap;
 	opcodes[0x193] = op_active_hand;
 	opcodes[0x194] = op_toggle_active_hand;
-	opcodes[0x195] = op_set_weapon_knockback;
-	opcodes[0x196] = op_set_target_knockback;
-	opcodes[0x197] = op_set_attacker_knockback;
-	opcodes[0x198] = op_remove_weapon_knockback;
-	opcodes[0x199] = op_remove_target_knockback;
-	opcodes[0x19a] = op_remove_attacker_knockback;
 	opcodes[0x19b] = op_set_global_script_type;
 	opcodes[0x19c] = op_available_global_script_types;
 	opcodes[0x1a0] = op_set_pickpocket_max;
