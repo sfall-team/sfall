@@ -18,7 +18,6 @@
 
 #include "..\main.h"
 #include "..\FalloutEngine\Fallout2.h"
-#include "Combat.h"
 #include "LoadGameHook.h"
 
 #include "Objects.h"
@@ -59,23 +58,12 @@ void Objects::SetNewEngineID(fo::GameObject* obj) {
 	obj->id = fo::func::new_obj_id();
 }
 
-static bool __fastcall CheckSpecialID(long id) {
-	if (Combat::mWeapons.empty()) return false;
-	for (auto& weapon : Combat::mWeapons) {
-		if (id == weapon.id) return true;
-	}
-	return false;
-}
-
 static void __declspec(naked) item_identical_hack() {
 	using namespace fo::Fields;
 	__asm {
 		mov  ecx, [edi]; // item id
 		cmp  ecx, Start; // start unique ID
 		jg   notIdentical;
-		call CheckSpecialID;
-		test al, al;
-		jnz  notIdentical;
 		mov  eax, [esi + scriptId];
 		cmp  eax, ebx;
 notIdentical:
@@ -161,9 +149,7 @@ void Objects::init() {
 	HookCall(0x4A38A5, new_obj_id_hook);
 	SafeWrite8(0x4A38B3, 0x90); // fix ID increment
 
-	//if (GetConfigInt("Misc", "StackableUniqueItems", 0) == 0) {
-		MakeCall(0x477A0E, item_identical_hack); // don't put to item stack
-	//}
+	MakeCall(0x477A0E, item_identical_hack); // don't put item with unique ID to items stack
 }
 
 }

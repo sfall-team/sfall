@@ -32,9 +32,15 @@ namespace sfall
 
 static std::vector<long> noBursts; // object id
 
+struct KnockbackModifier {
+	long id;
+	DWORD type;
+	double value;
+};
+
 static std::vector<KnockbackModifier> mTargets;
 static std::vector<KnockbackModifier> mAttackers;
-std::vector<KnockbackModifier> Combat::mWeapons;
+static std::vector<KnockbackModifier> mWeapons;
 
 static std::vector<ChanceModifier> hitChanceMods;
 static ChanceModifier baseHitChance;
@@ -162,7 +168,7 @@ static double ApplyModifiers(std::vector<KnockbackModifier>* mods, fo::GameObjec
 
 static DWORD __fastcall CalcKnockbackMod(int knockValue, int damage, fo::GameObject* weapon, fo::GameObject* attacker, fo::GameObject* target) {
 	double result = (double)damage / (double)knockValue;
-	result = ApplyModifiers(&Combat::mWeapons, weapon, result);
+	result = ApplyModifiers(&mWeapons, weapon, result);
 	result = ApplyModifiers(&mAttackers, attacker, result);
 	result = ApplyModifiers(&mTargets, target, result);
 	return (DWORD)floor(result);
@@ -240,26 +246,23 @@ static void __declspec(naked) ai_pick_hit_mode_hack() {
 	}
 }
 
-void _stdcall KnockbackSetMod(fo::GameObject* object, DWORD type, float val, DWORD on) {
+void _stdcall KnockbackSetMod(fo::GameObject* object, DWORD type, float val, DWORD mode) {
 	std::vector<KnockbackModifier>* mods;
-	switch (on) {
+	switch (mode) {
 	case 0:
-		if (object->Type() != fo::OBJ_TYPE_ITEM) return;
-		mods = &Combat::mWeapons;
+		mods = &mWeapons;
 		break;
 	case 1:
-		if (object->Type() != fo::OBJ_TYPE_CRITTER) return;
 		mods = &mTargets;
 		break;
 	case 2:
-		if (object->Type() != fo::OBJ_TYPE_CRITTER) return;
 		mods = &mAttackers;
 		break;
 	default:
 		return;
 	}
 
-	long id = (on == 0)
+	long id = (mode == 0)
 			? Objects::SetSpecialID(object)
 			: Objects::SetObjectUniqueID(object);
 
@@ -273,11 +276,11 @@ void _stdcall KnockbackSetMod(fo::GameObject* object, DWORD type, float val, DWO
 	mods->push_back(mod);
 }
 
-void _stdcall KnockbackRemoveMod(fo::GameObject* object, DWORD on) {
+void _stdcall KnockbackRemoveMod(fo::GameObject* object, DWORD mode) {
 	std::vector<KnockbackModifier>* mods;
-	switch (on) {
+	switch (mode) {
 	case 0:
-		mods = &Combat::mWeapons;
+		mods = &mWeapons;
 		break;
 	case 1:
 		mods = &mTargets;
@@ -291,7 +294,7 @@ void _stdcall KnockbackRemoveMod(fo::GameObject* object, DWORD on) {
 	for (DWORD i = 0; i < mods->size(); i++) {
 		if ((*mods)[i].id == object->id) {
 			mods->erase(mods->begin() + i);
-			if (on == 0) Objects::SetNewEngineID(object); // revert to engine range id
+			if (mode == 0) Objects::SetNewEngineID(object); // revert to engine range id
 			return;
 		}
 	}
@@ -392,7 +395,7 @@ static void Combat_OnGameLoad() {
 	baseHitChance.SetDefault();
 	mTargets.clear();
 	mAttackers.clear();
-	Combat::mWeapons.clear();
+	mWeapons.clear();
 	hitChanceMods.clear();
 	noBursts.clear();
 	disabledAS.clear();

@@ -23,18 +23,10 @@
 namespace sfall
 {
 
-struct KnockbackModifier {
-	long id;
-	DWORD type;
-	double value;
-};
-
 class Combat : public Module {
 public:
 	const char* name() { return "Combat"; }
 	void init();
-
-	static std::vector<KnockbackModifier> mWeapons;
 };
 
 struct ChanceModifier {
