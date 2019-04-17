@@ -27,9 +27,15 @@
 
 static std::vector<long> NoBursts; // object id
 
+struct KnockbackModifier {
+	long id;
+	DWORD type;
+	double value;
+};
+
 static std::vector<KnockbackModifier> mTargets;
 static std::vector<KnockbackModifier> mAttackers;
-std::vector<KnockbackModifier> Knockback_mWeapons;
+static std::vector<KnockbackModifier> mWeapons;
 
 struct ChanceModifier {
 	long id;
@@ -67,7 +73,7 @@ static double ApplyModifiers(std::vector<KnockbackModifier>* mods, TGameObj* obj
 
 static DWORD __fastcall CalcKnockbackMod(int knockValue, int damage, TGameObj* weapon, TGameObj* attacker, TGameObj* target) {
 	double result = (double)damage / (double)knockValue;
-	result = ApplyModifiers(&Knockback_mWeapons, weapon, result);
+	result = ApplyModifiers(&mWeapons, weapon, result);
 	result = ApplyModifiers(&mAttackers, attacker, result);
 	result = ApplyModifiers(&mTargets, target, result);
 	return (DWORD)floor(result);
@@ -167,26 +173,35 @@ static void __declspec(naked) ai_pick_hit_mode_hack() {
 	}
 }
 
-void _stdcall KnockbackSetMod(TGameObj* object, DWORD type, float val, DWORD on) {
+void _stdcall KnockbackSetMod(TGameObj* object, DWORD type, float val, DWORD mode) {
 	std::vector<KnockbackModifier>* mods;
-	switch (on) {
+	switch (mode) {
 	case 0:
-		if (object->pid >> 24 != OBJ_TYPE_ITEM) return;
-		mods = &Knockback_mWeapons;
+		if (object->pid >> 24 != OBJ_TYPE_ITEM) {
+			DebugPrintf("\nOPCODE ERROR: set_weapon_knockback() - the object is not an item.");
+			return;
+		}
+		mods = &mWeapons;
 		break;
 	case 1:
-		if (object->pid >> 24 != OBJ_TYPE_CRITTER) return;
+		if (object->pid >> 24 != OBJ_TYPE_CRITTER) {
+			DebugPrintf("\nOPCODE ERROR: set_target_knockback() - the object is not a critter.");
+			return;
+		}
 		mods = &mTargets;
 		break;
 	case 2:
-		if (object->pid >> 24 != OBJ_TYPE_CRITTER) return;
+		if (object->pid >> 24 != OBJ_TYPE_CRITTER) {
+			DebugPrintf("\nOPCODE ERROR: set_attacker_knockback() - the object is not a critter.");
+			return;
+		}
 		mods = &mAttackers;
 		break;
 	default:
 		return;
 	}
 
-	long id = (on == 0)
+	long id = (mode == 0)
 			? SetSpecialID(object)
 			: SetObjectUniqueID(object);
 
@@ -200,11 +215,11 @@ void _stdcall KnockbackSetMod(TGameObj* object, DWORD type, float val, DWORD on)
 	mods->push_back(mod);
 }
 
-void _stdcall KnockbackRemoveMod(TGameObj* object, DWORD on) {
+void _stdcall KnockbackRemoveMod(TGameObj* object, DWORD mode) {
 	std::vector<KnockbackModifier>* mods;
-	switch (on) {
+	switch (mode) {
 	case 0:
-		mods = &Knockback_mWeapons;
+		mods = &mWeapons;
 		break;
 	case 1:
 		mods = &mTargets;
@@ -218,7 +233,7 @@ void _stdcall KnockbackRemoveMod(TGameObj* object, DWORD on) {
 	for (DWORD i = 0; i < mods->size(); i++) {
 		if ((*mods)[i].id == object->ID) {
 			mods->erase(mods->begin() + i);
-			if (on == 0) SetNewEngineID(object); // revert to engine range id
+			if (mode == 0) SetNewEngineID(object); // revert to engine range id
 			return;
 		}
 	}
@@ -348,7 +363,7 @@ void Knockback_OnGameLoad() {
 	BasePickpocket.mod = 0;
 	mTargets.clear();
 	mAttackers.clear();
-	Knockback_mWeapons.clear();
+	mWeapons.clear();
 	HitChanceMods.clear();
 	PickpocketMods.clear();
 	NoBursts.clear();

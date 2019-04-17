@@ -480,14 +480,12 @@ static void __declspec(naked) GetActiveHand() {
 static void __declspec(naked) ToggleActiveHand() {
 	__asm {
 		mov eax, 1;
-		call intface_toggle_items_;
-		retn;
+		jmp intface_toggle_items_;
 	}
 }
 
 static void __declspec(naked) EaxAvailable() {
 	__asm {
-		push ebx;
 		push eax;
 		push edx;
 		push edi;
@@ -500,7 +498,6 @@ static void __declspec(naked) EaxAvailable() {
 		pop edi;
 		pop edx;
 		pop ecx;
-		pop ebx;
 		retn;
 	}
 }
@@ -739,7 +736,7 @@ result:
 }
 
 static DWORD _stdcall GetTickCount2() {
-	return GetTickCount();
+	return GetTickCount(); //timeGetTime
 }
 static void __declspec(naked) funcGetTickCount() {
 	__asm {

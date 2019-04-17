@@ -31,7 +31,6 @@
 #include "FalloutEngine.h"
 #include "HookScripts.h"
 #include "input.h"
-#include "Knockback.h"
 #include "LoadGameHook.h"
 #include "Logging.h"
 #include "ScriptExtender.h"
@@ -1286,22 +1285,11 @@ void SetNewEngineID(TGameObj* obj) {
 	obj->ID = NewObjId();
 }
 
-static bool __fastcall CheckSpecialID(long id) {
-	if (Knockback_mWeapons.empty()) return false;
-	for (std::vector<KnockbackModifier>::iterator it = Knockback_mWeapons.begin(); it != Knockback_mWeapons.end(); ++it) {
-		if (id == it->id) return true;
-	}
-	return false;
-}
-
 static void __declspec(naked) item_identical_hack() {
 	__asm {
 		mov  ecx, [edi]; // item id
 		cmp  ecx, UID_START; // start unique ID
 		jg   notIdentical;
-		call CheckSpecialID;
-		test al, al;
-		jnz  notIdentical;
 		mov  eax, [esi + 0x78]; // scriptID
 		cmp  eax, ebx;
 notIdentical:
@@ -1356,9 +1344,7 @@ void ScriptExtenderSetup() {
 	HookCall(0x4A38A5, new_obj_id_hook);
 	SafeWrite8(0x4A38B3, 0x90); // fix ID increment
 
-	//if (GetPrivateProfileIntA("Misc", "StackableUniqueItems", 0, ini) == 0) {
-		MakeCall(0x477A0E, item_identical_hack); // don't put to item stack
-	//}
+	MakeCall(0x477A0E, item_identical_hack); // don't put item with unique ID to items stack
 
 	arraysBehavior = GetPrivateProfileIntA("Misc", "arraysBehavior", 1, ini);
 	if (arraysBehavior > 0) {
