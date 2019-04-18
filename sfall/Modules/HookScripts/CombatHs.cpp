@@ -1,6 +1,6 @@
 #include "..\..\FalloutEngine\Fallout2.h"
 #include "..\..\SafeWrite.h"
-#include "..\AmmoMod.h"
+#include "..\DamageMod.h"
 #include "..\HookScripts.h"
 #include "Common.h"
 
@@ -182,13 +182,13 @@ static void __declspec(naked) ComputeDamageHook() {
 
 static void __fastcall SubComputeDamageHook_Script(fo::ComputeAttackResult &ctd, DWORD armorDR, DWORD* accumulatedDamage, DWORD armorDT, DWORD bonusRangedDamage, DWORD rounds, DWORD multiplyDamage, DWORD difficulty) {
 	// calculated internal ammo mod damage
-	switch (AmmoMod::formula) {
+	switch (DamageMod::formula) {
 	case 1:
 	case 2:
-		AmmoMod::DamageGlovz(ctd, accumulatedDamage, rounds, armorDT, armorDR, bonusRangedDamage, multiplyDamage, difficulty);
+		DamageMod::DamageGlovz(ctd, accumulatedDamage, rounds, armorDT, armorDR, bonusRangedDamage, multiplyDamage, difficulty);
 		return;
 	case 5:
-		AmmoMod::DamageYAAM(ctd, accumulatedDamage, rounds, armorDT, armorDR, bonusRangedDamage, multiplyDamage, difficulty);
+		DamageMod::DamageYAAM(ctd, accumulatedDamage, rounds, armorDT, armorDR, bonusRangedDamage, multiplyDamage, difficulty);
 		return;
 	}
 	

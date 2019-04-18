@@ -22,17 +22,17 @@
 #include "..\Logging.h"
 #include "HookScripts.h"
 
-#include "AmmoMod.h"
+#include "DamageMod.h"
 
 namespace sfall
 {
 using namespace fo;
 
-int AmmoMod::formula;
+int DamageMod::formula;
 
 // TODO: rewrite in C++
 // Damage Fix v5(with v5.1 Damage Multiplier tweak) by Glovz 2014.04.16.xx.xx
-void AmmoMod::DamageGlovz(fo::ComputeAttackResult &ctd, DWORD* accumulatedDamage, int rounds, int armorDT, int armorDR, int bonusRangedDamage, int multiplyDamage, int difficulty) {
+void DamageMod::DamageGlovz(fo::ComputeAttackResult &ctd, DWORD* accumulatedDamage, int rounds, int armorDT, int armorDR, int bonusRangedDamage, int multiplyDamage, int difficulty) {
 
 	if (rounds <= 0) return;
 
@@ -223,7 +223,7 @@ eJmp:
 		cmp  eax, 2;                               // compare the CM value to 2
 		jle  addNDJmp;                             // if the CM value is less than or equal to 2 then goto addNDJmp
 
-		cmp  AmmoMod::formula, 2;                  // check selected damage formula (added for v5.1 tweak)
+		cmp  DamageMod::formula, 2;                // check selected damage formula (added for v5.1 tweak)
 		jz   tweak;
 		imul ebx, eax;                             // multiply the ND value by the CM value
 		sar  ebx, 1;                               // divide the result by 2
@@ -251,7 +251,7 @@ noDamageJmp:
 }
 
 // YAAM
-void AmmoMod::DamageYAAM(fo::ComputeAttackResult &ctd, DWORD* accumulatedDamage, int rounds, int armorDT, int armorDR, int bonusRangedDamage,int multiplyDamage, int difficulty) {
+void DamageMod::DamageYAAM(fo::ComputeAttackResult &ctd, DWORD* accumulatedDamage, int rounds, int armorDT, int armorDR, int bonusRangedDamage,int multiplyDamage, int difficulty) {
 
 	int ammoDiv = fo::func::item_w_dam_div(ctd.weapon);     // Retrieve Ammo Divisor
 	int ammoMult = fo::func::item_w_dam_mult(ctd.weapon);   // Retrieve Ammo Dividend
@@ -408,7 +408,7 @@ static void __declspec(naked) DisplayBonusHtHDmg2_hack() {
 	}
 }
 
-void AmmoMod::init() {
+void DamageMod::init() {
 
 	if (formula = GetConfigInt("Misc", "DamageFormula", 0)) {
 		switch (formula) {
