@@ -12,9 +12,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="AmmoMod.h">
-      <Filter>Headers</Filter>
-    </ClInclude>
     <ClInclude Include="Console.h">
       <Filter>Headers</Filter>
     </ClInclude>
@@ -196,6 +193,9 @@
     <ClInclude Include="ScriptOps\MetaruleOp.hpp">
       <Filter>Headers\ScriptOps</Filter>
     </ClInclude>
+    <ClInclude Include="DamageMod.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
     <ClInclude Include="Cpp11_emu.h">
       <Filter>Headers</Filter>
     </ClInclude>
@@ -204,9 +204,6 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="AmmoMod.cpp">
-      <Filter>Source</Filter>
-    </ClCompile>
     <ClCompile Include="Console.cpp">
       <Filter>Source</Filter>
     </ClCompile>
@@ -335,6 +332,9 @@
       <Filter>Source</Filter>
     </ClCompile>
     <ClCompile Include="Message.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="DamageMod.cpp">
       <Filter>Source</Filter>
     </ClCompile>
     <ClCompile Include="stdafx.cpp">

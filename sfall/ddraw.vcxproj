@@ -264,7 +264,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="AI.h" />
-    <ClInclude Include="AmmoMod.h" />
+    <ClInclude Include="DamageMod.h" />
     <ClInclude Include="AnimationsAtOnceLimit.h" />
     <ClInclude Include="Arrays.h" />
     <ClInclude Include="BarBoxes.h" />
@@ -330,7 +330,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AI.cpp" />
-    <ClCompile Include="AmmoMod.cpp" />
+    <ClCompile Include="DamageMod.cpp" />
     <ClCompile Include="AnimationsAtOnceLimit.cpp" />
     <ClCompile Include="Arrays.cpp" />
     <ClCompile Include="BarBoxes.cpp" />

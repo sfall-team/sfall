@@ -22,7 +22,6 @@
 #include <stdio.h>
 
 #include "AI.h"
-#include "AmmoMod.h"
 #include "AnimationsAtOnceLimit.h"
 #include "BarBoxes.h"
 #include "Books.h"
@@ -32,6 +31,7 @@
 #include "CRC.h"
 #include "Credits.h"
 #include "Criticals.h"
+#include "DamageMod.h"
 #include "Define.h"
 #include "DebugEditor.h"
 #include "Elevators.h"
@@ -911,8 +911,8 @@ static void DllMain2() {
 		dlogr(" Done", DL_INIT);
 	}
 
-	dlogr("Running AmmoModInit().", DL_INIT);
-	AmmoModInit();
+	dlogr("Running DamageModInit().", DL_INIT);
+	DamageModInit();
 
 	dlogr("Running MoviesInit().", DL_INIT);
 	MoviesInit();

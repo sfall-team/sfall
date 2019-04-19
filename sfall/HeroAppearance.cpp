@@ -63,30 +63,6 @@ typedef struct LineNode {
 	}
 } LineNode;
 
-// structures for holding frms loaded with fallout2 functions
-#pragma pack(2)
-typedef class FRMframe {
-	public:
-	WORD width;
-	WORD height;
-	DWORD size;
-	WORD x;
-	WORD y;
-} FRMframe;
-
-typedef class FRMhead {
-	public:
-	DWORD version; // version num
-	WORD FPS; // frames per sec
-	WORD actionFrame;
-	WORD numFrames; // number of frames per direction
-	WORD xCentreShift[6]; // offset from frm centre +=right -=left
-	WORD yCentreShift[6]; // offset from frm centre +=down -=up
-	DWORD oriOffset[6]; // frame area offset for diff orientations
-	DWORD frameAreaSize;
-} FRMhead;
-#pragma pack()
-
 // structures for loading unlisted frms
 typedef class UNLSTDframe {
 	public:
@@ -363,8 +339,8 @@ BYTE* GetFrmSurface2(DWORD FrmID, DWORD *FrmObj_out, DWORD *frmWidth_out, DWORD 
 }
 */
 
-FRMhead* GetFrm(DWORD FrmID, DWORD *FrmObj_out) {
-	FRMhead* Frm;
+FrmFrameData* GetFrm(DWORD FrmID, DWORD *FrmObj_out) {
+	FrmFrameData* Frm;
 	__asm {
 		mov  edx, FrmObj_out;
 		mov  eax, FrmID;
@@ -374,7 +350,7 @@ FRMhead* GetFrm(DWORD FrmID, DWORD *FrmObj_out) {
 	return Frm;
 }
 
-DWORD GetFrmFrameWidth(FRMhead* Frm, DWORD FrameNum, DWORD Ori) {
+DWORD GetFrmFrameWidth(FrmFrameData* Frm, DWORD FrameNum, DWORD Ori) {
 	DWORD Width;
 	__asm {
 		mov  ebx, Ori; // 0-5
@@ -386,7 +362,7 @@ DWORD GetFrmFrameWidth(FRMhead* Frm, DWORD FrameNum, DWORD Ori) {
 	return Width;
 }
 
-DWORD GetFrmFrameHeight(FRMhead* Frm, DWORD FrameNum, DWORD Ori) {
+DWORD GetFrmFrameHeight(FrmFrameData* Frm, DWORD FrameNum, DWORD Ori) {
 	DWORD Height;
 	__asm {
 		mov  ebx, Ori; // 0-5
@@ -398,7 +374,7 @@ DWORD GetFrmFrameHeight(FRMhead* Frm, DWORD FrameNum, DWORD Ori) {
 	return Height;
 }
 
-BYTE* GetFrmFrameSurface(FRMhead* Frm,  DWORD FrameNum, DWORD Ori) {
+BYTE* GetFrmFrameSurface(FrmFrameData* Frm,  DWORD FrameNum, DWORD Ori) {
 	BYTE *Surface;
 	__asm {
 		mov  ebx, Ori; // 0-5
@@ -1211,7 +1187,7 @@ static void sub_draw(long subWidth, long subHeight, long fromWidth, long fromHei
 static void DrawBody(DWORD critNum, BYTE* surface) {
 	DWORD critFrmLock;
 
-	FRMhead *critFrm = GetFrm(BuildFrmId(1, critNum), &critFrmLock);
+	FrmFrameData *critFrm = GetFrm(BuildFrmId(1, critNum), &critFrmLock);
 	DWORD critWidth = GetFrmFrameWidth(critFrm, 0, charRotOri);
 	DWORD critHeight = GetFrmFrameHeight(critFrm, 0, charRotOri);
 	BYTE *critSurface = GetFrmFrameSurface(critFrm, 0, charRotOri);

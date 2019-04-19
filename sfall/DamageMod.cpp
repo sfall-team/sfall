@@ -434,7 +434,7 @@ static void __declspec(naked) DisplayBonusHtHDmg2_hack() {
 	}
 }
 
-void AmmoModInit() {
+void DamageModInit() {
 	if (formula = GetPrivateProfileIntA("Misc", "DamageFormula", 0, ini)) {
 		switch (formula) {
 		case 1:

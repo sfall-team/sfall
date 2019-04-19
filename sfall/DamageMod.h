@@ -18,4 +18,4 @@
 
 #pragma once
 
-void AmmoModInit();
+void DamageModInit();

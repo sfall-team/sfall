@@ -167,6 +167,30 @@ struct TProgram
 };
 #pragma pack(pop)
 
+// structures for holding frms loaded with fallout2 functions
+#pragma pack(push, 2)
+typedef class FrmSubframeData {
+public:
+	WORD width;
+	WORD height;
+	DWORD size;
+	WORD x;
+	WORD y;
+} FrmSubframeData;
+
+typedef class FrmFrameData {
+public:
+	DWORD version; // version num
+	WORD fps; // frames per sec
+	WORD actionFrame;
+	WORD numFrames; // number of frames per direction
+	WORD xCentreShift[6]; // offset from frm centre +=right -=left
+	WORD yCentreShift[6]; // offset from frm centre +=down -=up
+	DWORD oriOffset[6]; // frame area offset for diff orientations
+	DWORD frameAreaSize;
+} FrmFrameData;
+#pragma pack(pop)
+
 #pragma pack(push, 1)
 struct Queue
 {
