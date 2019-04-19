@@ -19,6 +19,7 @@
 #define FO_VAR_background_volume          0x518E88
 #define FO_VAR_bboxslot                   0x5970E0
 #define FO_VAR_bckgnd                     0x5707A4
+#define FO_VAR_bk_disabled                0x6AC780 
 #define FO_VAR_black_palette              0x663FD0
 #define FO_VAR_bottom_line                0x664524
 #define FO_VAR_btable                     0x59E944
@@ -44,6 +45,7 @@
 #define FO_VAR_curr_pc_stat               0x6681AC
 #define FO_VAR_curr_stack                 0x59E96C
 #define FO_VAR_cursor_line                0x664514
+#define FO_VAR_dialogue_head              0x518850
 #define FO_VAR_dialogue_state             0x518714
 #define FO_VAR_dialogue_switch_mode       0x518718
 #define FO_VAR_dialog_target              0x518848
@@ -57,6 +59,7 @@
 #define FO_VAR_elevation                  0x631D2C
 #define FO_VAR_Experience_                0x6681B4
 #define FO_VAR_fallout_game_time          0x51C720
+#define FO_VAR_fidgetFID                  0x5186F4
 #define FO_VAR_flptr                      0x614808
 #define FO_VAR_folder_card_desc           0x5705CC
 #define FO_VAR_folder_card_fid            0x5705B0

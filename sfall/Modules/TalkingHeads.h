@@ -7,6 +7,7 @@ class TalkingHeads : public Module {
 public:
 	const char* name() { return "TalkingHeads"; }
 	void init();
+	void exit() override;
 };
 
 }

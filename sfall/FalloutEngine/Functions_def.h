@@ -26,7 +26,7 @@ WRAP_WATCOM_FFUNC4(long, combat_check_bad_shot, GameObject*, source, GameObject*
 WRAP_WATCOM_FFUNC5(bool, combat_is_shot_blocked, GameObject*, source, DWORD, tileSource, DWORD, tileTarget, GameObject*, target, long*, accumulator)
 WRAP_WATCOM_FFUNC3(void, correctFidForRemovedItem, GameObject*, critter, GameObject*, item, long, slotFlag)
 WRAP_WATCOM_FFUNC7(long, createWindow, const char*, winName, DWORD, x, DWORD, y, DWORD, width, DWORD, height, long, color, long, flags)
-WRAP_WATCOM_FFUNC3(long, frame_ptr, FrmFrameData*, frm, long, rotation, long, frame)
+WRAP_WATCOM_FFUNC3(FrmSubframeData*, frame_ptr, FrmFrameData*, frm, long, frame, long, direction)
 WRAP_WATCOM_FFUNC3(GameObject*, inven_find_type, GameObject*, critter, long, itemType, DWORD*, buf)
 WRAP_WATCOM_FFUNC3(long, inven_wield, GameObject*, critter, GameObject*, item, long, slot)
 WRAP_WATCOM_FFUNC7(void, make_straight_path_func, fo::GameObject*, objFrom, DWORD, tileFrom, DWORD, tileTo, void*, rotationPtr, DWORD*, result, long, flags, void*, func)

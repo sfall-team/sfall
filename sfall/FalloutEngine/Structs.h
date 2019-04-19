@@ -287,7 +287,7 @@ struct FrmFile {
 };
 
 //structures for holding frms loaded with fallout2 functions
-#pragma pack(2)
+#pragma pack(1)
 typedef class FrmSubframeData {
 public:
 	WORD width;
@@ -295,8 +295,10 @@ public:
 	DWORD size;
 	WORD x;
 	WORD y;
+	BYTE data[1]; // begin frame data
 } FrmSubframeData;
 
+#pragma pack(2)
 typedef class FrmFrameData {
 public:
 	DWORD version; //version num
