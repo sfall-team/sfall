@@ -58,6 +58,7 @@ variable begin
    lookOutlineColor;
    emptyOutlineColor;
 
+   checkObject;
    once;
 end
 
@@ -71,6 +72,7 @@ procedure GetHighlightColor(variable obj, variable container);
 procedure CheckTileObjects(variable array);
 procedure CheckLineOfSight(variable object);
 procedure CheckObjectUsed(variable objPtr);
+procedure InventoryMoveHandler;
 
 procedure start begin
 
@@ -97,24 +99,32 @@ procedure start begin
       highlightFailMsg1 := Translate("HighlightFail1", "You aren't carrying a motion sensor.");
       highlightFailMsg2 := Translate("HighlightFail2", "Your motion sensor is out of charge.");
 
+      checkObject := (alsoCorpse bwor alsoContainer);
+
       register_hook_proc(HOOK_KEYPRESS, KeyPressHandler);
       register_hook_proc(HOOK_COMBATTURN, CombatTurnHandler);
+      register_hook_proc(HOOK_INVENTORYMOVE, InventoryMoveHandler);
 
-      if (alsoCorpse or alsoContainer) then begin
-         set_global_script_type(1);
-         set_global_script_repeat(100);
-      end
+      set_global_script_type(1);
+      set_global_script_repeat(10);
    end
    else begin
-      if(get_game_mode bwAnd INTFACELOOT) then begin
-         if not(once) then begin
-            once := true;
-            objectArray := tile_get_objs(tile_num_in_direction(dude_tile, obj_get_rot(dude_obj), 1), dude_elevation);
-            if CheckTileObjects(objectArray) == false then
-               call CheckTileObjects(tile_get_objs(dude_tile, dude_elevation)); //second check
+      if (checkObject) then begin
+         if (get_game_mode bwand INTFACELOOT) then begin
+            if not(once) then begin
+               once := true;
+               objectArray := tile_get_objs(tile_num_in_direction(dude_tile, obj_get_rot(dude_obj), 1), dude_elevation);
+               if CheckTileObjects(objectArray) == false then
+                  call CheckTileObjects(tile_get_objs(dude_tile, dude_elevation)); //second check
+            end
          end
+         else if (once) then once := false;
       end
-      else if (once) then once := false;
+      // off highlight in cases when key hook is not triggered
+      if (isHighlight and key_pressed(highlightKey) == false) then begin
+         isHighlight := false;
+         call ToggleHighlight(false);
+      end
    end
 end
 
@@ -127,8 +137,10 @@ procedure KeyPressHandler begin
             hKeyIsPress := (get_sfall_arg == highlightKey);
 
    pressed := (pressed and hKeyIsPress);
-   if (pressed and (get_game_mode bwand bwnot(COMBAT bwor PCOMBAT))) then return; // highlight only in local map mode
-   if (pressed and motionScanner and (CheckMotionSensor == false)) then pressed := false;
+   if (pressed) then begin
+      if (get_game_mode bwand bwnot(COMBAT bwor PCOMBAT)) then return; // highlight only in local map mode
+      if (motionScanner and (CheckMotionSensor == false)) then pressed := false;
+   end
 
    if (pressed or isHighlight) then begin
       isHighlight := pressed;
@@ -137,12 +149,11 @@ procedure KeyPressHandler begin
 end
 
 procedure CombatTurnHandler begin
-   // remove the highlight if the key is hold
+   // off the highlight if the key is hold
    if (isHighlight) then begin
       isHighlight := false;
       call ToggleHighlight(false);
    end
-
 end
 
 procedure CheckMotionSensor begin
@@ -166,7 +177,6 @@ procedure CheckMotionSensor begin
       display_msg(highlightFailMsg1);
       result := false;
    end
-
    return result;
 end
 
@@ -265,4 +275,9 @@ procedure CheckObjectUsed(variable objPtr) begin
    else
       return (get_flags(objPtr) bwand FLAG_USED);
 
+end
+
+procedure InventoryMoveHandler begin
+   // remove outline item when dude pickup item
+   if (isHighlight and get_sfall_arg == 7) then set_outline(get_sfall_arg, 0);
 end

@@ -10,13 +10,11 @@
 
 /* Defines */
 
-
 /* Script Procedures */
 procedure start;
 
-
 procedure start begin
-variable sneakIsSuccess,time, level;
+variable sneakIsSuccess, time, level;
 
    if not(init_hook) then begin
       level := critter_skill_level(dude_obj, SKILL_SNEAK);
