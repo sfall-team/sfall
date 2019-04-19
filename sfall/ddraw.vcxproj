@@ -308,7 +308,7 @@
     <ClInclude Include="Modules\MainLoopHook.h" />
     <ClInclude Include="Modules\Module.h" />
     <ClInclude Include="Modules\AI.h" />
-    <ClInclude Include="Modules\AmmoMod.h" />
+    <ClInclude Include="Modules\DamageMod.h" />
     <ClInclude Include="Modules\AnimationsAtOnceLimit.h" />
     <ClInclude Include="Modules\MiscPatches.h" />
     <ClInclude Include="Modules\Karma.h" />
@@ -395,7 +395,7 @@
     <ClCompile Include="Modules\Input.cpp" />
     <ClCompile Include="ModuleManager.cpp" />
     <ClCompile Include="Modules\AI.cpp" />
-    <ClCompile Include="Modules\AmmoMod.cpp" />
+    <ClCompile Include="Modules\DamageMod.cpp" />
     <ClCompile Include="Modules\AnimationsAtOnceLimit.cpp" />
     <ClCompile Include="Modules\MainLoopHook.cpp" />
     <ClCompile Include="Modules\MiscPatches.cpp" />
