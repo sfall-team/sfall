@@ -18,7 +18,7 @@
 // because the compiler builds the better/optimized code when calling the engine functions
 WRAP_WATCOM_FFUNC4(long, _word_wrap, const char*, text, int, maxWidth, DWORD*, buf, BYTE*, count)
 WRAP_WATCOM_FFUNC7(long, createWindow, const char*, winName, long, x, long, y, long, width, long, height, long, bgColorIndex, long, flags)
-WRAP_WATCOM_FFUNC3(long, frame_ptr, FrmFrameData*, frm, long, rotation, long, frame)
+WRAP_WATCOM_FFUNC3(FrmSubframeData*, frame_ptr, FrmFrameData*, frm, long, frame, long, direction)
 WRAP_WATCOM_FFUNC7(void, make_straight_path_func, fo::GameObject*, objFrom, DWORD, tileFrom, DWORD, tileTo, void*, rotationPtr, DWORD*, result, long, flags, void*, func)
 WRAP_WATCOM_FFUNC3(long, object_under_mouse, long, crSwitch, long, inclDude, long, elevation)
 

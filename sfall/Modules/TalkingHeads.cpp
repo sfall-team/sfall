@@ -16,26 +16,20 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <d3d9.h>
-#include <d3dx9.h>
 #include <stdio.h>
 #include <unordered_map>
 
 #include "..\main.h"
 #include "..\FalloutEngine\Fallout2.h"
+#include "Graphics.h"
+#include "LoadGameHook.h"
 
 #include "TalkingHeads.h"
 
 namespace sfall
 {
 
-void _stdcall SetHeadTex(IDirect3DTexture9* tex, int width, int height, int xoff, int yoff);
-
 extern IDirect3DDevice9* d3d9Device;
-static std::unordered_map<__int64, IDirect3DTexture9**> texMap;
-typedef std::unordered_map<__int64, IDirect3DTexture9**> :: iterator tex_itr;
-typedef std::unordered_map<__int64, IDirect3DTexture9**> :: const_iterator tex_citr;
-static BYTE overridden=0;
 
 #pragma pack(push, 1)
 struct Frm {
@@ -66,129 +60,203 @@ struct Frm {
 		};
 	};
 };
-struct Frame {
-	WORD width;
-	WORD height;
-	DWORD size;
-	WORD xoffset;
-	WORD yoffset;
-	BYTE data[1];
-};
 #pragma pack(pop)
 
-static Frame* FramePointer(const Frm* frm, int frameno) {
-	Frame* result;
-	__asm {
-		mov eax, frm;
-		mov edx, frameno;
-		xor ebx, ebx;
-		call fo::funcoffs::frame_ptr_;
-		mov result, eax;
-	}
-	return result;
+struct TextureData {
+	IDirect3DTexture9** textures;
+	BYTE showHighlights;
+	BYTE bakedBackground;
+	int frames;
+
+	TextureData(IDirect3DTexture9** tex, BYTE show, BYTE baked, int frames)
+		: textures(tex), showHighlights(show), bakedBackground(baked), frames(frames) {}
+};
+
+typedef std::unordered_map<__int64, TextureData> :: iterator tex_itr;
+typedef std::unordered_map<__int64, TextureData> :: const_iterator tex_citr;
+
+static std::unordered_map<__int64, TextureData> texMap;
+static IDirect3DTexture9* texHighlight = nullptr;
+
+static const char* headSuffix[] = { "gv", "gf", "gn", "ng", "nf", "nb", "bn", "bf", "bv", "gp", "np", "bp" };
+
+static BYTE showHighlights;
+
+/*             Head FID
+ 0-000-1000-00000000-0000-000000000000
+   ID3 Type   ID2    ID1   .lst index
+*/
+static bool GetHeadFrmName(char* name) {
+	int headFid = fo::var::fidgetFID;
+	int index = headFid & 0xFFF;
+	if (index >= fo::var::art[fo::OBJ_TYPE_HEAD].total) return true;
+	int ID2 = (headFid & 0xFF0000) >> 16;
+	if (ID2 > 11) return true;
+	int ID1 = (headFid & 0xF000) >> 12;
+	//if (ID1 > 3) ID1 = 3;
+	const char* headLst = fo::var::art[fo::OBJ_TYPE_HEAD].names;
+	_snprintf(name, 8, "%s%s%d", &headLst[13 * index], headSuffix[ID2], ID1);
+	return false;
 }
 
-static void LoadFrm(Frm* frm) {
+static void StrAppend(char* buf, const char* str, int pos) {
+	int i = 0;
+	while (pos < MAX_PATH && str[i]) buf[pos++] = str[i++];
+	buf[pos] = str[i]; // copy '\0'
+}
+
+static bool LoadFrm(Frm* frm) {
+	if (!frm->key && GetHeadFrmName(frm->path)) {
+		frm->broken = 1;
+		return false;
+	}
 	tex_citr itr = texMap.find(frm->key);
 	if (itr == texMap.end()) {
-		//Load textures
+		// Loading head frames textures
+		*(DWORD*)FO_VAR_bk_disabled = 1;
 		char buf[MAX_PATH];
+		int pathLen = sprintf(buf, "%s\\art\\heads\\%s\\", fo::var::patches, frm->path);
 		IDirect3DTexture9** textures = new IDirect3DTexture9*[frm->frames];
 		for (int i = 0; i < frm->frames; i++) {
-			sprintf(buf, "%s\\art\\heads\\%s\\%d.png", fo::var::patches, frm->path, i);
+			sprintf(&buf[pathLen], "%d.png", i);
 			if (FAILED(D3DXCreateTextureFromFileExA(d3d9Device, buf, 0, 0, 1, 0, D3DFMT_UNKNOWN, D3DPOOL_MANAGED, D3DX_DEFAULT, D3DX_DEFAULT, 0, 0, 0, &textures[i]))) {
 				for (int j = 0; j < i; j++) textures[j]->Release();
 				delete[] textures;
 				frm->broken = 1;
-				return;
+				*(DWORD*)FO_VAR_bk_disabled = 0;
+				return false;
 			}
+			fo::func::process_bk(); // eliminate lag when loading textures
+		}
+		if (frm->magic != 0xABCD) { // frm file not patched
+			StrAppend(buf, "highlight.off", pathLen);
+			if (GetFileAttributes(buf) != INVALID_FILE_ATTRIBUTES) frm->showHighlights = 1; // disable all highlights
+			if (!frm->showHighlights && texHighlight) {
+				StrAppend(buf, "highlight.on", pathLen);
+				if (GetFileAttributes(buf) != INVALID_FILE_ATTRIBUTES) frm->showHighlights = 2; // show textured highlights
+			}
+			StrAppend(buf, "background.off", pathLen);
+			if (GetFileAttributes(buf) != INVALID_FILE_ATTRIBUTES) frm->bakedBackground = 1; // fills entire frame surface with a key-color
 		}
 		frm->textures = textures;
-		texMap[frm->key] = textures;
+		texMap.emplace(std::piecewise_construct, std::forward_as_tuple(frm->key),
+					   std::forward_as_tuple(textures, frm->showHighlights, frm->bakedBackground, frm->frames));
+		*(DWORD*)FO_VAR_bk_disabled = 0;
 	} else {
-		//Use preloaded textures
-		frm->textures = itr->second;
+		// Use preloaded textures
+		frm->textures = itr->second.textures;
+		frm->showHighlights = itr->second.showHighlights;
+		frm->bakedBackground = itr->second.bakedBackground;
 	}
-	//mask image
+	// make mask image
 	for (int i = 0; i < frm->frames; i++) {
-		Frame* frame = FramePointer(frm, i);
+		fo::FrmSubframeData* frame = fo::func::frame_ptr((fo::FrmFrameData*)frm, i, 0);
 		if (frm->bakedBackground) {
-			memset(frame->data, 0x30, frame->size);
+			memset(frame->data, 255, frame->size);
 		} else {
 			for (DWORD j = 0; j < frame->size; j++) {
-				if (frame->data[j]) frame->data[j] = 0x30;
+				if (frame->data[j]) frame->data[j] = 255; // set index color
 			}
 		}
 	}
 	frm->loaded = 1;
+	return true;
 }
 
-static void _stdcall DrawFrmHookInternal(Frm* frm, int frameno) {
-	if (!frm) return;
-	if (frm->magic == 0xabcd && !frm->broken) {
-		if (!frm->loaded) LoadFrm(frm);
-		if (frm->broken) return;
-		Frame* frame = FramePointer(frm, frameno);
-		SetHeadTex(frm->textures[frameno], frame->width, frame->height, frame->xoffset + frm->xshift, frame->yoffset + frm->yshift);
-		overridden = !frm->showHighlights;
-	} else overridden = 0;
+static void __fastcall DrawHeadFrame(Frm* frm, int frameno) {
+	if (frm && !frm->broken) {
+		if (!frm->loaded && !LoadFrm(frm)) goto loadFail;
+		fo::FrmSubframeData* frame = fo::func::frame_ptr((fo::FrmFrameData*)frm, frameno, 0);
+		Graphics::SetHeadTex(frm->textures[frameno], frame->width, frame->height, frame->x + frm->xshift, frame->y + frm->yshift, (frm->showHighlights == 2));
+		showHighlights = (((char)frm->showHighlights) > 0);
+		return;
+	}
+loadFail:
+	showHighlights = 0; // show vanilla highlights
+	Graphics::SetDefaultTechnique();
 }
 
 static const DWORD gdDisplayFrameRet = 0x44AD06;
-static void __declspec(naked) DrawFrmHook() {
+static void __declspec(naked) gdDisplayFrame_hack() {
 	__asm {
 		push edx;
 		push eax;
-		push edx;
-		push eax;
-		call DrawFrmHookInternal;
-		pop eax;
-		pop edx;
-		sub esp, 0x38;
-		mov esi, eax;
-		jmp gdDisplayFrameRet;
+		mov  ecx, eax;      // frm file
+		call DrawHeadFrame; // edx - frameno
+		pop  eax;
+		pop  edx;
+		sub  esp, 0x38;
+		mov  esi, eax;
+		jmp  gdDisplayFrameRet;
 	}
 }
 
-static const DWORD EndSpeechHookRet=0x447299;
-void __declspec(naked) EndSpeechHook() {
+void __declspec(naked) gdDestroyHeadWindow_hack() {
 	__asm {
-		push label;
-		push ebx;
-		push ecx;
-		push edx;
-		push edi;
-		push ebp;
-		jmp EndSpeechHookRet;
-label:
-		xor eax, eax;
-		push eax;
-		push eax;
-		push eax;
-		push eax;
-		push eax;
-		call SetHeadTex;
+		call Graphics::SetDefaultTechnique;
+		pop  ebp;
+		pop  edi;
+		pop  edx;
+		pop  ecx;
+		pop  ebx;
 		retn;
 	}
 }
 
 static void __declspec(naked) TransTalkHook() {
 	__asm {
-		cmp overridden, 0;
-		jne skip;
-		jmp fo::funcoffs::talk_to_translucent_trans_buf_to_buf_;
+		test showHighlights, 0xFF;
+		jnz  skip;
+		jmp  fo::funcoffs::talk_to_translucent_trans_buf_to_buf_;
 skip:
 		retn 0x18;
 	}
 }
 
-void TalkingHeads::init() {
-	if (GetConfigInt("Graphics", "Use32BitHeadGraphics", 0)) {
-		HookCall(0x44AFB4, &TransTalkHook);
-		HookCall(0x44B00B, &TransTalkHook);
-		MakeJump(0x44AD01, DrawFrmHook);
-		MakeJump(0x447294, EndSpeechHook);
+static void __declspec(naked) gdialogInitFromScript_hook() {
+	__asm {
+		cmp dword ptr ds:[FO_VAR_dialogue_head], -1;
+		jnz noScroll;
+		jmp fo::funcoffs::tile_scroll_to_;
+noScroll:
+		retn;
 	}
+}
+
+static void TalkingHeadsInit() {
+	if (!Graphics::GPUBlt) return;
+
+	HookCalls(TransTalkHook, {0x44AFB4, 0x44B00B});
+	MakeJump(0x44AD01, gdDisplayFrame_hack); // Draw Frm
+	MakeJump(0x4472F8, gdDestroyHeadWindow_hack);
+
+	// Load highlights texture
+	char buf[MAX_PATH];
+	sprintf_s(buf, "%s\\art\\stex\\highlight.png", fo::var::patches);
+	if (!FAILED(D3DXCreateTextureFromFileExA(d3d9Device, buf, 0, 0, 1, 0, D3DFMT_UNKNOWN, D3DPOOL_MANAGED, D3DX_DEFAULT, D3DX_DEFAULT, 0, 0, 0, &texHighlight))) {
+		Graphics::SetHighlightTexture(texHighlight);
+	}
+}
+
+void TalkingHeads::init() {
+	// Disable centering the screen if NPC has talking head
+	HookCall(0x445224, gdialogInitFromScript_hook);
+
+	if (Graphics::mode && GetConfigInt("Graphics", "Use32BitHeadGraphics", 0)) {
+		LoadGameHook::OnAfterGameInit() += TalkingHeadsInit;
+	}
+}
+
+void TalkingHeads::exit() {
+	if (!texMap.empty()) {
+		for (auto& frm : texMap) {
+			for (int i = 0; i < frm.second.frames; i++) {
+				frm.second.textures[i]->Release();
+			}
+			delete[] frm.second.textures;
+		}
+	}
+	if (texHighlight) texHighlight->Release();
 }
 
 }

@@ -112,6 +112,11 @@ procedure GameModeChangeHandler begin
    end
 end
 
+procedure InventoryMoveHandler begin
+   // remove item outline when player picks up the item
+   if (isHighlight and get_sfall_arg == 7) then set_outline(get_sfall_arg, 0);
+end
+
 procedure start begin
    if game_loaded and (sfall_ver_major >= 4) then begin
       call InitConfigs;
@@ -130,5 +135,6 @@ procedure start begin
       register_hook_proc(HOOK_KEYPRESS, KeyPressHandler);
       register_hook_proc(HOOK_COMBATTURN, CombatTurnHandler);
       register_hook_proc(HOOK_GAMEMODECHANGE, GameModeChangeHandler);
+      register_hook_proc(HOOK_INVENTORYMOVE, InventoryMoveHandler);
    end
 end
