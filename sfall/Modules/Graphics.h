@@ -41,6 +41,7 @@ public:
 
 	static void SetHighlightTexture(IDirect3DTexture9* htex);
 	static void SetHeadTex(IDirect3DTexture9* tex, int width, int height, int xoff, int yoff, int showHighlight);
+	static void SetHeadTechnique();
 	static void SetDefaultTechnique();
 };
 

@@ -19,7 +19,7 @@
 #define FO_VAR_background_volume          0x518E88
 #define FO_VAR_bboxslot                   0x5970E0
 #define FO_VAR_bckgnd                     0x5707A4
-#define FO_VAR_bk_disabled                0x6AC780 
+#define FO_VAR_bk_disabled                0x6AC780
 #define FO_VAR_black_palette              0x663FD0
 #define FO_VAR_bottom_line                0x664524
 #define FO_VAR_btable                     0x59E944
@@ -50,7 +50,7 @@
 #define FO_VAR_dialogue_switch_mode       0x518718
 #define FO_VAR_dialog_target              0x518848
 #define FO_VAR_dialog_target_is_party     0x51884C
-#define FO_VAR_displayMapList             0x41B560 
+#define FO_VAR_displayMapList             0x41B560
 #define FO_VAR_dropped_explosive          0x5190E0
 #define FO_VAR_drugInfoList               0x5191CC
 #define FO_VAR_editor_message_file        0x56FCA8
@@ -60,6 +60,7 @@
 #define FO_VAR_Experience_                0x6681B4
 #define FO_VAR_fallout_game_time          0x51C720
 #define FO_VAR_fidgetFID                  0x5186F4
+#define FO_VAR_fidgetFp                   0x5186FC
 #define FO_VAR_flptr                      0x614808
 #define FO_VAR_folder_card_desc           0x5705CC
 #define FO_VAR_folder_card_fid            0x5705B0
@@ -109,6 +110,8 @@
 #define FO_VAR_last_level                 0x5707B4
 #define FO_VAR_Level_                     0x6681B0
 #define FO_VAR_Lifegiver                  0x570854
+#define FO_VAR_lips_draw_head             0x519248
+#define FO_VAR_lipsFID                    0x518704
 #define FO_VAR_list_com                   0x56D394
 #define FO_VAR_list_total                 0x56D37C
 #define FO_VAR_loadingGame                0x5194C4

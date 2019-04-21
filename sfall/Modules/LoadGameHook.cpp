@@ -43,13 +43,15 @@ namespace sfall
 {
 
 #define _InLoop2(type, flag) __asm { \
-	_asm push flag \
-	_asm push type \
-	_asm call SetInLoop }
-#define _InLoop(type, flag) __asm { \
-	pushadc              \
-	_InLoop2(type, flag) \
-	popadc }
+	_asm push flag                   \
+	_asm push type                   \
+	_asm call SetInLoop              \
+}
+#define _InLoop(type, flag) __asm {  \
+	pushadc                          \
+	_InLoop2(type, flag)             \
+	popadc                           \
+}
 
 static Delegate<> onGameInit;
 static Delegate<> onAfterGameInit;
@@ -107,7 +109,7 @@ void _stdcall SetInLoop(DWORD mode, LoopFlag flag) {
 	} else {
 		ClearLoopFlag(flag);
 	}
-	HookScripts::GameModeChangeHook(0);
+	GameModeChange(0);
 }
 
 void GetSavePath(char* buf, char* ftype) {

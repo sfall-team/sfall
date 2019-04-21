@@ -618,6 +618,10 @@ void Graphics::SetHeadTex(IDirect3DTexture9* tex, int width, int height, int xof
 	size[1] = (14.0f + yoff + ((200 - height) / 2)) * rcpres[1];
 	gpuBltEffect->SetFloatArray(gpuBltHeadCorner, size, 2);
 
+	SetHeadTechnique();
+}
+
+void Graphics::SetHeadTechnique() {
 	gpuBltEffect->SetTechnique("T1");
 }
 
