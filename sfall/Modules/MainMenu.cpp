@@ -45,50 +45,61 @@ static void __declspec(naked) MainMenuTextYHook() {
 	}
 }
 
-static const DWORD MainMenuTextRet = 0x4817B0;
+#ifdef NDEBUG
 static const char* VerString1 = "SFALL " VERSION_STRING;
+#else
+static const char* VerString1 = "SFALL " VERSION_STRING " Debug Build";
+#endif
+
 static DWORD OverrideColour;
 static void __declspec(naked) FontColour() {
 	__asm {
 		cmp OverrideColour, 0;
-		je skip;
+		je  skip;
 		mov eax, OverrideColour;
 		retn;
 skip:
 		movzx eax, byte ptr ds:[0x6A8B33];
-		or eax, 0x6000000;
+		or  eax, 0x6000000;
 		retn;
 	}
 }
 
+static const DWORD MainMenuTextRet = 0x4817B0;
 static void __declspec(naked) MainMenuTextHook() {
 	__asm {
-		mov edi, [esp];
-		sub edi, 12; //shift yposition up by 12
-		mov [esp], edi;
-		mov ebp, ecx;
-		push eax;
+		mov  esi, eax;                // winptr
+		mov  ebp, ecx;                // keep xpos
+		mov  edi, [esp];              // ypos
+		mov  eax, edi;
+		sub  eax, 12;                 // shift y position up by 12
+		mov  [esp], eax;
 		call FontColour;
-		mov [esp+8], eax;
-		pop eax;
+		mov  [esp + 4], eax;          // colour
+		mov  eax, esi;
+		mov  esi, edx;                // keep fallout buff
 		call fo::funcoffs::win_print_;
+		// sfall print
+		mov  eax, esi;
+		call ds:[FO_VAR_text_width];
+		add  ebp, eax;               // xpos shift (right align)
 		call FontColour;
-		push eax;//colour
-		mov edx, VerString1;//msg
-		xor ebx, ebx;//font
-		mov ecx, ebp;
-		dec ecx; //xpos
-		add edi, 12;
-		push edi; //ypos
-		mov eax, dword ptr ds:[FO_VAR_main_window];//winptr
+		push eax;                    // colour
+		mov  edx, VerString1;        // msg
+		mov  eax, edx;
+		call ds:[FO_VAR_text_width];
+		mov  ecx, ebp;               // xpos
+		sub  ecx, eax;               // left shift position
+		push edi;                    // ypos
+		xor  ebx, ebx;               // font
+		mov  eax, dword ptr ds:[FO_VAR_main_window]; // winptr
 		call fo::funcoffs::win_print_;
-		jmp MainMenuTextRet;
+		jmp  MainMenuTextRet;
 	}
 }
 
 void MainMenu::init() {
 	int offset;
-
 	if (offset = GetConfigInt("Misc", "MainMenuCreditsOffsetX", 0)) {
 		SafeWrite32(0x481753, 15 + offset);
 	}

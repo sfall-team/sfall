@@ -81,21 +81,25 @@ static IDirect3DTexture9* texHighlight = nullptr;
 static const char* headSuffix[] = { "gv", "gf", "gn", "ng", "nf", "nb", "bn", "bf", "bv", "gp", "np", "bp" };
 
 static BYTE showHighlights;
+static long reactionID;
 
 /*             Head FID
  0-000-1000-00000000-0000-000000000000
    ID3 Type   ID2    ID1   .lst index
 */
 static bool GetHeadFrmName(char* name) {
-	int headFid = fo::var::fidgetFID;
+	int headFid = (*(DWORD*)FO_VAR_lips_draw_head)
+				? fo::var::lipsFID
+				: fo::var::fidgetFID;
 	int index = headFid & 0xFFF;
 	if (index >= fo::var::art[fo::OBJ_TYPE_HEAD].total) return true;
-	int ID2 = (headFid & 0xFF0000) >> 16;
+	int ID2 = (*(DWORD*)FO_VAR_fidgetFp) ? (headFid & 0xFF0000) >> 16 : reactionID;
 	if (ID2 > 11) return true;
-	int ID1 = (headFid & 0xF000) >> 12;
+	int ID1 = (ID2 == 1 || ID2 == 4 || ID2 == 7) ? (headFid & 0xF000) >> 12 : -1;
 	//if (ID1 > 3) ID1 = 3;
 	const char* headLst = fo::var::art[fo::OBJ_TYPE_HEAD].names;
-	_snprintf(name, 8, "%s%s%d", &headLst[13 * index], headSuffix[ID2], ID1);
+	char* fmt = (ID1 != -1) ? "%s%s%d" : "%s%s";
+	_snprintf(name, 8, fmt, &headLst[13 * index], headSuffix[ID2], ID1);
 	return false;
 }
 
@@ -115,7 +119,8 @@ static bool LoadFrm(Frm* frm) {
 		// Loading head frames textures
 		*(DWORD*)FO_VAR_bk_disabled = 1;
 		char buf[MAX_PATH];
-		int pathLen = sprintf(buf, "%s\\art\\heads\\%s\\", fo::var::patches, frm->path);
+		int pathLen = sprintf_s(buf, "%s\\art\\heads\\%s\\", fo::var::patches, frm->path);
+		if (pathLen > 250) return false;
 		IDirect3DTexture9** textures = new IDirect3DTexture9*[frm->frames];
 		for (int i = 0; i < frm->frames; i++) {
 			sprintf(&buf[pathLen], "%d.png", i);
@@ -168,7 +173,7 @@ static void __fastcall DrawHeadFrame(Frm* frm, int frameno) {
 		if (!frm->loaded && !LoadFrm(frm)) goto loadFail;
 		fo::FrmSubframeData* frame = fo::func::frame_ptr((fo::FrmFrameData*)frm, frameno, 0);
 		Graphics::SetHeadTex(frm->textures[frameno], frame->width, frame->height, frame->x + frm->xshift, frame->y + frm->yshift, (frm->showHighlights == 2));
-		showHighlights = (((char)frm->showHighlights) > 0);
+		showHighlights = frm->showHighlights;
 		return;
 	}
 loadFail:
@@ -194,6 +199,7 @@ static void __declspec(naked) gdDisplayFrame_hack() {
 void __declspec(naked) gdDestroyHeadWindow_hack() {
 	__asm {
 		call Graphics::SetDefaultTechnique;
+		mov  showHighlights, 0;
 		pop  ebp;
 		pop  edi;
 		pop  edx;
@@ -213,6 +219,13 @@ skip:
 	}
 }
 
+static void __declspec(naked) gdPlayTransition_hook() {
+	__asm {
+		mov reactionID, ebx;
+		jmp fo::funcoffs::art_id_;
+	}
+}
+
 static void __declspec(naked) gdialogInitFromScript_hook() {
 	__asm {
 		cmp dword ptr ds:[FO_VAR_dialogue_head], -1;
@@ -229,12 +242,25 @@ static void TalkingHeadsInit() {
 	HookCalls(TransTalkHook, {0x44AFB4, 0x44B00B});
 	MakeJump(0x44AD01, gdDisplayFrame_hack); // Draw Frm
 	MakeJump(0x4472F8, gdDestroyHeadWindow_hack);
+	HookCall(0x44768B, gdPlayTransition_hook);
 
 	// Load highlights texture
 	char buf[MAX_PATH];
 	sprintf_s(buf, "%s\\art\\stex\\highlight.png", fo::var::patches);
 	if (!FAILED(D3DXCreateTextureFromFileExA(d3d9Device, buf, 0, 0, 1, 0, D3DFMT_UNKNOWN, D3DPOOL_MANAGED, D3DX_DEFAULT, D3DX_DEFAULT, 0, 0, 0, &texHighlight))) {
 		Graphics::SetHighlightTexture(texHighlight);
+		LoadGameHook::OnGameModeChange() += [](DWORD state) {
+			static bool setHeadTech = false;
+			if (showHighlights == 2) {
+				if (GetLoopFlags() & DIALOGVIEW) {
+					Graphics::SetDefaultTechnique();
+					setHeadTech = true;
+				} else if (setHeadTech) {
+					Graphics::SetHeadTechnique();
+					setHeadTech = false;
+				}
+			}
+		};
 	}
 }
 
