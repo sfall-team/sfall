@@ -31,52 +31,42 @@ using namespace fo;
 
 void __declspec(naked) op_get_perk_owed() {
 	__asm {
-		pushad;
-		mov ecx, eax;
-		movzx edx, byte ptr ds : [FO_VAR_free_perk];
-		call fo::funcoffs::interpretPushLong_;
-		mov edx, VAR_TYPE_INT;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPushShort_;
-		popad;
+		push edx;
+		push ecx;
+		movzx edx, byte ptr ds:[FO_VAR_free_perk];
+		_RET_VAL_INT(ecx);
+		pop  ecx;
+		pop  edx;
 		retn;
 	}
 }
 
 void __declspec(naked) op_set_perk_owed() {
 	__asm {
-		pushad;
-		mov ecx, eax;
-		call fo::funcoffs::interpretPopShort_;
-		mov edx, eax;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPopLong_;
-		cmp dx, VAR_TYPE_INT;
-		jnz end;
-		and eax, 0xff;
-		cmp eax, 250;
-		jg end;
-		mov byte ptr ds : [FO_VAR_free_perk], al
+		push ecx;
+		push edx;
+		_GET_ARG_INT(end);
+		and  eax, 0xFF;
+		cmp  eax, 250;
+		jg   end;
+		mov  byte ptr ds:[FO_VAR_free_perk], al;
 end:
-		popad
+		pop  edx;
+		pop  ecx;
 		retn;
 	}
 }
 
 void __declspec(naked) op_set_perk_freq() {
 	__asm {
-		pushad;
-		mov ecx, eax;
-		call fo::funcoffs::interpretPopShort_;
-		mov edx, eax;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPopLong_;
-		cmp dx, VAR_TYPE_INT;
-		jnz end;
+		push ecx;
+		push edx;
+		_GET_ARG_INT(end);
 		push eax;
 		call SetPerkFreq;
 end:
-		popad
+		pop  edx;
+		pop  ecx;
 		retn;
 	}
 }
@@ -507,22 +497,14 @@ end:
 
 void __declspec(naked) op_perk_add_mode() {
 	__asm {
-		push ebx;
 		push ecx;
 		push edx;
-		mov ecx, eax;
-		call fo::funcoffs::interpretPopShort_;
-		mov edx, eax;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPopLong_;
-		cmp dx, VAR_TYPE_INT;
-		jnz end;
+		_GET_ARG_INT(end);
 		push eax;
 		call AddPerkMode;
 end:
 		pop edx;
 		pop ecx;
-		pop ebx;
 		retn;
 	}
 }
@@ -557,23 +539,15 @@ end:
 
 void __declspec(naked) op_set_pyromaniac_mod() {
 	__asm {
-		push ebx;
 		push ecx;
 		push edx;
-		mov ecx, eax;
-		call fo::funcoffs::interpretPopShort_;
-		mov edx, eax;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPopLong_;
-		cmp dx, VAR_TYPE_INT;
-		jnz end;
+		_GET_ARG_INT(end);
 		push eax;
 		push 0x424AB6;
 		call SafeWrite8;
 end:
 		pop edx;
 		pop ecx;
-		pop ebx;
 		retn;
 	}
 }
@@ -589,23 +563,15 @@ void __declspec(naked) op_apply_heaveho_fix() {
 
 void __declspec(naked) op_set_swiftlearner_mod() {
 	__asm {
-		push ebx;
 		push ecx;
 		push edx;
-		mov ecx, eax;
-		call fo::funcoffs::interpretPopShort_;
-		mov edx, eax;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPopLong_;
-		cmp dx, VAR_TYPE_INT;
-		jnz end;
+		_GET_ARG_INT(end);
 		push eax;
 		push 0x4AFAE2;
 		call SafeWrite32;
 end:
-		pop edx;
-		pop ecx;
-		pop ebx;
+		pop  edx;
+		pop  ecx;
 		retn;
 	}
 }

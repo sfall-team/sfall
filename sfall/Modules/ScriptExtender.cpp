@@ -312,7 +312,7 @@ static void __declspec(naked) CombatOverHook() {
 	}
 }
 
-void _stdcall SetGlobalScriptRepeat(fo::Program* script, int frames) {
+void _fastcall SetGlobalScriptRepeat(fo::Program* script, int frames) {
 	for (DWORD d = 0; d < globalScripts.size(); d++) {
 		if (globalScripts[d].prog.ptr == script) {
 			if (frames == -1) {
@@ -325,7 +325,7 @@ void _stdcall SetGlobalScriptRepeat(fo::Program* script, int frames) {
 	}
 }
 
-void _stdcall SetGlobalScriptType(fo::Program* script, int type) {
+void _fastcall SetGlobalScriptType(fo::Program* script, int type) {
 	if (type <= 3) {
 		for (size_t d = 0; d < globalScripts.size(); d++) {
 			if (globalScripts[d].prog.ptr == script) {
@@ -381,7 +381,7 @@ long GetGlobalVarInt(DWORD var) {
 	return GetGlobalVarInternal(var);
 }
 
-void _stdcall SetSelfObject(fo::Program* script, fo::GameObject* obj) {
+void _fastcall SetSelfObject(fo::Program* script, fo::GameObject* obj) {
 	std::unordered_map<fo::Program*, SelfOverrideObj>::iterator it = selfOverrideMap.find(script);
 	bool isFind = (it != selfOverrideMap.end());
 	if (obj) {

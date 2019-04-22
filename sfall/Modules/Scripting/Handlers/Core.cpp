@@ -34,64 +34,42 @@ namespace script
 
 void __declspec(naked) op_set_global_script_repeat() {
 	__asm {
-		push ebx;
 		push ecx;
 		push edx;
-		mov ecx, eax;
-		call fo::funcoffs::interpretPopShort_;
-		mov edx, eax;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPopLong_;
-		cmp dx, VAR_TYPE_INT;
-		jnz end;
-		push eax;
-		push ecx;
-		call SetGlobalScriptRepeat;
+		mov  ecx, eax;
+		_GET_ARG_INT(end);
+		mov  edx, eax;              // frames
+		call SetGlobalScriptRepeat; // ecx - script
 end:
 		pop edx;
 		pop ecx;
-		pop ebx;
 		retn;
 	}
 }
 
 void __declspec(naked) op_set_global_script_type() {
 	__asm {
-		push ebx;
 		push ecx;
 		push edx;
-		mov ecx, eax;
-		call fo::funcoffs::interpretPopShort_;
-		mov edx, eax;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPopLong_;
-		cmp dx, VAR_TYPE_INT;
-		jnz end;
-		push eax;
-		push ecx;
-		call SetGlobalScriptType;
+		mov  ecx, eax;
+		_GET_ARG_INT(end);
+		mov  edx, eax;            // type
+		call SetGlobalScriptType; // ecx - script
 end:
-		pop edx;
-		pop ecx;
-		pop ebx;
+		pop  edx;
+		pop  ecx;
 		retn;
 	}
 }
 
 void __declspec(naked) op_available_global_script_types() {
 	__asm {
-		push ebx;
 		push ecx;
 		push edx;
-		mov edx, availableGlobalScriptTypes;
-		mov ecx, eax;
-		call fo::funcoffs::interpretPushLong_;
-		mov edx, VAR_TYPE_INT;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPushShort_;
-		pop edx;
-		pop ecx;
-		pop ebx;
+		mov  edx, availableGlobalScriptTypes;
+		_RET_VAL_INT(ecx);
+		pop  edx;
+		pop  ecx;
 		retn;
 	}
 }
@@ -135,24 +113,22 @@ void sf_get_sfall_global_float(OpcodeContext& ctx) {
 
 void __declspec(naked) op_get_sfall_arg() {
 	__asm {
-		pushad;
+		push ecx;
+		push edx;
 		push eax;
 		call GetHSArg;
-		pop ecx;
-		mov edx, eax;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPushLong_;
-		mov eax, ecx;
-		mov edx, VAR_TYPE_INT;
-		call fo::funcoffs::interpretPushShort_;
-		popad;
+		mov  edx, eax;
+		pop  eax;
+		_RET_VAL_INT(ecx);
+		pop  edx;
+		pop  ecx;
 		retn;
 	}
 }
 
 static DWORD _stdcall GetSfallArgs() {
 	DWORD argCount = GetHSArgCount();
-	DWORD id = TempArray(argCount, 4);
+	DWORD id = TempArray(argCount, 0);
 	DWORD* args = GetHSArgs();
 	for (DWORD i = 0; i < argCount; i++) {
 		arrays[id].val[i].set(*(long*)&args[i]);
@@ -160,19 +136,17 @@ static DWORD _stdcall GetSfallArgs() {
 	return id;
 }
 
-void __declspec(naked) op_get_sfall_args() {
+void __declspec(naked) op_get_sfall_args() { // rewrite to c++
 	__asm {
-		pushad;
+		push ecx;
+		push edx;
 		push eax;
 		call GetSfallArgs;
-		pop ecx;
-		mov edx, eax;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPushLong_;
-		mov eax, ecx;
-		mov edx, VAR_TYPE_INT;
-		call fo::funcoffs::interpretPushShort_;
-		popad;
+		mov  edx, eax;
+		pop  eax;
+		_RET_VAL_INT(ecx);
+		pop  edx;
+		pop  ecx;
 		retn;
 	}
 }
@@ -206,57 +180,41 @@ end:
 
 void __declspec(naked) op_set_sfall_return() {
 	__asm {
-		push ebx;
 		push ecx;
 		push edx;
-		mov ecx, eax;
-		call fo::funcoffs::interpretPopShort_;
-		mov edx, eax;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPopLong_;
-		cmp dx, VAR_TYPE_INT;
-		jnz end;
+		_GET_ARG_INT(end);
 		push eax;
 		call SetHSReturn;
 end:
-		pop edx;
-		pop ecx;
-		pop ebx;
+		pop  edx;
+		pop  ecx;
 		retn;
 	}
 }
 
 void __declspec(naked) op_init_hook() {
 	__asm {
-		push ecx;
 		push edx;
-		mov ecx, eax;
-		mov edx, initingHookScripts;
-		call fo::funcoffs::interpretPushLong_;
-		mov eax, ecx;
-		mov edx, VAR_TYPE_INT;
-		call fo::funcoffs::interpretPushShort_;
-		pop edx;
-		pop ecx;
+		push ecx;
+		mov  edx, initingHookScripts;
+		_RET_VAL_INT(ecx);
+		pop  ecx;
+		pop  edx;
 		retn;
 	}
 }
 
-void __declspec(naked) op_set_self() {
+void __declspec(naked) op_set_self() { // rewrite to c++
 	__asm {
-		pushad;
-		mov ebp, eax;
-		call fo::funcoffs::interpretPopShort_;
-		mov edi, eax;
-		mov eax, ebp;
-		call fo::funcoffs::interpretPopLong_;
-		cmp di, VAR_TYPE_INT;
-		jnz end;
-		push eax;
-		push ebp;
-		call SetSelfObject;
+		push ecx;
+		push edx;
+		mov  ecx, eax;
+		_GET_ARG_INT(end);
+		mov  edx, eax;      // object
+		call SetSelfObject; // ecx - script
 end:
-		popad;
+		pop  edx;
+		pop  ecx;
 		retn;
 	}
 }

@@ -44,7 +44,6 @@ static void _stdcall ForceEncounter4() {
 static void __declspec(naked) ForceEncounter3() {
 	__asm {
 		push eax;
-		push ebx;
 		push ecx;
 		push edx;
 		mov eax, [esp + 0x10];
@@ -53,13 +52,12 @@ static void __declspec(naked) ForceEncounter3() {
 		call ForceEncounter4;
 		pop edx;
 		pop ecx;
-		pop ebx;
 		pop eax;
 		retn;
 	}
 }
 
-static void _stdcall ForceEncounter2(DWORD mapID, DWORD flags) {
+static void _fastcall ForceEncounter2(DWORD mapID, DWORD flags) {
 	EncounteredHorrigan = *(DWORD*)0x672E04;
 	SafeWrite32(0x4C070E, mapID);
 	SafeWrite32(0x4C0718, mapID);
@@ -70,23 +68,15 @@ static void _stdcall ForceEncounter2(DWORD mapID, DWORD flags) {
 
 void __declspec(naked) op_force_encounter() {
 	__asm {
-		push ebx;
 		push ecx;
 		push edx;
-		mov ecx, eax;
-		call fo::funcoffs::interpretPopShort_;
-		mov edx, eax;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPopLong_;
-		cmp dx, VAR_TYPE_INT;
-		jnz end;
-		push 0;
-		push eax;
+		_GET_ARG_INT(end);
+		xor  edx, edx;
+		mov  ecx, eax;
 		call ForceEncounter2;
 end:
 		pop edx;
 		pop ecx;
-		pop ebx;
 		retn;
 	}
 }
@@ -109,86 +99,66 @@ void __declspec(naked) op_force_encounter_with_flags() {
 		jnz end;
 		cmp di, VAR_TYPE_INT;
 		jnz end;
-		push ebx;
-		push eax;
+		mov edx, ebx;
+		mov ecx, eax;
 		call ForceEncounter2;
 end:
 		popad
-			retn;
+		retn;
 	}
 }
 
 // world_map_functions
 void __declspec(naked) op_in_world_map() {
 	__asm {
-		push ebx;
 		push ecx;
 		push edx;
-		push esi;
-		mov esi, eax;
+		push eax;
 		call InWorldMap;
-		mov edx, eax;
-		mov eax, esi;
-		call fo::funcoffs::interpretPushLong_;
-		mov edx, VAR_TYPE_INT;
-		mov eax, esi;
-		call fo::funcoffs::interpretPushShort_;
-		pop esi;
-		pop edx;
-		pop ecx;
-		pop ebx;
+		mov  edx, eax;
+		pop  eax;
+		_RET_VAL_INT(ecx);
+		pop  edx;
+		pop  ecx;
 		retn;
 	}
 }
 
 void __declspec(naked) op_get_game_mode() {
 	__asm {
-		pushad;
-		mov edi, eax;
+		push ecx;
+		push edx;
+		push eax;
 		call GetLoopFlags;
-		mov edx, eax;
-		mov eax, edi;
-		call fo::funcoffs::interpretPushLong_;
-		mov edx, VAR_TYPE_INT;
-		mov eax, edi;
-		call fo::funcoffs::interpretPushShort_;
-		popad;
+		mov  edx, eax;
+		pop  eax;
+		_RET_VAL_INT(ecx);
+		pop  edx;
+		pop  ecx;
 		retn;
 	}
 }
 
 void __declspec(naked) op_get_world_map_x_pos() {
 	__asm {
-		push ebx;
-		push ecx;
 		push edx;
-		mov ecx, eax;
-		mov edx, ds:[FO_VAR_world_xpos];
-		call fo::funcoffs::interpretPushLong_;
-		mov edx, VAR_TYPE_INT;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPushShort_;
-		pop edx;
-		pop ecx;
-		pop ebx;
+		push ecx;
+		mov  edx, ds:[FO_VAR_world_xpos];
+		_RET_VAL_INT(ecx);
+		pop  ecx;
+		pop  edx;
 		retn;
 	}
 }
 
 void __declspec(naked) op_get_world_map_y_pos() {
 	__asm {
-		push ebx;
-		push ecx;
 		push edx;
-		mov ecx, eax;
-		mov edx, ds:[FO_VAR_world_ypos];
-		call fo::funcoffs::interpretPushLong_;
-		mov edx, VAR_TYPE_INT;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPushShort_;
-		pop edx;
+		push ecx;
+		mov  edx, ds:[FO_VAR_world_ypos];
+		_RET_VAL_INT(ecx);
 		pop ecx;
-		pop ebx;
+		pop edx;
 		retn;
 	}
 }
