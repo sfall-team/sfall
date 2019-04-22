@@ -16,21 +16,17 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "main.h"
-
-#include <d3d9.h>
-#include <d3dx9.h>
 #include <stdio.h>
 #include <hash_map>
-#include "FalloutEngine.h"
 
-void _stdcall SetHeadTex(IDirect3DTexture9* tex, int width, int height, int xoff, int yoff);
+#include "main.h"
+
+#include "FalloutEngine.h"
+#include "Graphics.h"
+
+#include "TalkingHeads.h"
 
 extern IDirect3DDevice9* d3d9Device;
-static stdext::hash_map<__int64, IDirect3DTexture9**> texMap;
-typedef stdext::hash_map<__int64, IDirect3DTexture9**> :: iterator tex_itr;
-typedef stdext::hash_map<__int64, IDirect3DTexture9**> :: const_iterator tex_citr;
-static BYTE overridden=0;
 
 #pragma pack(push, 1)
 struct Frm {
@@ -61,127 +57,204 @@ struct Frm {
 		};
 	};
 };
-struct Frame {
-	WORD width;
-	WORD height;
-	DWORD size;
-	WORD xoffset;
-	WORD yoffset;
-	BYTE data[1];
-};
 #pragma pack(pop)
 
-static Frame* FramePointer(const Frm* frm, int frameno) {
-	Frame* result;
-	__asm {
-		mov eax, frm;
-		mov edx, frameno;
-		xor ebx, ebx;
-		call frame_ptr_;
-		mov result, eax;
-	}
-	return result;
+struct TextureData {
+	IDirect3DTexture9** textures;
+	BYTE showHighlights;
+	BYTE bakedBackground;
+	int frames;
+
+	TextureData(IDirect3DTexture9** tex, BYTE show, BYTE baked, int frames)
+		: textures(tex), showHighlights(show), bakedBackground(baked), frames(frames) {}
+};
+
+typedef stdext::hash_map<__int64, TextureData> :: iterator tex_itr;
+typedef stdext::hash_map<__int64, TextureData> :: const_iterator tex_citr;
+
+static stdext::hash_map<__int64, TextureData> texMap;
+
+static const char* headSuffix[] = { "gv", "gf", "gn", "ng", "nf", "nb", "bn", "bf", "bv", "gp", "np", "bp" };
+
+static BYTE showHighlights;
+static long reactionID;
+
+bool Use32BitTalkingHeads = false;
+
+/*             Head FID
+ 0-000-1000-00000000-0000-000000000000
+   ID3 Type   ID2    ID1   .lst index
+*/
+static bool GetHeadFrmName(char* name) {
+	int headFid = (*(DWORD*)_lips_draw_head)
+				? *ptr_lipsFID
+				: *ptr_fidgetFID;
+	int index = headFid & 0xFFF;
+	if (index >= ptr_art[8].total) return true; // OBJ_TYPE_HEAD
+	int ID2 = (*(DWORD*)_fidgetFp) ? (headFid & 0xFF0000) >> 16 : reactionID;
+	if (ID2 > 11) return true;
+	int ID1 = (ID2 == 1 || ID2 == 4 || ID2 == 7) ? (headFid & 0xF000) >> 12 : -1;
+	//if (ID1 > 3) ID1 = 3;
+	const char* headLst = ptr_art[8].names; // OBJ_TYPE_HEAD
+	char* fmt = (ID1 != -1) ? "%s%s%d" : "%s%s";
+	_snprintf(name, 8, fmt, &headLst[13 * index], headSuffix[ID2], ID1);
+	return false;
 }
 
-static void LoadFrm(Frm* frm) {
-	tex_citr itr=texMap.find(frm->key);
-	if(itr==texMap.end()) {
-		//Load textures
+static void StrAppend(char* buf, const char* str, int pos) {
+	int i = 0;
+	while (pos < MAX_PATH && str[i]) buf[pos++] = str[i++];
+	buf[pos] = str[i]; // copy '\0'
+}
+
+static bool LoadFrm(Frm* frm) { // backporting WIP
+	if (!frm->key && GetHeadFrmName(frm->path)) {
+		frm->broken = 1;
+		return false;
+	}
+	tex_citr itr = texMap.find(frm->key);
+	if (itr == texMap.end()) {
+		// Loading head frames textures
+		*(DWORD*)_bk_disabled = 1;
 		char buf[MAX_PATH];
-		IDirect3DTexture9** textures=new IDirect3DTexture9*[frm->frames];
+		int pathLen = sprintf_s(buf, "%s\\art\\heads\\%s\\", *(char**)_patches, frm->path);
+		if (pathLen > 250) return false;
+		IDirect3DTexture9** textures = new IDirect3DTexture9*[frm->frames];
 		for (int i = 0; i < frm->frames; i++) {
-			sprintf(buf, "%s\\art\\heads\\%s\\%d.png", *(char**)_patches, frm->path, i);
+			sprintf(&buf[pathLen], "%d.png", i);
 			if (FAILED(D3DXCreateTextureFromFileExA(d3d9Device, buf, 0, 0, 1, 0, D3DFMT_UNKNOWN, D3DPOOL_MANAGED, D3DX_DEFAULT, D3DX_DEFAULT, 0, 0, 0, &textures[i]))) {
-				for(int j=0;j<i;j++) textures[j]->Release();
+				for (int j = 0; j < i; j++) textures[j]->Release();
 				delete[] textures;
-				frm->broken=1;
-				return;
+				frm->broken = 1;
+				*(DWORD*)_bk_disabled = 0;
+				return false;
 			}
+			ProcessBk(); // eliminate lag when loading textures
 		}
-		frm->textures=textures;
-		texMap[frm->key]=textures;
+		if (frm->magic != 0xABCD) { // frm file not patched
+			StrAppend(buf, "highlight.off", pathLen);
+			if (GetFileAttributes(buf) != INVALID_FILE_ATTRIBUTES) frm->showHighlights = 1; // disable highlights
+			StrAppend(buf, "background.off", pathLen);
+			if (GetFileAttributes(buf) != INVALID_FILE_ATTRIBUTES) frm->bakedBackground = 1; // fills entire frame surface with a key-color
+		}
+		frm->textures = textures;
+		texMap.insert(std::make_pair(frm->key, TextureData(textures, frm->showHighlights, frm->bakedBackground, frm->frames)));
+		*(DWORD*)_bk_disabled = 0;
 	} else {
-		//Use preloaded textures
-		frm->textures=itr->second;
+		// Use preloaded textures
+		frm->textures = itr->second.textures;
+		frm->showHighlights = itr->second.showHighlights;
+		frm->bakedBackground = itr->second.bakedBackground;
 	}
-	//mask image
-	for(int i=0;i<frm->frames;i++) {
-		Frame* frame=FramePointer(frm, i);
-		if(frm->bakedBackground) {
-			memset(frame->data, 0x30, frame->size);
+	// make mask image
+	for (int i = 0; i < frm->frames; i++) {
+		FrmSubframeData* frame = FramePtr((FrmFrameData*)frm, i, 0);
+		if (frm->bakedBackground) {
+			memset(frame->data, 255, frame->size);
 		} else {
-			for(DWORD j=0;j<frame->size;j++) {
-				if(frame->data[j]) frame->data[j]=0x30;
+			for (DWORD j = 0; j < frame->size; j++) {
+				if (frame->data[j]) frame->data[j] = 255; // set index color
 			}
 		}
 	}
-	frm->loaded=1;
+	frm->loaded = 1;
+	return true;
 }
 
-static void _stdcall DrawFrmHookInternal(Frm* frm, int frameno) {
-	if(!frm) return;
-	if(frm->magic==0xabcd&&!frm->broken) {
-		if(!frm->loaded) LoadFrm(frm);
-		if(frm->broken) return;
-		Frame* frame=FramePointer(frm, frameno);
-		SetHeadTex(frm->textures[frameno], frame->width, frame->height, frame->xoffset+frm->xshift, frame->yoffset+frm->yshift);
-		overridden=!frm->showHighlights;
-	} else overridden=0;
+static void __fastcall DrawHeadFrame(Frm* frm, int frameno) {
+	if (frm && !frm->broken) {
+		if (!frm->loaded && !LoadFrm(frm)) goto loadFail;
+		FrmSubframeData* frame = FramePtr((FrmFrameData*)frm, frameno, 0);
+		Gfx_SetHeadTex(frm->textures[frameno], frame->width, frame->height, frame->x + frm->xshift, frame->y + frm->yshift/*, (frm->showHighlights == 2)*/);
+		showHighlights = frm->showHighlights;
+		return;
+	}
+loadFail:
+	showHighlights = 0; // show vanilla highlights
+	Gfx_SetDefaultTechnique();
 }
 
-static const DWORD gdDisplayFrameRet=0x44AD06;
-static void __declspec(naked) DrawFrmHook() {
+static const DWORD gdDisplayFrameRet = 0x44AD06;
+static void __declspec(naked) gdDisplayFrame_hack() {
 	__asm {
 		push edx;
 		push eax;
-		push edx;
-		push eax;
-		call DrawFrmHookInternal;
-		pop eax;
-		pop edx;
-		sub esp, 0x38;
-		mov esi, eax;
-		jmp gdDisplayFrameRet;
+		mov  ecx, eax;      // frm file
+		call DrawHeadFrame; // edx - frameno
+		pop  eax;
+		pop  edx;
+		sub  esp, 0x38;
+		mov  esi, eax;
+		jmp  gdDisplayFrameRet;
 	}
 }
 
-static const DWORD EndSpeechHookRet=0x447299;
-void __declspec(naked) EndSpeechHook() {
+void __declspec(naked) gdDestroyHeadWindow_hack() {
 	__asm {
-		push label;
-		push ebx;
-		push ecx;
-		push edx;
-		push edi;
-		push ebp;
-		jmp EndSpeechHookRet;
-label:
-		xor eax, eax;
-		push eax;
-		push eax;
-		push eax;
-		push eax;
-		push eax;
-		call SetHeadTex;
+		call Gfx_SetDefaultTechnique;
+		mov  showHighlights, 0;
+		pop  ebp;
+		pop  edi;
+		pop  edx;
+		pop  ecx;
+		pop  ebx;
 		retn;
 	}
 }
 
 static void __declspec(naked) TransTalkHook() {
 	__asm {
-		cmp overridden, 0;
-		jne skip;
-		jmp talk_to_translucent_trans_buf_to_buf_;
+		test showHighlights, 0xFF;
+		jnz  skip;
+		jmp  talk_to_translucent_trans_buf_to_buf_;
 skip:
 		retn 0x18;
 	}
 }
 
-void HeadsInit() {
-	if (GetPrivateProfileInt("Graphics", "Use32BitHeadGraphics", 0, ini)) {
-		HookCall(0x44AFB4, &TransTalkHook);
-		HookCall(0x44B00B, &TransTalkHook);
-		MakeJump(0x44AD01, DrawFrmHook);
-		MakeJump(0x447294, EndSpeechHook);
+static void __declspec(naked) gdPlayTransition_hook() {
+	__asm {
+		mov reactionID, ebx;
+		jmp art_id_;
+	}
+}
+
+static void __declspec(naked) gdialogInitFromScript_hook() {
+	__asm {
+		cmp dword ptr ds:[_dialogue_head], -1;
+		jnz noScroll;
+		jmp tile_scroll_to_;
+noScroll:
+		retn;
+	}
+}
+
+void TalkingHeadsSetup() {
+	if (!GPUBlt) return;
+
+	HookCall(0x44AFB4, TransTalkHook);
+	HookCall(0x44B00B, TransTalkHook);
+	MakeJump(0x44AD01, gdDisplayFrame_hack); // Draw Frm
+	MakeJump(0x4472F8, gdDestroyHeadWindow_hack);
+	HookCall(0x44768B, gdPlayTransition_hook);
+}
+
+void TalkingHeadsInit() {
+	// Disable centering the screen if NPC has talking head
+	HookCall(0x445224, gdialogInitFromScript_hook);
+
+	if (GraphicsMode && GetPrivateProfileInt("Graphics", "Use32BitHeadGraphics", 0, ini)) {
+		Use32BitTalkingHeads = true;
+	}
+}
+
+void TalkingHeadsExit() {
+	if (!texMap.empty()) {
+		for (tex_citr it = texMap.begin(); it != texMap.end(); ++it) {
+			for (int i = 0; i < it->second.frames; i++) {
+				it->second.textures[i]->Release();
+			}
+			delete[] it->second.textures;
+		}
 	}
 }

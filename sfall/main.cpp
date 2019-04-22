@@ -228,20 +228,6 @@ static __declspec(naked) void PathfinderFix() {
 	}
 }
 
-static double FadeMulti;
-static __declspec(naked) void palette_fade_to_hook() {
-	__asm {
-		//pushf;
-		push ebx;
-		fild [esp];
-		fmul FadeMulti;
-		fistp [esp];
-		pop  ebx;
-		//popf;
-		jmp  fadeSystemPalette_;
-	}
-}
-
 static int mapSlotsScrollMax = 27 * (17 - 7);
 static __declspec(naked) void ScrollCityListFix() {
 	__asm {
@@ -875,42 +861,18 @@ static void DllMain2() {
 	dlogr("Running SpeedPatchInit().", DL_INIT);
 	SpeedPatchInit();
 
+	dlogr("Running GraphicsInit().", DL_INIT);
+	GraphicsInit();
+
+	dlogr("Running TalkingHeadsInit().", DL_INIT);
+	TalkingHeadsInit();
+
 	//if (GetPrivateProfileIntA("Input", "Enable", 0, ini)) {
 		dlog("Applying input patch.", DL_INIT);
 		SafeWriteStr(0x50FB70, "ddraw.dll");
 		AvailableGlobalScriptTypes |= 1;
 		dlogr(" Done", DL_INIT);
 	//}
-
-	GraphicsMode = GetPrivateProfileIntA("Graphics", "Mode", 0, ini);
-	if (GraphicsMode != 4 && GraphicsMode != 5) {
-		GraphicsMode = 0;
-	}
-	if (GraphicsMode == 4 || GraphicsMode == 5) {
-		dlog("Applying DX9 graphics patch.", DL_INIT);
-#ifdef WIN2K
-#define _DLL_NAME "d3dx9_42.dll"
-#else
-#define _DLL_NAME "d3dx9_43.dll"
-#endif
-		HMODULE h = LoadLibraryEx(_DLL_NAME, 0, LOAD_LIBRARY_AS_DATAFILE);
-		if (!h) {
-			MessageBoxA(0, "You have selected graphics mode 4 or 5, but " _DLL_NAME " is missing\nSwitch back to mode 0, or install an up to date version of DirectX", "Error", 0);
-			ExitProcess(-1);
-		} else {
-			FreeLibrary(h);
-		}
-#undef _DLL_NAME
-		SafeWrite8(0x50FB6B, '2'); // Set call DirectDrawCreate2
-		dlogr(" Done", DL_INIT);
-	}
-	FadeMulti = GetPrivateProfileIntA("Graphics", "FadeMultiplier", 100, ini);
-	if (FadeMulti != 100) {
-		dlog("Applying fade patch.", DL_INIT);
-		HookCall(0x493B16, palette_fade_to_hook);
-		FadeMulti = ((double)FadeMulti) / 100.0;
-		dlogr(" Done", DL_INIT);
-	}
 
 	dlogr("Running DamageModInit().", DL_INIT);
 	DamageModInit();
@@ -1606,6 +1568,7 @@ static void _stdcall OnExit() {
 	HeroAppearanceModExit();
 	MoviesExit();
 	GraphicsExit();
+	TalkingHeadsExit();
 	//SoundExit();
 }
 

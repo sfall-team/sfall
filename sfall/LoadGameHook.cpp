@@ -258,16 +258,25 @@ static void __declspec(naked) EndLoadHook() {
 	}
 }
 
-static void _stdcall GameInitialized() {
+static void __stdcall GameInitialization() {
 	MusicVolInitialization();
+}
+
+static void __stdcall GameInitialized() {
+	rcpresInit();
+	if (Use32BitTalkingHeads) TalkingHeadsSetup();
 }
 
 static void __declspec(naked) GameInitHook() {
 	__asm {
 		pushadc;
+		call GameInitialization;
+		popadc;
+		call main_init_system_;
+		pushadc;
 		call GameInitialized;
 		popadc;
-		jmp main_init_system_;
+		retn;
 	}
 }
 

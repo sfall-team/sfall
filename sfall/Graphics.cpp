@@ -27,9 +27,6 @@
 #endif
 #endif
 
-#include <d3d9.h>
-#include <d3dx9.h>
-#include <ddraw.h>
 #include <math.h>
 #include <stdio.h>
 #include <vector>
@@ -51,7 +48,9 @@ typedef IDirect3D9* (_stdcall *D3DCreateProc)(UINT version);
 
 static DWORD ResWidth;
 static DWORD ResHeight;
-static DWORD GPUBlt;
+
+DWORD GPUBlt;
+DWORD GraphicsMode;
 
 static BYTE* titlesBuffer = nullptr;
 static DWORD movieHeight = 0;
@@ -91,40 +90,42 @@ static IDirect3DTexture9* movieTex = 0;
 
 static ID3DXEffect* gpuBltEffect;
 static const char* gpuEffect=
-"texture image;\n"
-"texture palette;\n"
-"texture head;\n"
-"sampler s0 = sampler_state { texture=<image>; MAGFILTER=POINT; MINFILTER=POINT; };\n"
-"sampler s1 = sampler_state { texture=<palette>; MAGFILTER=POINT; MINFILTER=POINT; };\n"
-"sampler s2 = sampler_state { texture=<head>; MAGFILTER=POINT; MINFILTER=POINT; };\n"
-"float2 size;\n"
-"float2 corner;\n"
-"float4 P0( in float2 Tex : TEXCOORD0 ) : COLOR0 {\n"
-"  float3 result = tex1D(s1, tex2D(s0, Tex).a);\n"
-"  return float4(result.b, result.g, result.r, 1);\n"
-"}\n"
-"float4 P1( in float2 Tex : TEXCOORD0 ) : COLOR0 {\n"
-"  float backdrop = tex2D(s0, Tex).a;\n"
-"  float3 result;\n"
-"  if(abs(backdrop-(48.0/255.0))<0.001) {\n"
-//"    float2 size   = float2(388.0/640.0, 200.0/480.0);\n"
-//"    float2 corner = float2(126.0/640.0, 14.0/480.0);\n"
-"    result = tex2D(s2, saturate((Tex-corner)/size));\n"
-"  } else {\n"
-"    result = tex1D(s1, backdrop);\n"
-"    result = float3(result.b, result.g, result.r);\n"
-"  }\n"
-"  return float4(result.r, result.g, result.b, 1);\n"
-"}\n"
-"technique T0\n"
-"{\n"
-"  pass p0 { PixelShader = compile ps_2_0 P0(); }\n"
-"}\n"
-"technique T1\n"
-"{\n"
-"  pass p1 { PixelShader = compile ps_2_0 P1(); }\n"
-"}\n"
-;
+	"texture image;"
+	"texture palette;"
+	"texture head;"
+	"sampler s0 = sampler_state { texture=<image>; };"
+	"sampler s1 = sampler_state { texture=<palette>; };"
+	"sampler s2 = sampler_state { texture=<head>; minFilter=linear; magFilter=linear; addressU=clamp; addressV=clamp; };"
+	"float2 size;"
+	"float2 corner;"
+
+	// shader for displaying head textures
+	"float4 P1( in float2 Tex : TEXCOORD0 ) : COLOR0 {"
+	"  float backdrop = tex2D(s0, Tex).a;"
+	"  float3 result;"
+	"  if(abs(backdrop - 1.0) < 0.001) {" // (48.0 / 255.0) // 48 - key index color
+	"    result = tex2D(s2, saturate((Tex - corner) / size));"
+	"  } else {"
+	"    result = tex1D(s1, backdrop);"
+	"    result = float3(result.b, result.g, result.r);"
+	"  }"
+	"  return float4(result.r, result.g, result.b, 1);"
+	"}"
+
+	"technique T1"
+	"{"
+	"  pass p1 { PixelShader = compile ps_2_0 P1(); }"
+	"}"
+
+	"float4 P0( in float2 Tex : TEXCOORD0 ) : COLOR0 {"
+	"  float3 result = tex1D(s1, tex2D(s0, Tex).a);"
+	"  return float4(result.b, result.g, result.r, 1);"
+	"}"
+
+	"technique T0"
+	"{"
+	"  pass p0 { PixelShader = compile ps_2_0 P0(); }"
+	"}";
 
 static D3DXHANDLE gpuBltBuf;
 static D3DXHANDLE gpuBltPalette;
@@ -133,8 +134,6 @@ static D3DXHANDLE gpuBltHeadSize;
 static D3DXHANDLE gpuBltHeadCorner;
 
 static float rcpres[2];
-
-DWORD GraphicsMode;
 
 struct sShader {
 	ID3DXEffect* Effect;
@@ -173,8 +172,21 @@ void GetFalloutWindowInfo(DWORD* width, DWORD* height, HWND* wnd) {
 	*wnd = window;
 }
 
+long Gfx_GetGameWidthRes() {
+	return ptr_scr_size->offx - (ptr_scr_size->x + 1);
+}
+
+long Gfx_GetGameHeightRes() {
+	return ptr_scr_size->offy - (ptr_scr_size->y + 1);
+}
+
 int _stdcall GetShaderVersion() {
 	return ShaderVersion;
+}
+
+void rcpresInit() {
+	rcpres[0] = 1.0f / (float)Gfx_GetGameWidthRes();
+	rcpres[1] = 1.0f / (float)Gfx_GetGameHeightRes();
 }
 
 void _stdcall SetShaderMode(DWORD d, DWORD mode) {
@@ -187,7 +199,7 @@ void _stdcall SetShaderMode(DWORD d, DWORD mode) {
 }
 
 int _stdcall LoadShader(const char* path) {
-	if ((GraphicsMode < 4) || (strstr(path, "..")) || (strstr(path, ":"))) return -1;
+	if (!GraphicsMode || strstr(path, "..") || strstr(path, ":")) return -1;
 	char buf[MAX_PATH];
 	sprintf(buf, "%s\\shaders\\%s", *(char**)_patches, path);
 	for (DWORD d = 0; d < shaders.size(); d++) {
@@ -301,9 +313,12 @@ static void ResetDevice(bool CreateNew) {
 			D3DXCreateEffect(d3d9Device, gpuEffect, strlen(gpuEffect), 0, 0, 0, 0, &gpuBltEffect, 0);
 			gpuBltBuf = gpuBltEffect->GetParameterByName(0, "image");
 			gpuBltPalette = gpuBltEffect->GetParameterByName(0, "palette");
+			// for head textures
 			gpuBltHead = gpuBltEffect->GetParameterByName(0, "head");
 			gpuBltHeadSize = gpuBltEffect->GetParameterByName(0, "size");
 			gpuBltHeadCorner = gpuBltEffect->GetParameterByName(0, "corner");
+
+			Gfx_SetDefaultTechnique();
 		}
 	} else {
 		d3d9Device->Reset(&params);
@@ -548,19 +563,32 @@ void _stdcall PlayMovieFrame() {
 	Present();
 }
 
-void _stdcall SetHeadTex(IDirect3DTexture9* tex, int width, int height, int xoff, int yoff) {
-	if (tex) {
-		gpuBltEffect->SetTexture(gpuBltHead, tex);
-		float size[2];
-		size[0] = ((float)width)*rcpres[0];
-		size[1] = ((float)height)*rcpres[1];
-		gpuBltEffect->SetFloatArray(gpuBltHeadSize, size, 2);
-		size[0] = (126.0f + xoff + (388 - width) / 2)*rcpres[0];
-		size[1] = (14.0f + yoff + (200 - height) / 2)*rcpres[1];
-		gpuBltEffect->SetFloatArray(gpuBltHeadCorner, size, 2);
-		gpuBltEffect->SetTechnique("T1");
-	} else
-		gpuBltEffect->SetTechnique("T0");
+void Gfx_SetHeadTex(IDirect3DTexture9* tex, int width, int height, int xoff, int yoff) {
+	gpuBltEffect->SetTexture(gpuBltHead, tex);
+
+	float size[2];
+	size[0] = (float)width * rcpres[0];
+	size[1] = (float)height * rcpres[1];
+	gpuBltEffect->SetFloatArray(gpuBltHeadSize, size, 2);
+
+	// adjust head texture position for HRP 4.1.8
+	int h = Gfx_GetGameHeightRes();
+	if (h > 480) yoff += ((h - 480) / 2) - 47;
+	xoff += ((Gfx_GetGameWidthRes() - 640) / 2);
+
+	size[0] = (126.0f + xoff + ((388 - width) / 2)) * rcpres[0];
+	size[1] = (14.0f + yoff + ((200 - height) / 2)) * rcpres[1];
+	gpuBltEffect->SetFloatArray(gpuBltHeadCorner, size, 2);
+
+	Gfx_SetHeadTechnique();
+}
+
+void Gfx_SetHeadTechnique() {
+	gpuBltEffect->SetTechnique("T1");
+}
+
+void Gfx_SetDefaultTechnique() {
+	gpuBltEffect->SetTechnique("T0");
 }
 
 void GraphicsResetOnGameLoad() {
@@ -700,7 +728,7 @@ public:
 					if (y < yoffset || y > bottom) {
 						int yyp = (y - yoffset) * pitch;
 						int yw = y * width;
-						for (DWORD x = 0; x < width; x++) { 
+						for (DWORD x = 0; x < width; x++) {
 							((DWORD*)dRect.pBits)[yyp + x] = palette[titlesBuffer[yw + x]];
 						}
 					}
@@ -959,8 +987,6 @@ public:
 		if (!d3d9Device) {
 			ResetDevice(true);
 			CoInitialize(0);
-
-			if (GPUBlt) HeadsInit();
 		}
 		dlog("Creating D3D9 Device window...", DL_MAIN);
 
@@ -983,15 +1009,15 @@ public:
 		return DD_OK;
 	}
 
-	HRESULT _stdcall SetDisplayMode(DWORD, DWORD, DWORD) {	return DD_OK; }
+	HRESULT _stdcall SetDisplayMode(DWORD, DWORD, DWORD) { return DD_OK; }
 	HRESULT _stdcall WaitForVerticalBlank(DWORD, HANDLE) { UNUSEDFUNCTION; }
 };
 
 HRESULT _stdcall FakeDirectDrawCreate2(void*, IDirectDraw** b, void*) {
 	dlog("Initializing Direct3D...", DL_MAIN);
 
-	ResWidth = *(DWORD*)0x4CAD6B;
-	ResHeight = *(DWORD*)0x4CAD66;
+	ResWidth = *(DWORD*)0x4CAD6B;  // 640
+	ResHeight = *(DWORD*)0x4CAD66; // 480
 
 	if (!d3d9) {
 		d3d9 = Direct3DCreate9(D3D_SDK_VERSION);
@@ -1022,20 +1048,62 @@ HRESULT _stdcall FakeDirectDrawCreate2(void*, IDirectDraw** b, void*) {
 		gHeight = ResHeight;
 	}
 	GPUBlt = GetPrivateProfileIntA("Graphics", "GPUBlt", 0, ini);
-	if (!GPUBlt || GPUBlt > 2) GPUBlt = 2; //Swap them around to keep compatibility with old ddraw.ini's
-	else if (GPUBlt == 2) GPUBlt = 0;
+	if (!GPUBlt || GPUBlt > 2) GPUBlt = 2; // Swap them around to keep compatibility with old ddraw.ini's
+	else if (GPUBlt == 2) GPUBlt = 0;      // Use CPU
 
 	if (GraphicsMode == 5) {
 		ScrollWindowKey = GetPrivateProfileInt("Input", "WindowScrollKey", 0, ini);
 	} else ScrollWindowKey = 0;
 
-	rcpres[0] = 1.0f / (float)gWidth;
-	rcpres[1] = 1.0f / (float)gHeight;
-
 	*b = (IDirectDraw*)new FakeDirectDraw2();
 
 	dlogr(" Done.", DL_MAIN);
 	return DD_OK;
+}
+
+static double fadeMulti;
+static __declspec(naked) void palette_fade_to_hook() {
+	__asm {
+		push ebx; // _fade_steps
+		fild [esp];
+		fmul fadeMulti;
+		fistp [esp];
+		pop  ebx;
+		jmp  fadeSystemPalette_;
+	}
+}
+
+void GraphicsInit() {
+	GraphicsMode = GetPrivateProfileIntA("Graphics", "Mode", 0, ini);
+	if (GraphicsMode != 4 && GraphicsMode != 5) {
+		GraphicsMode = 0;
+	}
+	if (GraphicsMode == 4 || GraphicsMode == 5) {
+		dlog("Applying DX9 graphics patch.", DL_INIT);
+#ifdef WIN2K
+#define _DLL_NAME "d3dx9_42.dll"
+#else
+#define _DLL_NAME "d3dx9_43.dll"
+#endif
+		HMODULE h = LoadLibraryEx(_DLL_NAME, 0, LOAD_LIBRARY_AS_DATAFILE);
+		if (!h) {
+			MessageBoxA(0, "You have selected graphics mode 4 or 5, but " _DLL_NAME " is missing\nSwitch back to mode 0, or install an up to date version of DirectX", "Error", 0);
+			ExitProcess(-1);
+		} else {
+			FreeLibrary(h);
+		}
+#undef _DLL_NAME
+		SafeWrite8(0x50FB6B, '2'); // Set call DirectDrawCreate2
+		dlogr(" Done", DL_INIT);
+	}
+
+	fadeMulti = GetPrivateProfileIntA("Graphics", "FadeMultiplier", 100, ini);
+	if (fadeMulti != 100) {
+		dlog("Applying fade patch.", DL_INIT);
+		HookCall(0x493B16, palette_fade_to_hook);
+		fadeMulti = ((double)fadeMulti) / 100.0;
+		dlogr(" Done", DL_INIT);
+	}
 }
 
 void GraphicsExit() {

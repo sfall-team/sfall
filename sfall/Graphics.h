@@ -18,9 +18,23 @@
 
 #pragma once
 
+#include <d3d9.h>
+#include <d3dx9.h>
+#include <ddraw.h>
+
 extern DWORD GraphicsMode;
+extern DWORD GPUBlt;
+
 void GraphicsResetOnGameLoad();
+void GraphicsInit();
 void GraphicsExit();
+
+long Gfx_GetGameWidthRes();
+long Gfx_GetGameHeightRes();
+void Gfx_SetHeadTex(IDirect3DTexture9* tex, int width, int height, int xoff, int yoff);
+void Gfx_SetHeadTechnique();
+void Gfx_SetDefaultTechnique();
+void rcpresInit();
 
 int _stdcall GetShaderVersion();
 int _stdcall LoadShader(const char*);
