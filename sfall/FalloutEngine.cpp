@@ -27,7 +27,7 @@ long* ptr_pc_traits                   = reinterpret_cast<long*>(_pc_trait); // 2
 
 DWORD* ptr_aiInfoList                 = reinterpret_cast<DWORD*>(_aiInfoList);
 DWORD* ptr_ambient_light              = reinterpret_cast<DWORD*>(_ambient_light);
-DWORD* ptr_art                        = reinterpret_cast<DWORD*>(_art);
+Art*   ptr_art                        = reinterpret_cast<Art*>(_art);
 DWORD* ptr_art_name                   = reinterpret_cast<DWORD*>(_art_name);
 DWORD* ptr_art_vault_guy_num          = reinterpret_cast<DWORD*>(_art_vault_guy_num);
 DWORD* ptr_art_vault_person_nums      = reinterpret_cast<DWORD*>(_art_vault_person_nums);
@@ -60,13 +60,14 @@ DWORD* ptr_Educated                   = reinterpret_cast<DWORD*>(_Educated);
 DWORD* ptr_elevation                  = reinterpret_cast<DWORD*>(_elevation);
 DWORD* ptr_Experience_                = reinterpret_cast<DWORD*>(_Experience_);
 DWORD* ptr_fallout_game_time          = reinterpret_cast<DWORD*>(_fallout_game_time);
+DWORD* ptr_fidgetFID                  = reinterpret_cast<DWORD*>(_fidgetFID);
 DWORD* ptr_flptr                      = reinterpret_cast<DWORD*>(_flptr);
 DWORD* ptr_folder_card_desc           = reinterpret_cast<DWORD*>(_folder_card_desc);
 DWORD* ptr_folder_card_fid            = reinterpret_cast<DWORD*>(_folder_card_fid);
 DWORD* ptr_folder_card_title          = reinterpret_cast<DWORD*>(_folder_card_title);
 DWORD* ptr_folder_card_title2         = reinterpret_cast<DWORD*>(_folder_card_title2);
 DWORD* ptr_frame_time                 = reinterpret_cast<DWORD*>(_frame_time);
-char* ptr_free_perk                   = reinterpret_cast<char*>(_free_perk);
+char*  ptr_free_perk                  = reinterpret_cast<char*>(_free_perk);
 DWORD* ptr_game_global_vars           = reinterpret_cast<DWORD*>(_game_global_vars);
 DWORD* ptr_game_user_wants_to_quit    = reinterpret_cast<DWORD*>(_game_user_wants_to_quit);
 DWORD* ptr_gcsd                       = reinterpret_cast<DWORD*>(_gcsd);
@@ -105,6 +106,7 @@ DWORD* ptr_last_button_winID          = reinterpret_cast<DWORD*>(_last_button_wi
 DWORD* ptr_last_level                 = reinterpret_cast<DWORD*>(_last_level);
 DWORD* ptr_Level_                     = reinterpret_cast<DWORD*>(_Level_);
 DWORD* ptr_Lifegiver                  = reinterpret_cast<DWORD*>(_Lifegiver);
+DWORD* ptr_lipsFID                    = reinterpret_cast<DWORD*>(_lipsFID);
 DWORD* ptr_list_com                   = reinterpret_cast<DWORD*>(_list_com);
 DWORD* ptr_list_total                 = reinterpret_cast<DWORD*>(_list_total);
 DWORD* ptr_loadingGame                = reinterpret_cast<DWORD*>(_loadingGame);
@@ -151,10 +153,10 @@ DWORD* ptr_patches                    = reinterpret_cast<DWORD*>(_patches);
 DWORD* ptr_paths                      = reinterpret_cast<DWORD*>(_paths);
 DWORD* ptr_pc_crit_succ_eff           = reinterpret_cast<DWORD*>(_pc_crit_succ_eff);
 DWORD* ptr_pc_kill_counts             = reinterpret_cast<DWORD*>(_pc_kill_counts);
-char* ptr_pc_name                     = reinterpret_cast<char*>(_pc_name);
+char*  ptr_pc_name                    = reinterpret_cast<char*>(_pc_name);
 DWORD* ptr_pc_proto                   = reinterpret_cast<DWORD*>(_pc_proto);
 DWORD* ptr_perk_data                  = reinterpret_cast<DWORD*>(_perk_data);
-int** ptr_perkLevelDataList           = reinterpret_cast<int**>(_perkLevelDataList);
+int**  ptr_perkLevelDataList          = reinterpret_cast<int**>(_perkLevelDataList);
 DWORD* ptr_pip_win                    = reinterpret_cast<DWORD*>(_pip_win);
 DWORD* ptr_pipboy_message_file        = reinterpret_cast<DWORD*>(_pipboy_message_file);
 DWORD* ptr_pipmesg                    = reinterpret_cast<DWORD*>(_pipmesg);
@@ -169,7 +171,7 @@ DWORD* ptr_read_callback              = reinterpret_cast<DWORD*>(_read_callback)
 DWORD* ptr_RedColor                   = reinterpret_cast<DWORD*>(_RedColor);
 DWORD* ptr_retvals                    = reinterpret_cast<DWORD*>(_retvals);
 DWORD* ptr_rotation                   = reinterpret_cast<DWORD*>(_rotation);
-DWORD* ptr_scr_size                   = reinterpret_cast<DWORD*>(_scr_size);
+BoundRect* ptr_scr_size               = reinterpret_cast<BoundRect*>(_scr_size);
 DWORD* ptr_scriptListInfo             = reinterpret_cast<DWORD*>(_scriptListInfo);
 DWORD* ptr_skill_data                 = reinterpret_cast<DWORD*>(_skill_data);
 DWORD* ptr_slot_cursor                = reinterpret_cast<DWORD*>(_slot_cursor);
@@ -988,6 +990,14 @@ long __stdcall QueueFindFirst(TGameObj* object, long qType) {
 
 long __stdcall NewObjId() {
 	__asm call new_obj_id_;
+}
+
+FrmSubframeData* __fastcall FramePtr(FrmFrameData* frm, long frame, long direction) {
+	__asm {
+		mov  ebx, direction;
+		mov  eax, ecx;
+		call frame_ptr_;
+	}
 }
 
 // for the backported AmmoCostHook from 4.x

@@ -39,6 +39,7 @@
 #define _background_volume          0x518E88
 #define _bboxslot                   0x5970E0
 #define _bckgnd                     0x5707A4
+#define _bk_disabled                0x6AC780
 #define _black_palette              0x663FD0
 #define _bottom_line                0x664524
 #define _btable                     0x59E944
@@ -65,6 +66,7 @@
 #define _cursor_line                0x664514
 #define _dialog_target              0x518848
 #define _dialog_target_is_party     0x51884C
+#define _dialogue_head              0x518850
 #define _dialogue_state             0x518714
 #define _dialogue_switch_mode       0x518718
 #define _displayMapList             0x41B560
@@ -74,6 +76,8 @@
 #define _elevation                  0x631D2C
 #define _Experience_                0x6681B4
 #define _fallout_game_time          0x51C720
+#define _fidgetFID                  0x5186F4
+#define _fidgetFp                   0x5186FC
 #define _flptr                      0x614808
 #define _folder_card_desc           0x5705CC
 #define _folder_card_fid            0x5705B0
@@ -123,6 +127,8 @@
 #define _last_level                 0x5707B4
 #define _Level_                     0x6681B0
 #define _Lifegiver                  0x570854
+#define _lips_draw_head             0x519248
+#define _lipsFID                    0x518704
 #define _list_com                   0x56D394
 #define _list_total                 0x56D37C
 #define _loadingGame                0x5194C4
@@ -260,7 +266,7 @@ extern long* ptr_pc_traits; // 2 of them
 
 extern DWORD* ptr_aiInfoList;
 extern DWORD* ptr_ambient_light;
-extern DWORD* ptr_art;
+extern Art*   ptr_art;
 extern DWORD* ptr_art_name;
 extern DWORD* ptr_art_vault_guy_num;
 extern DWORD* ptr_art_vault_person_nums;
@@ -293,6 +299,7 @@ extern DWORD* ptr_Educated;
 extern DWORD* ptr_elevation;
 extern DWORD* ptr_Experience_;
 extern DWORD* ptr_fallout_game_time;
+extern DWORD* ptr_fidgetFID;
 extern DWORD* ptr_flptr;
 extern DWORD* ptr_folder_card_desc;
 extern DWORD* ptr_folder_card_fid;
@@ -338,6 +345,7 @@ extern DWORD* ptr_last_button_winID;
 extern DWORD* ptr_last_level;
 extern DWORD* ptr_Level_;
 extern DWORD* ptr_Lifegiver;
+extern DWORD* ptr_lipsFID;
 extern DWORD* ptr_list_com;
 extern DWORD* ptr_list_total;
 extern DWORD* ptr_loadingGame;
@@ -403,7 +411,7 @@ extern DWORD* ptr_RedColor;
 extern DWORD* ptr_retvals;
 extern DWORD* ptr_rotation;
 extern DWORD* ptr_sad;
-extern DWORD* ptr_scr_size;
+extern BoundRect* ptr_scr_size;
 extern DWORD* ptr_scriptListInfo;
 extern DWORD* ptr_skill_data;
 extern DWORD* ptr_slot_cursor;
@@ -1009,6 +1017,8 @@ long __stdcall StatLevel(TGameObj* critter, long statId);
 long __stdcall QueueFindFirst(TGameObj* object, long qType);
 
 long __stdcall NewObjId();
+
+FrmSubframeData* __fastcall FramePtr(FrmFrameData* frm, long frame, long direction);
 
 // for the backported AmmoCostHook from 4.x
 long __stdcall ItemWAnimWeap(TGameObj* item, DWORD hitMode);

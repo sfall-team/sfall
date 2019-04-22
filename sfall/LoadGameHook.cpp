@@ -42,6 +42,7 @@
 #include "skills.h"
 #include "sound.h"
 #include "SuperSave.h"
+#include "TalkingHeads.h"
 #include "version.h"
 
 #define MAX_GLOBAL_SIZE (MaxGlobalVars * 12 + 4)

@@ -284,7 +284,7 @@
     <ClInclude Include="FalloutStructs.h" />
     <ClInclude Include="FileSystem.h" />
     <ClInclude Include="Graphics.h" />
-    <ClInclude Include="heads.h" />
+    <ClInclude Include="TalkingHeads.h" />
     <ClInclude Include="HeroAppearance.h" />
     <ClInclude Include="HookScripts.h" />
     <ClInclude Include="input.h" />
@@ -342,14 +342,14 @@
     <ClCompile Include="Credits.cpp" />
     <ClCompile Include="Criticals.cpp" />
     <ClCompile Include="ddraw.cpp" />
-    <ClCompile Include="ddraw2.cpp" />
+    <ClCompile Include="Graphics.cpp" />
     <ClCompile Include="DebugEditor.cpp" />
     <ClCompile Include="dinput.cpp" />
     <ClCompile Include="Elevators.cpp" />
     <ClCompile Include="Explosions.cpp" />
     <ClCompile Include="FalloutEngine.cpp" />
     <ClCompile Include="FileSystem.cpp" />
-    <ClCompile Include="heads.cpp" />
+    <ClCompile Include="TalkingHeads.cpp" />
     <ClCompile Include="HeroAppearance.cpp" />
     <ClCompile Include="HookScripts.cpp" />
     <ClCompile Include="Inventory.cpp" />

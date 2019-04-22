@@ -16,29 +16,18 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <hash_map>
+
 #include "main.h"
+
 #include "AI.h"
 #include "FalloutEngine.h"
 #include "SafeWrite.h"
-
-#include <hash_map>
 
 typedef stdext::hash_map<DWORD, DWORD> :: const_iterator iter;
 
 static stdext::hash_map<DWORD,DWORD> targets;
 static stdext::hash_map<DWORD,DWORD> sources;
-
-DWORD _stdcall AIGetLastAttacker(DWORD target) {
-	iter itr=sources.find(target);
-	if(itr==sources.end()) return 0;
-	else return itr->second;
-}
-
-DWORD _stdcall AIGetLastTarget(DWORD source) {
-	iter itr=targets.find(source);
-	if(itr==targets.end()) return 0;
-	else return itr->second;
-}
 
 static void __fastcall CombatAttackHook(DWORD source, DWORD target) {
 	sources[target] = source;
@@ -59,61 +48,72 @@ static void __declspec(naked) combat_attack_hook() {
 	}
 }
 
-static DWORD CombatDisabled;
-static char CombatBlockedMessage[128];
-
-static void _stdcall CombatBlocked() {
-	DisplayConsoleMessage(CombatBlockedMessage);
+static DWORD combatDisabled;
+void _stdcall AIBlockCombat(DWORD i) {
+	combatDisabled = i ? 1 : 0;
 }
 
-static const DWORD BlockCombatHook1Ret1=0x45F6B4;
-static const DWORD BlockCombatHook1Ret2=0x45F6D7;
+static char combatBlockedMessage[128];
+static void _stdcall CombatBlocked() {
+	DisplayConsoleMessage(combatBlockedMessage);
+}
+
+static const DWORD BlockCombatHook1Ret1 = 0x45F6B4;
+static const DWORD BlockCombatHook1Ret2 = 0x45F6D7;
 static void __declspec(naked) BlockCombatHook1() {
 	__asm {
-		mov eax, CombatDisabled;
+		mov  eax, combatDisabled;
 		test eax, eax;
-		jz end;
+		jz   end;
 		call CombatBlocked;
-		jmp BlockCombatHook1Ret2;
+		jmp  BlockCombatHook1Ret2;
 end:
-		mov eax, 0x14;
-		jmp BlockCombatHook1Ret1;
+		mov  eax, 0x14;
+		jmp  BlockCombatHook1Ret1;
 	}
 }
 
 static void __declspec(naked) BlockCombatHook2() {
 	__asm {
-		mov eax, dword ptr ds:[_intfaceEnabled];
+		mov  eax, dword ptr ds:[_intfaceEnabled];
 		test eax, eax;
-		jz end;
-		mov eax, CombatDisabled;
+		jz   end;
+		mov  eax, combatDisabled;
 		test eax, eax;
-		jz succeed;
-		pushad;
+		jz   succeed;
+		push ecx;
+		push edx;
 		call CombatBlocked;
-		popad;
-		xor eax, eax;
-		jmp end;
+		pop  edx;
+		pop  ecx;
+		xor  eax, eax;
+		retn;
 succeed:
-		inc eax;
+		inc  eax;
 end:
 		retn;
 	}
 }
 
-void _stdcall AIBlockCombat(DWORD i) {
-	if(i) CombatDisabled=1;
-	else CombatDisabled=0;
-}
-
 void AIInit() {
 	//HookCall(0x42AE1D, ai_attack_hook);
 	//HookCall(0x42AE5C, ai_attack_hook);
-	HookCall(0x426A95, combat_attack_hook);
-	HookCall(0x42A796, combat_attack_hook);
-	MakeJump(0x45F6AF, BlockCombatHook1);
-	HookCall(0x4432A6, BlockCombatHook2);
-	GetPrivateProfileString("sfall", "BlockedCombat", "You cannot enter combat at this time.", CombatBlockedMessage, 128, translationIni);
+	HookCall(0x426A95, combat_attack_hook);  // combat_attack_this_
+	HookCall(0x42A796, combat_attack_hook);  // ai_attack_
+
+	MakeJump(0x45F6AF, BlockCombatHook1);    // intface_use_item_
+	HookCall(0x4432A6, BlockCombatHook2);    // game_handle_input_
+	GetPrivateProfileString("sfall", "BlockedCombat", "You cannot enter combat at this time.", combatBlockedMessage, 128, translationIni);
+}
+
+DWORD _stdcall AIGetLastAttacker(DWORD target) {
+	iter itr = sources.find(target);
+	return (itr != sources.end()) ? itr->second: 0;
+}
+
+DWORD _stdcall AIGetLastTarget(DWORD source) {
+	iter itr = targets.find(source);
+	return (itr != targets.end()) ? itr->second : 0;
 }
 
 void _stdcall AICombatStart() {

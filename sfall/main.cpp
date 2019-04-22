@@ -59,6 +59,7 @@
 #include "SpeedPatch.h"
 #include "stats.h"
 #include "SuperSave.h"
+#include "TalkingHeads.h"
 #include "Tiles.h"
 #include "version.h"
 

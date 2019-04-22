@@ -167,8 +167,28 @@ struct TProgram
 };
 #pragma pack(pop)
 
+#pragma pack(push, 1)
+struct Art {
+	long flags;
+	char path[16];
+	char* names;
+	long d18;
+	long total;
+};
+#pragma pack(pop)
+
+// Bounding rectangle, used by tile_refresh_rect and related functions
+#pragma pack(push, 1)
+struct BoundRect {
+	long x;
+	long y;
+	long offx;
+	long offy;
+};
+#pragma pack(pop)
+
 // structures for holding frms loaded with fallout2 functions
-#pragma pack(push, 2)
+#pragma pack(push, 1)
 typedef class FrmSubframeData {
 public:
 	WORD width;
@@ -176,8 +196,11 @@ public:
 	DWORD size;
 	WORD x;
 	WORD y;
+	BYTE data[1]; // begin frame data
 } FrmSubframeData;
+#pragma pack(pop)
 
+#pragma pack(push, 2)
 typedef class FrmFrameData {
 public:
 	DWORD version; // version num

@@ -38,9 +38,9 @@
 
 #include "FalloutEngine.h"
 #include "Graphics.h"
-#include "heads.h"
 #include "input.h"
 #include "LoadGameHook.h"
+#include "TalkingHeads.h"
 #include "Version.h"
 
 typedef HRESULT (_stdcall *DDrawCreateProc)(void*, IDirectDraw**, void*);

@@ -106,9 +106,6 @@
     <ClInclude Include="AnimationsAtOnceLimit.h">
       <Filter>Headers</Filter>
     </ClInclude>
-    <ClInclude Include="heads.h">
-      <Filter>Headers</Filter>
-    </ClInclude>
     <ClInclude Include="main.h">
       <Filter>Headers</Filter>
     </ClInclude>
@@ -196,6 +193,9 @@
     <ClInclude Include="DamageMod.h">
       <Filter>Headers</Filter>
     </ClInclude>
+    <ClInclude Include="TalkingHeads.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
     <ClInclude Include="Cpp11_emu.h">
       <Filter>Headers</Filter>
     </ClInclude>
@@ -217,9 +217,6 @@
       <Filter>Source</Filter>
     </ClCompile>
     <ClCompile Include="ddraw.cpp">
-      <Filter>Source</Filter>
-    </ClCompile>
-    <ClCompile Include="ddraw2.cpp">
       <Filter>Source</Filter>
     </ClCompile>
     <ClCompile Include="DebugEditor.cpp">
@@ -295,9 +292,6 @@
     <ClCompile Include="AnimationsAtOnceLimit.cpp">
       <Filter>Source</Filter>
     </ClCompile>
-    <ClCompile Include="heads.cpp">
-      <Filter>Source</Filter>
-    </ClCompile>
     <ClCompile Include="skills.cpp">
       <Filter>Source</Filter>
     </ClCompile>
@@ -335,6 +329,12 @@
       <Filter>Source</Filter>
     </ClCompile>
     <ClCompile Include="DamageMod.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Graphics.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="TalkingHeads.cpp">
       <Filter>Source</Filter>
     </ClCompile>
     <ClCompile Include="stdafx.cpp">
