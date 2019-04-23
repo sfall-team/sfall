@@ -45,7 +45,7 @@ static void __declspec(naked) SetPerkOwed() {
 		call interpretPopLong_;
 		cmp dx, VAR_TYPE_INT;
 		jnz end;
-		and eax, 0xff;
+		and eax, 0xFF;
 		cmp eax, 250;
 		jg end;
 		mov byte ptr ds:[_free_perk], al

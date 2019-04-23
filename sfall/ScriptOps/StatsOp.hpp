@@ -561,7 +561,7 @@ static void __declspec(naked) mod_skill_points_per_level() {
 		jl end;
 		add eax, 5;
 		push eax;
-		push 0x43C27a;
+		push 0x43C27A;
 		call SafeWrite8;
 end:
 		popad;

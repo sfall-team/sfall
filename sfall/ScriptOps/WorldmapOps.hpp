@@ -35,16 +35,14 @@ static void _stdcall ForceEncounter4() {
 static void __declspec(naked) ForceEncounter3() {
 	__asm {
 		push eax;
-		push ebx;
 		push ecx;
 		push edx;
-		mov eax, [esp + 0x10];
+		mov eax, [esp + 0xC];
 		sub eax, 5;
-		mov [esp + 0x10], eax;
+		mov [esp + 0xC], eax;
 		call ForceEncounter4;
 		pop edx;
 		pop ecx;
-		pop ebx;
 		pop eax;
 		retn;
 	}

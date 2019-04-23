@@ -716,7 +716,7 @@ static void __declspec(naked) GetSfallArg() {
 
 static DWORD _stdcall GetSfallArgs2() {
 	DWORD argCount = GetHSArgCount();
-	DWORD id = TempArray(argCount, 4);
+	DWORD id = TempArray(argCount, 0);
 	DWORD* args = GetHSArgs();
 	for (DWORD i = 0; i < argCount; i++) {
 		arrays[id].val[i].set(*(long*)&args[i]);

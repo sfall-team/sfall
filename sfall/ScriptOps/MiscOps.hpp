@@ -1203,13 +1203,11 @@ static void __declspec(naked) get_light_level() {
 }
 static void __declspec(naked) refresh_pc_art() {
 	__asm {
-		push ebx;
 		push ecx;
 		push edx;
 		call RefreshPCArt;
 		pop edx;
 		pop ecx;
-		pop ebx;
 		retn;
 	}
 }
@@ -1414,7 +1412,7 @@ static void __declspec(naked) mark_movie_played() {
 		jnz end;
 		test eax, eax;
 		jl end;
-		cmp eax, 0x11;
+		cmp eax, 17;
 		jge end;
 		mov byte ptr ds:[eax+_gmovie_played_list], 1;
 end:

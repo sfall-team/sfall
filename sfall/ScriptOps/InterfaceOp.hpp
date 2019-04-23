@@ -213,22 +213,14 @@ static void __declspec(naked) get_screen_height() {
 //Stop game, the same effect as open charsscreen or inventory
 static void __declspec(naked) stop_game() {
 	__asm {
-		push ebx;
-		mov ebx, map_disable_bk_processes_;
-		call ebx;
-		pop ebx;
-		retn;
+		jmp map_disable_bk_processes_;
 	}
 }
 
 //Resume the game when it is stopped
 static void __declspec(naked) resume_game() {
 	__asm {
-		push ebx;
-		mov ebx, map_enable_bk_processes_;
-		call ebx;
-		pop ebx;
-		retn;
+		jmp map_enable_bk_processes_;
 	}
 }
 
