@@ -99,7 +99,7 @@ procedure start begin
       highlightFailMsg1 := Translate("HighlightFail1", "You aren't carrying a motion sensor.");
       highlightFailMsg2 := Translate("HighlightFail2", "Your motion sensor is out of charge.");
 
-      checkObject := (alsoCorpse bwor alsoContainer);
+      checkObject := (alsoCorpse or alsoContainer);
 
       register_hook_proc(HOOK_KEYPRESS, KeyPressHandler);
       register_hook_proc(HOOK_COMBATTURN, CombatTurnHandler);
