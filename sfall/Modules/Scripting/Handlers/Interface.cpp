@@ -32,18 +32,12 @@ namespace script
 
 void __declspec(naked) op_input_funcs_available() {
 	__asm {
-		push ebx;
 		push ecx;
 		push edx;
-		mov ecx, eax;
-		mov edx, 1; //They're always available from 2.9 on
-		call fo::funcoffs::interpretPushLong_;
-		mov edx, VAR_TYPE_INT;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPushShort_;
-		pop edx;
-		pop ecx;
-		pop ebx;
+		mov  edx, 1; // They're always available from 2.9 on
+		_RET_VAL_INT(ecx);
+		pop  edx;
+		pop  ecx;
 		retn;
 	}
 }
@@ -54,60 +48,44 @@ void sf_key_pressed(OpcodeContext& ctx) {
 
 void __declspec(naked) op_tap_key() {
 	__asm {
-		push ebx;
 		push ecx;
 		push edx;
-		mov ecx, eax;
-		call fo::funcoffs::interpretPopShort_;
-		mov edx, eax;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPopLong_;
-		cmp dx, VAR_TYPE_INT;
-		jnz end;
+		_GET_ARG_INT(end);
 		test eax, eax;
-		jl end;
-		cmp eax, 255;
-		jge end;
+		jl   end;
+		cmp  eax, 255;
+		jge  end;
 		push eax;
 		call TapKey;
 end:
-		pop edx;
-		pop ecx;
-		pop ebx;
+		pop  edx;
+		pop  ecx;
 		retn;
 	}
 }
 
 void __declspec(naked) op_get_mouse_x() {
 	__asm {
-		push ecx;
 		push edx;
-		mov ecx, eax;
-		mov edx, ds:[FO_VAR_mouse_x_];
-		add edx, ds:[FO_VAR_mouse_hotx];
-		call fo::funcoffs::interpretPushLong_;
-		mov eax, ecx;
-		mov edx, VAR_TYPE_INT;
-		call fo::funcoffs::interpretPushShort_
-		pop edx;
-		pop ecx;
+		push ecx;
+		mov  edx, ds:[FO_VAR_mouse_x_];
+		add  edx, ds:[FO_VAR_mouse_hotx];
+		_RET_VAL_INT(ecx);
+		pop  ecx;
+		pop  edx;
 		retn;
 	}
 }
 
 void __declspec(naked) op_get_mouse_y() {
 	__asm {
-		push ecx;
 		push edx;
-		mov ecx, eax;
-		mov edx, ds:[FO_VAR_mouse_y_];
-		add edx, ds:[FO_VAR_mouse_hoty];
-		call fo::funcoffs::interpretPushLong_;
-		mov eax, ecx;
-		mov edx, VAR_TYPE_INT;
-		call fo::funcoffs::interpretPushShort_
-		pop edx;
-		pop ecx;
+		push ecx;
+		mov  edx, ds:[FO_VAR_mouse_y_];
+		add  edx, ds:[FO_VAR_mouse_hoty];
+		_RET_VAL_INT(ecx);
+		pop  ecx;
+		pop  edx;
 		retn;
 	}
 }
@@ -123,63 +101,53 @@ void sf_get_mouse_buttons(OpcodeContext& ctx) {
 
 void __declspec(naked) op_get_window_under_mouse() {
 	__asm {
-		push ecx;
 		push edx;
-		mov ecx, eax;
-		mov edx, ds:[FO_VAR_last_button_winID];
-		call fo::funcoffs::interpretPushLong_;
-		mov eax, ecx;
-		mov edx, VAR_TYPE_INT;
-		call fo::funcoffs::interpretPushShort_
-		pop edx;
-		pop ecx;
+		push ecx;
+		mov  edx, ds:[FO_VAR_last_button_winID];
+		_RET_VAL_INT(ecx);
+		pop  ecx;
+		pop  edx;
 		retn;
 	}
 }
 
 void __declspec(naked) op_get_screen_width() {
 	__asm {
-		push edx
-		push eax
-		mov  edx, ds:[FO_VAR_scr_size + 8]                // _scr_size.offx
-		sub  edx, ds:[FO_VAR_scr_size]                    // _scr_size.x
-		inc  edx
-		call fo::funcoffs::interpretPushLong_
-		pop  eax
-		mov  edx, VAR_TYPE_INT
-		call fo::funcoffs::interpretPushShort_
-		pop  edx
-		retn
+		push edx;
+		push ecx;
+		mov  edx, ds:[FO_VAR_scr_size + 8]; // _scr_size.offx
+		sub  edx, ds:[FO_VAR_scr_size];     // _scr_size.x
+		inc  edx;
+		_RET_VAL_INT(ecx);
+		pop  ecx;
+		pop  edx;
+		retn;
 	}
 }
 
 void __declspec(naked) op_get_screen_height() {
 	__asm {
-		push edx
-		push eax
-		mov  edx, ds:[FO_VAR_scr_size + 12]               // _scr_size.offy
-		sub  edx, ds:[FO_VAR_scr_size + 4]                // _scr_size.y
-		inc  edx
-		call fo::funcoffs::interpretPushLong_
-		pop  eax
-		mov  edx, VAR_TYPE_INT
-		call fo::funcoffs::interpretPushShort_
-		pop  edx
-		retn
+		push edx;
+		push ecx;
+		mov  edx, ds:[FO_VAR_scr_size + 12]; // _scr_size.offy
+		sub  edx, ds:[FO_VAR_scr_size + 4];  // _scr_size.y
+		inc  edx;
+		_RET_VAL_INT(ecx);
+		pop  ecx;
+		pop  edx;
+		retn;
 	}
 }
 
 void __declspec(naked) op_stop_game() {
 	__asm {
-		call fo::funcoffs::map_disable_bk_processes_;
-		retn;
+		jmp fo::funcoffs::map_disable_bk_processes_;
 	}
 }
 
 void __declspec(naked) op_resume_game() {
 	__asm {
-		call fo::funcoffs::map_enable_bk_processes_;
-		retn;
+		jmp fo::funcoffs::map_enable_bk_processes_;
 	}
 }
 
@@ -227,78 +195,50 @@ end:
 
 void __declspec(naked) op_get_viewport_x() {
 	__asm {
-		push ebx;
-		push ecx;
 		push edx;
-		mov ecx, eax;
-		mov edx, ds:[FO_VAR_wmWorldOffsetX];
-		call fo::funcoffs::interpretPushLong_;
-		mov edx, VAR_TYPE_INT;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPushShort_;
-		pop edx;
-		pop ecx;
-		pop ebx;
+		push ecx;
+		mov  edx, ds:[FO_VAR_wmWorldOffsetX];
+		_RET_VAL_INT(ecx);
+		pop  ecx;
+		pop  edx;
 		retn;
 	}
 }
 
 void __declspec(naked) op_get_viewport_y() {
 	__asm {
-		push ebx;
-		push ecx;
 		push edx;
-		mov ecx, eax;
-		mov edx, ds:[FO_VAR_wmWorldOffsetY];
-		call fo::funcoffs::interpretPushLong_;
-		mov edx, VAR_TYPE_INT;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPushShort_;
-		pop edx;
-		pop ecx;
-		pop ebx;
+		push ecx;
+		mov  edx, ds:[FO_VAR_wmWorldOffsetY];
+		_RET_VAL_INT(ecx);
+		pop  ecx;
+		pop  edx;
 		retn;
 	}
 }
 
 void __declspec(naked) op_set_viewport_x() {
 	__asm {
-		push ebx;
 		push ecx;
 		push edx;
-		mov ecx, eax;
-		call fo::funcoffs::interpretPopShort_;
-		mov edx, eax;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPopLong_;
-		cmp dx, VAR_TYPE_INT;
-		jnz end;
-		mov ds:[FO_VAR_wmWorldOffsetX], eax
+		_GET_ARG_INT(end);
+		mov  ds:[FO_VAR_wmWorldOffsetX], eax;
 end:
 		pop edx;
 		pop ecx;
-		pop ebx;
 		retn;
 	}
 }
 
 void __declspec(naked) op_set_viewport_y() {
 	__asm {
-		push ebx;
 		push ecx;
 		push edx;
-		mov ecx, eax;
-		call fo::funcoffs::interpretPopShort_;
-		mov edx, eax;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPopLong_;
-		cmp dx, VAR_TYPE_INT;
-		jnz end;
-		mov ds:[FO_VAR_wmWorldOffsetY], eax
+		_GET_ARG_INT(end);
+		mov  ds:[FO_VAR_wmWorldOffsetY], eax;
 end:
-		pop edx;
-		pop ecx;
-		pop ebx;
+		pop  edx;
+		pop  ecx;
 		retn;
 	}
 }
