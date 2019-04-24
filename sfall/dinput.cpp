@@ -229,7 +229,7 @@ public:
 				}
 			}
 		}
-		if (MiddleMouseKey&&MouseState.rgbButtons[2]) {
+		if (MiddleMouseKey && MouseState.rgbButtons[2]) {
 			if (!MiddleMouseDown) {
 				TapKey(MiddleMouseKey);
 				MiddleMouseDown = true;

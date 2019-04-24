@@ -472,6 +472,7 @@ const DWORD make_path_func_ = 0x415EFC;
 const DWORD make_straight_path_func_ = 0x4163C8;
 const DWORD map_disable_bk_processes_ = 0x482104;
 const DWORD map_enable_bk_processes_ = 0x4820C0;
+const DWORD map_load_idx_ = 0x482B34;
 const DWORD mem_free_ = 0x4C5C24;
 const DWORD mem_malloc_ = 0x4C5AD0;
 const DWORD mem_realloc_ = 0x4C5B50;

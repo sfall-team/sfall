@@ -24,40 +24,38 @@
 
 
 static DWORD EncounteredHorrigan;
-static void _stdcall ForceEncounter4() {
+static DWORD ForceEnconterMapID;
+
+static void _stdcall ForceEncounterRestore() {
 	*(DWORD*)0x672E04 = EncounteredHorrigan;
-	SafeWrite32(0x4C070E, 0x95);
-	SafeWrite32(0x4C0718, 0x95);
-	SafeWrite32(0x4C06D1, 0x2E043D83);
+	SafeWrite32(0x4C070E, *(DWORD*)0x4C0718); // map id
+	SafeWrite16(0x4C06D8, 0x5175);
 	SafeWrite32(0x4C071D, 0xFFFC2413);
 	SafeWrite8(0x4C0706, 0x75);
 }
-static void __declspec(naked) ForceEncounter3() {
+
+static void __declspec(naked) wmRndEncounterOccurred_hook() {
 	__asm {
-		push eax;
 		push ecx;
-		push edx;
-		mov eax, [esp + 0xC];
-		sub eax, 5;
-		mov [esp + 0xC], eax;
-		call ForceEncounter4;
-		pop edx;
-		pop ecx;
-		pop eax;
-		retn;
+		call ForceEncounterRestore;
+		pop  ecx;
+		mov  eax, ForceEnconterMapID;
+		jmp  map_load_idx_;
 	}
 }
-static void _stdcall ForceEncounter2(DWORD mapID, DWORD flags) {
+
+static void __fastcall ForceEncounter2(DWORD mapID, DWORD flags) {
 	EncounteredHorrigan = *(DWORD*)0x672E04;
+	ForceEnconterMapID = mapID;
 	SafeWrite32(0x4C070E, mapID);
-	SafeWrite32(0x4C0718, mapID);
-	SafeWrite32(0x4C06D1, 0x18EBD231); //xor edx, edx / jmp 0x18
-	HookCall(0x4C071C, &ForceEncounter3);
+	SafeWrite16(0x4C06D8, 0x13EB); // jmp 0x4C06ED
+	HookCall(0x4C071C, wmRndEncounterOccurred_hook);
+
 	if (flags & 1) SafeWrite8(0x4C0706, 0xEB);
 }
+
 static void __declspec(naked) ForceEncounter() {
 	__asm {
-		push ebx;
 		push ecx;
 		push edx;
 		mov ecx, eax;
@@ -67,19 +65,19 @@ static void __declspec(naked) ForceEncounter() {
 		call interpretPopLong_;
 		cmp dx, VAR_TYPE_INT;
 		jnz end;
-		push 0;
-		push eax;
+		xor edx, edx; // flags
+		mov ecx, eax; // mapID
 		call ForceEncounter2;
 end:
 		pop edx;
 		pop ecx;
-		pop ebx;
 		retn;
 	}
 }
+
 static void __declspec(naked) ForceEncounterWithFlags() {
 	__asm {
-		pushad
+		pushad;
 		mov ecx, eax;
 		call interpretPopShort_;
 		mov edx, eax;
@@ -95,11 +93,11 @@ static void __declspec(naked) ForceEncounterWithFlags() {
 		jnz end;
 		cmp di, VAR_TYPE_INT;
 		jnz end;
-		push ebx;
-		push eax;
+		mov edx, ebx; // flags
+		mov ecx, eax; // mapID
 		call ForceEncounter2;
 end:
-		popad
+		popad;
 		retn;
 	}
 }

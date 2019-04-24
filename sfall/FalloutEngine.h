@@ -699,6 +699,7 @@ extern const DWORD make_path_func_;
 extern const DWORD make_straight_path_func_; // (TGameObj *aObj<eax>, int aTileFrom<edx>, int a3<ecx>, signed int aTileTo<ebx>, TGameObj **aObjResult, int a5, int (*a6)(void))
 extern const DWORD map_disable_bk_processes_;
 extern const DWORD map_enable_bk_processes_;
+extern const DWORD map_load_idx_;
 extern const DWORD mem_free_;
 extern const DWORD mem_malloc_;
 extern const DWORD mem_realloc_;

@@ -495,11 +495,14 @@ TScript OverrideScriptStruct = {0};
 
 
 
-static void _stdcall SetGlobalScriptRepeat2(DWORD script, DWORD frames) {
+static void __fastcall SetGlobalScriptRepeat2(DWORD script, DWORD frames) {
 	for (DWORD d = 0; d < globalScripts.size(); d++) {
 		if (globalScripts[d].prog.ptr == script) {
-			if (frames == 0xFFFFFFFF) globalScripts[d].mode = !globalScripts[d].mode;
-			else globalScripts[d].repeat = frames;
+			if (frames == 0xFFFFFFFF) {
+				globalScripts[d].mode = !globalScripts[d].mode;
+			} else {
+				globalScripts[d].repeat = frames;
+			}
 			break;
 		}
 	}
@@ -507,7 +510,6 @@ static void _stdcall SetGlobalScriptRepeat2(DWORD script, DWORD frames) {
 
 static void __declspec(naked) SetGlobalScriptRepeat() {
 	__asm {
-		push ebx;
 		push ecx;
 		push edx;
 		mov ecx, eax;
@@ -517,30 +519,28 @@ static void __declspec(naked) SetGlobalScriptRepeat() {
 		call interpretPopLong_;
 		cmp dx, VAR_TYPE_INT;
 		jnz end;
-		push eax;
-		push ecx;
-		call SetGlobalScriptRepeat2;
+		mov edx, eax;                // frames
+		call SetGlobalScriptRepeat2; // ecx - script
 end:
 		pop edx;
 		pop ecx;
-		pop ebx;
 		retn;
 	}
 }
 
-static void _stdcall SetGlobalScriptType2(DWORD script, DWORD type) {
-	if (type > 3) return;
-	for (DWORD d = 0; d < globalScripts.size(); d++) {
-		if (globalScripts[d].prog.ptr == script) {
-			globalScripts[d].mode = type;
-			break;
+static void __fastcall SetGlobalScriptType2(DWORD script, DWORD type) {
+	if (type <= 3) {
+		for (size_t d = 0; d < globalScripts.size(); d++) {
+			if (globalScripts[d].prog.ptr == script) {
+				globalScripts[d].mode = type;
+				break;
+			}
 		}
 	}
 }
 
 static void __declspec(naked) SetGlobalScriptType() {
 	__asm {
-		push ebx;
 		push ecx;
 		push edx;
 		mov ecx, eax;
@@ -550,20 +550,17 @@ static void __declspec(naked) SetGlobalScriptType() {
 		call interpretPopLong_;
 		cmp dx, VAR_TYPE_INT;
 		jnz end;
-		push eax;
-		push ecx;
-		call SetGlobalScriptType2;
+		mov edx, eax;              // type
+		call SetGlobalScriptType2; // ecx - script
 end:
 		pop edx;
 		pop ecx;
-		pop ebx;
 		retn;
 	}
 }
 
 static void __declspec(naked) GetGlobalScriptTypes() {
 	__asm {
-		push ebx;
 		push ecx;
 		push edx;
 		mov edx, AvailableGlobalScriptTypes;
@@ -574,7 +571,6 @@ static void __declspec(naked) GetGlobalScriptTypes() {
 		call interpretPushShort_;
 		pop edx;
 		pop ecx;
-		pop ebx;
 		retn;
 	}
 }
@@ -770,7 +766,6 @@ end:
 
 static void __declspec(naked) SetSfallReturn() {
 	__asm {
-		push ebx;
 		push ecx;
 		push edx;
 		mov ecx, eax;
@@ -785,7 +780,6 @@ static void __declspec(naked) SetSfallReturn() {
 end:
 		pop edx;
 		pop ecx;
-		pop ebx;
 		retn;
 	}
 }
@@ -806,7 +800,7 @@ static void __declspec(naked) InitHook() {
 	}
 }
 
-static void _stdcall set_self2(DWORD script, TGameObj* obj) {
+static void __fastcall SetSelfObject(DWORD script, TGameObj* obj) {
 	stdext::hash_map<DWORD, SelfOverrideObj>::iterator it = selfOverrideMap.find(script);
 	bool isFind = (it != selfOverrideMap.end());
 	if (obj) {
@@ -830,22 +824,24 @@ static void _stdcall set_self2(DWORD script, TGameObj* obj) {
 
 static void __declspec(naked) set_self() {
 	__asm {
-		pushad;
-		mov ebp, eax;
+		push ecx;
+		push edx;
+		mov ecx, eax;
 		call interpretPopShort_;
-		mov edi, eax;
-		mov eax, ebp;
+		mov edx, eax;
+		mov eax, ecx;
 		call interpretPopLong_;
-		cmp di, VAR_TYPE_INT;
+		cmp dx, VAR_TYPE_INT;
 		jnz end;
-		push eax;
-		push ebp;
-		call set_self2;
+		mov edx, eax;       // object
+		call SetSelfObject; // ecx - script
 end:
-		popad;
+		pop edx;
+		pop ecx;
 		retn;
 	}
 }
+
 static void __declspec(naked) register_hook() {
 	__asm {
 		pushad;

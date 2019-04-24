@@ -679,13 +679,12 @@ skip:
 
 static void __declspec(naked) inven_pickup_hack() {
 	__asm {
-		mov  edx, ds:[_pud]
-		mov  edx, [edx]                           // itemsCount
-		dec  edx
-		sub  edx, eax
-		lea  edx, ds:0[edx*8]
-		push 0x470EC9
-		retn
+		mov  edx, ds:[_pud];
+		mov  edx, [edx];                          // itemsCount
+		dec  edx;
+		sub  edx, eax;
+		lea  edx, ds:0[edx * 8];
+		retn;
 	}
 }
 
@@ -2166,7 +2165,7 @@ void BugsInit()
 		dlog("Applying inventory reverse order issues fix.", DL_INIT);
 		// Fix for minor visual glitch when picking up solo item from the top of inventory
 		// and there is multiple item stack at the bottom of inventory
-		MakeJump(0x470EC2, inven_pickup_hack);
+		MakeCall(0x470EC2, inven_pickup_hack, 2);
 		// Fix for error in player's inventory, related to IFACE_BAR_MODE=1 in f2_res.ini, and
 		// also for reverse order error
 		MakeJump(0x47114A, inven_pickup_hack2);
