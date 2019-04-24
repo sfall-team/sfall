@@ -28,4 +28,8 @@ std::string trim(const std::string& str);
 
 void ToLowerCase(std::string& line);
 
+bool isSpace(char c);
+
+void strtrim(char* str);
+
 }
