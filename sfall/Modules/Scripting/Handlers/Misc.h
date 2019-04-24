@@ -48,17 +48,9 @@ void __declspec() op_get_kill_counter();
 
 void __declspec() op_mod_kill_counter();
 
-void __declspec() op_set_weapon_knockback();
+void sf_set_object_knockback(OpcodeContext&);
 
-void __declspec() op_set_target_knockback();
-
-void __declspec() op_set_attacker_knockback();
-
-void __declspec() op_remove_weapon_knockback();
-
-void __declspec() op_remove_target_knockback();
-
-void __declspec() op_remove_attacker_knockback();
+void sf_remove_object_knockback(OpcodeContext&);
 
 void __declspec() op_get_kill_counter2();
 

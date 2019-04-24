@@ -160,8 +160,8 @@ void SaveArrays(HANDLE h);
 int GetNumArrays();
 void GetArrays(int* arrays);
 
-void DEGetArray(int id, DWORD* types, void* data);
-void DESetArray(int id, const DWORD* types, const void* data);
+void DEGetArray(int id, DWORD* types, char* data);
+void DESetArray(int id, const DWORD* types, const char* data);
 
 // creates new normal (persistent) array. len == -1 specifies associative array (map)
 DWORD _stdcall CreateArray(int len, DWORD flags);

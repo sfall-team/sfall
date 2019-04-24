@@ -27,9 +27,6 @@
 #endif
 #endif
 
-#include <d3d9.h>
-#include <d3dx9.h>
-#include <ddraw.h>
 #include <math.h>
 #include <stdio.h>
 #include <vector>
@@ -54,7 +51,9 @@ typedef IDirect3D9* (_stdcall *D3DCreateProc)(UINT version);
 
 static DWORD ResWidth;
 static DWORD ResHeight;
-static DWORD GPUBlt;
+
+DWORD Graphics::GPUBlt;
+DWORD Graphics::mode;
 
 static BYTE* titlesBuffer = nullptr;
 static DWORD movieHeight = 0;
@@ -94,50 +93,64 @@ static IDirect3DTexture9* movieTex = 0;
 
 static ID3DXEffect* gpuBltEffect;
 static const char* gpuEffect=
-"texture image;\n"
-"texture palette;\n"
-"texture head;\n"
-"sampler s0 = sampler_state { texture=<image>; MAGFILTER=POINT; MINFILTER=POINT; };\n"
-"sampler s1 = sampler_state { texture=<palette>; MAGFILTER=POINT; MINFILTER=POINT; };\n"
-"sampler s2 = sampler_state { texture=<head>; MAGFILTER=POINT; MINFILTER=POINT; };\n"
-"float2 size;\n"
-"float2 corner;\n"
-"float4 P0( in float2 Tex : TEXCOORD0 ) : COLOR0 {\n"
-"  float3 result = tex1D(s1, tex2D(s0, Tex).a);\n"
-"  return float4(result.b, result.g, result.r, 1);\n"
-"}\n"
-"float4 P1( in float2 Tex : TEXCOORD0 ) : COLOR0 {\n"
-"  float backdrop = tex2D(s0, Tex).a;\n"
-"  float3 result;\n"
-"  if(abs(backdrop-(48.0/255.0))<0.001) {\n"
-//"    float2 size   = float2(388.0/640.0, 200.0/480.0);\n"
-//"    float2 corner = float2(126.0/640.0, 14.0/480.0);\n"
-"    result = tex2D(s2, saturate((Tex-corner)/size));\n"
-"  } else {\n"
-"    result = tex1D(s1, backdrop);\n"
-"    result = float3(result.b, result.g, result.r);\n"
-"  }\n"
-"  return float4(result.r, result.g, result.b, 1);\n"
-"}\n"
-"technique T0\n"
-"{\n"
-"  pass p0 { PixelShader = compile ps_2_0 P0(); }\n"
-"}\n"
-"technique T1\n"
-"{\n"
-"  pass p1 { PixelShader = compile ps_2_0 P1(); }\n"
-"}\n"
-;
+	"texture image;"
+	"texture palette;"
+	"texture head;"
+	"texture highlight;"
+	"sampler s0 = sampler_state { texture=<image>; };"
+	"sampler s1 = sampler_state { texture=<palette>; };"
+	"sampler s2 = sampler_state { texture=<head>; minFilter=linear; magFilter=linear; addressU=clamp; addressV=clamp; };"
+	"sampler s3 = sampler_state { texture=<highlight>; minFilter=linear; magFilter=linear; addressU=clamp; addressV=clamp; };"
+	"float2 size;"
+	"float2 corner;"
+	"float2 sizehl;"
+	"float2 cornerhl;"
+	"int showhl;"
+
+	// shader for displaying head textures
+	"float4 P1( in float2 Tex : TEXCOORD0 ) : COLOR0 {"
+	"  float backdrop = tex2D(s0, Tex).a;"
+	"  float3 result;"
+	"  if(abs(backdrop - 1.0) < 0.001) {" // (48.0 / 255.0) // 48 - key index color
+	"    result = tex2D(s2, saturate((Tex - corner) / size));"
+	"  } else {"
+	"    result = tex1D(s1, backdrop);"
+	"    result = float3(result.b, result.g, result.r);"
+	"  }"
+	// blend highlights
+	"if (showhl) {"
+		"float4 h = tex2D(s3, saturate((Tex - cornerhl) / sizehl));"
+		"result = saturate(result + h.rgb);" // saturate(result * (1 - h.a) * h.rgb * h.a)"
+	"}"
+	"  return float4(result.r, result.g, result.b, 1);"
+	"}"
+
+	"technique T1"
+	"{"
+	"  pass p1 { PixelShader = compile ps_2_0 P1(); }"
+	"}"
+
+	"float4 P0( in float2 Tex : TEXCOORD0 ) : COLOR0 {"
+	"  float3 result = tex1D(s1, tex2D(s0, Tex).a);"
+	"  return float4(result.b, result.g, result.r, 1);"
+	"}"
+
+	"technique T0"
+	"{"
+	"  pass p0 { PixelShader = compile ps_2_0 P0(); }"
+	"}";
 
 static D3DXHANDLE gpuBltBuf;
 static D3DXHANDLE gpuBltPalette;
 static D3DXHANDLE gpuBltHead;
 static D3DXHANDLE gpuBltHeadSize;
 static D3DXHANDLE gpuBltHeadCorner;
+static D3DXHANDLE gpuBltHighlight;
+static D3DXHANDLE gpuBltHighlightSize;
+static D3DXHANDLE gpuBltHighlightCorner;
+static D3DXHANDLE gpuBltShowHighlight;
 
 static float rcpres[2];
-
-DWORD Graphics::mode;
 
 struct sShader {
 	ID3DXEffect* Effect;
@@ -176,8 +189,21 @@ void GetFalloutWindowInfo(DWORD* width, DWORD* height, HWND* wnd) {
 	*wnd = window;
 }
 
+long Graphics::GetGameWidthRes() {
+	return fo::var::scr_size.offx - (fo::var::scr_size.x + 1);
+}
+
+long Graphics::GetGameHeightRes() {
+	return fo::var::scr_size.offy - (fo::var::scr_size.y + 1);
+}
+
 int _stdcall GetShaderVersion() {
 	return ShaderVersion;
+}
+
+static void rcpresInit() {
+	rcpres[0] = 1.0f / (float)Graphics::GetGameWidthRes();
+	rcpres[1] = 1.0f / (float)Graphics::GetGameHeightRes();
 }
 
 void _stdcall SetShaderMode(DWORD d, DWORD mode) {
@@ -190,7 +216,7 @@ void _stdcall SetShaderMode(DWORD d, DWORD mode) {
 }
 
 int _stdcall LoadShader(const char* path) {
-	if ((Graphics::mode < 4) || (strstr(path, "..")) || (strstr(path, ":"))) return -1;
+	if (!Graphics::mode || strstr(path, "..") || strstr(path, ":")) return -1;
 	char buf[MAX_PATH];
 	sprintf(buf, "%s\\shaders\\%s", fo::var::patches, path);
 	for (DWORD d = 0; d < shaders.size(); d++) {
@@ -296,17 +322,24 @@ static void ResetDevice(bool CreateNew) {
 		d3d9Device->GetDeviceCaps(&caps);
 		ShaderVersion = ((caps.PixelShaderVersion & 0x0000ff00) >> 8) * 10 + (caps.PixelShaderVersion & 0xff);
 
-		if (GPUBlt == 2) {
-			if (ShaderVersion < 20) GPUBlt = 0;
+		if (Graphics::GPUBlt == 2) {
+			if (ShaderVersion < 20) Graphics::GPUBlt = 0;
 		}
 
-		if (GPUBlt) {
+		if (Graphics::GPUBlt) {
 			D3DXCreateEffect(d3d9Device, gpuEffect, strlen(gpuEffect), 0, 0, 0, 0, &gpuBltEffect, 0);
 			gpuBltBuf = gpuBltEffect->GetParameterByName(0, "image");
 			gpuBltPalette = gpuBltEffect->GetParameterByName(0, "palette");
+			// for head textures
 			gpuBltHead = gpuBltEffect->GetParameterByName(0, "head");
 			gpuBltHeadSize = gpuBltEffect->GetParameterByName(0, "size");
 			gpuBltHeadCorner = gpuBltEffect->GetParameterByName(0, "corner");
+			gpuBltHighlight = gpuBltEffect->GetParameterByName(0, "highlight");
+			gpuBltHighlightSize = gpuBltEffect->GetParameterByName(0, "sizehl");
+			gpuBltHighlightCorner = gpuBltEffect->GetParameterByName(0, "cornerhl");
+			gpuBltShowHighlight = gpuBltEffect->GetParameterByName(0, "showhl");
+
+			Graphics::SetDefaultTechnique();
 		}
 	} else {
 		d3d9Device->Reset(&params);
@@ -320,14 +353,14 @@ static void ResetDevice(bool CreateNew) {
 	ShaderVertices[2].x = ResWidth - 0.5f;
 	ShaderVertices[3].y = ResHeight - 0.5f;
 	ShaderVertices[3].x = ResWidth - 0.5f;
-	if (d3d9Device->CreateTexture(ResWidth, ResHeight, 1, D3DUSAGE_DYNAMIC, GPUBlt ? D3DFMT_A8 : D3DFMT_X8R8G8B8, D3DPOOL_DEFAULT, &Tex, 0) != D3D_OK) {
+	if (d3d9Device->CreateTexture(ResWidth, ResHeight, 1, D3DUSAGE_DYNAMIC, Graphics::GPUBlt ? D3DFMT_A8 : D3DFMT_X8R8G8B8, D3DPOOL_DEFAULT, &Tex, 0) != D3D_OK) {
 		d3d9Device->CreateTexture(ResWidth, ResHeight, 1, D3DUSAGE_DYNAMIC, D3DFMT_X8R8G8B8, D3DPOOL_DEFAULT, &Tex, 0);
-		GPUBlt = 0;
+		Graphics::GPUBlt = 0;
 		dlog(" Error: D3DFMT_A8 unsupported texture format. Now CPU is used to convert the palette.", DL_MAIN);
 	}
 	d3d9Device->CreateTexture(ResWidth, ResHeight, 1, D3DUSAGE_RENDERTARGET, D3DFMT_X8R8G8B8, D3DPOOL_DEFAULT, &sTex1, 0);
 	d3d9Device->CreateTexture(ResWidth, ResHeight, 1, D3DUSAGE_RENDERTARGET, D3DFMT_X8R8G8B8, D3DPOOL_DEFAULT, &sTex2, 0);
-	if (GPUBlt) {
+	if (Graphics::GPUBlt) {
 		d3d9Device->CreateTexture(256, 1, 1, D3DUSAGE_DYNAMIC, D3DFMT_X8R8G8B8, D3DPOOL_DEFAULT, &gpuPalette, 0);
 		gpuBltEffect->SetTexture(gpuBltBuf, Tex);
 		gpuBltEffect->SetTexture(gpuBltPalette, gpuPalette);
@@ -451,7 +484,7 @@ void RefreshGraphics() {
 	d3d9Device->SetStreamSource(0, vBuffer, 0, sizeof(MyVertex));
 	d3d9Device->SetRenderTarget(0, sSurf1);
 
-	if (GPUBlt && shaders.size()) {
+	if (Graphics::GPUBlt && shaders.size()) {
 		UINT unused;
 		gpuBltEffect->Begin(&unused, 0);
 		gpuBltEffect->BeginPass(0);
@@ -484,13 +517,13 @@ void RefreshGraphics() {
 
 	d3d9Device->SetStreamSource(0, vBuffer2, 0, sizeof(MyVertex));
 	d3d9Device->SetRenderTarget(0, backbuffer);
-	if (GPUBlt && !shaders.size()) {
+	if (Graphics::GPUBlt && !shaders.size()) {
 		UINT unused;
 		gpuBltEffect->Begin(&unused, 0);
 		gpuBltEffect->BeginPass(0);
 	}
 	d3d9Device->DrawPrimitive(D3DPT_TRIANGLESTRIP, 0, 2);
-	if (GPUBlt) {
+	if (Graphics::GPUBlt) {
 		gpuBltEffect->EndPass();
 		gpuBltEffect->End();
 	}
@@ -551,19 +584,49 @@ void _stdcall PlayMovieFrame() {
 	Present();
 }
 
-void _stdcall SetHeadTex(IDirect3DTexture9* tex, int width, int height, int xoff, int yoff) {
-	if (tex) {
-		gpuBltEffect->SetTexture(gpuBltHead, tex);
-		float size[2];
-		size[0] = ((float)width)*rcpres[0];
-		size[1] = ((float)height)*rcpres[1];
-		gpuBltEffect->SetFloatArray(gpuBltHeadSize, size, 2);
-		size[0] = (126.0f + xoff + (388 - width) / 2)*rcpres[0];
-		size[1] = (14.0f + yoff + (200 - height) / 2)*rcpres[1];
-		gpuBltEffect->SetFloatArray(gpuBltHeadCorner, size, 2);
-		gpuBltEffect->SetTechnique("T1");
-	} else
-		gpuBltEffect->SetTechnique("T0");
+void Graphics::SetHighlightTexture(IDirect3DTexture9* htex) {
+	gpuBltEffect->SetTexture(gpuBltHighlight, htex);
+
+	float size[2];
+	size[0] = 388.0f * rcpres[0];
+	size[1] = 200.0f * rcpres[1];
+	gpuBltEffect->SetFloatArray(gpuBltHighlightSize, size, 2);
+
+	int xPos = ((GetGameWidthRes() - 640) / 2);
+	size[0] = (126.0f + xPos) * rcpres[0];
+	int h = GetGameHeightRes();
+	int yPos = (h > 480) ? ((h - 480) / 2) - 33 : 14;
+	size[1] = (float)yPos * rcpres[1];
+	gpuBltEffect->SetFloatArray(gpuBltHighlightCorner, size, 2);
+}
+
+void Graphics::SetHeadTex(IDirect3DTexture9* tex, int width, int height, int xoff, int yoff, int showHighlight) {
+	gpuBltEffect->SetInt(gpuBltShowHighlight, showHighlight);
+	gpuBltEffect->SetTexture(gpuBltHead, tex);
+
+	float size[2];
+	size[0] = (float)width * rcpres[0];
+	size[1] = (float)height * rcpres[1];
+	gpuBltEffect->SetFloatArray(gpuBltHeadSize, size, 2);
+
+	// adjust head texture position for HRP 4.1.8
+	int h = GetGameHeightRes();
+	if (h > 480) yoff += ((h - 480) / 2) - 47;
+	xoff += ((GetGameWidthRes() - 640) / 2);
+
+	size[0] = (126.0f + xoff + ((388 - width) / 2)) * rcpres[0];
+	size[1] = (14.0f + yoff + ((200 - height) / 2)) * rcpres[1];
+	gpuBltEffect->SetFloatArray(gpuBltHeadCorner, size, 2);
+
+	SetHeadTechnique();
+}
+
+void Graphics::SetHeadTechnique() {
+	gpuBltEffect->SetTechnique("T1");
+}
+
+void Graphics::SetDefaultTechnique() {
+	gpuBltEffect->SetTechnique("T0");
 }
 
 void GraphicsResetOnGameLoad() {
@@ -604,7 +667,7 @@ public:
 		if (c == 0 || b + c > 256) return DDERR_INVALIDPARAMS;
 
 		CopyMemory(&palette[b], d, c * 4);
-		if (GPUBlt) {
+		if (Graphics::GPUBlt) {
 			if (gpuPalette) {
 				D3DLOCKED_RECT rect;
 				if (!FAILED(gpuPalette->LockRect(0, &rect, 0, D3DLOCK_DISCARD))) {
@@ -674,7 +737,7 @@ public:
 		Tex->LockRect(0, &dRect, a, 0);
 		DWORD width = ResWidth;
 		int pitch = dRect.Pitch;
-		if (GPUBlt) {
+		if (Graphics::GPUBlt) {
 			char* pBits = (char*)dRect.pBits;
 			if (subTitlesShow) {
 				subTitlesShow = false;
@@ -703,7 +766,7 @@ public:
 					if (y < yoffset || y > bottom) {
 						int yyp = (y - yoffset) * pitch;
 						int yw = y * width;
-						for (DWORD x = 0; x < width; x++) { 
+						for (DWORD x = 0; x < width; x++) {
 							((DWORD*)dRect.pBits)[yyp + x] = palette[titlesBuffer[yw + x]];
 						}
 					}
@@ -729,13 +792,13 @@ public:
 			d3d9Device->SetStreamSource(0, vBuffer2, 0, sizeof(MyVertex));
 			d3d9Device->SetTexture(0, Tex);
 			d3d9Device->BeginScene();
-			if (GPUBlt) {
+			if (Graphics::GPUBlt) {
 				UINT unused;
 				gpuBltEffect->Begin(&unused, 0);
 				gpuBltEffect->BeginPass(0);
 			}
 			d3d9Device->DrawPrimitive(D3DPT_TRIANGLESTRIP, 0, 2);
-			if (GPUBlt) {
+			if (Graphics::GPUBlt) {
 				gpuBltEffect->EndPass();
 				gpuBltEffect->End();
 			}
@@ -798,7 +861,7 @@ public:
 				Tex->LockRect(0, &dRect, 0, 0);
 				int pitch = dRect.Pitch;
 				DWORD width = ResWidth;
-				if (GPUBlt) {
+				if (Graphics::GPUBlt) {
 					char* pBits = (char*)dRect.pBits;
 					if (IsPlayMovie) { // for subtitles
 						subTitlesShow = true;
@@ -984,15 +1047,15 @@ public:
 		return DD_OK;
 	}
 
-	HRESULT _stdcall SetDisplayMode(DWORD, DWORD, DWORD) {	return DD_OK; }
+	HRESULT _stdcall SetDisplayMode(DWORD, DWORD, DWORD) { return DD_OK; }
 	HRESULT _stdcall WaitForVerticalBlank(DWORD, HANDLE) { UNUSEDFUNCTION; }
 };
 
 HRESULT _stdcall FakeDirectDrawCreate2_Init(void*, IDirectDraw** b, void*) {
 	dlog("Initializing Direct3D...", DL_MAIN);
 
-	ResWidth = *(DWORD*)0x4CAD6B;
-	ResHeight = *(DWORD*)0x4CAD66;
+	ResWidth = *(DWORD*)0x4CAD6B;  // 640
+	ResHeight = *(DWORD*)0x4CAD66; // 480
 
 	if (!d3d9) {
 		d3d9 = Direct3DCreate9(D3D_SDK_VERSION);
@@ -1022,16 +1085,13 @@ HRESULT _stdcall FakeDirectDrawCreate2_Init(void*, IDirectDraw** b, void*) {
 		gWidth = ResWidth;
 		gHeight = ResHeight;
 	}
-	GPUBlt = GetConfigInt("Graphics", "GPUBlt", 0);
-	if (!GPUBlt || GPUBlt > 2) GPUBlt = 2; //Swap them around to keep compatibility with old ddraw.ini's
-	else if (GPUBlt == 2) GPUBlt = 0;
+	Graphics::GPUBlt = GetConfigInt("Graphics", "GPUBlt", 0);
+	if (!Graphics::GPUBlt || Graphics::GPUBlt > 2) Graphics::GPUBlt = 2; // Swap them around to keep compatibility with old ddraw.ini's
+	else if (Graphics::GPUBlt == 2) Graphics::GPUBlt = 0;                // Use CPU
 
 	if (Graphics::mode == 5) {
 		ScrollWindowKey = GetConfigInt("Input", "WindowScrollKey", 0);
 	} else ScrollWindowKey = 0;
-
-	rcpres[0] = 1.0f / (float)gWidth;
-	rcpres[1] = 1.0f / (float)gHeight;
 
 	*b = (IDirectDraw*)new FakeDirectDraw2();
 
@@ -1042,13 +1102,11 @@ HRESULT _stdcall FakeDirectDrawCreate2_Init(void*, IDirectDraw** b, void*) {
 static double fadeMulti;
 static __declspec(naked) void palette_fade_to_hook() {
 	__asm {
-		//pushf;
-		push ebx;
-		fild[esp];
+		push ebx; // _fade_steps
+		fild [esp];
 		fmul fadeMulti;
-		fistp[esp];
+		fistp [esp];
 		pop  ebx;
-		//popf;
 		jmp  fo::funcoffs::fadeSystemPalette_;
 	}
 }
@@ -1058,7 +1116,7 @@ void Graphics::init() {
 	if (Graphics::mode != 4 && Graphics::mode != 5) {
 		Graphics::mode = 0;
 	}
-	if (Graphics::mode == 4 || Graphics::mode == 5) {
+	if (Graphics::mode) {
 		dlog("Applying DX9 graphics patch.", DL_INIT);
 #define _DLL_NAME "d3dx9_43.dll"
 		HMODULE h = LoadLibraryEx(_DLL_NAME, 0, LOAD_LIBRARY_AS_DATAFILE);
@@ -1072,6 +1130,7 @@ void Graphics::init() {
 		SafeWrite8(0x50FB6B, '2'); // Set call DirectDrawCreate2
 		dlogr(" Done", DL_INIT);
 	}
+
 	fadeMulti = GetConfigInt("Graphics", "FadeMultiplier", 100);
 	if (fadeMulti != 100) {
 		dlog("Applying fade patch.", DL_INIT);
@@ -1080,13 +1139,14 @@ void Graphics::init() {
 		dlogr(" Done", DL_INIT);
 	}
 
-	if (Graphics::mode > 3) {
+	if (Graphics::mode) {
 		LoadGameHook::OnGameReset() += GraphicsResetOnGameLoad;
+		LoadGameHook::OnAfterGameInit() += rcpresInit;
 	}
 }
 
 void Graphics::exit() {
-	if (Graphics::mode != 0) {
+	if (Graphics::mode) {
 		if (titlesBuffer) delete[] titlesBuffer;
 		CoUninitialize();
 	}

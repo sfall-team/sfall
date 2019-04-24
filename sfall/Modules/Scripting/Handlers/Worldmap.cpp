@@ -32,68 +32,54 @@ namespace script
 {
 
 static DWORD EncounteredHorrigan;
-static void _stdcall ForceEncounter4() {
+static DWORD ForceEnconterMapID;
+
+static void _stdcall ForceEncounterRestore() {
 	*(DWORD*)0x672E04 = EncounteredHorrigan;
-	SafeWrite32(0x4C070E, 0x95);
-	SafeWrite32(0x4C0718, 0x95);
-	SafeWrite32(0x4C06D1, 0x2E043D83);
+	SafeWrite32(0x4C070E, *(DWORD*)0x4C0718); // map id
+	SafeWrite16(0x4C06D8, 0x5175);
 	SafeWrite32(0x4C071D, 0xFFFC2413);
 	SafeWrite8(0x4C0706, 0x75);
 }
 
-static void __declspec(naked) ForceEncounter3() {
+static void __declspec(naked) wmRndEncounterOccurred_hook() {
 	__asm {
-		push eax;
-		push ebx;
 		push ecx;
-		push edx;
-		mov eax, [esp + 0x10];
-		sub eax, 5;
-		mov[esp + 0x10], eax;
-		call ForceEncounter4;
-		pop edx;
-		pop ecx;
-		pop ebx;
-		pop eax;
-		retn;
+		call ForceEncounterRestore;
+		pop  ecx;
+		mov  eax, ForceEnconterMapID;
+		jmp  fo::funcoffs::map_load_idx_;
 	}
 }
 
-static void _stdcall ForceEncounter2(DWORD mapID, DWORD flags) {
+static void __fastcall ForceEncounter(DWORD mapID, DWORD flags) {
 	EncounteredHorrigan = *(DWORD*)0x672E04;
+	ForceEnconterMapID = mapID;
 	SafeWrite32(0x4C070E, mapID);
-	SafeWrite32(0x4C0718, mapID);
-	SafeWrite32(0x4C06D1, 0x18EBD231); //xor edx, edx / jmp 0x18
-	HookCall(0x4C071C, &ForceEncounter3);
+	SafeWrite16(0x4C06D8, 0x13EB); // jmp 0x4C06ED
+	HookCall(0x4C071C, wmRndEncounterOccurred_hook);
+
 	if (flags & 1) SafeWrite8(0x4C0706, 0xEB);
 }
 
 void __declspec(naked) op_force_encounter() {
 	__asm {
-		push ebx;
 		push ecx;
 		push edx;
-		mov ecx, eax;
-		call fo::funcoffs::interpretPopShort_;
-		mov edx, eax;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPopLong_;
-		cmp dx, VAR_TYPE_INT;
-		jnz end;
-		push 0;
-		push eax;
-		call ForceEncounter2;
+		_GET_ARG_INT(end);
+		xor  edx, edx; // flags
+		mov  ecx, eax; // mapID
+		call ForceEncounter;
 end:
 		pop edx;
 		pop ecx;
-		pop ebx;
 		retn;
 	}
 }
 
 void __declspec(naked) op_force_encounter_with_flags() {
 	__asm {
-		pushad
+		pushad;
 		mov ecx, eax;
 		call fo::funcoffs::interpretPopShort_;
 		mov edx, eax;
@@ -109,86 +95,66 @@ void __declspec(naked) op_force_encounter_with_flags() {
 		jnz end;
 		cmp di, VAR_TYPE_INT;
 		jnz end;
-		push ebx;
-		push eax;
-		call ForceEncounter2;
+		mov edx, ebx; // flags
+		mov ecx, eax; // mapID
+		call ForceEncounter;
 end:
-		popad
-			retn;
+		popad;
+		retn;
 	}
 }
 
 // world_map_functions
 void __declspec(naked) op_in_world_map() {
 	__asm {
-		push ebx;
 		push ecx;
 		push edx;
-		push esi;
-		mov esi, eax;
+		push eax;
 		call InWorldMap;
-		mov edx, eax;
-		mov eax, esi;
-		call fo::funcoffs::interpretPushLong_;
-		mov edx, VAR_TYPE_INT;
-		mov eax, esi;
-		call fo::funcoffs::interpretPushShort_;
-		pop esi;
-		pop edx;
-		pop ecx;
-		pop ebx;
+		mov  edx, eax;
+		pop  eax;
+		_RET_VAL_INT(ecx);
+		pop  edx;
+		pop  ecx;
 		retn;
 	}
 }
 
 void __declspec(naked) op_get_game_mode() {
 	__asm {
-		pushad;
-		mov edi, eax;
+		push ecx;
+		push edx;
+		push eax;
 		call GetLoopFlags;
-		mov edx, eax;
-		mov eax, edi;
-		call fo::funcoffs::interpretPushLong_;
-		mov edx, VAR_TYPE_INT;
-		mov eax, edi;
-		call fo::funcoffs::interpretPushShort_;
-		popad;
+		mov  edx, eax;
+		pop  eax;
+		_RET_VAL_INT(ecx);
+		pop  edx;
+		pop  ecx;
 		retn;
 	}
 }
 
 void __declspec(naked) op_get_world_map_x_pos() {
 	__asm {
-		push ebx;
-		push ecx;
 		push edx;
-		mov ecx, eax;
-		mov edx, ds:[FO_VAR_world_xpos];
-		call fo::funcoffs::interpretPushLong_;
-		mov edx, VAR_TYPE_INT;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPushShort_;
-		pop edx;
-		pop ecx;
-		pop ebx;
+		push ecx;
+		mov  edx, ds:[FO_VAR_world_xpos];
+		_RET_VAL_INT(ecx);
+		pop  ecx;
+		pop  edx;
 		retn;
 	}
 }
 
 void __declspec(naked) op_get_world_map_y_pos() {
 	__asm {
-		push ebx;
-		push ecx;
 		push edx;
-		mov ecx, eax;
-		mov edx, ds:[FO_VAR_world_ypos];
-		call fo::funcoffs::interpretPushLong_;
-		mov edx, VAR_TYPE_INT;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPushShort_;
-		pop edx;
+		push ecx;
+		mov  edx, ds:[FO_VAR_world_ypos];
+		_RET_VAL_INT(ecx);
 		pop ecx;
-		pop ebx;
+		pop edx;
 		retn;
 	}
 }

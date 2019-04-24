@@ -181,48 +181,33 @@ void sf_get_year(OpcodeContext& ctx) {
 
 void __declspec(naked) op_game_loaded() {
 	__asm {
-		push ebx;
 		push ecx;
 		push edx;
 		push eax;
-		push eax;
+		push eax; // script
 		call ScriptHasLoaded;
-		xor edx, edx;
-		mov dl, al;
-		pop eax;
-		mov ecx, eax;
-		call fo::funcoffs::interpretPushLong_;
-		mov edx, VAR_TYPE_INT;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPushShort_;
+		movzx edx, al;
+		pop  eax;
+		_RET_VAL_INT(ecx);
 		pop edx;
 		pop ecx;
-		pop ebx;
 		retn;
 	}
 }
 
 void __declspec(naked) op_set_pipboy_available() {
 	__asm {
-		push ebx;
 		push ecx;
 		push edx;
-		mov ecx, eax;
-		call fo::funcoffs::interpretPopShort_;
-		mov edx, eax;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPopLong_;
-		cmp dx, VAR_TYPE_INT;
-		jnz end;
-		cmp eax, 0;
-		jl end;
-		cmp eax, 1;
-		jg end;
-		mov byte ptr ds:[FO_VAR_gmovie_played_list + 0x3], al;
+		_GET_ARG_INT(end);
+		cmp  eax, 0;
+		jl   end;
+		cmp  eax, 1;
+		jg   end;
+		mov  byte ptr ds:[FO_VAR_gmovie_played_list + 0x3], al;
 end:
 		pop edx;
 		pop ecx;
-		pop ebx;
 		retn;
 	}
 }
@@ -296,117 +281,50 @@ end:
 	}
 }
 
-//Knockback
-void __declspec(naked) SetKnockback() {
-	__asm {
-		sub esp, 0xc;
-		mov ecx, eax;
-		//Get args
-		call fo::funcoffs::interpretPopShort_; //First arg type
-		mov edi, eax;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPopLong_;  //First arg
-		mov [esp+8], eax;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPopShort_; //Second arg type
-		mov edx, eax;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPopLong_;  //Second arg
-		mov [esp+4], eax;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPopShort_; //Third arg type
-		mov esi, eax;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPopLong_;  //Third arg
-		mov [esp], eax;
-		//Error check
-		cmp di, VAR_TYPE_FLOAT;
-		jz paramWasFloat;
-		cmp di, VAR_TYPE_INT;
-		jnz fail;
-		fild [esp+8];
-		fstp [esp+8];
-paramWasFloat:
-		cmp dx, VAR_TYPE_INT;
-		jnz fail;
-		cmp si, VAR_TYPE_INT;
-		jnz fail;
-		call KnockbackSetMod;
-		jmp end;
-fail:
-		add esp, 0x10;
-end:
-		popad;
-		retn;
+void sf_set_object_knockback(OpcodeContext& ctx) {
+	int mode = 0;
+	switch (ctx.opcode()) {
+	case 0x196:
+		mode = 1;
+		break;
+	case 0x197:
+		mode = 2;
+		break;
+	default:
+		break;
 	}
+	fo::GameObject* object = ctx.arg(0).asObject();
+	if (mode) {
+		if (object->Type() != fo::OBJ_TYPE_CRITTER) {
+			if (mode == 1) {
+				ctx.printOpcodeError("set_target_knockback() - the object is not a critter.");
+			} else {
+				ctx.printOpcodeError("set_attacker_knockback() - the object is not a critter.");
+			}
+			return;
+		}
+	} else {
+		if (object->Type() != fo::OBJ_TYPE_ITEM) {
+			ctx.printOpcodeError("set_weapon_knockback() - the object is not an item.");
+			return;
+		}
+	}
+	KnockbackSetMod(object, ctx.arg(1).rawValue(), ctx.arg(2).asFloat(), mode);
 }
 
-void __declspec(naked) op_set_weapon_knockback() {
-	__asm {
-		pushad;
-		push 0;
-		jmp SetKnockback;
+void sf_remove_object_knockback(OpcodeContext& ctx) {
+	int mode = 0;
+	switch (ctx.opcode()) {
+	case 0x199:
+		mode = 1;
+		break;
+	case 0x19a:
+		mode = 2;
+		break;
+	default:
+		break;
 	}
-}
-
-void __declspec(naked) op_set_target_knockback() {
-	__asm {
-		pushad;
-		push 1;
-		jmp SetKnockback;
-	}
-}
-
-void __declspec(naked) op_set_attacker_knockback() {
-	__asm {
-		pushad;
-		push 2;
-		jmp SetKnockback;
-	}
-}
-
-static void __declspec(naked) RemoveKnockback() {
-	__asm {
-		mov ecx, eax;
-		call fo::funcoffs::interpretPopShort_;
-		mov edx, eax;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPopLong_;
-		cmp dx, VAR_TYPE_INT;
-		jnz fail;
-		push eax;
-		call KnockbackRemoveMod;
-		jmp end;
-fail:
-		add esp, 4;
-end:
-		popad;
-		retn;
-	}
-}
-
-void __declspec(naked) op_remove_weapon_knockback() {
-	__asm {
-		pushad;
-		push 0;
-		jmp RemoveKnockback;
-	}
-}
-
-void __declspec(naked) op_remove_target_knockback() {
-	__asm {
-		pushad;
-		push 1;
-		jmp RemoveKnockback;
-	}
-}
-
-void __declspec(naked) op_remove_attacker_knockback() {
-	__asm {
-		pushad;
-		push 2;
-		jmp RemoveKnockback;
-	}
+	KnockbackRemoveMod(ctx.arg(0).asObject(), mode);
 }
 
 void __declspec(naked) op_get_kill_counter2() {
@@ -477,18 +395,12 @@ end:
 
 void __declspec(naked) op_active_hand() {
 	__asm {
-		push ebx;
-		push ecx;
 		push edx;
-		mov ecx, eax;
-		mov edx, dword ptr ds:[FO_VAR_itemCurrentItem];
-		call fo::funcoffs::interpretPushLong_;
-		mov edx, VAR_TYPE_INT;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPushShort_;
-		pop edx;
-		pop ecx;
-		pop ebx;
+		push ecx;
+		mov  edx, dword ptr ds:[FO_VAR_itemCurrentItem];
+		_RET_VAL_INT(ecx);
+		pop  ecx;
+		pop  edx;
 		retn;
 	}
 }
@@ -496,27 +408,18 @@ void __declspec(naked) op_active_hand() {
 void __declspec(naked) op_toggle_active_hand() {
 	__asm {
 		mov eax, 1;
-		call fo::funcoffs::intface_toggle_items_;
-		retn;
+		jmp fo::funcoffs::intface_toggle_items_;
 	}
 }
 
 void __declspec(naked) op_eax_available() {
 	__asm {
-		push ebx;
-		push eax;
 		push edx;
-		push edi;
-		mov edi, eax;
-		xor edx, edx
-		call fo::funcoffs::interpretPushLong_;
-		mov edx, VAR_TYPE_INT;
-		mov eax, edi;
-		call fo::funcoffs::interpretPushShort_;
-		pop edi;
-		pop edx;
-		pop ecx;
-		pop ebx;
+		push ecx;
+		xor  edx, edx
+		_RET_VAL_INT(ecx);
+		pop  ecx;
+		pop  edx;
 		retn;
 	}
 }
@@ -746,68 +649,45 @@ result:
 	}
 }
 
-static DWORD _stdcall GetTickCount2() {
-	return GetTickCount();
-}
-
 void __declspec(naked) op_get_uptime() {
 	__asm {
-		pushad;
-		mov edi, eax;
-		call GetTickCount2;
-		mov edx, eax;
-		mov eax, edi;
-		call fo::funcoffs::interpretPushLong_;
-		mov edx, VAR_TYPE_INT;
-		mov eax, edi;
-		call fo::funcoffs::interpretPushShort_;
-		popad;
+		push ecx;
+		push edx;
+		push eax;
+		call GetTickCount;
+		mov  edx, eax;
+		pop  eax;
+		_RET_VAL_INT(ecx);
+		pop edx;
+		pop ecx;
 		retn;
 	}
 }
 
 void __declspec(naked) op_set_car_current_town() {
 	__asm {
-		push ebx;
 		push ecx;
 		push edx;
-		push edi;
-		mov ecx, eax;
-		call fo::funcoffs::interpretPopShort_;
-		mov edx, eax;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPopLong_;
-		cmp dx, VAR_TYPE_INT;
-		jnz end;
-		mov ds:[FO_VAR_carCurrentArea], eax;
+		_GET_ARG_INT(end);
+		mov  ds:[FO_VAR_carCurrentArea], eax;
 end:
-		pop edi;
-		pop edx;
-		pop ecx;
-		pop ebx;
+		pop  edx;
+		pop  ecx;
 		retn;
 	}
 }
 
-void __declspec(naked) op_set_hp_per_level_mod() {
+void __declspec(naked) op_set_hp_per_level_mod() { // rewrite to c++
 	__asm {
-		push ebx;
 		push ecx;
 		push edx;
-		mov ecx, eax;
-		call fo::funcoffs::interpretPopShort_;
-		mov edx, eax;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPopLong_;
-		cmp dx, VAR_TYPE_INT;
-		jnz end;
-		push eax;
+		_GET_ARG_INT(end);
+		push eax; // allowed -/+127
 		push 0x4AFBC1;
 		call SafeWrite8;
 end:
-		pop edx;
-		pop ecx;
-		pop ebx;
+		pop  edx;
+		pop  ecx;
 		retn;
 	}
 }
@@ -883,6 +763,8 @@ end:
 	}
 }
 
+static char* valueOutRange = "argument values out of range";
+
 void sf_set_critical_table(OpcodeContext& ctx) {
 	DWORD critter = ctx.arg(0).asInt(),
 		bodypart  = ctx.arg(1).asInt(),
@@ -890,7 +772,7 @@ void sf_set_critical_table(OpcodeContext& ctx) {
 		element   = ctx.arg(3).asInt();
 
 	if (critter >= Criticals::critTableCount || bodypart >= 9 || slot >= 6 || element >= 7) {
-		ctx.printOpcodeError("set_critical_table() - argument values out of range.");
+		ctx.printOpcodeError("set_critical_table() - %s.", valueOutRange);
 	} else {
 		Criticals::SetCriticalTable(critter, bodypart, slot, element, ctx.arg(4).asInt());
 	}
@@ -903,7 +785,7 @@ void sf_get_critical_table(OpcodeContext& ctx) {
 		element   = ctx.arg(3).asInt();
 
 	if (critter >= Criticals::critTableCount || bodypart >= 9 || slot >= 6 || element >= 7) {
-		ctx.printOpcodeError("get_critical_table() - argument values out of range.");
+		ctx.printOpcodeError("get_critical_table() - %s.", valueOutRange);
 	} else {
 		ctx.setReturn(Criticals::GetCriticalTable(critter, bodypart, slot, element));
 	}
@@ -916,7 +798,7 @@ void sf_reset_critical_table(OpcodeContext& ctx) {
 		element   = ctx.arg(3).asInt();
 
 	if (critter >= Criticals::critTableCount || bodypart >= 9 || slot >= 6 || element >= 7) {
-		ctx.printOpcodeError("reset_critical_table() - argument values out of range.");
+		ctx.printOpcodeError("reset_critical_table() - %s.", valueOutRange);
 	} else {
 		Criticals::ResetCriticalTable(critter, bodypart, slot, element);
 	}
@@ -926,14 +808,8 @@ void __declspec(naked) op_set_unspent_ap_bonus() {
 	__asm {
 		push ecx;
 		push edx;
-		mov ecx, eax;
-		call fo::funcoffs::interpretPopShort_;
-		mov edx, eax;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPopLong_;
-		cmp dx, VAR_TYPE_INT;
-		jnz end;
-		mov standardApAcBonus, eax;
+		_GET_ARG_INT(end);
+		mov  standardApAcBonus, eax;
 end:
 		pop edx;
 		pop ecx;
@@ -943,16 +819,12 @@ end:
 
 void __declspec(naked) op_get_unspent_ap_bonus() {
 	__asm {
-		push ecx;
 		push edx;
-		mov ecx, eax;
-		mov edx, standardApAcBonus;
-		call fo::funcoffs::interpretPushLong_;
-		mov eax, ecx;
-		mov edx, VAR_TYPE_INT;
-		call fo::funcoffs::interpretPushShort_;
-		pop edx;
-		pop ecx;
+		push ecx;
+		mov  edx, standardApAcBonus;
+		_RET_VAL_INT(ecx);
+		pop  ecx;
+		pop  edx;
 		retn;
 	}
 }
@@ -961,33 +833,23 @@ void __declspec(naked) op_set_unspent_ap_perk_bonus() {
 	__asm {
 		push ecx;
 		push edx;
-		mov ecx, eax;
-		call fo::funcoffs::interpretPopShort_;
-		mov edx, eax;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPopLong_;
-		cmp dx, VAR_TYPE_INT;
-		jnz end;
-		mov extraApAcBonus, eax;
+		_GET_ARG_INT(end);
+		mov  extraApAcBonus, eax;
 end:
-		pop edx;
-		pop ecx;
+		pop  edx;
+		pop  ecx;
 		retn;
 	}
 }
 
 void __declspec(naked) op_get_unspent_ap_perk_bonus() {
 	__asm {
-		push ecx;
 		push edx;
-		mov ecx, eax;
-		mov edx, extraApAcBonus;
-		call fo::funcoffs::interpretPushLong_;
-		mov eax, ecx;
-		mov edx, VAR_TYPE_INT;
-		call fo::funcoffs::interpretPushShort_
-		pop edx;
-		pop ecx;
+		push ecx;
+		mov  edx, extraApAcBonus;
+		_RET_VAL_INT(ecx);
+		pop  ecx;
+		pop  edx;
 		retn;
 	}
 }
@@ -1041,6 +903,9 @@ void __declspec(naked) op_nb_create_char() {
 	}
 }
 
+static char* failedLoad = "failed to load a prototype id";
+static bool protoMaxLimitPatch = false;
+
 void sf_get_proto_data(OpcodeContext& ctx) {
 	fo::Proto* protoPtr;
 	int pid = ctx.arg(0).rawValue();
@@ -1048,130 +913,84 @@ void sf_get_proto_data(OpcodeContext& ctx) {
 	if (result != -1) {
 		result = *(long*)((BYTE*)protoPtr + ctx.arg(1).rawValue());
 	} else {
-		ctx.printOpcodeError("get_proto_data() - failed to load a prototype id: %d", pid);
+		ctx.printOpcodeError("get_proto_data() - %s: %d", failedLoad, pid);
 	}
 	ctx.setReturn(result);
 }
 
-static bool protoMaxLimitPatch = false;
 void sf_set_proto_data(OpcodeContext& ctx) {
-	fo::Proto* protoPtr;
 	int pid = ctx.arg(0).rawValue();
-	if (fo::func::proto_ptr(pid, &protoPtr) != -1) {
-		*(long*)((BYTE*)protoPtr + ctx.arg(1).rawValue()) = ctx.arg(2).rawValue();
+	if (Stats::SetProtoData(pid, ctx.arg(1).rawValue(), ctx.arg(2).rawValue()) != -1) {
 		if (!protoMaxLimitPatch) {
 			Objects::LoadProtoAutoMaxLimit();
 			protoMaxLimitPatch = true;
 		}
 	} else {
-		ctx.printOpcodeError("set_proto_data() - failed to load a prototype id: %d", pid);
+		ctx.printOpcodeError("set_proto_data() - %s: %d", failedLoad, pid);
 	}
 }
 
-void __declspec(naked) op_hero_select_win() {//for opening the appearance selection window
+void __declspec(naked) op_hero_select_win() { // for opening the appearance selection window
 	__asm {
-		push ebx;
 		push ecx;
 		push edx;
-		push esi;
-		mov ecx, eax;
-		call fo::funcoffs::interpretPopShort_;
-		mov edx, eax;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPopLong_;
+		_GET_ARG_INT(fail);
 		push eax;
-		cmp dx, VAR_TYPE_INT;
-		jnz fail;
 		call HeroSelectWindow;
-		jmp end;
 fail:
-		pop eax;
-end:
-		pop esi;
-		pop edx;
-		pop ecx;
-		pop ebx;
+		pop  edx;
+		pop  ecx;
 		retn;
 	}
 }
 
-void __declspec(naked) op_set_hero_style() {//for setting the hero style/appearance takes an 1 int
+void __declspec(naked) op_set_hero_style() { // for setting the hero style/appearance takes an 1 int
 	__asm {
-		push ebx;
 		push ecx;
 		push edx;
-		push esi;
-		mov ecx, eax;
-		call fo::funcoffs::interpretPopShort_;
-		mov edx, eax;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPopLong_;
+		_GET_ARG_INT(fail);
 		push eax;
-		cmp dx, VAR_TYPE_INT;
-		jnz fail;
 		call SetHeroStyle;
-		jmp end;
 fail:
-		pop eax;
-end:
-		pop esi;
-		pop edx;
-		pop ecx;
-		pop ebx;
+		pop  edx;
+		pop  ecx;
 		retn;
 	}
 }
 
-void __declspec(naked) op_set_hero_race() {// for setting the hero race takes an 1 int
+void __declspec(naked) op_set_hero_race() { // for setting the hero race takes an 1 int
 	__asm {
-		push ebx;
 		push ecx;
 		push edx;
-		push esi;
-		mov ecx, eax;
-		call fo::funcoffs::interpretPopShort_;
-		mov edx, eax;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPopLong_;
+		_GET_ARG_INT(fail);
 		push eax;
-		cmp dx, VAR_TYPE_INT;
-		jnz fail;
 		call SetHeroRace;
-		jmp end;
 fail:
-		pop eax;
-end:
-		pop esi;
-		pop edx;
-		pop ecx;
-		pop ebx;
+		pop  edx;
+		pop  ecx;
 		retn;
 	}
 }
 
 void __declspec(naked) op_get_light_level() {
 	__asm {
-		pushad;
-		mov ecx, eax;
-		mov edx, ds:[FO_VAR_ambient_light];
-		call fo::funcoffs::interpretPushLong_
-		mov edx, VAR_TYPE_INT;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPushShort_
-		popad;
+		push edx;
+		push ecx;
+		mov  edx, ds:[FO_VAR_ambient_light];
+		_RET_VAL_INT(ecx);
+		pop  ecx;
+		pop  edx;
 		retn;
 	}
 }
 
 void __declspec(naked) op_refresh_pc_art() {
 	__asm {
-		push ebx;
 		push ecx;
 		push edx;
 		call RefreshPCArt;
-		pop edx;
-		pop ecx;
-		pop ebx;
+		pop  edx;
+		pop  ecx;
 		retn;
 	}
 }
@@ -1262,18 +1081,14 @@ end:
 
 void __declspec(naked) op_stop_sfall_sound() {
 	__asm {
-		pushad;
-		mov ebp, eax;
-		call fo::funcoffs::interpretPopShort_;
-		mov edi, eax;
-		mov eax, ebp;
-		call fo::funcoffs::interpretPopLong_;
-		cmp di, VAR_TYPE_INT;
-		jnz end;
+		push ecx;
+		push edx;
+		_GET_ARG_INT(end);
 		push eax;
 		call StopSfallSound;
 end:
-		popad;
+		pop  edx;
+		pop  ecx;
 		retn;
 	}
 }
@@ -1314,14 +1129,12 @@ end:
 
 void __declspec(naked) op_modified_ini() {
 	__asm {
-		pushad;
+		push edx;
+		push ecx;
 		mov edx, modifiedIni;
-		mov ebp, eax;
-		call fo::funcoffs::interpretPushLong_;
-		mov eax, ebp;
-		mov edx, VAR_TYPE_INT;
-		call fo::funcoffs::interpretPushShort_;
-		popad;
+		_RET_VAL_INT(ecx);
+		pop  ecx;
+		pop  edx;
 		retn;
 	}
 }
@@ -1330,18 +1143,12 @@ void __declspec(naked) op_force_aimed_shots() {
 	__asm {
 		push ecx;
 		push edx;
-		mov ecx, eax;
-		call fo::funcoffs::interpretPopShort_;
-		mov edx, eax;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPopLong_;
-		cmp dx, VAR_TYPE_INT;
-		jnz end;
+		_GET_ARG_INT(end);
 		push eax;
 		call ForceAimedShots;
 end:
-		pop edx;
-		pop ecx;
+		pop  edx;
+		pop  ecx;
 		retn;
 	}
 }
@@ -1350,18 +1157,12 @@ void __declspec(naked) op_disable_aimed_shots() {
 	__asm {
 		push ecx;
 		push edx;
-		mov ecx, eax;
-		call fo::funcoffs::interpretPopShort_;
-		mov edx, eax;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPopLong_;
-		cmp dx, VAR_TYPE_INT;
-		jnz end;
+		_GET_ARG_INT(end);
 		push eax;
 		call DisableAimedShots;
 end:
-		pop edx;
-		pop ecx;
+		pop  edx;
+		pop  ecx;
 		retn;
 	}
 }
@@ -1370,21 +1171,15 @@ void __declspec(naked) op_mark_movie_played() {
 	__asm {
 		push ecx;
 		push edx;
-		mov ecx, eax;
-		call fo::funcoffs::interpretPopShort_;
-		mov edx, eax;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPopLong_;
-		cmp dx, VAR_TYPE_INT;
-		jnz end;
+		_GET_ARG_INT(end);
 		test eax, eax;
-		jl end;
-		cmp eax, 0x11;
-		jge end;
-		mov byte ptr ds:[eax + FO_VAR_gmovie_played_list], 1;
+		jl   end;
+		cmp  eax, 17;
+		jge  end;
+		mov  byte ptr ds:[eax + FO_VAR_gmovie_played_list], 1;
 end:
-		pop edx;
-		pop ecx;
+		pop  edx;
+		pop  ecx;
 		retn;
 	}
 }
@@ -1445,18 +1240,14 @@ end:
 
 void __declspec(naked) op_block_combat() {
 	__asm {
-		pushad;
-		mov ecx, eax;
-		call fo::funcoffs::interpretPopShort_;
-		mov edx, eax;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPopLong_;
-		cmp dx, VAR_TYPE_INT;
-		jnz end;
+		push ecx;
+		push edx;
+		_GET_ARG_INT(end);
 		push eax;
 		call AIBlockCombat;
 end:
-		popad
+		pop  edx;
+		pop  ecx;
 		retn;
 	}
 }
@@ -1493,14 +1284,10 @@ void __declspec(naked) op_gdialog_get_barter_mod() {
 	__asm {
 		push edx;
 		push ecx;
-		mov ecx, eax;
-		mov edx, dword ptr ds:[FO_VAR_gdBarterMod];
-		call fo::funcoffs::interpretPushLong_;
-		mov eax, ecx;
-		mov edx, VAR_TYPE_INT;
-		call fo::funcoffs::interpretPushShort_;
-		pop ecx;
-		pop edx;
+		mov  edx, dword ptr ds:[FO_VAR_gdBarterMod];
+		_RET_VAL_INT(ecx);
+		pop  ecx;
+		pop  edx;
 		retn;
 	}
 }
@@ -1509,18 +1296,12 @@ void __declspec(naked) op_set_inven_ap_cost() {
 	__asm {
 		push ecx;
 		push edx;
-		mov ecx, eax;
-		call fo::funcoffs::interpretPopShort_;
-		mov edx, eax;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPopLong_;
-		cmp dx, VAR_TYPE_INT;
-		jnz end;
+		_GET_ARG_INT(end);
 		push eax;
 		call SetInvenApCost;
 end:
-		pop edx;
-		pop ecx;
+		pop  edx;
+		pop  ecx;
 		retn;
 	}
 }

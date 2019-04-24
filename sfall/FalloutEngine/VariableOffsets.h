@@ -19,6 +19,7 @@
 #define FO_VAR_background_volume          0x518E88
 #define FO_VAR_bboxslot                   0x5970E0
 #define FO_VAR_bckgnd                     0x5707A4
+#define FO_VAR_bk_disabled                0x6AC780
 #define FO_VAR_black_palette              0x663FD0
 #define FO_VAR_bottom_line                0x664524
 #define FO_VAR_btable                     0x59E944
@@ -38,14 +39,17 @@
 #define FO_VAR_critter_db_handle          0x58E94C
 #define FO_VAR_critterClearObj            0x518438
 #define FO_VAR_crnt_func                  0x664508
+#define FO_VAR_cur_id                     0x51C7D4
 #define FO_VAR_curr_font_num              0x51E3B0
 #define FO_VAR_curr_pc_stat               0x6681AC
 #define FO_VAR_curr_stack                 0x59E96C
 #define FO_VAR_cursor_line                0x664514
+#define FO_VAR_dialogue_head              0x518850
 #define FO_VAR_dialogue_state             0x518714
 #define FO_VAR_dialogue_switch_mode       0x518718
 #define FO_VAR_dialog_target              0x518848
 #define FO_VAR_dialog_target_is_party     0x51884C
+#define FO_VAR_displayMapList             0x41B560
 #define FO_VAR_dropped_explosive          0x5190E0
 #define FO_VAR_drugInfoList               0x5191CC
 #define FO_VAR_editor_message_file        0x56FCA8
@@ -54,6 +58,8 @@
 #define FO_VAR_elevation                  0x631D2C
 #define FO_VAR_Experience_                0x6681B4
 #define FO_VAR_fallout_game_time          0x51C720
+#define FO_VAR_fidgetFID                  0x5186F4
+#define FO_VAR_fidgetFp                   0x5186FC
 #define FO_VAR_flptr                      0x614808
 #define FO_VAR_folder_card_desc           0x5705CC
 #define FO_VAR_folder_card_fid            0x5705B0
@@ -103,6 +109,8 @@
 #define FO_VAR_last_level                 0x5707B4
 #define FO_VAR_Level_                     0x6681B0
 #define FO_VAR_Lifegiver                  0x570854
+#define FO_VAR_lips_draw_head             0x519248
+#define FO_VAR_lipsFID                    0x518704
 #define FO_VAR_list_com                   0x56D394
 #define FO_VAR_list_total                 0x56D37C
 #define FO_VAR_loadingGame                0x5194C4
@@ -114,6 +122,8 @@
 #define FO_VAR_map_global_vars            0x51956C
 #define FO_VAR_map_number                 0x631D88
 #define FO_VAR_map_state                  0x631D28
+#define FO_VAR_mapEntranceElevation       0x519558
+#define FO_VAR_mapEntranceTileNum         0x51955C
 #define FO_VAR_master_db_handle           0x58E948
 #define FO_VAR_master_volume              0x518E84
 #define FO_VAR_max                        0x56FB50
@@ -133,6 +143,7 @@
 #define FO_VAR_num_map_global_vars        0x519574
 #define FO_VAR_card_old_fid1              0x5709EC
 #define FO_VAR_obj_dude                   0x6610B8
+#define FO_VAR_obj_seen                   0x662445
 #define FO_VAR_objectTable                0x639DA0
 #define FO_VAR_objItemOutlineState        0x519798
 #define FO_VAR_optionRect                 0x58ECC0
@@ -175,8 +186,9 @@
 #define FO_VAR_retvals                    0x43EA7C
 #define FO_VAR_rotation                   0x631D34
 #define FO_VAR_sad                        0x530014
-#define FO_VAR_script_path_base           0x51C710
 #define FO_VAR_scr_size                   0x6AC9F0
+#define FO_VAR_script_engine_running      0x51C714
+#define FO_VAR_script_path_base           0x51C710
 #define FO_VAR_scriptListInfo             0x51C7C8
 #define FO_VAR_skill_data                 0x51D118
 #define FO_VAR_slot_cursor                0x5193B8
@@ -214,8 +226,10 @@
 #define FO_VAR_wd_obj                     0x59E98C
 #define FO_VAR_wmAreaInfoList             0x51DDF8
 #define FO_VAR_wmLastRndTime              0x51DEA0
+#define FO_VAR_wmMaxMapNum                0x51DE10
 #define FO_VAR_wmWorldOffsetX             0x51DE2C
 #define FO_VAR_wmWorldOffsetY             0x51DE30
+#define FO_VAR_wmYesNoStrs                0x51DD90
 #define FO_VAR_world_xpos                 0x672E0C
 #define FO_VAR_world_ypos                 0x672E10
 #define FO_VAR_WorldMapCurrArea           0x672E08

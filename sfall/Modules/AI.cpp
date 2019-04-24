@@ -24,28 +24,13 @@
 #include "..\FalloutEngine\Fallout2.h"
 #include "..\SafeWrite.h"
 
-namespace sfall 
+namespace sfall
 {
 
 typedef std::unordered_map<DWORD, DWORD> :: const_iterator iter;
 
 static std::unordered_map<DWORD,DWORD> targets;
 static std::unordered_map<DWORD,DWORD> sources;
-
-static DWORD combatDisabled;
-static std::string combatBlockedMessage;
-
-DWORD _stdcall AIGetLastAttacker(DWORD target) {
-	iter itr=sources.find(target);
-	if(itr==sources.end()) return 0;
-	else return itr->second;
-}
-
-DWORD _stdcall AIGetLastTarget(DWORD source) {
-	iter itr=targets.find(source);
-	if(itr==targets.end()) return 0;
-	else return itr->second;
-}
 
 static void __fastcall CombatAttackHook(DWORD source, DWORD target) {
 	sources[target] = source;
@@ -66,57 +51,72 @@ static void __declspec(naked) combat_attack_hook() {
 	}
 }
 
+static DWORD combatDisabled;
+void _stdcall AIBlockCombat(DWORD i) {
+	combatDisabled = i ? 1 : 0;
+}
+
+static std::string combatBlockedMessage;
 static void _stdcall CombatBlocked() {
 	fo::func::display_print(combatBlockedMessage.c_str());
 }
 
-static const DWORD BlockCombatHook1Ret1=0x45F6B4;
-static const DWORD BlockCombatHook1Ret2=0x45F6D7;
+static const DWORD BlockCombatHook1Ret1 = 0x45F6B4;
+static const DWORD BlockCombatHook1Ret2 = 0x45F6D7;
 static void __declspec(naked) BlockCombatHook1() {
 	__asm {
-		mov eax, combatDisabled;
+		mov  eax, combatDisabled;
 		test eax, eax;
-		jz end;
+		jz   end;
 		call CombatBlocked;
-		jmp BlockCombatHook1Ret2;
+		jmp  BlockCombatHook1Ret2;
 end:
-		mov eax, 0x14;
-		jmp BlockCombatHook1Ret1;
+		mov  eax, 0x14;
+		jmp  BlockCombatHook1Ret1;
 	}
 }
 
 static void __declspec(naked) BlockCombatHook2() {
 	__asm {
-		mov eax, dword ptr ds:[FO_VAR_intfaceEnabled];
+		mov  eax, dword ptr ds:[FO_VAR_intfaceEnabled];
 		test eax, eax;
-		jz end;
-		mov eax, combatDisabled;
+		jz   end;
+		mov  eax, combatDisabled;
 		test eax, eax;
-		jz succeed;
-		pushad;
+		jz   succeed;
+		push ecx;
+		push edx;
 		call CombatBlocked;
-		popad;
-		xor eax, eax;
-		jmp end;
+		pop  edx;
+		pop  ecx;
+		xor  eax, eax;
+		retn;
 succeed:
-		inc eax;
+		inc  eax;
 end:
 		retn;
 	}
 }
 
-void _stdcall AIBlockCombat(DWORD i) {
-	combatDisabled = i ? 1 : 0;
-}
-
 void AI::init() {
 	//HookCall(0x42AE1D, ai_attack_hook);
 	//HookCall(0x42AE5C, ai_attack_hook);
-	HookCall(0x426A95, combat_attack_hook);
-	HookCall(0x42A796, combat_attack_hook);
-	MakeJump(0x45F6AF, BlockCombatHook1);
-	HookCall(0x4432A6, BlockCombatHook2);
+	HookCall(0x426A95, combat_attack_hook);  // combat_attack_this_
+	HookCall(0x42A796, combat_attack_hook);  // ai_attack_
+
+	MakeJump(0x45F6AF, BlockCombatHook1);    // intface_use_item_
+	HookCall(0x4432A6, BlockCombatHook2);    // game_handle_input_
 	combatBlockedMessage = Translate("sfall", "BlockedCombat", "You cannot enter combat at this time.");
+}
+
+DWORD _stdcall AIGetLastAttacker(DWORD target) {
+	iter itr = sources.find(target);
+	return (itr != sources.end()) ? itr->second: 0;
+}
+
+DWORD _stdcall AIGetLastTarget(DWORD source) {
+	iter itr = targets.find(source);
+	return (itr != targets.end()) ? itr->second : 0;
 }
 
 void _stdcall AICombatStart() {

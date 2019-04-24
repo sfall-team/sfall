@@ -101,19 +101,19 @@ bool OpcodeContext::validateArguments(const OpcodeArgumentType argTypes[], const
 		// exception is when type set to
 		if (actualType == DataType::NONE) break;
 		if ((argType == ARG_INT || argType == ARG_OBJECT) && !(actualType == DataType::INT)) {
-			printOpcodeError("%s() - argument #%d is not an integer.", opcodeName, i);
+			printOpcodeError("%s() - argument #%d is not an integer.", opcodeName, ++i);
 			return false;
 		} else if (argType == ARG_NUMBER && !(actualType == DataType::INT || actualType == DataType::FLOAT)) {
-			printOpcodeError("%s() - argument #%d is not a number.", opcodeName, i);
+			printOpcodeError("%s() - argument #%d is not a number.", opcodeName, ++i);
 			return false;
 		} else if (argType == ARG_STRING && !(actualType == DataType::STR)) {
-			printOpcodeError("%s() - argument #%d is not a string.", opcodeName, i);
+			printOpcodeError("%s() - argument #%d is not a string.", opcodeName, ++i);
 			return false;
 		} else if (argType == ARG_OBJECT && arg(i).rawValue() == 0) {
-			printOpcodeError("%s() - argument #%d is null.", opcodeName, i);
+			printOpcodeError("%s() - argument #%d is null.", opcodeName, ++i);
 			return false;
 		} else if (argType == ARG_INTSTR && !(actualType == DataType::INT || actualType == DataType::STR)) {
-			printOpcodeError("%s() - argument #%d is not an integer or a string.", opcodeName, i);
+			printOpcodeError("%s() - argument #%d is not an integer or a string.", opcodeName, ++i);
 			return false;
 		}
 	}

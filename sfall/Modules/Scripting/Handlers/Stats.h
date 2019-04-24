@@ -24,21 +24,21 @@ namespace script
 {
 
 // stat_funcs
-void __declspec() op_set_pc_base_stat();
+void sf_set_pc_base_stat(OpcodeContext&);
 
-void __declspec() op_set_pc_extra_stat();
+void sf_set_pc_extra_stat(OpcodeContext&);
 
-void __declspec() op_get_pc_base_stat();
+void sf_get_pc_base_stat(OpcodeContext&);
 
-void __declspec() op_get_pc_extra_stat();
+void sf_get_pc_extra_stat(OpcodeContext&);
 
-void __declspec() op_set_critter_base_stat();
+void sf_set_critter_base_stat(OpcodeContext&);
 
-void __declspec() op_set_critter_extra_stat();
+void sf_set_critter_extra_stat(OpcodeContext&);
 
-void __declspec() op_get_critter_base_stat();
+void sf_get_critter_base_stat(OpcodeContext&);
 
-void __declspec() op_get_critter_extra_stat();
+void sf_get_critter_extra_stat(OpcodeContext&);
 
 void __declspec() op_set_critter_skill_points();
 

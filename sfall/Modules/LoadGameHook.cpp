@@ -25,6 +25,7 @@
 
 #include "AI.h"
 #include "BugFixes.h"
+#include "ExtraSaveSlots.h"
 #include "FileSystem.h"
 #include "HeroAppearance.h"
 #include "HookScripts.h"
@@ -33,7 +34,7 @@
 #include "Perks.h"
 #include "ScriptExtender.h"
 #include "Scripting\Arrays.h"
-#include "ExtraSaveSlots.h"
+#include "Stats.h"
 #include "Worldmap.h"
 
 #include "LoadGameHook.h"
@@ -42,13 +43,15 @@ namespace sfall
 {
 
 #define _InLoop2(type, flag) __asm { \
-	_asm push flag \
-	_asm push type \
-	_asm call SetInLoop }
-#define _InLoop(type, flag) __asm { \
-	pushadc              \
-	_InLoop2(type, flag) \
-	popadc }
+	_asm push flag                   \
+	_asm push type                   \
+	_asm call SetInLoop              \
+}
+#define _InLoop(type, flag) __asm {  \
+	pushadc                          \
+	_InLoop2(type, flag)             \
+	popadc                           \
+}
 
 static Delegate<> onGameInit;
 static Delegate<> onAfterGameInit;
@@ -106,7 +109,7 @@ void _stdcall SetInLoop(DWORD mode, LoopFlag flag) {
 	} else {
 		ClearLoopFlag(flag);
 	}
-	HookScripts::GameModeChangeHook(0);
+	GameModeChange(0);
 }
 
 void GetSavePath(char* buf, char* ftype) {
@@ -139,6 +142,7 @@ static void _stdcall SaveGame2() {
 	h = CreateFileA(buf, GENERIC_WRITE, 0, 0, CREATE_ALWAYS, 0, 0);
 	if (h != INVALID_HANDLE_VALUE) {
 		Worldmap::SaveData(h);
+		Stats::SaveStatData(h);
 		CloseHandle(h);
 	} else {
 		goto errorSave;
@@ -236,7 +240,7 @@ static bool LoadGame_Before() {
 	dlogr("Loading data from sfalldb.sav...", DL_MAIN);
 	h = CreateFileA(buf, GENERIC_READ, FILE_SHARE_READ, 0, OPEN_EXISTING, 0, 0);
 	if (h != INVALID_HANDLE_VALUE) {
-		if (Worldmap::LoadData(h)) goto errorLoad;
+		if (Worldmap::LoadData(h) || Stats::LoadStatData(h)) goto errorLoad;
 		CloseHandle(h);
 	} else {
 		dlogr("Cannot open sfalldb.sav.", DL_MAIN);

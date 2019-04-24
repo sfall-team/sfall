@@ -17,6 +17,7 @@
  */
 
 #include <vector> // should be above DX SDK includes to avoid warning 4995
+
 #include <d3d9.h>
 #include <dshow.h>
 #include <Vmr9.h>
@@ -274,7 +275,7 @@ static void __declspec(naked) PlayFrameHook2() {
 	}
 }
 
-static DWORD _cdecl PreparePlayMovie(const DWORD id) {
+static DWORD __cdecl PreparePlayMovie(const DWORD id) {
 	//Get file path in unicode
 	wchar_t path[MAX_PATH];
 	char* master_patches = fo::var::patches;
@@ -359,6 +360,7 @@ static std::vector<sDSSound*> loopingSounds;
 
 DWORD playID = 0;
 DWORD loopID = 0;
+
 static HWND soundwindow = 0;
 static void* musicLoopPtr = nullptr;
 //static char playingMusicFile[256];
@@ -543,12 +545,10 @@ static sDSSound* PlayingSound(wchar_t* path, bool loop) {
 }
 
 static const wchar_t *SoundExtensions[] = { L"mp3", L"wma", L"wav" };
-static bool _cdecl SoundFileLoad(DWORD called, const char* path) {
+static bool __cdecl SoundFileLoad(DWORD called, const char* path) {
 	if (!path || strlen(path) < 4) return false;
 	wchar_t buf[256];
 	mbstowcs_s(0, buf, path, 256);
-
-	//CleanupSounds();
 
 	bool found = false;
 	int len = wcslen(buf) - 3;
@@ -803,8 +803,7 @@ void Movies::init() {
 		CreateSndWnd();
 	}
 
-	DWORD days;
-	days = SimplePatch<DWORD>(0x4A36EC, "Misc", "MovieTimer_artimer4", 360, 0);
+	DWORD days = SimplePatch<DWORD>(0x4A36EC, "Misc", "MovieTimer_artimer4", 360, 0);
 	days = SimplePatch<DWORD>(0x4A3747, "Misc", "MovieTimer_artimer3", 270, 0, days);
 	days = SimplePatch<DWORD>(0x4A376A, "Misc", "MovieTimer_artimer2", 180, 0, days);
 	Artimer1DaysCheckTimer = GetConfigInt("Misc", "MovieTimer_artimer1", 90);

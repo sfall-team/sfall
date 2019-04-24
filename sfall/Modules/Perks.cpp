@@ -80,7 +80,7 @@ struct FakePerk {
 
 	FakePerk() {}
 
-	FakePerk(char* _name, int _level, int _image, char* _desc) : id(-1), Name {0}, Desc {0}, reserve {0} {
+	FakePerk(char* _name, int _level, int _image, char* _desc, short _id = -1) : id(_id), Name {0}, Desc {0}, reserve {0} {
 		Level = _level;
 		Image = _image;
 		strncpy_s(this->Name, _name, _TRUNCATE);
@@ -92,7 +92,7 @@ std::vector<FakePerk> fakeTraits;
 std::vector<FakePerk> fakePerks;
 std::vector<FakePerk> fakeSelectablePerks; // available perks for selection in the perk selection list
 
-static std::list<int> RemoveTraitID;
+static long RemoveTraitID = -1;
 static std::list<int> RemovePerkID;
 static std::list<int> RemoveSelectableID;
 
@@ -212,7 +212,7 @@ void _stdcall SetSelectablePerk(char* name, int active, int image, char* desc) {
 			}
 		}
 		if (size == fakeSelectablePerks.capacity()) fakeSelectablePerks.reserve(size + 10);
-		fakeSelectablePerks.push_back(FakePerk(name, active, image, desc));
+		fakeSelectablePerks.emplace_back(name, active, image, desc);
 	}
 }
 
@@ -237,7 +237,7 @@ void _stdcall SetFakePerk(char* name, int level, int image, char* desc) {
 			}
 		}
 		if (size == fakePerks.capacity()) fakePerks.reserve(size + 10);
-		fakePerks.push_back(FakePerk(name, level, image, desc));
+		fakePerks.emplace_back(name, level, image, desc);
 	}
 }
 
@@ -262,7 +262,7 @@ void _stdcall SetFakeTrait(char* name, int active, int image, char* desc) {
 			}
 		}
 		if (size == fakeTraits.capacity()) fakeTraits.reserve(size + 5);
-		fakeTraits.push_back(FakePerk(name, active, image, desc));
+		fakeTraits.emplace_back(name, active, image, desc);
 	}
 }
 
@@ -440,7 +440,7 @@ cLoop:
 static DWORD _stdcall HandleExtraSelectablePerks(DWORD available, DWORD* data) {
 	size_t count = extPerks.size();
 	for (size_t i = 0; i < count; i++) {
-		if (available >= 119) break; // exit if the buffer is overfull
+		if (available >= 119) return available; // exit if the buffer is overfull
 		if (fo::func::perk_can_add(fo::var::obj_dude, extPerks[i].id)) data[available++] = extPerks[i].id;
 	}
 	count = fakeSelectablePerks.size();
@@ -589,9 +589,7 @@ static void _stdcall AddFakePerk(DWORD perkID) {
 		if (!matched) { // add to fakePerks
 			RemovePerkID.push_back(count);    // index of the added perk
 			int index = PerkSearchID(perkID);
-			FakePerk perk(extPerks[index].Name, 1, extPerks[index].data.image, extPerks[index].Desc);
-			perk.id	= extPerks[index].id;     // same as perkID
-			fakePerks.emplace_back(perk);
+			fakePerks.emplace_back(extPerks[index].Name, 1, extPerks[index].data.image, extPerks[index].Desc, extPerks[index].id); // id same as perkID
 		}
 		fo::func::perk_add_effect(fo::var::obj_dude, perkID);
 		return;
@@ -607,13 +605,13 @@ static void _stdcall AddFakePerk(DWORD perkID) {
 			}
 		}
 		if (!matched) {
-			RemoveTraitID.push_back(count); // index of the added trait
+			if (RemoveTraitID == -1) RemoveTraitID = count; // index of the added trait
 			fakeTraits.push_back(fakeSelectablePerks[perkID]);
 		}
 	}
 	if (addPerkMode & 2) { // default mode
 		matched = false;
-		count = fakeTraits.size();
+		count = fakePerks.size();
 		for (size_t d = 0; d < count; d++) {
 			if (!strcmp(fakePerks[d].Name, fakeSelectablePerks[perkID].Name)) {
 				RemovePerkID.push_back(d);
@@ -1316,16 +1314,14 @@ void _stdcall ClearSelectablePerks() {
 }
 
 void PerksEnterCharScreen() {
-	RemoveTraitID.clear();
+	RemoveTraitID = -1;
 	RemovePerkID.clear();
 	RemoveSelectableID.clear();
 }
 
 void PerksCancelCharScreen() {
-	if (RemoveTraitID.size() > 1) RemoveTraitID.sort();
-	while (!RemoveTraitID.empty()) {
-		fakeTraits.erase(fakeTraits.begin() + RemoveTraitID.back());
-		RemoveTraitID.pop_back();
+	if (RemoveTraitID != -1) {
+		fakeTraits.erase(fakeTraits.begin() + RemoveTraitID, fakeTraits.end());
 	}
 	if (RemovePerkID.size() > 1) RemovePerkID.sort(); // sorting to correctly remove from the end
 	while (!RemovePerkID.empty()) {

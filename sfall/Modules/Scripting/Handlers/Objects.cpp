@@ -239,7 +239,7 @@ void sf_make_path(OpcodeContext& ctx) {
 	auto func = getBlockingFunc(type);
 
 	// if the object is not a critter, then there is no need to check tile (tileTo) for blocking
-	long checkFlag = (objFrom->type() == fo::OBJ_TYPE_CRITTER);
+	long checkFlag = (objFrom->Type() == fo::OBJ_TYPE_CRITTER);
 
 	char pathData[800];
 	long pathLength = fo::func::make_path_func(objFrom, objFrom->tile, tileTo, pathData, checkFlag, (void*)func);
@@ -282,7 +282,7 @@ void sf_get_party_members(OpcodeContext& ctx) {
 	auto partyMemberList = fo::var::partyMemberList;
 	for (int i = 0; i < actualCount; i++) {
 		auto obj = reinterpret_cast<fo::GameObject*>(partyMemberList[i * 4]);
-		if (includeHidden || (obj->type() == fo::OBJ_TYPE_CRITTER && !fo::func::critter_is_dead(obj) && !(obj->flags & fo::ObjectFlag::Mouse_3d))) {
+		if (includeHidden || (obj->Type() == fo::OBJ_TYPE_CRITTER && !fo::func::critter_is_dead(obj) && !(obj->flags & fo::ObjectFlag::Mouse_3d))) {
 			arrays[arrayId].push_back((long)obj);
 		}
 	}
@@ -364,7 +364,7 @@ void sf_item_weight(OpcodeContext& ctx) {
 
 void sf_set_dude_obj(OpcodeContext& ctx) {
 	auto obj = ctx.arg(0).asObject();
-	if (obj->type() == fo::ObjType::OBJ_TYPE_CRITTER) {
+	if (obj->Type() == fo::OBJ_TYPE_CRITTER) {
 		PartyControl::SwitchToCritter(obj);
 	} else {
 		ctx.printOpcodeError("Object is not a critter!");
@@ -517,6 +517,18 @@ void sf_set_drugs_data(OpcodeContext& ctx) {
 		return;
 	}
 	if (result) ctx.printOpcodeError("set_drugs_data() - drug PID not found in the configuration file.");
+}
+
+void sf_set_unique_id(OpcodeContext& ctx) {
+	fo::GameObject* obj = ctx.arg(0).asObject();
+	long id;
+	if (ctx.arg(1).asInt() == -1) {
+		id = fo::func::new_obj_id();
+		obj->id = id;
+	} else {
+		id = Objects::SetObjectUniqueID(obj);
+	}
+	ctx.setReturn(id);
 }
 
 }

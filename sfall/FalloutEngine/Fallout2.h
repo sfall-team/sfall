@@ -51,3 +51,30 @@
 #define MSG_FILE_TRAIT		(0x66BE38)
 #define MSG_FILE_WORLDMAP	(0x672FB0)
 
+/*
+	Gets argument from stack to eax and puts its type to edx register
+	eax register must contain the script_ptr
+	jlabel - name of the jump label in case the value type is not INT
+*/
+#define _GET_ARG_INT(jlabel) __asm {				\
+	__asm mov  edx, eax								\
+	__asm call fo::funcoffs::interpretPopShort_		\
+	__asm xchg eax, edx								\
+	__asm call fo::funcoffs::interpretPopLong_		\
+	__asm cmp  dx, VAR_TYPE_INT						\
+	__asm jnz  jlabel								\
+}
+
+/*
+	Returns the value to the script
+	eax register must contain the script_ptr
+	edx register must contain the returned value
+	rscript - name register for temporary save script_ptr
+*/
+#define _RET_VAL_INT(rscript) __asm {				\
+	__asm mov  rscript, eax 						\
+	__asm call fo::funcoffs::interpretPushLong_		\
+	__asm mov  edx, VAR_TYPE_INT					\
+	__asm mov  eax, rscript							\
+	__asm call fo::funcoffs::interpretPushShort_	\
+}

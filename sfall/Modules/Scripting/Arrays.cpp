@@ -310,22 +310,57 @@ void GetArrays(int* _arrays) {
 	int pos = 0;
 	array_citr itr = arrays.begin();
 	while (itr != arrays.end()) {
-		_arrays[pos++] = itr->first;
-		_arrays[pos++] = itr->second.size();
+		_arrays[pos++] = itr->first; // array id
+		_arrays[pos++] = itr->second.isAssoc() ? 1 : 0;
+		_arrays[pos++] = itr->second.val.size();
 		_arrays[pos++] = itr->second.flags;
 		itr++;
 	}
 }
 
-// those too are not really used yet in FalloutClient (AFAIK) -- phobos2077
-void DEGetArray(int id, DWORD* types, void* data) {
-	//memcpy(types, arrays[id].types, arrays[id].len*4);
-	//memcpy(data, arrays[id].data, arrays[id].len*arrays[id].datalen);
+void DEGetArray(int id, DWORD* types, char* data) {
+	int pos = 0;
+	if (types != nullptr) {
+		for (size_t i = 0; i < arrays[id].val.size(); i++) {
+			const auto& arVal = arrays[id].val[i];
+			types[pos++] = (DWORD)arVal.type;
+			types[pos++] = (arVal.type == DataType::STR) ? arVal.len : 4; // in bytes
+		}
+	} else {
+		for (size_t i = 0; i < arrays[id].val.size(); i++) {
+			const auto& arVal = arrays[id].val[i];
+			if (arVal.type != DataType::STR) {
+				*(long*)(data + pos) = arVal.intVal;
+				pos += 4;
+			} else {
+				strcpy(data + pos, arVal.strVal);
+				pos += arVal.len;
+			}
+		}
+	}
 }
 
-void DESetArray(int id, const DWORD* types, const void* data) {
-	//if (types) memcpy(arrays[id].types, types, arrays[id].len * 4);
-	//memcpy(arrays[id].data, data, arrays[id].len*arrays[id].datalen);
+void DESetArray(int id, const DWORD* types, const char* data) {
+	int pos = 0;
+	for (size_t i = 0; i < arrays[id].val.size(); i++) {
+		auto& arVal = arrays[id].val[i];
+		switch (arVal.type) {
+		case DataType::NONE:
+			pos += 4;
+			break;
+		case DataType::INT:
+			arVal.intVal = *(long*)(data + pos);
+			pos += 4;
+			break;
+		case DataType::FLOAT:
+			arVal.floatVal = *(float*)(data + pos);
+			pos += 4;
+			break;
+		case DataType::STR:
+			strcpy(arVal.strVal, data + pos);
+			pos += arVal.len;
+		}
+	}
 }
 
 /*
@@ -506,8 +541,8 @@ static void ListSort(std::vector<T> &arr, int type) {
 }
 
 static void MapSort(sArrayVar& arr, int type) {
-	std::vector<std::pair<sArrayElement, sArrayElement>> map;
-	map.reserve(arr.val.size());
+	std::vector<std::pair<sArrayElement, sArrayElement>> vmap;
+	vmap.reserve(arr.val.size());
 
 	bool sortByValue = false;
 	if (type < ARRAY_ACTION_SHUFFLE) {
@@ -524,20 +559,20 @@ static void MapSort(sArrayVar& arr, int type) {
 			key = arr.val[i];      // key
 			val = arr.val[++i];    // value
 		}
-		map.emplace_back(std::make_pair(key, val));
+		vmap.emplace_back(key, val);
 	}
-	ListSort(map, type);
+	ListSort(vmap, type);
 
 	arr.val.clear();
 	arr.keyHash.clear();
-	for (size_t i = 0; i < map.size(); ++i) {
+	for (size_t i = 0; i < vmap.size(); ++i) {
 		auto el = arr.val.size();
 		if (sortByValue) {
-			arr.val.emplace_back(map[i].second); // map value > key
-			arr.val.emplace_back(map[i].first);  // map key > value
+			arr.val.emplace_back(vmap[i].second); // map value > key
+			arr.val.emplace_back(vmap[i].first);  // map key > value
 		} else {
-			arr.val.emplace_back(map[i].first);
-			arr.val.emplace_back(map[i].second);
+			arr.val.emplace_back(vmap[i].first);
+			arr.val.emplace_back(vmap[i].second);
 		}
 		arr.keyHash[arr.val[el]] = el;
 	}

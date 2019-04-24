@@ -30,23 +30,36 @@
 namespace sfall
 {
 
-#define CODE_EXIT (254)
-#define CODE_SET_GLOBAL  (0)
-#define CODE_SET_MAPVAR  (1)
-#define CODE_GET_CRITTER (2)
-#define CODE_SET_CRITTER (3)
-#define CODE_SET_SGLOBAL (4)
-#define CODE_GET_PROTO   (5)
-#define CODE_SET_PROTO   (6)
-#define CODE_GET_PLAYER  (7)
-#define CODE_SET_PLAYER  (8)
-#define CODE_GET_ARRAY   (9)
-#define CODE_SET_ARRAY   (10)
+enum DECode {
+	CODE_SET_GLOBAL  = 0,
+	CODE_SET_MAPVAR  = 1,
+	CODE_GET_CRITTER = 2,
+	CODE_SET_CRITTER = 3,
+	CODE_SET_SGLOBAL = 4,
+	CODE_GET_PROTO   = 5,
+	CODE_SET_PROTO   = 6,
+	CODE_GET_PLAYER  = 7,
+	CODE_SET_PLAYER  = 8,
+	CODE_GET_ARRAY   = 9,
+	CODE_SET_ARRAY   = 10,
+	CODE_EXIT        = 254
+};
 
 static const char* debugLog = "LOG";
 static const char* debugGnw = "GNW";
 
 static DWORD debugEditorKey = 0;
+
+struct sArray {
+	DWORD id;
+	long  isMap;
+	long  size;
+	long  flag;
+};
+
+static void DEGameWinRedraw() {
+	fo::func::process_bk();
+}
 
 static bool SetBlocking(SOCKET s, bool block) {
 	DWORD d = !block;
@@ -56,13 +69,12 @@ static bool SetBlocking(SOCKET s, bool block) {
 static bool InternalSend(SOCKET s, const void* _data, int size) {
 	const char* data = (const char*)_data;
 	int upto = 0;
-	int tmp;
-	DWORD d;
 	while (upto < size) {
-		tmp = send(s, &data[upto], size - upto, 0);
-		if (tmp > 0) upto += tmp;
-		else {
-			d = WSAGetLastError();
+		int tmp = send(s, &data[upto], size - upto, 0);
+		if (tmp > 0) {
+			upto += tmp;
+		} else {
+			DWORD d = WSAGetLastError();
 			if (d != WSAEWOULDBLOCK && d != WSAENOBUFS) return true;
 		}
 	}
@@ -72,13 +84,12 @@ static bool InternalSend(SOCKET s, const void* _data, int size) {
 static bool InternalRecv(SOCKET s, void* _data, int size) {
 	char* data = (char*)_data;
 	int upto = 0;
-	int tmp;
-	DWORD d;
 	while (upto < size) {
-		tmp = recv(s, &data[upto], size - upto, 0);
-		if (tmp > 0) upto += tmp;
-		else {
-			d = WSAGetLastError();
+		int tmp = recv(s, &data[upto], size - upto, 0);
+		if (tmp > 0) {
+			upto += tmp;
+		} else {
+			DWORD d = WSAGetLastError();
 			if (d != WSAEWOULDBLOCK && d != WSAENOBUFS) return true;
 		}
 	}
@@ -86,25 +97,26 @@ static bool InternalRecv(SOCKET s, void* _data, int size) {
 }
 
 static void RunEditorInternal(SOCKET &s) {
+	*(DWORD*)FO_VAR_script_engine_running = 0;
+
 	std::vector<DWORD*> vec = std::vector<DWORD*>();
 	for (int elv = 0; elv < 3; elv++) {
 		for (int tile = 0; tile < 40000; tile++) {
 			fo::GameObject* obj = fo::func::obj_find_first_at_tile(elv, tile);
 			while (obj) {
-				if ((obj->type()) == fo::OBJ_TYPE_CRITTER) {
+				if ((obj->Type()) == fo::OBJ_TYPE_CRITTER) {
 					vec.push_back(reinterpret_cast<DWORD*>(obj));
 				}
 				obj = fo::func::obj_find_next_at_tile();
 			}
 		}
 	}
-
 	int numCritters = vec.size();
-
 	int numGlobals = fo::var::num_game_global_vars;
 	int numMapVars = fo::var::num_map_global_vars;
 	int numSGlobals = GetNumGlobals();
 	int numArrays = script::GetNumArrays();
+
 	InternalSend(s, &numGlobals, 4);
 	InternalSend(s, &numMapVars, 4);
 	InternalSend(s, &numSGlobals, 4);
@@ -113,15 +125,17 @@ static void RunEditorInternal(SOCKET &s) {
 
 	GlobalVar* sglobals = new GlobalVar[numSGlobals];
 	GetGlobals(sglobals);
-	int* arrays = new int[numArrays * 3];
-	script::GetArrays(arrays);
+
+	sArray* arrays = new sArray[numArrays];
+	script::GetArrays((int*)arrays);
 
 	InternalSend(s, reinterpret_cast<void*>(fo::var::game_global_vars), 4 * numGlobals);
 	InternalSend(s, reinterpret_cast<void*>(fo::var::map_global_vars), 4 * numMapVars);
 	InternalSend(s, sglobals, sizeof(GlobalVar)*numSGlobals);
-	InternalSend(s, arrays, numArrays * 3 * 4);
+	InternalSend(s, arrays, numArrays * sizeof(sArray));
 	for (int i = 0; i < numCritters; i++) {
 		InternalSend(s, &vec[i][25], 4);
+		InternalSend(s, &vec[i], 4);
 	}
 
 	while (true) {
@@ -130,56 +144,66 @@ static void RunEditorInternal(SOCKET &s) {
 		if (code == CODE_EXIT) break;
 		int id, val;
 		switch (code) {
-		case 0:
+		case CODE_SET_GLOBAL:
 			InternalRecv(s, &id, 4);
 			InternalRecv(s, &val, 4);
 			fo::var::game_global_vars[id] = val;
 			break;
-		case 1:
+		case CODE_SET_MAPVAR:
 			InternalRecv(s, &id, 4);
 			InternalRecv(s, &val, 4);
 			fo::var::map_global_vars[id] = val;
 			break;
-		case 2:
+		case CODE_GET_CRITTER:
 			InternalRecv(s, &id, 4);
-			InternalSend(s, vec[id], 0x74);
+			InternalSend(s, vec[id], 0x84);
 			break;
-		case 3:
+		case CODE_SET_CRITTER:
 			InternalRecv(s, &id, 4);
-			InternalRecv(s, vec[id], 0x74);
+			InternalRecv(s, vec[id], 0x84);
 			break;
-		case 4:
+		case CODE_SET_SGLOBAL:
 			InternalRecv(s, &id, 4);
 			InternalRecv(s, &val, 4);
 			sglobals[id].val = val;
 			break;
-		case 9:
+		case CODE_GET_ARRAY: // get array values
 			{
-			InternalRecv(s, &id, 4);
-			DWORD *types = new DWORD[arrays[id * 3 + 1]];
-			char *data = new char[arrays[id * 3 + 1] * arrays[id * 3 + 2]];
-			script::DEGetArray(arrays[id * 3], types, data);
-			InternalSend(s, types, arrays[id * 3 + 1] * 4);
-			InternalSend(s, data, arrays[id * 3 + 1] * arrays[id * 3 + 2]);
-			delete[] data;
-			delete[] types;
+				InternalRecv(s, &id, 4);
+				DWORD *types = new DWORD[arrays[id].size * 2]; // type, len
+				script::DEGetArray(arrays[id].id, types, nullptr);
+				int dataLen = 0;
+				for (long i = 0; i < arrays[id].size; i++) {
+					dataLen += types[i * 2 + 1];
+				}
+				char *data = new char[dataLen];
+				script::DEGetArray(arrays[id].id, nullptr, data);
+				InternalSend(s, types, arrays[id].size * 8);
+				InternalSend(s, data, dataLen);
+				delete[] data;
+				delete[] types;
 			}
 			break;
-		case 10:
+		case CODE_SET_ARRAY: // set array values
 			{
-			InternalRecv(s, &id, 4);
-			char *data = new char[arrays[id * 3 + 1] * arrays[id * 3 + 2]];
-			InternalRecv(s, data, arrays[id * 3 + 1] * arrays[id * 3 + 2]);
-			script::DESetArray(arrays[id * 3], 0, data);
-			delete[] data;
+				InternalRecv(s, &id, 4);
+				InternalRecv(s, &val, 4); // len data
+				char *data = new char[val];
+				InternalRecv(s, data, val);
+				script::DESetArray(arrays[id].id, nullptr, data);
+				delete[] data;
 			}
 			break;
 		}
+		DEGameWinRedraw();
 	}
 
 	SetGlobals(sglobals);
 	delete[] sglobals;
 	delete[] arrays;
+
+	FlushInputBuffer();
+	*(DWORD*)FO_VAR_script_engine_running = 1;
 }
 
 void RunDebugEditor() {
@@ -187,13 +211,13 @@ void RunDebugEditor() {
 	SOCKET sock, client;
 
 	if (WSAStartup(MAKEWORD(2, 2), &wsaData) != NO_ERROR) return;
-	//create the socket
+	// create the socket
 	sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 	if (sock == INVALID_SOCKET) {
 		WSACleanup();
 		return;
 	}
-	//bind the socket
+	// bind the socket
 	sockaddr_in service;
 	service.sin_family = AF_INET;
 	service.sin_addr.s_addr = inet_addr("127.0.0.1");
@@ -210,7 +234,7 @@ void RunDebugEditor() {
 		return;
 	}
 
-	//Start up the editor
+	// Start up the editor
 	STARTUPINFO si;
 	PROCESS_INFORMATION pi;
 
@@ -228,7 +252,7 @@ void RunDebugEditor() {
 	CloseHandle(pi.hThread);
 	CloseHandle(pi.hProcess);
 
-	//Connect to the editor
+	// Connect to the editor
 	client = accept(sock, 0, 0);
 	if (client == SOCKET_ERROR) {
 		closesocket(sock);
@@ -270,7 +294,7 @@ void DebugModePatch() {
 	DWORD dbgMode = GetPrivateProfileIntA("Debugging", "DebugMode", 0, ::sfall::ddrawIni);
 	if (dbgMode) {
 		dlog("Applying debugmode patch.", DL_INIT);
-		//If the player is using an exe with the debug patch already applied, just skip this block without erroring
+		// If the player is using an exe with the debug patch already applied, just skip this block without erroring
 		if (*((DWORD*)0x444A64) != 0x082327E8) {
 			SafeWrite32(0x444A64, 0x082327E8); // call debug_register_env_
 			SafeWrite32(0x444A68, 0x0120E900); // jmp  0x444B8E

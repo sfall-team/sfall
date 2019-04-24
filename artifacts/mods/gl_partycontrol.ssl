@@ -102,6 +102,18 @@ procedure inventorymove_handler begin
    end
 end
 
+procedure invenwield_handler begin
+   variable critter := get_sfall_arg,
+      item  := get_sfall_arg,
+      slot  := get_sfall_arg,
+      event := get_sfall_arg;
+
+   // Fix weapon duplication when equipping in combat
+   if (event and slot == INVEN_TYPE_RIGHT_HAND and AllowControl(obj_pid(critter))) then begin
+      set_flags(item, get_flags(item) bwand bwnot(FLAG_LEFT_HAND));
+   end
+end
+
 procedure start begin
    if (game_loaded and sfall_ver_major >= 4) then begin
       variable configSection := "CombatControl";
@@ -135,6 +147,7 @@ procedure start begin
          register_hook_proc(HOOK_COMBATTURN, combatturn_handler);
          register_hook_proc(HOOK_GAMEMODECHANGE, gamemodechange_handler);
          register_hook_proc(HOOK_INVENTORYMOVE, inventorymove_handler);
+         register_hook_proc(HOOK_INVENWIELD, invenwield_handler);
       end
    end
 end

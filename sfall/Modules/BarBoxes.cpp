@@ -30,6 +30,10 @@ static int totalBoxCount, actualBoxCount; // total boxes and w/o vanilla
 static int initCount = 5;                 // init config counter (5 - vanilla box)
 static int sizeBox, setBoxIndex = 5;
 
+static long newBoxSlot[16];
+static long maxSlots = 6;                 // maximum number of slots for the current game window resolution
+static long ifaceWidth;
+
 #define sSize    (12)
 static struct sBox {
 	DWORD msg;
@@ -50,6 +54,10 @@ static bool setCustomBoxText;
 
 static const DWORD bboxMemAddr[] = {
 	0x461266, 0x4612AC, 0x461374, 0x4613E8, 0x461479, 0x46148C, 0x4616BB,
+};
+
+static const DWORD bboxSlotAddr[] = {
+	0x4616F7, 0x46170F, 0x461736, 0x4616B1, 0x46151D, 0x4615B3
 };
 
 static const DWORD DisplayBoxesRet1 = 0x4615A8;
@@ -211,6 +219,43 @@ static void SetEngine(int count) {
 	}
 }
 
+static long SetMaxSlots() {
+	long scrWidth = fo::var::scr_size.offx - (fo::var::scr_size.x + 1);
+
+	int slots = scrWidth / 127;
+	if (++slots > 16) {
+		slots = 16;
+	} else if (slots < 6) {
+		slots = 6;
+	}
+	if (slots != maxSlots) {
+		maxSlots = slots;
+		SafeWrite8(0x461513, slots);   // 6
+		SafeWrite8(0x461718, --slots); // 5
+		SafeWrite8(0x46170A, slots * 4);
+	}
+	return scrWidth;
+}
+
+static long __fastcall GetOffsetX(int width) {
+	int x_offset = 0;
+	if (SetMaxSlots() > 640 && width > ifaceWidth) {
+		x_offset -= (width - ifaceWidth) / 2;
+	}
+	return x_offset;
+}
+
+static void __declspec(naked) refresh_box_bar_win_hack() {
+	__asm {
+		push ecx;
+		mov  ecx, ebx;   // _barWindow width
+		call GetOffsetX; // x position
+		pop  ecx;
+		mov  edx, 358;   // y position
+		retn;
+	}
+}
+
 void BarBoxes::init() {
 
 	initCount += GetConfigInt("Misc", "BoxBarCount", 5);
@@ -250,6 +295,14 @@ void BarBoxes::init() {
 			actualBoxCount = initCount - 5;
 		}
 	};
+
+	MakeCall(0x4615FA, refresh_box_bar_win_hack);
+	SafeWriteBatch<DWORD>((DWORD)newBoxSlot, bboxSlotAddr); // _bboxslot
+
+	ifaceWidth = GetPrivateProfileIntA("IFACE", "IFACE_BAR_WIDTH", 640, ".\\f2_res.ini");
+	if (ifaceWidth < 640) ifaceWidth = 640;
+
+	LoadGameHook::OnAfterGameInit() += SetMaxSlots;
 }
 
 long BarBoxes::AddExtraBox() {

@@ -32,6 +32,8 @@ namespace sfall
 
 static Delegate<> onWorldmapLoop;
 
+static DWORD AutomapPipboyList[AUTOMAP_MAX];
+
 static DWORD ViewportX;
 static DWORD ViewportY;
 
@@ -307,6 +309,39 @@ skip:
 	}
 }
 
+static const char* automap = "automap"; // no/yes overrides the value in the table to display the automap in pipboy
+static void __declspec(naked) wmMapInit_hack() {
+	__asm {
+		mov  esi, [esp + 0xA0 - 0x20 + 4];       // curent map number
+		cmp  esi, AUTOMAP_MAX;
+		jge  end;
+		lea  eax, [esp + 4];                     // file
+		lea  edx, [esp + 0xA0 - 0x50 + 4];       // section
+		mov  ebx, automap;                       // key
+		lea  ecx, [esp + 0xA0 - 0x24 + 4];       // value buf
+		call fo::funcoffs::config_get_string_;
+		test eax, eax;
+		jz   end;
+		mov  ecx, 2;                             // max index
+		mov  ebx, FO_VAR_wmYesNoStrs;
+		lea  eax, [esp + 0xA0 - 0x24 + 4];       // key value
+		sub  esp, 4;
+		mov  edx, esp;                           // index buf
+		call fo::funcoffs::strParseStrFromList_;
+		cmp  eax, -1;
+		jz   skip;
+		mov  edx, [esp];                         // value index
+		dec  edx;
+		mov  [AutomapPipboyList][esi * 4], edx;  // no = -1, yes = 0
+skip:
+		add  esp, 4;
+end:
+		inc  esi;
+		mov  [esp + 0xA0 - 0x20 + 4], esi;
+		retn;
+	}
+}
+
 static void RestRestore() {
 	if (!restMode) return;
 
@@ -499,6 +534,16 @@ void WorldMapFontPatch() {
 	}
 }
 
+void PipBoyAutomapsPatch() {
+	//if (GetConfigInt("Misc", "PipBoyAutomaps", 0)) {
+		dlog("Applying Pip-Boy automaps patch.", DL_INIT);
+		MakeCall(0x4BF931, wmMapInit_hack, 2);
+		SafeWrite32(0x41B8B7, (DWORD)AutomapPipboyList);
+		memcpy(AutomapPipboyList, (void*)FO_VAR_displayMapList, sizeof(AutomapPipboyList)); // copy vanilla data
+		dlogr(" Done", DL_INIT);
+	//}
+}
+
 void Worldmap::SaveData(HANDLE file) {
 	DWORD sizeWrite, count = mapRestInfo.size();
 	WriteFile(file, &count, 4, &sizeWrite, 0);
@@ -619,6 +664,7 @@ void Worldmap::init() {
 	WorldLimitsPatches();
 	WorldmapFpsPatch();
 	WorldMapFontPatch();
+	PipBoyAutomapsPatch();
 
 	LoadGameHook::OnGameReset() += []() {
 		SetCarInterfaceArt(433); // set index

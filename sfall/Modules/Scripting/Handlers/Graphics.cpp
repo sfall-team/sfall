@@ -31,23 +31,14 @@ namespace script
 
 void __declspec(naked) op_graphics_funcs_available() {
 	__asm {
-		push ebx;
-		push ecx;
 		push edx;
-		mov ecx, eax;
-		xor edx, edx;
-		mov ebx, Graphics::mode;
-		cmp ebx, 3;
-		jle end;
-		inc edx;
-end:
-		call fo::funcoffs::interpretPushLong_;
-		mov edx, VAR_TYPE_INT;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPushShort_;
-		pop edx;
-		pop ecx;
-		pop ebx;
+		push ecx;
+		cmp  Graphics::mode, 3;
+		seta dl;
+		and  edx, 0xFF;
+		_RET_VAL_INT(ecx);
+		pop  ecx;
+		pop  edx;
 		retn;
 	}
 }
@@ -93,66 +84,42 @@ result:
 
 void __declspec(naked) op_free_shader() {
 	__asm {
-		push ebx;
 		push ecx;
 		push edx;
-		mov ecx, eax;
-		call fo::funcoffs::interpretPopShort_;
-		mov edx, eax;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPopLong_;
-		cmp dx, VAR_TYPE_INT;
-		jnz end;
+		_GET_ARG_INT(end);
 		push eax;
 		call FreeShader;
 end:
-		pop edx;
-		pop ecx;
-		pop ebx;
+		pop  edx;
+		pop  ecx;
 		retn;
 	}
 }
 
 void __declspec(naked) op_activate_shader() {
 	__asm {
-		push ebx;
 		push ecx;
 		push edx;
-		mov ecx, eax;
-		call fo::funcoffs::interpretPopShort_;
-		mov edx, eax;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPopLong_;
-		cmp dx, VAR_TYPE_INT;
-		jnz end;
+		_GET_ARG_INT(end);
 		push eax;
 		call ActivateShader;
 end:
-		pop edx;
-		pop ecx;
-		pop ebx;
+		pop  edx;
+		pop  ecx;
 		retn;
 	}
 }
 
 void __declspec(naked) op_deactivate_shader() {
 	__asm {
-		push ebx;
 		push ecx;
 		push edx;
-		mov ecx, eax;
-		call fo::funcoffs::interpretPopShort_;
-		mov edx, eax;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPopLong_;
-		cmp dx, VAR_TYPE_INT;
-		jnz end;
+		_GET_ARG_INT(end);
 		push eax;
 		call DeactivateShader;
 end:
 		pop edx;
 		pop ecx;
-		pop ebx;
 		retn;
 	}
 }
@@ -445,22 +412,15 @@ end:
 
 void __declspec(naked) op_get_shader_version() {
 	__asm {
-		push ebx;
 		push ecx;
 		push edx;
-		push edi;
-		mov edi, eax;
+		push eax;
 		call GetShaderVersion;
-		mov edx, eax;
-		mov eax, edi;
-		call fo::funcoffs::interpretPushLong_;
-		mov edx, VAR_TYPE_INT;
-		mov eax, edi;
-		call fo::funcoffs::interpretPushShort_;
-		pop edi;
+		mov  edx, eax;
+		pop  eax;
+		_RET_VAL_INT(ecx);
 		pop edx;
 		pop ecx;
-		pop ebx;
 		retn;
 	}
 }
@@ -502,22 +462,14 @@ end:
 
 void __declspec(naked) op_force_graphics_refresh() {
 	__asm {
-		push ebx;
 		push ecx;
 		push edx;
-		mov ecx, eax;
-		call fo::funcoffs::interpretPopShort_;
-		mov edx, eax;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPopLong_;
-		cmp dx, VAR_TYPE_INT;
-		jnz end;
+		_GET_ARG_INT(end);
 		push eax;
 		call ForceGraphicsRefresh;
 end:
 		pop edx;
 		pop ecx;
-		pop ebx;
 		retn;
 	}
 }

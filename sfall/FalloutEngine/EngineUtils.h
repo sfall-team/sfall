@@ -50,7 +50,7 @@ void SkillGetTags(long* result, long num);
 // wrapper for skill_set_tags with bounds checking
 void SkillSetTags(long* tags, long num);
 
-int _fastcall GetItemType(GameObject* item);
+int __fastcall GetItemType(GameObject* item);
 
 _declspec(noinline) GameObject* GetItemPtrSlot(GameObject* critter, InvenType slot);
 
@@ -63,6 +63,8 @@ bool HeroIsFemale();
 long CheckAddictByPid(fo::GameObject* critter, long pid);
 
 void ToggleNpcFlag(fo::GameObject* npc, long flag, bool set);
+
+bool IsPartyMember(fo::GameObject* critter);
 
 // Print text to surface
 void PrintText(char *displayText, BYTE colorIndex, DWORD x, DWORD y, DWORD textWidth, DWORD destWidth, BYTE *surface);

@@ -23,9 +23,9 @@
 namespace sfall 
 {
 
-class AmmoMod : public Module {
+class DamageMod : public Module {
 public:
-	const char* name() { return "AmmoMod"; }
+	const char* name() { return "DamageMod"; }
 	void init();
 
 	static int formula;

@@ -32,7 +32,7 @@ public:
 	const char* name() { return "ScriptExtender"; }
 	void init();
 
-	// Called before map exit
+	// Called before map exit (before map_exit_p_proc handlers in normal scripts)
 	static Delegate<>& OnMapExit();
 };
 
@@ -49,8 +49,8 @@ typedef struct {
 	char initialized;
 } ScriptProgram;
 
-void _stdcall SetGlobalScriptRepeat(fo::Program* script, int frames);
-void _stdcall SetGlobalScriptType(fo::Program* script, int type);
+void __fastcall SetGlobalScriptRepeat(fo::Program* script, int frames);
+void __fastcall SetGlobalScriptType(fo::Program* script, int type);
 bool _stdcall IsGameScript(const char* filename);
 
 void _stdcall RunGlobalScriptsAtProc(DWORD procId);
@@ -68,7 +68,7 @@ long GetGlobalVar(const char* var);
 long GetGlobalVarInt(DWORD var);
 long GetGlobalVarInternal(__int64 val);
 
-void _stdcall SetSelfObject(fo::Program* script, fo::GameObject* obj);
+void __fastcall SetSelfObject(fo::Program* script, fo::GameObject* obj);
 
 void _stdcall RegAnimCombatCheck(DWORD newValue);
 

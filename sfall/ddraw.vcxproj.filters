@@ -22,9 +22,6 @@
     <ClInclude Include="Modules\AI.h">
       <Filter>Modules</Filter>
     </ClInclude>
-    <ClInclude Include="Modules\AmmoMod.h">
-      <Filter>Modules</Filter>
-    </ClInclude>
     <ClInclude Include="Modules\AnimationsAtOnceLimit.h">
       <Filter>Modules</Filter>
     </ClInclude>
@@ -275,6 +272,9 @@
     <ClInclude Include="Modules\Combat.h">
       <Filter>Modules</Filter>
     </ClInclude>
+    <ClInclude Include="Modules\DamageMod.h">
+      <Filter>Modules</Filter>
+    </ClInclude>
     <ClInclude Include="Modules\Drugs.h">
       <Filter>Modules</Filter>
     </ClInclude>
@@ -282,9 +282,6 @@
   <ItemGroup>
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Modules\AI.cpp">
-      <Filter>Modules</Filter>
-    </ClCompile>
-    <ClCompile Include="Modules\AmmoMod.cpp">
       <Filter>Modules</Filter>
     </ClCompile>
     <ClCompile Include="Modules\AnimationsAtOnceLimit.cpp">
@@ -511,6 +508,9 @@
       <Filter>Modules</Filter>
     </ClCompile>
     <ClCompile Include="Modules\Combat.cpp">
+      <Filter>Modules</Filter>
+    </ClCompile>
+    <ClCompile Include="Modules\DamageMod.cpp">
       <Filter>Modules</Filter>
     </ClCompile>
     <ClCompile Include="Modules\Drugs.cpp">

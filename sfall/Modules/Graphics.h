@@ -18,6 +18,10 @@
 
 #pragma once
 
+#include <d3d9.h>
+#include <d3dx9.h>
+#include <ddraw.h>
+
 #include "Module.h"
 
 namespace sfall
@@ -30,6 +34,15 @@ public:
 	void exit() override;
 
 	static DWORD mode;
+	static DWORD GPUBlt;
+
+	static long GetGameWidthRes();
+	static long GetGameHeightRes();
+
+	static void SetHighlightTexture(IDirect3DTexture9* htex);
+	static void SetHeadTex(IDirect3DTexture9* tex, int width, int height, int xoff, int yoff, int showHighlight);
+	static void SetHeadTechnique();
+	static void SetDefaultTechnique();
 };
 
 int _stdcall GetShaderVersion();

@@ -6,13 +6,13 @@
 
 #pragma warning(disable:4996)
 
-namespace sfall 
+namespace sfall
 {
 
 enum CodeType : BYTE {
 	Call = 0xE8,
 	Jump = 0xE9,
-	Nop =  0x90
+	Nop  = 0x90
 };
 
 #ifndef NDEBUG
@@ -66,7 +66,7 @@ static __declspec(noinline) void _stdcall SafeWriteFunc(BYTE code, DWORD addr, v
 }
 
 void SafeWriteBytes(DWORD addr, BYTE* data, int count) {
-	DWORD	oldProtect;
+	DWORD oldProtect;
 
 	VirtualProtect((void *)addr, count, PAGE_EXECUTE_READWRITE, &oldProtect);
 	memcpy((void*)addr, data, count);
@@ -74,7 +74,7 @@ void SafeWriteBytes(DWORD addr, BYTE* data, int count) {
 }
 
 void _stdcall SafeWrite8(DWORD addr, BYTE data) {
-	DWORD	oldProtect;
+	DWORD oldProtect;
 
 	VirtualProtect((void *)addr, 1, PAGE_EXECUTE_READWRITE, &oldProtect);
 	*((BYTE*)addr) = data;
@@ -82,7 +82,7 @@ void _stdcall SafeWrite8(DWORD addr, BYTE data) {
 }
 
 void _stdcall SafeWrite16(DWORD addr, WORD data) {
-	DWORD	oldProtect;
+	DWORD oldProtect;
 
 	VirtualProtect((void *)addr, 2, PAGE_EXECUTE_READWRITE, &oldProtect);
 	*((WORD*)addr) = data;
@@ -90,7 +90,7 @@ void _stdcall SafeWrite16(DWORD addr, WORD data) {
 }
 
 void _stdcall SafeWrite32(DWORD addr, DWORD data) {
-	DWORD	oldProtect;
+	DWORD oldProtect;
 
 	VirtualProtect((void *)addr, 4, PAGE_EXECUTE_READWRITE, &oldProtect);
 	*((DWORD*)addr) = data;
@@ -98,7 +98,7 @@ void _stdcall SafeWrite32(DWORD addr, DWORD data) {
 }
 
 void _stdcall SafeWriteStr(DWORD addr, const char* data) {
-	DWORD	oldProtect;
+	DWORD oldProtect;
 
 	VirtualProtect((void *)addr, strlen(data) + 1, PAGE_EXECUTE_READWRITE, &oldProtect);
 	strcpy((char *)addr, data);
@@ -129,19 +129,19 @@ void MakeJump(DWORD addr, void* func, int len) {
 }
 
 void HookCalls(void* func, std::initializer_list<DWORD> addrs) {
-	for (auto addr : addrs) {
+	for (auto& addr : addrs) {
 		HookCall(addr, func);
 	}
 }
 
 void MakeCalls(void* func, std::initializer_list<DWORD> addrs) {
-	for (auto addr : addrs) {
+	for (auto& addr : addrs) {
 		MakeCall(addr, func);
 	}
 }
 
 void SafeMemSet(DWORD addr, BYTE val, int len) {
-	DWORD	oldProtect;
+	DWORD oldProtect;
 
 	VirtualProtect((void *)addr, len, PAGE_EXECUTE_READWRITE, &oldProtect);
 	memset((void*)addr, val, len);
@@ -149,7 +149,13 @@ void SafeMemSet(DWORD addr, BYTE val, int len) {
 }
 
 void BlockCall(DWORD addr) {
-	SafeMemSet(addr, CodeType::Nop, 5);
+	DWORD oldProtect;
+
+	VirtualProtect((void *)addr, 5, PAGE_EXECUTE_READWRITE, &oldProtect);
+	*((DWORD*)addr) = 0x00441F0F; // long NOP (0F1F440000)
+	*((BYTE*)(addr + 4)) = 0x00;
+	VirtualProtect((void *)addr, 5, oldProtect, &oldProtect);
+
 	#ifndef NDEBUG
 		CheckConflict(addr);
 	#endif

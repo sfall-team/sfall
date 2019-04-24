@@ -60,6 +60,7 @@
 #define HOOK_ONEXPLOSION      (36)
 #define HOOK_SUBCOMBATDAMAGE  (37)
 #define HOOK_SETLIGHTING      (38)
+#define HOOK_SNEAK            (39)
 
 //Valid arguments to list_begin
 #define LIST_CRITTERS    (0)
@@ -287,6 +288,8 @@
 #define set_outline(obj, color)                         sfall_func2("set_outline", obj, color)
 #define set_rest_heal_time(time)                        sfall_func1("set_rest_heal_time", time)
 #define set_rest_mode(mode)                             sfall_func1("set_rest_mode", mode)
+#define set_unique_id(obj)                              sfall_func1("set_unique_id", obj)
+#define unset_unique_id(obj)                            sfall_func2("set_unique_id", obj, -1)
 #define set_unjam_locks_time(time)                      sfall_func1("set_unjam_locks_time", time)
 #define spatial_radius(obj)                             sfall_func1("spatial_radius", obj)
 #define tile_refresh_display                            sfall_func0("tile_refresh_display")

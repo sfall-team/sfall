@@ -65,6 +65,7 @@ enum HookType
 	HOOK_ONEXPLOSION      = 36,
 	HOOK_SUBCOMBATDAMAGE  = 37,
 	HOOK_SETLIGHTING      = 38,
+	HOOK_SNEAK            = 39,
 	HOOK_COUNT
 };
 

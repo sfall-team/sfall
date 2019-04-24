@@ -24,7 +24,6 @@
 #include "ModuleManager.h"
 #include "Modules\Module.h"
 #include "Modules\AI.h"
-#include "Modules\AmmoMod.h"
 #include "Modules\AnimationsAtOnceLimit.h"
 #include "Modules\BarBoxes.h"
 #include "Modules\Books.h"
@@ -35,10 +34,12 @@
 #include "Modules\CRC.h"
 #include "Modules\Credits.h"
 #include "Modules\Criticals.h"
+#include "Modules\DamageMod.h"
 #include "Modules\DebugEditor.h"
 #include "Modules\Drugs.h"
 #include "Modules\Elevators.h"
 #include "Modules\Explosions.h"
+#include "Modules\ExtraSaveSlots.h"
 #include "Modules\FileSystem.h"
 #include "Modules\Graphics.h"
 #include "Modules\HookScripts.h"
@@ -66,7 +67,7 @@
 #include "Modules\Sound.h"
 #include "Modules\SpeedPatch.h"
 #include "Modules\Stats.h"
-#include "Modules\ExtraSaveSlots.h"
+#include "Modules\TalkingHeads.h"
 #include "Modules\Tiles.h"
 #include "Modules\Worldmap.h"
 #include "SimplePatch.h"
@@ -173,11 +174,12 @@ static void InitModules() {
 	manager.add<KillCounter>();
 
 	manager.add<AI>();
-	manager.add<AmmoMod>();
+	manager.add<DamageMod>();
 	manager.add<AnimationsAtOnce>();
 	manager.add<BarBoxes>();
 	manager.add<HeroAppearance>();
 	manager.add<MiscPatches>();
+	manager.add<TalkingHeads>();
 	manager.add<DebugEditor>();
 
 	manager.initAll();

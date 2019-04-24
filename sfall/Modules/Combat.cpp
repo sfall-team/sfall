@@ -21,6 +21,7 @@
 
 #include "..\main.h"
 #include "..\FalloutEngine\Fallout2.h"
+#include "HookScripts.h"
 #include "LoadGameHook.h"
 #include "Objects.h"
 
@@ -47,6 +48,105 @@ static ChanceModifier baseHitChance;
 static bool hookedAimedShot;
 static std::vector<DWORD> disabledAS;
 static std::vector<DWORD> forcedAS;
+
+static DWORD __fastcall add_check_for_item_ammo_cost(register fo::GameObject* weapon, DWORD hitMode) {
+	DWORD rounds = 1;
+
+	DWORD anim = fo::func::item_w_anim_weap(weapon, hitMode);
+	if (anim == fo::Animation::ANIM_fire_burst || anim == fo::Animation::ANIM_fire_continuous) {
+		rounds = fo::func::item_w_rounds(weapon); // ammo in burst
+	}
+	if (HookScripts::IsInjectHook(HOOK_AMMOCOST)) {
+		AmmoCostHook_Script(1, weapon, &rounds);  // get rounds cost from hook
+	} else if (rounds == 1) {
+		fo::func::item_w_compute_ammo_cost(weapon, &rounds);
+	}
+	DWORD currAmmo = fo::func::item_w_curr_ammo(weapon);
+
+	DWORD cost = 1; // default cost
+	if (currAmmo > 0) {
+		cost = rounds / currAmmo;
+		if (rounds % currAmmo) cost++; // round up
+	}
+	return (cost > currAmmo) ? 0 : 1;  // 0 - this will force "Out of ammo", 1 - this will force success (enough ammo)
+}
+
+// adds check for weapons which require more than 1 ammo for single shot (super cattle prod & mega power fist) and burst rounds
+static void __declspec(naked) combat_check_bad_shot_hook() {
+	__asm {
+		push edx;
+		push ecx;         // weapon
+		mov  edx, edi;    // hitMode
+		call add_check_for_item_ammo_cost;
+		pop  ecx;
+		pop  edx;
+		retn;
+	}
+}
+
+// check if there is enough ammo to shoot
+static void __declspec(naked) ai_search_inven_weap_hook() {
+	using namespace fo;
+	__asm {
+		push ecx;
+		mov  ecx, eax;                      // weapon
+		mov  edx, ATKTYPE_RWEAPON_PRIMARY;  // hitMode
+		call add_check_for_item_ammo_cost;  // enough ammo?
+		pop  ecx;
+		retn;
+	}
+}
+
+// switch weapon mode from secondary to primary if there is not enough ammo to shoot
+static const DWORD ai_try_attack_search_ammo = 0x42AA1E;
+static const DWORD ai_try_attack_continue = 0x42A929;
+static void __declspec(naked) ai_try_attack_hook() {
+	using namespace fo;
+	using namespace Fields;
+	__asm {
+		mov  ebx, [esp + 0x364 - 0x38]; // hit mode
+		cmp  ebx, ATKTYPE_RWEAPON_SECONDARY;
+		jne  searchAmmo;
+		mov  edx, [esp + 0x364 - 0x3C]; // weapon
+		mov  eax, [edx + charges];      // curr ammo
+		test eax, eax;
+		jnz  tryAttack;                 // have ammo
+searchAmmo:
+		jmp  ai_try_attack_search_ammo;
+tryAttack:
+		mov  ebx, ATKTYPE_RWEAPON_PRIMARY;
+		mov  [esp + 0x364 - 0x38], ebx; // change hit mode
+		jmp  ai_try_attack_continue;
+	}
+}
+
+static DWORD __fastcall divide_burst_rounds_by_ammo_cost(fo::GameObject* weapon, register DWORD currAmmo, DWORD burstRounds) {
+	DWORD rounds = 1; // default multiply
+
+	if (HookScripts::IsInjectHook(HOOK_AMMOCOST)) {
+		rounds = burstRounds;             // rounds in burst
+		AmmoCostHook_Script(2, weapon, &rounds);
+	}
+
+	DWORD cost = burstRounds * rounds;    // so much ammo is required for this burst
+	if (cost > currAmmo) cost = currAmmo; // if cost ammo more than current ammo, set it to current
+
+	return (cost / rounds);               // divide back to get proper number of rounds for damage calculations
+}
+
+static void __declspec(naked) compute_spray_hack() {
+	__asm {
+		push edx;         // weapon
+		push ecx;         // current ammo in weapon
+		xchg ecx, edx;
+		push eax;         // eax - rounds in burst attack, need to set ebp
+		call divide_burst_rounds_by_ammo_cost;
+		mov  ebp, eax;    // overwriten code
+		pop  ecx;
+		pop  edx;
+		retn;
+	}
+}
 
 static double ApplyModifiers(std::vector<KnockbackModifier>* mods, fo::GameObject* object, double val) {
 	for (DWORD i = 0; i < mods->size(); i++) {
@@ -146,9 +246,9 @@ static void __declspec(naked) ai_pick_hit_mode_hack() {
 	}
 }
 
-void _stdcall KnockbackSetMod(fo::GameObject* object, DWORD type, float val, DWORD on) {
+void _stdcall KnockbackSetMod(fo::GameObject* object, DWORD type, float val, DWORD mode) {
 	std::vector<KnockbackModifier>* mods;
-	switch (on) {
+	switch (mode) {
 	case 0:
 		mods = &mWeapons;
 		break;
@@ -162,7 +262,10 @@ void _stdcall KnockbackSetMod(fo::GameObject* object, DWORD type, float val, DWO
 		return;
 	}
 
-	long id = Objects::SetObjectUniqueID(object);
+	long id = (mode == 0)
+			? Objects::SetSpecialID(object)
+			: Objects::SetObjectUniqueID(object);
+
 	KnockbackModifier mod = { id, type, (double)val };
 	for (DWORD i = 0; i < mods->size(); i++) {
 		if ((*mods)[i].id == id) {
@@ -173,9 +276,9 @@ void _stdcall KnockbackSetMod(fo::GameObject* object, DWORD type, float val, DWO
 	mods->push_back(mod);
 }
 
-void _stdcall KnockbackRemoveMod(fo::GameObject* object, DWORD on) {
+void _stdcall KnockbackRemoveMod(fo::GameObject* object, DWORD mode) {
 	std::vector<KnockbackModifier>* mods;
-	switch (on) {
+	switch (mode) {
 	case 0:
 		mods = &mWeapons;
 		break;
@@ -191,6 +294,7 @@ void _stdcall KnockbackRemoveMod(fo::GameObject* object, DWORD on) {
 	for (DWORD i = 0; i < mods->size(); i++) {
 		if ((*mods)[i].id == object->id) {
 			mods->erase(mods->begin() + i);
+			if (mode == 0) Objects::SetNewEngineID(object); // revert to engine range id
 			return;
 		}
 	}
@@ -202,7 +306,7 @@ void _stdcall SetHitChanceMax(fo::GameObject* critter, DWORD maximum, DWORD mod)
 		baseHitChance.mod = mod;
 		return;
 	}
-
+	if (critter->Type() != fo::OBJ_TYPE_CRITTER) return;
 	long id = Objects::SetObjectUniqueID(critter);
 	for (DWORD i = 0; i < hitChanceMods.size(); i++) {
 		if (id == hitChanceMods[i].id) {
@@ -211,11 +315,11 @@ void _stdcall SetHitChanceMax(fo::GameObject* critter, DWORD maximum, DWORD mod)
 			return;
 		}
 	}
-	hitChanceMods.push_back(ChanceModifier(id, maximum, mod));
+	hitChanceMods.emplace_back(id, maximum, mod);
 }
 
 void _stdcall SetNoBurstMode(fo::GameObject* critter, bool on) {
-	if (critter == fo::var::obj_dude) return;
+	if (critter == fo::var::obj_dude || critter->Type() != fo::OBJ_TYPE_CRITTER) return;
 
 	long id = Objects::SetObjectUniqueID(critter);
 	for (size_t i = 0; i < noBursts.size(); i++) {
@@ -308,6 +412,12 @@ void Combat::init() {
 	// Actually disables all secondary attacks for the critter, regardless of whether the weapon has a burst attack
 	MakeCall(0x429E44, ai_pick_hit_mode_hack, 1);   // NoBurst
 
+	if (GetConfigInt("Misc", "CheckWeaponAmmoCost", 0)) {
+		HookCall(0x4266E9, combat_check_bad_shot_hook);
+		HookCall(0x429A37, ai_search_inven_weap_hook);
+		HookCall(0x42A95D, ai_try_attack_hook); // jz func
+		MakeCall(0x4234B3, compute_spray_hack, 1);
+	}
 	LoadGameHook::OnGameReset() += Combat_OnGameLoad;
 }
 

@@ -689,13 +689,12 @@ skip:
 
 static void __declspec(naked) inven_pickup_hack() {
 	__asm {
-		mov  edx, ds:[FO_VAR_pud]
-		mov  edx, [edx]                           // itemsCount
-		dec  edx
-		sub  edx, eax
-		lea  edx, ds:0[edx*8]
-		push 0x470EC9
-		retn
+		mov  edx, ds:[FO_VAR_pud];
+		mov  edx, [edx];                          // itemsCount
+		dec  edx;
+		sub  edx, eax;
+		lea  edx, ds:0[edx * 8];
+		retn;
 	}
 }
 
@@ -1393,14 +1392,31 @@ static void __declspec(naked) ResetPlayer_hook() {
 	}
 }
 
+static const DWORD obj_move_to_tile_Ret = 0x48A74E;
 static void __declspec(naked) obj_move_to_tile_hack() {
 	__asm {
-		cmp  ds:[FO_VAR_map_state], 0;
-		jz   map_leave;
-		pop  eax;
-		push 0x48A74E;
-map_leave:
+		cmp  dword ptr ds:[FO_VAR_map_state], 0; // map number, -1 exit to worldmap
+		jz   mapLeave;
+		add  esp, 4;
+		jmp  obj_move_to_tile_Ret;
+mapLeave:
 		mov  ebx, 16;
+		retn;
+	}
+}
+
+static void __declspec(naked) obj_move_to_tile_hack_seen() {
+	__asm {
+		cmp  ds:[FO_VAR_loadingGame], 0;         // loading saved game
+		jnz  fix;
+		// if (map_state <= 0 && mapEntranceTileNum != -1) then fix
+		cmp  dword ptr ds:[FO_VAR_map_state], 0; // map number, -1 exit to worldmap
+		jle  skip;
+		cmp  dword ptr ds:[FO_VAR_mapEntranceTileNum], -1;
+		jne  fix;
+skip:
+		or  byte ptr ds:[FO_VAR_obj_seen][eax], dl;
+fix:
 		retn;
 	}
 }
@@ -1978,6 +1994,78 @@ noDrop:
 	}
 }
 
+static void __declspec(naked) PrintAutoMapList() {
+	__asm {
+		mov  eax, ds:[FO_VAR_wmMaxMapNum];
+		cmp  eax, AUTOMAP_MAX;
+		jb   skip;
+		mov  eax, AUTOMAP_MAX;
+skip:
+		retn;
+	}
+}
+
+static void __declspec(naked) automap_pip_save_hook() {
+	__asm {
+		mov  eax, ds:[FO_VAR_map_number];
+		cmp  eax, AUTOMAP_MAX;
+		jb   skip;
+		xor  eax, eax;
+skip:
+		retn;
+	}
+}
+
+static DWORD dudeScriptID;
+static void __declspec(naked) obj_load_dude_hook0() {
+	__asm {
+		mov  eax, ds:[FO_VAR_obj_dude];
+		mov  eax, [eax + scriptId];
+		mov  dudeScriptID, eax;
+		retn;
+	}
+}
+
+static void __declspec(naked) obj_load_dude_hook1() {
+	__asm {
+		mov  ebx, dudeScriptID;
+		mov  [eax + scriptId], ebx;
+		retn;
+	}
+}
+
+static void __declspec(naked) PrintAMList_hook() {
+	__asm {
+		cmp ebp, 20; // max line count
+		jle skip;
+		mov ebp, 20;
+skip:
+		jmp fo::funcoffs::qsort_;
+	}
+}
+
+static void __declspec(naked) exec_script_proc_hack() {
+	__asm {
+		mov  eax, [esi + 0x58];
+		test eax, eax;
+		ja   end;
+		inc  eax; // start proc
+end:
+		retn;
+	}
+}
+
+static void __declspec(naked) exec_script_proc_hack1() {
+	__asm {
+		mov  esi, [edi + 0x58];
+		test esi, esi;
+		ja   end;
+		inc  esi; // start proc
+end:
+		retn;
+	}
+}
+
 void BugFixes::init()
 {
 	#ifndef NDEBUG
@@ -2115,7 +2203,7 @@ void BugFixes::init()
 		dlog("Applying inventory reverse order issues fix.", DL_INIT);
 		// Fix for minor visual glitch when picking up solo item from the top of inventory
 		// and there is multiple item stack at the bottom of inventory
-		MakeJump(0x470EC2, inven_pickup_hack);
+		MakeCall(0x470EC2, inven_pickup_hack, 2);
 		// Fix for error in player's inventory, related to IFACE_BAR_MODE=1 in f2_res.ini, and
 		// also for reverse order error
 		MakeJump(0x47114A, inven_pickup_hack2);
@@ -2504,6 +2592,29 @@ void BugFixes::init()
 
 	// Fix for the removal of party member's corpse when loading the map
 	HookCall(0x4957B8, partyFixMultipleMembers_hook);
+
+	// Fix for unexplored areas being revealed on the automap when entering a map
+	MakeCall(0x48A76B, obj_move_to_tile_hack_seen, 1);
+
+	// Fix for the overflow of the automap tables when the number of maps in maps.txt is more than 160
+	HookCall(0x41C0FC, automap_pip_save_hook);
+	HookCalls(PrintAutoMapList, {
+		0x499212, // PrintAMList_
+		0x499013  // PrintAMelevList_
+	});
+
+	// Fix "out of bounds" bug when printing the automap list
+	HookCall(0x499240, PrintAMList_hook);
+
+	// Fix for a duplicate obj_dude script being created when loading a saved game
+	HookCall(0x48D63E, obj_load_dude_hook0);
+	HookCall(0x48D666, obj_load_dude_hook1);
+	BlockCall(0x48D675);
+	BlockCall(0x48D69D);
+
+	// Fix for the start procedure not being called correctly if the required standard script procedure is missing
+	MakeCall(0x4A4926, exec_script_proc_hack);
+	MakeCall(0x4A4979, exec_script_proc_hack1);
 }
 
 }

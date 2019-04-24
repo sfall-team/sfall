@@ -76,7 +76,7 @@ void SkillSetTags(long* tags, long num) {
 	fo::func::skill_set_tags(tags, num);
 }
 
-int _fastcall GetItemType(GameObject* item) {
+int __fastcall GetItemType(GameObject* item) {
 	return fo::func::item_get_type(item);
 }
 
@@ -127,6 +127,18 @@ void ToggleNpcFlag(fo::GameObject* npc, long flag, bool set) {
 			protoPtr->critter.critterFlags &= ~bit;
 		}
 	}
+}
+
+bool IsPartyMember(fo::GameObject* critter) {
+	if (critter->id < 18000) return false;
+	size_t patryCount = fo::var::partyMemberMaxCount;
+	if (patryCount) {
+		DWORD* memberPids = fo::var::partyMemberPidList; // pids from party.txt
+		for (size_t i = 0; i < patryCount; i++) {
+			if (memberPids[i] == critter->protoId) return true;;
+		}
+	}
+	return false;
 }
 
 //---------------------------------------------------------

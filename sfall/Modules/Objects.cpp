@@ -28,7 +28,7 @@ namespace sfall
 static int unjamTimeState;
 static int maxCountProto = 512;
 
-long Objects::uniqueID = UniqueID::Start; // saving to sfallgv.sav
+long Objects::uniqueID = UniqueID::Start; // current counter id, saving to sfallgv.sav
 
 // Assigns a new unique identifier to an object if it has not been previously assigned
 // the identifier is saved with the object in the saved game and this can used in various script
@@ -40,6 +40,47 @@ long Objects::SetObjectUniqueID(fo::GameObject* obj) {
 	if ((DWORD)uniqueID >= UniqueID::End) uniqueID = UniqueID::Start;
 	obj->id = ++uniqueID;
 	return uniqueID;
+}
+
+// Assigns a unique ID in the negative range (0x8FFFFFFF - 0xFFFFFFFE)
+long Objects::SetSpecialID(fo::GameObject* obj) {
+	long id = obj->id;
+	if (id < -1 || id > UniqueID::Start) return id;
+
+	if ((DWORD)uniqueID >= UniqueID::End) uniqueID = UniqueID::Start;
+	id = ++uniqueID + UniqueID::End;
+	obj->id = id;
+	return id;
+}
+
+void Objects::SetNewEngineID(fo::GameObject* obj) {
+	if (obj->id > UniqueID::Start) return;
+	obj->id = fo::func::new_obj_id();
+}
+
+static void __declspec(naked) item_identical_hack() {
+	using namespace fo::Fields;
+	__asm {
+		mov  ecx, [edi]; // item id
+		cmp  ecx, Start; // start unique ID
+		jg   notIdentical;
+		mov  eax, [esi + scriptId];
+		cmp  eax, ebx;
+notIdentical:
+		retn; // if ZF == 0 then item is not identical
+	}
+}
+
+static void __declspec(naked) new_obj_id_hook() {
+	__asm {
+		mov  eax, 83535;
+		cmp  dword ptr ds:[FO_VAR_cur_id], eax;
+		jle  pickNewID;
+		retn;
+pickNewID: // skip PM range (18000 - 83535)
+		mov  ds:[FO_VAR_cur_id], eax;
+		jmp  fo::funcoffs::new_obj_id_;
+	}
 }
 
 void Objects::SetAutoUnjamLockTime(DWORD time) {
@@ -104,6 +145,11 @@ void Objects::init() {
 			SafeWrite32(0x4A21B3, maxlimit);
 		}
 	}
+
+	HookCall(0x4A38A5, new_obj_id_hook);
+	SafeWrite8(0x4A38B3, 0x90); // fix ID increment
+
+	MakeCall(0x477A0E, item_identical_hack); // don't put item with unique ID to items stack
 }
 
 }

@@ -102,6 +102,11 @@ Delegate<>& OnInputLoop() {
 	return onInputLoop;
 }
 
+void FlushInputBuffer() {
+	while (!bufferedPresses.empty()) bufferedPresses.pop();
+	__asm call fo::funcoffs::kb_clear_;
+}
+
 DWORD _stdcall KeyDown(DWORD key) {
 	if ((key & 0x80000000) > 0) { // special flag to check by VK code directly
 		return GetAsyncKeyState(key & 0xFFFF) & 0x8000;
@@ -243,7 +248,7 @@ public:
 				}
 			}
 		}
-		if (middleMouseKey&&MouseState.rgbButtons[2]) {
+		if (middleMouseKey && MouseState.rgbButtons[2]) {
 			if (!middleMouseDown) {
 				TapKey(middleMouseKey);
 				middleMouseDown = true;
