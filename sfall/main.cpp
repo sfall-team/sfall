@@ -137,16 +137,14 @@ static void InitModules() {
 	manager.add<BugFixes>();    // fixes should be applied at the beginning
 	manager.add<Graphics>();
 	manager.add<Input>();
+	manager.add<LoadGameHook>();
+	manager.add<MainLoopHook>();
 	manager.add<Movies>();
 	manager.add<Objects>();
 	manager.add<SpeedPatch>();
 	manager.add<PlayerModel>();
 	manager.add<Worldmap>();
 	manager.add<Stats>();
-	manager.add<ScriptExtender>();
-	manager.add<HookScripts>();
-	manager.add<LoadGameHook>();
-	manager.add<MainLoopHook>();
 	manager.add<Perks>();
 	manager.add<Combat>();
 	manager.add<Skills>();
@@ -172,7 +170,7 @@ static void InitModules() {
 	manager.add<Message>();
 	manager.add<Elevators>();
 	manager.add<KillCounter>();
-
+	//
 	manager.add<AI>();
 	manager.add<DamageMod>();
 	manager.add<AnimationsAtOnce>();
@@ -180,6 +178,10 @@ static void InitModules() {
 	manager.add<HeroAppearance>();
 	manager.add<MiscPatches>();
 	manager.add<TalkingHeads>();
+
+	// should be last (reason: all build-in events(delegates) of modules must be executed before running the script handlers)
+	manager.add<HookScripts>();
+	manager.add<ScriptExtender>();
 
 	manager.add<DebugEditor>();
 
