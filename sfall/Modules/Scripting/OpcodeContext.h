@@ -66,6 +66,23 @@ typedef struct SfallOpcodeInfo {
 } SfallOpcodeInfo;
 
 
+typedef struct SfallMetarule {
+	// function name
+	const char* name;
+
+	// pointer to handler function
+	ScriptingFunctionHandler func;
+
+	// minimum number of arguments
+	short minArgs;
+
+	// maximum number of arguments
+	short maxArgs;
+
+	// argument validation settings
+	OpcodeArgumentType argValidation[OP_MAX_ARGUMENTS];
+} SfallMetarule;
+
 // A context for handling opcodes. Opcode handlers can retrieve arguments and set opcode return value via context.
 class OpcodeContext {
 public:
@@ -73,7 +90,15 @@ public:
 	// opcode - opcode number
 	// argNum - number of arguments for this opcode
 	// hasReturn - true if opcode has return value (is expression)
+	// opcodeName - name of a function (for logging)
 	OpcodeContext(fo::Program* program, DWORD opcode, int argNum, bool hasReturn);
+	OpcodeContext(fo::Program* program, DWORD opcode, int argNum, bool hasReturn, const char* opcodeName);
+
+	const char* getOpcodeName() const; 
+	const char* getMetaruleName() const;
+	
+	// currently executed metarule func
+	const SfallMetarule* metarule;
 
 	// number of arguments, possibly reduced by argShift
 	int numArgs() const;
@@ -121,7 +146,7 @@ public:
 	// func - opcode handler
 	// argTypes - argument types for validation
 	// opcodeName - name of a function (for logging)
-	void handleOpcode(ScriptingFunctionHandler func, const OpcodeArgumentType argTypes[], const char* opcodeName);
+	void handleOpcode(ScriptingFunctionHandler func, const OpcodeArgumentType argTypes[]);
 
 	// handles opcode using default instance
 	static void __stdcall handleOpcodeStatic(fo::Program* program, DWORD opcodeOffset, ScriptingFunctionHandler func, char argNum, bool hasReturn);
@@ -140,6 +165,8 @@ private:
 
 	fo::Program* _program;
 	DWORD _opcode;
+
+	const char* _opcodeName;
 
 	int _numArgs;
 	bool _hasReturn;

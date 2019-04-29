@@ -295,16 +295,12 @@ void sf_set_object_knockback(OpcodeContext& ctx) {
 	fo::GameObject* object = ctx.arg(0).asObject();
 	if (mode) {
 		if (object->Type() != fo::OBJ_TYPE_CRITTER) {
-			if (mode == 1) {
-				ctx.printOpcodeError("set_target_knockback() - the object is not a critter.");
-			} else {
-				ctx.printOpcodeError("set_attacker_knockback() - the object is not a critter.");
-			}
+			ctx.printOpcodeError("%s() - the object is not a critter.", ctx.getOpcodeName());
 			return;
 		}
 	} else {
 		if (object->Type() != fo::OBJ_TYPE_ITEM) {
-			ctx.printOpcodeError("set_weapon_knockback() - the object is not a item.");
+			ctx.printOpcodeError("%s() - the object is not a item.", ctx.getOpcodeName());
 			return;
 		}
 	}
@@ -759,7 +755,7 @@ end:
 	}
 }
 
-static char* valueOutRange = "arguments values out of range";
+static char* valueOutRange = "%s() - arguments values out of range.";
 
 void sf_set_critical_table(OpcodeContext& ctx) {
 	DWORD critter = ctx.arg(0).asInt(),
@@ -768,7 +764,7 @@ void sf_set_critical_table(OpcodeContext& ctx) {
 		element   = ctx.arg(3).asInt();
 
 	if (critter >= Criticals::critTableCount || bodypart >= 9 || slot >= 6 || element >= 7) {
-		ctx.printOpcodeError("set_critical_table() - %s.", valueOutRange);
+		ctx.printOpcodeError(valueOutRange, ctx.getOpcodeName());
 	} else {
 		Criticals::SetCriticalTable(critter, bodypart, slot, element, ctx.arg(4).asInt());
 	}
@@ -781,7 +777,7 @@ void sf_get_critical_table(OpcodeContext& ctx) {
 		element   = ctx.arg(3).asInt();
 
 	if (critter >= Criticals::critTableCount || bodypart >= 9 || slot >= 6 || element >= 7) {
-		ctx.printOpcodeError("get_critical_table() - %s.", valueOutRange);
+		ctx.printOpcodeError(valueOutRange, ctx.getOpcodeName());
 	} else {
 		ctx.setReturn(Criticals::GetCriticalTable(critter, bodypart, slot, element));
 	}
@@ -794,7 +790,7 @@ void sf_reset_critical_table(OpcodeContext& ctx) {
 		element   = ctx.arg(3).asInt();
 
 	if (critter >= Criticals::critTableCount || bodypart >= 9 || slot >= 6 || element >= 7) {
-		ctx.printOpcodeError("reset_critical_table() - %s.", valueOutRange);
+		ctx.printOpcodeError(valueOutRange, ctx.getOpcodeName());
 	} else {
 		Criticals::ResetCriticalTable(critter, bodypart, slot, element);
 	}
@@ -888,7 +884,7 @@ void __declspec(naked) op_nb_create_char() {
 	}
 }
 
-static char* failedLoad = "failed to load a prototype id";
+static const char* failedLoad = "%s() - failed to load a prototype id: %d";
 static bool protoMaxLimitPatch = false;
 
 void sf_get_proto_data(OpcodeContext& ctx) {
@@ -898,7 +894,7 @@ void sf_get_proto_data(OpcodeContext& ctx) {
 	if (result != -1) {
 		result = *(long*)((BYTE*)protoPtr + ctx.arg(1).rawValue());
 	} else {
-		ctx.printOpcodeError("get_proto_data() - %s: %d", failedLoad, pid);
+		ctx.printOpcodeError(failedLoad, ctx.getOpcodeName(), pid);
 	}
 	ctx.setReturn(result);
 }
@@ -911,7 +907,7 @@ void sf_set_proto_data(OpcodeContext& ctx) {
 			protoMaxLimitPatch = true;
 		}
 	} else {
-		ctx.printOpcodeError("set_proto_data() - %s: %d", failedLoad, pid);
+		ctx.printOpcodeError(failedLoad, ctx.getOpcodeName(), pid);
 	}
 }
 
@@ -1333,29 +1329,33 @@ void sf_set_ini_setting(OpcodeContext& ctx) {
 
 	switch (result) {
 	case 0:
-		ctx.printOpcodeError("set_ini_setting() - value save error.");
+		ctx.printOpcodeError("%s() - value save error.", ctx.getMetaruleName());
 		break;
 	case -1:
-		ctx.printOpcodeError("set_ini_setting() - invalid setting argument.");
+		ctx.printOpcodeError("%s() - invalid setting argument.", ctx.getMetaruleName());
 		break;
 	}
 }
 
-char getIniSectionBuf[512];
+char getIniSectionBuf[5120];
+
 void sf_get_ini_sections(OpcodeContext& ctx) {
 	auto fileName = std::string(".\\") + ctx.arg(0).asString();
-	GetPrivateProfileSectionNamesA(getIniSectionBuf, 512, fileName.data());
+	GetPrivateProfileSectionNamesA(getIniSectionBuf, 5120, fileName.data());
 	std::vector<char*> sections;
 	char* section = getIniSectionBuf;
 	while (*section != 0) {
 		sections.push_back(section);
 		section += std::strlen(section) + 1;
 	}
-	int arrayId = TempArray(sections.size(), 0);
+	size_t sz = sections.size();
+	int arrayId = TempArray(sz, 0);
 	auto& arr = arrays[arrayId];
 
-	for (size_t i = 0; i < sections.size(); ++i) {
-		arr.val[i].set(sections[i]);
+	for (size_t i = 0; i < sz; ++i) {
+		size_t j = i + 1;
+		int len = (j < sz) ? sections[j] - sections[i] - 1 : -1;
+		arr.val[i].set(sections[i], len);
 	}
 	ctx.setReturn(arrayId);
 }
@@ -1363,7 +1363,7 @@ void sf_get_ini_sections(OpcodeContext& ctx) {
 void sf_get_ini_section(OpcodeContext& ctx) {
 	auto fileName = std::string(".\\") + ctx.arg(0).asString();
 	auto section = ctx.arg(1).asString();
-	GetPrivateProfileSectionA(section, getIniSectionBuf, 512, fileName.data());
+	GetPrivateProfileSectionA(section, getIniSectionBuf, 5120, fileName.data());
 	int arrayId = TempArray(-1, 0); // associative
 	auto& arr = arrays[arrayId];
 	char *key = getIniSectionBuf, *val = nullptr;

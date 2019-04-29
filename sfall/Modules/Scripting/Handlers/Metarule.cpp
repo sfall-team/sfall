@@ -41,29 +41,9 @@ namespace script
 // Use ctx.setReturn(x) to set return value.
 // If you want to call user-defined procedures in your handler, use RunScriptProc().
 
-struct SfallMetarule {
-	// function name
-	const char* name;
-
-	// pointer to handler function
-	ScriptingFunctionHandler func;
-
-	// minimum number of arguments
-	short minArgs;
-
-	// maximum number of arguments
-	short maxArgs;
-
-	// argument validation settings
-	OpcodeArgumentType argValidation[OP_MAX_ARGUMENTS];
-};
-
 typedef std::unordered_map<std::string, const SfallMetarule*> MetaruleTableType;
 
 static MetaruleTableType metaruleTable;
-
-// currently executed metarule
-static const SfallMetarule* currentMetarule;
 
 /*
 	Metarule AKA sfall_funcX.
@@ -156,11 +136,13 @@ void InitMetaruleTable() {
 
 // Validates arguments against metarule specification.
 // On error prints to debug.log and returns false.
-static bool ValidateMetaruleArguments(OpcodeContext& ctx, const SfallMetarule* metaruleInfo) {
+static bool ValidateMetaruleArguments(OpcodeContext& ctx) {
+	const SfallMetarule* metaruleInfo = ctx.metarule;
 	int argCount = ctx.numArgs();
 	if (argCount < metaruleInfo->minArgs || argCount > metaruleInfo->maxArgs) {
 		ctx.printOpcodeError(
-			"sfall_funcX(\"%s\", ...) - invalid number of arguments (%d), must be from %d to %d.",
+			"%s(\"%s\", ...) - invalid number of arguments (%d), must be from %d to %d.",
+			ctx.getOpcodeName(),
 			metaruleInfo->name,
 			argCount,
 			metaruleInfo->minArgs,
@@ -178,20 +160,20 @@ void HandleMetarule(OpcodeContext& ctx) {
 		const char* name = nameArg.strValue();
 		MetaruleTableType::iterator lookup = metaruleTable.find(name);
 		if (lookup != metaruleTable.end()) {
-			currentMetarule = lookup->second;
+			ctx.metarule = lookup->second;
 			// shift function name away, so argument #0 will correspond to actual first argument of function
 			// this allows to use the same handlers for opcodes and metarule functions
 			ctx.setArgShift(1);
-			if (ValidateMetaruleArguments(ctx, currentMetarule)) {
-				currentMetarule->func(ctx);
+			if (ValidateMetaruleArguments(ctx)) {
+				ctx.metarule->func(ctx);
 			} else if (ctx.hasReturn()) {
 				ctx.setReturn(-1);
 			}
 		} else {
-			ctx.printOpcodeError("sfall_funcX(name, ...) - name '%s' is unknown.", name);
+			ctx.printOpcodeError("%s(\"%s\", ...) - metarule function is unknown.", ctx.getOpcodeName(), name);
 		}
 	} else {
-		ctx.printOpcodeError("sfall_funcX(name, ...) - name must be string.");
+		ctx.printOpcodeError("%s(name, ...) - name must be string.", ctx.getOpcodeName());
 	}
 }
 

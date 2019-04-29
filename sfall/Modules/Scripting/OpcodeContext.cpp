@@ -27,15 +27,24 @@ namespace sfall
 namespace script
 {
 
-OpcodeContext::OpcodeContext(fo::Program* program, DWORD opcode, int argNum, bool hasReturn) {
+OpcodeContext::OpcodeContext(fo::Program* program, DWORD opcode, int argNum, bool hasReturn)
+		: _program(program), _opcode(opcode), _numArgs(argNum), _hasReturn(hasReturn), _argShift(0)
+{
 	assert(argNum < OP_MAX_ARGUMENTS);
+}
 
-	_program = program;
-	_opcode = opcode;
+OpcodeContext::OpcodeContext(fo::Program* program, DWORD opcode, int argNum, bool hasReturn, const char* opcodeName)
+		: OpcodeContext::OpcodeContext(program, opcode, argNum, hasReturn)
+{
+	_opcodeName = opcodeName;
+}
 
-	_numArgs = argNum;
-	_hasReturn = hasReturn;
-	_argShift = 0;
+const char* OpcodeContext::getOpcodeName() const {
+	return _opcodeName;
+}
+
+const char* OpcodeContext::getMetaruleName() const {
+	return metarule->name;
 }
 
 int OpcodeContext::numArgs() const {
@@ -95,11 +104,11 @@ void OpcodeContext::printOpcodeError(const char* fmt, ...) const {
 
 bool OpcodeContext::validateArguments(const OpcodeArgumentType argTypes[], const char* opcodeName) const {
 	for (int i = 0; i < _numArgs; i++) {
-		auto argType = argTypes[i];
 		auto actualType = arg(i).type();
 		// display invalid type error if type is set and differs from actual type
 		// exception is when type set to
 		if (actualType == DataType::NONE) break;
+		auto argType = argTypes[i];
 		if ((argType == ARG_INT || argType == ARG_OBJECT) && !(actualType == DataType::INT)) {
 			printOpcodeError("%s() - argument #%d is not an integer.", opcodeName, ++i);
 			return false;
@@ -121,22 +130,23 @@ bool OpcodeContext::validateArguments(const OpcodeArgumentType argTypes[], const
 }
 
 void OpcodeContext::handleOpcode(ScriptingFunctionHandler func) {
-	_popArguments();
+	if (_numArgs) _popArguments();
 
 	func(*this);
 
-	_pushReturnValue();
+	if (_hasReturn) _pushReturnValue();
 }
 
-void OpcodeContext::handleOpcode(ScriptingFunctionHandler func, const OpcodeArgumentType argTypes[], const char* opcodeName) {
-	_popArguments();
+void OpcodeContext::handleOpcode(ScriptingFunctionHandler func, const OpcodeArgumentType argTypes[]) {
+	if (_numArgs) _popArguments();
 
-	if (validateArguments(argTypes, opcodeName)) {
+	if (!_numArgs || validateArguments(argTypes, _opcodeName)) {
 		func(*this);
 	} else if (_hasReturn) {
 		setReturn(-1); // is a common practice to return -1 in case of errors in fallout engine
 	}
-	_pushReturnValue();
+
+	if (_hasReturn) _pushReturnValue();
 }
 
 void __stdcall OpcodeContext::handleOpcodeStatic(fo::Program* program, DWORD opcodeOffset, ScriptingFunctionHandler func, char argNum, bool hasReturn) {
@@ -206,17 +216,15 @@ void OpcodeContext::_popArguments() {
 }
 
 void OpcodeContext::_pushReturnValue() {
-	if (_hasReturn) {
-		if (_ret.type() == DataType::NONE) {
-			_ret = ScriptValue(0); // if no value was set in handler, force return 0 to avoid stack error
-		}
-		DWORD rawResult = _ret.rawValue();
-		if (_ret.type() == DataType::STR) {
-			rawResult = fo::func::interpretAddString(_program, _ret.strValue());
-		}
-		fo::func::interpretPushLong(_program, rawResult);
-		fo::func::interpretPushShort(_program, getScriptTypeBySfallType(_ret.type()));
+	if (_ret.type() == DataType::NONE) {
+		_ret = ScriptValue(0); // if no value was set in handler, force return 0 to avoid stack error
 	}
+	DWORD rawResult = _ret.rawValue();
+	if (_ret.type() == DataType::STR) {
+		rawResult = fo::func::interpretAddString(_program, _ret.strValue());
+	}
+	fo::func::interpretPushLong(_program, rawResult);
+	fo::func::interpretPushShort(_program, getScriptTypeBySfallType(_ret.type()));
 }
 
 }

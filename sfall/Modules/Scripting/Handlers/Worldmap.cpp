@@ -262,12 +262,12 @@ void sf_set_rest_mode(OpcodeContext& ctx) {
 void sf_set_rest_on_map(OpcodeContext& ctx) {
 	long mapId = ctx.arg(0).asInt();
 	if (mapId < 0) {
-		ctx.printOpcodeError("set_can_rest_on_map() - invalid map number argument.");
+		ctx.printOpcodeError("%s() - invalid map number argument.", ctx.getMetaruleName());
 		return;
 	}
 	long elev = ctx.arg(1).asInt();
 	if (elev < -1 && elev > 2) {
-		ctx.printOpcodeError("set_can_rest_on_map() - wrong map elevation argument.");
+		ctx.printOpcodeError("%s() - wrong map elevation argument.", ctx.getMetaruleName());
 	} else {
 		Worldmap::SetRestMapLevel(mapId, elev, ctx.arg(2).asBool());
 	}
@@ -276,7 +276,7 @@ void sf_set_rest_on_map(OpcodeContext& ctx) {
 void sf_get_rest_on_map(OpcodeContext& ctx) {
 	long elev = ctx.arg(1).asInt();
 	if (elev < 0 && elev > 2) {
-		ctx.printOpcodeError("get_can_rest_on_map() - wrong map elevation argument.");
+		ctx.printOpcodeError("%s() - wrong map elevation argument.", ctx.getMetaruleName());
 	} else {
 		ctx.setReturn(Worldmap::GetRestMapLevel(elev, ctx.arg(0).asInt()));
 	}
