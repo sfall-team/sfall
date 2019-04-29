@@ -69,7 +69,7 @@
 	Returns the value to the script
 	eax register must contain the script_ptr
 	edx register must contain the returned value
-	rscript - name register for temporary save script_ptr
+	rscript - register name for temporarily saving script_ptr
 */
 #define _RET_VAL_INT(rscript) __asm {				\
 	__asm mov  rscript, eax 						\
