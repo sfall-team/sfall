@@ -221,8 +221,8 @@ void __fastcall defaultOpcodeHandlerCall(fo::Program* program, DWORD opcodeOffse
 	auto iter = opcodeInfoMap.find(opcode);
 	if (iter != opcodeInfoMap.end()) {
 		auto info = iter->second;
-		OpcodeContext ctx(program, opcode, info->argNum, info->hasReturn);
-		ctx.handleOpcode(info->handler, info->argValidation, info->name);
+		OpcodeContext ctx(program, opcode, info->argNum, info->hasReturn, info->name);
+		ctx.handleOpcode(info->handler, info->argValidation);
 	} else {
 		fo::func::interpretError("Unknown opcode: %d", opcode);
 	}

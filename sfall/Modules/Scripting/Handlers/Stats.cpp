@@ -31,15 +31,15 @@ namespace sfall
 namespace script
 {
 
-const char* invalidStat = "stat number out of range";
-const char* objNotCritter = "the object is not a critter";
+const char* invalidStat = "%s() - stat number out of range.";
+const char* objNotCritter = "%s() - the object is not a critter.";
 
 void sf_set_pc_base_stat(OpcodeContext& ctx) {
 	int stat = ctx.arg(0).rawValue();
 	if (stat >= 0 && stat < fo::STAT_max_stat) {
 		((long*)FO_VAR_pc_proto)[9 + stat] = ctx.arg(1).rawValue();
 	} else {
-		ctx.printOpcodeError("set_pc_base_stat() - %s.", invalidStat);
+		ctx.printOpcodeError(invalidStat, ctx.getOpcodeName());
 	}
 }
 
@@ -48,7 +48,7 @@ void sf_set_pc_extra_stat(OpcodeContext& ctx) {
 	if (stat >= 0 && stat < fo::STAT_max_stat) {
 		((long*)FO_VAR_pc_proto)[44 + stat] = ctx.arg(1).rawValue();
 	} else {
-		ctx.printOpcodeError("set_pc_extra_stat() - %s.", invalidStat);
+		ctx.printOpcodeError(invalidStat, ctx.getOpcodeName());
 	}
 }
 
@@ -58,7 +58,7 @@ void sf_get_pc_base_stat(OpcodeContext& ctx) {
 	if (stat >= 0 && stat < fo::STAT_max_stat) {
 		value = ((long*)FO_VAR_pc_proto)[9 + stat];
 	} else {
-		ctx.printOpcodeError("get_pc_base_stat() - %s.", invalidStat);
+		ctx.printOpcodeError(invalidStat, ctx.getOpcodeName());
 	}
 	ctx.setReturn(value);
 }
@@ -69,7 +69,7 @@ void sf_get_pc_extra_stat(OpcodeContext& ctx) {
 	if (stat >= 0 && stat < fo::STAT_max_stat) {
 		value = ((long*)FO_VAR_pc_proto)[44 + stat];
 	} else {
-		ctx.printOpcodeError("get_pc_extra_stat() - %s.", invalidStat);
+		ctx.printOpcodeError(invalidStat, ctx.getOpcodeName());
 	}
 	ctx.setReturn(value);
 }
@@ -80,7 +80,7 @@ void sf_set_critter_base_stat(OpcodeContext& ctx) {
 		int stat = ctx.arg(1).rawValue();
 		if (stat >= 0 && stat < fo::STAT_max_stat) Stats::SetStat(obj, stat, ctx.arg(2).rawValue(), 9);
 	} else {
-		ctx.printOpcodeError("set_critter_base_stat() - %s.", objNotCritter);
+		ctx.printOpcodeError(objNotCritter, ctx.getOpcodeName());
 	}
 }
 
@@ -90,7 +90,7 @@ void sf_set_critter_extra_stat(OpcodeContext& ctx) {
 		int stat = ctx.arg(1).rawValue();
 		if (stat >= 0 && stat < fo::STAT_max_stat) Stats::SetStat(obj, stat, ctx.arg(2).rawValue(), 44);
 	} else {
-		ctx.printOpcodeError("set_critter_extra_stat() - %s.", objNotCritter);
+		ctx.printOpcodeError(objNotCritter, ctx.getOpcodeName());
 	}
 }
 
@@ -101,7 +101,7 @@ void sf_get_critter_base_stat(OpcodeContext& ctx) {
 		int stat = ctx.arg(1).rawValue();
 		if (stat >= 0 && stat < fo::STAT_max_stat) result = Stats::GetStat(obj, stat, 9);
 	} else {
-		ctx.printOpcodeError("get_critter_base_stat() - %s.", objNotCritter);
+		ctx.printOpcodeError(objNotCritter, ctx.getOpcodeName());
 	}
 	ctx.setReturn(result);
 }
@@ -113,7 +113,7 @@ void sf_get_critter_extra_stat(OpcodeContext& ctx) {
 		int stat = ctx.arg(1).rawValue();
 		if (stat >= 0 && stat < fo::STAT_max_stat) result = Stats::GetStat(obj, stat, 44);
 	} else {
-		ctx.printOpcodeError("get_critter_extra_stat() - %s.", objNotCritter);
+		ctx.printOpcodeError(objNotCritter, ctx.getOpcodeName());
 	}
 	ctx.setReturn(result);
 }
@@ -159,7 +159,7 @@ void __declspec(naked) op_set_critter_skill_points() {
 		mov edx, esp;
 		call fo::funcoffs::proto_ptr_;
 		mov eax, [esp];
-		mov[eax + 0x13c + esi * 4], edi;
+		mov [eax + 0x13c + esi * 4], edi;
 end:
 		//Restore registers and return
 		add esp, 12;
@@ -323,7 +323,7 @@ void __declspec(naked) op_set_critter_current_ap() {
 		jnz end;
 		cmp si, VAR_TYPE_INT;
 		jnz end;
-		mov[eax + 0x40], ebx;
+		mov [eax + 0x40], ebx;
 		mov ecx, ds:[FO_VAR_obj_dude]
 		cmp ecx, eax;
 		jne end;
@@ -899,7 +899,7 @@ end:
 }
 
 static void _stdcall SetPerkLevelMod2(int mod) {
-	if (mod < -25 || mod>25) return;
+	if (mod < -25 || mod > 25) return;
 	PerkLevelMod = mod;
 	HookCall(0x49687F, &SetPerkLevelMod3);
 }

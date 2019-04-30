@@ -224,8 +224,8 @@ void __declspec(naked) op_set_viewport_x() {
 		_GET_ARG_INT(end);
 		mov  ds:[FO_VAR_wmWorldOffsetX], eax;
 end:
-		pop edx;
-		pop ecx;
+		pop  edx;
+		pop  ecx;
 		retn;
 	}
 }
@@ -245,7 +245,7 @@ end:
 
 void sf_add_iface_tag(OpcodeContext &ctx) {
 	int result = BarBoxes::AddExtraBox();
-	if (result == -1) ctx.printOpcodeError("add_iface_tag() - cannot add new tag as the maximum limit of 126 tags has been reached.");
+	if (result == -1) ctx.printOpcodeError("%s() - cannot add new tag as the maximum limit of 126 tags has been reached.", ctx.getMetaruleName());
 	ctx.setReturn(result);
 }
 
@@ -347,7 +347,7 @@ void sf_set_iface_tag_text(OpcodeContext& ctx) {
 	if (boxTag > 4 && boxTag <= maxBox) {
 		BarBoxes::SetText(boxTag, ctx.arg(1).strValue(), ctx.arg(2).asInt());
 	} else {
-		ctx.printOpcodeError("set_iface_tag_text() - tag value must be in the range of 5 to %d.", maxBox);
+		ctx.printOpcodeError("%s() - tag value must be in the range of 5 to %d.", ctx.getMetaruleName(), maxBox);
 	}
 }
 
@@ -396,7 +396,7 @@ void sf_create_win(OpcodeContext& ctx) {
 		ctx.arg(3).asInt(), ctx.arg(4).asInt(), // w, h
 		256, flags) == -1)
 	{
-		ctx.printOpcodeError("create_win() - couldn't create window.");
+		ctx.printOpcodeError("%s() - couldn't create window.", ctx.getMetaruleName());
 	}
 }
 

@@ -105,7 +105,7 @@ void sf_explosions_metarule(OpcodeContext& ctx) {
 		result = ExplosionsMetaruleFunc(mode, ctx.arg(1).asInt(), ctx.arg(2).asInt());
 
 	if (result == -1) {
-		ctx.printOpcodeError("ExplosionsMetarule() - mode (%d) is not supported for the function.", mode);
+		ctx.printOpcodeError("%s() - mode (%d) is not supported for the function.", ctx.getOpcodeName(), mode);
 	}
 	ctx.setReturn(result);
 }

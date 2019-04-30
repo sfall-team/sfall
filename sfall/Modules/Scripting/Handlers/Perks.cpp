@@ -217,13 +217,13 @@ void __declspec(naked) op_set_selectable_perk() {
 		movzx eax, word ptr[esp + 20];
 		cmp eax, VAR_TYPE_INT;
 		jne fail;
-		movzx eax, word ptr ds : [esp + 4];
+		movzx eax, word ptr ds:[esp + 4];
 		cmp eax, VAR_TYPE_STR2;
 		je next1;
 		cmp eax, VAR_TYPE_STR;
 		jne fail;
 next1:
-		movzx eax, word ptr ds : [esp + 28];
+		movzx eax, word ptr ds:[esp + 28];
 		cmp eax, VAR_TYPE_STR2;
 		je next2;
 		cmp eax, VAR_TYPE_STR;
@@ -286,13 +286,13 @@ void __declspec(naked) op_set_fake_perk() {
 		movzx eax, word ptr[esp + 20];
 		cmp eax, VAR_TYPE_INT;
 		jne fail;
-		movzx eax, word ptr ds : [esp + 4];
+		movzx eax, word ptr ds:[esp + 4];
 		cmp eax, VAR_TYPE_STR2;
 		je next1;
 		cmp eax, VAR_TYPE_STR;
 		jne fail;
 next1:
-		movzx eax, word ptr ds : [esp + 28];
+		movzx eax, word ptr ds:[esp + 28];
 		cmp eax, VAR_TYPE_STR2;
 		je next2;
 		cmp eax, VAR_TYPE_STR;
@@ -359,13 +359,13 @@ void __declspec(naked) op_set_fake_trait() {
 		movzx eax, word ptr[esp + 20];
 		cmp eax, VAR_TYPE_INT;
 		jne fail;
-		movzx eax, word ptr ds : [esp + 4];
+		movzx eax, word ptr ds:[esp + 4];
 		cmp eax, VAR_TYPE_STR2;
 		je next1;
 		cmp eax, VAR_TYPE_STR;
 		jne fail;
 next1:
-		movzx eax, word ptr ds : [esp + 28];
+		movzx eax, word ptr ds:[esp + 28];
 		cmp eax, VAR_TYPE_STR2;
 		je next2;
 		cmp eax, VAR_TYPE_STR;
@@ -524,13 +524,13 @@ void __declspec(naked) op_remove_trait() {
 		mov ecx, ds:[FO_VAR_pc_trait + 4];
 		cmp eax, ds:[FO_VAR_pc_trait];
 		jne next;
-		mov ds : [FO_VAR_pc_trait], ecx;
-		mov ds : [FO_VAR_pc_trait + 4], ebx;
+		mov ds:[FO_VAR_pc_trait], ecx;
+		mov ds:[FO_VAR_pc_trait + 4], ebx;
 		jmp end;
 next:
-		cmp eax, ds : [FO_VAR_pc_trait + 4];
+		cmp eax, ds:[FO_VAR_pc_trait + 4];
 		jne end;
-		mov ds : [FO_VAR_pc_trait + 4], ebx;
+		mov ds:[FO_VAR_pc_trait + 4], ebx;
 end:
 		popad;
 		retn;
