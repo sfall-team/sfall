@@ -102,6 +102,7 @@ WRAP_WATCOM_FUNC2(long, item_w_subtype, GameObject*, item, long, hitMode)
 WRAP_WATCOM_FUNC1(long, item_weight, GameObject*, item)
 // returns light level at given tile
 WRAP_WATCOM_FUNC2(long, light_get_tile, long, elevation, long, tileNum)
+WRAP_WATCOM_FUNC2(void, MapDirErase, const char*, folder, const char*, ext)
 WRAP_WATCOM_FUNC2(void, mouse_get_position, long*, outX, long*, outY)
 WRAP_WATCOM_FUNC0(void, mouse_show)
 WRAP_WATCOM_FUNC0(void, mouse_hide)
