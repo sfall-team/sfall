@@ -24,53 +24,46 @@
 
 static void __declspec(naked) GetPerkOwed() {
 	__asm {
-		pushad;
-		mov ecx, eax;
+		push edx;
+		push ecx;
 		movzx edx, byte ptr ds:[_free_perk];
-		call interpretPushLong_;
-		mov edx, VAR_TYPE_INT;
-		mov eax, ecx;
-		call interpretPushShort_;
-		popad;
+		_RET_VAL_INT2(ecx);
+		pop  ecx;
+		pop  edx;
 		retn;
 	}
 }
+
 static void __declspec(naked) SetPerkOwed() {
 	__asm {
-		pushad;
-		mov ecx, eax;
-		call interpretPopShort_;
-		mov edx, eax;
-		mov eax, ecx;
-		call interpretPopLong_;
-		cmp dx, VAR_TYPE_INT;
-		jnz end;
-		and eax, 0xFF;
-		cmp eax, 250;
-		jg end;
-		mov byte ptr ds:[_free_perk], al
+		push ecx;
+		push edx;
+		_GET_ARG_INT(end);
+		and  eax, 0xFF;
+		cmp  eax, 250;
+		jg   end;
+		mov  byte ptr ds:[_free_perk], al;
 end:
-		popad
+		pop  edx;
+		pop  ecx;
 		retn;
 	}
 }
+
 static void __declspec(naked) set_perk_freq() {
 	__asm {
-		pushad;
-		mov ecx, eax;
-		call interpretPopShort_;
-		mov edx, eax;
-		mov eax, ecx;
-		call interpretPopLong_;
-		cmp dx, VAR_TYPE_INT;
-		jnz end;
+		push ecx;
+		push edx;
+		_GET_ARG_INT(end);
 		push eax;
 		call SetPerkFreq;
 end:
-		popad
+		pop  edx;
+		pop  ecx;
 		retn;
 	}
 }
+
 static void __declspec(naked) GetPerkAvailable() {
 	__asm {
 		pushad;
@@ -173,7 +166,7 @@ end:
 static void __declspec(naked) funcSetPerkValue() {
 	__asm {
 		pushad;
-		sub edx, 0x5e0-8; // offset of value into perk struct; edx = ((edx/4) - 0x178 + 0x8) * 4
+		sub edx, 0x5e0 - 8; // offset of value into perk struct; edx = ((edx/4) - 0x178 + 0x8) * 4
 		push edx;
 		mov ecx, eax;
 		call interpretPopShort_;
@@ -230,36 +223,36 @@ static void __declspec(naked) fSetSelectablePerk() {
 		call interpretPopLong_;
 		push eax;
 
-		movzx eax, word ptr [esp+12];
+		movzx eax, word ptr [esp + 12];
 		cmp eax, VAR_TYPE_INT;
 		jne fail;
-		movzx eax, word ptr [esp+20];
+		movzx eax, word ptr [esp + 20];
 		cmp eax, VAR_TYPE_INT;
 		jne fail;
-		movzx eax, word ptr ds:[esp+4];
+		movzx eax, word ptr ds:[esp + 4];
 		cmp eax, VAR_TYPE_STR2;
 		je next1;
 		cmp eax, VAR_TYPE_STR;
 		jne fail;
 next1:
-		movzx eax, word ptr ds:[esp+28];
+		movzx eax, word ptr ds:[esp + 28];
 		cmp eax, VAR_TYPE_STR2;
 		je next2;
 		cmp eax, VAR_TYPE_STR;
 		jne fail;
 next2:
 		mov eax, ecx;
-		mov edx, [esp+28];
-		mov ebx, [esp+24];
+		mov edx, [esp + 28];
+		mov ebx, [esp + 24];
 		call interpretGetString_;
 		push eax;
-		mov eax, [esp+20];
+		mov eax, [esp + 20];
 		push eax;
-		mov eax, [esp+16];
+		mov eax, [esp + 16];
 		push eax;
 		mov eax, ecx;
-		mov edx, [esp+16];
-		mov ebx, [esp+12];
+		mov edx, [esp + 16];
+		mov ebx, [esp + 12];
 		call interpretGetString_;
 		push eax;
 
@@ -298,36 +291,36 @@ static void __declspec(naked) fSetFakePerk() {
 		call interpretPopLong_;
 		push eax;
 
-		movzx eax, word ptr [esp+12];
+		movzx eax, word ptr [esp + 12];
 		cmp eax, VAR_TYPE_INT;
 		jne fail;
-		movzx eax, word ptr [esp+20];
+		movzx eax, word ptr [esp + 20];
 		cmp eax, VAR_TYPE_INT;
 		jne fail;
-		movzx eax, word ptr ds:[esp+4];
+		movzx eax, word ptr ds:[esp + 4];
 		cmp eax, VAR_TYPE_STR2;
 		je next1;
 		cmp eax, VAR_TYPE_STR;
 		jne fail;
 next1:
-		movzx eax, word ptr ds:[esp+28];
+		movzx eax, word ptr ds:[esp + 28];
 		cmp eax, VAR_TYPE_STR2;
 		je next2;
 		cmp eax, VAR_TYPE_STR;
 		jne fail;
 next2:
 		mov eax, ecx;
-		mov edx, [esp+28];
-		mov ebx, [esp+24];
+		mov edx, [esp + 28];
+		mov ebx, [esp + 24];
 		call interpretGetString_;
 		push eax;
-		mov eax, [esp+20];
+		mov eax, [esp + 20];
 		push eax;
-		mov eax, [esp+16];
+		mov eax, [esp + 16];
 		push eax;
 		mov eax, ecx;
-		mov edx, [esp+16];
-		mov ebx, [esp+12];
+		mov edx, [esp + 16];
+		mov ebx, [esp + 12];
 		call interpretGetString_;
 		push eax;
 
@@ -370,36 +363,36 @@ static void __declspec(naked) fSetFakeTrait() {
 		call interpretPopLong_;
 		push eax;
 
-		movzx eax, word ptr [esp+12];
+		movzx eax, word ptr [esp + 12];
 		cmp eax, VAR_TYPE_INT;
 		jne fail;
-		movzx eax, word ptr [esp+20];
+		movzx eax, word ptr [esp + 20];
 		cmp eax, VAR_TYPE_INT;
 		jne fail;
-		movzx eax, word ptr ds:[esp+4];
+		movzx eax, word ptr ds:[esp + 4];
 		cmp eax, VAR_TYPE_STR2;
 		je next1;
 		cmp eax, VAR_TYPE_STR;
 		jne fail;
 next1:
-		movzx eax, word ptr ds:[esp+28];
+		movzx eax, word ptr ds:[esp + 28];
 		cmp eax, VAR_TYPE_STR2;
 		je next2;
 		cmp eax, VAR_TYPE_STR;
 		jne fail;
 next2:
 		mov eax, ecx;
-		mov edx, [esp+28];
-		mov ebx, [esp+24];
+		mov edx, [esp + 28];
+		mov ebx, [esp + 24];
 		call interpretGetString_;
 		push eax;
-		mov eax, [esp+20];
+		mov eax, [esp + 20];
 		push eax;
-		mov eax, [esp+16];
+		mov eax, [esp + 16];
 		push eax;
 		mov eax, ecx;
-		mov edx, [esp+16];
-		mov ebx, [esp+12];
+		mov edx, [esp + 16];
+		mov ebx, [esp + 12];
 		call interpretGetString_;
 		push eax;
 
@@ -537,27 +530,21 @@ end:
 		retn;
 	}
 }
+
 static void __declspec(naked) fAddPerkMode() {
 	__asm {
-		push ebx;
 		push ecx;
 		push edx;
-		mov ecx, eax;
-		call interpretPopShort_;
-		mov edx, eax;
-		mov eax, ecx;
-		call interpretPopLong_;
-		cmp dx, VAR_TYPE_INT;
-		jnz end;
+		_GET_ARG_INT(end);
 		push eax;
 		call AddPerkMode;
 end:
 		pop edx;
 		pop ecx;
-		pop ebx;
 		retn;
 	}
 }
+
 static void __declspec(naked) remove_trait() {
 	__asm {
 		pushad;
@@ -588,23 +575,15 @@ end:
 
 static void __declspec(naked) SetPyromaniacMod() {
 	__asm {
-		push ebx;
 		push ecx;
 		push edx;
-		mov ecx, eax;
-		call interpretPopShort_;
-		mov edx, eax;
-		mov eax, ecx;
-		call interpretPopLong_;
-		cmp dx, VAR_TYPE_INT;
-		jnz end;
+		_GET_ARG_INT(end);
 		push eax;
 		push 0x424AB6;
 		call SafeWrite8;
 end:
 		pop edx;
 		pop ecx;
-		pop ebx;
 		retn;
 	}
 }
@@ -617,25 +596,18 @@ static void __declspec(naked) fApplyHeaveHoFix() {
 		retn;
 	}
 }
+
 static void __declspec(naked) SetSwiftLearnerMod() {
 	__asm {
-		push ebx;
 		push ecx;
 		push edx;
-		mov ecx, eax;
-		call interpretPopShort_;
-		mov edx, eax;
-		mov eax, ecx;
-		call interpretPopLong_;
-		cmp dx, VAR_TYPE_INT;
-		jnz end;
+		_GET_ARG_INT(end);
 		push eax;
 		push 0x4AFAE2;
 		call SafeWrite32;
 end:
-		pop edx;
-		pop ecx;
-		pop ebx;
+		pop  edx;
+		pop  ecx;
 		retn;
 	}
 }

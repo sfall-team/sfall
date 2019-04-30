@@ -26,26 +26,18 @@
 // graphics_functions
 static void __declspec(naked) GraphicsFuncsAvailable() {
 	__asm {
-		push ebx;
-		push ecx;
 		push edx;
-		mov ecx, eax;
-		xor edx, edx;
-		mov ebx, GraphicsMode;
-		cmp ebx, 3;
-		jle end;
-		inc edx;
-end:
-		call interpretPushLong_;
-		mov edx, VAR_TYPE_INT;
-		mov eax, ecx;
-		call interpretPushShort_;
-		pop edx;
-		pop ecx;
-		pop ebx;
+		push ecx;
+		cmp  GraphicsMode, 3;
+		seta dl;
+		and  edx, 0xFF;
+		_RET_VAL_INT2(ecx);
+		pop  ecx;
+		pop  edx;
 		retn;
 	}
 }
+
 static void __declspec(naked) funcLoadShader() {
 	__asm {
 		push ebx;
@@ -84,69 +76,49 @@ result:
 		retn;
 	}
 }
+
 static void __declspec(naked) funcFreeShader() {
 	__asm {
-		push ebx;
 		push ecx;
 		push edx;
-		mov ecx, eax;
-		call interpretPopShort_;
-		mov edx, eax;
-		mov eax, ecx;
-		call interpretPopLong_;
-		cmp dx, VAR_TYPE_INT;
-		jnz end;
+		_GET_ARG_INT(end);
 		push eax;
 		call FreeShader;
 end:
-		pop edx;
-		pop ecx;
-		pop ebx;
+		pop  edx;
+		pop  ecx;
 		retn;
 	}
 }
+
 static void __declspec(naked) funcActivateShader() {
 	__asm {
-		push ebx;
 		push ecx;
 		push edx;
-		mov ecx, eax;
-		call interpretPopShort_;
-		mov edx, eax;
-		mov eax, ecx;
-		call interpretPopLong_;
-		cmp dx, VAR_TYPE_INT;
-		jnz end;
+		_GET_ARG_INT(end);
 		push eax;
 		call ActivateShader;
 end:
-		pop edx;
-		pop ecx;
-		pop ebx;
+		pop  edx;
+		pop  ecx;
 		retn;
 	}
 }
+
 static void __declspec(naked) funcDeactivateShader() {
 	__asm {
-		push ebx;
 		push ecx;
 		push edx;
-		mov ecx, eax;
-		call interpretPopShort_;
-		mov edx, eax;
-		mov eax, ecx;
-		call interpretPopLong_;
-		cmp dx, VAR_TYPE_INT;
-		jnz end;
+		_GET_ARG_INT(end);
 		push eax;
 		call DeactivateShader;
 end:
 		pop edx;
 		pop ecx;
-		pop ebx;
 		retn;
 	}
 }
+
 static void __declspec(naked) funcGetShaderTexture() {
 	__asm {
 		//Store registers
@@ -428,27 +400,22 @@ end:
 		retn;
 	}
 }
+
 static void __declspec(naked) funcGetShaderVersion() {
 	__asm {
-		push ebx;
 		push ecx;
 		push edx;
-		push edi;
-		mov edi, eax;
+		push eax;
 		call GetShaderVersion;
-		mov edx, eax;
-		mov eax, edi;
-		call interpretPushLong_;
-		mov edx, VAR_TYPE_INT;
-		mov eax, edi;
-		call interpretPushShort_;
-		pop edi;
+		mov  edx, eax;
+		pop  eax;
+		_RET_VAL_INT2(ecx);
 		pop edx;
 		pop ecx;
-		pop ebx;
 		retn;
 	}
 }
+
 static void __declspec(naked) funcSetShaderMode() {
 	__asm {
 		push ebx;
@@ -483,24 +450,17 @@ end:
 		retn;
 	}
 }
+
 static void __declspec(naked) funcForceGraphicsRefresh() {
 	__asm {
-		push ebx;
 		push ecx;
 		push edx;
-		mov ecx, eax;
-		call interpretPopShort_;
-		mov edx, eax;
-		mov eax, ecx;
-		call interpretPopLong_;
-		cmp dx, VAR_TYPE_INT;
-		jnz end;
+		_GET_ARG_INT(end);
 		push eax;
 		call ForceGraphicsRefresh;
 end:
 		pop edx;
 		pop ecx;
-		pop ebx;
 		retn;
 	}
 }

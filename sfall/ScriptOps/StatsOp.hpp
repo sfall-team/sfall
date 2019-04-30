@@ -445,10 +445,10 @@ static void __declspec(naked) set_critter_skill_points() {
 		mov ebx, [esp];
 		cmp bx, VAR_TYPE_INT;
 		jnz end;
-		mov ebx, [esp+4];
+		mov ebx, [esp + 4];
 		cmp bx, VAR_TYPE_INT;
 		jnz end;
-		mov ebx, [esp+8];
+		mov ebx, [esp + 8];
 		cmp bx, VAR_TYPE_INT;
 		jnz end;
 		test esi, esi;
@@ -456,11 +456,11 @@ static void __declspec(naked) set_critter_skill_points() {
 		cmp esi, 18;
 		jge end;
 		//set the new value
-		mov eax, [eax+0x64];
+		mov eax, [eax + 0x64];
 		mov edx, esp;
 		call proto_ptr_;
 		mov eax, [esp];
-		mov [eax+0x13c+esi*4], edi;
+		mov [eax + 0x13c + esi * 4], edi;
 end:
 		//Restore registers and return
 		add esp, 12;
@@ -488,7 +488,7 @@ static void __declspec(naked) get_critter_skill_points() {
 		mov ebx, [esp];
 		cmp bx, VAR_TYPE_INT;
 		jnz fail;
-		mov ebx, [esp+4];
+		mov ebx, [esp + 4];
 		cmp bx, VAR_TYPE_INT;
 		jnz fail;
 		test esi, esi;
@@ -496,11 +496,11 @@ static void __declspec(naked) get_critter_skill_points() {
 		cmp esi, 18;
 		jge fail;
 		//get the value
-		mov eax, [eax+0x64];
+		mov eax, [eax + 0x64];
 		mov edx, esp;
 		call proto_ptr_;
 		mov eax, [esp];
-		mov edx, [eax+0x13c+esi*4];
+		mov edx, [eax + 0x13c + esi * 4];
 		jmp end;
 fail:
 		xor edx, edx;
@@ -516,58 +516,54 @@ end:
 		retn;
 	}
 }
+
 static void __declspec(naked) set_available_skill_points() {
 	__asm {
-		pushad;
-		mov ecx, eax;
-		call interpretPopShort_;
-		xchg eax, ecx;
-		call interpretPopLong_;
-		cmp cx, VAR_TYPE_INT;
-		jnz end;
-		mov edx, eax;
-		xor eax, eax;
+		push ecx;
+		push edx;
+		_GET_ARG_INT(end);
+		mov  edx, eax;
+		xor  eax, eax;
 		call stat_pc_set_;
 end:
-		popad;
+		pop  edx;
+		pop  ecx;
 		retn;
 	}
 }
+
 static void __declspec(naked) get_available_skill_points() {
 	__asm {
-		pushad;
-		mov ecx, eax;
-		mov edx, dword ptr ds:[_curr_pc_stat];
-		call interpretPushLong_;
-		mov edx, VAR_TYPE_INT;
-		mov eax, ecx;
-		call interpretPushShort_
-		popad;
+		push edx;
+		push ecx;
+		mov  edx, dword ptr ds:[_curr_pc_stat];
+		_RET_VAL_INT2(ecx);
+		pop  ecx;
+		pop  edx;
 		retn;
 	}
 }
+
 static void __declspec(naked) mod_skill_points_per_level() {
 	__asm {
-		pushad;
-		mov ecx, eax;
-		call interpretPopShort_;
-		xchg eax, ecx;
-		call interpretPopLong_;
-		cmp cx, VAR_TYPE_INT;
-		jnz end;
-		cmp eax, 100;
-		jg end;
-		cmp eax, -100;
-		jl end;
-		add eax, 5;
+		push ecx;
+		push edx;
+		_GET_ARG_INT(end);
+		cmp  eax, 100;
+		jg   end;
+		cmp  eax, -100;
+		jl   end;
+		add  eax, 5;
 		push eax;
 		push 0x43C27A;
 		call SafeWrite8;
 end:
-		popad;
+		pop  edx;
+		pop  ecx;
 		retn;
 	}
 }
+
 static void __declspec(naked) GetCritterAP() {
 	__asm {
 		//Store registers
@@ -583,7 +579,7 @@ static void __declspec(naked) GetCritterAP() {
 		//Check args are valid
 		cmp di, VAR_TYPE_INT;
 		jnz fail;
-		mov edx, [eax+0x40];
+		mov edx, [eax + 0x40];
 		jmp end;
 fail:
 		xor edx, edx;
@@ -627,7 +623,7 @@ static void __declspec(naked) SetCritterAP() {
 		jnz end;
 		cmp si, VAR_TYPE_INT;
 		jnz end;
-		mov [eax+0x40], ebx;
+		mov [eax + 0x40], ebx;
 		mov ecx, ds:[_obj_dude]
 		cmp ecx, eax;
 		jne end;
@@ -644,7 +640,6 @@ end:
 		retn;
 	}
 }
-
 
 static void __declspec(naked) fSetPickpocketMax() {
 	__asm {
@@ -1209,31 +1204,23 @@ end:
 		retn;
 	}
 }
+
 static void _stdcall SetPerkLevelMod2(int mod) {
 	if (mod < -25 || mod > 25) return;
 	PerkLevelMod = mod;
 	HookCall(0x49687F, &SetPerkLevelMod3);
 }
+
 static void __declspec(naked) SetPerkLevelMod() {
 	__asm {
-		push ebx;
 		push ecx;
 		push edx;
-		push edi;
-		mov ecx, eax;
-		call interpretPopShort_;
-		mov edx, eax;
-		mov eax, ecx;
-		call interpretPopLong_;
-		cmp dx, VAR_TYPE_INT;
-		jnz end;
+		_GET_ARG_INT(end);
 		push eax;
 		call SetPerkLevelMod2;
 end:
-		pop edi;
 		pop edx;
 		pop ecx;
-		pop ebx;
 		retn;
 	}
 }

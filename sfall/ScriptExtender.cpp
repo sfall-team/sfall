@@ -512,18 +512,13 @@ static void __declspec(naked) SetGlobalScriptRepeat() {
 	__asm {
 		push ecx;
 		push edx;
-		mov ecx, eax;
-		call interpretPopShort_;
-		mov edx, eax;
-		mov eax, ecx;
-		call interpretPopLong_;
-		cmp dx, VAR_TYPE_INT;
-		jnz end;
-		mov edx, eax;                // frames
+		mov  ecx, eax;
+		_GET_ARG_INT(end);
+		mov  edx, eax;               // frames
 		call SetGlobalScriptRepeat2; // ecx - script
 end:
-		pop edx;
-		pop ecx;
+		pop  edx;
+		pop  ecx;
 		retn;
 	}
 }
@@ -543,14 +538,9 @@ static void __declspec(naked) SetGlobalScriptType() {
 	__asm {
 		push ecx;
 		push edx;
-		mov ecx, eax;
-		call interpretPopShort_;
-		mov edx, eax;
-		mov eax, ecx;
-		call interpretPopLong_;
-		cmp dx, VAR_TYPE_INT;
-		jnz end;
-		mov edx, eax;              // type
+		mov  ecx, eax;
+		_GET_ARG_INT(end);
+		mov  edx, eax;             // type
 		call SetGlobalScriptType2; // ecx - script
 end:
 		pop edx;
@@ -563,14 +553,10 @@ static void __declspec(naked) GetGlobalScriptTypes() {
 	__asm {
 		push ecx;
 		push edx;
-		mov edx, AvailableGlobalScriptTypes;
-		mov ecx, eax;
-		call interpretPushLong_;
-		mov edx, VAR_TYPE_INT;
-		mov eax, ecx;
-		call interpretPushShort_;
-		pop edx;
-		pop ecx;
+		mov  edx, AvailableGlobalScriptTypes;
+		_RET_VAL_INT2(ecx);
+		pop  edx;
+		pop  ecx;
 		retn;
 	}
 }
@@ -607,7 +593,7 @@ static void SetGlobalVarFunc() {
 	if ((varArg.isInt() || varArg.isString()) && (valArg.isInt() || valArg.isFloat())) {
 		if (varArg.isString()) {
 			if (SetGlobalVar2(varArg.strValue(), valArg.rawValue())) {
-				opHandler.printOpcodeError("set_sfall_global() - The name of the global variable must consist of 8 characters.");
+				opHandler.printOpcodeError("set_sfall_global() - the name of the global variable must consist of 8 characters.");
 			}
 		} else {
 			SetGlobalVar2Int(varArg.rawValue(), valArg.rawValue());
@@ -649,7 +635,7 @@ static void GetGlobalVarIntFunc() {
 		if (varArg.isString()) {
 			const char* var = varArg.strValue();
 			if (strlen(var) != 8) {
-				opHandler.printOpcodeError("get_sfall_global_int() - The name of the global variable must consist of 8 characters.");
+				opHandler.printOpcodeError("get_sfall_global_int() - the name of the global variable must consist of 8 characters.");
 			} else {
 				result = GetGlobalVarInternal(*(__int64*)var);
 			}
@@ -695,17 +681,15 @@ static void __declspec(naked) GetGlobalVarFloat() {
 
 static void __declspec(naked) GetSfallArg() {
 	__asm {
-		pushad;
+		push ecx;
+		push edx;
 		push eax;
 		call GetHSArg;
-		pop ecx;
-		mov edx, eax;
-		mov eax, ecx;
-		call interpretPushLong_;
-		mov eax, ecx;
-		mov edx, VAR_TYPE_INT;
-		call interpretPushShort_;
-		popad;
+		mov  edx, eax;
+		pop  eax;
+		_RET_VAL_INT2(ecx);
+		pop  edx;
+		pop  ecx;
 		retn;
 	}
 }
@@ -722,17 +706,15 @@ static DWORD _stdcall GetSfallArgs2() {
 
 static void __declspec(naked) GetSfallArgs() {
 	__asm {
-		pushad;
+		push ecx;
+		push edx;
 		push eax;
 		call GetSfallArgs2;
-		pop ecx;
-		mov edx, eax;
-		mov eax, ecx;
-		call interpretPushLong_;
-		mov eax, ecx;
-		mov edx, VAR_TYPE_INT;
-		call interpretPushShort_;
-		popad;
+		mov  edx, eax;
+		pop  eax;
+		_RET_VAL_INT2(ecx);
+		pop  edx;
+		pop  ecx;
 		retn;
 	}
 }
@@ -768,34 +750,24 @@ static void __declspec(naked) SetSfallReturn() {
 	__asm {
 		push ecx;
 		push edx;
-		mov ecx, eax;
-		call interpretPopShort_;
-		mov edx, eax;
-		mov eax, ecx;
-		call interpretPopLong_;
-		cmp dx, VAR_TYPE_INT;
-		jnz end;
+		_GET_ARG_INT(end);
 		push eax;
 		call SetHSReturn;
 end:
-		pop edx;
-		pop ecx;
+		pop  edx;
+		pop  ecx;
 		retn;
 	}
 }
 
 static void __declspec(naked) InitHook() {
 	__asm {
-		push ecx;
 		push edx;
-		mov ecx, eax;
-		mov edx, InitingHookScripts;
-		call interpretPushLong_;
-		mov eax, ecx;
-		mov edx, VAR_TYPE_INT;
-		call interpretPushShort_;
-		pop edx;
-		pop ecx;
+		push ecx;
+		mov  edx, InitingHookScripts;
+		_RET_VAL_INT2(ecx);
+		pop  ecx;
+		pop  edx;
 		retn;
 	}
 }
@@ -826,18 +798,13 @@ static void __declspec(naked) set_self() {
 	__asm {
 		push ecx;
 		push edx;
-		mov ecx, eax;
-		call interpretPopShort_;
-		mov edx, eax;
-		mov eax, ecx;
-		call interpretPopLong_;
-		cmp dx, VAR_TYPE_INT;
-		jnz end;
-		mov edx, eax;       // object
+		mov  ecx, eax;
+		_GET_ARG_INT(end);
+		mov  edx, eax;      // object
 		call SetSelfObject; // ecx - script
 end:
-		pop edx;
-		pop ecx;
+		pop  edx;
+		pop  ecx;
 		retn;
 	}
 }

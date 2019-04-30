@@ -218,15 +218,15 @@ end:
 	}
 }
 static void _stdcall WriteStringInternal(const char* str, char* addr) {
-	bool hitnull=false;
-	while(*str) {
-		if(!*addr) hitnull=true;
-		if(hitnull&&addr[1]) break;
-		*addr=*str;
+	bool hitnull = false;
+	while (*str) {
+		if (!*addr) hitnull = true;
+		if (hitnull && addr[1]) break;
+		*addr = *str;
 		addr++;
 		str++;
 	}
-	*addr=0;
+	*addr = 0;
 }
 static void __declspec(naked) WriteString() {
 	__asm {
@@ -264,12 +264,12 @@ end:
 	}
 }
 static void _stdcall CallOffsetInternal(DWORD func, DWORD script) {
-	func=(func>>2) - 0x1d2;
-	bool ret=func>=5;
-	int argcount=func%5;
+	func = (func >> 2) - 0x1d2;
+	bool ret = func >= 5;
+	int argcount = func % 5;
 	DWORD args[5];
-	DWORD illegalarg=0;
-	for(int i=argcount*4;i>=0;i-=4) {
+	DWORD illegalarg = 0;
+	for (int i = argcount * 4; i >= 0; i -= 4) {
 		__asm {
 			mov eax, script;
 			call interpretPopShort_;
@@ -285,8 +285,8 @@ legal:
 		}
 	}
 
-	if(illegalarg) {
-		args[0]=0;
+	if (illegalarg) {
+		args[0] = 0;
 	} else {
 		__asm {
 			mov eax, args[4];  // args[1]
@@ -298,7 +298,7 @@ legal:
 			mov args[0], eax;
 		}
 	}
-	if(ret) {
+	if (ret) {
 		__asm {
 			mov eax, script;
 			mov edx, args[0];

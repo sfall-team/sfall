@@ -58,19 +58,13 @@ static void __declspec(naked) ForceEncounter() {
 	__asm {
 		push ecx;
 		push edx;
-		mov ecx, eax;
-		call interpretPopShort_;
-		mov edx, eax;
-		mov eax, ecx;
-		call interpretPopLong_;
-		cmp dx, VAR_TYPE_INT;
-		jnz end;
-		xor edx, edx; // flags
-		mov ecx, eax; // mapID
+		_GET_ARG_INT(end);
+		xor  edx, edx; // flags
+		mov  ecx, eax; // mapID
 		call ForceEncounter2;
 end:
-		pop edx;
-		pop ecx;
+		pop  edx;
+		pop  ecx;
 		retn;
 	}
 }
@@ -105,74 +99,58 @@ end:
 // world_map_functions
 static void __declspec(naked) funcInWorldMap() {
 	__asm {
-		push ebx;
 		push ecx;
 		push edx;
-		push esi;
-		mov esi, eax;
+		push eax;
 		call InWorldMap;
-		mov edx, eax;
-		mov eax, esi;
-		call interpretPushLong_;
-		mov edx, VAR_TYPE_INT;
-		mov eax, esi;
-		call interpretPushShort_;
-		pop esi;
-		pop edx;
-		pop ecx;
-		pop ebx;
+		mov  edx, eax;
+		pop  eax;
+		_RET_VAL_INT2(ecx);
+		pop  edx;
+		pop  ecx;
 		retn;
 	}
 }
+
 static void __declspec(naked) GetGameMode() {
 	__asm {
-		pushad;
-		mov edi, eax;
+		push ecx;
+		push edx;
+		push eax;
 		call GetCurrentLoops;
-		mov edx, eax;
-		mov eax, edi;
-		call interpretPushLong_;
-		mov edx, VAR_TYPE_INT;
-		mov eax, edi;
-		call interpretPushShort_;
-		popad;
+		mov  edx, eax;
+		pop  eax;
+		_RET_VAL_INT2(ecx);
+		pop  edx;
+		pop  ecx;
 		retn;
 	}
 }
+
 static void __declspec(naked) GetWorldMapXPos() {
 	__asm {
-		push ebx;
-		push ecx;
 		push edx;
-		mov ecx, eax;
-		mov edx, ds:[_world_xpos];
-		call interpretPushLong_;
-		mov edx, VAR_TYPE_INT;
-		mov eax, ecx;
-		call interpretPushShort_;
-		pop edx;
-		pop ecx;
-		pop ebx;
+		push ecx;
+		mov  edx, ds:[_world_xpos];
+		_RET_VAL_INT2(ecx);
+		pop  ecx;
+		pop  edx;
 		retn;
 	}
 }
+
 static void __declspec(naked) GetWorldMapYPos() {
 	__asm {
-		push ebx;
-		push ecx;
 		push edx;
-		mov ecx, eax;
-		mov edx, ds:[_world_ypos];
-		call interpretPushLong_;
-		mov edx, VAR_TYPE_INT;
-		mov eax, ecx;
-		call interpretPushShort_;
-		pop edx;
-		pop ecx;
-		pop ebx;
+		push ecx;
+		mov  edx, ds:[_world_ypos];
+		_RET_VAL_INT2(ecx);
+		pop  ecx;
+		pop  edx;
 		retn;
 	}
 }
+
 static void __declspec(naked) SetWorldMapPos() {
 	__asm {
 		push ebx;

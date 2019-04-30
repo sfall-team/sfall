@@ -27,24 +27,18 @@
 // input_functions
 static void __declspec(naked) InputFuncsAvailable() {
 	__asm {
-		push ebx;
 		push ecx;
 		push edx;
-		mov ecx, eax;
-		mov edx, 1; //They're always available from 2.9 on
-		call interpretPushLong_;
-		mov edx, VAR_TYPE_INT;
-		mov eax, ecx;
-		call interpretPushShort_;
-		pop edx;
-		pop ecx;
-		pop ebx;
+		mov  edx, 1; // They're always available from 2.9 on
+		_RET_VAL_INT2(ecx);
+		pop  edx;
+		pop  ecx;
 		retn;
 	}
 }
+
 static void __declspec(naked) KeyPressed() {
 	__asm {
-		push ebx;
 		push ecx;
 		push edx;
 		mov ecx, eax;
@@ -70,32 +64,24 @@ end:
 		call interpretPushShort_;
 		pop edx;
 		pop ecx;
-		pop ebx;
 		retn;
 	}
 }
+
 static void __declspec(naked) funcTapKey() {
 	__asm {
-		push ebx;
 		push ecx;
 		push edx;
-		mov ecx, eax;
-		call interpretPopShort_;
-		mov edx, eax;
-		mov eax, ecx;
-		call interpretPopLong_;
-		cmp dx, VAR_TYPE_INT;
-		jnz end;
+		_GET_ARG_INT(end);
 		test eax, eax;
-		jl end;
-		cmp eax, 255;
-		jge end;
+		jl   end;
+		cmp  eax, 255;
+		jge  end;
 		push eax;
 		call TapKey;
 end:
-		pop edx;
-		pop ecx;
-		pop ebx;
+		pop  edx;
+		pop  ecx;
 		retn;
 	}
 }
@@ -103,17 +89,13 @@ end:
 //// *** From helios *** ////
 static void __declspec(naked) get_mouse_x() {
 	__asm {
-		push ecx;
 		push edx;
-		mov ecx, eax;
-		mov edx, ds:[_mouse_x_];
-		add edx, ds:[_mouse_hotx];
-		call interpretPushLong_;
-		mov eax, ecx;
-		mov edx, VAR_TYPE_INT;
-		call interpretPushShort_
-		pop edx;
-		pop ecx;
+		push ecx;
+		mov  edx, ds:[_mouse_x_];
+		add  edx, ds:[_mouse_hotx];
+		_RET_VAL_INT2(ecx);
+		pop  ecx;
+		pop  edx;
 		retn;
 	}
 }
@@ -121,17 +103,13 @@ static void __declspec(naked) get_mouse_x() {
 //Return mouse y position
 static void __declspec(naked) get_mouse_y() {
 	__asm {
-		push ecx;
 		push edx;
-		mov ecx, eax;
-		mov edx, ds:[_mouse_y_];
-		add edx, ds:[_mouse_hoty];
-		call interpretPushLong_;
-		mov eax, ecx;
-		mov edx, VAR_TYPE_INT;
-		call interpretPushShort_
-		pop edx;
-		pop ecx;
+		push ecx;
+		mov  edx, ds:[_mouse_y_];
+		add  edx, ds:[_mouse_hoty];
+		_RET_VAL_INT2(ecx);
+		pop  ecx;
+		pop  edx;
 		retn;
 	}
 }
@@ -162,16 +140,12 @@ skip:
 //Return the window number under the mous
 static void __declspec(naked) get_window_under_mouse() {
 	__asm {
-		push ecx;
 		push edx;
-		mov ecx, eax;
-		mov edx, ds:[_last_button_winID];
-		call interpretPushLong_;
-		mov eax, ecx;
-		mov edx, VAR_TYPE_INT;
-		call interpretPushShort_
-		pop edx;
-		pop ecx;
+		push ecx;
+		mov  edx, ds:[_last_button_winID];
+		_RET_VAL_INT2(ecx);
+		pop  ecx;
+		pop  edx;
 		retn;
 	}
 }
@@ -179,34 +153,30 @@ static void __declspec(naked) get_window_under_mouse() {
 //Return screen width
 static void __declspec(naked) get_screen_width() {
 	__asm {
-		push edx
-		push eax
-		mov  edx, ds:[_scr_size+8]                // _scr_size.offx
-		sub  edx, ds:[_scr_size]                  // _scr_size.x
-		inc  edx
-		call interpretPushLong_
-		pop  eax
-		mov  edx, VAR_TYPE_INT
-		call interpretPushShort_
-		pop  edx
-		retn
+		push edx;
+		push ecx;
+		mov  edx, ds:[_scr_size + 8]; // _scr_size.offx
+		sub  edx, ds:[_scr_size];     // _scr_size.x
+		inc  edx;
+		_RET_VAL_INT2(ecx);
+		pop  ecx;
+		pop  edx;
+		retn;
 	}
 }
 
 //Return screen height
 static void __declspec(naked) get_screen_height() {
 	__asm {
-		push edx
-		push eax
-		mov  edx, ds:[_scr_size+12]               // _scr_size.offy
-		sub  edx, ds:[_scr_size+4]                // _scr_size.y
-		inc  edx
-		call interpretPushLong_
-		pop  eax
-		mov  edx, VAR_TYPE_INT
-		call interpretPushShort_
-		pop  edx
-		retn
+		push edx;
+		push ecx;
+		mov  edx, ds:[_scr_size + 12]; // _scr_size.offy
+		sub  edx, ds:[_scr_size + 4];  // _scr_size.y
+		inc  edx;
+		_RET_VAL_INT2(ecx);
+		pop  ecx;
+		pop  edx;
+		retn;
 	}
 }
 
@@ -269,75 +239,50 @@ end:
 
 static void __declspec(naked) GetViewportX() {
 	__asm {
-		push ebx;
-		push ecx;
 		push edx;
-		mov ecx, eax;
-		mov edx, ds:[_wmWorldOffsetX];
-		call interpretPushLong_;
-		mov edx, VAR_TYPE_INT;
-		mov eax, ecx;
-		call interpretPushShort_;
-		pop edx;
-		pop ecx;
-		pop ebx;
+		push ecx;
+		mov  edx, ds:[_wmWorldOffsetX];
+		_RET_VAL_INT2(ecx);
+		pop  ecx;
+		pop  edx;
 		retn;
 	}
 }
+
 static void __declspec(naked) GetViewportY() {
 	__asm {
-		push ebx;
-		push ecx;
 		push edx;
-		mov ecx, eax;
-		mov edx, ds:[_wmWorldOffsetY];
-		call interpretPushLong_;
-		mov edx, VAR_TYPE_INT;
-		mov eax, ecx;
-		call interpretPushShort_;
-		pop edx;
-		pop ecx;
-		pop ebx;
+		push ecx;
+		mov  edx, ds:[_wmWorldOffsetY];
+		_RET_VAL_INT2(ecx);
+		pop  ecx;
+		pop  edx;
 		retn;
 	}
 }
+
 static void __declspec(naked) SetViewportX() {
 	__asm {
-		push ebx;
 		push ecx;
 		push edx;
-		mov ecx, eax;
-		call interpretPopShort_;
-		mov edx, eax;
-		mov eax, ecx;
-		call interpretPopLong_;
-		cmp dx, VAR_TYPE_INT;
-		jnz end;
-		mov ds:[_wmWorldOffsetX], eax
+		_GET_ARG_INT(end);
+		mov  ds:[_wmWorldOffsetX], eax;
 end:
-		pop edx;
-		pop ecx;
-		pop ebx;
+		pop  edx;
+		pop  ecx;
 		retn;
 	}
 }
+
 static void __declspec(naked) SetViewportY() {
 	__asm {
-		push ebx;
 		push ecx;
 		push edx;
-		mov ecx, eax;
-		call interpretPopShort_;
-		mov edx, eax;
-		mov eax, ecx;
-		call interpretPopLong_;
-		cmp dx, VAR_TYPE_INT;
-		jnz end;
-		mov ds:[_wmWorldOffsetY], eax
+		_GET_ARG_INT(end);
+		mov  ds:[_wmWorldOffsetY], eax;
 end:
-		pop edx;
-		pop ecx;
-		pop ebx;
+		pop  edx;
+		pop  ecx;
 		retn;
 	}
 }

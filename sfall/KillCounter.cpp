@@ -31,10 +31,10 @@ static const DWORD extraKillTypesCountAddr[] = {
 	0x4344E4, // Change char sheet to loop through the extra kill types
 };
 
-static int usingExtraKillTypes = 0;
+static bool usingExtraKillTypes = false;
 
 bool UsingExtraKillTypes() {
-	return usingExtraKillTypes != 0;
+	return usingExtraKillTypes;
 }
 
 static DWORD __declspec(naked) ReadKillCounter() {
@@ -53,7 +53,7 @@ static void __declspec(naked) IncKillCounter() {
 }
 
 void KillCounterInit() {
-	usingExtraKillTypes = 1;
+	usingExtraKillTypes = true;
 
 	// Overwrite the critter_kill_count_ function that reads the kill counter
 	MakeCall(0x42D8B5, ReadKillCounter, 2);

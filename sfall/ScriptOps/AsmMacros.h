@@ -39,6 +39,20 @@
 }
 
 /*
+	Gets argument from stack to eax and puts its type to edx register
+	eax register must contain the script_ptr
+	jlabel - name of the jump label in case the value type is not INT
+*/
+#define _GET_ARG_INT(jlabel) __asm {		\
+	__asm mov  edx, eax						\
+	__asm call interpretPopShort_			\
+	__asm xchg eax, edx						\
+	__asm call interpretPopLong_			\
+	__asm cmp  dx, VAR_TYPE_INT				\
+	__asm jnz  jlabel						\
+}
+
+/*
 	checks argument to be integer, and jumps to GOTOFAIL if it's not
 */
 #define _CHECK_ARG_INT(r16type, GOTOFAIL) __asm { \
@@ -105,6 +119,20 @@ notstring##num:
 	__asm call interpretPushShort_		\
 }
 
+/*
+	Returns the value to the script
+	eax register must contain the script_ptr
+	edx register must contain the returned value
+	rscript - register name for temporarily saving script_ptr
+*/
+#define _RET_VAL_INT2(rscript) __asm {		\
+	__asm mov  rscript, eax 			\
+	__asm call interpretPushLong_		\
+	__asm mov  edx, VAR_TYPE_INT		\
+	__asm mov  eax, rscript				\
+	__asm call interpretPushShort_		\
+}
+
 /* 
 	handle return value which may be of any type
 	num - any unique number
@@ -113,7 +141,7 @@ notstring##num:
 #define _RET_VAL_POSSIBLY_STR(num, rscript, type) __asm {  \
 	__asm mov ecx, eax					\
 	__asm mov edx, type					\
-	__asm cmp edx, VAR_TYPE_STR		    \
+	__asm cmp edx, VAR_TYPE_STR			\
 	__asm jne resultnotstr##num			\
 	__asm mov edx, eax					\
 	__asm mov eax, rscript				\

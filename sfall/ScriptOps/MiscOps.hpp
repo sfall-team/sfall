@@ -179,47 +179,33 @@ static void __declspec(naked) GetYear() {
 
 static void __declspec(naked) GameLoaded() {
 	__asm {
-		push ebx;
 		push ecx;
 		push edx;
 		push eax;
-		push eax;
+		push eax; // script
 		call ScriptHasLoaded;
-		mov edx, eax;
-		pop eax;
-		mov ecx, eax;
-		call interpretPushLong_;
-		mov edx, VAR_TYPE_INT;
-		mov eax, ecx;
-		call interpretPushShort_;
+		movzx edx, al;
+		pop  eax;
+		_RET_VAL_INT2(ecx);
 		pop edx;
 		pop ecx;
-		pop ebx;
 		retn;
 	}
 }
 
 static void __declspec(naked) SetPipBoyAvailable() {
 	__asm {
-		push ebx;
 		push ecx;
 		push edx;
-		mov ecx, eax;
-		call interpretPopShort_;
-		mov edx, eax;
-		mov eax, ecx;
-		call interpretPopLong_;
-		cmp dx, VAR_TYPE_INT;
-		jnz end;
-		cmp eax, 0;
-		jl end;
-		cmp eax, 1;
-		jg end;
-		mov byte ptr ds:[_gmovie_played_list + 0x3], al;
+		_GET_ARG_INT(end);
+		cmp  eax, 0;
+		jl   end;
+		cmp  eax, 1;
+		jg   end;
+		mov  byte ptr ds:[_gmovie_played_list + 0x3], al;
 end:
 		pop edx;
 		pop ecx;
-		pop ebx;
 		retn;
 	}
 }
@@ -461,18 +447,12 @@ end:
 
 static void __declspec(naked) GetActiveHand() {
 	__asm {
-		push ebx;
-		push ecx;
 		push edx;
-		mov ecx, eax;
-		mov edx, dword ptr ds:[_itemCurrentItem];
-		call interpretPushLong_;
-		mov edx, VAR_TYPE_INT;
-		mov eax, ecx;
-		call interpretPushShort_;
-		pop edx;
-		pop ecx;
-		pop ebx;
+		push ecx;
+		mov  edx, dword ptr ds:[_itemCurrentItem];
+		_RET_VAL_INT2(ecx);
+		pop  ecx;
+		pop  edx;
 		retn;
 	}
 }
@@ -486,18 +466,12 @@ static void __declspec(naked) ToggleActiveHand() {
 
 static void __declspec(naked) EaxAvailable() {
 	__asm {
-		push eax;
 		push edx;
-		push edi;
-		mov edi, eax;
-		xor edx, edx
-		call interpretPushLong_;
-		mov edx, VAR_TYPE_INT;
-		mov eax, edi;
-		call interpretPushShort_;
-		pop edi;
-		pop edx;
-		pop ecx;
+		push ecx;
+		xor  edx, edx
+		_RET_VAL_INT2(ecx);
+		pop  ecx;
+		pop  edx;
 		retn;
 	}
 }
@@ -738,63 +712,46 @@ result:
 static DWORD _stdcall GetTickCount2() {
 	return GetTickCount(); //timeGetTime
 }
+
 static void __declspec(naked) funcGetTickCount() {
 	__asm {
-		pushad;
-		mov edi, eax;
+		push ecx;
+		push edx;
+		push eax;
 		call GetTickCount2;
-		mov edx, eax;
-		mov eax, edi;
-		call interpretPushLong_;
-		mov edx, VAR_TYPE_INT;
-		mov eax, edi;
-		call interpretPushShort_;
-		popad;
+		mov  edx, eax;
+		pop  eax;
+		_RET_VAL_INT2(ecx);
+		pop  edx;
+		pop  ecx;
 		retn;
 	}
 }
+
 static void __declspec(naked) SetCarTown() {
 	__asm {
-		push ebx;
 		push ecx;
 		push edx;
-		push edi;
-		mov ecx, eax;
-		call interpretPopShort_;
-		mov edx, eax;
-		mov eax, ecx;
-		call interpretPopLong_;
-		cmp dx, VAR_TYPE_INT;
-		jnz end;
-		mov ds:[_CarCurrArea], eax;
+		_GET_ARG_INT(end);
+		mov  ds:[_CarCurrArea], eax;
 end:
-		pop edi;
-		pop edx;
-		pop ecx;
-		pop ebx;
+		pop  edx;
+		pop  ecx;
 		retn;
 	}
 }
 
 static void __declspec(naked) SetLevelHPMod() {
 	__asm {
-		push ebx;
 		push ecx;
 		push edx;
-		mov ecx, eax;
-		call interpretPopShort_;
-		mov edx, eax;
-		mov eax, ecx;
-		call interpretPopLong_;
-		cmp dx, VAR_TYPE_INT;
-		jnz end;
-		push eax;
+		_GET_ARG_INT(end);
+		push eax; // allowed -/+127
 		push 0x4AFBC1;
 		call SafeWrite8;
 end:
-		pop edx;
-		pop ecx;
-		pop ebx;
+		pop  edx;
+		pop  ecx;
 		retn;
 	}
 }
@@ -927,14 +884,8 @@ static void __declspec(naked) SetApAcBonus() {
 	__asm {
 		push ecx;
 		push edx;
-		mov ecx, eax;
-		call interpretPopShort_;
-		mov edx, eax;
-		mov eax, ecx;
-		call interpretPopLong_;
-		cmp dx, VAR_TYPE_INT;
-		jnz end;
-		mov StandardApAcBonus, eax;
+		_GET_ARG_INT(end);
+		mov  StandardApAcBonus, eax;
 end:
 		pop edx;
 		pop ecx;
@@ -944,16 +895,12 @@ end:
 
 static void __declspec(naked) GetApAcBonus() {
 	__asm {
-		push ecx;
 		push edx;
-		mov ecx, eax;
-		mov edx, StandardApAcBonus;
-		call interpretPushLong_;
-		mov eax, ecx;
-		mov edx, VAR_TYPE_INT;
-		call interpretPushShort_;
-		pop edx;
-		pop ecx;
+		push ecx;
+		mov  edx, StandardApAcBonus;
+		_RET_VAL_INT2(ecx);
+		pop  ecx;
+		pop  edx;
 		retn;
 	}
 }
@@ -962,33 +909,23 @@ static void __declspec(naked) SetApAcEBonus() {
 	__asm {
 		push ecx;
 		push edx;
-		mov ecx, eax;
-		call interpretPopShort_;
-		mov edx, eax;
-		mov eax, ecx;
-		call interpretPopLong_;
-		cmp dx, VAR_TYPE_INT;
-		jnz end;
-		mov ExtraApAcBonus, eax;
+		_GET_ARG_INT(end);
+		mov  ExtraApAcBonus, eax;
 end:
-		pop edx;
-		pop ecx;
+		pop  edx;
+		pop  ecx;
 		retn;
 	}
 }
 
 static void __declspec(naked) GetApAcEBonus() {
 	__asm {
-		push ecx;
 		push edx;
-		mov ecx, eax;
-		mov edx, ExtraApAcBonus;
-		call interpretPushLong_;
-		mov eax, ecx;
-		mov edx, VAR_TYPE_INT;
-		call interpretPushShort_
-		pop edx;
-		pop ecx;
+		push ecx;
+		mov  edx, ExtraApAcBonus;
+		_RET_VAL_INT2(ecx);
+		pop  ecx;
+		pop  edx;
 		retn;
 	}
 }
@@ -1111,103 +1048,65 @@ static void __declspec(naked) set_proto_data() {
 
 static void __declspec(naked) funcHeroSelectWin() { // for opening the appearance selection window
 	__asm {
-		push ebx;
 		push ecx;
 		push edx;
-		push esi;
-		mov ecx, eax;
-		call interpretPopShort_;
-		mov edx, eax;
-		mov eax, ecx;
-		call interpretPopLong_;
+		_GET_ARG_INT(fail);
 		push eax;
-		cmp dx, VAR_TYPE_INT;
-		jnz fail;
 		call HeroSelectWindow;
-		jmp end;
 fail:
-		pop eax;
-end:
-		pop esi;
-		pop edx;
-		pop ecx;
-		pop ebx;
+		pop  edx;
+		pop  ecx;
 		retn;
 	}
 }
+
 static void __declspec(naked) funcSetHeroStyle() { // for setting the hero style/appearance takes an 1 int
 	__asm {
-		push ebx;
 		push ecx;
 		push edx;
-		push esi;
-		mov ecx, eax;
-		call interpretPopShort_;
-		mov edx, eax;
-		mov eax, ecx;
-		call interpretPopLong_;
+		_GET_ARG_INT(fail);
 		push eax;
-		cmp dx, VAR_TYPE_INT;
-		jnz fail;
 		call SetHeroStyle;
-		jmp end;
 fail:
-		pop eax;
-end:
-		pop esi;
-		pop edx;
-		pop ecx;
-		pop ebx;
+		pop  edx;
+		pop  ecx;
 		retn;
 	}
 }
+
 static void __declspec(naked) funcSetHeroRace() { // for setting the hero race takes an 1 int
 	__asm {
-		push ebx;
 		push ecx;
 		push edx;
-		push esi;
-		mov ecx, eax;
-		call interpretPopShort_;
-		mov edx, eax;
-		mov eax, ecx;
-		call interpretPopLong_;
+		_GET_ARG_INT(fail);
 		push eax;
-		cmp dx, VAR_TYPE_INT;
-		jnz fail;
 		call SetHeroRace;
-		jmp end;
 fail:
-		pop eax;
-end:
-		pop esi;
-		pop edx;
-		pop ecx;
-		pop ebx;
+		pop  edx;
+		pop  ecx;
 		retn;
 	}
 }
 
 static void __declspec(naked) get_light_level() {
 	__asm {
-		pushad;
-		mov ecx, eax;
-		mov edx, ds:[_ambient_light];
-		call interpretPushLong_
-		mov edx, VAR_TYPE_INT;
-		mov eax, ecx;
-		call interpretPushShort_
-		popad;
+		push edx;
+		push ecx;
+		mov  edx, ds:[_ambient_light];
+		_RET_VAL_INT2(ecx);
+		pop  ecx;
+		pop  edx;
 		retn;
 	}
 }
+
 static void __declspec(naked) refresh_pc_art() {
 	__asm {
 		push ecx;
 		push edx;
 		call RefreshPCArt;
-		pop edx;
-		pop ecx;
+		pop  edx;
+		pop  ecx;
 		retn;
 	}
 }
@@ -1295,20 +1194,17 @@ end:
 		retn;
 	}
 }
+
 static void __declspec(naked) stop_sfall_sound() {
 	__asm {
-		pushad;
-		mov ebp, eax;
-		call interpretPopShort_;
-		mov edi, eax;
-		mov eax, ebp;
-		call interpretPopLong_;
-		cmp di, VAR_TYPE_INT;
-		jnz end;
+		push ecx;
+		push edx;
+		_GET_ARG_INT(end);
 		push eax;
 		call StopSfallSound;
 end:
-		popad;
+		pop  edx;
+		pop  ecx;
 		retn;
 	}
 }
@@ -1349,14 +1245,12 @@ end:
 
 static void __declspec(naked) modified_ini() {
 	__asm {
-		pushad;
+		push edx;
+		push ecx;
 		mov edx, modifiedIni;
-		mov ebp, eax;
-		call interpretPushLong_;
-		mov eax, ebp;
-		mov edx, VAR_TYPE_INT;
-		call interpretPushShort_;
-		popad;
+		_RET_VAL_INT2(ecx);
+		pop  ecx;
+		pop  edx;
 		retn;
 	}
 }
@@ -1365,62 +1259,47 @@ static void __declspec(naked) force_aimed_shots() {
 	__asm {
 		push ecx;
 		push edx;
-		mov ecx, eax;
-		call interpretPopShort_;
-		mov edx, eax;
-		mov eax, ecx;
-		call interpretPopLong_;
-		cmp dx, VAR_TYPE_INT;
-		jnz end;
+		_GET_ARG_INT(end);
 		push eax;
 		call ForceAimedShots;
 end:
-		pop edx;
-		pop ecx;
+		pop  edx;
+		pop  ecx;
 		retn;
 	}
 }
+
 static void __declspec(naked) disable_aimed_shots() {
 	__asm {
 		push ecx;
 		push edx;
-		mov ecx, eax;
-		call interpretPopShort_;
-		mov edx, eax;
-		mov eax, ecx;
-		call interpretPopLong_;
-		cmp dx, VAR_TYPE_INT;
-		jnz end;
+		_GET_ARG_INT(end);
 		push eax;
 		call DisableAimedShots;
 end:
-		pop edx;
-		pop ecx;
+		pop  edx;
+		pop  ecx;
 		retn;
 	}
 }
+
 static void __declspec(naked) mark_movie_played() {
 	__asm {
 		push ecx;
 		push edx;
-		mov ecx, eax;
-		call interpretPopShort_;
-		mov edx, eax;
-		mov eax, ecx;
-		call interpretPopLong_;
-		cmp dx, VAR_TYPE_INT;
-		jnz end;
+		_GET_ARG_INT(end);
 		test eax, eax;
-		jl end;
-		cmp eax, 17;
-		jge end;
-		mov byte ptr ds:[eax+_gmovie_played_list], 1;
+		jl   end;
+		cmp  eax, 17;
+		jge  end;
+		mov  byte ptr ds:[eax + _gmovie_played_list], 1;
 end:
-		pop edx;
-		pop ecx;
+		pop  edx;
+		pop  ecx;
 		retn;
 	}
 }
+
 static void __declspec(naked) get_last_attacker() {
 	__asm {
 		pushad;
@@ -1473,23 +1352,21 @@ end:
 		retn;
 	}
 }
+
 static void __declspec(naked) block_combat() {
 	__asm {
-		pushad;
-		mov ecx, eax;
-		call interpretPopShort_;
-		mov edx, eax;
-		mov eax, ecx;
-		call interpretPopLong_;
-		cmp dx, VAR_TYPE_INT;
-		jnz end;
+		push ecx;
+		push edx;
+		_GET_ARG_INT(end);
 		push eax;
 		call AIBlockCombat;
 end:
-		popad
+		pop  edx;
+		pop  ecx;
 		retn;
 	}
 }
+
 static void __declspec(naked) tile_under_cursor() {
 	__asm {
 		push edx;
@@ -1517,37 +1394,29 @@ static void __declspec(naked) tile_under_cursor() {
 		retn;
 	}
 }
+
 static void __declspec(naked) gdialog_get_barter_mod() {
 	__asm {
 		push edx;
 		push ecx;
-		mov ecx, eax;
-		mov edx, dword ptr ds:[_gdBarterMod];
-		call interpretPushLong_;
-		mov eax, ecx;
-		mov edx, VAR_TYPE_INT;
-		call interpretPushShort_;
-		pop ecx;
-		pop edx;
+		mov  edx, dword ptr ds:[_gdBarterMod];
+		_RET_VAL_INT2(ecx);
+		pop  ecx;
+		pop  edx;
 		retn;
 	}
 }
+
 static void __declspec(naked) set_inven_ap_cost() {
 	__asm {
 		push ecx;
 		push edx;
-		mov ecx, eax;
-		call interpretPopShort_;
-		mov edx, eax;
-		mov eax, ecx;
-		call interpretPopLong_;
-		cmp dx, VAR_TYPE_INT;
-		jnz end;
+		_GET_ARG_INT(end);
 		push eax;
 		call SetInvenApCost;
 end:
-		pop edx;
-		pop ecx;
+		pop  edx;
+		pop  ecx;
 		retn;
 	}
 }
