@@ -2066,6 +2066,22 @@ end:
 	}
 }
 
+static void __declspec(naked) op_dialogue_reaction_hook() {
+	__asm {
+		cmp  eax, 4; // neutral fidget
+		mov  eax, 1;
+		jb   good;
+		je   neutral;
+		jmp  bad;
+good:
+		dec  eax;
+neutral:
+		dec  eax;
+bad:
+		jmp  fo::funcoffs::talk_to_critter_reacts_; // -1 - good, 0 - neutral, 1 - bad
+	}
+}
+
 void BugFixes::init()
 {
 	#ifndef NDEBUG
@@ -2615,6 +2631,9 @@ void BugFixes::init()
 	// Fix for the start procedure not being called correctly if the required standard script procedure is missing
 	MakeCall(0x4A4926, exec_script_proc_hack);
 	MakeCall(0x4A4979, exec_script_proc_hack1);
+
+	// Fix the argument value of dialogue_reaction function
+	HookCall(0x456FFA, op_dialogue_reaction_hook);
 }
 
 }
