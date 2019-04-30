@@ -620,6 +620,7 @@ const DWORD stricmp_ = 0x4DECE6;
 const DWORD strncpy_ = 0x4F014F;
 const DWORD strParseStrFromList_ = 0x4AFE08;
 const DWORD switch_hand_ = 0x4714E0;
+const DWORD talk_to_critter_reacts_ = 0x447CA0;
 const DWORD talk_to_translucent_trans_buf_to_buf_ = 0x44AC68;
 const DWORD text_font_ = 0x4D58DC;
 const DWORD text_object_create_ = 0x4B036C;

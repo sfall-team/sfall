@@ -850,6 +850,7 @@ extern const DWORD stricmp_;
 extern const DWORD strncpy_;
 extern const DWORD strParseStrFromList_;
 extern const DWORD switch_hand_;
+extern const DWORD talk_to_critter_reacts_;
 extern const DWORD talk_to_translucent_trans_buf_to_buf_;
 extern const DWORD text_font_;
 extern const DWORD text_object_create_;
