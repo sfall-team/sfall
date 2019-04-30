@@ -53,7 +53,7 @@ static void __declspec(naked) IncKillCounter() {
 		inc  bx;
 		mov  word ptr ds:[FO_VAR_pc_kill_counts][edx], bx;
 		retn;
-   }
+	}
 }
 
 static void KillCounterInit() {
@@ -69,7 +69,7 @@ static void KillCounterInit() {
 
 	// Edit the functions to accept kill types over 19
 	SafeWriteBatch<BYTE>(38, extraKillTypesCountAddr);
-	SafeWrite32(0x42D9DD, 1488);
+	SafeWrite32(0x42D9DD, 1488); // critter_kill_info_
 
 }
 

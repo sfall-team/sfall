@@ -36,12 +36,13 @@ public:
 	static Delegate<>& OnMapExit();
 };
 
-#pragma pack(8)
+#pragma pack(push, 8)
 struct GlobalVar {
 	__int64 id;
 	__int32 val;
 	__int32 unused;
 };
+#pragma pack(pop)
 
 typedef struct {
 	fo::Program* ptr = nullptr;
