@@ -67,8 +67,8 @@ static void Initialization() {
 }
 
 // fix for vanilla negate operator not working on floats
-static const DWORD NegateFixHook_Back = 0x46AB77;
-void __declspec(naked) NegateFixHack() {
+static const DWORD NegateFixHack_Back = 0x46AB77;
+static void __declspec(naked) NegateFixHack() {
 	__asm {
 		mov  eax, [ecx + 0x1C];
 		cmp  si, VAR_TYPE_FLOAT;
@@ -83,8 +83,8 @@ isFloat:
 		pop  ebx;
 		call fo::funcoffs::pushLongStack_;
 		mov  edx, VAR_TYPE_FLOAT;
-		add  esp, 4;                  // destroy return
-		jmp  NegateFixHook_Back;
+		add  esp, 4;                              // Destroy the return address
+		jmp  NegateFixHack_Back;
 	}
 }
 
@@ -264,7 +264,7 @@ static void __declspec(naked) RemoveJetAddictFunc() {
 		jne  end;
 		cmp  dword ptr [edx + 0x4], PID_JET;      // queue_addict.drug_pid == PID_JET?
 end:
-		sete al;                                  // 1 = Delete from queue, 0 - Don't touch
+		sete al;                                  // 1 = Delete from queue, 0 = Don't touch
 		and  eax, 0xFF;
 		retn;
 	}
@@ -497,6 +497,7 @@ skip:
 		jmp  fo::funcoffs::item_get_type_
 	}
 }
+
 static void __declspec(naked) is_supper_bonus_hack() {
 	__asm {
 		add  eax, ecx
@@ -505,7 +506,7 @@ static void __declspec(naked) is_supper_bonus_hack() {
 		cmp  eax, 10
 		jle  end
 skip:
-		pop  eax                                  // Destroy the return address
+		add  esp, 4                               // Destroy the return address
 		xor  eax, eax
 		inc  eax
 		pop  edx
@@ -522,7 +523,7 @@ static void __declspec(naked) PrintBasicStat_hack() {
 		jle  skip
 		cmp  eax, 10
 		jg   end
-		pop  ebx                                  // Destroy the return address
+		add  esp, 4                               // Destroy the return address
 		push 0x434C21
 		retn
 skip:
@@ -562,12 +563,12 @@ end:
 	}
 }
 
-// Calculate equipped weight & size
+// Calculate weight & size of equipped items
 static void __declspec(naked) loot_container_hack() {
 	__asm {
-		mov  critterBody, ebp;                          // target
+		mov  critterBody, ebp;                    // target
 		push esi;
-		mov  esi, [esp + 0x114 + 8];                    // item lhand
+		mov  esi, [esp + 0x114 + 8];              // item lhand
 		mov  sizeOnBody, esi;
 		mov  eax, esi;
 		test esi, esi;
@@ -578,7 +579,7 @@ static void __declspec(naked) loot_container_hack() {
 		call fo::funcoffs::item_weight_;
 noLeftWeapon:
 		mov  weightOnBody, eax;
-		mov  esi, [esp + 0x118 + 8];                    // item rhand
+		mov  esi, [esp + 0x118 + 8];              // item rhand
 		test esi, esi;
 		jz   noRightWeapon;
 		mov  eax, esi;
@@ -588,7 +589,7 @@ noLeftWeapon:
 		call fo::funcoffs::item_weight_;
 		add  weightOnBody, eax;
 noRightWeapon:
-		mov  esi, [esp + 0x11C + 8];                    // item armor
+		mov  esi, [esp + 0x11C + 8];              // item armor
 		test esi, esi;
 		jz   noArmor;
 		mov  eax, esi;
@@ -598,7 +599,7 @@ noRightWeapon:
 		call fo::funcoffs::item_weight_;
 		add  weightOnBody, eax;
 noArmor:
-		mov  esi, [esp+ 0xF8 + 8];  // check JESSE_CONTAINER
+		mov  esi, [esp + 0xF8 + 8]; // check JESSE_CONTAINER
 		mov  eax, esi;
 		call fo::funcoffs::item_c_curr_size_;
 		add  sizeOnBody, eax;
@@ -643,7 +644,7 @@ haveWeapon:
 		call fo::funcoffs::item_weight_;
 		add  weightOnBody, eax;
 skip:
-		mov  esi, [esp + 0x10 + 8];  // check JESSE_CONTAINER
+		mov  esi, [esp + 0x10 + 8]; // check JESSE_CONTAINER
 		mov  eax, esi;
 		call fo::funcoffs::item_c_curr_size_;
 		add  sizeOnBody, eax
@@ -655,7 +656,7 @@ skip:
 	}
 }
 
-// Add weightOnBody in item_total_weight_ function
+// Add weightOnBody to item_total_weight_ function
 static void __declspec(naked) item_total_weight_hack() {
 	__asm {
 		xor edx, edx;
@@ -671,7 +672,7 @@ skip:
 	}
 }
 
-// Add sizeOnBody in item_c_curr_size_ function
+// Add sizeOnBody to item_c_curr_size_ function
 static void __declspec(naked) item_c_curr_size_hack() {
 	__asm {
 		xor esi, esi;
@@ -690,7 +691,7 @@ skip:
 static void __declspec(naked) inven_pickup_hack() {
 	__asm {
 		mov  edx, ds:[FO_VAR_pud];
-		mov  edx, [edx];                         // itemsCount
+		mov  edx, [edx];                          // itemsCount
 		dec  edx;
 		sub  edx, eax;
 		lea  edx, ds:0[edx * 8];
@@ -738,7 +739,8 @@ found:
 		add  edx, [esp+0x40]                      // inventory_offset
 		mov  eax, ds:[FO_VAR_pud]
 		mov  ecx, [eax]                           // itemsCount
-		jecxz skip
+		test ecx, ecx
+		jz   skip
 		dec  ecx
 		cmp  edx, ecx
 		ja   skip
@@ -762,13 +764,15 @@ static void __declspec(naked) drop_ammo_into_weapon_hook() {
 		jge  skip                                 // Yes
 		lea  edx, [eax + inventory]               // Inventory
 		mov  ecx, [edx]                           // itemsCount
-		jcxz skip                                 // inventory is empty (another excess check, but leave it)
+		test ecx, ecx
+		jz   skip                                 // inventory is empty (another excess check, but leave it)
 		mov  edx, [edx+8]                         // FirstItem
 nextItem:
 		cmp  ebp, [edx]                           // Our weapon?
 		je   foundItem                            // Yes
 		add  edx, 8                               // Go to the next
-		loop nextItem
+		dec  ecx
+		jnz  nextItem
 		jmp  skip                                 // Our weapon is not in inventory
 foundItem:
 		cmp  dword ptr [edx+4], 1                 // Only one weapon?
@@ -1295,7 +1299,6 @@ static void __declspec(naked) Save_as_ASCII_hack() {
 	__asm {
 		mov  edx, STAT_sequence;
 		mov  ebx, 626; // line index in EDITOR.MSG
-		push 0x4396FC; // call stat_level_
 		retn;
 	}
 }
@@ -1369,12 +1372,11 @@ end:
 	}
 }
 
-static const DWORD PartyMemberGetCurLevel_Ret = 0x495FFC;
 static void __declspec(naked) partyMemberGetCurLevel_hack() {
 	__asm {
 		mov  esi, 0xFFFFFFFF; // initialize party member index
 		mov  edi, dword ptr ds:[FO_VAR_partyMemberMaxCount];
-		jmp  PartyMemberGetCurLevel_Ret;
+		retn;
 	}
 }
 
@@ -1392,7 +1394,7 @@ static void __declspec(naked) obj_move_to_tile_hack() {
 	__asm {
 		cmp dword ptr ds:[FO_VAR_map_state], 0; // map number, -1 exit to worldmap
 		jz  mapLeave;
-		add esp,4;
+		add esp, 4;
 		jmp obj_move_to_tile_Ret;
 mapLeave:
 		mov ebx, 16;
@@ -1440,7 +1442,7 @@ static void __declspec(naked) compute_damage_hack() {
 	__asm {
 		mov  ecx, esi; // ctd
 		call InstantDeathFix;
-		// overwritted engine code
+		// overwritten engine code
 		add  esp, 0x34;
 		pop  ebp;
 		pop  edi;
@@ -1742,7 +1744,7 @@ static void __declspec(naked) op_start_gdialog_hack() {
 		mov  eax, dword ptr [esp + 0x3C - 0x30 + 4];  // fix dialog_target (overwritten engine code)
 		retn;
 useMood:
-		add  esp, 4;                                  // destroy return
+		add  esp, 4;                                  // Destroy the return address
 		jmp  op_start_gdialog_ret;
 	}
 }
@@ -1750,7 +1752,7 @@ useMood:
 static void __declspec(naked) item_w_range_hook() {
 	__asm {
 		call fo::funcoffs::stat_level_;  // get ST
-		lea  ecx, [eax + ebx];           // ebx - bonus "Heave Ho"
+		lea  ecx, [eax + ebx];           // ebx - bonus from "Heave Ho!"
 		sub  ecx, 10;                    // compare ST + bonus <= 10
 		jle  skip;
 		sub  ebx, ecx;                   // cutoff
@@ -1788,32 +1790,32 @@ skip:
 	}
 }
 
-static DWORD firsItemDrug = -1;
+static DWORD firstItemDrug = -1;
 static const DWORD ai_check_drugs_hack_Ret = 0x42878B;
 static void __declspec(naked) ai_check_drugs_hack_break() {
 	__asm {
 		mov  eax, -1;
-		cmp  firsItemDrug, eax;
-		jnz  firsDrugs;
+		cmp  firstItemDrug, eax;
+		jnz  firstDrugs;
 		add  esp, 4;
 		jmp  ai_check_drugs_hack_Ret;      // break loop
-firsDrugs:
+firstDrugs:
 		mov  dword ptr [esp + 4], eax;     // buf
-		mov  edi, firsItemDrug;
+		mov  edi, firstItemDrug;
 		mov  ebx, edi;
-		mov  firsItemDrug, eax;
+		mov  firstItemDrug, eax;
 		retn;                              // use drug
 	}
 }
 
 static void __declspec(naked) ai_check_drugs_hack_check() {
 	__asm {
-		test [esp + 0x34 - 0x30 + 4], 1;   // check flag NoInvenItem
+		test [esp + 0x34 - 0x30 + 4], 1;   // check NoInvenItem flag
 		jnz  skip;
 		cmp  dword ptr [edx + 0xAC], -1;   // Chemical Preference Number (cap.chem_primary_desire)
 		jnz  checkDrugs;
 skip:
-		xor  ebx, ebx;                     // set zero flag for skipping check preference list
+		xor  ebx, ebx;                     // set zero flag for skipping preference list check
 		retn;
 checkDrugs:
 		cmp  ebx, [edx + 0xAC];            // Chemical Preference Number
@@ -1828,9 +1830,9 @@ static void __declspec(naked) ai_check_drugs_hack_use() {
 		jge  beginLoop;
 		retn;                              // use drug
 beginLoop:
-		cmp  firsItemDrug, -1;
+		cmp  firstItemDrug, -1;
 		jnz  skip;
-		mov  firsItemDrug, edi;            // keep drugs item
+		mov  firstItemDrug, edi;           // keep drug item
 skip:
 		add  esp, 4;
 		jmp  ai_check_drugs_hack_Loop;     // goto begin loop
@@ -1849,7 +1851,7 @@ static void __declspec(naked) config_get_values_hack() {
 		mov eax, [esp + 0x100];
 		cmp [eax], 0;                      // check char
 		jz  getFail;
-		mov eax, dword ptr [esp + 0x114];  // total values
+		mov eax, dword ptr [esp + 0x114];  // total num of values
 		sub eax, ebp;
 		cmp eax, 1;
 		ja  getFail;
@@ -1896,7 +1898,7 @@ end:
 
 static void __declspec(naked) op_use_obj_on_obj_hack() {
 	__asm {
-		test eax, eax;                 // source
+		test eax, eax; // source
 		jz   fail;
 		mov  edx, [eax + protoId];
 		shr  edx, 24;
@@ -1914,7 +1916,7 @@ fail:
 
 static void __declspec(naked) op_use_obj_hack() {
 	__asm {
-		test eax, eax;      // source
+		test eax, eax; // source
 		jz   fail;
 		mov  edx, [eax + protoId];
 		shr  edx, 24;
@@ -1926,8 +1928,8 @@ fail:
 	}
 }
 
-static const DWORD combat_end  = 0x422E45;
-static const DWORD combat_load = 0x422E91;
+static const DWORD combat_End = 0x422E45;
+static const DWORD combat_Load = 0x422E91;
 static void __declspec(naked) combat_hack_load() {
 	__asm {
 		cmp eax, -1;
@@ -1937,9 +1939,9 @@ skip:
 		add esp, 4; // destroy addr
 		cmp ds:[FO_VAR_combat_end_due_to_load], 0;
 		jnz isLoad;
-		jmp combat_end;
+		jmp combat_End;
 isLoad:
-		jmp combat_load;
+		jmp combat_Load;
 	}
 }
 
@@ -1961,7 +1963,7 @@ fix:
 		mov  edx, [esi + ammoPid];
 		test edx, edx;
 		js   skip;
-		mov  eax, GUNS; // set GUNS if have ammo pid
+		mov  eax, GUNS; // set GUNS if has ammo pid
 skip:
 		retn;
 	}
@@ -2415,7 +2417,7 @@ void BugFixes::init()
 	MakeCall(0x471A94, use_inventory_on_hack);
 
 	// Fix for Sequence stat value not being printed correctly when using "print to file" option
-	MakeJump(0x4396F5, Save_as_ASCII_hack);
+	MakeCall(0x4396F5, Save_as_ASCII_hack, 2);
 
 	// Fix for Bonus Move APs being replenished when you save and load the game in combat
 	//if (GetConfigInt("Misc", "BonusMoveFix", 1)) {
@@ -2440,7 +2442,7 @@ void BugFixes::init()
 	//}
 
 	// Fix crash when calling partyMemberGetCurLevel_ on a critter that has no data in party.txt
-	MakeJump(0x495FF6, partyMemberGetCurLevel_hack);
+	MakeCall(0x495FF6, partyMemberGetCurLevel_hack, 1);
 
 	// Fix for player's base EMP DR not being properly initialized when creating a new character and then starting the game
 	HookCall(0x4A22DF, ResetPlayer_hook);
@@ -2461,7 +2463,7 @@ void BugFixes::init()
 	MakeJump(0x424BA2, compute_damage_hack);
 	dlogr(" Done", DL_INIT);
 
-	// Fix missing AC/DR mod stats when examining ammo in barter screen
+	// Fix missing AC/DR mod stats when examining ammo in the barter screen
 	dlog("Applying fix for displaying ammo stats in barter screen.", DL_INIT);
 	MakeCalls(obj_examine_func_hack_ammo0, {0x49B4AD, 0x49B504});
 	SafeWrite16(0x49B4B2, 0x9090);
@@ -2469,7 +2471,7 @@ void BugFixes::init()
 	MakeCall(0x49B563, obj_examine_func_hack_ammo1, 2);
 	dlogr(" Done", DL_INIT);
 
-	// Display full item description for weapon/ammo in barter screen
+	// Display full item description for weapon/ammo in the barter screen
 	showItemDescription = (GetConfigInt("Misc", "FullItemDescInBarter", 0) != 0);
 	if (showItemDescription) {
 		dlog("Applying full item description in barter patch.", DL_INIT);
@@ -2519,12 +2521,12 @@ void BugFixes::init()
 		dlogr(" Done", DL_INIT);
 	}
 
-	// Fix of the display of the description of the encounter, when two lines were displayed instead of one (Crafty)
+	// Fix for the encounter description being displayed in two lines instead of one
 	SafeWrite32(0x4C1011, 0x9090C789); // mov edi, eax;
 	SafeWrite8(0x4C1015, 0x90);
 	HookCall(0x4C1042, wmSetupRandomEncounter_hook);
 
-	// Fix the inability to sell/transfer items in barter when the dude/party member does not have enough place in inventory
+	// Fix for unable to sell/give items in the barter screen when the player/party member is overloaded
 	HookCalls(barter_attempt_transaction_hook_weight, {0x474C73, 0x474CCA});
 
 	// Fix item_count function returning incorrect value when there is a container-item inside
@@ -2537,7 +2539,7 @@ void BugFixes::init()
 	SafeWrite32(0x471E48, 140);
 
 	// Fix the exploit of skill points when getting a perk Tag
-	dlog("Applying fix the exploit of skill points from perk Tag.", DL_INIT);
+	dlog("Applying fix for Tag! exploit.", DL_INIT);
 	HookCall(0x43B463, SliderBtn_hook_down);
 	HookCall(0x43D7DD, Add4thTagSkill_hook);
 	dlogr(" Done", DL_INIT);
@@ -2550,7 +2552,7 @@ void BugFixes::init()
 
 	// Fix argument 'mood' for opcode start_gdialog, the argument value for the talking head was not taken into account
 	if (GetConfigInt("Misc", "StartGDialogFix", 0)) {
-		dlog("Applying argument fix for the opcode start_gdialog.", DL_INIT);
+		dlog("Applying start_gdialog argument fix.", DL_INIT);
 		MakeCall(0x456F08, op_start_gdialog_hack);
 		dlogr(" Done", DL_INIT);
 	}
@@ -2565,10 +2567,10 @@ void BugFixes::init()
 	HookCall(0x478AD9, item_w_range_hook);
 	dlogr(" Done", DL_INIT);
 
-	// Fix determine_to_hit_func_ don't consider distance for calculate hit chance when using the 'no_range' flag
+	// Fix for determine_to_hit_func_ engine function taking distance into account when called from determine_to_hit_no_range_
 	HookCall(0x4244C3, determine_to_hit_func_hook);
 
-	// Show pop-up messages box about death from radiation
+	// Display a pop-up messages box about death from radiation
 	HookCall(0x42D733, process_rads_hook);
 
 	// Fix the priority of drugs use for the NPC
@@ -2585,18 +2587,18 @@ void BugFixes::init()
 	// Fix getting values (for chem_primary_desire), the function could not get the values, if the config was set to less than the required values
 	MakeJump(0x42C12C, config_get_values_hack);
 
-	// Fix returned result value, when the readable file is missing
+	// Fix returned result value when the file is missing
 	HookCall(0x4C6162, db_freadInt_hook);
 
 	// Fixes the unused arguments called_shot/num_attack of the attack_complex function, also changes the behavior for the flags arguments
 	// called_shot - additional damage, num_attack - bonus to action points
 	// flag_attacker - not used, must be 0, or not equal to the flag_target argument when want to specify flags for the target
 	if (GetConfigInt("Misc", "AttackComplexFix", 0)) {
-		dlog("Applying attack_complex script function fix.", DL_INIT);
+		dlog("Applying attack_complex fix.", DL_INIT);
 		HookCall(0x456D4A, op_attack_hook);
 		SafeWrite8(0x456D61, 0x74); // mov [esp+x], esi
 		SafeWrite8(0x456D92, 0x5C); // mov [esp+x], ebx
-		SafeWrite8(0x456D98, 0x94); // setnz > setz (fix set result flags)
+		SafeWrite8(0x456D98, 0x94); // setnz > setz (fix setting result flags)
 		dlogr(" Done", DL_INIT);
 	}
 
@@ -2613,10 +2615,10 @@ void BugFixes::init()
 	MakeCall(0x45C376, op_use_obj_on_obj_hack, 1);
 	MakeCall(0x456A92, op_use_obj_hack, 1);
 
-	// Fix script functions pickup_obj/drop_obj/use_obj, change get pointer from script.target to script.self
-	// script.target - contains a wrong pointer, which may vary depending on the situations in the game
-	dlog("Applying pickup_obj/drop_obj/use_obj script functions fix.", DL_INIT);
-	SafeWriteBatch<BYTE>(0x34, {
+	// Fix pickup_obj/drop_obj/use_obj functions, change them to get pointer from script.self instead of script.target
+	// script.target contains an incorrect pointer, which may vary depending on the situations in the game
+	dlog("Applying pickup_obj/drop_obj/use_obj fix.", DL_INIT);
+	SafeWriteBatch<BYTE>(0x34, { // script.target > script.self
 		0x456554, // op_pickup_obj_
 		0x456600, // op_drop_obj_
 		0x456A6D, // op_use_obj_
@@ -2624,16 +2626,16 @@ void BugFixes::init()
 	});
 	dlogr(" Done", DL_INIT);
 
-	// Fix the critters do not attack a player in combat when loading savegame, if the game was saved in combat mode
+	// Fix for critters not attacking the player in combat when loading a game saved in combat mode
 	BlockCall(0x48D6F0); // obj_fix_combat_cid_for_dude_
 
-	// Fix missed combat turn by the player when loading savegame in combat mode
+	// Fix for the player's turn being skipped when loading a game saved in combat mode
 	MakeCall(0x422E25, combat_hack_load);
 
-	// Fix the emerging of the item image (reserved.frm) in the top left corner when the loot/barter interface is open
+	// Fix for the reserved item FRM being displayed in the top-left corner when in the loot/barter screens
 	HookCalls(JesseContainerFid, {0x473AC9, 0x475895});
 
-	// Fix the return value of the has_skill function for the wrong skill number
+	// Fix the return value of has_skill function for incorrect skill numbers
 	SafeWrite32(0x4AA56B, 0);
 
 	// Fix reloading of melee/unarmed weapons when the NPC has no ammo
@@ -2649,7 +2651,7 @@ void BugFixes::init()
 	// also fix a non-initializing zero value of a local variable to correct time remove corpses and blood
 	SafeWrite32(0x4832A4, 0x0C245489); // mov [esp + var_30], edx
 
-	// Fix the destroy of the party member corpse when loading the map
+	// Fix for the removal of party member's corpse when loading the map
 	HookCall(0x4957B8, partyFixMultipleMembers_hook);
 
 	// Fix for unexplored areas being revealed on the automap when entering a map
@@ -2665,7 +2667,7 @@ void BugFixes::init()
 	// Fix "out of bounds" bug when printing the automap list
 	HookCall(0x499240, PrintAMList_hook);
 
-	// Fix creation of a duplicate obj_dude script for player when loading a saved game
+	// Fix for a duplicate obj_dude script being created when loading a saved game
 	HookCall(0x48D63E, obj_load_dude_hook0);
 	HookCall(0x48D666, obj_load_dude_hook1);
 	BlockCall(0x48D675);
@@ -2675,9 +2677,8 @@ void BugFixes::init()
 	MakeCall(0x4A4926, exec_script_proc_hack);
 	MakeCall(0x4A4979, exec_script_proc_hack1);
 
-	// Fix argument value for dialogue_reaction script function
+	// Fix the argument value of dialogue_reaction function
 	HookCall(0x456FFA, op_dialogue_reaction_hook);
 }
-
 
 }

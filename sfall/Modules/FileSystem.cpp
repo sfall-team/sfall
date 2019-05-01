@@ -467,7 +467,7 @@ static void FileSystemLoad() {
 	}
 }
 
-static const DWORD LoadHookRetAddr=0x47CCEE;
+static const DWORD LoadHookRetAddr = 0x47CCEE;
 static void __declspec(naked) FSLoadHook() {
 	__asm {
 		pushadc;
@@ -493,7 +493,7 @@ static void FileSystemInit() {
 	HookCall(0x4C5FF4, asm_xfungetc);
 
 	HookCalls(asm_xfread, {0x4C5E5C, 0x4C5E8A, 0x4C5E9E, 0x4C603D, 0x4C6076, 0x4C60AA});
-	HookCall(0x4C6162, asm_xfread_fix); // with fixed bug from BugFixes.cpp
+	HookCall(0x4C6162, asm_xfread_fix); // with bug fix from BugFixes.cpp
 
 	HookCall(0x4C60B8, asm_xfwrite);
 	HookCall(0x4C60C0, asm_xfseek);

@@ -81,10 +81,11 @@ static void TimerReset() {
 	// fix queue time
 	fo::Queue* queue = (fo::Queue*)fo::var::queue;
 	while (queue) {
-		if (queue->time > time)
+		if (queue->time > time) {
 			queue->time -= time;
-		else
+		} else {
 			queue->time = 0;
+		}
 		queue = queue->next;
 	}
 	_asm pop ecx;
@@ -141,7 +142,7 @@ run:
 	}
 }
 
-static void __stdcall WorldmapLoop_Hook() {
+static void __stdcall WorldmapLoopHook() {
 	onWorldmapLoop.invoke();
 }
 
@@ -152,7 +153,7 @@ static void __declspec(naked) WorldMapFpsPatch() {
 		mov  esi, worldMapTicks;
 		mov  ebx, esi;                // previous ticks
 loopDelay:
-		call WorldmapLoop_Hook;
+		call WorldmapLoopHook;
 		call fo::funcoffs::process_bk_;
 subLoop:
 		call ds:[sf_GetTickCount]; // current ticks
@@ -178,7 +179,7 @@ static void __declspec(naked) WorldMapFpsPatch2() {
 		mov  esi, worldMapTicks;
 		mov  ebx, esi;
 loopDelay:
-		call WorldmapLoop_Hook;
+		call WorldmapLoopHook;
 subLoop:
 		call ds:[sf_GetTickCount]; // current ticks
 		mov  edx, eax;
@@ -199,7 +200,7 @@ subLoop:
 static void __declspec(naked) wmWorldMap_hook() {
 	__asm {
 		pushadc;
-		call WorldmapLoop_Hook;
+		call WorldmapLoopHook;
 		popadc;
 		jmp  fo::funcoffs::get_input_;
 	}
@@ -234,9 +235,9 @@ static void __declspec(naked) ViewportHook() {
 static void __declspec(naked) wmTownMapFunc_hack() {
 	__asm {
 		cmp  dword ptr [edi][eax * 4 + 0], 0;  // Visited
-		je   end
+		je   end;
 		cmp  dword ptr [edi][eax * 4 + 4], -1; // Xpos
-		je   end
+		je   end;
 		cmp  dword ptr [edi][eax * 4 + 8], -1; // Ypos
 		je   end;
 		// engine code
@@ -386,9 +387,9 @@ void WorldLimitsPatches() {
 		dlog("Applying world map slots patch.", DL_INIT);
 		if (wmSlots < 7) wmSlots = 7;
 		mapSlotsScrollMax = (wmSlots - 7) * 27;
-		if (wmSlots < 25)
+		if (wmSlots < 25) {
 			SafeWrite32(0x4C21FD, 230 - (wmSlots - 17) * 27);
-		else {
+		} else {
 			SafeWrite8(0x4C21FC, 0xC2); // sub > add
 			SafeWrite32(0x4C21FD, 2 + 27 * (wmSlots - 26));
 		}
@@ -467,7 +468,7 @@ void WorldmapFpsPatch() {
 
 void PathfinderFixInit() {
 	//if(GetConfigInt("Misc", "PathfinderFix", 0)) {
-	dlog("Applying pathfinder patch.", DL_INIT);
+	dlog("Applying Pathfinder patch.", DL_INIT);
 	SafeWrite16(0x4C1FF6, 0x9090);     //wmPartyWalkingStep_
 	HookCall(0x4C1C78, PathfinderFix); //wmGameTimeIncrement_
 	mapMultiMod = (double)GetConfigInt("Misc", "WorldMapTimeMod", 100) / 100.0;
@@ -533,7 +534,7 @@ void WorldMapFontPatch() {
 	}
 }
 
-void PipBoyAutoMapsPatch() {
+void PipBoyAutomapsPatch() {
 	//if (GetConfigInt("Misc", "PipBoyAutomap", 0)) {
 		dlog("Applying Pip-Boy automaps patch.", DL_INIT);
 		MakeCall(0x4BF931, wmMapInit_hack, 2);
@@ -662,7 +663,7 @@ void Worldmap::init() {
 	WorldLimitsPatches();
 	WorldmapFpsPatch();
 	WorldMapFontPatch();
-	PipBoyAutoMapsPatch();
+	PipBoyAutomapsPatch();
 
 	LoadGameHook::OnGameReset() += []() {
 		SetCarInterfaceArt(433); // set index

@@ -84,7 +84,7 @@ static void __declspec(naked) combat_check_bad_shot_hook() {
 	}
 }
 
-// check if there are enough ammo for the shot
+// check if there is enough ammo to shoot
 static void __declspec(naked) ai_search_inven_weap_hook() {
 	using namespace fo;
 	__asm {
@@ -97,7 +97,7 @@ static void __declspec(naked) ai_search_inven_weap_hook() {
 	}
 }
 
-// switching weapon mode from secondary to primary if there are not enough ammo to shoot
+// switch weapon mode from secondary to primary if there is not enough ammo to shoot
 static const DWORD ai_try_attack_search_ammo = 0x42AA1E;
 static const DWORD ai_try_attack_continue = 0x42A929;
 static void __declspec(naked) ai_try_attack_hook() {
@@ -182,7 +182,7 @@ static void __declspec(naked) compute_damage_hack() {
 		push eax;               // Attacker
 		mov  eax, [esi + 8];
 		push eax;               // Weapon
-		call CalcKnockbackMod;  // ecx - Knockback value (5\10), edx - Damage
+		call CalcKnockbackMod;  // ecx - Knockback value (5 or 10), edx - Damage
 		retn;
 	}
 }
@@ -215,7 +215,7 @@ static int _fastcall HitChanceMod(int base, fo::GameObject* critter) {
 static void __declspec(naked) determine_to_hit_func_hack() {
 	__asm {
 		mov  edx, edi;          // critter
-		mov  ecx, esi;          // base (calculate hit)
+		mov  ecx, esi;          // base (calculated hit chance)
 		call HitChanceMod;
 		mov  esi, eax;
 		retn;
@@ -258,7 +258,8 @@ void _stdcall KnockbackSetMod(fo::GameObject* object, DWORD type, float val, DWO
 	case 2:
 		mods = &mAttackers;
 		break;
-	default: return;
+	default:
+		return;
 	}
 
 	long id = (mode == 0)

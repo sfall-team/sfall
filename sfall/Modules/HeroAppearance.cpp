@@ -193,8 +193,9 @@ UnlistedFrm *LoadUnlistedFrm(char *frmName, unsigned int folderRef) {
 					}
 				}
 				oriOffset_new += frm->numFrames;
-			} else
+			} else {
 				frm->oriOffset[ori] = 0;
+			}
 		}
 
 		fo::func::db_fclose(frmStream);
@@ -360,8 +361,9 @@ static _declspec(noinline) int _stdcall LoadHeroDat(unsigned int race, unsigned 
 		if (result != INVALID_FILE_ATTRIBUTES && !(result & FILE_ATTRIBUTE_DIRECTORY)) { // check if Dat exists for selected race base appearance
 			racePathPtr->pDat = LoadDat(racePathPtr->path);
 			racePathPtr->isDat = 1;
-		} else
+		} else {
 			sprintf_s(racePathPtr->path, 64, appearancePathFmt, sex, race, 0, "");
+		}
 
 		if (GetFileAttributes(racePathPtr->path) != INVALID_FILE_ATTRIBUTES) { // check if folder/Dat exists for selected race base appearance
 			heroPathPtr->next = racePathPtr; // set path for selected race base appearance
@@ -475,7 +477,7 @@ endFunc:
 	}
 }
 
-// Creating a duplicate list of critter names at the end with an additional '_' character at the beginning of its name
+// create a duplicate list of critter names at the end with an additional '_' character at the beginning of its name
 static long _stdcall AddHeroCritNames() { // art_init_
 	auto &critterArt = fo::var::art[fo::OBJ_TYPE_CRITTER];
 	critterListSize = critterArt.total / 2;
@@ -588,12 +590,13 @@ void _stdcall SetHeroRace(int newRaceVal) {
 
 	if (!HeroAppearance::appModEnabled || newRaceVal == currentRaceVal) return;
 
-	if (LoadHeroDat(newRaceVal, 0, true) != 0) {           // if new race fails with style at 0
+	if (LoadHeroDat(newRaceVal, 0, true) != 0) {          // if new race fails with style at 0
 		if (newRaceVal == 0) {
 			currentRaceVal = 0;
-			currentStyleVal = 0;                           // ignore if appearance = default
-		} else
-			LoadHeroDat(currentRaceVal, currentStyleVal);  // reload original race & style
+			currentStyleVal = 0;                          // ignore if appearance = default
+		} else {
+			LoadHeroDat(currentRaceVal, currentStyleVal); // reload original race & style
+		}
 	} else {
 		currentRaceVal = newRaceVal;
 		currentStyleVal = 0;
@@ -726,7 +729,7 @@ static void DrawCharNote(bool style, int winRef, DWORD xPosWin, DWORD yPosWin, B
 
 	UnlistedFrm *frm = LoadUnlistedFrm((style) ? "AppStyle.frm" : "AppRace.frm", fo::OBJ_TYPE_SKILLDEX);
 	if (frm) {
-		sub_draw(frm->frames[0].width, frm->frames[0].height, frm->frames[0].width, frm->frames[0].height, 0, 0, frm->frames[0].indexBuff, 280, 168, 136, 37, PadSurface, 0); //cover buttons pics bottom
+		sub_draw(frm->frames[0].width, frm->frames[0].height, frm->frames[0].width, frm->frames[0].height, 0, 0, frm->frames[0].indexBuff, 280, 168, 136, 37, PadSurface, 0); // cover buttons pics bottom
 		delete frm;
 	}
 
@@ -797,7 +800,7 @@ void _stdcall HeroSelectWindow(int raceStyleFlag) {
 
 	UnlistedFrm *frm = LoadUnlistedFrm("AppHeroWin.frm", fo::OBJ_TYPE_INTRFACE);
 	if (frm == nullptr) {
-		fo::func::debug_printf("\nApperanceMod: Not found art\\intrface\\AppHeroWin.frm file.");
+		fo::func::debug_printf("\nApperanceMod: art\\intrface\\AppHeroWin.frm file not found.");
 		return;
 	}
 
@@ -935,8 +938,9 @@ void _stdcall HeroSelectWindow(int raceStyleFlag) {
 				if (LoadHeroDat(raceVal, styleVal, true) != 0) {
 					styleVal--;
 					LoadHeroDat(raceVal, styleVal);
-				} else
+				} else {
 					drawFlag = true;
+				}
 			} else { // Race
 				raceVal++;
 				if (LoadHeroDat(raceVal, 0, true) != 0) {
@@ -1051,13 +1055,13 @@ static int _stdcall CheckCharButtons() {
 		case 0x1F6: // button cancel
 		case 'c':   // button cancel
 		case 'C':   // button cancel
-			fo::var::info_line += 2;  // 0x503/0x504 for redrawing note when reentering char screen
+			fo::var::info_line += 2; // 0x503/0x504 for redrawing note when reentering char screen
 			break;
 		}
 	}
 
 	switch (button) {
-	case 0x9:   // tab button pushed
+	case 0x9: // tab button pushed
 		if (infoLine < 0x3D || infoLine >= 0x4F) { // if menu ref in last menu go to race
 			break;
 		}
@@ -1118,8 +1122,9 @@ static int _stdcall CheckCharButtons() {
 			currentStyleVal--;
 			LoadHeroDat(currentRaceVal, currentStyleVal);
 			drawFlag = 4;
-		} else
+		} else {
 			drawFlag = 0;
+		}
 		break;
 	}
 
@@ -1516,7 +1521,7 @@ static void EnableHeroAppearanceMod() {
 	MakeCall(0x4DEEE5, LoadNewHeroArt, 1);
 
 	// Divert critter frm file name function exit for file checking (art_get_name_)
-	SafeWrite8(0x419520, 0xEB);  // divert func exit
+	SafeWrite8(0x419520, 0xEB); // divert func exit
 	SafeWrite32(0x419521, 0x9090903E);
 
 	// Check if new hero art exists otherwise use regular art (art_get_name_)

@@ -37,7 +37,7 @@ bool isControllingNPC = false;
 bool skipCounterAnim  = false;
 
 static int delayedExperience;
-static bool switchHandHookIsInject = false;
+static bool switchHandHookInjected = false;
 
 static struct DudeState {
 	fo::GameObject* obj_dude = nullptr;
@@ -284,8 +284,8 @@ void PartyControl::SwitchToCritter(fo::GameObject* critter) {
 	}
 	if (critter != nullptr && critter != realDude.obj_dude) {
 		SetCurrentDude(critter);
-		if (switchHandHookIsInject) return;
-		switchHandHookIsInject = true;
+		if (switchHandHookInjected) return;
+		switchHandHookInjected = true;
 		if (!HookScripts::IsInjectHook(HOOK_INVENTORYMOVE)) Inject_SwitchHandHook();
 	}
 }

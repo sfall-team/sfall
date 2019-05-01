@@ -175,6 +175,7 @@ static void __declspec(naked) GetLevelXPHook() {
 		retn;
 	}
 }
+
 static void __declspec(naked) GetNextLevelXPHook() {
 	__asm {
 		mov eax, ds:[FO_VAR_Level_];
@@ -211,7 +212,7 @@ static void _stdcall StatRecalcDerived(fo::GameObject* critter) {
 	for (int stat = fo::Stat::STAT_st; stat <= fo::Stat::STAT_lu; stat++) baseStats[stat] = fo::func::stat_level(critter, stat);
 
 	long* proto = GetProto(critter);
-	if (!proto)	fo::func::proto_ptr(critter->protoId, (fo::Proto**)&proto);
+	if (!proto) fo::func::proto_ptr(critter->protoId, (fo::Proto**)&proto);
 
 	for (int i = fo::Stat::STAT_max_hit_points; i <= fo::Stat::STAT_poison_resist; i++) {
 		if (i >= fo::Stat::STAT_dmg_thresh && i <= fo::Stat::STAT_dmg_resist_explosion) continue;
@@ -498,14 +499,14 @@ long Stats::SetProtoData(long pid, long offset, long amount) {
 	return result;
 }
 
-// get_critter_*_stat - gets stats from an individuals prototype or from a default prototype
+// get_critter_*_stat - gets stats from an individual's prototype or from a default prototype
 long Stats::GetStat(fo::GameObject* critter, long stat, long offset) {
 	long* proto = GetProto(critter);
 	if (proto == nullptr) fo::func::proto_ptr(critter->protoId, (fo::Proto**)&proto);
 	return (proto) ? GetStatValue(proto, stat + offset) : 0; // direct get
 }
 
-// set_critter_*_stat - sets stats to an individuals critter prototype
+// set_critter_*_stat - sets stats to an individual's critter prototype
 void Stats::SetStat(fo::GameObject* critter, long stat, long amount, long offset) {
 	long* proto;
 	if (fo::func::proto_ptr(critter->protoId, (fo::Proto**)&proto) != -1) {

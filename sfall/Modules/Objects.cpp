@@ -14,7 +14,7 @@ long Objects::uniqueID = UniqueID::Start; // current counter id, saving to sfall
 
 // Assigns a new unique identifier to an object if it has not been previously assigned
 // the identifier is saved with the object in the saved game and this can used in various script
-// player have ID = 18000, all party members have ID = 18000 + its pid (number file of prototype)
+// player ID = 18000, all party members have ID = 18000 + its pid (file number of prototype)
 long Objects::SetObjectUniqueID(fo::GameObject* obj) {
 	long id = obj->id;
 	if (id > UniqueID::Start || obj == fo::var::obj_dude || (id >= 18000 && id < 83536)) return id; // 65535 maximum possible number of prototypes
@@ -120,7 +120,7 @@ void Objects::init() {
 	int maxlimit = GetConfigInt("Misc", "LoadProtoMaxLimit", -1);
 	if (maxlimit != -1) {
 		maxCountProto = -1;
-		if (maxlimit >= 512) {
+		if (maxlimit > 512) {
 			if (maxlimit > 4096) maxlimit = 4096;
 			SafeWrite32(0x4A21B3, maxlimit);
 		}

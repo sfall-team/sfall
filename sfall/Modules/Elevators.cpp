@@ -45,7 +45,7 @@ static void __declspec(naked) GetMenuHook() {
 }
 
 static void __declspec(naked) CheckHotKeysHook() {
-	__asm {		
+	__asm {
 		cmp  eax, vanillaElevatorCount;
 		jge  skip; // skip hotkeys data
 		push ebx;
@@ -165,9 +165,10 @@ void ElevatorsInit() {
 void Elevators::init() {
 	auto elevPath = GetConfigString("Misc", "ElevatorsFile", "", MAX_PATH);
 	if (!elevPath.empty()) {
-		dlogr("Applying elevator patch.", DL_INIT);
+		dlog("Applying elevator patch.", DL_INIT);
 		ElevatorsInit();
 		LoadElevators(elevPath.insert(0, ".\\").c_str());
+		dlogr(" Done", DL_INIT);
 	}
 }
 

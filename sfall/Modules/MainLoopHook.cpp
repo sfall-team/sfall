@@ -62,8 +62,8 @@ static void __declspec(naked) AfterCombatAttackHook() {
 }
 
 void MainLoopHook::init() {
-	HookCall(0x480E7B, MainGameLoopHook);         // hook the main game loop
-	HookCall(0x422845, CombatLoopHook);           // hook the combat loop
+	HookCall(0x480E7B, MainGameLoopHook);       // hook the main game loop
+	HookCall(0x422845, CombatLoopHook);         // hook the combat loop
 	MakeCall(0x4230D5, AfterCombatAttackHook);
 }
 

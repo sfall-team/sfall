@@ -685,9 +685,9 @@ void DontTurnOffSneakIfYouRunPatch() {
 void CombatProcFix() {
 	//Ray's combat_p_proc fix
 	dlog("Applying combat_p_proc fix.", DL_INIT);
-	SafeWrite32(0x0425253, ((DWORD)&Combat_p_procFix) - 0x0425257);
-	SafeWrite8(0x0424dbc, 0xE9);
-	SafeWrite32(0x0424dbd, 0x00000034);
+	HookCall(0x425252, Combat_p_procFix);
+	SafeWrite8(0x424DBC, 0xE9);
+	SafeWrite32(0x424DBD, 0x00000034);
 	dlogr(" Done", DL_INIT);
 }
 
@@ -753,7 +753,6 @@ void EncounterTableSizePatch() {
 		for (int i = 0; i < sizeof(EncounterTableSize) / 4; i++) {
 			SafeWrite32(EncounterTableSize[i], nsize);
 		}
-		SafeWrite8(0x4BDB17, (BYTE)tableSize);
 		dlogr(" Done", DL_INIT);
 	}
 }
@@ -804,11 +803,11 @@ void AlwaysReloadMsgs() {
 	}
 }
 
-void RemoveWindowRoundingPatch() { // TODO: Узнать для чего конкретно предназначалась эта опция (удалено из ddraw.ini)
+/*void RemoveWindowRoundingPatch() { // TODO: Узнать для чего конкретно предназначалась эта опция (удалено из ddraw.ini)
 	if(GetConfigInt("Misc", "RemoveWindowRounding", 0)) {
 		SafeWrite16(0x4B8090, 0x04EB);            // jmps 0x4B8096
 	}
-}
+}*/
 
 void InventoryCharacterRotationSpeedPatch() {
 	DWORD setting = GetConfigInt("Misc", "SpeedInventoryPCRotation", 166);
@@ -896,7 +895,7 @@ void PartyMemberSkillPatch() {
 	// but the engine function is not implemented completely so using this fix without overriding the Doctor/First-Aid
 	// functions in the global script is impractical, so this should be disabled by default
 	if (GetConfigInt("Misc", "PartyMemberSkillFix", 0) != 0) {
-		dlog("Applying party member using skill Doctor/First-Aid patch.", DL_INIT);
+		dlog("Applying party member using First Aid/Doctor skill patch.", DL_INIT);
 		HookCall(0x412836, action_use_skill_on_hook);
 		dlogr(" Done", DL_INIT);
 	}
@@ -905,10 +904,10 @@ void PartyMemberSkillPatch() {
 	SafeWrite16(0x4128F7, 0xFE39); // cmp esi, _obj_dude to cmp esi, edi
 }
 
-void DisableLoadingGameSettingPatch() {
+void SkipLoadingGameSettingsPatch() {
 	int skipLoading = GetConfigInt("Misc", "SkipLoadingGameSetting", 0);
 	if (skipLoading) {
-		dlog("Applying skip game settings when loading a saved game patch.", DL_INIT);
+		dlog("Applying skip loading game settings from a saved game patch.", DL_INIT);
 		BlockCall(0x493421);
 		SafeWrite8(0x4935A8, 0x1F);
 		SafeWrite32(0x4935AB, 0x90901B75);
@@ -997,6 +996,7 @@ void MiscPatches::init() {
 
 	int time = GetConfigInt("Misc", "CorpseDeleteTime", 6); // time in days
 	if (time != 6) {
+		dlog("Applying corpse deletion time patch.", DL_INIT);
 		if (time <= 0) {
 			time = 12; // hours
 		} else if (time > 13) {
@@ -1005,13 +1005,18 @@ void MiscPatches::init() {
 			time *= 24;
 		}
 		SafeWrite32(0x483348, time);
+		dlogr(" Done", DL_INIT);
 	}
 
 	int gvar = GetConfigInt("Misc", "SpecialDeathGVAR", fo::GVAR_MODOC_SHITTY_DEATH);
 	if (gvar != fo::GVAR_MODOC_SHITTY_DEATH) SafeWrite32(0x440C2A, gvar);
 
 	// Removal hardcoding for maps with indexes 19 and 37
-	if (GetConfigInt("Misc", "DisableSpecialMapIDs", 0)) SafeWriteBatch<BYTE>(0, {0x4836D6, 0x4836DB});
+	if (GetConfigInt("Misc", "DisableSpecialMapIDs", 0)) {
+		dlog("Applying disable special map IDs patch.", DL_INIT);
+		SafeWriteBatch<BYTE>(0, {0x4836D6, 0x4836DB});
+		dlogr(" Done", DL_INIT);
+	}
 
 	LoadGameHook::OnBeforeGameStart() += BodypartHitChances; // set on start & load
 
@@ -1025,7 +1030,7 @@ void MiscPatches::init() {
 	CorpseLineOfFireFix();
 
 	SkilldexImagesPatch();
-	RemoveWindowRoundingPatch();
+	//RemoveWindowRoundingPatch();
 
 	SpeedInterfaceCounterAnimsPatch();
 	ScienceOnCrittersPatch();
@@ -1059,7 +1064,7 @@ void MiscPatches::init() {
 
 	PartyMemberSkillPatch();
 
-	DisableLoadingGameSettingPatch();
+	SkipLoadingGameSettingsPatch();
 	InterfaceDontMoveOnTopPatch();
 
 	UseWalkDistancePatch();

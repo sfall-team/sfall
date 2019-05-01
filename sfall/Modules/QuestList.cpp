@@ -248,8 +248,7 @@ jbreak:
 
 static char bufPage[16];
 static const char* format = "%s %d %s %d";
-static void __declspec(naked) PrintPages()
-{
+static void __declspec(naked) PrintPages() {
 	__asm {
 		// total pages
 		mov  eax, total_quests_pages;
@@ -305,8 +304,7 @@ skip:
 	}
 }
 
-static DWORD __fastcall ActionButtons(register DWORD key)
-{
+static DWORD __fastcall ActionButtons(register DWORD key) {
 	buttonsPressed = false;
 	if (key == 0x300) { // up
 		if (curent_quest_page == 0) return -1;
@@ -330,8 +328,7 @@ static DWORD __fastcall ActionButtons(register DWORD key)
 	return -1;
 }
 
-static void __declspec(naked) pipboy_hack_action()
-{
+static void __declspec(naked) pipboy_hack_action() {
 	__asm {
 		test calledflag, 0xFF;
 		jz   skip;
@@ -352,7 +349,7 @@ skip:
 }
 
 static void RegisterButtonSoundFunc0() {
-	__asm { 
+	__asm {
 		mov  ebx, fo::funcoffs::gsound_red_butt_release_;
 		mov  edx, fo::funcoffs::gsound_red_butt_press_;
 		call fo::funcoffs::win_register_button_sound_func_;
@@ -397,7 +394,7 @@ static void __declspec(naked) StartPipboy_hack() {
 	if (questsButtonsType > 1) {
 		height = 23;
 		width = 22;
-		
+
 		indexUpArt0   = 54;
 		indexDownArt0 = 52;
 		indexUpArt1   = 53;
@@ -405,7 +402,7 @@ static void __declspec(naked) StartPipboy_hack() {
 	} else {
 		height = 14;
 		width = 11;
-		
+
 		indexUpArt0   = 181;
 		indexDownArt0 = 182;
 		indexUpArt1   = 199;
@@ -427,11 +424,11 @@ static void __declspec(naked) StartPipboy_hack() {
 
 	// creating new 2 buttons
 	picDown = (BYTE*)fo::var::optionsButtonDown1;
-	picUp   = (BYTE*)fo::var::optionsButtonUp1;	
+	picUp   = (BYTE*)fo::var::optionsButtonUp1;
 	if (fo::func::win_register_button(winRef, xPos, yPos, width, height, -1, -1, -1, 0x300, picUp,  picDown, 0, 32) != -1) {
 		RegisterButtonSoundFunc0();
 	}
-	
+
 	picDown = (BYTE*)fo::var::optionsButtonDown;
 	picUp   = (BYTE*)fo::var::optionsButtonUp;
 	if (fo::func::win_register_button(winRef, xPos, yPos + height, width, height, -1, -1, -1, 0x301, picUp,  picDown, 0, 32) != -1) {
@@ -482,7 +479,7 @@ void QuestListPatch() {
 void QuestList::init() {
 	questsButtonsType = GetConfigInt("Misc", "UseScrollingQuestsList", 0);
 	if (questsButtonsType > 0) {
-		dlog("Applying quests list patch ", DL_INIT);
+		dlog("Applying quests list patch.", DL_INIT);
 		QuestListPatch();
 
 		questsScrollButtonsX = GetConfigInt("Misc", "QuestsScrollButtonsX", 140);

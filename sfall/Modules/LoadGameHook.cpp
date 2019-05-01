@@ -192,7 +192,7 @@ static void __declspec(naked) SaveGame_hook() {
 		call CombatSaveTest;
 		test eax, eax;
 		pop  edx; // recall Mode parameter (pop eax)
-		jz end;
+		jz   end;
 		push edx;
 		_InLoop2(1, SAVEGAME);
 		pop  eax;
@@ -250,7 +250,7 @@ static bool LoadGame_Before() {
 /////////////////////////////////////////////////
 errorLoad:
 	CloseHandle(h);
-	dlog_f(" Error data reading: %s file\n", DL_MAIN, buf);
+	dlog_f(" ERROR reading data: %s\n", DL_MAIN, buf);
 	return (true & !isDebug);
 }
 
@@ -576,7 +576,7 @@ static void __declspec(naked) BarterInventoryHook() {
 		push [esp + 4];
 		call fo::funcoffs::barter_inventory_;
 		_InLoop(0, BARTER);
-		call ResetBodyState;;
+		call ResetBodyState;
 		retn 4;
 	}
 }

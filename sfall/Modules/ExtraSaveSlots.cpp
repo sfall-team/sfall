@@ -86,7 +86,7 @@ static void __declspec(naked) load_page_offsets(void) {
 
 //------------------------------------------
 static void CreateButtons() {
-	register DWORD winRef = fo::var::lsgwin;
+	DWORD winRef = fo::var::lsgwin;
 
 	// left button -10                   | X | Y | W | H |HOn |HOff |BDown |BUp |PicUp |PicDown |? |ButType
 	fo::func::win_register_button(winRef, 100, 60, 24, 20, -1, 0x500, 0x54B, 0x14B, 0, 0, 0, 32);
@@ -111,7 +111,7 @@ static void __declspec(naked) create_page_buttons(void) {
 
 //------------------------------------------------------
 void SetPageNum() {
-	int winRef = fo::var::lsgwin; // load/save winref
+	DWORD winRef = fo::var::lsgwin; // load/save winref
 	if (winRef == 0) {
 		return;
 	}
@@ -217,7 +217,7 @@ static long __fastcall CheckPage(long button) {
 			break;
 		case 0x149:                        // fast left PGUP button
 			if (LSPageOffset < 100) {
-				LSPageOffset = 0;          // FirstPage
+				LSPageOffset = 0;          // First Page
 			} else {
 				LSPageOffset -= 100;
 			}
@@ -229,13 +229,13 @@ static long __fastcall CheckPage(long button) {
 			break;
 		case 0x151:                        // fast right PGDN button
 			if (LSPageOffset > 9890) {
-				LSPageOffset = 9990;       // LastPage
+				LSPageOffset = 9990;       // Last Page
 			} else {
 				LSPageOffset += 100;
 			}
 			_asm call fo::funcoffs::gsound_red_butt_press_;
 			break;
-		case 'p':                          // P/p button pressed
+		case 'p':                          // p/P button pressed - start SetPageNum func
 		case 'P':
 			SetPageNum();
 			break;
@@ -300,7 +300,7 @@ void DrawPageText() {
 
 	if (LSButtDN == 0x549) {
 		Colour = ConsoleGold;
-	} else { 
+	} else {
 		Colour = ConsoleGreen;
 	}
 	strcpy_s(TempText, 12, "<<");
@@ -448,7 +448,7 @@ static DWORD __stdcall QuickSaveGame(fo::DbFile* file, char* filename) {
 
 	unsigned int currSlot = fo::var::slot_cursor;
 
-	if (file) { // This slot is not empty 
+	if (file) { // This slot is not empty
 		fo::func::db_fclose(file);
 
 		FILETIME ftCurrSlot;
@@ -499,7 +499,7 @@ static void __declspec(naked) SaveGame_hack1() {
 }
 
 void ExtraSaveSlots::init() {
-	
+
 	bool extraSaveSlots = (GetConfigInt("Misc", "ExtraSaveSlots", 0) != 0);
 	if (extraSaveSlots) {
 		dlog("Running EnableSuperSaving()", DL_INIT);

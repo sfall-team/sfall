@@ -35,7 +35,7 @@ public:
 	static DWORD __stdcall adjust_fid_replacement();
 };
 
-void _stdcall SetInvenApCost(int);
-DWORD _stdcall sf_item_total_size(fo::GameObject*);
+void _stdcall SetInvenApCost(int cost);
+DWORD _stdcall sf_item_total_size(fo::GameObject* critter);
 
 }

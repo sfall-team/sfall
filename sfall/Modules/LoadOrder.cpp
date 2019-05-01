@@ -333,6 +333,7 @@ void LoadOrder::init() {
 		dlogr(" Done", DL_INIT);
 	}
 
+	dlog("Applying party member protos save/load patch.", DL_INIT);
 	savPrototypes.reserve(25);
 	HookCall(0x4A1CF2, proto_load_pid_hook);
 	HookCall(0x4A1BEE, proto_save_pid_hook);
@@ -344,6 +345,7 @@ void LoadOrder::init() {
 		savPrototypes.clear();
 		RemoveSavFiles();
 	};
+	dlogr(" Done", DL_INIT);
 }
 
 }

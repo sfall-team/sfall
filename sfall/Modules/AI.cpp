@@ -534,8 +534,8 @@ static void _stdcall CombatBlocked() {
 	fo::func::display_print(combatBlockedMessage.c_str());
 }
 
-static const DWORD BlockCombatHook1Ret1=0x45F6B4;
-static const DWORD BlockCombatHook1Ret2=0x45F6D7;
+static const DWORD BlockCombatHook1Ret1 = 0x45F6B4;
+static const DWORD BlockCombatHook1Ret2 = 0x45F6D7;
 static void __declspec(naked) BlockCombatHook1() {
 	__asm {
 		mov  eax, combatDisabled;

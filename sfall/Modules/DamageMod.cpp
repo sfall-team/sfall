@@ -282,13 +282,19 @@ void DamageMod::DamageYAAM(fo::ComputeAttackResult &ctd, DWORD* accumulatedDamag
 		rawDamage /= 100;                                   // Raw Damage = Raw Damage / 100
 
 		calcDT = armorDT - ammoDT;                          // DT = armor DT - ammo DT
-		if (calcDT < 0) calcDT *= 10;                       // DT = DT * 10 (note that this should be a negative value)
+		if (calcDT != 0) {
+			if (calcDT > 0) {                               // Is DT >= 0?
+				calcDT = 0;                                 // If yes, set DT = 0
+			} else {
+				calcDT *= 10;                               // Otherwise, DT = DT * 10 (note that this should be a negative value)
+			}
+		}
 
 		int calcDR = armorDR + calcDT;                      // DR = armor DR + DT (note that DT should be less than or equal to zero)
-		if (calcDR >= 100)
+		if (calcDR >= 100) {                                // Is DR >= 100?
 			continue;                                       // If yes, damage will be zero, so stop calculating and go to bottom of loop
-		else if (calcDR < 0) {
-			calcDR = 0;
+		} else if (calcDR < 0) {                            // Is DR >= 0?
+			calcDR = 0;                                     // If no, set DR = 0
 		}
 
 		int resistedDamage =  calcDR * rawDamage;           // Otherwise, Resisted Damage = DR * Raw Damage

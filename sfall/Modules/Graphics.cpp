@@ -313,7 +313,7 @@ static void ResetDevice(bool CreateNew) {
 
 	bool software = false;
 	if (CreateNew) {
-		dlog("Create d3d9Device...", DL_MAIN);
+		dlog("Creating D3D9 Device...", DL_MAIN);
 		if (FAILED(d3d9->CreateDevice(0, D3DDEVTYPE_HAL, window, D3DCREATE_PUREDEVICE | D3DCREATE_HARDWARE_VERTEXPROCESSING | D3DCREATE_MULTITHREADED | D3DCREATE_FPU_PRESERVE, &params, &d3d9Device))) {
 			software = true;
 			d3d9->CreateDevice(0, D3DDEVTYPE_HAL, window, D3DCREATE_SOFTWARE_VERTEXPROCESSING | D3DCREATE_MULTITHREADED | D3DCREATE_FPU_PRESERVE, &params, &d3d9Device);
@@ -609,7 +609,7 @@ void Graphics::SetHeadTex(IDirect3DTexture9* tex, int width, int height, int xof
 	size[1] = (float)height * rcpres[1];
 	gpuBltEffect->SetFloatArray(gpuBltHeadSize, size, 2);
 
-	// adjust position head texture for HRP 4.1.8
+	// adjust head texture position for HRP 4.1.8
 	int h = GetGameHeightRes();
 	if (h > 480) yoff += ((h - 480) / 2) - 47;
 	xoff += ((GetGameWidthRes() - 640) / 2);
@@ -642,7 +642,7 @@ public:
 		Refs = 1;
 	}
 
-// IUnknown methods
+	// IUnknown methods
 	HRESULT _stdcall QueryInterface(REFIID, LPVOID*) {
 		return E_NOINTERFACE;
 	}
@@ -997,7 +997,7 @@ public:
 	}
 
 	HRESULT _stdcall CreateSurface(LPDDSURFACEDESC a, LPDIRECTDRAWSURFACE* b, IUnknown* c) {
-		if(a->dwFlags == 1 && a->ddsCaps.dwCaps == DDSCAPS_PRIMARYSURFACE)
+		if (a->dwFlags == 1 && a->ddsCaps.dwCaps == DDSCAPS_PRIMARYSURFACE)
 			*b = (IDirectDrawSurface*)new FakeSurface2(true);
 		else
 			*b = (IDirectDrawSurface*)new FakeSurface2(false);
@@ -1026,7 +1026,7 @@ public:
 			ResetDevice(true);
 			CoInitialize(0);
 		}
-		dlog("Created d3d9 device window...", DL_MAIN);
+		dlog("Creating D3D9 Device window...", DL_MAIN);
 
 		if (Graphics::mode == 5) {
 			SetWindowLong(a, GWL_STYLE, WS_OVERLAPPED | WS_CAPTION | WS_BORDER);
@@ -1047,15 +1047,15 @@ public:
 		return DD_OK;
 	}
 
-	HRESULT _stdcall SetDisplayMode(DWORD, DWORD, DWORD) {	return DD_OK; }
+	HRESULT _stdcall SetDisplayMode(DWORD, DWORD, DWORD) { return DD_OK; }
 	HRESULT _stdcall WaitForVerticalBlank(DWORD, HANDLE) { UNUSEDFUNCTION; }
 };
 
 HRESULT _stdcall FakeDirectDrawCreate2_Init(void*, IDirectDraw** b, void*) {
-	dlog("Initialization Direct3D...", DL_MAIN);
+	dlog("Initializing Direct3D...", DL_MAIN);
 
 	ResWidth = *(DWORD*)0x4CAD6B;  // 640
-	ResHeight = *(DWORD*)0x4CAD66; // 460
+	ResHeight = *(DWORD*)0x4CAD66; // 480
 
 	if (!d3d9) {
 		d3d9 = Direct3DCreate9(D3D_SDK_VERSION);
@@ -1087,7 +1087,7 @@ HRESULT _stdcall FakeDirectDrawCreate2_Init(void*, IDirectDraw** b, void*) {
 	}
 	Graphics::GPUBlt = GetConfigInt("Graphics", "GPUBlt", 0);
 	if (!Graphics::GPUBlt || Graphics::GPUBlt > 2) Graphics::GPUBlt = 2; // Swap them around to keep compatibility with old ddraw.ini's
-	else if (Graphics::GPUBlt == 2) Graphics::GPUBlt = 0;                // Used CPU
+	else if (Graphics::GPUBlt == 2) Graphics::GPUBlt = 0;                // Use CPU
 
 	if (Graphics::mode == 5) {
 		ScrollWindowKey = GetConfigInt("Input", "WindowScrollKey", 0);
@@ -1103,9 +1103,9 @@ static double fadeMulti;
 static __declspec(naked) void palette_fade_to_hook() {
 	__asm {
 		push ebx; // _fade_steps
-		fild[esp];
+		fild [esp];
 		fmul fadeMulti;
-		fistp[esp];
+		fistp [esp];
 		pop  ebx;
 		jmp  fo::funcoffs::fadeSystemPalette_;
 	}
@@ -1117,7 +1117,7 @@ void Graphics::init() {
 		Graphics::mode = 0;
 	}
 	if (Graphics::mode) {
-		dlog("Applying dx9 graphics patch.", DL_INIT);
+		dlog("Applying DX9 graphics patch.", DL_INIT);
 #define _DLL_NAME "d3dx9_43.dll"
 		HMODULE h = LoadLibraryEx(_DLL_NAME, 0, LOAD_LIBRARY_AS_DATAFILE);
 		if (!h) {
@@ -1127,7 +1127,7 @@ void Graphics::init() {
 			FreeLibrary(h);
 		}
 #undef _DLL_NAME
-		SafeWrite8(0x50FB6B, '2');  // Set call DirectDrawCreate2
+		SafeWrite8(0x50FB6B, '2'); // Set call DirectDrawCreate2
 		dlogr(" Done", DL_INIT);
 	}
 

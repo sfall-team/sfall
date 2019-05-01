@@ -310,8 +310,8 @@ static DWORD _cdecl PreparePlayMovie(const DWORD id) {
 }
 
 static void _stdcall PlayMovieRestore() {
-	SafeWrite32(0x44E938, 0x3934c);
-	SafeWrite32(0x44E94A, 0x7a22a);
+	SafeWrite32(0x44E938, 0x3934C);
+	SafeWrite32(0x44E94A, 0x7A22A);
 	FreeMovie(&info);
 }
 
@@ -377,8 +377,8 @@ static void FreeSound(sDSSound* sound) {
 }
 
 void WipeSounds() {
-	for(DWORD i = 0; i < playingSounds.size(); i++) FreeSound(playingSounds[i]);
-	for(DWORD i = 0; i < loopingSounds.size(); i++) FreeSound(loopingSounds[i]);
+	for (DWORD i = 0; i < playingSounds.size(); i++) FreeSound(playingSounds[i]);
+	for (DWORD i = 0; i < loopingSounds.size(); i++) FreeSound(loopingSounds[i]);
 	playingSounds.clear();
 	loopingSounds.clear();
 	musicLoopPtr = nullptr;
@@ -430,7 +430,7 @@ LRESULT CALLBACK SoundWndProc(HWND wnd, UINT msg, WPARAM w, LPARAM l) {
 }
 
 static void CreateSndWnd() {
-	dlog(" Created sfall sound windows.", DL_INIT);
+	dlog(" Creating sfall sound windows.", DL_INIT);
 	if (Graphics::mode == 0) CoInitialize(0);
 
 	WNDCLASSEX wcx;
@@ -487,7 +487,7 @@ static void __cdecl SfallSoundVolume(sDSSound* sound, int type, long passVolume)
 		for(DWORD i = 0; i < loopingSounds.size(); i++) {
 			loopingSounds[i]->pAudio->put_Volume(loopVolume);
 		}
-		if (type = 2) {  // sfx
+		if (type = 2) { // sfx
 			for(DWORD i = 0; i < playingSounds.size(); i++) {
 				playingSounds[i]->pAudio->put_Volume(sfxVolume);
 			}
@@ -537,7 +537,7 @@ static sDSSound* PlayingSound(wchar_t* path, bool loop) {
 
 	if (loop) {
 		loopingSounds.push_back(result);
-		SfallSoundVolume(result, 0, *(DWORD*)FO_VAR_background_volume);   // music
+		SfallSoundVolume(result, 0, *(DWORD*)FO_VAR_background_volume); // music
 	} else {
 		playingSounds.push_back(result);
 		SfallSoundVolume(result, 1, *(DWORD*)FO_VAR_sndfx_volume);
@@ -596,7 +596,7 @@ static void __fastcall MakeMusicPath(const char* file) {
 void* _stdcall PlaySfallSound(const char* path, bool loop) {
 	wchar_t buf[256];
 	mbstowcs_s(0, buf, path, 256);
-	auto result = PlayingSound(buf, loop);
+	sDSSound* result = PlayingSound(buf, loop);
 	return (loop) ? result: 0;
 }
 
@@ -765,7 +765,7 @@ void Movies::init() {
 	LoadGameHook::OnBeforeGameClose() += WipeSounds;
 
 	if (*((DWORD*)0x00518DA0) != 0x00503300) {
-		dlog("Error: The value at address 0x001073A0 is not equals 0x00503300.", DL_INIT);
+		dlog("Error: The value at address 0x001073A0 is not equal to 0x00503300.", DL_INIT);
 	}
 	for (int i = 0; i < MaxMovies; i++) {
 		MoviePtrs[i] = (DWORD)&MoviePaths[65 * i];

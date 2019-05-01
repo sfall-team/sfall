@@ -71,9 +71,9 @@ static bool InternalSend(SOCKET s, const void* _data, int size) {
 	int upto = 0;
 	while (upto < size) {
 		int tmp = send(s, &data[upto], size - upto, 0);
-		if (tmp > 0)
+		if (tmp > 0) {
 			upto += tmp;
-		else {
+		} else {
 			DWORD d = WSAGetLastError();
 			if (d != WSAEWOULDBLOCK && d != WSAENOBUFS) return true;
 		}
@@ -86,9 +86,9 @@ static bool InternalRecv(SOCKET s, void* _data, int size) {
 	int upto = 0;
 	while (upto < size) {
 		int tmp = recv(s, &data[upto], size - upto, 0);
-		if (tmp > 0)
+		if (tmp > 0) {
 			upto += tmp;
-		else {
+		} else {
 			DWORD d = WSAGetLastError();
 			if (d != WSAEWOULDBLOCK && d != WSAENOBUFS) return true;
 		}

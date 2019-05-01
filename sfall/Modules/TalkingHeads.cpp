@@ -121,7 +121,7 @@ static bool LoadFrm(Frm* frm) {
 		char buf[MAX_PATH];
 		int pathLen = sprintf_s(buf, "%s\\art\\heads\\%s\\", fo::var::patches, frm->path);
 		if (pathLen > 250) return false;
-		IDirect3DTexture9**	textures = new IDirect3DTexture9*[frm->frames];
+		IDirect3DTexture9** textures = new IDirect3DTexture9*[frm->frames];
 		for (int i = 0; i < frm->frames; i++) {
 			sprintf(&buf[pathLen], "%d.png", i);
 			if (FAILED(D3DXCreateTextureFromFileExA(d3d9Device, buf, 0, 0, 1, 0, D3DFMT_UNKNOWN, D3DPOOL_MANAGED, D3DX_DEFAULT, D3DX_DEFAULT, 0, 0, 0, &textures[i]))) {

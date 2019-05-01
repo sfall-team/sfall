@@ -449,7 +449,7 @@ bool _stdcall IsGameScript(const char* filename) {
 	return false;
 }
 
-static void LoadGLobalScripts() {
+static void LoadGlobalScriptsList() {
 	ScriptProgram prog;
 	for (auto& item : globalScriptFilesList)
 	{
@@ -492,7 +492,7 @@ static void PrepareGlobalScriptsListByMask() {
 				fullPath += name;
 				// preventing loading of global scripts the same name from different directories
 				if (globalScriptFilesList.find(baseName) != globalScriptFilesList.end()) {
-					fo::func::debug_printf("\n[SFALL] Script %s will not be executed. A script the same name already exists in another directory.", fullPath);
+					fo::func::debug_printf("\n[SFALL] Script: %s will not be executed. A script with the same name already exists in another directory.", fullPath);
 					continue;
 				}
 				globalScriptFilesList.insert(std::make_pair(baseName, fullPath));
@@ -515,7 +515,7 @@ static void LoadGlobalScripts() {
 		listIsPrepared = !alwaysFindScripts;
 		if (listIsPrepared) globalScriptPathList.clear(); // clear path list, it is no longer needed
 	}
-	LoadGLobalScripts();
+	LoadGlobalScriptsList();
 	dlogr("Finished loading global scripts", DL_SCRIPT|DL_INIT);
 }
 
@@ -585,7 +585,7 @@ static void RunScript(GlobalScript* script) {
 */
 static void ResetStateAfterFrame() {
 	if (!tempArrays.empty()) {
- 		for (std::set<DWORD>::iterator it = tempArrays.begin(); it != tempArrays.end(); ++it)
+		for (std::set<DWORD>::iterator it = tempArrays.begin(); it != tempArrays.end(); ++it)
 			FreeArray(*it);
 		tempArrays.clear();
 	}
@@ -695,7 +695,7 @@ void GetGlobals(GlobalVar* globals) {
 void SetGlobals(GlobalVar* globals) {
 	glob_itr itr = globalVars.begin();
 	int i = 0;
-	while(itr != globalVars.end()) {
+	while (itr != globalVars.end()) {
 		itr->second = globals[i++].val;
 		itr++;
 	}

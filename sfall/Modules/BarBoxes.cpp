@@ -25,7 +25,7 @@
 namespace sfall
 {
 
-int BarBoxes::boxCount;                   // current count box
+int BarBoxes::boxCount;                   // current box count
 static int totalBoxCount, actualBoxCount; // total boxes and w/o vanilla
 static int initCount = 5;                 // init config counter (5 - vanilla box)
 static int sizeBox, setBoxIndex = 5;

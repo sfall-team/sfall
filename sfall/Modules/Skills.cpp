@@ -63,7 +63,7 @@ static double* multipliers = nullptr;
 static std::vector<ChanceModifier> pickpocketMods;
 static ChanceModifier basePickpocket;
 
-static int skillNegValue; // skill raw points (w/o limit)
+static int skillNegPoints; // skill raw points (w/o limit)
 
 static int _fastcall PickpocketMod(int base, fo::GameObject* critter) {
 	for (DWORD i = 0; i < pickpocketMods.size(); i++) {
@@ -97,7 +97,7 @@ static int _fastcall CheckSkillMax(fo::GameObject* critter, int base) {
 }
 
 static int _fastcall SkillNegative(fo::GameObject* critter, int base, int skill) {
-	int rawPoints = skillNegValue;
+	int rawPoints = skillNegPoints;
 	if (rawPoints) {
 		if (rawPoints < SKILL_MIN_LIMIT) rawPoints = SKILL_MIN_LIMIT;
 		rawPoints *= fo::var::skill_data[skill].skillPointMulti;
@@ -120,13 +120,13 @@ static void __declspec(naked) skill_level_hack() {
 
 static void __declspec(naked) skill_level_hook() {
 	__asm {
-		mov  skillNegValue, 0;   // reset value
+		mov  skillNegPoints, 0;   // reset value
 		call fo::funcoffs::skill_points_;
 		test eax, eax;
-		jge  noNeg;              // skip if eax >= 0
-		mov  skillNegValue, eax; // save the skill negative raw value
-		xor  eax, eax;           // set skill points to 0
-noNeg:
+		jge  notNeg;              // skip if eax >= 0
+		mov  skillNegPoints, eax; // save the negative skill points
+		xor  eax, eax;            // set skill points to 0
+notNeg:
 		retn;
 	}
 }
@@ -183,7 +183,7 @@ static int _fastcall GetStatBonus(fo::GameObject* critter, const fo::SkillInfo* 
 }
 
 //On input, ebx/edx contains the skill id, ecx contains the critter, edi contains a SkillInfo*, ebp contains the number of skill points
-//On exit ebx, ecx, edi, ebp are preserved, esi contains skill base + stat bonus + skillpoints*multiplier
+//On exit ebx, ecx, edi, ebp are preserved, esi contains skill base + stat bonus + skillpoints * multiplier
 static const DWORD StatBonusHookRet = 0x4AA5D6;
 static void __declspec(naked) skill_level_hack_bonus() {
 	__asm {
@@ -243,11 +243,11 @@ skip:
 
 static void __declspec(naked) skill_dec_point_hook_cost() {
 	__asm {
-		mov   edx, ebx;
-		shl   edx, 9;
-		test  eax, eax;
-		jle   skip; // if skill level <= 0
-		add   edx, eax;
+		mov  edx, ebx;
+		shl  edx, 9;
+		test eax, eax;
+		jle  skip; // if skill level <= 0
+		add  edx, eax;
 skip:
 		movzx eax, skillCosts[edx];
 		retn;
@@ -383,7 +383,7 @@ void Skills::init() {
 		MakeJump(0x4AA59D, skill_level_hack_bonus, 1);
 		MakeJump(0x4AA738, skill_inc_point_hack_cost);
 		MakeJump(0x4AA940, skill_dec_point_hack_cost, 1);
-		HookCalls(skill_dec_point_hook_cost, { 0x4AA9E1,  0x4AA9F1 });
+		HookCalls(skill_dec_point_hook_cost, { 0x4AA9E1, 0x4AA9F1 });
 
 		basedOnPoints = GetPrivateProfileIntA("Skills", "BasedOnPoints", 0, file);
 		if (basedOnPoints) HookCall(0x4AA9EC, (void*)fo::funcoffs::skill_points_); // skill_dec_point_

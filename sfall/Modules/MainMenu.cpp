@@ -48,7 +48,7 @@ static void __declspec(naked) MainMenuTextYHook() {
 #ifdef NDEBUG
 static const char* VerString1 = "SFALL " VERSION_STRING " - Extended";
 #else
-static const char* VerString1 = "SFALL " VERSION_STRING " Rev.Debug";
+static const char* VerString1 = "SFALL " VERSION_STRING " Debug Build";
 #endif
 
 static DWORD OverrideColour;
@@ -101,13 +101,13 @@ static void __declspec(naked) MainMenuTextHook() {
 void MainMenu::init() {
 	int offset;
 	if (offset = GetConfigInt("Misc", "MainMenuCreditsOffsetX", 0)) {
-		SafeWrite32(0x481753, 0xF + offset);
+		SafeWrite32(0x481753, 15 + offset);
 	}
 	if (offset = GetConfigInt("Misc", "MainMenuCreditsOffsetY", 0)) {
 		SafeWrite32(0x48175C, 460 + offset);
 	}
 	if (offset = GetConfigInt("Misc", "MainMenuOffsetX", 0)) {
-		SafeWrite32(0x48187C, 0x1E + offset);
+		SafeWrite32(0x48187C, 30 + offset);
 		MainMenuTextOffset = offset;
 	}
 	if (offset = GetConfigInt("Misc", "MainMenuOffsetY", 0)) {

@@ -704,7 +704,7 @@ void Inventory::init() {
 		SafeWrite8(0x47260F, 0x20);
 		SafeWrite32(0x4725F9, 0x9C + 0x0C);
 		SafeWrite8(0x472606, 0x10 + 0x0C);
-		SafeWrite32(0x472632, 160); // width
+		SafeWrite32(0x472632, 155); // width
 		SafeWrite8(0x472638, 0);    // x offset position
 
 		// Display item size when examining

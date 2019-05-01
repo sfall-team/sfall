@@ -144,9 +144,9 @@ static long _stdcall LevelUp() {
 	int eachLevel = PerkFreqOverride;
 
 	if (!eachLevel) {
-		if (!IsTraitDisabled(TRAIT_skilled) && fo::func::trait_level(TRAIT_skilled)) // Check if the player has the skilled trait
+		if (!IsTraitDisabled(TRAIT_skilled) && fo::func::trait_level(TRAIT_skilled)) { // Check if the player has the skilled trait
 			eachLevel = 4;
-		else {
+		} else {
 			eachLevel = 3;
 		}
 	}
@@ -417,7 +417,7 @@ fake:
 	}
 }
 
-// Searching all available perks for the player to display them in the character's interface
+// Search all available perks for the player to display them in the character screen
 static const DWORD EndPerkLoopExit = 0x434446;
 static const DWORD EndPerkLoopCont = 0x4343A5;
 static void __declspec(naked) EndPerkLoopHack() {
@@ -435,7 +435,7 @@ cLoop:
 	}
 }
 
-// Building a table of perks ID numbers available for selection
+// Build a table of perks ID numbers available for selection
 // data buffer has limited size for 119 perks
 static DWORD _stdcall HandleExtraSelectablePerks(DWORD available, DWORD* data) {
 	size_t count = extPerks.size();
@@ -1039,9 +1039,9 @@ static int _stdcall trait_adjust_skill_override(DWORD skillID) {
 		result -= 10;
 	}
 	if (check_trait(TRAIT_good_natured)) {
-		if (skillID <= SKILL_THROWING)
+		if (skillID <= SKILL_THROWING) {
 			result -= 10;
-		else if (skillID == SKILL_FIRST_AID || skillID == SKILL_DOCTOR || skillID == SKILL_CONVERSANT || skillID == SKILL_BARTER) {
+		} else if (skillID == SKILL_FIRST_AID || skillID == SKILL_DOCTOR || skillID == SKILL_CONVERSANT || skillID == SKILL_BARTER) {
 			result += 15;
 		}
 	}
