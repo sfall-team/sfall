@@ -789,8 +789,8 @@ static void __fastcall SetSelfObject(DWORD script, TGameObj* obj) {
 			self.counter = 0;
 			selfOverrideMap[script] = self;
 		}
-	} else {
-		if (isFind) selfOverrideMap.erase(it);
+	} else if (isFind) {
+		selfOverrideMap.erase(it);
 	}
 }
 
@@ -1272,6 +1272,17 @@ pickNewID: // skip PM range (18000 - 83535)
 	}
 }
 
+static void __declspec(naked) map_save_in_game_hook() {
+	__asm {
+		call partyMemberSaveProtos_;
+		test cl, 1;
+		jz   skip;
+		call queue_leaving_map_;
+skip:
+		jmp  game_time_;
+	}
+}
+
 void ScriptExtenderSetup() {
 	bool AllowUnsafeScripting = IsDebug
 		&& GetPrivateProfileIntA("Debugging", "AllowUnsafeScripting", 0, ".\\ddraw.ini") != 0;
@@ -1334,6 +1345,12 @@ void ScriptExtenderSetup() {
 	// combat_is_starting_p_proc / combat_is_over_p_proc
 	HookCall(0x421B72, CombatBeginHook);
 	HookCall(0x421FC1, CombatOverHook);
+
+	// Reorder the execution of functions before exiting the map
+	// Call saving party member prototypes and removing the drug effects for NPC after executing map_exit_p_proc procedure
+	HookCall(0x483CF9, map_save_in_game_hook);
+	BlockCall(0x483CB4); // partyMemberSaveProtos_
+	BlockCall(0x483CBE); // queue_leaving_map_
 
 	dlogr("Adding additional opcodes", DL_SCRIPT);
 	if (AllowUnsafeScripting) {

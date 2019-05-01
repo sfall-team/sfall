@@ -67,5 +67,5 @@ void KillCounterInit() {
 	for (int i = 0; i < sizeof(extraKillTypesCountAddr) / 4; i++) {
 		SafeWrite8(extraKillTypesCountAddr[i], 38);
 	}
-	SafeWrite32(0x42D9DD, 1488);
+	SafeWrite32(0x42D9DD, 1488); // critter_kill_info_
 }

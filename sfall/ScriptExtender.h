@@ -33,12 +33,13 @@ enum UniqueID {
 	UID_END   = 0x7FFFFFFF
 };
 
-#pragma pack(8)
+#pragma pack(push, 8)
 struct sGlobalVar {
 	__int64 id;
 	__int32 val;
 	__int32 unused;
 };
+#pragma pack(pop)
 
 #define SCRIPT_PROC_MAX (27)
 typedef struct {
