@@ -69,7 +69,7 @@ static void KillCounterInit() {
 
 	// Edit the functions to accept kill types over 19
 	SafeWriteBatch<BYTE>(38, extraKillTypesCountAddr);
-	SafeWrite32(0x42D9DD, 1488);
+	SafeWrite32(0x42D9DD, 1488); // critter_kill_info_
 }
 
 void KillCounter::init() {
