@@ -38,6 +38,7 @@ static DWORD format;
 static bool cutsPatch   = false;
 
 static std::vector<std::string> patchFiles;
+static std::vector<int> savPrototypes;
 
 static void CheckPlayerGender() {
 	isFemale = fo::HeroIsFemale();
@@ -185,6 +186,119 @@ static void GetExtraPatches() {
 	}
 }
 
+////////////////////////////// SAVE PARTY MEMBER PROTOTYPES //////////////////////////////
+
+static void __fastcall AddSavPrototype(long pid) {
+	for (const auto& _pid : savPrototypes) {
+		if (_pid == pid) return;
+	}
+	savPrototypes.push_back(pid);
+}
+
+static long ChangePrototypeExt(char* path) {
+	long len = strlen(path);
+	if (len) {
+		len -= 4;
+		if (path[len] == '.') {
+			path[++len] = 's';
+			path[++len] = 'a';
+			path[++len] = 'v';
+		} else {
+			len = 0;
+		}
+	}
+	return len;
+}
+
+static void __fastcall ExistSavPrototype(long pid, char* path) {
+	if (savPrototypes.empty()) return;
+	for (const auto& _pid : savPrototypes) {
+		if (_pid == pid) {
+			ChangePrototypeExt(path);
+			break;
+		}
+	}
+}
+
+static long __fastcall CheckProtoType(long pid, char* path) {
+	if (pid >> 24 != fo::OBJ_TYPE_CRITTER) return 0;
+	return ChangePrototypeExt(path);
+}
+
+// saves prototypes (all party members) before saving game or exiting the map
+static void __declspec(naked) proto_save_pid_hook() {
+	__asm {
+		push ecx;
+		call fo::funcoffs::proto_list_str_;
+		test eax, eax;
+		jnz  end;
+		mov  ecx, ebx; // party pid
+		mov  edx, edi; // path buffer
+		call CheckProtoType;
+		test eax, eax;
+		jz   end;
+		mov  ecx, ebx; // party pid
+		call AddSavPrototype;
+end:
+		pop  ecx;
+		retn;
+	}
+}
+
+static void __declspec(naked) GameMap2Slot_hack() { // save party pids
+	__asm {
+		push ecx;
+		mov  edx, 0x6143F4;  // path buffer
+		call CheckProtoType; // ecx - party pid
+		pop  ecx;
+		lea  eax, [esp + 0x14 + 4];
+		retn 0x14;
+	}
+}
+
+static void __declspec(naked) SlotMap2Game_hack() { // load party pids
+	__asm {
+		push edx;
+		mov  ecx, edi;      // party pid
+		mov  edx, 0x6143F4; // path buffer
+		call CheckProtoType;
+		test eax, eax;
+		jz   end;
+		mov  ecx, edi;
+		call AddSavPrototype;
+end:
+		pop  edx;
+		lea  eax, [esp + 0x14 + 4];
+		retn 0x14;
+	}
+}
+
+static void __declspec(naked) proto_load_pid_hook() {
+using namespace fo;
+	__asm { // eax - party pid
+		push ecx;
+		mov  ecx, eax;
+		call fo::funcoffs::proto_list_str_;
+		test eax, eax;
+		jnz  end;
+		// check pid type
+		mov  edx, ecx;
+		shr  edx, 24;
+		cmp  edx, OBJ_TYPE_CRITTER;
+		jnz  end;
+		mov  edx, edi;          // path buffer
+		call ExistSavPrototype; // ecx - party pid
+		xor  eax, eax;
+end:
+		pop  ecx;
+		retn;
+	}
+}
+
+static void RemoveSavFiles() {
+	fo::func::MapDirErase((const char*)0x50A490, (const char*)0x50A480);
+}
+
 void LoadOrder::init() {
 	GetExtraPatches();
 
@@ -218,6 +332,19 @@ void LoadOrder::init() {
 		}
 		dlogr(" Done", DL_INIT);
 	}
+
+	dlog("Applying party member protos save/load patch.", DL_INIT);
+	savPrototypes.reserve(25);
+	HookCall(0x4A1CF2, proto_load_pid_hook);
+	HookCall(0x4A1BEE, proto_save_pid_hook);
+	MakeCall(0x47F5A5, GameMap2Slot_hack); // save game
+	MakeCall(0x47FB80, SlotMap2Game_hack); // load game
+	LoadGameHook::OnAfterGameInit() += RemoveSavFiles;
+	LoadGameHook::OnGameReset() += []() {
+		savPrototypes.clear();
+		RemoveSavFiles();
+	};
+	dlogr(" Done", DL_INIT);
 }
 
 }
