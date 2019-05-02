@@ -327,6 +327,7 @@
     <ClInclude Include="Logging.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="SuperSave.h" />
+    <ClInclude Include="Worldmap.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AI.cpp" />
@@ -380,6 +381,7 @@
     <ClCompile Include="SpeedPatch.cpp" />
     <ClCompile Include="Logging.cpp" />
     <ClCompile Include="SuperSave.cpp" />
+    <ClCompile Include="Worldmap.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="exports.def" />

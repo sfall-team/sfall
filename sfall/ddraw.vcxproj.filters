@@ -196,6 +196,9 @@
     <ClInclude Include="TalkingHeads.h">
       <Filter>Headers</Filter>
     </ClInclude>
+    <ClInclude Include="Worldmap.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
     <ClInclude Include="Cpp11_emu.h">
       <Filter>Headers</Filter>
     </ClInclude>
@@ -335,6 +338,9 @@
       <Filter>Source</Filter>
     </ClCompile>
     <ClCompile Include="TalkingHeads.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Worldmap.cpp">
       <Filter>Source</Filter>
     </ClCompile>
     <ClCompile Include="stdafx.cpp">

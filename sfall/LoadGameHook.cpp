@@ -44,6 +44,7 @@
 #include "SuperSave.h"
 #include "TalkingHeads.h"
 #include "version.h"
+#include "Worldmap.h"
 
 #define MAX_GLOBAL_SIZE (MaxGlobalVars * 12 + 4)
 

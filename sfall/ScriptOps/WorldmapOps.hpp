@@ -21,7 +21,7 @@
 #include "main.h"
 #include "Arrays.h"
 #include "ScriptExtender.h"
-
+#include "Worldmap.h"
 
 static DWORD EncounteredHorrigan;
 static DWORD ForceEnconterMapID;
@@ -185,7 +185,6 @@ end:
 	}
 }
 
-void _stdcall SetMapMulti(float d);
 static void __declspec(naked) set_map_time_multi() {
 	__asm {
 		push ebx;
