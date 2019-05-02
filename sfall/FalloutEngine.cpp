@@ -474,6 +474,7 @@ const DWORD make_straight_path_func_ = 0x4163C8;
 const DWORD map_disable_bk_processes_ = 0x482104;
 const DWORD map_enable_bk_processes_ = 0x4820C0;
 const DWORD map_load_idx_ = 0x482B34;
+const DWORD MapDirErase_ = 0x480040;
 const DWORD mem_free_ = 0x4C5C24;
 const DWORD mem_malloc_ = 0x4C5AD0;
 const DWORD mem_realloc_ = 0x4C5B50;
@@ -556,6 +557,7 @@ const DWORD process_bk_ = 0x4C8BDC;
 const DWORD protinst_use_item_ = 0x49BF38;
 const DWORD protinst_use_item_on_ = 0x49C3CC;
 const DWORD proto_dude_update_gender_ = 0x49F984;
+const DWORD proto_list_str_ = 0x49E758;
 const DWORD proto_ptr_ = 0x4A2108; // eax - PID, edx - int** - pointer to a pointer to a proto struct
 const DWORD pushLongStack_ = 0x46736C; // sometimes used instead of "SetResult"
 const DWORD qsort_ = 0x4F05B6;
@@ -1002,6 +1004,14 @@ FrmSubframeData* __fastcall FramePtr(FrmFrameData* frm, long frame, long directi
 		mov  ebx, direction;
 		mov  eax, ecx;
 		call frame_ptr_;
+	}
+}
+
+void __stdcall MapDirErase(const char* folder, const char* ext) {
+	__asm {
+		mov  edx, ext;
+		mov  eax, folder;
+		call MapDirErase_;
 	}
 }
 

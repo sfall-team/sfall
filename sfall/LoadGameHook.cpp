@@ -81,6 +81,8 @@ static void _stdcall ResetState(DWORD onLoad) {
 	InventoryReset();
 	RegAnimCombatCheck(1);
 	AfterAttackCleanup();
+	savPrototypes.clear();
+	RemoveSavFiles();
 	ResetExplosionRadius();
 	PartyControlReset();
 }
@@ -264,6 +266,7 @@ static void __stdcall GameInitialization() {
 
 static void __stdcall GameInitialized() {
 	rcpresInit();
+	RemoveSavFiles();
 	if (Use32BitTalkingHeads) TalkingHeadsSetup();
 }
 

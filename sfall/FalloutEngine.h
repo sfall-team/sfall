@@ -701,6 +701,7 @@ extern const DWORD make_straight_path_func_; // (TGameObj *aObj<eax>, int aTileF
 extern const DWORD map_disable_bk_processes_;
 extern const DWORD map_enable_bk_processes_;
 extern const DWORD map_load_idx_;
+extern const DWORD MapDirErase_;
 extern const DWORD mem_free_;
 extern const DWORD mem_malloc_;
 extern const DWORD mem_realloc_;
@@ -786,6 +787,7 @@ extern const DWORD process_bk_;
 extern const DWORD protinst_use_item_;
 extern const DWORD protinst_use_item_on_;
 extern const DWORD proto_dude_update_gender_;
+extern const DWORD proto_list_str_;
 extern const DWORD proto_ptr_; // eax - PID, edx - int** - pointer to a pointer to a proto struct
 extern const DWORD pushLongStack_;
 extern const DWORD qsort_;
@@ -1024,6 +1026,8 @@ long __stdcall QueueFindFirst(TGameObj* object, long qType);
 long __stdcall NewObjId();
 
 FrmSubframeData* __fastcall FramePtr(FrmFrameData* frm, long frame, long direction);
+
+void __stdcall MapDirErase(const char* folder, const char* ext);
 
 // for the backported AmmoCostHook from 4.x
 long __stdcall ItemWAnimWeap(TGameObj* item, DWORD hitMode);

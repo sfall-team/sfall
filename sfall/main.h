@@ -67,11 +67,15 @@ extern char ini[65];
 extern char translationIni[65];
 extern DWORD modifiedIni;
 
+extern std::vector<int> savPrototypes;
+
 extern char dmModelName[65];
 extern char dfModelName[65];
 
 DWORD GetAddedYears(bool isCheck = true);
 void SetAddedYears(DWORD years);
+
+void RemoveSavFiles();
 
 template<typename T> 
 T SimplePatch(DWORD addr, const char* iniSection, const char* iniKey, T defaultValue, T minValue = 0, T maxValue = INT_MAX)
