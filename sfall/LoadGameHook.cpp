@@ -81,8 +81,7 @@ static void _stdcall ResetState(DWORD onLoad) {
 	InventoryReset();
 	RegAnimCombatCheck(1);
 	AfterAttackCleanup();
-	savPrototypes.clear();
-	RemoveSavFiles();
+	ClearSavPrototypes();
 	ResetExplosionRadius();
 	PartyControlReset();
 }
