@@ -245,11 +245,12 @@ end:
 	}
 }
 
+#define _F_PATHFILE 0x6143F4
 static void __declspec(naked) GameMap2Slot_hack() { // save party pids
 	__asm {
 		push ecx;
-		mov  edx, 0x6143F4;  // path buffer
-		call CheckProtoType; // ecx - party pid
+		mov  edx, _F_PATHFILE; // path buffer
+		call CheckProtoType;   // ecx - party pid
 		pop  ecx;
 		lea  eax, [esp + 0x14 + 4];
 		retn 0x14;
@@ -259,8 +260,8 @@ static void __declspec(naked) GameMap2Slot_hack() { // save party pids
 static void __declspec(naked) SlotMap2Game_hack() { // load party pids
 	__asm {
 		push edx;
-		mov  ecx, edi;      // party pid
-		mov  edx, 0x6143F4; // path buffer
+		mov  ecx, edi;         // party pid
+		mov  edx, _F_PATHFILE; // path buffer
 		call CheckProtoType;
 		test eax, eax;
 		jz   end;
@@ -295,8 +296,32 @@ end:
 	}
 }
 
+static void ResetReadOnlyAttr() {
+	DWORD attr = GetFileAttributesA((const char*)_F_PATHFILE);
+	if (attr != INVALID_FILE_ATTRIBUTES && (attr & FILE_ATTRIBUTE_READONLY)) {
+		SetFileAttributesA((const char*)_F_PATHFILE, (attr & ~FILE_ATTRIBUTE_READONLY));
+	}
+}
+
+static void __declspec(naked) SlotMap2Game_hack_attr() {
+using namespace fo;
+	__asm {
+		cmp  eax, -1;
+		je   end;
+		cmp  ebx, OBJ_TYPE_CRITTER;
+		jne  end;
+		call ResetReadOnlyAttr;
+		or   eax, 1; // reset ZF
+end:
+		retn 0x8;
+	}
+}
+
+#define _F_SAV (const char*)0x50A480
+#define _F_PROTO_CRITTERS (const char*)0x50A490
+
 static void RemoveSavFiles() {
-	fo::func::MapDirErase((const char*)0x50A490, (const char*)0x50A480);
+	fo::func::MapDirErase(_F_PROTO_CRITTERS, _F_SAV);
 }
 
 void LoadOrder::init() {
@@ -339,6 +364,7 @@ void LoadOrder::init() {
 	HookCall(0x4A1BEE, proto_save_pid_hook);
 	MakeCall(0x47F5A5, GameMap2Slot_hack); // save game
 	MakeCall(0x47FB80, SlotMap2Game_hack); // load game
+	MakeCall(0x47FBBF, SlotMap2Game_hack_attr, 1);
 
 	LoadGameHook::OnAfterGameInit() += RemoveSavFiles;
 	LoadGameHook::OnGameReset() += []() {
