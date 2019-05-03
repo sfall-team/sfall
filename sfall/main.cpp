@@ -250,10 +250,8 @@ skip:
 ///////////////////////// SAVE PARTY MEMBER PROTOTYPES /////////////////////////
 
 static void __fastcall AddSavPrototype(long pid) {
-	const std::vector<int>::iterator end_it = savPrototypes.end();
-	for (std::vector<int>::iterator it = savPrototypes.begin(); it != end_it; ++it) {
-		const int& _pid = *it;
-		if (_pid == pid) return;
+	for (std::vector<int>::const_iterator it = savPrototypes.begin(); it != savPrototypes.end(); ++it) {
+		if (*it == pid) return;
 	}
 	savPrototypes.push_back(pid);
 }
@@ -275,10 +273,8 @@ static long ChangePrototypeExt(char* path) {
 
 static void __fastcall ExistSavPrototype(long pid, char* path) {
 	if (savPrototypes.empty()) return;
-	const std::vector<int>::iterator end_it = savPrototypes.end();
-	for (std::vector<int>::iterator it = savPrototypes.begin(); it != end_it; ++it) {
-		const int& _pid = *it;
-		if (_pid == pid) {
+	for (std::vector<int>::const_iterator it = savPrototypes.begin(); it != savPrototypes.end(); ++it) {
+		if (*it == pid) {
 			ChangePrototypeExt(path);
 			break;
 		}
@@ -1260,6 +1256,7 @@ static void _stdcall OnExit() {
 	}
 	SpeedPatchExit();
 	ClearReadExtraGameMsgFiles();
+	ReputationsExit();
 	ConsoleExit();
 	BooksExit();
 	AnimationsAtOnceExit();

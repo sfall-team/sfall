@@ -1,1 +1,2 @@
 void ReputationsInit();
+void ReputationsExit();
