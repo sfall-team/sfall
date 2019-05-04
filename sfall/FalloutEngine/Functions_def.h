@@ -26,6 +26,8 @@ WRAP_WATCOM_FFUNC4(long, combat_check_bad_shot, GameObject*, source, GameObject*
 WRAP_WATCOM_FFUNC5(bool, combat_is_shot_blocked, GameObject*, source, DWORD, tileSource, DWORD, tileTarget, GameObject*, target, long*, accumulator)
 WRAP_WATCOM_FFUNC3(void, correctFidForRemovedItem, GameObject*, critter, GameObject*, item, long, slotFlag)
 WRAP_WATCOM_FFUNC7(long, createWindow, const char*, winName, DWORD, x, DWORD, y, DWORD, width, DWORD, height, long, color, long, flags)
+WRAP_WATCOM_FFUNC3(void, display_inventory, long, inventoryOffset, long, visibleOffset, long, mode)
+WRAP_WATCOM_FFUNC4(void, display_target_inventory, long, inventoryOffset, long, visibleOffset, DWORD*, targetInventory, long, mode)
 WRAP_WATCOM_FFUNC3(FrmSubframeData*, frame_ptr, FrmFrameData*, frm, long, frame, long, direction)
 WRAP_WATCOM_FFUNC3(GameObject*, inven_find_type, GameObject*, critter, long, itemType, DWORD*, buf)
 WRAP_WATCOM_FFUNC3(long, inven_wield, GameObject*, critter, GameObject*, item, long, slot)
@@ -59,8 +61,6 @@ WRAP_WATCOM_FUNC3(long, db_freadIntCount, DbFile*, file, DWORD*, dest, long, cou
 WRAP_WATCOM_FUNC2(long, db_fwriteByte, DbFile*, file, long, value)
 WRAP_WATCOM_FUNC2(long, db_fwriteInt, DbFile*, file, long, value)
 WRAP_WATCOM_FUNC0(void, display_stats)
-WRAP_WATCOM_FUNC3(void, display_inventory, long, inventoryOffset, long, visibleOffset, long, mode)
-WRAP_WATCOM_FUNC4(void, display_target_inventory, long, inventoryOffset, long, visibleOffset, DWORD*, targetInventory, long, mode)
 // perform combat turn for a given critter
 WRAP_WATCOM_FUNC2(long, combat_turn, GameObject*, critter, long, isDudeTurn)
 WRAP_WATCOM_FUNC1(long, critter_body_type, GameObject*, critter)

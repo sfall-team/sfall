@@ -31,9 +31,7 @@ namespace script
 
 void sf_create_array(OpcodeContext& ctx) {
 	auto arrayId = CreateArray(ctx.arg(0).asInt(), ctx.arg(1).asInt());
-	ctx.setReturn(
-		ScriptValue(DataType::INT, arrayId)
-	);
+	ctx.setReturn(arrayId, DataType::INT);
 }
 
 void sf_set_array(OpcodeContext& ctx) {
@@ -84,9 +82,7 @@ void sf_resize_array(OpcodeContext& ctx) {
 
 void sf_temp_array(OpcodeContext& ctx) {
 	auto arrayId = TempArray(ctx.arg(0).asInt(), ctx.arg(1).asInt());
-	ctx.setReturn(
-		ScriptValue(DataType::INT, arrayId)
-	);
+	ctx.setReturn(arrayId, DataType::INT);
 }
 
 void sf_fix_array(OpcodeContext& ctx) {
@@ -122,23 +118,34 @@ void sf_stack_array(OpcodeContext& ctx) {
 }
 
 // object LISTS
-
 struct sList {
 	fo::GameObject** obj;
 	DWORD len;
 	DWORD pos;
 
-	sList(const std::vector<fo::GameObject*>* vec) {
+	sList(const std::vector<fo::GameObject*>* vec) : pos(0) {
 		len = vec->size();
 		obj = new fo::GameObject*[len];
 		for (size_t i = 0; i < len; i++) {
 			obj[i] = (*vec)[i];
 		}
-		pos = 0;
 	}
 };
 
+static DWORD listID = 0xCCCCCC;
+
+struct ListId {
+	sList* list;
+	DWORD id;
+
+	ListId(sList* lst) : list(lst) {
+		id = ++listID;
+	}
+};
+static std::vector<ListId> mList;
+
 static void FillListVector(DWORD type, std::vector<fo::GameObject*>& vec) {
+	vec.reserve(100);
 	if (type == 6) {
 		fo::ScriptInstance* scriptPtr;
 		fo::GameObject* self_obj;
@@ -155,22 +162,20 @@ static void FillListVector(DWORD type, std::vector<fo::GameObject*>& vec) {
 				scriptPtr = fo::func::scr_find_next_at();
 			}
 		}
-	} else if (type == 4) {
+	/*} else if (type == 4) {
 		// TODO: verify code correctness
-
-		/*for(int elv=0;elv<2;elv++) {
+		for(int elv=0;elv<2;elv++) {
 			DWORD* esquares = &fo::var::squares[elv];
 			for(int tile=0;tile<10000;tile++) {
 				esquares[tile]=0x8f000002;
 			}
 		}*/
-		
-	} else {
+	} else if (type != 4) {
 		for (int elv = 0; elv < 3; elv++) {
 			for (int tile = 0; tile < 40000; tile++) {
 				fo::GameObject* obj = fo::func::obj_find_first_at_tile(elv, tile);
 				while (obj) {
-					DWORD otype = (obj->protoId & 0xff000000) >> 24;
+					DWORD otype = obj->Type();
 					if (type == 9 || (type == 0 && otype == 1) || (type == 1 && otype == 0) || (type >= 2 && type <= 5 && type == otype)) {
 						vec.push_back(obj);
 					}
@@ -181,59 +186,66 @@ static void FillListVector(DWORD type, std::vector<fo::GameObject*>& vec) {
 	}
 }
 
-static void* _stdcall ListBegin(DWORD type) {
+static DWORD ListBegin(DWORD type) {
 	std::vector<fo::GameObject*> vec = std::vector<fo::GameObject*>();
 	FillListVector(type, vec);
 	sList* list = new sList(&vec);
-	return list;
+	mList.emplace_back(list);
+	return listID;
 }
 
-static DWORD _stdcall ListAsArray(DWORD type) {
+static DWORD ListAsArray(DWORD type) {
 	std::vector<fo::GameObject*> vec = std::vector<fo::GameObject*>();
 	FillListVector(type, vec);
-	DWORD id = TempArray(vec.size(), 4);
-	for (DWORD i = 0; i < vec.size(); i++) {
+	size_t sz = vec.size();
+	DWORD id = TempArray(sz, 0);
+	for (size_t i = 0; i < sz; i++) {
 		arrays[id].val[i].set((long)vec[i]);
 	}
 	return id;
 }
 
-static fo::GameObject* _stdcall ListNext(sList* list) {
-	if (list->pos == list->len) return 0;
+static fo::GameObject* ListNext(sList* list) {
+	if (!list || list->pos == list->len) return 0;
 	else return list->obj[list->pos++];
 }
 
-static void _stdcall ListEnd(sList* list) {
-	delete[] list->obj;
-	delete list;
+static void ListEnd(DWORD id) {
+	std::vector<ListId>::const_iterator it_end =  mList.cend();
+	for (std::vector<ListId>::const_iterator it = mList.cbegin(); it != it_end; ++it) {
+		if (it->id == id) {
+			delete[] it->list->obj;
+			delete it->list;
+			mList.erase(it);
+			break;
+		}
+	}
 }
 
 void sf_list_begin(OpcodeContext& ctx) {
-	auto list = ListBegin(ctx.arg(0).asInt());
-	ctx.setReturn(
-		ScriptValue(DataType::INT, reinterpret_cast<DWORD>(list))
-	);
+	ctx.setReturn(ListBegin(ctx.arg(0).rawValue()), DataType::INT);
 }
 
 void sf_list_as_array(OpcodeContext& ctx) {
-	auto arrayId = ListAsArray(ctx.arg(0).asInt());
-	ctx.setReturn(
-		ScriptValue(DataType::INT, arrayId)
-	);
+	auto arrayId = ListAsArray(ctx.arg(0).rawValue());
+	ctx.setReturn(arrayId, DataType::INT);
 }
 
 void sf_list_next(OpcodeContext& ctx) {
-	// TODO: make it safer
-	auto list = reinterpret_cast<sList*>(ctx.arg(0).rawValue());
-	ctx.setReturn(
-		ListNext(list)
-	);
+	auto id = ctx.arg(0).rawValue();
+	sList* list = nullptr;
+	std::vector<ListId>::const_iterator it_end =  mList.cend();
+	for (std::vector<ListId>::const_iterator it = mList.cbegin(); it != it_end; ++it) {
+		if (it->id == id) {
+			list = it->list;
+			break;
+		}
+	}
+	ctx.setReturn(ListNext(list));
 }
 
 void sf_list_end(OpcodeContext& ctx) {
-	// TODO: make it safer
-	auto list = reinterpret_cast<sList*>(ctx.arg(0).rawValue());
-	ListEnd(list);
+	ListEnd(ctx.arg(0).rawValue());
 }
 
 }

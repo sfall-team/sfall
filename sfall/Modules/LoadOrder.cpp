@@ -365,13 +365,13 @@ void LoadOrder::init() {
 	MakeCall(0x47F5A5, GameMap2Slot_hack); // save game
 	MakeCall(0x47FB80, SlotMap2Game_hack); // load game
 	MakeCall(0x47FBBF, SlotMap2Game_hack_attr, 1);
+	dlogr(" Done", DL_INIT);
 
 	LoadGameHook::OnAfterGameInit() += RemoveSavFiles;
 	LoadGameHook::OnGameReset() += []() {
 		savPrototypes.clear();
 		RemoveSavFiles();
 	};
-	dlogr(" Done", DL_INIT);
 }
 
 }
