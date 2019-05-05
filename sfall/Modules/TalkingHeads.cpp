@@ -29,8 +29,6 @@
 namespace sfall
 {
 
-extern IDirect3DDevice9* d3d9Device;
-
 #pragma pack(push, 1)
 struct Frm {
 	DWORD version;

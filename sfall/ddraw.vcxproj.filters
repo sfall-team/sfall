@@ -278,6 +278,9 @@
     <ClInclude Include="Modules\Drugs.h">
       <Filter>Modules</Filter>
     </ClInclude>
+    <ClInclude Include="Modules\ScriptShaders.h">
+      <Filter>Modules</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
@@ -514,6 +517,9 @@
       <Filter>Modules</Filter>
     </ClCompile>
     <ClCompile Include="Modules\Drugs.cpp">
+      <Filter>Modules</Filter>
+    </ClCompile>
+    <ClCompile Include="Modules\ScriptShaders.cpp">
       <Filter>Modules</Filter>
     </ClCompile>
   </ItemGroup>
