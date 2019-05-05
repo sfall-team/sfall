@@ -478,7 +478,7 @@ void PathfinderFixInit() {
 
 void StartingStatePatches() {
 	int date = GetConfigInt("Misc", "StartYear", -1);
-	if (date > 0) {
+	if (date >= 0) {
 		dlog("Applying starting year patch.", DL_INIT);
 		SafeWrite32(0x4A336C, date);
 		dlogr(" Done", DL_INIT);

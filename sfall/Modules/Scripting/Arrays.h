@@ -2,7 +2,6 @@
 
 #include <functional>
 #include <unordered_map>
-#include <set>
 #include <Windows.h>
 
 #include "ScriptValue.h"
@@ -149,9 +148,6 @@ extern DWORD nextArrayID;
 
 extern DWORD arraysBehavior;
 
-// temp arrays: set of arrayId
-extern std::set<DWORD> tempArrays;
-
 // saved arrays: arrayKey => arrayId
 extern ArrayKeysMap savedArrays;
 
@@ -171,6 +167,9 @@ DWORD _stdcall TempArray(DWORD len, DWORD flags);
 
 // destroys array
 void _stdcall FreeArray(DWORD id);
+
+// destroy all temp arrays
+void DeleteAllTempArrays();
 
 /*
 	op_get_array_key can be used to iterate over all keys in associative array

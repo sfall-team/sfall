@@ -17,7 +17,7 @@
  */
 
 #include <cassert>
-#include <set>
+//#include <unordered_set>
 #include <string>
 #include <unordered_map>
 #include <map>
@@ -582,11 +582,7 @@ static void RunScript(GlobalScript* script) {
 	- reset reg_anim_* combatstate checks
 */
 static void ResetStateAfterFrame() {
-	if (!tempArrays.empty()) {
-		for (std::set<DWORD>::iterator it = tempArrays.begin(); it != tempArrays.end(); ++it)
-			FreeArray(*it);
-		tempArrays.clear();
-	}
+	DeleteAllTempArrays();
 	RegAnimCombatCheck(1);
 }
 
