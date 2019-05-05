@@ -468,33 +468,36 @@ static void __declspec(naked) op_stack_array() {
 }
 
 // object LISTS
-
 struct sList {
-	DWORD* obj;
+	TGameObj** obj;
 	DWORD len;
 	DWORD pos;
 
-	sList(const std::vector<DWORD>* vec) {
-		len=vec->size();
-		obj=new DWORD[len];
-		for(DWORD i=0;i<len;i++) obj[i]=(*vec)[i];
-		pos=0;
+	sList(const std::vector<TGameObj*>* vec) : pos(0) {
+		len = vec->size();
+		obj = new TGameObj*[len];
+		for (size_t i = 0; i < len; i++) {
+			obj[i] = (*vec)[i];
+		}
 	}
 };
 
-static void FillListVector(DWORD type, std::vector<DWORD>& vec) {
+static void FillListVector(DWORD type, std::vector<TGameObj*>& vec) {
+	vec.reserve(100);
 	if (type == 6) {
-		DWORD scriptPtr, self_obj, programPtr;
-		for (int elev=0; elev<=2; elev++) {
+		TScript* scriptPtr;
+		TGameObj* self_obj;
+		TProgram* programPtr;
+		for (int elev = 0; elev <= 2; elev++) {
 			__asm {
 				mov eax, elev;
 				call scr_find_first_at_;
 				mov scriptPtr, eax;
 			}
-			while (scriptPtr != 0) {
-				self_obj = *(DWORD*)(scriptPtr + 0x34);
-				if (self_obj == 0) {
-					programPtr = *(DWORD*)(scriptPtr + 0x18);
+			while (scriptPtr != nullptr) {
+				self_obj = scriptPtr->self_obj;
+				if (self_obj == nullptr) {
+					programPtr = scriptPtr->program_ptr;
 					__asm {
 						mov eax, programPtr;
 						call scr_find_obj_from_program_;
@@ -508,28 +511,29 @@ static void FillListVector(DWORD type, std::vector<DWORD>& vec) {
 				}
 			}
 		}
-	} else if (type == 4) {
+	/*} else if (type == 4) {
 		DWORD** squares=(DWORD**)_squares;
 		for(int elv=0;elv<2;elv++) {
 			DWORD* esquares=squares[elv];
 			for(int tile=0;tile<10000;tile++) {
 				esquares[tile]=0x8f000002;
 			}
-		}
-	} else {
-		for(int elv=0;elv<3;elv++) {
-			for(int tile=0;tile<40000;tile++) {
-				DWORD obj;
+		}*/
+	} else if (type != 4) {
+		for (int elv = 0; elv < 3; elv++) {
+			for (int tile = 0; tile < 40000; tile++) {
+				TGameObj* obj;
 				__asm {
 					mov edx, tile;
 					mov eax, elv;
 					call obj_find_first_at_tile_;
 					mov obj, eax;
 				}
-				while(obj) {
-					DWORD otype = ((DWORD*)obj)[25];
-					otype = (otype&0xff000000) >> 24;
-					if(type==9 || (type==0&&otype==1) || (type==1&&otype==0) || (type>=2&&type<=5&&type==otype)) vec.push_back(obj);
+				while (obj) {
+					DWORD otype = obj->pid >> 24;
+					if (type == 9 || (type == 0 && otype == 1) || (type == 1 && otype == 0) || (type >= 2 && type <= 5 && type == otype)) {
+						vec.push_back(obj);
+					}
 					__asm {
 						call obj_find_next_at_tile_;
 						mov obj, eax;
@@ -539,29 +543,35 @@ static void FillListVector(DWORD type, std::vector<DWORD>& vec) {
 		}
 	}
 }
+
 static void* _stdcall list_begin2(DWORD type) {
-	std::vector<DWORD> vec = std::vector<DWORD>();
+	std::vector<TGameObj*> vec = std::vector<TGameObj*>();
 	FillListVector(type, vec);
-	sList* list=new sList(&vec);
+	sList* list = new sList(&vec);
 	return list;
 }
+
 static DWORD _stdcall list_as_array2(DWORD type) {
-	std::vector<DWORD> vec = std::vector<DWORD>();
+	std::vector<TGameObj*> vec = std::vector<TGameObj*>();
 	FillListVector(type, vec);
-	DWORD id=TempArray(vec.size(), 4);
-	for(DWORD i=0;i<vec.size();i++) {
+	size_t sz = vec.size();
+	DWORD id = TempArray(sz, 0);
+	for (size_t i = 0; i < sz; i++) {
 		arrays[id].val[i].set((long)vec[i]);
 	}
 	return id;
 }
-static DWORD _stdcall list_next2(sList* list) {
-	if(list->pos==list->len) return 0;
+
+static TGameObj* _stdcall list_next2(sList* list) {
+	if (!list || list->pos == list->len) return 0;
 	else return list->obj[list->pos++];
 }
+
 static void _stdcall list_end2(sList* list) {
 	delete[] list->obj;
 	delete list;
 }
+
 static void __declspec(naked) list_begin() {
 	__asm {
 		pushad;

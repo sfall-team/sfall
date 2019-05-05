@@ -20,7 +20,7 @@
 
 #include <cassert>
 #include <hash_map>
-#include <set>
+//#include <set>
 #include <string>
 
 #include "Arrays.h"
@@ -1853,11 +1853,7 @@ static void RunScript(sGlobalScript* script) {
 	- reset reg_anim_* combatstate checks
 */
 static void ResetStateAfterFrame() {
-	if (!tempArrays.empty()) {
-		for (std::set<DWORD>::iterator it = tempArrays.begin(); it != tempArrays.end(); ++it)
-			FreeArray(*it);
-		tempArrays.clear();
-	}
+	DeleteAllTempArrays();
 	RegAnimCombatCheck(1);
 }
 

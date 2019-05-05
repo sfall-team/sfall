@@ -411,7 +411,7 @@ static void sf_display_stats() {
 }
 
 static void sf_inventory_redraw() {
-	int mode = -1;
+	int mode;
 	DWORD loopFlag = GetCurrentLoops();
 	if (loopFlag & INVENTORY) {
 		mode = 0;

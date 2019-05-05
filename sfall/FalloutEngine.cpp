@@ -947,8 +947,8 @@ void __stdcall DialogOut(const char* text) {
 long __fastcall WordWrap(const char* text, int maxWidth, DWORD* buf, BYTE* count) {
 	__asm {
 		mov  eax, ecx;
-		mov  ecx, count;
 		mov  ebx, buf;
+		mov  ecx, count;
 		call _word_wrap_;
 	}
 }
@@ -960,21 +960,19 @@ void __stdcall RedrawWin(DWORD winRef) {
 	}
 }
 
-void __stdcall DisplayInventory(long inventoryOffset, long visibleOffset, long mode) {
+void __fastcall DisplayInventory(long inventoryOffset, long visibleOffset, long mode) {
 	__asm {
 		mov  ebx, mode;
-		mov  edx, visibleOffset;
-		mov  eax, inventoryOffset;
+		mov  eax, ecx;
 		call display_inventory_;
 	}
 }
 
-void __stdcall DisplayTargetInventory(long inventoryOffset, long visibleOffset, DWORD* targetInventory, long mode) {
+void __fastcall DisplayTargetInventory(long inventoryOffset, long visibleOffset, DWORD* targetInventory, long mode) {
 	__asm {
-		mov  ecx, mode;
+		mov  eax, ecx;
 		mov  ebx, targetInventory;
-		mov  edx, visibleOffset;
-		mov  eax, inventoryOffset;
+		mov  ecx, mode;
 		call display_target_inventory_;
 	}
 }

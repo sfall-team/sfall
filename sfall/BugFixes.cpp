@@ -1,6 +1,6 @@
 #include "main.h"
 
-#include "Bugs.h"
+#include "BugFixes.h"
 #include "Define.h"
 #include "FalloutEngine.h"
 #include "LoadGameHook.h"
@@ -2051,7 +2051,7 @@ bad:
 	}
 }
 
-void BugsInit()
+void BugFixesInit()
 {
 	// fix vanilla negate operator on float values
 	MakeCall(0x46AB68, NegateFixHack);

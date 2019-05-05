@@ -20,7 +20,7 @@
 
 #include "AI.h"
 #include "Arrays.h"
-#include "Bugs.h"
+#include "BugFixes.h"
 #include "Console.h"
 #include "Criticals.h"
 #include "Define.h"

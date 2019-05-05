@@ -181,7 +181,7 @@
     <ClInclude Include="FalloutStructs.h">
       <Filter>Headers</Filter>
     </ClInclude>
-    <ClInclude Include="Bugs.h">
+    <ClInclude Include="BugFixes.h">
       <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="Message.h">
@@ -325,7 +325,7 @@
     <ClCompile Include="FalloutEngine.cpp">
       <Filter>Source</Filter>
     </ClCompile>
-    <ClCompile Include="Bugs.cpp">
+    <ClCompile Include="BugFixes.cpp">
       <Filter>Source</Filter>
     </ClCompile>
     <ClCompile Include="Message.cpp">

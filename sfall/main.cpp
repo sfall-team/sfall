@@ -25,7 +25,7 @@
 #include "AnimationsAtOnceLimit.h"
 #include "BarBoxes.h"
 #include "Books.h"
-#include "Bugs.h"
+#include "BugFixes.h"
 #include "BurstMods.h"
 #include "console.h"
 #include "CRC.h"
@@ -385,7 +385,7 @@ void RemoveSavFiles() {
 
 void ClearSavPrototypes() {
 	savPrototypes.clear();
-	MapDirErase(_F_PROTO_CRITTERS, _F_SAV);
+	RemoveSavFiles();
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -714,8 +714,8 @@ static void DllMain2() {
 	DWORD tmp;
 	dlogr("In DllMain2", DL_MAIN);
 
-	dlogr("Running BugsInit().", DL_INIT);
-	BugsInit();
+	dlogr("Running BugFixesInit().", DL_INIT);
+	BugFixesInit();
 
 	dlogr("Running SpeedPatchInit().", DL_INIT);
 	SpeedPatchInit();

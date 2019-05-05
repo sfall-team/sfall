@@ -1015,9 +1015,9 @@ long __fastcall WordWrap(const char* text, int maxWidth, DWORD* buf, BYTE* count
 
 void __stdcall RedrawWin(DWORD winRef);
 
-void __stdcall DisplayInventory(long inventoryOffset, long visibleOffset, long mode);
+void __fastcall DisplayInventory(long inventoryOffset, long visibleOffset, long mode);
 
-void __stdcall DisplayTargetInventory(long inventoryOffset, long visibleOffset, DWORD* targetInventory, long mode);
+void __fastcall DisplayTargetInventory(long inventoryOffset, long visibleOffset, DWORD* targetInventory, long mode);
 
 long __stdcall StatLevel(TGameObj* critter, long statId);
 

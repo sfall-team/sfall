@@ -440,6 +440,15 @@ void _stdcall FreeArray(DWORD id) {
 	}
 }
 
+void DeleteAllTempArrays() {
+	if (!tempArrays.empty()) {
+		for (std::set<DWORD>::iterator it = tempArrays.begin(); it != tempArrays.end(); ++it) {
+			FreeArray(*it);
+		}
+		tempArrays.clear();
+	}
+}
+
 DWORD _stdcall GetArrayKey(DWORD id, int index, DWORD* resultType) {
 	*resultType = VAR_TYPE_INT;
 	if (arrays.find(id) == arrays.end() || index < -1 || index > arrays[id].size()) return 0;

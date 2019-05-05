@@ -1,6 +1,6 @@
 #pragma once
 
-void BugsInit();
+void BugFixesInit();
 
 void DrugsSaveFix(HANDLE file);
 bool DrugsLoadFix(HANDLE file);
