@@ -22,8 +22,12 @@
 #include <d3dx9.h>
 #include <ddraw.h>
 
+#define SAFERELEASE(a) { if (a) { a->Release(); a = 0; } }
+
 extern DWORD GraphicsMode;
 extern DWORD GPUBlt;
+
+extern IDirect3DDevice9* d3d9Device;
 
 void GraphicsResetOnGameLoad();
 void GraphicsInit();

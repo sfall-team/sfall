@@ -44,7 +44,6 @@ typedef HRESULT (_stdcall *DDrawCreateProc)(void*, IDirectDraw**, void*);
 typedef IDirect3D9* (_stdcall *D3DCreateProc)(UINT version);
 
 #define UNUSEDFUNCTION { DEBUGMESS("\n[SFALL] Unused function called: %s", __FUNCTION__); return DDERR_GENERIC; }
-#define SAFERELEASE(a) { if (a) { a->Release(); a = 0; } }
 
 static DWORD ResWidth;
 static DWORD ResHeight;
@@ -101,31 +100,32 @@ static const char* gpuEffect=
 
 	// shader for displaying head textures
 	"float4 P1( in float2 Tex : TEXCOORD0 ) : COLOR0 {"
-	"  float backdrop = tex2D(s0, Tex).a;"
-	"  float3 result;"
-	"  if(abs(backdrop - 1.0) < 0.001) {" // (48.0 / 255.0) // 48 - key index color
-	"    result = tex2D(s2, saturate((Tex - corner) / size));"
-	"  } else {"
-	"    result = tex1D(s1, backdrop);"
-	"    result = float3(result.b, result.g, result.r);"
-	"  }"
-	"  return float4(result.r, result.g, result.b, 1);"
+	  "float backdrop = tex2D(s0, Tex).a;"
+	  "float3 result;"
+	  "if (abs(backdrop - 1.0) < 0.001) {" // (48.0 / 255.0) // 48 - key index color
+	    "result = tex2D(s2, saturate((Tex - corner) / size));"
+	  "} else {"
+	    "result = tex1D(s1, backdrop);"
+	    "result = float3(result.b, result.g, result.r);"
+	  "}"
+	  "return float4(result.r, result.g, result.b, 1);"
 	"}"
 
 	"technique T1"
 	"{"
-	"  pass p1 { PixelShader = compile ps_2_0 P1(); }"
+	  "pass p1 { PixelShader = compile ps_2_0 P1(); }"
 	"}"
 
 	"float4 P0( in float2 Tex : TEXCOORD0 ) : COLOR0 {"
-	"  float3 result = tex1D(s1, tex2D(s0, Tex).a);"
-	"  return float4(result.b, result.g, result.r, 1);"
+	  "float3 result = tex1D(s1, tex2D(s0, Tex).a);"
+	  "return float4(result.b, result.g, result.r, 1);"
 	"}"
 
 	"technique T0"
 	"{"
-	"  pass p0 { PixelShader = compile ps_2_0 P0(); }"
-	"}";
+	  "pass p0 { PixelShader = compile ps_2_0 P0(); }"
+	"}"
+;
 
 static D3DXHANDLE gpuBltBuf;
 static D3DXHANDLE gpuBltPalette;
@@ -143,11 +143,11 @@ struct sShader {
 	DWORD mode2;
 
 	sShader() {
-		Effect=0;
-		Active=false;
-		ehTicks=0;
-		mode=0;
-		mode2=0;
+		Effect = 0;
+		Active = false;
+		ehTicks = 0;
+		mode = 0;
+		mode2 = 0;
 	}
 };
 
