@@ -340,6 +340,7 @@
     <ClInclude Include="Modules\Scripting\ScriptValue.h" />
     <ClInclude Include="Modules\Scripting\Handlers\Stats.h" />
     <ClInclude Include="Modules\Scripting\Handlers\Worldmap.h" />
+    <ClInclude Include="Modules\ScriptShaders.h" />
     <ClInclude Include="SimplePatch.h" />
     <ClInclude Include="Modules\CRC.h" />
     <ClInclude Include="Modules\Credits.h" />
@@ -461,6 +462,7 @@
     <ClCompile Include="Modules\Tiles.cpp" />
     <ClCompile Include="Logging.cpp" />
     <ClCompile Include="Modules\ExtraSaveSlots.cpp" />
+    <ClCompile Include="Modules\ScriptShaders.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>

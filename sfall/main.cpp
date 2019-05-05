@@ -63,6 +63,7 @@
 #include "Modules\QuestList.h"
 #include "Modules\Reputations.h"
 #include "Modules\ScriptExtender.h"
+#include "Modules\ScriptShaders.h"
 #include "Modules\Skills.h"
 #include "Modules\Sound.h"
 #include "Modules\SpeedPatch.h"
@@ -178,6 +179,7 @@ static void InitModules() {
 	manager.add<HeroAppearance>();
 	manager.add<MiscPatches>();
 	manager.add<TalkingHeads>();
+	manager.add<ScriptShaders>();
 
 	// should be last (reason: all build-in events(delegates) of modules must be executed before running the script handlers)
 	manager.add<HookScripts>();
