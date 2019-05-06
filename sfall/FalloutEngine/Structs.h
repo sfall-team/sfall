@@ -136,7 +136,7 @@ struct GameObject {
 		return (protoId >> 24);
 	}
 	inline char TypeFid() {
-		return (artFid >> 24);
+		return ((artFid >> 24) & 0xF0);
 	}
 };
 
@@ -271,18 +271,19 @@ struct ElevatorFrms {
 
 #pragma pack(1)
 struct FrmFile {
-	long id;			//0x00
-	long unused;		//0x04
-	short frames;		//0x08
+	long id;				//0x00
+	short fps;				//0x04
+	short actionFrame;		//0x06
+	short frames;			//0x08
 	short xshift[6];		//0x0a
 	short yshift[6];		//0x16
-	long framestart[6];//0x22
-	long size;			//0x3a
+	long framestart[6];		//0x22
+	long size;				//0x3a
 	short width;			//0x3e
-	short height;		//0x40
-	long frmSize;		//0x42
-	short xoffset;		//0x46
-	short yoffset;		//0x48
+	short height;			//0x40
+	long frmSize;			//0x42
+	short xoffset;			//0x46
+	short yoffset;			//0x48
 	BYTE pixels[80 * 36];	//0x4a
 };
 
@@ -301,13 +302,13 @@ public:
 #pragma pack(2)
 typedef class FrmFrameData {
 public:
-	DWORD version; //version num
-	WORD fps; //frames per sec
+	DWORD version;        // version num
+	WORD fps;             // frames per sec
 	WORD actionFrame;
-	WORD numFrames; //number of frames per direction
-	WORD xCentreShift[6]; //offset from frm centre +=right -=left
-	WORD yCentreShift[6]; //offset from frm centre +=down -=up
-	DWORD oriOffset[6]; //frame area offset for diff orientations
+	WORD numFrames;       // number of frames per direction
+	WORD xCentreShift[6]; // offset from frm centre +=right -=left
+	WORD yCentreShift[6]; // offset from frm centre +=down -=up
+	DWORD oriOffset[6];   // frame area offset for diff orientations
 	DWORD frameAreaSize;
 } FrmFrameData;
 

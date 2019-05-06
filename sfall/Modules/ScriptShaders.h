@@ -2,6 +2,7 @@
 #pragma once
 
 #include "Module.h"
+#include "Graphics.h"
 
 namespace sfall
 {

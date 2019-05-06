@@ -49,6 +49,7 @@ public:
 	static void SetDefaultTechnique();
 };
 
+extern IDirect3D9* d3d9;
 extern IDirect3DDevice9* d3d9Device;
 
 int _stdcall GetShaderVersion();

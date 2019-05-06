@@ -18,6 +18,7 @@
 
 #include "..\main.h"
 #include "..\FalloutEngine\Fallout2.h"
+#include "Graphics.h"
 #include "LoadGameHook.h"
 
 #include "BarBoxes.h"
@@ -220,7 +221,7 @@ static void SetEngine(int count) {
 }
 
 static long SetMaxSlots() {
-	long scrWidth = fo::var::scr_size.offx - (fo::var::scr_size.x + 1);
+	long scrWidth = Graphics::GetGameWidthRes();
 
 	int slots = scrWidth / 127;
 	if (++slots > 16) {
