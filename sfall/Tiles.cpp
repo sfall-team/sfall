@@ -25,11 +25,11 @@
 #include "Tiles.h"
 
 struct sArt {
-	DWORD flags;
+	long flags;
 	char path[16];
 	char* names;
-	int d18;
-	int total;
+	long d18;
+	long total;
 
 	sArt(char* str) {
 		flags = 0;
@@ -52,20 +52,21 @@ struct OverrideEntry {
 	}
 };
 #pragma pack(push, 1)
-struct frm {
-	DWORD _id;			//0x00
-	DWORD unused;		//0x04
-	WORD frames;		//0x08
-	WORD xshift[6];		//0x0a
-	WORD yshift[6];		//0x16
-	DWORD framestart[6];//0x22
-	DWORD size;			//0x3a
-	WORD width;			//0x3e
-	WORD height;		//0x40
-	DWORD frmsize;		//0x42
-	WORD xoffset;		//0x46
-	WORD yoffset;		//0x48
-	BYTE pixels[80*36];	//0x4a
+struct FrmFile {
+	long id;				//0x00
+	short fps;				//0x04
+	short actionFrame;		//0x06
+	short frames;			//0x08
+	short xshift[6];		//0x0a
+	short yshift[6];		//0x16
+	long framestart[6];		//0x22
+	long size;				//0x3a
+	short width;			//0x3e
+	short height;			//0x40
+	long frmSize;			//0x42
+	short xoffset;			//0x46
+	short yoffset;			//0x48
+	BYTE pixels[80 * 36];	//0x4a
 };
 #pragma pack(pop)
 
@@ -174,6 +175,7 @@ static void* mem_realloc(void* lpmem, DWORD msize) {
 typedef int (_stdcall *functype)();
 static const functype _art_init = (functype)art_init_;
 static BYTE* mask;
+
 static void CreateMask() {
 	mask = new BYTE[80*36];
 	DWORD file = db_fopen("art\\tiles\\grid000.frm", "r");
@@ -182,8 +184,14 @@ static void CreateMask() {
 	db_fclose(file);
 }
 
-static WORD ByteSwapW(WORD w) { return ((w&0xff) << 8) | ((w&0xff00) >> 8); }
-static DWORD ByteSwapD(DWORD w) { return ((w&0xff) << 24) | ((w&0xff00) << 8) | ((w&0xff0000) >> 8) | ((w&0xff000000) >> 24); }
+static WORD ByteSwapW(WORD w) {
+	return ((w & 0xff) << 8) | ((w & 0xff00) >> 8);
+}
+
+static DWORD ByteSwapD(DWORD w) {
+	return ((w & 0xff) << 24) | ((w & 0xff00) << 8) | ((w & 0xff0000) >> 8) | ((w & 0xff000000) >> 24);
+}
+
 static int ProcessTile(sArt* tiles, int tile, int listpos) {
 	char buf[32];
 	//sprintf_s(buf, "art\\tiles\\%s", &tiles->names[13*tile]);
@@ -200,8 +208,8 @@ static int ProcessTile(sArt* tiles, int tile, int listpos) {
 	}
 	int height = db_freadShort(art); //36
 	db_fseek(art, 0x4A);
-	BYTE* pixeldata = new BYTE[width*height];
-	db_freadByteCount(art, pixeldata, width*height);
+	BYTE* pixeldata = new BYTE[width * height];
+	db_freadByteCount(art, pixeldata, width * height);
 	DWORD listid = listpos - tiles->total;
 	float newwidth = (float)(width - width % 8);
 	float newheight = (float)(height - height % 12);
@@ -209,12 +217,12 @@ static int ProcessTile(sArt* tiles, int tile, int listpos) {
 	int ysize = (int)floor(newheight / 16.0f - newwidth / 64.0f);
 	for (int y = 0; y < ysize; y++) {
 		for (int x = 0; x < xsize; x++) {
-			frm frame;
+			FrmFile frame;
 			db_fseek(art, 0);
 			db_freadByteCount(art, &frame, 0x4a);
 			frame.height = ByteSwapW(36);
 			frame.width = ByteSwapW(80);
-			frame.frmsize = ByteSwapD(80 * 36);
+			frame.frmSize = ByteSwapD(80 * 36);
 			frame.size = ByteSwapD(80 * 36 + 12);
 			int xoffset = x * 48 + (ysize - (y + 1)) * 32;
 			int yoffset = height - (36 + x * 12 + y * 24);
