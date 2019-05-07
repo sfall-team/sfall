@@ -32,14 +32,13 @@
 #include <vector>
 
 #include "..\main.h"
-
 #include "..\FalloutEngine\Fallout2.h"
 #include "..\InputFuncs.h"
 #include "..\Version.h"
-
-#include "Graphics.h"
 #include "LoadGameHook.h"
 #include "ScriptShaders.h"
+
+#include "Graphics.h"
 
 namespace sfall
 {

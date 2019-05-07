@@ -66,7 +66,8 @@ void OpcodeContext::setArgShift (int shift) {
 }
 
 const ScriptValue& OpcodeContext::arg(int index) const {
-	return _args.at(index + _argShift);
+	assert((index + _argShift) < OP_MAX_ARGUMENTS);
+	return _args[index + _argShift];
 }
 
 const ScriptValue& OpcodeContext::returnValue() const {
@@ -109,6 +110,7 @@ bool OpcodeContext::validateArguments(const OpcodeArgumentType argTypes[], const
 		// exception is when type set to
 		if (actualType == DataType::NONE) break;
 		auto argType = argTypes[i];
+		if (argType == ARG_ANY) continue;
 		if ((argType == ARG_INT || argType == ARG_OBJECT) && !(actualType == DataType::INT)) {
 			printOpcodeError("%s() - argument #%d is not an integer.", opcodeName, ++i);
 			return false;
@@ -208,9 +210,9 @@ void OpcodeContext::_popArguments() {
 
 		// retrieve string argument
 		if (type == DataType::STR) {
-			_args.at(i) = fo::func::interpretGetString(_program, rawValueType, rawValue);
+			_args[i] = fo::func::interpretGetString(_program, rawValueType, rawValue);
 		} else {
-			_args.at(i) = ScriptValue(type, rawValue);
+			_args[i] = ScriptValue(type, rawValue);
 		}
 	}
 }
