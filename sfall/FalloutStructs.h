@@ -203,13 +203,13 @@ public:
 #pragma pack(push, 2)
 typedef class FrmFrameData {
 public:
-	DWORD version; // version num
-	WORD fps; // frames per sec
+	DWORD version;        // version num
+	WORD fps;             // frames per sec
 	WORD actionFrame;
-	WORD numFrames; // number of frames per direction
+	WORD numFrames;       // number of frames per direction
 	WORD xCentreShift[6]; // offset from frm centre +=right -=left
 	WORD yCentreShift[6]; // offset from frm centre +=down -=up
-	DWORD oriOffset[6]; // frame area offset for diff orientations
+	DWORD oriOffset[6];   // frame area offset for diff orientations
 	DWORD frameAreaSize;
 } FrmFrameData;
 #pragma pack(pop)

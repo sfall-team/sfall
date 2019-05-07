@@ -895,15 +895,14 @@ TGameObj* __stdcall InvenRightHand(TGameObj* critter) {
 	}
 }
 
-long __stdcall CreateWindowFunc(const char* winName, long x, long y, long width, long height, long bgColorIndex, long flags) {
+long __fastcall CreateWindowFunc(const char* winName, long x, long y, long width, long height, long bgColorIndex, long flags) {
 	__asm {
 		push flags;
 		push bgColorIndex;
 		push height;
-		mov  ecx, width;
+		mov  eax, ecx;
 		mov  ebx, y;
-		mov  edx, x;
-		mov  eax, winName;
+		mov  ecx, width;
 		call createWindow_;
 	}
 }

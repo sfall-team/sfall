@@ -218,7 +218,8 @@ public:
 
 	// returns argument with given index, possible shifted by argShift
 	const ScriptValue& arg(int index) const {
-		return _args.at(index + _argShift);
+		assert((index + _argShift) < OP_MAX_ARGUMENTS);
+		return _args[index + _argShift];
 	}
 	
 	// current return value
@@ -312,9 +313,9 @@ public:
 
 			// retrieve string argument
 			if (type == DATATYPE_STR) {
-				_args.at(i) = InterpretGetString(program, rawValue, rawValueType);
+				_args[i] = InterpretGetString(program, rawValue, rawValueType);
 			} else {
-				_args.at(i) = ScriptValue(type, rawValue);
+				_args[i] = ScriptValue(type, rawValue);
 			}
 		}
 		// flag that arguments passed are valid

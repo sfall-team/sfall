@@ -1004,7 +1004,7 @@ void __declspec() DebugPrintf(const char* fmt, ...);
 const char* __stdcall FindCurrentProc(TProgram* program);
 
 // creates a window with the name and flags
-long __stdcall CreateWindowFunc(const char* winName, long x, long y, long width, long height, long bgColorIndex, long flags);
+long __fastcall CreateWindowFunc(const char* winName, long x, long y, long width, long height, long bgColorIndex, long flags);
 
 // creates a button
 long __stdcall WinRegisterButton(DWORD winRef, long xPos, long yPos, long width, long height, long hoverOn, long hoverOff, long buttonDown, long buttonUp, BYTE* pictureUp, BYTE* pictureDown, long arg12, long buttonType);
