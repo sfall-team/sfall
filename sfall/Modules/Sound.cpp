@@ -64,7 +64,7 @@ void Sound::init() {
 		HookCall(0x42B849, ai_print_msg_hook);
 
 		//Yes, I did leave this in on purpose. Will be of use to anyone trying to add in the sound effects
-		if (isDebug && GetConfigInt("Sound", "Test_ForceFloats", 0)) {
+		if (isDebug && GetPrivateProfileIntA("Debugging", "Test_ForceFloats", 0, ::sfall::ddrawIni)) {
 			SafeWrite8(0x42B6F5, 0xEB); // bypass chance
 		}
 	}
