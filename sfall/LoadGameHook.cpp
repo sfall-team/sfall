@@ -48,6 +48,8 @@
 
 #define MAX_GLOBAL_SIZE (MaxGlobalVars * 12 + 4)
 
+DWORD LoadGameHook_LootTarget = 0;
+
 static DWORD InLoop = 0;
 static DWORD SaveInCombatFix;
 static bool mapLoaded = false;
@@ -62,6 +64,10 @@ DWORD InWorldMap() {
 
 DWORD InCombat() {
 	return (InLoop & COMBAT) ? 1 : 0;
+}
+
+DWORD InDialog() {
+	return (InLoop & DIALOG) ? 1 : 0;
 }
 
 DWORD GetCurrentLoops() {
@@ -85,6 +91,7 @@ static void _stdcall ResetState(DWORD onLoad) {
 	ClearSavPrototypes();
 	ResetExplosionRadius();
 	PartyControlReset();
+	NpcEngineLevelUpReset();
 }
 
 void GetSavePath(char* buf, char* ftype) {
@@ -489,6 +496,7 @@ static void __declspec(naked) UseInventoryOnHook() {
 
 static void __declspec(naked) LootContainerHook() {
 	__asm {
+		mov  LoadGameHook_LootTarget, edx;
 		or InLoop, INTFACELOOT;
 		call loot_container_;
 		and InLoop, (-1 ^ INTFACELOOT);

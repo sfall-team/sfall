@@ -32,6 +32,7 @@
 #include "PartyControl.h"
 
 bool npcAutoLevelEnabled;
+bool npcEngineLevelUp = true;
 
 static DWORD Mode;
 static int IsControllingNPC = 0;
@@ -356,6 +357,16 @@ end:
 	}
 }
 
+void __stdcall PartyControlReset() {
+	if (real_dude != nullptr && IsControllingNPC > 0) {
+		RestoreRealDudeState();
+	}
+}
+
+bool IsNpcControlled() {
+	return IsControllingNPC != 0;
+}
+
 static char levelMsg[12], armorClassMsg[12], addictMsg[16];
 static void __fastcall PartyMemberPrintStat(BYTE* surface, DWORD toWidth) {
 	const char* fmt = "%s %d";
@@ -401,6 +412,13 @@ static void NpcAutoLevelPatch() {
 		dlog("Applying NPC autolevel patch.", DL_INIT);
 		SafeWrite8(0x495CFB, 0xEB); // jmps 0x495D28 (skip random check)
 		dlogr(" Done", DL_INIT);
+	}
+}
+
+void NpcEngineLevelUpReset() {
+	if (!npcEngineLevelUp) {
+		npcEngineLevelUp = true;
+		SafeWrite16(0x4AFC1C, 0x840F);
 	}
 }
 
@@ -453,14 +471,4 @@ void PartyControlInit() {
 		GetPrivateProfileString("sfall", "PartyAddictMsg", "Addict", addictMsg, 16, translationIni);
 		dlogr(" Done", DL_INIT);
 	}
-}
-
-void __stdcall PartyControlReset() {
-	if (real_dude != nullptr && IsControllingNPC > 0) {
-		RestoreRealDudeState();
-	}
-}
-
-bool IsNpcControlled() {
-	return IsControllingNPC != 0;
 }

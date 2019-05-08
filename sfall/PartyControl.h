@@ -19,8 +19,10 @@
 #pragma once
 
 extern bool npcAutoLevelEnabled;
+extern bool npcEngineLevelUp;
 
 void PartyControlInit();
 void __stdcall PartyControlReset();
 int __stdcall PartyControl_SwitchHandHook(TGameObj* item);
 bool IsNpcControlled();
+void NpcEngineLevelUpReset();

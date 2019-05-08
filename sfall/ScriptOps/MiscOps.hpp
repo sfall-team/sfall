@@ -1488,3 +1488,13 @@ static void sf_set_ini_setting() {
 		break;
 	}
 }
+
+static void sf_npc_engine_level_up() {
+	if (opHandler.arg(0).asBool()) {
+		if (!npcEngineLevelUp) SafeWrite16(0x4AFC1C, 0x840F); // enable
+		npcEngineLevelUp = true;
+	} else {
+		if (npcEngineLevelUp) SafeWrite16(0x4AFC1C, 0xE990);
+		npcEngineLevelUp = false;
+	}
+}

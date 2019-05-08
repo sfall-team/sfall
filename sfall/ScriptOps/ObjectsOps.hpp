@@ -619,6 +619,10 @@ static void sf_get_current_inven_size() {
 	opHandler.setReturn(sf_item_total_size(opHandler.arg(0).asObject()), DATATYPE_INT);
 }
 
+static void sf_get_dialog_object() {
+	opHandler.setReturn(InDialog() ? *ptr_dialog_target : 0, DATATYPE_INT);
+}
+
 static void sf_get_obj_under_cursor() {
 	int crSwitch = opHandler.arg(0).asBool() ? 1 : -1,
 		inclDude = opHandler.arg(1).rawValue(),
@@ -632,6 +636,10 @@ static void sf_get_obj_under_cursor() {
 		mov  obj, eax;
 	}
 	opHandler.setReturn(obj);
+}
+
+static void sf_get_loot_object() {
+	opHandler.setReturn((GetCurrentLoops() & INTFACELOOT) ? LoadGameHook_LootTarget : 0, DATATYPE_INT);
 }
 
 static void sf_get_object_data() {

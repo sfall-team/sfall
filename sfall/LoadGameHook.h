@@ -18,11 +18,14 @@
 
 #pragma once
 
+extern DWORD LoadGameHook_LootTarget;
+
 void LoadGameHookInit();
 
 bool IsMapLoaded();
 DWORD InWorldMap();
 DWORD InCombat();
+DWORD InDialog();
 
 #define WORLDMAP    (1<<0)  // 0x1
 #define LOCALMAP    (1<<1)  // 0x2 No point hooking this: would always be 1 at any point at which scripts are running

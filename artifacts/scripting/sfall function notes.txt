@@ -458,10 +458,16 @@ Some utility/math functions are available:
 - works just like vanilla CreateWin function, but creates a window with MoveOnTop flag if the flags argument is not specified, and allows to set additional flags for the created window
 - MoveOnTop flag allows the created window to be placed on top of the game interface
 
+> object sfall_func0("dialog_obj")
+- returns a pointer to the object (critter) the player is having a conversation or bartering with
+
 > object sfall_func2("obj_under_cursor", bool crSwitch, bool inclDude)
 - returns the object under the cursor on the main game screen
 - crSwitch: True - only checks critters and ignores their cover (roof tiles, walls, scenery, etc.), False - checks all objects (can't check critters under objects)
 - passing False to the inclDude argument will ignore dude_obj
+
+> object sfall_func0("loot_obj")
+- returns a pointer to the target object (container or critter) of the loot screen
 
 > int sfall_func2("get_object_data", object, int offset)
 - returns the data at the specified offset of an object (see OBJ_DATA_* constants in define_extra.h for offsets)
@@ -471,6 +477,10 @@ Some utility/math functions are available:
 
 > void sfall_func0("art_cache_clear")
 - clears the cache of FRM image files loaded into memory
+
+> void sfall_func1("npc_engine_level_up", bool toggle)
+- enables/disables the engine function that increases the level of party members in the player leveling process
+- if the engine function is disabled, the process of leveling up party members should be performed by script functions
 
 > int sfall_func1("set_unique_id", object)
 > int sfall_func2("set_unique_id", object, int flag)
