@@ -153,7 +153,7 @@ static bool LoadFrm(Frm* frm) {
 	}
 	// make mask image
 	for (int i = 0; i < frm->frames; i++) {
-		fo::FrmSubframeData* frame = fo::func::frame_ptr((fo::FrmFrameData*)frm, i, 0);
+		fo::FrmFrameData* frame = fo::func::frame_ptr((fo::FrmHeaderData*)frm, i, 0);
 		if (frm->bakedBackground) {
 			memset(frame->data, 255, frame->size);
 		} else {
@@ -169,7 +169,7 @@ static bool LoadFrm(Frm* frm) {
 static void __fastcall DrawHeadFrame(Frm* frm, int frameno) {
 	if (frm && !frm->broken) {
 		if (!frm->loaded && !LoadFrm(frm)) goto loadFail;
-		fo::FrmSubframeData* frame = fo::func::frame_ptr((fo::FrmFrameData*)frm, frameno, 0);
+		fo::FrmFrameData* frame = fo::func::frame_ptr((fo::FrmHeaderData*)frm, frameno, 0);
 		Graphics::SetHeadTex(frm->textures[frameno], frame->width, frame->height, frame->x + frm->xshift, frame->y + frm->yshift, (frm->showHighlights == 2));
 		showHighlights = frm->showHighlights;
 		return;

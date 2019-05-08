@@ -20,8 +20,8 @@
 
 #include "Structs.h"
 
-// 
-// WRAPPERS for FO engine functions. 
+//
+// WRAPPERS for FO engine functions.
 // Use those as you would if there were source code for the engine...
 //
 namespace fo
@@ -78,6 +78,8 @@ long __stdcall db_get_file_list(const char* searchMask, char* * *fileList);
 
 long __stdcall db_init(const char* path_dat, const char* path_patches);
 
+long __stdcall db_file_exist(const char *fileName, DWORD *sizeOut);
+
 // prints message to debug.log file
 void __declspec() debug_printf(const char* fmt, ...);
 
@@ -96,13 +98,8 @@ long __stdcall item_get_type(GameObject* item);
 // searches for message ID in given message file and places result in @result
 const char* _stdcall getmsg(const MessageList* fileAddr, MessageNode* result, long messageId);
 
-// plays SFX sound with given name 
+// plays SFX sound with given name
 void __stdcall gsound_play_sfx_file(const char* name);
-
-// redraws the main game interface windows (useful after changing some data like active hand, etc.)
-void intface_redraw();
-
-void process_bk();
 
 long __stdcall interpret(Program* program, long arg2);
 
@@ -185,7 +182,7 @@ ScriptInstance* __stdcall scr_find_next_at();
 
 GameObject* __stdcall scr_find_obj_from_program(Program* program);
 
-// Saves pointer to script object into scriptPtr using scriptID. 
+// Saves pointer to script object into scriptPtr using scriptID.
 // Returns 0 on success, -1 on failure.
 long __stdcall scr_ptr(long scriptId, ScriptInstance** scriptPtr);
 
@@ -201,6 +198,13 @@ long __stdcall win_register_button(DWORD winRef, long xPos, long yPos, long widt
 
 void __stdcall DialogOut(const char* text);
 
+// draws the image to the buffer without scaling with the possibility of transparency
+void __fastcall windowDisplayBuf(long x, long width, long y, long height, void* data, long isTrans);
+
+// draws an image in the window and scales the image to fit the window
+void __fastcall displayInWindow(long w_here, long width, long height, void* data);
+
+void __fastcall trans_cscale(long i_width, long i_height, long s_width, long s_height, long xy_shift, long w_width, void* data);
 
 // X-Macro for wrapper functions.
 

@@ -652,7 +652,7 @@ static void sub_draw(long subWidth, long subHeight, long fromWidth, long fromHei
 static void DrawBody(DWORD critNum, BYTE* surface) {
 	DWORD critFrmLock;
 
-	fo::FrmFrameData *critFrm = fo::func::art_ptr_lock(BuildFrmId(1, critNum), &critFrmLock);
+	fo::FrmHeaderData *critFrm = fo::func::art_ptr_lock(BuildFrmId(1, critNum), &critFrmLock);
 	DWORD critWidth = fo::func::art_frame_width(critFrm, 0, charRotOri);
 	DWORD critHeight = fo::func::art_frame_length(critFrm, 0, charRotOri);
 	BYTE *critSurface = fo::func::art_frame_data(critFrm, 0, charRotOri);

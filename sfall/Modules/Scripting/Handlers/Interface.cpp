@@ -397,5 +397,72 @@ void sf_create_win(OpcodeContext& ctx) {
 	}
 }
 
+static void DrawImage(OpcodeContext& ctx, bool isScaled) {
+	long rotation = 0;
+	const char* file = nullptr;
+	if (ctx.arg(0).isInt()) { // art id
+		long fid = ctx.arg(0).rawValue();
+		if (fid == -1) return;
+		long _fid = fid & 0xFFFFFFF;
+		file = fo::func::art_get_name(_fid); // .frm
+		if (_fid >> 24 == fo::OBJ_TYPE_CRITTER) {
+			rotation = (fid >> 28);
+			DWORD sz;
+			if (rotation && fo::func::db_file_exist(file, &sz)) {
+				file = fo::func::art_get_name(fid); // .fr#
+			}
+		}
+	} else {
+		file = ctx.arg(0).strValue(); // path to frm file
+	}
+	fo::FrmFile* frmPtr = nullptr;
+	if (fo::func::load_frame(file, &frmPtr)) {
+		ctx.printOpcodeError("%s() - '%s' can't open file.", ctx.getMetaruleName(), file);
+		return;
+	}
+	fo::FrmFrameData* framePtr = (fo::FrmFrameData*)&frmPtr->width;
+	if (rotation > 0 && rotation < 6) {
+		BYTE* offsOriFrame = (BYTE*)framePtr;
+		offsOriFrame += frmPtr->oriFrameOffset[rotation];
+		framePtr = (fo::FrmFrameData*)offsOriFrame;
+	}
+	int frameno = ctx.arg(1).rawValue();
+	if (frameno > 0) {
+		int maxFrames = frmPtr->frames - 1;
+		if (frameno > maxFrames) frameno = maxFrames;
+		while (frameno-- > 0) {
+			BYTE* offsFrame = (BYTE*)framePtr;
+			offsFrame += framePtr->size + (sizeof(fo::FrmFrameData) - 1);
+			framePtr = (fo::FrmFrameData*)offsFrame;
+		}
+	}
+	if (isScaled && ctx.numArgs() < 3) {
+		fo::func::displayInWindow(framePtr->width, framePtr->width, framePtr->height, framePtr->data); // scaled to window size
+	} else {
+		int x = ctx.arg(2).rawValue(), y = ctx.arg(3).rawValue();
+		if (isScaled) { // draw to scale
+			long s_width  = (ctx.numArgs() > 4) ? ctx.arg(4).rawValue() : framePtr->width;
+			long s_height = (ctx.numArgs() > 5) ? ctx.arg(5).rawValue() : framePtr->height;
+			long w_width = fo::func::windowWidth();
+			long xy_pos = (x * w_width) + y;
+			fo::func::trans_cscale(framePtr->width, framePtr->height, s_width, s_height, xy_pos, w_width, framePtr->data); // custom scaling
+		} else {
+			fo::func::windowDisplayBuf(x + frmPtr->xshift[rotation], framePtr->width, y + frmPtr->yshift[rotation], framePtr->height, framePtr->data, ctx.arg(4).rawValue());
+		}
+	}
+	__asm {
+		mov  eax, frmPtr;
+		call fo::funcoffs::mem_free_;
+	}
+}
+
+void sf_draw_image(OpcodeContext& ctx) {
+	DrawImage(ctx, false);
+}
+
+void sf_draw_image_scaled(OpcodeContext& ctx) {
+	DrawImage(ctx, true);
+}
+
 }
 }
