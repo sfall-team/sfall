@@ -136,7 +136,7 @@ struct GameObject {
 		return (protoId >> 24);
 	}
 	inline char TypeFid() {
-		return ((artFid >> 24) & 0xF0);
+		return ((artFid >> 24) & 0x0F);
 	}
 };
 

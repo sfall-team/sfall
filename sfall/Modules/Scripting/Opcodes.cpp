@@ -57,7 +57,7 @@ typedef std::unordered_map<short, const SfallOpcodeInfo*> OpcodeInfoMapType;
 //    opcode number,
 //    function name,
 //    function handler,
-//    number of arguments,
+//    number of arguments (max 7),
 //    has return value,
 //    { argument 1 type, argument 2 type, ...}
 // }
@@ -195,7 +195,7 @@ static SfallOpcodeInfo opcodeInfoArray[] = {
 	{0x279, "sfall_func3", HandleMetarule, 4, true},
 	{0x27a, "sfall_func4", HandleMetarule, 5, true},
 	{0x27b, "sfall_func5", HandleMetarule, 6, true},
-	{0x27c, "sfall_func6", HandleMetarule, 7, true},  // if you need more arguments - use arrays
+	{0x27c, "sfall_func6", HandleMetarule, 7, true}, // if you need more arguments - use arrays
 };
 
 // A hash-table for opcode info, indexed by opcode.
