@@ -423,9 +423,9 @@ void __fastcall windowDisplayBuf(long x, long width, long y, long height, void* 
 		push edx;       // from_width
 		push y;
 		mov  eax, data; // from
-		mov  ebx, fo::funcoffs::windowDisplayBuf_;
+		mov  ebx, fo::funcoffs::windowDisplayTransBuf_;
 		cmp  isTrans, 0;
-		cmovnz ebx, fo::funcoffs::windowDisplayTransBuf_;
+		cmovnz ebx, fo::funcoffs::windowDisplayBuf_;
 		call ebx; // *data<eax>, from_width<edx>, unused<ebx>, X<ecx>, Y, width, height
 	}
 }
@@ -447,9 +447,9 @@ void __fastcall trans_cscale(long i_width, long i_height, long s_width, long s_h
 		mov  edx, ecx; // i_width
 		call fo::funcoffs::windowGetBuffer_;
 		add  eax, xy_shift;
-		push eax;      // w_buff
+		push eax;      // to_buff
 		mov  eax, data;
-		call fo::funcoffs::trans_cscale_; // *i_data@<eax>, i_width@<edx>, i_height@<ebx>, i_width2@<ecx>, w_buff, width, height, from_width
+		call fo::funcoffs::trans_cscale_; // *from_buff<eax>, i_width<edx>, i_height<ebx>, i_width2<ecx>, to_buff, width, height, to_width
 	}
 }
 

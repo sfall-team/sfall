@@ -249,7 +249,7 @@
 #define dialog_message(text)                            sfall_func1("dialog_message", text)
 #define dialog_obj                                      sfall_func0("dialog_obj")
 #define display_stats                                   sfall_func0("display_stats")
-#define draw_image                                      sfall_func5("draw_image", pathFile, frame, x, y, transparent)
+#define draw_image                                      sfall_func5("draw_image", pathFile, frame, x, y, noTransparent)
 #define draw_image_scaled                               sfall_func6("draw_image_scaled", artId, frame, x, y, width, height)
 #define exec_map_update_scripts                         sfall_func0("exec_map_update_scripts")
 #define floor2(value)                                   sfall_func1("floor2", value)
