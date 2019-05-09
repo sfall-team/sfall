@@ -1025,7 +1025,7 @@ long __stdcall QueueFindFirst(TGameObj* object, long qType);
 
 long __stdcall NewObjId();
 
-FrmSubframeData* __fastcall FramePtr(FrmFrameData* frm, long frame, long direction);
+FrmFrameData* __fastcall FramePtr(FrmHeaderData* frm, long frame, long direction);
 
 void __stdcall MapDirErase(const char* folder, const char* ext);
 

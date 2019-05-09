@@ -996,7 +996,7 @@ long __stdcall NewObjId() {
 	__asm call new_obj_id_;
 }
 
-FrmSubframeData* __fastcall FramePtr(FrmFrameData* frm, long frame, long direction) {
+FrmFrameData* __fastcall FramePtr(FrmHeaderData* frm, long frame, long direction) {
 	__asm {
 		mov  ebx, direction;
 		mov  eax, ecx;

@@ -339,8 +339,8 @@ BYTE* GetFrmSurface2(DWORD FrmID, DWORD *FrmObj_out, DWORD *frmWidth_out, DWORD 
 }
 */
 
-FrmFrameData* GetFrm(DWORD FrmID, DWORD *FrmObj_out) {
-	FrmFrameData* Frm;
+FrmHeaderData* GetFrm(DWORD FrmID, DWORD *FrmObj_out) {
+	FrmHeaderData* Frm;
 	__asm {
 		mov  edx, FrmObj_out;
 		mov  eax, FrmID;
@@ -350,7 +350,7 @@ FrmFrameData* GetFrm(DWORD FrmID, DWORD *FrmObj_out) {
 	return Frm;
 }
 
-DWORD GetFrmFrameWidth(FrmFrameData* Frm, DWORD FrameNum, DWORD Ori) {
+DWORD GetFrmFrameWidth(FrmHeaderData* Frm, DWORD FrameNum, DWORD Ori) {
 	DWORD Width;
 	__asm {
 		mov  ebx, Ori; // 0-5
@@ -362,7 +362,7 @@ DWORD GetFrmFrameWidth(FrmFrameData* Frm, DWORD FrameNum, DWORD Ori) {
 	return Width;
 }
 
-DWORD GetFrmFrameHeight(FrmFrameData* Frm, DWORD FrameNum, DWORD Ori) {
+DWORD GetFrmFrameHeight(FrmHeaderData* Frm, DWORD FrameNum, DWORD Ori) {
 	DWORD Height;
 	__asm {
 		mov  ebx, Ori; // 0-5
@@ -374,7 +374,7 @@ DWORD GetFrmFrameHeight(FrmFrameData* Frm, DWORD FrameNum, DWORD Ori) {
 	return Height;
 }
 
-BYTE* GetFrmFrameSurface(FrmFrameData* Frm,  DWORD FrameNum, DWORD Ori) {
+BYTE* GetFrmFrameSurface(FrmHeaderData* Frm,  DWORD FrameNum, DWORD Ori) {
 	BYTE *Surface;
 	__asm {
 		mov  ebx, Ori; // 0-5
@@ -770,15 +770,12 @@ void _stdcall RefreshHeroBaseArt() {
 
 /*
 // Check fallout paths for file
-int __cdecl CheckFile(char *FileName, DWORD *size_out) {
-	int retVal = 0;
+long __stdcall db_file_exist(const char *fileName, DWORD *sizeOut) {
 	__asm {
-		mov  edx, size_out;
-		mov  eax, FileName;
+		mov  edx, sizeOut;
+		mov  eax, fileName;
 		call db_dir_entry_;
-		mov  retVal, eax;
 	}
-	return retVal;
 }
 */
 
@@ -1187,7 +1184,7 @@ static void sub_draw(long subWidth, long subHeight, long fromWidth, long fromHei
 static void DrawBody(DWORD critNum, BYTE* surface) {
 	DWORD critFrmLock;
 
-	FrmFrameData *critFrm = GetFrm(BuildFrmId(1, critNum), &critFrmLock);
+	FrmHeaderData *critFrm = GetFrm(BuildFrmId(1, critNum), &critFrmLock);
 	DWORD critWidth = GetFrmFrameWidth(critFrm, 0, charRotOri);
 	DWORD critHeight = GetFrmFrameHeight(critFrm, 0, charRotOri);
 	BYTE *critSurface = GetFrmFrameSurface(critFrm, 0, charRotOri);

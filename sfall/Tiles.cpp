@@ -51,24 +51,6 @@ struct OverrideEntry {
 		replacementid = _repid;
 	}
 };
-#pragma pack(push, 1)
-struct FrmFile {
-	long id;				//0x00
-	short fps;				//0x04
-	short actionFrame;		//0x06
-	short frames;			//0x08
-	short xshift[6];		//0x0a
-	short yshift[6];		//0x16
-	long framestart[6];		//0x22
-	long size;				//0x3a
-	short width;			//0x3e
-	short height;			//0x40
-	long frmSize;			//0x42
-	short xoffset;			//0x46
-	short yoffset;			//0x48
-	BYTE pixels[80 * 36];	//0x4a
-};
-#pragma pack(pop)
 
 static OverrideEntry** overrides;
 static DWORD origTileCount = 0;
@@ -222,8 +204,8 @@ static int ProcessTile(sArt* tiles, int tile, int listpos) {
 			db_freadByteCount(art, &frame, 0x4a);
 			frame.height = ByteSwapW(36);
 			frame.width = ByteSwapW(80);
-			frame.frmSize = ByteSwapD(80 * 36);
-			frame.size = ByteSwapD(80 * 36 + 12);
+			frame.frameSize = ByteSwapD(80 * 36);
+			frame.frameAreaSize = frame.frameSize + 12;
 			int xoffset = x * 48 + (ysize - (y + 1)) * 32;
 			int yoffset = height - (36 + x * 12 + y * 24);
 			for (int y2 = 0; y2 < 36; y2++) {

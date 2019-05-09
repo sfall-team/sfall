@@ -99,7 +99,7 @@ DWORD __stdcall sf_item_total_size(TGameObj* critter) {
 		mov  totalSize, eax;
 	}
 
-	if (((critter->artFID >> 24) & 0xF0) == OBJ_TYPE_CRITTER) {
+	if (((critter->artFID >> 24) & 0x0F) == OBJ_TYPE_CRITTER) {
 		TGameObj* item = InvenRightHand(critter);
 		if (item && !(item->flags & 0x2000000)) { // ObjectFlag Right_Hand
 			totalSize += ItemSize(item);
