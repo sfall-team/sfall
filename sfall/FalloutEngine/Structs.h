@@ -136,7 +136,7 @@ struct GameObject {
 		return (protoId >> 24);
 	}
 	inline char TypeFid() {
-		return ((artFid >> 24) & 0xF0);
+		return ((artFid >> 24) & 0x0F);
 	}
 };
 
@@ -277,11 +277,11 @@ struct FrmFile {
 	short frames;			//0x08
 	short xshift[6];		//0x0a
 	short yshift[6];		//0x16
-	long framestart[6];		//0x22
-	long size;				//0x3a
+	long oriFrameOffset[6];	//0x22
+	long frameAreaSize;		//0x3a
 	short width;			//0x3e
 	short height;			//0x40
-	long frmSize;			//0x42
+	long frameSize;			//0x42
 	short xoffset;			//0x46
 	short yoffset;			//0x48
 	BYTE pixels[80 * 36];	//0x4a
@@ -289,28 +289,28 @@ struct FrmFile {
 
 //structures for holding frms loaded with fallout2 functions
 #pragma pack(1)
-typedef class FrmSubframeData {
+typedef class FrmFrameData { // sizeof 12 + 1 byte
 public:
 	WORD width;
 	WORD height;
-	DWORD size;
+	DWORD size;   // width * height
 	WORD x;
 	WORD y;
 	BYTE data[1]; // begin frame data
-} FrmSubframeData;
+} FrmFrameData;
 
 #pragma pack(2)
-typedef class FrmFrameData {
+typedef class FrmHeaderData { // sizeof 62
 public:
 	DWORD version;        // version num
 	WORD fps;             // frames per sec
 	WORD actionFrame;
 	WORD numFrames;       // number of frames per direction
-	WORD xCentreShift[6]; // offset from frm centre +=right -=left
-	WORD yCentreShift[6]; // offset from frm centre +=down -=up
-	DWORD oriOffset[6];   // frame area offset for diff orientations
-	DWORD frameAreaSize;
-} FrmFrameData;
+	WORD xCentreShift[6]; // shift in the X direction, of frames with orientations [0-5]
+	WORD yCentreShift[6]; // shift in the Y direction, of frames with orientations [0-5]
+	DWORD oriOffset[6];   // offset of first frame for direction [0-5] from begining of frame area
+	DWORD frameAreaSize;  // size of all frames area
+} FrmHeaderData;
 
 #pragma pack(1)
 struct MessageNode {

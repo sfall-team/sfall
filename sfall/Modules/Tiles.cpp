@@ -118,8 +118,8 @@ static int ProcessTile(fo::Art* tiles, int tile, int listpos) {
 			fo::func::db_freadByteCount(art, (BYTE*)&frame, 0x4a);
 			frame.height = ByteSwapW(36);
 			frame.width = ByteSwapW(80);
-			frame.frmSize = ByteSwapD(80 * 36);
-			frame.size = ByteSwapD(80 * 36 + 12);
+			frame.frameSize = ByteSwapD(80 * 36);
+			frame.frameAreaSize = frame.frameSize + 12;
 			int xoffset = x * 48 + (ysize - (y + 1)) * 32;
 			int yoffset = height - (36 + x * 12 + y * 24);
 			for (int y2 = 0; y2 < 36; y2++) {
