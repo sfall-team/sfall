@@ -99,5 +99,9 @@ void sf_dialog_message(OpcodeContext&);
 
 void sf_create_win(OpcodeContext&);
 
+void sf_draw_image(OpcodeContext&);
+
+void sf_draw_image_scaled(OpcodeContext&);
+
 }
 }

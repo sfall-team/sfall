@@ -54,7 +54,7 @@ static MetaruleTableType metaruleTable;
 	{ name, handler, minArgs, maxArgs, {arg1, arg2, ...} }
 		- name - name of function that will be used in scripts,
 		- handler - pointer to handler function (see examples below),
-		- minArgs/maxArgs - minimum and maximum number of arguments allowed for this function
+		- minArgs/maxArgs - minimum and maximum number of arguments allowed for this function (max 6)
 		- arg1, arg2, ... - argument types for automatic validation
 */
 static const SfallMetarule metarules[] = {
@@ -66,7 +66,9 @@ static const SfallMetarule metarules[] = {
 	{"critter_inven_obj2",      sf_critter_inven_obj2,      2, 2, {ARG_OBJECT, ARG_INT}},
 	{"dialog_message",          sf_dialog_message,          1, 1, {ARG_STRING}},
 	{"dialog_obj",              sf_get_dialog_object,       0, 0},
-	{"display_stats",           sf_display_stats,           0, 0},
+	{"display_stats",           sf_display_stats,           0, 0}, // refresh
+	{"draw_image",              sf_draw_image,              1, 5, {ARG_INTSTR, ARG_INT, ARG_INT, ARG_INT, ARG_INT}},
+	{"draw_image_scaled",       sf_draw_image_scaled,       1, 6, {ARG_INTSTR, ARG_INT, ARG_INT, ARG_INT, ARG_INT, ARG_INT}},
 	{"exec_map_update_scripts", sf_exec_map_update_scripts, 0, 0},
 	{"floor2",                  sf_floor2,                  1, 1, {ARG_NUMBER}},
 	{"get_can_rest_on_map",     sf_get_rest_on_map,         2, 2, {ARG_INT, ARG_INT}},

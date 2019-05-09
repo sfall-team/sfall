@@ -249,6 +249,8 @@
 #define dialog_message(text)                            sfall_func1("dialog_message", text)
 #define dialog_obj                                      sfall_func0("dialog_obj")
 #define display_stats                                   sfall_func0("display_stats")
+#define draw_image(frmFile, frame, x, y, transparent)   sfall_func5("draw_image", frmFile, frame, x, y, transparent)
+#define draw_image_scaled(frmFile, frame, x, y, w, h)   sfall_func6("draw_image_scaled", frmFile, frame, x, y, w, h)
 #define exec_map_update_scripts                         sfall_func0("exec_map_update_scripts")
 #define floor2(value)                                   sfall_func1("floor2", value)
 #define get_can_rest_on_map(map, elev)                  sfall_func2("get_can_rest_on_map", map, elev)

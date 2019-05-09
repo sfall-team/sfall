@@ -417,6 +417,7 @@ void __fastcall DrawWinLine(int winRef, DWORD startXPos, DWORD endXPos, DWORD st
 	}
 }
 
+// draws an image to the buffer without scaling and with possible transparency
 void __fastcall windowDisplayBuf(long x, long width, long y, long height, void* data, long isTrans) {
 	__asm {
 		push height;
@@ -430,6 +431,7 @@ void __fastcall windowDisplayBuf(long x, long width, long y, long height, void* 
 	}
 }
 
+// draws an image in the window and scales it to fit the window
 void __fastcall displayInWindow(long w_here, long width, long height, void* data) {
 	__asm {
 		mov  ebx, height;
