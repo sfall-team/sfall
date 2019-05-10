@@ -205,7 +205,7 @@ static int ProcessTile(sArt* tiles, int tile, int listpos) {
 			frame.height = ByteSwapW(36);
 			frame.width = ByteSwapW(80);
 			frame.frameSize = ByteSwapD(80 * 36);
-			frame.frameAreaSize = frame.frameSize + 12;
+			frame.frameAreaSize = ByteSwapD(80 * 36 + 12);
 			int xoffset = x * 48 + (ysize - (y + 1)) * 32;
 			int yoffset = height - (36 + x * 12 + y * 24);
 			for (int y2 = 0; y2 < 36; y2++) {

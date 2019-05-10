@@ -2283,9 +2283,9 @@ void BugFixesInit()
 	MakeCall(0x4130E5, action_explode_hack1);
 	dlogr(" Done", DL_INIT);
 
-	// Fix for unable to sell used geiger counters or stealth boys
+	// Fix for being unable to sell used geiger counters or stealth boys
 	if (GetPrivateProfileIntA("Misc", "CanSellUsedGeiger", 1, ini)) {
-		dlog("Applying fix for unable to sell used geiger counters or stealth boys.", DL_INIT);
+		dlog("Applying fix for being unable to sell used geiger counters or stealth boys.", DL_INIT);
 		SafeWrite8(0x478115, 0xBA);
 		SafeWrite8(0x478138, 0xBA);
 		MakeJump(0x474D22, barter_attempt_transaction_hack);
@@ -2444,7 +2444,7 @@ void BugFixesInit()
 	SafeWrite8(0x4C1015, 0x90);
 	HookCall(0x4C1042, wmSetupRandomEncounter_hook);
 
-	// Fix for unable to sell/give items in the barter screen when the player/party member is overloaded
+	// Fix for being unable to sell/give items in the barter screen when the player/party member is overloaded
 	HookCall(0x474C73, barter_attempt_transaction_hook_weight);
 	HookCall(0x474CCA, barter_attempt_transaction_hook_weight);
 
