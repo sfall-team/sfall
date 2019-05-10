@@ -54,12 +54,20 @@ long AnimCodeByWeapon(GameObject* weapon) {
 	return 0;
 }
 
-Proto* GetProto(long pid) {
+Proto* GetProto(long pid) { // TODO: rewrite, not effective construction
 	Proto* protoPtr;
 	if (fo::func::proto_ptr(pid, &protoPtr) != -1) {
 		return protoPtr;
 	}
 	return nullptr;
+}
+
+bool CritterCopyProto(long pid, long* &proto_dst) {
+	fo::Proto* protoPtr;
+	if (fo::func::proto_ptr(pid, &protoPtr) == -1) return false;
+	/*if (!proto_dst)*/ proto_dst = new long[104];
+	memcpy(proto_dst, protoPtr, 416);
+	return true;
 }
 
 void SkillGetTags(long* result, long num) {
@@ -129,16 +137,20 @@ void ToggleNpcFlag(fo::GameObject* npc, long flag, bool set) {
 	}
 }
 
-bool IsPartyMember(fo::GameObject* critter) {
-	if (critter->id < 18000) return false;
+bool IsPartyMemberByPid(long pid) {
 	size_t patryCount = fo::var::partyMemberMaxCount;
 	if (patryCount) {
 		DWORD* memberPids = fo::var::partyMemberPidList; // pids from party.txt
 		for (size_t i = 0; i < patryCount; i++) {
-			if (memberPids[i] == critter->protoId) return true;;
+			if (memberPids[i] == pid) return true;;
 		}
 	}
 	return false;
+}
+
+bool IsPartyMember(fo::GameObject* critter) {
+	if (critter->id < 18000) return false;
+	return IsPartyMemberByPid(critter->protoId);
 }
 
 //---------------------------------------------------------

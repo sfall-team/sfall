@@ -25,6 +25,8 @@ namespace script
 
 // new reg_anim functions (all using existing engine code)
 
+void RegAnimCombatCheck(DWORD newValue);
+
 class OpcodeContext;
 
 void sf_reg_anim_combat_check(OpcodeContext&);

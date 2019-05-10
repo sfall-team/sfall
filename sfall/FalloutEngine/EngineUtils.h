@@ -44,6 +44,8 @@ const char* _stdcall MessageSearch(const MessageList* fileAddr, long messageId);
 // returns pointer to prototype by PID, or nullptr on failure
 Proto* GetProto(long pid);
 
+bool CritterCopyProto(long pid, long* &proto_dst);
+
 // wrapper for skill_get_tags with bounds checking
 void SkillGetTags(long* result, long num);
 
@@ -63,6 +65,8 @@ bool HeroIsFemale();
 long CheckAddictByPid(fo::GameObject* critter, long pid);
 
 void ToggleNpcFlag(fo::GameObject* npc, long flag, bool set);
+
+bool IsPartyMemberByPid(long pid);
 
 bool IsPartyMember(fo::GameObject* critter);
 

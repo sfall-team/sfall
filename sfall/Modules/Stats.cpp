@@ -289,19 +289,11 @@ static void SetStatValue(long* proto, long offset, long amount) {
 	proto[offset] = amount;
 }
 
-static long CopyProto(long pid, long* &proto_out) {
-	fo::Proto* _proto;
-	if (fo::func::proto_ptr(pid, &_proto) == -1) return 0;
-	proto_out = new long[104];
-	memcpy(proto_out, _proto, 416);
-	return 1;
-}
-
 static long ApplyAllStatsToProto(const protoMem_iterator &iter, long* &proto_out) {
 	long count = 0;
 	for (auto itBonus = s_bonusStatProto.begin(); itBonus != s_bonusStatProto.end(); itBonus++) {
 		if (itBonus->objID == iter->first && itBonus->objPID == iter->second.pid) {
-			if (!proto_out && !CopyProto(iter->second.pid, proto_out)) return 0;
+			if (!proto_out && !fo::CritterCopyProto(iter->second.pid, proto_out)) return 0;
 			itBonus->s_proto = proto_out;
 			SetStatValue(proto_out, 44 + itBonus->stat, itBonus->amount);
 			count++;
@@ -309,7 +301,7 @@ static long ApplyAllStatsToProto(const protoMem_iterator &iter, long* &proto_out
 	}
 	for (auto itBase = s_baseStatProto.begin(); itBase != s_baseStatProto.end(); itBase++) {
 		if (itBase->objID == iter->first && itBase->objPID == iter->second.pid) {
-			if (!proto_out && !CopyProto(iter->second.pid, proto_out)) return 0;
+			if (!proto_out && !fo::CritterCopyProto(iter->second.pid, proto_out)) return 0;
 			itBase->s_proto = proto_out;
 			SetStatValue(proto_out, 9 + itBase->stat, itBase->amount);
 			count++;
