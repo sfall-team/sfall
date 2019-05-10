@@ -399,7 +399,11 @@ void sf_create_win(OpcodeContext& ctx) {
 }
 
 static void DrawImage(OpcodeContext& ctx, bool isScaled) {
-	long rotation = 0;
+	if (*(DWORD*)FO_VAR_currentWindow == -1) {
+		ctx.printOpcodeError("%s() - no created/selected window for the image.", ctx.getMetaruleName());
+		return;
+	}
+	long direction = 0;
 	const char* file = nullptr;
 	if (ctx.arg(0).isInt()) { // art id
 		long fid = ctx.arg(0).rawValue();
@@ -407,9 +411,9 @@ static void DrawImage(OpcodeContext& ctx, bool isScaled) {
 		long _fid = fid & 0xFFFFFFF;
 		file = fo::func::art_get_name(_fid); // .frm
 		if (_fid >> 24 == fo::OBJ_TYPE_CRITTER) {
-			rotation = (fid >> 28);
+			direction = (fid >> 28);
 			DWORD sz;
-			if (rotation && fo::func::db_file_exist(file, &sz)) {
+			if (direction && fo::func::db_file_exist(file, &sz)) {
 				file = fo::func::art_get_name(fid); // .fr#
 			}
 		}
@@ -418,13 +422,13 @@ static void DrawImage(OpcodeContext& ctx, bool isScaled) {
 	}
 	fo::FrmFile* frmPtr = nullptr;
 	if (fo::func::load_frame(file, &frmPtr)) {
-		ctx.printOpcodeError("%s() - can't open the file '%s'.", ctx.getMetaruleName(), file);
+		ctx.printOpcodeError("%s() - can't open the file: %s", ctx.getMetaruleName(), file);
 		return;
 	}
 	fo::FrmFrameData* framePtr = (fo::FrmFrameData*)&frmPtr->width;
-	if (rotation > 0 && rotation < 6) {
+	if (direction > 0 && direction < 6) {
 		BYTE* offsOriFrame = (BYTE*)framePtr;
-		offsOriFrame += frmPtr->oriFrameOffset[rotation];
+		offsOriFrame += frmPtr->oriFrameOffset[direction];
 		framePtr = (fo::FrmFrameData*)offsOriFrame;
 	}
 	int frameno = ctx.arg(1).rawValue();
@@ -438,7 +442,7 @@ static void DrawImage(OpcodeContext& ctx, bool isScaled) {
 		}
 	}
 	if (isScaled && ctx.numArgs() < 3) {
-		fo::func::displayInWindow(framePtr->width, framePtr->width, framePtr->height, framePtr->data); // scaled to window size
+		fo::func::displayInWindow(framePtr->width, framePtr->width, framePtr->height, framePtr->data); // scaled to window size (w/o transparent)
 	} else {
 		int x = ctx.arg(2).rawValue(), y = ctx.arg(3).rawValue();
 		if (isScaled) { // draw to scale
@@ -447,8 +451,8 @@ static void DrawImage(OpcodeContext& ctx, bool isScaled) {
 			long w_width = fo::func::windowWidth();
 			long xy_pos = (x * w_width) + y;
 			fo::func::trans_cscale(framePtr->width, framePtr->height, s_width, s_height, xy_pos, w_width, framePtr->data); // custom scaling
-		} else {
-			fo::func::windowDisplayBuf(x + frmPtr->xshift[rotation], framePtr->width, y + frmPtr->yshift[rotation], framePtr->height, framePtr->data, ctx.arg(4).rawValue());
+		} else { // with x/y frame offsets
+			fo::func::windowDisplayBuf(x + frmPtr->xshift[direction], framePtr->width, y + frmPtr->yshift[direction], framePtr->height, framePtr->data, ctx.arg(4).rawValue());
 		}
 	}
 	__asm {
