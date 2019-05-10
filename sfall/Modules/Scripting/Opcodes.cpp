@@ -135,6 +135,7 @@ static SfallOpcodeInfo opcodeInfoArray[] = {
 	{0x21a, "set_weapon_ammo_count",     sf_set_weapon_ammo_count,     2, false, {ARG_OBJECT, ARG_INT}},
 	{0x21e, "get_mouse_buttons",         sf_get_mouse_buttons,         0, true},
 
+	{0x224, "create_message_window",     sf_create_message_window,     1, false, {ARG_STRING}},
 	{0x22d, "create_array",              sf_create_array,              2, true,  {ARG_INT, ARG_INT}},
 	{0x22e, "set_array",                 sf_set_array,                 3, false, {ARG_OBJECT, ARG_ANY, ARG_ANY}},
 	{0x22f, "get_array",                 sf_get_array,                 2, true,  {ARG_ANY, ARG_ANY}}, // can also be used on strings
@@ -375,7 +376,6 @@ void InitNewOpcodes() {
 	opcodes[0x221] = op_get_screen_height;
 	opcodes[0x222] = op_stop_game;
 	opcodes[0x223] = op_resume_game;
-	opcodes[0x224] = op_create_message_window;
 	opcodes[0x225] = op_remove_trait;
 	opcodes[0x226] = op_get_light_level;
 	opcodes[0x227] = op_refresh_pc_art;

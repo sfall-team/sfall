@@ -394,8 +394,8 @@ void __stdcall DialogOut(const char* text) {
 		push eax;        // DisplayMsg
 		mov  al, byte ptr ds:[0x6AB718];
 		push eax;        // ColorIndex
-		push 0x74;       // y
-		mov  ecx, 0xC0;  // x
+		push 116;        // y
+		mov  ecx, 192;   // x
 		mov  eax, text;  // DisplayText
 		xor  ebx, ebx;   // ?
 		xor  edx, edx;   // ?
@@ -417,14 +417,14 @@ void __fastcall DrawWinLine(int winRef, DWORD startXPos, DWORD endXPos, DWORD st
 	}
 }
 
-void __fastcall windowDisplayBuf(long x, long width, long y, long height, void* data, long isTrans) {
+void __fastcall windowDisplayBuf(long x, long width, long y, long height, void* data, long noTrans) {
 	__asm {
 		push height;
 		push edx;       // from_width
 		push y;
 		mov  eax, data; // from
 		mov  ebx, fo::funcoffs::windowDisplayTransBuf_;
-		cmp  isTrans, 0;
+		cmp  noTrans, 0;
 		cmovnz ebx, fo::funcoffs::windowDisplayBuf_;
 		call ebx; // *data<eax>, from_width<edx>, unused<ebx>, X<ecx>, Y, width, height
 	}

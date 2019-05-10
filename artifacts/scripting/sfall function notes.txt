@@ -597,7 +597,7 @@ Some utility/math functions are available:
 Optional arguments:
 - frame: frame number, the first frame starts from zero
 - x/y: offset relative to the top-left corner of the window
-- width/height: image size, used to scale the image when displaying it
+- width/height: image size, used to scale the image when displaying it, pass -1 to width or height for keep aspect ratio when scaling
 - noTransparent: pass true to display an image without transparent background
 
 ------------------------

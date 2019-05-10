@@ -151,46 +151,11 @@ void __declspec(naked) op_resume_game() {
 	}
 }
 
-void __declspec(naked) op_create_message_window() {
-	__asm {
-		pushad
-		mov ebx, dword ptr ds:[FO_VAR_curr_font_num];
-		cmp ebx, 0x65;
-		je end;
-
-		mov ecx, eax;
-		call fo::funcoffs::interpretPopShort_;
-		mov edx, eax;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPopLong_;
-		cmp dx, VAR_TYPE_STR2;
-		jz next;
-		cmp dx, VAR_TYPE_STR;
-		jnz end;
-next:
-		mov ebx, eax;
-		mov eax, ecx;
-		call fo::funcoffs::interpretGetString_;
-		mov esi, eax;
-
-		mov ecx, eax;
-		mov eax, 3;
-		push 1;         // arg10
-		mov al, byte ptr ds:[0x6AB718];
-		push eax;       // a9
-		push 0;         // *DisplayText
-		push eax;       // ColorIndex
-		push 0x74;      // y
-		mov ecx, 0xC0;  // x
-		mov eax, esi;   // text
-		xor ebx, ebx;   // ?
-		xor edx, edx;   // ?
-		call fo::funcoffs::dialog_out_;
-		//xor eax, eax;
-end:
-		popad;
-		ret;
-	}
+void sf_create_message_window(OpcodeContext &ctx) {
+	const char* str = ctx.arg(0).strValue();
+	if (!str || str[0] == 0) return;
+	//if (fo::var::curr_font_num == 101) return; // why?
+	fo::func::DialogOut(str);
 }
 
 void __declspec(naked) op_get_viewport_x() {
@@ -445,10 +410,24 @@ static void DrawImage(OpcodeContext& ctx, bool isScaled) {
 	} else {
 		int x = ctx.arg(2).rawValue(), y = ctx.arg(3).rawValue();
 		if (isScaled) { // draw to scale
-			long s_width  = (ctx.numArgs() > 4) ? ctx.arg(4).rawValue() : framePtr->width;
-			long s_height = (ctx.numArgs() > 5) ? ctx.arg(5).rawValue() : framePtr->height;
+			long s_width, s_height;
+			if (ctx.numArgs() < 5) {
+				s_width = framePtr->width;
+				s_height = framePtr->height;
+			} else {
+				s_width = ctx.arg(4).rawValue();
+				s_height = (ctx.numArgs() > 5) ? ctx.arg(5).rawValue() : -1;
+			}
+			// scaled with aspect ratio, if w or h set to -1
+			if (s_width <= -1 && s_height > 0) {
+				s_width = s_height * framePtr->width / framePtr->height;
+			} else if (s_height <= -1 && s_width > 0) {
+				s_height = s_width * framePtr->height / framePtr->width;
+			}
+			if (s_width <= 0 || s_height <= 0) return;
+
 			long w_width = fo::func::windowWidth();
-			long xy_pos = (x * w_width) + y;
+			long xy_pos = (y * w_width) + x;
 			fo::func::trans_cscale(framePtr->width, framePtr->height, s_width, s_height, xy_pos, w_width, framePtr->data); // custom scaling
 		} else { // with x/y frame offsets
 			fo::func::windowDisplayBuf(x + frmPtr->xshift[direction], framePtr->width, y + frmPtr->yshift[direction], framePtr->height, framePtr->data, ctx.arg(4).rawValue());
