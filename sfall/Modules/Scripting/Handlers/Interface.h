@@ -57,7 +57,7 @@ void __declspec() op_stop_game();
 void __declspec() op_resume_game();
 
 //Create a message window with given string
-void __declspec() op_create_message_window();
+void sf_create_message_window(OpcodeContext&);
 
 void __declspec() op_get_viewport_x();
 
