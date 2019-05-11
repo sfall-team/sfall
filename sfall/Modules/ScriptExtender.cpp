@@ -34,9 +34,11 @@
 #include "LoadGameHook.h"
 #include "MainLoopHook.h"
 #include "Worldmap.h"
+
 #include "Scripting\Arrays.h"
 #include "Scripting\Opcodes.h"
 #include "Scripting\OpcodeContext.h"
+#include "Scripting\Handlers\Anims.h"
 
 #include "ScriptExtender.h"
 
@@ -525,21 +527,6 @@ bool _stdcall ScriptHasLoaded(fo::Program* script) {
 	}
 	checkedScripts.push_back(script);
 	return true;
-}
-
-void _stdcall RegAnimCombatCheck(DWORD newValue) {
-	char oldValue = regAnimCombatCheck;
-	regAnimCombatCheck = (newValue > 0);
-	if (oldValue != regAnimCombatCheck) {
-		SafeWrite8(0x459C97, regAnimCombatCheck); // reg_anim_func
-		SafeWrite8(0x459D4B, regAnimCombatCheck); // reg_anim_animate
-		SafeWrite8(0x459E3B, regAnimCombatCheck); // reg_anim_animate_reverse
-		SafeWrite8(0x459EEB, regAnimCombatCheck); // reg_anim_obj_move_to_obj
-		SafeWrite8(0x459F9F, regAnimCombatCheck); // reg_anim_obj_run_to_obj
-		SafeWrite8(0x45A053, regAnimCombatCheck); // reg_anim_obj_move_to_tile
-		SafeWrite8(0x45A10B, regAnimCombatCheck); // reg_anim_obj_run_to_tile
-		SafeWrite8(0x45AE53, regAnimCombatCheck); // reg_anim_animate_forever
-	}
 }
 
 // this runs before actually loading/starting the game

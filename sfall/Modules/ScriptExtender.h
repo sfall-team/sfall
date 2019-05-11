@@ -71,8 +71,6 @@ long GetGlobalVarInternal(__int64 val);
 
 void __fastcall SetSelfObject(fo::Program* script, fo::GameObject* obj);
 
-void _stdcall RegAnimCombatCheck(DWORD newValue);
-
 bool _stdcall ScriptHasLoaded(fo::Program* script);
 
 // loads script from .int file into a sScriptProgram struct, filling script pointer and proc lookup table
@@ -94,7 +92,6 @@ void AddProgramToMap(ScriptProgram &prog);
 ScriptProgram* GetGlobalScriptProgram(fo::Program* scriptPtr);
 
 // variables
-static char regAnimCombatCheck = 1;
 extern DWORD isGlobalScriptLoading;
 extern DWORD availableGlobalScriptTypes;
 extern bool alwaysFindScripts;
