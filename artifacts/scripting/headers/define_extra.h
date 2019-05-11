@@ -10,6 +10,12 @@
 #define OBJ_TYPE_MISC       (5)
 #define OBJ_TYPE_SPATIAL    (6)
 
+#define ART_TYPE_INTERFACE  (6)
+#define ART_TYPE_INVENT     (7)
+#define ART_TYPE_HEADS      (8)
+#define ART_TYPE_BACKGRND   (9)
+#define ART_TYPE_SKILLDEX   (10)
+
 #define WEAPON_TYPE_NONE    (0)
 #define WEAPON_TYPE_UNARMED (1)
 #define WEAPON_TYPE_MELEE   (2)

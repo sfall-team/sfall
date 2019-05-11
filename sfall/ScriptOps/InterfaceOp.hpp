@@ -198,9 +198,9 @@ static void __declspec(naked) resume_game() {
 static void __declspec(naked) create_message_window() {
 	__asm {
 		pushad
-		mov ebx, dword ptr ds:[_curr_font_num];
-		cmp ebx, 0x65;
-		je end;
+		//mov ebx, dword ptr ds:[_curr_font_num];
+		//cmp ebx, 0x65;
+		//je end;
 
 		mov ecx, eax;
 		call interpretPopShort_;
@@ -224,8 +224,8 @@ next:
 		push eax;       // a9
 		push 0;         // *DisplayText
 		push eax;       // ColorIndex
-		push 0x74;      // y
-		mov ecx, 0xC0;  // x
+		push 116;       // y
+		mov ecx, 192;   // x
 		mov eax, esi;   // text
 		xor ebx, ebx;   // ?
 		xor edx, edx;   // ?

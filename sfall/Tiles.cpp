@@ -24,36 +24,8 @@
 #include "FileSystem.h"
 #include "Tiles.h"
 
-struct sArt {
-	long flags;
-	char path[16];
-	char* names;
-	long d18;
-	long total;
-
-	sArt(char* str) {
-		flags = 0;
-		strncpy_s(path, str, 16);
-		names = 0;
-		d18 = 0;
-		total = 0;
-	}
-};
-struct OverrideEntry {
-	//DWORD id;
-	DWORD xtiles;
-	DWORD ytiles;
-	DWORD replacementid;
-
-	OverrideEntry(DWORD _xtiles, DWORD _ytiles, DWORD _repid) {
-		xtiles = _xtiles;
-		ytiles = _ytiles;
-		replacementid = _repid;
-	}
-};
-
-static OverrideEntry** overrides;
-static DWORD origTileCount = 0;
+typedef int (_stdcall *functype)();
+static const functype art_init = (functype)art_init_;
 
 static const DWORD Tiles_0E[] = {
 	0x484255, 0x48429D, 0x484377, 0x484385, 0x48A897, 0x48A89A, 0x4B2231,
@@ -75,6 +47,41 @@ static const DWORD Tiles_C0[] = {
 	0x48424E, 0x484296, 0x484372, 0x48A88D, 0x48A892, 0x4B222C, 0x4B236F,
 	0x4B247B, 0x4B2A77, 0x4B2BD5,
 };
+
+struct sArt {
+	long flags;
+	char path[16];
+	char* names;
+	long d18;
+	long total;
+
+	sArt(char* str) {
+		flags = 0;
+		strncpy_s(path, str, 16);
+		names = 0;
+		d18 = 0;
+		total = 0;
+	}
+};
+
+struct tilestruct {
+	short tile[2];
+};
+
+struct OverrideEntry {
+	DWORD xtiles;
+	DWORD ytiles;
+	DWORD replacementid;
+
+	OverrideEntry(DWORD _xtiles, DWORD _ytiles, DWORD _repid)
+		: xtiles(_xtiles), ytiles(_ytiles), replacementid(_repid) {
+	}
+};
+
+static OverrideEntry** overrides;
+static DWORD origTileCount = 0;
+static DWORD tileMode;
+static BYTE* mask;
 
 static DWORD db_fopen(const char* path, const char* mode) {
 	DWORD result;
@@ -154,24 +161,20 @@ static void* mem_realloc(void* lpmem, DWORD msize) {
 	return result;
 }
 
-typedef int (_stdcall *functype)();
-static const functype _art_init = (functype)art_init_;
-static BYTE* mask;
-
 static void CreateMask() {
-	mask = new BYTE[80*36];
+	mask = new BYTE[80 * 36];
 	DWORD file = db_fopen("art\\tiles\\grid000.frm", "r");
-	db_fseek(file, 0x4a);
-	db_freadByteCount(file, mask, 80*36);
+	db_fseek(file, 0x4A);
+	db_freadByteCount(file, mask, 80 * 36);
 	db_fclose(file);
 }
 
 static WORD ByteSwapW(WORD w) {
-	return ((w & 0xff) << 8) | ((w & 0xff00) >> 8);
+	return ((w & 0xFF) << 8) | ((w & 0xFF00) >> 8);
 }
 
 static DWORD ByteSwapD(DWORD w) {
-	return ((w & 0xff) << 24) | ((w & 0xff00) << 8) | ((w & 0xff0000) >> 8) | ((w & 0xff000000) >> 24);
+	return ((w & 0xFF) << 24) | ((w & 0xFF00) << 8) | ((w & 0xFF0000) >> 8) | ((w & 0xFF000000) >> 24);
 }
 
 static int ProcessTile(sArt* tiles, int tile, int listpos) {
@@ -182,7 +185,7 @@ static int ProcessTile(sArt* tiles, int tile, int listpos) {
 
 	DWORD art = db_fopen(buf, "r");
 	if (!art) return 0;
-	db_fseek(art, 0x3e);
+	db_fseek(art, 0x3E);
 	int width = db_freadShort(art);  //80;
 	if (width == 80) {
 		db_fclose(art);
@@ -231,11 +234,8 @@ static int ProcessTile(sArt* tiles, int tile, int listpos) {
 	return xsize * ysize;
 }
 
-static DWORD tileMode;
-static int _stdcall ArtInitHook2() {
-	if (_art_init()) {
-		return 1;
-	}
+static int _stdcall ArtInitHook() {
+	if (art_init()) return -1;
 
 	CreateMask();
 
@@ -272,27 +272,18 @@ static int _stdcall ArtInitHook2() {
 	return 0;
 }
 
-static void __declspec(naked) ArtInitHook() {
+static void __declspec(naked) iso_init_hook() {
 	__asm {
-		pushad;
-		mov eax, dword ptr ds:[_read_callback];
-		push eax;
-		xor eax, eax;
-		mov dword ptr ds:[_read_callback], eax;
-		call ArtInitHook2;
-		pop eax;
-		mov dword ptr ds:[_read_callback], eax;
-		popad;
-		xor eax, eax;
+		mov  ebx, dword ptr ds:[_read_callback];
+		xor  eax, eax;
+		mov  dword ptr ds:[_read_callback], eax;
+		call ArtInitHook;
+		mov  dword ptr ds:[_read_callback], ebx;
 		retn;
 	}
 }
 
-struct tilestruct {
-	short tile[2];
-};
-
-static void _stdcall SquareLoadCheck(tilestruct* data) {
+static void __fastcall SquareLoadCheck(tilestruct* data) {
 	for (DWORD y = 0; y < 100; y++) {
 		for (DWORD x = 0; x < 100; x++) {
 			for (DWORD z = 0; z < 2; z++) {
@@ -312,16 +303,13 @@ static void _stdcall SquareLoadCheck(tilestruct* data) {
 	}
 }
 
-static void __declspec(naked) SquareLoadHook() {
+static void __declspec(naked) square_load_hook() {
 	__asm {
-		mov edi, edx;
+		mov  ecx, edx;
 		call db_freadIntCount_;
 		test eax, eax;
-		jnz end;
-		pushad;
-		push edi;
-		call SquareLoadCheck;
-		popad;
+		jnz  end;
+		jmp  SquareLoadCheck;
 end:
 		retn;
 	}
@@ -356,11 +344,10 @@ end:
 }
 
 void TilesInit() {
-	tileMode = GetPrivateProfileIntA("Misc", "AllowLargeTiles", 0, ini);
-	if (tileMode) {
+	if (tileMode = GetPrivateProfileIntA("Misc", "AllowLargeTiles", 0, ini)) {
 		dlog("Applying allow large tiles patch.", DL_INIT);
-		HookCall(0x481D72, &ArtInitHook);
-		HookCall(0x48434C, SquareLoadHook);
+		HookCall(0x481D72, iso_init_hook);
+		HookCall(0x48434C, square_load_hook);
 		dlogr(" Done", DL_INIT);
 	}
 
