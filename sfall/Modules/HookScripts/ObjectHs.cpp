@@ -169,24 +169,24 @@ skip:
 	}
 }
 
-static bool __fastcall SetLightingHook_Script(DWORD* intensity, DWORD* radius, DWORD object) {
+static bool __fastcall SetLightingHook_Script(DWORD &intensity, DWORD &radius, DWORD object) {
 	BeginHook();
 	argCount = 3;
 
 	args[0] = object;
-	args[1] = *intensity;
-	args[2] = *radius;
+	args[1] = intensity;
+	args[2] = radius;
 	RunHookScript(HOOK_SETLIGHTING);
 
 	bool result = false;
 	if (cRet > 0) {
 		int light = rets[0];
 		if (light < 0) light = 0;
-		*intensity = light;
+		intensity = light;
 		if (cRet > 1 && object != -1) {
 			int dist = rets[1];
 			if (dist < 0) dist = 0;
-			*radius = dist;
+			radius = dist;
 		}
 		result = true;
 	}

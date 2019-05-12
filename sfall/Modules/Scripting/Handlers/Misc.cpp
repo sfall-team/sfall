@@ -539,106 +539,30 @@ static int ParseIniSetting(const char* iniString, const char* &key, char section
 	return 1;
 }
 
-static char IniStrBuffer[128];
-static DWORD _stdcall GetIniSetting2(const char* c, DWORD string) {
+static char IniStrBuffer[256];
+static DWORD GetIniSetting(const char* str, bool isString) {
 	const char* key;
 	char section[33], file[67];
 
-	if (ParseIniSetting(c, key, section, file) < 0) {
+	if (ParseIniSetting(str, key, section, file) < 0) {
 		return -1;
 	}
-	if (string) {
+	if (isString) {
 		IniStrBuffer[0] = 0;
-		GetPrivateProfileStringA(section, key, "", IniStrBuffer, 128, file);
+		GetPrivateProfileStringA(section, key, "", IniStrBuffer, 256, file);
 		return (DWORD)&IniStrBuffer[0];
 	} else {
 		return GetPrivateProfileIntA(section, key, -1, file);
 	}
 }
 
-void __declspec(naked) op_get_ini_setting() {
-	__asm {
-		push ebx;
-		push ecx;
-		push edx;
-		push edi;
-		mov edi, eax;
-		call fo::funcoffs::interpretPopShort_;
-		mov edx, eax;
-		mov eax, edi;
-		call fo::funcoffs::interpretPopLong_;
-		cmp dx, VAR_TYPE_STR2;
-		jz next;
-		cmp dx, VAR_TYPE_STR;
-		jnz error;
-next:
-		mov ebx, eax;
-		mov eax, edi;
-		call fo::funcoffs::interpretGetString_;
-		push 0;
-		push eax;
-		call GetIniSetting2;
-		mov edx, eax;
-		jmp result;
-error:
-		mov edx, -1;
-result:
-		mov eax, edi;
-		call fo::funcoffs::interpretPushLong_;
-		mov edx, VAR_TYPE_INT;
-		mov eax, edi;
-		call fo::funcoffs::interpretPushShort_;
-		pop edi;
-		pop edx;
-		pop ecx;
-		pop ebx;
-		retn;
-	}
+void sf_get_ini_setting(OpcodeContext& ctx) {
+	ctx.setReturn(GetIniSetting(ctx.arg(0).strValue(), false));
 }
 
-void __declspec(naked) op_get_ini_string() {
-	__asm {
-		push ebx;
-		push ecx;
-		push edx;
-		push edi;
-		mov edi, eax;
-		call fo::funcoffs::interpretPopShort_;
-		mov edx, eax;
-		mov eax, edi;
-		call fo::funcoffs::interpretPopLong_;
-		cmp dx, VAR_TYPE_STR2;
-		jz next;
-		cmp dx, VAR_TYPE_STR;
-		jnz error;
-next:
-		mov ebx, eax;
-		mov eax, edi;
-		call fo::funcoffs::interpretGetString_;
-		push 1;
-		push eax;
-		call GetIniSetting2;
-		mov edx, eax;
-		mov eax, edi;
-		call fo::funcoffs::interpretAddString_;
-		mov edx, eax;
-		mov ebx, VAR_TYPE_STR;
-		jmp result;
-error:
-		xor edx, edx;
-		mov ebx, VAR_TYPE_INT
-result:
-		mov eax, edi;
-		call fo::funcoffs::interpretPushLong_;
-		mov edx, ebx;
-		mov eax, edi;
-		call fo::funcoffs::interpretPushShort_;
-		pop edi;
-		pop edx;
-		pop ecx;
-		pop ebx;
-		retn;
-	}
+void sf_get_ini_string(OpcodeContext& ctx) {
+	DWORD result = GetIniSetting(ctx.arg(0).strValue(), true);
+	ctx.setReturn(result, (result != -1) ? DataType::STR : DataType::INT);
 }
 
 void __declspec(naked) op_get_uptime() {
@@ -1311,20 +1235,20 @@ void sf_exec_map_update_scripts(OpcodeContext& ctx) {
 }
 
 void sf_set_ini_setting(OpcodeContext& ctx) {
-	const char* iniString = ctx.arg(0).asString();
 	const ScriptValue &argVal = ctx.arg(1);
 
+	const char* saveValue;
 	if (argVal.isInt()) {
 		_itoa_s(argVal.rawValue(), IniStrBuffer, 10);
+		saveValue = IniStrBuffer;
 	} else {
-		strcpy_s(IniStrBuffer, argVal.asString());
+		saveValue = argVal.strValue();
 	}
-
 	const char* key;
 	char section[33], file[67];
-	int result = ParseIniSetting(iniString, key, section, file);
+	int result = ParseIniSetting(ctx.arg(0).strValue(), key, section, file);
 	if (result > 0) {
-		result = WritePrivateProfileString(section, key, IniStrBuffer, file);
+		result = WritePrivateProfileString(section, key, saveValue, file);
 	}
 
 	switch (result) {

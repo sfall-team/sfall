@@ -478,14 +478,14 @@ skip:
 	}
 }
 
-static int __fastcall ExplosiveTimerHook_Script(DWORD* type, DWORD item, DWORD time) {
+static int __fastcall ExplosiveTimerHook_Script(DWORD &type, DWORD item, DWORD time) {
 
 	BeginHook();
 	argCount = 3;
 
 	args[0] = time;
 	args[1] = item;
-	args[2] = (*type == 11) ? fo::ROLL_FAILURE : fo::ROLL_SUCCESS;
+	args[2] = (type == 11) ? fo::ROLL_FAILURE : fo::ROLL_SUCCESS;
 
 	RunHookScript(HOOK_EXPLOSIVETIMER);
 
@@ -495,7 +495,7 @@ static int __fastcall ExplosiveTimerHook_Script(DWORD* type, DWORD item, DWORD t
 		if (cRet > 1) {
 			int typeRet = rets[1];
 			if (typeRet >= fo::ROLL_CRITICAL_FAILURE && typeRet <= fo::ROLL_CRITICAL_SUCCESS) {
-				*type = (typeRet > fo::ROLL_FAILURE) ? 8 : 11; // returned new type (8 = SUCCESS, 11 = FAILURE)
+				type = (typeRet > fo::ROLL_FAILURE) ? 8 : 11; // returned new type (8 = SUCCESS, 11 = FAILURE)
 			}
 		}
 	}

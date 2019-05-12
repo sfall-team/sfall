@@ -180,7 +180,7 @@ static void __declspec(naked) ComputeDamageHook() {
 	}
 }
 
-static void __fastcall SubComputeDamageHook_Script(fo::ComputeAttackResult &ctd, DWORD armorDR, DWORD* accumulatedDamage, DWORD armorDT, DWORD bonusRangedDamage, DWORD rounds, DWORD multiplyDamage, DWORD difficulty) {
+static void __fastcall SubComputeDamageHook_Script(fo::ComputeAttackResult &ctd, DWORD armorDR, DWORD &accumulatedDamage, DWORD armorDT, DWORD bonusRangedDamage, DWORD rounds, DWORD multiplyDamage, DWORD difficulty) {
 	// calculated internal ammo mod damage
 	switch (DamageMod::formula) {
 	case 1:
@@ -205,12 +205,12 @@ static void __fastcall SubComputeDamageHook_Script(fo::ComputeAttackResult &ctd,
 	args[7] = bonusRangedDamage;
 	args[8] = multiplyDamage;
 	args[9] = difficulty;
-	args[10] = *accumulatedDamage;
+	args[10] = accumulatedDamage;
 	args[11] = (DWORD)&ctd;
 
 	RunHookScript(HOOK_SUBCOMBATDAMAGE);
 
-	if (cRet == 1) *accumulatedDamage = rets[0];
+	if (cRet == 1) accumulatedDamage = rets[0];
 	EndHook();
 }
 
@@ -297,27 +297,27 @@ static void __declspec(naked) ItemDamageHook() {
 	_asm jmp fo::funcoffs::roll_random_;
 }
 
-int __fastcall AmmoCostHook_Script(DWORD hookType, fo::GameObject* weapon, DWORD* rounds) {
+int __fastcall AmmoCostHook_Script(DWORD hookType, fo::GameObject* weapon, DWORD &rounds) {
 	int result = 0;
 
 	BeginHook();
 	argCount = 4;
 
 	args[0] = (DWORD)weapon;
-	args[1] = *rounds;          // rounds in attack
+	args[1] = rounds;           // rounds in attack
 	args[3] = hookType;
 
 	if (hookType == 2) {        // burst hook
-		*rounds = 1;            // set default multiply for check burst attack
+		rounds = 1;             // set default multiply for check burst attack
 	} else {
-		result = fo::func::item_w_compute_ammo_cost(weapon, rounds);
+		result = fo::func::item_w_compute_ammo_cost(weapon, &rounds);
 		if (result == -1) goto failed; // failed computed
 	}
-	args[2] = *rounds;          // rounds as computed by game (cost)
+	args[2] = rounds ;          // rounds as computed by game (cost)
 
 	RunHookScript(HOOK_AMMOCOST);
 
-	if (cRet > 0) *rounds = rets[0]; // override rounds
+	if (cRet > 0) rounds = rets[0]; // override rounds
 
 failed:
 	EndHook();

@@ -32,7 +32,7 @@ int DamageMod::formula;
 
 // TODO: rewrite in C++
 // Damage Fix v5(with v5.1 Damage Multiplier tweak) by Glovz 2014.04.16.xx.xx
-void DamageMod::DamageGlovz(fo::ComputeAttackResult &ctd, DWORD* accumulatedDamage, int rounds, int armorDT, int armorDR, int bonusRangedDamage, int multiplyDamage, int difficulty) {
+void DamageMod::DamageGlovz(fo::ComputeAttackResult &ctd, DWORD &accumulatedDamage, int rounds, int armorDT, int armorDR, int bonusRangedDamage, int multiplyDamage, int difficulty) {
 
 	if (rounds <= 0) return;
 
@@ -251,7 +251,7 @@ noDamageJmp:
 }
 
 // YAAM
-void DamageMod::DamageYAAM(fo::ComputeAttackResult &ctd, DWORD* accumulatedDamage, int rounds, int armorDT, int armorDR, int bonusRangedDamage,int multiplyDamage, int difficulty) {
+void DamageMod::DamageYAAM(fo::ComputeAttackResult &ctd, DWORD &accumulatedDamage, int rounds, int armorDT, int armorDR, int bonusRangedDamage,int multiplyDamage, int difficulty) {
 
 	int ammoDiv = fo::func::item_w_dam_div(ctd.weapon);     // Retrieve Ammo Divisor
 	int ammoMult = fo::func::item_w_dam_mult(ctd.weapon);   // Retrieve Ammo Dividend
@@ -301,7 +301,7 @@ void DamageMod::DamageYAAM(fo::ComputeAttackResult &ctd, DWORD* accumulatedDamag
 		resistedDamage /= 100;                              // Resisted Damage = Resisted Damage / 100
 		rawDamage -= resistedDamage;                        // Raw Damage = Raw Damage - Resisted Damage
 
-		if (rawDamage > 0) *accumulatedDamage += rawDamage; // Accumulated Damage = Accumulated Damage + Raw Damage
+		if (rawDamage > 0) accumulatedDamage += rawDamage; // Accumulated Damage = Accumulated Damage + Raw Damage
 	}
 }
 ////////////////////////////////////////////////////////////////////////////

@@ -94,16 +94,16 @@ static int __fastcall SwitchHandHook_Script(fo::GameObject* item, fo::GameObject
 */
 static void _declspec(naked) SwitchHandHook() {
 	__asm {
-		pushad;
+		pushadc;
 		mov  ecx, eax;           // item being moved
 		mov  edx, [edx];         // other item
-		mov  eax, [esp + 32];    // back address
+		mov  eax, [esp + 12];    // back address
 		push eax;
 		call SwitchHandHook_Script;
 		cmp  eax, -1;            // ret value
-		popad;
+		popadc;
 		jne  skip;
-		call fo::funcoffs::switch_hand_;
+		jmp  fo::funcoffs::switch_hand_;
 skip:
 		retn;
 	}
@@ -134,34 +134,34 @@ static void _declspec(naked) UseArmorHack() {
 	__asm {
 		mov  ecx, ds:[FO_VAR_i_worn];       // replacement item (override code)
 		mov  edx, [esp + 0x58 - 0x40];      // item
-		pushad;
+		push ecx;
 		push 3;                             // event: armor slot
-		call InventoryMoveHook_Script;
+		call InventoryMoveHook_Script;      // ecx - replacement item
 		cmp  eax, -1;                       // ret value
-		popad;
-		jne skip;
-		jmp UseArmorHack_back;
+		pop  ecx;
+		jne  skip;
+		jmp  UseArmorHack_back;
 skip:
-		jmp UseArmorHack_skip;
+		jmp  UseArmorHack_skip;
 	}
 }
 
 static void _declspec(naked) MoveInventoryHook() {
 	__asm {
-		pushad;
-		xor ecx, ecx;                    // no item replace
-		mov ebx, ecx;
+		pushadc;
+		xor eax, eax;
+		mov ecx, eax;                    // no item replace
 		cmp dword ptr ds:[FO_VAR_curr_stack], 0;
 		jle noCont;
 		mov ecx, eax;                    // contaner ptr
-		mov ebx, 5;
+		mov eax, 5;
 noCont:
-		push ebx;                        // event: 0 - main backpack, 5 - contaner
+		push eax;                        // event: 0 - main backpack, 5 - contaner
 		call InventoryMoveHook_Script;   // edx - item
 		cmp  eax, -1;                    // ret value
-		popad;
+		popadc;
 		jne  skip;
-		call fo::funcoffs::item_add_force_;
+		jmp  fo::funcoffs::item_add_force_;
 skip:
 		retn;
 	}
@@ -304,6 +304,27 @@ runHook:
 		pop  ecx;
 		pop  eax;
 		inc  edx; // 0 - engine handler, otherwise cancel pickup
+		retn;
+	}
+}
+
+static void __declspec(naked) InvenPickupHook() {
+	__asm {
+		call fo::funcoffs::mouse_click_in_;
+		test eax, eax;
+		jnz  runHook;
+		retn;
+runHook:
+		cmp  dword ptr ds:[FO_VAR_curr_stack], 0;
+		jnz  skip;
+		mov  edx, [esp + 0x58 - 0x40 + 4]; // item
+		xor  ecx, ecx;                     // no itemReplace
+		push 8;                            // event: drop item on dude box
+		call InventoryMoveHook_Script;
+		cmp  eax, -1;  // ret value
+		je   skip;
+		xor  eax, eax; // 0 - cancel, otherwise engine handler
+skip:
 		retn;
 	}
 }
@@ -454,6 +475,8 @@ void Inject_InventoryMoveHook() {
 	SafeWrite32(0x49B665, 0x850FD285); // test edx, edx
 	SafeWrite32(0x49B669, 0xC2);       // jnz  0x49B72F
 	SafeWrite8(0x49B66E, 0xFE); // cmp edi > cmp esi
+
+	HookCall(0x471457, InvenPickupHook);
 }
 
 void Inject_InvenWieldHook() {
