@@ -781,27 +781,27 @@ end:
 }
 
 // code backported from 4.x
-int __fastcall AmmoCostHook_Script(DWORD hookType, TGameObj* weapon, DWORD* rounds) {
+int __fastcall AmmoCostHook_Script(DWORD hookType, TGameObj* weapon, DWORD &rounds) {
 	int result = 0;
 
 	BeginHook();
 	argCount = 4;
 
 	args[0] = (DWORD)weapon;
-	args[1] = *rounds;          // rounds in attack
+	args[1] = rounds;           // rounds in attack
 	args[3] = hookType;
 
 	if (hookType == 2) {        // burst hook
-		*rounds = 1;            // set default multiply for check burst attack
+		rounds = 1;             // set default multiply for check burst attack
 	} else {
-		result = ItemWComputeAmmoCost(weapon, rounds);
+		result = ItemWComputeAmmoCost(weapon, &rounds);
 		if (result == -1) goto failed; // failed computed
 	}
-	args[2] = *rounds;          // rounds as computed by game (cost)
+	args[2] = rounds;           // rounds as computed by game (cost)
 
 	RunHookScript(HOOK_AMMOCOST);
 
-	if (cRet > 0) *rounds = rets[0]; // override rounds
+	if (cRet > 0) rounds = rets[0]; // override rounds
 
 failed:
 	EndHook();
@@ -938,26 +938,28 @@ nevermind:
 	}
 }
 
-static int __stdcall SwitchHandHook2(TGameObj* item, TGameObj* itemReplaced, DWORD addr) {
-	int tmp;
+static int __fastcall SwitchHandHook_Script(TGameObj* item, TGameObj* itemReplaced, DWORD addr) {
 	if (itemReplaced && ItemGetType(itemReplaced) == 3 && ItemGetType(item) == 4) {
 		return -1; // to prevent inappropriate hook call after dropping ammo on weapon
 	}
+
 	BeginHook();
 	argCount = 3;
-	args[0] = (addr < 0x47136D) ? 1 : 2;
+
+	args[0] = (addr < 0x47136D) ? 1 : 2;    // slot: 1 - left, 2 - right
 	args[1] = (DWORD)item;
 	args[2] = (DWORD)itemReplaced;
-	RunHookScript(HOOK_INVENTORYMOVE); // moveinventory
-	tmp = PartyControl_SwitchHandHook(item);
-	if (tmp != -1) {
+
+	RunHookScript(HOOK_INVENTORYMOVE);
+	int result = PartyControl_SwitchHandHook(item);
+	if (result != -1) {
 		cRetTmp = 0;
-		SetHSReturn(tmp);
+		SetHSReturn(result);
 	}
+	result = (cRet > 0) ? rets[0] : -1;
 	EndHook();
-	if (cRet > 0)
-		return rets[0];
-	return -1;
+
+	return result;
 }
 
 /*
@@ -965,19 +967,17 @@ static int __stdcall SwitchHandHook2(TGameObj* item, TGameObj* itemReplaced, DWO
 	If switch_hand_ function is not called, item is not placed anywhere (it remains in main inventory)
 */
 static void _declspec(naked) SwitchHandHook() {
-	_asm {
-		pushad;
-		mov ecx, eax;
-		mov eax, [esp+32]; // back address
+	__asm {
+		pushadc;
+		mov  ecx, eax;           // item being moved
+		mov  edx, [edx];         // other item
+		mov  eax, [esp + 12];    // back address
 		push eax;
-		mov edx, [edx];
-		push edx; // other item
-		push ecx; // item being moved
-		call SwitchHandHook2;
-		cmp eax, -1;
-		popad;
-		jne skip;
-		call switch_hand_;
+		call SwitchHandHook_Script;
+		cmp  eax, -1;            // ret value
+		popadc;
+		jne  skip;
+		jmp  switch_hand_;
 skip:
 		retn;
 	}

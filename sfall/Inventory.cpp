@@ -427,7 +427,7 @@ static DWORD __fastcall add_check_for_item_ammo_cost(register TGameObj* weapon, 
 	if (anim == 46 || anim == 47) {   // ANIM_fire_burst or ANIM_fire_continuous
 		rounds = ItemWRounds(weapon); // ammo in burst
 	}
-	AmmoCostHook_Script(1, weapon, &rounds); // get rounds cost from hook
+	AmmoCostHook_Script(1, weapon, rounds); // get rounds cost from hook
 	DWORD currAmmo = ItemWCurrAmmo(weapon);
 
 	DWORD cost = 1; // default cost
@@ -488,7 +488,7 @@ static DWORD __fastcall divide_burst_rounds_by_ammo_cost(TGameObj* weapon, regis
 	DWORD rounds = 1; // default multiply
 
 	rounds = burstRounds;                 // rounds in burst
-	AmmoCostHook_Script(2, weapon, &rounds);
+	AmmoCostHook_Script(2, weapon, rounds);
 
 	DWORD cost = burstRounds * rounds;    // so much ammo is required for this burst
 	if (cost > currAmmo) cost = currAmmo; // if cost ammo more than current ammo, set it to current
@@ -805,7 +805,7 @@ void InventoryInit() {
 		BlockCall(0x4768A3); // mov  ebx, 1
 	}
 
-	// Move items out of bag/backpack and back into the main inventory list by dragging them to character's image (similar to Fallout 1 behavior)
+	// Move items from bag/backpack to the main inventory list by dragging them on the character portrait (similar to Fallout 1 behavior)
 	MakeCall(0x471452, inven_pickup_hack);
 
 	// Move items to player's main inventory instead of the opened bag/backpack when confirming a trade

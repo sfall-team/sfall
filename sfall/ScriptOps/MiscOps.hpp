@@ -608,17 +608,17 @@ static int ParseIniSetting(const char* iniString, const char* &key, char section
 	return 1;
 }
 
-static char IniStrBuffer[128];
-static DWORD _stdcall GetIniSetting2(const char* c, DWORD string) {
+static char IniStrBuffer[256];
+static DWORD _stdcall GetIniSetting2(const char* str, DWORD isString) {
 	const char* key;
 	char section[33], file[67];
 
-	if (ParseIniSetting(c, key, section, file) < 0) {
+	if (ParseIniSetting(str, key, section, file) < 0) {
 		return -1;
 	}
-	if (string) {
+	if (isString) {
 		IniStrBuffer[0] = 0;
-		GetPrivateProfileStringA(section, key, "", IniStrBuffer, 128, file);
+		GetPrivateProfileStringA(section, key, "", IniStrBuffer, 256, file);
 		return (DWORD)&IniStrBuffer[0];
 	} else {
 		return GetPrivateProfileIntA(section, key, -1, file);
@@ -1463,20 +1463,20 @@ static void sf_exec_map_update_scripts() {
 }
 
 static void sf_set_ini_setting() {
-	const char* iniString = opHandler.arg(0).asString();
 	const ScriptValue &argVal = opHandler.arg(1);
 
+	const char* saveValue;
 	if (argVal.isInt()) {
 		_itoa_s(argVal.rawValue(), IniStrBuffer, 10);
+		saveValue = IniStrBuffer;
 	} else {
-		strcpy_s(IniStrBuffer, argVal.asString());
+		saveValue = argVal.strValue();
 	}
-
 	const char* key;
 	char section[33], file[67];
-	int result = ParseIniSetting(iniString, key, section, file);
+	int result = ParseIniSetting(opHandler.arg(0).strValue(), key, section, file);
 	if (result > 0) {
-		result = WritePrivateProfileString(section, key, IniStrBuffer, file);
+		result = WritePrivateProfileString(section, key, saveValue, file);
 	}
 
 	switch (result) {

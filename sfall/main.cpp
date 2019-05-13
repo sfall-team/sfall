@@ -113,50 +113,14 @@ static const DWORD WalkDistanceAddr[] = {
 	0x411FF0, 0x4121C4, 0x412475, 0x412906,
 };
 
-static void __declspec(naked) Combat_p_procFix() {
+static void __declspec(naked) apply_damage_hack() {
 	__asm {
-		push eax;
-
-		mov eax, dword ptr ds:[_combat_state];
-		cmp eax, 3;
-		jnz end_cppf;
-
-		push esi;
-		push ebx;
-		push edx;
-
-		mov esi, _main_ctd;
-		mov eax, [esi];
-		mov ebx, [esi+0x20];
-		xor edx, edx;
-		mov eax, [eax+0x78];
-		call scr_set_objs_;
-		mov eax, [esi];
-
-		cmp dword ptr ds:[esi+0x2c], +0x0;
-		jng jmp1;
-
-		test byte ptr ds:[esi+0x15], 0x1;
-		jz jmp1;
-		mov edx, 0x2;
-		jmp jmp2;
-jmp1:
-		mov edx, 0x1;
-jmp2:
-		mov eax, [eax+0x78];
-		call scr_set_ext_param_;
-		mov eax, [esi];
-		mov edx, 0xd;
-		mov eax, [eax+0x78];
-		call exec_script_proc_;
-		pop edx;
-		pop ebx;
-		pop esi;
-
-end_cppf:
-		pop eax;
-		call stat_level_;
-
+		xor  edx, edx;
+		inc  edx;              // COMBAT_SUBTYPE_WEAPON_USED
+		test [esi + 0x15], dl; // ctd.flags2Source & DAM_HIT_
+		jz   end;              // no hit
+		inc  edx;              // COMBAT_SUBTYPE_HIT_SUCCEEDED
+end:
 		retn;
 	}
 }
@@ -164,9 +128,9 @@ end_cppf:
 static void __declspec(naked) WeaponAnimHook() {
 	__asm {
 		cmp edx, 11;
-		je c11;
+		je  c11;
 		cmp edx, 15;
-		je c15;
+		je  c15;
 		jmp art_get_code_;
 c11:
 		mov edx, 16;
@@ -829,10 +793,9 @@ static void DllMain2() {
 		dlogr(" Done", DL_INIT);
 
 		//Ray's combat_p_proc fix
-		dlog("Applying combat_p_proc fix.", DL_INIT);
-		HookCall(0x425252, Combat_p_procFix);
-		SafeWrite8(0x424DBC, 0xE9);
-		SafeWrite32(0x424DBD, 0x00000034);
+		dlog("Applying Ray's combat_p_proc patch.", DL_INIT);
+		MakeCall(0x424DD9, apply_damage_hack);
+		SafeWrite8(0x424DC7, 0x0);
 		dlogr(" Done", DL_INIT);
 	//}
 
