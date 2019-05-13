@@ -98,7 +98,7 @@ void HookScriptClear();
 void LoadHookScripts();
 
 extern DWORD initingHookScripts;
-extern int __fastcall AmmoCostHook_Script(DWORD hookType, fo::GameObject* weapon, DWORD* rounds);
+extern int __fastcall AmmoCostHook_Script(DWORD hookType, fo::GameObject* weapon, DWORD &rounds);
 void _stdcall RunHookScriptsAtProc(DWORD procId);
 
 }

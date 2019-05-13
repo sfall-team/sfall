@@ -84,6 +84,7 @@ static SfallOpcodeInfo opcodeInfoArray[] = {
 	{0x19e, "get_sfall_global_int",      sf_get_sfall_global_int,      1, true,  {ARG_INTSTR}},
 	{0x19f, "get_sfall_global_float",    sf_get_sfall_global_float,    1, true,  {ARG_INTSTR}},
 	{0x1a5, "inc_npc_level",             sf_inc_npc_level,             1, false, {ARG_INTSTR}},
+	{0x1ac, "get_ini_setting",           sf_get_ini_setting,           1, true,  {ARG_STRING}},
 
 	{0x1c1, "has_fake_perk",             sf_has_fake_perk,             1, true,  {ARG_INTSTR}},
 
@@ -93,6 +94,7 @@ static SfallOpcodeInfo opcodeInfoArray[] = {
 	{0x1e1, "set_critical_table",        sf_set_critical_table,        5, false, {ARG_INT, ARG_INT, ARG_INT, ARG_INT, ARG_INT}},
 	{0x1e2, "get_critical_table",        sf_get_critical_table,        4, true,  {ARG_INT, ARG_INT, ARG_INT, ARG_INT}},
 	{0x1e3, "reset_critical_table",      sf_reset_critical_table,      4, false, {ARG_INT, ARG_INT, ARG_INT, ARG_INT}},
+	{0x1eb, "get_ini_string",            sf_get_ini_string,            1, true,  {ARG_STRING}},
 	{0x1ec, "sqrt",                      sf_sqrt,                      1, true,  {ARG_NUMBER}},
 	{0x1ed, "abs",                       sf_abs,                       1, true,  {ARG_NUMBER}},
 	{0x1ee, "sin",                       sf_sin,                       1, true,  {ARG_NUMBER}},
@@ -314,7 +316,6 @@ void InitNewOpcodes() {
 	opcodes[0x1a9] = op_set_viewport_y;
 	opcodes[0x1aa] = op_set_xp_mod;
 	opcodes[0x1ab] = op_set_perk_level_mod;
-	opcodes[0x1ac] = op_get_ini_setting;
 	opcodes[0x1ad] = op_get_shader_version;
 	opcodes[0x1ae] = op_set_shader_mode;
 	opcodes[0x1af] = op_get_game_mode;
@@ -365,7 +366,6 @@ void InitNewOpcodes() {
 	opcodes[0x1e8] = op_set_unspent_ap_perk_bonus;
 	opcodes[0x1e9] = op_get_unspent_ap_perk_bonus;
 	opcodes[0x1ea] = op_init_hook;
-	opcodes[0x1eb] = op_get_ini_string;
 	opcodes[0x1f2] = op_set_palette;
 	opcodes[0x1f3] = op_remove_script;
 	opcodes[0x1f4] = op_set_script;

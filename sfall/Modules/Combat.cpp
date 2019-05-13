@@ -57,7 +57,7 @@ static DWORD __fastcall add_check_for_item_ammo_cost(register fo::GameObject* we
 		rounds = fo::func::item_w_rounds(weapon); // ammo in burst
 	}
 	if (HookScripts::IsInjectHook(HOOK_AMMOCOST)) {
-		AmmoCostHook_Script(1, weapon, &rounds);  // get rounds cost from hook
+		AmmoCostHook_Script(1, weapon, rounds);   // get rounds cost from hook
 	} else if (rounds == 1) {
 		fo::func::item_w_compute_ammo_cost(weapon, &rounds);
 	}
@@ -125,7 +125,7 @@ static DWORD __fastcall divide_burst_rounds_by_ammo_cost(fo::GameObject* weapon,
 
 	if (HookScripts::IsInjectHook(HOOK_AMMOCOST)) {
 		rounds = burstRounds;             // rounds in burst
-		AmmoCostHook_Script(2, weapon, &rounds);
+		AmmoCostHook_Script(2, weapon, rounds);
 	}
 
 	DWORD cost = burstRounds * rounds;    // so much ammo is required for this burst

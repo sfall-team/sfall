@@ -66,9 +66,9 @@ void sf_inc_npc_level(OpcodeContext&);
 
 void sf_get_npc_level(OpcodeContext&);
 
-void __declspec() op_get_ini_setting();
+void sf_get_ini_setting(OpcodeContext&);
 
-void __declspec() op_get_ini_string();
+void sf_get_ini_string(OpcodeContext&);
 
 void __declspec() op_get_uptime();
 

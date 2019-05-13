@@ -29,8 +29,8 @@ public:
 	void init();
 
 	static int formula;
-	static void DamageGlovz(fo::ComputeAttackResult &ctd, DWORD* accumulatedDamage, int rounds, int armorDT, int armorDR, int bonusRangedDamage, int multiplyDamage, int difficulty);
-	static void DamageYAAM(fo::ComputeAttackResult &ctd, DWORD* accumulatedDamage, int rounds, int armorDT, int armorDR, int bonusRangedDamage,int multiplyDamage, int difficulty);
+	static void DamageGlovz(fo::ComputeAttackResult &ctd, DWORD &accumulatedDamage, int rounds, int armorDT, int armorDR, int bonusRangedDamage, int multiplyDamage, int difficulty);
+	static void DamageYAAM(fo::ComputeAttackResult &ctd, DWORD &accumulatedDamage, int rounds, int armorDT, int armorDR, int bonusRangedDamage,int multiplyDamage, int difficulty);
 };
 
 }

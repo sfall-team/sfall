@@ -748,7 +748,7 @@ void Inventory::init() {
 		BlockCall(0x4768A3); // mov  ebx, 1
 	}
 
-	// Move items out of bag/backpack and back into the main inventory list by dragging them to character's image (similar to Fallout 1 behavior)
+	// Move items from bag/backpack to the main inventory list by dragging them on the character portrait (similar to Fallout 1 behavior)
 	MakeCall(0x471452, inven_pickup_hack);
 
 	// Move items to player's main inventory instead of the opened bag/backpack when confirming a trade
