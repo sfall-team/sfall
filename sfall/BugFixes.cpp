@@ -1848,6 +1848,10 @@ static void __declspec(naked) op_use_obj_on_obj_hack() {
 		jz   fail;
 		mov  edx, [eax + 0x64];
 		shr  edx, 24;
+		cmp  dword ptr [esp + 4], eax; // target != source
+		jne  skip;
+		xor  edx, edx; // for calling obj_use_item_on_ instead of action_use_an_item_on_object_
+skip:
 		retn;
 fail:
 		add  esp, 4;
@@ -2525,6 +2529,8 @@ void BugFixesInit()
 	}
 
 	// Fix crash when calling use_obj/use_obj_on_obj without using set_self in global scripts
+	// also change the behavior of use_obj_on_obj function
+	// if the object uses the item on itself, then another function is called (not a bug fix)
 	MakeCall(0x45C376, op_use_obj_on_obj_hack, 1);
 	MakeCall(0x456A92, op_use_obj_hack, 1);
 

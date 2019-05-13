@@ -233,7 +233,7 @@ static int _stdcall CombatWrapperInner(TGameObj* obj) {
 
 
 // this hook fixes NPCs art switched to main dude art after inventory screen closes
-static void _declspec(naked) FidChangeHook() {
+static void __declspec(naked) FidChangeHook() {
 	_asm {
 		cmp IsControllingNPC, 0;
 		je skip;
@@ -250,7 +250,7 @@ skip:
 }
 
 /*
-static void _declspec(naked) ItemDropHook() {
+static void __declspec(naked) ItemDropHook() {
 	_asm {
 		call item_add_force_;
 		retn;
@@ -293,7 +293,7 @@ int __stdcall PartyControl_SwitchHandHook(TGameObj* item) {
 }
 
 
-static void _declspec(naked) CombatWrapper_v2() {
+static void __declspec(naked) CombatWrapper_v2() {
 	__asm {
 		sub esp, 4;
 		pushad;
@@ -318,7 +318,7 @@ gonormal:
 
 // hack to exit from this function safely when you load game during NPC turn
 static const DWORD CombatHack_add_noncoms_back = 0x422359;
-static void _declspec(naked) CombatHack_add_noncoms_() {
+static void __declspec(naked) CombatHack_add_noncoms_() {
 	__asm {
 		call CombatWrapper_v2;
 		cmp eax, -1;

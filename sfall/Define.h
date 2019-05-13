@@ -284,6 +284,11 @@
 #define item_type_misc_item    (5)
 #define item_type_key_item     (6)
 
+// inventory Equates //
+#define INVEN_TYPE_WORN        (0)
+#define INVEN_TYPE_RIGHT_HAND  (1)
+#define INVEN_TYPE_LEFT_HAND   (2)
+
 #define OBJFLAG_CAN_WEAR_ITEMS (0xf000000)
 
 #define OBJFLAG_HELD_IN_RIGHT (0x10000)
