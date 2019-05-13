@@ -26,7 +26,7 @@ procedure pickup_ground_items;
 procedure pickup_info();
 procedure distance_sort(variable array);
 
-variable pickupKey, pickupItem, temp;
+variable quickAmmoReload, pickupKey, pickupItem, temp;
 
 procedure start begin
    variable sfall_version;
@@ -36,13 +36,14 @@ procedure start begin
       //isUnsafe := GetIniConfig("Debugging", "AllowUnsafeScripting", 0, "ddraw.ini");
 
       register_hook_proc(HOOK_KEYPRESS, KeyPressHandler);
+      register_hook_proc(HOOK_INVENTORYMOVE, InventoryMoveHandler);
 
       if (sfall_version >= 414) then begin
          pickupKey := GetConfig("Inventory", "PickupItemKey", 0);
 
          if ((GetConfig("Inventory", "QuickAmmoReload", 0) > 0)
          and GetIniConfig("Misc", "ReloadReserve", -1, "ddraw.ini") > -1) then begin
-            register_hook_proc(HOOK_INVENTORYMOVE, InventoryMoveHandler);
+            quickAmmoReload := true;
          end
       end
 
@@ -70,16 +71,17 @@ procedure InventoryMoveHandler begin
    int     ret1 - Override setting (-1 - use engine handler, any other value - prevent relocation of item/reloading weapon)
 */
    variable event := get_sfall_arg,
-            itemAmmo := get_sfall_arg,
+            itemDrop := get_sfall_arg,
             itemWeapon := get_sfall_arg,
             cAmmo, ammoPid, ammoObj, inven;
 
    if (event == 4) then begin
+      if (quickAmmoReload) then return;
       cAmmo := get_weapon_ammo_count(itemWeapon);
       if (cAmmo == 0) then return;
 
       ammoPid := get_weapon_ammo_pid(itemWeapon);
-      if (obj_pid(itemAmmo) == ammoPid) then return;
+      if (obj_pid(itemDrop) == ammoPid) then return;
 
       inven := DUDE_INVEN;
       if (obj_is_carrying_obj(inven, itemWeapon) > 1) then return;
@@ -90,6 +92,16 @@ procedure InventoryMoveHandler begin
       ammoObj := create_object(ammoPid, 0, 0);
       set_weapon_ammo_count(ammoObj, cAmmo);
       add_obj_to_inven(inven, ammoObj);
+   end
+   else if (event == 8) then begin
+      if (obj_item_subtype(itemDrop) == item_type_drug) then begin
+         set_self(dude_obj);
+         set_self(dude_obj);
+         use_obj_on_obj(itemDrop, dude_obj);
+      end
+      else begin
+         display_msg(mstr_item(10));
+      end
    end
 end
 
