@@ -340,7 +340,7 @@ skip:
 }
 
 // hooks combat_turn function
-static void _declspec(naked) CombatTurnHook() {
+static void __declspec(naked) CombatTurnHook() {
 	__asm {
 		HookBegin;
 		mov args[0], 1;   // turn begin
@@ -380,7 +380,7 @@ static void _declspec(naked) CombatTurnHook() {
 
 // hack to exit from combat_add_noncoms function without crashing when you load game during NPC turn
 static const DWORD CombatHack_add_noncoms_back = 0x422359;
-static void _declspec(naked) CombatAddNoncoms_CombatTurnHack() {
+static void __declspec(naked) CombatAddNoncoms_CombatTurnHack() {
 	__asm {
 		call CombatTurnHook;
 		cmp  eax, -1;
@@ -415,7 +415,7 @@ fo::GameObject* __fastcall ComputeExplosionOnExtrasHook_Script(fo::GameObject* o
 	return result;
 }
 
-static void _declspec(naked) ComputeExplosionOnExtrasHook() {
+static void __declspec(naked) ComputeExplosionOnExtrasHook() {
 	__asm {
 		cmp  dword ptr [esp + 0x34 + 4], 0x429533;  // skip hook when AI assesses the situation in choosing the best weapon
 		jz   end;

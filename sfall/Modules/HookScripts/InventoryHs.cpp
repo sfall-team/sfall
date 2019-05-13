@@ -92,7 +92,7 @@ static int __fastcall SwitchHandHook_Script(fo::GameObject* item, fo::GameObject
 	This hook is called every time an item is placed into either hand slot via inventory screen drag&drop
 	If switch_hand_ function is not called, item is not placed anywhere (it remains in main inventory)
 */
-static void _declspec(naked) SwitchHandHook() {
+static void __declspec(naked) SwitchHandHook() {
 	__asm {
 		pushadc;
 		mov  ecx, eax;           // item being moved
@@ -129,7 +129,7 @@ static int __fastcall InventoryMoveHook_Script(DWORD itemReplace, DWORD item, in
 static const DWORD UseArmorHack_back = 0x4713AF; // normal operation (old 0x4713A9)
 static const DWORD UseArmorHack_skip = 0x471481; // skip code, prevent wearing armor
 // This hack is called when an armor is dropped into the armor slot at inventory screen
-static void _declspec(naked) UseArmorHack() {
+static void __declspec(naked) UseArmorHack() {
 	__asm {
 		mov  ecx, ds:[FO_VAR_i_worn];       // replacement item (override code)
 		mov  edx, [esp + 0x58 - 0x40];      // item
@@ -145,7 +145,7 @@ skip:
 	}
 }
 
-static void _declspec(naked) MoveInventoryHook() {
+static void __declspec(naked) MoveInventoryHook() {
 	__asm {
 		pushadc;
 		xor eax, eax;
@@ -266,7 +266,7 @@ static void __declspec(naked) DropIntoContainerHandSlotHack() {
 
 //static const DWORD DropAmmoIntoWeaponHack_back = 0x47658D; // proceed with reloading
 static const DWORD DropAmmoIntoWeaponHack_return = 0x476643;
-static void _declspec(naked) DropAmmoIntoWeaponHook() {
+static void __declspec(naked) DropAmmoIntoWeaponHook() {
 	__asm {
 		pushadc;
 		mov  ecx, ebp;              // weapon ptr
@@ -341,7 +341,7 @@ static bool InvenWieldHook_Script(int flag) {
 	return result; // True - use engine handler
 }
 
-static void _declspec(naked) InvenWieldFuncHook() {
+static void __declspec(naked) InvenWieldFuncHook() {
 	using namespace fo;
 	__asm {
 		HookBegin;
@@ -370,7 +370,7 @@ skip:
 }
 
 // called when unwielding weapons
-static void _declspec(naked) InvenUnwieldFuncHook() {
+static void __declspec(naked) InvenUnwieldFuncHook() {
 	__asm {
 		HookBegin;
 		mov args[0], eax;   // critter
@@ -397,7 +397,7 @@ skip:
 	}
 }
 
-static void _declspec(naked) CorrectFidForRemovedItemHook() {
+static void __declspec(naked) CorrectFidForRemovedItemHook() {
 	__asm {
 		HookBegin;
 		mov args[0], eax; // critter

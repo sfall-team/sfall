@@ -54,7 +54,7 @@ void SkillSetTags(long* tags, long num);
 
 int __fastcall GetItemType(GameObject* item);
 
-_declspec(noinline) GameObject* GetItemPtrSlot(GameObject* critter, InvenType slot);
+__declspec(noinline) GameObject* GetItemPtrSlot(GameObject* critter, InvenType slot);
 
 long& GetActiveItemMode();
 

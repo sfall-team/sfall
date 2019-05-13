@@ -594,7 +594,7 @@ Some utility/math functions are available:
 Optional arguments:
 - frame: frame number, the first frame starts from zero
 - x/y: offset relative to the top-left corner of the window
-- width/height: image size, used to scale the image when displaying it. Pass -1 to either width or height to keep aspect ratio when scaling
+- width/height: image size, used to scale the image when displaying it. Pass -1 to either width or height to keep the aspect ratio when scaling
 - noTransparent: pass true to display an image without transparent background
 - NOTE: to omit optional arguments starting from the right, call the functions with different sfall_funcX (e.g. sfall_func4("draw_image", pathFile, frame, x, y))
 - if draw_image_scaled is called without x/y/width/height arguments, the image will be scaled to fit the window without transparent background

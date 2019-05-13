@@ -88,7 +88,7 @@ int __fastcall GetItemType(GameObject* item) {
 	return fo::func::item_get_type(item);
 }
 
-_declspec(noinline) GameObject* GetItemPtrSlot(GameObject* critter, InvenType slot) {
+__declspec(noinline) GameObject* GetItemPtrSlot(GameObject* critter, InvenType slot) {
 	GameObject* itemPtr = nullptr;
 	switch (slot) {
 		case fo::INVEN_TYPE_LEFT_HAND:

@@ -498,7 +498,7 @@ static int __fastcall ExplosiveTimerHook_Script(DWORD &type, DWORD item, DWORD t
 	return time;
 }
 
-static void _declspec(naked) ExplosiveTimerHook() {
+static void __declspec(naked) ExplosiveTimerHook() {
 	__asm {
 		push eax; // time in ticks for queue_add_
 		push edx;
