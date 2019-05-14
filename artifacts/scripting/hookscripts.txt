@@ -189,7 +189,7 @@ Critter arg1 - The critter that just died
 
 HOOK_FINDTARGET (hs_findtarget.int)
 
-Runs when the ai is trying to pick a target in combat. Fallout first chooses a list of 4 likely suspects, then normally sorts them in order of weakness/distance/etc depending on the ai caps of the attacker. This hook replaces that sorting function, allowing you to sort the targets in some arbitrary way. Use sfall_return to give the 4 targets, in order of preference. All 4 must be given if you want to override normal sorting; if you want to specify less than 4 targets, fill in the extra spaces with 0's. If you do not give 4 targets, the NPCs normal sorting mechanism will be used.
+Runs when the ai is trying to pick a target in combat. Fallout first chooses a list of 4 likely suspects, then normally sorts them in order of weakness/distance/etc depending on the ai caps of the attacker. This hook replaces that sorting function, allowing you to sort the targets in some arbitrary way. Use sfall_return to give the 4 targets, in order of preference. If you want to specify less than 4 targets, fill in the extra spaces with 0's. Pass -1 to skip the return value.
 
 The return values can include critters that weren't in the list of possible targets, but the additional targets may still be discarded later on in the combat turn if they are out of the attackers perception or the chance of a successful hit is too low. The list of possible targets often includes duplicated entries.
 
@@ -266,7 +266,8 @@ critter arg7 - table of offered goods (being sold to NPC)
 int     arg8 - the total cost of the goods offered by the player
 int     arg9 - set 1 if the "offers" button was pressed (not for a party member), otherwise 0
 
-int     ret1 - the modified value of all of the goods
+int     ret1 - the modified value of all of the goods (pass -1 if you just want to modify offered goods)
+int     ret2 - the modified value of all offered goods
 
 -------------------------------------------
 
@@ -404,6 +405,7 @@ This is fired after the default calculation is made.
 Critter arg1 - Watcher object
 Obj     arg2 - Target object
 int     arg3 - Result of vanilla function: 1 - within perception range, 0 - otherwise
+int     arg4 - Type of hook: 1 - when being called from obj_can_see_obj script function, 2 when being called from obj_can_hear_obj script function (need to set ObjCanHearObjFix=1 in ddraw.ini), 0 for all other cases
 
 int     ret1 - overrides the returned result of the function: 0 - not in range (can't see), 1 - in range (will see if not blocked), 2 - forced detection (will see regardless, only used in obj_can_see_obj scripting function which is called by every critter in the game)
 
@@ -414,17 +416,16 @@ HOOK_INVENTORYMOVE (hs_inventorymove.int)
 Runs before moving items between inventory slots in dude interface. You can override the action.
 What you can NOT do with this hook:
 - force moving items to inappropriate slots (like gun in armor slot)
-- block picking up items
 What you can do:
 - restrict player from using specific weapons or armors
 - add AP costs for all inventory movement including reloading
 - apply or remove some special scripted effects depending on PC's armor
 
-int     arg1 - Target slot (0 - main backpack, 1 - left hand, 2 - right hand, 3 - armor slot, 4 - weapon, when reloading it by dropping ammo)
+int     arg1 - Target slot (0 - main backpack, 1 - left hand, 2 - right hand, 3 - armor slot, 4 - weapon, when reloading it by dropping ammo, 5 - container, like bag/backpack, 6 - dropping on the ground, 7 - picking up item, 8 - dropping item on the character portrait)
 Item    arg2 - Item being moved
-Item    arg3 - Item being replaced or weapon being reloaded (can be 0)
+Item    arg3 - Item being replaced, weapon being reloaded, or container being filled (can be 0)
 
-int     ret1 - Override setting (-1 - use engine handler, any other value - prevent relocation of item/reloading weapon)
+int     ret1 - Override setting (-1 - use engine handler, any other value - prevent relocation of item/reloading weapon/picking up item)
 
 -------------------------------------------
 
@@ -436,7 +437,7 @@ NOTE: when replacing a previously wielded armor or weapon, the unwielding hook w
 If you need to rely on this, try checking if armor/weapon is already equipped when wielding hook is executed.
 
 Critter arg1 - critter
-Obj     arg2 - item being wielded or unwielded (weapon/armor), may be 0 when unwielding (object is valid only if the item is unwielded by move_obj_inven_to_obj() or rm_obj_from_inven())
+Obj     arg2 - item being wielded or unwielded (weapon/armor)
 int     arg3 - slot (INVEN_TYPE_*)
 int     arg4 - 1 when wielding, 0 when unwielding
 

@@ -70,6 +70,7 @@
 #define _dialogue_state             0x518714
 #define _dialogue_switch_mode       0x518718
 #define _displayMapList             0x41B560
+#define _dropped_explosive          0x5190E0
 #define _drugInfoList               0x5191CC
 #define _edit_win                   0x57060C
 #define _Educated                   0x57082C
@@ -556,6 +557,7 @@ extern const DWORD DOSCmdLineDestroy_;
 extern const DWORD DrawCard_;
 extern const DWORD DrawFolder_;
 extern const DWORD DrawInfoWin_;
+extern const DWORD drop_into_container_;
 extern const DWORD dude_stand_;
 extern const DWORD editor_design_;
 extern const DWORD elapsed_time_;
@@ -730,6 +732,7 @@ extern const DWORD obj_connect_;
 extern const DWORD obj_destroy_;
 extern const DWORD obj_dist_;
 extern const DWORD obj_dist_with_tile_;
+extern const DWORD obj_drop_;
 extern const DWORD obj_erase_object_;
 extern const DWORD obj_find_first_at_;
 extern const DWORD obj_find_first_at_tile_; //  <eax>(int elevation<eax>, int tile<edx>)
@@ -977,6 +980,8 @@ TGameObj* __stdcall InvenLeftHand(TGameObj* critter);
 // item in critter's right hand slot
 TGameObj* __stdcall InvenRightHand(TGameObj* critter);
 
+__declspec(noinline) TGameObj* __stdcall GetItemPtrSlot(TGameObj* critter, long slot);
+
 // pops value type from Data stack (must be followed by InterpretPopLong)
 DWORD __stdcall InterpretPopShort(TProgram* scriptPtr);
 
@@ -1034,3 +1039,8 @@ long __stdcall ItemWAnimWeap(TGameObj* item, DWORD hitMode);
 long __stdcall ItemWComputeAmmoCost(TGameObj* item, DWORD* rounds);
 long __stdcall ItemWCurrAmmo(TGameObj* item);
 long __stdcall ItemWRounds(TGameObj* item);
+
+// for the backported BarterPriceHook from 4.x
+long __stdcall BarterComputeValue(TGameObj* source, TGameObj* target);
+long __stdcall ItemCapsTotal(TGameObj* object);
+long __stdcall ItemTotalCost(TGameObj* object);

@@ -334,6 +334,7 @@ const DWORD DOSCmdLineDestroy_ = 0x4E3D3C;
 const DWORD DrawCard_ = 0x43AAEC;
 const DWORD DrawFolder_ = 0x43410C;
 const DWORD DrawInfoWin_ = 0x4365AC;
+const DWORD drop_into_container_ = 0x476464;
 const DWORD dude_stand_ = 0x418378;
 const DWORD editor_design_ = 0x431DF8;
 const DWORD elapsed_time_ = 0x4C93E0;
@@ -503,6 +504,7 @@ const DWORD obj_connect_ = 0x489EC4;
 const DWORD obj_destroy_ = 0x49B9A0;
 const DWORD obj_dist_ = 0x48BBD4;
 const DWORD obj_dist_with_tile_ = 0x48BC08;
+const DWORD obj_drop_ = 0x49B8B0;
 const DWORD obj_erase_object_ = 0x48B0FC;
 const DWORD obj_find_first_at_ = 0x48B48C;
 const DWORD obj_find_first_at_tile_ = 0x48B5A8;
@@ -881,6 +883,22 @@ TGameObj* __stdcall InvenWorn(TGameObj* critter) {
 	}
 }
 
+__declspec(noinline) TGameObj* __stdcall GetItemPtrSlot(TGameObj* critter, long slot) {
+	TGameObj* itemPtr = nullptr;
+	switch (slot) {
+		case INVEN_TYPE_LEFT_HAND:
+			itemPtr = InvenLeftHand(critter);
+			break;
+		case INVEN_TYPE_RIGHT_HAND:
+			itemPtr = InvenRightHand(critter);
+			break;
+		case INVEN_TYPE_WORN:
+			itemPtr = InvenWorn(critter);
+			break;
+	}
+	return itemPtr;
+}
+
 TGameObj* __stdcall InvenLeftHand(TGameObj* critter) {
 	__asm {
 		mov  eax, critter;
@@ -1012,7 +1030,6 @@ void __stdcall MapDirErase(const char* folder, const char* ext) {
 	}
 }
 
-// for the backported AmmoCostHook from 4.x
 long __stdcall ItemWAnimWeap(TGameObj* item, DWORD hitMode) {
 	__asm {
 		mov  edx, hitMode;
@@ -1040,5 +1057,27 @@ long __stdcall ItemWRounds(TGameObj* item) {
 	__asm {
 		mov  eax, item;
 		call item_w_rounds_;
+	}
+}
+
+long __stdcall BarterComputeValue(TGameObj* source, TGameObj* target) {
+	__asm {
+		mov  edx, target;
+		mov  eax, source;
+		call barter_compute_value_;
+	}
+}
+
+long __stdcall ItemCapsTotal(TGameObj* object) {
+	__asm {
+		mov  eax, object;
+		call item_caps_total_;
+	}
+}
+
+long __stdcall ItemTotalCost(TGameObj* object) {
+	__asm {
+		mov  eax, object;
+		call item_total_cost_;
 	}
 }

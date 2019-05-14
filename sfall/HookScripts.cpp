@@ -69,6 +69,8 @@ static DWORD cRetTmp; // how many return values were set by specific hook script
 
 #define hookbegin(a) pushadc __asm call BeginHook popadc __asm mov argCount, a
 #define hookend pushadc __asm call EndHook popadc
+#define HookBegin pushadc __asm call BeginHook popadc
+//#define HookEnd pushadc __asm call EndHook popadc
 
 static void _stdcall BeginHook() {
 	if (callDepth && callDepth <= maxDepth) {
@@ -466,38 +468,35 @@ static void __declspec(naked) OnDeathHook2() {
 	}
 }
 
+// 4.x backport
+static void __fastcall FindTargetHook_Script(DWORD* target, DWORD attacker) {
+	BeginHook();
+	argCount = 5;
+
+	args[0] = attacker;
+	args[1] = target[0];
+	args[2] = target[1];
+	args[3] = target[2];
+	args[4] = target[3];
+
+	RunHookScript(HOOK_FINDTARGET);
+
+	if (cRet > 0) {
+		if (rets[0] != -1) target[0] = rets[0];
+		if (cRet > 1 && rets[1] != -1) target[1] = rets[1];
+		if (cRet > 2 && rets[2] != -1) target[2] = rets[2];
+		if (cRet > 3 && rets[3] != -1) target[3] = rets[3];
+	}
+	EndHook();
+}
+
 static void __declspec(naked) FindTargetHook() {
 	__asm {
-		hookbegin(5);
-		mov args[0], esi; //attacker
-		mov edi, [eax+0];
-		mov args[4], edi;
-		mov edi, [eax+4];
-		mov args[8], edi;
-		mov edi, [eax+8];
-		mov args[12], edi;
-		mov edi, [eax+12];
-		mov args[16], edi;
-		pushad;
-		push HOOK_FINDTARGET;
-		call RunHookScript;
-		popad;
-		cmp cRet, 4;
-		jge cont;
+		push eax;
 		call qsort_;
-		jmp end;
-cont:
-		mov edi, rets[0];
-		mov [eax+0], edi;
-		mov edi, rets[4];
-		mov [eax+4], edi;
-		mov edi, rets[8];
-		mov [eax+8], edi;
-		mov edi, rets[12];
-		mov [eax+12], edi;
-end:
-		hookend;
-		retn;
+		pop  ecx;          // targets (base)
+		mov  edx, esi;     // attacker
+		jmp  FindTargetHook_Script;
 	}
 }
 
@@ -597,43 +596,81 @@ static void __declspec(naked) RemoveObjHook() {
 	}
 }
 
+// 4.x backport
+static DWORD __fastcall BarterPriceHook_Script(register TGameObj* source, register TGameObj* target, DWORD callAddr) {
+	int computeCost = BarterComputeValue(source, target);
+
+	BeginHook();
+	argCount = 9;
+
+	args[0] = (DWORD)source;
+	args[1] = (DWORD)target;
+	args[2] = computeCost;
+
+	TGameObj* bTable = (TGameObj*)*ptr_btable;
+	args[3] = (DWORD)bTable;
+	args[4] = ItemCapsTotal(bTable);
+	args[5] = ItemTotalCost(bTable);
+
+	TGameObj* pTable = (TGameObj*)*ptr_ptable;
+	args[6] = (DWORD)pTable;
+	int pcCost = ItemTotalCost(pTable);
+	args[7] = pcCost;
+
+	args[8] = (DWORD)(callAddr == 0x474D51); // check offers button
+
+	RunHookScript(HOOK_BARTERPRICE);
+
+	bool isPCHook = (callAddr == 0x47551F);
+	int cost = isPCHook ? pcCost : computeCost;
+	if (cRet > 0) {
+		if (isPCHook) {
+			if (cRet > 1) cost = rets[1];     // new cost for pc
+		} else if ((int)rets[0] > -1) {
+			cost = rets[0];                   // new cost for trader
+		}
+	}
+	EndHook();
+
+	return cost;
+}
+
 static void __declspec(naked) BarterPriceHook() {
 	__asm {
-		hookbegin(9);
-		mov args[0], eax;
-		mov args[4], edx;
-		call barter_compute_value_;
-		mov edx, ds:[_btable]
-		mov args[8], eax;
-		mov args[12], edx;
-		xchg eax, edx;
-		call item_caps_total_;
-		mov args[16], eax;
-		mov eax, ds:[_btable];
-		call item_total_cost_;
-		mov args[20], eax;
-		mov eax, ds:[_ptable];
-		mov args[24], eax;
-		call item_total_cost_;
-		mov args[28], eax;
-		xor eax, eax;
-		mov edx, [esp]; // check offers button
-		cmp edx, 0x474D51; // last address on call stack
-		jne skip;
-		inc eax;
-skip:
-		mov args[32], eax;
-		mov eax, args[8];
-		pushad;
-		push HOOK_BARTERPRICE;
-		call RunHookScript;
-		popad;
-		cmp cRet, 1;
-		jl end;
-		mov eax, rets[0];
-end:
-		hookend;
+		push edx;
+		push ecx;
+		//-------
+		push [esp + 8];               // address on call stack
+		mov  ecx, eax;                // source
+		call BarterPriceHook_Script;  // edx - target
+		pop  ecx;
+		pop  edx;
 		retn;
+	}
+}
+
+static DWORD offersGoodsCost; // keep last cost
+static void __declspec(naked) PC_BarterPriceHook() {
+	__asm {
+		push edx;
+		push ecx;
+		//-------
+		push [esp + 8];                          // address on call stack
+		mov  ecx, dword ptr ds:[_obj_dude];      // source
+		mov  edx, dword ptr ds:[_target_stack];  // target
+		call BarterPriceHook_Script;
+		pop  ecx;
+		pop  edx;
+		mov  offersGoodsCost, eax;
+		retn;
+	}
+}
+
+static const DWORD OverrideCostRet = 0x474D44;
+static void __declspec(naked) OverrideCost_BarterPriceHack() {
+	__asm {
+		mov eax, offersGoodsCost;
+		jmp OverrideCostRet;
 	}
 }
 
@@ -903,43 +940,67 @@ end:
 	}
 }
 
+// 4.x backport
+static long __stdcall PerceptionRangeHook_Script(int type) {
+	long result;
+	__asm {
+		HookBegin;
+		mov  args[0], eax; // watcher
+		mov  args[4], edx; // target
+		call is_within_perception_;
+		mov  result, eax;  // check result
+	}
+	args[2] = result;
+	args[3] = type;
+
+	argCount = 4;
+	RunHookScript(HOOK_WITHINPERCEPTION);
+
+	if (cRet > 0) result = rets[0];
+	EndHook();
+
+	return result;
+}
+
 static void __declspec(naked) PerceptionRangeHook() {
 	__asm {
-		hookbegin(3);
-		mov args[0], eax; // watcher
-		mov args[4], edx; // target
-		call is_within_perception_;
-		mov args[8], eax; // check result
-		pushad;
-		push HOOK_WITHINPERCEPTION;
-		call RunHookScript;
-		popad;
-		cmp cRet, 1;
-		jl end;
-		mov eax, rets[0];
-end:
-		hookend;
+		push ecx;
+		push 0;
+		call PerceptionRangeHook_Script;
+		pop  ecx;
 		retn;
 	}
 }
 
-// jmp here, not call
-static const DWORD PerceptionRangeBonusHack_back = 0x456BA7;
-static const DWORD PerceptionRangeBonusHack_skip_blocking_check = 0x456BDC;
-static void __declspec(naked) PerceptionRangeBonusHack() {
+static void __declspec(naked) PerceptionRangeSeeHook() {
 	__asm {
-		call PerceptionRangeHook;
-		cmp eax, 2;
-		jne nevermind;
-		mov dword ptr [esp+16], 1;
-		jmp PerceptionRangeBonusHack_skip_blocking_check;
+		push ecx;
+		push 1;
+		call PerceptionRangeHook_Script;
+		pop  ecx;
+		cmp  eax, 2;
+		jne  nevermind; // normal return
+		dec  eax;
+		mov  dword ptr[esp + 0x2C - 0x1C + 4], eax; // set 1, skip blocking check
+		dec  eax;
 nevermind:
-		jmp PerceptionRangeBonusHack_back;
+		retn;
 	}
 }
 
+static void __declspec(naked) PerceptionRangeHearHook() {
+	__asm {
+		push ecx;
+		push 2;
+		call PerceptionRangeHook_Script;
+		pop  ecx;
+		retn;
+	}
+}
+
+// 4.x backport
 static int __fastcall SwitchHandHook_Script(TGameObj* item, TGameObj* itemReplaced, DWORD addr) {
-	if (itemReplaced && ItemGetType(itemReplaced) == 3 && ItemGetType(item) == 4) {
+	if (itemReplaced && ItemGetType(itemReplaced) == item_type_weapon && ItemGetType(item) == item_type_ammo) {
 		return -1; // to prevent inappropriate hook call after dropping ammo on weapon
 	}
 
@@ -966,7 +1027,7 @@ static int __fastcall SwitchHandHook_Script(TGameObj* item, TGameObj* itemReplac
 	This hook is called every time an item is placed into either hand slot via inventory screen drag&drop
 	If switch_hand_ function is not called, item is not placed anywhere (it remains in main inventory)
 */
-static void _declspec(naked) SwitchHandHook() {
+static void __declspec(naked) SwitchHandHook() {
 	__asm {
 		pushadc;
 		mov  ecx, eax;           // item being moved
@@ -983,182 +1044,321 @@ skip:
 	}
 }
 
-static const DWORD UseArmorHack_back = 0x4713A9; // normal operation
+/* Common inventory move hook */
+static int __fastcall InventoryMoveHook_Script(DWORD itemReplace, DWORD item, int type) {
+	BeginHook();
+	argCount = 3;
+
+	args[0] = type;         // event type
+	args[1] = item;         // item being dropped
+	args[2] = itemReplace;  // item being replaced here
+
+	RunHookScript(HOOK_INVENTORYMOVE);
+
+	int result = (cRet > 0) ? rets[0] : -1;
+	EndHook();
+
+	return result;
+}
+
+static const DWORD UseArmorHack_back = 0x4713AF; // normal operation (old 0x4713A9)
 static const DWORD UseArmorHack_skip = 0x471481; // skip code, prevent wearing armor
 // This hack is called when an armor is dropped into the armor slot at inventory screen
-static void _declspec(naked) UseArmorHack() {
+static void __declspec(naked) UseArmorHack() {
 	__asm {
-		cmp eax, 0;
-		jne skip; // not armor
-		hookbegin(3);
-		mov args[0], 3;
-		mov eax, [esp+24]; // item
-		mov args[4], eax;
-		mov eax, ds:[_i_worn]
-		mov args[8], eax;
-		pushad;
-		push HOOK_INVENTORYMOVE;
-		call RunHookScript;
-		popad;
-		cmp cRet, 1;
-		jl back;
-		cmp rets[0], -1;
-		jne skip;
-back:
-		hookend;
-		jmp UseArmorHack_back;
+		mov  ecx, ds:[_i_worn];             // replacement item (override code)
+		mov  edx, [esp + 0x58 - 0x40];      // item
+		push ecx;
+		push 3;                             // event: armor slot
+		call InventoryMoveHook_Script;      // ecx - replacement item
+		cmp  eax, -1;                       // ret value
+		pop  ecx;
+		jne  skip;
+		jmp  UseArmorHack_back;
 skip:
-		hookend;
-		jmp UseArmorHack_skip;
+		jmp  UseArmorHack_skip;
 	}
 }
 
-static void _declspec(naked) MoveInventoryHook() {
+static void __declspec(naked) MoveInventoryHook() {
 	__asm {
-		hookbegin(3);
-		mov args[0], 0;
-		mov args[4], edx;
-		mov args[8], 0; // no item being replaced here..
-		pushad;
-		push HOOK_INVENTORYMOVE;
-		call RunHookScript;
-		popad;
-		cmp cRet, 1;
-		jl skipcheck;
-		cmp rets[0], -1;
-		jne skipcall;
-skipcheck:
-		call item_add_force_;
-skipcall:
-		hookend;
-		retn;
-	}
-}
-
-static void _declspec(naked) invenWieldFunc_Hook() {
-	__asm {
-		hookbegin(4);
-		mov args[0], eax; // critter
-		mov args[4], edx; // item
-		mov args[8], ebx; // slot
-		mov args[12], 1; // wield flag
-		pushad;
-		cmp ebx, 1; // right hand slot?
-		je skip;
-		mov eax, edx;
-		call item_get_type_;
-		cmp eax, item_type_armor;
-		jz skip;
-		mov args[8], 2; // INVEN_TYPE_LEFT_HAND
+		pushadc;
+		xor eax, eax;
+		mov ecx, eax;                    // no item replace
+		cmp dword ptr ds:[_curr_stack], 0;
+		jle noCont;
+		mov ecx, eax;                    // contaner ptr
+		mov eax, 5;
+noCont:
+		push eax;                        // event: 0 - main backpack, 5 - contaner
+		call InventoryMoveHook_Script;   // edx - item
+		cmp  eax, -1;                    // ret value
+		popadc;
+		jne  skip;
+		jmp  item_add_force_;
 skip:
-		push HOOK_INVENWIELD;
-		call RunHookScript;
-		popad;
-		cmp cRet, 1;
-		jl defaulthandler;
-		cmp rets[0], -1;
-		je defaulthandler;
-		mov eax, -1;
-		jmp end;
-defaulthandler:
-		call invenWieldFunc_;
-end:
-		hookend;
 		retn;
 	}
 }
 
-// called when unwielding weapons
-static void _declspec(naked) invenUnwieldFunc_Hook() {
+// Hooks into dropping item from inventory to ground
+// - allows to prevent item being dropped if 0 is returned with set_sfall_return
+// - called for every item when dropping multiple items in stack (except caps)
+// - when dropping caps it called always once
+// - if 0 is returned while dropping caps, selected amount - 1 will still disappear from inventory (fixed)
+static DWORD nextHookDropSkip = 0;
+static int dropResult = -1;
+static const DWORD InvenActionObjDropRet = 0x473874;
+static void __declspec(naked) InvenActionCursorObjDropHook() {
+	if (nextHookDropSkip) {
+		nextHookDropSkip = 0;
+		goto skipHook;
+	} else {
+		__asm {
+			pushadc;
+			xor  ecx, ecx;                       // no itemReplace
+			push 6;                              // event: item drop ground
+			call InventoryMoveHook_Script;       // edx - item
+			mov  dropResult, eax;                // ret value
+			popadc;
+			cmp  dword ptr [esp], 0x47379A + 5;  // caps call address
+			jz   capsMultiDrop;
+		}
+	}
+
+	if (dropResult == -1) {
+skipHook:
+		_asm call obj_drop_;
+	}
+	_asm retn;
+
+/* for only caps multi drop */
+capsMultiDrop:
+	if (dropResult == -1) {
+		nextHookDropSkip = 1;
+		_asm call item_remove_mult_;
+		_asm retn;
+	}
+	_asm add esp, 4;
+	_asm jmp InvenActionObjDropRet;    // no caps drop
+}
+
+static void __declspec(naked) InvenActionExplosiveDropHack() {
 	__asm {
-		hookbegin(4);
-		mov args[0], eax; // critter
-		mov args[4], 0; // item
-		mov args[8], edx; // slot
-		mov args[12], 0; // wield flag
-		cmp edx, 0; // left hand slot?
-		jne notlefthand;
-		mov args[8], 2; // left hand
-notlefthand:
-		pushad;
-		push HOOK_INVENWIELD;
-		call RunHookScript;
-		popad;
-		cmp cRet, 1;
-		jl defaulthandler;
-		cmp rets[0], -1;
-		je defaulthandler;
-		mov eax, -1;
-		jmp end;
-defaulthandler:
-		call invenUnwieldFunc_;
-end:
-		hookend;
+		pushadc;
+		xor  ecx, ecx;                       // no itemReplace
+		push 6;                              // event: item drop ground
+		call InventoryMoveHook_Script;       // edx - item
+		cmp  eax, -1;                        // ret value
+		popadc;
+		jnz  noDrop;
+		mov  dword ptr ds:[_dropped_explosive], ebp; // overwritten engine code (ebp = 1)
+		mov  nextHookDropSkip, ebp;
 		retn;
+noDrop:
+		add  esp, 4;
+		jmp  InvenActionObjDropRet;           // no drop
 	}
 }
 
-static void _declspec(naked) correctFidForRemovedItem_Hook() {
+static int __fastcall DropIntoContainer(DWORD ptrCont, DWORD item, DWORD addrCall) {
+	int type = 5;                   // event: move to container (Crafty compatibility)
+
+	if (addrCall == 0x47147C + 5) { // drop out contaner
+		ptrCont = 0;
+		type = 0;                   // event: move to main backpack
+	}
+	return InventoryMoveHook_Script(ptrCont, item, type);
+}
+
+static const DWORD DropIntoContainer_back = 0x47649D; // normal operation
+static const DWORD DropIntoContainer_skip = 0x476503;
+static void __declspec(naked) DropIntoContainerHack() {
 	__asm {
-		hookbegin(4);
-		mov args[0], eax; // critter
-		mov args[4], edx; // item
-		mov args[8], 0; // slot
-		mov args[12], 0 // wield flag (armor by default)
-		test ebx, 0x02000000; // right hand slot?
-		jz notrighthand;
-		mov args[8], 1; // right hand
-notrighthand:
-		test ebx, 0x01000000; // left hand slot?
-		jz notlefthand;
-		mov args[8], 2; // left hand
-notlefthand:
-		pushad;
-		push HOOK_INVENWIELD;
-		call RunHookScript;
-		popad;
-		cmp cRet, 1;
-		jl defaulthandler;
-		cmp rets[0], -1;
-		je defaulthandler;
-		mov eax, -1;
-		jmp end;
-defaulthandler:
-		call correctFidForRemovedItem_;
-end:
-		hookend;
-		retn;
+		pushadc;
+		mov  ecx, ebp;                // contaner ptr
+		mov  edx, esi;                // item
+		mov  eax, [esp + 0x10 + 12];  // call address
+		push eax;
+		call DropIntoContainer;
+		cmp  eax, -1;                 // ret value
+		popadc;
+		jne  skipdrop;
+		jmp  DropIntoContainer_back;
+skipdrop:
+		mov  eax, -1;
+		jmp  DropIntoContainer_skip;
+	}
+}
+
+static const DWORD DropIntoContainerRet = 0x471481;
+static void __declspec(naked) DropIntoContainerHandSlotHack() {
+	__asm {
+		call drop_into_container_;
+		jmp  DropIntoContainerRet;
 	}
 }
 
 //static const DWORD DropAmmoIntoWeaponHack_back = 0x47658D; // proceed with reloading
 static const DWORD DropAmmoIntoWeaponHack_return = 0x476643;
-static void _declspec(naked) DropAmmoIntoWeaponHook() {
+static void __declspec(naked) DropAmmoIntoWeaponHook() {
 	__asm {
-		hookbegin(3);
-		mov args[0], 4;
-		mov eax, [esp+4]; // item var: ammo_
-		mov args[4], eax;
-		mov args[8], ebp; // weapon ptr
-		pushad;
-		push HOOK_INVENTORYMOVE;
-		call RunHookScript;
-		popad;
-		cmp cRet, 1;
-		jl proceedreloading;
-		cmp rets[0], -1;
-		jne donothing;
-proceedreloading:
-		hookend;
-		mov eax, ebp; // weapon, edx - ammo
-		jmp item_w_can_reload_;
-		//mov ebx, 1; // overwritten code
-		//jmp DropAmmoIntoWeaponHack_back;
+		pushadc;
+		mov  ecx, ebp;              // weapon ptr
+		mov  edx, [esp + 16];       // item var: ammo_
+		push 4;                     // event: weapon reloading
+		call InventoryMoveHook_Script;
+		cmp  eax, -1;               // ret value
+		popadc;
+		jne  donothing;
+		jmp  item_w_can_reload_;
+		//mov  ebx, 1;   // overwritten code
+		//jmp  DropAmmoIntoWeaponHack_back;
 donothing:
-		hookend;
-		add esp, 4;   // destroy return address
-		xor eax, eax; // result 0
-		jmp DropAmmoIntoWeaponHack_return;
+		add  esp, 4;   // destroy return address
+		xor  eax, eax; // result 0
+		jmp  DropAmmoIntoWeaponHack_return;
+	}
+}
+
+static void __declspec(naked) PickupObjectHack() {
+	__asm {
+		cmp  edi, ds:[_obj_dude];
+		je   runHook;
+		xor  edx, edx; // engine handler
+		retn;
+runHook:
+		push eax;
+		push ecx;
+		mov  edx, ecx;
+		xor  ecx, ecx;                 // no itemReplace
+		push 7;                        // event: item pickup
+		call InventoryMoveHook_Script; // edx - item
+		mov  edx, eax;                 // ret value
+		pop  ecx;
+		pop  eax;
+		inc  edx; // 0 - engine handler, otherwise cancel pickup
+		retn;
+	}
+}
+
+static void __declspec(naked) InvenPickupHook() {
+	__asm {
+		call mouse_click_in_;
+		test eax, eax;
+		jnz  runHook;
+		retn;
+runHook:
+		cmp  dword ptr ds:[_curr_stack], 0;
+		jnz  skip;
+		mov  edx, [esp + 0x58 - 0x40 + 4]; // item
+		xor  ecx, ecx;                     // no itemReplace
+		push 8;                            // event: drop item on character portrait
+		call InventoryMoveHook_Script;
+		cmp  eax, -1;  // ret value
+		je   skip;
+		xor  eax, eax; // 0 - cancel, otherwise engine handler
+skip:
+		retn;
+	}
+}
+
+/* Common InvenWield hook */
+static bool InvenWieldHook_Script(int flag) {
+	argCount = 4;
+	args[3] = flag;  // invenwield flag
+
+	RunHookScript(HOOK_INVENWIELD);
+
+	bool result = (cRet == 0 || rets[0] == -1);
+	EndHook();
+
+	return result; // True - use engine handler
+}
+
+static void __declspec(naked) InvenWieldFuncHook() {
+	__asm {
+		HookBegin;
+		mov args[0], eax; // critter
+		mov args[4], edx; // item
+		mov args[8], ebx; // slot
+		pushad;
+	}
+
+	// right hand slot?
+	if (args[2] != INVEN_TYPE_RIGHT_HAND && ItemGetType((TGameObj*)args[1]) != item_type_armor) {
+		args[2] = INVEN_TYPE_LEFT_HAND;
+	}
+
+	InvenWieldHook_Script(1); // wield flag
+
+	__asm {
+		test al, al;
+		popad;
+		jz   skip;
+		jmp  invenWieldFunc_;
+skip:
+		mov  eax, -1;
+		retn;
+	}
+}
+
+// called when unwielding weapons
+static void __declspec(naked) InvenUnwieldFuncHook() {
+	__asm {
+		HookBegin;
+		mov args[0], eax;   // critter
+		mov args[8], edx;   // slot
+		pushad;
+	}
+
+	// set slot
+	if (args[2] == 0) { // left hand slot?
+		args[2] = INVEN_TYPE_LEFT_HAND;
+	}
+	args[1] = (DWORD)GetItemPtrSlot((TGameObj*)args[0], args[2]); // get item
+
+	InvenWieldHook_Script(0); // unwield flag
+
+	__asm {
+		test al, al;
+		popad;
+		jz   skip;
+		jmp  invenUnwieldFunc_;
+skip:
+		mov  eax, -1;
+		retn;
+	}
+}
+
+static void __declspec(naked) CorrectFidForRemovedItemHook() {
+	__asm {
+		HookBegin;
+		mov args[0], eax; // critter
+		mov args[4], edx; // item
+		mov args[8], ebx; // item flag
+		pushad;
+	}
+
+	// set slot
+	if (args[2] & 0x2000000) {        // right hand slot
+		args[2] = INVEN_TYPE_RIGHT_HAND;
+	} else if (args[2] & 0x1000000) { // left hand slot
+		args[2] = INVEN_TYPE_LEFT_HAND;
+	} else {
+		args[2] = INVEN_TYPE_WORN;    // armor slot
+	}
+
+	InvenWieldHook_Script(0); // unwield flag (armor by default)
+
+	__asm {
+		test al, al;
+		popad;
+		jz   skip;
+		jmp  correctFidForRemovedItem_;
+skip:
+		mov  eax, -1;
+		retn;
 	}
 }
 
@@ -1309,7 +1509,7 @@ static void HookScriptInit2() {
 	HookCall(0x425161, &OnDeathHook2);
 
 	LoadHookScript("hs_findtarget", HOOK_FINDTARGET);
-	HookCall(0x429143, &FindTargetHook);
+	HookCall(0x429143, FindTargetHook);
 
 	LoadHookScript("hs_useobjon", HOOK_USEOBJON);
 	HookCall(0x49C606, &UseObjOnHook);
@@ -1324,9 +1524,11 @@ static void HookScriptInit2() {
 	MakeJump(0x477492, RemoveObjHook); // old 0x477490
 
 	LoadHookScript("hs_barterprice", HOOK_BARTERPRICE);
-	HookCall(0x474D4C, &BarterPriceHook);
-	HookCall(0x475735, &BarterPriceHook);
-	HookCall(0x475762, &BarterPriceHook);
+	HookCall(0x474D4C, BarterPriceHook);
+	HookCall(0x475735, BarterPriceHook);
+	HookCall(0x475762, BarterPriceHook);
+	HookCall(0X47551A, PC_BarterPriceHook);
+	MakeJump(0x474D3F, OverrideCost_BarterPriceHack); // just overrides cost of offered goods
 
 	LoadHookScript("hs_movecost", HOOK_MOVECOST);
 	HookCall(0x417665, &MoveCostHook);
@@ -1350,7 +1552,7 @@ static void HookScriptInit2() {
 	HookCall(0x478560, &ItemDamageHook);
 
 	LoadHookScript("hs_ammocost", HOOK_AMMOCOST);
-	HookCall(0x423A7C, &AmmoCostHook);
+	HookCall(0x423A7C, AmmoCostHook);
 
 	LoadHookScript("hs_useobj", HOOK_USEOBJ);
 	HookCall(0x42AEBF, &UseObjHook);
@@ -1369,29 +1571,41 @@ static void HookScriptInit2() {
 	HookCall(0x474A69, &StealCheckHook);
 
 	LoadHookScript("hs_withinperception", HOOK_WITHINPERCEPTION);
-	HookCall(0x429157, &PerceptionRangeHook);
-	HookCall(0x42B4ED, &PerceptionRangeHook);
-	HookCall(0x42BC87, &PerceptionRangeHook);
-	HookCall(0x42BC9F, &PerceptionRangeHook);
-	HookCall(0x42BD04, &PerceptionRangeHook);
-	MakeJump(0x456BA2, PerceptionRangeBonusHack);
-	HookCall(0x458403, &PerceptionRangeHook);
+	HookCall(0x429157, PerceptionRangeHook);
+	HookCall(0x42B4ED, PerceptionRangeHook);
+	HookCall(0x42BC87, PerceptionRangeHook);
+	HookCall(0x42BC9F, PerceptionRangeHook);
+	HookCall(0x42BD04, PerceptionRangeHook);
+	HookCall(0x456BA2, PerceptionRangeSeeHook);
+	HookCall(0x458403, PerceptionRangeHearHook);
 
 	LoadHookScript("hs_inventorymove", HOOK_INVENTORYMOVE);
-	HookCall(0x4712E3, &SwitchHandHook); // left slot
-	HookCall(0x47136D, &SwitchHandHook); // right slot
-	MakeJump(0x4713A3, UseArmorHack);
-	HookCall(0x471200, &MoveInventoryHook);
-	HookCall(0x476549, &DropAmmoIntoWeaponHook); // old 0x476588
+	HookCall(0x4712E3, SwitchHandHook); // left slot
+	HookCall(0x47136D, SwitchHandHook); // right slot
+	MakeJump(0x4713A9, UseArmorHack); // old 0x4713A3
+	MakeJump(0x476491, DropIntoContainerHack);
+	MakeJump(0x471338, DropIntoContainerHandSlotHack);
+	MakeJump(0x4712AB, DropIntoContainerHandSlotHack);
+	HookCall(0x471200, MoveInventoryHook);
+	HookCall(0x476549, DropAmmoIntoWeaponHook); // old 0x476588
+	HookCall(0x473851, InvenActionCursorObjDropHook);
+	HookCall(0x47386F, InvenActionCursorObjDropHook);
+	HookCall(0x47379A, InvenActionCursorObjDropHook); // caps multi drop
+	MakeCall(0x473807, InvenActionExplosiveDropHack, 1); // drop active explosives
+	MakeCall(0x49B660, PickupObjectHack);
+	SafeWrite32(0x49B665, 0x850FD285); // test edx, edx
+	SafeWrite32(0x49B669, 0xC2);       // jnz  0x49B72F
+	SafeWrite8(0x49B66E, 0xFE); // cmp edi > cmp esi
+	HookCall(0x471457, InvenPickupHook);
 
 	LoadHookScript("hs_invenwield", HOOK_INVENWIELD);
-	HookCall(0x47275E, &invenWieldFunc_Hook);
-	HookCall(0x495FDF, &invenWieldFunc_Hook);
-	HookCall(0x45967D, &invenUnwieldFunc_Hook);
-	HookCall(0x472A5A, &invenUnwieldFunc_Hook);
-	HookCall(0x495F0B, &invenUnwieldFunc_Hook);
-	HookCall(0x45680C, &correctFidForRemovedItem_Hook);
-	HookCall(0x45C4EA, &correctFidForRemovedItem_Hook);
+	HookCall(0x47275E, InvenWieldFuncHook); // inven_wield_
+	HookCall(0x495FDF, InvenWieldFuncHook); // partyMemberCopyLevelInfo_
+	HookCall(0x45967D, InvenUnwieldFuncHook); // op_metarule_
+	HookCall(0x472A5A, InvenUnwieldFuncHook); // inven_unwield_
+	HookCall(0x495F0B, InvenUnwieldFuncHook); // partyMemberCopyLevelInfo_
+	HookCall(0x45680C, CorrectFidForRemovedItemHook); // op_rm_obj_from_inven_
+	HookCall(0x45C4EA, CorrectFidForRemovedItemHook); // op_move_obj_inven_to_obj_
 
 	__asm {
 		xor  edx, edx
