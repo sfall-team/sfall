@@ -222,7 +222,7 @@ static void __declspec(naked) AfterHitRollHook() {
 end:
 		mov ebx, eax;
 		hookend;
-		cmp ebx, 1;
+		cmp ebx, ROLL_FAILURE;
 		jmp AfterHitRollAddr;
 	}
 }

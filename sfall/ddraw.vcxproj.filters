@@ -199,9 +199,6 @@
     <ClInclude Include="Worldmap.h">
       <Filter>Headers</Filter>
     </ClInclude>
-    <ClInclude Include="Cpp11_emu.h">
-      <Filter>Headers</Filter>
-    </ClInclude>
     <ClInclude Include="stdafx.h">
       <Filter>Headers</Filter>
     </ClInclude>
@@ -352,5 +349,8 @@
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="version.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <MASM Include="win2kcompat.asm" />
   </ItemGroup>
 </Project>

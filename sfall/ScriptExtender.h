@@ -102,14 +102,42 @@ long SetObjectUniqueID(TGameObj* obj);
 long SetSpecialID(TGameObj* obj);
 void SetNewEngineID(TGameObj* obj);
 
-// types for script variables
+// Script data types
 #define VAR_TYPE_INT    (0xC001)
 #define VAR_TYPE_FLOAT  (0xA001)
 #define VAR_TYPE_STR    (0x9801)
 #define VAR_TYPE_STR2   (0x9001)
 
-// script procs
-#define start               (1)
-#define map_enter_p_proc    (15)
-#define destroy_p_proc      (18)
-#define map_update_p_proc   (23)
+// Script procedure types
+enum ScriptProc : long
+{
+	no_p_proc = 0,
+	start = 1,
+	spatial_p_proc = 2,
+	description_p_proc = 3,
+	pickup_p_proc = 4,
+	drop_p_proc = 5,
+	use_p_proc = 6,
+	use_obj_on_p_proc = 7,
+	use_skill_on_p_proc = 8,
+	none_x_bad = 9,
+	none_x_bad2 = 10,
+	talk_p_proc = 11,
+	critter_p_proc = 12,
+	combat_p_proc = 13,
+	damage_p_proc = 14,
+	map_enter_p_proc = 15,
+	map_exit_p_proc = 16,
+	create_p_proc = 17,
+	destroy_p_proc = 18,
+	none_x_bad3 = 19,
+	none_x_bad4 = 20,
+	look_at_p_proc = 21,
+	timed_event_p_proc = 22,
+	map_update_p_proc = 23,
+	push_p_proc = 24,
+	is_dropping_p_proc = 25,
+	combat_is_starting_p_proc = 26,
+	combat_is_over_p_proc = 27,
+	count = 28
+};

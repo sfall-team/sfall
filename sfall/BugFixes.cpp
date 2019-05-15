@@ -93,25 +93,25 @@ static const DWORD UnarmedAttacksFixEnd = 0x423A0D;
 static void __declspec(naked) UnarmedAttacksFix() {
 	__asm {
 		mov  ecx, 5;                        // 5% chance of critical hit
-		cmp  edx, 0x10;                     // Power Kick
+		cmp  edx, ATKTYPE_POWERKICK;        // Power Kick
 		je   RollCheck;
-		cmp  edx, 0x09;                     // Hammer Punch
+		cmp  edx, ATKTYPE_HAMMERPUNCH;      // Hammer Punch
 		je   RollCheck;
 		add  ecx, 5;                        // 10% chance of critical hit
-		cmp  edx, 0x12;                     // Hook Kick
+		cmp  edx, ATKTYPE_HOOKKICK;         // Hook Kick
 		je   RollCheck;
-		cmp  edx, 0x0B;                     // Jab
+		cmp  edx, ATKTYPE_JAB;              // Jab
 		je   RollCheck;
 		add  ecx, 5;                        // 15% chance of critical hit
-		cmp  edx, 0x0A;                     // Haymaker
+		cmp  edx, ATKTYPE_HAYMAKER;         // Haymaker
 		je   RollCheck;
 		add  ecx, 5;                        // 20% chance of critical hit
-		cmp  edx, 0x0C;                     // Palm Strike
+		cmp  edx, ATKTYPE_PALMSTRIKE;       // Palm Strike
 		je   RollCheck;
 		add  ecx, 20;                       // 40% chance of critical hit
-		cmp  edx, 0x0D;                     // Piercing Strike
+		cmp  edx, ATKTYPE_PIERCINGSTRIKE;   // Piercing Strike
 		je   RollCheck;
-		cmp  edx, 0x13;                     // Piercing Kick
+		cmp  edx, ATKTYPE_PIERCINGKICK;     // Piercing Kick
 		jne  end;
 		add  ecx, 10;                       // 50% chance of critical hit
 RollCheck:
@@ -120,7 +120,7 @@ RollCheck:
 		call roll_random_;
 		cmp  eax, ecx;                      // Check chance
 		jg   end;
-		mov  ebx, 3;                        // Upgrade to critical hit
+		mov  ebx, ROLL_CRITICAL_SUCCESS;    // Upgrade to critical hit
 end:
 		jmp  UnarmedAttacksFixEnd;
 	}

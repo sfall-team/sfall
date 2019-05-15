@@ -723,7 +723,7 @@ char* GetProtoPtr(DWORD pid) {
 char AnimCodeByWeapon(TGameObj* weapon) {
 	if (weapon != NULL) {
 		char* proto = GetProtoPtr(weapon->pid);
-		if (proto && *(int*)(proto + 32) == 3) {
+		if (proto && *(int*)(proto + 32) == item_type_weapon) {
 			return (char)(*(int*)(proto + 36)); 
 		}
 	}

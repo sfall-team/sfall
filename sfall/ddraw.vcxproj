@@ -40,7 +40,7 @@
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <CharacterSet>NotSet</CharacterSet>
     <WholeProgramOptimization>true</WholeProgramOptimization>
-    <PlatformToolset>v90</PlatformToolset>
+    <PlatformToolset>v100</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
@@ -254,6 +254,7 @@
       </DataExecutionPrevention>
       <TargetMachine>MachineX86</TargetMachine>
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
+      <MinimumRequiredVersion>5.0</MinimumRequiredVersion>
     </Link>
     <PostBuildEvent>
       <Command>"$(ProjectDir)postbuild.cmd" win2k "$(TargetPath)"</Command>
@@ -272,7 +273,6 @@
     <ClInclude Include="BugFixes.h" />
     <ClInclude Include="BurstMods.h" />
     <ClInclude Include="Console.h" />
-    <ClInclude Include="Cpp11_emu.h" />
     <ClInclude Include="CRC.h" />
     <ClInclude Include="Credits.h" />
     <ClInclude Include="Criticals.h" />
@@ -388,6 +388,13 @@
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="version.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <MASM Include="win2kcompat.asm">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DevXP|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </MASM>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

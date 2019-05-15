@@ -22,9 +22,6 @@
 #include <Windows.h>
 #include "SafeWrite.h"
 #include "Logging.h"
-#if (_MSC_VER < 1600)
-#include "Cpp11_emu.h"
-#endif
 
 struct ddrawDll {
 	HMODULE dll;
