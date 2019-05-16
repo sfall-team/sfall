@@ -2109,6 +2109,18 @@ bad:
 	}
 }
 
+static void __declspec(naked) obj_pickup_hook() {
+	__asm {
+		cmp  edi, dword ptr ds:[FO_VAR_obj_dude];
+		je   dude;
+		test [edi + combatState], 1; // check combat flag
+		jz   dude;
+		jmp  fo::funcoffs::item_add_force_;
+dude:
+		jmp  fo::funcoffs::item_add_mult_;
+	}
+}
+
 void BugFixes::init()
 {
 	#ifndef NDEBUG
@@ -2679,6 +2691,9 @@ void BugFixes::init()
 
 	// Fix the argument value of dialogue_reaction function
 	HookCall(0x456FFA, op_dialogue_reaction_hook);
+
+	// Fix an bug when the NPC could not pickup the item, when he does not have enough space in the inventory and displayed the wrong message
+	HookCall(0x49B6E7, obj_pickup_hook);
 }
 
 }
