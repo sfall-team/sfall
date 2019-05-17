@@ -2086,10 +2086,20 @@ bad:
 	}
 }
 
+static void __declspec(naked) obj_pickup_hook() {
+	__asm {
+		cmp  dword ptr ds:[FO_VAR_obj_dude], edi;
+		je   dude;
+		jmp  fo::funcoffs::item_add_force_;
+dude:
+		jmp  fo::funcoffs::item_add_mult_;
+	}
+}
+
 void BugFixes::init()
 {
 	#ifndef NDEBUG
-		if (isDebug && (GetConfigInt("Debugging", "BugFixes", 1) == 0)) return;
+		if (isDebug && (GetPrivateProfileIntA("Debugging", "BugFixes", 1, ::sfall::ddrawIni) == 0)) return;
 	#endif
 
 	// Missing game initialization
@@ -2640,6 +2650,10 @@ void BugFixes::init()
 
 	// Fix the argument value of dialogue_reaction function
 	HookCall(0x456FFA, op_dialogue_reaction_hook);
+
+	// Fix for the incorrect message being displayed and NPC stuck in a loop in combat when the NPC cannot pick up an item
+	// due to not enough space in the inventory
+	HookCall(0x49B6E7, obj_pickup_hook);
 }
 
 }

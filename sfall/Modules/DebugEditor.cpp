@@ -267,14 +267,14 @@ void RunDebugEditor() {
 	WSACleanup();
 }
 
+static const DWORD dbg_error_ret = 0x453FD8;
 static void __declspec(naked) dbg_error_hack() {
 	__asm {
 		cmp  ebx, 1;
 		je   hide;
 		sub  esp, 0x104;
-		retn;
+		jmp  dbg_error_ret;
 hide:
-		add  esp, 4; // destroy this return addr
 		pop  esi;
 		pop  ecx;
 		retn;
@@ -313,6 +313,9 @@ void DebugModePatch() {
 		} else {
 			SafeWrite32(0x4C6D9C, (DWORD)debugGnw);
 		}
+		if (GetPrivateProfileIntA("Debugging", "HideObjIsNullMsg", 0, ::sfall::ddrawIni)) {
+			MakeJump(0x453FD2, dbg_error_hack);
+		}
 		dlogr(" Done", DL_INIT);
 	}
 }
@@ -337,10 +340,6 @@ void DebugEditor::init() {
 				RunDebugEditor();
 			}
 		};
-	}
-
-	if (GetPrivateProfileIntA("Debugging", "HideObjIsNullMsg", 0, ::sfall::ddrawIni)) {
-		MakeCall(0x453FD2, dbg_error_hack, 1);
 	}
 }
 
