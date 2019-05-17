@@ -2055,8 +2055,22 @@ bad:
 	}
 }
 
+static void __declspec(naked) obj_pickup_hook() {
+	__asm {
+		cmp  dword ptr ds:[_obj_dude], edi;
+		je   dude;
+		jmp  item_add_force_;
+dude:
+		jmp  item_add_mult_;
+	}
+}
+
 void BugFixesInit()
 {
+	#ifndef NDEBUG
+		if (IsDebug && (GetPrivateProfileIntA("Debugging", "BugFixes", 1, ".\\ddraw.ini")) == 0)) return;
+	#endif
+
 	// fix vanilla negate operator on float values
 	MakeCall(0x46AB68, NegateFixHack);
 	// fix incorrect int-to-float conversion
@@ -2594,4 +2608,8 @@ void BugFixesInit()
 
 	// Fix the argument value of dialogue_reaction function
 	HookCall(0x456FFA, op_dialogue_reaction_hook);
+
+	// Fix for the incorrect message being displayed and NPC stuck in a loop in combat when the NPC cannot pick up an item
+	// due to not enough space in the inventory
+	HookCall(0x49B6E7, obj_pickup_hook);
 }
