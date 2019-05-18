@@ -328,10 +328,19 @@ void DontDeleteProtosPatch() {
 	}
 }
 
+void AlwaysReloadMsgs() {
+	if (GetPrivateProfileIntA("Debugging", "AlwaysReloadMsgs", 0, sfall::ddrawIni)) {
+		dlog("Applying always reload messages patch.", DL_INIT);
+		SafeWrite8(0x4A6B8D, 0x0);
+		dlogr(" Done", DL_INIT);
+	}
+}
+
 void DebugEditor::init() {
 	if (!isDebug) return;
 	DebugModePatch();
 	DontDeleteProtosPatch();
+	AlwaysReloadMsgs();
 
 	debugEditorKey = GetConfigInt("Input", "DebugEditorKey", 0);
 	if (debugEditorKey != 0) {

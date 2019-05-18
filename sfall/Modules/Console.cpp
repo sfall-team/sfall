@@ -50,8 +50,8 @@ static void __declspec(naked) ConsoleHook() {
 }
 
 void Console::init() {
-	auto path = GetConfigString("Misc", "ConsoleOutputPath", "", MAX_PATH);
-	if (path.size() > 0) {
+	auto path = GetConfigString("Main", "ConsoleOutputPath", "", MAX_PATH);
+	if (!path.empty()) {
 		consolefile.open(path);
 		if (consolefile.is_open()) {
 			MakeJump(0x43186C, ConsoleHook);

@@ -758,14 +758,6 @@ void DialogueFix() {
 	}
 }
 
-void AlwaysReloadMsgs() {
-	if (GetConfigInt("Misc", "AlwaysReloadMsgs", 0)) {
-		dlog("Applying always reload messages patch.", DL_INIT);
-		SafeWrite8(0x4A6B8D, 0x0);
-		dlogr(" Done", DL_INIT);
-	}
-}
-
 /*void RemoveWindowRoundingPatch() { // TODO: Узнать для чего конкретно предназначалась эта опция (удалено из ddraw.ini)
 	if(GetConfigInt("Misc", "RemoveWindowRounding", 0)) {
 		SafeWrite16(0x4B8090, 0x04EB);            // jmps 0x4B8096
@@ -981,6 +973,9 @@ void MiscPatches::init() {
 		dlogr(" Done", DL_INIT);
 	}
 
+	// Increase text capacity in the description window of statistics and perks
+	SafeWriteBatch<BYTE>(150, {0x43ACD5, 0x43DD37});
+
 	LoadGameHook::OnBeforeGameStart() += BodypartHitChances; // set on start & load
 
 	CombatProcFix();
@@ -988,7 +983,6 @@ void MiscPatches::init() {
 
 	AdditionalWeaponAnimsPatch();
 	MultiPatchesPatch();
-	AlwaysReloadMsgs();
 	PlayIdleAnimOnReloadPatch();
 	CorpseLineOfFireFix();
 

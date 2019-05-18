@@ -720,7 +720,7 @@ void ScriptExtender::init() {
 		SafeWrite8(0x4C9F13, idle);
 	}
 
-	arraysBehavior = GetConfigInt("Misc", "arraysBehavior", 1);
+	arraysBehavior = GetConfigInt("Scripts", "arraysBehavior", 1);
 	if (arraysBehavior > 0) {
 		arraysBehavior = 1; // only 1 and 0 allowed at this time
 		dlogr("New arrays behavior enabled.", DL_SCRIPT);
