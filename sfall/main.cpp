@@ -451,33 +451,6 @@ really_end:
 	}
 }
 
-static DWORD RetryCombatLastAP;
-static DWORD RetryCombatMinAP;
-static void __declspec(naked) RetryCombatHook() {
-	__asm {
-		mov  RetryCombatLastAP, 0;
-retry:
-		call combat_ai_;
-process:
-		cmp  dword ptr ds:[_combat_turn_running], 0;
-		jle  next;
-		call process_bk_;
-		jmp  process;
-next:
-		mov  eax, [esi + 0x40];
-		cmp  eax, RetryCombatMinAP;
-		jl   end;
-		cmp  eax, RetryCombatLastAP;
-		je   end;
-		mov  RetryCombatLastAP, eax;
-		mov  eax, esi;
-		xor  edx, edx;
-		jmp  retry;
-end:
-		retn;
-	}
-}
-
 static void __declspec(naked) intface_rotate_numbers_hack() {
 	__asm {
 		push edi
@@ -542,25 +515,23 @@ end:
 }
 
 static const DWORD NPCStage6Fix1End = 0x493D16;
-static const DWORD NPCStage6Fix2End = 0x49423A;
 static void __declspec(naked) NPCStage6Fix1() {
 	__asm {
-		mov eax, 0xcc;				// set record size to 204 bytes
-		imul eax, edx;				// multiply by number of NPC records in party.txt
-		call mem_malloc_;			// malloc the necessary memory
-		mov edx, dword ptr ds:[_partyMemberMaxCount];	// retrieve number of NPC records in party.txt
-		mov ebx, 0xcc;				// set record size to 204 bytes
-		imul ebx, edx;				// multiply by number of NPC records in party.txt
-		jmp NPCStage6Fix1End;			// call memset to set all malloc'ed memory to 0
+		mov  eax, 204;                  // set record size to 204 bytes
+		imul eax, edx;                  // multiply by number of NPC records in party.txt
+		mov  ebx, eax;                  // copy total record size for later memset
+		call mem_malloc_;               // malloc the necessary memory
+		jmp  NPCStage6Fix1End;          // call memset to set all malloc'ed memory to 0
 	}
 }
 
+static const DWORD NPCStage6Fix2End = 0x49423A;
 static void __declspec(naked) NPCStage6Fix2() {
 	__asm {
-		mov eax, 0xcc;				// record size is 204 bytes
-		imul edx, eax;				// multiply by NPC number as listed in party.txt
-		mov eax, dword ptr ds:[_partyMemberAIOptions];	// get starting offset of internal NPC table
-		jmp NPCStage6Fix2End;			// eax+edx = offset of specific NPC record
+		mov  eax, 204;                  // record size is 204 bytes
+		imul edx, eax;                  // multiply by NPC number as listed in party.txt
+		mov  eax, dword ptr ds:[_partyMemberAIOptions]; // get starting offset of internal NPC table
+		jmp  NPCStage6Fix2End;          // eax+edx = offset of specific NPC record
 	}
 }
 
@@ -895,13 +866,6 @@ static void DllMain2() {
 		dlogr(" Done", DL_INIT);
 	}
 
-	RetryCombatMinAP = GetPrivateProfileIntA("Misc", "NPCsTryToSpendExtraAP", 0, ini);
-	if (RetryCombatMinAP > 0) {
-		dlog("Applying retry combat patch.", DL_INIT);
-		HookCall(0x422B94, RetryCombatHook); // combat_turn_
-		dlogr(" Done", DL_INIT);
-	}
-
 	dlog("Checking for changed skilldex images.", DL_INIT);
 	tmp = GetPrivateProfileIntA("Misc", "Lockpick", 293, ini);
 	if (tmp != 293) SafeWrite32(0x518D54, tmp);
@@ -1024,8 +988,8 @@ static void DllMain2() {
 	if (GetPrivateProfileIntA("Misc", "NPCStage6Fix", 0, ini)) {
 		dlog("Applying NPC Stage 6 Fix.", DL_INIT);
 		MakeJump(0x493CE9, NPCStage6Fix1);
-		SafeWrite8(0x494063, 0x06); // loop should look for a potential 6th stage
-		SafeWrite8(0x4940BB, 0xCC); // move pointer by 204 bytes instead of 200
+		SafeWrite8(0x494063, 6);   // loop should look for a potential 6th stage
+		SafeWrite8(0x4940BB, 204); // move pointer by 204 bytes instead of 200
 		MakeJump(0x494224, NPCStage6Fix2);
 		dlogr(" Done", DL_INIT);
 	}
@@ -1097,9 +1061,8 @@ static void DllMain2() {
 		dlogr(" Done", DL_INIT);
 	}
 
-	dlog("Applying AI patches.", DL_INIT);
+	dlogr("Running AIInit().", DL_INIT);
 	AIInit();
-	dlogr(" Done", DL_INIT);
 
 	dlogr("Initializing party control.", DL_INIT);
 	PartyControlInit();

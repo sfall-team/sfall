@@ -682,28 +682,28 @@ const DWORD xvfprintf_ = 0x4DF1AC;
 // please, use CamelCase for those
 
 
-int __stdcall ItemGetType(TGameObj* item) {
+long __stdcall ItemGetType(TGameObj* item) {
 	__asm {
 		mov  eax, item;
 		call item_get_type_;
 	}
 }
 
-int __stdcall ItemSize(TGameObj* item) {
+long __stdcall ItemSize(TGameObj* item) {
 	__asm {
 		mov  eax, item;
 		call item_size_;
 	}
 }
 
-int _stdcall IsPartyMember(TGameObj* obj) {
+long __stdcall IsPartyMember(TGameObj* obj) {
 	__asm {
 		mov  eax, obj;
 		call isPartyMember_;
 	}
 }
 
-int _stdcall PartyMemberGetCurrentLevel(TGameObj* obj) {
+long __stdcall PartyMemberGetCurrentLevel(TGameObj* obj) {
 	__asm {
 		mov  eax, obj;
 		call partyMemberGetCurLevel_;
@@ -789,7 +789,7 @@ void SkillSetTags(int* tags, DWORD num) {
 	}
 }
 
-int __stdcall ScrPtr(int scriptId, TScript** scriptPtr) {
+long __stdcall ScrPtr(long scriptId, TScript** scriptPtr) {
 	__asm {
 		mov  eax, scriptId;
 		mov  edx, scriptPtr;

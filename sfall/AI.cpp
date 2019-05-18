@@ -24,10 +24,37 @@
 #include "FalloutEngine.h"
 #include "SafeWrite.h"
 
-typedef stdext::hash_map<DWORD, DWORD> :: const_iterator iter;
+typedef stdext::hash_map<DWORD, DWORD>::const_iterator iter;
 
-static stdext::hash_map<DWORD,DWORD> targets;
-static stdext::hash_map<DWORD,DWORD> sources;
+static stdext::hash_map<DWORD, DWORD> targets;
+static stdext::hash_map<DWORD, DWORD> sources;
+
+static DWORD RetryCombatLastAP;
+static DWORD RetryCombatMinAP;
+static void __declspec(naked) RetryCombatHook() {
+	__asm {
+		mov  RetryCombatLastAP, 0;
+retry:
+		call combat_ai_;
+process:
+		cmp  dword ptr ds:[_combat_turn_running], 0;
+		jle  next;
+		call process_bk_;
+		jmp  process;
+next:
+		mov  eax, [esi + 0x40];
+		cmp  eax, RetryCombatMinAP;
+		jl   end;
+		cmp  eax, RetryCombatLastAP;
+		je   end;
+		mov  RetryCombatLastAP, eax;
+		mov  eax, esi;
+		xor  edx, edx;
+		jmp  retry;
+end:
+		retn;
+	}
+}
 
 static void __fastcall CombatAttackHook(DWORD source, DWORD target) {
 	sources[target] = source;
@@ -104,6 +131,13 @@ void AIInit() {
 	MakeJump(0x45F6AF, BlockCombatHook1);    // intface_use_item_
 	HookCall(0x4432A6, BlockCombatHook2);    // game_handle_input_
 	GetPrivateProfileString("sfall", "BlockedCombat", "You cannot enter combat at this time.", combatBlockedMessage, 128, translationIni);
+
+	RetryCombatMinAP = GetPrivateProfileIntA("Misc", "NPCsTryToSpendExtraAP", 0, ini);
+	if (RetryCombatMinAP > 0) {
+		dlog("Applying retry combat patch.", DL_INIT);
+		HookCall(0x422B94, RetryCombatHook); // combat_turn_
+		dlogr(" Done", DL_INIT);
+	}
 }
 
 DWORD _stdcall AIGetLastAttacker(DWORD target) {

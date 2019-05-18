@@ -260,7 +260,7 @@ static void __stdcall DisplayCantDoThat() {
 
 // 1 skip handler, -1 don't skip
 int __stdcall PartyControl_SwitchHandHook(TGameObj* item) {
-	if (IsControllingNPC > 0 && ItemGetType(item) == 3) {
+	if (IsControllingNPC > 0 && ItemGetType(item) == item_type_weapon) {
 		int canUse;
 		/* check below uses AI packets and skills to check if weapon is usable
 		__asm {

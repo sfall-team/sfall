@@ -943,15 +943,15 @@ extern const DWORD xvfprintf_;
 
 // WRAPPERS:
 // TODO: move these to different namespace
-int _stdcall IsPartyMember(TGameObj* obj);
-int _stdcall PartyMemberGetCurrentLevel(TGameObj* obj);
+long __stdcall IsPartyMember(TGameObj* obj);
+long __stdcall PartyMemberGetCurrentLevel(TGameObj* obj);
 char* GetProtoPtr(DWORD pid);
 char AnimCodeByWeapon(TGameObj* weapon);
 // Displays message in main UI console window
 void DisplayConsoleMessage(const char* msg);
 const char* _stdcall GetMessageStr(DWORD fileAddr, DWORD messageId);
-int __stdcall ItemGetType(TGameObj* item);
-int __stdcall ItemSize(TGameObj* item);
+long __stdcall ItemGetType(TGameObj* item);
+long __stdcall ItemSize(TGameObj* item);
 
 // Change the name of playable character
 void CritterPcSetName(const char* newName);
@@ -961,7 +961,7 @@ const char* __stdcall CritterName(TGameObj* critter);
 
 // Saves pointer to script object into scriptPtr using scriptID. 
 // Returns 0 on success, -1 on failure.
-int __stdcall ScrPtr(int scriptId, TScript** scriptPtr);
+long __stdcall ScrPtr(long scriptId, TScript** scriptPtr);
 
 void SkillGetTags(int* result, DWORD num);
 void SkillSetTags(int* tags, DWORD num);
