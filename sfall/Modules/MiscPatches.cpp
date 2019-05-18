@@ -243,60 +243,29 @@ really_end:
 	}
 }
 
-static DWORD RetryCombatLastAP;
-static DWORD RetryCombatMinAP;
-static void __declspec(naked) RetryCombatHook() {
-	using namespace fo;
-	using namespace Fields;
-	__asm {
-		mov  RetryCombatLastAP, 0;
-retry:
-		call fo::funcoffs::combat_ai_;
-process:
-		cmp  dword ptr ds:[FO_VAR_combat_turn_running], 0;
-		jle  next;
-		call fo::funcoffs::process_bk_;
-		jmp  process;
-next:
-		mov  eax, [esi + movePoints];
-		cmp  eax, RetryCombatMinAP;
-		jl   end;
-		cmp  eax, RetryCombatLastAP;
-		je   end;
-		mov  RetryCombatLastAP, eax;
-		mov  eax, esi;
-		xor  edx, edx;
-		jmp  retry;
-end:
-		retn;
-	}
-}
-
 static const DWORD NPCStage6Fix1End = 0x493D16;
-static const DWORD NPCStage6Fix2End = 0x49423A;
 static void __declspec(naked) NPCStage6Fix1() {
 	__asm {
-		mov eax,0xcc;				// set record size to 204 bytes
-		imul eax,edx;				// multiply by number of NPC records in party.txt
-		call fo::funcoffs::mem_malloc_;			// malloc the necessary memory
-		mov edx,dword ptr ds:[FO_VAR_partyMemberMaxCount];	// retrieve number of NPC records in party.txt
-		mov ebx,0xcc;				// set record size to 204 bytes
-		imul ebx,edx;				// multiply by number of NPC records in party.txt
-		jmp NPCStage6Fix1End;			// call memset to set all malloc'ed memory to 0
+		mov  eax, 204;                  // set record size to 204 bytes
+		imul eax, edx;                  // multiply by number of NPC records in party.txt
+		mov  ebx, eax;                  // copy total record size for later memset
+		call fo::funcoffs::mem_malloc_; // malloc the necessary memory
+		jmp  NPCStage6Fix1End;          // call memset to set all malloc'ed memory to 0
 	}
 }
 
+static const DWORD NPCStage6Fix2End = 0x49423A;
 static void __declspec(naked) NPCStage6Fix2() {
 	__asm {
-		mov eax,0xcc;				// record size is 204 bytes
-		imul edx,eax;				// multiply by NPC number as listed in party.txt
-		mov eax,dword ptr ds:[FO_VAR_partyMemberAIOptions];	// get starting offset of internal NPC table
-		jmp NPCStage6Fix2End;			// eax+edx = offset of specific NPC record
+		mov  eax, 204;                  // record size is 204 bytes
+		imul edx, eax;                  // multiply by NPC number as listed in party.txt
+		mov  eax, dword ptr ds:[FO_VAR_partyMemberAIOptions]; // get starting offset of internal NPC table
+		jmp  NPCStage6Fix2End;          // eax+edx = offset of specific NPC record
 	}
 }
 
-static const DWORD ScannerHookRet=0x41BC1D;
-static const DWORD ScannerHookFail=0x41BC65;
+static const DWORD ScannerHookRet = 0x41BC1D;
+static const DWORD ScannerHookFail = 0x41BC65;
 static void __declspec(naked) ScannerAutomapHook() {
 	using fo::PID_MOTION_SENSOR;
 	__asm {
@@ -605,21 +574,12 @@ void CorpseLineOfFireFix() {
 	}
 }
 
-void ApplyNpcExtraApPatch() {
-	RetryCombatMinAP = GetConfigInt("Misc", "NPCsTryToSpendExtraAP", 0);
-	if (RetryCombatMinAP > 0) {
-		dlog("Applying retry combat patch.", DL_INIT);
-		HookCall(0x422B94, RetryCombatHook); // combat_turn_
-		dlogr(" Done", DL_INIT);
-	}
-}
-
 void NpcStage6Fix() {
 	if (GetConfigInt("Misc", "NPCStage6Fix", 0)) {
 		dlog("Applying NPC Stage 6 Fix.", DL_INIT);
 		MakeJump(0x493CE9, NPCStage6Fix1);
-		SafeWrite8(0x494063, 0x06);		// loop should look for a potential 6th stage
-		SafeWrite8(0x4940BB, 0xCC);		// move pointer by 204 bytes instead of 200
+		SafeWrite8(0x494063, 6);   // loop should look for a potential 6th stage
+		SafeWrite8(0x4940BB, 204); // move pointer by 204 bytes instead of 200
 		MakeJump(0x494224, NPCStage6Fix2);
 		dlogr(" Done", DL_INIT);
 	}
@@ -905,8 +865,6 @@ void MiscPatches::init() {
 	AlwaysReloadMsgs();
 	PlayIdleAnimOnReloadPatch();
 	CorpseLineOfFireFix();
-
-	ApplyNpcExtraApPatch();
 
 	SkilldexImagesPatch();
 

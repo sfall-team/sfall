@@ -52,7 +52,7 @@ void SkillGetTags(long* result, long num);
 // wrapper for skill_set_tags with bounds checking
 void SkillSetTags(long* tags, long num);
 
-int __fastcall GetItemType(GameObject* item);
+long __fastcall GetItemType(GameObject* item);
 
 __declspec(noinline) GameObject* GetItemPtrSlot(GameObject* critter, InvenType slot);
 

@@ -26,11 +26,40 @@
 
 namespace sfall
 {
+using namespace fo;
+using namespace Fields;
 
-typedef std::unordered_map<DWORD, DWORD> :: const_iterator iter;
+typedef std::unordered_map<DWORD, DWORD>::const_iterator iter;
 
-static std::unordered_map<DWORD,DWORD> targets;
-static std::unordered_map<DWORD,DWORD> sources;
+static std::unordered_map<DWORD, DWORD> targets;
+static std::unordered_map<DWORD, DWORD> sources;
+
+static DWORD RetryCombatLastAP;
+static DWORD RetryCombatMinAP;
+static void __declspec(naked) RetryCombatHook() {
+	__asm {
+		mov  RetryCombatLastAP, 0;
+retry:
+		call fo::funcoffs::combat_ai_;
+process:
+		cmp  dword ptr ds:[FO_VAR_combat_turn_running], 0;
+		jle  next;
+		call fo::funcoffs::process_bk_;
+		jmp  process;
+next:
+		mov  eax, [esi + movePoints];
+		cmp  eax, RetryCombatMinAP;
+		jl   end;
+		cmp  eax, RetryCombatLastAP;
+		je   end;
+		mov  RetryCombatLastAP, eax;
+		mov  eax, esi;
+		xor  edx, edx;
+		jmp  retry;
+end:
+		retn;
+	}
+}
 
 static void __fastcall CombatAttackHook(DWORD source, DWORD target) {
 	sources[target] = source;
@@ -107,6 +136,13 @@ void AI::init() {
 	MakeJump(0x45F6AF, BlockCombatHook1);    // intface_use_item_
 	HookCall(0x4432A6, BlockCombatHook2);    // game_handle_input_
 	combatBlockedMessage = Translate("sfall", "BlockedCombat", "You cannot enter combat at this time.");
+
+	RetryCombatMinAP = GetConfigInt("Misc", "NPCsTryToSpendExtraAP", 0);
+	if (RetryCombatMinAP > 0) {
+		dlog("Applying retry combat patch.", DL_INIT);
+		HookCall(0x422B94, RetryCombatHook); // combat_turn_
+		dlogr(" Done", DL_INIT);
+	}
 }
 
 DWORD _stdcall AIGetLastAttacker(DWORD target) {

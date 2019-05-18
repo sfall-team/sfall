@@ -84,7 +84,7 @@ void SkillSetTags(long* tags, long num) {
 	fo::func::skill_set_tags(tags, num);
 }
 
-int __fastcall GetItemType(GameObject* item) {
+long __fastcall GetItemType(GameObject* item) {
 	return fo::func::item_get_type(item);
 }
 
