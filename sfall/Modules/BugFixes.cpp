@@ -2088,11 +2088,38 @@ bad:
 
 static void __declspec(naked) obj_pickup_hook() {
 	__asm {
-		cmp  dword ptr ds:[FO_VAR_obj_dude], edi;
+		cmp  edi, dword ptr ds:[FO_VAR_obj_dude];
 		je   dude;
+		test byte ptr ds:[FO_VAR_combat_state], 1; // in combat?
+		jz   dude;
 		jmp  fo::funcoffs::item_add_force_;
 dude:
 		jmp  fo::funcoffs::item_add_mult_;
+	}
+}
+
+static char pickupMessageBuf[65] = {0};
+static const char* __fastcall GetPickupMessage(const char* name) {
+	if (pickupMessageBuf[0] == 0) {
+		Translate("sfall", "NPCPickupFail", "%s cannot pick up the item.", pickupMessageBuf, 64);
+	}
+	sprintf(textBuf, pickupMessageBuf, name);
+	return textBuf;
+}
+
+static void __declspec(naked) obj_pickup_hook_message() {
+	__asm {
+		cmp  edi, dword ptr ds:[FO_VAR_obj_dude];
+		je   dude;
+		mov  eax, edi;
+		call fo::funcoffs::critter_name_;
+		mov  ecx, eax;
+		call GetPickupMessage;
+		mov  [esp + 0x34 - 0x28 + 4], eax;
+		mov  eax, 1;
+		retn;
+dude:
+		jmp  fo::funcoffs::message_search_;
 	}
 }
 
@@ -2115,7 +2142,7 @@ void BugFixes::init()
 	SafeWrite16(0x46A566, 0x04DB);
 	SafeWrite16(0x46A4E7, 0x04DB);
 
-	//if(GetConfigInt("Misc", "SpecialUnarmedAttacksFix", 1)) {
+	//if (GetConfigInt("Misc", "SpecialUnarmedAttacksFix", 1)) {
 		dlog("Applying Special Unarmed Attacks fix.", DL_INIT);
 		MakeJump(0x42394D, UnarmedAttacksFix);
 		dlogr(" Done", DL_INIT);
@@ -2651,9 +2678,10 @@ void BugFixes::init()
 	// Fix the argument value of dialogue_reaction function
 	HookCall(0x456FFA, op_dialogue_reaction_hook);
 
-	// Fix for the incorrect message being displayed and NPC stuck in a loop in combat when the NPC cannot pick up an item
-	// due to not enough space in the inventory
+	// Fix for NPC stuck in a loop of picking up items in combat and the incorrect message being displayed when the NPC cannot pick
+	// up an item due to not enough space in the inventory
 	HookCall(0x49B6E7, obj_pickup_hook);
+	HookCall(0x49B71C, obj_pickup_hook_message);
 }
 
 }
