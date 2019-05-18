@@ -2121,6 +2121,31 @@ dude:
 	}
 }
 
+static char pickupMessageBuf[65] = {0};
+static const char* _fastcall GetPickupMessage(const char* name) {
+	if (pickupMessageBuf[0] == 0) {
+		Translate("sfall", "NPCPickupFail", "%s cannot pick up the item.", pickupMessageBuf, 64);
+	}
+	sprintf(tempBuffer, pickupMessageBuf, name);
+	return tempBuffer;
+}
+
+static void __declspec(naked) obj_pickup_hook_message() {
+	__asm {
+		cmp  edi, dword ptr ds:[FO_VAR_obj_dude];
+		je   dude;
+		mov  eax, edi;
+		call fo::funcoffs::critter_name_;
+		mov  ecx, eax;
+		call GetPickupMessage;
+		mov  [esp + 0x34 - 0x28 + 4], eax;
+		mov  eax, 1;
+		retn;
+dude:
+		jmp  fo::funcoffs::message_search_;
+	}
+}
+
 void BugFixes::init()
 {
 	#ifndef NDEBUG
@@ -2694,6 +2719,7 @@ void BugFixes::init()
 
 	// Fix an bug when the NPC could not pickup the item, when he does not have enough space in the inventory and displayed the wrong message
 	HookCall(0x49B6E7, obj_pickup_hook);
+	HookCall(0x49B71C, obj_pickup_hook_message);
 }
 
 }
