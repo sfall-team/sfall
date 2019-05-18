@@ -84,8 +84,13 @@ void SkillSetTags(long* tags, long num) {
 	fo::func::skill_set_tags(tags, num);
 }
 
-int _fastcall GetItemType(GameObject* item) {
+long _fastcall GetItemType(GameObject* item) {
 	return fo::func::item_get_type(item);
+}
+
+long GetCritterKillType(GameObject* critter) {
+	fo::Proto* proto = GetProto(critter->protoId);
+	return (proto) ? proto->critter.killType : -1;
 }
 
 _declspec(noinline) GameObject* GetItemPtrSlot(GameObject* critter, InvenType slot) {

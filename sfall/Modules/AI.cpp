@@ -29,10 +29,10 @@ namespace sfall
 using namespace fo;
 using namespace Fields;
 
-typedef std::unordered_map<DWORD, DWORD> :: const_iterator iter;
+typedef std::unordered_map<DWORD, DWORD>::const_iterator iter;
 
-static std::unordered_map<DWORD,DWORD> targets;
-static std::unordered_map<DWORD,DWORD> sources;
+static std::unordered_map<DWORD, DWORD> targets;
+static std::unordered_map<DWORD, DWORD> sources;
 
 static const DWORD ai_search_environ_ret = 0x429D3E;
 static void __declspec(naked) ai_search_environ_hook() {
@@ -66,6 +66,53 @@ continue:
 		jmp  ai_search_environ_ret;      // next object
 	}
 }
+
+static void __declspec(naked) ai_try_attack_hook_FleeFix() {
+	__asm {
+		call fo::funcoffs::ai_run_away_;
+		mov  dword ptr [esi + whoHitMe], 0;
+		and  byte ptr [esi + combatState], ~4; // unset flag flee
+		retn;
+	}
+}
+
+static const DWORD combat_ai_hook_flee_Ret = 0x42B22F;
+static void __declspec(naked) combat_ai_hook_FleeFix() {
+	__asm {
+		call fo::funcoffs::ai_check_drugs_; // try to heal
+		test byte ptr [ebp], 4; // flee flag? (critter combat_state)
+		jnz  flee;
+		add  esp, 4;
+		jmp  combat_ai_hook_flee_Ret;
+flee:
+		mov  eax, esi
+		call fo::funcoffs::critter_name_;
+		retn;
+	}
+}
+
+static const DWORD combat_ai_hack_Ret = 0x42B204;
+static void __declspec(naked) combat_ai_hack() {
+	__asm {
+		mov  edx, [ebx + 0x10]; // cap.min_hp
+		cmp  [ebx + 0x98], -1;  // cap.run_away_mode (none)
+		je   skip;
+		push eax;               // current hp
+		mov  eax, esi;
+		call fo::funcoffs::isPartyMember_;
+		test eax, eax;
+		pop  eax;
+		cmovz edx, [esp + 0x1C - 0x18 + 4]; // calculated min_hp
+skip:
+		cmp  eax, edx;
+		jl   end; // curr < min hp
+		add  esp, 4;
+		jmp  combat_ai_hack_Ret;
+end:
+		retn; // flee
+	}
+}
+//////////////////////////////////////////////////////////////////////////////////////////////
 
 static bool __fastcall sf_critter_have_ammo(fo::GameObject* critter, fo::GameObject* weapon) {
 	DWORD slotNum = -1;
@@ -126,14 +173,14 @@ end:
 
 static DWORD sf_check_critters_on_fireline(fo::GameObject* object, DWORD checkTile, DWORD team) {
 	if (object && object->Type() == ObjType::OBJ_TYPE_CRITTER && object->critter.teamNum != team) { // not friendly fire
-		fo::GameObject*	obj = nullptr;
+		fo::GameObject*	obj = nullptr; // continue check the line_of_fire from object to checkTile
 		fo::func::make_straight_path_func(object, object->tile, checkTile, 0, (DWORD*)&obj, 32, (void*)fo::funcoffs::obj_shoot_blocking_at_);
 		if (!sf_check_critters_on_fireline(obj, checkTile, team)) return 0;
 	}
 	return (DWORD)object;
 }
 
-static DWORD __fastcall sf_ai_move_steps_closer(fo::GameObject* source, fo::GameObject* target, DWORD* distPtr) {
+static DWORD __fastcall sf_ai_move_steps_closer(fo::GameObject* source, fo::GameObject* target, DWORD &distOut) {
 	DWORD distance, shotTile = 0;
 
 	char rotationData[256];
@@ -147,9 +194,9 @@ static DWORD __fastcall sf_ai_move_steps_closer(fo::GameObject* source, fo::Game
 	{
 		checkTile = fo::func::tile_num_in_direction(checkTile, rotationData[i], 1);
 
-		fo::GameObject* object = nullptr;
+		fo::GameObject* object = nullptr; // check the line_of_fire from target to checkTile
 		fo::func::make_straight_path_func(target, target->tile, checkTile, 0, (DWORD*)&object, 32, (void*)fo::funcoffs::obj_shoot_blocking_at_);
-		if (!sf_check_critters_on_fireline(object, checkTile, source->critter.teamNum)) {
+		if (!sf_check_critters_on_fireline(object, checkTile, source->critter.teamNum)) { // if there are no friendly critters
 			shotTile = checkTile;
 			distance = i + 1;
 			break;
@@ -167,7 +214,7 @@ static DWORD __fastcall sf_ai_move_steps_closer(fo::GameObject* source, fo::Game
 		if (source->critter.movePoints < needAP) {
 			shotTile = 0;
 		} else {
-			*distPtr = distance;  // change distance in ebp register
+			distOut = distance;  // change distance in ebp register
 		}
 	}
 	return shotTile;
@@ -267,23 +314,23 @@ static fo::GameObject* __stdcall sf_ai_search_weapon_environ(fo::GameObject* sou
 	return item;
 }
 
-static fo::GameObject* sf_ai_skill_weapon(fo::GameObject* source, fo::GameObject* pWeapon, fo::GameObject* sWeapon) {
-	if (!pWeapon) return sWeapon;
-	if (!sWeapon) return pWeapon;
+static fo::GameObject* sf_ai_skill_weapon(fo::GameObject* source, fo::GameObject* hWeapon, fo::GameObject* sWeapon) {
+	if (!hWeapon) return sWeapon;
+	if (!sWeapon) return hWeapon;
 
-	int pSkill = fo::func::item_w_skill(pWeapon, fo::AttackType::ATKTYPE_RWEAPON_PRIMARY);
+	int hSkill = fo::func::item_w_skill(hWeapon, fo::AttackType::ATKTYPE_RWEAPON_PRIMARY);
 	int sSkill = fo::func::item_w_skill(sWeapon, fo::AttackType::ATKTYPE_RWEAPON_PRIMARY);
 
-	if (pSkill == sSkill) return sWeapon;
+	if (hSkill == sSkill) return sWeapon;
 
-	int pLevel = fo::func::skill_level(source, pSkill);
+	int hLevel = fo::func::skill_level(source, hSkill);
 	int sLevel = fo::func::skill_level(source, sSkill) + 10;
 
-	return (pLevel > sLevel) ? pWeapon : sWeapon;
+	return (hLevel > sLevel) ? hWeapon : sWeapon;
 }
 
 bool LookupOnGround = false;
-static void __fastcall sf_ai_search_weapon(fo::GameObject* source, fo::GameObject* target, DWORD* weapon, DWORD* hitMode) {
+static void __fastcall sf_ai_search_weapon(fo::GameObject* source, fo::GameObject* target, DWORD &weapon, DWORD &hitMode) {
 
 	fo::GameObject* itemHand   = fo::func::inven_right_hand(source); // current item
 	fo::GameObject* bestWeapon = itemHand;
@@ -299,12 +346,14 @@ static void __fastcall sf_ai_search_weapon(fo::GameObject* source, fo::GameObjec
 		if (itemHand && itemHand->protoId == item->protoId) continue;
 
 		if ((source->critter.movePoints >= fo::func::item_w_primary_mp_cost(item))
-			&& fo::func::ai_can_use_weapon(source, item, fo::AttackType::ATKTYPE_RWEAPON_PRIMARY))
+			&& fo::func::ai_can_use_weapon(source, item, AttackType::ATKTYPE_RWEAPON_PRIMARY))
 		{
-			if (item->item.ammoPid == -1 || fo::func::item_w_subtype(item, fo::AttackType::ATKTYPE_RWEAPON_PRIMARY) == fo::AttackSubType::THROWING
+			if (item->item.ammoPid == -1 || fo::func::item_w_subtype(item, AttackType::ATKTYPE_RWEAPON_PRIMARY) == fo::AttackSubType::THROWING
 				|| (fo::func::item_w_curr_ammo(item) || sf_critter_have_ammo(source, item)))
 			{
-				bestWeapon = fo::func::ai_best_weapon(source, bestWeapon, item, target);
+				if (!fo::func::combat_safety_invalidate_weapon_func(source, item, AttackType::ATKTYPE_RWEAPON_PRIMARY, target, 0, 0)) { // weapon safety
+					bestWeapon = fo::func::ai_best_weapon(source, bestWeapon, item, target);
+				}
 			}
 		}
 	}
@@ -314,9 +363,9 @@ static void __fastcall sf_ai_search_weapon(fo::GameObject* source, fo::GameObjec
 
 	if (itemHand != bestWeapon)	bestWeapon = sf_ai_skill_weapon(source, itemHand, bestWeapon);
 
-	if ((LookupOnGround /*|| !itemHand*/) && source->critter.movePoints >= 3 && fo::func::critter_body_type(source) == fo::BodyType::Biped) {
+	if ((LookupOnGround && !fo::func::critterIsOverloaded(source)) && source->critter.movePoints >= 3 && fo::func::critter_body_type(source) == fo::BodyType::Biped) {
 		int toDistTarget = fo::func::make_path_func(source, source->tile, target->tile, 0, 0, (void*)fo::funcoffs::obj_blocking_at_);
-		if ((source->critter.movePoints - 3) >= toDistTarget) goto notRetrieve;
+		if ((source->critter.movePoints - 3) >= toDistTarget) goto notRetrieve; // ???
 
 		fo::GameObject* itemGround = sf_ai_search_weapon_environ(source, bestWeapon, target);
 		#ifndef NDEBUG
@@ -350,8 +399,8 @@ notRetrieve:
 	#endif
 
 	if (bestWeapon && (!itemHand || itemHand->protoId != bestWeapon->protoId)) {
-		*weapon = (DWORD)bestWeapon;
-		*hitMode = fo::func::ai_pick_hit_mode(source, bestWeapon, target);
+		weapon = (DWORD)bestWeapon;
+		hitMode = fo::func::ai_pick_hit_mode(source, bestWeapon, target);
 		fo::func::inven_wield(source, bestWeapon, fo::InvenType::INVEN_TYPE_RIGHT_HAND);
 		_asm call fo::funcoffs::combat_turn_run_;
 		#ifndef NDEBUG
@@ -360,9 +409,14 @@ notRetrieve:
 	}
 }
 
+static bool weaponIsSwitch = 0;
 static void __declspec(naked) ai_try_attack_hook() {
 	__asm {
 		test edi, edi;                        // begin turn?
+		jnz  end;
+		test weaponIsSwitch, 1;
+		jnz  end;
+		cmp  [esp + 0x364 - 0x44 + 4], 0;     // check safety_range
 		jnz  end;
 		//
 		lea  eax, [esp + 0x364 - 0x38 + 4];   // hit_mode
@@ -376,7 +430,15 @@ static void __declspec(naked) ai_try_attack_hook() {
 		mov  edx, ebp;
 		xor  ecx, ecx;
 end:
+		mov  weaponIsSwitch, 0;
 		jmp  fo::funcoffs::combat_check_bad_shot_;
+	}
+}
+
+static void __declspec(naked) ai_try_attack_hook_switch() {
+	__asm {
+		mov weaponIsSwitch, 1;
+		jmp fo::funcoffs::ai_switch_weapons_;
 	}
 }
 
@@ -395,14 +457,14 @@ static bool __fastcall sf_ai_check_target(fo::GameObject* source, fo::GameObject
 	fo::AIcap* cap = fo::func::ai_cap(source);
 	if (shotIsBlock && pathToTarget > 1) { // shot block to target, can move
 		switch (cap->disposition) {
-		case AIpref::aggressive:
-			pathToTarget /= 2;
-			break;
-		case AIpref::berserk: // ai berserk never does not change its target if the move-path to the target is not blocked
-			pathToTarget = 1;
-			break;
 		case AIpref::defensive:
 			pathToTarget += 5;
+			break;
+		case AIpref::aggressive: // ai aggressive never does not change its target if the move-path to the target is not blocked
+			pathToTarget = 1;
+			break;
+		case AIpref::berserk:
+			pathToTarget /= 2;
 			break;
 		}
 		if (pathToTarget > (source->critter.movePoints * 2)) {
@@ -428,7 +490,7 @@ static bool __fastcall sf_ai_check_target(fo::GameObject* source, fo::GameObject
 	return false;
 }
 
-static const char* reTargetMsg = "\n[AI] I can't get at my target. Picking alternate.";
+static const char* reTargetMsg = "\n[AI] I can't get at my target. Try picking alternate.";
 
 static const DWORD ai_danger_source_hack_find_Pick = 0x42908C;
 static const DWORD ai_danger_source_hack_find_Ret  = 0x4290BB;
@@ -464,15 +526,78 @@ static void __declspec(naked) ai_danger_source_hack() {
 	}
 }
 
+static long _fastcall sf_ai_check_weapon_switch( fo::GameObject* target, fo::GameObject* source) {
+	fo::GameObject* item = fo::func::ai_search_inven_weap(source, 1, target);
+	if (!item) return true; // no weapon in inventory, true to allow the to search continue weapon on the map
+	long wType = fo::func::item_w_subtype(item, AttackType::ATKTYPE_RWEAPON_PRIMARY);
+	if (wType < fo::THROWING) { // melee weapon, check the distance before switching
+		if (fo::func::obj_dist(source, target) > 2) return false;
+	}
+	return true;
+}
+
 static void __declspec(naked) ai_try_attack_hook_switch_fix() {
 	__asm {
 		mov  eax, [eax + movePoints];
 		test eax, eax;
 		jz   noSwitch; // if movePoints == 0
+		cmp  dword ptr [esp + 0x364 - 0x3C + 4], 0;
+		jz   switch;   // no weapon in hand slot
+		push edx;
+		mov  edx, esi;
+		call sf_ai_check_weapon_switch;
+		pop  edx;
+		test eax, eax;
+		jz   noSwitch;
+		mov  ecx, ebp;
+switch:
 		mov  eax, esi;
 		jmp  fo::funcoffs::ai_switch_weapons_;
 noSwitch:
-		mov  eax, -1;  // force exit from ai_try_attack_
+		dec  eax; // -1 - for exit from ai_try_attack_
+		retn;
+	}
+}
+
+static void _fastcall sf_ai_move_away_from_target(fo::GameObject* source, fo::GameObject* target, fo::GameObject* sWeapon, long hit) {
+	long type = fo::GetCritterKillType(source);
+	if (type > 1) return; // if not men & women
+
+	long wTypeR = fo::func::item_w_subtype(sWeapon, hit);
+	if (wTypeR <= fo::MELEE) return; // source has a melee weapon
+
+	fo::AIcap* cap = fo::func::ai_cap(source);
+	if (cap->disposition == AIpref::berserk) return;
+	if (fo::func::obj_dist(source, target) >= 3) return;
+
+	fo::GameObject* itemHandR = fo::func::inven_right_hand(target);
+	if (!itemHandR && target != fo::var::obj_dude) return; // target is unarmed
+	wTypeR = fo::func::item_w_subtype(itemHandR, AttackType::ATKTYPE_RWEAPON_PRIMARY);
+
+	long wTypeL = fo::NONE;
+	if (target == fo::var::obj_dude) {
+		fo::GameObject* itemHandL = fo::func::inven_left_hand(target);
+		if (itemHandL) wTypeL = fo::func::item_w_subtype(itemHandL, AttackType::ATKTYPE_RWEAPON_PRIMARY);
+	}
+	if (cap->disposition == AIpref::aggressive) {
+		if (wTypeR == fo::GUNS || wTypeL == fo::GUNS) return;
+	}
+	fo::func::ai_move_away(source, target, source->critter.movePoints);
+}
+
+static void __declspec(naked) ai_try_attack_hack_move() {
+	__asm {
+		mov  eax, [esi + movePoints];
+		test eax, eax;
+		jz   noMovePoint;
+		mov  eax, dword ptr [esp + 0x364 - 0x3C + 4]; // right_weapon
+		push [esp + 0x364 - 0x38 + 4]; // hit_mode
+		mov  edx, ebp;
+		mov  ecx, esi;
+		push eax;
+		call sf_ai_move_away_from_target;
+noMovePoint:
+		mov  eax, -1;
 		retn;
 	}
 }
@@ -503,7 +628,8 @@ end:
 		retn;
 	}
 }
-//----------------------------------
+
+//////////////////////////////////////////////////////////////////////////////////////////////
 
 static void __fastcall CombatAttackHook(DWORD source, DWORD target) {
 	sources[target] = source;
@@ -582,7 +708,26 @@ void AI::init() {
 	HookCall(0x4432A6, BlockCombatHook2);    // game_handle_input_
 	combatBlockedMessage = Translate("sfall", "BlockedCombat", "You cannot enter combat at this time.");
 
-	// Combat AI improve and fixes
+	RetryCombatMinAP = GetConfigInt("CombatAI", "NPCsTryToSpendExtraAP", -1);
+	if (RetryCombatMinAP == -1) RetryCombatMinAP = GetConfigInt("Misc", "NPCsTryToSpendExtraAP", 0); // compatibility older versions
+	if (RetryCombatMinAP > 0) {
+		dlog("Applying retry combat patch.", DL_INIT);
+		HookCall(0x422B94, RetryCombatHook); // combat_turn_
+		dlogr(" Done", DL_INIT);
+	}
+
+	// Enables the ability to use the AttackWho value from the AI-packet for the NPC
+	if (GetConfigInt("CombatAI", "NPCAttackWhoFix", 0)) {
+		MakeCall(0x428F70, ai_danger_source_hack, 3);
+	}
+
+	// Enables the use of the RunAwayMode value from the AI-packet for the NPC
+	// the min_hp value will be calculated as a percentage of the maximum number of NPC health points, instead of using fixed min_hp values
+	if (GetConfigInt("CombatAI", "NPCRunAwayMode", 0)) {
+		MakeCall(0x42B1DC, combat_ai_hack);
+	}
+
+	///////////////////// Combat AI behavior fixes /////////////////////////
 
 	// When npc does not have enough AP to use the weapon, it begin looking in the inventory another weapon to use,
 	// if no suitable weapon is found, then are search the nearby objects(weapons) on the ground to pick-up them
@@ -592,28 +737,26 @@ void AI::init() {
 		HookCall(0x429CAF, ai_search_environ_hook);
 	}
 
-	// Don't pickup a weapon if its magazine is empty and there are no ammo for it
-	if (GetConfigInt("CombatAI", "WeaponPickupFix", 0)) {
-		HookCall(0x429CF2, ai_search_environ_hook_weapon);
+	// Fixed switching weapons when action points is zero
+	if (GetConfigInt("CombatAI", "NPCSwitchingWeaponFix", 0)) {
+		HookCall(0x42AB57, ai_try_attack_hook_switch_fix);
 	}
+
+	// Fix to allow running away NPC to use drugs
+	HookCall(0x42B1E3, combat_ai_hook_FleeFix);
+	// Fix that with a low chance of to hit the target, the NPC did not switch to "flee" mode
+	HookCalls(ai_try_attack_hook_FleeFix, {0x42ABA8, 0x42ACE5});
+	// Disabled flee
+	BlockCall(0x42ADF6); // ai_try_attack_
+
+	/////////////////// Combat AI improve behavior //////////////////////////
 
 	// Before starting his turn npc will always check if it has better weapons in inventory, than there is a current weapon
 	int BetterWeapons = GetConfigInt("CombatAI", "TakeBetterWeapons", 0);
 	if (BetterWeapons) {
 		HookCall(0x42A92F, ai_try_attack_hook);
+		HookCall(0x42A905, ai_try_attack_hook_switch);
 		LookupOnGround = (BetterWeapons > 1);    // always check the items available on the ground
-	}
-
-	// Checks the movement path for the possibility à shot, if the shot to the target is blocked
-	if (GetConfigInt("CombatAI", "CheckShotOnMove", 0)) {
-		HookCall(0x42A125, ai_move_steps_closer_hook);
-		MakeCall(0x42A178, ai_move_steps_closer_hack_move, 1);
-		MakeCall(0x42A14F, ai_move_steps_closer_hack_run, 1);
-	}
-
-	// Enables the ability to use the AttackWho value from the AI-packet for the NPC
-	if (GetConfigInt("CombatAI", "NPCAttackWhoFix", 0)) {
-		MakeCall(0x428F70, ai_danger_source_hack, 3);
 	}
 
 	switch (GetConfigInt("CombatAI", "TryToFindTargets", 0)) {
@@ -625,17 +768,16 @@ void AI::init() {
 		SafeWrite8(0x4290B5, 0x90);
 	}
 
-	// Fixed bug switching weapons when action points is zero
-	if (GetConfigInt("CombatAI", "NPCSwitchingWeaponFix", 0)) {
-		HookCall(0x42AB57, ai_try_attack_hook_switch_fix);
-	}
+	if (GetConfigInt("CombatAI", "SmartBehavior", 0) || GetConfigInt("CombatAI", "CheckShotOnMove", 0)) {
+		// Checks the movement path for the possibility à shot, if the shot to the target is blocked
+		HookCall(0x42A125, ai_move_steps_closer_hook);
+		MakeCall(0x42A178, ai_move_steps_closer_hack_move, 1);
+		MakeCall(0x42A14F, ai_move_steps_closer_hack_run, 1);
 
-	RetryCombatMinAP = GetConfigInt("CombatAI", "NPCsTryToSpendExtraAP", -1);
-	if (RetryCombatMinAP == -1) RetryCombatMinAP = GetConfigInt("Misc", "NPCsTryToSpendExtraAP", 0); // compatibility older versions
-	if (RetryCombatMinAP > 0) {
-		dlog("Applying retry combat patch.", DL_INIT);
-		HookCall(0x422B94, RetryCombatHook); // combat_turn_
-		dlogr(" Done", DL_INIT);
+		// Don't pickup a weapon if its magazine is empty and there are no ammo for it
+		HookCall(0x429CF2, ai_search_environ_hook_weapon);
+		// Ìove away from the target if the target is near
+		MakeCalls(ai_try_attack_hack_move, {0x42AE40, 0x42AE7F});
 	}
 }
 
