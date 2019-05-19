@@ -466,6 +466,8 @@ extern const DWORD AddHotLines_;
 extern const DWORD adjust_ac_;
 extern const DWORD adjust_fid_;
 extern const DWORD ai_can_use_weapon_; //  (TGameObj *aCritter<eax>, int aWeapon<edx>, int a2Or3<ebx>) returns 1 or 0
+extern const DWORD ai_check_drugs_;
+extern const DWORD ai_run_away_;
 extern const DWORD ai_search_inven_armor_;
 extern const DWORD ai_try_attack_;
 extern const DWORD art_alias_num_;

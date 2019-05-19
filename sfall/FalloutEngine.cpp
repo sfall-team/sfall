@@ -223,6 +223,10 @@ DWORD* ptr_YellowColor                = reinterpret_cast<DWORD*>(_YellowColor);
 
 // AI FUNCTIONS
 const DWORD ai_can_use_weapon_ = 0x4298EC;  // (TGameObj *aCritter<eax>, int aWeapon<edx>, int a2Or3<ebx>) returns 1 or 0
+const DWORD ai_check_drugs_ = 0x428480;
+const DWORD ai_run_away_ = 0x428868;
+const DWORD ai_search_inven_armor_ = 0x429A6C;
+const DWORD ai_try_attack_ = 0x42A7D8;
 
 // UI FUNCTIONS
 const DWORD interface_disable_ = 0x45EAFC;
@@ -243,8 +247,6 @@ const DWORD add_bar_box_ = 0x4616F0;
 const DWORD AddHotLines_ = 0x4998C0;
 const DWORD adjust_ac_ = 0x4715F8;
 const DWORD adjust_fid_ = 0x4716E8;
-const DWORD ai_search_inven_armor_ = 0x429A6C;
-const DWORD ai_try_attack_ = 0x42A7D8;
 const DWORD art_alias_num_ = 0x419998;
 const DWORD art_exists_ = 0x4198C8; // eax - frameID, used for critter FIDs
 const DWORD art_flush_ = 0x41927C;
