@@ -203,6 +203,26 @@ static void __declspec(naked) compute_dmg_damage_hack() {
 	}
 }
 
+static const DWORD compute_damage_hack_knockback_Ret = 0x424AF1;
+static void __declspec(naked) compute_damage_hack_knockback() {
+	using namespace fo;
+	__asm {
+		cmp [esi + 8], 0; // ctd.weapon
+		jz  checkHit;
+noKnockback:
+		retn;
+checkHit:
+		mov edx, [esi + 4]; // ctd.hit_mode
+		cmp edx, ATKTYPE_KICK;
+		je  knockback;
+		cmp edx, ATKTYPE_STRONGKICK;
+		jl  noKnockback;
+knockback:
+		add esp, 4; // destroy return addr
+		jmp compute_damage_hack_knockback_Ret;
+	}
+}
+
 static int _fastcall HitChanceMod(int base, fo::GameObject* critter) {
 	for (DWORD i = 0; i < hitChanceMods.size(); i++) {
 		if (critter->id == hitChanceMods[i].id) {
@@ -419,6 +439,11 @@ void Combat::init() {
 		HookCall(0x429A37, ai_search_inven_weap_hook);
 		HookCall(0x42A95D, ai_try_attack_hook); // jz func
 	}
+
+	if (GetConfigInt("Misc", "DisablePunchKnockback", 0)) {
+		MakeCall(0x424AD7, compute_damage_hack_knockback, 1);
+	}
+
 	LoadGameHook::OnGameReset() += ResetOnGameLoad;
 }
 
