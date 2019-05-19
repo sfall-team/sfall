@@ -34,6 +34,30 @@ typedef std::unordered_map<DWORD, DWORD>::const_iterator iter;
 static std::unordered_map<DWORD, DWORD> targets;
 static std::unordered_map<DWORD, DWORD> sources;
 
+static void __declspec(naked) ai_try_attack_hook_FleeFix() {
+	__asm {
+		call fo::funcoffs::ai_run_away_;
+		mov  dword ptr [esi + whoHitMe], 0;
+		and  byte ptr [esi + combatState], ~4; // unset flee flag
+		retn;
+	}
+}
+
+static const DWORD combat_ai_hook_flee_Ret = 0x42B22F;
+static void __declspec(naked) combat_ai_hook_FleeFix() {
+	__asm {
+		call fo::funcoffs::ai_check_drugs_; // try to heal
+		test byte ptr [ebp], 4; // flee flag? (critter.combat_state)
+		jnz  flee;
+		add  esp, 4;
+		jmp  combat_ai_hook_flee_Ret;
+flee:
+		mov  eax, esi
+		call fo::funcoffs::critter_name_;
+		retn;
+	}
+}
+
 static DWORD RetryCombatLastAP;
 static DWORD RetryCombatMinAP;
 static void __declspec(naked) RetryCombatHook() {
@@ -143,6 +167,15 @@ void AI::init() {
 		HookCall(0x422B94, RetryCombatHook); // combat_turn_
 		dlogr(" Done", DL_INIT);
 	}
+
+	/////////////////////// Combat AI behavior fixes ///////////////////////
+
+	// Fix to allow fleeing NPC to use drugs
+	HookCall(0x42B1E3, combat_ai_hook_FleeFix);
+	// Fix for NPC stuck in fleeing mode when the hit chance of a target was too low
+	HookCalls(ai_try_attack_hook_FleeFix, {0x42ABA8, 0x42ACE5});
+	// Disable fleeing when NPC cannot move closer to target
+	BlockCall(0x42ADF6); // ai_try_attack_
 }
 
 DWORD _stdcall AIGetLastAttacker(DWORD target) {
