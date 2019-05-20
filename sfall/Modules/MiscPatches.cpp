@@ -856,6 +856,9 @@ void MiscPatches::init() {
 		dlogr(" Done", DL_INIT);
 	}
 
+	// Increase the max text width of the information card in the character screen
+	SafeWriteBatch<BYTE>(144, {0x43ACD5, 0x43DD37}); // 136, 133
+
 	LoadGameHook::OnBeforeGameStart() += BodypartHitChances; // set on start & load
 
 	CombatProcFix();
