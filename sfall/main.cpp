@@ -1173,6 +1173,10 @@ static void DllMain2() {
 		dlogr(" Done", DL_INIT);
 	}
 
+	// Increase the max text width of the information card in the character screen
+	SafeWrite8(0x43ACD5, 144); // 136
+	SafeWrite8(0x43DD37, 144); // 133
+
 	dlogr("Leave DllMain2", DL_MAIN);
 }
 

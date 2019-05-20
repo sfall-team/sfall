@@ -16,10 +16,11 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <fstream>
+
 #include "main.h"
 
 #include "Console.h"
-#include <fstream>
 
 using namespace std;
 
@@ -29,7 +30,7 @@ static void _stdcall ConsoleFilePrint(const char* msg) {
 	consolefile << msg << endl;
 }
 
-static const DWORD ConsoleHookRet=0x431871;
+static const DWORD ConsoleHookRet = 0x431871;
 static void __declspec(naked) ConsoleHook() {
 	__asm {
 		pushad;
@@ -48,35 +49,16 @@ static void __declspec(naked) ConsoleHook() {
 void ConsoleInit() {
 	char path[MAX_PATH];
 	GetPrivateProfileString("Misc", "ConsoleOutputPath", "", path, MAX_PATH, ini);
-	if(strlen(path)>0) {
+	if (strlen(path) > 0) {
 		consolefile.open(path);
-		if(consolefile.is_open()) MakeJump(0x43186C, ConsoleHook);
+		if (consolefile.is_open()) {
+			MakeJump(0x43186C, ConsoleHook);
+		}
 	}
 }
 
 void ConsoleExit() {
-	if(consolefile.is_open()) consolefile.close();
-}
-
-
-
-/*  An attempt to make popup display function.. failed to make it work, though all arguments are there.
-	I missed something...
-
-void DisplayAlertPopup(const char* msg, const char* line2) {
-	__asm {
-		push	1
-		mov		al, ds:[0x6AB718]
-		push	eax
-		push	0
-		push	eax
-		mov		ecx, 0x0A9
-		mov		ebx, 2
-		push	0x74
-		mov		edx, msg
-		mov		eax, line2
-		mov		esi, 0FFFFFFFFh
-		mov		edi, 2
-		call	dialog_out_
+	if (consolefile.is_open()) {
+		consolefile.close();
 	}
-}*/
+}
