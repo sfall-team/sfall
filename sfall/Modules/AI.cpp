@@ -69,25 +69,36 @@ continue:
 
 static void __declspec(naked) ai_try_attack_hook_FleeFix() {
 	__asm {
-		call fo::funcoffs::ai_run_away_;
-		mov  dword ptr [esi + whoHitMe], 0;
-		and  byte ptr [esi + combatState], ~4; // unset flag flee
-		retn;
+		or  byte ptr [esi + combatState], 8; // set new flag 'ReTarget'
+		jmp fo::funcoffs::ai_run_away_;
 	}
 }
 
 static const DWORD combat_ai_hook_flee_Ret = 0x42B22F;
 static void __declspec(naked) combat_ai_hook_FleeFix() {
 	__asm {
-		call fo::funcoffs::ai_check_drugs_; // try to heal
+		test byte ptr [ebp], 8; // 'ReTarget' flag
+		jnz  reTarget;
 		test byte ptr [ebp], 4; // flee flag? (critter combat_state)
 		jnz  flee;
+		call fo::funcoffs::ai_check_drugs_; // try to heal
+		mov  eax, esi;
+		mov  edx, STAT_current_hp;
+		call fo::funcoffs::stat_level_;
+		cmp  eax, [ebx+ 0x10];  // cap minimum hp, below which NPC will run away
+		mov  eax, esi;
+		jl   flee;
 		add  esp, 4;
 		jmp  combat_ai_hook_flee_Ret;
 flee:
-		mov  eax, esi
 		call fo::funcoffs::critter_name_;
 		retn;
+reTarget:
+		and  byte ptr [ebp], ~(4 | 8); // unset flags Flee/ReTarget
+		xor  edi, edi;
+		mov  dword ptr [esi + whoHitMe], edi;
+		add  esp, 4;
+		jmp  combat_ai_hook_flee_Ret;
 	}
 }
 

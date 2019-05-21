@@ -2113,7 +2113,7 @@ static void __declspec(naked) obj_pickup_hook() {
 	__asm {
 		cmp  edi, dword ptr ds:[FO_VAR_obj_dude];
 		je   dude;
-		test [edi + combatState], 1; // check combat flag
+		test ds:[FO_VAR_combat_state], 1; // check combat flag
 		jz   dude;
 		jmp  fo::funcoffs::item_add_force_;
 dude:
