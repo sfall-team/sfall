@@ -660,6 +660,12 @@ enum TicksTime : unsigned long
 	ONE_GAME_YEAR         = 315360000
 };
 
+enum ActiveSlot : unsigned long
+{
+	Left                  = 0,
+	Right                 = 1
+};
+
 enum RollResult
 {
 	ROLL_CRITICAL_FAILURE = 0x0,
@@ -693,8 +699,8 @@ namespace Fields {
 		scriptIndex       = 0x80,
 	};
 
-	enum CritterObj : long 
-	{	
+	enum CritterObj : long
+	{
 		reaction          = 0x38,
 		combatState       = 0x3C,
 		movePoints        = 0x40,
@@ -742,8 +748,8 @@ namespace AIpref {
 		stay                  = 4
 	};
 
-	enum disposition : long 
-	{	
+	enum disposition : long
+	{
 		 none                 = 0,
 		 custom               = 1,
 		 coward               = 2,

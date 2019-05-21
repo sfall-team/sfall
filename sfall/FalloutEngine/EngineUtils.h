@@ -68,7 +68,8 @@ long CheckAddictByPid(fo::GameObject* critter, long pid);
 
 void ToggleNpcFlag(fo::GameObject* npc, long flag, bool set);
 
-bool IsPartyMemberByPid(long pid);
+// Returns the number of party member in the existing table (begins from 1)
+long IsPartyMemberByPid(long pid);
 
 bool IsPartyMember(fo::GameObject* critter);
 
