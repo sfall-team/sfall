@@ -240,6 +240,7 @@
 #define npc_engine_level_up(toggle)                     sfall_func1("npc_engine_level_up", toggle)
 #define obj_under_cursor(crSwitch, inclDude)            sfall_func2("obj_under_cursor", crSwitch, inclDude)
 #define outlined_object                                 sfall_func0("outlined_object")
+#define real_dude_obj                                   sfall_func0("real_dude_obj")
 #define set_cursor_mode(mode)                           sfall_func1("set_cursor_mode", mode)
 #define set_flags(obj, flags)                           sfall_func2("set_flags", obj, flags)
 #define set_ini_setting(setting, value)                 sfall_func2("set_ini_setting", setting, value)

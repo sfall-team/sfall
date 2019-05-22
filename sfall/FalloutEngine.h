@@ -1028,6 +1028,10 @@ void __fastcall DisplayTargetInventory(long inventoryOffset, long visibleOffset,
 
 long __stdcall StatLevel(TGameObj* critter, long statId);
 
+long __stdcall PerkLevel(TGameObj* critter, long perkId);
+
+long __stdcall TraitLevel(long traitID);
+
 long __stdcall QueueFindFirst(TGameObj* object, long qType);
 
 long __stdcall NewObjId();

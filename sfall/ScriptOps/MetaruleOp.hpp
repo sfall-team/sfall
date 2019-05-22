@@ -130,6 +130,7 @@ static const SfallMetarule metaruleArray[] = {
 	{"npc_engine_level_up",     sf_npc_engine_level_up,     1, 1},
 	{"obj_under_cursor",        sf_get_obj_under_cursor,    2, 2},
 	{"outlined_object",         sf_outlined_object,         0, 0},
+	{"real_dude_obj",           sf_real_dude_obj,           0, 0},
 	{"set_cursor_mode",         sf_set_cursor_mode,         1, 1},
 	{"set_flags",               sf_set_flags,               2, 2},
 	{"set_ini_setting",         sf_set_ini_setting,         2, 2},

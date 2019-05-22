@@ -21,6 +21,7 @@
 #include "main.h"
 
 #include "Inventory.h"
+#include "PartyControl.h"
 #include "ScriptExtender.h"
 
 //script control functions
@@ -594,6 +595,10 @@ static void sf_item_weight() {
 		mov  weight, eax;
 	}
 	opHandler.setReturn(weight);
+}
+
+static void sf_real_dude_obj() {
+	opHandler.setReturn(RealDudeObject());
 }
 
 static void sf_lock_is_jammed() {

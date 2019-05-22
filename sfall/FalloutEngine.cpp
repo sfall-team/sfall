@@ -1004,6 +1004,21 @@ long __stdcall StatLevel(TGameObj* critter, long statId) {
 	}
 }
 
+long __stdcall PerkLevel(TGameObj* critter, long perkId) {
+	__asm {
+		mov  edx, perkId;
+		mov  eax, critter;
+		call perk_level_;
+	}
+}
+
+long __stdcall TraitLevel(long traitID) {
+	__asm {
+		mov  eax, traitID;
+		call trait_level_;
+	}
+}
+
 long __stdcall QueueFindFirst(TGameObj* object, long qType) {
 	__asm {
 		mov  edx, qType;

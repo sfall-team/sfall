@@ -415,6 +415,9 @@ Some utility/math functions are available:
 > object sfall_func0("outlined_object")
 - returns an object that is currently highlighted by hovering the mouse above it
 
+> void sfall_func0("real_dude_obj")
+- returns the initial dude_obj after taking control of other critters
+
 > int sfall_func0("get_cursor_mode")
 - returns the current cursor mode (0 - movement cursor, 1 - command cursor, 2 - targeting cursor)
 - mode 4 to 10 are Skilldex skills (yellow targeting cursor)

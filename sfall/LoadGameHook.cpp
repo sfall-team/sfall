@@ -147,13 +147,7 @@ static DWORD _stdcall CombatSaveTest() {
 			return 0;
 		}
 		int ap = StatLevel(*ptr_obj_dude, STAT_max_move_points);
-		int bonusmove;
-		__asm {
-			mov edx, PERK_bonus_move;
-			mov eax, ds:[_obj_dude];
-			call perk_level_;
-			mov bonusmove, eax;
-		}
+		int bonusmove = PerkLevel(*ptr_obj_dude, PERK_bonus_move);
 		if (*(DWORD*)(*(DWORD*)_obj_dude + 0x40) != ap || bonusmove * 2 != *(DWORD*)_combat_free_move) {
 			DisplayConsoleMessage(SaveFailMsg);
 			return 0;
