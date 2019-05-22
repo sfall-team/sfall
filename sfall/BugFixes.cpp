@@ -439,15 +439,12 @@ end:
 
 static void __declspec(naked) gdProcessUpdate_hack() {
 	__asm {
-		add  eax, esi
-		cmp  eax, dword ptr ds:[_optionRect + 0xC]         // _optionRect.offy
-		jge  skip
-		add  eax, 2
-		push 0x44702D
-		retn
+		lea  edx, [eax - 2];
+		cmp  edx, dword ptr ds:[_optionRect + 0xC]; // _optionRect.offy
+		jl   skip;
+		mov  eax, edx;
 skip:
-		push 0x4470DB
-		retn
+		retn;
 	}
 }
 
@@ -2181,11 +2178,11 @@ void BugFixesInit()
 	dlogr(" Done", DL_INIT);
 
 	// Allow 9 options (lines of text) to be displayed correctly in a dialog window
-	if (GetPrivateProfileIntA("Misc", "DialogOptions9Lines", 1, ini)) {
+	//if (GetPrivateProfileIntA("Misc", "DialogOptions9Lines", 1, ini)) {
 		dlog("Applying 9 dialog options patch.", DL_INIT);
-		MakeJump(0x44701C, gdProcessUpdate_hack);
+		MakeCall(0x447021, gdProcessUpdate_hack, 1);
 		dlogr(" Done", DL_INIT);
-	}
+	//}
 
 	// Fix for "Unlimited Ammo" exploit
 	dlog("Applying fix for Unlimited Ammo exploit.", DL_INIT);

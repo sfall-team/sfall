@@ -21,6 +21,7 @@
 #include "main.h"
 
 #include "AI.h"
+#include "Define.h"
 #include "FalloutEngine.h"
 #include "SafeWrite.h"
 
@@ -31,25 +32,36 @@ static stdext::hash_map<DWORD, DWORD> sources;
 
 static void __declspec(naked) ai_try_attack_hook_FleeFix() {
 	__asm {
-		call ai_run_away_;
-		mov  dword ptr [esi + 0x54], 0; // critter.who_hit_me
-		and  byte ptr [esi + 0x3C], ~4; // unset flee flag
-		retn;
+		or   byte ptr [esi + 0x3C], 8; // set new 'ReTarget' flag
+		jmp  ai_run_away_;
 	}
 }
 
 static const DWORD combat_ai_hook_flee_Ret = 0x42B22F;
 static void __declspec(naked) combat_ai_hook_FleeFix() {
 	__asm {
-		call ai_check_drugs_;   // try to heal
+		test byte ptr [ebp], 8; // 'ReTarget' flag
+		jnz  reTarget;
 		test byte ptr [ebp], 4; // flee flag? (critter.combat_state)
-		jnz  flee;
+		jz   tryHeal;
+flee:
+		jmp  critter_name_;
+tryHeal:
+		call ai_check_drugs_;   // try to heal
+		mov  eax, esi;
+		mov  edx, STAT_current_hp;
+		call stat_level_;
+		cmp  eax, [ebx + 0x10]; // minimum hp, below which NPC will run away
+		mov  eax, esi;
+		jl   flee;
 		add  esp, 4;
 		jmp  combat_ai_hook_flee_Ret;
-flee:
-		mov  eax, esi
-		call critter_name_;
-		retn;
+reTarget:
+		and  byte ptr [ebp], ~(4 | 8); // unset Flee/ReTarget flags
+		xor  edi, edi;
+		mov  dword ptr [esi + 0x54], edi; // critter.who_hit_me
+		add  esp, 4;
+		jmp  combat_ai_hook_flee_Ret;
 	}
 }
 
