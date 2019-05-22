@@ -80,7 +80,10 @@ static void __declspec(naked) combat_ai_hook_FleeFix() {
 		test byte ptr [ebp], 8; // 'ReTarget' flag
 		jnz  reTarget;
 		test byte ptr [ebp], 4; // flee flag? (critter combat_state)
-		jnz  flee;
+		jz   tryHeal;
+flee:
+		jmp  fo::funcoffs::critter_name_;
+tryHeal:
 		call fo::funcoffs::ai_check_drugs_; // try to heal
 		mov  eax, esi;
 		mov  edx, STAT_current_hp;
@@ -90,9 +93,6 @@ static void __declspec(naked) combat_ai_hook_FleeFix() {
 		jl   flee;
 		add  esp, 4;
 		jmp  combat_ai_hook_flee_Ret;
-flee:
-		call fo::funcoffs::critter_name_;
-		retn;
 reTarget:
 		and  byte ptr [ebp], ~(4 | 8); // unset flags Flee/ReTarget
 		xor  edi, edi;
