@@ -137,20 +137,21 @@ void ToggleNpcFlag(fo::GameObject* npc, long flag, bool set) {
 	}
 }
 
-bool IsPartyMemberByPid(long pid) {
+// Returns the number of party members in the existing table (begins from 1)
+long IsPartyMemberByPid(long pid) {
 	size_t patryCount = fo::var::partyMemberMaxCount;
 	if (patryCount) {
 		DWORD* memberPids = fo::var::partyMemberPidList; // pids from party.txt
 		for (size_t i = 0; i < patryCount; i++) {
-			if (memberPids[i] == pid) return true;;
+			if (memberPids[i] == pid) return i + 1;
 		}
 	}
-	return false;
+	return 0;
 }
 
 bool IsPartyMember(fo::GameObject* critter) {
 	if (critter->id < 18000) return false;
-	return IsPartyMemberByPid(critter->protoId);
+	return (IsPartyMemberByPid(critter->protoId) > 0);
 }
 
 //---------------------------------------------------------

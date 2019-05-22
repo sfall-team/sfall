@@ -131,18 +131,23 @@ static void SetCurrentDude(fo::GameObject* npc) {
 	// reset traits
 	fo::var::pc_trait[0] = fo::var::pc_trait[1] = -1;
 
-	// reset perks
-	for (int i = 0; i < fo::PERK_count; i++) {
-		fo::var::perkLevelDataList[i] = 0;
+	// copy existing party member perks or reset list for non-party member NPC
+	long isPartyMember = fo::IsPartyMemberByPid(npc->protoId);
+	if (isPartyMember) {
+		memcpy(fo::var::perkLevelDataList, fo::var::perkLevelDataList + (fo::PERK_count * (isPartyMember - 1)), sizeof(DWORD) * fo::PERK_count);
+	} else {
+		for (int i = 0; i < fo::PERK_count; i++) {
+			fo::var::perkLevelDataList[i] = 0;
+		}
 	}
 
 	// change character name
 	fo::func::critter_pc_set_name(fo::func::critter_name(npc));
 
 	// change level
-	int level = fo::func::isPartyMember(npc)
-		? fo::func::partyMemberGetCurLevel(npc)
-		: 0;
+	int level = (isPartyMember) // fo::func::isPartyMember(npc)
+				? fo::func::partyMemberGetCurLevel(npc)
+				: 0;
 
 	fo::var::Level_ = level;
 	fo::var::last_level = level;
@@ -155,10 +160,10 @@ static void SetCurrentDude(fo::GameObject* npc) {
 
 	// deduce active hand by weapon anim code
 	char critterAnim = (npc->artFid & 0xF000) >> 12; // current weapon as seen in hands
-	if (fo::AnimCodeByWeapon(fo::func::inven_left_hand(npc)) == critterAnim) { // definitely left hand..
-		fo::var::itemCurrentItem = 0;
+	if (fo::AnimCodeByWeapon(fo::func::inven_left_hand(npc)) == critterAnim) { // definitely left hand
+		fo::var::itemCurrentItem = fo::ActiveSlot::Left;
 	} else {
-		fo::var::itemCurrentItem = 1;
+		fo::var::itemCurrentItem = fo::ActiveSlot::Right;
 	}
 
 	bool isAddict = false;
@@ -232,7 +237,7 @@ int __stdcall PartyControl::SwitchHandHook(fo::GameObject* item) {
 	if (isControllingNPC && fo::func::item_get_type(item) == fo::ItemType::item_type_weapon) {
 		int fId = fo::var::obj_dude->artFid;
 		long weaponCode = fo::AnimCodeByWeapon(item);
-		fId = (fId & 0xffff0fff) | (weaponCode << 12);
+		fId = (fId & 0xFFFF0FFF) | (weaponCode << 12);
 		if (!fo::func::art_exists(fId)) {
 			DisplayCantDoThat();
 			return 1;
@@ -241,28 +246,41 @@ int __stdcall PartyControl::SwitchHandHook(fo::GameObject* item) {
 	return -1;
 }
 
+long __fastcall GetRealDudePerk(fo::GameObject* source, long perk) {
+	if (isControllingNPC && source == realDude.obj_dude) {
+		return realDude.perkLevelDataList[perk];
+	}
+	return fo::func::perk_level(source, perk);
+}
+
+long __fastcall GetRealDudeTrait(fo::GameObject* source, long trait) {
+	if (isControllingNPC && source == realDude.obj_dude) {
+		return (trait == realDude.traits[0] || trait == realDude.traits[1]) ? 1 : 0;
+	}
+	return fo::func::trait_level(trait);
+}
+
 static void __declspec(naked) stat_pc_add_experience_hook() {
 	__asm {
-		cmp  isControllingNPC, 0
-		je   skip
-		add  delayedExperience, esi
-		retn
+		cmp  isControllingNPC, 0;
+		je   skip;
+		add  delayedExperience, esi;
+		retn;
 skip:
-		xchg esi, eax
-		jmp  fo::funcoffs::stat_pc_add_experience_
+		xchg esi, eax;
+		jmp  fo::funcoffs::stat_pc_add_experience_;
 	}
 }
 
 // prevents using sneak when controlling NPCs
 static void __declspec(naked) pc_flag_toggle_hook() {
 	__asm {
-		cmp  isControllingNPC, 0
-		je   end
-		call DisplayCantDoThat
-		retn
+		cmp  isControllingNPC, 0;
+		je   end;
+		call DisplayCantDoThat;
+		retn;
 end:
-		call  fo::funcoffs::pc_flag_toggle_
-		retn
+		jmp  fo::funcoffs::pc_flag_toggle_;
 	}
 }
 
@@ -278,6 +296,19 @@ bool PartyControl::IsNpcControlled() {
 
 void PartyControl::SwitchToCritter(fo::GameObject* critter) {
 	if (isControllingNPC) {
+		if (fo::var::itemCurrentItem == fo::ActiveSlot::Left) {
+			// set active left item to right slot
+			fo::GameObject* lItem = fo::func::inven_left_hand(fo::var::obj_dude);
+			if (lItem) {
+				fo::GameObject* rItem = fo::func::inven_right_hand(fo::var::obj_dude);
+				lItem->flags &= ~fo::ObjectFlag::Left_Hand;
+				lItem->flags |= fo::ObjectFlag::Right_Hand;
+				if (rItem) {
+					rItem->flags &= ~fo::ObjectFlag::Right_Hand;
+					rItem->flags |= fo::ObjectFlag::Left_Hand;
+				}
+			}
+		}
 		if (critter == nullptr || critter == realDude.obj_dude) RestoreRealDudeState();
 	} else {
 		SaveRealDudeState();
@@ -287,6 +318,10 @@ void PartyControl::SwitchToCritter(fo::GameObject* critter) {
 		if (switchHandHookInjected) return;
 		switchHandHookInjected = true;
 		if (!HookScripts::IsInjectHook(HOOK_INVENTORYMOVE)) Inject_SwitchHandHook();
+		// Gets dude perks and traits from script while controlling another NPC
+		// WARNING: Handling dude perks/traits in the engine code while controlling another NPC remains impossible, this requires serious hacking of the engine code
+		HookCall(0x458242, GetRealDudePerk);  //op_has_trait_hook_
+		HookCall(0x458326, GetRealDudeTrait); //op_has_trait_hook_
 	}
 }
 
