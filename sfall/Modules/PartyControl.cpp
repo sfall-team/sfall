@@ -131,7 +131,7 @@ static void SetCurrentDude(fo::GameObject* npc) {
 	// reset traits
 	fo::var::pc_trait[0] = fo::var::pc_trait[1] = -1;
 
-	// copy exist party members perks or reset list for non party members NPC
+	// copy exist party members perks or reset list for non-party members NPC
 	long isPartyMember = fo::IsPartyMemberByPid(npc->protoId);
 	if (isPartyMember) {
 		memcpy(fo::var::perkLevelDataList, fo::var::perkLevelDataList + (fo::PERK_count * (isPartyMember - 1)), sizeof(DWORD) * fo::PERK_count);
@@ -141,9 +141,6 @@ static void SetCurrentDude(fo::GameObject* npc) {
 		}
 	}
 
-	// change character name
-	fo::func::critter_pc_set_name(fo::func::critter_name(npc));
-
 	// change level
 	int level = (isPartyMember) // fo::func::isPartyMember(npc)
 				? fo::func::partyMemberGetCurLevel(npc)
@@ -151,6 +148,9 @@ static void SetCurrentDude(fo::GameObject* npc) {
 
 	fo::var::Level_ = level;
 	fo::var::last_level = level;
+
+	// change character name
+	fo::func::critter_pc_set_name(fo::func::critter_name(npc));
 
 	// reset other stats
 	fo::var::Experience_ = 0;
@@ -318,10 +318,10 @@ void PartyControl::SwitchToCritter(fo::GameObject* critter) {
 		if (switchHandHookInjected) return;
 		switchHandHookInjected = true;
 		if (!HookScripts::IsInjectHook(HOOK_INVENTORYMOVE)) Inject_SwitchHandHook();
-		// Gets dude perks and traits from script while while controlling another NPC
+		// Gets dude perks and traits from script while controlling another NPC
 		// WARNING: Handling dude perks/traits in the engine code while controlling another NPC remains impossible, this requires serious hacking of the engine code
-		HookCall(0x458242, GetRealDudePerk);  //op_has_trait_hook_
-		HookCall(0x458326, GetRealDudeTrait); //op_has_trait_hook_
+		HookCall(0x458242, GetRealDudePerk);  // op_has_trait_
+		HookCall(0x458326, GetRealDudeTrait); // op_has_trait_
 	}
 }
 

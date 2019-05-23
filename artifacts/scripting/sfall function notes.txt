@@ -594,11 +594,18 @@ Some utility/math functions are available:
 > void sfall_func6("draw_image_scaled", string/int pathFile/artId, int frame, int x, int y, int width, int height)
 - displays the specified FRM image in the active window created by vanilla CreateWin or sfall's create_win script function
 - pathFile/artId: path to the FRM file (e.g. "art\\inven\\5mmap.frm"), or its FRM ID number (e.g. 117440550, see specification of the FID format)
-Optional arguments:
+optional arguments:
 - frame: frame number, the first frame starts from zero
 - x/y: offset relative to the top-left corner of the window
 - width/height: image size, used to scale the image when displaying it, pass -1 to width or height for keep aspect ratio when scaling
 - noTransparent: pass true to display an image without transparent background
+
+> void sfall_func5("set_selectable_perk_npc", object npc, string name_perk, int active, int image, string desc)
+> void sfall_func5("set_fake_perk_npc", object npc, string name_perk, int level, int image, string desc)
+> void sfall_func5("set_fake_trait_npc", object npc, string name_trait, int active, int image, string desc)
+> int  sfall_func2("has_fake_perk_npc", object npc, string name_perk)
+> int  sfall_func2("has_fake_trait_npc", object npc, string name_trait)
+- functions are similar to functions of has_fake_*/set_fake_*/set_selectable_perk, but adds a perk/trait to the specified party member NPC (include dude_obj).
 
 ------------------------
 ------ MORE INFO -------

@@ -30,6 +30,15 @@ public:
 
 	static void save(HANDLE file);
 	static bool load(HANDLE file);
+
+	static void SetSelectablePerk(const char* name, int active, int image, const char* desc, int npcID = 0);
+	static void SetFakePerk(const char* name, int level, int image, const char* desc, int npcID = 0 );
+	static void SetFakeTrait(const char* name, int active, int image, const char* desc, int npcID = 0);
+
+	static DWORD HasFakePerk(const char* name, long perkId);
+	static DWORD HasFakeTrait(const char* name);
+	static DWORD HasFakePerkOwner(const char* name, long objId);
+	static DWORD HasFakeTraitOwner(const char* name, long objId);
 };
 
 void PerksEnterCharScreen();
@@ -43,17 +52,12 @@ void _stdcall SetPerkName(int id, char* value);
 void _stdcall SetPerkDesc(int id, char* value);
 
 void _stdcall SetPerkboxTitle(char* title);
-void _stdcall SetSelectablePerk(char* name, int level, int image, char* desc);
-void _stdcall SetFakePerk(char* name, int level, int image, char* desc);
-void _stdcall SetFakeTrait(char* name, int level, int image, char* desc);
+
 void _stdcall IgnoreDefaultPerks();
 void _stdcall RestoreDefaultPerks();
-
 void _stdcall AddPerkMode(DWORD mode);
-DWORD HasFakePerk(const char* name, long id);
-DWORD _stdcall HasFakeTrait(const char* name);
-void _stdcall ClearSelectablePerks();
 
+void _stdcall ClearSelectablePerks();
 void _stdcall SetPerkFreq(int i);
 
 }
