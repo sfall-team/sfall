@@ -127,24 +127,13 @@ end:
 }
 
 void Objects::LoadProtoAutoMaxLimit() {
-	if (maxCountProto != -1) {
-		MakeCall(0x4A21B2, proto_ptr_hack);
-	}
+	MakeCall(0x4A21B2, proto_ptr_hack);
 }
 
 void Objects::init() {
 	LoadGameHook::OnGameReset() += []() {
 		RestoreObjUnjamAllLocks();
 	};
-
-	int maxlimit = GetConfigInt("Misc", "LoadProtoMaxLimit", -1);
-	if (maxlimit != -1) {
-		maxCountProto = -1;
-		if (maxlimit > 512) {
-			if (maxlimit > 4096) maxlimit = 4096;
-			SafeWrite32(0x4A21B3, maxlimit);
-		}
-	}
 
 	HookCall(0x4A38A5, new_obj_id_hook);
 	SafeWrite8(0x4A38B3, 0x90); // fix ID increment
