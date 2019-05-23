@@ -1214,9 +1214,7 @@ end:
 }
 
 void LoadProtoAutoMaxLimit() {
-	if (maxCountProto != -1) {
-		MakeCall(0x4A21B2, proto_ptr_hack);
-	}
+	MakeCall(0x4A21B2, proto_ptr_hack);
 }
 
 long objUniqueID = UID_START; // saving to sfallgv.sav
@@ -1305,15 +1303,6 @@ void ScriptExtenderSetup() {
 		SafeWrite32(_idle_func, (DWORD)Sleep);
 		SafeWrite8(0x4C9F12, 0x6A); // push
 		SafeWrite8(0x4C9F13, idle);
-	}
-
-	int maxlimit = GetPrivateProfileIntA("Misc", "LoadProtoMaxLimit", -1, ini);
-	if (maxlimit != -1) {
-		maxCountProto = -1;
-		if (maxlimit > 512) {
-			if (maxlimit > 4096) maxlimit = 4096;
-			SafeWrite32(0x4A21B3, maxlimit);
-		}
 	}
 
 	HookCall(0x4A38A5, new_obj_id_hook);
