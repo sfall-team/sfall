@@ -69,7 +69,7 @@ continue:
 
 static void __declspec(naked) ai_try_attack_hook_FleeFix() {
 	__asm {
-		or  byte ptr [esi + combatState], 8; // set new flag 'ReTarget'
+		or  byte ptr [esi + combatState], 8; // set new 'ReTarget' flag
 		jmp fo::funcoffs::ai_run_away_;
 	}
 }
@@ -77,24 +77,11 @@ static void __declspec(naked) ai_try_attack_hook_FleeFix() {
 static const DWORD combat_ai_hook_flee_Ret = 0x42B22F;
 static void __declspec(naked) combat_ai_hook_FleeFix() {
 	__asm {
-		test byte ptr [ebp], 8; // 'ReTarget' flag
+		test byte ptr [ebp], 8; // 'ReTarget' flag (critter.combat_state)
 		jnz  reTarget;
-		test byte ptr [ebp], 4; // flee flag? (critter combat_state)
-		jz   tryHeal;
-flee:
 		jmp  fo::funcoffs::critter_name_;
-tryHeal:
-		call fo::funcoffs::ai_check_drugs_; // try to heal
-		mov  eax, esi;
-		mov  edx, STAT_current_hp;
-		call fo::funcoffs::stat_level_;
-		cmp  eax, [ebx+ 0x10];  // cap minimum hp, below which NPC will run away
-		mov  eax, esi;
-		jl   flee;
-		add  esp, 4;
-		jmp  combat_ai_hook_flee_Ret;
 reTarget:
-		and  byte ptr [ebp], ~(4 | 8); // unset flags Flee/ReTarget
+		and  byte ptr [ebp], ~(4 | 8); // unset Flee/ReTarget flags
 		xor  edi, edi;
 		mov  dword ptr [esi + whoHitMe], edi;
 		add  esp, 4;
@@ -102,27 +89,41 @@ reTarget:
 	}
 }
 
+static bool npcPercentMinHP = false;
 static const DWORD combat_ai_hack_Ret = 0x42B204;
 static void __declspec(naked) combat_ai_hack() {
 	__asm {
-		mov  edx, [ebx + 0x10]; // cap.min_hp
-		cmp  [ebx + 0x98], -1;  // cap.run_away_mode (none)
+		mov  edx, [ebx + 0x10];             // cap.min_hp
+		test npcPercentMinHP, 0xFF;
+		jz   skip;
+		cmp  dword ptr [ebx + 0x98], -1;    // cap.run_away_mode (none)
 		je   skip;
-		push eax;               // current hp
+		push eax;                           // current hp
 		mov  eax, esi;
 		call fo::funcoffs::isPartyMember_;
 		test eax, eax;
 		pop  eax;
-		cmovz edx, [esp + 0x1C - 0x18 + 4]; // calculated min_hp
+		cmovz edx, [esp + 0x1C - 0x18 + 4]; // calculated min_hp (percent)
 skip:
 		cmp  eax, edx;
-		jl   end; // curr < min hp
+		jl   tryHeal; // curr_hp < min_hp
+end:
 		add  esp, 4;
 		jmp  combat_ai_hack_Ret;
-end:
+tryHeal:
+		mov  eax, esi;
+		call fo::funcoffs::ai_check_drugs_;
+		push edx;
+		mov  eax, esi;
+		mov  edx, STAT_current_hp;
+		call fo::funcoffs::stat_level_;
+		pop  edx;
+		cmp  eax, edx; // edx - minimum hp, below which NPC will run away
+		jge  end;
 		retn; // flee
 	}
 }
+
 //////////////////////////////////////////////////////////////////////////////////////////////
 
 static bool __fastcall sf_critter_have_ammo(fo::GameObject* critter, fo::GameObject* weapon) {
@@ -734,9 +735,7 @@ void AI::init() {
 
 	// Enables the use of the RunAwayMode value from the AI-packet for the NPC
 	// the min_hp value will be calculated as a percentage of the maximum number of NPC health points, instead of using fixed min_hp values
-	if (GetConfigInt("CombatAI", "NPCRunAwayMode", 0)) {
-		MakeCall(0x42B1DC, combat_ai_hack);
-	}
+	npcPercentMinHP = (GetConfigInt("CombatAI", "NPCRunAwayMode", 0) > 0);
 
 	///////////////////// Combat AI behavior fixes /////////////////////////
 
@@ -753,11 +752,12 @@ void AI::init() {
 		HookCall(0x42AB57, ai_try_attack_hook_switch_fix);
 	}
 
-	// Fix to allow running away NPC to use drugs
+	// Fix to allow fleeing NPC to use drugs
+	MakeCall(0x42B1DC, combat_ai_hack);
+	// Fix for NPC stuck in fleeing mode when the hit chance of a target was too low
 	HookCall(0x42B1E3, combat_ai_hook_FleeFix);
-	// Fix that with a low chance of to hit the target, the NPC did not switch to "flee" mode
 	HookCalls(ai_try_attack_hook_FleeFix, {0x42ABA8, 0x42ACE5});
-	// Disabled flee
+	// Disable fleeing when NPC cannot move closer to target
 	BlockCall(0x42ADF6); // ai_try_attack_
 
 	/////////////////// Combat AI improve behavior //////////////////////////
