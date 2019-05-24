@@ -44,22 +44,9 @@ static void __declspec(naked) ai_try_attack_hook_FleeFix() {
 static const DWORD combat_ai_hook_flee_Ret = 0x42B22F;
 static void __declspec(naked) combat_ai_hook_FleeFix() {
 	__asm {
-		test byte ptr [ebp], 8; // 'ReTarget' flag
+		test byte ptr [ebp], 8; // 'ReTarget' flag (critter.combat_state)
 		jnz  reTarget;
-		test byte ptr [ebp], 4; // flee flag? (critter.combat_state)
-		jz   tryHeal;
-flee:
 		jmp  fo::funcoffs::critter_name_;
-tryHeal:
-		call fo::funcoffs::ai_check_drugs_; // try to heal
-		mov  eax, esi;
-		mov  edx, STAT_current_hp;
-		call fo::funcoffs::stat_level_;
-		cmp  eax, [ebx + 0x10]; // minimum hp, below which NPC will run away
-		mov  eax, esi;
-		jl   flee;
-		add  esp, 4;
-		jmp  combat_ai_hook_flee_Ret;
 reTarget:
 		and  byte ptr [ebp], ~(4 | 8); // unset Flee/ReTarget flags
 		xor  edi, edi;
@@ -68,6 +55,31 @@ reTarget:
 		jmp  combat_ai_hook_flee_Ret;
 	}
 }
+
+static const DWORD combat_ai_hack_Ret = 0x42B204;
+static void __declspec(naked) combat_ai_hack() {
+	__asm {
+		mov  edx, [ebx + 0x10]; // cap.min_hp
+		cmp  eax, edx;
+		jl   tryHeal; // curr_hp < min_hp
+end:
+		add  esp, 4;
+		jmp  combat_ai_hack_Ret;
+tryHeal:
+		mov  eax, esi;
+		call fo::funcoffs::ai_check_drugs_;
+		push edx;
+		mov  eax, esi;
+		mov  edx, STAT_current_hp;
+		call fo::funcoffs::stat_level_;
+		pop  edx;
+		cmp  eax, edx; // edx - minimum hp, below which NPC will run away
+		jge  end;
+		retn; // flee
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////////
 
 static DWORD RetryCombatLastAP;
 static DWORD RetryCombatMinAP;
@@ -95,6 +107,8 @@ end:
 		retn;
 	}
 }
+
+////////////////////////////////////////////////////////////////////////////////
 
 static void __fastcall CombatAttackHook(DWORD source, DWORD target) {
 	sources[target] = source;
@@ -182,8 +196,9 @@ void AI::init() {
 	/////////////////////// Combat AI behavior fixes ///////////////////////
 
 	// Fix to allow fleeing NPC to use drugs
-	HookCall(0x42B1E3, combat_ai_hook_FleeFix);
+	MakeCall(0x42B1DC, combat_ai_hack);
 	// Fix for NPC stuck in fleeing mode when the hit chance of a target was too low
+	HookCall(0x42B1E3, combat_ai_hook_FleeFix);
 	HookCalls(ai_try_attack_hook_FleeFix, {0x42ABA8, 0x42ACE5});
 	// Disable fleeing when NPC cannot move closer to target
 	BlockCall(0x42ADF6); // ai_try_attack_

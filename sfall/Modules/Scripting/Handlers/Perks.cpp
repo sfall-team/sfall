@@ -511,28 +511,24 @@ end:
 
 void __declspec(naked) op_remove_trait() {
 	__asm {
-		pushad;
-		mov ebp, eax;
-		call fo::funcoffs::interpretPopShort_;
-		mov edi, eax;
-		mov eax, ebp;
-		call fo::funcoffs::interpretPopLong_;
-		cmp di, VAR_TYPE_INT;
-		jnz end;
-		xor ebx, ebx;
-		dec ebx;
-		mov ecx, ds:[FO_VAR_pc_trait + 4];
-		cmp eax, ds:[FO_VAR_pc_trait];
-		jne next;
-		mov ds:[FO_VAR_pc_trait], ecx;
-		mov ds:[FO_VAR_pc_trait + 4], ebx;
-		jmp end;
-next:
-		cmp eax, ds:[FO_VAR_pc_trait + 4];
-		jne end;
-		mov ds:[FO_VAR_pc_trait + 4], ebx;
+		push ecx;
+		_GET_ARG_INT(end);
+		test eax, eax;
+		jl   end;
+		mov  edx, -1;
+		cmp  eax, ds:[FO_VAR_pc_trait];
+		jne  next;
+		mov  ecx, ds:[FO_VAR_pc_trait2];
+		mov  ds:[FO_VAR_pc_trait], ecx;
+		mov  ds:[FO_VAR_pc_trait2], edx;
 end:
-		popad;
+		pop  ecx;
+		retn;
+next:
+		cmp  eax, ds:[FO_VAR_pc_trait2];
+		jne  end;
+		mov  ds:[FO_VAR_pc_trait2], edx;
+		pop  ecx;
 		retn;
 	}
 }

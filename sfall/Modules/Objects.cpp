@@ -26,7 +26,7 @@ namespace sfall
 {
 
 static int unjamTimeState;
-static int maxCountProto = 512;
+static int maxCountLoadProto = 512;
 
 long Objects::uniqueID = UniqueID::Start; // current counter id, saving to sfallgv.sav
 
@@ -112,13 +112,13 @@ void RestoreObjUnjamAllLocks() {
 
 static void __declspec(naked) proto_ptr_hack() {
 	__asm {
-		mov  ecx, maxCountProto;
+		mov  ecx, maxCountLoadProto;
 		cmp  ecx, 4096;
 		jae  skip;
 		cmp  eax, ecx;
 		jb   end;
 		add  ecx, 256;
-		mov  maxCountProto, ecx;
+		mov  maxCountLoadProto, ecx;
 skip:
 		cmp  eax, ecx;
 end:

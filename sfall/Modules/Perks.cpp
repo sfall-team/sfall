@@ -76,7 +76,7 @@ struct FakePerk {
 	char Name[maxNameLen];
 	char Desc[maxDescLen];
 	char reserve[510]; // empty block
-	short id; // use last bytes of the description under the ID value for compatibility
+	short id; // perk id (use last bytes of the description under the ID value for compatibility)
 
 	FakePerk() {}
 
@@ -217,7 +217,11 @@ void _stdcall SetSelectablePerk(char* name, int active, int image, char* desc) {
 }
 
 void _stdcall SetFakePerk(char* name, int level, int image, char* desc) {
-	if (level < 0 || level > 100) return;
+	if (level > 100) {
+		level = 100;
+	} else if (level < 0 ) {
+		return;
+	}
 	size_t size = fakePerks.size();
 	if (level == 0) { // remove perk from fakePerks
 		for (size_t i = 0; i < size; i++) {
@@ -242,7 +246,11 @@ void _stdcall SetFakePerk(char* name, int level, int image, char* desc) {
 }
 
 void _stdcall SetFakeTrait(char* name, int active, int image, char* desc) {
-	if (active < 0 || active > 1) return;
+	if (active > 1) {
+		active = 1;
+	} else if (active < 0) {
+		return;
+	}
 	size_t size = fakeTraits.size();
 	if (active == 0) {
 		for (size_t i = 0; i < size; i++) {
@@ -326,8 +334,8 @@ static DWORD HandleFakeTraits(int isSelect) {
 	return isSelect;
 }
 
-static long __fastcall PlayerHasPerk(int* isSelectPtr) {
-	*isSelectPtr = HandleFakeTraits(*isSelectPtr);
+static long __fastcall PlayerHasPerk(int &isSelectPtr) {
+	isSelectPtr = HandleFakeTraits(isSelectPtr);
 
 	for	(int i = 0; i < PERK_count; i++) {
 		if (fo::func::perk_level(fo::var::obj_dude, i)) return 0x43438A; // print perks
@@ -335,7 +343,7 @@ static long __fastcall PlayerHasPerk(int* isSelectPtr) {
 	return (!fakePerks.empty()) ? 0x43438A : 0x434446; // skip print perks
 }
 
-static DWORD __fastcall HaveFakeTraits(int* isSelectPtr) {
+static DWORD __fastcall HaveFakeTraits(int &isSelectPtr) {
 	return (fakeTraits.empty()) ? PlayerHasPerk(isSelectPtr) : 0x43425B;
 }
 
@@ -344,7 +352,7 @@ static void __declspec(naked) PlayerHasPerkHack() {
 		push ecx;            // isSelect
 		mov  ecx, esp;       // ptr to isSelect
 		call PlayerHasPerk;
-		pop  ecx;            // value from HandleFakeTraits
+		pop  ecx;            // isSelect value from HandleFakeTraits
 		jmp  eax;
 	}
 }
@@ -435,8 +443,7 @@ cLoop:
 	}
 }
 
-// Build a table of perks ID numbers available for selection
-// data buffer has limited size for 119 perks
+// Build a table of perks ID numbers available for selection, data buffer has limited size for 119 perks
 static DWORD _stdcall HandleExtraSelectablePerks(DWORD available, DWORD* data) {
 	size_t count = extPerks.size();
 	for (size_t i = 0; i < count; i++) {
@@ -447,7 +454,7 @@ static DWORD _stdcall HandleExtraSelectablePerks(DWORD available, DWORD* data) {
 	for (size_t i = 0; i < count; i++) {
 		if (available >= 119) break;
 		// for fake perks, their ID should start from 256
-		data[available++] = startFakeID + i; //*(WORD*)(_name_sort_list + (offset+i)*8)=(WORD)(PERK_count+i);
+		data[available++] = startFakeID + i;
 	}
 	return available; // total number of perks available for selection
 }
@@ -456,8 +463,7 @@ static void __declspec(naked) GetAvailablePerksHook() {
 	__asm {
 		push ecx;
 		push edx; // arg data
-		mov  ecx, IgnoringDefaultPerks;
-		test ecx, ecx;
+		cmp  IgnoringDefaultPerks, 0;
 		jnz  skipDefaults;
 		call fo::funcoffs::perk_make_list_; // return available count
 		jmp  next;
@@ -587,7 +593,7 @@ static void _stdcall AddFakePerk(DWORD perkID) {
 			}
 		}
 		if (!matched) { // add to fakePerks
-			RemovePerkID.push_back(count);    // index of the added perk
+			RemovePerkID.push_back(count); // index of the added perk
 			int index = PerkSearchID(perkID);
 			fakePerks.emplace_back(extPerks[index].Name, 1, extPerks[index].data.image, extPerks[index].Desc, extPerks[index].id); // id same as perkID
 		}
@@ -626,8 +632,7 @@ static void _stdcall AddFakePerk(DWORD perkID) {
 		}
 	}
 	if (addPerkMode & 4) { // delete from selectable perks
-		RemoveSelectableID.push_back(perkID);
-		//fakeSelectablePerks.remove_at(perkID);
+		RemoveSelectableID.push_back(perkID); //fakeSelectablePerks.remove_at(perkID);
 	}
 }
 
@@ -1282,15 +1287,15 @@ void _stdcall AddPerkMode(DWORD mode) {
 	addPerkMode = mode;
 }
 
-DWORD HasFakePerk(const char* name, long id) {
-	if (id < PERK_count && name[0] == 0) return 0;
+DWORD HasFakePerk(const char* name, long perkId) {
+	if (perkId < PERK_count && name[0] == 0) return 0;
 	for (DWORD i = 0; i < fakePerks.size(); i++) {
-		if (id) {
-			if (fakePerks[i].id == id) return fakePerks[i].Level;
-		} else {
-			if (!strcmp(name, fakePerks[i].Name)) {
-				return fakePerks[i].Level; // current perk level
+		if (perkId) {
+			if (fakePerks[i].id == perkId) {
+				return fakePerks[i].Level;
 			}
+		} else if (!strcmp(name, fakePerks[i].Name)) {
+			return fakePerks[i].Level; // current perk level
 		}
 	}
 	return 0;
