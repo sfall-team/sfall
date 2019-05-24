@@ -55,8 +55,7 @@ reTarget:
 static const DWORD combat_ai_hack_Ret = 0x42B204;
 static void __declspec(naked) combat_ai_hack() {
 	__asm {
-		mov  edx, [ebx + 0x10]; // cap.min_hp
-		cmp  eax, edx;
+		cmp  eax, [ebx + 0x10]; // cap.min_hp - minimum hp, below which NPC will run away
 		jl   tryHeal; // curr_hp < min_hp
 end:
 		add  esp, 4;
@@ -64,12 +63,10 @@ end:
 tryHeal:
 		mov  eax, esi;
 		call ai_check_drugs_;
-		push edx;
 		mov  eax, esi;
 		mov  edx, STAT_current_hp;
 		call stat_level_;
-		pop  edx;
-		cmp  eax, edx; // edx - minimum hp, below which NPC will run away
+		cmp  eax, [ebx + 0x10]; // cap.min_hp
 		jge  end;
 		retn; // flee
 	}
