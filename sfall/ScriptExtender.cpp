@@ -1196,16 +1196,16 @@ static void __declspec(naked) CombatOverHook() {
 	}
 }
 
-static int maxCountProto = 512;
+static int maxCountLoadProto = 512;
 static void __declspec(naked) proto_ptr_hack() {
 	__asm {
-		mov  ecx, maxCountProto;
+		mov  ecx, maxCountLoadProto;
 		cmp  ecx, 4096;
 		jae  skip;
 		cmp  eax, ecx;
 		jb   end;
 		add  ecx, 256;
-		mov  maxCountProto, ecx;
+		mov  maxCountLoadProto, ecx;
 skip:
 		cmp  eax, ecx;
 end:

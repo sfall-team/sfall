@@ -49,7 +49,6 @@ typedef struct {
 } sScriptProgram;
 
 void ScriptExtenderSetup();
-void LoadProtoAutoMaxLimit();
 bool _stdcall isGameScript(const char* filename);
 void LoadGlobalScripts();
 void ClearGlobalScripts();
@@ -96,6 +95,8 @@ static char reg_anim_combat_check = 1;
 extern DWORD isGlobalScriptLoading;
 extern DWORD AvailableGlobalScriptTypes;
 
+void LoadProtoAutoMaxLimit();
+
 // object's unique id
 extern long objUniqueID;
 long SetObjectUniqueID(TGameObj* obj);
@@ -138,6 +139,5 @@ enum ScriptProc : long
 	push_p_proc = 24,
 	is_dropping_p_proc = 25,
 	combat_is_starting_p_proc = 26,
-	combat_is_over_p_proc = 27,
-	count = 28
+	combat_is_over_p_proc = 27
 };

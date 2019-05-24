@@ -547,28 +547,24 @@ end:
 
 static void __declspec(naked) remove_trait() {
 	__asm {
-		pushad;
-		mov ebp, eax;
-		call interpretPopShort_;
-		mov edi, eax;
-		mov eax, ebp;
-		call interpretPopLong_;
-		cmp di, VAR_TYPE_INT;
-		jnz end;
-		xor ebx, ebx;
-		dec ebx;
-		mov ecx, ds:[_pc_trait2];
-		cmp eax, ds:[_pc_trait];
-		jne next;
-		mov ds:[_pc_trait], ecx;
-		mov ds:[_pc_trait2], ebx;
-		jmp end;
-next:
-		cmp eax, ds:[_pc_trait2];
-		jne end;
-		mov ds:[_pc_trait2], ebx;
+		push ecx;
+		_GET_ARG_INT(end);
+		test eax, eax;
+		jl   end;
+		mov  edx, -1;
+		cmp  eax, ds:[_pc_trait];
+		jne  next;
+		mov  ecx, ds:[_pc_trait2];
+		mov  ds:[_pc_trait], ecx;
+		mov  ds:[_pc_trait2], edx;
 end:
-		popad;
+		pop  ecx;
+		retn;
+next:
+		cmp  eax, ds:[_pc_trait2];
+		jne  end;
+		mov  ds:[_pc_trait2], edx;
+		pop  ecx;
 		retn;
 	}
 }

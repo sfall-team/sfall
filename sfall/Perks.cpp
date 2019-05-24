@@ -205,7 +205,11 @@ void _stdcall SetSelectablePerk(char* name, int active, int image, char* desc) {
 }
 
 void _stdcall SetFakePerk(char* name, int level, int image, char* desc) {
-	if (level < 0 || level > 100) return;
+	if (level > 100) {
+		level = 100;
+	} else if (level < 0 ) {
+		return;
+	}
 	size_t size = fakePerks.size();
 	if (level == 0) { // remove perk from fakePerks
 		for (size_t i = 0; i < size; i++) {
@@ -235,7 +239,11 @@ void _stdcall SetFakePerk(char* name, int level, int image, char* desc) {
 }
 
 void _stdcall SetFakeTrait(char* name, int active, int image, char* desc) {
-	if (active < 0 || active > 1) return;
+	if (active > 1) {
+		active = 1;
+	} else if (active < 0) {
+		return;
+	}
 	size_t size = fakeTraits.size();
 	if (active == 0) {
 		for (size_t i = 0; i < size; i++) {
@@ -474,12 +482,11 @@ cLoop:
 	}
 }
 
-// Build a table of perks ID numbers available for selection
-// data buffer has limited size for 119 perks
+// Build a table of perks ID numbers available for selection, data buffer has limited size for 119 perks
 static DWORD _stdcall HandleExtraSelectablePerks(DWORD available, DWORD* data) {
 	for (DWORD i = 0; i < fakeSelectablePerks.size(); i++) {
 		if (available >= 119) break; // exit if the buffer is overfull
-		data[available++] = PERK_count + i; //*(WORD*)(_name_sort_list + (offset+i)*8)=(WORD)(PERK_count+i);
+		data[available++] = PERK_count + i;
 	}
 	return available; // total number of perks available for selection
 }
@@ -488,8 +495,7 @@ static void __declspec(naked) GetAvailablePerksHook() {
 	__asm {
 		push ecx;
 		push edx; // arg data
-		mov  ecx, IgnoringDefaultPerks;
-		test ecx, ecx;
+		cmp  IgnoringDefaultPerks, 0;
 		jnz  skipDefaults;
 		call perk_make_list_; // return available count
 		jmp  next;
@@ -590,8 +596,7 @@ static void _stdcall AddFakePerk(DWORD perkID) {
 		}
 	}
 	if (addPerkMode & 4) { // delete from selectable perks
-		RemoveSelectableID.push_back(perkID);
-		//fakeSelectablePerks.remove_at(perkID);
+		RemoveSelectableID.push_back(perkID); //fakeSelectablePerks.remove_at(perkID);
 	}
 }
 

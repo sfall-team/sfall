@@ -125,9 +125,6 @@ static void TakeControlOfNPC(TGameObj* npc) {
 		(*ptr_perkLevelDataList)[i] = 0;
 	}
 
-	// change character name
-	CritterPcSetName(CritterName(npc));
-
 	// change level
 	int level = IsPartyMember(npc)
 		? PartyMemberGetCurrentLevel(npc)
@@ -135,6 +132,9 @@ static void TakeControlOfNPC(TGameObj* npc) {
 
 	*ptr_Level_ = level;
 	*ptr_last_level = level;
+
+	// change character name
+	CritterPcSetName(CritterName(npc));
 
 	// reset other stats
 	*ptr_Experience_ = 0;
@@ -472,8 +472,8 @@ void PartyControlInit() {
 
 		// Gets dude perks and traits from script while controlling another NPC
 		// WARNING: Handling dude perks/traits in the engine code while controlling another NPC remains impossible, this requires serious hacking of the engine code
-		HookCall(0x458242, GetRealDudePerk);  //op_has_trait_hook_
-		HookCall(0x458326, GetRealDudeTrait); //op_has_trait_hook_
+		HookCall(0x458242, GetRealDudePerk);  // op_has_trait_
+		HookCall(0x458326, GetRealDudeTrait); // op_has_trait_
 	} else
 		dlogr("  Disabled.", DL_INIT);
 
