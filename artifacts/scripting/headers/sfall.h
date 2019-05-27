@@ -238,6 +238,11 @@
 #define party_member_list_critters      party_member_list(0)
 #define party_member_list_all           party_member_list(1)
 
+// fake perks/traits add mode flags
+#define ADD_PERK_MODE_TRAIT     (1)  // add to the player's traits
+#define ADD_PERK_MODE_PERK      (2)  // add to the player's perks
+#define ADD_PERK_MODE_REMOVE    (4)  // remove from the list of selectable perks
+
 // sfall_funcX macros
 #define add_iface_tag                                   sfall_func0("add_iface_tag")
 #define art_cache_clear                                 sfall_func0("art_cache_clear")
@@ -264,6 +269,8 @@
 #define get_object_data(obj, offset)                    sfall_func2("get_object_data", obj, offset)
 #define get_outline(obj)                                sfall_func1("get_outline", obj)
 #define get_string_pointer(text)                        sfall_func1("get_string_pointer", text)
+#define has_fake_perk_npc(npc, perk)                    sfall_func2("has_fake_perk_npc", npc, perk)
+#define has_fake_trait_npc(npc, trait)                  sfall_func2("has_fake_trait_npc", npc, trait)
 #define intface_hide                                    sfall_func0("intface_hide")
 #define intface_is_hidden                               sfall_func0("intface_is_hidden")
 #define intface_redraw                                  sfall_func0("intface_redraw")
@@ -282,6 +289,8 @@
 #define set_cursor_mode(mode)                           sfall_func1("set_cursor_mode", mode)
 #define set_drugs_data(type, pid, value)                sfall_func3("set_drugs_data", type, pid, value)
 #define set_dude_obj(critter)                           sfall_func1("set_dude_obj", critter)
+#define set_fake_perk_npc(npc, perk, level, image, desc)        sfall_func5("set_fake_perk_npc", npc, perk, level, image, desc)
+#define set_fake_trait_npc(npc, trait, active, image, desc)     sfall_func5("set_fake_trait_npc", npc, trait, active, image, desc)
 #define set_flags(obj, flags)                           sfall_func2("set_flags", obj, flags)
 #define set_iface_tag_text(tag, text, color)            sfall_func3("set_iface_tag_text", tag, text, color)
 #define set_ini_setting(setting, value)                 sfall_func2("set_ini_setting", setting, value)
@@ -290,6 +299,7 @@
 #define set_outline(obj, color)                         sfall_func2("set_outline", obj, color)
 #define set_rest_heal_time(time)                        sfall_func1("set_rest_heal_time", time)
 #define set_rest_mode(mode)                             sfall_func1("set_rest_mode", mode)
+#define set_selectable_perk_npc(npc, perk, active, image, desc) sfall_func5("set_selectable_perk_npc", npc, perk, active, image, desc)
 #define set_unique_id(obj)                              sfall_func1("set_unique_id", obj)
 #define unset_unique_id(obj)                            sfall_func2("set_unique_id", obj, -1)
 #define set_unjam_locks_time(time)                      sfall_func1("set_unjam_locks_time", time)

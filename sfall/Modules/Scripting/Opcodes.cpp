@@ -86,7 +86,11 @@ static SfallOpcodeInfo opcodeInfoArray[] = {
 	{0x1a5, "inc_npc_level",             sf_inc_npc_level,             1, false, {ARG_INTSTR}},
 	{0x1ac, "get_ini_setting",           sf_get_ini_setting,           1, true,  {ARG_STRING}},
 
+	{0x1bb, "set_fake_perk",             sf_set_fake_perk,             4, false, {ARG_STRING, ARG_INT, ARG_INT, ARG_STRING}},
+	{0x1bc, "set_fake_trait",            sf_set_fake_trait,            4, false, {ARG_STRING, ARG_INT, ARG_INT, ARG_STRING}},
+	{0x1bd, "set_selectable_perk",       sf_set_selectable_perk,       4, false, {ARG_STRING, ARG_INT, ARG_INT, ARG_STRING}},
 	{0x1c1, "has_fake_perk",             sf_has_fake_perk,             1, true,  {ARG_INTSTR}},
+	{0x1c2, "has_fake_trait",            sf_has_fake_trait,            1, true,  {ARG_STRING}},
 
 	{0x1dc, "show_iface_tag",            sf_show_iface_tag,            1, false, {ARG_INT}},
 	{0x1dd, "hide_iface_tag",            sf_hide_iface_tag,            1, false, {ARG_INT}},
@@ -330,13 +334,9 @@ void InitNewOpcodes() {
 	opcodes[0x1b8] = op_set_pc_stat_min;
 	opcodes[0x1b9] = op_set_npc_stat_max;
 	opcodes[0x1ba] = op_set_npc_stat_min;
-	opcodes[0x1bb] = op_set_fake_perk;
-	opcodes[0x1bc] = op_set_fake_trait;
-	opcodes[0x1bd] = op_set_selectable_perk;
 	opcodes[0x1be] = op_set_perkbox_title;
 	opcodes[0x1bf] = op_hide_real_perks;
 	opcodes[0x1c0] = op_show_real_perks;
-	opcodes[0x1c2] = op_has_fake_trait;
 	opcodes[0x1c3] = op_perk_add_mode;
 	opcodes[0x1c4] = op_clear_selectable_perks;
 	opcodes[0x1c5] = op_set_critter_hit_chance_mod;

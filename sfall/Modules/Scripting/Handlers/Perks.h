@@ -37,11 +37,17 @@ void __declspec() op_set_perk_desc();
 
 void __declspec() op_set_perk_value();
 
-void __declspec() op_set_selectable_perk();
+void sf_set_selectable_perk(OpcodeContext&);
 
-void __declspec() op_set_fake_perk();
+void sf_set_fake_perk(OpcodeContext&);
 
-void __declspec() op_set_fake_trait();
+void sf_set_fake_trait(OpcodeContext&);
+
+void sf_set_selectable_perk_npc(OpcodeContext&);
+
+void sf_set_fake_perk_npc(OpcodeContext&);
+
+void sf_set_fake_trait_npc(OpcodeContext&);
 
 void __declspec() op_set_perkbox_title();
 
@@ -53,7 +59,11 @@ void __declspec() op_clear_selectable_perks();
 
 void sf_has_fake_perk(OpcodeContext&);
 
-void __declspec() op_has_fake_trait();
+void sf_has_fake_trait(OpcodeContext&);
+
+void sf_has_fake_perk_npc(OpcodeContext&);
+
+void sf_has_fake_trait_npc(OpcodeContext&);
 
 void __declspec() op_perk_add_mode();
 

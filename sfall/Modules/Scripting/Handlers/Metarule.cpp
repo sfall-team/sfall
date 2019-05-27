@@ -24,6 +24,7 @@
 #include "Interface.h"
 #include "Misc.h"
 #include "Objects.h"
+#include "Perks.h"
 #include "Utils.h"
 #include "Worldmap.h"
 
@@ -83,6 +84,8 @@ static const SfallMetarule metarules[] = {
 	{"get_object_data",         sf_get_object_data,         2, 2, {ARG_OBJECT, ARG_INT}},
 	{"get_outline",             sf_get_outline,             1, 1, {ARG_OBJECT}},
 	{"get_string_pointer",      sf_get_string_pointer,      1, 1, {ARG_STRING}},
+	{"has_fake_perk_npc",       sf_has_fake_perk_npc,       2, 2, {ARG_OBJECT, ARG_STRING}},
+	{"has_fake_trait_npc",      sf_has_fake_trait_npc,      2, 2, {ARG_OBJECT, ARG_STRING}},
 	{"intface_hide",            sf_intface_hide,            0, 0},
 	{"intface_is_hidden",       sf_intface_is_hidden,       0, 0},
 	{"intface_redraw",          sf_intface_redraw,          0, 0},
@@ -101,6 +104,8 @@ static const SfallMetarule metarules[] = {
 	{"set_cursor_mode",         sf_set_cursor_mode,         1, 1, {ARG_INT}},
 	{"set_drugs_data",          sf_set_drugs_data,          3, 3, {ARG_INT, ARG_INT, ARG_INT}},
 	{"set_dude_obj",            sf_set_dude_obj,            1, 1, {ARG_OBJECT}},
+	{"set_fake_perk_npc",       sf_set_fake_perk_npc,       5, 5, {ARG_OBJECT, ARG_STRING, ARG_INT, ARG_INT, ARG_STRING}},
+	{"set_fake_trait_npc",      sf_set_fake_trait_npc,      5, 5, {ARG_OBJECT, ARG_STRING, ARG_INT, ARG_INT, ARG_STRING}},
 	{"set_flags",               sf_set_flags,               2, 2, {ARG_OBJECT, ARG_INT}},
 	{"set_iface_tag_text",      sf_set_iface_tag_text,      3, 3, {ARG_INT, ARG_STRING, ARG_INT}},
 	{"set_ini_setting",         sf_set_ini_setting,         2, 2, {ARG_STRING, ARG_INTSTR}},
@@ -109,6 +114,7 @@ static const SfallMetarule metarules[] = {
 	{"set_outline",             sf_set_outline,             2, 2, {ARG_OBJECT, ARG_INT}},
 	{"set_rest_heal_time",      sf_set_rest_heal_time,      1, 1, {ARG_INT}},
 	{"set_rest_mode",           sf_set_rest_mode,           1, 1, {ARG_INT}},
+	{"set_selectable_perk_npc", sf_set_selectable_perk_npc, 5, 5, {ARG_OBJECT, ARG_STRING, ARG_INT, ARG_INT, ARG_STRING}},
 	{"set_unique_id",           sf_set_unique_id,           1, 2, {ARG_OBJECT, ARG_INT}},
 	{"set_unjam_locks_time",    sf_set_unjam_locks_time,    1, 1, {ARG_INT}},
 	{"spatial_radius",          sf_spatial_radius,          1, 1, {ARG_OBJECT}},
