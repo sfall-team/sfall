@@ -213,6 +213,11 @@
 #define party_member_list_critters      party_member_list(0)
 #define party_member_list_all           party_member_list(1)
 
+// fake perks/traits add mode flags
+#define ADD_PERK_MODE_TRAIT     (1)  // add to the player's traits
+#define ADD_PERK_MODE_PERK      (2)  // add to the player's perks
+#define ADD_PERK_MODE_REMOVE    (4)  // remove from the list of selectable perks
+
 // sfall_funcX macros
 #define art_cache_clear                                 sfall_func0("art_cache_clear")
 #define attack_is_aimed                                 sfall_func0("attack_is_aimed")

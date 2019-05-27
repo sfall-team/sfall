@@ -411,28 +411,24 @@ static void __declspec(naked) fSetPerkboxTitle() {
 	__asm {
 		push ebx;
 		push ecx;
-		push edx;
-		push edi;
-		mov edi, eax;
+		mov  ecx, eax;
 		call interpretPopShort_;
-		mov edx, eax;
-		mov eax, edi;
+		mov  edx, eax;
+		mov  eax, ecx;
 		call interpretPopLong_;
-		cmp dx, VAR_TYPE_STR2;
-		jz next;
-		cmp dx, VAR_TYPE_STR;
-		jnz end;
+		cmp  dx, VAR_TYPE_STR2;
+		jz   next;
+		cmp  dx, VAR_TYPE_STR;
+		jnz  end;
 next:
-		mov ebx, eax;
-		mov eax, edi;
+		mov  ebx, eax;
+		mov  eax, ecx;
 		call interpretGetString_;
 		push eax;
 		call SetPerkboxTitle;
 end:
-		pop edi;
-		pop edx;
-		pop ecx;
-		pop ebx;
+		pop  ecx;
+		pop  ebx;
 		retn;
 	}
 }

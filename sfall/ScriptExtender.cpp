@@ -1766,12 +1766,14 @@ void LoadGlobalScripts() {
 	dlogr("Finished loading global scripts.", DL_SCRIPT|DL_INIT);
 }
 
-static DWORD _stdcall ScriptHasLoaded(DWORD script) {
-	for (DWORD d = 0; d < checkedScripts.size(); d++) {
-		if (checkedScripts[d] == script) return 0;
+static bool _stdcall ScriptHasLoaded(DWORD script) {
+	for (size_t d = 0; d < checkedScripts.size(); d++) {
+		if (checkedScripts[d] == script) {
+			return false;
+		}
 	}
 	checkedScripts.push_back(script);
-	return 1;
+	return true;
 }
 
 // this runs before actually loading/starting the game

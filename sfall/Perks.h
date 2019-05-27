@@ -34,15 +34,15 @@ void _stdcall SetPerkName(int id, char* value);
 void _stdcall SetPerkDesc(int id, char* value);
 
 void _stdcall SetPerkboxTitle(char* title);
-void _stdcall SetSelectablePerk(char* name, int level, int image, char* desc);
-void _stdcall SetFakePerk(char* name, int level, int image, char* desc);
-void _stdcall SetFakeTrait(char* name, int level, int image, char* desc);
+void _stdcall SetSelectablePerk(const char* name, int active, int image, const char* desc);
+void _stdcall SetFakePerk(const char* name, int level, int image, const char* desc);
+void _stdcall SetFakeTrait(const char* name, int active, int image, const char* desc);
 void _stdcall IgnoreDefaultPerks();
 void _stdcall RestoreDefaultPerks();
 
 void _stdcall AddPerkMode(DWORD mode);
-DWORD _stdcall HasFakePerk(char* name);
-DWORD _stdcall HasFakeTrait(char* name);
+DWORD _stdcall HasFakePerk(const char* name);
+DWORD _stdcall HasFakeTrait(const char* name);
 void _stdcall ClearSelectablePerks();
 
 void _stdcall SetPerkFreq(int i);

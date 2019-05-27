@@ -135,7 +135,7 @@ static void __declspec(naked) LevelUpHack() {
 notSkilled:
 		mov  ecx, 3;
 afterSkilled:
-		mov  eax, ds:[_Level_]; // Get players level
+		mov  eax, ds:[_Level_]; // Get player's level
 		inc  eax;
 		xor  edx, edx;
 		div  ecx;
@@ -174,8 +174,9 @@ void _stdcall SetPerkboxTitle(char* name) {
 	}
 }
 
-void _stdcall SetSelectablePerk(char* name, int active, int image, char* desc) {
-	if (active < 0 || active > 1) return;
+void _stdcall SetSelectablePerk(const char* name, int active, int image, const char* desc) {
+	if (active < 0) return;
+	if (active > 1) active = 1;
 	size_t size = fakeSelectablePerks.size();
 	if (active == 0) {
 		for (size_t i = 0; i < size; i++) {
@@ -204,12 +205,9 @@ void _stdcall SetSelectablePerk(char* name, int active, int image, char* desc) {
 	}
 }
 
-void _stdcall SetFakePerk(char* name, int level, int image, char* desc) {
-	if (level > 100) {
-		level = 100;
-	} else if (level < 0 ) {
-		return;
-	}
+void _stdcall SetFakePerk(const char* name, int level, int image, const char* desc) {
+	if (level < 0 ) return;
+	if (level > 100) level = 100;
 	size_t size = fakePerks.size();
 	if (level == 0) { // remove perk from fakePerks
 		for (size_t i = 0; i < size; i++) {
@@ -238,12 +236,9 @@ void _stdcall SetFakePerk(char* name, int level, int image, char* desc) {
 	}
 }
 
-void _stdcall SetFakeTrait(char* name, int active, int image, char* desc) {
-	if (active > 1) {
-		active = 1;
-	} else if (active < 0) {
-		return;
-	}
+void _stdcall SetFakeTrait(const char* name, int active, int image, const char* desc) {
+	if (active < 0) return;
+	if (active > 1) active = 1;
 	size_t size = fakeTraits.size();
 	if (active == 0) {
 		for (size_t i = 0; i < size; i++) {
@@ -394,10 +389,10 @@ oloop:
 		call HaveFakePerks;
 		test eax, eax;
 		jnz  win;
-		mov  eax, 0x434446;
+		mov  eax, 0x434446; // skip print perks
 		jmp  eax;
 win:
-		mov  eax, 0x43438A;
+		mov  eax, 0x43438A; // print perks
 		jmp  eax;
 	}
 }
@@ -407,7 +402,7 @@ static void __declspec(naked) PlayerHasTraitHook() {
 		call HaveFakeTraits;
 		test eax, eax;
 		jz   end;
-		mov  eax, 0x43425B;
+		mov  eax, 0x43425B; // print traits
 		jmp  eax;
 end:
 		jmp  PlayerHasPerkHack;
@@ -561,7 +556,7 @@ end:
 }
 
 // Adds the selected perk to the player
-static void _stdcall AddFakePerk(DWORD perkID) {
+static long _stdcall AddFakePerk(DWORD perkID) {
 	size_t count;
 	bool matched = false;
 	// behavior for fake perk/trait
@@ -598,6 +593,7 @@ static void _stdcall AddFakePerk(DWORD perkID) {
 	if (addPerkMode & 4) { // delete from selectable perks
 		RemoveSelectableID.push_back(perkID); //fakeSelectablePerks.remove_at(perkID);
 	}
+	return 0;
 }
 
 // Adds perk from selection window to player
@@ -609,7 +605,6 @@ static void __declspec(naked) AddPerkHook() {
 		push edx;
 		call AddFakePerk;
 		pop  ecx;
-		xor  eax, eax;
 		retn;
 normalPerk:
 		push edx;
@@ -1117,7 +1112,7 @@ void _stdcall AddPerkMode(DWORD mode) {
 	addPerkMode = mode;
 }
 
-DWORD _stdcall HasFakePerk(char* name) {
+DWORD _stdcall HasFakePerk(const char* name) {
 	for (DWORD i = 0; i < fakePerks.size(); i++) {
 		if (!strcmp(name, fakePerks[i].Name)) {
 			return fakePerks[i].Level;
@@ -1126,7 +1121,7 @@ DWORD _stdcall HasFakePerk(char* name) {
 	return 0;
 }
 
-DWORD _stdcall HasFakeTrait(char* name) {
+DWORD _stdcall HasFakeTrait(const char* name) {
 	for (DWORD i = 0; i < fakeTraits.size(); i++) {
 		if (!strcmp(name, fakeTraits[i].Name)) {
 			return 1;
