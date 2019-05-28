@@ -604,7 +604,7 @@ optional arguments:
 > void sfall_func5("set_selectable_perk_npc", object npc, string namePerk, int active, int image, string desc)
 > int  sfall_func2("has_fake_perk_npc", object npc, string namePerk)
 > int  sfall_func2("has_fake_trait_npc", object npc, string nameTrait)
-- functions are similar to has_fake_*/set_fake_*/set_selectable_perk opcodes, but work on the specified party member NPC (including dude_obj)
+- these functions are similar to has_fake_*/set_fake_*/set_selectable_perk functions, but apply to the specified party member NPC (including dude_obj)
 
 ------------------------
 ------ MORE INFO -------

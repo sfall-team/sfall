@@ -35,7 +35,7 @@ long Objects::uniqueID = UniqueID::Start; // current counter id, saving to sfall
 // player ID = 18000, all party members have ID = 18000 + its pid (file number of prototype)
 long Objects::SetObjectUniqueID(fo::GameObject* obj) {
 	long id = obj->id;
-	if (id > UniqueID::Start || obj == fo::var::obj_dude || (id >= 18000 && id < 83536)) return id; // 65535 maximum possible number of prototypes
+	if (id > UniqueID::Start || obj == fo::var::obj_dude || (id >= PLAYER_ID && id < 83536)) return id; // 65535 maximum possible number of prototypes
 
 	if ((DWORD)uniqueID >= UniqueID::End) uniqueID = UniqueID::Start;
 	obj->id = ++uniqueID;

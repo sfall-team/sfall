@@ -63,6 +63,7 @@ void InventoryKeyPressedHook(DWORD dxKey, bool pressed) {
 }
 
 /////////////////////////////////////////////////////////////////
+
 DWORD __stdcall sf_item_total_size(fo::GameObject* critter) {
 	int totalSize = fo::func::item_c_curr_size(critter);
 
@@ -84,19 +85,6 @@ DWORD __stdcall sf_item_total_size(fo::GameObject* critter) {
 	}
 	return totalSize;
 }
-
-/*static const DWORD ObjPickupFail=0x49B70D;
-static const DWORD ObjPickupEnd=0x49B6F8;
-static __declspec(naked) void  ObjPickupHook() {
-	__asm {
-		cmp edi, ds:[FO_VAR_obj_dude];
-		jnz end;
-end:
-		lea edx, [esp+0x10];
-		mov eax, ecx;
-		jmp ObjPickupEnd;
-	}
-}*/
 
 static int __stdcall CritterGetMaxSize(fo::GameObject* critter) {
 	if (critter == fo::var::obj_dude) return invSizeMaxLimit;
@@ -198,8 +186,8 @@ static __declspec(naked) void barter_attempt_transaction_hack_pc() {
 		/* cmp  eax, edx */
 		jg   fail;    // if there's no available weight
 		//------
-		mov  ecx, edi;                  // source (pc)
-		mov  edx, ebp;                  // npc table
+		mov  ecx, edi;                   // source (pc)
+		mov  edx, ebp;                   // npc table
 		call BarterAttemptTransaction;
 		test eax, eax;
 		jz   fail;
@@ -232,19 +220,19 @@ fail:
 static __declspec(naked) void loot_container_hook_btn() {
 	__asm {
 		push ecx;
-		push edx;                               // source current weight
-		mov  edx, eax;                          // target
-		mov  ecx, [esp + 0x150 - 0x1C + 12];    // source
+		push edx;                            // source current weight
+		mov  edx, eax;                       // target
+		mov  ecx, [esp + 0x150 - 0x1C + 12]; // source
 		call BarterAttemptTransaction;
 		pop  edx;
 		pop  ecx;
 		test eax, eax;
 		jz   fail;
-		mov  eax, ebp;                          // target
+		mov  eax, ebp;                       // target
 		jmp  fo::funcoffs::item_total_weight_;
 fail:
 		mov  eax, edx;
-		inc  eax;                               // weight + 1
+		inc  eax;                            // weight + 1
 		retn;
 	}
 }
@@ -340,51 +328,32 @@ static void __declspec(naked) gdControlUpdateInfo_hack() {
 /////////////////////////////////////////////////////////////////
 
 static std::string superStimMsg;
-static int __fastcall SuperStimFix2(fo::GameObject* item, fo::GameObject* target) {
+static int __fastcall SuperStimFix(fo::GameObject* item, fo::GameObject* target) {
 	if (item->protoId != fo::PID_SUPER_STIMPAK || !target || target->Type() != fo::OBJ_TYPE_CRITTER) {
 		return 0;
 	}
 
-	long curr_hp, max_hp;
-	curr_hp = fo::func::stat_level(target, fo::STAT_current_hp);
-	max_hp = fo::func::stat_level(target, fo::STAT_max_hit_points);
-	if (curr_hp < max_hp) return 0;
+	long max_hp = fo::func::stat_level(target, fo::STAT_max_hit_points);
+	if (target->critter.health < max_hp) return 0;
 
 	fo::func::display_print(superStimMsg.c_str());
 	return -1;
 }
 
-static const DWORD UseItemHookRet = 0x49C5F4;
-static void __declspec(naked) SuperStimFix() {
+static const DWORD protinst_use_item_on_Ret = 0x49C5F4;
+static void __declspec(naked) protinst_use_item_on_hack() {
 	__asm {
 		push ecx;
-		mov  ecx, ebx;       // ecx - item
-		call SuperStimFix2;  // edx - target
+		mov  ecx, ebx;     // ecx - item
+		call SuperStimFix; // edx - target
 		pop  ecx;
 		test eax, eax;
 		jnz  end;
-		mov  ebp, -1;        // overwritten engine code
+		mov  ebp, -1;      // overwritten engine code
 		retn;
 end:
-		add  esp, 4;         // destroy ret
-		jmp  UseItemHookRet; // exit
-	}
-}
-
-static int invenApCost, invenApCostDef;
-static char invenApQPReduction;
-void _stdcall SetInvenApCost(int cost) {
-	invenApCost = cost;
-}
-static const DWORD inven_ap_cost_hack_ret = 0x46E816;
-static void __declspec(naked) inven_ap_cost_hack() {
-	_asm {
-		movzx ebx, byte ptr invenApQPReduction;
-		mul bl;
-		mov edx, invenApCost;
-		sub edx, eax;
-		mov eax, edx;
-		jmp inven_ap_cost_hack_ret;
+		add  esp, 4;       // destroy ret
+		jmp  protinst_use_item_on_Ret; // exit
 	}
 }
 
@@ -570,7 +539,7 @@ DWORD __stdcall Inventory::adjust_fid_replacement() {
 	using namespace fo;
 
 	DWORD fid;
-	if (var::inven_dude->TypeFid() == fo::OBJ_TYPE_CRITTER) {
+	if (var::inven_dude->TypeFid() == ObjType::OBJ_TYPE_CRITTER) {
 		DWORD frameNum;
 		DWORD weaponAnimCode = 0;
 		if (PartyControl::IsNpcControlled()) {
@@ -652,6 +621,34 @@ end:
 	}
 }
 
+static int invenApCost, invenApCostDef;
+static char invenApQPReduction;
+static const DWORD inven_ap_cost_Ret = 0x46E812;
+static void __declspec(naked) inven_ap_cost_hack() {
+	_asm {
+		mul byte ptr invenApQPReduction;
+		mov edx, invenApCost;
+		jmp inven_ap_cost_Ret;
+	}
+}
+
+static bool onlyOnceAP = false;
+inline static void ApplyInvenApCostPatch() {
+	MakeJump(0x46E80B, inven_ap_cost_hack);
+	onlyOnceAP = true;
+}
+
+void _stdcall SetInvenApCost(int cost) {
+	invenApCost = cost;
+	if (!onlyOnceAP) ApplyInvenApCostPatch();
+}
+
+// TODO: Make GetInvenApCost() function
+/*long GetInvenApCost() {
+	long plevel = fo::func::perk_level(fo::var::obj_dude, fo::PERK_quick_pockets);
+	return invenApCost - (invenApQPReduction * plevel);
+}*/
+
 void InventoryReset() {
 	invenApCost = invenApCostDef;
 }
@@ -712,16 +709,18 @@ void Inventory::init() {
 		}
 	}
 
-	invenApCost = invenApCostDef = GetConfigInt("Misc", "InventoryApCost", 4);
-	invenApQPReduction = GetConfigInt("Misc", "QuickPocketsApCostReduction", 2);
-	MakeJump(0x46E80B, inven_ap_cost_hack);
-
 	if (GetConfigInt("Misc", "SuperStimExploitFix", 0)) {
 		superStimMsg = Translate("sfall", "SuperStimExploitMsg", "You cannot use a super stim on someone who is not injured!");
-		MakeCall(0x49C3D9, SuperStimFix);
+		MakeCall(0x49C3D9, protinst_use_item_on_hack);
 	}
 
 	reloadWeaponKey = GetConfigInt("Input", "ReloadWeaponKey", 0);
+
+	invenApCost = invenApCostDef = GetConfigInt("Misc", "InventoryApCost", 4);
+	invenApQPReduction = GetConfigInt("Misc", "QuickPocketsApCostReduction", 2);
+	if (invenApCostDef != 4 || invenApQPReduction != 2) {
+		ApplyInvenApCostPatch();
+	}
 
 	if (GetConfigInt("Misc", "StackEmptyWeapons", 0)) {
 		MakeCall(0x4736C6, inven_action_cursor_hack);

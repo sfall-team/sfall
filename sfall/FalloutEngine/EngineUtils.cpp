@@ -150,7 +150,7 @@ long IsPartyMemberByPid(long pid) {
 }
 
 bool IsPartyMember(fo::GameObject* critter) {
-	if (critter->id < 18000) return false;
+	if (critter->id < PLAYER_ID) return false;
 	return (IsPartyMemberByPid(critter->protoId) > 0);
 }
 
