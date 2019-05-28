@@ -63,6 +63,7 @@ void InventoryKeyPressedHook(DWORD dxKey, bool pressed) {
 }
 
 /////////////////////////////////////////////////////////////////
+
 DWORD __stdcall sf_item_total_size(fo::GameObject* critter) {
 
 	int totalSize = fo::func::item_c_curr_size(critter);
@@ -85,19 +86,6 @@ DWORD __stdcall sf_item_total_size(fo::GameObject* critter) {
 	}
 	return totalSize;
 }
-
-/*static const DWORD ObjPickupFail=0x49B70D;
-static const DWORD ObjPickupEnd=0x49B6F8;
-static __declspec(naked) void  ObjPickupHook() {
-	__asm {
-		cmp edi, ds:[FO_VAR_obj_dude];
-		jnz end;
-end:
-		lea edx, [esp+0x10];
-		mov eax, ecx;
-		jmp ObjPickupEnd;
-	}
-}*/
 
 static int __stdcall CritterGetMaxSize(fo::GameObject* critter) {
 
@@ -662,6 +650,10 @@ void _stdcall SetInvenApCost(int cost) {
 }
 
 // TODO: Make GetInvenApCost() function
+/*long GetInvenApCost() {
+	long plevel = fo::func::perk_level(fo::var::obj_dude, fo::PERK_quick_pockets);
+	return invenApCost - (invenApQPReduction * plevel);
+}*/
 
 void InventoryReset() {
 	invenApCost = invenApCostDef;

@@ -802,19 +802,19 @@ static void __declspec(naked) PipStatus_AddHotLines_hook() {
 
 static void __declspec(naked) perform_withdrawal_start_display_print_hook() {
 	__asm {
-		test eax, eax
-		jz   end
-		jmp  fo::funcoffs::display_print_
+		test eax, eax;
+		jz   end;
+		jmp  fo::funcoffs::display_print_;
 end:
-		retn
+		retn;
 	}
 }
 
 static void __declspec(naked) op_wield_obj_critter_adjust_ac_hook() {
 	__asm {
-		call fo::funcoffs::adjust_ac_
-		xor  eax, eax                       // not animated
-		jmp  fo::funcoffs::intface_update_ac_
+		call fo::funcoffs::adjust_ac_;
+		xor  eax, eax;                      // not animated
+		jmp  fo::funcoffs::intface_update_ac_;
 	}
 }
 

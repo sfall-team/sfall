@@ -36,10 +36,10 @@ static void _stdcall ConsoleFilePrint(const char* msg) {
 static const DWORD ConsoleHookRet = 0x431871;
 static void __declspec(naked) ConsoleHook() {
 	__asm {
-		pushad;
+		pushadc;
 		push eax;
 		call ConsoleFilePrint;
-		popad;
+		popadc;
 		push ebx;
 		push ecx;
 		push edx;
