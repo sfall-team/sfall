@@ -337,6 +337,8 @@ enum AttackType : long
 	ATKTYPE_PIERCINGKICK      = 19
 };
 
+#define PLAYER_ID             (18000)
+
 #define OBJFLAG_CAN_WEAR_ITEMS (0xF000000)
 
 #define OBJFLAG_HELD_IN_RIGHT (0x10000)

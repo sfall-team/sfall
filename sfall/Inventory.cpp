@@ -29,9 +29,9 @@
 
 static DWORD sizeLimitMode;
 static DWORD invSizeMaxLimit;
-static DWORD ReloadWeaponKey = 0;
-static DWORD ItemFastMoveKey = 0;
-static DWORD SkipFromContainer = 0;
+static DWORD reloadWeaponKey = 0;
+static DWORD itemFastMoveKey = 0;
+static DWORD skipFromContainer = 0;
 
 struct sMessage {
 	DWORD number;
@@ -59,7 +59,7 @@ TGameObj* GetActiveItem() {
 }
 
 void InventoryKeyPressedHook(DWORD dxKey, bool pressed, DWORD vKey) {
-	if (pressed && ReloadWeaponKey && dxKey == ReloadWeaponKey && IsMapLoaded() && (GetCurrentLoops() & ~(COMBAT | PCOMBAT)) == 0) {
+	if (pressed && reloadWeaponKey && dxKey == reloadWeaponKey && IsMapLoaded() && (GetCurrentLoops() & ~(COMBAT | PCOMBAT)) == 0) {
 		DWORD maxAmmo, curAmmo;
 		TGameObj* item = GetActiveItem();
 		__asm {
@@ -91,6 +91,7 @@ void InventoryKeyPressedHook(DWORD dxKey, bool pressed, DWORD vKey) {
 }
 
 /////////////////////////////////////////////////////////////////
+
 DWORD __stdcall sf_item_total_size(TGameObj* critter) {
 	int totalSize;
 	__asm {
@@ -117,20 +118,6 @@ DWORD __stdcall sf_item_total_size(TGameObj* critter) {
 	}
 	return totalSize;
 }
-
-/*static const DWORD ObjPickupFail=0x49B70D;
-static const DWORD ObjPickupEnd=0x49B6F8;
-static const DWORD size_limit;
-static __declspec(naked) void  ObjPickupHook() {
-	__asm {
-		cmp edi, ds:[_obj_dude];
-		jnz end;
-end:
-		lea edx, [esp+0x10];
-		mov eax, ecx;
-		jmp ObjPickupEnd;
-	}
-}*/
 
 static int __stdcall CritterGetMaxSize(TGameObj* critter) {
 	if (critter == *ptr_obj_dude) return invSizeMaxLimit;
@@ -232,8 +219,8 @@ static __declspec(naked) void barter_attempt_transaction_hack_pc() {
 		/* cmp  eax, edx */
 		jg   fail;    // if there's no available weight
 		//------
-		mov  ecx, edi;                  // source (pc)
-		mov  edx, ebp;                  // npc table
+		mov  ecx, edi;                   // source (pc)
+		mov  edx, ebp;                   // npc table
 		call BarterAttemptTransaction;
 		test eax, eax;
 		jz   fail;
@@ -372,51 +359,33 @@ static void __declspec(naked) gdControlUpdateInfo_hack() {
 /////////////////////////////////////////////////////////////////
 
 static char SuperStimMsg[128];
-static int __fastcall SuperStimFix2(TGameObj* item, TGameObj* target) {
+static int __fastcall SuperStimFix(TGameObj* item, TGameObj* target) {
 	if (item->pid != PID_SUPER_STIMPAK || !target || (target->pid & 0xFF000000) != (OBJ_TYPE_CRITTER << 24)) { // 0x01000000
 		return 0;
 	}
 
-	long curr_hp, max_hp;
-	curr_hp = StatLevel(target, STAT_current_hp);
-	max_hp = StatLevel(target, STAT_max_hit_points);
+	long curr_hp = StatLevel(target, STAT_current_hp);
+	long max_hp = StatLevel(target, STAT_max_hit_points);
 	if (curr_hp < max_hp) return 0;
 
 	DisplayConsoleMessage(SuperStimMsg);
 	return -1;
 }
 
-static const DWORD UseItemHookRet = 0x49C5F4;
-static void __declspec(naked) SuperStimFix() {
+static const DWORD protinst_use_item_on_Ret = 0x49C5F4;
+static void __declspec(naked) protinst_use_item_on_hack() {
 	__asm {
 		push ecx;
-		mov  ecx, ebx;       // ecx - item
-		call SuperStimFix2;  // edx - target
+		mov  ecx, ebx;     // ecx - item
+		call SuperStimFix; // edx - target
 		pop  ecx;
 		test eax, eax;
 		jnz  end;
-		mov  ebp, -1;        // overwritten engine code
+		mov  ebp, -1;      // overwritten engine code
 		retn;
 end:
-		add  esp, 4;         // destroy ret
-		jmp  UseItemHookRet; // exit
-	}
-}
-
-static int invenApCost, invenApCostDef;
-static char invenApQPReduction;
-void _stdcall SetInvenApCost(int cost) {
-	invenApCost = cost;
-}
-static const DWORD inven_ap_cost_hack_ret = 0x46E816;
-static void __declspec(naked) inven_ap_cost_hack() {
-	_asm {
-		movzx ebx, byte ptr invenApQPReduction;
-		mul bl;
-		mov edx, invenApCost;
-		sub edx, eax;
-		mov eax, edx;
-		jmp inven_ap_cost_hack_ret;
+		add  esp, 4;       // destroy ret
+		jmp  protinst_use_item_on_Ret; // exit
 	}
 }
 
@@ -690,10 +659,10 @@ static void __declspec(naked) do_move_timer_hook() {
 		pushadc;
 	}
 
-	KeyDown(ItemFastMoveKey); // check pressed
+	KeyDown(itemFastMoveKey); // check pressed
 
 	__asm {
-		cmp  SkipFromContainer, 0;
+		cmp  skipFromContainer, 0;
 		jz   noSkip;
 		cmp  dword ptr [esp + 0x14 + 16], 0x474A43;
 		jnz  noSkip;
@@ -710,6 +679,37 @@ end:
 	}
 }
 
+static int invenApCost, invenApCostDef;
+static char invenApQPReduction;
+static const DWORD inven_ap_cost_Ret = 0x46E812;
+static void __declspec(naked) inven_ap_cost_hack() {
+	_asm {
+		mul byte ptr invenApQPReduction;
+		mov edx, invenApCost;
+		jmp inven_ap_cost_Ret;
+	}
+}
+
+static bool onlyOnceAP = false;
+inline static void ApplyInvenApCostPatch() {
+	MakeJump(0x46E80B, inven_ap_cost_hack);
+	onlyOnceAP = true;
+}
+
+void _stdcall SetInvenApCost(int cost) {
+	invenApCost = cost;
+	if (!onlyOnceAP) ApplyInvenApCostPatch();
+}
+
+// TODO: Make GetInvenApCost() function
+/*long GetInvenApCost() {
+	long plevel = PerkLevel(*ptr_obj_dude, PERK_quick_pockets);
+	return invenApCost - (invenApQPReduction * plevel);
+}*/
+
+void InventoryReset() {
+	invenApCost = invenApCostDef;
+}
 
 void InventoryInit() {
 	sizeLimitMode = GetPrivateProfileInt("Misc", "CritterInvSizeLimitMode", 0, ini);
@@ -762,13 +762,17 @@ void InventoryInit() {
 		}
 	}
 
-	invenApCost = invenApCostDef = GetPrivateProfileInt("Misc", "InventoryApCost", 4, ini);
-	invenApQPReduction = GetPrivateProfileInt("Misc", "QuickPocketsApCostReduction", 2, ini);
-	MakeJump(0x46E80B, inven_ap_cost_hack);
-
 	if(GetPrivateProfileInt("Misc", "SuperStimExploitFix", 0, ini)) {
 		GetPrivateProfileString("sfall", "SuperStimExploitMsg", "You cannot use a super stim on someone who is not injured!", SuperStimMsg, 128, translationIni);
-		MakeCall(0x49C3D9, SuperStimFix);
+		MakeCall(0x49C3D9, protinst_use_item_on_hack);
+	}
+
+	reloadWeaponKey = GetPrivateProfileInt("Input", "ReloadWeaponKey", 0, ini);
+
+	invenApCost = invenApCostDef = GetPrivateProfileInt("Misc", "InventoryApCost", 4, ini);
+	invenApQPReduction = GetPrivateProfileInt("Misc", "QuickPocketsApCostReduction", 2, ini);
+	if (invenApCostDef != 4 || invenApQPReduction != 2) {
+		ApplyInvenApCostPatch();
 	}
 
 	if(GetPrivateProfileInt("Misc", "CheckWeaponAmmoCost", 0, ini)) {
@@ -777,8 +781,6 @@ void InventoryInit() {
 		HookCall(0x42A95D, ai_try_attack_hook); // jz func
 		MakeCall(0x4234B3, compute_spray_hack, 1);
 	}
-
-	ReloadWeaponKey = GetPrivateProfileInt("Input", "ReloadWeaponKey", 0, ini);
 
 	if (GetPrivateProfileIntA("Misc", "StackEmptyWeapons", 0, ini)) {
 		MakeCall(0x4736C6, inven_action_cursor_hack);
@@ -794,11 +796,11 @@ void InventoryInit() {
 		SafeWrite8(0x476569, 0x91);               // xchg ecx, eax
 	};
 
-	ItemFastMoveKey = GetPrivateProfileIntA("Input", "ItemFastMoveKey", DIK_LCONTROL, ini);
-	if (ItemFastMoveKey > 0) {
+	itemFastMoveKey = GetPrivateProfileIntA("Input", "ItemFastMoveKey", DIK_LCONTROL, ini);
+	if (itemFastMoveKey > 0) {
 		HookCall(0x476897, do_move_timer_hook);
 		// Do not call the 'Move Items' window when taking items from containers or corpses
-		SkipFromContainer = GetPrivateProfileIntA("Input", "FastMoveFromContainer", 0, ini);
+		skipFromContainer = GetPrivateProfileIntA("Input", "FastMoveFromContainer", 0, ini);
 	}
 
 	if (GetPrivateProfileIntA("Misc", "ItemCounterDefaultMax", 0, ini)) {
@@ -817,8 +819,4 @@ void InventoryInit() {
 		MakeCall(0x4759F1, barter_inventory_hack_scroll);
 		*((DWORD*)_max) = 100;
 	};
-}
-
-void InventoryReset() {
-	invenApCost = invenApCostDef;
 }

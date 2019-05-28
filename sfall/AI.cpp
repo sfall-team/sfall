@@ -72,6 +72,17 @@ tryHeal:
 	}
 }
 
+static void __declspec(naked) ai_check_drugs_hook() {
+	__asm {
+		call stat_level_;                            // current hp
+		mov  edx, dword ptr [esp + 0x34 - 0x1C + 4]; // ai cap
+		mov  edx, [edx + 0x10];                      // min_hp
+		cmp  eax, edx;                               // curr_hp < cap.min_hp
+		cmovl edi, edx;
+		retn;
+	}
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 
 static DWORD RetryCombatLastAP;
@@ -190,6 +201,9 @@ void AIInit() {
 
 	// Fix to allow fleeing NPC to use drugs
 	MakeCall(0x42B1DC, combat_ai_hack);
+	// Fix for AI not checking minimum hp properly for using stimpaks (prevents premature fleeing)
+	HookCall(0x428579, ai_check_drugs_hook);
+
 	// Fix for NPC stuck in fleeing mode when the hit chance of a target was too low
 	HookCall(0x42B1E3, combat_ai_hook_FleeFix);
 	HookCall(0x42ABA8, ai_try_attack_hook_FleeFix);

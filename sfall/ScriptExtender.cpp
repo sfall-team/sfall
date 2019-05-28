@@ -1224,7 +1224,7 @@ long objUniqueID = UID_START; // saving to sfallgv.sav
 // player ID = 18000, all party members have ID = 18000 + its pid (file number of prototype)
 long SetObjectUniqueID(TGameObj* obj) {
 	long id = obj->ID;
-	if (id > UID_START || obj == *ptr_obj_dude || (id >= 18000 && id < 83536)) return id; // 65535 maximum possible number of prototypes
+	if (id > UID_START || obj == *ptr_obj_dude || (id >= PLAYER_ID && id < 83536)) return id; // 65535 maximum possible number of prototypes
 
 	if ((DWORD)objUniqueID >= UID_END) objUniqueID = UID_START;
 	obj->ID = ++objUniqueID;
