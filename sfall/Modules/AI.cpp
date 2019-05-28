@@ -113,12 +113,7 @@ end:
 tryHeal:
 		mov  eax, esi;
 		call fo::funcoffs::ai_check_drugs_;
-		push edx;
-		mov  eax, esi;
-		mov  edx, STAT_current_hp;
-		call fo::funcoffs::stat_level_;
-		pop  edx;
-		cmp  eax, edx; // edx - minimum hp, below which NPC will run away
+		cmp  [esi + health], edx; // edx - minimum hp, below which NPC will run away
 		jge  end;
 		retn; // flee
 	}
