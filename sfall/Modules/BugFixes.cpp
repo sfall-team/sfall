@@ -1955,9 +1955,9 @@ skip:
 
 static void __declspec(naked) partyFixMultipleMembers_hook() {
 	__asm {
-		mov  edx, [esi + protoId];
-		sar  edx, 24;
-		cmp  edx, OBJ_TYPE_CRITTER;
+		mov  ebx, [esi + protoId];
+		sar  ebx, 24;
+		cmp  ebx, OBJ_TYPE_CRITTER;
 		jne  noDrop;                        // not critter
 		test [esi + damageFlags], DAM_DEAD;
 		jnz  isDead;
@@ -1973,11 +1973,13 @@ isDead:
 		cmp  eax, -1;
 		je   noBlood;
 		mov  eax, [esp - 4];                // object
+		push ebx;
 //		mov  [eax + frm], 3;                // set frame
-		mov  ebx, [esi + elevation];
 		mov  edx, [esi + tile];
+		mov  ebx, [esi + elevation];
 		xor  ecx, ecx;
 		call fo::funcoffs::obj_move_to_tile_;
+		pop  ebx;
 noBlood:
 		mov  eax, [esi + protoId];
 		mov  edx, 0x40;                     // noDrop flag
@@ -1991,6 +1993,11 @@ noBlood:
 noDrop:
 		xor  edx, edx;
 		call fo::funcoffs::obj_erase_object_;
+		cmp  ebx, OBJ_TYPE_CRITTER;
+		jnz  skip;
+		mov  eax, esi;
+		jmp  fo::funcoffs::combat_delete_critter_;
+skip:
 		retn;
 	}
 }
