@@ -1924,13 +1924,13 @@ skip:
 
 static void __declspec(naked) partyFixMultipleMembers_hook() {
 	__asm {
-		mov  edx, [esi + 0x64];
-		sar  edx, 24;
-		cmp  edx, OBJ_TYPE_CRITTER;
+		mov  ebx, [esi + 0x64];
+		sar  ebx, 24;
+		cmp  ebx, OBJ_TYPE_CRITTER;
 		jne  noDrop;                        // not critter
 		test [esi + 0x44], DAM_DEAD;
 		jnz  isDead;
-		cmp  dword ptr [esi + 0x58], 0;
+		cmp  dword ptr [esi + 0x58], 0;     // critter.health
 		jg   noBlood;                       // is not dead
 isDead:
 		// create generic blood
@@ -1942,11 +1942,13 @@ isDead:
 		cmp  eax, -1;
 		je   noBlood;
 		mov  eax, [esp - 4];                // object
+		push ebx;
 //		mov  [eax + 0x18], 3;               // set frame
-		mov  ebx, [esi + 0x28];             // critter.elev
 		mov  edx, [esi + 0x04];             // critter.tile
+		mov  ebx, [esi + 0x28];             // critter.elev
 		xor  ecx, ecx;
 		call obj_move_to_tile_;
+		pop  ebx;
 noBlood:
 		mov  eax, [esi + 0x64];
 		mov  edx, 0x40;                     // noDrop flag
@@ -1960,6 +1962,11 @@ noBlood:
 noDrop:
 		xor  edx, edx;
 		call obj_erase_object_;
+		cmp  ebx, OBJ_TYPE_CRITTER;
+		jnz  skip;
+		mov  eax, esi;
+		jmp  combat_delete_critter_;
+skip:
 		retn;
 	}
 }

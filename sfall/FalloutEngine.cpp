@@ -271,6 +271,7 @@ const DWORD combat_ = 0x422D2C;
 const DWORD combat_ai_ = 0x42B130;
 const DWORD combat_anim_finished_ = 0x425E80;
 const DWORD combat_attack_ = 0x422F3C;
+const DWORD combat_delete_critter_ = 0x426DDC;
 const DWORD combat_input_ = 0x4227F4;
 const DWORD combat_should_end_ = 0x422C60;
 const DWORD combat_turn_ = 0x42299C;
