@@ -1953,50 +1953,16 @@ skip:
 	}
 }
 
-static void __declspec(naked) partyFixMultipleMembers_hook() {
+static void __declspec(naked) partyFixMultipleMembers_hack() {
 	__asm {
-		mov  ebx, [esi + protoId];
-		sar  ebx, 24;
-		cmp  ebx, OBJ_TYPE_CRITTER;
-		jne  noDrop;                        // not critter
-		test [esi + damageFlags], DAM_DEAD;
-		jnz  isDead;
-		cmp  dword ptr [esi + health], 0;
-		jg   noBlood;                       // is not dead
-isDead:
-		// create generic blood
-		sub  esp, 4;
-		mov  eax, esp                       // object buf
-		mov  edx, 0x5000004;                // pid
-		call fo::funcoffs::obj_pid_new_;
-		add  esp, 4;
-		cmp  eax, -1;
-		je   noBlood;
-		mov  eax, [esp - 4];                // object
-		push ebx;
-//		mov  [eax + frm], 3;                // set frame
-		mov  edx, [esi + tile];
-		mov  ebx, [esi + elevation];
-		xor  ecx, ecx;
-		call fo::funcoffs::obj_move_to_tile_;
-		pop  ebx;
-noBlood:
+		cmp  esi, edx;
+		je   skip;
 		mov  eax, [esi + protoId];
-		mov  edx, 0x40;                     // noDrop flag
-		call fo::funcoffs::critter_flag_check_;
-		test eax, eax;
-		mov  eax, esi;
-		jnz  noDrop;                        // flag is set
-		mov  edx, [esi + tile];
-		call fo::funcoffs::item_drop_all_;
-		mov  eax, esi;
-noDrop:
-		xor  edx, edx;
-		call fo::funcoffs::obj_erase_object_;
-		cmp  ebx, OBJ_TYPE_CRITTER;
-		jnz  skip;
-		mov  eax, esi;
-		jmp  fo::funcoffs::combat_delete_critter_;
+		sar  eax, 24;
+		cmp  eax, OBJ_TYPE_CRITTER;
+		jne  skip;
+		test [esi + damageFlags], DAM_DEAD;
+		cmovnz edx, esi;
 skip:
 		retn;
 	}
@@ -2654,7 +2620,7 @@ void BugFixes::init()
 	dlogr(" Done", DL_INIT);
 
 	// Fix for the removal of party member's corpse when loading the map
-	HookCall(0x4957B8, partyFixMultipleMembers_hook);
+	MakeCall(0x495769, partyFixMultipleMembers_hack, 1);
 
 	// Fix for unexplored areas being revealed on the automap when entering a map
 	MakeCall(0x48A76B, obj_move_to_tile_hack_seen, 1);
