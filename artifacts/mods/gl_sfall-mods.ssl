@@ -25,8 +25,11 @@ procedure KeyPressHandler;
 procedure pickup_ground_items;
 procedure pickup_info();
 procedure distance_sort(variable array);
+procedure weapon_drop;
+procedure DeathAmimHandler;
 
-variable quickAmmoReload, pickupKey, pickupItem, temp;
+variable quickAmmoReload, pickupKey, keyMod, pickupItem, temp;
+variable deathNpcArray, countDeath;
 
 procedure start begin
    variable sfall_version;
@@ -46,6 +49,11 @@ procedure start begin
             quickAmmoReload := true;
          end
       end
+      if (GetConfig("Inventory", "DropItemsOnDeath", 0)) then begin
+         register_hook_proc(HOOK_DEATHANIM2, DeathAmimHandler);
+         deathNpcArray := create_array_list(8);
+      end
+      keyMod := GetConfig("Misc", "CombatKeyMod", 0);
 
       // Fix the lighting of the map from the night vision perk when loading the game
       if has_trait(TRAIT_PERK, dude_obj, PERK_night_vision) then begin
@@ -114,27 +122,32 @@ procedure KeyPressHandler begin
    int     ret1 - overrides the pressed key (a new key DX scancode or 0 for no override)
 */
    variable pressed := get_sfall_arg,
-            keyDX   := get_sfall_arg;
+            keyDX   := get_sfall_arg,
+            mode;
 
    if (pressed) then begin
+      mode := get_game_mode;
        // Close inventory when re-pressing the 'I' key
-      if (keyDX == DIK_I and (get_game_mode bwand INVENTORY)) then begin
+      if (keyDX == DIK_I and (mode bwand INVENTORY)) then begin
          tap_key(DIK_ESCAPE);
       end
-      else if (keyDX == DIK_S and (get_game_mode bwand SKILLDEX)) then begin
+      else if (keyDX == DIK_S and (mode bwand SKILLDEX)) then begin
          tap_key(DIK_ESCAPE);
       end
-      else if (keyDX == DIK_Z and (get_game_mode bwand PIPBOY)) then begin
+      else if (keyDX == DIK_Z and (mode bwand PIPBOY)) then begin
          tap_key(DIK_ESCAPE);
       end
-      else if (keyDX == DIK_A and combat_is_initialized) then begin
+      else if (not(pickupItem) and keyDX == pickupKey and (mode == 0)) then begin
+         call pickup_ground_items;
+      end
+      else if (keyMod and keyDX == DIK_A and (mode bwand (COMBAT bwor PCOMBAT))) then begin
          if get_cursor_mode != CURSOR_TARGETING then
             set_cursor_mode(CURSOR_TARGETING);
          else
             set_cursor_mode(CURSOR_MOVEMENT);
       end
-      else if (not(pickupItem) and keyDX == pickupKey and (get_game_mode == 0)) then begin
-         call pickup_ground_items;
+      else if (keyMod and keyDX == DIK_E and (mode bwand (COMBAT bwor PCOMBAT))) then begin
+            tap_key(DIK_RETURN);
       end
    end
 end
@@ -186,4 +199,47 @@ procedure distance_sort(variable array) begin
    end
    sort_array(sortArray);
    return sortArray;
+end
+
+procedure weapon_drop begin
+   variable deathNpc, dropped_hex, weapon, elev, i;
+
+   while (i < countDeath) do begin
+      deathNpc := deathNpcArray[i];
+      i++;
+      if (get_proto_data(obj_pid(deathNpc), PROTO_CR_FLAGS) bwand CFLG_NODROP) then return;
+      elev := elevation(deathNpc);
+
+      weapon := critter_inven_obj(deathNpc, INVEN_TYPE_RIGHT_HAND);
+      if (weapon) then begin
+         set_flags(weapon, get_flags(weapon) bwand bwnot(FLAG_RIGHT_HAND));
+         rm_obj_from_inven(deathNpc, weapon);
+         dropped_hex := tile_num_in_direction(tile_num(deathNpc), random(0, 5), 1);
+         if (obj_blocking_tile(dropped_hex, elev, BLOCKING_TYPE_BLOCK) != 0) then begin
+            dropped_hex := tile_num(deathNpc);
+         end
+         move_to(weapon, dropped_hex, elev);
+      end
+
+      weapon := critter_inven_obj(deathNpc, INVEN_TYPE_LEFT_HAND);
+      if (weapon) then begin
+         set_flags(weapon, get_flags(weapon) bwand bwnot(FLAG_LEFT_HAND));
+         rm_obj_from_inven(deathNpc, weapon);
+         dropped_hex := tile_num_in_direction(tile_num(deathNpc), random(0, 5), 1);
+         if (obj_blocking_tile(dropped_hex, elev, BLOCKING_TYPE_BLOCK) != 0) then begin
+            dropped_hex := tile_num(deathNpc);
+         end
+         move_to(weapon, dropped_hex, elev);
+      end
+   end
+   countDeath := 0;
+end
+
+procedure DeathAmimHandler begin
+   variable args := get_sfall_args;
+   if (args[2] != real_dude_obj) then begin
+      deathNpcArray[countDeath] := args[2];
+      countDeath++;
+      if (countDeath == 1) then call weapon_drop in 1; // delay event
+   end
 end

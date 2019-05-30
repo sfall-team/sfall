@@ -19,26 +19,32 @@ procedure map_enter_p_proc;
 
 /* Local variables which do not need to be saved between map changes */
 variable begin
-   iniAmmo;
+   iniAmmo := "";
    ammoData;
+   enabled;
 end
 
 procedure start begin
 variable i := 1, sectionAmmo;
 
    if game_loaded then begin
-      iniAmmo := get_ini_setting("ddraw.ini|Misc|DamageFormula");
-        switch (iniAmmo) begin
-         //case 1 : iniAmmo := "AmmoGlovz.ini";
-         //case 2 : iniAmmo := "AmmoGlovz.ini";
-         case 5 : iniAmmo := "AmmoYAAM.ini";
-         default : iniAmmo := GetConfigStr("Misc", "AmmoFile", "");
+      enabled := get_ini_setting("ddraw.ini|Misc|DamageFormula");
+      if (enabled == 1 or enabled == 2) then
+         iniAmmo := "AmmoGlovz.ini";
+      else if (enabled == 5) then
+         iniAmmo := "AmmoYAAM.ini";
+      else begin
+         iniAmmo := GetConfigStr("Misc", "AmmoFile", "");
       end
-      if (iniAmmo == "") then return;
+      if (iniAmmo == "") then begin
+         enabled := 0;
+         return;
+      end
+      enabled := get_ini_setting(iniAmmo + "|1|pid");
+      if (enabled <= 0) then return;
 
       ammoData := create_array_map;
       sectionAmmo := get_ini_section(iniAmmo, "" + i);
-
       while (sectionAmmo.pid) do begin
          variable ammo := create_array_map; // create permanent arrays
          ammo.dam_mult := atoi(sectionAmmo.dam_mult);
@@ -56,11 +62,12 @@ end
 
 procedure map_enter_p_proc begin
    variable values, pid;
-
-   foreach (pid : values in ammoData) begin
-      set_proto_data(pid, PROTO_AM_DMG_MULT, values.dam_mult);
-      set_proto_data(pid, PROTO_AM_DMG_DIV, values.dam_div);
-      set_proto_data(pid, PROTO_AM_DR_MOD, values.dr_adjust);
-      set_proto_data(pid, PROTO_AM_AC_MOD, values.ac_adjust);
+   if (enabled > 0) then begin
+      foreach (pid : values in ammoData) begin
+         set_proto_data(pid, PROTO_AM_DMG_MULT, values.dam_mult);
+         set_proto_data(pid, PROTO_AM_DMG_DIV, values.dam_div);
+         set_proto_data(pid, PROTO_AM_DR_MOD, values.dr_adjust);
+         set_proto_data(pid, PROTO_AM_AC_MOD, values.ac_adjust);
+      end
    end
 end

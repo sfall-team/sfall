@@ -463,7 +463,7 @@ static void __declspec(naked) ai_try_attack_hook_switch() {
 static bool __fastcall sf_ai_check_target(fo::GameObject* source, fo::GameObject* target) {
 
 	int distance = fo::func::obj_dist(source, target);
-	if (distance == 0) return false;
+	if (distance <= 1) return false;
 
 	bool shotIsBlock = fo::func::combat_is_shot_blocked(source, source->tile, target->tile, target, 0);
 
