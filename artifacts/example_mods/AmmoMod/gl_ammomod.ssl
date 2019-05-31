@@ -46,12 +46,12 @@ end
 procedure start begin
    if game_loaded then begin
       ammoIni := get_ini_setting("ddraw.ini|Misc|DamageFormula");
-      switch (ammoIni) begin
-         case 1: ammoIni := "AmmoGlovz.ini";
-         case 2: ammoIni := "AmmoGlovz.ini";
-         case 5: ammoIni := "AmmoYAAM.ini";
-         default: ammoIni := "AmmoMod.ini";
-      end
+      if (ammoIni == 1 or ammoIni == 2) then
+         ammoIni := "AmmoGlovz.ini";
+      else if (ammoIni == 5) then
+         ammoIni := "AmmoYAAM.ini";
+      else
+         ammoIni := "AmmoMod.ini";
 
       enabled := get_ini_setting(ammoIni + "|1|pid");
       if (enabled > 0) then call set_ammo_mod;
