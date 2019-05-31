@@ -17,7 +17,7 @@
  */
 
 #include <cassert>
-#include <set>
+//#include <unordered_set>
 #include <string>
 #include <unordered_map>
 #include <map>
@@ -34,9 +34,11 @@
 #include "LoadGameHook.h"
 #include "MainLoopHook.h"
 #include "Worldmap.h"
+
 #include "Scripting\Arrays.h"
 #include "Scripting\Opcodes.h"
 #include "Scripting\OpcodeContext.h"
+#include "Scripting\Handlers\Anims.h"
 
 #include "ScriptExtender.h"
 
@@ -76,6 +78,8 @@ struct SelfOverrideObj {
 	fo::GameObject* object;
 	char counter;
 
+	SelfOverrideObj(fo::GameObject* obj) : object(obj), counter(0) {}
+
 	bool UnSetSelf() {
 		if (counter) counter--;
 		return counter == 0;
@@ -102,7 +106,7 @@ DWORD isGlobalScriptLoading = 0;
 std::unordered_map<__int64, int> globalVars;
 typedef std::unordered_map<__int64, int> :: iterator glob_itr;
 typedef std::unordered_map<__int64, int> :: const_iterator glob_citr;
-typedef std::pair<__int64, int> glob_pair;
+//typedef std::pair<__int64, int> glob_pair;
 
 DWORD availableGlobalScriptTypes = 0;
 bool isGameLoading;
@@ -341,7 +345,7 @@ void __fastcall SetGlobalScriptType(fo::Program* script, int type) {
 static void SetGlobalVarInternal(__int64 var, int val) {
 	glob_itr itr = globalVars.find(var);
 	if (itr == globalVars.end()) {
-		globalVars.insert(glob_pair(var, val));
+		globalVars.emplace(var, val);
 	} else {
 		if (val == 0) {
 			globalVars.erase(itr);    // applies for both float 0.0 and integer 0
@@ -395,10 +399,10 @@ void __fastcall SetSelfObject(fo::Program* script, fo::GameObject* obj) {
 				it->second.counter = 0;
 			}
 		} else {
-			selfOverrideMap[script] = {obj, 0};
+			selfOverrideMap.emplace(script, obj);
 		}
-	} else {
-		if (isFind) selfOverrideMap.erase(it);
+	} else if (isFind) {
+		selfOverrideMap.erase(it);
 	}
 }
 
@@ -525,21 +529,6 @@ bool _stdcall ScriptHasLoaded(fo::Program* script) {
 	return true;
 }
 
-void _stdcall RegAnimCombatCheck(DWORD newValue) {
-	char oldValue = regAnimCombatCheck;
-	regAnimCombatCheck = (newValue > 0);
-	if (oldValue != regAnimCombatCheck) {
-		SafeWrite8(0x459C97, regAnimCombatCheck); // reg_anim_func
-		SafeWrite8(0x459D4B, regAnimCombatCheck); // reg_anim_animate
-		SafeWrite8(0x459E3B, regAnimCombatCheck); // reg_anim_animate_reverse
-		SafeWrite8(0x459EEB, regAnimCombatCheck); // reg_anim_obj_move_to_obj
-		SafeWrite8(0x459F9F, regAnimCombatCheck); // reg_anim_obj_run_to_obj
-		SafeWrite8(0x45A053, regAnimCombatCheck); // reg_anim_obj_move_to_tile
-		SafeWrite8(0x45A10B, regAnimCombatCheck); // reg_anim_obj_run_to_tile
-		SafeWrite8(0x45AE53, regAnimCombatCheck); // reg_anim_animate_forever
-	}
-}
-
 // this runs before actually loading/starting the game
 static void ClearGlobalScripts() {
 	isGameLoading = true;
@@ -580,11 +569,7 @@ static void RunScript(GlobalScript* script) {
 	- reset reg_anim_* combatstate checks
 */
 static void ResetStateAfterFrame() {
-	if (!tempArrays.empty()) {
-		for (std::set<DWORD>::iterator it = tempArrays.begin(); it != tempArrays.end(); ++it)
-			FreeArray(*it);
-		tempArrays.clear();
-	}
+	DeleteAllTempArrays();
 	RegAnimCombatCheck(1);
 }
 
@@ -646,7 +631,7 @@ bool LoadGlobals(HANDLE h) {
 	GlobalVar var;
 	for (DWORD i = 0; i < count; i++) {
 		ReadFile(h, &var, sizeof(GlobalVar), &unused, 0);
-		globalVars.insert(glob_pair(var.id, var.val));
+		globalVars.emplace(var.id, var.val);
 	}
 	return false;
 }
@@ -694,6 +679,17 @@ void SetGlobals(GlobalVar* globals) {
 	while (itr != globalVars.end()) {
 		itr->second = globals[i++].val;
 		itr++;
+	}
+}
+
+static void __declspec(naked) map_save_in_game_hook() {
+	__asm {
+		call fo::funcoffs::partyMemberSaveProtos_;
+		test cl, 1;
+		jz   skip;
+		call fo::funcoffs::queue_leaving_map_;
+skip:
+		jmp  fo::funcoffs::game_time_;
 	}
 }
 
@@ -750,6 +746,12 @@ void ScriptExtender::init() {
 	// combat_is_starting_p_proc / combat_is_over_p_proc
 	HookCall(0x421B72, CombatBeginHook);
 	HookCall(0x421FC1, CombatOverHook);
+
+	// Reorder the execution of functions before exiting the map
+	// Call saving party member prototypes and removing the drug effects for NPC after executing map_exit_p_proc procedure
+	HookCall(0x483CF9, map_save_in_game_hook);
+	BlockCall(0x483CB4); // partyMemberSaveProtos_
+	BlockCall(0x483CBE); // queue_leaving_map_
 
 	InitNewOpcodes();
 }

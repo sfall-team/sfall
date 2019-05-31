@@ -26,11 +26,95 @@
 
 namespace sfall
 {
+using namespace fo;
+using namespace Fields;
 
-typedef std::unordered_map<DWORD, DWORD> :: const_iterator iter;
+typedef std::unordered_map<DWORD, DWORD>::const_iterator iter;
 
-static std::unordered_map<DWORD,DWORD> targets;
-static std::unordered_map<DWORD,DWORD> sources;
+static std::unordered_map<DWORD, DWORD> targets;
+static std::unordered_map<DWORD, DWORD> sources;
+
+static void __declspec(naked) ai_try_attack_hook_FleeFix() {
+	__asm {
+		or   byte ptr [esi + combatState], 8; // set new 'ReTarget' flag
+		jmp  fo::funcoffs::ai_run_away_;
+	}
+}
+
+static const DWORD combat_ai_hook_flee_Ret = 0x42B22F;
+static void __declspec(naked) combat_ai_hook_FleeFix() {
+	__asm {
+		test byte ptr [ebp], 8; // 'ReTarget' flag (critter.combat_state)
+		jnz  reTarget;
+		jmp  fo::funcoffs::critter_name_;
+reTarget:
+		and  byte ptr [ebp], ~(4 | 8); // unset Flee/ReTarget flags
+		xor  edi, edi;
+		mov  dword ptr [esi + whoHitMe], edi;
+		add  esp, 4;
+		jmp  combat_ai_hook_flee_Ret;
+	}
+}
+
+static const DWORD combat_ai_hack_Ret = 0x42B204;
+static void __declspec(naked) combat_ai_hack() {
+	__asm {
+		mov  edx, [ebx + 0x10]; // cap.min_hp
+		cmp  eax, edx;
+		jl   tryHeal; // curr_hp < min_hp
+end:
+		add  esp, 4;
+		jmp  combat_ai_hack_Ret;
+tryHeal:
+		mov  eax, esi;
+		call fo::funcoffs::ai_check_drugs_;
+		cmp  [esi + health], edx; // edx - minimum hp, below which NPC will run away
+		jge  end;
+		retn; // flee
+	}
+}
+
+static void __declspec(naked) ai_check_drugs_hook() {
+	__asm {
+		call fo::funcoffs::stat_level_;              // current hp
+		mov  edx, dword ptr [esp + 0x34 - 0x1C + 4]; // ai cap
+		mov  edx, [edx + 0x10];                      // min_hp
+		cmp  eax, edx;                               // curr_hp < cap.min_hp
+		cmovl edi, edx;
+		retn;
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
+static DWORD RetryCombatLastAP;
+static DWORD RetryCombatMinAP;
+static void __declspec(naked) RetryCombatHook() {
+	__asm {
+		mov  RetryCombatLastAP, 0;
+retry:
+		call fo::funcoffs::combat_ai_;
+process:
+		cmp  dword ptr ds:[FO_VAR_combat_turn_running], 0;
+		jle  next;
+		call fo::funcoffs::process_bk_;
+		jmp  process;
+next:
+		mov  eax, [esi + movePoints];
+		cmp  eax, RetryCombatMinAP;
+		jl   end;
+		cmp  eax, RetryCombatLastAP;
+		je   end;
+		mov  RetryCombatLastAP, eax;
+		mov  eax, esi;
+		xor  edx, edx;
+		jmp  retry;
+end:
+		retn;
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////////
 
 static void __fastcall CombatAttackHook(DWORD source, DWORD target) {
 	sources[target] = source;
@@ -107,6 +191,26 @@ void AI::init() {
 	MakeJump(0x45F6AF, BlockCombatHook1);    // intface_use_item_
 	HookCall(0x4432A6, BlockCombatHook2);    // game_handle_input_
 	combatBlockedMessage = Translate("sfall", "BlockedCombat", "You cannot enter combat at this time.");
+
+	RetryCombatMinAP = GetConfigInt("Misc", "NPCsTryToSpendExtraAP", 0);
+	if (RetryCombatMinAP > 0) {
+		dlog("Applying retry combat patch.", DL_INIT);
+		HookCall(0x422B94, RetryCombatHook); // combat_turn_
+		dlogr(" Done", DL_INIT);
+	}
+
+	/////////////////////// Combat AI behavior fixes ///////////////////////
+
+	// Fix to allow fleeing NPC to use drugs
+	MakeCall(0x42B1DC, combat_ai_hack);
+	// Fix for AI not checking minimum hp properly for using stimpaks (prevents premature fleeing)
+	HookCall(0x428579, ai_check_drugs_hook);
+
+	// Fix for NPC stuck in fleeing mode when the hit chance of a target was too low
+	HookCall(0x42B1E3, combat_ai_hook_FleeFix);
+	HookCalls(ai_try_attack_hook_FleeFix, {0x42ABA8, 0x42ACE5});
+	// Disable fleeing when NPC cannot move closer to target
+	BlockCall(0x42ADF6); // ai_try_attack_
 }
 
 DWORD _stdcall AIGetLastAttacker(DWORD target) {

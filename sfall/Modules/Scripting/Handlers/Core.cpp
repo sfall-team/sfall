@@ -77,7 +77,7 @@ void __declspec(naked) op_available_global_script_types() {
 void sf_set_sfall_global(OpcodeContext& ctx) {
 	if (ctx.arg(0).isString()) {
 		if (SetGlobalVar(ctx.arg(0).strValue(), ctx.arg(1).rawValue())) {
-			ctx.printOpcodeError("set_sfall_global() - The name of the global variable must consist of 8 characters.");
+			ctx.printOpcodeError("%s() - the name of the global variable must consist of 8 characters.", ctx.getOpcodeName());
 		}
 	} else {
 		SetGlobalVarInt(ctx.arg(0).rawValue(), ctx.arg(1).rawValue());
@@ -87,7 +87,7 @@ void sf_set_sfall_global(OpcodeContext& ctx) {
 static long GetGlobalVarNameString(OpcodeContext& ctx) {
 	const char* var = ctx.arg(0).strValue();
 	if (strlen(var) != 8) {
-		ctx.printOpcodeError("get_sfall_global() - The name of the global variable must consist of 8 characters.");
+		ctx.printOpcodeError("%s() - the name of the global variable must consist of 8 characters.", ctx.getOpcodeName());
 		return 0;
 	}
 	return GetGlobalVarInternal(*(__int64*)var);

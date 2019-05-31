@@ -1,4 +1,4 @@
-#include <set>
+#include <unordered_set>
 #include <algorithm>
 
 #include "..\ScriptExtender.h"
@@ -22,7 +22,7 @@ ArraysMap arrays;
 // auto-incremented ID
 DWORD nextArrayID = 1;
 // temp arrays: set of arrayId
-std::set<DWORD> tempArrays;
+std::unordered_set<DWORD> tempArrays;
 // saved arrays: arrayKey => arrayId
 ArrayKeysMap savedArrays;
 // special array ID for array expressions
@@ -404,6 +404,15 @@ void _stdcall FreeArray(DWORD id) {
 		savedArrays.erase(it->second.key);
 		it->second.clear();
 		arrays.erase(id);
+	}
+}
+
+void DeleteAllTempArrays() {
+	if (!tempArrays.empty()) {
+		for (std::unordered_set<DWORD>::iterator it = tempArrays.begin(); it != tempArrays.end(); ++it) {
+			FreeArray(*it);
+		}
+		tempArrays.clear();
 	}
 }
 

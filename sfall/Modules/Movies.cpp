@@ -16,7 +16,7 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <vector> // should be above DX SDK includes to avoid warning 4995
+//#include <vector> // should be above DX SDK includes to avoid warning 4995
 
 #include <d3d9.h>
 #include <dshow.h>
@@ -36,11 +36,6 @@ namespace sfall
 
 static DWORD MoviePtrs[MaxMovies];
 char MoviePaths[MaxMovies * 65];
-
-extern IDirect3D9* d3d9;
-extern IDirect3DDevice9* d3d9Device;
-
-#define SAFERELEASE(a) { if (a) { a->Release(); a = 0; } }
 
 class CAllocator : public IVMRSurfaceAllocator9, IVMRImagePresenter9 {
 private:

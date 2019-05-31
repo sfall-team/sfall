@@ -27,7 +27,6 @@ namespace sfall
 {
 namespace script
 {
-using namespace fo;
 
 void __declspec(naked) op_get_perk_owed() {
 	__asm {
@@ -183,218 +182,44 @@ end:
 	}
 }
 
-void __declspec(naked) op_set_selectable_perk() {
-	__asm {
-		pushad;
-		mov ecx, eax;
-		call fo::funcoffs::interpretPopShort_;
-		push eax;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPopLong_;
-		push eax;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPopShort_;
-		push eax;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPopLong_;
-		push eax;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPopShort_;
-		push eax;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPopLong_;
-		push eax;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPopShort_;
-		push eax;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPopLong_;
-		push eax;
+void sf_set_selectable_perk(OpcodeContext& ctx) {
+	Perks::SetSelectablePerk(ctx.arg(0).strValue(), ctx.arg(1).rawValue(), ctx.arg(2).rawValue(), ctx.arg(3).strValue());
+}
 
-		movzx eax, word ptr[esp + 12];
-		cmp eax, VAR_TYPE_INT;
-		jne fail;
-		movzx eax, word ptr[esp + 20];
-		cmp eax, VAR_TYPE_INT;
-		jne fail;
-		movzx eax, word ptr ds : [esp + 4];
-		cmp eax, VAR_TYPE_STR2;
-		je next1;
-		cmp eax, VAR_TYPE_STR;
-		jne fail;
-next1:
-		movzx eax, word ptr ds : [esp + 28];
-		cmp eax, VAR_TYPE_STR2;
-		je next2;
-		cmp eax, VAR_TYPE_STR;
-		jne fail;
-next2:
-		mov eax, ecx;
-		mov edx, [esp + 28];
-		mov ebx, [esp + 24];
-		call fo::funcoffs::interpretGetString_;
-		push eax;
-		mov eax, [esp + 20];
-		push eax;
-		mov eax, [esp + 16];
-		push eax;
-		mov eax, ecx;
-		mov edx, [esp + 16];
-		mov ebx, [esp + 12];
-		call fo::funcoffs::interpretGetString_;
-		push eax;
+void sf_set_fake_perk(OpcodeContext& ctx) {
+	Perks::SetFakePerk(ctx.arg(0).strValue(), ctx.arg(1).rawValue(), ctx.arg(2).rawValue(), ctx.arg(3).strValue());
+}
 
-		call SetSelectablePerk;
-fail:
-		add esp, 32;
-		popad;
-		retn;
+void sf_set_fake_trait(OpcodeContext& ctx) {
+	Perks::SetFakeTrait(ctx.arg(0).strValue(), ctx.arg(1).rawValue(), ctx.arg(2).rawValue(), ctx.arg(3).strValue());
+}
+
+const char* notPartyMemberErr = "%s() - the object is not a party member.";
+
+void sf_set_selectable_perk_npc(OpcodeContext& ctx) {
+	auto obj = ctx.arg(0).asObject();
+	if (obj->Type() == fo::ObjType::OBJ_TYPE_CRITTER && fo::func::isPartyMember(obj)) {
+		Perks::SetSelectablePerk(ctx.arg(1).strValue(), ctx.arg(2).rawValue(), ctx.arg(3).rawValue(), ctx.arg(4).strValue(), (obj->id != PLAYER_ID) ? obj->id : 0);
+	} else {
+		ctx.printOpcodeError(notPartyMemberErr, ctx.getMetaruleName());
 	}
 }
 
-void __declspec(naked) op_set_fake_perk() {
-	__asm {
-		pushad;
-		mov ecx, eax;
-		call fo::funcoffs::interpretPopShort_;
-		push eax;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPopLong_;
-		push eax;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPopShort_;
-		push eax;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPopLong_;
-		push eax;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPopShort_;
-		push eax;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPopLong_;
-		push eax;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPopShort_;
-		push eax;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPopLong_;
-		push eax;
-
-		movzx eax, word ptr[esp + 12];
-		cmp eax, VAR_TYPE_INT;
-		jne fail;
-		movzx eax, word ptr[esp + 20];
-		cmp eax, VAR_TYPE_INT;
-		jne fail;
-		movzx eax, word ptr ds : [esp + 4];
-		cmp eax, VAR_TYPE_STR2;
-		je next1;
-		cmp eax, VAR_TYPE_STR;
-		jne fail;
-next1:
-		movzx eax, word ptr ds : [esp + 28];
-		cmp eax, VAR_TYPE_STR2;
-		je next2;
-		cmp eax, VAR_TYPE_STR;
-		jne fail;
-next2:
-		mov eax, ecx;
-		mov edx, [esp + 28];
-		mov ebx, [esp + 24];
-		call fo::funcoffs::interpretGetString_;
-		push eax;
-		mov eax, [esp + 20];
-		push eax;
-		mov eax, [esp + 16];
-		push eax;
-		mov eax, ecx;
-		mov edx, [esp + 16];
-		mov ebx, [esp + 12];
-		call fo::funcoffs::interpretGetString_;
-		push eax;
-
-		call SetFakePerk;
-fail:
-		add esp, 32;
-		popad;
-		retn;
+void sf_set_fake_perk_npc(OpcodeContext& ctx) {
+	auto obj = ctx.arg(0).asObject();
+	if (obj->Type() == fo::ObjType::OBJ_TYPE_CRITTER && fo::func::isPartyMember(obj)) {
+		Perks::SetFakePerk(ctx.arg(1).strValue(), ctx.arg(2).rawValue(), ctx.arg(3).rawValue(), ctx.arg(4).strValue(), (obj->id != PLAYER_ID) ? obj->id : 0);
+	} else {
+		ctx.printOpcodeError(notPartyMemberErr, ctx.getMetaruleName());
 	}
 }
 
-void __declspec(naked) op_set_fake_trait() {
-	__asm {
-		push ebx;
-		push ecx;
-		push edx;
-		push edi;
-		push esi;
-		mov ecx, eax;
-		call fo::funcoffs::interpretPopShort_;
-		push eax;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPopLong_;
-		push eax;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPopShort_;
-		push eax;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPopLong_;
-		push eax;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPopShort_;
-		push eax;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPopLong_;
-		push eax;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPopShort_;
-		push eax;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPopLong_;
-		push eax;
-
-		movzx eax, word ptr[esp + 12];
-		cmp eax, VAR_TYPE_INT;
-		jne fail;
-		movzx eax, word ptr[esp + 20];
-		cmp eax, VAR_TYPE_INT;
-		jne fail;
-		movzx eax, word ptr ds : [esp + 4];
-		cmp eax, VAR_TYPE_STR2;
-		je next1;
-		cmp eax, VAR_TYPE_STR;
-		jne fail;
-next1:
-		movzx eax, word ptr ds : [esp + 28];
-		cmp eax, VAR_TYPE_STR2;
-		je next2;
-		cmp eax, VAR_TYPE_STR;
-		jne fail;
-next2:
-		mov eax, ecx;
-		mov edx, [esp + 28];
-		mov ebx, [esp + 24];
-		call fo::funcoffs::interpretGetString_;
-		push eax;
-		mov eax, [esp + 20];
-		push eax;
-		mov eax, [esp + 16];
-		push eax;
-		mov eax, ecx;
-		mov edx, [esp + 16];
-		mov ebx, [esp + 12];
-		call fo::funcoffs::interpretGetString_;
-		push eax;
-
-		call SetFakeTrait;
-fail:
-		add esp, 32;
-		pop esi;
-		pop edi;
-		pop edx;
-		pop ecx;
-		pop ebx;
-		retn;
+void sf_set_fake_trait_npc(OpcodeContext& ctx) {
+	auto obj = ctx.arg(0).asObject();
+	if (obj->Type() == fo::ObjType::OBJ_TYPE_CRITTER && fo::func::isPartyMember(obj)) {
+		Perks::SetFakeTrait(ctx.arg(1).strValue(), ctx.arg(2).rawValue(), ctx.arg(3).rawValue(), ctx.arg(4).strValue(), (obj->id != PLAYER_ID) ? obj->id : 0);
+	} else {
+		ctx.printOpcodeError(notPartyMemberErr, ctx.getMetaruleName());
 	}
 }
 
@@ -402,28 +227,24 @@ void __declspec(naked) op_set_perkbox_title() {
 	__asm {
 		push ebx;
 		push ecx;
-		push edx;
-		push edi;
-		mov edi, eax;
+		mov  ecx, eax;
 		call fo::funcoffs::interpretPopShort_;
-		mov edx, eax;
-		mov eax, edi;
+		mov  edx, eax;
+		mov  eax, ecx;
 		call fo::funcoffs::interpretPopLong_;
-		cmp dx, VAR_TYPE_STR2;
-		jz next;
-		cmp dx, VAR_TYPE_STR;
-		jnz end;
+		cmp  dx, VAR_TYPE_STR2;
+		jz   next;
+		cmp  dx, VAR_TYPE_STR;
+		jnz  end;
 next:
-		mov ebx, eax;
-		mov eax, edi;
+		mov  ebx, eax;
+		mov  eax, ecx;
 		call fo::funcoffs::interpretGetString_;
 		push eax;
 		call SetPerkboxTitle;
 end:
-		pop edi;
-		pop edx;
-		pop ecx;
-		pop ebx;
+		pop  ecx;
+		pop  ebx;
 		retn;
 	}
 }
@@ -456,43 +277,33 @@ void __declspec(naked) op_clear_selectable_perks() {
 }
 
 void sf_has_fake_perk(OpcodeContext& ctx) {
-	ctx.setReturn(HasFakePerk(ctx.arg(0).asString(), ctx.arg(0).asInt()));
+	ctx.setReturn(Perks::HasFakePerk(ctx.arg(0).asString(), ctx.arg(0).asInt()));
 }
 
-void __declspec(naked) op_has_fake_trait() {
-	__asm {
-		push ebx;
-		push ecx;
-		push edx;
-		push edi;
-		mov edi, eax;
-		call fo::funcoffs::interpretPopShort_;
-		mov edx, eax;
-		mov eax, edi;
-		call fo::funcoffs::interpretPopLong_;
-		cmp dx, VAR_TYPE_STR2;
-		jz next;
-		cmp dx, VAR_TYPE_STR;
-		jnz end;
-next:
-		mov ebx, eax;
-		mov eax, edi;
-		call fo::funcoffs::interpretGetString_;
-		push eax;
-		call HasFakeTrait;
-end:
-		mov edx, eax;
-		mov eax, edi;
-		call fo::funcoffs::interpretPushLong_;
-		mov eax, edi;
-		mov edx, VAR_TYPE_INT;
-		call fo::funcoffs::interpretPushShort_;
-		pop edi;
-		pop edx;
-		pop ecx;
-		pop ebx;
-		retn;
+void sf_has_fake_trait(OpcodeContext& ctx) {
+	ctx.setReturn(Perks::HasFakeTrait(ctx.arg(0).strValue()));
+}
+
+void sf_has_fake_perk_npc(OpcodeContext& ctx) {
+	long result = 0;
+	auto obj = ctx.arg(0).asObject();
+	if (obj->Type() == fo::ObjType::OBJ_TYPE_CRITTER && fo::func::isPartyMember(obj)) {
+		result = Perks::HasFakePerkOwner(ctx.arg(1).strValue(), (obj->id != PLAYER_ID) ? obj->id : 0);
+	} else {
+		ctx.printOpcodeError(notPartyMemberErr, ctx.getMetaruleName());
 	}
+	ctx.setReturn(result);
+}
+
+void sf_has_fake_trait_npc(OpcodeContext& ctx) {
+	long result = 0;
+	auto obj = ctx.arg(0).asObject();
+	if (obj->Type() == fo::ObjType::OBJ_TYPE_CRITTER && fo::func::isPartyMember(obj)) {
+		result = Perks::HasFakeTraitOwner(ctx.arg(1).strValue(), (obj->id != PLAYER_ID) ? obj->id : 0);
+	} else {
+		ctx.printOpcodeError(notPartyMemberErr, ctx.getMetaruleName());
+	}
+	ctx.setReturn(result);
 }
 
 void __declspec(naked) op_perk_add_mode() {
@@ -511,28 +322,24 @@ end:
 
 void __declspec(naked) op_remove_trait() {
 	__asm {
-		pushad;
-		mov ebp, eax;
-		call fo::funcoffs::interpretPopShort_;
-		mov edi, eax;
-		mov eax, ebp;
-		call fo::funcoffs::interpretPopLong_;
-		cmp di, VAR_TYPE_INT;
-		jnz end;
-		xor ebx, ebx;
-		dec ebx;
-		mov ecx, ds:[FO_VAR_pc_trait + 4];
-		cmp eax, ds:[FO_VAR_pc_trait];
-		jne next;
-		mov ds : [FO_VAR_pc_trait], ecx;
-		mov ds : [FO_VAR_pc_trait + 4], ebx;
-		jmp end;
-next:
-		cmp eax, ds : [FO_VAR_pc_trait + 4];
-		jne end;
-		mov ds : [FO_VAR_pc_trait + 4], ebx;
+		push ecx;
+		_GET_ARG_INT(end);
+		test eax, eax;
+		jl   end;
+		mov  edx, -1;
+		cmp  eax, ds:[FO_VAR_pc_trait];
+		jne  next;
+		mov  ecx, ds:[FO_VAR_pc_trait2];
+		mov  ds:[FO_VAR_pc_trait], ecx;
+		mov  ds:[FO_VAR_pc_trait2], edx;
 end:
-		popad;
+		pop  ecx;
+		retn;
+next:
+		cmp  eax, ds:[FO_VAR_pc_trait2];
+		jne  end;
+		mov  ds:[FO_VAR_pc_trait2], edx;
+		pop  ecx;
 		retn;
 	}
 }

@@ -151,46 +151,11 @@ void __declspec(naked) op_resume_game() {
 	}
 }
 
-void __declspec(naked) op_create_message_window() {
-	__asm {
-		pushad
-		mov ebx, dword ptr ds:[FO_VAR_curr_font_num];
-		cmp ebx, 0x65;
-		je end;
-
-		mov ecx, eax;
-		call fo::funcoffs::interpretPopShort_;
-		mov edx, eax;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPopLong_;
-		cmp dx, VAR_TYPE_STR2;
-		jz next;
-		cmp dx, VAR_TYPE_STR;
-		jnz end;
-next:
-		mov ebx, eax;
-		mov eax, ecx;
-		call fo::funcoffs::interpretGetString_;
-		mov esi, eax;
-
-		mov ecx, eax;
-		mov eax, 3;
-		push 1;         // arg10
-		mov al, byte ptr ds:[0x6AB718];
-		push eax;       // a9
-		push 0;         // *DisplayText
-		push eax;       // ColorIndex
-		push 0x74;      // y
-		mov ecx, 0xC0;  // x
-		mov eax, esi;   // text
-		xor ebx, ebx;   // ?
-		xor edx, edx;   // ?
-		call fo::funcoffs::dialog_out_;
-		//xor eax, eax;
-end:
-		popad;
-		ret;
-	}
+void sf_create_message_window(OpcodeContext &ctx) {
+	const char* str = ctx.arg(0).strValue();
+	if (!str || str[0] == 0) return;
+	//if (fo::var::curr_font_num == 101) return;
+	fo::func::DialogOut(str);
 }
 
 void __declspec(naked) op_get_viewport_x() {
@@ -224,8 +189,8 @@ void __declspec(naked) op_set_viewport_x() {
 		_GET_ARG_INT(end);
 		mov  ds:[FO_VAR_wmWorldOffsetX], eax;
 end:
-		pop edx;
-		pop ecx;
+		pop  edx;
+		pop  ecx;
 		retn;
 	}
 }
@@ -245,7 +210,7 @@ end:
 
 void sf_add_iface_tag(OpcodeContext &ctx) {
 	int result = BarBoxes::AddExtraBox();
-	if (result == -1) ctx.printOpcodeError("add_iface_tag() - cannot add new tag as the maximum limit of 126 tags has been reached.");
+	if (result == -1) ctx.printOpcodeError("%s() - cannot add new tag as the maximum limit of 126 tags has been reached.", ctx.getMetaruleName());
 	ctx.setReturn(result);
 }
 
@@ -347,12 +312,12 @@ void sf_set_iface_tag_text(OpcodeContext& ctx) {
 	if (boxTag > 4 && boxTag <= maxBox) {
 		BarBoxes::SetText(boxTag, ctx.arg(1).strValue(), ctx.arg(2).asInt());
 	} else {
-		ctx.printOpcodeError("set_iface_tag_text() - tag value must be in the range of 5 to %d.", maxBox);
+		ctx.printOpcodeError("%s() - tag value must be in the range of 5 to %d.", ctx.getMetaruleName(), maxBox);
 	}
 }
 
 void sf_inventory_redraw(OpcodeContext& ctx) {
-	int mode = -1;
+	int mode;
 	DWORD loopFlag = GetLoopFlags();
 	if (loopFlag & INVENTORY) {
 		mode = 0;
@@ -367,13 +332,11 @@ void sf_inventory_redraw(OpcodeContext& ctx) {
 	}
 
 	if (!ctx.arg(0).asBool()) {
-		int* stack_offset = (int*)FO_VAR_stack_offset;
-		stack_offset[fo::var::curr_stack * 4] = 0;
+		fo::var::stack_offset[fo::var::curr_stack] = 0;
 		fo::func::display_inventory(0, -1, mode);
 	} else if (mode >= 2) {
-		int* target_stack_offset = (int*)FO_VAR_target_stack_offset;
-		target_stack_offset[fo::var::target_curr_stack * 4] = 0;
-		fo::func::display_target_inventory(0, -1, (DWORD*)fo::var::target_pud, mode);
+		fo::var::target_stack_offset[fo::var::target_curr_stack] = 0;
+		fo::func::display_target_inventory(0, -1, fo::var::target_pud, mode);
 		fo::func::win_draw(fo::var::i_wid);
 	}
 }
@@ -396,8 +359,93 @@ void sf_create_win(OpcodeContext& ctx) {
 		ctx.arg(3).asInt(), ctx.arg(4).asInt(), // w, h
 		256, flags) == -1)
 	{
-		ctx.printOpcodeError("create_win() - couldn't create window.");
+		ctx.printOpcodeError("%s() - couldn't create window.", ctx.getMetaruleName());
 	}
+}
+
+static void DrawImage(OpcodeContext& ctx, bool isScaled) {
+	if (*(DWORD*)FO_VAR_currentWindow == -1) {
+		ctx.printOpcodeError("%s() - no created/selected window for the image.", ctx.getMetaruleName());
+		return;
+	}
+	long direction = 0;
+	const char* file = nullptr;
+	if (ctx.arg(0).isInt()) { // art id
+		long fid = ctx.arg(0).rawValue();
+		if (fid == -1) return;
+		long _fid = fid & 0xFFFFFFF;
+		file = fo::func::art_get_name(_fid); // .frm
+		if (_fid >> 24 == fo::OBJ_TYPE_CRITTER) {
+			direction = (fid >> 28);
+			DWORD sz;
+			if (direction && fo::func::db_file_exist(file, &sz)) {
+				file = fo::func::art_get_name(fid); // .fr#
+			}
+		}
+	} else {
+		file = ctx.arg(0).strValue(); // path to frm file
+	}
+	fo::FrmFile* frmPtr = nullptr;
+	if (fo::func::load_frame(file, &frmPtr)) {
+		ctx.printOpcodeError("%s() - cannot open the file: %s", ctx.getMetaruleName(), file);
+		return;
+	}
+	fo::FrmFrameData* framePtr = (fo::FrmFrameData*)&frmPtr->width;
+	if (direction > 0 && direction < 6) {
+		BYTE* offsOriFrame = (BYTE*)framePtr;
+		offsOriFrame += frmPtr->oriFrameOffset[direction];
+		framePtr = (fo::FrmFrameData*)offsOriFrame;
+	}
+	int frameno = ctx.arg(1).rawValue();
+	if (frameno > 0) {
+		int maxFrames = frmPtr->frames - 1;
+		if (frameno > maxFrames) frameno = maxFrames;
+		while (frameno-- > 0) {
+			BYTE* offsFrame = (BYTE*)framePtr;
+			offsFrame += framePtr->size + (sizeof(fo::FrmFrameData) - 1);
+			framePtr = (fo::FrmFrameData*)offsFrame;
+		}
+	}
+	if (isScaled && ctx.numArgs() < 3) {
+		fo::func::displayInWindow(framePtr->width, framePtr->width, framePtr->height, framePtr->data); // scaled to window size (w/o transparent)
+	} else {
+		int x = ctx.arg(2).rawValue(), y = ctx.arg(3).rawValue();
+		if (isScaled) { // draw to scale
+			long s_width, s_height;
+			if (ctx.numArgs() < 5) {
+				s_width = framePtr->width;
+				s_height = framePtr->height;
+			} else {
+				s_width = ctx.arg(4).rawValue();
+				s_height = (ctx.numArgs() > 5) ? ctx.arg(5).rawValue() : -1;
+			}
+			// scale with aspect ratio if w or h is set to -1
+			if (s_width <= -1 && s_height > 0) {
+				s_width = s_height * framePtr->width / framePtr->height;
+			} else if (s_height <= -1 && s_width > 0) {
+				s_height = s_width * framePtr->height / framePtr->width;
+			}
+			if (s_width <= 0 || s_height <= 0) return;
+
+			long w_width = fo::func::windowWidth();
+			long xy_pos = (y * w_width) + x;
+			fo::func::trans_cscale(framePtr->width, framePtr->height, s_width, s_height, xy_pos, w_width, framePtr->data); // custom scaling
+		} else { // with x/y frame offsets
+			fo::func::windowDisplayBuf(x + frmPtr->xshift[direction], framePtr->width, y + frmPtr->yshift[direction], framePtr->height, framePtr->data, ctx.arg(4).rawValue());
+		}
+	}
+	__asm {
+		mov  eax, frmPtr;
+		call fo::funcoffs::mem_free_;
+	}
+}
+
+void sf_draw_image(OpcodeContext& ctx) {
+	DrawImage(ctx, false);
+}
+
+void sf_draw_image_scaled(OpcodeContext& ctx) {
+	DrawImage(ctx, true);
 }
 
 }

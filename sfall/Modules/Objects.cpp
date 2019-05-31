@@ -26,7 +26,7 @@ namespace sfall
 {
 
 static int unjamTimeState;
-static int maxCountProto = 512;
+static int maxCountLoadProto = 512;
 
 long Objects::uniqueID = UniqueID::Start; // current counter id, saving to sfallgv.sav
 
@@ -35,7 +35,7 @@ long Objects::uniqueID = UniqueID::Start; // current counter id, saving to sfall
 // player ID = 18000, all party members have ID = 18000 + its pid (file number of prototype)
 long Objects::SetObjectUniqueID(fo::GameObject* obj) {
 	long id = obj->id;
-	if (id > UniqueID::Start || obj == fo::var::obj_dude || (id >= 18000 && id < 83536)) return id; // 65535 maximum possible number of prototypes
+	if (id > UniqueID::Start || obj == fo::var::obj_dude || (id >= PLAYER_ID && id < 83536)) return id; // 65535 maximum possible number of prototypes
 
 	if ((DWORD)uniqueID >= UniqueID::End) uniqueID = UniqueID::Start;
 	obj->id = ++uniqueID;
@@ -112,13 +112,13 @@ void RestoreObjUnjamAllLocks() {
 
 static void __declspec(naked) proto_ptr_hack() {
 	__asm {
-		mov  ecx, maxCountProto;
+		mov  ecx, maxCountLoadProto;
 		cmp  ecx, 4096;
 		jae  skip;
 		cmp  eax, ecx;
 		jb   end;
 		add  ecx, 256;
-		mov  maxCountProto, ecx;
+		mov  maxCountLoadProto, ecx;
 skip:
 		cmp  eax, ecx;
 end:
@@ -127,24 +127,13 @@ end:
 }
 
 void Objects::LoadProtoAutoMaxLimit() {
-	if (maxCountProto != -1) {
-		MakeCall(0x4A21B2, proto_ptr_hack);
-	}
+	MakeCall(0x4A21B2, proto_ptr_hack);
 }
 
 void Objects::init() {
 	LoadGameHook::OnGameReset() += []() {
 		RestoreObjUnjamAllLocks();
 	};
-
-	int maxlimit = GetConfigInt("Misc", "LoadProtoMaxLimit", -1);
-	if (maxlimit != -1) {
-		maxCountProto = -1;
-		if (maxlimit > 512) {
-			if (maxlimit > 4096) maxlimit = 4096;
-			SafeWrite32(0x4A21B3, maxlimit);
-		}
-	}
 
 	HookCall(0x4A38A5, new_obj_id_hook);
 	SafeWrite8(0x4A38B3, 0x90); // fix ID increment

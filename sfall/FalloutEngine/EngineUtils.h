@@ -44,15 +44,17 @@ const char* _stdcall MessageSearch(const MessageList* fileAddr, long messageId);
 // returns pointer to prototype by PID, or nullptr on failure
 Proto* GetProto(long pid);
 
+bool CritterCopyProto(long pid, long* &proto_dst);
+
 // wrapper for skill_get_tags with bounds checking
 void SkillGetTags(long* result, long num);
 
 // wrapper for skill_set_tags with bounds checking
 void SkillSetTags(long* tags, long num);
 
-int __fastcall GetItemType(GameObject* item);
+long __fastcall GetItemType(GameObject* item);
 
-_declspec(noinline) GameObject* GetItemPtrSlot(GameObject* critter, InvenType slot);
+__declspec(noinline) GameObject* GetItemPtrSlot(GameObject* critter, InvenType slot);
 
 long& GetActiveItemMode();
 
@@ -63,6 +65,9 @@ bool HeroIsFemale();
 long CheckAddictByPid(fo::GameObject* critter, long pid);
 
 void ToggleNpcFlag(fo::GameObject* npc, long flag, bool set);
+
+// Returns the number of party members in the existing table (begins from 1)
+long IsPartyMemberByPid(long pid);
 
 bool IsPartyMember(fo::GameObject* critter);
 

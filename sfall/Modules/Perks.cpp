@@ -21,6 +21,7 @@
 #include "..\main.h"
 #include "..\FalloutEngine\Fallout2.h"
 #include "LoadGameHook.h"
+#include "PartyControl.h"
 
 #include "Perks.h"
 
@@ -75,12 +76,13 @@ struct FakePerk {
 	int Image;
 	char Name[maxNameLen];
 	char Desc[maxDescLen];
-	char reserve[510]; // empty block
-	short id; // use last bytes of the description under the ID value for compatibility
+	char reserve[506]; // empty block
+	int  ownerId;      // 0 = the player, or ID number of party member NPC
+	short id; // perk id (use last bytes of the description under the ID value for compatibility)
 
 	FakePerk() {}
 
-	FakePerk(char* _name, int _level, int _image, char* _desc, short _id = -1) : id(_id), Name {0}, Desc {0}, reserve {0} {
+	FakePerk(const char* _name, int _level, int _image, const char* _desc, int npcId, short _id = -1) : ownerId(npcId), id(_id), Name {0}, Desc {0}, reserve {0} {
 		Level = _level;
 		Image = _image;
 		strncpy_s(this->Name, _name, _TRUNCATE);
@@ -151,7 +153,7 @@ static long _stdcall LevelUp() {
 		}
 	}
 
-	int level = fo::var::Level_; // Get players level
+	int level = fo::var::Level_; // Get player's level
 	if (!((level + 1) % eachLevel)) fo::var::free_perk++; // Increment the number of perks owed
 	return level;
 }
@@ -191,11 +193,21 @@ void _stdcall SetPerkboxTitle(char* name) {
 	}
 }
 
-void _stdcall SetSelectablePerk(char* name, int active, int image, char* desc) {
-	if (active < 0 || active > 1) return;
+static bool IsOwnedFake(int ownerId) {
+	return ((!ownerId && !PartyControl::IsNpcControlled()) || ownerId == fo::var::obj_dude->id);
+}
+
+static bool IsNotOwnedFake(int ownerId1, int ownerId2) {
+	return (ownerId1 != ownerId2);
+}
+
+void Perks::SetSelectablePerk(const char* name, int active, int image, const char* desc, int npcID) {
+	if (active < 0) return;
+	if (active > 1) active = 1;
 	size_t size = fakeSelectablePerks.size();
 	if (active == 0) {
 		for (size_t i = 0; i < size; i++) {
+			if (IsNotOwnedFake(fakeSelectablePerks[i].ownerId, npcID)) continue;
 			if (!strcmp(name, fakeSelectablePerks[i].Name)) {
 				fakeSelectablePerks.erase(fakeSelectablePerks.begin() + i);
 				return;
@@ -203,6 +215,7 @@ void _stdcall SetSelectablePerk(char* name, int active, int image, char* desc) {
 		}
 	} else {
 		for (size_t i = 0; i < size; i++) {
+			if (IsNotOwnedFake(fakeSelectablePerks[i].ownerId, npcID)) continue;
 			if (!strcmp(name, fakeSelectablePerks[i].Name)) {
 				fakeSelectablePerks[i].Level = active;
 				fakeSelectablePerks[i].Image = image;
@@ -212,15 +225,17 @@ void _stdcall SetSelectablePerk(char* name, int active, int image, char* desc) {
 			}
 		}
 		if (size == fakeSelectablePerks.capacity()) fakeSelectablePerks.reserve(size + 10);
-		fakeSelectablePerks.emplace_back(name, active, image, desc);
+		fakeSelectablePerks.emplace_back(name, active, image, desc, npcID);
 	}
 }
 
-void _stdcall SetFakePerk(char* name, int level, int image, char* desc) {
-	if (level < 0 || level > 100) return;
+void Perks::SetFakePerk(const char* name, int level, int image, const char* desc, int npcID) {
+	if (level < 0) return;
+	if (level > 100) level = 100;
 	size_t size = fakePerks.size();
 	if (level == 0) { // remove perk from fakePerks
 		for (size_t i = 0; i < size; i++) {
+			if (IsNotOwnedFake(fakePerks[i].ownerId, npcID)) continue;
 			if (!strcmp(name, fakePerks[i].Name)) {
 				fakePerks.erase(fakePerks.begin() + i);
 				return;
@@ -228,6 +243,7 @@ void _stdcall SetFakePerk(char* name, int level, int image, char* desc) {
 		}
 	} else { // add or change the existing fake perk in fakePerks
 		for (size_t i = 0; i < size; i++) {
+			if (IsNotOwnedFake(fakePerks[i].ownerId, npcID)) continue;
 			if (!strcmp(name, fakePerks[i].Name)) {
 				fakePerks[i].Level = level;
 				fakePerks[i].Image = image;
@@ -237,15 +253,17 @@ void _stdcall SetFakePerk(char* name, int level, int image, char* desc) {
 			}
 		}
 		if (size == fakePerks.capacity()) fakePerks.reserve(size + 10);
-		fakePerks.emplace_back(name, level, image, desc);
+		fakePerks.emplace_back(name, level, image, desc, npcID);
 	}
 }
 
-void _stdcall SetFakeTrait(char* name, int active, int image, char* desc) {
-	if (active < 0 || active > 1) return;
+void Perks::SetFakeTrait(const char* name, int active, int image, const char* desc, int npcID) {
+	if (active < 0) return;
+	if (active > 1) active = 1;
 	size_t size = fakeTraits.size();
 	if (active == 0) {
 		for (size_t i = 0; i < size; i++) {
+			if (IsNotOwnedFake(fakeTraits[i].ownerId, npcID)) continue;
 			if (!strcmp(name, fakeTraits[i].Name)) {
 				fakeTraits.erase(fakeTraits.begin() + i);
 				return;
@@ -253,6 +271,7 @@ void _stdcall SetFakeTrait(char* name, int active, int image, char* desc) {
 		}
 	} else {
 		for (size_t i = 0; i < size; i++) {
+			if (IsNotOwnedFake(fakeTraits[i].ownerId, npcID)) continue;
 			if (!strcmp(name, fakeTraits[i].Name)) {
 				fakeTraits[i].Level = active;
 				fakeTraits[i].Image = image;
@@ -262,7 +281,7 @@ void _stdcall SetFakeTrait(char* name, int active, int image, char* desc) {
 			}
 		}
 		if (size == fakeTraits.capacity()) fakeTraits.reserve(size + 5);
-		fakeTraits.emplace_back(name, active, image, desc);
+		fakeTraits.emplace_back(name, active, image, desc, npcID);
 	}
 }
 
@@ -271,7 +290,8 @@ static DWORD _stdcall HaveFakePerks() {
 }
 
 static long __fastcall GetFakePerkLevel(int id) {
-	return fakePerks[id - PERK_count].Level;
+	int i = id - PERK_count;
+	return IsOwnedFake(fakePerks[i].ownerId) ? fakePerks[i].Level : 0;
 }
 
 static long __fastcall GetFakePerkImage(int id) {
@@ -282,16 +302,24 @@ static FakePerk* __fastcall GetFakePerk(int id) {
 	return &fakePerks[id - PERK_count];
 }
 
+// Get level of taken perk
 static DWORD __fastcall GetFakeSelectPerkLevel(int id) {
 	if (id < startFakeID) {
-		for (DWORD i = 0; i < fakePerks.size(); i++) {
-			if (fakePerks[i].id == id) return fakePerks[i].Level;
+		if (!PartyControl::IsNpcControlled()) { // extra perks are not available for controlled NPC
+			for (DWORD i = 0; i < fakePerks.size(); i++) {
+				if (fakePerks[i].id == id) return fakePerks[i].Level;
+			}
 		}
 		return 0;
 	}
-	char* name = fakeSelectablePerks[id - startFakeID].Name;
+	long n = id - startFakeID;
+	const char* name = fakeSelectablePerks[n].Name;
+	int ownerID = fakeSelectablePerks[n].ownerId;
 	for (DWORD i = 0; i < fakePerks.size(); i++) {
-		if (!strcmp(name, fakePerks[i].Name)) return fakePerks[i].Level;
+		if (ownerID != fakePerks[i].ownerId) continue;
+		if (!strcmp(name, fakePerks[i].Name)) {
+			return fakePerks[i].Level;
+		}
 	}
 	return 0;
 }
@@ -313,8 +341,10 @@ static FakePerk* __fastcall GetFakeSelectPerk(int id) {
 	return &fakeSelectablePerks[id - startFakeID];
 }
 
+// Print a list of fake traits
 static DWORD HandleFakeTraits(int isSelect) {
 	for (DWORD i = 0; i < fakeTraits.size(); i++) {
+		if (!IsOwnedFake(fakeTraits[i].ownerId)) continue;
 		if (fo::func::folder_print_line(fakeTraits[i].Name) && !isSelect) {
 			isSelect = 1;
 			var::folder_card_fid = fakeTraits[i].Image;
@@ -326,17 +356,19 @@ static DWORD HandleFakeTraits(int isSelect) {
 	return isSelect;
 }
 
-static long __fastcall PlayerHasPerk(int* isSelectPtr) {
-	*isSelectPtr = HandleFakeTraits(*isSelectPtr);
+static long __fastcall PlayerHasPerk(int &isSelectPtr) {
+	isSelectPtr = HandleFakeTraits(isSelectPtr);
 
 	for	(int i = 0; i < PERK_count; i++) {
 		if (fo::func::perk_level(fo::var::obj_dude, i)) return 0x43438A; // print perks
 	}
-	return (!fakePerks.empty()) ? 0x43438A : 0x434446; // skip print perks
+	return (!fakePerks.empty())
+			? 0x43438A  // print perks
+			: 0x434446; // skip print perks
 }
 
-static DWORD __fastcall HaveFakeTraits(int* isSelectPtr) {
-	return (fakeTraits.empty()) ? PlayerHasPerk(isSelectPtr) : 0x43425B;
+static DWORD __fastcall HaveFakeTraits(int &isSelectPtr) {
+	return (fakeTraits.empty()) ? PlayerHasPerk(isSelectPtr) : 0x43425B; // print traits
 }
 
 static void __declspec(naked) PlayerHasPerkHack() {
@@ -344,7 +376,7 @@ static void __declspec(naked) PlayerHasPerkHack() {
 		push ecx;            // isSelect
 		mov  ecx, esp;       // ptr to isSelect
 		call PlayerHasPerk;
-		pop  ecx;            // value from HandleFakeTraits
+		pop  ecx;            // isSelect value from HandleFakeTraits
 		jmp  eax;
 	}
 }
@@ -354,7 +386,7 @@ static void __declspec(naked) PlayerHasTraitHook() {
 		push ecx;            // isSelect
 		mov  ecx, esp;       // ptr to isSelect
 		call HaveFakeTraits;
-		pop  ecx;            // value from HandleFakeTraits
+		pop  ecx;            // isSelect value from HandleFakeTraits
 		jmp  eax;
 	}
 }
@@ -435,19 +467,23 @@ cLoop:
 	}
 }
 
-// Build a table of perks ID numbers available for selection
-// data buffer has limited size for 119 perks
+// Build a table of perks ID numbers available for selection, data buffer has limited size for 119 perks
 static DWORD _stdcall HandleExtraSelectablePerks(DWORD available, DWORD* data) {
-	size_t count = extPerks.size();
-	for (size_t i = 0; i < count; i++) {
-		if (available >= 119) return available; // exit if the buffer is overfull
-		if (fo::func::perk_can_add(fo::var::obj_dude, extPerks[i].id)) data[available++] = extPerks[i].id;
+	size_t count;
+	if (!PartyControl::IsNpcControlled()) { // extra perks are not available for controlled NPC
+		count = extPerks.size();
+		for (size_t i = 0; i < count; i++) {
+			if (available >= 119) return available; // exit if the buffer is overfull
+			if (fo::func::perk_can_add(fo::var::obj_dude, extPerks[i].id)) data[available++] = extPerks[i].id;
+		}
 	}
 	count = fakeSelectablePerks.size();
 	for (size_t i = 0; i < count; i++) {
-		if (available >= 119) break;
-		// for fake perks, their ID should start from 256
-		data[available++] = startFakeID + i; //*(WORD*)(_name_sort_list + (offset+i)*8)=(WORD)(PERK_count+i);
+		if (IsOwnedFake(fakeSelectablePerks[i].ownerId)) {
+			if (available >= 119) break;
+			// for fake perks, their ID should start from 256
+			data[available++] = startFakeID + i;
+		}
 	}
 	return available; // total number of perks available for selection
 }
@@ -456,8 +492,7 @@ static void __declspec(naked) GetAvailablePerksHook() {
 	__asm {
 		push ecx;
 		push edx; // arg data
-		mov  ecx, IgnoringDefaultPerks;
-		test ecx, ecx;
+		cmp  IgnoringDefaultPerks, 0;
 		jnz  skipDefaults;
 		call fo::funcoffs::perk_make_list_; // return available count
 		jmp  next;
@@ -573,10 +608,10 @@ static void ApplyPerkEffect(long index, fo::GameObject* critter, long type) {
 }
 
 // Adds the selected perk to the player
-static void _stdcall AddFakePerk(DWORD perkID) {
+static long _stdcall AddFakePerk(DWORD perkID) {
 	size_t count;
 	bool matched = false;
-	if (perkID < startFakeID) {
+	if (perkID < startFakeID) { // extra perk can only be added to the player
 		count = fakePerks.size();
 		for (size_t d = 0; d < count; d++) {
 			if (fakePerks[d].id == perkID) {
@@ -587,18 +622,20 @@ static void _stdcall AddFakePerk(DWORD perkID) {
 			}
 		}
 		if (!matched) { // add to fakePerks
-			RemovePerkID.push_back(count);    // index of the added perk
 			int index = PerkSearchID(perkID);
-			fakePerks.emplace_back(extPerks[index].Name, 1, extPerks[index].data.image, extPerks[index].Desc, extPerks[index].id); // id same as perkID
+			if (index < 0) return -1;
+			RemovePerkID.push_back(count); // index of the added perk
+			fakePerks.emplace_back(extPerks[index].Name, 1, extPerks[index].data.image, extPerks[index].Desc, 0, extPerks[index].id); // id same as perkID
 		}
 		fo::func::perk_add_effect(fo::var::obj_dude, perkID);
-		return;
+		return 0;
 	}
 	// behavior for fake perk/trait
 	perkID -= startFakeID;
 	if (addPerkMode & 1) { // add perk to trait
 		count = fakeTraits.size();
 		for (size_t d = 0; d < count; d++) {
+			if (IsNotOwnedFake(fakeTraits[d].ownerId, fakeSelectablePerks[perkID].ownerId)) continue;
 			if (!strcmp(fakeTraits[d].Name, fakeSelectablePerks[perkID].Name)) {
 				matched = true;
 				break;
@@ -613,6 +650,7 @@ static void _stdcall AddFakePerk(DWORD perkID) {
 		matched = false;
 		count = fakePerks.size();
 		for (size_t d = 0; d < count; d++) {
+			if (IsNotOwnedFake(fakePerks[d].ownerId, fakeSelectablePerks[perkID].ownerId)) continue;
 			if (!strcmp(fakePerks[d].Name, fakeSelectablePerks[perkID].Name)) {
 				RemovePerkID.push_back(d);
 				fakePerks[d].Level++;
@@ -626,9 +664,9 @@ static void _stdcall AddFakePerk(DWORD perkID) {
 		}
 	}
 	if (addPerkMode & 4) { // delete from selectable perks
-		RemoveSelectableID.push_back(perkID);
-		//fakeSelectablePerks.remove_at(perkID);
+		RemoveSelectableID.push_back(perkID); //fakeSelectablePerks.remove_at(perkID);
 	}
+	return 0;
 }
 
 // Adds perk from selection window to player
@@ -640,7 +678,6 @@ static void __declspec(naked) AddPerkHook() {
 		push edx;
 		call AddFakePerk;
 		pop  ecx;
-		xor  eax, eax;
 		retn;
 normalPerk:
 		push edx;
@@ -1282,23 +1319,43 @@ void _stdcall AddPerkMode(DWORD mode) {
 	addPerkMode = mode;
 }
 
-DWORD HasFakePerk(const char* name, long id) {
-	if (id < PERK_count && name[0] == 0) return 0;
+DWORD Perks::HasFakePerk(const char* name, long perkId) {
+	if ((perkId < PERK_count && name[0] == 0) || (perkId && PartyControl::IsNpcControlled())) return 0;
 	for (DWORD i = 0; i < fakePerks.size(); i++) {
-		if (id) {
-			if (fakePerks[i].id == id) return fakePerks[i].Level;
-		} else {
-			if (!strcmp(name, fakePerks[i].Name)) {
-				return fakePerks[i].Level; // current perk level
-			}
+		if (perkId) {
+			if (fakePerks[i].id == perkId) return fakePerks[i].Level; // current perk level
+		} else if (IsOwnedFake(fakePerks[i].ownerId) && !strcmp(name, fakePerks[i].Name)) {
+			return fakePerks[i].Level;
 		}
 	}
 	return 0;
 }
 
-DWORD _stdcall HasFakeTrait(const char* name) {
+DWORD Perks::HasFakeTrait(const char* name) {
 	if (name[0] == 0) return 0;
 	for (DWORD i = 0; i < fakeTraits.size(); i++) {
+		if (IsOwnedFake(fakeTraits[i].ownerId) && !strcmp(name, fakeTraits[i].Name)) {
+			return 1;
+		}
+	}
+	return 0;
+}
+
+DWORD Perks::HasFakePerkOwner(const char* name, long objId) {
+	if (name[0] == 0) return 0;
+	for (DWORD i = 0; i < fakePerks.size(); i++) {
+		if (IsNotOwnedFake(fakePerks[i].ownerId, objId)) continue;
+		if (!strcmp(name, fakePerks[i].Name)) {
+			return fakePerks[i].Level;
+		}
+	}
+	return 0;
+}
+
+DWORD Perks::HasFakeTraitOwner(const char* name, long objId) {
+	if (name[0] == 0) return 0;
+	for (DWORD i = 0; i < fakeTraits.size(); i++) {
+		if (IsNotOwnedFake(fakeTraits[i].ownerId, objId)) continue;
 		if (!strcmp(name, fakeTraits[i].Name)) {
 			return 1;
 		}

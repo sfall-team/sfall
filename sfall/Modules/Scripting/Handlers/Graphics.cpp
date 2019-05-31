@@ -21,6 +21,7 @@
 #include "..\..\..\FalloutEngine\Fallout2.h"
 #include "..\..\Graphics.h"
 #include "..\..\ScriptExtender.h"
+#include "..\..\ScriptShaders.h"
 
 #include "Graphics.h"
 

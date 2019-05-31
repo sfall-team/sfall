@@ -19,7 +19,6 @@
 #include "..\..\..\FalloutEngine\Fallout2.h"
 #include "..\..\..\SafeWrite.h"
 #include "..\..\Explosions.h"
-#include "..\..\ScriptExtender.h"
 #include "..\OpcodeContext.h"
 
 #include "Anims.h"
@@ -28,6 +27,23 @@ namespace sfall
 {
 namespace script
 {
+
+static char regAnimCombatCheck = 1;
+
+void RegAnimCombatCheck(DWORD newValue) {
+	char oldValue = regAnimCombatCheck;
+	regAnimCombatCheck = (newValue > 0);
+	if (oldValue != regAnimCombatCheck) {
+		SafeWrite8(0x459C97, regAnimCombatCheck); // reg_anim_func
+		SafeWrite8(0x459D4B, regAnimCombatCheck); // reg_anim_animate
+		SafeWrite8(0x459E3B, regAnimCombatCheck); // reg_anim_animate_reverse
+		SafeWrite8(0x459EEB, regAnimCombatCheck); // reg_anim_obj_move_to_obj
+		SafeWrite8(0x459F9F, regAnimCombatCheck); // reg_anim_obj_run_to_obj
+		SafeWrite8(0x45A053, regAnimCombatCheck); // reg_anim_obj_move_to_tile
+		SafeWrite8(0x45A10B, regAnimCombatCheck); // reg_anim_obj_run_to_tile
+		SafeWrite8(0x45AE53, regAnimCombatCheck); // reg_anim_animate_forever
+	}
+}
 
 // true if combat mode is active and combat check was not disabled
 bool checkCombatMode() {
@@ -105,7 +121,7 @@ void sf_explosions_metarule(OpcodeContext& ctx) {
 		result = ExplosionsMetaruleFunc(mode, ctx.arg(1).asInt(), ctx.arg(2).asInt());
 
 	if (result == -1) {
-		ctx.printOpcodeError("ExplosionsMetarule() - mode (%d) is not supported for the function.", mode);
+		ctx.printOpcodeError("%s() - mode (%d) is not supported for the function.", ctx.getOpcodeName(), mode);
 	}
 	ctx.setReturn(result);
 }

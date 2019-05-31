@@ -62,6 +62,14 @@ Proto* GetProto(long pid) {
 	return nullptr;
 }
 
+bool CritterCopyProto(long pid, long* &proto_dst) {
+	fo::Proto* protoPtr;
+	if (fo::func::proto_ptr(pid, &protoPtr) == -1) return false;
+	/*if (!proto_dst)*/ proto_dst = new long[104];
+	memcpy(proto_dst, protoPtr, 416);
+	return true;
+}
+
 void SkillGetTags(long* result, long num) {
 	if (num > 4) {
 		num = 4;
@@ -76,11 +84,11 @@ void SkillSetTags(long* tags, long num) {
 	fo::func::skill_set_tags(tags, num);
 }
 
-int __fastcall GetItemType(GameObject* item) {
+long __fastcall GetItemType(GameObject* item) {
 	return fo::func::item_get_type(item);
 }
 
-_declspec(noinline) GameObject* GetItemPtrSlot(GameObject* critter, InvenType slot) {
+__declspec(noinline) GameObject* GetItemPtrSlot(GameObject* critter, InvenType slot) {
 	GameObject* itemPtr = nullptr;
 	switch (slot) {
 		case fo::INVEN_TYPE_LEFT_HAND:
@@ -129,16 +137,21 @@ void ToggleNpcFlag(fo::GameObject* npc, long flag, bool set) {
 	}
 }
 
-bool IsPartyMember(fo::GameObject* critter) {
-	if (critter->id < 18000) return false;
+// Returns the number of party members in the existing table (begins from 1)
+long IsPartyMemberByPid(long pid) {
 	size_t patryCount = fo::var::partyMemberMaxCount;
 	if (patryCount) {
 		DWORD* memberPids = fo::var::partyMemberPidList; // pids from party.txt
 		for (size_t i = 0; i < patryCount; i++) {
-			if (memberPids[i] == critter->protoId) return true;;
+			if (memberPids[i] == pid) return i + 1;
 		}
 	}
-	return false;
+	return 0;
+}
+
+bool IsPartyMember(fo::GameObject* critter) {
+	if (critter->id < PLAYER_ID) return false;
+	return (IsPartyMemberByPid(critter->protoId) > 0);
 }
 
 //---------------------------------------------------------

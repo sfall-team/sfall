@@ -39,7 +39,7 @@ void __declspec(naked) op_read_byte() {
 		call fo::funcoffs::interpretPopLong_;
 		cmp dx, VAR_TYPE_INT;
 		jnz error;
-		movzx edx, byte ptr ds : [eax];
+		movzx edx, byte ptr ds:[eax];
 		jmp result;
 error:
 		mov edx, 0;
@@ -68,7 +68,7 @@ void __declspec(naked) op_read_short() {
 		call fo::funcoffs::interpretPopLong_;
 		cmp dx, VAR_TYPE_INT;
 		jnz error;
-		movzx edx, word ptr ds : [eax];
+		movzx edx, word ptr ds:[eax];
 		jmp result;
 error:
 		mov edx, 0;
@@ -97,7 +97,7 @@ void __declspec(naked) op_read_int() {
 		call fo::funcoffs::interpretPopLong_;
 		cmp dx, VAR_TYPE_INT;
 		jnz error;
-		mov edx, dword ptr ds : [eax];
+		mov edx, dword ptr ds:[eax];
 		jmp result;
 error:
 		mov edx, 0;
@@ -225,7 +225,7 @@ void __declspec(naked) op_write_int() {
 		call SafeWrite32;
 end:
 		popad
-			retn;
+		retn;
 	}
 }
 
@@ -233,7 +233,7 @@ static void _stdcall WriteStringInternal(const char* str, char* addr) {
 	bool hitnull = false;
 	while (*str) {
 		if (!*addr) hitnull = true;
-		if (hitnull&&addr[1]) break;
+		if (hitnull && addr[1]) break;
 		*addr = *str;
 		addr++;
 		str++;
@@ -295,7 +295,7 @@ legal:
 			call fo::funcoffs::interpretPopLong_;
 			lea ecx, args;
 			add ecx, i;
-			mov[ecx], eax;
+			mov [ecx], eax;
 		}
 	}
 

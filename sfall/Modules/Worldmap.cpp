@@ -478,7 +478,7 @@ void PathfinderFixInit() {
 
 void StartingStatePatches() {
 	int date = GetConfigInt("Misc", "StartYear", -1);
-	if (date > 0) {
+	if (date >= 0) {
 		dlog("Applying starting year patch.", DL_INIT);
 		SafeWrite32(0x4A336C, date);
 		dlogr(" Done", DL_INIT);
@@ -635,14 +635,13 @@ void Worldmap::SetRestMapLevel(int mapId, long elev, bool canRest) {
 		}
 
 		levelRest elevData = {-1, -1, -1, -1};
-		std::pair<int, levelRest> info (mapId, elevData);
 		if (elev == -1) {
-			info.second.level[++elev] = canRest;
-			info.second.level[++elev] = canRest;
+			elevData.level[++elev] = canRest;
+			elevData.level[++elev] = canRest;
 			elev++;
 		}
-		info.second.level[elev] = canRest;
-		mapRestInfo.insert(info);
+		elevData.level[elev] = canRest;
+		mapRestInfo.insert(std::make_pair(mapId, elevData));
 	}
 }
 

@@ -36,10 +36,10 @@ static void _stdcall ConsoleFilePrint(const char* msg) {
 static const DWORD ConsoleHookRet = 0x431871;
 static void __declspec(naked) ConsoleHook() {
 	__asm {
-		pushad;
+		pushadc;
 		push eax;
 		call ConsoleFilePrint;
-		popad;
+		popadc;
 		push ebx;
 		push ecx;
 		push edx;
@@ -51,7 +51,7 @@ static void __declspec(naked) ConsoleHook() {
 
 void Console::init() {
 	auto path = GetConfigString("Misc", "ConsoleOutputPath", "", MAX_PATH);
-	if (path.size() > 0) {
+	if (!path.empty()) {
 		consolefile.open(path);
 		if (consolefile.is_open()) {
 			MakeJump(0x43186C, ConsoleHook);

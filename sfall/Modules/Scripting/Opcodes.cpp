@@ -57,7 +57,7 @@ typedef std::unordered_map<short, const SfallOpcodeInfo*> OpcodeInfoMapType;
 //    opcode number,
 //    function name,
 //    function handler,
-//    number of arguments,
+//    number of arguments (max 7),
 //    has return value,
 //    { argument 1 type, argument 2 type, ...}
 // }
@@ -84,8 +84,13 @@ static SfallOpcodeInfo opcodeInfoArray[] = {
 	{0x19e, "get_sfall_global_int",      sf_get_sfall_global_int,      1, true,  {ARG_INTSTR}},
 	{0x19f, "get_sfall_global_float",    sf_get_sfall_global_float,    1, true,  {ARG_INTSTR}},
 	{0x1a5, "inc_npc_level",             sf_inc_npc_level,             1, false, {ARG_INTSTR}},
+	{0x1ac, "get_ini_setting",           sf_get_ini_setting,           1, true,  {ARG_STRING}},
 
+	{0x1bb, "set_fake_perk",             sf_set_fake_perk,             4, false, {ARG_STRING, ARG_INT, ARG_INT, ARG_STRING}},
+	{0x1bc, "set_fake_trait",            sf_set_fake_trait,            4, false, {ARG_STRING, ARG_INT, ARG_INT, ARG_STRING}},
+	{0x1bd, "set_selectable_perk",       sf_set_selectable_perk,       4, false, {ARG_STRING, ARG_INT, ARG_INT, ARG_STRING}},
 	{0x1c1, "has_fake_perk",             sf_has_fake_perk,             1, true,  {ARG_INTSTR}},
+	{0x1c2, "has_fake_trait",            sf_has_fake_trait,            1, true,  {ARG_STRING}},
 
 	{0x1dc, "show_iface_tag",            sf_show_iface_tag,            1, false, {ARG_INT}},
 	{0x1dd, "hide_iface_tag",            sf_hide_iface_tag,            1, false, {ARG_INT}},
@@ -93,6 +98,7 @@ static SfallOpcodeInfo opcodeInfoArray[] = {
 	{0x1e1, "set_critical_table",        sf_set_critical_table,        5, false, {ARG_INT, ARG_INT, ARG_INT, ARG_INT, ARG_INT}},
 	{0x1e2, "get_critical_table",        sf_get_critical_table,        4, true,  {ARG_INT, ARG_INT, ARG_INT, ARG_INT}},
 	{0x1e3, "reset_critical_table",      sf_reset_critical_table,      4, false, {ARG_INT, ARG_INT, ARG_INT, ARG_INT}},
+	{0x1eb, "get_ini_string",            sf_get_ini_string,            1, true,  {ARG_STRING}},
 	{0x1ec, "sqrt",                      sf_sqrt,                      1, true,  {ARG_NUMBER}},
 	{0x1ed, "abs",                       sf_abs,                       1, true,  {ARG_NUMBER}},
 	{0x1ee, "sin",                       sf_sin,                       1, true,  {ARG_NUMBER}},
@@ -135,6 +141,7 @@ static SfallOpcodeInfo opcodeInfoArray[] = {
 	{0x21a, "set_weapon_ammo_count",     sf_set_weapon_ammo_count,     2, false, {ARG_OBJECT, ARG_INT}},
 	{0x21e, "get_mouse_buttons",         sf_get_mouse_buttons,         0, true},
 
+	{0x224, "create_message_window",     sf_create_message_window,     1, false, {ARG_STRING}},
 	{0x22d, "create_array",              sf_create_array,              2, true,  {ARG_INT, ARG_INT}},
 	{0x22e, "set_array",                 sf_set_array,                 3, false, {ARG_OBJECT, ARG_ANY, ARG_ANY}},
 	{0x22f, "get_array",                 sf_get_array,                 2, true,  {ARG_ANY, ARG_ANY}}, // can also be used on strings
@@ -198,7 +205,7 @@ static SfallOpcodeInfo opcodeInfoArray[] = {
 	{0x279, "sfall_func3", HandleMetarule, 4, true},
 	{0x27a, "sfall_func4", HandleMetarule, 5, true},
 	{0x27b, "sfall_func5", HandleMetarule, 6, true},
-	{0x27c, "sfall_func6", HandleMetarule, 7, true},  // if you need more arguments - use arrays
+	{0x27c, "sfall_func6", HandleMetarule, 7, true}, // if you need more arguments - use arrays
 };
 
 // A hash-table for opcode info, indexed by opcode.
@@ -221,8 +228,8 @@ void __fastcall defaultOpcodeHandlerCall(fo::Program* program, DWORD opcodeOffse
 	auto iter = opcodeInfoMap.find(opcode);
 	if (iter != opcodeInfoMap.end()) {
 		auto info = iter->second;
-		OpcodeContext ctx(program, opcode, info->argNum, info->hasReturn);
-		ctx.handleOpcode(info->handler, info->argValidation, info->name);
+		OpcodeContext ctx(program, opcode, info->argNum, info->hasReturn, info->name);
+		ctx.handleOpcode(info->handler, info->argValidation);
 	} else {
 		fo::func::interpretError("Unknown opcode: %d", opcode);
 	}
@@ -313,7 +320,6 @@ void InitNewOpcodes() {
 	opcodes[0x1a9] = op_set_viewport_y;
 	opcodes[0x1aa] = op_set_xp_mod;
 	opcodes[0x1ab] = op_set_perk_level_mod;
-	opcodes[0x1ac] = op_get_ini_setting;
 	opcodes[0x1ad] = op_get_shader_version;
 	opcodes[0x1ae] = op_set_shader_mode;
 	opcodes[0x1af] = op_get_game_mode;
@@ -328,13 +334,9 @@ void InitNewOpcodes() {
 	opcodes[0x1b8] = op_set_pc_stat_min;
 	opcodes[0x1b9] = op_set_npc_stat_max;
 	opcodes[0x1ba] = op_set_npc_stat_min;
-	opcodes[0x1bb] = op_set_fake_perk;
-	opcodes[0x1bc] = op_set_fake_trait;
-	opcodes[0x1bd] = op_set_selectable_perk;
 	opcodes[0x1be] = op_set_perkbox_title;
 	opcodes[0x1bf] = op_hide_real_perks;
 	opcodes[0x1c0] = op_show_real_perks;
-	opcodes[0x1c2] = op_has_fake_trait;
 	opcodes[0x1c3] = op_perk_add_mode;
 	opcodes[0x1c4] = op_clear_selectable_perks;
 	opcodes[0x1c5] = op_set_critter_hit_chance_mod;
@@ -364,7 +366,6 @@ void InitNewOpcodes() {
 	opcodes[0x1e8] = op_set_unspent_ap_perk_bonus;
 	opcodes[0x1e9] = op_get_unspent_ap_perk_bonus;
 	opcodes[0x1ea] = op_init_hook;
-	opcodes[0x1eb] = op_get_ini_string;
 	opcodes[0x1f2] = op_set_palette;
 	opcodes[0x1f3] = op_remove_script;
 	opcodes[0x1f4] = op_set_script;
@@ -384,7 +385,6 @@ void InitNewOpcodes() {
 	opcodes[0x221] = op_get_screen_height;
 	opcodes[0x222] = op_stop_game;
 	opcodes[0x223] = op_resume_game;
-	opcodes[0x224] = op_create_message_window;
 	opcodes[0x225] = op_remove_trait;
 	opcodes[0x226] = op_get_light_level;
 	opcodes[0x227] = op_refresh_pc_art;

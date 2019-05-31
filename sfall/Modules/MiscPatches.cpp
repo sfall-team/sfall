@@ -59,50 +59,14 @@ static const DWORD walkDistanceAddr[] = {
 	0x411FF0, 0x4121C4, 0x412475, 0x412906,
 };
 
-static void __declspec(naked) Combat_p_procFix() {
+static void __declspec(naked) apply_damage_hack() {
 	__asm {
-		push eax;
-
-		mov eax, dword ptr ds:[FO_VAR_combat_state];
-		cmp eax, 3;
-		jnz end_cppf;
-
-		push esi;
-		push ebx;
-		push edx;
-
-		mov esi, FO_VAR_main_ctd;
-		mov eax, [esi];
-		mov ebx, [esi + 0x20];
-		xor edx, edx;
-		mov eax, [eax + 0x78];
-		call fo::funcoffs::scr_set_objs_;
-		mov eax, [esi];
-
-		cmp dword ptr ds:[esi + 0x2c], +0x0;
-		jng jmp1;
-
-		test byte ptr ds:[esi + 0x15], 0x1;
-		jz jmp1;
-		mov edx, 0x2;
-		jmp jmp2;
-jmp1:
-		mov edx, 0x1;
-jmp2:
-		mov eax, [eax + 0x78];
-		call fo::funcoffs::scr_set_ext_param_;
-		mov eax, [esi];
-		mov edx, 0xd;
-		mov eax, [eax + 0x78];
-		call fo::funcoffs::exec_script_proc_;
-		pop edx;
-		pop ebx;
-		pop esi;
-
-end_cppf:
-		pop eax;
-		call fo::funcoffs::stat_level_;
-
+		xor  edx, edx;
+		inc  edx;              // COMBAT_SUBTYPE_WEAPON_USED
+		test [esi + 0x15], dl; // ctd.flags2Source & DAM_HIT_
+		jz   end;              // no hit
+		inc  edx;              // COMBAT_SUBTYPE_HIT_SUCCEEDED
+end:
 		retn;
 	}
 }
@@ -110,9 +74,9 @@ end_cppf:
 static void __declspec(naked) WeaponAnimHook() {
 	__asm {
 		cmp edx, 11;
-		je c11;
+		je  c11;
 		cmp edx, 15;
-		je c15;
+		je  c15;
 		jmp fo::funcoffs::art_get_code_;
 c11:
 		mov edx, 16;
@@ -279,60 +243,29 @@ really_end:
 	}
 }
 
-static DWORD RetryCombatLastAP;
-static DWORD RetryCombatMinAP;
-static void __declspec(naked) RetryCombatHook() {
-	using namespace fo;
-	using namespace Fields;
-	__asm {
-		mov  RetryCombatLastAP, 0;
-retry:
-		call fo::funcoffs::combat_ai_;
-process:
-		cmp  dword ptr ds:[FO_VAR_combat_turn_running], 0;
-		jle  next;
-		call fo::funcoffs::process_bk_;
-		jmp  process;
-next:
-		mov  eax, [esi + movePoints];
-		cmp  eax, RetryCombatMinAP;
-		jl   end;
-		cmp  eax, RetryCombatLastAP;
-		je   end;
-		mov  RetryCombatLastAP, eax;
-		mov  eax, esi;
-		xor  edx, edx;
-		jmp  retry;
-end:
-		retn;
-	}
-}
-
 static const DWORD NPCStage6Fix1End = 0x493D16;
-static const DWORD NPCStage6Fix2End = 0x49423A;
 static void __declspec(naked) NPCStage6Fix1() {
 	__asm {
-		mov eax,0xcc;				// set record size to 204 bytes
-		imul eax,edx;				// multiply by number of NPC records in party.txt
-		call fo::funcoffs::mem_malloc_;			// malloc the necessary memory
-		mov edx,dword ptr ds:[FO_VAR_partyMemberMaxCount];	// retrieve number of NPC records in party.txt
-		mov ebx,0xcc;				// set record size to 204 bytes
-		imul ebx,edx;				// multiply by number of NPC records in party.txt
-		jmp NPCStage6Fix1End;			// call memset to set all malloc'ed memory to 0
+		mov  eax, 204;                  // set record size to 204 bytes
+		imul eax, edx;                  // multiply by number of NPC records in party.txt
+		mov  ebx, eax;                  // copy total record size for later memset
+		call fo::funcoffs::mem_malloc_; // malloc the necessary memory
+		jmp  NPCStage6Fix1End;          // call memset to set all malloc'ed memory to 0
 	}
 }
 
+static const DWORD NPCStage6Fix2End = 0x49423A;
 static void __declspec(naked) NPCStage6Fix2() {
 	__asm {
-		mov eax,0xcc;				// record size is 204 bytes
-		imul edx,eax;				// multiply by NPC number as listed in party.txt
-		mov eax,dword ptr ds:[FO_VAR_partyMemberAIOptions];	// get starting offset of internal NPC table
-		jmp NPCStage6Fix2End;			// eax+edx = offset of specific NPC record
+		mov  eax, 204;                  // record size is 204 bytes
+		imul edx, eax;                  // multiply by NPC number as listed in party.txt
+		mov  eax, dword ptr ds:[FO_VAR_partyMemberAIOptions]; // get starting offset of internal NPC table
+		jmp  NPCStage6Fix2End;          // eax+edx = offset of specific NPC record
 	}
 }
 
-static const DWORD ScannerHookRet=0x41BC1D;
-static const DWORD ScannerHookFail=0x41BC65;
+static const DWORD ScannerHookRet = 0x41BC1D;
+static const DWORD ScannerHookFail = 0x41BC65;
 static void __declspec(naked) ScannerAutomapHook() {
 	using fo::PID_MOTION_SENSOR;
 	__asm {
@@ -609,10 +542,9 @@ void DontTurnOffSneakIfYouRunPatch() {
 
 void CombatProcFix() {
 	//Ray's combat_p_proc fix
-	dlog("Applying combat_p_proc fix.", DL_INIT);
-	HookCall(0x425252, Combat_p_procFix);
-	SafeWrite8(0x424DBC, 0xE9);
-	SafeWrite32(0x424DBD, 0x00000034);
+	dlog("Applying Ray's combat_p_proc patch.", DL_INIT);
+	MakeCall(0x424DD9, apply_damage_hack);
+	SafeWrite8(0x424DC7, 0x0);
 	dlogr(" Done", DL_INIT);
 }
 
@@ -642,21 +574,12 @@ void CorpseLineOfFireFix() {
 	}
 }
 
-void ApplyNpcExtraApPatch() {
-	RetryCombatMinAP = GetConfigInt("Misc", "NPCsTryToSpendExtraAP", 0);
-	if (RetryCombatMinAP > 0) {
-		dlog("Applying retry combat patch.", DL_INIT);
-		HookCall(0x422B94, RetryCombatHook); // combat_turn_
-		dlogr(" Done", DL_INIT);
-	}
-}
-
 void NpcStage6Fix() {
 	if (GetConfigInt("Misc", "NPCStage6Fix", 0)) {
 		dlog("Applying NPC Stage 6 Fix.", DL_INIT);
 		MakeJump(0x493CE9, NPCStage6Fix1);
-		SafeWrite8(0x494063, 0x06);		// loop should look for a potential 6th stage
-		SafeWrite8(0x4940BB, 0xCC);		// move pointer by 204 bytes instead of 200
+		SafeWrite8(0x494063, 6);   // loop should look for a potential 6th stage
+		SafeWrite8(0x4940BB, 204); // move pointer by 204 bytes instead of 200
 		MakeJump(0x494224, NPCStage6Fix2);
 		dlogr(" Done", DL_INIT);
 	}
@@ -933,6 +856,9 @@ void MiscPatches::init() {
 		dlogr(" Done", DL_INIT);
 	}
 
+	// Increase the max text width of the information card in the character screen
+	SafeWriteBatch<BYTE>(144, {0x43ACD5, 0x43DD37}); // 136, 133
+
 	LoadGameHook::OnBeforeGameStart() += BodypartHitChances; // set on start & load
 
 	CombatProcFix();
@@ -942,8 +868,6 @@ void MiscPatches::init() {
 	AlwaysReloadMsgs();
 	PlayIdleAnimOnReloadPatch();
 	CorpseLineOfFireFix();
-
-	ApplyNpcExtraApPatch();
 
 	SkilldexImagesPatch();
 

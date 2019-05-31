@@ -57,7 +57,7 @@ void __declspec() op_stop_game();
 void __declspec() op_resume_game();
 
 //Create a message window with given string
-void __declspec() op_create_message_window();
+void sf_create_message_window(OpcodeContext&);
 
 void __declspec() op_get_viewport_x();
 
@@ -98,6 +98,10 @@ void sf_inventory_redraw(OpcodeContext&);
 void sf_dialog_message(OpcodeContext&);
 
 void sf_create_win(OpcodeContext&);
+
+void sf_draw_image(OpcodeContext&);
+
+void sf_draw_image_scaled(OpcodeContext&);
 
 }
 }

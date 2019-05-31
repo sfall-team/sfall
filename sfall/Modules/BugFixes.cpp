@@ -449,15 +449,12 @@ end:
 
 static void __declspec(naked) gdProcessUpdate_hack() {
 	__asm {
-		add  eax, esi
-		cmp  eax, dword ptr ds:[FO_VAR_optionRect + 0xC]         // _optionRect.offy
-		jge  skip
-		add  eax, 2
-		push 0x44702D
-		retn
+		lea  edx, [eax - 2];
+		cmp  edx, dword ptr ds:[FO_VAR_optionRect + 0xC]; // _optionRect.offy
+		jl   skip;
+		mov  eax, edx;
 skip:
-		push 0x4470DB
-		retn
+		retn;
 	}
 }
 
@@ -804,19 +801,19 @@ static void __declspec(naked) PipStatus_AddHotLines_hook() {
 
 static void __declspec(naked) perform_withdrawal_start_display_print_hook() {
 	__asm {
-		test eax, eax
-		jz   end
-		jmp  fo::funcoffs::display_print_
+		test eax, eax;
+		jz   end;
+		jmp  fo::funcoffs::display_print_;
 end:
-		retn
+		retn;
 	}
 }
 
 static void __declspec(naked) op_wield_obj_critter_adjust_ac_hook() {
 	__asm {
-		call fo::funcoffs::adjust_ac_
-		xor  eax, eax                       // not animated
-		jmp  fo::funcoffs::intface_update_ac_
+		call fo::funcoffs::adjust_ac_;
+		xor  eax, eax;                      // not animated
+		jmp  fo::funcoffs::intface_update_ac_;
 	}
 }
 
@@ -1879,6 +1876,10 @@ static void __declspec(naked) op_use_obj_on_obj_hack() {
 		jz   fail;
 		mov  edx, [eax + protoId];
 		shr  edx, 24;
+		cmp  dword ptr [esp + 4], eax; // target != source
+		jne  skip;
+		xor  edx, edx; // for calling obj_use_item_on_ instead of action_use_an_item_on_object_
+skip:
 		retn;
 fail:
 		add  esp, 4;
@@ -1952,44 +1953,17 @@ skip:
 	}
 }
 
-static void __declspec(naked) partyFixMultipleMembers_hook() {
+static void __declspec(naked) partyFixMultipleMembers_hack() {
 	__asm {
-		mov  edx, [esi + protoId];
-		sar  edx, 24;
-		cmp  edx, OBJ_TYPE_CRITTER;
-		jne  noDrop;                        // not critter
-		test [esi + damageFlags], DAM_DEAD;
-		jnz  isDead;
-		cmp  dword ptr [esi + health], 0;
-		jg   noBlood;                       // is not dead
-isDead:
-		// create generic blood
-		sub  esp, 4;
-		mov  eax, esp                       // object buf
-		mov  edx, 0x5000004;                // pid
-		call fo::funcoffs::obj_pid_new_;
-		add  esp, 4;
-		cmp  eax, -1;
-		je   noBlood;
-		mov  eax, [esp - 4];                // object
-//		mov  [eax + frm], 3;                // set frame
-		mov  ebx, [esi + elevation];
-		mov  edx, [esi + tile];
-		xor  ecx, ecx;
-		call fo::funcoffs::obj_move_to_tile_;
-noBlood:
+		cmp  esi, edx;
+		je   skip;
 		mov  eax, [esi + protoId];
-		mov  edx, 0x40;                     // noDrop flag
-		call fo::funcoffs::critter_flag_check_;
-		test eax, eax;
-		mov  eax, esi;
-		jnz  noDrop;                        // flag is set
-		mov  edx, [esi + tile];
-		call fo::funcoffs::item_drop_all_;
-		mov  eax, esi;
-noDrop:
-		xor  edx, edx;
-		call fo::funcoffs::obj_erase_object_;
+		sar  eax, 24;
+		cmp  eax, OBJ_TYPE_CRITTER;
+		jne  skip;
+		test [esi + damageFlags], DAM_DEAD;
+		cmovnz edx, esi;
+skip:
 		retn;
 	}
 }
@@ -2066,10 +2040,63 @@ end:
 	}
 }
 
+static void __declspec(naked) op_dialogue_reaction_hook() {
+	__asm {
+		cmp  eax, 4; // neutral fidget
+		mov  eax, 1;
+		jb   good;
+		je   neutral;
+		jmp  bad;
+good:
+		dec  eax;
+neutral:
+		dec  eax;
+bad:
+		jmp  fo::funcoffs::talk_to_critter_reacts_; // -1 - good, 0 - neutral, 1 - bad
+	}
+}
+
+static void __declspec(naked) obj_pickup_hook() {
+	__asm {
+		cmp  edi, dword ptr ds:[FO_VAR_obj_dude];
+		je   dude;
+		test byte ptr ds:[FO_VAR_combat_state], 1; // in combat?
+		jz   dude;
+		jmp  fo::funcoffs::item_add_force_;
+dude:
+		jmp  fo::funcoffs::item_add_mult_;
+	}
+}
+
+static char pickupMessageBuf[65] = {0};
+static const char* __fastcall GetPickupMessage(const char* name) {
+	if (pickupMessageBuf[0] == 0) {
+		Translate("sfall", "NPCPickupFail", "%s cannot pick up the item.", pickupMessageBuf, 64);
+	}
+	sprintf(textBuf, pickupMessageBuf, name);
+	return textBuf;
+}
+
+static void __declspec(naked) obj_pickup_hook_message() {
+	__asm {
+		cmp  edi, dword ptr ds:[FO_VAR_obj_dude];
+		je   dude;
+		mov  eax, edi;
+		call fo::funcoffs::critter_name_;
+		mov  ecx, eax;
+		call GetPickupMessage;
+		mov  [esp + 0x34 - 0x28 + 4], eax;
+		mov  eax, 1;
+		retn;
+dude:
+		jmp  fo::funcoffs::message_search_;
+	}
+}
+
 void BugFixes::init()
 {
 	#ifndef NDEBUG
-		if (isDebug && (GetConfigInt("Debugging", "BugFixes", 1) == 0)) return;
+		if (isDebug && (GetPrivateProfileIntA("Debugging", "BugFixes", 1, ::sfall::ddrawIni) == 0)) return;
 	#endif
 
 	// Missing game initialization
@@ -2085,7 +2112,7 @@ void BugFixes::init()
 	SafeWrite16(0x46A566, 0x04DB);
 	SafeWrite16(0x46A4E7, 0x04DB);
 
-	//if(GetConfigInt("Misc", "SpecialUnarmedAttacksFix", 1)) {
+	//if (GetConfigInt("Misc", "SpecialUnarmedAttacksFix", 1)) {
 		dlog("Applying Special Unarmed Attacks fix.", DL_INIT);
 		MakeJump(0x42394D, UnarmedAttacksFix);
 		dlogr(" Done", DL_INIT);
@@ -2158,11 +2185,11 @@ void BugFixes::init()
 	dlogr(" Done", DL_INIT);
 
 	// Allow 9 options (lines of text) to be displayed correctly in a dialog window
-	if (GetConfigInt("Misc", "DialogOptions9Lines", 1)) {
+	//if (GetConfigInt("Misc", "DialogOptions9Lines", 1)) {
 		dlog("Applying 9 dialog options patch.", DL_INIT);
-		MakeJump(0x44701C, gdProcessUpdate_hack);
+		MakeCall(0x447021, gdProcessUpdate_hack, 1);
 		dlogr(" Done", DL_INIT);
-	}
+	//}
 
 	// Fix for "Unlimited Ammo" exploit
 	dlog("Applying fix for Unlimited Ammo exploit.", DL_INIT);
@@ -2304,9 +2331,9 @@ void BugFixes::init()
 	MakeCall(0x4130E5, action_explode_hack1);
 	dlogr(" Done", DL_INIT);
 
-	// Fix for unable to sell used geiger counters or stealth boys
+	// Fix for being unable to sell used geiger counters or stealth boys
 	if (GetConfigInt("Misc", "CanSellUsedGeiger", 1)) {
-		dlog("Applying fix for unable to sell used geiger counters or stealth boys.", DL_INIT);
+		dlog("Applying fix for being unable to sell used geiger counters or stealth boys.", DL_INIT);
 		SafeWrite8(0x478115, 0xBA);
 		SafeWrite8(0x478138, 0xBA);
 		MakeJump(0x474D22, barter_attempt_transaction_hack);
@@ -2471,7 +2498,7 @@ void BugFixes::init()
 	SafeWrite8(0x4C1015, 0x90);
 	HookCall(0x4C1042, wmSetupRandomEncounter_hook);
 
-	// Fix for unable to sell/give items in the barter screen when the player/party member is overloaded
+	// Fix for being unable to sell/give items in the barter screen when the player/party member is overloaded
 	HookCalls(barter_attempt_transaction_hook_weight, {0x474C73, 0x474CCA});
 
 	// Fix for the underline position in the inventory display window when the item name is longer than one line
@@ -2551,6 +2578,8 @@ void BugFixes::init()
 	}
 
 	// Fix crash when calling use_obj/use_obj_on_obj without using set_self in global scripts
+	// also change the behavior of use_obj_on_obj function
+	// if the object uses the item on itself, then another function is called (not a bug fix)
 	MakeCall(0x45C376, op_use_obj_on_obj_hack, 1);
 	MakeCall(0x456A92, op_use_obj_hack, 1);
 
@@ -2591,7 +2620,7 @@ void BugFixes::init()
 	dlogr(" Done", DL_INIT);
 
 	// Fix for the removal of party member's corpse when loading the map
-	HookCall(0x4957B8, partyFixMultipleMembers_hook);
+	MakeCall(0x495769, partyFixMultipleMembers_hack, 1);
 
 	// Fix for unexplored areas being revealed on the automap when entering a map
 	MakeCall(0x48A76B, obj_move_to_tile_hack_seen, 1);
@@ -2615,6 +2644,14 @@ void BugFixes::init()
 	// Fix for the start procedure not being called correctly if the required standard script procedure is missing
 	MakeCall(0x4A4926, exec_script_proc_hack);
 	MakeCall(0x4A4979, exec_script_proc_hack1);
+
+	// Fix the argument value of dialogue_reaction function
+	HookCall(0x456FFA, op_dialogue_reaction_hook);
+
+	// Fix for NPC stuck in a loop of picking up items in combat and the incorrect message being displayed when the NPC cannot pick
+	// up an item due to not enough space in the inventory
+	HookCall(0x49B6E7, obj_pickup_hook);
+	HookCall(0x49B71C, obj_pickup_hook_message);
 }
 
 }

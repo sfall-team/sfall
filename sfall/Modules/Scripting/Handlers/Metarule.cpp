@@ -24,6 +24,7 @@
 #include "Interface.h"
 #include "Misc.h"
 #include "Objects.h"
+#include "Perks.h"
 #include "Utils.h"
 #include "Worldmap.h"
 
@@ -41,29 +42,9 @@ namespace script
 // Use ctx.setReturn(x) to set return value.
 // If you want to call user-defined procedures in your handler, use RunScriptProc().
 
-struct SfallMetarule {
-	// function name
-	const char* name;
-
-	// pointer to handler function
-	ScriptingFunctionHandler func;
-
-	// minimum number of arguments
-	short minArgs;
-
-	// maximum number of arguments
-	short maxArgs;
-
-	// argument validation settings
-	OpcodeArgumentType argValidation[OP_MAX_ARGUMENTS];
-};
-
 typedef std::unordered_map<std::string, const SfallMetarule*> MetaruleTableType;
 
 static MetaruleTableType metaruleTable;
-
-// currently executed metarule
-static const SfallMetarule* currentMetarule;
 
 /*
 	Metarule AKA sfall_funcX.
@@ -74,7 +55,7 @@ static const SfallMetarule* currentMetarule;
 	{ name, handler, minArgs, maxArgs, {arg1, arg2, ...} }
 		- name - name of function that will be used in scripts,
 		- handler - pointer to handler function (see examples below),
-		- minArgs/maxArgs - minimum and maximum number of arguments allowed for this function
+		- minArgs/maxArgs - minimum and maximum number of arguments allowed for this function (max 6)
 		- arg1, arg2, ... - argument types for automatic validation
 */
 static const SfallMetarule metarules[] = {
@@ -86,7 +67,9 @@ static const SfallMetarule metarules[] = {
 	{"critter_inven_obj2",      sf_critter_inven_obj2,      2, 2, {ARG_OBJECT, ARG_INT}},
 	{"dialog_message",          sf_dialog_message,          1, 1, {ARG_STRING}},
 	{"dialog_obj",              sf_get_dialog_object,       0, 0},
-	{"display_stats",           sf_display_stats,           0, 0},
+	{"display_stats",           sf_display_stats,           0, 0}, // refresh
+	{"draw_image",              sf_draw_image,              1, 5, {ARG_INTSTR, ARG_INT, ARG_INT, ARG_INT, ARG_INT}},
+	{"draw_image_scaled",       sf_draw_image_scaled,       1, 6, {ARG_INTSTR, ARG_INT, ARG_INT, ARG_INT, ARG_INT, ARG_INT}},
 	{"exec_map_update_scripts", sf_exec_map_update_scripts, 0, 0},
 	{"floor2",                  sf_floor2,                  1, 1, {ARG_NUMBER}},
 	{"get_can_rest_on_map",     sf_get_rest_on_map,         2, 2, {ARG_INT, ARG_INT}},
@@ -101,6 +84,8 @@ static const SfallMetarule metarules[] = {
 	{"get_object_data",         sf_get_object_data,         2, 2, {ARG_OBJECT, ARG_INT}},
 	{"get_outline",             sf_get_outline,             1, 1, {ARG_OBJECT}},
 	{"get_string_pointer",      sf_get_string_pointer,      1, 1, {ARG_STRING}},
+	{"has_fake_perk_npc",       sf_has_fake_perk_npc,       2, 2, {ARG_OBJECT, ARG_STRING}},
+	{"has_fake_trait_npc",      sf_has_fake_trait_npc,      2, 2, {ARG_OBJECT, ARG_STRING}},
 	{"intface_hide",            sf_intface_hide,            0, 0},
 	{"intface_is_hidden",       sf_intface_is_hidden,       0, 0},
 	{"intface_redraw",          sf_intface_redraw,          0, 0},
@@ -119,6 +104,8 @@ static const SfallMetarule metarules[] = {
 	{"set_cursor_mode",         sf_set_cursor_mode,         1, 1, {ARG_INT}},
 	{"set_drugs_data",          sf_set_drugs_data,          3, 3, {ARG_INT, ARG_INT, ARG_INT}},
 	{"set_dude_obj",            sf_set_dude_obj,            1, 1, {ARG_OBJECT}},
+	{"set_fake_perk_npc",       sf_set_fake_perk_npc,       5, 5, {ARG_OBJECT, ARG_STRING, ARG_INT, ARG_INT, ARG_STRING}},
+	{"set_fake_trait_npc",      sf_set_fake_trait_npc,      5, 5, {ARG_OBJECT, ARG_STRING, ARG_INT, ARG_INT, ARG_STRING}},
 	{"set_flags",               sf_set_flags,               2, 2, {ARG_OBJECT, ARG_INT}},
 	{"set_iface_tag_text",      sf_set_iface_tag_text,      3, 3, {ARG_INT, ARG_STRING, ARG_INT}},
 	{"set_ini_setting",         sf_set_ini_setting,         2, 2, {ARG_STRING, ARG_INTSTR}},
@@ -127,6 +114,7 @@ static const SfallMetarule metarules[] = {
 	{"set_outline",             sf_set_outline,             2, 2, {ARG_OBJECT, ARG_INT}},
 	{"set_rest_heal_time",      sf_set_rest_heal_time,      1, 1, {ARG_INT}},
 	{"set_rest_mode",           sf_set_rest_mode,           1, 1, {ARG_INT}},
+	{"set_selectable_perk_npc", sf_set_selectable_perk_npc, 5, 5, {ARG_OBJECT, ARG_STRING, ARG_INT, ARG_INT, ARG_STRING}},
 	{"set_unique_id",           sf_set_unique_id,           1, 2, {ARG_OBJECT, ARG_INT}},
 	{"set_unjam_locks_time",    sf_set_unjam_locks_time,    1, 1, {ARG_INT}},
 	{"spatial_radius",          sf_spatial_radius,          1, 1, {ARG_OBJECT}},
@@ -156,11 +144,13 @@ void InitMetaruleTable() {
 
 // Validates arguments against metarule specification.
 // On error prints to debug.log and returns false.
-static bool ValidateMetaruleArguments(OpcodeContext& ctx, const SfallMetarule* metaruleInfo) {
+static bool ValidateMetaruleArguments(OpcodeContext& ctx) {
+	const SfallMetarule* metaruleInfo = ctx.metarule;
 	int argCount = ctx.numArgs();
 	if (argCount < metaruleInfo->minArgs || argCount > metaruleInfo->maxArgs) {
 		ctx.printOpcodeError(
-			"sfall_funcX(\"%s\", ...) - invalid number of arguments (%d), must be from %d to %d.",
+			"%s(\"%s\", ...) - invalid number of arguments (%d), must be from %d to %d.",
+			ctx.getOpcodeName(),
 			metaruleInfo->name,
 			argCount,
 			metaruleInfo->minArgs,
@@ -178,20 +168,20 @@ void HandleMetarule(OpcodeContext& ctx) {
 		const char* name = nameArg.strValue();
 		MetaruleTableType::iterator lookup = metaruleTable.find(name);
 		if (lookup != metaruleTable.end()) {
-			currentMetarule = lookup->second;
+			ctx.metarule = lookup->second;
 			// shift function name away, so argument #0 will correspond to actual first argument of function
 			// this allows to use the same handlers for opcodes and metarule functions
 			ctx.setArgShift(1);
-			if (ValidateMetaruleArguments(ctx, currentMetarule)) {
-				currentMetarule->func(ctx);
+			if (ValidateMetaruleArguments(ctx)) {
+				ctx.metarule->func(ctx);
 			} else if (ctx.hasReturn()) {
 				ctx.setReturn(-1);
 			}
 		} else {
-			ctx.printOpcodeError("sfall_funcX(name, ...) - name '%s' is unknown.", name);
+			ctx.printOpcodeError("%s(\"%s\", ...) - metarule function is unknown.", ctx.getOpcodeName(), name);
 		}
 	} else {
-		ctx.printOpcodeError("sfall_funcX(name, ...) - name must be string.");
+		ctx.printOpcodeError("%s(name, ...) - name must be string.", ctx.getOpcodeName());
 	}
 }
 

@@ -29,6 +29,9 @@ namespace sfall
 {
 using namespace fo;
 
+typedef int (_stdcall *functype)();
+static const functype art_init = (functype)fo::funcoffs::art_init_;
+
 static const DWORD Tiles_0E[] = {
 	0x484255, 0x48429D, 0x484377, 0x484385, 0x48A897, 0x48A89A, 0x4B2231,
 	0x4B2374, 0x4B2381, 0x4B2480, 0x4B248D, 0x4B2A7C, 0x4B2BDA,
@@ -50,40 +53,39 @@ static const DWORD Tiles_C0[] = {
 	0x4B247B, 0x4B2A77, 0x4B2BD5,
 };
 
+struct tilestruct {
+	short tile[2];
+};
+
 struct OverrideEntry {
-	//DWORD id;
 	DWORD xtiles;
 	DWORD ytiles;
 	DWORD replacementid;
 
-	OverrideEntry(DWORD _xtiles, DWORD _ytiles, DWORD _repid) {
-		xtiles = _xtiles;
-		ytiles = _ytiles;
-		replacementid = _repid;
+	OverrideEntry(DWORD _xtiles, DWORD _ytiles, DWORD _repid)
+		: xtiles(_xtiles), ytiles(_ytiles), replacementid(_repid) {
 	}
 };
 
 static OverrideEntry** overrides;
 static DWORD origTileCount = 0;
-
-typedef int (_stdcall *functype)();
-static const functype _art_init = (functype)fo::funcoffs::art_init_;
+static DWORD tileMode;
 static BYTE* mask;
 
 static void CreateMask() {
-	mask = new BYTE[80*36];
+	mask = new BYTE[80 * 36];
 	fo::DbFile* file = fo::func::db_fopen("art\\tiles\\grid000.frm", "r");
-	fo::func::db_fseek(file, 0x4a, 0);
-	fo::func::db_freadByteCount(file, mask, 80*36);
+	fo::func::db_fseek(file, 0x4A, 0);
+	fo::func::db_freadByteCount(file, mask, 80 * 36);
 	fo::func::db_fclose(file);
 }
 
 static WORD ByteSwapW(WORD w) {
-	return ((w & 0xff) << 8) | ((w & 0xff00) >> 8);
+	return ((w & 0xFF) << 8) | ((w & 0xFF00) >> 8);
 }
 
 static DWORD ByteSwapD(DWORD w) {
-	return ((w & 0xff) << 24) | ((w & 0xff00) << 8) | ((w & 0xff0000) >> 8) | ((w & 0xff000000) >> 24);
+	return ((w & 0xFF) << 24) | ((w & 0xFF00) << 8) | ((w & 0xFF0000) >> 8) | ((w & 0xFF000000) >> 24);
 }
 
 static int ProcessTile(fo::Art* tiles, int tile, int listpos) {
@@ -94,7 +96,7 @@ static int ProcessTile(fo::Art* tiles, int tile, int listpos) {
 
 	fo::DbFile* art = fo::func::db_fopen(buf, "r");
 	if (!art) return 0;
-	fo::func::db_fseek(art, 0x3e, 0);
+	fo::func::db_fseek(art, 0x3E, 0);
 	WORD width;
 	fo::func::db_freadShort(art, &width);  //80;
 	if (width == 80) {
@@ -118,8 +120,8 @@ static int ProcessTile(fo::Art* tiles, int tile, int listpos) {
 			fo::func::db_freadByteCount(art, (BYTE*)&frame, 0x4a);
 			frame.height = ByteSwapW(36);
 			frame.width = ByteSwapW(80);
-			frame.frmSize = ByteSwapD(80 * 36);
-			frame.size = ByteSwapD(80 * 36 + 12);
+			frame.frameSize = ByteSwapD(80 * 36);
+			frame.frameAreaSize = ByteSwapD(80 * 36 + 12);
 			int xoffset = x * 48 + (ysize - (y + 1)) * 32;
 			int yoffset = height - (36 + x * 12 + y * 24);
 			for (int y2 = 0; y2 < 36; y2++) {
@@ -145,11 +147,8 @@ static int ProcessTile(fo::Art* tiles, int tile, int listpos) {
 	return xsize * ysize;
 }
 
-static DWORD tileMode;
-static int _stdcall ArtInitHook2() {
-	if (_art_init()) {
-		return 1;
-	}
+static int _stdcall ArtInitHook() {
+	if (art_init()) return -1;
 
 	CreateMask();
 
@@ -186,27 +185,18 @@ static int _stdcall ArtInitHook2() {
 	return 0;
 }
 
-static void __declspec(naked) ArtInitHook() {
+static void __declspec(naked) iso_init_hook() {
 	__asm {
-		pushad;
-		mov eax, dword ptr ds:[FO_VAR_read_callback];
-		push eax;
-		xor eax, eax;
-		mov dword ptr ds:[FO_VAR_read_callback], eax;
-		call ArtInitHook2;
-		pop eax;
-		mov dword ptr ds:[FO_VAR_read_callback], eax;
-		popad;
-		xor eax, eax;
+		mov  ebx, dword ptr ds:[FO_VAR_read_callback];
+		xor  eax, eax;
+		mov  dword ptr ds:[FO_VAR_read_callback], eax;
+		call ArtInitHook;
+		mov  dword ptr ds:[FO_VAR_read_callback], ebx;
 		retn;
 	}
 }
 
-struct tilestruct {
-	short tile[2];
-};
-
-static void _stdcall SquareLoadCheck(tilestruct* data) {
+static void __fastcall SquareLoadCheck(tilestruct* data) {
 	for (DWORD y = 0; y < 100; y++) {
 		for (DWORD x = 0; x < 100; x++) {
 			for (DWORD z = 0; z < 2; z++) {
@@ -226,16 +216,13 @@ static void _stdcall SquareLoadCheck(tilestruct* data) {
 	}
 }
 
-static void __declspec(naked) SquareLoadHook() {
+static void __declspec(naked) square_load_hook() {
 	__asm {
-		mov edi, edx;
+		mov  ecx, edx;
 		call fo::funcoffs::db_freadIntCount_;
 		test eax, eax;
-		jnz end;
-		pushad;
-		push edi;
-		call SquareLoadCheck;
-		popad;
+		jnz  end;
+		jmp  SquareLoadCheck;
 end:
 		retn;
 	}
@@ -270,11 +257,10 @@ end:
 }
 
 void Tiles::init() {
-	tileMode = GetConfigInt("Misc", "AllowLargeTiles", 0);
-	if (tileMode) {
+	if (tileMode = GetConfigInt("Misc", "AllowLargeTiles", 0)) {
 		dlog("Applying allow large tiles patch.", DL_INIT);
-		HookCall(0x481D72, &ArtInitHook);
-		HookCall(0x48434C, SquareLoadHook);
+		HookCall(0x481D72, iso_init_hook);
+		HookCall(0x48434C, square_load_hook);
 		dlogr(" Done", DL_INIT);
 	}
 

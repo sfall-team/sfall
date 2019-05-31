@@ -32,13 +32,13 @@
 #include <vector>
 
 #include "..\main.h"
-
 #include "..\FalloutEngine\Fallout2.h"
 #include "..\InputFuncs.h"
 #include "..\Version.h"
+#include "LoadGameHook.h"
+#include "ScriptShaders.h"
 
 #include "Graphics.h"
-#include "LoadGameHook.h"
 
 namespace sfall
 {
@@ -47,7 +47,6 @@ typedef HRESULT (_stdcall *DDrawCreateProc)(void*, IDirectDraw**, void*);
 typedef IDirect3D9* (_stdcall *D3DCreateProc)(UINT version);
 
 #define UNUSEDFUNCTION { DEBUGMESS("\n[SFALL] Unused function called: %s", __FUNCTION__); return DDERR_GENERIC; }
-#define SAFERELEASE(a) { if (a) { a->Release(); a = 0; } }
 
 static DWORD ResWidth;
 static DWORD ResHeight;
@@ -109,36 +108,37 @@ static const char* gpuEffect=
 
 	// shader for displaying head textures
 	"float4 P1( in float2 Tex : TEXCOORD0 ) : COLOR0 {"
-	"  float backdrop = tex2D(s0, Tex).a;"
-	"  float3 result;"
-	"  if(abs(backdrop - 1.0) < 0.001) {" // (48.0 / 255.0) // 48 - key index color
-	"    result = tex2D(s2, saturate((Tex - corner) / size));"
-	"  } else {"
-	"    result = tex1D(s1, backdrop);"
-	"    result = float3(result.b, result.g, result.r);"
-	"  }"
+	  "float backdrop = tex2D(s0, Tex).a;"
+	  "float3 result;"
+	  "if (abs(backdrop - 1.0) < 0.001) {" // (48.0 / 255.0) // 48 - key index color
+	    "result = tex2D(s2, saturate((Tex - corner) / size));"
+	  "} else {"
+	    "result = tex1D(s1, backdrop);"
+	    "result = float3(result.b, result.g, result.r);"
+	  "}"
 	// blend highlights
 	"if (showhl) {"
 		"float4 h = tex2D(s3, saturate((Tex - cornerhl) / sizehl));"
 		"result = saturate(result + h.rgb);" // saturate(result * (1 - h.a) * h.rgb * h.a)"
 	"}"
-	"  return float4(result.r, result.g, result.b, 1);"
+	  "return float4(result.r, result.g, result.b, 1);"
 	"}"
 
 	"technique T1"
 	"{"
-	"  pass p1 { PixelShader = compile ps_2_0 P1(); }"
+	  "pass p1 { PixelShader = compile ps_2_0 P1(); }"
 	"}"
 
 	"float4 P0( in float2 Tex : TEXCOORD0 ) : COLOR0 {"
-	"  float3 result = tex1D(s1, tex2D(s0, Tex).a);"
-	"  return float4(result.b, result.g, result.r, 1);"
+	  "float3 result = tex1D(s1, tex2D(s0, Tex).a);"
+	  "return float4(result.b, result.g, result.r, 1);"
 	"}"
 
 	"technique T0"
 	"{"
-	"  pass p0 { PixelShader = compile ps_2_0 P0(); }"
-	"}";
+	  "pass p0 { PixelShader = compile ps_2_0 P0(); }"
+	"}"
+;
 
 static D3DXHANDLE gpuBltBuf;
 static D3DXHANDLE gpuBltPalette;
@@ -151,25 +151,6 @@ static D3DXHANDLE gpuBltHighlightCorner;
 static D3DXHANDLE gpuBltShowHighlight;
 
 static float rcpres[2];
-
-struct sShader {
-	ID3DXEffect* Effect;
-	bool Active;
-	D3DXHANDLE ehTicks;
-	DWORD mode;
-	DWORD mode2;
-
-	sShader() {
-		Effect=0;
-		Active=false;
-		ehTicks=0;
-		mode=0;
-		mode2=0;
-	}
-};
-
-static std::vector<sShader> shaders;
-static std::vector<IDirect3DTexture9*> shaderTextures;
 
 #define MYVERTEXFORMAT D3DFVF_XYZRHW|D3DFVF_TEX1
 struct MyVertex {
@@ -206,94 +187,8 @@ static void rcpresInit() {
 	rcpres[1] = 1.0f / (float)Graphics::GetGameHeightRes();
 }
 
-void _stdcall SetShaderMode(DWORD d, DWORD mode) {
-	if (d >= shaders.size() || !shaders[d].Effect) return;
-	if (mode & 0x80000000) {
-		shaders[d].mode2 = mode ^ 0x80000000;
-	} else {
-		shaders[d].mode = mode;
-	}
-}
-
-int _stdcall LoadShader(const char* path) {
-	if (!Graphics::mode || strstr(path, "..") || strstr(path, ":")) return -1;
-	char buf[MAX_PATH];
-	sprintf(buf, "%s\\shaders\\%s", fo::var::patches, path);
-	for (DWORD d = 0; d < shaders.size(); d++) {
-		if (!shaders[d].Effect) {
-			if (FAILED(D3DXCreateEffectFromFile(d3d9Device, buf, 0, 0, 0, 0, &shaders[d].Effect, 0))) return -1;
-			else return d;
-		}
-	}
-	sShader shader = sShader();
-	if (FAILED(D3DXCreateEffectFromFile(d3d9Device, buf, 0, 0, 0, 0, &shader.Effect, 0))) return -1;
-
-	shader.Effect->SetFloatArray("rcpres", rcpres, 2);
-
-	for (int i = 1; i < 128; i++) {
-		const char* name;
-		IDirect3DTexture9* tex;
-
-		sprintf_s(buf, "texname%d", i);
-		if (FAILED(shader.Effect->GetString(buf, &name))) break;
-		sprintf_s(buf, "%s\\art\\stex\\%s", fo::var::patches, name);
-		if (FAILED(D3DXCreateTextureFromFileA(d3d9Device, buf, &tex))) continue;
-		sprintf_s(buf, "tex%d", i);
-		shader.Effect->SetTexture(buf, tex);
-		shaderTextures.push_back(tex);
-	}
-
-	shader.ehTicks = shader.Effect->GetParameterByName(0, "tickcount");
-	shaders.push_back(shader);
-	return shaders.size() - 1;
-}
-
-void _stdcall ActivateShader(DWORD d) {
-	if (d < shaders.size() && shaders[d].Effect) shaders[d].Active = true;
-}
-
-void _stdcall DeactivateShader(DWORD d) {
-	if (d < shaders.size()) shaders[d].Active = false;
-}
-
-int _stdcall GetShaderTexture(DWORD d, DWORD id) {
-	if (id < 1 || id > 128 || d >= shaders.size() || !shaders[d].Effect) return -1;
-	IDirect3DBaseTexture9* tex = 0;
-	char buf[8] = "tex";
-	_itoa_s(id, &buf[3], 4, 10);
-	if (FAILED(shaders[d].Effect->GetTexture(buf, &tex)) || !tex) return -1;
-	tex->Release();
-	for (DWORD i = 0; i < shaderTextures.size(); i++) {
-		if (shaderTextures[i] == tex) return i;
-	}
-	return -1;
-}
-
-void _stdcall FreeShader(DWORD d) {
-	if (d < shaders.size()) {
-		SAFERELEASE(shaders[d].Effect);
-		shaders[d].Active = false;
-	}
-}
-
-void _stdcall SetShaderInt(DWORD d, const char* param, int value) {
-	if (d >= shaders.size() || !shaders[d].Effect) return;
-	shaders[d].Effect->SetInt(param, value);
-}
-
-void _stdcall SetShaderFloat(DWORD d, const char* param, float value) {
-	if (d >= shaders.size() || !shaders[d].Effect) return;
-	shaders[d].Effect->SetFloat(param, value);
-}
-
-void _stdcall SetShaderVector(DWORD d, const char* param, float f1, float f2, float f3, float f4) {
-	if (d >= shaders.size() || !shaders[d].Effect) return;
-	shaders[d].Effect->SetFloatArray(param, &f1, 4);
-}
-
-void _stdcall SetShaderTexture(DWORD d, const char* param, DWORD value) {
-	if (d >= shaders.size() || !shaders[d].Effect || value >= shaderTextures.size()) return;
-	shaders[d].Effect->SetTexture(param, shaderTextures[value]);
+const float* Graphics::rcpresGet() {
+	return rcpres;
 }
 
 static void ResetDevice(bool CreateNew) {
@@ -344,9 +239,7 @@ static void ResetDevice(bool CreateNew) {
 	} else {
 		d3d9Device->Reset(&params);
 		if (gpuBltEffect) gpuBltEffect->OnResetDevice();
-		for (DWORD d = 0; d < shaders.size(); d++) {
-			if (shaders[d].Effect) shaders[d].Effect->OnResetDevice();
-		}
+		ScriptShaders::OnResetDevice();
 	}
 
 	ShaderVertices[1].y = ResHeight - 0.5f;
@@ -469,9 +362,7 @@ static void Present() {
 		SAFERELEASE(movieBuffer);
 		SAFERELEASE(gpuPalette);
 		if (gpuBltEffect) gpuBltEffect->OnLostDevice();
-		for (DWORD d = 0; d < shaders.size(); d++) {
-			if (shaders[d].Effect) shaders[d].Effect->OnLostDevice();
-		}
+		ScriptShaders::OnLostDevice();
 		DeviceLost = true;
 	}
 }
@@ -484,7 +375,7 @@ void RefreshGraphics() {
 	d3d9Device->SetStreamSource(0, vBuffer, 0, sizeof(MyVertex));
 	d3d9Device->SetRenderTarget(0, sSurf1);
 
-	if (Graphics::GPUBlt && shaders.size()) {
+	if (Graphics::GPUBlt && ScriptShaders::Count()) {
 		UINT unused;
 		gpuBltEffect->Begin(&unused, 0);
 		gpuBltEffect->BeginPass(0);
@@ -496,28 +387,11 @@ void RefreshGraphics() {
 	} else {
 		d3d9Device->SetTexture(0, Tex);
 	}
-	for (int d = shaders.size() - 1; d >= 0; d--) {
-		if (!shaders[d].Effect || !shaders[d].Active) continue;
-		if (shaders[d].mode2 && !(shaders[d].mode2 & GetLoopFlags())) continue;
-		if (shaders[d].mode&GetLoopFlags()) continue;
-
-		if (shaders[d].ehTicks) shaders[d].Effect->SetInt(shaders[d].ehTicks, GetTickCount());
-		UINT passes;
-		shaders[d].Effect->Begin(&passes, 0);
-		for (DWORD pass = 0; pass < passes; pass++) {
-			shaders[d].Effect->BeginPass(pass);
-			d3d9Device->DrawPrimitive(D3DPT_TRIANGLESTRIP, 0, 2);
-			shaders[d].Effect->EndPass();
-			d3d9Device->StretchRect(sSurf1, 0, sSurf2, 0, D3DTEXF_NONE);
-			d3d9Device->SetTexture(0, sTex2);
-		}
-		shaders[d].Effect->End();
-		d3d9Device->SetTexture(0, sTex2);
-	}
+	ScriptShaders::Refresh(sSurf1, sSurf2, sTex2);
 
 	d3d9Device->SetStreamSource(0, vBuffer2, 0, sizeof(MyVertex));
 	d3d9Device->SetRenderTarget(0, backbuffer);
-	if (Graphics::GPUBlt && !shaders.size()) {
+	if (Graphics::GPUBlt && !ScriptShaders::Count()) {
 		UINT unused;
 		gpuBltEffect->Begin(&unused, 0);
 		gpuBltEffect->BeginPass(0);
@@ -627,11 +501,6 @@ void Graphics::SetHeadTechnique() {
 
 void Graphics::SetDefaultTechnique() {
 	gpuBltEffect->SetTechnique("T0");
-}
-
-void GraphicsResetOnGameLoad() {
-	for (DWORD d = 0; d < shaders.size(); d++) SAFERELEASE(shaders[d].Effect);
-	shaders.clear();
 }
 
 class FakePalette2 : IDirectDrawPalette {
@@ -964,10 +833,7 @@ public:
 
 	ULONG _stdcall Release() {
 		if (!--Refs) {
-			for (DWORD d = 0; d < shaders.size(); d++) SAFERELEASE(shaders[d].Effect);
-			for (DWORD d = 0; d < shaderTextures.size(); d++) shaderTextures[d]->Release();
-			shaders.clear();
-			shaderTextures.clear();
+			ScriptShaders::Release();
 			SAFERELEASE(backbuffer);
 			SAFERELEASE(sSurf1);
 			SAFERELEASE(sSurf2);
@@ -1140,7 +1006,6 @@ void Graphics::init() {
 	}
 
 	if (Graphics::mode) {
-		LoadGameHook::OnGameReset() += GraphicsResetOnGameLoad;
 		LoadGameHook::OnAfterGameInit() += rcpresInit;
 	}
 }

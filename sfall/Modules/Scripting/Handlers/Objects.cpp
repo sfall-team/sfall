@@ -328,7 +328,7 @@ void sf_critter_inven_obj2(OpcodeContext& ctx) {
 		ctx.setReturn(critter->invenSize);
 		break;
 	default:
-		ctx.printOpcodeError("critter_inven_obj2() - invalid type.");
+		ctx.printOpcodeError("%s() - invalid type.", ctx.getMetaruleName());
 	}
 }
 
@@ -365,10 +365,13 @@ void sf_item_weight(OpcodeContext& ctx) {
 void sf_set_dude_obj(OpcodeContext& ctx) {
 	auto obj = ctx.arg(0).asObject();
 	if (obj->Type() == fo::OBJ_TYPE_CRITTER) {
-		PartyControl::SwitchToCritter(obj);
+		//if (!InCombat && obj != PartyControl::RealDudeObject()) {
+		//	ctx.printOpcodeError("%s() - controlling of the critter is only allowed in combat mode.", ctx.getMetaruleName());
+		//} else {
+			PartyControl::SwitchToCritter(obj);
+		//}
 	} else {
-		ctx.printOpcodeError("Object is not a critter!");
-		ctx.setReturn(-1);
+		ctx.printOpcodeError("%s() - the object is not a critter.", ctx.getMetaruleName());
 	}
 }
 
@@ -391,7 +394,7 @@ void sf_unjam_lock(OpcodeContext& ctx) {
 void sf_set_unjam_locks_time(OpcodeContext& ctx) {
 	int time = ctx.arg(0).asInt();
 	if (time < 0 || time > 127) {
-		ctx.printOpcodeError("set_unjam_locks_time() - time argument must be in the range of 0 to 127.");
+		ctx.printOpcodeError("%s() - time argument must be in the range of 0 to 127.", ctx.getMetaruleName());
 	} else {
 		Objects::SetAutoUnjamLockTime(time);
 	}
@@ -405,13 +408,13 @@ void sf_item_make_explosive(OpcodeContext& ctx) {
 
 	if (min > max) {
 		max = min;
-		ctx.printOpcodeError("item_make_explosive() - Warning: value of max argument is less than the min argument.");
+		ctx.printOpcodeError("%s() - Warning: value of max argument is less than the min argument.", ctx.getMetaruleName());
 	}
 
 	if (pid > 0 && pidActive > 0) {
 		Explosions::AddToExplosives(pid, pidActive, min, max);
 	} else {
-		ctx.printOpcodeError("item_make_explosive() - PID arguments must be greater than 0.");
+		ctx.printOpcodeError("%s() - invalid PID number, must be greater than 0.", ctx.getMetaruleName());
 	}
 }
 
@@ -495,7 +498,7 @@ void sf_get_object_ai_data(OpcodeContext& ctx) {
 		value = arrayId;
 		break;
 	default:
-		ctx.printOpcodeError("get_object_ai_data() - invalid value for AI argument.");
+		ctx.printOpcodeError("%s() - invalid value for AI argument.", ctx.getMetaruleName());
 	}
 	ctx.setReturn(value, DataType::INT);
 }
@@ -513,10 +516,10 @@ void sf_set_drugs_data(OpcodeContext& ctx) {
 		result = Drugs::SetDrugAddictTimeOff(pid, val);
 		break;
 	default:
-		ctx.printOpcodeError("set_drugs_data() - invalid value for type argument.");
+		ctx.printOpcodeError("%s() - invalid value for type argument.", ctx.getMetaruleName());
 		return;
 	}
-	if (result) ctx.printOpcodeError("set_drugs_data() - drug PID not found in the configuration file.");
+	if (result) ctx.printOpcodeError("%s() - drug PID not found in the configuration file.", ctx.getMetaruleName());
 }
 
 void sf_set_unique_id(OpcodeContext& ctx) {

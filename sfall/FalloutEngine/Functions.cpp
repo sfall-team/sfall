@@ -165,7 +165,7 @@ long __stdcall db_init(const char* path_dat, const char* path_patches) {
 }
 
 // Check fallout paths for file
-long __stdcall CheckFile(char *fileName, DWORD *sizeOut) {
+long __stdcall db_file_exist(const char *fileName, DWORD *sizeOut) {
 	WRAP_WATCOM_CALL2(db_dir_entry_, fileName, sizeOut)
 }
 
@@ -198,11 +198,6 @@ const char* _stdcall getmsg(const MessageList* fileAddr, MessageNode* result, lo
 
 void __stdcall gsound_play_sfx_file(const char* name) {
 	WRAP_WATCOM_CALL1(gsound_play_sfx_file_, name)
-}
-
-// redraws the main game interface windows (useful after changing some data like active hand, etc.)
-void intface_redraw() {
-	WRAP_WATCOM_CALL0(intface_redraw_)
 }
 
 long __stdcall interpret(Program* program, long arg2) {
@@ -354,7 +349,7 @@ GameObject* __stdcall scr_find_obj_from_program(Program* program) {
 	WRAP_WATCOM_CALL1(scr_find_obj_from_program_, program)
 }
 
-// Saves pointer to script object into scriptPtr using scriptID. 
+// Saves pointer to script object into scriptPtr using scriptID.
 // Returns 0 on success, -1 on failure.
 long __stdcall scr_ptr(long scriptId, ScriptInstance** scriptPtr) {
 	WRAP_WATCOM_CALL2(scr_ptr_, scriptId, scriptPtr)
@@ -399,8 +394,8 @@ void __stdcall DialogOut(const char* text) {
 		push eax;        // DisplayMsg
 		mov  al, byte ptr ds:[0x6AB718];
 		push eax;        // ColorIndex
-		push 0x74;       // y
-		mov  ecx, 0xC0;  // x
+		push 116;        // y
+		mov  ecx, 192;   // x
 		mov  eax, text;  // DisplayText
 		xor  ebx, ebx;   // ?
 		xor  edx, edx;   // ?
@@ -419,6 +414,44 @@ void __fastcall DrawWinLine(int winRef, DWORD startXPos, DWORD endXPos, DWORD st
 		mov  ebx, startYPos;
 		//mov  edx, xStartPos;
 		call fo::funcoffs::win_line_;
+	}
+}
+
+// draws an image to the buffer without scaling and with transparency display toggle
+void __fastcall windowDisplayBuf(long x, long width, long y, long height, void* data, long noTrans) {
+	__asm {
+		push height;
+		push edx;       // from_width
+		push y;
+		mov  eax, data; // from
+		mov  ebx, fo::funcoffs::windowDisplayTransBuf_;
+		cmp  noTrans, 0;
+		cmovnz ebx, fo::funcoffs::windowDisplayBuf_;
+		call ebx; // *data<eax>, from_width<edx>, unused<ebx>, X<ecx>, Y, width, height
+	}
+}
+
+// draws an image in the window and scales it to fit the window
+void __fastcall displayInWindow(long w_here, long width, long height, void* data) {
+	__asm {
+		mov  ebx, height;
+		mov  eax, data;
+		call fo::funcoffs::displayInWindow_; // *data<eax>, width<edx>, height<ebx>, where<ecx>
+	}
+}
+
+void __fastcall trans_cscale(long i_width, long i_height, long s_width, long s_height, long xy_shift, long w_width, void* data) {
+	__asm {
+		push w_width;
+		push s_height;
+		push s_width;
+		mov  ebx, edx; // i_height
+		mov  edx, ecx; // i_width
+		call fo::funcoffs::windowGetBuffer_;
+		add  eax, xy_shift;
+		push eax;      // to_buff
+		mov  eax, data;
+		call fo::funcoffs::trans_cscale_; // *from_buff<eax>, i_width<edx>, i_height<ebx>, i_width2<ecx>, to_buff, width, height, to_width
 	}
 }
 
