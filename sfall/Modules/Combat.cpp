@@ -168,8 +168,8 @@ static double ApplyModifiers(std::vector<KnockbackModifier>* mods, fo::GameObjec
 
 static DWORD __fastcall CalcKnockbackMod(int knockValue, int damage, fo::GameObject* weapon, fo::GameObject* attacker, fo::GameObject* target) {
 	double result = (double)damage / (double)knockValue;
-	result = ApplyModifiers(&mWeapons, weapon, result);
-	result = ApplyModifiers(&mAttackers, attacker, result);
+	if (weapon) result = ApplyModifiers(&mWeapons, weapon, result);
+	if (attacker) result = ApplyModifiers(&mAttackers, attacker, result);
 	result = ApplyModifiers(&mTargets, target, result);
 	return (DWORD)floor(result);
 }
@@ -192,9 +192,9 @@ static void __declspec(naked) compute_dmg_damage_hack() {
 	__asm {
 		push ecx
 		push esi;               // Target
-		mov  eax, -1;
-		push eax;               // Attacker
-		push eax;               // Weapon
+		xor  eax, eax;
+		push eax;               // Attacker (no attacker)
+		push eax;               // Weapon   (no weapon)
 		mov  edx, ebx;          // Damage
 		mov  ecx, 10;           // Knockback value
 		call CalcKnockbackMod;
