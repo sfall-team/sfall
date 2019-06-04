@@ -47,6 +47,7 @@ static bool restMode;
 static bool restTime;
 
 static int mapSlotsScrollMax = 27 * (17 - 7);
+static int mapSlotsScrollLimit;
 
 static DWORD worldMapDelay;
 static DWORD worldMapTicks;
@@ -125,12 +126,12 @@ end:
 static __declspec(naked) void ScrollCityListFix() {
 	__asm {
 		push ebx;
-		mov  ebx, ds:[0x672F10];
+		mov  ebx, ds:[0x672F10]; // _wmLastTabsYOffset
 		test eax, eax;
 		jl   up;
 		cmp  ebx, mapSlotsScrollMax;
 		pop  ebx;
-		jne  run;
+		jle  run;
 		retn;
 up:
 		test ebx, ebx;
@@ -386,13 +387,10 @@ void WorldLimitsPatches() {
 	if (wmSlots && wmSlots < 128) {
 		dlog("Applying world map slots patch.", DL_INIT);
 		if (wmSlots < 7) wmSlots = 7;
-		mapSlotsScrollMax = (wmSlots - 7) * 27;
-		if (wmSlots < 25) {
-			SafeWrite32(0x4C21FD, 230 - (wmSlots - 17) * 27);
-		} else {
-			SafeWrite8(0x4C21FC, 0xC2); // sub > add
-			SafeWrite32(0x4C21FD, 2 + 27 * (wmSlots - 26));
-		}
+		mapSlotsScrollMax = (wmSlots - 7) * 27; // value of the height after which scrolling is not possible
+		mapSlotsScrollLimit = wmSlots * 27;
+		SafeWrite32(0x4C21FD, 189); // 27 * 7
+		SafeWrite32(0x4C21F1, (DWORD)&mapSlotsScrollLimit);
 		dlogr(" Done", DL_INIT);
 	}
 }
@@ -535,13 +533,11 @@ void WorldMapFontPatch() {
 }
 
 void PipBoyAutomapsPatch() {
-	//if (GetConfigInt("Misc", "PipBoyAutomap", 0)) {
-		dlog("Applying Pip-Boy automaps patch.", DL_INIT);
-		MakeCall(0x4BF931, wmMapInit_hack, 2);
-		SafeWrite32(0x41B8B7, (DWORD)AutomapPipboyList);
-		memcpy(AutomapPipboyList, (void*)FO_VAR_displayMapList, sizeof(AutomapPipboyList)); // copy vanilla data
-		dlogr(" Done", DL_INIT);
-	//}
+	dlog("Applying Pip-Boy automaps patch.", DL_INIT);
+	MakeCall(0x4BF931, wmMapInit_hack, 2);
+	SafeWrite32(0x41B8B7, (DWORD)AutomapPipboyList);
+	memcpy(AutomapPipboyList, (void*)FO_VAR_displayMapList, sizeof(AutomapPipboyList)); // copy vanilla data
+	dlogr(" Done", DL_INIT);
 }
 
 void Worldmap::SaveData(HANDLE file) {
