@@ -34,12 +34,12 @@ static DWORD itemFastMoveKey = 0;
 static DWORD skipFromContainer = 0;
 
 struct sMessage {
-	DWORD number;
-	DWORD flags;
+	long number;
+	long flags;
 	char* audio;
 	char* message;
 };
-static const char* MsgSearch(int msgno, DWORD file) {
+static const char* MsgSearch(long msgno, DWORD file) {
 	if(!file) return 0;
 	sMessage msg = { msgno, 0, 0, 0 };
 	__asm {
