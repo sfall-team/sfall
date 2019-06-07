@@ -2116,6 +2116,22 @@ dude:
 	}
 }
 
+static void __declspec(naked) anim_move_to_tile_hook() {
+	__asm {
+		push ebx;
+		mov  ebx, dword ptr [esp + 0x18 - 0x08 + 4]; // distance
+		test ebx, ebx;
+		jl   skip; // dist < 0
+		cmp  ebx, [eax + movePoints];
+		jge  skip; // dist >= soursce.curr_mp
+		pop  ebx;
+		retn;
+skip:
+		pop  ebx;
+		jmp  fo::funcoffs::obj_blocking_at_;
+	}
+}
+
 void BugFixes::init()
 {
 	#ifndef NDEBUG
@@ -2690,6 +2706,9 @@ void BugFixes::init()
 	// Fix an bug when the NPC could not pickup the item, when he does not have enough space in the inventory and displayed the wrong message
 	HookCall(0x49B6E7, obj_pickup_hook);
 	HookCall(0x49B71C, obj_pickup_hook_message);
+
+	// Fix a bug that ignored the distance argument when moving critters
+	HookCall(0x416D44, anim_move_to_tile_hook);
 }
 
 }
