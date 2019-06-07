@@ -325,6 +325,9 @@ static void RemoveSavFiles() {
 }
 
 void LoadOrder::init() {
+	// Load external sfall resource file
+	patchFiles.push_back("sfall.dat");
+
 	GetExtraPatches();
 
 	if (GetConfigInt("Misc", "DataLoadOrderPatch", 0)) {
