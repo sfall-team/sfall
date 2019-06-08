@@ -21,6 +21,7 @@
 
 #include "..\main.h"
 #include "..\FalloutEngine\Fallout2.h"
+#include "Graphics.h"
 #include "LoadGameHook.h"
 #include "ScriptExtender.h"
 #include "SpeedPatch.h"
@@ -524,12 +525,17 @@ void StartingStatePatches() {
 	if (ViewportX != -1 || ViewportY != -1) HookCall(0x4BCF07, ViewportHook); // game_reset_
 }
 
-void WorldMapFontPatch() {
+void WorldMapInterfacePatch() {
 	if (GetConfigInt("Misc", "WorldMapFontPatch", 0)) {
 		dlog("Applying world map font patch.", DL_INIT);
 		HookCall(0x4C2343, wmInterfaceInit_text_font_hook);
 		dlogr(" Done", DL_INIT);
 	}
+	// Fixes image for up/down buttons
+	SafeWrite32(0x4C2C0A, 199); // index UPARWOFF.FRM
+	SafeWrite8(0x4C2C7C, 0x43); // dec ebx >> inc ebx
+	SafeWrite32(0x4C2C92, 181); // index DNARWOFF.FRM
+	SafeWrite8(0x4C2D04, 0x46); // dec esi >> inc esi
 }
 
 void PipBoyAutomapsPatch() {
@@ -775,14 +781,8 @@ scale:
 }
 
 void WorldmapViewportPatch() {
-	// Fixes image for up/down buttons
-	SafeWrite32(0x4C2C0A, 199); // index UPARWOFF.FRM
-	SafeWrite8(0x4C2C7C, 0x43); // dec ebx >> inc ebx
-	SafeWrite32(0x4C2C92, 181); // index DNARWOFF.FRM
-	SafeWrite8(0x4C2D04, 0x46); // dec esi >> inc esi
-
-	// check enabled HRP
-	if (*(DWORD*)0x4E4480 == 0x278805C7 || GetConfigInt("Misc", "WorldMapInterface", 0) == 0 || GetPrivateProfileIntA("MAIN", "SCR_HEIGHT", 0, ".\\f2_res.ini") < WMAP_WIN_HEIGHT) return;
+	if (Graphics::GetGameHeightRes() < WMAP_WIN_HEIGHT || Graphics::GetGameWidthRes() < WMAP_WIN_WIDTH) return;
+	if (!fo::func::db_access("art\\intrface\\worldmap.frm")) return;
 	dlog("Applying world map interface patch.", DL_INIT);
 
 	mapSlotsScrollMax -= 216;
@@ -813,7 +813,7 @@ void WorldmapViewportPatch() {
 		0x4C2D7A
 	});
 
-    // button city/worldmap (wmInterfaceInit_)
+	// button city/worldmap (wmInterfaceInit_)
 	SafeWrite32(0x4C2B9B, WMAP_WIN_HEIGHT - (480 - 439)); // offset by Y (439)
 	SafeWrite32(0x4C2BAF, WMAP_WIN_WIDTH - (640 - 519));  // offset by X (508)
 
@@ -884,7 +884,6 @@ void WorldmapViewportPatch() {
 
 	// Town frm images (wmTownMapRefresh_)
 	SafeWrite32(0x4C4BE4, (WMAP_WIN_WIDTH * 21) + 22); // start offset for town image (13462)
-
 	dlogr(" Done", DL_INIT);
 }
 
@@ -895,10 +894,14 @@ void Worldmap::init() {
 	TownMapsHotkeyFix();
 	WorldLimitsPatches();
 	WorldmapFpsPatch();
-	WorldMapFontPatch();
+	WorldMapInterfacePatch();
 	PipBoyAutomapsPatch();
-	WorldmapViewportPatch(); // must be located after WorldMapSlots patch
 
+	if (*(DWORD*)0x4E4480 != 0x278805C7 // check enabled HRP
+		&& GetConfigInt("Misc", "WorldMapInterface", 0))
+	{
+		LoadGameHook::OnAfterGameInit() += WorldmapViewportPatch; // Note: Must be applyling after WorldMapSlots patch
+	}
 	LoadGameHook::OnGameReset() += []() {
 		SetCarInterfaceArt(433); // set index
 		if (restTime) SetRestHealTime(180);

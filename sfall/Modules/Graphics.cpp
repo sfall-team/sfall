@@ -171,11 +171,11 @@ void GetFalloutWindowInfo(DWORD* width, DWORD* height, HWND* wnd) {
 }
 
 long Graphics::GetGameWidthRes() {
-	return fo::var::scr_size.offx - (fo::var::scr_size.x + 1);
+	return (fo::var::scr_size.offx - fo::var::scr_size.x) + 1;
 }
 
 long Graphics::GetGameHeightRes() {
-	return fo::var::scr_size.offy - (fo::var::scr_size.y + 1);
+	return (fo::var::scr_size.offy - fo::var::scr_size.y) + 1;
 }
 
 int _stdcall GetShaderVersion() {
