@@ -169,11 +169,11 @@ void GetFalloutWindowInfo(DWORD* width, DWORD* height, HWND* wnd) {
 }
 
 long Gfx_GetGameWidthRes() {
-	return ptr_scr_size->offx - (ptr_scr_size->x + 1);
+	return (ptr_scr_size->offx - ptr_scr_size->x) + 1;
 }
 
 long Gfx_GetGameHeightRes() {
-	return ptr_scr_size->offy - (ptr_scr_size->y + 1);
+	return (ptr_scr_size->offy - ptr_scr_size->y) + 1;
 }
 
 int _stdcall GetShaderVersion() {

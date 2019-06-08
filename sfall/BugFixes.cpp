@@ -2068,6 +2068,10 @@ static void __declspec(naked) anim_move_to_tile_hook() {
 		mov  ebx, dword ptr [esp + 0x18 - 0x10 + 8]; // distance
 		test ebx, ebx;
 		jl   skip; // dist < 0
+		cmp  eax, ds:[_obj_dude];
+		jne  notDude;
+		sub  ebx, ds:[_combat_free_move];
+notDude:
 		cmp  ebx, [eax + 0x40];
 		jge  skip; // dist >= source.curr_mp
 		pop  ebx;

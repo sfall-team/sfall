@@ -476,12 +476,17 @@ void StartingStatePatches() {
 	if (ViewportX != -1 || ViewportY != -1) HookCall(0x4BCF07, ViewportHook); // game_reset_
 }
 
-void WorldMapFontPatch() {
+void WorldMapInterfacePatch() {
 	if (GetPrivateProfileIntA("Misc", "WorldMapFontPatch", 0, ini)) {
 		dlog("Applying world map font patch.", DL_INIT);
 		HookCall(0x4C2343, wmInterfaceInit_text_font_hook);
 		dlogr(" Done", DL_INIT);
 	}
+	// Fix images for up/down buttons
+	SafeWrite32(0x4C2C0A, 199); // index of UPARWOFF.FRM
+	SafeWrite8(0x4C2C7C, 0x43); // dec ebx > inc ebx
+	SafeWrite32(0x4C2C92, 181); // index of DNARWOFF.FRM
+	SafeWrite8(0x4C2D04, 0x46); // dec esi > inc esi
 }
 
 void PipBoyAutomapsPatch() {
@@ -504,14 +509,6 @@ DWORD GetAddedYears(bool isCheck) {
 	return (isCheck && !addYear) ? 0 : addedYears;
 }
 
-void WorldmapViewportPatch() {
-	// Fix images for up/down buttons
-	SafeWrite32(0x4C2C0A, 199); // index of UPARWOFF.FRM
-	SafeWrite8(0x4C2C7C, 0x43); // dec ebx > inc ebx
-	SafeWrite32(0x4C2C92, 181); // index of DNARWOFF.FRM
-	SafeWrite8(0x4C2D04, 0x46); // dec esi > inc esi
-}
-
 void WorldmapInit() {
 	PathfinderFixInit();
 	StartingStatePatches();
@@ -519,7 +516,6 @@ void WorldmapInit() {
 	TownMapsHotkeyFix();
 	WorldLimitsPatches();
 	WorldmapFpsPatch();
-	WorldMapFontPatch();
+	WorldMapInterfacePatch();
 	PipBoyAutomapsPatch();
-	WorldmapViewportPatch(); // must be located after WorldMapSlots patch
 }
