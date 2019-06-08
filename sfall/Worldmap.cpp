@@ -504,6 +504,14 @@ DWORD GetAddedYears(bool isCheck) {
 	return (isCheck && !addYear) ? 0 : addedYears;
 }
 
+void WorldmapViewportPatch() {
+	// Fix images for up/down buttons
+	SafeWrite32(0x4C2C0A, 199); // index of UPARWOFF.FRM
+	SafeWrite8(0x4C2C7C, 0x43); // dec ebx > inc ebx
+	SafeWrite32(0x4C2C92, 181); // index of DNARWOFF.FRM
+	SafeWrite8(0x4C2D04, 0x46); // dec esi > inc esi
+}
+
 void WorldmapInit() {
 	PathfinderFixInit();
 	StartingStatePatches();
@@ -513,4 +521,5 @@ void WorldmapInit() {
 	WorldmapFpsPatch();
 	WorldMapFontPatch();
 	PipBoyAutomapsPatch();
+	WorldmapViewportPatch(); // must be located after WorldMapSlots patch
 }
