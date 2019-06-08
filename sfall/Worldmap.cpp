@@ -32,7 +32,7 @@ static DWORD ViewportX;
 static DWORD ViewportY;
 
 static int mapSlotsScrollMax = 27 * (17 - 7);
-static int mapSlotsScrollLimit;
+static int mapSlotsScrollLimit = 0;
 
 static DWORD worldMapDelay;
 static DWORD worldMapTicks;
@@ -341,7 +341,7 @@ void WorldLimitsPatches() {
 	if (wmSlots && wmSlots < 128) {
 		dlog("Applying world map slots patch.", DL_INIT);
 		if (wmSlots < 7) wmSlots = 7;
-		mapSlotsScrollMax = (wmSlots - 7) * 27; // value of the height after which scrolling is not possible
+		mapSlotsScrollMax = (wmSlots - 7) * 27; // height value after which scrolling is not possible
 		mapSlotsScrollLimit = wmSlots * 27;
 		SafeWrite32(0x4C21FD, 189); // 27 * 7
 		SafeWrite32(0x4C21F1, (DWORD)&mapSlotsScrollLimit);
