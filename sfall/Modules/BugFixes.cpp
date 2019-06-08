@@ -2093,6 +2093,22 @@ dude:
 	}
 }
 
+static void __declspec(naked) anim_move_to_tile_hook() {
+	__asm {
+		push ebx;
+		mov  ebx, dword ptr [esp + 0x18 - 0x10 + 8]; // distance
+		test ebx, ebx;
+		jl   skip; // dist < 0
+		cmp  ebx, [eax + movePoints];
+		jge  skip; // dist >= source.curr_mp
+		pop  ebx;
+		retn;
+skip:
+		pop  ebx;
+		jmp  fo::funcoffs::obj_blocking_at_;
+	}
+}
+
 void BugFixes::init()
 {
 	#ifndef NDEBUG
@@ -2652,6 +2668,9 @@ void BugFixes::init()
 	// up an item due to not enough space in the inventory
 	HookCall(0x49B6E7, obj_pickup_hook);
 	HookCall(0x49B71C, obj_pickup_hook_message);
+
+	// Fix for anim_move_to_tile_ engine function ignoring the distance argument
+	HookCall(0x416D44, anim_move_to_tile_hook);
 }
 
 }
