@@ -229,6 +229,10 @@
 #define FO_VAR_wmAreaInfoList             0x51DDF8
 #define FO_VAR_wmLastRndTime              0x51DEA0
 #define FO_VAR_wmMaxMapNum                0x51DE10
+#define FO_VAR_wmMaxTileNum               0x51DDF0
+#define FO_VAR_wmNumHorizontalTiles       0x51DDF4
+#define FO_VAR_wmViewportRightScrlLimit   0x672EFC
+#define FO_VAR_wmViewportBottomtScrlLimit 0x672F00
 #define FO_VAR_wmWorldOffsetX             0x51DE2C
 #define FO_VAR_wmWorldOffsetY             0x51DE30
 #define FO_VAR_wmYesNoStrs                0x51DD90
