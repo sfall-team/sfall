@@ -891,6 +891,7 @@ extern const DWORD win_register_button_disable_;
 extern const DWORD win_register_button_sound_func_;
 extern const DWORD win_show_;
 extern const DWORD wmInterfaceScrollTabsStart_;
+extern const DWORD wmPartyInitWalking_;
 extern const DWORD wmPartyWalkingStep_;
 extern const DWORD wmWorldMapFunc_;
 extern const DWORD wmWorldMapLoadTempData_;

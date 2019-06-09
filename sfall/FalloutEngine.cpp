@@ -660,6 +660,7 @@ const DWORD win_register_button_disable_ = 0x4D8674;
 const DWORD win_register_button_sound_func_ = 0x4D87F8;
 const DWORD win_show_ = 0x4D6DAC;
 const DWORD wmInterfaceScrollTabsStart_ = 0x4C219C;
+const DWORD wmPartyInitWalking_ = 0x4C1E54;
 const DWORD wmPartyWalkingStep_ = 0x4C1F90;
 const DWORD wmWorldMapFunc_ = 0x4BFE10;
 const DWORD wmWorldMapLoadTempData_ = 0x4BD6B4;
