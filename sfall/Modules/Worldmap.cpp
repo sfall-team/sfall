@@ -21,6 +21,7 @@
 
 #include "..\main.h"
 #include "..\FalloutEngine\Fallout2.h"
+#include "Graphics.h"
 #include "LoadGameHook.h"
 #include "ScriptExtender.h"
 #include "SpeedPatch.h"
@@ -343,6 +344,24 @@ end:
 	}
 }
 
+static void __declspec(naked) wmWorldMap_hack() {
+	__asm {
+		mov  ebx, [ebx + 0x34]; // wmAreaInfoList.size
+		cmp  ebx, 1;
+		jg   largeLoc;
+		je   mediumLoc;
+//smallLoc:
+		sub  eax, 5;
+		sub  edx, 5;
+mediumLoc:
+		sub  eax, 10;
+		sub  edx, 10;
+largeLoc:
+		xor  ebx, ebx;
+		jmp  fo::funcoffs::wmPartyInitWalking_;
+	}
+}
+
 static void RestRestore() {
 	if (!restMode) return;
 
@@ -535,6 +554,9 @@ void WorldMapInterfacePatch() {
 	SafeWrite8(0x4C2C7C, 0x43); // dec ebx > inc ebx
 	SafeWrite32(0x4C2C92, 181); // index of DNARWOFF.FRM
 	SafeWrite8(0x4C2D04, 0x46); // dec esi > inc esi
+
+	// Fix the position of the target marker for location circles
+	MakeCall(0x4C03AA, wmWorldMap_hack, 2);
 }
 
 void PipBoyAutomapsPatch() {
@@ -694,17 +716,17 @@ static const DWORD wmWinWidth[] = {
 
 // Right limit of the viewport (450)
 static const DWORD wmViewportEndRight[] = {
+//	0x4BC91F,                                                   // wmWorldMap_init_
 	0x4C3937, 0x4C393E, 0x4C39BB, 0x4C3B2F, 0x4C3B36, 0x4C3C4B, // wmInterfaceRefresh_
 	0x4C4288, 0x4C436A, 0x4C4409,                               // wmDrawCursorStopped_
-	0x4BC91F,                                                   // wmWorldMap_init_
 	0x4C44B4,                                                   // wmCursorIsVisible_
 };
 
 // Bottom limit of viewport (443)
 static const DWORD wmViewportEndBottom[] = {
+//	0x4BC947,                                                   // wmWorldMap_init_
 	0x4C3963, 0x4C38D7, 0x4C39DA, 0x4C3B62, 0x4C3AE7, 0x4C3C74, // wmInterfaceRefresh_
 	0x4C429A, 0x4C4378, 0x4C4413,                               // wmDrawCursorStopped_
-	0x4BC947,                                                   // wmWorldMap_init_
 	0x4C44BE,                                                   // wmCursorIsVisible_
 };
 
@@ -780,12 +802,15 @@ scale:
 }
 
 void WorldmapViewportPatch() {
-	// check enabled HRP
-	if (*(DWORD*)0x4E4480 == 0x278805C7 || GetConfigInt("Misc", "WorldMapInterface", 0) == 0 || GetPrivateProfileIntA("MAIN", "SCR_HEIGHT", 0, ".\\f2_res.ini") < WMAP_WIN_HEIGHT) return;
+	if (Graphics::GetGameHeightRes() < WMAP_WIN_HEIGHT || Graphics::GetGameWidthRes() < WMAP_WIN_WIDTH) return;
+	if (!fo::func::db_access("art\\intrface\\worldmap.frm")) return;
 	dlog("Applying world map interface patch.", DL_INIT);
 
 	mapSlotsScrollMax -= 216;
 	if (mapSlotsScrollMax < 0) mapSlotsScrollMax = 0;
+
+	fo::var::wmViewportRightScrlLimit = (350 * fo::var::wmNumHorizontalTiles) - (WMAP_WIN_WIDTH - (640 - 450));
+	fo::var::wmViewportBottomtScrlLimit = (300 * (fo::var::wmMaxTileNum / fo::var::wmNumHorizontalTiles)) - (WMAP_WIN_HEIGHT - (480 - 443));
 
 	SafeWriteBatch<DWORD>(135, {0x4C23BD, 0x4C2408}); // use unused worldmap.frm for new world map interface (wmInterfaceInit_)
 
@@ -874,7 +899,7 @@ void WorldmapViewportPatch() {
 
 	SafeWrite32(0x4C2BFB, (DWORD)&wmTownMapSubButtonIds[0]); // wmInterfaceInit_
 	SafeWriteBatch<DWORD>((DWORD)&wmTownMapSubButtonIds[1], {
-	//	0x4C22DD, 0x4C230A, // wmInterfaceScrollTabsUpdate_ (never called)
+		0x4C22DD, 0x4C230A, // wmInterfaceScrollTabsUpdate_ (never called)
 		0x4C227B,           // wmInterfaceScrollTabsStop_
 		0x4C21A8            // wmInterfaceScrollTabsStart_
 	});
@@ -883,7 +908,6 @@ void WorldmapViewportPatch() {
 
 	// Town map frm images (wmTownMapRefresh_)
 	SafeWrite32(0x4C4BE4, (WMAP_WIN_WIDTH * 21) + 22); // start offset for town map image (13462)
-
 	dlogr(" Done", DL_INIT);
 }
 
@@ -896,8 +920,12 @@ void Worldmap::init() {
 	WorldmapFpsPatch();
 	WorldMapInterfacePatch();
 	PipBoyAutomapsPatch();
-	WorldmapViewportPatch(); // must be located after WorldMapSlots patch
 
+	if (*(DWORD*)0x4E4480 != 0x278805C7 // check if HRP is enabled
+		&& GetConfigInt("Misc", "WorldMapInterface", 0))
+	{
+		LoadGameHook::OnAfterGameInit() += WorldmapViewportPatch; // Note: must be applied after WorldMapSlots patch
+	}
 	LoadGameHook::OnGameReset() += []() {
 		SetCarInterfaceArt(433); // set index
 		if (restTime) SetRestHealTime(180);
