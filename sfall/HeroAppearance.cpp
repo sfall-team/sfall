@@ -769,8 +769,8 @@ void _stdcall RefreshHeroBaseArt() {
 }
 
 /*
-// Check fallout paths for file
-long __stdcall db_file_exist(const char *fileName, DWORD *sizeOut) {
+// Check fallout file and get file size (result 0 - file exists)
+long __stdcall db_dir_entry(const char *fileName, DWORD *sizeOut) {
 	__asm {
 		mov  edx, sizeOut;
 		mov  eax, fileName;
@@ -864,19 +864,16 @@ setPath:
 
 static void __declspec(naked) CheckHeroExist() {
 	__asm {
-		cmp  esi, critterArraySize; // check if loading hero art
+		cmp  esi, critterArraySize;       // check if loading hero art
 		jle  endFunc;
-		sub  esp, 4;
-		lea  edx, [esp];            // size out
-		mov  eax, _art_name;        // critter art file name address
-		call db_dir_entry_;         // check art file exists
-		add  esp, 4;
-		cmp  eax, -1;
-		jne  endFunc;
+		mov  eax, _art_name;              // critter art file name address (file name)
+		call db_access_;                  // check art file exists
+		test eax, eax;
+		jnz  endFunc;
 
 		// if file not found load regular critter art instead
 		sub  esi, critterArraySize;
-		add  esp, 4;                // drop func ret address
+		add  esp, 4;                      // drop func ret address
 		mov  eax, 0x4194E2;
 		jmp  eax;
 endFunc:
