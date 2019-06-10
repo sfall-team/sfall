@@ -78,7 +78,8 @@ long __stdcall db_get_file_list(const char* searchMask, char* * *fileList);
 
 long __stdcall db_init(const char* path_dat, const char* path_patches);
 
-long __stdcall db_file_exist(const char *fileName, DWORD *sizeOut);
+// Check fallout file and get file size (result 0 - file exists)
+long __stdcall db_dir_entry(const char *fileName, DWORD *sizeOut);
 
 // prints message to debug.log file
 void __declspec() debug_printf(const char* fmt, ...);

@@ -164,8 +164,8 @@ long __stdcall db_init(const char* path_dat, const char* path_patches) {
 	WRAP_WATCOM_CALL3(db_init_, path_dat, 0, path_patches)
 }
 
-// Check fallout paths for file
-long __stdcall db_file_exist(const char *fileName, DWORD *sizeOut) {
+// Check fallout file and get file size (result 0 - file exists)
+long __stdcall db_dir_entry(const char *fileName, DWORD *sizeOut) {
 	WRAP_WATCOM_CALL2(db_dir_entry_, fileName, sizeOut)
 }
 

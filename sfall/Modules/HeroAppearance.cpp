@@ -392,13 +392,10 @@ static void __declspec(naked) CheckHeroExist() {
 	__asm {
 		cmp  esi, critterArraySize;       // check if loading hero art
 		jle  endFunc;
-		sub  esp, 4;
-		lea  edx, [esp];                  // size out
 		mov  eax, FO_VAR_art_name;        // critter art file name address (file name)
-		call fo::funcoffs::db_dir_entry_; // check art file exists
-		add  esp, 4;
-		cmp  eax, -1;
-		jne  endFunc;
+		call fo::funcoffs::db_access_;    // check art file exists
+		test eax, eax;
+		jnz  endFunc;
 
 		// if file not found load regular critter art instead
 		sub  esi, critterArraySize;

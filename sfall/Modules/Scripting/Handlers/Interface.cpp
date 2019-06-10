@@ -377,8 +377,7 @@ static void DrawImage(OpcodeContext& ctx, bool isScaled) {
 		file = fo::func::art_get_name(_fid); // .frm
 		if (_fid >> 24 == fo::OBJ_TYPE_CRITTER) {
 			direction = (fid >> 28);
-			DWORD sz;
-			if (direction && fo::func::db_file_exist(file, &sz)) {
+			if (direction && !fo::func::db_access(file)) {
 				file = fo::func::art_get_name(fid); // .fr#
 			}
 		}
