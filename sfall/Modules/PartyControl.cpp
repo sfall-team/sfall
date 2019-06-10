@@ -39,6 +39,15 @@ bool skipCounterAnim  = false;
 static int delayedExperience;
 static bool switchHandHookInjected = false;
 
+struct WeaponStateSlot {
+	long npcID;
+	bool leftIsCopy  = false;
+	bool rightIsCopy = false;
+	fo::ItemButtonItem leftSlot;
+	fo::ItemButtonItem rightSlot;
+};
+std::vector<WeaponStateSlot> weaponState;
+
 static struct DudeState {
 	fo::GameObject* obj_dude = nullptr;
 	DWORD art_vault_guy_num;
@@ -165,6 +174,32 @@ static void SetCurrentDude(fo::GameObject* npc) {
 	} else {
 		fo::var::itemCurrentItem = fo::ActiveSlot::Right;
 	}
+	// restoring weapons mode
+	size_t count = weaponState.size();
+	for (size_t i = 0; i < count; i++) {
+		if (weaponState[i].npcID == npc->id) {
+			bool isMatch = false;
+			if (weaponState[i].leftIsCopy) {
+				auto item = fo::func::inven_left_hand(npc);
+				if (item && item->protoId == weaponState[i].leftSlot.item->protoId) {
+					memcpy(&fo::var::itemButtonItems[0], &weaponState[i].leftSlot, 0x14);
+					isMatch = true;
+				}
+			}
+			if (weaponState[i].rightIsCopy) {
+				auto item = fo::func::inven_right_hand(npc);
+				if (item && item->protoId == weaponState[i].rightSlot.item->protoId) {
+					memcpy(&fo::var::itemButtonItems[1], &weaponState[i].rightSlot, 0x14);
+					isMatch = true;
+				}
+			}
+			if (!isMatch) {
+				if (i < count - 1) weaponState[i] = weaponState.back();
+				weaponState.pop_back();
+			}
+			break;
+		}
+	}
 
 	bool isAddict = false;
 	for (int i = 0; i < 9; i++) fo::var::game_global_vars[fo::var::drugInfoList[i].addictGvar] = 0;
@@ -288,18 +323,58 @@ void __stdcall PartyControlReset() {
 	if (realDude.obj_dude != nullptr && isControllingNPC) {
 		RestoreRealDudeState();
 	}
+	weaponState.clear();
 }
 
 bool PartyControl::IsNpcControlled() {
 	return isControllingNPC;
 }
 
+bool CopyItemSlots(WeaponStateSlot &element, bool isSwap) {
+	bool isCopy = false;
+	if (fo::var::itemButtonItems[0 + isSwap].istWeapon && fo::var::itemButtonItems[0 + isSwap].item) {
+		memcpy(&element.leftSlot, &fo::var::itemButtonItems[0 + isSwap], 0x14);
+		element.leftIsCopy = isCopy = true;
+	}
+	if ( fo::var::itemButtonItems[1 - isSwap].istWeapon && fo::var::itemButtonItems[1 - isSwap].item) {
+		memcpy(&element.rightSlot, &fo::var::itemButtonItems[1 - isSwap], 0x14);
+		element.rightIsCopy = isCopy = true;
+	}
+	if (isSwap && isCopy) {
+		if (element.leftIsCopy) {
+			element.leftSlot.primaryAttack = fo::AttackType::ATKTYPE_LWEAPON_PRIMARY;
+			element.leftSlot.secondaryAttack = fo::AttackType::ATKTYPE_LWEAPON_SECONDARY;
+		}
+		if (element.rightIsCopy) {
+			element.rightSlot.primaryAttack = fo::AttackType::ATKTYPE_RWEAPON_PRIMARY;
+			element.rightSlot.secondaryAttack = fo::AttackType::ATKTYPE_RWEAPON_SECONDARY;
+		}
+	}
+	return isCopy;
+}
+
+void SaveWeaponMode(bool isSwap) {
+	for (size_t i = 0; i < weaponState.size(); i++) {
+		if (weaponState[i].npcID == fo::var::obj_dude->id) {
+			CopyItemSlots(weaponState[i], isSwap);
+			return;
+		}
+	}
+	WeaponStateSlot wState;
+	if (CopyItemSlots(wState, isSwap)) {
+		wState.npcID = fo::var::obj_dude->id;
+		weaponState.push_back(wState);
+	}
+}
+
 void PartyControl::SwitchToCritter(fo::GameObject* critter) {
 	if (isControllingNPC) {
+		bool isSwap = false;
 		if (fo::var::itemCurrentItem == fo::ActiveSlot::Left) {
 			// set active left item to right slot
 			fo::GameObject* lItem = fo::func::inven_left_hand(fo::var::obj_dude);
 			if (lItem) {
+				isSwap = true;
 				fo::GameObject* rItem = fo::func::inven_right_hand(fo::var::obj_dude);
 				lItem->flags &= ~fo::ObjectFlag::Left_Hand;
 				lItem->flags |= fo::ObjectFlag::Right_Hand;
@@ -309,6 +384,7 @@ void PartyControl::SwitchToCritter(fo::GameObject* critter) {
 				}
 			}
 		}
+		SaveWeaponMode(isSwap);
 		if (critter == nullptr || critter == realDude.obj_dude) RestoreRealDudeState();
 	} else {
 		SaveRealDudeState();
