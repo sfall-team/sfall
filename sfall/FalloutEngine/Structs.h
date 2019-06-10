@@ -220,7 +220,7 @@ struct ItemButtonItem {
 		long flags;
 		struct {
 			char cantUse;
-			char istWeapon;
+			char itsWeapon;
 			short unkFlag;
 		};
 	};

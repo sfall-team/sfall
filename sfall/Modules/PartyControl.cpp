@@ -332,11 +332,11 @@ bool PartyControl::IsNpcControlled() {
 
 bool CopyItemSlots(WeaponStateSlot &element, bool isSwap) {
 	bool isCopy = false;
-	if (fo::var::itemButtonItems[0 + isSwap].istWeapon && fo::var::itemButtonItems[0 + isSwap].item) {
+	if (fo::var::itemButtonItems[0 + isSwap].itsWeapon && fo::var::itemButtonItems[0 + isSwap].item) {
 		memcpy(&element.leftSlot, &fo::var::itemButtonItems[0 + isSwap], 0x14);
 		element.leftIsCopy = isCopy = true;
 	}
-	if ( fo::var::itemButtonItems[1 - isSwap].istWeapon && fo::var::itemButtonItems[1 - isSwap].item) {
+	if ( fo::var::itemButtonItems[1 - isSwap].itsWeapon && fo::var::itemButtonItems[1 - isSwap].item) {
 		memcpy(&element.rightSlot, &fo::var::itemButtonItems[1 - isSwap], 0x14);
 		element.rightIsCopy = isCopy = true;
 	}
