@@ -174,7 +174,7 @@ static void SetCurrentDude(fo::GameObject* npc) {
 	} else {
 		fo::var::itemCurrentItem = fo::ActiveSlot::Right;
 	}
-	// restoring weapons mode
+	// restoring selected weapons mode
 	size_t count = weaponState.size();
 	for (size_t i = 0; i < count; i++) {
 		if (weaponState[i].npcID == npc->id) {
@@ -185,6 +185,7 @@ static void SetCurrentDude(fo::GameObject* npc) {
 					memcpy(&fo::var::itemButtonItems[0], &weaponState[i].leftSlot, 0x14);
 					isMatch = true;
 				}
+				weaponState[i].leftIsCopy = false;
 			}
 			if (weaponState[i].rightIsCopy) {
 				auto item = fo::func::inven_right_hand(npc);
@@ -192,6 +193,7 @@ static void SetCurrentDude(fo::GameObject* npc) {
 					memcpy(&fo::var::itemButtonItems[1], &weaponState[i].rightSlot, 0x14);
 					isMatch = true;
 				}
+				weaponState[i].rightIsCopy = false;
 			}
 			if (!isMatch) {
 				if (i < count - 1) weaponState[i] = weaponState.back();
@@ -336,7 +338,7 @@ bool CopyItemSlots(WeaponStateSlot &element, bool isSwap) {
 		memcpy(&element.leftSlot, &fo::var::itemButtonItems[0 + isSwap], 0x14);
 		element.leftIsCopy = isCopy = true;
 	}
-	if ( fo::var::itemButtonItems[1 - isSwap].itsWeapon && fo::var::itemButtonItems[1 - isSwap].item) {
+	if (fo::var::itemButtonItems[1 - isSwap].itsWeapon && fo::var::itemButtonItems[1 - isSwap].item) {
 		memcpy(&element.rightSlot, &fo::var::itemButtonItems[1 - isSwap], 0x14);
 		element.rightIsCopy = isCopy = true;
 	}

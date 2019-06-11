@@ -117,8 +117,22 @@ GameObject* GetActiveItem() {
 	return fo::var::itemButtonItems[fo::var::itemCurrentItem].item;
 }
 
-long GetCurrentAttackMode(DWORD* mode, DWORD* isAimed) {
-	return fo::func::intface_get_attack(mode, isAimed);
+long GetCurrentAttackMode() {
+	long hitMode = -1;
+	if (fo::var::interfaceWindow != -1) {
+		long activeHand = fo::var::itemCurrentItem; // 0 - left, 1 - right
+		switch (fo::var::itemButtonItems[activeHand].mode) {
+		case 1: case 2: // 2 - called shot
+			hitMode = fo::var::itemButtonItems[activeHand].primaryAttack;
+			break;
+		case 3: case 4: // 4 - called shot
+			hitMode = fo::var::itemButtonItems[activeHand].secondaryAttack;
+			break; 
+		case 5: // reload mode
+			hitMode = fo::ATKTYPE_LWEAPON_RELOAD + activeHand;
+		}
+	}
+	return hitMode;
 }
 
 bool HeroIsFemale() {

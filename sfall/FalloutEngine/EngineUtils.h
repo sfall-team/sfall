@@ -62,7 +62,7 @@ long& GetActiveItemMode();
 
 GameObject* GetActiveItem();
 
-long GetCurrentAttackMode(DWORD* mode, DWORD* isAimed);
+long GetCurrentAttackMode();
 
 bool HeroIsFemale();
 
