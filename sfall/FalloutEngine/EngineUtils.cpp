@@ -112,6 +112,10 @@ GameObject* GetActiveItem() {
 	return fo::var::itemButtonItems[fo::var::itemCurrentItem].item;
 }
 
+long GetCurrentAttackMode(DWORD* mode, DWORD* isAimed) {
+	return fo::func::intface_get_attack(mode, isAimed);
+}
+
 bool HeroIsFemale() {
 	return (fo::func::stat_level(fo::var::obj_dude, fo::Stat::STAT_gender) == fo::Gender::GENDER_FEMALE);
 }

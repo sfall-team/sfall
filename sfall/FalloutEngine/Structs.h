@@ -216,7 +216,14 @@ struct Program {
 #pragma pack(1)
 struct ItemButtonItem {
 	GameObject* item;
-	long flags;
+	union {
+		long flags;
+		struct {
+			char cantUse;
+			char itsWeapon;
+			short unkFlag;
+		};
+	};
 	long primaryAttack;
 	long secondaryAttack;
 	long mode;

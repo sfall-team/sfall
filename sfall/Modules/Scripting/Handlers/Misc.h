@@ -113,7 +113,7 @@ void __declspec() op_get_light_level();
 
 void __declspec() op_refresh_pc_art();
 
-void __declspec() op_get_attack_type();
+void sf_get_attack_type(OpcodeContext&);
 
 void __declspec() op_play_sfall_sound();
 

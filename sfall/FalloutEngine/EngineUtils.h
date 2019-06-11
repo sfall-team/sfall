@@ -60,6 +60,8 @@ long& GetActiveItemMode();
 
 GameObject* GetActiveItem();
 
+long GetCurrentAttackMode(DWORD* mode, DWORD* isAimed);
+
 bool HeroIsFemale();
 
 long CheckAddictByPid(fo::GameObject* critter, long pid);
