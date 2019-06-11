@@ -290,7 +290,8 @@ void sf_set_object_knockback(OpcodeContext& ctx) {
 	case 0x197:
 		mode = 2;
 		break;
-	default: break;
+	default:
+		break;
 	}
 	fo::GameObject* object = ctx.arg(0).asObject();
 	if (mode) {
@@ -300,7 +301,7 @@ void sf_set_object_knockback(OpcodeContext& ctx) {
 		}
 	} else {
 		if (object->Type() != fo::OBJ_TYPE_ITEM) {
-			ctx.printOpcodeError("%s() - the object is not a item.", ctx.getOpcodeName());
+			ctx.printOpcodeError("%s() - the object is not an item.", ctx.getOpcodeName());
 			return;
 		}
 	}
@@ -316,7 +317,8 @@ void sf_remove_object_knockback(OpcodeContext& ctx) {
 	case 0x19a:
 		mode = 2;
 		break;
-	default: break;
+	default:
+		break;
 	}
 	KnockbackRemoveMod(ctx.arg(0).asObject(), mode);
 }
@@ -424,10 +426,12 @@ static bool  onceNpcLoop;
 
 static void __cdecl IncNPCLevel(const char* fmt, const char* name) {
 	fo::GameObject* mObj;
-	_asm push edx;
-	_asm mov  eax, [ebp + 0x150 - 0x1C + 16]; // ebp <- esp
-	_asm mov  edx, [eax];
-	_asm mov  mObj, edx;
+	__asm {
+		push edx;
+		mov  eax, [ebp + 0x150 - 0x1C + 16]; // ebp <- esp
+		mov  edx, [eax];
+		mov  mObj, edx;
+	}
 
 	if ((pidNPCToInc && (mObj && mObj->protoId == pidNPCToInc)) || (!pidNPCToInc && !_stricmp(name, nameNPCToInc))) {
 		fo::func::debug_printf(fmt, name);
@@ -440,19 +444,19 @@ static void __cdecl IncNPCLevel(const char* fmt, const char* name) {
 		if (!npcAutoLevelEnabled) {
 			SafeWrite8(0x495CFB, 0xEB);    // Disable random element
 		}
-		_asm mov [ebp + 0x150 - 0x28 + 16], 255; // set counter for exit loop
+		__asm mov [ebp + 0x150 - 0x28 + 16], 255; // set counter for exit loop
 	} else {
 		if (!onceNpcLoop) {
 			SafeWrite32(0x495C50, 0x01FCE9); // set goto next member
 			onceNpcLoop = true;
 		}
 	}
-	_asm pop edx;
+	__asm pop edx;
 }
 
 void sf_inc_npc_level(OpcodeContext& ctx) {
 	nameNPCToInc = ctx.arg(0).asString();
-	pidNPCToInc = ctx.arg(0).asInt(); // set to 0, if passed name
+	pidNPCToInc = ctx.arg(0).asInt(); // set to 0 if passing npc name
 	if (pidNPCToInc == 0 && nameNPCToInc[0] == 0) return;
 
 	MakeCall(0x495BF1, IncNPCLevel);  // Replace the debug output
@@ -474,7 +478,7 @@ void sf_inc_npc_level(OpcodeContext& ctx) {
 
 void sf_get_npc_level(OpcodeContext& ctx) {
 	int level = -1;
-	DWORD findPid = ctx.arg(0).asInt(); // set to 0, if passed name
+	DWORD findPid = ctx.arg(0).asInt(); // set to 0 if passing npc name
 	const char *critterName, *name = ctx.arg(0).asString();
 
 	if (findPid || name[0] != 0) {
@@ -493,7 +497,7 @@ void sf_get_npc_level(OpcodeContext& ctx) {
 					break;
 				}
 			} else {
-				int _pid = ((fo::GameObject*)*members)->protoId;
+				DWORD _pid = ((fo::GameObject*)*members)->protoId;
 				if (findPid == _pid) {
 					pid = _pid;
 					break;
@@ -574,8 +578,8 @@ void __declspec(naked) op_get_uptime() {
 		mov  edx, eax;
 		pop  eax;
 		_RET_VAL_INT(ecx);
-		pop edx;
-		pop ecx;
+		pop  edx;
+		pop  ecx;
 		retn;
 	}
 }
@@ -679,7 +683,7 @@ end:
 	}
 }
 
-static char* valueOutRange = "%s() - arguments values out of range.";
+static char* valueOutRange = "%s() - argument values out of range.";
 
 void sf_set_critical_table(OpcodeContext& ctx) {
 	DWORD critter = ctx.arg(0).asInt(),

@@ -52,7 +52,7 @@ static void __declspec(naked) wmRndEncounterOccurred_hook() {
 	}
 }
 
-static void _fastcall ForceEncounter(DWORD mapID, DWORD flags) {
+static void __fastcall ForceEncounter(DWORD mapID, DWORD flags) {
 	EncounteredHorrigan = *(DWORD*)0x672E04;
 	ForceEnconterMapID = mapID;
 	SafeWrite32(0x4C070E, mapID);
@@ -71,15 +71,15 @@ void __declspec(naked) op_force_encounter() {
 		mov  ecx, eax; // mapID
 		call ForceEncounter;
 end:
-		pop edx;
-		pop ecx;
+		pop  edx;
+		pop  ecx;
 		retn;
 	}
 }
 
 void __declspec(naked) op_force_encounter_with_flags() {
 	__asm {
-		pushad
+		pushad;
 		mov ecx, eax;
 		call fo::funcoffs::interpretPopShort_;
 		mov edx, eax;
@@ -99,7 +99,7 @@ void __declspec(naked) op_force_encounter_with_flags() {
 		mov ecx, eax; // mapID
 		call ForceEncounter;
 end:
-		popad
+		popad;
 		retn;
 	}
 }
@@ -153,8 +153,8 @@ void __declspec(naked) op_get_world_map_y_pos() {
 		push ecx;
 		mov  edx, ds:[FO_VAR_world_ypos];
 		_RET_VAL_INT(ecx);
-		pop ecx;
-		pop edx;
+		pop  ecx;
+		pop  edx;
 		retn;
 	}
 }
@@ -181,8 +181,8 @@ void __declspec(naked) op_set_world_map_pos() {
 		jnz end;
 		cmp si, VAR_TYPE_INT;
 		jnz end;
-		mov ds : [FO_VAR_world_xpos], eax;
-		mov ds : [FO_VAR_world_ypos], edi;
+		mov ds:[FO_VAR_world_xpos], eax;
+		mov ds:[FO_VAR_world_ypos], edi;
 end:
 		pop esi;
 		pop edi;
@@ -267,7 +267,7 @@ void sf_set_rest_on_map(OpcodeContext& ctx) {
 	}
 	long elev = ctx.arg(1).asInt();
 	if (elev < -1 && elev > 2) {
-		ctx.printOpcodeError("%s() - wrong map elevation argument.", ctx.getMetaruleName());
+		ctx.printOpcodeError("%s() - invalid map elevation argument.", ctx.getMetaruleName());
 	} else {
 		Worldmap::SetRestMapLevel(mapId, elev, ctx.arg(2).asBool());
 	}
@@ -276,7 +276,7 @@ void sf_set_rest_on_map(OpcodeContext& ctx) {
 void sf_get_rest_on_map(OpcodeContext& ctx) {
 	long elev = ctx.arg(1).asInt();
 	if (elev < 0 && elev > 2) {
-		ctx.printOpcodeError("%s() - wrong map elevation argument.", ctx.getMetaruleName());
+		ctx.printOpcodeError("%s() - invalid map elevation argument.", ctx.getMetaruleName());
 	} else {
 		ctx.setReturn(Worldmap::GetRestMapLevel(elev, ctx.arg(0).asInt()));
 	}

@@ -1,4 +1,4 @@
-﻿#include "..\..\FalloutEngine\Fallout2.h"
+#include "..\..\FalloutEngine\Fallout2.h"
 
 #include "Common.h"
 
@@ -25,9 +25,9 @@ DWORD args[maxArgs]; // current hook arguments
 DWORD rets[maxRets]; // current hook return values
 
 DWORD argCount;
-DWORD cArg;          // how many arguments were taken by current hook script
-DWORD cRet;          // how many return values were set by current hook script
-DWORD cRetTmp;       // how many return values were set by specific hook script (when using register_hook)
+DWORD cArg;    // how many arguments were taken by current hook script
+DWORD cRet;    // how many return values were set by current hook script
+DWORD cRetTmp; // how many return values were set by specific hook script (when using register_hook)
 
 std::vector<HookScript> hooks[numHooks];
 
@@ -73,7 +73,7 @@ bool LoadHookScriptFile(std::string filePath, const char* name, int id, bool ful
 	return (prog.ptr != nullptr);
 }
 
-// List of hooks that are denied recursive calls
+// List of hooks that are not allowed to be called recursively
 static bool CheckRecursiveHooks(DWORD hook) {
 	if (hook == currentRunHook) {
 		switch (hook) {
@@ -87,15 +87,15 @@ static bool CheckRecursiveHooks(DWORD hook) {
 
 void _stdcall BeginHook() {
 	if (callDepth && callDepth <= maxDepth) {
-		// save all values of the current hook, if during the execution of the current hook, another hook was called
+		// save all values of the current hook if another hook was called during the execution of the current hook
 		int cDepth = callDepth - 1;
 		savedArgs[cDepth].hookID = currentRunHook;
 		savedArgs[cDepth].argCount = argCount;                                     // number of arguments of the current hook
 		savedArgs[cDepth].cArg = cArg;                                             // current count of taken arguments
-		savedArgs[cDepth].cRet = cRet;                                             // number of returned arguments for the current hook
+		savedArgs[cDepth].cRet = cRet;                                             // number of return values for the current hook
 		savedArgs[cDepth].cRetTmp = cRetTmp;
 		memcpy(&savedArgs[cDepth].oldArgs, args, argCount * sizeof(DWORD));        // values of the arguments
-		if (cRet) memcpy(&savedArgs[cDepth].oldRets, rets, cRet * sizeof(DWORD));  // returned values
+		if (cRet) memcpy(&savedArgs[cDepth].oldRets, rets, cRet * sizeof(DWORD));  // return values
 
 		// for debugging
 		/*dlogh("\nSaved cArgs/cRet: %d / %d(%d)\n", savedArgs[cDepth].argCount, savedArgs[cDepth].cRet, cRetTmp);
@@ -156,13 +156,13 @@ void _stdcall EndHook() {
 	callDepth--;
 	if (callDepth) {
 		if (callDepth <= maxDepth) {
-			// restored all saved values of the previous hook
+			// restore all saved values of the previous hook
 			int cDepth = callDepth - 1;
 			currentRunHook = savedArgs[cDepth].hookID;
 			argCount = savedArgs[cDepth].argCount;
 			cArg = savedArgs[cDepth].cArg;
 			cRet = savedArgs[cDepth].cRet;
-			cRetTmp = savedArgs[cDepth].cRetTmp;  // also restore current count of the number of returned arguments
+			cRetTmp = savedArgs[cDepth].cRetTmp;  // also restore current count of the number of return values
 			memcpy(args, &savedArgs[cDepth].oldArgs, argCount * sizeof(DWORD));
 			if (cRet) memcpy(rets, &savedArgs[cDepth].oldRets, cRet * sizeof(DWORD));
 

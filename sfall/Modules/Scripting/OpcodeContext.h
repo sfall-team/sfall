@@ -96,7 +96,7 @@ public:
 
 	const char* getOpcodeName() const; 
 	const char* getMetaruleName() const;
-	
+
 	// currently executed metarule func
 	const SfallMetarule* metarule;
 

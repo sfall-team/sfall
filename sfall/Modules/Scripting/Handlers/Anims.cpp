@@ -127,7 +127,7 @@ void sf_explosions_metarule(OpcodeContext& ctx) {
 }
 
 void sf_art_cache_flush(OpcodeContext& ctx) {
-	_asm call fo::funcoffs::art_flush_;
+	__asm call fo::funcoffs::art_flush_;
 }
 
 }

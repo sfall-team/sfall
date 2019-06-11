@@ -73,7 +73,7 @@ static const SfallMetarule metarules[] = {
 	{"exec_map_update_scripts", sf_exec_map_update_scripts, 0, 0},
 	{"floor2",                  sf_floor2,                  1, 1, {ARG_NUMBER}},
 	{"get_can_rest_on_map",     sf_get_rest_on_map,         2, 2, {ARG_INT, ARG_INT}},
-	{"get_current_inven_size",  sf_get_current_size,        1, 1, {ARG_OBJECT}},
+	{"get_current_inven_size",  sf_get_current_inven_size,  1, 1, {ARG_OBJECT}},
 	{"get_cursor_mode",         sf_get_cursor_mode,         0, 0},
 	{"get_flags",               sf_get_flags,               1, 1, {ARG_OBJECT}},
 	{"get_ini_section",         sf_get_ini_section,         2, 2, {ARG_STRING, ARG_STRING}},
@@ -121,7 +121,7 @@ static const SfallMetarule metarules[] = {
 	{"tile_refresh_display",    sf_tile_refresh_display,    0, 0},
 	{"unjam_lock",              sf_unjam_lock,              1, 1, {ARG_OBJECT}},
 	#ifndef NDEBUG
-	{"validate_test", sf_test, 2, 5, {ARG_INT, ARG_NUMBER, ARG_STRING, ARG_OBJECT, ARG_ANY}},
+	{"validate_test",           sf_test,                    2, 5, {ARG_INT, ARG_NUMBER, ARG_STRING, ARG_OBJECT, ARG_ANY}},
 	#endif
 };
 

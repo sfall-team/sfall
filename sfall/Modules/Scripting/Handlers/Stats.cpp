@@ -159,12 +159,12 @@ void __declspec(naked) op_set_critter_skill_points() {
 		mov edx, esp;
 		call fo::funcoffs::proto_ptr_;
 		mov eax, [esp];
-		mov[eax + 0x13c + esi * 4], edi;
+		mov [eax + 0x13c + esi * 4], edi;
 end:
 		//Restore registers and return
 		add esp, 12;
 		popad
-			retn;
+		retn;
 	}
 }
 
@@ -213,7 +213,7 @@ end:
 		//Restore registers and return
 		add esp, 8;
 		popad
-			retn;
+		retn;
 	}
 }
 
@@ -323,13 +323,13 @@ void __declspec(naked) op_set_critter_current_ap() {
 		jnz end;
 		cmp si, VAR_TYPE_INT;
 		jnz end;
-		mov[eax + 0x40], ebx;
+		mov [eax + 0x40], ebx;
 		mov ecx, ds:[FO_VAR_obj_dude]
-			cmp ecx, eax;
+		cmp ecx, eax;
 		jne end;
 		mov eax, ebx;
 		mov edx, ds:[FO_VAR_combat_free_move]
-			call fo::funcoffs::intface_update_move_points_;
+		call fo::funcoffs::intface_update_move_points_;
 end:
 		//Restore registers and return
 		pop esi;
@@ -899,7 +899,7 @@ end:
 }
 
 static void _stdcall SetPerkLevelMod2(int mod) {
-	if (mod < -25 || mod>25) return;
+	if (mod < -25 || mod > 25) return;
 	PerkLevelMod = mod;
 	HookCall(0x49687F, &SetPerkLevelMod3);
 }

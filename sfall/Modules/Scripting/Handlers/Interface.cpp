@@ -154,7 +154,7 @@ void __declspec(naked) op_resume_game() {
 void sf_create_message_window(OpcodeContext &ctx) {
 	const char* str = ctx.arg(0).strValue();
 	if (!str || str[0] == 0) return;
-	//if (fo::var::curr_font_num == 101) return; // why?
+	//if (fo::var::curr_font_num == 101) return;
 	fo::func::DialogOut(str);
 }
 
@@ -189,8 +189,8 @@ void __declspec(naked) op_set_viewport_x() {
 		_GET_ARG_INT(end);
 		mov  ds:[FO_VAR_wmWorldOffsetX], eax;
 end:
-		pop edx;
-		pop ecx;
+		pop  edx;
+		pop  ecx;
 		retn;
 	}
 }
@@ -210,7 +210,7 @@ end:
 
 void sf_add_iface_tag(OpcodeContext &ctx) {
 	int result = BarBoxes::AddExtraBox();
-	if (result == -1) ctx.printOpcodeError("%s() - tag addition is not possible, the maximum limit of 126 tags has been reached.", ctx.getMetaruleName());
+	if (result == -1) ctx.printOpcodeError("%s() - cannot add new tag as the maximum limit of 126 tags has been reached.", ctx.getMetaruleName());
 	ctx.setReturn(result);
 }
 
@@ -364,7 +364,7 @@ void sf_create_win(OpcodeContext& ctx) {
 
 static void DrawImage(OpcodeContext& ctx, bool isScaled) {
 	if (*(DWORD*)FO_VAR_currentWindow == -1) {
-		ctx.printOpcodeError("%s() - not created/selected user interface window.", ctx.getMetaruleName());
+		ctx.printOpcodeError("%s() - no created/selected window for the image.", ctx.getMetaruleName());
 		return;
 	}
 	long direction = 0;
@@ -385,7 +385,7 @@ static void DrawImage(OpcodeContext& ctx, bool isScaled) {
 	}
 	fo::FrmFile* frmPtr = nullptr;
 	if (fo::func::load_frame(file, &frmPtr)) {
-		ctx.printOpcodeError("%s() - can't open the file: %s", ctx.getMetaruleName(), file);
+		ctx.printOpcodeError("%s() - cannot open the file: %s", ctx.getMetaruleName(), file);
 		return;
 	}
 	fo::FrmFrameData* framePtr = (fo::FrmFrameData*)&frmPtr->width;
@@ -417,7 +417,7 @@ static void DrawImage(OpcodeContext& ctx, bool isScaled) {
 				s_width = ctx.arg(4).rawValue();
 				s_height = (ctx.numArgs() > 5) ? ctx.arg(5).rawValue() : -1;
 			}
-			// scaled with aspect ratio, if w or h set to -1
+			// scale with aspect ratio if w or h is set to -1
 			if (s_width <= -1 && s_height > 0) {
 				s_width = s_height * framePtr->width / framePtr->height;
 			} else if (s_height <= -1 && s_width > 0) {

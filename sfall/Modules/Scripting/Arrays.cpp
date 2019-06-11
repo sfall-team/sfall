@@ -193,7 +193,7 @@ static bool LoadArraysOld(HANDLE h) {
 	sArrayVarOld var;
 	sArrayVar varN;
 
-	for(DWORD i = 0; i < count; i++) {
+	for (DWORD i = 0; i < count; i++) {
 		ReadFile(h, &id, 4, &unused, 0);
 		ReadFile(h, &var, 8, &unused, 0);
 		if (unused != 8) return true;
@@ -249,7 +249,7 @@ bool LoadArrays(HANDLE h) {
 		}
 
 		ReadFile(h, &arrayVar.flags, 4, &unused, 0);
-		ReadFile(h, &elCount, 4, &unused, 0);  // actual number of elements: keys+values
+		ReadFile(h, &elCount, 4, &unused, 0); // actual number of elements: keys+values
 		if (unused != 4) return true;
 
 		bool isAssoc = arrayVar.isAssoc();
@@ -309,7 +309,7 @@ int GetNumArrays() {
 void GetArrays(int* _arrays) {
 	int pos = 0;
 	array_citr itr = arrays.begin();
-	while(itr != arrays.end()) {
+	while (itr != arrays.end()) {
 		_arrays[pos++] = itr->first; // array id
 		_arrays[pos++] = itr->second.isAssoc() ? 1 : 0;
 		_arrays[pos++] = itr->second.val.size();
@@ -370,11 +370,11 @@ void DESetArray(int id, const DWORD* types, const char* data) {
 DWORD _stdcall CreateArray(int len, DWORD flags) {
 	sArrayVar var;
 	var.flags = (flags & 0xFFFFFFFE); // reset 1 bit
-	if (len < 0)
+	if (len < 0) {
 		var.flags |= ARRAYFLAG_ASSOC;
-	else
-		if (len > ARRAY_MAX_SIZE) len = ARRAY_MAX_SIZE; // safecheck
-
+	} else if (len > ARRAY_MAX_SIZE) {
+		len = ARRAY_MAX_SIZE; // safecheck
+	}
 	if (!var.isAssoc()) {
 		var.val.resize(len);
 	}
@@ -526,7 +526,7 @@ void _stdcall SetArray(DWORD id, const ScriptValue& key, const ScriptValue& val,
 }
 
 int _stdcall LenArray(DWORD id) {
-	if(arrays.find(id) == arrays.end()) return -1;
+	if (arrays.find(id) == arrays.end()) return -1;
 	return arrays[id].size();
 }
 
@@ -632,17 +632,17 @@ ScriptValue _stdcall ScanArray(DWORD id, const ScriptValue& val) {
 	for (size_t i = 0; i < arrays[id].val.size(); i += step) {
 		sArrayElement &el = arrays[id].val[i + step - 1];
 		if (el.type == val.type()) {
-			 if ((!val.isString() && static_cast<DWORD>(el.intVal) == val.rawValue()) ||
-				 (val.isString() && strcmp(el.strVal, val.strValue()) == 0)) {
-				 if (arrays[id].isAssoc()) { // return key instead of index for associative arrays
-					 return ScriptValue(
-						 static_cast<DataType>(arrays[id].val[i].type),
-						 static_cast<DWORD>(arrays[id].val[i].intVal)
-					 );
-				 } else {
-					 return ScriptValue(static_cast<int>(i));
-				 }
-			 }
+			if ((!val.isString() && static_cast<DWORD>(el.intVal) == val.rawValue()) ||
+				(val.isString() && strcmp(el.strVal, val.strValue()) == 0)) {
+				if (arrays[id].isAssoc()) { // return key instead of index for associative arrays
+					return ScriptValue(
+						static_cast<DataType>(arrays[id].val[i].type),
+						static_cast<DWORD>(arrays[id].val[i].intVal)
+					);
+				} else {
+					return ScriptValue(static_cast<int>(i));
+				}
+			}
 		}
 	}
 	return ScriptValue(-1);

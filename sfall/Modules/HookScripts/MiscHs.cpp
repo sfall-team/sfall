@@ -14,7 +14,6 @@ namespace sfall
 // TODO: The hook is executed twice, the first time for the player, the second time for the trader,
 // it is necessary change the implementation so that the execution happened once
 static DWORD __fastcall BarterPriceHook_Script(register fo::GameObject* source, register fo::GameObject* target, DWORD callAddr) {
-
 	int computeCost = fo::func::barter_compute_value(source, target);
 
 	BeginHook();
@@ -97,7 +96,6 @@ void SourceUseSkillOnInit() { sourceSkillOn = fo::var::obj_dude; }
 static char resultSkillOn;
 static long bakupCombatState;
 static void __fastcall UseSkillOnHook_Script(DWORD source, DWORD target, register DWORD skillId) {
-
 	BeginHook();
 	argCount = 3;
 
@@ -193,7 +191,6 @@ static void __declspec(naked) UseSkillHook() {
 		mov eax, rets[0];
 		HookEnd;
 		retn;
-
 defaultHandler:
 		HookEnd;
 		jmp fo::funcoffs::skill_use_;
@@ -222,7 +219,6 @@ static void __declspec(naked) StealCheckHook() {
 		mov eax, rets[0];
 		HookEnd;
 		retn;
-
 defaultHandler:
 		HookEnd;
 		jmp fo::funcoffs::skill_check_stealing_;
@@ -233,7 +229,7 @@ static void __declspec(naked) SneakCheckHook() {
 	__asm {
 		HookBegin;
 		mov esi, ds:[FO_VAR_sneak_working];
-		mov args[0], esi; // 1 = sneak succeeding
+		mov args[0], esi; // 1 = successful sneak
 		mov args[4], eax; // time of work
 		mov args[8], edx; // critter
 		pushadc;
@@ -479,7 +475,6 @@ skip:
 }
 
 static int __fastcall ExplosiveTimerHook_Script(DWORD &type, DWORD item, DWORD time) {
-
 	BeginHook();
 	argCount = 3;
 
@@ -503,7 +498,7 @@ static int __fastcall ExplosiveTimerHook_Script(DWORD &type, DWORD item, DWORD t
 	return time;
 }
 
-static void _declspec(naked) ExplosiveTimerHook() {
+static void __declspec(naked) ExplosiveTimerHook() {
 	__asm {
 		push eax; // time in ticks for queue_add_
 		push edx;
@@ -580,7 +575,7 @@ void Inject_ExplosiveTimerHook() {
 void Inject_UseSkillOnHook() {
 	HookCalls(UseSkillOnHook, { 0x44C3CA, 0x44C81C });
 	MakeCall(0x4127BA, UseSkillOnHack, 1);
-	MakeCalls(skill_use_hack, {0x4AB05D, 0x4AB558, 0x4ABA60}); // fix check obj_dude target
+	MakeCalls(skill_use_hack, {0x4AB05D, 0x4AB558, 0x4ABA60}); // fix checking obj_dude's target
 
 	// replace source skill user
 	SafeWriteBatch<DWORD>((DWORD)&sourceSkillOn, {0x4AAF47, 0x4AB051, 0x4AB3FB, 0x4AB550, 0x4AB8FA, 0x4ABA54});
@@ -588,7 +583,6 @@ void Inject_UseSkillOnHook() {
 }
 
 void InitMiscHookScripts() {
-
 	LoadHookScript("hs_barterprice", HOOK_BARTERPRICE);
 	LoadHookScript("hs_useskillon", HOOK_USESKILLON);
 	LoadHookScript("hs_useskill", HOOK_USESKILL);
@@ -599,7 +593,6 @@ void InitMiscHookScripts() {
 	LoadHookScript("hs_setglobalvar", HOOK_SETGLOBALVAR);
 	LoadHookScript("hs_resttimer", HOOK_RESTTIMER);
 	LoadHookScript("hs_explosivetimer", HOOK_EXPLOSIVETIMER);
-
 }
 
 }

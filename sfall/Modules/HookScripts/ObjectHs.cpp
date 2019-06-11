@@ -93,7 +93,6 @@ defaultHandler:
 }
 
 static DWORD __fastcall UseAnimateObjHook_Script(DWORD critter, DWORD animCode, DWORD object) {
-
 	BeginHook();
 	argCount = 3;
 
@@ -142,6 +141,7 @@ static DWORD __stdcall DescriptionObjHook_Script(DWORD object) {
 	argCount = 1;
 
 	args[0] = object;
+
 	RunHookScript(HOOK_DESCRIPTIONOBJ);
 
 	DWORD textPrt = (cRet > 0) ? rets[0] : 0;
@@ -221,7 +221,7 @@ static void __declspec(naked) SetMapLightHook() {
 		push ecx;
 		push ebx;
 		mov  ecx, esp;  // &intensity
-		push -1;        // no object this map
+		push -1;        // no object (it's a map)
 		mov  edx, esp;  // no radius
 		call SetLightingHook_Script;
 		add  esp, 4;
@@ -230,7 +230,7 @@ static void __declspec(naked) SetMapLightHook() {
 		mov  ebx, [esp - 4]; // return intensity value
 skip:
 		pop  ecx;
-		cmp  ebx, dword ptr ds:[0x47A93D]; // get miminal light map intensity (16384)
+		cmp  ebx, dword ptr ds:[0x47A93D]; // get miminal ambient light intensity (16384)
 		retn;
 	}
 }

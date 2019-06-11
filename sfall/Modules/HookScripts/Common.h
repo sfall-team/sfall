@@ -13,8 +13,8 @@ namespace sfall
 // Number of types of hooks
 constexpr int numHooks = HOOK_COUNT;
 
-// Maximum number of arguments returned
-int const maxRets = 8;
+// Maximum number of return values
+const int maxRets = 8;
 
 // Struct for registered hook script
 struct HookScript {

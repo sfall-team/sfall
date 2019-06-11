@@ -41,7 +41,6 @@ static void __declspec(naked) ToHitHook() {
 }
 
 static DWORD __fastcall AfterHitRollHook_Script(fo::ComputeAttackResult &ctd, DWORD hitChance, DWORD hit) {
-
 	BeginHook();
 	argCount = 5;
 
@@ -130,7 +129,6 @@ static void __declspec(naked) CalcApCostHook2() {
 }
 
 static void __fastcall ComputeDamageHook_Script(fo::ComputeAttackResult &ctd, DWORD rounds, DWORD multiply) {
-
 	BeginHook();
 	argCount = 12;
 
@@ -191,7 +189,7 @@ static void __fastcall SubComputeDamageHook_Script(fo::ComputeAttackResult &ctd,
 		DamageMod::DamageYAAM(ctd, accumulatedDamage, rounds, armorDT, armorDR, bonusRangedDamage, multiplyDamage, difficulty);
 		return;
 	}
-	
+
 	BeginHook();
 	argCount = 12;
 
@@ -313,7 +311,7 @@ int __fastcall AmmoCostHook_Script(DWORD hookType, fo::GameObject* weapon, DWORD
 		result = fo::func::item_w_compute_ammo_cost(weapon, &rounds);
 		if (result == -1) goto failed; // failed computed
 	}
-	args[2] = rounds ;          // rounds as computed by game (cost)
+	args[2] = rounds;           // rounds as computed by game (cost)
 
 	RunHookScript(HOOK_AMMOCOST);
 
@@ -342,7 +340,7 @@ skip:
 }
 
 // hooks combat_turn function
-static void _declspec(naked) CombatTurnHook() {
+static void __declspec(naked) CombatTurnHook() {
 	__asm {
 		HookBegin;
 		mov args[0], 1;   // turn begin
@@ -382,7 +380,7 @@ static void _declspec(naked) CombatTurnHook() {
 
 // hack to exit from combat_add_noncoms function without crashing when you load game during NPC turn
 static const DWORD CombatHack_add_noncoms_back = 0x422359;
-static void _declspec(naked) CombatAddNoncoms_CombatTurnHack() {
+static void __declspec(naked) CombatAddNoncoms_CombatTurnHack() {
 	__asm {
 		call CombatTurnHook;
 		cmp  eax, -1;
@@ -417,7 +415,7 @@ fo::GameObject* __fastcall ComputeExplosionOnExtrasHook_Script(fo::GameObject* o
 	return result;
 }
 
-static void _declspec(naked) ComputeExplosionOnExtrasHook() {
+static void __declspec(naked) ComputeExplosionOnExtrasHook() {
 	__asm {
 		cmp  dword ptr [esp + 0x34 + 4], 0x429533;  // skip hook when AI assesses the situation in choosing the best weapon
 		jz   end;
@@ -516,7 +514,6 @@ void Inject_SubCombatDamageHook() {
 }
 
 void InitCombatHookScripts() {
-
 	LoadHookScript("hs_tohit", HOOK_TOHIT);
 	LoadHookScript("hs_afterhitroll", HOOK_AFTERHITROLL);
 	LoadHookScript("hs_calcapcost", HOOK_CALCAPCOST);
@@ -527,7 +524,6 @@ void InitCombatHookScripts() {
 	LoadHookScript("hs_combatturn", HOOK_COMBATTURN);
 	LoadHookScript("hs_onexplosion", HOOK_ONEXPLOSION);
 	LoadHookScript("hs_subcombatdmg", HOOK_SUBCOMBATDAMAGE);
-
 }
 
 }

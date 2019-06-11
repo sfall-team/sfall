@@ -93,7 +93,7 @@ void sf_set_unjam_locks_time(OpcodeContext&);
 
 void sf_item_make_explosive(OpcodeContext&);
 
-void sf_get_current_size(OpcodeContext&);
+void sf_get_current_inven_size(OpcodeContext&);
 
 void sf_get_dialog_object(OpcodeContext&);
 

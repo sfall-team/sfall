@@ -366,7 +366,7 @@ void sf_set_dude_obj(OpcodeContext& ctx) {
 	auto obj = ctx.arg(0).asObject();
 	if (obj->Type() == fo::ObjType::OBJ_TYPE_CRITTER) {
 		//if (!InCombat && obj != PartyControl::RealDudeObject()) {
-		//	ctx.printOpcodeError("%s() - controls the critter allowed only in combat mode.", ctx.getMetaruleName());
+		//	ctx.printOpcodeError("%s() - controlling of the critter is only allowed in combat mode.", ctx.getMetaruleName());
 		//} else {
 			PartyControl::SwitchToCritter(obj);
 		//}
@@ -408,17 +408,17 @@ void sf_item_make_explosive(OpcodeContext& ctx) {
 
 	if (min > max) {
 		max = min;
-		ctx.printOpcodeError("%s() - Warning: argument max has a value less than the argument min.", ctx.getMetaruleName());
+		ctx.printOpcodeError("%s() - Warning: value of max argument is less than the min argument.", ctx.getMetaruleName());
 	}
 
 	if (pid > 0 && pidActive > 0) {
 		Explosions::AddToExplosives(pid, pidActive, min, max);
 	} else {
-		ctx.printOpcodeError("%s() - invalid PID number, must be greater than zero.", ctx.getMetaruleName());
+		ctx.printOpcodeError("%s() - invalid PID number, must be greater than 0.", ctx.getMetaruleName());
 	}
 }
 
-void sf_get_current_size(OpcodeContext& ctx) {
+void sf_get_current_inven_size(OpcodeContext& ctx) {
 	ctx.setReturn(sf_item_total_size(ctx.arg(0).asObject()));
 }
 
@@ -479,7 +479,7 @@ void sf_get_object_ai_data(OpcodeContext& ctx) {
 		value = cap->min_to_hit;
 		break;
 	case 10:
-		value = cap->hurt_too_much;  // flags DAM_BLIND/DAM_CRIP_*
+		value = cap->hurt_too_much; // DAM_BLIND/DAM_CRIP_* flags
 		break;
 	case 11:
 		value = cap->run_away_mode;
@@ -498,7 +498,7 @@ void sf_get_object_ai_data(OpcodeContext& ctx) {
 		value = arrayId;
 		break;
 	default:
-		ctx.printOpcodeError("%s() - invalid value of AI argument.", ctx.getMetaruleName());
+		ctx.printOpcodeError("%s() - invalid value for AI argument.", ctx.getMetaruleName());
 	}
 	ctx.setReturn(value, DataType::INT);
 }
@@ -516,10 +516,10 @@ void sf_set_drugs_data(OpcodeContext& ctx) {
 		result = Drugs::SetDrugAddictTimeOff(pid, val);
 		break;
 	default:
-		ctx.printOpcodeError("%s() - invalid value of type argument.", ctx.getMetaruleName());
+		ctx.printOpcodeError("%s() - invalid value for type argument.", ctx.getMetaruleName());
 		return;
 	}
-	if (result) ctx.printOpcodeError("%s() - the drug PID, not set in the configuration file.", ctx.getMetaruleName());
+	if (result) ctx.printOpcodeError("%s() - drug PID not found in the configuration file.", ctx.getMetaruleName());
 }
 
 void sf_set_unique_id(OpcodeContext& ctx) {

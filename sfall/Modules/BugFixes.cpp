@@ -2144,7 +2144,6 @@ static void __declspec(naked) action_use_an_item_on_object_hack() {
 	}
 }
 
-
 void BugFixes::init()
 {
 	#ifndef NDEBUG
@@ -2723,7 +2722,7 @@ void BugFixes::init()
 	// Fix for anim_move_to_tile_ engine function ignoring the distance argument (when moving critters)
 	HookCall(0x416D44, anim_move_to_tile_hook);
 
-	// Fixed interruption of the player’s movement in combat when using map objects and availability of free movement points
+	// Fix for the player's movement in combat being interrupted when trying to use objects with Bonus Move APs available
 	MakeCall(0x411FD6, action_use_an_item_on_object_hack);
 }
 
