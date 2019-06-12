@@ -827,7 +827,7 @@ end:
 	}
 }
 
-static char* valueOutRange = "argument values out of range";
+static char* valueOutRange = "argument values out of range.";
 
 static void funcSetCriticalTable2() {
 	DWORD critter = opHandler.arg(0).asInt(),
@@ -836,7 +836,7 @@ static void funcSetCriticalTable2() {
 		element   = opHandler.arg(3).asInt();
 
 	if (critter >= CritTableCount || bodypart >= 9 || slot >= 6 || element >= 7) {
-		opHandler.printOpcodeError("set_critical_table() - %s.", valueOutRange);
+		opHandler.printOpcodeError("set_critical_table() - %s", valueOutRange);
 	} else {
 		SetCriticalTable(critter, bodypart, slot, element, opHandler.arg(4).asInt());
 	}
@@ -853,7 +853,7 @@ static void funcGetCriticalTable2() {
 		element   = opHandler.arg(3).asInt();
 
 	if (critter >= CritTableCount || bodypart >= 9 || slot >= 6 || element >= 7) {
-		opHandler.printOpcodeError("get_critical_table() - %s.", valueOutRange);
+		opHandler.printOpcodeError("get_critical_table() - %s", valueOutRange);
 	} else {
 		opHandler.setReturn(GetCriticalTable(critter, bodypart, slot, element), DATATYPE_INT);
 	}
@@ -870,7 +870,7 @@ static void funcResetCriticalTable2() {
 		element   = opHandler.arg(3).asInt();
 
 	if (critter >= CritTableCount || bodypart >= 9 || slot >= 6 || element >= 7) {
-		opHandler.printOpcodeError("reset_critical_table() - %s.", valueOutRange);
+		opHandler.printOpcodeError("reset_critical_table() - %s", valueOutRange);
 	} else {
 		ResetCriticalTable(critter, bodypart, slot, element);
 	}
