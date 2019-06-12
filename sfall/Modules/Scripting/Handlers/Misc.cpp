@@ -683,7 +683,7 @@ end:
 	}
 }
 
-static char* valueOutRange = "%s() - argument values out of range";
+static char* valueOutRange = "%s() - argument values out of range.";
 
 void sf_set_critical_table(OpcodeContext& ctx) {
 	DWORD critter = ctx.arg(0).asInt(),
@@ -916,19 +916,7 @@ void __declspec(naked) op_refresh_pc_art() {
 }
 
 void sf_get_attack_type(OpcodeContext& ctx) {
-	DWORD unused, hitMode = -1;
-	if (fo::var::interfaceWindow != hitMode) {
-		if (fo::GetCurrentAttackMode(&hitMode, &unused)) {
-			// get reload mode
-			long activeHand = fo::var::itemCurrentItem; // 0 - left, 1 - right
-			if (fo::var::itemButtonItems[activeHand].item && fo::var::itemButtonItems[activeHand].itsWeapon) {
-				hitMode = fo::AttackType::ATKTYPE_LWEAPON_RELOAD + activeHand;
-			}
-		}
-	} else {
-		ctx.printOpcodeError("%s() - unable to get attack mode.", ctx.getOpcodeName());
-	}
-	ctx.setReturn(hitMode);
+	ctx.setReturn(fo::GetCurrentAttackMode());
 }
 
 void __declspec(naked) op_play_sfall_sound() {
@@ -1201,7 +1189,7 @@ end:
 
 void sf_attack_is_aimed(OpcodeContext& ctx) {
 	DWORD isAimed, unused;
-	ctx.setReturn((!fo::GetCurrentAttackMode(&unused, &isAimed)) ? isAimed : 0);
+	ctx.setReturn(!fo::func::intface_get_attack(&unused, &isAimed) ? isAimed : 0);
 }
 
 void sf_sneak_success(OpcodeContext& ctx) {
