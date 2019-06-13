@@ -26,5 +26,5 @@ deploy:
   keep_history: false
   on:
     branch: better-docs
-  local_dir: /docs/website/_site
+  local_dir: docs/website/_site
   target_branch: gh-pages
