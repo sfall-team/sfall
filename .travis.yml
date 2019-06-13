@@ -9,8 +9,7 @@ before_install:
   - gem update --system
   - gem install bundler
   - gem install jekyll
-  - bundle install
-script: ./docs/scripts/generate.sh
+script: ./docs/generate.sh
 
 branches:
   only:

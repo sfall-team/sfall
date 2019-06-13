@@ -2,8 +2,8 @@
 
 set -xeu -o pipefail
 
-site_dir="./docs/website"
+site_dir="docs"
 pushd .
 cd "$site_dir"
-jekyll build
+bundle exec jekyll build
 popd
