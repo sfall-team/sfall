@@ -1,0 +1,26 @@
+language: ruby
+rvm:
+  - 2.3
+
+sudo: false
+
+install: gem install jekyll
+script: ./docs/scripts/generate-site.sh
+
+branches:
+  only:
+    - better-docs
+
+env:
+  global:
+    JEKYLL_ENV: production
+
+deploy:
+  provider: pages
+  skip_cleanup: true
+  github_token: $GITHUB_TOKEN  # Set in the settings page of your repository, as a secure variable
+  keep_history: false
+  on:
+    branch: master
+  local_dir: /docs/website/_site
+  target_branch: gh-pages
