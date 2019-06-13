@@ -2,9 +2,8 @@
 layout: page
 title: Arrays
 permalink: /arrays/
+summary: Arrays in Sfall
 ---
-
-* TOC
 
 ## ARRAYS CONCEPT
 
