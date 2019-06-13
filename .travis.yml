@@ -8,7 +8,7 @@ sudo: false
 before_install:
   - gem update --system
   - gem install bundler
-install: gem install jekyll
+  - gem install jekyll
 script: ./docs/scripts/generate-site.sh
 
 branches:
@@ -25,6 +25,6 @@ deploy:
   github_token: $GITHUB_TOKEN  # Set in the settings page of your repository, as a secure variable
   keep_history: false
   on:
-    branch: master
+    branch: better-docs
   local_dir: /docs/website/_site
   target_branch: gh-pages
