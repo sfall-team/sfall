@@ -241,7 +241,6 @@ int     arg2 - The object used
 
 int     ret1 - overrides hard-coded handler and selects what should happen with the item (0 - place it back, 1 - remove it, -1 - use engine handler)
 ```
--------------------------------------------
 
 ### HOOK_REMOVEINVENOBJ (hs_removeinvenobj.int)
 
@@ -469,7 +468,6 @@ int     arg2 - vanilla fuel consumption (100 and below)
 int     ret1 - car speed override (pass -1 if you just want to override fuel consumption)
 int     ret2 - fuel consumption override
 ```
--------------------------------------------
 
 ### HOOK_SETGLOBALVAR (hs_setglobalvar.int)
 
@@ -545,7 +543,6 @@ int     arg3 - skill being used
 int     ret1 - a new critter to override the user critter. Pass -1 to cancel the skill use, pass 0 to skip this return value
 int     ret2 - pass 1 to allow the skill being used in combat (only for dude_obj or critter being controlled by the player)
 ```
--------------------------------------------
 
 ### HOOK_ONEXPLOSION (hs_onexplosion.int)
 
