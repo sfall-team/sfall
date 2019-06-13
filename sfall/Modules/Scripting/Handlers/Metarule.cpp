@@ -59,6 +59,7 @@ static MetaruleTableType metaruleTable;
 		- arg1, arg2, ... - argument types for automatic validation
 */
 static const SfallMetarule metarules[] = {
+	{"add_extra_msg_file",      sf_add_extra_msg_file,      2, 2, {ARG_STRING, ARG_INT}},
 	{"add_iface_tag",           sf_add_iface_tag,           0, 0},
 	{"art_cache_clear",         sf_art_cache_flush,         0, 0},
 	{"attack_is_aimed",         sf_attack_is_aimed,         0, 0},
@@ -95,6 +96,7 @@ static const SfallMetarule metarules[] = {
 	{"item_weight",             sf_item_weight,             1, 1, {ARG_OBJECT}},
 	{"lock_is_jammed",          sf_lock_is_jammed,          1, 1, {ARG_OBJECT}},
 	{"loot_obj",                sf_get_loot_object,         0, 0},
+	{"metarule_exist",          sf_metarule_exist,          1, 1},
 	{"npc_engine_level_up",     sf_npc_engine_level_up,     1, 1, {ARG_ANY}},
 	{"obj_under_cursor",        sf_get_obj_under_cursor,    2, 2, {ARG_INT, ARG_INT}},
 	{"outlined_object",         sf_outlined_object,         0, 0},
@@ -134,6 +136,20 @@ static void sf_get_metarule_table(OpcodeContext& ctx) {
 		i++;
 	}
 	ctx.setReturn(arrId, DataType::INT);
+}
+
+static void sf_metarule_exist(OpcodeContext& ctx) {
+	bool result = false;
+	auto funcXName = ctx.arg(0).asString();
+	if (funcXName[0] != '\0') {
+		for (auto it = metaruleTable.begin(); it != metaruleTable.end(); it++) {
+			if (it->first == funcXName) {
+				result = true;
+				break;
+			}
+		}
+	}
+	ctx.setReturn(result);
 }
 
 void InitMetaruleTable() {

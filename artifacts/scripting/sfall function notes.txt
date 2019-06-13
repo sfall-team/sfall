@@ -319,9 +319,9 @@ Some utility/math functions are available:
 - see "hookscripts.txt" for more details
 
 > string message_str_game(int fileId, int messageId)
-- works exactly the same as message_str, except you get messages from files in "text/english/game" folder
+- works exactly the same as message_str, except you get messages from files in "text\<current_lang>\game\" folder
 - use GAME_MSG_* defines or mstr_* macros from sfall.h to use specific msg file
-- Additional game msg files added by ExtraGameMsgFileList setting will have consecutive fileIds assigned beginning from 0x2000. (e.g. if you set ExtraGameMsgFileList=foo,bar in ddraw.ini, foo.msg will be associated with 0x2000 and bar.msg with 0x2001.)
+- Additional game msg files added by ExtraGameMsgFileList setting will have consecutive fileIds assigned beginning from 0x2000 to 0x2FFF. (e.g. if you set ExtraGameMsgFileList=foo,bar in ddraw.ini, foo.msg will be associated with 0x2000 and bar.msg with 0x2001.)
 - if a file has a specific number assigned in ExtraGameMsgFileList, its fileId will be (0x2000 + assigned number). (e.g. with ExtraGameMsgFileList=foo,bar:2,foobar in ddraw.ini, bar.msg will be associated with 0x2002 and foobar.msg with 0x2003.)
 
 > int sneak_success
@@ -372,6 +372,9 @@ Some utility/math functions are available:
 ------------------------------------
 ------ sfall_funcX functions -------
 ------------------------------------
+
+> bool sfall_func1("metarule_exist", string metaruleName)
+- return True if the specified name of metarule (sfall_funcX) function exists in the current version of sfall
 
 > array sfall_func0("get_metarule_table")
 - returns names of all currently available scripting functions (via sfall_funcX)
@@ -606,6 +609,11 @@ optional arguments:
 > int  sfall_func2("has_fake_perk_npc", object npc, string name_perk)
 > int  sfall_func2("has_fake_trait_npc", object npc, string name_trait)
 - functions are similar to functions of has_fake_*/set_fake_*/set_selectable_perk, but adds a perk/trait to the specified party member NPC (include dude_obj).
+
+> void sfall_func2("add_extra_msg_file", string fileName, int fileNumber)
+- Loads the custom message file, and assigns it the specified identification number
+- fileName: the name of the message file (including the .msg extension) located in the game directory "text\<current_lang>\game\"
+- fileNumber: file number ID for accessing messages via the message_str_game script function, available number range from 0x3000 to 0x3FFF
 
 ------------------------
 ------ MORE INFO -------

@@ -287,16 +287,20 @@ void sf_message_str_game(OpcodeContext& ctx) {
 		msg = fo::GetMessageStr(&fo::var::proto_msg_files[fileId - 0x1000], msgId);
 	} else if (fileId >= 0x2000) { // Extra game message files.
 		ExtraGameMessageListsMap::iterator it = gExtraGameMsgLists.find(fileId);
-
 		if (it != gExtraGameMsgLists.end()) {
 			msg = GetMsg(it->second.get(), msgId, 2);
 		}
 	}
-
 	if (msg == nullptr) {
 		msg = "Error";
 	}
 	ctx.setReturn(msg);
+}
+
+void sf_add_extra_msg_file(OpcodeContext& ctx) {
+	long result = Message::AddExtraMsgFile(ctx.arg(0).strValue(), ctx.arg(1).rawValue());
+	if (result == -1) ctx.printOpcodeError("%s() - cannot add message file of the specified number.", ctx.getMetaruleName());
+	ctx.setReturn(result);
 }
 
 void sf_floor2(OpcodeContext& ctx) {
