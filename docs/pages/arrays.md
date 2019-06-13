@@ -1,15 +1,20 @@
 ---
 layout: page
 title: Arrays
-permalink: /arrays/
-summary: Arrays in Sfall
+nav_order: 2
 ---
 
-## ARRAYS CONCEPT
+# Arrays
+{: .no_toc}
 
 Sfall introduces new method of storing variables - arrays.
 
 Array is basically a container which can store variable number of values (elements). Each element in array can be of any type. Arrays can be extremely useful for some more advanced scripting, in conjunction with loops.
+
+* TOC
+{:toc}
+
+## Arrays concept
 
 Array elements are accessed by index or key. For example:
 
@@ -41,7 +46,7 @@ There are 2 different types of arrays currently available:
 Both array types have their pros and cons and are suited for different tasks.
 
 
-## ARRAYS SYNTAX
+## Arrays syntax
 
 Basically arrays are implemented using number of new operators (scripting functions). But for ease of use, there are some new syntax elements:
 
@@ -82,7 +87,7 @@ Basically arrays are implemented using number of new operators (scripting functi
 
 See "Script editor\docs\sslc readme.txt" file for full information on new SSL syntax features.
 
-### STORING ARRAYS
+## Storing arrays
 
 Apart from lists/maps arrays are divided by how they are stored.
 There a 3 types of arrays:
@@ -111,7 +116,7 @@ procedure start begin
 end
 ```
 
-## PRACTICAL EXAMPLES
+## Practical examples
 
 ### Use arrays to implement variable-argument procedures
 
@@ -158,7 +163,7 @@ foreach trap in traps begin
 end
 ```
 
-## ARRAY OPERATORS REFERENCE
+## Array operators reference
 
 *mixed means any type
 
@@ -230,7 +235,7 @@ end
   - load array from savegame data by the same key provided in "save_array"
   - arrayID is returned or zero (0) if none found
 
-## BACKWARD COMPATIBILITY NOTES
+## Backward compatibility notes
 
 For those who used arrays in their mods before sfall 3.4:
 * There is an INI parameter "arraysBehavior" in "Misc" section of ddraw.ini. If set to 0, all scripts which used sfall arrays before should work. This basically changes that "create_array" will create permanent arrays which are "saved" by default and their ID is also permanent. It is 1 by default.

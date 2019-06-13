@@ -13,32 +13,42 @@
 # you will see them accessed via {{ site.title }}, {{ site.email }}, and so on.
 # You can create any custom variable you would like, and they will be accessible
 # in the templates via {{ site.myvariable }}.
-title: Sfall documentation
+title: Sfall
 email: your-email@example.com
 description: >- # this means to ignore newlines until "baseurl:"
   Sfall documentation
-baseurl: "/sfall" # the subpath of your site, e.g. /blog
+baseurl: "/sfall/" # the subpath of your site, e.g. /blog
 url: "" # the base hostname & protocol for your site, e.g. http://example.com
 github_username: BGforgeNet
 
 # Build settings
 markdown: kramdown
 plugins:
-  - jekyll-feed
-
-plugins:
   - jekyll-remote-theme
 
-remote_theme: tomjoht/documentation-theme-jekyll@gh-pages
+#remote_theme: tomjoht/documentation-theme-jekyll@gh-pages
+#remote_theme: alexander-heimbuch/millidocs
+#remote_theme: chromatical/jekyll-materialdocs
+#mdl_colors: indigo-blue
+#remote_theme: marella/jekyll-theme-documentation
+#remote_theme: fedeTibaldo/documentation-jekyll-theme
+remote_theme: pmarsceill/just-the-docs
+
+search_enabled: true
 
 # Exclude from processing.
 # The following items will not be processed, by default. Create a custom list
 # to override the default setting.
-# exclude:
-#   - Gemfile
-#   - Gemfile.lock
-#   - node_modules
-#   - vendor/bundle/
-#   - vendor/cache/
-#   - vendor/gems/
-#   - vendor/ruby/
+exclude:
+   - Gemfile
+   - Gemfile.lock
+   - node_modules
+   - vendor/bundle/
+   - vendor/cache/
+   - vendor/gems/
+   - vendor/ruby/
+   - generate.sh
+
+aux_links:
+    "Sfall on GitHub":
+      - "//github.com/BGforgeNet/sfall/"
