@@ -17,6 +17,7 @@ branches:
 env:
   global:
     JEKYLL_ENV: production
+    BUNDLE_GEMFILE: docs/Gemfile
 
 deploy:
   provider: pages
@@ -25,5 +26,5 @@ deploy:
   keep_history: false
   on:
     branch: better-docs
-  local_dir: docs/website/_site
+  local_dir: docs/_site
   target_branch: gh-pages
