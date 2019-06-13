@@ -412,6 +412,7 @@ What you can do:
 - restrict player from using specific weapons or armors
 - add AP costs for all inventory movement including reloading
 - apply or remove some special scripted effects depending on PC's armor
+
 ```
 int     arg1 - Target slot (0 - main backpack, 1 - left hand, 2 - right hand, 3 - armor slot, 4 - weapon, when reloading it by dropping ammo, 5 - container, like bag/backpack, 6 - dropping on the ground, 7 - picking up item, 8 - dropping item on the character portrait)
 Item    arg2 - Item being moved
