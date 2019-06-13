@@ -17,7 +17,6 @@ branches:
 env:
   global:
     JEKYLL_ENV: production
-    BUNDLE_GEMFILE: docs/Gemfile
 
 deploy:
   provider: pages
