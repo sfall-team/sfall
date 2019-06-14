@@ -1,6 +1,7 @@
 ---
 layout: page
 title: Arrays
+nav_order: 2
 ---
 
 # Arrays

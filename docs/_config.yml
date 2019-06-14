@@ -30,6 +30,7 @@ plugins:
 #remote_theme: alexander-heimbuch/millidocs
 #remote_theme: chromatical/jekyll-materialdocs
 #mdl_colors: indigo-blue
+#remote_theme: wiredcraft/carte
 #remote_theme: marella/jekyll-theme-documentation
 #remote_theme: fedeTibaldo/documentation-jekyll-theme
 remote_theme: pmarsceill/just-the-docs
@@ -48,6 +49,7 @@ exclude:
    - vendor/gems/
    - vendor/ruby/
    - generate.sh
+   - yaml_to_md.py
 
 aux_links:
     "Sfall on GitHub":
