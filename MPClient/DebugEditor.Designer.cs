@@ -171,6 +171,7 @@
             this.bCrittersLvar.TabIndex = 7;
             this.bCrittersLvar.Text = "Local variables";
             this.bCrittersLvar.UseVisualStyleBackColor = true;
+            this.bCrittersLvar.Click += new System.EventHandler(this.bCrittersLvar_Click);
             // 
             // DebugEditor
             // 

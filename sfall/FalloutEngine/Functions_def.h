@@ -38,6 +38,8 @@ WRAP_WATCOM_FFUNC1(void, obj_delete_list, void*, objList)
 WRAP_WATCOM_FFUNC4(long, obj_create_list, long, tile, long, elev, long, objType, void*, buf)
 WRAP_WATCOM_FFUNC3(long, object_under_mouse, long, crSwitch, long, inclDude, long, elevation)
 WRAP_WATCOM_FFUNC4(void, qsort, void*, base, long, number, long, elSize, DWORD, comp)
+WRAP_WATCOM_FFUNC3(long, scr_get_local_var, long, sid, long, varId, long*, value)
+WRAP_WATCOM_FFUNC3(long, scr_set_local_var, long, sid, long, varId, long, value) 
 WRAP_WATCOM_FFUNC3(long, tile_num_in_direction, long, tile, long, rotation,long, distance)
 
 // stdcall

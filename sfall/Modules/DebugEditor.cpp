@@ -42,6 +42,8 @@ enum DECode {
 	CODE_SET_PLAYER  = 8,
 	CODE_GET_ARRAY   = 9,
 	CODE_SET_ARRAY   = 10,
+	CODE_GET_LOCVARS = 11,
+	CODE_SET_LOCVARS = 12,
 	CODE_EXIT        = 254
 };
 
@@ -192,6 +194,31 @@ static void RunEditorInternal(SOCKET &s) {
 				InternalRecv(s, data, val);
 				script::DESetArray(arrays[id].id, nullptr, data);
 				delete[] data;
+			}
+			break;
+		case CODE_GET_LOCVARS:
+			{
+				InternalRecv(s, &id, 4); // sid
+				val = fo::GetScriptLocalVars(id);
+				InternalSend(s, &val, 4);
+				std::vector<int> values(val);
+				long varVal;
+				for (int i = 0; i < val; i++) {
+					fo::func::scr_get_local_var(id, i, &varVal);
+					values[i] = varVal;
+				}
+				InternalSend(s, values.data(), val * 4);
+			}
+			break;
+		case CODE_SET_LOCVARS:
+			{
+				InternalRecv(s, &id, 4);  // sid
+				InternalRecv(s, &val, 4); // len data
+				std::vector<int> values(val);
+				InternalRecv(s, values.data(), val * 4);
+				for (int i = 0; i < val; i++) {
+					fo::func::scr_set_local_var(id, i, values[i]);
+				}
 			}
 			break;
 		}

@@ -177,6 +177,13 @@ bool IsPartyMember(fo::GameObject* critter) {
 	return (IsPartyMemberByPid(critter->protoId) > 0);
 }
 
+// Returns the number of local variables of the object script
+long GetScriptLocalVars(long sid) {
+	fo::ScriptInstance* script = nullptr;
+	fo::func::scr_ptr(sid, &script);
+	return (script) ? script->numLocalVars : 0;
+}
+
 //---------------------------------------------------------
 //print text to surface
 void PrintText(char *DisplayText, BYTE ColourIndex, DWORD Xpos, DWORD Ypos, DWORD TxtWidth, DWORD ToWidth, BYTE *ToSurface) {
