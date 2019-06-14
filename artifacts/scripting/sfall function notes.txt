@@ -319,7 +319,7 @@ Some utility/math functions are available:
 > string message_str_game(int fileId, int messageId)
 - works exactly the same as message_str, except you get messages from files in "text\<language>\game\" directory
 - use GAME_MSG_* defines or mstr_* macros from sfall.h to use specific msg file
-- Additional game msg files added by ExtraGameMsgFileList setting will have consecutive fileIds assigned beginning from 0x2000. (e.g. if you set ExtraGameMsgFileList=foo,bar in ddraw.ini, foo.msg will be associated with 0x2000 and bar.msg with 0x2001.)
+- Additional game msg files added by ExtraGameMsgFileList setting will have consecutive fileIds assigned beginning from 0x2000 to 0x2FFF. (e.g. if you set ExtraGameMsgFileList=foo,bar in ddraw.ini, foo.msg will be associated with 0x2000 and bar.msg with 0x2001.)
 - if a file has a specific number assigned in ExtraGameMsgFileList, its fileId will be (0x2000 + assigned number). (e.g. with ExtraGameMsgFileList=foo,bar:2,foobar in ddraw.ini, bar.msg will be associated with 0x2002 and foobar.msg with 0x2003.)
 
 > int sneak_success
@@ -374,8 +374,11 @@ Some utility/math functions are available:
 > array sfall_func0("get_metarule_table")
 - returns names of all currently available scripting functions (via sfall_funcX)
 
+> bool sfall_func1("metarule_exist", string metaruleName)
+- returns True if the specified name of metarule (sfall_funcX) function exists in the current version of sfall
+
 > int sfall_func1("spatial_radius", object object)
-- return radius of spatial script, associated with given dummy-object (returned by create_spatial)
+- returns radius of spatial script, associated with given dummy-object (returned by create_spatial)
 
 > object sfall_func2("critter_inven_obj2", object invenObj, int type)
 - works just like vanilla critter_inven_obj, but correctly reports item in player's inactive hand slot
@@ -605,6 +608,11 @@ optional arguments:
 > int  sfall_func2("has_fake_perk_npc", object npc, string namePerk)
 > int  sfall_func2("has_fake_trait_npc", object npc, string nameTrait)
 - these functions are similar to has_fake_*/set_fake_*/set_selectable_perk functions, but apply to the specified party member NPC (including dude_obj)
+
+> void sfall_func2("add_extra_msg_file", string fileName, int fileNumber)
+- loads the custom message file and assigns it with the specified ID number
+- fileName: the name of the custom message file (including the .msg extension) in "text\<language>\game\" directory
+- fileNumber: the file ID number for the message_str_game function to get messages from the file. The available range is from 0x3000 to 0x3FFF
 
 ------------------------
 ------ MORE INFO -------
