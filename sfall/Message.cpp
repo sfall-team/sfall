@@ -22,15 +22,15 @@
 #include "FalloutEngine.h"
 #include "Message.h"
 
-std::tr1::unordered_map<int, MSGList*> gExtraGameMsgLists;
+ExtraGameMessageListsMap gExtraGameMsgLists;
 
 int LoadMsgList(MSGList *MsgList, char *MsgFilePath) {
 	int retVal;
 	__asm {
-		mov edx, MsgFilePath
-		mov eax, MsgList
-		call message_load_
-		mov retVal, eax
+		mov  edx, MsgFilePath;
+		mov  eax, MsgList;
+		call message_load_;
+		mov  retVal, eax;
 	}
 	return retVal;
 }
@@ -38,35 +38,16 @@ int LoadMsgList(MSGList *MsgList, char *MsgFilePath) {
 int DestroyMsgList(MSGList *MsgList) {
 	int retVal;
 	__asm {
-		mov eax, MsgList
-		call message_exit_
-		mov retVal, eax
+		mov  eax, MsgList;
+		call message_exit_;
+		mov  retVal, eax;
 	}
 	return retVal;
 }
-
-/*
-bool GetMsg(MSGList *MsgList, MSGNode *MsgNode, DWORD msgRef) {
-	bool retVal=FALSE;
-	MsgNode->ref=msgRef;
-
-	__asm {
-		mov edx, MsgNode
-		mov eax, MsgList
-		call message_search_
-		cmp eax, 1
-		jne EndFunc
-		mov retVal, 1
-EndFunc:
-	}
-	return retVal;
-}
-*/
 
 MSGNode *GetMsgNode(MSGList *MsgList, DWORD msgRef) {
-
-	if (MsgList == NULL) return NULL;
-	if (MsgList->numMsgs <= 0) return NULL;
+	if (MsgList == nullptr) return nullptr;
+	if (MsgList->numMsgs <= 0) return nullptr;
 
 	MSGNode *MsgNode = (MSGNode*)MsgList->MsgNodes;
 
@@ -85,7 +66,7 @@ MSGNode *GetMsgNode(MSGList *MsgList, DWORD msgRef) {
 			return &MsgNode[mid];
 	}
 
-	return NULL;
+	return nullptr;
 }
 
 char* GetMsg(MSGList *MsgList, DWORD msgRef, int msgNum) {
@@ -96,7 +77,7 @@ char* GetMsg(MSGList *MsgList, DWORD msgRef, int msgNum) {
 		else if (msgNum == 1)
 			return MsgNode->msg1;
 	}
-	return NULL;
+	return nullptr;
 }
 
 void ReadExtraGameMsgFiles() {
@@ -132,19 +113,16 @@ void ReadExtraGameMsgFiles() {
 			else
 				delete list;
 		}
-		number++;
+		if (++number == 4096) break;
 
 		begin = end + 1;
 	}
 }
 
 void ClearReadExtraGameMsgFiles() {
-	std::tr1::unordered_map<int, MSGList*>::iterator it;
-
-	for (it = gExtraGameMsgLists.begin(); it != gExtraGameMsgLists.end(); ++it) {
+	for (ExtraGameMessageListsMap::iterator it = gExtraGameMsgLists.begin(); it != gExtraGameMsgLists.end(); ++it) {
 		DestroyMsgList(it->second);
 		delete it->second;
 	}
-
-	gExtraGameMsgLists.clear();
+	//gExtraGameMsgLists.clear();
 }

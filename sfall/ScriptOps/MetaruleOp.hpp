@@ -92,6 +92,20 @@ static void sf_get_metarule_table() {
 	opHandler.setReturn(arrId, DATATYPE_INT);
 }
 
+static void sf_metarule_exist() {
+	bool result = false;
+	const char *funcXName = opHandler.arg(0).asString();
+	if (funcXName[0] != '\0') {
+		for (MetaruleTableType::iterator it = metaruleTable.begin(); it != metaruleTable.end(); it++) {
+			if (it->first == funcXName) {
+				result = true;
+				break;
+			}
+		}
+	}
+	opHandler.setReturn(result);
+}
+
 /*
 	Metarule array.
 
@@ -127,6 +141,7 @@ static const SfallMetarule metaruleArray[] = {
 	{"item_weight",             sf_item_weight,             1, 1},
 	{"lock_is_jammed",          sf_lock_is_jammed,          1, 1},
 	{"loot_obj",                sf_get_loot_object,         0, 0},
+	{"metarule_exist",          sf_metarule_exist,          1, 1},
 	{"npc_engine_level_up",     sf_npc_engine_level_up,     1, 1},
 	{"obj_under_cursor",        sf_get_obj_under_cursor,    2, 2},
 	{"outlined_object",         sf_outlined_object,         0, 0},

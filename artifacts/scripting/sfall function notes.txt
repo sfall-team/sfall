@@ -305,7 +305,7 @@ Some utility/math functions are available:
 > string message_str_game(int fileId, int messageId)
 - works exactly the same as message_str, except you get messages from files in "text\<language>\game\" directory
 - use GAME_MSG_* defines or mstr_* macros from sfall.h to use specific msg file
-- Additional game msg files added by ExtraGameMsgFileList setting will have consecutive fileIds assigned beginning from 0x2000. (e.g. if you set ExtraGameMsgFileList=foo,bar in ddraw.ini, foo.msg will be associated with 0x2000 and bar.msg with 0x2001.)
+- Additional game msg files added by ExtraGameMsgFileList setting will have consecutive fileIds assigned beginning from 0x2000 to 0x2FFF. (e.g. if you set ExtraGameMsgFileList=foo,bar in ddraw.ini, foo.msg will be associated with 0x2000 and bar.msg with 0x2001.)
 
 > int sneak_success
 - returns 1 if the player is currently sneaking, and last sneak attempt (roll against skill) was successful; 0 otherwise
@@ -359,8 +359,11 @@ Some utility/math functions are available:
 > array sfall_func0("get_metarule_table")
 - returns names of all currently available scripting functions (via sfall_funcX)
 
+> bool sfall_func1("metarule_exist", string metaruleName)
+- returns True if the specified name of metarule (sfall_funcX) function exists in the current version of sfall
+
 > int sfall_func1("spatial_radius", object object)
-- return radius of spatial script, associated with given dummy-object (returned by create_spatial)
+- returns radius of spatial script, associated with given dummy-object (returned by create_spatial)
 
 > object sfall_func2("critter_inven_obj2", object invenObj, int type)
 - works just like vanilla critter_inven_obj, but correctly reports item in player's inactive hand slot

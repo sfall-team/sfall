@@ -506,7 +506,7 @@ void WorldMapInterfacePatch() {
 	SafeWrite32(0x4C2C92, 181); // index of DNARWOFF.FRM
 	SafeWrite8(0x4C2D04, 0x46); // dec esi > inc esi
 
-	// Fix the position of the target marker for location circles
+	// Fix the position of the target marker for small/medium location circles
 	MakeCall(0x4C03AA, wmWorldMap_hack, 2);
 }
 

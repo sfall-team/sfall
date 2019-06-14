@@ -31,8 +31,8 @@ typedef struct MSGNode {
 	MSGNode() {
 		ref = 0;
 		a = 0;
-		msg1 = NULL;
-		msg2 = NULL;
+		msg1 = nullptr;
+		msg2 = nullptr;
 	}
 } MSGNode;
 
@@ -42,12 +42,13 @@ typedef struct MSGList {
 	void *MsgNodes;
 
 	MSGList() {
-		MsgNodes = NULL;
+		MsgNodes = nullptr;
 		numMsgs = 0;
 	}
 } MSGList;
 
-extern std::tr1::unordered_map<int, MSGList*> gExtraGameMsgLists;
+typedef std::tr1::unordered_map<int, MSGList*> ExtraGameMessageListsMap;
+extern ExtraGameMessageListsMap gExtraGameMsgLists;
 
 int LoadMsgList(MSGList *MsgList, char *MsgFilePath);
 int DestroyMsgList(MSGList *MsgList);
