@@ -18,45 +18,59 @@ sfall-functions:
     - name: write_byte
       detail: void write_byte(int address, int value)
       offset: 0x81cf
+      unsafe: true
     - name: write_short
       detail: void write_short(int address, int value)
       offset: 0x81d0
+      unsafe: true
     - name: write_int
       detail: void write_int(int address, int value)
       offset: 0x81d1
+      unsafe: true
     - name: write_string
       detail: void write_string(int address, string value)
       offset: 0x821b
+      unsafe: true
     - name: call_offset_v0
       detail: void call_offset_v0(int address)
       offset: 0x81d2
+      unsafe: true
     - name: call_offset_v1
       detail: void call_offset_v1(int address, int arg1)
       offset: 0x81d3
+      unsafe: true
     - name: call_offset_v2
       detail: void call_offset_v2(int address, int arg1, int arg2)
       offset: 0x81d4
+      unsafe: true
     - name: call_offset_v3
       detail: void call_offset_v3(int address, int arg1, int arg2, int arg3)
       offset: 0x81d5
+      unsafe: true
     - name: call_offset_v4
       detail: void call_offset_v4(int address, int arg1, int arg2, int arg3, int arg4)
       offset: 0x81d6
+      unsafe: true
     - name: call_offset_r0
       detail: int call_offset_r0(int address)
       offset: 0x81d7
+      unsafe: true
     - name: call_offset_r1
       detail: int call_offset_r1(int address, int arg1)
       offset: 0x81d8
+      unsafe: true
     - name: call_offset_r2
       detail: int call_offset_r2(int address, int arg1, int arg2)
       offset: 0x81d9
+      unsafe: true
     - name: call_offset_r3
       detail: int call_offset_r3(int address, int arg1, int arg2, int arg3)
       offset: 0x81da
+      unsafe: true
     - name: call_offset_r4
       detail: int call_offset_r4(int address, int arg1, int arg2, int arg3, int arg4)
       offset: 0x81db
+      unsafe: true
   - name: Stats and skills
     items:
     - name: set_pc_base_stat
