@@ -1,890 +1,821 @@
 sfall-functions:
-  type: 3 #function
+  type: 3
   topics:
-    - name: Direct memory access
-      items:
-      - name: read_byte
-        detail: int read_byte(int address)
-      - name: read_short
-        detail: int read_short(int address)
-      - name: read_int
-        detail: int read_int(int address)
-      - name: read_string
-        detail: int read_string(int address)
-      - name: write_byte
-        detail: void write_byte(int address, int value)
-      - name: write_short
-        detail: void write_short(int address, int value)
-      - name: write_int
-        detail: void write_int(int address, int value)
-      - name: write_string
-        detail: void write_string(int address, string value)
-      - name: call_offset_v0
-        detail: void call_offset_v0(int address)
-      - name: call_offset_v1
-        detail: void call_offset_v1(int address, int arg1)
-      - name: call_offset_v2
-        detail: void call_offset_v2(int address, int arg1, int arg2)
-      - name: call_offset_v3
-        detail: void call_offset_v3(int address, int arg1, int arg2, int arg3)
-      - name: call_offset_v4
-        detail: void call_offset_v4(int address, int arg1, int arg2, int arg3, int arg4)
-      - name: call_offset_r0
-        detail: int call_offset_r0(int address)
-      - name: call_offset_r1
-        detail: int call_offset_r1(int address, int arg1)
-      - name: call_offset_r2
-        detail: int call_offset_r2(int address, int arg1, int arg2)
-      - name: call_offset_r3
-        detail: int call_offset_r3(int address, int arg1, int arg2, int arg3)
-      - name: call_offset_r4
-        detail: int call_offset_r4(int address, int arg1, int arg2, int arg3, int arg4)
-
-    - name: Stats and skills
-      items:
-      - name: set_pc_base_stat
-        detail: void set_pc_base_stat(int StatID, int value)
-      - name: set_pc_extra_stat
-        detail: void set_pc_extra_stat(int StatID, int value)
-      - name: get_pc_base_stat
-        detail: int get_pc_base_stat(int StatID)
-      - name: get_pc_extra_stat
-        detail: int get_pc_extra_stat(int StatID)
-
-      - name: set_critter_base_stat
-        detail: void set_critter_base_stat(CritterPtr, int StatID, int value)
-      - name: set_critter_extra_stat
-        detail: void set_critter_extra_stat(CritterPtr, int StatID, int value)
-      - name: get_critter_base_stat
-        detail: int get_critter_base_stat(CritterPtr, int StatID)
-      - name: get_critter_extra_stat
-        detail: int get_critter_extra_stat(CritterPtr, int StatID)
-      - name: set_critter_skill_points
-        detail: void set_critter_skill_points(int critter, int skill, int value)
-      - name: get_critter_skill_points
-        detail: int get_critter_skill_points(int critter, int skill)
-      - name: set_available_skill_points
-        detail: void set_available_skill_points(int value)
-      - name: get_available_skill_points
-        detail: int get_available_skill_points()
-
-      - name: set_stat_max
-        detail: void set_stat_max(int stat, int value)
-      - name: set_stat_min
-        detail: void set_stat_min(int stat, int value)
-      - name: set_pc_stat_max
-        detail: void set_pc_stat_max(int stat, int value)
-      - name: set_pc_stat_min
-        detail: void set_pc_stat_min(int stat, int value)
-      - name: set_npc_stat_max
-        detail: void set_npc_stat_max(int stat, int value)
-      - name: set_npc_stat_min
-        detail: void set_npc_stat_min(int stat, int value)
-
-    - name: Graphics
-      items:
-      - name: graphics_funcs_available
-        detail: bool graphics_funcs_available
-      - name: load_shader
-        detail: int load_shader(string path)
-      - name: free_shader
-        detail: void free_shader(int ID)
-      - name: activate_shader
-        detail: void activate_shader(int ID)
-      - name: deactivate_shader
-        detail: void deactivate_shader(int ID)
-      - name: set_shader_int
-        detail: void set_shader_int(int ID, string param, int value)
-      - name: set_shader_float
-        detail: void set_shader_float(int ID, string param, float value)
-      - name: set_shader_vector
-        detail: void set_shader_vector(int ID, string param, float f1, float f2, float f3, float f4)
-      - name: get_shader_version
-        detail: int get_shader_version
-      - name: set_shader_mode
-        detail: void set_shader_mode(int mode)
-      - name: force_graphics_refresh
-        detail: void force_graphics_refresh(bool enabled)
-      - name: get_shader_texture
-        detail: int get_shader_texture(int ID, int texture)
-      - name: set_shader_texture
-        detail: void set_shader_texture(int ID, string param, int texID)
-
-      - name: get_screen_width
-        detail: int get_screen_width()
-      - name: get_screen_height
-        detail: int get_screen_height()
-
-      - name: set_palette
-        detail: void set_palette(string path)
-
-    - name: Perks and traits
-      items:
-      - name: set_perk_image
-        detail: void set_perk_image(int perkID, int value)
-      - name: set_perk_ranks
-        detail: void set_perk_ranks(int perkID, int value)
-      - name: set_perk_level
-        detail: void set_perk_level(int perkID, int value)
-      - name: set_perk_stat
-        detail: void set_perk_stat(int perkID, int value)
-      - name: set_perk_stat_mag
-        detail: void set_perk_stat_mag(int perkID, int value)
-      - name: set_perk_skill1
-        detail: void set_perk_skill1(int perkID, int value)
-      - name: set_perk_skill1_mag
-        detail: void set_perk_skill1_mag(int perkID, int value)
-      - name: set_perk_type
-        detail: void set_perk_type(int perkID, int value)
-      - name: set_perk_skill2
-        detail: void set_perk_skill2(int perkID, int value)
-      - name: set_perk_skill2_mag
-        detail: void set_perk_skill2_mag(int perkID, int value)
-      - name: set_perk_str
-        detail: void set_perk_str(int perkID, int value)
-      - name: set_perk_per
-        detail: void set_perk_per(int perkID, int value)
-      - name: set_perk_end
-        detail: void set_perk_end(int perkID, int value)
-      - name: set_perk_chr
-        detail: void set_perk_chr(int perkID, int value)
-      - name: set_perk_int
-        detail: void set_perk_int(int perkID, int value)
-      - name: set_perk_agl
-        detail: void set_perk_agl(int perkID, int value)
-      - name: set_perk_lck
-        detail: void set_perk_lck(int perkID, int value)
-      - name: set_perk_name
-        detail: void set_perk_name(int perkID, string value)
-      - name: set_perk_desc
-        detail: void set_perk_desc(int perkID, string value)
-      - name: set_perk_freq
-        detail: void set_perk_freq(int value)
-
-      - name: get_perk_owed
-        detail: int get_perk_owed
-      - name: set_perk_owed
-        detail: void set_perk_owed(int value)
-      - name: get_perk_available
-        detail: int get_perk_available(int perk)
-      - name: set_perk_level_mod
-        detail: void set_perk_level_mod(int levels)
-
-      - name: set_fake_perk
-        detail: void set_fake_perk(string name, int level, int image, string desc)
-      - name: set_fake_trait
-        detail: void set_fake_trait(string name, int active, int image, string desc)
-      - name: set_selectable_perk
-        detail: void set_selectable_perk(string name, int active, int image, string desc)
-      - name: set_perkbox_title
-        detail: void set_perkbox_title(string title)
-      - name: hide_real_perks
-        detail: void hide_real_perks()
-      - name: show_real_perks
-        detail: void show_real_perks()
-      - name: has_fake_perk
-        detail: int has_fake_perk(string name)
-      - name: has_fake_trait
-        detail: int has_fake_trait(string name)
-      - name: perk_add_mode
-        detail: void perk_add_mode(int type)
-      - name: clear_selectable_perks
-        detail: void clear_selectable_perks()
-      - name: remove_trait
-        detail: void remove_trait(int traitID)
-
-      - name: seq_perk_freq
-        detail: void seq_perk_freq(int value)
-        doc: Sets the number of levels between each perk.
-
-    - name: Virtual file system
-      doc: The fs_* functions are used to manipulate a virtual file system. Files saved here should have paths relative to the data folder, and use backslashes as the directory separator. They will take precedence over files stored in the normal data folder. They will also be saved into save games if you set a flag for them using fs_resize(fileId, -1), so be avoid creating large files. Using fs_copy followed by fs_read_xxx, you can read the contents of existing files.
-      items:
-      - name: fs_create
-        detail: int fs_create(string path, int size)
-      - name: fs_copy
-        detail: int fs_copy(string path, string source)
-      - name: fs_find
-        detail: int fs_find(string path)
-      - name: fs_write_byte
-        detail: void fs_write_byte(int id, int data)
-      - name: fs_write_short
-        detail: void fs_write_short(int id, int data)
-      - name: fs_write_int
-        detail: void fs_write_int(int id, int data)
-      - name: fs_write_float
-        detail: void fs_write_float(int id, int data)
-      - name: fs_write_string
-        detail: void fs_write_string(int id, string data)
-      - name: fs_write_bstring
-        detail: void fs_write_bstring(int id, string data)
-      - name: fs_read_byte
-        detail: int fs_read_byte(int id)
-      - name: fs_read_short
-        detail: int fs_read_short(int id)
-      - name: fs_read_int
-        detail: int fs_read_int(int id)
-      - name: fs_read_float
-        detail: float fs_read_float(int id)
-      - name: fs_delete
-        detail: void fs_delete(int id)
-      - name: fs_size
-        detail: int fs_size(int id)
-      - name: fs_pos
-        detail: int fs_pos(int id)
-      - name: fs_seek
-        detail: void fs_seek(int id, int pos)
-      - name: fs_resize
-        detail: void fs_resize(int id, int size)
-
-    - name: Knockback
-      doc: The 'type' value in the weapon knockback functions can be 0 or 1. If 0, the value becomes an absolute distance that targets will be knocked back. If 1, the value is multiplied by the distance they would normally have been knocked back. Weapon knockback modifiers are applied in the order weapon -> attacker -> target, so a x2 weapon wielded by an abs 6 attacker hitting a /2 target will knock the target back 3 squares. The knockback functions will not override the stonewall perk or knockdowns resulting from criticals. knockback values set on weapons or critters are not saved, and must be reset each time the player reloads.
-      items:
-      - name: set_weapon_knockback
-        detail: void set_weapon_knockback(WeaponPtr, int type, float value)
-      - name: set_target_knockback
-        detail: void set_target_knockback(CritterPtr, int type, float value)
-      - name: set_attacker_knockback
-        detail: void set_attacker_knockback(CritterPtr, int type, float value)
-      - name: remove_weapon_knockback
-        detail: void remove_weapon_knockback(WeaponPtr)
-      - name: remove_target_knockback
-        detail: void remove_target_knockback(CritterPtr)
-      - name: remove_attacker_knockback
-        detail: void remove_attacker_knockback(CritterPtr)
-
-    - name: Maps and encounters
-      items:
-      - name: in_world_map
-        detail: bool in_world_map
-      - name: force_encounter
-        detail: void force_encounter(int map)
-      - name: force_encounter_with_flags
-        detail: void force_encounter_with_flags(int map, int flags)
-      - name: set_map_time_multi
-        detail: void set_map_time_multi(float multi)
-      - name: set_world_map_pos
-        detail: void set_world_map_pos(int x, int y)
-      - name: get_world_map_x_pos
-        detail: int get_world_map_x_pos
-      - name: get_world_map_y_pos
-        detail: int get_world_map_y_pos()
-
-      - name: set_map_enter_position
-        detail: void set_map_enter_position(int tile, int elev, int rot)
-        doc: "Overrides the player's entry position when entering the map through exit grids. Setting the tile to 0 will put the player on the start hex (default tile and elevation) of the map. Note: Works only in map_enter_p_proc procedure."
-      - name: get_map_enter_position
-        detail: array get_map_enter_position()
-        doc: "Returns an array of the player's position data (index: 0 - tile, 1 - elevation, 2 - rotation) when entering the map through exit grids. If entering from the world map, the tile value will be -1. Note: Should be called in map_enter_p_proc procedure to get the correct position data."
-
-    - name: Audio
-      items:
-      - name: eax_available
-        detail: int eax_available
-      - name: set_eax_environment
-        detail: void set_eax_environment(int environment)
-      - name: play_sfall_sound
-        detail: int play_sfall_sound(string file, int loop)
-      - name: stop_sfall_sound
-        detail: void stop_sfall_sound(int ptr)
-
-    - name: Weapons
-      items:
-      - name: get_weapon_ammo_pid
-        detail: int get_weapon_ammo_pid(objptr weapon)
-      - name: set_weapon_ammo_pid
-        detail: void set_weapon_ammo_pid(objptr weapon, int pid)
-      - name: get_weapon_ammo_count
-        detail: int get_weapon_ammo_count(objptr weapon)
-      - name: set_weapon_ammo_count
-        detail: void set_weapon_ammo_count(objptr weapon, int count)
-
-    - name: Sfall
-      items:
-      - name: sfall_ver_major
-        detail: int sfall_ver_major()
-      - name: sfall_ver_minor
-        detail: int sfall_ver_minor()
-      - name: sfall_ver_build
-        detail: int sfall_ver_build()
-
-    - name: Math
-      items:
-      - name: log
-        detail: float log(float x)
-        doc: Natural logarithm of x.
-      - name: exponent
-        detail: float exponent(float x)
-        doc: E^X
-      - name: round
-        detail: int round(float x)
-        doc: Round x to the nearest integer.
-      - name: sqrt
-        detail: float sqrt(float x)
-        doc: Square root of x.
-      - name: abs
-        detail: float abs(float x)
-        doc: Absolute (positive) value of x.
-      - name: sin
-        detail: float sin(float x)
-        doc: Sine of x
-      - name: cos
-        detail: float cos(float x)
-        doc: Cosine of x
-      - name: tan
-        detail: float tan(float x)
-        doc: Tangent of x
-      - name: arctan
-        detail: float arctan(float x, float y)
-        doc: Arctangent of x
-      - name: ceil
-        detail: int ceil(float)
-
-    - name: Keyboard and mouse
-      items:
-      - name: key_pressed
-        detail: int key_pressed(int dxScancode)
-      - name: tap_key
-        detail: void tap_key(int dxScancode)
-      - name: get_mouse_x
-        detail: int get_mouse_x()
-      - name: get_mouse_y
-        detail: int get_mouse_y()
-      - name: get_mouse_buttons
-        detail: int get_mouse_buttons()
-        doc: Returns the number of the mouse button that is currently pressed (1 - left, 2 - right, 3 - left+right, 4 - middle, 0 otherwise).
-
-    - name: Lists
-      doc: The `list_xxx` functions can be used to loop over all items on a map. `list_begin` takes an argument telling sfall what you want to list. (Defined in `sfall.h`) It returns a list pointer, which you iterate through with `list_next`. Finally, when you've finished with the list use `list_end` on it. Not calling `list_end` will result in a memory leak. Alternatively, use `list_as_array` to get the whole list at once as a temp array variable, which can be looped over using `len_array` and which you don't need to remember to free afterwards.
-      items:
-      - name: list_begin
-        detail: int list_begin(int type)
-      - name: list_next
-        detail: int list_next(int listid)
-      - name: list_end
-        detail: void list_end(int listid)
-      - name: list_as_array
-        detail: array list_as_array(int type)
-
-    - name: Explosions
-      items:
-      - name: metarule2_explosions
-        detail: int metarule2_explosions(int arg1, int arg2)
-        doc: Was made as a dirty easy hack to allow dynamically change some explosion parameters (ranged attack). All changed parameters are reset to vanilla state automatically after each attack action.
-      - name: set_attack_explosion_pattern
-        detail: void set_attack_explosion_pattern(x, y)
-        doc: "Currently y is not used and x means: 1 - reduced explosion pattern (3 effects are spawned instead of 7), 0 - full pattern."
-      - name: set_attack_explosion_art
-        detail: void set_attack_explosion_art(x, y)
-        doc: y not used and x is a misc frame ID (last 3 bytes, without object type) to use for the next explosion.
-      - name: set_attack_explosion_radius
-        detail: void set_attack_explosion_radius(x)
-        doc: Changes radius at which explosion will hit secondary targets for the next attack (from the experiments it is limited to something around 8 by the engine).
-      - name: set_attack_is_explosion_fire
-        detail: void set_attack_is_explosion_fire
-        doc: If you call this right before using a weapon with fire damage type, it will produce explosion effects (and radius damage) just like "explosion" type, but all targets will still recieve fire damage.
-
-    - name: Animations
-      items:
-      - name: reg_anim_combat_check
-        detail: void reg_anim_combat_check(int enable)
-        doc: Allows to enable all reg_anim_* functions in combat (including vanilla functions) if set to 0. It is automatically reset at the end of each frame, so you need to call it before "reg_anim_begin" - "reg_anim_end" block.
-      - name: reg_anim_destroy
-        detail: void reg_anim_destroy(objptr)
-        doc: Given object is destroyed at the end of current animation set.
-      - name: reg_anim_animate_and_hide
-        detail: void reg_anim_animate_and_hide(objptr, int animID, int delay)
-        doc: Exactly like "reg_anim_animate" but the object will automatically disappear after the last animation frame (but not destroyed).
-      - name: reg_anim_light
-        detail: void reg_anim_light(objptr, int light, int delay)
-        doc: "Change light of any object. Light argument is a light radius (0-8), but you can use highest 2 bytes to pass light intensity as well (example: 0xFFFF0008 - intensity 65535 and radius 8). | If highest 2 bytes are 0, intensity will not be changed. Intensity range is from 0 to 65535 (0xFFFF)"
-      - name: reg_anim_change_fid
-        detail: void reg_anim_change_fid(objptr, int FID, int delay)
-        doc: Should work like art_change_fid_num but in reg_anim sequence.
-      - name: reg_anim_take_out
-        detail: void reg_anim_take_out(objptr, holdFrameID, delay)
-        doc: Plays "take out weapon" animation for given holdFrameID. It is not required to have such weapon in critter's inventory.
-      - name: reg_anim_turn_towards
-        detail: void reg_anim_turn_towards(objptr, int tile/target, delay)
-        doc: Makes object change it's direction to face given tile num or target object.
-
-    - name: Tiles
-      items:
-      - name: get_tile_fid
-        detail: int get_tile_fid(int tile)
-      - name: tile_under_cursor
-        detail: int tile_under_cursor
-      - name: tile_light
-        detail: int tile_light(int elevation, int tileNum)
-        doc: Returns light intensity at the given tile in range from 0 to 65535.
-      - name: tile_get_objs
-        detail: array tile_get_objs(int tileNum, int elevation)
-        doc: Returns array of all objects at given tile.
-      - name: tile_refresh_display
-        detail: void tile_refresh_display()
-        doc: Redraws the game scene (tiles, walls, objects, etc.).
-
-    - name: Other
-      items:
-      - name: input_funcs_available
-        detail: int input_funcs_available()
-      - name: get_window_under_mouse
-        detail: int get_window_under_mouse()
-
-      - name: get_year
-        detail: int get_year
-
-      - name: set_global_script_repeat
-        detail: void set_global_script_repeat(int frames)
-      - name: set_global_script_type
-        detail: void set_global_script_type(int type)
-      - name: available_global_script_types
-        detail: int available_global_script_types
-
-      - name: set_dm_model
-        detail: void set_dm_model(string name)
-      - name: set_df_model
-        detail: void set_df_model(string name)
-      - name: set_movie_path
-        detail: void set_movie_path(string filename, int movieid)
-
-      - name: set_pipboy_available
-        detail: void set_pipboy_available(int available)
-
-      - name: get_kill_counter
-        detail: int get_kill_counter(int critterType)
-      - name: mod_kill_counter
-        detail: void mod_kill_counter(int critterType, int amount)
-
-      - name: get_critter_current_ap
-        detail: int get_critter_current_ap(CritterPtr)
-      - name: set_critter_current_ap
-        detail: void set_critter_current_ap(CritterPtr, int ap)
-
-      - name: active_hand
-        detail: int active_hand
-      - name: toggle_active_hand
-        detail: void toggle_active_hand
-
-      - name: set_sfall_global
-        detail: void set_sfall_global(string/int varname, int/float value)
-      - name: get_sfall_global_int
-        detail: int get_sfall_global_int(string/int varname)
-      - name: get_sfall_global_float
-        detail: float get_sfall_global_float(string/int varname)
-
-      - name: set_pickpocket_max
-        detail: void set_pickpocket_max(int percentage)
-      - name: set_hit_chance_max
-        detail: void set_hit_chance_max(int percentage)
-      - name: set_skill_max
-        detail: void set_skill_max(int value)
-      - name: set_xp_mod
-        detail: void set_xp_mod(int percentage)
-
-      - name: set_critter_hit_chance_mod
-        detail: void set_critter_hit_chance_mod(CritterPtr, int max, int mod)
-      - name: set_base_hit_chance_mod
-        detail: void set_base_hit_chance_mod(int max, int mod)
-      - name: set_critter_skill_mod
-        detail: void set_critter_skill_mod(CritterPtr, int max)
-      - name: set_base_skill_mod
-        detail: void set_base_skill_mod(int max)
-
-
-      - name: inc_npc_level
-        detail: void inc_npc_level(string npc)
-      - name: get_npc_level
-        detail: int get_npc_level(string npc)
-
-      - name: get_viewport_x
-        detail: int get_viewport_x()
-      - name: get_viewport_y
-        detail: int get_viewport_y()
-      - name: set_viewport_x
-        detail: void set_viewport_x(int view_x)
-      - name: set_viewport_y
-        detail: void set_viewport_y(int view_y)
-
-      - name: set_car_current_town
-        detail: void set_car_current_town(int town)
-
-      - name: set_pyromaniac_mod
-        detail: void set_pyromaniac_mod(int bonus)
-      - name: apply_heaveho_fix
-        detail: void apply_heaveho_fix
-      - name: set_swiftlearner_mod
-        detail: void set_swiftlearner_mod(int bonus)
-      - name: set_hp_per_level_mod
-        detail: void set_hp_per_level_mod(int mod)
-
-      - name: show_iface_tag
-        detail: void show_iface_tag(int tag)
-      - name: hide_iface_tag
-        detail: void hide_iface_tag(int tag)
-      - name: is_iface_tag_active
-        detail: int is_iface_tag_active(int tag)
-
-      - name: get_bodypart_hit_modifier
-        detail: int get_bodypart_hit_modifier(int bodypart)
-      - name: set_bodypart_hit_modifier
-        detail: void set_bodypart_hit_modifier(int bodypart, int value)
-
-      - name: set_critical_table
-        detail: void set_critical_table(int crittertype, int bodypart, int level, int valuetype, int value)
-      - name: get_critical_table
-        detail: int get_critical_table(int crittertype, int bodypart, int level, int valuetype)
-      - name: reset_critical_table
-        detail: void reset_critical_table(int crittertype, int bodypart, int level, int valuetype)
-
-      - name: set_unspent_ap_bonus
-        detail: void set_unspent_ap_bonus(int multiplier)
-      - name: get_unspent_ap_bonus
-        detail: int get_unspent_ap_bonus()
-      - name: set_unspent_ap_perk_bonus
-        detail: void set_unspent_ap_perk_bonus(int multiplier)
-      - name: get_unspent_ap_perk_bonus
-        detail: int get_unspent_ap_perk_bonus()
-
-
-      - name: remove_script
-        detail: void remove_script(objptr)
-      - name: set_script
-        detail: void set_script(objptr, int scriptid)
-      - name: get_script
-        detail: int get_script(objptr)
-
-      - name: nb_create_char
-        detail: int nb_create_char()
-
-      - name: get_proto_data
-        detail: int get_proto_data(int pid, int offset)
-      - name: set_proto_data
-        detail: void set_proto_data(int pid, int offset, int value)
-
-      - name: hero_select_win
-        detail: void hero_select_win(int)
-      - name: set_hero_race
-        detail: void set_hero_race(int style)
-      - name: set_hero_style
-        detail: void set_hero_style(int style)
-
-      - name: set_critter_burst_disable
-        detail: void set_critter_burst_disable(int critter, int disable)
-
-      - name: stop_game
-        detail: void stop_game()
-      - name: resume_game
-        detail: void resume_game()
-      - name: create_message_window
-        detail: void create_message_window(string message)
-
-      - name: get_light_level
-        detail: int get_light_level()
-
-      - name: refresh_pc_art
-        detail: void refresh_pc_art
-
-      - name: get_attack_type
-        detail: int get_attack_type
-
-      - name: atoi
-        detail: int atoi(string text)
-      - name: atof
-        detail: float atof(string text)
-
-      - name: modified_ini
-        detail: int modified_ini
-
-      - name: force_aimed_shots
-        detail: void force_aimed_shots(int pid)
-      - name: disable_aimed_shots
-        detail: void disable_aimed_shots(int pid)
-
-      - name: mark_movie_played
-        detail: void mark_movie_played(int id)
-
-      - name: gdialog_get_barter_mod
-        detail: int gdialog_get_barter_mod
-      - name: set_inven_ap_cost
-        detail: void set_inven_ap_cost
-
-      - name: block_combat
-        detail: void block_combat(bool value)
-        doc: Deny the player to enter combat mode.
-      - name: game_loaded
-        detail: int game_loaded()
-        doc: Returns 1 the first time it is called after a new game or game load, and 0 any time after.
-      - name: get_ini_setting
-        detail: int get_ini_setting(string setting)
-        doc: Reads an integer value from an ini file in the fallout directory.
-      - name: get_ini_string
-        detail: string get_ini_string(string setting)
-        doc: Reads a string value from an ini file in the fallout directory.
-      - name: get_game_mode
-        detail: int get_game_mode()
-        doc: A more flexible version of in_world_map. It will return a set of flags indicating which mode the game is currently in.
-      - name: get_uptime
-        detail: int get_uptime()
-        doc: Just a wrapper around the windows GetTickCount() function. It's useful for making time fade effects in shaders, since they already have access to the current tick count.
-      - name: set_self
-        detail: void set_self(objptr)
-        doc: Overrides the scripts self_obj for the next function call.
-      - name: mod_skill_points_per_level
-        detail: void mod_skill_points_per_level(int value)
-        doc: Accepts a value of between -100 and 100, and modifies the number of skill points the player recieves when they level up.
-      - name: get_last_target
-        detail: ObjectPtr get_last_target(objptr critter)
-        doc: Will return the last critter to be deliberately attacked.
-      - name: get_last_attacker
-        detail: ObjectPtr get_last_attacker(objptr critter)
-        doc: Will return the last critter to deliberately launch an attack against the argument critter.
-      - name: set_base_pickpocket_mod
-        detail: void set_base_pickpocket_mod(int max, int mod)
-        doc: Changes maximum chance of success and chance mod for each steal attempt.
-      - name: set_critter_pickpocket_mod
-        detail: void set_critter_pickpocket_mod(CritterPtr, int max, int mod)
-        doc: The same as set_base_pickpocket, but applies only to specific critter.
-
-      - name: string_split
-        detail: array string_split(string, split)
-        doc: Takes a string and a seperator, searches the string for all instances of the seperator, and returns a temp array filled with the pieces of the string split at each instance. If you give an empty string as the seperator, the string is split into individual characters.
-      - name: substr
-        detail: string substr(string, start, length)
-        doc: 'Cuts a substring from a string starting at "start" up to "length" characters. | If start is negative - it indicates starting position from the end of the string (for example substr("test", -2, 2) will return last 2 charactes: "st"). | If length is negative - it means so many characters will be omitted from the end of string (example: substr("test", 0, -2) will return string without last 2 characters: "te").'
-      - name: strlen
-        detail: int strlen(string text)
-        doc: Returns string length
-      - name: sprintf
-        detail: string sprintf(string format, any value)
-        doc: Formats given value using standart syntax of C printf function (google "printf" for format details). However it is limited to formatting only 1 value.
-      - name: typeof
-        detail: int typeof(any value)
-        doc: "Returns type of the given value: VALTYPE_INT, VALTYPE_FLOAT or VALTYPE_STR."
-      - name: charcode
-        detail: int charcode(string text)
-        doc: Returns ASCII code for the first character in given string
-
-      - name: message_str_game
-        detail: string message_str_game(int fileId, int messageId)
-        doc: Works exactly the same as message_str, except you get messages from files in "text/english/game" folder.
-      - name: sneak_success
-        detail: int sneak_success
-        doc: Returns 1 if last sneak attempt (roll against skill) was successful, 0 otherwise.
-
-      - name: obj_blocking_line
-        detail: ObjectPtr obj_blocking_line(ObjectPtr objFrom, int tileTo, int blockingType)
-        doc: Returns first object which blocks direct linear path from objFrom to tileTo using selected blocking function (see BLOCKING_TYPE_* constants in sfall.h).
-      - name: obj_blocking_tile
-        detail: ObjectPtr obj_blocking_tile(int tileNum, int elevation, int blockingType)
-        doc: Returns first object blocking given tile using given blocking function or 0 if tile is clear.
-
-      - name: party_member_list
-        detail: array party_member_list(int includeHidden)
-        doc: Returns array of all current party members | (0 - only critter-type, alive and visible will be returned, 1 - all object, including Trunk, etc.)
-      - name: path_find_to
-        detail: array path_find_to(ObjectPtr objFrom, int tileTo, int blockingType)
-        doc: Returns the shortest path to a given tile using given blocking function as an array of tile directions (0..5) to move on each step.
-      - name: create_spatial
-        detail: ObjectPtr create_spatial(int scriptID, int tile, int elevation, int radius)
-        doc: Creates new spatial script with given SID, at given tile, and radius.
-      - name: art_exists
-        detail: int art_exists(int artFID)
-        doc: "checks if given artFID exists in the game | - Useful when you want to check if critter can use specific weapon: art_exists((artFid bwand 0xffff0fff) bwor (weaponAnim * 0x1000))."
-      - name: obj_is_carrying_obj
-        detail: int (ObjectPtr invenObj, ObjectPtr itemObj)
-        doc: Returns number of itemObj inside invenObj's inventory, note that both arguments are object pointers.
-
+  - name: Direct memory access
+    items:
+    - name: read_byte
+      detail: int read_byte(int address)
+    - name: read_short
+      detail: int read_short(int address)
+    - name: read_int
+      detail: int read_int(int address)
+    - name: read_string
+      detail: int read_string(int address)
+    - name: write_byte
+      detail: void write_byte(int address, int value)
+    - name: write_short
+      detail: void write_short(int address, int value)
+    - name: write_int
+      detail: void write_int(int address, int value)
+    - name: write_string
+      detail: void write_string(int address, string value)
+    - name: call_offset_v0
+      detail: void call_offset_v0(int address)
+    - name: call_offset_v1
+      detail: void call_offset_v1(int address, int arg1)
+    - name: call_offset_v2
+      detail: void call_offset_v2(int address, int arg1, int arg2)
+    - name: call_offset_v3
+      detail: void call_offset_v3(int address, int arg1, int arg2, int arg3)
+    - name: call_offset_v4
+      detail: void call_offset_v4(int address, int arg1, int arg2, int arg3, int arg4)
+    - name: call_offset_r0
+      detail: int call_offset_r0(int address)
+    - name: call_offset_r1
+      detail: int call_offset_r1(int address, int arg1)
+    - name: call_offset_r2
+      detail: int call_offset_r2(int address, int arg1, int arg2)
+    - name: call_offset_r3
+      detail: int call_offset_r3(int address, int arg1, int arg2, int arg3)
+    - name: call_offset_r4
+      detail: int call_offset_r4(int address, int arg1, int arg2, int arg3, int arg4)
+  - name: Stats and skills
+    items:
+    - name: set_pc_base_stat
+      detail: void set_pc_base_stat(int StatID, int value)
+    - name: set_pc_extra_stat
+      detail: void set_pc_extra_stat(int StatID, int value)
+    - name: get_pc_base_stat
+      detail: int get_pc_base_stat(int StatID)
+    - name: get_pc_extra_stat
+      detail: int get_pc_extra_stat(int StatID)
+    - name: set_critter_base_stat
+      detail: void set_critter_base_stat(CritterPtr, int StatID, int value)
+    - name: set_critter_extra_stat
+      detail: void set_critter_extra_stat(CritterPtr, int StatID, int value)
+    - name: get_critter_base_stat
+      detail: int get_critter_base_stat(CritterPtr, int StatID)
+    - name: get_critter_extra_stat
+      detail: int get_critter_extra_stat(CritterPtr, int StatID)
+    - name: set_critter_skill_points
+      detail: void set_critter_skill_points(int critter, int skill, int value)
+    - name: get_critter_skill_points
+      detail: int get_critter_skill_points(int critter, int skill)
+    - name: set_available_skill_points
+      detail: void set_available_skill_points(int value)
+    - name: get_available_skill_points
+      detail: int get_available_skill_points()
+    - name: set_stat_max
+      detail: void set_stat_max(int stat, int value)
+    - name: set_stat_min
+      detail: void set_stat_min(int stat, int value)
+    - name: set_pc_stat_max
+      detail: void set_pc_stat_max(int stat, int value)
+    - name: set_pc_stat_min
+      detail: void set_pc_stat_min(int stat, int value)
+    - name: set_npc_stat_max
+      detail: void set_npc_stat_max(int stat, int value)
+    - name: set_npc_stat_min
+      detail: void set_npc_stat_min(int stat, int value)
+  - name: Graphics
+    items:
+    - name: graphics_funcs_available
+      detail: bool graphics_funcs_available
+    - name: load_shader
+      detail: int load_shader(string path)
+    - name: free_shader
+      detail: void free_shader(int ID)
+    - name: activate_shader
+      detail: void activate_shader(int ID)
+    - name: deactivate_shader
+      detail: void deactivate_shader(int ID)
+    - name: set_shader_int
+      detail: void set_shader_int(int ID, string param, int value)
+    - name: set_shader_float
+      detail: void set_shader_float(int ID, string param, float value)
+    - name: set_shader_vector
+      detail: void set_shader_vector(int ID, string param, float f1, float f2, float f3, float f4)
+    - name: get_shader_version
+      detail: int get_shader_version
+    - name: set_shader_mode
+      detail: void set_shader_mode(int mode)
+    - name: force_graphics_refresh
+      detail: void force_graphics_refresh(bool enabled)
+    - name: get_shader_texture
+      detail: int get_shader_texture(int ID, int texture)
+    - name: set_shader_texture
+      detail: void set_shader_texture(int ID, string param, int texID)
+    - name: get_screen_width
+      detail: int get_screen_width()
+    - name: get_screen_height
+      detail: int get_screen_height()
+    - name: set_palette
+      detail: void set_palette(string path)
+  - name: Perks and traits
+    items:
+    - name: set_perk_image
+      detail: void set_perk_image(int perkID, int value)
+    - name: set_perk_ranks
+      detail: void set_perk_ranks(int perkID, int value)
+    - name: set_perk_level
+      detail: void set_perk_level(int perkID, int value)
+    - name: set_perk_stat
+      detail: void set_perk_stat(int perkID, int value)
+    - name: set_perk_stat_mag
+      detail: void set_perk_stat_mag(int perkID, int value)
+    - name: set_perk_skill1
+      detail: void set_perk_skill1(int perkID, int value)
+    - name: set_perk_skill1_mag
+      detail: void set_perk_skill1_mag(int perkID, int value)
+    - name: set_perk_type
+      detail: void set_perk_type(int perkID, int value)
+    - name: set_perk_skill2
+      detail: void set_perk_skill2(int perkID, int value)
+    - name: set_perk_skill2_mag
+      detail: void set_perk_skill2_mag(int perkID, int value)
+    - name: set_perk_str
+      detail: void set_perk_str(int perkID, int value)
+    - name: set_perk_per
+      detail: void set_perk_per(int perkID, int value)
+    - name: set_perk_end
+      detail: void set_perk_end(int perkID, int value)
+    - name: set_perk_chr
+      detail: void set_perk_chr(int perkID, int value)
+    - name: set_perk_int
+      detail: void set_perk_int(int perkID, int value)
+    - name: set_perk_agl
+      detail: void set_perk_agl(int perkID, int value)
+    - name: set_perk_lck
+      detail: void set_perk_lck(int perkID, int value)
+    - name: set_perk_name
+      detail: void set_perk_name(int perkID, string value)
+    - name: set_perk_desc
+      detail: void set_perk_desc(int perkID, string value)
+    - name: set_perk_freq
+      detail: void set_perk_freq(int value)
+    - name: get_perk_owed
+      detail: int get_perk_owed
+    - name: set_perk_owed
+      detail: void set_perk_owed(int value)
+    - name: get_perk_available
+      detail: int get_perk_available(int perk)
+    - name: set_perk_level_mod
+      detail: void set_perk_level_mod(int levels)
+    - name: set_fake_perk
+      detail: void set_fake_perk(string name, int level, int image, string desc)
+    - name: set_fake_trait
+      detail: void set_fake_trait(string name, int active, int image, string desc)
+    - name: set_selectable_perk
+      detail: void set_selectable_perk(string name, int active, int image, string desc)
+    - name: set_perkbox_title
+      detail: void set_perkbox_title(string title)
+    - name: hide_real_perks
+      detail: void hide_real_perks()
+    - name: show_real_perks
+      detail: void show_real_perks()
+    - name: has_fake_perk
+      detail: int has_fake_perk(string name)
+    - name: has_fake_trait
+      detail: int has_fake_trait(string name)
+    - name: perk_add_mode
+      detail: void perk_add_mode(int type)
+    - name: clear_selectable_perks
+      detail: void clear_selectable_perks()
+    - name: remove_trait
+      detail: void remove_trait(int traitID)
+    - name: seq_perk_freq
+      detail: void seq_perk_freq(int value)
+      doc: Sets the number of levels between each perk.
+  - name: Virtual file system
+    doc: The fs_* functions are used to manipulate a virtual file system. Files saved here should have paths relative to the data folder, and use backslashes as the directory separator. They will take precedence over files stored in the normal data folder. They will also be saved into save games if you set a flag for them using fs_resize(fileId, -1), so be avoid creating large files. Using fs_copy followed by fs_read_xxx, you can read the contents of existing files.
+    items:
+    - name: fs_create
+      detail: int fs_create(string path, int size)
+    - name: fs_copy
+      detail: int fs_copy(string path, string source)
+    - name: fs_find
+      detail: int fs_find(string path)
+    - name: fs_write_byte
+      detail: void fs_write_byte(int id, int data)
+    - name: fs_write_short
+      detail: void fs_write_short(int id, int data)
+    - name: fs_write_int
+      detail: void fs_write_int(int id, int data)
+    - name: fs_write_float
+      detail: void fs_write_float(int id, int data)
+    - name: fs_write_string
+      detail: void fs_write_string(int id, string data)
+    - name: fs_write_bstring
+      detail: void fs_write_bstring(int id, string data)
+    - name: fs_read_byte
+      detail: int fs_read_byte(int id)
+    - name: fs_read_short
+      detail: int fs_read_short(int id)
+    - name: fs_read_int
+      detail: int fs_read_int(int id)
+    - name: fs_read_float
+      detail: float fs_read_float(int id)
+    - name: fs_delete
+      detail: void fs_delete(int id)
+    - name: fs_size
+      detail: int fs_size(int id)
+    - name: fs_pos
+      detail: int fs_pos(int id)
+    - name: fs_seek
+      detail: void fs_seek(int id, int pos)
+    - name: fs_resize
+      detail: void fs_resize(int id, int size)
+  - name: Knockback
+    doc: The 'type' value in the weapon knockback functions can be 0 or 1. If 0, the value becomes an absolute distance that targets will be knocked back. If 1, the value is multiplied by the distance they would normally have been knocked back. Weapon knockback modifiers are applied in the order weapon -> attacker -> target, so a x2 weapon wielded by an abs 6 attacker hitting a /2 target will knock the target back 3 squares. The knockback functions will not override the stonewall perk or knockdowns resulting from criticals. knockback values set on weapons or critters are not saved, and must be reset each time the player reloads.
+    items:
+    - name: set_weapon_knockback
+      detail: void set_weapon_knockback(WeaponPtr, int type, float value)
+    - name: set_target_knockback
+      detail: void set_target_knockback(CritterPtr, int type, float value)
+    - name: set_attacker_knockback
+      detail: void set_attacker_knockback(CritterPtr, int type, float value)
+    - name: remove_weapon_knockback
+      detail: void remove_weapon_knockback(WeaponPtr)
+    - name: remove_target_knockback
+      detail: void remove_target_knockback(CritterPtr)
+    - name: remove_attacker_knockback
+      detail: void remove_attacker_knockback(CritterPtr)
+  - name: Maps and encounters
+    items:
+    - name: in_world_map
+      detail: bool in_world_map
+    - name: force_encounter
+      detail: void force_encounter(int map)
+    - name: force_encounter_with_flags
+      detail: void force_encounter_with_flags(int map, int flags)
+    - name: set_map_time_multi
+      detail: void set_map_time_multi(float multi)
+    - name: set_world_map_pos
+      detail: void set_world_map_pos(int x, int y)
+    - name: get_world_map_x_pos
+      detail: int get_world_map_x_pos
+    - name: get_world_map_y_pos
+      detail: int get_world_map_y_pos()
+    - name: set_map_enter_position
+      detail: void set_map_enter_position(int tile, int elev, int rot)
+      doc: 'Overrides the player''s entry position when entering the map through exit grids. Setting the tile to 0 will put the player on the start hex (default tile and elevation) of the map. Note: Works only in map_enter_p_proc procedure.'
+    - name: get_map_enter_position
+      detail: array get_map_enter_position()
+      doc: 'Returns an array of the player''s position data (index: 0 - tile, 1 - elevation, 2 - rotation) when entering the map through exit grids. If entering from the world map, the tile value will be -1. Note: Should be called in map_enter_p_proc procedure to get the correct position data.'
+  - name: Audio
+    items:
+    - name: eax_available
+      detail: int eax_available
+    - name: set_eax_environment
+      detail: void set_eax_environment(int environment)
+    - name: play_sfall_sound
+      detail: int play_sfall_sound(string file, int loop)
+    - name: stop_sfall_sound
+      detail: void stop_sfall_sound(int ptr)
+  - name: Weapons
+    items:
+    - name: get_weapon_ammo_pid
+      detail: int get_weapon_ammo_pid(objptr weapon)
+    - name: set_weapon_ammo_pid
+      detail: void set_weapon_ammo_pid(objptr weapon, int pid)
+    - name: get_weapon_ammo_count
+      detail: int get_weapon_ammo_count(objptr weapon)
+    - name: set_weapon_ammo_count
+      detail: void set_weapon_ammo_count(objptr weapon, int count)
+  - name: Sfall
+    items:
+    - name: sfall_ver_major
+      detail: int sfall_ver_major()
+    - name: sfall_ver_minor
+      detail: int sfall_ver_minor()
+    - name: sfall_ver_build
+      detail: int sfall_ver_build()
+  - name: Math
+    items:
+    - name: log
+      detail: float log(float x)
+      doc: Natural logarithm of x.
+    - name: exponent
+      detail: float exponent(float x)
+      doc: E^X
+    - name: round
+      detail: int round(float x)
+      doc: Round x to the nearest integer.
+    - name: sqrt
+      detail: float sqrt(float x)
+      doc: Square root of x.
+    - name: abs
+      detail: float abs(float x)
+      doc: Absolute (positive) value of x.
+    - name: sin
+      detail: float sin(float x)
+      doc: Sine of x
+    - name: cos
+      detail: float cos(float x)
+      doc: Cosine of x
+    - name: tan
+      detail: float tan(float x)
+      doc: Tangent of x
+    - name: arctan
+      detail: float arctan(float x, float y)
+      doc: Arctangent of x
+    - name: ceil
+      detail: int ceil(float)
+  - name: Keyboard and mouse
+    items:
+    - name: key_pressed
+      detail: int key_pressed(int dxScancode)
+    - name: tap_key
+      detail: void tap_key(int dxScancode)
+    - name: get_mouse_x
+      detail: int get_mouse_x()
+    - name: get_mouse_y
+      detail: int get_mouse_y()
+    - name: get_mouse_buttons
+      detail: int get_mouse_buttons()
+      doc: Returns the number of the mouse button that is currently pressed (1 - left, 2 - right, 3 - left+right, 4 - middle, 0 otherwise).
+  - name: Lists
+    doc: The `list_xxx` functions can be used to loop over all items on a map. `list_begin` takes an argument telling sfall what you want to list. (Defined in `sfall.h`) It returns a list pointer, which you iterate through with `list_next`. Finally, when you've finished with the list use `list_end` on it. Not calling `list_end` will result in a memory leak. Alternatively, use `list_as_array` to get the whole list at once as a temp array variable, which can be looped over using `len_array` and which you don't need to remember to free afterwards.
+    items:
+    - name: list_begin
+      detail: int list_begin(int type)
+    - name: list_next
+      detail: int list_next(int listid)
+    - name: list_end
+      detail: void list_end(int listid)
+    - name: list_as_array
+      detail: array list_as_array(int type)
+  - name: Explosions
+    items:
+    - name: metarule2_explosions
+      detail: int metarule2_explosions(int arg1, int arg2)
+      doc: Was made as a dirty easy hack to allow dynamically change some explosion parameters (ranged attack). All changed parameters are reset to vanilla state automatically after each attack action.
+    - name: set_attack_explosion_pattern
+      detail: void set_attack_explosion_pattern(x, y)
+      doc: 'Currently y is not used and x means: 1 - reduced explosion pattern (3 effects are spawned instead of 7), 0 - full pattern.'
+    - name: set_attack_explosion_art
+      detail: void set_attack_explosion_art(x, y)
+      doc: y not used and x is a misc frame ID (last 3 bytes, without object type) to use for the next explosion.
+    - name: set_attack_explosion_radius
+      detail: void set_attack_explosion_radius(x)
+      doc: Changes radius at which explosion will hit secondary targets for the next attack (from the experiments it is limited to something around 8 by the engine).
+    - name: set_attack_is_explosion_fire
+      detail: void set_attack_is_explosion_fire
+      doc: If you call this right before using a weapon with fire damage type, it will produce explosion effects (and radius damage) just like "explosion" type, but all targets will still recieve fire damage.
+  - name: Animations
+    items:
+    - name: reg_anim_combat_check
+      detail: void reg_anim_combat_check(int enable)
+      doc: Allows to enable all reg_anim_* functions in combat (including vanilla functions) if set to 0. It is automatically reset at the end of each frame, so you need to call it before "reg_anim_begin" - "reg_anim_end" block.
+    - name: reg_anim_destroy
+      detail: void reg_anim_destroy(objptr)
+      doc: Given object is destroyed at the end of current animation set.
+    - name: reg_anim_animate_and_hide
+      detail: void reg_anim_animate_and_hide(objptr, int animID, int delay)
+      doc: Exactly like "reg_anim_animate" but the object will automatically disappear after the last animation frame (but not destroyed).
+    - name: reg_anim_light
+      detail: void reg_anim_light(objptr, int light, int delay)
+      doc: 'Change light of any object. Light argument is a light radius (0-8), but you can use highest 2 bytes to pass light intensity as well (example: 0xFFFF0008 - intensity 65535 and radius 8). | If highest 2 bytes are 0, intensity will not be changed. Intensity range is from 0 to 65535 (0xFFFF)'
+    - name: reg_anim_change_fid
+      detail: void reg_anim_change_fid(objptr, int FID, int delay)
+      doc: Should work like art_change_fid_num but in reg_anim sequence.
+    - name: reg_anim_take_out
+      detail: void reg_anim_take_out(objptr, holdFrameID, delay)
+      doc: Plays "take out weapon" animation for given holdFrameID. It is not required to have such weapon in critter's inventory.
+    - name: reg_anim_turn_towards
+      detail: void reg_anim_turn_towards(objptr, int tile/target, delay)
+      doc: Makes object change it's direction to face given tile num or target object.
+  - name: Tiles
+    items:
+    - name: get_tile_fid
+      detail: int get_tile_fid(int tile)
+    - name: tile_under_cursor
+      detail: int tile_under_cursor
+    - name: tile_light
+      detail: int tile_light(int elevation, int tileNum)
+      doc: Returns light intensity at the given tile in range from 0 to 65535.
+    - name: tile_get_objs
+      detail: array tile_get_objs(int tileNum, int elevation)
+      doc: Returns array of all objects at given tile.
+    - name: tile_refresh_display
+      detail: void tile_refresh_display()
+      doc: Redraws the game scene (tiles, walls, objects, etc.).
+  - name: Other
+    items:
+    - name: input_funcs_available
+      detail: int input_funcs_available()
+    - name: get_window_under_mouse
+      detail: int get_window_under_mouse()
+    - name: get_year
+      detail: int get_year
+    - name: set_global_script_repeat
+      detail: void set_global_script_repeat(int frames)
+    - name: set_global_script_type
+      detail: void set_global_script_type(int type)
+    - name: available_global_script_types
+      detail: int available_global_script_types
+    - name: set_dm_model
+      detail: void set_dm_model(string name)
+    - name: set_df_model
+      detail: void set_df_model(string name)
+    - name: set_movie_path
+      detail: void set_movie_path(string filename, int movieid)
+    - name: set_pipboy_available
+      detail: void set_pipboy_available(int available)
+    - name: get_kill_counter
+      detail: int get_kill_counter(int critterType)
+    - name: mod_kill_counter
+      detail: void mod_kill_counter(int critterType, int amount)
+    - name: get_critter_current_ap
+      detail: int get_critter_current_ap(CritterPtr)
+    - name: set_critter_current_ap
+      detail: void set_critter_current_ap(CritterPtr, int ap)
+    - name: active_hand
+      detail: int active_hand
+    - name: toggle_active_hand
+      detail: void toggle_active_hand
+    - name: set_sfall_global
+      detail: void set_sfall_global(string/int varname, int/float value)
+    - name: get_sfall_global_int
+      detail: int get_sfall_global_int(string/int varname)
+    - name: get_sfall_global_float
+      detail: float get_sfall_global_float(string/int varname)
+    - name: set_pickpocket_max
+      detail: void set_pickpocket_max(int percentage)
+    - name: set_hit_chance_max
+      detail: void set_hit_chance_max(int percentage)
+    - name: set_skill_max
+      detail: void set_skill_max(int value)
+    - name: set_xp_mod
+      detail: void set_xp_mod(int percentage)
+    - name: set_critter_hit_chance_mod
+      detail: void set_critter_hit_chance_mod(CritterPtr, int max, int mod)
+    - name: set_base_hit_chance_mod
+      detail: void set_base_hit_chance_mod(int max, int mod)
+    - name: set_critter_skill_mod
+      detail: void set_critter_skill_mod(CritterPtr, int max)
+    - name: set_base_skill_mod
+      detail: void set_base_skill_mod(int max)
+    - name: inc_npc_level
+      detail: void inc_npc_level(string npc)
+    - name: get_npc_level
+      detail: int get_npc_level(string npc)
+    - name: get_viewport_x
+      detail: int get_viewport_x()
+    - name: get_viewport_y
+      detail: int get_viewport_y()
+    - name: set_viewport_x
+      detail: void set_viewport_x(int view_x)
+    - name: set_viewport_y
+      detail: void set_viewport_y(int view_y)
+    - name: set_car_current_town
+      detail: void set_car_current_town(int town)
+    - name: set_pyromaniac_mod
+      detail: void set_pyromaniac_mod(int bonus)
+    - name: apply_heaveho_fix
+      detail: void apply_heaveho_fix
+    - name: set_swiftlearner_mod
+      detail: void set_swiftlearner_mod(int bonus)
+    - name: set_hp_per_level_mod
+      detail: void set_hp_per_level_mod(int mod)
+    - name: show_iface_tag
+      detail: void show_iface_tag(int tag)
+    - name: hide_iface_tag
+      detail: void hide_iface_tag(int tag)
+    - name: is_iface_tag_active
+      detail: int is_iface_tag_active(int tag)
+    - name: get_bodypart_hit_modifier
+      detail: int get_bodypart_hit_modifier(int bodypart)
+    - name: set_bodypart_hit_modifier
+      detail: void set_bodypart_hit_modifier(int bodypart, int value)
+    - name: set_critical_table
+      detail: void set_critical_table(int crittertype, int bodypart, int level, int valuetype, int value)
+    - name: get_critical_table
+      detail: int get_critical_table(int crittertype, int bodypart, int level, int valuetype)
+    - name: reset_critical_table
+      detail: void reset_critical_table(int crittertype, int bodypart, int level, int valuetype)
+    - name: set_unspent_ap_bonus
+      detail: void set_unspent_ap_bonus(int multiplier)
+    - name: get_unspent_ap_bonus
+      detail: int get_unspent_ap_bonus()
+    - name: set_unspent_ap_perk_bonus
+      detail: void set_unspent_ap_perk_bonus(int multiplier)
+    - name: get_unspent_ap_perk_bonus
+      detail: int get_unspent_ap_perk_bonus()
+    - name: remove_script
+      detail: void remove_script(objptr)
+    - name: set_script
+      detail: void set_script(objptr, int scriptid)
+    - name: get_script
+      detail: int get_script(objptr)
+    - name: nb_create_char
+      detail: int nb_create_char()
+    - name: get_proto_data
+      detail: int get_proto_data(int pid, int offset)
+    - name: set_proto_data
+      detail: void set_proto_data(int pid, int offset, int value)
+    - name: hero_select_win
+      detail: void hero_select_win(int)
+    - name: set_hero_race
+      detail: void set_hero_race(int style)
+    - name: set_hero_style
+      detail: void set_hero_style(int style)
+    - name: set_critter_burst_disable
+      detail: void set_critter_burst_disable(int critter, int disable)
+    - name: stop_game
+      detail: void stop_game()
+    - name: resume_game
+      detail: void resume_game()
+    - name: create_message_window
+      detail: void create_message_window(string message)
+    - name: get_light_level
+      detail: int get_light_level()
+    - name: refresh_pc_art
+      detail: void refresh_pc_art
+    - name: get_attack_type
+      detail: int get_attack_type
+    - name: atoi
+      detail: int atoi(string text)
+    - name: atof
+      detail: float atof(string text)
+    - name: modified_ini
+      detail: int modified_ini
+    - name: force_aimed_shots
+      detail: void force_aimed_shots(int pid)
+    - name: disable_aimed_shots
+      detail: void disable_aimed_shots(int pid)
+    - name: mark_movie_played
+      detail: void mark_movie_played(int id)
+    - name: gdialog_get_barter_mod
+      detail: int gdialog_get_barter_mod
+    - name: set_inven_ap_cost
+      detail: void set_inven_ap_cost
+    - name: block_combat
+      detail: void block_combat(bool value)
+      doc: Deny the player to enter combat mode.
+    - name: game_loaded
+      detail: int game_loaded()
+      doc: Returns 1 the first time it is called after a new game or game load, and 0 any time after.
+    - name: get_ini_setting
+      detail: int get_ini_setting(string setting)
+      doc: Reads an integer value from an ini file in the fallout directory.
+    - name: get_ini_string
+      detail: string get_ini_string(string setting)
+      doc: Reads a string value from an ini file in the fallout directory.
+    - name: get_game_mode
+      detail: int get_game_mode()
+      doc: A more flexible version of in_world_map. It will return a set of flags indicating which mode the game is currently in.
+    - name: get_uptime
+      detail: int get_uptime()
+      doc: Just a wrapper around the windows GetTickCount() function. It's useful for making time fade effects in shaders, since they already have access to the current tick count.
+    - name: set_self
+      detail: void set_self(objptr)
+      doc: Overrides the scripts self_obj for the next function call.
+    - name: mod_skill_points_per_level
+      detail: void mod_skill_points_per_level(int value)
+      doc: Accepts a value of between -100 and 100, and modifies the number of skill points the player recieves when they level up.
+    - name: get_last_target
+      detail: ObjectPtr get_last_target(objptr critter)
+      doc: Will return the last critter to be deliberately attacked.
+    - name: get_last_attacker
+      detail: ObjectPtr get_last_attacker(objptr critter)
+      doc: Will return the last critter to deliberately launch an attack against the argument critter.
+    - name: set_base_pickpocket_mod
+      detail: void set_base_pickpocket_mod(int max, int mod)
+      doc: Changes maximum chance of success and chance mod for each steal attempt.
+    - name: set_critter_pickpocket_mod
+      detail: void set_critter_pickpocket_mod(CritterPtr, int max, int mod)
+      doc: The same as set_base_pickpocket, but applies only to specific critter.
+    - name: string_split
+      detail: array string_split(string, split)
+      doc: Takes a string and a seperator, searches the string for all instances of the seperator, and returns a temp array filled with the pieces of the string split at each instance. If you give an empty string as the seperator, the string is split into individual characters.
+    - name: substr
+      detail: string substr(string, start, length)
+      doc: 'Cuts a substring from a string starting at "start" up to "length" characters. | If start is negative - it indicates starting position from the end of the string (for example substr("test", -2, 2) will return last 2 charactes: "st"). | If length is negative - it means so many characters will be omitted from the end of string (example: substr("test", 0, -2) will return string without last 2 characters: "te").'
+    - name: strlen
+      detail: int strlen(string text)
+      doc: Returns string length
+    - name: sprintf
+      detail: string sprintf(string format, any value)
+      doc: Formats given value using standart syntax of C printf function (google "printf" for format details). However it is limited to formatting only 1 value.
+    - name: typeof
+      detail: int typeof(any value)
+      doc: 'Returns type of the given value: VALTYPE_INT, VALTYPE_FLOAT or VALTYPE_STR.'
+    - name: charcode
+      detail: int charcode(string text)
+      doc: Returns ASCII code for the first character in given string
+    - name: message_str_game
+      detail: string message_str_game(int fileId, int messageId)
+      doc: Works exactly the same as message_str, except you get messages from files in "text/english/game" folder.
+    - name: sneak_success
+      detail: int sneak_success
+      doc: Returns 1 if last sneak attempt (roll against skill) was successful, 0 otherwise.
+    - name: obj_blocking_line
+      detail: ObjectPtr obj_blocking_line(ObjectPtr objFrom, int tileTo, int blockingType)
+      doc: Returns first object which blocks direct linear path from objFrom to tileTo using selected blocking function (see BLOCKING_TYPE_* constants in sfall.h).
+    - name: obj_blocking_tile
+      detail: ObjectPtr obj_blocking_tile(int tileNum, int elevation, int blockingType)
+      doc: Returns first object blocking given tile using given blocking function or 0 if tile is clear.
+    - name: party_member_list
+      detail: array party_member_list(int includeHidden)
+      doc: Returns array of all current party members | (0 - only critter-type, alive and visible will be returned, 1 - all object, including Trunk, etc.)
+    - name: path_find_to
+      detail: array path_find_to(ObjectPtr objFrom, int tileTo, int blockingType)
+      doc: Returns the shortest path to a given tile using given blocking function as an array of tile directions (0..5) to move on each step.
+    - name: create_spatial
+      detail: ObjectPtr create_spatial(int scriptID, int tile, int elevation, int radius)
+      doc: Creates new spatial script with given SID, at given tile, and radius.
+    - name: art_exists
+      detail: int art_exists(int artFID)
+      doc: 'checks if given artFID exists in the game | - Useful when you want to check if critter can use specific weapon: art_exists((artFid bwand 0xffff0fff) bwor (weaponAnim * 0x1000)).'
+    - name: obj_is_carrying_obj
+      detail: int (ObjectPtr invenObj, ObjectPtr itemObj)
+      doc: Returns number of itemObj inside invenObj's inventory, note that both arguments are object pointers.
 sfall-hooks:
-  type: 3 #function
+  type: 3
   topics:
-    - name: Hooks
-      items:
-        - name: init_hook
-          detail: int init_hook()
-          doc: The hook script equivilent of game_loaded; it returns 2 when the script is first loaded, 1 when the player reloads and 0 otherwise.
-        - name: get_sfall_arg
-          detail: mixed get_sfall_arg()
-          doc: Gets the next argument from sfall. Each time it's called it returns the next argument, or otherwise it returns 0 if there are no more arguments left.
-        - name: get_sfall_args
-          detail: int get_sfall_args()
-          doc: Returns all hook arguments as a new temp array.
-        - name: set_sfall_return
-          detail: void set_sfall_return(int value)
-          doc: Used to return the new values from the script. Each time it's called it sets the next value, or if you've already set all return values it does nothing.
-        - name: set_sfall_arg
-          detail: void set_sfall_arg(int argnum, int value)
-          doc: Changes argument value. This is usefull if you have several hook scripts attached to one hook point (see below).
-        - name: register_hook
-          detail: void register_hook(int hooktype)
-          doc: Used from a normal global script if you want to run it at the same point a full hook script would normally run.
-        - name: register_hook_proc
-          detail: void register_hook_proc(int hooktype, proc procedure)
-          doc: The same as register_hook, except that you specifically define which procedure in the current script should be called as a hook (instead of "start").
-
+  - name: Hooks
+    items:
+    - name: init_hook
+      detail: int init_hook()
+      doc: The hook script equivilent of game_loaded; it returns 2 when the script is first loaded, 1 when the player reloads and 0 otherwise.
+    - name: get_sfall_arg
+      detail: mixed get_sfall_arg()
+      doc: Gets the next argument from sfall. Each time it's called it returns the next argument, or otherwise it returns 0 if there are no more arguments left.
+    - name: get_sfall_args
+      detail: int get_sfall_args()
+      doc: Returns all hook arguments as a new temp array.
+    - name: set_sfall_return
+      detail: void set_sfall_return(int value)
+      doc: Used to return the new values from the script. Each time it's called it sets the next value, or if you've already set all return values it does nothing.
+    - name: set_sfall_arg
+      detail: void set_sfall_arg(int argnum, int value)
+      doc: Changes argument value. This is usefull if you have several hook scripts attached to one hook point (see below).
+    - name: register_hook
+      detail: void register_hook(int hooktype)
+      doc: Used from a normal global script if you want to run it at the same point a full hook script would normally run.
+    - name: register_hook_proc
+      detail: void register_hook_proc(int hooktype, proc procedure)
+      doc: The same as register_hook, except that you specifically define which procedure in the current script should be called as a hook (instead of "start").
 sfall-arrays:
-  type: 3 #function
+  type: 3
   topics:
-    - name: Array functions
-      items:
-        - name: create_array
-          detail: int create_array(int size, int nothing)
-          doc: Creates permanent array (but not "saved").
-        - name: temp_array
-          detail: int temp_array(int size, int nothing)
-          doc: Works exactly like "create_array", only created array becomes "temporary."
-        - name: fix_array
-          detail: void fix_array(int arrayID)
-          doc: Changes "temporary" array into "permanent" ("permanent" arrays are not automatically saved into savegames).
-        - name: set_array
-          detail: void set_array(int arrayID, mixed key, mixed value)
-          doc: "Sets array value (shorthand: arrayID[key] := value)."
-        - name: get_array
-          detail: mixed get_array(int arrayID, mixed key)
-          doc: "Returns array value by key or index (shorthand: arrayID[key])."
-        - name: resize_array
-          detail: void resize_array(int arrayID, int size)
-          doc: Changes array size.
-        - name: free_array
-          detail: void free_array(int arrayID)
-          doc: Deletes any array.
-        - name: scan_array
-          detail: mixed scan_array(int arrayID, mixed value)
-          doc: Searches for a first occurence of given value inside given array.
-        - name: len_array
-          detail: int len_array(int arrayID)
-          doc: Returns number of elements or key=>value pairs in a given array.
-        - name: array_key
-          detail: mixed array_key(int arrayID, int index)
-          doc: Don't use it directly; it is generated by the compiler in foreach loops.
-        - name: arrayexpr
-          detail: int arrayexpr(mixed key, mixed value)
-          doc: Don't use it directly; it is used by compiler to create array expressions.
-        - name: save_array
-          detail: void save_array(mixed key, int arrayID)
-          doc: Array is saved (arrayID is associated with given "key").
-        - name: load_array
-          detail: int load_array(mixed key)
-          doc: Load array from savegame data by the same key provided in "save_array".
-
+  - name: Array functions
+    items:
+    - name: create_array
+      detail: int create_array(int size, int nothing)
+      doc: Creates permanent array (but not "saved").
+    - name: temp_array
+      detail: int temp_array(int size, int nothing)
+      doc: Works exactly like "create_array", only created array becomes "temporary."
+    - name: fix_array
+      detail: void fix_array(int arrayID)
+      doc: Changes "temporary" array into "permanent" ("permanent" arrays are not automatically saved into savegames).
+    - name: set_array
+      detail: void set_array(int arrayID, mixed key, mixed value)
+      doc: 'Sets array value (shorthand: arrayID[key] := value).'
+    - name: get_array
+      detail: mixed get_array(int arrayID, mixed key)
+      doc: 'Returns array value by key or index (shorthand: arrayID[key]).'
+    - name: resize_array
+      detail: void resize_array(int arrayID, int size)
+      doc: Changes array size.
+    - name: free_array
+      detail: void free_array(int arrayID)
+      doc: Deletes any array.
+    - name: scan_array
+      detail: mixed scan_array(int arrayID, mixed value)
+      doc: Searches for a first occurence of given value inside given array.
+    - name: len_array
+      detail: int len_array(int arrayID)
+      doc: Returns number of elements or key=>value pairs in a given array.
+    - name: array_key
+      detail: mixed array_key(int arrayID, int index)
+      doc: Don't use it directly; it is generated by the compiler in foreach loops.
+    - name: arrayexpr
+      detail: int arrayexpr(mixed key, mixed value)
+      doc: Don't use it directly; it is used by compiler to create array expressions.
+    - name: save_array
+      detail: void save_array(mixed key, int arrayID)
+      doc: Array is saved (arrayID is associated with given "key").
+    - name: load_array
+      detail: int load_array(mixed key)
+      doc: Load array from savegame data by the same key provided in "save_array".
 sfall-funcs:
-  type: 3 # function
+  type: 3
   topics:
-    - name: Sfall funcX
-      items:
-        - name: sfall_func0
-          detail: any sfall_func0(char* funcName)
-          doc: Calls scripting function with given name and no arguments.
-        - name: sfall_func1
-          detail: any sfall_func1(char* funcName, arg1)
-          doc: Calls scripting function with given name and 1 argument.
-        - name: sfall_func2
-          detail: any sfall_func2(char* funcName, arg1, arg2)
-          doc: Calls scripting function with given name and 2 arguments.
-        - name: sfall_func3
-          detail: any sfall_func3(char* funcName, arg1, arg2, arg3)
-          doc: Calls scripting function with given name and 3 arguments.
-        - name: sfall_func4
-          detail: any sfall_func4(char* funcName, arg1, arg2, arg3, arg4)
-          doc: Calls scripting function with given name and 4 arguments.
-        - name: sfall_func5
-          detail: any sfall_func5(char* funcName, arg1, arg2, arg3, arg4, arg5)
-          doc: Calls scripting function with given name and 5 arguments.
-        - name: sfall_func6
-          detail: any sfall_func6(char* funcName, arg1, arg2, arg3, arg4, arg5, arg6)
-          doc: Calls scripting function with given name and 6 arguments
-
+  - name: Sfall funcX
+    items:
+    - name: sfall_func0
+      detail: any sfall_func0(char* funcName)
+      doc: Calls scripting function with given name and no arguments.
+    - name: sfall_func1
+      detail: any sfall_func1(char* funcName, arg1)
+      doc: Calls scripting function with given name and 1 argument.
+    - name: sfall_func2
+      detail: any sfall_func2(char* funcName, arg1, arg2)
+      doc: Calls scripting function with given name and 2 arguments.
+    - name: sfall_func3
+      detail: any sfall_func3(char* funcName, arg1, arg2, arg3)
+      doc: Calls scripting function with given name and 3 arguments.
+    - name: sfall_func4
+      detail: any sfall_func4(char* funcName, arg1, arg2, arg3, arg4)
+      doc: Calls scripting function with given name and 4 arguments.
+    - name: sfall_func5
+      detail: any sfall_func5(char* funcName, arg1, arg2, arg3, arg4, arg5)
+      doc: Calls scripting function with given name and 5 arguments.
+    - name: sfall_func6
+      detail: any sfall_func6(char* funcName, arg1, arg2, arg3, arg4, arg5, arg6)
+      doc: Calls scripting function with given name and 6 arguments
 sfall-funcs-macro:
-  type: 3 # function
+  type: 3
   topics:
-    - name: Sfall funcX macros
-      items:
-        - name: attack_is_aimed
-          detail: bool attack_is_aimed()
-          doc: Returns True if the aimed attack mode is selected, False otherwise.
-        - name: critter_inven_obj2
-          detail: ObjectPtr critter_inven_obj2(ObjectPtr obj, int type)
-          doc: Allows get the item in the inactive hand slot. For more details, see the description for the standard function critter_inven_obj.
-        - name: item_weight
-          detail: int item_weight(ObjectPtr obj)
-          doc: Gets the current weight of an object.
-        - name: outlined_object
-          detail: ObjectPtr outlined_object()
-          doc: Returns an object that is currently highlighted by hovering the mouse above it.
-        - name: get_outline
-          detail: int get_outline(ObjectPtr obj)
-          doc: Gets the current outline color for an object.
-        - name: set_outline
-          detail: void set_outline(ObjectPtr obj, int color)
-          doc: "Sets the outline color of an object. Note: 0 means or any value above 0x00FFFFFF disables the outline."
-        - name: get_flags
-          detail: int get_flags(ObjectPtr obj)
-          doc: Gets the current value of object flags (see define_extra.h for available flags).
-        - name: set_flags
-          detail: void set_flags(ObjectPtr obj, int flags)
-          doc: Sets the current flags of an object.
-        - name: real_dude_obj
-          detail: ObjectPtr real_dude_obj()
-          doc: Returns the initial dude_obj after set_dude_obj was used.
-        - name: set_dude_obj
-          detail: void set_dude_obj(ObjectPtr critter)
-          doc: Take control of a given critter. Passing value 0 will reset control back to "real" dude.
-        - name: lock_is_jammed
-          detail: bool lock_is_jammed(ObjectPtr obj)
-          doc: Returns True if the lock (container or scenery) is currently jammed, False otherwise.
-        - name: unjam_lock
-          detail: void unjam_lock(ObjectPtr obj)
-          doc: Unjams a lock immediately without having to wait until the next day, or leave the map and then return after 24 hours.
-        - name: set_unjam_locks_time
-          detail: void set_unjam_locks_time(int time)
-          doc: "Sets after how many hours (up to 127 hours) jammed locks will be unjammed if the player leaves the map. Also disables the auto unjam that occurs at midnight when the player is on the map. Passing 0 will disable the auto unjam mechanism completely. Note: The auto unjam mechanism will be reset each time the player reloads the game."
-        - name: exec_map_update_scripts
-          detail: void exec_map_update_scripts()
-          doc: Executes map_update_p_proc for all objects on map and global/hook scripts as well.
-        - name: spatial_radius
-          detail: int spatial_radius(ObjectPtr obj)
-          doc: Return radius of spatial script, associated with given dummy-object.
-
-        - name: set_rest_heal_time
-          detail: void set_rest_heal_time(int time)
-          doc: "Sets the time interval in minutes for healing during resting. The default is 180. Note: The time interval will be reset each time the player reloads the game."
-        - name: set_rest_mode
-          detail: void set_rest_mode(int flags)
-          doc: "Sets the bit flags for the rest mode (see RESTMODE_* constants in sfall.h). Passing 0 will reset the rest mode. Note: It will also be reset each time the player reloads the game."
-        - name: car_gas_amount
-          detail: int car_gas_amount()
-          doc: "Returns current amount of fuel in player's car between 0 and 80000. Note: To change fuel amount, use vanilla function: metarule(METARULE_GIVE_CAR_GAS, amount)."
-        - name: set_car_intface_art
-          detail: void set_car_intface_art(int artIndex)
-          doc: "Changes the interface art (index in LST file) for the car image on worldmap screen. Note: Should be called before going to worldmap."
-
-        - name: display_stats
-          detail: void display_stats()
-          doc: "Updates player stats in the inventory screen display window. Note: Works only in opened player inventory."
-        - name: intface_is_hidden
-          detail: bool intface_is_hidden()
-          doc: Returns True if interface is currently hidden, False otherwise.
-        - name: intface_redraw
-          detail: void intface_redraw()
-          doc: Redraws main game interface.
-        - name: inventory_redraw
-          detail: void inventory_redraw(invSide)
-          doc: "Redraws inventory items list in the inventory/loot/barter screens. Argument invSide specifies which side needs to be redrawn: 0 - the player, 1 - target (container/NPC in loot/barter screens)."
-        - name: get_cursor_mode
-          detail: int get_cursor_mode()
-          doc: "Returns the current cursor mode. Values: 0 - movement cursor, 1 - command cursor, 2 - targeting cursor, 4 to 10 are Skilldex skills (yellow targeting cursor)."
-        - name: set_cursor_mode
-          detail: void set_cursor_mode(int mode)
-          doc: Sets the current cursor mode.
-        - name: set_iface_tag_text
-          detail: void set_iface_tag_text(int tag, string text, int color)
-          doc: "Sets the text messages and colors for custom notification boxes to the interface. Tag value is the same as used in show_iface_tag, hide_iface_tag, and is_iface_tag_active. Available colors: 0 - green, 1 - red, 2 - white, 3 - yellow, 4 - dark yellow, 5 - blue, 6 - purple."
-        - name: get_ini_section
-          detail: array get_ini_section(string file, string sect)
-          doc: Returns an associative array of keys and values for a given INI file and section.
-        - name: get_ini_sections
-          detail: array get_ini_sections(string file)
-          doc: Returns an array of names of all sections in a given INI file.
-        - name: set_ini_setting
-          detail: void set_ini_setting(string setting, int/string value)
-          doc: "Writes an integer or a string value to an ini file in the Fallout directory. The setting argument works in the same way as in get_ini_setting, seperate the file name, section and key with a '|' character. Note: The section name is limited to 32 characters."
+  - name: Sfall funcX macros
+    items:
+    - name: attack_is_aimed
+      detail: bool attack_is_aimed()
+      doc: Returns True if the aimed attack mode is selected, False otherwise.
+    - name: critter_inven_obj2
+      detail: ObjectPtr critter_inven_obj2(ObjectPtr obj, int type)
+      doc: Allows get the item in the inactive hand slot. For more details, see the description for the standard function critter_inven_obj.
+    - name: item_weight
+      detail: int item_weight(ObjectPtr obj)
+      doc: Gets the current weight of an object.
+    - name: outlined_object
+      detail: ObjectPtr outlined_object()
+      doc: Returns an object that is currently highlighted by hovering the mouse above it.
+    - name: get_outline
+      detail: int get_outline(ObjectPtr obj)
+      doc: Gets the current outline color for an object.
+    - name: set_outline
+      detail: void set_outline(ObjectPtr obj, int color)
+      doc: 'Sets the outline color of an object. Note: 0 means or any value above 0x00FFFFFF disables the outline.'
+    - name: get_flags
+      detail: int get_flags(ObjectPtr obj)
+      doc: Gets the current value of object flags (see define_extra.h for available flags).
+    - name: set_flags
+      detail: void set_flags(ObjectPtr obj, int flags)
+      doc: Sets the current flags of an object.
+    - name: real_dude_obj
+      detail: ObjectPtr real_dude_obj()
+      doc: Returns the initial dude_obj after set_dude_obj was used.
+    - name: set_dude_obj
+      detail: void set_dude_obj(ObjectPtr critter)
+      doc: Take control of a given critter. Passing value 0 will reset control back to "real" dude.
+    - name: lock_is_jammed
+      detail: bool lock_is_jammed(ObjectPtr obj)
+      doc: Returns True if the lock (container or scenery) is currently jammed, False otherwise.
+    - name: unjam_lock
+      detail: void unjam_lock(ObjectPtr obj)
+      doc: Unjams a lock immediately without having to wait until the next day, or leave the map and then return after 24 hours.
+    - name: set_unjam_locks_time
+      detail: void set_unjam_locks_time(int time)
+      doc: 'Sets after how many hours (up to 127 hours) jammed locks will be unjammed if the player leaves the map. Also disables the auto unjam that occurs at midnight when the player is on the map. Passing 0 will disable the auto unjam mechanism completely. Note: The auto unjam mechanism will be reset each time the player reloads the game.'
+    - name: exec_map_update_scripts
+      detail: void exec_map_update_scripts()
+      doc: Executes map_update_p_proc for all objects on map and global/hook scripts as well.
+    - name: spatial_radius
+      detail: int spatial_radius(ObjectPtr obj)
+      doc: Return radius of spatial script, associated with given dummy-object.
+    - name: set_rest_heal_time
+      detail: void set_rest_heal_time(int time)
+      doc: 'Sets the time interval in minutes for healing during resting. The default is 180. Note: The time interval will be reset each time the player reloads the game.'
+    - name: set_rest_mode
+      detail: void set_rest_mode(int flags)
+      doc: 'Sets the bit flags for the rest mode (see RESTMODE_* constants in sfall.h). Passing 0 will reset the rest mode. Note: It will also be reset each time the player reloads the game.'
+    - name: car_gas_amount
+      detail: int car_gas_amount()
+      doc: 'Returns current amount of fuel in player''s car between 0 and 80000. Note: To change fuel amount, use vanilla function: metarule(METARULE_GIVE_CAR_GAS, amount).'
+    - name: set_car_intface_art
+      detail: void set_car_intface_art(int artIndex)
+      doc: 'Changes the interface art (index in LST file) for the car image on worldmap screen. Note: Should be called before going to worldmap.'
+    - name: display_stats
+      detail: void display_stats()
+      doc: 'Updates player stats in the inventory screen display window. Note: Works only in opened player inventory.'
+    - name: intface_is_hidden
+      detail: bool intface_is_hidden()
+      doc: Returns True if interface is currently hidden, False otherwise.
+    - name: intface_redraw
+      detail: void intface_redraw()
+      doc: Redraws main game interface.
+    - name: inventory_redraw
+      detail: void inventory_redraw(invSide)
+      doc: 'Redraws inventory items list in the inventory/loot/barter screens. Argument invSide specifies which side needs to be redrawn: 0 - the player, 1 - target (container/NPC in loot/barter screens).'
+    - name: get_cursor_mode
+      detail: int get_cursor_mode()
+      doc: 'Returns the current cursor mode. Values: 0 - movement cursor, 1 - command cursor, 2 - targeting cursor, 4 to 10 are Skilldex skills (yellow targeting cursor).'
+    - name: set_cursor_mode
+      detail: void set_cursor_mode(int mode)
+      doc: Sets the current cursor mode.
+    - name: set_iface_tag_text
+      detail: void set_iface_tag_text(int tag, string text, int color)
+      doc: 'Sets the text messages and colors for custom notification boxes to the interface. Tag value is the same as used in show_iface_tag, hide_iface_tag, and is_iface_tag_active. Available colors: 0 - green, 1 - red, 2 - white, 3 - yellow, 4 - dark yellow, 5 - blue, 6 - purple.'
+    - name: get_ini_section
+      detail: array get_ini_section(string file, string sect)
+      doc: Returns an associative array of keys and values for a given INI file and section.
+    - name: get_ini_sections
+      detail: array get_ini_sections(string file)
+      doc: Returns an array of names of all sections in a given INI file.
+    - name: set_ini_setting
+      detail: void set_ini_setting(string setting, int/string value)
+      doc: 'Writes an integer or a string value to an ini file in the Fallout directory. The setting argument works in the same way as in get_ini_setting, seperate the file name, section and key with a ''|'' character. Note: The section name is limited to 32 characters.'
