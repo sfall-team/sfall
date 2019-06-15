@@ -12,6 +12,7 @@ nav_order: 3
 ---
 
 # {}
+{{: .no_toc}}
 '''
 
 with open(yaml_path) as yf:
@@ -25,13 +26,13 @@ with open(yaml_path) as yf:
 
       if 'doc' in t:
         text = text + '\n' + t['doc'] + '\n'
-
+      text = text + "\n * TOC\n{:toc}\n"
       # functions
       items = t['items']
       items = sorted(items, key=lambda k: k['name']) 
       for i in items:
-#        text += "* {}\n".format(i['name'])
-        text += '''* ```c++
+        text += "### {}\n".format(i['name'])
+        text += '''```c++
 {}
 ```
 '''.format(i['detail'])
