@@ -37,7 +37,9 @@ end
 
 ## Hook script types
 
-### HOOK_TOHIT (hs_tohit.int)
+### ToHit
+
+`HOOK_TOHIT` (hs_tohit.int)
 
 Runs when Fallout is calculating the chances of an attack striking a target
 Runs after the hit chance is fully calculated normally, including applying the 95% cap
@@ -54,7 +56,9 @@ int     arg7 - Ranged flag (0 or 1, actually passed 1 even for unarmed attacks, 
 int     ret1 - the new hit chance
 ```
 
-### HOOK_AFTERHITROLL (hs_afterhitroll.int)
+### AfterHitRoll
+
+`HOOK_AFTERHITROLL` (hs_afterhitroll.int)
 
 Runs after Fallout has decided if an attack will hit or miss
 ```
@@ -69,7 +73,9 @@ int     ret2 - Override the targeted bodypart
 critter ret3 - Override the target of the attack
 ```
 
-### HOOK_CALCAPCOST (hs_calcapcost.int)
+### CalcAPCost
+
+`HOOK_CALCAPCOST` (hs_calcapcost.int)
 
 Runs whenever Fallout is calculating the AP cost of using the weapon (or unarmed attack). Doesn't run for using other item types or moving.
 Note that the first time a game is loaded, this script doesn't run before the initial interface is drawn, so if the script effects the AP cost of whatever is in the player's hands at the time the wrong AP cost will be shown. It will be fixed the next time the interface is redrawn.
@@ -83,7 +89,9 @@ int     arg4 - The normal AP cost
 int     ret1 - The new AP cost
 ```
 
-### HOOK_DEATHANIM1 (hs_deathanim1.int)
+### DeathAnim1
+
+`HOOK_DEATHANIM1` (hs_deathanim1.int)
 
 Runs before Fallout tries to calculate the death animation. Lets you switch out which weapon Fallout sees
 ```
@@ -95,7 +103,9 @@ int     arg4 - The amount of damage
 int     ret1 - The pid of an object to override the attacking weapon with
 ```
 
-### HOOK_DEATHANIM2 (hs_deathanim2.int)
+### DeathAnim2
+
+`HOOK_DEATHANIM2` (hs_deathanim2.int)
 
 Runs after Fallout has calculated the death animation. Lets you set your own custom frame id, so more powerful than hs_deathanim1, but performs no validation.
 When using critter_dmg function, this script will also run. In that case weapon pid will be -1 and target will point to an object with obj_art_fid == 0x20001F5.
@@ -109,7 +119,9 @@ int     arg5 - The death anim id calculated by Fallout
 int     ret1 - The death anim id to override with
 ```
 
-### HOOK_COMBATDAMAGE (hs_combatdamage.int)
+### CombatDamage
+
+`HOOK_COMBATDAMAGE` (hs_combatdamage.int)
 
 Runs when:
 1.  Game calculates how much damage each target will get. This includes primary target as well as all extras (explosions and bursts). This happens BEFORE the actual attack animation.
@@ -138,13 +150,17 @@ int     ret4 - The special effect flags for the attacker
 int     ret5 - The amount of knockback to the target
 ```
 
-### HOOK_ONDEATH (hs_ondeath.int)
+### OnDeath
+
+`HOOK_ONDEATH` (hs_ondeath.int)
 
 Runs immediately after a critter dies for any reason. No return values; this is just a convenience for when you need to do something after death for a large number of different critters and don't want to have to script each and every one of them.
 
 `Critter arg1 - The critter that just died`
 
-### HOOK_FINDTARGET (hs_findtarget.int)
+### FindTarget
+
+`HOOK_FINDTARGET` (hs_findtarget.int)
 
 Runs when the ai is trying to pick a target in combat. Fallout first chooses a list of 4 likely suspects, then normally sorts them in order of weakness/distance/etc depending on the ai caps of the attacker. This hook replaces that sorting function, allowing you to sort the targets in some arbitrary way. Use sfall_return to give the 4 targets, in order of preference. If you want to specify less than 4 targets, fill in the extra spaces with 0's. Pass -1 to skip the return value.
 
@@ -162,7 +178,9 @@ critter ret3 - The third choice of target
 critter ret4 - The fourth choice of target
 ```
 
-### HOOK_USEOBJON (hs_useobjon.int)
+### UseObjOn
+
+`HOOK_USEOBJON` (hs_useobjon.int)
 
 Runs when:
 1. a critter uses an object on another critter. (Or themselves)
@@ -179,7 +197,9 @@ int     arg3 - The object used
 int     ret1 - overrides hard-coded handler and selects what should happen with the item (0 - place it back, 1 - remove it, -1 - use engine handler)
 ```
 
-### HOOK_USEOBJ (hs_useobj.int)
+### UseObj
+
+`HOOK_USEOBJ` (hs_useobj.int)
 
 Runs when:
 1. a critter uses an object from inventory which have "Use" action flag set or it's an active flare or dynamite.
@@ -195,7 +215,9 @@ int     arg2 - The object used
 int     ret1 - overrides hard-coded handler and selects what should happen with the item (0 - place it back, 1 - remove it, -1 - use engine handler)
 ```
 
-### HOOK_REMOVEINVENOBJ (hs_removeinvenobj.int)
+### RemoveInvenObj
+
+`HOOK_REMOVEINVENOBJ` (hs_removeinvenobj.int)
 
 Runs when an object is removed from a container or critter's inventory for any reason
 ```
@@ -206,7 +228,9 @@ int     arg4 - The reason the object is being removed (see RMOBJ_* constants)
 Obj     arg5 - The destination object when the item is moved to another object, otherwise 0
 ```
 
-### HOOK_BARTERPRICE (hs_barterprice.int)
+### BarterPrice
+
+`HOOK_BARTERPRICE` (hs_barterprice.int)
 
 Runs whenever the value of goods being purchased is calculated
 ```
@@ -224,7 +248,9 @@ int     ret1 - the modified value of all of the goods (pass -1 if you just want 
 int     ret2 - the modified value of all offered goods
 ```
 
-### HOOK_MOVECOST (hs_movecost.int)
+### MoveCost
+
+`HOOK_MOVECOST` (hs_movecost.int)
 
 Runs when calculating the AP cost of movement
 ```
@@ -235,7 +261,7 @@ int     arg3 - the original AP cost
 int     ret1 - the new AP cost
 ```
 
-### (DEPRECATED)
+### Deprecated hooks
 * hs_hexmoveblocking.int
 * hs_hexaiblocking.int
 * hs_hexshootblocking.int
@@ -256,7 +282,9 @@ int     arg4 - 1 if the hex would normally be blocking
 object* ret1 - 0 if the hex doesn't block, or any sort of object pointer if it does
 ```
 
-### HOOK_ITEMDAMAGE (hs_itemdamage.int)
+### ItemDamage
+
+`HOOK_ITEMDAMAGE` (hs_itemdamage.int)
 
 Runs when retrieving the damage rating of the player's used weapon. (Which may be their fists.)
 ```
@@ -271,11 +299,14 @@ int     ret1 - Either the damage to be used, if ret2 isn't given, or the new min
 int     ret2 - The new maximum damage
 ```
 
-### HOOK_AMMOCOST (hs_ammocost.int)
+### AmmoCost
+
+`HOOK_AMMOCOST` (hs_ammocost.int)
 
 Runs when calculating ammo cost for a weapon. Doesn't affect damage, only how much ammo is spent.
 By default, weapon will shoot when at least 1 round is left, regardless of ammo cost calculations.
-To add proper check for ammo before shooting and proper calculation of number of burst rounds (hook type 1 and 2 in arg4), set Misc.CheckWeaponAmmoCost=1 in ddraw.ini
+To add proper check for ammo before shooting and proper calculation of number of burst rounds (hook type 1 and 2 in arg4), set `Misc.CheckWeaponAmmoCost=1` in ddraw.ini
+
 ```
 Item    arg1 - weapon
 int     arg2 - Number of bullets in burst (1 for single shots)
@@ -285,7 +316,9 @@ int     arg4 - Type of hook (0 - when subtracting ammo after single shot attack,
 int     ret1 - new ammo cost value (set to 0 for unlimited ammo)
 ```
 
-### HOOK_KEYPRESS (hs_keypress.int)
+### KeyPress
+
+`HOOK_KEYPRESS` (hs_keypress.int)
 
 Runs once every time when any key was pressed or released.
 * DX codes: (see dik.h header)
@@ -300,7 +333,9 @@ int     arg3 - key VK code (very similar to ASCII codes)
 int     ret1 - overrides the pressed key (a new key DX scancode or 0 for no override)
 ```
 
-### HOOK_MOUSECLICK (hs_mouseclick.int)
+### MouseClick
+
+`HOOK_MOUSECLICK` (hs_mouseclick.int)
 
 Runs once every time when a mouse button was pressed or release.
 ```
@@ -308,7 +343,9 @@ int     arg1 - event type: 1 - pressed, 0 - released
 int     arg2 - button number (0 - left, 1 - right, up to 7)
 ```
 
-### HOOK_USESKILL (hs_useskill.int)
+### UseSkill
+
+`HOOK_USESKILL` (hs_useskill.int)
 
 Runs when using any skill on any object.
 
@@ -324,7 +361,9 @@ int     arg4 - skill bonus from items such as first aid kits
 int     ret1 - overrides hard-coded handler (-1 - use engine handler, any other value - override)
 ```
 
-### HOOK_STEAL (hs_steal.int)
+### Steal
+
+`HOOK_STEAL` (hs_steal.int)
 
 Runs when checking an attempt to steal or plant an item in other inventory using Steal skill.
 
@@ -339,7 +378,9 @@ int     arg4 - 0 when stealing, 1 when planting
 int     ret1 - overrides hard-coded handler (1 - force success, 0 - force fail, -1 - use engine handler)
 ```
 
-### HOOK_WITHINPERCEPTION (hs_withinperception.int)
+### WithinPerception
+
+`HOOK_WITHINPERCEPTION` (hs_withinperception.int)
 
 Runs when checking if one critter sees another critter. This is used in different situations like combat AI. You can override the result.
 
@@ -355,7 +396,9 @@ int     arg4 - Type of hook: 1 - when being called from obj_can_see_obj script f
 int     ret1 - overrides the returned result of the function: 0 - not in range (can't see), 1 - in range (will see if not blocked), 2 - forced detection (will see regardless, only used in obj_can_see_obj scripting function which is called by every critter in the game)
 ```
 
-### HOOK_INVENTORYMOVE (hs_inventorymove.int)
+### InventoryMove
+
+`HOOK_INVENTORYMOVE` (hs_inventorymove.int)
 
 Runs before moving items between inventory slots in dude interface. You can override the action.
 What you can NOT do with this hook:
@@ -373,7 +416,9 @@ Item    arg3 - Item being replaced, weapon being reloaded, or container being fi
 int     ret1 - Override setting (-1 - use engine handler, any other value - prevent relocation of item/reloading weapon/picking up item)
 ```
 
-### HOOK_INVENWIELD (hs_invenwield.int)
+### InvenWield
+
+`HOOK_INVENWIELD` (hs_invenwield.int)
 
 Runs before wielding or unwielding an armor or a weapon by a critter (except when using inventory by PC).
 An example usage would be to change critter art depending on armor being used or to dynamically customize weapon animations.
@@ -388,7 +433,9 @@ int     arg4 - 1 when wielding, 0 when unwielding
 int     ret1 - overrides hard-coded handler (-1 - use engine handler, any other value - override) - NOT RECOMMENDED
 ```
 
-### HOOK_ADJUSTFID (hs_adjustfid.int)
+### AdjustFID
+
+`HOOK_ADJUSTFID` (hs_adjustfid.int)
 
 Runs after calculating character figure FID on the inventory screen, whenever the game decides that character appearance might change.
 Also happens on other screens, like barter.
@@ -400,7 +447,9 @@ int     arg1 - the vanilla fid calculated by the engine according to critter bas
 int     ret1 - overrides the calculated FID with provided value
 ```
 
-### HOOK_COMBATTURN (hs_combatturn.int)
+### CombatTurn
+
+`HOOK_COMBATTURN` (hs_combatturn.int)
 
 Runs before and after each turn in combat (for both PC and NPC).
 ```
@@ -411,7 +460,9 @@ bool    arg3 - set to 1 at the start of the player's turn after the game has bee
 int     ret1 - pass 1 at the start of turn to skip the turn, pass -1 at the end of turn to force end of combat
 ```
 
-### HOOK_CARTRAVEL (hs_cartravel.int)
+### CarTravel
+
+`HOOK_CARTRAVEL` (hs_cartravel.int)
 
 Runs continuously during worldmap travel on car.
 ```
@@ -422,7 +473,9 @@ int     ret1 - car speed override (pass -1 if you just want to override fuel con
 int     ret2 - fuel consumption override
 ```
 
-### HOOK_SETGLOBALVAR (hs_setglobalvar.int)
+### SetGlobalVar
+
+`HOOK_SETGLOBALVAR` (hs_setglobalvar.int)
 
 Runs when setting the value of a global variable.
 ```
@@ -432,7 +485,9 @@ int     arg2 - the set value of the global variable
 int     ret1 - overrides the value of the global variable
 ```
 
-### HOOK_RESTTIMER (hs_resttimer.int)
+### RestTimer
+
+`HOOK_RESTTIMER` (hs_resttimer.int)
 
 Runs continuously while the player is resting (using pipboy alarm clock).
 ```
@@ -444,14 +499,18 @@ int     arg4 - the minute part of the length of resting time
 int     ret1 - pass 1 to interrupt the resting, pass 0 to continue the rest if it was interrupted by pressing ESC key
 ```
 
-### HOOK_GAMEMODECHANGE (hs_gamemodechange.int)
+### GameModeChange
+
+`HOOK_GAMEMODECHANGE` (hs_gamemodechange.int)
 
 Runs once every time when the game mode was changed, like opening/closing the inventory, character screen, pipboy, etc.
 ```
 int     arg1 - event type: 1 - when the player exits the game, 0 - otherwise
 ```
 
-### HOOK_USEANIMOBJ (hs_useanimobj.int)
+### UseAnimObj
+
+`HOOK_USEANIMOBJ` (hs_useanimobj.int)
 
 Runs before playing the "use" (usually "magic hands") animation when a critter uses a scenery/container object on the map, or before walking/running animation if the player is at a distance from the object.
 ```
@@ -462,7 +521,9 @@ int     arg3 - the animation code being used (see ANIM_* in Animcomd.h)
 int     ret1 - overrides the animation code (pass -1 if you want to skip the animation)
 ```
 
-### HOOK_EXPLOSIVETIMER (hs_explosivetimer.int)
+### ExplosiveTimer
+
+`HOOK_EXPLOSIVETIMER` (hs_explosivetimer.int)
 
 Runs after setting the explosive timer. You can override the result.
 ```
@@ -474,7 +535,9 @@ int     ret1 - overrides the time of the timer (maximum 18000 ticks)
 int     ret2 - overrides the result of engine calculation: 0/1 - failure, 2/3 - success (similar to ROLL_*), any other value - use engine handler
 ```
 
-### HOOK_DESCRIPTIONOBJ (hs_descriptionobj.int)
+### DescriptionObj
+
+`HOOK_DESCRIPTIONOBJ` (hs_descriptionobj.int)
 
 Runs when using the examine action icon to display item description. You can override the description of the item.
 An example usage would be to add an additional description to the item based on player's stats/skills.
@@ -484,7 +547,9 @@ Obj     arg1 - the item
 int     ret1 - a pointer to the new text received by using "get_string_pointer" function
 ```
 
-### HOOK_USESKILLON (hs_useskillon.int)
+### UseSkillOn
+
+`HOOK_USESKILLON` (hs_useskillon.int)
 
 Runs before using any skill on any object. Lets you override the critter that uses the skill.
 __NOTE:__ the user critter can't be overridden when using Steal skill.
@@ -497,7 +562,9 @@ int     ret1 - a new critter to override the user critter. Pass -1 to cancel the
 int     ret2 - pass 1 to allow the skill being used in combat (only for dude_obj or critter being controlled by the player)
 ```
 
-### HOOK_ONEXPLOSION (hs_onexplosion.int)
+### OnExplosion
+
+`HOOK_ONEXPLOSION` (hs_onexplosion.int)
 
 Runs when Fallout is checking all the tiles within the explosion radius for targets before an explosion occurs.
 The tile checking will be interrupted when 6 additional targets (critters) are received.
@@ -513,7 +580,9 @@ int     arg7 - 1 when using throwing weapons (e.g. grenades), 0 otherwise
 int     ret1 - overrides the found object on the checked tile, pass 0 to skip the object
 ```
 
-### HOOK_SUBCOMBATDAMAGE (hs_subcombatdmg.int)
+### SubCombatDamage
+
+`HOOK_SUBCOMBATDAMAGE` (hs_subcombatdmg.int)
 
 This hook overrides the vanilla damage calculation formula.
 Runs when:
@@ -537,7 +606,9 @@ mixed   arg12 - Computed attack results (see C_ATTACK_* for offsets and use get/
 int     ret1 - The returned amount of damage
 ```
 
-### HOOK_SETLIGHTING (hs_setlighting.int)
+### SetLighting
+
+`HOOK_SETLIGHTING` (hs_setlighting.int)
 
 Runs before setting the light level for an object or a map. You can override the result.
 ```
@@ -549,7 +620,9 @@ int     ret1 - overrides the light intensity. Intensity range is from 0 to 65536
 int     ret2 - overrides the light radius. Radius range is from 0 to 8 (works only for the object)
 ```
 
-### HOOK_SNEAK (hs_sneak.int)
+### Sneak
+
+`HOOK_SNEAK` (hs_sneak.int)
 
 Runs when the Sneak skill is activated, or when the game rolls another Sneak check after the duration for the current one is over.
 You can override the result of a random Sneak check or the duration time for the current result.
