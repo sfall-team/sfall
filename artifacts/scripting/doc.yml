@@ -355,7 +355,7 @@ sfall-functions:
         doc: Returns the number of the mouse button that is currently pressed (1 - left, 2 - right, 3 - left+right, 4 - middle, 0 otherwise).
 
     - name: Lists
-      doc: The list_xxx functions can be used to loop over all items on a map. list_begin takes an argument telling sfall what you want to list. (Defined in sfall.h) It returns a list pointer, which you iterate through with list_next. Finally, when you've finished with the list use list_end on it. Not calling list_end will result in a memory leak. Alternatively, use list_as_array to get the whole list at once as a temp array variable, which can be looped over using len_array and which you don't need to remember to free afterwards.
+      doc: The `list_xxx` functions can be used to loop over all items on a map. `list_begin` takes an argument telling sfall what you want to list. (Defined in `sfall.h`) It returns a list pointer, which you iterate through with `list_next`. Finally, when you've finished with the list use `list_end` on it. Not calling `list_end` will result in a memory leak. Alternatively, use `list_as_array` to get the whole list at once as a temp array variable, which can be looped over using `len_array` and which you don't need to remember to free afterwards.
       items:
       - name: list_begin
         detail: int list_begin(int type)
