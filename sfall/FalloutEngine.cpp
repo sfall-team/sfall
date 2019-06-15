@@ -596,10 +596,12 @@ const DWORD scr_find_first_at_ = 0x4A6524;
 const DWORD scr_find_next_at_ = 0x4A6564;
 const DWORD scr_find_obj_from_program_ = 0x4A39AC;
 const DWORD scr_find_sid_from_program_ = 0x4A390C;
+const DWORD scr_get_local_var_ = 0x4A6D64;
 const DWORD scr_new_ = 0x4A5F28;
 const DWORD scr_ptr_ = 0x4A5E34;
 const DWORD scr_remove_ = 0x4A61D4;
 const DWORD scr_set_ext_param_ = 0x4A3B34;
+const DWORD scr_set_local_var_ = 0x4A6E58;
 const DWORD scr_set_objs_ = 0x4A3B0C;
 const DWORD scr_write_ScriptNode_ = 0x4A5704;
 const DWORD set_game_time_ = 0x4A347C;
@@ -728,7 +730,7 @@ char AnimCodeByWeapon(TGameObj* weapon) {
 	if (weapon != NULL) {
 		char* proto = GetProtoPtr(weapon->pid);
 		if (proto && *(int*)(proto + 32) == item_type_weapon) {
-			return (char)(*(int*)(proto + 36)); 
+			return (char)(*(int*)(proto + 36));
 		}
 	}
 	return 0;
@@ -742,7 +744,7 @@ void DisplayConsoleMessage(const char* msg) {
 }
 
 static DWORD mesg_buf[4] = {0, 0, 0, 0};
-const char* _stdcall GetMessageStr(DWORD fileAddr, DWORD messageId) {
+const char* __stdcall GetMessageStr(DWORD fileAddr, DWORD messageId) {
 	DWORD buf = (DWORD)mesg_buf;
 	const char* result;
 	__asm {
@@ -793,11 +795,36 @@ void SkillSetTags(int* tags, DWORD num) {
 	}
 }
 
+// Saves pointer to script object into scriptPtr using scriptID.
+// Returns 0 on success, -1 on failure.
 long __stdcall ScrPtr(long scriptId, TScript** scriptPtr) {
 	__asm {
 		mov  eax, scriptId;
 		mov  edx, scriptPtr;
 		call scr_ptr_;
+	}
+}
+
+// Returns the number of local variables of the object script
+long GetScriptLocalVars(long sid) {
+	TScript* script = nullptr;
+	ScrPtr(sid, &script);
+	return (script) ? script->num_local_vars : 0;
+}
+
+long __fastcall ScrGetLocalVar(long sid, long varId, long* value) {
+	__asm {
+		mov  ebx, value;
+		mov  eax, ecx;
+		call scr_get_local_var_;
+	}
+}
+
+long __fastcall ScrSetLocalVar(long sid, long varId, long value) {
+	__asm {
+		mov  ebx, value;
+		mov  eax, ecx;
+		call scr_set_local_var_;
 	}
 }
 

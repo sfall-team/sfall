@@ -38,7 +38,7 @@ namespace FalloutClient {
 
         private static ByteConverter converter = new ByteConverter();
 
-        private enum Mode { Globals, MapVars, SGlobals, Arrays, Critters }
+        private enum Mode { Globals, MapVars, SGlobals, Arrays, Critters, LocalVars }
 
         private readonly EditorConnection connection;
         private Mode mode;
@@ -47,6 +47,7 @@ namespace FalloutClient {
         private readonly Dictionary<uint, string> CritNames = new Dictionary<uint, string>();
 
         private void Redraw() {
+            bCrittersLvar.Enabled = false;
             bEdit.Enabled = false;
             Column2.ReadOnly = false;
             Column3.ReadOnly = false;
@@ -96,6 +97,7 @@ namespace FalloutClient {
                 Column2.HeaderText = "PID";
                 Column3.HeaderText = "Pointer";
                 bEdit.Enabled = true;
+                bCrittersLvar.Enabled = true;
                 for (int i = 0; i < connection.Critters.Length / 2; i++) {
                     uint modcrit = (connection.Critters[i, 0] & 0xfffff);
                     string name = CritNames.ContainsKey(modcrit) ? CritNames[modcrit] : "";
@@ -330,6 +332,45 @@ namespace FalloutClient {
                     }
                 }
                 break;
+            }
+        }
+
+        private void bCrittersLvar_Click(object sender, EventArgs e) {
+            if (dataGridView1.SelectedRows.Count == 0) return;
+            int i = (int)dataGridView1.SelectedRows[0].Tag;
+
+            connection.WriteDataType(DataTypeSend.RetrieveCritter);
+            connection.WriteInt(i);
+            BinaryReader br = new BinaryReader(new System.IO.MemoryStream(connection.ReadBytes(33 * 4)));
+            br.BaseStream.Position = 30 * 4;
+            int sid = br.ReadInt32();
+            br.Close();
+            if (sid != -1) {
+                connection.WriteDataType(DataTypeSend.GetLocal);
+                connection.WriteInt(sid);
+                int totalVar = connection.ReadInt();
+                string[] values = new string[totalVar];
+                if (totalVar > 0) {
+                    br = new BinaryReader(new System.IO.MemoryStream(connection.ReadBytes(totalVar * 4)));
+                    for (int j = 0; j < totalVar; j++) {
+                        values[j] = br.ReadInt32().ToString();
+                    }
+                    br.Close();
+                }
+                values = EditorWindow.ShowEditor(this, values);
+                if (values != null) {
+                    int countVar = values.Length;
+                    MemoryStream ms = new MemoryStream(countVar * 4);
+                    BinaryWriter bw = new BinaryWriter(ms);
+                    for (int j = 0; j < countVar; j++) bw.Write(int.Parse(values[j]));
+                    connection.WriteDataType(DataTypeSend.SetLocal);
+                    connection.WriteInt(sid);
+                    connection.WriteInt(countVar);
+                    connection.WriteBytes(ms.GetBuffer(), 0, countVar * 4);
+                    bw.Close();
+                }
+            } else {
+                MessageBox.Show("This critter has no script attached.");
             }
         }
 

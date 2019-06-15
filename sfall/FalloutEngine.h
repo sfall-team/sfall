@@ -17,9 +17,9 @@
 */
 #pragma once
 
-/* 
-* FALLOUT2.EXE structs, function offsets and wrappers should be placed here  
-* 
+/*
+* FALLOUT2.EXE structs, function offsets and wrappers should be placed here
+*
 * only place functions and variables here which are likely to be used in more than one module
 *
 */
@@ -618,7 +618,7 @@ extern const DWORD interpretPopLong_;
 extern const DWORD interpretPopShort_;
 extern const DWORD interpretPushLong_;
 extern const DWORD interpretPushShort_;
-extern const DWORD interpretError_; 
+extern const DWORD interpretError_;
 extern const DWORD intface_get_attack_;
 extern const DWORD intface_hide_;
 extern const DWORD intface_is_hidden_;
@@ -698,7 +698,7 @@ extern const DWORD main_game_loop_;
 extern const DWORD main_init_system_;
 extern const DWORD main_menu_hide_;
 extern const DWORD main_menu_loop_;
-// (int aObjFrom<eax>, int aTileFrom<edx>, char* aPathPtr<ecx>, int aTileTo<ebx>, int a5, int (__fastcall *a6)(_DWORD, _DWORD)) 
+// (int aObjFrom<eax>, int aTileFrom<edx>, char* aPathPtr<ecx>, int aTileTo<ebx>, int a5, int (__fastcall *a6)(_DWORD, _DWORD))
 // - path is saved in ecx as a sequence of tile directions (0..5) to move on each step,
 // - returns path length
 extern const DWORD make_path_func_;
@@ -827,10 +827,12 @@ extern const DWORD scr_find_first_at_; // eax - elevation, returns spatial scrip
 extern const DWORD scr_find_next_at_; // no args, returns spatial scriptID
 extern const DWORD scr_find_obj_from_program_; // eax - *program - finds self_obj by program pointer (has nice additional effect - creates fake object for a spatial script)
 extern const DWORD scr_find_sid_from_program_;
+extern const DWORD scr_get_local_var_;
 extern const DWORD scr_new_; // eax - script index from scripts lst, edx - type (0 - system, 1 - spatials, 2 - time, 3 - items, 4 - critters)
 extern const DWORD scr_ptr_; // eax - scriptId, edx - **TScript (where to store script pointer)
 extern const DWORD scr_remove_;
 extern const DWORD scr_set_ext_param_;
+extern const DWORD scr_set_local_var_;
 extern const DWORD scr_set_objs_;
 extern const DWORD scr_write_ScriptNode_;
 extern const DWORD set_game_time_;
@@ -919,7 +921,7 @@ extern const DWORD xvfprintf_;
 * in ASM code, call offsets directly, don't call wrappers as they might not be _stdcall
 * in C++ code, use wrappers (add new ones if the don't exist yet)
 *
-* Note: USE C++! 
+* Note: USE C++!
 * 1) Place thin __declspec(naked) hooks, only use minimum ASM to pass values to/from C++
 * 2) Call _stdcall functions from (1), write those entirely in C++ (with little ASM blocks only to call engine functions, when you are too lazy to add wrapper)
 */
@@ -953,7 +955,7 @@ char* GetProtoPtr(DWORD pid);
 char AnimCodeByWeapon(TGameObj* weapon);
 // Displays message in main UI console window
 void DisplayConsoleMessage(const char* msg);
-const char* _stdcall GetMessageStr(DWORD fileAddr, DWORD messageId);
+const char* __stdcall GetMessageStr(DWORD fileAddr, DWORD messageId);
 long __stdcall ItemGetType(TGameObj* item);
 long __stdcall ItemSize(TGameObj* item);
 
@@ -963,9 +965,15 @@ void CritterPcSetName(const char* newName);
 // Returns the name of the critter
 const char* __stdcall CritterName(TGameObj* critter);
 
-// Saves pointer to script object into scriptPtr using scriptID. 
+// Saves pointer to script object into scriptPtr using scriptID.
 // Returns 0 on success, -1 on failure.
 long __stdcall ScrPtr(long scriptId, TScript** scriptPtr);
+
+// Returns the number of local variables of the object script
+long GetScriptLocalVars(long sid);
+
+long __fastcall ScrGetLocalVar(long sid, long varId, long* value);
+long __fastcall ScrSetLocalVar(long sid, long varId, long value);
 
 void SkillGetTags(int* result, DWORD num);
 void SkillSetTags(int* tags, DWORD num);

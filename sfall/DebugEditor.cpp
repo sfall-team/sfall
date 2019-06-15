@@ -25,18 +25,22 @@
 #include "FalloutEngine.h"
 #include "ScriptExtender.h"
 
-#define CODE_EXIT (254)
-#define CODE_SET_GLOBAL  (0)
-#define CODE_SET_MAPVAR  (1)
-#define CODE_GET_CRITTER (2)
-#define CODE_SET_CRITTER (3)
-#define CODE_SET_SGLOBAL (4)
-#define CODE_GET_PROTO   (5)
-#define CODE_SET_PROTO   (6)
-#define CODE_GET_PLAYER  (7)
-#define CODE_SET_PLAYER  (8)
-#define CODE_GET_ARRAY   (9)
-#define CODE_SET_ARRAY   (10)
+enum DECode {
+	CODE_SET_GLOBAL  = 0,
+	CODE_SET_MAPVAR  = 1,
+	CODE_GET_CRITTER = 2,
+	CODE_SET_CRITTER = 3,
+	CODE_SET_SGLOBAL = 4,
+	CODE_GET_PROTO   = 5,
+	CODE_SET_PROTO   = 6,
+	CODE_GET_PLAYER  = 7,
+	CODE_SET_PLAYER  = 8,
+	CODE_GET_ARRAY   = 9,
+	CODE_SET_ARRAY   = 10,
+	CODE_GET_LOCVARS = 11,
+	CODE_SET_LOCVARS = 12,
+	CODE_EXIT        = 254
+};
 
 static const char* debugLog = "LOG";
 static const char* debugGnw = "GNW";
@@ -192,6 +196,33 @@ static void RunEditorInternal(SOCKET &s) {
 				InternalRecv(s, data, val);
 				DESetArray(arrays[id].id, nullptr, data);
 				delete[] data;
+			}
+			break;
+		case CODE_GET_LOCVARS:
+			{
+				InternalRecv(s, &id, 4); // sid
+				val = GetScriptLocalVars(id);
+				InternalSend(s, &val, 4);
+				if (val) {
+					std::vector<int> values(val);
+					long varVal;
+					for (int i = 0; i < val; i++) {
+						ScrGetLocalVar(id, i, &varVal);
+						values[i] = varVal;
+					}
+					InternalSend(s, values.data(), val * 4);
+				}
+			}
+			break;
+		case CODE_SET_LOCVARS:
+			{
+				InternalRecv(s, &id, 4);  // sid
+				InternalRecv(s, &val, 4); // len data
+				std::vector<int> values(val);
+				InternalRecv(s, values.data(), val * 4);
+				for (int i = 0; i < val; i++) {
+					ScrSetLocalVar(id, i, values[i]);
+				}
 			}
 			break;
 		}
