@@ -355,11 +355,13 @@ namespace FalloutClient {
                 connection.WriteInt(sid);
                 int totalVar = connection.ReadInt();
                 string[] values = new string[totalVar];
-                br = new BinaryReader(new System.IO.MemoryStream(connection.ReadBytes(totalVar * 4)));
-                for (int j = 0; j < totalVar; j++) {
-                    values[j] = br.ReadInt32().ToString();
+                if (totalVar > 0) {
+                    br = new BinaryReader(new System.IO.MemoryStream(connection.ReadBytes(totalVar * 4)));
+                    for (int j = 0; j < totalVar; j++) {
+                        values[j] = br.ReadInt32().ToString();
+                    }
+                    br.Close();
                 }
-                br.Close();
                 values = EditorWindow.ShowEditor(this, values);
                 if (values != null) {
                     int countVar = values.Length;
