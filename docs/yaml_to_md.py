@@ -2,6 +2,8 @@
 # coding: utf-8
 
 import sys, yaml, os
+reload(sys)
+sys.setdefaultencoding('utf8')
 
 yaml_path = sys.argv[1]
 md_dir = sys.argv[2]
@@ -37,7 +39,8 @@ with open(yaml_path) as yf:
 ```
 '''.format(i['detail'])
         if 'doc' in i:
-          text += "  {}\n".format(i['doc'])
+          text += i['doc']
+          text += '\n\n'
 
       md_path = os.path.join(md_dir, t['name'].lower().replace(' ','-') + ".md")
       with open(md_path, 'w') as f:

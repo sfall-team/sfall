@@ -10,6 +10,8 @@ Hook scripts are specially named scripts that are run by sfall at specific point
 
 In addition to the bit of code it overrides, the script will be run once when first loaded and again at each player reload to allow for setup. Hook scripts have access to a set of arguments supplied to sfall, but aren't required to use them all. They also return one or more values, but again they're optional, and you only need to return a value if you want to override the default.
 
+Full hook functions reference is [here](pages/hook-functions.html).
+
 * TOC
 {:toc}
 
@@ -32,55 +34,6 @@ procedure start begin
    end
 end
 ```
-
-## Hook functions
-
-There are script functions available, specific to hook scripts:
-
-* `int init_hook()`
-
-   The hook script equivalent of game_loaded; it returns 2 when the script is first loaded, 1 when the player reloads and 0 otherwise.
-* `mixed get_sfall_arg()`
-
-   Gets the next argument from sfall. Each time it's called it returns the next argument, or otherwise it returns 0 if there are no more arguments left.
-*  `array get_sfall_args()`
-
-   Returns all hook arguments as a new temp array.
-* `void set_sfall_return(int value)`
-
-   Used to return the new values from the script. Each time it's called it sets the next value, or if you've already set all return values it does nothing.
-* `void set_sfall_arg(int argnum, int value)`
-
-   Changes argument value. The argument number (argnum) is 0-indexed. This is useful if you have several hook scripts attached to one hook point (see below).
-* `void register_hook(int hooktype)`
-
-   Used from a normal global script if you want to run it at the same point a full hook script would normally run. In case of this function, "start" proc will be executed in a current global script. You can use all above functions like normal.
-*  `void register_hook_proc(int hooktype, proc procedure)`
-
-   The same as register_hook, except that you specifically define which procedure in the current script should be called as a hook (instead of "start"). Pass procedure the same as how you use dialog option functions. This IS the recommended way to use hook scripts, as it gives both modularity (each mod logic in a separate global script, no conflicts if you don't use "hs_*.int" scripts) and flexibility (you can place all related hook scripts for specific mod in a single script!).
-
-   __NOTE:__ you can hook several scripts to a single hook point, for example if it's different mods from different authors or just some different aspects of one larger mod. In this case scripts are executed in reverse order of how they were registered. When one of the scripts in a chain returns value with "set_sfall_return", the next script may override this value if calls "set_sfall_return" again. Sometimes you need to multiply certain value in a chain of hook scripts.
-   
-   Example: let's say we have a Mod A which reduces all "to hit" chances by 50%. The code might look like this:
-   ```c++
-   original_chance = get_sfall_arg;
-   set_sfall_return(original_chance / 2);
-   ```
-   Mod B also want to affect hit chances globally, by increasing them by 50%. Now in order for both mods to work well together, we need to add this line to Mod A hook script:
-
-   `set_sfall_arg(0, (original_chance / 2));`
-
-   This basically changes hook argument for the next script. Mod B code:
-   ```c++
-   original_chance = get_sfall_arg;
-   set_sfall_return(original_chance * 1.5);
-   set_sfall_arg(0, (original_chance * 1.5));
-   ```
-   So if you combine both mods together, they will run in chain and the end result will be a 75% from original hit chance (hook register order doesn't matter in this case, if you use "set_sfall_arg" in both hooks).
-
-
-   The defines to use for the hooktype are in sfall.h.
-
 
 ## Hook script types
 

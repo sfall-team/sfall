@@ -913,11 +913,11 @@ sfall-hooks:
     items:
     - name: init_hook
       detail: int init_hook()
-      doc: The hook script equivilent of game_loaded; it returns 2 when the script is first loaded, 1 when the player reloads and 0 otherwise.
+      doc: The hook script equivalent of game_loaded; it returns 2 when the script is first loaded, 1 when the player reloads and 0 otherwise.
       offset: 0x81ea
     - name: get_sfall_arg
       detail: mixed get_sfall_arg()
-      doc: Gets the next argument from sfall. Each time it's called it returns the next argument, or otherwise it returns 0 if there are no more arguments left.
+      doc: Gets the next argument from sfall. Each time it’s called it returns the next argument, or otherwise it returns 0 if there are no more arguments left.
       offset: 0x81e4
     - name: get_sfall_args
       detail: int get_sfall_args()
@@ -929,15 +929,41 @@ sfall-hooks:
       offset: 0x81e5
     - name: set_sfall_arg
       detail: void set_sfall_arg(int argnum, int value)
-      doc: Changes argument value. This is usefull if you have several hook scripts attached to one hook point (see below).
+      doc: Changes argument value. This is usefull if you have several hook scripts attached to one hook point (see `register_hook_proc`).
       offset: 0x823d
     - name: register_hook
       detail: void register_hook(int hooktype)
-      doc: Used from a normal global script if you want to run it at the same point a full hook script would normally run.
+      doc: Used from a normal global script if you want to run it at the same point a full hook script would normally run. In case of this function, `start` proc will be executed in current global script. You can use all above functions like normal.
       offset: 0x8207
     - name: register_hook_proc
       detail: void register_hook_proc(int hooktype, proc procedure)
-      doc: The same as register_hook, except that you specifically define which procedure in the current script should be called as a hook (instead of "start").
+      doc: |
+        The same as `register_hook`, except that you specifically define which procedure in the current script should be called as a hook (instead of `start`). Pass procedure the same as how you use dialog option functions. This IS the recommended way to use hook scripts, as it gives both modularity (each mod logic in a separate global script, no conflicts if you don't use `hs_*.int` scripts) and flexibility (you can place all related hook scripts for specific mod in a single script!).
+
+        __NOTE:__ you can hook several scripts to a single hook point, for example if it's different mods from different authors or just some different aspects of one larger mod. In this case scripts are executed in reverse order of how they were registered. When one of the scripts in a chain returns value with `set_sfall_return`, the next script may override this value if calls `set_sfall_return` again. Sometimes you need to multiply certain value in a chain of hook scripts.
+
+        Example: let's say we have a Mod A which reduces all "to hit" chances by 50%. The code might look like this:
+
+        ```c++
+        original_chance = get_sfall_arg;
+        set_sfall_return(original_chance / 2);
+        ```
+
+        Mod B also want to affect hit chances globally, by increasing them by 50%. Now in order for both mods to work well together, we need to add this line to Mod A hook script:
+        ```c++
+        set_sfall_arg(0, (original_chance / 2));
+        ```
+
+        This basically changes hook argument for the next script. Mod B code:
+        ```c++
+        original_chance = get_sfall_arg;
+        set_sfall_return(original_chance * 1.5);
+        set_sfall_arg(0, (original_chance * 1.5));
+        ```
+
+        So if you combine both mods together, they will run in chain and the end result will be a 75% from original hit chance (hook register order doesn't matter in this case, if you use `set_sfall_arg` in both hooks).
+
+        The defines to use for the hooktype are in `sfall.h`.
       offset: 0x8262
 sfall-arrays:
   type: 3
@@ -1084,10 +1110,10 @@ sfall-funcs-macro:
       doc: 'Sets the time interval in minutes for healing during resting. The default is 180. Note: The time interval will be reset each time the player reloads the game.'
     - name: set_rest_mode
       detail: void set_rest_mode(int flags)
-      doc: 'Sets the bit flags for the rest mode (see RESTMODE_* constants in sfall.h). Passing 0 will reset the rest mode. Note: It will also be reset each time the player reloads the game.'
+      doc: 'Sets the bit flags for the rest mode (see `RESTMODE_*` constants in sfall.h). Passing 0 will reset the rest mode. Note: It will also be reset each time the player reloads the game.'
     - name: car_gas_amount
       detail: int car_gas_amount()
-      doc: 'Returns current amount of fuel in player''s car between 0 and 80000. Note: To change fuel amount, use vanilla function: metarule(METARULE_GIVE_CAR_GAS, amount).'
+      doc: 'Returns current amount of fuel in player''s car between 0 and 80000. Note: To change fuel amount, use vanilla function: `metarule(METARULE_GIVE_CAR_GAS, amount)`.'
     - name: set_car_intface_art
       detail: void set_car_intface_art(int artIndex)
       doc: 'Changes the interface art (index in LST file) for the car image on worldmap screen. Note: Should be called before going to worldmap.'
