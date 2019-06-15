@@ -408,7 +408,7 @@ sfall-functions:
     - name: stop_sfall_sound
       detail: void stop_sfall_sound(int ptr)
       offset: 0x822c
-  - name: Weapons
+  - name: Weapons and ammo
     items:
     - name: get_weapon_ammo_pid
       detail: int get_weapon_ammo_pid(objptr weapon)
