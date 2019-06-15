@@ -266,6 +266,7 @@
 #define get_ini_section(file, sect)                     sfall_func2("get_ini_section", file, sect)
 #define get_ini_sections(file)                          sfall_func1("get_ini_sections", file)
 #define get_map_enter_position                          sfall_func0("get_map_enter_position")
+#define get_metarule_table                              sfall_func0("get_metarule_table")
 #define get_object_ai_data(obj, aiParam)                sfall_func2("get_object_ai_data", obj, aiParam)
 #define get_object_data(obj, offset)                    sfall_func2("get_object_data", obj, offset)
 #define get_outline(obj)                                sfall_func1("get_outline", obj)
