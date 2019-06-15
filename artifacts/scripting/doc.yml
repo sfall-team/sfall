@@ -2,6 +2,7 @@ sfall-functions:
   type: 3
   topics:
   - name: Direct memory access
+    doc: The `read_xxx` functions take a memory address as the parameter and can read arbitrary pieces of Fallout's address space. The `write_xxx` functions are equivalent except that they write to arbitrary memory addresses. `The call_offset_xx` functions can be used to call arbitrary functions inside Fallout. Different versions are used to call functions with different numbers of arguments. _None of these functions will work unless `AllowUnsafeScripting` is enabled in `ddraw.ini`_
     items:
     - name: read_byte
       detail: int read_byte(int address)
@@ -72,6 +73,10 @@ sfall-functions:
       offset: 0x81db
       unsafe: true
   - name: Stats and skills
+    doc: |
+      The `get/set_pc_base/extra_stat` functions are equivalent to calling `get/set_critter_base/extra_stat` with `dude_obj` as the critter pointer. None of these stat functions take perks into account, and neither do they do range clamping to make sure the stats are valid. Use the normal `get_critter_stat` function to get a correctly perk adjusted and range clamped value for a stat.
+
+      The `set_stat_max/min` functions can be used to set the valid ranges on on stats. Values returned by `get_current_stat` will be clamped to this range. The `set_pc_` function only effect the player, the `set_npc_` functions only effect other critters, and the `set_` functions effect both.
     items:
     - name: set_pc_base_stat
       detail: void set_pc_base_stat(int StatID, int value)
@@ -128,12 +133,14 @@ sfall-functions:
       detail: void set_npc_stat_min(int stat, int value)
       offset: 0x81ba
   - name: Graphics
+    doc: The graphics functions are only available if the user is using graphics mode 4 or 5. Use `graphics_funcs_available` to check; it returns 1 if you can use them or 0 if you can't. Calling graphics functions when `graphics_funcs_available` returns 0 will do nothing.
     items:
     - name: graphics_funcs_available
       detail: bool graphics_funcs_available
       offset: 0x8165
     - name: load_shader
       detail: int load_shader(string path)
+      doc: Takes a path relative to the `data\shaders\` directory as an argument and returns a shader ID. That ID should be passed as the first argument to all other shader functions, and is valid until `free_shader` is called on the ID, the player loads a saved game or the player quits to the main menu.
       offset: 0x8166
     - name: free_shader
       detail: void free_shader(int ID)
@@ -155,13 +162,16 @@ sfall-functions:
       offset: 0x816f
     - name: get_shader_version
       detail: int get_shader_version
+      doc: Gives you the highest shader version supported by the player's graphics cards. Possible return values are 11, 12, 13, 14, 20, 21 and 30.
       offset: 0x81ad
     - name: set_shader_mode
       detail: void set_shader_mode(int mode)
       offset: 0x81ae
+      doc: Tells sfall when to use a shader. The parameter is a set of 32 flags which specify the screens on which the shader will be disabled, unless bit 32 is set, in which case the shader will only be active on those screens. Remember that screens are displayed on top of each other; if the player opens the character menu which in combat, the game still considers the player to be in combat. See `sfall.h` for a list of defines.
     - name: force_graphics_refresh
       detail: void force_graphics_refresh(bool enabled)
       offset: 0x81b0
+      doc: Forces the screen to redraw at times when it normally wouldn't. If you're using animated shader, turning this option on is recommended.
     - name: get_shader_texture
       detail: int get_shader_texture(int ID, int texture)
       offset: 0x81b1
@@ -345,7 +355,7 @@ sfall-functions:
       detail: void fs_resize(int id, int size)
       offset: 0x8203
   - name: Knockback
-    doc: The 'type' value in the weapon knockback functions can be 0 or 1. If 0, the value becomes an absolute distance that targets will be knocked back. If 1, the value is multiplied by the distance they would normally have been knocked back. Weapon knockback modifiers are applied in the order weapon -> attacker -> target, so a x2 weapon wielded by an abs 6 attacker hitting a /2 target will knock the target back 3 squares. The knockback functions will not override the stonewall perk or knockdowns resulting from criticals. knockback values set on weapons or critters are not saved, and must be reset each time the player reloads.
+    doc: The `type` value in the weapon knockback functions can be 0 or 1. If 0, the value becomes an absolute distance that targets will be knocked back. If 1, the value is multiplied by the distance they would normally have been knocked back. Weapon knockback modifiers are applied in the order weapon -> attacker -> target, so a x2 weapon wielded by an abs 6 attacker hitting a /2 target will knock the target back 3 squares. The knockback functions will not override the stonewall perk or knockdowns resulting from criticals. knockback values set on weapons or critters are not saved, and must be reset each time the player reloads.
     items:
     - name: set_weapon_knockback
       detail: void set_weapon_knockback(WeaponPtr, int type, float value)
@@ -366,6 +376,7 @@ sfall-functions:
       detail: void remove_attacker_knockback(CritterPtr)
       offset: 0x819a
   - name: Maps and encounters
+    doc: The mapper manual lists the functions `world_map_x_pos` and `world_map_y_pos`, which supposedly return the player's x and y positions on the world map. `get_world_map_x/y_pos` are included here anyway, because I was unable to get those original functions to work, or even to find any evidence that they existed in game.
     items:
     - name: in_world_map
       detail: bool in_world_map
@@ -588,9 +599,11 @@ sfall-functions:
     - name: set_global_script_repeat
       detail: void set_global_script_repeat(int frames)
       offset: 0x816a
+      doc: Only has an effect on the script it is called from. Every global script needs its own game_loaded block to correctly set up repeat rate. Will have no effect if called on a non-global script.
     - name: set_global_script_type
       detail: void set_global_script_type(int type)
       offset: 0x819b
+      doc: Only has an effect on the script it is called from. Every global script needs its own game_loaded block to correctly set up the script type.
     - name: available_global_script_types
       detail: int available_global_script_types
       offset: 0x819c
@@ -605,6 +618,7 @@ sfall-functions:
       offset: 0x8177
     - name: set_pipboy_available
       detail: void set_pipboy_available(int available)
+      doc: Will only accept 0 or 1 as an argument. Using any other value will cause the function to have no effect. Use 0 to disable the pipboy, and 1 to enable it.
       offset: 0x818b
     - name: get_kill_counter
       detail: int get_kill_counter(int critterType)
@@ -615,24 +629,17 @@ sfall-functions:
     - name: get_critter_current_ap
       detail: int get_critter_current_ap(CritterPtr)
       offset: 0x8191
+      doc: Should only be used during the target critters turn while in combat. Calling it outside of combat typically returns the critters max ap, but don't rely on that behaviour. (Specifically, if the critter has never before entered combat, it will probably return the critters base ap ignoring any extra bonuses from perks etc.)
     - name: set_critter_current_ap
       detail: void set_critter_current_ap(CritterPtr, int ap)
       offset: 0x8192
+      doc: Should only be used during the target critters turn while in combat. Using it on the player will not automatically redraw the screen, so the ap bar will be incorrect until the player next clicks.
     - name: active_hand
       detail: int active_hand
       offset: 0x8193
     - name: toggle_active_hand
       detail: void toggle_active_hand
       offset: 0x8194
-    - name: set_sfall_global
-      detail: void set_sfall_global(string/int varname, int/float value)
-      offset: 0x819d
-    - name: get_sfall_global_int
-      detail: int get_sfall_global_int(string/int varname)
-      offset: 0x819e
-    - name: get_sfall_global_float
-      detail: float get_sfall_global_float(string/int varname)
-      offset: 0x819f
     - name: set_pickpocket_max
       detail: void set_pickpocket_max(int percentage)
       offset: 0x81a0
@@ -906,6 +913,20 @@ sfall-functions:
       detail: int (ObjectPtr invenObj, ObjectPtr itemObj)
       doc: Returns number of itemObj inside invenObj's inventory, note that both arguments are object pointers.
       offset: 0x8275
+
+  - name: Global variables
+    doc: These functions require an __8 characters long case sensitive__ string for the variable name. The variables behave the same as normal Fallout globals, except that they don't have to be declared beforehand in vault13.gam. Trying to get a variable which hasn't been set will always return 0. The functions are intended for use when a patch to a mod requires the addition of a new global variable, a case which would otherwise require the player to start a new game.
+    items:
+    - name: set_sfall_global
+      detail: void set_sfall_global(string/int varname, int/float value)
+      offset: 0x819d
+    - name: get_sfall_global_int
+      detail: int get_sfall_global_int(string/int varname)
+      offset: 0x819e
+    - name: get_sfall_global_float
+      detail: float get_sfall_global_float(string/int varname)
+      offset: 0x819f
+
 sfall-hooks:
   type: 3
   topics:
