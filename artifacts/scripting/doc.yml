@@ -909,7 +909,7 @@ sfall-functions:
 sfall-hooks:
   type: 3
   topics:
-  - name: Hooks
+  - name: Hook functions
     items:
     - name: init_hook
       detail: int init_hook()
