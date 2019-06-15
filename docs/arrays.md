@@ -71,7 +71,7 @@ Basically arrays are implemented using number of new operators (scripting functi
   ```
 
   __NOTES:__
-  Make sure to call "fix_array" if you want new array to be available in the next frame or "save_array" if you want to use it for a longer period (see next section for details).
+  Make sure to call `fix_array` if you want new array to be available in the next frame or `save_array` if you want to use it for a longer period (see next section for details).
 
 
 * Iterating in loop. Use "foreach" key word like this:
@@ -93,15 +93,14 @@ See "Script editor\docs\sslc readme.txt" file for full information on new SSL sy
 Apart from lists/maps arrays are divided by how they are stored.
 There a 3 types of arrays:
 
-* Temporary. They are created using temp_array function or when using array expressions.
+* Temporary. They are created using `temp_array` function or when using array expressions.
 Arrays of this type are auto-deleted at the end of the frame. So, for example, if you have a global script which runs at regular intervals,
 where you create temp_array, it will not be available next time your global script is executed.
 
-* Permanent. They are created using "create_array" function or "fix_array" (from pre-existing temporary array).
+* Permanent. They are created using `create_array` function or `fix_array` (from pre-existing temporary array).
 This type of arrays are always available (by their ID) until you start a new game or load a saved game (at which point they are deleted).
 
-* Saved. If you want your array to really stay for a while, use function "save_array" to make any array "saved". However, they are, like permanent arrays,
-"deleted" from memory when loading game. In order to use them properly, you must load them from the savegame using "load_array" whenever you want to use them.
+* Saved. If you want your array to really stay for a while, use function `save_array` to make any array "saved". However, they are, like permanent arrays, "deleted" from memory when loading game. In order to use them properly, you must load them from the savegame using `load_array` whenever you want to use them.
 Example:
 
 ```c++
@@ -178,7 +177,7 @@ end
   - returns arrayID (valid until array is deleted)
 
 * `int temp_array(int size, int flags)`:
-  - works exactly like "create_array", only created array becomes "temporary"
+  - works exactly like `create_array`, only created array becomes "temporary"
 
 * `void fix_array(int arrayID)`:
   - changes "temporary" array into "permanent" ("permanent" arrays are not automatically saved into savegames)
@@ -190,18 +189,17 @@ end
   - to "unset" a value from map, just set it to zero (0)
   - NOTE: to add a value of 0 for the key, use the float value of 0.0
   - this works exactly like statement:
-      arrayID[key] := value;
+      `arrayID[key] := value;`
 
 * `mixed get_array(int arrayID, mixed key)`:
   - returns array value by key or index
   - if key doesn't exist or index is not in valid range, returns 0
-  - works exactly like expression:
-      (arrayID[key])
+  - works exactly like expression: `(arrayID[key])`
 
 * `void resize_array(int arrayID, int size)`:
   - changes array size
   - applicable to maps too, but only to reduce elements
-  - there are number of special negative values of "size" which perform various operations on the array, use macros sort_array, sort_array_reverse, reverse_array, shuffle_array from sfall.h header
+  - there are number of special negative values of "size" which perform various operations on the array, use macros `sort_array`, `sort_array_reverse`, `reverse_array`, `shuffle_array` from `sfall.h` header
 
 * `void free_array(int arrayID)`:
   - deletes any array
@@ -224,7 +222,7 @@ end
 
 * `int arrayexpr(mixed key, mixed value)`:
   - don't use it directly; it is used by compiler to create array expressions
-  - assigns value to a given key in an array, created by last "create_array" or "temp_array" call
+  - assigns value to a given key in an array, created by last `create_array` or `temp_array` call
   - always returns 0
 
 * `void save_array(mixed key, int arrayID)`:
@@ -233,13 +231,13 @@ end
   - key can be of any type (int, float or string)
 
 * `int load_array(mixed key)`:
-  - load array from savegame data by the same key provided in "save_array"
+  - load array from savegame data by the same key provided in `save_array`
   - arrayID is returned or zero (0) if none found
 
 ## Backward compatibility notes
 
 For those who used arrays in their mods before sfall 3.4:
-* There is an INI parameter "arraysBehavior" in "Misc" section of ddraw.ini. If set to 0, all scripts which used sfall arrays before should work. This basically changes that "create_array" will create permanent arrays which are "saved" by default and their ID is also permanent. It is 1 by default.
+* There is an INI parameter `arraysBehavior` in "Misc" section of ddraw.ini. If set to 0, all scripts which used sfall arrays before should work. This basically changes that `create_array` will create permanent arrays which are "saved" by default and their ID is also permanent. It is 1 by default.
 * How savegame compatibility is handled?
   Saved arrays are stored in sfallgv.sav file (in savegame) in new (more flexible) format, just after the old arrays. So basically, when you load older savegame, sfall will load arrays from old format and save them to new format on next game save. If you load savegame made with sfall 3.4 using sfall 3.3 (for example), game shouldn't crash, but all arrays will be lost.
 * Previously you had to specify size in bytes for array elements. This parameter is now ignored and you can store strings of arbitrary length in arrays.
