@@ -588,7 +588,9 @@ This hook overrides the vanilla damage calculation formula.
 Runs when:
 1. Before the game calculates how much damage each target will get. This includes primary target as well as all extras (explosions and bursts).
 1. AI decides whether it is safe to use area attack (burst, grenades), if he might hit friendlies.
+
 Does not run for misses, non-combat damage like dynamite explosions, or if one of the damage formulas is selected in ddraw.ini.
+
 ```
 Critter arg1 - The attacker
 Critter arg2 - The target
