@@ -9,7 +9,7 @@ yaml_path = sys.argv[1]
 md_dir = sys.argv[2]
 header_template = '''---
 layout: page
-title: {}
+title: '{}'
 nav_order: 3
 ---
 
@@ -42,6 +42,6 @@ with open(yaml_path) as yf:
           text += i['doc']
           text += '\n\n'
 
-      md_path = os.path.join(md_dir, t['name'].lower().replace(' ','-') + ".md")
+      md_path = os.path.join(md_dir, t['name'].lower().replace(' ','-').replace(':','-').replace('/','-').replace('--','-') + ".md")
       with open(md_path, 'w') as f:
         f.write(text)
