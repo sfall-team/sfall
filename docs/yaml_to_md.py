@@ -12,11 +12,12 @@ md_dir = sys.argv[3]
 # template for functions pages
 function_header_template = '''---
 layout: page
-title: '{name}'
+title: '{name}' # quote just in case
 nav_order: 3
 has_children: true
 # parent - could be empty
 {parent}
+permalink: {permalink}
 ---
 
 # {name}
@@ -44,30 +45,39 @@ with open(functions_yaml) as yf:
   for cat in data: # list categories
     text = ""
     parent = ""
+
+    # used in filename and permalink
+    slug = cat['name'].lower().replace(' ','-').replace(':','-').replace('/','-').replace('--','-')
+
     # if parent is present, this is a subcategory
     if 'parent' in cat:
       parent = "parent: " + cat['parent']
-    header = function_header_template.format(name=cat['name'], parent=parent)
+    header = function_header_template.format(name=cat['name'], parent=parent, permalink="/{}/".format(slug))
     text += header
 
     # common doc for category
     if 'doc' in cat:
       text = text + '\n' + cat['doc'] + '\n'
     text = text + "\n * TOC\n{:toc}\n"
+
     # individual functions
     items = cat['items']
     items = sorted(items, key=lambda k: k['name']) 
+
     for i in items:
+      # header
       text += "### {}\n".format(i['name'])
+      # usage
       text += '''```c++
 {}
 ```
 '''.format(i['detail'])
+      # doc, if present
       if 'doc' in i:
         text += i['doc']
         text += '\n\n'
 
-    md_path = os.path.join(md_dir, cat['name'].lower().replace(' ','-').replace(':','-').replace('/','-').replace('--','-') + ".md")
+    md_path = os.path.join(md_dir, slug + ".md")
     with open(md_path, 'w') as f:
       f.write(text)
 
