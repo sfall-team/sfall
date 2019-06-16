@@ -44,7 +44,7 @@
     ```
 
 - name: DeathAnim1
-  doc:
+  doc: |
     Runs before Fallout tries to calculate the death animation. Lets you switch out which weapon Fallout sees.
 
     ```
@@ -57,7 +57,7 @@
     ```
 
 - name: DeathAnim2
-  doc:
+  doc: |
     Runs after Fallout has calculated the death animation. Lets you set your own custom frame id, so more powerful than hs_deathanim1, but performs no validation. When using `critter_dmg` function, this script will also run. In that case weapon pid will be -1 and target will point to an object with `obj_art_fid == 0x20001F5`.
 
     ```
@@ -101,13 +101,13 @@
     ```
 
 - name: OnDeath
-  doc:
+  doc: |
     Runs immediately after a critter dies for any reason. No return values; this is just a convenience for when you need to do something after death for a large number of different critters and don't want to have to script each and every one of them.
 
     `Critter arg1 - The critter that just died`
 
 - name: FindTarget
-  doc:
+  doc: |
     Runs when the ai is trying to pick a target in combat. Fallout first chooses a list of 4 likely suspects, then normally sorts them in order of weakness/distance/etc depending on the ai caps of the attacker. This hook replaces that sorting function, allowing you to sort the targets in some arbitrary way. Use sfall_return to give the 4 targets, in order of preference. If you want to specify less than 4 targets, fill in the extra spaces with 0's. Pass -1 to skip the return value.
 
     The return values can include critters that weren't in the list of possible targets, but the additional targets may still be discarded later on in the combat turn if they are out of the attackers perception or the chance of a successful hit is too low. The list of possible targets often includes duplicated entries.
@@ -191,7 +191,7 @@
     ```
 
 - name: MoveCost
-  doc:
+  doc: |
     Runs when calculating the AP cost of movement
 
     ```
@@ -226,7 +226,7 @@
     ```
 
 - name: ItemDamage
-  doc: 
+  doc: |
     Runs when retrieving the damage rating of the player's used weapon. (Which may be their fists.)
     ```
     int     arg1 - The default min damage
@@ -241,7 +241,7 @@
     ```
 
 - name: AmmoCost
-  doc:
+  doc: |
     Runs when calculating ammo cost for a weapon. Doesn't affect damage, only how much ammo is spent.
     By default, weapon will shoot when at least 1 round is left, regardless of ammo cost calculations.
     To add proper check for ammo before shooting and proper calculation of number of burst rounds (hook type 1 and 2 in arg4), set `Misc.CheckWeaponAmmoCost=1` in ddraw.ini
@@ -281,7 +281,7 @@
     ```
 
 - name: UseSkill
-  doc:
+  doc: |
     Runs when using any skill on any object.
 
     This is fired before the default handlers are called, which you can override. In this case you should write your own skill use handler entirely, or otherwise nothing will happen (this includes fade in/fade out, time lapsing and messages - all of this can be scripted; to get vanilla text messages - use `message_str_game()` along with `sprintf()`).
@@ -390,7 +390,7 @@
     ```
 
 - name: CarTravel
-  doc: 
+  doc: |
     Runs continuously during worldmap travel on car.
 
     ```
@@ -402,7 +402,7 @@
     ```
 
 - name: SetGlobalVar
-  doc:
+  doc: |
     Runs when setting the value of a global variable.
 
     ```
@@ -433,7 +433,7 @@
     ```
 
 - name: UseAnimObj
-  doc:
+  doc: |
     Runs before playing the "use" (usually "magic hands") animation when a critter uses a scenery/container object on the map, or before walking/running animation if the player is at a distance from the object.
 
     ```
@@ -526,7 +526,7 @@
     ```
 
 - name: SetLighting
-  doc:
+  doc: |
     Runs before setting the light level for an object or a map. You can override the result.
 
     ```
