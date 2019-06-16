@@ -3,11 +3,14 @@
 
 import sys, yaml, os
 reload(sys)
-sys.setdefaultencoding('utf8')
+sys.setdefaultencoding('utf8') # ugly buy works
 
-yaml_path = sys.argv[1]
-md_dir = sys.argv[2]
-header_template = '''---
+functions_yaml = sys.argv[1]
+hooks_yaml = sys.argv[2]
+md_dir = sys.argv[3]
+
+# template for functions pages
+function_header_template = '''---
 layout: page
 title: '{name}'
 nav_order: 3
@@ -20,7 +23,23 @@ has_children: true
 {{: .no_toc}}
 '''
 
-with open(yaml_path) as yf:
+# template for hooks types page - hardcoded
+hooks_header = '''---
+layout: page
+title: Hook types
+nav_order: 3
+parent: Hooks
+---
+
+# Hook types
+{: .no_toc}
+
+* TOC
+{:toc}
+'''
+
+# functions pages
+with open(functions_yaml) as yf:
   data = yaml.load(yf)
   for cat in data: # list categories
     text = ""
@@ -28,7 +47,7 @@ with open(yaml_path) as yf:
     # if parent is present, this is a subcategory
     if 'parent' in cat:
       parent = "parent: " + cat['parent']
-    header = header_template.format(name=cat['name'], parent=parent)
+    header = function_header_template.format(name=cat['name'], parent=parent)
     text += header
 
     # common doc for category
@@ -49,5 +68,30 @@ with open(yaml_path) as yf:
         text += '\n\n'
 
     md_path = os.path.join(md_dir, cat['name'].lower().replace(' ','-').replace(':','-').replace('/','-').replace('--','-') + ".md")
+    with open(md_path, 'w') as f:
+      f.write(text)
+
+
+# hook types page
+with open(hooks_yaml) as yf:
+  hooks = yaml.load(yf)
+  hooks = sorted(hooks, key=lambda k: k['name']) # alphabetical sort
+  text = hooks_header
+
+  for h in hooks:
+    name = h['name']
+    doc = h['doc']
+    codename = "HOOK_" + name.upper()
+    if 'filename' in h: # overriden filename?
+      filename = h['filename']
+    else:
+      filename = "hs_" + name.lower() + ".int"
+
+    text += "\n### {}\n\n".format(name) # header
+    if filename != "": # if not skip
+      text += "`{}` ({})\n\n".format(codename, filename) # `HOOK_SETLIGHTING` (hs_setlighting.int)
+    text += doc # actual documentation
+
+    md_path = os.path.join(md_dir, "hook-types.md")
     with open(md_path, 'w') as f:
       f.write(text)
