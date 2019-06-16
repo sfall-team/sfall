@@ -3,6 +3,7 @@
 #   doc: |
 #     Hook documentation, markdown format.
 #     Can be multiline.
+#    filename: override filename (hs_blabla.int), if necessary
 
 - name: ToHit
   doc: |

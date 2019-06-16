@@ -4,8 +4,8 @@
 #
 # 2. General structure:
 # - name: Category name           # REQUIRED, must be UNIQUE
-#   parent: Parent category name  # OPTIONAL. If set, will generate a subcategory page on the site.
-#   doc: Category doc             # OPTIONAL. Must be RELEVANT for ALL functions in the category. Will be displayed in IDE.
+#   parent: Parent category name  # OPTIONAL. If set, will generate a subcategory page on the site. Parent category must exist.
+#   doc: Category doc             # OPTIONAL. Must be RELEVANT for ALL functions in the category. Will be displayed in IDE for EACH function under this category, in addition to function's individual doc.
 #   items:
 #   - name: function_name                                   # REQUIRED
 #     detail: void function_name(ObjPtr obj, string text)   # REQUIRED. Will be displayed in IDE.
