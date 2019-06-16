@@ -2144,6 +2144,55 @@ static void __declspec(naked) action_use_an_item_on_object_hack() {
 	}
 }
 
+//static const DWORD wmAreaMarkVisitedState_Error = 0x4C4698;
+static const DWORD wmAreaMarkVisitedState_Ret = 0x4C46A2;
+static void __declspec(naked) wmAreaMarkVisitedState_hack() {
+	__asm {
+		mov  [ecx + 0x40], esi; // wmAreaInfoList.visited
+		test esi, esi;          // mark "unknown" state
+		jz   skip;
+		mov  eax, [ecx + 0x2C]; // wmAreaInfoList.world_posx
+		mov  edx, [ecx + 0x30]; // wmAreaInfoList.world_posy
+		// fix loc coordinates
+		cmp  [ecx + 0x34], 1; // wmAreaInfoList.size
+		jg   largeLoc;
+		je   mediumLoc;
+//smallLoc:
+		sub eax, 5;
+		sub edx, 5;
+mediumLoc:
+		sub eax, 10;
+		sub edx, 10;
+largeLoc:
+		mov  ebx, esp; // ppSubTile out
+		push edx;
+		push eax;
+		call fo::funcoffs::wmFindCurSubTileFromPos_;
+//		cmp  eax, -1; // always return 0
+//		jz   error;
+		pop  eax;
+		pop  edx;
+		mov  ebx, [esp];
+		mov  ebx, [ebx + 0x18]; // sub tile state
+		cmp  [ecx + 0x38], 1;   // wmAreaInfoList.start_state
+		jnz  skip;
+		cmp  esi, 2; // mark visited state
+		jne  fix;
+		call fo::funcoffs::wmMarkSubTileRadiusVisited_;
+skip:
+		jmp  wmAreaMarkVisitedState_Ret;
+fix:
+		push ebx;
+		mov  ebx, 1; // radius (fix w/o PERK_scout)
+		call fo::funcoffs::wmSubTileMarkRadiusVisited_;
+		pop  ebx;
+		jmp  wmAreaMarkVisitedState_Ret;
+//error:
+//		add  esp, 8;
+//		jmp  wmAreaMarkVisitedState_Error;
+	}
+}
+
 void BugFixes::init()
 {
 	#ifndef NDEBUG
@@ -2724,6 +2773,11 @@ void BugFixes::init()
 
 	// Fix for the player's movement in combat being interrupted when trying to use objects with Bonus Move APs available
 	MakeCall(0x411FD6, action_use_an_item_on_object_hack);
+
+	// Fix the influence of the Scout perk when setting the visibility of locations on the world map (using the mark_area_known function)
+	// also correcting the wrong coordinates for small and medium circles of city in the highlight of the sub-tiles to the location
+	MakeJump(0x4C466F, wmAreaMarkVisitedState_hack);
+	SafeWrite8(0x4C46AB, 0x58); // esi >> ebx
 }
 
 }
