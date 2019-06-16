@@ -17,7 +17,7 @@ Full hook functions reference is [here](pages/hook-functions.html).
 
 ## Hooks compatibility
 
-To aid in mods compatibility, avoid using hs_xxx .int scripts. Instead it is recommended to use a normal global script combined with register_hook_proc or register_hook.
+To aid in mods compatibility, avoid using `hs_xxx` .int scripts. Instead it is recommended to use a normal global script combined with `register_hook_proc` or `register_hook`.
 
 Example setup for a hook-script based mod:
 
