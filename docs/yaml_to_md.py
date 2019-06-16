@@ -9,11 +9,14 @@ yaml_path = sys.argv[1]
 md_dir = sys.argv[2]
 header_template = '''---
 layout: page
-title: '{}'
+title: '{name}'
 nav_order: 3
+has_children: true
+# parent - could be empty
+{parent}
 ---
 
-# {}
+# {name}
 {{: .no_toc}}
 '''
 
@@ -23,7 +26,10 @@ with open(yaml_path) as yf:
     topics = data[d]['topics']
     for t in topics:
       text = ""
-      header = header_template.format(t['name'], t['name'])
+      parent = ""
+      if 'parent' in t:
+        parent = "parent: " + t['parent']
+      header = header_template.format(name=t['name'], parent=parent)
       text += header
 
       if 'doc' in t:
