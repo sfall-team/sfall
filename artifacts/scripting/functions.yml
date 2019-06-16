@@ -10,7 +10,7 @@
 #   - name: function_name                                   # REQUIRED
 #     detail: void function_name(ObjPtr obj, string text)   # REQUIRED. Will be displayed in IDE.
 #     doc: fuction documentation in markdown format         # OPTIONAL. Will be displayed in IDE.
-#     offset: function offset                               # OPTIONAL
+#     opcode: function opcode                               # OPTIONAL
 #     unsafe: true/false                                    # OPTIONAL. Whether it requires AllowUnsafeScripting.
 
 
@@ -19,71 +19,71 @@
   items:
   - name: read_byte
     detail: int read_byte(int address)
-    offset: 0x8156
+    opcode: 0x8156
   - name: read_short
     detail: int read_short(int address)
-    offset: 0x8157
+    opcode: 0x8157
   - name: read_int
     detail: int read_int(int address)
-    offset: 0x8158
+    opcode: 0x8158
   - name: read_string
     detail: int read_string(int address)
-    offset: 0x8159
+    opcode: 0x8159
   - name: write_byte
     detail: void write_byte(int address, int value)
-    offset: 0x81cf
+    opcode: 0x81cf
     unsafe: true
   - name: write_short
     detail: void write_short(int address, int value)
-    offset: 0x81d0
+    opcode: 0x81d0
     unsafe: true
   - name: write_int
     detail: void write_int(int address, int value)
-    offset: 0x81d1
+    opcode: 0x81d1
     unsafe: true
   - name: write_string
     detail: void write_string(int address, string value)
-    offset: 0x821b
+    opcode: 0x821b
     unsafe: true
   - name: call_offset_v0
     detail: void call_offset_v0(int address)
-    offset: 0x81d2
+    opcode: 0x81d2
     unsafe: true
   - name: call_offset_v1
     detail: void call_offset_v1(int address, int arg1)
-    offset: 0x81d3
+    opcode: 0x81d3
     unsafe: true
   - name: call_offset_v2
     detail: void call_offset_v2(int address, int arg1, int arg2)
-    offset: 0x81d4
+    opcode: 0x81d4
     unsafe: true
   - name: call_offset_v3
     detail: void call_offset_v3(int address, int arg1, int arg2, int arg3)
-    offset: 0x81d5
+    opcode: 0x81d5
     unsafe: true
   - name: call_offset_v4
     detail: void call_offset_v4(int address, int arg1, int arg2, int arg3, int arg4)
-    offset: 0x81d6
+    opcode: 0x81d6
     unsafe: true
   - name: call_offset_r0
     detail: int call_offset_r0(int address)
-    offset: 0x81d7
+    opcode: 0x81d7
     unsafe: true
   - name: call_offset_r1
     detail: int call_offset_r1(int address, int arg1)
-    offset: 0x81d8
+    opcode: 0x81d8
     unsafe: true
   - name: call_offset_r2
     detail: int call_offset_r2(int address, int arg1, int arg2)
-    offset: 0x81d9
+    opcode: 0x81d9
     unsafe: true
   - name: call_offset_r3
     detail: int call_offset_r3(int address, int arg1, int arg2, int arg3)
-    offset: 0x81da
+    opcode: 0x81da
     unsafe: true
   - name: call_offset_r4
     detail: int call_offset_r4(int address, int arg1, int arg2, int arg3, int arg4)
-    offset: 0x81db
+    opcode: 0x81db
     unsafe: true
 
 - name: Stats
@@ -91,28 +91,28 @@
   items:
   - name: set_pc_base_stat
     detail: void set_pc_base_stat(int StatID, int value)
-    offset: 0x815a
+    opcode: 0x815a
   - name: set_pc_extra_stat
     detail: void set_pc_extra_stat(int StatID, int value)
-    offset: 0x815b
+    opcode: 0x815b
   - name: get_pc_base_stat
     detail: int get_pc_base_stat(int StatID)
-    offset: 0x815c
+    opcode: 0x815c
   - name: get_pc_extra_stat
     detail: int get_pc_extra_stat(int StatID)
-    offset: 0x815d
+    opcode: 0x815d
   - name: set_critter_base_stat
     detail: void set_critter_base_stat(CritterPtr, int StatID, int value)
-    offset: 0x815e
+    opcode: 0x815e
   - name: set_critter_extra_stat
     detail: void set_critter_extra_stat(CritterPtr, int StatID, int value)
-    offset: 0x815f
+    opcode: 0x815f
   - name: get_critter_base_stat
     detail: int get_critter_base_stat(CritterPtr, int StatID)
-    offset: 0x8160
+    opcode: 0x8160
   - name: get_critter_extra_stat
     detail: int get_critter_extra_stat(CritterPtr, int StatID)
-    offset: 0x8161
+    opcode: 0x8161
 
 - name: Alter min/max
   doc: Can be used to set the valid ranges on on stats. Values returned by `get_current_stat` will be clamped to this range. The `set_pc_` function only effect the player, the `set_npc_` functions only effect other critters, and the `set_` functions effect both.
@@ -120,217 +120,217 @@
   items:
   - name: set_stat_max
     detail: void set_stat_max(int stat, int value)
-    offset: 0x81b4
+    opcode: 0x81b4
   - name: set_stat_min
     detail: void set_stat_min(int stat, int value)
-    offset: 0x81b5
+    opcode: 0x81b5
   - name: set_pc_stat_max
     detail: void set_pc_stat_max(int stat, int value)
-    offset: 0x81b7
+    opcode: 0x81b7
   - name: set_pc_stat_min
     detail: void set_pc_stat_min(int stat, int value)
-    offset: 0x81b8
+    opcode: 0x81b8
   - name: set_npc_stat_max
     detail: void set_npc_stat_max(int stat, int value)
-    offset: 0x81b9
+    opcode: 0x81b9
   - name: set_npc_stat_min
     detail: void set_npc_stat_min(int stat, int value)
-    offset: 0x81ba
+    opcode: 0x81ba
 
 - name: Skills
   items:
   - name: set_critter_skill_points
     detail: void set_critter_skill_points(int critter, int skill, int value)
-    offset: 0x8242
+    opcode: 0x8242
     doc: Will set the number of additional points a critter has in a skill, on top of whatever they have from their stats and other bonuses. Note that skill points are part of the proto, so calling it on a critter will affect all critters that share the same proto.
   - name: get_critter_skill_points
     detail: int get_critter_skill_points(int critter, int skill)
-    offset: 0x8243
+    opcode: 0x8243
     doc: Will get the number of additional points a critter has in a skill, on top of whatever they have from their stats and other bonuses
   - name: set_available_skill_points
     detail: void set_available_skill_points(int value)
-    offset: 0x8244
+    opcode: 0x8244
   - name: get_available_skill_points
     detail: int get_available_skill_points()
-    offset: 0x8245
+    opcode: 0x8245
 
 - name: Graphics
   doc: The graphics functions are only available if the user is using graphics mode 4 or 5. Use `graphics_funcs_available` to check; it returns 1 if you can use them or 0 if you can't. Calling graphics functions when `graphics_funcs_available` returns 0 will do nothing.
   items:
   - name: graphics_funcs_available
     detail: bool graphics_funcs_available
-    offset: 0x8165
+    opcode: 0x8165
   - name: load_shader
     detail: int load_shader(string path)
     doc: Takes a path relative to the `data\shaders\` directory as an argument and returns a shader ID. That ID should be passed as the first argument to all other shader functions, and is valid until `free_shader` is called on the ID, the player loads a saved game or the player quits to the main menu.
-    offset: 0x8166
+    opcode: 0x8166
   - name: free_shader
     detail: void free_shader(int ID)
-    offset: 0x8167
+    opcode: 0x8167
   - name: activate_shader
     detail: void activate_shader(int ID)
-    offset: 0x8168
+    opcode: 0x8168
   - name: deactivate_shader
     detail: void deactivate_shader(int ID)
-    offset: 0x8169
+    opcode: 0x8169
   - name: set_shader_int
     detail: void set_shader_int(int ID, string param, int value)
-    offset: 0x816d
+    opcode: 0x816d
   - name: set_shader_float
     detail: void set_shader_float(int ID, string param, float value)
-    offset: 0x816e
+    opcode: 0x816e
   - name: set_shader_vector
     detail: void set_shader_vector(int ID, string param, float f1, float f2, float f3, float f4)
-    offset: 0x816f
+    opcode: 0x816f
   - name: get_shader_version
     detail: int get_shader_version
     doc: Gives you the highest shader version supported by the player's graphics cards. Possible return values are 11, 12, 13, 14, 20, 21 and 30.
-    offset: 0x81ad
+    opcode: 0x81ad
   - name: set_shader_mode
     detail: void set_shader_mode(int mode)
-    offset: 0x81ae
+    opcode: 0x81ae
     doc: Tells sfall when to use a shader. The parameter is a set of 32 flags which specify the screens on which the shader will be disabled, unless bit 32 is set, in which case the shader will only be active on those screens. Remember that screens are displayed on top of each other; if the player opens the character menu which in combat, the game still considers the player to be in combat. See `sfall.h` for a list of defines.
   - name: force_graphics_refresh
     detail: void force_graphics_refresh(bool enabled)
-    offset: 0x81b0
+    opcode: 0x81b0
     doc: Forces the screen to redraw at times when it normally wouldn't. If you're using animated shader, turning this option on is recommended.
   - name: get_shader_texture
     detail: int get_shader_texture(int ID, int texture)
-    offset: 0x81b1
+    opcode: 0x81b1
   - name: set_shader_texture
     detail: void set_shader_texture(int ID, string param, int texID)
-    offset: 0x81b2
+    opcode: 0x81b2
   - name: get_screen_width
     detail: int get_screen_width()
-    offset: 0x8220
+    opcode: 0x8220
   - name: get_screen_height
     detail: int get_screen_height()
-    offset: 0x8221
+    opcode: 0x8221
   - name: set_palette
     detail: void set_palette(string path)
-    offset: 0x81f2
+    opcode: 0x81f2
 - name: Perks and traits
   items:
   - name: set_perk_image
     detail: void set_perk_image(int perkID, int value)
-    offset: 0x8178
+    opcode: 0x8178
   - name: set_perk_ranks
     detail: void set_perk_ranks(int perkID, int value)
-    offset: 0x8179
+    opcode: 0x8179
   - name: set_perk_level
     detail: void set_perk_level(int perkID, int value)
-    offset: 0x817a
+    opcode: 0x817a
   - name: set_perk_stat
     detail: void set_perk_stat(int perkID, int value)
-    offset: 0x817b
+    opcode: 0x817b
   - name: set_perk_stat_mag
     detail: void set_perk_stat_mag(int perkID, int value)
-    offset: 0x817c
+    opcode: 0x817c
   - name: set_perk_skill1
     detail: void set_perk_skill1(int perkID, int value)
-    offset: 0x817d
+    opcode: 0x817d
   - name: set_perk_skill1_mag
     detail: void set_perk_skill1_mag(int perkID, int value)
-    offset: 0x817e
+    opcode: 0x817e
   - name: set_perk_type
     detail: void set_perk_type(int perkID, int value)
-    offset: 0x817f
+    opcode: 0x817f
   - name: set_perk_skill2
     detail: void set_perk_skill2(int perkID, int value)
-    offset: 0x8180
+    opcode: 0x8180
   - name: set_perk_skill2_mag
     detail: void set_perk_skill2_mag(int perkID, int value)
-    offset: 0x8181
+    opcode: 0x8181
   - name: set_perk_str
     detail: void set_perk_str(int perkID, int value)
-    offset: 0x8182
+    opcode: 0x8182
   - name: set_perk_per
     detail: void set_perk_per(int perkID, int value)
-    offset: 0x8183
+    opcode: 0x8183
   - name: set_perk_end
     detail: void set_perk_end(int perkID, int value)
-    offset: 0x8184
+    opcode: 0x8184
   - name: set_perk_chr
     detail: void set_perk_chr(int perkID, int value)
-    offset: 0x8185
+    opcode: 0x8185
   - name: set_perk_int
     detail: void set_perk_int(int perkID, int value)
-    offset: 0x8196
+    opcode: 0x8196
   - name: set_perk_agl
     detail: void set_perk_agl(int perkID, int value)
-    offset: 0x8187
+    opcode: 0x8187
   - name: set_perk_lck
     detail: void set_perk_lck(int perkID, int value)
-    offset: 0x8188
+    opcode: 0x8188
   - name: set_perk_name
     detail: void set_perk_name(int perkID, string value)
-    offset: 0x8189
+    opcode: 0x8189
   - name: set_perk_desc
     detail: void set_perk_desc(int perkID, string value)
-    offset: 0x818a
+    opcode: 0x818a
   - name: set_perk_freq
     detail: void set_perk_freq(int value)
-    offset: 0x8247
+    opcode: 0x8247
     doc: Sets the number of levels between each perk. Setting to 0 will reset it back to the default. This overrides the effects of the skilled trait. Not saved into the save game, so needs to be called once per reload. Be careful not to let the player obtain a perk when no perks are available to pick, or the game may crash.
   - name: get_perk_owed
     detail: int get_perk_owed
-    offset: 0x818e
+    opcode: 0x818e
   - name: set_perk_owed
     detail: void set_perk_owed(int value)
-    offset: 0x818f
+    opcode: 0x818f
   - name: get_perk_available
     detail: int get_perk_available(int perk)
-    offset: 0x8190
+    opcode: 0x8190
   - name: set_perk_level_mod
     detail: void set_perk_level_mod(int levels)
-    offset: 0x81ab
+    opcode: 0x81ab
     doc: Sets a modifier between +25 and -25 that is added/subtracted from the player's level for the purposes of deciding which perks can be chosen.
 
   - name: set_fake_perk
     detail: void set_fake_perk(string name, int level, int image, string desc)
-    offset: 0x81bb
+    opcode: 0x81bb
     doc: Used to add additional traits and perks to the character screen. They will be saved correctly when the player saves and reloads games, but by themselves they will have no further effect on the character. For perks, the allowed range for levels is between 0 and 100; setting the level to 0 removes that perk. For traits, the level must be 0 or 1. The image is a numeric id that corresponds to an entry in `skilldex.lst`. The name is limited to 63 characters and the description to 255 characters by sfall, but internal Fallout limits may be lower.
   - name: set_fake_trait
     detail: void set_fake_trait(string name, int active, int image, string desc)
-    offset: 0x81bc
+    opcode: 0x81bc
     doc: Used to add additional traits and perks to the character screen. They will be saved correctly when the player saves and reloads games, but by themselves they will have no further effect on the character. For perks, the allowed range for levels is between 0 and 100; setting the level to 0 removes that perk. For traits, the level must be 0 or 1. The image is a numeric id that corresponds to an entry in `skilldex.lst`. The name is limited to 63 characters and the description to 255 characters by sfall, but internal Fallout limits may be lower.
 
   - name: set_selectable_perk
     detail: void set_selectable_perk(string name, int active, int image, string desc)
-    offset: 0x81bd
+    opcode: 0x81bd
     doc: Used to add additional items to "select a perk" box by setting the 'active' parameter to 1, and to remove them again by setting it to 0.
   - name: set_perkbox_title
     detail: void set_perkbox_title(string title)
-    offset: 0x81be
+    opcode: 0x81be
     doc: Used to change the title of the "select a perk" box, or by using "" it will be set back to the default.
   - name: hide_real_perks
     detail: void hide_real_perks()
-    offset: 0x81bf
+    opcode: 0x81bf
     doc: Prevent the "select a perk" box from displaying any of the original 119 perks.
   - name: show_real_perks
     detail: void show_real_perks()
-    offset: 0x81c0
+    opcode: 0x81c0
     doc: Reverts the effect os `hide_real_perks`.
   - name: perk_add_mode
     detail: void perk_add_mode(int type)
-    offset: 0x81c3
+    opcode: 0x81c3
     doc: Modifies what happens when a fake perk is selected from the perks dialog. It is treated as a set of flags - if bit 1 is set then it is added to the player's traits, if bit 2 is set it is added to the player's perks, and if bit 3 is set it is removed from the list of selectable perks. The default is 0x2.
   - name: clear_selectable_perks
     detail: void clear_selectable_perks()
-    offset: 0x81c4
+    opcode: 0x81c4
     doc: Restores the "select a perk" box to its default state.
 
   - name: has_fake_perk
     detail: int has_fake_perk(string name)
-    offset: 0x81c1
+    opcode: 0x81c1
     doc: Returns the number of levels the player has of the perks with the given name or ID of extra perk.
   - name: has_fake_trait
     detail: int has_fake_trait(string name)
-    offset: 0x81c2
+    opcode: 0x81c2
     doc: Returns the number of levels the player has of the traits with the given name or ID of extra trait.
   - name: remove_trait
     detail: void remove_trait(int traitID)
-    offset: 0x8225
+    opcode: 0x8225
   - name: seq_perk_freq
     detail: void seq_perk_freq(int value)
     doc: Sets the number of levels between each perk.
@@ -340,103 +340,103 @@
   items:
   - name: fs_create
     detail: int fs_create(string path, int size)
-    offset: 0x81f7
+    opcode: 0x81f7
   - name: fs_copy
     detail: int fs_copy(string path, string source)
-    offset: 0x81f8
+    opcode: 0x81f8
   - name: fs_find
     detail: int fs_find(string path)
-    offset: 0x81f9
+    opcode: 0x81f9
   - name: fs_write_byte
     detail: void fs_write_byte(int id, int data)
-    offset: 0x81fa
+    opcode: 0x81fa
   - name: fs_write_short
     detail: void fs_write_short(int id, int data)
-    offset: 0x81fb
+    opcode: 0x81fb
   - name: fs_write_int
     detail: void fs_write_int(int id, int data)
-    offset: 0x81fc
+    opcode: 0x81fc
   - name: fs_write_float
     detail: void fs_write_float(int id, int data)
-    offset: 0x81fd
+    opcode: 0x81fd
   - name: fs_write_string
     detail: void fs_write_string(int id, string data)
-    offset: 0x81fe
+    opcode: 0x81fe
   - name: fs_write_bstring
     detail: void fs_write_bstring(int id, string data)
-    offset: 0x8208
+    opcode: 0x8208
   - name: fs_read_byte
     detail: int fs_read_byte(int id)
-    offset: 0x8209
+    opcode: 0x8209
   - name: fs_read_short
     detail: int fs_read_short(int id)
-    offset: 0x820a
+    opcode: 0x820a
   - name: fs_read_int
     detail: int fs_read_int(int id)
-    offset: 0x820b
+    opcode: 0x820b
   - name: fs_read_float
     detail: float fs_read_float(int id)
-    offset: 0x820c
+    opcode: 0x820c
   - name: fs_delete
     detail: void fs_delete(int id)
-    offset: 0x81ff
+    opcode: 0x81ff
   - name: fs_size
     detail: int fs_size(int id)
-    offset: 0x8200
+    opcode: 0x8200
   - name: fs_pos
     detail: int fs_pos(int id)
-    offset: 0x8201
+    opcode: 0x8201
   - name: fs_seek
     detail: void fs_seek(int id, int pos)
-    offset: 0x8202
+    opcode: 0x8202
   - name: fs_resize
     detail: void fs_resize(int id, int size)
-    offset: 0x8203
+    opcode: 0x8203
 
 - name: Knockback
   doc: The `type` value in the weapon knockback functions can be 0 or 1. If 0, the value becomes an absolute distance that targets will be knocked back. If 1, the value is multiplied by the distance they would normally have been knocked back. Weapon knockback modifiers are applied in the order weapon -> attacker -> target, so a x2 weapon wielded by an abs 6 attacker hitting a /2 target will knock the target back 3 squares. The knockback functions will not override the stonewall perk or knockdowns resulting from criticals. knockback values set on weapons or critters are not saved, and must be reset each time the player reloads.
   items:
   - name: set_weapon_knockback
     detail: void set_weapon_knockback(WeaponPtr, int type, float value)
-    offset: 0x8195
+    opcode: 0x8195
   - name: set_target_knockback
     detail: void set_target_knockback(CritterPtr, int type, float value)
-    offset: 0x8196
+    opcode: 0x8196
   - name: set_attacker_knockback
     detail: void set_attacker_knockback(CritterPtr, int type, float value)
-    offset: 0x8197
+    opcode: 0x8197
   - name: remove_weapon_knockback
     detail: void remove_weapon_knockback(WeaponPtr)
-    offset: 0x8198
+    opcode: 0x8198
   - name: remove_target_knockback
     detail: void remove_target_knockback(CritterPtr)
-    offset: 0x8199
+    opcode: 0x8199
   - name: remove_attacker_knockback
     detail: void remove_attacker_knockback(CritterPtr)
-    offset: 0x819a
+    opcode: 0x819a
 
 - name: Maps and encounters
   doc: The mapper manual lists the functions `world_map_x_pos` and `world_map_y_pos`, which supposedly return the player's x and y positions on the world map. `get_world_map_x/y_pos` are included here anyway, because I was unable to get those original functions to work, or even to find any evidence that they existed in game.
   items:
   - name: in_world_map
     detail: bool in_world_map
-    offset: 0x8170
+    opcode: 0x8170
     doc: Returns 1 if the player is looking at the world map, or 0 at any other time. Obviously this is only useful in global scripts, since normal scripts will never get the chance to run on the world map.
   - name: force_encounter
     detail: void force_encounter(int map)
-    offset: 0x8171
+    opcode: 0x8171
     doc: Can be called either from a global script while traveling on the world map, or from a normal script while on a local map. In either case the encounter occurs shortly after the next time the player moves on the world map. The player will not get an outdoorsman skill check.
   - name: force_encounter_with_flags
     detail: void force_encounter_with_flags(int map, int flags)
-    offset: 0x8229
+    opcode: 0x8229
     doc: Does the same thing as `force_encounter`, but allows the specification of some extra options. Forcing a random encounter on a map that is not normally used for random encounters may cause the player to lose the car, if they have it. In this case use `force_encounter_with_flags` with the `ENCOUNTER_FLAG_NO_CAR` flag set.
   - name: set_map_time_multi
     detail: void set_map_time_multi(float multi)
-    offset: 0x822a
+    opcode: 0x822a
     doc: Adjusts how fast time passes while you're on the world map. It takes a single float as an argument, where 1 is the normal speed. This function works in addition to the `WorldMapTimeMod` setting in `ddraw.ini` and the Pathfinder perk, rather than overriding it, so calling `set_map_time_multi(0.5)` when the player has 2 levels of Pathfinder would result in time passing at 25% the normal speed on the world map.
   - name: set_world_map_pos
     detail: void set_world_map_pos(int x, int y)
-    offset: 0x8172
+    opcode: 0x8172
   - name: set_map_enter_position
     detail: void set_map_enter_position(int tile, int elevation, int rotation)
     doc: "Overrides the players entry position when entering the map through exit grids. Setting the tile to 0 will put the player on the start hex (default tile and elevation) of the map. Works only in `map_enter_p_proc` procedure."
@@ -450,97 +450,97 @@
   items:
   - name: get_world_map_x_pos
     detail: int get_world_map_x_pos()
-    offset: 0x8173
+    opcode: 0x8173
   - name: get_world_map_y_pos
     detail: int get_world_map_y_pos()
-    offset: 0x8174
+    opcode: 0x8174
 
 - name: Audio
   items:
   - name: eax_available
     detail: int eax_available
-    offset: 0x81a3
+    opcode: 0x81a3
   - name: set_eax_environment
     detail: void set_eax_environment(int environment)
-    offset: 0x81a4
+    opcode: 0x81a4
 
   - name: play_sfall_sound
     detail: int play_sfall_sound(string file, int loop)
-    offset: 0x822b
+    opcode: 0x822b
     doc: Used to play mp3/wav/wma files. The path given is relative to the Fallout folder. Specify loop as 1 to loop the file continuously, or 0 otherwise. If you don't wish to loop, it returns 0. If you do loop, it returns an id which can be passed back to `stop_sfall_sound` when you want to stop the effect. All sounds effects will be stopped on game reload, looping or not. Does not require `AllowDShowSound` to be set to 1 in `ddraw.ini`.
   - name: stop_sfall_sound
     detail: void stop_sfall_sound(int ptr)
-    offset: 0x822c
+    opcode: 0x822c
     doc: Stops looping mp3/wav/wma files previously launched by `play_sfall_sound`. All sounds effects will be stopped on game reload, looping or not. Does not require `AllowDShowSound` to be set to 1 in `ddraw.ini`.
 
 - name: Weapons and ammo
   items:
   - name: get_weapon_ammo_pid
     detail: int get_weapon_ammo_pid(ObjPtr weapon)
-    offset: 0x8217
+    opcode: 0x8217
   - name: set_weapon_ammo_pid
     detail: void set_weapon_ammo_pid(ObjPtr weapon, int pid)
-    offset: 0x8218
+    opcode: 0x8218
   - name: get_weapon_ammo_count
     detail: int get_weapon_ammo_count(ObjPtr weapon)
-    offset: 0x8219
+    opcode: 0x8219
   - name: set_weapon_ammo_count
     detail: void set_weapon_ammo_count(ObjPtr weapon, int count)
-    offset: 0x821a
+    opcode: 0x821a
 
 - name: Sfall
   items:
   - name: sfall_ver_major
     detail: int sfall_ver_major()
-    offset: 0x8210
+    opcode: 0x8210
   - name: sfall_ver_minor
     detail: int sfall_ver_minor()
-    offset: 0x8211
+    opcode: 0x8211
   - name: sfall_ver_build
     detail: int sfall_ver_build()
-    offset: 0x8212
+    opcode: 0x8212
 
 - name: Math
   items:
   - name: log
     detail: float log(float x)
     doc: Natural logarithm of x.
-    offset: 0x8264
+    opcode: 0x8264
   - name: exponent
     detail: float exponent(float x)
     doc: E^X
-    offset: 0x8265
+    opcode: 0x8265
   - name: round
     detail: int round(float x)
     doc: Round x to the nearest integer.
-    offset: 0x8267
+    opcode: 0x8267
   - name: sqrt
     detail: float sqrt(float x)
     doc: Square root of x.
-    offset: 0x81ec
+    opcode: 0x81ec
   - name: abs
     detail: int/float abs(int/float x)
     doc: Absolute (positive) value of x.
-    offset: 0x81ed
+    opcode: 0x81ed
   - name: sin
     detail: float sin(float x)
     doc: Sine of x
-    offset: 0x81ee
+    opcode: 0x81ee
   - name: cos
     detail: float cos(float x)
     doc: Cosine of x
-    offset: 0x81ef
+    opcode: 0x81ef
   - name: tan
     detail: float tan(float x)
     doc: Tangent of x
-    offset: 0x81f0
+    opcode: 0x81f0
   - name: arctan
     detail: float arctan(float x, float y)
     doc: Arctangent of x. Pass 1 as y (don't ask...).
-    offset: 0x81f1
+    opcode: 0x81f1
   - name: ceil
     detail: int ceil(float)
-    offset: 0x8266
+    opcode: 0x8266
     doc: Round x to the nearest integer that is not less than x.
   - name: ^
     detail: x^y
@@ -550,43 +550,43 @@
   items:
   - name: key_pressed
     detail: int key_pressed(int dxScancode)
-    offset: 0x816c
+    opcode: 0x816c
   - name: tap_key
     detail: void tap_key(int dxScancode)
-    offset: 0x8162
+    opcode: 0x8162
   - name: get_mouse_x
     detail: int get_mouse_x()
-    offset: 0x821c
+    opcode: 0x821c
   - name: get_mouse_y
     detail: int get_mouse_y()
-    offset: 0x821d
+    opcode: 0x821d
   - name: get_mouse_buttons
     detail: int get_mouse_buttons()
     doc: Returns the number of the mouse button that is currently pressed (1 - left, 2 - right, 3 - left+right, 4 - middle, 0 otherwise).
-    offset: 0x821e
+    opcode: 0x821e
 
 - name: Lists
   doc: The `list_xxx` functions can be used to loop over all items on a map. `list_begin` takes an argument telling sfall what you want to list. (Defined in `sfall.h`) It returns a list pointer, which you iterate through with `list_next`. Finally, when you've finished with the list use `list_end` on it. Not calling `list_end` will result in a memory leak. Alternatively, use `list_as_array` to get the whole list at once as a temp array variable, which can be looped over using `len_array` and which you don't need to remember to free afterwards.
   items:
   - name: list_begin
     detail: int list_begin(int type)
-    offset: 0x820d
+    opcode: 0x820d
   - name: list_next
     detail: int list_next(int listid)
-    offset: 0x820e
+    opcode: 0x820e
   - name: list_end
     detail: void list_end(int listid)
-    offset: 0x820f
+    opcode: 0x820f
   - name: list_as_array
     detail: array list_as_array(int type)
-    offset: 0x8236
+    opcode: 0x8236
 
 - name: Explosions
   items:
   - name: metarule2_explosions
     detail: int metarule2_explosions(int arg1, int arg2)
     doc: Was made as a dirty easy hack to allow dynamically change some explosion parameters (ranged attack). All changed parameters are reset to vanilla state automatically after each attack action.
-    offset: 0x8261
+    opcode: 0x8261
   - name: set_attack_explosion_pattern
     detail: void set_attack_explosion_pattern(x, y)
     doc: 'Currently y is not used and x means: 1 - reduced explosion pattern (3 effects are spawned instead of 7), 0 - full pattern.'
@@ -620,48 +620,48 @@
   - name: reg_anim_combat_check
     detail: void reg_anim_combat_check(int enable)
     doc: Allows to enable all `reg_anim_*` functions in combat (including vanilla functions) if set to 0. It is automatically reset at the end of each frame, so you need to call it before `reg_anim_begin` - `reg_anim_end` block.
-    offset: 0x825c
+    opcode: 0x825c
   - name: reg_anim_destroy
     detail: void reg_anim_destroy(ObjPtr)
     doc: Given object is destroyed at the end of current animation set.
-    offset: 0x825a
+    opcode: 0x825a
   - name: reg_anim_animate_and_hide
     detail: void reg_anim_animate_and_hide(ObjPtr, int animID, int delay)
     doc: Exactly like `reg_anim_animate` but the object will automatically disappear after the last animation frame (but not destroyed).
-    offset: 0x825b
+    opcode: 0x825b
   - name: reg_anim_light
     detail: void reg_anim_light(ObjPtr, int light, int delay)
     doc: 'Change light of any object. Light argument is a light radius (0-8), but you can use highest 2 bytes to pass light intensity as well (example: 0xFFFF0008 - intensity 65535 and radius 8). If highest 2 bytes are 0, intensity will not be changed. Intensity range is from 0 to 65535 (0xFFFF)'
-    offset: 0x825d
+    opcode: 0x825d
   - name: reg_anim_change_fid
     detail: void reg_anim_change_fid(ObjPtr, int FID, int delay)
     doc: Should work like `art_change_fid_num` but in `reg_anim` sequence.
-    offset: 0x825e
+    opcode: 0x825e
   - name: reg_anim_take_out
     detail: void reg_anim_take_out(ObjPtr, holdFrameID, delay)
     doc: Plays "take out weapon" animation for given `holdFrameID`. It is not required to have such weapon in critter's inventory.
-    offset: 0x825f
+    opcode: 0x825f
   - name: reg_anim_turn_towards
     detail: void reg_anim_turn_towards(ObjPtr, int tile/target, delay)
     doc: Makes object change its direction to face given tile num or target object.
-    offset: 0x8260
+    opcode: 0x8260
 
 - name: Tiles
   items:
   - name: get_tile_fid
     detail: int get_tile_fid(int tile)
-    offset: 0x823a
+    opcode: 0x823a
   - name: tile_under_cursor
     detail: int tile_under_cursor
-    offset: 0x824b
+    opcode: 0x824b
   - name: tile_light
     detail: int tile_light(int elevation, int tileNum)
     doc: Returns light intensity at the given tile in range from 0 to 65535.
-    offset: 0x826d
+    opcode: 0x826d
   - name: tile_get_objs
     detail: array tile_get_objs(int tileNum, int elevation)
     doc: Returns array of all objects at given tile. It will include any hidden, dead or system objects (like cursor), so make sure to check properly when iterating.
-    offset: 0x8270
+    opcode: 0x8270
   - name: tile_refresh_display
     detail: void tile_refresh_display()
     doc: Redraws the game scene (tiles, walls, objects, etc.).
@@ -670,254 +670,254 @@
   items:
   - name: input_funcs_available
     detail: int input_funcs_available()
-    offset: 0x816b
+    opcode: 0x816b
     doc: The input functions are only available if the user has the input hook turned on in `ddraw.ini`. Use `input_funcs_available` to check.
   - name: get_window_under_mouse
     detail: int get_window_under_mouse()
-    offset: 0x821f
+    opcode: 0x821f
   - name: get_year
     detail: int get_year
-    offset: 0x8163
+    opcode: 0x8163
   - name: set_global_script_repeat
     detail: void set_global_script_repeat(int frames)
-    offset: 0x816a
+    opcode: 0x816a
     doc: Only has an effect on the script it is called from. Every global script needs its own `game_loaded` block to correctly set up repeat rate. Will have no effect if called on a non-global script.
   - name: set_global_script_type
     detail: void set_global_script_type(int type)
-    offset: 0x819b
+    opcode: 0x819b
     doc: Only has an effect on the script it is called from. Every global script needs its own `game_loaded` block to correctly set up the script type.
   - name: available_global_script_types
     detail: int available_global_script_types
-    offset: 0x819c
+    opcode: 0x819c
   - name: set_dm_model
     detail: void set_dm_model(string name)
-    offset: 0x8175
+    opcode: 0x8175
   - name: set_df_model
     detail: void set_df_model(string name)
-    offset: 0x8176
+    opcode: 0x8176
   - name: set_movie_path
     detail: void set_movie_path(string filename, int movieid)
-    offset: 0x8177
+    opcode: 0x8177
   - name: set_pipboy_available
     detail: void set_pipboy_available(int available)
     doc: Will only accept 0 or 1 as an argument. Using any other value will cause the function to have no effect. Use 0 to disable the pipboy, and 1 to enable it.
-    offset: 0x818b
+    opcode: 0x818b
   - name: get_kill_counter
     detail: int get_kill_counter(int critterType)
-    offset: 0x818c
+    opcode: 0x818c
   - name: mod_kill_counter
     detail: void mod_kill_counter(int critterType, int amount)
-    offset: 0x818d
+    opcode: 0x818d
   - name: get_critter_current_ap
     detail: int get_critter_current_ap(CritterPtr)
-    offset: 0x8191
+    opcode: 0x8191
     doc: Should only be used during the target critters turn while in combat. Calling it outside of combat typically returns the critters max ap, but don't rely on that behaviour. (Specifically, if the critter has never before entered combat, it will probably return the critters base ap ignoring any extra bonuses from perks etc.)
   - name: set_critter_current_ap
     detail: void set_critter_current_ap(CritterPtr, int ap)
-    offset: 0x8192
+    opcode: 0x8192
     doc: Should only be used during the target critters turn while in combat. Using it on the player will not automatically redraw the screen, so the ap bar will be incorrect until the player next clicks.
   - name: active_hand
     detail: int active_hand
-    offset: 0x8193
+    opcode: 0x8193
   - name: toggle_active_hand
     detail: void toggle_active_hand
-    offset: 0x8194
+    opcode: 0x8194
   - name: set_pickpocket_max
     detail: void set_pickpocket_max(int percentage)
-    offset: 0x81a0
+    opcode: 0x81a0
     doc: Effects all critters rather than just the player.
   - name: set_hit_chance_max
     detail: void set_hit_chance_max(int percentage)
-    offset: 0x81a1
+    opcode: 0x81a1
     doc: Effects all critters rather than just the player.
   - name: set_skill_max
     detail: void set_skill_max(int value)
-    offset: 0x81a2
+    opcode: 0x81a2
     doc: Can't be used to increase the skill cap above 300.
   - name: set_xp_mod
     detail: void set_xp_mod(int percentage)
-    offset: 0x81aa
+    opcode: 0x81aa
   - name: set_critter_hit_chance_mod
     detail: void set_critter_hit_chance_mod(CritterPtr, int max, int mod)
-    offset: 0x81c5
+    opcode: 0x81c5
   - name: set_base_hit_chance_mod
     detail: void set_base_hit_chance_mod(int max, int mod)
-    offset: 0x81c6
+    opcode: 0x81c6
   - name: set_critter_skill_mod
     detail: void set_critter_skill_mod(CritterPtr, int max)
-    offset: 0x81c7
+    opcode: 0x81c7
   - name: set_base_skill_mod
     detail: void set_base_skill_mod(int max)
-    offset: 0x81c8
+    opcode: 0x81c8
   - name: inc_npc_level
     detail: void inc_npc_level(string npc)
-    offset: 0x81a5
+    opcode: 0x81a5
     doc: Takes a party member PID or an NPC name (deprecated, for compatibility with sfall 4.1.5/3.8.15 or earlier) as an argument. The NPC must be in your party. This function ignores player level requirements and the minimum 3 player level delay between NPC level gains. It also ignores the random element, regardless of sfall's `NPCAutoLevel` setting.
   - name: get_npc_level
     detail: int get_npc_level(string npc)
-    offset: 0x8241
+    opcode: 0x8241
   - name: get_viewport_x
     detail: int get_viewport_x()
-    offset: 0x81a6
+    opcode: 0x81a6
   - name: get_viewport_y
     detail: int get_viewport_y()
-    offset: 0x81a7
+    opcode: 0x81a7
   - name: set_viewport_x
     detail: void set_viewport_x(int view_x)
-    offset: 0x81a8
+    opcode: 0x81a8
   - name: set_viewport_y
     detail: void set_viewport_y(int view_y)
-    offset: 0x81a9
+    opcode: 0x81a9
   - name: set_car_current_town
     detail: void set_car_current_town(int town)
-    offset: 0x81b6
+    opcode: 0x81b6
     doc: Changes the current town index for the player's car.
   - name: set_pyromaniac_mod
     detail: void set_pyromaniac_mod(int bonus)
-    offset: 0x81cb
+    opcode: 0x81cb
   - name: apply_heaveho_fix
     detail: void apply_heaveho_fix
-    offset: 0x81cc
+    opcode: 0x81cc
   - name: set_swiftlearner_mod
     detail: void set_swiftlearner_mod(int bonus)
-    offset: 0x81cd
+    opcode: 0x81cd
   - name: set_hp_per_level_mod
     detail: void set_hp_per_level_mod(int mod)
-    offset: 0x81ce
+    opcode: 0x81ce
 
   - name: get_bodypart_hit_modifier
     detail: int get_bodypart_hit_modifier(int bodypart)
-    offset: 0x81df
+    opcode: 0x81df
     doc: Gets the hit percentage modifiers for aiming at specific bodyparts. Valid bodypart id's are from 0 to 8.
   - name: set_bodypart_hit_modifier
     detail: void set_bodypart_hit_modifier(int bodypart, int value)
-    offset: 0x81e0
+    opcode: 0x81e0
     doc: Alters the hit percentage modifiers for aiming at specific bodyparts. Valid bodypart id's are from 0 to 8. Changes are not saved, and will reset to the defaults (or to the values specified in ddraw.ini if they exist) at each reload.
 
   - name: set_critical_table
     detail: void set_critical_table(int crittertype, int bodypart, int level, int valuetype, int value)
-    offset: 0x81e1
+    opcode: 0x81e1
     doc: Used for modifying the critical table. For details see [critical hit tables](http://falloutmods.wikia.com/wiki/Critical_hit_tables). Changes are not saved, and will reset to the defaults, (or to the contents of `CriticalOverrides.ini`, if it exists) at each game reload. Requires `OverrideCriticalTable` to be set to 1 in `ddraw.ini`. (Disabled by default, because it noticably increases loading times.)
   - name: get_critical_table
     detail: int get_critical_table(int crittertype, int bodypart, int level, int valuetype)
-    offset: 0x81e2
+    opcode: 0x81e2
     doc: Gets current critical table. For details see [critical hit tables](http://falloutmods.wikia.com/wiki/Critical_hit_tables). Requires `OverrideCriticalTable` to be set to 1 in `ddraw.ini`. (Disabled by default, because it noticably increases loading times.)
   - name: reset_critical_table
     detail: void reset_critical_table(int crittertype, int bodypart, int level, int valuetype)
-    offset: 0x81e3
+    opcode: 0x81e3
     doc: Resets the critical table to default (or to the contents of `CriticalOverrides.ini`, if it exists). For details see 'http://falloutmods.wikia.com/wiki/Critical_hit_tables'. Requires `OverrideCriticalTable` to be set to 1 in `ddraw.ini`. (Disabled by default, because it noticably increases loading times.)
 
   - name: set_unspent_ap_bonus
     detail: void set_unspent_ap_bonus(int multiplier)
-    offset: 0x81e6
+    opcode: 0x81e6
     doc: Alter the AC bonus you receive per unused action point at the end of your turn in combat. To allow for fractional values, the value given if divided by 4. (Hence the default value is 4 and not 1.)
   - name: get_unspent_ap_bonus
     detail: int get_unspent_ap_bonus()
     doc: Gets the AC bonus you receive per unused action point at the end of your turn in combat. To allow for fractional values, the value given if divided by 4. (Hence the default value is 4 and not 1.)
-    offset: 0x81e7
+    opcode: 0x81e7
   - name: set_unspent_ap_perk_bonus
     detail: void set_unspent_ap_perk_bonus(int multiplier)
-    offset: 0x81e8
+    opcode: 0x81e8
     doc: Similar to `set_unspent_ap_bonus`, but effects the extra AC granted by the h2h evade perk. (The default value of this is also 4, equivalent to doubling the original bonus.
   - name: get_unspent_ap_perk_bonus
     detail: int get_unspent_ap_perk_bonus()
-    offset: 0x81e9
+    opcode: 0x81e9
     doc: Similar to `get_unspent_ap_bonus`, but accounts for the extra AC granted by the h2h evade perk. (The default value of this is also 4, equivalent to doubling the original bonus.
 
   - name: remove_script
     detail: void remove_script(ObjPtr)
-    offset: 0x81f3
+    opcode: 0x81f3
     doc: Accepts a pointer to an object and will remove the script from that object.
   - name: set_script
     detail: void set_script(ObjPtr, int scriptid)
-    offset: 0x81f4
+    opcode: 0x81f4
     doc: Accepts a pointer to an object and scriptID, and applies the given script to an object (scriptID accept the same values as `create_object_sid `from sfall 3.6). If used on an object that is already scripted, it will remove the existing script first; you cannot have multiple scripts attached to a single object. Calling `set_script` on `self_obj` will have all sorts of wacky side effects, and should be avoided. If you add 0x80000000 to the sid when calling `set_script`, `map_enter_p_proc` will be SKIPPED. The `start` proc will always be run.
   - name: get_script
     detail: int get_script(ObjPtr)
-    offset: 0x81f5
+    opcode: 0x81f5
     doc: Accepts a pointer to an object and returns its scriptID (line number in `scripts.lst`), or -1 if the object is unscripted.
 
   - name: nb_create_char
     detail: int nb_create_char()
-    offset: 0x81f6
+    opcode: 0x81f6
     doc: "`nb_*` functions are reserved for the brotherhood tactical training mod, and should be avoided."
 
   - name: get_proto_data
     detail: int get_proto_data(int pid, int offset)
-    offset: 0x8204
+    opcode: 0x8204
     doc: Used to read the in-memory copies of the .pro files Fallout makes when they are loaded. The offset refers to the offset in memory from the start of the proto to the element you are reading.
   - name: set_proto_data
     detail: void set_proto_data(int pid, int offset, int value)
-    offset: 0x8205
+    opcode: 0x8205
     doc: Used to alter the in-memory copies of the .pro files Fallout makes when they are loaded. The offset refers to the offset in memory from the start of the proto to the element you are reading. Changes are not stored on disc, and are not permanent. If you modify the protos, and then Fallout subsequently reloads the file your changes will be lost.
 
   - name: hero_select_win
     detail: void hero_select_win(int)
-    offset: 0x8213
+    opcode: 0x8213
   - name: set_hero_race
     detail: void set_hero_race(int style)
-    offset: 0x8214
+    opcode: 0x8214
   - name: set_hero_style
     detail: void set_hero_style(int style)
-    offset: 0x8215
+    opcode: 0x8215
   - name: set_critter_burst_disable
     detail: void set_critter_burst_disable(int critter, int disable)
-    offset: 0x8216
+    opcode: 0x8216
   - name: stop_game
     detail: void stop_game()
-    offset: 0x8222
+    opcode: 0x8222
   - name: resume_game
     detail: void resume_game()
-    offset: 0x8223
+    opcode: 0x8223
   - name: create_message_window
     detail: void create_message_window(string message)
-    offset: 0x8224
+    opcode: 0x8224
   - name: get_light_level
     detail: int get_light_level()
-    offset: 0x8226
+    opcode: 0x8226
     doc: Returns ambient light level in range 0..65536. The value returned by get_light_level may not exactly match that set by `set_light_level`, as `set_light_level` applies modifiers from the Night Vision perk.
   - name: refresh_pc_art
     detail: void refresh_pc_art
-    offset: 0x8227
+    opcode: 0x8227
   - name: get_attack_type
     detail: int get_attack_type
-    offset: 0x8228
+    opcode: 0x8228
   - name: atoi
     detail: int atoi(string text)
-    offset: 0x8237
+    opcode: 0x8237
   - name: atof
     detail: float atof(string text)
-    offset: 0x8238
+    opcode: 0x8238
   - name: modified_ini
     detail: int modified_ini
-    offset: 0x823b
+    opcode: 0x823b
 
   - name: force_aimed_shots
     detail: void force_aimed_shots(int pid)
-    offset: 0x823e
+    opcode: 0x823e
     doc: Allows overriding the normal rules regarding which weapons are allowed to make aimed attacks. (e.g. weapons that cause explosive damage normally cannot normally make aimed shots.) Will allow a weapon to make aimed shots even if it normally couldn't. Affects player and NPCs alike. Does not override the effects of the fast shot trait. The list of edited weapons is not saved over game loads, so you need to call the function once at each reload. Use a pid of 0 to represent unarmed.
   - name: disable_aimed_shots
     detail: void disable_aimed_shots(int pid)
-    offset: 0x823f
+    opcode: 0x823f
     doc: Allows overriding the normal rules regarding which weapons are allowed to make aimed attacks. (e.g. weapons that cause explosive damage normally cannot normally make aimed shots.) stops a weapon from making aimed shots even if it normally coulld. Affects player and NPCs alike. The list of edited weapons is not saved over game loads, so you need to call the function once at each reload. Use a pid of 0 to represent unarmed.
 
   - name: mark_movie_played
     detail: void mark_movie_played(int id)
-    offset: 0x8240
+    opcode: 0x8240
   - name: gdialog_get_barter_mod
     detail: int gdialog_get_barter_mod
-    offset: 0x824c
+    opcode: 0x824c
   - name: set_inven_ap_cost
     detail: void set_inven_ap_cost
-    offset: 0x824d
+    opcode: 0x824d
   - name: block_combat
     detail: void block_combat(bool value)
     doc: Deny the player to enter combat mode.
-    offset: 0x824a
+    opcode: 0x824a
   - name: game_loaded
     detail: int game_loaded()
     doc: Returns 1 the first time it is called after a new game or game load, and 0 any time after. It works on an individual basis for each script, so one script wont interfere with others. Its primary use is for global scripts, so that they know when to call `set_global_script_repeat`, but it can be called from normal scripts too.
-    offset: 0x8164
+    opcode: 0x8164
 
   - name: get_ini_setting
     detail: int get_ini_setting(string setting)
@@ -927,20 +927,20 @@
       - The file name is limited to 63 chars, including the extension.
       - The section name is limited to 32 characters.
       - It can also be used to get sfall's settings, by using `ddraw.ini` as the file name.
-    offset: 0x81ac
+    opcode: 0x81ac
   - name: get_ini_string
     detail: string get_ini_string(string setting)
     doc: Reads a string value from an ini file in the fallout directory.
-    offset: 0x81eb
+    opcode: 0x81eb
 
   - name: get_game_mode
     detail: int get_game_mode()
     doc: A more flexible version of in_world_map. It will return a set of flags indicating which mode the game is currently in. These flags are the same as those used in the `set_shader_mode function`.
-    offset: 0x81af
+    opcode: 0x81af
   - name: get_uptime
     detail: int get_uptime()
     doc: Just a wrapper around the windows GetTickCount() function. It's useful for making time fade effects in shaders, since they already have access to the current tick count.
-    offset: 0x81b3
+    opcode: 0x81b3
 
   - name: set_self
     detail: void set_self(ObjPtr)
@@ -951,57 +951,57 @@
       - Calling `self_obj(0)` will also revert `self_obj` to original value. It is recommended to call this after each use of `set_self` in normal scripts in order to avoid unforeseen side effects.
       - `source_obj`, `target_obj`, and similar functions will not work if preceded by `set_self`.
       - __NOTE:__ for `use_obj/use_obj_on_obj` vanilla functions to work correctly, it is required to call `set_self` twice.
-    offset: 0x8206
+    opcode: 0x8206
 
   - name: mod_skill_points_per_level
     detail: void mod_skill_points_per_level(int value)
     doc: Accepts a value of between -100 and 100, and modifies the number of skill points the player recieves when they level up. This is a modification of what would otherwise happen, rather than a replacement. The value is not saved into the save game, so should be reset in the `game_loaded` section of a script.
 
-    offset: 0x8246
+    opcode: 0x8246
   - name: get_last_target
     detail: ObjectPtr get_last_target(ObjPtr critter)
     doc: Will return the last critter to be deliberately attacked. Outside of combat always returns 0.
-    offset: 0x8248
+    opcode: 0x8248
   - name: get_last_attacker
     detail: ObjectPtr get_last_attacker(ObjPtr critter)
     doc: Will return the last critter to deliberately launch an attack against the argument critter. If a critter has not launched/received an attack, it will return 0. Outside of combat always returns 0.
-    offset: 0x8249
+    opcode: 0x8249
 
   - name: set_base_pickpocket_mod
     detail: void set_base_pickpocket_mod(int max, int mod)
     doc: Changes maximum chance of success and chance mod for each steal attempt. `max` will replace 95% success chance cap (so you can set 100% maximum chance, for instance). `mod` will add this much percent to each success chance. for example if your chance is 50% and `mod` is 20, you will get 70% actual success rate
-    offset: 0x81ca
+    opcode: 0x81ca
   - name: set_critter_pickpocket_mod
     detail: void set_critter_pickpocket_mod(CritterPtr, int max, int mod)
     doc: The same as `set_base_pickpocket`, but applies only to specific critter.
-    offset: 0x81c9
+    opcode: 0x81c9
 
   - name: string_split
     detail: array string_split(string, split)
     doc: "Takes a string and a seperator, searches the string for all instances of the seperator, and returns a temp array filled with the pieces of the string split at each instance. If you give an empty string as the seperator, the string is split into individual characters. You can use this to search for a substring in a string like this: `strlen(get_array(string_split(haystack, needle), 0))`"
-    offset: 0x8235
+    opcode: 0x8235
 
   - name: substr
     detail: string substr(string, start, length)
     doc: 'Cuts a substring from a string starting at `start` up to `length` characters. If `start` is negative - it indicates starting position from the end of the string (for example `substr("test", -2, 2)` will return last 2 characters: "st"). If `length` is negative - it means so many characters will be omitted from the end of string (example: `substr("test", 0, -2)` will return string without last 2 characters: "te")'
 
-    offset: 0x824e
+    opcode: 0x824e
   - name: strlen
     detail: int strlen(string text)
     doc: Returns string length.
-    offset: 0x824f
+    opcode: 0x824f
   - name: sprintf
     detail: string sprintf(string format, any value)
     doc: Formats given value using standart syntax of C printf function (google "printf" for format details). However it is limited to formatting only 1 value. Can be used to get character by ASCII code ("%c").
-    offset: 0x8250
+    opcode: 0x8250
   - name: typeof
     detail: int typeof(any value)
     doc: 'Returns type of the given value: VALTYPE_INT, VALTYPE_FLOAT or VALTYPE_STR.'
-    offset: 0x8253
+    opcode: 0x8253
   - name: charcode
     detail: int charcode(string text)
     doc: Returns ASCII code for the first character in given string.
-    offset: 0x8251
+    opcode: 0x8251
 
   - name: message_str_game
     detail: string message_str_game(int fileId, int messageId)
@@ -1009,55 +1009,55 @@
       Works exactly the same as message_str, except you get messages from files in `text/english/game` folder. Use `GAME_MSG_*` defines or `mstr_*` macros from `sfall.h` to use specific msg file
       - Additional game msg files added by `ExtraGameMsgFileList` setting will have consecutive fileIds assigned beginning from 0x2000. (e.g. if you set `ExtraGameMsgFileList=foo,bar` in `ddraw.ini`, `foo.msg` will be associated with 0x2000 and `bar.msg` with 0x2001.).
       - If a file has a specific number assigned in `ExtraGameMsgFileList`, its fileId will be (0x2000 + assigned number). (e.g. with `ExtraGameMsgFileList=foo,bar:2,foobar` in `ddraw.ini`, `bar.msg` will be associated with 0x2002 and `foobar.msg` with 0x2003.)
-    offset: 0x826b
+    opcode: 0x826b
 
   - name: sneak_success
     detail: int sneak_success
     doc: Returns 1 if last sneak attempt (roll against skill) was successful, 0 otherwise. This calls an internal engine function which is used to determine the perception range of critters (which you can override using `HOOK_WITHINPERCEPTION`).
-    offset: 0x826c
+    opcode: 0x826c
 
   - name: obj_blocking_line
     detail: ObjectPtr obj_blocking_line(ObjectPtr objFrom, int tileTo, int blockingType)
     doc: Returns first object which blocks direct linear path from `objFrom` to `tileTo` using selected blocking function (see `BLOCKING_TYPE_*` constants in `sfall.h`). If path is clear (no blocker was encountered by selected function) - returns 0. `objFrom` is always excluded from calculations, but is required to be a valid object.
 
-    offset: 0x826e
+    opcode: 0x826e
   - name: obj_blocking_tile
     detail: ObjectPtr obj_blocking_tile(int tileNum, int elevation, int blockingType)
     doc: Returns first object blocking given tile using given blocking function or 0 if tile is clear.
-    offset: 0x826f
+    opcode: 0x826f
   - name: party_member_list
     detail: array party_member_list(int includeHidden)
     doc: Returns array of all current party members. 0 - only critter-type, alive and visible will be returned, 1 - all object, including Trunk, etc.
-    offset: 0x8271
+    opcode: 0x8271
   - name: path_find_to
     detail: array path_find_to(ObjectPtr objFrom, int tileTo, int blockingType)
     doc: Returns the shortest path to a given tile using given blocking function as an array of tile directions (0..5) to move on each step. Array length equals to a number of steps. Empty array means that specified target cannot be reached.
-    offset: 0x8272
+    opcode: 0x8272
   - name: create_spatial
     detail: ObjectPtr create_spatial(int scriptID, int tile, int elevation, int radius)
     doc: Creates new spatial script with given SID, at given tile, and radius.
-    offset: 0x8273
+    opcode: 0x8273
   - name: art_exists
     detail: int art_exists(int artFID)
     doc: 'checks if given artFID exists in the game. Useful when you want to check if critter can use specific weapon: `art_exists((artFid bwand 0xffff0fff) bwor (weaponAnim * 0x1000))`.'
-    offset: 0x8274
+    opcode: 0x8274
   - name: obj_is_carrying_obj
     detail: int (ObjectPtr invenObj, ObjectPtr itemObj)
     doc: Returns number of `itemObj` inside invenObj's inventory, note that both arguments are object pointers. useful when dealing with different stacks of same item (`obj_is_carrying_obj_pid` just returns total for all stacks of the same PID.)
-    offset: 0x8275
+    opcode: 0x8275
 
 - name: Interface
   doc: These functions relate to the boxes that appear above the interface such as SNEAK and LEVEL. You can use 3 for LEVEL and 4 for ADDICT, or the range from 5 to (4 + the value of `BoxBarCount` in `ddraw.ini`) for custom boxes. Remember to add your messages to `intrface.msg` and set up the font colours in `ddraw.ini` if you're going to use custom boxes. 
   items:
   - name: show_iface_tag
     detail: void show_iface_tag(int tag)
-    offset: 0x81dc
+    opcode: 0x81dc
   - name: hide_iface_tag
     detail: void hide_iface_tag(int tag)
-    offset: 0x81dd
+    opcode: 0x81dd
   - name: is_iface_tag_active
     detail: int is_iface_tag_active(int tag)
-    offset: 0x81de
+    opcode: 0x81de
     doc: Starting from sfall 4.1, can also be used to check 0 for SNEAK, 1 for POISONED, and 2 for RADIATED.
 
 - name: Global variables
@@ -1065,13 +1065,13 @@
   items:
   - name: set_sfall_global
     detail: void set_sfall_global(string/int varname, int/float value)
-    offset: 0x819d
+    opcode: 0x819d
   - name: get_sfall_global_int
     detail: int get_sfall_global_int(string/int varname)
-    offset: 0x819e
+    opcode: 0x819e
   - name: get_sfall_global_float
     detail: float get_sfall_global_float(string/int varname)
-    offset: 0x819f
+    opcode: 0x819f
 
 - name: Hook functions
   parent: Hooks # normal page
@@ -1079,27 +1079,27 @@
   - name: init_hook
     detail: int init_hook()
     doc: The hook script equivalent of game_loaded; it returns 2 when the script is first loaded, 1 when the player reloads and 0 otherwise.
-    offset: 0x81ea
+    opcode: 0x81ea
   - name: get_sfall_arg
     detail: mixed get_sfall_arg()
     doc: Gets the next argument from sfall. Each time it’s called it returns the next argument, or otherwise it returns 0 if there are no more arguments left.
-    offset: 0x81e4
+    opcode: 0x81e4
   - name: get_sfall_args
     detail: int get_sfall_args()
     doc: Returns all hook arguments as a new temp array.
-    offset: 0x823c
+    opcode: 0x823c
   - name: set_sfall_return
     detail: void set_sfall_return(int value)
     doc: Used to return the new values from the script. Each time it's called it sets the next value, or if you've already set all return values it does nothing.
-    offset: 0x81e5
+    opcode: 0x81e5
   - name: set_sfall_arg
     detail: void set_sfall_arg(int argnum, int value)
     doc: Changes argument value. This is usefull if you have several hook scripts attached to one hook point (see `register_hook_proc`).
-    offset: 0x823d
+    opcode: 0x823d
   - name: register_hook
     detail: void register_hook(int hooktype)
     doc: Used from a normal global script if you want to run it at the same point a full hook script would normally run. In case of this function, `start` proc will be executed in current global script. You can use all above functions like normal.
-    offset: 0x8207
+    opcode: 0x8207
   - name: register_hook_proc
     detail: void register_hook_proc(int hooktype, proc procedure)
     doc: |
@@ -1131,7 +1131,7 @@
       So if you combine both mods together, they will run in chain and the end result will be a 75% from original hit chance (hook register order doesn't matter in this case, if you use `set_sfall_arg` in both hooks).
 
       The defines to use for the hooktype are in `sfall.h`.
-    offset: 0x8262
+    opcode: 0x8262
 
 - name: Array functions
   parent: Arrays # not in this files, normal page
@@ -1139,86 +1139,86 @@
   - name: create_array
     detail: int create_array(int size, int nothing)
     doc: Creates permanent array (but not "saved").
-    offset: 0x822d
+    opcode: 0x822d
   - name: temp_array
     detail: int temp_array(int size, int nothing)
     doc: Works exactly like "create_array", only created array becomes "temporary."
-    offset: 0x8233
+    opcode: 0x8233
   - name: fix_array
     detail: void fix_array(int arrayID)
     doc: Changes "temporary" array into "permanent" ("permanent" arrays are not automatically saved into savegames).
-    offset: 0x8234
+    opcode: 0x8234
   - name: set_array
     detail: void set_array(int arrayID, mixed key, mixed value)
     doc: 'Sets array value (shorthand: arrayID[key] := value).'
-    offset: 0x822e
+    opcode: 0x822e
   - name: get_array
     detail: mixed get_array(int arrayID, mixed key)
     doc: 'Returns array value by key or index (shorthand: arrayID[key]).'
-    offset: 0x822f
+    opcode: 0x822f
   - name: resize_array
     detail: void resize_array(int arrayID, int size)
     doc: Changes array size.
-    offset: 0x8232
+    opcode: 0x8232
   - name: free_array
     detail: void free_array(int arrayID)
     doc: Deletes any array.
-    offset: 0x8230
+    opcode: 0x8230
   - name: scan_array
     detail: mixed scan_array(int arrayID, mixed value)
     doc: Searches for a first occurence of given value inside given array.
-    offset: 0x8239
+    opcode: 0x8239
   - name: len_array
     detail: int len_array(int arrayID)
     doc: Returns number of elements or key=>value pairs in a given array.
-    offset: 0x8231
+    opcode: 0x8231
   - name: array_key
     detail: mixed array_key(int arrayID, int index)
     doc: Don't use it directly; it is generated by the compiler in foreach loops.
-    offset: 0x8256
+    opcode: 0x8256
   - name: arrayexpr
     detail: int arrayexpr(mixed key, mixed value)
     doc: Don't use it directly; it is used by compiler to create array expressions.
-    offset: 0x8257
+    opcode: 0x8257
   - name: save_array
     detail: void save_array(mixed key, int arrayID)
     doc: Array is saved (arrayID is associated with given "key").
-    offset: 0x8254
+    opcode: 0x8254
   - name: load_array
     detail: int load_array(mixed key)
     doc: Load array from savegame data by the same key provided in "save_array".
-    offset: 0x8255
+    opcode: 0x8255
 
 - name: Sfall funcX
   items:
   - name: sfall_func0
     detail: any sfall_func0(char* funcName)
     doc: Calls scripting function with given name and no arguments.
-    offset: 0x8276
+    opcode: 0x8276
   - name: sfall_func1
     detail: any sfall_func1(char* funcName, arg1)
     doc: Calls scripting function with given name and 1 argument.
-    offset: 0x8277
+    opcode: 0x8277
   - name: sfall_func2
     detail: any sfall_func2(char* funcName, arg1, arg2)
     doc: Calls scripting function with given name and 2 arguments.
-    offset: 0x8278
+    opcode: 0x8278
   - name: sfall_func3
     detail: any sfall_func3(char* funcName, arg1, arg2, arg3)
     doc: Calls scripting function with given name and 3 arguments.
-    offset: 0x8279
+    opcode: 0x8279
   - name: sfall_func4
     detail: any sfall_func4(char* funcName, arg1, arg2, arg3, arg4)
     doc: Calls scripting function with given name and 4 arguments.
-    offset: 0x827a
+    opcode: 0x827a
   - name: sfall_func5
     detail: any sfall_func5(char* funcName, arg1, arg2, arg3, arg4, arg5)
     doc: Calls scripting function with given name and 5 arguments.
-    offset: 0x827b
+    opcode: 0x827b
   - name: sfall_func6
     detail: any sfall_func6(char* funcName, arg1, arg2, arg3, arg4, arg5, arg6)
     doc: Calls scripting function with given name and 6 arguments
-    offset: 0x827c
+    opcode: 0x827c
 
 - name: Sfall funcX macros
   items:
