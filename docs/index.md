@@ -5,7 +5,12 @@ permalink: /
 nav_order: 1
 ---
 
-# Sfall
+
+## Sfall
+{: .no_toc}
+
+* TOC
+{: toc}
 
 Sfall is a set of engine modifications for the classic game Fallout 2 in form of a DLL, which modifies executable in memory without changing anything in EXE file itself.
 
@@ -16,3 +21,21 @@ Engine modifications include:
 * Bug fixes
 * Many additional features for users, such as item highlight button, party member control, etc.
 * Extended scripting capabilities for modders (many new opcodes to control sfall features as well as previously unavailable vanilla engine functions)
+
+## Getting started
+
+This is documentation for Sfall specifically, not Fallout scripting in general. For vanilla function reference, refer to the [wiki](https://falloutmods.fandom.com/wiki/Fallout_1_and_Fallout_2_scripting_-_commands,_reference,_tutorials).
+
+To get started with Sfall, first familiarize yourself with new concepts:
+* [Global scripts](global-scripts/)
+* [Global variables](global-variables/)
+* [Arrays](arrays/)
+* [Hooks](hooks/)
+* [Data types](data-types/)
+* [Lists](lists/)
+
+Functions are categorized, use the menu to find the one you need. If you can't, also check [uncategorized functions](other/) list and [Sfall macros](sfall-funcx-macros/).
+
+## Questions and problems
+* Report bugs and suggest features on [Github](https://github.com/phobos2077/sfall/issues).
+* Ask questions and discuss on the [forum](http://nma-fallout.com/threads/fo2-engine-tweaks-sfall.178390/).
