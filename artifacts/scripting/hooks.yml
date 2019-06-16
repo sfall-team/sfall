@@ -1,3 +1,9 @@
+# Format:
+# - name: Human readable hook name    # HOOK_BLABLA and hs_blabla.int are generated from this
+#   doc: |
+#     Hook documentation, markdown format.
+#     Can be multiline.
+
 - name: ToHit
   doc: |
     Runs when Fallout is calculating the chances of an attack striking a target. Runs after the hit chance is fully calculated normally, including applying the 95% cap.
