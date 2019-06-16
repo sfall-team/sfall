@@ -22,32 +22,32 @@ has_children: true
 
 with open(yaml_path) as yf:
   data = yaml.load(yf)
-  for d in data:
-    topics = data[d]['topics']
-    for t in topics:
-      text = ""
-      parent = ""
-      if 'parent' in t:
-        parent = "parent: " + t['parent']
-      header = header_template.format(name=t['name'], parent=parent)
-      text += header
+  for cat in data: # list categories
+    text = ""
+    parent = ""
+    # if parent is present, this is a subcategory
+    if 'parent' in cat:
+      parent = "parent: " + cat['parent']
+    header = header_template.format(name=cat['name'], parent=parent)
+    text += header
 
-      if 'doc' in t:
-        text = text + '\n' + t['doc'] + '\n'
-      text = text + "\n * TOC\n{:toc}\n"
-      # functions
-      items = t['items']
-      items = sorted(items, key=lambda k: k['name']) 
-      for i in items:
-        text += "### {}\n".format(i['name'])
-        text += '''```c++
+    # common doc for category
+    if 'doc' in cat:
+      text = text + '\n' + cat['doc'] + '\n'
+    text = text + "\n * TOC\n{:toc}\n"
+    # individual functions
+    items = cat['items']
+    items = sorted(items, key=lambda k: k['name']) 
+    for i in items:
+      text += "### {}\n".format(i['name'])
+      text += '''```c++
 {}
 ```
 '''.format(i['detail'])
-        if 'doc' in i:
-          text += i['doc']
-          text += '\n\n'
+      if 'doc' in i:
+        text += i['doc']
+        text += '\n\n'
 
-      md_path = os.path.join(md_dir, t['name'].lower().replace(' ','-').replace(':','-').replace('/','-').replace('--','-') + ".md")
-      with open(md_path, 'w') as f:
-        f.write(text)
+    md_path = os.path.join(md_dir, cat['name'].lower().replace(' ','-').replace(':','-').replace('/','-').replace('--','-') + ".md")
+    with open(md_path, 'w') as f:
+      f.write(text)
