@@ -2,7 +2,7 @@ sfall-functions:
   type: 3
   topics:
   - name: Direct memory access
-    doc: The `read_xxx` functions take a memory address as the parameter and can read arbitrary pieces of Fallout's address space. The `write_xxx` functions are equivalent except that they write to arbitrary memory addresses. `The call_offset_xx` functions can be used to call arbitrary functions inside Fallout. Different versions are used to call functions with different numbers of arguments. _None of these functions will work unless `AllowUnsafeScripting` is enabled in `ddraw.ini`_
+    doc: The `read_xxx` functions take a memory address as the parameter and can read arbitrary pieces of Fallout's address space. The `write_xxx` functions are equivalent except that they write to arbitrary memory addresses. The `call_offset_xx` functions can be used to call arbitrary functions inside Fallout. Different versions are used to call functions with different numbers of arguments. _None of these functions will work unless_ `AllowUnsafeScripting` _is enabled in_ `ddraw.ini`.
     items:
     - name: read_byte
       detail: int read_byte(int address)
@@ -304,7 +304,7 @@ sfall-functions:
     - name: clear_selectable_perks
       detail: void clear_selectable_perks()
       offset: 0x81c4
-      doc: Restores the "select a perk" box to its default state
+      doc: Restores the "select a perk" box to its default state.
 
     - name: has_fake_perk
       detail: int has_fake_perk(string name)
@@ -322,7 +322,7 @@ sfall-functions:
       doc: Sets the number of levels between each perk.
 
   - name: Virtual file system
-    doc: The fs_* functions are used to manipulate a virtual file system. Files saved here should have paths relative to the data folder, and use backslashes as the directory separator. They will take precedence over files stored in the normal data folder. They will also be saved into save games if you set a flag for them using fs_resize(fileId, -1), so be avoid creating large files. Using fs_copy followed by fs_read_xxx, you can read the contents of existing files.
+    doc: The `fs_*` functions are used to manipulate a virtual file system. Files saved here should have paths relative to the data folder, and use backslashes as the directory separator. They will take precedence over files stored in the normal data folder. They will also be saved into save games if you set a flag for them using `fs_resize(fileId, -1)`, so be avoid creating large files. Using `fs_copy` followed by `fs_read_xxx`, you can read the contents of existing files.
     items:
     - name: fs_create
       detail: int fs_create(string path, int size)
@@ -428,11 +428,11 @@ sfall-functions:
       detail: int get_world_map_y_pos()
       offset: 0x8174
     - name: set_map_enter_position
-      detail: void set_map_enter_position(int tile, int elev, int rot)
-      doc: 'Overrides the player''s entry position when entering the map through exit grids. Setting the tile to 0 will put the player on the start hex (default tile and elevation) of the map. Note: Works only in map_enter_p_proc procedure.'
+      detail: void set_map_enter_position(int tile, int elevation, int rotation)
+      doc: "Overrides the players entry position when entering the map through exit grids. Setting the tile to 0 will put the player on the start hex (default tile and elevation) of the map. Works only in `map_enter_p_proc` procedure."
     - name: get_map_enter_position
       detail: array get_map_enter_position()
-      doc: 'Returns an array of the player''s position data (index: 0 - tile, 1 - elevation, 2 - rotation) when entering the map through exit grids. If entering from the world map, the tile value will be -1. Note: Should be called in map_enter_p_proc procedure to get the correct position data.'
+      doc: "Returns an array of the player's position data (index: 0 - tile, 1 - elevation, 2 - rotation) when entering the map through exit grids. If entering from the world map, the tile value will be -1. Should be called in `map_enter_p_proc` procedure to get the correct position data."
 
   - name: Audio
     items:
@@ -455,17 +455,18 @@ sfall-functions:
   - name: Weapons and ammo
     items:
     - name: get_weapon_ammo_pid
-      detail: int get_weapon_ammo_pid(objptr weapon)
+      detail: int get_weapon_ammo_pid(ObjPtr weapon)
       offset: 0x8217
     - name: set_weapon_ammo_pid
-      detail: void set_weapon_ammo_pid(objptr weapon, int pid)
+      detail: void set_weapon_ammo_pid(ObjPtr weapon, int pid)
       offset: 0x8218
     - name: get_weapon_ammo_count
-      detail: int get_weapon_ammo_count(objptr weapon)
+      detail: int get_weapon_ammo_count(ObjPtr weapon)
       offset: 0x8219
     - name: set_weapon_ammo_count
-      detail: void set_weapon_ammo_count(objptr weapon, int count)
+      detail: void set_weapon_ammo_count(ObjPtr weapon, int count)
       offset: 0x821a
+
   - name: Sfall
     items:
     - name: sfall_ver_major
@@ -477,6 +478,7 @@ sfall-functions:
     - name: sfall_ver_build
       detail: int sfall_ver_build()
       offset: 0x8212
+
   - name: Math
     items:
     - name: log
@@ -541,6 +543,7 @@ sfall-functions:
       detail: int get_mouse_buttons()
       doc: Returns the number of the mouse button that is currently pressed (1 - left, 2 - right, 3 - left+right, 4 - middle, 0 otherwise).
       offset: 0x821e
+
   - name: Lists
     doc: The `list_xxx` functions can be used to loop over all items on a map. `list_begin` takes an argument telling sfall what you want to list. (Defined in `sfall.h`) It returns a list pointer, which you iterate through with `list_next`. Finally, when you've finished with the list use `list_end` on it. Not calling `list_end` will result in a memory leak. Alternatively, use `list_as_array` to get the whole list at once as a temp array variable, which can be looped over using `len_array` and which you don't need to remember to free afterwards.
     items:
@@ -556,6 +559,7 @@ sfall-functions:
     - name: list_as_array
       detail: array list_as_array(int type)
       offset: 0x8236
+
   - name: Explosions
     items:
     - name: metarule2_explosions
@@ -588,7 +592,7 @@ sfall-functions:
       doc: Sets the minimum and maximum damage for Plastic Explosives. Changed damage will be reset each time the player reloads the game.
     - name: set_explosion_max_targets
       detail: void set_explosion_max_targets(x)
-      doc: "Sets the maximum number of additional targets for an explosion, valid range: 1..6 (default is 6)"
+      doc: "Sets the maximum number of additional targets for an explosion, valid range: 1..6 (default is 6)."
 
   - name: Animations
     items:
@@ -597,27 +601,27 @@ sfall-functions:
       doc: Allows to enable all `reg_anim_*` functions in combat (including vanilla functions) if set to 0. It is automatically reset at the end of each frame, so you need to call it before `reg_anim_begin` - `reg_anim_end` block.
       offset: 0x825c
     - name: reg_anim_destroy
-      detail: void reg_anim_destroy(objptr)
+      detail: void reg_anim_destroy(ObjPtr)
       doc: Given object is destroyed at the end of current animation set.
       offset: 0x825a
     - name: reg_anim_animate_and_hide
-      detail: void reg_anim_animate_and_hide(objptr, int animID, int delay)
-      doc: Exactly like `reg_anim_animat`" but the object will automatically disappear after the last animation frame (but not destroyed).
+      detail: void reg_anim_animate_and_hide(ObjPtr, int animID, int delay)
+      doc: Exactly like `reg_anim_animate` but the object will automatically disappear after the last animation frame (but not destroyed).
       offset: 0x825b
     - name: reg_anim_light
-      detail: void reg_anim_light(objptr, int light, int delay)
-      doc: 'Change light of any object. Light argument is a light radius (0-8), but you can use highest 2 bytes to pass light intensity as well (example: 0xFFFF0008 - intensity 65535 and radius 8). | If highest 2 bytes are 0, intensity will not be changed. Intensity range is from 0 to 65535 (0xFFFF)'
+      detail: void reg_anim_light(ObjPtr, int light, int delay)
+      doc: 'Change light of any object. Light argument is a light radius (0-8), but you can use highest 2 bytes to pass light intensity as well (example: 0xFFFF0008 - intensity 65535 and radius 8). If highest 2 bytes are 0, intensity will not be changed. Intensity range is from 0 to 65535 (0xFFFF)'
       offset: 0x825d
     - name: reg_anim_change_fid
-      detail: void reg_anim_change_fid(objptr, int FID, int delay)
+      detail: void reg_anim_change_fid(ObjPtr, int FID, int delay)
       doc: Should work like `art_change_fid_num` but in `reg_anim` sequence.
       offset: 0x825e
     - name: reg_anim_take_out
-      detail: void reg_anim_take_out(objptr, holdFrameID, delay)
+      detail: void reg_anim_take_out(ObjPtr, holdFrameID, delay)
       doc: Plays "take out weapon" animation for given `holdFrameID`. It is not required to have such weapon in critter's inventory.
       offset: 0x825f
     - name: reg_anim_turn_towards
-      detail: void reg_anim_turn_towards(objptr, int tile/target, delay)
+      detail: void reg_anim_turn_towards(ObjPtr, int tile/target, delay)
       doc: Makes object change its direction to face given tile num or target object.
       offset: 0x8260
 
@@ -640,6 +644,7 @@ sfall-functions:
     - name: tile_refresh_display
       detail: void tile_refresh_display()
       doc: Redraws the game scene (tiles, walls, objects, etc.).
+
   - name: Other
     items:
     - name: input_funcs_available
@@ -771,11 +776,11 @@ sfall-functions:
     - name: set_critical_table
       detail: void set_critical_table(int crittertype, int bodypart, int level, int valuetype, int value)
       offset: 0x81e1
-      doc: Used for modifying the critical table. For details see 'http://falloutmods.wikia.com/wiki/Critical_hit_tables'. Changes are not saved, and will reset to the defaults, (or to the contents of `CriticalOverrides.ini`, if it exists) at each game reload. Requires `OverrideCriticalTable` to be set to 1 in `ddraw.ini`. (Disabled by default, because it noticably increases loading times.)
+      doc: Used for modifying the critical table. For details see [critical hit tables](http://falloutmods.wikia.com/wiki/Critical_hit_tables). Changes are not saved, and will reset to the defaults, (or to the contents of `CriticalOverrides.ini`, if it exists) at each game reload. Requires `OverrideCriticalTable` to be set to 1 in `ddraw.ini`. (Disabled by default, because it noticably increases loading times.)
     - name: get_critical_table
       detail: int get_critical_table(int crittertype, int bodypart, int level, int valuetype)
       offset: 0x81e2
-      doc: Gets current critical table. For details see 'http://falloutmods.wikia.com/wiki/Critical_hit_tables'. Requires `OverrideCriticalTable` to be set to 1 in `ddraw.ini`. (Disabled by default, because it noticably increases loading times.)
+      doc: Gets current critical table. For details see [critical hit tables](http://falloutmods.wikia.com/wiki/Critical_hit_tables). Requires `OverrideCriticalTable` to be set to 1 in `ddraw.ini`. (Disabled by default, because it noticably increases loading times.)
     - name: reset_critical_table
       detail: void reset_critical_table(int crittertype, int bodypart, int level, int valuetype)
       offset: 0x81e3
@@ -799,15 +804,15 @@ sfall-functions:
       doc: Similar to `get_unspent_ap_bonus`, but accounts for the extra AC granted by the h2h evade perk. (The default value of this is also 4, equivalent to doubling the original bonus.
 
     - name: remove_script
-      detail: void remove_script(objptr)
+      detail: void remove_script(ObjPtr)
       offset: 0x81f3
       doc: Accepts a pointer to an object and will remove the script from that object.
     - name: set_script
-      detail: void set_script(objptr, int scriptid)
+      detail: void set_script(ObjPtr, int scriptid)
       offset: 0x81f4
       doc: Accepts a pointer to an object and scriptID, and applies the given script to an object (scriptID accept the same values as `create_object_sid `from sfall 3.6). If used on an object that is already scripted, it will remove the existing script first; you cannot have multiple scripts attached to a single object. Calling `set_script` on `self_obj` will have all sorts of wacky side effects, and should be avoided. If you add 0x80000000 to the sid when calling `set_script`, `map_enter_p_proc` will be SKIPPED. The `start` proc will always be run.
     - name: get_script
-      detail: int get_script(objptr)
+      detail: int get_script(ObjPtr)
       offset: 0x81f5
       doc: Accepts a pointer to an object and returns its scriptID (line number in `scripts.lst`), or -1 if the object is unscripted.
 
@@ -917,7 +922,7 @@ sfall-functions:
       offset: 0x81b3
 
     - name: set_self
-      detail: void set_self(objptr)
+      detail: void set_self(ObjPtr)
       doc: |
         Overrides the script's `self_obj` for the next function call.
         - It is primarily used to allow the calling of functions which take an implicit `self_obj` parameter (e.g. `drop_obj`) from global scripts, but it can also be used from normal scripts.
@@ -933,11 +938,11 @@ sfall-functions:
 
       offset: 0x8246
     - name: get_last_target
-      detail: ObjectPtr get_last_target(objptr critter)
+      detail: ObjectPtr get_last_target(ObjPtr critter)
       doc: Will return the last critter to be deliberately attacked. Outside of combat always returns 0.
       offset: 0x8248
     - name: get_last_attacker
-      detail: ObjectPtr get_last_attacker(objptr critter)
+      detail: ObjectPtr get_last_attacker(ObjPtr critter)
       doc: Will return the last critter to deliberately launch an attack against the argument critter. If a critter has not launched/received an attack, it will return 0. Outside of combat always returns 0.
       offset: 0x8249
   
@@ -1108,6 +1113,7 @@ sfall-hooks:
 
         The defines to use for the hooktype are in `sfall.h`.
       offset: 0x8262
+
 sfall-arrays:
   type: 3
   topics:
@@ -1165,6 +1171,7 @@ sfall-arrays:
       detail: int load_array(mixed key)
       doc: Load array from savegame data by the same key provided in "save_array".
       offset: 0x8255
+
 sfall-funcs:
   type: 3
   topics:
@@ -1206,82 +1213,101 @@ sfall-funcs-macro:
     items:
     - name: attack_is_aimed
       detail: bool attack_is_aimed()
-      doc: Returns True if the aimed attack mode is selected, False otherwise.
+      doc: Returns 1 if the aimed attack mode is selected, 0 otherwise.
     - name: critter_inven_obj2
       detail: ObjectPtr critter_inven_obj2(ObjectPtr obj, int type)
-      doc: Allows get the item in the inactive hand slot. For more details, see the description for the standard function critter_inven_obj.
+      doc: Works just like vanilla `critter_inven_obj`, but correctly reports item in player's inactive hand slot.
     - name: item_weight
       detail: int item_weight(ObjectPtr obj)
       doc: Gets the current weight of an object.
     - name: outlined_object
       detail: ObjectPtr outlined_object()
       doc: Returns an object that is currently highlighted by hovering the mouse above it.
+
     - name: get_outline
       detail: int get_outline(ObjectPtr obj)
       doc: Gets the current outline color for an object.
     - name: set_outline
       detail: void set_outline(ObjectPtr obj, int color)
-      doc: 'Sets the outline color of an object. Note: 0 means or any value above 0x00FFFFFF disables the outline.'
+      doc: 'Sets the outline color of an object. 0 means or any value above 0x00FFFFFF disables the outline. Call `tile_refresh_display` after changing outline of objects to properly redraw the scene.'
+
     - name: get_flags
       detail: int get_flags(ObjectPtr obj)
-      doc: Gets the current value of object flags (see define_extra.h for available flags).
+      doc: Gets the current value of object flags (see `define_extra.h` for available flags).
     - name: set_flags
       detail: void set_flags(ObjectPtr obj, int flags)
-      doc: Sets the current flags of an object.
-    - name: real_dude_obj
-      detail: ObjectPtr real_dude_obj()
-      doc: Returns the initial dude_obj after set_dude_obj was used.
+      doc: Sets the current flags of an object. All flags are rewritten with given integer, so first get current flags with `get_flags` and use `bwor/bwand` to set/remove specific flag.
+
     - name: set_dude_obj
       detail: void set_dude_obj(ObjectPtr critter)
       doc: Take control of a given critter. Passing value 0 will reset control back to "real" dude.
+    - name: real_dude_obj
+      detail: ObjectPtr real_dude_obj()
+      doc: Returns the initial dude_obj after set_dude_obj was used.
+
     - name: lock_is_jammed
       detail: bool lock_is_jammed(ObjectPtr obj)
-      doc: Returns True if the lock (container or scenery) is currently jammed, False otherwise.
+      doc: Returns 1 if the lock (container or scenery) is currently jammed, 0 otherwise.
     - name: unjam_lock
       detail: void unjam_lock(ObjectPtr obj)
-      doc: Unjams a lock immediately without having to wait until the next day, or leave the map and then return after 24 hours.
+      doc: Unjams a lock immediately without having to wait until the next day, or leave the map and then return after 24 hours. __Does not work__ in `use_skill_on_p_proc` procedure.
     - name: set_unjam_locks_time
       detail: void set_unjam_locks_time(int time)
-      doc: 'Sets after how many hours (up to 127 hours) jammed locks will be unjammed if the player leaves the map. Also disables the auto unjam that occurs at midnight when the player is on the map. Passing 0 will disable the auto unjam mechanism completely. Note: The auto unjam mechanism will be reset each time the player reloads the game.'
+      doc: Sets after how many hours (up to 127 hours) jammed locks will be unjammed if the player leaves the map. Also disables the auto unjam that occurs at midnight when the player is on the map. Passing 0 will disable the auto unjam mechanism completely. The auto unjam mechanism will be reset each time the player reloads the game.
+  
     - name: exec_map_update_scripts
       detail: void exec_map_update_scripts()
-      doc: Executes map_update_p_proc for all objects on map and global/hook scripts as well.
+      doc: Executes `map_update_p_proc` for all objects on map and global/hook scripts as well.
     - name: spatial_radius
       detail: int spatial_radius(ObjectPtr obj)
-      doc: Return radius of spatial script, associated with given dummy-object.
+      doc: Return radius of spatial script, associated with given dummy-object (returned by create_spatial).
     - name: set_rest_heal_time
       detail: void set_rest_heal_time(int time)
-      doc: 'Sets the time interval in minutes for healing during resting. The default is 180. Note: The time interval will be reset each time the player reloads the game.'
+      doc: 'Sets the time interval in minutes for healing during resting. The default is 180. Note: The interval will be reset each time the player reloads the game.'
     - name: set_rest_mode
       detail: void set_rest_mode(int flags)
-      doc: 'Sets the bit flags for the rest mode (see `RESTMODE_*` constants in sfall.h). Passing 0 will reset the rest mode. Note: It will also be reset each time the player reloads the game.'
+      doc: 'Sets the bit flags for the rest mode (see `RESTMODE_*` constants in `sfall.h`). Passing 0 will reset the rest mode. It will also be reset each time the player reloads the game.'
     - name: car_gas_amount
       detail: int car_gas_amount()
-      doc: 'Returns current amount of fuel in player''s car between 0 and 80000. Note: To change fuel amount, use vanilla function: `metarule(METARULE_GIVE_CAR_GAS, amount)`.'
+      doc: "Returns current amount of fuel in player's car (between 0 and 80000). Note: To change fuel amount, use vanilla function: `metarule(METARULE_GIVE_CAR_GAS, amount)` - `amount` can be positive or negative."
     - name: set_car_intface_art
       detail: void set_car_intface_art(int artIndex)
-      doc: 'Changes the interface art (index in LST file) for the car image on worldmap screen. Note: Should be called before going to worldmap.'
+      doc: 'Changes the interface art (index in LST file) for the car image on worldmap screen. Should be called before going to worldmap. Vanilla art index is 0x1B1'
     - name: display_stats
       detail: void display_stats()
-      doc: 'Updates player stats in the inventory screen display window. Note: Works only in opened player inventory.'
+      doc: Updates player stats in the inventory screen display window. Works only in opened player inventory.
+
     - name: intface_is_hidden
       detail: bool intface_is_hidden()
-      doc: Returns True if interface is currently hidden, False otherwise.
+      doc: Returns 1 if interface is currently hidden, 0 otherwise.
     - name: intface_redraw
       detail: void intface_redraw()
-      doc: Redraws main game interface.
+      doc: Redraws main game interface. Useful after direct changes to current player weapons or stats to reflect changes.
+    - name: intface_hide
+      detail: void intface_hide()
+      doc: Hides main interface.
+    - name: intface_show
+      detail: void intface_show()
+      doc: Shows main interface.
+
     - name: inventory_redraw
       detail: void inventory_redraw(invSide)
       doc: 'Redraws inventory items list in the inventory/loot/barter screens. Argument invSide specifies which side needs to be redrawn: 0 - the player, 1 - target (container/NPC in loot/barter screens).'
+
     - name: get_cursor_mode
       detail: int get_cursor_mode()
       doc: 'Returns the current cursor mode. Values: 0 - movement cursor, 1 - command cursor, 2 - targeting cursor, 4 to 10 are Skilldex skills (yellow targeting cursor).'
     - name: set_cursor_mode
       detail: void set_cursor_mode(int mode)
       doc: Sets the current cursor mode.
+
     - name: set_iface_tag_text
       detail: void set_iface_tag_text(int tag, string text, int color)
-      doc: 'Sets the text messages and colors for custom notification boxes to the interface. Tag value is the same as used in show_iface_tag, hide_iface_tag, and is_iface_tag_active. Available colors: 0 - green, 1 - red, 2 - white, 3 - yellow, 4 - dark yellow, 5 - blue, 6 - purple.'
+      doc: Sets the text messages and colors for custom notification boxes to the interface without the need to add messages to `intrface.msg` and set up the font colors in `ddraw.ini`. Tag value is the same as used in `show_iface_tag`, `hide_iface_tag`, and `is_iface_tag_active`. The valid range is from 5 to (4 + the value of `BoxBarCount` in `ddraw.ini`) or the number of the last custom box added using the `add_iface_tag` function. The text is limited to 19 characters.
+    - name: add_iface_tag
+      detail: void add_iface_tag()
+      doc: Adds one custom box to the current boxes, and returns the number of the added tag (-1 if the tags limit is exceeded. The maximum number of boxes is limited to 126 tags.
+
     - name: get_ini_section
       detail: array get_ini_section(string file, string sect)
       doc: Returns an associative array of keys and values for a given INI file and section.
@@ -1290,4 +1316,131 @@ sfall-funcs-macro:
       doc: Returns an array of names of all sections in a given INI file.
     - name: set_ini_setting
       detail: void set_ini_setting(string setting, int/string value)
-      doc: 'Writes an integer or a string value to an ini file in the Fallout directory. The setting argument works in the same way as in get_ini_setting, seperate the file name, section and key with a ''|'' character. Note: The section name is limited to 32 characters.'
+      doc: 'Writes an integer or a string value to an ini file in the Fallout directory. If the ini file does not exist, it will be created The setting argument works in the same way as in `get_ini_setting`, seperate the file name, section and key with a "|" character. __Note:__ the file name is limited to 63 chars (including the extension), the section name is limited to 32 characters.'
+    - name: get_metarule_table
+      detail: array get_metarule_table
+      doc: Returns names of all currently available scripting functions.
+
+    - name: floor2
+      detail: int sfall_func1("floor2", int/float value)
+      doc: Works just like vanilla floor function, but returns correct integers for negative values (vanilla floor function works exactly the same as `ceil` for negative values, much like `trunc` in C/C++).
+
+    - name: get_string_pointer
+      detail: int get_string_pointer(string text)
+      doc: Returns a pointer to a string variable or to a text.
+
+    - name: dialog_message
+      detail: void dialog_message(string text)
+      doc: Risplays a message in the NPC response window in dialog or barter screen.
+
+    - name: get_current_inven_size
+      detail: get_current_inven_size(ObjPtr object)
+      doc: Returns the current inventory size of the container or the critter.
+    
+    - name: set_can_rest_on_map
+      detail: void set_can_rest_on_map(int mapNum, int elev, bool value)
+      doc: |
+        Allows/disallows to rest on the map for the specified level, overrides the `can_rest_here` values in `maps.txt`.
+        - `mapNum` is the map index from `maps.txt`
+        - passing -1 to the elev argument will set the rest value for all map elevations
+        - the set rest value will be stored in `sfalldb.sav` file (in savegame)
+    - name: get_can_rest_on_map
+      detail: get_can_rest_on_map(int mapNum, int elev)
+      doc: Returns the set rest value of the map after using the `set_can_rest_on_map` function. Returns -1 if the rest value of the map was not previously set (i.e. no data for the map in `sfalldb.sav`). The `can_rest_here values` in `maps.txt` are ignored.
+
+    - name: dialog_obj
+      detail: ObjPtr dialog_obj()
+      doc: Returns a pointer to the object (critter) the player is having a conversation or bartering with.
+
+    - name: obj_under_cursor
+      detail: ObjPtr obj_under_cursor(bool crSwitch, bool inclDude)
+      doc: "Returns the object under the cursor on the main game screen. `crSwitch: True` - only checks critters and ignores their cover (roof tiles, walls, scenery, etc.), False - checks all objects (can't check critters under objects). Passing False to the `inclDude` argument will ignore `dude_obj`"
+
+    - name: loot_obj
+      detail: ObjPtr loot_obj()
+      doc: Returns a pointer to the target object (container or critter) of the loot screen.
+
+    - name: get_object_data
+      detail: get_object_data(ObjPtr object, int offset)
+      doc: Returns the data at the specified offset of an object (see `OBJ_DATA_*` constants in `define_extra.h` for offsets).
+    - name: set_object_data
+      detail: set_object_data(ObjPtr object, int offset, int data)
+      doc: Sets the data at the specified offset of an object.
+
+    - name: get_object_ai_data
+      detail: int get_object_ai_data(ObjPtr object, int aiParam)
+      doc: Returns the setting value from the AI packet of an object (critter). Use `AI_CAP_*` constants from `define_extra.h` for the `aiParam` argument to get AI value.
+
+    - name: art_cache_clear
+      detail: void art_cache_clear()
+      doc: Clears the cache of FRM image files loaded into memory.
+
+    - name: npc_engine_level_up
+      detail: void npc_engine_level_up(bool toggle)
+      doc: Enables/disables the engine function that increases the level of party members in the player leveling process. If the engine function is disabled, the process of leveling up party members should be performed by script functions.
+
+    - name: set_drugs_data
+      detail: void set_drugs_data(int type, int pid, int value) 
+      doc: "Overrides the parameters of drugs set in the configuration file (`DrugsFile` setting in `ddraw.ini`). Type: 0 - changes the value of `NumEffects` for the drug (see `Drugs.ini` for the description of `NumEffects`), 1 - changes the duration of the addiction effect for the drug (a value of 1 = one game minute)."
+
+    - name: set_unique_id
+      detail: int set_unique_id(ObjPtr object, int flag)
+      doc: |
+        Assigns a unique ID number to the object and returns it. If a unique ID number has already been assigned to an object, then ID number is returned without reassignment. `flag` is optional.
+        - items with unique IDs will not stack with other items of the same type in the inventory
+        - to just get the current ID number of an object, use `get_object_data(object, OBJ_DATA_ID)`
+        - unique ID numbers are saved in your savegame, and have a range from 0x10000000 to 0x7FFFFFFF
+        - there is also a unique ID number range for the player and party members from 18000 to 83535
+        - to assign a new ID number generated by the engine to the object (i.e. unassign a unique ID), call the function with two arguments and pass -1 for the flag argument
+
+    - name: create_win
+      detail: void create_win(string winName, int x, int y, int width, int height, int flags)
+      doc: "`flags` argument is optional. Works just like vanilla `CreateWin` function, but creates a window with `MoveOnTop` flag if the flags argument is not specified, and allows to set additional flags for the created window. `MoveOnTop` flag allows the created window to be placed on top of the game interface."
+
+    - name: item_make_explosive
+      detail: void item_make_explosive(int pid, int activePid, int minDamage, int maxDamage)
+      doc: |
+        - makes the specified item (pid) an explosive item like Dynamite or Plastic Explosives
+        - `maxDamage` is optional
+        - `activePid` is for an item with an active timer, can be the same as the `pid` argument
+        - the item proto must be "Misc Item" type and have "Use" action flag
+        - minDamage/maxDamage are the minimum and maximum explosion damage
+        - using the function on an item that is already set as an explosive will override its previous settings
+        - NOTE: this function does not work for pids of Dynamite and Plastic Explosives
+
+    - name: draw_image
+      detail: void draw_image(string/int pathFile/artId, int frame, int x, int y, bool noTransparent)
+      doc: |
+        - displays the specified FRM image in the active window created by vanilla `CreateWin` or sfall's `create_win` script function
+        - pathFile/artId: path to the FRM file (e.g. "art\\inven\\5mmap.frm"), or its FRM ID number (e.g. 117440550, see specification of the FID format)
+        optional arguments:
+        - `frame`: frame number, the first frame starts from zero
+        - `x/y`: offset relative to the top-left corner of the window
+        - `noTransparent`: pass true to display an image without transparent background
+        - NOTE: to omit optional arguments starting from the right, call the functions with different `sfall_funcX` (e.g. `sfall_func4("draw_image", pathFile, frame, x, y))`
+
+    - name: draw_image_scaled
+      detail: void draw_image_scaled(string/int pathFile/artId, int frame, int x, int y, int width, int height)
+      doc: |
+        - displays the specified FRM image in the active window created by vanilla `CreateWin` or sfall's `create_win` script function
+        - pathFile/artId: path to the FRM file (e.g. `art\\inven\\5mmap.frm`), or its FRM ID number (e.g. 117440550, see specification of the FID format)
+        optional arguments:
+        - `frame`: frame number, the first frame starts from zero
+        - `x/y`: offset relative to the top-left corner of the window
+        - `width/height`: image size, used to scale the image when displaying it. Pass -1 to either width or height to keep the aspect ratio when scaling
+        - NOTE: to omit optional arguments starting from the right, call the functions with different `sfall_funcX` (e.g. `sfall_func4("draw_image", pathFile, frame, x, y))`
+        - if called without `x/y/width/height` arguments, the image will be scaled to fit the window without transparent background
+
+  - name: "Sfall funcX macros: NPC perks"
+    doc: These functions are similar to `has_fake_*/set_fake_*/set_selectable_perk` functions, but apply to the specified party member NPC (including `dude_obj`)
+    items:
+    - name: set_fake_perk_npc
+      detail: void set_fake_perk_npc(object npc, string namePerk, int level, int image, string desc)
+    - name: set_fake_trait_npc
+      detail: void set_fake_trait_npc(object npc, string nameTrait, int active, int image, string desc)
+    - name: set_selectable_perk_npc
+      detail: void set_selectable_perk_npc(object npc, string namePerk, int active, int image, string desc)
+    - name: has_fake_perk_npc
+      detail: int has_fake_perk_npc(object npc, string namePerk)
+    - name: has_fake_trait_npc
+      detail: int has_fake_trait_npc(object npc, string nameTrait)
