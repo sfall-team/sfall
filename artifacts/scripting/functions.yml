@@ -414,6 +414,7 @@
   - name: remove_attacker_knockback
     detail: void remove_attacker_knockback(CritterPtr)
     offset: 0x819a
+
 - name: Maps and encounters
   doc: The mapper manual lists the functions `world_map_x_pos` and `world_map_y_pos`, which supposedly return the player's x and y positions on the world map. `get_world_map_x/y_pos` are included here anyway, because I was unable to get those original functions to work, or even to find any evidence that they existed in game.
   items:
@@ -436,18 +437,23 @@
   - name: set_world_map_pos
     detail: void set_world_map_pos(int x, int y)
     offset: 0x8172
-  - name: get_world_map_x_pos
-    detail: int get_world_map_x_pos
-    offset: 0x8173
-  - name: get_world_map_y_pos
-    detail: int get_world_map_y_pos()
-    offset: 0x8174
   - name: set_map_enter_position
     detail: void set_map_enter_position(int tile, int elevation, int rotation)
     doc: "Overrides the players entry position when entering the map through exit grids. Setting the tile to 0 will put the player on the start hex (default tile and elevation) of the map. Works only in `map_enter_p_proc` procedure."
   - name: get_map_enter_position
     detail: array get_map_enter_position()
     doc: "Returns an array of the player's position data (index: 0 - tile, 1 - elevation, 2 - rotation) when entering the map through exit grids. If entering from the world map, the tile value will be -1. Should be called in `map_enter_p_proc` procedure to get the correct position data."
+
+- name: Get position on map
+  parent: Maps and encounters
+  doc: The mapper manual lists the functions `world_map_x_pos` and `world_map_y_pos`, which supposedly return the player's x and y positions on the world map. `get_world_map_x/y_pos` are included here anyway, because I was unable to get those original functions to work, or even to find any evidence that they existed in game.
+  items:
+  - name: get_world_map_x_pos
+    detail: int get_world_map_x_pos()
+    offset: 0x8173
+  - name: get_world_map_y_pos
+    detail: int get_world_map_y_pos()
+    offset: 0x8174
 
 - name: Audio
   items:
