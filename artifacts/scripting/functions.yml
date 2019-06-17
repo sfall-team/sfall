@@ -1284,7 +1284,7 @@
     doc: Executes `map_update_p_proc` for all objects on map and global/hook scripts as well.
   - name: spatial_radius
     detail: int spatial_radius(ObjectPtr obj)
-    doc: Return radius of spatial script, associated with given dummy-object (returned by create_spatial).
+    doc: Returns radius of spatial script, associated with given dummy-object (returned by `create_spatial`).
   - name: set_rest_heal_time
     detail: void set_rest_heal_time(int time)
     doc: 'Sets the time interval in minutes for healing during resting. The default is 180. Note: The interval will be reset each time the player reloads the game.'
@@ -1454,6 +1454,17 @@
       - `width/height`: image size, used to scale the image when displaying it. Pass -1 to either width or height to keep the aspect ratio when scaling
       - NOTE: to omit optional arguments starting from the right, call the functions with different `sfall_funcX` (e.g. `sfall_func4("draw_image", pathFile, frame, x, y))`
       - if called without `x/y/width/height` arguments, the image will be scaled to fit the window without transparent background
+
+  - name: metarule_exist
+    detail: bool metarule_exist(string metaruleName)
+    doc: Returns True if the specified name of metarule (sfall_funcX) function exists in the current version of sfall.
+
+  - name: add_extra_msg_file
+    detail: void add_extra_msg_file(string fileName, int fileNumber)
+    doc: |
+      Loads the custom message file and assigns it with the specified ID number.
+      - `fileName`: the name of the custom message file (including the .msg extension) in `text\<language>\game\` directory.
+      - `fileNumber`: the file ID number for the `message_str_game` function to get messages from the file. The available range is from 0x3000 to 0x3FFF.
 
 - name: NPC perks
   parent: Sfall funcX macros
