@@ -158,12 +158,13 @@
             // 
             this.bCrittersLvar.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.bCrittersLvar.Enabled = false;
-            this.bCrittersLvar.Location = new System.Drawing.Point(119, 401);
+            this.bCrittersLvar.Location = new System.Drawing.Point(118, 401);
             this.bCrittersLvar.Name = "bCrittersLvar";
-            this.bCrittersLvar.Size = new System.Drawing.Size(99, 23);
+            this.bCrittersLvar.Size = new System.Drawing.Size(100, 23);
             this.bCrittersLvar.TabIndex = 7;
             this.bCrittersLvar.Text = "Local variables";
             this.bCrittersLvar.UseVisualStyleBackColor = true;
+            this.bCrittersLvar.Click += new System.EventHandler(this.bCrittersLvar_Click);
             // 
             // DebugEditor
             // 

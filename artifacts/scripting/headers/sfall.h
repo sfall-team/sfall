@@ -244,6 +244,7 @@
 #define ADD_PERK_MODE_REMOVE    (4)  // remove from the list of selectable perks
 
 // sfall_funcX macros
+#define add_extra_msg_file(name, number)                sfall_func2("add_extra_msg_file", name, number)
 #define add_iface_tag                                   sfall_func0("add_iface_tag")
 #define art_cache_clear                                 sfall_func0("art_cache_clear")
 #define attack_is_aimed                                 sfall_func0("attack_is_aimed")
@@ -265,6 +266,7 @@
 #define get_ini_section(file, sect)                     sfall_func2("get_ini_section", file, sect)
 #define get_ini_sections(file)                          sfall_func1("get_ini_sections", file)
 #define get_map_enter_position                          sfall_func0("get_map_enter_position")
+#define get_metarule_table                              sfall_func0("get_metarule_table")
 #define get_object_ai_data(obj, aiParam)                sfall_func2("get_object_ai_data", obj, aiParam)
 #define get_object_data(obj, offset)                    sfall_func2("get_object_data", obj, offset)
 #define get_outline(obj)                                sfall_func1("get_outline", obj)
@@ -280,6 +282,7 @@
 #define item_weight(obj)                                sfall_func1("item_weight", obj)
 #define lock_is_jammed(obj)                             sfall_func1("lock_is_jammed", obj)
 #define loot_obj                                        sfall_func0("loot_obj")
+#define metarule_exist(metarule)                        sfall_func1("metarule_exist", metarule)
 #define npc_engine_level_up(toggle)                     sfall_func1("npc_engine_level_up", toggle)
 #define obj_under_cursor(crSwitch, inclDude)            sfall_func2("obj_under_cursor", crSwitch, inclDude)
 #define outlined_object                                 sfall_func0("outlined_object")

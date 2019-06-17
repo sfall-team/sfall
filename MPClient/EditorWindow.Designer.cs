@@ -29,6 +29,7 @@
             this.Column1 = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.Column2 = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.Column3 = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.checkBox = new System.Windows.Forms.CheckBox();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
             this.SuspendLayout();
             // 
@@ -100,11 +101,24 @@
             this.Column3.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.NotSortable;
             this.Column3.Width = 150;
             // 
+            // checkBox
+            // 
+            this.checkBox.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.checkBox.AutoSize = true;
+            this.checkBox.Location = new System.Drawing.Point(103, 341);
+            this.checkBox.Name = "checkBox";
+            this.checkBox.Size = new System.Drawing.Size(91, 17);
+            this.checkBox.TabIndex = 3;
+            this.checkBox.Text = "Values in Hex";
+            this.checkBox.UseVisualStyleBackColor = true;
+            this.checkBox.Click += new System.EventHandler(this.checkBox_Click);
+            // 
             // EditorWindow
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(458, 371);
+            this.Controls.Add(this.checkBox);
             this.Controls.Add(this.dataGridView1);
             this.Controls.Add(this.bCancel);
             this.Controls.Add(this.bSave);
@@ -115,6 +129,7 @@
             this.Text = "Edit Values";
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).EndInit();
             this.ResumeLayout(false);
+            this.PerformLayout();
 
         }
 
@@ -126,5 +141,6 @@
         private System.Windows.Forms.DataGridViewTextBoxColumn Column1;
         private System.Windows.Forms.DataGridViewTextBoxColumn Column2;
         private System.Windows.Forms.DataGridViewTextBoxColumn Column3;
+        private System.Windows.Forms.CheckBox checkBox;
     }
 }

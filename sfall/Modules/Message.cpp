@@ -54,7 +54,7 @@ const fo::MessageList* gameMsgFiles[] = {
 #undef CASTMSG
 
 ExtraGameMessageListsMap gExtraGameMsgLists;
-std::vector<std::string> msgFileList;
+static std::vector<std::string> msgFileList;
 
 fo::MessageNode *GetMsgNode(fo::MessageList *msgList, int msgRef) {
 	if (msgList != nullptr && msgList->numMsgs > 0) {
@@ -89,11 +89,11 @@ char* GetMsg(fo::MessageList *msgList, int msgRef, int msgNum) {
 	return nullptr;
 }
 
-void ReadExtraGameMsgFiles() {
-	if (msgFileList.size() > 0) {
+static void ReadExtraGameMsgFiles() {
+	if (!msgFileList.empty()) {
 		int number = 0;
 		for (auto& msgName : msgFileList) {
-			std::string path = "game\\";
+			std::string path("game\\");
 			auto n = msgName.find(':');
 			if (n == std::string::npos) {
 				path += msgName;
@@ -108,25 +108,47 @@ void ReadExtraGameMsgFiles() {
 			} else {
 				delete list;
 			}
-			number++;
+			if (++number == 4096) break;
+		}
+		msgFileList.clear();
+	}
+}
+
+long Message::AddExtraMsgFile(const char* msgName, long msgNumber) {
+	if (msgNumber < 0x3000 || msgNumber > 0x3FFF || gExtraGameMsgLists.count(msgNumber)) return -1;
+	std::string path("game\\");
+	path += msgName;
+	fo::MessageList* list = new fo::MessageList();
+	if (fo::func::message_load(list, path.c_str())) {
+		gExtraGameMsgLists.emplace(msgNumber, list);
+	} else {
+		delete list;
+	}
+	return 0;
+}
+
+static void ClearScriptAddedExtraGameMsg() { // C++11
+	for (auto it = gExtraGameMsgLists.begin(); it != gExtraGameMsgLists.end();) {
+		if (it->first >= 0x3000 && it->first <= 0x3FFF) {
+			fo::func::message_exit(it->second.get());
+			it = gExtraGameMsgLists.erase(it);
+		} else {
+			++it;
 		}
 	}
 }
 
-void ClearReadExtraGameMsgFiles() {
-	ExtraGameMessageListsMap::iterator it;
-
-	for (it = gExtraGameMsgLists.begin(); it != gExtraGameMsgLists.end(); ++it) {
+static void ClearReadExtraGameMsgFiles() {
+	for (auto it = gExtraGameMsgLists.begin(); it != gExtraGameMsgLists.end(); ++it) {
 		fo::func::message_exit(it->second.get());
 	}
-
-	gExtraGameMsgLists.clear();
-	msgFileList.clear();
+	//gExtraGameMsgLists.clear();
 }
 
 void Message::init() {
 	msgFileList = GetConfigList("Misc", "ExtraGameMsgFileList", "", 512);
 	LoadGameHook::OnBeforeGameStart() += ReadExtraGameMsgFiles;
+	LoadGameHook::OnGameReset() += ClearScriptAddedExtraGameMsg;
 }
 
 void Message::exit() {

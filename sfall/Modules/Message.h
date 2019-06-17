@@ -37,6 +37,8 @@ public:
 	const char* name() { return "Message"; }
 	void init();
 	void exit() override;
+
+	static long AddExtraMsgFile(const char* msgName, long msgNumber);
 };
 
 fo::MessageNode *GetMsgNode(fo::MessageList *msgList, int msgRef);
