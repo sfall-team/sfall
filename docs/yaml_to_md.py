@@ -24,6 +24,21 @@ permalink: {permalink}
 {{: .no_toc}}
 '''
 
+function_header_template_noname = '''---
+layout: page
+title: '{name}' # quote just in case
+nav_order: 3
+has_children: true
+# parent - could be empty
+{parent}
+permalink: {permalink}
+---
+'''
+
+
+function_header_name = '''
+'''
+
 # template for hooks types page - hardcoded
 hooks_header = '''---
 layout: page
@@ -52,7 +67,10 @@ with open(functions_yaml) as yf:
     # if parent is present, this is a subcategory
     if 'parent' in cat:
       parent = "parent: " + cat['parent']
-    header = function_header_template.format(name=cat['name'], parent=parent, permalink="/{}/".format(slug))
+    if 'items' in cat: # parent pages with no immediate functions don't need name displayed
+      header = function_header_template.format(name=cat['name'], parent=parent, permalink="/{}/".format(slug))
+    else:
+      header = function_header_template_noname.format(name=cat['name'], parent=parent, permalink="/{}/".format(slug))
     text += header
 
     # common doc for category
@@ -60,22 +78,23 @@ with open(functions_yaml) as yf:
       text = text + '\n' + cat['doc'] + '\n'
     text = text + "\n * TOC\n{:toc}\n"
 
-    # individual functions
-    items = cat['items']
-    items = sorted(items, key=lambda k: k['name']) 
+    if 'items' in cat: # allow parent pages with no immediate items
+      # individual functions
+      items = cat['items']
+      items = sorted(items, key=lambda k: k['name'])
 
-    for i in items:
-      # header
-      text += "### {}\n".format(i['name'])
-      # usage
-      text += '''```c++
+      for i in items:
+        # header
+        text += "\n### {}\n".format(i['name'])
+        # usage
+        text += '''```c++
 {}
 ```
 '''.format(i['detail'])
-      # doc, if present
-      if 'doc' in i:
-        text += i['doc']
-        text += '\n\n'
+        # doc, if present
+        if 'doc' in i:
+          text += i['doc']
+          text += '\n\n'
 
     md_path = os.path.join(md_dir, slug + ".md")
     with open(md_path, 'w') as f:
