@@ -14,8 +14,11 @@
 #     unsafe: true/false                                    # OPTIONAL. Whether it requires AllowUnsafeScripting.
 
 
-- name: Direct memory access
-  doc: The `read_xxx` functions take a memory address as the parameter and can read arbitrary pieces of Fallout's address space. The `write_xxx` functions are equivalent except that they write to arbitrary memory addresses. The `call_offset_xx` functions can be used to call arbitrary functions inside Fallout. Different versions are used to call functions with different numbers of arguments. _None of these functions will work unless_ `AllowUnsafeScripting` _is enabled in_ `ddraw.ini`.
+- name: Direct memory access # just parent page
+
+- name: read_xxx
+  parent: Direct memory access
+  doc: These functions take a memory address as the parameter and can read arbitrary pieces of Fallout's address space.
   items:
   - name: read_byte
     detail: int read_byte(int address)
@@ -29,6 +32,11 @@
   - name: read_string
     detail: int read_string(int address)
     opcode: 0x8159
+
+- name: write_xxx
+  parent: Direct memory access
+  doc: These functions take a memory address as the parameter and can write to arbitrary pieces of Fallout's address _None of these functions will work unless_ `AllowUnsafeScripting` _is enabled in_ `ddraw.ini`.
+  items:
   - name: write_byte
     detail: void write_byte(int address, int value)
     opcode: 0x81cf
@@ -45,6 +53,11 @@
     detail: void write_string(int address, string value)
     opcode: 0x821b
     unsafe: true
+
+- name: call_offset_vX
+  parent: Direct memory access
+  doc: Can be used to call arbitrary functions inside Fallout. Different versions are used to call functions with different numbers of arguments. _None of these functions will work unless_ `AllowUnsafeScripting` _is enabled in_ `ddraw.ini`.
+  items:
   - name: call_offset_v0
     detail: void call_offset_v0(int address)
     opcode: 0x81d2
