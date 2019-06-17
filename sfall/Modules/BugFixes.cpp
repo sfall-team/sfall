@@ -2121,6 +2121,77 @@ static void __declspec(naked) action_use_an_item_on_object_hack() {
 	}
 }
 
+//static const DWORD wmAreaMarkVisitedState_Error = 0x4C4698;
+static const DWORD wmAreaMarkVisitedState_Ret = 0x4C46A2;
+static void __declspec(naked) wmAreaMarkVisitedState_hack() {
+	__asm {
+		mov  [ecx + 0x40], esi; // wmAreaInfoList.visited
+		test esi, esi;          // mark "unknown" state
+		jz   skip;
+		mov  eax, [ecx + 0x2C]; // wmAreaInfoList.world_posx
+		mov  edx, [ecx + 0x30]; // wmAreaInfoList.world_posy
+		// fix loc coordinates
+		cmp  [ecx + 0x34], 1; // wmAreaInfoList.size
+		jg   largeLoc;
+		je   mediumLoc;
+//smallLoc:
+		sub eax, 5;
+		lea edx, [edx - 5];
+mediumLoc:
+		sub eax, 10;
+		lea edx, [edx - 10];
+largeLoc:
+		mov  ebx, esp; // ppSubTile out
+		push edx;
+		push eax;
+		call fo::funcoffs::wmFindCurSubTileFromPos_;
+//		cmp  eax, -1; // always return 0
+//		jz   error;
+		pop  eax;
+		pop  edx;
+		mov  ebx, [esp];
+		mov  ebx, [ebx + 0x18]; // sub-tile state
+		test ebx, ebx;
+		jnz  skip;
+		inc  ebx; // 1
+skip:
+		cmp  [ecx + 0x38], 1;   // wmAreaInfoList.start_state
+		jne  hideLoc;
+		cmp  esi, 2; // mark visited state
+		jne  fix;
+		call fo::funcoffs::wmMarkSubTileRadiusVisited_;
+hideLoc:
+		jmp  wmAreaMarkVisitedState_Ret;
+fix:
+		push ebx;
+		mov  ebx, 1; // radius (fix w/o PERK_scout)
+		call fo::funcoffs::wmSubTileMarkRadiusVisited_;
+		pop  ebx;
+		jmp  wmAreaMarkVisitedState_Ret;
+//error:
+//		add  esp, 8;
+//		jmp  wmAreaMarkVisitedState_Error;
+	}
+}
+
+static void __declspec(naked) wmWorldMap_hack() {
+	__asm {
+		mov  ebx, [ebx + 0x34]; // wmAreaInfoList.size
+		cmp  ebx, 1;
+		jg   largeLoc;
+		je   mediumLoc;
+//smallLoc:
+		sub  eax, 5;
+		lea  edx, [edx - 5];
+mediumLoc:
+		sub  eax, 10;
+		lea  edx, [edx - 10];
+largeLoc:
+		xor  ebx, ebx;
+		jmp  fo::funcoffs::wmPartyInitWalking_;
+	}
+}
+
 void BugFixes::init()
 {
 	#ifndef NDEBUG
@@ -2686,6 +2757,14 @@ void BugFixes::init()
 
 	// Fix for the player's movement in combat being interrupted when trying to use objects with Bonus Move APs available
 	MakeCall(0x411FD6, action_use_an_item_on_object_hack);
+
+	// Fix for Scout perk being taken into account when setting the visibility of locations with mark_area_known function
+	// also fix the incorrect coordinates for small/medium location circles when highlighting their sub-tiles
+	MakeJump(0x4C466F, wmAreaMarkVisitedState_hack);
+	SafeWrite8(0x4C46AB, 0x58); // esi > ebx
+
+	// Fix the position of the target marker for small/medium location circles
+	MakeCall(0x4C03AA, wmWorldMap_hack, 2);
 }
 
 }
