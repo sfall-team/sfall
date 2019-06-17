@@ -45,6 +45,7 @@ layout: page
 title: Hook types
 nav_order: 3
 parent: Hooks
+permalink: /hook-types/
 ---
 
 # Hook types
