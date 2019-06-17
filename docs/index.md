@@ -34,9 +34,9 @@ To get started with Sfall, first familiarize yourself with new concepts:
 * [Data types](data-types/)
 * [Lists](lists/)
 
-Pay special attention to the [best practices]({{ site.baseurl }}best-practices/) page.
+Pay special attention to the [best practices]({{ site.baseurl }}/best-practices/) page.
 
-Next, proceed to discover new functions. They are categorized, use the menu to find the one you need. If you can't, also check [uncategorized functions]({{ site.baseurl }}other/) list and [Sfall macros]({{ site.baseurl }}sfall-funcx-macros/).
+Next, proceed to discover new functions. They are categorized, use the menu to find the one you need. If you can't, also check [uncategorized functions]({{ site.baseurl }}/other/) list and [Sfall macros]({{ site.baseurl }}/sfall-funcx-macros/).
 
 ## Questions and problems
 * Report bugs and suggest features on [Github](https://github.com/phobos2077/sfall/issues).
