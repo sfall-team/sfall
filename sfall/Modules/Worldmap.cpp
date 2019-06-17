@@ -344,24 +344,6 @@ end:
 	}
 }
 
-static void __declspec(naked) wmWorldMap_hack() {
-	__asm {
-		mov ebx, [ebx + 0x34]; // wmAreaInfoList.size
-		cmp ebx, 1;
-		jg  largeLoc;
-		je  mediumLoc;
-//smallLoc:
-		sub eax, 5;
-		sub edx, 5;
-mediumLoc:
-		sub eax, 10;
-		sub edx, 10;
-largeLoc:
-		xor ebx, ebx;
-		jmp fo::funcoffs::wmPartyInitWalking_;
-	}
-}
-
 static void RestRestore() {
 	if (!restMode) return;
 	restMode = false;
@@ -554,9 +536,6 @@ void WorldMapInterfacePatch() {
 	SafeWrite8(0x4C2C7C, 0x43); // dec ebx >> inc ebx
 	SafeWrite32(0x4C2C92, 181); // index DNARWOFF.FRM
 	SafeWrite8(0x4C2D04, 0x46); // dec esi >> inc esi
-
-	// Fixed position of the target cursor for city circle
-	MakeCall(0x4C03AA, wmWorldMap_hack, 2);
 }
 
 void PipBoyAutomapsPatch() {

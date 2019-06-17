@@ -2159,10 +2159,10 @@ static void __declspec(naked) wmAreaMarkVisitedState_hack() {
 		je   mediumLoc;
 //smallLoc:
 		sub eax, 5;
-		sub edx, 5;
+		lea edx, [edx - 5];
 mediumLoc:
 		sub eax, 10;
-		sub edx, 10;
+		lea edx, [edx - 10];
 largeLoc:
 		mov  ebx, esp; // ppSubTile out
 		push edx;
@@ -2174,12 +2174,16 @@ largeLoc:
 		pop  edx;
 		mov  ebx, [esp];
 		mov  ebx, [ebx + 0x18]; // sub tile state
-		cmp  [ecx + 0x38], 1;   // wmAreaInfoList.start_state
+		test ebx, ebx;
 		jnz  skip;
+		inc  ebx; // 1
+skip:
+		cmp  [ecx + 0x38], 1;   // wmAreaInfoList.start_state
+		jne  hideLoc;
 		cmp  esi, 2; // mark visited state
 		jne  fix;
 		call fo::funcoffs::wmMarkSubTileRadiusVisited_;
-skip:
+hideLoc:
 		jmp  wmAreaMarkVisitedState_Ret;
 fix:
 		push ebx;
@@ -2190,6 +2194,24 @@ fix:
 //error:
 //		add  esp, 8;
 //		jmp  wmAreaMarkVisitedState_Error;
+	}
+}
+
+static void __declspec(naked) wmWorldMap_hack() {
+	__asm {
+		mov ebx, [ebx + 0x34]; // wmAreaInfoList.size
+		cmp ebx, 1;
+		jg  largeLoc;
+		je  mediumLoc;
+//smallLoc:
+		sub eax, 5;
+		lea edx, [edx - 5];
+mediumLoc:
+		sub eax, 10;
+		lea edx, [edx - 10];
+largeLoc:
+		xor ebx, ebx;
+		jmp fo::funcoffs::wmPartyInitWalking_;
 	}
 }
 
@@ -2778,6 +2800,8 @@ void BugFixes::init()
 	// also correcting the wrong coordinates for small and medium circles of city in the highlight of the sub-tiles to the location
 	MakeJump(0x4C466F, wmAreaMarkVisitedState_hack);
 	SafeWrite8(0x4C46AB, 0x58); // esi >> ebx
+	// Fix the position of the target marker for small/medium location circles
+	MakeCall(0x4C03AA, wmWorldMap_hack, 2);
 }
 
 }
