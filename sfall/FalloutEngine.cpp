@@ -529,6 +529,7 @@ const DWORD obj_use_book_ = 0x49B9F0;
 const DWORD obj_use_power_on_car_ = 0x49BDE8;
 const DWORD object_under_mouse_ = 0x44CEC4;
 const DWORD OptionWindow_ = 0x437C08;
+const DWORD palette_init_ = 0x493A00;
 const DWORD palette_set_to_ = 0x493B48;
 const DWORD partyMemberCopyLevelInfo_ = 0x495EA8;
 const DWORD partyMemberGetAIOptions_ = 0x4941F0;

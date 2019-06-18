@@ -67,6 +67,7 @@ static DWORD gWidth;
 static DWORD gHeight;
 
 static int ScrollWindowKey;
+static bool windowIsInit;
 static DWORD windowLeft = 0;
 static DWORD windowTop = 0;
 
@@ -124,8 +125,7 @@ static const char* gpuEffect=
 	"technique T0"
 	"{"
 	  "pass p0 { PixelShader = compile ps_2_0 P0(); }"
-	"}"
-;
+	"}";
 
 static D3DXHANDLE gpuBltBuf;
 static D3DXHANDLE gpuBltPalette;
@@ -499,7 +499,7 @@ void RefreshGraphics() {
 		gpuBltEffect->BeginPass(0);
 	}
 	d3d9Device->DrawPrimitive(D3DPT_TRIANGLESTRIP, 0, 2);
-	if (GPUBlt) {
+	if (GPUBlt && !shadersSize) {
 		gpuBltEffect->EndPass();
 		gpuBltEffect->End();
 	}
@@ -623,10 +623,10 @@ public:
 	HRESULT _stdcall GetEntries(DWORD, DWORD, DWORD, LPPALETTEENTRY) { UNUSEDFUNCTION; }
 	HRESULT _stdcall Initialize(LPDIRECTDRAW, DWORD, LPPALETTEENTRY) { UNUSEDFUNCTION; }
 
-	HRESULT _stdcall SetEntries(DWORD, DWORD b, DWORD c, LPPALETTEENTRY d) {
-		if (c == 0 || b + c > 256) return DDERR_INVALIDPARAMS;
+	HRESULT _stdcall SetEntries(DWORD, DWORD b, DWORD c, LPPALETTEENTRY destPal) {
+		if (!windowIsInit || c == 0 || b + c > 256) return DDERR_INVALIDPARAMS;
 
-		CopyMemory(&palette[b], d, c * 4);
+		CopyMemory(&palette[b], destPal, c * 4);
 		if (GPUBlt) {
 			if (gpuPalette) {
 				D3DLOCKED_RECT rect;
@@ -643,6 +643,7 @@ public:
 				*(BYTE*)((DWORD)&palette[i] + 2) = clr;
 			}
 		}
+		RefreshGraphics();
 		return DD_OK;
 	}
 };
@@ -1058,6 +1059,13 @@ HRESULT _stdcall FakeDirectDrawCreate2(void*, IDirectDraw** b, void*) {
 	return DD_OK;
 }
 
+static __declspec(naked) void game_init_hook() {
+	__asm {
+		mov  windowIsInit, 1;
+		jmp  palette_init_;
+	}
+}
+
 static double fadeMulti;
 static __declspec(naked) void palette_fade_to_hook() {
 	__asm {
@@ -1091,6 +1099,7 @@ void GraphicsInit() {
 		}
 #undef _DLL_NAME
 		SafeWrite8(0x50FB6B, '2'); // Set call DirectDrawCreate2
+		HookCall(0x44260C, game_init_hook);
 		dlogr(" Done", DL_INIT);
 	}
 

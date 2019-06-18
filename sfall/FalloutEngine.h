@@ -760,6 +760,7 @@ extern const DWORD obj_use_book_;
 extern const DWORD obj_use_power_on_car_;
 extern const DWORD object_under_mouse_;
 extern const DWORD OptionWindow_;
+extern const DWORD palette_init_;
 extern const DWORD palette_set_to_;
 extern const DWORD partyMemberCopyLevelInfo_;
 extern const DWORD partyMemberGetAIOptions_;

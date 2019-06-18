@@ -2717,7 +2717,8 @@ void BugFixesInit()
 	MakeCall(0x411FD6, action_use_an_item_on_object_hack);
 
 	// Fix for Scout perk being taken into account when setting the visibility of locations with mark_area_known function
-	// also fix the incorrect coordinates for small/medium location circles when highlighting their sub-tiles
+	// also fix the incorrect coordinates for small/medium location circles that the engine uses to highlight their sub-tiles
+	// and fix visited tiles on the world map being darkened again when a location is added next to them
 	MakeJump(0x4C466F, wmAreaMarkVisitedState_hack);
 	SafeWrite8(0x4C46AB, 0x58); // esi > ebx
 
