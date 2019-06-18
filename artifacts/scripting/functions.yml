@@ -615,9 +615,6 @@
   - name: set_explosion_radius
     detail: void set_explosion_radius(grenade, rocket)
     doc: Sets a permanent radius of the explosion for grenades and/or rockets. Passing 0 means not changing the corresponding radius. Changed radius will be reset each time the player reloads the game.
-  - name: get_explosion_damage
-    detail: array get_explosion_damage(itemPid)
-    doc: Returns array of the minimum and maximum damage of the explosive item.
   - name: set_dynamite_damage
     detail: void set_dynamite_damage(minDmg, maxDmg)
     doc: Sets the minimum and maximum damage for Dynamite. Changed damage will be reset each time the player reloads the game.
@@ -1465,6 +1462,10 @@
       Loads the custom message file and assigns it with the specified ID number.
       - `fileName`: the name of the custom message file (including the .msg extension) in `text\<language>\game\` directory.
       - `fileNumber`: the file ID number for the `message_str_game` function to get messages from the file. The available range is from 0x3000 to 0x3FFF.
+
+  - name: get_explosion_damage
+    detail: array get_explosion_damage(itemPid)
+    doc: Returns array of the minimum and maximum damage of the explosive item.
 
 - name: NPC perks
   parent: Sfall funcX macros
