@@ -1229,7 +1229,7 @@
     doc: Calls scripting function with given name and 6 arguments
     opcode: 0x827c
 
-- name: Sfall funcX macros
+- name: sfall funcX macros
   items:
   - name: attack_is_aimed
     detail: bool attack_is_aimed()
@@ -1467,7 +1467,7 @@
     doc: Returns array of the minimum and maximum damage of the explosive item.
 
 - name: NPC perks
-  parent: Sfall funcX macros
+  parent: sfall funcX macros
   doc: These functions are similar to `has_fake_*/set_fake_*/set_selectable_perk` functions, but apply to the specified party member NPC (including `dude_obj`)
   items:
   - name: set_fake_perk_npc
