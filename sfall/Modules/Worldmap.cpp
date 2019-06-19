@@ -664,6 +664,7 @@ long __fastcall Worldmap::GetRestMapLevel(long elev, int mapId) {
 #define WMAP_TOWN_BUTTONS (15)
 
 static DWORD wmTownMapSubButtonIds[WMAP_TOWN_BUTTONS + 1]; // replace _wmTownMapSubButtonIds (index 0 - unused element)
+static int worldmapInterface;
 
 // Window width
 static const DWORD wmWinWidth[] = {
@@ -780,6 +781,46 @@ scale:
 	}
 }
 
+static void __declspec(naked) wmTownMapRefresh_hook_textpos() {
+	__asm {
+		push eax;
+		push ebx;
+		mov  eax, ecx; // xpos
+		shr  ebx, 2;   // text_width / 4
+		test ebx, ebx;
+		jz   skipX;
+		sub  ebx, 5;   // x adjust
+skipX:
+		sar  eax, 1;
+		add  ecx, eax; // xpos * 1.5
+		add  ecx, ebx;
+		pop  ebx;
+		mov  eax, dword ptr [esp + 8]; // ypos
+		sar  eax, 1;
+		test eax, eax;
+		jz   skipY;
+		sub  eax, 5;   // y adjust
+skipY:
+		add  dword ptr [esp + 8], eax; // ypos * 1.5
+		pop  eax;
+		jmp  fo::funcoffs::win_print_;
+	}
+}
+
+static void __declspec(naked) wmTownMapInit_hook() {
+	__asm {
+		push eax;
+		mov  eax, edx; // xpos
+		shr  eax, 1;
+		add  edx, eax; // xpos * 1.5
+		mov  eax, ebx; // ypos
+		shr  eax, 1;
+		add  ebx, eax; // ypos * 1.5
+		pop  eax;
+		jmp  fo::funcoffs::win_register_button_;
+	}
+}
+
 void WorldmapViewportPatch() {
 	if (Graphics::GetGameHeightRes() < WMAP_WIN_HEIGHT || Graphics::GetGameWidthRes() < WMAP_WIN_WIDTH) return;
 	if (!fo::func::db_access("art\\intrface\\worldmap.frm")) return;
@@ -808,8 +849,12 @@ void WorldmapViewportPatch() {
 	MakeCall(0x4C4452, wmDrawCursorStopped_hack1);
 	MakeCalls(wmDrawCursorStopped_hack0, {0x4C43BB, 0x4C42E1});
 	MakeCall(0x4C5325, wmRefreshTabs_hook);
-	HookCall(0x4C4BFF, wmTownMapRefresh_hook);
 
+	HookCall(0x4C4BFF, wmTownMapRefresh_hook);
+	if (worldmapInterface == 1) {
+		HookCall(0x4C4CD5, wmTownMapRefresh_hook_textpos);
+		HookCall(0x4C4B8F, wmTownMapInit_hook);
+	}
 	// up/down buttons of the location list (wmInterfaceInit_)
 	SafeWriteBatch<DWORD>(WMAP_WIN_WIDTH - (640 - 480), { // offset by X (480)
 		0x4C2D3C,
@@ -900,9 +945,8 @@ void Worldmap::init() {
 	WorldMapInterfacePatch();
 	PipBoyAutomapsPatch();
 
-	if (*(DWORD*)0x4E4480 != 0x278805C7 // check if HRP is enabled
-		&& GetConfigInt("Misc", "WorldMapInterface", 0))
-	{
+	worldmapInterface = GetConfigInt("Misc", "WorldMapInterface", 0);
+	if (worldmapInterface && *(DWORD*)0x4E4480 != 0x278805C7) {   // check if HRP is enabled
 		LoadGameHook::OnAfterGameInit() += WorldmapViewportPatch; // Note: must be applied after WorldMapSlots patch
 	}
 	LoadGameHook::OnGameReset() += []() {
