@@ -1,6 +1,7 @@
 ---
 title: Data types
 nav_order: 2
+permalink: /data-types/
 ---
 
 # Data types
