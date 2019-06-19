@@ -6,6 +6,7 @@
 #    filename: override filename (hs_blabla.int), if necessary
 
 - name: ToHit
+  id: HOOK_TOHIT
   doc: |
     Runs when Fallout is calculating the chances of an attack striking a target. Runs after the hit chance is fully calculated normally, including applying the 95% cap.
 
@@ -22,6 +23,7 @@
     ```
 
 - name: AfterHitRoll
+  id: HOOK_AFTERHITROLL
   doc: |
     Runs after Fallout has decided if an attack will hit or miss.
 
@@ -38,6 +40,7 @@
     ```
 
 - name: CalcAPCost
+  id: HOOK_CALCAPCOST
   doc: |
     Runs whenever Fallout is calculating the AP cost of using the weapon (or unarmed attack). Doesn't run for using other item types or moving. Note that the first time a game is loaded, this script doesn't run before the initial interface is drawn, so if the script effects the AP cost of whatever is in the player's hands at the time the wrong AP cost will be shown. It will be fixed the next time the interface is redrawn. You can get the weapon object by checking item slot based on attack type (`ATKTYPE_LWEP1`, `ATKTYPE_LWEP2`, etc) and then calling `critter_inven_obj()`.
 
@@ -51,6 +54,7 @@
     ```
 
 - name: DeathAnim1
+  id: HOOK_DEATHANIM1
   doc: |
     Runs before Fallout tries to calculate the death animation. Lets you switch out which weapon Fallout sees.
 
@@ -64,6 +68,7 @@
     ```
 
 - name: DeathAnim2
+  id: HOOK_DEATHANIM2
   doc: |
     Runs after Fallout has calculated the death animation. Lets you set your own custom frame id, so more powerful than hs_deathanim1, but performs no validation. When using `critter_dmg` function, this script will also run. In that case weapon pid will be -1 and target will point to an object with `obj_art_fid == 0x20001F5`.
 
@@ -78,6 +83,7 @@
     ```
 
 - name: CombatDamage
+  id: HOOK_COMBATDAMAGE
   filename: hs_subcombatdmg.int
   doc: |
     Runs when:
@@ -108,12 +114,14 @@
     ```
 
 - name: OnDeath
+  id: HOOK_ONDEATH
   doc: |
     Runs immediately after a critter dies for any reason. No return values; this is just a convenience for when you need to do something after death for a large number of different critters and don't want to have to script each and every one of them.
 
     `Critter arg1 - The critter that just died`
 
 - name: FindTarget
+  id: HOOK_FINDTARGET
   doc: |
     Runs when the ai is trying to pick a target in combat. Fallout first chooses a list of 4 likely suspects, then normally sorts them in order of weakness/distance/etc depending on the ai caps of the attacker. This hook replaces that sorting function, allowing you to sort the targets in some arbitrary way. Use sfall_return to give the 4 targets, in order of preference. If you want to specify less than 4 targets, fill in the extra spaces with 0's. Pass -1 to skip the return value.
 
@@ -133,6 +141,7 @@
     ```
 
 - name: UseObjOn
+  id: HOOK_USEOBJON
   doc: |
     Runs when:
     1. a critter uses an object on another critter. (Or themselves)
@@ -151,6 +160,7 @@
     ```
 
 - name: UseObj
+  id: HOOK_USEOBJ
   doc: |
     Runs when:
     1. a critter uses an object from inventory which have "Use" action flag set or it's an active flare or dynamite.
@@ -167,6 +177,7 @@
     ```
 
 - name: RemoveInvenObj
+  id: HOOK_REMOVEINVENOBJ
   doc: |
     Runs when an object is removed from a container or critter's inventory for any reason.
 
@@ -179,6 +190,7 @@
     ```
 
 - name: BarterPrice
+  id: HOOK_BARTERPRICE
   doc: |
     Runs whenever the value of goods being purchased is calculated.
 
@@ -198,6 +210,7 @@
     ```
 
 - name: MoveCost
+  id: HOOK_MOVECOST
   doc: |
     Runs when calculating the AP cost of movement
 
@@ -233,6 +246,7 @@
     ```
 
 - name: ItemDamage
+  id: HOOK_ITEMDAMAGE
   doc: |
     Runs when retrieving the damage rating of the player's used weapon. (Which may be their fists.)
     ```
@@ -248,6 +262,7 @@
     ```
 
 - name: AmmoCost
+  id: HOOK_AMMOCOST
   doc: |
     Runs when calculating ammo cost for a weapon. Doesn't affect damage, only how much ammo is spent.
     By default, weapon will shoot when at least 1 round is left, regardless of ammo cost calculations.
@@ -263,6 +278,7 @@
     ```
 
 - name: KeyPress
+  id: HOOK_KEYPRESS
   doc: |
     Runs once every time when any key was pressed or released.
     * DX codes: (see dik.h header)
@@ -279,6 +295,7 @@
     ```
 
 - name: MouseClick
+  id: HOOK_MOUSECLICK
   doc: |
     Runs once every time when a mouse button was pressed or release.
 
@@ -288,6 +305,7 @@
     ```
 
 - name: UseSkill
+  id: HOOK_USESKILL
   doc: |
     Runs when using any skill on any object.
 
@@ -305,6 +323,7 @@
     ```
 
 - name: Steal
+  id: HOOK_STEAL
   doc: |
     Runs when checking an attempt to steal or plant an item in other inventory using Steal skill.
 
@@ -321,6 +340,7 @@
     ```
 
 - name: WithinPerception
+  id: HOOK_WITHINPRECEPTION
   doc: |
     Runs when checking if one critter sees another critter. This is used in different situations like combat AI. You can override the result.
 
@@ -338,6 +358,7 @@
     ```
 
 - name: InventoryMove
+  id: HOOK_INVENTORYMOVE
   doc: |
     Runs before moving items between inventory slots in dude interface. You can override the action.
     What you can NOT do with this hook:
@@ -356,6 +377,7 @@
     ```
 
 - name: InvenWield
+  id: HOOK_INVEWIELD
   doc: |
     Runs before wielding or unwielding an armor or a weapon by a critter (except when using inventory by PC).
     An example usage would be to change critter art depending on armor being used or to dynamically customize weapon animations.
@@ -372,6 +394,7 @@
     ```
 
 - name: AdjustFID
+  id: HOOK_ADJUSTFID
   doc: |
     Runs after calculating character figure FID on the inventory screen, whenever the game decides that character appearance might change.
     Also happens on other screens, like barter.
@@ -385,6 +408,7 @@
     ```
 
 - name: CombatTurn
+  id: HOOK_COMBATURN
   doc: |
     Runs before and after each turn in combat (for both PC and NPC).
 
@@ -397,6 +421,7 @@
     ```
 
 - name: CarTravel
+  id: HOOK_CARTRAVEL
   doc: |
     Runs continuously during worldmap travel on car.
 
@@ -409,6 +434,7 @@
     ```
 
 - name: SetGlobalVar
+  id: HOOK_SETGLOBALVAR
   doc: |
     Runs when setting the value of a global variable.
 
@@ -420,6 +446,7 @@
     ```
 
 - name: RestTimer
+  id: HOOK_RESTTIMER
   doc: |
     Runs continuously while the player is resting (using pipboy alarm clock).
 
@@ -433,6 +460,7 @@
     ```
 
 - name: GameModeChange
+  id: HOOK_GAMEMODECHANGE
   doc: |
     Runs once every time when the game mode was changed, like opening/closing the inventory, character screen, pipboy, etc.
     ```
@@ -440,6 +468,7 @@
     ```
 
 - name: UseAnimObj
+  id: HOOK_USEANIMOBJ
   doc: |
     Runs before playing the "use" (usually "magic hands") animation when a critter uses a scenery/container object on the map, or before walking/running animation if the player is at a distance from the object.
 
@@ -452,6 +481,7 @@
     ```
 
 - name: ExplosiveTimer
+  id: HOOK_EXPLOSIVETIMER
   doc: |
     Runs after setting the explosive timer. You can override the result.
 
@@ -465,6 +495,7 @@
     ```
 
 - name: DescriptionObj
+  id: HOOK_DESCRIPTIONOBJ
   doc: |
     Runs when using the examine action icon to display item description. You can override the description of the item.
     An example usage would be to add an additional description to the item based on player's stats/skills.
@@ -476,6 +507,7 @@
     ```
 
 - name: UseSkillOn
+  id: HOOK_USESKILLON
   doc: |
     Runs before using any skill on any object. Lets you override the critter that uses the skill.
     __NOTE:__ the user critter can't be overridden when using Steal skill.
@@ -490,6 +522,7 @@
     ```
 
 - name: OnExplosion
+  id: HOOK_ONEXPLOSION
   doc: |
     Runs when Fallout is checking all the tiles within the explosion radius for targets before an explosion occurs.
     The tile checking will be interrupted when 6 additional targets (critters) are received.
@@ -507,6 +540,7 @@
     ```
 
 - name: SubCombatDamage
+  id: HOOK_SUBCOMBATDAMAGE
   doc: |
     This hook overrides the vanilla damage calculation formula.
     Runs when:
@@ -533,6 +567,7 @@
     ```
 
 - name: SetLighting
+  id: HOOK_SETLIGHTING
   doc: |
     Runs before setting the light level for an object or a map. You can override the result.
 
@@ -546,6 +581,7 @@
     ```
 
 - name: Sneak
+  id: HOOK_SNEAK
   doc: |
     Runs when the Sneak skill is activated, or when the game rolls another Sneak check after the duration for the current one is over.
     You can override the result of a random Sneak check or the duration time for the current result.
