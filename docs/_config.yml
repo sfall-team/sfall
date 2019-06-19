@@ -26,13 +26,6 @@ markdown: kramdown
 plugins:
   - jekyll-remote-theme
 
-#remote_theme: tomjoht/documentation-theme-jekyll@gh-pages
-#remote_theme: alexander-heimbuch/millidocs
-#remote_theme: chromatical/jekyll-materialdocs
-#mdl_colors: indigo-blue
-#remote_theme: wiredcraft/carte
-#remote_theme: marella/jekyll-theme-documentation
-#remote_theme: fedeTibaldo/documentation-jekyll-theme
 remote_theme: pmarsceill/just-the-docs
 
 search_enabled: true
