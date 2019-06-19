@@ -24,9 +24,9 @@ Engine modifications include:
 
 ## Getting started
 
-This is documentation for Sfall specifically, not Fallout scripting in general. For vanilla function reference, refer to the [wiki](https://falloutmods.fandom.com/wiki/Fallout_1_and_Fallout_2_scripting_-_commands,_reference,_tutorials).
+This is documentation for sfall specifically, not Fallout scripting in general. For vanilla function reference, refer to the [wiki](https://falloutmods.fandom.com/wiki/Fallout_1_and_Fallout_2_scripting_-_commands,_reference,_tutorials).
 
-To get started with Sfall, first familiarize yourself with new concepts:
+To get started with sfall, first familiarize yourself with new concepts:
 * [Global scripts](global-scripts/)
 * [Global variables](global-variables/)
 * [Arrays](arrays/)
