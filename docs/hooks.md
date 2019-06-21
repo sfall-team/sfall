@@ -11,7 +11,7 @@ Hook scripts are specially named scripts that are run by sfall at specific point
 
 In addition to the bit of code it overrides, the script will be run once when first loaded and again at each player reload to allow for setup. Hook scripts have access to a set of arguments supplied to sfall, but aren't required to use them all. They also return one or more values, but again they're optional, and you only need to return a value if you want to override the default.
 
-See [hook types](hook-types/) and hook [functions reference](hook-functions/) for details.
+See [hook types]({{ site.baseurl }}/hook-types/) and hook [functions reference]({{ site.baseurl }}/hook-functions/) for details.
 
 ## Hooks compatibility
 

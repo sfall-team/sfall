@@ -12,7 +12,7 @@ permalink: /arrays/
 sfall introduces new method of storing variables - arrays.
 
 Array is basically a container which can store variable number of values (elements). Each element in array can be of any type. Arrays can be extremely useful for some more advanced scripting, in conjunction with loops.
-See array function reference [here](array-functions/).
+See array function reference [here]({{ site.baseurl }}/array-functions/).
 
 * TOC
 {:toc}

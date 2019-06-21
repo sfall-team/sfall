@@ -27,12 +27,12 @@ Engine modifications include:
 This is documentation for sfall specifically, not Fallout scripting in general. For vanilla function reference, refer to the [wiki](https://falloutmods.fandom.com/wiki/Fallout_1_and_Fallout_2_scripting_-_commands,_reference,_tutorials).
 
 To get started with sfall, first familiarize yourself with new concepts:
-* [Global scripts](global-scripts/)
-* [Global variables](global-variables/)
-* [Arrays](arrays/)
-* [Hooks](hooks/)
-* [Data types](data-types/)
-* [Lists](lists/)
+* [Global scripts]({{ site.baseurl }}/global-scripts/)
+* [Global variables]({{ site.baseurl }}/global-variables/)
+* [Arrays]({{ site.baseurl }}/arrays/)
+* [Hooks]({{ site.baseurl }}/hooks/)
+* [Data types]({{ site.baseurl }}/data-types/)
+* [Lists]({{ site.baseurl }}/lists/)
 
 Pay special attention to the [best practices]({{ site.baseurl }}/best-practices/) page.
 
