@@ -32,8 +32,8 @@ has_children: true
 # parent - could be empty
 {parent}
 permalink: {permalink}
+---
 '''
-
 
 function_header_name = '''
 '''
@@ -77,7 +77,7 @@ with open(functions_yaml) as yf:
     # common doc for category
     if 'doc' in cat:
       text = text + '\n' + cat['doc'] + '\n'
-    text = text + "\n * TOC\n{:toc}\n\n---\n"
+    text = text + "\n* TOC\n{:toc}\n\n---\n"
 
     if 'items' in cat: # allow parent pages with no immediate items
       # individual functions
