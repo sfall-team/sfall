@@ -1,9 +1,11 @@
 # Format:
-# - name: Human readable hook name    # HOOK_BLABLA and hs_blabla.int are generated from this
+# - name: BlaBla    # Human readable hook name. HOOK_BLABLA and hs_blabla.int in the docs are generated from this. Required.
+#   id: HOOK_BLABLA # real hook id. Optional.
 #   doc: |
 #     Hook documentation, markdown format.
 #     Can be multiline.
-#    filename: override filename (hs_blabla.int), if necessary
+#     Required.
+#   filename: override filename (hs_blabla.int), if it doesn't match the generated one. Optional.
 
 - name: ToHit
   id: HOOK_TOHIT
