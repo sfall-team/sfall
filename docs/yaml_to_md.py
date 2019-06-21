@@ -88,8 +88,8 @@ with open(functions_yaml) as yf:
         # header
         text += "\n### **{}**\n".format(i['name'])
         # macros
-        if 'macros' in i:
-          text += '{: .d-inline-block }\nMACROS\n{: .label .label-green }\n'
+        if 'macro' in i and i['macro'] is True:
+          text += '{: .d-inline-block }\nMACRO\n{: .label .label-green }\n'
         # usage
         text += '''```c++
 {}

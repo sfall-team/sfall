@@ -12,7 +12,7 @@
 #     doc: fuction documentation in markdown format         # OPTIONAL. Will be displayed in IDE.
 #     opcode: function opcode                               # OPTIONAL
 #     unsafe: true/false                                    # OPTIONAL. Whether it requires AllowUnsafeScripting.
-#     macros: true/false                                    # OPTIONAL.
+#     macro: true/false                                     # OPTIONAL.
 
 - name: Direct memory access # just parent page
 
@@ -500,7 +500,7 @@
     detail: void set_weapon_ammo_count(ObjPtr weapon, int count)
     opcode: 0x821a
 
-- name: Sfall
+- name: sfall
   items:
   - name: sfall_ver_major
     detail: int sfall_ver_major()
@@ -599,51 +599,51 @@
     detail: int metarule2_explosions(int arg1, int arg2)
     doc: Was made as a dirty easy hack to allow dynamically change some explosion parameters (ranged attack). All changed parameters are reset to vanilla state automatically after each attack action.
     opcode: 0x8261
-    
+
   - name: set_attack_explosion_pattern
     detail: void set_attack_explosion_pattern(x, y)
     doc: 'Currently Y is not used and X means: 1 - reduced explosion pattern (3 effects are spawned instead of 7), 0 - full pattern.'
-    macros: true
-    
+    macro: true
+
   - name: set_attack_explosion_art
     detail: void set_attack_explosion_art(x, y)
     doc: Y not used and X is a misc frame ID (last 3 bytes, without object type) to use for the next explosion.
-    macros: true
-    
+    macro: true
+
   - name: set_attack_explosion_radius
     detail: void set_attack_explosion_radius(x)
     doc: Changes radius at which explosion will hit secondary targets for the next attack (from the experiments it is limited to something around 8 by the engine).
-    macros: true
-    
+    macro: true
+
   - name: set_attack_is_explosion_fire
     detail: void set_attack_is_explosion_fire
     doc: If you call this right before using a weapon with fire damage type (e.g. in `HOOK_AFTERHITROLL`), it will produce explosion effects (and radius damage) just like "explosion" type, but all targets will still receive fire damage.
-    macros: true
-    
+    macro: true
+
   - name: set_explosion_radius
     detail: void set_explosion_radius(grenade, rocket)
     doc: Sets a permanent radius of the explosion for grenades and/or rockets. Passing 0 means not changing the corresponding radius. Changed radius will be reset each time the player reloads the game.
-    macros: true
-    
+    macro: true
+
   - name: set_dynamite_damage
     detail: void set_dynamite_damage(minDmg, maxDmg)
     doc: Sets the minimum and maximum damage for Dynamite. Changed damage will be reset each time the player reloads the game.
-    macros: true
-    
+    macro: true
+
   - name: set_plastic_damage
     detail: void set_plastic_damage(minDmg, maxDmg)
     doc: Sets the minimum and maximum damage for Plastic Explosives. Changed damage will be reset each time the player reloads the game.
-    macros: true
-    
+    macro: true
+
   - name: get_explosion_damage
     detail: array get_explosion_damage(itemPid)
     doc: Returns array of the minimum and maximum damage of the explosive item.
-    macros: true
+    macro: true
 
   - name: set_explosion_max_targets
     detail: void set_explosion_max_targets(x)
     doc: "Sets the maximum number of additional targets for an explosion, valid range: 1..6 (default is 6)."
-    macros: true
+    macro: true
 
 - name: Animations
   items:
@@ -1219,7 +1219,7 @@
     doc: Load array from savegame data by the same key provided in "save_array".
     opcode: 0x8255
 
-- name: Sfall funcX
+- name: sfall funcX
   items:
   - name: sfall_func0
     detail: any sfall_func0(char* funcName)
@@ -1250,7 +1250,7 @@
     doc: Calls scripting function with given name and 6 arguments
     opcode: 0x827c
 
-- name: Sfall funcX macros
+- name: sfall funcX macros
   items:
   - name: attack_is_aimed
     detail: bool attack_is_aimed()
