@@ -4,7 +4,7 @@ nav_order: 2
 has_children: true
 permalink: /hooks/
 ---
-
+---
 # Hooks
 
 Hook scripts are specially named scripts that are run by sfall at specific points to allow mods to override normally hardcoded behaviour in a more flexible way than sfall's normal ini configuration.
@@ -19,7 +19,7 @@ To aid in mods compatibility, avoid using `hs_xxx` .int scripts. Instead it is r
 
 Example setup for a hook-script based mod:
 
-```c++
+```js
 procedure tohit_hook_handler begin
    display_msg("Modifying hit_hook " + get_sfall_arg);
    set_hit_chance_max(100);

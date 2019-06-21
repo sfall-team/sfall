@@ -29,7 +29,7 @@ nav_order: 2
 
   For example, if you pick prefix "**a_**", your script could be named `gl_a_myscript.int`, and might look like this:
   
-  ```c++
+  ```js
     #define S_NAME "gl_a_myscript"
     #define ndebug(message) debug_msg(S_NAME + ": " + message + "\n")
 

@@ -32,7 +32,6 @@ has_children: true
 # parent - could be empty
 {parent}
 permalink: {permalink}
----
 '''
 
 
@@ -53,6 +52,7 @@ permalink: /hook-types/
 
 * TOC
 {:toc}
+---
 '''
 
 # functions pages
@@ -77,7 +77,7 @@ with open(functions_yaml) as yf:
     # common doc for category
     if 'doc' in cat:
       text = text + '\n' + cat['doc'] + '\n'
-    text = text + "\n * TOC\n{:toc}\n"
+    text = text + "\n * TOC\n{:toc}\n\n---\n"
 
     if 'items' in cat: # allow parent pages with no immediate items
       # individual functions
@@ -86,7 +86,10 @@ with open(functions_yaml) as yf:
 
       for i in items:
         # header
-        text += "\n### {}\n".format(i['name'])
+        text += "\n### **{}**\n".format(i['name'])
+        # macros
+        if 'macros' in i:
+          text += '{: .d-inline-block }\nMACROS\n{: .label .label-green }\n'
         # usage
         text += '''```c++
 {}
@@ -94,8 +97,8 @@ with open(functions_yaml) as yf:
 '''.format(i['detail'])
         # doc, if present
         if 'doc' in i:
-          text += i['doc']
-          text += '\n\n'
+          text += i['doc'] + '\n'
+        text += '\n---\n'
 
     md_path = os.path.join(md_dir, slug + ".md")
     with open(md_path, 'w') as f:
@@ -117,7 +120,7 @@ with open(hooks_yaml) as yf:
     else:
       filename = "hs_" + name.lower() + ".int"
 
-    text += "\n### {}\n\n".format(name) # header
+    text += "\n## {}\n\n".format(name) # header
     if filename != "": # if not skip
       text += "`{}` ({})\n\n".format(codename, filename) # `HOOK_SETLIGHTING` (hs_setlighting.int)
     text += doc # actual documentation

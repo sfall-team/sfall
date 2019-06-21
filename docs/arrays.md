@@ -54,12 +54,12 @@ Both array types have their pros and cons and are suited for different tasks.
 Basically arrays are implemented using number of new operators (scripting functions). But for ease of use, there are some new syntax elements:
 
 * Accessing elements. Use square brackets:
-  ```c++
+  ```js
   display_msg(arr[5]);
   mymap["price"] := 515.23;
   ```
 * Alternative accessing for maps. Use dot:
-  ```c++
+  ```js
   display_msg(mymap.name);
   mymap.price := 232.23;
   ```
@@ -77,7 +77,7 @@ Basically arrays are implemented using number of new operators (scripting functi
 
 
 * Iterating in loop. Use "foreach" key word like this:
-  ```c++
+  ```js
   foreach (item in myarray) begin
       // this block is executed for each array element, where "item" contains current value on each step
   end
@@ -105,7 +105,7 @@ This type of arrays are always available (by their ID) until you start a new gam
 * Saved. If you want your array to really stay for a while, use function `save_array` to make any array "saved". However, they are, like permanent arrays, "deleted" from memory when loading game. In order to use them properly, you must load them from the savegame using `load_array` whenever you want to use them.
 Example:
 
-```c++
+```js
 variable savedArray;
 procedure start begin
     if game_loaded then begin
@@ -122,7 +122,7 @@ end
 
 ### Use arrays to implement variable-argument procedures
 
-```c++
+```js
 // define it
 procedure give_item(variable critter, variable pidList) begin
     foreach (pid: qty in pidList) begin
@@ -136,7 +136,7 @@ call give_item(dude_obj, {PID_SHOTGUN: 1, PID_SHOTGUN_SHELLS: 4, PID_STIMPAK: 3}
 
 ### Create arrays of objects (maps) for advanced scripting
 
-```c++
+```js
 variable traps;
 procedure init_traps begin
     // just a quick example, there is a better way of doing it...
