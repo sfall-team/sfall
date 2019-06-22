@@ -76,9 +76,13 @@ void sf_get_pc_extra_stat(OpcodeContext& ctx) {
 
 void sf_set_critter_base_stat(OpcodeContext& ctx) {
 	fo::GameObject* obj = ctx.arg(0).asObject();
-	if (obj->Type() == fo::OBJ_TYPE_CRITTER && obj->protoId != fo::PID_Player) {
+	if (obj && obj->Type() == fo::OBJ_TYPE_CRITTER) {
 		int stat = ctx.arg(1).rawValue();
-		if (stat >= 0 && stat < fo::STAT_max_stat) Stats::SetStat(obj, stat, ctx.arg(2).rawValue(), 9);
+		if (stat >= 0 && stat < fo::STAT_max_stat) {
+			Stats::SetStat(obj, stat, ctx.arg(2).rawValue(), 9);
+		} else {
+			ctx.printOpcodeError(invalidStat, ctx.getOpcodeName());
+		}
 	} else {
 		ctx.printOpcodeError(objNotCritter, ctx.getOpcodeName());
 	}
@@ -86,9 +90,13 @@ void sf_set_critter_base_stat(OpcodeContext& ctx) {
 
 void sf_set_critter_extra_stat(OpcodeContext& ctx) {
 	fo::GameObject* obj = ctx.arg(0).asObject();
-	if (obj->Type() == fo::OBJ_TYPE_CRITTER && obj->protoId != fo::PID_Player) {
+	if (obj && obj->Type() == fo::OBJ_TYPE_CRITTER) {
 		int stat = ctx.arg(1).rawValue();
-		if (stat >= 0 && stat < fo::STAT_max_stat) Stats::SetStat(obj, stat, ctx.arg(2).rawValue(), 44);
+		if (stat >= 0 && stat < fo::STAT_max_stat) {
+			Stats::SetStat(obj, stat, ctx.arg(2).rawValue(), 44);
+		} else {
+			ctx.printOpcodeError(invalidStat, ctx.getOpcodeName());
+		}
 	} else {
 		ctx.printOpcodeError(objNotCritter, ctx.getOpcodeName());
 	}
@@ -97,9 +105,13 @@ void sf_set_critter_extra_stat(OpcodeContext& ctx) {
 void sf_get_critter_base_stat(OpcodeContext& ctx) {
 	int result = 0;
 	fo::GameObject* obj = ctx.arg(0).asObject();
-	if (obj->Type() == fo::OBJ_TYPE_CRITTER && obj->protoId != fo::PID_Player) {
+	if (obj && obj->Type() == fo::OBJ_TYPE_CRITTER) {
 		int stat = ctx.arg(1).rawValue();
-		if (stat >= 0 && stat < fo::STAT_max_stat) result = Stats::GetStat(obj, stat, 9);
+		if (stat >= 0 && stat < fo::STAT_max_stat) {
+			result = Stats::GetStat(obj, stat, 9);
+		} else {
+			ctx.printOpcodeError(invalidStat, ctx.getOpcodeName());
+		}
 	} else {
 		ctx.printOpcodeError(objNotCritter, ctx.getOpcodeName());
 	}
@@ -109,9 +121,13 @@ void sf_get_critter_base_stat(OpcodeContext& ctx) {
 void sf_get_critter_extra_stat(OpcodeContext& ctx) {
 	int result = 0;
 	fo::GameObject* obj = ctx.arg(0).asObject();
-	if (obj->Type() == fo::OBJ_TYPE_CRITTER && obj->protoId != fo::PID_Player) {
+	if (obj && obj->Type() == fo::OBJ_TYPE_CRITTER) {
 		int stat = ctx.arg(1).rawValue();
-		if (stat >= 0 && stat < fo::STAT_max_stat) result = Stats::GetStat(obj, stat, 44);
+		if (stat >= 0 && stat < fo::STAT_max_stat) {
+			result = Stats::GetStat(obj, stat, 44);
+		} else {
+			ctx.printOpcodeError(invalidStat, ctx.getOpcodeName());
+		}
 	} else {
 		ctx.printOpcodeError(objNotCritter, ctx.getOpcodeName());
 	}

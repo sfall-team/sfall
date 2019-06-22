@@ -312,7 +312,7 @@ static long ApplyAllStatsToProto(const protoMem_iterator &iter, long* &proto_out
 
 // Returns the prototype NPC located in memory
 static long* _fastcall GetProto(fo::GameObject* critter) {
-	if (protoMem.empty() || critter == fo::var::obj_dude) return nullptr;
+	if (protoMem.empty() || critter->protoId == fo::PID_Player) return nullptr;
 	if (lastGetProtoID.id == critter->id) return lastGetProtoID.proto;
 
 	long* proto = nullptr;
@@ -385,7 +385,7 @@ static void AddStatToProto(long stat, fo::GameObject* critter, long amount, long
 }
 
 static void _fastcall SetStatToProto(long stat, fo::GameObject* critter, long amount, long* protoBase, long offset, bool isSaved) {
-	if (critter != fo::var::obj_dude) {
+	if (critter->protoId != fo::PID_Player) {
 		if (isNotPartyMemberPid == critter->protoId || !IsPartyMember(critter)) {
 			isNotPartyMemberPid = critter->protoId;
 			AddStatToProto(stat, critter, amount, protoBase, offset, isSaved);
