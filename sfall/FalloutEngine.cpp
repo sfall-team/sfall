@@ -720,18 +720,23 @@ long __stdcall PartyMemberGetCurrentLevel(TGameObj* obj) {
 	}
 }
 
-char* GetProtoPtr(DWORD pid) {
+char* GetProtoPtr(long pid) {
 	char* proto;
+	long result;
 	__asm {
 		mov  eax, pid;
 		lea  edx, proto;
 		call proto_ptr_;
+		mov  result, eax;
 	}
-	return proto;
+	if (result != -1) {
+		return proto;
+	}
+	return nullptr;
 }
 
 char AnimCodeByWeapon(TGameObj* weapon) {
-	if (weapon != NULL) {
+	if (weapon != nullptr) {
 		char* proto = GetProtoPtr(weapon->pid);
 		if (proto && *(int*)(proto + 32) == item_type_weapon) {
 			return (char)(*(int*)(proto + 36));

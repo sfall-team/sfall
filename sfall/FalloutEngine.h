@@ -955,7 +955,7 @@ extern const DWORD xvfprintf_;
 // TODO: move these to different namespace
 long __stdcall IsPartyMember(TGameObj* obj);
 long __stdcall PartyMemberGetCurrentLevel(TGameObj* obj);
-char* GetProtoPtr(DWORD pid);
+char* GetProtoPtr(long pid);
 char AnimCodeByWeapon(TGameObj* weapon);
 // Displays message in main UI console window
 void DisplayConsoleMessage(const char* msg);

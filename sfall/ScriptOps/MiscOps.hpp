@@ -979,7 +979,7 @@ static void __declspec(naked) NBCreateChar() {
 	}
 }
 
-static char* failedLoad = "failed to load a prototype id";
+static const char* failedLoad = "%s() - failed to load a prototype id: %d";
 static bool protoMaxLimitPatch = false;
 
 static void _stdcall get_proto_data2() {
@@ -999,11 +999,11 @@ static void _stdcall get_proto_data2() {
 		if (result != -1) {
 			result = *(long*)((BYTE*)protoPtr + offsetArg.asInt());
 		} else {
-			opHandler.printOpcodeError("get_proto_data() - %s: %d", failedLoad, pid);
+			opHandler.printOpcodeError(failedLoad, "get_proto_data", pid);
 		}
 		opHandler.setReturn(result);
 	} else {
-		opHandler.printOpcodeError("get_proto_data() - invalid arguments.");
+		OpcodeInvalidArgs("get_proto_data");
 		opHandler.setReturn(-1);
 	}
 }
@@ -1034,10 +1034,10 @@ static void _stdcall set_proto_data2() {
 				protoMaxLimitPatch = true;
 			}
 		} else {
-			opHandler.printOpcodeError("set_proto_data() - %s: %d", failedLoad, pid);
+			opHandler.printOpcodeError(failedLoad, "set_proto_data", pid);
 		}
 	} else {
-		opHandler.printOpcodeError("set_proto_data() - invalid arguments.");
+		OpcodeInvalidArgs("set_proto_data");
 		opHandler.setReturn(-1);
 	}
 }

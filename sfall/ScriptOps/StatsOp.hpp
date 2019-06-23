@@ -26,399 +26,203 @@
 #include "skills.h"
 #include "stats.h"
 
+const char* invalidStat = "%s() - stat number out of range.";
+const char* objNotCritter = "%s() - the object is not a critter.";
+
 // stat_funcs
+static void _stdcall SetPCBaseStat2() {
+	const ScriptValue &statArg = opHandler.arg(0),
+					  &valArg = opHandler.arg(1);
+
+	if (statArg.isInt() && valArg.isInt()) {
+		int stat = statArg.asInt();
+		if (stat >= 0 && stat < STAT_max_stat) {
+			((long*)_pc_proto)[9 + stat] = valArg.asInt();
+		} else {
+			opHandler.printOpcodeError(invalidStat, "set_pc_base_stat");
+		}
+	} else {
+		OpcodeInvalidArgs("set_pc_base_stat");
+	}
+}
+
 static void __declspec(naked) SetPCBaseStat() {
-	__asm {
-		//Store registers
-		push ebx;
-		push ecx;
-		push edx;
-		push edi;
-		push esi;
-		//Get function args
-		mov ecx, eax;
-		call interpretPopShort_;
-		mov esi, eax;
-		mov eax, ecx;
-		call interpretPopLong_;
-		mov edi, eax;
-		mov eax, ecx;
-		call interpretPopShort_;
-		mov edx, eax;
-		mov eax, ecx;
-		call interpretPopLong_;
-		//eax now contains the stat ID, edi contains its new value
-		//Check args are valid
-		cmp dx, VAR_TYPE_INT;
-		jnz end;
-		cmp si, VAR_TYPE_INT;
-		jnz end;
-		test eax, eax;
-		jl end;
-		cmp eax, 0x23; //23, 24 and 25 are valid, but stored elsewhere. Ignore for now.
-		jge end;
-		//set the new value
-		mov ds:[eax*4 + 0x51C394], edi;
-end:
-		//Restore registers and return
-		pop esi;
-		pop edi;
-		pop edx;
-		pop ecx;
-		pop ebx;
-		retn;
+	_WRAP_OPCODE(SetPCBaseStat2, 2, 0)
+}
+
+static void _stdcall SetPCExtraStat2() {
+	const ScriptValue &statArg = opHandler.arg(0),
+					  &valArg = opHandler.arg(1);
+
+	if (statArg.isInt() && valArg.isInt()) {
+		int stat = statArg.asInt();
+		if (stat >= 0 && stat < STAT_max_stat) {
+			((long*)_pc_proto)[44 + stat] = valArg.asInt();
+		} else {
+			opHandler.printOpcodeError(invalidStat, "set_pc_extra_stat");
+		}
+	} else {
+		OpcodeInvalidArgs("set_pc_extra_stat");
 	}
 }
+
 static void __declspec(naked) SetPCExtraStat() {
-	__asm {
-		//Store registers
-		push ebx;
-		push ecx;
-		push edx;
-		push edi;
-		push esi;
-		//Get function args
-		mov ecx, eax;
-		call interpretPopShort_;
-		mov esi, eax;
-		mov eax, ecx;
-		call interpretPopLong_;
-		mov edi, eax;
-		mov eax, ecx;
-		call interpretPopShort_;
-		mov edx, eax;
-		mov eax, ecx;
-		call interpretPopLong_;
-		//eax now contains the stat ID, edi contains its new value
-		//Check args are valid
-		cmp dx, VAR_TYPE_INT;
-		jnz end;
-		cmp si, VAR_TYPE_INT;
-		jnz end;
-		test eax, eax;
-		jl end;
-		cmp eax, 0x23; //23, 24 and 25 are valid, but stored elsewhere. Ignore for now.
-		jge end;
-		//set the new value
-		mov ds:[eax*4 + 0x51C420], edi;
-end:
-		//Restore registers and return
-		pop esi;
-		pop edi;
-		pop edx;
-		pop ecx;
-		pop ebx;
-		retn;
-	}
+	_WRAP_OPCODE(SetPCExtraStat2, 2, 0)
 }
+
+static void _stdcall GetPCBaseStat2() {
+	int value = 0;
+	const ScriptValue &statArg = opHandler.arg(0);
+
+	if (statArg.isInt()) {
+		int stat = statArg.asInt();
+		if (stat >= 0 && stat < STAT_max_stat) {
+			value = ((long*)_pc_proto)[9 + stat];
+		} else {
+			opHandler.printOpcodeError(invalidStat, "get_pc_base_stat");
+		}
+	} else {
+		OpcodeInvalidArgs("get_pc_base_stat");
+	}
+	opHandler.setReturn(value, DATATYPE_INT);
+
+}
+
 static void __declspec(naked) GetPCBaseStat() {
-	__asm {
-		//Store registers
-		push ebx;
-		push ecx;
-		push edx;
-		//Get function args
-		mov ecx, eax;
-		call interpretPopShort_;
-		mov edx, eax;
-		mov eax, ecx;
-		call interpretPopLong_;
-		//Check arg is valid
-		cmp dx, VAR_TYPE_INT;
-		jnz fail;
-		test eax, eax;
-		jl fail;
-		cmp eax, 0x23; //23, 24 and 25 are valid, but stored elsewhere. Ignore for now.
-		jge fail;
-		//set the new value
-		mov edx, ds:[eax*4 + 0x51C394];
-		jmp end;
-fail:
-		xor edx, edx;
-end:
-		//Pass back the result
-		mov eax, ecx;
-		call interpretPushLong_;
-		mov edx, VAR_TYPE_INT;
-		mov eax, ecx;
-		call interpretPushShort_;
-		//Restore registers and return
-		pop edx;
-		pop ecx;
-		pop ebx;
-		retn;
-	}
+	_WRAP_OPCODE(GetPCBaseStat2, 1, 1)
 }
+
+static void _stdcall GetPCExtraStat2() {
+	int value = 0;
+	const ScriptValue &statArg = opHandler.arg(0);
+
+	if (statArg.isInt()) {
+		int stat = statArg.asInt();
+		if (stat >= 0 && stat < STAT_max_stat) {
+			value = ((long*)_pc_proto)[44 + stat];
+		} else {
+			opHandler.printOpcodeError(invalidStat, "get_pc_extra_stat");
+		}
+	} else {
+		OpcodeInvalidArgs("get_pc_extra_stat");
+	}
+	opHandler.setReturn(value, DATATYPE_INT);
+}
+
 static void __declspec(naked) GetPCExtraStat() {
-	__asm {
-		//Store registers
-		push ebx;
-		push ecx;
-		push edx;
-		//Get function args
-		mov ecx, eax;
-		call interpretPopShort_;
-		mov edx, eax;
-		mov eax, ecx;
-		call interpretPopLong_;
-		//Check arg is valid
-		cmp dx, VAR_TYPE_INT;
-		jnz fail;
-		test eax, eax;
-		jl fail;
-		cmp eax, 0x23; //23, 24 and 25 are valid, but stored elsewhere. Ignore for now.
-		jge fail;
-		//set the new value
-		mov edx, ds:[eax*4 + 0x51C420];
-		jmp end;
-fail:
-		xor edx, edx;
-end:
-		//Pass back the result
-		mov eax, ecx;
-		call interpretPushLong_;
-		mov edx, VAR_TYPE_INT;
-		mov eax, ecx;
-		call interpretPushShort_;
-		//Restore registers and return
-		pop edx;
-		pop ecx;
-		pop ebx;
-		retn;
+	_WRAP_OPCODE(GetPCExtraStat2, 1, 1)
+}
+
+static void _stdcall SetCritterBaseStat2() {
+	const ScriptValue &objArg = opHandler.arg(0),
+					  &statArg = opHandler.arg(1),
+					  &valArg = opHandler.arg(2);
+
+	if (objArg.isInt() && statArg.isInt() && valArg.isInt()) {
+		TGameObj* obj = objArg.asObject();
+		if (obj && obj->pid >> 24 == OBJ_TYPE_CRITTER) {
+			int stat = statArg.asInt();
+			if (stat >= 0 && stat < STAT_max_stat) {
+				char* proto = GetProtoPtr(obj->pid);
+				if (proto != nullptr) ((long*)proto)[9 + stat] = valArg.asInt();
+			} else {
+				opHandler.printOpcodeError(invalidStat, "set_critter_base_stat");
+			}
+		} else {
+			opHandler.printOpcodeError(objNotCritter, "set_critter_base_stat");
+		}
+	} else {
+		OpcodeInvalidArgs("set_critter_base_stat");
 	}
 }
+
 static void __declspec(naked) SetCritterBaseStat() {
-	__asm {
-		//Store registers
-		push ebx;
-		push ecx;
-		push edx;
-		push edi;
-		push esi;
-		//Get function args
-		mov ecx, eax;
-		call interpretPopShort_;
-		push eax;
-		mov eax, ecx;
-		call interpretPopLong_;
-		mov edi, eax;
-		mov eax, ecx;
-		call interpretPopShort_;
-		push eax;
-		mov eax, ecx;
-		call interpretPopLong_;
-		mov esi, eax;
-		mov eax, ecx;
-		call interpretPopShort_;
-		push eax;
-		mov eax, ecx;
-		call interpretPopLong_;
-		//eax now contains the critter ID, esi the stat ID, and edi the new value
-		//Check args are valid
-		mov ebx, [esp];
-		cmp bx, VAR_TYPE_INT;
-		jnz end;
-		mov ebx, [esp+4];
-		cmp bx, VAR_TYPE_INT;
-		jnz end;
-		mov ebx, [esp+8];
-		cmp bx, VAR_TYPE_INT;
-		jnz end;
-		test esi, esi;
-		jl end;
-		cmp esi, 0x23; //23, 24 and 25 are valid, but stored elsewhere. Ignore for now.
-		jge end;
-		//set the new value
-		mov edx, esp;
-		mov eax, [eax+0x64];
-		call proto_ptr_;
-		mov eax, [esp];
-		add eax, 0x20;
-		mov ds:[eax + esi*4 + 4], edi;
-end:
-		//Restore registers and return
-		add esp, 12;
-		pop esi;
-		pop edi;
-		pop edx;
-		pop ecx;
-		pop ebx;
-		retn;
+	_WRAP_OPCODE(SetCritterBaseStat2, 3, 0)
+}
+
+static void _stdcall SetCritterExtraStat2() {
+	const ScriptValue &objArg = opHandler.arg(0),
+					  &statArg = opHandler.arg(1),
+					  &valArg = opHandler.arg(2);
+
+	if (objArg.isInt() && statArg.isInt() && valArg.isInt()) {
+		TGameObj* obj = objArg.asObject();
+		if (obj && obj->pid >> 24 == OBJ_TYPE_CRITTER) {
+			int stat = statArg.asInt();
+			if (stat >= 0 && stat < STAT_max_stat) {
+				char* proto = GetProtoPtr(obj->pid);
+				if (proto != nullptr) ((long*)proto)[44 + stat] = valArg.asInt();
+			} else {
+				opHandler.printOpcodeError(invalidStat, "set_critter_extra_stat");
+			}
+		} else {
+			opHandler.printOpcodeError(objNotCritter, "set_critter_extra_stat");
+		}
+	} else {
+		OpcodeInvalidArgs("set_critter_extra_stat");
 	}
 }
+
 static void __declspec(naked) SetCritterExtraStat() {
-	__asm {
-		//Store registers
-		push ebx;
-		push ecx;
-		push edx;
-		push edi;
-		push esi;
-		//Get function args
-		mov ecx, eax;
-		call interpretPopShort_;
-		push eax;
-		mov eax, ecx;
-		call interpretPopLong_;
-		mov edi, eax;
-		mov eax, ecx;
-		call interpretPopShort_;
-		push eax;
-		mov eax, ecx;
-		call interpretPopLong_;
-		mov esi, eax;
-		mov eax, ecx;
-		call interpretPopShort_;
-		push eax;
-		mov eax, ecx;
-		call interpretPopLong_;
-		//eax now contains the critter ID, esi the stat ID, and edi the new value
-		//Check args are valid
-		mov ebx, [esp];
-		cmp bx, VAR_TYPE_INT;
-		jnz end;
-		mov ebx, [esp+4];
-		cmp bx, VAR_TYPE_INT;
-		jnz end;
-		mov ebx, [esp+8];
-		cmp bx, VAR_TYPE_INT;
-		jnz end;
-		test esi, esi;
-		jl end;
-		cmp esi, 0x23; //23, 24 and 25 are valid, but stored elsewhere. Ignore for now.
-		jge end;
-		//set the new value
-		mov edx, esp;
-		mov eax, [eax+0x64];
-		call proto_ptr_;
-		mov eax, [esp];
-		add eax, 0x20;
-		mov ds:[eax + esi*4 + 0x90], edi;
-end:
-		//Restore registers and return
-		add esp, 12;
-		pop esi;
-		pop edi;
-		pop edx;
-		pop ecx;
-		pop ebx;
-		retn;
-	}
+	_WRAP_OPCODE(SetCritterExtraStat2, 3, 0)
 }
+
+static void _stdcall GetCritterBaseStat2() {
+	int result = 0;
+	const ScriptValue &objArg = opHandler.arg(0),
+					  &statArg = opHandler.arg(1);
+
+	if (objArg.isInt() && statArg.isInt()) {
+		TGameObj* obj = objArg.asObject();
+		if (obj && obj->pid >> 24 == OBJ_TYPE_CRITTER) {
+			int stat = statArg.asInt();
+			if (stat >= 0 && stat < STAT_max_stat) {
+				char* proto = GetProtoPtr(obj->pid);
+				if (proto != nullptr) result = ((long*)proto)[9 + stat];
+			} else {
+				opHandler.printOpcodeError(invalidStat, "get_critter_base_stat");
+			}
+		} else {
+			opHandler.printOpcodeError(objNotCritter, "get_critter_base_stat");
+		}
+	} else {
+		OpcodeInvalidArgs("get_critter_base_stat");
+	}
+	opHandler.setReturn(result, DATATYPE_INT);
+}
+
 static void __declspec(naked) GetCritterBaseStat() {
-	__asm {
-		//Store registers
-		push ebx;
-		push ecx;
-		push edx;
-		push edi;
-		//Get function args
-		mov ecx, eax;
-		call interpretPopShort_;
-		push eax
-		mov eax, ecx;
-		call interpretPopLong_;
-		mov edi, eax;
-		mov eax, ecx;
-		call interpretPopShort_;
-		push eax
-		mov eax, ecx;
-		call interpretPopLong_;
-		//eax contains the critter pointer, and edi contains the stat id
-		//Check args are valid
-		mov ebx, [esp];
-		cmp bx, VAR_TYPE_INT;
-		jnz fail;
-		mov ebx, [esp+4];
-		cmp bx, VAR_TYPE_INT;
-		jnz fail;
-		test edi, edi;
-		jl fail;
-		cmp edi, 0x23; //23, 24 and 25 are valid, but stored elsewhere. Ignore for now.
-		jge fail;
-		//set the new value
-		mov edx, esp;
-		mov eax, [eax+0x64];
-		call proto_ptr_;
-		mov eax, [esp];
-		add eax, 0x20;
-		mov edx, ds:[eax + edi*4 + 4];
-		jmp end;
-fail:
-		xor edx, edx;
-end:
-		//Pass back the result
-		mov eax, ecx;
-		call interpretPushLong_;
-		mov edx, VAR_TYPE_INT;
-		mov eax, ecx;
-		call interpretPushShort_;
-		//Restore registers and return
-		add esp, 8;
-		pop edi;
-		pop edx;
-		pop ecx;
-		pop ebx;
-		retn;
-	}
+	_WRAP_OPCODE(GetCritterBaseStat2, 2, 1)
 }
+
+static void _stdcall GetCritterExtraStat2() {
+	int result = 0;
+	const ScriptValue &objArg = opHandler.arg(0),
+					  &statArg = opHandler.arg(1);
+
+	if (objArg.isInt() && statArg.isInt()) {
+		TGameObj* obj = objArg.asObject();
+		if (obj && obj->pid >> 24 == OBJ_TYPE_CRITTER) {
+			int stat = statArg.asInt();
+			if (stat >= 0 && stat < STAT_max_stat) {
+				char* proto = GetProtoPtr(obj->pid);
+				if (proto != nullptr) result = ((long*)proto)[44 + stat];
+			} else {
+				opHandler.printOpcodeError(invalidStat, "get_critter_extra_stat");
+			}
+		} else {
+			opHandler.printOpcodeError(objNotCritter, "get_critter_extra_stat");
+		}
+	} else {
+		OpcodeInvalidArgs("get_critter_extra_stat");
+	}
+	opHandler.setReturn(result, DATATYPE_INT);
+}
+
 static void __declspec(naked) GetCritterExtraStat() {
-	__asm {
-		//Store registers
-		push ebx;
-		push ecx;
-		push edx;
-		push edi;
-		//Get function args
-		mov ecx, eax;
-		call interpretPopShort_;
-		push eax
-		mov eax, ecx;
-		call interpretPopLong_;
-		mov edi, eax;
-		mov eax, ecx;
-		call interpretPopShort_;
-		push eax
-		mov eax, ecx;
-		call interpretPopLong_;
-		//eax contains the critter pointer, and edi contains the stat id
-		//Check args are valid
-		mov ebx, [esp];
-		cmp bx, VAR_TYPE_INT;
-		jnz fail;
-		mov ebx, [esp+4];
-		cmp bx, VAR_TYPE_INT;
-		jnz fail;
-		test edi, edi;
-		jl fail;
-		cmp edi, 0x23; //23, 24 and 25 are valid, but stored elsewhere. Ignore for now.
-		jge fail;
-		//set the new value
-		mov edx, esp;
-		mov eax, [eax+0x64];
-		call proto_ptr_;
-		mov eax, [esp];
-		add eax, 0x20;
-		mov edx, ds:[eax + edi*4 + 0x90];
-		jmp end;
-fail:
-		xor edx, edx;
-end:
-		//Pass back the result
-		mov eax, ecx;
-		call interpretPushLong_;
-		mov edx, VAR_TYPE_INT;
-		mov eax, ecx;
-		call interpretPushShort_;
-		//Restore registers and return
-		add esp, 8;
-		pop edi;
-		pop edx;
-		pop ecx;
-		pop ebx;
-		retn;
-	}
+	_WRAP_OPCODE(GetCritterExtraStat2, 2, 1)
 }
+
 static void __declspec(naked) set_critter_skill_points() {
 	__asm {
 		pushad;
@@ -460,7 +264,7 @@ static void __declspec(naked) set_critter_skill_points() {
 		mov edx, esp;
 		call proto_ptr_;
 		mov eax, [esp];
-		mov [eax + 0x13c + esi * 4], edi;
+		mov [eax + 0x13C + esi * 4], edi;
 end:
 		//Restore registers and return
 		add esp, 12;
@@ -500,7 +304,7 @@ static void __declspec(naked) get_critter_skill_points() {
 		mov edx, esp;
 		call proto_ptr_;
 		mov eax, [esp];
-		mov edx, [eax + 0x13c + esi * 4];
+		mov edx, [eax + 0x13C + esi * 4];
 		jmp end;
 fail:
 		xor edx, edx;
@@ -654,12 +458,12 @@ static void __declspec(naked) fSetPickpocketMax() {
 		call interpretPopLong_;
 		cmp dx, VAR_TYPE_INT;
 		jnz end;
-		and eax, 0xff;
+		and eax, 0xFF;
 		cmp eax, 100;
 		jg end;
 		push 0;
 		push eax;
-		push 0xffffffff;
+		push 0xFFFFFFFF;
 		call SetPickpocketMax;
 end:
 		pop edi;
@@ -682,12 +486,12 @@ static void __declspec(naked) fSetHitChanceMax() {
 		call interpretPopLong_;
 		cmp dx, VAR_TYPE_INT;
 		jnz end;
-		and eax, 0xff;
+		and eax, 0xFF;
 		cmp eax, 100;
 		jg end;
 		push 0;
 		push eax;
-		push 0xffffffff;
+		push 0xFFFFFFFF;
 		call SetHitChanceMax;
 end:
 		pop edi;
@@ -837,7 +641,7 @@ static void __declspec(naked) SetBasePickpocket() {
 		jnz end;
 		push ecx;
 		push eax;
-		push 0xffffffff;
+		push 0xFFFFFFFF;
 		call SetPickpocketMax;
 end:
 		pop edi;
@@ -897,7 +701,7 @@ static void __declspec(naked) SetBaseSkillMod() {
 		test ebx, ebx;
 		jnz end;
 		push eax;
-		push 0xffffffff;
+		push 0xFFFFFFFF;
 		call SetSkillMax;
 end:
 		pop edi;
@@ -920,11 +724,11 @@ static void __declspec(naked) fSetSkillMax() {
 		call interpretPopLong_;
 		cmp dx, VAR_TYPE_INT;
 		jnz end;
-		and eax, 0xffff;
+		and eax, 0xFFFF;
 		cmp eax, 300;
 		jg end;
 		push eax;
-		push 0xffffffff;
+		push 0xFFFFFFFF;
 		call SetSkillMax;
 end:
 		pop edi;
@@ -1179,7 +983,7 @@ static void __declspec(naked) SetXpMod() {
 		call interpretPopLong_;
 		cmp dx, VAR_TYPE_INT;
 		jnz end;
-		and eax, 0xffff;
+		and eax, 0xFFFF;
 		push eax;
 		call SetXpMod2;
 end:

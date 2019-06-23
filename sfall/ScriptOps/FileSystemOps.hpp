@@ -22,8 +22,8 @@
 #include "FileSystem.h"
 #include "ScriptExtender.h"
 
-static void FSOpcodeInvalidArgs(const char* opcodeName) {
-	opHandler.printOpcodeError("%s - invalid arguments.", opcodeName);
+void OpcodeInvalidArgs(const char* opcodeName) {
+	opHandler.printOpcodeError("%s() - invalid arguments.", opcodeName);
 }
 
 //file system functions
@@ -36,7 +36,7 @@ static void fs_create2() {
 		int size = sizeArg.asInt();
 		opHandler.setReturn(FScreate(path, size), DATATYPE_INT);
 	} else {
-		FSOpcodeInvalidArgs("fs_create()");
+		OpcodeInvalidArgs("fs_create");
 		opHandler.setReturn(-1);
 	}
 }
@@ -54,7 +54,7 @@ static void fs_copy2() {
 		const char* src = srcArg.asString();
 		opHandler.setReturn(FScopy(path, src), DATATYPE_INT);
 	} else {
-		FSOpcodeInvalidArgs("fs_copy()");
+		OpcodeInvalidArgs("fs_copy");
 		opHandler.setReturn(-1);
 	}
 }
@@ -70,7 +70,7 @@ static void fs_find2() {
 		const char* path = pathArg.asString();
 		opHandler.setReturn(FSfind(path), DATATYPE_INT);
 	} else {
-		FSOpcodeInvalidArgs("fs_find()");
+		OpcodeInvalidArgs("fs_find");
 		opHandler.setReturn(-1);
 	}
 }
@@ -87,7 +87,7 @@ static void fs_write_byte2() {
 		int id = idArg.asInt(), data = dataArg.asInt();
 		FSwrite_byte(id, data);
 	} else {
-		FSOpcodeInvalidArgs("fs_write_byte()");
+		OpcodeInvalidArgs("fs_write_byte");
 	}
 }
 
@@ -103,7 +103,7 @@ static void fs_write_short2() {
 		int id = idArg.asInt(), data = dataArg.asInt();
 		FSwrite_short(id, data);
 	} else {
-		FSOpcodeInvalidArgs("fs_write_short()");
+		OpcodeInvalidArgs("fs_write_short");
 	}
 }
 
@@ -119,7 +119,7 @@ static void fs_write_int2() {
 		int id = idArg.asInt(), data = dataArg.asInt();
 		FSwrite_int(id, data);
 	} else {
-		FSOpcodeInvalidArgs("fs_write_int()");
+		OpcodeInvalidArgs("fs_write_int");
 	}
 }
 
@@ -136,7 +136,7 @@ static void fs_write_string2() {
 		const char* data = dataArg.asString();
 		FSwrite_string(id, data);
 	} else {
-		FSOpcodeInvalidArgs("fs_write_string()");
+		OpcodeInvalidArgs("fs_write_string");
 	}
 }
 
@@ -153,7 +153,7 @@ static void fs_write_bstring2() {
 		const char* data = dataArg.asString();
 		FSwrite_bstring(id, data);
 	} else {
-		FSOpcodeInvalidArgs("fs_write_bstring()");
+		OpcodeInvalidArgs("fs_write_bstring");
 	}
 }
 
@@ -168,7 +168,7 @@ static void fs_read_byte2() {
 		int id = idArg.asInt();
 		opHandler.setReturn(FSread_byte(id), DATATYPE_INT);
 	} else {
-		FSOpcodeInvalidArgs("fs_read_byte()");
+		OpcodeInvalidArgs("fs_read_byte");
 		opHandler.setReturn(-1);
 	}
 }
@@ -184,7 +184,7 @@ static void fs_read_short2() {
 		int id = idArg.asInt();
 		opHandler.setReturn(FSread_short(id), DATATYPE_INT);
 	} else {
-		FSOpcodeInvalidArgs("fs_read_short()");
+		OpcodeInvalidArgs("fs_read_short");
 		opHandler.setReturn(-1);
 	}
 }
@@ -200,7 +200,7 @@ static void fs_read_int2() {
 		int id = idArg.asInt();
 		opHandler.setReturn(FSread_int(id), DATATYPE_INT);
 	} else {
-		FSOpcodeInvalidArgs("fs_read_int()");
+		OpcodeInvalidArgs("fs_read_int");
 		opHandler.setReturn(-1);
 	}
 }
@@ -216,7 +216,7 @@ static void fs_read_float2() {
 		int id = idArg.asInt();
 		opHandler.setReturn(FSread_int(id), DATATYPE_FLOAT);
 	} else {
-		FSOpcodeInvalidArgs("fs_read_float()");
+		OpcodeInvalidArgs("fs_read_float");
 		opHandler.setReturn(-1);
 	}
 }
@@ -232,7 +232,7 @@ static void fs_delete2() {
 		int id = idArg.asInt();
 		FSdelete(id);
 	} else {
-		FSOpcodeInvalidArgs("fs_delete()");
+		OpcodeInvalidArgs("fs_delete");
 	}
 }
 
@@ -247,7 +247,7 @@ static void fs_size2() {
 		int id = idArg.asInt();
 		opHandler.setReturn(FSsize(id), DATATYPE_INT);
 	} else {
-		FSOpcodeInvalidArgs("fs_size()");
+		OpcodeInvalidArgs("fs_size");
 		opHandler.setReturn(-1);
 	}
 }
@@ -263,7 +263,7 @@ static void fs_pos2() {
 		int id = idArg.asInt();
 		opHandler.setReturn(FSpos(id), DATATYPE_INT);
 	} else {
-		FSOpcodeInvalidArgs("fs_pos()");
+		OpcodeInvalidArgs("fs_pos");
 		opHandler.setReturn(-1);
 	}
 }
@@ -280,7 +280,7 @@ static void fs_seek2() {
 		int id = idArg.asInt(), pos = posArg.asInt();
 		FSseek(id, pos);
 	} else {
-		FSOpcodeInvalidArgs("fs_seek()");
+		OpcodeInvalidArgs("fs_seek");
 	}
 }
 
@@ -296,7 +296,7 @@ static void fs_resize2() {
 		int id = idArg.asInt(), size = sizeArg.asInt();
 		FSresize(id, size);
 	} else {
-		FSOpcodeInvalidArgs("fs_resize()");
+		OpcodeInvalidArgs("fs_resize");
 	}
 }
 

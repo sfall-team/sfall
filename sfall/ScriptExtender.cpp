@@ -419,7 +419,7 @@ static void InitOpcodeMetaTable() {
 	}
 }
 
-typedef void (_stdcall *regOpcodeProc)(WORD opcode,void* ptr);
+typedef void (_stdcall *regOpcodeProc)(WORD opcode, void* ptr);
 
 static DWORD highlightingToggled = 0;
 static DWORD MotionSensorMode;
@@ -600,7 +600,7 @@ static void SetGlobalVarFunc() {
 			SetGlobalVar2Int(varArg.rawValue(), valArg.rawValue());
 		}
 	} else {
-		opHandler.printOpcodeError("set_sfall_global() - invalid arguments.");
+		OpcodeInvalidArgs("set_sfall_global");
 	}
 }
 
