@@ -1698,7 +1698,7 @@ sScriptProgram* GetGlobalScriptProgram(DWORD scriptPtr) {
 	for (std::vector<sGlobalScript>::iterator it = globalScripts.begin(); it != globalScripts.end(); it++) {
 		if (it->prog.ptr == scriptPtr) return &it->prog;
 	}
-	return NULL;
+	return nullptr;
 }
 
 bool _stdcall isGameScript(const char* filename) {

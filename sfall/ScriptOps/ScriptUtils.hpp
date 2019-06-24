@@ -341,10 +341,10 @@ end:
 	}
 }
 static int _stdcall str_to_int_internal(const char* str) {
-	return (int)strtol(str, (char**)NULL, 0); // auto-determine radix
+	return static_cast<int>(strtol(str, (char**)nullptr, 0)); // auto-determine radix
 }
 static DWORD _stdcall str_to_flt_internal(const char* str) {
-	float f=(float)atof(str);
+	float f = static_cast<float>(atof(str));
 	return *(DWORD*)&f;
 }
 static void __declspec(naked) str_to_int() {
@@ -423,9 +423,9 @@ char* _stdcall mysubstr(char* str, int pos, int length) {
 		length = srclen - pos + length;
 	if (pos >= srclen)
 		length = 0;
-	else if (length+pos > srclen)
-		length = srclen-pos;
-	newstr = new char[length+1];
+	else if (length + pos > srclen)
+		length = srclen - pos;
+	newstr = new char[length + 1];
 	if (length > 0)
 		memcpy(newstr, &str[pos], length);
 	newstr[length] = '\0';
@@ -435,22 +435,22 @@ char* _stdcall mysubstr(char* str, int pos, int length) {
 static DWORD _stdcall mystrlen(char* str) {
 	return strlen(str);
 }
-static char* sprintfbuf = NULL;
+static char* sprintfbuf = nullptr;
 static char* _stdcall mysprintf(char* format, DWORD value, DWORD valueType) {
 	valueType = valueType & 0xFFFF; // use lower 2 bytes
 	int fmtlen = strlen(format);
 	int buflen = fmtlen + 1;
-	for (int i=0; i<fmtlen; i++) {
+	for (int i = 0; i < fmtlen; i++) {
 		if (format[i] == '%')
 			buflen++; // will possibly be escaped, need space for that
 	}
 	// parse format to make it safe
 	char* newfmt = new char[buflen];
 	byte mode = 0;
-	int j=0;
+	int j = 0;
 	char c, specifier;
 	bool hasDigits = false;
-	for (int i=0; i<fmtlen; i++) {
+	for (int i = 0; i < fmtlen; i++) {
 		c = format[i];
 		switch (mode) {
 		case 0: // prefix
@@ -460,12 +460,14 @@ static char* _stdcall mysprintf(char* format, DWORD value, DWORD valueType) {
 			break;
 		case 1: // definition
 			if ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z')) {
-				if (c == 'h' || c == 'l' || c == 'j' || c == 'z' || c == 't' || c == 'L')  // ignore sub-specifiers
+				if (c == 'h' || c == 'l' || c == 'j' || c == 'z' || c == 't' || c == 'L') { // ignore sub-specifiers
 					continue;
-				if (c == 's' && valueType != VAR_TYPE_STR2 && valueType != VAR_TYPE_STR) // don't allow to treat non-string values as string pointers
+				}
+				if (c == 's' && valueType != VAR_TYPE_STR2 && valueType != VAR_TYPE_STR) { // don't allow to treat non-string values as string pointers
 					c = 'd';
-				else if (c == 'n') // don't allow "n" specifier
+				} else if (c == 'n') { // don't allow "n" specifier
 					c = 'd';
+				}
 				specifier = c;
 				mode = 2;
 			} else if (c == '%') {
@@ -479,8 +481,9 @@ static char* _stdcall mysprintf(char* format, DWORD value, DWORD valueType) {
 		default:
 			if (c == '%') { // don't allow more than one specifier
 				newfmt[j++] = '%'; // escape it
-				if (format[i+1] == '%')
+				if (format[i + 1] == '%') {
 					i++; // skip already escaped
+				}
 			}
 			break;
 		}
@@ -497,9 +500,10 @@ static char* _stdcall mysprintf(char* format, DWORD value, DWORD valueType) {
 	} else {
 		buflen = j + 30; // numbers
 	}
-	if (sprintfbuf)
+	if (sprintfbuf) {
 		delete[] sprintfbuf;
-	sprintfbuf = new char[buflen+1];
+	}
+	sprintfbuf = new char[buflen + 1];
 	if (valueType == VAR_TYPE_FLOAT) {
 		_snprintf(sprintfbuf, buflen, newfmt, *(float*)(&value));
 	} else {
@@ -684,8 +688,8 @@ notstring:
 }
 
 static DWORD _stdcall GetValueType(DWORD datatype) {
-	datatype&=0xffff;
-	switch(datatype) {
+	datatype &= 0xFFFF;
+	switch (datatype) {
 	case VAR_TYPE_STR:
 	case VAR_TYPE_STR2:
 		return DATATYPE_STR;

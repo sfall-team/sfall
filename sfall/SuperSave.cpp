@@ -90,7 +90,7 @@ static void __declspec(naked) load_page_offsets(void) {
 
 //------------------------------------------
 static void CreateButtons() {
-	DWORD winRef = *(DWORD*)_lsgwin;
+	DWORD winRef = *ptr_lsgwin;
 	// left button -10       | X | Y | W | H |HOn |HOff |BDown |BUp |PicUp |PicDown |? |ButType
 	WinRegisterButton(winRef, 100, 60, 24, 20, -1, 0x500, 0x54B, 0x14B, 0, 0, 0, 32);
 	// left button -100
@@ -114,12 +114,12 @@ static void __declspec(naked) create_page_buttons(void) {
 
 //------------------------------------------------------
 void SetPageNum() {
-	DWORD WinRef = *(DWORD*)_lsgwin; // load/save winref
-	if (WinRef == NULL) {
+	DWORD winRef = *ptr_lsgwin; // load/save winref
+	if (winRef == 0) {
 		return;
 	}
-	WINinfo *SaveLoadWin = GetWinStruct(WinRef);
-	if (SaveLoadWin->surface == NULL) {
+	WINinfo *SaveLoadWin = GetWinStruct(winRef);
+	if (SaveLoadWin->surface == nullptr) {
 		return;
 	}
 
@@ -162,7 +162,7 @@ void SetPageNum() {
 			}
 
 			PrintText(TempText, ConsoleGold, 170 - TxtWidth / 2, 64, TxtWidth, SaveLoadWin->width, SaveLoadWin->surface);
-			RedrawWin(WinRef);
+			RedrawWin(winRef);
 		}
 
 		button = check_buttons();
@@ -198,7 +198,7 @@ void SetPageNum() {
 		LSPageOffset = tempPageOffset;
 	}
 
-	SaveLoadWin = NULL;
+	SaveLoadWin = nullptr;
 }
 
 //------------------------------------------
@@ -259,12 +259,12 @@ CheckUp:
 
 //------------------------------------------
 void DrawPageText() {
-	int WinRef = *(DWORD*)_lsgwin; // load/save winref
-	if (WinRef == NULL) {
+	DWORD winRef = *ptr_lsgwin; // load/save winref
+	if (winRef == 0) {
 		return;
 	}
-	WINinfo *SaveLoadWin = GetWinStruct(WinRef);
-	if (SaveLoadWin->surface == NULL) {
+	WINinfo *SaveLoadWin = GetWinStruct(winRef);
+	if (SaveLoadWin->surface == nullptr) {
 		return;
 	}
 
@@ -319,7 +319,7 @@ void DrawPageText() {
 	TxtWidth = GetTextWidth(TempText);
 	PrintText(TempText, Colour, 228 - TxtWidth / 2, 64, TxtWidth, SaveLoadWin->width, SaveLoadWin->surface);
 
-	SaveLoadWin = NULL;
+	SaveLoadWin = nullptr;
 }
 
 //------------------------------------------

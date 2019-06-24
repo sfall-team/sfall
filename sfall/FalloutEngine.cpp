@@ -738,7 +738,7 @@ char* GetProtoPtr(long pid) {
 char AnimCodeByWeapon(TGameObj* weapon) {
 	if (weapon != nullptr) {
 		char* proto = GetProtoPtr(weapon->pid);
-		if (proto && *(int*)(proto + 32) == item_type_weapon) {
+		if (proto != nullptr && *(int*)(proto + 32) == item_type_weapon) {
 			return (char)(*(int*)(proto + 36));
 		}
 	}

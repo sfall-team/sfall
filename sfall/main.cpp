@@ -815,7 +815,7 @@ static void DllMain2() {
 		dlogr(" Done", DL_INIT);
 	//}
 
-	if (GetPrivateProfileIntA("Misc", "DataLoadOrderPatch", 0, ini)) {
+	if (GetPrivateProfileIntA("Misc", "DataLoadOrderPatch", 1, ini)) {
 		dlog("Applying data load order patch.", DL_INIT);
 		MakeCall(0x444259, game_init_databases_hack1);
 		MakeCall(0x4442F1, game_init_databases_hack2);

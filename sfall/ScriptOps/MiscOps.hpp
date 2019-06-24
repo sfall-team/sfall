@@ -987,11 +987,10 @@ static void _stdcall get_proto_data2() {
 					  &offsetArg = opHandler.arg(1);
 	if (pidArg.isInt() && offsetArg.isInt()) { // argument validation
 		char* protoPtr;
-		char* *protoPtrRef = &protoPtr;
 		int pid = pidArg.asInt();
 		int result;
 		__asm {
-			mov  edx, protoPtrRef;
+			lea  edx, protoPtr;
 			mov  eax, pid;
 			call proto_ptr_;
 			mov  result, eax;
@@ -1018,11 +1017,10 @@ static void _stdcall set_proto_data2() {
 					  &valueArg = opHandler.arg(2);
 	if (pidArg.isInt() && offsetArg.isInt() && valueArg.isInt()) { // argument validation
 		char* protoPtr;
-		char* *protoPtrRef = &protoPtr;
 		int pid = pidArg.asInt();
 		int result;
 		__asm {
-			mov  edx, protoPtrRef;
+			lea  edx, protoPtr;
 			mov  eax, pid;
 			call proto_ptr_;
 			mov  result, eax;
