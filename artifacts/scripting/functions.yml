@@ -8,11 +8,11 @@
 #   doc: Category doc             # OPTIONAL. Must be RELEVANT for ALL functions in the category. Will be displayed in IDE for EACH function under this category, in addition to function's individual doc.
 #   items:
 #   - name: function_name                                   # REQUIRED
-#     detail: void function_name(ObjPtr obj, string text)   # REQUIRED. Will be displayed in IDE.
+#     detail: void function_name(ObjPtr obj, string text)   # REQUIRED. Invocation details. SINGLE line. Will be displayed in IDE.
 #     doc: fuction documentation in markdown format         # OPTIONAL. Will be displayed in IDE.
 #     opcode: function opcode                               # OPTIONAL
 #     unsafe: true/false                                    # OPTIONAL. Whether it requires AllowUnsafeScripting.
-#     macro: true/false                                     # OPTIONAL.
+#     macro: true/false                                     # OPTIONAL
 
 - name: Direct memory access # just parent page
 
