@@ -155,8 +155,11 @@ end:
 
 static void __stdcall InitExtraPatches() {
 	for (auto it = patchFiles.begin(); it != patchFiles.end(); it++) {
-		fo::func::db_init(it->c_str(), 0);
+		if (!it->empty()) fo::func::db_init(it->c_str(), 0);
 	}
+	// free memory
+	patchFiles.clear();
+	patchFiles.shrink_to_fit();
 }
 
 static void __fastcall game_init_databases_hook() {
@@ -176,13 +179,51 @@ static void __fastcall game_init_databases_hook() {
 	fo::var::paths = master_patches;      // set master_patches node at the beginning of the load order
 }
 
+static bool NormalizePath(std::string &path) {
+	if (path.find(':') != std::string::npos) return false;
+	int pos = 0;
+	do { // replace all '/' char to '\'
+		pos = path.find('/', pos);
+		if (pos != std::string::npos) path[pos] = '\\';
+	} while (pos != std::string::npos);
+	if (path.find(".\\") != std::string::npos || path.find("..\\") != std::string::npos) return false;
+	while (path.front() == '\\') path.erase(0, 1); // remove firsts '\'
+	return true;
+}
+
 static void GetExtraPatches() {
+	std::string searchPath = GetConfigString("ExtraPatches", "AutoSearchPath", "mods\\", MAX_PATH);
+	if (!searchPath.empty() && NormalizePath(searchPath)) {
+		if (searchPath.back() != '\\') searchPath += "\\";
+
+		std::string path(".\\" + searchPath + "*.dat");
+		dlogr("Loading custom patches:", DL_MAIN);
+		WIN32_FIND_DATA findData;
+		HANDLE hFind = FindFirstFile(path.c_str(), &findData);
+		if (hFind != INVALID_HANDLE_VALUE) {
+			do {
+				std::string name(searchPath + findData.cFileName);
+				dlog_f(">%s\n", DL_MAIN, name.c_str());
+				patchFiles.push_back(name);
+			} while (FindNextFile(hFind, &findData));
+			FindClose(hFind);
+		}
+	}
 	char patchFile[12] = "PatchFile";
 	for (int i = 0; i < 100; i++) {
 		_itoa(i, &patchFile[9], 10);
 		auto patch = GetConfigString("ExtraPatches", patchFile, "", MAX_PATH);
-		if (patch.empty() || GetFileAttributes(patch.c_str()) == INVALID_FILE_ATTRIBUTES) continue;
+		if (patch.empty() || !NormalizePath(patch) || GetFileAttributes(patch.c_str()) == INVALID_FILE_ATTRIBUTES) continue;
 		patchFiles.push_back(patch);
+	}
+	// Remove first duplicates
+	size_t size = patchFiles.size();
+	for (size_t i = 1; i < size; ++i) {
+		for(size_t j = size - 1; j > i; --j) {
+			if (patchFiles[j] == patchFiles[i]) {
+				patchFiles[i].clear();
+			}
+		}
 	}
 }
 
@@ -325,7 +366,7 @@ static void RemoveSavFiles() {
 }
 
 void LoadOrder::init() {
-	// Load external sfall resource file
+	// Load external sfall resource file (load order is before patchXXX.dat)
 	patchFiles.push_back("sfall.dat");
 
 	GetExtraPatches();
