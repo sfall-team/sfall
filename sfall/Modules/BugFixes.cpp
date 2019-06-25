@@ -2192,6 +2192,20 @@ largeLoc:
 	}
 }
 
+static const DWORD combat_should_end_break = 0x422D00;
+static void __declspec(naked) combat_should_end_hack() {
+	__asm { // ecx = dude.team_num
+		cmp  ecx, [ebp + 0x50]; // npc who_hit_me.team_num
+		je   break;
+		test byte ptr [edx], 1; // npc combat_data.combat_state
+		jnz  break;
+		retn; // check next critter
+break:
+		add  esp, 4;
+		jmp  combat_should_end_break;
+	}
+}
+
 void BugFixes::init()
 {
 	#ifndef NDEBUG
@@ -2766,6 +2780,10 @@ void BugFixes::init()
 
 	// Fix the position of the target marker for small/medium location circles
 	MakeCall(0x4C03AA, wmWorldMap_hack, 2);
+
+	// Fix for combat not ending automatically when there are no hostile critters
+	MakeCall(0x422CF3, combat_should_end_hack);
+	SafeWrite16(0x422CEA, 0x0C74); // jz 0x422CF8
 }
 
 }
