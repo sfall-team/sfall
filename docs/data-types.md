@@ -9,10 +9,11 @@ permalink: /data-types/
 
 Data types mentioned in this document
 
-* `void` - means opcode does not return any value
+* `array` - array ID to be used with array-related functions (actually an integer)
 * `any` - any type
 * `int` - integer number
+* `mixed` - type depends on exact use case
 * `float` - floating point number
+* `ObjectPtr` - pointer to a game object (actually an integer)
 * `string` - string (text) value
-* `object` - pointer to game object (actually an integer)
-* `array` - array ID to be used with array-related functions (actually an integer)
+* `void` - means opcode does not return any value
