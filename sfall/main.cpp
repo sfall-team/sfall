@@ -45,6 +45,7 @@
 #include "Modules\HookScripts.h"
 #include "Modules\HeroAppearance.h"
 #include "Modules\Input.h"
+#include "Modules\Interface.h"
 #include "Modules\Inventory.h"
 #include "Modules\Karma.h"
 #include "Modules\KillCounter.h"
@@ -138,6 +139,7 @@ static void InitModules() {
 	manager.add<BugFixes>();    // fixes should be applied at the beginning
 	manager.add<Graphics>();
 	manager.add<Input>();
+	manager.add<LoadOrder>();
 	manager.add<LoadGameHook>();
 	manager.add<MainLoopHook>();
 	manager.add<Movies>();
@@ -151,7 +153,6 @@ static void InitModules() {
 	manager.add<Skills>();
 	manager.add<FileSystem>();
 	manager.add<Criticals>();
-	manager.add<LoadOrder>();
 	manager.add<Karma>();
 	manager.add<Tiles>();
 	manager.add<Credits>();
@@ -171,6 +172,7 @@ static void InitModules() {
 	manager.add<Message>();
 	manager.add<Elevators>();
 	manager.add<KillCounter>();
+	manager.add<Interface>();
 	//
 	manager.add<AI>();
 	manager.add<DamageMod>();

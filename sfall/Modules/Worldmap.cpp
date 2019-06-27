@@ -384,7 +384,8 @@ void WorldLimitsPatches() {
 	dlogr(" Done", DL_INIT);
 	//}
 
-	DWORD wmSlots = GetConfigInt("Misc", "WorldMapSlots", 0);
+	DWORD wmSlots = GetConfigInt("Interface", "WorldMapSlots", -1);
+	if (wmSlots == -1) wmSlots = GetConfigInt("Misc", "WorldMapSlots", 0); // for compatibility
 	if (wmSlots && wmSlots < 128) {
 		dlog("Applying world map slots patch.", DL_INIT);
 		if (wmSlots < 7) wmSlots = 7;
@@ -945,7 +946,7 @@ void Worldmap::init() {
 	WorldMapInterfacePatch();
 	PipBoyAutomapsPatch();
 
-	worldmapInterface = GetConfigInt("Misc", "WorldMapInterface", 0);
+	worldmapInterface = GetConfigInt("Interface", "WorldMapInterface", 0);
 	if (worldmapInterface && *(DWORD*)0x4E4480 != 0x278805C7) {   // check enabled HRP
 		LoadGameHook::OnAfterGameInit() += WorldmapViewportPatch; // Note: Must be applyling after WorldMapSlots patch
 	}
