@@ -30,8 +30,8 @@ nav_order: 2
   For example, if you pick prefix "**a_**", your script could be named `gl_a_myscript.int`, and might look like this:
   
   ```js
-    #define S_NAME "gl_a_myscript"
-    #define ndebug(message) debug_msg(S_NAME + ": " + message + "\n")
+    #define NAME "gl_a_myscript"
+    #define ndebug(message) debug_msg(NAME + ": " + message + "\n")
 
     procedure start begin
       if game_loaded then begin
