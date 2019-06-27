@@ -7,12 +7,12 @@
 #   parent: Parent category name  # OPTIONAL. If set, will generate a subcategory page on the site. Parent category must exist.
 #   doc: Category doc             # OPTIONAL. Must be RELEVANT for ALL functions in the category. Will be displayed in IDE for EACH function under this category, in addition to function's individual doc.
 #   items:
-#   - name: function_name                                   # REQUIRED
-#     detail: void function_name(ObjPtr obj, string text)   # REQUIRED. Invocation details. SINGLE line. Will be displayed in IDE.
-#     doc: fuction documentation in markdown format         # OPTIONAL. Will be displayed in IDE.
-#     opcode: function opcode                               # OPTIONAL
-#     unsafe: true/false                                    # OPTIONAL. Whether it requires AllowUnsafeScripting.
-#     macro: true/false                                     # OPTIONAL
+#   - name: function_name                                     # REQUIRED
+#     detail: void function_name(ObjectPtr obj, string text)  # REQUIRED. Invocation details. SINGLE line. Will be displayed in IDE.
+#     doc: fuction documentation in markdown format           # OPTIONAL. Will be displayed in IDE.
+#     opcode: function opcode                                 # OPTIONAL
+#     unsafe: true/false                                      # OPTIONAL. Whether it requires AllowUnsafeScripting.
+#     macro: true/false                                       # OPTIONAL
 
 - name: Direct memory access # just parent page
 
@@ -488,16 +488,16 @@
 - name: Weapons and ammo
   items:
   - name: get_weapon_ammo_pid
-    detail: int get_weapon_ammo_pid(ObjPtr weapon)
+    detail: int get_weapon_ammo_pid(ObjectPtr weapon)
     opcode: 0x8217
   - name: set_weapon_ammo_pid
-    detail: void set_weapon_ammo_pid(ObjPtr weapon, int pid)
+    detail: void set_weapon_ammo_pid(ObjectPtr weapon, int pid)
     opcode: 0x8218
   - name: get_weapon_ammo_count
-    detail: int get_weapon_ammo_count(ObjPtr weapon)
+    detail: int get_weapon_ammo_count(ObjectPtr weapon)
     opcode: 0x8219
   - name: set_weapon_ammo_count
-    detail: void set_weapon_ammo_count(ObjPtr weapon, int count)
+    detail: void set_weapon_ammo_count(ObjectPtr weapon, int count)
     opcode: 0x821a
 
 - name: sfall
@@ -652,27 +652,27 @@
     doc: Allows to enable all `reg_anim_*` functions in combat (including vanilla functions) if set to 0. It is automatically reset at the end of each frame, so you need to call it before `reg_anim_begin` - `reg_anim_end` block.
     opcode: 0x825c
   - name: reg_anim_destroy
-    detail: void reg_anim_destroy(ObjPtr)
+    detail: void reg_anim_destroy(ObjectPtr)
     doc: Given object is destroyed at the end of current animation set.
     opcode: 0x825a
   - name: reg_anim_animate_and_hide
-    detail: void reg_anim_animate_and_hide(ObjPtr, int animID, int delay)
+    detail: void reg_anim_animate_and_hide(ObjectPtr, int animID, int delay)
     doc: Exactly like `reg_anim_animate` but the object will automatically disappear after the last animation frame (but not destroyed).
     opcode: 0x825b
   - name: reg_anim_light
-    detail: void reg_anim_light(ObjPtr, int light, int delay)
+    detail: void reg_anim_light(ObjectPtr, int light, int delay)
     doc: 'Change light of any object. Light argument is a light radius (0-8), but you can use highest 2 bytes to pass light intensity as well (example: 0xFFFF0008 - intensity 65535 and radius 8). If highest 2 bytes are 0, intensity will not be changed. Intensity range is from 0 to 65535 (0xFFFF)'
     opcode: 0x825d
   - name: reg_anim_change_fid
-    detail: void reg_anim_change_fid(ObjPtr, int FID, int delay)
+    detail: void reg_anim_change_fid(ObjectPtr, int FID, int delay)
     doc: Should work like `art_change_fid_num` but in `reg_anim` sequence.
     opcode: 0x825e
   - name: reg_anim_take_out
-    detail: void reg_anim_take_out(ObjPtr, holdFrameID, delay)
+    detail: void reg_anim_take_out(ObjectPtr, holdFrameID, delay)
     doc: Plays "take out weapon" animation for given `holdFrameID`. It is not required to have such weapon in critter's inventory.
     opcode: 0x825f
   - name: reg_anim_turn_towards
-    detail: void reg_anim_turn_towards(ObjPtr, int tile/target, delay)
+    detail: void reg_anim_turn_towards(ObjectPtr, int tile/target, delay)
     doc: Makes object change its direction to face given tile num or target object.
     opcode: 0x8260
 
@@ -855,15 +855,15 @@
     doc: Similar to `get_unspent_ap_bonus`, but accounts for the extra AC granted by the h2h evade perk. (The default value of this is also 4, equivalent to doubling the original bonus.
 
   - name: remove_script
-    detail: void remove_script(ObjPtr)
+    detail: void remove_script(ObjectPtr)
     opcode: 0x81f3
     doc: Accepts a pointer to an object and will remove the script from that object.
   - name: set_script
-    detail: void set_script(ObjPtr, int scriptid)
+    detail: void set_script(ObjectPtr, int scriptid)
     opcode: 0x81f4
     doc: Accepts a pointer to an object and scriptID, and applies the given script to an object (scriptID accept the same values as `create_object_sid `from sfall 3.6). If used on an object that is already scripted, it will remove the existing script first; you cannot have multiple scripts attached to a single object. Calling `set_script` on `self_obj` will have all sorts of wacky side effects, and should be avoided. If you add 0x80000000 to the sid when calling `set_script`, `map_enter_p_proc` will be SKIPPED. The `start` proc will always be run.
   - name: get_script
-    detail: int get_script(ObjPtr)
+    detail: int get_script(ObjectPtr)
     opcode: 0x81f5
     doc: Accepts a pointer to an object and returns its scriptID (line number in `scripts.lst`), or -1 if the object is unscripted.
 
@@ -973,7 +973,7 @@
     opcode: 0x81b3
 
   - name: set_self
-    detail: void set_self(ObjPtr)
+    detail: void set_self(ObjectPtr)
     doc: |
       Overrides the script's `self_obj` for the next function call.
       - It is primarily used to allow the calling of functions which take an implicit `self_obj` parameter (e.g. `drop_obj`) from global scripts, but it can also be used from normal scripts.
@@ -989,11 +989,11 @@
 
     opcode: 0x8246
   - name: get_last_target
-    detail: ObjectPtr get_last_target(ObjPtr critter)
+    detail: ObjectPtr get_last_target(ObjectPtr critter)
     doc: Will return the last critter to be deliberately attacked. Outside of combat always returns 0.
     opcode: 0x8248
   - name: get_last_attacker
-    detail: ObjectPtr get_last_attacker(ObjPtr critter)
+    detail: ObjectPtr get_last_attacker(ObjectPtr critter)
     doc: Will return the last critter to deliberately launch an attack against the argument critter. If a critter has not launched/received an attack, it will return 0. Outside of combat always returns 0.
     opcode: 0x8249
 
@@ -1375,7 +1375,7 @@
     doc: Risplays a message in the NPC response window in dialog or barter screen.
 
   - name: get_current_inven_size
-    detail: get_current_inven_size(ObjPtr object)
+    detail: get_current_inven_size(ObjectPtr object)
     doc: Returns the current inventory size of the container or the critter.
   
   - name: set_can_rest_on_map
@@ -1390,26 +1390,26 @@
     doc: Returns the set rest value of the map after using the `set_can_rest_on_map` function. Returns -1 if the rest value of the map was not previously set (i.e. no data for the map in `sfalldb.sav`). The `can_rest_here values` in `maps.txt` are ignored.
 
   - name: dialog_obj
-    detail: ObjPtr dialog_obj()
+    detail: ObjectPtr dialog_obj()
     doc: Returns a pointer to the object (critter) the player is having a conversation or bartering with.
 
   - name: obj_under_cursor
-    detail: ObjPtr obj_under_cursor(bool crSwitch, bool inclDude)
+    detail: ObjectPtr obj_under_cursor(bool crSwitch, bool inclDude)
     doc: "Returns the object under the cursor on the main game screen. `crSwitch: True` - only checks critters and ignores their cover (roof tiles, walls, scenery, etc.), False - checks all objects (can't check critters under objects). Passing False to the `inclDude` argument will ignore `dude_obj`"
 
   - name: loot_obj
-    detail: ObjPtr loot_obj()
+    detail: ObjectPtr loot_obj()
     doc: Returns a pointer to the target object (container or critter) of the loot screen.
 
   - name: get_object_data
-    detail: get_object_data(ObjPtr object, int offset)
+    detail: get_object_data(ObjectPtr object, int offset)
     doc: Returns the data at the specified offset of an object (see `OBJ_DATA_*` constants in `define_extra.h` for offsets).
   - name: set_object_data
-    detail: set_object_data(ObjPtr object, int offset, int data)
+    detail: set_object_data(ObjectPtr object, int offset, int data)
     doc: Sets the data at the specified offset of an object.
 
   - name: get_object_ai_data
-    detail: int get_object_ai_data(ObjPtr object, int aiParam)
+    detail: int get_object_ai_data(ObjectPtr object, int aiParam)
     doc: Returns the setting value from the AI packet of an object (critter). Use `AI_CAP_*` constants from `define_extra.h` for the `aiParam` argument to get AI value.
 
   - name: art_cache_clear
@@ -1425,7 +1425,7 @@
     doc: "Overrides the parameters of drugs set in the configuration file (`DrugsFile` setting in `ddraw.ini`). Type: 0 - changes the value of `NumEffects` for the drug (see `Drugs.ini` for the description of `NumEffects`), 1 - changes the duration of the addiction effect for the drug (a value of 1 = one game minute)."
 
   - name: set_unique_id
-    detail: int set_unique_id(ObjPtr object, int flag)
+    detail: int set_unique_id(ObjectPtr object, int flag)
     doc: |
       Assigns a unique ID number to the object and returns it. If a unique ID number has already been assigned to an object, then ID number is returned without reassignment. `flag` is optional.
       - items with unique IDs will not stack with other items of the same type in the inventory
