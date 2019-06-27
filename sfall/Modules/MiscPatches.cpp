@@ -464,37 +464,45 @@ static long __fastcall HealthPointText(fo::GameObject* critter) {
 	return 145 - widthText; // x position text
 }
 
+static long __fastcall CutoffName(const char* name) {
+	BYTE j = 0, i = 0;
+	do {
+		char c = name[i];
+		if (!c) break;
+		tempBuffer[i] = c;
+		if (c == ' ') j = i; // whitespace
+	} while (++i < 16);
+	if (j && i >= 10) i = j;
+	if (i > 10) i = 10;      // max 10 characters
+	tempBuffer[i] = '\0';
+	return 0;
+}
+
 static void __declspec(naked) display_stats_hook_hp() {
-	using namespace fo;
 	__asm {
-		push esi;
-		mov  esi, eax;                        // critter
+		push ecx;
 		cmp  displayElectricalStat, 2;
 		jge  noName;
+		push esi;
+		mov  esi, eax;                        // critter
 		call fo::funcoffs::critter_name_;
-		xor  edx, edx;
-do:		                                      // name cutoff, max 10 characters
-		inc  edx;
-		cmp  [eax + edx], 32;                 // whitespace
-		jz   break;
-		cmp  edx, 10;
-		jnz  do;
-break:
-		mov  [eax][edx], 0;
-		mov  edx, eax;                        // DisplayText
-		xor  eax, eax;
+		mov  ecx, eax;
+		call CutoffName;
+		lea  edx, tempBuffer;                 // DisplayText
 		mov  al, ds:[FO_VAR_GreenColor];
+		mov  ecx, [esp + 4];                  // ToWidth
 		push eax;
 		mov  eax, edi;                        // ToSurface
 		call ds:[FO_VAR_text_to_buf];
+		mov  eax, esi;                        // critter
 		mov  ebx, 100;                        // TxtWidth
+		pop  esi;
 noName:
-		mov  ecx, esi;                        // critter
+		mov  ecx, eax;                        // critter
 		call HealthPointText;
 		add  edi, eax;                        // x shift position
 		lea  eax, tempBuffer;                 // DisplayText
-		mov  ecx, 499;                        // ToWidth
-		pop  esi;
+		pop  ecx;                             // ToWidth
 		retn;
 	}
 }
@@ -758,7 +766,7 @@ void DialogueFix() {
 	}
 }
 
-/*void RemoveWindowRoundingPatch() { // TODO: Узнать для чего конкретно предназначалась эта опция (удалено из ddraw.ini)
+/*void RemoveWindowRoundingPatch() {
 	if(GetConfigInt("Misc", "RemoveWindowRounding", 0)) {
 		SafeWrite16(0x4B8090, 0x04EB);            // jmps 0x4B8096
 	}
