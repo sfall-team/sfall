@@ -31,6 +31,8 @@
 namespace sfall
 {
 
+using namespace fo;
+
 bool HeroAppearance::appModEnabled = false; // check if Appearance mod enabled for script functions
 
 const char* appearancePathFmt = "Appearance\\h%cR%02dS%02d%s";
@@ -60,151 +62,6 @@ typedef struct LineNode {
 		offset = 0;
 	}
 } LineNode;
-
-// structures for loading unlisted frms
-struct UnlistedFrm {
-	DWORD version;
-	WORD FPS;
-	WORD actionFrame;
-	WORD numFrames;
-	WORD xCentreShift[6];
-	WORD yCentreShift[6];
-	DWORD oriOffset[6];
-	DWORD frameAreaSize;
-
-	struct Frame {
-		WORD width;
-		WORD height;
-		DWORD size;
-		WORD x;
-		WORD y;
-		BYTE *indexBuff;
-
-		Frame() {
-			width = 0;
-			height = 0;
-			size = 0;
-			x = 0;
-			y = 0;
-			indexBuff = nullptr;
-		}
-		~Frame() {
-			if (indexBuff != nullptr)
-				delete[] indexBuff;
-		}
-	} *frames;
-
-	UnlistedFrm() {
-		version = 0;
-		FPS = 0;
-		actionFrame = 0;
-		numFrames = 0;
-		for (int i = 0; i < 6; i++) {
-			xCentreShift[i] = 0;
-			yCentreShift[i] = 0;
-			oriOffset[i] = 0;
-		}
-		frameAreaSize = 0;
-		frames = nullptr;
-	}
-	~UnlistedFrm() {
-		if (frames != nullptr)
-		delete[] frames;
-	}
-};
-
-/////////////////////////////////////////////////////////////////UNLISTED FRM FUNCTIONS////////////////////////////////////////////////////////////////////////
-
-static bool LoadFrmHeader(UnlistedFrm *frmHeader, fo::DbFile* frmStream) {
-	if (fo::func::db_freadInt(frmStream, &frmHeader->version) == -1)
-		return false;
-	else if (fo::func::db_freadShort(frmStream, &frmHeader->FPS) == -1)
-		return false;
-	else if (fo::func::db_freadShort(frmStream, &frmHeader->actionFrame) == -1)
-		return false;
-	else if (fo::func::db_freadShort(frmStream, &frmHeader->numFrames) == -1)
-		return false;
-	else if (fo::func::db_freadShortCount(frmStream, frmHeader->xCentreShift, 6) == -1)
-		return false;
-	else if (fo::func::db_freadShortCount(frmStream, frmHeader->yCentreShift, 6) == -1)
-		return false;
-	else if (fo::func::db_freadIntCount(frmStream, frmHeader->oriOffset, 6) == -1)
-		return false;
-	else if (fo::func::db_freadInt(frmStream, &frmHeader->frameAreaSize) == -1)
-		return false;
-
-	return true;
-}
-
-static bool LoadFrmFrame(UnlistedFrm::Frame *frame, fo::DbFile* frmStream) {
-
-	//FRMframe *frameHeader = (FRMframe*)frameMEM;
-	//BYTE* frameBuff = frame + sizeof(FRMframe);
-
-	if (fo::func::db_freadShort(frmStream, &frame->width) == -1)
-		return false;
-	else if (fo::func::db_freadShort(frmStream, &frame->height) == -1)
-		return false;
-	else if (fo::func::db_freadInt(frmStream, &frame->size) == -1)
-		return false;
-	else if (fo::func::db_freadShort(frmStream, &frame->x) == -1)
-		return false;
-	else if (fo::func::db_freadShort(frmStream, &frame->y) == -1)
-		return false;
-
-	frame->indexBuff = new BYTE[frame->size];
-	if (fo::func::db_fread(frame->indexBuff, frame->size, 1, frmStream) != 1)
-		return false;
-
-	return true;
-}
-
-UnlistedFrm *LoadUnlistedFrm(char *frmName, unsigned int folderRef) {
-
-	if (folderRef > fo::OBJ_TYPE_SKILLDEX) return nullptr;
-
-	char *artfolder = fo::var::art[folderRef].path; // address of art type name
-	char frmPath[MAX_PATH];
-
-	sprintf_s(frmPath, MAX_PATH, "art\\%s\\%s", artfolder, frmName);
-
-	UnlistedFrm *frm = new UnlistedFrm;
-
-	auto frmStream = fo::func::xfopen(frmPath, "rb");
-
-	if (frmStream != nullptr) {
-		if (!LoadFrmHeader(frm, frmStream)) {
-			fo::func::db_fclose(frmStream);
-			delete frm;
-			return nullptr;
-		}
-
-		DWORD oriOffset_1st = frm->oriOffset[0];
-		DWORD oriOffset_new = 0;
-		frm->frames = new UnlistedFrm::Frame[6 * frm->numFrames];
-		for (int ori = 0; ori < 6; ori++) {
-			if (ori == 0 || frm->oriOffset[ori] != oriOffset_1st) {
-				frm->oriOffset[ori] = oriOffset_new;
-				for (int fNum = 0; fNum < frm->numFrames; fNum++) {
-					if (!LoadFrmFrame(&frm->frames[oriOffset_new + fNum], frmStream)) {
-						fo::func::db_fclose(frmStream);
-						delete frm;
-						return nullptr;
-					}
-				}
-				oriOffset_new += frm->numFrames;
-			} else {
-				frm->oriOffset[ori] = 0;
-			}
-		}
-
-		fo::func::db_fclose(frmStream);
-	} else {
-		delete frm;
-		return nullptr;
-	}
-	return frm;
-}
 
 /////////////////////////////////////////////////////////////////TEXT FUNCTIONS////////////////////////////////////////////////////////////////////////
 
@@ -1304,6 +1161,7 @@ static void __declspec(naked) FixCharScrnBack() {
 
 		if (frm != nullptr) {
 			sub_draw(640, 480, 640, 480, 0, 0, frm->frames[0].indexBuff, 640, 480, 0, 0, charScrnBackSurface, 0);
+			frm->~UnlistedFrm();
 			delete frm;
 		} else {
 			BYTE *OldCharScrnBackSurface = fo::var::bckgnd; // char screen background frm surface

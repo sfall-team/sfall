@@ -276,4 +276,96 @@ void RedrawObject(GameObject* obj) {
 	func::tile_refresh_rect(&rect, obj->elevation);
 }
 
+/////////////////////////////////////////////////////////////////UNLISTED FRM FUNCTIONS////////////////////////////////////////////////////////////////////////
+
+static bool LoadFrmHeader(UnlistedFrm *frmHeader, fo::DbFile* frmStream) {
+	if (fo::func::db_freadInt(frmStream, &frmHeader->version) == -1)
+		return false;
+	else if (fo::func::db_freadShort(frmStream, &frmHeader->FPS) == -1)
+		return false;
+	else if (fo::func::db_freadShort(frmStream, &frmHeader->actionFrame) == -1)
+		return false;
+	else if (fo::func::db_freadShort(frmStream, &frmHeader->numFrames) == -1)
+		return false;
+	else if (fo::func::db_freadShortCount(frmStream, frmHeader->xCentreShift, 6) == -1)
+		return false;
+	else if (fo::func::db_freadShortCount(frmStream, frmHeader->yCentreShift, 6) == -1)
+		return false;
+	else if (fo::func::db_freadIntCount(frmStream, frmHeader->oriOffset, 6) == -1)
+		return false;
+	else if (fo::func::db_freadInt(frmStream, &frmHeader->frameAreaSize) == -1)
+		return false;
+
+	return true;
+}
+
+static bool LoadFrmFrame(UnlistedFrm::Frame *frame, fo::DbFile* frmStream) {
+
+	//FRMframe *frameHeader = (FRMframe*)frameMEM;
+	//BYTE* frameBuff = frame + sizeof(FRMframe);
+
+	if (fo::func::db_freadShort(frmStream, &frame->width) == -1)
+		return false;
+	else if (fo::func::db_freadShort(frmStream, &frame->height) == -1)
+		return false;
+	else if (fo::func::db_freadInt(frmStream, &frame->size) == -1)
+		return false;
+	else if (fo::func::db_freadShort(frmStream, &frame->x) == -1)
+		return false;
+	else if (fo::func::db_freadShort(frmStream, &frame->y) == -1)
+		return false;
+
+	frame->indexBuff = new BYTE[frame->size];
+	if (fo::func::db_fread(frame->indexBuff, frame->size, 1, frmStream) != 1) return false;
+
+	return true;
+}
+
+UnlistedFrm *LoadUnlistedFrm(char *frmName, unsigned int folderRef) {
+
+	if (folderRef > fo::OBJ_TYPE_SKILLDEX) return nullptr;
+
+	char *artfolder = fo::var::art[folderRef].path; // address of art type name
+	char frmPath[MAX_PATH];
+
+	sprintf_s(frmPath, MAX_PATH, "art\\%s\\%s", artfolder, frmName);
+
+	UnlistedFrm *frm = new UnlistedFrm;
+
+	auto frmStream = fo::func::xfopen(frmPath, "rb");
+
+	if (frmStream != nullptr) {
+		if (!LoadFrmHeader(frm, frmStream)) {
+			fo::func::db_fclose(frmStream);
+			delete frm;
+			return nullptr;
+		}
+
+		DWORD oriOffset_1st = frm->oriOffset[0];
+		DWORD oriOffset_new = 0;
+		frm->frames = new UnlistedFrm::Frame[6 * frm->numFrames];
+		for (int ori = 0; ori < 6; ori++) {
+			if (ori == 0 || frm->oriOffset[ori] != oriOffset_1st) {
+				frm->oriOffset[ori] = oriOffset_new;
+				for (int fNum = 0; fNum < frm->numFrames; fNum++) {
+					if (!LoadFrmFrame(&frm->frames[oriOffset_new + fNum], frmStream)) {
+						fo::func::db_fclose(frmStream);
+						delete frm;
+						return nullptr;
+					}
+				}
+				oriOffset_new += frm->numFrames;
+			} else {
+				frm->oriOffset[ori] = 0;
+			}
+		}
+
+		fo::func::db_fclose(frmStream);
+	} else {
+		delete frm;
+		return nullptr;
+	}
+	return frm;
+}
+
 }
