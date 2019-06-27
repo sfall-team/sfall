@@ -197,7 +197,7 @@ void _stdcall RegisterHook(fo::Program* script, int id, int procNum) {
 }
 
 static void HookScriptInit() {
-	dlogr("Loading hook scripts", DL_HOOK|DL_INIT);
+	dlogr("Loading hook scripts:", DL_HOOK|DL_INIT);
 
 	InitCombatHookScripts();
 	InitDeathHookScripts();
@@ -210,7 +210,7 @@ static void HookScriptInit() {
 	LoadHookScript("hs_mouseclick", HOOK_MOUSECLICK);
 	LoadHookScript("hs_gamemodechange", HOOK_GAMEMODECHANGE);
 
-	dlogr("Finished loading hook scripts", DL_HOOK|DL_INIT);
+	dlogr("Finished loading hook scripts.", DL_HOOK|DL_INIT);
 }
 
 void HookScriptClear() {

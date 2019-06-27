@@ -203,7 +203,7 @@ static void GetExtraPatches() {
 		if (hFind != INVALID_HANDLE_VALUE) {
 			do {
 				std::string name(searchPath + findData.cFileName);
-				dlog_f(">%s\n", DL_MAIN, name.c_str());
+				dlog_f("> %s\n", DL_MAIN, name.c_str());
 				patchFiles.push_back(name);
 			} while (FindNextFile(hFind, &findData));
 			FindClose(hFind);
