@@ -11,6 +11,7 @@ Data types mentioned in this document
 
 * `array` - array ID to be used with array-related functions (actually an integer)
 * `any` - any type
+* `bool` - boolean (in fact, `int`: `True` is 1 and `False` is 0)
 * `int` - integer number
 * `mixed` - type depends on exact use case
 * `float` - floating point number
