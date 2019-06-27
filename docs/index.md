@@ -22,9 +22,9 @@ Engine modifications include:
 * Many additional features for users, such as item highlight button, party member control, etc.
 * Extended scripting capabilities for modders (many new opcodes to control sfall features as well as previously unavailable vanilla engine functions)
 
-## Getting started
+Note that this is documentation for sfall specifically, not Fallout scripting in general. For vanilla function reference, refer to the [wiki](https://falloutmods.fandom.com/wiki/Fallout_1_and_Fallout_2_scripting_-_commands,_reference,_tutorials).
 
-This is documentation for sfall specifically, not Fallout scripting in general. For vanilla function reference, refer to the [wiki](https://falloutmods.fandom.com/wiki/Fallout_1_and_Fallout_2_scripting_-_commands,_reference,_tutorials).
+## Getting started
 
 To get started with sfall, first familiarize yourself with new concepts:
 * [Global scripts]({{ site.baseurl }}/global-scripts/)
