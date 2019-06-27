@@ -1161,7 +1161,6 @@ static void __declspec(naked) FixCharScrnBack() {
 
 		if (frm != nullptr) {
 			sub_draw(640, 480, 640, 480, 0, 0, frm->frames[0].indexBuff, 640, 480, 0, 0, charScrnBackSurface, 0);
-			frm->~UnlistedFrm();
 			delete frm;
 		} else {
 			BYTE *OldCharScrnBackSurface = fo::var::bckgnd; // char screen background frm surface
