@@ -100,7 +100,7 @@ void CritLoad() {
 					int slot2 = crit + part * 6 + ((critter == 19) ? 38 : critter) * 9 * 6;
 					for (int i = 0; i < 7; i++) {
 						baseCritTable[slot2].values[i] = GetPrivateProfileIntA(section, CritNames[i], defaultTable[slot1].values[i], CritTableFile);
-						if (IsDebug) {
+						if (isDebug) {
 							char logmsg[256];
 							if (baseCritTable[slot2].values[i] != defaultTable[slot1].values[i]) {
 								sprintf_s(logmsg, "Entry %s value %d changed from %d to %d", section, i, defaultTable[slot1].values[i], baseCritTable[slot2].values[i]);

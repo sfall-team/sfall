@@ -359,7 +359,7 @@ void DontDeleteProtosPatch() {
 }
 
 void DebugEditorInit() {
-	if (!IsDebug) return;
+	if (!isDebug) return;
 	DebugModePatch();
 	DontDeleteProtosPatch();
 }

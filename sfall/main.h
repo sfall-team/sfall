@@ -55,9 +55,9 @@ struct ddrawDll {
 
 // global flag, indicating that debugging features of Sfall are enabled
 #ifndef NO_SFALL_DEBUG
-	extern bool IsDebug;
+	extern bool isDebug;
 #else
-	#define IsDebug false
+	#define isDebug false
 #endif
 
 // Macros for quick replacement of pushad/popad assembler opcodes

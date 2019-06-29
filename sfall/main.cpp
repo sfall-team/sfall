@@ -66,7 +66,7 @@
 
 ddrawDll ddraw;
 
-bool IsDebug = false;
+bool isDebug = false;
 
 char ini[65] = ".\\";
 char translationIni[65];
@@ -112,34 +112,6 @@ static const DWORD PutAwayWeapon[] = {
 static const DWORD WalkDistanceAddr[] = {
 	0x411FF0, 0x4121C4, 0x412475, 0x412906,
 };
-
-static void __declspec(naked) apply_damage_hack() {
-	__asm {
-		xor  edx, edx;
-		inc  edx;              // COMBAT_SUBTYPE_WEAPON_USED
-		test [esi + 0x15], dl; // ctd.flags2Source & DAM_HIT_
-		jz   end;              // no hit
-		inc  edx;              // COMBAT_SUBTYPE_HIT_SUCCEEDED
-end:
-		retn;
-	}
-}
-
-static void __declspec(naked) WeaponAnimHook() {
-	__asm {
-		cmp edx, 11;
-		je  c11;
-		cmp edx, 15;
-		je  c15;
-		jmp art_get_code_;
-c11:
-		mov edx, 16;
-		jmp art_get_code_;
-c15:
-		mov edx, 17;
-		jmp art_get_code_;
-	}
-}
 
 static void __declspec(naked) RemoveDatabase() {
 	__asm {
@@ -353,6 +325,34 @@ void ClearSavPrototypes() {
 }
 
 ////////////////////////////////////////////////////////////////////////////////
+
+static void __declspec(naked) apply_damage_hack() {
+	__asm {
+		xor  edx, edx;
+		inc  edx;              // COMBAT_SUBTYPE_WEAPON_USED
+		test [esi + 0x15], dl; // ctd.flags2Source & DAM_HIT_
+		jz   end;              // no hit
+		inc  edx;              // COMBAT_SUBTYPE_HIT_SUCCEEDED
+end:
+		retn;
+	}
+}
+
+static void __declspec(naked) WeaponAnimHook() {
+	__asm {
+		cmp edx, 11;
+		je  c11;
+		cmp edx, 15;
+		je  c15;
+		jmp art_get_code_;
+c11:
+		mov edx, 16;
+		jmp art_get_code_;
+c15:
+		mov edx, 17;
+		jmp art_get_code_;
+	}
+}
 
 static char KarmaGainMsg[128];
 static char KarmaLossMsg[128];
@@ -668,6 +668,24 @@ static void DllMain2() {
 		dlogr(" Done", DL_INIT);
 	//}
 
+	if (GetPrivateProfileIntA("Misc", "DataLoadOrderPatch", 1, ini)) {
+		dlog("Applying data load order patch.", DL_INIT);
+		MakeCall(0x444259, game_init_databases_hack1);
+		MakeCall(0x4442F1, game_init_databases_hack2);
+		HookCall(0x44436D, game_init_databases_hook);
+		SafeWrite8(0x4DFAEC, 0x1D); // error correction (ecx > ebx)
+		dlogr(" Done", DL_INIT);
+	}
+
+	dlog("Applying party member protos save/load patch.", DL_INIT);
+	savPrototypes.reserve(25);
+	HookCall(0x4A1CF2, proto_load_pid_hook);
+	HookCall(0x4A1BEE, proto_save_pid_hook);
+	MakeCall(0x47F5A5, GameMap2Slot_hack); // save game
+	MakeCall(0x47FB80, SlotMap2Game_hack); // load game
+	MakeCall(0x47FBBF, SlotMap2Game_hack_attr, 1);
+	dlogr(" Done", DL_INIT);
+
 	dlogr("Running DamageModInit().", DL_INIT);
 	DamageModInit();
 
@@ -814,24 +832,6 @@ static void DllMain2() {
 		SafeWrite8(0x44435C, 0xC4); // Disable check
 		dlogr(" Done", DL_INIT);
 	//}
-
-	if (GetPrivateProfileIntA("Misc", "DataLoadOrderPatch", 1, ini)) {
-		dlog("Applying data load order patch.", DL_INIT);
-		MakeCall(0x444259, game_init_databases_hack1);
-		MakeCall(0x4442F1, game_init_databases_hack2);
-		HookCall(0x44436D, game_init_databases_hook);
-		SafeWrite8(0x4DFAEC, 0x1D); // error correction (ecx > ebx)
-		dlogr(" Done", DL_INIT);
-	}
-
-	dlog("Applying party member protos save/load patch.", DL_INIT);
-	savPrototypes.reserve(25);
-	HookCall(0x4A1CF2, proto_load_pid_hook);
-	HookCall(0x4A1BEE, proto_save_pid_hook);
-	MakeCall(0x47F5A5, GameMap2Slot_hack); // save game
-	MakeCall(0x47FB80, SlotMap2Game_hack); // load game
-	MakeCall(0x47FBBF, SlotMap2Game_hack_attr, 1);
-	dlogr(" Done", DL_INIT);
 
 	if (GetPrivateProfileInt("Misc", "DisplayKarmaChanges", 0, ini)) {
 		dlog("Applying display karma changes patch.", DL_INIT);
@@ -1262,7 +1262,7 @@ static bool LoadOriginalDll(DWORD dwReason) {
 			}
 			return true;
 		case DLL_PROCESS_DETACH:
-			FreeLibrary(ddraw.dll);
+			if (ddraw.dll) FreeLibrary(ddraw.dll);
 			break;
 	}
 	return false;
@@ -1271,8 +1271,8 @@ static bool LoadOriginalDll(DWORD dwReason) {
 bool _stdcall DllMain(HANDLE hDllHandle, DWORD dwReason, LPVOID lpreserved) {
 	if (LoadOriginalDll(dwReason)) {
 		// enabling debugging features
-		IsDebug = (GetPrivateProfileIntA("Debugging", "Enable", 0, ".\\ddraw.ini") != 0);
-		if (IsDebug) {
+		isDebug = (GetPrivateProfileIntA("Debugging", "Enable", 0, ".\\ddraw.ini") != 0);
+		if (isDebug) {
 			LoggingInit();
 			if (!ddraw.dll) dlog("Error: Cannot load the original ddraw.dll library.\n", DL_MAIN);
 		}
@@ -1284,13 +1284,15 @@ bool _stdcall DllMain(HANDLE hDllHandle, DWORD dwReason, LPVOID lpreserved) {
 
 		CRC(filepath);
 
-		if (!IsDebug || !GetPrivateProfileIntA("Debugging", "SkipCompatModeCheck", 0, ".\\ddraw.ini")) {
+		if (!isDebug || !GetPrivateProfileIntA("Debugging", "SkipCompatModeCheck", 0, ".\\ddraw.ini")) {
 			int is64bit;
-			typedef int (_stdcall * chk64bitproc)(HANDLE, int*);
+			typedef int (_stdcall *chk64bitproc)(HANDLE, int*);
 			HMODULE h = LoadLibrary("Kernel32.dll");
 			chk64bitproc proc = (chk64bitproc)GetProcAddress(h, "IsWow64Process");
-			if (proc) proc(GetCurrentProcess(), &is64bit);
-			else is64bit = 0;
+			if (proc)
+				proc(GetCurrentProcess(), &is64bit);
+			else
+				is64bit = 0;
 			FreeLibrary(h);
 
 			CompatModeCheck(HKEY_CURRENT_USER, filepath, is64bit ? KEY_WOW64_64KEY : 0);

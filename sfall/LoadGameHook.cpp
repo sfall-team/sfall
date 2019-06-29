@@ -210,7 +210,7 @@ static bool _stdcall LoadGame2_Before() {
 errorLoad:
 	CloseHandle(h);
 	dlog_f("ERROR reading data: %s\n", DL_MAIN, buf);
-	return (true & !IsDebug);
+	return (true & !isDebug);
 }
 
 static void _stdcall LoadGame2_After() {

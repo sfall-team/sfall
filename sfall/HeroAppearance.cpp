@@ -82,7 +82,7 @@ typedef class UNLSTDframe {
 	}
 	~UNLSTDframe() {
 		if (indexBuff != nullptr)
-		delete[] indexBuff;
+			delete[] indexBuff;
 	}
 } UNLSTDframe;
 
@@ -112,7 +112,7 @@ typedef class UNLSTDfrm {
 	}
 	~UNLSTDfrm() {
 		if (frames != nullptr)
-		delete[] frames;
+			delete[] frames;
 	}
 } UNLSTDfrm;
 

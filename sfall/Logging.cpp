@@ -29,20 +29,20 @@ static int DebugTypes=0;
 static ofstream Log;
 
 void dlog(const char* a, int type) {
-	if (IsDebug && (type == DL_MAIN || (type & DebugTypes))) {
+	if (isDebug && (type == DL_MAIN || (type & DebugTypes))) {
 		Log << a;
 		Log.flush();
 	}
 }
 void dlogr(const char* a, int type) {
-	if (IsDebug && (type == DL_MAIN || (type & DebugTypes))) {
+	if (isDebug && (type == DL_MAIN || (type & DebugTypes))) {
 		Log << a << "\n";
 		Log.flush();
 	}
 }
 
 void dlog_f(const char *fmt, int type, ...) {
-	if (IsDebug && (type == DL_MAIN || (type & DebugTypes))) {
+	if (isDebug && (type == DL_MAIN || (type & DebugTypes))) {
 		va_list args;
 		va_start(args, type);
 		char buf[4096];

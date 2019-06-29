@@ -1283,7 +1283,7 @@ skip:
 }
 
 void ScriptExtenderSetup() {
-	bool AllowUnsafeScripting = IsDebug
+	bool AllowUnsafeScripting = isDebug
 		&& GetPrivateProfileIntA("Debugging", "AllowUnsafeScripting", 0, ".\\ddraw.ini") != 0;
 
 	toggleHighlightsKey = GetPrivateProfileIntA("Input", "ToggleItemHighlightsKey", 0, ini);
@@ -1713,7 +1713,7 @@ bool _stdcall isGameScript(const char* filename) {
 void LoadGlobalScripts() {
 	isGameLoading = false;
 	HookScriptInit();
-	dlogr("Loading global scripts", DL_SCRIPT|DL_INIT);
+	dlogr("Loading global scripts:", DL_SCRIPT|DL_INIT);
 
 	char* name = "scripts\\gl*.int";
 	DWORD count, *filenames;
@@ -1737,7 +1737,7 @@ void LoadGlobalScripts() {
 
 		baseName = baseName.substr(0, lastDot); // script name without extension
 		if (!isGameScript(baseName.c_str())) {
-			dlog(">", DL_SCRIPT);
+			dlog("> ", DL_SCRIPT);
 			dlog(name, DL_SCRIPT);
 			isGlobalScriptLoading = 1;
 			LoadScriptProgram(prog, baseName.c_str());

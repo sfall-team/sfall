@@ -1422,7 +1422,7 @@ static void LoadHookScript(const char* name, int id) {
 
 	if (fileExist) {
 		sScriptProgram prog;
-		dlog(">", DL_HOOK);
+		dlog("> ", DL_HOOK);
 		dlog(name, DL_HOOK);
 		LoadScriptProgram(prog, name);
 		if (prog.ptr) {
@@ -1440,7 +1440,7 @@ static void LoadHookScript(const char* name, int id) {
 }
 
 static void HookScriptInit2() {
-	dlogr("Loading hook scripts", DL_HOOK|DL_INIT);
+	dlogr("Loading hook scripts:", DL_HOOK|DL_INIT);
 
 	char* mask = "scripts\\hs_*.int";
 	DWORD *filenames;
