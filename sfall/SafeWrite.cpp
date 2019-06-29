@@ -18,12 +18,13 @@ enum CodeType : BYTE {
 #ifndef NDEBUG
 std::list<long> writeAddress;
 
-static void CheckConflict(DWORD addr) {
+void CheckConflict(DWORD addr) {
 	bool exist = false;
 	for (const auto &wa : writeAddress) {
 		if (addr == wa) {
 			exist = true;
 			char buf[256];
+			dlog_f("Memory writing conflict at address: 0x%x\n", DL_MAIN, addr);
 			sprintf_s(buf, "Memory writing conflict at address 0x%x. The address has already been overwritten by other code.", addr);
 			MessageBoxA(0, buf, "Conflict Detected", MB_TASKMODAL);
 		}

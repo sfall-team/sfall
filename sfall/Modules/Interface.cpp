@@ -65,13 +65,10 @@ static void ActionPointsBarPatch() {
 	dlog("Applying expanded action points bar patch.", DL_INIT);
 	if (hrpIsEnabled) {
 		// check valid data
-		if (!strcmp((const char*)0x10039340, "HR_IFACE_CHI_%i.frm")
-			&& !strcmp((const char*)0x10039358, "HR_IFACE_%i.frm"))
-		{	// patching HRP
-			SafeWriteStr(0x10039363, "E.frm");
-			SafeWriteStr(0x1003934F, "E.frm");
+		if (!strcmp((const char*)0x10039358, "HR_IFACE_%i.frm")) {
+			SafeWriteStr(0x10039363, "E.frm"); // patching HRP
 		} else {
-			dlog(" HRP: Incorrect version!", DL_INIT);
+			dlog(" Incorrect HRP version!", DL_INIT);
 		}
 	} else {
 		APBarRectPatch();
