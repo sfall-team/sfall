@@ -96,7 +96,7 @@ static const SfallMetarule metarules[] = {
 	{"item_weight",             sf_item_weight,             1, 1, {ARG_OBJECT}},
 	{"lock_is_jammed",          sf_lock_is_jammed,          1, 1, {ARG_OBJECT}},
 	{"loot_obj",                sf_get_loot_object,         0, 0},
-	{"metarule_exist",          sf_metarule_exist,          1, 1},
+	{"metarule_exist",          sf_metarule_exist,          1, 1}, // not check arg
 	{"npc_engine_level_up",     sf_npc_engine_level_up,     1, 1, {ARG_ANY}},
 	{"obj_under_cursor",        sf_get_obj_under_cursor,    2, 2, {ARG_INT, ARG_INT}},
 	{"outlined_object",         sf_outlined_object,         0, 0},
@@ -105,7 +105,7 @@ static const SfallMetarule metarules[] = {
 	{"set_car_intface_art",     sf_set_car_intface_art,     1, 1, {ARG_INT}},
 	{"set_cursor_mode",         sf_set_cursor_mode,         1, 1, {ARG_INT}},
 	{"set_drugs_data",          sf_set_drugs_data,          3, 3, {ARG_INT, ARG_INT, ARG_INT}},
-	{"set_dude_obj",            sf_set_dude_obj,            1, 1, {ARG_OBJECT}},
+	{"set_dude_obj",            sf_set_dude_obj,            1, 1}, // not check arg
 	{"set_fake_perk_npc",       sf_set_fake_perk_npc,       5, 5, {ARG_OBJECT, ARG_STRING, ARG_INT, ARG_INT, ARG_STRING}},
 	{"set_fake_trait_npc",      sf_set_fake_trait_npc,      5, 5, {ARG_OBJECT, ARG_STRING, ARG_INT, ARG_INT, ARG_STRING}},
 	{"set_flags",               sf_set_flags,               2, 2, {ARG_OBJECT, ARG_INT}},

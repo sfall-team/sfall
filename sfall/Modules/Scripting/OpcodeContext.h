@@ -38,11 +38,11 @@ typedef void(*ScriptingFunctionHandler)(OpcodeContext&);
 // The type of argument, not the same as actual data type. Useful for validation.
 enum OpcodeArgumentType {
 	ARG_ANY = 0, // no validation
-	ARG_INT,    // integer only
-	ARG_NUMBER, // float OR integer
-	ARG_STRING, // string only
-	ARG_OBJECT, // integer that is not 0
-	ARG_INTSTR  // integer OR string
+	ARG_INT,     // integer only
+	ARG_NUMBER,  // float OR integer
+	ARG_STRING,  // string only
+	ARG_OBJECT,  // integer that is not 0
+	ARG_INTSTR   // integer OR string
 };
 
 typedef struct SfallOpcodeInfo {

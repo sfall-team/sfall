@@ -68,6 +68,7 @@ static struct DudeState {
 	long tag_skill[4];
 	//DWORD bbox_sneak;
 	long* extendAddictGvar = nullptr;
+	bool  isSaved = false;
 } realDude;
 
 static void SaveAddictGvarState() {
@@ -127,11 +128,17 @@ static void SaveRealDudeState() {
 	realDude.addictGvar[7] = fo::var::game_global_vars[fo::var::drugInfoList[8].addictGvar];
 	if (realDude.extendAddictGvar) SaveAddictGvarState();
 
+	realDude.isSaved = true;
+
 	if (skipCounterAnim) SafeWriteBatch<BYTE>(0, {0x422BDE, 0x4229EC}); // no animate
+
+	if (isDebug) fo::func::debug_printf("\n[SFALL] Save dude state!");
 }
 
 // take control of the NPC
 static void SetCurrentDude(fo::GameObject* npc) {
+	if (isDebug) fo::func::debug_printf("\n[SFALL] Set control to critter.");
+
 	// remove skill tags
 	long tagSkill[4];
 	std::fill(std::begin(tagSkill), std::end(tagSkill), -1);
@@ -226,7 +233,7 @@ static void SetCurrentDude(fo::GameObject* npc) {
 }
 
 // restores the real dude state
-static void RestoreRealDudeState() {
+static void RestoreRealDudeState(bool redraw = true) {
 	assert(realDude.obj_dude != nullptr);
 
 	fo::var::map_elevation = realDude.obj_dude->elevation;
@@ -260,8 +267,12 @@ static void RestoreRealDudeState() {
 
 	if (skipCounterAnim) SafeWriteBatch<BYTE>(1, {0x422BDE, 0x4229EC}); // restore
 
-	fo::func::intface_redraw();
+	if (redraw) fo::func::intface_redraw();
+
+	realDude.isSaved = false;
 	isControllingNPC = false;
+
+	if (isDebug) fo::func::debug_printf("\n[SFALL] Restore control to dude.");
 }
 
 static void __stdcall DisplayCantDoThat() {
@@ -323,8 +334,10 @@ end:
 
 void __stdcall PartyControlReset() {
 	if (realDude.obj_dude != nullptr && isControllingNPC) {
-		RestoreRealDudeState();
+		RestoreRealDudeState(false);
 	}
+	realDude.obj_dude = nullptr;
+	realDude.isSaved = false;
 	weaponState.clear();
 }
 
@@ -387,15 +400,17 @@ void PartyControl::SwitchToCritter(fo::GameObject* critter) {
 			}
 		}
 		SaveWeaponMode(isSwap);
-		if (critter == nullptr || critter == realDude.obj_dude) RestoreRealDudeState();
-	} else {
+		if (critter == nullptr || critter == realDude.obj_dude) RestoreRealDudeState(); // return control to dude
+	} else if (critter != nullptr && realDude.isSaved == false) {
 		SaveRealDudeState();
 	}
-	if (critter != nullptr && critter != realDude.obj_dude) {
+	if (critter != nullptr && critter != PartyControl::RealDudeObject()) {
 		SetCurrentDude(critter);
+
 		if (switchHandHookInjected) return;
 		switchHandHookInjected = true;
 		if (!HookScripts::IsInjectHook(HOOK_INVENTORYMOVE)) Inject_SwitchHandHook();
+
 		// Gets dude perks and traits from script while controlling another NPC
 		// WARNING: Handling dude perks/traits in the engine code while controlling another NPC remains impossible, this requires serious hacking of the engine code
 		HookCall(0x458242, GetRealDudePerk);  // op_has_trait_
