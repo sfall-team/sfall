@@ -94,4 +94,6 @@ DWORD GetMaxCharWidth();
 // Redraw the given object on screen (does not always redraws the whole object)
 void RedrawObject(GameObject* obj);
 
+UnlistedFrm *LoadUnlistedFrm(char *frmName, unsigned int folderRef);
+
 }

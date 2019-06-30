@@ -2192,6 +2192,20 @@ largeLoc:
 	}
 }
 
+static const DWORD combat_should_end_break = 0x422D00;
+static void __declspec(naked) combat_should_end_hack() {
+	__asm { // ecx = dude.team_num
+		cmp  ecx, [ebp + 0x50]; // npc who_hit_me.team_num
+		je   break;
+		test byte ptr [edx], 1; // npc combat_data.combat_state
+		jnz  break;
+		retn; // check next critter
+break:
+		add  esp, 4;
+		jmp  combat_should_end_break;
+	}
+}
+
 void BugFixes::init()
 {
 	#ifndef NDEBUG
@@ -2759,12 +2773,17 @@ void BugFixes::init()
 	MakeCall(0x411FD6, action_use_an_item_on_object_hack);
 
 	// Fix for Scout perk being taken into account when setting the visibility of locations with mark_area_known function
-	// also fix the incorrect coordinates for small/medium location circles when highlighting their sub-tiles
+	// also fix the incorrect coordinates for small/medium location circles that the engine uses to highlight their sub-tiles
+	// and fix visited tiles on the world map being darkened again when a location is added next to them
 	MakeJump(0x4C466F, wmAreaMarkVisitedState_hack);
 	SafeWrite8(0x4C46AB, 0x58); // esi > ebx
 
 	// Fix the position of the target marker for small/medium location circles
 	MakeCall(0x4C03AA, wmWorldMap_hack, 2);
+
+	// Fix for combat not ending automatically when there are no hostile critters
+	MakeCall(0x422CF3, combat_should_end_hack);
+	SafeWrite16(0x422CEA, 0x0C74); // jz 0x422CF8
 }
 
 }

@@ -45,6 +45,7 @@
 #include "Modules\HookScripts.h"
 #include "Modules\HeroAppearance.h"
 #include "Modules\Input.h"
+#include "Modules\Interface.h"
 #include "Modules\Inventory.h"
 #include "Modules\Karma.h"
 #include "Modules\KillCounter.h"
@@ -139,6 +140,7 @@ static void InitModules() {
 	manager.add<SpeedPatch>();
 	manager.add<Graphics>();
 	manager.add<Input>();
+	manager.add<LoadOrder>();
 	manager.add<LoadGameHook>();
 	manager.add<MainLoopHook>();
 	manager.add<Movies>();
@@ -151,7 +153,6 @@ static void InitModules() {
 	manager.add<Combat>();
 	manager.add<Skills>();
 	manager.add<FileSystem>();
-	manager.add<LoadOrder>();
 	manager.add<Karma>();
 	manager.add<Tiles>();
 	manager.add<Credits>();
@@ -171,7 +172,8 @@ static void InitModules() {
 	manager.add<Message>();
 	manager.add<Elevators>();
 	manager.add<KillCounter>();
-
+	manager.add<Interface>();
+	//
 	manager.add<AI>();
 	manager.add<DamageMod>();
 	manager.add<AnimationsAtOnce>();
@@ -234,12 +236,14 @@ inline void SfallInit() {
 		typedef int (_stdcall *chk64bitproc)(HANDLE, int*);
 		HMODULE h = LoadLibrary("Kernel32.dll");
 		chk64bitproc proc = (chk64bitproc)GetProcAddress(h, "IsWow64Process");
-		if (proc) proc(GetCurrentProcess(), &is64bit);
-		else is64bit = 0;
+		if (proc)
+			proc(GetCurrentProcess(), &is64bit);
+		else
+			is64bit = 0;
 		FreeLibrary(h);
 
-		CompatModeCheck(HKEY_CURRENT_USER, filepath, is64bit?KEY_WOW64_64KEY:0);
-		CompatModeCheck(HKEY_LOCAL_MACHINE, filepath, is64bit?KEY_WOW64_64KEY:0);
+		CompatModeCheck(HKEY_CURRENT_USER, filepath, is64bit ? KEY_WOW64_64KEY : 0);
+		CompatModeCheck(HKEY_LOCAL_MACHINE, filepath, is64bit ? KEY_WOW64_64KEY : 0);
 	}
 
 	// ini file override

@@ -457,7 +457,7 @@ static void LoadGlobalScriptsList() {
 	ScriptProgram prog;
 	for (auto& item : globalScriptFilesList) {
 		auto scriptFile = item.second;
-		dlog(">" + scriptFile, DL_SCRIPT);
+		dlog("> " + scriptFile, DL_SCRIPT);
 		isGlobalScriptLoading = 1;
 		LoadScriptProgram(prog, scriptFile.c_str(), true);
 		if (prog.ptr) {
@@ -509,14 +509,14 @@ static void LoadGlobalScripts() {
 	static bool listIsPrepared = false;
 	isGameLoading = false;
 	LoadHookScripts();
-	dlogr("Loading global scripts", DL_SCRIPT|DL_INIT);
+	dlogr("Loading global scripts:", DL_SCRIPT|DL_INIT);
 	if (!listIsPrepared) { // only once
 		PrepareGlobalScriptsListByMask();
 		listIsPrepared = !alwaysFindScripts;
 		if (listIsPrepared) globalScriptPathList.clear(); // clear path list, it is no longer needed
 	}
 	LoadGlobalScriptsList();
-	dlogr("Finished loading global scripts", DL_SCRIPT|DL_INIT);
+	dlogr("Finished loading global scripts.", DL_SCRIPT|DL_INIT);
 }
 
 bool _stdcall ScriptHasLoaded(fo::Program* script) {

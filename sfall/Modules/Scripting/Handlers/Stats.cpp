@@ -76,9 +76,13 @@ void sf_get_pc_extra_stat(OpcodeContext& ctx) {
 
 void sf_set_critter_base_stat(OpcodeContext& ctx) {
 	fo::GameObject* obj = ctx.arg(0).asObject();
-	if (obj->Type() == fo::OBJ_TYPE_CRITTER && obj->protoId != fo::PID_Player) {
+	if (obj && obj->Type() == fo::OBJ_TYPE_CRITTER) {
 		int stat = ctx.arg(1).rawValue();
-		if (stat >= 0 && stat < fo::STAT_max_stat) Stats::SetStat(obj, stat, ctx.arg(2).rawValue(), 9);
+		if (stat >= 0 && stat < fo::STAT_max_stat) {
+			Stats::SetStat(obj, stat, ctx.arg(2).rawValue(), 9);
+		} else {
+			ctx.printOpcodeError(invalidStat, ctx.getOpcodeName());
+		}
 	} else {
 		ctx.printOpcodeError(objNotCritter, ctx.getOpcodeName());
 	}
@@ -86,9 +90,13 @@ void sf_set_critter_base_stat(OpcodeContext& ctx) {
 
 void sf_set_critter_extra_stat(OpcodeContext& ctx) {
 	fo::GameObject* obj = ctx.arg(0).asObject();
-	if (obj->Type() == fo::OBJ_TYPE_CRITTER && obj->protoId != fo::PID_Player) {
+	if (obj && obj->Type() == fo::OBJ_TYPE_CRITTER) {
 		int stat = ctx.arg(1).rawValue();
-		if (stat >= 0 && stat < fo::STAT_max_stat) Stats::SetStat(obj, stat, ctx.arg(2).rawValue(), 44);
+		if (stat >= 0 && stat < fo::STAT_max_stat) {
+			Stats::SetStat(obj, stat, ctx.arg(2).rawValue(), 44);
+		} else {
+			ctx.printOpcodeError(invalidStat, ctx.getOpcodeName());
+		}
 	} else {
 		ctx.printOpcodeError(objNotCritter, ctx.getOpcodeName());
 	}
@@ -97,9 +105,13 @@ void sf_set_critter_extra_stat(OpcodeContext& ctx) {
 void sf_get_critter_base_stat(OpcodeContext& ctx) {
 	int result = 0;
 	fo::GameObject* obj = ctx.arg(0).asObject();
-	if (obj->Type() == fo::OBJ_TYPE_CRITTER && obj->protoId != fo::PID_Player) {
+	if (obj && obj->Type() == fo::OBJ_TYPE_CRITTER) {
 		int stat = ctx.arg(1).rawValue();
-		if (stat >= 0 && stat < fo::STAT_max_stat) result = Stats::GetStat(obj, stat, 9);
+		if (stat >= 0 && stat < fo::STAT_max_stat) {
+			result = Stats::GetStat(obj, stat, 9);
+		} else {
+			ctx.printOpcodeError(invalidStat, ctx.getOpcodeName());
+		}
 	} else {
 		ctx.printOpcodeError(objNotCritter, ctx.getOpcodeName());
 	}
@@ -109,9 +121,13 @@ void sf_get_critter_base_stat(OpcodeContext& ctx) {
 void sf_get_critter_extra_stat(OpcodeContext& ctx) {
 	int result = 0;
 	fo::GameObject* obj = ctx.arg(0).asObject();
-	if (obj->Type() == fo::OBJ_TYPE_CRITTER && obj->protoId != fo::PID_Player) {
+	if (obj && obj->Type() == fo::OBJ_TYPE_CRITTER) {
 		int stat = ctx.arg(1).rawValue();
-		if (stat >= 0 && stat < fo::STAT_max_stat) result = Stats::GetStat(obj, stat, 44);
+		if (stat >= 0 && stat < fo::STAT_max_stat) {
+			result = Stats::GetStat(obj, stat, 44);
+		} else {
+			ctx.printOpcodeError(invalidStat, ctx.getOpcodeName());
+		}
 	} else {
 		ctx.printOpcodeError(objNotCritter, ctx.getOpcodeName());
 	}
@@ -159,7 +175,7 @@ void __declspec(naked) op_set_critter_skill_points() {
 		mov edx, esp;
 		call fo::funcoffs::proto_ptr_;
 		mov eax, [esp];
-		mov [eax + 0x13c + esi * 4], edi;
+		mov [eax + 0x13C + esi * 4], edi;
 end:
 		//Restore registers and return
 		add esp, 12;
@@ -200,7 +216,7 @@ void __declspec(naked) op_get_critter_skill_points() {
 		mov edx, esp;
 		call fo::funcoffs::proto_ptr_;
 		mov eax, [esp];
-		mov edx, [eax + 0x13c + esi * 4];
+		mov edx, [eax + 0x13C + esi * 4];
 		jmp end;
 fail:
 		xor edx, edx;
@@ -354,12 +370,12 @@ void __declspec(naked) op_set_pickpocket_max() {
 		call fo::funcoffs::interpretPopLong_;
 		cmp dx, VAR_TYPE_INT;
 		jnz end;
-		and eax, 0xff;
+		and eax, 0xFF;
 		cmp eax, 100;
 		jg end;
 		push 0;
 		push eax;
-		push 0xffffffff;
+		push 0xFFFFFFFF;
 		call SetPickpocketMax;
 end:
 		pop edi;
@@ -383,12 +399,12 @@ void __declspec(naked) op_set_hit_chance_max() {
 		call fo::funcoffs::interpretPopLong_;
 		cmp dx, VAR_TYPE_INT;
 		jnz end;
-		and eax, 0xff;
+		and eax, 0xFF;
 		cmp eax, 100;
 		jg end;
 		push 0;
 		push eax;
-		push 0xffffffff;
+		push 0xFFFFFFFF;
 		call SetHitChanceMax;
 end:
 		pop edi;
@@ -465,7 +481,7 @@ void __declspec(naked) op_set_base_hit_chance_mod() {
 		jnz end;
 		push ecx;
 		push eax;
-		push 0xffffffff;
+		push 0xFFFFFFFF;
 		call SetHitChanceMax;
 end:
 		pop edi;
@@ -542,7 +558,7 @@ void __declspec(naked) op_set_base_pickpocket_mod() {
 		jnz end;
 		push ecx;
 		push eax;
-		push 0xffffffff;
+		push 0xFFFFFFFF;
 		call SetPickpocketMax;
 end:
 		pop edi;
@@ -604,7 +620,7 @@ void __declspec(naked) op_set_base_skill_mod() {
 		test ebx, ebx;
 		jnz end;
 		push eax;
-		push 0xffffffff;
+		push 0xFFFFFFFF;
 		call SetSkillMax;
 end:
 		pop edi;
@@ -628,11 +644,11 @@ void __declspec(naked) op_set_skill_max() {
 		call fo::funcoffs::interpretPopLong_;
 		cmp dx, VAR_TYPE_INT;
 		jnz end;
-		and eax, 0xffff;
+		and eax, 0xFFFF;
 		cmp eax, 300;
 		jg end;
 		push eax;
-		push 0xffffffff;
+		push 0xFFFFFFFF;
 		call SetSkillMax;
 end:
 		pop edi;
@@ -917,7 +933,7 @@ void __declspec(naked) op_set_xp_mod() {
 		call fo::funcoffs::interpretPopLong_;
 		cmp dx, VAR_TYPE_INT;
 		jnz end;
-		and eax, 0xffff;
+		and eax, 0xFFFF;
 		push eax;
 		call SetXpMod2;
 end:
