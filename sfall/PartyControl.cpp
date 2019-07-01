@@ -108,10 +108,14 @@ static void SaveRealDudeState() {
 		SafeWrite8(0x4229EC, 0); // no animate
 		SafeWrite8(0x422BDE, 0);
 	}
+
+	if (isDebug) DebugPrintf("\n[SFALL] Save dude state.");
 }
 
 // take control of the NPC
 static void TakeControlOfNPC(TGameObj* npc) {
+	if (isDebug) DebugPrintf("\n[SFALL] Take control of critter.");
+
 	// remove skill tags
 	int tagSkill[4];
 	std::fill(std::begin(tagSkill), std::end(tagSkill), -1);
@@ -164,7 +168,7 @@ static void TakeControlOfNPC(TGameObj* npc) {
 }
 
 // restores the real dude state
-static void RestoreRealDudeState() {
+static void RestoreRealDudeState(bool redraw = true) {
 	assert(real_dude != nullptr);
 
 	*ptr_map_elevation = real_dude->elevation;
@@ -194,11 +198,14 @@ static void RestoreRealDudeState() {
 		SafeWrite8(0x4229EC, 1); // restore
 		SafeWrite8(0x422BDE, 1);
 	}
-	InterfaceRedraw();
+
+	if (redraw) InterfaceRedraw();
 
 	SetInventoryCheck(false);
 	IsControllingNPC = false;
 	real_dude = nullptr;
+
+	if (isDebug) DebugPrintf("\n[SFALL] Restore control to dude.");
 }
 
 static int __stdcall CombatTurn(TGameObj* obj) {
@@ -367,7 +374,7 @@ end:
 
 void __stdcall PartyControlReset() {
 	if (real_dude != nullptr && IsControllingNPC) {
-		RestoreRealDudeState();
+		RestoreRealDudeState(false);
 	}
 }
 
