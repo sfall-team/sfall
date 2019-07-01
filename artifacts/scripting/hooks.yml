@@ -415,9 +415,9 @@
     Runs before and after each turn in combat (for both PC and NPC).
 
     ```
-    int     arg1 - event type: 1 - start of turn, 0 - normal end of turn, -1 - combat ended abruptly (by script or by pressing Enter during PC turn)
+    int     arg1 - event type: 1 - start of turn, 0 - normal end of turn, -1 - combat ends abruptly (by script or by pressing Enter during PC turn), -2 - combat ends normally (hook always runs at the end of combat)
     int     arg2 - critter doing the turn
-    bool    arg3 - set to 1 at the start of the player's turn after the game has been loaded, 0 otherwise
+    bool    arg3 - 1 at the start/end of the player's turn after loading a game saved in combat mode, 0 otherwise
 
     int     ret1 - pass 1 at the start of turn to skip the turn, pass -1 at the end of turn to force end of combat
     ```

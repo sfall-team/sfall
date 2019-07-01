@@ -33,6 +33,7 @@
 #define FO_VAR_combat_free_move           0x56D39C
 #define FO_VAR_combat_list                0x56D390
 #define FO_VAR_combat_state               0x510944
+#define FO_VAR_combat_turn_obj            0x56D388
 #define FO_VAR_combat_turn_running        0x51093C
 #define FO_VAR_combatNumTurns             0x510940
 #define FO_VAR_crit_succ_eff              0x510978
