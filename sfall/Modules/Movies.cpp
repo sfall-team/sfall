@@ -97,7 +97,7 @@ public:
 		HRESULT hr;
 		//Set the device
 		hr = pAllocNotify->SetD3DDevice(d3d9Device, d3d9->GetAdapterMonitor(0));
-		//if(hr!=S_OK) return hr;
+		//if (hr != S_OK) return hr;
 
 		lpAllocInfo->dwFlags |= VMR9AllocFlag_TextureSurface;
 		lpAllocInfo->Pool = D3DPOOL_SYSTEMMEM;
@@ -271,7 +271,7 @@ static void __declspec(naked) PlayFrameHook2() {
 	}
 }
 
-static DWORD _cdecl PreparePlayMovie(const DWORD id) {
+static DWORD __cdecl PreparePlayMovie(const DWORD id) {
 	//Get file path in unicode
 	wchar_t path[MAX_PATH];
 	char* master_patches = fo::var::patches;
@@ -541,7 +541,7 @@ static sDSSound* PlayingSound(wchar_t* path, bool loop) {
 }
 
 static const wchar_t *SoundExtensions[] = { L"mp3", L"wma", L"wav" };
-static bool _cdecl SoundFileLoad(DWORD called, const char* path) {
+static bool __cdecl SoundFileLoad(DWORD called, const char* path) {
 	if (!path || strlen(path) < 4) return false;
 	wchar_t buf[256];
 	mbstowcs_s(0, buf, path, 256);
@@ -746,9 +746,11 @@ less:
 }
 
 void SkipOpeningMoviesPatch() {
-	if (GetConfigInt("Misc", "SkipOpeningMovies", 0)) {
+	int skipOpening = GetConfigInt("Misc", "SkipOpeningMovies", 0);
+	if (skipOpening) {
 		dlog("Skipping opening movies.", DL_INIT);
-		SafeWrite16(0x4809C7, 0x1CEB);            // jmps 0x4809E5
+		SafeWrite16(0x4809C7, 0x1CEB); // jmps 0x4809E5
+		if (skipOpening == 2) BlockCall(0x4426A1); // game_splash_screen_
 		dlogr(" Done", DL_INIT);
 	}
 }
@@ -780,7 +782,7 @@ void Movies::init() {
 	SafeWrite32(0x44E75E, (DWORD)MoviePtrs);
 	SafeWrite32(0x44E78A, (DWORD)MoviePtrs);
 	dlog(".", DL_INIT);
-	if (Graphics::mode != 0 && GetConfigInt("Graphics", "AllowDShowMovies", 0)) { // TODO: Not working implementation
+	if (Graphics::mode != 0 && GetConfigInt("Graphics", "AllowDShowMovies", 0)) { // TODO: implementation not working
 		MakeJump(0x44E690, gmovie_play_hack);
 	}
 	dlogr(" Done", DL_INIT);
@@ -806,10 +808,10 @@ void Movies::init() {
 	if (Artimer1DaysCheckTimer != 90) {
 		Artimer1DaysCheckTimer = max(0, min(days, Artimer1DaysCheckTimer));
 		char s[255];
-		sprintf_s(s, "Applying patch: MovieTimer_artimer1 = %d. ", Artimer1DaysCheckTimer);
+		sprintf_s(s, "Applying patch: MovieTimer_artimer1 = %d.", Artimer1DaysCheckTimer);
 		dlog(s, DL_INIT);
 		MakeJump(0x4A378B, Artimer1DaysCheckHack);
-		dlogr("Done", DL_INIT);
+		dlogr(" Done", DL_INIT);
 	}
 
 	// Should be AFTER the PlayMovieHook setup above
