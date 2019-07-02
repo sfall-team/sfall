@@ -65,6 +65,34 @@ pickNewID: // skip PM range (18000 - 83535)
 	}
 }
 
+// Reassignment of ID values to all critters upon first loading the map
+static void map_fix_critter_id() {
+	long npcStartID = 4096;
+	fo::GameObject* obj = fo::func::obj_find_first();
+	while (obj) {
+		if (obj->Type() == fo::OBJ_TYPE_CRITTER && obj->id < PLAYER_ID) {
+			obj->id = npcStartID++;
+		}
+		obj = fo::func::obj_find_next();
+	}
+}
+
+static void __declspec(naked) map_load_file_hack() {
+	__asm {
+		jz   mapVirgin;
+		retn;
+mapVirgin:
+		call fo::funcoffs::wmMapIsSaveable_;
+		test eax, eax;
+		jnz  savedable;
+		retn;
+savedable:
+		call map_fix_critter_id;
+		xor  eax, eax; // set ZF
+		retn;
+	}
+}
+
 void Objects::SetAutoUnjamLockTime(DWORD time) {
 	if (!unjamTimeState) BlockCall(0x4A364A); // disable auto unjam at midnight
 
@@ -119,6 +147,10 @@ void Objects::init() {
 	SafeWrite8(0x4A38B3, 0x90); // fix increment ID
 
 	MakeCall(0x477A0E, item_identical_hack); // item with unique ID don't put to items stack
+
+	// fixes mapper bug with assign id's to critters (applies to maps not yet visited)
+	MakeCall(0x482E6B, map_load_file_hack);
+	SafeWrite8(0x482E71, 0x85); // jz > jnz
 }
 
 }
