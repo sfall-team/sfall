@@ -2144,6 +2144,14 @@ static void __declspec(naked) action_use_an_item_on_object_hack() {
 	}
 }
 
+static void __declspec(naked) action_climb_ladder_hack() {
+	__asm {
+		add ecx, ds:[FO_VAR_combat_free_move];
+		mov eax, 2; // RB_RESERVED
+		retn;
+	}
+}
+
 //static const DWORD wmAreaMarkVisitedState_Error = 0x4C4698;
 static const DWORD wmAreaMarkVisitedState_Ret = 0x4C46A2;
 static void __declspec(naked) wmAreaMarkVisitedState_hack() {
@@ -2809,6 +2817,7 @@ void BugFixes::init()
 
 	// Fix for the player's movement in combat being interrupted when trying to use objects with Bonus Move APs available
 	MakeCall(0x411FD6, action_use_an_item_on_object_hack);
+	MakeCall(0x411DF7, action_climb_ladder_hack);
 
 	// Fix the influence of the Scout perk when setting the visibility of locations on the world map (using the mark_area_known function)
 	// also correcting the wrong coordinates for small and medium circles of city in the highlight of the sub-tiles to the location
@@ -2819,7 +2828,7 @@ void BugFixes::init()
 
 	// Fix for the automatic termination combat mode when there are no hostile critters
 	MakeCall(0x422CF3, combat_should_end_hack);
-	SafeWrite16(0x422CEA, 0x0C74); // jz 0x422CF8
+	SafeWrite16(0x422CEA, 0x0C74); // jz 0x422CF8 (skip party members)
 }
 
 }

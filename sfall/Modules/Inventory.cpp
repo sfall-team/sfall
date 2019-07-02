@@ -22,7 +22,6 @@
 #include "..\FalloutEngine\Fallout2.h"
 #include "..\InputFuncs.h"
 #include "PartyControl.h"
-//#include "HookScripts.h"
 #include "LoadGameHook.h"
 
 #include "Inventory.h"
@@ -537,30 +536,60 @@ skip:
 	}
 }
 
+static void __declspec(naked) op_inven_unwield_hook() {
+	using namespace fo;
+	using namespace Fields;
+	__asm {
+		mov  ecx, [eax + protoId];
+		and  ecx, 0x0F000000;
+		cmp  ecx, OBJ_TYPE_CRITTER << 24;
+		jne  skip;
+		test byte ptr [eax + damageFlags], DAM_KNOCKED_OUT;
+		jz   skip;
+		push 0x505AFC; // "But is already Inactive (Dead/Stunned/Invisible)"
+		call fo::funcoffs::debug_printf_;
+		add  esp, 4;
+		retn;
+skip:
+		jmp  fo::funcoffs::inven_unwield_;
+	}
+}
+
+static void __declspec(naked) op_wield_obj_critter_hook() {
+	using namespace fo;
+	using namespace Fields;
+	__asm {
+		test byte ptr [eax + damageFlags], DAM_KNOCKED_OUT;
+		jz   skip;
+		mov  eax, -1;
+		retn;
+skip:
+		jmp  fo::funcoffs::inven_wield_;
+	}
+}
+
 // reimplementation of adjust_fid engine function
 // Differences from vanilla:
 // - doesn't use art_vault_guy_num as default art, uses current critter FID instead
 // - invokes onAdjustFid delegate that allows to hook into FID calculation
 DWORD __stdcall Inventory::adjust_fid_replacement() {
-	using namespace fo;
-
 	DWORD fid;
-	if (var::inven_dude->TypeFid() == ObjType::OBJ_TYPE_CRITTER) {
+	if (fo::var::inven_dude->TypeFid() == fo::OBJ_TYPE_CRITTER) {
 		DWORD frameNum;
 		DWORD weaponAnimCode = 0;
 		if (PartyControl::IsNpcControlled()) {
 			// if NPC is under control, use current FID of critter
-			frameNum = var::inven_dude->artFid & 0xFFF;
+			frameNum = fo::var::inven_dude->artFid & 0xFFF;
 		} else {
 			// vanilla logic:
-			frameNum = var::art_vault_guy_num;
-			auto critterPro = GetProto(var::inven_pid);
+			frameNum = fo::var::art_vault_guy_num;
+			auto critterPro = fo::GetProto(fo::var::inven_pid);
 			if (critterPro != nullptr) {
 				frameNum = critterPro->fid & 0xFFF;
 			}
-			if (var::i_worn != nullptr) {
-				auto armorPro = GetProto(var::i_worn->protoId);
-				DWORD armorFrameNum = func::stat_level(var::inven_dude, STAT_gender) == GENDER_FEMALE
+			if (fo::var::i_worn != nullptr) {
+				auto armorPro = fo::GetProto(fo::var::i_worn->protoId);
+				DWORD armorFrameNum = fo::func::stat_level(fo::var::inven_dude, fo::STAT_gender) == fo::GENDER_FEMALE
 					? armorPro->item.armor.femaleFrameNum
 					: armorPro->item.armor.maleFrameNum;
 
@@ -569,23 +598,23 @@ DWORD __stdcall Inventory::adjust_fid_replacement() {
 				}
 			}
 		}
-		auto itemInHand = func::intface_is_item_right_hand()
-			? var::i_rhand
-			: var::i_lhand;
+		auto itemInHand = fo::func::intface_is_item_right_hand()
+			? fo::var::i_rhand
+			: fo::var::i_lhand;
 
 		if (itemInHand != nullptr) {
-			auto itemPro = GetProto(itemInHand->protoId);
-			if (itemPro->item.type == item_type_weapon) {
+			auto itemPro = fo::GetProto(itemInHand->protoId);
+			if (itemPro->item.type == fo::item_type_weapon) {
 				weaponAnimCode = itemPro->item.weapon.animationCode;
 			}
 		}
-		fid = func::art_id(OBJ_TYPE_CRITTER, frameNum, 0, weaponAnimCode, 0);
+		fid = fo::func::art_id(fo::OBJ_TYPE_CRITTER, frameNum, 0, weaponAnimCode, 0);
 	} else {
-		fid = var::inven_dude->artFid;
+		fid = fo::var::inven_dude->artFid;
 	}
-	var::i_fid = fid;
+	fo::var::i_fid = fid;
 	onAdjustFid.invoke(fid);
-	return var::i_fid;
+	return fo::var::i_fid;
 }
 
 static void __declspec(naked) adjust_fid_hack_replacement() {
@@ -765,6 +794,11 @@ void Inventory::init() {
 		MakeCall(0x4759F1, barter_inventory_hack_scroll);
 		fo::var::max = 100;
 	};
+
+	// Checking the DAM_KNOCKED_OUT flag for wield_obj_critter/inven_unwield script functions
+	// Note: for the function metarule(METARULE_INVEN_UNWIELD_WHO, x) the flag is not checking
+	HookCall(0x45B0CE, op_inven_unwield_hook);
+	HookCall(0x45693C, op_wield_obj_critter_hook);
 }
 
 Delegate<DWORD>& Inventory::OnAdjustFid() {
