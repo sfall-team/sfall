@@ -981,6 +981,9 @@ void MiscPatches::init() {
 		dlogr(" Done", DL_INIT);
 	}
 
+	int knockoutTime = GetConfigInt("Misc", "KnockoutTime", 35);
+	if (knockoutTime > 35 && knockoutTime <= 100) SafeWrite32(0x424FA7, knockoutTime);
+
 	// Increase text capacity in the description window of statistics and perks
 	SafeWriteBatch<BYTE>(150, {0x43ACD5, 0x43DD37});
 

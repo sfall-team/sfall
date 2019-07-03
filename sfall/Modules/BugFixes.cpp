@@ -2429,6 +2429,8 @@ void BugFixes::init()
 		SafeWrite8(0x4415CC, 0x00); // Prevent crashes when re-exporting
 		dlogr(" Done", DL_INIT);
 	//}
+	// Fix op_lookup_string_proc_ - did not search the last procedure in the script
+	SafeWrite8(0x46C7AC, 0x76); // jb > jbe
 
 	//if (GetConfigInt("Misc", "WieldObjCritterFix", 1)) {
 		dlog("Applying wield_obj_critter fix.", DL_INIT);
