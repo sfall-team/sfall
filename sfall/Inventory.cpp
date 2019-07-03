@@ -651,6 +651,34 @@ skip:
 	}
 }
 
+static void __declspec(naked) op_inven_unwield_hook() {
+	__asm {
+		mov  ecx, [eax + 0x64];
+		and  ecx, 0x0F000000;
+		cmp  ecx, OBJ_TYPE_CRITTER << 24;
+		jne  skip;
+		test byte ptr [eax + 0x44], DAM_KNOCKED_OUT;
+		jz   skip;
+		push 0x505AFC; // "But is already Inactive (Dead/Stunned/Invisible)"
+		call debug_printf_;
+		add  esp, 4;
+		retn;
+skip:
+		jmp  inven_unwield_;
+	}
+}
+
+static void __declspec(naked) op_wield_obj_critter_hook() {
+	__asm {
+		test byte ptr [eax + 0x44], DAM_KNOCKED_OUT;
+		jz   skip;
+		mov  eax, -1;
+		retn;
+skip:
+		jmp  inven_wield_;
+	}
+}
+
 static const DWORD DoMoveTimer_Ret = 0x476920;
 static void __declspec(naked) do_move_timer_hook() {
 	__asm {
@@ -817,6 +845,11 @@ void InventoryInit() {
 	if (UseScrollWheel) {
 		MakeCall(0x473E66, loot_container_hack_scroll);
 		MakeCall(0x4759F1, barter_inventory_hack_scroll);
-		*((DWORD*)_max) = 100;
+		*ptr_max = 100;
 	};
+
+	// Check the DAM_KNOCKED_OUT flag for wield_obj_critter/inven_unwield script functions
+	// Note: the flag is not checked for the metarule(METARULE_INVEN_UNWIELD_WHO, x) function
+	HookCall(0x45B0CE, op_inven_unwield_hook);
+	HookCall(0x45693C, op_wield_obj_critter_hook);
 }
