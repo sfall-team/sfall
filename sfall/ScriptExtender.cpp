@@ -1271,6 +1271,34 @@ pickNewID: // skip PM range (18000 - 83535)
 	}
 }
 
+// Reassigns object IDs to all critters upon first loading a map
+static void __stdcall map_fix_critter_id() {
+	long npcStartID = 4096;
+	TGameObj* obj = ObjFindFirst();
+	while (obj) {
+		if (obj->pid >> 24 == OBJ_TYPE_CRITTER && obj->ID < PLAYER_ID) {
+			obj->ID = npcStartID++;
+		}
+		obj = ObjFindNext();
+	}
+}
+
+static void __declspec(naked) map_load_file_hack() {
+	__asm {
+		jz   mapVirgin;
+		retn;
+mapVirgin:
+		call wmMapIsSaveable_;
+		test eax, eax;
+		jnz  saveable;
+		retn;
+saveable:
+		call map_fix_critter_id;
+		xor  eax, eax; // set ZF
+		retn;
+	}
+}
+
 static void __declspec(naked) map_save_in_game_hook() {
 	__asm {
 		call partyMemberSaveProtos_;
@@ -1309,6 +1337,10 @@ void ScriptExtenderSetup() {
 	SafeWrite8(0x4A38B3, 0x90); // fix ID increment
 
 	MakeCall(0x477A0E, item_identical_hack); // don't put item with unique ID to items stack
+
+	// Fix mapper bug by reassigning object IDs to critters (for maps not yet visited)
+	MakeCall(0x482E6B, map_load_file_hack);
+	SafeWrite8(0x482E71, 0x85); // jz > jnz
 
 	arraysBehavior = GetPrivateProfileIntA("Misc", "arraysBehavior", 1, ini);
 	if (arraysBehavior > 0) {

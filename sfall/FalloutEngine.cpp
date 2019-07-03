@@ -509,8 +509,10 @@ const DWORD obj_dist_ = 0x48BBD4;
 const DWORD obj_dist_with_tile_ = 0x48BC08;
 const DWORD obj_drop_ = 0x49B8B0;
 const DWORD obj_erase_object_ = 0x48B0FC;
+const DWORD obj_find_first_ = 0x48B3A8;
 const DWORD obj_find_first_at_ = 0x48B48C;
 const DWORD obj_find_first_at_tile_ = 0x48B5A8;
+const DWORD obj_find_next_ = 0x48B41C;
 const DWORD obj_find_next_at_ = 0x48B510;
 const DWORD obj_find_next_at_tile_ = 0x48B608;
 const DWORD obj_lock_is_jammed_ = 0x49D410;
@@ -664,6 +666,7 @@ const DWORD win_register_button_sound_func_ = 0x4D87F8;
 const DWORD win_show_ = 0x4D6DAC;
 const DWORD wmFindCurSubTileFromPos_ = 0x4C0C00;
 const DWORD wmInterfaceScrollTabsStart_ = 0x4C219C;
+const DWORD wmMapIsSaveable_ = 0x4BFA64;
 const DWORD wmMarkSubTileRadiusVisited_ = 0x4C3550;
 const DWORD wmPartyInitWalking_ = 0x4C1E54;
 const DWORD wmPartyWalkingStep_ = 0x4C1F90;
@@ -1063,6 +1066,14 @@ long __stdcall QueueFindFirst(TGameObj* object, long qType) {
 		mov  eax, object;
 		call queue_find_first_;
 	}
+}
+
+TGameObj* __stdcall ObjFindFirst() {
+	__asm call obj_find_first_;
+}
+
+TGameObj* __stdcall ObjFindNext() {
+	__asm call obj_find_next_;
 }
 
 long __stdcall NewObjId() {

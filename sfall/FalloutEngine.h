@@ -737,8 +737,10 @@ extern const DWORD obj_dist_;
 extern const DWORD obj_dist_with_tile_;
 extern const DWORD obj_drop_;
 extern const DWORD obj_erase_object_;
+extern const DWORD obj_find_first_;
 extern const DWORD obj_find_first_at_;
 extern const DWORD obj_find_first_at_tile_; //  <eax>(int elevation<eax>, int tile<edx>)
+extern const DWORD obj_find_next_;
 extern const DWORD obj_find_next_at_;
 extern const DWORD obj_find_next_at_tile_; // no args
 extern const DWORD obj_lock_is_jammed_;
@@ -895,6 +897,7 @@ extern const DWORD win_register_button_sound_func_;
 extern const DWORD win_show_;
 extern const DWORD wmFindCurSubTileFromPos_;
 extern const DWORD wmInterfaceScrollTabsStart_;
+extern const DWORD wmMapIsSaveable_;
 extern const DWORD wmMarkSubTileRadiusVisited_;
 extern const DWORD wmPartyInitWalking_;
 extern const DWORD wmPartyWalkingStep_;
@@ -1047,6 +1050,10 @@ long __stdcall PerkLevel(TGameObj* critter, long perkId);
 long __stdcall TraitLevel(long traitID);
 
 long __stdcall QueueFindFirst(TGameObj* object, long qType);
+
+TGameObj* __stdcall ObjFindFirst();
+
+TGameObj* __stdcall ObjFindNext();
 
 long __stdcall NewObjId();
 
