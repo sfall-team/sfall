@@ -2793,6 +2793,9 @@ void BugFixes::init()
 	// Fix for combat not ending automatically when there are no hostile critters
 	MakeCall(0x422CF3, combat_should_end_hack);
 	SafeWrite16(0x422CEA, 0x0C74); // jz 0x422CF8 (skip party members)
+
+	// Fix for op_lookup_string_proc_ engine function not searching the last procedure in a script
+	SafeWrite8(0x46C7AC, 0x76); // jb > jbe
 }
 
 }

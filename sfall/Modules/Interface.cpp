@@ -440,7 +440,7 @@ static void WorldMapInterfacePatch() {
 	}
 
 	if (hrpIsEnabled) {
-		if (worldmapInterface = GetConfigInt("Interface", "WorldMapInterface", 0)) {
+		if (worldmapInterface = GetConfigInt("Interface", "ExpandWorldMap", 0)) {
 			LoadGameHook::OnAfterGameInit() += WorldmapViewportPatch; // Note: must be applied after WorldMapSlots patch
 		}
 	}
