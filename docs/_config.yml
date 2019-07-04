@@ -25,6 +25,7 @@ github_username: BGforgeNet
 markdown: kramdown
 plugins:
   - jekyll-remote-theme
+  - jekyll-analytics
 
 remote_theme: pmarsceill/just-the-docs
 
@@ -47,3 +48,8 @@ exclude:
 aux_links:
     "Sfall on GitHub":
       - "https://github.com/phobos2077/sfall/"
+
+jekyll_analytics:
+  Matomo:
+    url: st.bgforge.net
+    siteId: "16"
