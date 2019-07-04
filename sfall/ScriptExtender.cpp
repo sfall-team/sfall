@@ -1338,7 +1338,7 @@ void ScriptExtenderSetup() {
 
 	MakeCall(0x477A0E, item_identical_hack); // don't put item with unique ID to items stack
 
-	// Fix mapper bug by reassigning object IDs to critters (for maps not yet visited)
+	// Fix mapper bug by reassigning object IDs to critters (for unvisited maps)
 	MakeCall(0x482E6B, map_load_file_hack);
 	SafeWrite8(0x482E71, 0x85); // jz > jnz
 

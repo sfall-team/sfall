@@ -1162,8 +1162,7 @@ static void DllMain2() {
 		dlogr(" Done", DL_INIT);
 	}
 
-	int gvar = GetPrivateProfileIntA("Misc", "SpecialDeathGVAR", 491, ini); // GVAR_MODOC_SHITTY_DEATH
-	if (gvar != 491) SafeWrite32(0x440C2A, gvar);
+	SimplePatch<DWORD>(0x440C2A, "Misc", "SpecialDeathGVAR", 491); // GVAR_MODOC_SHITTY_DEATH
 
 	// Remove hardcoding for maps with IDs 19 and 37
 	if (GetPrivateProfileIntA("Misc", "DisableSpecialMapIDs", 0, ini)) {
@@ -1172,6 +1171,8 @@ static void DllMain2() {
 		SafeWrite8(0x4836DB, 0);
 		dlogr(" Done", DL_INIT);
 	}
+
+	SimplePatch<DWORD>(0x424FA7, "Misc", "KnockoutTime", 35, 35, 100);
 
 	// Increase the max text width of the information card in the character screen
 	SafeWrite8(0x43ACD5, 144); // 136
