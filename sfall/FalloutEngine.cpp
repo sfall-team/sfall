@@ -594,6 +594,7 @@ const DWORD roll_random_ = 0x4A30C0;
 const DWORD runProgram_ = 0x46E154;
 const DWORD SaveGame_ = 0x47B88C;
 const DWORD SavePlayer_ = 0x43A7DC;
+const DWORD scr_exec_map_exit_scripts_ = 0x4A69A0;
 const DWORD scr_exec_map_update_scripts_ = 0x4A67E4;
 const DWORD scr_find_first_at_ = 0x4A6524;
 const DWORD scr_find_next_at_ = 0x4A6564;

@@ -825,6 +825,7 @@ extern const DWORD roll_random_;
 extern const DWORD runProgram_; // eax - programPtr, called once for each program after first loaded - hooks program to game and UI events
 extern const DWORD SaveGame_;
 extern const DWORD SavePlayer_;
+extern const DWORD scr_exec_map_exit_scripts_;
 extern const DWORD scr_exec_map_update_scripts_;
 extern const DWORD scr_find_first_at_; // eax - elevation, returns spatial scriptID
 extern const DWORD scr_find_next_at_; // no args, returns spatial scriptID
