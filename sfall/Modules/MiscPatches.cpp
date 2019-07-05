@@ -971,8 +971,7 @@ void MiscPatches::init() {
 		dlogr(" Done", DL_INIT);
 	}
 
-	int gvar = GetConfigInt("Misc", "SpecialDeathGVAR", fo::GVAR_MODOC_SHITTY_DEATH);
-	if (gvar != fo::GVAR_MODOC_SHITTY_DEATH) SafeWrite32(0x440C2A, gvar);
+	SimplePatch<DWORD>(0x440C2A, "Misc", "SpecialDeathGVAR", fo::GVAR_MODOC_SHITTY_DEATH);
 
 	// Removal hardcoding for maps with indexes 19 and 37
 	if (GetConfigInt("Misc", "DisableSpecialMapIDs", 0)) {
@@ -981,8 +980,7 @@ void MiscPatches::init() {
 		dlogr(" Done", DL_INIT);
 	}
 
-	int knockoutTime = GetConfigInt("Misc", "KnockoutTime", 35);
-	if (knockoutTime > 35 && knockoutTime <= 100) SafeWrite32(0x424FA7, knockoutTime);
+	SimplePatch<DWORD>(0x424FA7, "Misc", "KnockoutTime", 35, 35, 100);
 
 	// Increase text capacity in the description window of statistics and perks
 	SafeWriteBatch<BYTE>(150, {0x43ACD5, 0x43DD37});
