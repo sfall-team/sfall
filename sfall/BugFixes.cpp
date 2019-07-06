@@ -862,8 +862,7 @@ static void __declspec(naked) action_melee_hack() {
 		mov  edx, 0x4113DC
 		mov  ebx, [eax + 0x20]                    // objStruct->FID
 		and  ebx, 0x0F000000
-		sar  ebx, 0x18
-		cmp  ebx, OBJ_TYPE_CRITTER                // check if object FID type flag is set to critter
+		cmp  ebx, OBJ_TYPE_CRITTER << 24          // check if object FID type flag is set to critter
 		jne  end                                  // if object not a critter leave jump condition flags
 		// set to skip dodge animation
 		test byte ptr [eax + 0x44], DAM_KNOCKED_OUT or DAM_KNOCKED_DOWN    // (original code)
@@ -879,8 +878,7 @@ static void __declspec(naked) action_ranged_hack() {
 		mov  edx, 0x411B6D
 		mov  ebx, [eax + 0x20]                    // objStruct->FID
 		and  ebx, 0x0F000000
-		sar  ebx, 0x18
-		cmp  ebx, OBJ_TYPE_CRITTER                // check if object FID type flag is set to critter
+		cmp  ebx, OBJ_TYPE_CRITTER << 24          // check if object FID type flag is set to critter
 		jne  end                                  // if object not a critter leave jump condition flags
 		// set to skip dodge animation
 		test byte ptr [eax + 0x44], DAM_KNOCKED_OUT or DAM_KNOCKED_DOWN    // (original code)
@@ -891,75 +889,90 @@ end:
 	}
 }
 
-static const DWORD SetNewResults_Ret = 0x424FC6;
 static void __declspec(naked) set_new_results_hack() {
 	__asm {
-		test ah, DAM_KNOCKED_OUT                  // DAM_KNOCKED_OUT?
-		jz   end                                  // No
-		mov  eax, esi
-		xor  edx, edx
-		inc  edx                                  // type = knockout
-		jmp  queue_remove_this_                   // Remove knockout from queue (if there is one)
-end:
-		add  esp, 4                               // Destroy the return address
-		jmp  SetNewResults_Ret
+		call stat_level_;
+		push eax;
+		mov  eax, esi;
+		xor  edx, edx;
+		inc  edx;                                 // type = knockout
+		call queue_remove_this_;                  // Remove knockout from queue (if there is one)
+		pop  eax;
+		retn;
 	}
 }
 
 static void __declspec(naked) critter_wake_clear_hack() {
 	__asm {
-		jne  end                                  // This is not a critter
-		mov  dl, [esi + 0x44]
-		test dl, DAM_DEAD                         // DAM_DEAD?
-		jnz  end                                  // This is a corpse
-		and  dl, ~DAM_KNOCKED_OUT                 // 0xFE Unset DAM_KNOCKED_OUT
-		or   dl, DAM_KNOCKED_DOWN                 // Set DAM_KNOCKED_DOWN
-		mov  [esi + 0x44], dl
+		jne  end;                                 // This is not a critter
+		mov  dl, [esi + 0x44];
+		test dl, DAM_DEAD;                        // DAM_DEAD?
+		jnz  end;                                 // This is a corpse
+		and  dl, ~DAM_KNOCKED_OUT;                // Unset DAM_KNOCKED_OUT
+		or   dl, DAM_KNOCKED_DOWN;                // Set DAM_KNOCKED_DOWN
+		mov  [esi + 0x44], dl;
 end:
-		xor  eax, eax
-		inc  eax
-		pop  esi
-		pop  ecx
-		pop  ebx
-		retn
+		xor  eax, eax;
+		inc  eax;
+		pop  esi;
+		pop  ecx;
+		pop  ebx;
+		retn; // exit from func
 	}
 }
 
+static const DWORD obj_load_func_Ret = 0x488F14;
 static void __declspec(naked) obj_load_func_hack() {
 	__asm {
-		test byte ptr [eax+0x25], 0x4             // Temp_
-		jnz  end
-		mov  edi, [eax + 0x64]
-		shr  edi, 0x18
-		cmp  edi, OBJ_TYPE_CRITTER
-		jne  skip
-		test byte ptr [eax + 0x44], DAM_KNOCKED_DOWN
-		jz   clear                                // No
-		pushadc
-		push ebx
-		xor  ecx, ecx
-		mov  edx, eax // object
-		mov  ebx, ecx // extramem null
-		mov  eax, ecx // time = 0
-		inc  ecx      // type = 1
-		call queue_add_
-		pop  ebx
-		popadc
+		test byte ptr [eax + 0x25], 0x4; // Temp_
+		jz   fix;
+		retn;
+fix:
+		mov  edi, [eax + 0x64];
+		and  edi, 0x0F000000;
+		cmp  edi, OBJ_TYPE_CRITTER << 24;
+		jne  skip;
+		test byte ptr [eax + 0x44], DAM_KNOCKED_OUT;
+		jnz  clear;    // Yes
+		test byte ptr [eax + 0x44], DAM_KNOCKED_DOWN;
+		jz   clear;    // No
+		push eax;
+		xor  ecx, ecx;
+		mov  edx, eax; // object
+		mov  ebx, ecx; // extramem null
+		mov  eax, ecx; // time = 0
+		inc  ecx;      // type = 1
+		call queue_add_; // run stand up anim
+		pop  eax;
 clear:
-		and  word ptr [eax + 0x44], ~(DAM_LOSE_TURN or DAM_KNOCKED_DOWN) // 0x7FFD
+		and  word ptr [eax + 0x44], ~(DAM_LOSE_TURN or DAM_KNOCKED_DOWN);
 skip:
-		push 0x488F14
-		retn
-end:
-		push 0x488EF9
-		retn
+		add  esp, 4;
+		jmp  obj_load_func_Ret;
 	}
 }
 
 static void __declspec(naked) partyMemberPrepLoadInstance_hook() {
 	__asm {
-		and  word ptr [eax + 0x44], ~(DAM_LOSE_TURN or DAM_KNOCKED_DOWN) // 0x7FFD
-		jmp  dude_stand_
+		and  word ptr [eax + 0x44], ~(DAM_LOSE_TURN or DAM_KNOCKED_DOWN);
+		jmp  dude_stand_;
+	}
+}
+
+static void __declspec(naked) combat_over_hook() {
+	__asm {
+		test byte ptr [eax + 0x44], DAM_DEAD;
+		jz   fix;
+		retn; // the dead cannot reload their weapons
+fix:
+		test byte ptr [eax + 0x44], DAM_KNOCKED_DOWN;
+		jz   skip;
+		push eax;
+		call dude_standup_;
+		pop  eax;
+		xor  edx, edx;
+skip:
+		jmp  cai_attempt_w_reload_;
 	}
 }
 
@@ -2375,6 +2388,8 @@ void BugFixesInit()
 		SafeWrite8(0x4415CC, 0x00); // Prevent crashes when re-exporting
 		dlogr(" Done", DL_INIT);
 	//}
+	// Fix for op_lookup_string_proc_ engine function not searching the last procedure in a script
+	SafeWrite8(0x46C7AC, 0x76); // jb > jbe
 
 	//if (GetPrivateProfileIntA("Misc", "WieldObjCritterFix", 1, ini)) {
 		dlog("Applying wield_obj_critter fix.", DL_INIT);
@@ -2403,12 +2418,16 @@ void BugFixesInit()
 	// Fix for "NPC turns into a container" bug
 	//if (GetPrivateProfileIntA("Misc", "NPCTurnsIntoContainerFix", 1, ini)) {
 		dlog("Applying fix for \"NPC turns into a container\" bug.", DL_INIT);
-		MakeCall(0x424F8E, set_new_results_hack);
 		MakeJump(0x42E46E, critter_wake_clear_hack);
-		MakeJump(0x488EF3, obj_load_func_hack);
+		MakeCall(0x488EF3, obj_load_func_hack, 1);
 		HookCall(0x4949B2, partyMemberPrepLoadInstance_hook);
 		dlogr(" Done", DL_INIT);
 	//}
+	// Fix for multiple knockout events being added to the queue
+	HookCall(0x424F9A, set_new_results_hack);
+	// Fix for knocked down critters not playing stand up animation when the combat ends
+	// and prevent dead NPCs from reloading their weapons
+	HookCall(0x421F30, combat_over_hook);
 
 	dlog("Applying fix for explosives bugs.", DL_INIT);
 	// Fix crashes when killing critters with explosives
@@ -2751,7 +2770,4 @@ void BugFixesInit()
 	// Fix for combat not ending automatically when there are no hostile critters
 	MakeCall(0x422CF3, combat_should_end_hack);
 	SafeWrite16(0x422CEA, 0x0C74); // jz 0x422CF8 (skip party members)
-
-	// Fix for op_lookup_string_proc_ engine function not searching the last procedure in a script
-	SafeWrite8(0x46C7AC, 0x76); // jb > jbe
 }
