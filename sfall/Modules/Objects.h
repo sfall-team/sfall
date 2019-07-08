@@ -5,7 +5,7 @@
 namespace sfall
 {
 
-enum UniqueID {
+enum UniqueID : long {
 	Start = 0x0FFFFFFF, // start at 0x10000000
 	End   = 0x7FFFFFFF
 };
@@ -17,8 +17,8 @@ public:
 
 	static long uniqueID;
 
-	static long SetObjectUniqueID(fo::GameObject* obj);
-	static long SetSpecialID(fo::GameObject* obj);
+	static long __fastcall SetObjectUniqueID(fo::GameObject* obj);
+	static long __fastcall SetSpecialID(fo::GameObject* obj);
 	static void SetNewEngineID(fo::GameObject* obj);
 
 	static void SetAutoUnjamLockTime(DWORD time);
