@@ -994,6 +994,14 @@ static void __declspec(naked) partyMemberPrepLoadInstance_hook() {
 	}
 }
 
+static void __declspec(naked) combat_over_hack() {
+	__asm {
+		mov  [eax + combatState], edx;
+		and  word ptr [eax + damageFlags], ~DAM_LOSE_TURN;
+		retn;
+	}
+}
+
 static void __declspec(naked) combat_over_hook() {
 	__asm {
 		test byte ptr [eax + damageFlags], DAM_DEAD;
@@ -2129,23 +2137,40 @@ dude:
 	}
 }
 
+static long blockingTileObj = 0;
+static const DWORD anim_move_to_tile_jmp = 0x416D91;
 static void __declspec(naked) anim_move_to_tile_hook() {
 	__asm {
-		push ebx;
-		mov  ebx, dword ptr [esp + 0x18 - 0x10 + 8]; // distance
+		call fo::funcoffs::obj_blocking_at_;
+		mov  blockingTileObj, eax;
+		cmp  edi, ds:[FO_VAR_obj_dude];
+		je   isDude;
+		retn;
+isDude:
+		test eax, eax;
+		jnz  skip; // tile is blocking
+		mov  ebx, dword ptr [esp + 0x18 - 0x10 + 4]; // distance
 		test ebx, ebx;
 		jl   skip; // dist < 0
-		cmp  eax, ds:[FO_VAR_obj_dude];
-		jne  notDude;
 		sub  ebx, ds:[FO_VAR_combat_free_move];
-notDude:
-		cmp  ebx, [eax + movePoints];
+		cmp  ebx, [edi + movePoints];
 		jge  skip; // dist >= source.curr_mp
-		pop  ebx;
-		retn;
+		test eax, eax;
+		jnz  skip;
+		add  esp, 4;
+		jmp  anim_move_to_tile_jmp;
 skip:
-		pop  ebx;
-		jmp  fo::funcoffs::obj_blocking_at_;
+		retn;
+	}
+}
+
+static void __declspec(naked) anim_move_to_tile_hook_tile() {
+	__asm {
+		cmp  blockingTileObj, 0;
+		jne  getTile;
+		retn;
+getTile:
+		jmp  fo::funcoffs::tile_num_in_direction_;
 	}
 }
 
@@ -2482,6 +2507,7 @@ void BugFixes::init()
 		HookCall(0x4949B2, partyMemberPrepLoadInstance_hook);
 		MakeJump(0x42E46E, critter_wake_clear_hack);
 		MakeCall(0x488EF3, obj_load_func_hack, 1);
+		MakeCall(0x421F64, combat_over_hack, 1);
 		dlogr(" Done", DL_INIT);
 	//}
 	// Fix for knockout
@@ -2831,12 +2857,13 @@ void BugFixes::init()
 	HookCall(0x49B6E7, obj_pickup_hook);
 	HookCall(0x49B71C, obj_pickup_hook_message);
 
-	// Fix for anim_move_to_tile_ engine function ignoring the distance argument (when moving critters)
+	// Fix for anim_move_to_tile_ engine function ignoring the distance argument for dude
 	HookCall(0x416D44, anim_move_to_tile_hook);
+	HookCall(0x416DD2, anim_move_to_tile_hook_tile);
 
 	// Fix for the player's movement in combat being interrupted when trying to use objects with Bonus Move APs available
 	MakeCall(0x411FD6, action_use_an_item_on_object_hack);
-	MakeCall(0x411DF7, action_climb_ladder_hack);
+	MakeCall(0x411DF7, action_climb_ladder_hack); // bug originated after anim_move_to_tile_ fix
 
 	// Fix the influence of the Scout perk when setting the visibility of locations on the world map (using the mark_area_known function)
 	// also correcting the wrong coordinates for small and medium circles of city in the highlight of the sub-tiles to the location
