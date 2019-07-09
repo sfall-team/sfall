@@ -1222,22 +1222,22 @@ long objUniqueID = UID_START; // saving to sfallgv.sav
 // Assigns a new unique identifier to an object if it has not been previously assigned
 // the identifier is saved with the object in the saved game and this can used in various script
 // player ID = 18000, all party members have ID = 18000 + its pid (file number of prototype)
-long SetObjectUniqueID(TGameObj* obj) {
+long __fastcall SetObjectUniqueID(TGameObj* obj) {
 	long id = obj->ID;
-	if (id > UID_START || obj == *ptr_obj_dude || (id >= PLAYER_ID && id < 83536)) return id; // 65535 maximum possible number of prototypes
+	if (id > UID_START || (id >= PLAYER_ID && id < 83536)) return id; // 65535 maximum possible number of prototypes
 
-	if ((DWORD)objUniqueID >= UID_END) objUniqueID = UID_START;
+	if ((DWORD)objUniqueID >= (DWORD)UID_END) objUniqueID = UID_START;
 	obj->ID = ++objUniqueID;
 	return objUniqueID;
 }
 
-// Assigns a unique ID in the negative range (0x8FFFFFFF - 0xFFFFFFFE)
-long SetSpecialID(TGameObj* obj) {
+// Assigns a unique ID in the negative range (0xFFFFFFF6 - 0x8FFFFFF7)
+long __fastcall SetSpecialID(TGameObj* obj) {
 	long id = obj->ID;
-	if (id < -1 || id > UID_START) return id;
+	if (id <= -10 || id > UID_START) return id;
 
-	if ((DWORD)objUniqueID >= UID_END) objUniqueID = UID_START;
-	id = ++objUniqueID + UID_END;
+	if ((DWORD)objUniqueID >= (DWORD)UID_END) objUniqueID = UID_START;
+	id = -9 - (++objUniqueID - UID_START);
 	obj->ID = id;
 	return id;
 }
@@ -1299,6 +1299,41 @@ saveable:
 	}
 }
 
+static void __declspec(naked) queue_add_hack() {
+	__asm {
+		mov  [edx + 8], edi; // queue.object
+		mov  [edx], esi;     // queue.time
+		test edi, edi;
+		jnz  fix;
+		retn;
+fix:
+		mov  eax, [edi + 0x64];
+		and  eax, 0x0F000000;
+		jnz  notItem; // object is not an item?
+		push ecx;
+		push edx;
+		mov  ecx, edi;
+		call SetSpecialID;
+		pop  edx;
+		pop  ecx;
+		retn;
+notItem:
+		cmp  ecx, script_timer_event; // QueueType
+		je   end;
+		cmp  eax, OBJ_TYPE_CRITTER << 24;
+		jne  end;
+		push ecx;
+		push edx;
+		mov  ecx, edi;
+		call SetObjectUniqueID;
+		pop  edx;
+		pop  ecx;
+end:
+		xor  edi, edi; // fix: don't set "Used" flag for critter objects
+		retn;
+	}
+}
+
 static void __declspec(naked) map_save_in_game_hook() {
 	__asm {
 		call partyMemberSaveProtos_;
@@ -1337,6 +1372,8 @@ void ScriptExtenderSetup() {
 	// Fix mapper bug by reassigning object IDs to critters (for unvisited maps)
 	MakeCall(0x482E6B, map_load_file_hack);
 	SafeWrite8(0x482E71, 0x85); // jz > jnz
+	// Additionally fix object IDs for queue events
+	MakeCall(0x4A25BA, queue_add_hack);
 
 	arraysBehavior = GetPrivateProfileIntA("Misc", "arraysBehavior", 1, ini);
 	if (arraysBehavior > 0) {

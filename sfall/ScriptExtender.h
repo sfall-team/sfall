@@ -28,7 +28,7 @@ enum SfallDataType {
 	DATATYPE_STR
 };
 
-enum UniqueID {
+enum UniqueID : long {
 	UID_START = 0x0FFFFFFF, // start at 0x10000000
 	UID_END   = 0x7FFFFFFF
 };
@@ -102,8 +102,8 @@ void LoadProtoAutoMaxLimit();
 
 // object's unique id
 extern long objUniqueID;
-long SetObjectUniqueID(TGameObj* obj);
-long SetSpecialID(TGameObj* obj);
+long __fastcall SetObjectUniqueID(TGameObj* obj);
+long __fastcall SetSpecialID(TGameObj* obj);
 void SetNewEngineID(TGameObj* obj);
 
 // Script data types
