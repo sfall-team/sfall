@@ -644,6 +644,7 @@ const DWORD text_font_ = 0x4D58DC;
 const DWORD text_object_create_ = 0x4B036C;
 const DWORD tile_coord_ = 0x4B1674;
 const DWORD tile_num_ = 0x4B1754;
+const DWORD tile_num_in_direction_ = 0x4B1A6C;
 const DWORD tile_refresh_display_ = 0x4B12D8;
 const DWORD tile_refresh_rect_ = 0x4B12C0;
 const DWORD tile_scroll_to_ = 0x4B3924;

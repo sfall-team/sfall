@@ -875,6 +875,7 @@ extern const DWORD text_font_;
 extern const DWORD text_object_create_;
 extern const DWORD tile_coord_; // eax - tilenum, edx (int*) - x, ebx (int*) - y
 extern const DWORD tile_num_;
+extern const DWORD tile_num_in_direction_;
 extern const DWORD tile_refresh_display_;
 extern const DWORD tile_refresh_rect_; // (int elevation<edx>, unkown<ecx>)
 extern const DWORD tile_scroll_to_;
