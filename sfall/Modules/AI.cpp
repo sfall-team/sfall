@@ -200,12 +200,24 @@ static DWORD sf_check_critters_on_fireline(fo::GameObject* object, DWORD checkTi
 
 static DWORD __fastcall sf_ai_move_steps_closer(fo::GameObject* source, fo::GameObject* target, DWORD &distOut) {
 	DWORD distance, shotTile = 0;
+	long minCost = -1;
+
+	fo::GameObject* itemHand = fo::func::inven_right_hand(source);
+	if (!itemHand || fo::func::item_w_subtype(itemHand, fo::ATKTYPE_RWEAPON_PRIMARY) <= fo::MELEE
+		&& fo::func::item_w_subtype(itemHand, fo::ATKTYPE_RWEAPON_SECONDARY) <= fo::MELEE)
+	{
+		return 0;
+	}
+	long ap = source->critter.movePoints;
+	int cost = fo::func::item_w_primary_mp_cost(itemHand);
+	if (cost > 0 && ap > cost) minCost = cost;
+	cost = fo::func::item_w_secondary_mp_cost(itemHand);
+	if (cost > 0 && cost < minCost) minCost = cost;
+	if (minCost == -1) return 0;
 
 	char rotationData[256];
 	long pathLength = fo::func::make_path_func(source, source->tile, target->tile, rotationData, 0, (void*)fo::funcoffs::obj_blocking_at_);
-
-	long dist = source->critter.movePoints + 1;
-	if (dist < pathLength) pathLength = dist;
+	if (pathLength > ++ap) pathLength = ap;
 
 	long checkTile = source->tile;
 	for (int i = 0; i < pathLength; i++)
@@ -216,23 +228,34 @@ static DWORD __fastcall sf_ai_move_steps_closer(fo::GameObject* source, fo::Game
 		fo::func::make_straight_path_func(target, target->tile, checkTile, 0, (DWORD*)&object, 32, (void*)fo::funcoffs::obj_shoot_blocking_at_);
 		if (!sf_check_critters_on_fireline(object, checkTile, source->critter.teamNum)) { // if there are no friendly critters
 			shotTile = checkTile;
-			distance = i + 1;
+			distance = i + 2;
 			break;
 		}
 	}
 	if (shotTile) {
-		fo::GameObject* itemHand = fo::func::inven_right_hand(source);
-		int minCost = 100;
-		int cost = fo::func::item_w_primary_mp_cost(itemHand);
-		if (cost > 0) minCost = cost;
-		cost = fo::func::item_w_secondary_mp_cost(itemHand);
-		if (cost > 0 && cost < minCost) minCost = cost;
-
 		int needAP = distance + minCost;
 		if (source->critter.movePoints < needAP) {
 			shotTile = 0;
 		} else {
-			distOut = distance;  // change distance in ebp register
+			long leftAP = distance - minCost;
+			if (leftAP > 0) { // spend left APs
+				long newTile = checkTile = shotTile;
+				for (int i = distance - 1; i < pathLength; i++)
+				{
+					checkTile = fo::func::tile_num_in_direction(checkTile, rotationData[i], 1);
+					fo::GameObject* object = nullptr; // check the line_of_fire from target to checkTile
+					fo::func::make_straight_path_func(target, target->tile, checkTile, 0, (DWORD*)&object, 32, (void*)fo::funcoffs::obj_shoot_blocking_at_);
+					if (!sf_check_critters_on_fireline(object, checkTile, source->critter.teamNum)) { // if there are no friendly critters
+						newTile = checkTile;
+					}
+					if (!--leftAP) break;
+				}
+				if (newTile != shotTile) {
+					distance += fo::func::tile_dist(newTile, shotTile);
+					shotTile = newTile;
+				}
+			}
+			distOut = distance; // change distance in ebp register
 		}
 	}
 	return shotTile;
@@ -245,7 +268,7 @@ static void __declspec(naked) ai_move_steps_closer_hook() {
 		push ecx;
 		push edx;
 		push eax;
-		push ebp;  // distance
+		push ebp; // distance
 		push esp;                     // distPtr
 		mov  ecx, eax;                // source
 		call sf_ai_move_steps_closer; // edx - target

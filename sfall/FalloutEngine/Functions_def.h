@@ -167,6 +167,7 @@ WRAP_WATCOM_FUNC2(long, skill_dec_point_force, GameObject*, critter, long, skill
 WRAP_WATCOM_FUNC2(long, skill_inc_point_force, GameObject*, critter, long, skill)
 WRAP_WATCOM_FUNC1(long, skill_is_tagged, long, skill)
 WRAP_WATCOM_FUNC2(long, skill_level, GameObject*, critter, long, statID)
+WRAP_WATCOM_FUNC2(long, tile_dist, long, scrTile, long, dstTile)
 WRAP_WATCOM_FUNC2(long, stat_get_base_direct, GameObject*, critter, long, statID)
 WRAP_WATCOM_FUNC2(long, stat_get_bonus, GameObject*, critter, long, statID)
 WRAP_WATCOM_FUNC3(long, stat_set_bonus, GameObject*, critter, long, statID, long, amount)
