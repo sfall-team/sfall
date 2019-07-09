@@ -656,6 +656,16 @@ end:
 	}
 }
 
+static void __declspec(naked) do_move_timer_hack() {
+	__asm {
+		mov  ebx, 1;
+		call GetLoopFlags;
+		test eax, BARTER;
+		cmovz ebx, ebp; // set max, exclude in barter
+		retn;
+	}
+}
+
 static int invenApCost, invenApCostDef;
 static char invenApQPReduction;
 static const DWORD inven_ap_cost_Ret = 0x46E812;
@@ -779,7 +789,7 @@ void Inventory::init() {
 	}
 
 	if (GetConfigInt("Misc", "ItemCounterDefaultMax", 0)) {
-		BlockCall(0x4768A3); // mov  ebx, 1
+		MakeCall(0x4768A3, do_move_timer_hack);
 	}
 
 	// Move items out of bag/backpack and back into the main inventory list by dragging them to character's image (similar to Fallout 1 behavior)
