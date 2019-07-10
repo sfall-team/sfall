@@ -12,7 +12,7 @@
 #     doc: fuction documentation in markdown format           # OPTIONAL. Will be displayed in IDE.
 #     opcode: function opcode                                 # OPTIONAL
 #     unsafe: true/false                                      # OPTIONAL. Whether it requires AllowUnsafeScripting.
-#     macro: true/false                                       # OPTIONAL
+#     macro: header file name                                 # OPTIONAL. What to include to use this.
 
 - name: Direct memory access # just parent page
 
@@ -500,7 +500,8 @@
     detail: void set_weapon_ammo_count(ObjectPtr weapon, int count)
     opcode: 0x821a
 
-- name: sfall
+- name: version
+  parent: sfall
   items:
   - name: sfall_ver_major
     detail: int sfall_ver_major()
@@ -604,47 +605,47 @@
   - name: set_attack_explosion_pattern
     detail: void set_attack_explosion_pattern(x, y)
     doc: 'Currently Y is not used and X means: 1 - reduced explosion pattern (3 effects are spawned instead of 7), 0 - full pattern.'
-    macro: true
+    macro: sfall.h
 
   - name: set_attack_explosion_art
     detail: void set_attack_explosion_art(x, y)
     doc: Y not used and X is a misc frame ID (last 3 bytes, without object type) to use for the next explosion.
-    macro: true
+    macro: sfall.h
 
   - name: set_attack_explosion_radius
     detail: void set_attack_explosion_radius(x)
     doc: Changes radius at which explosion will hit secondary targets for the next attack (from the experiments it is limited to something around 8 by the engine).
-    macro: true
+    macro: sfall.h
 
   - name: set_attack_is_explosion_fire
     detail: void set_attack_is_explosion_fire
     doc: If you call this right before using a weapon with fire damage type (e.g. in `HOOK_AFTERHITROLL`), it will produce explosion effects (and radius damage) just like "explosion" type, but all targets will still receive fire damage.
-    macro: true
+    macro: sfall.h
 
   - name: set_explosion_radius
     detail: void set_explosion_radius(grenade, rocket)
     doc: Sets a permanent radius of the explosion for grenades and/or rockets. Passing 0 means not changing the corresponding radius. Changed radius will be reset each time the player reloads the game.
-    macro: true
+    macro: sfall.h
 
   - name: set_dynamite_damage
     detail: void set_dynamite_damage(minDmg, maxDmg)
     doc: Sets the minimum and maximum damage for Dynamite. Changed damage will be reset each time the player reloads the game.
-    macro: true
+    macro: sfall.h
 
   - name: set_plastic_damage
     detail: void set_plastic_damage(minDmg, maxDmg)
     doc: Sets the minimum and maximum damage for Plastic Explosives. Changed damage will be reset each time the player reloads the game.
-    macro: true
+    macro: sfall.h
 
   - name: get_explosion_damage
     detail: array get_explosion_damage(itemPid)
     doc: Returns array of the minimum and maximum damage of the explosive item.
-    macro: true
+    macro: sfall.h
 
   - name: set_explosion_max_targets
     detail: void set_explosion_max_targets(x)
     doc: "Sets the maximum number of additional targets for an explosion, valid range: 1..6 (default is 6)."
-    macro: true
+    macro: sfall.h
 
 - name: Animations
   items:
@@ -1152,7 +1153,10 @@
     doc: Load array from savegame data by the same key provided in "save_array".
     opcode: 0x8255
 
-- name: sfall funcX
+- name: sfall # just parent page
+
+- name: funcX
+  parent: sfall
   items:
   - name: sfall_func0
     detail: any sfall_func0(char* funcName)
@@ -1188,128 +1192,165 @@
   - name: attack_is_aimed
     detail: bool attack_is_aimed()
     doc: Returns 1 if the aimed attack mode is selected, 0 otherwise.
+    macro: sfall.h
   - name: critter_inven_obj2
     detail: ObjectPtr critter_inven_obj2(ObjectPtr obj, int type)
     doc: Works just like vanilla `critter_inven_obj`, but correctly reports item in player's inactive hand slot.
+    macro: sfall.h
   - name: item_weight
     detail: int item_weight(ObjectPtr obj)
     doc: Gets the current weight of an object.
+    macro: sfall.h
   - name: outlined_object
     detail: ObjectPtr outlined_object()
     doc: Returns an object that is currently highlighted by hovering the mouse above it.
+    macro: sfall.h
 
   - name: get_outline
     detail: int get_outline(ObjectPtr obj)
     doc: Gets the current outline color for an object.
+    macro: sfall.h
   - name: set_outline
     detail: void set_outline(ObjectPtr obj, int color)
     doc: 'Sets the outline color of an object. 0 means or any value above 0x00FFFFFF disables the outline. Call `tile_refresh_display` after changing outline of objects to properly redraw the scene.'
+    macro: sfall.h
 
   - name: get_flags
     detail: int get_flags(ObjectPtr obj)
     doc: Gets the current value of object flags (see `define_extra.h` for available flags).
+    macro: sfall.h
   - name: set_flags
     detail: void set_flags(ObjectPtr obj, int flags)
     doc: Sets the current flags of an object. All flags are rewritten with given integer, so first get current flags with `get_flags` and use `bwor/bwand` to set/remove specific flag.
+    macro: sfall.h
 
   - name: set_dude_obj
     detail: void set_dude_obj(ObjectPtr critter)
     doc: Take control of a given critter. Passing value 0 will reset control back to "real" dude.
+    macro: sfall.h
   - name: real_dude_obj
     detail: ObjectPtr real_dude_obj()
     doc: Returns the initial dude_obj after set_dude_obj was used.
+    macro: sfall.h
 
   - name: lock_is_jammed
     detail: bool lock_is_jammed(ObjectPtr obj)
     doc: Returns 1 if the lock (container or scenery) is currently jammed, 0 otherwise.
+    macro: sfall.h
   - name: unjam_lock
     detail: void unjam_lock(ObjectPtr obj)
     doc: Unjams a lock immediately without having to wait until the next day, or leave the map and then return after 24 hours. __Does not work__ in `use_skill_on_p_proc` procedure.
+    macro: sfall.h
   - name: set_unjam_locks_time
     detail: void set_unjam_locks_time(int time)
     doc: Sets after how many hours (up to 127 hours) jammed locks will be unjammed if the player leaves the map. Also disables the auto unjam that occurs at midnight when the player is on the map. Passing 0 will disable the auto unjam mechanism completely. The auto unjam mechanism will be reset each time the player reloads the game.
+    macro: sfall.h
 
   - name: exec_map_update_scripts
     detail: void exec_map_update_scripts()
     doc: Executes `map_update_p_proc` for all objects on map and global/hook scripts as well.
+    macro: sfall.h
   - name: spatial_radius
     detail: int spatial_radius(ObjectPtr obj)
     doc: Returns radius of spatial script, associated with given dummy-object (returned by `create_spatial`).
+    macro: sfall.h
   - name: set_rest_heal_time
     detail: void set_rest_heal_time(int time)
     doc: 'Sets the time interval in minutes for healing during resting. The default is 180. Note: The interval will be reset each time the player reloads the game.'
+    macro: sfall.h
   - name: set_rest_mode
     detail: void set_rest_mode(int flags)
     doc: 'Sets the bit flags for the rest mode (see `RESTMODE_*` constants in `sfall.h`). Passing 0 will reset the rest mode. It will also be reset each time the player reloads the game.'
+    macro: sfall.h
   - name: car_gas_amount
     detail: int car_gas_amount()
     doc: "Returns current amount of fuel in player's car (between 0 and 80000). Note: To change fuel amount, use vanilla function: `metarule(METARULE_GIVE_CAR_GAS, amount)` - `amount` can be positive or negative."
+    macro: sfall.h
   - name: set_car_intface_art
     detail: void set_car_intface_art(int artIndex)
     doc: 'Changes the interface art (index in LST file) for the car image on worldmap screen. Should be called before going to worldmap. Vanilla art index is 0x1B1'
+    macro: sfall.h
   - name: display_stats
     detail: void display_stats()
     doc: Updates player stats in the inventory screen display window. Works only in opened player inventory.
+    macro: sfall.h
 
   - name: intface_is_hidden
     detail: bool intface_is_hidden()
+    macro: sfall.h
     doc: Returns 1 if interface is currently hidden, 0 otherwise.
   - name: intface_redraw
     detail: void intface_redraw()
+    macro: sfall.h
     doc: Redraws main game interface. Useful after direct changes to current player weapons or stats to reflect changes.
   - name: intface_hide
     detail: void intface_hide()
     doc: Hides main interface.
+    macro: sfall.h
   - name: intface_show
     detail: void intface_show()
     doc: Shows main interface.
+    macro: sfall.h
 
   - name: inventory_redraw
     detail: void inventory_redraw(invSide)
     doc: 'Redraws inventory items list in the inventory/loot/barter screens. Argument invSide specifies which side needs to be redrawn: 0 - the player, 1 - target (container/NPC in loot/barter screens).'
+    macro: sfall.h
 
   - name: get_cursor_mode
     detail: int get_cursor_mode()
     doc: 'Returns the current cursor mode. Values: 0 - movement cursor, 1 - command cursor, 2 - targeting cursor, 4 to 10 are Skilldex skills (yellow targeting cursor).'
+    macro: sfall.h
   - name: set_cursor_mode
     detail: void set_cursor_mode(int mode)
     doc: Sets the current cursor mode.
+    macro: sfall.h
 
   - name: set_iface_tag_text
     detail: void set_iface_tag_text(int tag, string text, int color)
     doc: Sets the text messages and colors for custom notification boxes to the interface without the need to add messages to `intrface.msg` and set up the font colors in `ddraw.ini`. Tag value is the same as used in `show_iface_tag`, `hide_iface_tag`, and `is_iface_tag_active`. The valid range is from 5 to (4 + the value of `BoxBarCount` in `ddraw.ini`) or the number of the last custom box added using the `add_iface_tag` function. The text is limited to 19 characters.
+    macro: sfall.h
   - name: add_iface_tag
     detail: void add_iface_tag()
     doc: Adds one custom box to the current boxes, and returns the number of the added tag (-1 if the tags limit is exceeded. The maximum number of boxes is limited to 126 tags.
+    macro: sfall.h
 
   - name: get_ini_section
     detail: array get_ini_section(string file, string sect)
     doc: Returns an associative array of keys and values for a given INI file and section.
+    macro: sfall.h
   - name: get_ini_sections
     detail: array get_ini_sections(string file)
     doc: Returns an array of names of all sections in a given INI file.
+    macro: sfall.h
   - name: set_ini_setting
     detail: void set_ini_setting(string setting, int/string value)
     doc: 'Writes an integer or a string value to an ini file in the Fallout directory. If the ini file does not exist, it will be created The setting argument works in the same way as in `get_ini_setting`, seperate the file name, section and key with a "|" character. __Note:__ the file name is limited to 63 chars (including the extension), the section name is limited to 32 characters.'
+    macro: sfall.h
   - name: get_metarule_table
     detail: array get_metarule_table
     doc: Returns names of all currently available scripting functions.
+    macro: sfall.h
 
   - name: floor2
     detail: int sfall_func1("floor2", int/float value)
     doc: Works just like vanilla floor function, but returns correct integers for negative values (vanilla floor function works exactly the same as `ceil` for negative values, much like `trunc` in C/C++).
+    macro: sfall.h
 
   - name: get_string_pointer
     detail: int get_string_pointer(string text)
     doc: Returns a pointer to a string variable or to a text.
+    macro: sfall.h
 
   - name: dialog_message
     detail: void dialog_message(string text)
     doc: Risplays a message in the NPC response window in dialog or barter screen.
+    macro: sfall.h
 
   - name: get_current_inven_size
     detail: get_current_inven_size(ObjectPtr object)
     doc: Returns the current inventory size of the container or the critter.
+    macro: sfall.h
   
   - name: set_can_rest_on_map
     detail: void set_can_rest_on_map(int mapNum, int elev, bool value)
@@ -1318,44 +1359,55 @@
       - `mapNum` is the map index from `maps.txt`
       - passing -1 to the elev argument will set the rest value for all map elevations
       - the set rest value will be stored in `sfalldb.sav` file (in savegame)
+    macro: sfall.h
   - name: get_can_rest_on_map
     detail: get_can_rest_on_map(int mapNum, int elev)
     doc: Returns the set rest value of the map after using the `set_can_rest_on_map` function. Returns -1 if the rest value of the map was not previously set (i.e. no data for the map in `sfalldb.sav`). The `can_rest_here values` in `maps.txt` are ignored.
+    macro: sfall.h
 
   - name: dialog_obj
     detail: ObjectPtr dialog_obj()
     doc: Returns a pointer to the object (critter) the player is having a conversation or bartering with.
+    macro: sfall.h
 
   - name: obj_under_cursor
     detail: ObjectPtr obj_under_cursor(bool crSwitch, bool inclDude)
     doc: "Returns the object under the cursor on the main game screen. `crSwitch: True` - only checks critters and ignores their cover (roof tiles, walls, scenery, etc.), False - checks all objects (can't check critters under objects). Passing False to the `inclDude` argument will ignore `dude_obj`"
+    macro: sfall.h
 
   - name: loot_obj
     detail: ObjectPtr loot_obj()
     doc: Returns a pointer to the target object (container or critter) of the loot screen.
+    macro: sfall.h
 
   - name: get_object_data
     detail: get_object_data(ObjectPtr object, int offset)
     doc: Returns the data at the specified offset of an object (see `OBJ_DATA_*` constants in `define_extra.h` for offsets).
+    macro: sfall.h
   - name: set_object_data
     detail: set_object_data(ObjectPtr object, int offset, int data)
     doc: Sets the data at the specified offset of an object.
+    macro: sfall.h
 
   - name: get_object_ai_data
     detail: int get_object_ai_data(ObjectPtr object, int aiParam)
     doc: Returns the setting value from the AI packet of an object (critter). Use `AI_CAP_*` constants from `define_extra.h` for the `aiParam` argument to get AI value.
+    macro: sfall.h
 
   - name: art_cache_clear
     detail: void art_cache_clear()
     doc: Clears the cache of FRM image files loaded into memory.
+    macro: sfall.h
 
   - name: npc_engine_level_up
     detail: void npc_engine_level_up(bool toggle)
     doc: Enables/disables the engine function that increases the level of party members in the player leveling process. If the engine function is disabled, the process of leveling up party members should be performed by script functions.
+    macro: sfall.h
 
   - name: set_drugs_data
     detail: void set_drugs_data(int type, int pid, int value) 
     doc: "Overrides the parameters of drugs set in the configuration file (`DrugsFile` setting in `ddraw.ini`). Type: 0 - changes the value of `NumEffects` for the drug (see `Drugs.ini` for the description of `NumEffects`), 1 - changes the duration of the addiction effect for the drug (a value of 1 = one game minute)."
+    macro: sfall.h
 
   - name: set_unique_id
     detail: int set_unique_id(ObjectPtr object, int flag)
@@ -1366,10 +1418,12 @@
       - unique ID numbers are saved in your savegame, and have a range from 0x10000000 to 0x7FFFFFFF
       - there is also a unique ID number range for the player and party members from 18000 to 83535
       - to assign a new ID number generated by the engine to the object (i.e. unassign a unique ID), call the function with two arguments and pass -1 for the flag argument
+    macro: sfall.h
 
   - name: create_win
     detail: void create_win(string winName, int x, int y, int width, int height, int flags)
     doc: "`flags` argument is optional. Works just like vanilla `CreateWin` function, but creates a window with `MoveOnTop` flag if the flags argument is not specified, and allows to set additional flags for the created window. `MoveOnTop` flag allows the created window to be placed on top of the game interface."
+    macro: sfall.h
 
   - name: item_make_explosive
     detail: void item_make_explosive(int pid, int activePid, int minDamage, int maxDamage)
@@ -1381,6 +1435,7 @@
       - minDamage/maxDamage are the minimum and maximum explosion damage
       - using the function on an item that is already set as an explosive will override its previous settings
       - NOTE: this function does not work for pids of Dynamite and Plastic Explosives
+    macro: sfall.h
 
   - name: draw_image
     detail: void draw_image(string/int pathFile/artId, int frame, int x, int y, bool noTransparent)
@@ -1392,6 +1447,7 @@
       - `x/y`: offset relative to the top-left corner of the window
       - `noTransparent`: pass true to display an image without transparent background
       - NOTE: to omit optional arguments starting from the right, call the functions with different `sfall_funcX` (e.g. `sfall_func4("draw_image", pathFile, frame, x, y))`
+    macro: sfall.h
 
   - name: draw_image_scaled
     detail: void draw_image_scaled(string/int pathFile/artId, int frame, int x, int y, int width, int height)
@@ -1404,10 +1460,12 @@
       - `width/height`: image size, used to scale the image when displaying it. Pass -1 to either width or height to keep the aspect ratio when scaling
       - NOTE: to omit optional arguments starting from the right, call the functions with different `sfall_funcX` (e.g. `sfall_func4("draw_image", pathFile, frame, x, y))`
       - if called without `x/y/width/height` arguments, the image will be scaled to fit the window without transparent background
+    macro: sfall.h
 
   - name: metarule_exist
     detail: bool metarule_exist(string metaruleName)
     doc: Returns True if the specified name of metarule (sfall_funcX) function exists in the current version of sfall.
+    macro: sfall.h
 
   - name: add_extra_msg_file
     detail: void add_extra_msg_file(string fileName, int fileNumber)
@@ -1415,6 +1473,7 @@
       Loads the custom message file and assigns it with the specified ID number.
       - `fileName`: the name of the custom message file (including the .msg extension) in `text\<language>\game\` directory.
       - `fileNumber`: the file ID number for the `message_str_game` function to get messages from the file. The available range is from 0x3000 to 0x3FFF.
+    macro: sfall.h
 
 - name: NPC perks
   parent: sfall funcX macros

@@ -1,9 +1,7 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # coding: utf-8
 
 import sys, yaml, os
-reload(sys)
-sys.setdefaultencoding('utf8') # ugly buy works
 
 functions_yaml = sys.argv[1]
 hooks_yaml = sys.argv[2]
@@ -28,7 +26,7 @@ function_header_template_noname = '''---
 layout: page
 title: '{name}' # quote just in case
 nav_order: 3
-has_children: true
+has_children: true # setting for all pages, just in case
 # parent - could be empty
 {parent}
 permalink: {permalink}
@@ -87,10 +85,10 @@ with open(functions_yaml) as yf:
       for i in items:
         # header
         text += "\n### **{}**\n".format(i['name'])
-        # macros
-        if 'macro' in i and i['macro'] is True:
-          text += '{: .d-inline-block }\nMACRO\n{: .label .label-green }\n'
-        # unsafe
+        # macro label
+        if 'macro' in i:
+          text += "{: .d-inline-block }\n" + format(i['macro']) + "\n{: .label .label-green }\n"
+        # unsafe label
         if 'unsafe' in i and i['unsafe'] is True:
           text += '{: .d-inline-block }\nUNSAFE\n{: .label .label-red }\n'
         # usage
@@ -101,6 +99,10 @@ with open(functions_yaml) as yf:
         # doc, if present
         if 'doc' in i:
           text += i['doc'] + '\n'
+        # macro note
+        if 'macro' in i:
+          text += "\nThis is a macro, you need to include {} to use it.\n".format(i['macro'])
+        # end separator
         text += '\n---\n'
 
     md_path = os.path.join(md_dir, slug + ".md")
