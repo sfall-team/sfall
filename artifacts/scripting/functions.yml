@@ -480,7 +480,7 @@
     doc: Returns the set rest value of the map after using the `set_can_rest_on_map` function. Returns -1 if the rest value of the map was not previously set (i.e. no data for the map in `sfalldb.sav`). The `can_rest_here values` in `maps.txt` are ignored.
     macro: sfall.h
 
-- name: Wordlmap
+- name: Worldmap
   parent: Maps and encounters
   doc: The mapper manual lists the functions `world_map_x_pos` and `world_map_y_pos`, which supposedly return the player's x and y positions on the world map. `get_world_map_x/y_pos` are included here anyway, because I was unable to get those original functions to work, or even to find any evidence that they existed in game.
   items:
