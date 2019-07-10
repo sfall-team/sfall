@@ -4,7 +4,7 @@ nav_order: 2
 has_children: true
 permalink: /hooks/
 ---
----
+
 # Hooks
 
 Hook scripts are specially named scripts that are run by sfall at specific points to allow mods to override normally hardcoded behaviour in a more flexible way than sfall's normal ini configuration.
