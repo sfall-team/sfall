@@ -28,11 +28,10 @@ Note that this is documentation for sfall specifically, not Fallout scripting in
 To get started with sfall, first familiarize yourself with new concepts:
 * [Global scripts]({{ site.baseurl }}/global-scripts/)
 * [Global variables]({{ site.baseurl }}/global-variables/)
-* [Arrays]({{ site.baseurl }}/arrays/)
+* [Arrays]({{ site.baseurl }}/arrays/) and [Lists]({{ site.baseurl }}/lists/)
 * [Hooks]({{ site.baseurl }}/hooks/)
 * [Data types]({{ site.baseurl }}/data-types/)
-* [Lists]({{ site.baseurl }}/lists/)
-* [set_self]({{ site.baseurl }}/other/#set_self)
+* [Object manipulation]({{ site.baseurl }}/object-manipulation/)
 
 Pay special attention to the [best practices]({{ site.baseurl }}/best-practices/) page.
 
