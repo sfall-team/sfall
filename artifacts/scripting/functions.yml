@@ -525,9 +525,11 @@
   - name: get_weapon_ammo_count
     detail: int get_weapon_ammo_count(ObjectPtr weapon)
     opcode: 0x8219
+    doc: This also allows to get current charges of a misc item (Geiger counter, etc).
   - name: set_weapon_ammo_count
     detail: void set_weapon_ammo_count(ObjectPtr weapon, int count)
     opcode: 0x821a
+    doc: This also allows to set current charges of a misc item (Geiger counter, etc).
 
 - name: Version
   parent: Sfall
