@@ -2,6 +2,7 @@
 layout: page
 title: Global scripts
 nav_order: 2
+has_children: true
 permalink: /global-scripts/
 ---
 
