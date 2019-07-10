@@ -695,6 +695,10 @@
   - name: tile_refresh_display
     detail: void tile_refresh_display()
     doc: Redraws the game scene (tiles, walls, objects, etc.).
+  - name: obj_blocking_tile
+    detail: ObjectPtr obj_blocking_tile(int tileNum, int elevation, int blockingType)
+    doc: Returns first object blocking given tile using given blocking function or 0 if tile is clear.
+    opcode: 0x826f
 
 - name: Other
   items:
@@ -708,17 +712,6 @@
   - name: get_year
     detail: int get_year
     opcode: 0x8163
-  - name: set_global_script_repeat
-    detail: void set_global_script_repeat(int frames)
-    opcode: 0x816a
-    doc: Only has an effect on the script it is called from. Every global script needs its own `game_loaded` block to correctly set up repeat rate. Will have no effect if called on a non-global script.
-  - name: set_global_script_type
-    detail: void set_global_script_type(int type)
-    opcode: 0x819b
-    doc: Only has an effect on the script it is called from. Every global script needs its own `game_loaded` block to correctly set up the script type.
-  - name: available_global_script_types
-    detail: int available_global_script_types
-    opcode: 0x819c
   - name: set_dm_model
     detail: void set_dm_model(string name)
     opcode: 0x8175
@@ -738,14 +731,6 @@
   - name: mod_kill_counter
     detail: void mod_kill_counter(int critterType, int amount)
     opcode: 0x818d
-  - name: get_critter_current_ap
-    detail: int get_critter_current_ap(CritterPtr)
-    opcode: 0x8191
-    doc: Should only be used during the target critters turn while in combat. Calling it outside of combat typically returns the critters max ap, but don't rely on that behaviour. (Specifically, if the critter has never before entered combat, it will probably return the critters base ap ignoring any extra bonuses from perks etc.)
-  - name: set_critter_current_ap
-    detail: void set_critter_current_ap(CritterPtr, int ap)
-    opcode: 0x8192
-    doc: Should only be used during the target critters turn while in combat. Using it on the player will not automatically redraw the screen, so the ap bar will be incorrect until the player next clicks.
   - name: active_hand
     detail: int active_hand
     opcode: 0x8193
@@ -815,27 +800,6 @@
     detail: void set_hp_per_level_mod(int mod)
     opcode: 0x81ce
 
-  - name: get_bodypart_hit_modifier
-    detail: int get_bodypart_hit_modifier(int bodypart)
-    opcode: 0x81df
-    doc: Gets the hit percentage modifiers for aiming at specific bodyparts. Valid bodypart id's are from 0 to 8.
-  - name: set_bodypart_hit_modifier
-    detail: void set_bodypart_hit_modifier(int bodypart, int value)
-    opcode: 0x81e0
-    doc: Alters the hit percentage modifiers for aiming at specific bodyparts. Valid bodypart id's are from 0 to 8. Changes are not saved, and will reset to the defaults (or to the values specified in ddraw.ini if they exist) at each reload.
-
-  - name: set_critical_table
-    detail: void set_critical_table(int crittertype, int bodypart, int level, int valuetype, int value)
-    opcode: 0x81e1
-    doc: Used for modifying the critical table. For details see [critical hit tables](http://falloutmods.wikia.com/wiki/Critical_hit_tables). Changes are not saved, and will reset to the defaults, (or to the contents of `CriticalOverrides.ini`, if it exists) at each game reload. Requires `OverrideCriticalTable` to be set to 1 in `ddraw.ini`. (Disabled by default, because it noticably increases loading times.)
-  - name: get_critical_table
-    detail: int get_critical_table(int crittertype, int bodypart, int level, int valuetype)
-    opcode: 0x81e2
-    doc: Gets current critical table. For details see [critical hit tables](http://falloutmods.wikia.com/wiki/Critical_hit_tables). Requires `OverrideCriticalTable` to be set to 1 in `ddraw.ini`. (Disabled by default, because it noticably increases loading times.)
-  - name: reset_critical_table
-    detail: void reset_critical_table(int crittertype, int bodypart, int level, int valuetype)
-    opcode: 0x81e3
-    doc: Resets the critical table to default (or to the contents of `CriticalOverrides.ini`, if it exists). For details see 'http://falloutmods.wikia.com/wiki/Critical_hit_tables'. Requires `OverrideCriticalTable` to be set to 1 in `ddraw.ini`. (Disabled by default, because it noticably increases loading times.)
 
   - name: set_unspent_ap_bonus
     detail: void set_unspent_ap_bonus(int multiplier)
@@ -890,9 +854,6 @@
   - name: set_hero_style
     detail: void set_hero_style(int style)
     opcode: 0x8215
-  - name: set_critter_burst_disable
-    detail: void set_critter_burst_disable(int critter, int disable)
-    opcode: 0x8216
   - name: stop_game
     detail: void stop_game()
     opcode: 0x8222
@@ -909,9 +870,6 @@
   - name: refresh_pc_art
     detail: void refresh_pc_art
     opcode: 0x8227
-  - name: get_attack_type
-    detail: int get_attack_type
-    opcode: 0x8228
   - name: atoi
     detail: int atoi(string text)
     opcode: 0x8237
@@ -921,15 +879,7 @@
   - name: modified_ini
     detail: int modified_ini
     opcode: 0x823b
-
-  - name: force_aimed_shots
-    detail: void force_aimed_shots(int pid)
-    opcode: 0x823e
-    doc: Allows overriding the normal rules regarding which weapons are allowed to make aimed attacks. (e.g. weapons that cause explosive damage normally cannot normally make aimed shots.) Will allow a weapon to make aimed shots even if it normally couldn't. Affects player and NPCs alike. Does not override the effects of the fast shot trait. The list of edited weapons is not saved over game loads, so you need to call the function once at each reload. Use a pid of 0 to represent unarmed.
-  - name: disable_aimed_shots
-    detail: void disable_aimed_shots(int pid)
-    opcode: 0x823f
-    doc: Allows overriding the normal rules regarding which weapons are allowed to make aimed attacks. (e.g. weapons that cause explosive damage normally cannot normally make aimed shots.) stops a weapon from making aimed shots even if it normally coulld. Affects player and NPCs alike. The list of edited weapons is not saved over game loads, so you need to call the function once at each reload. Use a pid of 0 to represent unarmed.
+    doc: Returns the value of ModifiedIni setting in [Main] section of the INI.
 
   - name: mark_movie_played
     detail: void mark_movie_played(int id)
@@ -940,10 +890,6 @@
   - name: set_inven_ap_cost
     detail: void set_inven_ap_cost
     opcode: 0x824d
-  - name: block_combat
-    detail: void block_combat(bool value)
-    doc: Deny the player to enter combat mode.
-    opcode: 0x824a
   - name: game_loaded
     detail: int game_loaded()
     doc: Returns 1 the first time it is called after a new game or game load, and 0 any time after. It works on an individual basis for each script, so one script wont interfere with others. Its primary use is for global scripts, so that they know when to call `set_global_script_repeat`, but it can be called from normal scripts too.
@@ -986,16 +932,7 @@
   - name: mod_skill_points_per_level
     detail: void mod_skill_points_per_level(int value)
     doc: Accepts a value of between -100 and 100, and modifies the number of skill points the player recieves when they level up. This is a modification of what would otherwise happen, rather than a replacement. The value is not saved into the save game, so should be reset in the `game_loaded` section of a script.
-
     opcode: 0x8246
-  - name: get_last_target
-    detail: ObjectPtr get_last_target(ObjectPtr critter)
-    doc: Will return the last critter to be deliberately attacked. Outside of combat always returns 0.
-    opcode: 0x8248
-  - name: get_last_attacker
-    detail: ObjectPtr get_last_attacker(ObjectPtr critter)
-    doc: Will return the last critter to deliberately launch an attack against the argument critter. If a critter has not launched/received an attack, it will return 0. Outside of combat always returns 0.
-    opcode: 0x8249
 
   - name: set_base_pickpocket_mod
     detail: void set_base_pickpocket_mod(int max, int mod)
@@ -1049,12 +986,7 @@
   - name: obj_blocking_line
     detail: ObjectPtr obj_blocking_line(ObjectPtr objFrom, int tileTo, int blockingType)
     doc: Returns first object which blocks direct linear path from `objFrom` to `tileTo` using selected blocking function (see `BLOCKING_TYPE_*` constants in `sfall.h`). If path is clear (no blocker was encountered by selected function) - returns 0. `objFrom` is always excluded from calculations, but is required to be a valid object.
-
     opcode: 0x826e
-  - name: obj_blocking_tile
-    detail: ObjectPtr obj_blocking_tile(int tileNum, int elevation, int blockingType)
-    doc: Returns first object blocking given tile using given blocking function or 0 if tile is clear.
-    opcode: 0x826f
   - name: party_member_list
     detail: array party_member_list(int includeHidden)
     doc: Returns array of all current party members. 0 - only critter-type, alive and visible will be returned, 1 - all object, including Trunk, etc.
@@ -1497,3 +1429,80 @@
     detail: int has_fake_perk_npc(object npc, string namePerk)
   - name: has_fake_trait_npc
     detail: int has_fake_trait_npc(object npc, string nameTrait)
+
+- name: Global script functions
+  parent: Global scripts
+  items:
+  - name: set_global_script_repeat
+    detail: void set_global_script_repeat(int frames)
+    opcode: 0x816a
+    doc: Only has an effect on the script it is called from. Every global script needs its own `game_loaded` block to correctly set up repeat rate. Will have no effect if called on a non-global script.
+  - name: set_global_script_type
+    detail: void set_global_script_type(int type)
+    opcode: 0x819b
+    doc: Only has an effect on the script it is called from. Every global script needs its own `game_loaded` block to correctly set up the script type.
+  - name: available_global_script_types
+    detail: int available_global_script_types
+    opcode: 0x819c
+
+- name: Combat
+  items:
+  - name: block_combat
+    detail: void block_combat(bool value)
+    doc: Deny the player to enter combat mode.
+    opcode: 0x824a
+
+  - name: force_aimed_shots
+    detail: void force_aimed_shots(int pid)
+    opcode: 0x823e
+    doc: Allows overriding the normal rules regarding which weapons are allowed to make aimed attacks. (e.g. weapons that cause explosive damage normally cannot normally make aimed shots.) Will allow a weapon to make aimed shots even if it normally couldn't. Affects player and NPCs alike. Does not override the effects of the fast shot trait. The list of edited weapons is not saved over game loads, so you need to call the function once at each reload. Use a pid of 0 to represent unarmed.
+  - name: disable_aimed_shots
+    detail: void disable_aimed_shots(int pid)
+    opcode: 0x823f
+    doc: Allows overriding the normal rules regarding which weapons are allowed to make aimed attacks. (e.g. weapons that cause explosive damage normally cannot normally make aimed shots.) stops a weapon from making aimed shots even if it normally coulld. Affects player and NPCs alike. The list of edited weapons is not saved over game loads, so you need to call the function once at each reload. Use a pid of 0 to represent unarmed.
+  - name: get_attack_type
+    detail: int get_attack_type
+    opcode: 0x8228
+  - name: get_bodypart_hit_modifier
+    detail: int get_bodypart_hit_modifier(int bodypart)
+    opcode: 0x81df
+    doc: Gets the hit percentage modifiers for aiming at specific bodyparts. Valid bodypart id's are from 0 to 8.
+  - name: set_bodypart_hit_modifier
+    detail: void set_bodypart_hit_modifier(int bodypart, int value)
+    opcode: 0x81e0
+    doc: Alters the hit percentage modifiers for aiming at specific bodyparts. Valid bodypart id's are from 0 to 8. Changes are not saved, and will reset to the defaults (or to the values specified in ddraw.ini if they exist) at each reload.
+
+  - name: set_critical_table
+    detail: void set_critical_table(int crittertype, int bodypart, int level, int valuetype, int value)
+    opcode: 0x81e1
+    doc: Used for modifying the critical table. For details see [critical hit tables](http://falloutmods.wikia.com/wiki/Critical_hit_tables). Changes are not saved, and will reset to the defaults, (or to the contents of `CriticalOverrides.ini`, if it exists) at each game reload. Requires `OverrideCriticalTable` to be set to 1 in `ddraw.ini`. (Disabled by default, because it noticably increases loading times.)
+  - name: get_critical_table
+    detail: int get_critical_table(int crittertype, int bodypart, int level, int valuetype)
+    opcode: 0x81e2
+    doc: Gets current critical table. For details see [critical hit tables](http://falloutmods.wikia.com/wiki/Critical_hit_tables). Requires `OverrideCriticalTable` to be set to 1 in `ddraw.ini`. (Disabled by default, because it noticably increases loading times.)
+  - name: reset_critical_table
+    detail: void reset_critical_table(int crittertype, int bodypart, int level, int valuetype)
+    opcode: 0x81e3
+    doc: Resets the critical table to default (or to the contents of `CriticalOverrides.ini`, if it exists). For details see 'http://falloutmods.wikia.com/wiki/Critical_hit_tables'. Requires `OverrideCriticalTable` to be set to 1 in `ddraw.ini`. (Disabled by default, because it noticably increases loading times.)
+
+  - name: get_last_target
+    detail: ObjectPtr get_last_target(ObjectPtr critter)
+    doc: Will return the last critter to be deliberately attacked. Outside of combat always returns 0.
+    opcode: 0x8248
+  - name: get_last_attacker
+    detail: ObjectPtr get_last_attacker(ObjectPtr critter)
+    doc: Will return the last critter to deliberately launch an attack against the argument critter. If a critter has not launched/received an attack, it will return 0. Outside of combat always returns 0.
+    opcode: 0x8249
+
+  - name: set_critter_burst_disable
+    detail: void set_critter_burst_disable(int critter, int disable)
+    opcode: 0x8216
+
+  - name: get_critter_current_ap
+    detail: int get_critter_current_ap(CritterPtr)
+    opcode: 0x8191
+    doc: Should only be used during the target critters turn while in combat. Calling it outside of combat typically returns the critters max ap, but don't rely on that behaviour. (Specifically, if the critter has never before entered combat, it will probably return the critters base ap ignoring any extra bonuses from perks etc.)
+  - name: set_critter_current_ap
+    detail: void set_critter_current_ap(CritterPtr, int ap)
+    opcode: 0x8192
+    doc: Should only be used during the target critters turn while in combat. Using it on the player will not automatically redraw the screen, so the ap bar will be incorrect until the player next clicks.
