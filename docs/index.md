@@ -26,9 +26,8 @@ Note that this is documentation for sfall specifically, not Fallout scripting in
 ## Getting started
 
 To get started with sfall, first familiarize yourself with new concepts:
-* [Global scripts]({{ site.baseurl }}/global-scripts/)
-* [Global variables]({{ site.baseurl }}/global-variables/)
-* [Arrays]({{ site.baseurl }}/arrays/) and [Lists]({{ site.baseurl }}/lists/)
+* Global [scripts]({{ site.baseurl }}/global-scripts/) and [variables]({{ site.baseurl }}/global-variables/)
+* [Arrays]({{ site.baseurl }}/arrays/) and [lists]({{ site.baseurl }}/lists/)
 * [Hooks]({{ site.baseurl }}/hooks/)
 * [Data types]({{ site.baseurl }}/data-types/)
 * [Object manipulation]({{ site.baseurl }}/object-manipulation/)
