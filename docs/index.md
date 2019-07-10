@@ -33,6 +33,7 @@ To get started with sfall, first familiarize yourself with new concepts:
 * [Hooks]({{ site.baseurl }}/hooks/)
 * [Data types]({{ site.baseurl }}/data-types/)
 * [Lists]({{ site.baseurl }}/lists/)
+* [set_self]({{ site.baseurl }}/other/#set_self)
 
 Pay special attention to the [best practices]({{ site.baseurl }}/best-practices/) page.
 
