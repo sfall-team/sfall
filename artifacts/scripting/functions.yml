@@ -298,6 +298,16 @@
     detail: void set_perk_level_mod(int levels)
     opcode: 0x81ab
     doc: Sets a modifier between +25 and -25 that is added/subtracted from the player's level for the purposes of deciding which perks can be chosen.
+  - name: set_pyromaniac_mod
+    detail: void set_pyromaniac_mod(int bonus)
+    opcode: 0x81cb
+  - name: apply_heaveho_fix
+    detail: void apply_heaveho_fix
+    opcode: 0x81cc
+  - name: set_swiftlearner_mod
+    detail: void set_swiftlearner_mod(int bonus)
+    opcode: 0x81cd
+
 
   - name: set_fake_perk
     detail: void set_fake_perk(string name, int level, int image, string desc)
@@ -613,6 +623,10 @@
   - name: list_as_array
     detail: array list_as_array(int type)
     opcode: 0x8236
+  - name: party_member_list
+    detail: array party_member_list(int includeHidden)
+    doc: Returns array of all current party members. 0 - only critter-type, alive and visible will be returned, 1 - all object, including Trunk, etc.
+    opcode: 0x8271
 
 - name: Explosions
   items:
@@ -825,15 +839,6 @@
   - name: set_viewport_y
     detail: void set_viewport_y(int view_y)
     opcode: 0x81a9
-  - name: set_pyromaniac_mod
-    detail: void set_pyromaniac_mod(int bonus)
-    opcode: 0x81cb
-  - name: apply_heaveho_fix
-    detail: void apply_heaveho_fix
-    opcode: 0x81cc
-  - name: set_swiftlearner_mod
-    detail: void set_swiftlearner_mod(int bonus)
-    opcode: 0x81cd
   - name: set_hp_per_level_mod
     detail: void set_hp_per_level_mod(int mod)
     opcode: 0x81ce
@@ -938,17 +943,6 @@
     doc: Just a wrapper around the windows GetTickCount() function. It's useful for making time fade effects in shaders, since they already have access to the current tick count.
     opcode: 0x81b3
 
-  - name: set_self
-    detail: void set_self(ObjectPtr)
-    doc: |
-      Overrides the script's `self_obj` for the next function call.
-      - It is primarily used to allow the calling of functions which take an implicit `self_obj` parameter (e.g. `drop_obj`) from global scripts, but it can also be used from normal scripts.
-      - Will revert back to its original value after the next function call.
-      - Calling `self_obj(0)` will also revert `self_obj` to original value. It is recommended to call this after each use of `set_self` in normal scripts in order to avoid unforeseen side effects.
-      - `source_obj`, `target_obj`, and similar functions will not work if preceded by `set_self`.
-      - __NOTE:__ for `use_obj/use_obj_on_obj` vanilla functions to work correctly, it is required to call `set_self` twice.
-    opcode: 0x8206
-
   - name: mod_skill_points_per_level
     detail: void mod_skill_points_per_level(int value)
     doc: Accepts a value of between -100 and 100, and modifies the number of skill points the player recieves when they level up. This is a modification of what would otherwise happen, rather than a replacement. The value is not saved into the save game, so should be reset in the `game_loaded` section of a script.
@@ -1003,10 +997,6 @@
     doc: Returns 1 if last sneak attempt (roll against skill) was successful, 0 otherwise. This calls an internal engine function which is used to determine the perception range of critters (which you can override using `HOOK_WITHINPERCEPTION`).
     opcode: 0x826c
 
-  - name: party_member_list
-    detail: array party_member_list(int includeHidden)
-    doc: Returns array of all current party members. 0 - only critter-type, alive and visible will be returned, 1 - all object, including Trunk, etc.
-    opcode: 0x8271
   - name: create_spatial
     detail: ObjectPtr create_spatial(int scriptID, int tile, int elevation, int radius)
     doc: Creates new spatial script with given SID, at given tile, and radius.
@@ -1226,15 +1216,6 @@
   - name: set_flags
     detail: void set_flags(ObjectPtr obj, int flags)
     doc: Sets the current flags of an object. All flags are rewritten with given integer, so first get current flags with `get_flags` and use `bwor/bwand` to set/remove specific flag.
-    macro: sfall.h
-
-  - name: set_dude_obj
-    detail: void set_dude_obj(ObjectPtr critter)
-    doc: Take control of a given critter. Passing value 0 will reset control back to "real" dude.
-    macro: sfall.h
-  - name: real_dude_obj
-    detail: ObjectPtr real_dude_obj()
-    doc: Returns the initial dude_obj after set_dude_obj was used.
     macro: sfall.h
 
   - name: exec_map_update_scripts
@@ -1599,4 +1580,25 @@
   - name: set_ini_setting
     detail: void set_ini_setting(string setting, int/string value)
     doc: 'Writes an integer or a string value to an ini file in the Fallout directory. If the ini file does not exist, it will be created The setting argument works in the same way as in `get_ini_setting`, seperate the file name, section and key with a "|" character. __Note:__ the file name is limited to 63 chars (including the extension), the section name is limited to 32 characters.'
+    macro: sfall.h
+
+- name: Object manipulation
+  items:
+  - name: set_self
+    detail: void set_self(ObjectPtr)
+    doc: |
+      Overrides the script's `self_obj` for the next function call.
+      - It is primarily used to allow the calling of functions which take an implicit `self_obj` parameter (e.g. `drop_obj`) from global scripts, but it can also be used from normal scripts.
+      - Will revert back to its original value after the next function call.
+      - Calling `self_obj(0)` will also revert `self_obj` to original value. It is recommended to call this after each use of `set_self` in normal scripts in order to avoid unforeseen side effects.
+      - `source_obj`, `target_obj`, and similar functions will not work if preceded by `set_self`.
+      - __NOTE:__ for `use_obj/use_obj_on_obj` vanilla functions to work correctly, it is required to call `set_self` twice.
+    opcode: 0x8206
+  - name: set_dude_obj
+    detail: void set_dude_obj(ObjectPtr critter)
+    doc: Take control of a given critter. Passing value 0 will reset control back to "real" dude.
+    macro: sfall.h
+  - name: real_dude_obj
+    detail: ObjectPtr real_dude_obj()
+    doc: Returns the initial dude_obj after set_dude_obj was used.
     macro: sfall.h
