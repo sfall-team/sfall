@@ -405,14 +405,14 @@ static void sf_set_cursor_mode() {
 
 static void sf_display_stats() {
 // calling the function outside of inventory screen will crash the game
-	if (GetCurrentLoops() & INVENTORY) {
+	if (GetLoopFlags() & INVENTORY) {
 		__asm call display_stats_;
 	}
 }
 
 static void sf_inventory_redraw() {
 	int mode;
-	DWORD loopFlag = GetCurrentLoops();
+	DWORD loopFlag = GetLoopFlags();
 	if (loopFlag & INVENTORY) {
 		mode = 0;
 	} else if (loopFlag & INTFACEUSE) {

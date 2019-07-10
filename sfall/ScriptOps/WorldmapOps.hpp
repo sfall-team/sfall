@@ -117,7 +117,7 @@ static void __declspec(naked) GetGameMode() {
 		push ecx;
 		push edx;
 		push eax;
-		call GetCurrentLoops;
+		call GetLoopFlags;
 		mov  edx, eax;
 		pop  eax;
 		_RET_VAL_INT2(ecx);

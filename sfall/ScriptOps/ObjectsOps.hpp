@@ -644,7 +644,7 @@ static void sf_get_obj_under_cursor() {
 }
 
 static void sf_get_loot_object() {
-	opHandler.setReturn((GetCurrentLoops() & INTFACELOOT) ? LoadGameHook_LootTarget : 0, DATATYPE_INT);
+	opHandler.setReturn((GetLoopFlags() & INTFACELOOT) ? LoadGameHook_LootTarget : 0, DATATYPE_INT);
 }
 
 static void sf_get_object_data() {

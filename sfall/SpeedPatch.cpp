@@ -93,7 +93,7 @@ static DWORD _stdcall FakeGetTickCount() {
 
 	// Multiply the tick count difference by the multiplier
 	if (enabled && !slideShow
-		&& !(GetCurrentLoops() & (INVENTORY | INTFACEUSE | INTFACELOOT | DIALOG)))
+		&& !(GetLoopFlags() & (INVENTORY | INTFACEUSE | INTFACELOOT | DIALOG)))
 	{
 		elapsed *= multi;
 		tickCountFraction += modf(elapsed, &elapsed);

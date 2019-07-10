@@ -1740,7 +1740,7 @@ static void __declspec(naked) process_rads_hook() {
 	__asm {
 		push eax; // death message for DialogOut
 		call display_print_;
-		call GetCurrentLoops;
+		call GetLoopFlags;
 		test eax, PIPBOY;
 		jz   skip;
 		mov  eax, 1;

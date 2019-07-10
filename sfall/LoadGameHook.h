@@ -47,4 +47,4 @@ DWORD InDialog();
 #define BARTER      (1<<17) // 0x20000
 #define RESERVED    (1<<31)
 
-DWORD GetCurrentLoops();
+DWORD GetLoopFlags();

@@ -1329,7 +1329,7 @@ notItem:
 		pop  edx;
 		pop  ecx;
 end:
-		xor  edi, edi; // fix: don't set "Used" flag for critter objects
+		xor  edi, edi; // fix: don't set "Used" flag for non-item objects
 		retn;
 	}
 }
@@ -1372,7 +1372,7 @@ void ScriptExtenderSetup() {
 	// Fix mapper bug by reassigning object IDs to critters (for unvisited maps)
 	MakeCall(0x482E6B, map_load_file_hack);
 	SafeWrite8(0x482E71, 0x85); // jz > jnz
-	// Additionally fix object IDs for queue events
+	// Additionally fix object IDs for queued events
 	MakeCall(0x4A25BA, queue_add_hack);
 
 	arraysBehavior = GetPrivateProfileIntA("Misc", "arraysBehavior", 1, ini);

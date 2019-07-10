@@ -70,7 +70,7 @@ DWORD InDialog() {
 	return (InLoop & DIALOG) ? 1 : 0;
 }
 
-DWORD GetCurrentLoops() {
+DWORD GetLoopFlags() {
 	return InLoop;
 }
 
