@@ -65,7 +65,7 @@
 
           {% if really_has_children == 1 %}
           <h2>Subcategories</h2>
-          
+
           <ul>
             {% for child in children_list %}
               {% if child.parent == page.title and child.title != page.title %}
