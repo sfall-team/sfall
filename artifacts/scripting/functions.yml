@@ -589,6 +589,10 @@
   - name: ^
     detail: x^y
     doc: Exponentiation. Use as any other arithmetic operator, like 5^(1/3). If exponent is integer, you can use negative base, otherwise you will get "nan" with negative base. If both arguments are integers, result will be integer.
+  - name: floor2
+    detail: int sfall_func1("floor2", int/float value)
+    doc: Works just like vanilla floor function, but returns correct integers for negative values (vanilla floor function works exactly the same as `ceil` for negative values, much like `trunc` in C/C++).
+    macro: sfall.h
 
 - name: Keyboard and mouse
   items:
@@ -1240,11 +1244,6 @@
   - name: get_metarule_table
     detail: array get_metarule_table
     doc: Returns names of all currently available scripting functions.
-    macro: sfall.h
-
-  - name: floor2
-    detail: int sfall_func1("floor2", int/float value)
-    doc: Works just like vanilla floor function, but returns correct integers for negative values (vanilla floor function works exactly the same as `ceil` for negative values, much like `trunc` in C/C++).
     macro: sfall.h
 
   - name: get_string_pointer
