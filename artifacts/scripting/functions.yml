@@ -1474,7 +1474,7 @@
     macro: sfall.h
   - name: set_car_intface_art
     detail: void set_car_intface_art(int artIndex)
-    doc: 'Changes the interface art (index in LST file) for the car image on worldmap screen. Should be called before going to worldmap. Vanilla art index is 0x1B1'
+    doc: 'Changes the interface art (index in LST file) for the car image on worldmap screen. Should be called before going to worldmap. Vanilla art index is 0x1B1.'
     macro: sfall.h
 
 - name: Outline
