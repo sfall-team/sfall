@@ -520,7 +520,6 @@ end:
 	}
 }
 
-
 void Inject_BarterPriceHook() {
 	HookCalls(BarterPriceHook, {
 		0x474D4C,

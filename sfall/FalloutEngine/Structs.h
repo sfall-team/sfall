@@ -216,7 +216,14 @@ struct Program {
 #pragma pack(1)
 struct ItemButtonItem {
 	GameObject* item;
-	long flags;
+	union {
+		long flags;
+		struct {
+			char cantUse;
+			char itsWeapon;
+			short unkFlag;
+		};
+	};
 	long primaryAttack;
 	long secondaryAttack;
 	long mode;
@@ -311,6 +318,59 @@ public:
 	DWORD oriOffset[6];   // offset of first frame for direction [0-5] from begining of frame area
 	DWORD frameAreaSize;  // size of all frames area
 } FrmHeaderData;
+
+// structures for loading unlisted frms
+#pragma pack(1)
+struct UnlistedFrm {
+	DWORD version;
+	WORD FPS;
+	WORD actionFrame;
+	WORD numFrames;
+	WORD xCentreShift[6];
+	WORD yCentreShift[6];
+	DWORD oriOffset[6];
+	DWORD frameAreaSize;
+
+	struct Frame {
+		WORD width;
+		WORD height;
+		DWORD size;
+		WORD x;
+		WORD y;
+		BYTE *indexBuff;
+
+		Frame() {
+			width = 0;
+			height = 0;
+			size = 0;
+			x = 0;
+			y = 0;
+			indexBuff = nullptr;
+		}
+		~Frame() {
+			if (indexBuff != nullptr)
+				delete[] indexBuff;
+		}
+	} *frames;
+
+	UnlistedFrm() {
+		version = 0;
+		FPS = 0;
+		actionFrame = 0;
+		numFrames = 0;
+		for (int i = 0; i < 6; i++) {
+			xCentreShift[i] = 0;
+			yCentreShift[i] = 0;
+			oriOffset[i] = 0;
+		}
+		frameAreaSize = 0;
+		frames = nullptr;
+	}
+	~UnlistedFrm() {
+		if (frames != nullptr)
+			delete[] frames;
+	}
+};
 
 #pragma pack(1)
 struct MessageNode {

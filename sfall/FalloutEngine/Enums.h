@@ -740,4 +740,22 @@ namespace WinFlags {
 	};
 }
 
+enum QueueType : long
+{
+	drug_effect_event  = 0,  // critter use drug
+	knockout_event     = 1,  // critter
+	addict_event       = 2,  // critter
+	script_timer_event = 3,  // any object
+	game_time_event    = 4,  // no object
+	poison_event       = 5,  // dude
+	radiation_event    = 6,  // dude
+	flare_time_event   = 7,  // item
+	explode_event      = 8,  // item
+	item_trickle_event = 9,
+	sneak_event        = 10, // dude
+	explode_fail_event = 11, // item
+	map_update_event   = 12,
+	gsound_sfx_event   = 13  // no object
+};
+
 }

@@ -65,11 +65,13 @@ static DDSURFACEDESC surfaceDesc;
 static DDSURFACEDESC movieDesc;
 
 static DWORD palette[256];
+//static bool paletteInit = false;
 
 static DWORD gWidth;
 static DWORD gHeight;
 
 static int ScrollWindowKey;
+static bool windowInit = false;
 static DWORD windowLeft = 0;
 static DWORD windowTop = 0;
 
@@ -137,8 +139,7 @@ static const char* gpuEffect=
 	"technique T0"
 	"{"
 	  "pass p0 { PixelShader = compile ps_2_0 P0(); }"
-	"}"
-;
+	"}";
 
 static D3DXHANDLE gpuBltBuf;
 static D3DXHANDLE gpuBltPalette;
@@ -171,11 +172,11 @@ void GetFalloutWindowInfo(DWORD* width, DWORD* height, HWND* wnd) {
 }
 
 long Graphics::GetGameWidthRes() {
-	return fo::var::scr_size.offx - (fo::var::scr_size.x + 1);
+	return (fo::var::scr_size.offx - fo::var::scr_size.x) + 1;
 }
 
 long Graphics::GetGameHeightRes() {
-	return fo::var::scr_size.offy - (fo::var::scr_size.y + 1);
+	return (fo::var::scr_size.offy - fo::var::scr_size.y) + 1;
 }
 
 int _stdcall GetShaderVersion() {
@@ -305,7 +306,8 @@ static void Present() {
 	if (ScrollWindowKey != 0 && ((ScrollWindowKey > 0 && KeyDown((BYTE)ScrollWindowKey))
 		|| (ScrollWindowKey == -1 && (KeyDown(DIK_LCONTROL) || KeyDown(DIK_RCONTROL)))
 		|| (ScrollWindowKey == -2 && (KeyDown(DIK_LMENU) || KeyDown(DIK_RMENU)))
-		|| (ScrollWindowKey == -3 && (KeyDown(DIK_LSHIFT) || KeyDown(DIK_RSHIFT))))) {
+		|| (ScrollWindowKey == -3 && (KeyDown(DIK_LSHIFT) || KeyDown(DIK_RSHIFT)))))
+	{
 		int winx, winy;
 		GetMouse(&winx, &winy);
 		windowLeft += winx;
@@ -397,7 +399,7 @@ void RefreshGraphics() {
 		gpuBltEffect->BeginPass(0);
 	}
 	d3d9Device->DrawPrimitive(D3DPT_TRIANGLESTRIP, 0, 2);
-	if (Graphics::GPUBlt) {
+	if (Graphics::GPUBlt && !ScriptShaders::Count()) {
 		gpuBltEffect->EndPass();
 		gpuBltEffect->End();
 	}
@@ -532,10 +534,10 @@ public:
 	HRESULT _stdcall GetEntries(DWORD, DWORD, DWORD, LPPALETTEENTRY) { UNUSEDFUNCTION; }
 	HRESULT _stdcall Initialize(LPDIRECTDRAW, DWORD, LPPALETTEENTRY) { UNUSEDFUNCTION; }
 
-	HRESULT _stdcall SetEntries(DWORD, DWORD b, DWORD c, LPPALETTEENTRY d) {
-		if (c == 0 || b + c > 256) return DDERR_INVALIDPARAMS;
+	HRESULT _stdcall SetEntries(DWORD, DWORD b, DWORD c, LPPALETTEENTRY destPal) {
+		if (!windowInit || c == 0 || b + c > 256) return DDERR_INVALIDPARAMS;
 
-		CopyMemory(&palette[b], d, c * 4);
+		CopyMemory(&palette[b], destPal, c * 4);
 		if (Graphics::GPUBlt) {
 			if (gpuPalette) {
 				D3DLOCKED_RECT rect;
@@ -547,11 +549,12 @@ public:
 		} else {
 			for (DWORD i = b; i < b + c; i++) { // swap color R <> B
 				//palette[i]&=0x00ffffff;
-				BYTE clr = *(BYTE*)((DWORD)&palette[i]);
-				*(BYTE*)((DWORD)&palette[i]) = *(BYTE*)((DWORD)&palette[i] + 2);
+				BYTE clr = *(BYTE*)((DWORD)&palette[i]); // B
+				*(BYTE*)((DWORD)&palette[i]) = *(BYTE*)((DWORD)&palette[i] + 2); // R
 				*(BYTE*)((DWORD)&palette[i] + 2) = clr;
 			}
 		}
+		RefreshGraphics();
 		return DD_OK;
 	}
 };
@@ -965,6 +968,13 @@ HRESULT _stdcall FakeDirectDrawCreate2_Init(void*, IDirectDraw** b, void*) {
 	return DD_OK;
 }
 
+static __declspec(naked) void game_init_hook() {
+	__asm {
+		mov  windowInit, 1;
+		jmp  fo::funcoffs::palette_init_;
+	}
+}
+
 static double fadeMulti;
 static __declspec(naked) void palette_fade_to_hook() {
 	__asm {
@@ -994,6 +1004,7 @@ void Graphics::init() {
 		}
 #undef _DLL_NAME
 		SafeWrite8(0x50FB6B, '2'); // Set call DirectDrawCreate2
+		HookCall(0x44260C, game_init_hook);
 		dlogr(" Done", DL_INIT);
 	}
 

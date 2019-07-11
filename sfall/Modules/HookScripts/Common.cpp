@@ -38,7 +38,7 @@ bool LoadHookScript(const char* name, int id) {
 	sprintf(filename, "scripts\\%s.int", name);
 	ScriptProgram prog;
 	if (fo::func::db_access(filename)) {
-		dlog(">", DL_HOOK);
+		dlog("> ", DL_HOOK);
 		dlog(name, DL_HOOK);
 		LoadScriptProgram(prog, name);
 		if (prog.ptr) {

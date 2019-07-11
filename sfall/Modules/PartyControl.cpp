@@ -39,6 +39,15 @@ bool skipCounterAnim  = false;
 static int delayedExperience;
 static bool switchHandHookInjected = false;
 
+struct WeaponStateSlot {
+	long npcID;
+	bool leftIsCopy  = false;
+	bool rightIsCopy = false;
+	fo::ItemButtonItem leftSlot;
+	fo::ItemButtonItem rightSlot;
+};
+std::vector<WeaponStateSlot> weaponState;
+
 static struct DudeState {
 	fo::GameObject* obj_dude = nullptr;
 	DWORD art_vault_guy_num;
@@ -59,6 +68,7 @@ static struct DudeState {
 	long tag_skill[4];
 	//DWORD bbox_sneak;
 	long* extendAddictGvar = nullptr;
+	bool isSaved = false;
 } realDude;
 
 static void SaveAddictGvarState() {
@@ -118,11 +128,17 @@ static void SaveRealDudeState() {
 	realDude.addictGvar[7] = fo::var::game_global_vars[fo::var::drugInfoList[8].addictGvar];
 	if (realDude.extendAddictGvar) SaveAddictGvarState();
 
+	realDude.isSaved = true;
+
 	if (skipCounterAnim) SafeWriteBatch<BYTE>(0, {0x422BDE, 0x4229EC}); // no animate
+
+	if (isDebug) fo::func::debug_printf("\n[SFALL] Save dude state.");
 }
 
 // take control of the NPC
 static void SetCurrentDude(fo::GameObject* npc) {
+	if (isDebug) fo::func::debug_printf("\n[SFALL] Take control of critter.");
+
 	// remove skill tags
 	long tagSkill[4];
 	std::fill(std::begin(tagSkill), std::end(tagSkill), -1);
@@ -165,6 +181,34 @@ static void SetCurrentDude(fo::GameObject* npc) {
 	} else {
 		fo::var::itemCurrentItem = fo::ActiveSlot::Right;
 	}
+	// restore selected weapon mode
+	size_t count = weaponState.size();
+	for (size_t i = 0; i < count; i++) {
+		if (weaponState[i].npcID == npc->id) {
+			bool isMatch = false;
+			if (weaponState[i].leftIsCopy) {
+				auto item = fo::func::inven_left_hand(npc);
+				if (item && item->protoId == weaponState[i].leftSlot.item->protoId) {
+					memcpy(&fo::var::itemButtonItems[0], &weaponState[i].leftSlot, 0x14);
+					isMatch = true;
+				}
+				weaponState[i].leftIsCopy = false;
+			}
+			if (weaponState[i].rightIsCopy) {
+				auto item = fo::func::inven_right_hand(npc);
+				if (item && item->protoId == weaponState[i].rightSlot.item->protoId) {
+					memcpy(&fo::var::itemButtonItems[1], &weaponState[i].rightSlot, 0x14);
+					isMatch = true;
+				}
+				weaponState[i].rightIsCopy = false;
+			}
+			if (!isMatch) {
+				if (i < count - 1) weaponState[i] = weaponState.back();
+				weaponState.pop_back();
+			}
+			break;
+		}
+	}
 
 	bool isAddict = false;
 	for (int i = 0; i < 9; i++) fo::var::game_global_vars[fo::var::drugInfoList[i].addictGvar] = 0;
@@ -189,7 +233,7 @@ static void SetCurrentDude(fo::GameObject* npc) {
 }
 
 // restores the real dude state
-static void RestoreRealDudeState() {
+static void RestoreRealDudeState(bool redraw = true) {
 	assert(realDude.obj_dude != nullptr);
 
 	fo::var::map_elevation = realDude.obj_dude->elevation;
@@ -222,9 +266,13 @@ static void RestoreRealDudeState() {
 	if (realDude.extendAddictGvar) RestoreAddictGvarState();
 
 	if (skipCounterAnim) SafeWriteBatch<BYTE>(1, {0x422BDE, 0x4229EC}); // restore
-	fo::func::intface_redraw();
 
+	if (redraw) fo::func::intface_redraw();
+
+	realDude.isSaved = false;
 	isControllingNPC = false;
+
+	if (isDebug) fo::func::debug_printf("\n[SFALL] Restore control to dude.");
 }
 
 static void __stdcall DisplayCantDoThat() {
@@ -286,20 +334,62 @@ end:
 
 void __stdcall PartyControlReset() {
 	if (realDude.obj_dude != nullptr && isControllingNPC) {
-		RestoreRealDudeState();
+		RestoreRealDudeState(false);
 	}
+	realDude.obj_dude = nullptr;
+	realDude.isSaved = false;
+	weaponState.clear();
 }
 
 bool PartyControl::IsNpcControlled() {
 	return isControllingNPC;
 }
 
+bool CopyItemSlots(WeaponStateSlot &element, bool isSwap) {
+	bool isCopy = false;
+	if (fo::var::itemButtonItems[0 + isSwap].itsWeapon && fo::var::itemButtonItems[0 + isSwap].item) {
+		memcpy(&element.leftSlot, &fo::var::itemButtonItems[0 + isSwap], 0x14);
+		element.leftIsCopy = isCopy = true;
+	}
+	if (fo::var::itemButtonItems[1 - isSwap].itsWeapon && fo::var::itemButtonItems[1 - isSwap].item) {
+		memcpy(&element.rightSlot, &fo::var::itemButtonItems[1 - isSwap], 0x14);
+		element.rightIsCopy = isCopy = true;
+	}
+	if (isSwap && isCopy) {
+		if (element.leftIsCopy) {
+			element.leftSlot.primaryAttack = fo::AttackType::ATKTYPE_LWEAPON_PRIMARY;
+			element.leftSlot.secondaryAttack = fo::AttackType::ATKTYPE_LWEAPON_SECONDARY;
+		}
+		if (element.rightIsCopy) {
+			element.rightSlot.primaryAttack = fo::AttackType::ATKTYPE_RWEAPON_PRIMARY;
+			element.rightSlot.secondaryAttack = fo::AttackType::ATKTYPE_RWEAPON_SECONDARY;
+		}
+	}
+	return isCopy;
+}
+
+void SaveWeaponMode(bool isSwap) {
+	for (size_t i = 0; i < weaponState.size(); i++) {
+		if (weaponState[i].npcID == fo::var::obj_dude->id) {
+			CopyItemSlots(weaponState[i], isSwap);
+			return;
+		}
+	}
+	WeaponStateSlot wState;
+	if (CopyItemSlots(wState, isSwap)) {
+		wState.npcID = fo::var::obj_dude->id;
+		weaponState.push_back(wState);
+	}
+}
+
 void PartyControl::SwitchToCritter(fo::GameObject* critter) {
 	if (isControllingNPC) {
+		bool isSwap = false;
 		if (fo::var::itemCurrentItem == fo::ActiveSlot::Left) {
 			// set active left item to right slot
 			fo::GameObject* lItem = fo::func::inven_left_hand(fo::var::obj_dude);
 			if (lItem) {
+				isSwap = true;
 				fo::GameObject* rItem = fo::func::inven_right_hand(fo::var::obj_dude);
 				lItem->flags &= ~fo::ObjectFlag::Left_Hand;
 				lItem->flags |= fo::ObjectFlag::Right_Hand;
@@ -309,15 +399,18 @@ void PartyControl::SwitchToCritter(fo::GameObject* critter) {
 				}
 			}
 		}
-		if (critter == nullptr || critter == realDude.obj_dude) RestoreRealDudeState();
-	} else {
+		SaveWeaponMode(isSwap);
+		if (critter == nullptr || critter == realDude.obj_dude) RestoreRealDudeState(); // return control to dude
+	} else if (critter != nullptr && realDude.isSaved == false) {
 		SaveRealDudeState();
 	}
-	if (critter != nullptr && critter != realDude.obj_dude) {
+	if (critter != nullptr && critter != PartyControl::RealDudeObject()) {
 		SetCurrentDude(critter);
+
 		if (switchHandHookInjected) return;
 		switchHandHookInjected = true;
 		if (!HookScripts::IsInjectHook(HOOK_INVENTORYMOVE)) Inject_SwitchHandHook();
+
 		// Gets dude perks and traits from script while controlling another NPC
 		// WARNING: Handling dude perks/traits in the engine code while controlling another NPC remains impossible, this requires serious hacking of the engine code
 		HookCall(0x458242, GetRealDudePerk);  // op_has_trait_

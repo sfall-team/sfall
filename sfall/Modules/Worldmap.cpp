@@ -1,20 +1,20 @@
 /*
-*    sfall
-*    Copyright (C) 2008-2017  The sfall team
-*
-*    This program is free software: you can redistribute it and/or modify
-*    it under the terms of the GNU General Public License as published by
-*    the Free Software Foundation, either version 3 of the License, or
-*    (at your option) any later version.
-*
-*    This program is distributed in the hope that it will be useful,
-*    but WITHOUT ANY WARRANTY; without even the implied warranty of
-*    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-*    GNU General Public License for more details.
-*
-*    You should have received a copy of the GNU General Public License
-*    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
+ *    sfall
+ *    Copyright (C) 2008-2017  The sfall team
+ *
+ *    This program is free software: you can redistribute it and/or modify
+ *    it under the terms of the GNU General Public License as published by
+ *    the Free Software Foundation, either version 3 of the License, or
+ *    (at your option) any later version.
+ *
+ *    This program is distributed in the hope that it will be useful,
+ *    but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *    GNU General Public License for more details.
+ *
+ *    You should have received a copy of the GNU General Public License
+ *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 
 #include <map>
 #include <math.h>
@@ -45,8 +45,6 @@ std::map<int, levelRest> mapRestInfo;
 static bool restMap;
 static bool restMode;
 static bool restTime;
-
-static int mapSlotsScrollMax = 27 * (17 - 7);
 
 static DWORD worldMapDelay;
 static DWORD worldMapTicks;
@@ -119,26 +117,6 @@ static __declspec(naked) void set_game_time_hack() {
 end:
 		xor  edx, edx;
 		retn;
-	}
-}
-
-static __declspec(naked) void ScrollCityListFix() {
-	__asm {
-		push ebx;
-		mov  ebx, ds:[0x672F10];
-		test eax, eax;
-		jl   up;
-		cmp  ebx, mapSlotsScrollMax;
-		pop  ebx;
-		jne  run;
-		retn;
-up:
-		test ebx, ebx;
-		pop  ebx;
-		jnz  run;
-		retn;
-run:
-		jmp  fo::funcoffs::wmInterfaceScrollTabsStart_;
 	}
 }
 
@@ -284,13 +262,6 @@ static __declspec(naked) void PathfinderFix() {
 	}
 }
 
-static void __declspec(naked) wmInterfaceInit_text_font_hook() {
-	__asm {
-		mov  eax, 0x65; // normal text font
-		jmp  fo::funcoffs::text_font_;
-	}
-}
-
 static void __declspec(naked) critter_can_obj_dude_rest_hook() {
 	using namespace fo;
 	__asm {
@@ -368,12 +339,6 @@ void WorldLimitsPatches() {
 		dlogr(" Done", DL_INIT);
 	}
 
-	//if(GetConfigInt("Misc", "WorldMapCitiesListFix", 0)) {
-	dlog("Applying world map cities list patch.", DL_INIT);
-	HookCalls(ScrollCityListFix, {0x4C04B9, 0x4C04C8, 0x4C4A34, 0x4C4A3D});
-	dlogr(" Done", DL_INIT);
-	//}
-
 	//if(GetConfigInt("Misc", "CitiesLimitFix", 0)) {
 	dlog("Applying cities limit patch.", DL_INIT);
 	if (*((BYTE*)0x4BF3BB) != 0xEB) {
@@ -381,20 +346,6 @@ void WorldLimitsPatches() {
 	}
 	dlogr(" Done", DL_INIT);
 	//}
-
-	DWORD wmSlots = GetConfigInt("Misc", "WorldMapSlots", 0);
-	if (wmSlots && wmSlots < 128) {
-		dlog("Applying world map slots patch.", DL_INIT);
-		if (wmSlots < 7) wmSlots = 7;
-		mapSlotsScrollMax = (wmSlots - 7) * 27;
-		if (wmSlots < 25) {
-			SafeWrite32(0x4C21FD, 230 - (wmSlots - 17) * 27);
-		} else {
-			SafeWrite8(0x4C21FC, 0xC2); // sub > add
-			SafeWrite32(0x4C21FD, 2 + 27 * (wmSlots - 26));
-		}
-		dlogr(" Done", DL_INIT);
-	}
 }
 
 void TimeLimitPatch() {
@@ -526,22 +477,12 @@ void StartingStatePatches() {
 	if (ViewportX != -1 || ViewportY != -1) HookCall(0x4BCF07, ViewportHook); // game_reset_
 }
 
-void WorldMapFontPatch() {
-	if (GetConfigInt("Misc", "WorldMapFontPatch", 0)) {
-		dlog("Applying world map font patch.", DL_INIT);
-		HookCall(0x4C2343, wmInterfaceInit_text_font_hook);
-		dlogr(" Done", DL_INIT);
-	}
-}
-
 void PipBoyAutomapsPatch() {
-	//if (GetConfigInt("Misc", "PipBoyAutomaps", 0)) {
-		dlog("Applying Pip-Boy automaps patch.", DL_INIT);
-		MakeCall(0x4BF931, wmMapInit_hack, 2);
-		SafeWrite32(0x41B8B7, (DWORD)AutomapPipboyList);
-		memcpy(AutomapPipboyList, (void*)FO_VAR_displayMapList, sizeof(AutomapPipboyList)); // copy vanilla data
-		dlogr(" Done", DL_INIT);
-	//}
+	dlog("Applying Pip-Boy automaps patch.", DL_INIT);
+	MakeCall(0x4BF931, wmMapInit_hack, 2);
+	SafeWrite32(0x41B8B7, (DWORD)AutomapPipboyList);
+	memcpy(AutomapPipboyList, (void*)FO_VAR_displayMapList, sizeof(AutomapPipboyList)); // copy vanilla data
+	dlogr(" Done", DL_INIT);
 }
 
 void Worldmap::SaveData(HANDLE file) {
@@ -662,7 +603,6 @@ void Worldmap::init() {
 	TownMapsHotkeyFix();
 	WorldLimitsPatches();
 	WorldmapFpsPatch();
-	WorldMapFontPatch();
 	PipBoyAutomapsPatch();
 
 	LoadGameHook::OnGameReset() += []() {

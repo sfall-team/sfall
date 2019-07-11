@@ -340,56 +340,98 @@ skip:
 }
 
 // hooks combat_turn function
-static void __declspec(naked) CombatTurnHook() {
-	__asm {
-		HookBegin;
-		mov args[0], 1;   // turn begin
-		mov args[4], eax; // critter
-		mov args[8], edx; // unknown (1 = dude turn)
-		pushad;
-	}
-
+static long combatTurnResult = 0;
+static long __fastcall CombatTurnHook_Script(fo::GameObject* critter, long dudeBegin) {
+	BeginHook();
 	argCount = 3;
+
+	args[0] = 1;              // turn begin
+	args[1] = (DWORD)critter; // who begins turn
+	args[2] = dudeBegin;      // true - dude begins/ends turn after loading a game saved in combat mode
+
 	RunHookScript(HOOK_COMBATTURN); // Start of turn
 
-	_asm popad;
-	if (cRet > 0) {
-		_asm mov eax, rets[0];
-		HookEnd;
-		_asm retn;        // exit hook
+	combatTurnResult = 0;
+	if (cRet > 0 && rets[0] == 1) { // skip turn
+		goto endHook;               // exit hook
 	}
-
-	// set_sfall_return not used, proceed normally
-	__asm {
-		call fo::funcoffs::combat_turn_;
-		mov  args[0], eax;
-		pushad;
-	}
+	// set_sfall_return is not used, proceed normally
+	combatTurnResult = args[0] = fo::func::combat_turn(critter, dudeBegin);
+	if (fo::var::combat_end_due_to_load && combatTurnResult == -1) goto endHook; // don't run end of turn hook when the game was loaded during the combat
 
 	//cRet = 0; // reset number of return values
 	RunHookScript(HOOK_COMBATTURN); // End of turn
+	if (cRet > 0 && rets[0] == -1) combatTurnResult = -1; // override result of turn
 
+endHook:
+	EndHook();
+	return combatTurnResult;
+}
+
+static void __declspec(naked) CombatTurnHook() {
 	__asm {
-		popad;
-		cmp cRet, 1;
-		cmovnb eax, rets[0]; // override result of turn
-		HookEnd;
+		push ecx;
+		mov  ecx, eax;
+		call CombatTurnHook_Script; // edx - dudeBegin
+		pop  ecx;
 		retn;
 	}
 }
 
+static void __declspec(naked) CombatTurnHook_End() {
+	if (combatTurnResult >= 0) {
+		BeginHook();
+		argCount = 3;
+
+		args[0] = -2; // combat ended normally
+		args[1] = *(DWORD*)FO_VAR_combat_turn_obj;
+		args[2] = 0;
+
+		RunHookScript(HOOK_COMBATTURN);
+		EndHook();
+	}
+	__asm jmp  fo::funcoffs::combat_over_;
+}
+
 // hack to exit from combat_add_noncoms function without crashing when you load game during NPC turn
-static const DWORD CombatHack_add_noncoms_back = 0x422359;
-static void __declspec(naked) CombatAddNoncoms_CombatTurnHack() {
+static long countCombat = 0;
+static void __declspec(naked) CombatTurnHook_AddNoncoms() {
 	__asm {
-		call CombatTurnHook;
+		push ecx;
+		mov  ecx, eax;
+		call CombatTurnHook_Script; // edx - dudeBegin
+		pop  ecx;
 		cmp  eax, -1;
-		jne  normalTurn;
-		mov  ecx, FO_VAR_list_com;
-		mov  dword ptr [ecx], 0;
-		mov  ecx, [esp];
-normalTurn:
-		jmp  CombatHack_add_noncoms_back;
+		je   endCombat;
+		retn;
+endCombat:
+		mov  ecx, [esp + 4]; // list
+		xor  edx, edx;
+		cmp  ds:[FO_VAR_combat_end_due_to_load], edx;
+		jz   skip;
+		mov  eax, ds:[FO_VAR_list_com];
+		test eax, eax;
+		jz   skip;
+		mov  countCombat, eax;
+skip:
+		mov  ds:[FO_VAR_list_com], edx;
+		retn;
+	}
+}
+
+static const DWORD combat_hook_end_combat = 0x422E91;
+static void __declspec(naked) combat_hook_fix_load() {
+	__asm {
+		call fo::funcoffs::combat_sequence_;
+		mov  eax, countCombat;
+		test eax, eax;
+		jnz  forceEndCombat;
+		retn;
+forceEndCombat:
+		mov  ds:[FO_VAR_list_com], eax;
+		mov  countCombat, 0;
+		add  esp, 4;
+		jmp  combat_hook_end_combat;
 	}
 }
 
@@ -501,8 +543,11 @@ void Inject_AmmoCostHook() {
 }
 
 void Inject_CombatTurnHook() {
-	MakeJump(0x422354, CombatAddNoncoms_CombatTurnHack);
+	HookCall(0x422354, CombatTurnHook_AddNoncoms);
 	HookCalls(CombatTurnHook, { 0x422D87, 0x422E20 });
+	HookCall(0x422E85, CombatTurnHook_End);
+
+	HookCall(0x422E4D, combat_hook_fix_load);
 }
 
 void Inject_OnExplosionHook() {

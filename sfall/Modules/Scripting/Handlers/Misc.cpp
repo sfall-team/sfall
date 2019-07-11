@@ -683,7 +683,7 @@ end:
 	}
 }
 
-static char* valueOutRange = "%s() - argument values out of range";
+static char* valueOutRange = "%s() - argument values out of range.";
 
 void sf_set_critical_table(OpcodeContext& ctx) {
 	DWORD critter = ctx.arg(0).asInt(),
@@ -915,47 +915,8 @@ void __declspec(naked) op_refresh_pc_art() {
 	}
 }
 
-static void _stdcall intface_attack_type() {
-	__asm {
-		sub esp, 8;
-		lea edx, [esp];
-		lea eax, [esp+4];
-		call fo::funcoffs::intface_get_attack_;
-		pop edx; // is_secondary
-		pop ecx; // hit_mode
-	}
-}
-
-void __declspec(naked) op_get_attack_type() {
-	__asm {
-		push edx;
-		push ecx;
-		push eax;
-		call intface_attack_type;
-		mov edx, ecx; // hit_mode
-		test eax, eax;
-		jz skip;
-		// get reload
-		cmp ds:[FO_VAR_interfaceWindow], eax;
-		jz end;
-		mov ecx, ds:[FO_VAR_itemCurrentItem];     // 0 - left, 1 - right
-		imul edx, ecx, 0x18;
-		cmp ds:[FO_VAR_itemButtonItems+5+edx], 1; // .itsWeapon
-		jnz end;
-		lea eax, [ecx+6];
-end:
-		mov edx, eax; // result
-skip:
-		pop ecx;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPushLong_;
-		mov eax, ecx;
-		mov edx, VAR_TYPE_INT;
-		call fo::funcoffs::interpretPushShort_;
-		pop ecx;
-		pop edx;
-		retn;
-	}
+void sf_get_attack_type(OpcodeContext& ctx) {
+	ctx.setReturn(fo::GetCurrentAttackMode());
 }
 
 void __declspec(naked) op_play_sfall_sound() {
@@ -1227,13 +1188,8 @@ end:
 }
 
 void sf_attack_is_aimed(OpcodeContext& ctx) {
-	int is_secondary, result;
-	__asm {
-		call intface_attack_type;
-		mov result, eax;
-		mov is_secondary, edx;
-	}
-	ctx.setReturn((result != -1) ? is_secondary : 0);
+	DWORD isAimed, unused;
+	ctx.setReturn(!fo::func::intface_get_attack(&unused, &isAimed) ? isAimed : 0);
 }
 
 void sf_sneak_success(OpcodeContext& ctx) {

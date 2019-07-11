@@ -745,9 +745,11 @@ less:
 }
 
 void SkipOpeningMoviesPatch() {
-	if (GetConfigInt("Misc", "SkipOpeningMovies", 0)) {
+	int skipOpening = GetConfigInt("Misc", "SkipOpeningMovies", 0);
+	if (skipOpening) {
 		dlog("Skipping opening movies.", DL_INIT);
-		SafeWrite16(0x4809C7, 0x1CEB);            // jmps 0x4809E5
+		SafeWrite16(0x4809C7, 0x1CEB); // jmps 0x4809E5
+		if (skipOpening == 2) BlockCall(0x4426A1); // game_splash_screen_
 		dlogr(" Done", DL_INIT);
 	}
 }
@@ -805,10 +807,10 @@ void Movies::init() {
 	if (Artimer1DaysCheckTimer != 90) {
 		Artimer1DaysCheckTimer = max(0, min(days, Artimer1DaysCheckTimer));
 		char s[255];
-		sprintf_s(s, "Applying patch: MovieTimer_artimer1 = %d. ", Artimer1DaysCheckTimer);
+		sprintf_s(s, "Applying patch: MovieTimer_artimer1 = %d.", Artimer1DaysCheckTimer);
 		dlog(s, DL_INIT);
 		MakeJump(0x4A378B, Artimer1DaysCheckHack);
-		dlogr("Done", DL_INIT);
+		dlogr(" Done", DL_INIT);
 	}
 
 	// Should be AFTER the PlayMovieHook setup above

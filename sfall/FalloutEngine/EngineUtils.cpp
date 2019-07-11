@@ -112,6 +112,26 @@ GameObject* GetActiveItem() {
 	return fo::var::itemButtonItems[fo::var::itemCurrentItem].item;
 }
 
+long GetCurrentAttackMode() {
+	long hitMode = -1;
+	if (fo::var::interfaceWindow != -1) {
+		long activeHand = fo::var::itemCurrentItem; // 0 - left, 1 - right
+		switch (fo::var::itemButtonItems[activeHand].mode) {
+		case 1:
+		case 2: // 2 - called shot
+			hitMode = fo::var::itemButtonItems[activeHand].primaryAttack;
+			break;
+		case 3:
+		case 4: // 4 - called shot
+			hitMode = fo::var::itemButtonItems[activeHand].secondaryAttack;
+			break; 
+		case 5: // reload mode
+			hitMode = fo::ATKTYPE_LWEAPON_RELOAD + activeHand;
+		}
+	}
+	return hitMode;
+}
+
 bool HeroIsFemale() {
 	return (fo::func::stat_level(fo::var::obj_dude, fo::Stat::STAT_gender) == fo::Gender::GENDER_FEMALE);
 }
@@ -152,6 +172,13 @@ long IsPartyMemberByPid(long pid) {
 bool IsPartyMember(fo::GameObject* critter) {
 	if (critter->id < PLAYER_ID) return false;
 	return (IsPartyMemberByPid(critter->protoId) > 0);
+}
+
+// Returns the number of local variables of the object script
+long GetScriptLocalVars(long sid) {
+	fo::ScriptInstance* script = nullptr;
+	fo::func::scr_ptr(sid, &script);
+	return (script) ? script->numLocalVars : 0;
 }
 
 //---------------------------------------------------------
@@ -244,6 +271,99 @@ void RedrawObject(GameObject* obj) {
 	BoundRect rect;
 	func::obj_bound(obj, &rect);
 	func::tile_refresh_rect(&rect, obj->elevation);
+}
+
+/////////////////////////////////////////////////////////////////UNLISTED FRM FUNCTIONS////////////////////////////////////////////////////////////////////////
+
+static bool LoadFrmHeader(UnlistedFrm *frmHeader, fo::DbFile* frmStream) {
+	if (fo::func::db_freadInt(frmStream, &frmHeader->version) == -1)
+		return false;
+	else if (fo::func::db_freadShort(frmStream, &frmHeader->FPS) == -1)
+		return false;
+	else if (fo::func::db_freadShort(frmStream, &frmHeader->actionFrame) == -1)
+		return false;
+	else if (fo::func::db_freadShort(frmStream, &frmHeader->numFrames) == -1)
+		return false;
+	else if (fo::func::db_freadShortCount(frmStream, frmHeader->xCentreShift, 6) == -1)
+		return false;
+	else if (fo::func::db_freadShortCount(frmStream, frmHeader->yCentreShift, 6) == -1)
+		return false;
+	else if (fo::func::db_freadIntCount(frmStream, frmHeader->oriOffset, 6) == -1)
+		return false;
+	else if (fo::func::db_freadInt(frmStream, &frmHeader->frameAreaSize) == -1)
+		return false;
+
+	return true;
+}
+
+static bool LoadFrmFrame(UnlistedFrm::Frame *frame, fo::DbFile* frmStream) {
+
+	//FRMframe *frameHeader = (FRMframe*)frameMEM;
+	//BYTE* frameBuff = frame + sizeof(FRMframe);
+
+	if (fo::func::db_freadShort(frmStream, &frame->width) == -1)
+		return false;
+	else if (fo::func::db_freadShort(frmStream, &frame->height) == -1)
+		return false;
+	else if (fo::func::db_freadInt(frmStream, &frame->size) == -1)
+		return false;
+	else if (fo::func::db_freadShort(frmStream, &frame->x) == -1)
+		return false;
+	else if (fo::func::db_freadShort(frmStream, &frame->y) == -1)
+		return false;
+
+	frame->indexBuff = new BYTE[frame->size];
+	if (fo::func::db_fread(frame->indexBuff, frame->size, 1, frmStream) != 1)
+		return false;
+
+	return true;
+}
+
+UnlistedFrm *LoadUnlistedFrm(char *frmName, unsigned int folderRef) {
+
+	if (folderRef > fo::OBJ_TYPE_SKILLDEX) return nullptr;
+
+	char *artfolder = fo::var::art[folderRef].path; // address of art type name
+	char frmPath[MAX_PATH];
+
+	sprintf_s(frmPath, MAX_PATH, "art\\%s\\%s", artfolder, frmName);
+
+	UnlistedFrm *frm = new UnlistedFrm;
+
+	auto frmStream = fo::func::xfopen(frmPath, "rb");
+
+	if (frmStream != nullptr) {
+		if (!LoadFrmHeader(frm, frmStream)) {
+			fo::func::db_fclose(frmStream);
+			delete frm;
+			return nullptr;
+		}
+
+		DWORD oriOffset_1st = frm->oriOffset[0];
+		DWORD oriOffset_new = 0;
+		frm->frames = new UnlistedFrm::Frame[6 * frm->numFrames];
+		for (int ori = 0; ori < 6; ori++) {
+			if (ori == 0 || frm->oriOffset[ori] != oriOffset_1st) {
+				frm->oriOffset[ori] = oriOffset_new;
+				for (int fNum = 0; fNum < frm->numFrames; fNum++) {
+					if (!LoadFrmFrame(&frm->frames[oriOffset_new + fNum], frmStream)) {
+						fo::func::db_fclose(frmStream);
+						delete frm;
+						return nullptr;
+					}
+				}
+				oriOffset_new += frm->numFrames;
+			} else {
+				frm->oriOffset[ori] = 0;
+			}
+		}
+
+		fo::func::db_fclose(frmStream);
+	} else {
+		delete frm;
+		return nullptr;
+	}
+	return frm;
 }
 
 }

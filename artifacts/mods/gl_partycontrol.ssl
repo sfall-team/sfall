@@ -72,7 +72,7 @@ procedure combatturn_handler begin
       end
    end else if inControl then begin
       if displayName then hide_iface_tag(displayName);
-      if (status == -1 or AllowControl(pid) == false) then begin
+      if ((status == 0 or status == -1) and dude_obj != real_dude_obj) then begin
          set_dude_obj(real_dude_obj);
          obj_set_light_level(dude_obj, 100, 4);
          npcControl := 0;
@@ -84,11 +84,6 @@ procedure gamemodechange_handler begin
    if not(hasGeckoSkinning) then hasGeckoSkinning := has_trait(TRAIT_PERK, real_dude_obj, PERK_gecko_skinning_perk);
    if (inControl and not(get_game_mode BWAND COMBAT)) then begin
       inControl := false;
-      if (dude_obj != real_dude_obj) then begin
-         set_dude_obj(real_dude_obj);
-         obj_set_light_level(dude_obj, 100, 4);
-         npcControl := 0;
-      end
       move_to(dude_obj, dude_tile, dude_elevation);
    end
 end

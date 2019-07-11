@@ -33,6 +33,7 @@
 #define FO_VAR_combat_free_move           0x56D39C
 #define FO_VAR_combat_list                0x56D390
 #define FO_VAR_combat_state               0x510944
+#define FO_VAR_combat_turn_obj            0x56D388
 #define FO_VAR_combat_turn_running        0x51093C
 #define FO_VAR_combatNumTurns             0x510940
 #define FO_VAR_crit_succ_eff              0x510978
@@ -58,6 +59,7 @@
 #define FO_VAR_Educated                   0x57082C
 #define FO_VAR_elevation                  0x631D2C
 #define FO_VAR_Experience_                0x6681B4
+#define FO_VAR_fade_steps                 0x6642D0
 #define FO_VAR_fallout_game_time          0x51C720
 #define FO_VAR_fidgetFID                  0x5186F4
 #define FO_VAR_fidgetFp                   0x5186FC
@@ -136,6 +138,7 @@
 #define FO_VAR_mouse_x_                   0x6AC7A8
 #define FO_VAR_mouse_y                    0x664450
 #define FO_VAR_mouse_y_                   0x6AC7A4
+#define FO_VAR_movePointRect              0x518FD4
 #define FO_VAR_Mutate_                    0x5708B4
 #define FO_VAR_name_color                 0x56D744
 #define FO_VAR_name_font                  0x56D74C
@@ -228,6 +231,10 @@
 #define FO_VAR_wmAreaInfoList             0x51DDF8
 #define FO_VAR_wmLastRndTime              0x51DEA0
 #define FO_VAR_wmMaxMapNum                0x51DE10
+#define FO_VAR_wmMaxTileNum               0x51DDF0
+#define FO_VAR_wmNumHorizontalTiles       0x51DDF4
+#define FO_VAR_wmViewportRightScrlLimit   0x672EFC
+#define FO_VAR_wmViewportBottomtScrlLimit 0x672F00
 #define FO_VAR_wmWorldOffsetX             0x51DE2C
 #define FO_VAR_wmWorldOffsetY             0x51DE30
 #define FO_VAR_wmYesNoStrs                0x51DD90

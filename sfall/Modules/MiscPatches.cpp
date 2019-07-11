@@ -846,8 +846,7 @@ void MiscPatches::init() {
 		dlogr(" Done", DL_INIT);
 	}
 
-	int gvar = GetConfigInt("Misc", "SpecialDeathGVAR", fo::GVAR_MODOC_SHITTY_DEATH);
-	if (gvar != fo::GVAR_MODOC_SHITTY_DEATH) SafeWrite32(0x440C2A, gvar);
+	SimplePatch<DWORD>(0x440C2A, "Misc", "SpecialDeathGVAR", fo::GVAR_MODOC_SHITTY_DEATH);
 
 	// Remove hardcoding for maps with IDs 19 and 37
 	if (GetConfigInt("Misc", "DisableSpecialMapIDs", 0)) {
@@ -855,6 +854,8 @@ void MiscPatches::init() {
 		SafeWriteBatch<BYTE>(0, {0x4836D6, 0x4836DB});
 		dlogr(" Done", DL_INIT);
 	}
+
+	SimplePatch<DWORD>(0x424FA7, "Misc", "KnockoutTime", 35, 35, 100);
 
 	// Increase the max text width of the information card in the character screen
 	SafeWriteBatch<BYTE>(144, {0x43ACD5, 0x43DD37}); // 136, 133

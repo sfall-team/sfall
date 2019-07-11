@@ -364,8 +364,8 @@ void sf_item_weight(OpcodeContext& ctx) {
 
 void sf_set_dude_obj(OpcodeContext& ctx) {
 	auto obj = ctx.arg(0).asObject();
-	if (obj->Type() == fo::OBJ_TYPE_CRITTER) {
-		//if (!InCombat && obj != PartyControl::RealDudeObject()) {
+	if (obj == nullptr || obj->Type() == fo::OBJ_TYPE_CRITTER) {
+		//if (!InCombat && obj && obj != PartyControl::RealDudeObject()) {
 		//	ctx.printOpcodeError("%s() - controlling of the critter is only allowed in combat mode.", ctx.getMetaruleName());
 		//} else {
 			PartyControl::SwitchToCritter(obj);

@@ -60,6 +60,8 @@ long& GetActiveItemMode();
 
 GameObject* GetActiveItem();
 
+long GetCurrentAttackMode();
+
 bool HeroIsFemale();
 
 long CheckAddictByPid(fo::GameObject* critter, long pid);
@@ -70,6 +72,9 @@ void ToggleNpcFlag(fo::GameObject* npc, long flag, bool set);
 long IsPartyMemberByPid(long pid);
 
 bool IsPartyMember(fo::GameObject* critter);
+
+// Returns the number of local variables of the object script
+long GetScriptLocalVars(long sid);
 
 // Print text to surface
 void PrintText(char *displayText, BYTE colorIndex, DWORD x, DWORD y, DWORD textWidth, DWORD destWidth, BYTE *surface);
@@ -88,5 +93,7 @@ DWORD GetMaxCharWidth();
 
 // Redraw the given object on screen (does not always redraws the whole object)
 void RedrawObject(GameObject* obj);
+
+UnlistedFrm *LoadUnlistedFrm(char *frmName, unsigned int folderRef);
 
 }

@@ -379,7 +379,7 @@ void EnableSuperSaving() {
 	// load saved page and list positions from file
 	MakeCalls(load_page_offsets, {0x47B82B});
 
-	//Add Load/Save page offset to Load/Save folder number/////////////////
+	// Add Load/Save page offset to Load/Save folder number/////////////////
 	MakeCalls(AddPageOffset01, {
 		0x47B929, 0x47D8DB, 0x47D9B0, 0x47DA34, 0x47DABF, 0x47DB58, 0x47DBE9,
 		0x47DC9C, 0x47EC77, 0x47F5AB, 0x47F694, 0x47F6EB, 0x47F7FB, 0x47F892,
