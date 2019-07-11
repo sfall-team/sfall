@@ -698,7 +698,7 @@
       - NOTE: this function does not work for pids of Dynamite and Plastic Explosives
     macro: sfall.h
 
-- name: Animations
+- name: Animations, art, appearance
   items:
   - name: reg_anim_combat_check
     detail: void reg_anim_combat_check(int enable)
@@ -728,6 +728,22 @@
     detail: void reg_anim_turn_towards(ObjectPtr, int tile/target, delay)
     doc: Makes object change its direction to face given tile num or target object.
     opcode: 0x8260
+
+  - name: art_exists
+    detail: int art_exists(int artFID)
+    doc: 'checks if given artFID exists in the game. Useful when you want to check if critter can use specific weapon: `art_exists((artFid bwand 0xffff0fff) bwor (weaponAnim * 0x1000))`.'
+    opcode: 0x8274
+  - name: refresh_pc_art
+    detail: void refresh_pc_art
+    opcode: 0x8227
+
+  - name: set_hero_race
+    detail: void set_hero_race(int style)
+    opcode: 0x8214
+  - name: set_hero_style
+    detail: void set_hero_style(int style)
+    opcode: 0x8215
+
 
 - name: Tiles and paths
   items:
@@ -897,12 +913,6 @@
   - name: hero_select_win
     detail: void hero_select_win(int)
     opcode: 0x8213
-  - name: set_hero_race
-    detail: void set_hero_race(int style)
-    opcode: 0x8214
-  - name: set_hero_style
-    detail: void set_hero_style(int style)
-    opcode: 0x8215
   - name: stop_game
     detail: void stop_game()
     opcode: 0x8222
@@ -916,9 +926,6 @@
     detail: int get_light_level()
     opcode: 0x8226
     doc: Returns ambient light level in range 0..65536. The value returned by get_light_level may not exactly match that set by `set_light_level`, as `set_light_level` applies modifiers from the Night Vision perk.
-  - name: refresh_pc_art
-    detail: void refresh_pc_art
-    opcode: 0x8227
   - name: atoi
     detail: int atoi(string text)
     opcode: 0x8237
@@ -1007,10 +1014,6 @@
     detail: ObjectPtr create_spatial(int scriptID, int tile, int elevation, int radius)
     doc: Creates new spatial script with given SID, at given tile, and radius.
     opcode: 0x8273
-  - name: art_exists
-    detail: int art_exists(int artFID)
-    doc: 'checks if given artFID exists in the game. Useful when you want to check if critter can use specific weapon: `art_exists((artFid bwand 0xffff0fff) bwor (weaponAnim * 0x1000))`.'
-    opcode: 0x8274
   - name: obj_is_carrying_obj
     detail: int (ObjectPtr invenObj, ObjectPtr itemObj)
     doc: Returns number of `itemObj` inside invenObj's inventory, note that both arguments are object pointers. useful when dealing with different stacks of same item (`obj_is_carrying_obj_pid` just returns total for all stacks of the same PID.)
