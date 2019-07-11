@@ -685,10 +685,6 @@ void SetGlobals(GlobalVar* globals) {
 static void __declspec(naked) map_save_in_game_hook() {
 	__asm {
 		call fo::funcoffs::partyMemberSaveProtos_;
-		test cl, 1;
-		jz   skip;
-		call fo::funcoffs::queue_leaving_map_;
-skip:
 		jmp  fo::funcoffs::game_time_;
 	}
 }
@@ -750,8 +746,10 @@ void ScriptExtender::init() {
 	// Reorder the execution of functions before exiting the map
 	// Call saving party member prototypes and removing the drug effects for NPC after executing map_exit_p_proc procedure
 	HookCall(0x483CF9, map_save_in_game_hook);
-	BlockCall(0x483CB4); // partyMemberSaveProtos_
-	BlockCall(0x483CBE); // queue_leaving_map_
+	MakeCall(0x483CB9, (void*)fo::funcoffs::scr_exec_map_exit_scripts_);
+	BlockCall(0x483CCD); // scr_exec_map_exit_scripts_
+	long long data = 0x397401C1F6; // test cl, 1; jz 0x483CF2
+	SafeWriteBytes(0x483CB4, (BYTE*)&data, 5);
 
 	InitNewOpcodes();
 }

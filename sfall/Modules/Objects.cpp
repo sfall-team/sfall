@@ -33,22 +33,22 @@ long Objects::uniqueID = UniqueID::Start; // current counter id, saving to sfall
 // Assigns a new unique identifier to an object if it has not been previously assigned
 // the identifier is saved with the object in the saved game and this can used in various script
 // player ID = 18000, all party members have ID = 18000 + its pid (file number of prototype)
-long Objects::SetObjectUniqueID(fo::GameObject* obj) {
+long __fastcall Objects::SetObjectUniqueID(fo::GameObject* obj) {
 	long id = obj->id;
-	if (id > UniqueID::Start || obj == fo::var::obj_dude || (id >= PLAYER_ID && id < 83536)) return id; // 65535 maximum possible number of prototypes
+	if (id > UniqueID::Start || (id >= PLAYER_ID && id < 83536)) return id; // 65535 maximum possible number of prototypes
 
-	if ((DWORD)uniqueID >= UniqueID::End) uniqueID = UniqueID::Start;
+	if ((DWORD)uniqueID >= (DWORD)UniqueID::End) uniqueID = UniqueID::Start;
 	obj->id = ++uniqueID;
 	return uniqueID;
 }
 
-// Assigns a unique ID in the negative range (0x8FFFFFFF - 0xFFFFFFFE)
-long Objects::SetSpecialID(fo::GameObject* obj) {
+// Assigns a unique ID in the negative range (0xFFFFFFF6 - 0x8FFFFFF7)
+long __fastcall Objects::SetSpecialID(fo::GameObject* obj) {
 	long id = obj->id;
-	if (id < -1 || id > UniqueID::Start) return id;
+	if (id <= -10 || id > UniqueID::Start) return id;
 
-	if ((DWORD)uniqueID >= UniqueID::End) uniqueID = UniqueID::Start;
-	id = ++uniqueID + UniqueID::End;
+	if ((DWORD)uniqueID >= (DWORD)UniqueID::End) uniqueID = UniqueID::Start;
+	id = -9 - (++uniqueID - UniqueID::Start);
 	obj->id = id;
 	return id;
 }
@@ -107,6 +107,43 @@ mapVirgin:
 saveable:
 		call map_fix_critter_id;
 		xor  eax, eax; // set ZF
+		retn;
+	}
+}
+
+static void __declspec(naked) queue_add_hack() {
+	using namespace fo;
+	using namespace Fields;
+	__asm {
+		mov  [edx + 8], edi; // queue.object
+		mov  [edx], esi;     // queue.time
+		test edi, edi;
+		jnz  fix;
+		retn;
+fix:
+		mov  eax, [edi + protoId];
+		and  eax, 0x0F000000;
+		jnz  notItem; // object is not an item?
+		push ecx;
+		push edx;
+		mov  ecx, edi;
+		call Objects::SetSpecialID;
+		pop  edx;
+		pop  ecx;
+		retn;
+notItem:
+		cmp  ecx, script_timer_event; // QueueType
+		je   end;
+		cmp  eax, OBJ_TYPE_CRITTER << 24;
+		jne  end;
+		push ecx;
+		push edx;
+		mov  ecx, edi;
+		call Objects::SetObjectUniqueID;
+		pop  edx;
+		pop  ecx;
+end:
+		xor  edi, edi; // fix: don't set "Used" flag for non-item objects
 		retn;
 	}
 }
@@ -171,6 +208,8 @@ void Objects::init() {
 	// Fix mapper bug by reassigning object IDs to critters (for unvisited maps)
 	MakeCall(0x482E6B, map_load_file_hack);
 	SafeWrite8(0x482E71, 0x85); // jz > jnz
+	// Additionally fix object IDs for queued events
+	MakeCall(0x4A25BA, queue_add_hack);
 }
 
 }

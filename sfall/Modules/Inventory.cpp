@@ -22,7 +22,6 @@
 #include "..\FalloutEngine\Fallout2.h"
 #include "..\InputFuncs.h"
 #include "PartyControl.h"
-//#include "HookScripts.h"
 #include "LoadGameHook.h"
 
 #include "Inventory.h"
@@ -651,6 +650,16 @@ end:
 	}
 }
 
+static void __declspec(naked) do_move_timer_hack() {
+	__asm {
+		mov  ebx, 1;
+		call GetLoopFlags;
+		test eax, BARTER;
+		cmovz ebx, ebp; // set max when not in barter
+		retn;
+	}
+}
+
 static int invenApCost, invenApCostDef;
 static char invenApQPReduction;
 static const DWORD inven_ap_cost_Ret = 0x46E812;
@@ -774,7 +783,7 @@ void Inventory::init() {
 	}
 
 	if (GetConfigInt("Misc", "ItemCounterDefaultMax", 0)) {
-		BlockCall(0x4768A3); // mov  ebx, 1
+		MakeCall(0x4768A3, do_move_timer_hack);
 	}
 
 	// Move items from bag/backpack to the main inventory list by dragging them on the character portrait (similar to Fallout 1 behavior)
