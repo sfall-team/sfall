@@ -698,7 +698,7 @@
       - NOTE: this function does not work for pids of Dynamite and Plastic Explosives
     macro: sfall.h
 
-- name: Animations, art, appearance
+- name: Animations
   items:
   - name: reg_anim_combat_check
     detail: void reg_anim_combat_check(int enable)
@@ -729,6 +729,8 @@
     doc: Makes object change its direction to face given tile num or target object.
     opcode: 0x8260
 
+- name: Art, appearance
+  items:
   - name: art_exists
     detail: int art_exists(int artFID)
     doc: 'checks if given artFID exists in the game. Useful when you want to check if critter can use specific weapon: `art_exists((artFid bwand 0xffff0fff) bwor (weaponAnim * 0x1000))`.'
