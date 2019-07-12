@@ -757,6 +757,10 @@
   - name: refresh_pc_art
     detail: void refresh_pc_art
     opcode: 0x8227
+  - name: art_cache_clear
+    detail: void art_cache_clear()
+    doc: Clears the cache of FRM image files loaded into memory.
+    macro: sfall.h
 
   - name: set_hero_race
     detail: void set_hero_race(int style)
@@ -1293,11 +1297,6 @@
   - name: get_object_ai_data
     detail: int get_object_ai_data(ObjectPtr object, int aiParam)
     doc: Returns the setting value from the AI packet of an object (critter). Use `AI_CAP_*` constants from `define_extra.h` for the `aiParam` argument to get AI value.
-    macro: sfall.h
-
-  - name: art_cache_clear
-    detail: void art_cache_clear()
-    doc: Clears the cache of FRM image files loaded into memory.
     macro: sfall.h
 
   - name: npc_engine_level_up
