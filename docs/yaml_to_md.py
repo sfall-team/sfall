@@ -87,7 +87,7 @@ with open(functions_yaml) as yf:
         text += "\n### **{}**\n".format(i['name'])
         # macro label
         if 'macro' in i:
-          text += "{: .d-inline-block }\n" + format(i['macro']) + "\n{: .label .label-blue }\n"
+          text += "{: .d-inline-block }\n" + format(i['macro']) + "\n{: .label .label-green }\n"
         # unsafe label
         if 'unsafe' in i and i['unsafe'] is True:
           text += '{: .d-inline-block }\nUNSAFE\n{: .label .label-red }\n'
