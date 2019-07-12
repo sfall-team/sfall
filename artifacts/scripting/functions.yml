@@ -167,6 +167,21 @@
     detail: int get_available_skill_points()
     opcode: 0x8245
 
+  - name: set_skill_max
+    detail: void set_skill_max(int value)
+    opcode: 0x81a2
+    doc: Can't be used to increase the skill cap above 300.
+  - name: set_critter_skill_mod
+    detail: void set_critter_skill_mod(CritterPtr, int max)
+    opcode: 0x81c7
+  - name: set_base_skill_mod
+    detail: void set_base_skill_mod(int max)
+    opcode: 0x81c8
+  - name: mod_skill_points_per_level
+    detail: void mod_skill_points_per_level(int value)
+    doc: Accepts a value of between -100 and 100, and modifies the number of skill points the player recieves when they level up. This is a modification of what would otherwise happen, rather than a replacement. The value is not saved into the save game, so should be reset in the `game_loaded` section of a script.
+    opcode: 0x8246
+
 - name: Graphics
   doc: The graphics functions are only available if the user is using graphics mode 4 or 5. Use `graphics_funcs_available` to check; it returns 1 if you can use them or 0 if you can't. Calling graphics functions when `graphics_funcs_available` returns 0 will do nothing.
   items:
@@ -829,10 +844,6 @@
     detail: void set_hit_chance_max(int percentage)
     opcode: 0x81a1
     doc: Effects all critters rather than just the player.
-  - name: set_skill_max
-    detail: void set_skill_max(int value)
-    opcode: 0x81a2
-    doc: Can't be used to increase the skill cap above 300.
   - name: set_xp_mod
     detail: void set_xp_mod(int percentage)
     opcode: 0x81aa
@@ -842,12 +853,6 @@
   - name: set_base_hit_chance_mod
     detail: void set_base_hit_chance_mod(int max, int mod)
     opcode: 0x81c6
-  - name: set_critter_skill_mod
-    detail: void set_critter_skill_mod(CritterPtr, int max)
-    opcode: 0x81c7
-  - name: set_base_skill_mod
-    detail: void set_base_skill_mod(int max)
-    opcode: 0x81c8
   - name: inc_npc_level
     detail: void inc_npc_level(string npc)
     opcode: 0x81a5
@@ -961,11 +966,6 @@
     detail: int get_uptime()
     doc: Just a wrapper around the windows GetTickCount() function. It's useful for making time fade effects in shaders, since they already have access to the current tick count.
     opcode: 0x81b3
-
-  - name: mod_skill_points_per_level
-    detail: void mod_skill_points_per_level(int value)
-    doc: Accepts a value of between -100 and 100, and modifies the number of skill points the player recieves when they level up. This is a modification of what would otherwise happen, rather than a replacement. The value is not saved into the save game, so should be reset in the `game_loaded` section of a script.
-    opcode: 0x8246
 
   - name: set_base_pickpocket_mod
     detail: void set_base_pickpocket_mod(int max, int mod)
