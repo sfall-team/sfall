@@ -463,6 +463,10 @@
   - name: get_map_enter_position
     detail: array get_map_enter_position()
     doc: "Returns an array of the player's position data (index: 0 - tile, 1 - elevation, 2 - rotation) when entering the map through exit grids. If entering from the world map, the tile value will be -1. Should be called in `map_enter_p_proc` procedure to get the correct position data."
+  - name: exec_map_update_scripts
+    detail: void exec_map_update_scripts()
+    doc: Executes `map_update_p_proc` for all objects on map and global/hook scripts as well.
+    macro: sfall.h
 
 - name: Rest
   parent: Maps and encounters
@@ -1229,10 +1233,6 @@
     doc: Sets the current flags of an object. All flags are rewritten with given integer, so first get current flags with `get_flags` and use `bwor/bwand` to set/remove specific flag.
     macro: sfall.h
 
-  - name: exec_map_update_scripts
-    detail: void exec_map_update_scripts()
-    doc: Executes `map_update_p_proc` for all objects on map and global/hook scripts as well.
-    macro: sfall.h
   - name: spatial_radius
     detail: int spatial_radius(ObjectPtr obj)
     doc: Returns radius of spatial script, associated with given dummy-object (returned by `create_spatial`).
