@@ -1055,7 +1055,7 @@
     macro: sfall.h
 
 - name: Global variables
-  doc: These functions require an __8 characters long case sensitive__ string for the variable name. The variables behave the same as normal Fallout globals, except that they don't have to be declared beforehand in vault13.gam. Trying to get a variable which hasn't been set will always return 0. The functions are intended for use when a patch to a mod requires the addition of a new global variable, a case which would otherwise require the player to start a new game.
+  doc: These functions require an __EXACTLY 8 characters long__, case sensitive string for the variable name. The variables behave the same as normal Fallout globals, except that they don't have to be declared beforehand in `vault13.gam`. Trying to get a variable which hasn't been set will always return 0. The functions are intended for use when a patch to a mod requires the addition of a new global variable, a case which would otherwise require the player to start a new game.
   items:
   - name: set_sfall_global
     detail: void set_sfall_global(string/int varname, int/float value)
