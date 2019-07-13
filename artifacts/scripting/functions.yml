@@ -858,7 +858,7 @@
     detail: void set_base_hit_chance_mod(int max, int mod)
     opcode: 0x81c6
   - name: inc_npc_level
-    detail: void inc_npc_level(string npc)
+    detail: void inc_npc_level(int party_member_pid)
     opcode: 0x81a5
     doc: Takes a party member PID or an NPC name (deprecated, for compatibility with sfall 4.1.5/3.8.15 or earlier) as an argument. The NPC must be in your party. This function ignores player level requirements and the minimum 3 player level delay between NPC level gains. It also ignores the random element, regardless of sfall's `NPCAutoLevel` setting.
   - name: get_npc_level
