@@ -366,8 +366,9 @@ void AlwaysReloadMsgs() {
 }
 
 void DebugEditor::init() {
-	if (!isDebug) return;
 	DebugModePatch();
+
+	if (!isDebug) return;
 	DontDeleteProtosPatch();
 	AlwaysReloadMsgs();
 
