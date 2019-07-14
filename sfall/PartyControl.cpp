@@ -124,8 +124,8 @@ static void TakeControlOfNPC(TGameObj* npc) {
 	// reset traits
 	ptr_pc_traits[0] = ptr_pc_traits[1] = -1;
 
-	// reset perks
-	for (int i = 0; i < PERK_count; i++) {
+	// reset perks (except Awareness)
+	for (int i = 1; i < PERK_count; i++) {
 		(*ptr_perkLevelDataList)[i] = 0;
 	}
 
