@@ -117,7 +117,7 @@ DWORD _stdcall KeyDown(DWORD key) {
 		return 0;
 	} else {
 		DWORD keyVK = 0;
-		if (keysDown[key]) { // confirm pressed state  
+		if (keysDown[key]) { // confirm pressed state
 			keyVK = MapVirtualKeyEx(key, MAPVK_VSC_TO_VK, keyboardLayout);
 			if (keyVK) keysDown[key] = (GetAsyncKeyState(keyVK) & 0x8000);
 		}
@@ -282,9 +282,14 @@ public:
 			for (DWORD i = 0; i < *c; i++) {
 				DWORD dxKey = b[i].dwOfs;
 				DWORD state = b[i].dwData & 0x80;
+				DWORD oldState = keysDown[dxKey];
+				keysDown[dxKey] = state;
 				HookScripts::KeyPressHook(&dxKey, (state > 0), MapVirtualKeyEx(dxKey, MAPVK_VSC_TO_VK, keyboardLayout));
-				if (dxKey != b[i].dwOfs && dxKey > 0) b[i].dwOfs = dxKey; // Override key
-				keysDown[b[i].dwOfs] = state;
+				if (dxKey > 0 && dxKey != b[i].dwOfs) {
+					keysDown[b[i].dwOfs] = oldState;
+					b[i].dwOfs = dxKey; // Override key
+					keysDown[b[i].dwOfs] = state;
+				}
 				onKeyPressed.invoke(b[i].dwOfs, (state > 0));
 			}
 			return hr;
