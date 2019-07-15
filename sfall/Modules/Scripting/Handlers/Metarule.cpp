@@ -59,7 +59,7 @@ static MetaruleTableType metaruleTable;
 		- arg1, arg2, ... - argument types for automatic validation
 */
 static const SfallMetarule metarules[] = {
-	{"add_extra_msg_file",      sf_add_extra_msg_file,      2, 2, {ARG_STRING, ARG_INT}},
+	{"add_extra_msg_file",      sf_add_extra_msg_file,      1, 2, {ARG_STRING, ARG_INT}},
 	{"add_iface_tag",           sf_add_iface_tag,           0, 0},
 	{"art_cache_clear",         sf_art_cache_flush,         0, 0},
 	{"attack_is_aimed",         sf_attack_is_aimed,         0, 0},
