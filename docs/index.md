@@ -30,7 +30,7 @@ To get started with sfall, first familiarize yourself with new concepts:
 * [Arrays]({{ site.baseurl }}/arrays/) and [lists]({{ site.baseurl }}/lists/).
 * [Hooks]({{ site.baseurl }}/hooks/).
 * [Data types]({{ site.baseurl }}/data-types/).
-* [Object manipulation]({{ site.baseurl }}/object-manipulation/).
+* [Object manipulation]({{ site.baseurl }}/object-and-scripts/).
 
 Pay special attention to the [best practices]({{ site.baseurl }}/best-practices/) page.
 
