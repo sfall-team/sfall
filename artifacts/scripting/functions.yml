@@ -564,6 +564,7 @@
     opcode: 0x8212
 
 - name: Math
+  parent: Variables
   items:
   - name: log
     detail: float log(float x)
@@ -748,7 +749,7 @@
     doc: Makes object change its direction to face given tile num or target object.
     opcode: 0x8260
 
-- name: Art, appearance
+- name: Art and appearance
   items:
   - name: art_exists
     detail: int art_exists(int artFID)
@@ -898,19 +899,6 @@
     opcode: 0x81e9
     doc: Similar to `get_unspent_ap_bonus`, but accounts for the extra AC granted by the h2h evade perk. (The default value of this is also 4, equivalent to doubling the original bonus.
 
-  - name: remove_script
-    detail: void remove_script(ObjectPtr)
-    opcode: 0x81f3
-    doc: Accepts a pointer to an object and will remove the script from that object.
-  - name: set_script
-    detail: void set_script(ObjectPtr, int scriptid)
-    opcode: 0x81f4
-    doc: Accepts a pointer to an object and scriptID, and applies the given script to an object (scriptID accept the same values as `create_object_sid `from sfall 3.6). If used on an object that is already scripted, it will remove the existing script first; you cannot have multiple scripts attached to a single object. Calling `set_script` on `self_obj` will have all sorts of wacky side effects, and should be avoided. If you add 0x80000000 to the sid when calling `set_script`, `map_enter_p_proc` will be SKIPPED. The `start` proc will always be run.
-  - name: get_script
-    detail: int get_script(ObjectPtr)
-    opcode: 0x81f5
-    doc: Accepts a pointer to an object and returns its scriptID (line number in `scripts.lst`), or -1 if the object is unscripted.
-
   - name: nb_create_char
     detail: int nb_create_char()
     opcode: 0x81f6
@@ -941,12 +929,6 @@
     detail: int get_light_level()
     opcode: 0x8226
     doc: Returns ambient light level in range 0..65536. The value returned by get_light_level may not exactly match that set by `set_light_level`, as `set_light_level` applies modifiers from the Night Vision perk.
-  - name: atoi
-    detail: int atoi(string text)
-    opcode: 0x8237
-  - name: atof
-    detail: float atof(string text)
-    opcode: 0x8238
 
   - name: mark_movie_played
     detail: void mark_movie_played(int id)
@@ -980,33 +962,6 @@
     doc: The same as `set_base_pickpocket`, but applies only to specific critter.
     opcode: 0x81c9
 
-  - name: string_split
-    detail: array string_split(string, split)
-    doc: "Takes a string and a seperator, searches the string for all instances of the seperator, and returns a temp array filled with the pieces of the string split at each instance. If you give an empty string as the seperator, the string is split into individual characters. You can use this to search for a substring in a string like this: `strlen(get_array(string_split(haystack, needle), 0))`"
-    opcode: 0x8235
-
-  - name: substr
-    detail: string substr(string, start, length)
-    doc: 'Cuts a substring from a string starting at `start` up to `length` characters. If `start` is negative - it indicates starting position from the end of the string (for example `substr("test", -2, 2)` will return last 2 characters: "st"). If `length` is negative - it means so many characters will be omitted from the end of string (example: `substr("test", 0, -2)` will return string without last 2 characters: "te")'
-    opcode: 0x824e
-    
-  - name: strlen
-    detail: int strlen(string text)
-    doc: Returns string length.
-    opcode: 0x824f
-  - name: sprintf
-    detail: string sprintf(string format, any value)
-    doc: Formats given value using standart syntax of C printf function (google "printf" for format details). However it is limited to formatting only 1 value. Can be used to get character by ASCII code ("%c").
-    opcode: 0x8250
-  - name: typeof
-    detail: int typeof(any value)
-    doc: 'Returns type of the given value: VALTYPE_INT, VALTYPE_FLOAT or VALTYPE_STR.'
-    opcode: 0x8253
-  - name: charcode
-    detail: int charcode(string text)
-    doc: Returns ASCII code for the first character in given string.
-    opcode: 0x8251
-
   - name: message_str_game
     detail: string message_str_game(int fileId, int messageId)
     doc: |
@@ -1024,10 +979,48 @@
     detail: ObjectPtr create_spatial(int scriptID, int tile, int elevation, int radius)
     doc: Creates new spatial script with given SID, at given tile, and radius.
     opcode: 0x8273
-  - name: obj_is_carrying_obj
-    detail: int (ObjectPtr invenObj, ObjectPtr itemObj)
-    doc: Returns number of `itemObj` inside invenObj's inventory, note that both arguments are object pointers. useful when dealing with different stacks of same item (`obj_is_carrying_obj_pid` just returns total for all stacks of the same PID.)
-    opcode: 0x8275
+
+- name: Variables
+  items:
+  - name: sprintf
+    detail: string sprintf(string format, any value)
+    doc: Formats given value using standart syntax of C printf function (google "printf" for format details). However it is limited to formatting only 1 value. Can be used to get character by ASCII code ("%c").
+    opcode: 0x8250
+  - name: typeof
+    detail: int typeof(any value)
+    doc: 'Returns type of the given value: VALTYPE_INT, VALTYPE_FLOAT or VALTYPE_STR.'
+    opcode: 0x8253
+  - name: atoi
+    detail: int atoi(string text)
+    opcode: 0x8237
+  - name: atof
+    detail: float atof(string text)
+    opcode: 0x8238
+  - name: get_string_pointer
+    detail: int get_string_pointer(string text)
+    doc: Returns a pointer to a string variable or to a text.
+    macro: sfall.h
+
+- name: Strings
+  parent: Variables
+  items:
+  - name: string_split
+    detail: array string_split(string, split)
+    doc: "Takes a string and a seperator, searches the string for all instances of the seperator, and returns a temp array filled with the pieces of the string split at each instance. If you give an empty string as the seperator, the string is split into individual characters. You can use this to search for a substring in a string like this: `strlen(get_array(string_split(haystack, needle), 0))`"
+    opcode: 0x8235
+  - name: substr
+    detail: string substr(string, start, length)
+    doc: 'Cuts a substring from a string starting at `start` up to `length` characters. If `start` is negative - it indicates starting position from the end of the string (for example `substr("test", -2, 2)` will return last 2 characters: "st"). If `length` is negative - it means so many characters will be omitted from the end of string (example: `substr("test", 0, -2)` will return string without last 2 characters: "te")'
+    opcode: 0x824e
+  - name: strlen
+    detail: int strlen(string text)
+    doc: Returns string length.
+    opcode: 0x824f
+  - name: charcode
+    detail: int charcode(string text)
+    doc: Returns ASCII code for the first character in given string.
+    opcode: 0x8251
+
 
 - name: Interface
 
@@ -1255,11 +1248,6 @@
     doc: Returns names of all currently available scripting functions.
     macro: sfall.h
 
-  - name: get_string_pointer
-    detail: int get_string_pointer(string text)
-    doc: Returns a pointer to a string variable or to a text.
-    macro: sfall.h
-
   - name: dialog_message
     detail: void dialog_message(string text)
     doc: Risplays a message in the NPC response window in dialog or barter screen.
@@ -1270,19 +1258,9 @@
     doc: Returns the current inventory size of the container or the critter.
     macro: sfall.h
   
-  - name: dialog_obj
-    detail: ObjectPtr dialog_obj()
-    doc: Returns a pointer to the object (critter) the player is having a conversation or bartering with.
-    macro: sfall.h
-
   - name: obj_under_cursor
     detail: ObjectPtr obj_under_cursor(bool crSwitch, bool inclDude)
     doc: "Returns the object under the cursor on the main game screen. `crSwitch: True` - only checks critters and ignores their cover (roof tiles, walls, scenery, etc.), False - checks all objects (can't check critters under objects). Passing False to the `inclDude` argument will ignore `dude_obj`"
-    macro: sfall.h
-
-  - name: loot_obj
-    detail: ObjectPtr loot_obj()
-    doc: Returns a pointer to the target object (container or critter) of the loot screen.
     macro: sfall.h
 
   - name: get_object_data
@@ -1587,7 +1565,7 @@
     doc: 'Writes an integer or a string value to an ini file in the Fallout directory. If the ini file does not exist, it will be created The setting argument works in the same way as in `get_ini_setting`, seperate the file name, section and key with a "|" character. __Note:__ the file name is limited to 63 chars (including the extension), the section name is limited to 32 characters.'
     macro: sfall.h
 
-- name: Object manipulation
+- name: Objects and scripts
   items:
   - name: set_self
     detail: void set_self(ObjectPtr)
@@ -1606,4 +1584,31 @@
   - name: real_dude_obj
     detail: ObjectPtr real_dude_obj()
     doc: Returns the initial `dude_obj` after `set_dude_obj` was used.
+    macro: sfall.h
+
+  - name: remove_script
+    detail: void remove_script(ObjectPtr)
+    opcode: 0x81f3
+    doc: Accepts a pointer to an object and will remove the script from that object.
+  - name: set_script
+    detail: void set_script(ObjectPtr, int scriptid)
+    opcode: 0x81f4
+    doc: Accepts a pointer to an object and scriptID, and applies the given script to an object (scriptID accept the same values as `create_object_sid `from sfall 3.6). If used on an object that is already scripted, it will remove the existing script first; you cannot have multiple scripts attached to a single object. Calling `set_script` on `self_obj` will have all sorts of wacky side effects, and should be avoided. If you add 0x80000000 to the sid when calling `set_script`, `map_enter_p_proc` will be SKIPPED. The `start` proc will always be run.
+  - name: get_script
+    detail: int get_script(ObjectPtr)
+    opcode: 0x81f5
+    doc: Accepts a pointer to an object and returns its scriptID (line number in `scripts.lst`), or -1 if the object is unscripted.
+
+  - name: obj_is_carrying_obj
+    detail: int (ObjectPtr invenObj, ObjectPtr itemObj)
+    doc: Returns number of `itemObj` inside invenObj's inventory, note that both arguments are object pointers. useful when dealing with different stacks of same item (`obj_is_carrying_obj_pid` just returns total for all stacks of the same PID.)
+    opcode: 0x8275
+
+  - name: loot_obj
+    detail: ObjectPtr loot_obj()
+    doc: Returns a pointer to the target object (container or critter) of the loot screen.
+    macro: sfall.h
+  - name: dialog_obj
+    detail: ObjectPtr dialog_obj()
+    doc: Returns a pointer to the object (critter) the player is having a conversation or bartering with.
     macro: sfall.h
