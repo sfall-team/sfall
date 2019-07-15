@@ -229,8 +229,10 @@ static bool LoadGame_Before() {
 		if (uID > UniqueID::Start) Objects::uniqueID = uID;
 		ReadFile(h, &data, 4, &size, 0);
 		Worldmap::SetAddedYears(data >> 16);
-		if (size != 4 || !Perks::load(h) || script::LoadArrays(h)) goto errorLoad;
-		if (BugFixes::DrugsLoadFix(h)) goto errorLoad;
+		if (size != 4 || !Perks::load(h)) goto errorLoad;
+		long result = script::LoadArrays(h); // 1 - old save, -1 - broken save
+		if (result == -1) goto errorLoad;
+		if (!result && BugFixes::DrugsLoadFix(h)) goto errorLoad;
 		CloseHandle(h);
 	} else {
 		dlogr("Cannot open sfallgv.sav - assuming non-sfall save.", DL_MAIN);
@@ -245,12 +247,13 @@ static bool LoadGame_Before() {
 	} else {
 		dlogr("Cannot open sfalldb.sav.", DL_MAIN);
 	}
-
 	return false;
+
 /////////////////////////////////////////////////
 errorLoad:
 	CloseHandle(h);
 	dlog_f("ERROR reading data: %s\n", DL_MAIN, buf);
+	fo::func::debug_printf("\n[SFALL] ERROR reading data: %s", buf);
 	return (true & !isDebug);
 }
 
