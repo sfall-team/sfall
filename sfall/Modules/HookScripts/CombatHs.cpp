@@ -128,7 +128,7 @@ static void __declspec(naked) CalcApCostHook2() {
 	}
 }
 
-static void __fastcall ComputeDamageHook_Script(fo::ComputeAttackResult &ctd, DWORD rounds, DWORD multiply) {
+static void __fastcall ComputeDamageHook_Script(fo::ComputeAttackResult &ctd, DWORD rounds, DWORD multiplier) {
 	BeginHook();
 	argCount = 12;
 
@@ -140,8 +140,8 @@ static void __fastcall ComputeDamageHook_Script(fo::ComputeAttackResult &ctd, DW
 	args[5] = ctd.attackerFlags;           // flagsSource
 	args[6] = (DWORD)ctd.weapon;
 	args[7] = ctd.bodyPart;
-	args[8] = multiply;                    // multiply damage
-	args[9] = rounds;                      // number rounds
+	args[8] = multiplier;                  // damage multiplier
+	args[9] = rounds;                      // number of rounds
 	args[10] = ctd.knockbackValue;
 	args[11] = ctd.hitMode;                // attack type
 
@@ -166,13 +166,13 @@ static void __fastcall ComputeDamageHook_Script(fo::ComputeAttackResult &ctd, DW
 static void __declspec(naked) ComputeDamageHook() {
 	__asm {
 		push ecx;
-		push ebx;         // store dmg multiply  args[8]
-		push edx;         // store num rounds    args[9]
+		push ebx;         // store dmg multiplier  args[8]
+		push edx;         // store num of rounds   args[9]
 		push eax;         // store ctd
 		call fo::funcoffs::compute_damage_;
 		pop  ecx;         // restore ctd (eax)
-		pop  edx;         // restore num rounds
-		call ComputeDamageHook_Script;  // stack - arg multiply
+		pop  edx;         // restore num of rounds
+		call ComputeDamageHook_Script;  // stack - arg multiplier
 		pop  ecx;
 		retn;
 	}
