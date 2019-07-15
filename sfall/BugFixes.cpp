@@ -47,7 +47,7 @@ void DrugsSaveFix(HANDLE file) {
 bool DrugsLoadFix(HANDLE file) {
 	DWORD count, sizeRead;
 	ReadFile(file, &count, 4, &sizeRead, 0);
-	//if (sizeRead != 4) return true;
+	if (sizeRead != 4) return false;
 	for (DWORD i = 0; i < count; i++) {
 		DWORD pid;
 		ReadFile(file, &pid, 4, &sizeRead, 0);

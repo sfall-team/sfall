@@ -198,18 +198,21 @@ static bool _stdcall LoadGame2_Before() {
 		if (uID > UID_START) objUniqueID = uID;
 		ReadFile(h, &data, 4, &size, 0);
 		SetAddedYears(data >> 16);
-		if (size != 4 || !PerksLoad(h) || LoadArrays(h)) goto errorLoad;
-		if (DrugsLoadFix(h)) goto errorLoad;
+		if (size != 4 || !PerksLoad(h)) goto errorLoad;
+		long result = LoadArrays(h); // 1 - old save, -1 - broken save
+		if (result == -1) goto errorLoad;
+		if (!result && DrugsLoadFix(h)) goto errorLoad;
 		CloseHandle(h);
 	} else {
 		dlogr("Cannot open sfallgv.sav - assuming non-sfall save.", DL_MAIN);
 	}
-
 	return false;
+
 //////////////////////////////////////////////////
 errorLoad:
 	CloseHandle(h);
 	dlog_f("ERROR reading data: %s\n", DL_MAIN, buf);
+	DebugPrintf("\n[SFALL] ERROR reading data: %s", buf);
 	return (true & !isDebug);
 }
 

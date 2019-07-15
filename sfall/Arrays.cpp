@@ -176,12 +176,13 @@ bool LoadArrayElement(sArrayElement* el, HANDLE h)
 	return (el->len) ? (unused != el->len) : (unused != 4);
 }
 
-static bool LoadArraysOld(HANDLE h) {
-	dlogr("Loading arrays (old fmt)", DL_MAIN);
-
+static long LoadArraysOld(HANDLE h) {
 	DWORD count, unused, id;
 	ReadFile(h, &count, 4, &unused, 0); // count of saved arrays
-	if (unused != 4) return true;
+	if (unused != 4) return -1;
+	if (!count) return 0;
+
+	dlogr("Loading arrays (old fmt)", DL_MAIN);
 
 	sArrayVarOld var;
 	sArrayVar varN;
@@ -189,7 +190,7 @@ static bool LoadArraysOld(HANDLE h) {
 	for (DWORD i = 0; i < count; i++) {
 		ReadFile(h, &id, 4, &unused, 0);
 		ReadFile(h, &var, 8, &unused, 0);
-		if (unused != 8) return true;
+		if (unused != 8) return -1;
 
 		var.types = new DWORD[var.len];
 		var.data = new char[var.len * var.datalen];
@@ -219,23 +220,25 @@ static bool LoadArraysOld(HANDLE h) {
 		arrays.insert(array_pair(id, varN));
 		savedArrays[varN.key] = id;
 	}
-	return false;
+	return 1;
 }
 
-bool LoadArrays(HANDLE h) {
+long LoadArrays(HANDLE h) {
 	nextArrayID = 1;
 
-	if (LoadArraysOld(h)) return true;
-
-	dlogr("Loading arrays (new fmt)", DL_MAIN);
+	long result = LoadArraysOld(h);
+	if (result) return result;
 
 	DWORD count, unused, elCount;
 	ReadFile(h, &count, 4, &unused, 0); // count of saved arrays
-	if (unused != 4) return true;
+	if (unused != 4 && !result) return 1;
+
+	dlogr("Loading arrays (new fmt)", DL_MAIN);
+	if (unused != 4) return -1;
 
 	sArrayVar arrayVar;
 	for (DWORD i = 0; i < count; i++) {
-		if (LoadArrayElement(&arrayVar.key, h)) return true;
+		if (LoadArrayElement(&arrayVar.key, h)) return -1;
 		if (arrayVar.key.intVal == 0 || static_cast<long>(arrayVar.key.type) >= 4) { // partial compatibility with 3.4
 			arrayVar.key.intVal = static_cast<long>(arrayVar.key.type);
 			arrayVar.key.type = DATATYPE_INT;
@@ -243,12 +246,12 @@ bool LoadArrays(HANDLE h) {
 
 		ReadFile(h, &arrayVar.flags, 4, &unused, 0);
 		ReadFile(h, &elCount, 4, &unused, 0); // actual number of elements: keys+values
-		if (unused != 4) return true;
+		if (unused != 4) return -1;
 
 		bool isAssoc = arrayVar.isAssoc();
 		arrayVar.val.resize(elCount);
 		for (size_t j = 0; j < elCount; j++) { // normal and associative arrays stored and loaded equally
-			if (LoadArrayElement(&arrayVar.val[j], h)) return true;
+			if (LoadArrayElement(&arrayVar.val[j], h)) return -1;
 			if (isAssoc && (j % 2) == 0) { // only difference is that keyHash is filled with appropriate indexes
 				arrayVar.keyHash[arrayVar.val[j]] = j;
 			}
@@ -260,7 +263,7 @@ bool LoadArrays(HANDLE h) {
 		savedArrays[arrayVar.key] = nextArrayID++;
 		arrayVar.keyHash.clear();
 	}
-	return false;
+	return 0;
 }
 
 void SaveArrays(HANDLE h) {

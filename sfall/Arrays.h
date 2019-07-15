@@ -142,7 +142,7 @@ extern DWORD arraysBehavior;
 // saved arrays: arrayKey => arrayId
 extern ArrayKeysMap savedArrays;
 
-bool LoadArrays(HANDLE h);
+long LoadArrays(HANDLE h);
 void SaveArrays(HANDLE h);
 int GetNumArrays();
 void GetArrays(int* arrays);
