@@ -366,76 +366,53 @@ skip:
 	}
 }
 
-static void __declspec(naked) CombatDamageHook() {
+// 4.x backport
+static void __fastcall ComputeDamageHook_Script(TComputeAttack &ctd, DWORD rounds, DWORD multiplier) {
+	BeginHook();
+	argCount = 12;
+
+	args[0] = (DWORD)ctd.target;           // Target
+	args[1] = (DWORD)ctd.attacker;         // Attacker
+	args[2] = ctd.targetDamage;            // amountTarget
+	args[3] = ctd.attackerDamage;          // amountSource
+	args[4] = ctd.targetFlags;             // flagsTarget
+	args[5] = ctd.attackerFlags;           // flagsSource
+	args[6] = (DWORD)ctd.weapon;
+	args[7] = ctd.bodyPart;
+	args[8] = multiplier;                  // damage multiplier
+	args[9] = rounds;                      // number of rounds
+	args[10] = ctd.knockbackValue;
+	args[11] = ctd.hitMode;                // attack type
+
+	RunHookScript(HOOK_COMBATDAMAGE);
+
+	if (cRet > 0) {
+		ctd.targetDamage = rets[0];
+		if (cRet > 1) {
+			ctd.attackerDamage = rets[1];
+			if (cRet > 2) {
+				ctd.targetFlags = rets[2];         // flagsTarget
+				if (cRet > 3) {
+					ctd.attackerFlags = rets[3];   // flagsSource
+					if (cRet > 4) ctd.knockbackValue = rets[4];
+				}
+			}
+		}
+	}
+	EndHook();
+}
+
+static void __declspec(naked) ComputeDamageHook() {
 	__asm {
-		push edx;
-		push ebx;
-		push eax;
+		push ecx;
+		push ebx;         // store dmg multiplier  args[8]
+		push edx;         // store num of rounds   args[9]
+		push eax;         // store ctd
 		call compute_damage_;
-		pop edx;
-
-		//zero damage insta death criticals fix
-		mov ebx, [edx+0x2c];
-		test ebx, ebx;
-		jnz hookscript;
-		mov ebx, [edx+0x30];
-		test bl, 0x80;
-		jz hookscript;
-		inc dword ptr ds:[edx+0x2c];
-hookscript:
-		hookbegin(12);
-		mov ebx, [edx+0x20];
-		mov args[0x00], ebx;
-		mov ebx, [edx+0x00];
-		mov args[0x04], ebx;
-		mov ebx, [edx+0x2c];
-		mov args[0x08], ebx;
-		mov ebx, [edx+0x10];
-		mov args[0x0c], ebx;
-		mov ebx, [edx+0x30];
-		mov args[0x10], ebx;
-		mov ebx, [edx+0x14];
-		mov args[0x14], ebx;
-		mov ebx, [edx+0x08];
-		mov args[0x18], ebx;
-		mov ebx, [edx+0x28];
-		mov args[0x1c], ebx;
-		pop ebx; // roll result
-		mov args[0x20], ebx;
-		pop ebx; // num rounds
-		mov args[0x24], ebx;
-		mov ebx, [edx+0x34]; // knockback value
-		mov args[0x28], ebx;
-		mov ebx, [edx+0x04]; // attack type
-		mov args[0x2c], ebx;
-
-		pushad;
-		push HOOK_COMBATDAMAGE;
-		call RunHookScript;
-		popad;
-
-		cmp cRet, 1;
-		jl end;
-		mov ebx, rets[0x00];
-		mov [edx+0x2c], ebx;
-		cmp cRet, 2;
-		jl end;
-		mov ebx, rets[0x04];
-		mov [edx+0x10], ebx;
-		cmp cRet, 3;
-		jl end;
-		mov ebx, rets[0x08];
-		mov [edx+0x30], ebx;
-		cmp cRet, 4;
-		jl end;
-		mov ebx, rets[0x0c];
-		mov [edx+0x14], ebx;
-		cmp cRet, 5;
-		jl end;
-		mov ebx, rets[0x10];
-		mov [edx+0x34], ebx; // knockback
-end:
-		hookend;
+		pop  ecx;         // restore ctd (eax)
+		pop  edx;         // restore num of rounds
+		call ComputeDamageHook_Script;  // stack - arg multiplier
+		pop  ecx;
 		retn;
 	}
 }
@@ -1486,14 +1463,14 @@ static void HookScriptInit2() {
 	HookCall(0x4109BF, &CalcDeathAnimHook2);
 
 	LoadHookScript("hs_combatdamage", HOOK_COMBATDAMAGE);
-	HookCall(0x42326C, &CombatDamageHook); // check_ranged_miss()
-	HookCall(0x4233E3, &CombatDamageHook); // shoot_along_path() - for extra burst targets
-	HookCall(0x423AB7, &CombatDamageHook); // compute_attack()
-	HookCall(0x423BBF, &CombatDamageHook); // compute_attack()
-	HookCall(0x423DE7, &CombatDamageHook); // compute_explosion_on_extras()
-	HookCall(0x423E69, &CombatDamageHook); // compute_explosion_on_extras()
-	HookCall(0x424220, &CombatDamageHook); // attack_crit_failure()
-	HookCall(0x4242FB, &CombatDamageHook); // attack_crit_failure()
+	HookCall(0x42326C, ComputeDamageHook); // check_ranged_miss()
+	HookCall(0x4233E3, ComputeDamageHook); // shoot_along_path() - for extra burst targets
+	HookCall(0x423AB7, ComputeDamageHook); // compute_attack()
+	HookCall(0x423BBF, ComputeDamageHook); // compute_attack()
+	HookCall(0x423DE7, ComputeDamageHook); // compute_explosion_on_extras()
+	HookCall(0x423E69, ComputeDamageHook); // compute_explosion_on_extras()
+	HookCall(0x424220, ComputeDamageHook); // attack_crit_failure()
+	HookCall(0x4242FB, ComputeDamageHook); // attack_crit_failure()
 
 	LoadHookScript("hs_ondeath", HOOK_ONDEATH);
 	HookCall(0x4130CC, &OnDeathHook);

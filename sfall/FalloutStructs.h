@@ -78,20 +78,27 @@ struct TGameObj
 #pragma pack(push, 1)
 struct TComputeAttack
 {
-	TGameObj *attacker;
-	char gap_4[4];
-	TGameObj *weapon;
-	char gap_C[4];
-	long damageAttacker;
-	long flagsAttacker;
-	long rounds;
-	char gap_1C[4];
-	TGameObj *target;
+	TGameObj* attacker;
+	long hitMode;
+	TGameObj* weapon;
+	long field_C;
+	long attackerDamage;
+	long attackerFlags;
+	long numRounds;
+	long message;
+	TGameObj* target;
 	long targetTile;
 	long bodyPart;
-	long damageTarget;
-	long flagsTarget;
+	long targetDamage;
+	long targetFlags;
 	long knockbackValue;
+	TGameObj* mainTarget;
+	long numExtras;
+	TGameObj* extraTarget[6];
+	long extraBodyPart[6];
+	long extraDamage[6];
+	long extraFlags[6];
+	long extraKnockbackValue[6];
 };
 #pragma pack(pop)
 

@@ -1440,6 +1440,26 @@ end:
 	}
 }
 
+//zero damage insta death criticals fix (moved from compute_damage hook)
+static void __fastcall InstantDeathFix(TComputeAttack &ctd) {
+	if (ctd.targetDamage == 0 && (ctd.targetFlags & DAM_DEAD)) {
+		ctd.targetDamage++; // set 1 hp damage
+	}
+}
+
+static const DWORD ComputeDamageRet = 0x424BA7;
+static void __declspec(naked) compute_damage_hack() {
+	__asm {
+		mov  ecx, esi; // ctd
+		call InstantDeathFix;
+		// overwritten engine code
+		add  esp, 0x34;
+		pop  ebp;
+		pop  edi;
+		jmp  ComputeDamageRet;
+	}
+}
+
 static int currDescLen = 0;
 static bool showItemDescription = false;
 static void __stdcall AppendText(const char* text, const char* desc) {
@@ -2572,6 +2592,11 @@ void BugFixesInit()
 	// Fix for critters killed in combat by scripting still being able to move in their combat turn if the distance parameter
 	// in their AI packages is set to stay_close/charge, or NPCsTryToSpendExtraAP is enabled
 	HookCall(0x42A1A8, ai_move_steps_closer_hook); // 0x42B24D
+
+	// Fix instant death critical
+	dlog("Applying instant death fix.", DL_INIT);
+	MakeJump(0x424BA2, compute_damage_hack);
+	dlogr(" Done", DL_INIT);
 
 	// Fix missing AC/DR mod stats when examining ammo in the barter screen
 	dlog("Applying fix for displaying ammo stats in barter screen.", DL_INIT);
