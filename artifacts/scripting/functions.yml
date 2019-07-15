@@ -996,10 +996,6 @@
   - name: atof
     detail: float atof(string text)
     opcode: 0x8238
-  - name: get_string_pointer
-    detail: int get_string_pointer(string text)
-    doc: Returns a pointer to a string variable or to a text.
-    macro: sfall.h
 
 - name: Strings
   parent: Variables
@@ -1020,6 +1016,10 @@
     detail: int charcode(string text)
     doc: Returns ASCII code for the first character in given string.
     opcode: 0x8251
+  - name: get_string_pointer
+    detail: int get_string_pointer(string text)
+    doc: Returns a pointer to a string variable or to a text.
+    macro: sfall.h
 
 
 - name: Interface
