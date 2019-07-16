@@ -157,8 +157,8 @@ static void _stdcall SaveGame2() {
 	} else {
 		goto errorSave;
 	}
-
 	return;
+
 /////////////////////////////////////////////////
 errorSave:
 	dlog_f("ERROR creating: %s\n", DL_MAIN, buf);
@@ -231,8 +231,7 @@ static bool LoadGame_Before() {
 		Worldmap::SetAddedYears(data >> 16);
 		if (size != 4 || !Perks::load(h)) goto errorLoad;
 		long result = script::LoadArrays(h); // 1 - old save, -1 - broken save
-		if (result == -1) goto errorLoad;
-		if (!result && BugFixes::DrugsLoadFix(h)) goto errorLoad;
+		if (result == -1 || (!result && BugFixes::DrugsLoadFix(h))) goto errorLoad;
 		CloseHandle(h);
 	} else {
 		dlogr("Cannot open sfallgv.sav - assuming non-sfall save.", DL_MAIN);
