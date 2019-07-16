@@ -23,13 +23,14 @@ procedure InventoryMoveHandler;
 procedure KeyPressHandler;
 
 procedure pickup_ground_items;
-procedure pickup_info();
+procedure pickup_clear();
 procedure distance_sort(variable array);
 procedure weapon_drop;
 procedure DeathAmimHandler;
 
 variable quickAmmoReload, pickupKey, keyMod, pickupItem, temp;
 variable deathNpcArray, countDeath;
+variable pickupMessage;
 
 procedure start begin
    variable sfall_version;
@@ -43,6 +44,7 @@ procedure start begin
 
       if (sfall_version >= 414) then begin
          pickupKey := GetConfig("Inventory", "PickupItemKey", 0);
+         if (pickupKey > 0) then pickupMessage := GetConfigStr("Inventory", "PickupItemMsg", "Error");
 
          if ((GetConfig("Inventory", "QuickAmmoReload", 0) > 0)
          and GetIniConfig("Misc", "ReloadReserve", -1, "ddraw.ini") > -1) then begin
@@ -101,6 +103,12 @@ procedure InventoryMoveHandler begin
       set_weapon_ammo_count(ammoObj, cAmmo);
       add_obj_to_inven(inven, ammoObj);
    end
+   else if (event == 7) then begin
+       if (pickupItem and pickupItem == itemDrop) then begin
+          display_msg(sprintf(pickupMessage, obj_name(itemDrop)));
+       end
+       pickupItem := 0;
+   end
    else if (event == 8) then begin
       if (obj_item_subtype(itemDrop) == item_type_drug) then begin
          set_self(dude_obj);
@@ -137,7 +145,7 @@ procedure KeyPressHandler begin
       else if (keyDX == DIK_Z and (mode bwand PIPBOY)) then begin
          tap_key(DIK_ESCAPE);
       end
-      else if (not(pickupItem) and keyDX == pickupKey and (mode == 0)) then begin
+      else if (keyDX == pickupKey and (mode == 0)) then begin
          call pickup_ground_items;
       end
       else if (keyMod and keyDX == DIK_A and (mode bwand (COMBAT bwor PCOMBAT))) then begin
@@ -173,18 +181,17 @@ procedure pickup_ground_items begin
 
          // pickup object
          set_self(dude_obj);
-         pickup_obj(item);
          pickupItem := item;
-         walkDist /= 2;
-         call pickup_info in walkDist;
+         pickup_obj(item);
+         //walkDist /= 2;
+         call pickup_clear in 3;
          break; // exit loop
       end
    end
    if weight == -1 then display_msg(mstr_misc(8000)); // You carry too much
 end
 
-procedure pickup_info() begin
-   display_msg(sprintf(mstr_misc(8002), obj_name(pickupItem)));
+procedure pickup_clear() begin
    pickupItem := 0;
 end
 

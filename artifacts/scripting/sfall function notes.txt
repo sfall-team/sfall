@@ -612,11 +612,12 @@ optional arguments:
 
 > int sfall_func1("add_extra_msg_file", string fileName)
 > int sfall_func2("add_extra_msg_file", string fileName, int fileNumber)
-- Loads the custom message file, and returns the identification number assigned to it in range from 0x3000 to 0x3FFF for accessing messages via the message_str_game script function
-- fileName: the name of the message file (including the .msg extension) located in the game directory "text\<current_lang>\game\"
+- loads the custom message file, and returns the file ID number assigned to it in range from 0x3000 to 0x3FFF for the message_str_game function to get messages from the file
+- fileName: the name of the custom message file (including the .msg extension) in "text\<language>\game\" directory
 optional argument:
-- fileNumber: file number ID for accessing, available number range from 0x2000 to 0x2FFF (see ExtraGameMsgFileList option)
-  use fileNumber only if you want to adding a message file without editing ddraw.ini or existing scripts to support the old way
+- fileNumber: the file ID number for the message_str_game function. The available range is from 0x2000 to 0x2FFF (see ExtraGameMsgFileList setting in ddraw.ini)
+  use fileNumber only if you want to add a message file without editing ddraw.ini or existing scripts to support the old way  
+
 ------------------------
 ------ MORE INFO -------
 ------------------------
