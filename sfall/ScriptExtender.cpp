@@ -1342,9 +1342,6 @@ static void __declspec(naked) map_save_in_game_hook() {
 }
 
 void ScriptExtenderSetup() {
-	bool AllowUnsafeScripting = isDebug
-		&& GetPrivateProfileIntA("Debugging", "AllowUnsafeScripting", 0, ".\\ddraw.ini") != 0;
-
 	toggleHighlightsKey = GetPrivateProfileIntA("Input", "ToggleItemHighlightsKey", 0, ini);
 	if (toggleHighlightsKey) {
 		MotionSensorMode = GetPrivateProfileIntA("Misc", "MotionScannerFlags", 1, ini);
@@ -1410,17 +1407,24 @@ void ScriptExtenderSetup() {
 	SafeWriteBytes(0x483CB4, (BYTE*)&data, 5);
 
 	dlogr("Adding additional opcodes", DL_SCRIPT);
-	if (AllowUnsafeScripting) {
-		dlogr("  Unsafe opcodes enabled.", DL_SCRIPT);
-	} else {
-		dlogr("  Unsafe opcodes disabled.", DL_SCRIPT);
-	}
 
 	SafeWrite32(0x46E370, 0x300);          // Maximum number of allowed opcodes
 	SafeWrite32(0x46CE34, (DWORD)opcodes); // cmp check to make sure opcode exists
 	SafeWrite32(0x46CE6C, (DWORD)opcodes); // call that actually jumps to the opcode
 	SafeWrite32(0x46E390, (DWORD)opcodes); // mov that writes to the opcode
 
+	if (isDebug && (GetPrivateProfileIntA("Debugging", "AllowUnsafeScripting", 0, ".\\ddraw.ini") != 0)) {
+		dlogr("  Unsafe opcodes enabled.", DL_SCRIPT);
+		opcodes[0x1cf] = WriteByte;
+		opcodes[0x1d0] = WriteShort;
+		opcodes[0x1d1] = WriteInt;
+		opcodes[0x21b] = WriteString;
+		for (int i = 0x1d2; i < 0x1dc; i++) {
+			opcodes[i] = CallOffset;
+		}
+	} else {
+		dlogr("  Unsafe opcodes disabled.", DL_SCRIPT);
+	}
 	opcodes[0x156] = ReadByte;
 	opcodes[0x157] = ReadShort;
 	opcodes[0x158] = ReadInt;
@@ -1533,14 +1537,7 @@ void ScriptExtenderSetup() {
 	opcodes[0x1cc] = fApplyHeaveHoFix;
 	opcodes[0x1cd] = SetSwiftLearnerMod;
 	opcodes[0x1ce] = SetLevelHPMod;
-	if (AllowUnsafeScripting) {
-		opcodes[0x1cf] = WriteByte;
-		opcodes[0x1d0] = WriteShort;
-		opcodes[0x1d1] = WriteInt;
-		for (int i = 0x1d2; i < 0x1dc; i++) {
-			opcodes[i] = CallOffset;
-		}
-	}
+
 	opcodes[0x1dc] = ShowIfaceTag;
 	opcodes[0x1dd] = HideIfaceTag;
 	opcodes[0x1de] = IsIfaceTagActive;
@@ -1604,9 +1601,7 @@ void ScriptExtenderSetup() {
 	opcodes[0x218] = set_weapon_ammo_pid;
 	opcodes[0x219] = get_weapon_ammo_count;
 	opcodes[0x21a] = set_weapon_ammo_count;
-	if (AllowUnsafeScripting) {
-		opcodes[0x21b] = WriteString;
-	}
+
 	opcodes[0x21c] = get_mouse_x;
 	opcodes[0x21d] = get_mouse_y;
 	opcodes[0x21e] = get_mouse_buttons;

@@ -2244,7 +2244,7 @@ break:
 void BugFixesInit()
 {
 	#ifndef NDEBUG
-		if (isDebug && (GetPrivateProfileIntA("Debugging", "BugFixes", 1, ".\\ddraw.ini")) == 0)) return;
+		if (isDebug && (GetPrivateProfileIntA("Debugging", "BugFixes", 1, ".\\ddraw.ini") == 0)) return;
 	#endif
 
 	// fix vanilla negate operator on float values

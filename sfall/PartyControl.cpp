@@ -205,7 +205,7 @@ static void RestoreRealDudeState(bool redraw = true) {
 	IsControllingNPC = false;
 	real_dude = nullptr;
 
-	if (isDebug) DebugPrintf("\n[SFALL] Restore control to dude.");
+	if (isDebug) DebugPrintf("\n[SFALL] Restore control to dude.\n");
 }
 
 static int __stdcall CombatTurn(TGameObj* obj) {
@@ -296,14 +296,14 @@ int __stdcall PartyControl_SwitchHandHook(TGameObj* item) {
 	return -1;
 }
 
-long __fastcall GetRealDudePerk(TGameObj* source, long perk) {
+static long __fastcall GetRealDudePerk(TGameObj* source, long perk) {
 	if (IsControllingNPC && source == real_dude) {
 		return real_perkLevelDataList[perk];
 	}
 	return PerkLevel(source, perk);
 }
 
-long __fastcall GetRealDudeTrait(TGameObj* source, long trait) {
+static long __fastcall GetRealDudeTrait(TGameObj* source, long trait) {
 	if (IsControllingNPC && source == real_dude) {
 		return (trait == real_traits[0] || trait == real_traits[1]) ? 1 : 0;
 	}
