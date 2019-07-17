@@ -358,8 +358,9 @@ void DontDeleteProtosPatch() {
 }
 
 void DebugEditor::init() {
-	if (!isDebug) return;
 	DebugModePatch();
+
+	if (!isDebug) return;
 	DontDeleteProtosPatch();
 
 	debugEditorKey = GetConfigInt("Input", "DebugEditorKey", 0);
