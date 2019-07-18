@@ -609,10 +609,13 @@ optional arguments:
 > int  sfall_func2("has_fake_trait_npc", object npc, string nameTrait)
 - these functions are similar to has_fake_*/set_fake_*/set_selectable_perk functions, but apply to the specified party member NPC (including dude_obj)
 
-> void sfall_func2("add_extra_msg_file", string fileName, int fileNumber)
-- loads the custom message file and assigns it with the specified ID number
+> int sfall_func1("add_extra_msg_file", string fileName)
+> int sfall_func2("add_extra_msg_file", string fileName, int fileNumber)
+- loads the custom message file, and returns the file ID number assigned to it in range from 0x3000 to 0x3FFF for the message_str_game function to get messages from the file
 - fileName: the name of the custom message file (including the .msg extension) in "text\<language>\game\" directory
-- fileNumber: the file ID number for the message_str_game function to get messages from the file. The available range is from 0x3000 to 0x3FFF
+optional argument:
+- fileNumber: the file ID number for the message_str_game function. The available range is from 0x2000 to 0x2FFF (see ExtraGameMsgFileList setting in ddraw.ini)
+  use fileNumber only if you want to add a message file without editing ddraw.ini or existing scripts to support the old way
 
 ------------------------
 ------ MORE INFO -------

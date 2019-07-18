@@ -25,9 +25,8 @@
 #define VERSION_MAJOR 4
 #define VERSION_MINOR 1
 #define VERSION_BUILD 9
-#define VERSION_REV 0
+#define VERSION_REV 1
 
-#define VERSION_STRING "4.1.9"
+#define VERSION_STRING "4.1.9.1"
 
 //#define CHECK_VAL  (4)
-
