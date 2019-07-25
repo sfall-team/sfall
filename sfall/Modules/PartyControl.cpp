@@ -33,8 +33,8 @@ namespace sfall
 bool npcAutoLevelEnabled;
 bool npcEngineLevelUp = true;
 
-bool isControllingNPC = false;
-bool skipCounterAnim  = false;
+static bool isControllingNPC = false;
+static bool skipCounterAnim  = false;
 
 static int delayedExperience;
 static bool switchHandHookInjected = false;
@@ -272,7 +272,7 @@ static void RestoreRealDudeState(bool redraw = true) {
 	realDude.isSaved = false;
 	isControllingNPC = false;
 
-	if (isDebug) fo::func::debug_printf("\n[SFALL] Restore control to dude.");
+	if (isDebug) fo::func::debug_printf("\n[SFALL] Restore control to dude.\n");
 }
 
 static void __stdcall DisplayCantDoThat() {
@@ -294,14 +294,14 @@ int __stdcall PartyControl::SwitchHandHook(fo::GameObject* item) {
 	return -1;
 }
 
-long __fastcall GetRealDudePerk(fo::GameObject* source, long perk) {
+static long __fastcall GetRealDudePerk(fo::GameObject* source, long perk) {
 	if (isControllingNPC && source == realDude.obj_dude) {
 		return realDude.perkLevelDataList[perk];
 	}
 	return fo::func::perk_level(source, perk);
 }
 
-long __fastcall GetRealDudeTrait(fo::GameObject* source, long trait) {
+static long __fastcall GetRealDudeTrait(fo::GameObject* source, long trait) {
 	if (isControllingNPC && source == realDude.obj_dude) {
 		return (trait == realDude.traits[0] || trait == realDude.traits[1]) ? 1 : 0;
 	}
@@ -332,7 +332,7 @@ end:
 	}
 }
 
-void __stdcall PartyControlReset() {
+static void PartyControlReset() {
 	if (realDude.obj_dude != nullptr && isControllingNPC) {
 		RestoreRealDudeState(false);
 	}
@@ -345,7 +345,7 @@ bool PartyControl::IsNpcControlled() {
 	return isControllingNPC;
 }
 
-bool CopyItemSlots(WeaponStateSlot &element, bool isSwap) {
+static bool CopyItemSlots(WeaponStateSlot &element, bool isSwap) {
 	bool isCopy = false;
 	if (fo::var::itemButtonItems[0 + isSwap].itsWeapon && fo::var::itemButtonItems[0 + isSwap].item) {
 		memcpy(&element.leftSlot, &fo::var::itemButtonItems[0 + isSwap], 0x14);
@@ -368,7 +368,7 @@ bool CopyItemSlots(WeaponStateSlot &element, bool isSwap) {
 	return isCopy;
 }
 
-void SaveWeaponMode(bool isSwap) {
+static void SaveWeaponMode(bool isSwap) {
 	for (size_t i = 0; i < weaponState.size(); i++) {
 		if (weaponState[i].npcID == fo::var::obj_dude->id) {
 			CopyItemSlots(weaponState[i], isSwap);
@@ -382,29 +382,35 @@ void SaveWeaponMode(bool isSwap) {
 	}
 }
 
-void PartyControl::SwitchToCritter(fo::GameObject* critter) {
-	if (isControllingNPC) {
-		bool isSwap = false;
-		if (fo::var::itemCurrentItem == fo::ActiveSlot::Left) {
-			// set active left item to right slot
-			fo::GameObject* lItem = fo::func::inven_left_hand(fo::var::obj_dude);
-			if (lItem) {
-				isSwap = true;
-				fo::GameObject* rItem = fo::func::inven_right_hand(fo::var::obj_dude);
-				lItem->flags &= ~fo::ObjectFlag::Left_Hand;
-				lItem->flags |= fo::ObjectFlag::Right_Hand;
-				if (rItem) {
-					rItem->flags &= ~fo::ObjectFlag::Right_Hand;
-					rItem->flags |= fo::ObjectFlag::Left_Hand;
-				}
+// Moves the weapon from the active left slot to the right slot and saves the selected weapon mode for NPC
+static void NPCWeaponTweak() {
+	bool isSwap = false;
+	if (fo::var::itemCurrentItem == fo::ActiveSlot::Left) {
+		// set active left item to right slot
+		fo::GameObject* lItem = fo::func::inven_left_hand(fo::var::obj_dude);
+		if (lItem) {
+			isSwap = true;
+			fo::GameObject* rItem = fo::func::inven_right_hand(fo::var::obj_dude);
+			lItem->flags &= ~fo::ObjectFlag::Left_Hand;
+			lItem->flags |= fo::ObjectFlag::Right_Hand;
+			if (rItem) {
+				rItem->flags &= ~fo::ObjectFlag::Right_Hand;
+				rItem->flags |= fo::ObjectFlag::Left_Hand;
 			}
 		}
-		SaveWeaponMode(isSwap);
+	}
+	SaveWeaponMode(isSwap);
+}
+
+void PartyControl::SwitchToCritter(fo::GameObject* critter) {
+	if (isControllingNPC) {
+		NPCWeaponTweak();
 		if (critter == nullptr || critter == realDude.obj_dude) RestoreRealDudeState(); // return control to dude
-	} else if (critter != nullptr && realDude.isSaved == false) {
-		SaveRealDudeState();
 	}
 	if (critter != nullptr && critter != PartyControl::RealDudeObject()) {
+		if (!isControllingNPC && realDude.isSaved == false) {
+			SaveRealDudeState();
+		}
 		SetCurrentDude(critter);
 
 		if (switchHandHookInjected) return;

@@ -56,6 +56,8 @@ const fo::MessageList* gameMsgFiles[] = {
 ExtraGameMessageListsMap gExtraGameMsgLists;
 static std::vector<std::string> msgFileList;
 
+static long msgNumCounter = 0x3000;
+
 fo::MessageNode *GetMsgNode(fo::MessageList *msgList, int msgRef) {
 	if (msgList != nullptr && msgList->numMsgs > 0) {
 		fo::MessageNode *msgNode = msgList->nodes;
@@ -115,16 +117,22 @@ static void ReadExtraGameMsgFiles() {
 }
 
 long Message::AddExtraMsgFile(const char* msgName, long msgNumber) {
-	if (msgNumber < 0x3000 || msgNumber > 0x3FFF || gExtraGameMsgLists.count(msgNumber)) return -1;
+	if (msgNumber) {
+		if (msgNumber < 0x2000 || msgNumber > 0x2FFF) return -1;
+		if (gExtraGameMsgLists.count(msgNumber)) return 0; // file has already been added
+	} else if (msgNumCounter > 0x3FFF) return -3;
+
 	std::string path("game\\");
 	path += msgName;
 	fo::MessageList* list = new fo::MessageList();
 	if (fo::func::message_load(list, path.c_str())) {
+		if (msgNumber == 0) msgNumber = msgNumCounter++;
 		gExtraGameMsgLists.emplace(msgNumber, list);
 	} else {
 		delete list;
+		msgNumber = -2;
 	}
-	return 0;
+	return msgNumber;
 }
 
 static void ClearScriptAddedExtraGameMsg() { // C++11
@@ -136,6 +144,7 @@ static void ClearScriptAddedExtraGameMsg() { // C++11
 			++it;
 		}
 	}
+	msgNumCounter = 0x3000;
 }
 
 static void ClearReadExtraGameMsgFiles() {

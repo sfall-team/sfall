@@ -39,7 +39,6 @@ public:
 	static fo::GameObject* RealDudeObject();
 };
 
-extern bool isControllingNPC;
 extern bool npcAutoLevelEnabled;
 extern bool npcEngineLevelUp;
 

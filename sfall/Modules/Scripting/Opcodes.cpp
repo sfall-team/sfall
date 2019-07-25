@@ -248,21 +248,25 @@ void __declspec(naked) defaultOpcodeHandler() {
 }
 
 void InitNewOpcodes() {
-	bool AllowUnsafeScripting = isDebug
-		&& GetPrivateProfileIntA("Debugging", "AllowUnsafeScripting", 0, ::sfall::ddrawIni) != 0;
-
 	dlogr("Adding additional opcodes", DL_SCRIPT);
-	if (AllowUnsafeScripting) {
-		dlogr("  Unsafe opcodes enabled.", DL_SCRIPT);
-	} else {
-		dlogr("  Unsafe opcodes disabled.", DL_SCRIPT);
-	}
 
 	SafeWrite32(0x46E370, opcodeCount);    // Maximum number of allowed opcodes
 	SafeWrite32(0x46CE34, (DWORD)opcodes); // cmp check to make sure opcode exists
 	SafeWrite32(0x46CE6C, (DWORD)opcodes); // call that actually jumps to the opcode
 	SafeWrite32(0x46E390, (DWORD)opcodes); // mov that writes to the opcode
 
+	if (isDebug && (GetPrivateProfileIntA("Debugging", "AllowUnsafeScripting", 0, ::sfall::ddrawIni) != 0)) {
+		dlogr("  Unsafe opcodes enabled.", DL_SCRIPT);
+		opcodes[0x1cf] = op_write_byte;
+		opcodes[0x1d0] = op_write_short;
+		opcodes[0x1d1] = op_write_int;
+		opcodes[0x21b] = op_write_string;
+		for (int i = 0x1d2; i < 0x1dc; i++) {
+			opcodes[i] = op_call_offset;
+		}
+	} else {
+		dlogr("  Unsafe opcodes disabled.", DL_SCRIPT);
+	}
 	opcodes[0x156] = op_read_byte;
 	opcodes[0x157] = op_read_short;
 	opcodes[0x158] = op_read_int;
@@ -350,14 +354,7 @@ void InitNewOpcodes() {
 	opcodes[0x1cc] = op_apply_heaveho_fix;
 	opcodes[0x1cd] = op_set_swiftlearner_mod;
 	opcodes[0x1ce] = op_set_hp_per_level_mod;
-	if (AllowUnsafeScripting) {
-		opcodes[0x1cf] = op_write_byte;
-		opcodes[0x1d0] = op_write_short;
-		opcodes[0x1d1] = op_write_int;
-		for (int i = 0x1d2; i < 0x1dc; i++) {
-			opcodes[i] = op_call_offset;
-		}
-	}
+
 	opcodes[0x1df] = op_get_bodypart_hit_modifier;
 	opcodes[0x1e0] = op_set_bodypart_hit_modifier;
 	opcodes[0x1e4] = op_get_sfall_arg;
@@ -376,9 +373,7 @@ void InitNewOpcodes() {
 	opcodes[0x213] = op_hero_select_win;
 	opcodes[0x214] = op_set_hero_race;
 	opcodes[0x215] = op_set_hero_style;
-	if (AllowUnsafeScripting) {
-		opcodes[0x21b] = op_write_string;
-	}
+
 	opcodes[0x21c] = op_get_mouse_x;
 	opcodes[0x21d] = op_get_mouse_y;
 	opcodes[0x21f] = op_get_window_under_mouse;
