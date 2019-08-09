@@ -598,7 +598,7 @@ void Stats::init() {
 				? atoi(xpTableList[i].c_str())
 				: -1;
 		}
-		SafeWrite8(0x4AFB1B, static_cast<BYTE>(numLevels));
+		SafeWrite8(0x4AFB1B, static_cast<BYTE>(numLevels + 1));
 	}
 
 	auto statsFile = GetConfigString("Misc", "DerivedStats", "", MAX_PATH);

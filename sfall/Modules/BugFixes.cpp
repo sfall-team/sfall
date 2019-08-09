@@ -2656,6 +2656,8 @@ void BugFixes::init()
 	if (GetConfigInt("Misc", "AIBestWeaponFix", 0)) {
 		dlog("Applying AI best weapon choice fix.", DL_INIT);
 		HookCall(0x42954B, ai_best_weapon_hook);
+		// also change the modifier for having weapon perk to 3x (was 5x)
+		SafeWriteBatch<BYTE>(0x55, {0x42955E, 0x4296E7});
 		dlogr(" Done", DL_INIT);
 	}
 
