@@ -215,7 +215,7 @@ void StatsInit() {
 			xpTable[level++] = atoi(ptr);
 		}
 		for (int i = level; i < 99; i++) xpTable[i] = -1;
-		SafeWrite8(0x4AFB1B, (BYTE)(level + 1));
+		SafeWrite8(0x4AFB1B, static_cast<BYTE>(level + 1));
 	}
 
 	GetPrivateProfileStringA("Misc", "DerivedStats", "", table, MAX_PATH, ini);

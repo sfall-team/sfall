@@ -38,9 +38,9 @@ struct SfallMetarule {
 	// pointer to handler function
 	void(*func)();
 	// mininum number of arguments
-	int minArgs;
+	short minArgs;
 	// maximum number of arguments
-	int maxArgs;
+	short maxArgs;
 };
 
 typedef std::tr1::unordered_map<std::string, const SfallMetarule*> MetaruleTableType;

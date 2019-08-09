@@ -2642,6 +2642,9 @@ void BugFixesInit()
 	if (GetPrivateProfileIntA("Misc", "AIBestWeaponFix", 0, ini)) {
 		dlog("Applying AI best weapon choice fix.", DL_INIT);
 		HookCall(0x42954B, ai_best_weapon_hook);
+		// also change the modifier for having weapon perk to 3x (was 5x)
+		SafeWrite8(0x42955E, 0x55);
+		SafeWrite8(0x4296E7, 0x55);
 		dlogr(" Done", DL_INIT);
 	}
 

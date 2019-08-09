@@ -442,7 +442,7 @@ void StartingStatePatches() {
 	date = GetPrivateProfileIntA("Misc", "StartDay", -1, ini);
 	if (date >= 0 && date < 31) {
 		dlog("Applying starting day patch.", DL_INIT);
-		SafeWrite8(0x4A3356, date);
+		SafeWrite8(0x4A3356, static_cast<BYTE>(date));
 		dlogr(" Done", DL_INIT);
 	}
 

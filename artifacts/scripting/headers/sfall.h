@@ -126,12 +126,13 @@
 #define reverse_array(array)        resize_array(array, -4)
 // randomly shuffle elements in list/map
 #define shuffle_array(array)        resize_array(array, -5)
-// sort map in ascending order by value
+// sort map in ascending order by key value
 #define sort_map_value(array)       resize_array(array, -6)
-// sort map in descending order by value
-#define sort_map_value_desc(array)  resize_array(array, -7)
+// sort map in descending order by key value
+#define sort_map_reverse(array)     resize_array(array, -7)
 // remove element from map or just replace value with 0 for list
 #define unset_array(array, item)    set_array(array, item, 0)
+
 // same as "key_pressed" but checks VK codes instead of DX codes
 #define key_pressed_vk(key)         (key_pressed(key bwor 0x80000000))
 
