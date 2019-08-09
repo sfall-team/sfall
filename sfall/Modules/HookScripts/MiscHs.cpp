@@ -230,7 +230,7 @@ static void __declspec(naked) SneakCheckHook() {
 		HookBegin;
 		mov esi, ds:[FO_VAR_sneak_working];
 		mov args[0], esi; // 1 = successful sneak
-		mov args[4], eax; // time of work
+		mov args[4], eax; // timer
 		mov args[8], edx; // critter
 		pushadc;
 	}

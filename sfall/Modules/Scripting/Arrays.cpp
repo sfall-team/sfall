@@ -259,7 +259,7 @@ long LoadArrays(HANDLE h) {
 		arrayVar.val.resize(elCount);
 		for (size_t j = 0; j < elCount; j++) { // normal and associative arrays stored and loaded equally
 			if (LoadArrayElement(&arrayVar.val[j], h)) return -1;
-			if (isAssoc && (j % 2) == 0) {     // only difference is that keyHash is filled with appropriate indexes
+			if (isAssoc && (j % 2) == 0) { // only difference is that keyHash is filled with appropriate indexes
 				arrayVar.keyHash[arrayVar.val[j]] = j;
 			}
 		}
@@ -370,6 +370,7 @@ void DESetArray(int id, const DWORD* types, const char* data) {
 	Array manipulation functions for script operators
 	TODO: move somewhere else
 */
+
 DWORD _stdcall CreateArray(int len, DWORD flags) {
 	sArrayVar var;
 	var.flags = (flags & 0xFFFFFFFE); // reset 1 bit

@@ -65,7 +65,7 @@ void sf_round(OpcodeContext&);
 
 void sf_message_str_game(OpcodeContext&);
 
-void sf_add_extra_msg_file(OpcodeContext& ctx);
+void sf_add_extra_msg_file(OpcodeContext&);
 
 void sf_floor2(OpcodeContext&);
 

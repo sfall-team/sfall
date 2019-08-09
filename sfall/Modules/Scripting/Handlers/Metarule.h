@@ -38,7 +38,7 @@ void sf_test(OpcodeContext&);
 // returns current contents of metarule table
 void sf_get_metarule_table(OpcodeContext&);
 
-void sf_metarule_exist(OpcodeContext& ctx);
+void sf_metarule_exist(OpcodeContext&);
 
 void InitMetaruleTable();
 

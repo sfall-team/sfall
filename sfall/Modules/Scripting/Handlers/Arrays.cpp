@@ -211,8 +211,7 @@ static fo::GameObject* ListNext(sList* list) {
 }
 
 static void ListEnd(DWORD id) {
-	std::vector<ListId>::const_iterator it_end =  mList.cend();
-	for (std::vector<ListId>::const_iterator it = mList.cbegin(); it != it_end; ++it) {
+	for (std::vector<ListId>::const_iterator it = mList.cbegin(), it_end = mList.cend(); it != it_end; ++it) {
 		if (it->id == id) {
 			delete[] it->list->obj;
 			delete it->list;
@@ -234,8 +233,7 @@ void sf_list_as_array(OpcodeContext& ctx) {
 void sf_list_next(OpcodeContext& ctx) {
 	auto id = ctx.arg(0).rawValue();
 	sList* list = nullptr;
-	std::vector<ListId>::const_iterator it_end =  mList.cend();
-	for (std::vector<ListId>::const_iterator it = mList.cbegin(); it != it_end; ++it) {
+	for (std::vector<ListId>::const_iterator it = mList.cbegin(), it_end =  mList.cend(); it != it_end; ++it) {
 		if (it->id == id) {
 			list = it->list;
 			break;

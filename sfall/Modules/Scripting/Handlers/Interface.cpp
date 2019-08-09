@@ -330,6 +330,7 @@ void sf_inventory_redraw(OpcodeContext& ctx) {
 	} else {
 		return;
 	}
+
 	if (!ctx.arg(0).asBool()) {
 		fo::var::stack_offset[fo::var::curr_stack] = 0;
 		fo::func::display_inventory(0, -1, mode);
