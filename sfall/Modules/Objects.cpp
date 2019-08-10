@@ -82,12 +82,15 @@ static void __declspec(naked) map_load_file_hack() {
 		jz   mapVirgin;
 		retn;
 mapVirgin:
+		test eax, eax;
+		jl   skip; // check map index > -1
 		call fo::funcoffs::wmMapIsSaveable_;
 		test eax, eax;
 		jnz  savedable;
 		retn;
 savedable:
 		call map_fix_critter_id;
+skip:
 		xor  eax, eax; // set ZF
 		retn;
 	}

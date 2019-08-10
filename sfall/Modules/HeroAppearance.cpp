@@ -1314,6 +1314,22 @@ endFunc:
 	}
 }
 
+static const DWORD op_obj_art_fid_Ret = 0x45C5D9;
+static void __declspec(naked) op_obj_art_fid_hack() {
+	using namespace Fields;
+	__asm {
+		mov  esi, [edi + artFid];
+		push ecx;
+		call PartyControl::RealDudeObject;
+		pop  ecx;
+		cmp  eax, edi; // object is dude?
+		jnz  skip;
+		sub  esi, critterListSize; // fix dude fid
+skip:
+		jmp  op_obj_art_fid_Ret;
+	}
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // Load Appearance data from GCD file
@@ -1476,9 +1492,12 @@ static void HeroAppearanceModExit() {
 }
 
 void HeroAppearance::init() {
-	if (GetConfigInt("Misc", "EnableHeroAppearanceMod", 0)) {
+	int heroAppearanceMod = GetConfigInt("Misc", "EnableHeroAppearanceMod", 0);
+	if (heroAppearanceMod > 0) {
 		dlog("Setting up Appearance Char Screen buttons.", DL_INIT);
 		EnableHeroAppearanceMod();
+		// Hero FID fix for obj_art_fid script funcrion
+		if (heroAppearanceMod == 1) MakeJump(0x45C5C3, op_obj_art_fid_hack);
 
 		LoadGameHook::OnAfterNewGame() += []() {
 			SetNewCharAppearanceGlobals();
