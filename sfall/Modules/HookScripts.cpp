@@ -240,7 +240,7 @@ void LoadHookScripts() {
 	HookScriptInit();
 	initingHookScripts = 1;
 	for (int i = 0; i < numHooks; i++) {
-		if (hooks[i].size()) {
+		if (!hooks[i].empty()) {
 			InitScriptProgram(hooks[i][0].prog); // zero hook is always hs_*.int script because Hook scripts are loaded BEFORE global scripts
 		}
 	}
@@ -251,8 +251,8 @@ void LoadHookScripts() {
 // run specific event procedure for all hook scripts
 void _stdcall RunHookScriptsAtProc(DWORD procId) {
 	for (int i = 0; i < numHooks; i++) {
-		if (hooks[i].size() > 0 && !hooks[i][0].isGlobalScript) {
-			RunScriptProc(&hooks[i][0].prog, procId);
+		if (!hooks[i].empty() && !hooks[i][0].isGlobalScript) {
+			RunScriptProc(&hooks[i][0].prog, procId); // run hs_*.int
 		}
 	}
 }
