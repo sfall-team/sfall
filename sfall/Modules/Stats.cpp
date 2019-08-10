@@ -272,7 +272,7 @@ allow:
 	}
 }
 
-///////////////////// CRITTERS  STATS /////////////////////
+/////////////////////////////////////////// CRITTERS  STATS ///////////////////////////////////////////
 static long isNotPartyMemberPid;
 
 static struct {
@@ -583,7 +583,7 @@ void StatsProtoReset() {
 	protoMem.clear();
 	isNotPartyMemberPid = 0;
 }
-///////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void StatsReset() {
 	for (int i = 0; i < fo::STAT_max_stat; i++) {
@@ -636,7 +636,7 @@ void Stats::init() {
 				? atoi(xpTableList[i].c_str())
 				: -1;
 		}
-		SafeWrite8(0x4AFB1B, static_cast<BYTE>(numLevels));
+		SafeWrite8(0x4AFB1B, static_cast<BYTE>(numLevels + 1));
 	}
 
 	auto statsFile = GetConfigString("Misc", "DerivedStats", "", MAX_PATH);

@@ -434,16 +434,23 @@ void StartingStatePatches() {
 		SafeWrite32(0x4A336C, date);
 		dlogr(" Done", DL_INIT);
 	}
-	date = GetConfigInt("Misc", "StartMonth", -1);
-	if (date >= 0 && date < 12) {
+	int month = GetConfigInt("Misc", "StartMonth", -1);
+	if (month >= 0) {
+		if (month > 11) month = 11; 
 		dlog("Applying starting month patch.", DL_INIT);
-		SafeWrite32(0x4A3382, date);
+		SafeWrite32(0x4A3382, month);
 		dlogr(" Done", DL_INIT);
 	}
 	date = GetConfigInt("Misc", "StartDay", -1);
-	if (date >= 0 && date < 31) {
+	if (date >= 0) {
+		// 29 and 31 day cannot be set correctly
+		if (month == 1 && date > 27) { // for february
+			date = 27; // set 28-st day
+		} else if (date > 29) {
+			date = 29; // set 30-st day
+		}
 		dlog("Applying starting day patch.", DL_INIT);
-		SafeWrite8(0x4A3356, date);
+		SafeWrite8(0x4A3356, static_cast<BYTE>(date));
 		dlogr(" Done", DL_INIT);
 	}
 
