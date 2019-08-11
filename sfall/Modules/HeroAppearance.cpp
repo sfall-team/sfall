@@ -182,7 +182,6 @@ static void GetAppearanceGlobals(int *race, int *style) {
 }
 
 static __declspec(noinline) int _stdcall LoadHeroDat(unsigned int race, unsigned int style, bool flush = false) {
-
 	if (flush) fo::func::art_flush();
 
 	if (heroPathPtr->pDat) { // unload previous Dats
@@ -285,7 +284,6 @@ static void AdjustHeroArmorArt(DWORD fid) {
 }
 
 static void _stdcall SetHeroArt(bool newArtFlag) {
-
 	fo::GameObject* hero = fo::var::obj_dude; // hero state struct
 	long heroFID = hero->artFid;              // get hero FrmID
 	DWORD fidBase = heroFID & 0xFFF;          // mask out current weapon flag
@@ -438,7 +436,6 @@ void _stdcall SetHeroStyle(int newStyleVal) {
 
 // op_set_hero_race
 void _stdcall SetHeroRace(int newRaceVal) {
-
 	if (!HeroAppearance::appModEnabled || newRaceVal == currentRaceVal) return;
 
 	if (LoadHeroDat(newRaceVal, 0, true) != 0) {          // if new race fails with style at 0
@@ -514,7 +511,6 @@ static void DrawBody(DWORD critNum, BYTE* surface) {
 }
 
 static void DrawPCConsole() {
-
 	DWORD NewTick = *(DWORD*)0x5709C4;  // char scrn gettickcount ret
 	DWORD RotSpeed = *(DWORD*)0x47066B; // get rotation speed - inventory rotation speed
 
@@ -1311,6 +1307,22 @@ endFunc:
 	}
 }
 
+static const DWORD op_obj_art_fid_Ret = 0x45C5D9;
+static void __declspec(naked) op_obj_art_fid_hack() {
+	using namespace Fields;
+	__asm {
+		mov  esi, [edi + artFid];
+		push ecx;
+		call PartyControl::RealDudeObject;
+		pop  ecx;
+		cmp  eax, edi; // object is dude?
+		jnz  skip;
+		sub  esi, critterListSize; // fix hero FrmID
+skip:
+		jmp  op_obj_art_fid_Ret;
+	}
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // Load Appearance data from GCD file
@@ -1473,9 +1485,12 @@ static void HeroAppearanceModExit() {
 }
 
 void HeroAppearance::init() {
-	if (GetConfigInt("Misc", "EnableHeroAppearanceMod", 0)) {
+	int heroAppearanceMod = GetConfigInt("Misc", "EnableHeroAppearanceMod", 0);
+	if (heroAppearanceMod > 0) {
 		dlog("Setting up Appearance Char Screen buttons.", DL_INIT);
 		EnableHeroAppearanceMod();
+		// Hero FrmID fix for obj_art_fid script function
+		if (heroAppearanceMod != 2) MakeJump(0x45C5C3, op_obj_art_fid_hack);
 
 		LoadGameHook::OnAfterNewGame() += []() {
 			SetNewCharAppearanceGlobals();
