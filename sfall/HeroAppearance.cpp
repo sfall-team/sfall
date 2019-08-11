@@ -23,6 +23,7 @@
 #include "FalloutEngine.h"
 #include "HeroAppearance.h"
 #include "Message.h"
+#include "PartyControl.h"
 #include "ScriptExtender.h"
 
 bool appModEnabled = false; // check if Appearance mod enabled for script fuctions
@@ -410,7 +411,6 @@ static bool LoadFrmHeader(UNLSTDfrm *frmHeader, void* frmStream) {
 }
 
 static bool LoadFrmFrame(UNLSTDframe *frame, void* frmStream) {
-
 	//FRMframe *frameHeader = (FRMframe*)frameMEM;
 	//BYTE* frameBuff = frame + sizeof(FRMframe);
 
@@ -433,7 +433,6 @@ static bool LoadFrmFrame(UNLSTDframe *frame, void* frmStream) {
 }
 
 UNLSTDfrm *LoadUnlistedFrm(char *frmName, unsigned int folderRef) {
-
 	if (folderRef > 10) return nullptr;
 
 	char *artfolder = (char*)(0x51073C + folderRef * 32); // address of art type name
@@ -799,7 +798,6 @@ endFunc:
 }
 
 static __declspec(noinline) int _stdcall LoadHeroDat(unsigned int race, unsigned int style, bool flush = false) {
-
 	if (flush) RefreshArtCache();
 
 	if (heroPathPtr->pDat) { // unload previous Dats
@@ -905,25 +903,24 @@ static void __declspec(naked) AdjustHeroArmorArt() {
 		jg   endFunc;
 		add  eax, critterListSize;    // shift critter art index up into hero range
 endFunc:
-		//mov dword ptr ds:[_i_fid], eax
+		//mov dword ptr ds:[_i_fid], eax;
 		retn;
 	}
 }
 
 static void _stdcall SetHeroArt(bool newArtFlag) {
-
 	TGameObj* hero = *ptr_obj_dude;           // hero state struct
-	long heroFID = hero->artFID;              // get hero FrmID
+	long heroFID = hero->artFid;              // get hero FrmID
 	DWORD fidBase = heroFID & 0xFFF;          // mask out current weapon flag
 
 	if (fidBase > critterListSize) {          // check if critter LST index is in Hero range
 		if (!newArtFlag) {
 			heroFID -= critterListSize;       // shift index down into normal critter range
-			hero->artFID = heroFID;
+			hero->artFid = heroFID;
 		}
 	} else if (newArtFlag) {
 		heroFID += critterListSize;           // shift index up into hero range
-		hero->artFID = heroFID;               // set new FrmID to hero state struct
+		hero->artFid = heroFID;               // set new FrmID to hero state struct
 	}
 }
 
@@ -1116,7 +1113,6 @@ void _stdcall SetHeroStyle(int newStyleVal) {
 
 // op_set_hero_race
 void _stdcall SetHeroRace(int newRaceVal) {
-
 	if (!appModEnabled || newRaceVal == currentRaceVal) return;
 
 	if (LoadHeroDat(newRaceVal, 0, true) != 0) {          // if new race fails with style at 0
@@ -1192,7 +1188,6 @@ static void DrawBody(DWORD critNum, BYTE* surface) {
 }
 
 static void DrawPCConsole() {
-
 	DWORD NewTick = *(DWORD*)0x5709C4;  // char scrn gettickcount ret
 	DWORD RotSpeed = *(DWORD*)0x47066B; // get rotation speed - inventory rotation speed
 
@@ -1984,6 +1979,21 @@ endFunc:
 	}
 }
 
+static const DWORD op_obj_art_fid_Ret = 0x45C5D9;
+static void __declspec(naked) op_obj_art_fid_hack() {
+	__asm {
+		mov  esi, [edi + 0x20]; // artFid
+		push ecx;
+		call RealDudeObject;
+		pop  ecx;
+		cmp  eax, edi; // object is dude?
+		jnz  skip;
+		sub  esi, critterListSize; // fix hero FrmID
+skip:
+		jmp  op_obj_art_fid_Ret;
+	}
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // Load Appearance data from GCD file
@@ -2018,7 +2028,7 @@ static void __fastcall SaveGCDAppearance(void *FileStream) {
 	FCloseFile(FileStream);
 }
 
-void EnableHeroAppearanceMod() {
+static void EnableHeroAppearanceMod() {
 	appModEnabled = true;
 
 	// setup paths
@@ -2142,5 +2152,16 @@ void HeroAppearanceModExit() {
 	if (racePathPtr) {
 		delete[] racePathPtr->path;
 		delete racePathPtr;
+	}
+}
+
+void HeroAppearanceModInit() {
+	int heroAppearanceMod = GetPrivateProfileIntA("Misc", "EnableHeroAppearanceMod", 0, ini);
+	if (heroAppearanceMod > 0) {
+		dlog("Setting up Appearance Char Screen buttons.", DL_INIT);
+		EnableHeroAppearanceMod();
+		// Hero FrmID fix for obj_art_fid script function
+		if (heroAppearanceMod != 2) MakeJump(0x45C5C3, op_obj_art_fid_hack);
+		dlogr(" Done", DL_INIT);
 	}
 }

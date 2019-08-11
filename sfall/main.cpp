@@ -860,12 +860,6 @@ static void DllMain2() {
 		dlogr(" Done", DL_INIT);
 	}
 
-	if (GetPrivateProfileIntA("Misc", "EnableHeroAppearanceMod", 0, ini)) {
-		dlog("Setting up Appearance Char Screen buttons.", DL_INIT);
-		EnableHeroAppearanceMod();
-		dlogr(" Done", DL_INIT);
-	}
-
 	dlog("Checking for changed skilldex images.", DL_INIT);
 	tmp = GetPrivateProfileIntA("Misc", "Lockpick", 293, ini);
 	if (tmp != 293) SafeWrite32(0x518D54, tmp);
@@ -882,6 +876,9 @@ static void DllMain2() {
 	tmp = GetPrivateProfileIntA("Misc", "Repair", 293, ini);
 	if (tmp != 293) SafeWrite32(0x518D64, tmp);
 	dlogr(" Done", DL_INIT);
+
+	dlogr("Running HeroAppearanceModInit().", DL_INIT);
+	HeroAppearanceModInit();
 
 	dlogr("Running TilesInit().", DL_INIT);
 	TilesInit();

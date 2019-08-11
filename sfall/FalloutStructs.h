@@ -49,7 +49,7 @@ struct TGameObj
 	long sy;
 	long currentFrm;
 	long rotation;
-	long artFID;
+	long artFid;
 	long flags;
 	long elevation;
 	long invenCount;

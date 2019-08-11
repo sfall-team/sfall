@@ -42,7 +42,7 @@ DWORD GetTextWidth(char *TextMsg);
 DWORD GetMaxCharWidth();
 int check_buttons(void);
 
-void EnableHeroAppearanceMod();
+void HeroAppearanceModInit();
 void HeroAppearanceModExit();
 
 void _stdcall HeroSelectWindow(int raceStyleFlag);

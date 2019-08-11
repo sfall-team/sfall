@@ -147,7 +147,7 @@ static void TakeControlOfNPC(TGameObj* npc) {
 	*ptr_sneak_working = 0;
 
 	// deduce active hand by weapon anim code
-	char critterAnim = (npc->artFID & 0xF000) >> 12; // current weapon as seen in hands
+	char critterAnim = (npc->artFid & 0xF000) >> 12; // current weapon as seen in hands
 	if (AnimCodeByWeapon(InvenLeftHand(npc)) == critterAnim) { // definitely left hand..
 		*ptr_itemCurrentItem = 0;
 	} else {
@@ -279,7 +279,7 @@ int __stdcall PartyControl_SwitchHandHook(TGameObj* item) {
 			call ai_can_use_weapon_;
 			mov canUse, eax;
 		}*/
-		int fId = (*ptr_obj_dude)->artFID;
+		int fId = (*ptr_obj_dude)->artFid;
 		char weaponCode = AnimCodeByWeapon(item);
 		fId = (fId & 0xFFFF0FFF) | (weaponCode << 12);
 		// check if art with this weapon exists
