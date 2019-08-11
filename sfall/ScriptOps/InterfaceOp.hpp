@@ -194,47 +194,23 @@ static void __declspec(naked) resume_game() {
 	}
 }
 
-//Create a message window with given string
-static void __declspec(naked) create_message_window() {
-	__asm {
-		pushad
-		//mov ebx, dword ptr ds:[_curr_font_num];
-		//cmp ebx, 0x65;
-		//je end;
-
-		mov ecx, eax;
-		call interpretPopShort_;
-		mov edx, eax;
-		mov eax, ecx;
-		call interpretPopLong_;
-		cmp dx, VAR_TYPE_STR2;
-		jz next;
-		cmp dx, VAR_TYPE_STR;
-		jnz end;
-next:
-		mov ebx, eax;
-		mov eax, ecx;
-		call interpretGetString_;
-		mov esi, eax
-
-		mov ecx, eax;
-		mov eax, 3;
-		push 1;         // arg10
-		mov al, byte ptr ds:[0x6AB718];
-		push eax;       // a9
-		push 0;         // *DisplayText
-		push eax;       // ColorIndex
-		push 116;       // y
-		mov ecx, 192;   // x
-		mov eax, esi;   // text
-		xor ebx, ebx;   // ?
-		xor edx, edx;   // ?
-		call dialog_out_;
-		//xor eax, eax;
-end:
-		popad
-		ret;
+static bool dialogShow = false;
+static void _stdcall create_message_window2() {
+	const ScriptValue &strArg = opHandler.arg(0);
+	if (strArg.isString()) {
+		if (dialogShow) return;
+		const char* str = strArg.strValue();
+		if (!str || str[0] == 0) return;
+		dialogShow = true;
+		DialogOut(str);
+		dialogShow = false;
+	} else {
+		opHandler.printOpcodeError("create_message_window() - argument is not a string.");
 	}
+}
+
+static void __declspec(naked) create_message_window() {
+	_WRAP_OPCODE(create_message_window2, 1, 0)
 }
 
 static void __declspec(naked) GetViewportX() {
@@ -287,7 +263,7 @@ end:
 	}
 }
 
-static void ShowIfaceTag2() {
+static void _stdcall ShowIfaceTag2() {
 	const ScriptValue &tagArg = opHandler.arg(0);
 	if (tagArg.isInt()) {
 		int tag = tagArg.asInt();
@@ -306,7 +282,7 @@ static void __declspec(naked) ShowIfaceTag() {
 	_WRAP_OPCODE(ShowIfaceTag2, 1, 0)
 }
 
-static void HideIfaceTag2() {
+static void _stdcall HideIfaceTag2() {
 	const ScriptValue &tagArg = opHandler.arg(0);
 	if (tagArg.isInt()) {
 		int tag = tagArg.asInt();

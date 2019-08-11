@@ -610,18 +610,11 @@ static void __declspec(naked) SetGlobalVar() {
 
 static long GetGlobalVarInternal(__int64 val) {
 	glob_citr itr = globalVars.find(val);
-	if (itr == globalVars.end()) {
-		return 0;
-	} else {
-		return itr->second;
-	}
+	return (itr != globalVars.end()) ? itr->second : 0;
 }
 
 static long GetGlobalVar2(const char* var) {
-	if (strlen(var) != 8) {
-		return 0;
-	}
-	return GetGlobalVarInternal(*(__int64*)var);
+	return (strlen(var) == 8) ? GetGlobalVarInternal(*(__int64*)var) : 0;
 }
 
 static long GetGlobalVar2Int(DWORD var) {
@@ -1288,12 +1281,15 @@ static void __declspec(naked) map_load_file_hack() {
 		jz   mapVirgin;
 		retn;
 mapVirgin:
+		test eax, eax;
+		jl   skip; // check map index > -1
 		call wmMapIsSaveable_;
 		test eax, eax;
 		jnz  saveable;
 		retn;
 saveable:
 		call map_fix_critter_id;
+skip:
 		xor  eax, eax; // set ZF
 		retn;
 	}

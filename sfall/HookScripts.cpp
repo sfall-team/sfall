@@ -136,15 +136,16 @@ static void _stdcall RunSpecificHookScript(sHookScript *hook) {
 
 static void _stdcall RunHookScript(DWORD hook) {
 	cRet = 0;
-	if (hooks[hook].size()) {
+	if (!hooks[hook].empty()) {
 		if (callDepth > 8) {
 			DebugPrintf("\n[SFALL] The hook ID: %d cannot be executed.", hook);
 			dlog_f("The hook %d cannot be executed due to exceeded depth limit\n", DL_MAIN, hook);
 			return;
 		}
 		currentRunHook = hook;
-		dlog_f("Running hook %d, which has %0d entries attached, depth: %d\n", DL_HOOK, hook, hooks[hook].size(), callDepth);
-		for (int i = hooks[hook].size() - 1; i >= 0; i--) {
+		size_t hooksCount = hooks[hook].size();
+		dlog_f("Running hook %d, which has %0d entries attached, depth: %d\n", DL_HOOK, hook, hooksCount, callDepth);
+		for (int i = hooksCount - 1; i >= 0; i--) {
 			RunSpecificHookScript(&hooks[hook][i]);
 
 			// for debugging
@@ -1604,7 +1605,7 @@ void HookScriptInit() {
 	HookScriptInit2();
 	InitingHookScripts = 1;
 	for (int i = 0; i < numHooks; i++) {
-		if (hooks[i].size()) {
+		if (!hooks[i].empty()) {
 			InitScriptProgram(hooks[i][0].prog);// zero hook is always hs_*.int script because Hook scripts are loaded BEFORE global scripts
 		}
 	}
@@ -1615,8 +1616,8 @@ void HookScriptInit() {
 // run specific event procedure for all hook scripts
 void _stdcall RunHookScriptsAtProc(DWORD procId) {
 	for (int i = 0; i < numHooks; i++) {
-		if (hooks[i].size() > 0 && !hooks[i][0].isGlobalScript) {
-			RunScriptProc(&hooks[i][0].prog, procId);
+		if (!hooks[i].empty() && !hooks[i][0].isGlobalScript) {
+			RunScriptProc(&hooks[i][0].prog, procId); // run hs_*.int
 		}
 	}
 }
