@@ -108,7 +108,7 @@ static void _stdcall RunSpecificHookScript(HookScript *hook) {
 
 void _stdcall RunHookScript(DWORD hook) {
 	cRet = 0;
-	if (hooks[hook].size()) {
+	if (!hooks[hook].empty()) {
 		if (callDepth > 1) {
 			if (CheckRecursiveHooks(hook) || callDepth > 8) {
 				fo::func::debug_printf("\n[SFALL] The hook ID: %d cannot be executed.", hook);
@@ -117,8 +117,9 @@ void _stdcall RunHookScript(DWORD hook) {
 			}
 		}
 		currentRunHook = hook;
-		dlog_f("Running hook %d, which has %0d entries attached, depth: %d\n", DL_HOOK, hook, hooks[hook].size(), callDepth);
-		for (int i = hooks[hook].size() - 1; i >= 0; i--) {
+		size_t hooksCount = hooks[hook].size();
+		dlog_f("Running hook %d, which has %0d entries attached, depth: %d\n", DL_HOOK, hook, hooksCount, callDepth);
+		for (int i = hooksCount - 1; i >= 0; i--) {
 			RunSpecificHookScript(&hooks[hook][i]);
 
 			// for debugging

@@ -369,18 +369,11 @@ long SetGlobalVar(const char* var, int val) {
 
 long GetGlobalVarInternal(__int64 val) {
 	glob_citr itr = globalVars.find(val);
-	if (itr == globalVars.end()) {
-		return 0;
-	} else {
-		return itr->second;
-	}
+	return (itr != globalVars.end()) ? itr->second : 0;
 }
 
 long GetGlobalVar(const char* var) {
-	if (strlen(var) != 8) {
-		return 0;
-	}
-	return GetGlobalVarInternal(*(__int64*)var);
+	return (strlen(var) == 8) ? GetGlobalVarInternal(*(__int64*)var) : 0;
 }
 
 long GetGlobalVarInt(DWORD var) {
