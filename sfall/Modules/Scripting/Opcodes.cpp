@@ -18,6 +18,7 @@
 
 #include "..\..\FalloutEngine\Fallout2.h"
 #include "..\KillCounter.h"
+#include "..\LoadGameHook.h"
 
 #include "Handlers\Anims.h"
 #include "Handlers\Arrays.h"
@@ -72,6 +73,7 @@ static SfallOpcodeInfo opcodeInfoArray[] = {
 	{0x161, "get_critter_extra_stat",    sf_get_critter_extra_stat,    2, true,  {ARG_OBJECT, ARG_INT}},
 	{0x163, "get_year",                  sf_get_year,                  0, true},
 	{0x16c, "key_pressed",               sf_key_pressed,               1, true,  {ARG_INT}},
+	{0x171, "force_encounter",           sf_force_encounter,           1, false, {ARG_INT}},
 
 	{0x190, "get_perk_available",        sf_get_perk_available,        1, true,  {ARG_INT}},
 	{0x195, "set_weapon_knockback",      sf_set_object_knockback,      3, false, {ARG_OBJECT, ARG_INT, ARG_NUMBER}},
@@ -143,6 +145,7 @@ static SfallOpcodeInfo opcodeInfoArray[] = {
 
 	{0x224, "create_message_window",     sf_create_message_window,     1, false, {ARG_STRING}},
 	{0x228, "get_attack_type",           sf_get_attack_type,           0, true},
+	{0x229, "force_encounter_with_flags", sf_force_encounter,          2, false, {ARG_INT, ARG_INT}},
 	{0x22d, "create_array",              sf_create_array,              2, true,  {ARG_INT, ARG_INT}},
 	{0x22e, "set_array",                 sf_set_array,                 3, false, {ARG_OBJECT, ARG_ANY, ARG_ANY}},
 	{0x22f, "get_array",                 sf_get_array,                 2, true,  {ARG_ANY, ARG_ANY}}, // can also be used on strings
@@ -283,7 +286,6 @@ void InitNewOpcodes() {
 	opcodes[0x16e] = op_set_shader_float;
 	opcodes[0x16f] = op_set_shader_vector;
 	opcodes[0x170] = op_in_world_map;
-	opcodes[0x171] = op_force_encounter;
 	opcodes[0x172] = op_set_world_map_pos;
 	opcodes[0x173] = op_get_world_map_x_pos;
 	opcodes[0x174] = op_get_world_map_y_pos;
@@ -380,7 +382,6 @@ void InitNewOpcodes() {
 	opcodes[0x225] = op_remove_trait;
 	opcodes[0x226] = op_get_light_level;
 	opcodes[0x227] = op_refresh_pc_art;
-	opcodes[0x229] = op_force_encounter_with_flags;
 	opcodes[0x22a] = op_set_map_time_multi;
 	opcodes[0x22b] = op_play_sfall_sound;
 	opcodes[0x22c] = op_stop_sfall_sound;
@@ -420,6 +421,10 @@ void InitNewOpcodes() {
 
 	InitOpcodeInfoTable();
 	InitMetaruleTable();
+
+	LoadGameHook::OnGameReset() += []() {
+		ForceEncounterRestore(); // restore if the encounter did not happen
+	};
 }
 
 }

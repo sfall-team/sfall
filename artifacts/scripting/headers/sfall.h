@@ -73,7 +73,8 @@
 #define LIST_ALL         (9)
 
 //Valid flags for force_encounter_with_flags
-#define ENCOUNTER_FLAG_NO_CAR (1)
+#define ENCOUNTER_FLAG_NO_CAR   (1)
+#define ENCOUNTER_FLAG_LOCK     (2) // Blocks redefinition of encounter by next executes function until the current specified encounter occurs
 
 //The attack types returned by get_attack_type
 #define ATKTYPE_LWEP1           (0)
