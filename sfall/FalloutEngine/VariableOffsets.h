@@ -132,6 +132,7 @@
 #define FO_VAR_max                        0x56FB50
 #define FO_VAR_maxScriptNum               0x51C7CC
 #define FO_VAR_Meet_Frank_Horrigan        0x672E04
+#define FO_VAR_Move_on_Car                0x672E64
 #define FO_VAR_mouse_hotx                 0x6AC7D0
 #define FO_VAR_mouse_hoty                 0x6AC7CC
 #define FO_VAR_mouse_is_hidden            0x6AC790

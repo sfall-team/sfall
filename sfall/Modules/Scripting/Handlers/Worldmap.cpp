@@ -31,77 +31,58 @@ namespace sfall
 namespace script
 {
 
-static DWORD EncounteredHorrigan;
-static DWORD ForceEnconterMapID;
+static DWORD ForceEnconterMapID = -1;
+static DWORD ForceEnconterFlags;
 
-static void _stdcall ForceEncounterRestore() {
-	*(DWORD*)0x672E04 = EncounteredHorrigan;
-	SafeWrite32(0x4C070E, *(DWORD*)0x4C0718); // map id
-	SafeWrite16(0x4C06D8, 0x5175);
-	SafeWrite32(0x4C071D, 0xFFFC2413);
-	SafeWrite8(0x4C0706, 0x75);
+DWORD ForceEncounterRestore() {
+	long long data = 0x672E043D83; // cmp ds:_Meet_Frank_Horrigan, 0
+	SafeWriteBytes(0x4C06D1, (BYTE*)&data, 5);
+	ForceEnconterFlags = 0;
+	DWORD mapID = ForceEnconterMapID;
+	ForceEnconterMapID = -1;
+	return mapID;
 }
 
-static void __declspec(naked) wmRndEncounterOccurred_hook() {
+static void __declspec(naked) wmRndEncounterOccurred_hack() {
 	__asm {
-		push ecx;
-		call ForceEncounterRestore;
-		pop  ecx;
+		test ForceEnconterFlags, 0x1; // _NoCar flag
+		jnz  noCar;
+		cmp  ds:[FO_VAR_Move_on_Car], 0;
+		jz   noCar;
+		mov  edx, FO_VAR_carCurrentArea;
 		mov  eax, ForceEnconterMapID;
-		jmp  fo::funcoffs::map_load_idx_;
+		call fo::funcoffs::wmMatchAreaContainingMapIdx_;
+noCar:
+		//push ecx;
+		// TODO: implement a blinking red icon
+		call ForceEncounterRestore;
+		//pop  ecx;
+		push 0x4C0721; // return addr
+		jmp  fo::funcoffs::map_load_idx_; // eax - mapID
 	}
 }
 
-static void __fastcall ForceEncounter(DWORD mapID, DWORD flags) {
-	EncounteredHorrigan = *(DWORD*)0x672E04;
+void sf_force_encounter(OpcodeContext& cxt) {
+	if (ForceEnconterFlags & (1 << 31)) return; // wait prev. encounter
+
+	DWORD mapID = cxt.arg(0).rawValue();
+	if (mapID < 0) {
+		cxt.printOpcodeError("%s() - invalid map number.", cxt.getOpcodeName());
+		return;
+	}
+	if (ForceEnconterMapID == -1) MakeJump(0x4C06D1, wmRndEncounterOccurred_hack);
+
 	ForceEnconterMapID = mapID;
-	SafeWrite32(0x4C070E, mapID);
-	SafeWrite16(0x4C06D8, 0x13EB); // jmp 0x4C06ED
-	HookCall(0x4C071C, wmRndEncounterOccurred_hook);
-
-	if (flags & 1) SafeWrite8(0x4C0706, 0xEB);
-}
-
-void __declspec(naked) op_force_encounter() {
-	__asm {
-		push ecx;
-		push edx;
-		_GET_ARG_INT(end);
-		xor  edx, edx; // flags
-		mov  ecx, eax; // mapID
-		call ForceEncounter;
-end:
-		pop  edx;
-		pop  ecx;
-		retn;
+	DWORD flags = 0;
+	if (cxt.numArgs() > 1) {
+		flags = cxt.arg(1).rawValue();
+		if (flags & 2) { // _Lock flag
+			flags |= (1 << 31); // set bit 31
+		} else {
+			flags = flags & ~(1 << 31);
+		}
 	}
-}
-
-void __declspec(naked) op_force_encounter_with_flags() {
-	__asm {
-		pushad;
-		mov ecx, eax;
-		call fo::funcoffs::interpretPopShort_;
-		mov edx, eax;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPopLong_;
-		mov ebx, eax;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPopShort_;
-		mov edi, eax;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPopLong_;
-		cmp dx, VAR_TYPE_INT;
-		jnz end;
-		cmp di, VAR_TYPE_INT;
-		jnz end;
-		mov edx, ebx; // flags
-		mov ecx, eax; // mapID
-		call ForceEncounter;
-end:
-		popad;
-		retn;
-	}
+	ForceEnconterFlags = flags;
 }
 
 // world_map_functions
