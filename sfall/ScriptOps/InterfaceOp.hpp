@@ -205,7 +205,7 @@ static void _stdcall create_message_window2() {
 		DialogOut(str);
 		dialogShow = false;
 	} else {
-		opHandler.printOpcodeError("create_message_window() - argument is not a string.");
+		OpcodeInvalidArgs("create_message_window");
 	}
 }
 
@@ -274,7 +274,7 @@ static void _stdcall ShowIfaceTag2() {
 			AddBox(tag);
 		}
 	} else {
-		opHandler.printOpcodeError("show_iface_tag() - argument is not an integer.");
+		OpcodeInvalidArgs("show_iface_tag");
 	}
 }
 
@@ -293,7 +293,7 @@ static void _stdcall HideIfaceTag2() {
 			RemoveBox(tag);
 		}
 	} else {
-		opHandler.printOpcodeError("hide_iface_tag() - argument is not an integer.");
+		OpcodeInvalidArgs("hide_iface_tag");
 	}
 }
 

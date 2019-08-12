@@ -86,9 +86,10 @@ static void _stdcall ResetState(DWORD onLoad) {
 	InLoop = 0;
 	PerksReset();
 	InventoryReset();
-	RegAnimCombatCheck(1);
-	AfterAttackCleanup();
 	ClearSavPrototypes();
+	RegAnimCombatCheck(1);
+	ForceEncounterRestore(); // restore if the encounter did not happen
+	AfterAttackCleanup();
 	ResetExplosionRadius();
 	PartyControlReset();
 	NpcEngineLevelUpReset();

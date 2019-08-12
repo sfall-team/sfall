@@ -672,6 +672,7 @@ const DWORD wmFindCurSubTileFromPos_ = 0x4C0C00;
 const DWORD wmInterfaceScrollTabsStart_ = 0x4C219C;
 const DWORD wmMapIsSaveable_ = 0x4BFA64;
 const DWORD wmMarkSubTileRadiusVisited_ = 0x4C3550;
+const DWORD wmMatchAreaContainingMapIdx_ = 0x4C59A4;
 const DWORD wmPartyInitWalking_ = 0x4C1E54;
 const DWORD wmPartyWalkingStep_ = 0x4C1F90;
 const DWORD wmSubTileMarkRadiusVisited_ = 0x4C35A8;

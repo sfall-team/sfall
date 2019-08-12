@@ -71,6 +71,7 @@ void SetAppearanceGlobals(int race, int style);
 void GetAppearanceGlobals(int *race, int *style);
 
 void _stdcall RegAnimCombatCheck(DWORD newValue);
+DWORD _stdcall ForceEncounterRestore();
 
 bool _stdcall ScriptHasLoaded(DWORD script);
 // finds procedure ID for given script program pointer and procedure name

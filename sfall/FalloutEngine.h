@@ -148,6 +148,7 @@
 #define _max                        0x56FB50
 #define _maxScriptNum               0x51C7CC
 #define _Meet_Frank_Horrigan        0x672E04
+#define _Move_on_Car                0x672E64
 #define _mouse_hotx                 0x6AC7D0
 #define _mouse_hoty                 0x6AC7CC
 #define _mouse_is_hidden            0x6AC790
@@ -903,6 +904,7 @@ extern const DWORD wmFindCurSubTileFromPos_;
 extern const DWORD wmInterfaceScrollTabsStart_;
 extern const DWORD wmMapIsSaveable_;
 extern const DWORD wmMarkSubTileRadiusVisited_;
+extern const DWORD wmMatchAreaContainingMapIdx_;
 extern const DWORD wmPartyInitWalking_;
 extern const DWORD wmPartyWalkingStep_;
 extern const DWORD wmSubTileMarkRadiusVisited_;
