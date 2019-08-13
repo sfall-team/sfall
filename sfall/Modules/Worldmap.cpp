@@ -443,11 +443,10 @@ void StartingStatePatches() {
 	}
 	date = GetConfigInt("Misc", "StartDay", -1);
 	if (date >= 0) {
-		// 29 and 31 day cannot be set correctly
-		if (month == 1 && date > 27) { // for february
-			date = 27; // set 28-st day
-		} else if (date > 29) {
-			date = 29; // set 30-st day
+		if (month == 1 && date > 28) { // for february
+			date = 28; // set 29-st day
+		} else if (date > 30) {
+			date = 30; // set 31-st day
 		}
 		dlog("Applying starting day patch.", DL_INIT);
 		SafeWrite8(0x4A3356, static_cast<BYTE>(date));

@@ -2275,6 +2275,20 @@ break:
 	}
 }
 
+static void __declspec(naked) wmInterfaceInit_hack() {
+	__asm {
+		mov eax, GVAR_CAR_PLACED_TILE;
+		cmp eax, dword ptr ds:[FO_VAR_num_game_global_vars];
+		jge skip;
+		mov edx, ds:[FO_VAR_game_global_vars];
+		lea edx, [edx + eax * 4];
+		mov dword ptr [edx], -1; // set gvar
+skip:
+		mov edx, 12;
+		retn;
+	}
+}
+
 void BugFixes::init()
 {
 	#ifndef NDEBUG
@@ -2875,6 +2889,11 @@ void BugFixes::init()
 	// Fix for the automatic termination combat mode when there are no hostile critters
 	MakeCall(0x422CF3, combat_should_end_hack);
 	SafeWrite16(0x422CEA, 0x0C74); // jz 0x422CF8 (skip party members)
+
+	// Fix the losing of the car when entering using the Town button (sets GVAR_CAR_PLACED_TILE (633) to -1 on exit to worldmap)
+	if (GetConfigInt("Misc", "CarPlacedTileFix", 1)) {
+		MakeCall(0x4C2367,  wmInterfaceInit_hack);
+	}
 }
 
 }
