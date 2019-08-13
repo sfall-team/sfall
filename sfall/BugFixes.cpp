@@ -2241,6 +2241,20 @@ break:
 	}
 }
 
+static void __declspec(naked) wmInterfaceInit_hack() {
+	__asm {
+		mov  eax, 633; // GVAR_CAR_PLACED_TILE
+		cmp  eax, dword ptr ds:[_num_game_global_vars];
+		jge  skip;
+		mov  edx, ds:[_game_global_vars];
+		lea  edx, [edx + eax * 4];
+		mov  dword ptr [edx], -1; // set gvar
+skip:
+		mov  edx, 12;
+		retn;
+	}
+}
+
 void BugFixesInit()
 {
 	#ifndef NDEBUG
@@ -2825,4 +2839,12 @@ void BugFixesInit()
 	// Fix for combat not ending automatically when there are no hostile critters
 	MakeCall(0x422CF3, combat_should_end_hack);
 	SafeWrite16(0x422CEA, 0x0C74); // jz 0x422CF8 (skip party members)
+
+	// Fix for the car being lost when entering a location via the Town/World button and then leaving on foot
+	// (sets GVAR_CAR_PLACED_TILE (633) to -1 on exit to the world map)
+	if (GetPrivateProfileIntA("Misc", "CarPlacedTileFix", 1, ini)) {
+		dlog("Applying car placed tile fix.", DL_INIT);
+		MakeCall(0x4C2367,  wmInterfaceInit_hack);
+		dlogr(" Done", DL_INIT);
+	}
 }

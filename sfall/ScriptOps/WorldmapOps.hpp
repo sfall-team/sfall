@@ -69,7 +69,7 @@ static void _stdcall ForceEncounter2() {
 		ForceEnconterMapID = mapID;
 		DWORD flags = 0;
 		if (opHandler.numArgs() > 1) {
-			flags = opHandler.arg(1).asInt();
+			flags = opHandler.arg(1).asInt(); // no arg check
 			if (flags & 2) { // _Lock flag
 				flags |= (1 << 31); // set bit 31
 			} else {
