@@ -1468,10 +1468,11 @@ static void HookScriptInit2() {
 	HookCall(0x4233E3, ComputeDamageHook); // shoot_along_path() - for extra burst targets
 	HookCall(0x423AB7, ComputeDamageHook); // compute_attack()
 	HookCall(0x423BBF, ComputeDamageHook); // compute_attack()
-	HookCall(0x423DE7, ComputeDamageHook); // compute_explosion_on_extras()
+//	HookCall(0x423DE7, ComputeDamageHook); // compute_explosion_on_extras()
 	HookCall(0x423E69, ComputeDamageHook); // compute_explosion_on_extras()
 	HookCall(0x424220, ComputeDamageHook); // attack_crit_failure()
 	HookCall(0x4242FB, ComputeDamageHook); // attack_crit_failure()
+	MakeCall(0x423DEB, ComputeDamageHook); // compute_explosion_on_extras() - for the attacker
 
 	LoadHookScript("hs_ondeath", HOOK_ONDEATH);
 	HookCall(0x4130CC, &OnDeathHook);

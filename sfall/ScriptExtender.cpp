@@ -1402,6 +1402,12 @@ void ScriptExtenderSetup() {
 	long long data = 0x397401C1F6; // test cl, 1; jz 0x483CF2
 	SafeWriteBytes(0x483CB4, (BYTE*)&data, 5);
 
+	// Set the DAM_BACKWASH_ flag for the attacker before calling compute_damage_
+	SafeWrite32(0x423DE7, 0x40164E80); // or [esi+ctd.flags3Source], DAM_BACKWASH_
+	long idata = 0x146E09;             // or dword ptr [esi+ctd.flagsSource], ebp
+	SafeWriteBytes(0x423DF0, (BYTE*)&idata, 3);
+	// 0x423DEB - call ComputeDamageHook (in HookScripts.cpp)
+
 	dlogr("Adding additional opcodes", DL_SCRIPT);
 
 	SafeWrite32(0x46E370, 0x300);          // Maximum number of allowed opcodes
