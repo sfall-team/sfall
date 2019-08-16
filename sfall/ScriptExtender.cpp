@@ -1089,6 +1089,26 @@ static void __declspec(naked) FreeProgramHook() {
 	}
 }
 
+static void __declspec(naked) CombatBeginHook() {
+	__asm {
+		push eax;
+		call scr_set_ext_param_;
+		pop  eax;                                 // pobj.sid
+		mov  edx, combat_is_starting_p_proc;
+		jmp  exec_script_proc_;
+	}
+}
+
+static void __declspec(naked) CombatOverHook() {
+	__asm {
+		push eax;
+		call scr_set_ext_param_;
+		pop  eax;                                 // pobj.sid
+		mov  edx, combat_is_over_p_proc;
+		jmp  exec_script_proc_;
+	}
+}
+
 static void __declspec(naked) obj_outline_all_items_on() {
 	__asm {
 		pushad
@@ -1169,48 +1189,9 @@ end:
 	}
 }
 
-static void __declspec(naked) CombatBeginHook() {
-	__asm {
-		push eax;
-		call scr_set_ext_param_;
-		pop  eax;                                 // pobj.sid
-		mov  edx, combat_is_starting_p_proc;
-		jmp  exec_script_proc_;
-	}
-}
-
-static void __declspec(naked) CombatOverHook() {
-	__asm {
-		push eax;
-		call scr_set_ext_param_;
-		pop  eax;                                 // pobj.sid
-		mov  edx, combat_is_over_p_proc;
-		jmp  exec_script_proc_;
-	}
-}
-
 static int maxCountLoadProto = 512;
-static void __declspec(naked) proto_ptr_hack() {
-	__asm {
-		mov  ecx, maxCountLoadProto;
-		cmp  ecx, 4096;
-		jae  skip;
-		cmp  eax, ecx;
-		jb   end;
-		add  ecx, 256;
-		mov  maxCountLoadProto, ecx;
-skip:
-		cmp  eax, ecx;
-end:
-		retn;
-	}
-}
 
-void LoadProtoAutoMaxLimit() {
-	MakeCall(0x4A21B2, proto_ptr_hack);
-}
-
-long objUniqueID = UID_START; // saving to sfallgv.sav
+long objUniqueID = UID_START; // current counter id, saving to sfallgv.sav
 
 // Assigns a new unique identifier to an object if it has not been previously assigned
 // the identifier is saved with the object in the saved game and this can used in various script
@@ -1330,6 +1311,43 @@ end:
 	}
 }
 
+static void __declspec(naked) proto_ptr_hack() {
+	__asm {
+		mov  ecx, maxCountLoadProto;
+		cmp  ecx, 4096;
+		jae  skip;
+		cmp  eax, ecx;
+		jb   end;
+		add  ecx, 256;
+		mov  maxCountLoadProto, ecx;
+skip:
+		cmp  eax, ecx;
+end:
+		retn;
+	}
+}
+
+void LoadProtoAutoMaxLimit() {
+	MakeCall(0x4A21B2, proto_ptr_hack);
+}
+
+static void __declspec(naked) obj_insert_hack() {
+	__asm {
+		mov  edi, [ebx];
+		mov  [esp + 0x38 - 0x1C + 4], esi; // 0
+		test edi, edi;
+		jnz  insert;
+		retn;
+insert:
+		mov  esi, [ecx]; // esi - inserted object
+		cmp  dword ptr [esi + 0x64], 0x5000004; // corpse blood pid
+		jnz  skip;
+		xor  edi, edi;
+skip:
+		retn;
+	}
+}
+
 static void __declspec(naked) map_save_in_game_hook() {
 	__asm {
 		call partyMemberSaveProtos_;
@@ -1367,6 +1385,9 @@ void ScriptExtenderSetup() {
 	SafeWrite8(0x482E71, 0x85); // jz > jnz
 	// Additionally fix object IDs for queued events
 	MakeCall(0x4A25BA, queue_add_hack);
+
+	// Place some objects on the tile to the lower z-layer
+	MakeCall(0x48D918, obj_insert_hack, 1);
 
 	arraysBehavior = GetPrivateProfileIntA("Misc", "arraysBehavior", 1, ini);
 	if (arraysBehavior > 0) {

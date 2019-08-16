@@ -59,6 +59,19 @@ static double* multipliers = nullptr;
 
 static int skillNegPoints; // skill raw points (w/o limit)
 
+static void __declspec(naked) item_w_skill_hook() {
+	__asm {
+		mov  edx, [esp + 4]; // item proto
+		test byte ptr [edx + 0x19], 4; // weapon.flags_ext
+		jnz  energy;
+		mov  edx, ebx;
+		jmp  item_w_damage_type_;
+energy:
+		inc  eax; // DMG_laser
+		retn;
+	}
+}
+
 static int __fastcall CheckSkillMax(TGameObj* critter, int base) {
 	for (DWORD i = 0; i < SkillMaxMods.size(); i++) {
 		if (critter->ID == SkillMaxMods[i].id) {
@@ -271,6 +284,11 @@ void SkillsInit() {
 	SafeWrite8(0x4AA91B,  SKILL_MIN_LIMIT);
 	SafeWrite8(0x4AAA1A,  SKILL_MIN_LIMIT);
 	SafeWrite32(0x4AAA23, SKILL_MIN_LIMIT);
+
+	// Add an additional 'Energy Weapon' flag to the weapon flags (offset 0x0018)
+	// Weapon Flags:
+	// 0x00000400 - Energy Weapon (forces weapon to use Energy Weapons skill)
+	HookCall(0x47831E, item_w_skill_hook);
 
 	char buf[512], key[16], file[64];
 	if (GetPrivateProfileStringA("Misc", "SkillsFile", "", buf, 62, ini) > 0) {
