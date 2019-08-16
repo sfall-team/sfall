@@ -179,6 +179,25 @@ void Objects::LoadProtoAutoMaxLimit() {
 	MakeCall(0x4A21B2, proto_ptr_hack);
 }
 
+static void __declspec(naked) obj_insert_hack() {
+	using namespace fo;
+	using namespace Fields;
+	__asm {
+		mov  edi, [ebx];
+		mov  [esp + 0x38 - 0x1C + 4], esi; // 0
+		test edi, edi;
+		jnz  insert;
+		retn;
+insert:
+		mov  esi, [ecx]; // esi - insert object
+		cmp  dword ptr [esi + protoId], PID_CORPSE_BLOOD;
+		jnz  skip;
+		xor  edi, edi;
+skip:
+		retn;
+	}
+}
+
 void Objects::init() {
 	LoadGameHook::OnGameReset() += []() {
 		RestoreObjUnjamAllLocks();
@@ -194,6 +213,10 @@ void Objects::init() {
 	SafeWrite8(0x482E71, 0x85); // jz > jnz
 	// Additional fixes ID for queue events
 	MakeCall(0x4A25BA, queue_add_hack);
+
+	// Placed some objects on the tile to the lower z-layer
+	MakeCall(0x48D918, obj_insert_hack, 1);
+
 }
 
 }

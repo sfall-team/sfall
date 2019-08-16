@@ -31,6 +31,7 @@
 
 #define WEAPON_BIGGUN         256  // 0x00000100 - Big Gun
 #define WEAPON_2HAND          512  // 0x00000200 - 2Hnd (weapon is two-handed)
+#define WEAPON_ENERGY        1024  // 0x00000400 - Energy Weapon (forces weapon to use Energy Weapons skill)
 
 #define ATKMODE_PRI_NONE        0
 #define ATKMODE_PRI_PUNCH       1  // 0001
