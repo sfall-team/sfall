@@ -89,6 +89,7 @@ enum LoopFlag : unsigned long {
 	BARTER      = 1 << 17, // 0x20000
 	HEROWIN     = 1 << 18, // 0x40000 Hero Appearance mod
 	DIALOGVIEW  = 1 << 19, // 0x80000
+	COUNTERWIN  = 1 << 20, // 0x100000 // Window for input the number of moved items or setting a timer
 
 	// RESERVED    = 1 << 31
 };

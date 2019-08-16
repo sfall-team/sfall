@@ -19,6 +19,7 @@
 #define BARTER      (0x20000)
 #define HEROWIN     (0x40000)
 #define DIALOGVIEW  (0x80000)
+#define COUNTERWIN  (0x100000) // window input the number of moved items or setting a timer
 
 //Valid arguments to register_hook
 #define HOOK_TOHIT            (0)
@@ -74,7 +75,7 @@
 
 //Valid flags for force_encounter_with_flags
 #define ENCOUNTER_FLAG_NO_CAR   (1)
-#define ENCOUNTER_FLAG_LOCK     (2) // Blocks redefinition of encounter by next executes function until the current specified encounter occurs
+#define ENCOUNTER_FLAG_LOCK     (2) // block new forced encounter by the next executes function until the current specified encounter occurs
 
 //The attack types returned by get_attack_type
 #define ATKTYPE_LWEP1           (0)
