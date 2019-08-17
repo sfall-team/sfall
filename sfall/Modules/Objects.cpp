@@ -199,7 +199,8 @@ void Objects::LoadProtoAutoMaxLimit() {
 }
 
 static void __declspec(naked) obj_insert_hack() {
-	using namespace fo::Fields;
+	using namespace fo;
+	using namespace Fields;
 	__asm {
 		mov  edi, [ebx];
 		mov  [esp + 0x38 - 0x1C + 4], esi; // 0
@@ -208,7 +209,7 @@ static void __declspec(naked) obj_insert_hack() {
 		retn;
 insert:
 		mov  esi, [ecx]; // esi - inserted object
-		cmp  dword ptr [esi + protoId], 0x5000004; // corpse blood pid
+		cmp  dword ptr [esi + protoId], PID_CORPSE_BLOOD;
 		jnz  skip;
 		xor  edi, edi;
 skip:

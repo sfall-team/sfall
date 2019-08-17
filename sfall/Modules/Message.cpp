@@ -105,7 +105,7 @@ static void ReadExtraGameMsgFiles() {
 			}
 			path += ".msg";
 			fo::MessageList* list = new fo::MessageList();
-			if (fo::func::message_load(list, (char*)path.data()) == 1) {
+			if (fo::func::message_load(list, path.c_str()) == 1) {
 				gExtraGameMsgLists.insert(std::make_pair(0x2000 + number, list));
 			} else {
 				delete list;
@@ -125,13 +125,16 @@ long Message::AddExtraMsgFile(const char* msgName, long msgNumber) {
 	std::string path("game\\");
 	path += msgName;
 	fo::MessageList* list = new fo::MessageList();
-	if (fo::func::message_load(list, path.c_str())) {
-		if (msgNumber == 0) msgNumber = msgNumCounter++;
-		gExtraGameMsgLists.emplace(msgNumber, list);
-	} else {
-		delete list;
-		msgNumber = -2;
+	if (!fo::func::message_load(list, path.c_str())) {
+		// change current language folder
+		path.insert(0, "..\\english\\");
+		if (!fo::func::message_load(list, path.c_str())) {
+			delete list;
+			return -2;
+		}
 	}
+	if (msgNumber == 0) msgNumber = msgNumCounter++;
+	gExtraGameMsgLists.emplace(msgNumber, list);
 	return msgNumber;
 }
 

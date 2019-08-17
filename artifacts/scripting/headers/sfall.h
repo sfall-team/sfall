@@ -19,6 +19,7 @@
 #define BARTER      (0x20000)
 #define HEROWIN     (0x40000)
 #define DIALOGVIEW  (0x80000)
+#define COUNTERWIN  (0x100000) // counter window for moving multiple items or setting a timer
 
 //Valid arguments to register_hook
 #define HOOK_TOHIT            (0)
