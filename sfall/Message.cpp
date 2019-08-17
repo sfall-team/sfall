@@ -24,58 +24,56 @@
 
 ExtraGameMessageListsMap gExtraGameMsgLists;
 
-int LoadMsgList(MSGList *MsgList, char *MsgFilePath) {
+int LoadMsgList(MSGList *msgList, const char *msgFilePath) {
 	int retVal;
 	__asm {
-		mov  edx, MsgFilePath;
-		mov  eax, MsgList;
+		mov  edx, msgFilePath;
+		mov  eax, msgList;
 		call message_load_;
 		mov  retVal, eax;
 	}
 	return retVal;
 }
 
-int DestroyMsgList(MSGList *MsgList) {
+int DestroyMsgList(MSGList *msgList) {
 	int retVal;
 	__asm {
-		mov  eax, MsgList;
+		mov  eax, msgList;
 		call message_exit_;
 		mov  retVal, eax;
 	}
 	return retVal;
 }
 
-MSGNode *GetMsgNode(MSGList *MsgList, DWORD msgRef) {
-	if (MsgList == nullptr) return nullptr;
-	if (MsgList->numMsgs <= 0) return nullptr;
+MSGNode *GetMsgNode(MSGList *msgList, int msgRef) {
+	if (msgList != nullptr && msgList->numMsgs > 0) {
+		MSGNode *MsgNode = msgList->nodes;
+		long last = msgList->numMsgs - 1;
+		long first = 0;
+		long mid;
 
-	MSGNode *MsgNode = (MSGNode*)MsgList->MsgNodes;
-
-	long last = MsgList->numMsgs - 1;
-	long first = 0;
-	long mid;
-
-	//Use Binary Search to find msg
-	while (first <= last) {
-		mid = (first + last) / 2;
-		if (msgRef > MsgNode[mid].ref)
-			first = mid + 1;
-		else if (msgRef < MsgNode[mid].ref)
-			last = mid - 1;
-		else
-			return &MsgNode[mid];
+		//Use Binary Search to find msg
+		while (first <= last) {
+			mid = (first + last) / 2;
+			if (msgRef > MsgNode[mid].number)
+				first = mid + 1;
+			else if (msgRef < MsgNode[mid].number)
+				last = mid - 1;
+			else
+				return &MsgNode[mid];
+		}
 	}
-
 	return nullptr;
 }
 
-char* GetMsg(MSGList *MsgList, DWORD msgRef, int msgNum) {
-	MSGNode *MsgNode = GetMsgNode(MsgList, msgRef);
-	if (MsgNode) {
-		if (msgNum == 2)
-			return MsgNode->msg2;
-		else if (msgNum == 1)
-			return MsgNode->msg1;
+char* GetMsg(MSGList *msgList, int msgRef, int msgNum) {
+	MSGNode *msgNode = GetMsgNode(msgList, msgRef);
+	if (msgNode) {
+		if (msgNum == 2) {
+			return msgNode->message;
+		} else if (msgNum == 1) {
+			return msgNode->audio;
+		}
 	}
 	return nullptr;
 }
@@ -90,8 +88,7 @@ void ReadExtraGameMsgFiles() {
 		(LPSTR)names.data(), names.size(), ini)) == names.size() - 1)
 		names.resize(names.size() + 256);
 
-	if (names.empty())
-		return;
+	if (names.empty()) return;
 
 	names.resize(names.find_first_of('\0'));
 	names.append(",");
@@ -107,11 +104,11 @@ void ReadExtraGameMsgFiles() {
 		if (length > 0) {
 			std::string path = "game\\" + names.substr(begin, length) + ".msg";
 			MSGList* list = new MSGList;
-
-			if (LoadMsgList(list, (char*)path.data()) == 1)
+			if (LoadMsgList(list, path.c_str()) == 1) {
 				gExtraGameMsgLists.insert(std::make_pair(0x2000 + number, list));
-			else
+			} else {
 				delete list;
+			}
 		}
 		if (++number == 4096) break;
 

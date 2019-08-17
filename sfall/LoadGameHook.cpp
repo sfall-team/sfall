@@ -347,7 +347,7 @@ static void __declspec(naked) GameCloseHook() {
 static void __declspec(naked) WorldMapHook() {
 	__asm {
 		or InLoop, WORLDMAP;
-		xor  eax, eax;
+		xor  eax, eax; // unused
 		call wmWorldMapFunc_;
 		and InLoop, (-1 ^ WORLDMAP);
 		retn;
@@ -561,6 +561,7 @@ void LoadGameHookInit() {
 	HookCall(0x480CA7, GameCloseHook); // gnw_main_
 	//HookCall(0x480D45, GameCloseHook); // main_exit_system_ (never called)
 
+	// game modes
 	HookCall(0x483668, WorldMapHook);
 	HookCall(0x4A4073, WorldMapHook);
 	HookCall(0x4C4855, WorldMapHook2);

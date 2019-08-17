@@ -23,26 +23,26 @@
 
 //for holding a message
 typedef struct MSGNode {
-	DWORD ref;
-	DWORD a;
-	char *msg1; //unused
-	char *msg2;
+	long number;
+	long flags;
+	char *audio; //unused
+	char *message;
 
 	MSGNode() {
-		ref = 0;
-		a = 0;
-		msg1 = nullptr;
-		msg2 = nullptr;
+		number = 0;
+		flags = 0;
+		audio = nullptr;
+		message = nullptr;
 	}
 } MSGNode;
 
 //for holding msg array
 typedef struct MSGList {
 	long numMsgs;
-	void *MsgNodes;
+	MSGNode *nodes;
 
 	MSGList() {
-		MsgNodes = nullptr;
+		nodes = nullptr;
 		numMsgs = 0;
 	}
 } MSGList;
@@ -50,10 +50,9 @@ typedef struct MSGList {
 typedef std::tr1::unordered_map<int, MSGList*> ExtraGameMessageListsMap;
 extern ExtraGameMessageListsMap gExtraGameMsgLists;
 
-int LoadMsgList(MSGList *MsgList, char *MsgFilePath);
-int DestroyMsgList(MSGList *MsgList);
-//bool GetMsg(MSGList *MsgList, MSGNode *MsgNode, DWORD msgRef);
-MSGNode *GetMsgNode(MSGList *MsgList, DWORD msgRef);
-char* GetMsg(MSGList *MsgList, DWORD msgRef, int msgNum);
+int LoadMsgList(MSGList *msgList, const char *msgFilePath);
+int DestroyMsgList(MSGList *msgList);
+MSGNode *GetMsgNode(MSGList *msgList, int msgRef);
+char* GetMsg(MSGList *msgList, int msgRef, int msgNum);
 void ReadExtraGameMsgFiles();
 void ClearReadExtraGameMsgFiles();
