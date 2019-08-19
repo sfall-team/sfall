@@ -53,6 +53,8 @@ static DWORD _stdcall HandleMapUpdateForScripts(const DWORD procId);
 
 static int idle;
 
+std::string ScriptExtender::iniConfigFolder;
+
 struct GlobalScript {
 	ScriptProgram prog;
 	int count;
@@ -722,6 +724,19 @@ void ScriptExtender::init() {
 		dlogr("New arrays behavior enabled.", DL_SCRIPT);
 	} else {
 		dlogr("Arrays in backward-compatiblity mode.", DL_SCRIPT);
+	}
+
+	iniConfigFolder = GetConfigString("Scripts", "IniConfigFolder", "");
+	size_t len = iniConfigFolder.length();
+	if (len) {
+		char c = iniConfigFolder[len - 1];
+		bool pathSeparator = (c == '\\' || c == '/');
+		if (len > 62 || (len == 62 && !pathSeparator)) {
+			iniConfigFolder.clear();
+			dlogr("Error: IniConfigFolder path is too long.", DL_SCRIPT);
+		} else if (!pathSeparator) {
+			iniConfigFolder += '\\';
+		}
 	}
 
 	alwaysFindScripts = isDebug && (GetPrivateProfileIntA("Debugging", "AlwaysFindScripts", 0, ::sfall::ddrawIni) != 0);

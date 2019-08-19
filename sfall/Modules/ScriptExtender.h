@@ -32,6 +32,8 @@ public:
 	const char* name() { return "ScriptExtender"; }
 	void init();
 
+	static std::string iniConfigFolder;
+
 	// Called before map exit (before map_exit_p_proc handlers in normal scripts)
 	static Delegate<>& OnMapExit();
 };

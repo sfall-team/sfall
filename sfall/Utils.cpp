@@ -47,4 +47,17 @@ void strtrim(char* str) {
 	}
 }
 
+// returns position, find word must be lowercase
+const char* strfind(const char* source, const char* word) {
+	if (source == 0 || word == 0 || *word == 0) return 0;
+	const char *w_pos, *s_pos;
+	while(*source != 0) {
+		w_pos = word, s_pos = source++;
+		while (tolower(*s_pos++) == *w_pos++) {
+			if (*w_pos == 0) return s_pos - (w_pos - word);
+		}
+	}
+	return 0;
+}
+
 }

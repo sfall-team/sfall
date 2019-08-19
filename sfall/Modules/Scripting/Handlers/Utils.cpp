@@ -281,7 +281,7 @@ void sf_message_str_game(OpcodeContext& ctx) {
 
 	int fileId = fileIdArg.asInt();
 	int msgId = msgIdArg.asInt();
-	if (fileId < 20) { // main msg files
+	if (fileId >= 0 && fileId <= 19) { // main msg files
 		msg = fo::GetMessageStr(gameMsgFiles[fileId], msgId);
 	} else if (fileId >= 0x1000 && fileId <= 0x1005) { // proto msg files
 		msg = fo::GetMessageStr(&fo::var::proto_msg_files[fileId - 0x1000], msgId);

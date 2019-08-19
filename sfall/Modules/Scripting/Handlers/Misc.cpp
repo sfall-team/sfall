@@ -18,6 +18,7 @@
 
 #include <cstring>
 
+#include "..\..\..\Utils.h"
 #include "..\..\..\FalloutEngine\Fallout2.h"
 #include "..\..\AI.h"
 #include "..\..\Combat.h"
@@ -523,7 +524,8 @@ static int ParseIniSetting(const char* iniString, const char* &key, char section
 	if (!key) return -1;
 
 	DWORD filelen = (DWORD)key - (DWORD)iniString;
-	if (filelen >= 64) return -1;
+	if (ScriptExtender::iniConfigFolder.empty() && filelen >= 64) return -1;
+	const char* fileEnd = key;
 
 	key = strstr(key + 1, "|");
 	if (!key) return -1;
@@ -533,9 +535,24 @@ static int ParseIniSetting(const char* iniString, const char* &key, char section
 
 	file[0] = '.';
 	file[1] = '\\';
-	memcpy(&file[2], iniString, filelen);
-	file[filelen + 2] = 0;
-
+	if (!ScriptExtender::iniConfigFolder.empty()) {
+		const char* pos = strfind(iniString, &::sfall::ddrawIni[2]);
+		if (pos && pos < fileEnd) goto ddraw;
+		size_t len = ScriptExtender::iniConfigFolder.length(); // limit to 62 characters
+		memcpy(&file[2], ScriptExtender::iniConfigFolder.c_str(), len);
+		int n = 0; // position of the beginning of the file name
+		for	(int i = filelen - 4; i > 0; i--) {
+			if (iniString[i] == '\\' || iniString[i] == '/') {
+				n = i + 1;
+				break;
+			}
+		}
+		strncpy_s(&file[2 + len], (128 - 2) - len, &iniString[n], filelen - n); // copy filename (max len 63)
+	} else {
+ddraw:
+		memcpy(&file[2], iniString, filelen);
+		file[filelen + 2] = 0;
+	}
 	memcpy(section, &iniString[filelen + 1], seclen);
 	section[seclen] = 0;
 
@@ -546,7 +563,7 @@ static int ParseIniSetting(const char* iniString, const char* &key, char section
 static char IniStrBuffer[256];
 static DWORD GetIniSetting(const char* str, bool isString) {
 	const char* key;
-	char section[33], file[67];
+	char section[33], file[128];
 
 	if (ParseIniSetting(str, key, section, file) < 0) {
 		return -1;
@@ -1232,11 +1249,23 @@ void sf_set_ini_setting(OpcodeContext& ctx) {
 	}
 }
 
+static std::string GetIniFilePath(const ScriptValue& arg) {
+	std::string fileName(".\\");
+	if (ScriptExtender::iniConfigFolder.empty()) {
+		fileName += arg.strValue();
+	} else {
+		fileName += ScriptExtender::iniConfigFolder;
+		std::string name(arg.strValue());
+		int pos = name.find_last_of("\\/");
+		fileName += (pos > 0) ? name.substr(pos + 1) : name;
+	}
+	return fileName;
+}
+
 char getIniSectionBuf[5120];
 
 void sf_get_ini_sections(OpcodeContext& ctx) {
-	auto fileName = std::string(".\\") + ctx.arg(0).asString();
-	GetPrivateProfileSectionNamesA(getIniSectionBuf, 5120, fileName.data());
+	GetPrivateProfileSectionNamesA(getIniSectionBuf, 5120, GetIniFilePath(ctx.arg(0)).data());
 	std::vector<char*> sections;
 	char* section = getIniSectionBuf;
 	while (*section != 0) {
@@ -1256,9 +1285,8 @@ void sf_get_ini_sections(OpcodeContext& ctx) {
 }
 
 void sf_get_ini_section(OpcodeContext& ctx) {
-	auto fileName = std::string(".\\") + ctx.arg(0).asString();
 	auto section = ctx.arg(1).asString();
-	GetPrivateProfileSectionA(section, getIniSectionBuf, 5120, fileName.data());
+	GetPrivateProfileSectionA(section, getIniSectionBuf, 5120, GetIniFilePath(ctx.arg(0)).data());
 	int arrayId = TempArray(-1, 0); // associative
 	auto& arr = arrays[arrayId];
 	char *key = getIniSectionBuf, *val = nullptr;
