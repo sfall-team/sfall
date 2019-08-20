@@ -290,8 +290,8 @@ void SkillsInit() {
 	// 0x00000400 - Energy Weapon (forces weapon to use Energy Weapons skill)
 	HookCall(0x47831E, item_w_skill_hook);
 
-	char buf[512], key[16], file[64];
-	if (GetPrivateProfileStringA("Misc", "SkillsFile", "", buf, 62, ini) > 0) {
+	char buf[512], key[16], file[MAX_PATH];
+	if (GetPrivateProfileStringA("Misc", "SkillsFile", "", buf, MAX_PATH - 3, ini) > 0) {
 		SkillInfo *skills = (SkillInfo*)_skill_data;
 
 		sprintf(file, ".\\%s", buf);

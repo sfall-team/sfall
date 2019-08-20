@@ -813,31 +813,32 @@ static const DWORD game_msg_files[] = {
 	0x672FB0, // WORLDMAP
 };
 
-// TODO: move to FalloutEngine
-static const DWORD* proto_msg_files = (DWORD*)0x006647AC;
-
 static void _stdcall op_message_str_game2() {
-	const char* msg = 0;
+	const char* msg = nullptr;
 	const ScriptValue &fileIdArg = opHandler.arg(0),
 					  &msgIdArg = opHandler.arg(1);
+
 	if (fileIdArg.isInt() && msgIdArg.isInt()) {
-		int fileId = fileIdArg.asInt();
-		int msgId = msgIdArg.asInt();
-		if (fileId < 20) { // main msg files
-			msg = GetMessageStr(game_msg_files[fileId], msgId);
-		} else if (fileId >= 0x1000 && fileId <= 0x1005) { // proto msg files
-			msg = GetMessageStr((DWORD)&proto_msg_files[2*(fileId - 0x1000)], msgId);
-		} else if (fileId >= 0x2000) { // Extra game message files.
-			ExtraGameMessageListsMap::iterator it = gExtraGameMsgLists.find(fileId);
-			if (it != gExtraGameMsgLists.end()) {
-				msg = GetMsg(it->second, msgId, 2);
+		int fileId = fileIdArg.rawValue();
+		if (fileId >= 0) {
+			int msgId = msgIdArg.rawValue();
+			if (fileId < 20) { // main msg files
+				msg = GetMessageStr(game_msg_files[fileId], msgId);
+			} else if (fileId >= 0x1000 && fileId <= 0x1005) { // proto msg files
+				msg = GetMessageStr((DWORD)&ptr_proto_msg_files[2 * (fileId - 0x1000)], msgId);
+			} else if (fileId >= 0x2000) { // Extra game message files.
+				ExtraGameMessageListsMap::iterator it = gExtraGameMsgLists.find(fileId);
+				if (it != gExtraGameMsgLists.end()) {
+					msg = GetMsg(it->second, msgId, 2);
+				}
 			}
 		}
+		if (msg == nullptr) msg = "Error";
+		opHandler.setReturn(msg);
+	} else {
+		OpcodeInvalidArgs("message_str_game");
+		opHandler.setReturn(-1);
 	}
-	if (msg == 0) {
-		msg = "Error";
-	}
-	opHandler.setReturn(msg);
 }
 
 static void __declspec(naked) op_message_str_game() {

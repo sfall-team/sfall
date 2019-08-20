@@ -163,6 +163,7 @@ DWORD* ptr_pipmesg                    = reinterpret_cast<DWORD*>(_pipmesg);
 DWORD* ptr_preload_list_index         = reinterpret_cast<DWORD*>(_preload_list_index);
 DWORD* ptr_procTableStrs              = reinterpret_cast<DWORD*>(_procTableStrs);  // table of procId (from define.h) => procName map
 DWORD* ptr_proto_main_msg_file        = reinterpret_cast<DWORD*>(_proto_main_msg_file);
+DWORD* ptr_proto_msg_files            = reinterpret_cast<DWORD*>(_proto_msg_files);
 DWORD* ptr_ptable                     = reinterpret_cast<DWORD*>(_ptable);
 DWORD* ptr_pud                        = reinterpret_cast<DWORD*>(_pud);
 DWORD* ptr_queue                      = reinterpret_cast<DWORD*>(_queue);

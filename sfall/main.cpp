@@ -644,8 +644,6 @@ static void __declspec(naked) display_stats_hook() {
 }
 
 static void DllMain2() {
-	//SafeWrite8(0x4B15E8, 0xc3);
-	//SafeWrite8(0x4B30C4, 0xc3); //this is the one I need to override for bigger tiles
 	DWORD tmp;
 	dlogr("In DllMain2", DL_MAIN);
 
@@ -809,8 +807,8 @@ static void DllMain2() {
 		dlogr(" Done", DL_INIT);
 	}
 
-	char elevPath[MAX_PATH];
-	GetPrivateProfileString("Misc", "ElevatorsFile", "", elevPath, MAX_PATH, ini);
+	char elevPath[MAX_PATH - 3];
+	GetPrivateProfileString("Misc", "ElevatorsFile", "", elevPath, MAX_PATH - 3, ini);
 	if (strlen(elevPath) > 0) {
 		dlog("Applying elevator patch.", DL_INIT);
 		ElevatorsInit(elevPath);
@@ -1336,7 +1334,7 @@ bool _stdcall DllMain(HANDLE hDllHandle, DWORD dwReason, LPVOID lpreserved) {
 			strcpy_s(ini, ".\\ddraw.ini");
 		}
 
-		GetPrivateProfileStringA("Main", "TranslationsINI", "./Translations.ini", translationIni, 65, ini);
+		GetPrivateProfileStringA("Main", "TranslationsINI", ".\\Translations.ini", translationIni, 65, ini);
 		modifiedIni = GetPrivateProfileIntA("Main", "ModifiedIni", 0, ini);
 
 		DllMain2();

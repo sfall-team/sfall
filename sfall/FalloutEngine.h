@@ -195,6 +195,7 @@
 #define _preload_list_index         0x519640
 #define _procTableStrs              0x51C758  // table of procId (from define.h) => procName map
 #define _proto_main_msg_file        0x6647FC
+#define _proto_msg_files            0x6647AC
 #define _ptable                     0x59E934
 #define _pud                        0x59E960
 #define _quest_count                0x51C12C
@@ -404,6 +405,7 @@ extern DWORD* ptr_pipmesg;
 extern DWORD* ptr_preload_list_index;
 extern DWORD* ptr_procTableStrs;  // table of procId (from define.h) => procName map
 extern DWORD* ptr_proto_main_msg_file;
+extern DWORD* ptr_proto_msg_files;
 extern DWORD* ptr_ptable;
 extern DWORD* ptr_pud;
 extern DWORD* ptr_queue;

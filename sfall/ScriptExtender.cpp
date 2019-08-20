@@ -107,7 +107,7 @@ public:
 		return _type == DATATYPE_STR;
 	}
 
-	DWORD rawValue() const {
+	unsigned long rawValue() const {
 		return _val.dw;
 	}
 
@@ -1354,7 +1354,15 @@ static void __declspec(naked) map_save_in_game_hook() {
 		jmp  game_time_;
 	}
 }
-
+/*
+static void ClearEventUpdateMapProc() {
+	__asm {
+		mov  eax, map_update_event; // type
+		xor  edx, edx; // func
+		call queue_clear_type_;
+	}
+}
+*/
 void ScriptExtenderSetup() {
 	toggleHighlightsKey = GetPrivateProfileIntA("Input", "ToggleItemHighlightsKey", 0, ini);
 	if (toggleHighlightsKey) {
@@ -1423,7 +1431,7 @@ void ScriptExtenderSetup() {
 	long long data = 0x397401C1F6; // test cl, 1; jz 0x483CF2
 	SafeWriteBytes(0x483CB4, (BYTE*)&data, 5);
 
-	// Set the DAM_BACKWASH_ flag for the attacker before calling compute_damage_
+	// Set the DAM_BACKWASH flag for the attacker before calling compute_damage_
 	SafeWrite32(0x423DE7, 0x40164E80); // or [esi+ctd.flags3Source], DAM_BACKWASH_
 	long idata = 0x146E09;             // or dword ptr [esi+ctd.flagsSource], ebp
 	SafeWriteBytes(0x423DF0, (BYTE*)&idata, 3);
@@ -2015,11 +2023,14 @@ static DWORD _stdcall HandleMapUpdateForScripts(const DWORD procId) {
 		for (SfallProgsMap::iterator it = sfallProgsMap.begin(); it != sfallProgsMap.end(); it++) {
 			DWORD progPtr = it->second.ptr;
 			__asm {
-				mov eax, progPtr;
+				mov  eax, progPtr;
 				call runProgram_;
 			}
 		}
-	}
+	} /*else if (procId == map_exit_p_proc) {
+		ClearEventUpdateMapProc();
+	}*/
+
 	RunGlobalScriptsAtProc(procId); // gl* scripts of types 0 and 3
 	RunHookScriptsAtProc(procId); // all hs_ scripts
 

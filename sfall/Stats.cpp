@@ -245,7 +245,7 @@ void StatsInit() {
 		StatMulti[31 * 7 + 2]    = 2;       // rad resist
 		StatMulti[32 * 7 + 2]    = 5;       // poison resist
 
-		char key[6], buf2[256], buf3[256];
+		char key[6], buf2[256], buf3[MAX_PATH];
 		strcpy_s(buf3, table);
 		sprintf(table, ".\\%s", buf3);
 		for (int i = STAT_max_hit_points; i <= STAT_poison_resist; i++) {
