@@ -602,11 +602,10 @@ static DWORD _stdcall HandleMapUpdateForScripts(const DWORD procId) {
 		for (SfallProgsMap::iterator it = sfallProgsMap.begin(); it != sfallProgsMap.end(); it++) {
 			fo::func::runProgram(it->second.ptr);
 		}
-	}
+	} else if (procId == fo::ScriptProc::map_exit_p_proc) onMapExit.invoke();
+
 	RunGlobalScriptsAtProc(procId); // gl* scripts of types 0 and 3
 	RunHookScriptsAtProc(procId);   // all hs_ scripts
-
-	if (procId == fo::ScriptProc::map_exit_p_proc) onMapExit.invoke();
 
 	return procId; // restore eax (don't delete)
 }
@@ -726,7 +725,7 @@ void ScriptExtender::init() {
 		dlogr("Arrays in backward-compatiblity mode.", DL_SCRIPT);
 	}
 
-	iniConfigFolder = GetConfigString("Scripts", "IniConfigFolder", "");
+	iniConfigFolder = GetConfigString("Scripts", "IniConfigFolder", "", 64);
 	size_t len = iniConfigFolder.length();
 	if (len) {
 		char c = iniConfigFolder[len - 1];

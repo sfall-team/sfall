@@ -276,24 +276,22 @@ void sf_round(OpcodeContext& ctx) {
 
 void sf_message_str_game(OpcodeContext& ctx) {
 	const char* msg = nullptr;
-	const ScriptValue &fileIdArg = ctx.arg(0),
-		&msgIdArg = ctx.arg(1);
 
-	int fileId = fileIdArg.asInt();
-	int msgId = msgIdArg.asInt();
-	if (fileId >= 0 && fileId <= 19) { // main msg files
-		msg = fo::GetMessageStr(gameMsgFiles[fileId], msgId);
-	} else if (fileId >= 0x1000 && fileId <= 0x1005) { // proto msg files
-		msg = fo::GetMessageStr(&fo::var::proto_msg_files[fileId - 0x1000], msgId);
-	} else if (fileId >= 0x2000) { // Extra game message files.
-		ExtraGameMessageListsMap::iterator it = gExtraGameMsgLists.find(fileId);
-		if (it != gExtraGameMsgLists.end()) {
-			msg = GetMsg(it->second.get(), msgId, 2);
+	int fileId = ctx.arg(0).rawValue();
+	if (fileId >= 0) {
+		int msgId = ctx.arg(1).rawValue();
+		if (fileId < 20) { // main msg files
+			msg = fo::GetMessageStr(gameMsgFiles[fileId], msgId);
+		} else if (fileId >= 0x1000 && fileId <= 0x1005) { // proto msg files
+			msg = fo::GetMessageStr(&fo::var::proto_msg_files[fileId - 0x1000], msgId);
+		} else if (fileId >= 0x2000) { // Extra game message files.
+			ExtraGameMessageListsMap::iterator it = gExtraGameMsgLists.find(fileId);
+			if (it != gExtraGameMsgLists.end()) {
+				msg = GetMsg(it->second.get(), msgId, 2);
+			}
 		}
 	}
-	if (msg == nullptr) {
-		msg = "Error";
-	}
+	if (msg == nullptr) msg = "Error";
 	ctx.setReturn(msg);
 }
 

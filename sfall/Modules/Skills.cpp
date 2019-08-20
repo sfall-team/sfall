@@ -332,7 +332,7 @@ void Skills::init() {
 	HookCall(0x47831E, item_w_skill_hook);
 
 	char buf[512], key[16];
-	auto skillsFile = GetConfigString("Misc", "SkillsFile", "");
+	auto skillsFile = GetConfigString("Misc", "SkillsFile", "", MAX_PATH);
 	if (!skillsFile.empty()) {
 		fo::SkillInfo *skills = fo::var::skill_data;
 

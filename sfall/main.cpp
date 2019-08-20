@@ -285,7 +285,7 @@ inline void SfallInit() {
 		strcpy_s(ini, ::sfall::ddrawIni);
 	}
 
-	GetConfigString("Main", "TranslationsINI", "./Translations.ini", translationIni, 65);
+	GetConfigString("Main", "TranslationsINI", ".\\Translations.ini", translationIni, 65);
 	modifiedIni = GetConfigInt("Main", "ModifiedIni", 0);
 
 	InitModules();

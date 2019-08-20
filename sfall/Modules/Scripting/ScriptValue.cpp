@@ -70,8 +70,7 @@ ScriptValue::ScriptValue(fo::GameObject* obj) {
 	_type = DataType::INT;
 }
 
-bool ScriptValue::isInt() const
-{
+bool ScriptValue::isInt() const {
 	return _type == DataType::INT;
 }
 
