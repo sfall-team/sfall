@@ -23,26 +23,26 @@
 #include "ScriptExtender.h"
 #include "Worldmap.h"
 
-static DWORD ForceEnconterMapID = -1;
-static DWORD ForceEnconterFlags;
+static DWORD ForceEncounterMapID = -1;
+static DWORD ForceEncounterFlags;
 
 DWORD _stdcall ForceEncounterRestore() {
 	long long data = 0x672E043D83; // cmp ds:_Meet_Frank_Horrigan, 0
 	SafeWriteBytes(0x4C06D1, (BYTE*)&data, 5);
-	ForceEnconterFlags = 0;
-	DWORD mapID = ForceEnconterMapID;
-	ForceEnconterMapID = -1;
+	ForceEncounterFlags = 0;
+	DWORD mapID = ForceEncounterMapID;
+	ForceEncounterMapID = -1;
 	return mapID;
 }
 
 static void __declspec(naked) wmRndEncounterOccurred_hack() {
 	__asm {
-		test ForceEnconterFlags, 0x1; // _NoCar flag
+		test ForceEncounterFlags, 0x1; // _NoCar flag
 		jnz  noCar;
 		cmp  ds:[_Move_on_Car], 0;
 		jz   noCar;
 		mov  edx, _CarCurrArea;
-		mov  eax, ForceEnconterMapID;
+		mov  eax, ForceEncounterMapID;
 		call wmMatchAreaContainingMapIdx_;
 noCar:
 		//push ecx;
@@ -55,7 +55,7 @@ noCar:
 }
 
 static void _stdcall ForceEncounter2() {
-	if (ForceEnconterFlags & (1 << 31)) return; // wait prev. encounter
+	if (ForceEncounterFlags & (1 << 31)) return; // wait prev. encounter
 
 	const ScriptValue &mapIDArg = opHandler.arg(0);
 	if (mapIDArg.isInt()) {
@@ -64,19 +64,19 @@ static void _stdcall ForceEncounter2() {
 			opHandler.printOpcodeError("force_encounter() - invalid map number.");
 			return;
 		}
-		if (ForceEnconterMapID == -1) MakeJump(0x4C06D1, wmRndEncounterOccurred_hack);
+		if (ForceEncounterMapID == -1) MakeJump(0x4C06D1, wmRndEncounterOccurred_hack);
 
-		ForceEnconterMapID = mapID;
+		ForceEncounterMapID = mapID;
 		DWORD flags = 0;
 		if (opHandler.numArgs() > 1) {
 			flags = opHandler.arg(1).asInt(); // no arg check
 			if (flags & 2) { // _Lock flag
 				flags |= (1 << 31); // set bit 31
 			} else {
-				flags = flags & ~(1 << 31);
+				flags &= ~(1 << 31);
 			}
 		}
-		ForceEnconterFlags = flags;
+		ForceEncounterFlags = flags;
 	} else {
 		OpcodeInvalidArgs("force_encounter");
 	}

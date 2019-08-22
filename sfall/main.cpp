@@ -690,6 +690,10 @@ static void DllMain2() {
 	dlogr("Running MoviesInit().", DL_INIT);
 	MoviesInit();
 
+	dlog("Applying main menu patches.", DL_INIT);
+	MainMenuInit();
+	dlogr(" Done", DL_INIT);
+
 	mapName[64] = 0;
 	if (GetPrivateProfileString("Misc", "StartingMap", "", mapName, 64, ini)) {
 		dlog("Applying starting map patch.", DL_INIT);
@@ -1045,10 +1049,6 @@ static void DllMain2() {
 		dlogr(" Done", DL_INIT);
 	}
 
-	dlog("Applying main menu patches.", DL_INIT);
-	MainMenuInit();
-	dlogr(" Done", DL_INIT);
-
 	if (GetPrivateProfileIntA("Misc", "DisablePipboyAlarm", 0, ini)) {
 		dlog("Applying Disable Pip-Boy alarm button patch.", DL_INIT);
 		SafeWrite8(0x499518, 0xC3);
@@ -1320,17 +1320,18 @@ bool _stdcall DllMain(HANDLE hDllHandle, DWORD dwReason, LPVOID lpreserved) {
 			}
 		}
 
-		if (cmdlineexists && strlen(cmdline)) {
+		if (cmdlineexists && *cmdline != 0) {
 			HANDLE h = CreateFileA(cmdline, GENERIC_READ, 0, 0, OPEN_EXISTING, 0, 0);
 			if (h != INVALID_HANDLE_VALUE) {
 				CloseHandle(h);
 				strcat_s(ini, cmdline);
 			} else {
 				MessageBox(0, "You gave a command line argument to fallout, but it couldn't be matched to a file\n" \
-							"Using default ddraw.ini instead", "Warning", MB_TASKMODAL);
-				strcpy_s(ini, ".\\ddraw.ini");
+							  "Using default ddraw.ini instead", "Warning", MB_TASKMODAL);
+				goto defaultIni;
 			}
 		} else {
+defaultIni:
 			strcpy_s(ini, ".\\ddraw.ini");
 		}
 

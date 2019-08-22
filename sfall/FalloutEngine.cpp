@@ -1102,6 +1102,22 @@ void __stdcall MapDirErase(const char* folder, const char* ext) {
 	}
 }
 
+long __fastcall ObjBlockingAt(TGameObj* object, long tile, long elevation) {
+	__asm {
+		mov  ebx, elevation;
+		mov  eax, ecx;
+		call obj_blocking_at_;
+	}
+}
+
+long __fastcall TileNumInDirection(long tile, long rotation, long distance) {
+	__asm {
+		mov  ebx, distance;
+		mov  eax, ecx;
+		call tile_num_in_direction_;
+	}
+}
+
 long __stdcall ItemWAnimWeap(TGameObj* item, DWORD hitMode) {
 	__asm {
 		mov  edx, hitMode;
