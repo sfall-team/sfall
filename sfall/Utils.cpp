@@ -53,8 +53,9 @@ const char* strfind(const char* source, const char* word) {
 	const char *w_pos, *s_pos;
 	while(*source != 0) {
 		w_pos = word, s_pos = source++;
-		while (tolower(*s_pos++) == *w_pos++) {
-			if (*w_pos == 0) return s_pos - (w_pos - word);
+		while (tolower(*s_pos) == *w_pos) {
+			s_pos++;
+			if (*++w_pos == 0) return s_pos - (w_pos - word);
 		}
 	}
 	return 0;

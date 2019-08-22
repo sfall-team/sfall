@@ -31,26 +31,26 @@ namespace sfall
 namespace script
 {
 
-static DWORD ForceEnconterMapID = -1;
-static DWORD ForceEnconterFlags;
+static DWORD ForceEncounterMapID = -1;
+static DWORD ForceEncounterFlags;
 
 DWORD ForceEncounterRestore() {
 	long long data = 0x672E043D83; // cmp ds:_Meet_Frank_Horrigan, 0
 	SafeWriteBytes(0x4C06D1, (BYTE*)&data, 5);
-	ForceEnconterFlags = 0;
-	DWORD mapID = ForceEnconterMapID;
-	ForceEnconterMapID = -1;
+	ForceEncounterFlags = 0;
+	DWORD mapID = ForceEncounterMapID;
+	ForceEncounterMapID = -1;
 	return mapID;
 }
 
 static void __declspec(naked) wmRndEncounterOccurred_hack() {
 	__asm {
-		test ForceEnconterFlags, 0x1; // _NoCar flag
+		test ForceEncounterFlags, 0x1; // _NoCar flag
 		jnz  noCar;
 		cmp  ds:[FO_VAR_Move_on_Car], 0;
 		jz   noCar;
 		mov  edx, FO_VAR_carCurrentArea;
-		mov  eax, ForceEnconterMapID;
+		mov  eax, ForceEncounterMapID;
 		call fo::funcoffs::wmMatchAreaContainingMapIdx_;
 noCar:
 		//push ecx;
@@ -63,26 +63,26 @@ noCar:
 }
 
 void sf_force_encounter(OpcodeContext& cxt) {
-	if (ForceEnconterFlags & (1 << 31)) return; // wait prev. encounter
+	if (ForceEncounterFlags & (1 << 31)) return; // wait prev. encounter
 
 	DWORD mapID = cxt.arg(0).rawValue();
 	if (mapID < 0) {
 		cxt.printOpcodeError("%s() - invalid map number.", cxt.getOpcodeName());
 		return;
 	}
-	if (ForceEnconterMapID == -1) MakeJump(0x4C06D1, wmRndEncounterOccurred_hack);
+	if (ForceEncounterMapID == -1) MakeJump(0x4C06D1, wmRndEncounterOccurred_hack);
 
-	ForceEnconterMapID = mapID;
+	ForceEncounterMapID = mapID;
 	DWORD flags = 0;
 	if (cxt.numArgs() > 1) {
 		flags = cxt.arg(1).rawValue();
 		if (flags & 2) { // _Lock flag
 			flags |= (1 << 31); // set bit 31
 		} else {
-			flags = flags & ~(1 << 31);
+			flags &= ~(1 << 31);
 		}
 	}
-	ForceEnconterFlags = flags;
+	ForceEncounterFlags = flags;
 }
 
 // world_map_functions

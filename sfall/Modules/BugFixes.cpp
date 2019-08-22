@@ -2266,6 +2266,31 @@ skip:
 	}
 }
 
+static long __fastcall GetFreeTilePlacement(long elev, long tile) {
+	long count = 0, dist = 1;
+	long freeTile = tile;
+	long rotation = fo::var::rotation;
+	while (fo::func::obj_blocking_at(0, freeTile, elev)) {
+		freeTile = fo::func::tile_num_in_direction(freeTile, rotation, dist);
+		if (++count > 5 && ++dist > 5) return tile;
+		if (++rotation > 5) rotation = 0;
+	}
+	return freeTile;
+}
+
+static void __declspec(naked) map_check_state_hook() {
+	__asm {
+		mov  ecx, esi; // elev
+		call GetFreeTilePlacement; // edx - tile
+		mov  edx, eax; // tile
+		// restore
+		mov  ebx, esi; // elev
+		mov  eax, ds:[FO_VAR_obj_dude];
+		xor  ecx, ecx;
+		jmp  fo::funcoffs::obj_move_to_tile_;
+	}
+}
+
 void BugFixes::init()
 {
 	#ifndef NDEBUG
@@ -2863,6 +2888,9 @@ void BugFixes::init()
 		MakeCall(0x4C2367,  wmInterfaceInit_hack);
 		dlogr(" Done", DL_INIT);
 	}
+
+	// Place the player on a nearby empty tile if the entrance tile is blocked by another object when entering a map
+	HookCall(0x4836F8, map_check_state_hook);
 }
 
 }

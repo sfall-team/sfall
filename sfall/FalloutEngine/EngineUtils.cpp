@@ -297,7 +297,6 @@ static bool LoadFrmHeader(UnlistedFrm *frmHeader, fo::DbFile* frmStream) {
 }
 
 static bool LoadFrmFrame(UnlistedFrm::Frame *frame, fo::DbFile* frmStream) {
-
 	//FRMframe *frameHeader = (FRMframe*)frameMEM;
 	//BYTE* frameBuff = frame + sizeof(FRMframe);
 
@@ -320,7 +319,6 @@ static bool LoadFrmFrame(UnlistedFrm::Frame *frame, fo::DbFile* frmStream) {
 }
 
 UnlistedFrm *LoadUnlistedFrm(char *frmName, unsigned int folderRef) {
-
 	if (folderRef > fo::OBJ_TYPE_SKILLDEX) return nullptr;
 
 	char *artfolder = fo::var::art[folderRef].path; // address of art type name

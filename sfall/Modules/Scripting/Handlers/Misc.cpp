@@ -538,7 +538,7 @@ static int ParseIniSetting(const char* iniString, const char* &key, char section
 	if (!ScriptExtender::iniConfigFolder.empty()) {
 		const char* pos = strfind(iniString, &::sfall::ddrawIni[2]);
 		if (pos && pos < fileEnd) goto ddraw;
-		size_t len = ScriptExtender::iniConfigFolder.length(); // limit to 62 characters
+		size_t len = ScriptExtender::iniConfigFolder.length(); // limit up to 62 characters
 		memcpy(&file[2], ScriptExtender::iniConfigFolder.c_str(), len);
 		int n = 0; // position of the beginning of the file name
 		for	(int i = filelen - 4; i > 0; i--) {
@@ -547,7 +547,7 @@ static int ParseIniSetting(const char* iniString, const char* &key, char section
 				break;
 			}
 		}
-		strncpy_s(&file[2 + len], (128 - 2) - len, &iniString[n], filelen - n); // copy filename (max len 63)
+		strncpy_s(&file[2 + len], (128 - 2) - len, &iniString[n], filelen - n); // copy filename
 	} else {
 ddraw:
 		memcpy(&file[2], iniString, filelen);
@@ -1233,7 +1233,7 @@ void sf_set_ini_setting(OpcodeContext& ctx) {
 		saveValue = argVal.strValue();
 	}
 	const char* key;
-	char section[33], file[67];
+	char section[33], file[128];
 	int result = ParseIniSetting(ctx.arg(0).strValue(), key, section, file);
 	if (result > 0) {
 		result = WritePrivateProfileString(section, key, saveValue, file);
@@ -1269,7 +1269,7 @@ void sf_get_ini_sections(OpcodeContext& ctx) {
 	std::vector<char*> sections;
 	char* section = getIniSectionBuf;
 	while (*section != 0) {
-		sections.push_back(section);
+		sections.push_back(section); // position
 		section += std::strlen(section) + 1;
 	}
 	size_t sz = sections.size();
@@ -1279,7 +1279,7 @@ void sf_get_ini_sections(OpcodeContext& ctx) {
 	for (size_t i = 0; i < sz; ++i) {
 		size_t j = i + 1;
 		int len = (j < sz) ? sections[j] - sections[i] - 1 : -1;
-		arr.val[i].set(sections[i], len);
+		arr.val[i].set(sections[i], len); // copy string from buffer
 	}
 	ctx.setReturn(arrayId);
 }
