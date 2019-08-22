@@ -86,10 +86,12 @@ namespace sfall
 {
 
 bool isDebug = false;
+bool hrpIsEnabled = false;
 
 const char ddrawIni[] = ".\\ddraw.ini";
 static char ini[65] = ".\\";
 static char translationIni[65];
+
 DWORD modifiedIni;
 
 unsigned int GetConfigInt(const char* section, const char* setting, int defaultValue) {
@@ -144,6 +146,8 @@ static void InitModules() {
 	manager.add<LoadGameHook>();
 	manager.add<MainLoopHook>();
 	manager.add<Movies>();
+	manager.add<MainMenu>();
+	manager.add<Interface>();
 	manager.add<Objects>();
 	manager.add<PlayerModel>();
 	manager.add<Worldmap>();
@@ -163,7 +167,6 @@ static void InitModules() {
 	manager.add<Console>();
 	manager.add<ExtraSaveSlots>();
 	manager.add<Inventory>();
-	manager.add<MainMenu>();
 	manager.add<Drugs>();       // should be loaded before PartyControl
 	manager.add<PartyControl>();
 	manager.add<BurstMods>();
@@ -172,7 +175,6 @@ static void InitModules() {
 	manager.add<Message>();
 	manager.add<Elevators>();
 	manager.add<KillCounter>();
-	manager.add<Interface>();
 	//
 	manager.add<AI>();
 	manager.add<DamageMod>();
@@ -271,22 +273,25 @@ inline void SfallInit() {
 		}
 	}
 
-	if (cmdlineexists && strlen(cmdline)) {
+	if (cmdlineexists && *cmdline != 0) {
 		HANDLE h = CreateFileA(cmdline, GENERIC_READ, 0, 0, OPEN_EXISTING, 0, 0);
 		if (h != INVALID_HANDLE_VALUE) {
 			CloseHandle(h);
 			strcat_s(ini, cmdline);
 		} else {
 			MessageBox(0, "You gave a command line argument to fallout, but it couldn't be matched to a file\n" \
-						"Using default ddraw.ini instead", "Warning", MB_TASKMODAL);
-			strcpy_s(ini, ::sfall::ddrawIni);
+						  "Using default ddraw.ini instead", "Warning", MB_TASKMODAL);
+			goto defaultIni;
 		}
 	} else {
+defaultIni:
 		strcpy_s(ini, ::sfall::ddrawIni);
 	}
 
 	GetConfigString("Main", "TranslationsINI", ".\\Translations.ini", translationIni, 65);
 	modifiedIni = GetConfigInt("Main", "ModifiedIni", 0);
+
+	hrpIsEnabled = (*(DWORD*)0x4E4480 != 0x278805C7); // check if HRP is enabled
 
 	InitModules();
 }

@@ -452,7 +452,8 @@ Also happens on other screens, like barter.
 
 NOTE: FID has following format: 0x0ABBCDDD, where A is object type, BB - animation code (always 0 in this case), C - weapon code, DDD - FRM index in LST file.
 
-int     arg1 - the vanilla fid calculated by the engine according to critter base FID and armor/weapon being used
+int     arg1 - the vanilla FID calculated by the engine according to critter base FID and armor/weapon being used
+int     arg2 - the modified FID calculated by the internal sfall code (like Hero Appearance Mod)
 
 int     ret1 - overrides the calculated FID with provided value
 

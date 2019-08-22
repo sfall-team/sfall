@@ -25,8 +25,16 @@
 namespace sfall
 {
 
+#ifdef NDEBUG
+static const char* VerString1 = "SFALL " VERSION_STRING;
+#else
+static const char* VerString1 = "SFALL " VERSION_STRING " Debug Build";
+#endif
+
 static DWORD MainMenuYOffset;
 static DWORD MainMenuTextOffset;
+
+static long OverrideColour;
 
 static const DWORD MainMenuButtonYHookRet = 0x48184A;
 static void __declspec(naked) MainMenuButtonYHook() {
@@ -45,22 +53,15 @@ static void __declspec(naked) MainMenuTextYHook() {
 	}
 }
 
-#ifdef NDEBUG
-static const char* VerString1 = "SFALL " VERSION_STRING;
-#else
-static const char* VerString1 = "SFALL " VERSION_STRING " Debug Build";
-#endif
-
-static DWORD OverrideColour;
 static void __declspec(naked) FontColour() {
 	__asm {
 		cmp OverrideColour, 0;
-		je  skip;
-		mov eax, OverrideColour;
-		retn;
-skip:
+		jg  override;
 		movzx eax, byte ptr ds:[0x6A8B33];
 		or  eax, 0x6000000;
+		retn;
+override:
+		mov eax, OverrideColour;
 		retn;
 	}
 }
@@ -121,8 +122,9 @@ void MainMenu::init() {
 
 	MakeJump(0x4817AB, MainMenuTextHook);
 	OverrideColour = GetConfigInt("Misc", "MainMenuFontColour", 0);
-	if (OverrideColour) {
-		MakeCall(0x48174C, FontColour);
+	if (OverrideColour > 0) {
+		OverrideColour |= 0x6000000;
+		SafeWrite32(0x481748, (DWORD)&OverrideColour);
 	}
 }
 

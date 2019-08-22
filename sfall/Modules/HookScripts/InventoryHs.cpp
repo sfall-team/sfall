@@ -432,8 +432,9 @@ void AdjustFidHook(DWORD vanillaFid) {
 	if (!HookScripts::HookHasScript(HOOK_ADJUSTFID)) return;
 
 	BeginHook();
-	argCount = 1;
+	argCount = 2;
 	args[0] = vanillaFid;
+	args[1] = fo::var::i_fid; // modified FID by sfall code
 	RunHookScript(HOOK_ADJUSTFID);
 	if (cRet > 0) {
 		fo::var::i_fid = rets[0];
@@ -502,7 +503,7 @@ void InitInventoryHookScripts() {
 	LoadHookScript("hs_invenwield", HOOK_INVENWIELD);
 	LoadHookScript("hs_adjustfid", HOOK_ADJUSTFID);
 
-	Inventory::OnAdjustFid() += AdjustFidHook;
+	Inventory::OnAdjustFid() += AdjustFidHook; // should be registered last
 }
 
 }
