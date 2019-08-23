@@ -322,8 +322,8 @@ void AnimationsAtOnce::init() {
 	// Fix crash when the critter goes through a door with animation trigger
 	MakeJump(0x41755E, object_move_hack);
 
-	// Fix player's direction after leaving a map via ladder/stairs
-	SafeWriteBatch<BYTE>(25, {0x49C972, 0x49CA16, 0x49CABA});
+	// Fix player's direction after ladder climbing animation
+	SafeWrite16(0x49CA14, 0xB190); // mov cl, 26 (skip setting the direction)
 }
 
 void AnimationsAtOnce::exit() {

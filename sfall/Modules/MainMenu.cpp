@@ -34,7 +34,7 @@ static const char* VerString1 = "SFALL " VERSION_STRING " Debug Build";
 static DWORD MainMenuYOffset;
 static DWORD MainMenuTextOffset;
 
-static long OverrideColour;
+static long OverrideColour, OverrideColour2;
 
 static const DWORD MainMenuButtonYHookRet = 0x48184A;
 static void __declspec(naked) MainMenuButtonYHook() {
@@ -55,13 +55,13 @@ static void __declspec(naked) MainMenuTextYHook() {
 
 static void __declspec(naked) FontColour() {
 	__asm {
-		cmp OverrideColour, 0;
-		jg  override;
+		test OverrideColour, 0xFF;
+		jnz  override;
 		movzx eax, byte ptr ds:[0x6A8B33];
-		or  eax, 0x6000000;
+		or   eax, 0x6000000;
 		retn;
 override:
-		mov eax, OverrideColour;
+		mov  eax, OverrideColour;
 		retn;
 	}
 }
@@ -121,11 +121,15 @@ void MainMenu::init() {
 	}
 
 	MakeJump(0x4817AB, MainMenuTextHook);
+
 	OverrideColour = GetConfigInt("Misc", "MainMenuFontColour", 0);
-	if (OverrideColour > 0) {
-		OverrideColour |= 0x6000000;
+	if (OverrideColour & 0xFF) {
+		OverrideColour &= 0x00FF00FF;
+		OverrideColour |= 0x06000000;
 		SafeWrite32(0x481748, (DWORD)&OverrideColour);
 	}
+	OverrideColour2 = GetConfigInt("Misc", "MainMenuBigFontColour", 0) & 0xFF;
+	if (OverrideColour2) SafeWrite32(0x481906, (DWORD)&OverrideColour2);
 }
 
 }
