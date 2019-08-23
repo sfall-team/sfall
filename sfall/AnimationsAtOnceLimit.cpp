@@ -149,10 +149,6 @@ static const DWORD sad_28[] = {
 	0x4173CE, 0x4174C1, 0x4175F1, 0x417730,
 };
 
-static const DWORD use_ladder_stairs[] = {
-	0x49C972, 0x49CA16, 0x49CABA,
-};
-
 static void __declspec(naked) anim_set_end_hack() {
 	__asm {
 		mov  edi, _anim_set;
@@ -365,10 +361,8 @@ void AnimationsAtOnceInit() {
 	// Fix crash when the critter goes through a door with animation trigger
 	MakeJump(0x41755E, object_move_hack);
 
-	// Fix player's direction after leaving a map via ladder/stairs
-	for (int i = 0; i < sizeof(use_ladder_stairs) / 4; i++) {
-		SafeWrite8(use_ladder_stairs[i], 25);
-	}
+	// Fix player's direction after ladder climbing animation
+	SafeWrite16(0x49CA14, 0xB190); // mov cl, 26 (skip setting the direction)
 }
 
 void AnimationsAtOnceExit() {

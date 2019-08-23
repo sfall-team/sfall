@@ -1069,7 +1069,7 @@ FrmFrameData* __fastcall FramePtr(FrmHeaderData* frm, long frame, long direction
 
 void __stdcall MapDirErase(const char* folder, const char* ext);
 
-long __fastcall ObjBlockingAt(TGameObj* object, long tile, long elevation);
+TGameObj* __fastcall ObjBlockingAt(TGameObj* object, long tile, long elevation);
 
 long __fastcall TileNumInDirection(long tile, long rotation, long distance);
 

@@ -1102,7 +1102,7 @@ void __stdcall MapDirErase(const char* folder, const char* ext) {
 	}
 }
 
-long __fastcall ObjBlockingAt(TGameObj* object, long tile, long elevation) {
+TGameObj* __fastcall ObjBlockingAt(TGameObj* object, long tile, long elevation) {
 	__asm {
 		mov  ebx, elevation;
 		mov  eax, ecx;
