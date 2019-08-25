@@ -959,7 +959,7 @@ static void __declspec(naked) PerceptionRangeSeeHook() {
 		cmp  eax, 2;
 		jne  nevermind; // normal return
 		dec  eax;
-		mov  dword ptr[esp + 0x2C - 0x1C + 4], eax; // set 1, skip blocking check
+		mov  dword ptr [esp + 0x2C - 0x1C + 4], eax; // set 1, skip blocking check
 		dec  eax;
 nevermind:
 		retn;

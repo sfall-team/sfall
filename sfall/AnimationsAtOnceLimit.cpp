@@ -23,6 +23,7 @@
 #include "LoadGameHook.h"
 
 static const int animRecordSize = 2656;
+static const int sadSize = 3240;
 
 static int animationLimit = 32;
 
@@ -149,19 +150,23 @@ static const DWORD sad_28[] = {
 	0x4173CE, 0x4174C1, 0x4175F1, 0x417730,
 };
 
+static DWORD __fastcall AnimCombatFix(DWORD* src, BYTE combatFlag) {
+	DWORD animAddr = animSetAddr;
+
+	if (animationLimit > 32) {
+		animAddr += animRecordSize; // include a dummy
+	}
+
+	if (combatFlag & 2) {           // combat flag is set
+		__asm call combat_anim_finished_;
+	}
+	return animAddr;
+}
+
 static void __declspec(naked) anim_set_end_hack() {
 	__asm {
-		mov  edi, _anim_set;
-		cmp  dword ptr animationLimit, 32;
-		jle  skip;
-		mov  edi, animSetAddr;
-		add  edi, animRecordSize;                 // Include a dummy
-skip:
-		test dl, 0x2;                             // Is the combat flag set?
-		jz   end;                                 // No
-		call combat_anim_finished_;
-end:
-		mov  [edi][esi], ebx;
+		call AnimCombatFix;
+		mov  [eax][esi], ebx;
 		xor  dl, dl; // goto 0x415DF2;
 		retn;
 	}
@@ -169,7 +174,7 @@ end:
 
 static DWORD __fastcall CheckSetSad(BYTE openFlag, DWORD valueMul) {
 	bool result = false;
-	int offset = (3240 * valueMul) + 32;
+	int offset = (sadSize * valueMul) + 32;
 
 	if (*(DWORD*)(sadAddr + offset) == -1000) {
 		result = true;
@@ -196,6 +201,24 @@ end:
 	}
 }
 
+static void __declspec(naked)  action_climb_ladder_hook() {
+	__asm {
+		cmp  word ptr [edi + 0x40], 0xFFFF; // DestTile
+		je   skip;
+		cmp  dword ptr [edi + 0x3C], 0;     // DestMap
+		je   reset;
+		push edx;
+		mov  edx, ds:[_map_number];
+		cmp  dword ptr [edi + 0x3C], edx;
+		pop  edx;
+		jne  skip;
+reset:
+		and  al, ~0x4; // reset RB_DONTSTAND flag
+skip:
+		jmp  register_begin_;
+	}
+}
+
 void ApplyAnimationsAtOncePatches(signed char aniMax) {
 	if (aniMax <= 32) return;
 
@@ -203,10 +226,10 @@ void ApplyAnimationsAtOncePatches(signed char aniMax) {
 
 	//allocate memory to store larger animation struct arrays
 	anim_set = new BYTE[animRecordSize * (aniMax + 1)];
-	sad = new BYTE[3240 * (aniMax + 1)];
+	sad = new BYTE[sadSize * (aniMax + 1)];
 
-	animSetAddr = (DWORD)anim_set;
-	sadAddr = (DWORD)sad;
+	animSetAddr = reinterpret_cast<DWORD>(anim_set);
+	sadAddr = reinterpret_cast<DWORD>(sad);
 
 	//set general animation limit check (old 20) aniMax-12 -- +12 reserved for PC movement(4) + other critical animations(8)?
 	SafeWrite8(0x413C07, aniMax - 12);
@@ -361,8 +384,8 @@ void AnimationsAtOnceInit() {
 	// Fix crash when the critter goes through a door with animation trigger
 	MakeJump(0x41755E, object_move_hack);
 
-	// Fix player's direction after ladder climbing animation
-	SafeWrite16(0x49CA14, 0xB190); // mov cl, 26 (skip setting the direction)
+	// Fix for the player stuck at "climbing" frame after ladder climbing animation
+	HookCall(0x411E1F, action_climb_ladder_hook);
 }
 
 void AnimationsAtOnceExit() {

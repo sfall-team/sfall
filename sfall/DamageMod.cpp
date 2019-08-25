@@ -423,7 +423,7 @@ static void __declspec(naked) DisplayBonusHtHDmg2_hack() {
 		shl  eax, 1;
 		add  eax, 1;
 		push eax;                                      // min dmg + bonus
-		mov  ecx, dword ptr[esp + 0x98 + 0x4];
+		mov  ecx, dword ptr [esp + 0x98 + 0x4];
 		push ecx;                                      // message
 		push 0x509EDC;                                 // '%s %d-%d'
 		lea  eax, [esp + 0x0C + 0x4];
