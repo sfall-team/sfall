@@ -370,7 +370,7 @@ skip:
 		jz end;
 		retn;
 end:
-		mov dword ptr[esp], 0x4715B7;
+		mov dword ptr [esp], 0x4715B7;
 		retn;
 	}
 }

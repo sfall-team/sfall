@@ -153,17 +153,16 @@ static const DWORD sad_28[] = {
 	0x4173CE, 0x4174C1, 0x4175F1, 0x417730,
 };
 
-static DWORD __fastcall AnimCombatFix(DWORD* scr, BYTE combatFlag) {
+static DWORD __fastcall AnimCombatFix(DWORD* src, BYTE combatFlag) {
 	DWORD animAddr = animSetAddr;
 
 	if (animationLimit > 32) {
-		animAddr += animRecordSize;    // include a dummy
+		animAddr += animRecordSize; // include a dummy
 	}
 
-	if (combatFlag & 2) {              // combat flag is set
-		_asm call fo::funcoffs::combat_anim_finished_;
+	if (combatFlag & 2) {           // combat flag is set
+		__asm call fo::funcoffs::combat_anim_finished_;
 	}
-
 	return animAddr;
 }
 
@@ -202,6 +201,24 @@ static void __declspec(naked) object_move_hack() {
 		jmp  object_move_back0;            // fixed jump
 end:
 		jmp  object_move_back1;            // default
+	}
+}
+
+static void __declspec(naked)  action_climb_ladder_hook() {
+	__asm {
+		cmp  word ptr [edi + 0x40], 0xFFFF; // DestTile
+		je   skip;
+		cmp  dword ptr [edi + 0x3C], 0;     // DestMap
+		je   reset;
+		push edx;
+		mov  edx, ds:[FO_VAR_map_number];
+		cmp  dword ptr [edi + 0x3C], edx;
+		pop  edx;
+		jne  skip;
+reset:
+		and  al, ~0x4; // reset RB_DONTSTAND flag
+skip:
+		jmp  fo::funcoffs::register_begin_;
 	}
 }
 
@@ -322,8 +339,8 @@ void AnimationsAtOnce::init() {
 	// Fix crash when the critter goes through a door with animation trigger
 	MakeJump(0x41755E, object_move_hack);
 
-	// Fix player's direction after ladder climbing animation
-	SafeWrite16(0x49CA14, 0xB190); // mov cl, 26 (skip setting the direction)
+	// Fix for the player stuck at "climbing" frame after ladder climbing animation
+	HookCall(0x411E1F, action_climb_ladder_hook);
 }
 
 void AnimationsAtOnce::exit() {
