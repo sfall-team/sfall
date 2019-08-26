@@ -92,8 +92,6 @@ sScriptProgram* GetGlobalScriptProgram(DWORD scriptPtr);
 
 char* _stdcall mysubstr(char* str, int pos, int length);
 
-void OpcodeInvalidArgs(const char* opcodeName);
-
 // variables
 static char reg_anim_combat_check = 1;
 extern DWORD isGlobalScriptLoading;

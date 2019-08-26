@@ -22,10 +22,6 @@
 #include "FileSystem.h"
 #include "ScriptExtender.h"
 
-void OpcodeInvalidArgs(const char* opcodeName) {
-	opHandler.printOpcodeError("%s() - invalid arguments.", opcodeName);
-}
-
 //file system functions
 static void fs_create2() {
 	const ScriptValue &pathArg = opHandler.arg(0),

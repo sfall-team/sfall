@@ -140,7 +140,7 @@ end:
 	}
 }
 
-// Remove master_patches from the load order
+// Remove master_patches from the chain of paths
 static void __declspec(naked) game_init_databases_hack1() {
 	__asm {
 		call RemoveDatabase;
@@ -149,7 +149,7 @@ static void __declspec(naked) game_init_databases_hack1() {
 	}
 }
 
-// Remove critter_patches from the load order
+// Remove critter_patches from the chain of paths
 static void __declspec(naked) game_init_databases_hack2() {
 	__asm {
 		cmp  eax, -1;
@@ -168,7 +168,7 @@ end:
 }
 
 static void __declspec(naked) game_init_databases_hook() {
-// eax = _master_db_handle
+	// eax = _master_db_handle
 	__asm {
 		mov  ecx, ds:[_critter_db_handle];
 		mov  edx, ds:[_paths];

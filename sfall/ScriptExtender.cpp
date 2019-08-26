@@ -359,6 +359,9 @@ private:
 
 static OpcodeHandler opHandler;
 
+static void OpcodeInvalidArgs(const char* opcodeName) {
+	opHandler.printOpcodeError("%s() - invalid arguments.", opcodeName);
+}
 
 
 #include "ScriptOps\AsmMacros.h"
@@ -493,7 +496,6 @@ TScript OverrideScriptStruct = {0};
 
 //To return a value, move it to edx, mov the script pointer to eax, call interpretPushLong_
 //mov the value type to edx, mov the script pointer to eax, call interpretPushShort_
-
 
 
 static void __fastcall SetGlobalScriptRepeat2(DWORD script, DWORD frames) {
