@@ -94,7 +94,7 @@ static long GetGlobalVarNameString(OpcodeContext& ctx) {
 }
 
 static void GetGlobalVar(OpcodeContext& ctx, DataType type) {
-	long result; 
+	long result;
 	if (ctx.arg(0).isString()) {
 		result = GetGlobalVarNameString(ctx);
 	} else {

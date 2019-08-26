@@ -90,6 +90,7 @@ DWORD _stdcall GetHSArg();
 DWORD* _stdcall GetHSArgs();
 void _stdcall SetHSArg(DWORD id, DWORD value);
 void _stdcall SetHSReturn(DWORD d);
+
 // register hook by proc num (special values: -1 - use default (start) procedure, 0 - unregister)
 void _stdcall RegisterHook(fo::Program* script, int id, int procNum);
 

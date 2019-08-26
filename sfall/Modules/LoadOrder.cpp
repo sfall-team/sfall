@@ -103,7 +103,7 @@ static void __declspec(naked) gnw_main_hack() {
 }
 
 static fo::PathNode* __fastcall RemoveDatabase(const char* pathPatches) {
-	auto paths = fo::var::paths; // curr.node (beginning of the load order)
+	auto paths = fo::var::paths; // curr.node (beginning of the chain of paths)
 	auto _paths = paths;         // prev.node
 
 	while (paths) {
@@ -111,9 +111,9 @@ static fo::PathNode* __fastcall RemoveDatabase(const char* pathPatches) {
 			fo::PathNode* nextPaths = paths->next;     // pointer to the node of the next path
 // TODO: need to check if this condition is used correctly
 			if (paths != _paths)
-				_paths->next = nextPaths;              // replace the pointer in the previous node, removing the current(found) path from the load order
+				_paths->next = nextPaths;              // replace the pointer in the previous node, removing the current(found) path from the chain
 			else                                       // if the current node is equal to the previous node
-				fo::var::paths = nextPaths;            // set the next node at the beginning of the load order
+				fo::var::paths = nextPaths;            // set the next node at the beginning of the chain
 			return paths;                              // return the pointer of the current removed node (save the pointer)
 		}
 		_paths = paths;      // prev.node <- curr.node
@@ -122,7 +122,7 @@ static fo::PathNode* __fastcall RemoveDatabase(const char* pathPatches) {
 	return nullptr; // it's possible that this will create an exceptional situation for the game, although such a situation should not arise
 }
 
-// Remove master_patches from the load order
+// Remove master_patches from the chain
 static void __declspec(naked) game_init_databases_hack1() {
 	__asm {
 		cmp  eax, -1;
@@ -135,7 +135,7 @@ skip:
 	}
 }
 
-// Remove critter_patches from the load order
+// Remove critter_patches from the chain
 static void __declspec(naked) game_init_databases_hack2() {
 	__asm {
 		cmp  eax, -1;
@@ -169,14 +169,14 @@ static void __fastcall game_init_databases_hook() {
 	if (!patchFiles.empty()) InitExtraPatches();
 
 	fo::PathNode* critter_patches = (fo::PathNode*)fo::var::critter_db_handle;
-	fo::PathNode* paths = fo::var::paths; // beginning of the load order
-	// insert master_patches/critter_patches at the beginning of the load order
+	fo::PathNode* paths = fo::var::paths; // beginning of the chain of paths
+	// insert master_patches/critter_patches at the beginning of the chain of paths
 	if (critter_patches) {
 		critter_patches->next = paths;    // critter_patches.next -> paths
 		paths = critter_patches;
 	}
 	master_patches->next = paths;         // master_patches.next -> paths
-	fo::var::paths = master_patches;      // set master_patches node at the beginning of the load order
+	fo::var::paths = master_patches;      // set master_patches node at the beginning of the chain of paths
 }
 
 static bool NormalizePath(std::string &path) {
