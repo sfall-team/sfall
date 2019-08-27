@@ -11,17 +11,17 @@
 namespace sfall
 {
 
-// TODO: For now the hook gets executed twice, the first time for the player and the second time for the trader.
-// it is necessary to change the implementation so that the hook only gets executed once
+// The hook is executed twice when entering the barter screen or after transaction: the first time is for the player and the second time is for NPC
 static DWORD __fastcall BarterPriceHook_Script(register fo::GameObject* source, register fo::GameObject* target, DWORD callAddr) {
+	bool barterIsParty = (*(DWORD*)FO_VAR_dialog_target_is_party != 0);
 	int computeCost = fo::func::barter_compute_value(source, target);
 
 	BeginHook();
-	argCount = 9;
+	argCount = 10;
 
 	args[0] = (DWORD)source;
 	args[1] = (DWORD)target;
-	args[2] = computeCost;
+	args[2] = !barterIsParty ? computeCost : 0;
 
 	fo::GameObject* bTable = (fo::GameObject*)fo::var::btable;
 	args[3] = (DWORD)bTable;
@@ -30,24 +30,24 @@ static DWORD __fastcall BarterPriceHook_Script(register fo::GameObject* source, 
 
 	fo::GameObject* pTable = (fo::GameObject*)fo::var::ptable;
 	args[6] = (DWORD)pTable;
-	int pcCost = fo::func::item_total_cost(pTable);
-	args[7] = pcCost;
+	int pcCost = !barterIsParty ? fo::func::item_total_cost(pTable) : fo::func::item_total_weight(pTable);
+	args[7] = !barterIsParty ? pcCost : 0;
 
-	args[8] = (DWORD)(callAddr == 0x474D51); // check offers button
+	args[8] = (DWORD)(callAddr == 0x474D51); // offers button is pressed
+	args[9] = (DWORD)barterIsParty;
 
 	RunHookScript(HOOK_BARTERPRICE);
 
-	bool isPCHook = (callAddr == 0x47551F);
+	bool isPCHook = (callAddr == -1);
 	int cost = isPCHook ? pcCost : computeCost;
-	if (cRet > 0) {
+	if (!barterIsParty && cRet > 0) {
 		if (isPCHook) {
 			if (cRet > 1) cost = rets[1];     // new cost for pc
 		} else if ((int)rets[0] > -1) {
-			cost = rets[0];                   // new cost for trader
+			cost = rets[0];                   // new cost for npc
 		}
 	}
 	EndHook();
-
 	return cost;
 }
 
@@ -65,13 +65,13 @@ static void __declspec(naked) BarterPriceHook() {
 	}
 }
 
-static DWORD offersGoodsCost; // keep last cost
+static DWORD offersGoodsCost; // keep last cost for pc
 static void __declspec(naked) PC_BarterPriceHook() {
 	__asm {
 		push edx;
 		push ecx;
 		//-------
-		push [esp + 8];                                // address on call stack
+		push -1;                                       // address on call stack
 		mov  ecx, dword ptr ds:[FO_VAR_obj_dude];      // source
 		mov  edx, dword ptr ds:[FO_VAR_target_stack];  // target
 		call BarterPriceHook_Script;
@@ -82,11 +82,10 @@ static void __declspec(naked) PC_BarterPriceHook() {
 	}
 }
 
-static const DWORD OverrideCostRet = 0x474D44;
-static void __declspec(naked) OverrideCost_BarterPriceHack() {
+static void __declspec(naked) OverrideCost_BarterPriceHook() {
 	__asm {
 		mov eax, offersGoodsCost;
-		jmp OverrideCostRet;
+		retn;
 	}
 }
 
@@ -522,12 +521,12 @@ end:
 
 void Inject_BarterPriceHook() {
 	HookCalls(BarterPriceHook, {
-		0x474D4C,
-		0x475735,
-		0x475762
+		0x474D4C, // barter_attempt_transaction_ (offers button)
+		0x475735, // display_table_inventories_ (for party members)
+		0x475762  // display_table_inventories_
 	});
-	HookCall(0X47551A, PC_BarterPriceHook);
-	MakeJump(0x474D3F, OverrideCost_BarterPriceHack); // just overrides cost of offered goods
+	HookCalls(PC_BarterPriceHook, {0x4754F4, 0x47551A}); // display_table_inventories_
+	HookCall(0x474D3F, OverrideCost_BarterPriceHook);    // barter_attempt_transaction_ (just overrides cost of offered goods)
 }
 
 void Inject_UseSkillHook() {

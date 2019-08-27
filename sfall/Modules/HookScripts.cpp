@@ -178,7 +178,7 @@ void _stdcall RegisterHook(fo::Program* script, int id, int procNum) {
 
 	ScriptProgram *prog = GetGlobalScriptProgram(script);
 	if (prog) {
-		dlog_f("Global script %08x registered as hook id %d\n", DL_HOOK, script, id);
+		dlog_f("Global script %08x registered as hook ID %d\n", DL_HOOK, script, id);
 		HookScript hook;
 		hook.prog = *prog;
 		hook.callback = procNum;
