@@ -1169,3 +1169,10 @@ long __stdcall ItemTotalCost(TGameObj* object) {
 		call item_total_cost_;
 	}
 }
+
+long __stdcall ItemTotalWeight(TGameObj* object) {
+	__asm {
+		mov  eax, object;
+		call item_total_weight_;
+	}
+}

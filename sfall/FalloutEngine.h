@@ -1083,3 +1083,4 @@ long __stdcall ItemWRounds(TGameObj* item);
 long __stdcall BarterComputeValue(TGameObj* source, TGameObj* target);
 long __stdcall ItemCapsTotal(TGameObj* object);
 long __stdcall ItemTotalCost(TGameObj* object);
+long __stdcall ItemTotalWeight(TGameObj* object);

@@ -248,13 +248,14 @@ Obj     arg1 - the owner that the object is being removed from
 item    arg2 - the item that is being removed
 int     arg3 - the number of items to remove
 int     arg4 - The reason the object is being removed (see RMOBJ_* constants)
-Obj     arg5 - The destination object when the item is moved to another object, otherwise 0
+Obj     arg5 - The destination object when the item is moved to another object, 0 otherwise
 
 -------------------------------------------
 
 HOOK_BARTERPRICE (hs_barterprice.int)
 
 Runs whenever the value of goods being purchased is calculated
+NOTE: the hook is executed twice when entering the barter screen or after transaction: the first time is for the player and the second time is for NPC
 
 critter arg1 - the critter doing the bartering (either dude_obj or inven_dude)
 critter arg2 - the critter being bartered with
@@ -264,7 +265,8 @@ int     arg5 - the amount of actual caps in the barter stack (as opposed to good
 int     arg6 - the value of all goods being traded before skill modifications
 critter arg7 - table of offered goods (being sold to NPC)
 int     arg8 - the total cost of the goods offered by the player
-int     arg9 - set 1 if the "offers" button was pressed (not for a party member), otherwise 0
+int     arg9 - 1 if the "offers" button was pressed (not for a party member), 0 otherwise
+int     arg10 - 1 if trading with a party member, 0 otherwise
 
 int     ret1 - the modified value of all of the goods (pass -1 if you just want to modify offered goods)
 int     ret2 - the modified value of all offered goods

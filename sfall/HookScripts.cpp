@@ -575,15 +575,17 @@ static void __declspec(naked) RemoveObjHook() {
 }
 
 // 4.x backport
+// The hook is executed twice when entering the barter screen or after transaction: the first time is for the player and the second time is for NPC
 static DWORD __fastcall BarterPriceHook_Script(register TGameObj* source, register TGameObj* target, DWORD callAddr) {
+	bool barterIsParty = (*ptr_dialog_target_is_party != 0);
 	int computeCost = BarterComputeValue(source, target);
 
 	BeginHook();
-	argCount = 9;
+	argCount = 10;
 
 	args[0] = (DWORD)source;
 	args[1] = (DWORD)target;
-	args[2] = computeCost;
+	args[2] = !barterIsParty ? computeCost : 0;
 
 	TGameObj* bTable = (TGameObj*)*ptr_btable;
 	args[3] = (DWORD)bTable;
@@ -592,24 +594,24 @@ static DWORD __fastcall BarterPriceHook_Script(register TGameObj* source, regist
 
 	TGameObj* pTable = (TGameObj*)*ptr_ptable;
 	args[6] = (DWORD)pTable;
-	int pcCost = ItemTotalCost(pTable);
-	args[7] = pcCost;
+	int pcCost = !barterIsParty ? ItemTotalCost(pTable) : ItemTotalWeight(pTable);
+	args[7] = !barterIsParty ? pcCost : 0;
 
-	args[8] = (DWORD)(callAddr == 0x474D51); // check offers button
+	args[8] = (DWORD)(callAddr == 0x474D51); // offers button is pressed
+	args[9] = (DWORD)barterIsParty;
 
 	RunHookScript(HOOK_BARTERPRICE);
 
-	bool isPCHook = (callAddr == 0x47551F);
+	bool isPCHook = (callAddr == -1);
 	int cost = isPCHook ? pcCost : computeCost;
-	if (cRet > 0) {
+	if (!barterIsParty && cRet > 0) {
 		if (isPCHook) {
 			if (cRet > 1) cost = rets[1];     // new cost for pc
 		} else if ((int)rets[0] > -1) {
-			cost = rets[0];                   // new cost for trader
+			cost = rets[0];                   // new cost for npc
 		}
 	}
 	EndHook();
-
 	return cost;
 }
 
@@ -627,13 +629,13 @@ static void __declspec(naked) BarterPriceHook() {
 	}
 }
 
-static DWORD offersGoodsCost; // keep last cost
+static DWORD offersGoodsCost; // keep last cost for pc
 static void __declspec(naked) PC_BarterPriceHook() {
 	__asm {
 		push edx;
 		push ecx;
 		//-------
-		push [esp + 8];                          // address on call stack
+		push -1;                                 // address on call stack
 		mov  ecx, dword ptr ds:[_obj_dude];      // source
 		mov  edx, dword ptr ds:[_target_stack];  // target
 		call BarterPriceHook_Script;
@@ -644,11 +646,10 @@ static void __declspec(naked) PC_BarterPriceHook() {
 	}
 }
 
-static const DWORD OverrideCostRet = 0x474D44;
-static void __declspec(naked) OverrideCost_BarterPriceHack() {
+static void __declspec(naked) OverrideCost_BarterPriceHook() {
 	__asm {
 		mov eax, offersGoodsCost;
-		jmp OverrideCostRet;
+		retn;
 	}
 }
 
@@ -1377,7 +1378,7 @@ void _stdcall RegisterHook(DWORD script, DWORD id, DWORD procNum) {
 
 	sScriptProgram *prog = GetGlobalScriptProgram(script);
 	if (prog) {
-		dlog_f("Global script %08x registered as hook id %d\n", DL_HOOK, script, id);
+		dlog_f("Global script %08x registered as hook ID %d\n", DL_HOOK, script, id);
 		sHookScript hook;
 		hook.prog = *prog;
 		hook.callback = procNum;
@@ -1503,11 +1504,12 @@ static void HookScriptInit2() {
 	MakeJump(0x477492, RemoveObjHook); // old 0x477490
 
 	LoadHookScript("hs_barterprice", HOOK_BARTERPRICE);
-	HookCall(0x474D4C, BarterPriceHook);
-	HookCall(0x475735, BarterPriceHook);
-	HookCall(0x475762, BarterPriceHook);
-	HookCall(0X47551A, PC_BarterPriceHook);
-	MakeJump(0x474D3F, OverrideCost_BarterPriceHack); // just overrides cost of offered goods
+	HookCall(0x474D4C, BarterPriceHook); // barter_attempt_transaction_ (offers button)
+	HookCall(0x475735, BarterPriceHook); // display_table_inventories_ (for party members)
+	HookCall(0x475762, BarterPriceHook); // display_table_inventories_
+	HookCall(0x4754F4, PC_BarterPriceHook); // display_table_inventories_
+	HookCall(0X47551A, PC_BarterPriceHook); // display_table_inventories_
+	HookCall(0x474D3F, OverrideCost_BarterPriceHook); // barter_attempt_transaction_ (just overrides cost of offered goods)
 
 	LoadHookScript("hs_movecost", HOOK_MOVECOST);
 	HookCall(0x417665, &MoveCostHook);

@@ -805,40 +805,32 @@ end:
 	}
 }
 
+static void _stdcall register_hook2() {
+	const ScriptValue &idArg = opHandler.arg(0);
+
+	if (idArg.isInt()) {
+		RegisterHook((DWORD)opHandler.program(), idArg.rawValue(), -1);
+	} else {
+		OpcodeInvalidArgs("register_hook");
+	}
+}
+
 static void __declspec(naked) register_hook() {
-	__asm {
-		pushad;
-		mov ebp, eax;
-		call interpretPopShort_;
-		mov edi, eax;
-		mov eax, ebp;
-		call interpretPopLong_;
-		cmp di, VAR_TYPE_INT;
-		jnz end;
-		push -1;
-		push eax;
-		push ebp;
-		call RegisterHook;
-end:
-		popad;
-		retn;
+	_WRAP_OPCODE(register_hook2, 1, 0)
+}
+
+static void _stdcall register_hook_proc2() {
+	const ScriptValue &idArg = opHandler.arg(0);
+
+	if (idArg.isInt()) {
+		RegisterHook((DWORD)opHandler.program(), idArg.rawValue(), opHandler.arg(1).rawValue());
+	} else {
+		OpcodeInvalidArgs("register_hook_proc");
 	}
 }
 
 static void __declspec(naked) register_hook_proc() {
-	_OP_BEGIN(ebp)
-	_GET_ARG_R32(ebp, ecx, esi)
-	_GET_ARG_R32(ebp, ebx, edi)
-	_CHECK_ARG_INT(cx, fail)
-	_CHECK_ARG_INT(bx, fail)
-	__asm {
-		push esi;
-		push edi;
-		push ebp;
-		call RegisterHook;
-	fail:
-	}
-	_OP_END
+	_WRAP_OPCODE(register_hook_proc2, 2, 0)
 }
 
 static void __declspec(naked) sfall_ver_major() {
