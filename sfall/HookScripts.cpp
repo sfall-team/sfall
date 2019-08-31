@@ -575,10 +575,10 @@ static void __declspec(naked) RemoveObjHook() {
 }
 
 // 4.x backport
-// The hook is executed twice when entering the barter screen or after transaction: the first time is for the player and the second time is for NPC
+// The hook is executed twice when entering the barter screen and after transaction: the first time is for the player; the second time is for NPC
 static DWORD __fastcall BarterPriceHook_Script(register TGameObj* source, register TGameObj* target, DWORD callAddr) {
 	bool barterIsParty = (*ptr_dialog_target_is_party != 0);
-	int computeCost = BarterComputeValue(source, target);
+	long computeCost = BarterComputeValue(source, target);
 
 	BeginHook();
 	argCount = 10;
@@ -594,8 +594,14 @@ static DWORD __fastcall BarterPriceHook_Script(register TGameObj* source, regist
 
 	TGameObj* pTable = (TGameObj*)*ptr_ptable;
 	args[6] = (DWORD)pTable;
-	int pcCost = !barterIsParty ? ItemTotalCost(pTable) : ItemTotalWeight(pTable);
-	args[7] = !barterIsParty ? pcCost : 0;
+
+	long pcCost = 0;
+	if (barterIsParty) {
+		args[7] = pcCost;
+		pcCost = ItemTotalWeight(pTable);
+	} else {
+		args[7] = pcCost = ItemTotalCost(pTable);
+	}
 
 	args[8] = (DWORD)(callAddr == 0x474D51); // offers button is pressed
 	args[9] = (DWORD)barterIsParty;
@@ -603,11 +609,11 @@ static DWORD __fastcall BarterPriceHook_Script(register TGameObj* source, regist
 	RunHookScript(HOOK_BARTERPRICE);
 
 	bool isPCHook = (callAddr == -1);
-	int cost = isPCHook ? pcCost : computeCost;
+	long cost = isPCHook ? pcCost : computeCost;
 	if (!barterIsParty && cRet > 0) {
 		if (isPCHook) {
 			if (cRet > 1) cost = rets[1];     // new cost for pc
-		} else if ((int)rets[0] > -1) {
+		} else if ((long)rets[0] > -1) {
 			cost = rets[0];                   // new cost for npc
 		}
 	}
