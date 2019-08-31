@@ -11,10 +11,10 @@
 namespace sfall
 {
 
-// The hook is executed twice when entering the barter screen or after transaction: the first time is for the player and the second time is for NPC
+// The hook is executed twice when entering the barter screen and after transaction: the first time is for the player; the second time is for NPC
 static DWORD __fastcall BarterPriceHook_Script(register fo::GameObject* source, register fo::GameObject* target, DWORD callAddr) {
 	bool barterIsParty = (*(DWORD*)FO_VAR_dialog_target_is_party != 0);
-	int computeCost = fo::func::barter_compute_value(source, target);
+	long computeCost = fo::func::barter_compute_value(source, target);
 
 	BeginHook();
 	argCount = 10;
@@ -30,20 +30,26 @@ static DWORD __fastcall BarterPriceHook_Script(register fo::GameObject* source, 
 
 	fo::GameObject* pTable = (fo::GameObject*)fo::var::ptable;
 	args[6] = (DWORD)pTable;
-	int pcCost = !barterIsParty ? fo::func::item_total_cost(pTable) : fo::func::item_total_weight(pTable);
-	args[7] = !barterIsParty ? pcCost : 0;
 
-	args[8] = (DWORD)(callAddr == 0x474D51); // offers button is pressed
+	long pcCost = 0;
+	if (barterIsParty) {
+		args[7] = pcCost;
+		pcCost = fo::func::item_total_weight(pTable);
+	} else {
+		args[7] = pcCost = fo::func::item_total_cost(pTable);
+	}
+
+	args[8] = (DWORD)(callAddr == 0x474D51); // offers button pressed
 	args[9] = (DWORD)barterIsParty;
 
 	RunHookScript(HOOK_BARTERPRICE);
 
 	bool isPCHook = (callAddr == -1);
-	int cost = isPCHook ? pcCost : computeCost;
+	long cost = isPCHook ? pcCost : computeCost;
 	if (!barterIsParty && cRet > 0) {
 		if (isPCHook) {
 			if (cRet > 1) cost = rets[1];     // new cost for pc
-		} else if ((int)rets[0] > -1) {
+		} else if ((long)rets[0] > -1) {
 			cost = rets[0];                   // new cost for npc
 		}
 	}

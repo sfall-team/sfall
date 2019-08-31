@@ -678,20 +678,26 @@ void SetGlobals(GlobalVar* globals) {
 
 static void __declspec(naked) map_save_in_game_hook() {
 	__asm {
-		call fo::funcoffs::partyMemberSaveProtos_;
-		jmp  fo::funcoffs::game_time_;
+		test cl, 1;
+		jz   skip;
+		jmp  fo::funcoffs::scr_exec_map_exit_scripts_;
+skip:
+		jmp  fo::funcoffs::partyMemberSaveProtos_;
 	}
 }
-/*
-static void ClearEventUpdateMapProc() {
+
+static void ClearEventsOnMapExit() {
 	using namespace fo;
 	__asm {
-		mov  eax, map_update_event; // type
-		xor  edx, edx; // func
+		mov  eax, explode_event; // type
+		mov  edx, fo::funcoffs::queue_explode_exit_; // func
+		call fo::funcoffs::queue_clear_type_;
+		mov  eax, explode_fail_event;
+		mov  edx, fo::funcoffs::queue_explode_exit_;
 		call fo::funcoffs::queue_clear_type_;
 	}
 }
-*/
+
 void ScriptExtender::init() {
 	LoadGameHook::OnAfterGameStarted() += LoadGlobalScripts;
 	LoadGameHook::OnGameReset() += [] () {
@@ -761,13 +767,10 @@ void ScriptExtender::init() {
 
 	// Reorder the execution of functions before exiting the map
 	// Call saving party member prototypes and removing the drug effects for NPC after executing map_exit_p_proc procedure
-	HookCall(0x483CF9, map_save_in_game_hook);
-	MakeCall(0x483CB9, (void*)fo::funcoffs::scr_exec_map_exit_scripts_);
-	BlockCall(0x483CCD); // scr_exec_map_exit_scripts_
-	long long data = 0x397401C1F6; // test cl, 1; jz 0x483CF2
-	SafeWriteBytes(0x483CB4, (BYTE*)&data, 5);
-
-	//ScriptExtender::OnMapExit() += ClearEventUpdateMapProc;
+	HookCall(0x483CB4, map_save_in_game_hook);
+	HookCall(0x483CC3, (void*)fo::funcoffs::partyMemberSaveProtos_);
+	HookCall(0x483CC8, (void*)fo::funcoffs::partyMemberPrepLoad_);
+	HookCall(0x483CCD, (void*)fo::funcoffs::partyMemberPrepItemSaveAll_);
 
 	// Set the DAM_BACKWASH flag for the attacker before calling compute_damage_
 	SafeWrite32(0x423DE7, 0x40164E80); // or [esi+ctd.flags3Source], DAM_BACKWASH_
@@ -778,6 +781,8 @@ void ScriptExtender::init() {
 	}
 
 	InitNewOpcodes();
+
+	ScriptExtender::OnMapExit() += ClearEventsOnMapExit; // for reordering the execution of functions before exiting the map
 }
 
 Delegate<>& ScriptExtender::OnMapExit() {
