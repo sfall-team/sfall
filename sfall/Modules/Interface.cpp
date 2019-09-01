@@ -138,6 +138,7 @@ static void __declspec(naked) wmInterfaceInit_text_font_hook() {
 
 static DWORD wmTownMapSubButtonIds[WMAP_TOWN_BUTTONS + 1]; // replace _wmTownMapSubButtonIds (index 0 - unused element)
 static int worldmapInterface;
+static long wmapWinWidth = 640;
 
 // Window width
 static const DWORD wmWinWidth[] = {
@@ -156,7 +157,7 @@ static const DWORD wmWinWidth[] = {
 	// wmRefreshInterfaceOverlay_
 	0x4C50FD, 0x4C51CF, 0x4C51F8, 0x4C517F,
 	// wmInterfaceRefreshCarFuel_
-	0x4C528B, 0x4C529F, 0x4C52AA,
+	0x4C52AA, /*0x4C528B, 0x4C529F, - Conflict with fuel gauge patch*/
 	// wmInterfaceDrawSubTileList_
 	0x4C41C1, 0x4C41D2,
 	// wmTownMapRefresh_
@@ -299,6 +300,7 @@ static void WorldmapViewportPatch() {
 	if (!fo::func::db_access("art\\intrface\\worldmap.frm")) return;
 	dlog("Applying expanded world map interface patch.", DL_INIT);
 
+	wmapWinWidth = WMAP_WIN_WIDTH;
 	mapSlotsScrollMax -= 216;
 	if (mapSlotsScrollMax < 0) mapSlotsScrollMax = 0;
 
@@ -408,6 +410,23 @@ static void WorldmapViewportPatch() {
 	dlogr(" Done", DL_INIT);
 }
 
+static void __declspec(naked) wmInterfaceRefreshCarFuel_hack_empty() {
+	__asm {
+		mov byte ptr [eax - 1], 14;
+		add eax, wmapWinWidth;
+		retn;
+	}
+}
+
+static void __declspec(naked) wmInterfaceRefreshCarFuel_hack() {
+	__asm {
+		mov byte ptr [eax - 1], 196;
+		add eax, wmapWinWidth;
+		mov byte ptr [eax - 1], 14;
+		retn;
+	}
+}
+
 static void WorldMapInterfacePatch() {
 	if (GetConfigInt("Misc", "WorldMapFontPatch", 0)) {
 		dlog("Applying world map font patch.", DL_INIT);
@@ -442,6 +461,9 @@ static void WorldMapInterfacePatch() {
 			LoadGameHook::OnAfterGameInit() += WorldmapViewportPatch; // Note: must be applied after WorldMapSlots patch
 		}
 	}
+	// Car fuel gauge graphics patch
+	MakeCall(0x4C528A, wmInterfaceRefreshCarFuel_hack_empty);
+	MakeCall(0x4C529E, wmInterfaceRefreshCarFuel_hack);
 }
 
 void Interface::init() {
