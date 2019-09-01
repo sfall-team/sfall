@@ -274,6 +274,23 @@ static void __declspec(naked) wmInterfaceInit_text_font_hook() {
 	}
 }
 
+static void __declspec(naked) wmInterfaceRefreshCarFuel_hack_empty() {
+	__asm {
+		mov byte ptr [eax - 1], 14;
+		add eax, 640;
+		retn;
+	}
+}
+
+static void __declspec(naked) wmInterfaceRefreshCarFuel_hack() {
+	__asm {
+		mov byte ptr [eax - 1], 196;
+		add eax, 640;
+		mov byte ptr [eax - 1], 14;
+		retn;
+	}
+}
+
 static const char* automap = "automap"; // no/yes overrides the value in the table to display the automap in pipboy
 static void __declspec(naked) wmMapInit_hack() {
 	__asm {
@@ -489,6 +506,10 @@ void WorldMapInterfacePatch() {
 	SafeWrite8(0x4C2C7C, 0x43); // dec ebx > inc ebx
 	SafeWrite32(0x4C2C92, 181); // index of DNARWOFF.FRM
 	SafeWrite8(0x4C2D04, 0x46); // dec esi > inc esi
+
+	// Car fuel gauge graphics patch
+	MakeCall(0x4C528A, wmInterfaceRefreshCarFuel_hack_empty);
+	MakeCall(0x4C529E, wmInterfaceRefreshCarFuel_hack);
 }
 
 void PipBoyAutomapsPatch() {
