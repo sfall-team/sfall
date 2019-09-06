@@ -124,7 +124,7 @@ long GetCurrentAttackMode() {
 		case 3:
 		case 4: // 4 - called shot
 			hitMode = fo::var::itemButtonItems[activeHand].secondaryAttack;
-			break; 
+			break;
 		case 5: // reload mode
 			hitMode = fo::ATKTYPE_LWEAPON_RELOAD + activeHand;
 		}
@@ -179,6 +179,14 @@ long GetScriptLocalVars(long sid) {
 	fo::ScriptInstance* script = nullptr;
 	fo::func::scr_ptr(sid, &script);
 	return (script) ? script->numLocalVars : 0;
+}
+
+fo::GameObject* __fastcall LineOfSight(fo::GameObject* obj) {
+	long objTile = obj->tile;
+	fo::GameObject* object = fo::func::obj_blocking_at_wrapper(obj, objTile, obj->elevation, (void*)fo::funcoffs::obj_sight_blocking_at_);
+	if (object) objTile = fo::func::tile_num_in_direction(objTile, fo::func::tile_dir(objTile, fo::var::obj_dude->tile), 1);
+	fo::func::make_straight_path_func(fo::var::obj_dude, fo::var::obj_dude->tile, objTile, 0, (DWORD*)&object, 4, (void*)fo::funcoffs::obj_sight_blocking_at_);
+	return object;
 }
 
 //---------------------------------------------------------

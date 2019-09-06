@@ -76,6 +76,8 @@ bool IsPartyMember(fo::GameObject* critter);
 // Returns the number of local variables of the object script
 long GetScriptLocalVars(long sid);
 
+fo::GameObject* __fastcall LineOfSight(fo::GameObject* obj);
+
 // Print text to surface
 void PrintText(char *displayText, BYTE colorIndex, DWORD x, DWORD y, DWORD textWidth, DWORD destWidth, BYTE *surface);
 // gets the height of the currently selected font
