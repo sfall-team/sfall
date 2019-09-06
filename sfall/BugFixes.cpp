@@ -1415,15 +1415,15 @@ mapLeave:
 static void __declspec(naked) obj_move_to_tile_hack_seen() {
 	__asm {
 		cmp  ds:[_loadingGame], 0;         // loading saved game
-		jnz  fix;
+		jnz  end; // fix
 		// if (map_state <= 0 && mapEntranceTileNum != -1) then fix
 		cmp  dword ptr ds:[_map_state], 0; // map number, -1 exit to worldmap
 		jle  skip;
 		cmp  dword ptr ds:[_mapEntranceTileNum], -1;
-		jne  fix;
+		jne  end; // fix
 skip:
-		or  byte ptr ds:[_obj_seen][eax], dl;
-fix:
+		or   byte ptr ds:[_obj_seen][eax], dl;
+end:
 		retn;
 	}
 }

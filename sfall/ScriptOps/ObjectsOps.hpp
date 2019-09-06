@@ -341,15 +341,14 @@ static TGameObj* __fastcall obj_blocking_at_wrapper(TGameObj* obj, DWORD tile, D
 	}
 }
 
-static DWORD _stdcall make_straight_path_func_wrapper(TGameObj* objFrom, DWORD tileFrom, void* rotationPtr, DWORD tileTo, DWORD* result, long flags, void* func) {
+static void __fastcall make_straight_path_func_wrapper(TGameObj* objFrom, DWORD tileFrom, DWORD tileTo, void* rotationPtr, DWORD* result, long flags, void* func) {
 	__asm {
-		mov  eax, objFrom;
-		mov  edx, tileFrom;
-		mov  ecx, rotationPtr;
-		mov  ebx, tileTo;
 		push func;
 		push flags;
 		push result;
+		mov  eax, ecx;
+		mov  ebx, tileTo;
+		mov  ecx, rotationPtr;
 		call make_straight_path_func_;
 	}
 }
@@ -383,7 +382,7 @@ static void _stdcall op_make_straight_path2() {
 
 	long flag = (type == BLOCKING_TYPE_SHOOT) ? 32 : 0;
 	DWORD resultObj = 0;
-	make_straight_path_func_wrapper(objFrom, objFrom->tile, 0, tileTo, &resultObj, flag, (void*)getBlockingFunc(type));
+	make_straight_path_func_wrapper(objFrom, objFrom->tile, tileTo, 0, &resultObj, flag, (void*)getBlockingFunc(type));
 	opHandler.setReturn(resultObj, DATATYPE_INT);
 }
 

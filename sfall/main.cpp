@@ -477,8 +477,8 @@ end:
 }
 
 static DWORD KarmaFrmCount;
-static DWORD* KarmaFrms;
-static int* KarmaPoints;
+static DWORD* KarmaFrms = nullptr;
+static int* KarmaPoints = nullptr;
 static DWORD _stdcall DrawCard() {
 	int rep = **(int**)_game_global_vars;
 	for (DWORD i = 0; i < KarmaFrmCount - 1; i++) {
@@ -1179,6 +1179,10 @@ static void DllMain2() {
 static void _stdcall OnExit() {
 	if (scriptDialog != nullptr) {
 		delete[] scriptDialog;
+	}
+	if (KarmaFrmCount) {
+		delete[] KarmaFrms;
+		delete[] KarmaPoints;
 	}
 	SpeedPatchExit();
 	ClearReadExtraGameMsgFiles();

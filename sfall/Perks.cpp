@@ -1175,5 +1175,27 @@ void PerksInit() {
 		perksFile[0] = '.';
 		perksFile[1] = '\\';
 		HookCall(0x44272E, TraitInitWrapper); // game_init_
+
+		// Engine perks settings
+		long enginePerkMod = GetPrivateProfileIntA("PerksTweak", "WeaponScopeRangePenalty", -1, perksFile);
+		if (enginePerkMod >= 0 && enginePerkMod != 8) SafeWrite32(0x42448E, enginePerkMod);
+		enginePerkMod = GetPrivateProfileIntA("PerksTweak", "WeaponScopeRangeBonus", -1, perksFile);
+		if (enginePerkMod >= 2 && enginePerkMod != 5) SafeWrite32(0x424489, enginePerkMod);
+
+		enginePerkMod = GetPrivateProfileIntA("PerksTweak", "WeaponLongRangeBonus", -1, perksFile);
+		if (enginePerkMod >= 2 && enginePerkMod != 4) SafeWrite32(0x424474, enginePerkMod);
+
+		enginePerkMod = GetPrivateProfileIntA("PerksTweak", "WeaponAccurateBonus", -1, perksFile);
+		if (enginePerkMod >= 0 && enginePerkMod != 20) {
+			if (enginePerkMod > 200) enginePerkMod = 200;
+			SafeWrite8(0x42465D, static_cast<BYTE>(enginePerkMod));
+		}
+
+		enginePerkMod = GetPrivateProfileIntA("PerksTweak", "WeaponHandlingBonus", -1, perksFile);
+		if (enginePerkMod >= 0 && enginePerkMod != 3) {
+			if (enginePerkMod > 10) enginePerkMod = 10;
+			SafeWrite8(0x424636, static_cast<char>(enginePerkMod));
+			SafeWrite8(0x4251CE, static_cast<char>(-enginePerkMod));
+		}
 	}
 }
