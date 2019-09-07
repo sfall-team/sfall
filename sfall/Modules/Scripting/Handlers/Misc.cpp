@@ -466,12 +466,12 @@ void sf_inc_npc_level(OpcodeContext& ctx) {
 
 	// restore code
 	SafeWrite32(0x495C50, 0x01FB840F);
-	SafeWrite16(0x495C77, 0x8C0F);
-	SafeWrite32(0x495C79, 0x000001D4);
+	long long data = 0x01D48C0F;
+	SafeWriteBytes(0x495C77, (BYTE*)&data, 6);
 	//SafeWrite16(0x495C8C, 0x8D0F);
 	//SafeWrite32(0x495C8E, 0x000001BF);
-	SafeWrite16(0x495CEC, 0x850F);
-	SafeWrite32(0x495CEE, 0x00000130);
+	data = 0x0130850F;
+	SafeWriteBytes(0x495CEC, (BYTE*)&data, 6);
 	if (!npcAutoLevelEnabled) {
 		SafeWrite8(0x495CFB, 0x74);
 	}
@@ -640,10 +640,10 @@ void __declspec(naked) op_get_bodypart_hit_modifier() {
 		call fo::funcoffs::interpretPopLong_
 		cmp  dx, VAR_TYPE_INT
 		jnz  fail
-		cmp  eax, 8                               // Body_Uncalled?
-		jg   fail
 		test eax, eax
 		jl   fail
+		cmp  eax, 8                               // Body_Uncalled?
+		jg   fail
 		mov  edx, ds:[FO_VAR_hit_location_penalty+eax*4]
 		jmp  end
 fail:
@@ -679,19 +679,11 @@ void __declspec(naked) op_set_bodypart_hit_modifier() {
 		jnz  end
 		cmp  cx, VAR_TYPE_INT
 		jnz  end
-		cmp  eax, 8                               // Body_Uncalled?
-		jg   end
-		cmp  eax, 3                               // Body_Torso?
-		jne  skip                                 // No
-		add  eax, 5
-skip:
 		test eax, eax
 		jl   end
-		mov  ds:[FO_VAR_hit_location_penalty+eax*4], ebx
 		cmp  eax, 8                               // Body_Uncalled?
-		jne  end                                  // No
-		sub  eax, 5                               // Body_Torso
-		jmp  skip
+		jg   end
+		mov  ds:[FO_VAR_hit_location_penalty+eax*4], ebx
 end:
 		pop  edx
 		pop  ecx

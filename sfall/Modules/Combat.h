@@ -49,8 +49,8 @@ struct ChanceModifier {
 };
 
 void _stdcall SetHitChanceMax(fo::GameObject* critter, DWORD maximum, DWORD mod);
-void _stdcall KnockbackSetMod(fo::GameObject* object, DWORD type, float val, DWORD on);
-void _stdcall KnockbackRemoveMod(fo::GameObject* object, DWORD on);
+void _stdcall KnockbackSetMod(fo::GameObject* object, DWORD type, float val, DWORD mode);
+void _stdcall KnockbackRemoveMod(fo::GameObject* object, DWORD mode);
 
 void _stdcall SetNoBurstMode(fo::GameObject* critter, bool on);
 void _stdcall DisableAimedShots(DWORD pid);
