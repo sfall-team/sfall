@@ -296,7 +296,7 @@
     <ClInclude Include="input.h" />
     <ClInclude Include="Inventory.h" />
     <ClInclude Include="KillCounter.h" />
-    <ClInclude Include="Knockback.h" />
+    <ClInclude Include="Combat.h" />
     <ClInclude Include="LoadGameHook.h" />
     <ClInclude Include="MainMenu.h" />
     <ClInclude Include="Message.h" />
@@ -361,7 +361,7 @@
     <ClCompile Include="HookScripts.cpp" />
     <ClCompile Include="Inventory.cpp" />
     <ClCompile Include="KillCounter.cpp" />
-    <ClCompile Include="Knockback.cpp" />
+    <ClCompile Include="Combat.cpp" />
     <ClCompile Include="LoadGameHook.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="MainMenu.cpp" />

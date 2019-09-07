@@ -18,20 +18,20 @@
 
 #include "main.h"
 
+#include "Define.h"
+#include "FalloutEngine.h"
 #include "AI.h"
 #include "Arrays.h"
 #include "BugFixes.h"
+#include "Combat.h"
 #include "Console.h"
 #include "Criticals.h"
-#include "Define.h"
 #include "Explosions.h"
-#include "FalloutEngine.h"
 #include "FileSystem.h"
 #include "Graphics.h"
 #include "HeroAppearance.h"
 #include "input.h"
 #include "Inventory.h"
-#include "Knockback.h"
 #include "LoadGameHook.h"
 #include "Logging.h"
 #include "Message.h"
@@ -81,7 +81,7 @@ static void _stdcall ResetState(DWORD onLoad) {
 	ForceGraphicsRefresh(0);
 	WipeSounds();
 	if (GraphicsMode > 3) GraphicsResetOnGameLoad();
-	Knockback_OnGameLoad();
+	Combat_OnGameLoad();
 	Skills_OnGameLoad();
 	InLoop = 0;
 	PerksReset();

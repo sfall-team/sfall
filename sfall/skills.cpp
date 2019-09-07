@@ -24,7 +24,7 @@
 
 #include "Define.h"
 #include "FalloutEngine.h"
-#include "Knockback.h"
+#include "Combat.h"
 #include "ScriptExtender.h"
 
 #define SKILL_MIN_LIMIT    (-128)
@@ -51,11 +51,15 @@ struct SkillModifier {
 	int mod;
 };
 
-static std::vector<SkillModifier> SkillMaxMods;
-static SkillModifier BaseSkillMax;
+static std::vector<SkillModifier> skillMaxMods;
+static SkillModifier baseSkillMax;
+
 static BYTE skillCosts[512 * SKILL_count];
 static DWORD basedOnPoints;
 static double* multipliers = nullptr;
+
+static std::vector<ChanceModifier> pickpocketMods;
+static ChanceModifier basePickpocket;
 
 static int skillNegPoints; // skill raw points (w/o limit)
 
@@ -72,13 +76,35 @@ energy:
 	}
 }
 
-static int __fastcall CheckSkillMax(TGameObj* critter, int base) {
-	for (DWORD i = 0; i < SkillMaxMods.size(); i++) {
-		if (critter->ID == SkillMaxMods[i].id) {
-			return min(base, SkillMaxMods[i].maximum);
+static int __fastcall PickpocketMod(int base, TGameObj* critter) {
+	for (DWORD i = 0; i < pickpocketMods.size(); i++) {
+		if (critter->ID == pickpocketMods[i].id) {
+			return min(base + pickpocketMods[i].mod, pickpocketMods[i].maximum);
 		}
 	}
-	return min(base, BaseSkillMax.maximum);
+	return min(base + basePickpocket.mod, basePickpocket.maximum);
+}
+
+static void __declspec(naked) skill_check_stealing_hack() {
+	__asm {
+		push edx;
+		push ecx;
+		mov  edx, esi;          // critter
+		mov  ecx, eax;          // base (calculated chance)
+		call PickpocketMod;
+		pop  ecx;
+		pop  edx;
+		retn;
+	}
+}
+
+static int __fastcall CheckSkillMax(TGameObj* critter, int base) {
+	for (DWORD i = 0; i < skillMaxMods.size(); i++) {
+		if (critter->ID == skillMaxMods[i].id) {
+			return min(base, skillMaxMods[i].maximum);
+		}
+	}
+	return min(base, baseSkillMax.maximum);
 }
 
 static int __fastcall SkillNegative(TGameObj* critter, int base, int skill) {
@@ -248,14 +274,14 @@ skip:
 
 void _stdcall SetSkillMax(TGameObj* critter, int maximum) {
 	if ((DWORD)critter == -1) {
-		BaseSkillMax.maximum = maximum;
+		baseSkillMax.maximum = maximum;
 		return;
 	}
 
 	long id = SetObjectUniqueID(critter);
-	for (DWORD i = 0; i < SkillMaxMods.size(); i++) {
-		if (id == SkillMaxMods[i].id) {
-			SkillMaxMods[i].maximum = maximum;
+	for (DWORD i = 0; i < skillMaxMods.size(); i++) {
+		if (id == skillMaxMods[i].id) {
+			skillMaxMods[i].maximum = maximum;
 			return;
 		}
 	}
@@ -263,13 +289,39 @@ void _stdcall SetSkillMax(TGameObj* critter, int maximum) {
 	cm.id = id;
 	cm.maximum = maximum;
 	cm.mod = 0;
-	SkillMaxMods.push_back(cm);
+	skillMaxMods.push_back(cm);
+}
+
+void _stdcall SetPickpocketMax(TGameObj* critter, DWORD maximum, DWORD mod) {
+	if ((DWORD)critter == -1) {
+		basePickpocket.maximum = maximum;
+		basePickpocket.mod = mod;
+		return;
+	}
+
+	long id = SetObjectUniqueID(critter);
+	for (DWORD i = 0; i < pickpocketMods.size(); i++) {
+		if (id == pickpocketMods[i].id) {
+			pickpocketMods[i].maximum = maximum;
+			pickpocketMods[i].mod = mod;
+			return;
+		}
+	}
+	ChanceModifier cm;
+	cm.id = id;
+	cm.maximum = maximum;
+	cm.mod = mod;
+	pickpocketMods.push_back(cm);
 }
 
 void Skills_OnGameLoad() {
-	SkillMaxMods.clear();
-	BaseSkillMax.maximum = 300;
-	BaseSkillMax.mod = 0;
+	pickpocketMods.clear();
+	basePickpocket.maximum = 95;
+	basePickpocket.mod = 0;
+
+	skillMaxMods.clear();
+	baseSkillMax.maximum = 300;
+	baseSkillMax.mod = 0;
 }
 
 void SkillsInit() {
@@ -284,6 +336,10 @@ void SkillsInit() {
 	SafeWrite8(0x4AA91B,  SKILL_MIN_LIMIT);
 	SafeWrite8(0x4AAA1A,  SKILL_MIN_LIMIT);
 	SafeWrite32(0x4AAA23, SKILL_MIN_LIMIT);
+
+	MakeCall(0x4ABC62, skill_check_stealing_hack);  // PickpocketMod
+	SafeWrite8(0x4ABC67, 0x89);                     // mov [esp + 0x54], eax
+	SafeWrite32(0x4ABC6B, 0x90909090);
 
 	// Add an additional 'Energy Weapon' flag to the weapon flags (offset 0x0018)
 	// Weapon Flags:

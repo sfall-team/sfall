@@ -22,10 +22,12 @@
 #include "main.h"
 
 #include "FalloutEngine.h"
-#include "Knockback.h"
+#include "HookScripts.h"
 #include "ScriptExtender.h"
 
-static std::vector<long> NoBursts; // object id
+#include "Combat.h"
+
+static std::vector<long> noBursts; // object id
 
 struct KnockbackModifier {
 	long id;
@@ -37,21 +39,102 @@ static std::vector<KnockbackModifier> mTargets;
 static std::vector<KnockbackModifier> mAttackers;
 static std::vector<KnockbackModifier> mWeapons;
 
-struct ChanceModifier {
-	long id;
-	int maximum;
-	int mod;
-};
-
-static std::vector<ChanceModifier> HitChanceMods;
-static std::vector<ChanceModifier> PickpocketMods;
-
-static ChanceModifier BaseHitChance;
-static ChanceModifier BasePickpocket;
+static std::vector<ChanceModifier> hitChanceMods;
+static ChanceModifier baseHitChance;
 
 static bool hookedAimedShot;
 static std::vector<DWORD> disabledAS;
 static std::vector<DWORD> forcedAS;
+
+static DWORD __fastcall add_check_for_item_ammo_cost(register TGameObj* weapon, DWORD hitMode) {
+	DWORD rounds = 1;
+
+	DWORD anim = ItemWAnimWeap(weapon, hitMode);
+	if (anim == 46 || anim == 47) {   // ANIM_fire_burst or ANIM_fire_continuous
+		rounds = ItemWRounds(weapon); // ammo in burst
+	}
+	AmmoCostHook_Script(1, weapon, rounds); // get rounds cost from hook
+	DWORD currAmmo = ItemWCurrAmmo(weapon);
+
+	DWORD cost = 1; // default cost
+	if (currAmmo > 0) {
+		cost = rounds / currAmmo;
+		if (rounds % currAmmo) cost++; // round up
+	}
+	return (cost > currAmmo) ? 0 : 1;  // 0 - this will force "Out of ammo", 1 - this will force success (enough ammo)
+}
+
+// adds check for weapons which require more than 1 ammo for single shot (super cattle prod & mega power fist) and burst rounds
+static void __declspec(naked) combat_check_bad_shot_hook() {
+	__asm {
+		push edx;
+		push ecx;         // weapon
+		mov  edx, edi;    // hitMode
+		call add_check_for_item_ammo_cost;
+		pop  ecx;
+		pop  edx;
+		retn;
+	}
+}
+
+// check if there is enough ammo to shoot
+static void __declspec(naked) ai_search_inven_weap_hook() {
+	__asm {
+		push ecx;
+		mov  ecx, eax;                      // weapon
+		mov  edx, 2;                        // hitMode - ATKTYPE_RWEAPON_PRIMARY
+		call add_check_for_item_ammo_cost;  // enough ammo?
+		pop  ecx;
+		retn;
+	}
+}
+
+// switch weapon mode from secondary to primary if there is not enough ammo to shoot
+static const DWORD ai_try_attack_search_ammo = 0x42AA1E;
+static const DWORD ai_try_attack_continue = 0x42A929;
+static void __declspec(naked) ai_try_attack_hook() {
+	__asm {
+		mov  ebx, [esp + 0x364 - 0x38]; // hit mode
+		cmp  ebx, 3;                    // ATKTYPE_RWEAPON_SECONDARY
+		jne  searchAmmo;
+		mov  edx, [esp + 0x364 - 0x3C]; // weapon
+		mov  eax, [edx + 0x3C];         // curr ammo
+		test eax, eax;
+		jnz  tryAttack;                 // have ammo
+searchAmmo:
+		jmp  ai_try_attack_search_ammo;
+tryAttack:
+		mov  ebx, 2;                    // ATKTYPE_RWEAPON_PRIMARY
+		mov  [esp + 0x364 - 0x38], ebx; // change hit mode
+		jmp  ai_try_attack_continue;
+	}
+}
+
+static DWORD __fastcall divide_burst_rounds_by_ammo_cost(TGameObj* weapon, register DWORD currAmmo, DWORD burstRounds) {
+	DWORD rounds = 1; // default multiply
+
+	rounds = burstRounds;                 // rounds in burst
+	AmmoCostHook_Script(2, weapon, rounds);
+
+	DWORD cost = burstRounds * rounds;    // so much ammo is required for this burst
+	if (cost > currAmmo) cost = currAmmo; // if cost ammo more than current ammo, set it to current
+
+	return (cost / rounds);               // divide back to get proper number of rounds for damage calculations
+}
+
+static void __declspec(naked) compute_spray_hack() {
+	__asm {
+		push edx;         // weapon
+		push ecx;         // current ammo in weapon
+		xchg ecx, edx;
+		push eax;         // eax - rounds in burst attack, need to set ebp
+		call divide_burst_rounds_by_ammo_cost;
+		mov  ebp, eax;    // overwriten code
+		pop  ecx;
+		pop  edx;
+		retn;
+	}
+}
 
 static double ApplyModifiers(std::vector<KnockbackModifier>* mods, TGameObj* object, double val) {
 	for (DWORD i = 0; i < mods->size(); i++) {
@@ -108,35 +191,13 @@ static void __declspec(naked) compute_dmg_damage_hack() {
 	}
 }
 
-static int __fastcall PickpocketMod(int base, TGameObj* critter) {
-	for (DWORD i = 0; i < PickpocketMods.size(); i++) {
-		if (critter->ID == PickpocketMods[i].id) {
-			return min(base + PickpocketMods[i].mod, PickpocketMods[i].maximum);
-		}
-	}
-	return min(base + BasePickpocket.mod, BasePickpocket.maximum);
-}
-
-static void __declspec(naked) skill_check_stealing_hack() {
-	__asm {
-		push edx;
-		push ecx;
-		mov  edx, esi;          // critter
-		mov  ecx, eax;          // base (calculated chance)
-		call PickpocketMod;
-		pop  ecx;
-		pop  edx;
-		retn;
-	}
-}
-
 static int __fastcall HitChanceMod(int base, TGameObj* critter) {
-	for (DWORD i = 0; i < HitChanceMods.size(); i++) {
-		if (critter->ID == HitChanceMods[i].id) {
-			return min(base + HitChanceMods[i].mod, HitChanceMods[i].maximum);
+	for (DWORD i = 0; i < hitChanceMods.size(); i++) {
+		if (critter->ID == hitChanceMods[i].id) {
+			return min(base + hitChanceMods[i].mod, hitChanceMods[i].maximum);
 		}
 	}
-	return min(base + BaseHitChance.mod, BaseHitChance.maximum);
+	return min(base + baseHitChance.mod, baseHitChance.maximum);
 }
 
 static void __declspec(naked) determine_to_hit_func_hack() {
@@ -150,8 +211,8 @@ static void __declspec(naked) determine_to_hit_func_hack() {
 }
 
 static long __fastcall CheckDisableBurst(TGameObj* critter) {
-	for (DWORD i = 0; i < NoBursts.size(); i++) {
-		if (NoBursts[i] == critter->ID) {
+	for (DWORD i = 0; i < noBursts.size(); i++) {
+		if (noBursts[i] == critter->ID) {
 			return 10; // Disable Burst (area_attack_mode - non-existent value)
 		}
 	}
@@ -241,16 +302,16 @@ void _stdcall KnockbackRemoveMod(TGameObj* object, DWORD mode) {
 
 void _stdcall SetHitChanceMax(TGameObj* critter, DWORD maximum, DWORD mod) {
 	if ((DWORD)critter == -1) {
-		BaseHitChance.maximum = maximum;
-		BaseHitChance.mod = mod;
+		baseHitChance.maximum = maximum;
+		baseHitChance.mod = mod;
 		return;
 	}
 	if (critter->pid >> 24 != OBJ_TYPE_CRITTER) return;
 	long id = SetObjectUniqueID(critter);
-	for (DWORD i = 0; i < HitChanceMods.size(); i++) {
-		if (id == HitChanceMods[i].id) {
-			HitChanceMods[i].maximum = maximum;
-			HitChanceMods[i].mod = mod;
+	for (DWORD i = 0; i < hitChanceMods.size(); i++) {
+		if (id == hitChanceMods[i].id) {
+			hitChanceMods[i].maximum = maximum;
+			hitChanceMods[i].mod = mod;
 			return;
 		}
 	}
@@ -258,42 +319,20 @@ void _stdcall SetHitChanceMax(TGameObj* critter, DWORD maximum, DWORD mod) {
 	cm.id = id;
 	cm.maximum = maximum;
 	cm.mod = mod;
-	HitChanceMods.push_back(cm);
-}
-
-void _stdcall SetPickpocketMax(TGameObj* critter, DWORD maximum, DWORD mod) {
-	if ((DWORD)critter == -1) {
-		BasePickpocket.maximum = maximum;
-		BasePickpocket.mod = mod;
-		return;
-	}
-
-	long id = SetObjectUniqueID(critter);
-	for (DWORD i = 0; i < PickpocketMods.size(); i++) {
-		if (id == PickpocketMods[i].id) {
-			PickpocketMods[i].maximum = maximum;
-			PickpocketMods[i].mod = mod;
-			return;
-		}
-	}
-	ChanceModifier cm;
-	cm.id = id;
-	cm.maximum = maximum;
-	cm.mod = mod;
-	PickpocketMods.push_back(cm);
+	hitChanceMods.push_back(cm);
 }
 
 void _stdcall SetNoBurstMode(TGameObj* critter, DWORD on) {
 	if (critter == *ptr_obj_dude || critter->pid >> 24 != OBJ_TYPE_CRITTER) return;
 
 	long id = SetObjectUniqueID(critter);
-	for (DWORD i = 0; i < NoBursts.size(); i++) {
-		if (NoBursts[i] == id) {
-			if (!on) NoBursts.erase(NoBursts.begin() + i); // off
+	for (size_t i = 0; i < noBursts.size(); i++) {
+		if (noBursts[i] == id) {
+			if (!on) noBursts.erase(noBursts.begin() + i); // off
 			return;
 		}
 	}
-	if (on) NoBursts.push_back(id);
+	if (on) noBursts.push_back(id);
 }
 
 static int __fastcall AimedShotTest(DWORD pid) {
@@ -356,32 +395,32 @@ void _stdcall ForceAimedShots(DWORD pid) {
 	forcedAS.push_back(pid);
 }
 
-void Knockback_OnGameLoad() {
-	BaseHitChance.maximum = 95;
-	BaseHitChance.mod = 0;
-	BasePickpocket.maximum = 95;
-	BasePickpocket.mod = 0;
+void Combat_OnGameLoad() {
+	baseHitChance.maximum = 95;
+	baseHitChance.mod = 0;
 	mTargets.clear();
 	mAttackers.clear();
 	mWeapons.clear();
-	HitChanceMods.clear();
-	PickpocketMods.clear();
-	NoBursts.clear();
+	hitChanceMods.clear();
+	noBursts.clear();
 	disabledAS.clear();
 	forcedAS.clear();
 }
 
-void KnockbackInit() {
+void CombatInit() {
 	MakeCall(0x424B76, compute_damage_hack, 2);     // KnockbackMod
 	MakeJump(0x4136D3, compute_dmg_damage_hack);    // for op_critter_dmg
 
 	MakeCall(0x424791, determine_to_hit_func_hack); // HitChanceMod
 	BlockCall(0x424796);
 
-	MakeCall(0x4ABC62, skill_check_stealing_hack);  // PickpocketMod
-	SafeWrite8(0x4ABC67, 0x89);                     // mov [esp + 0x54], eax
-	SafeWrite32(0x4ABC6B, 0x90909090);
-
 	// Actually disables all secondary attacks for the critter, regardless of whether the weapon has a burst attack
-	MakeCall(0x429E44, ai_pick_hit_mode_hack, 1);      // NoBurst
+	MakeCall(0x429E44, ai_pick_hit_mode_hack, 1);   // NoBurst
+
+	if(GetPrivateProfileInt("Misc", "CheckWeaponAmmoCost", 0, ini)) {
+		HookCall(0x4266E9, combat_check_bad_shot_hook);
+		HookCall(0x429A37, ai_search_inven_weap_hook);
+		HookCall(0x42A95D, ai_try_attack_hook); // jz func
+		MakeCall(0x4234B3, compute_spray_hack, 1);
+	}
 }

@@ -20,11 +20,11 @@
 
 #include "main.h"
 
-#include "criticals.h"
-#include "Knockback.h"
+#include "Combat.h"
+#include "Criticals.h"
 #include "ScriptExtender.h"
 #include "skills.h"
-#include "stats.h"
+#include "Stats.h"
 
 const char* invalidStat = "%s() - stat number out of range.";
 const char* objNotCritter = "%s() - the object is not a critter.";

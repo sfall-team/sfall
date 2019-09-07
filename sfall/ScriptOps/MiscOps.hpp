@@ -21,9 +21,9 @@
 #include "main.h"
 
 #include "AI.h"
+#include "Combat.h"
 #include "HeroAppearance.h"
 #include "KillCounter.h"
-#include "Knockback.h"
 #include "movies.h"
 #include "PartyControl.h"
 #include "ScriptExtender.h"

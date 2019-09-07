@@ -18,12 +18,17 @@
 
 #pragma once
 
-void _stdcall SetPickpocketMax(TGameObj* critter, DWORD maximum, DWORD mod);
+struct ChanceModifier {
+	long id;
+	int maximum;
+	int mod;
+};
+
 void _stdcall SetHitChanceMax(TGameObj* critter, DWORD maximum, DWORD mod);
-void _stdcall KnockbackSetMod(TGameObj* object, DWORD type, float val, DWORD on);
-void _stdcall KnockbackRemoveMod(TGameObj* object, DWORD on);
-void KnockbackInit();
-void Knockback_OnGameLoad();
+void _stdcall KnockbackSetMod(TGameObj* object, DWORD type, float val, DWORD mode);
+void _stdcall KnockbackRemoveMod(TGameObj* object, DWORD mode);
+void CombatInit();
+void Combat_OnGameLoad();
 void _stdcall SetNoBurstMode(TGameObj* critter, DWORD on);
 void _stdcall DisableAimedShots(DWORD pid);
 void _stdcall ForceAimedShots(DWORD pid);

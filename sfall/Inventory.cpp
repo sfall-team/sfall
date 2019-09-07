@@ -22,7 +22,6 @@
 
 #include "Define.h"
 #include "FalloutEngine.h"
-#include "HookScripts.h"
 #include "input.h"
 #include "Inventory.h"
 #include "LoadGameHook.h"
@@ -389,96 +388,6 @@ end:
 	}
 }
 
-static DWORD __fastcall add_check_for_item_ammo_cost(register TGameObj* weapon, DWORD hitMode) {
-	DWORD rounds = 1;
-
-	DWORD anim = ItemWAnimWeap(weapon, hitMode);
-	if (anim == 46 || anim == 47) {   // ANIM_fire_burst or ANIM_fire_continuous
-		rounds = ItemWRounds(weapon); // ammo in burst
-	}
-	AmmoCostHook_Script(1, weapon, rounds); // get rounds cost from hook
-	DWORD currAmmo = ItemWCurrAmmo(weapon);
-
-	DWORD cost = 1; // default cost
-	if (currAmmo > 0) {
-		cost = rounds / currAmmo;
-		if (rounds % currAmmo) cost++; // round up
-	}
-	return (cost > currAmmo) ? 0 : 1;  // 0 - this will force "Out of ammo", 1 - this will force success (enough ammo)
-}
-
-// adds check for weapons which require more than 1 ammo for single shot (super cattle prod & mega power fist) and burst rounds
-static void __declspec(naked) combat_check_bad_shot_hook() {
-	__asm {
-		push edx;
-		push ecx;         // weapon
-		mov  edx, edi;    // hitMode
-		call add_check_for_item_ammo_cost;
-		pop  ecx;
-		pop  edx;
-		retn;
-	}
-}
-
-// check if there is enough ammo to shoot
-static void __declspec(naked) ai_search_inven_weap_hook() {
-	__asm {
-		push ecx;
-		mov  ecx, eax;                      // weapon
-		mov  edx, 2;                        // hitMode - ATKTYPE_RWEAPON_PRIMARY
-		call add_check_for_item_ammo_cost;  // enough ammo?
-		pop  ecx;
-		retn;
-	}
-}
-
-// switch weapon mode from secondary to primary if there is not enough ammo to shoot
-static const DWORD ai_try_attack_search_ammo = 0x42AA1E;
-static const DWORD ai_try_attack_continue = 0x42A929;
-static void __declspec(naked) ai_try_attack_hook() {
-	__asm {
-		mov  ebx, [esp + 0x364 - 0x38]; // hit mode
-		cmp  ebx, 3;                    // ATKTYPE_RWEAPON_SECONDARY
-		jne  searchAmmo;
-		mov  edx, [esp + 0x364 - 0x3C]; // weapon
-		mov  eax, [edx + 0x3C];         // curr ammo
-		test eax, eax;
-		jnz  tryAttack;                 // have ammo
-searchAmmo:
-		jmp  ai_try_attack_search_ammo;
-tryAttack:
-		mov  ebx, 2;                    // ATKTYPE_RWEAPON_PRIMARY
-		mov  [esp + 0x364 - 0x38], ebx; // change hit mode
-		jmp  ai_try_attack_continue;
-	}
-}
-
-static DWORD __fastcall divide_burst_rounds_by_ammo_cost(TGameObj* weapon, register DWORD currAmmo, DWORD burstRounds) {
-	DWORD rounds = 1; // default multiply
-
-	rounds = burstRounds;                 // rounds in burst
-	AmmoCostHook_Script(2, weapon, rounds);
-
-	DWORD cost = burstRounds * rounds;    // so much ammo is required for this burst
-	if (cost > currAmmo) cost = currAmmo; // if cost ammo more than current ammo, set it to current
-
-	return (cost / rounds);               // divide back to get proper number of rounds for damage calculations
-}
-
-static void __declspec(naked) compute_spray_hack() {
-	__asm {
-		push edx;         // weapon
-		push ecx;         // current ammo in weapon
-		xchg ecx, edx;
-		push eax;         // eax - rounds in burst attack, need to set ebp
-		call divide_burst_rounds_by_ammo_cost;
-		mov  ebp, eax;    // overwriten code
-		pop  ecx;
-		pop  edx;
-		retn;
-	}
-}
-
 static void __declspec(naked) SetDefaultAmmo() {
 	__asm {
 		push ecx;
@@ -811,13 +720,6 @@ void InventoryInit() {
 	invenApQPReduction = GetPrivateProfileInt("Misc", "QuickPocketsApCostReduction", 2, ini);
 	if (invenApCostDef != 4 || invenApQPReduction != 2) {
 		ApplyInvenApCostPatch();
-	}
-
-	if(GetPrivateProfileInt("Misc", "CheckWeaponAmmoCost", 0, ini)) {
-		HookCall(0x4266E9, combat_check_bad_shot_hook);
-		HookCall(0x429A37, ai_search_inven_weap_hook);
-		HookCall(0x42A95D, ai_try_attack_hook); // jz func
-		MakeCall(0x4234B3, compute_spray_hack, 1);
 	}
 
 	if (GetPrivateProfileIntA("Misc", "StackEmptyWeapons", 0, ini)) {

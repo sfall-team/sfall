@@ -18,6 +18,7 @@
 
 #pragma once
 
+void _stdcall SetPickpocketMax(TGameObj* critter, DWORD maximum, DWORD mod);
 void _stdcall SetSkillMax(TGameObj* critter, int maximum);
 void SkillsInit();
 void Skills_OnGameLoad();

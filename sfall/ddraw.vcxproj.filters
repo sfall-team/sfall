@@ -51,7 +51,7 @@
     <ClInclude Include="KillCounter.h">
       <Filter>Headers</Filter>
     </ClInclude>
-    <ClInclude Include="Knockback.h">
+    <ClInclude Include="Combat.h">
       <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="LoadGameHook.h">
@@ -240,7 +240,7 @@
     <ClCompile Include="KillCounter.cpp">
       <Filter>Source</Filter>
     </ClCompile>
-    <ClCompile Include="Knockback.cpp">
+    <ClCompile Include="Combat.cpp">
       <Filter>Source</Filter>
     </ClCompile>
     <ClCompile Include="LoadGameHook.cpp">

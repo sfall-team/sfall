@@ -21,28 +21,28 @@
 #include <math.h>
 #include <stdio.h>
 
+#include "Define.h"
+#include "FalloutEngine.h"
 #include "AI.h"
 #include "AnimationsAtOnceLimit.h"
 #include "BarBoxes.h"
 #include "Books.h"
 #include "BugFixes.h"
 #include "BurstMods.h"
+#include "Combat.h"
 #include "console.h"
 #include "CRC.h"
 #include "Credits.h"
 #include "Criticals.h"
 #include "DamageMod.h"
-#include "Define.h"
 #include "DebugEditor.h"
 #include "Elevators.h"
 #include "Explosions.h"
-#include "FalloutEngine.h"
 #include "FileSystem.h"
 #include "Graphics.h"
 #include "HeroAppearance.h"
 #include "Inventory.h"
 #include "KillCounter.h"
-#include "knockback.h"
 #include "LoadGameHook.h"
 #include "Logging.h"
 #include "MainMenu.h"
@@ -777,7 +777,7 @@ static void DllMain2() {
 		dlog(".", DL_INIT);
 		PerksInit();
 		dlog(".", DL_INIT);
-		KnockbackInit();
+		CombatInit();
 		dlog(".", DL_INIT);
 		SkillsInit();
 		dlog(".", DL_INIT);
