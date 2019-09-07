@@ -1878,26 +1878,16 @@ void ClearGlobalScripts() {
 	globalExportedVars.clear();
 	HookScriptClear();
 
+	//Stat ranges
+	StatsReset();
 	//Reset some settable game values back to the defaults
 	//xp mod
 	SafeWrite8(0x4AFAB8, 0x53);
 	SafeWrite32(0x4AFAB9, 0x55575651);
 	//HP bonus
 	SafeWrite8(0x4AFBC1, 2);
-	//Stat ranges
-	StatsReset();
-	//Bodypart hit chances
-	*((DWORD*)0x510954) = GetPrivateProfileIntA("Misc", "BodyHit_Head",           0xFFFFFFD8, ini);
-	*((DWORD*)0x510958) = GetPrivateProfileIntA("Misc", "BodyHit_Left_Arm",       0xFFFFFFE2, ini);
-	*((DWORD*)0x51095C) = GetPrivateProfileIntA("Misc", "BodyHit_Right_Arm",      0xFFFFFFE2, ini);
-	*((DWORD*)0x510960) = GetPrivateProfileIntA("Misc", "BodyHit_Torso_Uncalled", 0x00000000, ini);
-	*((DWORD*)0x510964) = GetPrivateProfileIntA("Misc", "BodyHit_Right_Leg",      0xFFFFFFEC, ini);
-	*((DWORD*)0x510968) = GetPrivateProfileIntA("Misc", "BodyHit_Left_Leg",       0xFFFFFFEC, ini);
-	*((DWORD*)0x51096C) = GetPrivateProfileIntA("Misc", "BodyHit_Eyes",           0xFFFFFFC4, ini);
-	*((DWORD*)0x510970) = GetPrivateProfileIntA("Misc", "BodyHit_Groin",          0xFFFFFFE2, ini);
-	*((DWORD*)0x510974) = GetPrivateProfileIntA("Misc", "BodyHit_Torso_Uncalled", 0x00000000, ini);
 	//skill points per level mod
-	SafeWrite8(0x43C27a, 5);
+	SafeWrite8(0x43C27A, 5);
 }
 
 void RunScriptProcByNum(DWORD sptr, DWORD procNum) {

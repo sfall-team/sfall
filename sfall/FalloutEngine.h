@@ -321,7 +321,7 @@ extern DWORD* ptr_gmouse_current_cursor;
 extern DWORD* ptr_gmovie_played_list;
 extern DWORD* ptr_GreenColor;
 extern DWORD* ptr_gsound_initialized;
-extern DWORD* ptr_hit_location_penalty;
+extern long*  ptr_hit_location_penalty;
 extern DWORD* ptr_holo_flag;
 extern DWORD* ptr_holopages;
 extern DWORD* ptr_hot_line_count;

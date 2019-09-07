@@ -27,13 +27,13 @@
 
 #include "Combat.h"
 
-static std::vector<long> noBursts; // object id
-
 struct KnockbackModifier {
 	long id;
 	DWORD type;
 	double value;
 };
+
+static std::vector<long> noBursts; // object id
 
 static std::vector<KnockbackModifier> mTargets;
 static std::vector<KnockbackModifier> mAttackers;
@@ -395,6 +395,38 @@ void _stdcall ForceAimedShots(DWORD pid) {
 	forcedAS.push_back(pid);
 }
 
+static const DWORD bodypartAddr[] = {
+	0x425562,                     // combat_display_
+	0x42A68F, 0x42A739,           // ai_called_shot_
+	0x429E82, 0x429EC2, 0x429EFF, // ai_pick_hit_mode_
+	0x423231, 0x423268,           // check_ranged_miss_
+	0x4242D4,                     // attack_crit_failure_
+	// for combat_ctd_init_ func
+	0x412E9C,                     // action_explode_
+	0x413519,                     // action_dmg_
+	0x421656, 0x421675,           // combat_safety_invalidate_weapon_func_
+	0x421CC0,                     // combat_begin_extra_
+	0x4229A9,                     // combat_turn_
+	0x42330E, 0x4233AB,           // shoot_along_path_
+	0x423E25, 0x423E2A,           // compute_explosion_on_extras_
+	0x425F83,                     // combat_anim_finished_
+	0x42946D,                     // ai_best_weapon_
+	0x46FCC8,                     // exit_inventory_
+	0x49C00C,                     // protinstTestDroppedExplosive_
+};
+
+static void BodypartHitChances() {
+	ptr_hit_location_penalty[0] = static_cast<long>(GetPrivateProfileIntA("Misc", "BodyHit_Head", -40, ini));
+	ptr_hit_location_penalty[1] = static_cast<long>(GetPrivateProfileIntA("Misc", "BodyHit_Left_Arm", -30, ini));
+	ptr_hit_location_penalty[2] = static_cast<long>(GetPrivateProfileIntA("Misc", "BodyHit_Right_Arm", -30, ini));
+	ptr_hit_location_penalty[3] = static_cast<long>(GetPrivateProfileIntA("Misc", "BodyHit_Torso", 0, ini));
+	ptr_hit_location_penalty[4] = static_cast<long>(GetPrivateProfileIntA("Misc", "BodyHit_Right_Leg", -20, ini));
+	ptr_hit_location_penalty[5] = static_cast<long>(GetPrivateProfileIntA("Misc", "BodyHit_Left_Leg", -20, ini));
+	ptr_hit_location_penalty[6] = static_cast<long>(GetPrivateProfileIntA("Misc", "BodyHit_Eyes", -60, ini));
+	ptr_hit_location_penalty[7] = static_cast<long>(GetPrivateProfileIntA("Misc", "BodyHit_Groin", -30, ini));
+	ptr_hit_location_penalty[8] = static_cast<long>(GetPrivateProfileIntA("Misc", "BodyHit_Torso_Uncalled", 0, ini));
+}
+
 void Combat_OnGameLoad() {
 	baseHitChance.maximum = 95;
 	baseHitChance.mod = 0;
@@ -405,6 +437,8 @@ void Combat_OnGameLoad() {
 	noBursts.clear();
 	disabledAS.clear();
 	forcedAS.clear();
+
+	BodypartHitChances(); // was in ClearGlobalScripts()
 }
 
 void CombatInit() {
@@ -422,5 +456,13 @@ void CombatInit() {
 		HookCall(0x429A37, ai_search_inven_weap_hook);
 		HookCall(0x42A95D, ai_try_attack_hook); // jz func
 		MakeCall(0x4234B3, compute_spray_hack, 1);
+	}
+
+	// Remove the dependency of Body_Torso from Body_Uncalled
+	SafeWrite8(0x423830, 0xEB); // compute_attack_
+	BlockCall(0x42303F); // block Body_Torso check (combat_attack_)
+	SafeWrite8(0x42A713, 7); // Body_Uncalled > Body_Groin (ai_called_shot_)
+	for (int i = 0; i < sizeof(bodypartAddr) / 4; i++) { // replace Body_Torso with Body_Uncalled
+		SafeWrite8(bodypartAddr[i], 8);
 	}
 }
