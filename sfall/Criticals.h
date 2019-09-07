@@ -18,7 +18,7 @@
 
 #pragma once
 
-void CritInit();
+void CriticalsInit();
 void CritLoad();
 
 extern const DWORD CritTableCount;

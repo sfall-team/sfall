@@ -43,15 +43,22 @@ static const char* CritNames[] = {
 struct CritStruct {
 	union {
 		struct {
-			DWORD DamageMultiplier;
-			DWORD EffectFlags;
-			DWORD StatCheck;
-			DWORD StatMod;
-			DWORD FailureEffect;
-			DWORD Message;
-			DWORD FailMessage;
+			// This is divided by 2, so a value of 3 does 1.5x damage, and 8 does 4x damage.
+			long damageMult;
+			// This is a flag bit field (DAM_*) controlling what effects the critical causes.
+			long effectFlags;
+			// This makes a check against a (SPECIAL) stat. Values of 2 (endurance), 5 (agility), and 6 (luck) are used, but other stats will probably work as well. A value of -1 indicates that no check is to be made.
+			long statCheck;
+			// Affects the outcome of the stat check, if one is made. Positive values make it easier to pass the check, and negative ones make it harder.
+			long statMod;
+			// Another bit field, using the same values as EffectFlags. If the stat check is failed, these are applied in addition to the earlier ones.
+			long failureEffect;
+			// The message to show when this critical occurs, taken from combat.msg .
+			long message;
+			// Shown instead of Message if the stat check is failed.
+			long failMessage;
 		};
-		DWORD values[7];
+		long values[7];
 	};
 };
 
@@ -87,11 +94,10 @@ void ResetCriticalTable(DWORD critter, DWORD bodypart, DWORD slot, DWORD element
 	critTable[critter * 9 * 6 + bodypart * 6 + slot].values[element] = baseCritTable[critter * 9 * 6 + bodypart * 6 + slot].values[element];
 }
 
-void CritLoad() {
-	if (!Inited) return;
+static void CritTableLoad() {
 	CritStruct* defaultTable = (CritStruct*)_crit_succ_eff;
 	if (mode == 1) {
-		dlogr("Setting up critical hit table using CriticalOverrides.ini", DL_CRITICALS);
+		dlogr("Setting up critical hit table using CriticalOverrides.ini (old fmt)", DL_CRITICALS);
 		char section[16];
 		for (DWORD critter = 0; critter < 20; critter++) {
 			for (DWORD part = 0; part < 9; part++) {
@@ -104,7 +110,7 @@ void CritLoad() {
 						if (isDebug) {
 							char logmsg[256];
 							if (baseCritTable[slot2].values[i] != defaultTable[slot1].values[i]) {
-								sprintf_s(logmsg, "Entry %s value %d changed from %d to %d", section, i, defaultTable[slot1].values[i], baseCritTable[slot2].values[i]);
+								sprintf_s(logmsg, "  Entry %s value %d changed from %d to %d", section, i, defaultTable[slot1].values[i], baseCritTable[slot2].values[i]);
 								dlogr(logmsg, DL_CRITICALS);
 							}
 						}
@@ -113,12 +119,13 @@ void CritLoad() {
 			}
 		}
 	} else {
-		dlogr("Setting up critical hit table using RP fixes", DL_CRITICALS);
-		memcpy(baseCritTable, defaultTable, 6 * 9 * 19 * sizeof(CritStruct));
-		//memset(&baseCritTable[6 * 9 * 19], 0, 6 * 9 * 19 * sizeof(CritStruct));
+		dlog("Setting up critical hit table using RP fixes", DL_CRITICALS);
+		memcpy(baseCritTable, defaultTable, 19 * 6 * 9 * sizeof(CritStruct));
+		//memset(&baseCritTable[6 * 9 * 19], 0, 19 * 6 * 9 * sizeof(CritStruct));
 		memcpy(&baseCritTable[6 * 9 * 38], (CritStruct*)_pc_crit_succ_eff, 6 * 9 * sizeof(CritStruct)); // PC crit table
 
 		if (mode == 3) {
+			dlog(" and CriticalOverrides.ini (new fmt)", DL_CRITICALS);
 			char buf[32], buf2[32], buf3[32];
 			for (int critter = 0; critter < CritTableCount; critter++) {
 				sprintf_s(buf, "c_%02d", critter);
@@ -141,15 +148,14 @@ void CritLoad() {
 				}
 			}
 		}
+		dlog("\n", DL_CRITICALS);
 	}
-	memcpy(critTable, baseCritTable, CritTableSize * sizeof(CritStruct)); // Apply base critical table
-	dlogr("Completed critical hit table.", DL_CRITICALS);
 }
 
 #define SetEntry(critter, bodypart, effect, param, value) defaultTable[critter * 9 * 6 + bodypart * 6 + effect].values[param] = value;
 
 static void CriticalTableOverride() {
-	dlog("Initializing critical table override.", DL_INIT);
+	dlogr("Initializing critical table override...", DL_INIT);
 	baseCritTable = new CritStruct[CritTableSize]();
 	critTable = new CritStruct[CritTableSize];
 	playerCrit = &critTable[6 * 9 * 38];
@@ -255,8 +261,9 @@ static void CriticalTableOverride() {
 		SetEntry(18, 7, 5, 5, 7101);
 	}
 
+	CritTableLoad();
+	dlogr("Completed applying critical hit table.", DL_INIT);
 	Inited = true;
-	dlogr(" Done", DL_INIT);
 }
 #undef SetEntry
 
@@ -270,7 +277,7 @@ static void RemoveCriticalTimeLimitsPatch() {
 	}
 }
 
-void CritInit() {
+void CriticalsInit() {
 	mode = GetPrivateProfileIntA("Misc", "OverrideCriticalTable", 2, ini);
 	if (mode < 0 || mode > 3) mode = 0;
 	if (mode) {
@@ -281,4 +288,9 @@ void CritInit() {
 	}
 
 	RemoveCriticalTimeLimitsPatch();
+}
+
+void CritLoad() {
+	if (!Inited) return;
+	memcpy(critTable, baseCritTable, CritTableSize * sizeof(CritStruct)); // Apply loaded critical table
 }

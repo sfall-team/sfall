@@ -758,8 +758,8 @@ static void DllMain2() {
 		dlogr(" Done", DL_INIT);
 	}
 
-	dlogr("Running CritInit().", DL_INIT);
-	CritInit();
+	dlogr("Running CriticalsInit().", DL_INIT);
+	CriticalsInit();
 
 	if (GetPrivateProfileIntA("Misc", "ExtraKillTypes", 0, ini)) {
 		dlog("Applying extra kill types patch.", DL_INIT);
