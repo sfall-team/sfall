@@ -71,6 +71,11 @@ extern DWORD modifiedIni;
 extern char dmModelName[65];
 extern char dfModelName[65];
 
+extern bool hrpIsEnabled;
+extern bool hrpVersionValid;
+
+DWORD HRPAddressOffset(DWORD offset);
+
 void RemoveSavFiles();
 void ClearSavPrototypes();
 

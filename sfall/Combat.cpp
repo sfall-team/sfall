@@ -27,6 +27,38 @@
 
 #include "Combat.h"
 
+static const DWORD bodypartAddr[] = {
+	0x425562,                     // combat_display_
+	0x42A68F, 0x42A739,           // ai_called_shot_
+	0x429E82, 0x429EC2, 0x429EFF, // ai_pick_hit_mode_
+	0x423231, 0x423268,           // check_ranged_miss_
+	0x4242D4,                     // attack_crit_failure_
+	// for combat_ctd_init_ func
+	0x412E9C,                     // action_explode_
+	0x413519,                     // action_dmg_
+	0x421656, 0x421675,           // combat_safety_invalidate_weapon_func_
+	0x421CC0,                     // combat_begin_extra_
+	0x4229A9,                     // combat_turn_
+	0x42330E, 0x4233AB,           // shoot_along_path_
+	0x423E25, 0x423E2A,           // compute_explosion_on_extras_
+	0x425F83,                     // combat_anim_finished_
+	0x42946D,                     // ai_best_weapon_
+	0x46FCC8,                     // exit_inventory_
+	0x49C00C,                     // protinstTestDroppedExplosive_
+};
+
+static struct BodyParts {
+	long Head;
+	long Left_Arm;
+	long Right_Arm;
+	long Torso;
+	long Right_Leg;
+	long Left_Leg;
+	long Eyes;
+	long Groin;
+	long Uncalled;
+} bodypartHit;
+
 struct KnockbackModifier {
 	long id;
 	DWORD type;
@@ -395,36 +427,28 @@ void _stdcall ForceAimedShots(DWORD pid) {
 	forcedAS.push_back(pid);
 }
 
-static const DWORD bodypartAddr[] = {
-	0x425562,                     // combat_display_
-	0x42A68F, 0x42A739,           // ai_called_shot_
-	0x429E82, 0x429EC2, 0x429EFF, // ai_pick_hit_mode_
-	0x423231, 0x423268,           // check_ranged_miss_
-	0x4242D4,                     // attack_crit_failure_
-	// for combat_ctd_init_ func
-	0x412E9C,                     // action_explode_
-	0x413519,                     // action_dmg_
-	0x421656, 0x421675,           // combat_safety_invalidate_weapon_func_
-	0x421CC0,                     // combat_begin_extra_
-	0x4229A9,                     // combat_turn_
-	0x42330E, 0x4233AB,           // shoot_along_path_
-	0x423E25, 0x423E2A,           // compute_explosion_on_extras_
-	0x425F83,                     // combat_anim_finished_
-	0x42946D,                     // ai_best_weapon_
-	0x46FCC8,                     // exit_inventory_
-	0x49C00C,                     // protinstTestDroppedExplosive_
-};
-
 static void BodypartHitChances() {
-	ptr_hit_location_penalty[0] = static_cast<long>(GetPrivateProfileIntA("Misc", "BodyHit_Head", -40, ini));
-	ptr_hit_location_penalty[1] = static_cast<long>(GetPrivateProfileIntA("Misc", "BodyHit_Left_Arm", -30, ini));
-	ptr_hit_location_penalty[2] = static_cast<long>(GetPrivateProfileIntA("Misc", "BodyHit_Right_Arm", -30, ini));
-	ptr_hit_location_penalty[3] = static_cast<long>(GetPrivateProfileIntA("Misc", "BodyHit_Torso", 0, ini));
-	ptr_hit_location_penalty[4] = static_cast<long>(GetPrivateProfileIntA("Misc", "BodyHit_Right_Leg", -20, ini));
-	ptr_hit_location_penalty[5] = static_cast<long>(GetPrivateProfileIntA("Misc", "BodyHit_Left_Leg", -20, ini));
-	ptr_hit_location_penalty[6] = static_cast<long>(GetPrivateProfileIntA("Misc", "BodyHit_Eyes", -60, ini));
-	ptr_hit_location_penalty[7] = static_cast<long>(GetPrivateProfileIntA("Misc", "BodyHit_Groin", -30, ini));
-	ptr_hit_location_penalty[8] = static_cast<long>(GetPrivateProfileIntA("Misc", "BodyHit_Torso_Uncalled", 0, ini));
+	ptr_hit_location_penalty[0] = bodypartHit.Head;
+	ptr_hit_location_penalty[1] = bodypartHit.Left_Arm;
+	ptr_hit_location_penalty[2] = bodypartHit.Right_Arm;
+	ptr_hit_location_penalty[3] = bodypartHit.Torso;
+	ptr_hit_location_penalty[4] = bodypartHit.Right_Leg;
+	ptr_hit_location_penalty[5] = bodypartHit.Left_Leg;
+	ptr_hit_location_penalty[6] = bodypartHit.Eyes;
+	ptr_hit_location_penalty[7] = bodypartHit.Groin;
+	ptr_hit_location_penalty[8] = bodypartHit.Uncalled;
+}
+
+static void BodypartHitReadConfig() {
+	bodypartHit.Head      = static_cast<long>(GetPrivateProfileIntA("Misc", "BodyHit_Head", -40, ini));
+	bodypartHit.Left_Arm  = static_cast<long>(GetPrivateProfileIntA("Misc", "BodyHit_Left_Arm", -30, ini));
+	bodypartHit.Right_Arm = static_cast<long>(GetPrivateProfileIntA("Misc", "BodyHit_Right_Arm", -30, ini));
+	bodypartHit.Torso     = static_cast<long>(GetPrivateProfileIntA("Misc", "BodyHit_Torso", 0, ini));
+	bodypartHit.Right_Leg = static_cast<long>(GetPrivateProfileIntA("Misc", "BodyHit_Right_Leg", -20, ini));
+	bodypartHit.Left_Leg  = static_cast<long>(GetPrivateProfileIntA("Misc", "BodyHit_Left_Leg", -20, ini));
+	bodypartHit.Eyes      = static_cast<long>(GetPrivateProfileIntA("Misc", "BodyHit_Eyes", -60, ini));
+	bodypartHit.Groin     = static_cast<long>(GetPrivateProfileIntA("Misc", "BodyHit_Groin", -30, ini));
+	bodypartHit.Uncalled  = static_cast<long>(GetPrivateProfileIntA("Misc", "BodyHit_Torso_Uncalled", 0, ini));
 }
 
 void Combat_OnGameLoad() {
@@ -457,6 +481,8 @@ void CombatInit() {
 		HookCall(0x42A95D, ai_try_attack_hook); // jz func
 		MakeCall(0x4234B3, compute_spray_hack, 1);
 	}
+
+	BodypartHitReadConfig();
 
 	// Remove the dependency of Body_Torso from Body_Uncalled
 	SafeWrite8(0x423830, 0xEB); // compute_attack_
