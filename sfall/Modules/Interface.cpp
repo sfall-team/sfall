@@ -81,11 +81,13 @@ static void ActionPointsBarPatch() {
 	dlog("Applying expanded action points bar patch.", DL_INIT);
 	if (hrpIsEnabled) {
 		// check valid data
-		if (!_stricmp((const char*)0x10039358, "HR_IFACE_%i.frm")) {
-			SafeWriteStr(0x10039363, "E.frm"); // patching HRP
+		if (hrpVersionValid && !_stricmp((const char*)HRPAddressOffset(0x39358), "HR_IFACE_%i.frm")) {
+			SafeWriteStr(HRPAddressOffset(0x39363), "E.frm"); // patching HRP
 		} else {
 			dlog(" Incorrect HRP version!", DL_INIT);
+			return;
 		}
+		LoadGameHook::OnAfterGameInit() += APBarRectPatch;
 	} else {
 		APBarRectPatch();
 	}
@@ -456,7 +458,7 @@ static void WorldMapInterfacePatch() {
 		dlogr(" Done", DL_INIT);
 	}
 
-	if (hrpIsEnabled) {
+	if (hrpIsEnabled && hrpVersionValid) {
 		if (worldmapInterface = GetConfigInt("Interface", "ExpandWorldMap", 0)) {
 			LoadGameHook::OnAfterGameInit() += WorldmapViewportPatch; // Note: must be applied after WorldMapSlots patch
 		}
@@ -469,7 +471,6 @@ static void WorldMapInterfacePatch() {
 void Interface::init() {
 	if (GetConfigInt("Interface", "ActionPointsBar", 0)) {
 		ActionPointsBarPatch();
-		if (hrpIsEnabled) LoadGameHook::OnAfterGameInit() += APBarRectPatch;
 	}
 
 	WorldMapInterfacePatch();

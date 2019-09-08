@@ -1427,7 +1427,7 @@ void Perks::init() {
 		enginePerkMod = GetPrivateProfileIntA("PerksTweak", "WeaponHandlingBonus", -1, perksFile);
 		if (enginePerkMod >= 0 && enginePerkMod != 3) {
 			if (enginePerkMod > 10) enginePerkMod = 10;
-			SafeWrite8(0x424636, static_cast<signed char>(enginePerkMod));
+			SafeWrite8(0x424636, static_cast<char>(enginePerkMod));
 			SafeWrite8(0x4251CE, static_cast<signed char>(-enginePerkMod));
 		}
 	}

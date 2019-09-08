@@ -88,13 +88,18 @@ namespace sfall
 bool isDebug = false;
 
 bool hrpIsEnabled = false;
-//bool hrpVersionValid = false; // HRP 4.1.8 version validation
+bool hrpVersionValid = false; // HRP 4.1.8 version validation
 
 const char ddrawIni[] = ".\\ddraw.ini";
 static char ini[65] = ".\\";
 static char translationIni[65];
 
 DWORD modifiedIni;
+DWORD hrpDLLBaseAddr = 0x10000000;
+
+DWORD HRPAddressOffset(DWORD offset) {
+	return (hrpDLLBaseAddr + offset);
+}
 
 unsigned int GetConfigInt(const char* section, const char* setting, int defaultValue) {
 	return GetPrivateProfileIntA(section, setting, defaultValue, ini);
@@ -198,6 +203,15 @@ static void InitModules() {
 	dlogr("Leave InitModules", DL_MAIN);
 }
 
+static const DWORD loadFunc = 0x4FE1D0;
+static void LoadHRPModule() {
+	HMODULE dll;
+	__asm call loadFunc; // load HRP dll
+	__asm mov  dll, eax;
+	if (dll != NULL) hrpDLLBaseAddr = (DWORD)dll;
+	dlog_f("Loaded f2_res.dll library at the memory address: 0x%x\n", DL_MAIN, dll);
+}
+
 static void CompatModeCheck(HKEY root, const char* filepath, int extra) {
 	HKEY key;
 	char buf[MAX_PATH];
@@ -294,7 +308,11 @@ defaultIni:
 	modifiedIni = GetConfigInt("Main", "ModifiedIni", 0);
 
 	hrpIsEnabled = (*(DWORD*)0x4E4480 != 0x278805C7); // check if HRP is enabled
-	//if (hrpIsEnabled && strncmp((const char*)0x10039940, "4.1.8", 5) == 0) hrpVersionValid = true;
+	if (hrpIsEnabled) {
+		BlockCall(0x4E4480);
+		LoadHRPModule();
+		if (strncmp((const char*)HRPAddressOffset(0x39940), "4.1.8", 5) == 0) hrpVersionValid = true;
+	}
 
 	InitModules();
 }
