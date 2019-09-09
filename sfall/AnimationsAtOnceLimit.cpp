@@ -57,7 +57,7 @@ static const DWORD anim_set_0[] = {
 	0x414E48, 0x414EDA, 0x414F5E, 0x414FEE, 0x41505C, 0x4150D0, 0x415158,
 	0x4151B8, 0x415286, 0x41535C, 0x4153D0, 0x41544A, 0x4154EC, 0x4155EA,
 	0x4156C0, 0x4156D5, 0x4156F2, 0x41572F, 0x41573E, 0x415B1B, 0x415B56,
-	0x415BB6, 0x415C7C, 0x415CA3, 0x415DE4,
+	0x415BB6, 0x415C7C, 0x415CA3, /*0x415DE4, - conflct with 0x415DE2*/
 };
 
 static const DWORD anim_set_4[] = {
@@ -150,14 +150,14 @@ static const DWORD sad_28[] = {
 	0x4173CE, 0x4174C1, 0x4175F1, 0x417730,
 };
 
-static DWORD __fastcall AnimCombatFix(DWORD* src, BYTE combatFlag) {
+static DWORD __fastcall AnimCombatFix(TGameObj* src, BYTE combatFlag) {
 	DWORD animAddr = animSetAddr;
 
 	if (animationLimit > 32) {
 		animAddr += animRecordSize; // include a dummy
 	}
 
-	if (combatFlag & 2) {           // combat flag is set
+	if (combatFlag & 2) { // combat flag is set
 		__asm call combat_anim_finished_;
 	}
 	return animAddr;
@@ -165,9 +165,11 @@ static DWORD __fastcall AnimCombatFix(DWORD* src, BYTE combatFlag) {
 
 static void __declspec(naked) anim_set_end_hack() {
 	__asm {
+		push ecx;
 		call AnimCombatFix;
 		mov  [eax][esi], ebx;
-		xor  dl, dl; // goto 0x415DF2;
+		pop  ecx;
+		xor  dl, dl; // for goto 0x415DF2;
 		retn;
 	}
 }

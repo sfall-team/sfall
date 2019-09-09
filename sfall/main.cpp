@@ -1122,7 +1122,7 @@ static void DllMain2() {
 	SafeWrite8(0x43ACD5, 144); // 136
 	SafeWrite8(0x43DD37, 144); // 133
 
-	if (GetPrivateProfileIntA("Misc", "F1EngineBehavior", 0, ini)) {
+	if (GetPrivateProfileIntA("Misc", "Fallout1Behavior", 0, ini)) {
 		dlog("Applying Fallout 1 engine behavior patch.", DL_INIT);
 		BlockCall(0x4A4343); // disable playing the final movie/credits after the endgame slideshow
 		SafeWrite8(0x477C71, 0xEB); // disable halving the weight for power armor items
