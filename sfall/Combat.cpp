@@ -451,6 +451,26 @@ static void BodypartHitReadConfig() {
 	bodypartHit.Uncalled  = static_cast<long>(GetPrivateProfileIntA("Misc", "BodyHit_Torso_Uncalled", 0, ini));
 }
 
+static void __declspec(naked) apply_damage_hack() {
+	__asm {
+		xor  edx, edx;
+		inc  edx;              // COMBAT_SUBTYPE_WEAPON_USED
+		test [esi + 0x15], dl; // ctd.flags2Source & DAM_HIT_
+		jz   end;              // no hit
+		inc  edx;              // COMBAT_SUBTYPE_HIT_SUCCEEDED
+end:
+		retn;
+	}
+}
+
+static void CombatProcFix() {
+	//Ray's combat_p_proc fix
+	dlog("Applying Ray's combat_p_proc patch.", DL_INIT);
+	MakeCall(0x424DD9, apply_damage_hack);
+	SafeWrite16(0x424DC6, 0x9090);
+	dlogr(" Done", DL_INIT);
+}
+
 void Combat_OnGameLoad() {
 	baseHitChance.maximum = 95;
 	baseHitChance.mod = 0;
@@ -466,6 +486,8 @@ void Combat_OnGameLoad() {
 }
 
 void CombatInit() {
+	CombatProcFix();
+
 	MakeCall(0x424B76, compute_damage_hack, 2);     // KnockbackMod
 	MakeJump(0x4136D3, compute_dmg_damage_hack);    // for op_critter_dmg
 
@@ -476,11 +498,13 @@ void CombatInit() {
 	MakeCall(0x429E44, ai_pick_hit_mode_hack, 1);   // NoBurst
 
 	if(GetPrivateProfileInt("Misc", "CheckWeaponAmmoCost", 0, ini)) {
+		MakeCall(0x4234B3, compute_spray_hack, 1);
 		HookCall(0x4266E9, combat_check_bad_shot_hook);
 		HookCall(0x429A37, ai_search_inven_weap_hook);
 		HookCall(0x42A95D, ai_try_attack_hook); // jz func
-		MakeCall(0x4234B3, compute_spray_hack, 1);
 	}
+
+	SimplePatch<DWORD>(0x424FA7, "Misc", "KnockoutTime", 35, 35, 100);
 
 	BodypartHitReadConfig();
 

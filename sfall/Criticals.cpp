@@ -270,9 +270,9 @@ static void CriticalTableOverride() {
 static void RemoveCriticalTimeLimitsPatch() {
 	if (GetPrivateProfileIntA("Misc", "RemoveCriticalTimelimits", 0, ini)) {
 		dlog("Removing critical time limits.", DL_INIT);
-		SafeWrite8(0x424118, 0xEB); // jump to 0x424131
-		SafeWrite8(0x4A3053, 0x0);
-		SafeWrite8(0x4A3094, 0x0);
+		SafeWrite8(0x424118, 0xEB);  // jump to 0x424131
+		SafeWrite16(0x4A3052, 0x9090);
+		SafeWrite16(0x4A3093, 0x9090);
 		dlogr(" Done", DL_INIT);
 	}
 }

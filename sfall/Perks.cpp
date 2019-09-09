@@ -1015,6 +1015,48 @@ static __declspec(naked) void TraitInitWrapper() {
 	}
 }
 
+static const DWORD FastShotTraitFixEnd1 = 0x478E7F;
+static const DWORD FastShotTraitFixEnd2 = 0x478E7B;
+static void __declspec(naked) item_w_called_shot_hack() {
+	__asm {
+		test eax, eax;                    // does player have Fast Shot trait?
+		je ajmp;                          // skip ahead if no
+		mov edx, ecx;                     // argument for item_w_range_: hit_mode
+		mov eax, ebx;                     // argument for item_w_range_: pointer to source_obj (always dude_obj due to code path)
+		call item_w_range_;               // get weapon's range
+		cmp eax, 0x2;                     // is weapon range less than or equal 2 (i.e. melee/unarmed attack)?
+		jle ajmp;                         // skip ahead if yes
+		xor eax, eax;                     // otherwise, disallow called shot attempt
+		jmp bjmp;
+ajmp:
+		jmp FastShotTraitFixEnd1;         // continue processing called shot attempt
+bjmp:
+		jmp FastShotTraitFixEnd2;         // clean up and exit function item_w_called_shot
+	}
+}
+
+static const DWORD FastShotFixF1[] = {
+	0x478BB8, 0x478BC7, 0x478BD6, 0x478BEA, 0x478BF9, 0x478C08, 0x478C2F,
+};
+
+static void FastShotTraitFix() {
+	switch (GetPrivateProfileIntA("Misc", "FastShotFix", 1, ini)) {
+	case 1:
+		dlog("Applying Fast Shot Trait Fix.", DL_INIT);
+		MakeJump(0x478E75, item_w_called_shot_hack);
+		goto done;
+	case 2:
+		dlog("Applying Fast Shot Trait Fix. (Fallout 1 version)", DL_INIT);
+		SafeWrite16(0x478C9F, 0x9090);
+		for (int i = 0; i < sizeof(FastShotFixF1) / 4; i++) {
+			HookCall(FastShotFixF1[i], (void*)0x478C7D);
+		}
+	done:
+		dlogr(" Done", DL_INIT);
+		break;
+	}
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 
 void _stdcall SetPerkValue(int id, int value, DWORD offset) {
@@ -1051,10 +1093,10 @@ void PerksReset() {
 	}
 
 	// Reset some settable game values back to the defaults
+	// Perk level mod
+	SafeWrite32(0x496880, 0x019078);
 	// Pyromaniac bonus
 	SafeWrite8(0x424AB6, 5);
-	// Perk level mod
-	SafeWrite32(0x496880, 0x00019078);
 	// Restore 'Heave Ho' modify fix
 	if (perkHeaveHoModFix) {
 		SafeWrite8(0x478AC4, 0xBA);
@@ -1167,6 +1209,8 @@ void PerksAcceptCharScreen() {
 }
 
 void PerksInit() {
+	FastShotTraitFix();
+
 	for (int i = STAT_st; i <= STAT_lu; i++) SafeWrite8(GainStatPerks[i][0], (BYTE)GainStatPerks[i][1]);
 
 	PerkEngineInit();

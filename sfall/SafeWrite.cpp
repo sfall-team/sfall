@@ -65,10 +65,11 @@ void _stdcall SafeWrite32(DWORD addr, DWORD data) {
 
 void _stdcall SafeWriteStr(DWORD addr, const char* data) {
 	DWORD oldProtect;
+	long len = strlen(data) + 1;
 
-	VirtualProtect((void *)addr, strlen(data) + 1, PAGE_EXECUTE_READWRITE, &oldProtect);
+	VirtualProtect((void *)addr, len, PAGE_EXECUTE_READWRITE, &oldProtect);
 	strcpy((char *)addr, data);
-	VirtualProtect((void *)addr, strlen(data) + 1, oldProtect, &oldProtect);
+	VirtualProtect((void *)addr, len, oldProtect, &oldProtect);
 }
 
 void HookCall(DWORD addr, void* func) {

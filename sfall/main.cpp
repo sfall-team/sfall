@@ -97,10 +97,6 @@ static const char* musicOverridePath = "data\\sound\\music\\";
 
 static int* scriptDialog = nullptr;
 
-static const DWORD FastShotFixF1[] = {
-	0x478BB8, 0x478BC7, 0x478BD6, 0x478BEA, 0x478BF9, 0x478C08, 0x478C2F,
-};
-
 static const DWORD script_dialog_msgs[] = {
 	0x4A50C2, 0x4A5169, 0x4A52FA, 0x4A5302, 0x4A6B86, 0x4A6BE0, 0x4A6C37,
 };
@@ -335,18 +331,6 @@ void ClearSavPrototypes() {
 
 ////////////////////////////////////////////////////////////////////////////////
 
-static void __declspec(naked) apply_damage_hack() {
-	__asm {
-		xor  edx, edx;
-		inc  edx;              // COMBAT_SUBTYPE_WEAPON_USED
-		test [esi + 0x15], dl; // ctd.flags2Source & DAM_HIT_
-		jz   end;              // no hit
-		inc  edx;              // COMBAT_SUBTYPE_HIT_SUCCEEDED
-end:
-		retn;
-	}
-}
-
 static void __declspec(naked) WeaponAnimHook() {
 	__asm {
 		cmp edx, 11;
@@ -541,26 +525,6 @@ static void __declspec(naked) NPCStage6Fix2() {
 		imul edx, eax;                  // multiply by NPC number as listed in party.txt
 		mov  eax, dword ptr ds:[_partyMemberAIOptions]; // get starting offset of internal NPC table
 		jmp  NPCStage6Fix2End;          // eax+edx = offset of specific NPC record
-	}
-}
-
-static const DWORD FastShotTraitFixEnd1 = 0x478E7F;
-static const DWORD FastShotTraitFixEnd2 = 0x478E7B;
-static void __declspec(naked) FastShotTraitFix() {
-	__asm {
-		test eax, eax;				// does player have Fast Shot trait?
-		je ajmp;				// skip ahead if no
-		mov edx, ecx;				// argument for item_w_range_: hit_mode
-		mov eax, ebx;				// argument for item_w_range_: pointer to source_obj (always dude_obj due to code path)
-		call item_w_range_;			// get weapon's range
-		cmp eax, 0x2;				// is weapon range less than or equal 2 (i.e. melee/unarmed attack)?
-		jle ajmp;				// skip ahead if yes
-		xor eax, eax;				// otherwise, disallow called shot attempt
-		jmp bjmp;
-ajmp:
-		jmp FastShotTraitFixEnd1;		// continue processing called shot attempt
-bjmp:
-		jmp FastShotTraitFixEnd2;		// clean up and exit function item_w_called_shot
 	}
 }
 
@@ -791,12 +755,6 @@ static void DllMain2() {
 		SkillsInit();
 		dlog(".", DL_INIT);
 		dlogr(" Done", DL_INIT);
-
-		//Ray's combat_p_proc fix
-		dlog("Applying Ray's combat_p_proc patch.", DL_INIT);
-		MakeCall(0x424DD9, apply_damage_hack);
-		SafeWrite8(0x424DC7, 0x0);
-		dlogr(" Done", DL_INIT);
 	//}
 
 	dlogr("Running FileSystemInit().", DL_INIT);
@@ -815,7 +773,7 @@ static void DllMain2() {
 
 	if (GetPrivateProfileIntA("Misc", "OverrideArtCacheSize", 0, ini)) {
 		dlog("Applying override art cache size patch.", DL_INIT);
-		SafeWrite8(0x41886A, 0x0);
+		SafeWrite32(0x418867, 0x90909090);
 		SafeWrite32(0x418872, 256);
 		dlogr(" Done", DL_INIT);
 	}
@@ -1002,22 +960,6 @@ static void DllMain2() {
 		dlogr(" Done", DL_INIT);
 	}
 
-	switch (GetPrivateProfileIntA("Misc", "FastShotFix", 1, ini)) {
-	case 1:
-		dlog("Applying Fast Shot Trait Fix.", DL_INIT);
-		MakeJump(0x478E75, FastShotTraitFix);
-		dlogr(" Done", DL_INIT);
-		break;
-	case 2:
-		dlog("Applying Fast Shot Trait Fix. (Fallout 1 version)", DL_INIT);
-		SafeWrite8(0x478CA0, 0x0);
-		for (int i = 0; i < sizeof(FastShotFixF1) / 4; i++) {
-			HookCall(FastShotFixF1[i], (void*)0x478C7D);
-		}
-		dlogr(" Done", DL_INIT);
-		break;
-	}
-
 	if (GetPrivateProfileIntA("Misc", "BoostScriptDialogLimit", 0, ini)) {
 		const int scriptDialogCount = 10000;
 		dlog("Applying script dialog limit patch.", DL_INIT);
@@ -1039,7 +981,7 @@ static void DllMain2() {
 		if (tmp & 1) MakeJump(0x41BBE9, ScannerAutomapHook);
 		if (tmp & 2) {
 			// automap_
-			SafeWrite8(0x41BC25, 0x0);
+			SafeWrite16(0x41BC24, 0x9090);
 			BlockCall(0x41BC3C);
 			// item_m_use_charged_item_
 			SafeWrite8(0x4794B3, 0x5E); // jbe short 0x479512
@@ -1176,11 +1118,16 @@ static void DllMain2() {
 		dlogr(" Done", DL_INIT);
 	}
 
-	SimplePatch<DWORD>(0x424FA7, "Misc", "KnockoutTime", 35, 35, 100);
-
 	// Increase the max text width of the information card in the character screen
 	SafeWrite8(0x43ACD5, 144); // 136
 	SafeWrite8(0x43DD37, 144); // 133
+
+	if (GetPrivateProfileIntA("Misc", "F1EngineBehavior", 0, ini)) {
+		dlog("Applying Fallout 1 engine behavior patch.", DL_INIT);
+		BlockCall(0x4A4343); // disable playing the final movie/credits after the endgame slideshow
+		SafeWrite8(0x477C71, 0xEB); // disable halving the weight for power armor items
+		dlogr(" Done", DL_INIT);
+	}
 
 	dlogr("Leave DllMain2", DL_MAIN);
 }
