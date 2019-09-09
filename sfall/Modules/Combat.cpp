@@ -21,6 +21,7 @@
 
 #include "..\main.h"
 #include "..\FalloutEngine\Fallout2.h"
+#include "..\SimplePatch.h"
 #include "HookScripts.h"
 #include "LoadGameHook.h"
 #include "Objects.h"
@@ -448,6 +449,26 @@ static void BodypartHitReadConfig() {
 	bodypartHit.Uncalled  = static_cast<long>(GetConfigInt("Misc", "BodyHit_Torso_Uncalled", 0));
 }
 
+static void __declspec(naked) apply_damage_hack() {
+	__asm {
+		xor  edx, edx;
+		inc  edx;              // COMBAT_SUBTYPE_WEAPON_USED
+		test [esi + 0x15], dl; // ctd.flags2Source & DAM_HIT_
+		jz   end;              // no hit
+		inc  edx;              // COMBAT_SUBTYPE_HIT_SUCCEEDED
+end:
+		retn;
+	}
+}
+
+static void CombatProcFix() {
+	//Ray's combat_p_proc fix
+	dlog("Applying Ray's combat_p_proc patch.", DL_INIT);
+	MakeCall(0x424DD9, apply_damage_hack);
+	SafeWrite16(0x424DC6, 0x9090);
+	dlogr(" Done", DL_INIT);
+}
+
 static void Combat_OnGameLoad() {
 	baseHitChance.SetDefault();
 	mTargets.clear();
@@ -460,6 +481,8 @@ static void Combat_OnGameLoad() {
 }
 
 void Combat::init() {
+	CombatProcFix();
+
 	MakeCall(0x424B76, compute_damage_hack, 2);     // KnockbackMod
 	MakeJump(0x4136D3, compute_dmg_damage_hack);    // for op_critter_dmg
 
@@ -475,6 +498,8 @@ void Combat::init() {
 		HookCall(0x429A37, ai_search_inven_weap_hook);
 		HookCall(0x42A95D, ai_try_attack_hook); // jz func
 	}
+
+	SimplePatch<DWORD>(0x424FA7, "Misc", "KnockoutTime", 35, 35, 100);
 
 	BodypartHitReadConfig();
 	LoadGameHook::OnBeforeGameStart() += BodypartHitChances; // set on start & load
