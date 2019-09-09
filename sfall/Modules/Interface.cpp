@@ -166,8 +166,6 @@ static const DWORD wmWinWidth[] = {
 	0x4C4BDF,
 	// wmDrawCursorStopped_
 	0x4C42EE, 0x4C43C8, 0x4C445F,
-	// wmTownMapRefresh_
-	0x4C4BDF
 };
 
 // Right limit of the viewport (450)
