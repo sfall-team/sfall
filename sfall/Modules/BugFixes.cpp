@@ -2294,6 +2294,7 @@ static void __declspec(naked) map_check_state_hook() {
 void BugFixes::init()
 {
 	#ifndef NDEBUG
+		LoadGameHook::OnBeforeGameClose() += PrintAddrList;
 		if (isDebug && (GetPrivateProfileIntA("Debugging", "BugFixes", 1, ::sfall::ddrawIni) == 0)) return;
 	#endif
 

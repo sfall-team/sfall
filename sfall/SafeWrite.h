@@ -5,18 +5,20 @@
 
 namespace sfall 
 {
+
 #ifndef NDEBUG
-void CheckConflict(DWORD addr);
+void AddrAddToList(DWORD addr, long len);
+void PrintAddrList();
 #endif
 
 template<typename T> void _stdcall SafeWrite(DWORD addr, T data) {
-	DWORD	oldProtect;
-	VirtualProtect((void *)addr, sizeof(T), PAGE_EXECUTE_READWRITE, &oldProtect);
+	DWORD oldProtect;
+	VirtualProtect((void*)addr, sizeof(T), PAGE_EXECUTE_READWRITE, &oldProtect);
 	*((T*)addr) = data;
-	VirtualProtect((void *)addr, sizeof(T), oldProtect, &oldProtect);
+	VirtualProtect((void*)addr, sizeof(T), oldProtect, &oldProtect);
 
 	#ifndef NDEBUG
-		if (GetPrivateProfileIntA("Debugging", "Enable", 0, ::sfall::ddrawIni) == 2) CheckConflict(addr);
+		AddrAddToList(addr, sizeof(T));
 	#endif
 }
 
