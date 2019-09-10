@@ -64,7 +64,7 @@ struct sArt {
 	}
 };
 
-struct tilestruct {
+struct TilesData {
 	short tile[2];
 };
 
@@ -94,7 +94,7 @@ static DWORD db_fopen(const char* path, const char* mode) {
 	return result;
 }
 
-static char* db_fgets(char* buf, int max_count, DWORD file) {
+static char* db_fgets(char* buf, long max_count, DWORD file) {
 	char* result;
 	__asm {
 		mov eax, buf;
@@ -113,8 +113,8 @@ static void db_fclose(DWORD file) {
 	}
 }
 
-static short db_freadShort(DWORD file) {
-	short rout=0;
+static long db_freadShort(DWORD file) {
+	WORD rout = 0;
 	__asm {
 		mov eax, file;
 		lea edx, rout;
@@ -123,7 +123,7 @@ static short db_freadShort(DWORD file) {
 	return rout;
 }
 
-static void db_freadByteCount(DWORD file, void* cptr, int count) {
+static void db_freadByteCount(DWORD file, void* cptr, long count) {
 	__asm {
 		mov eax, file;
 		mov edx, cptr;
@@ -132,7 +132,7 @@ static void db_freadByteCount(DWORD file, void* cptr, int count) {
 	}
 }
 
-static void db_fwriteByteCount(DWORD file, void* cptr, int count) {
+static void db_fwriteByteCount(DWORD file, void* cptr, long count) {
 	__asm {
 		mov eax, file;
 		mov edx, cptr;
@@ -141,7 +141,7 @@ static void db_fwriteByteCount(DWORD file, void* cptr, int count) {
 	}
 }
 
-static void db_fseek(DWORD file, long pos/*, int origin*/) {
+static void db_fseek(DWORD file, long pos/*, long origin*/) {
 	__asm {
 		mov eax, file;
 		mov edx, pos;
@@ -283,7 +283,7 @@ static void __declspec(naked) iso_init_hook() {
 	}
 }
 
-static void __fastcall SquareLoadCheck(tilestruct* data) {
+static long __fastcall SquareLoadCheck(TilesData* data) {
 	for (DWORD y = 0; y < 100; y++) {
 		for (DWORD x = 0; x < 100; x++) {
 			for (DWORD z = 0; z < 2; z++) {
@@ -301,6 +301,7 @@ static void __fastcall SquareLoadCheck(tilestruct* data) {
 			}
 		}
 	}
+	return 0; // don't delete
 }
 
 static void __declspec(naked) square_load_hook() {
@@ -309,7 +310,7 @@ static void __declspec(naked) square_load_hook() {
 		call db_freadIntCount_;
 		test eax, eax;
 		jnz  end;
-		jmp  SquareLoadCheck;
+		jmp  SquareLoadCheck; // ecx - data
 end:
 		retn;
 	}
