@@ -537,7 +537,9 @@ static int ParseIniSetting(const char* iniString, const char* &key, char section
 	file[1] = '\\';
 	if (!ScriptExtender::iniConfigFolder.empty()) {
 		const char* pos = strfind(iniString, &::sfall::ddrawIni[2]);
-		if (pos && pos < fileEnd) goto ddraw;
+		if (pos && pos < fileEnd) goto specialIni;
+		pos = strfind(iniString, "f2_res.ini");
+		if (pos && pos < fileEnd) goto specialIni;
 		size_t len = ScriptExtender::iniConfigFolder.length(); // limit up to 62 characters
 		memcpy(&file[2], ScriptExtender::iniConfigFolder.c_str(), len);
 		int n = 0; // position of the beginning of the file name
@@ -549,7 +551,7 @@ static int ParseIniSetting(const char* iniString, const char* &key, char section
 		}
 		strncpy_s(&file[2 + len], (128 - 2) - len, &iniString[n], filelen - n); // copy filename
 	} else {
-ddraw:
+specialIni:
 		memcpy(&file[2], iniString, filelen);
 		file[filelen + 2] = 0;
 	}
