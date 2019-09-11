@@ -235,6 +235,47 @@ skip:
 	}
 }
 
+static DWORD __fastcall StdProcedureHook_Script(long numHandler, fo::ScriptInstance* script, DWORD procTable) {
+	BeginHook();
+	argCount = 3;
+
+	args[0] = numHandler;
+	args[1] = (DWORD)script->selfObject;
+	args[2] = (DWORD)script->sourceObject;
+	RunHookScript(HOOK_STDPROCEDURE);
+
+	if (cRet > 0) {
+		long retval = rets[0];
+		if (retval == -1) procTable = retval;
+	}
+	EndHook();
+	return procTable;
+}
+
+static void __declspec(naked) ScriptStdProcedureHook() {
+	using namespace fo::ScriptProc;
+	__asm {
+		mov  eax, [eax + 0x54]; // Script.procedure_table
+		test eax, eax;
+		jle  end;
+		cmp  ecx, critter_p_proc;
+		je   skip;
+		cmp  ecx, map_update_p_proc;
+		je   skip;
+		cmp  ecx, start;
+		jle  skip;
+		push ecx;
+		push eax;      // procTable
+		mov  edx, esi; // script
+		call StdProcedureHook_Script; // ecx - numHandler
+		pop  ecx;
+skip:
+		test eax, eax;
+end:
+		retn;
+	}
+}
+
 void Inject_UseObjOnHook() {
 	HookCalls(UseObjOnHook, { 0x49C606, 0x473619 });
 
@@ -264,6 +305,10 @@ void Inject_SetLightingHook() {
 	MakeCall(0x47A934, SetMapLightHook, 1);
 }
 
+void Inject_ScriptProcedureHook() {
+	MakeCall(0x4A491F, ScriptStdProcedureHook);
+}
+
 void InitObjectHookScripts() {
 
 	LoadHookScript("hs_useobjon", HOOK_USEOBJON);
@@ -271,6 +316,7 @@ void InitObjectHookScripts() {
 	LoadHookScript("hs_useanimobj", HOOK_USEANIMOBJ);
 	LoadHookScript("hs_descriptionobj", HOOK_DESCRIPTIONOBJ);
 	LoadHookScript("hs_setlighting", HOOK_SETLIGHTING);
+	LoadHookScript("hs_stdprocedure", HOOK_STDPROCEDURE);
 }
 
 }

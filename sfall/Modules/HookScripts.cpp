@@ -84,6 +84,7 @@ static HooksInjectInfo injectHooks[] = {
 	{HOOK_SUBCOMBATDAMAGE,  Inject_SubCombatDamageHook,  false}, // replace the code logic
 	{HOOK_SETLIGHTING,      Inject_SetLightingHook,      false},
 	{HOOK_SNEAK,            Inject_SneakCheckHook,       false},
+	{HOOK_STDPROCEDURE,     Inject_ScriptProcedureHook,  false},
 };
 
 bool HookScripts::injectAllHooks;

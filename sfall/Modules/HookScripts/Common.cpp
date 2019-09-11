@@ -102,7 +102,7 @@ static void _stdcall RunSpecificHookScript(HookScript *hook) {
 	if (hook->callback != -1) {
 		fo::func::executeProcedure(hook->prog.ptr, hook->callback);
 	} else {
-		RunScriptProc(&hook->prog, fo::ScriptProc::start);
+		hook->callback = RunScriptStartProc(&hook->prog); // run start
 	}
 }
 

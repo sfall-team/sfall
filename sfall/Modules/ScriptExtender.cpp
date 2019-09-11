@@ -57,17 +57,13 @@ std::string ScriptExtender::iniConfigFolder;
 
 struct GlobalScript {
 	ScriptProgram prog;
+	int startProc; // position of the 'start' procedure in the script
 	int count;
 	int repeat;
-	int mode; //0 - local map loop, 1 - input loop, 2 - world map loop, 3 - local and world map loops
+	int mode; // 0 - local map loop, 1 - input loop, 2 - world map loop, 3 - local and world map loops
 
-	GlobalScript() {}
-	GlobalScript(ScriptProgram script) {
-		prog = script;
-		count = 0;
-		repeat = 0;
-		mode = 0;
-	}
+	//GlobalScript() {}
+	GlobalScript(ScriptProgram script) : prog(script), startProc(-1), count(0), repeat(0), mode(0) {}
 };
 
 struct ExportedVar {
@@ -433,10 +429,8 @@ void AddProgramToMap(ScriptProgram &prog) {
 }
 
 ScriptProgram* GetGlobalScriptProgram(fo::Program* scriptPtr) {
-	for (std::vector<GlobalScript>::iterator it = globalScripts.begin(); it != globalScripts.end(); it++) {
-		if (it->prog.ptr == scriptPtr) return &it->prog;
-	}
-	return nullptr;
+	SfallProgsMap::iterator it = sfallProgsMap.find(scriptPtr);
+	return (it == sfallProgsMap.end()) ? nullptr : &it->second ; // prog
 }
 
 bool _stdcall IsGameScript(const char* filename) {
@@ -458,6 +452,7 @@ static void LoadGlobalScriptsList() {
 		if (prog.ptr) {
 			dlogr(" Done", DL_SCRIPT);
 			GlobalScript gscript = GlobalScript(prog);
+			gscript.startProc = prog.procLookup[fo::ScriptProc::start]; // get 'start' procedure position
 			globalScripts.push_back(gscript);
 			AddProgramToMap(prog);
 			// initialize script (start proc will be executed for the first time) -- this needs to be after script is added to "globalScripts" array
@@ -553,9 +548,20 @@ void RunScriptProc(ScriptProgram* prog, long procId) {
 	}
 }
 
+int RunScriptStartProc(ScriptProgram* prog) {
+	fo::Program* sptr = prog->ptr;
+	int procNum = prog->procLookup[fo::ScriptProc::start];
+	if (procNum != -1) {
+		fo::func::executeProcedure(sptr, procNum);
+	}
+	return procNum;
+}
+
 static void RunScript(GlobalScript* script) {
 	script->count = 0;
-	RunScriptProc(&script->prog, fo::ScriptProc::start); // run "start"
+	if (script->startProc != -1) {
+		fo::func::executeProcedure(script->prog.ptr, script->startProc); // run "start"
+	}
 }
 
 /**
@@ -599,8 +605,8 @@ static void RunGlobalScriptsOnWorldMap() {
 static DWORD _stdcall HandleMapUpdateForScripts(const DWORD procId) {
 	if (procId == fo::ScriptProc::map_enter_p_proc) {
 		// map changed, all game objects were destroyed and scripts detached, need to re-insert global scripts into the game
-		for (SfallProgsMap::iterator it = sfallProgsMap.begin(); it != sfallProgsMap.end(); it++) {
-			fo::func::runProgram(it->second.ptr);
+		for (std::vector<GlobalScript>::const_iterator it = globalScripts.cbegin(); it != globalScripts.cend(); it++) {
+			fo::func::runProgram(it->prog.ptr);
 		}
 	} else if (procId == fo::ScriptProc::map_exit_p_proc) onMapExit.invoke();
 
