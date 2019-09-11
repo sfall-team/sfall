@@ -435,17 +435,13 @@ static char HighlightFail2[128];
 
 struct sGlobalScript {
 	sScriptProgram prog;
-	DWORD count;
-	DWORD repeat;
-	DWORD mode; //0 - local map loop, 1 - input loop, 2 - world map loop, 3 - local and world map loops
+	int startProc; // position of the 'start' procedure in the script
+	int count;
+	int repeat;
+	int mode; // 0 - local map loop, 1 - input loop, 2 - world map loop, 3 - local and world map loops
 
-	sGlobalScript() {}
-	sGlobalScript(sScriptProgram script) {
-		prog = script;
-		count = 0;
-		repeat = 0;
-		mode = 0;
-	}
+	//sGlobalScript() {}
+	sGlobalScript(sScriptProgram script) : prog(script), startProc(-1), count(0), repeat(0), mode(0) {}
 };
 
 struct sExportedVar {
@@ -820,10 +816,11 @@ static void __declspec(naked) register_hook() {
 }
 
 static void _stdcall register_hook_proc2() {
-	const ScriptValue &idArg = opHandler.arg(0);
+	const ScriptValue &idArg = opHandler.arg(0),
+					  &procArg = opHandler.arg(1);
 
-	if (idArg.isInt()) {
-		RegisterHook((DWORD)opHandler.program(), idArg.rawValue(), opHandler.arg(1).rawValue());
+	if (idArg.isInt() && procArg.isInt()) {
+		RegisterHook((DWORD)opHandler.program(), idArg.rawValue(), procArg.rawValue());
 	} else {
 		OpcodeInvalidArgs("register_hook_proc");
 	}
@@ -1787,10 +1784,8 @@ void AddProgramToMap(sScriptProgram &prog) {
 }
 
 sScriptProgram* GetGlobalScriptProgram(DWORD scriptPtr) {
-	for (std::vector<sGlobalScript>::iterator it = globalScripts.begin(); it != globalScripts.end(); it++) {
-		if (it->prog.ptr == scriptPtr) return &it->prog;
-	}
-	return nullptr;
+	SfallProgsMap::iterator it = sfallProgsMap.find(scriptPtr);
+	return (it == sfallProgsMap.end()) ? nullptr : &it->second ; // prog
 }
 
 bool _stdcall isGameScript(const char* filename) {
@@ -1835,9 +1830,8 @@ void LoadGlobalScripts() {
 			LoadScriptProgram(prog, baseName.c_str());
 			if (prog.ptr) {
 				dlogr(" Done", DL_SCRIPT);
-				DWORD idx;
 				sGlobalScript gscript = sGlobalScript(prog);
-				idx = globalScripts.size();
+				gscript.startProc = prog.procLookup[start]; // get 'start' procedure position
 				globalScripts.push_back(gscript);
 				AddProgramToMap(prog);
 				// initialize script (start proc will be executed for the first time) -- this needs to be after script is added to "globalScripts" array
@@ -1916,9 +1910,20 @@ void RunScriptProc(sScriptProgram* prog, DWORD procId) {
 	}
 }
 
+int RunScriptStartProc(sScriptProgram* prog) {
+	DWORD sptr = prog->ptr;
+	DWORD procNum = prog->procLookup[start];
+	if (procNum != -1) {
+		RunScriptProcByNum(sptr, procNum);
+	}
+	return procNum;
+}
+
 static void RunScript(sGlobalScript* script) {
 	script->count = 0;
-	RunScriptProc(&script->prog, start); // run "start"
+	if (script->startProc != -1) {
+		RunScriptProcByNum(script->prog.ptr, script->startProc); // run "start"
+	}
 }
 
 /**
@@ -2009,8 +2014,8 @@ void RunGlobalScripts3() {
 static DWORD _stdcall HandleMapUpdateForScripts(const DWORD procId) {
 	if (procId == map_enter_p_proc) {
 		// map changed, all game objects were destroyed and scripts detached, need to re-insert global scripts into the game
-		for (SfallProgsMap::iterator it = sfallProgsMap.begin(); it != sfallProgsMap.end(); it++) {
-			DWORD progPtr = it->second.ptr;
+		for (std::vector<sGlobalScript>::const_iterator it = globalScripts.cbegin(); it != globalScripts.cend(); it++) {
+			DWORD progPtr = it->prog.ptr;
 			__asm {
 				mov  eax, progPtr;
 				call runProgram_;

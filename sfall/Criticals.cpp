@@ -125,7 +125,7 @@ static void CritTableLoad() {
 		memcpy(&baseCritTable[6 * 9 * 38], (CritStruct*)_pc_crit_succ_eff, 6 * 9 * sizeof(CritStruct)); // PC crit table
 
 		if (mode == 3) {
-			dlog(" and CriticalOverrides.ini (new fmt)", DL_CRITICALS);
+			dlogr(" and CriticalOverrides.ini (new fmt)", DL_CRITICALS);
 			char buf[32], buf2[32], buf3[32];
 			for (int critter = 0; critter < CritTableCount; critter++) {
 				sprintf_s(buf, "c_%02d", critter);
@@ -147,8 +147,9 @@ static void CritTableLoad() {
 					}
 				}
 			}
+		} else {
+			dlog("\n", DL_CRITICALS);
 		}
-		dlog("\n", DL_CRITICALS);
 	}
 }
 

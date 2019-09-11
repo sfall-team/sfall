@@ -130,7 +130,7 @@ static void _stdcall RunSpecificHookScript(sHookScript *hook) {
 	if (hook->callback != -1) {
 		RunScriptProcByNum(hook->prog.ptr, hook->callback);
 	} else {
-		RunScriptProc(&hook->prog, start);
+		hook->callback = RunScriptStartProc(&hook->prog); // run start
 	}
 }
 

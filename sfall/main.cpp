@@ -741,20 +741,18 @@ static void DllMain2() {
 	}
 
 	//if (GetPrivateProfileIntA("Misc", "ScriptExtender", 0, ini)) {
-		dlog("Applying script extender patch.", DL_INIT);
+		dlogr("Running StatsInit().", DL_INIT);
 		StatsInit();
-		dlog(".", DL_INIT);
+		dlogr("Running ScriptExtenderSetup().", DL_INIT);
 		ScriptExtenderSetup();
-		dlog(".", DL_INIT);
+		dlogr("Running LoadGameHookInit().", DL_INIT);
 		LoadGameHookInit();
-		dlog(".", DL_INIT);
+		dlogr("Running PerksInit().", DL_INIT);
 		PerksInit();
-		dlog(".", DL_INIT);
+		dlogr("Running CombatInit().", DL_INIT);
 		CombatInit();
-		dlog(".", DL_INIT);
+		dlogr("Running SkillsInit().", DL_INIT);
 		SkillsInit();
-		dlog(".", DL_INIT);
-		dlogr(" Done", DL_INIT);
 	//}
 
 	dlogr("Running FileSystemInit().", DL_INIT);

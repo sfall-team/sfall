@@ -87,6 +87,8 @@ void RunScriptProc(sScriptProgram* prog, const char* procName);
 // execute script proc by procId from define.h
 void RunScriptProc(sScriptProgram* prog, DWORD procId);
 
+int RunScriptStartProc(sScriptProgram* prog);
+
 void AddProgramToMap(sScriptProgram &prog);
 sScriptProgram* GetGlobalScriptProgram(DWORD scriptPtr);
 
