@@ -32,6 +32,7 @@ procedure start begin
 
       if (event) then begin
          mode := get_game_mode;
+         if (mode bwand COUNTERWIN) then return; // new mode from sfall 4.2/3.8.20
          if (keyDX == DIK_I and (mode bwand INVENTORY)) then begin
             tap_key(DIK_ESCAPE);
          end else if (keyDX == DIK_S and (mode bwand SKILLDEX)) then begin
@@ -43,7 +44,7 @@ procedure start begin
                tap_key(DIK_CAPITAL);
                tap_key(DIK_A);
                tap_key(DIK_CAPITAL);
-            end else if (mode bwand BARTER) then begin
+            end else if (mode == (BARTER + DIALOG)) then begin
                tap_key(DIK_M);
             end
          end
