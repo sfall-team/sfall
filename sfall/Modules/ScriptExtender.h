@@ -56,7 +56,7 @@ void __fastcall SetGlobalScriptRepeat(fo::Program* script, int frames);
 void __fastcall SetGlobalScriptType(fo::Program* script, int type);
 bool _stdcall IsGameScript(const char* filename);
 
-void _stdcall RunGlobalScriptsAtProc(DWORD procId);
+void RunGlobalScriptsAtProc(DWORD procId);
 
 bool LoadGlobals(HANDLE h);
 void SaveGlobals(HANDLE h);

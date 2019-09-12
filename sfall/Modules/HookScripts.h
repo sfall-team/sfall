@@ -93,7 +93,7 @@ void _stdcall SetHSArg(DWORD id, DWORD value);
 void _stdcall SetHSReturn(DWORD d);
 
 // register hook by proc num (special values: -1 - use default (start) procedure, 0 - unregister)
-void _stdcall RegisterHook(fo::Program* script, int id, int procNum);
+void RegisterHook(fo::Program* script, int id, int procNum, bool specReg);
 
 // TODO: move
 void HookScriptClear();
@@ -101,6 +101,6 @@ void LoadHookScripts();
 
 extern DWORD initingHookScripts;
 extern int __fastcall AmmoCostHook_Script(DWORD hookType, fo::GameObject* weapon, DWORD &rounds);
-void _stdcall RunHookScriptsAtProc(DWORD procId);
+void RunHookScriptsAtProc(DWORD procId);
 
 }

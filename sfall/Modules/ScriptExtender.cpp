@@ -617,7 +617,7 @@ static DWORD _stdcall HandleMapUpdateForScripts(const DWORD procId) {
 }
 
 // run all global scripts of types 0 and 3 at specific procedure (if exist)
-void _stdcall RunGlobalScriptsAtProc(DWORD procId) {
+void RunGlobalScriptsAtProc(DWORD procId) {
 	for (DWORD d = 0; d < globalScripts.size(); d++) {
 		if (globalScripts[d].mode != 0 && globalScripts[d].mode != 3) continue;
 		RunScriptProc(&globalScripts[d].prog, procId);

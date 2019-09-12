@@ -181,14 +181,6 @@ long GetScriptLocalVars(long sid) {
 	return (script) ? script->numLocalVars : 0;
 }
 
-fo::GameObject* __fastcall LineOfSight(fo::GameObject* obj) {
-	long objTile = obj->tile;
-	fo::GameObject* object = fo::func::obj_blocking_at_wrapper(obj, objTile, obj->elevation, (void*)fo::funcoffs::obj_sight_blocking_at_);
-	if (object) objTile = fo::func::tile_num_in_direction(objTile, fo::func::tile_dir(objTile, fo::var::obj_dude->tile), 1);
-	fo::func::make_straight_path_func(fo::var::obj_dude, fo::var::obj_dude->tile, objTile, 0, (DWORD*)&object, 4, (void*)fo::funcoffs::obj_sight_blocking_at_);
-	return object;
-}
-
 //---------------------------------------------------------
 //print text to surface
 void PrintText(char *DisplayText, BYTE ColourIndex, DWORD Xpos, DWORD Ypos, DWORD TxtWidth, DWORD ToWidth, BYTE *ToSurface) {
