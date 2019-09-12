@@ -633,10 +633,11 @@ int     ret2 - overrides the duration time for the current result
 
 HOOK_STDPROCEDURE (hs_stdprocedure.int)
 
-Runs once every time before executing the standard procedure (handler) in the script of an object.
+Runs before Fallout executes a standard procedure (handler) in any script of any object.
+NOTE: this hook will not be executed for "start", critter_p_proc, timed_event_p_proc, and map_update_p_proc procedures.
 
-int     arg1 - number of the standard script handler (see define.h, except: start, critter_p_proc, and map_update_p_proc)
-Obj     arg2 - the object connected to the executed script (self_obj)
+int     arg1 - the number of the standard script handler (see define.h)
+Obj     arg2 - the object that owns this handler (self_obj)
 Obj     arg3 - the object that called this handler (source_obj, can be 0)
 
 int     ret1 - pass -1 to cancel the execution of the handler

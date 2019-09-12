@@ -260,6 +260,8 @@ static void __declspec(naked) ScriptStdProcedureHook() {
 		jle  end;
 		cmp  ecx, critter_p_proc;
 		je   skip;
+		cmp  ecx, timed_event_p_proc;
+		je   skip;
 		cmp  ecx, map_update_p_proc;
 		je   skip;
 		cmp  ecx, start;
