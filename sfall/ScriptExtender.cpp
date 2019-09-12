@@ -805,7 +805,7 @@ static void _stdcall register_hook2() {
 	const ScriptValue &idArg = opHandler.arg(0);
 
 	if (idArg.isInt()) {
-		RegisterHook((DWORD)opHandler.program(), idArg.rawValue(), -1);
+		RegisterHook((DWORD)opHandler.program(), idArg.rawValue(), -1, false);
 	} else {
 		OpcodeInvalidArgs("register_hook");
 	}
@@ -820,7 +820,7 @@ static void _stdcall register_hook_proc2() {
 					  &procArg = opHandler.arg(1);
 
 	if (idArg.isInt() && procArg.isInt()) {
-		RegisterHook((DWORD)opHandler.program(), idArg.rawValue(), procArg.rawValue());
+		RegisterHook((DWORD)opHandler.program(), idArg.rawValue(), procArg.rawValue(), false);
 	} else {
 		OpcodeInvalidArgs("register_hook_proc");
 	}
@@ -828,6 +828,21 @@ static void _stdcall register_hook_proc2() {
 
 static void __declspec(naked) register_hook_proc() {
 	_WRAP_OPCODE(register_hook_proc2, 2, 0)
+}
+
+static void _stdcall register_hook_proc_spec2() {
+	const ScriptValue &idArg = opHandler.arg(0),
+					  &procArg = opHandler.arg(1);
+
+	if (idArg.isInt() && procArg.isInt()) {
+		RegisterHook((DWORD)opHandler.program(), idArg.rawValue(), procArg.rawValue(), true);
+	} else {
+		OpcodeInvalidArgs("register_hook_proc_spec");
+	}
+}
+
+static void __declspec(naked) register_hook_proc_spec() {
+	_WRAP_OPCODE(register_hook_proc_spec2, 2, 0)
 }
 
 static void __declspec(naked) sfall_ver_major() {
@@ -1727,6 +1742,8 @@ void ScriptExtenderSetup() {
 	opcodes[0x27a] = op_sfall_metarule4;
 	opcodes[0x27b] = op_sfall_metarule5;
 	opcodes[0x27c] = op_sfall_metarule6; // if you need more arguments - use arrays
+
+	opcodes[0x27d] = register_hook_proc_spec;
 
 	InitOpcodeMetaTable();
 	InitMetaruleTable();

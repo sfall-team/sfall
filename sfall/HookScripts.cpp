@@ -67,6 +67,12 @@ static DWORD cArg;    // how many arguments were taken by current hook script
 static DWORD cRet;    // how many return values were set by current hook script
 static DWORD cRetTmp; // how many return values were set by specific hook script (when using register_hook)
 
+static struct HooksPositionInfo {
+	long hsPosition;    // index of the hs_* script, or the beginning of the position for registering scripts using register_hook
+//	long positionShift; // offset to the last script registered by register_hook
+	bool hasHsScript;
+} hooksInfo[HOOK_COUNT];
+
 #define hookbegin(a) pushadc __asm call BeginHook popadc __asm mov argCount, a
 #define hookend pushadc __asm call EndHook popadc
 #define HookBegin pushadc __asm call BeginHook popadc
@@ -1372,7 +1378,7 @@ void _stdcall SetHSReturn(DWORD value) {
 	}
 }
 
-void _stdcall RegisterHook(DWORD script, DWORD id, DWORD procNum) {
+void _stdcall RegisterHook(DWORD script, DWORD id, DWORD procNum, bool specReg) {
 	if (id >= numHooks) return;
 	for (std::vector<sHookScript>::iterator it = hooks[id].begin(); it != hooks[id].end(); ++it) {
 		if (it->prog.ptr == script) {
@@ -1389,7 +1395,13 @@ void _stdcall RegisterHook(DWORD script, DWORD id, DWORD procNum) {
 		hook.prog = *prog;
 		hook.callback = procNum;
 		hook.isGlobalScript = true;
-		hooks[id].push_back(hook);
+
+		auto c_it = hooks[id].cend();
+		if (specReg) {
+			c_it = hooks[id].cbegin();
+			hooksInfo[id].hsPosition++;
+		}
+		hooks[id].insert(c_it, hook);
 	}
 }
 
@@ -1607,6 +1619,7 @@ void HookScriptClear() {
 	for (int i = 0; i < numHooks; i++) {
 		hooks[i].clear();
 	}
+	memset(hooksInfo, 0, HOOK_COUNT * sizeof(HooksPositionInfo));
 }
 
 void HookScriptInit() {
@@ -1615,6 +1628,7 @@ void HookScriptInit() {
 	InitingHookScripts = 1;
 	for (int i = 0; i < numHooks; i++) {
 		if (!hooks[i].empty()) {
+			hooksInfo[i].hasHsScript = true;
 			InitScriptProgram(hooks[i][0].prog);// zero hook is always hs_*.int script because Hook scripts are loaded BEFORE global scripts
 		}
 	}
@@ -1625,8 +1639,8 @@ void HookScriptInit() {
 // run specific event procedure for all hook scripts
 void _stdcall RunHookScriptsAtProc(DWORD procId) {
 	for (int i = 0; i < numHooks; i++) {
-		if (!hooks[i].empty() && !hooks[i][0].isGlobalScript) {
-			RunScriptProc(&hooks[i][0].prog, procId); // run hs_*.int
+		if (hooksInfo[i].hasHsScript /*&& !hooks[i][hooksInfo[i].hsPosition].isGlobalScript*/) {
+			RunScriptProc(&hooks[i][hooksInfo[i].hsPosition].prog, procId); // run hs_*.int
 		}
 	}
 }
