@@ -591,6 +591,8 @@ extern const DWORD gdialog_barter_pressed_;
 extern const DWORD gdialogActive_;
 extern const DWORD gdialogDisplayMsg_;
 extern const DWORD gdProcess_;
+extern const DWORD gdReviewExit_;
+extern const DWORD gdReviewInit_;
 extern const DWORD GetSlotList_;
 extern const DWORD get_input_;
 extern const DWORD get_time_;
@@ -877,6 +879,7 @@ extern const DWORD strParseStrFromList_;
 extern const DWORD switch_hand_;
 extern const DWORD talk_to_critter_reacts_;
 extern const DWORD talk_to_translucent_trans_buf_to_buf_;
+extern const DWORD text_curr_;
 extern const DWORD text_font_;
 extern const DWORD text_object_create_;
 extern const DWORD tile_coord_; // eax - tilenum, edx (int*) - x, ebx (int*) - y

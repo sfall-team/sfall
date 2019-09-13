@@ -22,6 +22,7 @@
 #include "Define.h"
 #include "FalloutEngine.h"
 #include "HeroAppearance.h"
+#include "LoadGameHook.h"
 #include "Message.h"
 #include "PartyControl.h"
 #include "ScriptExtender.h"
@@ -1403,6 +1404,8 @@ void _stdcall HeroSelectWindow(int raceStyleFlag) {
 	if (!isStyle) styleVal = 0;
 	LoadHeroDat(raceVal, styleVal, true);
 
+	SetLoopFlag(HEROWIN);
+
 	while (true) {                // main loop
 		NewTick = GetTickCount(); // timer for redraw
 		if (OldTick > NewTick) OldTick = NewTick;
@@ -1485,6 +1488,8 @@ void _stdcall HeroSelectWindow(int raceStyleFlag) {
 			break;
 		}
 	}
+
+	ClearLoopFlag(HEROWIN);
 
 	LoadHeroDat(currentRaceVal, currentStyleVal, true);
 	SetAppearanceGlobals(currentRaceVal, currentStyleVal);

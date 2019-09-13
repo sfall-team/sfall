@@ -74,6 +74,14 @@ DWORD GetLoopFlags() {
 	return InLoop;
 }
 
+void SetLoopFlag(LoopFlag flag) {
+	InLoop |= flag;
+}
+
+void ClearLoopFlag(LoopFlag flag) {
+	InLoop &= ~flag;
+}
+
 static void _stdcall ResetState(DWORD onLoad) {
 	if (!onLoad) FileSystemReset();
 	ClearGlobalScripts();
@@ -522,6 +530,39 @@ static void __declspec(naked) AutomapHook() {
 	}
 }
 
+static void __declspec(naked) DialogReviewInitHook() {
+	__asm {
+		call gdReviewInit_;
+		test eax, eax;
+		jnz  error;
+		or InLoop, DIALOGVIEW;
+		xor eax, eax;
+error:
+		retn;
+	}
+}
+
+static void __declspec(naked) DialogReviewExitHook() {
+	__asm {
+		and InLoop, (-1 ^ DIALOGVIEW);
+		jmp gdReviewExit_;
+	}
+}
+
+static void __declspec(naked) setup_move_timer_win_Hook() {
+	__asm {
+		or InLoop, COUNTERWIN;
+		jmp text_curr_;
+	}
+}
+
+static void __declspec(naked) exit_move_timer_win_Hook() {
+	__asm {
+		and InLoop, (-1 ^ COUNTERWIN);
+		jmp  win_delete_;
+	}
+}
+
 void LoadGameHookInit() {
 	SaveInCombatFix = GetPrivateProfileInt("Misc", "SaveInCombatFix", 1, ini);
 	if (SaveInCombatFix > 2) SaveInCombatFix = 0;
@@ -596,4 +637,8 @@ void LoadGameHookInit() {
 	HookCall(0x4466C7, BarterInventoryHook);
 	HookCall(0x44396D, AutomapHook);
 	HookCall(0x479519, AutomapHook);
+	HookCall(0x445CA7, DialogReviewInitHook);
+	HookCall(0x445D30, DialogReviewExitHook);
+	HookCall(0x476AC6, setup_move_timer_win_Hook); // before init win
+	HookCall(0x477067, exit_move_timer_win_Hook);
 }
