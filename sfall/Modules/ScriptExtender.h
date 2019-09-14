@@ -32,6 +32,8 @@ public:
 	const char* name() { return "ScriptExtender"; }
 	void init();
 
+	static std::string iniConfigFolder;
+
 	// Called before map exit (before map_exit_p_proc handlers in normal scripts)
 	static Delegate<>& OnMapExit();
 };
@@ -54,7 +56,7 @@ void __fastcall SetGlobalScriptRepeat(fo::Program* script, int frames);
 void __fastcall SetGlobalScriptType(fo::Program* script, int type);
 bool _stdcall IsGameScript(const char* filename);
 
-void _stdcall RunGlobalScriptsAtProc(DWORD procId);
+void RunGlobalScriptsAtProc(DWORD procId);
 
 bool LoadGlobals(HANDLE h);
 void SaveGlobals(HANDLE h);
@@ -87,6 +89,8 @@ void RunScriptProc(ScriptProgram* prog, const char* procName);
 
 // execute script proc by procId from define.h
 void RunScriptProc(ScriptProgram* prog, long procId);
+
+int RunScriptStartProc(ScriptProgram* prog);
 
 void AddProgramToMap(ScriptProgram &prog);
 ScriptProgram* GetGlobalScriptProgram(fo::Program* scriptPtr);

@@ -151,11 +151,14 @@ void __declspec(naked) op_resume_game() {
 	}
 }
 
+static bool dialogShow = false;
 void sf_create_message_window(OpcodeContext &ctx) {
+	if (dialogShow) return;
 	const char* str = ctx.arg(0).strValue();
 	if (!str || str[0] == 0) return;
-	//if (fo::var::curr_font_num == 101) return;
+	dialogShow = true;
 	fo::func::DialogOut(str);
+	dialogShow = false;
 }
 
 void __declspec(naked) op_get_viewport_x() {

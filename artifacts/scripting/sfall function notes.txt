@@ -316,6 +316,10 @@ Some utility/math functions are available:
 - second argument should be passed just like you pass procedures to functions like gsay_option, giq_option, etc (name without quotes)
 - see "hookscripts.txt" for more details
 
+> void register_hook_proc_spec(int hook, procedure proc)
+- works just like "register_hook_proc", but allows to register a script at the end of the hook script execution chain (i.e. the script will be executed after all previously registered scripts for the same hook, including the hs_*.int script)
+- to unregister hook script from current global script, use the register_hook_proc function
+
 > string message_str_game(int fileId, int messageId)
 - works exactly the same as message_str, except you get messages from files in "text\<language>\game\" directory
 - use GAME_MSG_* defines or mstr_* macros from sfall.h to use specific msg file
@@ -613,6 +617,7 @@ optional arguments:
 > int sfall_func2("add_extra_msg_file", string fileName, int fileNumber)
 - loads the custom message file, and returns the file ID number assigned to it in range from 0x3000 to 0x3FFF for the message_str_game function to get messages from the file
 - fileName: the name of the custom message file (including the .msg extension) in "text\<language>\game\" directory
+- NOTE: if the msg file does not exist in the current language directory, the function will try to load it from "text\English\game\" directory
 optional argument:
 - fileNumber: the file ID number for the message_str_game function. The available range is from 0x2000 to 0x2FFF (see ExtraGameMsgFileList setting in ddraw.ini)
   use fileNumber only if you want to add a message file without editing ddraw.ini or existing scripts to support the old way

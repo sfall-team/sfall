@@ -25,9 +25,9 @@ namespace script
 
 class OpcodeContext;
 
-void __declspec() op_force_encounter();
+void sf_force_encounter(OpcodeContext&);
 
-void __declspec() op_force_encounter_with_flags();
+DWORD ForceEncounterRestore();
 
 // world_map_functions
 void __declspec() op_in_world_map();

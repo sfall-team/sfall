@@ -21,6 +21,7 @@
 
 #include "..\main.h"
 #include "..\FalloutEngine\Fallout2.h"
+#include "..\SimplePatch.h"
 #include "HookScripts.h"
 #include "LoadGameHook.h"
 #include "Objects.h"
@@ -30,13 +31,45 @@
 namespace sfall
 {
 
-static std::vector<long> noBursts; // object id
+static const DWORD bodypartAddr[] = {
+	0x425562,                     // combat_display_
+	0x42A68F, 0x42A739,           // ai_called_shot_
+	0x429E82, 0x429EC2, 0x429EFF, // ai_pick_hit_mode_
+	0x423231, 0x423268,           // check_ranged_miss_
+	0x4242D4,                     // attack_crit_failure_
+	// for combat_ctd_init_ func
+	0x412E9C,                     // action_explode_
+	0x413519,                     // action_dmg_
+	0x421656, 0x421675,           // combat_safety_invalidate_weapon_func_
+	0x421CC0,                     // combat_begin_extra_
+	0x4229A9,                     // combat_turn_
+	0x42330E, 0x4233AB,           // shoot_along_path_
+	0x423E25, 0x423E2A,           // compute_explosion_on_extras_
+	0x425F83,                     // combat_anim_finished_
+	0x42946D,                     // ai_best_weapon_
+	0x46FCC8,                     // exit_inventory_
+	0x49C00C,                     // protinstTestDroppedExplosive_
+};
+
+static struct BodyParts {
+	long Head;
+	long Left_Arm;
+	long Right_Arm;
+	long Torso;
+	long Right_Leg;
+	long Left_Leg;
+	long Eyes;
+	long Groin;
+	long Uncalled;
+} bodypartHit;
 
 struct KnockbackModifier {
 	long id;
 	DWORD type;
 	double value;
 };
+
+static std::vector<long> noBursts; // object id
 
 static std::vector<KnockbackModifier> mTargets;
 static std::vector<KnockbackModifier> mAttackers;
@@ -391,6 +424,51 @@ void _stdcall ForceAimedShots(DWORD pid) {
 	forcedAS.push_back(pid);
 }
 
+static void BodypartHitChances() {
+	using fo::var::hit_location_penalty;
+	hit_location_penalty[0] = bodypartHit.Head;
+	hit_location_penalty[1] = bodypartHit.Left_Arm;
+	hit_location_penalty[2] = bodypartHit.Right_Arm;
+	hit_location_penalty[3] = bodypartHit.Torso;
+	hit_location_penalty[4] = bodypartHit.Right_Leg;
+	hit_location_penalty[5] = bodypartHit.Left_Leg;
+	hit_location_penalty[6] = bodypartHit.Eyes;
+	hit_location_penalty[7] = bodypartHit.Groin;
+	hit_location_penalty[8] = bodypartHit.Uncalled;
+}
+
+static void BodypartHitReadConfig() {
+	bodypartHit.Head      = static_cast<long>(GetConfigInt("Misc", "BodyHit_Head", -40));
+	bodypartHit.Left_Arm  = static_cast<long>(GetConfigInt("Misc", "BodyHit_Left_Arm", -30));
+	bodypartHit.Right_Arm = static_cast<long>(GetConfigInt("Misc", "BodyHit_Right_Arm", -30));
+	bodypartHit.Torso     = static_cast<long>(GetConfigInt("Misc", "BodyHit_Torso", 0));
+	bodypartHit.Right_Leg = static_cast<long>(GetConfigInt("Misc", "BodyHit_Right_Leg", -20));
+	bodypartHit.Left_Leg  = static_cast<long>(GetConfigInt("Misc", "BodyHit_Left_Leg", -20));
+	bodypartHit.Eyes      = static_cast<long>(GetConfigInt("Misc", "BodyHit_Eyes", -60));
+	bodypartHit.Groin     = static_cast<long>(GetConfigInt("Misc", "BodyHit_Groin", -30));
+	bodypartHit.Uncalled  = static_cast<long>(GetConfigInt("Misc", "BodyHit_Torso_Uncalled", 0));
+}
+
+static void __declspec(naked) apply_damage_hack() {
+	__asm {
+		xor  edx, edx;
+		inc  edx;              // COMBAT_SUBTYPE_WEAPON_USED
+		test [esi + 0x15], dl; // ctd.flags2Source & DAM_HIT_
+		jz   end;              // no hit
+		inc  edx;              // COMBAT_SUBTYPE_HIT_SUCCEEDED
+end:
+		retn;
+	}
+}
+
+static void CombatProcFix() {
+	//Ray's combat_p_proc fix
+	dlog("Applying Ray's combat_p_proc patch.", DL_INIT);
+	MakeCall(0x424DD9, apply_damage_hack);
+	SafeWrite16(0x424DC6, 0x9090);
+	dlogr(" Done", DL_INIT);
+}
+
 static void Combat_OnGameLoad() {
 	baseHitChance.SetDefault();
 	mTargets.clear();
@@ -403,6 +481,8 @@ static void Combat_OnGameLoad() {
 }
 
 void Combat::init() {
+	CombatProcFix();
+
 	MakeCall(0x424B76, compute_damage_hack, 2);     // KnockbackMod
 	MakeJump(0x4136D3, compute_dmg_damage_hack);    // for op_critter_dmg
 
@@ -413,11 +493,23 @@ void Combat::init() {
 	MakeCall(0x429E44, ai_pick_hit_mode_hack, 1);   // NoBurst
 
 	if (GetConfigInt("Misc", "CheckWeaponAmmoCost", 0)) {
+		MakeCall(0x4234B3, compute_spray_hack, 1);
 		HookCall(0x4266E9, combat_check_bad_shot_hook);
 		HookCall(0x429A37, ai_search_inven_weap_hook);
 		HookCall(0x42A95D, ai_try_attack_hook); // jz func
-		MakeCall(0x4234B3, compute_spray_hack, 1);
 	}
+
+	SimplePatch<DWORD>(0x424FA7, "Misc", "KnockoutTime", 35, 35, 100);
+
+	BodypartHitReadConfig();
+	LoadGameHook::OnBeforeGameStart() += BodypartHitChances; // set on start & load
+
+	// Remove the dependency of Body_Torso from Body_Uncalled
+	SafeWrite8(0x423830, 0xEB); // compute_attack_
+	BlockCall(0x42303F); // block Body_Torso check (combat_attack_)
+	SafeWrite8(0x42A713, 7); // Body_Uncalled > Body_Groin (ai_called_shot_)
+	SafeWriteBatch<BYTE>(8, bodypartAddr); // replace Body_Torso with Body_Uncalled
+
 	LoadGameHook::OnGameReset() += Combat_OnGameLoad;
 }
 

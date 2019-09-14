@@ -47,10 +47,6 @@ static const DWORD PutAwayWeapon[] = {
 	0x472996, // invenWieldFunc_
 };
 
-static const DWORD FastShotFixF1[] = {
-	0x478BB8, 0x478BC7, 0x478BD6, 0x478BEA, 0x478BF9, 0x478C08, 0x478C2F,
-};
-
 static const DWORD script_dialog_msgs[] = {
 	0x4A50C2, 0x4A5169, 0x4A52FA, 0x4A5302, 0x4A6B86, 0x4A6BE0, 0x4A6C37,
 };
@@ -58,18 +54,6 @@ static const DWORD script_dialog_msgs[] = {
 static const DWORD walkDistanceAddr[] = {
 	0x411FF0, 0x4121C4, 0x412475, 0x412906,
 };
-
-static void __declspec(naked) apply_damage_hack() {
-	__asm {
-		xor  edx, edx;
-		inc  edx;              // COMBAT_SUBTYPE_WEAPON_USED
-		test [esi + 0x15], dl; // ctd.flags2Source & DAM_HIT_
-		jz   end;              // no hit
-		inc  edx;              // COMBAT_SUBTYPE_HIT_SUCCEEDED
-end:
-		retn;
-	}
-}
 
 static void __declspec(naked) WeaponAnimHook() {
 	__asm {
@@ -155,26 +139,6 @@ static void __declspec(naked) ScienceCritterCheckHook() {
 		retn;
 end:
 		jmp fo::funcoffs::critter_kill_count_type_;
-	}
-}
-
-static const DWORD FastShotTraitFixEnd1 = 0x478E7F;
-static const DWORD FastShotTraitFixEnd2 = 0x478E7B;
-static void __declspec(naked) FastShotTraitFix() {
-	__asm {
-		test eax, eax;				// does player have Fast Shot trait?
-		je ajmp;				// skip ahead if no
-		mov edx, ecx;				// argument for item_w_range_: hit_mode
-		mov eax, ebx;				// argument for item_w_range_: pointer to source_obj (always dude_obj due to code path)
-		call fo::funcoffs::item_w_range_;			// get weapon's range
-		cmp eax, 0x2;				// is weapon range less than or equal 2 (i.e. melee/unarmed attack)?
-		jle ajmp;				// skip ahead if yes
-		xor eax, eax;				// otherwise, disallow called shot attempt
-		jmp bjmp;
-ajmp:
-		jmp FastShotTraitFixEnd1;		// continue processing called shot attempt
-bjmp:
-		jmp FastShotTraitFixEnd2;		// clean up and exit function item_w_called_shot
 	}
 }
 
@@ -370,7 +334,7 @@ skip:
 		jz end;
 		retn;
 end:
-		mov dword ptr[esp], 0x4715B7;
+		mov dword ptr [esp], 0x4715B7;
 		retn;
 	}
 }
@@ -469,24 +433,6 @@ void ScienceOnCrittersPatch() {
 	}
 }
 
-void FashShotTraitFix() {
-	switch (GetConfigInt("Misc", "FastShotFix", 1)) {
-	case 1:
-		dlog("Applying Fast Shot Trait Fix.", DL_INIT);
-		MakeJump(0x478E75, FastShotTraitFix);
-		dlogr(" Done", DL_INIT);
-		break;
-	case 2:
-		dlog("Applying Fast Shot Trait Fix. (Fallout 1 version)", DL_INIT);
-		SafeWrite8(0x478CA0, 0x0);
-		for (int i = 0; i < sizeof(FastShotFixF1) / 4; i++) {
-			HookCall(FastShotFixF1[i], (void*)0x478C7D);
-		}
-		dlogr(" Done", DL_INIT);
-		break;
-	}
-}
-
 void BoostScriptDialogLimitPatch() {
 	if (GetConfigInt("Misc", "BoostScriptDialogLimit", 0)) {
 		const int scriptDialogCount = 10000;
@@ -540,14 +486,6 @@ void DontTurnOffSneakIfYouRunPatch() {
 	}
 }
 
-void CombatProcFix() {
-	//Ray's combat_p_proc fix
-	dlog("Applying Ray's combat_p_proc patch.", DL_INIT);
-	MakeCall(0x424DD9, apply_damage_hack);
-	SafeWrite8(0x424DC7, 0x0);
-	dlogr(" Done", DL_INIT);
-}
-
 void MultiPatchesPatch() {
 	//if (GetConfigInt("Misc", "MultiPatches", 0)) {
 		dlog("Applying load multiple patches patch.", DL_INIT);
@@ -566,7 +504,7 @@ void PlayIdleAnimOnReloadPatch() {
 }
 
 void CorpseLineOfFireFix() {
-	if (GetConfigInt("Misc", "CorpseLineOfFireFix", 0)) {
+	if (GetConfigInt("Misc", "CorpseLineOfFireFix", 1)) {
 		dlog("Applying corpse line of fire patch.", DL_INIT);
 		MakeJump(0x48B994, CorpseHitFix2);
 		MakeJump(0x48BA04, CorpseHitFix2b);
@@ -592,7 +530,7 @@ void MotionScannerFlagsPatch() {
 		if (flags & 1) MakeJump(0x41BBE9, ScannerAutomapHook);
 		if (flags & 2) {
 			// automap_
-			SafeWrite8(0x41BC25, 0x0);
+			SafeWrite16(0x41BC24, 0x9090);
 			BlockCall(0x41BC3C);
 			// item_m_use_charged_item_
 			SafeWrite8(0x4794B3, 0x5E); // jbe short 0x479512
@@ -774,17 +712,13 @@ void UseWalkDistancePatch() {
 	}
 }
 
-void BodypartHitChances() {
-	using fo::var::hit_location_penalty;
-	hit_location_penalty[0] = static_cast<long>(GetConfigInt("Misc", "BodyHit_Head", -40));
-	hit_location_penalty[1] = static_cast<long>(GetConfigInt("Misc", "BodyHit_Left_Arm", -30));
-	hit_location_penalty[2] = static_cast<long>(GetConfigInt("Misc", "BodyHit_Right_Arm", -30));
-	hit_location_penalty[3] = static_cast<long>(GetConfigInt("Misc", "BodyHit_Torso_Uncalled", 0));
-	hit_location_penalty[4] = static_cast<long>(GetConfigInt("Misc", "BodyHit_Right_Leg", -20));
-	hit_location_penalty[5] = static_cast<long>(GetConfigInt("Misc", "BodyHit_Left_Leg", -20));
-	hit_location_penalty[6] = static_cast<long>(GetConfigInt("Misc", "BodyHit_Eyes", -60));
-	hit_location_penalty[7] = static_cast<long>(GetConfigInt("Misc", "BodyHit_Groin", -30));
-	hit_location_penalty[8] = static_cast<long>(GetConfigInt("Misc", "BodyHit_Torso_Uncalled", 0));
+void F1EngineBehaviorPatch() {
+	if (GetConfigInt("Misc", "Fallout1Behavior", 0)) {
+		dlog("Applying Fallout 1 engine behavior patch.", DL_INIT);
+		BlockCall(0x4A4343); // disable playing the final movie/credits after the endgame slideshow
+		SafeWrite8(0x477C71, 0xEB); // disable halving the weight for power armor items
+		dlogr(" Done", DL_INIT);
+	}
 }
 
 void MiscPatches::init() {
@@ -827,7 +761,7 @@ void MiscPatches::init() {
 
 	if (GetConfigInt("Misc", "OverrideArtCacheSize", 0)) {
 		dlog("Applying override art cache size patch.", DL_INIT);
-		SafeWrite8(0x41886A, 0x0);
+		SafeWrite32(0x418867, 0x90909090);
 		SafeWrite32(0x418872, 256);
 		dlogr(" Done", DL_INIT);
 	}
@@ -855,14 +789,10 @@ void MiscPatches::init() {
 		dlogr(" Done", DL_INIT);
 	}
 
-	SimplePatch<DWORD>(0x424FA7, "Misc", "KnockoutTime", 35, 35, 100);
-
 	// Increase the max text width of the information card in the character screen
 	SafeWriteBatch<BYTE>(144, {0x43ACD5, 0x43DD37}); // 136, 133
 
-	LoadGameHook::OnBeforeGameStart() += BodypartHitChances; // set on start & load
-
-	CombatProcFix();
+	F1EngineBehaviorPatch();
 	DialogueFix();
 	AdditionalWeaponAnimsPatch();
 	MultiPatchesPatch();
@@ -881,7 +811,6 @@ void MiscPatches::init() {
 
 	OverrideMusicDirPatch();
 	NpcStage6Fix();
-	FashShotTraitFix();
 	BoostScriptDialogLimitPatch();
 	MotionScannerFlagsPatch();
 	EncounterTableSizePatch();

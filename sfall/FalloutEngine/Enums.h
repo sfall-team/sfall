@@ -159,6 +159,7 @@ enum GlobalVar : long
 	GVAR_NEW_RENO_SUPER_CAR = 456,
 	GVAR_MODOC_SHITTY_DEATH = 491,
 	GVAR_FALLOUT_2 = 494,
+	GVAR_CAR_PLACED_TILE = 633,
 };
 
 // Physical material type, used for items and tiles.
@@ -273,7 +274,10 @@ enum ProtoId : long
 	PID_JESSE_CONTAINER = 467,
 
 	PID_Player = 16777216,
-	PID_DRIVABLE_CAR = 33555441
+	PID_DRIVABLE_CAR = 33555441,
+
+	// misc type
+	PID_CORPSE_BLOOD = 0x05000004,
 };
 
 //XXXXXXXXXXXXXXXXXXXXX

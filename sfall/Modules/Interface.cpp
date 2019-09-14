@@ -26,8 +26,6 @@
 namespace sfall
 {
 
-bool hrpIsEnabled = false;
-
 static BYTE movePointBackground[16 * 9 * 5];
 static fo::UnlistedFrm* ifaceFrm = nullptr;
 
@@ -83,11 +81,13 @@ static void ActionPointsBarPatch() {
 	dlog("Applying expanded action points bar patch.", DL_INIT);
 	if (hrpIsEnabled) {
 		// check valid data
-		if (!_stricmp((const char*)0x10039358, "HR_IFACE_%i.frm")) {
-			SafeWriteStr(0x10039363, "E.frm"); // patching HRP
+		if (hrpVersionValid && !_stricmp((const char*)HRPAddressOffset(0x39358), "HR_IFACE_%i.frm")) {
+			SafeWriteStr(HRPAddressOffset(0x39363), "E.frm"); // patching HRP
 		} else {
 			dlog(" Incorrect HRP version!", DL_INIT);
+			return;
 		}
+		LoadGameHook::OnAfterGameInit() += APBarRectPatch;
 	} else {
 		APBarRectPatch();
 	}
@@ -140,6 +140,7 @@ static void __declspec(naked) wmInterfaceInit_text_font_hook() {
 
 static DWORD wmTownMapSubButtonIds[WMAP_TOWN_BUTTONS + 1]; // replace _wmTownMapSubButtonIds (index 0 - unused element)
 static int worldmapInterface;
+static long wmapWinWidth = 640;
 
 // Window width
 static const DWORD wmWinWidth[] = {
@@ -158,15 +159,13 @@ static const DWORD wmWinWidth[] = {
 	// wmRefreshInterfaceOverlay_
 	0x4C50FD, 0x4C51CF, 0x4C51F8, 0x4C517F,
 	// wmInterfaceRefreshCarFuel_
-	0x4C528B, 0x4C529F, 0x4C52AA,
+	0x4C52AA, /*0x4C528B, 0x4C529F, - Conflict with fuel gauge patch*/
 	// wmInterfaceDrawSubTileList_
 	0x4C41C1, 0x4C41D2,
 	// wmTownMapRefresh_
 	0x4C4BDF,
 	// wmDrawCursorStopped_
 	0x4C42EE, 0x4C43C8, 0x4C445F,
-	// wmTownMapRefresh_
-	0x4C4BDF
 };
 
 // Right limit of the viewport (450)
@@ -301,6 +300,7 @@ static void WorldmapViewportPatch() {
 	if (!fo::func::db_access("art\\intrface\\worldmap.frm")) return;
 	dlog("Applying expanded world map interface patch.", DL_INIT);
 
+	wmapWinWidth = WMAP_WIN_WIDTH;
 	mapSlotsScrollMax -= 216;
 	if (mapSlotsScrollMax < 0) mapSlotsScrollMax = 0;
 
@@ -410,6 +410,23 @@ static void WorldmapViewportPatch() {
 	dlogr(" Done", DL_INIT);
 }
 
+static void __declspec(naked) wmInterfaceRefreshCarFuel_hack_empty() {
+	__asm {
+		mov byte ptr [eax - 1], 14;
+		add eax, wmapWinWidth;
+		retn;
+	}
+}
+
+static void __declspec(naked) wmInterfaceRefreshCarFuel_hack() {
+	__asm {
+		mov byte ptr [eax - 1], 196;
+		add eax, wmapWinWidth;
+		mov byte ptr [eax - 1], 14;
+		retn;
+	}
+}
+
 static void WorldMapInterfacePatch() {
 	if (GetConfigInt("Misc", "WorldMapFontPatch", 0)) {
 		dlog("Applying world map font patch.", DL_INIT);
@@ -439,19 +456,19 @@ static void WorldMapInterfacePatch() {
 		dlogr(" Done", DL_INIT);
 	}
 
-	if (hrpIsEnabled) {
+	if (hrpIsEnabled && hrpVersionValid) {
 		if (worldmapInterface = GetConfigInt("Interface", "ExpandWorldMap", 0)) {
 			LoadGameHook::OnAfterGameInit() += WorldmapViewportPatch; // Note: must be applied after WorldMapSlots patch
 		}
 	}
+	// Car fuel gauge graphics patch
+	MakeCall(0x4C528A, wmInterfaceRefreshCarFuel_hack_empty);
+	MakeCall(0x4C529E, wmInterfaceRefreshCarFuel_hack);
 }
 
 void Interface::init() {
-	hrpIsEnabled = (*(DWORD*)0x4E4480 != 0x278805C7); // check if HRP is enabled
-
 	if (GetConfigInt("Interface", "ActionPointsBar", 0)) {
 		ActionPointsBarPatch();
-		if (hrpIsEnabled) LoadGameHook::OnAfterGameInit() += APBarRectPatch;
 	}
 
 	WorldMapInterfacePatch();

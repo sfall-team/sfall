@@ -58,6 +58,7 @@ procedure combatturn_handler begin
                critter_add_trait(critter, TRAIT_PERK, perkID, level);
             end
          end
+         intface_redraw;
          lightDist := get_object_data(critter, OBJ_DATA_LIGHT_DISTANCE);
          lightInt := get_object_data(critter, OBJ_DATA_LIGHT_INTENSITY);
          obj_set_light_level(critter, 100, 4);

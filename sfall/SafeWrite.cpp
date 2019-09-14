@@ -1,7 +1,3 @@
-#ifndef NDEBUG
-#include <list>
-#endif
-
 #include "main.h"
 
 #pragma warning(disable:4996)
@@ -16,21 +12,44 @@ enum CodeType : BYTE {
 };
 
 #ifndef NDEBUG
-std::list<long> writeAddress;
+std::multimap<long, long> writeAddress;
 
-void CheckConflict(DWORD addr) {
-	bool exist = false;
+/* Checking for conflicts requires all options in ddraw.ini to be enabled */
+void PrintAddrList() {
+	bool level = (GetPrivateProfileIntA("Debugging", "Enable", 0, ::sfall::ddrawIni) > 1);
+	unsigned long pa = 0, pl = 0;
 	for (const auto &wa : writeAddress) {
-		if (addr == wa) {
-			exist = true;
-			char buf[256];
-			dlog_f("Memory writing conflict at address: 0x%x\n", DL_MAIN, addr);
-			sprintf_s(buf, "Memory writing conflict at address 0x%x. The address has already been overwritten by other code.", addr);
-			MessageBoxA(0, buf, "Conflict Detected", MB_TASKMODAL);
+		unsigned long diff = (pa) ? (wa.first - pa) : -1; // length between two addresses
+		if (diff == 0) {
+			dlog_f("0x%x L:%d [Overwriting]\n", DL_MAIN, wa.first, wa.second);
+		} else if (diff < pl) {
+			dlog_f("0x%x L:%d [Conflict] with 0x%x L:%d\n", DL_MAIN, wa.first, wa.second, pa, pl);
+		} else if (level && diff == pl) {
+			dlog_f("0x%x L:%d [Warning] PL:%d\n", DL_MAIN, wa.first, wa.second, pl);
+		} else if (level) {
+			dlog_f("0x%x L:%d\n", DL_MAIN, wa.first, wa.second);
 		}
+		pa = wa.first;
+		pl = wa.second;
 	}
-	if (!exist) writeAddress.push_back(addr);
 }
+
+void CheckConflict(DWORD addr, long len) {
+	if (writeAddress.find(addr) !=  writeAddress.cend()) {
+			char buf[64];
+			sprintf_s(buf, "Memory writing conflict at address 0x%x.", addr);
+			//dlogr(buf, DL_MAIN);
+			MessageBoxA(0, buf, "", MB_TASKMODAL);
+	}
+	writeAddress.emplace(addr, len);
+}
+
+void AddrAddToList(DWORD addr, long len) {
+	writeAddress.emplace(addr, len);
+}
+#else
+void CheckConflict(DWORD addr, long len) {}
+void AddrAddToList(DWORD addr, long len) {}
 #endif
 
 static void _stdcall SafeWriteFunc(BYTE code, DWORD addr, void* func) {
@@ -41,9 +60,7 @@ static void _stdcall SafeWriteFunc(BYTE code, DWORD addr, void* func) {
 	*((DWORD*)(addr + 1)) = data;
 	VirtualProtect((void *)addr, 5, oldProtect, &oldProtect);
 
-	#ifndef NDEBUG
-		CheckConflict(addr);
-	#endif
+	CheckConflict(addr, 5);
 }
 
 static __declspec(noinline) void _stdcall SafeWriteFunc(BYTE code, DWORD addr, void* func, DWORD len) {
@@ -61,9 +78,7 @@ static __declspec(noinline) void _stdcall SafeWriteFunc(BYTE code, DWORD addr, v
 	}
 	VirtualProtect((void *)addr, protectLen, oldProtect, &oldProtect);
 
-	#ifndef NDEBUG
-		CheckConflict(addr);
-	#endif
+	CheckConflict(addr, protectLen);
 }
 
 void SafeWriteBytes(DWORD addr, BYTE* data, int count) {
@@ -72,6 +87,8 @@ void SafeWriteBytes(DWORD addr, BYTE* data, int count) {
 	VirtualProtect((void *)addr, count, PAGE_EXECUTE_READWRITE, &oldProtect);
 	memcpy((void*)addr, data, count);
 	VirtualProtect((void *)addr, count, oldProtect, &oldProtect);
+
+	AddrAddToList(addr, count);
 }
 
 void _stdcall SafeWrite8(DWORD addr, BYTE data) {
@@ -80,6 +97,8 @@ void _stdcall SafeWrite8(DWORD addr, BYTE data) {
 	VirtualProtect((void *)addr, 1, PAGE_EXECUTE_READWRITE, &oldProtect);
 	*((BYTE*)addr) = data;
 	VirtualProtect((void *)addr, 1, oldProtect, &oldProtect);
+
+	AddrAddToList(addr, 1);
 }
 
 void _stdcall SafeWrite16(DWORD addr, WORD data) {
@@ -88,6 +107,8 @@ void _stdcall SafeWrite16(DWORD addr, WORD data) {
 	VirtualProtect((void *)addr, 2, PAGE_EXECUTE_READWRITE, &oldProtect);
 	*((WORD*)addr) = data;
 	VirtualProtect((void *)addr, 2, oldProtect, &oldProtect);
+
+	AddrAddToList(addr, 2);
 }
 
 void _stdcall SafeWrite32(DWORD addr, DWORD data) {
@@ -96,21 +117,25 @@ void _stdcall SafeWrite32(DWORD addr, DWORD data) {
 	VirtualProtect((void *)addr, 4, PAGE_EXECUTE_READWRITE, &oldProtect);
 	*((DWORD*)addr) = data;
 	VirtualProtect((void *)addr, 4, oldProtect, &oldProtect);
+
+	AddrAddToList(addr, 4);
 }
 
 void _stdcall SafeWriteStr(DWORD addr, const char* data) {
 	DWORD oldProtect;
+	long len = strlen(data) + 1;
 
-	VirtualProtect((void *)addr, strlen(data) + 1, PAGE_EXECUTE_READWRITE, &oldProtect);
+	VirtualProtect((void *)addr, len, PAGE_EXECUTE_READWRITE, &oldProtect);
 	strcpy((char *)addr, data);
-	VirtualProtect((void *)addr, strlen(data) + 1, oldProtect, &oldProtect);
+	VirtualProtect((void *)addr, len, oldProtect, &oldProtect);
+
+	AddrAddToList(addr, len);
 }
 
 void HookCall(DWORD addr, void* func) {
 	SafeWrite32(addr + 1, (DWORD)func - (addr + 5));
-	#ifndef NDEBUG
-		CheckConflict(addr);
-	#endif
+
+	CheckConflict(addr, 1);
 }
 
 void MakeCall(DWORD addr, void* func) {
@@ -147,6 +172,8 @@ void SafeMemSet(DWORD addr, BYTE val, int len) {
 	VirtualProtect((void *)addr, len, PAGE_EXECUTE_READWRITE, &oldProtect);
 	memset((void*)addr, val, len);
 	VirtualProtect((void *)addr, len, oldProtect, &oldProtect);
+
+	AddrAddToList(addr, len);
 }
 
 void BlockCall(DWORD addr) {
@@ -157,9 +184,7 @@ void BlockCall(DWORD addr) {
 	*((BYTE*)(addr + 4)) = 0x00;
 	VirtualProtect((void *)addr, 5, oldProtect, &oldProtect);
 
-	#ifndef NDEBUG
-		CheckConflict(addr);
-	#endif
+	CheckConflict(addr, 5);
 }
 
 }

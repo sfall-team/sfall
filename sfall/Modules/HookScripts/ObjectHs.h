@@ -9,4 +9,5 @@ namespace sfall
 	void Inject_UseAnimateObjHook();
 	void Inject_DescriptionObjHook();
 	void Inject_SetLightingHook();
+	void Inject_ScriptProcedureHook();
 }

@@ -417,7 +417,7 @@ static void __declspec(naked) game_close_hook() {
 static void __declspec(naked) WorldMapHook() {
 	__asm {
 		_InLoop(1, WORLDMAP);
-		xor  eax, eax;
+		xor  eax, eax; // unused
 		call fo::funcoffs::wmWorldMapFunc_;
 		_InLoop(0, WORLDMAP);
 		retn;
@@ -617,6 +617,22 @@ static void __declspec(naked) DialogReviewExitHook() {
 	}
 }
 
+static void __declspec(naked) setup_move_timer_win_Hook() {
+	__asm {
+		_InLoop2(1, COUNTERWIN);
+		jmp fo::funcoffs::text_curr_;
+	}
+}
+
+static void __declspec(naked) exit_move_timer_win_Hook() {
+	__asm {
+		push eax;
+		_InLoop2(0, COUNTERWIN);
+		pop  eax;
+		jmp  fo::funcoffs::win_delete_;
+	}
+}
+
 void LoadGameHook::init() {
 	saveInCombatFix = GetConfigInt("Misc", "SaveInCombatFix", 1);
 	if (saveInCombatFix > 2) saveInCombatFix = 0;
@@ -650,7 +666,7 @@ void LoadGameHook::init() {
 				0x480CA7, // gnw_main_
 				//0x480D45 // main_exit_system_ (never called)
 			});
-
+	// game modes
 	HookCalls(WorldMapHook, {0x483668, 0x4A4073});
 	HookCalls(WorldMapHook2, {0x4C4855});
 	HookCalls(CombatHook, {0x426A29, 0x4432BE, 0x45F6D2, 0x4A4020, 0x4A403D});
@@ -673,6 +689,8 @@ void LoadGameHook::init() {
 	HookCalls(AutomapHook, {0x44396D, 0x479519});
 	HookCall(0x445CA7, DialogReviewInitHook);
 	HookCall(0x445D30, DialogReviewExitHook);
+	HookCall(0x476AC6, setup_move_timer_win_Hook); // before init win
+	HookCall(0x477067, exit_move_timer_win_Hook);
 }
 
 Delegate<>& LoadGameHook::OnGameInit() {

@@ -65,6 +65,19 @@ static ChanceModifier basePickpocket;
 
 static int skillNegPoints; // skill raw points (w/o limit)
 
+static void __declspec(naked) item_w_skill_hook() {
+	__asm {
+		mov  edx, [esp + 4]; // item proto
+		test byte ptr [edx + 0x19], 4; // weapon.flags_ext
+		jnz  energy;
+		mov  edx, ebx;
+		jmp  fo::funcoffs::item_w_damage_type_;
+energy:
+		inc  eax; // DMG_laser
+		retn;
+	}
+}
+
 static int __fastcall PickpocketMod(int base, fo::GameObject* critter) {
 	for (DWORD i = 0; i < pickpocketMods.size(); i++) {
 		if (critter->id == pickpocketMods[i].id) {
@@ -313,8 +326,13 @@ void Skills::init() {
 	SafeWrite8(0x4ABC67, 0x89);                     // mov [esp + 0x54], eax
 	SafeWrite32(0x4ABC6B, 0x90909090);
 
+	// Add an additional 'Energy Weapon' flag to the weapon flags (offset 0x0018)
+	// Weapon Flags:
+	// 0x00000400 - Energy Weapon (forces weapon to use Energy Weapons skill)
+	HookCall(0x47831E, item_w_skill_hook);
+
 	char buf[512], key[16];
-	auto skillsFile = GetConfigString("Misc", "SkillsFile", "");
+	auto skillsFile = GetConfigString("Misc", "SkillsFile", "", MAX_PATH);
 	if (!skillsFile.empty()) {
 		fo::SkillInfo *skills = fo::var::skill_data;
 

@@ -18,6 +18,7 @@
 
 #include <cstring>
 
+#include "..\..\..\Utils.h"
 #include "..\..\..\FalloutEngine\Fallout2.h"
 #include "..\..\AI.h"
 #include "..\..\Combat.h"
@@ -465,12 +466,12 @@ void sf_inc_npc_level(OpcodeContext& ctx) {
 
 	// restore code
 	SafeWrite32(0x495C50, 0x01FB840F);
-	SafeWrite16(0x495C77, 0x8C0F);
-	SafeWrite32(0x495C79, 0x000001D4);
+	long long data = 0x01D48C0F;
+	SafeWriteBytes(0x495C77, (BYTE*)&data, 6);
 	//SafeWrite16(0x495C8C, 0x8D0F);
 	//SafeWrite32(0x495C8E, 0x000001BF);
-	SafeWrite16(0x495CEC, 0x850F);
-	SafeWrite32(0x495CEE, 0x00000130);
+	data = 0x0130850F;
+	SafeWriteBytes(0x495CEC, (BYTE*)&data, 6);
 	if (!npcAutoLevelEnabled) {
 		SafeWrite8(0x495CFB, 0x74);
 	}
@@ -523,7 +524,8 @@ static int ParseIniSetting(const char* iniString, const char* &key, char section
 	if (!key) return -1;
 
 	DWORD filelen = (DWORD)key - (DWORD)iniString;
-	if (filelen >= 64) return -1;
+	if (ScriptExtender::iniConfigFolder.empty() && filelen >= 64) return -1;
+	const char* fileEnd = key;
 
 	key = strstr(key + 1, "|");
 	if (!key) return -1;
@@ -533,9 +535,26 @@ static int ParseIniSetting(const char* iniString, const char* &key, char section
 
 	file[0] = '.';
 	file[1] = '\\';
-	memcpy(&file[2], iniString, filelen);
-	file[filelen + 2] = 0;
-
+	if (!ScriptExtender::iniConfigFolder.empty()) {
+		const char* pos = strfind(iniString, &::sfall::ddrawIni[2]);
+		if (pos && pos < fileEnd) goto specialIni;
+		pos = strfind(iniString, "f2_res.ini");
+		if (pos && pos < fileEnd) goto specialIni;
+		size_t len = ScriptExtender::iniConfigFolder.length(); // limit up to 62 characters
+		memcpy(&file[2], ScriptExtender::iniConfigFolder.c_str(), len);
+		int n = 0; // position of the beginning of the file name
+		for	(int i = filelen - 4; i > 0; i--) {
+			if (iniString[i] == '\\' || iniString[i] == '/') {
+				n = i + 1;
+				break;
+			}
+		}
+		strncpy_s(&file[2 + len], (128 - 2) - len, &iniString[n], filelen - n); // copy filename
+	} else {
+specialIni:
+		memcpy(&file[2], iniString, filelen);
+		file[filelen + 2] = 0;
+	}
 	memcpy(section, &iniString[filelen + 1], seclen);
 	section[seclen] = 0;
 
@@ -546,7 +565,7 @@ static int ParseIniSetting(const char* iniString, const char* &key, char section
 static char IniStrBuffer[256];
 static DWORD GetIniSetting(const char* str, bool isString) {
 	const char* key;
-	char section[33], file[67];
+	char section[33], file[128];
 
 	if (ParseIniSetting(str, key, section, file) < 0) {
 		return -1;
@@ -623,10 +642,10 @@ void __declspec(naked) op_get_bodypart_hit_modifier() {
 		call fo::funcoffs::interpretPopLong_
 		cmp  dx, VAR_TYPE_INT
 		jnz  fail
-		cmp  eax, 8                               // Body_Uncalled?
-		jg   fail
 		test eax, eax
 		jl   fail
+		cmp  eax, 8                               // Body_Uncalled?
+		jg   fail
 		mov  edx, ds:[FO_VAR_hit_location_penalty+eax*4]
 		jmp  end
 fail:
@@ -662,19 +681,11 @@ void __declspec(naked) op_set_bodypart_hit_modifier() {
 		jnz  end
 		cmp  cx, VAR_TYPE_INT
 		jnz  end
-		cmp  eax, 8                               // Body_Uncalled?
-		jg   end
-		cmp  eax, 3                               // Body_Torso?
-		jne  skip                                 // No
-		add  eax, 5
-skip:
 		test eax, eax
 		jl   end
-		mov  ds:[FO_VAR_hit_location_penalty+eax*4], ebx
 		cmp  eax, 8                               // Body_Uncalled?
-		jne  end                                  // No
-		sub  eax, 5                               // Body_Torso
-		jmp  skip
+		jg   end
+		mov  ds:[FO_VAR_hit_location_penalty+eax*4], ebx
 end:
 		pop  edx
 		pop  ecx
@@ -1216,7 +1227,7 @@ void sf_set_ini_setting(OpcodeContext& ctx) {
 		saveValue = argVal.strValue();
 	}
 	const char* key;
-	char section[33], file[67];
+	char section[33], file[128];
 	int result = ParseIniSetting(ctx.arg(0).strValue(), key, section, file);
 	if (result > 0) {
 		result = WritePrivateProfileString(section, key, saveValue, file);
@@ -1232,15 +1243,27 @@ void sf_set_ini_setting(OpcodeContext& ctx) {
 	}
 }
 
+static std::string GetIniFilePath(const ScriptValue& arg) {
+	std::string fileName(".\\");
+	if (ScriptExtender::iniConfigFolder.empty()) {
+		fileName += arg.strValue();
+	} else {
+		fileName += ScriptExtender::iniConfigFolder;
+		std::string name(arg.strValue());
+		int pos = name.find_last_of("\\/");
+		fileName += (pos > 0) ? name.substr(pos + 1) : name;
+	}
+	return fileName;
+}
+
 char getIniSectionBuf[5120];
 
 void sf_get_ini_sections(OpcodeContext& ctx) {
-	auto fileName = std::string(".\\") + ctx.arg(0).asString();
-	GetPrivateProfileSectionNamesA(getIniSectionBuf, 5120, fileName.data());
+	GetPrivateProfileSectionNamesA(getIniSectionBuf, 5120, GetIniFilePath(ctx.arg(0)).data());
 	std::vector<char*> sections;
 	char* section = getIniSectionBuf;
 	while (*section != 0) {
-		sections.push_back(section);
+		sections.push_back(section); // position
 		section += std::strlen(section) + 1;
 	}
 	size_t sz = sections.size();
@@ -1250,15 +1273,14 @@ void sf_get_ini_sections(OpcodeContext& ctx) {
 	for (size_t i = 0; i < sz; ++i) {
 		size_t j = i + 1;
 		int len = (j < sz) ? sections[j] - sections[i] - 1 : -1;
-		arr.val[i].set(sections[i], len);
+		arr.val[i].set(sections[i], len); // copy string from buffer
 	}
 	ctx.setReturn(arrayId);
 }
 
 void sf_get_ini_section(OpcodeContext& ctx) {
-	auto fileName = std::string(".\\") + ctx.arg(0).asString();
 	auto section = ctx.arg(1).asString();
-	GetPrivateProfileSectionA(section, getIniSectionBuf, 5120, fileName.data());
+	GetPrivateProfileSectionA(section, getIniSectionBuf, 5120, GetIniFilePath(ctx.arg(0)).data());
 	int arrayId = TempArray(-1, 0); // associative
 	auto& arr = arrays[arrayId];
 	char *key = getIniSectionBuf, *val = nullptr;

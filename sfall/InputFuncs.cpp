@@ -268,29 +268,29 @@ public:
 		return 0;
 	}
 
-	// Only called for the keyboard
-	HRESULT _stdcall GetDeviceData(DWORD a, DIDEVICEOBJECTDATA* b, DWORD* c, DWORD d) {
+	// Only called for the keyboard (dxinput_read_keyboard_buffer_ called at 0x4E06AB)
+	HRESULT _stdcall GetDeviceData(DWORD a, DIDEVICEOBJECTDATA* buf, DWORD* count, DWORD d) { // buf - DirectInputKeyboardBuffer (0x6B2560)
 		if (DeviceType != kDeviceType_KEYBOARD) {
-			return RealDevice->GetDeviceData(a, b, c, d);
+			return RealDevice->GetDeviceData(a, buf, count, d);
 		}
 
 		onInputLoop.invoke();
 
-		if (!b || bufferedPresses.empty() || (d & DIGDD_PEEK)) {
-			HRESULT hr = RealDevice->GetDeviceData(a, b, c, d);
-			if (FAILED(hr) || !b || !(*c)) return hr;
-			for (DWORD i = 0; i < *c; i++) {
-				DWORD dxKey = b[i].dwOfs;
-				DWORD state = b[i].dwData & 0x80;
+		if (!buf || bufferedPresses.empty() || (d & DIGDD_PEEK)) {
+			HRESULT hr = RealDevice->GetDeviceData(a, buf, count, d);
+			if (FAILED(hr) || !buf || !(*count)) return hr;
+			for (DWORD i = 0; i < *count; i++) {
+				DWORD dxKey = buf[i].dwOfs;
+				DWORD state = buf[i].dwData & 0x80;
 				DWORD oldState = keysDown[dxKey];
 				keysDown[dxKey] = state;
 				HookScripts::KeyPressHook(&dxKey, (state > 0), MapVirtualKeyEx(dxKey, MAPVK_VSC_TO_VK, keyboardLayout));
-				if (dxKey > 0 && dxKey != b[i].dwOfs) {
-					keysDown[b[i].dwOfs] = oldState;
-					b[i].dwOfs = dxKey; // Override key
-					keysDown[b[i].dwOfs] = state;
+				if (dxKey > 0 && dxKey != buf[i].dwOfs) {
+					keysDown[buf[i].dwOfs] = oldState;
+					buf[i].dwOfs = dxKey; // Override key
+					keysDown[buf[i].dwOfs] = state;
 				}
-				onKeyPressed.invoke(b[i].dwOfs, (state > 0));
+				onKeyPressed.invoke(buf[i].dwOfs, (state > 0));
 			}
 			return hr;
 		}
@@ -298,9 +298,9 @@ public:
 		//TODO: Fallouts behaviour when passing multiple keypresses makes it appear like it's expecting the DIDEVICEOBJECTDATA struct to be
 		//      something other than 16 bytes. afaik, fallout uses DX3 for input, which is before the appData field was added, but it could
 		//      be worth checking anyway.
-		*b = bufferedPresses.front();
+		*buf = bufferedPresses.front();
 		bufferedPresses.pop();
-		*c = 1;
+		*count = 1;
 		return DI_OK;
 	}
 

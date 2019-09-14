@@ -94,7 +94,7 @@ static long GetGlobalVarNameString(OpcodeContext& ctx) {
 }
 
 static void GetGlobalVar(OpcodeContext& ctx, DataType type) {
-	long result; 
+	long result;
 	if (ctx.arg(0).isString()) {
 		result = GetGlobalVarNameString(ctx);
 	} else {
@@ -221,12 +221,19 @@ end:
 
 // used for both register_hook and register_hook_proc
 void sf_register_hook(OpcodeContext& ctx) {
-	int id = ctx.arg(0).asInt();
-	int proc = (ctx.numArgs() > 1)
-		? ctx.arg(1).asInt()
-		: -1;
-
-	RegisterHook(ctx.program(), id, proc);
+	bool specReg = false;
+	int proc;
+	switch (ctx.opcode()) {
+	case 0x27d:
+		specReg = true;
+	case 0x262:
+		proc = ctx.arg(1).rawValue();
+		if (proc < 0 || (specReg && proc == 0)) return;
+		break;
+	default:
+		proc = -1;
+	}
+	RegisterHook(ctx.program(), ctx.arg(0).rawValue(), proc, specReg);
 }
 
 void sf_sfall_ver_major(OpcodeContext& ctx) {

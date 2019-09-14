@@ -523,11 +523,12 @@ void Inject_CombatDamageHook() {
 		0x4233E3, // shoot_along_path() - for extra burst targets
 		0x423AB7, // compute_attack()
 		0x423BBF, // compute_attack()
-		0x423DE7, // compute_explosion_on_extras()
+//		0x423DE7, // compute_explosion_on_extras()
 		0x423E69, // compute_explosion_on_extras()
 		0x424220, // attack_crit_failure()
 		0x4242FB, // attack_crit_failure()
 	});
+	MakeCall(0x423DEB, ComputeDamageHook); // compute_explosion_on_extras() - for the attacker
 }
 
 void Inject_FindTargetHook() {

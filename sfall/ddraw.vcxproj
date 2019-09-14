@@ -83,20 +83,20 @@
     <GenerateManifest Condition="'$(Configuration)|$(Platform)'=='DevXP|Win32'">true</GenerateManifest>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseXP|Win32'">
-    <IncludePath>$(DXSDK_DIR)Include;$(IncludePath);$(ProjectDir) </IncludePath>
-    <LibraryPath>$(DXSDK_DIR)lib\x86\;$(LibraryPath)</LibraryPath>
+    <IncludePath>$(DXSDK_DIR)Include;$(IncludePath);$(ProjectDir)</IncludePath>
+    <LibraryPath>$(DXSDK_DIR)lib\x86;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DevXP|Win32'">
-    <IncludePath>$(DXSDK_DIR)Include;$(IncludePath);$(ProjectDir) </IncludePath>
-    <LibraryPath>$(DXSDK_DIR)lib\x86\;$(LibraryPath)</LibraryPath>
+    <IncludePath>$(DXSDK_DIR)Include;$(IncludePath);$(ProjectDir)</IncludePath>
+    <LibraryPath>$(DXSDK_DIR)lib\x86;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <IncludePath>$(DXSDK_DIR)Include;$(IncludePath);$(ProjectDir) </IncludePath>
-    <LibraryPath>$(DXSDK_DIR)lib\x86\;$(LibraryPath)</LibraryPath>
+    <IncludePath>$(DXSDK_DIR)Include;$(IncludePath);$(ProjectDir)</IncludePath>
+    <LibraryPath>$(DXSDK_DIR)lib\x86;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <IncludePath>$(DXSDK_DIR)Include;$(IncludePath);$(ProjectDir) </IncludePath>
-    <LibraryPath>$(DXSDK_DIR)lib\x86\;$(LibraryPath)</LibraryPath>
+    <IncludePath>$(DXSDK_DIR)Include;$(IncludePath);$(ProjectDir)</IncludePath>
+    <LibraryPath>$(DXSDK_DIR)lib\x86;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
