@@ -249,26 +249,26 @@ public:
 		return 0;
 	}
 
-	// Only called for the keyboard
-	HRESULT _stdcall GetDeviceData(DWORD a, DIDEVICEOBJECTDATA* b, DWORD* c, DWORD d) {
+	// Only called for the keyboard (dxinput_read_keyboard_buffer_ called at 0x4E06AB)
+	HRESULT _stdcall GetDeviceData(DWORD a, DIDEVICEOBJECTDATA* buf, DWORD* count, DWORD d) { // buf - DirectInputKeyboardBuffer (0x6B2560)
 		if (DeviceType != kDeviceType_KEYBOARD) {
-			return RealDevice->GetDeviceData(a, b, c, d);
+			return RealDevice->GetDeviceData(a, buf, count, d);
 		}
 
 		RunGlobalScripts2();
 
-		if (!b || bufferedPresses.empty() || (d & DIGDD_PEEK)) {
-			HRESULT hr = RealDevice->GetDeviceData(a, b, c, d);
-			if (FAILED(hr) || !b || !(*c)) return hr;
+		if (!buf || bufferedPresses.empty() || (d & DIGDD_PEEK)) {
+			HRESULT hr = RealDevice->GetDeviceData(a, buf, count, d);
+			if (FAILED(hr) || !buf || !(*count)) return hr;
 			DWORD keyOverride, oldState;
-			for (DWORD i = 0; i < *c; i++) {
-				oldState = KeysDown[b[i].dwOfs];
-				KeysDown[b[i].dwOfs] = b[i].dwData & 0x80;
-				keyOverride = KeyPressHook(b[i].dwOfs, (b[i].dwData & 0x80) > 0, MapVirtualKeyEx(b[i].dwOfs, MAPVK_VSC_TO_VK, keyboardLayout));
+			for (DWORD i = 0; i < *count; i++) {
+				oldState = KeysDown[buf[i].dwOfs];
+				KeysDown[buf[i].dwOfs] = buf[i].dwData & 0x80;
+				keyOverride = KeyPressHook(buf[i].dwOfs, (buf[i].dwData & 0x80) > 0, MapVirtualKeyEx(buf[i].dwOfs, MAPVK_VSC_TO_VK, keyboardLayout));
 				if (keyOverride != 0) {
-					KeysDown[b[i].dwOfs] = oldState;
-					b[i].dwOfs = keyOverride;
-					KeysDown[b[i].dwOfs] = b[i].dwData & 0x80;
+					KeysDown[buf[i].dwOfs] = oldState;
+					buf[i].dwOfs = keyOverride;
+					KeysDown[buf[i].dwOfs] = buf[i].dwData & 0x80;
 				}
 			}
 			if (KeysDown[DebugEditorKey]) RunDebugEditor();
@@ -278,9 +278,9 @@ public:
 		//TODO: Fallouts behaviour when passing multiple keypresses makes it appear like it's expecting the DIDEVICEOBJECTDATA struct to be
 		//      something other than 16 bytes. afaik, fallout uses DX3 for input, which is before the appData field was added, but it could
 		//      be worth checking anyway.
-		*b = bufferedPresses.front();
+		*buf = bufferedPresses.front();
 		bufferedPresses.pop();
-		*c = 1;
+		*count = 1;
 		return DI_OK;
 	}
 
