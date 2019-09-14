@@ -504,7 +504,7 @@ void PlayIdleAnimOnReloadPatch() {
 }
 
 void CorpseLineOfFireFix() {
-	if (GetConfigInt("Misc", "CorpseLineOfFireFix", 0)) {
+	if (GetConfigInt("Misc", "CorpseLineOfFireFix", 1)) {
 		dlog("Applying corpse line of fire patch.", DL_INIT);
 		MakeJump(0x48B994, CorpseHitFix2);
 		MakeJump(0x48BA04, CorpseHitFix2b);
