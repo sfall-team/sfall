@@ -807,7 +807,7 @@ static void __declspec(naked) op_wield_obj_critter_adjust_ac_hook() {
 	}
 }
 
-// Haenlomal
+// Haenlomal: Check path to critter for attack
 static void __declspec(naked) MultiHexFix() {
 	__asm {
 		xor  ecx, ecx;                      // argument value for make_path_func: ecx=0 (rotation data arg)
@@ -2510,8 +2510,8 @@ void BugFixesInit()
 	//}
 	// Fix for multiple knockout events being added to the queue
 	HookCall(0x424F9A, set_new_results_hack);
-	// Fix for knocked down critters not playing stand up animation when the combat ends
-	// and prevent dead NPCs from reloading their weapons
+	// Fix for knocked down critters not playing stand up animation when the combat ends (when DAM_LOSE_TURN and DAM_KNOCKED_DOWN
+	// flags are set) and prevent dead NPCs from reloading their weapons
 	HookCall(0x421F30, combat_over_hook);
 
 	dlog("Applying fix for explosives bugs.", DL_INIT);

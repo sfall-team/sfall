@@ -820,7 +820,7 @@ static void DllMain2() {
 		dlogr(" Done", DL_INIT);
 	}
 
-	if (GetPrivateProfileInt("Misc", "CorpseLineOfFireFix", 0, ini)) {
+	if (GetPrivateProfileInt("Misc", "CorpseLineOfFireFix", 1, ini)) {
 		dlog("Applying corpse line of fire patch.", DL_INIT);
 		MakeJump(0x48B994, CorpseHitFix2);
 		MakeJump(0x48BA04, CorpseHitFix2b);
