@@ -188,13 +188,16 @@
     item    arg2 - the item that is being removed
     int     arg3 - the number of items to remove
     int     arg4 - The reason the object is being removed (see RMOBJ_* constants)
-    Obj     arg5 - The destination object when the item is moved to another object, otherwise 0
+    Obj     arg5 - The destination object when the item is moved to another object, 0 otherwise
     ```
 
 - name: BarterPrice
   id: HOOK_BARTERPRICE
   doc: |
     Runs whenever the value of goods being purchased is calculated.
+
+    NOTE: the hook is executed twice when entering the barter screen or after transaction: the first time is for the player and the second time is for NPC
+
 
     ```
     critter arg1 - the critter doing the bartering (either dude_obj or inven_dude)
@@ -205,7 +208,8 @@
     int     arg6 - the value of all goods being traded before skill modifications
     critter arg7 - table of offered goods (being sold to NPC)
     int     arg8 - the total cost of the goods offered by the player
-    int     arg9 - set 1 if the "offers" button was pressed (not for a party member), otherwise 0
+    int     arg9 - 1 if the "offers" button was pressed (not for a party member), 0 otherwise
+    int     arg10 - 1 if trading with a party member, 0 otherwise
 
     int     ret1 - the modified value of all of the goods (pass -1 if you just want to modify offered goods)
     int     ret2 - the modified value of all offered goods
@@ -404,7 +408,8 @@
     __NOTE:__ FID has following format: 0x0ABBCDDD, where A is object type, BB - animation code (always 0 in this case), C - weapon code, DDD - FRM index in LST file.
 
     ```
-    int     arg1 - the vanilla fid calculated by the engine according to critter base FID and armor/weapon being used
+    int     arg1 - the vanilla FID calculated by the engine according to critter base FID and armor/weapon being used
+    int     arg2 - the modified FID calculated by the internal sfall code (like Hero Appearance Mod)
 
     int     ret1 - overrides the calculated FID with provided value
     ```
@@ -420,6 +425,19 @@
     bool    arg3 - 1 at the start/end of the player's turn after loading a game saved in combat mode, 0 otherwise
 
     int     ret1 - pass 1 at the start of turn to skip the turn, pass -1 at the end of turn to force end of combat
+    ```
+
+- name: StdProcedure
+  id: HOOK_STDPROCEDURE
+  doc: |
+    Runs before Fallout executes a standard procedure (handler) in any script of any object.
+    NOTE: this hook will not be executed for `start`, `critter_p_proc`, `timed_event_p_proc`, and `map_update_p_proc` procedures.
+    ```
+    int     arg1 - the number of the standard script handler (`see define.h`)
+    Obj     arg2 - the object that owns this handler (`self_obj`)
+    Obj     arg3 - the object that called this handler (`source_obj`, can be 0)
+
+    int     ret1 - pass -1 to cancel the execution of the handler
     ```
 
 - name: CarTravel

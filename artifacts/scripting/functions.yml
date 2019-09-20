@@ -966,7 +966,7 @@
     detail: string message_str_game(int fileId, int messageId)
     doc: |
       Works exactly the same as message_str, except you get messages from files in `text/english/game` folder. Use `GAME_MSG_*` defines or `mstr_*` macros from `sfall.h` to use specific msg file
-      - Additional game msg files added by `ExtraGameMsgFileList` setting will have consecutive fileIds assigned beginning from 0x2000. (e.g. if you set `ExtraGameMsgFileList=foo,bar` in `ddraw.ini`, `foo.msg` will be associated with 0x2000 and `bar.msg` with 0x2001.).
+      - Additional game msg files added by `ExtraGameMsgFileList` setting will have consecutive fileIds assigned beginning from 0x2000 to 0x2FFF. (e.g. if you set `ExtraGameMsgFileList=foo,bar` in `ddraw.ini`, `foo.msg` will be associated with 0x2000 and `bar.msg` with 0x2001.).
       - If a file has a specific number assigned in `ExtraGameMsgFileList`, its fileId will be (0x2000 + assigned number). (e.g. with `ExtraGameMsgFileList=foo,bar:2,foobar` in `ddraw.ini`, `bar.msg` will be associated with 0x2002 and `foobar.msg` with 0x2003.)
     opcode: 0x826b
 
@@ -1090,7 +1090,7 @@
   - name: register_hook_proc
     detail: void register_hook_proc(int hooktype, proc procedure)
     doc: |
-      The same as `register_hook`, except that you specifically define which procedure in the current script should be called as a hook (instead of `start`). Pass procedure the same as how you use dialog option functions (name without quotes). This IS the recommended way to use hook scripts, as it gives both modularity (each mod logic in a separate global script, no conflicts if you don't use `hs_*.int` scripts) and flexibility (you can place all related hook scripts for specific mod in a single script!). Only use this in global scripts.
+      The same as register_hook, except that you specifically define which procedure in the current script should be called as a hook (instead of "start" by default). Pass procedure the same as how you use dialog option functions. This IS the recommended way to use hook scripts, as it gives both modularity (each mod logic in a separate global script, no conflicts if you don't use "hs_*.int" scripts) and flexibility (you can place all related hook scripts for specific mod in a single script!).
 
       Use zero (0) as second argument to unregister hook script from current global script.
 
@@ -1119,6 +1119,9 @@
 
       The defines to use for the hooktype are in `sfall.h`.
     opcode: 0x8262
+  - name: register_hook_proc_spec
+    detail: void register_hook_proc_spec(int hook, procedure proc)
+    doc: Works very similar to `register_hook_proc`, except that it registers the current script at the end of the hook script execution chain (i.e. the script will be executed after all previously registered scripts for the same hook, including the `hs_*.int` script). All scripts hooked to a single hook point with this function are executed in exact order of how they were registered, as opposed to the description below, which refers to using `register_hook/register_hook_proc` functions.
 
 - name: Array functions
   parent: Arrays # not in this files, normal page
