@@ -132,6 +132,7 @@
 #define FO_VAR_max                        0x56FB50
 #define FO_VAR_maxScriptNum               0x51C7CC
 #define FO_VAR_Meet_Frank_Horrigan        0x672E04
+#define FO_VAR_Move_on_Car                0x672E64
 #define FO_VAR_mouse_hotx                 0x6AC7D0
 #define FO_VAR_mouse_hoty                 0x6AC7CC
 #define FO_VAR_mouse_is_hidden            0x6AC790
@@ -148,6 +149,7 @@
 #define FO_VAR_card_old_fid1              0x5709EC
 #define FO_VAR_obj_dude                   0x6610B8
 #define FO_VAR_obj_seen                   0x662445
+#define FO_VAR_obj_seen_check             0x6610BC
 #define FO_VAR_objectTable                0x639DA0
 #define FO_VAR_objItemOutlineState        0x519798
 #define FO_VAR_optionRect                 0x58ECC0

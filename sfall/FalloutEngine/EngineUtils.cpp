@@ -124,7 +124,7 @@ long GetCurrentAttackMode() {
 		case 3:
 		case 4: // 4 - called shot
 			hitMode = fo::var::itemButtonItems[activeHand].secondaryAttack;
-			break; 
+			break;
 		case 5: // reload mode
 			hitMode = fo::ATKTYPE_LWEAPON_RELOAD + activeHand;
 		}
@@ -297,7 +297,6 @@ static bool LoadFrmHeader(UnlistedFrm *frmHeader, fo::DbFile* frmStream) {
 }
 
 static bool LoadFrmFrame(UnlistedFrm::Frame *frame, fo::DbFile* frmStream) {
-
 	//FRMframe *frameHeader = (FRMframe*)frameMEM;
 	//BYTE* frameBuff = frame + sizeof(FRMframe);
 
@@ -320,7 +319,6 @@ static bool LoadFrmFrame(UnlistedFrm::Frame *frame, fo::DbFile* frmStream) {
 }
 
 UnlistedFrm *LoadUnlistedFrm(char *frmName, unsigned int folderRef) {
-
 	if (folderRef > fo::OBJ_TYPE_SKILLDEX) return nullptr;
 
 	char *artfolder = fo::var::art[folderRef].path; // address of art type name

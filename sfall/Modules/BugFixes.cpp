@@ -817,7 +817,7 @@ static void __declspec(naked) op_wield_obj_critter_adjust_ac_hook() {
 	}
 }
 
-// Haenlomal
+// Haenlomal: Check path to critter for attack
 static void __declspec(naked) MultiHexFix() {
 	__asm {
 		xor  ecx, ecx;                      // argument value for make_path_func: ecx=0 (rotation data arg)
@@ -1426,15 +1426,15 @@ mapLeave:
 static void __declspec(naked) obj_move_to_tile_hack_seen() {
 	__asm {
 		cmp  ds:[FO_VAR_loadingGame], 0;         // loading saved game
-		jnz  fix;
+		jnz  end; // fix
 		// if (map_state <= 0 && mapEntranceTileNum != -1) then fix
 		cmp  dword ptr ds:[FO_VAR_map_state], 0; // map number, -1 exit to worldmap
 		jle  skip;
 		cmp  dword ptr ds:[FO_VAR_mapEntranceTileNum], -1;
-		jne  fix;
+		jne  end; // fix
 skip:
-		or  byte ptr ds:[FO_VAR_obj_seen][eax], dl;
-fix:
+		or   byte ptr ds:[FO_VAR_obj_seen][eax], dl;
+end:
 		retn;
 	}
 }
@@ -2252,9 +2252,49 @@ break:
 	}
 }
 
+static void __declspec(naked) wmInterfaceInit_hack() {
+	__asm {
+		mov  eax, GVAR_CAR_PLACED_TILE;
+		cmp  eax, dword ptr ds:[FO_VAR_num_game_global_vars];
+		jge  skip;
+		mov  edx, ds:[FO_VAR_game_global_vars];
+		lea  edx, [edx + eax * 4];
+		mov  dword ptr [edx], -1; // set gvar
+skip:
+		mov  edx, 12;
+		retn;
+	}
+}
+
+static long __fastcall GetFreeTilePlacement(long elev, long tile) {
+	long count = 0, dist = 1;
+	long freeTile = tile;
+	long rotation = fo::var::rotation;
+	while (fo::func::obj_blocking_at(0, freeTile, elev)) {
+		freeTile = fo::func::tile_num_in_direction(freeTile, rotation, dist);
+		if (++count > 5 && ++dist > 5) return tile;
+		if (++rotation > 5) rotation = 0;
+	}
+	return freeTile;
+}
+
+static void __declspec(naked) map_check_state_hook() {
+	__asm {
+		mov  ecx, esi; // elev
+		call GetFreeTilePlacement; // edx - tile
+		mov  edx, eax; // tile
+		// restore
+		mov  ebx, esi; // elev
+		mov  eax, ds:[FO_VAR_obj_dude];
+		xor  ecx, ecx;
+		jmp  fo::funcoffs::obj_move_to_tile_;
+	}
+}
+
 void BugFixes::init()
 {
 	#ifndef NDEBUG
+		LoadGameHook::OnBeforeGameClose() += PrintAddrList;
 		if (isDebug && (GetPrivateProfileIntA("Debugging", "BugFixes", 1, ::sfall::ddrawIni) == 0)) return;
 	#endif
 
@@ -2484,8 +2524,8 @@ void BugFixes::init()
 	//}
 	// Fix for multiple knockout events being added to the queue
 	HookCall(0x424F9A, set_new_results_hack);
-	// Fix for knocked down critters not playing stand up animation when the combat ends
-	// and prevent dead NPCs from reloading their weapons
+	// Fix for knocked down critters not playing stand up animation when the combat ends (when DAM_LOSE_TURN and DAM_KNOCKED_DOWN
+	// flags are set) and prevent dead NPCs from reloading their weapons
 	HookCall(0x421F30, combat_over_hook);
 
 	dlog("Applying fix for explosives bugs.", DL_INIT);
@@ -2656,6 +2696,8 @@ void BugFixes::init()
 	if (GetConfigInt("Misc", "AIBestWeaponFix", 0)) {
 		dlog("Applying AI best weapon choice fix.", DL_INIT);
 		HookCall(0x42954B, ai_best_weapon_hook);
+		// also change the modifier for having weapon perk to 3x (was 5x)
+		SafeWriteBatch<BYTE>(0x55, {0x42955E, 0x4296E7});
 		dlogr(" Done", DL_INIT);
 	}
 
@@ -2839,6 +2881,20 @@ void BugFixes::init()
 	// Fix for combat not ending automatically when there are no hostile critters
 	MakeCall(0x422CF3, combat_should_end_hack);
 	SafeWrite16(0x422CEA, 0x0C74); // jz 0x422CF8 (skip party members)
+
+	// Fix for the car being lost when entering a location via the Town/World button and then leaving on foot
+	// (sets GVAR_CAR_PLACED_TILE (633) to -1 on exit to the world map)
+	if (GetConfigInt("Misc", "CarPlacedTileFix", 1)) {
+		dlog("Applying car placed tile fix.", DL_INIT);
+		MakeCall(0x4C2367,  wmInterfaceInit_hack);
+		dlogr(" Done", DL_INIT);
+	}
+
+	// Place the player on a nearby empty tile if the entrance tile is blocked by another object when entering a map
+	HookCall(0x4836F8, map_check_state_hook);
+
+	// Remove duplicate code from intface_redraw_ engine function
+	BlockCall(0x45EBBF);
 }
 
 }

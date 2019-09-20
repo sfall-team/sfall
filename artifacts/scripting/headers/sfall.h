@@ -19,6 +19,7 @@
 #define BARTER      (0x20000)
 #define HEROWIN     (0x40000)
 #define DIALOGVIEW  (0x80000)
+#define COUNTERWIN  (0x100000) // counter window for moving multiple items or setting a timer
 
 //Valid arguments to register_hook
 #define HOOK_TOHIT            (0)
@@ -61,6 +62,7 @@
 #define HOOK_SUBCOMBATDAMAGE  (37)
 #define HOOK_SETLIGHTING      (38)
 #define HOOK_SNEAK            (39)
+#define HOOK_STDPROCEDURE     (40)
 
 //Valid arguments to list_begin
 #define LIST_CRITTERS    (0)
@@ -73,7 +75,8 @@
 #define LIST_ALL         (9)
 
 //Valid flags for force_encounter_with_flags
-#define ENCOUNTER_FLAG_NO_CAR (1)
+#define ENCOUNTER_FLAG_NO_CAR   (1)
+#define ENCOUNTER_FLAG_LOCK     (2) // block new forced encounter by the next function call until the current specified encounter occurs
 
 //The attack types returned by get_attack_type
 #define ATKTYPE_LWEP1           (0)
@@ -142,12 +145,13 @@
 #define reverse_array(array)        resize_array(array, -4)
 // randomly shuffle elements in list/map
 #define shuffle_array(array)        resize_array(array, -5)
-// sort map in ascending order by value
+// sort map in ascending order by key value
 #define sort_map_value(array)       resize_array(array, -6)
-// sort map in descending order by value
-#define sort_map_value_desc(array)  resize_array(array, -7)
+// sort map in descending order by key value
+#define sort_map_reverse(array)     resize_array(array, -7)
 // remove element from map or just replace value with 0 for list
 #define unset_array(array, item)    set_array(array, item, 0)
+
 // same as "key_pressed" but checks VK codes instead of DX codes
 #define key_pressed_vk(key)         (key_pressed(key bwor 0x80000000))
 

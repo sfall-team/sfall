@@ -53,7 +53,7 @@ static const DWORD Tiles_C0[] = {
 	0x4B247B, 0x4B2A77, 0x4B2BD5,
 };
 
-struct tilestruct {
+struct TilesData {
 	short tile[2];
 };
 
@@ -196,7 +196,7 @@ static void __declspec(naked) iso_init_hook() {
 	}
 }
 
-static void __fastcall SquareLoadCheck(tilestruct* data) {
+static long __fastcall SquareLoadCheck(TilesData* data) {
 	for (DWORD y = 0; y < 100; y++) {
 		for (DWORD x = 0; x < 100; x++) {
 			for (DWORD z = 0; z < 2; z++) {
@@ -214,6 +214,7 @@ static void __fastcall SquareLoadCheck(tilestruct* data) {
 			}
 		}
 	}
+	return 0; // don't delete
 }
 
 static void __declspec(naked) square_load_hook() {
@@ -222,7 +223,7 @@ static void __declspec(naked) square_load_hook() {
 		call fo::funcoffs::db_freadIntCount_;
 		test eax, eax;
 		jnz  end;
-		jmp  SquareLoadCheck;
+		jmp  SquareLoadCheck; // ecx - data
 end:
 		retn;
 	}
@@ -272,9 +273,9 @@ void Tiles::init() {
 		SafeWriteBatch<BYTE>(0x3F, Tiles_3F);
 		SafeWriteBatch<BYTE>(0x40, Tiles_40);
 		SafeWriteBatch<BYTE>(0xC0, Tiles_C0);
-		if (*(long*)0x1000E1BF == 0x1000 && *(long*)0x1000E1D9 == 0x0FFF) { // Check HRP 4.1.8
-			SafeWrite8(0x1000E1C0, 0x40);
-			SafeWrite8(0x1000E1DA, 0x3F);
+		if (hrpVersionValid) { // Check HRP 4.1.8
+			SafeWrite8(HRPAddressOffset(0xE1C0), 0x40);
+			SafeWrite8(HRPAddressOffset(0xE1DA), 0x3F);
 		}
 		dlogr(" Done", DL_INIT);
 	}

@@ -423,7 +423,7 @@ static long quickSavePage = 0;
 
 static FILETIME ftPrevSlot;
 static DWORD __stdcall QuickSaveGame(fo::DbFile* file, char* filename) {
-	int currSlot = fo::var::slot_cursor;
+	long currSlot = fo::var::slot_cursor;
 
 	if (file) { // This slot is not empty
 		fo::func::db_fclose(file);

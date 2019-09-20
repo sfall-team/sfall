@@ -53,19 +53,17 @@ static DWORD _stdcall HandleMapUpdateForScripts(const DWORD procId);
 
 static int idle;
 
+std::string ScriptExtender::iniConfigFolder;
+
 struct GlobalScript {
 	ScriptProgram prog;
+	int startProc; // position of the 'start' procedure in the script
 	int count;
 	int repeat;
-	int mode; //0 - local map loop, 1 - input loop, 2 - world map loop, 3 - local and world map loops
+	int mode; // 0 - local map loop, 1 - input loop, 2 - world map loop, 3 - local and world map loops
 
-	GlobalScript() {}
-	GlobalScript(ScriptProgram script) {
-		prog = script;
-		count = 0;
-		repeat = 0;
-		mode = 0;
-	}
+	//GlobalScript() {}
+	GlobalScript(ScriptProgram script) : prog(script), startProc(-1), count(0), repeat(0), mode(0) {}
 };
 
 struct ExportedVar {
@@ -369,18 +367,11 @@ long SetGlobalVar(const char* var, int val) {
 
 long GetGlobalVarInternal(__int64 val) {
 	glob_citr itr = globalVars.find(val);
-	if (itr == globalVars.end()) {
-		return 0;
-	} else {
-		return itr->second;
-	}
+	return (itr != globalVars.end()) ? itr->second : 0;
 }
 
 long GetGlobalVar(const char* var) {
-	if (strlen(var) != 8) {
-		return 0;
-	}
-	return GetGlobalVarInternal(*(__int64*)var);
+	return (strlen(var) == 8) ? GetGlobalVarInternal(*(__int64*)var) : 0;
 }
 
 long GetGlobalVarInt(DWORD var) {
@@ -438,10 +429,8 @@ void AddProgramToMap(ScriptProgram &prog) {
 }
 
 ScriptProgram* GetGlobalScriptProgram(fo::Program* scriptPtr) {
-	for (std::vector<GlobalScript>::iterator it = globalScripts.begin(); it != globalScripts.end(); it++) {
-		if (it->prog.ptr == scriptPtr) return &it->prog;
-	}
-	return nullptr;
+	SfallProgsMap::iterator it = sfallProgsMap.find(scriptPtr);
+	return (it == sfallProgsMap.end()) ? nullptr : &it->second ; // prog
 }
 
 bool _stdcall IsGameScript(const char* filename) {
@@ -463,6 +452,7 @@ static void LoadGlobalScriptsList() {
 		if (prog.ptr) {
 			dlogr(" Done", DL_SCRIPT);
 			GlobalScript gscript = GlobalScript(prog);
+			gscript.startProc = prog.procLookup[fo::ScriptProc::start]; // get 'start' procedure position
 			globalScripts.push_back(gscript);
 			AddProgramToMap(prog);
 			// initialize script (start proc will be executed for the first time) -- this needs to be after script is added to "globalScripts" array
@@ -558,9 +548,20 @@ void RunScriptProc(ScriptProgram* prog, long procId) {
 	}
 }
 
+int RunScriptStartProc(ScriptProgram* prog) {
+	fo::Program* sptr = prog->ptr;
+	int procNum = prog->procLookup[fo::ScriptProc::start];
+	if (procNum != -1) {
+		fo::func::executeProcedure(sptr, procNum);
+	}
+	return procNum;
+}
+
 static void RunScript(GlobalScript* script) {
 	script->count = 0;
-	RunScriptProc(&script->prog, fo::ScriptProc::start); // run "start"
+	if (script->startProc != -1) {
+		fo::func::executeProcedure(script->prog.ptr, script->startProc); // run "start"
+	}
 }
 
 /**
@@ -604,20 +605,19 @@ static void RunGlobalScriptsOnWorldMap() {
 static DWORD _stdcall HandleMapUpdateForScripts(const DWORD procId) {
 	if (procId == fo::ScriptProc::map_enter_p_proc) {
 		// map changed, all game objects were destroyed and scripts detached, need to re-insert global scripts into the game
-		for (SfallProgsMap::iterator it = sfallProgsMap.begin(); it != sfallProgsMap.end(); it++) {
-			fo::func::runProgram(it->second.ptr);
+		for (std::vector<GlobalScript>::const_iterator it = globalScripts.cbegin(); it != globalScripts.cend(); it++) {
+			fo::func::runProgram(it->prog.ptr);
 		}
-	}
+	} else if (procId == fo::ScriptProc::map_exit_p_proc) onMapExit.invoke();
+
 	RunGlobalScriptsAtProc(procId); // gl* scripts of types 0 and 3
 	RunHookScriptsAtProc(procId);   // all hs_ scripts
-
-	if (procId == fo::ScriptProc::map_exit_p_proc) onMapExit.invoke();
 
 	return procId; // restore eax (don't delete)
 }
 
 // run all global scripts of types 0 and 3 at specific procedure (if exist)
-void _stdcall RunGlobalScriptsAtProc(DWORD procId) {
+void RunGlobalScriptsAtProc(DWORD procId) {
 	for (DWORD d = 0; d < globalScripts.size(); d++) {
 		if (globalScripts[d].mode != 0 && globalScripts[d].mode != 3) continue;
 		RunScriptProc(&globalScripts[d].prog, procId);
@@ -684,8 +684,23 @@ void SetGlobals(GlobalVar* globals) {
 
 static void __declspec(naked) map_save_in_game_hook() {
 	__asm {
-		call fo::funcoffs::partyMemberSaveProtos_;
-		jmp  fo::funcoffs::game_time_;
+		test cl, 1;
+		jz   skip;
+		jmp  fo::funcoffs::scr_exec_map_exit_scripts_;
+skip:
+		jmp  fo::funcoffs::partyMemberSaveProtos_;
+	}
+}
+
+static void ClearEventsOnMapExit() {
+	using namespace fo;
+	__asm {
+		mov  eax, explode_event; // type
+		mov  edx, fo::funcoffs::queue_explode_exit_; // func
+		call fo::funcoffs::queue_clear_type_;
+		mov  eax, explode_fail_event;
+		mov  edx, fo::funcoffs::queue_explode_exit_;
+		call fo::funcoffs::queue_clear_type_;
 	}
 }
 
@@ -722,6 +737,19 @@ void ScriptExtender::init() {
 		dlogr("Arrays in backward-compatiblity mode.", DL_SCRIPT);
 	}
 
+	iniConfigFolder = GetConfigString("Scripts", "IniConfigFolder", "", 64);
+	size_t len = iniConfigFolder.length();
+	if (len) {
+		char c = iniConfigFolder[len - 1];
+		bool pathSeparator = (c == '\\' || c == '/');
+		if (len > 62 || (len == 62 && !pathSeparator)) {
+			iniConfigFolder.clear();
+			dlogr("Error: IniConfigFolder path is too long.", DL_SCRIPT);
+		} else if (!pathSeparator) {
+			iniConfigFolder += '\\';
+		}
+	}
+
 	alwaysFindScripts = isDebug && (GetPrivateProfileIntA("Debugging", "AlwaysFindScripts", 0, ::sfall::ddrawIni) != 0);
 	if (alwaysFindScripts) dlogr("Always searching for global scripts behavior enabled.", DL_SCRIPT);
 
@@ -745,13 +773,22 @@ void ScriptExtender::init() {
 
 	// Reorder the execution of functions before exiting the map
 	// Call saving party member prototypes and removing the drug effects for NPC after executing map_exit_p_proc procedure
-	HookCall(0x483CF9, map_save_in_game_hook);
-	MakeCall(0x483CB9, (void*)fo::funcoffs::scr_exec_map_exit_scripts_);
-	BlockCall(0x483CCD); // scr_exec_map_exit_scripts_
-	long long data = 0x397401C1F6; // test cl, 1; jz 0x483CF2
-	SafeWriteBytes(0x483CB4, (BYTE*)&data, 5);
+	HookCall(0x483CB4, map_save_in_game_hook);
+	HookCall(0x483CC3, (void*)fo::funcoffs::partyMemberSaveProtos_);
+	HookCall(0x483CC8, (void*)fo::funcoffs::partyMemberPrepLoad_);
+	HookCall(0x483CCD, (void*)fo::funcoffs::partyMemberPrepItemSaveAll_);
+
+	// Set the DAM_BACKWASH flag for the attacker before calling compute_damage_
+	SafeWrite32(0x423DE7, 0x40164E80); // or [esi+ctd.flags3Source], DAM_BACKWASH_
+	long idata = 0x146E09;             // or dword ptr [esi+ctd.flagsSource], ebp
+	SafeWriteBytes(0x423DF0, (BYTE*)&idata, 3);
+	if (*(BYTE*)0x423DEB != 0xE8) { // not hook call
+		MakeCall(0x423DEB, (void*)fo::funcoffs::compute_damage_);
+	}
 
 	InitNewOpcodes();
+
+	ScriptExtender::OnMapExit() += ClearEventsOnMapExit; // for reordering the execution of functions before exiting the map
 }
 
 Delegate<>& ScriptExtender::OnMapExit() {
