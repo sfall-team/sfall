@@ -30,13 +30,13 @@ namespace script
 {
 
 void sf_create_array(OpcodeContext& ctx) {
-	auto arrayId = CreateArray(ctx.arg(0).asInt(), ctx.arg(1).asInt());
+	auto arrayId = CreateArray(ctx.arg(0).rawValue(), ctx.arg(1).rawValue());
 	ctx.setReturn(arrayId, DataType::INT);
 }
 
 void sf_set_array(OpcodeContext& ctx) {
 	SetArray(
-		ctx.arg(0).asInt(),
+		ctx.arg(0).rawValue(),
 		ctx.arg(1),
 		ctx.arg(2),
 		true
@@ -65,55 +65,55 @@ void sf_get_array(OpcodeContext& ctx) {
 }
 
 void sf_free_array(OpcodeContext& ctx) {
-	FreeArray(ctx.arg(0).asInt());
+	FreeArray(ctx.arg(0).rawValue());
 }
 
 void sf_len_array(OpcodeContext& ctx) {
 	ctx.setReturn(
-		LenArray(ctx.arg(0).asInt())
+		LenArray(ctx.arg(0).rawValue())
 	);
 }
 
 void sf_resize_array(OpcodeContext& ctx) {
-	if (ResizeArray(ctx.arg(0).asInt(), ctx.arg(1).asInt())) {
+	if (ResizeArray(ctx.arg(0).rawValue(), ctx.arg(1).rawValue())) {
 		ctx.printOpcodeError("%s() - array sorting error.", ctx.getOpcodeName());
 	}
 }
 
 void sf_temp_array(OpcodeContext& ctx) {
-	auto arrayId = TempArray(ctx.arg(0).asInt(), ctx.arg(1).asInt());
+	auto arrayId = TempArray(ctx.arg(0).rawValue(), ctx.arg(1).rawValue());
 	ctx.setReturn(arrayId, DataType::INT);
 }
 
 void sf_fix_array(OpcodeContext& ctx) {
-	FixArray(ctx.arg(0).asInt());
+	FixArray(ctx.arg(0).rawValue());
 }
 
 void sf_scan_array(OpcodeContext& ctx) {
 	ctx.setReturn(
-		ScanArray(ctx.arg(0).asInt(), ctx.arg(1))
+		ScanArray(ctx.arg(0).rawValue(), ctx.arg(1))
 	);
 }
 
 void sf_save_array(OpcodeContext& ctx) {
-	SaveArray(ctx.arg(0), ctx.arg(1).asInt());
+	SaveArray(ctx.arg(0), ctx.arg(1).rawValue());
 }
 
 void sf_load_array(OpcodeContext& ctx) {
 	ctx.setReturn(
-		static_cast<int>(LoadArray(ctx.arg(0)))
+		LoadArray(ctx.arg(0))
 	);
 }
 
 void sf_get_array_key(OpcodeContext& ctx) {
 	ctx.setReturn(
-		GetArrayKey(ctx.arg(0).asInt(), ctx.arg(1).asInt())
+		GetArrayKey(ctx.arg(0).rawValue(), ctx.arg(1).rawValue())
 	);
 }
 
 void sf_stack_array(OpcodeContext& ctx) {
 	ctx.setReturn(
-		static_cast<int>(StackArray(ctx.arg(0), ctx.arg(1)))
+		StackArray(ctx.arg(0), ctx.arg(1))
 	);
 }
 

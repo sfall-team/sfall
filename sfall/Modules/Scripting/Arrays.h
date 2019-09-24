@@ -40,7 +40,7 @@ public:
 	sArrayElement(const long&);
 
 	// free string resource from memory, has to be called manually when deleting element
-	void clear();
+	void clearData();
 
 	// set* methods will actually COPY strings, use this when acquiring data from the scripting engine
 	void setByType(DWORD val, DataType dataType);
@@ -107,15 +107,16 @@ public:
 	ArrayKeysMap keyHash; // key element => element index, for faster lookup
 	std::vector<sArrayElement> val; // list of values or key=>value pairs (even - keys, odd - values)
 
+	sArrayVar() : flags(0), key() {}
+
 	bool isAssoc() const {
 		return (flags & ARRAYFLAG_ASSOC);
 	}
 
 	// logical array size (number of elements for normal arrays; number of key=>value pairs for associative)
 	int size() const {
-		return isAssoc()
-			? val.size() / 2
-			: val.size();
+		size_t sz = val.size();
+		return isAssoc() ? sz / 2 : sz;
 	}
 
 	// usefull when filling array from within sfall code (normal lists only)
@@ -125,15 +126,14 @@ public:
 		}
 	}
 
-	sArrayVar() : flags(0), key() {}
-
 	// free memory used by strings
-	void clear() {
-		clearRange(0);
-		key.clear();
+	void clearArrayVar() {
+		clearAll();
+		key.clearData();
 	}
 
 	void clearRange(int from, int to = -1);
+	void clearAll();
 };
 
 // arrays map: arrayId => arrayVar
@@ -160,13 +160,13 @@ void DEGetArray(int id, DWORD* types, char* data);
 void DESetArray(int id, const DWORD* types, const char* data);
 
 // creates new normal (persistent) array. len == -1 specifies associative array (map)
-DWORD _stdcall CreateArray(int len, DWORD flags);
+DWORD CreateArray(int len, DWORD flags);
 
 // same as CreateArray, but creates temporary array instead (will die at the end of the frame)
-DWORD _stdcall TempArray(DWORD len, DWORD flags);
+DWORD TempArray(DWORD len, DWORD flags);
 
 // destroys array
-void _stdcall FreeArray(DWORD id);
+void FreeArray(DWORD id);
 
 // destroy all temp arrays
 void DeleteAllTempArrays();
@@ -174,34 +174,34 @@ void DeleteAllTempArrays();
 /*
 	op_get_array_key can be used to iterate over all keys in associative array
 */
-ScriptValue _stdcall GetArrayKey(DWORD id, int index);
+ScriptValue GetArrayKey(DWORD id, int index);
 
 // get array element by index (list) or key (map)
-ScriptValue _stdcall GetArray(DWORD id, const ScriptValue& key);
+ScriptValue GetArray(DWORD id, const ScriptValue& key);
 
 // set array element by index or key
-void _stdcall SetArray(DWORD id, const ScriptValue& key, const ScriptValue& val, bool allowUnset);
+void SetArray(DWORD id, const ScriptValue& key, const ScriptValue& val, bool allowUnset);
 
 // number of elements in list or pairs in map
-int _stdcall LenArray(DWORD id);
+int LenArray(DWORD id);
 
 // change array size (only works with list)
-long _stdcall ResizeArray(DWORD id, int newlen);
+long ResizeArray(DWORD id, int newlen);
 
 // make temporary array persistent
-void _stdcall FixArray(DWORD id);
+void FixArray(DWORD id);
 
 // searches for a given element in array and returns it's index (for list) or key (for map) or int(-1) if not found
-ScriptValue _stdcall ScanArray(DWORD id, const ScriptValue& val);
+ScriptValue ScanArray(DWORD id, const ScriptValue& val);
 
 // get saved array by it's key
-DWORD _stdcall LoadArray(const ScriptValue& key);
+DWORD LoadArray(const ScriptValue& key);
 
 // make array saved into the savegame with associated key
-void _stdcall SaveArray(const ScriptValue& key, DWORD id);
+void SaveArray(const ScriptValue& key, DWORD id);
 
 // special function that powers array expressions
-DWORD _stdcall StackArray(const ScriptValue& key, const ScriptValue& val);
+long StackArray(const ScriptValue& key, const ScriptValue& val);
 
 }
 }

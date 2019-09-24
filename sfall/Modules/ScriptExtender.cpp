@@ -653,7 +653,7 @@ void SaveGlobals(HANDLE h) {
 static void ClearGlobals() {
 	globalVars.clear();
 	for (array_itr it = arrays.begin(); it != arrays.end(); ++it) {
-		it->second.clear();
+		it->second.clearArrayVar();
 	}
 	arrays.clear();
 	savedArrays.clear();

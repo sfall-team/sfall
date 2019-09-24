@@ -42,9 +42,9 @@ sArrayElement::sArrayElement(const long& other)
 	set(other);
 }
 
-void sArrayElement::clear()
+void sArrayElement::clearData()
 {
-	if (strVal && type == DataType::STR) delete[] strVal;
+	if (type == DataType::STR) delete[] strVal;
 }
 
 void sArrayElement::setByType( DWORD val, DataType dataType )
@@ -64,21 +64,21 @@ void sArrayElement::setByType( DWORD val, DataType dataType )
 
 void sArrayElement::set( long val )
 {
-	clear();
+	clearData();
 	type = DataType::INT;
 	intVal = val;
 }
 
 void sArrayElement::set( float val )
 {
-	clear();
+	clearData();
 	type = DataType::FLOAT;
 	floatVal = val;
 }
 
 void sArrayElement::set( const char* val, int sLen /*= -1*/ )
 {
-	clear();
+	clearData();
 	type = DataType::STR;
 	if (sLen == -1) sLen = strlen(val);
 	if (sLen >= ARRAY_MAX_STRING) sLen = ARRAY_MAX_STRING - 1; // memory safety
@@ -90,7 +90,7 @@ void sArrayElement::set( const char* val, int sLen /*= -1*/ )
 
 void sArrayElement::unset()
 {
-	clear();
+	clearData();
 	type = DataType::NONE;
 	len = intVal = 0;
 }
@@ -99,11 +99,11 @@ DWORD sArrayElement::getHashStatic(DWORD value, DataType type) {
 	switch (type) {
 	case DataType::STR: {
 		const char* str = (const char*)value;
-		DWORD res = 0;
-		for (int i = 0; str[i] != '\0'; i++) {
-			res = ((res << 5) + res) + str[i];
+		DWORD hash = 0;
+		while (*str) {
+			hash = ((hash << 5) + hash) + *str++;
 		}
-		return res;
+		return hash;
 	}
 	case DataType::INT:
 	case DataType::FLOAT:
@@ -150,7 +150,14 @@ void sArrayVar::clearRange( int from, int to /*= -1*/ )
 	if (to == -1) to = val.size();
 	std::vector<sArrayElement>::iterator it, itTo = val.begin() + to;
 	for (it = val.begin() + from; it < itTo; ++it) {
-		it->clear();
+		it->clearData();
+	}
+}
+
+void sArrayVar::clearAll()
+{
+	for (auto it = val.begin(); it != val.end(); ++it) {
+		it->clearData();
 	}
 }
 
@@ -179,6 +186,7 @@ bool LoadArrayElement(sArrayElement* el, HANDLE h)
 			el->strVal = nullptr;
 	} else {
 		ReadFile(h, &el->intVal, 4, &unused, 0);
+		el->len = 0;
 	}
 	return (el->len) ? (unused != el->len) : (unused != 4);
 }
@@ -202,8 +210,8 @@ static long LoadArraysOld(HANDLE h) {
 		var.types = new DWORD[var.len];
 		var.data = new char[var.len * var.datalen];
 
-		ReadFile(h, var.types, (4 * var.len), &unused, 0);
-		ReadFile(h, var.data, (var.len * var.datalen), &unused, 0);
+		ReadFile(h, &var.types, (4 * var.len), &unused, 0);
+		ReadFile(h, &var.data, (var.len * var.datalen), &unused, 0);
 
 		varN.flags = 0;
 		varN.val.resize(var.len);
@@ -250,7 +258,6 @@ long LoadArrays(HANDLE h) {
 			arrayVar.key.intVal = static_cast<long>(arrayVar.key.type);
 			arrayVar.key.type = DataType::INT;
 		}
-
 		ReadFile(h, &arrayVar.flags, 4, &unused, 0);
 		ReadFile(h, &elCount, 4, &unused, 0); // actual number of elements: keys+values
 		if (unused != 4) return -1;
@@ -268,6 +275,7 @@ long LoadArrays(HANDLE h) {
 
 		arrays.insert(array_pair(nextArrayID, arrayVar));
 		savedArrays[arrayVar.key] = nextArrayID++;
+
 		arrayVar.keyHash.clear();
 	}
 	return 0;
@@ -277,29 +285,29 @@ void SaveArrays(HANDLE h) {
 	DWORD elCount, unused, count = 0;
 	WriteFile(h, &count, 4, &unused, 0); // this is for backward compatibility with 3.3-
 
-	array_itr arIt;
+	array_itr arrayIt;
 	ArrayKeysMap::iterator it = savedArrays.begin();
 	while (it != savedArrays.end()) {
-		arIt = arrays.find(it->second);
-		if (arIt == arrays.end()) {
-			savedArrays.erase(it++);
+		arrayIt = arrays.find(it->second); // check the existence of an array
+		if (arrayIt == arrays.end()) {
+			it = savedArrays.erase(it); // array is not found, delete it [fix to C++11 https://en.cppreference.com/w/cpp/container/unordered_map/erase]
 		} else {
 			++count;
 			++it;
 		}
 	}
-	WriteFile(h, &count, 4, &unused, 0);
-
+	WriteFile(h, &count, 4, &unused, 0); // count saved arrays
+	if (count == 0) return;
 	for (it = savedArrays.begin(); it != savedArrays.end(); ++it) {
-		arIt = arrays.find(it->second);
-		if (arIt != arrays.end()) {
+		arrayIt = arrays.find(it->second);
+		if (arrayIt != arrays.end()) {
 			sArrayVar &var = arrays[it->second];
-			SaveArrayElement(&var.key, h);
+			SaveArrayElement(&var.key, h); // type, key/length of key and string of key
 			WriteFile(h, &var.flags, 4, &unused, 0);
 			elCount = var.val.size();
-			WriteFile(h, &elCount, 4, &unused, 0);
-			for (std::vector<sArrayElement>::iterator it = var.val.begin(); it != var.val.end(); ++it) {
-				SaveArrayElement(&(*it), h);
+			WriteFile(h, &elCount, 4, &unused, 0); // number of elements in saved array
+			for (std::vector<sArrayElement>::iterator vIt = var.val.begin(); vIt != var.val.end(); ++vIt) {
+				SaveArrayElement(&(*vIt), h);
 			}
 		}
 	}
@@ -371,7 +379,7 @@ void DESetArray(int id, const DWORD* types, const char* data) {
 	TODO: move somewhere else
 */
 
-DWORD _stdcall CreateArray(int len, DWORD flags) {
+DWORD CreateArray(int len, DWORD flags) {
 	sArrayVar var;
 	var.flags = (flags & 0xFFFFFFFE); // reset 1 bit
 	if (len < 0) {
@@ -395,17 +403,17 @@ DWORD _stdcall CreateArray(int len, DWORD flags) {
 	return nextArrayID++;
 }
 
-DWORD _stdcall TempArray(DWORD len, DWORD flags) {
+DWORD TempArray(DWORD len, DWORD flags) {
 	DWORD id = CreateArray(len, flags);
 	tempArrays.insert(id);
 	return id;
 }
 
-void _stdcall FreeArray(DWORD id) {
+void FreeArray(DWORD id) {
 	array_itr it = arrays.find(id);
 	if (it != arrays.end()) {
-		savedArrays.erase(it->second.key);
-		it->second.clear();
+		if (it->second.key.intVal) savedArrays.erase(it->second.key);
+		it->second.clearArrayVar();
 		arrays.erase(id);
 	}
 }
@@ -419,7 +427,7 @@ void DeleteAllTempArrays() {
 	}
 }
 
-ScriptValue _stdcall GetArrayKey(DWORD id, int index) {
+ScriptValue GetArrayKey(DWORD id, int index) {
 	if (arrays.find(id) == arrays.end() || index < -1 || index > arrays[id].size()) {
 		return ScriptValue(0);
 	}
@@ -446,7 +454,7 @@ ScriptValue _stdcall GetArrayKey(DWORD id, int index) {
 	}
 }
 
-ScriptValue _stdcall GetArray(DWORD id, const ScriptValue& key) {
+ScriptValue GetArray(DWORD id, const ScriptValue& key) {
 	if (arrays.find(id) == arrays.end()) {
 		return 0;
 	}
@@ -478,7 +486,7 @@ ScriptValue _stdcall GetArray(DWORD id, const ScriptValue& key) {
 	return ScriptValue(0);
 }
 
-void _stdcall SetArray(DWORD id, const ScriptValue& key, const ScriptValue& val, bool allowUnset) {
+void SetArray(DWORD id, const ScriptValue& key, const ScriptValue& val, bool allowUnset) {
 	if (arrays.find(id) == arrays.end()) {
 		return;
 	}
@@ -529,7 +537,7 @@ void _stdcall SetArray(DWORD id, const ScriptValue& key, const ScriptValue& val,
 	}
 }
 
-int _stdcall LenArray(DWORD id) {
+int LenArray(DWORD id) {
 	if (arrays.find(id) == arrays.end()) return -1;
 	return arrays[id].size();
 }
@@ -590,12 +598,16 @@ static void MapSort(sArrayVar& arr, int type) {
 	}
 }
 
-long _stdcall ResizeArray(DWORD id, int newlen) {
-	if (newlen == -1 || arrays.find(id) == arrays.end() || arrays[id].size() == newlen) return 0;
+long ResizeArray(DWORD id, int newlen) {
+	if (newlen == -1 || arrays.find(id) == arrays.end()) return 0;
+
 	sArrayVar &arr = arrays[id];
+	int arrSize = arr.size();
+	if (arrSize == newlen) return 0;
+
 	if (arr.isAssoc()) {
 		// only allow to reduce number of elements (adding range of elements is meaningless for maps)
-		if (newlen >= 0 && newlen < arrays[id].size()) {
+		if (newlen >= 0 && newlen < arrSize) {
 			ArrayKeysMap::iterator itHash;
 			std::vector<sArrayElement>::iterator itVal;
 			int actualLen = newlen * 2;
@@ -603,7 +615,10 @@ long _stdcall ResizeArray(DWORD id, int newlen) {
 				if ((itHash = arr.keyHash.find(*itVal)) != arr.keyHash.end())
 					arr.keyHash.erase(itHash);
 			}
-			arr.clearRange(actualLen);
+			if (actualLen == 0)
+				arr.clearAll();
+			else
+				arr.clearRange(actualLen);
 			arr.val.resize(actualLen);
 		} else if (newlen < 0) {
 			if (newlen < (ARRAY_ACTION_SHUFFLE - 2)) return -1;
@@ -612,10 +627,12 @@ long _stdcall ResizeArray(DWORD id, int newlen) {
 		return 0;
 	}
 	if (newlen >= 0) { // actual resize
-		if (newlen > ARRAY_MAX_SIZE) // safety
-			newlen = ARRAY_MAX_SIZE;
-		if (newlen < arr.size())
-			arr.clearRange(newlen);
+		if (newlen == 0) {
+			arr.clearAll();
+		} else {
+			if (newlen > ARRAY_MAX_SIZE) newlen = ARRAY_MAX_SIZE; // safety
+			if (newlen < arrSize) arr.clearRange(newlen);
+		}
 		arr.val.resize(newlen);
 	} else { // special functions for lists...
 		if (newlen < ARRAY_ACTION_SHUFFLE) return -1;
@@ -624,11 +641,11 @@ long _stdcall ResizeArray(DWORD id, int newlen) {
 	return 0;
 }
 
-void _stdcall FixArray(DWORD id) {
+void FixArray(DWORD id) {
 	tempArrays.erase(id);
 }
 
-ScriptValue _stdcall ScanArray(DWORD id, const ScriptValue& val) {
+ScriptValue ScanArray(DWORD id, const ScriptValue& val) {
 	if (arrays.find(id) == arrays.end()) {
 		return ScriptValue(-1);
 	}
@@ -652,7 +669,7 @@ ScriptValue _stdcall ScanArray(DWORD id, const ScriptValue& val) {
 	return ScriptValue(-1);
 }
 
-DWORD _stdcall LoadArray(const ScriptValue& key) {
+DWORD LoadArray(const ScriptValue& key) {
 	if (!key.isInt() || key.asInt() != 0) { // returns arrayId by it's key (ignoring int(0) because it is used to "unsave" array)
 		sArrayElement keyEl = sArrayElement(key.rawValue(), key.type());
 
@@ -678,22 +695,29 @@ DWORD _stdcall LoadArray(const ScriptValue& key) {
 	return 0; // not found
 }
 
-void _stdcall SaveArray(const ScriptValue& key, DWORD id) {
-	array_itr it = arrays.find(id), it2;
-	if (it != arrays.end()) {
+void SaveArray(const ScriptValue& key, DWORD id) {
+	array_itr it, itArray = arrays.find(id); // arrayId => arrayVar
+	if (itArray != arrays.end()) {
 		if (!key.isInt() || key.asInt() != 0) {
 			// make array permanent
-			FixArray(it->first);
+			FixArray(itArray->first);
 			// if another array is saved under the same key, clear it
-			ArrayKeysMap::iterator sIt = savedArrays.find(sArrayElement(key.rawValue(), key.type()));
-			if (sIt != savedArrays.end() && sIt->second != id && (it2 = arrays.find(sIt->second)) != arrays.end()) {
-				it2->second.key.unset();
+			ArrayKeysMap::iterator savedIt = savedArrays.find(sArrayElement(key.rawValue(), key.type()));
+			if (savedIt != savedArrays.end()) {
+				if (savedIt->second == id) return; // exit, array is already saveable
+				// arrays have different ID, search the ID of the "saved" array in collection of arrays
+				if ((it = arrays.find(savedIt->second)) != arrays.end()) {
+					// array exists, delete key value
+					savedArrays.erase(savedIt); /* added for fix */
+					it->second.key.unset();
+				}
 			}
-			it->second.key.setByType(key.rawValue(), key.type());
-			savedArrays[it->second.key] = id;
-		} else { // int(0) is used to "unsave" array without destroying it
-			int num = savedArrays.erase(it->second.key);
-			it->second.key.unset();
+			// make "saved" array
+			itArray->second.key.setByType(key.rawValue(), key.type());
+			savedArrays.emplace(itArray->second.key, id); // savedArrays[itArray->second.key] = id;
+		} else { // key of int(0) is used to "unsave" array without destroying it
+			savedArrays.erase(itArray->second.key);
+			itArray->second.key.unset();
 		}
 	}
 }
@@ -708,7 +732,7 @@ void _stdcall SaveArray(const ScriptValue& key, DWORD id) {
 
 	Should always return 0!
 */
-DWORD _stdcall StackArray(const ScriptValue& key, const ScriptValue& val) {
+long StackArray(const ScriptValue& key, const ScriptValue& val) {
 	DWORD id = stackArrayId;
 	if (id == 0 || arrays.find(id) == arrays.end()) {
 		return 0;
