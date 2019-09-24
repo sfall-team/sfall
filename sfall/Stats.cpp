@@ -176,6 +176,37 @@ static void __declspec(naked) stat_recalc_derived_hack() {
 	}
 }
 
+static const DWORD StatSetBaseRet = 0x4AF559;
+static void __declspec(naked) stat_set_base_hack_allow() {
+	__asm {
+		cmp  ecx, STAT_unused;
+		je   allow;
+		cmp  ecx, STAT_dmg_thresh;
+		jl   notAllow;
+		cmp  ecx, STAT_dmg_resist_explosion;
+		jg   notAllow;
+allow:
+		pop  eax;      // destroy return address
+		jmp  StatSetBaseRet;
+notAllow:
+		mov  eax, -1;  // overwritten engine code
+		retn;
+	}
+}
+
+static const DWORD SetCritterStatRet = 0x455D8A;
+static void __declspec(naked) op_set_critter_stat_hack() {
+	__asm {
+		cmp  dword ptr [esp + 0x2C - 0x28 + 4], STAT_unused;
+		je   allow;
+		mov  ebx, 3;  // overwritten engine code
+		retn;
+allow:
+		add  esp, 4;  // destroy return address
+		jmp  SetCritterStatRet;
+	}
+}
+
 void StatsReset() {
 	for (int i = 0; i < STAT_max_stat; i++) {
 		StatMaximumsPC[i] = StatMaximumsNPC[i] = *(DWORD*)(_stat_data + 16 + i * 24);
@@ -193,6 +224,10 @@ void StatsInit() {
 	MakeJump(0x4AF571, stat_set_base_hack_check);
 
 	MakeCall(0x4AF09C, CalcApToAcBonus, 3); // stat_level_
+
+	// Allow set_critter_stat function to change STAT_unused and STAT_dmg_* stats for the player
+	MakeCall(0x4AF54E, stat_set_base_hack_allow);
+	MakeCall(0x455D65, op_set_critter_stat_hack); // STAT_unused for other critters
 
 	char table[2048];
 	GetPrivateProfileString("Misc", "XPTable", "", table, 2048, ini);

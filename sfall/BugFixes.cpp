@@ -2678,12 +2678,15 @@ void BugFixesInit()
 	}
 
 	// Fix for AI not checking weapon perks properly when searching for the best weapon
-	if (GetPrivateProfileIntA("Misc", "AIBestWeaponFix", 0, ini)) {
+	int bestWeaponPerkFix = GetPrivateProfileIntA("Misc", "AIBestWeaponFix", 0, ini);
+	if (bestWeaponPerkFix > 0) {
 		dlog("Applying AI best weapon choice fix.", DL_INIT);
 		HookCall(0x42954B, ai_best_weapon_hook);
-		// also change the modifier for having weapon perk to 3x (was 5x)
-		SafeWrite8(0x42955E, 0x55);
-		SafeWrite8(0x4296E7, 0x55);
+		// also change the priority multiplier for having weapon perk to 3x (the original is 5x)
+		if (bestWeaponPerkFix > 1) {
+			SafeWrite8(0x42955E, 0x55);
+			SafeWrite8(0x4296E7, 0x55);
+		}
 		dlogr(" Done", DL_INIT);
 	}
 

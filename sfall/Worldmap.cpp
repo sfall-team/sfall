@@ -276,7 +276,13 @@ static void __declspec(naked) wmInterfaceInit_text_font_hook() {
 
 static void __declspec(naked) wmInterfaceRefreshCarFuel_hack_empty() {
 	__asm {
-		mov byte ptr [eax - 1], 14;
+		mov byte ptr [eax - 1], 13;
+		mov byte ptr [eax + 1], 13;
+		add eax, 640;
+		dec ebx;
+		mov byte ptr [eax], 14;
+		mov byte ptr [eax - 1], 15;
+		mov byte ptr [eax + 1], 15;
 		add eax, 640;
 		retn;
 	}
@@ -285,8 +291,10 @@ static void __declspec(naked) wmInterfaceRefreshCarFuel_hack_empty() {
 static void __declspec(naked) wmInterfaceRefreshCarFuel_hack() {
 	__asm {
 		mov byte ptr [eax - 1], 196;
+		mov byte ptr [eax + 1], 196;
 		add eax, 640;
-		mov byte ptr [eax - 1], 14;
+		mov byte ptr [eax - 1], 200;
+		mov byte ptr [eax + 1], 200;
 		retn;
 	}
 }
@@ -510,6 +518,8 @@ void WorldMapInterfacePatch() {
 	// Car fuel gauge graphics patch
 	MakeCall(0x4C528A, wmInterfaceRefreshCarFuel_hack_empty);
 	MakeCall(0x4C529E, wmInterfaceRefreshCarFuel_hack);
+	SafeWrite8(0x4C52A8, 197);
+	SafeWrite8(0x4C5289, 12);
 }
 
 void PipBoyAutomapsPatch() {

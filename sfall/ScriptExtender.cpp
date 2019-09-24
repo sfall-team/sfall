@@ -1346,7 +1346,7 @@ static void __declspec(naked) obj_insert_hack() {
 		retn;
 insert:
 		mov  esi, [ecx]; // esi - inserted object
-		cmp  dword ptr [esi + 0x64], 0x5000004; // corpse blood pid
+		cmp  dword ptr [esi + 0x64], PID_CORPSE_BLOOD;
 		jnz  skip;
 		xor  edi, edi;
 skip:
@@ -1455,7 +1455,7 @@ void ScriptExtenderSetup() {
 	SafeWrite32(0x46CE6C, (DWORD)opcodes); // call that actually jumps to the opcode
 	SafeWrite32(0x46E390, (DWORD)opcodes); // mov that writes to the opcode
 
-	if (isDebug && (GetPrivateProfileIntA("Debugging", "AllowUnsafeScripting", 0, ".\\ddraw.ini") != 0)) {
+	if (GetPrivateProfileIntA("Debugging", "AllowUnsafeScripting", 0, ".\\ddraw.ini")) {
 		dlogr("  Unsafe opcodes enabled.", DL_SCRIPT);
 		opcodes[0x1cf] = WriteByte;
 		opcodes[0x1d0] = WriteShort;
