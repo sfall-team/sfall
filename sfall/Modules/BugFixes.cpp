@@ -2693,11 +2693,14 @@ void BugFixes::init()
 	}
 
 	// Fix for AI not checking weapon perks properly when searching for the best weapon
-	if (GetConfigInt("Misc", "AIBestWeaponFix", 0)) {
+	int bestWeaponPerkFix = GetConfigInt("Misc", "AIBestWeaponFix", 0);
+	if (bestWeaponPerkFix > 0) {
 		dlog("Applying AI best weapon choice fix.", DL_INIT);
 		HookCall(0x42954B, ai_best_weapon_hook);
-		// also change the modifier for having weapon perk to 3x (was 5x)
-		SafeWriteBatch<BYTE>(0x55, {0x42955E, 0x4296E7});
+		// also change the priority multiplier for having weapon perk to 3x (the original is 5x)
+		if (bestWeaponPerkFix > 1) {
+			SafeWriteBatch<BYTE>(0x55, {0x42955E, 0x4296E7});
+		}
 		dlogr(" Done", DL_INIT);
 	}
 

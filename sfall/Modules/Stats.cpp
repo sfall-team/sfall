@@ -238,7 +238,40 @@ static void __declspec(naked) stat_recalc_derived_hack() {
 	}
 }
 
-///////////////////// CRITTERS STATS /////////////////////
+static const DWORD StatSetBaseRet = 0x4AF559;
+static void __declspec(naked) stat_set_base_hack_allow() {
+	using namespace fo;
+	__asm {
+		cmp  ecx, STAT_unused;
+		je   allow;
+		cmp  ecx, STAT_dmg_thresh;
+		jl   notAllow;
+		cmp  ecx, STAT_dmg_resist_explosion;
+		jg   notAllow;
+allow:
+		pop  eax;      // destroy return address
+		jmp  StatSetBaseRet;
+notAllow:
+		mov  eax, -1;  // overwritten engine code
+		retn;
+	}
+}
+
+static const DWORD SetCritterStatRet = 0x455D8A;
+static void __declspec(naked) op_set_critter_stat_hack() {
+	using namespace fo;
+	__asm {
+		cmp  dword ptr [esp + 0x2C - 0x28 + 4], STAT_unused;
+		je   allow;
+		mov  ebx, 3;  // overwritten engine code
+		retn;
+allow:
+		add  esp, 4;  // destroy return address
+		jmp  SetCritterStatRet;
+	}
+}
+
+//////////////////////////////// CRITTERS STATS ////////////////////////////////
 static long isNotPartyMemberPid;
 
 static struct {
@@ -549,7 +582,7 @@ void StatsProtoReset() {
 	protoMem.clear();
 	isNotPartyMemberPid = 0;
 }
-///////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 
 void StatsReset() {
 	for (int i = 0; i < fo::STAT_max_stat; i++) {
@@ -583,6 +616,10 @@ void Stats::init() {
 	MakeJump(0x4AF571, stat_set_base_hack_check);
 
 	MakeCall(0x4AF09C, CalcApToAcBonus, 3); // stat_level_
+
+	// Allow set_critter_stat function to change STAT_unused and STAT_dmg_* stats for the player
+	MakeCall(0x4AF54E, stat_set_base_hack_allow);
+	MakeCall(0x455D65, op_set_critter_stat_hack); // STAT_unused for other critters
 
 	auto xpTableList = GetConfigList("Misc", "XPTable", "", 2048);
 	size_t numLevels = xpTableList.size();

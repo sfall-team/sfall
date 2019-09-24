@@ -513,7 +513,7 @@ void CorpseLineOfFireFix() {
 }
 
 void NpcStage6Fix() {
-	if (GetConfigInt("Misc", "NPCStage6Fix", 0)) {
+	if (GetConfigInt("Misc", "NPCStage6Fix", 1)) {
 		dlog("Applying NPC Stage 6 Fix.", DL_INIT);
 		MakeJump(0x493CE9, NPCStage6Fix1);
 		SafeWrite8(0x494063, 6);   // loop should look for a potential 6th stage

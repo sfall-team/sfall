@@ -84,7 +84,7 @@ static void ActionPointsBarPatch() {
 		if (hrpVersionValid && !_stricmp((const char*)HRPAddressOffset(0x39358), "HR_IFACE_%i.frm")) {
 			SafeWriteStr(HRPAddressOffset(0x39363), "E.frm"); // patching HRP
 		} else {
-			dlog(" Incorrect HRP version!", DL_INIT);
+			dlogr(" Incorrect HRP version!", DL_INIT);
 			return;
 		}
 		LoadGameHook::OnAfterGameInit() += APBarRectPatch;
@@ -412,7 +412,13 @@ static void WorldmapViewportPatch() {
 
 static void __declspec(naked) wmInterfaceRefreshCarFuel_hack_empty() {
 	__asm {
-		mov byte ptr [eax - 1], 14;
+		mov byte ptr [eax - 1], 13;
+		mov byte ptr [eax + 1], 13;
+		add eax, wmapWinWidth;
+		dec ebx;
+		mov byte ptr [eax], 14;
+		mov byte ptr [eax - 1], 15;
+		mov byte ptr [eax + 1], 15;
 		add eax, wmapWinWidth;
 		retn;
 	}
@@ -421,8 +427,10 @@ static void __declspec(naked) wmInterfaceRefreshCarFuel_hack_empty() {
 static void __declspec(naked) wmInterfaceRefreshCarFuel_hack() {
 	__asm {
 		mov byte ptr [eax - 1], 196;
+		mov byte ptr [eax + 1], 196;
 		add eax, wmapWinWidth;
-		mov byte ptr [eax - 1], 14;
+		mov byte ptr [eax - 1], 200;
+		mov byte ptr [eax + 1], 200;
 		retn;
 	}
 }
@@ -464,6 +472,8 @@ static void WorldMapInterfacePatch() {
 	// Car fuel gauge graphics patch
 	MakeCall(0x4C528A, wmInterfaceRefreshCarFuel_hack_empty);
 	MakeCall(0x4C529E, wmInterfaceRefreshCarFuel_hack);
+	SafeWrite8(0x4C52A8, 197);
+	SafeWrite8(0x4C5289, 12);
 }
 
 void Interface::init() {
