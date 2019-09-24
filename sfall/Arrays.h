@@ -32,7 +32,7 @@ public:
 	sArrayElement(const long&);
 
 	// free string resource from memory, has to be called manually when deleting element
-	void clear();
+	void clearData();
 
 	// set* methods will actually COPY strings, use this when acquiring data from the scripting engine
 	void setByType(DWORD val, DWORD dataType);
@@ -98,15 +98,16 @@ public:
 	ArrayKeysMap keyHash; // key element => element index, for faster lookup
 	std::vector<sArrayElement> val; // list of values or key=>value pairs (even - keys, odd - values)
 
+	sArrayVar() : flags(0), key() {}
+
 	bool isAssoc() const {
 		return (flags & ARRAYFLAG_ASSOC);
 	}
 
 	// logical array size (number of elements for normal arrays; number of key=>value pairs for associative)
 	int size() const {
-		return isAssoc()
-			? val.size() / 2
-			: val.size();
+		size_t sz = val.size();
+		return isAssoc() ? sz / 2 : sz;
 	}
 
 	// usefull when filling array from within sfall code (normal lists only)
@@ -116,15 +117,14 @@ public:
 		}
 	}
 
-	sArrayVar() : flags(0), key() {}
-
 	// free memory used by strings
-	void clear() {
-		clearRange(0);
-		key.clear();
+	void clearArrayVar() {
+		clearAll();
+		key.clearData();
 	}
 
 	void clearRange(int from, int to = -1);
+	void clearAll();
 };
 
 // arrays map: arrayId => arrayVar
@@ -194,8 +194,5 @@ DWORD _stdcall LoadArray(DWORD key, DWORD keyType);
 // make array saved into the savegame with associated key
 void _stdcall SaveArray(DWORD key, DWORD keyType, DWORD id);
 
-// return keys of all saved arrays as a temp list
-DWORD _stdcall SavedArrays();
-
 // special function that powers array expressions
-DWORD _stdcall StackArray(DWORD key, DWORD keyType, DWORD val, DWORD valType);
+long _stdcall StackArray(DWORD key, DWORD keyType, DWORD val, DWORD valType);

@@ -35,9 +35,9 @@ sArrayElement::sArrayElement(const long& other)
 	set(other);
 }
 
-void sArrayElement::clear()
+void sArrayElement::clearData()
 {
-	if (strVal && type == DATATYPE_STR) delete[] strVal;
+	if (type == DATATYPE_STR) delete[] strVal;
 }
 
 void sArrayElement::setByType( DWORD val, DWORD dataType )
@@ -57,21 +57,21 @@ void sArrayElement::setByType( DWORD val, DWORD dataType )
 
 void sArrayElement::set( long val )
 {
-	clear();
+	clearData();
 	type = DATATYPE_INT;
 	intVal = val;
 }
 
 void sArrayElement::set( float val )
 {
-	clear();
+	clearData();
 	type = DATATYPE_FLOAT;
 	floatVal = val;
 }
 
 void sArrayElement::set( const char* val, int sLen /*= -1*/ )
 {
-	clear();
+	clearData();
 	type = DATATYPE_STR;
 	if (sLen == -1) sLen = strlen(val);
 	if (sLen >= ARRAY_MAX_STRING) sLen = ARRAY_MAX_STRING - 1; // memory safety
@@ -83,7 +83,7 @@ void sArrayElement::set( const char* val, int sLen /*= -1*/ )
 
 void sArrayElement::unset()
 {
-	clear();
+	clearData();
 	type = DATATYPE_NONE;
 	len = intVal = 0;
 }
@@ -92,11 +92,11 @@ DWORD sArrayElement::getHashStatic(DWORD value, DWORD type) {
 	switch (type) {
 	case DATATYPE_STR: {
 		const char* str = (const char*)value;
-		DWORD res = 0;
-		for (int i = 0; str[i] != '\0'; i++) {
-			res = ((res << 5) + res) + str[i];
+		DWORD hash = 0;
+		while (*str) {
+			hash = ((hash << 5) + hash) + *str++;
 		}
-		return res;
+		return hash;
 	}
 	case DATATYPE_INT:
 	case DATATYPE_FLOAT:
@@ -143,7 +143,14 @@ void sArrayVar::clearRange( int from, int to /*= -1*/ )
 	if (to == -1) to = val.size();
 	std::vector<sArrayElement>::iterator it, itTo = val.begin() + to;
 	for (it = val.begin() + from; it < itTo; ++it) {
-		it->clear();
+		it->clearData();
+	}
+}
+
+void sArrayVar::clearAll()
+{
+	for (auto it = val.begin(); it != val.end(); ++it) {
+		it->clearData();
 	}
 }
 
@@ -172,6 +179,7 @@ bool LoadArrayElement(sArrayElement* el, HANDLE h)
 			el->strVal = nullptr;
 	} else {
 		ReadFile(h, &el->intVal, 4, &unused, 0);
+		el->len = 0;
 	}
 	return (el->len) ? (unused != el->len) : (unused != 4);
 }
@@ -195,8 +203,8 @@ static long LoadArraysOld(HANDLE h) {
 		var.types = new DWORD[var.len];
 		var.data = new char[var.len * var.datalen];
 
-		ReadFile(h, var.types, (4 * var.len), &unused, 0);
-		ReadFile(h, var.data, (var.len * var.datalen), &unused, 0);
+		ReadFile(h, &var.types, (4 * var.len), &unused, 0);
+		ReadFile(h, &var.data, (var.len * var.datalen), &unused, 0);
 
 		varN.flags = 0;
 		varN.val.resize(var.len);
@@ -243,7 +251,6 @@ long LoadArrays(HANDLE h) {
 			arrayVar.key.intVal = static_cast<long>(arrayVar.key.type);
 			arrayVar.key.type = DATATYPE_INT;
 		}
-
 		ReadFile(h, &arrayVar.flags, 4, &unused, 0);
 		ReadFile(h, &elCount, 4, &unused, 0); // actual number of elements: keys+values
 		if (unused != 4) return -1;
@@ -261,6 +268,7 @@ long LoadArrays(HANDLE h) {
 
 		arrays.insert(array_pair(nextArrayID, arrayVar));
 		savedArrays[arrayVar.key] = nextArrayID++;
+
 		arrayVar.keyHash.clear();
 	}
 	return 0;
@@ -270,29 +278,29 @@ void SaveArrays(HANDLE h) {
 	DWORD elCount, unused, count = 0;
 	WriteFile(h, &count, 4, &unused, 0); // this is for backward compatibility with 3.3-
 
-	array_itr arIt;
+	array_itr arrayIt;
 	ArrayKeysMap::iterator it = savedArrays.begin();
 	while (it != savedArrays.end()) {
-		arIt = arrays.find(it->second);
-		if (arIt == arrays.end()) {
-			savedArrays.erase(it++);
+		arrayIt = arrays.find(it->second); // check the existence of an array
+		if (arrayIt == arrays.end()) {
+			it = savedArrays.erase(it); // array is not found, delete it [fix to C++11 https://en.cppreference.com/w/cpp/container/unordered_map/erase]
 		} else {
 			++count;
 			++it;
 		}
 	}
-	WriteFile(h, &count, 4, &unused, 0);
-
+	WriteFile(h, &count, 4, &unused, 0); // count saved arrays
+	if (count == 0) return;
 	for (it = savedArrays.begin(); it != savedArrays.end(); ++it) {
-		arIt = arrays.find(it->second);
-		if (arIt != arrays.end()) {
+		arrayIt = arrays.find(it->second);
+		if (arrayIt != arrays.end()) {
 			sArrayVar &var = arrays[it->second];
-			SaveArrayElement(&var.key, h);
+			SaveArrayElement(&var.key, h); // type, key/length of key and string of key
 			WriteFile(h, &var.flags, 4, &unused, 0);
 			elCount = var.val.size();
-			WriteFile(h, &elCount, 4, &unused, 0);
-			for (std::vector<sArrayElement>::iterator it = var.val.begin(); it != var.val.end(); ++it) {
-				SaveArrayElement(&(*it), h);
+			WriteFile(h, &elCount, 4, &unused, 0); // number of elements in saved array
+			for (std::vector<sArrayElement>::iterator vIt = var.val.begin(); vIt != var.val.end(); ++vIt) {
+				SaveArrayElement(&(*vIt), h);
 			}
 		}
 	}
@@ -437,8 +445,8 @@ DWORD _stdcall TempArray(DWORD len, DWORD flags) {
 void _stdcall FreeArray(DWORD id) {
 	array_itr it = arrays.find(id);
 	if (it != arrays.end()) {
-		savedArrays.erase(it->second.key);
-		it->second.clear();
+		if (it->second.key.intVal) savedArrays.erase(it->second.key);
+		it->second.clearArrayVar();
 		arrays.erase(id);
 	}
 }
@@ -454,9 +462,12 @@ void DeleteAllTempArrays() {
 
 DWORD _stdcall GetArrayKey(DWORD id, int index, DWORD* resultType) {
 	*resultType = VAR_TYPE_INT;
-	if (arrays.find(id) == arrays.end() || index < -1 || index > arrays[id].size()) return 0;
-	if (index == -1) // special index to indicate if array is associative
+	if (arrays.find(id) == arrays.end() || index < -1 || index > arrays[id].size()) {
+		return 0;
+	}
+	if (index == -1) { // special index to indicate if array is associative
 		return (DWORD)arrays[id].isAssoc();
+	}
 	if (arrays[id].isAssoc()) {
 		index *= 2;
 		// for associative array - return key at the specified index
@@ -481,7 +492,9 @@ DWORD _stdcall GetArrayKey(DWORD id, int index, DWORD* resultType) {
 
 DWORD _stdcall GetArray(DWORD id, DWORD key, DWORD keyType, DWORD* resultType) {
 	*resultType = VAR_TYPE_INT;
-	if (arrays.find(id) == arrays.end()) return 0;
+	if (arrays.find(id) == arrays.end()) {
+		return 0;
+	}
 	int el;
 	sArrayVar &arr = arrays[id];
 	if (arr.isAssoc()) {
@@ -493,7 +506,9 @@ DWORD _stdcall GetArray(DWORD id, DWORD key, DWORD keyType, DWORD* resultType) {
 	} else {
 		el = key;
 		// check for invalid index
-		if (el < 0 || el >= arr.size()) return 0;
+		if (el < 0 || el >= arr.size()) {
+			return 0;
+		}
 	}
 	switch (arr.val[el].type) {
 	case DATATYPE_NONE:
@@ -513,7 +528,9 @@ DWORD _stdcall GetArray(DWORD id, DWORD key, DWORD keyType, DWORD* resultType) {
 void _stdcall SetArray(DWORD id, DWORD key, DWORD keyType, DWORD val, DWORD valType, DWORD allowUnset) {
 	keyType = getSfallTypeByScriptType(keyType);
 	valType = getSfallTypeByScriptType(valType);
-	if (arrays.find(id) == arrays.end()) return;
+	if (arrays.find(id) == arrays.end()) {
+		return;
+	}
 	int el;
 	sArrayVar &arr = arrays[id];
 	if (arrays[id].isAssoc()) {
@@ -622,12 +639,18 @@ static void MapSort(sArrayVar& arr, int type) {
 	}
 }
 
+static const char* errorResize = "\nOPCODE ERROR: resize_array() - array sorting error.";
+
 void _stdcall ResizeArray(DWORD id, int newlen) {
-	if (newlen == -1 || arrays.find(id) == arrays.end() || arrays[id].size() == newlen) return;
+	if (newlen == -1 || arrays.find(id) == arrays.end()) return;
+
 	sArrayVar &arr = arrays[id];
+	int arrSize = arr.size();
+	if (arrSize == newlen) return;
+
 	if (arr.isAssoc()) {
 		// only allow to reduce number of elements (adding range of elements is meaningless for maps)
-		if (newlen >= 0 && newlen < arrays[id].size()) {
+		if (newlen >= 0 && newlen < arrSize) {
 			ArrayKeysMap::iterator itHash;
 			std::vector<sArrayElement>::iterator itVal;
 			int actualLen = newlen * 2;
@@ -635,11 +658,14 @@ void _stdcall ResizeArray(DWORD id, int newlen) {
 				if ((itHash = arr.keyHash.find(*itVal)) != arr.keyHash.end())
 					arr.keyHash.erase(itHash);
 			}
-			arr.clearRange(actualLen);
+			if (actualLen == 0)
+				arr.clearAll();
+			else
+				arr.clearRange(actualLen);
 			arr.val.resize(actualLen);
 		} else if (newlen < 0) {
 			if (newlen < (ARRAY_ACTION_SHUFFLE - 2)) {
-				DebugPrintf("\nOPCODE ERROR: resize_array() - array sorting error.");
+				DebugPrintf(errorResize);
 				return;
 			}
 			MapSort(arr, newlen);
@@ -647,14 +673,16 @@ void _stdcall ResizeArray(DWORD id, int newlen) {
 		return;
 	}
 	if (newlen >= 0) { // actual resize
-		if (newlen > ARRAY_MAX_SIZE) // safety
-			newlen = ARRAY_MAX_SIZE;
-		if (newlen < arr.size())
-			arr.clearRange(newlen);
+		if (newlen == 0) {
+			arr.clearAll();
+		} else {
+			if (newlen > ARRAY_MAX_SIZE) newlen = ARRAY_MAX_SIZE; // safety
+			if (newlen < arrSize) arr.clearRange(newlen);
+		}
 		arr.val.resize(newlen);
 	} else { // special functions for lists...
 		if (newlen < ARRAY_ACTION_SHUFFLE) {
-			DebugPrintf("\nOPCODE ERROR: resize_array() - array sorting error.");
+			DebugPrintf(errorResize);
 			return;
 		}
 		ListSort(arr.val, newlen);
@@ -668,7 +696,9 @@ void _stdcall FixArray(DWORD id) {
 int _stdcall ScanArray(DWORD id, DWORD val, DWORD datatype, DWORD* resultType) {
 	*resultType = VAR_TYPE_INT;
 	datatype = getSfallTypeByScriptType(datatype);
-	if (arrays.find(id) == arrays.end()) return -1;
+	if (arrays.find(id) == arrays.end()) {
+		return -1;
+	}
 	char step = arrays[id].isAssoc() ? 2 : 1;
 	for (DWORD i = 0; i < arrays[id].val.size(); i += step) {
 		sArrayElement &el = arrays[id].val[i + step - 1];
@@ -715,22 +745,29 @@ DWORD _stdcall LoadArray(DWORD key, DWORD keyType) {
 }
 
 void _stdcall SaveArray(DWORD key, DWORD keyType, DWORD id) {
-	array_itr it = arrays.find(id), it2;
+	array_itr it, itArray = arrays.find(id); // arrayId => arrayVar
 	int dataType = getSfallTypeByScriptType(keyType);
-	if (it != arrays.end()) {
+	if (itArray != arrays.end()) {
 		if (dataType != DATATYPE_INT || key != 0) {
 			// make array permanent
-			FixArray(it->first);
+			FixArray(itArray->first);
 			// if another array is saved under the same key, clear it
-			ArrayKeysMap::iterator sIt = savedArrays.find(sArrayElement(key, dataType));
-			if (sIt != savedArrays.end() && sIt->second != id && (it2 = arrays.find(sIt->second)) != arrays.end()) {
-				it2->second.key.unset();
+			ArrayKeysMap::iterator savedIt = savedArrays.find(sArrayElement(key, dataType));
+			if (savedIt != savedArrays.end()) {
+				if (savedIt->second == id) return; // exit, array is already saveable
+				// arrays have different ID, search the ID of the "saved" array in collection of arrays
+				if ((it = arrays.find(savedIt->second)) != arrays.end()) {
+					// array exists, delete key value
+					savedArrays.erase(savedIt); /* added for fix */
+					it->second.key.unset();
+				}
 			}
-			it->second.key.setByType(key, dataType);
-			savedArrays[it->second.key] = id;
-		} else { // int(0) is used to "unsave" array without destroying it
-			int num = savedArrays.erase(it->second.key);
-			it->second.key.unset();
+			// make array "saved"
+			itArray->second.key.setByType(key, dataType);
+			savedArrays[itArray->second.key] = id;
+		} else { // key of int(0) is used to "unsave" array without destroying it
+			savedArrays.erase(itArray->second.key);
+			itArray->second.key.unset();
 		}
 	}
 }
@@ -745,9 +782,11 @@ void _stdcall SaveArray(DWORD key, DWORD keyType, DWORD id) {
 
 	Should always return 0!
 */
-DWORD _stdcall StackArray(DWORD key, DWORD keyType, DWORD val, DWORD valType) {
+long _stdcall StackArray(DWORD key, DWORD keyType, DWORD val, DWORD valType) {
 	DWORD id = stackArrayId;
-	if (id == 0 || arrays.find(id) == arrays.end()) return 0;
+	if (id == 0 || arrays.find(id) == arrays.end()) {
+		return 0;
+	}
 	if (!arrays[id].isAssoc()) {
 		// automatically resize array to fit one new element
 		ResizeArray(id, arrays[id].size() + 1);
