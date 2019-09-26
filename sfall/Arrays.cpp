@@ -639,8 +639,6 @@ static void MapSort(sArrayVar& arr, int type) {
 	}
 }
 
-static const char* errorResize = "\nOPCODE ERROR: resize_array() - array sorting error.";
-
 void _stdcall ResizeArray(DWORD id, int newlen) {
 	if (newlen == -1 || arrays.find(id) == arrays.end()) return;
 
@@ -664,10 +662,7 @@ void _stdcall ResizeArray(DWORD id, int newlen) {
 				arr.clearRange(actualLen);
 			arr.val.resize(actualLen);
 		} else if (newlen < 0) {
-			if (newlen < (ARRAY_ACTION_SHUFFLE - 2)) {
-				DebugPrintf(errorResize);
-				return;
-			}
+			if (newlen < (ARRAY_ACTION_SHUFFLE - 2)) goto errorResize;
 			MapSort(arr, newlen);
 		}
 		return;
@@ -681,12 +676,13 @@ void _stdcall ResizeArray(DWORD id, int newlen) {
 		}
 		arr.val.resize(newlen);
 	} else { // special functions for lists...
-		if (newlen < ARRAY_ACTION_SHUFFLE) {
-			DebugPrintf(errorResize);
-			return;
-		}
+		if (newlen < ARRAY_ACTION_SHUFFLE) goto errorResize;
 		ListSort(arr.val, newlen);
 	}
+	return;
+
+errorResize:
+	DebugPrintf("\nOPCODE ERROR: resize_array() - array sorting error.");
 }
 
 void _stdcall FixArray(DWORD id) {

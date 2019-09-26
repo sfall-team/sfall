@@ -507,27 +507,6 @@ end:
 	}
 }
 
-static const DWORD NPCStage6Fix1End = 0x493D16;
-static void __declspec(naked) NPCStage6Fix1() {
-	__asm {
-		mov  eax, 204;                  // set record size to 204 bytes
-		imul eax, edx;                  // multiply by number of NPC records in party.txt
-		mov  ebx, eax;                  // copy total record size for later memset
-		call mem_malloc_;               // malloc the necessary memory
-		jmp  NPCStage6Fix1End;          // call memset to set all malloc'ed memory to 0
-	}
-}
-
-static const DWORD NPCStage6Fix2End = 0x49423A;
-static void __declspec(naked) NPCStage6Fix2() {
-	__asm {
-		mov  eax, 204;                  // record size is 204 bytes
-		imul edx, eax;                  // multiply by NPC number as listed in party.txt
-		mov  eax, dword ptr ds:[_partyMemberAIOptions]; // get starting offset of internal NPC table
-		jmp  NPCStage6Fix2End;          // eax+edx = offset of specific NPC record
-	}
-}
-
 static const DWORD ScannerHookRet = 0x41BC1D;
 static const DWORD ScannerHookFail = 0x41BC65;
 static void __declspec(naked) ScannerAutomapHook() {
@@ -947,15 +926,6 @@ static void DllMain2() {
 			SafeWrite32(0x518E78, (DWORD)musicOverridePath);
 			SafeWrite32(0x518E7C, (DWORD)musicOverridePath);
 		}
-	}
-
-	if (GetPrivateProfileIntA("Misc", "NPCStage6Fix", 1, ini)) {
-		dlog("Applying NPC Stage 6 Fix.", DL_INIT);
-		MakeJump(0x493CE9, NPCStage6Fix1);
-		SafeWrite8(0x494063, 6);   // loop should look for a potential 6th stage
-		SafeWrite8(0x4940BB, 204); // move pointer by 204 bytes instead of 200
-		MakeJump(0x494224, NPCStage6Fix2);
-		dlogr(" Done", DL_INIT);
 	}
 
 	if (GetPrivateProfileIntA("Misc", "BoostScriptDialogLimit", 0, ini)) {

@@ -807,12 +807,31 @@ static void __declspec(naked) op_wield_obj_critter_adjust_ac_hook() {
 	}
 }
 
+static const DWORD NPCStage6Fix1End = 0x493D16;
+static void __declspec(naked) NPCStage6Fix1() {
+	__asm {
+		imul eax, edx, 204;             // necessary memory = number of NPC records in party.txt * record size
+		mov  ebx, eax;                  // copy total record size for later memset
+		call mem_malloc_;               // malloc the necessary memory
+		jmp  NPCStage6Fix1End;          // call memset to set all malloc'ed memory to 0
+	}
+}
+
+static const DWORD NPCStage6Fix2End = 0x49423A;
+static void __declspec(naked) NPCStage6Fix2() {
+	__asm {
+		imul edx, edx, 204;             // NPC number as listed in party.txt * record size
+		mov  eax, ds:[_partyMemberAIOptions]; // get starting offset of internal NPC table
+		jmp  NPCStage6Fix2End;          // eax+edx = offset of specific NPC record
+	}
+}
+
 // Haenlomal: Check path to critter for attack
 static void __declspec(naked) MultiHexFix() {
 	__asm {
 		xor  ecx, ecx;                      // argument value for make_path_func: ecx=0 (rotation data arg)
-		test byte ptr ds:[ebx+0x25], 0x08;  // is target multihex?
-		mov  ebx, dword ptr ds:[ebx+0x4];   // argument value for make_path_func: target's tilenum (end_tile)
+		test [ebx + 0x25], 0x08;            // is target multihex?
+		mov  ebx, [ebx + 0x4];              // argument value for make_path_func: target's tilenum (end_tile)
 		je   end;                           // skip if not multihex
 		inc  ebx;                           // otherwise, increase tilenum by 1
 end:
@@ -820,38 +839,38 @@ end:
 	}
 }
 
-static const DWORD ai_move_steps_closer_run_object_ret = 0x42A169;
-static void __declspec(naked) MultiHexCombatRunFix() {
-	__asm {
-		test byte ptr ds:[edi + 0x25], 0x08; // is target multihex?
-		jnz  multiHex;
-		test byte ptr ds:[esi + 0x25], 0x08; // is source multihex?
-		jz   runTile;
-multiHex:
-		mov  edx, dword ptr ds:[esp + 0x4];  // source's destination tilenum
-		cmp  dword ptr ds:[edi + 0x4], edx;  // target's tilenum
-		jnz  runTile;
-		add  esp, 4;
-		jmp  ai_move_steps_closer_run_object_ret;
-runTile:
-		retn;
-	}
-}
-
 static const DWORD ai_move_steps_closer_move_object_ret = 0x42A192;
 static void __declspec(naked) MultiHexCombatMoveFix() {
 	__asm {
-		test byte ptr ds:[edi + 0x25], 0x08; // is target multihex?
+		test [edi + 0x25], 0x08;      // is target multihex?
 		jnz  multiHex;
-		test byte ptr ds:[esi + 0x25], 0x08; // is source multihex?
+		test [esi + 0x25], 0x08;      // is source multihex?
 		jz   moveTile;
 multiHex:
-		mov  edx, dword ptr ds:[esp + 0x4];  // source's destination tilenum
-		cmp  dword ptr ds:[edi + 0x4], edx;  // target's tilenum
+		mov  edx, [esp + 4];          // source's destination tilenum
+		cmp  [edi + 0x4], edx;        // target's tilenum
 		jnz  moveTile;
 		add  esp, 4;
 		jmp  ai_move_steps_closer_move_object_ret;
 moveTile:
+		retn;
+	}
+}
+
+static const DWORD ai_move_steps_closer_run_object_ret = 0x42A169;
+static void __declspec(naked) MultiHexCombatRunFix() {
+	__asm {
+		test [edi + 0x25], 0x08;      // is target multihex?
+		jnz  multiHex;
+		test [esi + 0x25], 0x08;      // is source multihex?
+		jz   runTile;
+multiHex:
+		mov  edx, [esp + 4];          // source's destination tilenum
+		cmp  [edi + 0x4], edx;        // target's tilenum
+		jnz  runTile;
+		add  esp, 4;
+		jmp  ai_move_steps_closer_run_object_ret;
+runTile:
 		retn;
 	}
 }
@@ -1277,30 +1296,28 @@ end:
 	}
 }
 
-static int __stdcall ItemCountFixStdcall(TGameObj* who, TGameObj* item) {
+static int __stdcall ItemCountFix(TGameObj* who, TGameObj* item) {
 	int count = 0;
 	for (int i = 0; i < who->invenCount; i++) {
 		TInvenRec* tableItem = &who->invenTablePtr[i];
 		if (tableItem->object == item) {
 			count += tableItem->count;
 		} else if (ItemGetType(tableItem->object) == item_type_container) {
-			count += ItemCountFixStdcall(tableItem->object, item);
+			count += ItemCountFix(tableItem->object, item);
 		}
 	}
 	return count;
 }
 
-static void __declspec(naked) ItemCountFix() {
+static void __declspec(naked) item_count_hack() {
 	__asm {
-		push ebx;
 		push ecx;
 		push edx; // save state
 		push edx; // item
 		push eax; // container-object
-		call ItemCountFixStdcall;
-		pop edx;
-		pop ecx;
-		pop ebx; // restore
+		call ItemCountFix;
+		pop  edx;
+		pop  ecx; // restore
 		retn;
 	}
 }
@@ -1859,6 +1876,14 @@ skip:
 	}
 }
 
+static void __declspec(naked) op_attack_hook() {
+	__asm {
+		mov esi, dword ptr [esp + 0x3C + 4];   // free_move
+		mov ebx, dword ptr [esp + 0x40 + 4];   // add amount damage to target
+		jmp gdialogActive_;
+	}
+}
+
 static void __declspec(naked) combat_attack_hack() {
 	__asm {
 		mov  ebx, ds:[_main_ctd + 0x2C]; // amountTarget
@@ -1869,14 +1894,6 @@ end:
 		add  esp, 4;
 		mov  ebx, 0x423039;
 		jmp  ebx;
-	}
-}
-
-static void __declspec(naked) op_attack_hook() {
-	__asm {
-		mov esi, dword ptr [esp + 0x3C + 4];   // free_move
-		mov ebx, dword ptr [esp + 0x40 + 4];   // add amount damage to target
-		jmp gdialogActive_;
 	}
 }
 
@@ -2257,14 +2274,14 @@ skip:
 
 static long __fastcall GetFreeTilePlacement(long elev, long tile) {
 	long count = 0, dist = 1;
-	long freeTile = tile;
+	long checkTile = tile;
 	long rotation = *ptr_rotation;
-	while (ObjBlockingAt(0, freeTile, elev)) {
-		freeTile = TileNumInDirection(freeTile, rotation, dist);
+	while (ObjBlockingAt(0, checkTile, elev)) {
+		checkTile = TileNumInDirection(checkTile, rotation, dist);
 		if (++count > 5 && ++dist > 5) return tile;
 		if (++rotation > 5) rotation = 0;
 	}
-	return freeTile;
+	return checkTile; // free tile
 }
 
 static void __declspec(naked) map_check_state_hook() {
@@ -2482,6 +2499,15 @@ void BugFixesInit()
 		dlogr(" Done", DL_INIT);
 	//}
 
+	//if (GetPrivateProfileIntA("Misc", "NPCStage6Fix", 1, ini)) {
+		dlog("Applying NPC Stage 6 Fix.", DL_INIT);
+		MakeJump(0x493CE9, NPCStage6Fix1);
+		SafeWrite8(0x494063, 6);   // loop should look for a potential 6th stage
+		SafeWrite8(0x4940BB, 204); // move pointer by 204 bytes instead of 200
+		MakeJump(0x494224, NPCStage6Fix2);
+		dlogr(" Done", DL_INIT);
+	//}
+
 	//if (GetPrivateProfileIntA("Misc", "MultiHexPathingFix", 1, ini)) {
 		dlog("Applying MultiHex Pathing Fix.", DL_INIT);
 		MakeCall(0x42901F, MultiHexFix);
@@ -2588,7 +2614,7 @@ void BugFixesInit()
 	MakeCall(0x471A94, use_inventory_on_hack);
 
 	// Fix item_count function returning incorrect value when there is a container-item inside
-	MakeJump(0x47808C, ItemCountFix); // replacing item_count_ function
+	MakeJump(0x47808C, item_count_hack); // replacing item_count_ function
 
 	// Fix for Sequence stat value not being printed correctly when using "print to file" option
 	MakeCall(0x4396F5, Save_as_ASCII_hack, 2);
@@ -2753,14 +2779,6 @@ void BugFixesInit()
 	// Fix returned result value when the file is missing
 	HookCall(0x4C6162, db_freadInt_hook);
 
-	// Fix for attack_complex still causing minimum damage to the target when the attacker misses
-	MakeCall(0x422FE5, combat_attack_hack, 1);
-
-	// Fix for critter_mod_skill taking a negative amount value as a positive
-	dlog("Applying critter_mod_skill fix.", DL_INIT);
-	SafeWrite8(0x45B910, 0x7E); // jbe > jle
-	dlogr(" Done", DL_INIT);
-
 	// Fix and repurpose the unused called_shot/num_attack arguments of attack_complex function
 	// also change the behavior of the result flags arguments
 	// called_shot - additional damage, when the damage received by the target is above the specified minimum
@@ -2774,6 +2792,14 @@ void BugFixesInit()
 		SafeWrite8(0x456D98, 0x94); // setnz > setz (fix setting result flags)
 		dlogr(" Done", DL_INIT);
 	}
+
+	// Fix for attack_complex still causing minimum damage to the target when the attacker misses
+	MakeCall(0x422FE5, combat_attack_hack, 1);
+
+	// Fix for critter_mod_skill taking a negative amount value as a positive
+	dlog("Applying critter_mod_skill fix.", DL_INIT);
+	SafeWrite8(0x45B910, 0x7E); // jbe > jle
+	dlogr(" Done", DL_INIT);
 
 	// Fix crash when calling use_obj/use_obj_on_obj without using set_self in global scripts
 	// also change the behavior of use_obj_on_obj function
