@@ -712,7 +712,7 @@ void SaveArray(const ScriptValue& key, DWORD id) {
 					it->second.key.unset();
 				}
 			}
-			// make "saved" array
+			// make array "saved"
 			itArray->second.key.setByType(key.rawValue(), key.type());
 			savedArrays.emplace(itArray->second.key, id); // savedArrays[itArray->second.key] = id;
 		} else { // key of int(0) is used to "unsave" array without destroying it

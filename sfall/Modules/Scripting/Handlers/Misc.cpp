@@ -694,7 +694,7 @@ end:
 	}
 }
 
-static char* valueOutRange = "%s() - argument values out of range.";
+static const char* valueOutRange = "%s() - argument values out of range.";
 
 void sf_set_critical_table(OpcodeContext& ctx) {
 	DWORD critter = ctx.arg(0).asInt(),

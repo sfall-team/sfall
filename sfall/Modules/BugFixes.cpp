@@ -817,6 +817,25 @@ static void __declspec(naked) op_wield_obj_critter_adjust_ac_hook() {
 	}
 }
 
+static const DWORD NPCStage6Fix1End = 0x493D16;
+static void __declspec(naked) NPCStage6Fix1() {
+	__asm {
+		imul eax, edx, 204;             // necessary memory = number of NPC records in party.txt * record size
+		mov  ebx, eax;                  // copy total record size for later memset
+		call fo::funcoffs::mem_malloc_; // malloc the necessary memory
+		jmp  NPCStage6Fix1End;          // call memset to set all malloc'ed memory to 0
+	}
+}
+
+static const DWORD NPCStage6Fix2End = 0x49423A;
+static void __declspec(naked) NPCStage6Fix2() {
+	__asm {
+		imul edx, edx, 204;             // NPC number as listed in party.txt * record size
+		mov  eax, ds:[FO_VAR_partyMemberAIOptions]; // get starting offset of internal NPC table
+		jmp  NPCStage6Fix2End;          // eax+edx = offset of specific NPC record
+	}
+}
+
 // Haenlomal: Check path to critter for attack
 static void __declspec(naked) MultiHexFix() {
 	__asm {
@@ -827,24 +846,6 @@ static void __declspec(naked) MultiHexFix() {
 		inc  ebx;                           // otherwise, increase tilenum by 1
 end:
 		retn;                               // call make_path_func (at 0x429024, 0x429175)
-	}
-}
-
-static const DWORD ai_move_steps_closer_run_object_ret = 0x42A169;
-static void __declspec(naked) MultiHexCombatRunFix() {
-	__asm {
-		test [edi + flags + 1], 0x08; // is target multihex?
-		jnz  multiHex;
-		test [esi + flags + 1], 0x08; // is source multihex?
-		jz   runTile;
-multiHex:
-		mov  edx, [esp + 4];          // source's destination tilenum
-		cmp  [edi + tile], edx;       // target's tilenum
-		jnz  runTile;
-		add  esp, 4;
-		jmp  ai_move_steps_closer_run_object_ret;
-runTile:
-		retn;
 	}
 }
 
@@ -862,6 +863,24 @@ multiHex:
 		add  esp, 4;
 		jmp  ai_move_steps_closer_move_object_ret;
 moveTile:
+		retn;
+	}
+}
+
+static const DWORD ai_move_steps_closer_run_object_ret = 0x42A169;
+static void __declspec(naked) MultiHexCombatRunFix() {
+	__asm {
+		test [edi + flags + 1], 0x08; // is target multihex?
+		jnz  multiHex;
+		test [esi + flags + 1], 0x08; // is source multihex?
+		jz   runTile;
+multiHex:
+		mov  edx, [esp + 4];          // source's destination tilenum
+		cmp  [edi + tile], edx;       // target's tilenum
+		jnz  runTile;
+		add  esp, 4;
+		jmp  ai_move_steps_closer_run_object_ret;
+runTile:
 		retn;
 	}
 }
@@ -1288,30 +1307,28 @@ end:
 	}
 }
 
-static int __stdcall ItemCountFixStdcall(fo::GameObject* who, fo::GameObject* item) {
+static int __stdcall ItemCountFix(fo::GameObject* who, fo::GameObject* item) {
 	int count = 0;
 	for (int i = 0; i < who->invenSize; i++) {
 		auto tableItem = &who->invenTable[i];
 		if (tableItem->object == item) {
 			count += tableItem->count;
 		} else if (fo::func::item_get_type(tableItem->object) == fo::item_type_container) {
-			count += ItemCountFixStdcall(tableItem->object, item);
+			count += ItemCountFix(tableItem->object, item);
 		}
 	}
 	return count;
 }
 
-static void __declspec(naked) ItemCountFix() {
+static void __declspec(naked) item_count_hack() {
 	__asm {
-		push ebx;
 		push ecx;
 		push edx; // save state
 		push edx; // item
 		push eax; // container-object
-		call ItemCountFixStdcall;
-		pop edx;
-		pop ecx;
-		pop ebx; // restore
+		call ItemCountFix;
+		pop  edx;
+		pop  ecx; // restore
 		retn;
 	}
 }
@@ -1870,6 +1887,14 @@ skip:
 	}
 }
 
+static void __declspec(naked) op_attack_hook() {
+	__asm {
+		mov esi, dword ptr [esp + 0x3C + 4];   // free_move
+		mov ebx, dword ptr [esp + 0x40 + 4];   // add amount damage to target
+		jmp fo::funcoffs::gdialogActive_;
+	}
+}
+
 static void __declspec(naked) combat_attack_hack() {
 	__asm {
 		mov  ebx, ds:[FO_VAR_main_ctd + 0x2C]; // amountTarget
@@ -1880,14 +1905,6 @@ end:
 		add  esp, 4;
 		mov  ebx, 0x423039;
 		jmp  ebx;
-	}
-}
-
-static void __declspec(naked) op_attack_hook() {
-	__asm {
-		mov esi, dword ptr [esp + 0x3C + 4];   // free_move
-		mov ebx, dword ptr [esp + 0x40 + 4];   // add amount damage to target
-		jmp fo::funcoffs::gdialogActive_;
 	}
 }
 
@@ -2268,14 +2285,14 @@ skip:
 
 static long __fastcall GetFreeTilePlacement(long elev, long tile) {
 	long count = 0, dist = 1;
-	long freeTile = tile;
+	long checkTile = tile;
 	long rotation = fo::var::rotation;
-	while (fo::func::obj_blocking_at(0, freeTile, elev)) {
-		freeTile = fo::func::tile_num_in_direction(freeTile, rotation, dist);
+	while (fo::func::obj_blocking_at(0, checkTile, elev)) {
+		checkTile = fo::func::tile_num_in_direction(checkTile, rotation, dist);
 		if (++count > 5 && ++dist > 5) return tile;
 		if (++rotation > 5) rotation = 0;
 	}
-	return freeTile;
+	return checkTile; // free tile
 }
 
 static void __declspec(naked) map_check_state_hook() {
@@ -2497,6 +2514,15 @@ void BugFixes::init()
 		dlogr(" Done", DL_INIT);
 	//}
 
+	//if (GetConfigInt("Misc", "NPCStage6Fix", 1)) {
+		dlog("Applying NPC Stage 6 Fix.", DL_INIT);
+		MakeJump(0x493CE9, NPCStage6Fix1);
+		SafeWrite8(0x494063, 6);   // loop should look for a potential 6th stage
+		SafeWrite8(0x4940BB, 204); // move pointer by 204 bytes instead of 200
+		MakeJump(0x494224, NPCStage6Fix2);
+		dlogr(" Done", DL_INIT);
+	//}
+
 	//if (GetConfigInt("Misc", "MultiHexPathingFix", 1)) {
 		dlog("Applying MultiHex Pathing Fix.", DL_INIT);
 		MakeCalls(MultiHexFix, {0x42901F, 0x429170});
@@ -2602,7 +2628,7 @@ void BugFixes::init()
 	MakeCall(0x471A94, use_inventory_on_hack);
 
 	// Fix item_count function returning incorrect value when there is a container-item inside
-	MakeJump(0x47808C, ItemCountFix); // replacing item_count_ function
+	MakeJump(0x47808C, item_count_hack); // replacing item_count_ function
 
 	// Fix for Sequence stat value not being printed correctly when using "print to file" option
 	MakeCall(0x4396F5, Save_as_ASCII_hack, 2);
@@ -2766,14 +2792,6 @@ void BugFixes::init()
 	// Fix returned result value when the file is missing
 	HookCall(0x4C6162, db_freadInt_hook);
 
-	// Fix for attack_complex still causing minimum damage to the target when the attacker misses
-	MakeCall(0x422FE5, combat_attack_hack, 1);
-
-	// Fix for critter_mod_skill taking a negative amount value as a positive
-	dlog("Applying critter_mod_skill fix.", DL_INIT);
-	SafeWrite8(0x45B910, 0x7E); // jbe > jle
-	dlogr(" Done", DL_INIT);
-
 	// Fix and repurpose the unused called_shot/num_attack arguments of attack_complex function
 	// also change the behavior of the result flags arguments
 	// called_shot - additional damage, when the damage received by the target is above the specified minimum
@@ -2787,6 +2805,14 @@ void BugFixes::init()
 		SafeWrite8(0x456D98, 0x94); // setnz > setz (fix setting result flags)
 		dlogr(" Done", DL_INIT);
 	}
+
+	// Fix for attack_complex still causing minimum damage to the target when the attacker misses
+	MakeCall(0x422FE5, combat_attack_hack, 1);
+
+	// Fix for critter_mod_skill taking a negative amount value as a positive
+	dlog("Applying critter_mod_skill fix.", DL_INIT);
+	SafeWrite8(0x45B910, 0x7E); // jbe > jle
+	dlogr(" Done", DL_INIT);
 
 	// Fix crash when calling use_obj/use_obj_on_obj without using set_self in global scripts
 	// also change the behavior of use_obj_on_obj function
