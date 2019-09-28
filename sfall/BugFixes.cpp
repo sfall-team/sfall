@@ -19,6 +19,10 @@ static const DWORD ScriptTargetAddr[] = {
 	0x456AA4, // op_use_obj_
 };
 
+/*
+	Saving a list of PIDs for saved drug effects
+	Note: the sequence of saving and loading the list is very important!
+*/
 std::list<int> drugsPid;
 
 static void __fastcall DrugPidPush(int pid) {
@@ -56,6 +60,7 @@ bool DrugsLoadFix(HANDLE file) {
 	}
 	return false;
 }
+///////////////////////////////////////////////////////////////////////////////
 
 void ResetBodyState() {
 	__asm mov critterBody, 0;
@@ -807,22 +812,22 @@ static void __declspec(naked) op_wield_obj_critter_adjust_ac_hook() {
 	}
 }
 
-static const DWORD NPCStage6Fix1End = 0x493D16;
+static const DWORD partyMember_init_End = 0x493D16;
 static void __declspec(naked) NPCStage6Fix1() {
 	__asm {
-		imul eax, edx, 204;             // necessary memory = number of NPC records in party.txt * record size
-		mov  ebx, eax;                  // copy total record size for later memset
-		call mem_malloc_;               // malloc the necessary memory
-		jmp  NPCStage6Fix1End;          // call memset to set all malloc'ed memory to 0
+		imul eax, edx, 204;                 // necessary memory = number of NPC records in party.txt * record size
+		mov  ebx, eax;                      // copy total record size for later memset
+		call mem_malloc_;                   // malloc the necessary memory
+		jmp  partyMember_init_End;          // call memset to set all malloc'ed memory to 0
 	}
 }
 
-static const DWORD NPCStage6Fix2End = 0x49423A;
+static const DWORD partyMemberGetAIOptions_End = 0x49423A;
 static void __declspec(naked) NPCStage6Fix2() {
 	__asm {
-		imul edx, edx, 204;             // NPC number as listed in party.txt * record size
-		mov  eax, ds:[_partyMemberAIOptions]; // get starting offset of internal NPC table
-		jmp  NPCStage6Fix2End;          // eax+edx = offset of specific NPC record
+		imul edx, 204;                      // multiply record size 204 bytes by NPC number as listed in party.txt
+		mov  eax, dword ptr ds:[_partyMemberAIOptions]; // get starting offset of internal NPC table
+		jmp  partyMemberGetAIOptions_End;   // eax + edx = offset of specific NPC record
 	}
 }
 
@@ -2442,7 +2447,7 @@ void BugFixesInit()
 
 	//if (GetPrivateProfileIntA("Misc", "NPCLevelFix", 1, ini)) {
 		dlog("Applying NPC level fix.", DL_INIT);
-		HookCall(0x495BC9, (void*)0x495E51);
+		HookCall(0x495BC9, (void*)0x495E51); // jz 0x495E7F > jz 0x495E51
 		dlogr(" Done", DL_INIT);
 	//}
 
