@@ -45,12 +45,14 @@ BYTE *charScrnBackSurface = nullptr;
 DWORD charRotTick = 0;
 DWORD charRotOri = 0;
 
+bool raceButtions = false, styleButtions = false;
 int currentRaceVal = 0, currentStyleVal = 0;     // holds Appearance values to restore after global reset in NewGame2 function in LoadGameHooks.cpp
 DWORD critterListSize = 0, critterArraySize = 0; // Critter art list size
 
 fo::PathNode **tempPathPtr = &fo::var::paths;
-fo::PathNode *heroPathPtr = nullptr;
-fo::PathNode *racePathPtr = nullptr;
+// index: 0 - only folder (w/o extension .dat), 1 - file or folder .dat
+fo::PathNode *heroPathPtr[2] = {nullptr, nullptr};
+fo::PathNode *racePathPtr[2] = {nullptr, nullptr};
 
 // for word wrapping
 typedef struct LineNode {
@@ -184,47 +186,66 @@ static void GetAppearanceGlobals(int *race, int *style) {
 static __declspec(noinline) int _stdcall LoadHeroDat(unsigned int race, unsigned int style, bool flush = false) {
 	if (flush) fo::func::art_flush();
 
-	if (heroPathPtr->pDat) { // unload previous Dats
-		UnloadDat(heroPathPtr->pDat);
-		heroPathPtr->pDat = nullptr;
-		heroPathPtr->isDat = 0;
+	if (heroPathPtr[1]->pDat) { // unload previous Dats
+		UnloadDat(heroPathPtr[1]->pDat);
+		heroPathPtr[1]->pDat = nullptr;
+		heroPathPtr[1]->isDat = 0;
 	}
-	if (racePathPtr->pDat) {
-		UnloadDat(racePathPtr->pDat);
-		racePathPtr->pDat = nullptr;
-		racePathPtr->isDat = 0;
+	if (racePathPtr[1]->pDat) {
+		UnloadDat(racePathPtr[1]->pDat);
+		racePathPtr[1]->pDat = nullptr;
+		racePathPtr[1]->isDat = 0;
 	}
 
 	const char sex = GetSex();
-
-	sprintf_s(heroPathPtr->path, 64, appearancePathFmt, sex, race, style, ".dat");
-	int result = GetFileAttributes(heroPathPtr->path);
-	if (result != INVALID_FILE_ATTRIBUTES && !(result & FILE_ATTRIBUTE_DIRECTORY)) { // check if Dat exists for selected appearance
-		heroPathPtr->pDat = LoadDat(heroPathPtr->path);
-		heroPathPtr->isDat = 1;
-	} else {
-		sprintf_s(heroPathPtr->path, 64, appearancePathFmt, sex, race, style, "");
-		if (GetFileAttributes(heroPathPtr->path) == INVALID_FILE_ATTRIBUTES) // check if folder exists for selected appearance
-			return -1;
+	bool folderIsExist = false, datIsExist = false;
+	// check if folder exists for selected appearance
+	sprintf_s(heroPathPtr[0]->path, 64, appearancePathFmt, sex, race, style, "");
+	if (GetFileAttributes(heroPathPtr[0]->path) != INVALID_FILE_ATTRIBUTES) {
+		folderIsExist = true;
+	}
+	// check if Dat exists for selected appearance
+	sprintf_s(heroPathPtr[1]->path, 64, appearancePathFmt, sex, race, style, ".dat");
+	int result = GetFileAttributes(heroPathPtr[1]->path);
+	if (result != INVALID_FILE_ATTRIBUTES) {
+		if (!(result & FILE_ATTRIBUTE_DIRECTORY)) {
+			heroPathPtr[1]->pDat = LoadDat(heroPathPtr[1]->path);
+			heroPathPtr[1]->isDat = 1;
+		}
+		if (folderIsExist) heroPathPtr[0]->next = heroPathPtr[1];
+		datIsExist = true;
+	} else if (!folderIsExist) {
+		return -1; // no .dat files and folder
 	}
 
-	tempPathPtr = &heroPathPtr; // set path for selected appearance
-	heroPathPtr->next = &fo::var::paths[0];
+	heroPathPtr[1]->next = nullptr;
+	tempPathPtr = &heroPathPtr[1 - folderIsExist]; // set path for selected appearance
+	heroPathPtr[0 + datIsExist]->next = &fo::var::paths[0]; // heroPathPtr[] >> foPaths
 
 	if (style != 0) {
-		sprintf_s(racePathPtr->path, 64, appearancePathFmt, sex, race, 0, ".dat");
-		int result = GetFileAttributes(racePathPtr->path);
-		if (result != INVALID_FILE_ATTRIBUTES && !(result & FILE_ATTRIBUTE_DIRECTORY)) { // check if Dat exists for selected race base appearance
-			racePathPtr->pDat = LoadDat(racePathPtr->path);
-			racePathPtr->isDat = 1;
-		} else {
-			sprintf_s(racePathPtr->path, 64, appearancePathFmt, sex, race, 0, "");
+		datIsExist = false, folderIsExist = false;
+		// check if folder exists for selected race base appearance
+		sprintf_s(racePathPtr[0]->path, 64, appearancePathFmt, sex, race, 0, "");
+		if (GetFileAttributes(racePathPtr[0]->path) != INVALID_FILE_ATTRIBUTES) {
+			folderIsExist = true;
+		}
+		// check if Dat (or folder) exists for selected race base appearance
+		sprintf_s(racePathPtr[1]->path, 64, appearancePathFmt, sex, race, 0, ".dat");
+		int result = GetFileAttributes(racePathPtr[1]->path);
+		if (result != INVALID_FILE_ATTRIBUTES) {
+			if (!(result & FILE_ATTRIBUTE_DIRECTORY)) {
+				racePathPtr[1]->pDat = LoadDat(racePathPtr[1]->path);
+				racePathPtr[1]->isDat = 1;
+			}
+			if (folderIsExist) racePathPtr[0]->next = racePathPtr[1];
+			datIsExist = true;
+		} else if (!folderIsExist) {
+			return 0;
 		}
 
-		if (GetFileAttributes(racePathPtr->path) != INVALID_FILE_ATTRIBUTES) { // check if folder/Dat exists for selected race base appearance
-			heroPathPtr->next = racePathPtr; // set path for selected race base appearance
-			racePathPtr->next = &fo::var::paths[0];
-		}
+		long i = 0 + (heroPathPtr[1]->next != nullptr);
+		heroPathPtr[i]->next = racePathPtr[1 - folderIsExist];  // set path for selected race base appearance
+		racePathPtr[0 + datIsExist]->next = &fo::var::paths[0]; // insert racePathPtr in chain path: heroPathPtr[] >> racePathPtr[] >> foPaths
 	}
 	return 0;
 }
@@ -533,7 +554,7 @@ static void DrawPCConsole() {
 		sub_draw(70, 102, 640, 480, 338, 78, charScrnBackSurface, 70, 102, 0, 0, ConSurface, 0);
 
 		//DWORD critNum = fo::var::art_vault_guy_num; // pointer to current base hero critter FrmId
-		DWORD critNum = fo::var::obj_dude->artFid; // pointer to current armored hero critter FrmId
+		DWORD critNum = fo::var::obj_dude->artFid;    // pointer to current armored hero critter FrmId
 		DrawBody(critNum, ConSurface);
 
 		sub_draw(70, 102, 70, 102, 0, 0, ConSurface, WinInfo->width, WinInfo->height, 338, 78, WinInfo->surface, 0);
@@ -714,13 +735,13 @@ void _stdcall HeroSelectWindow(int raceStyleFlag) {
 	BYTE *ConDraw = new BYTE [70 * 102];
 
 	int button = 0;
-	bool drawFlag = true; // redraw flag for char note pad
+	bool drawFlag = true;               // redraw flag for char note pad
 
 	DWORD RotSpeed = *(DWORD*)0x47066B; // get rotation speed - inventory rotation speed
 	DWORD RedrawTick = 0, NewTick = 0, OldTick = 0;
 
-	DWORD critNum = fo::var::art_vault_guy_num; // pointer to current base hero critter FrmID
-	//DWORD critNum = fo::var::obj_dude->artFID;  // pointer to current armored hero critter FrmID
+	DWORD critNum = fo::var::art_vault_guy_num;  // pointer to current base hero critter FrmID
+	//DWORD critNum = fo::var::obj_dude->artFID; // pointer to current armored hero critter FrmID
 
 	int raceVal = currentRaceVal, styleVal = currentStyleVal; // show default style when setting race
 	if (!isStyle) styleVal = 0;
@@ -756,7 +777,7 @@ void _stdcall HeroSelectWindow(int raceStyleFlag) {
 		}
 
 		button = fo::func::get_input();
-		if (button == 0x148) { // previous style/race -up arrow button pushed
+		if (button == 0x148) { // previous style/race - up arrow button pushed
 			PlayAcm("ib1p1xx1");
 
 			if (isStyle) {
@@ -1068,7 +1089,7 @@ NoVaultSuit:
 	}
 }
 
-// Create race and style selection buttons when creating a character
+// Create race and style selection buttons when creating a character (hero)
 static void __declspec(naked) AddCharScrnButtons() {
 	__asm {
 		pushad; // prolog
@@ -1080,10 +1101,10 @@ static void __declspec(naked) AddCharScrnButtons() {
 	WinRef = fo::var::edit_win; // char screen window ref
 
 	// race and style title buttons
-	fo::func::win_register_button(WinRef, 332, 0, 82, 32, -1, -1, 0x501, -1, 0, 0, 0, 0);
+	fo::func::win_register_button(WinRef, 332,   0, 82, 32, -1, -1, 0x501, -1, 0, 0, 0, 0);
 	fo::func::win_register_button(WinRef, 332, 226, 82, 32, -1, -1, 0x502, -1, 0, 0, 0, 0);
 
-	if (fo::var::glblmode == 1) { // equals 1 if new char screen - equals 0 if ingame char screen
+	if (fo::var::glblmode == 1 && (styleButtions || raceButtions)) { // equals 1 if new char screen - equals 0 if ingame char screen
 		if (newButtonSurface == nullptr) {
 			newButtonSurface = new BYTE [20 * 18 * 4];
 
@@ -1108,20 +1129,13 @@ static void __declspec(naked) AddCharScrnButtons() {
 
 			frmSurface = nullptr;
 		}
-
-		// check if Data exists for other races male or female, and if so enable race selection buttons
-		if (GetFileAttributes("Appearance\\hmR01S00") != INVALID_FILE_ATTRIBUTES || GetFileAttributes("Appearance\\hfR01S00") != INVALID_FILE_ATTRIBUTES ||
-			GetFileAttributes("Appearance\\hmR01S00.dat") != INVALID_FILE_ATTRIBUTES || GetFileAttributes("Appearance\\hfR01S00.dat") != INVALID_FILE_ATTRIBUTES) {
-			// race selection buttons
+		if (raceButtions) { // race selection buttons
 			fo::func::win_register_button(WinRef, 348, 37, 20, 18, -1, -1, -1, 0x511, newButtonSurface, newButtonSurface + (20 * 18), 0, 0x20);
-			fo::func::win_register_button(WinRef, 373, 37, 20, 18, -1, -1, -1, 0x513, newButtonSurface + (20 * 18 * 2), newButtonSurface + (20 * 18 * 3), 0, 0x20);
+			fo::func::win_register_button(WinRef, 374, 37, 20, 18, -1, -1, -1, 0x513, newButtonSurface + (20 * 18 * 2), newButtonSurface + (20 * 18 * 3), 0, 0x20);
 		}
-		// check if Data exists for other styles male or female, and if so enable style selection buttons
-		if (GetFileAttributes("Appearance\\hmR00S01") != INVALID_FILE_ATTRIBUTES || GetFileAttributes("Appearance\\hfR00S01") != INVALID_FILE_ATTRIBUTES ||
-			GetFileAttributes("Appearance\\hmR00S01.dat") != INVALID_FILE_ATTRIBUTES || GetFileAttributes("Appearance\\hfR00S01.dat") != INVALID_FILE_ATTRIBUTES) {
-			// style selection buttons
+		if (styleButtions) { // style selection buttons
 			fo::func::win_register_button(WinRef, 348, 199, 20, 18, -1, -1, -1, 0x512, newButtonSurface, newButtonSurface + (20 * 18), 0, 0x20);
-			fo::func::win_register_button(WinRef, 373, 199, 20, 18, -1, -1, -1, 0x514, newButtonSurface + (20 * 18 * 2), newButtonSurface + (20 * 18 * 3), 0, 0x20);
+			fo::func::win_register_button(WinRef, 374, 199, 20, 18, -1, -1, -1, 0x514, newButtonSurface + (20 * 18 * 2), newButtonSurface + (20 * 18 * 3), 0, 0x20);
 		}
 	}
 
@@ -1172,16 +1186,16 @@ static void __declspec(naked) FixCharScrnBack() {
 			DWORD FrmObj, FrmMaskObj; // frm objects for char screen Appearance button
 			BYTE *FrmSurface, *FrmMaskSurface;
 
-			FrmSurface = fo::func::art_ptr_lock_data(BuildFrmId(6, 113), 0, 0, &FrmObj);
+			FrmSurface = fo::func::art_ptr_lock_data(BuildFrmId(fo::OBJ_TYPE_INTRFACE, 113), 0, 0, &FrmObj); // "Use Item On" window
 			sub_draw(81, 132, 292, 376, 163, 20, FrmSurface, 640, 480, 331, 63, charScrnBackSurface, 0);  // char view win
 			sub_draw(79, 31, 292, 376, 154, 228, FrmSurface, 640, 480, 331, 32, charScrnBackSurface, 0);  // upper  char view win
 			sub_draw(79, 30, 292, 376, 158, 236, FrmSurface, 640, 480, 331, 195, charScrnBackSurface, 0); // lower  char view win
 			fo::func::art_ptr_unlock(FrmObj);
 
 			// Sexoff Frm
-			FrmSurface = fo::func::art_ptr_lock_data(BuildFrmId(6, 188), 0, 0, &FrmObj);
+			FrmSurface = fo::func::art_ptr_lock_data(BuildFrmId(fo::OBJ_TYPE_INTRFACE, 188), 0, 0, &FrmObj);
 			// Sex button mask frm
-			FrmMaskSurface = fo::func::art_ptr_lock_data(BuildFrmId(6, 187), 0, 0, &FrmMaskObj);
+			FrmMaskSurface = fo::func::art_ptr_lock_data(BuildFrmId(fo::OBJ_TYPE_INTRFACE, 187), 0, 0, &FrmMaskObj);
 
 			sub_draw(80, 28, 80, 32, 0, 0, FrmMaskSurface, 80, 32, 0, 0, FrmSurface, 0x39); // mask for style and race buttons
 			fo::func::art_ptr_unlock(FrmMaskObj);
@@ -1208,12 +1222,12 @@ static void __declspec(naked) FixCharScrnBack() {
 			fo::func::art_ptr_unlock(FrmObj);
 
 			// frm background for char screen Appearance button
-			FrmSurface = fo::func::art_ptr_lock_data(BuildFrmId(6, 174), 0, 0, &FrmObj);                  // Pickchar frm
-			sub_draw(69, 20, 640, 480, 282, 320, FrmSurface, 640, 480, 337, 37, charScrnBackSurface, 0);  // button backround top
-			sub_draw(69, 20, 640, 480, 282, 320, FrmSurface, 640, 480, 337, 199, charScrnBackSurface, 0); // button backround bottom
-			sub_draw(47, 16, 640, 480, 94, 394, FrmSurface, 640, 480, 347, 39, charScrnBackSurface, 0);   // cover buttons pics top
-			sub_draw(47, 16, 640, 480, 94, 394, FrmSurface, 640, 480, 347, 201, charScrnBackSurface, 0);  // cover buttons pics bottom
-			fo::func::art_ptr_unlock(FrmObj);
+			if (fo::var::glblmode == 1 && (styleButtions || raceButtions)) {
+				FrmSurface = fo::func::art_ptr_lock_data(BuildFrmId(fo::OBJ_TYPE_INTRFACE, 174), 0, 0, &FrmObj); // Pickchar frm
+				if (raceButtions)  sub_draw(69, 20, 640, 480, 281, 319, FrmSurface, 640, 480, 337,  36, charScrnBackSurface, 0); // button backround top
+				if (styleButtions) sub_draw(69, 20, 640, 480, 281, 319, FrmSurface, 640, 480, 337, 198, charScrnBackSurface, 0); // button backround bottom
+				fo::func::art_ptr_unlock(FrmObj);
+			}
 			FrmSurface = nullptr;
 		}
 
@@ -1361,15 +1375,26 @@ static void EnableHeroAppearanceMod() {
 	HeroAppearance::appModEnabled = true;
 
 	// setup paths
-	heroPathPtr = new fo::PathNode;
-	racePathPtr = new fo::PathNode;
-	heroPathPtr->path = new char[64];
-	racePathPtr->path = new char[64];
+	heroPathPtr[0] = new fo::PathNode();
+	racePathPtr[0] = new fo::PathNode();
+	heroPathPtr[0]->path = new char[64];
+	racePathPtr[0]->path = new char[64];
 
-	heroPathPtr->isDat = 0;
-	racePathPtr->isDat = 0;
-	heroPathPtr->pDat = nullptr;
-	racePathPtr->pDat = nullptr;
+	heroPathPtr[1] = new fo::PathNode();
+	racePathPtr[1] = new fo::PathNode();
+	heroPathPtr[1]->path = new char[64];
+	racePathPtr[1]->path = new char[64];
+
+	// check if Data exists for other races male or female, and if so enable race selection buttons
+	if (GetFileAttributes("Appearance\\hmR01S00") != INVALID_FILE_ATTRIBUTES || GetFileAttributes("Appearance\\hfR01S00") != INVALID_FILE_ATTRIBUTES ||
+		GetFileAttributes("Appearance\\hmR01S00.dat") != INVALID_FILE_ATTRIBUTES || GetFileAttributes("Appearance\\hfR01S00.dat") != INVALID_FILE_ATTRIBUTES) {
+		raceButtions = true;
+	}
+	// check if Data exists for other styles male or female, and if so enable style selection buttons
+	if (GetFileAttributes("Appearance\\hmR00S01") != INVALID_FILE_ATTRIBUTES || GetFileAttributes("Appearance\\hfR00S01") != INVALID_FILE_ATTRIBUTES ||
+		GetFileAttributes("Appearance\\hmR00S01.dat") != INVALID_FILE_ATTRIBUTES || GetFileAttributes("Appearance\\hfR00S01.dat") != INVALID_FILE_ATTRIBUTES) {
+		styleButtions = true;
+	}
 
 	// Check if new Appearance char scrn button pushed (editor_design_)
 	HookCall(0x431E9D, CheckCharScrnButtons);
@@ -1474,14 +1499,15 @@ static void EnableHeroAppearanceMod() {
 static void HeroAppearanceModExit() {
 	if (!HeroAppearance::appModEnabled) return;
 
-	if (heroPathPtr) {
-		delete[] heroPathPtr->path;
-		delete heroPathPtr;
-	}
-	if (racePathPtr) {
-		delete[] racePathPtr->path;
-		delete racePathPtr;
-	}
+	delete[] heroPathPtr[0]->path;
+	delete[] heroPathPtr[1]->path;
+	delete heroPathPtr[0];
+	delete heroPathPtr[1];
+
+	delete[] racePathPtr[0]->path;
+	delete[] racePathPtr[1]->path;
+	delete racePathPtr[0];
+	delete racePathPtr[1];
 }
 
 void HeroAppearance::init() {
