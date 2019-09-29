@@ -156,7 +156,7 @@ void sArrayVar::clearRange( int from, int to /*= -1*/ )
 
 void sArrayVar::clearAll()
 {
-	for (auto it = val.begin(); it != val.end(); ++it) {
+	for (std::vector<sArrayElement>::iterator it = val.begin(); it != val.end(); ++it) {
 		it->clearData();
 	}
 }
@@ -586,7 +586,7 @@ static void MapSort(sArrayVar& arr, int type) {
 	arr.val.clear();
 	arr.keyHash.clear();
 	for (size_t i = 0; i < vmap.size(); ++i) {
-		auto el = arr.val.size();
+		size_t el = arr.val.size();
 		if (sortByValue) {
 			arr.val.emplace_back(vmap[i].second); // map value > key
 			arr.val.emplace_back(vmap[i].first);  // map key > value

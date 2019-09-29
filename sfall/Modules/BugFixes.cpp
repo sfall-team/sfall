@@ -10,6 +10,7 @@ namespace sfall
 {
 using namespace fo;
 using namespace Fields;
+using namespace ObjectFlag;
 
 static DWORD critterBody = 0;
 static DWORD sizeOnBody = 0;
@@ -388,30 +389,66 @@ static void __declspec(naked) queue_clear_type_mem_free_hook() {
 static void __declspec(naked) partyMemberCopyLevelInfo_hook_stat_level() {
 	__asm {
 nextArmor:
-		mov  eax, esi
-		call fo::funcoffs::inven_worn_
-		test eax, eax
-		jz   noArmor
-		and  byte ptr [eax+0x27], 0xFB            // Unset the flag of equipped armor
-		jmp  nextArmor
+		mov  eax, esi;
+		call fo::funcoffs::inven_worn_;
+		test eax, eax;
+		jz   noArmor;
+		and  byte ptr [eax + flags+3], ~Worn >> 24; // Unset the flag of equipped armor
+		jmp  nextArmor;
 noArmor:
-		mov  eax, esi
-		jmp  fo::funcoffs::stat_level_
+		mov  eax, esi;
+		jmp  fo::funcoffs::stat_level_;
 	}
 }
 
 static void __declspec(naked) correctFidForRemovedItem_hook_adjust_ac() {
 	__asm {
-		call fo::funcoffs::adjust_ac_
+		call fo::funcoffs::adjust_ac_;
 nextArmor:
-		mov  eax, esi
-		call fo::funcoffs::inven_worn_
-		test eax, eax
-		jz   end
-		and  byte ptr [eax+0x27], 0xFB            // Unset flag of equipped armor
-		jmp  nextArmor
+		mov  eax, esi;
+		call fo::funcoffs::inven_worn_;
+		test eax, eax;
+		jz   end;
+		and  byte ptr [eax + flags+3], ~Worn >> 24; // Unset flag of equipped armor
+		jmp  nextArmor;
 end:
-		retn
+		retn;
+	}
+}
+
+static void __declspec(naked) op_move_obj_inven_to_obj_hook() {
+	__asm {
+		jz   skip;                     // source == dude
+		mov  eax, edx;
+		call fo::funcoffs::isPartyMember_;
+		test eax, eax;                 // is source a party member?
+		jnz  skip;
+		retn;                          // must be eax = 0
+skip:
+		mov  eax, edx;
+		call fo::funcoffs::inven_worn_;
+		cmp  edx, ecx;                 // source(edx) == dude(ecx)
+		jz   dudeFix;
+		test eax, eax;
+		jz   end;
+		mov  ecx, edx;
+		xor  ebx, ebx;                 // new armor
+		xchg eax, edx;                 // set: eax - source, edx - removed armor
+		call fo::funcoffs::adjust_ac_; // fix for party member
+		mov  edx, ecx;
+		xor  eax, eax;
+end:
+		retn;                          // must be eax = 0
+dudeFix:
+		test eax, eax;
+		jz   equipped;                 // no armor
+		// additionally check flag of equipped armor for dude
+		test byte ptr [eax + flags+3], Worn >> 24;
+		jnz  equipped;
+		xor  eax, eax;
+equipped:
+		or   cl, 1;                    // reset ZF
+		retn;
 	}
 }
 
@@ -825,7 +862,7 @@ static void __declspec(naked) op_wield_obj_critter_adjust_ac_hook() {
 static const DWORD partyMember_init_End = 0x493D16;
 static void __declspec(naked) NPCStage6Fix1() {
 	__asm {
-		imul eax, edx, 204;                 // necessary memory = number of NPC records in party.txt * record size
+		imul eax, edx, 204;                 // multiply record size 204 bytes by number of NPC records in party.txt
 		mov  ebx, eax;                      // copy total record size for later memset
 		call fo::funcoffs::mem_malloc_;     // malloc the necessary memory
 		jmp  partyMember_init_End;          // call memset to set all malloc'ed memory to 0
@@ -1646,16 +1683,16 @@ end:
 
 static void __declspec(naked) op_obj_can_hear_obj_hack() {
 	__asm {
-		mov eax, [esp + 0x28 - 0x28 + 4];  // target
-		mov edx, [esp + 0x28 - 0x24 + 4];  // source
+		mov  eax, [esp + 0x28 - 0x28 + 4];  // target
+		mov  edx, [esp + 0x28 - 0x24 + 4];  // source
 		retn;
 	}
 }
 
 static void __declspec(naked) ai_best_weapon_hook() {
 	__asm {
-		mov eax, [esp + 0xF4 - 0x10 + 4]; // prev.item
-		jmp fo::funcoffs::item_w_perk_;
+		mov  eax, [esp + 0xF4 - 0x10 + 4];  // prev.item
+		jmp  fo::funcoffs::item_w_perk_;
 	}
 }
 
@@ -1676,11 +1713,11 @@ static void __declspec(naked) wmSetupRandomEncounter_hook() {
 static void __declspec(naked) inven_obj_examine_func_hack() {
 	__asm {
 		mov edx, dword ptr ds:[0x519064]; // inven_display_msg_line
-		cmp edx, 2; // 2 or more lines
+		cmp edx, 2; // >2
 		ja  fix;
 		retn;
 fix:
-		cmp edx, 9; // 8 lines (half of the display window)
+		cmp edx, 5; // 4 lines
 		ja  limit;
 		dec edx;
 		sub eax, 3;
@@ -1688,7 +1725,7 @@ fix:
 		add eax, 3;
 		retn;
 limit:
-		mov eax, 57;
+		mov eax, 30;
 		retn;
 	}
 }
@@ -1894,9 +1931,9 @@ skip:
 
 static void __declspec(naked) op_attack_hook() {
 	__asm {
-		mov esi, dword ptr [esp + 0x3C + 4];   // free_move
-		mov ebx, dword ptr [esp + 0x40 + 4];   // add amount damage to target
-		jmp fo::funcoffs::gdialogActive_;
+		mov  esi, dword ptr [esp + 0x3C + 4];   // free_move
+		mov  ebx, dword ptr [esp + 0x40 + 4];   // add amount damage to target
+		jmp  fo::funcoffs::gdialogActive_;
 	}
 }
 
@@ -1964,8 +2001,8 @@ isLoad:
 
 static void __declspec(naked) JesseContainerFid() {
 	__asm {
-		dec edx; // set fid to -1
-		jmp fo::funcoffs::obj_new_;
+		dec  edx; // set fid to -1
+		jmp  fo::funcoffs::obj_new_;
 	}
 }
 
@@ -2053,11 +2090,11 @@ static void __declspec(naked) obj_load_dude_hook1() {
 
 static void __declspec(naked) PrintAMList_hook() {
 	__asm {
-		cmp ebp, 20; // max line count
-		jle skip;
-		mov ebp, 20;
+		cmp  ebp, 20; // max line count
+		jle  skip;
+		mov  ebp, 20;
 skip:
-		jmp fo::funcoffs::qsort_;
+		jmp  fo::funcoffs::qsort_;
 	}
 }
 
@@ -2323,9 +2360,9 @@ void BugFixes::init()
 	// Missing game initialization
 	LoadGameHook::OnGameInit() += MusicVolInitialization;
 
-	// fix vanilla negate operator on float values
+	// Fix vanilla negate operator on float values
 	MakeCall(0x46AB68, NegateFixHack);
-	// fix incorrect int-to-float conversion
+	// Fix incorrect int-to-float conversion
 	// op_mult:
 	SafeWrite16(0x46A3F4, 0x04DB); // replace operator to "fild 32bit"
 	SafeWrite16(0x46A3A8, 0x04DB);
@@ -2397,6 +2434,10 @@ void BugFixes::init()
 		dlog("Applying fix for armor reducing NPC original stats when removed.", DL_INIT);
 		HookCall(0x495F3B, partyMemberCopyLevelInfo_hook_stat_level);
 		HookCall(0x45419B, correctFidForRemovedItem_hook_adjust_ac);
+		// Fix for move_obj_inven_to_obj function
+		HookCall(0x45C49A, op_move_obj_inven_to_obj_hook);
+		SafeWrite16(0x45C496, 0x9090);
+		SafeWrite8(0x45C4A3, 0x75); // jmp > jnz
 		dlogr(" Done", DL_INIT);
 	//}
 
@@ -2512,19 +2553,21 @@ void BugFixes::init()
 	// Fix for op_lookup_string_proc_ engine function not searching the last procedure in a script
 	SafeWrite8(0x46C7AC, 0x76); // jb > jbe
 
+	// Update the AC counter
 	//if (GetConfigInt("Misc", "WieldObjCritterFix", 1)) {
 		dlog("Applying wield_obj_critter fix.", DL_INIT);
-		SafeWrite8(0x456912, 0x1E);
+		SafeWrite8(0x456912, 0x1E); // jnz 0x456931
 		HookCall(0x45697F, op_wield_obj_critter_adjust_ac_hook);
 		dlogr(" Done", DL_INIT);
 	//}
 
+	// Enable party members with level 6 protos to reach level 6
 	//if (GetConfigInt("Misc", "NPCStage6Fix", 1)) {
 		dlog("Applying NPC Stage 6 Fix.", DL_INIT);
-		MakeJump(0x493CE9, NPCStage6Fix1);
-		SafeWrite8(0x494063, 6);   // loop should look for a potential 6th stage
+		MakeJump(0x493CE9, NPCStage6Fix1); // partyMember_init_
+		MakeJump(0x494224, NPCStage6Fix2); // partyMemberGetAIOptions_
+		SafeWrite8(0x494063, 6);   // loop should look for a potential 6th stage (partyMember_init_)
 		SafeWrite8(0x4940BB, 204); // move pointer by 204 bytes instead of 200
-		MakeJump(0x494224, NPCStage6Fix2);
 		dlogr(" Done", DL_INIT);
 	//}
 
