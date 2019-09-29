@@ -39,7 +39,7 @@ BYTE *charScrnBackSurface = nullptr;
 DWORD charRotTick = 0;
 DWORD charRotOri = 0;
 
-bool raceButtions = false, styleButtions = false;
+bool raceButtons = false, styleButtons = false;
 int currentRaceVal = 0, currentStyleVal = 0;     // holds Appearance values to restore after global reset in NewGame2 function in LoadGameHooks.cpp
 DWORD critterListSize = 0, critterArraySize = 0; // Critter art list size
 
@@ -250,11 +250,6 @@ int FWriteDword(void *FileStream, DWORD bVal) {
 
 /////////////////////////////////////////////////////////////////MOUSE FUNCTIONS/////////////////////////////////////////////////////////////////////
 
-// get current mouse pic ref
-int GetMousePic() {
-	return *(DWORD*)_gmouse_current_cursor;
-}
-
 // set mouse pic
 int SetMousePic(int picNum) {
 	__asm {
@@ -285,11 +280,6 @@ void HideMouse() {
 	__asm {
 		call mouse_hide_;
 	}
-}
-
-// returns 0 if mouse is hidden
-int IsMouseHidden() {
-	return *(DWORD*)_mouse_is_hidden;
 }
 
 /////////////////////////////////////////////////////////////////FRM FUNCTIONS///////////////////////////////////////////////////////////////////////
@@ -556,15 +546,15 @@ int check_buttons() {
 
 /////////////////////////////////////////////////////////////////TEXT FUNCTIONS//////////////////////////////////////////////////////////////////////
 
-void SetFont(long ref) {
+static void SetFont(long ref) {
 	__asm {
 		mov  eax, ref;
 		call text_font_;
 	}
 }
 
-long GetFont() {
-	return *(DWORD*)_curr_font_num;
+static long GetFont() {
+	return *ptr_curr_font_num;
 }
 
 /*
@@ -815,7 +805,7 @@ static __declspec(noinline) int _stdcall LoadHeroDat(unsigned int race, unsigned
 	}
 
 	const char sex = GetSex();
-	bool folderIsExist = false, datIsExist = false;
+	bool folderIsExist = false, heroDatIsExist = false;
 	// check if folder exists for selected appearance
 	sprintf_s(heroPathPtr[0]->path, 64, appearancePathFmt, sex, race, style, "");
 	if (GetFileAttributes(heroPathPtr[0]->path) != INVALID_FILE_ATTRIBUTES) {
@@ -830,17 +820,17 @@ static __declspec(noinline) int _stdcall LoadHeroDat(unsigned int race, unsigned
 			heroPathPtr[1]->isDat = 1;
 		}
 		if (folderIsExist) heroPathPtr[0]->next = heroPathPtr[1];
-		datIsExist = true;
+		heroDatIsExist = true;
 	} else if (!folderIsExist) {
 		return -1; // no .dat files and folder
 	}
 
-	heroPathPtr[1]->next = nullptr;
+	//heroPathPtr[1]->next = nullptr;
 	tempPathPtr = &heroPathPtr[1 - folderIsExist]; // set path for selected appearance
-	heroPathPtr[0 + datIsExist]->next = *(sPath**)_paths; // heroPathPtr[] >> foPaths
+	heroPathPtr[0 + heroDatIsExist]->next = *(sPath**)_paths; // heroPathPtr[] >> foPaths
 
 	if (style != 0) {
-		datIsExist = false, folderIsExist = false;
+		bool raceDatIsExist = false, folderIsExist = false;
 		// check if folder exists for selected race base appearance
 		sprintf_s(racePathPtr[0]->path, 64, appearancePathFmt, sex, race, 0, "");
 		if (GetFileAttributes(racePathPtr[0]->path) != INVALID_FILE_ATTRIBUTES) {
@@ -855,14 +845,13 @@ static __declspec(noinline) int _stdcall LoadHeroDat(unsigned int race, unsigned
 				racePathPtr[1]->isDat = 1;
 			}
 			if (folderIsExist) racePathPtr[0]->next = racePathPtr[1];
-			datIsExist = true;
+			raceDatIsExist = true;
 		} else if (!folderIsExist) {
 			return 0;
 		}
 
-		long i = 0 + (heroPathPtr[1]->next != nullptr);
-		heroPathPtr[i]->next = racePathPtr[1 - folderIsExist];  // set path for selected race base appearance
-		racePathPtr[0 + datIsExist]->next = *(sPath**)_paths;   // insert racePathPtr in chain path: heroPathPtr[] >> racePathPtr[] >> foPaths
+		heroPathPtr[0 + heroDatIsExist]->next = racePathPtr[1 - folderIsExist]; // set path for selected race base appearance
+		racePathPtr[0 + raceDatIsExist]->next = *(sPath**)_paths; // insert racePathPtr in chain path: heroPathPtr[] >> racePathPtr[] >> foPaths
 	}
 	return 0;
 }
@@ -982,13 +971,13 @@ static void FixCritList() {
 	critterListSize = (*(DWORD*)0x510774) / 2;
 	critterArraySize = critterListSize * 13;
 
-	char *CritList = (*(char**)0x51076C);           // critter list offset
-	char *HeroList = CritList + critterArraySize;   // set start of hero critter list after regular critter list
+	char *CritList = (*(char**)0x51076C);         // critter list offset
+	char *HeroList = CritList + critterArraySize; // set start of hero critter list after regular critter list
 
 	memset(HeroList, 0, critterArraySize);
 
-	for (DWORD i = 0; i < critterListSize; i++) {   // copy critter name list to hero name list
-		*HeroList = '_';                            // insert a '_' char at the front of new hero critt names. fallout wont load the same name twice
+	for (DWORD i = 0; i < critterListSize; i++) { // copy critter name list to hero name list
+		*HeroList = '_';                          // insert a '_' char at the front of new hero critt names. fallout wont load the same name twice
 		memcpy(HeroList + 1, CritList, 11);
 		HeroList += 13;
 		CritList += 13;
@@ -1120,11 +1109,11 @@ void _stdcall SetNewCharAppearanceGlobals() {
 void _stdcall SetHeroStyle(int newStyleVal) {
 	if (!appModEnabled || newStyleVal == currentStyleVal) return;
 
-	if (LoadHeroDat(currentRaceVal, newStyleVal, true) != 0) {  // if new style cannot be set
+	if (LoadHeroDat(currentRaceVal, newStyleVal, true) != 0) { // if new style cannot be set
 		if (currentRaceVal == 0 && newStyleVal == 0) {
-			currentStyleVal = 0;                                // ignore error if appearance = default
+			currentStyleVal = 0; // ignore error if appearance = default
 		} else {
-			LoadHeroDat(currentRaceVal, currentStyleVal);       // reload original style
+			LoadHeroDat(currentRaceVal, currentStyleVal); // reload original style
 		}
 	} else {
 		currentStyleVal = newStyleVal;
@@ -1137,10 +1126,10 @@ void _stdcall SetHeroStyle(int newStyleVal) {
 void _stdcall SetHeroRace(int newRaceVal) {
 	if (!appModEnabled || newRaceVal == currentRaceVal) return;
 
-	if (LoadHeroDat(newRaceVal, 0, true) != 0) {          // if new race fails with style at 0
+	if (LoadHeroDat(newRaceVal, 0, true) != 0) { // if new race fails with style at 0
 		if (newRaceVal == 0) {
 			currentRaceVal = 0;
-			currentStyleVal = 0;                          // ignore if appearance = default
+			currentStyleVal = 0; // ignore if appearance = default
 		} else {
 			LoadHeroDat(currentRaceVal, currentStyleVal); // reload original race & style
 		}
@@ -1223,7 +1212,7 @@ static void DrawPCConsole() {
 			charRotOri = 0;
 		}
 
-		int WinRef = *(DWORD*)_edit_win; // char screen window ref
+		int WinRef = *ptr_edit_win; // char screen window ref
 		//BYTE *WinSurface = GetWinSurface(WinRef);
 
 		WINinfo *WinInfo = GetWinStruct(WinRef);
@@ -1337,7 +1326,7 @@ static void DrawCharNote(bool style, int winRef, DWORD xPosWin, DWORD yPosWin, B
 }
 
 static void _stdcall DrawCharNoteNewChar(bool type) {
-	DrawCharNote(type, *(DWORD*)_edit_win, 348, 272, charScrnBackSurface, 348, 272, 640, 480);
+	DrawCharNote(type, *ptr_edit_win, 348, 272, charScrnBackSurface, 348, 272, 640, 480);
 }
 
 // op_hero_select_win
@@ -1360,9 +1349,9 @@ void _stdcall HeroSelectWindow(int raceStyleFlag) {
 		return;
 	}
 
-	int mouseWasHidden = IsMouseHidden();
+	int mouseWasHidden = *ptr_mouse_is_hidden;
 	if (mouseWasHidden) ShowMouse();
-	int oldMouse = GetMousePic();
+	int oldMouse = *ptr_gmouse_current_cursor;
 	SetMousePic(1);
 
 	BYTE *winSurface = GetWinSurface(winRef);
@@ -1568,16 +1557,16 @@ static int _stdcall CheckCharButtons() {
 
 	int drawFlag = -1;
 
-	int infoLine = *(DWORD*)_info_line;
+	int infoLine = *ptr_info_line;
 	if (infoLine == 0x503 || infoLine == 0x504) {
-		*(DWORD*)_info_line -= 2;
+		*ptr_info_line -= 2;
 		*(DWORD*)_frstc_draw1 = 1;
 		DrawCharNoteNewChar(infoLine != 0x503);
 	} else if (infoLine == 0x501 || infoLine == 0x502) {
 		switch (button) {
 		case 0x14B: // button left
 		case 0x14D: // button right
-			if (*(DWORD*)_glblmode == 1) { //if in char creation scrn
+			if (*ptr_glblmode == 1) { //if in char creation scrn
 				if (infoLine == 0x501) {
 					button = button + 0x3C6;
 				} else if (infoLine == 0x502) {
@@ -1601,7 +1590,7 @@ static int _stdcall CheckCharButtons() {
 		case 0x1F6: // button cancel
 		case 'c':   // button cancel
 		case 'C':   // button cancel
-			*(DWORD*)_info_line += 2; // 0x503/0x504 for redrawing note when reentering char screen
+			*ptr_info_line += 2; // 0x503/0x504 for redrawing note when reentering char screen
 			break;
 		}
 	}
@@ -1614,13 +1603,13 @@ static int _stdcall CheckCharButtons() {
 		button = 0x501;
 	case 0x501: // race title button pushed
 		if (infoLine != 0x501) {
-			*(DWORD*)_info_line = 0x501;
+			*ptr_info_line = 0x501;
 			drawFlag = 3;
 		}
 		break;
 	case 0x502: // style title button pushed
 		if (infoLine != 0x502) {
-			*(DWORD*)_info_line = 0x502;
+			*ptr_info_line = 0x502;
 			drawFlag = 2;
 		}
 		break;
@@ -1678,11 +1667,11 @@ static int _stdcall CheckCharButtons() {
 		bool style = false; // Race;
 		switch (drawFlag) {
 		case 0:
-			*(DWORD*)_info_line = 0x502;
+			*ptr_info_line = 0x502;
 			style = true;
 			goto play;
 		case 1:
-			*(DWORD*)_info_line = 0x501;
+			*ptr_info_line = 0x501;
 		play:
 			PlayAcm("ib3p1xx1");
 			break;
@@ -1724,11 +1713,11 @@ static void __fastcall HeroGenderChange(long gender) {
 
 	long baseModel = (newGender)          // check if male 0
 		? *(DWORD*)0x5108AC               // base female model
-		: *(DWORD*)_art_vault_person_nums; // base male model
+		: *ptr_art_vault_person_nums;     // base male model
 
 	// adjust base hero art
 	baseModel += critterListSize;
-	*(DWORD*)_art_vault_guy_num = baseModel;
+	*ptr_art_vault_guy_num = baseModel;
 
 	// reset race and style to defaults
 	currentRaceVal = 0;
@@ -1738,7 +1727,7 @@ static void __fastcall HeroGenderChange(long gender) {
 	RefreshHeroBaseArt();
 
 	// Check If Race or Style selected to redraw info note
-	int infoLine = *(DWORD*)_info_line;
+	int infoLine = *ptr_info_line;
 	if (infoLine == 0x501 || infoLine == 0x502) {
 		DrawCharNoteNewChar(infoLine != 0x501);
 	}
@@ -1775,13 +1764,13 @@ static void __declspec(naked) AddCharScrnButtons() {
 	}
 
 	int WinRef;
-	WinRef = *(DWORD*)_edit_win; // char screen window ref
+	WinRef = *ptr_edit_win; // char screen window ref
 
 	// race and style title buttons
 	WinRegisterButton(WinRef, 332,   0, 82, 32, -1, -1, 0x501, -1, 0, 0, 0, 0);
 	WinRegisterButton(WinRef, 332, 226, 82, 32, -1, -1, 0x502, -1, 0, 0, 0, 0);
 
-	if (*(DWORD*)_glblmode == 1 && (styleButtions || raceButtions)) { // equals 1 if new char screen - equals 0 if ingame char screen
+	if (*ptr_glblmode == 1 && (styleButtons || raceButtons)) { // equals 1 if new char screen - equals 0 if ingame char screen
 		if (newButtonSurface == nullptr) {
 			newButtonSurface = new BYTE [20 * 18 * 4];
 
@@ -1806,11 +1795,11 @@ static void __declspec(naked) AddCharScrnButtons() {
 
 			frmSurface = nullptr;
 		}
-		if (raceButtions) { // race selection buttons
+		if (raceButtons) { // race selection buttons
 			WinRegisterButton(WinRef, 348, 37, 20, 18, -1, -1, -1, 0x511, newButtonSurface, newButtonSurface + (20 * 18), 0, 0x20);
 			WinRegisterButton(WinRef, 374, 37, 20, 18, -1, -1, -1, 0x513, newButtonSurface + (20 * 18 * 2), newButtonSurface + (20 * 18 * 3), 0, 0x20);
 		}
-		if (styleButtions) { // style selection buttons
+		if (styleButtons) { // style selection buttons
 			WinRegisterButton(WinRef, 348, 199, 20, 18, -1, -1, -1, 0x512, newButtonSurface, newButtonSurface + (20 * 18), 0, 0x20);
 			WinRegisterButton(WinRef, 374, 199, 20, 18, -1, -1, -1, 0x514, newButtonSurface + (20 * 18 * 2), newButtonSurface + (20 * 18 * 3), 0, 0x20);
 		}
@@ -1840,7 +1829,7 @@ static void __declspec(naked) FixCharScrnBack() {
 	if (charScrnBackSurface == nullptr) {
 		charScrnBackSurface = new BYTE [640 * 480];
 
-		UNLSTDfrm *frm = LoadUnlistedFrm((*(long*)_glblmode) ? "AppChCrt.frm" : "AppChEdt.frm", 6);
+		UNLSTDfrm *frm = LoadUnlistedFrm((*ptr_glblmode) ? "AppChCrt.frm" : "AppChEdt.frm", 6);
 
 		if (frm != nullptr) {
 			sub_draw(640, 480, 640, 480, 0, 0, frm->frames[0].indexBuff, 640, 480, 0, 0, charScrnBackSurface, 0);
@@ -1899,10 +1888,10 @@ static void __declspec(naked) FixCharScrnBack() {
 			UnloadFrm(FrmObj);
 
 			// frm background for char screen Appearance button
-			if (*(DWORD*)_glblmode == 1 && (styleButtions || raceButtions)) {
+			if (*ptr_glblmode && (styleButtons || raceButtons)) {
 				FrmSurface = GetFrmSurface(BuildFrmId(6, 174), 0, 0, &FrmObj); // Pickchar frm
-				if (raceButtions)  sub_draw(69, 20, 640, 480, 281, 319, FrmSurface, 640, 480, 337,  36, charScrnBackSurface, 0); // button backround top
-				if (styleButtions) sub_draw(69, 20, 640, 480, 281, 319, FrmSurface, 640, 480, 337, 198, charScrnBackSurface, 0); // button backround bottom
+				if (raceButtons)  sub_draw(69, 20, 640, 480, 281, 319, FrmSurface, 640, 480, 337,  36, charScrnBackSurface, 0); // button backround top
+				if (styleButtons) sub_draw(69, 20, 640, 480, 281, 319, FrmSurface, 640, 480, 337, 198, charScrnBackSurface, 0); // button backround bottom
 				UnloadFrm(FrmObj);
 			}
 			FrmSurface = nullptr;
@@ -2064,12 +2053,12 @@ static void EnableHeroAppearanceMod() {
 	// check if Data exists for other races male or female, and if so enable race selection buttons
 	if (GetFileAttributes("Appearance\\hmR01S00") != INVALID_FILE_ATTRIBUTES || GetFileAttributes("Appearance\\hfR01S00") != INVALID_FILE_ATTRIBUTES ||
 		GetFileAttributes("Appearance\\hmR01S00.dat") != INVALID_FILE_ATTRIBUTES || GetFileAttributes("Appearance\\hfR01S00.dat") != INVALID_FILE_ATTRIBUTES) {
-		raceButtions = true;
+		raceButtons = true;
 	}
 	// check if Data exists for other styles male or female, and if so enable style selection buttons
 	if (GetFileAttributes("Appearance\\hmR00S01") != INVALID_FILE_ATTRIBUTES || GetFileAttributes("Appearance\\hfR00S01") != INVALID_FILE_ATTRIBUTES ||
 		GetFileAttributes("Appearance\\hmR00S01.dat") != INVALID_FILE_ATTRIBUTES || GetFileAttributes("Appearance\\hfR00S01.dat") != INVALID_FILE_ATTRIBUTES) {
-		styleButtions = true;
+		styleButtons = true;
 	}
 
 	// Check if new Appearance char scrn button pushed (editor_design_)

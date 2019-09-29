@@ -149,7 +149,7 @@ void sArrayVar::clearRange( int from, int to /*= -1*/ )
 
 void sArrayVar::clearAll()
 {
-	for (auto it = val.begin(); it != val.end(); ++it) {
+	for (std::vector<sArrayElement>::iterator it = val.begin(); it != val.end(); ++it) {
 		it->clearData();
 	}
 }

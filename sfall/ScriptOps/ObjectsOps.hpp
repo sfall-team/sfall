@@ -647,13 +647,23 @@ static void sf_get_loot_object() {
 }
 
 static void sf_get_object_data() {
-	BYTE* object_ptr = (BYTE*)opHandler.arg(0).asObject();
-	opHandler.setReturn(*(long*)(object_ptr + opHandler.arg(1).asInt()), DATATYPE_INT);
+	DWORD result = 0;
+	DWORD* object_ptr = (DWORD*)opHandler.arg(0).rawValue();
+	if (*(object_ptr - 1) != 0xFEEDFACE) {
+		opHandler.printOpcodeError("get_object_data() - invalid object pointer.");
+	} else {
+		result = *(long*)((BYTE*)object_ptr + opHandler.arg(1).rawValue());
+	}
+	opHandler.setReturn(result, DATATYPE_INT);
 }
 
 static void sf_set_object_data() {
-	BYTE* object_ptr = (BYTE*)opHandler.arg(0).asObject();
-	*(long*)(object_ptr + opHandler.arg(1).asInt()) = opHandler.arg(2).asInt();
+	DWORD* object_ptr = (DWORD*)opHandler.arg(0).rawValue();
+	if (*(object_ptr - 1) != 0xFEEDFACE) {
+		opHandler.printOpcodeError("set_object_data() - invalid object pointer.");
+	} else {
+		*(long*)((BYTE*)object_ptr + opHandler.arg(1).rawValue()) = opHandler.arg(2).rawValue();
+	}
 }
 
 static void sf_set_unique_id() {
