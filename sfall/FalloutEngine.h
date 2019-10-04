@@ -341,7 +341,7 @@ extern DWORD* ptr_inven_scroll_dn_bid;
 extern DWORD* ptr_inven_scroll_up_bid;
 extern DWORD* ptr_inventry_message_file;
 extern DWORD* ptr_itemButtonItems;
-extern DWORD* ptr_itemCurrentItem; // 0 - left, 1 - right
+extern long*  ptr_itemCurrentItem; // 0 - left, 1 - right
 extern DWORD* ptr_kb_lock_flags;
 extern DWORD* ptr_last_buttons;
 extern DWORD* ptr_last_button_winID;
@@ -756,6 +756,7 @@ extern const DWORD obj_new_;  // int aObj*<eax>, int aPid<ebx>
 extern const DWORD obj_new_sid_inst_;
 extern const DWORD obj_outline_object_;
 extern const DWORD obj_pid_new_;
+extern const DWORD obj_remove_from_inven_;
 extern const DWORD obj_remove_outline_;
 extern const DWORD obj_save_dude_;
 extern const DWORD obj_scroll_blocking_at_;

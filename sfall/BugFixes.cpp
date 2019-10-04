@@ -3,6 +3,7 @@
 #include "BugFixes.h"
 #include "Define.h"
 #include "FalloutEngine.h"
+#include "HookScripts.h"
 #include "LoadGameHook.h"
 #include "ScriptExtender.h"
 
@@ -382,7 +383,7 @@ nextArmor:
 		call inven_worn_;
 		test eax, eax;
 		jz   noArmor;
-		and  byte ptr [eax + 0x27], 0xFB; // Unset the flag of equipped armor
+		and  byte ptr [eax + 0x27], 0xFB; // Unset flag of equipped armor (~Worn >> 24)
 		jmp  nextArmor;
 noArmor:
 		mov  eax, esi;
@@ -398,7 +399,7 @@ nextArmor:
 		call inven_worn_;
 		test eax, eax;
 		jz   end;
-		and  byte ptr [eax + 0x27], 0xFB; // Unset flag of equipped armor
+		and  byte ptr [eax + 0x27], 0xFB; // Unset flag of equipped armor (~Worn >> 24)
 		jmp  nextArmor;
 end:
 		retn;
@@ -420,11 +421,15 @@ skip:
 		jz   dudeFix;
 		test eax, eax;
 		jz   end;
+		// fix for party member
+		call InvenUnwield_HookMove;    // run HOOK_INVENWIELD before moving item
+		push ebx;
 		mov  ecx, edx;
 		xor  ebx, ebx;                 // new armor
 		xchg eax, edx;                 // set: eax - source, edx - removed armor
-		call adjust_ac_;               // fix for party member
+		call adjust_ac_;
 		mov  edx, ecx;
+		pop  ebx;
 		xor  eax, eax;
 end:
 		retn;                          // must be eax = 0
@@ -432,12 +437,35 @@ dudeFix:
 		test eax, eax;
 		jz   equipped;                 // no armor
 		// additionally check flag of equipped armor for dude
-		test byte ptr [eax + 0x27], 0x4;
+		test byte ptr [eax + 0x27], 0x4; // Worn >> 24
 		jnz  equipped;
 		xor  eax, eax;
 equipped:
 		or   cl, 1;                    // reset ZF
 		retn;
+	}
+}
+
+static void __declspec(naked) obj_drop_hook() {
+	__asm {
+		test byte ptr [edx + 0x27], 0x7; // (Worn | Right_Hand | Left_Hand) >> 24
+		jz   skipHook;
+		call InvenUnwield_HookDrop;    // run HOOK_INVENWIELD before dropping item
+skipHook:
+		test byte ptr [edx + 0x27], 0x4; // Worn >> 24
+		jnz  fixArmorStat;
+		jmp  obj_remove_from_inven_;
+fixArmorStat:
+		call isPartyMember_; // and dude
+		test eax, eax;
+		jz   skip;
+		mov  eax, ecx;
+		xor  ebx, ebx;                 // new armor
+		call adjust_ac_;               // eax - source, edx - removed armor
+		mov  edx, esi;
+skip:
+		mov  eax, ecx;
+		jmp  obj_remove_from_inven_;
 	}
 }
 
@@ -2422,6 +2450,8 @@ void BugFixesInit()
 		HookCall(0x45C49A, op_move_obj_inven_to_obj_hook);
 		SafeWrite16(0x45C496, 0x9090);
 		SafeWrite8(0x45C4A3, 0x75); // jmp > jnz
+		// Fix for drop_obj function
+		HookCall(0x49B965, obj_drop_hook);
 		dlogr(" Done", DL_INIT);
 	//}
 
