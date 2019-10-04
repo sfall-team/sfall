@@ -13,4 +13,7 @@ void Inject_SwitchHandHook();
 void Inject_InventoryMoveHook();
 void Inject_InvenWieldHook();
 
+void InvenUnwield_HookDrop();
+void InvenUnwield_HookMove();
+
 }

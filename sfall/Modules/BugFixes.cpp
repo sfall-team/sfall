@@ -1,5 +1,6 @@
 #include "..\main.h"
 #include "..\FalloutEngine\Fallout2.h"
+#include "HookScripts\InventoryHs.h"
 #include "Drugs.h"
 #include "LoadGameHook.h"
 #include "ScriptExtender.h"
@@ -393,7 +394,7 @@ nextArmor:
 		call fo::funcoffs::inven_worn_;
 		test eax, eax;
 		jz   noArmor;
-		and  byte ptr [eax + flags+3], ~Worn >> 24; // Unset the flag of equipped armor
+		and  byte ptr [eax + flags+3], ~Worn >> 24; // Unset flag of equipped armor
 		jmp  nextArmor;
 noArmor:
 		mov  eax, esi;
@@ -431,11 +432,15 @@ skip:
 		jz   dudeFix;
 		test eax, eax;
 		jz   end;
+		// fix for party member
+		call InvenUnwield_HookMove;    // run HOOK_INVENWIELD before moving item
+		push ebx;
 		mov  ecx, edx;
 		xor  ebx, ebx;                 // new armor
 		xchg eax, edx;                 // set: eax - source, edx - removed armor
-		call fo::funcoffs::adjust_ac_; // fix for party member
+		call fo::funcoffs::adjust_ac_;
 		mov  edx, ecx;
+		pop  ebx;
 		xor  eax, eax;
 end:
 		retn;                          // must be eax = 0
@@ -449,6 +454,29 @@ dudeFix:
 equipped:
 		or   cl, 1;                    // reset ZF
 		retn;
+	}
+}
+
+static void __declspec(naked) obj_drop_hook() {
+	__asm {
+		test byte ptr [edx + flags+3], (Worn | Right_Hand | Left_Hand) >> 24;
+		jz   skipHook;
+		call InvenUnwield_HookDrop;    // run HOOK_INVENWIELD before dropping item
+skipHook:
+		test byte ptr [edx + flags+3], Worn >> 24;
+		jnz  fixArmorStat;
+		jmp  fo::funcoffs::obj_remove_from_inven_;
+fixArmorStat:
+		call fo::funcoffs::isPartyMember_; // and dude
+		test eax, eax;
+		jz   skip;
+		mov  eax, ecx;
+		xor  ebx, ebx;                 // new armor
+		call fo::funcoffs::adjust_ac_; // eax - source, edx - removed armor
+		mov  edx, esi;
+skip:
+		mov  eax, ecx;
+		jmp  fo::funcoffs::obj_remove_from_inven_;
 	}
 }
 
@@ -2438,6 +2466,8 @@ void BugFixes::init()
 		HookCall(0x45C49A, op_move_obj_inven_to_obj_hook);
 		SafeWrite16(0x45C496, 0x9090);
 		SafeWrite8(0x45C4A3, 0x75); // jmp > jnz
+		// Fix for drop_obj function
+		HookCall(0x49B965, obj_drop_hook);
 		dlogr(" Done", DL_INIT);
 	//}
 
