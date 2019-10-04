@@ -646,6 +646,71 @@ static void sf_get_loot_object() {
 	opHandler.setReturn((GetLoopFlags() & INTFACELOOT) ? LoadGameHook_LootTarget : 0, DATATYPE_INT);
 }
 
+static const char* failedLoad = "%s() - failed to load a prototype id: %d";
+static bool protoMaxLimitPatch = false;
+
+static void _stdcall get_proto_data2() {
+	const ScriptValue &pidArg = opHandler.arg(0),
+					  &offsetArg = opHandler.arg(1);
+	if (pidArg.isInt() && offsetArg.isInt()) { // argument validation
+		char* protoPtr;
+		int pid = pidArg.rawValue();
+		int result;
+		__asm {
+			lea  edx, protoPtr;
+			mov  eax, pid;
+			call proto_ptr_;
+			mov  result, eax;
+		}
+		if (result != -1) {
+			result = *(long*)((BYTE*)protoPtr + offsetArg.rawValue());
+		} else {
+			opHandler.printOpcodeError(failedLoad, "get_proto_data", pid);
+		}
+		opHandler.setReturn(result);
+	} else {
+		OpcodeInvalidArgs("get_proto_data");
+		opHandler.setReturn(-1);
+	}
+}
+
+static void __declspec(naked) get_proto_data() {
+	_WRAP_OPCODE(get_proto_data2, 2, 1)
+}
+
+static void _stdcall set_proto_data2() {
+	const ScriptValue &pidArg = opHandler.arg(0),
+					  &offsetArg = opHandler.arg(1),
+					  &valueArg = opHandler.arg(2);
+	if (pidArg.isInt() && offsetArg.isInt() && valueArg.isInt()) { // argument validation
+		char* protoPtr;
+		int pid = pidArg.rawValue();
+		int result;
+		__asm {
+			lea  edx, protoPtr;
+			mov  eax, pid;
+			call proto_ptr_;
+			mov  result, eax;
+		}
+		if (result != -1) {
+			*(long*)((BYTE*)protoPtr + offsetArg.rawValue()) = valueArg.rawValue();
+			if (!protoMaxLimitPatch) {
+				LoadProtoAutoMaxLimit();
+				protoMaxLimitPatch = true;
+			}
+		} else {
+			opHandler.printOpcodeError(failedLoad, "set_proto_data", pid);
+		}
+	} else {
+		OpcodeInvalidArgs("set_proto_data");
+		opHandler.setReturn(-1);
+	}
+}
+
+static void __declspec(naked) set_proto_data() {
+	_WRAP_OPCODE(set_proto_data2, 3, 0)
+}
+
 static void sf_get_object_data() {
 	DWORD result = 0;
 	DWORD* object_ptr = (DWORD*)opHandler.arg(0).rawValue();
