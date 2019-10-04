@@ -448,13 +448,14 @@ static void __declspec(naked) CorrectFidForRemovedItemHook() {
 }
 
 static void __declspec(naked) item_drop_all_hack() {
-	using namespace fo;
-	using namespace ObjectFlag;
+	using namespace fo::ObjectFlag;
 	__asm {
+		mov  ecx, 1;
 		push eax;
-		push 1;  // remove event
-		push 0;  // unwield event
-		mov  ecx, INVEN_TYPE_LEFT_HAND;
+		mov  [esp + 0x40 - 0x2C + 8], ecx; // itemIsEquipped
+		push ecx; // remove event
+		push 0;   // unwield event
+		inc  ecx; // INVEN_TYPE_LEFT_HAND (2)
 		test ah, Left_Hand >> 24;
 		jnz  skip;
 		test ah, Worn >> 24;
@@ -464,7 +465,7 @@ skip:
 		mov  edx, esi; // item
 		mov  ecx, edi; // critter
 		call InvenWieldHook_Script;
-		mov  [esp + 0x40 - 0x2C + 8], eax; // itemIsEquipped (hook return result)
+		//mov  [esp + 0x40 - 0x2C + 8], eax; // itemIsEquipped (eax - hook return result)
 		pop  eax;
 		retn;
 	}
@@ -548,9 +549,10 @@ skip:
 		sub  ebx, edx;
 		push ebx;      // slot: INVEN_TYPE_LEFT_HAND or INVEN_TYPE_RIGHT_HAND
 		mov  edx, eax; // weapon
+		mov  ebx, ecx; // keep source
 		call InvenWieldHook_Script; // ecx - source
 		// engine handler is not overridden
-noweapon:
+noWeapon:
 		mov  edx, [esp + 0x30 - 0x20 + 12]; // armor
 		test edx, edx;
 		jz   noArmor;
@@ -558,7 +560,8 @@ noweapon:
 		push 1;   // remove event
 		push eax; // unwield event
 		push eax; // slot: INVEN_TYPE_WORN
-		call InvenWieldHook_Script; // ecx - source
+		mov  ecx, ebx; // source
+		call InvenWieldHook_Script;
 		// engine handler is not overridden
 noArmor:
 		pop  edx;

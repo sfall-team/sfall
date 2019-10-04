@@ -37,9 +37,6 @@
     <ClInclude Include="Modules\Console.h">
       <Filter>Modules</Filter>
     </ClInclude>
-    <ClInclude Include="Modules\CRC.h">
-      <Filter>Modules</Filter>
-    </ClInclude>
     <ClInclude Include="Modules\Credits.h">
       <Filter>Modules</Filter>
     </ClInclude>
@@ -284,6 +281,10 @@
     <ClInclude Include="Modules\Interface.h">
       <Filter>Modules</Filter>
     </ClInclude>
+    <ClInclude Include="Modules\CritterStats.h">
+      <Filter>Modules</Filter>
+    </ClInclude>
+    <ClInclude Include="CRC.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
@@ -303,9 +304,6 @@
       <Filter>Modules</Filter>
     </ClCompile>
     <ClCompile Include="Modules\Console.cpp">
-      <Filter>Modules</Filter>
-    </ClCompile>
-    <ClCompile Include="Modules\CRC.cpp">
       <Filter>Modules</Filter>
     </ClCompile>
     <ClCompile Include="Modules\Credits.cpp">
@@ -528,6 +526,10 @@
     <ClCompile Include="Modules\Interface.cpp">
       <Filter>Modules</Filter>
     </ClCompile>
+    <ClCompile Include="Modules\CritterStats.cpp">
+      <Filter>Modules</Filter>
+    </ClCompile>
+    <ClCompile Include="CRC.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="version.rc" />

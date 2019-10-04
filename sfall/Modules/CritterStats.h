@@ -1,6 +1,6 @@
 /*
  *    sfall
- *    Copyright (C) 2008, 2009  The sfall team
+ *    Copyright (C) 2008-2019  The sfall team
  *
  *    This program is free software: you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
@@ -23,17 +23,20 @@
 namespace sfall
 {
 
-class Stats : public Module {
+class CritterStats : public Module {
 public:
-	const char* name() { return "Stats"; }
+	const char* name() { return "CritterStats"; }
 	void init();
-};
 
-void _stdcall SetPCStatMax(int stat, int i);
-void _stdcall SetPCStatMin(int stat, int i);
-void _stdcall SetNPCStatMax(int stat, int i);
-void _stdcall SetNPCStatMin(int stat, int i);
-extern DWORD standardApAcBonus;
-extern DWORD extraApAcBonus;
+	static long* __fastcall GetProto(fo::GameObject* critter);
+	static void RecalcDerivedHook();
+
+	static long GetStat(fo::GameObject* critter, long stat, long offset);
+	static void SetStat(fo::GameObject* critter, long stat, long amount, long offset);
+	static long SetProtoData(long pid, long offset, long amount);
+
+	static void SaveStatData(HANDLE file);
+	static bool LoadStatData(HANDLE file);
+};
 
 }

@@ -31,9 +31,9 @@
 #include "Modules\BurstMods.h"
 #include "Modules\Combat.h"
 #include "Modules\Console.h"
-#include "Modules\CRC.h"
 #include "Modules\Credits.h"
 #include "Modules\Criticals.h"
+#include "Modules\CritterStats.h"
 #include "Modules\DamageMod.h"
 #include "Modules\DebugEditor.h"
 #include "Modules\Drugs.h"
@@ -72,8 +72,9 @@
 #include "Modules\TalkingHeads.h"
 #include "Modules\Tiles.h"
 #include "Modules\Worldmap.h"
-#include "SimplePatch.h"
 
+#include "CRC.h"
+#include "SimplePatch.h"
 #include "Logging.h"
 #include "Utils.h"
 #include "Version.h"
@@ -159,6 +160,7 @@ static void InitModules() {
 	manager.add<PlayerModel>();
 	manager.add<Worldmap>();
 	manager.add<Stats>();
+	manager.add<CritterStats>();
 	manager.add<Criticals>();
 	manager.add<Perks>();
 	manager.add<Combat>();

@@ -28,12 +28,10 @@
 #include "..\..\KillCounter.h"
 //#include "..\..\MiscPatches.h"
 #include "..\..\Movies.h"
-#include "..\..\Objects.h"
 #include "..\..\PartyControl.h"
 #include "..\..\PlayerModel.h"
 #include "..\..\ScriptExtender.h"
 #include "..\..\Stats.h"
-//#include "..\..\Worldmap.h"
 #include "..\Arrays.h"
 #include "..\OpcodeContext.h"
 
@@ -831,33 +829,6 @@ void __declspec(naked) op_nb_create_char() {
 		call fo::funcoffs::interpretPushShort_;
 		popad;*/
 		retn;
-	}
-}
-
-static const char* failedLoad = "%s() - failed to load a prototype id: %d";
-static bool protoMaxLimitPatch = false;
-
-void sf_get_proto_data(OpcodeContext& ctx) {
-	fo::Proto* protoPtr;
-	int pid = ctx.arg(0).rawValue();
-	int result = fo::func::proto_ptr(pid, &protoPtr);
-	if (result != -1) {
-		result = *(long*)((BYTE*)protoPtr + ctx.arg(1).rawValue());
-	} else {
-		ctx.printOpcodeError(failedLoad, ctx.getOpcodeName(), pid);
-	}
-	ctx.setReturn(result);
-}
-
-void sf_set_proto_data(OpcodeContext& ctx) {
-	int pid = ctx.arg(0).rawValue();
-	if (Stats::SetProtoData(pid, ctx.arg(1).rawValue(), ctx.arg(2).rawValue()) != -1) {
-		if (!protoMaxLimitPatch) {
-			Objects::LoadProtoAutoMaxLimit();
-			protoMaxLimitPatch = true;
-		}
-	} else {
-		ctx.printOpcodeError(failedLoad, ctx.getOpcodeName(), pid);
 	}
 }
 

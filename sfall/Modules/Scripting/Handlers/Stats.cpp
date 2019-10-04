@@ -19,6 +19,7 @@
 #include "..\..\..\FalloutEngine\Fallout2.h"
 #include "..\..\Combat.h"
 #include "..\..\Criticals.h"
+#include "..\..\CritterStats.h"
 #include "..\..\ScriptExtender.h"
 #include "..\..\Skills.h"
 #include "..\..\Stats.h"
@@ -79,7 +80,7 @@ void sf_set_critter_base_stat(OpcodeContext& ctx) {
 	if (obj && obj->Type() == fo::OBJ_TYPE_CRITTER) {
 		int stat = ctx.arg(1).rawValue();
 		if (stat >= 0 && stat < fo::STAT_max_stat) {
-			Stats::SetStat(obj, stat, ctx.arg(2).rawValue(), 9);
+			CritterStats::SetStat(obj, stat, ctx.arg(2).rawValue(), 9);
 		} else {
 			ctx.printOpcodeError(invalidStat, ctx.getOpcodeName());
 		}
@@ -93,7 +94,7 @@ void sf_set_critter_extra_stat(OpcodeContext& ctx) {
 	if (obj && obj->Type() == fo::OBJ_TYPE_CRITTER) {
 		int stat = ctx.arg(1).rawValue();
 		if (stat >= 0 && stat < fo::STAT_max_stat) {
-			Stats::SetStat(obj, stat, ctx.arg(2).rawValue(), 44);
+			CritterStats::SetStat(obj, stat, ctx.arg(2).rawValue(), 44);
 		} else {
 			ctx.printOpcodeError(invalidStat, ctx.getOpcodeName());
 		}
@@ -108,7 +109,7 @@ void sf_get_critter_base_stat(OpcodeContext& ctx) {
 	if (obj && obj->Type() == fo::OBJ_TYPE_CRITTER) {
 		int stat = ctx.arg(1).rawValue();
 		if (stat >= 0 && stat < fo::STAT_max_stat) {
-			result = Stats::GetStat(obj, stat, 9);
+			result = CritterStats::GetStat(obj, stat, 9);
 		} else {
 			ctx.printOpcodeError(invalidStat, ctx.getOpcodeName());
 		}
@@ -124,7 +125,7 @@ void sf_get_critter_extra_stat(OpcodeContext& ctx) {
 	if (obj && obj->Type() == fo::OBJ_TYPE_CRITTER) {
 		int stat = ctx.arg(1).rawValue();
 		if (stat >= 0 && stat < fo::STAT_max_stat) {
-			result = Stats::GetStat(obj, stat, 44);
+			result = CritterStats::GetStat(obj, stat, 44);
 		} else {
 			ctx.printOpcodeError(invalidStat, ctx.getOpcodeName());
 		}

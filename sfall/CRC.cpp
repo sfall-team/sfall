@@ -19,9 +19,9 @@
 #include <algorithm>
 #include <stdio.h>
 
-#include "..\main.h"
-#include "..\Version.h"
-#include "..\Logging.h"
+#include "main.h"
+#include "Version.h"
+#include "Logging.h"
 
 #include "CRC.h"
 

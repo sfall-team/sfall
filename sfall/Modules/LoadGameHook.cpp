@@ -25,6 +25,7 @@
 
 #include "AI.h"
 #include "BugFixes.h"
+#include "CritterStats.h"
 #include "ExtraSaveSlots.h"
 #include "FileSystem.h"
 #include "HeroAppearance.h"
@@ -34,7 +35,6 @@
 #include "Perks.h"
 #include "ScriptExtender.h"
 #include "Scripting\Arrays.h"
-#include "Stats.h"
 #include "Worldmap.h"
 
 #include "LoadGameHook.h"
@@ -142,7 +142,7 @@ static void _stdcall SaveGame2() {
 	h = CreateFileA(buf, GENERIC_WRITE, 0, 0, CREATE_ALWAYS, 0, 0);
 	if (h != INVALID_HANDLE_VALUE) {
 		Worldmap::SaveData(h);
-		Stats::SaveStatData(h);
+		CritterStats::SaveStatData(h);
 		CloseHandle(h);
 	} else {
 		goto errorSave;
@@ -241,7 +241,7 @@ static bool LoadGame_Before() {
 	dlogr("Loading data from sfalldb.sav...", DL_MAIN);
 	h = CreateFileA(buf, GENERIC_READ, FILE_SHARE_READ, 0, OPEN_EXISTING, 0, 0);
 	if (h != INVALID_HANDLE_VALUE) {
-		if (Worldmap::LoadData(h) || Stats::LoadStatData(h)) goto errorLoad;
+		if (Worldmap::LoadData(h) || CritterStats::LoadStatData(h)) goto errorLoad;
 		CloseHandle(h);
 	} else {
 		dlogr("Cannot open sfalldb.sav.", DL_MAIN);
@@ -663,7 +663,7 @@ void LoadGameHook::init() {
 	HookCalls(before_game_exit_hook, {0x480ACE, 0x480BC7});
 	HookCalls(after_game_exit_hook, {0x480AEB, 0x480BE4});
 	HookCalls(game_close_hook, {
-				0x480CA7, // gnw_main_
+				0x480CA7,  // gnw_main_
 				//0x480D45 // main_exit_system_ (never called)
 			});
 	// game modes
