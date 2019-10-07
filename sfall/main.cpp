@@ -48,6 +48,7 @@
 #include "MainMenu.h"
 #include "Message.h"
 #include "movies.h"
+#include "Objects.h"
 #include "PartyControl.h"
 #include "perks.h"
 #include "Premade.h"
@@ -645,6 +646,9 @@ static void DllMain2() {
 	dlog("Applying main menu patches.", DL_INIT);
 	MainMenuInit();
 	dlogr(" Done", DL_INIT);
+
+	dlogr("Running ObjectsInit().", DL_INIT);
+	ObjectsInit();
 
 	mapName[64] = 0;
 	if (GetPrivateProfileString("Misc", "StartingMap", "", mapName, 64, ini)) {

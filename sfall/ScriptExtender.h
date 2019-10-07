@@ -28,11 +28,6 @@ enum SfallDataType {
 	DATATYPE_STR
 };
 
-enum UniqueID : long {
-	UID_START = 0x0FFFFFFF, // start at 0x10000000
-	UID_END   = 0x7FFFFFFF
-};
-
 #pragma pack(push, 8)
 struct sGlobalVar {
 	__int64 id;
@@ -98,14 +93,6 @@ char* _stdcall mysubstr(char* str, int pos, int length);
 static char reg_anim_combat_check = 1;
 extern DWORD isGlobalScriptLoading;
 extern DWORD AvailableGlobalScriptTypes;
-
-void LoadProtoAutoMaxLimit();
-
-// object's unique id
-extern long objUniqueID;
-long __fastcall SetObjectUniqueID(TGameObj* obj);
-long __fastcall SetSpecialID(TGameObj* obj);
-void SetNewEngineID(TGameObj* obj);
 
 // Script data types
 #define VAR_TYPE_INT    (0xC001)

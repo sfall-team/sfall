@@ -301,6 +301,7 @@
     <ClInclude Include="MainMenu.h" />
     <ClInclude Include="Message.h" />
     <ClInclude Include="movies.h" />
+    <ClInclude Include="Objects.h" />
     <ClInclude Include="PartyControl.h" />
     <ClInclude Include="Perks.h" />
     <ClInclude Include="main.h" />
@@ -367,6 +368,7 @@
     <ClCompile Include="MainMenu.cpp" />
     <ClCompile Include="Message.cpp" />
     <ClCompile Include="movies.cpp" />
+    <ClCompile Include="Objects.cpp" />
     <ClCompile Include="PartyControl.cpp" />
     <ClCompile Include="Perks.cpp" />
     <ClCompile Include="Premade.cpp" />

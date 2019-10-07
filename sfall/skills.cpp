@@ -25,7 +25,7 @@
 #include "Define.h"
 #include "FalloutEngine.h"
 #include "Combat.h"
-#include "ScriptExtender.h"
+#include "Objects.h"
 
 #define SKILL_MIN_LIMIT    (-128)
 

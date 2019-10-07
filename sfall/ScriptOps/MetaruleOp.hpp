@@ -153,6 +153,7 @@ static const SfallMetarule metaruleArray[] = {
 	{"set_object_data",         sf_set_object_data,         3, 3},
 	{"set_outline",             sf_set_outline,             2, 2},
 	{"set_unique_id",           sf_set_unique_id,           1, 2},
+	{"set_unjam_locks_time",    sf_set_unjam_locks_time,    1, 1},
 	{"spatial_radius",          sf_spatial_radius,          1, 1},
 	{"tile_refresh_display",    sf_tile_refresh_display,    0, 0},
 	{"unjam_lock",              sf_unjam_lock,              1, 1},

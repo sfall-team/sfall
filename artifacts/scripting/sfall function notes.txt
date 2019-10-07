@@ -443,6 +443,12 @@ Some utility/math functions are available:
 - unjams a lock immediately without having to wait until the next day, or leave the map and then return after 24 hours
 - does not work in use_skill_on_p_proc procedure
 
+> void sfall_func1("set_unjam_locks_time", int time)
+- sets after how many hours (up to 127 hours) jammed locks will be unjammed if the player leaves the map
+- also disables the auto unjam that occurs at midnight when the player is on the map
+- passing 0 will disable the auto unjam mechanism completely
+- The auto unjam mechanism will be reset each time the player reloads the game
+
 > array sfall_func0("get_map_enter_position")
 - returns an array of the player's position data (index 0 - tile, 1 - elevation, 2 - rotation) when entering the map through exit grids
 - if entering from the world map, the tile value will be -1

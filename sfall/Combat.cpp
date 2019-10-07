@@ -23,7 +23,7 @@
 
 #include "FalloutEngine.h"
 #include "HookScripts.h"
-#include "ScriptExtender.h"
+#include "Objects.h"
 
 #include "Combat.h"
 

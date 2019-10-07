@@ -199,6 +199,9 @@
     <ClInclude Include="Worldmap.h">
       <Filter>Headers</Filter>
     </ClInclude>
+    <ClInclude Include="Objects.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
     <ClInclude Include="stdafx.h">
       <Filter>Headers</Filter>
     </ClInclude>
@@ -338,6 +341,9 @@
       <Filter>Source</Filter>
     </ClCompile>
     <ClCompile Include="Worldmap.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Objects.cpp">
       <Filter>Source</Filter>
     </ClCompile>
     <ClCompile Include="stdafx.cpp">

@@ -21,8 +21,8 @@
 #include "main.h"
 
 #include "Inventory.h"
+#include "Objects.h"
 #include "PartyControl.h"
-#include "ScriptExtender.h"
 
 //script control functions
 
@@ -616,6 +616,15 @@ static void sf_unjam_lock() {
 	__asm {
 		mov  eax, obj;
 		call obj_unjam_lock_;
+	}
+}
+
+static void sf_set_unjam_locks_time() {
+	int time = opHandler.arg(0).asInt();
+	if (time < 0 || time > 127) {
+		opHandler.printOpcodeError("set_unjam_locks_time() - time argument must be in the range of 0 to 127.");
+	} else {
+		SetAutoUnjamLockTime(time);
 	}
 }
 

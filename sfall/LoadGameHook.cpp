@@ -36,6 +36,7 @@
 #include "Logging.h"
 #include "Message.h"
 #include "movies.h"
+#include "Objects.h"
 #include "PartyControl.h"
 #include "perks.h"
 #include "ScriptExtender.h"
@@ -99,6 +100,7 @@ static void _stdcall ResetState(DWORD onLoad) {
 	ForceEncounterRestore(); // restore if the encounter did not happen
 	AfterAttackCleanup();
 	ResetExplosionRadius();
+	RestoreObjUnjamAllLocks();
 	PartyControlReset();
 	NpcEngineLevelUpReset();
 }
