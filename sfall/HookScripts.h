@@ -68,5 +68,6 @@ void _stdcall RunHookScriptsAtProc(DWORD procId);
 DWORD _stdcall KeyPressHook(DWORD dxKey, bool pressed, DWORD vKey);
 void _stdcall MouseClickHook(DWORD button, bool pressed);
 
+long _stdcall CorrectFidForRemovedItem_wHook(TGameObj* critter, TGameObj* item, long flags);
 void InvenUnwield_HookDrop();
 void InvenUnwield_HookMove();

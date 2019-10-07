@@ -1479,6 +1479,22 @@ noArmor:
 	}
 }
 
+// internal function implementation with hook
+long _stdcall CorrectFidForRemovedItem_wHook(TGameObj* critter, TGameObj* item, long flags) {
+	long result = 1;
+	if (!hooks[HOOK_INVENWIELD].empty()) {
+		long slot = INVEN_TYPE_WORN;
+		if (flags & 0x2000000) {        // right hand slot
+			slot = INVEN_TYPE_RIGHT_HAND;
+		} else if (flags & 0x1000000) { // left hand slot
+			slot = INVEN_TYPE_LEFT_HAND;
+		}
+		result = InvenWieldHook_Script(critter, item, slot, 0, 0);
+	}
+	if (result) CorrectFidForRemovedItemFunc(critter, item, flags);
+	return result;
+}
+
 DWORD _stdcall GetHSArgCount() {
 	return argCount;
 }

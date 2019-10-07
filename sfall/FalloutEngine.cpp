@@ -84,10 +84,10 @@ DWORD* ptr_holo_flag                  = reinterpret_cast<DWORD*>(_holo_flag);
 DWORD* ptr_holopages                  = reinterpret_cast<DWORD*>(_holopages);
 DWORD* ptr_hot_line_count             = reinterpret_cast<DWORD*>(_hot_line_count);
 DWORD* ptr_i_fid                      = reinterpret_cast<DWORD*>(_i_fid);
-DWORD* ptr_i_lhand                    = reinterpret_cast<DWORD*>(_i_lhand);
-DWORD* ptr_i_rhand                    = reinterpret_cast<DWORD*>(_i_rhand);
+TGameObj** ptr_i_lhand                = reinterpret_cast<TGameObj**>(_i_lhand);
+TGameObj** ptr_i_rhand                = reinterpret_cast<TGameObj**>(_i_rhand);
 DWORD* ptr_i_wid                      = reinterpret_cast<DWORD*>(_i_wid);
-DWORD* ptr_i_worn                     = reinterpret_cast<DWORD*>(_i_worn);
+TGameObj** ptr_i_worn                 = reinterpret_cast<TGameObj**>(_i_worn);
 DWORD* ptr_In_WorldMap                = reinterpret_cast<DWORD*>(_In_WorldMap);
 DWORD* ptr_info_line                  = reinterpret_cast<DWORD*>(_info_line);
 DWORD* ptr_interfaceWindow            = reinterpret_cast<DWORD*>(_interfaceWindow);
@@ -1181,5 +1181,44 @@ long __stdcall ItemTotalWeight(TGameObj* object) {
 	__asm {
 		mov  eax, object;
 		call item_total_weight_;
+	}
+}
+
+void __fastcall CorrectFidForRemovedItemFunc(TGameObj* critter, TGameObj* item, long slotFlag) {
+	__asm {
+		mov  ebx, slotFlag;
+		mov  eax, ecx;
+		call correctFidForRemovedItem_;
+	}
+}
+
+void __stdcall IntfaceUpdateAc(long animate) {
+	__asm {
+		mov  eax, animate;
+		call intface_update_ac_;
+	}
+}
+
+void __fastcall IntfaceUpdateItems(long animate, long modeLeft, long modeRight) {
+	__asm {
+		mov  ebx, modeRight;
+		mov  eax, ecx;
+		call intface_update_items_;
+	}
+}
+
+long __stdcall InvenUnwield(TGameObj* critter, long slot) {
+	__asm {
+		mov  edx, slot;
+		mov  eax, critter;
+		call inven_unwield_;
+	}
+}
+
+long __fastcall ItemAddForce(TGameObj* critter, TGameObj* item, long count) {
+	__asm {
+		mov  ebx, count;
+		mov  eax, ecx;
+		call item_add_force_;
 	}
 }

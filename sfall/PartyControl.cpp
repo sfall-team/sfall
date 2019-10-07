@@ -35,10 +35,10 @@ bool npcAutoLevelEnabled;
 bool npcEngineLevelUp = true;
 
 static DWORD Mode;
-static bool IsControllingNPC = false;
-static bool SkipCounterAnim  = false;
+static bool isControllingNPC = false;
+static bool skipCounterAnim  = false;
 static std::vector<WORD> Chars;
-static int DelayedExperience;
+static int delayedExperience;
 
 static TGameObj* real_dude = nullptr;
 static DWORD real_traits[2];
@@ -104,7 +104,7 @@ static void SaveRealDudeState() {
 	real_sneak_working = *ptr_sneak_working;
 	SkillGetTags(real_tag_skill, 4);
 
-	if (SkipCounterAnim) {
+	if (skipCounterAnim) {
 		SafeWrite8(0x4229EC, 0); // no animate
 		SafeWrite8(0x422BDE, 0);
 	}
@@ -160,8 +160,8 @@ static void TakeControlOfNPC(TGameObj* npc) {
 	*ptr_obj_dude = npc;
 	*ptr_inven_dude = npc;
 
-	IsControllingNPC = true;
-	DelayedExperience = 0;
+	isControllingNPC = true;
+	delayedExperience = 0;
 	SetInventoryCheck(true);
 
 	InterfaceRedraw();
@@ -190,11 +190,11 @@ static void RestoreRealDudeState(bool redraw = true) {
 	*ptr_sneak_working = real_sneak_working;
 	SkillSetTags(real_tag_skill, 4);
 
-	if (DelayedExperience > 0) {
-		StatPcAddExperience(DelayedExperience);
+	if (delayedExperience > 0) {
+		StatPcAddExperience(delayedExperience);
 	}
 
-	if (SkipCounterAnim) {
+	if (skipCounterAnim) {
 		SafeWrite8(0x4229EC, 1); // restore
 		SafeWrite8(0x422BDE, 1);
 	}
@@ -202,7 +202,7 @@ static void RestoreRealDudeState(bool redraw = true) {
 	if (redraw) InterfaceRedraw();
 
 	SetInventoryCheck(false);
-	IsControllingNPC = false;
+	isControllingNPC = false;
 	real_dude = nullptr;
 
 	if (isDebug) DebugPrintf("\n[SFALL] Restore control to dude.\n");
@@ -226,7 +226,7 @@ static int _stdcall CombatWrapperInner(TGameObj* obj) {
 		int turnResult = CombatTurn(obj);
 
 		// restore state
-		if (IsControllingNPC) { // if game was loaded during turn, PartyControlReset() was called and already restored state
+		if (isControllingNPC) { // if game was loaded during turn, PartyControlReset() was called and already restored state
 			RestoreRealDudeState();
 		}
 		// -1 means that combat ended during turn
@@ -239,7 +239,7 @@ static int _stdcall CombatWrapperInner(TGameObj* obj) {
 // this hook fixes NPCs art switched to main dude art after inventory screen closes
 static void __declspec(naked) FidChangeHook() {
 	_asm {
-		cmp IsControllingNPC, 0;
+		cmp isControllingNPC, 0;
 		je skip;
 		push eax;
 		mov eax, [eax+0x20]; // current fid
@@ -268,7 +268,7 @@ static void __stdcall DisplayCantDoThat() {
 
 // 1 skip handler, -1 don't skip
 int __stdcall PartyControl_SwitchHandHook(TGameObj* item) {
-	if (IsControllingNPC && ItemGetType(item) == item_type_weapon) {
+	if (isControllingNPC && ItemGetType(item) == item_type_weapon) {
 		int canUse;
 		/* check below uses AI packets and skills to check if weapon is usable
 		__asm {
@@ -297,14 +297,14 @@ int __stdcall PartyControl_SwitchHandHook(TGameObj* item) {
 }
 
 static long __fastcall GetRealDudePerk(TGameObj* source, long perk) {
-	if (IsControllingNPC && source == real_dude) {
+	if (isControllingNPC && source == real_dude) {
 		return real_perkLevelDataList[perk];
 	}
 	return PerkLevel(source, perk);
 }
 
 static long __fastcall GetRealDudeTrait(TGameObj* source, long trait) {
-	if (IsControllingNPC && source == real_dude) {
+	if (isControllingNPC && source == real_dude) {
 		return (trait == real_traits[0] || trait == real_traits[1]) ? 1 : 0;
 	}
 	return TraitLevel(trait);
@@ -350,20 +350,20 @@ gonormal:
 
 static void __declspec(naked) stat_pc_add_experience_hook() {
 	__asm {
-		cmp  IsControllingNPC, 0;
-		je   skip;
-		add  DelayedExperience, esi;
-		retn;
-skip:
+		cmp  isControllingNPC, 0;
+		jne  skip;
 		xchg esi, eax;
 		jmp  stat_pc_add_experience_;
+skip:
+		add  delayedExperience, esi;
+		retn;
 	}
 }
 
 // prevents using sneak when controlling NPCs
 static void __declspec(naked) pc_flag_toggle_hook() {
 	__asm {
-		cmp  IsControllingNPC, 0;
+		cmp  isControllingNPC, 0;
 		je   end;
 		call DisplayCantDoThat;
 		retn;
@@ -372,14 +372,46 @@ end:
 	}
 }
 
+static void __declspec(naked) intface_toggle_items_hack() {
+	__asm {
+		cmp  isControllingNPC, 0;
+		jne  checkArt;
+		and  eax, 0x0F000;
+		retn;
+checkArt:
+		mov  ebx, eax; // keep current dude fid
+		push edx;      // weapon animation code
+		and  ebx, 0x0F000;
+		shl  edx, 12;
+		and  eax, 0xFFFF0FFF;
+		or   eax, edx;
+		pop  edx;
+		call art_exists_;
+		test eax, eax;
+		mov  eax, ebx;
+		jz   noArt;
+		retn;
+noArt:
+		mov  eax, 1;
+		sub  eax, ds:[_itemCurrentItem];
+		mov  ds:[_itemCurrentItem], eax; // revert
+		call DisplayCantDoThat;
+		add  esp, 4; // destroy return addr
+		pop  edx;
+		pop  ecx;
+		pop  ebx;
+		retn;
+	}
+}
+
 void __stdcall PartyControlReset() {
-	if (real_dude != nullptr && IsControllingNPC) {
+	if (real_dude != nullptr && isControllingNPC) {
 		RestoreRealDudeState(false);
 	}
 }
 
 bool IsNpcControlled() {
-	return IsControllingNPC;
+	return isControllingNPC;
 }
 
 TGameObj* RealDudeObject() {
@@ -476,6 +508,7 @@ void PartyControlInit() {
 		HookCall(0x454218, stat_pc_add_experience_hook); // call inside op_give_exp_points_hook
 		HookCall(0x4124F1, pc_flag_toggle_hook);
 		HookCall(0x41279A, pc_flag_toggle_hook);
+		MakeCall(0x45F47C, intface_toggle_items_hack);
 
 		// Gets dude perks and traits from script while controlling another NPC
 		// WARNING: Handling dude perks/traits in the engine code while controlling another NPC remains impossible, this requires serious hacking of the engine code
@@ -486,7 +519,7 @@ void PartyControlInit() {
 
 	NpcAutoLevelPatch();
 
-	SkipCounterAnim = (GetPrivateProfileIntA("Misc", "SpeedInterfaceCounterAnims", 0, ini) == 3);
+	skipCounterAnim = (GetPrivateProfileIntA("Misc", "SpeedInterfaceCounterAnims", 0, ini) == 3);
 
 	// display party member's current level & AC & addict flag
 	if (GetPrivateProfileIntA("Misc", "PartyMemberExtraInfo", 0, ini)) {

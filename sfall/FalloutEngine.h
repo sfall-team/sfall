@@ -326,10 +326,10 @@ extern DWORD* ptr_holo_flag;
 extern DWORD* ptr_holopages;
 extern DWORD* ptr_hot_line_count;
 extern DWORD* ptr_i_fid;
-extern DWORD* ptr_i_lhand;
-extern DWORD* ptr_i_rhand;
+extern TGameObj** ptr_i_lhand;
+extern TGameObj** ptr_i_rhand;
 extern DWORD* ptr_i_wid;
-extern DWORD* ptr_i_worn;
+extern TGameObj** ptr_i_worn;
 extern DWORD* ptr_In_WorldMap;
 extern DWORD* ptr_info_line;
 extern DWORD* ptr_interfaceWindow;
@@ -1091,3 +1091,13 @@ long __stdcall BarterComputeValue(TGameObj* source, TGameObj* target);
 long __stdcall ItemCapsTotal(TGameObj* object);
 long __stdcall ItemTotalCost(TGameObj* object);
 long __stdcall ItemTotalWeight(TGameObj* object);
+
+void __fastcall CorrectFidForRemovedItemFunc(TGameObj* critter, TGameObj* item, long slotFlag);
+
+void __stdcall IntfaceUpdateAc(long animate);
+
+void __fastcall IntfaceUpdateItems(long animate, long modeLeft, long modeRight);
+
+long __stdcall InvenUnwield(TGameObj* critter, long slot);
+
+long __fastcall ItemAddForce(TGameObj* critter, TGameObj* item, long count);

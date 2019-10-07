@@ -571,9 +571,18 @@ static void __declspec(naked) op_inven_unwield_hook() {
 		push 0x505AFC; // "But is already Inactive (Dead/Stunned/Invisible)"
 		call debug_printf_;
 		add  esp, 4;
+end:
 		retn;
 skip:
-		jmp  inven_unwield_;
+		call inven_unwield_;
+		// update interface slot
+		cmp  ebx, ds:[_obj_dude];
+		jne  end;
+		xor  eax, eax; // no animate
+		mov  ebx, eax;
+		dec  ebx;      // modeRight (-1)
+		mov  edx, ebx; // modeLeft (-1)
+		jmp  intface_update_items_;
 	}
 }
 
@@ -762,6 +771,6 @@ void InventoryInit() {
 
 	// Check the DAM_KNOCKED_OUT flag for wield_obj_critter/inven_unwield script functions
 	// Note: the flag is not checked for the metarule(METARULE_INVEN_UNWIELD_WHO, x) function
-	HookCall(0x45B0CE, op_inven_unwield_hook);
+	HookCall(0x45B0CE, op_inven_unwield_hook); // with fix to update interface slot after unwielding
 	HookCall(0x45693C, op_wield_obj_critter_hook);
 }
