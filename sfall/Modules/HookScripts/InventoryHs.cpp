@@ -641,6 +641,22 @@ void Inject_InvenWieldHook() {
 	hookInvenWieldIsInject = true;
 }
 
+// internal function implementation with hook
+long CorrectFidForRemovedItem_wHook(fo::GameObject* critter, fo::GameObject* item, long flags) {
+	long result = 1;
+	if (!hooks[HOOK_INVENWIELD].empty()) {
+		long slot = fo::INVEN_TYPE_WORN;
+		if (flags & fo::ObjectFlag::Right_Hand) {       // right hand slot
+			slot = fo::INVEN_TYPE_RIGHT_HAND;
+		} else if (flags & fo::ObjectFlag::Left_Hand) { // left hand slot
+			slot = fo::INVEN_TYPE_LEFT_HAND;
+		}
+		result = InvenWieldHook_Script(critter, item, slot, 0, 0);
+	}
+	if (result) fo::func::correctFidForRemovedItem(critter, item, flags);
+	return result;
+}
+
 void InitInventoryHookScripts() {
 
 	LoadHookScript("hs_removeinvenobj", HOOK_REMOVEINVENOBJ);

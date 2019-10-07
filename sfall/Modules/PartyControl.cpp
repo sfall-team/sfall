@@ -283,7 +283,7 @@ static void __stdcall DisplayCantDoThat() {
 int __stdcall PartyControl::SwitchHandHook(fo::GameObject* item) {
 	// don't allow to use the weapon, if no art exist for it
 	if (isControllingNPC && fo::func::item_get_type(item) == fo::ItemType::item_type_weapon) {
-		int fId = fo::var::obj_dude->artFid;
+		int fId = fo::var::i_fid; //fo::var::obj_dude->artFid;
 		long weaponCode = fo::AnimCodeByWeapon(item);
 		fId = (fId & 0xFFFF0FFF) | (weaponCode << 12);
 		if (!fo::func::art_exists(fId)) {
@@ -311,12 +311,12 @@ static long __fastcall GetRealDudeTrait(fo::GameObject* source, long trait) {
 static void __declspec(naked) stat_pc_add_experience_hook() {
 	__asm {
 		cmp  isControllingNPC, 0;
-		je   skip;
-		add  delayedExperience, esi;
-		retn;
-skip:
+		jne  skip;
 		xchg esi, eax;
 		jmp  fo::funcoffs::stat_pc_add_experience_;
+skip:
+		add  delayedExperience, esi;
+		retn;
 	}
 }
 
@@ -329,6 +329,38 @@ static void __declspec(naked) pc_flag_toggle_hook() {
 		retn;
 end:
 		jmp  fo::funcoffs::pc_flag_toggle_;
+	}
+}
+
+static void __declspec(naked) intface_toggle_items_hack() {
+	__asm {
+		cmp  isControllingNPC, 0;
+		jne  checkArt;
+		and  eax, 0x0F000;
+		retn;
+checkArt:
+		mov  ebx, eax; // keep current dude fid
+		push edx;      // weapon animation code
+		and  ebx, 0x0F000;
+		shl  edx, 12;
+		and  eax, 0xFFFF0FFF;
+		or   eax, edx;
+		pop  edx;
+		call fo::funcoffs::art_exists_;
+		test eax, eax;
+		mov  eax, ebx;
+		jz   noArt;
+		retn;
+noArt:
+		mov  eax, 1;
+		sub  eax, ds:[FO_VAR_itemCurrentItem];
+		mov  ds:[FO_VAR_itemCurrentItem], eax; // revert
+		call DisplayCantDoThat;
+		add  esp, 4; // destroy return addr
+		pop  edx;
+		pop  ecx;
+		pop  ebx;
+		retn;
 	}
 }
 
@@ -491,6 +523,7 @@ void PartyControl::init() {
 
 	HookCall(0x454218, stat_pc_add_experience_hook); // call inside op_give_exp_points_hook
 	HookCalls(pc_flag_toggle_hook, { 0x4124F1, 0x41279A });
+	MakeCall(0x45F47C, intface_toggle_items_hack);
 
 	NpcAutoLevelPatch();
 
