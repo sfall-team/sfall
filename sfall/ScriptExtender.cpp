@@ -410,6 +410,7 @@ static const SfallOpcodeMetadata opcodeMetaArray[] = {
 	{sf_set_unjam_locks_time,   "set_unjam_locks_time",   {DATATYPE_MASK_INT}},
 	{sf_spatial_radius,         "spatial_radius",         {DATATYPE_MASK_VALID_OBJ}},
 	{sf_unjam_lock,             "unjam_lock",             {DATATYPE_MASK_VALID_OBJ}},
+	{sf_unwield_slot,           "unwield_slot",           {DATATYPE_MASK_VALID_OBJ, DATATYPE_MASK_INT}},
 	#ifndef NDEBUG
 	{sf_test,                   "validate_test",          {DATATYPE_MASK_INT, DATATYPE_MASK_INT | DATATYPE_MASK_FLOAT, DATATYPE_MASK_STR, DATATYPE_NONE}},
 	#endif

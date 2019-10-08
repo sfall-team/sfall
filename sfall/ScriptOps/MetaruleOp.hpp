@@ -157,6 +157,7 @@ static const SfallMetarule metaruleArray[] = {
 	{"spatial_radius",          sf_spatial_radius,          1, 1},
 	{"tile_refresh_display",    sf_tile_refresh_display,    0, 0},
 	{"unjam_lock",              sf_unjam_lock,              1, 1},
+	{"unwield_slot",            sf_unwield_slot,            2, 2},
 	#ifndef NDEBUG
 	{"validate_test",           sf_test,                    2, 5},
 	#endif

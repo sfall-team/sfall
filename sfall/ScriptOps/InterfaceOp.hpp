@@ -429,3 +429,63 @@ static void sf_create_win() {
 		opHandler.printOpcodeError("create_win() - couldn't create window.");
 	}
 }
+
+static void sf_unwield_slot() {
+	long slot = static_cast<long>(opHandler.arg(1).rawValue());
+	if (slot < INVEN_TYPE_WORN || slot > INVEN_TYPE_LEFT_HAND) {
+		opHandler.printOpcodeError("unwield_slot() - incorrect slot number.");
+		return;
+	}
+	TGameObj* critter = opHandler.arg(0).asObject();
+	if (critter->pid >> 24 != OBJ_TYPE_CRITTER) {
+		opHandler.printOpcodeError("unwield_slot() - the object is not a critter.");
+		return;
+	}
+	bool isDude = (critter == *ptr_obj_dude);
+	bool update = false;
+	if (slot && (GetLoopFlags() && (INVENTORY | INTFACEUSE | INTFACELOOT | BARTER)) == false) {
+		if (InvenUnwield(critter, (slot == INVEN_TYPE_LEFT_HAND) ? 0 : 1) == 0) {
+			update = isDude;
+		}
+	} else {
+		// force unwield for opened inventory
+		bool forceAdd = false;
+		TGameObj* item = nullptr;
+		if (slot != INVEN_TYPE_WORN) {
+			if (!isDude) return;
+			long* itemRef = nullptr;
+			if (slot == INVEN_TYPE_LEFT_HAND) {
+				item = *ptr_i_lhand;
+				itemRef = (long*)_i_lhand;
+			} else {
+				item = *ptr_i_rhand;
+				itemRef = (long*)_i_rhand;
+			}
+			if (item) {
+				if (!CorrectFidForRemovedItem_wHook(critter, item, (slot == INVEN_TYPE_LEFT_HAND) ? 0x1000000 : 0x2000000)) {
+					return;
+				}
+				*itemRef = 0;
+				forceAdd = true;
+				update = true;
+			}
+		} else {
+			if (isDude) item = *ptr_i_worn;
+			if (!item) {
+				item = InvenWorn(critter);
+			} else {
+				*ptr_i_worn = nullptr;
+				forceAdd = true;
+			}
+			if (item) {
+				if (!CorrectFidForRemovedItem_wHook(critter, item, 0x4000000)) {
+					if (forceAdd) *ptr_i_worn = item;
+					return;
+				}
+				if (isDude) IntfaceUpdateAc(0);
+			}
+		}
+		if (forceAdd) ItemAddForce(critter, item, 1);
+	}
+	if (update) IntfaceUpdateItems(0, -1, -1);
+}

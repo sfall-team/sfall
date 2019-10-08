@@ -51,7 +51,7 @@ struct sPath {
 	sPath* next;
 };
 
-sPath **tempPathPtr = (sPath**)_paths;
+sPath **heroAppPaths = (sPath**)_paths;
 // index: 0 - only folder (w/o extension .dat), 1 - file or folder .dat
 sPath *heroPathPtr[2] = {nullptr, nullptr};
 sPath *racePathPtr[2] = {nullptr, nullptr};
@@ -826,7 +826,7 @@ static __declspec(noinline) int _stdcall LoadHeroDat(unsigned int race, unsigned
 	}
 
 	//heroPathPtr[1]->next = nullptr;
-	tempPathPtr = &heroPathPtr[1 - folderIsExist]; // set path for selected appearance
+	heroAppPaths = &heroPathPtr[1 - folderIsExist]; // set path for selected appearance
 	heroPathPtr[0 + heroDatIsExist]->next = *(sPath**)_paths; // heroPathPtr[] >> foPaths
 
 	if (style != 0) {
@@ -860,12 +860,12 @@ static __declspec(noinline) int _stdcall LoadHeroDat(unsigned int race, unsigned
 static void __declspec(naked) LoadNewHeroArt() {
 	__asm {
 		cmp byte ptr ds:[esi], 'r';
-		je  isReading;
+		jne isNotReading;
+		mov ecx, heroAppPaths;
+		mov ecx, dword ptr ds:[ecx]; // set app path
+		retn;
+isNotReading:
 		mov ecx, _paths;
-		jmp setPath;
-isReading:
-		mov ecx, tempPathPtr;
-setPath:
 		mov ecx, dword ptr ds:[ecx];
 		retn;
 	}
@@ -1945,10 +1945,10 @@ static void __declspec(naked) CharScrnEnd() {
 
 //////////////////////////////////////////////////////////////////////FIX FUNCTIONS//////////////////////////////////////////////////////////////////
 
-// Adjust PC SFX acm name. Skip Underscore char at the start of PC App Name
+// Adjust PC SFX acm name. Skip Underscore char at the start of PC frm file name
 static void __declspec(naked) FixPcSFX() {
 	__asm {
-		cmp byte ptr ds:[ebx], 0x5F; // check if Name begins with an '_' character
+		cmp byte ptr ds:[ebx], '_';  // check if Name begins with an 0x5F character
 		jne endFunc;
 		inc ebx;                     // shift address to next char
 endFunc:
@@ -1991,11 +1991,10 @@ static const DWORD op_obj_art_fid_Ret = 0x45C5D9;
 static void __declspec(naked) op_obj_art_fid_hack() {
 	__asm {
 		mov  esi, [edi + 0x20]; // artFid
-		push ecx;
-		call RealDudeObject;
-		pop  ecx;
-		cmp  eax, edi; // object is dude?
-		jnz  skip;
+		mov  eax, esi;
+		and  eax, 0xFFF; // LST index
+		cmp  eax, critterListSize;
+		jle  skip;
 		sub  esi, critterListSize; // fix hero FrmID
 skip:
 		jmp  op_obj_art_fid_Ret;
