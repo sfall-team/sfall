@@ -49,7 +49,7 @@ bool raceButtons = false, styleButtons = false;
 int currentRaceVal = 0, currentStyleVal = 0;     // holds Appearance values to restore after global reset in NewGame2 function in LoadGameHooks.cpp
 DWORD critterListSize = 0, critterArraySize = 0; // Critter art list size
 
-fo::PathNode **tempPathPtr = &fo::var::paths;
+fo::PathNode **heroAppPaths = &fo::var::paths;
 // index: 0 - only folder (w/o extension .dat), 1 - file or folder .dat
 fo::PathNode *heroPathPtr[2] = {nullptr, nullptr};
 fo::PathNode *racePathPtr[2] = {nullptr, nullptr};
@@ -219,7 +219,7 @@ static __declspec(noinline) int _stdcall LoadHeroDat(unsigned int race, unsigned
 	}
 
 	//heroPathPtr[1]->next = nullptr;
-	tempPathPtr = &heroPathPtr[1 - folderIsExist]; // set path for selected appearance
+	heroAppPaths = &heroPathPtr[1 - folderIsExist]; // set path for selected appearance
 	heroPathPtr[0 + heroDatIsExist]->next = &fo::var::paths[0]; // heroPathPtr[] >> foPaths
 
 	if (style != 0) {
@@ -253,12 +253,12 @@ static __declspec(noinline) int _stdcall LoadHeroDat(unsigned int race, unsigned
 static void __declspec(naked) LoadNewHeroArt() {
 	__asm {
 		cmp byte ptr ds:[esi], 'r';
-		je  isReading;
+		jne isNotReading;
+		mov ecx, heroAppPaths;
+		mov ecx, dword ptr ds:[ecx]; // set app path
+		retn;
+isNotReading:
 		mov ecx, FO_VAR_paths;
-		jmp setPath;
-isReading:
-		mov ecx, tempPathPtr;
-setPath:
 		mov ecx, dword ptr ds:[ecx];
 		retn;
 	}
@@ -1278,10 +1278,10 @@ static void __declspec(naked) CharScrnEnd() {
 
 //////////////////////////////////////////////////////////////////////FIX FUNCTIONS//////////////////////////////////////////////////////////////////
 
-// Adjust PC SFX acm name. Skip Underscore char at the start of PC App Name
+// Adjust PC SFX acm name. Skip Underscore char at the start of PC frm file name
 static void __declspec(naked) FixPcSFX() {
 	__asm {
-		cmp byte ptr ds:[ebx], 0x5F; // check if Name begins with an '_' character
+		cmp byte ptr ds:[ebx], '_';  // check if Name begins with an 0x5F character
 		jne endFunc;
 		inc ebx;                     // shift address to next char
 endFunc:
@@ -1325,11 +1325,10 @@ static void __declspec(naked) op_obj_art_fid_hack() {
 	using namespace Fields;
 	__asm {
 		mov  esi, [edi + artFid];
-		push ecx;
-		call PartyControl::RealDudeObject;
-		pop  ecx;
-		cmp  eax, edi; // object is dude?
-		jnz  skip;
+		mov  eax, esi;
+		and  eax, 0xFFF; // LST index
+		cmp  eax, critterListSize;
+		jle  skip;
 		sub  esi, critterListSize; // fix hero FrmID
 skip:
 		jmp  op_obj_art_fid_Ret;

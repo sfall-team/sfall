@@ -578,26 +578,26 @@ skip:
 DWORD __stdcall Inventory::adjust_fid_replacement() {
 	DWORD fid;
 	if (fo::var::inven_dude->TypeFid() == fo::OBJ_TYPE_CRITTER) {
-		DWORD frameNum;
+		DWORD indexNum;
 		DWORD weaponAnimCode = 0;
 		if (PartyControl::IsNpcControlled()) {
 			// if NPC is under control, use current FID of critter
-			frameNum = fo::var::inven_dude->artFid & 0xFFF;
+			indexNum = fo::var::inven_dude->artFid & 0xFFF;
 		} else {
 			// vanilla logic:
-			frameNum = fo::var::art_vault_guy_num;
+			indexNum = fo::var::art_vault_guy_num;
 			auto critterPro = fo::GetProto(fo::var::inven_pid);
 			if (critterPro != nullptr) {
-				frameNum = critterPro->fid & 0xFFF;
+				indexNum = critterPro->fid & 0xFFF;
 			}
 			if (fo::var::i_worn != nullptr) {
 				auto armorPro = fo::GetProto(fo::var::i_worn->protoId);
-				DWORD armorFrameNum = fo::func::stat_level(fo::var::inven_dude, fo::STAT_gender) == fo::GENDER_FEMALE
-					? armorPro->item.armor.femaleFrameNum
-					: armorPro->item.armor.maleFrameNum;
+				DWORD armorFid = fo::func::stat_level(fo::var::inven_dude, fo::STAT_gender) == fo::GENDER_FEMALE
+					? armorPro->item.armor.femaleFID
+					: armorPro->item.armor.maleFID;
 
-				if (armorFrameNum != -1) {
-					frameNum = armorFrameNum;
+				if (armorFid != -1) {
+					indexNum = armorFid;
 				}
 			}
 		}
@@ -611,7 +611,7 @@ DWORD __stdcall Inventory::adjust_fid_replacement() {
 				weaponAnimCode = itemPro->item.weapon.animationCode;
 			}
 		}
-		fid = fo::func::art_id(fo::OBJ_TYPE_CRITTER, frameNum, 0, weaponAnimCode, 0);
+		fid = fo::func::art_id(fo::OBJ_TYPE_CRITTER, indexNum, 0, weaponAnimCode, 0);
 	} else {
 		fid = fo::var::inven_dude->artFid;
 	}

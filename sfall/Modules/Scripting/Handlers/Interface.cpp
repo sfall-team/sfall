@@ -23,6 +23,8 @@
 #include "..\..\ScriptExtender.h"
 #include "..\OpcodeContext.h"
 
+#include "..\..\HookScripts\InventoryHs.h"
+
 #include "Interface.h"
 
 namespace sfall
@@ -448,6 +450,66 @@ void sf_draw_image(OpcodeContext& ctx) {
 
 void sf_draw_image_scaled(OpcodeContext& ctx) {
 	DrawImage(ctx, true);
+}
+
+void sf_unwield_slot(OpcodeContext& ctx) {
+	fo::InvenType slot = static_cast<fo::InvenType>(ctx.arg(1).rawValue());
+	if (slot < fo::INVEN_TYPE_WORN || slot > fo::INVEN_TYPE_LEFT_HAND) {
+		ctx.printOpcodeError("%s() - incorrect slot number.", ctx.getMetaruleName());
+		return;
+	}
+	fo::GameObject* critter = ctx.arg(0).asObject();
+	if (critter->Type() != fo::ObjType::OBJ_TYPE_CRITTER) {
+		ctx.printOpcodeError("%s() - the object is not a critter.", ctx.getMetaruleName());
+		return;
+	}
+	bool isDude = (critter == fo::var::obj_dude);
+	bool update = false;
+	if (slot && (GetLoopFlags() && (INVENTORY | INTFACEUSE | INTFACELOOT | BARTER)) == false) {
+		if (fo::func::inven_unwield(critter, (slot == fo::INVEN_TYPE_LEFT_HAND) ? fo::Left : fo::Right) == 0) {
+			update = isDude;
+		}
+	} else {
+		// force unwield for opened inventory
+		bool forceAdd = false;
+		fo::GameObject* item = nullptr;
+		if (slot != fo::INVEN_TYPE_WORN) {
+			if (!isDude) return;
+			long* itemRef = nullptr;
+			if (slot == fo::INVEN_TYPE_LEFT_HAND) {
+				item = fo::var::i_lhand;
+				itemRef = (long*)FO_VAR_i_lhand;
+			} else {
+				item = fo::var::i_rhand;
+				itemRef = (long*)FO_VAR_i_rhand;
+			}
+			if (item) {
+				if (!CorrectFidForRemovedItem_wHook(critter, item, (slot == fo::INVEN_TYPE_LEFT_HAND) ? fo::ObjectFlag::Left_Hand : fo::ObjectFlag::Right_Hand)) {
+					return;
+				}
+				*itemRef = 0;
+				forceAdd = true;
+				update = true;
+			}
+		} else {
+			if (isDude) item = fo::var::i_worn;
+			if (!item) {
+				item = fo::func::inven_worn(critter);
+			} else {
+				fo::var::i_worn = nullptr;
+				forceAdd = true;
+			}
+			if (item) {
+				if (!CorrectFidForRemovedItem_wHook(critter, item, fo::ObjectFlag::Worn)) {
+					if (forceAdd) fo::var::i_worn = item;
+					return;
+				}
+				if (isDude) fo::func::intface_update_ac(0);
+			}
+		}
+		if (forceAdd) fo::func::item_add_force(critter, item, 1);
+	}
+	if (update) fo::func::intface_update_items(0, -1, -1);
 }
 
 }

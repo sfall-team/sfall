@@ -103,5 +103,7 @@ void sf_draw_image(OpcodeContext&);
 
 void sf_draw_image_scaled(OpcodeContext&);
 
+void sf_unwield_slot(OpcodeContext&);
+
 }
 }
