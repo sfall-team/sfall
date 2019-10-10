@@ -16,8 +16,6 @@
 *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-//#include <algorithm>
-
 #include "..\main.h"
 #include "..\FalloutEngine\Fallout2.h"
 #include "HookScripts\InventoryHs.h"
@@ -280,9 +278,9 @@ static void __stdcall DisplayCantDoThat() {
 }
 
 // 1 skip handler, -1 don't skip
-int __stdcall PartyControl::SwitchHandHook(fo::GameObject* item) {
+int __fastcall PartyControl::SwitchHandHook(fo::GameObject* item) {
 	// don't allow to use the weapon, if no art exist for it
-	if (isControllingNPC && fo::func::item_get_type(item) == fo::ItemType::item_type_weapon) {
+	if (/*isControllingNPC &&*/ fo::func::item_get_type(item) == fo::ItemType::item_type_weapon) {
 		int fId = fo::var::i_fid; //fo::var::obj_dude->artFid;
 		long weaponCode = fo::AnimCodeByWeapon(item);
 		fId = (fId & 0xFFFF0FFF) | (weaponCode << 12);
@@ -308,6 +306,20 @@ static long __fastcall GetRealDudeTrait(fo::GameObject* source, long trait) {
 	return fo::func::trait_level(trait);
 }
 
+static void __declspec(naked) inven_pickup_hook() {
+	__asm {
+		pushadc;
+		mov  ecx, eax; // item
+		call PartyControl::SwitchHandHook;
+		test eax, eax;
+		popadc;
+		jns  skip; // eax > -1
+		jmp  fo::funcoffs::switch_hand_;
+skip:
+		retn;
+	}
+}
+
 static void __declspec(naked) stat_pc_add_experience_hook() {
 	__asm {
 		cmp  isControllingNPC, 0;
@@ -324,21 +336,18 @@ skip:
 static void __declspec(naked) pc_flag_toggle_hook() {
 	__asm {
 		cmp  isControllingNPC, 0;
-		je   end;
-		call DisplayCantDoThat;
-		retn;
-end:
+		jne  near DisplayCantDoThat;
 		jmp  fo::funcoffs::pc_flag_toggle_;
 	}
 }
 
 static void __declspec(naked) intface_toggle_items_hack() {
 	__asm {
-		cmp  isControllingNPC, 0;
-		jne  checkArt;
-		and  eax, 0x0F000;
-		retn;
-checkArt:
+//		cmp  isControllingNPC, 0;
+//		jne  checkArt;
+//		and  eax, 0x0F000;
+//		retn;
+//checkArt:
 		mov  ebx, eax; // keep current dude fid
 		push edx;      // weapon animation code
 		and  ebx, 0x0F000;
@@ -348,8 +357,8 @@ checkArt:
 		pop  edx;
 		call fo::funcoffs::art_exists_;
 		test eax, eax;
-		mov  eax, ebx;
 		jz   noArt;
+		mov  eax, ebx;
 		retn;
 noArt:
 		mov  eax, 1;
@@ -360,6 +369,17 @@ noArt:
 		pop  edx;
 		pop  ecx;
 		pop  ebx;
+		retn;
+	}
+}
+
+static void __declspec(naked) proto_name_hook() {
+	__asm {
+		cmp  isControllingNPC, 0;
+		jne  pcName;
+		jmp  fo::funcoffs::critter_name_;
+pcName:
+		lea  eax, realDude.pc_name;
 		retn;
 	}
 }
@@ -447,7 +467,9 @@ void PartyControl::SwitchToCritter(fo::GameObject* critter) {
 
 		if (switchHandHookInjected) return;
 		switchHandHookInjected = true;
-		if (!HookScripts::IsInjectHook(HOOK_INVENTORYMOVE)) Inject_SwitchHandHook();
+//		if (!HookScripts::IsInjectHook(HOOK_INVENTORYMOVE)) Inject_SwitchHandHook();
+
+		HookCall(0x49EB09, proto_name_hook);
 
 		// Gets dude perks and traits from script while controlling another NPC
 		// WARNING: Handling dude perks/traits in the engine code while controlling another NPC remains impossible, this requires serious hacking of the engine code
@@ -524,12 +546,16 @@ void PartyControl::init() {
 	HookCall(0x454218, stat_pc_add_experience_hook); // call inside op_give_exp_points_hook
 	HookCalls(pc_flag_toggle_hook, { 0x4124F1, 0x41279A });
 	MakeCall(0x45F47C, intface_toggle_items_hack);
+	HookCalls(inven_pickup_hook, { // will be overwritten if HOOK_INVENTORYMOVE is injected
+		0x4712E3, // left slot
+		0x47136D  // right slot
+	});
 
 	NpcAutoLevelPatch();
 
 	skipCounterAnim = (GetConfigInt("Misc", "SpeedInterfaceCounterAnims", 0) == 3);
 
-	// display party member's current level & AC & addict flag
+	// Display party member's current level & AC & addict flag
 	if (GetConfigInt("Misc", "PartyMemberExtraInfo", 0)) {
 		dlog("Applying display NPC extra info patch.", DL_INIT);
 		HookCall(0x44926F, gdControlUpdateInfo_hook);

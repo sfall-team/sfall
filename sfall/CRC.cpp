@@ -88,7 +88,9 @@ void CRC(const char* filepath) {
 	}
 
 	if (!sizeMatch) {
-		sprintf_s(buf, "You're trying to use sfall with an incompatible version of fallout\nWas expecting '" TARGETVERSION "'\n\nfallout2.exe was an unexpected size. Expected 0x%x but got 0x%x", ExpectedSize, size);
+		sprintf_s(buf, "You're trying to use sfall with an incompatible version of Fallout.\n"
+					   "Was expecting '" TARGETVERSION "'.\n\n"
+					   "fallout2.exe has an unexpected size. Expected %d bytes but got %d bytes.", ExpectedSize, size);
 		Fail(buf);
 	}
 	BYTE* bytes = new BYTE[size];
@@ -109,7 +111,9 @@ void CRC(const char* filepath) {
 		if (crc == ExpectedCRC[i]) matchedCRC = true;
 	}
 	if (!matchedCRC) {
-		sprintf_s(buf, "You're trying to use sfall with an incompatible version of fallout\nWas expecting '" TARGETVERSION "'\n\nfallout2.exe had an unexpected crc. Expected 0x%x but got 0x%x", ExpectedCRC[0], crc);
+		sprintf_s(buf, "You're trying to use sfall with an incompatible version of Fallout.\n"
+					   "Was expecting '" TARGETVERSION "'.\n\n"
+					   "fallout2.exe has an unexpected CRC. Expected 0x%x but got 0x%x.", ExpectedCRC[0], crc);
 		Fail(buf);
 	}
 

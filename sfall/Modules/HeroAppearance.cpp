@@ -218,7 +218,6 @@ static __declspec(noinline) int _stdcall LoadHeroDat(unsigned int race, unsigned
 		return -1; // no .dat files and folder
 	}
 
-	//heroPathPtr[1]->next = nullptr;
 	heroAppPaths = &heroPathPtr[1 - folderIsExist]; // set path for selected appearance
 	heroPathPtr[0 + heroDatIsExist]->next = &fo::var::paths[0]; // heroPathPtr[] >> foPaths
 
@@ -353,6 +352,11 @@ endFunc:
 static long _stdcall AddHeroCritNames() { // art_init_
 	auto &critterArt = fo::var::art[fo::OBJ_TYPE_CRITTER];
 	critterListSize = critterArt.total / 2;
+	if (critterListSize > 2048) {
+		MessageBoxA(0, "This mod cannot be used because the maximum limit of the FID count in the critters.lst is exceeded.\n"
+					   "Please disable the mod and restart the game.", "Hero Appearance mod", 0x10);
+		ExitProcess(-1);
+	}
 	critterArraySize = critterListSize * 13;
 
 	char *CritList = critterArt.names;            // critter list offset
@@ -1325,6 +1329,9 @@ static void __declspec(naked) op_obj_art_fid_hack() {
 	using namespace Fields;
 	__asm {
 		mov  esi, [edi + artFid];
+		mov  eax, [edi + protoId];
+		cmp  eax, PID_Player;
+		jne  skip;
 		mov  eax, esi;
 		and  eax, 0xFFF; // LST index
 		cmp  eax, critterListSize;
@@ -1332,6 +1339,25 @@ static void __declspec(naked) op_obj_art_fid_hack() {
 		sub  esi, critterListSize; // fix hero FrmID
 skip:
 		jmp  op_obj_art_fid_Ret;
+	}
+}
+
+static void __declspec(naked) op_metarule3_hook() {
+	using namespace Fields;
+	__asm {
+		mov  edi, [esp + 0x4C - 0x44 + 8]; // source
+		cmp  edi, ds:[FO_VAR_obj_dude];
+		jne  skip;
+		mov  edi, [edi + protoId];
+		cmp  edi, PID_Player;
+		jne  skip;
+		mov  edi, edx; // edx = set fid number
+		and  edi, 0xFFF;
+		cmp  edi, critterListSize;
+		jg   skip;
+		add  edx, critterListSize;
+skip:
+		jmp  fo::funcoffs::art_id_;
 	}
 }
 
@@ -1513,8 +1539,12 @@ void HeroAppearance::init() {
 	if (heroAppearanceMod > 0) {
 		dlog("Setting up Appearance Char Screen buttons.", DL_INIT);
 		EnableHeroAppearanceMod();
-		// Hero FrmID fix for obj_art_fid script function
-		if (heroAppearanceMod != 2) MakeJump(0x45C5C3, op_obj_art_fid_hack);
+
+		// Hero FrmID fix for obj_art_fid/art_change_fid_num script functions
+		if (heroAppearanceMod != 2) {
+			MakeJump(0x45C5C3, op_obj_art_fid_hack);
+			HookCall(0x4572BE, op_metarule3_hook);
+		}
 
 		LoadGameHook::OnAfterNewGame() += []() {
 			SetNewCharAppearanceGlobals();

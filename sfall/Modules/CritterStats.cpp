@@ -26,8 +26,6 @@
 namespace sfall
 {
 
-//static long* __fastcall GetProto(fo::GameObject*);
-
 struct ProtoMem {
 	long* proto;
 	long  pid;
@@ -46,10 +44,10 @@ static long CreateProtoMem(const protoMem_iterator&, long*, long*&);
 
 struct ProtoModify {
 	long objID;
-	long objPID;
+	long objPID;   // used for additional verification
 	long stat;
-	long amount;
-	long defval;   // value
+	long amount;   // current value of the stat
+	long defval;   // value of the stat before the change
 	long* s_proto; // shared pointer for quick access to the prototype in memory (should not be saved to file)
 
 	ProtoModify() : s_proto(nullptr) {}
