@@ -825,7 +825,6 @@ static __declspec(noinline) int _stdcall LoadHeroDat(unsigned int race, unsigned
 		return -1; // no .dat files and folder
 	}
 
-	//heroPathPtr[1]->next = nullptr;
 	heroAppPaths = &heroPathPtr[1 - folderIsExist]; // set path for selected appearance
 	heroPathPtr[0 + heroDatIsExist]->next = *(sPath**)_paths; // heroPathPtr[] >> foPaths
 
@@ -969,6 +968,11 @@ endFunc:
 static void FixCritList() {
 	//int size = (*(DWORD*)0x510774) / 2; // critter list size after resize by DoubleArt func
 	critterListSize = (*(DWORD*)0x510774) / 2;
+	if (critterListSize > 2048) {
+		MessageBoxA(0, "This mod cannot be used because the maximum limit of the FID count in the critters.lst is exceeded.\n"
+					   "Please disable the mod and restart the game.", "Hero Appearance mod", 0x10);
+		ExitProcess(-1);
+	}
 	critterArraySize = critterListSize * 13;
 
 	char *CritList = (*(char**)0x51076C);         // critter list offset
@@ -1991,6 +1995,9 @@ static const DWORD op_obj_art_fid_Ret = 0x45C5D9;
 static void __declspec(naked) op_obj_art_fid_hack() {
 	__asm {
 		mov  esi, [edi + 0x20]; // artFid
+		mov  eax, [edi + 0x64]; // protoId
+		cmp  eax, PID_Player;
+		jne  skip;
 		mov  eax, esi;
 		and  eax, 0xFFF; // LST index
 		cmp  eax, critterListSize;
@@ -1998,6 +2005,24 @@ static void __declspec(naked) op_obj_art_fid_hack() {
 		sub  esi, critterListSize; // fix hero FrmID
 skip:
 		jmp  op_obj_art_fid_Ret;
+	}
+}
+
+static void __declspec(naked) op_metarule3_hook() {
+	__asm {
+		mov  edi, [esp + 0x4C - 0x44 + 8]; // source
+		cmp  edi, ds:[_obj_dude];
+		jne  skip;
+		mov  edi, [edi + 0x64]; // protoId
+		cmp  edi, PID_Player;
+		jne  skip;
+		mov  edi, edx; // edx = set fid number
+		and  edi, 0xFFF;
+		cmp  edi, critterListSize;
+		jg   skip;
+		add  edx, critterListSize;
+skip:
+		jmp  art_id_;
 	}
 }
 
@@ -2179,8 +2204,12 @@ void HeroAppearanceModInit() {
 	if (heroAppearanceMod > 0) {
 		dlog("Setting up Appearance Char Screen buttons.", DL_INIT);
 		EnableHeroAppearanceMod();
-		// Hero FrmID fix for obj_art_fid script function
-		if (heroAppearanceMod != 2) MakeJump(0x45C5C3, op_obj_art_fid_hack);
+
+		// Hero FrmID fix for obj_art_fid/art_change_fid_num script functions
+		if (heroAppearanceMod != 2) {
+			MakeJump(0x45C5C3, op_obj_art_fid_hack);
+			HookCall(0x4572BE, op_metarule3_hook);
+		}
 		dlogr(" Done", DL_INIT);
 	}
 }

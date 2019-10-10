@@ -854,7 +854,7 @@ long __fastcall ScrSetLocalVar(long sid, long varId, long value) {
 }
 
 // redraws the main game interface windows (useful after changing some data like active hand, etc.)
-void InterfaceRedraw() {
+void __stdcall InterfaceRedraw() {
 	__asm call intface_redraw_;
 }
 

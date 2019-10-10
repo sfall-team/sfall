@@ -971,15 +971,18 @@ extern const DWORD xvfprintf_;
 
 // WRAPPERS:
 // TODO: move these to different namespace
+long __stdcall ItemGetType(TGameObj* item);
+long __stdcall ItemSize(TGameObj* item);
+
 long __stdcall IsPartyMember(TGameObj* obj);
 long __stdcall PartyMemberGetCurrentLevel(TGameObj* obj);
+
 char* GetProtoPtr(long pid);
 char AnimCodeByWeapon(TGameObj* weapon);
+
 // Displays message in main UI console window
 void DisplayConsoleMessage(const char* msg);
 const char* __stdcall GetMessageStr(DWORD fileAddr, DWORD messageId);
-long __stdcall ItemGetType(TGameObj* item);
-long __stdcall ItemSize(TGameObj* item);
 
 // Change the name of playable character
 void CritterPcSetName(const char* newName);
@@ -1001,7 +1004,7 @@ void SkillGetTags(int* result, DWORD num);
 void SkillSetTags(int* tags, DWORD num);
 
 // redraws the main game interface windows (useful after changing some data like active hand, etc.)
-void InterfaceRedraw();
+void __stdcall InterfaceRedraw();
 
 void __stdcall ProcessBk();
 

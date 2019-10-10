@@ -22,7 +22,6 @@
 	- doesn't work with NPC's wearing armor mod, armor won't change when you change it from critter's inventory
 */
 
-#include <algorithm>
 #include <vector>
 
 #include "main.h"
@@ -253,36 +252,19 @@ skip:
 	}
 }
 
-/*
-static void __declspec(naked) ItemDropHook() {
-	_asm {
-		call item_add_force_;
-		retn;
-	}
-}
-*/
-
 static void __stdcall DisplayCantDoThat() {
 	DisplayConsoleMessage(GetMessageStr(MSG_FILE_PROTO, 675)); // I Can't do that
 }
 
 // 1 skip handler, -1 don't skip
-int __stdcall PartyControl_SwitchHandHook(TGameObj* item) {
-	if (isControllingNPC && ItemGetType(item) == item_type_weapon) {
-		int canUse;
-		/* check below uses AI packets and skills to check if weapon is usable
-		__asm {
-			mov edx, item;
-			mov eax, obj_dude_ptr;
-			mov eax, [eax];
-			mov ebx, 2;
-			call ai_can_use_weapon_;
-			mov canUse, eax;
-		}*/
-		int fId = (*ptr_obj_dude)->artFid;
+int __fastcall PartyControl_SwitchHandHook(TGameObj* item) {
+	// don't allow to use the weapon, if no art exist for it
+	if (/*isControllingNPC &&*/ ItemGetType(item) == item_type_weapon) {
+		int fId = *ptr_i_fid; //(*ptr_obj_dude)->artFid;
 		char weaponCode = AnimCodeByWeapon(item);
 		fId = (fId & 0xFFFF0FFF) | (weaponCode << 12);
 		// check if art with this weapon exists
+		int canUse;
 		__asm {
 			mov eax, fId;
 			call art_exists_;
@@ -364,21 +346,18 @@ skip:
 static void __declspec(naked) pc_flag_toggle_hook() {
 	__asm {
 		cmp  isControllingNPC, 0;
-		je   end;
-		call DisplayCantDoThat;
-		retn;
-end:
+		jne  near DisplayCantDoThat;
 		jmp  pc_flag_toggle_;
 	}
 }
 
 static void __declspec(naked) intface_toggle_items_hack() {
 	__asm {
-		cmp  isControllingNPC, 0;
-		jne  checkArt;
-		and  eax, 0x0F000;
-		retn;
-checkArt:
+//		cmp  isControllingNPC, 0;
+//		jne  checkArt;
+//		and  eax, 0x0F000;
+//		retn;
+//checkArt:
 		mov  ebx, eax; // keep current dude fid
 		push edx;      // weapon animation code
 		and  ebx, 0x0F000;
@@ -388,8 +367,8 @@ checkArt:
 		pop  edx;
 		call art_exists_;
 		test eax, eax;
-		mov  eax, ebx;
 		jz   noArt;
+		mov  eax, ebx;
 		retn;
 noArt:
 		mov  eax, 1;
@@ -400,6 +379,17 @@ noArt:
 		pop  edx;
 		pop  ecx;
 		pop  ebx;
+		retn;
+	}
+}
+
+static void __declspec(naked) proto_name_hook() {
+	__asm {
+		cmp  isControllingNPC, 0;
+		jne  pcName;
+		jmp  critter_name_;
+pcName:
+		lea  eax, real_pc_name;
 		retn;
 	}
 }
@@ -508,7 +498,7 @@ void PartyControlInit() {
 		HookCall(0x454218, stat_pc_add_experience_hook); // call inside op_give_exp_points_hook
 		HookCall(0x4124F1, pc_flag_toggle_hook);
 		HookCall(0x41279A, pc_flag_toggle_hook);
-		MakeCall(0x45F47C, intface_toggle_items_hack);
+		HookCall(0x49EB09, proto_name_hook);
 
 		// Gets dude perks and traits from script while controlling another NPC
 		// WARNING: Handling dude perks/traits in the engine code while controlling another NPC remains impossible, this requires serious hacking of the engine code
@@ -517,11 +507,13 @@ void PartyControlInit() {
 	} else
 		dlogr("  Disabled.", DL_INIT);
 
+	MakeCall(0x45F47C, intface_toggle_items_hack);
+
 	NpcAutoLevelPatch();
 
 	skipCounterAnim = (GetPrivateProfileIntA("Misc", "SpeedInterfaceCounterAnims", 0, ini) == 3);
 
-	// display party member's current level & AC & addict flag
+	// Display party member's current level & AC & addict flag
 	if (GetPrivateProfileIntA("Misc", "PartyMemberExtraInfo", 0, ini)) {
 		dlog("Applying display NPC extra info patch.", DL_INIT);
 		HookCall(0x44926F, gdControlUpdateInfo_hook);

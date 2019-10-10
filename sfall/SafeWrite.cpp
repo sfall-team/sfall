@@ -1,7 +1,5 @@
 #include "main.h"
 
-#pragma warning(disable:4996)
-
 static const BYTE CodeType_Call = 0xE8;
 static const BYTE CodeType_Jump = 0xE9;
 static const BYTE CodeType_Nop  = 0x90;

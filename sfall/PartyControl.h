@@ -23,7 +23,7 @@ extern bool npcEngineLevelUp;
 
 void PartyControlInit();
 void __stdcall PartyControlReset();
-int __stdcall PartyControl_SwitchHandHook(TGameObj* item);
+int __fastcall PartyControl_SwitchHandHook(TGameObj* item);
 bool IsNpcControlled();
 TGameObj* RealDudeObject();
 void NpcEngineLevelUpReset();
