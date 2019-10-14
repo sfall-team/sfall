@@ -450,7 +450,7 @@ static void __declspec(naked) gdControlUpdateInfo_hook() {
 }
 
 static void NpcAutoLevelPatch() {
-	npcAutoLevelEnabled = GetPrivateProfileIntA("Misc", "NPCAutoLevel", 0, ini) != 0;
+	npcAutoLevelEnabled = GetConfigInt("Misc", "NPCAutoLevel", 0) != 0;
 	if (npcAutoLevelEnabled) {
 		dlog("Applying NPC autolevel patch.", DL_INIT);
 		SafeWrite8(0x495CFB, 0xEB); // jmps 0x495D28 (skip random check)
@@ -466,13 +466,13 @@ void NpcEngineLevelUpReset() {
 }
 
 void PartyControlInit() {
-	Mode = GetPrivateProfileIntA("Misc", "ControlCombat", 0, ini);
+	Mode = GetConfigInt("Misc", "ControlCombat", 0);
 	if (Mode > 2)
 		Mode = 0;
 	if (Mode > 0) {
 		char pidbuf[512];
 		pidbuf[511] = 0;
-		if (GetPrivateProfileStringA("Misc", "ControlCombatPIDList", "", pidbuf, 511, ini)) {
+		if (GetConfigString("Misc", "ControlCombatPIDList", "", pidbuf, 511)) {
 			char* ptr = pidbuf;
 			char* comma;
 			while (true) {
@@ -511,15 +511,15 @@ void PartyControlInit() {
 
 	NpcAutoLevelPatch();
 
-	skipCounterAnim = (GetPrivateProfileIntA("Misc", "SpeedInterfaceCounterAnims", 0, ini) == 3);
+	skipCounterAnim = (GetConfigInt("Misc", "SpeedInterfaceCounterAnims", 0) == 3);
 
 	// Display party member's current level & AC & addict flag
-	if (GetPrivateProfileIntA("Misc", "PartyMemberExtraInfo", 0, ini)) {
+	if (GetConfigInt("Misc", "PartyMemberExtraInfo", 0)) {
 		dlog("Applying display NPC extra info patch.", DL_INIT);
 		HookCall(0x44926F, gdControlUpdateInfo_hook);
-		GetPrivateProfileString("sfall", "PartyLvlMsg", "Lvl:", levelMsg, 12, translationIni);
-		GetPrivateProfileString("sfall", "PartyACMsg", "AC:", armorClassMsg, 12, translationIni);
-		GetPrivateProfileString("sfall", "PartyAddictMsg", "Addict", addictMsg, 16, translationIni);
+		Translate("sfall", "PartyLvlMsg", "Lvl:", levelMsg, 12);
+		Translate("sfall", "PartyACMsg", "AC:", armorClassMsg, 12);
+		Translate("sfall", "PartyAddictMsg", "Addict", addictMsg, 16);
 		dlogr(" Done", DL_INIT);
 	}
 }

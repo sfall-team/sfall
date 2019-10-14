@@ -744,7 +744,7 @@ bool FileSystemIsEmpty() {
 }
 
 void FileSystemInit() {
-	if (GetPrivateProfileIntA("Misc", "UseFileSystemOverride", 0, ini)) {
+	if (GetConfigInt("Misc", "UseFileSystemOverride", 0)) {
 		FileSystemOverride();
 		UsingFileSystem = true;
 	}

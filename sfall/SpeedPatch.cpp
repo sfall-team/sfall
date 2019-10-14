@@ -144,27 +144,27 @@ void TimerInit() {
 	for (int i = 0; i < 10; i++) {
 		_itoa_s(i, buf, 10);
 		spKey[8] = spMulti[10] = buf[0];
-		speed[i].key = GetPrivateProfileIntA("Input", spKey, 0, ini);
-		speed[i].multiplier = GetPrivateProfileIntA("Speed", spMulti, 0, ini) / 100.0;
+		speed[i].key = GetConfigInt("Input", spKey, 0);
+		speed[i].multiplier = GetConfigInt("Speed", spMulti, 0) / 100.0;
 	}
 }
 
 void SpeedPatchInit() {
-	if (GetPrivateProfileIntA("Speed", "Enable", 0, ini)) {
-		modKey = GetPrivateProfileIntA("Input", "SpeedModKey", 0, ini);
-		int init = GetPrivateProfileIntA("Speed", "SpeedMultiInitial", 100, ini);
+	if (GetConfigInt("Speed", "Enable", 0)) {
+		modKey = GetConfigInt("Input", "SpeedModKey", 0);
+		int init = GetConfigInt("Speed", "SpeedMultiInitial", 100);
 		if (init == 100 && !modKey) return;
 
 		dlog("Applying speed patch.", DL_INIT);
 
 		multi = (double)init / 100.0;
-		toggleKey = GetPrivateProfileIntA("Input", "SpeedToggleKey", 0, ini);
+		toggleKey = GetConfigInt("Input", "SpeedToggleKey", 0);
 
 		sf_GetTickCount = (DWORD)&FakeGetTickCount;
 		sf_GetLocalTime = (DWORD)&FakeGetLocalTime;
 
 		int size = sizeof(offsets) / 4;
-		if (GetPrivateProfileIntA("Speed", "AffectPlayback", 0, ini) == 0) size -= 4;
+		if (GetConfigInt("Speed", "AffectPlayback", 0) == 0) size -= 4;
 
 		for (int i = 0; i < size; i++) {
 			SafeWrite32(offsets[i], (DWORD)&sf_GetTickCount);

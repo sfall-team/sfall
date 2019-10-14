@@ -16,12 +16,13 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "main.h"
-
 #include <stdio.h>
-#include "Criticals.h"
+
+#include "main.h"
 #include "FalloutEngine.h"
 #include "Logging.h"
+
+#include "Criticals.h"
 
 static std::string critTableFile(".\\");
 
@@ -269,7 +270,7 @@ static void CriticalTableOverride() {
 #undef SetEntry
 
 static void RemoveCriticalTimeLimitsPatch() {
-	if (GetPrivateProfileIntA("Misc", "RemoveCriticalTimelimits", 0, ini)) {
+	if (GetConfigInt("Misc", "RemoveCriticalTimelimits", 0)) {
 		dlog("Removing critical time limits.", DL_INIT);
 		SafeWrite8(0x424118, 0xEB);  // jump to 0x424131
 		SafeWrite16(0x4A3052, 0x9090);
@@ -279,12 +280,10 @@ static void RemoveCriticalTimeLimitsPatch() {
 }
 
 void CriticalsInit() {
-	mode = GetPrivateProfileIntA("Misc", "OverrideCriticalTable", 2, ini);
+	mode = GetConfigInt("Misc", "OverrideCriticalTable", 2);
 	if (mode < 0 || mode > 3) mode = 0;
 	if (mode) {
-		char critFile[MAX_PATH];
-		GetPrivateProfileStringA("Misc", "OverrideCriticalFile", "CriticalOverrides.ini", critFile, MAX_PATH, ini);
-		critTableFile += critFile;
+		critTableFile += GetConfigString("Misc", "OverrideCriticalFile", "CriticalOverrides.ini", MAX_PATH);
 		CriticalTableOverride();
 	}
 

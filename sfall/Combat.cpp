@@ -440,15 +440,15 @@ static void BodypartHitChances() {
 }
 
 static void BodypartHitReadConfig() {
-	bodypartHit.Head      = static_cast<long>(GetPrivateProfileIntA("Misc", "BodyHit_Head", -40, ini));
-	bodypartHit.Left_Arm  = static_cast<long>(GetPrivateProfileIntA("Misc", "BodyHit_Left_Arm", -30, ini));
-	bodypartHit.Right_Arm = static_cast<long>(GetPrivateProfileIntA("Misc", "BodyHit_Right_Arm", -30, ini));
-	bodypartHit.Torso     = static_cast<long>(GetPrivateProfileIntA("Misc", "BodyHit_Torso", 0, ini));
-	bodypartHit.Right_Leg = static_cast<long>(GetPrivateProfileIntA("Misc", "BodyHit_Right_Leg", -20, ini));
-	bodypartHit.Left_Leg  = static_cast<long>(GetPrivateProfileIntA("Misc", "BodyHit_Left_Leg", -20, ini));
-	bodypartHit.Eyes      = static_cast<long>(GetPrivateProfileIntA("Misc", "BodyHit_Eyes", -60, ini));
-	bodypartHit.Groin     = static_cast<long>(GetPrivateProfileIntA("Misc", "BodyHit_Groin", -30, ini));
-	bodypartHit.Uncalled  = static_cast<long>(GetPrivateProfileIntA("Misc", "BodyHit_Torso_Uncalled", 0, ini));
+	bodypartHit.Head      = static_cast<long>(GetConfigInt("Misc", "BodyHit_Head", -40));
+	bodypartHit.Left_Arm  = static_cast<long>(GetConfigInt("Misc", "BodyHit_Left_Arm", -30));
+	bodypartHit.Right_Arm = static_cast<long>(GetConfigInt("Misc", "BodyHit_Right_Arm", -30));
+	bodypartHit.Torso     = static_cast<long>(GetConfigInt("Misc", "BodyHit_Torso", 0));
+	bodypartHit.Right_Leg = static_cast<long>(GetConfigInt("Misc", "BodyHit_Right_Leg", -20));
+	bodypartHit.Left_Leg  = static_cast<long>(GetConfigInt("Misc", "BodyHit_Left_Leg", -20));
+	bodypartHit.Eyes      = static_cast<long>(GetConfigInt("Misc", "BodyHit_Eyes", -60));
+	bodypartHit.Groin     = static_cast<long>(GetConfigInt("Misc", "BodyHit_Groin", -30));
+	bodypartHit.Uncalled  = static_cast<long>(GetConfigInt("Misc", "BodyHit_Torso_Uncalled", 0));
 }
 
 static void __declspec(naked) apply_damage_hack() {
@@ -497,7 +497,7 @@ void CombatInit() {
 	// Actually disables all secondary attacks for the critter, regardless of whether the weapon has a burst attack
 	MakeCall(0x429E44, ai_pick_hit_mode_hack, 1);   // NoBurst
 
-	if(GetPrivateProfileInt("Misc", "CheckWeaponAmmoCost", 0, ini)) {
+	if (GetConfigInt("Misc", "CheckWeaponAmmoCost", 0)) {
 		MakeCall(0x4234B3, compute_spray_hack, 1);
 		HookCall(0x4266E9, combat_check_bad_shot_hook);
 		HookCall(0x429A37, ai_search_inven_weap_hook);

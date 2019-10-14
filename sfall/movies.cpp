@@ -16,17 +16,17 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "main.h"
-
 //#include <vector> // should be above DX SDK includes to avoid warning 4995
 
 #include <d3d9.h>
 #include <dshow.h>
 #include <Vmr9.h>
 
+#include "main.h"
 #include "FalloutEngine.h"
 #include "Graphics.h"
 #include "Logging.h"
+
 #include "movies.h"
 
 static DWORD MoviePtrs[MaxMovies];
@@ -740,7 +740,7 @@ less:
 }
 
 void SkipOpeningMoviesPatch() {
-	int skipOpening = GetPrivateProfileIntA("Misc", "SkipOpeningMovies", 0, ini);
+	int skipOpening = GetConfigInt("Misc", "SkipOpeningMovies", 0);
 	if (skipOpening) {
 		dlog("Skipping opening movies.", DL_INIT);
 		SafeWrite16(0x4809C7, 0x1CEB); // jmps 0x4809E5
@@ -762,9 +762,9 @@ void MoviesInit() {
 		strcpy_s(ininame, "Movie");
 		_itoa_s(i + 1, &ininame[5], 3, 10);
 		if (i < 17) {
-			GetPrivateProfileString("Misc", ininame, (char*)(0x518DA0 + i * 4), &MoviePaths[i * 65], 65, ini);
+			GetConfigString("Misc", ininame, (char*)(0x518DA0 + i * 4), &MoviePaths[i * 65], 65);
 		} else {
-			GetPrivateProfileString("Misc", ininame, "", &MoviePaths[i * 65], 65, ini);
+			GetConfigString("Misc", ininame, "", &MoviePaths[i * 65], 65);
 		}
 	}
 	dlog(".", DL_INIT);
@@ -773,12 +773,12 @@ void MoviesInit() {
 	SafeWrite32(0x44E75E, (DWORD)MoviePtrs);
 	SafeWrite32(0x44E78A, (DWORD)MoviePtrs);
 	dlog(".", DL_INIT);
-	if (GraphicsMode != 0 && GetPrivateProfileInt("Graphics", "AllowDShowMovies", 0, ini)) { // TODO: implementation not working
+	if (GraphicsMode != 0 && GetConfigInt("Graphics", "AllowDShowMovies", 0)) { // TODO: implementation not working
 		MakeJump(0x44E690, gmovie_play_hack);
 	}
 	dlogr(" Done", DL_INIT);
 
-	int allowDShowSound = GetPrivateProfileInt("Sound", "AllowDShowSound", 0, ini);
+	int allowDShowSound = GetConfigInt("Sound", "AllowDShowSound", 0);
 	if (allowDShowSound > 0) {
 		MakeJump(0x4AD499, soundLoad_hack);
 		HookCall(0x445280, gmovie_play_hook_stop); // only play looping music
@@ -796,7 +796,7 @@ void MoviesInit() {
 	DWORD days = SimplePatch<DWORD>(0x4A36EC, "Misc", "MovieTimer_artimer4", 360, 0);
 	days = SimplePatch<DWORD>(0x4A3747, "Misc", "MovieTimer_artimer3", 270, 0, days);
 	days = SimplePatch<DWORD>(0x4A376A, "Misc", "MovieTimer_artimer2", 180, 0, days);
-	Artimer1DaysCheckTimer = GetPrivateProfileIntA("Misc", "MovieTimer_artimer1", 90, ini);
+	Artimer1DaysCheckTimer = GetConfigInt("Misc", "MovieTimer_artimer1", 90);
 	if (Artimer1DaysCheckTimer != 90) {
 		Artimer1DaysCheckTimer = max(0, min(days, Artimer1DaysCheckTimer));
 		char s[255];

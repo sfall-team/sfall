@@ -97,17 +97,17 @@ static void __declspec(naked) MainMenuTextHook() {
 
 void MainMenuInit() {
 	int offset;
-	if (offset = GetPrivateProfileIntA("Misc", "MainMenuCreditsOffsetX", 0, ini)) {
+	if (offset = GetConfigInt("Misc", "MainMenuCreditsOffsetX", 0)) {
 		SafeWrite32(0x481753, 15 + offset);
 	}
-	if (offset = GetPrivateProfileIntA("Misc", "MainMenuCreditsOffsetY", 0, ini)) {
+	if (offset = GetConfigInt("Misc", "MainMenuCreditsOffsetY", 0)) {
 		SafeWrite32(0x48175C, 460 + offset);
 	}
-	if (offset = GetPrivateProfileIntA("Misc", "MainMenuOffsetX", 0, ini)) {
+	if (offset = GetConfigInt("Misc", "MainMenuOffsetX", 0)) {
 		SafeWrite32(0x48187C, 30 + offset);
 		MainMenuTextOffset = offset;
 	}
-	if (offset = GetPrivateProfileIntA("Misc", "MainMenuOffsetY", 0, ini)) {
+	if (offset = GetConfigInt("Misc", "MainMenuOffsetY", 0)) {
 		MainMenuYOffset = offset;
 		MainMenuTextOffset += offset * 640;
 		MakeJump(0x481844, MainMenuButtonYHook);
@@ -118,12 +118,12 @@ void MainMenuInit() {
 
 	MakeJump(0x4817AB, MainMenuTextHook);
 
-	OverrideColour = GetPrivateProfileInt("Misc", "MainMenuFontColour", 0, ini);
+	OverrideColour = GetConfigInt("Misc", "MainMenuFontColour", 0);
 	if (OverrideColour & 0xFF) {
 		OverrideColour &= 0x00FF00FF;
 		OverrideColour |= 0x06000000;
 		SafeWrite32(0x481748, (DWORD)&OverrideColour);
 	}
-	OverrideColour2 = GetPrivateProfileInt("Misc", "MainMenuBigFontColour", 0, ini) & 0xFF;
+	OverrideColour2 = GetConfigInt("Misc", "MainMenuBigFontColour", 0) & 0xFF;
 	if (OverrideColour2) SafeWrite32(0x481906, (DWORD)&OverrideColour2);
 }

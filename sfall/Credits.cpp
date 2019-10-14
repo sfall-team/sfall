@@ -16,9 +16,9 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "main.h"
-
 #include <stdio.h>
+
+#include "main.h"
 #include "FalloutEngine.h"
 #include "version.h"
 
@@ -91,15 +91,15 @@ static DWORD __fastcall CreditsNextLine(char* buf, DWORD* font, DWORD* colour) {
 	if (strlen(line)) {
 		if (line[0] == '#') {
 			line++;
-			*font = *(DWORD*)_name_font;
+			*font = *ptr_name_font;
 			*colour = *(BYTE*)0x6A7F01;
 		} else if (line[0] == '@') {
 			line++;
-			*font = *(DWORD*)_title_font;
-			*colour = *(DWORD*)_title_color;
+			*font = *ptr_title_font;
+			*colour = *ptr_title_color;
 		} else {
-			*font = *(DWORD*)_name_font;
-			*colour = *(DWORD*)_name_color;
+			*font = *ptr_name_font;
+			*colour = *ptr_name_color;
 		}
 	}
 	strcpy_s(buf, 256, line);
@@ -154,7 +154,7 @@ morelines:
 void CreditsInit() {
 	HookCall(0x480C49, ShowCreditsHook);
 	HookCall(0x43F881, ShowCreditsHook);
-	if (GetPrivateProfileIntA("Misc", "CreditsAtBottom", 0, ini)) {
+	if (GetConfigInt("Misc", "CreditsAtBottom", 0)) {
 		HookCall(0x42CB49, CreditsNextLineHook_Bottom);
 	} else {
 		HookCall(0x42CB49, CreditsNextLineHook_Top);

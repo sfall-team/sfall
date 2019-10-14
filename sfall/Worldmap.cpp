@@ -333,20 +333,20 @@ end:
 }
 
 void WorldLimitsPatches() {
-	DWORD data = GetPrivateProfileIntA("Misc", "LocalMapXLimit", 0, ini);
+	DWORD data = GetConfigInt("Misc", "LocalMapXLimit", 0);
 	if (data) {
 		dlog("Applying local map x limit patch.", DL_INIT);
 		SafeWrite32(0x4B13B9, data);
 		dlogr(" Done", DL_INIT);
 	}
-	data = GetPrivateProfileIntA("Misc", "LocalMapYLimit", 0, ini);
+	data = GetConfigInt("Misc", "LocalMapYLimit", 0);
 	if (data) {
 		dlog("Applying local map y limit patch.", DL_INIT);
 		SafeWrite32(0x4B13C7, data);
 		dlogr(" Done", DL_INIT);
 	}
 
-	//if (GetPrivateProfileIntA("Misc", "WorldMapCitiesListFix", 0, ini)) {
+	//if (GetConfigInt("Misc", "WorldMapCitiesListFix", 0)) {
 		dlog("Applying world map cities list patch.", DL_INIT);
 		for (int i = 0; i < sizeof(ScrollCityListAddr) / 4; i++) {
 			HookCall(ScrollCityListAddr[i], ScrollCityListFix);
@@ -354,7 +354,7 @@ void WorldLimitsPatches() {
 		dlogr(" Done", DL_INIT);
 	//}
 
-	//if (GetPrivateProfileIntA("Misc", "CitiesLimitFix", 0, ini)) {
+	//if (GetConfigInt("Misc", "CitiesLimitFix", 0)) {
 		dlog("Applying cities limit patch.", DL_INIT);
 		if (*((BYTE*)0x4BF3BB) != 0xEB) {
 			SafeWrite8(0x4BF3BB, 0xEB);
@@ -362,7 +362,7 @@ void WorldLimitsPatches() {
 		dlogr(" Done", DL_INIT);
 	//}
 
-	DWORD wmSlots = GetPrivateProfileIntA("Misc", "WorldMapSlots", 0, ini);
+	DWORD wmSlots = GetConfigInt("Misc", "WorldMapSlots", 0);
 	if (wmSlots && wmSlots < 128) {
 		dlog("Applying world map slots patch.", DL_INIT);
 		if (wmSlots < 7) wmSlots = 7;
@@ -375,7 +375,7 @@ void WorldLimitsPatches() {
 }
 
 void TimeLimitPatch() {
-	int limit = GetPrivateProfileIntA("Misc", "TimeLimit", 13, ini);
+	int limit = GetConfigInt("Misc", "TimeLimit", 13);
 	if (limit == -2 || limit == -3) {
 		addYear = true;
 		MakeCall(0x4A33B8, TimeDateFix, 1); // game_time_date_
@@ -399,7 +399,7 @@ void TimeLimitPatch() {
 }
 
 void TownMapsHotkeyFix() {
-	if (GetPrivateProfileIntA("Misc", "TownMapHotkeysFix", 1, ini)) {
+	if (GetConfigInt("Misc", "TownMapHotkeysFix", 1)) {
 		dlog("Applying town map hotkeys patch.", DL_INIT);
 		MakeCall(0x4C495A, wmTownMapFunc_hack, 1);
 		dlogr(" Done", DL_INIT);
@@ -408,12 +408,12 @@ void TownMapsHotkeyFix() {
 
 void WorldmapFpsPatch() {
 	bool fpsPatchOK = (*(DWORD*)0x4BFE5E == 0x8D16);
-	if (GetPrivateProfileIntA("Misc", "WorldMapFPSPatch", 0, ini)) {
+	if (GetConfigInt("Misc", "WorldMapFPSPatch", 0)) {
 		dlog("Applying world map fps patch.", DL_INIT);
 		if (!fpsPatchOK) {
 			dlogr(" Failed", DL_INIT);
 		} else {
-			int delay = GetPrivateProfileIntA("Misc", "WorldMapDelay2", 66, ini);
+			int delay = GetConfigInt("Misc", "WorldMapDelay2", 66);
 			worldMapDelay = max(1, delay);
 			dlogr(" Done", DL_INIT);
 		}
@@ -431,9 +431,9 @@ void WorldmapFpsPatch() {
 		AvailableGlobalScriptTypes |= 2;
 	}
 
-	if (GetPrivateProfileIntA("Misc", "WorldMapEncounterFix", 0, ini)) {
+	if (GetConfigInt("Misc", "WorldMapEncounterFix", 0)) {
 		dlog("Applying world map encounter patch.", DL_INIT);
-		WorldMapEncounterRate = GetPrivateProfileIntA("Misc", "WorldMapEncounterRate", 5, ini);
+		WorldMapEncounterRate = GetConfigInt("Misc", "WorldMapEncounterRate", 5);
 		SafeWrite32(0x4C232D, 0x01EBC031); // xor eax, eax; jmps 0x4C2332 (wmInterfaceInit_)
 		HookCall(0x4BFEE0, wmWorldMapFunc_hook);
 		MakeCall(0x4C0667, wmRndEncounterOccurred_hack);
@@ -442,30 +442,30 @@ void WorldmapFpsPatch() {
 }
 
 void PathfinderFixInit() {
-	//if (GetPrivateProfileIntA("Misc", "PathfinderFix", 0, ini)) {
+	//if (GetConfigInt("Misc", "PathfinderFix", 0)) {
 		dlog("Applying Pathfinder patch.", DL_INIT);
 		SafeWrite16(0x4C1FF6, 0x9090);     // wmPartyWalkingStep_
 		HookCall(0x4C1C78, PathfinderFix); // wmGameTimeIncrement_
-		mapMultiMod = (double)GetPrivateProfileIntA("Misc", "WorldMapTimeMod", 100, ini) / 100.0;
+		mapMultiMod = (double)GetConfigInt("Misc", "WorldMapTimeMod", 100) / 100.0;
 		dlogr(" Done", DL_INIT);
 	//}
 }
 
 void StartingStatePatches() {
-	int date = GetPrivateProfileIntA("Misc", "StartYear", -1, ini);
+	int date = GetConfigInt("Misc", "StartYear", -1);
 	if (date >= 0) {
 		dlog("Applying starting year patch.", DL_INIT);
 		SafeWrite32(0x4A336C, date);
 		dlogr(" Done", DL_INIT);
 	}
-	date = GetPrivateProfileIntA("Misc", "StartMonth", -1, ini);
+	date = GetConfigInt("Misc", "StartMonth", -1);
 	if (date >= 0) {
 		if (date > 11) date = 11;
 		dlog("Applying starting month patch.", DL_INIT);
 		SafeWrite32(0x4A3382, date);
 		dlogr(" Done", DL_INIT);
 	}
-	date = GetPrivateProfileIntA("Misc", "StartDay", -1, ini);
+	date = GetConfigInt("Misc", "StartDay", -1);
 	if (date >= 0) {
 		if (date > 30) date = 30;
 		dlog("Applying starting day patch.", DL_INIT);
@@ -473,14 +473,14 @@ void StartingStatePatches() {
 		dlogr(" Done", DL_INIT);
 	}
 
-	date = GetPrivateProfileIntA("Misc", "StartXPos", -1, ini);
+	date = GetConfigInt("Misc", "StartXPos", -1);
 	if (date != -1) {
 		dlog("Applying starting x position patch.", DL_INIT);
 		SafeWrite32(0x4BC990, date);
 		SafeWrite32(0x4BCC08, date);
 		dlogr(" Done", DL_INIT);
 	}
-	date = GetPrivateProfileIntA("Misc", "StartYPos", -1, ini);
+	date = GetConfigInt("Misc", "StartYPos", -1);
 	if (date != -1) {
 		dlog("Applying starting y position patch.", DL_INIT);
 		SafeWrite32(0x4BC995, date);
@@ -488,13 +488,13 @@ void StartingStatePatches() {
 		dlogr(" Done", DL_INIT);
 	}
 
-	ViewportX = GetPrivateProfileIntA("Misc", "ViewXPos", -1, ini);
+	ViewportX = GetConfigInt("Misc", "ViewXPos", -1);
 	if (ViewportX != -1) {
 		dlog("Applying starting x view patch.", DL_INIT);
 		SafeWrite32(_wmWorldOffsetX, ViewportX);
 		dlogr(" Done", DL_INIT);
 	}
-	ViewportY = GetPrivateProfileIntA("Misc", "ViewYPos", -1, ini);
+	ViewportY = GetConfigInt("Misc", "ViewYPos", -1);
 	if (ViewportY != -1) {
 		dlog("Applying starting y view patch.", DL_INIT);
 		SafeWrite32(_wmWorldOffsetY, ViewportY);
@@ -504,7 +504,7 @@ void StartingStatePatches() {
 }
 
 void WorldMapInterfacePatch() {
-	if (GetPrivateProfileIntA("Misc", "WorldMapFontPatch", 0, ini)) {
+	if (GetConfigInt("Misc", "WorldMapFontPatch", 0)) {
 		dlog("Applying world map font patch.", DL_INIT);
 		HookCall(0x4C2343, wmInterfaceInit_text_font_hook);
 		dlogr(" Done", DL_INIT);

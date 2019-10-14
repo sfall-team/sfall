@@ -59,32 +59,31 @@ fail:
 }
 
 void BarBoxesInit() {
+	memcpy(boxes, (void*)0x518FE8, 12 * 5);
+	for (int i = 5; i < 10; i++) {
+		boxes[i].msg = 100 + i;
+	}
+
+	std::string boxBarColors = GetConfigString("Misc", "BoxBarColours", "", 6);
+	if (boxBarColors.size() == 5) {
+		for (int i = 0; i < 5; i++) {
+			if (boxBarColors[i] == '1') {
+				boxes[i + 5].colour = 1; // red color
+			}
+		}
+	}
+
 	for (int i = 0; i < sizeof(bboxMemAddr) / 4; i++) {
 		SafeWrite32(bboxMemAddr[i], (DWORD)boxes + 8); //.mem
 	}
 	SafeWrite32(0x4612FE, (DWORD)boxes + 4); //.colour
 	SafeWrite32(0x46133C, (DWORD)boxes + 0); //.msg
 
-	memcpy(boxes, (void*)0x518FE8, 12 * 5);
-
-	for (int i = 5; i < 10; i++) {
-		boxes[i].msg = 0x69 + i - 5;
-	}
-
 	SafeWrite8(0x46127C, 10);
 	SafeWrite8(0x46140B, 10);
 	SafeWrite8(0x461495, 0x78);
 
 	MakeJump(0x4615A3, DisplayBoxesHook);
-	char buf[6];
-	GetPrivateProfileString("Misc", "BoxBarColours", "", buf, 6, ini);
-	if (strlen(buf) == 5) {
-		for (int i = 0; i < 5; i++) {
-			if (buf[i] == '1') {
-				boxes[i + 5].colour = 1;
-			}
-		}
-	}
 }
 
 bool GetBox(int i) {

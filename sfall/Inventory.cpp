@@ -38,6 +38,7 @@ struct sMessage {
 	char* audio;
 	char* message;
 };
+
 static const char* MsgSearch(long msgno, DWORD file) {
 	if(!file) return 0;
 	sMessage msg = { msgno, 0, 0, 0 };
@@ -668,7 +669,7 @@ void InventoryReset() {
 }
 
 void InventoryInit() {
-	sizeLimitMode = GetPrivateProfileInt("Misc", "CritterInvSizeLimitMode", 0, ini);
+	sizeLimitMode = GetConfigInt("Misc", "CritterInvSizeLimitMode", 0);
 	if (sizeLimitMode > 0 && sizeLimitMode <= 7) {
 		if (sizeLimitMode >= 4) {
 			sizeLimitMode -= 4;
@@ -678,7 +679,7 @@ void InventoryInit() {
 			SafeWrite8(0x477F11, 0);
 			SafeWrite8(0x477F29, 0);
 		}
-		invSizeMaxLimit = GetPrivateProfileInt("Misc", "CritterInvSizeLimit", 100, ini);
+		invSizeMaxLimit = GetConfigInt("Misc", "CritterInvSizeLimit", 100);
 
 		// Check item_add_multi (picking stuff from the floor, etc.)
 		HookCall(0x4771BD, item_add_mult_hack); // jle addr
@@ -718,26 +719,26 @@ void InventoryInit() {
 		}
 	}
 
-	if(GetPrivateProfileInt("Misc", "SuperStimExploitFix", 0, ini)) {
-		GetPrivateProfileString("sfall", "SuperStimExploitMsg", "You cannot use a super stim on someone who is not injured!", SuperStimMsg, 128, translationIni);
+	if (GetConfigInt("Misc", "SuperStimExploitFix", 0)) {
+		Translate("sfall", "SuperStimExploitMsg", "You cannot use a super stim on someone who is not injured!", SuperStimMsg);
 		MakeCall(0x49C3D9, protinst_use_item_on_hack);
 	}
 
-	reloadWeaponKey = GetPrivateProfileInt("Input", "ReloadWeaponKey", 0, ini);
+	reloadWeaponKey = GetConfigInt("Input", "ReloadWeaponKey", 0);
 
-	invenApCost = invenApCostDef = GetPrivateProfileInt("Misc", "InventoryApCost", 4, ini);
-	invenApQPReduction = GetPrivateProfileInt("Misc", "QuickPocketsApCostReduction", 2, ini);
+	invenApCost = invenApCostDef = GetConfigInt("Misc", "InventoryApCost", 4);
+	invenApQPReduction = GetConfigInt("Misc", "QuickPocketsApCostReduction", 2);
 	if (invenApCostDef != 4 || invenApQPReduction != 2) {
 		ApplyInvenApCostPatch();
 	}
 
-	if (GetPrivateProfileIntA("Misc", "StackEmptyWeapons", 0, ini)) {
+	if (GetConfigInt("Misc", "StackEmptyWeapons", 0)) {
 		MakeCall(0x4736C6, inven_action_cursor_hack);
 		HookCall(0x4772AA, item_add_mult_hook);
 	}
 
 	// Do not call the 'Move Items' window when using drag and drop to reload weapons in the inventory
-	int ReloadReserve = GetPrivateProfileIntA("Misc", "ReloadReserve", -1, ini);
+	int ReloadReserve = GetConfigInt("Misc", "ReloadReserve", -1);
 	if (ReloadReserve >= 0) {
 		SafeWrite32(0x47655F, ReloadReserve);     // mov  eax, ReloadReserve
 		SafeWrite32(0x476563, 0x097EC139);        // cmp  ecx, eax; jle  0x476570
@@ -745,14 +746,14 @@ void InventoryInit() {
 		SafeWrite8(0x476569, 0x91);               // xchg ecx, eax
 	};
 
-	itemFastMoveKey = GetPrivateProfileIntA("Input", "ItemFastMoveKey", DIK_LCONTROL, ini);
+	itemFastMoveKey = GetConfigInt("Input", "ItemFastMoveKey", DIK_LCONTROL);
 	if (itemFastMoveKey > 0) {
 		HookCall(0x476897, do_move_timer_hook);
 		// Do not call the 'Move Items' window when taking items from containers or corpses
-		skipFromContainer = GetPrivateProfileIntA("Input", "FastMoveFromContainer", 0, ini);
+		skipFromContainer = GetConfigInt("Input", "FastMoveFromContainer", 0);
 	}
 
-	if (GetPrivateProfileIntA("Misc", "ItemCounterDefaultMax", 0, ini)) {
+	if (GetConfigInt("Misc", "ItemCounterDefaultMax", 0)) {
 		MakeCall(0x4768A3, do_move_timer_hack);
 	}
 

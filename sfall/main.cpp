@@ -76,7 +76,7 @@ bool hrpVersionValid = false; // HRP 4.1.8 version validation
 
 const char ddrawIniDef[] = ".\\ddraw.ini";
 char ini[65] = ".\\";
-char translationIni[65];
+static char translationIni[65];
 
 DWORD modifiedIni;
 DWORD hrpDLLBaseAddr = 0x10000000;

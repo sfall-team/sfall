@@ -186,9 +186,9 @@ void AIInit() {
 
 	MakeJump(0x45F6AF, BlockCombatHook1);    // intface_use_item_
 	HookCall(0x4432A6, BlockCombatHook2);    // game_handle_input_
-	GetPrivateProfileString("sfall", "BlockedCombat", "You cannot enter combat at this time.", combatBlockedMessage, 128, translationIni);
+	Translate("sfall", "BlockedCombat", "You cannot enter combat at this time.", combatBlockedMessage);
 
-	RetryCombatMinAP = GetPrivateProfileIntA("Misc", "NPCsTryToSpendExtraAP", 0, ini);
+	RetryCombatMinAP = GetConfigInt("Misc", "NPCsTryToSpendExtraAP", 0);
 	if (RetryCombatMinAP > 0) {
 		dlog("Applying retry combat patch.", DL_INIT);
 		HookCall(0x422B94, RetryCombatHook); // combat_turn_

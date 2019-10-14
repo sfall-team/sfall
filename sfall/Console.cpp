@@ -47,9 +47,8 @@ static void __declspec(naked) ConsoleHook() {
 }
 
 void ConsoleInit() {
-	char path[MAX_PATH];
-	GetPrivateProfileString("Misc", "ConsoleOutputPath", "", path, MAX_PATH, ini);
-	if (strlen(path) > 0) {
+	std::string path = GetConfigString("Misc", "ConsoleOutputPath", "", MAX_PATH);
+	if (!path.empty()) {
 		consolefile.open(path);
 		if (consolefile.is_open()) {
 			MakeJump(0x43186C, ConsoleHook);

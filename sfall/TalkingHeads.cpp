@@ -241,7 +241,7 @@ void TalkingHeadsInit() {
 	// Disable centering the screen if NPC has talking head
 	HookCall(0x445224, gdialogInitFromScript_hook);
 
-	if (GraphicsMode && GetPrivateProfileInt("Graphics", "Use32BitHeadGraphics", 0, ini)) {
+	if (GraphicsMode && GetConfigInt("Graphics", "Use32BitHeadGraphics", 0)) {
 		Use32BitTalkingHeads = true;
 	}
 }

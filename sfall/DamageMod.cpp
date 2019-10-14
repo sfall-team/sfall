@@ -435,7 +435,7 @@ static void __declspec(naked) DisplayBonusHtHDmg2_hack() {
 }
 
 void DamageModInit() {
-	if (formula = GetPrivateProfileIntA("Misc", "DamageFormula", 0, ini)) {
+	if (formula = GetConfigInt("Misc", "DamageFormula", 0)) {
 		switch (formula) {
 		case 1:
 		case 2:
@@ -447,8 +447,8 @@ void DamageModInit() {
 		}
 	}
 
-	int BonusHtHDmgFix = GetPrivateProfileIntA("Misc", "BonusHtHDamageFix", 1, ini);
-	int DisplayBonusDmg = GetPrivateProfileIntA("Misc", "DisplayBonusDamage", 0, ini);
+	int BonusHtHDmgFix = GetConfigInt("Misc", "BonusHtHDamageFix", 1);
+	int DisplayBonusDmg = GetConfigInt("Misc", "DisplayBonusDamage", 0);
 	if (BonusHtHDmgFix) {
 		dlog("Applying Bonus HtH Damage Perk fix.", DL_INIT);
 		if (!DisplayBonusDmg) {                               // Subtract damage from perk bonus (vanilla displaying)

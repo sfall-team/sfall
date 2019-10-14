@@ -1385,16 +1385,16 @@ void _stdcall HeroSelectWindow(int raceStyleFlag) {
 	char titleText[16];
 	// Get alternate text from ini if available
 	if (isStyle) {
-		GetPrivateProfileString("AppearanceMod", "StyleText", "Style", titleText, 16, translationIni);
+		Translate("AppearanceMod", "StyleText", "Style", titleText, 16);
 	} else {
-		GetPrivateProfileString("AppearanceMod", "RaceText", "Race", titleText, 16, translationIni);
+		Translate("AppearanceMod", "RaceText", "Race", titleText, 16);
 	}
 
 	BYTE textColour = *(BYTE*)_PeanutButter; // PeanutButter colour - palette offset stored in mem
 	DWORD titleTextWidth = GetTextWidth(titleText);
 	PrintText(titleText, textColour, 92 - titleTextWidth / 2, 10, titleTextWidth, 484, mainSurface);
 
-	GetPrivateProfileString("AppearanceMod", "DoneBtn", "Done", titleText, 16, translationIni);
+	Translate("AppearanceMod", "DoneBtn", "Done", titleText, 16);
 	titleTextWidth = GetTextWidth(titleText);
 	PrintText(titleText, textColour, 80 - titleTextWidth / 2, 185, titleTextWidth, 484, mainSurface);
 
@@ -1906,8 +1906,8 @@ static void __declspec(naked) FixCharScrnBack() {
 
 		char RaceText[8], StyleText[8];
 		// Get alternate text from ini if available
-		GetPrivateProfileString("AppearanceMod", "RaceText", "Race", RaceText, 8, translationIni);
-		GetPrivateProfileString("AppearanceMod", "StyleText", "Style", StyleText, 8, translationIni);
+		Translate("AppearanceMod", "RaceText", "Race", RaceText, 8);
+		Translate("AppearanceMod", "StyleText", "Style", StyleText, 8);
 
 		DWORD raceTextWidth = GetTextWidth(RaceText);
 		DWORD styleTextWidth = GetTextWidth(StyleText);
@@ -2200,7 +2200,7 @@ void HeroAppearanceModExit() {
 }
 
 void HeroAppearanceModInit() {
-	int heroAppearanceMod = GetPrivateProfileIntA("Misc", "EnableHeroAppearanceMod", 0, ini);
+	int heroAppearanceMod = GetConfigInt("Misc", "EnableHeroAppearanceMod", 0);
 	if (heroAppearanceMod > 0) {
 		dlog("Setting up Appearance Char Screen buttons.", DL_INIT);
 		EnableHeroAppearanceMod();

@@ -404,11 +404,11 @@ HRESULT _stdcall FakeDirectInputCreate(HINSTANCE a, DWORD b, IDirectInputA** c, 
 	HRESULT hr = proc(a, b, c, d);
 	if (FAILED(hr)) return hr;
 
-	ReverseMouse = GetPrivateProfileInt("Input", "ReverseMouseButtons", 0, ini) != 0;
+	ReverseMouse = GetConfigInt("Input", "ReverseMouseButtons", 0) != 0;
 
-	UseScrollWheel = GetPrivateProfileInt("Input", "UseScrollWheel", 1, ini) != 0;
-	WheelMod = GetPrivateProfileInt("Input", "ScrollMod", 0, ini);
-	LONG MouseSpeed = GetPrivateProfileInt("Input", "MouseSensitivity", 100, ini);
+	UseScrollWheel = GetConfigInt("Input", "UseScrollWheel", 1) != 0;
+	WheelMod = GetConfigInt("Input", "ScrollMod", 0);
+	LONG MouseSpeed = GetConfigInt("Input", "MouseSensitivity", 100);
 	if (MouseSpeed != 100) {
 		AdjustMouseSpeed = true;
 		MouseSpeedMod = ((double)MouseSpeed) / 100.0;
@@ -416,13 +416,13 @@ HRESULT _stdcall FakeDirectInputCreate(HINSTANCE a, DWORD b, IDirectInputA** c, 
 		MousePartY = 0;
 	} else AdjustMouseSpeed = false;
 
-	MiddleMouseKey = GetPrivateProfileInt("Input", "MiddleMouse", 0x30, ini);
+	MiddleMouseKey = GetConfigInt("Input", "MiddleMouse", 0x30);
 	MiddleMouseDown = false;
 
-	BackgroundKeyboard = GetPrivateProfileInt("Input", "BackgroundKeyboard", 0, ini) != 0;
-	BackgroundMouse = GetPrivateProfileInt("Input", "BackgroundMouse", 0, ini) != 0;
+	BackgroundKeyboard = GetConfigInt("Input", "BackgroundKeyboard", 0) != 0;
+	BackgroundMouse = GetConfigInt("Input", "BackgroundMouse", 0) != 0;
 
-	if (isDebug) DebugEditorKey = GetPrivateProfileInt("Input", "DebugEditorKey", 0, ini);
+	if (isDebug) DebugEditorKey = GetConfigInt("Input", "DebugEditorKey", 0);
 
 	*c = (IDirectInputA*)new FakeDirectInput(*c);
 

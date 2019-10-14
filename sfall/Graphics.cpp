@@ -1041,18 +1041,18 @@ HRESULT _stdcall FakeDirectDrawCreate2(void*, IDirectDraw** b, void*) {
 	movieDesc.dwHeight = 480;
 	movieDesc.dwWidth = 640;
 
-	gWidth = GetPrivateProfileIntA("Graphics", "GraphicsWidth", 0, ini);
-	gHeight = GetPrivateProfileIntA("Graphics", "GraphicsHeight", 0, ini);
+	gWidth = GetConfigInt("Graphics", "GraphicsWidth", 0);
+	gHeight = GetConfigInt("Graphics", "GraphicsHeight", 0);
 	if (!gWidth || !gHeight) {
 		gWidth = ResWidth;
 		gHeight = ResHeight;
 	}
-	GPUBlt = GetPrivateProfileIntA("Graphics", "GPUBlt", 0, ini);
+	GPUBlt = GetConfigInt("Graphics", "GPUBlt", 0);
 	if (!GPUBlt || GPUBlt > 2) GPUBlt = 2; // Swap them around to keep compatibility with old ddraw.ini's
 	else if (GPUBlt == 2) GPUBlt = 0;      // Use CPU
 
 	if (GraphicsMode == 5) {
-		ScrollWindowKey = GetPrivateProfileInt("Input", "WindowScrollKey", 0, ini);
+		ScrollWindowKey = GetConfigInt("Input", "WindowScrollKey", 0);
 	} else ScrollWindowKey = 0;
 
 	*b = (IDirectDraw*)new FakeDirectDraw2();
@@ -1081,7 +1081,7 @@ static __declspec(naked) void palette_fade_to_hook() {
 }
 
 void GraphicsInit() {
-	GraphicsMode = GetPrivateProfileIntA("Graphics", "Mode", 0, ini);
+	GraphicsMode = GetConfigInt("Graphics", "Mode", 0);
 	if (GraphicsMode != 4 && GraphicsMode != 5) {
 		GraphicsMode = 0;
 	}
@@ -1106,7 +1106,7 @@ void GraphicsInit() {
 		dlogr(" Done", DL_INIT);
 	}
 
-	fadeMulti = GetPrivateProfileIntA("Graphics", "FadeMultiplier", 100, ini);
+	fadeMulti = GetConfigInt("Graphics", "FadeMultiplier", 100);
 	if (fadeMulti != 100) {
 		dlog("Applying fade patch.", DL_INIT);
 		HookCall(0x493B16, palette_fade_to_hook);

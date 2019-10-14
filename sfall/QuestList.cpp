@@ -468,14 +468,14 @@ void QuestListPatch() {
 }
 
 void QuestListInit() {
-	questsButtonsType = GetPrivateProfileIntA("Misc", "UseScrollingQuestsList", 0, ini);
+	questsButtonsType = GetConfigInt("Misc", "UseScrollingQuestsList", 0);
 	if (questsButtonsType > 0) {
 		dlog("Applying quests list patch.", DL_INIT);
 		QuestListPatch();
 
-		questsScrollButtonsX = GetPrivateProfileIntA("Misc", "QuestsScrollButtonsX", 140, ini);
+		questsScrollButtonsX = GetConfigInt("Misc", "QuestsScrollButtonsX", 140);
 		if (questsScrollButtonsX < 0 || questsScrollButtonsX > 618) questsScrollButtonsX = 140;
-		questsScrollButtonsY = GetPrivateProfileIntA("Misc", "QuestsScrollButtonsY", 334, ini);
+		questsScrollButtonsY = GetConfigInt("Misc", "QuestsScrollButtonsY", 334);
 		if (questsScrollButtonsY < 0 || questsScrollButtonsY > 434) questsScrollButtonsY = 334;
 
 		pageQuest.reserve(4); // init

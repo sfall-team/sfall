@@ -142,7 +142,7 @@ static void _stdcall SaveGame2() {
 	}
 	return;
 
-//////////////////////////////////////////////////
+/////////////////////////////////////////////////
 errorSave:
 	dlog_f("ERROR creating: %s\n", DL_MAIN, buf);
 	DisplayConsoleMessage(SaveSfallDataFailMsg);
@@ -159,7 +159,7 @@ static DWORD _stdcall CombatSaveTest() {
 		}
 		int ap = StatLevel(*ptr_obj_dude, STAT_max_move_points);
 		int bonusmove = PerkLevel(*ptr_obj_dude, PERK_bonus_move);
-		if (*(DWORD*)(*(DWORD*)_obj_dude + 0x40) != ap || bonusmove * 2 != *(DWORD*)_combat_free_move) {
+		if (*(DWORD*)(*(DWORD*)_obj_dude + 0x40) != ap || bonusmove * 2 != *ptr_combat_free_move) {
 			DisplayConsoleMessage(SaveFailMsg);
 			return 0;
 		}
@@ -174,7 +174,7 @@ static void __declspec(naked) SaveGame() {
 		push eax; // save Mode parameter
 		call CombatSaveTest;
 		test eax, eax;
-		pop  edx; // recall Mode parameter
+		pop  edx; // recall Mode parameter (pop eax)
 		jz   end;
 		mov  eax, edx;
 		or InLoop, SAVEGAME;
@@ -218,7 +218,7 @@ static bool _stdcall LoadGame2_Before() {
 	}
 	return false;
 
-//////////////////////////////////////////////////
+/////////////////////////////////////////////////
 errorLoad:
 	CloseHandle(h);
 	dlog_f("ERROR reading data: %s\n", DL_MAIN, buf);
@@ -566,12 +566,12 @@ static void __declspec(naked) exit_move_timer_win_Hook() {
 }
 
 void LoadGameHookInit() {
-	SaveInCombatFix = GetPrivateProfileInt("Misc", "SaveInCombatFix", 1, ini);
+	SaveInCombatFix = GetConfigInt("Misc", "SaveInCombatFix", 1);
 	if (SaveInCombatFix > 2) SaveInCombatFix = 0;
-	GetPrivateProfileString("sfall", "SaveInCombat", "Cannot save at this time.", SaveFailMsg, 128, translationIni);
-	GetPrivateProfileString("sfall", "SaveSfallDataFail", "ERROR saving extended savegame information! Check if other programs interfere with savegame files/folders and try again!", SaveSfallDataFailMsg, 128, translationIni);
+	Translate("sfall", "SaveInCombat", "Cannot save at this time.", SaveFailMsg);
+	Translate("sfall", "SaveSfallDataFail", "ERROR saving extended savegame information! Check if other programs interfere with savegame files/folders and try again!", SaveSfallDataFailMsg);
 
-	switch (GetPrivateProfileInt("Misc", "PipBoyAvailableAtGameStart", 0, ini)) {
+	switch (GetConfigInt("Misc", "PipBoyAvailableAtGameStart", 0)) {
 	case 1:
 		PipBoyAvailableAtGameStart = true;
 		break;
@@ -580,7 +580,7 @@ void LoadGameHookInit() {
 		break;
 	}
 
-	if (GetPrivateProfileInt("Misc", "DisableHorrigan", 0, ini)) {
+	if (GetConfigInt("Misc", "DisableHorrigan", 0)) {
 		DisableHorrigan = true;
 		SafeWrite8(0x4C06D8, 0xEB); // skip the Horrigan encounter check
 	}

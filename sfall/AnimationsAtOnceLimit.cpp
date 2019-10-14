@@ -371,7 +371,7 @@ void ApplyAnimationsAtOncePatches(signed char aniMax) {
 }
 
 void AnimationsAtOnceInit() {
-	animationLimit = GetPrivateProfileIntA("Misc", "AnimationsAtOnceLimit", 32, ini);
+	animationLimit = GetConfigInt("Misc", "AnimationsAtOnceLimit", 32);
 	if (animationLimit > 32) {
 		if (animationLimit > 127) {
 			animationLimit = 127;

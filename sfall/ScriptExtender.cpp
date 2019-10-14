@@ -1206,26 +1206,26 @@ static void _stdcall ClearEventsOnMapExit() {
 }
 
 void ScriptExtenderSetup() {
-	toggleHighlightsKey = GetPrivateProfileIntA("Input", "ToggleItemHighlightsKey", 0, ini);
+	toggleHighlightsKey = GetConfigInt("Input", "ToggleItemHighlightsKey", 0);
 	if (toggleHighlightsKey) {
-		MotionSensorMode = GetPrivateProfileIntA("Misc", "MotionScannerFlags", 1, ini);
-		highlightContainers = GetPrivateProfileIntA("Input", "HighlightContainers", 0, ini);
-		outlineColor = GetPrivateProfileIntA("Input", "OutlineColor", 0x10, ini);
+		MotionSensorMode = GetConfigInt("Misc", "MotionScannerFlags", 1);
+		highlightContainers = GetConfigInt("Input", "HighlightContainers", 0);
+		outlineColor = GetConfigInt("Input", "OutlineColor", 0x10);
 		if (outlineColor < 1) outlineColor = 0x40;
 		HookCall(0x44BD1C, &obj_remove_outline_hook);
 		HookCall(0x44E559, &obj_remove_outline_hook);
 	}
-	GetPrivateProfileStringA("Sfall", "HighlightFail1", "You aren't carrying a motion sensor.", HighlightFail1, 128, translationIni);
-	GetPrivateProfileStringA("Sfall", "HighlightFail2", "Your motion sensor is out of charge.", HighlightFail2, 128, translationIni);
+	Translate("Sfall", "HighlightFail1", "You aren't carrying a motion sensor.", HighlightFail1);
+	Translate("Sfall", "HighlightFail2", "Your motion sensor is out of charge.", HighlightFail2);
 
-	idle = GetPrivateProfileIntA("Misc", "ProcessorIdle", -1, ini);
+	idle = GetConfigInt("Misc", "ProcessorIdle", -1);
 	if (idle > -1 && idle <= 127) {
 		SafeWrite32(_idle_func, (DWORD)Sleep);
 		SafeWrite8(0x4C9F12, 0x6A); // push
 		SafeWrite8(0x4C9F13, idle);
 	}
 
-	arraysBehavior = GetPrivateProfileIntA("Misc", "arraysBehavior", 1, ini);
+	arraysBehavior = GetConfigInt("Misc", "arraysBehavior", 1);
 	if (arraysBehavior > 0) {
 		arraysBehavior = 1; // only 1 and 0 allowed at this time
 		dlogr("New arrays behavior enabled.", DL_SCRIPT);

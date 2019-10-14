@@ -227,7 +227,7 @@ void ResetExplosionRadius() {
 void ExplosionInit() {
 	MakeJump(0x411AB4, explosion_effect_hook); // required for explosions_metarule
 
-	lightingEnabled = GetPrivateProfileIntA("Misc", "ExplosionsEmitLight", 0, ini) != 0;
+	lightingEnabled = GetConfigInt("Misc", "ExplosionsEmitLight", 0) != 0;
 	if (lightingEnabled) {
 		dlog("Applying Explosion changes.", DL_INIT);
 		MakeJump(0x4118E1, ranged_attack_lighting_fix);

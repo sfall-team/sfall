@@ -1,6 +1,5 @@
 #include "main.h"
 
-//#include <vector>
 #include "FalloutEngine.h"
 
 static char attackerSnd[9] = {0};
@@ -59,11 +58,11 @@ void PlaySfx(const char* name) {
 }
 
 void SoundInit() {
-	if (int sBuff = GetPrivateProfileIntA("Sound", "NumSoundBuffers", 0, ini)) {
+	if (int sBuff = GetConfigInt("Sound", "NumSoundBuffers", 0)) {
 		SafeWrite8(0x451129, (BYTE)sBuff);
 	}
 
-	if (GetPrivateProfileIntA("Sound", "AllowSoundForFloats", 0, ini)) {
+	if (GetConfigInt("Sound", "AllowSoundForFloats", 0)) {
 		HookCall(0x42B7C7, combatai_msg_hook); // copy msg
 		HookCall(0x42B849, ai_print_msg_hook);
 
