@@ -102,16 +102,20 @@ DWORD HRPAddressOffset(DWORD offset) {
 	return (hrpDLLBaseAddr + offset);
 }
 
-unsigned int GetConfigInt(const char* section, const char* setting, int defaultValue) {
-	return GetPrivateProfileIntA(section, setting, defaultValue, ini);
+int iniGetInt(const char* section, const char* setting, int defaultValue, const char* iniFile) {
+	return GetPrivateProfileIntA(section, setting, defaultValue, iniFile);
+}
+
+size_t iniGetString(const char* section, const char* setting, const char* defaultValue, char* buf, size_t bufSize, const char* iniFile) {
+	return GetPrivateProfileStringA(section, setting, defaultValue, buf, bufSize, iniFile);
 }
 
 std::string GetIniString(const char* section, const char* setting, const char* defaultValue, size_t bufSize, const char* iniFile) {
 	char* buf = new char[bufSize];
-	GetPrivateProfileStringA(section, setting, defaultValue, buf, bufSize, iniFile);
+	iniGetString(section, setting, defaultValue, buf, bufSize, iniFile);
 	std::string str(buf);
 	delete[] buf;
-	return trim(str);
+	return str;
 }
 
 std::vector<std::string> GetIniList(const char* section, const char* setting, const char* defaultValue, size_t bufSize, char delimiter, const char* iniFile) {
@@ -120,12 +124,19 @@ std::vector<std::string> GetIniList(const char* section, const char* setting, co
 	return list;
 }
 
+/*
+	For ddraw.ini config
+*/
+unsigned int GetConfigInt(const char* section, const char* setting, int defaultValue) {
+	return iniGetInt(section, setting, defaultValue, ini);
+}
+
 std::string GetConfigString(const char* section, const char* setting, const char* defaultValue, size_t bufSize) {
-	return GetIniString(section, setting, defaultValue, bufSize, ini);
+	return trim(GetIniString(section, setting, defaultValue, bufSize, ini));
 }
 
 size_t GetConfigString(const char* section, const char* setting, const char* defaultValue, char* buf, size_t bufSize) {
-	return GetPrivateProfileStringA(section, setting, defaultValue, buf, bufSize, ini);
+	return iniGetString(section, setting, defaultValue, buf, bufSize, ini);
 }
 
 std::vector<std::string> GetConfigList(const char* section, const char* setting, const char* defaultValue, size_t bufSize) {
@@ -137,7 +148,7 @@ std::string Translate(const char* section, const char* setting, const char* defa
 }
 
 size_t Translate(const char* section, const char* setting, const char* defaultValue, char* buffer, size_t bufSize) {
-	return GetPrivateProfileStringA(section, setting, defaultValue, buffer, bufSize, translationIni);
+	return iniGetString(section, setting, defaultValue, buffer, bufSize, translationIni);
 }
 
 static void InitModules() {
@@ -228,7 +239,7 @@ static void CompatModeCheck(HKEY root, const char* filepath, int extra) {
 					MessageBoxA(0, "Fallout appears to be running in compatibility mode.\n" //, and sfall was not able to disable it.\n"
 								   "Please check the compatibility tab of fallout2.exe, and ensure that the following settings are unchecked:\n"
 								   "Run this program in compatibility mode for..., run in 256 colours, and run in 640x480 resolution.\n"
-								   "If these options are disabled, click the 'change settings for all users' button and see if that enables them.", "Error", 0);
+								   "If these options are disabled, click the 'change settings for all users' button and see if that enables them.", "Error", MB_TASKMODAL | MB_ICONERROR);
 
 					ExitProcess(-1);
 				}
@@ -297,8 +308,8 @@ inline void SfallInit() {
 			CloseHandle(h);
 			strcat_s(ini, cmdline);
 		} else {
-			MessageBox(0, "You gave a command line argument to fallout, but it couldn't be matched to a file\n" \
-						  "Using default ddraw.ini instead", "Warning", MB_TASKMODAL);
+			MessageBoxA(0, "You gave a command line argument to Fallout, but it couldn't be matched to a file.\n" \
+						   "Using default ddraw.ini instead.", "Warning", MB_TASKMODAL | MB_ICONWARNING);
 			goto defaultIni;
 		}
 	} else {

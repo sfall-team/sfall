@@ -354,7 +354,7 @@ static long _stdcall AddHeroCritNames() { // art_init_
 	critterListSize = critterArt.total / 2;
 	if (critterListSize > 2048) {
 		MessageBoxA(0, "This mod cannot be used because the maximum limit of the FID count in the critters.lst is exceeded.\n"
-					   "Please disable the mod and restart the game.", "Hero Appearance mod", 0x10);
+					   "Please disable the mod and restart the game.", "Hero Appearance mod", MB_TASKMODAL | MB_ICONERROR);
 		ExitProcess(-1);
 	}
 	critterArraySize = critterListSize * 13;

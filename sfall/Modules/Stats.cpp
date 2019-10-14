@@ -299,19 +299,20 @@ void Stats::init() {
 
 		char key[6], buf2[256], buf3[256];
 		const char* statFile = statsFile.insert(0, ".\\").c_str();
+		if (GetFileAttributes(statFile) == INVALID_FILE_ATTRIBUTES) return;
 
 		for (int i = fo::Stat::STAT_max_hit_points; i <= fo::Stat::STAT_poison_resist; i++) {
 			if (i >= fo::Stat::STAT_dmg_thresh && i <= fo::Stat::STAT_dmg_resist_explosion) continue;
 
 			_itoa(i, key, 10);
-			statFormulas[i].base = GetPrivateProfileInt(key, "base", statFormulas[i].base, statFile);
-			statFormulas[i].min = GetPrivateProfileInt(key, "min", statFormulas[i].min, statFile);
+			statFormulas[i].base = iniGetInt(key, "base", statFormulas[i].base, statFile);
+			statFormulas[i].min = iniGetInt(key, "min", statFormulas[i].min, statFile);
 			for (int j = 0; j < fo::Stat::STAT_max_hit_points; j++) {
 				sprintf(buf2, "shift%d", j);
-				statFormulas[i].shift[j] = GetPrivateProfileInt(key, buf2, statFormulas[i].shift[j], statFile);
+				statFormulas[i].shift[j] = iniGetInt(key, buf2, statFormulas[i].shift[j], statFile);
 				sprintf(buf2, "multi%d", j);
 				_gcvt(statFormulas[i].multi[j], 16, buf3);
-				GetPrivateProfileStringA(key, buf2, buf3, buf2, 256, statFile);
+				iniGetString(key, buf2, buf3, buf2, 256, statFile);
 				statFormulas[i].multi[j] = atof(buf2);
 			}
 		}

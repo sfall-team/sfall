@@ -31,7 +31,7 @@ namespace sfall
 static const DWORD ExpectedSize = 0x00122800;
 static const DWORD ExpectedCRC[] = {0xe1680293, 0xef34f989};
 
-static void inline Fail(const char* a) { MessageBoxA(0, a, "Error", MB_TASKMODAL); ExitProcess(1); }
+static void inline Fail(const char* a) { MessageBoxA(0, a, "Error", MB_TASKMODAL | MB_ICONERROR); ExitProcess(1); }
 
 static const DWORD CRC_table[256] = {
 	0x00000000, 0x0A5F4D75, 0x14BE9AEA, 0x1EE1D79F, 0x14C5EB57, 0x1E9AA622, 0x007B71BD, 0x0A243CC8,

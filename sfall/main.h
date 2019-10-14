@@ -73,20 +73,26 @@ namespace sfall
 #define pushadc __asm push eax __asm push edx __asm push ecx
 #define popadc __asm pop ecx __asm pop edx __asm pop eax
 
-// Gets the integer value from Sfall configuration INI file.
-unsigned int GetConfigInt(const char* section, const char* setting, int defaultValue);
+// Gets the integer value from given INI file.
+int iniGetInt(const char* section, const char* setting, int defaultValue, const char* iniFile);
+
+// Gets the string value from given INI file.
+size_t iniGetString(const char* section, const char* setting, const char* defaultValue, char* buf, size_t bufSize, const char* iniFile);
 
 // Gets the string value from given INI file.
 std::string GetIniString(const char* section, const char* setting, const char* defaultValue, size_t bufSize, const char* iniFile);
 
-// Loads the string value from Sfall configuration INI file into the provided buffer.
-size_t GetConfigString(const char* section, const char* setting, const char* defaultValue, char* buffer, size_t bufSize = 128);
-
 // Parses the comma-separated list setting from given INI file.
 std::vector<std::string> GetIniList(const char* section, const char* setting, const char* defaultValue, size_t bufSize, char delimiter, const char* iniFile);
 
-// Gets the string value from Sfall configuration INI file.
+// Gets the integer value from Sfall configuration INI file.
+unsigned int GetConfigInt(const char* section, const char* setting, int defaultValue);
+
+// Gets the string value from Sfall configuration INI file with trim function.
 std::string GetConfigString(const char* section, const char* setting, const char* defaultValue, size_t bufSize = 128);
+
+// Loads the string value from Sfall configuration INI file into the provided buffer.
+size_t GetConfigString(const char* section, const char* setting, const char* defaultValue, char* buffer, size_t bufSize = 128);
 
 // Parses the comma-separated list from the settings from Sfall configuration INI file.
 std::vector<std::string> GetConfigList(const char* section, const char* setting, const char* defaultValue, size_t bufSize = 128);
