@@ -88,8 +88,8 @@ public:
 
 DWORD _stdcall GetHSArgCount();
 DWORD _stdcall GetHSArg();
-DWORD* _stdcall GetHSArgs();
-void _stdcall SetHSArg(DWORD id, DWORD value);
+DWORD* GetHSArgs();
+void SetHSArg(DWORD id, DWORD value);
 void _stdcall SetHSReturn(DWORD d);
 
 // register hook by proc num (special values: -1 - use default (start) procedure, 0 - unregister)

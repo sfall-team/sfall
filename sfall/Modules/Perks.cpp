@@ -29,6 +29,8 @@ namespace sfall
 {
 using namespace fo;
 
+long Perks::PerkLevelMod = 0;
+
 constexpr int maxNameLen = 64;   // don't change size
 constexpr int maxDescLen = 512;  // don't change size
 static const int descLen = 256;  // maximum text length for interface
@@ -1291,7 +1293,7 @@ void PerksReset() {
 
 	// Reset some settable game values back to the defaults
 	// Perk level mod
-	SafeWrite32(0x496880, 0x019078);
+	Perks::PerkLevelMod = 0;
 	// Pyromaniac bonus
 	SafeWrite8(0x424AB6, 5);
 	// Swift Learner bonus

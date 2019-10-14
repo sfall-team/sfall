@@ -237,13 +237,11 @@ end:
 void __declspec(naked) op_set_available_skill_points() {
 	__asm {
 		push ecx;
-		push edx;
 		_GET_ARG_INT(end);
 		mov  edx, eax;
 		xor  eax, eax;
 		call fo::funcoffs::stat_pc_set_;
 end:
-		pop  edx;
 		pop  ecx;
 		retn;
 	}
@@ -251,12 +249,10 @@ end:
 
 void __declspec(naked) op_get_available_skill_points() {
 	__asm {
-		push edx;
 		push ecx;
 		mov  edx, dword ptr ds:[FO_VAR_curr_pc_stat];
 		_RET_VAL_INT(ecx);
 		pop  ecx;
-		pop  edx;
 		retn;
 	}
 }
@@ -264,7 +260,6 @@ void __declspec(naked) op_get_available_skill_points() {
 void __declspec(naked) op_mod_skill_points_per_level() {
 	__asm {
 		push ecx;
-		push edx;
 		_GET_ARG_INT(end);
 		cmp  eax, 100;
 		jg   end;
@@ -275,7 +270,6 @@ void __declspec(naked) op_mod_skill_points_per_level() {
 		push 0x43C27A;
 		call SafeWrite8;
 end:
-		pop  edx;
 		pop  ecx;
 		retn;
 	}
@@ -876,88 +870,29 @@ end:
 	}
 }
 
-static float xpmod;
-static DWORD xptmp;
-static void __declspec(naked) SetXpMod3() {
+static DWORD xpTemp;
+static void __declspec(naked) statPCAddExperienceCheckPMs_hack() {
 	__asm {
-		push ebx;
-		push ecx;
-		push esi;
-		push edi;
-		push ebp;
-		mov  xptmp, eax;
-		fild xptmp;
-		fmul xpmod;
-		fistp xptmp;
-		mov  eax, xptmp;
-		push 0x4AFABD;
-		retn;
+		mov  ebp, [esp];  // return addr
+		mov  xpTemp, eax; // experience
+		fild xpTemp;
+		fmul Stats::experienceMod;
+		fistp xpTemp;
+		mov  eax, xpTemp;
+		sub  esp, 0xC; // instead of 0x10
+		mov  edi, eax;
+		jmp  ebp;
 	}
 }
 
-static void _stdcall SetXpMod2(DWORD percent) {
-	MakeJump(0x4AFAB8, SetXpMod3);
-	xpmod = (float)percent / 100.0f;
-}
+void sf_set_xp_mod(OpcodeContext& ctx) {
+	static bool xpModPatch = false;
+	DWORD percent = ctx.arg(0).rawValue() & 0xFFFF;
+	Stats::experienceMod = (float)percent / 100.0f;
 
-static int PerkLevelMod;
-static void __declspec(naked) SetPerkLevelMod3() {
-	__asm {
-		push ebx;
-		call fo::funcoffs::stat_pc_get_;
-		pop ebx;
-		add eax, PerkLevelMod;
-		cmp eax, 0;
-		jge end;
-		xor eax, eax;
-end:
-		retn;
-	}
-}
-
-static void _stdcall SetPerkLevelMod2(int mod) {
-	if (mod < -25 || mod > 25) return;
-	PerkLevelMod = mod;
-	HookCall(0x49687F, &SetPerkLevelMod3);
-}
-
-void __declspec(naked) op_set_xp_mod() {
-	__asm {
-		push ebx;
-		push ecx;
-		push edx;
-		push edi;
-		mov ecx, eax;
-		call fo::funcoffs::interpretPopShort_;
-		mov edx, eax;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPopLong_;
-		cmp dx, VAR_TYPE_INT;
-		jnz end;
-		and eax, 0xFFFF;
-		push eax;
-		call SetXpMod2;
-end:
-		pop edi;
-		pop edx;
-		pop ecx;
-		pop ebx;
-		retn;
-	}
-}
-
-void __declspec(naked) op_set_perk_level_mod() {
-	__asm {
-		push ecx;
-		push edx;
-		_GET_ARG_INT(end);
-		push eax;
-		call SetPerkLevelMod2;
-end:
-		pop edx;
-		pop ecx;
-		retn;
-	}
+	if (xpModPatch) return;
+	xpModPatch = true;
+	MakeCall(0x4AFABD, statPCAddExperienceCheckPMs_hack);
 }
 
 }

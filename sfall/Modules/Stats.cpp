@@ -16,9 +16,6 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <math.h>
-#include <stdio.h>
-
 #include "..\main.h"
 #include "..\FalloutEngine\Fallout2.h"
 #include "CritterStats.h"
@@ -36,15 +33,16 @@ static DWORD statMinimumsNPC[fo::STAT_max_stat];
 
 static DWORD xpTable[99];
 
+float Stats::experienceMod = 1.0f; // set_xp_mod func
+DWORD Stats::standardApAcBonus = 4;
+DWORD Stats::extraApAcBonus = 4;
+
 static struct StatFormula {
 	long base;
 	long min;
 	long shift[fo::STAT_lu + 1];
 	double multi[fo::STAT_lu + 1];
 } statFormulas[fo::STAT_max_derived + 1] = {0};
-
-DWORD standardApAcBonus = 4;
-DWORD extraApAcBonus = 4;
 
 static fo::GameObject* cCritter;
 
@@ -136,12 +134,12 @@ static void __declspec(naked) CalcApToAcBonus() {
 		mov  edx, PERK_hth_evade_perk;
 		mov  eax, dword ptr ds:[FO_VAR_obj_dude];
 		call fo::funcoffs::perk_level_;
-		imul eax, extraApAcBonus;        // bonus = perkLvl * extraApBonus
-		imul eax, edi;                   // perkBonus = bonus * curAP
+		imul eax, Stats::extraApAcBonus;    // bonus = perkLvl * extraApBonus
+		imul eax, edi;                      // perkBonus = bonus * curAP
 standard:
-		imul edi, standardApAcBonus;     // stdBonus = curAP * standardApBonus
-		add  eax, edi;                   // bonus = perkBonus + stdBonus
-		shr  eax, 2;                     // acBonus = bonus / 4
+		imul edi, Stats::standardApAcBonus; // stdBonus = curAP * standardApBonus
+		add  eax, edi;                      // bonus = perkBonus + stdBonus
+		shr  eax, 2;                        // acBonus = bonus / 4
 end:
 		retn;
 	}
@@ -212,13 +210,11 @@ allow:
 	}
 }
 
-void StatsReset() {
+static void StatsReset() {
 	for (int i = 0; i < fo::STAT_max_stat; i++) {
 		statMaximumsPC[i] = statMaximumsNPC[i] = fo::var::stat_data[i].maxValue;
 		statMinimumsPC[i] = statMinimumsNPC[i] = fo::var::stat_data[i].minValue;
 	}
-	standardApAcBonus = 4;
-	extraApAcBonus = 4;
 }
 
 void Stats::init() {
@@ -228,13 +224,14 @@ void Stats::init() {
 
 	LoadGameHook::OnGameReset() += []() {
 		StatsReset();
-		//Reset some settable game values back to the defaults
-		//xp mod
-		SafeWrite8(0x4AFAB8, 0x53);
-		SafeWrite32(0x4AFAB9, 0x55575651);
-		//HP bonus
+		// Reset some settable game values back to the defaults
+		standardApAcBonus = 4;
+		extraApAcBonus = 4;
+		// XP mod set to 100%
+		experienceMod = 1.0f;
+		// HP bonus
 		SafeWrite8(0x4AFBC1, 2);
-		//skill points per level mod
+		// Skill points per level mod
 		SafeWrite8(0x43C27A, 5);
 	};
 

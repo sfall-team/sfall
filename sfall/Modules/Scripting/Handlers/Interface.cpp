@@ -35,10 +35,8 @@ namespace script
 void __declspec(naked) op_input_funcs_available() {
 	__asm {
 		push ecx;
-		push edx;
 		mov  edx, 1; // They're always available from 2.9 on
 		_RET_VAL_INT(ecx);
-		pop  edx;
 		pop  ecx;
 		retn;
 	}
@@ -51,7 +49,6 @@ void sf_key_pressed(OpcodeContext& ctx) {
 void __declspec(naked) op_tap_key() {
 	__asm {
 		push ecx;
-		push edx;
 		_GET_ARG_INT(end);
 		test eax, eax;
 		jl   end;
@@ -60,7 +57,6 @@ void __declspec(naked) op_tap_key() {
 		push eax;
 		call TapKey;
 end:
-		pop  edx;
 		pop  ecx;
 		retn;
 	}
@@ -68,26 +64,22 @@ end:
 
 void __declspec(naked) op_get_mouse_x() {
 	__asm {
-		push edx;
 		push ecx;
 		mov  edx, ds:[FO_VAR_mouse_x_];
 		add  edx, ds:[FO_VAR_mouse_hotx];
 		_RET_VAL_INT(ecx);
 		pop  ecx;
-		pop  edx;
 		retn;
 	}
 }
 
 void __declspec(naked) op_get_mouse_y() {
 	__asm {
-		push edx;
 		push ecx;
 		mov  edx, ds:[FO_VAR_mouse_y_];
 		add  edx, ds:[FO_VAR_mouse_hoty];
 		_RET_VAL_INT(ecx);
 		pop  ecx;
-		pop  edx;
 		retn;
 	}
 }
@@ -103,40 +95,34 @@ void sf_get_mouse_buttons(OpcodeContext& ctx) {
 
 void __declspec(naked) op_get_window_under_mouse() {
 	__asm {
-		push edx;
 		push ecx;
 		mov  edx, ds:[FO_VAR_last_button_winID];
 		_RET_VAL_INT(ecx);
 		pop  ecx;
-		pop  edx;
 		retn;
 	}
 }
 
 void __declspec(naked) op_get_screen_width() {
 	__asm {
-		push edx;
 		push ecx;
 		mov  edx, ds:[FO_VAR_scr_size + 8]; // _scr_size.offx
 		sub  edx, ds:[FO_VAR_scr_size];     // _scr_size.x
 		inc  edx;
 		_RET_VAL_INT(ecx);
 		pop  ecx;
-		pop  edx;
 		retn;
 	}
 }
 
 void __declspec(naked) op_get_screen_height() {
 	__asm {
-		push edx;
 		push ecx;
 		mov  edx, ds:[FO_VAR_scr_size + 12]; // _scr_size.offy
 		sub  edx, ds:[FO_VAR_scr_size + 4];  // _scr_size.y
 		inc  edx;
 		_RET_VAL_INT(ecx);
 		pop  ecx;
-		pop  edx;
 		retn;
 	}
 }
@@ -165,24 +151,20 @@ void sf_create_message_window(OpcodeContext &ctx) {
 
 void __declspec(naked) op_get_viewport_x() {
 	__asm {
-		push edx;
 		push ecx;
 		mov  edx, ds:[FO_VAR_wmWorldOffsetX];
 		_RET_VAL_INT(ecx);
 		pop  ecx;
-		pop  edx;
 		retn;
 	}
 }
 
 void __declspec(naked) op_get_viewport_y() {
 	__asm {
-		push edx;
 		push ecx;
 		mov  edx, ds:[FO_VAR_wmWorldOffsetY];
 		_RET_VAL_INT(ecx);
 		pop  ecx;
-		pop  edx;
 		retn;
 	}
 }
@@ -190,11 +172,9 @@ void __declspec(naked) op_get_viewport_y() {
 void __declspec(naked) op_set_viewport_x() {
 	__asm {
 		push ecx;
-		push edx;
 		_GET_ARG_INT(end);
 		mov  ds:[FO_VAR_wmWorldOffsetX], eax;
 end:
-		pop  edx;
 		pop  ecx;
 		retn;
 	}
@@ -203,11 +183,9 @@ end:
 void __declspec(naked) op_set_viewport_y() {
 	__asm {
 		push ecx;
-		push edx;
 		_GET_ARG_INT(end);
 		mov  ds:[FO_VAR_wmWorldOffsetY], eax;
 end:
-		pop  edx;
 		pop  ecx;
 		retn;
 	}
@@ -323,19 +301,23 @@ void sf_set_iface_tag_text(OpcodeContext& ctx) {
 
 void sf_inventory_redraw(OpcodeContext& ctx) {
 	int mode;
-	DWORD loopFlag = GetLoopFlags();
-	if (loopFlag & INVENTORY) {
-		mode = 0;
-	} else if (loopFlag & INTFACEUSE) {
-		mode = 1;
-	} else if (loopFlag & INTFACELOOT) {
-		mode = 2;
-	} else if (loopFlag & BARTER) {
-		mode = 3;
-	} else {
-		return;
+	DWORD loopFlag = GetLoopFlags() & (INVENTORY | INTFACEUSE | INTFACELOOT | BARTER);
+	switch (loopFlag) {
+		case INVENTORY:
+			mode = 0;
+			break;
+		case INTFACEUSE:
+			mode = 1;
+			break;
+		case INTFACELOOT:
+			mode = 2;
+			break;
+		case BARTER:
+			mode = 3;
+			break;
+		default:
+			return;
 	}
-
 	if (!ctx.arg(0).asBool()) {
 		fo::var::stack_offset[fo::var::curr_stack] = 0;
 		fo::func::display_inventory(0, -1, mode);

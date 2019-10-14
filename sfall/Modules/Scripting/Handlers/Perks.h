@@ -75,5 +75,7 @@ void __declspec() op_apply_heaveho_fix();
 
 void __declspec() op_set_swiftlearner_mod();
 
+void __declspec() op_set_perk_level_mod();
+
 }
 }

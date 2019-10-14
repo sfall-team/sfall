@@ -84,9 +84,7 @@ void __declspec() op_set_npc_stat_max();
 
 void __declspec() op_set_npc_stat_min();
 
-void __declspec() op_set_xp_mod();
-
-void __declspec() op_set_perk_level_mod();
+void sf_set_xp_mod(OpcodeContext&);
 
 }
 }

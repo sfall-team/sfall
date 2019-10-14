@@ -39,6 +39,8 @@ public:
 	static DWORD HasFakeTrait(const char* name);
 	static DWORD HasFakePerkOwner(const char* name, long objId);
 	static DWORD HasFakeTraitOwner(const char* name, long objId);
+
+	static long PerkLevelMod;
 };
 
 void PerksEnterCharScreen();

@@ -86,6 +86,7 @@ static SfallOpcodeInfo opcodeInfoArray[] = {
 	{0x19e, "get_sfall_global_int",      sf_get_sfall_global_int,      1, true,  {ARG_INTSTR}},
 	{0x19f, "get_sfall_global_float",    sf_get_sfall_global_float,    1, true,  {ARG_INTSTR}},
 	{0x1a5, "inc_npc_level",             sf_inc_npc_level,             1, false, {ARG_INTSTR}},
+	{0x1aa, "set_xp_mod",                sf_set_xp_mod,                1, false, {ARG_INT}},
 	{0x1ac, "get_ini_setting",           sf_get_ini_setting,           1, true,  {ARG_STRING}},
 
 	{0x1bb, "set_fake_perk",             sf_set_fake_perk,             4, false, {ARG_STRING, ARG_INT, ARG_INT, ARG_STRING}},
@@ -159,6 +160,8 @@ static SfallOpcodeInfo opcodeInfoArray[] = {
 	{0x237, "atoi",                      sf_atoi,                      1, true,  {ARG_STRING}},
 	{0x238, "atof",                      sf_atof,                      1, true,  {ARG_STRING}},
 	{0x239, "scan_array",                sf_scan_array,                2, true,  {ARG_OBJECT, ARG_ANY}},
+	{0x23c, "get_sfall_args",            sf_get_sfall_args,            0, true},
+	{0x23d, "set_sfall_arg",             sf_set_sfall_arg,             2, false, {ARG_INT, ARG_INT}},
 	{0x241, "get_npc_level",             sf_get_npc_level,             1, true,  {ARG_INTSTR}},
 
 	{0x24e, "substr",                    sf_substr,                    3, true,  {ARG_STRING, ARG_INT, ARG_INT}},
@@ -327,7 +330,6 @@ void InitNewOpcodes() {
 	opcodes[0x1a7] = op_get_viewport_y;
 	opcodes[0x1a8] = op_set_viewport_x;
 	opcodes[0x1a9] = op_set_viewport_y;
-	opcodes[0x1aa] = op_set_xp_mod;
 	opcodes[0x1ab] = op_set_perk_level_mod;
 	opcodes[0x1ad] = op_get_shader_version;
 	opcodes[0x1ae] = op_set_shader_mode;
@@ -394,8 +396,6 @@ void InitNewOpcodes() {
 
 	opcodes[0x23a] = op_get_tile_fid;
 	opcodes[0x23b] = op_modified_ini;
-	opcodes[0x23c] = op_get_sfall_args;
-	opcodes[0x23d] = op_set_sfall_arg;
 	opcodes[0x23e] = op_force_aimed_shots;
 	opcodes[0x23f] = op_disable_aimed_shots;
 	opcodes[0x240] = op_mark_movie_played;

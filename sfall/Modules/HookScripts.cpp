@@ -141,11 +141,11 @@ DWORD _stdcall GetHSArg() {
 	return (cArg == argCount) ? 0 : args[cArg++];
 }
 
-void _stdcall SetHSArg(DWORD id, DWORD value) {
+void SetHSArg(DWORD id, DWORD value) {
 	if (id < argCount) args[id] = value;
 }
 
-DWORD* _stdcall GetHSArgs() {
+DWORD* GetHSArgs() {
 	return args;
 }
 
