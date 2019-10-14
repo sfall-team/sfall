@@ -33,6 +33,7 @@
 #include "input.h"
 #include "LoadGameHook.h"
 #include "Logging.h"
+#include "Stats.h"
 #include "ScriptExtender.h"
 #include "version.h"
 
@@ -512,13 +513,11 @@ static void __fastcall SetGlobalScriptRepeat2(DWORD script, DWORD frames) {
 static void __declspec(naked) SetGlobalScriptRepeat() {
 	__asm {
 		push ecx;
-		push edx;
 		mov  ecx, eax;
 		_GET_ARG_INT(end);
 		mov  edx, eax;               // frames
 		call SetGlobalScriptRepeat2; // ecx - script
 end:
-		pop  edx;
 		pop  ecx;
 		retn;
 	}
@@ -538,13 +537,11 @@ static void __fastcall SetGlobalScriptType2(DWORD script, DWORD type) {
 static void __declspec(naked) SetGlobalScriptType() {
 	__asm {
 		push ecx;
-		push edx;
 		mov  ecx, eax;
 		_GET_ARG_INT(end);
 		mov  edx, eax;             // type
 		call SetGlobalScriptType2; // ecx - script
 end:
-		pop edx;
 		pop ecx;
 		retn;
 	}
@@ -553,10 +550,8 @@ end:
 static void __declspec(naked) GetGlobalScriptTypes() {
 	__asm {
 		push ecx;
-		push edx;
 		mov  edx, AvailableGlobalScriptTypes;
 		_RET_VAL_INT2(ecx);
-		pop  edx;
 		pop  ecx;
 		retn;
 	}
@@ -676,13 +671,11 @@ static void __declspec(naked) GetGlobalVarFloat() {
 static void __declspec(naked) GetSfallArg() {
 	__asm {
 		push ecx;
-		push edx;
 		push eax;
 		call GetHSArg;
 		mov  edx, eax;
 		pop  eax;
 		_RET_VAL_INT2(ecx);
-		pop  edx;
 		pop  ecx;
 		retn;
 	}
@@ -743,12 +736,10 @@ end:
 static void __declspec(naked) SetSfallReturn() {
 	__asm {
 		push ecx;
-		push edx;
 		_GET_ARG_INT(end);
 		push eax;
 		call SetHSReturn;
 end:
-		pop  edx;
 		pop  ecx;
 		retn;
 	}
@@ -756,12 +747,10 @@ end:
 
 static void __declspec(naked) InitHook() {
 	__asm {
-		push edx;
 		push ecx;
 		mov  edx, InitingHookScripts;
 		_RET_VAL_INT2(ecx);
 		pop  ecx;
-		pop  edx;
 		retn;
 	}
 }
@@ -791,13 +780,11 @@ static void __fastcall SetSelfObject(DWORD script, TGameObj* obj) {
 static void __declspec(naked) set_self() {
 	__asm {
 		push ecx;
-		push edx;
 		mov  ecx, eax;
 		_GET_ARG_INT(end);
 		mov  edx, eax;      // object
 		call SetSelfObject; // ecx - script
 end:
-		pop  edx;
 		pop  ecx;
 		retn;
 	}
@@ -1719,15 +1706,16 @@ void ClearGlobalScripts() {
 	globalExportedVars.clear();
 	HookScriptClear();
 
-	//Stat ranges
+	// Stat ranges
 	StatsReset();
-	//Reset some settable game values back to the defaults
-	//xp mod
-	SafeWrite8(0x4AFAB8, 0x53);
-	SafeWrite32(0x4AFAB9, 0x55575651);
-	//HP bonus
+	// Reset some settable game values back to the defaults
+	StandardApAcBonus = 4;
+	ExtraApAcBonus = 4;
+	// XP mod set to 100%
+	ExperienceMod = 1.0f;
+	// HP bonus
 	SafeWrite8(0x4AFBC1, 2);
-	//skill points per level mod
+	// Skill points per level mod
 	SafeWrite8(0x43C27A, 5);
 }
 

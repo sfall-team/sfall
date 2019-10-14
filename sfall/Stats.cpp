@@ -18,8 +18,6 @@
 
 #include "main.h"
 
-#include <math.h>
-#include <stdio.h>
 #include "Define.h"
 #include "FalloutEngine.h"
 #include "Stats.h"
@@ -29,15 +27,17 @@ static DWORD StatMinimumsPC[STAT_max_stat];
 static DWORD StatMaximumsNPC[STAT_max_stat];
 static DWORD StatMinimumsNPC[STAT_max_stat];
 
-static TGameObj* cCritter;
-
 static DWORD xpTable[99];
+
+float ExperienceMod = 1.0f; // set_xp_mod func
+DWORD StandardApAcBonus = 4;
+DWORD ExtraApAcBonus = 4;
+
 static int StatFormulas[33 * 2] = {0};
 static int StatShifts[33 * 7] = {0};
 static double StatMulti[33 * 7] = {0};
 
-DWORD StandardApAcBonus = 4;
-DWORD ExtraApAcBonus = 4;
+static TGameObj* cCritter;
 
 static const DWORD StatLevelHack_Ret = 0x4AEF52;
 static void __declspec(naked) stat_level_hack() {
@@ -212,8 +212,6 @@ void StatsReset() {
 		StatMaximumsPC[i] = StatMaximumsNPC[i] = *(DWORD*)(_stat_data + 16 + i * 24);
 		StatMinimumsPC[i] = StatMinimumsNPC[i] = *(DWORD*)(_stat_data + 12 + i * 24);
 	}
-	StandardApAcBonus = 4;
-	ExtraApAcBonus = 4;
 }
 
 void StatsInit() {
@@ -230,7 +228,7 @@ void StatsInit() {
 	MakeCall(0x455D65, op_set_critter_stat_hack); // STAT_unused for other critters
 
 	char table[2048];
-	GetPrivateProfileString("Misc", "XPTable", "", table, 2048, ini);
+	GetConfigString("Misc", "XPTable", "", table, 2048);
 	if (strlen(table) > 0) {
 		char *ptr = table, *ptr2;
 		DWORD level = 0;
@@ -253,48 +251,54 @@ void StatsInit() {
 		SafeWrite8(0x4AFB1B, static_cast<BYTE>(level + 1));
 	}
 
-	GetPrivateProfileStringA("Misc", "DerivedStats", "", table, MAX_PATH, ini);
-	if (strlen(table)) {
+	std::string statsFile = GetConfigString("Misc", "DerivedStats", "", MAX_PATH);
+	if (!statsFile.empty()) {
 		MakeJump(0x4AF6FC, stat_recalc_derived_hack); // overrides function
 
-		StatFormulas[7 * 2]      = 15;      // max hp
-		StatMulti[7 * 7 + 0]     = 1;
-		StatMulti[7 * 7 + 2]     = 2;
+		// STAT_st + STAT_en * 2 + 15
+		StatFormulas[7 * 2]          = 15; // max hp
+		StatMulti[7 * 7 + STAT_st]   = 1;
+		StatMulti[7 * 7 + STAT_en]   = 2;
+		// STAT_ag / 2 + 5
+		StatFormulas[8 * 2]          = 5;  // max ap
+		StatMulti[8 * 7 + STAT_ag]   = 0.5;
 
-		StatFormulas[8 * 2]      = 5;       // max ap
-		StatMulti[8 * 7 + 5]     = 0.5;
+		StatMulti[9 * 7 + STAT_ag]   = 1;  // ac
+		// STAT_st - 5
+		StatFormulas[11 * 2 + 1]     = 1;  // melee damage
+		StatShifts[11 * 7 + STAT_st] = -5;
+		StatMulti[11 * 7 + STAT_st]  = 1;
+		// STAT_st * 25 + 25
+		StatFormulas[12 * 2]         = 25; // carry weight
+		StatMulti[12 * 7 + STAT_st]  = 25;
+		// STAT_pe * 2
+		StatMulti[13 * 7 + STAT_pe]  = 2;  // sequence
+		// STAT_en / 3
+		StatFormulas[14 * 2 + 1]     = 1;  // heal rate
+		StatMulti[14 * 7 + STAT_en]  = 1.0 / 3.0;
 
-		StatMulti[9 * 7 + 5]     = 1;       // ac
-		StatFormulas[11 * 2 + 1] = 1;       // melee damage
-		StatShifts[11 * 7 + 0]   = -5;
-		StatMulti[11 * 7 + 0]    = 1;
+		StatMulti[15 * 7 + STAT_lu]  = 1;  // critical chance
+		// STAT_en * 2
+		StatMulti[31 * 7 + STAT_en]  = 2;  // rad resist
+		// STAT_en * 5
+		StatMulti[32 * 7 + STAT_en]  = 5;  // poison resist
 
-		StatFormulas[12 * 2]     = 25;      // carry weight
-		StatMulti[12 * 7 + 0]    = 25;
+		char key[6], buf2[256], buf3[256];
+		const char* statFile = statsFile.insert(0, ".\\").c_str();
+		if (GetFileAttributes(statFile) == INVALID_FILE_ATTRIBUTES) return;
 
-		StatMulti[13 * 7 + 1]    = 2;       // sequence
-		StatFormulas[14 * 2 + 1] = 1;       // heal rate
-		StatMulti[14 * 7 + 2]    = 1.0 / 3.0;
-
-		StatMulti[15 * 7 + 6]    = 1;       // critical chance
-		StatMulti[31 * 7 + 2]    = 2;       // rad resist
-		StatMulti[32 * 7 + 2]    = 5;       // poison resist
-
-		char key[6], buf2[256], buf3[MAX_PATH];
-		strcpy_s(buf3, table);
-		sprintf(table, ".\\%s", buf3);
 		for (int i = STAT_max_hit_points; i <= STAT_poison_resist; i++) {
 			if (i >= STAT_dmg_thresh && i <= STAT_dmg_resist_explosion) continue;
 
 			_itoa(i, key, 10);
-			StatFormulas[i * 2] = GetPrivateProfileInt(key, "base", StatFormulas[i * 2], table);
-			StatFormulas[i * 2 + 1] = GetPrivateProfileInt(key, "min", StatFormulas[i * 2 + 1], table);
+			StatFormulas[i * 2] = iniGetInt(key, "base", StatFormulas[i * 2], statFile);
+			StatFormulas[i * 2 + 1] = iniGetInt(key, "min", StatFormulas[i * 2 + 1], statFile);
 			for (int j = 0; j < STAT_max_hit_points; j++) {
 				sprintf(buf2, "shift%d", j);
-				StatShifts[i * 7 + j] = GetPrivateProfileInt(key, buf2, StatShifts[i * 7 + j], table);
+				StatShifts[i * 7 + j] = iniGetInt(key, buf2, StatShifts[i * 7 + j], statFile);
 				sprintf(buf2, "multi%d", j);
 				_gcvt(StatMulti[i * 7 + j], 16, buf3);
-				GetPrivateProfileStringA(key, buf2, buf3, buf2, 256, table);
+				iniGetString(key, buf2, buf3, buf2, 256, statFile);
 				StatMulti[i * 7 + j] = atof(buf2);
 			}
 		}

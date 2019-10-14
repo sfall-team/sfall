@@ -46,3 +46,5 @@ DWORD _stdcall HasFakeTrait(const char* name);
 void _stdcall ClearSelectablePerks();
 
 void _stdcall SetPerkFreq(int i);
+
+extern long PerkLevelMod;

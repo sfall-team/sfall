@@ -535,7 +535,7 @@ static DWORD _stdcall DrawCard() {
 
 static void __declspec(naked) DrawInfoWin_hook() {
 	__asm {
-		cmp  ds:[0x5707D0], 10;
+		cmp  ds:[_info_line], 10;
 		jne  skip;
 		cmp  eax, 0x30;
 		jne  skip;

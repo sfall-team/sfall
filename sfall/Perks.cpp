@@ -24,6 +24,8 @@
 #include "FalloutEngine.h"
 #include "Perks.h"
 
+long PerkLevelMod = 0;
+
 static const int maxNameLen = 64;   // don't change size
 static const int maxDescLen = 512;  // don't change size
 static const int descLen = 256;     // maximum text length for interface
@@ -36,7 +38,7 @@ static char tName[maxNameLen * TRAIT_count] = {0};
 static char tDesc[descLen * TRAIT_count] = {0};
 static char PerkBoxTitle[33];
 
-#define check_trait(id) !disableTraits[id] && (pc_trait[0] == id || pc_trait[1] == id)
+#define check_trait(id) !disableTraits[id] && (ptr_pc_traits[0] == id || ptr_pc_traits[1] == id)
 
 static DWORD addPerkMode = 2;
 
@@ -95,7 +97,6 @@ static DWORD TraitSkillBonuses[TRAIT_count * 18] = {0};
 static DWORD TraitStatBonuses[TRAIT_count * (STAT_max_derived + 1)] = {0};
 
 static bool disableTraits[TRAIT_count];
-static DWORD* pc_trait = (DWORD*)_pc_trait;
 static DWORD IgnoringDefaultPerks = 0;
 
 static DWORD PerkFreqOverride = 0;
@@ -796,8 +797,8 @@ static int _stdcall trait_adjust_stat_override(DWORD statID) {
 	if (statID > STAT_max_derived) return 0;
 
 	int result = 0;
-	if (pc_trait[0] != -1) result += TraitStatBonuses[statID * TRAIT_count + pc_trait[0]];
-	if (pc_trait[1] != -1) result += TraitStatBonuses[statID * TRAIT_count + pc_trait[1]];
+	if (ptr_pc_traits[0] != -1) result += TraitStatBonuses[statID * TRAIT_count + ptr_pc_traits[0]];
+	if (ptr_pc_traits[1] != -1) result += TraitStatBonuses[statID * TRAIT_count + ptr_pc_traits[1]];
 
 	switch (statID) {
 	case STAT_st:
@@ -874,11 +875,11 @@ static void __declspec(naked) TraitAdjustStatHack() {
 
 static int _stdcall trait_adjust_skill_override(DWORD skillID) {
 	int result = 0;
-	if (pc_trait[0] != -1) {
-		result += TraitSkillBonuses[skillID * TRAIT_count + pc_trait[0]];
+	if (ptr_pc_traits[0] != -1) {
+		result += TraitSkillBonuses[skillID * TRAIT_count + ptr_pc_traits[0]];
 	}
-	if (pc_trait[1] != -1) {
-		result += TraitSkillBonuses[skillID * TRAIT_count + pc_trait[1]];
+	if (ptr_pc_traits[1] != -1) {
+		result += TraitSkillBonuses[skillID * TRAIT_count + ptr_pc_traits[1]];
 	}
 	if (check_trait(TRAIT_gifted)) {
 		result -= 10;
@@ -1094,7 +1095,7 @@ void PerksReset() {
 
 	// Reset some settable game values back to the defaults
 	// Perk level mod
-	SafeWrite32(0x496880, 0x019078);
+	PerkLevelMod = 0;
 	// Pyromaniac bonus
 	SafeWrite8(0x424AB6, 5);
 	// Swift Learner bonus

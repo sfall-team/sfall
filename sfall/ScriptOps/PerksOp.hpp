@@ -24,12 +24,10 @@
 
 static void __declspec(naked) GetPerkOwed() {
 	__asm {
-		push edx;
 		push ecx;
 		movzx edx, byte ptr ds:[_free_perk];
 		_RET_VAL_INT2(ecx);
 		pop  ecx;
-		pop  edx;
 		retn;
 	}
 }
@@ -37,14 +35,12 @@ static void __declspec(naked) GetPerkOwed() {
 static void __declspec(naked) SetPerkOwed() {
 	__asm {
 		push ecx;
-		push edx;
 		_GET_ARG_INT(end);
 		and  eax, 0xFF;
 		cmp  eax, 250;
 		jg   end;
 		mov  byte ptr ds:[_free_perk], al;
 end:
-		pop  edx;
 		pop  ecx;
 		retn;
 	}
@@ -53,12 +49,10 @@ end:
 static void __declspec(naked) set_perk_freq() {
 	__asm {
 		push ecx;
-		push edx;
 		_GET_ARG_INT(end);
 		push eax;
 		call SetPerkFreq;
 end:
-		pop  edx;
 		pop  ecx;
 		retn;
 	}
@@ -530,12 +524,10 @@ end:
 static void __declspec(naked) fAddPerkMode() {
 	__asm {
 		push ecx;
-		push edx;
 		_GET_ARG_INT(end);
 		push eax;
 		call AddPerkMode;
 end:
-		pop edx;
 		pop ecx;
 		retn;
 	}
@@ -568,13 +560,11 @@ next:
 static void __declspec(naked) SetPyromaniacMod() {
 	__asm {
 		push ecx;
-		push edx;
 		_GET_ARG_INT(end);
 		push eax;
 		push 0x424AB6;
 		call SafeWrite8;
 end:
-		pop edx;
 		pop ecx;
 		retn;
 	}
@@ -592,14 +582,46 @@ static void __declspec(naked) fApplyHeaveHoFix() {
 static void __declspec(naked) SetSwiftLearnerMod() {
 	__asm {
 		push ecx;
-		push edx;
 		_GET_ARG_INT(end);
 		push eax;
 		push 0x4AFAE2;
 		call SafeWrite32;
 end:
-		pop  edx;
 		pop  ecx;
+		retn;
+	}
+}
+
+static void __declspec(naked) perk_can_add_hook() {
+	__asm {
+		call stat_pc_get_;
+		add  eax, PerkLevelMod;
+		js   jneg; // level < 0
+		retn;
+jneg:
+		xor  eax, eax;
+		retn;
+	}
+}
+
+static void __fastcall SetPerkLevelMod2(long mod) {
+	static bool perkLevelModPatch = false;
+	if (mod < -25 || mod > 25) return;
+	PerkLevelMod = mod;
+
+	if (perkLevelModPatch) return;
+	perkLevelModPatch = true;
+	HookCall(0x49687F, perk_can_add_hook);
+}
+
+static void __declspec(naked) SetPerkLevelMod() {
+	__asm {
+		push ecx;
+		_GET_ARG_INT(end);
+		mov  ecx, eax;
+		call SetPerkLevelMod2;
+end:
+		pop ecx;
 		retn;
 	}
 }

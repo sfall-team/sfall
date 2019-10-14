@@ -26,14 +26,12 @@
 // graphics_functions
 static void __declspec(naked) GraphicsFuncsAvailable() {
 	__asm {
-		push edx;
 		push ecx;
 		cmp  GraphicsMode, 3;
 		seta dl;
 		and  edx, 0xFF;
 		_RET_VAL_INT2(ecx);
 		pop  ecx;
-		pop  edx;
 		retn;
 	}
 }
@@ -80,12 +78,10 @@ result:
 static void __declspec(naked) funcFreeShader() {
 	__asm {
 		push ecx;
-		push edx;
 		_GET_ARG_INT(end);
 		push eax;
 		call FreeShader;
 end:
-		pop  edx;
 		pop  ecx;
 		retn;
 	}
@@ -94,12 +90,10 @@ end:
 static void __declspec(naked) funcActivateShader() {
 	__asm {
 		push ecx;
-		push edx;
 		_GET_ARG_INT(end);
 		push eax;
 		call ActivateShader;
 end:
-		pop  edx;
 		pop  ecx;
 		retn;
 	}
@@ -108,12 +102,10 @@ end:
 static void __declspec(naked) funcDeactivateShader() {
 	__asm {
 		push ecx;
-		push edx;
 		_GET_ARG_INT(end);
 		push eax;
 		call DeactivateShader;
 end:
-		pop edx;
 		pop ecx;
 		retn;
 	}
@@ -404,13 +396,11 @@ end:
 static void __declspec(naked) funcGetShaderVersion() {
 	__asm {
 		push ecx;
-		push edx;
 		push eax;
 		call GetShaderVersion;
 		mov  edx, eax;
 		pop  eax;
 		_RET_VAL_INT2(ecx);
-		pop edx;
 		pop ecx;
 		retn;
 	}
@@ -454,12 +444,10 @@ end:
 static void __declspec(naked) funcForceGraphicsRefresh() {
 	__asm {
 		push ecx;
-		push edx;
 		_GET_ARG_INT(end);
 		push eax;
 		call ForceGraphicsRefresh;
 end:
-		pop edx;
 		pop ecx;
 		retn;
 	}
