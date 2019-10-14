@@ -1284,7 +1284,7 @@ void ScriptExtenderSetup() {
 	SafeWrite32(0x46CE6C, (DWORD)opcodes); // call that actually jumps to the opcode
 	SafeWrite32(0x46E390, (DWORD)opcodes); // mov that writes to the opcode
 
-	if (GetPrivateProfileIntA("Debugging", "AllowUnsafeScripting", 0, ".\\ddraw.ini")) {
+	if (GetPrivateProfileIntA("Debugging", "AllowUnsafeScripting", 0, ddrawIniDef)) {
 		dlogr("  Unsafe opcodes enabled.", DL_SCRIPT);
 		opcodes[0x1cf] = WriteByte;
 		opcodes[0x1d0] = WriteShort;
@@ -1373,7 +1373,7 @@ void ScriptExtenderSetup() {
 	opcodes[0x1a9] = SetViewportY;
 	opcodes[0x1aa] = SetXpMod;
 	opcodes[0x1ab] = SetPerkLevelMod;
-	opcodes[0x1ac] = GetIniSetting;
+	opcodes[0x1ac] = funcGetIniSetting;
 	opcodes[0x1ad] = funcGetShaderVersion;
 	opcodes[0x1ae] = funcSetShaderMode;
 	opcodes[0x1af] = GetGameMode;
@@ -1424,7 +1424,7 @@ void ScriptExtenderSetup() {
 	opcodes[0x1e8] = SetApAcEBonus;
 	opcodes[0x1e9] = GetApAcEBonus;
 	opcodes[0x1ea] = InitHook;
-	opcodes[0x1eb] = GetIniString;
+	opcodes[0x1eb] = funcGetIniString;
 	opcodes[0x1ec] = funcSqrt;
 	opcodes[0x1ed] = funcAbs;
 	opcodes[0x1ee] = funcSin;
@@ -1634,10 +1634,10 @@ sScriptProgram* GetGlobalScriptProgram(DWORD scriptPtr) {
 	return (it == sfallProgsMap.end()) ? nullptr : &it->second ; // prog
 }
 
-bool _stdcall isGameScript(const char* filename) {
+bool _stdcall IsGameScript(const char* filename) {
 	if (strlen(filename) > 8) return false;
-	for (DWORD i = 0; i < *(DWORD*)_maxScriptNum; i++) {
-		if (strcmp(filename, (char*)(*(DWORD*)_scriptListInfo + i * 20)) == 0) return true;
+	for (int i = 0; i < *ptr_maxScriptNum; i++) {
+		if (strcmp(filename, (char*)(*ptr_scriptListInfo + i * 20)) == 0) return true;
 	}
 	return false;
 }
@@ -1663,13 +1663,14 @@ void LoadGlobalScripts() {
 	sScriptProgram prog;
 	for (DWORD i = 0; i < count; i++) {
 		name = _strlwr((char*)filenames[i]);
+		if (name[0] != 'g' || name[1] != 'l') continue; // fix bug in db_get_file_list fuction (if the script name begins with a non-Latin character)
 
 		std::string baseName(name);
 		int lastDot = baseName.find_last_of('.');
 		if ((baseName.length() - lastDot) > 4) continue; // skip files with invalid extension (bug in db_get_file_list fuction)
 
 		baseName = baseName.substr(0, lastDot); // script name without extension
-		if (!isGameScript(baseName.c_str())) {
+		if (!IsGameScript(baseName.c_str())) {
 			dlog("> ", DL_SCRIPT);
 			dlog(name, DL_SCRIPT);
 			isGlobalScriptLoading = 1;

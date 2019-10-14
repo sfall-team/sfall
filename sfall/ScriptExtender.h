@@ -44,7 +44,7 @@ typedef struct {
 } sScriptProgram;
 
 void ScriptExtenderSetup();
-bool _stdcall isGameScript(const char* filename);
+bool _stdcall IsGameScript(const char* filename);
 void LoadGlobalScripts();
 void ClearGlobalScripts();
 

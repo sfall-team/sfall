@@ -25,7 +25,7 @@
 static const DWORD ExpectedSize = 0x00122800;
 static const DWORD ExpectedCRC[] = {0xe1680293, 0xef34f989};
 
-static void inline Fail(const char* a) { MessageBoxA(0, a, "Error", MB_TASKMODAL); ExitProcess(1); }
+static void inline Fail(const char* a) { MessageBoxA(0, a, "Error", MB_TASKMODAL | MB_ICONERROR); ExitProcess(1); }
 
 static const DWORD CRC_table[256] = {
 	0x00000000, 0x0A5F4D75, 0x14BE9AEA, 0x1EE1D79F, 0x14C5EB57, 0x1E9AA622, 0x007B71BD, 0x0A243CC8,
@@ -77,7 +77,7 @@ void CRC(const char* filepath) {
 	DWORD size = GetFileSize(h, 0), crc;
 	bool sizeMatch = (size == ExpectedSize);
 
-	if (!sizeMatch && GetPrivateProfileIntA("Debugging", "SkipSizeCheck", 0, ".\\ddraw.ini")) {
+	if (!sizeMatch && GetPrivateProfileIntA("Debugging", "SkipSizeCheck", 0, ddrawIniDef)) {
 		sizeMatch = true;
 	}
 
@@ -93,7 +93,7 @@ void CRC(const char* filepath) {
 
 	bool matchedCRC = false;
 
-	if (GetPrivateProfileStringA("Debugging", "ExtraCRC", "", buf, 512, ".\\ddraw.ini") > 0) {
+	if (GetPrivateProfileStringA("Debugging", "ExtraCRC", "", buf, 512, ddrawIniDef) > 0) {
 		char *TestCRC;
 		TestCRC = strtok(buf, ",");
 		while (TestCRC) {

@@ -1548,7 +1548,7 @@ void _stdcall RegisterHook(DWORD script, DWORD id, DWORD procNum, bool specReg) 
 }
 
 static void LoadHookScript(const char* name, int id) {
-	if (id >= numHooks || isGameScript(name)) return;
+	if (id >= numHooks || IsGameScript(name)) return;
 
 	char filename[MAX_PATH];
 	sprintf(filename, "scripts\\%s.int", name);

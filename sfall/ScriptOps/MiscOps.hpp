@@ -32,9 +32,9 @@
  *	Misc operators
  */
 
-static DWORD dmModelNamePtr=(DWORD)dmModelName;
-static DWORD dfModelNamePtr=(DWORD)dfModelName;
-static DWORD MovieNamesPtr=(DWORD)MoviePaths;
+static DWORD defaultMaleModelNamePtr = (DWORD)defaultMaleModelName;
+static DWORD defaultFemaleModelNamePtr = (DWORD)defaultFemaleModelName;
+static DWORD movieNamesPtr = (DWORD)MoviePaths;
 
 
 //// *** End Helios *** ///
@@ -61,7 +61,7 @@ next:
 		mov eax, edi;
 		call interpretGetString_;
 		push eax;
-		push dmModelNamePtr;
+		push defaultMaleModelNamePtr;
 		call strcpy_p;
 end:
 		pop edi;
@@ -91,7 +91,7 @@ next:
 		mov eax, edi;
 		call interpretGetString_;
 		push eax;
-		push dfModelNamePtr;
+		push defaultFemaleModelNamePtr;
 		call strcpy_p;
 end:
 		pop edi;
@@ -137,7 +137,7 @@ next:
 		mov eax, esi;
 		mov esi, 65;
 		mul si;
-		add eax, MovieNamesPtr;
+		add eax, movieNamesPtr;
 		push eax;
 		call strcpy_p;
 end:
@@ -625,7 +625,7 @@ static DWORD _stdcall GetIniSetting2(const char* str, DWORD isString) {
 	}
 }
 
-static void __declspec(naked) GetIniSetting() {
+static void __declspec(naked) funcGetIniSetting() {
 	__asm {
 		push ebx;
 		push ecx;
@@ -664,7 +664,7 @@ result:
 		retn;
 	}
 }
-static void __declspec(naked) GetIniString() {
+static void __declspec(naked) funcGetIniString() {
 	__asm {
 		push ebx;
 		push ecx;

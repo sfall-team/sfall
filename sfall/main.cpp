@@ -18,6 +18,7 @@
 
 #include "main.h"
 
+#include <algorithm>
 #include <math.h>
 #include <stdio.h>
 
@@ -62,6 +63,7 @@
 #include "SuperSave.h"
 #include "TalkingHeads.h"
 #include "Tiles.h"
+#include "Utils.h"
 #include "version.h"
 #include "Worldmap.h"
 
@@ -72,6 +74,7 @@ bool isDebug = false;
 bool hrpIsEnabled = false;
 bool hrpVersionValid = false; // HRP 4.1.8 version validation
 
+const char ddrawIniDef[] = ".\\ddraw.ini";
 char ini[65] = ".\\";
 char translationIni[65];
 
@@ -82,6 +85,55 @@ DWORD HRPAddressOffset(DWORD offset) {
 	return (hrpDLLBaseAddr + offset);
 }
 
+int iniGetInt(const char* section, const char* setting, int defaultValue, const char* iniFile) {
+	return GetPrivateProfileIntA(section, setting, defaultValue, iniFile);
+}
+
+size_t iniGetString(const char* section, const char* setting, const char* defaultValue, char* buf, size_t bufSize, const char* iniFile) {
+	return GetPrivateProfileStringA(section, setting, defaultValue, buf, bufSize, iniFile);
+}
+
+std::string GetIniString(const char* section, const char* setting, const char* defaultValue, size_t bufSize, const char* iniFile) {
+	char* buf = new char[bufSize];
+	iniGetString(section, setting, defaultValue, buf, bufSize, iniFile);
+	std::string str(buf);
+	delete[] buf;
+	return str;
+}
+
+std::vector<std::string> GetIniList(const char* section, const char* setting, const char* defaultValue, size_t bufSize, char delimiter, const char* iniFile) {
+	auto list = split(GetIniString(section, setting, defaultValue, bufSize, iniFile), delimiter);
+	std::transform(list.cbegin(), list.cend(), list.begin(), trim);
+	return list;
+}
+
+/*
+	For ddraw.ini config
+*/
+unsigned int GetConfigInt(const char* section, const char* setting, int defaultValue) {
+	return iniGetInt(section, setting, defaultValue, ini);
+}
+
+std::string GetConfigString(const char* section, const char* setting, const char* defaultValue, size_t bufSize) {
+	return trim(GetIniString(section, setting, defaultValue, bufSize, ini));
+}
+
+size_t GetConfigString(const char* section, const char* setting, const char* defaultValue, char* buf, size_t bufSize) {
+	return iniGetString(section, setting, defaultValue, buf, bufSize, ini);
+}
+
+std::vector<std::string> GetConfigList(const char* section, const char* setting, const char* defaultValue, size_t bufSize) {
+	return GetIniList(section, setting, defaultValue, bufSize, ',', ini);
+}
+
+std::string Translate(const char* section, const char* setting, const char* defaultValue, size_t bufSize) {
+	return GetIniString(section, setting, defaultValue, bufSize, translationIni);
+}
+
+size_t Translate(const char* section, const char* setting, const char* defaultValue, char* buffer, size_t bufSize) {
+	return iniGetString(section, setting, defaultValue, buffer, bufSize, translationIni);
+}
+
 static std::vector<int> savPrototypes;
 
 static char mapName[65];
@@ -89,10 +141,10 @@ static char configName[65];
 static char patchName[65];
 static char versionString[65];
 
-static char smModelName[65];
-char dmModelName[65];
-static char sfModelName[65];
-char dfModelName[65];
+static char startMaleModelName[65];
+char defaultMaleModelName[65];
+static char startFemaleModelName[65];
+char defaultFemaleModelName[65];
 
 static const char* musicOverridePath = "data\\sound\\music\\";
 
@@ -679,30 +731,30 @@ static void DllMain2() {
 		dlogr(" Done", DL_INIT);
 	}
 
-	smModelName[64] = 0;
-	if (GetPrivateProfileString("Misc", "MaleStartModel", "", smModelName, 64, ini)) {
+	startMaleModelName[64] = 0;
+	if (GetPrivateProfileString("Misc", "MaleStartModel", "", startMaleModelName, 64, ini)) {
 		dlog("Applying male start model patch.", DL_INIT);
-		SafeWrite32(0x418B88, (DWORD)&smModelName);
+		SafeWrite32(0x418B88, (DWORD)&startMaleModelName);
 		dlogr(" Done", DL_INIT);
 	}
 
-	sfModelName[64] = 0;
-	if (GetPrivateProfileString("Misc", "FemaleStartModel", "", sfModelName, 64, ini)) {
+	startFemaleModelName[64] = 0;
+	if (GetPrivateProfileString("Misc", "FemaleStartModel", "", startFemaleModelName, 64, ini)) {
 		dlog("Applying female start model patch.", DL_INIT);
-		SafeWrite32(0x418BAB, (DWORD)&sfModelName);
+		SafeWrite32(0x418BAB, (DWORD)&startFemaleModelName);
 		dlogr(" Done", DL_INIT);
 	}
 
-	dmModelName[64] = 0;
-	GetPrivateProfileString("Misc", "MaleDefaultModel", "hmjmps", dmModelName, 64, ini);
+	defaultMaleModelName[64] = 0;
+	GetPrivateProfileString("Misc", "MaleDefaultModel", "hmjmps", defaultMaleModelName, 64, ini);
 	dlog("Applying male model patch.", DL_INIT);
-	SafeWrite32(0x418B50, (DWORD)&dmModelName);
+	SafeWrite32(0x418B50, (DWORD)&defaultMaleModelName);
 	dlogr(" Done", DL_INIT);
 
-	dfModelName[64] = 0;
-	GetPrivateProfileString("Misc", "FemaleDefaultModel", "hfjmps", dfModelName, 64, ini);
+	defaultFemaleModelName[64] = 0;
+	GetPrivateProfileString("Misc", "FemaleDefaultModel", "hfjmps", defaultFemaleModelName, 64, ini);
 	dlog("Applying female model patch.", DL_INIT);
-	SafeWrite32(0x418B6D, (DWORD)&dfModelName);
+	SafeWrite32(0x418B6D, (DWORD)&defaultFemaleModelName);
 	dlogr(" Done", DL_INIT);
 
 	dlogr("Running WorldmapInit().", DL_INIT);
@@ -1157,7 +1209,7 @@ static void CompatModeCheck(HKEY root, const char* filepath, int extra) {
 					MessageBoxA(0, "Fallout appears to be running in compatibility mode.\n" //, and sfall was not able to disable it.\n"
 								   "Please check the compatibility tab of fallout2.exe, and ensure that the following settings are unchecked:\n"
 								   "Run this program in compatibility mode for..., run in 256 colours, and run in 640x480 resolution.\n"
-								   "If these options are disabled, click the 'change settings for all users' button and see if that enables them.", "Error", 0);
+								   "If these options are disabled, click the 'change settings for all users' button and see if that enables them.", "Error", MB_TASKMODAL | MB_ICONERROR);
 
 					ExitProcess(-1);
 				}
@@ -1208,7 +1260,7 @@ static bool LoadOriginalDll(DWORD dwReason) {
 bool _stdcall DllMain(HANDLE hDllHandle, DWORD dwReason, LPVOID lpreserved) {
 	if (LoadOriginalDll(dwReason)) {
 		// enabling debugging features
-		isDebug = (GetPrivateProfileIntA("Debugging", "Enable", 0, ".\\ddraw.ini") != 0);
+		isDebug = (GetPrivateProfileIntA("Debugging", "Enable", 0, ddrawIniDef) != 0);
 		if (isDebug) {
 			LoggingInit();
 			if (!ddraw.dll) dlog("Error: Cannot load the original ddraw.dll library.\n", DL_MAIN);
@@ -1221,7 +1273,7 @@ bool _stdcall DllMain(HANDLE hDllHandle, DWORD dwReason, LPVOID lpreserved) {
 
 		CRC(filepath);
 
-		if (!isDebug || !GetPrivateProfileIntA("Debugging", "SkipCompatModeCheck", 0, ".\\ddraw.ini")) {
+		if (!isDebug || !GetPrivateProfileIntA("Debugging", "SkipCompatModeCheck", 0, ddrawIniDef)) {
 			int is64bit;
 			typedef int (_stdcall *chk64bitproc)(HANDLE, int*);
 			HMODULE h = LoadLibrary("Kernel32.dll");
@@ -1239,7 +1291,7 @@ bool _stdcall DllMain(HANDLE hDllHandle, DWORD dwReason, LPVOID lpreserved) {
 		// ini file override
 		bool cmdlineexists = false;
 		char* cmdline = GetCommandLineA();
-		if (GetPrivateProfileIntA("Main", "UseCommandLine", 0, ".\\ddraw.ini")) {
+		if (GetPrivateProfileIntA("Main", "UseCommandLine", 0, ddrawIniDef)) {
 			while (cmdline[0] == ' ') cmdline++;
 			bool InQuote = false;
 			int count = -1;
@@ -1267,13 +1319,13 @@ bool _stdcall DllMain(HANDLE hDllHandle, DWORD dwReason, LPVOID lpreserved) {
 				CloseHandle(h);
 				strcat_s(ini, cmdline);
 			} else {
-				MessageBox(0, "You gave a command line argument to fallout, but it couldn't be matched to a file\n" \
-							  "Using default ddraw.ini instead", "Warning", MB_TASKMODAL);
+				MessageBoxA(0, "You gave a command line argument to Fallout, but it couldn't be matched to a file.\n" \
+							   "Using default ddraw.ini instead.", "Warning", MB_TASKMODAL | MB_ICONWARNING);
 				goto defaultIni;
 			}
 		} else {
 defaultIni:
-			strcpy_s(ini, ".\\ddraw.ini");
+			strcpy_s(ini, ddrawIniDef);
 		}
 
 		GetPrivateProfileStringA("Main", "TranslationsINI", ".\\Translations.ini", translationIni, 65, ini);

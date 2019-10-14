@@ -68,7 +68,7 @@ void SoundInit() {
 		HookCall(0x42B849, ai_print_msg_hook);
 
 		//Yes, I did leave this in on purpose. Will be of use to anyone trying to add in the sound effects
-		if (isDebug && GetPrivateProfileIntA("Debugging", "Test_ForceFloats", 0, ".\\ddraw.ini")) {
+		if (isDebug && GetPrivateProfileIntA("Debugging", "Test_ForceFloats", 0, ddrawIniDef)) {
 			SafeWrite8(0x42B6F5, 0xEB); // bypass chance
 		}
 	}

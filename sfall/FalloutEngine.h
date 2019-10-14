@@ -360,7 +360,7 @@ extern DWORD* ptr_map_elevation;
 extern DWORD* ptr_map_global_vars;
 extern DWORD* ptr_master_db_handle;
 extern DWORD* ptr_max;
-extern DWORD* ptr_maxScriptNum;
+extern long*  ptr_maxScriptNum;
 extern DWORD* ptr_Meet_Frank_Horrigan;
 extern DWORD* ptr_mouse_hotx;
 extern DWORD* ptr_mouse_hoty;

@@ -24,25 +24,19 @@
 
 ExtraGameMessageListsMap gExtraGameMsgLists;
 
-int LoadMsgList(MSGList *msgList, const char *msgFilePath) {
-	int retVal;
+long __stdcall LoadMsgList(MSGList *msgList, const char *msgFilePath) {
 	__asm {
 		mov  edx, msgFilePath;
 		mov  eax, msgList;
 		call message_load_;
-		mov  retVal, eax;
 	}
-	return retVal;
 }
 
-int DestroyMsgList(MSGList *msgList) {
-	int retVal;
+long __stdcall DestroyMsgList(MSGList *msgList) {
 	__asm {
 		mov  eax, msgList;
 		call message_exit_;
-		mov  retVal, eax;
 	}
-	return retVal;
 }
 
 MSGNode *GetMsgNode(MSGList *msgList, int msgRef) {

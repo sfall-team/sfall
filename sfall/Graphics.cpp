@@ -1095,7 +1095,7 @@ void GraphicsInit() {
 		HMODULE h = LoadLibraryEx(_DLL_NAME, 0, LOAD_LIBRARY_AS_DATAFILE);
 		if (!h) {
 			MessageBoxA(0, "You have selected graphics mode 4 or 5, but " _DLL_NAME " is missing.\n"
-						   "Switch back to mode 0, or install an up to date version of DirectX.", "Error", 0);
+						   "Switch back to mode 0, or install an up to date version of DirectX.", "Error", MB_TASKMODAL | MB_ICONERROR);
 			ExitProcess(-1);
 		} else {
 			FreeLibrary(h);
