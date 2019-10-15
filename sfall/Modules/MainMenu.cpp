@@ -126,7 +126,8 @@ void MainMenu::init() {
 	if (OverrideColour & 0xFF) {
 		OverrideColour &= 0x00FF00FF;
 		OverrideColour |= 0x06000000;
-		SafeWrite32(0x481748, (DWORD)&OverrideColour);
+		unsigned char flags = static_cast<unsigned char>((OverrideColour & 0xFF0000) >> 16);
+		if (!(flags & 1)) SafeWrite32(0x481748, (DWORD)&OverrideColour);
 	}
 	OverrideColour2 = GetConfigInt("Misc", "MainMenuBigFontColour", 0) & 0xFF;
 	if (OverrideColour2) SafeWrite32(0x481906, (DWORD)&OverrideColour2);

@@ -394,7 +394,7 @@ nextArmor:
 		call fo::funcoffs::inven_worn_;
 		test eax, eax;
 		jz   noArmor;
-		and  byte ptr [eax + flags+3], ~Worn >> 24; // Unset flag of equipped armor
+		and  byte ptr [eax][flags + 3], ~Worn >> 24; // Unset flag of equipped armor
 		jmp  nextArmor;
 noArmor:
 		mov  eax, esi;
@@ -410,7 +410,7 @@ nextArmor:
 		call fo::funcoffs::inven_worn_;
 		test eax, eax;
 		jz   end;
-		and  byte ptr [eax + flags+3], ~Worn >> 24; // Unset flag of equipped armor
+		and  byte ptr [eax][flags + 3], ~Worn >> 24; // Unset flag of equipped armor
 		jmp  nextArmor;
 end:
 		retn;
@@ -448,7 +448,7 @@ dudeFix:
 		test eax, eax;
 		jz   equipped;                 // no armor
 		// additionally check flag of equipped armor for dude
-		test byte ptr [eax + flags+3], Worn >> 24;
+		test byte ptr [eax][flags + 3], Worn >> 24;
 		jnz  equipped;
 		xor  eax, eax;
 equipped:
@@ -459,11 +459,11 @@ equipped:
 
 static void __declspec(naked) obj_drop_hook() {
 	__asm {
-		test byte ptr [edx + flags+3], (Worn | Right_Hand | Left_Hand) >> 24;
+		test byte ptr [edx][flags + 3], (Worn | Right_Hand | Left_Hand) >> 24;
 		jz   skipHook;
 		call InvenUnwield_HookDrop;    // run HOOK_INVENWIELD before dropping item
 skipHook:
-		test byte ptr [edx + flags+3], Worn >> 24;
+		test byte ptr [edx][flags + 3], Worn >> 24;
 		jnz  fixArmorStat;
 		jmp  fo::funcoffs::obj_remove_from_inven_;
 fixArmorStat:
