@@ -227,28 +227,21 @@ void StatsInit() {
 	MakeCall(0x4AF54E, stat_set_base_hack_allow);
 	MakeCall(0x455D65, op_set_critter_stat_hack); // STAT_unused for other critters
 
-	char table[2048];
-	GetConfigString("Misc", "XPTable", "", table, 2048);
-	if (strlen(table) > 0) {
-		char *ptr = table, *ptr2;
-		DWORD level = 0;
-
+	std::vector<std::string> xpTableList = GetConfigList("Misc", "XPTable", "", 2048);
+	size_t numLevels = xpTableList.size();
+	if (numLevels > 0) {
 		HookCall(0x434AA7, GetNextLevelXPHook);
 		HookCall(0x439642, GetNextLevelXPHook);
 		HookCall(0x4AFB22, GetNextLevelXPHook);
 		HookCall(0x496C8D, GetLevelXPHook);
 		HookCall(0x4AFC53, GetLevelXPHook);
 
-		while ((ptr2 = strstr(ptr, ",")) && level < 99) {
-			ptr2[0] = '\0';
-			xpTable[level++] = atoi(ptr);
-			ptr = ptr2 + 1;
+		for (size_t i = 0; i < 99; i++) {
+			xpTable[i] = (i < numLevels)
+				? atoi(xpTableList[i].c_str())
+				: -1;
 		}
-		if (level < 99 && ptr[0] != '\0') {
-			xpTable[level++] = atoi(ptr);
-		}
-		for (int i = level; i < 99; i++) xpTable[i] = -1;
-		SafeWrite8(0x4AFB1B, static_cast<BYTE>(level + 1));
+		SafeWrite8(0x4AFB1B, static_cast<BYTE>(numLevels + 1));
 	}
 
 	std::string statsFile = GetConfigString("Misc", "DerivedStats", "", MAX_PATH);

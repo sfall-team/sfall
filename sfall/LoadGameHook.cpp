@@ -87,7 +87,7 @@ static void _stdcall ResetState(DWORD onLoad) {
 	if (!onLoad) FileSystemReset();
 	ClearGlobalScripts();
 	ClearGlobals();
-	ForceGraphicsRefresh(0);
+	ForceGraphicsRefresh(0); // disable refresh
 	WipeSounds();
 	if (GraphicsMode > 3) GraphicsResetOnGameLoad();
 	Combat_OnGameLoad();

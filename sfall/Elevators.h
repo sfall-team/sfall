@@ -18,4 +18,5 @@
 
 #pragma once
 
-void ElevatorsInit(char* file);
+void ElevatorsInit();
+void LoadElevators(const char* elevFile);

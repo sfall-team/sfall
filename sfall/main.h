@@ -103,7 +103,6 @@ size_t Translate(const char* section, const char* setting, const char* defaultVa
 DWORD HRPAddressOffset(DWORD offset);
 
 extern const char ddrawIniDef[];
-extern char ini[65];
 extern DWORD modifiedIni;
 
 extern bool hrpIsEnabled;

@@ -17,15 +17,15 @@
  */
 
 #include "main.h"
+#include "FalloutEngine.h"
 
 #include "Elevators.h"
-#include "FalloutEngine.h"
 
 static const int exitsPerElevator = 4;
 static const int vanillaElevatorCount = 24;
 static const int elevatorCount = 50;
 
-static char elevFile[MAX_PATH] = ".\\";
+//static char elevFile[MAX_PATH] = ".\\";
 
 struct sElevator {
 	DWORD ID1;
@@ -122,7 +122,7 @@ void ResetElevators() {
 	//for (int i = vanillaElevatorCount; i < elevatorCount; i++) elevatorType[i] = 0;
 }
 
-static void LoadElevators() {
+void LoadElevators(const char* elevFile) {
 	//ResetElevators();
 
 	memcpy(elevators, (void*)_retvals, sizeof(sElevator) * vanillaElevatorCount);
@@ -161,9 +161,7 @@ static void LoadElevators() {
 	}
 }
 
-void ElevatorsInit(char* file) {
-	strcat_s(elevFile, file);
-
+void ElevatorsInit() {
 	HookCall(0x43EF83, GetMenuHook);
 	HookCall(0x43F141, CheckHotKeysHook);
 	//HookCall(0x43F2D2, UnknownHook2); // unused
@@ -185,6 +183,4 @@ void ElevatorsInit(char* file) {
 	MakeCall(0x43F05D, GetNumButtonsHook1, 2);
 	MakeCall(0x43F184, GetNumButtonsHook2, 2);
 	MakeCall(0x43F1E4, GetNumButtonsHook3, 2);
-
-	LoadElevators();
 }

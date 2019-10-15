@@ -16,35 +16,32 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <iterator>
+
 #include "main.h"
+#include "Utils.h"
 
 struct CityRep {
 	DWORD globalID;
 	DWORD cityID;
 };
 
+// C-array is neccessary, because it is used by game engine
 static CityRep* repList = nullptr;
 
 void ReputationsInit() {
-	int count;
-	if (count = GetPrivateProfileIntA("Misc", "CityRepsCount", 0, ini)) {
+	std::vector<std::string> cityRepList = GetConfigList("Misc", "CityRepsList", "", 512);
+	size_t count = cityRepList.size();
+	if (count > 0) {
 		repList = new CityRep[count];
-		char buf[512];
-		GetPrivateProfileStringA("Misc", "CityRepsList", "", buf, 512, ini);
-		char* end;
-		char* start = buf;
-		for(int i = 0; i < count; i++) {
-			end = strchr(start, ':');
-			*end = '\0';
-			repList[i].cityID = atoi(start);
-			start = end + 1;
-			if (i == count - 1) {
-				repList[i].globalID = atoi(start);
-			} else {
-				end = strchr(start, ',');
-				*end = '\0';
-				repList[i].globalID = atoi(start);
-				start = end + 1;
+		std::vector<std::string> pair;
+		pair.reserve(2);
+		for (size_t i = 0; i < count; i++) {
+			pair.clear();
+			split(cityRepList[i], ':', std::back_inserter(pair), 2);
+			repList[i].cityID = atoi(pair[0].c_str());
+			if (pair.size() >= 2) {
+				repList[i].globalID = atoi(pair[1].c_str());
 			}
 		}
 

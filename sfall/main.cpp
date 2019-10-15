@@ -75,7 +75,7 @@ bool hrpIsEnabled = false;
 bool hrpVersionValid = false; // HRP 4.1.8 version validation
 
 const char ddrawIniDef[] = ".\\ddraw.ini";
-char ini[65] = ".\\";
+static char ini[65] = ".\\";
 static char translationIni[65];
 
 DWORD modifiedIni;
@@ -135,6 +135,13 @@ size_t Translate(const char* section, const char* setting, const char* defaultVa
 }
 
 static std::vector<int> savPrototypes;
+
+struct KarmaFrmSetting {
+	DWORD frm;
+	int points;
+};
+
+static std::vector<KarmaFrmSetting> karmaFrms;
 
 static char mapName[65];
 static char configName[65];
@@ -410,7 +417,7 @@ static void _stdcall SetKarma(int value) {
 		mov old, eax;
 	}
 	old = value - old;
-	char buf[64];
+	char buf[128];
 	if (old == 0) return;
 	if (old > 0) {
 		sprintf_s(buf, KarmaGainMsg, old);
@@ -422,12 +429,12 @@ static void _stdcall SetKarma(int value) {
 
 static void __declspec(naked) SetGlobalVarWrapper() {
 	__asm {
-		test eax, eax;
+		test eax, eax; // GVar number
 		jnz end;
-		pushad;
+		pushadc;
 		push edx;
 		call SetKarma;
-		popad;
+		popadc;
 end:
 		jmp game_set_global_var_;
 	}
@@ -522,15 +529,14 @@ end:
 	}
 }
 
-static DWORD KarmaFrmCount;
-static DWORD* KarmaFrms = nullptr;
-static int* KarmaPoints = nullptr;
 static DWORD _stdcall DrawCard() {
-	int rep = **(int**)_game_global_vars;
-	for (DWORD i = 0; i < KarmaFrmCount - 1; i++) {
-		if (rep < KarmaPoints[i]) return KarmaFrms[i];
+	int reputation = **(int**)_game_global_vars;
+	for (std::vector<KarmaFrmSetting>::const_iterator it = karmaFrms.begin(); it != karmaFrms.end(); ++it) {
+		if (reputation < it->points) {
+			return it->frm;
+		}
 	}
-	return KarmaFrms[KarmaFrmCount - 1];
+	return karmaFrms.end()->frm;
 }
 
 static void __declspec(naked) DrawInfoWin_hook() {
@@ -664,14 +670,14 @@ static void DllMain2() {
 	dlogr("Running TalkingHeadsInit().", DL_INIT);
 	TalkingHeadsInit();
 
-	//if (GetPrivateProfileIntA("Input", "Enable", 0, ini)) {
+	//if (GetConfigInt("Input", "Enable", 0)) {
 		dlog("Applying input patch.", DL_INIT);
 		SafeWriteStr(0x50FB70, "ddraw.dll");
 		AvailableGlobalScriptTypes |= 1;
 		dlogr(" Done", DL_INIT);
 	//}
 
-	if (GetPrivateProfileIntA("Misc", "DataLoadOrderPatch", 1, ini)) {
+	if (GetConfigInt("Misc", "DataLoadOrderPatch", 1)) {
 		dlog("Applying data load order patch.", DL_INIT);
 		MakeCall(0x444259, game_init_databases_hack1);
 		MakeCall(0x4442F1, game_init_databases_hack2);
@@ -703,21 +709,21 @@ static void DllMain2() {
 	ObjectsInit();
 
 	mapName[64] = 0;
-	if (GetPrivateProfileString("Misc", "StartingMap", "", mapName, 64, ini)) {
+	if (GetConfigString("Misc", "StartingMap", "", mapName, 64)) {
 		dlog("Applying starting map patch.", DL_INIT);
 		SafeWrite32(0x480AAA, (DWORD)&mapName);
 		dlogr(" Done", DL_INIT);
 	}
 
 	versionString[64] = 0;
-	if (GetPrivateProfileString("Misc", "VersionString", "", versionString, 64, ini)) {
+	if (GetConfigString("Misc", "VersionString", "", versionString, 64)) {
 		dlog("Applying version string patch.", DL_INIT);
 		SafeWrite32(0x4B4588, (DWORD)&versionString);
 		dlogr(" Done", DL_INIT);
 	}
 
 	configName[64] = 0;
-	if (GetPrivateProfileString("Misc", "ConfigFile", "", configName, 64, ini)) {
+	if (GetConfigString("Misc", "ConfigFile", "", configName, 64)) {
 		dlog("Applying config file patch.", DL_INIT);
 		SafeWrite32(0x444BA5, (DWORD)&configName);
 		SafeWrite32(0x444BCA, (DWORD)&configName);
@@ -725,34 +731,34 @@ static void DllMain2() {
 	}
 
 	patchName[64] = 0;
-	if (GetPrivateProfileString("Misc", "PatchFile", "", patchName, 64, ini)) {
+	if (GetConfigString("Misc", "PatchFile", "", patchName, 64)) {
 		dlog("Applying patch file patch.", DL_INIT);
 		SafeWrite32(0x444323, (DWORD)&patchName);
 		dlogr(" Done", DL_INIT);
 	}
 
 	startMaleModelName[64] = 0;
-	if (GetPrivateProfileString("Misc", "MaleStartModel", "", startMaleModelName, 64, ini)) {
+	if (GetConfigString("Misc", "MaleStartModel", "", startMaleModelName, 64)) {
 		dlog("Applying male start model patch.", DL_INIT);
 		SafeWrite32(0x418B88, (DWORD)&startMaleModelName);
 		dlogr(" Done", DL_INIT);
 	}
 
 	startFemaleModelName[64] = 0;
-	if (GetPrivateProfileString("Misc", "FemaleStartModel", "", startFemaleModelName, 64, ini)) {
+	if (GetConfigString("Misc", "FemaleStartModel", "", startFemaleModelName, 64)) {
 		dlog("Applying female start model patch.", DL_INIT);
 		SafeWrite32(0x418BAB, (DWORD)&startFemaleModelName);
 		dlogr(" Done", DL_INIT);
 	}
 
 	defaultMaleModelName[64] = 0;
-	GetPrivateProfileString("Misc", "MaleDefaultModel", "hmjmps", defaultMaleModelName, 64, ini);
+	GetConfigString("Misc", "MaleDefaultModel", "hmjmps", defaultMaleModelName, 64);
 	dlog("Applying male model patch.", DL_INIT);
 	SafeWrite32(0x418B50, (DWORD)&defaultMaleModelName);
 	dlogr(" Done", DL_INIT);
 
 	defaultFemaleModelName[64] = 0;
-	GetPrivateProfileString("Misc", "FemaleDefaultModel", "hfjmps", defaultFemaleModelName, 64, ini);
+	GetConfigString("Misc", "FemaleDefaultModel", "hfjmps", defaultFemaleModelName, 64);
 	dlog("Applying female model patch.", DL_INIT);
 	SafeWrite32(0x418B6D, (DWORD)&defaultFemaleModelName);
 	dlogr(" Done", DL_INIT);
@@ -760,7 +766,7 @@ static void DllMain2() {
 	dlogr("Running WorldmapInit().", DL_INIT);
 	WorldmapInit();
 
-	if (GetPrivateProfileIntA("Misc", "DialogueFix", 1, ini)) {
+	if (GetConfigInt("Misc", "DialogueFix", 1)) {
 		dlog("Applying dialogue patch.", DL_INIT);
 		SafeWrite8(0x446848, 0x31);
 		dlogr(" Done", DL_INIT);
@@ -769,13 +775,13 @@ static void DllMain2() {
 	dlogr("Running CriticalsInit().", DL_INIT);
 	CriticalsInit();
 
-	if (GetPrivateProfileIntA("Misc", "ExtraKillTypes", 0, ini)) {
+	if (GetConfigInt("Misc", "ExtraKillTypes", 0)) {
 		dlog("Applying extra kill types patch.", DL_INIT);
 		KillCounterInit();
 		dlogr(" Done", DL_INIT);
 	}
 
-	//if (GetPrivateProfileIntA("Misc", "ScriptExtender", 0, ini)) {
+	//if (GetConfigInt("Misc", "ScriptExtender", 0)) {
 		dlogr("Running StatsInit().", DL_INIT);
 		StatsInit();
 		dlogr("Running ScriptExtenderSetup().", DL_INIT);
@@ -796,7 +802,7 @@ static void DllMain2() {
 	dlogr("Running DebugEditorInit().", DL_INIT);
 	DebugEditorInit();
 
-	if (GetPrivateProfileIntA("Misc", "SingleCore", 1, ini)) {
+	if (GetConfigInt("Misc", "SingleCore", 1)) {
 		dlog("Applying single core patch.", DL_INIT);
 		HANDLE process = GetCurrentProcess();
 		SetProcessAffinityMask(process, 1);
@@ -804,22 +810,22 @@ static void DllMain2() {
 		dlogr(" Done", DL_INIT);
 	}
 
-	if (GetPrivateProfileIntA("Misc", "OverrideArtCacheSize", 0, ini)) {
+	if (GetConfigInt("Misc", "OverrideArtCacheSize", 0)) {
 		dlog("Applying override art cache size patch.", DL_INIT);
 		SafeWrite32(0x418867, 0x90909090);
 		SafeWrite32(0x418872, 256);
 		dlogr(" Done", DL_INIT);
 	}
 
-	char elevPath[MAX_PATH - 3];
-	GetPrivateProfileString("Misc", "ElevatorsFile", "", elevPath, MAX_PATH - 3, ini);
-	if (strlen(elevPath) > 0) {
+	std::string elevPath = GetConfigString("Misc", "ElevatorsFile", "", MAX_PATH);
+	if (!elevPath.empty()) {
 		dlog("Applying elevator patch.", DL_INIT);
-		ElevatorsInit(elevPath);
+		ElevatorsInit();
+		LoadElevators(elevPath.insert(0, ".\\").c_str());
 		dlogr(" Done", DL_INIT);
 	}
 
-	if (GetPrivateProfileIntA("Misc", "AdditionalWeaponAnims", 0, ini)) {
+	if (GetConfigInt("Misc", "AdditionalWeaponAnims", 0)) {
 		dlog("Applying additional weapon animations patch.", DL_INIT);
 		SafeWrite8(0x419320, 0x12);
 		HookCall(0x4194CC, WeaponAnimHook);
@@ -828,34 +834,34 @@ static void DllMain2() {
 		dlogr(" Done", DL_INIT);
 	}
 
-	//if (GetPrivateProfileIntA("Misc", "MultiPatches", 0, ini)) {
+	//if (GetConfigInt("Misc", "MultiPatches", 0)) {
 		dlog("Applying load multiple patches patch.", DL_INIT);
 		SafeWrite8(0x444354, 0x90); // Change step from 2 to 1
 		SafeWrite8(0x44435C, 0xC4); // Disable check
 		dlogr(" Done", DL_INIT);
 	//}
 
-	if (GetPrivateProfileInt("Misc", "DisplayKarmaChanges", 0, ini)) {
+	if (GetConfigInt("Misc", "DisplayKarmaChanges", 0)) {
 		dlog("Applying display karma changes patch.", DL_INIT);
-		GetPrivateProfileString("sfall", "KarmaGain", "You gained %d karma.", KarmaGainMsg, 128, translationIni);
-		GetPrivateProfileString("sfall", "KarmaLoss", "You lost %d karma.", KarmaLossMsg, 128, translationIni);
+		Translate("sfall", "KarmaGain", "You gained %d karma.", KarmaGainMsg);
+		Translate("sfall", "KarmaLoss", "You lost %d karma.", KarmaLossMsg);
 		HookCall(0x455A6D, SetGlobalVarWrapper);
 		dlogr(" Done", DL_INIT);
 	}
 
-	if (GetPrivateProfileInt("Misc", "AlwaysReloadMsgs", 0, ini)) {
+	if (GetConfigInt("Misc", "AlwaysReloadMsgs", 0)) {
 		dlog("Applying always reload messages patch.", DL_INIT);
 		SafeWrite8(0x4A6B8D, 0x0);
 		dlogr(" Done", DL_INIT);
 	}
 
-	if (GetPrivateProfileInt("Misc", "PlayIdleAnimOnReload", 0, ini)) {
+	if (GetConfigInt("Misc", "PlayIdleAnimOnReload", 0)) {
 		dlog("Applying idle anim on reload patch.", DL_INIT);
 		HookCall(0x460B8C, ReloadHook);
 		dlogr(" Done", DL_INIT);
 	}
 
-	if (GetPrivateProfileInt("Misc", "CorpseLineOfFireFix", 1, ini)) {
+	if (GetConfigInt("Misc", "CorpseLineOfFireFix", 1)) {
 		dlog("Applying corpse line of fire patch.", DL_INIT);
 		MakeJump(0x48B994, CorpseHitFix2);
 		MakeJump(0x48BA04, CorpseHitFix2b);
@@ -863,19 +869,19 @@ static void DllMain2() {
 	}
 
 	dlog("Checking for changed skilldex images.", DL_INIT);
-	tmp = GetPrivateProfileIntA("Misc", "Lockpick", 293, ini);
+	tmp = GetConfigInt("Misc", "Lockpick", 293);
 	if (tmp != 293) SafeWrite32(0x518D54, tmp);
-	tmp = GetPrivateProfileIntA("Misc", "Steal", 293, ini);
+	tmp = GetConfigInt("Misc", "Steal", 293);
 	if (tmp != 293) SafeWrite32(0x518D58, tmp);
-	tmp = GetPrivateProfileIntA("Misc", "Traps", 293, ini);
+	tmp = GetConfigInt("Misc", "Traps", 293);
 	if (tmp != 293) SafeWrite32(0x518D5C, tmp);
-	tmp = GetPrivateProfileIntA("Misc", "FirstAid", 293, ini);
+	tmp = GetConfigInt("Misc", "FirstAid", 293);
 	if (tmp != 293) SafeWrite32(0x518D4C, tmp);
-	tmp = GetPrivateProfileIntA("Misc", "Doctor", 293, ini);
+	tmp = GetConfigInt("Misc", "Doctor", 293);
 	if (tmp != 293) SafeWrite32(0x518D50, tmp);
-	tmp = GetPrivateProfileIntA("Misc", "Science", 293, ini);
+	tmp = GetConfigInt("Misc", "Science", 293);
 	if (tmp != 293) SafeWrite32(0x518D60, tmp);
-	tmp = GetPrivateProfileIntA("Misc", "Repair", 293, ini);
+	tmp = GetConfigInt("Misc", "Repair", 293);
 	if (tmp != 293) SafeWrite32(0x518D64, tmp);
 	dlogr(" Done", DL_INIT);
 
@@ -904,12 +910,12 @@ static void DllMain2() {
 	dlogr("Running ConsoleInit().", DL_INIT);
 	ConsoleInit();
 
-	if (GetPrivateProfileIntA("Misc", "ExtraSaveSlots", 0, ini)) {
+	if (GetConfigInt("Misc", "ExtraSaveSlots", 0)) {
 		dlogr("Running EnableSuperSaving().", DL_INIT);
 		EnableSuperSaving();
 	}
 
-	switch (GetPrivateProfileIntA("Misc", "SpeedInterfaceCounterAnims", 0, ini)) {
+	switch (GetConfigInt("Misc", "SpeedInterfaceCounterAnims", 0)) {
 	case 1:
 		dlog("Applying SpeedInterfaceCounterAnims patch.", DL_INIT);
 		MakeJump(0x460BA1, intface_rotate_numbers_hack);
@@ -922,35 +928,24 @@ static void DllMain2() {
 		break;
 	}
 
-	KarmaFrmCount = GetPrivateProfileIntA("Misc", "KarmaFRMsCount", 0, ini);
-	if (KarmaFrmCount) {
-		KarmaFrms = new DWORD[KarmaFrmCount];
-		KarmaPoints = new int[KarmaFrmCount - 1];
+	std::vector<std::string> karmaFrmList = GetConfigList("Misc", "KarmaFRMs", "", 512);
+	if (!karmaFrmList.empty()) {
 		dlog("Applying karma FRM patch.", DL_INIT);
-		char buf[512];
-		GetPrivateProfileStringA("Misc", "KarmaFRMs", "", buf, 512, ini);
-		char *ptr = buf, *ptr2;
-		for (DWORD i = 0; i < KarmaFrmCount - 1; i++) {
-			ptr2 = strchr(ptr, ',');
-			*ptr2 = '\0';
-			KarmaFrms[i] = atoi(ptr);
-			ptr = ptr2 + 1;
+
+		std::vector<std::string> karmaPointsList = GetConfigList("Misc", "KarmaPoints", "", 512);
+		karmaFrms.resize(karmaFrmList.size());
+		for (size_t i = 0; i < karmaFrmList.size(); i++) {
+			karmaFrms[i].frm = atoi(karmaFrmList[i].c_str());
+			karmaFrms[i].points = (karmaPointsList.size() > i)
+				? atoi(karmaPointsList[i].c_str())
+				: INT_MAX;
 		}
-		KarmaFrms[KarmaFrmCount - 1] = atoi(ptr);
-		GetPrivateProfileStringA("Misc", "KarmaPoints", "", buf, 512, ini);
-		ptr = buf;
-		for (DWORD i = 0; i < KarmaFrmCount - 2; i++) {
-			ptr2 = strchr(ptr, ',');
-			*ptr2 = '\0';
-			KarmaPoints[i] = atoi(ptr);
-			ptr = ptr2 + 1;
-		}
-		KarmaPoints[KarmaFrmCount - 2] = atoi(ptr);
 		HookCall(0x4367A9, DrawInfoWin_hook);
+
 		dlogr(" Done", DL_INIT);
 	}
 
-	switch (GetPrivateProfileIntA("Misc", "ScienceOnCritters", 0, ini)) {
+	switch (GetConfigInt("Misc", "ScienceOnCritters", 0)) {
 	case 1:
 		HookCall(0x41276E, ScienceCritterCheckHook);
 		break;
@@ -959,7 +954,7 @@ static void DllMain2() {
 		break;
 	}
 
-	tmp = GetPrivateProfileIntA("Misc", "SpeedInventoryPCRotation", 166, ini);
+	tmp = GetConfigInt("Misc", "SpeedInventoryPCRotation", 166);
 	if (tmp != 166 && tmp <= 1000) {
 		dlog("Applying SpeedInventoryPCRotation patch.", DL_INIT);
 		SafeWrite32(0x47066B, tmp);
@@ -975,7 +970,7 @@ static void DllMain2() {
 	dlogr("Running AnimationsAtOnceInit().", DL_INIT);
 	AnimationsAtOnceInit();
 
-	if (tmp = GetPrivateProfileIntA("Sound", "OverrideMusicDir", 0, ini)) {
+	if (tmp = GetConfigInt("Sound", "OverrideMusicDir", 0)) {
 		SafeWrite32(0x4449C2, (DWORD)musicOverridePath);
 		SafeWrite32(0x4449DB, (DWORD)musicOverridePath);
 		if (tmp == 2) {
@@ -984,7 +979,7 @@ static void DllMain2() {
 		}
 	}
 
-	if (GetPrivateProfileIntA("Misc", "BoostScriptDialogLimit", 0, ini)) {
+	if (GetConfigInt("Misc", "BoostScriptDialogLimit", 0)) {
 		const int scriptDialogCount = 10000;
 		dlog("Applying script dialog limit patch.", DL_INIT);
 		scriptDialog = new int[scriptDialogCount * 2]; // Because the msg structure is 8 bytes, not 4.
@@ -1000,7 +995,7 @@ static void DllMain2() {
 	dlogr("Running InventoryInit().", DL_INIT);
 	InventoryInit();
 
-	if (tmp = GetPrivateProfileIntA("Misc", "MotionScannerFlags", 1, ini)) {
+	if (tmp = GetConfigInt("Misc", "MotionScannerFlags", 1)) {
 		dlog("Applying MotionScannerFlags patch.", DL_INIT);
 		if (tmp & 1) MakeJump(0x41BBE9, ScannerAutomapHook);
 		if (tmp & 2) {
@@ -1013,7 +1008,7 @@ static void DllMain2() {
 		dlogr(" Done", DL_INIT);
 	}
 
-	tmp = GetPrivateProfileIntA("Misc", "EncounterTableSize", 0, ini);
+	tmp = GetConfigInt("Misc", "EncounterTableSize", 0);
 	if (tmp > 40 && tmp <= 127) {
 		dlog("Applying EncounterTableSize patch.", DL_INIT);
 		SafeWrite8(0x4BDB17, (BYTE)tmp);
@@ -1024,7 +1019,7 @@ static void DllMain2() {
 		dlogr(" Done", DL_INIT);
 	}
 
-	if (GetPrivateProfileIntA("Misc", "DisablePipboyAlarm", 0, ini)) {
+	if (GetConfigInt("Misc", "DisablePipboyAlarm", 0)) {
 		dlog("Applying Disable Pip-Boy alarm button patch.", DL_INIT);
 		SafeWrite8(0x499518, 0xC3);
 		SafeWrite8(0x443601, 0x0);
@@ -1037,7 +1032,7 @@ static void DllMain2() {
 	dlogr("Initializing party control.", DL_INIT);
 	PartyControlInit();
 
-	if (GetPrivateProfileIntA("Misc", "ObjCanSeeObj_ShootThru_Fix", 0, ini)) {
+	if (GetConfigInt("Misc", "ObjCanSeeObj_ShootThru_Fix", 0)) {
 		dlog("Applying ObjCanSeeObj ShootThru Fix.", DL_INIT);
 		HookCall(0x456BC6, op_obj_can_see_obj_hook);
 		dlogr(" Done", DL_INIT);
@@ -1057,21 +1052,21 @@ static void DllMain2() {
 	addrs[0] = 0x499B99; addrs[1] = 0x499DA8;
 	SimplePatch<BYTE>(addrs, 2, "Misc", "PipboyTimeAnimDelay", 50, 0, 127);
 
-	if (GetPrivateProfileIntA("Misc", "EnableMusicInDialogue", 0, ini)) {
+	if (GetConfigInt("Misc", "EnableMusicInDialogue", 0)) {
 		dlog("Applying music in dialogue patch.", DL_INIT);
 		SafeWrite8(0x44525B, 0x0);
 		//BlockCall(0x450627);
 		dlogr(" Done", DL_INIT);
 	}
 
-	if (GetPrivateProfileIntA("Misc", "DontTurnOffSneakIfYouRun", 0, ini)) {
+	if (GetConfigInt("Misc", "DontTurnOffSneakIfYouRun", 0)) {
 		dlog("Applying DontTurnOffSneakIfYouRun patch.", DL_INIT);
 		SafeWrite8(0x418135, 0xEB);
 		dlogr(" Done", DL_INIT);
 	}
 
-	if (GetPrivateProfileIntA("Misc", "InstantWeaponEquip", 0, ini)) {
-	//Skip weapon equip/unequip animations
+	if (GetConfigInt("Misc", "InstantWeaponEquip", 0)) {
+		//Skip weapon equip/unequip animations
 		dlog("Applying instant weapon equip patch.", DL_INIT);
 		for (int i = 0; i < sizeof(PutAwayWeapon) / 4; i++) {
 			SafeWrite8(PutAwayWeapon[i], 0xEB);   // jmps
@@ -1083,7 +1078,7 @@ static void DllMain2() {
 		dlogr(" Done", DL_INIT);
 	}
 
-	if (GetPrivateProfileIntA("Misc", "NumbersInDialogue", 0, ini)) {
+	if (GetConfigInt("Misc", "NumbersInDialogue", 0)) {
 		dlog("Applying numbers in dialogue patch.", DL_INIT);
 		SafeWrite32(0x502C32, 0x2000202E);
 		SafeWrite8(0x446F3B, 0x35);
@@ -1096,29 +1091,29 @@ static void DllMain2() {
 		dlogr(" Done", DL_INIT);
 	}
 
-	if (GetPrivateProfileIntA("Misc", "DisplaySecondWeaponRange", 1, ini)) {
+	if (GetConfigInt("Misc", "DisplaySecondWeaponRange", 1)) {
 		dlog("Applying display second weapon range patch.", DL_INIT);
 		HookCall(0x472201, display_stats_hook);
 		dlogr(" Done", DL_INIT);
 	}
 
-	if (GetPrivateProfileIntA("Misc", "InterfaceDontMoveOnTop", 0, ini)) {
+	if (GetConfigInt("Misc", "InterfaceDontMoveOnTop", 0)) {
 		dlog("Applying InterfaceDontMoveOnTop patch.", DL_INIT);
 		SafeWrite8(0x46ECE9, 0x10); // set only Exclusive flag for Player Inventory/Loot/UseOn
 		SafeWrite8(0x41B966, 0x10); // set only Exclusive flag for Automap
 		dlogr(" Done", DL_INIT);
 	}
 
-	tmp = GetPrivateProfileIntA("Misc", "UseWalkDistance", 3, ini) + 2;
-	if (tmp > 1 && tmp < 5) {
+	int distance = GetConfigInt("Misc", "UseWalkDistance", 3) + 2;
+	if (distance > 1 && distance < 5) {
 		dlog("Applying walk distance for using objects patch.", DL_INIT);
 		for (int i = 0; i < sizeof(WalkDistanceAddr) / 4; i++) {
-			SafeWrite8(WalkDistanceAddr[i], (BYTE)tmp); // default is 5
+			SafeWrite8(WalkDistanceAddr[i], static_cast<BYTE>(distance)); // default is 5
 		}
 		dlogr(" Done", DL_INIT);
 	}
 
-	int time = GetPrivateProfileIntA("Misc", "CorpseDeleteTime", 6, ini); // time in days
+	int time = GetConfigInt("Misc", "CorpseDeleteTime", 6); // time in days
 	if (time != 6) {
 		dlog("Applying corpse deletion time patch.", DL_INIT);
 		if (time <= 0) {
@@ -1135,7 +1130,7 @@ static void DllMain2() {
 	SimplePatch<DWORD>(0x440C2A, "Misc", "SpecialDeathGVAR", 491); // GVAR_MODOC_SHITTY_DEATH
 
 	// Remove hardcoding for maps with IDs 19 and 37
-	if (GetPrivateProfileIntA("Misc", "DisableSpecialMapIDs", 0, ini)) {
+	if (GetConfigInt("Misc", "DisableSpecialMapIDs", 0)) {
 		dlog("Applying disable special map IDs patch.", DL_INIT);
 		SafeWrite8(0x4836D6, 0);
 		SafeWrite8(0x4836DB, 0);
@@ -1146,7 +1141,7 @@ static void DllMain2() {
 	SafeWrite8(0x43ACD5, 144); // 136
 	SafeWrite8(0x43DD37, 144); // 133
 
-	if (GetPrivateProfileIntA("Misc", "Fallout1Behavior", 0, ini)) {
+	if (GetConfigInt("Misc", "Fallout1Behavior", 0)) {
 		dlog("Applying Fallout 1 engine behavior patch.", DL_INIT);
 		BlockCall(0x4A4343); // disable playing the final movie/credits after the endgame slideshow
 		SafeWrite8(0x477C71, 0xEB); // disable halving the weight for power armor items
@@ -1159,10 +1154,6 @@ static void DllMain2() {
 static void _stdcall OnExit() {
 	if (scriptDialog != nullptr) {
 		delete[] scriptDialog;
-	}
-	if (KarmaFrmCount) {
-		delete[] KarmaFrms;
-		delete[] KarmaPoints;
 	}
 	SpeedPatchExit();
 	ClearReadExtraGameMsgFiles();
@@ -1328,8 +1319,8 @@ defaultIni:
 			strcpy_s(ini, ddrawIniDef);
 		}
 
-		GetPrivateProfileStringA("Main", "TranslationsINI", ".\\Translations.ini", translationIni, 65, ini);
-		modifiedIni = GetPrivateProfileIntA("Main", "ModifiedIni", 0, ini);
+		GetConfigString("Main", "TranslationsINI", ".\\Translations.ini", translationIni, 65);
+		modifiedIni = GetConfigInt("Main", "ModifiedIni", 0);
 
 		hrpIsEnabled = (*(DWORD*)0x4E4480 != 0x278805C7); // check if HRP is enabled
 		if (hrpIsEnabled) {

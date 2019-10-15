@@ -24,7 +24,6 @@
 
 static int BooksCount = 0;
 static const int BooksMax = 50;
-static char iniBooks[MAX_PATH];
 
 struct sBook {
 	DWORD bookPid;
@@ -82,11 +81,10 @@ static void LoadVanillaBooks() {
 }
 
 void BooksInit() {
-	char buf[MAX_PATH - 3];
-	GetPrivateProfileString("Misc", "BooksFile", "", buf, MAX_PATH - 3, ini);
-	if (strlen(buf) > 0) {
+	std::string booksFile = GetConfigString("Misc", "BooksFile", "", MAX_PATH);
+	if (!booksFile.empty()) {
 		dlog("Applying books patch...", DL_INIT);
-		sprintf(iniBooks, ".\\%s", buf);
+		const char* iniBooks = booksFile.insert(0, ".\\").c_str();
 
 		bool includeVanilla = (GetPrivateProfileIntA("main", "overrideVanilla", 0, iniBooks) == 0);
 		if (includeVanilla) BooksCount = 5;
