@@ -40,7 +40,7 @@ struct sMessage {
 };
 
 static const char* MsgSearch(long msgno, DWORD file) {
-	if(!file) return 0;
+	if (!file) return 0;
 	sMessage msg = { msgno, 0, 0, 0 };
 	__asm {
 		lea edx, msg;

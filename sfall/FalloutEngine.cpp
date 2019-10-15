@@ -799,9 +799,7 @@ const char* __stdcall CritterName(TGameObj* critter) {
 }
 
 void SkillGetTags(int* result, DWORD num) {
-	if (num > 4) {
-		num = 4;
-	}
+	if (num > 4) num = 4;
 	__asm {
 		mov  eax, result;
 		mov  edx, num;
@@ -810,9 +808,7 @@ void SkillGetTags(int* result, DWORD num) {
 }
 
 void SkillSetTags(int* tags, DWORD num) {
-	if (num > 4) {
-		num = 4;
-	}
+	if (num > 4) num = 4;
 	__asm {
 		mov  eax, tags;
 		mov  edx, num;
