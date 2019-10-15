@@ -29,7 +29,7 @@ fo::PremadeChar* premade;
 void Premade::init() {
 	auto premadePaths = GetConfigList("misc", "PremadePaths", "", 512);
 	auto premadeFids = GetConfigList("misc", "PremadeFIDs", "", 512);
-	if (premadePaths.size() > 0 && premadeFids.size() > 0) {
+	if (!premadePaths.empty() && !premadeFids.empty()) {
 		int count = min(premadePaths.size(), premadeFids.size());
 		premade = new fo::PremadeChar[count];
 		for (int i = 0; i < count; i++) {

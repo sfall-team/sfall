@@ -36,12 +36,12 @@ static CityRep* repList = nullptr;
 
 void Reputations::init() {
 	auto cityRepList = GetConfigList("Misc", "CityRepsList", "", 512);
-	auto count = cityRepList.size();
+	size_t count = cityRepList.size();
 	if (count > 0) {
-		repList = new CityRep[cityRepList.size()];
+		repList = new CityRep[count];
 		std::vector<std::string> pair;
 		pair.reserve(2);
-		for (size_t i = 0; i < cityRepList.size(); i++) {
+		for (size_t i = 0; i < count; i++) {
 			pair.clear();
 			split(cityRepList[i], ':', std::back_inserter(pair), 2);
 			repList[i].cityID = atoi(pair[0].c_str());

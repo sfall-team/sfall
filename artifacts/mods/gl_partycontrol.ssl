@@ -36,7 +36,7 @@ procedure combatturn_handler begin
    variable
       status := get_sfall_arg,
       critter := get_sfall_arg,
-      pid, perkID, level;
+      pid, perkID, level, i;
 
    //display_msg("Combat Turn: " + status + ", by "  + obj_name(critter) + ", arg3: " + get_sfall_arg);
    if npcControl then begin
@@ -55,7 +55,9 @@ procedure combatturn_handler begin
          foreach (perkID in perksList) begin
             level := has_trait(TRAIT_PERK, real_dude_obj, perkID);
             if (level) then begin
-               critter_add_trait(critter, TRAIT_PERK, perkID, level);
+               for (i := 0; i < level; i++) begin
+                  critter_add_trait(critter, TRAIT_PERK, perkID, 1);
+               end
             end
          end
          intface_redraw;
@@ -77,6 +79,13 @@ procedure combatturn_handler begin
          end
       end
    end else if inControl then begin
+      // remove perks before switching control (only work with 4.1.8+)
+      foreach (perkID in perksList) begin
+         level := has_trait(TRAIT_PERK, real_dude_obj, perkID);
+         if (level) then begin
+            critter_rm_trait(critter, TRAIT_PERK, perkID, level);
+         end
+      end
       if isShowTag then begin
          hide_iface_tag(displayName);
          isShowTag := false;
