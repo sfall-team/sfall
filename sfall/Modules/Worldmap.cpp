@@ -339,7 +339,7 @@ void WorldLimitsPatches() {
 		dlogr(" Done", DL_INIT);
 	}
 
-	//if(GetConfigInt("Misc", "CitiesLimitFix", 0)) {
+	//if (GetConfigInt("Misc", "CitiesLimitFix", 0)) {
 	dlog("Applying cities limit patch.", DL_INIT);
 	if (*((BYTE*)0x4BF3BB) != 0xEB) {
 		SafeWrite8(0x4BF3BB, 0xEB);
@@ -418,7 +418,7 @@ void WorldmapFpsPatch() {
 }
 
 void PathfinderFixInit() {
-	//if(GetConfigInt("Misc", "PathfinderFix", 0)) {
+	//if (GetConfigInt("Misc", "PathfinderFix", 0)) {
 	dlog("Applying Pathfinder patch.", DL_INIT);
 	SafeWrite16(0x4C1FF6, 0x9090);     // wmPartyWalkingStep_
 	HookCall(0x4C1C78, PathfinderFix); // wmGameTimeIncrement_

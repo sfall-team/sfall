@@ -16,6 +16,8 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <stdint.h>
+
 #include "..\main.h"
 #include "..\FalloutEngine\Fallout2.h"
 #include "LoadGameHook.h"
@@ -26,72 +28,110 @@
 namespace sfall
 {
 
-struct ProtoMem {
-	long* proto;
-	long  pid;
-	long  sharedCount; // if the value is 0, then the prototype can be deleted from memory
-
-	ProtoMem() {}
-	ProtoMem(long pid) : proto(nullptr), pid(pid), sharedCount(0) {}
-	ProtoMem(long* proto, long pid) : proto(proto), pid(pid), sharedCount(1) {}
-
-	~ProtoMem() { delete[] proto; }
-};
-std::unordered_map<long, ProtoMem> protoMem; // key - critter ID, value - pointer to critter prototype for unique ID
-
-typedef std::unordered_map<long, ProtoMem>::iterator protoMem_iterator;
-static long CreateProtoMem(const protoMem_iterator&, long*, long*&);
-
-struct ProtoModify {
-	long objID;
-	long objPID;   // used for additional verification
-	long stat;
-	long amount;   // current value of the stat
-	long defval;   // value of the stat before the change
-	long* s_proto; // shared pointer for quick access to the prototype in memory (should not be saved to file)
-
-	ProtoModify() : s_proto(nullptr) {}
-	ProtoModify(fo::GameObject* critter, long stat, long amount, long* defaultProto, long defVal) {
-		objID = Objects::SetObjectUniqueID(critter);
-		objPID = critter->protoId;
-		this->stat = stat;
-		this->amount = amount;
-		this->defval = defVal;
-
-		auto it = protoMem.find(objID);
-		if (it == protoMem.end()) {
-			long* newProto = new long[104]; // 416 bytes
-			memcpy(newProto, defaultProto, 416);
-			s_proto = newProto;
-			protoMem.emplace(
-				std::piecewise_construct,
-				std::forward_as_tuple(objID),
-				std::forward_as_tuple(newProto, objPID));
-		} else {
-			s_proto = it->second.proto;
-			if (s_proto == nullptr) { // prototype has not been created
-				it->second.sharedCount = CreateProtoMem(it, defaultProto, s_proto);
-				it->second.proto = s_proto;
-			}
-			it->second.sharedCount++;
-		}
-	}
-};
-std::vector<ProtoModify> bonusStatProto;
-std::vector<ProtoModify> baseStatProto;
-// savable
-std::vector<ProtoModify> s_bonusStatProto;
-std::vector<ProtoModify> s_baseStatProto;
-
-static long isNotPartyMemberPid;
-
 static struct {
 	long id;
 	long* proto;
 } lastGetProtoID;
 
+struct ProtoMem {
+	long* proto;
+	long  pid;
+	long  sharedCount; // if the value is 0, then the prototype can be deleted from memory
+
+	//ProtoMem() {}
+	ProtoMem(long pid) : proto(nullptr), pid(pid), sharedCount(0) {} // for load
+	ProtoMem(long* defProto, long pid) : pid(pid), sharedCount(1) {
+		CreateProtoMem(defProto);
+	}
+
+	void CreateProtoMem(long* srcProto) {
+		this->proto = reinterpret_cast<long*>(new int32_t[104]); // 416 bytes
+		memcpy(this->proto, srcProto, 416);
+	}
+
+	~ProtoMem() { delete[] proto; }
+};
+
+std::unordered_map<long, ProtoMem> protoMem; // key - critter ID, value - pointer to critter prototype for unique ID
+
+typedef std::unordered_map<long, ProtoMem>::iterator itProtoMem;
+static void ModifyAllStats(const itProtoMem&);
+
+struct StatModify {
+	long objID;
+	long objPID;   // used for additional verification
+	long stat;
+	long amount;   // current value of the stat
+	long defVal;   // value of the stat before the change
+	long* s_proto; // shared pointer for quick access to the prototype in memory (should not be saved to file)
+
+	StatModify() : s_proto(nullptr) {} // for load
+	StatModify(fo::GameObject* critter, long stat, long amount, long* defaultProto, long defVal) {
+		objID = Objects::SetObjectUniqueID(critter);
+		objPID = critter->protoId;
+		this->stat = stat;
+		this->amount = amount;
+		this->defVal = defVal;
+		fo::func::dev_printf("[SFALL] Add modify stat value: %d, def=%d, NPC ID: %d\n", amount, defVal, objID);
+
+		itProtoMem mem = protoMem.find(objID);
+		if (mem == protoMem.end()) {
+			mem = protoMem.emplace(
+				std::piecewise_construct,
+				std::forward_as_tuple(objID),
+				std::forward_as_tuple(defaultProto, objPID)
+			).first;
+		} else {
+			if (mem->second.proto == nullptr) { // prototype has not been created
+				fo::func::dev_printf("[SFALL] No critter prototype, create new...\n");
+				mem->second.CreateProtoMem(defaultProto);
+				ModifyAllStats(mem);
+			}
+			mem->second.sharedCount++;
+		}
+		s_proto = mem->second.proto;
+	}
+
+	long* TryReleaseProtoMem() {
+		itProtoMem mem = protoMem.find(objID);
+		if (mem != protoMem.end() && mem->second.pid == objPID) {
+			if (--mem->second.sharedCount <= 0) { // the counter will be reset
+				protoMem.erase(mem); // removes the prototype from memory
+				if (objID == lastGetProtoID.id) lastGetProtoID.id = 0;
+				s_proto = nullptr;
+				fo::func::dev_printf("[SFALL] Remove prototype for ID: %d\n", objID);
+			}
+			return s_proto;
+		}
+		return nullptr;
+	}
+};
+
+std::vector<StatModify> bonusStatProto;
+std::vector<StatModify> baseStatProto;
+// for saveable stats
+std::vector<StatModify> s_bonusStatProto;
+std::vector<StatModify> s_baseStatProto;
+
+static long isNotPartyMemberPid;
+
 //////////////////////////////// CRITTERS STATS ////////////////////////////////
-// offset 44 - from bonus_stat_srength, 9 - from base_stat_srength
+static long GetBaseStatValue(long* proto, long stat) {
+	return proto[OffsetStat::base + stat];
+}
+
+static void SetBaseStatValue(long* proto, long stat, long amount) {
+	proto[OffsetStat::base + stat] = amount;
+}
+
+static long GetBonusStatValue(long* proto, long stat) {
+	return proto[OffsetStat::bonus + stat];
+}
+
+static void SetBonusStatValue(long* proto, long stat, long amount) {
+	proto[OffsetStat::bonus + stat] = amount;
+}
+
 static long GetStatValue(long* proto, long offset) {
 	return proto[offset];
 }
@@ -100,86 +140,45 @@ static void SetStatValue(long* proto, long offset, long amount) {
 	proto[offset] = amount;
 }
 
-static long ApplyAllStatsToProto(const protoMem_iterator &iter, long* &proto_out) {
-	long count = 0;
+// Applies all stats parameters, loaded from save file to individual NPC prototypes
+static void ModifyAllStats(const itProtoMem &mem) {
+	if (!mem->second.proto && !fo::CritterCopyProto(mem->second.pid, mem->second.proto)) return;
+
 	for (auto itBonus = s_bonusStatProto.begin(); itBonus != s_bonusStatProto.end(); itBonus++) {
-		if (itBonus->objID == iter->first && itBonus->objPID == iter->second.pid) {
-			if (!proto_out && !fo::CritterCopyProto(iter->second.pid, proto_out)) return 0;
-			itBonus->s_proto = proto_out;
-			SetStatValue(proto_out, 44 + itBonus->stat, itBonus->amount);
-			count++;
+		if (itBonus->objID == mem->first && itBonus->objPID == mem->second.pid) {
+			itBonus->s_proto = mem->second.proto;
+			SetBonusStatValue(itBonus->s_proto, itBonus->stat, itBonus->amount);
+			mem->second.sharedCount++;
 		}
 	}
 	for (auto itBase = s_baseStatProto.begin(); itBase != s_baseStatProto.end(); itBase++) {
-		if (itBase->objID == iter->first && itBase->objPID == iter->second.pid) {
-			if (!proto_out && !fo::CritterCopyProto(iter->second.pid, proto_out)) return 0;
-			itBase->s_proto = proto_out;
-			SetStatValue(proto_out, 9 + itBase->stat, itBase->amount);
-			count++;
+		if (itBase->objID == mem->first && itBase->objPID == mem->second.pid) {
+			itBase->s_proto = mem->second.proto;
+			SetBaseStatValue(itBase->s_proto, itBase->stat, itBase->amount);
+			mem->second.sharedCount++;
 		}
 	}
-	return count;
 }
 
-// Returns the prototype NPC located in memory
-long* __fastcall CritterStats::GetProto(fo::GameObject* critter) {
-	if (protoMem.empty() || critter->protoId == fo::PID_Player) return nullptr;
-	if (lastGetProtoID.id == critter->id) return lastGetProtoID.proto;
-
-	long* proto = nullptr;
-	auto it = protoMem.find(critter->id);
-	if (it != protoMem.end() && it->second.pid == critter->protoId) {
-		proto = it->second.proto;
-		if (!proto) { // there is no prototype in memory, create a new one from the default prototype
-			it->second.sharedCount = ApplyAllStatsToProto(it, proto);
-			it->second.proto = proto;
-		}
-		if (proto) {
-			lastGetProtoID.id = it->first;
-			lastGetProtoID.proto = proto;
-		}
-	}
-	return proto;
-}
-
-static long CreateProtoMem(const protoMem_iterator &it, long* defaultProto, long* &newProto) {
-	newProto = new long[104]; // 416 bytes
-	memcpy(newProto, defaultProto, 416);
-	return ApplyAllStatsToProto(it, newProto);
-}
-
-static long* ReleaseProtoMem(const std::vector<ProtoModify>::iterator &itStat) {
-	long* proto = nullptr;
-	auto it = protoMem.find(itStat->objID);
-	if (it != protoMem.end() && it->second.pid == itStat->objPID) {
-		if (it->second.sharedCount <= 1) { // the counter will be reset
-			if (it->first == lastGetProtoID.id) lastGetProtoID.id = 0;
-			protoMem.erase(it); // removes the prototype from memory
-		} else {
-			it->second.sharedCount--;
-			proto = it->second.proto;
-		}
-	}
-	return proto;
-}
-
-static std::vector<ProtoModify>& GetRefVector(long extra, bool isSaved) {
+static std::vector<StatModify>& GetRefVector(bool bonus, bool isSaved) {
 	if (isSaved) {
-		return (extra) ? s_bonusStatProto : s_baseStatProto;
+		return (bonus) ? s_bonusStatProto : s_baseStatProto;
 	}
-	return (extra) ? bonusStatProto : baseStatProto;;
+	return (bonus) ? bonusStatProto : baseStatProto;
 }
 
-static void AddStatToProto(long stat, fo::GameObject* critter, long amount, long* defaultProto, long offset, bool isSaved) {
-	std::vector<ProtoModify> &vec = GetRefVector(offset == 44, isSaved);
-	offset += stat;
+static void AddStat(long stat, fo::GameObject* critter, long amount, long* defaultProto, long offset, bool isSaved) {
+	std::vector<StatModify> &vec = GetRefVector(offset == OffsetStat::bonus, isSaved);
 
+	fo::func::dev_printf("[SFALL] Set bonus:%d stat:%d, to NPC pid: %d, saved:%d\n", (offset == OffsetStat::bonus), stat, (critter->protoId & 0xFFFF), isSaved);
+
+	offset += stat;
 	for (auto itStat = vec.begin(); itStat != vec.end(); itStat++) {
 		if (itStat->objID == critter->id && itStat->objPID == critter->protoId && itStat->stat == stat) {
-			if (amount == itStat->defval) { // set value and value in default prototype are matched
-				long* proto = ReleaseProtoMem(itStat);
-				if (proto) SetStatValue(proto, offset, amount);
-				// removal of a vector element, without re-moving other elements
+			fo::func::dev_printf("[SFALL] Modify stat value old: %d to new: %d, ID: %d\n", itStat->s_proto[offset], amount, itStat->objID);
+			if (amount == itStat->defVal) { // set value and value in regular prototype are matched
+				if (itStat->TryReleaseProtoMem()) SetStatValue(itStat->s_proto, offset, amount);
+				// remove vector element, without re-moving other elements
 				if (itStat != vec.cend() - 1) *itStat = vec.back();
 				vec.pop_back();
 				return;
@@ -197,13 +196,41 @@ static void AddStatToProto(long stat, fo::GameObject* critter, long amount, long
 
 static void __fastcall SetStatToProto(long stat, fo::GameObject* critter, long amount, long* protoBase, long offset, bool isSaved) {
 	if (critter->protoId != fo::PID_Player) {
-		if (isNotPartyMemberPid == critter->protoId || !IsPartyMember(critter)) {
+		if (critter->protoId == isNotPartyMemberPid || !IsPartyMember(critter)) {
 			isNotPartyMemberPid = critter->protoId;
-			AddStatToProto(stat, critter, amount, protoBase, offset, isSaved);
+			AddStat(stat, critter, amount, protoBase, offset, isSaved);
 			return;
 		}
 	}
-	SetStatValue(protoBase, offset + stat, amount); // set value to default prototype
+	SetStatValue(protoBase, offset + stat, amount); // set value to dude or party member prototype
+}
+
+static void UpdateDefValue(std::vector<StatModify> &vec, long stat, long pid, long amount) {
+	for (auto itStat = vec.begin(); itStat != vec.end(); itStat++) {
+		if (itStat->objPID == pid && itStat->stat == stat) {
+			fo::func::dev_printf("[SFALL] Replace stat default value: %d to: %d, NPC ID: %d\n", itStat->defVal, amount, itStat->objID);
+			itStat->defVal = amount;
+		}
+	}
+}
+
+static void SetStatToAllProtos(long offset, long pid, long amount) {
+	offset /= 4;
+	long stat;
+	if (offset < OffsetStat::bonus) {
+		stat = offset - OffsetStat::base;
+		UpdateDefValue(baseStatProto, stat, pid, amount);
+		UpdateDefValue(s_baseStatProto, stat, pid, amount);
+	} else {
+		stat = offset - OffsetStat::bonus;
+		UpdateDefValue(bonusStatProto, stat, pid, amount);
+		UpdateDefValue(s_bonusStatProto, stat, pid, amount);
+	}
+	for (const auto& mem : protoMem) {
+		if (mem.second.pid == pid && mem.second.proto) {
+			SetStatValue(mem.second.proto, offset, amount);
+		}
+	};
 }
 
 static void __declspec(naked) stat_set_bonus_hack() {
@@ -211,7 +238,7 @@ static void __declspec(naked) stat_set_bonus_hack() {
 		pushadc;
 		mov  eax, [esp + 16];   // buf proto
 		sub  eax, 0x20;
-		push 1;
+		push 1;                 // saved
 		push 44;                // offset from bonus_stat_srength
 		push eax;               // regular proto
 		push ebx;               // amount
@@ -227,7 +254,7 @@ static void __declspec(naked) stat_set_base_hack() {
 		pushadc;
 		mov  eax, [esp + 16];   // buf proto
 		sub  eax, 0x20;
-		push 1;
+		push 1;                 // saved
 		push 9;                 // offset from base_stat_srength
 		push eax;               // regular proto
 		push ebx;               // amount
@@ -279,17 +306,28 @@ skip:
 	}
 }
 
-static void SetStatToAllProtos(long offset, long pid, long amount) {
-	offset /= 4;
-	for (const auto& elem : protoMem) {
-		if (elem.second.pid == pid) {
-			long* proto = elem.second.proto;
-			if (proto) SetStatValue(proto, offset, amount);
+// Returns the NPC prototype located in memory
+long* __fastcall CritterStats::GetProto(fo::GameObject* critter) {
+	if (protoMem.empty() || critter->protoId == fo::PID_Player) return nullptr;
+	if (lastGetProtoID.id == critter->id) return lastGetProtoID.proto;
+
+	auto itMem = protoMem.find(critter->id);
+	if (itMem != protoMem.end() && itMem->second.pid == critter->protoId) {
+		if (!itMem->second.proto) { // there is no prototype in memory, create a new one from the regular prototype
+			fo::func::dev_printf("[SFALL] Modify all stats to NPC ID: %d\n", critter->id);
+			ModifyAllStats(itMem); // also create prototype
+			if (!itMem->second.proto) fo::func::debug_printf("[SFALL] Error get critter prototype pid: %d\n", itMem->second.pid);
 		}
-	};
+		if (itMem->second.proto) {
+			lastGetProtoID.id = itMem->first;
+			lastGetProtoID.proto = itMem->second.proto;
+		}
+		return itMem->second.proto;
+	}
+	return nullptr; // no prototype in memory with this ID, regular prototype will be used
 }
 
-// set_proto_data - sets stats to default prototype and all individual prototypes (the same PID)
+// set_proto_data - sets stats to regular prototype and all individual NPC prototypes (the same PID)
 long CritterStats::SetProtoData(long pid, long offset, long amount) {
 	long* proto;
 	long result = fo::func::proto_ptr(pid, (fo::Proto**)&proto);
@@ -297,23 +335,23 @@ long CritterStats::SetProtoData(long pid, long offset, long amount) {
 		if (!protoMem.empty() && pid != fo::PID_Player && (pid >> 24) == fo::OBJ_TYPE_CRITTER && (offset >= 0x24 && offset <= 0x138)) {
 			SetStatToAllProtos(offset, pid, amount);
 		}
-		*(long*)((BYTE*)proto + offset) = amount; // set to default prototype
+		*(long*)((BYTE*)proto + offset) = amount; // set to regular prototype
 	}
 	return result;
 }
 
-// get_critter_*_stat - gets stats from an individual's prototype or from a default prototype
+// get_critter_*_stat - gets stats from an individual's prototype or from a regular prototype
 long CritterStats::GetStat(fo::GameObject* critter, long stat, long offset) {
 	long* proto = CritterStats::GetProto(critter);
 	if (proto == nullptr) fo::func::proto_ptr(critter->protoId, (fo::Proto**)&proto);
-	return (proto) ? GetStatValue(proto, stat + offset) : 0; // direct get
+	return (!proto) ? 0 : GetStatValue(proto, stat + offset); // direct get
 }
 
 // set_critter_*_stat - sets stats to an individual's critter prototype
 void CritterStats::SetStat(fo::GameObject* critter, long stat, long amount, long offset) {
 	long* proto;
 	if (fo::func::proto_ptr(critter->protoId, (fo::Proto**)&proto) != -1) {
-		SetStatToProto(stat, critter, amount, proto, offset, false); // not save stat
+		SetStatToProto(stat, critter, amount, proto, offset, false); // non-saveable stat
 	}
 }
 
@@ -336,25 +374,25 @@ bool CritterStats::LoadStatData(HANDLE file) {
 	//if (sizeRead != 4) return true;
 	if (count) s_baseStatProto.reserve(count + 10);
 	for (size_t i = 0; i < count; i++) {
-		ProtoModify data;
+		StatModify data;
 		ReadFile(file, &data, 20, &sizeRead, 0);
 		if (sizeRead != 20) return true;
 		s_baseStatProto.emplace_back(data);
-		if (protoMem.find(data.objID) == protoMem.end()) {
+		//if (protoMem.find(data.objID) == protoMem.end()) {
 			protoMem.emplace(data.objID, data.objPID);
-		}
+		//}
 	}
 	ReadFile(file, &count, 4, &sizeRead, 0);
 	//if (sizeRead != 4) return true;
 	if (count) s_bonusStatProto.reserve(count + 10);
 	for (size_t i = 0; i < count; i++) {
-		ProtoModify data;
+		StatModify data;
 		ReadFile(file, &data, 20, &sizeRead, 0);
 		if (sizeRead != 20) return true;
 		s_bonusStatProto.emplace_back(data);
-		if (protoMem.find(data.objID) == protoMem.end()) {
+		//if (protoMem.find(data.objID) == protoMem.end()) {
 			protoMem.emplace(data.objID, data.objPID);
-		}
+		//}
 	}
 	return false;
 }
@@ -372,10 +410,10 @@ static void FlushAllProtos() {
 	for (auto itBase = s_baseStatProto.begin(); itBase != s_baseStatProto.end(); itBase++) {
 		itBase->s_proto = nullptr;
 	}
-	for (auto& elem : protoMem) {
-		delete[] elem.second.proto;
-		elem.second.proto = nullptr;
-		elem.second.sharedCount = 0;
+	for (auto& mem : protoMem) {
+		delete[] mem.second.proto;
+		mem.second.proto = nullptr;
+		mem.second.sharedCount = 0;
 	};
 	ClearAllStats();
 }

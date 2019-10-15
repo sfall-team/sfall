@@ -161,7 +161,7 @@ static void _stdcall StatRecalcDerived(fo::GameObject* critter) {
 		}
 		long calcStat = statFormulas[i].base + (int)floor(sum);
 		if (calcStat < statFormulas[i].min) calcStat = statFormulas[i].min;
-		proto[i + 9] = calcStat; // offset from base_stat_srength
+		proto[OffsetStat::base + i] = calcStat; // offset from base_stat_srength
 	}
 }
 

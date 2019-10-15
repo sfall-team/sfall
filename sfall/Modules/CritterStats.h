@@ -23,6 +23,11 @@
 namespace sfall
 {
 
+enum OffsetStat : long {
+	base  = 9, // offset from base_stat_srength
+	bonus = 44 // offset from bonus_stat_srength
+};
+
 class CritterStats : public Module {
 public:
 	const char* name() { return "CritterStats"; }

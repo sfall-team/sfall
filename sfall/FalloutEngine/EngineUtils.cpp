@@ -17,6 +17,7 @@
 */
 
 #include <cassert>
+#include <stdint.h>
 
 #include "Functions.h"
 #include "FunctionOffsets.h"
@@ -64,23 +65,22 @@ Proto* GetProto(long pid) {
 
 bool CritterCopyProto(long pid, long* &proto_dst) {
 	fo::Proto* protoPtr;
-	if (fo::func::proto_ptr(pid, &protoPtr) == -1) return false;
-	/*if (!proto_dst)*/ proto_dst = new long[104];
+	if (fo::func::proto_ptr(pid, &protoPtr) == -1) {
+		proto_dst = nullptr;
+		return false;
+	}
+	proto_dst = reinterpret_cast<long*>(new int32_t[104]);
 	memcpy(proto_dst, protoPtr, 416);
 	return true;
 }
 
 void SkillGetTags(long* result, long num) {
-	if (num > 4) {
-		num = 4;
-	}
+	if (num > 4) num = 4;
 	fo::func::skill_get_tags(result, num);
 }
 
 void SkillSetTags(long* tags, long num) {
-	if (num > 4) {
-		num = 4;
-	}
+	if (num > 4) num = 4;
 	fo::func::skill_set_tags(tags, num);
 }
 

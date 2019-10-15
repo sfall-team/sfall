@@ -447,7 +447,7 @@ static void WorldMapInterfacePatch() {
 	SafeWrite32(0x4C2C92, 181); // index of DNARWOFF.FRM
 	SafeWrite8(0x4C2D04, 0x46); // dec esi > inc esi
 
-	//if(GetConfigInt("Misc", "WorldMapCitiesListFix", 0)) {
+	//if (GetConfigInt("Misc", "WorldMapCitiesListFix", 0)) {
 	dlog("Applying world map cities list patch.", DL_INIT);
 	HookCalls(ScrollCityListFix, {0x4C04B9, 0x4C04C8, 0x4C4A34, 0x4C4A3D});
 	dlogr(" Done", DL_INIT);

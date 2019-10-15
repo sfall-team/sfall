@@ -25,6 +25,15 @@ namespace fo
 namespace func
 {
 
+// prints debug message to debug.log file for develop build
+#ifndef NDEBUG
+void __declspec(naked) dev_printf(const char* fmt, ...) {
+	__asm jmp fo::funcoffs::debug_printf_;
+}
+#else
+void dev_printf(const char* fmt, ...) {}
+#endif
+
 // Fallout2.exe was compiled using WATCOM compiler, which uses Watcom register calling convention.
 // In this convention, up to 4 arguments are passed via registers in this order: EAX, EDX, EBX, ECX.
 
@@ -455,7 +464,13 @@ void __fastcall trans_cscale(long i_width, long i_height, long s_width, long s_h
 	}
 }
 
+//void __declspec(naked) __stdcall buf_to_buf(void* to_buf, long to_width, void* from_buf, long from_width, long width, long height) {
+//	__asm jmp fo::funcoffs::srcCopy_;
+//}
 
+////////////////////////////////////
+// X-Macro for wrapper functions. //
+////////////////////////////////////
 #define WRAP_WATCOM_FUNC0(retType, name) \
 	retType __stdcall name() { \
 		WRAP_WATCOM_CALL0(name##_) \
