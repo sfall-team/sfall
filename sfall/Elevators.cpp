@@ -25,8 +25,6 @@ static const int exitsPerElevator = 4;
 static const int vanillaElevatorCount = 24;
 static const int elevatorCount = 50;
 
-//static char elevFile[MAX_PATH] = ".\\";
-
 struct sElevator {
 	DWORD ID1;
 	DWORD Elevation1;
@@ -135,28 +133,27 @@ void LoadElevators(const char* elevFile) {
 	if (elevFile) {
 		for (int i = 0; i < elevatorCount; i++) {
 			_itoa_s(i, section, 10);
-			int type = GetPrivateProfileIntA(section, "Image", elevatorType[i], elevFile);
+			int type = iniGetInt(section, "Image", elevatorType[i], elevFile);
 			elevatorType[i] = min(type, elevatorCount - 1);
 			if (i >= vanillaElevatorCount) {
-				int cBtn = GetPrivateProfileIntA(section, "ButtonCount", 2, elevFile);
+				int cBtn = iniGetInt(section, "ButtonCount", 2, elevFile);
 				if (cBtn > exitsPerElevator) cBtn = exitsPerElevator;
 				elevatorsBtnCount[i] = max(2, cBtn);
 			}
-			elevatorsFrms[i].main = GetPrivateProfileIntA(section, "MainFrm", elevatorsFrms[i].main, elevFile);
-			elevatorsFrms[i].buttons = GetPrivateProfileIntA(section, "ButtonsFrm", elevatorsFrms[i].buttons, elevFile);
-			elevatorType[i] = GetPrivateProfileIntA(section, "Image", elevatorType[i], elevFile);
-			elevators[i].ID1 = GetPrivateProfileIntA(section, "ID1", elevators[i].ID1, elevFile);
-			elevators[i].ID2 = GetPrivateProfileIntA(section, "ID2", elevators[i].ID2, elevFile);
-			elevators[i].ID3 = GetPrivateProfileIntA(section, "ID3", elevators[i].ID3, elevFile);
-			elevators[i].ID4 = GetPrivateProfileIntA(section, "ID4", elevators[i].ID4, elevFile);
-			elevators[i].Elevation1 = GetPrivateProfileIntA(section, "Elevation1", elevators[i].Elevation1, elevFile);
-			elevators[i].Elevation2 = GetPrivateProfileIntA(section, "Elevation2", elevators[i].Elevation2, elevFile);
-			elevators[i].Elevation3 = GetPrivateProfileIntA(section, "Elevation3", elevators[i].Elevation3, elevFile);
-			elevators[i].Elevation4 = GetPrivateProfileIntA(section, "Elevation4", elevators[i].Elevation4, elevFile);
-			elevators[i].Tile1 = GetPrivateProfileIntA(section, "Tile1", elevators[i].Tile1, elevFile);
-			elevators[i].Tile2 = GetPrivateProfileIntA(section, "Tile2", elevators[i].Tile2, elevFile);
-			elevators[i].Tile3 = GetPrivateProfileIntA(section, "Tile3", elevators[i].Tile3, elevFile);
-			elevators[i].Tile4 = GetPrivateProfileIntA(section, "Tile4", elevators[i].Tile4, elevFile);
+			elevatorsFrms[i].main = iniGetInt(section, "MainFrm", elevatorsFrms[i].main, elevFile);
+			elevatorsFrms[i].buttons = iniGetInt(section, "ButtonsFrm", elevatorsFrms[i].buttons, elevFile);
+			elevators[i].ID1 = iniGetInt(section, "ID1", elevators[i].ID1, elevFile);
+			elevators[i].ID2 = iniGetInt(section, "ID2", elevators[i].ID2, elevFile);
+			elevators[i].ID3 = iniGetInt(section, "ID3", elevators[i].ID3, elevFile);
+			elevators[i].ID4 = iniGetInt(section, "ID4", elevators[i].ID4, elevFile);
+			elevators[i].Elevation1 = iniGetInt(section, "Elevation1", elevators[i].Elevation1, elevFile);
+			elevators[i].Elevation2 = iniGetInt(section, "Elevation2", elevators[i].Elevation2, elevFile);
+			elevators[i].Elevation3 = iniGetInt(section, "Elevation3", elevators[i].Elevation3, elevFile);
+			elevators[i].Elevation4 = iniGetInt(section, "Elevation4", elevators[i].Elevation4, elevFile);
+			elevators[i].Tile1 = iniGetInt(section, "Tile1", elevators[i].Tile1, elevFile);
+			elevators[i].Tile2 = iniGetInt(section, "Tile2", elevators[i].Tile2, elevFile);
+			elevators[i].Tile3 = iniGetInt(section, "Tile3", elevators[i].Tile3, elevFile);
+			elevators[i].Tile4 = iniGetInt(section, "Tile4", elevators[i].Tile4, elevFile);
 		}
 	}
 }

@@ -77,7 +77,7 @@ DWORD* ptr_gIsSteal                   = reinterpret_cast<DWORD*>(_gIsSteal);
 DWORD* ptr_glblmode                   = reinterpret_cast<DWORD*>(_glblmode);
 DWORD* ptr_gmouse_current_cursor      = reinterpret_cast<DWORD*>(_gmouse_current_cursor);
 DWORD* ptr_gmovie_played_list         = reinterpret_cast<DWORD*>(_gmovie_played_list);
-DWORD* ptr_GreenColor                 = reinterpret_cast<DWORD*>(_GreenColor);
+BYTE*  ptr_GreenColor                 = reinterpret_cast<BYTE*>(_GreenColor);
 DWORD* ptr_gsound_initialized         = reinterpret_cast<DWORD*>(_gsound_initialized);
 long*  ptr_hit_location_penalty       = reinterpret_cast<long*>(_hit_location_penalty);
 DWORD* ptr_holo_flag                  = reinterpret_cast<DWORD*>(_holo_flag);
@@ -155,6 +155,7 @@ DWORD* ptr_pc_crit_succ_eff           = reinterpret_cast<DWORD*>(_pc_crit_succ_e
 DWORD* ptr_pc_kill_counts             = reinterpret_cast<DWORD*>(_pc_kill_counts);
 char*  ptr_pc_name                    = reinterpret_cast<char*>(_pc_name);
 DWORD* ptr_pc_proto                   = reinterpret_cast<DWORD*>(_pc_proto);
+BYTE*  ptr_PeanutButter               = reinterpret_cast<BYTE*>(_PeanutButter);
 DWORD* ptr_perk_data                  = reinterpret_cast<DWORD*>(_perk_data);
 int**  ptr_perkLevelDataList          = reinterpret_cast<int**>(_perkLevelDataList);
 DWORD* ptr_pip_win                    = reinterpret_cast<DWORD*>(_pip_win);
@@ -169,7 +170,7 @@ DWORD* ptr_pud                        = reinterpret_cast<DWORD*>(_pud);
 DWORD* ptr_queue                      = reinterpret_cast<DWORD*>(_queue);
 DWORD* ptr_quick_done                 = reinterpret_cast<DWORD*>(_quick_done);
 DWORD* ptr_read_callback              = reinterpret_cast<DWORD*>(_read_callback);
-DWORD* ptr_RedColor                   = reinterpret_cast<DWORD*>(_RedColor);
+BYTE*  ptr_RedColor                   = reinterpret_cast<BYTE*>(_RedColor);
 DWORD* ptr_retvals                    = reinterpret_cast<DWORD*>(_retvals);
 DWORD* ptr_rotation                   = reinterpret_cast<DWORD*>(_rotation);
 BoundRect* ptr_scr_size               = reinterpret_cast<BoundRect*>(_scr_size);
@@ -214,7 +215,7 @@ DWORD* ptr_wmWorldOffsetY             = reinterpret_cast<DWORD*>(_wmWorldOffsetY
 DWORD* ptr_world_xpos                 = reinterpret_cast<DWORD*>(_world_xpos);
 DWORD* ptr_world_ypos                 = reinterpret_cast<DWORD*>(_world_ypos);
 DWORD* ptr_WorldMapCurrArea           = reinterpret_cast<DWORD*>(_WorldMapCurrArea);
-DWORD* ptr_YellowColor                = reinterpret_cast<DWORD*>(_YellowColor);
+BYTE*  ptr_YellowColor                = reinterpret_cast<BYTE*>(_YellowColor);
 
 /**
 	ENGINE FUNCTIONS OFFSETS

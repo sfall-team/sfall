@@ -321,7 +321,7 @@ static void __declspec(naked) win_debug_hook() {
 }
 
 void DebugModePatch() {
-	DWORD dbgMode = GetPrivateProfileIntA("Debugging", "DebugMode", 0, ddrawIniDef);
+	DWORD dbgMode = iniGetInt("Debugging", "DebugMode", 0, ddrawIniDef);
 	if (dbgMode) {
 		dlog("Applying debugmode patch.", DL_INIT);
 		// If the player is using an exe with the debug patch already applied, just skip this block without erroring
@@ -343,7 +343,7 @@ void DebugModePatch() {
 		} else {
 			SafeWrite32(0x4C6D9C, (DWORD)debugGnw);
 		}
-		if (GetPrivateProfileIntA("Debugging", "HideObjIsNullMsg", 0, ddrawIniDef)) {
+		if (iniGetInt("Debugging", "HideObjIsNullMsg", 0, ddrawIniDef)) {
 			MakeJump(0x453FD2, dbg_error_hack);
 		}
 		dlogr(" Done", DL_INIT);
@@ -351,7 +351,7 @@ void DebugModePatch() {
 }
 
 void DontDeleteProtosPatch() {
-	if (GetPrivateProfileIntA("Debugging", "DontDeleteProtos", 0, ddrawIniDef)) {
+	if (iniGetInt("Debugging", "DontDeleteProtos", 0, ddrawIniDef)) {
 		dlog("Applying permanent protos patch.", DL_INIT);
 		SafeWrite8(0x48007E, 0xEB);
 		dlogr(" Done", DL_INIT);

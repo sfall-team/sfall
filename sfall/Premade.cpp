@@ -30,11 +30,16 @@ void PremadeInit() {
 	std::vector<std::string> premadePaths = GetConfigList("misc", "PremadePaths", "", 512);
 	std::vector<std::string> premadeFids = GetConfigList("misc", "PremadeFIDs", "", 512);
 	if (!premadePaths.empty() && !premadeFids.empty()) {
+		dlog("Applying premade characters patch.", DL_INIT);
 		int count = min(premadePaths.size(), premadeFids.size());
 		premade = new PremadeChar[count];
 		for (int i = 0; i < count; i++) {
 			std::string path = "premade\\" + premadePaths[i];
-			strcpy_s(premade[i].path, 20, path.c_str());
+			if (path.size() > 19) {
+				dlogr(" Failed: name exceeds 11 characters", DL_INIT);
+				return;
+			}
+			strcpy(premade[i].path, path.c_str());
 			premade[i].fid = atoi(premadeFids[i].c_str());
 		}
 
@@ -42,6 +47,7 @@ void PremadeInit() {
 		SafeWrite32(0x4A7D76, (DWORD)premade);
 		SafeWrite32(0x4A8B1E, (DWORD)premade);
 		SafeWrite32(0x4A7E2C, (DWORD)premade + 20);
-		strcpy_s((char*)0x50AF68, 20, premade[0].path);
+		strcpy((char*)0x50AF68, premade[0].path);
+		dlogr(" Done", DL_INIT);
 	}
 }

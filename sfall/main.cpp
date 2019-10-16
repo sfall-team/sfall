@@ -897,9 +897,8 @@ static void DllMain2() {
 	dlogr("Running QuestListInit().", DL_INIT);
 	QuestListInit();
 
-	dlog("Applying premade characters patch.", DL_INIT);
+	dlogr("Running PremadeInit().", DL_INIT);
 	PremadeInit();
-	dlogr(" Done", DL_INIT);
 
 	dlogr("Running SoundInit().", DL_INIT);
 	SoundInit();
@@ -929,14 +928,16 @@ static void DllMain2() {
 	}
 
 	std::vector<std::string> karmaFrmList = GetConfigList("Misc", "KarmaFRMs", "", 512);
-	if (!karmaFrmList.empty()) {
+	size_t countFrm = karmaFrmList.size();
+	if (countFrm) {
 		dlog("Applying karma FRM patch.", DL_INIT);
-
 		std::vector<std::string> karmaPointsList = GetConfigList("Misc", "KarmaPoints", "", 512);
-		karmaFrms.resize(karmaFrmList.size());
-		for (size_t i = 0; i < karmaFrmList.size(); i++) {
+
+		karmaFrms.resize(countFrm);
+		size_t countPoints = karmaPointsList.size();
+		for (size_t i = 0; i < countFrm; i++) {
 			karmaFrms[i].frm = atoi(karmaFrmList[i].c_str());
-			karmaFrms[i].points = (karmaPointsList.size() > i)
+			karmaFrms[i].points = (countPoints > i)
 				? atoi(karmaPointsList[i].c_str())
 				: INT_MAX;
 		}
@@ -1156,16 +1157,16 @@ static void _stdcall OnExit() {
 		delete[] scriptDialog;
 	}
 	SpeedPatchExit();
-	ClearReadExtraGameMsgFiles();
-	ReputationsExit();
-	ConsoleExit();
-	BooksExit();
-	AnimationsAtOnceExit();
-	HeroAppearanceModExit();
-	MoviesExit();
 	GraphicsExit();
 	TalkingHeadsExit();
-	//SoundExit();
+	MoviesExit();
+	ClearReadExtraGameMsgFiles();
+	SkillsExit();
+	HeroAppearanceModExit();
+	ReputationsExit();
+	ConsoleExit();
+	AnimationsAtOnceExit();
+	BooksExit();
 }
 
 static void __declspec(naked) OnExitFunc() {
@@ -1251,7 +1252,7 @@ static bool LoadOriginalDll(DWORD dwReason) {
 bool _stdcall DllMain(HANDLE hDllHandle, DWORD dwReason, LPVOID lpreserved) {
 	if (LoadOriginalDll(dwReason)) {
 		// enabling debugging features
-		isDebug = (GetPrivateProfileIntA("Debugging", "Enable", 0, ddrawIniDef) != 0);
+		isDebug = (iniGetInt("Debugging", "Enable", 0, ddrawIniDef) != 0);
 		if (isDebug) {
 			LoggingInit();
 			if (!ddraw.dll) dlog("Error: Cannot load the original ddraw.dll library.\n", DL_MAIN);
@@ -1264,7 +1265,7 @@ bool _stdcall DllMain(HANDLE hDllHandle, DWORD dwReason, LPVOID lpreserved) {
 
 		CRC(filepath);
 
-		if (!isDebug || !GetPrivateProfileIntA("Debugging", "SkipCompatModeCheck", 0, ddrawIniDef)) {
+		if (!isDebug || !iniGetInt("Debugging", "SkipCompatModeCheck", 0, ddrawIniDef)) {
 			int is64bit;
 			typedef int (_stdcall *chk64bitproc)(HANDLE, int*);
 			HMODULE h = LoadLibrary("Kernel32.dll");
@@ -1282,7 +1283,7 @@ bool _stdcall DllMain(HANDLE hDllHandle, DWORD dwReason, LPVOID lpreserved) {
 		// ini file override
 		bool cmdlineexists = false;
 		char* cmdline = GetCommandLineA();
-		if (GetPrivateProfileIntA("Main", "UseCommandLine", 0, ddrawIniDef)) {
+		if (iniGetInt("Main", "UseCommandLine", 0, ddrawIniDef)) {
 			while (cmdline[0] == ' ') cmdline++;
 			bool InQuote = false;
 			int count = -1;
@@ -1316,7 +1317,7 @@ bool _stdcall DllMain(HANDLE hDllHandle, DWORD dwReason, LPVOID lpreserved) {
 			}
 		} else {
 defaultIni:
-			strcpy_s(ini, ddrawIniDef);
+			strcpy(&ini[2], &ddrawIniDef[2]);
 		}
 
 		GetConfigString("Main", "TranslationsINI", ".\\Translations.ini", translationIni, 65);

@@ -95,10 +95,11 @@ void ResetCriticalTable(DWORD critter, DWORD bodypart, DWORD slot, DWORD element
 	critTable[critter * 9 * 6 + bodypart * 6 + slot].values[element] = baseCritTable[critter * 9 * 6 + bodypart * 6 + slot].values[element];
 }
 
-static void CritTableLoad() {
+static int CritTableLoad() {
 	CritStruct* defaultTable = (CritStruct*)_crit_succ_eff;
 	if (mode == 1) {
 		dlogr("Setting up critical hit table using CriticalOverrides.ini (old fmt)", DL_CRITICALS);
+		if (GetFileAttributes(critTableFile.c_str()) == INVALID_FILE_ATTRIBUTES) return 1;
 		char section[16];
 		for (DWORD critter = 0; critter < 20; critter++) {
 			for (DWORD part = 0; part < 9; part++) {
@@ -107,7 +108,7 @@ static void CritTableLoad() {
 					int slot1 = crit + part * 6 + critter * 9 * 6;
 					int slot2 = crit + part * 6 + ((critter == 19) ? 38 : critter) * 9 * 6;
 					for (int i = 0; i < 7; i++) {
-						baseCritTable[slot2].values[i] = GetPrivateProfileIntA(section, CritNames[i], defaultTable[slot1].values[i], critTableFile.c_str());
+						baseCritTable[slot2].values[i] = iniGetInt(section, CritNames[i], defaultTable[slot1].values[i], critTableFile.c_str());
 						if (isDebug) {
 							char logmsg[256];
 							if (baseCritTable[slot2].values[i] != defaultTable[slot1].values[i]) {
@@ -127,15 +128,16 @@ static void CritTableLoad() {
 
 		if (mode == 3) {
 			dlogr(" and CriticalOverrides.ini (new fmt)", DL_CRITICALS);
+			if (GetFileAttributes(critTableFile.c_str()) == INVALID_FILE_ATTRIBUTES) return 1;
 			char buf[32], buf2[32], buf3[32];
 			for (int critter = 0; critter < CritTableCount; critter++) {
 				sprintf_s(buf, "c_%02d", critter);
 				int all;
-				if (!(all = GetPrivateProfileIntA(buf, "Enabled", 0, critTableFile.c_str()))) continue;
+				if (!(all = iniGetInt(buf, "Enabled", 0, critTableFile.c_str()))) continue;
 				for (int part = 0; part < 9; part++) {
 					if (all < 2) {
 						sprintf_s(buf2, "Part_%d", part);
-						if (!GetPrivateProfileIntA(buf, buf2, 0, critTableFile.c_str())) continue;
+						if (!iniGetInt(buf, buf2, 0, critTableFile.c_str())) continue;
 					}
 
 					sprintf_s(buf2, "c_%02d_%d", critter, part);
@@ -143,7 +145,7 @@ static void CritTableLoad() {
 						int slot = crit + part * 6 + critter * 9 * 6;
 						for (int i = 0; i < 7; i++) {
 							sprintf_s(buf3, "e%d_%s", crit, CritNames[i]);
-							baseCritTable[slot].values[i] = GetPrivateProfileIntA(buf2, buf3, baseCritTable[slot].values[i], critTableFile.c_str());
+							baseCritTable[slot].values[i] = iniGetInt(buf2, buf3, baseCritTable[slot].values[i], critTableFile.c_str());
 						}
 					}
 				}
@@ -152,6 +154,7 @@ static void CritTableLoad() {
 			dlog("\n", DL_CRITICALS);
 		}
 	}
+	return 0;
 }
 
 #define SetEntry(critter, bodypart, effect, param, value) defaultTable[critter * 9 * 6 + bodypart * 6 + effect].values[param] = value;
@@ -263,8 +266,11 @@ static void CriticalTableOverride() {
 		SetEntry(18, 7, 5, 5, 7101);
 	}
 
-	CritTableLoad();
-	dlogr("Completed applying critical hit table.", DL_INIT);
+	if (CritTableLoad()) {
+		dlogr("Failed to initialize critical hit table from file.", DL_INIT);
+	} else {
+		dlogr("Completed applying critical hit table.", DL_INIT);
+	}
 	Inited = true;
 }
 #undef SetEntry

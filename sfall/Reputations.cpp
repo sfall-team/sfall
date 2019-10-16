@@ -32,17 +32,17 @@ static CityRep* repList = nullptr;
 void ReputationsInit() {
 	std::vector<std::string> cityRepList = GetConfigList("Misc", "CityRepsList", "", 512);
 	size_t count = cityRepList.size();
-	if (count > 0) {
+	if (count) {
 		repList = new CityRep[count];
 		std::vector<std::string> pair;
 		pair.reserve(2);
 		for (size_t i = 0; i < count; i++) {
-			pair.clear();
 			split(cityRepList[i], ':', std::back_inserter(pair), 2);
 			repList[i].cityID = atoi(pair[0].c_str());
 			if (pair.size() >= 2) {
 				repList[i].globalID = atoi(pair[1].c_str());
 			}
+			pair.clear();
 		}
 
 		SafeWrite32(0x43BEA5, (DWORD)&repList[0].cityID);

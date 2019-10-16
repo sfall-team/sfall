@@ -1271,7 +1271,7 @@ void ScriptExtenderSetup() {
 	SafeWrite32(0x46CE6C, (DWORD)opcodes); // call that actually jumps to the opcode
 	SafeWrite32(0x46E390, (DWORD)opcodes); // mov that writes to the opcode
 
-	if (GetPrivateProfileIntA("Debugging", "AllowUnsafeScripting", 0, ddrawIniDef)) {
+	if (iniGetInt("Debugging", "AllowUnsafeScripting", 0, ddrawIniDef)) {
 		dlogr("  Unsafe opcodes enabled.", DL_SCRIPT);
 		opcodes[0x1cf] = WriteByte;
 		opcodes[0x1d0] = WriteShort;

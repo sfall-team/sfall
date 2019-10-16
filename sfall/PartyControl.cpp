@@ -421,7 +421,7 @@ static void __fastcall PartyMemberPrintStat(BYTE* surface, DWORD toWidth) {
 	int level = PartyMemberGetCurrentLevel(partyMember);
 	sprintf_s(lvlMsg, fmt, levelMsg, level);
 
-	BYTE color = *(BYTE*)_GreenColor;
+	BYTE color = *ptr_GreenColor;
 	int widthText = GetTextWidth(lvlMsg);
 	PrintText(lvlMsg, color, xPos - widthText, 96, widthText, toWidth, surface);
 
@@ -432,7 +432,7 @@ static void __fastcall PartyMemberPrintStat(BYTE* surface, DWORD toWidth) {
 	PrintText(acMsg, color, xPos, 167, GetTextWidth(acMsg), toWidth, surface);
 
 	if (QueueFindFirst(partyMember, 2)) {
-		color = *(BYTE*)_RedColor;
+		color = *ptr_RedColor;
 		widthText = GetTextWidth(addictMsg);
 		PrintText(addictMsg, color, 350 - widthText, 148, widthText, toWidth, surface);
 	}

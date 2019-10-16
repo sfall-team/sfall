@@ -2369,7 +2369,7 @@ static void __declspec(naked) map_check_state_hook() {
 void BugFixesInit()
 {
 	#ifndef NDEBUG
-		if (isDebug && (GetPrivateProfileIntA("Debugging", "BugFixes", 1, ddrawIniDef) == 0)) return;
+		if (isDebug && (iniGetInt("Debugging", "BugFixes", 1, ddrawIniDef) == 0)) return;
 	#endif
 
 	// Fix vanilla negate operator on float values

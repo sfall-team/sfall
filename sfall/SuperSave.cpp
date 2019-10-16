@@ -44,7 +44,7 @@ void SavePageOffsets() {
 
 	sprintf_s(SavePath, MAX_PATH, filename, *(char**)_patches);
 
-	_itoa_s(*(DWORD*)_slot_cursor, buffer, 10);
+	_itoa_s(*ptr_slot_cursor, buffer, 10);
 	WritePrivateProfileString("POSITION", "ListNum", buffer, SavePath);
 	_itoa_s(LSPageOffset, buffer, 10);
 	WritePrivateProfileString("POSITION", "PageOffset", buffer, SavePath);
@@ -67,11 +67,11 @@ void LoadPageOffsets() {
 
 	sprintf_s(LoadPath, MAX_PATH, filename, *(char**)_patches);
 
-	*(DWORD*)_slot_cursor = GetPrivateProfileInt("POSITION", "ListNum", 0, LoadPath);
-	if (*(DWORD*)_slot_cursor > 9) {
-		*(DWORD*)_slot_cursor = 0;
+	*ptr_slot_cursor = iniGetInt("POSITION", "ListNum", 0, LoadPath);
+	if (*ptr_slot_cursor > 9) {
+		*ptr_slot_cursor = 0;
 	}
-	LSPageOffset = GetPrivateProfileInt("POSITION", "PageOffset", 0, LoadPath);
+	LSPageOffset = iniGetInt("POSITION", "PageOffset", 0, LoadPath);
 	if (LSPageOffset > 9990) {
 		LSPageOffset = 0;
 	}
@@ -123,7 +123,7 @@ void SetPageNum() {
 		return;
 	}
 
-	BYTE ConsoleGold = *(BYTE*)_YellowColor; // palette offset stored in mem - text colour
+	BYTE ConsoleGold = *ptr_YellowColor; // palette offset stored in mem - text colour
 
 	char TempText[32];
 	unsigned int TxtMaxWidth = GetMaxCharWidth() * 8; // GetTextWidth(TempText);
@@ -273,8 +273,8 @@ void DrawPageText() {
 		memset(SaveLoadWin->surface + 50 + y, 0xCF, 240);
 	}
 
-	BYTE ConsoleGreen = *(BYTE*)_GreenColor; // palette offset stored in mem - text colour
-	BYTE ConsoleGold = *(BYTE*)_YellowColor; // palette offset stored in mem - text colour
+	BYTE ConsoleGreen = *ptr_GreenColor; // palette offset stored in mem - text colour
+	BYTE ConsoleGold = *ptr_YellowColor; // palette offset stored in mem - text colour
 	BYTE Colour = ConsoleGreen;
 
 	char TempText[32];

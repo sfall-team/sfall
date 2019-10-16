@@ -1224,7 +1224,7 @@ static void DrawPCConsole() {
 		BYTE *ConSurface = new BYTE [70 * 102];
 		sub_draw(70, 102, 640, 480, 338, 78, charScrnBackSurface, 70, 102, 0, 0, ConSurface, 0);
 
-		//DWORD critNum = *(DWORD*)_art_vault_guy_num; // pointer to current base hero critter FrmId
+		//DWORD critNum = *ptr_art_vault_guy_num; // pointer to current base hero critter FrmId
 		DWORD critNum = *(DWORD*)(*(DWORD*)_obj_dude + 0x20); // pointer to current armored hero critter FrmId
 		DrawBody(critNum, ConSurface);
 
@@ -1390,7 +1390,7 @@ void _stdcall HeroSelectWindow(int raceStyleFlag) {
 		Translate("AppearanceMod", "RaceText", "Race", titleText, 16);
 	}
 
-	BYTE textColour = *(BYTE*)_PeanutButter; // PeanutButter colour - palette offset stored in mem
+	BYTE textColour = *ptr_PeanutButter; // PeanutButter colour - palette offset stored in mem
 	DWORD titleTextWidth = GetTextWidth(titleText);
 	PrintText(titleText, textColour, 92 - titleTextWidth / 2, 10, titleTextWidth, 484, mainSurface);
 
@@ -1411,7 +1411,7 @@ void _stdcall HeroSelectWindow(int raceStyleFlag) {
 	DWORD RotSpeed = *(DWORD*)0x47066B; // get rotation speed - inventory rotation speed
 	DWORD RedrawTick = 0, NewTick = 0, OldTick = 0;
 
-	DWORD critNum = *(DWORD*)_art_vault_guy_num; // pointer to current base hero critter FrmID
+	DWORD critNum = *ptr_art_vault_guy_num; // pointer to current base hero critter FrmID
 	//DWORD critNum = *(DWORD*)(*(DWORD*)_obj_dude + 0x20); // pointer to current armored hero critter FrmID
 
 	int raceVal = currentRaceVal, styleVal = currentStyleVal; // show default style when setting race
@@ -1912,7 +1912,7 @@ static void __declspec(naked) FixCharScrnBack() {
 		DWORD raceTextWidth = GetTextWidth(RaceText);
 		DWORD styleTextWidth = GetTextWidth(StyleText);
 
-		BYTE PeanutButter = *(BYTE*)_PeanutButter; // palette offset stored in mem
+		BYTE PeanutButter = *ptr_PeanutButter; // palette offset stored in mem
 
 		PrintText(RaceText, PeanutButter, 372 - raceTextWidth / 2, 6, raceTextWidth, 640, charScrnBackSurface);
 		PrintText(StyleText, PeanutButter, 372 - styleTextWidth / 2, 231, styleTextWidth, 640, charScrnBackSurface);

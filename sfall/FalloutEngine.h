@@ -319,7 +319,7 @@ extern DWORD* ptr_gIsSteal;
 extern DWORD* ptr_glblmode;
 extern DWORD* ptr_gmouse_current_cursor;
 extern DWORD* ptr_gmovie_played_list;
-extern DWORD* ptr_GreenColor;
+extern BYTE*  ptr_GreenColor;
 extern DWORD* ptr_gsound_initialized;
 extern long*  ptr_hit_location_penalty;
 extern DWORD* ptr_holo_flag;
@@ -397,6 +397,7 @@ extern DWORD* ptr_pc_crit_succ_eff;
 extern DWORD* ptr_pc_kill_counts;
 extern char*  ptr_pc_name;
 extern DWORD* ptr_pc_proto;
+extern BYTE*  ptr_PeanutButter;
 extern DWORD* ptr_perk_data;
 extern int**  ptr_perkLevelDataList; // limited to PERK_Count
 extern DWORD* ptr_pip_win;
@@ -411,7 +412,7 @@ extern DWORD* ptr_pud;
 extern DWORD* ptr_queue;
 extern DWORD* ptr_quick_done;
 extern DWORD* ptr_read_callback;
-extern DWORD* ptr_RedColor;
+extern BYTE*  ptr_RedColor;
 extern DWORD* ptr_retvals;
 extern DWORD* ptr_rotation;
 extern DWORD* ptr_sad;
@@ -457,7 +458,7 @@ extern DWORD* ptr_wmWorldOffsetY;
 extern DWORD* ptr_world_xpos;
 extern DWORD* ptr_world_ypos;
 extern DWORD* ptr_WorldMapCurrArea;
-extern DWORD* ptr_YellowColor;
+extern BYTE*  ptr_YellowColor;
 
 // engine function offsets
 // TODO: move to separate namespace
