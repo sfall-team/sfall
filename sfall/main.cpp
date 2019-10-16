@@ -251,7 +251,7 @@ static void CompatModeCheck(HKEY root, const char* filepath, int extra) {
 
 inline void SfallInit() {
 	// enabling debugging features
-	isDebug = (GetPrivateProfileIntA("Debugging", "Enable", 0, ::sfall::ddrawIni) != 0);
+	isDebug = (iniGetInt("Debugging", "Enable", 0, ::sfall::ddrawIni) != 0);
 	if (isDebug) {
 		LoggingInit();
 		if (!ddraw.dll) dlog("Error: Cannot load the original ddraw.dll library.\n", DL_MAIN);
@@ -262,7 +262,7 @@ inline void SfallInit() {
 
 	CRC(filepath);
 
-	if (!isDebug || !GetPrivateProfileIntA("Debugging", "SkipCompatModeCheck", 0, ::sfall::ddrawIni)) {
+	if (!isDebug || !iniGetInt("Debugging", "SkipCompatModeCheck", 0, ::sfall::ddrawIni)) {
 		int is64bit;
 		typedef int (_stdcall *chk64bitproc)(HANDLE, int*);
 		HMODULE h = LoadLibrary("Kernel32.dll");
@@ -280,7 +280,7 @@ inline void SfallInit() {
 	// ini file override
 	bool cmdlineexists = false;
 	char* cmdline = GetCommandLineA();
-	if (GetPrivateProfileIntA("Main", "UseCommandLine", 0, ::sfall::ddrawIni)) {
+	if (iniGetInt("Main", "UseCommandLine", 0, ::sfall::ddrawIni)) {
 		while (cmdline[0] == ' ') cmdline++;
 		bool InQuote = false;
 		int count = -1;
@@ -314,7 +314,7 @@ inline void SfallInit() {
 		}
 	} else {
 defaultIni:
-		strcpy_s(ini, ::sfall::ddrawIni);
+		strcpy(&ini[2], &::sfall::ddrawIni[2]);
 	}
 
 	GetConfigString("Main", "TranslationsINI", ".\\Translations.ini", translationIni, 65);

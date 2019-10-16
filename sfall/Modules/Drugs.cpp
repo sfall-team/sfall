@@ -268,9 +268,9 @@ void Drugs::init() {
 		dlog("Applying drugs patch...", DL_INIT);
 		const char* iniDrugs = drugsFile.insert(0, ".\\").c_str();
 
-		if (GetPrivateProfileIntA("main", "JetWithdrawal", 0, iniDrugs) == 1) SafeWrite8(0x47A3A8, 0);
+		if (iniGetInt("main", "JetWithdrawal", 0, iniDrugs) == 1) SafeWrite8(0x47A3A8, 0);
 
-		int count = GetPrivateProfileIntA("main", "Count", 0, iniDrugs);
+		int count = iniGetInt("main", "Count", 0, iniDrugs);
 		if (count > 0) {
 			if (count > drugsMax) count = drugsMax;
 			drugs = new sDrugs[count]();
@@ -279,12 +279,12 @@ void Drugs::init() {
 			char section[4];
 			for (int i = 1; i <= count; i++) {
 				_itoa_s(i, section, 10);
-				int pid = GetPrivateProfileIntA(section, "PID", 0, iniDrugs);
+				int pid = iniGetInt(section, "PID", 0, iniDrugs);
 				if (pid > 0) {
 					CheckEngineNumEffects(set, pid);
 					drugs[drugsCount].drugPid = pid;
-					drugs[drugsCount].addictTimeOff = drugs[drugsCount].iniAddictTimeOff = GetPrivateProfileIntA(section, "AddictTime", 0, iniDrugs);
-					long ef = GetPrivateProfileIntA(section, "NumEffects", -1, iniDrugs);
+					drugs[drugsCount].addictTimeOff = drugs[drugsCount].iniAddictTimeOff = iniGetInt(section, "AddictTime", 0, iniDrugs);
+					long ef = iniGetInt(section, "NumEffects", -1, iniDrugs);
 					if (set != -1) {
 						if (ef < -1) {
 							ef = -1;
@@ -298,12 +298,12 @@ void Drugs::init() {
 						drugs[drugsCount].numEffects = ef; // -1 to use the value from the engine
 					} else {
 						drugs[drugsCount].numEffects = drugs[drugsCount].iniNumEffects = max(0, ef);
-						int gvar = GetPrivateProfileIntA(section, "GvarID", 0, iniDrugs);
+						int gvar = iniGetInt(section, "GvarID", 0, iniDrugs);
 						drugs[drugsCount].gvarID = max(0, gvar); // not allow negative values
 						if (gvar) {
-							int msg = GetPrivateProfileIntA(section, "TextID", -1, iniDrugs);
+							int msg = iniGetInt(section, "TextID", -1, iniDrugs);
 							drugs[drugsCount].msgID = (msg > 0) ? msg : -1;
-							drugs[drugsCount].frmID = GetPrivateProfileIntA(section, "FrmID", -1, iniDrugs);
+							drugs[drugsCount].frmID = iniGetInt(section, "FrmID", -1, iniDrugs);
 							addictionGvarCount++;
 						}
 					}

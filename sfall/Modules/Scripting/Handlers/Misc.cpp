@@ -562,10 +562,10 @@ static DWORD GetIniSetting(const char* str, bool isString) {
 	}
 	if (isString) {
 		IniStrBuffer[0] = 0;
-		GetPrivateProfileStringA(section, key, "", IniStrBuffer, 256, file);
+		iniGetString(section, key, "", IniStrBuffer, 256, file);
 		return (DWORD)&IniStrBuffer[0];
 	} else {
-		return GetPrivateProfileIntA(section, key, -1, file);
+		return iniGetInt(section, key, -1, file);
 	}
 }
 

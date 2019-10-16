@@ -90,14 +90,16 @@ void ApplyDisplayKarmaChangesPatch() {
 
 void ApplyKarmaFRMsPatch() {
 	auto karmaFrmList = GetConfigList("Misc", "KarmaFRMs", "", 512);
-	if (!karmaFrmList.empty()) {
+	size_t countFrm = karmaFrmList.size();
+	if (countFrm) {
 		dlog("Applying karma FRM patch.", DL_INIT);
-
 		auto karmaPointsList = GetConfigList("Misc", "KarmaPoints", "", 512);
-		karmaFrms.resize(karmaFrmList.size());
-		for (size_t i = 0; i < karmaFrmList.size(); i++) {
+
+		karmaFrms.resize(countFrm);
+		size_t countPoints = karmaPointsList.size();
+		for (size_t i = 0; i < countFrm; i++) {
 			karmaFrms[i].frm = atoi(karmaFrmList[i].c_str());
-			karmaFrms[i].points = (karmaPointsList.size() > i)
+			karmaFrms[i].points = (countPoints > i)
 				? atoi(karmaPointsList[i].c_str())
 				: INT_MAX;
 		}

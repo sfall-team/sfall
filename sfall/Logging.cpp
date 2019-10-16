@@ -58,16 +58,16 @@ void dlog_f(const char *fmt, int type, ...) {
 
 void LoggingInit() {
 	Log.open("sfall-log.txt", ios_base::out | ios_base::trunc);
-	if (GetPrivateProfileIntA("Debugging", "Init", 0, ::sfall::ddrawIni)) {
+	if (iniGetInt("Debugging", "Init", 0, ::sfall::ddrawIni)) {
 		DebugTypes |= DL_INIT;
 	}
-	if (GetPrivateProfileIntA("Debugging", "Hook", 0, ::sfall::ddrawIni)) {
+	if (iniGetInt("Debugging", "Hook", 0, ::sfall::ddrawIni)) {
 		DebugTypes |= DL_HOOK;
 	}
-	if (GetPrivateProfileIntA("Debugging", "Script", 0, ::sfall::ddrawIni)) {
+	if (iniGetInt("Debugging", "Script", 0, ::sfall::ddrawIni)) {
 		DebugTypes |= DL_SCRIPT;
 	}
-	if (GetPrivateProfileIntA("Debugging", "Criticals", 0, ::sfall::ddrawIni)) {
+	if (iniGetInt("Debugging", "Criticals", 0, ::sfall::ddrawIni)) {
 		DebugTypes |= DL_CRITICALS;
 	}
 }

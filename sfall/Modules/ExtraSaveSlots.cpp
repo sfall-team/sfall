@@ -62,11 +62,11 @@ void LoadPageOffsets() {
 
 	sprintf_s(LoadPath, MAX_PATH, filename, fo::var::patches);
 
-	fo::var::slot_cursor = GetPrivateProfileInt("POSITION", "ListNum", 0, LoadPath);
+	fo::var::slot_cursor = iniGetInt("POSITION", "ListNum", 0, LoadPath);
 	if (fo::var::slot_cursor > 9) {
 		fo::var::slot_cursor = 0;
 	}
-	LSPageOffset = GetPrivateProfileInt("POSITION", "PageOffset", 0, LoadPath);
+	LSPageOffset = iniGetInt("POSITION", "PageOffset", 0, LoadPath);
 	if (LSPageOffset > 9990) {
 		LSPageOffset = 0;
 	}

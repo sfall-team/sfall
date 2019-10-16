@@ -14,7 +14,7 @@ std::multimap<long, long> writeAddress;
 
 /* Checking for conflicts requires all options in ddraw.ini to be enabled */
 void PrintAddrList() {
-	bool level = (GetPrivateProfileIntA("Debugging", "Enable", 0, ::sfall::ddrawIni) > 1);
+	bool level = (iniGetInt("Debugging", "Enable", 0, ::sfall::ddrawIni) > 1);
 	unsigned long pa = 0, pl = 0;
 	for (const auto &wa : writeAddress) {
 		unsigned long diff = (pa) ? (wa.first - pa) : -1; // length between two addresses

@@ -263,7 +263,7 @@ void InitNewOpcodes() {
 	SafeWrite32(0x46CE6C, (DWORD)opcodes); // call that actually jumps to the opcode
 	SafeWrite32(0x46E390, (DWORD)opcodes); // mov that writes to the opcode
 
-	if (GetPrivateProfileIntA("Debugging", "AllowUnsafeScripting", 0, ::sfall::ddrawIni)) {
+	if (iniGetInt("Debugging", "AllowUnsafeScripting", 0, ::sfall::ddrawIni)) {
 		dlogr("  Unsafe opcodes enabled.", DL_SCRIPT);
 		opcodes[0x1cf] = op_write_byte;
 		opcodes[0x1d0] = op_write_short;

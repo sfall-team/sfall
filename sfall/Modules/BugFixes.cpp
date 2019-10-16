@@ -2382,7 +2382,7 @@ void BugFixes::init()
 {
 	#ifndef NDEBUG
 		LoadGameHook::OnBeforeGameClose() += PrintAddrList;
-		if (isDebug && (GetPrivateProfileIntA("Debugging", "BugFixes", 1, ::sfall::ddrawIni) == 0)) return;
+		if (isDebug && (iniGetInt("Debugging", "BugFixes", 1, ::sfall::ddrawIni) == 0)) return;
 	#endif
 
 	// Missing game initialization
