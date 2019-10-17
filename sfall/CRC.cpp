@@ -79,7 +79,7 @@ static DWORD crcInternal(BYTE* data, DWORD size) {
 void CRC(const char* filepath) {
 	char buf[512];
 	HANDLE h = CreateFileA(filepath, GENERIC_READ, FILE_SHARE_READ, 0, OPEN_EXISTING, 0, 0);
-	if (h == INVALID_HANDLE_VALUE) Fail("Cannot open fallout2.exe for CRC check");
+	if (h == INVALID_HANDLE_VALUE) Fail("Cannot open fallout2.exe for CRC check.");
 	DWORD size = GetFileSize(h, 0), crc;
 	bool sizeMatch = (size == ExpectedSize);
 

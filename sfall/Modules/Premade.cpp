@@ -36,7 +36,7 @@ void Premade::init() {
 		for (int i = 0; i < count; i++) {
 			auto path = "premade\\" + premadePaths[i];
 			if (path.size() > 19) {
-				dlogr(" Failed: name exceeds 11 characters", DL_INIT);
+				dlog_f(" Failed: %s exceeds 11 characters\n", DL_INIT, premadePaths[i].c_str());
 				return;
 			}
 			strcpy(premade[i].path, path.c_str());
