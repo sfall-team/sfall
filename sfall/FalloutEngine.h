@@ -787,6 +787,7 @@ extern const DWORD pc_flag_toggle_;
 extern const DWORD perform_withdrawal_end_;
 extern const DWORD perk_add_;
 extern const DWORD perk_add_effect_;
+extern const DWORD perk_add_force_;
 extern const DWORD perk_can_add_;
 extern const DWORD perk_description_;
 extern const DWORD perk_init_;

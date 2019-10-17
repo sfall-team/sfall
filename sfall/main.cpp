@@ -1030,7 +1030,7 @@ static void DllMain2() {
 	dlogr("Running AIInit().", DL_INIT);
 	AIInit();
 
-	dlogr("Initializing party control.", DL_INIT);
+	dlogr("Initializing party control...", DL_INIT);
 	PartyControlInit();
 
 	if (GetConfigInt("Misc", "ObjCanSeeObj_ShootThru_Fix", 0)) {

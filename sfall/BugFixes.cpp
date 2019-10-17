@@ -2366,6 +2366,43 @@ static void __declspec(naked) map_check_state_hook() {
 	}
 }
 
+static void __declspec(naked) op_critter_rm_trait_hook() {
+	__asm {
+		mov  ebx, [esp + 0x34 - 0x34 + 4]; // amount
+		test ebx, ebx;
+		jz   skip;
+		call perk_level_;
+		test eax, eax;
+		jz   end;
+		dec  dword ptr [esp + 0x34 - 0x34 + 4];
+		test ebx, ebx;
+		jnz  end; // continue if amount != 0
+skip:
+		xor  eax, eax; // exit loop
+end:
+		retn;
+	}
+}
+
+static void __declspec(naked) op_critter_add_trait_hook() {
+	__asm {
+		mov  edi, edx; // perk id
+		mov  ebp, eax; // source
+		mov  ebx, [esp + 0x34 - 0x34 + 4]; // amount
+addLoop:
+		call perk_add_force_;
+		test eax, eax;
+		jnz  end; // can't add
+		mov  edx, edi;
+		mov  eax, ebp;
+		dec  ebx;
+		jnz  addLoop;
+		xor  eax, eax;
+end:
+		retn;
+	}
+}
+
 void BugFixesInit()
 {
 	#ifndef NDEBUG
@@ -2724,7 +2761,7 @@ void BugFixesInit()
 	// Fix for player's base EMP DR not being properly initialized when creating a new character and then starting the game
 	HookCall(0x4A22DF, ResetPlayer_hook);
 
-	// Fix for add_mult_objs_to_inven only adding 500 of an object when the value of "count" argument is over 99999
+	// Fix for add_mult_objs_to_inven only adding 500 of an object when the value of the "count" argument is over 99999
 	SafeWrite32(0x45A2A0, 0x1869F); // 99999
 
 	// Fix for being at incorrect hex after map change when the exit hex in source map is at the same position as
@@ -2984,4 +3021,9 @@ void BugFixesInit()
 
 	// Remove duplicate code from intface_redraw_ engine function
 	BlockCall(0x45EBBF);
+
+	// Fix for critter_add/rm_trait functions ignoring the value of the "amount" argument
+	// Note: pass negative amount values to critter_rm_trait to remove all ranks of the perk (vanilla behavior)
+	HookCall(0x458CDB, op_critter_rm_trait_hook);
+	HookCall(0x458B3D, op_critter_add_trait_hook);
 }
