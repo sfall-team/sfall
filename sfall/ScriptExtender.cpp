@@ -1205,7 +1205,7 @@ static void _stdcall ClearEventsOnMapExit() {
 	}
 }
 
-void ScriptExtenderSetup() {
+void ScriptExtenderInit() {
 	toggleHighlightsKey = GetConfigInt("Input", "ToggleItemHighlightsKey", 0);
 	if (toggleHighlightsKey) {
 		MotionSensorMode = GetConfigInt("Misc", "MotionScannerFlags", 1);

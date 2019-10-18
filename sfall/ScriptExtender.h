@@ -43,7 +43,7 @@ typedef struct {
 	char initialized;
 } sScriptProgram;
 
-void ScriptExtenderSetup();
+void ScriptExtenderInit();
 bool _stdcall IsGameScript(const char* filename);
 void LoadGlobalScripts();
 void ClearGlobalScripts();

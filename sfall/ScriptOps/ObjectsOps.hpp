@@ -447,21 +447,12 @@ static void __declspec(naked) op_obj_blocking_at() {
 
 static void _stdcall op_tile_get_objects2() {
 	DWORD tile = opHandler.arg(0).asInt(),
-		elevation = opHandler.arg(1).asInt(),
-		obj;
+		elevation = opHandler.arg(1).asInt();
 	DWORD arrayId = TempArray(0, 4);
-	__asm {
-		mov eax, elevation;
-		mov edx, tile;
-		call obj_find_first_at_tile_;
-		mov obj, eax;
-	}
+	TGameObj* obj = ObjFindFirstAtTile(elevation, tile);
 	while (obj) {
-		arrays[arrayId].push_back((long)obj);
-		__asm {
-			call obj_find_next_at_tile_;
-			mov obj, eax;
-		}
+		arrays[arrayId].push_back(reinterpret_cast<long>(obj));
+		obj = ObjFindNextAtTile();
 	}
 	opHandler.setReturn(arrayId, DATATYPE_INT);
 }

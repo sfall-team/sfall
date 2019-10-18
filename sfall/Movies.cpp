@@ -27,7 +27,7 @@
 #include "Graphics.h"
 #include "Logging.h"
 
-#include "movies.h"
+#include "Movies.h"
 
 static DWORD MoviePtrs[MaxMovies];
 char MoviePaths[MaxMovies * 65];

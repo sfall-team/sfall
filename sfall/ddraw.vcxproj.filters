@@ -57,7 +57,7 @@
     <ClInclude Include="LoadGameHook.h">
       <Filter>Headers</Filter>
     </ClInclude>
-    <ClInclude Include="movies.h">
+    <ClInclude Include="Movies.h">
       <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="Perks.h">
@@ -78,7 +78,7 @@
     <ClInclude Include="ScriptExtender.h">
       <Filter>Headers</Filter>
     </ClInclude>
-    <ClInclude Include="sound.h">
+    <ClInclude Include="Sound.h">
       <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="Stats.h">
@@ -109,7 +109,7 @@
     <ClInclude Include="main.h">
       <Filter>Headers</Filter>
     </ClInclude>
-    <ClInclude Include="skills.h">
+    <ClInclude Include="Skills.h">
       <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="Inventory.h">
@@ -205,6 +205,12 @@
     <ClInclude Include="Utils.h">
       <Filter>Headers</Filter>
     </ClInclude>
+    <ClInclude Include="LoadOrder.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Karma.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
     <ClInclude Include="stdafx.h">
       <Filter>Headers</Filter>
     </ClInclude>
@@ -252,7 +258,7 @@
     <ClCompile Include="LoadGameHook.cpp">
       <Filter>Source</Filter>
     </ClCompile>
-    <ClCompile Include="movies.cpp">
+    <ClCompile Include="Movies.cpp">
       <Filter>Source</Filter>
     </ClCompile>
     <ClCompile Include="Perks.cpp">
@@ -273,7 +279,7 @@
     <ClCompile Include="ScriptExtender.cpp">
       <Filter>Source</Filter>
     </ClCompile>
-    <ClCompile Include="sound.cpp">
+    <ClCompile Include="Sound.cpp">
       <Filter>Source</Filter>
     </ClCompile>
     <ClCompile Include="Stats.cpp">
@@ -298,7 +304,7 @@
     <ClCompile Include="AnimationsAtOnceLimit.cpp">
       <Filter>Source</Filter>
     </ClCompile>
-    <ClCompile Include="skills.cpp">
+    <ClCompile Include="Skills.cpp">
       <Filter>Source</Filter>
     </ClCompile>
     <ClCompile Include="Inventory.cpp">
@@ -350,6 +356,12 @@
       <Filter>Source</Filter>
     </ClCompile>
     <ClCompile Include="Utils.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="LoadOrder.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Karma.cpp">
       <Filter>Source</Filter>
     </ClCompile>
     <ClCompile Include="stdafx.cpp">

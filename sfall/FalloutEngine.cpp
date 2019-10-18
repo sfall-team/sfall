@@ -1083,8 +1083,20 @@ TGameObj* __stdcall ObjFindFirst() {
 	__asm call obj_find_first_;
 }
 
+TGameObj* __stdcall ObjFindFirstAtTile(long elevation, long tileNum) {
+	__asm {
+		mov  edx, tileNum;
+		mov  eax, elevation;
+		call obj_find_first_at_tile_;
+	}
+}
+
 TGameObj* __stdcall ObjFindNext() {
 	__asm call obj_find_next_;
+}
+
+TGameObj* __stdcall ObjFindNextAtTile() {
+	__asm call obj_find_next_at_tile_;
 }
 
 long __stdcall NewObjId() {

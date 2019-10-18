@@ -31,7 +31,7 @@
 #include "BugFixes.h"
 #include "BurstMods.h"
 #include "Combat.h"
-#include "console.h"
+#include "Console.h"
 #include "CRC.h"
 #include "Credits.h"
 #include "Criticals.h"
@@ -43,23 +43,25 @@
 #include "Graphics.h"
 #include "HeroAppearance.h"
 #include "Inventory.h"
+#include "Karma.h"
 #include "KillCounter.h"
 #include "LoadGameHook.h"
+#include "LoadOrder.h"
 #include "Logging.h"
 #include "MainMenu.h"
 #include "Message.h"
-#include "movies.h"
+#include "Movies.h"
 #include "Objects.h"
 #include "PartyControl.h"
-#include "perks.h"
+#include "Perks.h"
 #include "Premade.h"
 #include "QuestList.h"
 #include "Reputations.h"
 #include "ScriptExtender.h"
-#include "skills.h"
-#include "sound.h"
+#include "Skills.h"
+#include "Sound.h"
 #include "SpeedPatch.h"
-#include "stats.h"
+#include "Stats.h"
 #include "SuperSave.h"
 #include "TalkingHeads.h"
 #include "Tiles.h"
@@ -134,15 +136,6 @@ size_t Translate(const char* section, const char* setting, const char* defaultVa
 	return iniGetString(section, setting, defaultValue, buffer, bufSize, translationIni);
 }
 
-static std::vector<int> savPrototypes;
-
-struct KarmaFrmSetting {
-	DWORD frm;
-	int points;
-};
-
-static std::vector<KarmaFrmSetting> karmaFrms;
-
 static char mapName[65];
 static char configName[65];
 static char patchName[65];
@@ -178,219 +171,6 @@ static const DWORD WalkDistanceAddr[] = {
 	0x411FF0, 0x4121C4, 0x412475, 0x412906,
 };
 
-static void __declspec(naked) RemoveDatabase() {
-	__asm {
-		cmp  eax, -1;
-		je   end;
-		mov  ebx, ds:[_paths];
-		mov  ecx, ebx;
-nextPath:
-		mov  edx, [esp + 0x104 + 4 + 4];          // path_patches
-		mov  eax, [ebx];                          // database.path
-		call stricmp_;
-		test eax, eax;                            // found path?
-		jz   skip;                                // Yes
-		mov  ecx, ebx;
-		mov  ebx, [ebx + 0xC];                    // database.next
-		jmp  nextPath;
-skip:
-		mov  eax, [ebx + 0xC];                    // database.next
-		mov  [ecx + 0xC], eax;                    // database.next
-		xchg ebx, eax;
-		cmp  eax, ecx;
-		jne  end;
-		mov  ds:[_paths], ebx;
-end:
-		retn;
-	}
-}
-
-// Remove master_patches from the chain of paths
-static void __declspec(naked) game_init_databases_hack1() {
-	__asm {
-		call RemoveDatabase;
-		mov  ds:[_master_db_handle], eax;         // the pointer of master_patches node will be saved here
-		retn;
-	}
-}
-
-// Remove critter_patches from the chain of paths
-static void __declspec(naked) game_init_databases_hack2() {
-	__asm {
-		cmp  eax, -1;
-		je   end;
-		mov  eax, ds:[_master_db_handle];         // pointer to master_patches node
-		mov  eax, [eax];                          // eax = master_patches.path
-		call xremovepath_;
-		dec  eax;                                 // remove path (critter_patches == master_patches)?
-		jz   end;                                 // Yes (jump if 0)
-		inc  eax;
-		call RemoveDatabase;
-end:
-		mov  ds:[_critter_db_handle], eax;        // the pointer of critter_patches node will be saved here
-		retn;
-	}
-}
-
-static void __declspec(naked) game_init_databases_hook() {
-	// eax = _master_db_handle
-	__asm {
-		mov  ecx, ds:[_critter_db_handle];
-		mov  edx, ds:[_paths];
-		test ecx, ecx;
-		jz   skip;
-		mov  [ecx + 0xC], edx;                    // critter_patches.next->_paths
-		mov  edx, ecx;
-skip:
-		mov  [eax + 0xC], edx;                    // master_patches.next
-		mov  ds:[_paths], eax;
-		retn;
-	}
-}
-
-///////////////////////// SAVE PARTY MEMBER PROTOTYPES /////////////////////////
-
-static void __fastcall AddSavPrototype(long pid) {
-	for (std::vector<int>::const_iterator it = savPrototypes.begin(); it != savPrototypes.end(); ++it) {
-		if (*it == pid) return;
-	}
-	savPrototypes.push_back(pid);
-}
-
-static long ChangePrototypeExt(char* path) {
-	long len = strlen(path);
-	if (len) {
-		len -= 4;
-		if (path[len] == '.') {
-			path[++len] = 's';
-			path[++len] = 'a';
-			path[++len] = 'v';
-		} else {
-			len = 0;
-		}
-	}
-	return len;
-}
-
-static void __fastcall ExistSavPrototype(long pid, char* path) {
-	if (savPrototypes.empty()) return;
-	for (std::vector<int>::const_iterator it = savPrototypes.begin(); it != savPrototypes.end(); ++it) {
-		if (*it == pid) {
-			ChangePrototypeExt(path);
-			break;
-		}
-	}
-}
-
-static long __fastcall CheckProtoType(long pid, char* path) {
-	if (pid >> 24 != OBJ_TYPE_CRITTER) return 0;
-	return ChangePrototypeExt(path);
-}
-
-// saves prototypes (all party members) before saving game or exiting the map
-static void __declspec(naked) proto_save_pid_hook() {
-	__asm {
-		push ecx;
-		call proto_list_str_;
-		test eax, eax;
-		jnz  end;
-		mov  ecx, ebx; // party pid
-		mov  edx, edi; // path buffer
-		call CheckProtoType;
-		test eax, eax;
-		jz   end;
-		mov  ecx, ebx; // party pid
-		call AddSavPrototype;
-end:
-		pop  ecx;
-		retn;
-	}
-}
-
-#define _F_PATHFILE 0x6143F4
-static void __declspec(naked) GameMap2Slot_hack() { // save party pids
-	__asm {
-		push ecx;
-		mov  edx, _F_PATHFILE; // path buffer
-		call CheckProtoType;   // ecx - party pid
-		pop  ecx;
-		lea  eax, [esp + 0x14 + 4];
-		retn 0x14;
-	}
-}
-
-static void __declspec(naked) SlotMap2Game_hack() { // load party pids
-	__asm {
-		push edx;
-		mov  ecx, edi;         // party pid
-		mov  edx, _F_PATHFILE; // path buffer
-		call CheckProtoType;
-		test eax, eax;
-		jz   end;
-		mov  ecx, edi;
-		call AddSavPrototype;
-end:
-		pop  edx;
-		lea  eax, [esp + 0x14 + 4];
-		retn 0x14;
-	}
-}
-
-static void __declspec(naked) proto_load_pid_hook() {
-	__asm { // eax - party pid
-		push ecx;
-		mov  ecx, eax;
-		call proto_list_str_;
-		test eax, eax;
-		jnz  end;
-		// check pid type
-		mov  edx, ecx;
-		shr  edx, 24;
-		cmp  edx, OBJ_TYPE_CRITTER;
-		jnz  end;
-		mov  edx, edi;          // path buffer
-		call ExistSavPrototype; // ecx - party pid
-		xor  eax, eax;
-end:
-		pop  ecx;
-		retn;
-	}
-}
-
-static void ResetReadOnlyAttr() {
-	DWORD attr = GetFileAttributesA((const char*)_F_PATHFILE);
-	if (attr != INVALID_FILE_ATTRIBUTES && (attr & FILE_ATTRIBUTE_READONLY)) {
-		SetFileAttributesA((const char*)_F_PATHFILE, (attr & ~FILE_ATTRIBUTE_READONLY));
-	}
-}
-
-static void __declspec(naked) SlotMap2Game_hack_attr() {
-	__asm {
-		cmp  eax, -1;
-		je   end;
-		cmp  ebx, OBJ_TYPE_CRITTER;
-		jne  end;
-		call ResetReadOnlyAttr;
-		or   eax, 1; // reset ZF
-end:
-		retn 0x8;
-	}
-}
-
-#define _F_SAV (const char*)0x50A480
-#define _F_PROTO_CRITTERS (const char*)0x50A490
-
-void RemoveSavFiles() {
-	MapDirErase(_F_PROTO_CRITTERS, _F_SAV);
-}
-
-void ClearSavPrototypes() {
-	savPrototypes.clear();
-	RemoveSavFiles();
-}
-
-////////////////////////////////////////////////////////////////////////////////
-
 static void __declspec(naked) WeaponAnimHook() {
 	__asm {
 		cmp edx, 11;
@@ -404,39 +184,6 @@ c11:
 c15:
 		mov edx, 17;
 		jmp art_get_code_;
-	}
-}
-
-static char KarmaGainMsg[128];
-static char KarmaLossMsg[128];
-static void _stdcall SetKarma(int value) {
-	int old;
-	__asm {
-		xor eax, eax;
-		call game_get_global_var_;
-		mov old, eax;
-	}
-	old = value - old;
-	char buf[128];
-	if (old == 0) return;
-	if (old > 0) {
-		sprintf_s(buf, KarmaGainMsg, old);
-	} else {
-		sprintf_s(buf, KarmaLossMsg, -old);
-	}
-	DisplayConsoleMessage(buf);
-}
-
-static void __declspec(naked) SetGlobalVarWrapper() {
-	__asm {
-		test eax, eax; // GVar number
-		jnz end;
-		pushadc;
-		push edx;
-		call SetKarma;
-		popadc;
-end:
-		jmp game_set_global_var_;
 	}
 }
 
@@ -526,32 +273,6 @@ negative:
 end:
 		push 0x460BA6
 		retn
-	}
-}
-
-static DWORD _stdcall DrawCard() {
-	int reputation = **(int**)_game_global_vars;
-	for (std::vector<KarmaFrmSetting>::const_iterator it = karmaFrms.begin(); it != karmaFrms.end(); ++it) {
-		if (reputation < it->points) {
-			return it->frm;
-		}
-	}
-	return karmaFrms.end()->frm;
-}
-
-static void __declspec(naked) DrawInfoWin_hook() {
-	__asm {
-		cmp  ds:[_info_line], 10;
-		jne  skip;
-		cmp  eax, 0x30;
-		jne  skip;
-		push ecx;
-		push edx;
-		call DrawCard;
-		pop  edx;
-		pop  ecx;
-skip:
-		jmp  DrawCard_;
 	}
 }
 
@@ -661,14 +382,8 @@ static void DllMain2() {
 	dlogr("Running BugFixesInit().", DL_INIT);
 	BugFixesInit();
 
-	dlogr("Running SpeedPatchInit().", DL_INIT);
-	SpeedPatchInit();
-
 	dlogr("Running GraphicsInit().", DL_INIT);
 	GraphicsInit();
-
-	dlogr("Running TalkingHeadsInit().", DL_INIT);
-	TalkingHeadsInit();
 
 	//if (GetConfigInt("Input", "Enable", 0)) {
 		dlog("Applying input patch.", DL_INIT);
@@ -677,26 +392,11 @@ static void DllMain2() {
 		dlogr(" Done", DL_INIT);
 	//}
 
-	if (GetConfigInt("Misc", "DataLoadOrderPatch", 1)) {
-		dlog("Applying data load order patch.", DL_INIT);
-		MakeCall(0x444259, game_init_databases_hack1);
-		MakeCall(0x4442F1, game_init_databases_hack2);
-		HookCall(0x44436D, game_init_databases_hook);
-		SafeWrite8(0x4DFAEC, 0x1D); // error correction (ecx > ebx)
-		dlogr(" Done", DL_INIT);
-	}
+	dlogr("Running LoadOrderInit().", DL_INIT);
+	LoadOrderInit();
 
-	dlog("Applying party member protos save/load patch.", DL_INIT);
-	savPrototypes.reserve(25);
-	HookCall(0x4A1CF2, proto_load_pid_hook);
-	HookCall(0x4A1BEE, proto_save_pid_hook);
-	MakeCall(0x47F5A5, GameMap2Slot_hack); // save game
-	MakeCall(0x47FB80, SlotMap2Game_hack); // load game
-	MakeCall(0x47FBBF, SlotMap2Game_hack_attr, 1);
-	dlogr(" Done", DL_INIT);
-
-	dlogr("Running DamageModInit().", DL_INIT);
-	DamageModInit();
+	dlogr("Running LoadGameHookInit().", DL_INIT);
+	LoadGameHookInit();
 
 	dlogr("Running MoviesInit().", DL_INIT);
 	MoviesInit();
@@ -708,34 +408,8 @@ static void DllMain2() {
 	dlogr("Running ObjectsInit().", DL_INIT);
 	ObjectsInit();
 
-	mapName[64] = 0;
-	if (GetConfigString("Misc", "StartingMap", "", mapName, 64)) {
-		dlog("Applying starting map patch.", DL_INIT);
-		SafeWrite32(0x480AAA, (DWORD)&mapName);
-		dlogr(" Done", DL_INIT);
-	}
-
-	versionString[64] = 0;
-	if (GetConfigString("Misc", "VersionString", "", versionString, 64)) {
-		dlog("Applying version string patch.", DL_INIT);
-		SafeWrite32(0x4B4588, (DWORD)&versionString);
-		dlogr(" Done", DL_INIT);
-	}
-
-	configName[64] = 0;
-	if (GetConfigString("Misc", "ConfigFile", "", configName, 64)) {
-		dlog("Applying config file patch.", DL_INIT);
-		SafeWrite32(0x444BA5, (DWORD)&configName);
-		SafeWrite32(0x444BCA, (DWORD)&configName);
-		dlogr(" Done", DL_INIT);
-	}
-
-	patchName[64] = 0;
-	if (GetConfigString("Misc", "PatchFile", "", patchName, 64)) {
-		dlog("Applying patch file patch.", DL_INIT);
-		SafeWrite32(0x444323, (DWORD)&patchName);
-		dlogr(" Done", DL_INIT);
-	}
+	dlogr("Running SpeedPatchInit().", DL_INIT);
+	SpeedPatchInit();
 
 	startMaleModelName[64] = 0;
 	if (GetConfigString("Misc", "MaleStartModel", "", startMaleModelName, 64)) {
@@ -766,14 +440,75 @@ static void DllMain2() {
 	dlogr("Running WorldmapInit().", DL_INIT);
 	WorldmapInit();
 
-	if (GetConfigInt("Misc", "DialogueFix", 1)) {
-		dlog("Applying dialogue patch.", DL_INIT);
-		SafeWrite8(0x446848, 0x31);
-		dlogr(" Done", DL_INIT);
-	}
+	dlogr("Running StatsInit().", DL_INIT);
+	StatsInit();
+
+	dlogr("Running PerksInit().", DL_INIT);
+	PerksInit();
+
+	dlogr("Running CombatInit().", DL_INIT);
+	CombatInit();
+
+	dlogr("Running SkillsInit().", DL_INIT);
+	SkillsInit();
+
+	dlogr("Running FileSystemInit().", DL_INIT);
+	FileSystemInit();
 
 	dlogr("Running CriticalsInit().", DL_INIT);
 	CriticalsInit();
+
+	dlogr("Running KarmaInit().", DL_INIT);
+	KarmaInit();
+
+	dlogr("Running TilesInit().", DL_INIT);
+	TilesInit();
+
+	dlogr("Running CreditsInit().", DL_INIT);
+	CreditsInit();
+
+	dlogr("Running QuestListInit().", DL_INIT);
+	QuestListInit();
+
+	dlogr("Running PremadeInit().", DL_INIT);
+	PremadeInit();
+
+	dlogr("Running SoundInit().", DL_INIT);
+	SoundInit();
+
+	dlogr("Running ReputationsInit().", DL_INIT);
+	ReputationsInit();
+
+	dlogr("Running ConsoleInit().", DL_INIT);
+	ConsoleInit();
+
+	if (GetConfigInt("Misc", "ExtraSaveSlots", 0)) {
+		dlogr("Running EnableSuperSaving().", DL_INIT);
+		EnableSuperSaving();
+	}
+
+	dlogr("Running InventoryInit().", DL_INIT);
+	InventoryInit();
+
+	dlogr("Initializing party control...", DL_INIT);
+	PartyControlInit();
+
+	dlogr("Running ComputeSprayModInit().", DL_INIT);
+	ComputeSprayModInit();
+
+	dlogr("Running BooksInit().", DL_INIT);
+	BooksInit();
+
+	dlogr("Running ExplosionInit().", DL_INIT);
+	ExplosionInit();
+
+	std::string elevPath = GetConfigString("Misc", "ElevatorsFile", "", MAX_PATH);
+	if (!elevPath.empty()) {
+		dlog("Applying elevator patch.", DL_INIT);
+		ElevatorsInit();
+		LoadElevators(elevPath.insert(0, ".\\").c_str());
+		dlogr(" Done", DL_INIT);
+	}
 
 	if (GetConfigInt("Misc", "ExtraKillTypes", 0)) {
 		dlog("Applying extra kill types patch.", DL_INIT);
@@ -781,26 +516,49 @@ static void DllMain2() {
 		dlogr(" Done", DL_INIT);
 	}
 
-	//if (GetConfigInt("Misc", "ScriptExtender", 0)) {
-		dlogr("Running StatsInit().", DL_INIT);
-		StatsInit();
-		dlogr("Running ScriptExtenderSetup().", DL_INIT);
-		ScriptExtenderSetup();
-		dlogr("Running LoadGameHookInit().", DL_INIT);
-		LoadGameHookInit();
-		dlogr("Running PerksInit().", DL_INIT);
-		PerksInit();
-		dlogr("Running CombatInit().", DL_INIT);
-		CombatInit();
-		dlogr("Running SkillsInit().", DL_INIT);
-		SkillsInit();
-	//}
+	dlogr("Running AIInit().", DL_INIT);
+	AIInit();
 
-	dlogr("Running FileSystemInit().", DL_INIT);
-	FileSystemInit();
+	dlogr("Running DamageModInit().", DL_INIT);
+	DamageModInit();
 
-	dlogr("Running DebugEditorInit().", DL_INIT);
-	DebugEditorInit();
+	dlogr("Running AnimationsAtOnceInit().", DL_INIT);
+	AnimationsAtOnceInit();
+
+	dlogr("Running BarBoxesInit().", DL_INIT);
+	BarBoxesInit();
+
+	dlogr("Running HeroAppearanceModInit().", DL_INIT);
+	HeroAppearanceModInit();
+
+	mapName[64] = 0;
+	if (GetConfigString("Misc", "StartingMap", "", mapName, 64)) {
+		dlog("Applying starting map patch.", DL_INIT);
+		SafeWrite32(0x480AAA, (DWORD)&mapName);
+		dlogr(" Done", DL_INIT);
+	}
+
+	versionString[64] = 0;
+	if (GetConfigString("Misc", "VersionString", "", versionString, 64)) {
+		dlog("Applying version string patch.", DL_INIT);
+		SafeWrite32(0x4B4588, (DWORD)&versionString);
+		dlogr(" Done", DL_INIT);
+	}
+
+	configName[64] = 0;
+	if (GetConfigString("Misc", "ConfigFile", "", configName, 64)) {
+		dlog("Applying config file patch.", DL_INIT);
+		SafeWrite32(0x444BA5, (DWORD)&configName);
+		SafeWrite32(0x444BCA, (DWORD)&configName);
+		dlogr(" Done", DL_INIT);
+	}
+
+	patchName[64] = 0;
+	if (GetConfigString("Misc", "PatchFile", "", patchName, 64)) {
+		dlog("Applying patch file patch.", DL_INIT);
+		SafeWrite32(0x444323, (DWORD)&patchName);
+		dlogr(" Done", DL_INIT);
+	}
 
 	if (GetConfigInt("Misc", "SingleCore", 1)) {
 		dlog("Applying single core patch.", DL_INIT);
@@ -817,11 +575,16 @@ static void DllMain2() {
 		dlogr(" Done", DL_INIT);
 	}
 
-	std::string elevPath = GetConfigString("Misc", "ElevatorsFile", "", MAX_PATH);
-	if (!elevPath.empty()) {
-		dlog("Applying elevator patch.", DL_INIT);
-		ElevatorsInit();
-		LoadElevators(elevPath.insert(0, ".\\").c_str());
+	if (GetConfigInt("Misc", "Fallout1Behavior", 0)) {
+		dlog("Applying Fallout 1 engine behavior patch.", DL_INIT);
+		BlockCall(0x4A4343); // disable playing the final movie/credits after the endgame slideshow
+		SafeWrite8(0x477C71, 0xEB); // disable halving the weight for power armor items
+		dlogr(" Done", DL_INIT);
+	}
+
+	if (GetConfigInt("Misc", "DialogueFix", 1)) {
+		dlog("Applying dialogue patch.", DL_INIT);
+		SafeWrite8(0x446848, 0x31);
 		dlogr(" Done", DL_INIT);
 	}
 
@@ -840,14 +603,6 @@ static void DllMain2() {
 		SafeWrite8(0x44435C, 0xC4); // Disable check
 		dlogr(" Done", DL_INIT);
 	//}
-
-	if (GetConfigInt("Misc", "DisplayKarmaChanges", 0)) {
-		dlog("Applying display karma changes patch.", DL_INIT);
-		Translate("sfall", "KarmaGain", "You gained %d karma.", KarmaGainMsg);
-		Translate("sfall", "KarmaLoss", "You lost %d karma.", KarmaLossMsg);
-		HookCall(0x455A6D, SetGlobalVarWrapper);
-		dlogr(" Done", DL_INIT);
-	}
 
 	if (GetConfigInt("Misc", "AlwaysReloadMsgs", 0)) {
 		dlog("Applying always reload messages patch.", DL_INIT);
@@ -885,35 +640,6 @@ static void DllMain2() {
 	if (tmp != 293) SafeWrite32(0x518D64, tmp);
 	dlogr(" Done", DL_INIT);
 
-	dlogr("Running HeroAppearanceModInit().", DL_INIT);
-	HeroAppearanceModInit();
-
-	dlogr("Running TilesInit().", DL_INIT);
-	TilesInit();
-
-	dlogr("Running CreditsInit().", DL_INIT);
-	CreditsInit();
-
-	dlogr("Running QuestListInit().", DL_INIT);
-	QuestListInit();
-
-	dlogr("Running PremadeInit().", DL_INIT);
-	PremadeInit();
-
-	dlogr("Running SoundInit().", DL_INIT);
-	SoundInit();
-
-	dlogr("Running ReputationsInit().", DL_INIT);
-	ReputationsInit();
-
-	dlogr("Running ConsoleInit().", DL_INIT);
-	ConsoleInit();
-
-	if (GetConfigInt("Misc", "ExtraSaveSlots", 0)) {
-		dlogr("Running EnableSuperSaving().", DL_INIT);
-		EnableSuperSaving();
-	}
-
 	switch (GetConfigInt("Misc", "SpeedInterfaceCounterAnims", 0)) {
 	case 1:
 		dlog("Applying SpeedInterfaceCounterAnims patch.", DL_INIT);
@@ -925,25 +651,6 @@ static void DllMain2() {
 		SafeWrite32(0x460BB6, 0x90DB3190); // xor ebx, ebx
 		dlogr(" Done", DL_INIT);
 		break;
-	}
-
-	std::vector<std::string> karmaFrmList = GetConfigList("Misc", "KarmaFRMs", "", 512);
-	size_t countFrm = karmaFrmList.size();
-	if (countFrm) {
-		dlog("Applying karma FRM patch.", DL_INIT);
-		std::vector<std::string> karmaPointsList = GetConfigList("Misc", "KarmaPoints", "", 512);
-
-		karmaFrms.resize(countFrm);
-		size_t countPoints = karmaPointsList.size();
-		for (size_t i = 0; i < countFrm; i++) {
-			karmaFrms[i].frm = atoi(karmaFrmList[i].c_str());
-			karmaFrms[i].points = (countPoints > i)
-				? atoi(karmaPointsList[i].c_str())
-				: INT_MAX;
-		}
-		HookCall(0x4367A9, DrawInfoWin_hook);
-
-		dlogr(" Done", DL_INIT);
 	}
 
 	switch (GetConfigInt("Misc", "ScienceOnCritters", 0)) {
@@ -962,14 +669,8 @@ static void DllMain2() {
 		dlogr(" Done", DL_INIT);
 	}
 
-	dlogr("Running BarBoxesInit().", DL_INIT);
-	BarBoxesInit();
-
 	dlogr("Patching out ereg call.", DL_INIT);
 	BlockCall(0x4425E6);
-
-	dlogr("Running AnimationsAtOnceInit().", DL_INIT);
-	AnimationsAtOnceInit();
 
 	if (tmp = GetConfigInt("Sound", "OverrideMusicDir", 0)) {
 		SafeWrite32(0x4449C2, (DWORD)musicOverridePath);
@@ -992,9 +693,6 @@ static void DllMain2() {
 		}
 		dlogr(" Done", DL_INIT);
 	}
-
-	dlogr("Running InventoryInit().", DL_INIT);
-	InventoryInit();
 
 	if (tmp = GetConfigInt("Misc", "MotionScannerFlags", 1)) {
 		dlog("Applying MotionScannerFlags patch.", DL_INIT);
@@ -1027,12 +725,6 @@ static void DllMain2() {
 		dlogr(" Done", DL_INIT);
 	}
 
-	dlogr("Running AIInit().", DL_INIT);
-	AIInit();
-
-	dlogr("Initializing party control...", DL_INIT);
-	PartyControlInit();
-
 	if (GetConfigInt("Misc", "ObjCanSeeObj_ShootThru_Fix", 0)) {
 		dlog("Applying ObjCanSeeObj ShootThru Fix.", DL_INIT);
 		HookCall(0x456BC6, op_obj_can_see_obj_hook);
@@ -1040,12 +732,6 @@ static void DllMain2() {
 	}
 
 	// phobos2077:
-	dlogr("Running ComputeSprayModInit().", DL_INIT);
-	ComputeSprayModInit();
-	dlogr("Running ExplosionInit().", DL_INIT);
-	ExplosionInit();
-	dlogr("Running BooksInit().", DL_INIT);
-	BooksInit();
 	DWORD addrs[2] = {0x45F9DE, 0x45FB33};
 	SimplePatch<WORD>(addrs, 2, "Misc", "CombatPanelAnimDelay", 1000, 0, 65535);
 	addrs[0] = 0x447DF4; addrs[1] = 0x447EB6;
@@ -1142,12 +828,15 @@ static void DllMain2() {
 	SafeWrite8(0x43ACD5, 144); // 136
 	SafeWrite8(0x43DD37, 144); // 133
 
-	if (GetConfigInt("Misc", "Fallout1Behavior", 0)) {
-		dlog("Applying Fallout 1 engine behavior patch.", DL_INIT);
-		BlockCall(0x4A4343); // disable playing the final movie/credits after the endgame slideshow
-		SafeWrite8(0x477C71, 0xEB); // disable halving the weight for power armor items
-		dlogr(" Done", DL_INIT);
-	}
+	dlogr("Running TalkingHeadsInit().", DL_INIT);
+	TalkingHeadsInit();
+
+	// most of modules should be initialized before running the script handlers
+	dlogr("Running ScriptExtenderInit().", DL_INIT);
+	ScriptExtenderInit();
+
+	dlogr("Running DebugEditorInit().", DL_INIT);
+	DebugEditorInit();
 
 	dlogr("Leave DllMain2", DL_MAIN);
 }
@@ -1156,17 +845,17 @@ static void _stdcall OnExit() {
 	if (scriptDialog != nullptr) {
 		delete[] scriptDialog;
 	}
-	SpeedPatchExit();
 	GraphicsExit();
-	TalkingHeadsExit();
 	MoviesExit();
-	ClearReadExtraGameMsgFiles();
+	SpeedPatchExit();
 	SkillsExit();
-	HeroAppearanceModExit();
 	ReputationsExit();
 	ConsoleExit();
-	AnimationsAtOnceExit();
 	BooksExit();
+	ClearReadExtraGameMsgFiles();
+	AnimationsAtOnceExit();
+	HeroAppearanceModExit();
+	TalkingHeadsExit();
 }
 
 static void __declspec(naked) OnExitFunc() {

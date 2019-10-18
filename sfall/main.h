@@ -111,9 +111,6 @@ extern bool hrpVersionValid;
 extern char defaultMaleModelName[65];
 extern char defaultFemaleModelName[65];
 
-void RemoveSavFiles();
-void ClearSavPrototypes();
-
 template<typename T> 
 T SimplePatch(DWORD addr, const char* iniSection, const char* iniKey, T defaultValue, T minValue = 0, T maxValue = INT_MAX)
 {

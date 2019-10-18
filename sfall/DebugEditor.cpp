@@ -97,21 +97,12 @@ static void RunEditorInternal(SOCKET &s) {
 	std::vector<DWORD*> vec = std::vector<DWORD*>();
 	for (int elv = 0; elv < 3; elv++) {
 		for (int tile = 0; tile < 40000; tile++) {
-			DWORD* obj;
-			__asm {
-				mov edx, tile;
-				mov eax, elv;
-				call obj_find_first_at_tile_;
-				mov obj, eax;
-			}
+			TGameObj* obj = ObjFindFirstAtTile(elv, tile);
 			while (obj) {
-				DWORD otype = obj[25];
-				otype = (otype & 0xFF000000) >> 24;
-				if (otype == 1) vec.push_back(obj);
-				__asm {
-					call obj_find_next_at_tile_;
-					mov obj, eax;
+				if (obj->pid >> 24 == OBJ_TYPE_CRITTER) {
+					vec.push_back(reinterpret_cast<DWORD*>(obj));
 				}
+				obj = ObjFindNextAtTile();
 			}
 		}
 	}

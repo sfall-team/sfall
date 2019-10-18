@@ -24,7 +24,7 @@
 #include "main.h"
 
 #include "FalloutEngine.h"
-#include "graphics.h"
+#include "Graphics.h"
 #include "ScriptExtender.h"
 #include "HookScripts.h"
 #include "input.h"

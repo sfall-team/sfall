@@ -24,7 +24,7 @@
 #include "Combat.h"
 #include "HeroAppearance.h"
 #include "KillCounter.h"
-#include "movies.h"
+#include "Movies.h"
 #include "PartyControl.h"
 #include "ScriptExtender.h"
 

@@ -23,7 +23,7 @@
 #include "Combat.h"
 #include "Criticals.h"
 #include "ScriptExtender.h"
-#include "skills.h"
+#include "Skills.h"
 #include "Stats.h"
 
 const char* invalidStat = "%s() - stat number out of range.";

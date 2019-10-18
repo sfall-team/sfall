@@ -1073,7 +1073,11 @@ long __stdcall QueueFindFirst(TGameObj* object, long qType);
 
 TGameObj* __stdcall ObjFindFirst();
 
+TGameObj* __stdcall ObjFindFirstAtTile(long elevation, long tileNum);
+
 TGameObj* __stdcall ObjFindNext();
+
+TGameObj* __stdcall ObjFindNextAtTile();
 
 long __stdcall NewObjId();
 

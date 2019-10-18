@@ -290,6 +290,8 @@
     <ClInclude Include="FalloutStructs.h" />
     <ClInclude Include="FileSystem.h" />
     <ClInclude Include="Graphics.h" />
+    <ClInclude Include="Karma.h" />
+    <ClInclude Include="LoadOrder.h" />
     <ClInclude Include="TalkingHeads.h" />
     <ClInclude Include="HeroAppearance.h" />
     <ClInclude Include="HookScripts.h" />
@@ -300,7 +302,7 @@
     <ClInclude Include="LoadGameHook.h" />
     <ClInclude Include="MainMenu.h" />
     <ClInclude Include="Message.h" />
-    <ClInclude Include="movies.h" />
+    <ClInclude Include="Movies.h" />
     <ClInclude Include="Objects.h" />
     <ClInclude Include="PartyControl.h" />
     <ClInclude Include="Perks.h" />
@@ -324,8 +326,8 @@
     <ClInclude Include="ScriptOps\ScriptUtils.hpp" />
     <ClInclude Include="ScriptOps\StatsOp.hpp" />
     <ClInclude Include="ScriptOps\WorldmapOps.hpp" />
-    <ClInclude Include="skills.h" />
-    <ClInclude Include="sound.h" />
+    <ClInclude Include="Skills.h" />
+    <ClInclude Include="Sound.h" />
     <ClInclude Include="Stats.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="Tiles.h" />
@@ -358,6 +360,8 @@
     <ClCompile Include="Explosions.cpp" />
     <ClCompile Include="FalloutEngine.cpp" />
     <ClCompile Include="FileSystem.cpp" />
+    <ClCompile Include="Karma.cpp" />
+    <ClCompile Include="LoadOrder.cpp" />
     <ClCompile Include="TalkingHeads.cpp" />
     <ClCompile Include="HeroAppearance.cpp" />
     <ClCompile Include="HookScripts.cpp" />
@@ -368,7 +372,7 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="MainMenu.cpp" />
     <ClCompile Include="Message.cpp" />
-    <ClCompile Include="movies.cpp" />
+    <ClCompile Include="Movies.cpp" />
     <ClCompile Include="Objects.cpp" />
     <ClCompile Include="PartyControl.cpp" />
     <ClCompile Include="Perks.cpp" />
@@ -377,8 +381,8 @@
     <ClCompile Include="Reputations.cpp" />
     <ClCompile Include="SafeWrite.cpp" />
     <ClCompile Include="ScriptExtender.cpp" />
-    <ClCompile Include="skills.cpp" />
-    <ClCompile Include="sound.cpp" />
+    <ClCompile Include="Skills.cpp" />
+    <ClCompile Include="Sound.cpp" />
     <ClCompile Include="Stats.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
