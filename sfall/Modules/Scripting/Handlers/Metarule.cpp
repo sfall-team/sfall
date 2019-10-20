@@ -61,6 +61,7 @@ static MetaruleTableType metaruleTable;
 static const SfallMetarule metarules[] = {
 	{"add_extra_msg_file",      sf_add_extra_msg_file,      1, 2, {ARG_STRING, ARG_INT}},
 	{"add_iface_tag",           sf_add_iface_tag,           0, 0},
+	{"add_trait",               sf_add_trait,               1, 1, {ARG_INT}},
 	{"art_cache_clear",         sf_art_cache_flush,         0, 0},
 	{"attack_is_aimed",         sf_attack_is_aimed,         0, 0},
 	{"car_gas_amount",          sf_car_gas_amount,          0, 0},

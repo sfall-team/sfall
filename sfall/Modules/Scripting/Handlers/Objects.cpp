@@ -435,7 +435,7 @@ void sf_get_loot_object(OpcodeContext& ctx) {
 	ctx.setReturn((GetLoopFlags() & INTFACELOOT) ? LoadGameHook::LootTarget : 0);
 }
 
-static const char* failedLoad = "%s() - failed to load a prototype id: %d";
+static const char* failedLoad = "%s() - failed to load a prototype ID: %d";
 static bool protoMaxLimitPatch = false;
 
 void sf_get_proto_data(OpcodeContext& ctx) {

@@ -627,6 +627,9 @@ optional argument:
 - can take off player's equipped item when the inventory is opened, or the player is in the barter screen
 - slot: 0 - armor slot, 1 - right slot, 2 - left slot (see INVEN_TYPE_* in define.h)
 
+> void sfall_func1("add_trait", int traitId)
+- adds the specified trait to the player
+
 ------------------------
 ------ MORE INFO -------
 ------------------------

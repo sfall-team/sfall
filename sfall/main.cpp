@@ -158,7 +158,6 @@ static void InitModules() {
 
 	// initialize all modules
 	manager.add<BugFixes>();    // fixes should be applied at the beginning
-	manager.add<SpeedPatch>();
 	manager.add<Graphics>();
 	manager.add<Input>();
 	manager.add<LoadOrder>();
@@ -168,15 +167,16 @@ static void InitModules() {
 	manager.add<MainMenu>();
 	manager.add<Interface>();
 	manager.add<Objects>();
+	manager.add<SpeedPatch>();
 	manager.add<PlayerModel>();
 	manager.add<Worldmap>();
 	manager.add<Stats>();
 	manager.add<CritterStats>();
-	manager.add<Criticals>();
 	manager.add<Perks>();
 	manager.add<Combat>();
 	manager.add<Skills>();
 	manager.add<FileSystem>();
+	manager.add<Criticals>();
 	manager.add<Karma>();
 	manager.add<Tiles>();
 	manager.add<Credits>();

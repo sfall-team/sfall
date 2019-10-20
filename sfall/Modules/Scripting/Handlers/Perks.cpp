@@ -405,5 +405,24 @@ end:
 	}
 }
 
+void sf_add_trait(OpcodeContext& ctx) {
+	if (fo::var::obj_dude->protoId != fo::PID_Player) {
+		ctx.printOpcodeError("%s() - traits can be added only to the player.", ctx.getMetaruleName());
+		return;
+	}
+	long traitId = ctx.arg(0).rawValue();
+	if (traitId >= fo::TRAIT_fast_metabolism && traitId <= fo::TRAIT_gifted) {
+		if (fo::var::pc_trait[0] == -1) {
+			fo::var::pc_trait[0] = traitId;
+		} else if (fo::var::pc_trait[0] != traitId && fo::var::pc_trait[1] == -1) {
+			fo::var::pc_trait[1] = traitId;
+		} else {
+			ctx.printOpcodeError("%s() - cannot add the trait ID: %d", ctx.getMetaruleName(), traitId);
+		}
+	} else {
+		ctx.printOpcodeError("%s() - invalid trait ID.", ctx.getMetaruleName());
+	}
+}
+
 }
 }
