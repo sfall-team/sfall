@@ -462,14 +462,14 @@ static void __declspec(naked) op_tile_get_objects() {
 }
 
 static void _stdcall op_get_party_members2() {
-	DWORD obj, mode = opHandler.arg(0).asInt(), isDead;
-	int i, actualCount = *(DWORD*)_partyMemberCount;
+	DWORD mode = opHandler.arg(0).asInt(), isDead;
+	int actualCount = *ptr_partyMemberCount;
 	DWORD arrayId = TempArray(0, 4);
-	DWORD* partyMemberList = *(DWORD**)_partyMemberList;
-	for (i = 0; i < actualCount; i++) {
-		obj = partyMemberList[i*4];
+	DWORD* partyMemberList = *ptr_partyMemberList;
+	for (int i = 0; i < actualCount; i++) {
+		TGameObj* obj = reinterpret_cast<TGameObj*>(partyMemberList[i * 4]);
 		if (mode == 0) { // mode 0 will act just like op_party_member_count in fallout2
-			if ((*(DWORD*)(obj + 100) >> 24) != OBJ_TYPE_CRITTER)  // obj type != critter
+			if (obj->pid >> 24 != OBJ_TYPE_CRITTER) // obj type != critter
 				continue;
 			__asm {
 				mov eax, obj;
@@ -478,7 +478,7 @@ static void _stdcall op_get_party_members2() {
 			}
 			if (isDead)
 				continue;
-			if (*(DWORD*)(obj + 36) & 1) // no idea..
+			if (obj->flags & 1) // Mouse_3d flag
 				continue;
 		}
 		arrays[arrayId].push_back((long)obj);
@@ -646,7 +646,7 @@ static void sf_get_loot_object() {
 	opHandler.setReturn((GetLoopFlags() & INTFACELOOT) ? LoadGameHook_LootTarget : 0, DATATYPE_INT);
 }
 
-static const char* failedLoad = "%s() - failed to load a prototype id: %d";
+static const char* failedLoad = "%s() - failed to load a prototype ID: %d";
 static bool protoMaxLimitPatch = false;
 
 static void _stdcall get_proto_data2() {

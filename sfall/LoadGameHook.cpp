@@ -107,7 +107,7 @@ static void _stdcall ResetState(DWORD onLoad) {
 }
 
 void GetSavePath(char* buf, char* ftype) {
-	sprintf(buf, "%s\\savegame\\slot%.2d\\sfall%s.sav", *(char**)_patches, *(DWORD*)_slot_cursor + 1 + LSPageOffset, ftype); //add SuperSave Page offset
+	sprintf(buf, "%s\\savegame\\slot%.2d\\sfall%s.sav", *(char**)_patches, *ptr_slot_cursor + 1 + LSPageOffset, ftype); //add SuperSave Page offset
 }
 
 static char SaveSfallDataFailMsg[128];

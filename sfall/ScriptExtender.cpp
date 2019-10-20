@@ -391,6 +391,7 @@ static void OpcodeInvalidArgs(const char* opcodeName) {
 	If you don't include opcode in this array, you should take care of all argument validation inside handler itself.
 */
 static const SfallOpcodeMetadata opcodeMetaArray[] = {
+	{sf_add_trait,              "add_trait",              {DATATYPE_MASK_INT}},
 	{sf_create_win,             "create_win",             {DATATYPE_MASK_STR, DATATYPE_MASK_INT, DATATYPE_MASK_INT, DATATYPE_MASK_INT, DATATYPE_MASK_INT, DATATYPE_MASK_INT}},
 	{sf_critter_inven_obj2,     "critter_inven_obj2",     {DATATYPE_MASK_VALID_OBJ, DATATYPE_MASK_INT}},
 	{sf_get_current_inven_size, "get_current_inven_size", {DATATYPE_MASK_VALID_OBJ}},

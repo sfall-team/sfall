@@ -621,7 +621,26 @@ static void __declspec(naked) SetPerkLevelMod() {
 		mov  ecx, eax;
 		call SetPerkLevelMod2;
 end:
-		pop ecx;
+		pop  ecx;
 		retn;
+	}
+}
+
+static void sf_add_trait() {
+	if (*(DWORD*)(*(DWORD*)_obj_dude + 0x64) != PID_Player) {
+		opHandler.printOpcodeError("add_trait() - traits can be added only to the player.");
+		return;
+	}
+	long traitId = opHandler.arg(0).rawValue();
+	if (traitId >= TRAIT_fast_metabolism && traitId <= TRAIT_gifted) {
+		if (ptr_pc_traits[0] == -1) {
+			ptr_pc_traits[0] = traitId;
+		} else if (ptr_pc_traits[0] != traitId && ptr_pc_traits[1] == -1) {
+			ptr_pc_traits[1] = traitId;
+		} else {
+			opHandler.printOpcodeError("add_trait() - cannot add the trait ID: %d", traitId);
+		}
+	} else {
+		opHandler.printOpcodeError("add_trait() - invalid trait ID.");
 	}
 }

@@ -118,10 +118,11 @@ static void sf_metarule_exist() {
 		- minArgs/maxArgs - minimum and maximum number of arguments allowed for this function (max 6)
 */
 static const SfallMetarule metaruleArray[] = {
+	{"add_trait",               sf_add_trait,               1, 1},
 	{"art_cache_clear",         sf_art_cache_flush,         0, 0},
 	{"attack_is_aimed",         sf_attack_is_aimed,         0, 0},
-	{"critter_inven_obj2",      sf_critter_inven_obj2,      2, 2},
 	{"create_win",              sf_create_win,              5, 6},
+	{"critter_inven_obj2",      sf_critter_inven_obj2,      2, 2},
 	{"dialog_obj",              sf_get_dialog_object,       0, 0},
 	{"display_stats",           sf_display_stats,           0, 0}, // refresh
 	{"exec_map_update_scripts", sf_exec_map_update_scripts, 0, 0},

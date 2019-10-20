@@ -224,6 +224,7 @@
 #define ADD_PERK_MODE_REMOVE    (4)  // remove from the list of selectable perks
 
 // sfall_funcX macros
+#define add_trait(traitId)                              sfall_func1("add_trait", traitId)
 #define art_cache_clear                                 sfall_func0("art_cache_clear")
 #define attack_is_aimed                                 sfall_func0("attack_is_aimed")
 #define create_win(winName, x, y, w, h)                 sfall_func5("create_win", winName, x, y, w, h)

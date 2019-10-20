@@ -58,7 +58,7 @@ static DWORD real_perkLevelDataList[PERK_count];
 static int real_tag_skill[4];
 //static DWORD real_bbox_sneak;
 
-static const DWORD* list_com = (DWORD*)_list_com;
+static const DWORD* list_com = ptr_list_com;
 
 static bool _stdcall IsInPidList(TGameObj* obj) {
 	int pid = obj->pid & 0xFFFFFF;

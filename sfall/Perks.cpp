@@ -365,10 +365,10 @@ static DWORD _stdcall HandleFakeTraits(int isSelect) {
 		}
 		if (a && !isSelect) {
 			isSelect = 1;
-			*(DWORD*)_folder_card_fid = fakeTraits[i].Image;
-			*(DWORD*)_folder_card_title = (DWORD)fakeTraits[i].Name;
-			*(DWORD*)_folder_card_title2 = 0;
-			*(DWORD*)_folder_card_desc = (DWORD)fakeTraits[i].Desc;
+			*ptr_folder_card_fid = fakeTraits[i].Image;
+			*ptr_folder_card_title = (DWORD)fakeTraits[i].Name;
+			*ptr_folder_card_title2 = 0;
+			*ptr_folder_card_desc = (DWORD)fakeTraits[i].Desc;
 		}
 	}
 	return isSelect;

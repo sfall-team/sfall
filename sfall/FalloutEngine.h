@@ -317,7 +317,7 @@ extern DWORD* ptr_gdBarterMod;
 extern DWORD* ptr_gdNumOptions;
 extern DWORD* ptr_gIsSteal;
 extern DWORD* ptr_glblmode;
-extern DWORD* ptr_gmouse_current_cursor;
+extern long*  ptr_gmouse_current_cursor;
 extern DWORD* ptr_gmovie_played_list;
 extern BYTE*  ptr_GreenColor;
 extern DWORD* ptr_gsound_initialized;

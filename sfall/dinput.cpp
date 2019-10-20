@@ -208,7 +208,7 @@ public:
 		if (UseScrollWheel) {
 			int count = 1;
 			if (MouseState.lZ > 0) {
-				if (*(DWORD*)_gmouse_current_cursor == 2 || *(DWORD*)_gmouse_current_cursor == 3) {
+				if (*ptr_gmouse_current_cursor == 2 || *ptr_gmouse_current_cursor == 3) {
 					__asm {
 						call display_scroll_up_;
 					}
@@ -218,7 +218,7 @@ public:
 					while (count--) TapKey(DIK_UP);
 				}
 			} else if (MouseState.lZ < 0) {
-				if (*(DWORD*)_gmouse_current_cursor == 2 || *(DWORD*)_gmouse_current_cursor == 3) {
+				if (*ptr_gmouse_current_cursor == 2 || *ptr_gmouse_current_cursor == 3) {
 					__asm {
 						call display_scroll_down_;
 					}
