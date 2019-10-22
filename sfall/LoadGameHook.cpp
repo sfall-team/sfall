@@ -275,17 +275,21 @@ static void __declspec(naked) EndLoadHook() {
 	}
 }
 
-static void __stdcall GameInitialization() {
+static void __stdcall GameInitialization() { // OnBeforeGameInit
 	MusicVolInitialization();
 }
 
-static void __stdcall GameInitialized() {
+static void __stdcall game_init_hook() { // OnGameInit
+	FallbackEnglishLoadMsgFiles();
+}
+
+static void __stdcall GameInitialized() { // OnAfterGameInit
 	rcpresInit();
 	RemoveSavFiles();
 	if (Use32BitTalkingHeads) TalkingHeadsSetup();
 }
 
-static void __declspec(naked) GameInitHook() {
+static void __declspec(naked) main_init_system_hook() {
 	__asm {
 		pushadc;
 		call GameInitialization;
@@ -342,11 +346,11 @@ static void __declspec(naked) MainMenuHook() {
 	}
 }
 
-static void _stdcall GameClose() {
+static void __stdcall GameClose() { // onBeforeGameClose
 	WipeSounds();
 }
 
-static void __declspec(naked) GameCloseHook() {
+static void __declspec(naked) game_close_hook() {
 	__asm {
 		pushadc;
 		call GameClose;
@@ -586,9 +590,11 @@ void LoadGameHookInit() {
 		SafeWrite8(0x4C06D8, 0xEB); // skip the Horrigan encounter check
 	}
 
-	HookCall(0x4809BA, GameInitHook); // 4.x backport
-	HookCall(0x480AB3, NewGame);
+	// 4.x backport
+	HookCall(0x4809BA, main_init_system_hook);
+	HookCall(0x4426A6, game_init_hook);
 
+	HookCall(0x480AB3, NewGame);
 	HookCall(0x47C72C, LoadSlot);
 	HookCall(0x47D1C9, LoadSlot);
 	HookCall(0x443AE4, LoadGame);
@@ -602,8 +608,8 @@ void LoadGameHookInit() {
 
 	HookCall(0x480A28, MainMenuHook);
 	// 4.x backport
-	HookCall(0x480CA7, GameCloseHook); // gnw_main_
-	//HookCall(0x480D45, GameCloseHook); // main_exit_system_ (never called)
+	HookCall(0x480CA7, game_close_hook); // gnw_main_
+	//HookCall(0x480D45, game_close_hook); // main_exit_system_ (never called)
 
 	// game modes
 	HookCall(0x483668, WorldMapHook);

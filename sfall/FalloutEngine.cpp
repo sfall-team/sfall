@@ -1015,6 +1015,15 @@ void __stdcall DialogOut(const char* text) {
 	}
 }
 
+long __fastcall GetGameConfigString(const char* papam, const char* section, const char* outValue) {
+	__asm {
+		mov  ebx, ecx; // papam
+		mov  eax, _game_config;
+		mov  ecx, outValue;
+		call config_get_string_;
+	}
+}
+
 long __fastcall WordWrap(const char* text, int maxWidth, DWORD* buf, BYTE* count) {
 	__asm {
 		mov  eax, ecx;

@@ -87,7 +87,9 @@
 #define _frame_time                 0x5709C4
 #define _free_perk                  0x570A29
 #define _frstc_draw1                0x5707D8
+#define _game_config                0x58E950
 #define _game_global_vars           0x5186C0
+#define _game_ui_disabled           0x5186B4
 #define _game_user_wants_to_quit    0x5186CC
 #define _gcsd                       0x51094C
 #define _gdBarterMod                0x51873C
@@ -1054,6 +1056,8 @@ long __fastcall CreateWindowFunc(const char* winName, long x, long y, long width
 long __stdcall WinRegisterButton(DWORD winRef, long xPos, long yPos, long width, long height, long hoverOn, long hoverOff, long buttonDown, long buttonUp, BYTE* pictureUp, BYTE* pictureDown, long arg12, long buttonType);
 
 void __stdcall DialogOut(const char* text);
+
+long __fastcall GetGameConfigString(const char* papam, const char* section, const char* outValue);
 
 long __fastcall WordWrap(const char* text, int maxWidth, DWORD* buf, BYTE* count);
 

@@ -56,4 +56,5 @@ long __stdcall DestroyMsgList(MSGList *msgList);
 MSGNode *GetMsgNode(MSGList *msgList, int msgRef);
 char* GetMsg(MSGList *msgList, int msgRef, int msgNum);
 void ReadExtraGameMsgFiles();
+void FallbackEnglishLoadMsgFiles();
 void ClearReadExtraGameMsgFiles();
