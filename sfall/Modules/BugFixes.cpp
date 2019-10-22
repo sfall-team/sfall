@@ -2423,7 +2423,7 @@ void BugFixes::init()
 	#endif
 
 	// Missing game initialization
-	LoadGameHook::OnGameInit() += MusicVolInitialization;
+	LoadGameHook::OnBeforeGameInit() += MusicVolInitialization;
 
 	// Fix vanilla negate operator on float values
 	MakeCall(0x46AB68, NegateFixHack);

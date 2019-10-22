@@ -17,6 +17,7 @@
 */
 
 #include "FunctionOffsets.h"
+#include "VariableOffsets.h"
 
 #include "Functions.h"
 
@@ -467,6 +468,15 @@ void __fastcall trans_cscale(long i_width, long i_height, long s_width, long s_h
 //void __declspec(naked) __stdcall buf_to_buf(void* to_buf, long to_width, void* from_buf, long from_width, long width, long height) {
 //	__asm jmp fo::funcoffs::srcCopy_;
 //}
+
+long __fastcall get_game_config_string(const char* papam, const char* section, const char* outValue) {
+	__asm {
+		mov  ebx, ecx; // papam
+		mov  eax, FO_VAR_game_config;
+		mov  ecx, outValue;
+		call fo::funcoffs::config_get_string_;
+	}
+}
 
 ////////////////////////////////////
 // X-Macro for wrapper functions. //

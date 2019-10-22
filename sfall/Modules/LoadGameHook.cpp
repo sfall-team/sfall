@@ -53,6 +53,7 @@ namespace sfall
 	popadc                           \
 }
 
+static Delegate<> onBeforeGameInit;
 static Delegate<> onGameInit;
 static Delegate<> onAfterGameInit;
 static Delegate<> onGameExit;
@@ -331,6 +332,10 @@ static void __declspec(naked) main_load_new_hook() {
 }
 
 static void __stdcall GameInitialization() {
+	onBeforeGameInit.invoke();
+}
+
+static void __stdcall game_init_hook() {
 	onGameInit.invoke();
 }
 
@@ -640,8 +645,9 @@ void LoadGameHook::init() {
 	saveSfallDataFailMsg = Translate("sfall", "SaveSfallDataFail",
 		"ERROR saving extended savegame information! Check if other programs interfere with savegame files/folders and try again!");
 
-	HookCalls(main_init_system_hook, {0x4809BA});
-	HookCalls(main_load_new_hook, {0x480AAE});
+	HookCall(0x4809BA, main_init_system_hook);
+	HookCall(0x4426A6, game_init_hook);
+	HookCall(0x480AAE, main_load_new_hook);
 	HookCalls(LoadGame_hook, {0x443AE4, 0x443B89, 0x480B77, 0x48FD35});
 	SafeWrite32(0x5194C0, (DWORD)&EndLoadHook);
 	HookCalls(SaveGame_hook, {0x443AAC, 0x443B1C, 0x48FCFF});
@@ -691,6 +697,10 @@ void LoadGameHook::init() {
 	HookCall(0x445D30, DialogReviewExitHook);
 	HookCall(0x476AC6, setup_move_timer_win_Hook); // before init win
 	HookCall(0x477067, exit_move_timer_win_Hook);
+}
+
+Delegate<>& LoadGameHook::OnBeforeGameInit() {
+	return onBeforeGameInit;
 }
 
 Delegate<>& LoadGameHook::OnGameInit() {

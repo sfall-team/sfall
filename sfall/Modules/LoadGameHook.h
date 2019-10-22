@@ -28,8 +28,11 @@ class LoadGameHook : public Module {
 public:
 	const char* name() { return "LoadGameHook"; }
 	void init();
-	
-	// Invoked before game initialization (game_init_ was called).
+
+	// Invoked before game initialization (main_init_system_ was called)
+	static Delegate<>& OnBeforeGameInit();
+
+	// Invoked during game initialization (game_init_ was called).
 	static Delegate<>& OnGameInit();
 
 	// Invoked when the game has been initialized
