@@ -1057,7 +1057,7 @@ long __stdcall WinRegisterButton(DWORD winRef, long xPos, long yPos, long width,
 
 void __stdcall DialogOut(const char* text);
 
-long __fastcall GetGameConfigString(const char* papam, const char* section, const char* outValue);
+long __fastcall GetGameConfigString(const char* outValue, const char* section, const char* param);
 
 long __fastcall WordWrap(const char* text, int maxWidth, DWORD* buf, BYTE* count);
 

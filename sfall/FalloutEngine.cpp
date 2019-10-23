@@ -1015,12 +1015,11 @@ void __stdcall DialogOut(const char* text) {
 	}
 }
 
-long __fastcall GetGameConfigString(const char* papam, const char* section, const char* outValue) {
+long __fastcall GetGameConfigString(const char* outValue, const char* section, const char* param) {
 	__asm {
-		mov  ebx, ecx; // papam
+		mov  ebx, param;
 		mov  eax, _game_config;
-		mov  ecx, outValue;
-		call config_get_string_;
+		call config_get_string_; // section<edx>, outValue<ecx>
 	}
 }
 

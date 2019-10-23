@@ -135,7 +135,7 @@ void ReadExtraGameMsgFiles() {
 
 void FallbackEnglishLoadMsgFiles() {
 	char value[128];
-	if (GetGameConfigString("language", "system", value) && _stricmp(value, "english") != 0) {
+	if (GetGameConfigString(value, "system", "language") && _stricmp(value, "english") != 0) {
 		HookCall(0x484B18, message_load_hook);
 	}
 }
