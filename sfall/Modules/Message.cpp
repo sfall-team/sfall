@@ -175,7 +175,7 @@ static void ClearScriptAddedExtraGameMsg() { // C++11
 
 static void FallbackEnglishLoadMsgFiles() {
 	char value[128];
-	if (fo::func::get_game_config_string("language", "system", value) && _stricmp(value, "english") != 0) {
+	if (fo::func::get_game_config_string(value, "system", "language") && _stricmp(value, "english") != 0) {
 		HookCall(0x484B18, message_load_hook);
 	}
 }

@@ -469,12 +469,11 @@ void __fastcall trans_cscale(long i_width, long i_height, long s_width, long s_h
 //	__asm jmp fo::funcoffs::srcCopy_;
 //}
 
-long __fastcall get_game_config_string(const char* papam, const char* section, const char* outValue) {
+long __fastcall get_game_config_string(const char* outValue, const char* section, const char* param) {
 	__asm {
-		mov  ebx, ecx; // papam
+		mov  ebx, param;
 		mov  eax, FO_VAR_game_config;
-		mov  ecx, outValue;
-		call fo::funcoffs::config_get_string_;
+		call fo::funcoffs::config_get_string_; // section<edx>, outValue<ecx>
 	}
 }
 
