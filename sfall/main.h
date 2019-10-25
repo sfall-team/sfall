@@ -69,7 +69,10 @@ namespace sfall
 	#define isDebug false
 #endif
 
-// Macros for quick replacement of pushad/popad assembler opcodes
+// Trap for Debugger
+#define BREAKPOINT __asm int 3
+
+// Macros for quick replacement of assembler opcodes pushad/popad
 #define pushadc __asm push eax __asm push edx __asm push ecx
 #define popadc __asm pop ecx __asm pop edx __asm pop eax
 
