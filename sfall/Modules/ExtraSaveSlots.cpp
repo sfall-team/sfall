@@ -475,7 +475,7 @@ static void __declspec(naked) SaveGame_hack1() {
 void ExtraSaveSlots::init() {
 	bool extraSaveSlots = (GetConfigInt("Misc", "ExtraSaveSlots", 0) != 0);
 	if (extraSaveSlots) {
-		dlog("Running EnableSuperSaving()", DL_INIT);
+		dlog("Applying extra save slots patch.", DL_INIT);
 		EnableSuperSaving();
 		dlogr(" Done", DL_INIT);
 	}

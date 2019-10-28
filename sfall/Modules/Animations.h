@@ -23,9 +23,9 @@
 namespace sfall 
 {
 
-class AnimationsAtOnce : public Module {
+class Animations : public Module {
 public:
-	const char* name() { return "AnimationsAtOnceLimit"; }
+	const char* name() { return "Animations"; }
 	void init();
 	void exit() override;
 };

@@ -20,7 +20,7 @@
 #include "..\FalloutEngine\Fallout2.h"
 #include "LoadGameHook.h"
 
-#include "AnimationsAtOnceLimit.h"
+#include "Animations.h"
 
 namespace sfall
 {
@@ -325,7 +325,7 @@ void ApplyAnimationsAtOncePatches(signed char aniMax) {
 	SafeWriteBatch<DWORD>(40 + sadAddr, sad_28);
 }
 
-void AnimationsAtOnce::init() {
+void Animations::init() {
 	animationLimit = GetConfigInt("Misc", "AnimationsAtOnceLimit", 32);
 	if (animationLimit > 32) {
 		if (animationLimit > 127) {
@@ -345,7 +345,7 @@ void AnimationsAtOnce::init() {
 	HookCall(0x411E1F, action_climb_ladder_hook);
 }
 
-void AnimationsAtOnce::exit() {
+void Animations::exit() {
 }
 
 }

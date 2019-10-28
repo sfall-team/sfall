@@ -24,7 +24,7 @@
 #include "ModuleManager.h"
 #include "Modules\Module.h"
 #include "Modules\AI.h"
-#include "Modules\AnimationsAtOnceLimit.h"
+#include "Modules\Animations.h"
 #include "Modules\BarBoxes.h"
 #include "Modules\Books.h"
 #include "Modules\BugFixes.h"
@@ -198,7 +198,7 @@ static void InitModules() {
 	//
 	manager.add<AI>();
 	manager.add<DamageMod>();
-	manager.add<AnimationsAtOnce>();
+	manager.add<Animations>();
 	manager.add<BarBoxes>();
 	manager.add<HeroAppearance>();
 	manager.add<MiscPatches>();

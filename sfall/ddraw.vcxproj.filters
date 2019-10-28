@@ -22,7 +22,7 @@
     <ClInclude Include="Modules\AI.h">
       <Filter>Modules</Filter>
     </ClInclude>
-    <ClInclude Include="Modules\AnimationsAtOnceLimit.h">
+    <ClInclude Include="Modules\Animations.h">
       <Filter>Modules</Filter>
     </ClInclude>
     <ClInclude Include="Modules\BarBoxes.h">
@@ -291,7 +291,7 @@
     <ClCompile Include="Modules\AI.cpp">
       <Filter>Modules</Filter>
     </ClCompile>
-    <ClCompile Include="Modules\AnimationsAtOnceLimit.cpp">
+    <ClCompile Include="Modules\Animations.cpp">
       <Filter>Modules</Filter>
     </ClCompile>
     <ClCompile Include="Modules\BarBoxes.cpp">

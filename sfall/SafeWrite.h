@@ -3,7 +3,7 @@
 #include <initializer_list>
 #include <Windows.h>
 
-namespace sfall 
+namespace sfall
 {
 
 #ifndef NDEBUG
