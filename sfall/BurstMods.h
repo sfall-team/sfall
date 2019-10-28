@@ -18,4 +18,4 @@
 
 #pragma once
 
-void ComputeSprayModInit();
+void BurstModsInit();

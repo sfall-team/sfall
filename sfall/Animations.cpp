@@ -18,7 +18,7 @@
 
 #include "main.h"
 
-#include "AnimationsAtOnceLimit.h"
+#include "Animations.h"
 #include "FalloutEngine.h"
 #include "LoadGameHook.h"
 
@@ -370,7 +370,7 @@ void ApplyAnimationsAtOncePatches(signed char aniMax) {
 	}
 }
 
-void AnimationsAtOnceInit() {
+void AnimationsInit() {
 	animationLimit = GetConfigInt("Misc", "AnimationsAtOnceLimit", 32);
 	if (animationLimit > 32) {
 		if (animationLimit > 127) {
@@ -390,7 +390,7 @@ void AnimationsAtOnceInit() {
 	HookCall(0x411E1F, action_climb_ladder_hook);
 }
 
-void AnimationsAtOnceExit() {
+void AnimationsExit() {
 	if (animationLimit <= 32) return;
 	delete[] anim_set;
 	delete[] sad;

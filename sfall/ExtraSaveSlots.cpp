@@ -20,8 +20,8 @@
 
 #include <stdio.h>
 #include "FalloutEngine.h"
+#include "ExtraSaveSlots.h"
 #include "HeroAppearance.h"
-#include "SuperSave.h"
 
 //extern
 DWORD LSPageOffset = 0;

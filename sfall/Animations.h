@@ -16,11 +16,7 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #pragma once
 
-
-void AnimationsAtOnceInit();
-void AnimationsAtOnceExit();
-
-
+void AnimationsInit();
+void AnimationsExit();

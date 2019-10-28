@@ -94,7 +94,7 @@
       <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="resource.h" />
-    <ClInclude Include="SuperSave.h">
+    <ClInclude Include="ExtraSaveSlots.h">
       <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="Logging.h">
@@ -103,7 +103,7 @@
     <ClInclude Include="BarBoxes.h">
       <Filter>Headers</Filter>
     </ClInclude>
-    <ClInclude Include="AnimationsAtOnceLimit.h">
+    <ClInclude Include="Animations.h">
       <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="main.h">
@@ -291,7 +291,7 @@
     <ClCompile Include="SpeedPatch.cpp">
       <Filter>Source</Filter>
     </ClCompile>
-    <ClCompile Include="SuperSave.cpp">
+    <ClCompile Include="ExtraSaveSlots.cpp">
       <Filter>Source</Filter>
     </ClCompile>
     <ClCompile Include="main.cpp" />
@@ -301,7 +301,7 @@
     <ClCompile Include="BarBoxes.cpp">
       <Filter>Source</Filter>
     </ClCompile>
-    <ClCompile Include="AnimationsAtOnceLimit.cpp">
+    <ClCompile Include="Animations.cpp">
       <Filter>Source</Filter>
     </ClCompile>
     <ClCompile Include="Skills.cpp">

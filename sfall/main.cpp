@@ -25,7 +25,7 @@
 #include "Define.h"
 #include "FalloutEngine.h"
 #include "AI.h"
-#include "AnimationsAtOnceLimit.h"
+#include "Animations.h"
 #include "BarBoxes.h"
 #include "Books.h"
 #include "BugFixes.h"
@@ -39,6 +39,7 @@
 #include "DebugEditor.h"
 #include "Elevators.h"
 #include "Explosions.h"
+#include "ExtraSaveSlots.h"
 #include "FileSystem.h"
 #include "Graphics.h"
 #include "HeroAppearance.h"
@@ -62,7 +63,6 @@
 #include "Sound.h"
 #include "SpeedPatch.h"
 #include "Stats.h"
-#include "SuperSave.h"
 #include "TalkingHeads.h"
 #include "Tiles.h"
 #include "Utils.h"
@@ -483,8 +483,9 @@ static void DllMain2() {
 	ConsoleInit();
 
 	if (GetConfigInt("Misc", "ExtraSaveSlots", 0)) {
-		dlogr("Running EnableSuperSaving().", DL_INIT);
+		dlog("Applying extra save slots patch.", DL_INIT);
 		EnableSuperSaving();
+		dlogr(" Done", DL_INIT);
 	}
 
 	dlogr("Running InventoryInit().", DL_INIT);
@@ -493,8 +494,8 @@ static void DllMain2() {
 	dlogr("Initializing party control...", DL_INIT);
 	PartyControlInit();
 
-	dlogr("Running ComputeSprayModInit().", DL_INIT);
-	ComputeSprayModInit();
+	dlogr("Running BurstModsInit().", DL_INIT);
+	BurstModsInit();
 
 	dlogr("Running BooksInit().", DL_INIT);
 	BooksInit();
@@ -522,8 +523,8 @@ static void DllMain2() {
 	dlogr("Running DamageModInit().", DL_INIT);
 	DamageModInit();
 
-	dlogr("Running AnimationsAtOnceInit().", DL_INIT);
-	AnimationsAtOnceInit();
+	dlogr("Running AnimationsInit().", DL_INIT);
+	AnimationsInit();
 
 	dlogr("Running BarBoxesInit().", DL_INIT);
 	BarBoxesInit();
@@ -853,7 +854,7 @@ static void _stdcall OnExit() {
 	ConsoleExit();
 	BooksExit();
 	ClearReadExtraGameMsgFiles();
-	AnimationsAtOnceExit();
+	AnimationsExit();
 	HeroAppearanceModExit();
 	TalkingHeadsExit();
 }
