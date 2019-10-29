@@ -184,7 +184,6 @@ static void ClearReadExtraGameMsgFiles() {
 	for (auto it = gExtraGameMsgLists.begin(); it != gExtraGameMsgLists.end(); ++it) {
 		fo::func::message_exit(it->second.get());
 	}
-	//gExtraGameMsgLists.clear();
 }
 
 void Message::init() {
@@ -192,11 +191,12 @@ void Message::init() {
 
 	LoadGameHook::OnGameInit() += FallbackEnglishLoadMsgFiles;
 	LoadGameHook::OnBeforeGameStart() += ReadExtraGameMsgFiles;
+	LoadGameHook::OnBeforeGameClose() += ClearReadExtraGameMsgFiles;
 	LoadGameHook::OnGameReset() += ClearScriptAddedExtraGameMsg;
 }
 
 void Message::exit() {
-	ClearReadExtraGameMsgFiles();
+	//gExtraGameMsgLists.clear();
 }
 
 }

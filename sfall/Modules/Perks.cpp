@@ -858,10 +858,10 @@ static void PerkSetup() {
 	if (!perksReInit) {
 		// _perk_data
 		SafeWriteBatch<DWORD>((DWORD)perks, {0x496669, 0x496837, 0x496BAD, 0x496C41, 0x496D25});
-		SafeWrite32(0x496696, (DWORD)perks + 4);
-		SafeWrite32(0x496BD1, (DWORD)perks + 4);
-		SafeWrite32(0x496BF5, (DWORD)perks + 8);
-		SafeWrite32(0x496AD4, (DWORD)perks + 12);
+		SafeWrite32(0x496696, (DWORD)&perks[0].description);
+		SafeWrite32(0x496BD1, (DWORD)&perks[0].description);
+		SafeWrite32(0x496BF5, (DWORD)&perks[0].image);
+		SafeWrite32(0x496AD4, (DWORD)&perks[0].ranks);
 	}
 	memcpy(perks, var::perk_data, sizeof(PerkInfo) * PERK_count); // copy vanilla data
 
@@ -1121,9 +1121,9 @@ static void TraitSetup() {
 	// _trait_data
 	SafeWrite32(0x4B3A81, (DWORD)traits);
 	SafeWrite32(0x4B3B80, (DWORD)traits);
-	SafeWrite32(0x4B3AAE, (DWORD)traits + 4);
-	SafeWrite32(0x4B3BA0, (DWORD)traits + 4);
-	SafeWrite32(0x4B3BC0, (DWORD)traits + 8);
+	SafeWrite32(0x4B3AAE, (DWORD)&traits[0].description);
+	SafeWrite32(0x4B3BA0, (DWORD)&traits[0].description);
+	SafeWrite32(0x4B3BC0, (DWORD)&traits[0].image);
 
 	char buf[512], num[5] = {'t'};
 	char* num2 = &num[1];

@@ -45,7 +45,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <CharacterSet>NotSet</CharacterSet>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v140_xp</PlatformToolset>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -277,6 +277,7 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="CheckAddress.h" />
     <ClInclude Include="Delegate.h" />
     <ClInclude Include="FalloutEngine\Enums.h" />
     <ClInclude Include="FalloutEngine\Fallout2.h" />
@@ -376,6 +377,7 @@
     <ClInclude Include="Modules\ExtraSaveSlots.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="CheckAddress.cpp" />
     <ClCompile Include="FalloutEngine\EngineUtils.cpp" />
     <ClCompile Include="FalloutEngine\FunctionOffsets.cpp" />
     <ClCompile Include="FalloutEngine\Variables.cpp" />

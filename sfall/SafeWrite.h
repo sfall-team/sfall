@@ -3,13 +3,10 @@
 #include <initializer_list>
 #include <Windows.h>
 
+#include "CheckAddress.h"
+
 namespace sfall
 {
-
-#ifndef NDEBUG
-void AddrAddToList(DWORD addr, long len);
-void PrintAddrList();
-#endif
 
 template<typename T> void _stdcall SafeWrite(DWORD addr, T data) {
 	DWORD oldProtect;
@@ -17,9 +14,7 @@ template<typename T> void _stdcall SafeWrite(DWORD addr, T data) {
 	*((T*)addr) = data;
 	VirtualProtect((void*)addr, sizeof(T), oldProtect, &oldProtect);
 
-	#ifndef NDEBUG
-		AddrAddToList(addr, sizeof(T));
-	#endif
+	AddrAddToList(addr, sizeof(T));
 }
 
 template <typename T, class ForwardIteratorType>

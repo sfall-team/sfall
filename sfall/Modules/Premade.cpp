@@ -46,7 +46,7 @@ void Premade::init() {
 		SafeWrite32(0x51C8D4, count);
 		SafeWrite32(0x4A7D76, (DWORD)premade);
 		SafeWrite32(0x4A8B1E, (DWORD)premade);
-		SafeWrite32(0x4A7E2C, (DWORD)premade + 20);
+		SafeWrite32(0x4A7E2C, (DWORD)&premade[0].fid);
 		strcpy((char*)0x50AF68, premade[0].path);
 		dlogr(" Done", DL_INIT);
 	}

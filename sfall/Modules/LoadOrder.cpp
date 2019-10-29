@@ -162,9 +162,8 @@ static void __stdcall InitExtraPatches() {
 	patchFiles.shrink_to_fit();
 }
 
-static void __fastcall game_init_databases_hook() {
-	fo::PathNode* master_patches;
-	__asm mov master_patches, eax;        // eax = _master_db_handle
+static void __fastcall game_init_databases_hook() { // eax = _master_db_handle
+	fo::PathNode* master_patches = (fo::PathNode*)fo::var::master_db_handle;
 
 	if (!patchFiles.empty()) InitExtraPatches();
 
