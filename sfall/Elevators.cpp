@@ -130,7 +130,7 @@ void LoadElevators(const char* elevFile) {
 	for (int i = 0; i < vanillaElevatorCount; i++) elevatorType[i] = i;
 
 	char section[4];
-	if (elevFile) {
+	if (elevFile && GetFileAttributes(elevFile) != INVALID_FILE_ATTRIBUTES) {
 		for (int i = 0; i < elevatorCount; i++) {
 			_itoa_s(i, section, 10);
 			int type = iniGetInt(section, "Image", elevatorType[i], elevFile);

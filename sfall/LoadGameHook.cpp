@@ -348,6 +348,7 @@ static void __declspec(naked) MainMenuHook() {
 
 static void __stdcall GameClose() { // OnBeforeGameClose
 	WipeSounds();
+	ClearReadExtraGameMsgFiles();
 }
 
 static void __declspec(naked) game_close_hook() {

@@ -853,7 +853,7 @@ static void _stdcall OnExit() {
 	ReputationsExit();
 	ConsoleExit();
 	BooksExit();
-	ClearReadExtraGameMsgFiles();
+	//gExtraGameMsgLists.clear();
 	AnimationsExit();
 	HeroAppearanceModExit();
 	TalkingHeadsExit();

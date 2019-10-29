@@ -145,5 +145,4 @@ void ClearReadExtraGameMsgFiles() {
 		DestroyMsgList(it->second);
 		delete it->second;
 	}
-	//gExtraGameMsgLists.clear();
 }

@@ -46,31 +46,31 @@ static bool perksReInit = false;
 static int perksEnable = 0;
 
 struct TraitStruct {
-	char* Name;
-	char* Desc;
-	DWORD Image;
+	const char* Name;
+	const char* Desc;
+	long Image;
 };
 
 struct PerkStruct {
-	char* Name;
-	char* Desc;
-	int Image;
-	int Ranks;
-	int Level;
-	int Stat;
-	int StatMag;
-	int Skill1;
-	int Skill1Mag;
-	int Type;
-	int Skill2;
-	int Skill2Mag;
-	int Str;
-	int Per;
-	int End;
-	int Chr;
-	int Int;
-	int Agl;
-	int Lck;
+	const char* Name;
+	const char* Desc;
+	long Image;
+	long Ranks;
+	long Level;
+	long Stat;
+	long StatMag;
+	long Skill1;
+	long Skill1Mag;
+	long Type;
+	long Skill2;
+	long Skill2Mag;
+	long Str;
+	long Per;
+	long End;
+	long Chr;
+	long Int;
+	long Agl;
+	long Lck;
 };
 
 //static const PerkStruct BlankPerk={ &Name[PERK_count*64], &Desc[PERK_count*1024], 0x48, 1, 1, -1, 0, -1, 0, 0, -1, 0, 0, 0, 0, 0, 0, 0, 0 };
@@ -711,10 +711,10 @@ static void PerkSetup() {
 		SafeWrite32(0x496BAD, (DWORD)Perks);
 		SafeWrite32(0x496C41, (DWORD)Perks);
 		SafeWrite32(0x496D25, (DWORD)Perks);
-		SafeWrite32(0x496696, (DWORD)Perks + 4);
-		SafeWrite32(0x496BD1, (DWORD)Perks + 4);
-		SafeWrite32(0x496BF5, (DWORD)Perks + 8);
-		SafeWrite32(0x496AD4, (DWORD)Perks + 12);
+		SafeWrite32(0x496696, (DWORD)&Perks[0].Desc);
+		SafeWrite32(0x496BD1, (DWORD)&Perks[0].Desc);
+		SafeWrite32(0x496BF5, (DWORD)&Perks[0].Image);
+		SafeWrite32(0x496AD4, (DWORD)&Perks[0].Ranks);
 	}
 	memcpy(Perks, (void*)_perk_data, sizeof(PerkStruct) * PERK_count); // copy vanilla data
 
@@ -923,9 +923,9 @@ static void TraitSetup() {
 	// _trait_data
 	SafeWrite32(0x4B3A81, (DWORD)Traits);
 	SafeWrite32(0x4B3B80, (DWORD)Traits);
-	SafeWrite32(0x4B3AAE, (DWORD)Traits + 4);
-	SafeWrite32(0x4B3BA0, (DWORD)Traits + 4);
-	SafeWrite32(0x4B3BC0, (DWORD)Traits + 8);
+	SafeWrite32(0x4B3AAE, (DWORD)&Traits[0].Desc);
+	SafeWrite32(0x4B3BA0, (DWORD)&Traits[0].Desc);
+	SafeWrite32(0x4B3BC0, (DWORD)&Traits[0].Image);
 
 	char buf[512], num[5] = {'t'};
 	char* num2 = &num[1];
