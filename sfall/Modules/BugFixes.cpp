@@ -2415,6 +2415,13 @@ end:
 	}
 }
 
+static void __declspec(naked) partyMemberCopyLevelInfo_hook_wield() {
+	__asm {
+		inc  ebx; // slot
+		jmp  fo::funcoffs::invenWieldFunc_;
+	}
+}
+
 void BugFixes::init()
 {
 	#ifndef NDEBUG
@@ -3044,6 +3051,9 @@ void BugFixes::init()
 	// Note: pass negative amount values to critter_rm_trait to remove all ranks of the perk (vanilla behavior)
 	HookCall(0x458CDB, op_critter_rm_trait_hook);
 	HookCall(0x458B3D, op_critter_add_trait_hook);
+
+	// Fix for party member's equipped weapon being placed in the incorrect item slot after leveling up
+	HookCall(0x495FDF, partyMemberCopyLevelInfo_hook_wield);
 }
 
 }
