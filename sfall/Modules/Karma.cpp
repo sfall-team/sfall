@@ -77,7 +77,7 @@ void Karma::DisplayKarma(int value) {
 	fo::func::display_print(buf);
 }
 
-void ApplyDisplayKarmaChangesPatch() {
+static void ApplyDisplayKarmaChangesPatch() {
 	displayKarmaChanges = GetConfigInt("Misc", "DisplayKarmaChanges", 0) != 0;
 	if (displayKarmaChanges) {
 		dlog("Applying display karma changes patch.", DL_INIT);
@@ -88,7 +88,7 @@ void ApplyDisplayKarmaChangesPatch() {
 	}
 }
 
-void ApplyKarmaFRMsPatch() {
+static void ApplyKarmaFRMsPatch() {
 	auto karmaFrmList = GetConfigList("Misc", "KarmaFRMs", "", 512);
 	size_t countFrm = karmaFrmList.size();
 	if (countFrm) {
@@ -100,8 +100,8 @@ void ApplyKarmaFRMsPatch() {
 		for (size_t i = 0; i < countFrm; i++) {
 			karmaFrms[i].frm = atoi(karmaFrmList[i].c_str());
 			karmaFrms[i].points = (countPoints > i)
-				? atoi(karmaPointsList[i].c_str())
-				: INT_MAX;
+			                    ? atoi(karmaPointsList[i].c_str())
+			                    : INT_MAX;
 		}
 		HookCall(0x4367A9, DrawInfoWin_hook);
 

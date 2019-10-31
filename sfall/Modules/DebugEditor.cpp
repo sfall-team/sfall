@@ -336,7 +336,7 @@ static void __declspec(naked) win_debug_hook() {
 	}
 }
 
-void DebugModePatch() {
+static void DebugModePatch() {
 	DWORD dbgMode = iniGetInt("Debugging", "DebugMode", 0, ::sfall::ddrawIni);
 	if (dbgMode) {
 		dlog("Applying debugmode patch.", DL_INIT);
@@ -369,7 +369,7 @@ void DebugModePatch() {
 	}
 }
 
-void DontDeleteProtosPatch() {
+static void DontDeleteProtosPatch() {
 	if (iniGetInt("Debugging", "DontDeleteProtos", 0, ::sfall::ddrawIni)) {
 		dlog("Applying permanent protos patch.", DL_INIT);
 		SafeWrite8(0x48007E, 0xEB);

@@ -71,31 +71,6 @@ c15:
 	}
 }
 
-static void __declspec(naked) intface_rotate_numbers_hack() {
-	__asm {
-		push edi
-		push ebp
-		sub  esp, 0x54
-		// ebx=old value, ecx=new value
-		cmp  ebx, ecx
-		je   end
-		mov  ebx, ecx
-		jg   decrease
-		dec  ebx
-		jmp  end
-decrease:
-		test ecx, ecx
-		jl   negative
-		inc  ebx
-		jmp  end
-negative:
-		xor  ebx, ebx
-end:
-		push 0x460BA6
-		retn
-	}
-}
-
 static void __declspec(naked) register_object_take_out_hack() {
 	__asm {
 		push ecx
@@ -162,48 +137,6 @@ static void __declspec(naked) ReloadHook() {
 		pop ebx;
 		pop eax;
 		jmp fo::funcoffs::gsound_play_sfx_file_;
-	}
-}
-
-
-static const DWORD CorpseHitFix2_continue_loop1 = 0x48B99B;
-static void __declspec(naked) CorpseHitFix2() {
-	__asm {
-		push eax;
-		mov eax, [eax];
-		call fo::funcoffs::critter_is_dead_; // found some object, check if it's a dead critter
-		test eax, eax;
-		pop eax;
-		jz really_end; // if not, allow breaking the loop (will return this object)
-		jmp CorpseHitFix2_continue_loop1; // otherwise continue searching
-
-really_end:
-		mov     eax, [eax];
-		pop     ebp;
-		pop     edi;
-		pop     esi;
-		pop     ecx;
-		retn;
-	}
-}
-
-static const DWORD CorpseHitFix2_continue_loop2 = 0x48BA0B;
-// same logic as above, for different loop
-static void __declspec(naked) CorpseHitFix2b() {
-	__asm {
-		mov eax, [edx];
-		call fo::funcoffs::critter_is_dead_;
-		test eax, eax;
-		jz really_end;
-		jmp CorpseHitFix2_continue_loop2;
-
-really_end:
-		mov     eax, [edx];
-		pop     ebp;
-		pop     edi;
-		pop     esi;
-		pop     ecx;
-		retn;
 	}
 }
 
@@ -386,21 +319,6 @@ void SkilldexImagesPatch() {
 	dlogr(" Done", DL_INIT);
 }
 
-void SpeedInterfaceCounterAnimsPatch() {
-	switch (GetConfigInt("Misc", "SpeedInterfaceCounterAnims", 0)) {
-	case 1:
-		dlog("Applying SpeedInterfaceCounterAnims patch.", DL_INIT);
-		MakeJump(0x460BA1, intface_rotate_numbers_hack);
-		dlogr(" Done", DL_INIT);
-		break;
-	case 2:
-		dlog("Applying SpeedInterfaceCounterAnims patch. (Instant)", DL_INIT);
-		SafeWrite32(0x460BB6, 0x90DB3190); // xor ebx, ebx
-		dlogr(" Done", DL_INIT);
-		break;
-	}
-}
-
 void ScienceOnCrittersPatch() {
 	switch (GetConfigInt("Misc", "ScienceOnCritters", 0)) {
 	case 1:
@@ -465,28 +383,10 @@ void DontTurnOffSneakIfYouRunPatch() {
 	}
 }
 
-void MultiPatchesPatch() {
-	//if (GetConfigInt("Misc", "MultiPatches", 0)) {
-		dlog("Applying load multiple patches patch.", DL_INIT);
-		SafeWrite8(0x444354, 0x90); // Change step from 2 to 1
-		SafeWrite8(0x44435C, 0xC4); // Disable check
-		dlogr(" Done", DL_INIT);
-	//}
-}
-
 void PlayIdleAnimOnReloadPatch() {
 	if (GetConfigInt("Misc", "PlayIdleAnimOnReload", 0)) {
 		dlog("Applying idle anim on reload patch.", DL_INIT);
 		HookCall(0x460B8C, ReloadHook);
-		dlogr(" Done", DL_INIT);
-	}
-}
-
-void CorpseLineOfFireFix() {
-	if (GetConfigInt("Misc", "CorpseLineOfFireFix", 1)) {
-		dlog("Applying corpse line of fire patch.", DL_INIT);
-		MakeJump(0x48B994, CorpseHitFix2);
-		MakeJump(0x48BA04, CorpseHitFix2b);
 		dlogr(" Done", DL_INIT);
 	}
 }
@@ -597,8 +497,7 @@ void PipboyAvailableAtStartPatch() {
 	switch (GetConfigInt("Misc", "PipBoyAvailableAtGameStart", 0)) {
 	case 1:
 		LoadGameHook::OnBeforeGameStart() += []() {
-			// PipBoy aquiring video
-			fo::var::gmovie_played_list[3] = true;
+			fo::var::gmovie_played_list[3] = true; // PipBoy aquiring video
 		};
 		break;
 	case 2:
@@ -763,14 +662,11 @@ void MiscPatches::init() {
 	F1EngineBehaviorPatch();
 	DialogueFix();
 	AdditionalWeaponAnimsPatch();
-	MultiPatchesPatch();
 	AlwaysReloadMsgs();
 	PlayIdleAnimOnReloadPatch();
-	CorpseLineOfFireFix();
 
 	SkilldexImagesPatch();
 
-	SpeedInterfaceCounterAnimsPatch();
 	ScienceOnCrittersPatch();
 	InventoryCharacterRotationSpeedPatch();
 

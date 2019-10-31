@@ -1,20 +1,20 @@
 /*
-*    sfall
-*    Copyright (C) 2008-2017  The sfall team
-*
-*    This program is free software: you can redistribute it and/or modify
-*    it under the terms of the GNU General Public License as published by
-*    the Free Software Foundation, either version 3 of the License, or
-*    (at your option) any later version.
-*
-*    This program is distributed in the hope that it will be useful,
-*    but WITHOUT ANY WARRANTY; without even the implied warranty of
-*    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-*    GNU General Public License for more details.
-*
-*    You should have received a copy of the GNU General Public License
-*    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
+ *    sfall
+ *    Copyright (C) 2008-2017  The sfall team
+ *
+ *    This program is free software: you can redistribute it and/or modify
+ *    it under the terms of the GNU General Public License as published by
+ *    the Free Software Foundation, either version 3 of the License, or
+ *    (at your option) any later version.
+ *
+ *    This program is distributed in the hope that it will be useful,
+ *    but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *    GNU General Public License for more details.
+ *
+ *    You should have received a copy of the GNU General Public License
+ *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 
 #include "..\main.h"
 #include "..\FalloutEngine\Fallout2.h"
@@ -227,6 +227,15 @@ static void GetExtraPatches() {
 	}
 }
 
+static void MultiPatchesPatch() {
+	//if (GetConfigInt("Misc", "MultiPatches", 0)) {
+		dlog("Applying load multiple patches patch.", DL_INIT);
+		SafeWrite8(0x444354, 0x90); // Change step from 2 to 1
+		SafeWrite8(0x44435C, 0xC4); // Disable check
+		dlogr(" Done", DL_INIT);
+	//}
+}
+
 ////////////////////////////// SAVE PARTY MEMBER PROTOTYPES //////////////////////////////
 
 static void __fastcall AddSavPrototype(long pid) {
@@ -370,6 +379,7 @@ void LoadOrder::init() {
 	patchFiles.push_back("sfall.dat");
 
 	GetExtraPatches();
+	MultiPatchesPatch();
 
 	if (GetConfigInt("Misc", "DataLoadOrderPatch", 1)) {
 		dlog("Applying data load order patch.", DL_INIT);

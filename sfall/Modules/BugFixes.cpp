@@ -387,6 +387,15 @@ static void __declspec(naked) queue_clear_type_mem_free_hook() {
 	}
 }
 
+static void __declspec(naked) partyMemberCopyLevelInfo_hack() {
+	__asm {
+		mov  eax, esi; // source
+		xor  ecx, ecx; // animation
+		mov  ebx, 1;   // right slot
+		retn;
+	}
+}
+
 static void __declspec(naked) partyMemberCopyLevelInfo_hook_stat_level() {
 	__asm {
 nextArmor:
@@ -2415,10 +2424,41 @@ end:
 	}
 }
 
-static void __declspec(naked) partyMemberCopyLevelInfo_hook_wield() {
+static const DWORD CorpseShotBlockFix_continue_loop[] = {0x48B99B, 0x48BA0B};
+static void __declspec(naked) obj_shoot_blocking_at_hack0() {
 	__asm {
-		inc  ebx; // slot
-		jmp  fo::funcoffs::invenWieldFunc_;
+		mov  edx, eax;
+		mov  eax, [eax];
+		call fo::funcoffs::critter_is_dead_; // found some object, check if it's a dead critter
+		test eax, eax;
+		jz   endLoop; // if not, allow breaking the loop (will return this object)
+		mov  eax, edx;
+		jmp  CorpseShotBlockFix_continue_loop[0]; // otherwise continue searching
+endLoop:
+		mov  eax, [edx];
+		pop  ebp;
+		pop  edi;
+		pop  esi;
+		pop  ecx;
+		retn;
+	}
+}
+
+// same logic as above, for different loop
+static void __declspec(naked) obj_shoot_blocking_at_hack1() {
+	__asm {
+		mov  eax, [edx];
+		call fo::funcoffs::critter_is_dead_;
+		test eax, eax;
+		jz   endLoop;
+		jmp  CorpseShotBlockFix_continue_loop[1];
+endLoop:
+		mov  eax, [edx];
+		pop  ebp;
+		pop  edi;
+		pop  esi;
+		pop  ecx;
+		retn;
 	}
 }
 
@@ -3052,8 +3092,16 @@ void BugFixes::init()
 	HookCall(0x458CDB, op_critter_rm_trait_hook);
 	HookCall(0x458B3D, op_critter_add_trait_hook);
 
+	// Fix to prevent corpses from blocking line of fire
+	//if (GetConfigInt("Misc", "CorpseLineOfFireFix", 1)) {
+		dlog("Applying fix for corpses blocking line of fire.", DL_INIT);
+		MakeJump(0x48B994, obj_shoot_blocking_at_hack0);
+		MakeJump(0x48BA04, obj_shoot_blocking_at_hack1);
+		dlogr(" Done", DL_INIT);
+	//}
+
 	// Fix for party member's equipped weapon being placed in the incorrect item slot after leveling up
-	HookCall(0x495FDF, partyMemberCopyLevelInfo_hook_wield);
+	MakeCall(0x495FD9, partyMemberCopyLevelInfo_hack, 1);
 }
 
 }

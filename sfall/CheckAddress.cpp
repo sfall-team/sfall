@@ -61,6 +61,8 @@ static std::vector<HackPair> hackAddr = {
 	// module: ExtraSave
 	//{0x47B923, 6},
 	// module: Inventory
+	// module: Interface
+	{0x460BB6, 4},
 	// module: LoadOrder
 	{0x43FA9F, 4}, {0x44EB5B, 4}, {0x48152E, 4},
 	//{0x480A95, 5}, (it in movies.cpp)
@@ -105,7 +107,7 @@ static std::vector<HackPair> hackAddr = {
 	{0x4C2D9B, 4}, {0x499FDE, 4},
 	{0x49952C, 1}, {0x497557, 1}, {0x42E587, 1}, {0x42E588, 4}, {0x499FD4, 2}, {0x499E93, 2},
 	// module: MiscPatches
-	{0x460BB6, 4}, {0x41276A, 1}, {0x480AAA, 4}, {0x444BA5, 4}, {0x444BCA, 4},
+	{0x41276A, 1}, {0x480AAA, 4}, {0x444BA5, 4}, {0x444BCA, 4},
 };
 
 //static std::vector<long> jumpAddr = {

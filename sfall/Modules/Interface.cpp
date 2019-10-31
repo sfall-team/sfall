@@ -448,9 +448,9 @@ static void WorldMapInterfacePatch() {
 	SafeWrite8(0x4C2D04, 0x46); // dec esi > inc esi
 
 	//if (GetConfigInt("Misc", "WorldMapCitiesListFix", 0)) {
-	dlog("Applying world map cities list patch.", DL_INIT);
-	HookCalls(ScrollCityListFix, {0x4C04B9, 0x4C04C8, 0x4C4A34, 0x4C4A3D});
-	dlogr(" Done", DL_INIT);
+		dlog("Applying world map cities list patch.", DL_INIT);
+		HookCalls(ScrollCityListFix, {0x4C04B9, 0x4C04C8, 0x4C4A34, 0x4C4A3D});
+		dlogr(" Done", DL_INIT);
 	//}
 
 	DWORD wmSlots = GetConfigInt("Misc", "WorldMapSlots", 0);
@@ -476,12 +476,53 @@ static void WorldMapInterfacePatch() {
 	SafeWrite8(0x4C5289, 12);
 }
 
+static void __declspec(naked) intface_rotate_numbers_hack() {
+	__asm {
+		push edi;
+		push ebp;
+		sub  esp, 0x54;
+		mov  edi, 0x460BA6;
+		// ebx - old value, ecx - new value
+		cmp  ebx, ecx;
+		je   end;
+		mov  ebx, ecx;
+		jg   decrease;
+		dec  ebx;
+end:
+		jmp  edi;
+decrease:
+		test ecx, ecx;
+		jl   negative;
+		inc  ebx;
+		jmp  edi;
+negative:
+		xor  ebx, ebx;
+		jmp  edi;
+	}
+}
+
+static void SpeedInterfaceCounterAnimsPatch() {
+	switch (GetConfigInt("Misc", "SpeedInterfaceCounterAnims", 0)) {
+	case 1:
+		dlog("Applying SpeedInterfaceCounterAnims patch.", DL_INIT);
+		MakeJump(0x460BA1, intface_rotate_numbers_hack);
+		dlogr(" Done", DL_INIT);
+		break;
+	case 2:
+		dlog("Applying SpeedInterfaceCounterAnims patch (Instant).", DL_INIT);
+		SafeWrite32(0x460BB6, 0xDB319090); // xor ebx, ebx
+		dlogr(" Done", DL_INIT);
+		break;
+	}
+}
+
 void Interface::init() {
 	if (GetConfigInt("Interface", "ActionPointsBar", 0)) {
 		ActionPointsBarPatch();
 	}
 
 	WorldMapInterfacePatch();
+	SpeedInterfaceCounterAnimsPatch();
 }
 
 void Interface::exit() {
