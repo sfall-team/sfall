@@ -19,6 +19,51 @@
 #include "main.h"
 #include "FalloutEngine.h"
 
+static long costAP = -1;
+static void __declspec(naked) intface_redraw_items_hack0() {
+	__asm {
+		sub  eax, esi;
+		shl  eax, 4;
+		//
+		cmp  dword ptr [esp + 0x80 - 0x5C + 4], 99; // art width
+		jg   newArt;
+		mov  edx, 10;  // width
+		retn;
+newArt:
+		mov  costAP, edx;
+		cmp  edx, 10;
+		jae  skip;
+		mov  edx, 10;  // width
+		retn;
+skip:
+		je   noShift;  // ap == 10
+		sub  edx, 10;
+		imul edx, 5;   // shift
+		add  ebx, edx; // add width shift to 'from'
+noShift:
+		mov  edx, 15;  // width
+		retn;
+	}
+}
+
+static void __declspec(naked) intface_redraw_items_hack1() {
+	__asm {
+		mov  edx, 10;
+		cmp  costAP, edx;
+		jl   skip;
+		add  edx, 5; // width 15
+skip:
+		retn;
+	}
+}
+
+static void DrawActionPointsNumber() {
+	MakeCall(0x4604B0, intface_redraw_items_hack0);
+	MakeCall(0x460504, intface_redraw_items_hack1);
+	SafeWrite16(0x4604D4, 0x9052); // push 10 > push edx
+	SafeWrite8(0x46034B, 20);      // draw up to 19 AP
+}
+
 ////////////////////////////// WORLDMAP INTERFACE //////////////////////////////
 
 static int mapSlotsScrollMax = 27 * (17 - 7);
@@ -159,6 +204,7 @@ static void SpeedInterfaceCounterAnimsPatch() {
 }
 
 void InterfaceInit() {
+	DrawActionPointsNumber();
 	WorldMapInterfacePatch();
 	SpeedInterfaceCounterAnimsPatch();
 }
