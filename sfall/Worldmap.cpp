@@ -31,9 +31,6 @@ static DWORD AutomapPipboyList[AUTOMAP_MAX];
 static DWORD ViewportX;
 static DWORD ViewportY;
 
-static int mapSlotsScrollMax = 27 * (17 - 7);
-static int mapSlotsScrollLimit = 0;
-
 static DWORD worldMapDelay;
 static DWORD worldMapTicks;
 
@@ -45,10 +42,6 @@ static float scriptMapMulti = 1.0;
 
 static bool addYear = false; // used as additional years indicator
 static DWORD addedYears = 0;
-
-static const DWORD ScrollCityListAddr[] = {
-	0x4C04B9, 0x4C04C8, 0x4C4A34, 0x4C4A3D,
-};
 
 static __declspec(naked) void TimeDateFix() {
 	__asm {
@@ -107,26 +100,6 @@ static __declspec(naked) void set_game_time_hack() {
 end:
 		xor  edx, edx;
 		retn;
-	}
-}
-
-static __declspec(naked) void ScrollCityListFix() {
-	__asm {
-		push ebx;
-		mov  ebx, ds:[0x672F10]; // _wmLastTabsYOffset
-		test eax, eax;
-		jl   up;
-		cmp  ebx, mapSlotsScrollMax;
-		pop  ebx;
-		jl   run;
-		retn;
-up:
-		test ebx, ebx;
-		pop  ebx;
-		jnz  run;
-		retn;
-run:
-		jmp  wmInterfaceScrollTabsStart_;
 	}
 }
 
@@ -267,38 +240,6 @@ static __declspec(naked) void PathfinderFix() {
 	}
 }
 
-static void __declspec(naked) wmInterfaceInit_text_font_hook() {
-	__asm {
-		mov  eax, 0x65; // normal text font
-		jmp  text_font_;
-	}
-}
-
-static void __declspec(naked) wmInterfaceRefreshCarFuel_hack_empty() {
-	__asm {
-		mov byte ptr [eax - 1], 13;
-		mov byte ptr [eax + 1], 13;
-		add eax, 640;
-		dec ebx;
-		mov byte ptr [eax], 14;
-		mov byte ptr [eax - 1], 15;
-		mov byte ptr [eax + 1], 15;
-		add eax, 640;
-		retn;
-	}
-}
-
-static void __declspec(naked) wmInterfaceRefreshCarFuel_hack() {
-	__asm {
-		mov byte ptr [eax - 1], 196;
-		mov byte ptr [eax + 1], 196;
-		add eax, 640;
-		mov byte ptr [eax - 1], 200;
-		mov byte ptr [eax + 1], 200;
-		retn;
-	}
-}
-
 static const char* automap = "automap"; // no/yes overrides the value in the table to display the automap in pipboy
 static void __declspec(naked) wmMapInit_hack() {
 	__asm {
@@ -346,14 +287,6 @@ void WorldLimitsPatches() {
 		dlogr(" Done", DL_INIT);
 	}
 
-	//if (GetConfigInt("Misc", "WorldMapCitiesListFix", 0)) {
-		dlog("Applying world map cities list patch.", DL_INIT);
-		for (int i = 0; i < sizeof(ScrollCityListAddr) / 4; i++) {
-			HookCall(ScrollCityListAddr[i], ScrollCityListFix);
-		}
-		dlogr(" Done", DL_INIT);
-	//}
-
 	//if (GetConfigInt("Misc", "CitiesLimitFix", 0)) {
 		dlog("Applying cities limit patch.", DL_INIT);
 		if (*((BYTE*)0x4BF3BB) != 0xEB) {
@@ -361,17 +294,6 @@ void WorldLimitsPatches() {
 		}
 		dlogr(" Done", DL_INIT);
 	//}
-
-	DWORD wmSlots = GetConfigInt("Misc", "WorldMapSlots", 0);
-	if (wmSlots && wmSlots < 128) {
-		dlog("Applying world map slots patch.", DL_INIT);
-		if (wmSlots < 7) wmSlots = 7;
-		mapSlotsScrollMax = (wmSlots - 7) * 27; // height value after which scrolling is not possible
-		mapSlotsScrollLimit = wmSlots * 27;
-		SafeWrite32(0x4C21FD, 189); // 27 * 7
-		SafeWrite32(0x4C21F1, (DWORD)&mapSlotsScrollLimit);
-		dlogr(" Done", DL_INIT);
-	}
 }
 
 void TimeLimitPatch() {
@@ -503,25 +425,6 @@ void StartingStatePatches() {
 	if (ViewportX != -1 || ViewportY != -1) HookCall(0x4BCF07, ViewportHook); // game_reset_
 }
 
-void WorldMapInterfacePatch() {
-	if (GetConfigInt("Misc", "WorldMapFontPatch", 0)) {
-		dlog("Applying world map font patch.", DL_INIT);
-		HookCall(0x4C2343, wmInterfaceInit_text_font_hook);
-		dlogr(" Done", DL_INIT);
-	}
-	// Fix images for up/down buttons
-	SafeWrite32(0x4C2C0A, 199); // index of UPARWOFF.FRM
-	SafeWrite8(0x4C2C7C, 0x43); // dec ebx > inc ebx
-	SafeWrite32(0x4C2C92, 181); // index of DNARWOFF.FRM
-	SafeWrite8(0x4C2D04, 0x46); // dec esi > inc esi
-
-	// Car fuel gauge graphics patch
-	MakeCall(0x4C528A, wmInterfaceRefreshCarFuel_hack_empty);
-	MakeCall(0x4C529E, wmInterfaceRefreshCarFuel_hack);
-	SafeWrite8(0x4C52A8, 197);
-	SafeWrite8(0x4C5289, 12);
-}
-
 void PipBoyAutomapsPatch() {
 	dlog("Applying Pip-Boy automaps patch.", DL_INIT);
 	MakeCall(0x4BF931, wmMapInit_hack, 2);
@@ -549,6 +452,5 @@ void WorldmapInit() {
 	TownMapsHotkeyFix();
 	WorldLimitsPatches();
 	WorldmapFpsPatch();
-	WorldMapInterfacePatch();
 	PipBoyAutomapsPatch();
 }

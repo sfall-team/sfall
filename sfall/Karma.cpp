@@ -91,7 +91,7 @@ end:
 	}
 }
 
-void KarmaInit() {
+static void ApplyDisplayKarmaChangesPatch() {
 	if (GetConfigInt("Misc", "DisplayKarmaChanges", 0)) {
 		dlog("Applying display karma changes patch.", DL_INIT);
 		Translate("sfall", "KarmaGain", "You gained %d karma.", KarmaGainMsg);
@@ -99,7 +99,9 @@ void KarmaInit() {
 		HookCall(0x455A6D, SetGlobalVarWrapper);
 		dlogr(" Done", DL_INIT);
 	}
+}
 
+static void ApplyKarmaFRMsPatch() {
 	std::vector<std::string> karmaFrmList = GetConfigList("Misc", "KarmaFRMs", "", 512);
 	size_t countFrm = karmaFrmList.size();
 	if (countFrm) {
@@ -111,11 +113,16 @@ void KarmaInit() {
 		for (size_t i = 0; i < countFrm; i++) {
 			karmaFrms[i].frm = atoi(karmaFrmList[i].c_str());
 			karmaFrms[i].points = (countPoints > i)
-				? atoi(karmaPointsList[i].c_str())
-				: INT_MAX;
+			                    ? atoi(karmaPointsList[i].c_str())
+			                    : INT_MAX;
 		}
 		HookCall(0x4367A9, DrawInfoWin_hook);
 
 		dlogr(" Done", DL_INIT);
 	}
+}
+
+void KarmaInit() {
+	ApplyDisplayKarmaChangesPatch();
+	ApplyKarmaFRMsPatch();
 }

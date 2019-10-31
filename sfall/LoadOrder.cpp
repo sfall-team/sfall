@@ -91,6 +91,15 @@ skip:
 	}
 }
 
+static void MultiPatchesPatch() {
+	//if (GetConfigInt("Misc", "MultiPatches", 0)) {
+		dlog("Applying load multiple patches patch.", DL_INIT);
+		SafeWrite8(0x444354, 0x90); // Change step from 2 to 1
+		SafeWrite8(0x44435C, 0xC4); // Disable check
+		dlogr(" Done", DL_INIT);
+	//}
+}
+
 ////////////////////////////// SAVE PARTY MEMBER PROTOTYPES //////////////////////////////
 
 static void __fastcall AddSavPrototype(long pid) {
@@ -233,6 +242,8 @@ void ClearSavPrototypes() {
 }
 
 void LoadOrderInit() {
+	MultiPatchesPatch();
+
 	if (GetConfigInt("Misc", "DataLoadOrderPatch", 1)) {
 		dlog("Applying data load order patch.", DL_INIT);
 		MakeCall(0x444259, game_init_databases_hack1);

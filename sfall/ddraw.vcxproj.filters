@@ -211,6 +211,9 @@
     <ClInclude Include="Karma.h">
       <Filter>Headers</Filter>
     </ClInclude>
+    <ClInclude Include="Interface.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
     <ClInclude Include="stdafx.h">
       <Filter>Headers</Filter>
     </ClInclude>
@@ -362,6 +365,9 @@
       <Filter>Source</Filter>
     </ClCompile>
     <ClCompile Include="Karma.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Interface.cpp">
       <Filter>Source</Filter>
     </ClCompile>
     <ClCompile Include="stdafx.cpp">

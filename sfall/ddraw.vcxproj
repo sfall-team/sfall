@@ -293,6 +293,7 @@
     <ClInclude Include="FalloutStructs.h" />
     <ClInclude Include="FileSystem.h" />
     <ClInclude Include="Graphics.h" />
+    <ClInclude Include="Interface.h" />
     <ClInclude Include="Karma.h" />
     <ClInclude Include="LoadOrder.h" />
     <ClInclude Include="TalkingHeads.h" />
@@ -363,6 +364,7 @@
     <ClCompile Include="Explosions.cpp" />
     <ClCompile Include="FalloutEngine.cpp" />
     <ClCompile Include="FileSystem.cpp" />
+    <ClCompile Include="Interface.cpp" />
     <ClCompile Include="Karma.cpp" />
     <ClCompile Include="LoadOrder.cpp" />
     <ClCompile Include="TalkingHeads.cpp" />

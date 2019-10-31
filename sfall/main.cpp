@@ -43,6 +43,7 @@
 #include "FileSystem.h"
 #include "Graphics.h"
 #include "HeroAppearance.h"
+#include "Interface.h"
 #include "Inventory.h"
 #include "Karma.h"
 #include "KillCounter.h"
@@ -210,72 +211,6 @@ static void __declspec(naked) ReloadHook() {
 	}
 }
 
-static const DWORD CorpseHitFix2_continue_loop1 = 0x48B99B;
-static void __declspec(naked) CorpseHitFix2() {
-	__asm {
-		push eax;
-		mov eax, [eax];
-		call critter_is_dead_; // found some object, check if it's a dead critter
-		test eax, eax;
-		pop eax;
-		jz really_end; // if not, allow breaking the loop (will return this object)
-		jmp CorpseHitFix2_continue_loop1; // otherwise continue searching
-
-really_end:
-		mov     eax, [eax];
-		pop     ebp;
-		pop     edi;
-		pop     esi;
-		pop     ecx;
-		retn;
-	}
-}
-
-static const DWORD CorpseHitFix2_continue_loop2 = 0x48BA0B;
-// same logic as above, for different loop
-static void __declspec(naked) CorpseHitFix2b() {
-	__asm {
-		mov eax, [edx];
-		call critter_is_dead_;
-		test eax, eax;
-		jz really_end;
-		jmp CorpseHitFix2_continue_loop2;
-
-really_end:
-		mov     eax, [edx];
-		pop     ebp;
-		pop     edi;
-		pop     esi;
-		pop     ecx;
-		retn;
-	}
-}
-
-static void __declspec(naked) intface_rotate_numbers_hack() {
-	__asm {
-		push edi
-		push ebp
-		sub  esp, 0x54
-// ebx=old value, ecx=new value
-		cmp  ebx, ecx
-		je   end
-		mov  ebx, ecx
-		jg   decrease
-		dec  ebx
-		jmp  end
-decrease:
-		test ecx, ecx
-		jl   negative
-		inc  ebx
-		jmp  end
-negative:
-		xor  ebx, ebx
-end:
-		push 0x460BA6
-		retn
-	}
-}
-
 static void __declspec(naked) ScienceCritterCheckHook() {
 	__asm {
 		cmp esi, ds:[_obj_dude];
@@ -404,6 +339,9 @@ static void DllMain2() {
 	dlog("Applying main menu patches.", DL_INIT);
 	MainMenuInit();
 	dlogr(" Done", DL_INIT);
+
+	dlogr("Running InterfaceInit().", DL_INIT);
+	InterfaceInit();
 
 	dlogr("Running ObjectsInit().", DL_INIT);
 	ObjectsInit();
@@ -598,13 +536,6 @@ static void DllMain2() {
 		dlogr(" Done", DL_INIT);
 	}
 
-	//if (GetConfigInt("Misc", "MultiPatches", 0)) {
-		dlog("Applying load multiple patches patch.", DL_INIT);
-		SafeWrite8(0x444354, 0x90); // Change step from 2 to 1
-		SafeWrite8(0x44435C, 0xC4); // Disable check
-		dlogr(" Done", DL_INIT);
-	//}
-
 	if (GetConfigInt("Misc", "AlwaysReloadMsgs", 0)) {
 		dlog("Applying always reload messages patch.", DL_INIT);
 		SafeWrite8(0x4A6B8D, 0x0);
@@ -614,13 +545,6 @@ static void DllMain2() {
 	if (GetConfigInt("Misc", "PlayIdleAnimOnReload", 0)) {
 		dlog("Applying idle anim on reload patch.", DL_INIT);
 		HookCall(0x460B8C, ReloadHook);
-		dlogr(" Done", DL_INIT);
-	}
-
-	if (GetConfigInt("Misc", "CorpseLineOfFireFix", 1)) {
-		dlog("Applying corpse line of fire patch.", DL_INIT);
-		MakeJump(0x48B994, CorpseHitFix2);
-		MakeJump(0x48BA04, CorpseHitFix2b);
 		dlogr(" Done", DL_INIT);
 	}
 
@@ -640,19 +564,6 @@ static void DllMain2() {
 	tmp = GetConfigInt("Misc", "Repair", 293);
 	if (tmp != 293) SafeWrite32(0x518D64, tmp);
 	dlogr(" Done", DL_INIT);
-
-	switch (GetConfigInt("Misc", "SpeedInterfaceCounterAnims", 0)) {
-	case 1:
-		dlog("Applying SpeedInterfaceCounterAnims patch.", DL_INIT);
-		MakeJump(0x460BA1, intface_rotate_numbers_hack);
-		dlogr(" Done", DL_INIT);
-		break;
-	case 2:
-		dlog("Applying SpeedInterfaceCounterAnims patch. (Instant)", DL_INIT);
-		SafeWrite32(0x460BB6, 0x90DB3190); // xor ebx, ebx
-		dlogr(" Done", DL_INIT);
-		break;
-	}
 
 	switch (GetConfigInt("Misc", "ScienceOnCritters", 0)) {
 	case 1:
