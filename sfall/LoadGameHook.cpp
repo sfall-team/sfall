@@ -23,6 +23,7 @@
 #include "AI.h"
 #include "Arrays.h"
 #include "BugFixes.h"
+#include "BarBoxes.h"
 #include "Combat.h"
 #include "Console.h"
 #include "Criticals.h"
@@ -98,12 +99,14 @@ static void _stdcall ResetState(DWORD onLoad) {
 	InventoryReset();
 	ClearSavPrototypes();
 	RegAnimCombatCheck(1);
-	ForceEncounterRestore(); // restore if the encounter did not happen
 	AfterAttackCleanup();
 	ResetExplosionRadius();
 	RestoreObjUnjamAllLocks();
+	ForceEncounterRestore(); // restore if the encounter did not happen
 	PartyControlReset();
 	NpcEngineLevelUpReset();
+	ResetBoxes();
+	ResetBoxCount();
 }
 
 void GetSavePath(char* buf, char* ftype) {
@@ -284,8 +287,9 @@ static void __stdcall game_init_hook() { // OnGameInit
 }
 
 static void __stdcall GameInitialized() { // OnAfterGameInit
-	rcpresInit();
+	if (GraphicsMode) rcpresInit();
 	RemoveSavFiles();
+	SetBoxMaxSlots();
 	if (Use32BitTalkingHeads) TalkingHeadsSetup();
 }
 

@@ -241,6 +241,12 @@ end:
 	}
 }
 
+static void sf_add_iface_tag() {
+	int result = AddExtraBox();
+	if (result == -1) opHandler.printOpcodeError("add_iface_tag() - cannot add new tag as the maximum limit of 126 tags has been reached.");
+	opHandler.setReturn(result);
+}
+
 static void _stdcall ShowIfaceTag2() {
 	const ScriptValue &tagArg = opHandler.arg(0);
 	if (tagArg.isInt()) {
@@ -306,7 +312,7 @@ static void IsIfaceTagActive2() {
 		}
 		opHandler.setReturn(result);
 	} else {
-		opHandler.printOpcodeError("is_iface_tag_active() - argument is not an integer.");
+		OpcodeInvalidArgs("is_iface_tag_active");
 		opHandler.setReturn(-1);
 	}
 }
@@ -361,6 +367,17 @@ static void sf_display_stats() {
 // calling the function outside of inventory screen will crash the game
 	if (GetLoopFlags() & INVENTORY) {
 		__asm call display_stats_;
+	}
+}
+
+static void sf_set_iface_tag_text() {
+	int boxTag = opHandler.arg(0).asInt();
+	int maxBox = BarBoxes_MaxBox();
+
+	if (boxTag > 4 && boxTag <= maxBox) {
+		BarBoxes_SetText(boxTag, opHandler.arg(1).strValue(), opHandler.arg(2).asInt());
+	} else {
+		opHandler.printOpcodeError("set_iface_tag_text() - tag value must be in the range of 5 to %d.", maxBox);
 	}
 }
 

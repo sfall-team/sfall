@@ -404,6 +404,7 @@ static const SfallOpcodeMetadata opcodeMetaArray[] = {
 	{sf_get_obj_under_cursor,   "obj_under_cursor",       {DATATYPE_MASK_INT, DATATYPE_MASK_INT}},
 	{sf_set_cursor_mode,        "set_cursor_mode",        {DATATYPE_MASK_INT}},
 	{sf_set_flags,              "set_flags",              {DATATYPE_MASK_VALID_OBJ, DATATYPE_MASK_INT}},
+	{sf_set_iface_tag_text,     "set_iface_tag_text",     {DATATYPE_MASK_INT, DATATYPE_MASK_STR, DATATYPE_MASK_INT}},
 	{sf_set_ini_setting,        "set_ini_setting",        {DATATYPE_MASK_STR, DATATYPE_MASK_INT | DATATYPE_MASK_STR}},
 	{sf_set_map_enter_position, "set_map_enter_position", {DATATYPE_MASK_INT, DATATYPE_MASK_INT, DATATYPE_MASK_INT}},
 	{sf_set_object_data,        "set_object_data",        {DATATYPE_MASK_VALID_OBJ, DATATYPE_MASK_INT, DATATYPE_MASK_INT}},

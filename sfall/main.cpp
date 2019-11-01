@@ -766,6 +766,7 @@ static void _stdcall OnExit() {
 	BooksExit();
 	//gExtraGameMsgLists.clear();
 	AnimationsExit();
+	BarBoxesExit();
 	HeroAppearanceModExit();
 	TalkingHeadsExit();
 }

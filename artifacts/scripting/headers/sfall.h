@@ -224,6 +224,7 @@
 #define ADD_PERK_MODE_REMOVE    (4)  // remove from the list of selectable perks
 
 // sfall_funcX macros
+#define add_iface_tag                                   sfall_func0("add_iface_tag")
 #define add_trait(traitId)                              sfall_func1("add_trait", traitId)
 #define art_cache_clear                                 sfall_func0("art_cache_clear")
 #define attack_is_aimed                                 sfall_func0("attack_is_aimed")
@@ -256,6 +257,7 @@
 #define real_dude_obj                                   sfall_func0("real_dude_obj")
 #define set_cursor_mode(mode)                           sfall_func1("set_cursor_mode", mode)
 #define set_flags(obj, flags)                           sfall_func2("set_flags", obj, flags)
+#define set_iface_tag_text(tag, text, color)            sfall_func3("set_iface_tag_text", tag, text, color)
 #define set_ini_setting(setting, value)                 sfall_func2("set_ini_setting", setting, value)
 #define set_map_enter_position(tile, elev, rot)         sfall_func3("set_map_enter_position", tile, elev, rot)
 #define set_object_data(obj, offset, value)             sfall_func3("set_object_data", obj, offset, value)

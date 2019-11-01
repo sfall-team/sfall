@@ -1116,7 +1116,7 @@ void GraphicsInit() {
 }
 
 void GraphicsExit() {
-	if (GraphicsMode != 0) {
+	if (GraphicsMode) {
 		if (titlesBuffer) delete[] titlesBuffer;
 		CoUninitialize();
 	}

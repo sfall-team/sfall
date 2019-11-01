@@ -118,6 +118,7 @@ static void sf_metarule_exist() {
 		- minArgs/maxArgs - minimum and maximum number of arguments allowed for this function (max 6)
 */
 static const SfallMetarule metaruleArray[] = {
+	{"add_iface_tag",           sf_add_iface_tag,           0, 0},
 	{"add_trait",               sf_add_trait,               1, 1},
 	{"art_cache_clear",         sf_art_cache_flush,         0, 0},
 	{"attack_is_aimed",         sf_attack_is_aimed,         0, 0},
@@ -149,6 +150,7 @@ static const SfallMetarule metaruleArray[] = {
 	{"real_dude_obj",           sf_real_dude_obj,           0, 0},
 	{"set_cursor_mode",         sf_set_cursor_mode,         1, 1},
 	{"set_flags",               sf_set_flags,               2, 2},
+	{"set_iface_tag_text",      sf_set_iface_tag_text,      3, 3},
 	{"set_ini_setting",         sf_set_ini_setting,         2, 2},
 	{"set_map_enter_position",  sf_set_map_enter_position,  3, 3},
 	{"set_object_data",         sf_set_object_data,         3, 3},

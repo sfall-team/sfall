@@ -257,6 +257,7 @@
 // colors
 #define _BlueColor                  0x6A38EF
 #define _DarkGreenColor             0x6A3A90
+#define _DullPinkColor              0x6AB718
 #define _GoodColor                  0x6AB4EF
 #define _GreenColor                 0x6A3CB0
 #define _PeanutButter               0x6A82F3
@@ -277,6 +278,7 @@ extern DWORD* ptr_art_vault_guy_num;
 extern DWORD* ptr_art_vault_person_nums;
 extern DWORD* ptr_bckgnd;
 extern DWORD* ptr_black_palette;
+extern BYTE*  ptr_BlueColor;
 extern DWORD* ptr_bottom_line;
 extern DWORD* ptr_btable;
 extern DWORD* ptr_btncnt;
@@ -321,6 +323,7 @@ extern DWORD* ptr_gIsSteal;
 extern DWORD* ptr_glblmode;
 extern long*  ptr_gmouse_current_cursor;
 extern DWORD* ptr_gmovie_played_list;
+extern BYTE*  ptr_GoodColor;
 extern BYTE*  ptr_GreenColor;
 extern DWORD* ptr_gsound_initialized;
 extern long*  ptr_hit_location_penalty;
@@ -453,6 +456,7 @@ extern DWORD* ptr_title_font;
 extern DWORD* ptr_trait_data;
 extern DWORD* ptr_view_page;
 extern DWORD* ptr_wd_obj;
+extern BYTE*  ptr_WhiteColor;
 extern DWORD* ptr_wmAreaInfoList;
 extern DWORD* ptr_wmLastRndTime;
 extern DWORD* ptr_wmWorldOffsetX;
@@ -509,6 +513,7 @@ extern const DWORD combat_turn_run_;
 extern const DWORD compute_damage_;
 extern const DWORD config_get_string_;
 extern const DWORD config_set_value_;
+extern const DWORD construct_box_bar_win_;
 extern const DWORD container_exit_;
 extern const DWORD correctFidForRemovedItem_; // (int critter@<eax>, int oldArmor@<edx>, int removeSlotsFlags@<ebx>)
 extern const DWORD createWindow_;
@@ -835,6 +840,7 @@ extern const DWORD register_object_must_erase_; // int aObj<eax>
 extern const DWORD register_object_take_out_; // int aObj<eax>, int aHoldFrame<edx> - hold frame ID (1 - spear, 2 - club, etc.)
 extern const DWORD register_object_turn_towards_; // int aObj<eax>, int aTile<edx>
 extern const DWORD report_explosion_;
+extern const DWORD reset_box_bar_win_;
 extern const DWORD RestorePlayer_;
 extern const DWORD roll_random_;
 extern const DWORD runProgram_; // eax - programPtr, called once for each program after first loaded - hooks program to game and UI events
