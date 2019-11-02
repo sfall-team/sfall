@@ -1113,12 +1113,16 @@ void __declspec(naked) op_set_inven_ap_cost() {
 	__asm {
 		push ecx;
 		_GET_ARG_INT(end);
-		push eax;
-		call SetInvenApCost;
+		mov  ecx, eax;
+		call Inventory::SetInvenApCost;
 end:
 		pop  ecx;
 		retn;
 	}
+}
+
+void sf_get_inven_ap_cost(OpcodeContext& ctx) {
+	ctx.setReturn(Inventory::GetInvenApCost());
 }
 
 void sf_attack_is_aimed(OpcodeContext& ctx) {

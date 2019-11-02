@@ -200,8 +200,8 @@ void sf_add_iface_tag(OpcodeContext &ctx) {
 void sf_show_iface_tag(OpcodeContext &ctx) {
 	int tag = ctx.arg(0).asInt();
 	if (tag == 3 || tag == 4) {
-		_asm mov  eax, tag;
-		_asm call fo::funcoffs::pc_flag_on_;
+		__asm mov  eax, tag;
+		__asm call fo::funcoffs::pc_flag_on_;
 	} else {
 		BarBoxes::AddBox(tag);
 	}
@@ -210,8 +210,8 @@ void sf_show_iface_tag(OpcodeContext &ctx) {
 void sf_hide_iface_tag(OpcodeContext &ctx) {
 	int tag = ctx.arg(0).asInt();
 	if (tag == 3 || tag == 4) {
-		_asm mov  eax, tag;
-		_asm call fo::funcoffs::pc_flag_off_;
+		__asm mov  eax, tag;
+		__asm call fo::funcoffs::pc_flag_off_;
 	} else {
 		BarBoxes::RemoveBox(tag);
 	}
@@ -272,7 +272,7 @@ void sf_get_cursor_mode(OpcodeContext& ctx) {
 	int cursorMode;
 	__asm {
 		call fo::funcoffs::gmouse_3d_get_mode_;
-		mov cursorMode, eax;
+		mov  cursorMode, eax;
 	}
 	ctx.setReturn(cursorMode);
 }

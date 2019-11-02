@@ -33,9 +33,11 @@ public:
 	static Delegate<DWORD>& OnAdjustFid();
 
 	static DWORD __stdcall adjust_fid_replacement();
+
+	static long GetInvenApCost();
+	static void __fastcall SetInvenApCost(int cost);
 };
 
-void _stdcall SetInvenApCost(int cost);
 DWORD __stdcall sf_item_total_size(fo::GameObject* critter);
 
 }

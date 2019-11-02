@@ -137,6 +137,8 @@ void __declspec() op_gdialog_get_barter_mod();
 
 void __declspec() op_set_inven_ap_cost();
 
+void sf_get_inven_ap_cost(OpcodeContext&);
+
 void sf_attack_is_aimed(OpcodeContext&);
 
 void sf_sneak_success(OpcodeContext&);

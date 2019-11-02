@@ -146,6 +146,7 @@ static void ReconstructBarBoxes(int count) {
 	}
 }
 
+//static BYTE restoreData[] = {0x31, 0xD2, 0x89, 0x94, 0x24}; // xor edx, edx; mov...
 static void ResetBoxes() {
 	for (int i = 0; i < actualBoxCount; i++) {
 		boxText[i].isActive = false;
@@ -158,8 +159,7 @@ static void ResetBoxes() {
 	setBoxIndex = 5; // set start
 	//SafeWrite32(0x461343, 0x00023D05); // call getmsg_
 	ReconstructBarBoxes(totalBoxCount);
-	//SafeWrite8(0x461243, 0x31);
-	//SafeWrite32(0x461244, 0x249489D2);
+	//SafeWriteBytes(0x461243, restoreData, 5);
 }
 
 void BarBoxes::SetText(int box, const char* text, DWORD color) {
@@ -258,7 +258,6 @@ static void __declspec(naked) refresh_box_bar_win_hack() {
 }
 
 void BarBoxes::init() {
-
 	initCount += GetConfigInt("Misc", "BoxBarCount", 5);
 	if (initCount < 5)  initCount = 5; // exclude the influence of negative values from the config
 	if (initCount > 100) initCount = 100;

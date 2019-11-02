@@ -686,16 +686,15 @@ inline static void ApplyInvenApCostPatch() {
 	onlyOnceAP = true;
 }
 
-void _stdcall SetInvenApCost(int cost) {
+void __fastcall Inventory::SetInvenApCost(int cost) {
 	invenApCost = cost;
 	if (!onlyOnceAP) ApplyInvenApCostPatch();
 }
 
-// TODO: Make GetInvenApCost() function
-/*long GetInvenApCost() {
-	long plevel = fo::func::perk_level(fo::var::obj_dude, fo::PERK_quick_pockets);
-	return invenApCost - (invenApQPReduction * plevel);
-}*/
+long Inventory::GetInvenApCost() {
+	long perkLevel = fo::func::perk_level(fo::var::obj_dude, fo::PERK_quick_pockets);
+	return invenApCost - (invenApQPReduction * perkLevel);
+}
 
 void InventoryReset() {
 	invenApCost = invenApCostDef;

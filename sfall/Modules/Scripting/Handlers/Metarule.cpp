@@ -80,6 +80,7 @@ static const SfallMetarule metarules[] = {
 	{"get_flags",               sf_get_flags,               1, 1, {ARG_OBJECT}},
 	{"get_ini_section",         sf_get_ini_section,         2, 2, {ARG_STRING, ARG_STRING}},
 	{"get_ini_sections",        sf_get_ini_sections,        1, 1, {ARG_STRING}},
+	{"get_inven_ap_cost",       sf_get_inven_ap_cost,       0, 0},
 	{"get_map_enter_position",  sf_get_map_enter_position,  0, 0},
 	{"get_metarule_table",      sf_get_metarule_table,      0, 0},
 	{"get_object_ai_data",      sf_get_object_ai_data,      2, 2, {ARG_OBJECT, ARG_INT}},
