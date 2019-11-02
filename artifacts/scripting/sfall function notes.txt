@@ -525,6 +525,9 @@ Some utility/math functions are available:
 > void sfall_func1("add_trait", int traitId)
 - adds the specified trait to the player
 
+> int sfall_func0("get_inven_ap_cost")
+- returns the current AP cost to access the inventory in combat
+
 ------------------------
 ------ MORE INFO -------
 ------------------------

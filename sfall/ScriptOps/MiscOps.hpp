@@ -1294,12 +1294,16 @@ static void __declspec(naked) set_inven_ap_cost() {
 	__asm {
 		push ecx;
 		_GET_ARG_INT(end);
-		push eax;
+		mov  ecx, eax;
 		call SetInvenApCost;
 end:
 		pop  ecx;
 		retn;
 	}
+}
+
+static void sf_get_inven_ap_cost() {
+	opHandler.setReturn(GetInvenApCost());
 }
 
 static void __declspec(naked) op_sneak_success() {

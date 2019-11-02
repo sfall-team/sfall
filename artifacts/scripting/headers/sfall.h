@@ -238,6 +238,7 @@
 #define get_current_inven_size(obj)                     sfall_func1("get_current_inven_size", obj)
 #define get_cursor_mode                                 sfall_func0("get_cursor_mode")
 #define get_flags(obj)                                  sfall_func1("get_flags", obj)
+#define get_inven_ap_cost                               sfall_func0("get_inven_ap_cost")
 #define get_map_enter_position                          sfall_func0("get_map_enter_position")
 #define get_metarule_table                              sfall_func0("get_metarule_table")
 #define get_object_data(obj, offset)                    sfall_func2("get_object_data", obj, offset)

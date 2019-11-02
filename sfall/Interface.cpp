@@ -32,11 +32,11 @@ static void __declspec(naked) intface_redraw_items_hack0() {
 newArt:
 		mov  costAP, edx;
 		cmp  edx, 10;
-		jae  skip;
+		je   noShift;
+		ja   skip;
 		mov  edx, 10;  // width
 		retn;
 skip:
-		je   noShift;  // ap == 10
 		sub  edx, 10;
 		imul edx, 5;   // shift
 		add  ebx, edx; // add width shift to 'from'

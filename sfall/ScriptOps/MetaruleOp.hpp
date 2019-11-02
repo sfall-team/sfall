@@ -131,6 +131,7 @@ static const SfallMetarule metaruleArray[] = {
 	{"get_current_inven_size",  sf_get_current_inven_size,  1, 1},
 	{"get_cursor_mode",         sf_get_cursor_mode,         0, 0},
 	{"get_flags",               sf_get_flags,               1, 1},
+	{"get_inven_ap_cost",       sf_get_inven_ap_cost,       0, 0},
 	{"get_map_enter_position",  sf_get_map_enter_position,  0, 0},
 	{"get_metarule_table",      sf_get_metarule_table,      0, 0},
 	{"get_object_data",         sf_get_object_data,         2, 2},
