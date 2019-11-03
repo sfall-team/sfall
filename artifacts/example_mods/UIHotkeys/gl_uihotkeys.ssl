@@ -45,6 +45,7 @@ procedure start begin
                tap_key(DIK_A);
                tap_key(DIK_CAPITAL);
             end else if (mode bwand BARTER) then begin
+               play_sfx("IB2P1XX1");
                tap_key(DIK_M);
             end
          end

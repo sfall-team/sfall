@@ -60,7 +60,7 @@ static void ModifyAllStats(const itProtoMem&);
 struct StatModify {
 	long objID;
 	long objPID;   // used for additional verification
-	long stat;
+	long stat;     // range from base_stat_srength to bonus_dr_poison
 	long amount;   // current value of the stat
 	long defVal;   // value of the stat before the change
 	long* s_proto; // shared pointer for quick access to the prototype in memory (should not be saved to file)

@@ -86,7 +86,7 @@ next:
 		test al, al;
 		jz   skiplight;
 		mov  eax, [esp + 40]; // projectile ptr - 1st arg
-		mov  edx, 0xFFFF0008; // maximum radius + intensity (see anim_set_check__light_fix)
+		mov  edx, 0xFFFF0008; // maximum radius + intensity (see anim_set_check_light_fix)
 		xor  ebx, ebx;
 		call fo::funcoffs::register_object_light_;
 skiplight:
@@ -105,7 +105,7 @@ static void __declspec(naked) explosion_lighting_fix2() {
 		call fo::funcoffs::register_object_funset_;
 
 		mov  eax, [esp + 24]; // explosion obj ptr
-		mov  edx, 0xFFFF0008; // maximum radius + intensity (see anim_set_check__light_fix)
+		mov  edx, 0xFFFF0008; // maximum radius + intensity (see anim_set_check_light_fix)
 		xor  ebx, ebx;
 		call fo::funcoffs::register_object_light_;
 
@@ -117,13 +117,13 @@ static void __declspec(naked) explosion_lighting_fix2() {
 	}
 }
 
-DWORD _stdcall LogThis(DWORD value1, DWORD value2, DWORD value3) {
-	dlog_f("anim_set_check__light_fix: object 0x%X, something 0x%X, radius 0x%X", DL_MAIN, value1, value2, value3);
-	return value1;
-}
+//DWORD _stdcall LogThis(DWORD value1, DWORD value2, DWORD value3) {
+//	dlog_f("anim_set_check_light_fix: object 0x%X, something 0x%X, radius 0x%X", DL_MAIN, value1, value2, value3);
+//	return value1;
+//}
 
-static const DWORD anim_set_check__light_back = 0x415A4C;
-static void __declspec(naked) anim_set_check__light_fix() {
+static const DWORD anim_set_check_light_back = 0x415A4C;
+static void __declspec(naked) anim_set_check_light_fix() {
 	__asm {
 		mov  eax, [esi + 4];   // object
 		lea  ecx, [esp + 16];  // unknown.. something related to next "tile_refresh_rect" call?
@@ -139,7 +139,7 @@ static void __declspec(naked) anim_set_check__light_fix() {
 nothingspecial:
 		mov  ebx, [eax + 112]; // object current light intensity (original behavior)
 end:
-		jmp  anim_set_check__light_back; // jump back right to the "obj_set_light" call
+		jmp  anim_set_check_light_back; // jump back right to the "obj_set_light" call
 	}
 }
 
@@ -150,7 +150,7 @@ static void __declspec(naked) fire_dance_lighting_fix1() {
 		push edx;
 		push ebx;
 		mov  eax, esi;        // projectile ptr - 1st arg
-		mov  edx, 0xFFFF0002; // maximum radius + intensity (see anim_set_check__light_fix)
+		mov  edx, 0xFFFF0002; // maximum radius + intensity (see anim_set_check_light_fix)
 		xor  ebx, ebx;
 		call fo::funcoffs::register_object_light_;
 		mov  eax, esi;
@@ -158,7 +158,7 @@ static void __declspec(naked) fire_dance_lighting_fix1() {
 		pop  edx;
 		call fo::funcoffs::register_object_animate_; // overwritten call
 		mov  eax, esi;                               // projectile ptr - 1st arg
-		mov  edx, 0x00010000;                        // maximum radius + intensity (see anim_set_check__light_fix)
+		mov  edx, 0x00010000;                        // maximum radius + intensity (see anim_set_check_light_fix)
 		mov  ebx, -1;
 		call fo::funcoffs::register_object_light_;
 		jmp  fire_dance_lighting_back; // jump back
@@ -343,15 +343,15 @@ static const size_t numArtChecks = sizeof(explosion_art_adr) / sizeof(explosion_
 static const size_t numDmgChecks = sizeof(explosion_dmg_check_adr) / sizeof(explosion_dmg_check_adr[0]);
 
 enum MetaruleExplosionsMode {
-	EXPL_FORCE_EXPLOSION_PATTERN = 1,
-	EXPL_FORCE_EXPLOSION_ART = 2,
-	EXPL_FORCE_EXPLOSION_RADIUS = 3,
-	EXPL_FORCE_EXPLOSION_DMGTYPE = 4,
-	EXPL_STATIC_EXPLOSION_RADIUS = 5,
-	EXPL_GET_EXPLOSION_DAMAGE = 6,
+	EXPL_FORCE_EXPLOSION_PATTERN       = 1,
+	EXPL_FORCE_EXPLOSION_ART           = 2,
+	EXPL_FORCE_EXPLOSION_RADIUS        = 3,
+	EXPL_FORCE_EXPLOSION_DMGTYPE       = 4,
+	EXPL_STATIC_EXPLOSION_RADIUS       = 5,
+	EXPL_GET_EXPLOSION_DAMAGE          = 6,
 	EXPL_SET_DYNAMITE_EXPLOSION_DAMAGE = 7,
-	EXPL_SET_PLASTIC_EXPLOSION_DAMAGE = 8,
-	EXPL_SET_EXPLOSION_MAX_TARGET = 9,
+	EXPL_SET_PLASTIC_EXPLOSION_DAMAGE  = 8,
+	EXPL_SET_EXPLOSION_MAX_TARGET      = 9,
 };
 
 static void SetExplosionRadius(int arg1, int arg2) {
@@ -471,18 +471,17 @@ void ResetExplosionSettings() {
 }
 
 void ResetExplosionRadius() {
-	if (set_expl_radius_grenade != 2 || set_expl_radius_rocket != 3)
-		SetExplosionRadius(2, 3);
+	if (set_expl_radius_grenade != 2 || set_expl_radius_rocket != 3) SetExplosionRadius(2, 3);
 }
 
 static void ResetExplosionDamage() {
 	if (!explosives.empty()) explosives.clear();
 
 	if (!explosionsDamageReset) return;
-	SafeWrite32(dynamite_max_dmg_addr, dynamite_maxDmg);
 	SafeWrite32(dynamite_min_dmg_addr, dynamite_minDmg);
-	SafeWrite32(plastic_max_dmg_addr, plastic_maxDmg);
+	SafeWrite32(dynamite_max_dmg_addr, dynamite_maxDmg);
 	SafeWrite32(plastic_min_dmg_addr, plastic_minDmg);
+	SafeWrite32(plastic_max_dmg_addr, plastic_maxDmg);
 	explosionsDamageReset = false;
 }
 
@@ -494,7 +493,7 @@ void Explosions::init() {
 		dlog("Applying Explosion changes.", DL_INIT);
 		MakeJump(0x4118E1, ranged_attack_lighting_fix);
 		MakeJump(0x410A4A, fire_dance_lighting_fix1);
-		MakeJump(0x415A3F, anim_set_check__light_fix); // this allows to change light intensity
+		MakeJump(0x415A3F, anim_set_check_light_fix); // this allows to change light intensity
 		dlogr(" Done", DL_INIT);
 	}
 
