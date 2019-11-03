@@ -1532,7 +1532,7 @@ void _stdcall RegisterHook(DWORD script, DWORD id, DWORD procNum, bool specReg) 
 
 	sScriptProgram *prog = GetGlobalScriptProgram(script);
 	if (prog) {
-		dlog_f("Global script %08x registered as hook ID %d\n", DL_HOOK, script, id);
+		dlog_f("Global script: %08x registered as hook ID %d\n", DL_HOOK, script, id);
 		sHookScript hook;
 		hook.prog = *prog;
 		hook.callback = procNum;
