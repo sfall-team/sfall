@@ -385,10 +385,11 @@
 #define OBJ_DATA_FID                (0x20)
 #define OBJ_DATA_ELEVATION          (0x28)
 #define OBJ_DATA_PID                (0x64)
-#define OBJ_DATA_CID                (0x68) // combat id, used for savegame
-#define OBJ_DATA_SID                (0x78)
+#define OBJ_DATA_CID                (0x68) // combat ID, used for savegame
+#define OBJ_DATA_SID                (0x78) // script ID
+#define OBJ_DATA_SCRIPT_INDEX       (0x80) // script index number in scripts.lst
 // items
-#define OBJ_DATA_CUR_CHARGES        (0x3C)
+#define OBJ_DATA_CUR_CHARGES        (0x3C) // for key items it's the key code
 // critters
 #define OBJ_DATA_COMBAT_STATE       (0x3C) // flags: 1 - combat, 2 - target is out of range, 4 - flee
 #define OBJ_DATA_CUR_ACTION_POINT   (0x40)
