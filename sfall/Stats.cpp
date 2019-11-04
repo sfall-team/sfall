@@ -214,6 +214,18 @@ void StatsReset() {
 	}
 }
 
+void StatsResetMiscValues() {
+	// Reset some settable game values back to the defaults
+	StandardApAcBonus = 4;
+	ExtraApAcBonus = 4;
+	// XP mod set to 100%
+	ExperienceMod = 1.0f;
+	// HP bonus
+	SafeWrite8(0x4AFBC1, 2);
+	// Skill points per level mod
+	SafeWrite8(0x43C27A, 5);
+}
+
 void StatsInit() {
 	StatsReset();
 

@@ -45,6 +45,7 @@
 #include "ScriptExtender.h"
 #include "Skills.h"
 #include "Sound.h"
+#include "Stats.h"
 #include "TalkingHeads.h"
 #include "version.h"
 #include "Worldmap.h"
@@ -92,10 +93,12 @@ static void _stdcall ResetState(DWORD onLoad) {
 	ForceGraphicsRefresh(0); // disable refresh
 	WipeSounds();
 	if (GraphicsMode > 3) GraphicsResetOnGameLoad();
+	StatsReset();
+	StatsResetMiscValues();
+	PerksReset();
 	Combat_OnGameLoad();
 	Skills_OnGameLoad();
 	InLoop = 0;
-	PerksReset();
 	InventoryReset();
 	ClearSavPrototypes();
 	RegAnimCombatCheck(1);

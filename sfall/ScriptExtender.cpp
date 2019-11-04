@@ -33,7 +33,6 @@
 #include "input.h"
 #include "LoadGameHook.h"
 #include "Logging.h"
-#include "Stats.h"
 #include "ScriptExtender.h"
 #include "version.h"
 
@@ -1707,18 +1706,6 @@ void ClearGlobalScripts() {
 	selfOverrideMap.clear();
 	globalExportedVars.clear();
 	HookScriptClear();
-
-	// Stat ranges
-	StatsReset();
-	// Reset some settable game values back to the defaults
-	StandardApAcBonus = 4;
-	ExtraApAcBonus = 4;
-	// XP mod set to 100%
-	ExperienceMod = 1.0f;
-	// HP bonus
-	SafeWrite8(0x4AFBC1, 2);
-	// Skill points per level mod
-	SafeWrite8(0x43C27A, 5);
 }
 
 void RunScriptProcByNum(DWORD sptr, DWORD procNum) {
