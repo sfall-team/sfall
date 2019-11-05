@@ -431,7 +431,7 @@ int     ret1 - Override setting (-1 - use engine handler, any other value - prev
 
 HOOK_INVENWIELD (hs_invenwield.int)
 
-Runs before wielding or unwielding an armor or a weapon by a critter (except when using inventory by PC).
+Runs before causing a critter or the player to wield/unwield an armor or a weapon (except when using the inventory by PC).
 An example usage would be to change critter art depending on armor being used or to dynamically customize weapon animations.
 NOTE: when replacing a previously wielded armor or weapon, the unwielding hook will not be executed.
 If you need to rely on this, try checking if armor/weapon is already equipped when wielding hook is executed.
@@ -440,6 +440,7 @@ Critter arg1 - critter
 Obj     arg2 - item being wielded or unwielded (weapon/armor)
 int     arg3 - slot (INVEN_TYPE_*)
 int     arg4 - 1 when wielding, 0 when unwielding
+int     arg5 - 1 when removing an equipped item from inventory, 0 otherwise
 
 int     ret1 - overrides hard-coded handler (-1 - use engine handler, any other value - override) - NOT RECOMMENDED
 

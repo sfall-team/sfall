@@ -89,13 +89,11 @@ void sf_force_encounter(OpcodeContext& cxt) {
 void __declspec(naked) op_in_world_map() {
 	__asm {
 		push ecx;
-		push edx;
 		push eax;
 		call InWorldMap;
 		mov  edx, eax;
 		pop  eax;
 		_RET_VAL_INT(ecx);
-		pop  edx;
 		pop  ecx;
 		retn;
 	}
@@ -104,13 +102,11 @@ void __declspec(naked) op_in_world_map() {
 void __declspec(naked) op_get_game_mode() {
 	__asm {
 		push ecx;
-		push edx;
 		push eax;
 		call GetLoopFlags;
 		mov  edx, eax;
 		pop  eax;
 		_RET_VAL_INT(ecx);
-		pop  edx;
 		pop  ecx;
 		retn;
 	}
@@ -118,24 +114,20 @@ void __declspec(naked) op_get_game_mode() {
 
 void __declspec(naked) op_get_world_map_x_pos() {
 	__asm {
-		push edx;
 		push ecx;
 		mov  edx, ds:[FO_VAR_world_xpos];
 		_RET_VAL_INT(ecx);
 		pop  ecx;
-		pop  edx;
 		retn;
 	}
 }
 
 void __declspec(naked) op_get_world_map_y_pos() {
 	__asm {
-		push edx;
 		push ecx;
 		mov  edx, ds:[FO_VAR_world_ypos];
 		_RET_VAL_INT(ecx);
 		pop  ecx;
-		pop  edx;
 		retn;
 	}
 }

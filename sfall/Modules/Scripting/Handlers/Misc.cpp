@@ -28,12 +28,10 @@
 #include "..\..\KillCounter.h"
 //#include "..\..\MiscPatches.h"
 #include "..\..\Movies.h"
-#include "..\..\Objects.h"
 #include "..\..\PartyControl.h"
 #include "..\..\PlayerModel.h"
 #include "..\..\ScriptExtender.h"
 #include "..\..\Stats.h"
-//#include "..\..\Worldmap.h"
 #include "..\Arrays.h"
 #include "..\OpcodeContext.h"
 
@@ -291,8 +289,6 @@ void sf_set_object_knockback(OpcodeContext& ctx) {
 	case 0x197:
 		mode = 2;
 		break;
-	default:
-		break;
 	}
 	fo::GameObject* object = ctx.arg(0).asObject();
 	if (mode) {
@@ -317,8 +313,6 @@ void sf_remove_object_knockback(OpcodeContext& ctx) {
 		break;
 	case 0x19a:
 		mode = 2;
-		break;
-	default:
 		break;
 	}
 	KnockbackRemoveMod(ctx.arg(0).asObject(), mode);
@@ -392,12 +386,10 @@ end:
 
 void __declspec(naked) op_active_hand() {
 	__asm {
-		push edx;
 		push ecx;
 		mov  edx, dword ptr ds:[FO_VAR_itemCurrentItem];
 		_RET_VAL_INT(ecx);
 		pop  ecx;
-		pop  edx;
 		retn;
 	}
 }
@@ -411,12 +403,10 @@ void __declspec(naked) op_toggle_active_hand() {
 
 void __declspec(naked) op_eax_available() {
 	__asm {
-		push edx;
 		push ecx;
 		xor  edx, edx
 		_RET_VAL_INT(ecx);
 		pop  ecx;
-		pop  edx;
 		retn;
 	}
 }
@@ -572,10 +562,10 @@ static DWORD GetIniSetting(const char* str, bool isString) {
 	}
 	if (isString) {
 		IniStrBuffer[0] = 0;
-		GetPrivateProfileStringA(section, key, "", IniStrBuffer, 256, file);
+		iniGetString(section, key, "", IniStrBuffer, 256, file);
 		return (DWORD)&IniStrBuffer[0];
 	} else {
-		return GetPrivateProfileIntA(section, key, -1, file);
+		return iniGetInt(section, key, -1, file);
 	}
 }
 
@@ -591,13 +581,11 @@ void sf_get_ini_string(OpcodeContext& ctx) {
 void __declspec(naked) op_get_uptime() {
 	__asm {
 		push ecx;
-		push edx;
 		push eax;
 		call GetTickCount;
 		mov  edx, eax;
 		pop  eax;
 		_RET_VAL_INT(ecx);
-		pop  edx;
 		pop  ecx;
 		retn;
 	}
@@ -606,11 +594,9 @@ void __declspec(naked) op_get_uptime() {
 void __declspec(naked) op_set_car_current_town() {
 	__asm {
 		push ecx;
-		push edx;
 		_GET_ARG_INT(end);
 		mov  ds:[FO_VAR_carCurrentArea], eax;
 end:
-		pop  edx;
 		pop  ecx;
 		retn;
 	}
@@ -619,13 +605,11 @@ end:
 void __declspec(naked) op_set_hp_per_level_mod() { // rewrite to c++
 	__asm {
 		push ecx;
-		push edx;
 		_GET_ARG_INT(end);
 		push eax; // allowed -/+127
 		push 0x4AFBC1;
 		call SafeWrite8;
 end:
-		pop  edx;
 		pop  ecx;
 		retn;
 	}
@@ -694,7 +678,7 @@ end:
 	}
 }
 
-static char* valueOutRange = "%s() - argument values out of range.";
+static const char* valueOutRange = "%s() - argument values out of range.";
 
 void sf_set_critical_table(OpcodeContext& ctx) {
 	DWORD critter = ctx.arg(0).asInt(),
@@ -738,11 +722,9 @@ void sf_reset_critical_table(OpcodeContext& ctx) {
 void __declspec(naked) op_set_unspent_ap_bonus() {
 	__asm {
 		push ecx;
-		push edx;
 		_GET_ARG_INT(end);
-		mov  standardApAcBonus, eax;
+		mov  Stats::standardApAcBonus, eax;
 end:
-		pop edx;
 		pop ecx;
 		retn;
 	}
@@ -750,12 +732,10 @@ end:
 
 void __declspec(naked) op_get_unspent_ap_bonus() {
 	__asm {
-		push edx;
 		push ecx;
-		mov  edx, standardApAcBonus;
+		mov  edx, Stats::standardApAcBonus;
 		_RET_VAL_INT(ecx);
 		pop  ecx;
-		pop  edx;
 		retn;
 	}
 }
@@ -763,11 +743,9 @@ void __declspec(naked) op_get_unspent_ap_bonus() {
 void __declspec(naked) op_set_unspent_ap_perk_bonus() {
 	__asm {
 		push ecx;
-		push edx;
 		_GET_ARG_INT(end);
-		mov  extraApAcBonus, eax;
+		mov  Stats::extraApAcBonus, eax;
 end:
-		pop  edx;
 		pop  ecx;
 		retn;
 	}
@@ -775,12 +753,10 @@ end:
 
 void __declspec(naked) op_get_unspent_ap_perk_bonus() {
 	__asm {
-		push edx;
 		push ecx;
-		mov  edx, extraApAcBonus;
+		mov  edx, Stats::extraApAcBonus;
 		_RET_VAL_INT(ecx);
 		pop  ecx;
-		pop  edx;
 		retn;
 	}
 }
@@ -834,42 +810,13 @@ void __declspec(naked) op_nb_create_char() {
 	}
 }
 
-static const char* failedLoad = "%s() - failed to load a prototype id: %d";
-static bool protoMaxLimitPatch = false;
-
-void sf_get_proto_data(OpcodeContext& ctx) {
-	fo::Proto* protoPtr;
-	int pid = ctx.arg(0).rawValue();
-	int result = fo::func::proto_ptr(pid, &protoPtr);
-	if (result != -1) {
-		result = *(long*)((BYTE*)protoPtr + ctx.arg(1).rawValue());
-	} else {
-		ctx.printOpcodeError(failedLoad, ctx.getOpcodeName(), pid);
-	}
-	ctx.setReturn(result);
-}
-
-void sf_set_proto_data(OpcodeContext& ctx) {
-	int pid = ctx.arg(0).rawValue();
-	if (Stats::SetProtoData(pid, ctx.arg(1).rawValue(), ctx.arg(2).rawValue()) != -1) {
-		if (!protoMaxLimitPatch) {
-			Objects::LoadProtoAutoMaxLimit();
-			protoMaxLimitPatch = true;
-		}
-	} else {
-		ctx.printOpcodeError(failedLoad, ctx.getOpcodeName(), pid);
-	}
-}
-
 void __declspec(naked) op_hero_select_win() { // for opening the appearance selection window
 	__asm {
 		push ecx;
-		push edx;
 		_GET_ARG_INT(fail);
 		push eax;
 		call HeroSelectWindow;
 fail:
-		pop  edx;
 		pop  ecx;
 		retn;
 	}
@@ -878,12 +825,10 @@ fail:
 void __declspec(naked) op_set_hero_style() { // for setting the hero style/appearance takes an 1 int
 	__asm {
 		push ecx;
-		push edx;
 		_GET_ARG_INT(fail);
 		push eax;
 		call SetHeroStyle;
 fail:
-		pop  edx;
 		pop  ecx;
 		retn;
 	}
@@ -892,12 +837,10 @@ fail:
 void __declspec(naked) op_set_hero_race() { // for setting the hero race takes an 1 int
 	__asm {
 		push ecx;
-		push edx;
 		_GET_ARG_INT(fail);
 		push eax;
 		call SetHeroRace;
 fail:
-		pop  edx;
 		pop  ecx;
 		retn;
 	}
@@ -905,12 +848,10 @@ fail:
 
 void __declspec(naked) op_get_light_level() {
 	__asm {
-		push edx;
 		push ecx;
 		mov  edx, ds:[FO_VAR_ambient_light];
 		_RET_VAL_INT(ecx);
 		pop  ecx;
-		pop  edx;
 		retn;
 	}
 }
@@ -918,9 +859,7 @@ void __declspec(naked) op_get_light_level() {
 void __declspec(naked) op_refresh_pc_art() {
 	__asm {
 		push ecx;
-		push edx;
 		call RefreshPCArt;
-		pop  edx;
 		pop  ecx;
 		retn;
 	}
@@ -974,12 +913,10 @@ end:
 void __declspec(naked) op_stop_sfall_sound() {
 	__asm {
 		push ecx;
-		push edx;
 		_GET_ARG_INT(end);
 		push eax;
 		call StopSfallSound;
 end:
-		pop  edx;
 		pop  ecx;
 		retn;
 	}
@@ -1021,12 +958,10 @@ end:
 
 void __declspec(naked) op_modified_ini() {
 	__asm {
-		push edx;
 		push ecx;
 		mov edx, modifiedIni;
 		_RET_VAL_INT(ecx);
 		pop  ecx;
-		pop  edx;
 		retn;
 	}
 }
@@ -1034,12 +969,10 @@ void __declspec(naked) op_modified_ini() {
 void __declspec(naked) op_force_aimed_shots() {
 	__asm {
 		push ecx;
-		push edx;
 		_GET_ARG_INT(end);
 		push eax;
 		call ForceAimedShots;
 end:
-		pop  edx;
 		pop  ecx;
 		retn;
 	}
@@ -1048,12 +981,10 @@ end:
 void __declspec(naked) op_disable_aimed_shots() {
 	__asm {
 		push ecx;
-		push edx;
 		_GET_ARG_INT(end);
 		push eax;
 		call DisableAimedShots;
 end:
-		pop  edx;
 		pop  ecx;
 		retn;
 	}
@@ -1062,7 +993,6 @@ end:
 void __declspec(naked) op_mark_movie_played() {
 	__asm {
 		push ecx;
-		push edx;
 		_GET_ARG_INT(end);
 		test eax, eax;
 		jl   end;
@@ -1070,7 +1000,6 @@ void __declspec(naked) op_mark_movie_played() {
 		jge  end;
 		mov  byte ptr ds:[eax + FO_VAR_gmovie_played_list], 1;
 end:
-		pop  edx;
 		pop  ecx;
 		retn;
 	}
@@ -1133,12 +1062,10 @@ end:
 void __declspec(naked) op_block_combat() {
 	__asm {
 		push ecx;
-		push edx;
 		_GET_ARG_INT(end);
 		push eax;
 		call AIBlockCombat;
 end:
-		pop  edx;
 		pop  ecx;
 		retn;
 	}
@@ -1174,12 +1101,10 @@ void __declspec(naked) op_tile_under_cursor() {
 
 void __declspec(naked) op_gdialog_get_barter_mod() {
 	__asm {
-		push edx;
 		push ecx;
 		mov  edx, dword ptr ds:[FO_VAR_gdBarterMod];
 		_RET_VAL_INT(ecx);
 		pop  ecx;
-		pop  edx;
 		retn;
 	}
 }
@@ -1187,15 +1112,17 @@ void __declspec(naked) op_gdialog_get_barter_mod() {
 void __declspec(naked) op_set_inven_ap_cost() {
 	__asm {
 		push ecx;
-		push edx;
 		_GET_ARG_INT(end);
-		push eax;
-		call SetInvenApCost;
+		mov  ecx, eax;
+		call Inventory::SetInvenApCost;
 end:
-		pop  edx;
 		pop  ecx;
 		retn;
 	}
+}
+
+void sf_get_inven_ap_cost(OpcodeContext& ctx) {
+	ctx.setReturn(Inventory::GetInvenApCost());
 }
 
 void sf_attack_is_aimed(OpcodeContext& ctx) {

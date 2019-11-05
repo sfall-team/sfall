@@ -622,6 +622,17 @@ optional argument:
 - fileNumber: the file ID number for the message_str_game function. The available range is from 0x2000 to 0x2FFF (see ExtraGameMsgFileList setting in ddraw.ini)
   use fileNumber only if you want to add a message file without editing ddraw.ini or existing scripts to support the old way
 
+> void sfall_func2("unwield_slot", object critter, int slot)
+- unequips an item from the specified slot for a critter or the player
+- can take off player's equipped item when the inventory is opened, or the player is in the barter screen
+- slot: 0 - armor slot, 1 - right slot, 2 - left slot (see INVEN_TYPE_* in define.h)
+
+> void sfall_func1("add_trait", int traitId)
+- adds the specified trait to the player
+
+> int sfall_func0("get_inven_ap_cost")
+- returns the current AP cost to access the inventory in combat
+
 ------------------------
 ------ MORE INFO -------
 ------------------------

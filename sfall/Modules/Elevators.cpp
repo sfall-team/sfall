@@ -28,8 +28,6 @@ static const int exitsPerElevator = 4;
 static const int vanillaElevatorCount = 24;
 static const int elevatorCount = 50;
 
-//static char elevFile[MAX_PATH] = ".\\";
-
 static DWORD elevatorType[elevatorCount] = {0};
 static fo::ElevatorExit elevatorExits[elevatorCount][exitsPerElevator] = {0}; // _retvals
 static fo::ElevatorFrms elevatorsFrms[elevatorCount] = {0};                   // _intotal
@@ -115,26 +113,26 @@ static void LoadElevators(const char* elevFile) {
 	for (int i = 0; i < vanillaElevatorCount; i++) elevatorType[i] = i;
 
 	char section[4];
-	if (elevFile) {
+	if (elevFile && GetFileAttributes(elevFile) != INVALID_FILE_ATTRIBUTES) {
 		for (int i = 0; i < elevatorCount; i++) {
 			_itoa_s(i, section, 10);
-			int type = GetPrivateProfileIntA(section, "Image", elevatorType[i], elevFile);
+			int type = iniGetInt(section, "Image", elevatorType[i], elevFile);
 			elevatorType[i] = min(type, elevatorCount - 1);
 			if (i >= vanillaElevatorCount) {
-				int cBtn = GetPrivateProfileIntA(section, "ButtonCount", 2, elevFile);
+				int cBtn = iniGetInt(section, "ButtonCount", 2, elevFile);
 				if (cBtn > exitsPerElevator) cBtn = exitsPerElevator;
 				elevatorsBtnCount[i] = max(2, cBtn);
 			}
-			elevatorsFrms[i].main = GetPrivateProfileIntA(section, "MainFrm", elevatorsFrms[i].main, elevFile);
-			elevatorsFrms[i].buttons = GetPrivateProfileIntA(section, "ButtonsFrm", elevatorsFrms[i].buttons, elevFile);
+			elevatorsFrms[i].main = iniGetInt(section, "MainFrm", elevatorsFrms[i].main, elevFile);
+			elevatorsFrms[i].buttons = iniGetInt(section, "ButtonsFrm", elevatorsFrms[i].buttons, elevFile);
 			char setting[32];
 			for (int j = 0; j < exitsPerElevator; j++) {
 				sprintf_s(setting, "ID%d", j + 1);
-				elevatorExits[i][j].id = GetPrivateProfileIntA(section, setting, elevatorExits[i][j].id, elevFile);
+				elevatorExits[i][j].id = iniGetInt(section, setting, elevatorExits[i][j].id, elevFile);
 				sprintf_s(setting, "Elevation%d", j + 1);
-				elevatorExits[i][j].elevation = GetPrivateProfileIntA(section, setting, elevatorExits[i][j].elevation, elevFile);
+				elevatorExits[i][j].elevation = iniGetInt(section, setting, elevatorExits[i][j].elevation, elevFile);
 				sprintf_s(setting, "Tile%d", j + 1);
-				elevatorExits[i][j].tile = GetPrivateProfileIntA(section, setting, elevatorExits[i][j].tile, elevFile);
+				elevatorExits[i][j].tile = iniGetInt(section, setting, elevatorExits[i][j].tile, elevFile);
 			}
 		}
 	}

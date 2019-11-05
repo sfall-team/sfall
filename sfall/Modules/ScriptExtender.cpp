@@ -473,6 +473,7 @@ static void PrepareGlobalScriptsListByMask() {
 
 		for (int i = 0; i < count; i++) {
 			char* name = _strlwr(filenames[i]); // name of the script in lower case
+			if (name[0] != 'g' || name[1] != 'l') continue; // fix bug in db_get_file_list fuction (if the script name begins with a non-Latin character)
 
 			std::string baseName(name);
 			int lastDot = baseName.find_last_of('.');
@@ -653,7 +654,7 @@ void SaveGlobals(HANDLE h) {
 static void ClearGlobals() {
 	globalVars.clear();
 	for (array_itr it = arrays.begin(); it != arrays.end(); ++it) {
-		it->second.clear();
+		it->second.clearArrayVar();
 	}
 	arrays.clear();
 	savedArrays.clear();
@@ -750,7 +751,7 @@ void ScriptExtender::init() {
 		}
 	}
 
-	alwaysFindScripts = isDebug && (GetPrivateProfileIntA("Debugging", "AlwaysFindScripts", 0, ::sfall::ddrawIni) != 0);
+	alwaysFindScripts = isDebug && (iniGetInt("Debugging", "AlwaysFindScripts", 0, ::sfall::ddrawIni) != 0);
 	if (alwaysFindScripts) dlogr("Always searching for global scripts behavior enabled.", DL_SCRIPT);
 
 	MakeJump(0x4A390C, FindSidHack);

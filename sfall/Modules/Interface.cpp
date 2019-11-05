@@ -84,7 +84,7 @@ static void ActionPointsBarPatch() {
 		if (hrpVersionValid && !_stricmp((const char*)HRPAddressOffset(0x39358), "HR_IFACE_%i.frm")) {
 			SafeWriteStr(HRPAddressOffset(0x39363), "E.frm"); // patching HRP
 		} else {
-			dlog(" Incorrect HRP version!", DL_INIT);
+			dlogr(" Incorrect HRP version!", DL_INIT);
 			return;
 		}
 		LoadGameHook::OnAfterGameInit() += APBarRectPatch;
@@ -100,6 +100,51 @@ static void ActionPointsBarPatch() {
 	MakeCall(0x45E356, intface_init_hack);
 	MakeJump(0x45EE38, intface_update_move_points_hack, 1);
 	dlogr(" Done", DL_INIT);
+}
+
+static long costAP = -1;
+static void __declspec(naked) intface_redraw_items_hack0() {
+	__asm {
+		sub  eax, esi;
+		shl  eax, 4;
+		//
+		cmp  dword ptr [esp + 0x80 - 0x5C + 4], 99; // art width
+		jg   newArt;
+		mov  edx, 10;  // width
+		retn;
+newArt:
+		mov  costAP, edx;
+		cmp  edx, 10;
+		je   noShift;
+		ja   skip;
+		mov  edx, 10;  // width
+		retn;
+skip:
+		sub  edx, 10;
+		imul edx, 5;   // shift
+		add  ebx, edx; // add width shift to 'from'
+noShift:
+		mov  edx, 15;  // width
+		retn;
+	}
+}
+
+static void __declspec(naked) intface_redraw_items_hack1() {
+	__asm {
+		mov  edx, 10;
+		cmp  costAP, edx;
+		jl   skip;
+		add  edx, 5; // width 15
+skip:
+		retn;
+	}
+}
+
+static void DrawActionPointsNumber() {
+	MakeCall(0x4604B0, intface_redraw_items_hack0);
+	MakeCall(0x460504, intface_redraw_items_hack1);
+	SafeWrite16(0x4604D4, 0x9052); // push 10 > push edx
+	SafeWrite8(0x46034B, 20);      // draw up to 19 AP
 }
 
 ////////////////////////////// WORLDMAP INTERFACE //////////////////////////////
@@ -412,7 +457,13 @@ static void WorldmapViewportPatch() {
 
 static void __declspec(naked) wmInterfaceRefreshCarFuel_hack_empty() {
 	__asm {
-		mov byte ptr [eax - 1], 14;
+		mov byte ptr [eax - 1], 13;
+		mov byte ptr [eax + 1], 13;
+		add eax, wmapWinWidth;
+		dec ebx;
+		mov byte ptr [eax], 14;
+		mov byte ptr [eax - 1], 15;
+		mov byte ptr [eax + 1], 15;
 		add eax, wmapWinWidth;
 		retn;
 	}
@@ -421,8 +472,10 @@ static void __declspec(naked) wmInterfaceRefreshCarFuel_hack_empty() {
 static void __declspec(naked) wmInterfaceRefreshCarFuel_hack() {
 	__asm {
 		mov byte ptr [eax - 1], 196;
+		mov byte ptr [eax + 1], 196;
 		add eax, wmapWinWidth;
-		mov byte ptr [eax - 1], 14;
+		mov byte ptr [eax - 1], 200;
+		mov byte ptr [eax + 1], 200;
 		retn;
 	}
 }
@@ -439,10 +492,10 @@ static void WorldMapInterfacePatch() {
 	SafeWrite32(0x4C2C92, 181); // index of DNARWOFF.FRM
 	SafeWrite8(0x4C2D04, 0x46); // dec esi > inc esi
 
-	//if(GetConfigInt("Misc", "WorldMapCitiesListFix", 0)) {
-	dlog("Applying world map cities list patch.", DL_INIT);
-	HookCalls(ScrollCityListFix, {0x4C04B9, 0x4C04C8, 0x4C4A34, 0x4C4A3D});
-	dlogr(" Done", DL_INIT);
+	//if (GetConfigInt("Misc", "WorldMapCitiesListFix", 0)) {
+		dlog("Applying world map cities list patch.", DL_INIT);
+		HookCalls(ScrollCityListFix, {0x4C04B9, 0x4C04C8, 0x4C4A34, 0x4C4A3D});
+		dlogr(" Done", DL_INIT);
 	//}
 
 	DWORD wmSlots = GetConfigInt("Misc", "WorldMapSlots", 0);
@@ -464,14 +517,57 @@ static void WorldMapInterfacePatch() {
 	// Car fuel gauge graphics patch
 	MakeCall(0x4C528A, wmInterfaceRefreshCarFuel_hack_empty);
 	MakeCall(0x4C529E, wmInterfaceRefreshCarFuel_hack);
+	SafeWrite8(0x4C52A8, 197);
+	SafeWrite8(0x4C5289, 12);
+}
+
+static void __declspec(naked) intface_rotate_numbers_hack() {
+	__asm {
+		push edi;
+		push ebp;
+		sub  esp, 0x54;
+		mov  edi, 0x460BA6;
+		// ebx - old value, ecx - new value
+		cmp  ebx, ecx;
+		je   end;
+		mov  ebx, ecx;
+		jg   decrease;
+		dec  ebx;
+end:
+		jmp  edi;
+decrease:
+		test ecx, ecx;
+		jl   negative;
+		inc  ebx;
+		jmp  edi;
+negative:
+		xor  ebx, ebx;
+		jmp  edi;
+	}
+}
+
+static void SpeedInterfaceCounterAnimsPatch() {
+	switch (GetConfigInt("Misc", "SpeedInterfaceCounterAnims", 0)) {
+	case 1:
+		dlog("Applying SpeedInterfaceCounterAnims patch.", DL_INIT);
+		MakeJump(0x460BA1, intface_rotate_numbers_hack);
+		dlogr(" Done", DL_INIT);
+		break;
+	case 2:
+		dlog("Applying SpeedInterfaceCounterAnims patch (Instant).", DL_INIT);
+		SafeWrite32(0x460BB6, 0xDB319090); // xor ebx, ebx
+		dlogr(" Done", DL_INIT);
+		break;
+	}
 }
 
 void Interface::init() {
 	if (GetConfigInt("Interface", "ActionPointsBar", 0)) {
 		ActionPointsBarPatch();
 	}
-
+	DrawActionPointsNumber();
 	WorldMapInterfacePatch();
+	SpeedInterfaceCounterAnimsPatch();
 }
 
 void Interface::exit() {

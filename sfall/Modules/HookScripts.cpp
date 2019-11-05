@@ -141,11 +141,11 @@ DWORD _stdcall GetHSArg() {
 	return (cArg == argCount) ? 0 : args[cArg++];
 }
 
-void _stdcall SetHSArg(DWORD id, DWORD value) {
+void SetHSArg(DWORD id, DWORD value) {
 	if (id < argCount) args[id] = value;
 }
 
-DWORD* _stdcall GetHSArgs() {
+DWORD* GetHSArgs() {
 	return args;
 }
 
@@ -185,7 +185,7 @@ void RegisterHook(fo::Program* script, int id, int procNum, bool specReg) {
 
 	ScriptProgram *prog = GetGlobalScriptProgram(script);
 	if (prog) {
-		dlog_f("Global script %08x registered as hook ID %d\n", DL_HOOK, script, id);
+		dlog_f("Global script: %08x registered as hook ID %d\n", DL_HOOK, script, id);
 		HookScript hook;
 		hook.prog = *prog;
 		hook.callback = procNum;
@@ -262,8 +262,8 @@ void HookScripts::init() {
 	LoadGameHook::OnGameModeChange() += GameModeChangeHook;
 	LoadGameHook::OnAfterGameStarted() += SourceUseSkillOnInit;
 
-	HookScripts::injectAllHooks = isDebug && (GetPrivateProfileIntA("Debugging", "InjectAllGameHooks", 0, ::sfall::ddrawIni) != 0);
-	if (HookScripts::injectAllHooks) dlogr("Injecting all game hooks", DL_HOOK);
+	HookScripts::injectAllHooks = isDebug && (iniGetInt("Debugging", "InjectAllGameHooks", 0, ::sfall::ddrawIni) != 0);
+	if (HookScripts::injectAllHooks) dlogr("Injecting all game hooks", DL_HOOK|DL_INIT);
 }
 
 }

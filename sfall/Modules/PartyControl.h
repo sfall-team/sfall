@@ -28,7 +28,7 @@ public:
 	void init();
 	void exit() override;
 
-	static int __stdcall SwitchHandHook(fo::GameObject* item);
+	static int __fastcall SwitchHandHook(fo::GameObject* item);
 
 	static bool IsNpcControlled();
 

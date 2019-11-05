@@ -18,6 +18,7 @@
 
 #include "..\..\..\FalloutEngine\Fallout2.h"
 #include "..\..\Combat.h"
+#include "..\..\CritterStats.h"
 #include "..\..\Drugs.h"
 #include "..\..\Explosions.h"
 #include "..\..\Inventory.h"
@@ -434,14 +435,51 @@ void sf_get_loot_object(OpcodeContext& ctx) {
 	ctx.setReturn((GetLoopFlags() & INTFACELOOT) ? LoadGameHook::LootTarget : 0);
 }
 
+static const char* failedLoad = "%s() - failed to load a prototype ID: %d";
+static bool protoMaxLimitPatch = false;
+
+void sf_get_proto_data(OpcodeContext& ctx) {
+	fo::Proto* protoPtr;
+	int pid = ctx.arg(0).rawValue();
+	int result = fo::func::proto_ptr(pid, &protoPtr);
+	if (result != -1) {
+		result = *(long*)((BYTE*)protoPtr + ctx.arg(1).rawValue());
+	} else {
+		ctx.printOpcodeError(failedLoad, ctx.getOpcodeName(), pid);
+	}
+	ctx.setReturn(result);
+}
+
+void sf_set_proto_data(OpcodeContext& ctx) {
+	int pid = ctx.arg(0).rawValue();
+	if (CritterStats::SetProtoData(pid, ctx.arg(1).rawValue(), ctx.arg(2).rawValue()) != -1) {
+		if (!protoMaxLimitPatch) {
+			Objects::LoadProtoAutoMaxLimit();
+			protoMaxLimitPatch = true;
+		}
+	} else {
+		ctx.printOpcodeError(failedLoad, ctx.getOpcodeName(), pid);
+	}
+}
+
 void sf_get_object_data(OpcodeContext& ctx) {
-	BYTE* object_ptr = (BYTE*)ctx.arg(0).asObject();
-	ctx.setReturn(*(long*)(object_ptr + ctx.arg(1).asInt()), DataType::INT);
+	DWORD result = 0;
+	DWORD* object_ptr = (DWORD*)ctx.arg(0).rawValue();
+	if (*(object_ptr - 1) != 0xFEEDFACE) {
+		ctx.printOpcodeError("%s() - invalid object pointer.", ctx.getMetaruleName());
+	} else {
+		result = *(long*)((BYTE*)object_ptr + ctx.arg(1).rawValue());
+	}
+	ctx.setReturn(result, DataType::INT);
 }
 
 void sf_set_object_data(OpcodeContext& ctx) {
-	BYTE* object_ptr = (BYTE*)ctx.arg(0).asObject();
-	*(long*)(object_ptr + ctx.arg(1).asInt()) = ctx.arg(2).asInt();
+	DWORD* object_ptr = (DWORD*)ctx.arg(0).rawValue();
+	if (*(object_ptr - 1) != 0xFEEDFACE) {
+		ctx.printOpcodeError("%s() - invalid object pointer.", ctx.getMetaruleName());
+	} else {
+		*(long*)((BYTE*)object_ptr + ctx.arg(1).rawValue()) = ctx.arg(2).rawValue();
+	}
 }
 
 void sf_get_object_ai_data(OpcodeContext& ctx) {

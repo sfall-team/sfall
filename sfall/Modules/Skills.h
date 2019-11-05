@@ -27,6 +27,7 @@ class Skills : public Module {
 public:
 	const char* name() { return "Skills"; }
 	void init();
+	void exit() override;
 };
 
 void _stdcall SetSkillMax(fo::GameObject* critter, int maximum);

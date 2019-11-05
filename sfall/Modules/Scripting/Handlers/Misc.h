@@ -99,10 +99,6 @@ void __declspec() op_set_palette();
 //numbers subgame functions
 void __declspec() op_nb_create_char();
 
-void sf_get_proto_data(OpcodeContext&);
-
-void sf_set_proto_data(OpcodeContext&);
-
 void __declspec() op_hero_select_win() ;
 
 void __declspec() op_set_hero_style();
@@ -140,6 +136,8 @@ void __declspec() op_tile_under_cursor();
 void __declspec() op_gdialog_get_barter_mod();
 
 void __declspec() op_set_inven_ap_cost();
+
+void sf_get_inven_ap_cost(OpcodeContext&);
 
 void sf_attack_is_aimed(OpcodeContext&);
 

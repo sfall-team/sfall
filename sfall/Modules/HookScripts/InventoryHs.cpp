@@ -328,21 +328,48 @@ skip:
 	}
 }
 
-/* Common InvenWield hook */
-static bool InvenWieldHook_Script(int flag) {
-	argCount = 4;
-	args[3] = flag;  // invenwield flag
+/* Common InvenWield script hooks */
+static long __fastcall InvenWieldHook_Script(fo::GameObject* critter, fo::GameObject* item, long slot, long isWield, long isRemove) {
+	if (!isWield) {
+		// for the critter, the right slot is always the active slot
+		if (slot == fo::INVEN_TYPE_LEFT_HAND && critter != fo::var::obj_dude) return 1;
+		// check the current active slot for the player
+		if (slot != fo::INVEN_TYPE_WORN && critter == fo::var::obj_dude) {
+			long _slot = (slot != fo::INVEN_TYPE_LEFT_HAND);
+			if (_slot != fo::var::itemCurrentItem) return 1; // item in non-active slot
+		}
+	}
+	BeginHook();
 
+	args[0] = (DWORD)critter;
+	args[1] = (DWORD)item;
+	args[2] = slot;
+	args[3] = isWield; // unwield/wield event
+	args[4] = isRemove;
+
+	argCount = 5;
+	RunHookScript(HOOK_INVENWIELD);
+
+	long result = (cRet == 0 || rets[0] == -1);
+	EndHook();
+
+	return result; // 1 - use engine handler
+}
+
+static __declspec(noinline) bool InvenWieldHook_ScriptPart(long isWield, long isRemove = 0) {
+	args[3] = isWield; // unwield/wield event
+	args[4] = isRemove;
+
+	argCount = 5;
 	RunHookScript(HOOK_INVENWIELD);
 
 	bool result = (cRet == 0 || rets[0] == -1);
 	EndHook();
 
-	return result; // True - use engine handler
+	return result; // true - use engine handler
 }
 
 static void __declspec(naked) InvenWieldFuncHook() {
-	using namespace fo;
 	__asm {
 		HookBegin;
 		mov args[0], eax; // critter
@@ -350,19 +377,17 @@ static void __declspec(naked) InvenWieldFuncHook() {
 		mov args[8], ebx; // slot
 		pushad;
 	}
-
 	// right hand slot?
-	if (args[2] != INVEN_TYPE_RIGHT_HAND && GetItemType((GameObject*)args[1]) != item_type_armor) {
-		args[2] = INVEN_TYPE_LEFT_HAND;
+	if (args[2] != fo::INVEN_TYPE_RIGHT_HAND && fo::GetItemType((fo::GameObject*)args[1]) != fo::item_type_armor) {
+		args[2] = fo::INVEN_TYPE_LEFT_HAND;
 	}
-
-	InvenWieldHook_Script(1); // wield flag
+	InvenWieldHook_ScriptPart(1); // wield event
 
 	__asm {
 		test al, al;
 		popad;
 		jz   skip;
-		jmp  funcoffs::invenWieldFunc_;
+		jmp  fo::funcoffs::invenWieldFunc_;
 skip:
 		mov  eax, -1;
 		retn;
@@ -373,18 +398,18 @@ skip:
 static void __declspec(naked) InvenUnwieldFuncHook() {
 	__asm {
 		HookBegin;
-		mov args[0], eax;   // critter
-		mov args[8], edx;   // slot
+		mov args[0], eax; // critter
+		mov args[8], edx; // slot
 		pushad;
 	}
-
 	// set slot
 	if (args[2] == 0) { // left hand slot?
 		args[2] = fo::INVEN_TYPE_LEFT_HAND;
 	}
-	args[1] = (DWORD)fo::GetItemPtrSlot((fo::GameObject*)args[0], (fo::InvenType)args[2]); // get item
+	// get item
+	args[1] = (DWORD)fo::GetItemPtrSlot((fo::GameObject*)args[0], (fo::InvenType)args[2]);
 
-	InvenWieldHook_Script(0); // unwield flag
+	InvenWieldHook_ScriptPart(0); // unwield event
 
 	__asm {
 		test al, al;
@@ -398,14 +423,14 @@ skip:
 }
 
 static void __declspec(naked) CorrectFidForRemovedItemHook() {
+	using namespace fo::ObjectFlag;
 	__asm {
 		HookBegin;
 		mov args[0], eax; // critter
 		mov args[4], edx; // item
 		mov args[8], ebx; // item flag
-		pushad;
+		pushadc;
 	}
-
 	// set slot
 	if (args[2] & fo::ObjectFlag::Right_Hand) {       // right hand slot
 		args[2] = fo::INVEN_TYPE_RIGHT_HAND;
@@ -414,21 +439,138 @@ static void __declspec(naked) CorrectFidForRemovedItemHook() {
 	} else {
 		args[2] = fo::INVEN_TYPE_WORN;                // armor slot
 	}
-
-	InvenWieldHook_Script(0); // unwield flag (armor by default)
-
+	InvenWieldHook_ScriptPart(0, 1); // unwield event (armor by default)
+	// engine handler is not overridden
 	__asm {
-		test al, al;
-		popad;
-		jz   skip;
+		popadc;
 		jmp  fo::funcoffs::correctFidForRemovedItem_;
+	}
+}
+
+static void __declspec(naked) item_drop_all_hack() {
+	using namespace fo::ObjectFlag;
+	__asm {
+		mov  ecx, 1;
+		push eax;
+		mov  [esp + 0x40 - 0x2C + 8], ecx; // itemIsEquipped
+		push ecx; // remove event
+		push 0;   // unwield event
+		inc  ecx; // INVEN_TYPE_LEFT_HAND (2)
+		test ah, Left_Hand >> 24;
+		jnz  skip;
+		test ah, Worn >> 24;
+		setz cl; // set INVEN_TYPE_WORN or INVEN_TYPE_RIGHT_HAND
 skip:
-		mov  eax, -1;
+		push ecx;      // slot
+		mov  edx, esi; // item
+		mov  ecx, edi; // critter
+		call InvenWieldHook_Script;
+		//mov  [esp + 0x40 - 0x2C + 8], eax; // itemIsEquipped (eax - hook return result)
+		pop  eax;
 		retn;
 	}
 }
 
-void AdjustFidHook(DWORD vanillaFid) {
+static bool hookInvenWieldIsInject = false;
+
+// called from bugfixes for obj_drop_
+void __declspec(naked) InvenUnwield_HookDrop() { // ecx - critter, edx - item
+	using namespace fo;
+	using namespace Fields;
+	using namespace ObjectFlag;
+	__asm {
+		cmp hookInvenWieldIsInject, 1;
+		je  runHook;
+		retn;
+runHook:
+		pushadc;
+		mov  eax, INVEN_TYPE_LEFT_HAND;
+		test byte ptr [edx + flags + 3], Left_Hand >> 24;
+		jnz  isLeft;
+		test byte ptr [edx + flags + 3], Worn >> 24;
+		setz al;  // set INVEN_TYPE_WORN or INVEN_TYPE_RIGHT_HAND
+isLeft:
+		push 1;   // remove event
+		push 0;   // unwield event
+		push eax; // slot
+		call InvenWieldHook_Script; // ecx - critter, edx - item
+		// engine handler is not overridden
+		popadc;
+		retn;
+	}
+}
+
+// called from bugfixes for op_move_obj_inven_to_obj_
+void __declspec(naked) InvenUnwield_HookMove() { // eax - item, edx - critter
+	__asm {
+		cmp hookInvenWieldIsInject, 1;
+		je  runHook;
+		retn;
+runHook:
+		pushadc;
+		mov  ecx, edx;
+		mov  edx, eax;
+		push 1;   // remove event
+		xor  eax, eax;
+		push eax; // unwield event
+		push eax; // slot
+		call InvenWieldHook_Script; // ecx - critter, edx - item
+		// engine handler is not overridden
+		popadc;
+		retn;
+	}
+}
+
+// called when unwelding dude weapon and armor
+static void __declspec(naked) op_move_obj_inven_to_obj_hook() {
+	using namespace fo;
+	using namespace ObjectFlag;
+	__asm {
+		cmp  eax, ds:[FO_VAR_obj_dude];
+		je   runHook;
+		jmp  fo::funcoffs::item_move_all_;
+runHook:
+		push eax;
+		push edx;
+		mov  ecx, eax; // keep source
+		mov  edx, ds:[FO_VAR_itemCurrentItem]; // get player's active slot
+		test edx, edx;
+		jz   left;
+		call fo::funcoffs::inven_right_hand_;
+		jmp  skip;
+left:
+		call fo::funcoffs::inven_left_hand_;
+skip:
+		test eax, eax;
+		jz   noWeapon;
+		push 1; // remove event
+		push 0; // unwield event
+		mov  ebx, INVEN_TYPE_LEFT_HAND;
+		sub  ebx, edx;
+		push ebx;      // slot: INVEN_TYPE_LEFT_HAND or INVEN_TYPE_RIGHT_HAND
+		mov  edx, eax; // weapon
+		mov  ebx, ecx; // keep source
+		call InvenWieldHook_Script; // ecx - source
+		// engine handler is not overridden
+noWeapon:
+		mov  edx, [esp + 0x30 - 0x20 + 12]; // armor
+		test edx, edx;
+		jz   noArmor;
+		xor  eax, eax;
+		push 1;   // remove event
+		push eax; // unwield event
+		push eax; // slot: INVEN_TYPE_WORN
+		mov  ecx, ebx; // source
+		call InvenWieldHook_Script;
+		// engine handler is not overridden
+noArmor:
+		pop  edx;
+		pop  eax;
+		jmp  fo::funcoffs::item_move_all_;
+	}
+}
+
+static void AdjustFidHook(DWORD vanillaFid) {
 	if (!HookScripts::HookHasScript(HOOK_ADJUSTFID)) return;
 
 	BeginHook();
@@ -474,7 +616,7 @@ void Inject_InventoryMoveHook() {
 	MakeCall(0x49B660, PickupObjectHack);
 	SafeWrite32(0x49B665, 0x850FD285); // test edx, edx
 	SafeWrite32(0x49B669, 0xC2);       // jnz  0x49B72F
-	SafeWrite8(0x49B66E, 0xFE); // cmp edi > cmp esi
+	SafeWrite8(0x49B66E, 0xFE);        // cmp edi > cmp esi
 
 	HookCall(0x471457, InvenPickupHook);
 }
@@ -493,6 +635,26 @@ void Inject_InvenWieldHook() {
 		0x45680C, // op_rm_obj_from_inven_
 		0x45C4EA  // op_move_obj_inven_to_obj_
 	});
+	HookCall(0x45C4F6, op_move_obj_inven_to_obj_hook);
+	MakeCall(0x4778AF, item_drop_all_hack, 3);
+
+	hookInvenWieldIsInject = true;
+}
+
+// internal function implementation with hook
+long CorrectFidForRemovedItem_wHook(fo::GameObject* critter, fo::GameObject* item, long flags) {
+	long result = 1;
+	if (!hooks[HOOK_INVENWIELD].empty()) {
+		long slot = fo::INVEN_TYPE_WORN;
+		if (flags & fo::ObjectFlag::Right_Hand) {       // right hand slot
+			slot = fo::INVEN_TYPE_RIGHT_HAND;
+		} else if (flags & fo::ObjectFlag::Left_Hand) { // left hand slot
+			slot = fo::INVEN_TYPE_LEFT_HAND;
+		}
+		result = InvenWieldHook_Script(critter, item, slot, 0, 0);
+	}
+	if (result) fo::func::correctFidForRemovedItem(critter, item, flags);
+	return result;
 }
 
 void InitInventoryHookScripts() {

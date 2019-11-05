@@ -29,6 +29,9 @@ namespace fo
 namespace func
 {
 
+// Prints debug message to debug.log file for develop build
+void dev_printf(const char* fmt, ...);
+
 /*
 	Add functions here if they have non-trivial wrapper implementation (like vararg functions or too many arguments, etc.)
 	Otherwise use Functions_def.h file (much easier).
@@ -207,9 +210,11 @@ void __fastcall displayInWindow(long w_here, long width, long height, void* data
 
 void __fastcall trans_cscale(long i_width, long i_height, long s_width, long s_height, long xy_shift, long w_width, void* data);
 
+//void __declspec() __stdcall buf_to_buf(void* to_buf, long to_width, void* from_buf, long from_width, long width, long height);
+
+long __fastcall get_game_config_string(const char* outValue, const char* section, const char* param);
 
 // X-Macro for wrapper functions.
-
 #define WRAP_WATCOM_FUNC0(retType, name) \
 	retType __stdcall name();
 

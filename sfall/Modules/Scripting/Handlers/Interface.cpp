@@ -23,6 +23,8 @@
 #include "..\..\ScriptExtender.h"
 #include "..\OpcodeContext.h"
 
+#include "..\..\HookScripts\InventoryHs.h"
+
 #include "Interface.h"
 
 namespace sfall
@@ -33,10 +35,8 @@ namespace script
 void __declspec(naked) op_input_funcs_available() {
 	__asm {
 		push ecx;
-		push edx;
 		mov  edx, 1; // They're always available from 2.9 on
 		_RET_VAL_INT(ecx);
-		pop  edx;
 		pop  ecx;
 		retn;
 	}
@@ -49,7 +49,6 @@ void sf_key_pressed(OpcodeContext& ctx) {
 void __declspec(naked) op_tap_key() {
 	__asm {
 		push ecx;
-		push edx;
 		_GET_ARG_INT(end);
 		test eax, eax;
 		jl   end;
@@ -58,7 +57,6 @@ void __declspec(naked) op_tap_key() {
 		push eax;
 		call TapKey;
 end:
-		pop  edx;
 		pop  ecx;
 		retn;
 	}
@@ -66,26 +64,22 @@ end:
 
 void __declspec(naked) op_get_mouse_x() {
 	__asm {
-		push edx;
 		push ecx;
 		mov  edx, ds:[FO_VAR_mouse_x_];
 		add  edx, ds:[FO_VAR_mouse_hotx];
 		_RET_VAL_INT(ecx);
 		pop  ecx;
-		pop  edx;
 		retn;
 	}
 }
 
 void __declspec(naked) op_get_mouse_y() {
 	__asm {
-		push edx;
 		push ecx;
 		mov  edx, ds:[FO_VAR_mouse_y_];
 		add  edx, ds:[FO_VAR_mouse_hoty];
 		_RET_VAL_INT(ecx);
 		pop  ecx;
-		pop  edx;
 		retn;
 	}
 }
@@ -101,40 +95,34 @@ void sf_get_mouse_buttons(OpcodeContext& ctx) {
 
 void __declspec(naked) op_get_window_under_mouse() {
 	__asm {
-		push edx;
 		push ecx;
 		mov  edx, ds:[FO_VAR_last_button_winID];
 		_RET_VAL_INT(ecx);
 		pop  ecx;
-		pop  edx;
 		retn;
 	}
 }
 
 void __declspec(naked) op_get_screen_width() {
 	__asm {
-		push edx;
 		push ecx;
 		mov  edx, ds:[FO_VAR_scr_size + 8]; // _scr_size.offx
 		sub  edx, ds:[FO_VAR_scr_size];     // _scr_size.x
 		inc  edx;
 		_RET_VAL_INT(ecx);
 		pop  ecx;
-		pop  edx;
 		retn;
 	}
 }
 
 void __declspec(naked) op_get_screen_height() {
 	__asm {
-		push edx;
 		push ecx;
 		mov  edx, ds:[FO_VAR_scr_size + 12]; // _scr_size.offy
 		sub  edx, ds:[FO_VAR_scr_size + 4];  // _scr_size.y
 		inc  edx;
 		_RET_VAL_INT(ecx);
 		pop  ecx;
-		pop  edx;
 		retn;
 	}
 }
@@ -163,24 +151,20 @@ void sf_create_message_window(OpcodeContext &ctx) {
 
 void __declspec(naked) op_get_viewport_x() {
 	__asm {
-		push edx;
 		push ecx;
 		mov  edx, ds:[FO_VAR_wmWorldOffsetX];
 		_RET_VAL_INT(ecx);
 		pop  ecx;
-		pop  edx;
 		retn;
 	}
 }
 
 void __declspec(naked) op_get_viewport_y() {
 	__asm {
-		push edx;
 		push ecx;
 		mov  edx, ds:[FO_VAR_wmWorldOffsetY];
 		_RET_VAL_INT(ecx);
 		pop  ecx;
-		pop  edx;
 		retn;
 	}
 }
@@ -188,11 +172,9 @@ void __declspec(naked) op_get_viewport_y() {
 void __declspec(naked) op_set_viewport_x() {
 	__asm {
 		push ecx;
-		push edx;
 		_GET_ARG_INT(end);
 		mov  ds:[FO_VAR_wmWorldOffsetX], eax;
 end:
-		pop  edx;
 		pop  ecx;
 		retn;
 	}
@@ -201,11 +183,9 @@ end:
 void __declspec(naked) op_set_viewport_y() {
 	__asm {
 		push ecx;
-		push edx;
 		_GET_ARG_INT(end);
 		mov  ds:[FO_VAR_wmWorldOffsetY], eax;
 end:
-		pop  edx;
 		pop  ecx;
 		retn;
 	}
@@ -220,8 +200,8 @@ void sf_add_iface_tag(OpcodeContext &ctx) {
 void sf_show_iface_tag(OpcodeContext &ctx) {
 	int tag = ctx.arg(0).asInt();
 	if (tag == 3 || tag == 4) {
-		_asm mov  eax, tag;
-		_asm call fo::funcoffs::pc_flag_on_;
+		__asm mov  eax, tag;
+		__asm call fo::funcoffs::pc_flag_on_;
 	} else {
 		BarBoxes::AddBox(tag);
 	}
@@ -230,8 +210,8 @@ void sf_show_iface_tag(OpcodeContext &ctx) {
 void sf_hide_iface_tag(OpcodeContext &ctx) {
 	int tag = ctx.arg(0).asInt();
 	if (tag == 3 || tag == 4) {
-		_asm mov  eax, tag;
-		_asm call fo::funcoffs::pc_flag_off_;
+		__asm mov  eax, tag;
+		__asm call fo::funcoffs::pc_flag_off_;
 	} else {
 		BarBoxes::RemoveBox(tag);
 	}
@@ -292,7 +272,7 @@ void sf_get_cursor_mode(OpcodeContext& ctx) {
 	int cursorMode;
 	__asm {
 		call fo::funcoffs::gmouse_3d_get_mode_;
-		mov cursorMode, eax;
+		mov  cursorMode, eax;
 	}
 	ctx.setReturn(cursorMode);
 }
@@ -321,19 +301,23 @@ void sf_set_iface_tag_text(OpcodeContext& ctx) {
 
 void sf_inventory_redraw(OpcodeContext& ctx) {
 	int mode;
-	DWORD loopFlag = GetLoopFlags();
-	if (loopFlag & INVENTORY) {
-		mode = 0;
-	} else if (loopFlag & INTFACEUSE) {
-		mode = 1;
-	} else if (loopFlag & INTFACELOOT) {
-		mode = 2;
-	} else if (loopFlag & BARTER) {
-		mode = 3;
-	} else {
-		return;
+	DWORD loopFlag = GetLoopFlags() & (INVENTORY | INTFACEUSE | INTFACELOOT | BARTER);
+	switch (loopFlag) {
+		case INVENTORY:
+			mode = 0;
+			break;
+		case INTFACEUSE:
+			mode = 1;
+			break;
+		case INTFACELOOT:
+			mode = 2;
+			break;
+		case BARTER:
+			mode = 3;
+			break;
+		default:
+			return;
 	}
-
 	if (!ctx.arg(0).asBool()) {
 		fo::var::stack_offset[fo::var::curr_stack] = 0;
 		fo::func::display_inventory(0, -1, mode);
@@ -448,6 +432,66 @@ void sf_draw_image(OpcodeContext& ctx) {
 
 void sf_draw_image_scaled(OpcodeContext& ctx) {
 	DrawImage(ctx, true);
+}
+
+void sf_unwield_slot(OpcodeContext& ctx) {
+	fo::InvenType slot = static_cast<fo::InvenType>(ctx.arg(1).rawValue());
+	if (slot < fo::INVEN_TYPE_WORN || slot > fo::INVEN_TYPE_LEFT_HAND) {
+		ctx.printOpcodeError("%s() - incorrect slot number.", ctx.getMetaruleName());
+		return;
+	}
+	fo::GameObject* critter = ctx.arg(0).asObject();
+	if (critter->Type() != fo::ObjType::OBJ_TYPE_CRITTER) {
+		ctx.printOpcodeError("%s() - the object is not a critter.", ctx.getMetaruleName());
+		return;
+	}
+	bool isDude = (critter == fo::var::obj_dude);
+	bool update = false;
+	if (slot && (GetLoopFlags() && (INVENTORY | INTFACEUSE | INTFACELOOT | BARTER)) == false) {
+		if (fo::func::inven_unwield(critter, (slot == fo::INVEN_TYPE_LEFT_HAND) ? fo::Left : fo::Right) == 0) {
+			update = isDude;
+		}
+	} else {
+		// force unwield for opened inventory
+		bool forceAdd = false;
+		fo::GameObject* item = nullptr;
+		if (slot != fo::INVEN_TYPE_WORN) {
+			if (!isDude) return;
+			long* itemRef = nullptr;
+			if (slot == fo::INVEN_TYPE_LEFT_HAND) {
+				item = fo::var::i_lhand;
+				itemRef = (long*)FO_VAR_i_lhand;
+			} else {
+				item = fo::var::i_rhand;
+				itemRef = (long*)FO_VAR_i_rhand;
+			}
+			if (item) {
+				if (!CorrectFidForRemovedItem_wHook(critter, item, (slot == fo::INVEN_TYPE_LEFT_HAND) ? fo::ObjectFlag::Left_Hand : fo::ObjectFlag::Right_Hand)) {
+					return;
+				}
+				*itemRef = 0;
+				forceAdd = true;
+				update = true;
+			}
+		} else {
+			if (isDude) item = fo::var::i_worn;
+			if (!item) {
+				item = fo::func::inven_worn(critter);
+			} else {
+				fo::var::i_worn = nullptr;
+				forceAdd = true;
+			}
+			if (item) {
+				if (!CorrectFidForRemovedItem_wHook(critter, item, fo::ObjectFlag::Worn)) {
+					if (forceAdd) fo::var::i_worn = item;
+					return;
+				}
+				if (isDude) fo::func::intface_update_ac(0);
+			}
+		}
+		if (forceAdd) fo::func::item_add_force(critter, item, 1);
+	}
+	if (update) fo::func::intface_update_items(0, -1, -1);
 }
 
 }

@@ -310,6 +310,23 @@ hide:
 	}
 }
 
+static char* artDbgMsg = "Error: file not found: %s\n";
+static void __declspec(naked) art_data_size_hook() {
+	__asm {
+		test edi, edi;
+		jz   artNotExist;
+		retn;
+artNotExist:
+		mov  eax, [esp + 0x124 - 0x1C + 4]; // filename
+		push eax;
+		push artDbgMsg;
+		call fo::funcoffs::debug_printf_;
+		add  esp, 8;
+		BREAKPOINT; // break program
+		retn;
+	}
+}
+
 static void __declspec(naked) win_debug_hook() {
 	__asm {
 		call fo::funcoffs::debug_log_;
@@ -319,8 +336,8 @@ static void __declspec(naked) win_debug_hook() {
 	}
 }
 
-void DebugModePatch() {
-	DWORD dbgMode = GetPrivateProfileIntA("Debugging", "DebugMode", 0, ::sfall::ddrawIni);
+static void DebugModePatch() {
+	DWORD dbgMode = iniGetInt("Debugging", "DebugMode", 0, ::sfall::ddrawIni);
 	if (dbgMode) {
 		dlog("Applying debugmode patch.", DL_INIT);
 		// If the player is using an exe with the debug patch already applied, just skip this block without erroring
@@ -342,15 +359,18 @@ void DebugModePatch() {
 		} else {
 			SafeWrite32(0x4C6D9C, (DWORD)debugGnw);
 		}
-		if (GetPrivateProfileIntA("Debugging", "HideObjIsNullMsg", 0, ::sfall::ddrawIni)) {
+		if (iniGetInt("Debugging", "HideObjIsNullMsg", 0, ::sfall::ddrawIni)) {
 			MakeJump(0x453FD2, dbg_error_hack);
 		}
+		// prints a debug message about missing art file for critters and interrupts game execution
+		HookCall(0x419B65, art_data_size_hook);
+
 		dlogr(" Done", DL_INIT);
 	}
 }
 
-void DontDeleteProtosPatch() {
-	if (GetPrivateProfileIntA("Debugging", "DontDeleteProtos", 0, ::sfall::ddrawIni)) {
+static void DontDeleteProtosPatch() {
+	if (iniGetInt("Debugging", "DontDeleteProtos", 0, ::sfall::ddrawIni)) {
 		dlog("Applying permanent protos patch.", DL_INIT);
 		SafeWrite8(0x48007E, 0xEB);
 		dlogr(" Done", DL_INIT);

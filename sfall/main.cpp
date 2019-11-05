@@ -24,16 +24,16 @@
 #include "ModuleManager.h"
 #include "Modules\Module.h"
 #include "Modules\AI.h"
-#include "Modules\AnimationsAtOnceLimit.h"
+#include "Modules\Animations.h"
 #include "Modules\BarBoxes.h"
 #include "Modules\Books.h"
 #include "Modules\BugFixes.h"
 #include "Modules\BurstMods.h"
 #include "Modules\Combat.h"
 #include "Modules\Console.h"
-#include "Modules\CRC.h"
 #include "Modules\Credits.h"
 #include "Modules\Criticals.h"
+#include "Modules\CritterStats.h"
 #include "Modules\DamageMod.h"
 #include "Modules\DebugEditor.h"
 #include "Modules\Drugs.h"
@@ -72,8 +72,9 @@
 #include "Modules\TalkingHeads.h"
 #include "Modules\Tiles.h"
 #include "Modules\Worldmap.h"
-#include "SimplePatch.h"
 
+#include "CRC.h"
+#include "SimplePatch.h"
 #include "Logging.h"
 #include "Utils.h"
 #include "Version.h"
@@ -101,16 +102,20 @@ DWORD HRPAddressOffset(DWORD offset) {
 	return (hrpDLLBaseAddr + offset);
 }
 
-unsigned int GetConfigInt(const char* section, const char* setting, int defaultValue) {
-	return GetPrivateProfileIntA(section, setting, defaultValue, ini);
+int iniGetInt(const char* section, const char* setting, int defaultValue, const char* iniFile) {
+	return GetPrivateProfileIntA(section, setting, defaultValue, iniFile);
+}
+
+size_t iniGetString(const char* section, const char* setting, const char* defaultValue, char* buf, size_t bufSize, const char* iniFile) {
+	return GetPrivateProfileStringA(section, setting, defaultValue, buf, bufSize, iniFile);
 }
 
 std::string GetIniString(const char* section, const char* setting, const char* defaultValue, size_t bufSize, const char* iniFile) {
 	char* buf = new char[bufSize];
-	GetPrivateProfileStringA(section, setting, defaultValue, buf, bufSize, iniFile);
+	iniGetString(section, setting, defaultValue, buf, bufSize, iniFile);
 	std::string str(buf);
 	delete[] buf;
-	return trim(str);
+	return str;
 }
 
 std::vector<std::string> GetIniList(const char* section, const char* setting, const char* defaultValue, size_t bufSize, char delimiter, const char* iniFile) {
@@ -119,12 +124,19 @@ std::vector<std::string> GetIniList(const char* section, const char* setting, co
 	return list;
 }
 
+/*
+	For ddraw.ini config
+*/
+unsigned int GetConfigInt(const char* section, const char* setting, int defaultValue) {
+	return iniGetInt(section, setting, defaultValue, ini);
+}
+
 std::string GetConfigString(const char* section, const char* setting, const char* defaultValue, size_t bufSize) {
-	return GetIniString(section, setting, defaultValue, bufSize, ini);
+	return trim(GetIniString(section, setting, defaultValue, bufSize, ini));
 }
 
 size_t GetConfigString(const char* section, const char* setting, const char* defaultValue, char* buf, size_t bufSize) {
-	return GetPrivateProfileStringA(section, setting, defaultValue, buf, bufSize, ini);
+	return iniGetString(section, setting, defaultValue, buf, bufSize, ini);
 }
 
 std::vector<std::string> GetConfigList(const char* section, const char* setting, const char* defaultValue, size_t bufSize) {
@@ -136,7 +148,7 @@ std::string Translate(const char* section, const char* setting, const char* defa
 }
 
 size_t Translate(const char* section, const char* setting, const char* defaultValue, char* buffer, size_t bufSize) {
-	return GetPrivateProfileStringA(section, setting, defaultValue, buffer, bufSize, translationIni);
+	return iniGetString(section, setting, defaultValue, buffer, bufSize, translationIni);
 }
 
 static void InitModules() {
@@ -146,7 +158,6 @@ static void InitModules() {
 
 	// initialize all modules
 	manager.add<BugFixes>();    // fixes should be applied at the beginning
-	manager.add<SpeedPatch>();
 	manager.add<Graphics>();
 	manager.add<Input>();
 	manager.add<LoadOrder>();
@@ -156,14 +167,16 @@ static void InitModules() {
 	manager.add<MainMenu>();
 	manager.add<Interface>();
 	manager.add<Objects>();
+	manager.add<SpeedPatch>();
 	manager.add<PlayerModel>();
 	manager.add<Worldmap>();
 	manager.add<Stats>();
-	manager.add<Criticals>();
+	manager.add<CritterStats>();
 	manager.add<Perks>();
 	manager.add<Combat>();
 	manager.add<Skills>();
 	manager.add<FileSystem>();
+	manager.add<Criticals>();
 	manager.add<Karma>();
 	manager.add<Tiles>();
 	manager.add<Credits>();
@@ -185,7 +198,7 @@ static void InitModules() {
 	//
 	manager.add<AI>();
 	manager.add<DamageMod>();
-	manager.add<AnimationsAtOnce>();
+	manager.add<Animations>();
 	manager.add<BarBoxes>();
 	manager.add<HeroAppearance>();
 	manager.add<MiscPatches>();
@@ -206,7 +219,7 @@ static void InitModules() {
 static const DWORD loadFunc = 0x4FE1D0;
 static void LoadHRPModule() {
 	HMODULE dll;
-	__asm call loadFunc; // load HRP dll
+	__asm call loadFunc; // get HRP loading address
 	__asm mov  dll, eax;
 	if (dll != NULL) hrpDLLBaseAddr = (DWORD)dll;
 	dlog_f("Loaded f2_res.dll library at the memory address: 0x%x\n", DL_MAIN, dll);
@@ -224,9 +237,9 @@ static void CompatModeCheck(HKEY root, const char* filepath, int extra) {
 					RegCloseKey(key);
 
 					MessageBoxA(0, "Fallout appears to be running in compatibility mode.\n" //, and sfall was not able to disable it.\n"
-								"Please check the compatibility tab of fallout2.exe, and ensure that the following settings are unchecked.\n"
-								"Run this program in compatibility mode for..., run in 256 colours, and run in 640x480 resolution.\n"
-								"If these options are disabled, click the 'change settings for all users' button and see if that enables them.", "Error", 0);
+								   "Please check the compatibility tab of fallout2.exe, and ensure that the following settings are unchecked:\n"
+								   "Run this program in compatibility mode for..., run in 256 colours, and run in 640x480 resolution.\n"
+								   "If these options are disabled, click the 'change settings for all users' button and see if that enables them.", "Error", MB_TASKMODAL | MB_ICONERROR);
 
 					ExitProcess(-1);
 				}
@@ -238,7 +251,7 @@ static void CompatModeCheck(HKEY root, const char* filepath, int extra) {
 
 inline void SfallInit() {
 	// enabling debugging features
-	isDebug = (GetPrivateProfileIntA("Debugging", "Enable", 0, ::sfall::ddrawIni) != 0);
+	isDebug = (iniGetInt("Debugging", "Enable", 0, ::sfall::ddrawIni) != 0);
 	if (isDebug) {
 		LoggingInit();
 		if (!ddraw.dll) dlog("Error: Cannot load the original ddraw.dll library.\n", DL_MAIN);
@@ -249,7 +262,7 @@ inline void SfallInit() {
 
 	CRC(filepath);
 
-	if (!isDebug || !GetPrivateProfileIntA("Debugging", "SkipCompatModeCheck", 0, ::sfall::ddrawIni)) {
+	if (!isDebug || !iniGetInt("Debugging", "SkipCompatModeCheck", 0, ::sfall::ddrawIni)) {
 		int is64bit;
 		typedef int (_stdcall *chk64bitproc)(HANDLE, int*);
 		HMODULE h = LoadLibrary("Kernel32.dll");
@@ -267,7 +280,7 @@ inline void SfallInit() {
 	// ini file override
 	bool cmdlineexists = false;
 	char* cmdline = GetCommandLineA();
-	if (GetPrivateProfileIntA("Main", "UseCommandLine", 0, ::sfall::ddrawIni)) {
+	if (iniGetInt("Main", "UseCommandLine", 0, ::sfall::ddrawIni)) {
 		while (cmdline[0] == ' ') cmdline++;
 		bool InQuote = false;
 		int count = -1;
@@ -295,13 +308,13 @@ inline void SfallInit() {
 			CloseHandle(h);
 			strcat_s(ini, cmdline);
 		} else {
-			MessageBox(0, "You gave a command line argument to fallout, but it couldn't be matched to a file\n" \
-						  "Using default ddraw.ini instead", "Warning", MB_TASKMODAL);
+			MessageBoxA(0, "You gave a command line argument to Fallout, but it couldn't be matched to a file.\n" \
+						   "Using default ddraw.ini instead.", "Warning", MB_TASKMODAL | MB_ICONWARNING);
 			goto defaultIni;
 		}
 	} else {
 defaultIni:
-		strcpy_s(ini, ::sfall::ddrawIni);
+		strcpy(&ini[2], &::sfall::ddrawIni[2]);
 	}
 
 	GetConfigString("Main", "TranslationsINI", ".\\Translations.ini", translationIni, 65);
@@ -309,7 +322,6 @@ defaultIni:
 
 	hrpIsEnabled = (*(DWORD*)0x4E4480 != 0x278805C7); // check if HRP is enabled
 	if (hrpIsEnabled) {
-		BlockCall(0x4E4480);
 		LoadHRPModule();
 		if (strncmp((const char*)HRPAddressOffset(0x39940), "4.1.8", 5) == 0) hrpVersionValid = true;
 	}

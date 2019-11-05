@@ -41,9 +41,9 @@ void sf_get_sfall_global_float(OpcodeContext&);
 
 void __declspec() op_get_sfall_arg();
 
-void __declspec() op_get_sfall_args();
+void sf_get_sfall_args(OpcodeContext&);
 
-void __declspec() op_set_sfall_arg();
+void sf_set_sfall_arg(OpcodeContext&);
 
 void __declspec() op_set_sfall_return();
 
