@@ -99,15 +99,14 @@ static void _stdcall ResetState(DWORD onLoad) {
 	Combat_OnGameLoad();
 	Skills_OnGameLoad();
 	InLoop = 0;
-	InventoryReset();
 	ClearSavPrototypes();
+	InventoryReset();
 	RegAnimCombatCheck(1);
-	AfterAttackCleanup();
-	ResetExplosionRadius();
-	RestoreObjUnjamAllLocks();
 	ForceEncounterRestore(); // restore if the encounter did not happen
+	ResetExplosionRadius();
 	PartyControlReset();
 	NpcEngineLevelUpReset();
+	RestoreObjUnjamAllLocks();
 	ResetBoxes();
 	ResetBoxCount();
 }

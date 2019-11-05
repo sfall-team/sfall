@@ -30,8 +30,7 @@ struct TScript;
 
 /*   26 */
 #pragma pack(push, 1)
-struct TInvenRec
-{
+struct TInvenRec {
 	TGameObj *object;
 	long count;
 };
@@ -39,8 +38,7 @@ struct TInvenRec
 
 /* 15 */
 #pragma pack(push, 1)
-struct TGameObj
-{
+struct TGameObj {
 	long ID;
 	long tile;
 	long x;
@@ -76,8 +74,7 @@ struct TGameObj
 
 /*    9 */
 #pragma pack(push, 1)
-struct TComputeAttack
-{
+struct TComputeAttack {
 	TGameObj* attacker;
 	long hitMode;
 	TGameObj* weapon;
@@ -104,8 +101,7 @@ struct TComputeAttack
 
 /*   22 */
 #pragma pack(push, 1)
-struct TScript
-{
+struct TScript {
 	long script_id;
 	long next;
 	// first 3 bits - elevation, rest - tile number
@@ -155,21 +151,21 @@ enum ObjectTypes
 
 /*   25 */
 #pragma pack(push, 1)
-struct TProgram
-{
+struct TProgram {
 	const char* fileName;
 	long *codeStackPtr;
-	char gap_8[8];
+	long gap_8;
+	long gap_9;
 	long *codePtr;
 	long field_14;
-	char gap_18[4];
+	long gap_18;
 	long *dStackPtr;
 	long *aStackPtr;
 	long *dStackOffs;
 	long *aStackOffs;
-	char gap_2C[4];
+	long gap_2C;
 	long *stringRefPtr;
-	char gap_34[4];
+	long gap_34;
 	long *procTablePtr;
 };
 #pragma pack(pop)
@@ -241,8 +237,7 @@ public:
 #pragma pack(pop)
 
 #pragma pack(push, 1)
-struct Queue
-{
+struct Queue {
 	DWORD time;
 	long type;
 	TGameObj* object;
