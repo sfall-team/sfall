@@ -199,17 +199,18 @@ struct ScriptInstance {
 struct Program {
 	const char* fileName;
 	long *codeStackPtr;
-	char gap_8[8];
+	long gap_8;
+	long gap_9;
 	long *codePtr;
 	long field_14;
-	char gap_18[4];
+	long gap_18;
 	long *dStackPtr;
 	long *aStackPtr;
 	long *dStackOffs;
 	long *aStackOffs;
-	char gap_2C[4];
+	long gap_2C;
 	long *stringRefPtr;
-	char gap_34[4];
+	long gap_34;
 	long *procTablePtr;
 };
 

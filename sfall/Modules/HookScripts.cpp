@@ -263,7 +263,7 @@ void HookScripts::init() {
 	LoadGameHook::OnAfterGameStarted() += SourceUseSkillOnInit;
 
 	HookScripts::injectAllHooks = isDebug && (iniGetInt("Debugging", "InjectAllGameHooks", 0, ::sfall::ddrawIni) != 0);
-	if (HookScripts::injectAllHooks) dlogr("Injecting all game hooks", DL_HOOK);
+	if (HookScripts::injectAllHooks) dlogr("Injecting all game hooks", DL_HOOK|DL_INIT);
 }
 
 }
