@@ -80,10 +80,12 @@ procedure combatturn_handler begin
       end
    end else if inControl then begin
       // remove perks before switching control (only work with 4.1.8+)
-      foreach (perkID in perksList) begin
-         level := has_trait(TRAIT_PERK, real_dude_obj, perkID);
-         if (level) then begin
-            critter_rm_trait(critter, TRAIT_PERK, perkID, level);
+      if (dude_obj != real_dude_obj) then begin
+         foreach (perkID in perksList) begin
+            level := has_trait(TRAIT_PERK, real_dude_obj, perkID);
+            if (level) then begin
+               critter_rm_trait(critter, TRAIT_PERK, perkID, level);
+            end
          end
       end
       if isShowTag then begin
