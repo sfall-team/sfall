@@ -53,6 +53,9 @@ DWORD* ptr_curr_font_num              = reinterpret_cast<DWORD*>(_curr_font_num)
 DWORD* ptr_curr_pc_stat               = reinterpret_cast<DWORD*>(_curr_pc_stat);
 DWORD* ptr_curr_stack                 = reinterpret_cast<DWORD*>(_curr_stack);
 DWORD* ptr_cursor_line                = reinterpret_cast<DWORD*>(_cursor_line);
+BYTE*  ptr_DARK_GREY_Color            = reinterpret_cast<BYTE*>(_DARK_GREY_Color);
+BYTE*  ptr_DarkGreenColor             = reinterpret_cast<BYTE*>(_DarkGreenColor);
+BYTE*  ptr_DarkGreenGreyColor         = reinterpret_cast<BYTE*>(_DarkGreenGreyColor);
 DWORD* ptr_dialog_target              = reinterpret_cast<DWORD*>(_dialog_target);
 DWORD* ptr_dialog_target_is_party     = reinterpret_cast<DWORD*>(_dialog_target_is_party);
 DWORD* ptr_drugInfoList               = reinterpret_cast<DWORD*>(_drugInfoList);
@@ -108,6 +111,7 @@ DWORD* ptr_last_button_winID          = reinterpret_cast<DWORD*>(_last_button_wi
 DWORD* ptr_last_level                 = reinterpret_cast<DWORD*>(_last_level);
 DWORD* ptr_Level_                     = reinterpret_cast<DWORD*>(_Level_);
 DWORD* ptr_Lifegiver                  = reinterpret_cast<DWORD*>(_Lifegiver);
+BYTE*  ptr_LIGHT_GREY_Color           = reinterpret_cast<BYTE*>(_LIGHT_GREY_Color);
 DWORD* ptr_lipsFID                    = reinterpret_cast<DWORD*>(_lipsFID);
 DWORD* ptr_list_com                   = reinterpret_cast<DWORD*>(_list_com);
 DWORD* ptr_list_total                 = reinterpret_cast<DWORD*>(_list_total);
@@ -210,6 +214,7 @@ DWORD* ptr_title_font                 = reinterpret_cast<DWORD*>(_title_font);
 DWORD* ptr_trait_data                 = reinterpret_cast<DWORD*>(_trait_data);
 DWORD* ptr_view_page                  = reinterpret_cast<DWORD*>(_view_page);
 DWORD* ptr_wd_obj                     = reinterpret_cast<DWORD*>(_wd_obj);
+DWORD* ptr_window                     = reinterpret_cast<DWORD*>(_window); // total 50
 BYTE*  ptr_WhiteColor                 = reinterpret_cast<BYTE*>(_WhiteColor);
 DWORD* ptr_wmAreaInfoList             = reinterpret_cast<DWORD*>(_wmAreaInfoList);
 DWORD* ptr_wmLastRndTime              = reinterpret_cast<DWORD*>(_wmLastRndTime);
@@ -676,6 +681,7 @@ const DWORD win_draw_ = 0x4D6F5C;
 const DWORD win_draw_rect_ = 0x4D6F80;
 const DWORD win_enable_button_ = 0x4D9474;
 const DWORD win_get_buf_ = 0x4D78B0;
+const DWORD win_get_top_win_ = 0x4D78CC;
 const DWORD win_hide_ = 0x4D6E64;
 const DWORD win_line_ = 0x4D6B24;
 const DWORD win_print_ = 0x4D684C;
@@ -1243,5 +1249,14 @@ long __fastcall ItemAddForce(TGameObj* critter, TGameObj* item, long count) {
 		mov  ebx, count;
 		mov  eax, ecx;
 		call item_add_force_;
+	}
+}
+
+long __fastcall MouseClickIn(long x, long y, long x_end, long y_end) {
+	__asm {
+		mov  eax, ecx;
+		mov  ebx, x_end;
+		mov  ecx, y_end;
+		call mouse_click_in_;
 	}
 }

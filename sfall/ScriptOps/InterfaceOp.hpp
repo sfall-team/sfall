@@ -417,7 +417,7 @@ static void sf_create_win() {
 	if (opHandler.numArgs() == 6) {
 		flags = opHandler.arg(5).asInt();
 	} else {
-		flags = 0x4; // MoveOnTop
+		flags = WIN_MoveOnTop;
 	}
 
 	if (CreateWindowFunc(opHandler.arg(0).asString(),

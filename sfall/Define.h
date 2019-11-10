@@ -369,6 +369,20 @@ enum RollResult
 	ROLL_CRITICAL_SUCCESS = 0x3,
 };
 
+enum WinButtonFlags : long
+{
+	WIN_OwnerFlag         = 0x1,
+	WIN_UnknownFlag2      = 0x2,
+	WIN_MoveOnTop         = 0x4,
+	WIN_Hidden            = 0x8,
+	WIN_Exclusive         = 0x10,
+	WIN_Transparent       = 0x20,
+	WIN_UnknownFlag40     = 0x40,
+	WIN_UnknownFlag80     = 0x80,
+	WIN_ScriptWindow      = 0x100,
+	WIN_itsButton         = 0x10000,
+};
+
 enum QueueType : long
 {
 	drug_effect_event  = 0,  // critter use drug

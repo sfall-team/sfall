@@ -236,6 +236,26 @@ public:
 } FrmHeaderData;
 #pragma pack(pop)
 
+//for holding window info
+#pragma pack(push, 1)
+struct WINinfo {
+	long wID;
+	long flags;
+	RECT wRect;
+	long width;
+	long height;
+	long clearColour;
+	long rand1;
+	long rand2;
+	BYTE *surface; // bytes frame data ref to palette
+	long *buttonsList;
+	long unknown5; // buttonptr?
+	long unknown6;
+	long *menuBar;
+	long *drawFunc;
+};
+#pragma pack(pop)
+
 #pragma pack(push, 1)
 struct Queue {
 	DWORD time;

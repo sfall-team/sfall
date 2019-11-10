@@ -495,14 +495,12 @@ void DestroyWin(int WinRef) {
 	}
 }
 
-WINinfo *GetWinStruct(int WinRef) {
+WINinfo* GetWinStruct(int WinRef) {
 	WINinfo *winStruct;
 	__asm {
-		push edx;
 		mov  eax, WinRef;
 		call GNW_find_;
 		mov  winStruct, eax;
-		pop  edx;
 	}
 	return winStruct;
 }

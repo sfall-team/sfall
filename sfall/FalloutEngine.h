@@ -69,6 +69,7 @@
 #define _dialogue_head              0x518850
 #define _dialogue_state             0x518714
 #define _dialogue_switch_mode       0x518718
+#define _display_win                0x631E4C
 #define _displayMapList             0x41B560
 #define _dropped_explosive          0x5190E0
 #define _drugInfoList               0x5191CC
@@ -163,6 +164,7 @@
 #define _name_sort_list             0x56FCB0
 #define _num_game_global_vars       0x5186C4
 #define _num_map_global_vars        0x519574
+#define _num_windows                0x6ADF24
 #define _obj_dude                   0x6610B8
 #define _obj_seen                   0x662445
 #define _objectTable                0x639DA0
@@ -244,6 +246,7 @@
 #define _trait_data                 0x51DB84
 #define _view_page                  0x664520
 #define _wd_obj                     0x59E98C
+#define _window                     0x6ADE58
 #define _wmAreaInfoList             0x51DDF8
 #define _wmLastRndTime              0x51DEA0
 #define _wmMaxMapNum                0x51DE10
@@ -256,10 +259,13 @@
 
 // colors
 #define _BlueColor                  0x6A38EF
+#define _DARK_GREY_Color            0x6A59D8
 #define _DarkGreenColor             0x6A3A90
+#define _DarkGreenGreyColor         0x6A3DF1
 #define _DullPinkColor              0x6AB718
 #define _GoodColor                  0x6AB4EF
 #define _GreenColor                 0x6A3CB0
+#define _LIGHT_GREY_Color           0x6A76BF
 #define _PeanutButter               0x6A82F3
 #define _RedColor                   0x6AB4D0
 #define _WhiteColor                 0x6AB8CF
@@ -298,6 +304,9 @@ extern DWORD* ptr_curr_font_num;
 extern DWORD* ptr_curr_pc_stat;
 extern DWORD* ptr_curr_stack;
 extern DWORD* ptr_cursor_line;
+extern BYTE*  ptr_DARK_GREY_Color;
+extern BYTE*  ptr_DarkGreenColor;
+extern BYTE*  ptr_DarkGreenGreyColor;
 extern DWORD* ptr_dialog_target;
 extern DWORD* ptr_dialog_target_is_party;
 extern DWORD* ptr_drugInfoList;
@@ -353,6 +362,7 @@ extern DWORD* ptr_last_button_winID;
 extern DWORD* ptr_last_level;
 extern DWORD* ptr_Level_;
 extern DWORD* ptr_Lifegiver;
+extern BYTE*  ptr_LIGHT_GREY_Color;
 extern DWORD* ptr_lipsFID;
 extern DWORD* ptr_list_com;
 extern DWORD* ptr_list_total;
@@ -456,6 +466,7 @@ extern DWORD* ptr_title_font;
 extern DWORD* ptr_trait_data;
 extern DWORD* ptr_view_page;
 extern DWORD* ptr_wd_obj;
+extern DWORD* ptr_window; // total 50
 extern BYTE*  ptr_WhiteColor;
 extern DWORD* ptr_wmAreaInfoList;
 extern DWORD* ptr_wmLastRndTime;
@@ -912,6 +923,7 @@ extern const DWORD win_draw_;
 extern const DWORD win_draw_rect_;
 extern const DWORD win_enable_button_;
 extern const DWORD win_get_buf_;
+extern const DWORD win_get_top_win_;
 extern const DWORD win_hide_;
 extern const DWORD win_line_;
 extern const DWORD win_print_;
@@ -1120,3 +1132,5 @@ void __fastcall IntfaceUpdateItems(long animate, long modeLeft, long modeRight);
 long __stdcall InvenUnwield(TGameObj* critter, long slot);
 
 long __fastcall ItemAddForce(TGameObj* critter, TGameObj* item, long count);
+
+long __fastcall MouseClickIn(long x, long y, long x_end, long y_end);

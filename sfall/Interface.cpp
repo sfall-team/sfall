@@ -17,7 +17,9 @@
  */
 
 #include "main.h"
+#include "Define.h"
 #include "FalloutEngine.h"
+#include "HeroAppearance.h"
 
 static long costAP = -1;
 static void __declspec(naked) intface_redraw_items_hack0() {
@@ -203,8 +205,56 @@ static void SpeedInterfaceCounterAnimsPatch() {
 	}
 }
 
+static bool IFACE_BAR_MODE = false;
+static long gmouse_handle_event_hook() {
+	long countWin = *(DWORD*)_num_windows;
+	long ifaceWin = *ptr_interfaceWindow;
+	WINinfo* win = nullptr;
+
+	for (int n = 1; n < countWin; n++) {
+		win = (WINinfo*)ptr_window[n];
+		if ((win->wID == ifaceWin || (win->flags & WIN_ScriptWindow && !(win->flags & WIN_Transparent))) // also check scripted windows
+			&& !(win->flags & WIN_Hidden)) {
+			RECT *rect = &win->wRect;
+			if (MouseClickIn(rect->left, rect->top, rect->right, rect->bottom)) return 0; // 0 - block clicking in the window area
+		}
+	}
+	if (IFACE_BAR_MODE) return 1;
+	// if IFACE_BAR_MODE is not enabled, check the display_win window area
+	win = GetWinStruct(*(DWORD*)_display_win);
+	RECT *rect = &win->wRect;
+	return MouseClickIn(rect->left, rect->top, rect->right, rect->bottom); // 1 - click in the display_win area
+}
+
+static void __declspec(naked) gmouse_bk_process_hook() {
+	__asm {
+		call win_get_top_win_;
+		cmp  eax, ds:[_display_win];
+		jnz  checkFlag;
+		retn;
+checkFlag:
+		call GNW_find_;
+		cmp  [eax + 4], WIN_Hidden; // window flags
+		jnz  skip;
+		mov  eax, ds:[_display_win]; // window is hidden, so return the number of the display_win
+skip:
+		retn;
+	}
+}
+
+void InterfaceGmouseHandleHook() {
+	if (hrpVersionValid) IFACE_BAR_MODE = *(BYTE*)HRPAddress(0x1006EB0C) != 0;
+	HookCall(0x44C018, gmouse_handle_event_hook); // replaces hack function from HRP
+}
+
 void InterfaceInit() {
 	DrawActionPointsNumber();
 	WorldMapInterfacePatch();
 	SpeedInterfaceCounterAnimsPatch();
+
+	// Fix for interface windows with 'Hidden' and 'ScriptWindow' flags
+	// Hidden - will not toggle the mouse cursor when the cursor hovers over a hidden window
+	// ScriptWindow - prevents player's movement when clicking on the window if the 'Transparent' flag is not set
+	HookCall(0x44B737, gmouse_bk_process_hook);
+	// InterfaceGmouseHandleHook will be run before game initialization
 }

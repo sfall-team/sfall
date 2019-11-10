@@ -33,6 +33,7 @@
 #include "Graphics.h"
 #include "HeroAppearance.h"
 #include "input.h"
+#include "Interface.h"
 #include "Inventory.h"
 #include "LoadGameHook.h"
 #include "LoadOrder.h"
@@ -282,6 +283,7 @@ static void __declspec(naked) EndLoadHook() {
 
 static void __stdcall GameInitialization() { // OnBeforeGameInit
 	MusicVolInitialization();
+	InterfaceGmouseHandleHook();
 }
 
 static void __stdcall game_init_hook() { // OnGameInit
