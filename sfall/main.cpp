@@ -98,8 +98,8 @@ static char translationIni[65];
 DWORD modifiedIni;
 DWORD hrpDLLBaseAddr = 0x10000000;
 
-DWORD HRPAddressOffset(DWORD offset) {
-	return (hrpDLLBaseAddr + offset);
+DWORD HRPAddress(DWORD addr) {
+	return (hrpDLLBaseAddr + (addr & 0xFFFFF));
 }
 
 int iniGetInt(const char* section, const char* setting, int defaultValue, const char* iniFile) {
@@ -323,7 +323,7 @@ defaultIni:
 	hrpIsEnabled = (*(DWORD*)0x4E4480 != 0x278805C7); // check if HRP is enabled
 	if (hrpIsEnabled) {
 		LoadHRPModule();
-		if (strncmp((const char*)HRPAddressOffset(0x39940), "4.1.8", 5) == 0) hrpVersionValid = true;
+		if (strncmp((const char*)HRPAddress(0x10039940), "4.1.8", 5) == 0) hrpVersionValid = true;
 	}
 
 	InitModules();

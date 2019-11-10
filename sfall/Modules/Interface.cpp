@@ -81,8 +81,8 @@ static void ActionPointsBarPatch() {
 	dlog("Applying expanded action points bar patch.", DL_INIT);
 	if (hrpIsEnabled) {
 		// check valid data
-		if (hrpVersionValid && !_stricmp((const char*)HRPAddressOffset(0x39358), "HR_IFACE_%i.frm")) {
-			SafeWriteStr(HRPAddressOffset(0x39363), "E.frm"); // patching HRP
+		if (hrpVersionValid && !_stricmp((const char*)HRPAddress(0x10039358), "HR_IFACE_%i.frm")) {
+			SafeWriteStr(HRPAddress(0x10039363), "E.frm"); // patching HRP
 		} else {
 			dlogr(" Incorrect HRP version!", DL_INIT);
 			return;
@@ -561,6 +561,44 @@ static void SpeedInterfaceCounterAnimsPatch() {
 	}
 }
 
+static bool IFACE_BAR_MODE = false;
+static long gmouse_handle_event_hook() {
+	long countWin = *(DWORD*)FO_VAR_num_windows;
+	long ifaceWin = fo::var::interfaceWindow;
+	fo::Window* win = nullptr;
+
+	for (int n = 1; n < countWin; n++) {
+		win = fo::var::window[n];
+		if ((win->wID == ifaceWin || (win->flags & fo::WinFlags::ScriptWindow && !(win->flags & fo::WinFlags::Transparent))) // also check the script windows
+			&& !(win->flags & fo::WinFlags::Hidden)) {
+			RECT *rect = &win->wRect;
+			if (fo::func::mouse_click_in(rect->left, rect->top, rect->right, rect->bottom)) return 0; // 0 - block clicking in the window area
+		}
+	}
+	if (IFACE_BAR_MODE) return 1;
+	// if IFACE_BAR_MODE is not enabled, check the display_win window area
+	win = fo::func::GNW_find(*(DWORD*)FO_VAR_display_win);
+	RECT *rect = &win->wRect;
+	return fo::func::mouse_click_in(rect->left, rect->top, rect->right, rect->bottom); // 1 - click in the display_win area
+}
+
+static void __declspec(naked) gmouse_bk_process_hook() {
+	using namespace fo::WinFlags;
+	__asm {
+		call fo::funcoffs::win_get_top_win_;
+		cmp  eax, ds:[FO_VAR_display_win];
+		jnz  checkFlag;
+		retn;
+checkFlag:
+		call fo::funcoffs::GNW_find_;
+		cmp  [eax + 4], Hidden; // window flags
+		jnz  skip;
+		mov  eax, ds:[FO_VAR_display_win]; // window is hidden, so return the number of the display_win
+skip:
+		retn;
+	}
+}
+
 void Interface::init() {
 	if (GetConfigInt("Interface", "ActionPointsBar", 0)) {
 		ActionPointsBarPatch();
@@ -568,6 +606,15 @@ void Interface::init() {
 	DrawActionPointsNumber();
 	WorldMapInterfacePatch();
 	SpeedInterfaceCounterAnimsPatch();
+
+	// Fix for interface windows with 'Hidden' and 'ScriptWindow' flags
+	// Hidden - will not toggle the mouse cursor when the cursor hovers over a hidden window
+	// ScriptWindow - prevents player's movement when clicking on the window if the 'Transparent' flag is not set
+	HookCall(0x44B737, gmouse_bk_process_hook);
+	LoadGameHook::OnBeforeGameInit() += []() {
+		if (hrpVersionValid) IFACE_BAR_MODE = *(BYTE*)HRPAddress(0x1006EB0C) != 0;
+		HookCall(0x44C018, gmouse_handle_event_hook); // replaces hack function from HRP
+	};
 }
 
 void Interface::exit() {

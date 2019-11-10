@@ -51,6 +51,7 @@
 #define FO_VAR_dialogue_switch_mode       0x518718
 #define FO_VAR_dialog_target              0x518848
 #define FO_VAR_dialog_target_is_party     0x51884C
+#define FO_VAR_display_win                0x631E4C
 #define FO_VAR_displayMapList             0x41B560
 #define FO_VAR_dropped_explosive          0x5190E0
 #define FO_VAR_drugInfoList               0x5191CC
@@ -148,6 +149,7 @@
 #define FO_VAR_name_sort_list             0x56FCB0
 #define FO_VAR_num_game_global_vars       0x5186C4
 #define FO_VAR_num_map_global_vars        0x519574
+#define FO_VAR_num_windows                0x6ADF24
 #define FO_VAR_card_old_fid1              0x5709EC
 #define FO_VAR_obj_dude                   0x6610B8
 #define FO_VAR_obj_seen                   0x662445
@@ -232,6 +234,7 @@
 #define FO_VAR_trait_data                 0x51DB84
 #define FO_VAR_view_page                  0x664520
 #define FO_VAR_wd_obj                     0x59E98C
+#define FO_VAR_window                     0x6ADE58
 #define FO_VAR_wmAreaInfoList             0x51DDF8
 #define FO_VAR_wmLastRndTime              0x51DEA0
 #define FO_VAR_wmMaxMapNum                0x51DE10
@@ -248,10 +251,13 @@
 
 // colors
 #define FO_VAR_BlueColor                  0x6A38EF
+#define FO_VAR_DARK_GREY_Color            0x6A59D8
 #define FO_VAR_DarkGreenColor             0x6A3A90
+#define FO_VAR_DarkGreenGreyColor         0x6A3DF1
 #define FO_VAR_DullPinkColor              0x6AB718
 #define FO_VAR_GoodColor                  0x6AB4EF
 #define FO_VAR_GreenColor                 0x6A3CB0
+#define FO_VAR_LIGHT_GREY_Color           0x6A76BF
 #define FO_VAR_PeanutButter               0x6A82F3
 #define FO_VAR_RedColor                   0x6AB4D0
 #define FO_VAR_WhiteColor                 0x6AB8CF

@@ -739,7 +739,7 @@ namespace WinFlags {
 		Transparent           = 0x20,
 		UnknownFlag40         = 0x40,
 		UnknownFlag80         = 0x80,
-		scriptWindow          = 0x100,
+		ScriptWindow          = 0x100,
 		itsButton             = 0x10000,
 	};
 }

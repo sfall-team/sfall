@@ -697,20 +697,20 @@ struct ScriptListInfoItem {
 //for holding window info
 #pragma pack(1)
 struct Window {
-	long ref;
+	long wID;
 	long flags;
 	RECT wRect;
 	long width;
 	long height;
 	long clearColour;
-	long unknown2;
-	long unknown3;
+	long rand1;
+	long rand2;
 	BYTE *surface; // bytes frame data ref to palette
-	long buttonListP;
-	long unknown5;//buttonptr?
+	long *buttonsList;
+	long unknown5; // buttonptr?
 	long unknown6;
-	long unknown7;
-	long drawFuncP;
+	long *menuBar;
+	long *drawFunc;
 };
 
 #pragma pack(1)
