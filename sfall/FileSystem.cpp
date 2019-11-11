@@ -22,8 +22,7 @@
 
 #include "FalloutEngine.h"
 #include "FileSystem.h"
-
-extern void GetSavePath(char* buf, char* ftype);
+#include "LoadGameHook.h"
 
 #define MAX_FILE_SIZE    0xA00000
 

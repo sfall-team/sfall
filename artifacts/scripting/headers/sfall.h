@@ -224,6 +224,7 @@
 #define ADD_PERK_MODE_REMOVE    (4)  // remove from the list of selectable perks
 
 // sfall_funcX macros
+#define add_global_timer_event(time, param)             sfall_func2("add_g_timer_event", time, param)
 #define add_iface_tag                                   sfall_func0("add_iface_tag")
 #define add_trait(traitId)                              sfall_func1("add_trait", traitId)
 #define art_cache_clear                                 sfall_func0("art_cache_clear")
@@ -256,6 +257,8 @@
 #define obj_under_cursor(crSwitch, inclDude)            sfall_func2("obj_under_cursor", crSwitch, inclDude)
 #define outlined_object                                 sfall_func0("outlined_object")
 #define real_dude_obj                                   sfall_func0("real_dude_obj")
+#define remove_all_timer_events                         sfall_func0("remove_timer_event")
+#define remove_timer_event(param)                       sfall_func1("remove_timer_event", param)
 #define set_cursor_mode(mode)                           sfall_func1("set_cursor_mode", mode)
 #define set_flags(obj, flags)                           sfall_func2("set_flags", obj, flags)
 #define set_iface_tag_text(tag, text, color)            sfall_func3("set_iface_tag_text", tag, text, color)

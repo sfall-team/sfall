@@ -993,6 +993,10 @@ extern const DWORD xvfprintf_;
 
 // WRAPPERS:
 // TODO: move these to different namespace
+
+// Prints debug message to debug.log file for develop build
+void DevPrintf(const char* fmt, ...);
+
 long __stdcall ItemGetType(TGameObj* item);
 long __stdcall ItemSize(TGameObj* item);
 

@@ -206,7 +206,7 @@ static void SpeedInterfaceCounterAnimsPatch() {
 }
 
 static bool IFACE_BAR_MODE = false;
-static long gmouse_handle_event_hook() {
+static long __stdcall gmouse_handle_event_hook() {
 	long countWin = *(DWORD*)_num_windows;
 	long ifaceWin = *ptr_interfaceWindow;
 	WINinfo* win = nullptr;
@@ -234,8 +234,8 @@ static void __declspec(naked) gmouse_bk_process_hook() {
 		retn;
 checkFlag:
 		call GNW_find_;
-		cmp  [eax + 4], WIN_Hidden; // window flags
-		jnz  skip;
+		test [eax + 4], WIN_Hidden; // window flags
+		jz   skip;
 		mov  eax, ds:[_display_win]; // window is hidden, so return the number of the display_win
 skip:
 		retn;
@@ -254,7 +254,7 @@ void InterfaceInit() {
 
 	// Fix for interface windows with 'Hidden' and 'ScriptWindow' flags
 	// Hidden - will not toggle the mouse cursor when the cursor hovers over a hidden window
-	// ScriptWindow - prevents player's movement when clicking on the window if the 'Transparent' flag is not set
+	// ScriptWindow - prevents the player from moving when clicking on the window if the 'Transparent' flag is not set
 	HookCall(0x44B737, gmouse_bk_process_hook);
 	// InterfaceGmouseHandleHook will be run before game initialization
 }

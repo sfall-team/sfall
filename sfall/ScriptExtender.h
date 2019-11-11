@@ -17,6 +17,7 @@
  */
 
 #pragma once
+
 #include "main.h"
 #include "FalloutStructs.h"
 
@@ -48,11 +49,14 @@ bool _stdcall IsGameScript(const char* filename);
 void LoadGlobalScripts();
 void ClearGlobalScripts();
 
-void RunGlobalScripts1();
 void RunGlobalScripts2();
 void RunGlobalScripts3();
 void _stdcall RunGlobalScriptsAtProc(DWORD procId);
 void AfterAttackCleanup();
+
+void _stdcall AddTimerEventScripts(DWORD script, long time, long param);
+void _stdcall RemoveTimerEventScripts(DWORD script, long param);
+void _stdcall RemoveTimerEventScripts(DWORD script);
 
 bool LoadGlobals(HANDLE h);
 void SaveGlobals(HANDLE h);

@@ -60,3 +60,5 @@ void SetLoopFlag(LoopFlag flag);
 
 // unset the given flag
 void ClearLoopFlag(LoopFlag flag);
+
+void GetSavePath(char* buf, char* ftype);

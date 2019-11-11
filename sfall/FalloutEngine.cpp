@@ -720,6 +720,14 @@ const DWORD xvfprintf_ = 0x4DF1AC;
 // WRAPPERS
 // please, use CamelCase for those
 
+// Prints debug message to debug.log file for develop build
+#ifndef NDEBUG
+void __declspec(naked) DevPrintf(const char* fmt, ...) {
+	__asm jmp debug_printf_;
+}
+#else
+void DevPrintf(const char* fmt, ...) {}
+#endif
 
 long __stdcall ItemGetType(TGameObj* item) {
 	__asm {
@@ -923,15 +931,11 @@ const char* __stdcall InterpretGetString(TProgram* scriptPtr, DWORD strId, DWORD
 }
 
 void __declspec(naked) InterpretError(const char* fmt, ...) {
-	__asm {
-		jmp interpretError_;
-	}
+	__asm jmp interpretError_;
 }
 
 void __declspec(naked) DebugPrintf(const char* fmt, ...) {
-	__asm {
-		jmp debug_printf_;
-	}
+	__asm jmp debug_printf_;
 }
 
 const char* __stdcall FindCurrentProc(TProgram* program) {

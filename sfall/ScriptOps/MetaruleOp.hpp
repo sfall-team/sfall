@@ -119,6 +119,7 @@ static void sf_metarule_exist() {
 */
 static const SfallMetarule metaruleArray[] = {
 	{"add_iface_tag",           sf_add_iface_tag,           0, 0},
+	{"add_g_timer_event",       sf_add_g_timer_event,       2, 2},
 	{"add_trait",               sf_add_trait,               1, 1},
 	{"art_cache_clear",         sf_art_cache_flush,         0, 0},
 	{"attack_is_aimed",         sf_attack_is_aimed,         0, 0},
@@ -149,6 +150,7 @@ static const SfallMetarule metaruleArray[] = {
 	{"obj_under_cursor",        sf_get_obj_under_cursor,    2, 2},
 	{"outlined_object",         sf_outlined_object,         0, 0},
 	{"real_dude_obj",           sf_real_dude_obj,           0, 0},
+	{"remove_timer_event",      sf_remove_timer_event,      0, 1},
 	{"set_cursor_mode",         sf_set_cursor_mode,         1, 1},
 	{"set_flags",               sf_set_flags,               2, 2},
 	{"set_iface_tag_text",      sf_set_iface_tag_text,      3, 3},

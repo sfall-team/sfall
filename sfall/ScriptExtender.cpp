@@ -18,10 +18,8 @@
 
 #include "main.h"
 
-#include <cassert>
 #include <hash_map>
 //#include <set>
-#include <string>
 
 #include "Arrays.h"
 #include "BarBoxes.h"
@@ -37,6 +35,11 @@
 #include "version.h"
 
 static DWORD _stdcall HandleMapUpdateForScripts(const DWORD procId);
+static long _stdcall HandleTimedEventScripts();
+
+static void RunGlobalScripts1();
+static void sf_add_g_timer_event();
+static void sf_remove_timer_event();
 
 // variables for new opcodes
 #define OP_MAX_ARGUMENTS	(8)
@@ -390,6 +393,7 @@ static void OpcodeInvalidArgs(const char* opcodeName) {
 	If you don't include opcode in this array, you should take care of all argument validation inside handler itself.
 */
 static const SfallOpcodeMetadata opcodeMetaArray[] = {
+	{sf_add_g_timer_event,      "add_g_timer_event",      {DATATYPE_MASK_INT, DATATYPE_MASK_INT}},
 	{sf_add_trait,              "add_trait",              {DATATYPE_MASK_INT}},
 	{sf_create_win,             "create_win",             {DATATYPE_MASK_STR, DATATYPE_MASK_INT, DATATYPE_MASK_INT, DATATYPE_MASK_INT, DATATYPE_MASK_INT, DATATYPE_MASK_INT}},
 	{sf_critter_inven_obj2,     "critter_inven_obj2",     {DATATYPE_MASK_VALID_OBJ, DATATYPE_MASK_INT}},
@@ -401,6 +405,7 @@ static const SfallOpcodeMetadata opcodeMetaArray[] = {
 	{sf_item_weight,            "item_weight",            {DATATYPE_MASK_VALID_OBJ}},
 	{sf_lock_is_jammed,         "lock_is_jammed",         {DATATYPE_MASK_VALID_OBJ}},
 	{sf_get_obj_under_cursor,   "obj_under_cursor",       {DATATYPE_MASK_INT, DATATYPE_MASK_INT}},
+	{sf_remove_timer_event,     "remove_timer_event",     {DATATYPE_MASK_INT}},
 	{sf_set_cursor_mode,        "set_cursor_mode",        {DATATYPE_MASK_INT}},
 	{sf_set_flags,              "set_flags",              {DATATYPE_MASK_VALID_OBJ, DATATYPE_MASK_INT}},
 	{sf_set_iface_tag_text,     "set_iface_tag_text",     {DATATYPE_MASK_INT, DATATYPE_MASK_STR, DATATYPE_MASK_INT}},
@@ -463,6 +468,18 @@ struct SelfOverrideObj {
 		return counter == 0;
 	}
 };
+
+struct TimedEvent {
+	sScriptProgram* script;
+	long time;
+	long fixed_param;
+
+	bool operator() (const TimedEvent &a, const TimedEvent &b) {
+		return a.time < b.time;
+	}
+} *timedEvent = nullptr;
+
+static std::list<TimedEvent> timerEventScripts;
 
 static std::vector<DWORD> checkedScripts;
 static std::vector<sGlobalScript> globalScripts;
@@ -835,6 +852,18 @@ static void __declspec(naked) register_hook_proc_spec() {
 	_WRAP_OPCODE(register_hook_proc_spec2, 2, 0)
 }
 
+static void sf_add_g_timer_event() {
+	AddTimerEventScripts((DWORD)opHandler.program(), opHandler.arg(0).rawValue(), opHandler.arg(1).rawValue());
+}
+
+static void sf_remove_timer_event() {
+	if (opHandler.numArgs() > 0) {
+		RemoveTimerEventScripts((DWORD)opHandler.program(), opHandler.arg(0).rawValue());
+	} else {
+		RemoveTimerEventScripts((DWORD)opHandler.program()); // remove all
+	}
+}
+
 static void __declspec(naked) sfall_ver_major() {
 	_OP_BEGIN(ebp)
 	__asm {
@@ -884,6 +913,11 @@ static DWORD _stdcall FindSid(DWORD script) {
 	}
 	// this will allow to use functions like roll_vs_skill, etc without calling set_self (they don't really need self object)
 	if (sfallProgsMap.find(script) != sfallProgsMap.end()) {
+		if (timedEvent && timedEvent->script->ptr == script) {
+			OverrideScriptStruct.fixed_param = timedEvent->fixed_param;
+		} else {
+			OverrideScriptStruct.fixed_param = 0;
+		}
 		OverrideScriptStruct.target_obj = OverrideScriptStruct.self_obj = 0;
 		return -2; // override struct
 	}
@@ -1232,13 +1266,13 @@ void ScriptExtenderInit() {
 		dlogr("New arrays behavior enabled.", DL_SCRIPT);
 	} else dlogr("Arrays in backward-compatiblity mode.", DL_SCRIPT);
 
-	HookCall(0x480E7B, MainGameLoopHook); //hook the main game loop
-	HookCall(0x422845, CombatLoopHook); //hook the combat loop
-
-	MakeJump(0x4A390C, FindSidHack);
-	MakeJump(0x4A5E34, ScrPtrHack);
-
+	HookCall(0x480E7B, MainGameLoopHook); // hook the main game loop
+	HookCall(0x422845, CombatLoopHook);   // hook the combat loop
 	MakeCall(0x4230D5, AfterCombatAttackHook);
+
+	MakeJump(0x4A390C, FindSidHack); // scr_find_sid_from_program_
+	MakeJump(0x4A5E34, ScrPtrHack);
+	HookCall(0x4A26D6, HandleTimedEventScripts); // queue_process_
 	MakeJump(0x4A67F0, ExecMapScriptsHack);
 
 	// this patch makes it possible to export variables from sfall global scripts
@@ -1705,6 +1739,7 @@ void ClearGlobalScripts() {
 	globalScripts.clear();
 	selfOverrideMap.clear();
 	globalExportedVars.clear();
+	timerEventScripts.clear();
 	HookScriptClear();
 }
 
@@ -1850,9 +1885,57 @@ static DWORD _stdcall HandleMapUpdateForScripts(const DWORD procId) {
 	}
 
 	RunGlobalScriptsAtProc(procId); // gl* scripts of types 0 and 3
-	RunHookScriptsAtProc(procId); // all hs_ scripts
+	RunHookScriptsAtProc(procId);   // all hs_ scripts
 
 	return procId; // restore eax (don't delete)
+}
+
+static long _stdcall HandleTimedEventScripts() {
+	long currentTime = *ptr_fallout_game_time;
+	bool wereRunning = false;
+	auto timerIt = timerEventScripts.cbegin();
+	for (; timerIt != timerEventScripts.cend(); timerIt++) {
+		if (currentTime >= timerIt->time) {
+			timedEvent = const_cast<TimedEvent*>(&(*timerIt));
+			DevPrintf("\n[TimedEventScripts] run event: %d", timerIt->time);
+			RunScriptProc(timerIt->script, timed_event_p_proc);
+			wereRunning = true;
+		} else {
+			break;
+		}
+	}
+	if (wereRunning) {
+		for (auto _it = timerEventScripts.cbegin(); _it != timerIt; _it++) {
+			DevPrintf("\n[TimedEventScripts] delete events: %d", _it->time);
+		}
+		timerEventScripts.erase(timerEventScripts.cbegin(), timerIt);
+	}
+	timedEvent = nullptr;
+	return currentTime;
+}
+
+void _stdcall AddTimerEventScripts(DWORD script, long time, long param) {
+	sScriptProgram* scriptProg = &(sfallProgsMap.find(script)->second);
+	TimedEvent timer;
+	timer.script = scriptProg;
+	timer.fixed_param = param;
+	timer.time = *ptr_fallout_game_time + time;
+	timerEventScripts.push_back(std::move(timer));
+	timerEventScripts.sort(TimedEvent());
+}
+
+void _stdcall RemoveTimerEventScripts(DWORD script, long param) {
+	sScriptProgram* scriptProg = &(sfallProgsMap.find(script)->second);
+	timerEventScripts.remove_if([scriptProg, param] (TimedEvent timer) {
+		return timer.script == scriptProg && timer.fixed_param == param;
+	});
+}
+
+void _stdcall RemoveTimerEventScripts(DWORD script) {
+	sScriptProgram* scriptProg = &(sfallProgsMap.find(script)->second);
+	timerEventScripts.remove_if([scriptProg] (TimedEvent timer) {
+		return timer.script == scriptProg;
+	});
 }
 
 // run all global scripts of types 0 and 3 at specific procedure (if exist)
