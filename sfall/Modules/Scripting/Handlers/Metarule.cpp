@@ -21,6 +21,7 @@
 #include "..\Arrays.h"
 #include "..\OpcodeContext.h"
 #include "Anims.h"
+#include "Core.h"
 #include "Interface.h"
 #include "Misc.h"
 #include "Objects.h"
@@ -61,6 +62,7 @@ static MetaruleTableType metaruleTable;
 static const SfallMetarule metarules[] = {
 	{"add_extra_msg_file",      sf_add_extra_msg_file,      1, 2, {ARG_STRING, ARG_INT}},
 	{"add_iface_tag",           sf_add_iface_tag,           0, 0},
+	{"add_g_timer_event",       sf_add_g_timer_event,       2, 2, {ARG_INT, ARG_INT}},
 	{"add_trait",               sf_add_trait,               1, 1, {ARG_INT}},
 	{"art_cache_clear",         sf_art_cache_flush,         0, 0},
 	{"attack_is_aimed",         sf_attack_is_aimed,         0, 0},
@@ -103,6 +105,7 @@ static const SfallMetarule metarules[] = {
 	{"obj_under_cursor",        sf_get_obj_under_cursor,    2, 2, {ARG_INT, ARG_INT}},
 	{"outlined_object",         sf_outlined_object,         0, 0},
 	{"real_dude_obj",           sf_real_dude_obj,           0, 0},
+	{"remove_timer_event",      sf_remove_timer_event,      0, 1, {ARG_INT}},
 	{"set_can_rest_on_map",     sf_set_rest_on_map,         3, 3, {ARG_INT, ARG_INT, ARG_INT}},
 	{"set_car_intface_art",     sf_set_car_intface_art,     1, 1, {ARG_INT}},
 	{"set_cursor_mode",         sf_set_cursor_mode,         1, 1, {ARG_INT}},

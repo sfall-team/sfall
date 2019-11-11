@@ -34,6 +34,10 @@ public:
 
 	static std::string iniConfigFolder;
 
+	static void AddTimerEventScripts(fo::Program* script, long time, long param);
+	static void RemoveTimerEventScripts(fo::Program* script, long param);
+	static void RemoveTimerEventScripts(fo::Program* script);
+
 	// Called before map exit (before map_exit_p_proc handlers in normal scripts)
 	static Delegate<>& OnMapExit();
 };
@@ -67,6 +71,7 @@ void SetGlobals(GlobalVar* globals);
 
 long SetGlobalVar(const char* var, int val);
 void SetGlobalVarInt(DWORD var, int val);
+
 long GetGlobalVar(const char* var);
 long GetGlobalVarInt(DWORD var);
 long GetGlobalVarInternal(__int64 val);

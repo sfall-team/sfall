@@ -26,7 +26,7 @@ namespace fo
 namespace func
 {
 
-// prints debug message to debug.log file for develop build
+// Prints debug message to debug.log file for develop build
 #ifndef NDEBUG
 void __declspec(naked) dev_printf(const char* fmt, ...) {
 	__asm jmp fo::funcoffs::debug_printf_;
@@ -181,7 +181,7 @@ long __stdcall db_dir_entry(const char *fileName, DWORD *sizeOut) {
 
 // prints message to debug.log file
 void __declspec(naked) debug_printf(const char* fmt, ...) {
-	__asm jmp fo::funcoffs::debug_printf_
+	__asm jmp fo::funcoffs::debug_printf_;
 }
 
 // Displays message in main UI console window

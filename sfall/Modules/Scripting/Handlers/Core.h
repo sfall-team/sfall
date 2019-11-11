@@ -54,6 +54,10 @@ void __declspec() op_set_self();
 // used for both register_hook and register_hook_proc
 void sf_register_hook(OpcodeContext&);
 
+void sf_add_g_timer_event(OpcodeContext&);
+
+void sf_remove_timer_event(OpcodeContext&);
+
 void sf_sfall_ver_major(OpcodeContext&);
 
 void sf_sfall_ver_minor(OpcodeContext&);

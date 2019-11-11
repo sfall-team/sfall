@@ -184,6 +184,18 @@ void sf_register_hook(OpcodeContext& ctx) {
 	RegisterHook(ctx.program(), ctx.arg(0).rawValue(), proc, specReg);
 }
 
+void sf_add_g_timer_event(OpcodeContext& ctx) {
+	ScriptExtender::AddTimerEventScripts(ctx.program(), ctx.arg(0).rawValue(), ctx.arg(1).rawValue());
+}
+
+void sf_remove_timer_event(OpcodeContext& ctx) {
+	if (ctx.numArgs() > 0) {
+		ScriptExtender::RemoveTimerEventScripts(ctx.program(), ctx.arg(0).rawValue());
+	} else {
+		ScriptExtender::RemoveTimerEventScripts(ctx.program()); // remove all
+	}
+}
+
 void sf_sfall_ver_major(OpcodeContext& ctx) {
 	ctx.setReturn(VERSION_MAJOR);
 }
