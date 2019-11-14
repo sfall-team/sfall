@@ -602,6 +602,7 @@ const DWORD register_clear_ = 0x413C4C;
 const DWORD register_end_ = 0x413CCC;
 const DWORD register_object_animate_ = 0x4149D0;
 const DWORD register_object_animate_and_hide_ = 0x414B7C;
+const DWORD register_object_call_ = 0x414E98;
 const DWORD register_object_change_fid_ = 0x41518C;
 const DWORD register_object_funset_ = 0x4150A8;
 const DWORD register_object_light_ = 0x415334;
@@ -663,6 +664,7 @@ const DWORD text_curr_ = 0x4D58D4;
 const DWORD text_font_ = 0x4D58DC;
 const DWORD text_object_create_ = 0x4B036C;
 const DWORD tile_coord_ = 0x4B1674;
+const DWORD tile_dir_ = 0x4B1ABC;
 const DWORD tile_num_ = 0x4B1754;
 const DWORD tile_num_in_direction_ = 0x4B1A6C;
 const DWORD tile_refresh_display_ = 0x4B12D8;
@@ -852,6 +854,15 @@ long GetScriptLocalVars(long sid) {
 	TScript* script = nullptr;
 	ScrPtr(sid, &script);
 	return (script) ? script->num_local_vars : 0;
+}
+
+void __fastcall RegisterObjectCall(long* target, long* source, void* func, long delay) {
+	__asm {
+		mov  eax, ecx;
+		mov  ebx, func;
+		mov  ecx, delay;
+		call register_object_call_;
+	}
 }
 
 long __fastcall ScrGetLocalVar(long sid, long varId, long* value) {
@@ -1094,6 +1105,26 @@ long __stdcall TraitLevel(long traitID) {
 	}
 }
 
+void __fastcall make_straight_path_func_wrapper(TGameObj* objFrom, DWORD tileFrom, DWORD tileTo, void* rotationPtr, DWORD* result, long flags, void* func) {
+	__asm {
+		push func;
+		push flags;
+		push result;
+		mov  eax, ecx;
+		mov  ebx, tileTo;
+		mov  ecx, rotationPtr;
+		call make_straight_path_func_;
+	}
+}
+
+TGameObj* __fastcall obj_blocking_at_wrapper(TGameObj* obj, DWORD tile, DWORD elevation, void* func) {
+	__asm {
+		mov  eax, ecx;
+		mov  ebx, elevation;
+		call func;
+	}
+}
+
 long __stdcall QueueFindFirst(TGameObj* object, long qType) {
 	__asm {
 		mov  edx, qType;
@@ -1155,6 +1186,14 @@ long __fastcall TileNumInDirection(long tile, long rotation, long distance) {
 		mov  ebx, distance;
 		mov  eax, ecx;
 		call tile_num_in_direction_;
+	}
+}
+
+long __stdcall TileDir(long scrTile, long dstTile) {
+	__asm {
+		mov  edx, dstTile;
+		mov  eax, scrTile;
+		call tile_dir_;
 	}
 }
 

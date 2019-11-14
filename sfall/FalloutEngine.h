@@ -844,6 +844,7 @@ extern const DWORD register_clear_;
 extern const DWORD register_end_;
 extern const DWORD register_object_animate_; // int aObj<eax>, int aAnim<edx>, int delay<ebx>
 extern const DWORD register_object_animate_and_hide_; // int aObj<eax>, int aAnim<edx>, int delay<ebx>
+extern const DWORD register_object_call_;
 extern const DWORD register_object_change_fid_; // int aObj<eax>, int aFid<edx>, int aDelay<ebx>
 extern const DWORD register_object_funset_; // int aObj<eax>, int ???<edx>, int aDelay<ebx> - not really sure what this does
 extern const DWORD register_object_light_; // <eax>(int aObj<eax>, int aRadius<edx>, int aDelay<ebx>)
@@ -905,6 +906,7 @@ extern const DWORD text_curr_;
 extern const DWORD text_font_;
 extern const DWORD text_object_create_;
 extern const DWORD tile_coord_; // eax - tilenum, edx (int*) - x, ebx (int*) - y
+extern const DWORD tile_dir_;
 extern const DWORD tile_num_;
 extern const DWORD tile_num_in_direction_;
 extern const DWORD tile_refresh_display_;
@@ -1023,6 +1025,8 @@ long __stdcall ScrPtr(long scriptId, TScript** scriptPtr);
 // Returns the number of local variables of the object script
 long GetScriptLocalVars(long sid);
 
+void __fastcall RegisterObjectCall(long* target, long* source, void* func, long delay);
+
 long __fastcall ScrGetLocalVar(long sid, long varId, long* value);
 long __fastcall ScrSetLocalVar(long sid, long varId, long value);
 
@@ -1097,6 +1101,10 @@ long __stdcall TraitLevel(long traitID);
 
 long __stdcall QueueFindFirst(TGameObj* object, long qType);
 
+void __fastcall make_straight_path_func_wrapper(TGameObj* objFrom, DWORD tileFrom, DWORD tileTo, void* rotationPtr, DWORD* result, long flags, void* func);
+
+TGameObj* __fastcall obj_blocking_at_wrapper(TGameObj* obj, DWORD tile, DWORD elevation, void* func);
+
 TGameObj* __stdcall ObjFindFirst();
 
 TGameObj* __stdcall ObjFindFirstAtTile(long elevation, long tileNum);
@@ -1114,6 +1122,8 @@ void __stdcall MapDirErase(const char* folder, const char* ext);
 TGameObj* __fastcall ObjBlockingAt(TGameObj* object, long tile, long elevation);
 
 long __fastcall TileNumInDirection(long tile, long rotation, long distance);
+
+long __stdcall TileDir(long scrTile, long dstTile);
 
 // for the backported AmmoCostHook from 4.x
 long __stdcall ItemWAnimWeap(TGameObj* item, DWORD hitMode);

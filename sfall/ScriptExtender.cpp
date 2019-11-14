@@ -1595,6 +1595,7 @@ void ScriptExtenderInit() {
 	opcodes[0x27c] = op_sfall_metarule6; // if you need more arguments - use arrays
 
 	opcodes[0x27d] = register_hook_proc_spec;
+	opcodes[0x27e] = op_reg_anim_callback;
 
 	InitOpcodeMetaTable();
 	InitMetaruleTable();

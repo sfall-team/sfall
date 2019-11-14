@@ -333,26 +333,6 @@ end:
 	}
 }
 
-static TGameObj* __fastcall obj_blocking_at_wrapper(TGameObj* obj, DWORD tile, DWORD elevation, void* func) {
-	__asm {
-		mov  eax, ecx;
-		mov  ebx, elevation;
-		call func;
-	}
-}
-
-static void __fastcall make_straight_path_func_wrapper(TGameObj* objFrom, DWORD tileFrom, DWORD tileTo, void* rotationPtr, DWORD* result, long flags, void* func) {
-	__asm {
-		push func;
-		push flags;
-		push result;
-		mov  eax, ecx;
-		mov  ebx, tileTo;
-		mov  ecx, rotationPtr;
-		call make_straight_path_func_;
-	}
-}
-
 #define BLOCKING_TYPE_BLOCK		(0)
 #define BLOCKING_TYPE_SHOOT		(1)
 #define BLOCKING_TYPE_AI		(2)

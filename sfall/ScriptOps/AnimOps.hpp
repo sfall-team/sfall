@@ -49,8 +49,8 @@ end1:
 
 // checks if combat mode is enabled (using R8 8-bit register) and jumps to GOTOFAIL if it is (does nothing if reg_anim_combat_check is 0)
 #define _CHECK_COMBAT_MODE(R8, GOTOFAIL) __asm { \
-	__asm mov R8, reg_anim_combat_check   \
-	__asm test byte ptr ds:_combat_state, R8		\
+	__asm mov R8, reg_anim_combat_check          \
+	__asm test byte ptr ds:_combat_state, R8     \
 	__asm jnz GOTOFAIL }
 
 static void __declspec(naked) op_reg_anim_destroy() {
@@ -169,6 +169,25 @@ static void __declspec(naked) op_reg_anim_turn_towards() {
 	}
 end:
 	_OP_END
+}
+
+static void _stdcall op_reg_anim_callback2() {
+	const ScriptValue &procArg = opHandler.arg(0);
+
+	if (procArg.isInt()) {
+		RegisterObjectCall(
+			reinterpret_cast<long*>(opHandler.program()),
+			reinterpret_cast<long*>(procArg.rawValue()), // callback procedure
+			reinterpret_cast<void*>(executeProcedure_),
+			-1
+		);
+	} else {
+		OpcodeInvalidArgs("reg_anim_callback");
+	}
+}
+
+static void __declspec(naked) op_reg_anim_callback() {
+	_WRAP_OPCODE(op_reg_anim_callback2, 1, 0)
 }
 
 static void __declspec(naked) op_explosions_metarule() {

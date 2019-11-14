@@ -314,7 +314,7 @@ artNotExist:
 		push artDbgMsg;
 		call debug_printf_;
 		add  esp, 8;
-		BREAKPOINT; // break program
+		int  3; // break program
 		retn;
 	}
 }
