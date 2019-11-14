@@ -28,6 +28,7 @@ WRAP_WATCOM_FFUNC7(void, make_straight_path_func, GameObject*, objFrom, DWORD, t
 WRAP_WATCOM_FFUNC4(long, mouse_click_in, long, x, long, y, long, x_end, long, y_end)
 WRAP_WATCOM_FFUNC3(GameObject*, obj_blocking_at, GameObject*, object, long, tile, long, elevation)
 WRAP_WATCOM_FFUNC3(long, object_under_mouse, long, crSwitch, long, inclDude, long, elevation)
+WRAP_WATCOM_FFUNC4(void, register_object_call, long*, target, long*, source, void*, func, long, delay)
 WRAP_WATCOM_FFUNC3(long, scr_get_local_var, long, sid, long, varId, long*, value)
 WRAP_WATCOM_FFUNC3(long, scr_set_local_var, long, sid, long, varId, long, value)
 WRAP_WATCOM_FFUNC3(long, tile_num_in_direction, long, tile, long, rotation,long, distance)

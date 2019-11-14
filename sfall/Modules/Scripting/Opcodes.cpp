@@ -215,6 +215,7 @@ static SfallOpcodeInfo opcodeInfoArray[] = {
 	{0x27c, "sfall_func6", HandleMetarule, 7, true}, // if you need more arguments - use arrays
 
 	{0x27d, "register_hook_proc_spec",   sf_register_hook,             2, false, {ARG_INT, ARG_INT}},
+	{0x27e, "reg_anim_callback",         sf_reg_anim_callback,         1, false, {ARG_INT}},
 };
 
 // A hash-table for opcode info, indexed by opcode.
