@@ -171,6 +171,13 @@ end:
 	_OP_END
 }
 
+static void __declspec(naked) ExecuteCallback() {
+	__asm {
+		call executeProcedure_;
+		jmp  GetResetScriptReturnValue;
+	}
+}
+
 static void _stdcall op_reg_anim_callback2() {
 	const ScriptValue &procArg = opHandler.arg(0);
 
@@ -178,7 +185,7 @@ static void _stdcall op_reg_anim_callback2() {
 		RegisterObjectCall(
 			reinterpret_cast<long*>(opHandler.program()),
 			reinterpret_cast<long*>(procArg.rawValue()), // callback procedure
-			reinterpret_cast<void*>(executeProcedure_),
+			reinterpret_cast<void*>(ExecuteCallback),
 			-1
 		);
 	} else {

@@ -113,7 +113,7 @@ struct TScript {
 	long self_obj_id;
 	long local_var_offset;
 	long num_local_vars;
-	long scr_return;
+	long return_value;
 	long action;
 	long fixed_param;
 	TGameObj *self_obj;

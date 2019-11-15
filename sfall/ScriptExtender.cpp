@@ -893,11 +893,18 @@ static void __declspec(naked) sfall_ver_build() {
 
 
 //END OF SCRIPT FUNCTIONS
-static const DWORD scr_ptr_back = scr_ptr_ + 5;
-static const DWORD scr_find_sid_from_program = scr_find_sid_from_program_ + 5;
-static const DWORD scr_find_obj_from_program = scr_find_obj_from_program_ + 7;
 
-static DWORD _stdcall FindSid(DWORD script) {
+long __stdcall GetScriptReturnValue() {
+	return OverrideScriptStruct.return_value;
+}
+
+long __stdcall GetResetScriptReturnValue() {
+	long val = GetScriptReturnValue();
+	OverrideScriptStruct.return_value = 0;
+	return val;
+}
+
+static DWORD __stdcall FindSid(DWORD script) {
 	stdext::hash_map<DWORD, SelfOverrideObj>::iterator overrideIt = selfOverrideMap.find(script);
 	if (overrideIt != selfOverrideMap.end()) {
 		DWORD scriptId = overrideIt->second.object->scriptID; // script
@@ -918,11 +925,17 @@ static DWORD _stdcall FindSid(DWORD script) {
 		} else {
 			OverrideScriptStruct.fixed_param = 0;
 		}
-		OverrideScriptStruct.target_obj = OverrideScriptStruct.self_obj = 0;
+		OverrideScriptStruct.target_obj = 0;
+		OverrideScriptStruct.self_obj = 0;
+		OverrideScriptStruct.return_value = 0;
 		return -2; // override struct
 	}
 	return -1; // change nothing
 }
+
+static const DWORD scr_ptr_back = scr_ptr_ + 5;
+static const DWORD scr_find_sid_from_program = scr_find_sid_from_program_ + 5;
+//static const DWORD scr_find_obj_from_program = scr_find_obj_from_program_ + 7;
 
 static void __declspec(naked) FindSidHack() {
 	__asm {
@@ -1762,19 +1775,17 @@ void RunScriptProc(sScriptProgram* prog, const char* procName) {
 
 void RunScriptProc(sScriptProgram* prog, DWORD procId) {
 	if (procId > 0 && procId <= SCRIPT_PROC_MAX) {
-		DWORD sptr = prog->ptr;
 		DWORD procNum = prog->procLookup[procId];
 		if (procNum != -1) {
-			RunScriptProcByNum(sptr, procNum);
+			RunScriptProcByNum(prog->ptr, procNum);
 		}
 	}
 }
 
 int RunScriptStartProc(sScriptProgram* prog) {
-	DWORD sptr = prog->ptr;
 	DWORD procNum = prog->procLookup[start];
 	if (procNum != -1) {
-		RunScriptProcByNum(sptr, procNum);
+		RunScriptProcByNum(prog->ptr, procNum);
 	}
 	return procNum;
 }
@@ -1907,7 +1918,7 @@ static long _stdcall HandleTimedEventScripts() {
 	}
 	if (wereRunning) {
 		for (auto _it = timerEventScripts.cbegin(); _it != timerIt; _it++) {
-			DevPrintf("\n[TimedEventScripts] delete events: %d", _it->time);
+			DevPrintf("\n[TimedEventScripts] delete event: %d", _it->time);
 		}
 		timerEventScripts.erase(timerEventScripts.cbegin(), timerIt);
 	}

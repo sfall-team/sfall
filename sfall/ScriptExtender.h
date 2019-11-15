@@ -29,6 +29,13 @@ enum SfallDataType {
 	DATATYPE_STR
 };
 
+#define SCRIPT_PROC_MAX (27)
+typedef struct {
+	DWORD ptr;
+	DWORD procLookup[SCRIPT_PROC_MAX + 1];
+	char initialized;
+} sScriptProgram;
+
 #pragma pack(push, 8)
 struct sGlobalVar {
 	__int64 id;
@@ -36,13 +43,6 @@ struct sGlobalVar {
 	__int32 unused;
 };
 #pragma pack(pop)
-
-#define SCRIPT_PROC_MAX (27)
-typedef struct {
-	DWORD ptr;
-	DWORD procLookup[SCRIPT_PROC_MAX + 1];
-	char initialized;
-} sScriptProgram;
 
 void ScriptExtenderInit();
 bool _stdcall IsGameScript(const char* filename);
@@ -53,10 +53,6 @@ void RunGlobalScripts2();
 void RunGlobalScripts3();
 void _stdcall RunGlobalScriptsAtProc(DWORD procId);
 void AfterAttackCleanup();
-
-void _stdcall AddTimerEventScripts(DWORD script, long time, long param);
-void _stdcall RemoveTimerEventScripts(DWORD script, long param);
-void _stdcall RemoveTimerEventScripts(DWORD script);
 
 bool LoadGlobals(HANDLE h);
 void SaveGlobals(HANDLE h);
@@ -88,8 +84,15 @@ void RunScriptProc(sScriptProgram* prog, DWORD procId);
 
 int RunScriptStartProc(sScriptProgram* prog);
 
+long __stdcall GetScriptReturnValue();
+long __stdcall GetResetScriptReturnValue();
+
 void AddProgramToMap(sScriptProgram &prog);
 sScriptProgram* GetGlobalScriptProgram(DWORD scriptPtr);
+
+void _stdcall AddTimerEventScripts(DWORD script, long time, long param);
+void _stdcall RemoveTimerEventScripts(DWORD script, long param);
+void _stdcall RemoveTimerEventScripts(DWORD script);
 
 char* _stdcall mysubstr(char* str, int pos, int length);
 
