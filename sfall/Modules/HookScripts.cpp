@@ -183,7 +183,7 @@ void RegisterHook(fo::Program* script, int id, int procNum, bool specReg) {
 	}
 	if (procNum == 0) return; // prevent registration to first location in procedure when reusing "unregister" method
 
-	ScriptProgram *prog = GetGlobalScriptProgram(script);
+	ScriptProgram *prog = ScriptExtender::GetGlobalScriptProgram(script);
 	if (prog) {
 		dlog_f("Global script: %08x registered as hook ID %d\n", DL_HOOK, script, id);
 		HookScript hook;

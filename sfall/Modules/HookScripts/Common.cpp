@@ -48,7 +48,7 @@ bool LoadHookScript(const char* name, int id) {
 			hook.callback = -1;
 			hook.isGlobalScript = false;
 			hooks[id].push_back(hook);
-			AddProgramToMap(prog);
+			ScriptExtender::AddProgramToMap(prog);
 		} else {
 			dlogr(" Error!", DL_HOOK);
 		}

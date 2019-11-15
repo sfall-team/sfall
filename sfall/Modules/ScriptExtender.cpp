@@ -122,11 +122,17 @@ bool alwaysFindScripts;
 
 fo::ScriptInstance overrideScriptStruct = {0};
 
-static const DWORD scr_ptr_back = fo::funcoffs::scr_ptr_ + 5;
-static const DWORD scr_find_sid_from_program = fo::funcoffs::scr_find_sid_from_program_ + 5;
-static const DWORD scr_find_obj_from_program = fo::funcoffs::scr_find_obj_from_program_ + 7;
+long ScriptExtender::GetScriptReturnValue() {
+	return overrideScriptStruct.returnValue;
+}
 
-static DWORD _stdcall FindSid(fo::Program* script) {
+long ScriptExtender::GetResetScriptReturnValue() {
+	long val = GetScriptReturnValue();
+	overrideScriptStruct.returnValue = 0;
+	return val;
+}
+
+static DWORD __stdcall FindSid(fo::Program* script) {
 	std::unordered_map<fo::Program*, SelfOverrideObj>::iterator overrideIt = selfOverrideMap.find(script);
 	if (overrideIt != selfOverrideMap.end()) {
 		DWORD scriptId = overrideIt->second.object->scriptId; // script
@@ -147,11 +153,17 @@ static DWORD _stdcall FindSid(fo::Program* script) {
 		} else {
 			overrideScriptStruct.fixedParam = 0;
 		}
-		overrideScriptStruct.targetObject = overrideScriptStruct.selfObject = 0;
+		overrideScriptStruct.targetObject = 0;
+		overrideScriptStruct.selfObject = 0;
+		overrideScriptStruct.returnValue = 0;
 		return -2; // override struct
 	}
 	return -1; // change nothing
 }
+
+static const DWORD scr_ptr_back = fo::funcoffs::scr_ptr_ + 5;
+static const DWORD scr_find_sid_from_program = fo::funcoffs::scr_find_sid_from_program_ + 5;
+//static const DWORD scr_find_obj_from_program = fo::funcoffs::scr_find_obj_from_program_ + 7;
 
 static void __declspec(naked) FindSidHack() {
 	__asm {
@@ -439,11 +451,11 @@ void InitScriptProgram(ScriptProgram &prog) {
 	}
 }
 
-void AddProgramToMap(ScriptProgram &prog) {
+void ScriptExtender::AddProgramToMap(ScriptProgram &prog) {
 	sfallProgsMap[prog.ptr] = prog;
 }
 
-ScriptProgram* GetGlobalScriptProgram(fo::Program* scriptPtr) {
+ScriptProgram* ScriptExtender::GetGlobalScriptProgram(fo::Program* scriptPtr) {
 	SfallProgsMap::iterator it = sfallProgsMap.find(scriptPtr);
 	return (it == sfallProgsMap.end()) ? nullptr : &it->second ; // prog
 }
@@ -469,7 +481,7 @@ static void LoadGlobalScriptsList() {
 			GlobalScript gscript = GlobalScript(prog);
 			gscript.startProc = prog.procLookup[fo::ScriptProc::start]; // get 'start' procedure position
 			globalScripts.push_back(gscript);
-			AddProgramToMap(prog);
+			ScriptExtender::AddProgramToMap(prog);
 			// initialize script (start proc will be executed for the first time) -- this needs to be after script is added to "globalScripts" array
 			InitScriptProgram(prog);
 		} else {
@@ -559,19 +571,17 @@ void RunScriptProc(ScriptProgram* prog, const char* procName) {
 
 void RunScriptProc(ScriptProgram* prog, long procId) {
 	if (procId > 0 && procId < fo::ScriptProc::count) {
-		fo::Program* sptr = prog->ptr;
 		int procNum = prog->procLookup[procId];
 		if (procNum != -1) {
-			fo::func::executeProcedure(sptr, procNum);
+			fo::func::executeProcedure(prog->ptr, procNum);
 		}
 	}
 }
 
 int RunScriptStartProc(ScriptProgram* prog) {
-	fo::Program* sptr = prog->ptr;
 	int procNum = prog->procLookup[fo::ScriptProc::start];
 	if (procNum != -1) {
-		fo::func::executeProcedure(sptr, procNum);
+		fo::func::executeProcedure(prog->ptr, procNum);
 	}
 	return procNum;
 }
@@ -651,7 +661,7 @@ static long HandleTimedEventScripts() {
 	}
 	if (wereRunning) {
 		for (auto _it = timerEventScripts.cbegin(); _it != timerIt; _it++) {
-			fo::func::dev_printf("\n[TimedEventScripts] delete events: %d", _it->time);
+			fo::func::dev_printf("\n[TimedEventScripts] delete event: %d", _it->time);
 		}
 		timerEventScripts.erase(timerEventScripts.cbegin(), timerIt);
 	}

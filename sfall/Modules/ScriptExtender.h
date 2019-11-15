@@ -27,12 +27,24 @@
 namespace sfall
 {
 
+typedef struct {
+	fo::Program* ptr = nullptr;
+	int procLookup[fo::ScriptProc::count];
+	char initialized;
+} ScriptProgram;
+
 class ScriptExtender : public Module {
 public:
 	const char* name() { return "ScriptExtender"; }
 	void init();
 
 	static std::string iniConfigFolder;
+
+	static long GetScriptReturnValue();
+	static long GetResetScriptReturnValue();
+
+	static void AddProgramToMap(ScriptProgram &prog);
+	static ScriptProgram* GetGlobalScriptProgram(fo::Program* scriptPtr);
 
 	static void AddTimerEventScripts(fo::Program* script, long time, long param);
 	static void RemoveTimerEventScripts(fo::Program* script, long param);
@@ -49,12 +61,6 @@ struct GlobalVar {
 	__int32 unused;
 };
 #pragma pack(pop)
-
-typedef struct {
-	fo::Program* ptr = nullptr;
-	int procLookup[fo::ScriptProc::count];
-	char initialized;
-} ScriptProgram;
 
 void __fastcall SetGlobalScriptRepeat(fo::Program* script, int frames);
 void __fastcall SetGlobalScriptType(fo::Program* script, int type);
@@ -96,9 +102,6 @@ void RunScriptProc(ScriptProgram* prog, const char* procName);
 void RunScriptProc(ScriptProgram* prog, long procId);
 
 int RunScriptStartProc(ScriptProgram* prog);
-
-void AddProgramToMap(ScriptProgram &prog);
-ScriptProgram* GetGlobalScriptProgram(fo::Program* scriptPtr);
 
 // variables
 extern DWORD isGlobalScriptLoading;
