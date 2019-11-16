@@ -109,7 +109,7 @@ void __declspec(naked) op_get_sfall_arg() {
 	__asm {
 		push ecx;
 		push eax;
-		call GetHSArg;
+		call HookScripts::GetHSArg;
 		mov  edx, eax;
 		pop  eax;
 		_RET_VAL_INT(ecx);
@@ -118,10 +118,21 @@ void __declspec(naked) op_get_sfall_arg() {
 	}
 }
 
+void sf_get_sfall_arg_at(OpcodeContext& ctx) {
+	long argVal = 0;
+	long id = ctx.arg(0).rawValue();
+	if (id >= static_cast<long>(HookScripts::GetHSArgCount()) || id < 0) {
+		ctx.printOpcodeError("%s() - invalid value for argument.", ctx.getMetaruleName());
+	} else {
+		argVal = HookScripts::GetHSArgAt(id);
+	}
+	ctx.setReturn(argVal);
+}
+
 void sf_get_sfall_args(OpcodeContext& ctx) {
-	DWORD argCount = GetHSArgCount();
+	DWORD argCount = HookScripts::GetHSArgCount();
 	DWORD id = TempArray(argCount, 0);
-	DWORD* args = GetHSArgs();
+	DWORD* args = HookScripts::GetHSArgs();
 	for (DWORD i = 0; i < argCount; i++) {
 		arrays[id].val[i].set(*(long*)&args[i]);
 	}
@@ -129,7 +140,7 @@ void sf_get_sfall_args(OpcodeContext& ctx) {
 }
 
 void sf_set_sfall_arg(OpcodeContext& ctx) {
-	SetHSArg(ctx.arg(0).rawValue(), ctx.arg(1).rawValue());
+	HookScripts::SetHSArg(ctx.arg(0).rawValue(), ctx.arg(1).rawValue());
 }
 
 void __declspec(naked) op_set_sfall_return() {
@@ -137,7 +148,7 @@ void __declspec(naked) op_set_sfall_return() {
 		push ecx;
 		_GET_ARG_INT(end);
 		push eax;
-		call SetHSReturn;
+		call HookScripts::SetHSReturn;
 end:
 		pop  ecx;
 		retn;

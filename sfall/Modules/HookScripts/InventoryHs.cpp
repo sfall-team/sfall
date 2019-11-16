@@ -80,7 +80,7 @@ static int __fastcall SwitchHandHook_Script(fo::GameObject* item, fo::GameObject
 	int result = PartyControl::SwitchHandHook(item);
 	if (result != -1) {
 		cRetTmp = 0;
-		SetHSReturn(result);
+		HookScripts::SetHSReturn(result);
 	}
 	result = (cRet > 0) ? rets[0] : -1;
 	EndHook();

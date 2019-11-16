@@ -88,14 +88,16 @@ static const SfallMetarule metarules[] = {
 	{"get_object_ai_data",      sf_get_object_ai_data,      2, 2, {ARG_OBJECT, ARG_INT}},
 	{"get_object_data",         sf_get_object_data,         2, 2, {ARG_OBJECT, ARG_INT}},
 	{"get_outline",             sf_get_outline,             1, 1, {ARG_OBJECT}},
+	{"get_sfall_arg_at",        sf_get_sfall_arg_at,        1, 1, {ARG_INT}},
 	{"get_string_pointer",      sf_get_string_pointer,      1, 1, {ARG_STRING}},
 	{"has_fake_perk_npc",       sf_has_fake_perk_npc,       2, 2, {ARG_OBJECT, ARG_STRING}},
 	{"has_fake_trait_npc",      sf_has_fake_trait_npc,      2, 2, {ARG_OBJECT, ARG_STRING}},
+	{"hide_window",             sf_hide_window,             0, 1, {ARG_STRING}},
 	{"intface_hide",            sf_intface_hide,            0, 0},
 	{"intface_is_hidden",       sf_intface_is_hidden,       0, 0},
 	{"intface_redraw",          sf_intface_redraw,          0, 0},
 	{"intface_show",            sf_intface_show,            0, 0},
-	{"inventory_redraw",        sf_inventory_redraw,        1, 1, {ARG_INT}},
+	{"inventory_redraw",        sf_inventory_redraw,        0, 1, {ARG_INT}},
 	{"item_make_explosive",     sf_item_make_explosive,     3, 4, {ARG_INT, ARG_INT, ARG_INT, ARG_INT}},
 	{"item_weight",             sf_item_weight,             1, 1, {ARG_OBJECT}},
 	{"lock_is_jammed",          sf_lock_is_jammed,          1, 1, {ARG_OBJECT}},
@@ -124,6 +126,8 @@ static const SfallMetarule metarules[] = {
 	{"set_selectable_perk_npc", sf_set_selectable_perk_npc, 5, 5, {ARG_OBJECT, ARG_STRING, ARG_INT, ARG_INT, ARG_STRING}},
 	{"set_unique_id",           sf_set_unique_id,           1, 2, {ARG_OBJECT, ARG_INT}},
 	{"set_unjam_locks_time",    sf_set_unjam_locks_time,    1, 1, {ARG_INT}},
+	{"set_window_flag",         sf_set_window_flag,         3, 3, {ARG_INTSTR, ARG_INT, ARG_INT}},
+	{"show_window",             sf_show_window,             0, 1, {ARG_STRING}},
 	{"spatial_radius",          sf_spatial_radius,          1, 1, {ARG_OBJECT}},
 	{"tile_refresh_display",    sf_tile_refresh_display,    0, 0},
 	{"unjam_lock",              sf_unjam_lock,              1, 1, {ARG_OBJECT}},
@@ -132,7 +136,7 @@ static const SfallMetarule metarules[] = {
 	{"validate_test",           sf_test,                    2, 5, {ARG_INT, ARG_NUMBER, ARG_STRING, ARG_OBJECT, ARG_ANY}},
 	#endif
 };
-
+//
 // returns current contents of metarule table
 static void sf_get_metarule_table(OpcodeContext& ctx) {
 	DWORD arrId = TempArray(metaruleTable.size(), 0);

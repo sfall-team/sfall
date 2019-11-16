@@ -713,6 +713,25 @@ struct Window {
 	long *drawFunc;
 };
 
+struct sWindow {
+	char name[32];
+	long wID;
+	long width;
+	long height;
+	long unknown1;
+	long unknown2;
+	long unknown3;
+	long unknown4;
+	long *buttons;
+	long numButtons;
+	long unknown5;
+	long unknown6;
+	long clearColour;
+	long flags;
+	long unknown7;
+	long unknown8;
+};
+
 #pragma pack(1)
 struct LSData {
 	char signature[24];

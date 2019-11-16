@@ -318,10 +318,12 @@ void sf_inventory_redraw(OpcodeContext& ctx) {
 		default:
 			return;
 	}
-	if (!ctx.arg(0).asBool()) {
+	long redrawSide = (ctx.numArgs() > 0) ? ctx.arg(0).rawValue() : -1; // -1 - both
+	if (redrawSide <= 0) {
 		fo::var::stack_offset[fo::var::curr_stack] = 0;
 		fo::func::display_inventory(0, -1, mode);
-	} else if (mode >= 2) {
+	}
+	if (redrawSide && mode >= 2) {
 		fo::var::target_stack_offset[fo::var::target_curr_stack] = 0;
 		fo::func::display_target_inventory(0, -1, fo::var::target_pud, mode);
 		fo::func::win_draw(fo::var::i_wid);
@@ -347,6 +349,76 @@ void sf_create_win(OpcodeContext& ctx) {
 		256, flags) == -1)
 	{
 		ctx.printOpcodeError("%s() - couldn't create window.", ctx.getMetaruleName());
+	}
+}
+
+void sf_show_window(OpcodeContext& ctx) {
+	if (ctx.numArgs() > 0) {
+		const char* name = ctx.arg(0).strValue();
+		for (size_t i = 0; i < 16; i++) {
+			if (_stricmp(name, fo::var::sWindows[i].name) == 0) {
+				fo::func::win_show(fo::var::sWindows[i].wID);
+				return;
+			}
+		}
+		ctx.printOpcodeError("%s() - window '%s' is not found.", ctx.getMetaruleName(), name);
+	} else {
+		__asm call fo::funcoffs::windowShow_;
+	}
+}
+
+void sf_hide_window(OpcodeContext& ctx) {
+	if (ctx.numArgs() > 0) {
+		const char* name = ctx.arg(0).strValue();
+		for (size_t i = 0; i < 16; i++) {
+			if (_stricmp(name, fo::var::sWindows[i].name) == 0) {
+				fo::func::win_hide(fo::var::sWindows[i].wID);
+				return;
+			}
+		}
+		ctx.printOpcodeError("%s() - window '%s' is not found.", ctx.getMetaruleName(), name);
+	} else {
+		__asm call fo::funcoffs::windowHide_;
+	}
+}
+
+void sf_set_window_flag(OpcodeContext& ctx) {
+	long bitFlag = ctx.arg(1).rawValue();
+	switch (bitFlag) {
+		case fo::WinFlags::MoveOnTop:
+		case fo::WinFlags::Hidden:
+		case fo::WinFlags::Exclusive:
+		case fo::WinFlags::Transparent:
+			break;
+		default:
+			return; // unsupported set flag
+	}
+	bool mode = ctx.arg(2).asBool();
+	if (ctx.arg(0).isString()) {
+		const char* name = ctx.arg(0).strValue();
+		for (size_t i = 0; i < 16; i++) {
+			if (_stricmp(name, fo::var::sWindows[i].name) == 0) {
+				fo::Window* win =fo::func::GNW_find(fo::var::sWindows[i].wID);
+				if (mode) {
+					fo::var::sWindows[i].flags |= bitFlag;
+					win->flags |= bitFlag;
+				} else {
+					fo::var::sWindows[i].flags &= ~bitFlag;
+					win->flags &= ~bitFlag;
+				}
+				return;
+			}
+		}
+		ctx.printOpcodeError("%s() - window '%s' is not found.", ctx.getMetaruleName(), name);
+	} else {
+		long wid = ctx.arg(0).rawValue();
+		fo::Window* win = fo::func::GNW_find((wid > 0) ? wid : fo::var::i_wid); // i_wid - set flag to current game interface window
+		if (win == nullptr) return;
+		if (mode) {
+			win->flags |= bitFlag;
+		} else {
+			win->flags &= ~bitFlag;
+		}
 	}
 }
 

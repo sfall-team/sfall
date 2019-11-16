@@ -133,23 +133,27 @@ void HookScripts::GameModeChangeHook(DWORD exit) {
 }
 // END HOOKS
 
-DWORD _stdcall GetHSArgCount() {
+DWORD HookScripts::GetHSArgCount() {
 	return argCount;
 }
 
-DWORD _stdcall GetHSArg() {
+DWORD HookScripts::GetHSArg() {
 	return (cArg == argCount) ? 0 : args[cArg++];
 }
 
-void SetHSArg(DWORD id, DWORD value) {
+void HookScripts::SetHSArg(DWORD id, DWORD value) {
 	if (id < argCount) args[id] = value;
 }
 
-DWORD* GetHSArgs() {
+DWORD* HookScripts::GetHSArgs() {
 	return args;
 }
 
-void _stdcall SetHSReturn(DWORD value) {
+DWORD HookScripts::GetHSArgAt(DWORD id) {
+	return args[id];
+}
+
+void __stdcall HookScripts::SetHSReturn(DWORD value) {
 	if (cRetTmp < maxRets) {
 		rets[cRetTmp++] = value;
 	}

@@ -158,7 +158,7 @@ VAR_(pipmesg,                    DWORD)
 VAR_(preload_list_index,         DWORD)
 VARA(procTableStrs,              const char*, (int)ScriptProc::count)  // table of procId (from define.h) => procName map
 VARA(proto_msg_files,            MessageList, 6)  // array of 6 elements
-VAR_(proto_main_msg_file,        MessageList)  
+VAR_(proto_main_msg_file,        MessageList)
 VAR_(ptable,                     DWORD)
 VAR_(pud,                        DWORD)
 VAR_(queue,                      DWORD)
@@ -181,6 +181,7 @@ VARA(stack,                      DWORD, 10)
 VARA(stack_offset,               DWORD, 10)
 VARA(stat_data,                  StatInfo, STAT_real_max_stat) // dynamic array
 VAR_(stat_flag,                  DWORD)
+VARA(sWindows,                   fo::sWindow, 16)
 VAR_(Tag_,                       DWORD)
 VAR_(tag_skill,                  DWORD)
 VAR_(target_curr_stack,          DWORD)
