@@ -1511,6 +1511,10 @@ DWORD* _stdcall GetHSArgs() {
 	return args;
 }
 
+DWORD _stdcall GetHSArgAt(DWORD id) {
+	return args[id];
+}
+
 void _stdcall SetHSReturn(DWORD value) {
 	if (cRetTmp < maxRets) {
 		rets[cRetTmp++] = value;

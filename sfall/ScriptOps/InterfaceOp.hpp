@@ -400,14 +400,14 @@ static void sf_inventory_redraw() {
 		default:
 			return;
 	}
-	if (!opHandler.arg(0).asBool()) {
-		int* stack_offset = (int*)_stack_offset;
-		stack_offset[*ptr_curr_stack * 4] = 0;
+	long redrawSide = (opHandler.numArgs() > 0) ? opHandler.arg(0).rawValue() : -1; // -1 - both
+	if (redrawSide <= 0) {
+		ptr_stack_offset[*ptr_curr_stack] = 0;
 		DisplayInventory(0, -1, mode);
-	} else if (mode >= 2) {
-		int* target_stack_offset = (int*)_target_stack_offset;
-		target_stack_offset[*ptr_target_curr_stack * 4] = 0;
-		DisplayTargetInventory(0, -1, (DWORD*)*ptr_target_pud, mode);
+	}
+	if (redrawSide && mode >= 2) {
+		ptr_target_stack_offset[*ptr_target_curr_stack] = 0;
+		DisplayTargetInventory(0, -1, *ptr_target_pud, mode);
 		RedrawWin(*ptr_i_wid);
 	}
 }

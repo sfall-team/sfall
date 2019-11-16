@@ -244,6 +244,7 @@
 #define get_metarule_table                              sfall_func0("get_metarule_table")
 #define get_object_data(obj, offset)                    sfall_func2("get_object_data", obj, offset)
 #define get_outline(obj)                                sfall_func1("get_outline", obj)
+#define get_sfall_arg_at(argNum)                        sfall_func1("get_sfall_arg_at", argNum)
 #define intface_hide                                    sfall_func0("intface_hide")
 #define intface_is_hidden                               sfall_func0("intface_is_hidden")
 #define intface_redraw                                  sfall_func0("intface_redraw")

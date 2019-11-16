@@ -52,6 +52,7 @@ enum HookType
 DWORD _stdcall GetHSArgCount();
 DWORD _stdcall GetHSArg();
 DWORD* _stdcall GetHSArgs();
+DWORD _stdcall GetHSArgAt(DWORD id);
 void _stdcall SetHSArg(DWORD id, DWORD value);
 void _stdcall SetHSReturn(DWORD d);
 

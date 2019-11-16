@@ -192,10 +192,11 @@ DWORD* ptr_stack                      = reinterpret_cast<DWORD*>(_stack);
 DWORD* ptr_stack_offset               = reinterpret_cast<DWORD*>(_stack_offset);
 DWORD* ptr_stat_data                  = reinterpret_cast<DWORD*>(_stat_data);
 DWORD* ptr_stat_flag                  = reinterpret_cast<DWORD*>(_stat_flag);
+DWORD* ptr_sWindows                   = reinterpret_cast<DWORD*>(_sWindows); // total 16 sWindow
 DWORD* ptr_Tag_                       = reinterpret_cast<DWORD*>(_Tag_);
 DWORD* ptr_tag_skill                  = reinterpret_cast<DWORD*>(_tag_skill);
 DWORD* ptr_target_curr_stack          = reinterpret_cast<DWORD*>(_target_curr_stack);
-DWORD* ptr_target_pud                 = reinterpret_cast<DWORD*>(_target_pud);
+DWORD** ptr_target_pud                = reinterpret_cast<DWORD**>(_target_pud);
 DWORD* ptr_target_stack               = reinterpret_cast<DWORD*>(_target_stack);
 DWORD* ptr_target_stack_offset        = reinterpret_cast<DWORD*>(_target_stack_offset);
 DWORD* ptr_target_str                 = reinterpret_cast<DWORD*>(_target_str);
@@ -214,7 +215,7 @@ DWORD* ptr_title_font                 = reinterpret_cast<DWORD*>(_title_font);
 DWORD* ptr_trait_data                 = reinterpret_cast<DWORD*>(_trait_data);
 DWORD* ptr_view_page                  = reinterpret_cast<DWORD*>(_view_page);
 DWORD* ptr_wd_obj                     = reinterpret_cast<DWORD*>(_wd_obj);
-DWORD* ptr_window                     = reinterpret_cast<DWORD*>(_window); // total 50
+DWORD* ptr_window                     = reinterpret_cast<DWORD*>(_window); // total 50 WINinfo*
 BYTE*  ptr_WhiteColor                 = reinterpret_cast<BYTE*>(_WhiteColor);
 DWORD* ptr_wmAreaInfoList             = reinterpret_cast<DWORD*>(_wmAreaInfoList);
 DWORD* ptr_wmLastRndTime              = reinterpret_cast<DWORD*>(_wmLastRndTime);
@@ -691,6 +692,8 @@ const DWORD win_register_button_ = 0x4D8260;
 const DWORD win_register_button_disable_ = 0x4D8674;
 const DWORD win_register_button_sound_func_ = 0x4D87F8;
 const DWORD win_show_ = 0x4D6DAC;
+const DWORD windowHide_ = 0x4B7610;
+const DWORD windowShow_ = 0x4B7648;
 const DWORD wmFindCurSubTileFromPos_ = 0x4C0C00;
 const DWORD wmInterfaceScrollTabsStart_ = 0x4C219C;
 const DWORD wmMapIsSaveable_ = 0x4BFA64;
@@ -1058,12 +1061,46 @@ long __fastcall WordWrap(const char* text, int maxWidth, DWORD* buf, BYTE* count
 	}
 }
 
+DWORD __stdcall AddWin(long x, long y, long width, long height, long bgColorIndex, long flags) {
+	__asm {
+		push flags;
+		push bgColorIndex;
+		mov  ecx, height;
+		mov  ebx, width;
+		mov  edx, y;
+		mov  eax, x;
+		call win_add_;
+	}
+}
+
+void __stdcall ShowWin(DWORD winRef) {
+	__asm {
+		mov  eax, winRef;
+		call win_show_;
+	}
+}
+
+void __stdcall HideWin(DWORD winRef) {
+	__asm {
+		mov  eax, winRef;
+		call win_hide_;
+	}
+}
+
 void __stdcall RedrawWin(DWORD winRef) {
 	__asm {
 		mov  eax, winRef;
 		call win_draw_;
 	}
 }
+
+void __stdcall DestroyWin(DWORD winRef) {
+	__asm {
+		mov  eax, winRef;
+		call win_delete_;
+	}
+}
+
 
 void __fastcall DisplayInventory(long inventoryOffset, long visibleOffset, long mode) {
 	__asm {

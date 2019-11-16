@@ -30,6 +30,7 @@ The hook script equivalent of game_loaded; it returns 2 when the script is first
 
 > mixed get_sfall_arg()
 Gets the next argument from sfall. Each time it's called it returns the next argument, or otherwise it returns 0 if there are no more arguments left.
+You can arbitrarily get the value of any argument using the sfall_func1("get_sfall_arg_at", argNum) function.
 
 > array get_sfall_args()
 Returns all hook arguments as a new temp array.
@@ -37,8 +38,8 @@ Returns all hook arguments as a new temp array.
 > void set_sfall_return(int value)
 Used to return the new values from the script. Each time it's called it sets the next value, or if you've already set all return values it does nothing.
 
-> void set_sfall_arg(int argnum, int value)
-Changes argument value. The argument number (argnum) is 0-indexed. This is useful if you have several hook scripts attached to one hook point (see below).
+> void set_sfall_arg(int argNum, int value)
+Changes argument value. The argument number (argNum) is 0-indexed. This is useful if you have several hook scripts attached to one hook point (see below).
 
 > void register_hook(int hooktype)
 Used from a normal global script if you want to run it at the same point a full hook script would normally run. In case of this function, "start" proc will be executed in a current global script. You can use all above functions like normal.

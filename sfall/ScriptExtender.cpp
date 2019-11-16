@@ -38,6 +38,7 @@ static DWORD _stdcall HandleMapUpdateForScripts(const DWORD procId);
 static long _stdcall HandleTimedEventScripts();
 
 static void RunGlobalScripts1();
+static void sf_get_sfall_arg_at();
 static void sf_add_g_timer_event();
 static void sf_remove_timer_event();
 
@@ -401,6 +402,7 @@ static const SfallOpcodeMetadata opcodeMetaArray[] = {
 	{sf_get_flags,              "get_flags",              {DATATYPE_MASK_VALID_OBJ}},
 	{sf_get_object_data,        "get_object_data",        {DATATYPE_MASK_VALID_OBJ, DATATYPE_MASK_INT}},
 	{sf_get_outline,            "get_outline",            {DATATYPE_MASK_VALID_OBJ}},
+	{sf_get_sfall_arg_at,       "get_sfall_arg_at",       {DATATYPE_MASK_INT}},
 	{sf_inventory_redraw,       "inventory_redraw",       {DATATYPE_MASK_INT}},
 	{sf_item_weight,            "item_weight",            {DATATYPE_MASK_VALID_OBJ}},
 	{sf_lock_is_jammed,         "lock_is_jammed",         {DATATYPE_MASK_VALID_OBJ}},
@@ -697,6 +699,17 @@ static void __declspec(naked) GetSfallArg() {
 		pop  ecx;
 		retn;
 	}
+}
+
+static void sf_get_sfall_arg_at() {
+	long argVal = 0;
+	long id = opHandler.arg(0).rawValue();
+	if (id >= static_cast<long>(GetHSArgCount()) || id < 0) {
+		opHandler.printOpcodeError("get_sfall_arg_at() - invalid value for argument.");
+	} else {
+		argVal = GetHSArgAt(id);
+	}
+	opHandler.setReturn(argVal);
 }
 
 static DWORD _stdcall GetSfallArgs2() {

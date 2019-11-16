@@ -473,28 +473,6 @@ UNLSTDfrm *LoadUnlistedFrm(char *frmName, unsigned int folderRef) {
 
 /////////////////////////////////////////////////////////////////WINDOW FUNCTIONS////////////////////////////////////////////////////////////////////
 
-int AddWin(DWORD x, DWORD y, DWORD width, DWORD height, DWORD BGColourIndex, DWORD flags) {
-	int WinRef;
-	__asm {
-		push flags;
-		push BGColourIndex;
-		mov  ecx, height;
-		mov  ebx, width;
-		mov  edx, y;
-		mov  eax, x;
-		call win_add_;
-		mov  WinRef, eax;
-	}
-	return WinRef;
-}
-
-void DestroyWin(int WinRef) {
-	__asm {
-		mov  eax, WinRef;
-		call win_delete_;
-	}
-}
-
 WINinfo* GetWinStruct(int WinRef) {
 	WINinfo *winStruct;
 	__asm {
@@ -514,22 +492,6 @@ BYTE* GetWinSurface(int WinRef) {
 	}
 	return surface;
 }
-
-void ShowWin(int WinRef) {
-	__asm {
-		mov  eax, WinRef;
-		call win_show_;
-	}
-}
-
-/*
-void HideWin(int WinRef) {
-	__asm {
-		mov  eax, WinRef;
-		call win_hide_;
-	}
-}
-*/
 
 /////////////////////////////////////////////////////////////////BUTTON FUNCTIONS////////////////////////////////////////////////////////////////////
 

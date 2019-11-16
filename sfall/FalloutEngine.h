@@ -224,6 +224,7 @@
 #define _stack_offset               0x59E844
 #define _stat_data                  0x51D53C
 #define _stat_flag                  0x66452A
+#define _sWindows                   0x6727B0
 #define _Tag_                       0x5708B0
 #define _tag_skill                  0x668070
 #define _target_curr_stack          0x59E948
@@ -444,10 +445,11 @@ extern DWORD* ptr_stack;
 extern DWORD* ptr_stack_offset;
 extern DWORD* ptr_stat_data;
 extern DWORD* ptr_stat_flag;
+extern DWORD* ptr_sWindows; // total 16 sWindow
 extern DWORD* ptr_Tag_;
 extern DWORD* ptr_tag_skill;
 extern DWORD* ptr_target_curr_stack;
-extern DWORD* ptr_target_pud;
+extern DWORD** ptr_target_pud;
 extern DWORD* ptr_target_stack;
 extern DWORD* ptr_target_stack_offset;
 extern DWORD* ptr_target_str;
@@ -466,7 +468,7 @@ extern DWORD* ptr_title_font;
 extern DWORD* ptr_trait_data;
 extern DWORD* ptr_view_page;
 extern DWORD* ptr_wd_obj;
-extern DWORD* ptr_window; // total 50
+extern DWORD* ptr_window; // total 50 WINinfo*
 extern BYTE*  ptr_WhiteColor;
 extern DWORD* ptr_wmAreaInfoList;
 extern DWORD* ptr_wmLastRndTime;
@@ -933,6 +935,8 @@ extern const DWORD win_register_button_;
 extern const DWORD win_register_button_disable_;
 extern const DWORD win_register_button_sound_func_;
 extern const DWORD win_show_;
+extern const DWORD windowHide_;
+extern const DWORD windowShow_;
 extern const DWORD wmFindCurSubTileFromPos_;
 extern const DWORD wmInterfaceScrollTabsStart_;
 extern const DWORD wmMapIsSaveable_;
@@ -1087,7 +1091,11 @@ long __fastcall GetGameConfigString(const char* outValue, const char* section, c
 
 long __fastcall WordWrap(const char* text, int maxWidth, DWORD* buf, BYTE* count);
 
+DWORD __stdcall AddWin(long x, long y, long width, long height, long bgColorIndex, long flags);
+void __stdcall ShowWin(DWORD winRef);
+void __stdcall HideWin(DWORD winRef);
 void __stdcall RedrawWin(DWORD winRef);
+void __stdcall DestroyWin(DWORD winRef);
 
 void __fastcall DisplayInventory(long inventoryOffset, long visibleOffset, long mode);
 
