@@ -286,10 +286,10 @@ int     ret1 - the new AP cost
 -------------------------------------------
 
 (DEPRECATED)
-hs_hexmoveblocking.int
-hs_hexaiblocking.int
-hs_hexshootblocking.int
-hs_hexsightblocking.int
+HOOK_HEXMOVEBLOCKING  (hs_hexmoveblocking.int)
+HOOK_HEXAIBLOCKING    (hs_hexaiblocking.int)
+HOOK_HEXSHOOTBLOCKING (hs_hexshootblocking.int)
+HOOK_HEXSIGHTBLOCKING (hs_hexsightblocking.int)
 
 Runs when checking to see if a hex blocks movement or shooting. (or ai-ing, presumably...)
 
@@ -636,13 +636,14 @@ int     ret2 - overrides the duration time for the current result
 
 -------------------------------------------
 
-HOOK_STDPROCEDURE (hs_stdprocedure.int)
+HOOK_STDPROCEDURE, HOOK_STDPROCEDURE_END (hs_stdprocedure.int)
 
-Runs before Fallout executes a standard procedure (handler) in any script of any object.
+Runs before or after Fallout engine executes a standard procedure (handler) in any script of any object.
 NOTE: this hook will not be executed for "start", critter_p_proc, timed_event_p_proc, and map_update_p_proc procedures.
 
 int     arg1 - the number of the standard script handler (see define.h)
 Obj     arg2 - the object that owns this handler (self_obj)
 Obj     arg3 - the object that called this handler (source_obj, can be 0)
+int     arg4 - 1 after procedure execution (for HOOK_STDPROCEDURE_END), 0 otherwise
 
-int     ret1 - pass -1 to cancel the execution of the handler
+int     ret1 - pass -1 to cancel the execution of the handler (only for HOOK_STDPROCEDURE)
