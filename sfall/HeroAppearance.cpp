@@ -473,35 +473,24 @@ UNLSTDfrm *LoadUnlistedFrm(char *frmName, unsigned int folderRef) {
 
 /////////////////////////////////////////////////////////////////WINDOW FUNCTIONS////////////////////////////////////////////////////////////////////
 
-WINinfo* GetWinStruct(int WinRef) {
-	WINinfo *winStruct;
+WINinfo* __stdcall GetWinStruct(long winRef) {
 	__asm {
-		mov  eax, WinRef;
+		mov  eax, winRef;
 		call GNW_find_;
-		mov  winStruct, eax;
 	}
-	return winStruct;
 }
 
-BYTE* GetWinSurface(int WinRef) {
-	BYTE *surface;
+BYTE* __stdcall GetWinSurface(DWORD winRef) {
 	__asm {
-		mov  eax, WinRef;
+		mov  eax, winRef;
 		call win_get_buf_;
-		mov  surface, eax;
 	}
-	return surface;
 }
 
 /////////////////////////////////////////////////////////////////BUTTON FUNCTIONS////////////////////////////////////////////////////////////////////
 
-int check_buttons() {
-	int key_code;
-	__asm {
-		call get_input_;
-		mov  key_code, eax;
-	}
-	return key_code;
+long __stdcall check_buttons() {
+	__asm call get_input_;
 }
 
 /////////////////////////////////////////////////////////////////TEXT FUNCTIONS//////////////////////////////////////////////////////////////////////

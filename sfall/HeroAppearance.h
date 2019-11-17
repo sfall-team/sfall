@@ -18,13 +18,11 @@
 
 #pragma once
 
-#include "FalloutStructs.h"
-
-WINinfo* GetWinStruct(int WinRef);
+WINinfo* __stdcall GetWinStruct(long winRef);
 void PrintText(char *DisplayText, BYTE ColourIndex, DWORD Xpos, DWORD Ypos, DWORD TxtWidth, DWORD ToWidth, BYTE *ToSurface);
 DWORD GetTextWidth(char *TextMsg);
 DWORD GetMaxCharWidth();
-int check_buttons(void);
+long __stdcall check_buttons();
 
 void HeroAppearanceModInit();
 void HeroAppearanceModExit();

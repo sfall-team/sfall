@@ -192,7 +192,7 @@ DWORD* ptr_stack                      = reinterpret_cast<DWORD*>(_stack);
 DWORD* ptr_stack_offset               = reinterpret_cast<DWORD*>(_stack_offset);
 DWORD* ptr_stat_data                  = reinterpret_cast<DWORD*>(_stat_data);
 DWORD* ptr_stat_flag                  = reinterpret_cast<DWORD*>(_stat_flag);
-DWORD* ptr_sWindows                   = reinterpret_cast<DWORD*>(_sWindows); // total 16 sWindow
+DWORD* ptr_sWindows                   = reinterpret_cast<DWORD*>(_sWindows); // total 16 sWindow struct
 DWORD* ptr_Tag_                       = reinterpret_cast<DWORD*>(_Tag_);
 DWORD* ptr_tag_skill                  = reinterpret_cast<DWORD*>(_tag_skill);
 DWORD* ptr_target_curr_stack          = reinterpret_cast<DWORD*>(_target_curr_stack);
@@ -1100,7 +1100,6 @@ void __stdcall DestroyWin(DWORD winRef) {
 		call win_delete_;
 	}
 }
-
 
 void __fastcall DisplayInventory(long inventoryOffset, long visibleOffset, long mode) {
 	__asm {

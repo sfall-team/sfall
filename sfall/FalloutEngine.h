@@ -445,7 +445,7 @@ extern DWORD* ptr_stack;
 extern DWORD* ptr_stack_offset;
 extern DWORD* ptr_stat_data;
 extern DWORD* ptr_stat_flag;
-extern DWORD* ptr_sWindows; // total 16 sWindow
+extern DWORD* ptr_sWindows; // total 16 sWindow struct
 extern DWORD* ptr_Tag_;
 extern DWORD* ptr_tag_skill;
 extern DWORD* ptr_target_curr_stack;

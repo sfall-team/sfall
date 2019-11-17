@@ -19,10 +19,11 @@
 #pragma once
 
 #include "main.h"
+
+#include "HeroAppearance.h"
 #include "input.h"
 #include "LoadGameHook.h"
 #include "ScriptExtender.h"
-
 
 // input_functions
 static void __declspec(naked) InputFuncsAvailable() {
@@ -426,6 +427,82 @@ static void sf_create_win() {
 		256, flags) == -1)
 	{
 		opHandler.printOpcodeError("create_win() - couldn't create window.");
+	}
+}
+
+static void sf_show_window() {
+	if (opHandler.numArgs() > 0) {
+		const char* name = opHandler.arg(0).strValue();
+		sWindow sWin;
+		for (size_t i = 0; i < 16; i++) {
+			sWin = *(sWindow*)&ptr_sWindows[i * 23]; // sWindow struct = 92 bytes
+			if (_stricmp(name, sWin.name) == 0) {
+				ShowWin(sWin.wID);
+				return;
+			}
+		}
+		opHandler.printOpcodeError("show_window() - window '%s' is not found.", name);
+	} else {
+		__asm call windowShow_;
+	}
+}
+
+static void sf_hide_window() {
+	if (opHandler.numArgs() > 0) {
+		const char* name = opHandler.arg(0).strValue();
+		sWindow sWin;
+		for (size_t i = 0; i < 16; i++) {
+			sWin = *(sWindow*)&ptr_sWindows[i * 23]; // sWindow struct = 92 bytes
+			if (_stricmp(name, sWin.name) == 0) {
+				HideWin(sWin.wID);
+				return;
+			}
+		}
+		opHandler.printOpcodeError("hide_window() - window '%s' is not found.", name);
+	} else {
+		__asm call windowHide_;
+	}
+}
+
+static void sf_set_window_flag() {
+	long bitFlag = opHandler.arg(1).rawValue();
+	switch (bitFlag) {
+		case WIN_MoveOnTop:
+		case WIN_Hidden:
+		case WIN_Exclusive:
+		case WIN_Transparent:
+			break;
+		default:
+			return; // unsupported set flag
+	}
+	bool mode = opHandler.arg(2).asBool();
+	if (opHandler.arg(0).isString()) {
+		const char* name = opHandler.arg(0).strValue();
+		sWindow sWin;
+		for (size_t i = 0; i < 16; i++) {
+			sWin = *(sWindow*)&ptr_sWindows[i * 23]; // sWindow struct = 92 bytes
+			if (_stricmp(name, sWin.name) == 0) {
+				WINinfo* win = GetWinStruct(sWin.wID);
+				if (mode) {
+					sWin.flags |= bitFlag;
+					win->flags |= bitFlag;
+				} else {
+					sWin.flags &= ~bitFlag;
+					win->flags &= ~bitFlag;
+				}
+				return;
+			}
+		}
+		opHandler.printOpcodeError("set_window_flag() - window '%s' is not found.", name);
+	} else {
+		long wid = opHandler.arg(0).rawValue();
+		WINinfo* win = GetWinStruct((wid > 0) ? wid : *ptr_i_wid); // i_wid - set flag to current game interface window
+		if (win == nullptr) return;
+		if (mode) {
+			win->flags |= bitFlag;
+		} else {
+			win->flags &= ~bitFlag;
+		}
 	}
 }
 

@@ -286,10 +286,10 @@ int     ret1 - the new AP cost
 -------------------------------------------
 
 (DEPRECATED)
-hs_hexmoveblocking.int
-hs_hexaiblocking.int
-hs_hexshootblocking.int
-hs_hexsightblocking.int
+HOOK_HEXMOVEBLOCKING  (hs_hexmoveblocking.int)
+HOOK_HEXAIBLOCKING    (hs_hexaiblocking.int)
+HOOK_HEXSHOOTBLOCKING (hs_hexshootblocking.int)
+HOOK_HEXSIGHTBLOCKING (hs_hexsightblocking.int)
 
 Runs when checking to see if a hex blocks movement or shooting. (or ai-ing, presumably...)
 
