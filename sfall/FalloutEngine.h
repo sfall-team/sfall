@@ -63,6 +63,7 @@
 #define _curr_font_num              0x51E3B0
 #define _curr_pc_stat               0x6681AC
 #define _curr_stack                 0x59E96C
+#define _currentWindow              0x51DCB8
 #define _cursor_line                0x664514
 #define _dialog_target              0x518848
 #define _dialog_target_is_party     0x51884C
@@ -500,6 +501,7 @@ extern const DWORD art_frame_data_;
 extern const DWORD art_frame_length_;
 extern const DWORD art_frame_width_;
 extern const DWORD art_get_code_;
+extern const DWORD art_get_name_;
 extern const DWORD art_id_;
 extern const DWORD art_init_;
 extern const DWORD art_lock_;
@@ -571,6 +573,7 @@ extern const DWORD debug_printf_;
 extern const DWORD debug_register_env_;
 extern const DWORD determine_to_hit_func_;
 extern const DWORD dialog_out_;
+extern const DWORD displayInWindow_;
 extern const DWORD display_inventory_;
 extern const DWORD display_print_; // eax - char* to display
 extern const DWORD display_scroll_down_;
@@ -721,6 +724,7 @@ extern const DWORD loadColorTable_;
 extern const DWORD LoadGame_;
 extern const DWORD loadProgram_; // loads script from scripts/ folder by file name and returns pointer to it: char* <eax> - file name (w/o extension)
 extern const DWORD LoadSlot_;
+extern const DWORD load_frame_;
 extern const DWORD loot_container_;
 extern const DWORD main_game_loop_;
 extern const DWORD main_init_system_;
@@ -918,6 +922,7 @@ extern const DWORD trait_get_;
 extern const DWORD trait_init_;
 extern const DWORD trait_level_;
 extern const DWORD trait_set_;
+extern const DWORD trans_cscale_;
 extern const DWORD use_inventory_on_;
 extern const DWORD _word_wrap_;
 extern const DWORD win_add_;
@@ -935,8 +940,12 @@ extern const DWORD win_register_button_;
 extern const DWORD win_register_button_disable_;
 extern const DWORD win_register_button_sound_func_;
 extern const DWORD win_show_;
+extern const DWORD windowDisplayBuf_;
+extern const DWORD windowDisplayTransBuf_;
+extern const DWORD windowGetBuffer_;
 extern const DWORD windowHide_;
 extern const DWORD windowShow_;
+extern const DWORD windowWidth_;
 extern const DWORD wmFindCurSubTileFromPos_;
 extern const DWORD wmInterfaceScrollTabsStart_;
 extern const DWORD wmMapIsSaveable_;
@@ -1090,6 +1099,12 @@ long __stdcall WinRegisterButton(DWORD winRef, long xPos, long yPos, long width,
 
 void __stdcall DialogOut(const char* text);
 
+void __fastcall WindowDisplayBuf(long x, long width, long y, long height, void* data, long noTrans);
+
+void __fastcall DisplayInWindow(long w_here, long width, long height, void* data);
+
+void __fastcall TransCscale(long i_width, long i_height, long s_width, long s_height, long xy_shift, long w_width, void* data);
+
 long __fastcall GetGameConfigString(const char* outValue, const char* section, const char* param);
 
 long __fastcall WordWrap(const char* text, int maxWidth, DWORD* buf, BYTE* count);
@@ -1099,6 +1114,8 @@ void __stdcall ShowWin(DWORD winRef);
 void __stdcall HideWin(DWORD winRef);
 void __stdcall RedrawWin(DWORD winRef);
 void __stdcall DestroyWin(DWORD winRef);
+
+long __stdcall WindowWidth();
 
 void __fastcall DisplayInventory(long inventoryOffset, long visibleOffset, long mode);
 
@@ -1159,3 +1176,7 @@ long __stdcall InvenUnwield(TGameObj* critter, long slot);
 long __fastcall ItemAddForce(TGameObj* critter, TGameObj* item, long count);
 
 long __fastcall MouseClickIn(long x, long y, long x_end, long y_end);
+
+const char* __stdcall ArtGetName(long artFID);
+
+long __stdcall LoadFrame(const char* filename, FrmFile** frmPtr);

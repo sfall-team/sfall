@@ -711,7 +711,7 @@ void _stdcall RefreshHeroBaseArt() {
 
 /*
 // Check fallout file and get file size (result 0 - file exists)
-long __stdcall db_dir_entry(const char *fileName, DWORD *sizeOut) {
+long __stdcall DbDirEntry(const char *fileName, DWORD *sizeOut) {
 	__asm {
 		mov  edx, sizeOut;
 		mov  eax, fileName;

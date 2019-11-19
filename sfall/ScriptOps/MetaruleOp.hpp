@@ -127,6 +127,8 @@ static const SfallMetarule metaruleArray[] = {
 	{"critter_inven_obj2",      sf_critter_inven_obj2,      2, 2},
 	{"dialog_obj",              sf_get_dialog_object,       0, 0},
 	{"display_stats",           sf_display_stats,           0, 0}, // refresh
+	{"draw_image",              sf_draw_image,              1, 5},
+	{"draw_image_scaled",       sf_draw_image_scaled,       1, 6},
 	{"exec_map_update_scripts", sf_exec_map_update_scripts, 0, 0},
 	{"floor2",                  sf_floor2,                  1, 1},
 	{"get_current_inven_size",  sf_get_current_inven_size,  1, 1},

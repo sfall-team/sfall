@@ -265,6 +265,7 @@ const DWORD art_frame_data_ = 0x419870;
 const DWORD art_frame_length_ = 0x4197B8;
 const DWORD art_frame_width_ = 0x4197A0;
 const DWORD art_get_code_ = 0x419314;
+const DWORD art_get_name_ = 0x419428;
 const DWORD art_id_ = 0x419C88;
 const DWORD art_init_ = 0x418840;
 const DWORD art_lock_ = 0x4191CC;
@@ -336,6 +337,7 @@ const DWORD debug_printf_ = 0x4C6F48;
 const DWORD debug_register_env_ = 0x4C6D90;
 const DWORD determine_to_hit_func_ = 0x4243A8;
 const DWORD dialog_out_ = 0x41CF20;
+const DWORD displayInWindow_ = 0x4B8B10;
 const DWORD display_inventory_ = 0x46FDF4;
 const DWORD display_print_ = 0x43186C;
 const DWORD display_scroll_down_ = 0x431B9C;
@@ -484,6 +486,7 @@ const DWORD loadColorTable_ = 0x4C78E4;
 const DWORD LoadGame_ = 0x47C640;
 const DWORD loadProgram_ = 0x4A3B74;
 const DWORD LoadSlot_ = 0x47DC68;
+const DWORD load_frame_ = 0x419EC0;
 const DWORD loot_container_ = 0x473904;
 const DWORD main_game_loop_ = 0x480E48;
 const DWORD main_init_system_ = 0x480CC0;
@@ -675,6 +678,7 @@ const DWORD trait_get_ = 0x4B3B54;
 const DWORD trait_init_ = 0x4B39F0;
 const DWORD trait_level_ = 0x4B3BC8;
 const DWORD trait_set_ = 0x4B3B48;
+const DWORD trans_cscale_ = 0x4D3560;
 const DWORD use_inventory_on_ = 0x4717E4;
 const DWORD _word_wrap_ = 0x4BC6F0;
 const DWORD win_add_ = 0x4D6238;
@@ -692,8 +696,12 @@ const DWORD win_register_button_ = 0x4D8260;
 const DWORD win_register_button_disable_ = 0x4D8674;
 const DWORD win_register_button_sound_func_ = 0x4D87F8;
 const DWORD win_show_ = 0x4D6DAC;
+const DWORD windowDisplayBuf_ = 0x4B8EF0;
+const DWORD windowDisplayTransBuf_ = 0x4B8F64;
+const DWORD windowGetBuffer_ = 0x4B82DC;
 const DWORD windowHide_ = 0x4B7610;
 const DWORD windowShow_ = 0x4B7648;
+const DWORD windowWidth_ = 0x4B7734;
 const DWORD wmFindCurSubTileFromPos_ = 0x4C0C00;
 const DWORD wmInterfaceScrollTabsStart_ = 0x4C219C;
 const DWORD wmMapIsSaveable_ = 0x4BFA64;
@@ -1053,6 +1061,44 @@ void __stdcall DialogOut(const char* text) {
 	}
 }
 
+// draws an image to the buffer without scaling and with transparency display toggle
+void __fastcall WindowDisplayBuf(long x, long width, long y, long height, void* data, long noTrans) {
+	__asm {
+		push height;
+		push edx;       // from_width
+		push y;
+		mov  eax, data; // from
+		mov  ebx, windowDisplayTransBuf_;
+		cmp  noTrans, 0;
+		cmovnz ebx, windowDisplayBuf_;
+		call ebx; // *data<eax>, from_width<edx>, unused<ebx>, X<ecx>, Y, width, height
+	}
+}
+
+// draws an image in the window and scales it to fit the window
+void __fastcall DisplayInWindow(long w_here, long width, long height, void* data) {
+	__asm {
+		mov  ebx, height;
+		mov  eax, data;
+		call displayInWindow_; // *data<eax>, width<edx>, height<ebx>, where<ecx>
+	}
+}
+
+void __fastcall TransCscale(long i_width, long i_height, long s_width, long s_height, long xy_shift, long w_width, void* data) {
+	__asm {
+		push w_width;
+		push s_height;
+		push s_width;
+		mov  ebx, edx; // i_height
+		mov  edx, ecx; // i_width
+		call windowGetBuffer_;
+		add  eax, xy_shift;
+		push eax;      // to_buff
+		mov  eax, data;
+		call trans_cscale_; // *from_buff<eax>, i_width<edx>, i_height<ebx>, i_width2<ecx>, to_buff, width, height, to_width
+	}
+}
+
 long __fastcall GetGameConfigString(const char* outValue, const char* section, const char* param) {
 	__asm {
 		mov  ebx, param;
@@ -1108,6 +1154,10 @@ void __stdcall DestroyWin(DWORD winRef) {
 		mov  eax, winRef;
 		call win_delete_;
 	}
+}
+
+long __stdcall WindowWidth() {
+	__asm call windowWidth_;
 }
 
 void __fastcall DisplayInventory(long inventoryOffset, long visibleOffset, long mode) {
@@ -1346,5 +1396,20 @@ long __fastcall MouseClickIn(long x, long y, long x_end, long y_end) {
 		mov  ebx, x_end;
 		mov  ecx, y_end;
 		call mouse_click_in_;
+	}
+}
+
+const char* __stdcall ArtGetName(long artFID) {
+	__asm {
+		mov  eax, artFID;
+		call art_get_name_;
+	}
+}
+
+long __stdcall LoadFrame(const char* filename, FrmFile** frmPtr) {
+	__asm {
+		mov  edx, frmPtr;
+		mov  eax, filename;
+		call load_frame_;
 	}
 }

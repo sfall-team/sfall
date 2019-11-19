@@ -415,7 +415,7 @@ static void sf_inventory_redraw() {
 
 static void sf_create_win() {
 	int flags;
-	if (opHandler.numArgs() == 6) {
+	if (opHandler.numArgs() > 5) {
 		flags = opHandler.arg(5).asInt();
 	} else {
 		flags = WIN_MoveOnTop;
@@ -503,6 +503,152 @@ static void sf_set_window_flag() {
 		} else {
 			win->flags &= ~bitFlag;
 		}
+	}
+}
+
+static void sf_draw_image() {
+	if (*(DWORD*)_currentWindow == -1) {
+		opHandler.printOpcodeError("draw_image() - no created/selected window for the image.");
+		return;
+	}
+	long direction = 0;
+	const char* file = nullptr;
+	if (opHandler.arg(0).isInt()) { // art id
+		long fid = opHandler.arg(0).rawValue();
+		if (fid == -1) return;
+		long _fid = fid & 0xFFFFFFF;
+		file = ArtGetName(_fid); // .frm
+		if (_fid >> 24 == OBJ_TYPE_CRITTER) {
+			direction = (fid >> 28);
+			if (direction && !DbAccess(file)) {
+				file = ArtGetName(fid); // .fr#
+			}
+		}
+	} else {
+		file = opHandler.arg(0).strValue(); // path to frm file
+	}
+	FrmFile* frmPtr = nullptr;
+	if (LoadFrame(file, &frmPtr)) {
+		opHandler.printOpcodeError("draw_image() - cannot open the file: %s", file);
+		return;
+	}
+	FrmFrameData* framePtr = (FrmFrameData*)&frmPtr->width;
+	if (direction > 0 && direction < 6) {
+		BYTE* offsOriFrame = (BYTE*)framePtr;
+		offsOriFrame += frmPtr->oriFrameOffset[direction];
+		framePtr = (FrmFrameData*)offsOriFrame;
+	}
+	// initialize other args
+	int frameno = 0, x = 0, y = 0, noTrans = 0;
+	switch (opHandler.numArgs()) {
+		case 5:
+			noTrans = opHandler.arg(4).rawValue();
+		case 4:
+			y = opHandler.arg(3).rawValue();
+		case 3:
+			x = opHandler.arg(2).rawValue();
+		case 2:
+			frameno = opHandler.arg(1).rawValue();
+	}
+	if (frameno > 0) {
+		int maxFrames = frmPtr->frames - 1;
+		if (frameno > maxFrames) frameno = maxFrames;
+		while (frameno-- > 0) {
+			BYTE* offsFrame = (BYTE*)framePtr;
+			offsFrame += framePtr->size + (sizeof(FrmFrameData) - 1);
+			framePtr = (FrmFrameData*)offsFrame;
+		}
+	}
+	// with x/y frame offsets
+	WindowDisplayBuf(x + frmPtr->xshift[direction], framePtr->width, y + frmPtr->yshift[direction], framePtr->height, framePtr->data, noTrans);
+	__asm {
+		mov  eax, frmPtr;
+		call mem_free_;
+	}
+}
+
+static void sf_draw_image_scaled() {
+	if (*(DWORD*)_currentWindow == -1) {
+		opHandler.printOpcodeError("draw_image_scaled() - no created/selected window for the image.");
+		return;
+	}
+	long direction = 0;
+	const char* file = nullptr;
+	if (opHandler.arg(0).isInt()) { // art id
+		long fid = opHandler.arg(0).rawValue();
+		if (fid == -1) return;
+		long _fid = fid & 0xFFFFFFF;
+		file = ArtGetName(_fid); // .frm
+		if (_fid >> 24 == OBJ_TYPE_CRITTER) {
+			direction = (fid >> 28);
+			if (direction && !DbAccess(file)) {
+				file = ArtGetName(fid); // .fr#
+			}
+		}
+	} else {
+		file = opHandler.arg(0).strValue(); // path to frm file
+	}
+	FrmFile* frmPtr = nullptr;
+	if (LoadFrame(file, &frmPtr)) {
+		opHandler.printOpcodeError("draw_image_scaled() - cannot open the file: %s", file);
+		return;
+	}
+	FrmFrameData* framePtr = (FrmFrameData*)&frmPtr->width;
+	if (direction > 0 && direction < 6) {
+		BYTE* offsOriFrame = (BYTE*)framePtr;
+		offsOriFrame += frmPtr->oriFrameOffset[direction];
+		framePtr = (FrmFrameData*)offsOriFrame;
+	}
+	// initialize other args
+	int frameno = 0, x = 0, y = 0, wsize = 0;
+	const int argNums = opHandler.numArgs();
+	switch (argNums) {
+		case 6:
+		case 5:
+			wsize = opHandler.arg(4).rawValue();
+		case 4:
+			y = opHandler.arg(3).rawValue();
+		case 3:
+			x = opHandler.arg(2).rawValue();
+		case 2:
+			frameno = opHandler.arg(1).rawValue();
+	}
+	if (frameno > 0) {
+		int maxFrames = frmPtr->frames - 1;
+		if (frameno > maxFrames) frameno = maxFrames;
+		while (frameno-- > 0) {
+			BYTE* offsFrame = (BYTE*)framePtr;
+			offsFrame += framePtr->size + (sizeof(FrmFrameData) - 1);
+			framePtr = (FrmFrameData*)offsFrame;
+		}
+	}
+	if (argNums < 3) {
+		DisplayInWindow(framePtr->width, framePtr->width, framePtr->height, framePtr->data); // scaled to window size (w/o transparent)
+	} else {
+		// draw to scale
+		long s_width, s_height;
+		if (argNums < 5) {
+			s_width = framePtr->width;
+			s_height = framePtr->height;
+		} else {
+			s_width = wsize;
+			s_height = (argNums > 5) ? opHandler.arg(5).rawValue() : -1;
+		}
+		// scale with aspect ratio if w or h is set to -1
+		if (s_width <= -1 && s_height > 0) {
+			s_width = s_height * framePtr->width / framePtr->height;
+		} else if (s_height <= -1 && s_width > 0) {
+			s_height = s_width * framePtr->height / framePtr->width;
+		}
+		if (s_width <= 0 || s_height <= 0) return;
+
+		long w_width = WindowWidth();
+		long xy_pos = (y * w_width) + x;
+		TransCscale(framePtr->width, framePtr->height, s_width, s_height, xy_pos, w_width, framePtr->data); // custom scaling
+	}
+	__asm {
+		mov  eax, frmPtr;
+		call mem_free_;
 	}
 }
 

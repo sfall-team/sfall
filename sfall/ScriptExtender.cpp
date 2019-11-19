@@ -398,6 +398,8 @@ static const SfallOpcodeMetadata opcodeMetaArray[] = {
 	{sf_add_trait,              "add_trait",              {DATATYPE_MASK_INT}},
 	{sf_create_win,             "create_win",             {DATATYPE_MASK_STR, DATATYPE_MASK_INT, DATATYPE_MASK_INT, DATATYPE_MASK_INT, DATATYPE_MASK_INT, DATATYPE_MASK_INT}},
 	{sf_critter_inven_obj2,     "critter_inven_obj2",     {DATATYPE_MASK_VALID_OBJ, DATATYPE_MASK_INT}},
+	{sf_draw_image,             "draw_image",             {DATATYPE_MASK_INT | DATATYPE_MASK_STR, DATATYPE_MASK_INT, DATATYPE_MASK_INT, DATATYPE_MASK_INT, DATATYPE_MASK_INT}},
+	{sf_draw_image_scaled,      "draw_image_scaled",      {DATATYPE_MASK_INT | DATATYPE_MASK_STR, DATATYPE_MASK_INT, DATATYPE_MASK_INT, DATATYPE_MASK_INT, DATATYPE_MASK_INT, DATATYPE_MASK_INT}},
 	{sf_get_current_inven_size, "get_current_inven_size", {DATATYPE_MASK_VALID_OBJ}},
 	{sf_get_flags,              "get_flags",              {DATATYPE_MASK_VALID_OBJ}},
 	{sf_get_object_data,        "get_object_data",        {DATATYPE_MASK_VALID_OBJ, DATATYPE_MASK_INT}},

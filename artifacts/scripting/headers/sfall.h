@@ -234,6 +234,8 @@
 #define critter_inven_obj2(obj, type)                   sfall_func2("critter_inven_obj2", obj, type)
 #define dialog_obj                                      sfall_func0("dialog_obj")
 #define display_stats                                   sfall_func0("display_stats")
+#define draw_image(pathFile, frame, x, y, noTrans)      sfall_func5("draw_image", pathFile, frame, x, y, noTrans)
+#define draw_image_scaled(pathFile, frame, x, y, w, h)  sfall_func6("draw_image_scaled", pathFile, frame, x, y, w, h)
 #define exec_map_update_scripts                         sfall_func0("exec_map_update_scripts")
 #define floor2(value)                                   sfall_func1("floor2", value)
 #define get_current_inven_size(obj)                     sfall_func1("get_current_inven_size", obj)
