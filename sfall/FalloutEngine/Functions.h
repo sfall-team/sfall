@@ -45,7 +45,7 @@ const char* __stdcall critter_name(GameObject* critter);
 // Change the name of playable character
 void critter_pc_set_name(const char* newName);
 
-// Checks if given file exist in DB
+// Checks if given file exists in DB
 bool __stdcall db_access(const char* fileName);
 
 long __stdcall db_fclose(DbFile* file);
