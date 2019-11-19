@@ -1012,15 +1012,21 @@ long __stdcall PartyMemberGetCurrentLevel(TGameObj* obj);
 char* GetProtoPtr(long pid);
 char AnimCodeByWeapon(TGameObj* weapon);
 
-// Displays message in main UI console window
-void DisplayConsoleMessage(const char* msg);
-const char* __stdcall GetMessageStr(DWORD fileAddr, DWORD messageId);
+// prints message to debug.log file
+void __declspec() DebugPrintf(const char* fmt, ...);
 
-// Change the name of playable character
-void CritterPcSetName(const char* newName);
+// Displays message in main UI console window
+void __stdcall DisplayConsoleMessage(const char* msg);
+const char* __stdcall GetMessageStr(DWORD fileAddr, DWORD messageId);
 
 // Returns the name of the critter
 const char* __stdcall CritterName(TGameObj* critter);
+
+// Change the name of playable character
+void __stdcall CritterPcSetName(const char* newName);
+
+// Checks if given file exists in DB
+bool __stdcall DbAccess(const char* fileName);
 
 // Saves pointer to script object into scriptPtr using scriptID.
 // Returns 0 on success, -1 on failure.
@@ -1072,9 +1078,6 @@ DWORD __stdcall InterpretAddString(TProgram* scriptPtr, const char* str);
 // prints scripting error in debug.log and stops current script execution by performing longjmp
 // USE WITH CAUTION
 void __declspec() InterpretError(const char* fmt, ...);
-
-// prints message to debug.log file
-void __declspec() DebugPrintf(const char* fmt, ...);
 
 // returns the name of current procedure by program pointer
 const char* __stdcall FindCurrentProc(TProgram* program);

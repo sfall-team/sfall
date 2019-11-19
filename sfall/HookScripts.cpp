@@ -1556,14 +1556,7 @@ static void LoadHookScript(const char* name, int id) {
 
 	char filename[MAX_PATH];
 	sprintf(filename, "scripts\\%s.int", name);
-	bool fileExist;
-	__asm {
-		lea  eax, filename
-		call db_access_
-		mov  fileExist, al
-	}
-
-	if (fileExist) {
+	if (DbAccess(filename)) {
 		sScriptProgram prog;
 		dlog("> ", DL_HOOK);
 		dlog(name, DL_HOOK);

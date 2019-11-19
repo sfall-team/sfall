@@ -2439,7 +2439,7 @@ static void __declspec(naked) obj_shoot_blocking_at_hack1() {
 		call critter_is_dead_;
 		test eax, eax;
 		jz   endLoop;
-		jmp  CorpseShotBlockFix_continue_loop[1];
+		jmp  CorpseShotBlockFix_continue_loop[4];
 endLoop:
 		mov  eax, [edx];
 		pop  ebp;

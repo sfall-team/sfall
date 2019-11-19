@@ -787,7 +787,13 @@ char AnimCodeByWeapon(TGameObj* weapon) {
 	return 0;
 }
 
-void DisplayConsoleMessage(const char* msg) {
+// prints message to debug.log file
+void __declspec(naked) DebugPrintf(const char* fmt, ...) {
+	__asm jmp debug_printf_;
+}
+
+// Displays message in main UI console window
+void __stdcall DisplayConsoleMessage(const char* msg) {
 	__asm {
 		mov  eax, msg;
 		call display_print_;
@@ -808,19 +814,26 @@ const char* __stdcall GetMessageStr(DWORD fileAddr, DWORD messageId) {
 	return result;
 }
 
+// Returns the name of the critter
+const char* __stdcall CritterName(TGameObj* critter) {
+	__asm {
+		mov  eax, critter;
+		call critter_name_;
+	}
+}
+
 // Change the name of playable character
-void CritterPcSetName(const char* newName) {
+void __stdcall CritterPcSetName(const char* newName) {
 	__asm {
 		mov  eax, newName;
 		call critter_pc_set_name_;
 	}
 }
 
-// Returns the name of the critter
-const char* __stdcall CritterName(TGameObj* critter) {
+bool __stdcall DbAccess(const char* fileName) {
 	__asm {
-		mov  eax, critter;
-		call critter_name_;
+		mov  eax, fileName;
+		call db_access_;
 	}
 }
 
@@ -946,10 +959,6 @@ const char* __stdcall InterpretGetString(TProgram* scriptPtr, DWORD strId, DWORD
 
 void __declspec(naked) InterpretError(const char* fmt, ...) {
 	__asm jmp interpretError_;
-}
-
-void __declspec(naked) DebugPrintf(const char* fmt, ...) {
-	__asm jmp debug_printf_;
 }
 
 const char* __stdcall FindCurrentProc(TProgram* program) {

@@ -225,7 +225,7 @@ public:
 		assert((index + _argShift) < OP_MAX_ARGUMENTS);
 		return _args[index + _argShift];
 	}
-	
+
 	// current return value
 	const ScriptValue& returnValue() const {
 		return _ret;
@@ -235,12 +235,12 @@ public:
 	TProgram* program() const {
 		return _program;
 	}
-	
+
 	// set return value for current opcode
 	void setReturn(DWORD value, SfallDataType type) {
 		_ret = ScriptValue(type, value);
 	}
-	
+
 	// set return value for current opcode
 	void setReturn(const ScriptValue& val) {
 		_ret = val;
@@ -249,7 +249,7 @@ public:
 	// resets the state of handler for new opcode invocation
 	void resetState(TProgram* program, int argNum) {
 		_program = program;
-		
+
 		// reset return value
 		_ret = ScriptValue();
 		// reset argument list
@@ -257,7 +257,7 @@ public:
 		// reset arg shift
 		_argShift = 0;
 	}
-	
+
 	// writes error message to debug.log along with the name of script & procedure
 	void printOpcodeError(const char* fmt, ...) const {
 		assert(_program != nullptr);
@@ -280,16 +280,16 @@ public:
 			const ScriptValue &argI = arg(i);
 			if (typeMask != 0 && ((1 << argI.type()) & typeMask) == 0) {
 				printOpcodeError(
-					"%s() - argument #%d has invalid type: %s.", 
-					opcodeName, 
+					"%s() - argument #%d has invalid type: %s.",
+					opcodeName,
 					++i,
 					GetSfallTypeName(argI.type()));
 
 				return false;
 			} else if ((typeMask & DATATYPE_MASK_NOT_NULL) && argI.rawValue() == 0) {
 				printOpcodeError(
-					"%s() - argument #%d is null.", 
-					opcodeName, 
+					"%s() - argument #%d is null.",
+					opcodeName,
 					++i);
 
 				return false;
@@ -1002,7 +1002,7 @@ skip:
 		jne  end;
 		lea  eax, OverrideScriptStruct;
 		mov  [edx], eax;
-		mov  esi, [eax]; // script.id 
+		mov  esi, [eax]; // script.id
 		xor  eax, eax;
 		retn;
 end:
