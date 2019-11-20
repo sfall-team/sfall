@@ -604,9 +604,8 @@ static void ResetStateAfterFrame() {
 }
 
 static inline void RunGlobalScripts(int mode1, int mode2) {
-	if (idle > -1 && idle <= 127) {
-		Sleep(idle);
-	}
+	if (idle > -1) Sleep(idle);
+
 	for (DWORD d = 0; d < globalScripts.size(); d++) {
 		if (globalScripts[d].repeat
 			&& (globalScripts[d].mode == mode1 || globalScripts[d].mode == mode2)
@@ -800,9 +799,10 @@ void ScriptExtender::init() {
 	}
 
 	idle = GetConfigInt("Misc", "ProcessorIdle", -1);
-	if (idle > -1 && idle <= 127) {
+	if (idle > -1) {
+		if (idle > 127) idle = 127;
 		fo::var::idle_func = reinterpret_cast<DWORD>(Sleep);
-		SafeWrite8(0x4C9F12, 0x6A); // push
+		SafeWrite8(0x4C9F12, 0x6A); // push idle
 		SafeWrite8(0x4C9F13, idle);
 	}
 

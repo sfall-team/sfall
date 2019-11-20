@@ -120,7 +120,7 @@ void sf_reg_anim_turn_towards(OpcodeContext& ctx) {
 static void __declspec(naked) ExecuteCallback() {
 	__asm {
 		call fo::funcoffs::executeProcedure_;
-		jmp  ScriptExtender::GetResetScriptReturnValue;
+		jmp  ScriptExtender::GetResetScriptReturnValue; // return callback result from scr_return script function: -1 - break registered sequence
 	}
 }
 
