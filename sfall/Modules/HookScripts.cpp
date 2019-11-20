@@ -124,13 +124,18 @@ void _stdcall MouseClickHook(DWORD button, bool pressed) {
 	EndHook();
 }
 
+static unsigned long previousGameMode = 0;
+
 void HookScripts::GameModeChangeHook(DWORD exit) {
-	if (!HookHasScript(HOOK_GAMEMODECHANGE)) return;
-	BeginHook();
-	argCount = 1;
-	args[0] = exit;
-	RunHookScript(HOOK_GAMEMODECHANGE);
-	EndHook();
+	if (HookHasScript(HOOK_GAMEMODECHANGE)) {
+		BeginHook();
+		argCount = 2;
+		args[0] = exit;
+		args[1] = previousGameMode;
+		RunHookScript(HOOK_GAMEMODECHANGE);
+		EndHook();
+	}
+	previousGameMode = GetLoopFlags();
 }
 // END HOOKS
 
@@ -237,6 +242,7 @@ void HookScriptClear() {
 		hooks[i].clear();
 	}
 	memset(hooksInfo, 0, HOOK_COUNT * sizeof(HooksPositionInfo));
+	previousGameMode = 0;
 }
 
 void LoadHookScripts() {

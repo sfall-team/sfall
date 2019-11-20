@@ -105,12 +105,13 @@ static void __stdcall GameModeChange(DWORD state) {
 }
 
 void _stdcall SetInLoop(DWORD mode, LoopFlag flag) {
+	DWORD _flag = GetLoopFlags();
 	if (mode) {
 		SetLoopFlag(flag);
 	} else {
 		ClearLoopFlag(flag);
 	}
-	GameModeChange(0);
+	if (GetLoopFlags() != _flag) GameModeChange(0);
 }
 
 void GetSavePath(char* buf, char* ftype) {
@@ -579,6 +580,7 @@ static void __declspec(naked) LootContainerHook() {
 
 static void __declspec(naked) BarterInventoryHook() {
 	__asm {
+		and inLoop, ~SPECIAL; // unset flag
 		_InLoop(1, BARTER);
 		push [esp + 4];
 		call fo::funcoffs::barter_inventory_;
@@ -635,6 +637,13 @@ static void __declspec(naked) exit_move_timer_win_Hook() {
 		_InLoop2(0, COUNTERWIN);
 		pop  eax;
 		jmp  fo::funcoffs::win_delete_;
+	}
+}
+
+static void __declspec(naked) gdialog_bk_hook() {
+	__asm {
+		_InLoop2(1, SPECIAL);
+		jmp fo::funcoffs::gdialog_window_destroy_;
 	}
 }
 
@@ -697,6 +706,8 @@ void LoadGameHook::init() {
 	HookCall(0x445D30, DialogReviewExitHook);
 	HookCall(0x476AC6, setup_move_timer_win_Hook); // before init win
 	HookCall(0x477067, exit_move_timer_win_Hook);
+
+	HookCall(0x447A7E, gdialog_bk_hook); // Set the Special flag before animating the dialog interface when switching from dialog mode to barter
 }
 
 Delegate<>& LoadGameHook::OnBeforeGameInit() {
