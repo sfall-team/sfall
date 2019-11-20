@@ -565,6 +565,12 @@ static void DllMain2() {
 	if (tmp != 293) SafeWrite32(0x518D64, tmp);
 	dlogr(" Done", DL_INIT);
 
+	if (GetConfigInt("Misc", "RemoveWindowRounding", 1)) {
+		SafeWrite8(0x4D6EDD, 0xEB);
+		SafeWrite8(0x4D6F12, 0xEB);
+		//SafeWrite16(0x4B8090, 0x04EB); // jmps 0x4B8096 (old)
+	}
+
 	switch (GetConfigInt("Misc", "ScienceOnCritters", 0)) {
 	case 1:
 		HookCall(0x41276E, ScienceCritterCheckHook);

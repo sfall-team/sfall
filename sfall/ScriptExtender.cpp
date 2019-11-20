@@ -1285,9 +1285,10 @@ void ScriptExtenderInit() {
 	Translate("Sfall", "HighlightFail2", "Your motion sensor is out of charge.", HighlightFail2);
 
 	idle = GetConfigInt("Misc", "ProcessorIdle", -1);
-	if (idle > -1 && idle <= 127) {
-		SafeWrite32(_idle_func, (DWORD)Sleep);
-		SafeWrite8(0x4C9F12, 0x6A); // push
+	if (idle > -1) {
+		if (idle > 127) idle = 127;
+		SafeWrite32(_idle_func, reinterpret_cast<DWORD>(Sleep));
+		SafeWrite8(0x4C9F12, 0x6A); // push idle
 		SafeWrite8(0x4C9F13, idle);
 	}
 
@@ -1833,7 +1834,8 @@ void AfterAttackCleanup() {
 }
 
 static void RunGlobalScripts1() {
-	if (idle > -1 && idle <= 127) Sleep(idle);
+	if (idle > -1) Sleep(idle);
+
 	if (toggleHighlightsKey) {
 		//0x48C294 to toggle
 		if (KeyDown(toggleHighlightsKey)) {
@@ -1879,7 +1881,8 @@ static void RunGlobalScripts1() {
 }
 
 void RunGlobalScripts2() {
-	if (idle > -1 && idle <= 127) Sleep(idle);
+	if (idle > -1) Sleep(idle);
+
 	for (DWORD d = 0; d < globalScripts.size(); d++) {
 		if (!globalScripts[d].repeat || globalScripts[d].mode != 1) continue;
 		if (++globalScripts[d].count >= globalScripts[d].repeat) {
@@ -1890,7 +1893,8 @@ void RunGlobalScripts2() {
 }
 
 void RunGlobalScripts3() {
-	if (idle > -1 && idle <= 127) Sleep(idle);
+	if (idle > -1) Sleep(idle);
+
 	for (DWORD d = 0; d < globalScripts.size(); d++) {
 		if (!globalScripts[d].repeat || (globalScripts[d].mode != 2 && globalScripts[d].mode != 3)) continue;
 		if (++globalScripts[d].count >= globalScripts[d].repeat) {

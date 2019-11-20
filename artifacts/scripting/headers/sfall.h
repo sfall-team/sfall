@@ -1,6 +1,5 @@
 //Recognised modes for set_shader_mode and get_game_mode
 #define WORLDMAP    (0x1)
-#define LOCALMAP    (0x2) //No point hooking this: would always be 1 at any point at which scripts are running
 #define DIALOG      (0x4)
 #define ESCMENU     (0x8)
 #define SAVEGAME    (0x10)

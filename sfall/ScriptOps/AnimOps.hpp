@@ -174,7 +174,7 @@ end:
 static void __declspec(naked) ExecuteCallback() {
 	__asm {
 		call executeProcedure_;
-		jmp  GetResetScriptReturnValue;
+		jmp  GetResetScriptReturnValue; // return callback result from scr_return script function: -1 - break registered sequence
 	}
 }
 
