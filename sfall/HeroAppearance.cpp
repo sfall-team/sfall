@@ -506,21 +506,6 @@ static long GetFont() {
 	return *ptr_curr_font_num;
 }
 
-/*
-int WordWrap(char *TextMsg, DWORD lineLength, WORD *lineNum, WORD *lineOffsets) {
-	int retVal;
-	__asm {
-		mov ebx, lineOffsets
-		mov ecx, lineNum
-		mov edx, lineLength
-		mov eax, TextMsg
-		call _word_wrap_
-		mov retVal, eax
-	}
-	return retVal;
-}
-*/
-
 // print text to surface
 void PrintText(char *DisplayText, BYTE ColourIndex, DWORD Xpos, DWORD Ypos, DWORD TxtWidth, DWORD ToWidth, BYTE *ToSurface) {
 	DWORD posOffset = Ypos * ToWidth + Xpos;
@@ -548,14 +533,11 @@ DWORD GetTextHeight() {
 }
 
 // gets the length of a string using the currently selected font
-DWORD GetTextWidth(char *TextMsg) {
-	DWORD TxtWidth;
+DWORD __stdcall GetTextWidth(const char *TextMsg) {
 	__asm {
 		mov  eax, TextMsg;
 		call dword ptr ds:[_text_width]; // get text width
-		mov  TxtWidth, eax;
 	}
-	return TxtWidth;
 }
 
 // get width of Char for current font

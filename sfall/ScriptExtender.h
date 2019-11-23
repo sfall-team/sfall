@@ -94,7 +94,7 @@ void _stdcall AddTimerEventScripts(DWORD script, long time, long param);
 void _stdcall RemoveTimerEventScripts(DWORD script, long param);
 void _stdcall RemoveTimerEventScripts(DWORD script);
 
-char* _stdcall mysubstr(char* str, int pos, int length);
+char* _stdcall mysubstr(const char* str, int pos, int length);
 
 // variables
 static char reg_anim_combat_check = 1;

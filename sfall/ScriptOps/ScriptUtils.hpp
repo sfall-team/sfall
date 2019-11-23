@@ -24,9 +24,82 @@
 
 #include "ScriptExtender.h"
 #include "ScriptArrays.hpp"
-#include "FileSystem.h"
 #include "Arrays.h"
+#include "HeroAppearance.h"
 #include "Message.h"
+
+// compares strings case-insensitive with specifics for Fallout
+static bool _stdcall FalloutStringCompare(const char* str1, const char* str2, long codePage) {
+	while (true) {
+		unsigned char c1 = *str1;
+		unsigned char c2 = *str2;
+		if (c1 == 0 && c2 == 0) return true;  // end - strings are equal
+		if (c1 == 0 || c2 == 0) return false; // strings are not equal
+		str1++;
+		str2++;
+		if (c1 == c2) continue;
+		if (codePage == 866) {
+			// replace Russian 'x' to English (Fallout specific)
+			if (c1 == 229) c1 -= 229 - 'x';
+			if (c2 == 229) c2 -= 229 - 'x';
+		}
+
+		// 0 - 127 (standard ASCII)
+		// upper to lower case
+		if (c1 >= 'A' && c1 <= 'Z') c1 |= 32;
+		if (c2 >= 'A' && c2 <= 'Z') c2 |= 32;
+		if (c1 == c2) continue;
+		if (c1 < 128 || c2 < 128) return false;
+
+		// 128 - 255 (international/extended)
+		switch (codePage) {
+		case 866:
+			if (c1 != 149 && c2 != 149) {
+				// upper to lower case
+				if (c1 >= 0x80 && c1 <= 0x9F) {
+					c1 |= 32;
+				} else if (c1 >= 224 && c1 <= 239) {
+					c1 -= 48; // shift lower range
+				} else if (c1 == 240) {
+					c1++;
+				}
+				if (c2 >= 0x80 && c2 <= 0x9F) {
+					c2 |= 32;
+				} else if (c2 >= 224 && c2 <= 239) {
+					c2 -= 48; // shift lower range
+				} else if (c2 == 240) {
+					c2++;
+				}
+			}
+			break;
+		case 1251:
+			// upper to lower case
+			if (c1 >= 0xC0 && c1 <= 0xDF) c1 |= 32;
+			if (c2 >= 0xC0 && c2 <= 0xDF) c2 |= 32;
+			if (c1 == 0xA8) c1 += 16;
+			if (c2 == 0xA8) c2 += 16;
+			break;
+		case 1250:
+		case 1252:
+			if (c1 != 0xD7 && c1 != 0xF7 && c2 != 0xD7 && c2 != 0xF7) {
+				if (c1 >= 0xC0 && c1 <= 0xDE) c1 |= 32;
+				if (c2 >= 0xC0 && c2 <= 0xDE) c2 |= 32;
+			}
+			break;
+		}
+		if (c1 != c2) return false; // strings are not equal
+	}
+}
+
+static void sf_string_compare() {
+	if (opHandler.numArgs() < 3) {
+		opHandler.setReturn(
+			(_stricmp(opHandler.arg(0).strValue(), opHandler.arg(1).strValue()) ? 0 : 1)
+		);
+	} else {
+		opHandler.setReturn(FalloutStringCompare(opHandler.arg(0).strValue(), opHandler.arg(1).strValue(), opHandler.arg(2).rawValue()));
+	}
+}
 
 static void __declspec(naked) funcSqrt() {
 	__asm {
@@ -120,6 +193,7 @@ end:
 		retn;
 	}
 }
+
 static void __declspec(naked) funcCos() {
 	__asm {
 		pushad;
@@ -159,6 +233,7 @@ end:
 		retn;
 	}
 }
+
 static void __declspec(naked) funcTan() {
 	__asm {
 		pushad;
@@ -199,6 +274,7 @@ end:
 		retn;
 	}
 }
+
 static void __declspec(naked) funcATan() {
 	__asm {
 		pushad;
@@ -289,6 +365,7 @@ static int _stdcall StringSplit(const char* str, const char* split) {
 	}
 	return id;
 }
+
 static void __declspec(naked) string_split() {
 	__asm {
 		pushad;
@@ -340,13 +417,16 @@ end:
 		retn;
 	}
 }
+
 static int _stdcall str_to_int_internal(const char* str) {
 	return static_cast<int>(strtol(str, (char**)nullptr, 0)); // auto-determine radix
 }
+
 static DWORD _stdcall str_to_flt_internal(const char* str) {
 	float f = static_cast<float>(atof(str));
 	return *(DWORD*)&f;
 }
+
 static void __declspec(naked) str_to_int() {
 	__asm {
 		pushad;
@@ -380,6 +460,7 @@ end:
 		retn;
 	}
 }
+
 static void __declspec(naked) str_to_flt() {
 	__asm {
 		pushad;
@@ -413,7 +494,8 @@ end:
 		retn;
 	}
 }
-char* _stdcall mysubstr(char* str, int pos, int length) {
+
+char* _stdcall mysubstr(const char* str, int pos, int length) {
 	char* newstr;
 	int srclen;
 	srclen = strlen(str);
@@ -432,11 +514,12 @@ char* _stdcall mysubstr(char* str, int pos, int length) {
 	return newstr;
 }
 
-static DWORD _stdcall mystrlen(char* str) {
+static DWORD _stdcall mystrlen(const char* str) {
 	return strlen(str);
 }
+
 static char* sprintfbuf = nullptr;
-static char* _stdcall mysprintf(char* format, DWORD value, DWORD valueType) {
+static char* _stdcall mysprintf(const char* format, DWORD value, DWORD valueType) {
 	valueType = valueType & 0xFFFF; // use lower 2 bytes
 	int fmtlen = strlen(format);
 	int buflen = fmtlen + 1;
@@ -847,4 +930,8 @@ static void __declspec(naked) op_message_str_game() {
 
 static void sf_floor2() {
 	opHandler.setReturn(static_cast<int>(floor(opHandler.arg(0).asFloat())));
+}
+
+static void sf_get_text_width() {
+	opHandler.setReturn(GetTextWidth(opHandler.arg(0).asString()), DATATYPE_INT);
 }

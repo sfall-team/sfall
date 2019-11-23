@@ -20,7 +20,7 @@
 
 WINinfo* __stdcall GetWinStruct(long winRef);
 void PrintText(char *DisplayText, BYTE ColourIndex, DWORD Xpos, DWORD Ypos, DWORD TxtWidth, DWORD ToWidth, BYTE *ToSurface);
-DWORD GetTextWidth(char *TextMsg);
+DWORD __stdcall GetTextWidth(const char *TextMsg);
 DWORD GetMaxCharWidth();
 long __stdcall check_buttons();
 

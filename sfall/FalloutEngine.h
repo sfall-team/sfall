@@ -346,6 +346,7 @@ extern TGameObj** ptr_i_lhand;
 extern TGameObj** ptr_i_rhand;
 extern DWORD* ptr_i_wid;
 extern TGameObj** ptr_i_worn;
+extern DWORD* ptr_idle_func;
 extern DWORD* ptr_In_WorldMap;
 extern DWORD* ptr_info_line;
 extern DWORD* ptr_interfaceWindow;

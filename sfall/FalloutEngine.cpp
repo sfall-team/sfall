@@ -93,6 +93,7 @@ TGameObj** ptr_i_lhand                = reinterpret_cast<TGameObj**>(_i_lhand);
 TGameObj** ptr_i_rhand                = reinterpret_cast<TGameObj**>(_i_rhand);
 DWORD* ptr_i_wid                      = reinterpret_cast<DWORD*>(_i_wid);
 TGameObj** ptr_i_worn                 = reinterpret_cast<TGameObj**>(_i_worn);
+DWORD* ptr_idle_func                  = reinterpret_cast<DWORD*>(_idle_func);
 DWORD* ptr_In_WorldMap                = reinterpret_cast<DWORD*>(_In_WorldMap);
 DWORD* ptr_info_line                  = reinterpret_cast<DWORD*>(_info_line);
 DWORD* ptr_interfaceWindow            = reinterpret_cast<DWORD*>(_interfaceWindow);

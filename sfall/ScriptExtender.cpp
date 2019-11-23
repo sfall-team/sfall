@@ -400,6 +400,7 @@ static const SfallOpcodeMetadata opcodeMetaArray[] = {
 	{sf_critter_inven_obj2,     "critter_inven_obj2",     {DATATYPE_MASK_VALID_OBJ, DATATYPE_MASK_INT}},
 	{sf_draw_image,             "draw_image",             {DATATYPE_MASK_INT | DATATYPE_MASK_STR, DATATYPE_MASK_INT, DATATYPE_MASK_INT, DATATYPE_MASK_INT, DATATYPE_MASK_INT}},
 	{sf_draw_image_scaled,      "draw_image_scaled",      {DATATYPE_MASK_INT | DATATYPE_MASK_STR, DATATYPE_MASK_INT, DATATYPE_MASK_INT, DATATYPE_MASK_INT, DATATYPE_MASK_INT, DATATYPE_MASK_INT}},
+	{sf_floor2,                 "floor2",                 {DATATYPE_MASK_INT | DATATYPE_MASK_FLOAT}},
 	{sf_get_current_inven_size, "get_current_inven_size", {DATATYPE_MASK_VALID_OBJ}},
 	{sf_get_flags,              "get_flags",              {DATATYPE_MASK_VALID_OBJ}},
 	{sf_get_object_data,        "get_object_data",        {DATATYPE_MASK_VALID_OBJ, DATATYPE_MASK_INT}},
@@ -423,6 +424,7 @@ static const SfallOpcodeMetadata opcodeMetaArray[] = {
 	{sf_set_window_flag,        "set_window_flag",        {DATATYPE_MASK_INT | DATATYPE_MASK_STR, DATATYPE_MASK_INT, DATATYPE_MASK_INT}},
 	{sf_show_window,            "show_window",            {DATATYPE_MASK_STR}},
 	{sf_spatial_radius,         "spatial_radius",         {DATATYPE_MASK_VALID_OBJ}},
+	{sf_string_compare,         "string_compare",         {DATATYPE_MASK_STR, DATATYPE_MASK_STR, DATATYPE_MASK_INT}},
 	{sf_unjam_lock,             "unjam_lock",             {DATATYPE_MASK_VALID_OBJ}},
 	{sf_unwield_slot,           "unwield_slot",           {DATATYPE_MASK_VALID_OBJ, DATATYPE_MASK_INT}},
 	#ifndef NDEBUG
@@ -1287,7 +1289,7 @@ void ScriptExtenderInit() {
 	idle = GetConfigInt("Misc", "ProcessorIdle", -1);
 	if (idle > -1) {
 		if (idle > 127) idle = 127;
-		SafeWrite32(_idle_func, reinterpret_cast<DWORD>(Sleep));
+		*ptr_idle_func = reinterpret_cast<DWORD>(Sleep);
 		SafeWrite8(0x4C9F12, 0x6A); // push idle
 		SafeWrite8(0x4C9F13, idle);
 	}

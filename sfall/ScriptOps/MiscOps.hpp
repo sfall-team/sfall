@@ -32,122 +32,66 @@
  *	Misc operators
  */
 
-static DWORD defaultMaleModelNamePtr = (DWORD)defaultMaleModelName;
-static DWORD defaultFemaleModelNamePtr = (DWORD)defaultFemaleModelName;
-static DWORD movieNamesPtr = (DWORD)MoviePaths;
+const char* stringTooLong = "%s() - the string length exceeds maximum of 64 characters.";
 
+static void _stdcall SetDMModel2() {
+	const ScriptValue &modelArg = opHandler.arg(0);
 
-//// *** End Helios *** ///
-static void _stdcall strcpy_p(char* to, const char* from) {
-	strcpy_s(to, 64, from);
+	if (modelArg.isString()) {
+		const char* model = modelArg.strValue();
+		if (strlen(model) > 64) {
+			opHandler.printOpcodeError(stringTooLong, "set_dm_model");
+			return;
+		}
+		strcpy(defaultMaleModelName, model);
+	} else {
+		OpcodeInvalidArgs("set_dm_model");
+	}
 }
+
 static void __declspec(naked) SetDMModel() {
-	__asm {
-		push ebx;
-		push ecx;
-		push edx;
-		push edi;
-		mov edi, eax;
-		call interpretPopShort_;
-		mov edx, eax;
-		mov eax, edi;
-		call interpretPopLong_;
-		cmp dx, VAR_TYPE_STR2;
-		jz next;
-		cmp dx, VAR_TYPE_STR;
-		jnz end;
-next:
-		mov ebx, eax;
-		mov eax, edi;
-		call interpretGetString_;
-		push eax;
-		push defaultMaleModelNamePtr;
-		call strcpy_p;
-end:
-		pop edi;
-		pop edx;
-		pop ecx;
-		pop ebx;
-		retn;
+	_WRAP_OPCODE(SetDMModel2, 1, 0)
+}
+
+static void _stdcall SetDFModel2() {
+	const ScriptValue &modelArg = opHandler.arg(0);
+
+	if (modelArg.isString()) {
+		const char* model = modelArg.strValue();
+		if (strlen(model) > 64) {
+			opHandler.printOpcodeError(stringTooLong, "set_df_model");
+			return;
+		}
+		strcpy(defaultFemaleModelName, model);
+	} else {
+		OpcodeInvalidArgs("set_df_model");
 	}
 }
+
 static void __declspec(naked) SetDFModel() {
-	__asm {
-		push ebx;
-		push ecx;
-		push edx;
-		push edi;
-		mov edi, eax;
-		call interpretPopShort_;
-		mov edx, eax;
-		mov eax, edi;
-		call interpretPopLong_;
-		cmp dx, VAR_TYPE_STR2;
-		jz next;
-		cmp dx, VAR_TYPE_STR;
-		jnz end;
-next:
-		mov ebx, eax;
-		mov eax, edi;
-		call interpretGetString_;
-		push eax;
-		push defaultFemaleModelNamePtr;
-		call strcpy_p;
-end:
-		pop edi;
-		pop edx;
-		pop ecx;
-		pop ebx;
-		retn;
+	_WRAP_OPCODE(SetDFModel2, 1, 0)
+}
+
+static void _stdcall SetMoviePath2() {
+	const ScriptValue &fileNameArg = opHandler.arg(0),
+					  &movieIdArg = opHandler.arg(1);
+
+	if (fileNameArg.isString() && movieIdArg.isInt()) {
+		long movieID = movieIdArg.rawValue();
+		if (movieID < 0 || movieID >= MaxMovies) return;
+		const char* fileName = fileNameArg.strValue();
+		if (strlen(fileName) > 64) {
+			opHandler.printOpcodeError(stringTooLong, "set_movie_path");
+			return;
+		}
+		strcpy(&MoviePaths[movieID * 65], fileName);
+	} else {
+		OpcodeInvalidArgs("set_movie_path");
 	}
 }
+
 static void __declspec(naked) SetMoviePath() {
-	__asm {
-		push ebx;
-		push ecx;
-		push edx;
-		push edi;
-		push esi;
-		mov edi, eax;
-		call interpretPopShort_;
-		mov ebx, eax;
-		mov eax, edi;
-		call interpretPopLong_;
-		mov esi, eax;
-		mov eax, edi;
-		call interpretPopShort_;
-		mov edx, eax;
-		mov eax, edi;
-		call interpretPopLong_;
-		cmp dx, VAR_TYPE_STR2;
-		jz next;
-		cmp dx, VAR_TYPE_STR;
-		jnz end;
-next:
-		cmp bx, VAR_TYPE_INT;
-		jnz end;
-		cmp esi, 0;
-		jl end;
-		cmp esi, MaxMovies;
-		jge end;
-		mov ebx, eax;
-		mov eax, edi;
-		call interpretGetString_;
-		push eax;
-		mov eax, esi;
-		mov esi, 65;
-		mul si;
-		add eax, movieNamesPtr;
-		push eax;
-		call strcpy_p;
-end:
-		pop esi;
-		pop edi;
-		pop edx;
-		pop ecx;
-		pop ebx;
-		retn;
-	}
+	_WRAP_OPCODE(SetMoviePath2, 2, 0)
 }
 
 static void __declspec(naked) GetYear() {
@@ -180,14 +124,12 @@ static void __declspec(naked) GetYear() {
 static void __declspec(naked) GameLoaded() {
 	__asm {
 		push ecx;
-		push edx;
 		push eax;
 		push eax; // script
 		call ScriptHasLoaded;
 		movzx edx, al;
 		pop  eax;
 		_RET_VAL_INT2(ecx);
-		pop edx;
 		pop ecx;
 		retn;
 	}
@@ -196,15 +138,13 @@ static void __declspec(naked) GameLoaded() {
 static void __declspec(naked) SetPipBoyAvailable() {
 	__asm {
 		push ecx;
-		push edx;
 		_GET_ARG_INT(end);
 		cmp  eax, 0;
 		jl   end;
 		cmp  eax, 1;
 		jg   end;
-		mov  byte ptr ds:[_gmovie_played_list + 0x3], al;
+		mov  byte ptr ds:[_gmovie_played_list][0x3], al;
 end:
-		pop edx;
 		pop ecx;
 		retn;
 	}
@@ -938,17 +878,6 @@ end:
 //numbers subgame functions
 static void __declspec(naked) NBCreateChar() {
 	__asm {
-		/*pushad;
-		push eax;
-		call NumbersCreateChar;
-		mov edx, eax;
-		pop eax;
-		mov ecx, eax;
-		call interpretPushLong_;
-		mov eax, ecx;
-		mov edx, VAR_TYPE_INT;
-		call interpretPushShort_;
-		popad;*/
 		retn;
 	}
 }
@@ -1141,7 +1070,7 @@ end:
 static void __declspec(naked) modified_ini() {
 	__asm {
 		push ecx;
-		mov edx, modifiedIni;
+		mov  edx, modifiedIni;
 		_RET_VAL_INT2(ecx);
 		pop  ecx;
 		retn;
