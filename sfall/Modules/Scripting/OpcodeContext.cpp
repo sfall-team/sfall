@@ -33,10 +33,10 @@ OpcodeContext::OpcodeContext(fo::Program* program, DWORD opcode, int argNum, boo
 	assert(argNum < OP_MAX_ARGUMENTS);
 }
 
-OpcodeContext::OpcodeContext(fo::Program* program, DWORD opcode, int argNum, bool hasReturn, const char* opcodeName)
-		: OpcodeContext::OpcodeContext(program, opcode, argNum, hasReturn)
+OpcodeContext::OpcodeContext(fo::Program* program, const SfallOpcodeInfo* info)
+		: _program(program), _opcode(info->opcode), _numArgs(info->argNum), _hasReturn(info->hasReturn), _opcodeName(info->name), _argShift(0)
 {
-	_opcodeName = opcodeName;
+	assert(_numArgs < OP_MAX_ARGUMENTS);
 }
 
 const char* OpcodeContext::getOpcodeName() const {

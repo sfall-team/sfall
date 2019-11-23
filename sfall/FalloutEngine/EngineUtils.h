@@ -81,7 +81,7 @@ void PrintText(char *displayText, BYTE colorIndex, DWORD x, DWORD y, DWORD textW
 // gets the height of the currently selected font
 DWORD GetTextHeight();
 // gets the length of a string using the currently selected font
-DWORD GetTextWidth(char *textMsg);
+DWORD GetTextWidth(const char *textMsg);
 // get width of Char for current font
 DWORD GetCharWidth(char charVal);
 // get maximum string length for current font - if all characters were maximum width

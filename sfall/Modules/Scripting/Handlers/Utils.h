@@ -23,6 +23,8 @@ namespace sfall
 namespace script
 {
 
+char* Substring(const char* str, int pos, int length);
+
 class OpcodeContext;
 
 void sf_sqrt(OpcodeContext&);
@@ -46,6 +48,8 @@ void sf_atof(OpcodeContext&);
 void sf_substr(OpcodeContext&);
 
 void sf_strlen(OpcodeContext&);
+
+void sf_string_compare(OpcodeContext&);
 
 void sf_sprintf(OpcodeContext&);
 
@@ -71,7 +75,7 @@ void sf_floor2(OpcodeContext&);
 
 void sf_get_string_pointer(OpcodeContext&);
 
-char* _stdcall Substring(const char* str, int pos, int length);
+void sf_get_text_width(OpcodeContext&);
 
 }
 }

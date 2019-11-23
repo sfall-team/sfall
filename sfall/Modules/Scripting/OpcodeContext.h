@@ -92,9 +92,9 @@ public:
 	// hasReturn - true if opcode has return value (is expression)
 	// opcodeName - name of a function (for logging)
 	OpcodeContext(fo::Program* program, DWORD opcode, int argNum, bool hasReturn);
-	OpcodeContext(fo::Program* program, DWORD opcode, int argNum, bool hasReturn, const char* opcodeName);
+	OpcodeContext(fo::Program* program, const SfallOpcodeInfo* info);
 
-	const char* getOpcodeName() const; 
+	const char* getOpcodeName() const;
 	const char* getMetaruleName() const;
 
 	// currently executed metarule func
@@ -115,7 +115,7 @@ public:
 
 	// returns argument with given index, possible shifted by argShift
 	const ScriptValue& arg(int index) const;
-	
+
 	// current return value
 	const ScriptValue& returnValue() const;
 
@@ -124,13 +124,13 @@ public:
 
 	// current opcode number
 	DWORD opcode() const;
-	
+
 	// set return value for current opcode
 	void setReturn(unsigned long value, DataType type);
-	
+
 	// set return value for current opcode
 	void setReturn(const ScriptValue& val);
-	
+
 	// writes error message to debug.log along with the name of script & procedure
 	void printOpcodeError(const char* fmt, ...) const;
 

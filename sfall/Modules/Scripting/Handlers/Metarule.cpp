@@ -90,6 +90,7 @@ static const SfallMetarule metarules[] = {
 	{"get_outline",             sf_get_outline,             1, 1, {ARG_OBJECT}},
 	{"get_sfall_arg_at",        sf_get_sfall_arg_at,        1, 1, {ARG_INT}},
 	{"get_string_pointer",      sf_get_string_pointer,      1, 1, {ARG_STRING}},
+	{"get_text_width",          sf_get_text_width,          1, 1},
 	{"has_fake_perk_npc",       sf_has_fake_perk_npc,       2, 2, {ARG_OBJECT, ARG_STRING}},
 	{"has_fake_trait_npc",      sf_has_fake_trait_npc,      2, 2, {ARG_OBJECT, ARG_STRING}},
 	{"hide_window",             sf_hide_window,             0, 1, {ARG_STRING}},
@@ -129,6 +130,7 @@ static const SfallMetarule metarules[] = {
 	{"set_window_flag",         sf_set_window_flag,         3, 3, {ARG_INTSTR, ARG_INT, ARG_INT}},
 	{"show_window",             sf_show_window,             0, 1, {ARG_STRING}},
 	{"spatial_radius",          sf_spatial_radius,          1, 1, {ARG_OBJECT}},
+	{"string_compare",          sf_string_compare,          2, 3, {ARG_STRING, ARG_STRING, ARG_INT}},
 	{"tile_refresh_display",    sf_tile_refresh_display,    0, 0},
 	{"unjam_lock",              sf_unjam_lock,              1, 1, {ARG_OBJECT}},
 	{"unwield_slot",            sf_unwield_slot,            2, 2, {ARG_OBJECT, ARG_INT}},
@@ -136,7 +138,7 @@ static const SfallMetarule metarules[] = {
 	{"validate_test",           sf_test,                    2, 5, {ARG_INT, ARG_NUMBER, ARG_STRING, ARG_OBJECT, ARG_ANY}},
 	#endif
 };
-//
+
 // returns current contents of metarule table
 static void sf_get_metarule_table(OpcodeContext& ctx) {
 	DWORD arrId = TempArray(metaruleTable.size(), 0);

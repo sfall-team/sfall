@@ -211,14 +211,11 @@ DWORD GetTextHeight() {
 
 //---------------------------------------------------------
 //gets the length of a string using the currently selected font
-DWORD GetTextWidth(char *TextMsg) {
-	DWORD TxtWidth;
+DWORD GetTextWidth(const char *TextMsg) {
 	__asm {
 		mov  eax, TextMsg;
 		call dword ptr ds:[FO_VAR_text_width]; //get text width
-		mov  TxtWidth, eax;
 	}
-	return TxtWidth;
 }
 
 //---------------------------------------------------------

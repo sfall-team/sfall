@@ -74,6 +74,9 @@ static SfallOpcodeInfo opcodeInfoArray[] = {
 	{0x163, "get_year",                  sf_get_year,                  0, true},
 	{0x16c, "key_pressed",               sf_key_pressed,               1, true,  {ARG_INT}},
 	{0x171, "force_encounter",           sf_force_encounter,           1, false, {ARG_INT}},
+	{0x175, "set_dm_model",              sf_set_dm_model,              1, false, {ARG_STRING}},
+	{0x176, "set_df_model",              sf_set_df_model,              1, false, {ARG_STRING}},
+	{0x177, "set_movie_path",            sf_set_movie_path,            2, false, {ARG_STRING, ARG_INT}},
 
 	{0x190, "get_perk_available",        sf_get_perk_available,        1, true,  {ARG_INT}},
 	{0x195, "set_weapon_knockback",      sf_set_object_knockback,      3, false, {ARG_OBJECT, ARG_INT, ARG_NUMBER}},
@@ -165,7 +168,7 @@ static SfallOpcodeInfo opcodeInfoArray[] = {
 	{0x241, "get_npc_level",             sf_get_npc_level,             1, true,  {ARG_INTSTR}},
 
 	{0x24e, "substr",                    sf_substr,                    3, true,  {ARG_STRING, ARG_INT, ARG_INT}},
-	{0x24f, "strlen",                    sf_strlen,                    1, true,  {ARG_STRING}},
+	{0x24f, "strlen",                    sf_strlen,                    1, true},
 	{0x250, "sprintf",                   sf_sprintf,                   2, true,  {ARG_STRING, ARG_ANY}},
 	{0x251, "charcode",                  sf_ord,                       1, true,  {ARG_STRING}},
 	// 0x252 // RESERVED
@@ -238,7 +241,7 @@ void __fastcall defaultOpcodeHandlerCall(fo::Program* program, DWORD opcodeOffse
 	auto iter = opcodeInfoMap.find(opcode);
 	if (iter != opcodeInfoMap.end()) {
 		auto info = iter->second;
-		OpcodeContext ctx(program, opcode, info->argNum, info->hasReturn, info->name);
+		OpcodeContext ctx(program, info);
 		ctx.handleOpcode(info->handler, info->argValidation);
 	} else {
 		fo::func::interpretError("Unknown opcode: %d", opcode);
@@ -298,9 +301,7 @@ void InitNewOpcodes() {
 	opcodes[0x172] = op_set_world_map_pos;
 	opcodes[0x173] = op_get_world_map_x_pos;
 	opcodes[0x174] = op_get_world_map_y_pos;
-	opcodes[0x175] = op_set_dm_model;
-	opcodes[0x176] = op_set_df_model;
-	opcodes[0x177] = op_set_movie_path;
+
 	for (int i = 0x178; i < 0x189; i++) {
 		opcodes[i] = op_set_perk_value;
 	}

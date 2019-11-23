@@ -19,6 +19,7 @@
 #include <cmath>
 
 #include "..\..\..\FalloutEngine\Fallout2.h"
+#include "..\..\..\FalloutEngine\EngineUtils.h"
 #include "..\..\ScriptExtender.h"
 #include "..\..\FileSystem.h"
 #include "..\..\Message.h"
@@ -32,6 +33,69 @@ namespace sfall
 {
 namespace script
 {
+
+// compares strings case-insensitive with specifics for Fallout
+static bool FalloutStringCompare(const char* str1, const char* str2, long codePage) {
+	while (true) {
+		unsigned char c1 = *str1;
+		unsigned char c2 = *str2;
+		if (c1 == 0 && c2 == 0) return true;  // end - strings are equal
+		if (c1 == 0 || c2 == 0) return false; // strings are not equal
+		str1++;
+		str2++;
+		if (c1 == c2) continue;
+		if (codePage == 866) {
+			// replace Russian 'x' to English (Fallout specific)
+			if (c1 == 229) c1 -= 229 - 'x';
+			if (c2 == 229) c2 -= 229 - 'x';
+		}
+
+		// 0 - 127 (standard ASCII)
+		// upper to lower case
+		if (c1 >= 'A' && c1 <= 'Z') c1 |= 32;
+		if (c2 >= 'A' && c2 <= 'Z') c2 |= 32;
+		if (c1 == c2) continue;
+		if (c1 < 128 || c2 < 128) return false;
+
+		// 128 - 255 (international/extended)
+		switch (codePage) {
+		case 866:
+			if (c1 != 149 && c2 != 149) {
+				// upper to lower case
+				if (c1 >= 0x80 && c1 <= 0x9F) {
+					c1 |= 32;
+				} else if (c1 >= 224 && c1 <= 239) {
+					c1 -= 48; // shift lower range
+				} else if (c1 == 240) {
+					c1++;
+				}
+				if (c2 >= 0x80 && c2 <= 0x9F) {
+					c2 |= 32;
+				} else if (c2 >= 224 && c2 <= 239) {
+					c2 -= 48; // shift lower range
+				} else if (c2 == 240) {
+					c2++;
+				}
+			}
+			break;
+		case 1251:
+			// upper to lower case
+			if (c1 >= 0xC0 && c1 <= 0xDF) c1 |= 32;
+			if (c2 >= 0xC0 && c2 <= 0xDF) c2 |= 32;
+			if (c1 == 0xA8) c1 += 16;
+			if (c2 == 0xA8) c2 += 16;
+			break;
+		case 1250:
+		case 1252:
+			if (c1 != 0xD7 && c1 != 0xF7 && c2 != 0xD7 && c2 != 0xF7) {
+				if (c1 >= 0xC0 && c1 <= 0xDE) c1 |= 32;
+				if (c2 >= 0xC0 && c2 <= 0xDE) c2 |= 32;
+			}
+			break;
+		}
+		if (c1 != c2) return false; // strings are not equal
+	}
+}
 
 void sf_sqrt(OpcodeContext& ctx) {
 	ctx.setReturn(sqrt(ctx.arg(0).asFloat()));
@@ -68,22 +132,22 @@ void sf_strlen(OpcodeContext& ctx) {
 }
 
 void sf_atoi(OpcodeContext& ctx) {
-	auto str = ctx.arg(0).asString();
+	auto str = ctx.arg(0).strValue();
 	ctx.setReturn(
 		static_cast<int>(strtol(str, (char**)nullptr, 0)) // auto-determine radix
 	);
 }
 
 void sf_atof(OpcodeContext& ctx) {
-	auto str = ctx.arg(0).asString();
+	auto str = ctx.arg(0).strValue();
 	ctx.setReturn(
 		static_cast<float>(atof(str))
 	);
 }
 
 void sf_ord(OpcodeContext& ctx) {
-	char firstChar = ctx.arg(0).asString()[0];
-	ctx.setReturn(static_cast<int>(firstChar));
+	unsigned char firstChar = ctx.arg(0).strValue()[0];
+	ctx.setReturn(static_cast<unsigned long>(firstChar));
 }
 
 void sf_typeof(OpcodeContext& ctx) {
@@ -123,10 +187,10 @@ static int _stdcall StringSplit(const char* str, const char* split) {
 }
 
 void sf_string_split(OpcodeContext& ctx) {
-	ctx.setReturn(StringSplit(ctx.arg(0).asString(), ctx.arg(1).asString()));
+	ctx.setReturn(StringSplit(ctx.arg(0).strValue(), ctx.arg(1).strValue()));
 }
 
-char* _stdcall Substring(const char* str, int pos, int length) {
+char* Substring(const char* str, int pos, int length) {
 	char* newstr;
 	int srclen;
 	srclen = strlen(str);
@@ -138,7 +202,7 @@ char* _stdcall Substring(const char* str, int pos, int length) {
 		length = 0;
 	else if (length + pos > srclen)
 		length = srclen - pos;
-	newstr = new char[length + 1];
+	newstr = new char[length + 1]; // memory leak!!!
 	if (length > 0)
 		memcpy(newstr, &str[pos], length);
 	newstr[length] = '\0';
@@ -147,8 +211,18 @@ char* _stdcall Substring(const char* str, int pos, int length) {
 
 void sf_substr(OpcodeContext& ctx) {
 	ctx.setReturn(
-		Substring(ctx.arg(0).asString(), ctx.arg(1).asInt(), ctx.arg(2).asInt())
+		Substring(ctx.arg(0).strValue(), ctx.arg(1).rawValue(), ctx.arg(2).rawValue())
 	);
+}
+
+void sf_string_compare(OpcodeContext& ctx) {
+	if (ctx.numArgs() < 3) {
+		ctx.setReturn(
+			(_stricmp(ctx.arg(0).strValue(), ctx.arg(1).strValue()) ? 0 : 1)
+		);
+	} else {
+		ctx.setReturn(FalloutStringCompare(ctx.arg(0).strValue(), ctx.arg(1).strValue(), ctx.arg(2).rawValue()));
+	}
 }
 
 static char* sprintfbuf = nullptr;
@@ -232,7 +306,7 @@ static char* _stdcall sprintf_lite(const char* format, ScriptValue value) {
 
 void sf_sprintf(OpcodeContext& ctx) {
 	ctx.setReturn(
-		sprintf_lite(ctx.arg(0).asString(), ctx.arg(1))
+		sprintf_lite(ctx.arg(0).strValue(), ctx.arg(1))
 	);
 }
 
@@ -315,7 +389,11 @@ void sf_floor2(OpcodeContext& ctx) {
 }
 
 void sf_get_string_pointer(OpcodeContext& ctx) {
-	ctx.setReturn(reinterpret_cast<long>(ctx.arg(0).asString()), DataType::INT);
+	ctx.setReturn(reinterpret_cast<long>(ctx.arg(0).strValue()), DataType::INT);
+}
+
+void sf_get_text_width(OpcodeContext& ctx) {
+	ctx.setReturn(fo::GetTextWidth(ctx.arg(0).asString()));
 }
 
 }

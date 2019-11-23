@@ -42,129 +42,35 @@ namespace sfall
 namespace script
 {
 
-static DWORD defaultMaleModelNamePtr = (DWORD)defaultMaleModelName;
-static DWORD defaultFemaleModelNamePtr = (DWORD)defaultFemaleModelName;
-static DWORD movieNamesPtr = (DWORD)MoviePaths;
+const char* stringTooLong = "%s() - the string length exceeds maximum of 64 characters.";
 
-
-//// *** End Helios *** ///
-static void _stdcall strcpy_p(char* to, const char* from) {
-	strcpy_s(to, 64, from);
+void sf_set_dm_model(OpcodeContext& ctx) {
+	auto model = ctx.arg(0).strValue();
+	if (strlen(model) > 64) {
+		ctx.printOpcodeError(stringTooLong, ctx.getOpcodeName());
+		return;
+	}
+	strcpy(defaultMaleModelName, model);
 }
 
-/************************************************************************/
-/* TODO: Rewrite these raw handlers using OpcodeContext                 */
-/************************************************************************/
-
-void __declspec(naked) op_set_dm_model() {
-	__asm {
-		push ebx;
-		push ecx;
-		push edx;
-		push edi;
-		mov edi, eax;
-		call fo::funcoffs::interpretPopShort_;
-		mov edx, eax;
-		mov eax, edi;
-		call fo::funcoffs::interpretPopLong_;
-		cmp dx, VAR_TYPE_STR2;
-		jz next;
-		cmp dx, VAR_TYPE_STR;
-		jnz end;
-next:
-		mov ebx, eax;
-		mov eax, edi;
-		call fo::funcoffs::interpretGetString_;
-		push eax;
-		push defaultMaleModelNamePtr;
-		call strcpy_p;
-end:
-		pop edi;
-		pop edx;
-		pop ecx;
-		pop ebx;
-		retn;
+void sf_set_df_model(OpcodeContext& ctx) {
+	auto model = ctx.arg(0).strValue();
+	if (strlen(model) > 64) {
+		ctx.printOpcodeError(stringTooLong, ctx.getOpcodeName());
+		return;
 	}
+	strcpy(defaultFemaleModelName, model);
 }
 
-void __declspec(naked) op_set_df_model() {
-	__asm {
-		push ebx;
-		push ecx;
-		push edx;
-		push edi;
-		mov edi, eax;
-		call fo::funcoffs::interpretPopShort_;
-		mov edx, eax;
-		mov eax, edi;
-		call fo::funcoffs::interpretPopLong_;
-		cmp dx, VAR_TYPE_STR2;
-		jz next;
-		cmp dx, VAR_TYPE_STR;
-		jnz end;
-next:
-		mov ebx, eax;
-		mov eax, edi;
-		call fo::funcoffs::interpretGetString_;
-		push eax;
-		push defaultFemaleModelNamePtr;
-		call strcpy_p;
-end:
-		pop edi;
-		pop edx;
-		pop ecx;
-		pop ebx;
-		retn;
+void sf_set_movie_path(OpcodeContext& ctx) {
+	long movieID = ctx.arg(1).rawValue();
+	if (movieID < 0 || movieID >= MaxMovies) return;
+	auto fileName = ctx.arg(0).strValue();
+	if (strlen(fileName) > 64) {
+		ctx.printOpcodeError(stringTooLong, ctx.getOpcodeName());
+		return;
 	}
-}
-
-void __declspec(naked) op_set_movie_path() {
-	__asm {
-		push ebx;
-		push ecx;
-		push edx;
-		push edi;
-		push esi;
-		mov edi, eax;
-		call fo::funcoffs::interpretPopShort_;
-		mov ebx, eax;
-		mov eax, edi;
-		call fo::funcoffs::interpretPopLong_;
-		mov esi, eax;
-		mov eax, edi;
-		call fo::funcoffs::interpretPopShort_;
-		mov edx, eax;
-		mov eax, edi;
-		call fo::funcoffs::interpretPopLong_;
-		cmp dx, VAR_TYPE_STR2;
-		jz next;
-		cmp dx, VAR_TYPE_STR;
-		jnz end;
-next:
-		cmp bx, VAR_TYPE_INT;
-		jnz end;
-		cmp esi, 0;
-		jl end;
-		cmp esi, MaxMovies;
-		jge end;
-		mov ebx, eax;
-		mov eax, edi;
-		call fo::funcoffs::interpretGetString_;
-		push eax;
-		mov eax, esi;
-		mov esi, 65;
-		mul si;
-		add eax, movieNamesPtr;
-		push eax;
-		call strcpy_p;
-end:
-		pop esi;
-		pop edi;
-		pop edx;
-		pop ecx;
-		pop ebx;
-		retn;
-	}
+	strcpy(&MoviePaths[movieID * 65], fileName);
 }
 
 void sf_get_year(OpcodeContext& ctx) {
@@ -181,14 +87,12 @@ void sf_get_year(OpcodeContext& ctx) {
 void __declspec(naked) op_game_loaded() {
 	__asm {
 		push ecx;
-		push edx;
 		push eax;
 		push eax; // script
 		call ScriptHasLoaded;
 		movzx edx, al;
 		pop  eax;
 		_RET_VAL_INT(ecx);
-		pop edx;
 		pop ecx;
 		retn;
 	}
@@ -197,15 +101,13 @@ void __declspec(naked) op_game_loaded() {
 void __declspec(naked) op_set_pipboy_available() {
 	__asm {
 		push ecx;
-		push edx;
 		_GET_ARG_INT(end);
 		cmp  eax, 0;
 		jl   end;
 		cmp  eax, 1;
 		jg   end;
-		mov  byte ptr ds:[FO_VAR_gmovie_played_list + 0x3], al;
+		mov  byte ptr ds:[FO_VAR_gmovie_played_list][0x3], al;
 end:
-		pop edx;
 		pop ecx;
 		retn;
 	}
@@ -795,17 +697,6 @@ end:
 //numbers subgame functions
 void __declspec(naked) op_nb_create_char() {
 	__asm {
-		/*pushad;
-		push eax;
-		call NumbersCreateChar;
-		mov edx, eax;
-		pop eax;
-		mov ecx, eax;
-		call fo::funcoffs::interpretPushLong_;
-		mov eax, ecx;
-		mov edx, VAR_TYPE_INT;
-		call fo::funcoffs::interpretPushShort_;
-		popad;*/
 		retn;
 	}
 }
@@ -959,7 +850,7 @@ end:
 void __declspec(naked) op_modified_ini() {
 	__asm {
 		push ecx;
-		mov edx, modifiedIni;
+		mov  edx, modifiedIni;
 		_RET_VAL_INT(ecx);
 		pop  ecx;
 		retn;

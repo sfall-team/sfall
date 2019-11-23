@@ -29,13 +29,11 @@ namespace script
 
 class OpcodeContext;
 
-// TODO: rewrite all op_* functions using OpcodeContext
+void sf_set_dm_model(OpcodeContext&);
 
-void __declspec() op_set_dm_model();
+void sf_set_df_model(OpcodeContext&);
 
-void __declspec() op_set_df_model();
-
-void __declspec() op_set_movie_path();
+void sf_set_movie_path(OpcodeContext&);
 
 void sf_get_year(OpcodeContext&);
 
