@@ -1,8 +1,8 @@
 #include "main.h"
 
-#include "BugFixes.h"
 #include "Define.h"
 #include "FalloutEngine.h"
+#include "BugFixes.h"
 #include "HookScripts.h"
 #include "LoadGameHook.h"
 #include "ScriptExtender.h"
@@ -69,8 +69,14 @@ void ResetBodyState() {
 	__asm mov weightOnBody, 0;
 }
 
-void MusicVolInitialization() {
+void BugFixesInitialization() {
 	*(DWORD*)_gDialogMusicVol = *(DWORD*)_background_volume; // fix dialog music
+
+	// Restore calling original engine functions from HRP hacks (there is no difference in HRP functions)
+	long long data = 0xC189565153;
+	SafeWriteBytes(0x4D78CC, (BYTE*)&data, 5); // win_get_top_win_
+	data = 0xC389565153;
+	SafeWriteBytes(0x4CA9DC, (BYTE*)&data, 5); // mouse_get_position_
 }
 
 // fix for vanilla negate operator not working on floats

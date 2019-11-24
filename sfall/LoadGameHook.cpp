@@ -282,7 +282,7 @@ static void __declspec(naked) EndLoadHook() {
 }
 
 static void __stdcall GameInitialization() { // OnBeforeGameInit
-	MusicVolInitialization();
+	BugFixesInitialization();
 	InterfaceGmouseHandleHook();
 }
 
