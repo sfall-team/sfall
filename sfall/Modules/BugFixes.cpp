@@ -68,8 +68,14 @@ void ResetBodyState() {
 	__asm mov weightOnBody, 0;
 }
 
-static void MusicVolInitialization() {
+static void Initialization() {
 	*(DWORD*)FO_VAR_gDialogMusicVol = *(DWORD*)FO_VAR_background_volume; // fix dialog music
+
+	// Restore calling original engine functions from HRP hacks (there is no difference in HRP functions)
+	long long data = 0xC189565153;
+	SafeWriteBytes(0x4D78CC, (BYTE*)&data, 5); // win_get_top_win_
+	data = 0xC389565153;
+	SafeWriteBytes(0x4CA9DC, (BYTE*)&data, 5); // mouse_get_position_
 }
 
 // fix for vanilla negate operator not working on floats
@@ -2470,7 +2476,7 @@ void BugFixes::init()
 	#endif
 
 	// Missing game initialization
-	LoadGameHook::OnBeforeGameInit() += MusicVolInitialization;
+	LoadGameHook::OnBeforeGameInit() += Initialization;
 
 	// Fix vanilla negate operator on float values
 	MakeCall(0x46AB68, NegateFixHack);

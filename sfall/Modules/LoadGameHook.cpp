@@ -105,13 +105,12 @@ static void __stdcall GameModeChange(DWORD state) {
 }
 
 void _stdcall SetInLoop(DWORD mode, LoopFlag flag) {
-	DWORD _flag = GetLoopFlags();
 	if (mode) {
 		SetLoopFlag(flag);
 	} else {
 		ClearLoopFlag(flag);
 	}
-	if (GetLoopFlags() != _flag) GameModeChange(0);
+	GameModeChange(0);
 }
 
 void GetSavePath(char* buf, char* ftype) {
@@ -524,6 +523,10 @@ end:
 
 static void __declspec(naked) DialogHook() {
 	__asm {
+		cmp dword ptr [esp + 0x14], 0x45A5C9; // call from op_gsay_end_
+		je  changeMode;
+		jmp fo::funcoffs::gdProcess_;
+changeMode:
 		_InLoop(1, DIALOG);
 		call fo::funcoffs::gdProcess_;
 		_InLoop(0, DIALOG);
