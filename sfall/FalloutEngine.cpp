@@ -881,6 +881,21 @@ long GetScriptLocalVars(long sid) {
 	return (script) ? script->num_local_vars : 0;
 }
 
+// Returns window ID by x/y coordinate (hidden windows are ignored)
+long __fastcall GetTopWindowID(long xPos, long yPos) {
+	WINinfo* win = nullptr;
+	long countWin = *(DWORD*)_num_windows - 1;
+	for (int n = countWin; n >= 0; n--) {
+		win = (WINinfo*)ptr_window[n];
+		if (xPos >= win->wRect.left && xPos <= win->wRect.right && yPos >= win->wRect.top && yPos <= win->wRect.bottom) {
+			if (!(win->flags & WIN_Hidden)) {
+				break;
+			}
+		}
+	}
+	return win->wID;
+}
+
 void __fastcall RegisterObjectCall(long* target, long* source, void* func, long delay) {
 	__asm {
 		mov  eax, ecx;

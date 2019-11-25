@@ -228,17 +228,8 @@ static long __stdcall gmouse_handle_event_hook() {
 
 static void __declspec(naked) gmouse_bk_process_hook() {
 	__asm {
-		call win_get_top_win_;
-		cmp  eax, ds:[_display_win];
-		jnz  checkFlag;
-		retn;
-checkFlag:
-		call GNW_find_;
-		test [eax + 4], WIN_Hidden; // window flags
-		jz   skip;
-		mov  eax, ds:[_display_win]; // window is hidden, so return the number of the display_win
-skip:
-		retn;
+		mov ecx, eax;
+		jmp GetTopWindowID;
 	}
 }
 

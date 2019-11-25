@@ -1045,6 +1045,8 @@ long __stdcall ScrPtr(long scriptId, TScript** scriptPtr);
 // Returns the number of local variables of the object script
 long GetScriptLocalVars(long sid);
 
+long __fastcall GetTopWindowID(long xPos, long yPos);
+
 void __fastcall RegisterObjectCall(long* target, long* source, void* func, long delay);
 
 long __fastcall ScrGetLocalVar(long sid, long varId, long* value);
