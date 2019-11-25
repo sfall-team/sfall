@@ -583,19 +583,9 @@ static long gmouse_handle_event_hook() {
 }
 
 static void __declspec(naked) gmouse_bk_process_hook() {
-	using namespace fo::WinFlags;
 	__asm {
-		call fo::funcoffs::win_get_top_win_;
-		cmp  eax, ds:[FO_VAR_display_win];
-		jnz  checkFlag;
-		retn;
-checkFlag:
-		call fo::funcoffs::GNW_find_;
-		test [eax + 4], Hidden; // window flags
-		jz   skip;
-		mov  eax, ds:[FO_VAR_display_win]; // window is hidden, so return the number of the display_win
-skip:
-		retn;
+		mov ecx, eax;
+		jmp fo::GetTopWindowID;
 	}
 }
 

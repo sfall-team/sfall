@@ -650,6 +650,23 @@ static void __declspec(naked) gdialog_bk_hook() {
 	}
 }
 
+static void __declspec(naked) gdialogUpdatePartyStatus_hook1() {
+	__asm {
+		push edx;
+		_InLoop2(1, SPECIAL);
+		pop  edx;
+		jmp  fo::funcoffs::gdialog_window_destroy_;
+	}
+}
+
+static void __declspec(naked) gdialogUpdatePartyStatus_hook0() {
+	__asm {
+		call fo::funcoffs::gdialog_window_create_;
+		_InLoop2(0, SPECIAL);
+		retn;
+	}
+}
+
 void LoadGameHook::init() {
 	saveInCombatFix = GetConfigInt("Misc", "SaveInCombatFix", 1);
 	if (saveInCombatFix > 2) saveInCombatFix = 0;
@@ -710,7 +727,10 @@ void LoadGameHook::init() {
 	HookCall(0x476AC6, setup_move_timer_win_Hook); // before init win
 	HookCall(0x477067, exit_move_timer_win_Hook);
 
-	HookCall(0x447A7E, gdialog_bk_hook); // Set the Special flag before animating the dialog interface when switching from dialog mode to barter
+	// Set and unset the Special flag of game mode when animating the dialog interface panel
+	HookCall(0x447A7E, gdialog_bk_hook); // set when switching from dialog mode to barter mode (unset when entering barter)
+	HookCall(0x4457B1, gdialogUpdatePartyStatus_hook1); // set when a party member joins/leaves
+	HookCall(0x4457BC, gdialogUpdatePartyStatus_hook0); // unset
 }
 
 Delegate<>& LoadGameHook::OnBeforeGameInit() {
