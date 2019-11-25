@@ -69,7 +69,8 @@ void ResetBodyState() {
 	__asm mov weightOnBody, 0;
 }
 
-void BugFixesInitialization() {
+// Missing game initialization
+void BugFixes_Initialization() {
 	*(DWORD*)_gDialogMusicVol = *(DWORD*)_background_volume; // fix dialog music
 
 	// Restore calling original engine functions from HRP hacks (there is no difference in HRP functions)

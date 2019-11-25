@@ -55,8 +55,8 @@
 
 DWORD LoadGameHook_LootTarget = 0;
 
-static DWORD InLoop = 0;
-static DWORD SaveInCombatFix;
+static DWORD inLoop = 0;
+static DWORD saveInCombatFix;
 static bool mapLoaded = false;
 
 bool IsMapLoaded() {
@@ -64,27 +64,27 @@ bool IsMapLoaded() {
 }
 
 DWORD InWorldMap() {
-	return (InLoop & WORLDMAP) ? 1 : 0;
+	return (inLoop & WORLDMAP) ? 1 : 0;
 }
 
 DWORD InCombat() {
-	return (InLoop & COMBAT) ? 1 : 0;
+	return (inLoop & COMBAT) ? 1 : 0;
 }
 
 DWORD InDialog() {
-	return (InLoop & DIALOG) ? 1 : 0;
+	return (inLoop & DIALOG) ? 1 : 0;
 }
 
 DWORD GetLoopFlags() {
-	return InLoop;
+	return inLoop;
 }
 
 void SetLoopFlag(LoopFlag flag) {
-	InLoop |= flag;
+	inLoop |= flag;
 }
 
 void ClearLoopFlag(LoopFlag flag) {
-	InLoop &= ~flag;
+	inLoop &= ~flag;
 }
 
 static void _stdcall ResetState(DWORD onLoad) {
@@ -99,7 +99,7 @@ static void _stdcall ResetState(DWORD onLoad) {
 	PerksReset();
 	Combat_OnGameLoad();
 	Skills_OnGameLoad();
-	InLoop = 0;
+	inLoop = 0;
 	ClearSavPrototypes();
 	InventoryReset();
 	RegAnimCombatCheck(1);
@@ -158,9 +158,9 @@ errorSave:
 
 static char SaveFailMsg[128];
 static DWORD _stdcall CombatSaveTest() {
-	if (!SaveInCombatFix && !IsNpcControlled()) return 1;
-	if (InLoop & COMBAT) {
-		if (SaveInCombatFix == 2 || IsNpcControlled() || !(InLoop & PCOMBAT)) {
+	if (!saveInCombatFix && !IsNpcControlled()) return 1;
+	if (inLoop & COMBAT) {
+		if (saveInCombatFix == 2 || IsNpcControlled() || !(inLoop & PCOMBAT)) {
 			DisplayConsoleMessage(SaveFailMsg);
 			return 0;
 		}
@@ -184,9 +184,9 @@ static void __declspec(naked) SaveGame() {
 		pop  edx; // recall Mode parameter (pop eax)
 		jz   end;
 		mov  eax, edx;
-		or InLoop, SAVEGAME;
+		or inLoop, SAVEGAME;
 		call SaveGame_;
-		and InLoop, (-1 ^ SAVEGAME);
+		and inLoop, (-1 ^ SAVEGAME);
 		cmp  eax, 1;
 		jne  end;
 		call SaveGame2; // save sfall.sav
@@ -257,9 +257,9 @@ static void __declspec(naked) LoadGame() {
 	__asm {
 		push ecx;
 		push edx;
-		or InLoop, LOADGAME;
+		or inLoop, LOADGAME;
 		call LoadGame_;
-		and InLoop, (-1 ^ LOADGAME);
+		and inLoop, (-1 ^ LOADGAME);
 		cmp  eax, 1;
 		jne  end;
 		call LoadGame2_After;
@@ -282,7 +282,7 @@ static void __declspec(naked) EndLoadHook() {
 }
 
 static void __stdcall GameInitialization() { // OnBeforeGameInit
-	BugFixesInitialization();
+	BugFixes_Initialization();
 	InterfaceGmouseHandleHook();
 }
 
@@ -370,19 +370,19 @@ static void __declspec(naked) game_close_hook() {
 
 static void __declspec(naked) WorldMapHook() {
 	__asm {
-		or InLoop, WORLDMAP;
+		or inLoop, WORLDMAP;
 		xor  eax, eax; // unused
 		call wmWorldMapFunc_;
-		and InLoop, (-1 ^ WORLDMAP);
+		and inLoop, (-1 ^ WORLDMAP);
 		retn;
 	}
 }
 
 static void __declspec(naked) WorldMapHook2() {
 	__asm {
-		or InLoop, WORLDMAP;
+		or inLoop, WORLDMAP;
 		call wmWorldMapFunc_;
-		and InLoop, (-1 ^ WORLDMAP);
+		and inLoop, (-1 ^ WORLDMAP);
 		retn;
 	}
 }
@@ -391,12 +391,12 @@ static void __declspec(naked) CombatHook() {
 	__asm {
 		pushadc;
 		call AICombatStart;
-		or InLoop, COMBAT;
+		or inLoop, COMBAT;
 		popadc;
 		call combat_;
 		pushadc;
 		call AICombatEnd;
-		and InLoop, (-1 ^ COMBAT);
+		and inLoop, (-1 ^ COMBAT);
 		popadc;
 		retn;
 	}
@@ -404,18 +404,18 @@ static void __declspec(naked) CombatHook() {
 
 static void __declspec(naked) PlayerCombatHook() {
 	__asm {
-		or InLoop, PCOMBAT;
+		or inLoop, PCOMBAT;
 		call combat_input_;
-		and InLoop, (-1 ^ PCOMBAT);
+		and inLoop, (-1 ^ PCOMBAT);
 		retn;
 	}
 }
 
 static void __declspec(naked) EscMenuHook() {
 	__asm {
-		or InLoop, ESCMENU;
+		or inLoop, ESCMENU;
 		call do_optionsFunc_;
-		and InLoop, (-1 ^ ESCMENU);
+		and inLoop, (-1 ^ ESCMENU);
 		retn;
 	}
 }
@@ -423,27 +423,27 @@ static void __declspec(naked) EscMenuHook() {
 static void __declspec(naked) EscMenuHook2() {
 	//Bloody stupid watcom compiler optimizations...
 	__asm {
-		or InLoop, ESCMENU;
+		or inLoop, ESCMENU;
 		call do_options_;
-		and InLoop, (-1 ^ ESCMENU);
+		and inLoop, (-1 ^ ESCMENU);
 		retn;
 	}
 }
 
 static void __declspec(naked) OptionsMenuHook() {
 	__asm {
-		or InLoop, OPTIONS;
+		or inLoop, OPTIONS;
 		call do_prefscreen_;
-		and InLoop, (-1 ^ OPTIONS);
+		and inLoop, (-1 ^ OPTIONS);
 		retn;
 	}
 }
 
 static void __declspec(naked) HelpMenuHook() {
 	__asm {
-		or InLoop, HELP;
+		or inLoop, HELP;
 		call game_help_;
-		and InLoop, (-1 ^ HELP);
+		and inLoop, (-1 ^ HELP);
 		retn;
 	}
 }
@@ -451,7 +451,7 @@ static void __declspec(naked) HelpMenuHook() {
 static void __declspec(naked) CharacterHook() {
 	__asm {
 		pushadc;
-		or InLoop, CHARSCREEN;
+		or inLoop, CHARSCREEN;
 		call PerksEnterCharScreen;
 		popadc;
 		call editor_design_;
@@ -463,7 +463,7 @@ static void __declspec(naked) CharacterHook() {
 success:
 		call PerksAcceptCharScreen;
 end:
-		and InLoop, (-1 ^ CHARSCREEN);
+		and inLoop, (-1 ^ CHARSCREEN);
 		mov tagSkill4LevelBase, -1; // for fixing Tag! perk exploit
 		popadc;
 		retn;
@@ -472,45 +472,49 @@ end:
 
 static void __declspec(naked) DialogHook() {
 	__asm {
-		or InLoop, DIALOG;
+		cmp dword ptr [esp + 0x14], 0x45A5C9; // call from op_gsay_end_
+		je  changeMode;
+		jmp gdProcess_;
+changeMode:
+		or inLoop, DIALOG;
 		call gdProcess_;
-		and InLoop, (-1 ^ DIALOG);
+		and inLoop, (-1 ^ DIALOG);
 		retn;
 	}
 }
 
 static void __declspec(naked) PipboyHook() {
 	__asm {
-		or InLoop, PIPBOY;
+		or inLoop, PIPBOY;
 		call pipboy_;
-		and InLoop, (-1 ^ PIPBOY);
+		and inLoop, (-1 ^ PIPBOY);
 		retn;
 	}
 }
 
 static void __declspec(naked) SkilldexHook() {
 	__asm {
-		or InLoop, SKILLDEX;
+		or inLoop, SKILLDEX;
 		call skilldex_select_;
-		and InLoop, (-1 ^ SKILLDEX);
+		and inLoop, (-1 ^ SKILLDEX);
 		retn;
 	}
 }
 
 static void __declspec(naked) HandleInventoryHook() {
 	__asm {
-		or InLoop, INVENTORY;
+		or inLoop, INVENTORY;
 		call handle_inventory_;
-		and InLoop, (-1 ^ INVENTORY);
+		and inLoop, (-1 ^ INVENTORY);
 		retn;
 	}
 }
 
 static void __declspec(naked) UseInventoryOnHook() {
 	__asm {
-		or InLoop, INTFACEUSE;
+		or inLoop, INTFACEUSE;
 		call use_inventory_on_;
-		and InLoop, (-1 ^ INTFACEUSE);
+		and inLoop, (-1 ^ INTFACEUSE);
 		retn;
 	}
 }
@@ -518,9 +522,9 @@ static void __declspec(naked) UseInventoryOnHook() {
 static void __declspec(naked) LootContainerHook() {
 	__asm {
 		mov  LoadGameHook_LootTarget, edx;
-		or InLoop, INTFACELOOT;
+		or inLoop, INTFACELOOT;
 		call loot_container_;
-		and InLoop, (-1 ^ INTFACELOOT);
+		and inLoop, (-1 ^ INTFACELOOT);
 		jmp  ResetBodyState; // reset object pointer used in calculating the weight/size of equipped and hidden items on NPCs after exiting loot/barter screens
 		//retn;
 	}
@@ -528,10 +532,10 @@ static void __declspec(naked) LootContainerHook() {
 
 static void __declspec(naked) BarterInventoryHook() {
 	__asm {
-		or InLoop, BARTER;
+		or inLoop, BARTER;
 		push [esp + 4];
 		call barter_inventory_;
-		and InLoop, (-1 ^ BARTER);
+		and inLoop, (-1 ^ BARTER);
 		call ResetBodyState;
 		retn 4;
 	}
@@ -539,9 +543,9 @@ static void __declspec(naked) BarterInventoryHook() {
 
 static void __declspec(naked) AutomapHook() {
 	__asm {
-		or InLoop, AUTOMAP;
+		or inLoop, AUTOMAP;
 		call automap_;
-		and InLoop, (-1 ^ AUTOMAP);
+		and inLoop, (-1 ^ AUTOMAP);
 		retn;
 	}
 }
@@ -551,7 +555,7 @@ static void __declspec(naked) DialogReviewInitHook() {
 		call gdReviewInit_;
 		test eax, eax;
 		jnz  error;
-		or InLoop, DIALOGVIEW;
+		or inLoop, DIALOGVIEW;
 		xor eax, eax;
 error:
 		retn;
@@ -560,28 +564,28 @@ error:
 
 static void __declspec(naked) DialogReviewExitHook() {
 	__asm {
-		and InLoop, (-1 ^ DIALOGVIEW);
+		and inLoop, (-1 ^ DIALOGVIEW);
 		jmp gdReviewExit_;
 	}
 }
 
 static void __declspec(naked) setup_move_timer_win_Hook() {
 	__asm {
-		or InLoop, COUNTERWIN;
+		or inLoop, COUNTERWIN;
 		jmp text_curr_;
 	}
 }
 
 static void __declspec(naked) exit_move_timer_win_Hook() {
 	__asm {
-		and InLoop, (-1 ^ COUNTERWIN);
+		and inLoop, (-1 ^ COUNTERWIN);
 		jmp  win_delete_;
 	}
 }
 
 void LoadGameHookInit() {
-	SaveInCombatFix = GetConfigInt("Misc", "SaveInCombatFix", 1);
-	if (SaveInCombatFix > 2) SaveInCombatFix = 0;
+	saveInCombatFix = GetConfigInt("Misc", "SaveInCombatFix", 1);
+	if (saveInCombatFix > 2) saveInCombatFix = 0;
 	Translate("sfall", "SaveInCombat", "Cannot save at this time.", SaveFailMsg);
 	Translate("sfall", "SaveSfallDataFail", "ERROR saving extended savegame information! Check if other programs interfere with savegame files/folders and try again!", SaveSfallDataFailMsg);
 
