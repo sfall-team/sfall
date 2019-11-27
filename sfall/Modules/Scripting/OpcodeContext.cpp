@@ -28,13 +28,14 @@ namespace script
 {
 
 OpcodeContext::OpcodeContext(fo::Program* program, DWORD opcode, int argNum, bool hasReturn)
-		: _program(program), _opcode(opcode), _numArgs(argNum), _hasReturn(hasReturn), _argShift(0)
+		: _program(program), _opcode(opcode), _numArgs(argNum), _hasReturn(hasReturn), _errorVal(-1), _argShift(0)
 {
 	assert(argNum < OP_MAX_ARGUMENTS);
 }
 
 OpcodeContext::OpcodeContext(fo::Program* program, const SfallOpcodeInfo* info)
-		: _program(program), _opcode(info->opcode), _numArgs(info->argNum), _hasReturn(info->hasReturn), _opcodeName(info->name), _argShift(0)
+		: _program(program), _opcode(info->opcode), _numArgs(info->argNum), _hasReturn(info->hasReturn),
+		  _opcodeName(info->name), _errorVal(info->errValue), _argShift(0)
 {
 	assert(_numArgs < OP_MAX_ARGUMENTS);
 }
@@ -44,7 +45,15 @@ const char* OpcodeContext::getOpcodeName() const {
 }
 
 const char* OpcodeContext::getMetaruleName() const {
-	return metarule->name;
+	return _metarule->name;
+}
+
+const SfallMetarule* OpcodeContext::getMetarule() const {
+	return _metarule;
+}
+
+void OpcodeContext::setMetarule(const SfallMetarule* metarule) {
+	_metarule = metarule;
 }
 
 int OpcodeContext::numArgs() const {
@@ -145,7 +154,7 @@ void OpcodeContext::handleOpcode(ScriptingFunctionHandler func, const OpcodeArgu
 	if (!_numArgs || validateArguments(argTypes, _opcodeName)) {
 		func(*this);
 	} else if (_hasReturn) {
-		setReturn(-1); // is a common practice to return -1 in case of errors in fallout engine
+		setReturn(_errorVal); // is a common practice to return -1 in case of errors in fallout engine
 	}
 
 	if (_hasReturn) _pushReturnValue();

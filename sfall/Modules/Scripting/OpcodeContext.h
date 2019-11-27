@@ -37,7 +37,7 @@ typedef void(*ScriptingFunctionHandler)(OpcodeContext&);
 
 // The type of argument, not the same as actual data type. Useful for validation.
 enum OpcodeArgumentType {
-	ARG_ANY = 0, // no validation
+	ARG_ANY = 0, // no validation (default)
 	ARG_INT,     // integer only
 	ARG_NUMBER,  // float OR integer
 	ARG_STRING,  // string only
@@ -61,6 +61,9 @@ typedef struct SfallOpcodeInfo {
 	// has return value or not
 	bool hasReturn;
 
+	// default return value when an error occurs during validation of function arguments
+	long errValue;
+
 	// argument validation settings
 	OpcodeArgumentType argValidation[OP_MAX_ARGUMENTS];
 } SfallOpcodeInfo;
@@ -79,6 +82,9 @@ typedef struct SfallMetarule {
 	// maximum number of arguments
 	short maxArgs;
 
+	// default return value when an error occurs during validation of function arguments
+	long errValue;
+
 	// argument validation settings
 	OpcodeArgumentType argValidation[OP_MAX_ARGUMENTS];
 } SfallMetarule;
@@ -90,15 +96,15 @@ public:
 	// opcode - opcode number
 	// argNum - number of arguments for this opcode
 	// hasReturn - true if opcode has return value (is expression)
-	// opcodeName - name of a function (for logging)
 	OpcodeContext(fo::Program* program, DWORD opcode, int argNum, bool hasReturn);
 	OpcodeContext(fo::Program* program, const SfallOpcodeInfo* info);
 
 	const char* getOpcodeName() const;
 	const char* getMetaruleName() const;
 
-	// currently executed metarule func
-	const SfallMetarule* metarule;
+	// currently executed metarule function
+	void setMetarule(const SfallMetarule* metarule);
+	const SfallMetarule* getMetarule() const;
 
 	// number of arguments, possibly reduced by argShift
 	int numArgs() const;
@@ -145,7 +151,6 @@ public:
 	// Handle opcodes with argument validation
 	// func - opcode handler
 	// argTypes - argument types for validation
-	// opcodeName - name of a function (for logging)
 	void handleOpcode(ScriptingFunctionHandler func, const OpcodeArgumentType argTypes[]);
 
 	// handles opcode using default instance
@@ -165,14 +170,16 @@ private:
 
 	fo::Program* _program;
 	DWORD _opcode;
+	const char* _opcodeName; // name of opcode function (for error logging)
 
-	const char* _opcodeName;
+	const SfallMetarule* _metarule;
 
 	int _numArgs;
 	bool _hasReturn;
 	int _argShift;
 	std::array<ScriptValue, OP_MAX_ARGUMENTS> _args;
 	ScriptValue _ret;
+	long _errorVal; // error value for incorrect arguments
 };
 
 }

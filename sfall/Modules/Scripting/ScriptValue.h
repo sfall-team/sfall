@@ -87,7 +87,7 @@ private:
 		fo::GameObject* gObj;
 	} _val;
 
-	DataType _type; // TODO: replace with enum class
+	DataType _type;
 };
 
 }
