@@ -309,7 +309,7 @@ extern DWORD* ptr_cursor_line;
 extern BYTE*  ptr_DARK_GREY_Color;
 extern BYTE*  ptr_DarkGreenColor;
 extern BYTE*  ptr_DarkGreenGreyColor;
-extern DWORD* ptr_dialog_target;
+extern TGameObj** ptr_dialog_target;
 extern DWORD* ptr_dialog_target_is_party;
 extern DWORD* ptr_drugInfoList;
 extern DWORD* ptr_edit_win;
