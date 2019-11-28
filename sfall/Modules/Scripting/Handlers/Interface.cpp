@@ -36,14 +36,14 @@ void __declspec(naked) op_input_funcs_available() {
 	__asm {
 		push ecx;
 		mov  edx, 1; // They're always available from 2.9 on
-		_RET_VAL_INT(ecx);
+		_RET_VAL_INT;
 		pop  ecx;
 		retn;
 	}
 }
 
 void sf_key_pressed(OpcodeContext& ctx) {
-	ctx.setReturn(static_cast<int>(KeyDown(ctx.arg(0).rawValue())));
+	ctx.setReturn(KeyDown(ctx.arg(0).rawValue()));
 }
 
 void __declspec(naked) op_tap_key() {
@@ -67,7 +67,7 @@ void __declspec(naked) op_get_mouse_x() {
 		push ecx;
 		mov  edx, ds:[FO_VAR_mouse_x_];
 		add  edx, ds:[FO_VAR_mouse_hotx];
-		_RET_VAL_INT(ecx);
+		_RET_VAL_INT;
 		pop  ecx;
 		retn;
 	}
@@ -78,7 +78,7 @@ void __declspec(naked) op_get_mouse_y() {
 		push ecx;
 		mov  edx, ds:[FO_VAR_mouse_y_];
 		add  edx, ds:[FO_VAR_mouse_hoty];
-		_RET_VAL_INT(ecx);
+		_RET_VAL_INT;
 		pop  ecx;
 		retn;
 	}
@@ -97,7 +97,7 @@ void __declspec(naked) op_get_window_under_mouse() {
 	__asm {
 		push ecx;
 		mov  edx, ds:[FO_VAR_last_button_winID];
-		_RET_VAL_INT(ecx);
+		_RET_VAL_INT;
 		pop  ecx;
 		retn;
 	}
@@ -109,7 +109,7 @@ void __declspec(naked) op_get_screen_width() {
 		mov  edx, ds:[FO_VAR_scr_size + 8]; // _scr_size.offx
 		sub  edx, ds:[FO_VAR_scr_size];     // _scr_size.x
 		inc  edx;
-		_RET_VAL_INT(ecx);
+		_RET_VAL_INT;
 		pop  ecx;
 		retn;
 	}
@@ -121,7 +121,7 @@ void __declspec(naked) op_get_screen_height() {
 		mov  edx, ds:[FO_VAR_scr_size + 12]; // _scr_size.offy
 		sub  edx, ds:[FO_VAR_scr_size + 4];  // _scr_size.y
 		inc  edx;
-		_RET_VAL_INT(ecx);
+		_RET_VAL_INT;
 		pop  ecx;
 		retn;
 	}
@@ -153,7 +153,7 @@ void __declspec(naked) op_get_viewport_x() {
 	__asm {
 		push ecx;
 		mov  edx, ds:[FO_VAR_wmWorldOffsetX];
-		_RET_VAL_INT(ecx);
+		_RET_VAL_INT;
 		pop  ecx;
 		retn;
 	}
@@ -163,7 +163,7 @@ void __declspec(naked) op_get_viewport_y() {
 	__asm {
 		push ecx;
 		mov  edx, ds:[FO_VAR_wmWorldOffsetY];
-		_RET_VAL_INT(ecx);
+		_RET_VAL_INT;
 		pop  ecx;
 		retn;
 	}
@@ -198,7 +198,7 @@ void sf_add_iface_tag(OpcodeContext &ctx) {
 }
 
 void sf_show_iface_tag(OpcodeContext &ctx) {
-	int tag = ctx.arg(0).asInt();
+	int tag = ctx.arg(0).rawValue();
 	if (tag == 3 || tag == 4) {
 		__asm mov  eax, tag;
 		__asm call fo::funcoffs::pc_flag_on_;
@@ -208,7 +208,7 @@ void sf_show_iface_tag(OpcodeContext &ctx) {
 }
 
 void sf_hide_iface_tag(OpcodeContext &ctx) {
-	int tag = ctx.arg(0).asInt();
+	int tag = ctx.arg(0).rawValue();
 	if (tag == 3 || tag == 4) {
 		__asm mov  eax, tag;
 		__asm call fo::funcoffs::pc_flag_off_;
@@ -219,7 +219,7 @@ void sf_hide_iface_tag(OpcodeContext &ctx) {
 
 void sf_is_iface_tag_active(OpcodeContext &ctx) {
 	bool result = false;
-	int tag = ctx.arg(0).asInt();
+	int tag = ctx.arg(0).rawValue();
 	if (tag >= 0 && tag < 5) {
 		if (tag == 1 || tag == 2) { // Poison/Radiation
 			tag += 2;
@@ -256,12 +256,7 @@ void sf_intface_hide(OpcodeContext& ctx) {
 }
 
 void sf_intface_is_hidden(OpcodeContext& ctx) {
-	int isHidden;
-	__asm {
-		call fo::funcoffs::intface_is_hidden_;
-		mov isHidden, eax;
-	}
-	ctx.setReturn(isHidden);
+	ctx.setReturn(fo::func::intface_is_hidden());
 }
 
 void sf_tile_refresh_display(OpcodeContext& ctx) {
@@ -269,16 +264,11 @@ void sf_tile_refresh_display(OpcodeContext& ctx) {
 }
 
 void sf_get_cursor_mode(OpcodeContext& ctx) {
-	int cursorMode;
-	__asm {
-		call fo::funcoffs::gmouse_3d_get_mode_;
-		mov  cursorMode, eax;
-	}
-	ctx.setReturn(cursorMode);
+	ctx.setReturn(fo::func::gmouse_3d_get_mode());
 }
 
 void sf_set_cursor_mode(OpcodeContext& ctx) {
-	fo::func::gmouse_3d_set_mode(ctx.arg(0).asInt());
+	fo::func::gmouse_3d_set_mode(ctx.arg(0).rawValue());
 }
 
 void sf_display_stats(OpcodeContext& ctx) {
@@ -289,13 +279,14 @@ void sf_display_stats(OpcodeContext& ctx) {
 }
 
 void sf_set_iface_tag_text(OpcodeContext& ctx) {
-	int boxTag = ctx.arg(0).asInt();
+	int boxTag = ctx.arg(0).rawValue();
 	int maxBox = BarBoxes::MaxBox();
 
 	if (boxTag > 4 && boxTag <= maxBox) {
-		BarBoxes::SetText(boxTag, ctx.arg(1).strValue(), ctx.arg(2).asInt());
+		BarBoxes::SetText(boxTag, ctx.arg(1).strValue(), ctx.arg(2).rawValue());
 	} else {
 		ctx.printOpcodeError("%s() - tag value must be in the range of 5 to %d.", ctx.getMetaruleName(), maxBox);
+		ctx.setReturn(-1);
 	}
 }
 
@@ -333,22 +324,23 @@ void sf_inventory_redraw(OpcodeContext& ctx) {
 void sf_dialog_message(OpcodeContext& ctx) {
 	DWORD loopFlag = GetLoopFlags();
 	if ((loopFlag & DIALOGVIEW) == 0 && (loopFlag & DIALOG)) {
-		const char* message = ctx.arg(0).asString();
+		const char* message = ctx.arg(0).strValue();
 		fo::func::gdialogDisplayMsg(message);
 	}
 }
 
 void sf_create_win(OpcodeContext& ctx) {
-	int flags = (ctx.arg(5).type() != DataType::NONE)
-		? ctx.arg(5).asInt()
+	int flags = (ctx.numArgs() > 5)
+		? ctx.arg(5).rawValue()
 		: fo::WinFlags::MoveOnTop;
 
-	if (fo::func::createWindow(ctx.arg(0).asString(),
-		ctx.arg(1).asInt(), ctx.arg(2).asInt(), // y, x
-		ctx.arg(3).asInt(), ctx.arg(4).asInt(), // w, h
+	if (fo::func::createWindow(ctx.arg(0).strValue(),
+		ctx.arg(1).rawValue(), ctx.arg(2).rawValue(), // y, x
+		ctx.arg(3).rawValue(), ctx.arg(4).rawValue(), // w, h
 		256, flags) == -1)
 	{
 		ctx.printOpcodeError("%s() - couldn't create window.", ctx.getMetaruleName());
+		ctx.setReturn(-1);
 	}
 }
 
@@ -422,16 +414,16 @@ void sf_set_window_flag(OpcodeContext& ctx) {
 	}
 }
 
-static void DrawImage(OpcodeContext& ctx, bool isScaled) {
+static long DrawImage(OpcodeContext& ctx, bool isScaled) {
 	if (*(DWORD*)FO_VAR_currentWindow == -1) {
 		ctx.printOpcodeError("%s() - no created/selected window for the image.", ctx.getMetaruleName());
-		return;
+		return 0;
 	}
 	long direction = 0;
 	const char* file = nullptr;
 	if (ctx.arg(0).isInt()) { // art id
 		long fid = ctx.arg(0).rawValue();
-		if (fid == -1) return;
+		if (fid == -1) return -1;
 		long _fid = fid & 0xFFFFFFF;
 		file = fo::func::art_get_name(_fid); // .frm
 		if (_fid >> 24 == fo::OBJ_TYPE_CRITTER) {
@@ -441,12 +433,12 @@ static void DrawImage(OpcodeContext& ctx, bool isScaled) {
 			}
 		}
 	} else {
-		file = ctx.arg(0).strValue(); // path to frm file
+		file = ctx.arg(0).strValue(); // path to frm/pcx file
 	}
 	fo::FrmFile* frmPtr = nullptr;
 	if (fo::func::load_frame(file, &frmPtr)) {
 		ctx.printOpcodeError("%s() - cannot open the file: %s", ctx.getMetaruleName(), file);
-		return;
+		return -1;
 	}
 	fo::FrmFrameData* framePtr = (fo::FrmFrameData*)&frmPtr->width;
 	if (direction > 0 && direction < 6) {
@@ -483,7 +475,7 @@ static void DrawImage(OpcodeContext& ctx, bool isScaled) {
 			} else if (s_height <= -1 && s_width > 0) {
 				s_height = s_width * framePtr->height / framePtr->width;
 			}
-			if (s_width <= 0 || s_height <= 0) return;
+			if (s_width <= 0 || s_height <= 0) return 0;
 
 			long w_width = fo::func::windowWidth();
 			long xy_pos = (y * w_width) + x;
@@ -496,25 +488,28 @@ static void DrawImage(OpcodeContext& ctx, bool isScaled) {
 		mov  eax, frmPtr;
 		call fo::funcoffs::mem_free_;
 	}
+	return 1;
 }
 
 void sf_draw_image(OpcodeContext& ctx) {
-	DrawImage(ctx, false);
+	ctx.setReturn(DrawImage(ctx, false));
 }
 
 void sf_draw_image_scaled(OpcodeContext& ctx) {
-	DrawImage(ctx, true);
+	ctx.setReturn(DrawImage(ctx, true));
 }
 
 void sf_unwield_slot(OpcodeContext& ctx) {
 	fo::InvenType slot = static_cast<fo::InvenType>(ctx.arg(1).rawValue());
 	if (slot < fo::INVEN_TYPE_WORN || slot > fo::INVEN_TYPE_LEFT_HAND) {
 		ctx.printOpcodeError("%s() - incorrect slot number.", ctx.getMetaruleName());
+		ctx.setReturn(-1);
 		return;
 	}
-	fo::GameObject* critter = ctx.arg(0).asObject();
+	fo::GameObject* critter = ctx.arg(0).object();
 	if (critter->Type() != fo::ObjType::OBJ_TYPE_CRITTER) {
 		ctx.printOpcodeError("%s() - the object is not a critter.", ctx.getMetaruleName());
+		ctx.setReturn(-1);
 		return;
 	}
 	bool isDude = (critter == fo::var::obj_dude);

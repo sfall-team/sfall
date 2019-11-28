@@ -87,12 +87,11 @@ void sf_get_year(OpcodeContext& ctx) {
 void __declspec(naked) op_game_loaded() {
 	__asm {
 		push ecx;
-		push eax;
 		push eax; // script
 		call ScriptHasLoaded;
 		movzx edx, al;
-		pop  eax;
-		_RET_VAL_INT(ecx);
+		mov  eax, ebx;
+		_RET_VAL_INT;
 		pop ecx;
 		retn;
 	}
@@ -108,7 +107,7 @@ void __declspec(naked) op_set_pipboy_available() {
 		jg   end;
 		mov  byte ptr ds:[FO_VAR_gmovie_played_list][0x3], al;
 end:
-		pop ecx;
+		pop  ecx;
 		retn;
 	}
 }
@@ -192,7 +191,7 @@ void sf_set_object_knockback(OpcodeContext& ctx) {
 		mode = 2;
 		break;
 	}
-	fo::GameObject* object = ctx.arg(0).asObject();
+	fo::GameObject* object = ctx.arg(0).object();
 	if (mode) {
 		if (object->Type() != fo::OBJ_TYPE_CRITTER) {
 			ctx.printOpcodeError("%s() - the object is not a critter.", ctx.getOpcodeName());
@@ -217,7 +216,7 @@ void sf_remove_object_knockback(OpcodeContext& ctx) {
 		mode = 2;
 		break;
 	}
-	KnockbackRemoveMod(ctx.arg(0).asObject(), mode);
+	KnockbackRemoveMod(ctx.arg(0).object(), mode);
 }
 
 void __declspec(naked) op_get_kill_counter2() {
@@ -290,7 +289,7 @@ void __declspec(naked) op_active_hand() {
 	__asm {
 		push ecx;
 		mov  edx, dword ptr ds:[FO_VAR_itemCurrentItem];
-		_RET_VAL_INT(ecx);
+		_RET_VAL_INT;
 		pop  ecx;
 		retn;
 	}
@@ -307,7 +306,7 @@ void __declspec(naked) op_eax_available() {
 	__asm {
 		push ecx;
 		xor  edx, edx
-		_RET_VAL_INT(ecx);
+		_RET_VAL_INT;
 		pop  ecx;
 		retn;
 	}
@@ -483,11 +482,10 @@ void sf_get_ini_string(OpcodeContext& ctx) {
 void __declspec(naked) op_get_uptime() {
 	__asm {
 		push ecx;
-		push eax;
 		call GetTickCount;
 		mov  edx, eax;
-		pop  eax;
-		_RET_VAL_INT(ecx);
+		mov  eax, ebx;
+		_RET_VAL_INT;
 		pop  ecx;
 		retn;
 	}
@@ -504,7 +502,7 @@ end:
 	}
 }
 
-void __declspec(naked) op_set_hp_per_level_mod() { // rewrite to c++
+void __declspec(naked) op_set_hp_per_level_mod() {
 	__asm {
 		push ecx;
 		_GET_ARG_INT(end);
@@ -583,23 +581,23 @@ end:
 static const char* valueOutRange = "%s() - argument values out of range.";
 
 void sf_set_critical_table(OpcodeContext& ctx) {
-	DWORD critter = ctx.arg(0).asInt(),
-		bodypart  = ctx.arg(1).asInt(),
-		slot      = ctx.arg(2).asInt(),
-		element   = ctx.arg(3).asInt();
+	DWORD critter = ctx.arg(0).rawValue(),
+		bodypart  = ctx.arg(1).rawValue(),
+		slot      = ctx.arg(2).rawValue(),
+		element   = ctx.arg(3).rawValue();
 
 	if (critter >= Criticals::critTableCount || bodypart >= 9 || slot >= 6 || element >= 7) {
 		ctx.printOpcodeError(valueOutRange, ctx.getOpcodeName());
 	} else {
-		Criticals::SetCriticalTable(critter, bodypart, slot, element, ctx.arg(4).asInt());
+		Criticals::SetCriticalTable(critter, bodypart, slot, element, ctx.arg(4).rawValue());
 	}
 }
 
 void sf_get_critical_table(OpcodeContext& ctx) {
-	DWORD critter = ctx.arg(0).asInt(),
-		bodypart  = ctx.arg(1).asInt(),
-		slot      = ctx.arg(2).asInt(),
-		element   = ctx.arg(3).asInt();
+	DWORD critter = ctx.arg(0).rawValue(),
+		bodypart  = ctx.arg(1).rawValue(),
+		slot      = ctx.arg(2).rawValue(),
+		element   = ctx.arg(3).rawValue();
 
 	if (critter >= Criticals::critTableCount || bodypart >= 9 || slot >= 6 || element >= 7) {
 		ctx.printOpcodeError(valueOutRange, ctx.getOpcodeName());
@@ -609,10 +607,10 @@ void sf_get_critical_table(OpcodeContext& ctx) {
 }
 
 void sf_reset_critical_table(OpcodeContext& ctx) {
-	DWORD critter = ctx.arg(0).asInt(),
-		bodypart  = ctx.arg(1).asInt(),
-		slot      = ctx.arg(2).asInt(),
-		element   = ctx.arg(3).asInt();
+	DWORD critter = ctx.arg(0).rawValue(),
+		bodypart  = ctx.arg(1).rawValue(),
+		slot      = ctx.arg(2).rawValue(),
+		element   = ctx.arg(3).rawValue();
 
 	if (critter >= Criticals::critTableCount || bodypart >= 9 || slot >= 6 || element >= 7) {
 		ctx.printOpcodeError(valueOutRange, ctx.getOpcodeName());
@@ -636,7 +634,7 @@ void __declspec(naked) op_get_unspent_ap_bonus() {
 	__asm {
 		push ecx;
 		mov  edx, Stats::standardApAcBonus;
-		_RET_VAL_INT(ecx);
+		_RET_VAL_INT;
 		pop  ecx;
 		retn;
 	}
@@ -657,7 +655,7 @@ void __declspec(naked) op_get_unspent_ap_perk_bonus() {
 	__asm {
 		push ecx;
 		mov  edx, Stats::extraApAcBonus;
-		_RET_VAL_INT(ecx);
+		_RET_VAL_INT;
 		pop  ecx;
 		retn;
 	}
@@ -741,7 +739,7 @@ void __declspec(naked) op_get_light_level() {
 	__asm {
 		push ecx;
 		mov  edx, ds:[FO_VAR_ambient_light];
-		_RET_VAL_INT(ecx);
+		_RET_VAL_INT;
 		pop  ecx;
 		retn;
 	}
@@ -851,7 +849,7 @@ void __declspec(naked) op_modified_ini() {
 	__asm {
 		push ecx;
 		mov  edx, modifiedIni;
-		_RET_VAL_INT(ecx);
+		_RET_VAL_INT;
 		pop  ecx;
 		retn;
 	}
@@ -994,7 +992,7 @@ void __declspec(naked) op_gdialog_get_barter_mod() {
 	__asm {
 		push ecx;
 		mov  edx, dword ptr ds:[FO_VAR_gdBarterMod];
-		_RET_VAL_INT(ecx);
+		_RET_VAL_INT;
 		pop  ecx;
 		retn;
 	}
@@ -1026,7 +1024,7 @@ void sf_sneak_success(OpcodeContext& ctx) {
 }
 
 void sf_tile_light(OpcodeContext& ctx) {
-	int lightLevel = fo::func::light_get_tile(ctx.arg(0).asInt(), ctx.arg(1).asInt());
+	int lightLevel = fo::func::light_get_tile(ctx.arg(0).rawValue(), ctx.arg(1).rawValue());
 	ctx.setReturn(lightLevel);
 }
 
@@ -1058,7 +1056,10 @@ void sf_set_ini_setting(OpcodeContext& ctx) {
 	case -1:
 		ctx.printOpcodeError("%s() - invalid setting argument.", ctx.getMetaruleName());
 		break;
+	default:
+		return;
 	}
+	ctx.setReturn(-1);
 }
 
 static std::string GetIniFilePath(const ScriptValue& arg) {
@@ -1097,7 +1098,7 @@ void sf_get_ini_sections(OpcodeContext& ctx) {
 }
 
 void sf_get_ini_section(OpcodeContext& ctx) {
-	auto section = ctx.arg(1).asString();
+	auto section = ctx.arg(1).strValue();
 	GetPrivateProfileSectionA(section, getIniSectionBuf, 5120, GetIniFilePath(ctx.arg(0)).data());
 	int arrayId = TempArray(-1, 0); // associative
 	auto& arr = arrays[arrayId];

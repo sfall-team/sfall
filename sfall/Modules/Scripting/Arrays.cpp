@@ -670,7 +670,7 @@ ScriptValue ScanArray(DWORD id, const ScriptValue& val) {
 }
 
 DWORD LoadArray(const ScriptValue& key) {
-	if (!key.isInt() || key.asInt() != 0) { // returns arrayId by it's key (ignoring int(0) because it is used to "unsave" array)
+	if (!key.isInt() || key.rawValue() != 0) { // returns arrayId by it's key (ignoring int(0) because it is used to "unsave" array)
 		sArrayElement keyEl = sArrayElement(key.rawValue(), key.type());
 
 		if (keyEl.type == DataType::STR && strcmp(keyEl.strVal, get_all_arrays_special_key) == 0) { // this is a special case to get temp array containing all saved arrays
@@ -698,7 +698,7 @@ DWORD LoadArray(const ScriptValue& key) {
 void SaveArray(const ScriptValue& key, DWORD id) {
 	array_itr it, itArray = arrays.find(id); // arrayId => arrayVar
 	if (itArray != arrays.end()) {
-		if (!key.isInt() || key.asInt() != 0) {
+		if (!key.isInt() || key.rawValue() != 0) {
 			// make array permanent
 			FixArray(itArray->first);
 			// if another array is saved under the same key, clear it
@@ -741,7 +741,7 @@ long StackArray(const ScriptValue& key, const ScriptValue& val) {
 		// automatically resize array to fit one new element
 		ResizeArray(id, arrays[id].size() + 1);
 	}
-	SetArray(id, key, val, 0);
+	SetArray(id, key, val, false);
 	return 0;
 }
 

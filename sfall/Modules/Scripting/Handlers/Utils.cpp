@@ -127,7 +127,7 @@ void sf_arctan(OpcodeContext& ctx) {
 
 void sf_strlen(OpcodeContext& ctx) {
 	ctx.setReturn(
-		static_cast<int>(strlen(ctx.arg(0).asString()))
+		static_cast<int>(strlen(ctx.arg(0).strValue()))
 	);
 }
 
@@ -286,7 +286,7 @@ static char* _stdcall sprintf_lite(const char* format, ScriptValue value) {
 	} else if (specifier == 'c') {
 		buflen = j;
 	} else if (specifier == 's') {
-		buflen = j + strlen(value.asString());
+		buflen = j + strlen(value.strValue());
 	} else {
 		buflen = j + 30; // numbers
 	}
@@ -317,7 +317,7 @@ void sf_power(OpcodeContext& ctx) {
 	if (power.isFloat())
 		result = pow(base.asFloat(), power.floatValue());
 	else
-		result = pow(base.asFloat(), power.asInt());
+		result = pow(base.asFloat(), (int)power.rawValue());
 
 	if (base.isInt() && power.isInt()) {
 		ctx.setReturn(static_cast<int>(result));
@@ -393,7 +393,7 @@ void sf_get_string_pointer(OpcodeContext& ctx) {
 }
 
 void sf_get_text_width(OpcodeContext& ctx) {
-	ctx.setReturn(fo::GetTextWidth(ctx.arg(0).asString()));
+	ctx.setReturn(fo::GetTextWidth(ctx.arg(0).strValue()));
 }
 
 }

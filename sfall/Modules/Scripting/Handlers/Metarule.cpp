@@ -86,7 +86,7 @@ static const SfallMetarule metarules[] = {
 	{"get_inven_ap_cost",       sf_get_inven_ap_cost,       0, 0},
 	{"get_map_enter_position",  sf_get_map_enter_position,  0, 0},
 	{"get_metarule_table",      sf_get_metarule_table,      0, 0},
-	{"get_object_ai_data",      sf_get_object_ai_data,      2, 2,  0, {ARG_OBJECT, ARG_INT}},
+	{"get_object_ai_data",      sf_get_object_ai_data,      2, 2, -1, {ARG_OBJECT, ARG_INT}},
 	{"get_object_data",         sf_get_object_data,         2, 2,  0, {ARG_OBJECT, ARG_INT}},
 	{"get_outline",             sf_get_outline,             1, 1,  0, {ARG_OBJECT}},
 	{"get_sfall_arg_at",        sf_get_sfall_arg_at,        1, 1,  0, {ARG_INT}},
@@ -105,7 +105,7 @@ static const SfallMetarule metarules[] = {
 	{"lock_is_jammed",          sf_lock_is_jammed,          1, 1,  0, {ARG_OBJECT}},
 	{"loot_obj",                sf_get_loot_object,         0, 0},
 	{"metarule_exist",          sf_metarule_exist,          1, 1}, // no arg check
-	{"npc_engine_level_up",     sf_npc_engine_level_up,     1, 1,  0, {ARG_ANY}},
+	{"npc_engine_level_up",     sf_npc_engine_level_up,     1, 1},
 	{"obj_under_cursor",        sf_get_obj_under_cursor,    2, 2,  0, {ARG_INT, ARG_INT}},
 	{"outlined_object",         sf_outlined_object,         0, 0},
 	{"real_dude_obj",           sf_real_dude_obj,           0, 0},

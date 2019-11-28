@@ -62,7 +62,7 @@ void __declspec(naked) op_available_global_script_types() {
 	__asm {
 		push ecx;
 		mov  edx, availableGlobalScriptTypes;
-		_RET_VAL_INT(ecx);
+		_RET_VAL_INT;
 		pop  ecx;
 		retn;
 	}
@@ -108,11 +108,10 @@ void sf_get_sfall_global_float(OpcodeContext& ctx) {
 void __declspec(naked) op_get_sfall_arg() {
 	__asm {
 		push ecx;
-		push eax;
 		call HookScripts::GetHSArg;
 		mov  edx, eax;
-		pop  eax;
-		_RET_VAL_INT(ecx);
+		mov  eax, ebx;
+		_RET_VAL_INT;
 		pop  ecx;
 		retn;
 	}
@@ -159,7 +158,7 @@ void __declspec(naked) op_init_hook() {
 	__asm {
 		push ecx;
 		mov  edx, initingHookScripts;
-		_RET_VAL_INT(ecx);
+		_RET_VAL_INT;
 		pop  ecx;
 		retn;
 	}

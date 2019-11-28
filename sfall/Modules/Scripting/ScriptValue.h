@@ -61,6 +61,8 @@ public:
 
 	const char* strValue() const;
 
+	fo::GameObject* object() const;
+
 	// returns value as integer, converting if needed
 	int asInt() const;
 

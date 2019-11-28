@@ -82,10 +82,6 @@ bool ScriptValue::isString() const {
 	return _type == DataType::STR;
 }
 
-unsigned long ScriptValue::rawValue() const {
-	return _val.dw;
-}
-
 int ScriptValue::asInt() const {
 	switch (_type) {
 	case DataType::INT:
@@ -129,6 +125,14 @@ fo::GameObject* ScriptValue::asObject() const {
 	return (_type == DataType::INT)
 		? _val.gObj
 		: nullptr;
+}
+
+fo::GameObject* ScriptValue::object() const {
+	return _val.gObj;
+}
+
+unsigned long ScriptValue::rawValue() const {
+	return _val.dw;
 }
 
 const char* ScriptValue::strValue() const {

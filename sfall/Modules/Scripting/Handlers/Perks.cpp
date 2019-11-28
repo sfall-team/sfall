@@ -32,7 +32,7 @@ void __declspec(naked) op_get_perk_owed() {
 	__asm {
 		push ecx;
 		movzx edx, byte ptr ds:[FO_VAR_free_perk];
-		_RET_VAL_INT(ecx);
+		_RET_VAL_INT;
 		pop  ecx;
 		retn;
 	}
@@ -191,29 +191,32 @@ void sf_set_fake_trait(OpcodeContext& ctx) {
 const char* notPartyMemberErr = "%s() - the object is not a party member.";
 
 void sf_set_selectable_perk_npc(OpcodeContext& ctx) {
-	auto obj = ctx.arg(0).asObject();
+	auto obj = ctx.arg(0).object();
 	if (obj->Type() == fo::ObjType::OBJ_TYPE_CRITTER && fo::func::isPartyMember(obj)) {
 		Perks::SetSelectablePerk(ctx.arg(1).strValue(), ctx.arg(2).rawValue(), ctx.arg(3).rawValue(), ctx.arg(4).strValue(), (obj->id != PLAYER_ID) ? obj->id : 0);
 	} else {
 		ctx.printOpcodeError(notPartyMemberErr, ctx.getMetaruleName());
+		ctx.setReturn(-1);
 	}
 }
 
 void sf_set_fake_perk_npc(OpcodeContext& ctx) {
-	auto obj = ctx.arg(0).asObject();
+	auto obj = ctx.arg(0).object();
 	if (obj->Type() == fo::ObjType::OBJ_TYPE_CRITTER && fo::func::isPartyMember(obj)) {
 		Perks::SetFakePerk(ctx.arg(1).strValue(), ctx.arg(2).rawValue(), ctx.arg(3).rawValue(), ctx.arg(4).strValue(), (obj->id != PLAYER_ID) ? obj->id : 0);
 	} else {
 		ctx.printOpcodeError(notPartyMemberErr, ctx.getMetaruleName());
+		ctx.setReturn(-1);
 	}
 }
 
 void sf_set_fake_trait_npc(OpcodeContext& ctx) {
-	auto obj = ctx.arg(0).asObject();
+	auto obj = ctx.arg(0).object();
 	if (obj->Type() == fo::ObjType::OBJ_TYPE_CRITTER && fo::func::isPartyMember(obj)) {
 		Perks::SetFakeTrait(ctx.arg(1).strValue(), ctx.arg(2).rawValue(), ctx.arg(3).rawValue(), ctx.arg(4).strValue(), (obj->id != PLAYER_ID) ? obj->id : 0);
 	} else {
 		ctx.printOpcodeError(notPartyMemberErr, ctx.getMetaruleName());
+		ctx.setReturn(-1);
 	}
 }
 
@@ -280,7 +283,7 @@ void sf_has_fake_trait(OpcodeContext& ctx) {
 
 void sf_has_fake_perk_npc(OpcodeContext& ctx) {
 	long result = 0;
-	auto obj = ctx.arg(0).asObject();
+	auto obj = ctx.arg(0).object();
 	if (obj->Type() == fo::ObjType::OBJ_TYPE_CRITTER && fo::func::isPartyMember(obj)) {
 		result = Perks::HasFakePerkOwner(ctx.arg(1).strValue(), (obj->id != PLAYER_ID) ? obj->id : 0);
 	} else {
@@ -291,7 +294,7 @@ void sf_has_fake_perk_npc(OpcodeContext& ctx) {
 
 void sf_has_fake_trait_npc(OpcodeContext& ctx) {
 	long result = 0;
-	auto obj = ctx.arg(0).asObject();
+	auto obj = ctx.arg(0).object();
 	if (obj->Type() == fo::ObjType::OBJ_TYPE_CRITTER && fo::func::isPartyMember(obj)) {
 		result = Perks::HasFakeTraitOwner(ctx.arg(1).strValue(), (obj->id != PLAYER_ID) ? obj->id : 0);
 	} else {
@@ -408,6 +411,7 @@ end:
 void sf_add_trait(OpcodeContext& ctx) {
 	if (fo::var::obj_dude->protoId != fo::PID_Player) {
 		ctx.printOpcodeError("%s() - traits can be added only to the player.", ctx.getMetaruleName());
+		ctx.setReturn(-1);
 		return;
 	}
 	long traitId = ctx.arg(0).rawValue();

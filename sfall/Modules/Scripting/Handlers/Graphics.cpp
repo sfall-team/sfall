@@ -36,7 +36,7 @@ void __declspec(naked) op_graphics_funcs_available() {
 		cmp  Graphics::mode, 3;
 		seta dl;
 		and  edx, 0xFF;
-		_RET_VAL_INT(ecx);
+		_RET_VAL_INT;
 		pop  ecx;
 		retn;
 	}
@@ -406,11 +406,10 @@ end:
 void __declspec(naked) op_get_shader_version() {
 	__asm {
 		push ecx;
-		push eax;
 		call GetShaderVersion;
 		mov  edx, eax;
-		pop  eax;
-		_RET_VAL_INT(ecx);
+		mov  eax, ebx;
+		_RET_VAL_INT;
 		pop ecx;
 		retn;
 	}

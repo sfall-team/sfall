@@ -124,10 +124,10 @@ end:
 }
 
 void sf_create_spatial(OpcodeContext& ctx) {
-	DWORD scriptIndex = ctx.arg(0).asInt(),
-		tile = ctx.arg(1).asInt(),
-		elevation = ctx.arg(2).asInt(),
-		radius = ctx.arg(3).asInt(),
+	DWORD scriptIndex = ctx.arg(0).rawValue(),
+		tile = ctx.arg(1).rawValue(),
+		elevation = ctx.arg(2).rawValue(),
+		radius = ctx.arg(3).rawValue(),
 		scriptId, tmp, objectPtr,
 		scriptPtr;
 	__asm {
@@ -136,16 +136,14 @@ void sf_create_spatial(OpcodeContext& ctx) {
 		call fo::funcoffs::scr_new_;
 		mov tmp, eax;
 	}
-	if (tmp == -1)
-		return;
+	if (tmp == -1) return;
 	__asm {
 		mov eax, scriptId;
 		lea edx, scriptPtr;
 		call fo::funcoffs::scr_ptr_;
 		mov tmp, eax;
 	}
-	if (tmp == -1)
-		return;
+	if (tmp == -1) return;
 	// fill spatial script properties:
 	*(DWORD*)(scriptPtr + 0x14) = scriptIndex - 1;
 	*(DWORD*)(scriptPtr + 0x8) = (elevation << 29) & 0xE0000000 | tile;
@@ -160,11 +158,11 @@ void sf_create_spatial(OpcodeContext& ctx) {
 		call fo::funcoffs::scr_find_obj_from_program_;
 		mov objectPtr, eax;
 	}
-	ctx.setReturn((int)objectPtr);
+	ctx.setReturn(objectPtr);
 }
 
 void sf_spatial_radius(OpcodeContext& ctx) {
-	auto spatialObj = ctx.arg(0).asObject();
+	auto spatialObj = ctx.arg(0).object();
 	fo::ScriptInstance* script;
 	if (fo::func::scr_ptr(spatialObj->scriptId, &script) != -1) {
 		ctx.setReturn(script->spatialRadius);
@@ -172,32 +170,32 @@ void sf_spatial_radius(OpcodeContext& ctx) {
 }
 
 void sf_get_script(OpcodeContext& ctx) {
-	auto obj = ctx.arg(0).asObject();
+	auto obj = ctx.arg(0).object();
 	ctx.setReturn(obj->scriptIndex);
 }
 
 void sf_set_critter_burst_disable(OpcodeContext& ctx) {
-	SetNoBurstMode(ctx.arg(0).asObject(), ctx.arg(1).asBool());
+	SetNoBurstMode(ctx.arg(0).object(), ctx.arg(1).asBool());
 }
 
 void sf_get_weapon_ammo_pid(OpcodeContext& ctx) {
-	auto obj = ctx.arg(0).asObject();
+	auto obj = ctx.arg(0).object();
 	ctx.setReturn(obj->item.ammoPid);
 }
 
 void sf_set_weapon_ammo_pid(OpcodeContext& ctx) {
-	auto obj = ctx.arg(0).asObject();
-	obj->item.ammoPid = ctx.arg(1).asInt();
+	auto obj = ctx.arg(0).object();
+	obj->item.ammoPid = ctx.arg(1).rawValue();
 }
 
 void sf_get_weapon_ammo_count(OpcodeContext& ctx) {
-	auto obj = ctx.arg(0).asObject();
+	auto obj = ctx.arg(0).object();
 	ctx.setReturn(obj->item.charges);
 }
 
 void sf_set_weapon_ammo_count(OpcodeContext& ctx) {
-	auto obj = ctx.arg(0).asObject();
-	obj->item.charges = ctx.arg(1).asInt();
+	auto obj = ctx.arg(0).object();
+	obj->item.charges = ctx.arg(1).rawValue();
 }
 
 #define BLOCKING_TYPE_BLOCK		(0)
@@ -223,20 +221,20 @@ static DWORD getBlockingFunc(DWORD type) {
 }
 
 void sf_make_straight_path(OpcodeContext& ctx) {
-	auto objFrom = ctx.arg(0).asObject();
-	DWORD tileTo = ctx.arg(1).asInt(),
-		  type = ctx.arg(2).asInt();
+	auto objFrom = ctx.arg(0).object();
+	DWORD tileTo = ctx.arg(1).rawValue(),
+		  type = ctx.arg(2).rawValue();
 
 	long flag = (type == BLOCKING_TYPE_SHOOT) ? 32 : 0;
 	DWORD resultObj = 0;
 	fo::func::make_straight_path_func(objFrom, objFrom->tile, tileTo, 0, &resultObj, flag, (void*)getBlockingFunc(type));
-	ctx.setReturn(resultObj, DataType::INT);
+	ctx.setReturn(resultObj);
 }
 
 void sf_make_path(OpcodeContext& ctx) {
-	auto objFrom = ctx.arg(0).asObject();
-	auto tileTo = ctx.arg(1).asInt(),
-		 type = ctx.arg(2).asInt();
+	auto objFrom = ctx.arg(0).object();
+	auto tileTo = ctx.arg(1).rawValue(),
+		 type = ctx.arg(2).rawValue();
 	auto func = getBlockingFunc(type);
 
 	// if the object is not a critter, then there is no need to check tile (tileTo) for blocking
@@ -248,36 +246,36 @@ void sf_make_path(OpcodeContext& ctx) {
 	for (int i = 0; i < pathLength; i++) {
 		arrays[arrayId].val[i].set((long)pathData[i]);
 	}
-	ctx.setReturn(arrayId, DataType::INT);
+	ctx.setReturn(arrayId);
 }
 
 void sf_obj_blocking_at(OpcodeContext& ctx) {
-	DWORD tile = ctx.arg(0).asInt(),
-		  elevation = ctx.arg(1).asInt(),
-		  type = ctx.arg(2).asInt();
+	DWORD tile = ctx.arg(0).rawValue(),
+		  elevation = ctx.arg(1).rawValue(),
+		  type = ctx.arg(2).rawValue();
 
 	fo::GameObject* resultObj = fo::func::obj_blocking_at_wrapper(0, tile, elevation, (void*)getBlockingFunc(type));
 	if (resultObj && type == BLOCKING_TYPE_SHOOT && (resultObj->flags & fo::ObjectFlag::ShootThru)) { // don't know what this flag means, copy-pasted from the engine code
 		// this check was added because the engine always does exactly this when using shoot blocking checks
 		resultObj = nullptr;
 	}
-	ctx.setReturn((DWORD)resultObj, DataType::INT);
+	ctx.setReturn(resultObj);
 }
 
 void sf_tile_get_objects(OpcodeContext& ctx) {
-	DWORD tile = ctx.arg(0).asInt(),
-		elevation = ctx.arg(1).asInt();
+	DWORD tile = ctx.arg(0).rawValue(),
+		elevation = ctx.arg(1).rawValue();
 	DWORD arrayId = TempArray(0, 4);
 	auto obj = fo::func::obj_find_first_at_tile(elevation, tile);
 	while (obj) {
 		arrays[arrayId].push_back(reinterpret_cast<long>(obj));
 		obj = fo::func::obj_find_next_at_tile();
 	}
-	ctx.setReturn(arrayId, DataType::INT);
+	ctx.setReturn(arrayId);
 }
 
 void sf_get_party_members(OpcodeContext& ctx) {
-	auto includeHidden = ctx.arg(0).asInt();
+	auto includeHidden = ctx.arg(0).rawValue();
 	int actualCount = fo::var::partyMemberCount;
 	DWORD arrayId = TempArray(0, 4);
 	auto partyMemberList = fo::var::partyMemberList;
@@ -287,11 +285,11 @@ void sf_get_party_members(OpcodeContext& ctx) {
 			arrays[arrayId].push_back((long)obj);
 		}
 	}
-	ctx.setReturn(arrayId, DataType::INT);
+	ctx.setReturn(arrayId);
 }
 
 void sf_art_exists(OpcodeContext& ctx) {
-	ctx.setReturn(fo::func::art_exists(ctx.arg(0).asInt()));
+	ctx.setReturn(fo::func::art_exists(ctx.arg(0).rawValue()));
 }
 
 void sf_obj_is_carrying_obj(OpcodeContext& ctx) {
@@ -299,8 +297,8 @@ void sf_obj_is_carrying_obj(OpcodeContext& ctx) {
 	const ScriptValue &invenObjArg = ctx.arg(0),
 		&itemObjArg = ctx.arg(1);
 
-	fo::GameObject *invenObj = invenObjArg.asObject(),
-		*itemObj = itemObjArg.asObject();
+	fo::GameObject *invenObj = invenObjArg.object(),
+		*itemObj = itemObjArg.object();
 	if (invenObj != nullptr && itemObj != nullptr) {
 		for (int i = 0; i < invenObj->invenSize; i++) {
 			if (invenObj->invenTable[i].object == itemObj) {
@@ -313,8 +311,8 @@ void sf_obj_is_carrying_obj(OpcodeContext& ctx) {
 }
 
 void sf_critter_inven_obj2(OpcodeContext& ctx) {
-	fo::GameObject* critter = ctx.arg(0).asObject();
-	int slot = ctx.arg(1).asInt();
+	fo::GameObject* critter = ctx.arg(0).object();
+	int slot = ctx.arg(1).rawValue();
 	switch (slot) {
 	case 0:
 		ctx.setReturn(fo::func::inven_worn(critter));
@@ -334,24 +332,24 @@ void sf_critter_inven_obj2(OpcodeContext& ctx) {
 }
 
 void sf_set_outline(OpcodeContext& ctx) {
-	auto obj = ctx.arg(0).asObject();
-	int color = ctx.arg(1).asInt();
+	auto obj = ctx.arg(0).object();
+	int color = ctx.arg(1).rawValue();
 	obj->outline = color;
 }
 
 void sf_get_outline(OpcodeContext& ctx) {
-	auto obj = ctx.arg(0).asObject();
+	auto obj = ctx.arg(0).object();
 	ctx.setReturn(obj->outline);
 }
 
 void sf_set_flags(OpcodeContext& ctx) {
-	auto obj = ctx.arg(0).asObject();
-	int flags = ctx.arg(1).asInt();
+	auto obj = ctx.arg(0).object();
+	int flags = ctx.arg(1).rawValue();
 	obj->flags = flags;
 }
 
 void sf_get_flags(OpcodeContext& ctx) {
-	auto obj = ctx.arg(0).asObject();
+	auto obj = ctx.arg(0).object();
 	ctx.setReturn(obj->flags);
 }
 
@@ -360,12 +358,12 @@ void sf_outlined_object(OpcodeContext& ctx) {
 }
 
 void sf_item_weight(OpcodeContext& ctx) {
-	ctx.setReturn(fo::func::item_weight(ctx.arg(0).asObject()));
+	ctx.setReturn(fo::func::item_weight(ctx.arg(0).object()));
 }
 
 void sf_set_dude_obj(OpcodeContext& ctx) {
-	auto obj = ctx.arg(0).asObject();
-	if (obj == nullptr || obj->Type() == fo::OBJ_TYPE_CRITTER) {
+	auto obj = ctx.arg(0).object();
+	if (obj == nullptr || obj->Type() == fo::ObjType::OBJ_TYPE_CRITTER) {
 		//if (!InCombat && obj && obj != PartyControl::RealDudeObject()) {
 		//	ctx.printOpcodeError("%s() - controlling of the critter is only allowed in combat mode.", ctx.getMetaruleName());
 		//} else {
@@ -373,6 +371,7 @@ void sf_set_dude_obj(OpcodeContext& ctx) {
 		//}
 	} else {
 		ctx.printOpcodeError("%s() - the object is not a critter.", ctx.getMetaruleName());
+		ctx.setReturn(-1);
 	}
 }
 
@@ -385,17 +384,18 @@ void sf_car_gas_amount(OpcodeContext& ctx) {
 }
 
 void sf_lock_is_jammed(OpcodeContext& ctx) {
-	ctx.setReturn(fo::func::obj_lock_is_jammed(ctx.arg(0).asObject()));
+	ctx.setReturn(fo::func::obj_lock_is_jammed(ctx.arg(0).object()));
 }
 
 void sf_unjam_lock(OpcodeContext& ctx) {
-	fo::func::obj_unjam_lock(ctx.arg(0).asObject());
+	fo::func::obj_unjam_lock(ctx.arg(0).object());
 }
 
 void sf_set_unjam_locks_time(OpcodeContext& ctx) {
-	int time = ctx.arg(0).asInt();
+	int time = ctx.arg(0).rawValue();
 	if (time < 0 || time > 127) {
 		ctx.printOpcodeError("%s() - time argument must be in the range of 0 to 127.", ctx.getMetaruleName());
+		ctx.setReturn(-1);
 	} else {
 		Objects::SetAutoUnjamLockTime(time);
 	}
@@ -416,11 +416,12 @@ void sf_item_make_explosive(OpcodeContext& ctx) {
 		Explosions::AddToExplosives(pid, pidActive, min, max);
 	} else {
 		ctx.printOpcodeError("%s() - invalid PID number, must be greater than 0.", ctx.getMetaruleName());
+		ctx.setReturn(-1);
 	}
 }
 
 void sf_get_current_inven_size(OpcodeContext& ctx) {
-	ctx.setReturn(sf_item_total_size(ctx.arg(0).asObject()));
+	ctx.setReturn(sf_item_total_size(ctx.arg(0).object()));
 }
 
 void sf_get_dialog_object(OpcodeContext& ctx) {
@@ -470,22 +471,23 @@ void sf_get_object_data(OpcodeContext& ctx) {
 	} else {
 		result = *(long*)((BYTE*)object_ptr + ctx.arg(1).rawValue());
 	}
-	ctx.setReturn(result, DataType::INT);
+	ctx.setReturn(result);
 }
 
 void sf_set_object_data(OpcodeContext& ctx) {
 	DWORD* object_ptr = (DWORD*)ctx.arg(0).rawValue();
 	if (*(object_ptr - 1) != 0xFEEDFACE) {
 		ctx.printOpcodeError("%s() - invalid object pointer.", ctx.getMetaruleName());
+		ctx.setReturn(-1);
 	} else {
 		*(long*)((BYTE*)object_ptr + ctx.arg(1).rawValue()) = ctx.arg(2).rawValue();
 	}
 }
 
 void sf_get_object_ai_data(OpcodeContext& ctx) {
-	fo::AIcap* cap = fo::func::ai_cap(ctx.arg(0).asObject());
+	fo::AIcap* cap = fo::func::ai_cap(ctx.arg(0).object());
 	DWORD arrayId, value = -1;
-	switch (ctx.arg(1).asInt()) {
+	switch (ctx.arg(1).rawValue()) {
 	case 0:
 		value = cap->aggression;
 		break;
@@ -538,7 +540,7 @@ void sf_get_object_ai_data(OpcodeContext& ctx) {
 	default:
 		ctx.printOpcodeError("%s() - invalid value for AI argument.", ctx.getMetaruleName());
 	}
-	ctx.setReturn(value, DataType::INT);
+	ctx.setReturn(value);
 }
 
 void sf_set_drugs_data(OpcodeContext& ctx) {
@@ -557,13 +559,16 @@ void sf_set_drugs_data(OpcodeContext& ctx) {
 		ctx.printOpcodeError("%s() - invalid value for type argument.", ctx.getMetaruleName());
 		return;
 	}
-	if (result) ctx.printOpcodeError("%s() - drug PID not found in the configuration file.", ctx.getMetaruleName());
+	if (result) {
+		ctx.printOpcodeError("%s() - drug PID not found in the configuration file.", ctx.getMetaruleName());
+		ctx.setReturn(-1);
+	}
 }
 
 void sf_set_unique_id(OpcodeContext& ctx) {
-	fo::GameObject* obj = ctx.arg(0).asObject();
+	fo::GameObject* obj = ctx.arg(0).object();
 	long id;
-	if (ctx.arg(1).asInt() == -1) {
+	if (ctx.arg(1).rawValue() == -1) {
 		id = fo::func::new_obj_id();
 		obj->id = id;
 	} else {
