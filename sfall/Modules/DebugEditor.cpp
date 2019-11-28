@@ -310,7 +310,7 @@ hide:
 	}
 }
 
-static char* artDbgMsg = "Error: file not found: %s\n";
+static char* artDbgMsg = "\nError: file not found: %s\n";
 static void __declspec(naked) art_data_size_hook() {
 	__asm {
 		test edi, edi;
@@ -322,7 +322,10 @@ artNotExist:
 		push artDbgMsg;
 		call fo::funcoffs::debug_printf_;
 		add  esp, 8;
+		cmp  isDebug, 0;
+		jz   skip;
 		int  3; // break program
+skip:
 		retn;
 	}
 }
