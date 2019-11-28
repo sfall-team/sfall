@@ -222,5 +222,5 @@ static void sf_get_map_enter_position() {
 	arrays[id].val[0].set((long)*ptr_tile);
 	arrays[id].val[1].set((long)*ptr_elevation);
 	arrays[id].val[2].set((long)*ptr_rotation);
-	opHandler.setReturn(id, DATATYPE_INT);
+	opHandler.setReturn(id);
 }

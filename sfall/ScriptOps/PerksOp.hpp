@@ -629,6 +629,7 @@ end:
 static void sf_add_trait() {
 	if (*(DWORD*)(*(DWORD*)_obj_dude + 0x64) != PID_Player) {
 		opHandler.printOpcodeError("add_trait() - traits can be added only to the player.");
+		opHandler.setReturn(-1);
 		return;
 	}
 	long traitId = opHandler.arg(0).rawValue();

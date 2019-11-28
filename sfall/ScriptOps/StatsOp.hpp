@@ -344,11 +344,13 @@ static void __declspec(naked) mod_skill_points_per_level() {
 	__asm {
 		push ecx;
 		_GET_ARG_INT(end);
-		cmp  eax, 100;
-		jg   end;
-		cmp  eax, -100;
-		jl   end;
-		add  eax, 5;
+		mov  ecx, 100;
+		cmp  eax, ecx;
+		cmovg eax, ecx;
+		neg  ecx; // -100
+		cmp  eax, ecx;
+		cmovl eax, ecx;
+		add  eax, 5; // add fallout default points
 		push eax;
 		push 0x43C27A;
 		call SafeWrite8;
@@ -437,60 +439,38 @@ end:
 
 static void __declspec(naked) fSetPickpocketMax() {
 	__asm {
-		push ebx;
 		push ecx;
-		push edx;
-		push edi;
-		mov ecx, eax;
-		call interpretPopShort_;
-		mov edx, eax;
-		mov eax, ecx;
-		call interpretPopLong_;
-		cmp dx, VAR_TYPE_INT;
-		jnz end;
-		and eax, 0xFF;
-		cmp eax, 100;
-		jg end;
+		_GET_ARG_INT(end);
+		mov  ecx, 100;
+		cmp  eax, ecx;
+		cmova eax, ecx; // 0 - 100
 		push 0;
 		push eax;
 		push 0xFFFFFFFF;
 		call SetPickpocketMax;
 end:
-		pop edi;
-		pop edx;
-		pop ecx;
-		pop ebx;
+		pop  ecx;
 		retn;
 	}
 }
+
 static void __declspec(naked) fSetHitChanceMax() {
 	__asm {
-		push ebx;
 		push ecx;
-		push edx;
-		push edi;
-		mov ecx, eax;
-		call interpretPopShort_;
-		mov edx, eax;
-		mov eax, ecx;
-		call interpretPopLong_;
-		cmp dx, VAR_TYPE_INT;
-		jnz end;
-		and eax, 0xFF;
-		cmp eax, 100;
-		jg end;
+		_GET_ARG_INT(end);
+		mov  ecx, 100;
+		cmp  eax, ecx;
+		cmova eax, ecx; // 0 - 100
 		push 0;
 		push eax;
 		push 0xFFFFFFFF;
 		call SetHitChanceMax;
 end:
-		pop edi;
-		pop edx;
-		pop ecx;
-		pop ebx;
+		pop  ecx;
 		retn;
 	}
 }
+
 static void __declspec(naked) SetCritterHitChance() {
 	__asm {
 		push ebx;
@@ -532,6 +512,7 @@ end:
 		retn;
 	}
 }
+
 static void __declspec(naked) SetBaseHitChance() {
 	__asm {
 		push ebx;
@@ -566,6 +547,7 @@ end:
 		retn;
 	}
 }
+
 static void __declspec(naked) SetCritterPickpocket() {
 	__asm {
 		push ebx;
@@ -607,6 +589,7 @@ end:
 		retn;
 	}
 }
+
 static void __declspec(naked) SetBasePickpocket() {
 	__asm {
 		push ebx;
@@ -641,6 +624,7 @@ end:
 		retn;
 	}
 }
+
 static void __declspec(naked) SetCritterSkillMod() {
 	__asm {
 		push ebx;
@@ -674,60 +658,36 @@ end:
 		retn;
 	}
 }
-static void __declspec(naked) SetBaseSkillMod() {
+
+static void __declspec(naked) SetBaseSkillMod() { // same as set_skill_max
 	__asm {
-		push ebx;
 		push ecx;
-		push edx;
-		push edi;
-		mov edi, eax;
-		xor ebx, ebx
-		call interpretPopShort_;
-		cmp ax, VAR_TYPE_INT;
-		cmovne ebx, edi;
-		mov eax, edi;
-		call interpretPopLong_;
-		mov ecx, eax;
-		test ebx, ebx;
-		jnz end;
+		_GET_ARG_INT(end);
 		push eax;
 		push 0xFFFFFFFF;
 		call SetSkillMax;
 end:
-		pop edi;
-		pop edx;
-		pop ecx;
-		pop ebx;
+		pop  ecx;
 		retn;
 	}
 }
+
 static void __declspec(naked) fSetSkillMax() {
 	__asm {
-		push ebx;
 		push ecx;
-		push edx;
-		push edi;
-		mov ecx, eax;
-		call interpretPopShort_;
-		mov edx, eax;
-		mov eax, ecx;
-		call interpretPopLong_;
-		cmp dx, VAR_TYPE_INT;
-		jnz end;
-		and eax, 0xFFFF;
-		cmp eax, 300;
-		jg end;
+		_GET_ARG_INT(end);
+		mov  ecx, 300;
+		cmp  eax, ecx;
+		cmova eax, ecx; // 0 - 300
 		push eax;
 		push 0xFFFFFFFF;
 		call SetSkillMax;
 end:
-		pop edi;
-		pop edx;
-		pop ecx;
-		pop ebx;
+		pop  ecx;
 		retn;
 	}
 }
+
 static void __declspec(naked) SetStatMax() {
 	__asm {
 		push ebx;
@@ -765,6 +725,7 @@ end:
 		retn;
 	}
 }
+
 static void __declspec(naked) SetStatMin() {
 	__asm {
 		push ebx;
@@ -802,6 +763,7 @@ end:
 		retn;
 	}
 }
+
 static void __declspec(naked) fSetPCStatMax() {
 	__asm {
 		push ebx;
@@ -836,6 +798,7 @@ end:
 		retn;
 	}
 }
+
 static void __declspec(naked) fSetPCStatMin() {
 	__asm {
 		push ebx;
@@ -870,6 +833,7 @@ end:
 		retn;
 	}
 }
+
 static void __declspec(naked) fSetNPCStatMax() {
 	__asm {
 		push ebx;
@@ -904,6 +868,7 @@ end:
 		retn;
 	}
 }
+
 static void __declspec(naked) fSetNPCStatMin() {
 	__asm {
 		push ebx;

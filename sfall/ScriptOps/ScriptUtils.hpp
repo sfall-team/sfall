@@ -834,7 +834,7 @@ static void funcPow2() {
 		if (power.isFloat())
 			result = pow(base.asFloat(), power.floatValue());
 		else
-			result = pow(base.asFloat(), power.asInt());
+			result = pow(base.asFloat(), (int)power.rawValue());
 
 		if (base.isInt() && power.isInt()) {
 			opHandler.setReturn(static_cast<int>(result));
@@ -992,7 +992,7 @@ static void sf_get_text_width() {
 	const ScriptValue &textArg = opHandler.arg(0);
 
 	if (textArg.isString()) {
-		opHandler.setReturn(GetTextWidth(textArg.asString()), DATATYPE_INT);
+		opHandler.setReturn(GetTextWidth(textArg.strValue()));
 	} else {
 		OpcodeInvalidArgs("get_text_width");
 		opHandler.setReturn(0);

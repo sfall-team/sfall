@@ -484,7 +484,7 @@ struct sList {
 	}
 };
 
-static DWORD listID = 0xCCCCCC;
+static DWORD listID = 0xCCCCCC; // start ID
 
 struct ListId {
 	sList* list;
@@ -549,14 +549,6 @@ static void FillListVector(DWORD type, std::vector<TGameObj*>& vec) {
 	}
 }
 
-static DWORD _stdcall ListBegin(DWORD type) {
-	std::vector<TGameObj*> vec = std::vector<TGameObj*>();
-	FillListVector(type, vec);
-	sList* list = new sList(&vec);
-	mList.push_back(list);
-	return listID;
-}
-
 static DWORD _stdcall ListAsArray(DWORD type) {
 	std::vector<TGameObj*> vec = std::vector<TGameObj*>();
 	FillListVector(type, vec);
@@ -566,50 +558,6 @@ static DWORD _stdcall ListAsArray(DWORD type) {
 		arrays[id].val[i].set((long)vec[i]);
 	}
 	return id;
-}
-
-static TGameObj* _stdcall ListNext(sList* list) {
-	if (!list || list->pos == list->len) return 0;
-	else return list->obj[list->pos++];
-}
-
-static void _stdcall ListEnd(DWORD id) {
-	for (std::vector<ListId>::const_iterator it = mList.cbegin(), it_end = mList.cend(); it != it_end; ++it) {
-		if (it->id == id) {
-			delete[] it->list->obj;
-			delete it->list;
-			mList.erase(it);
-			break;
-		}
-	}
-}
-
-static void __declspec(naked) list_begin() {
-	__asm {
-		pushad;
-		mov ebp, eax;
-		call interpretPopShort_;
-		mov edi, eax;
-		mov eax, ebp;
-		call interpretPopLong_;
-		cmp di, VAR_TYPE_INT;
-		jnz fail;
-		push eax;
-		call ListBegin;
-		mov edx, eax;
-		jmp end;
-fail:
-		xor edx, edx;
-		dec edx;
-end:
-		mov eax, ebp;
-		call interpretPushLong_;
-		mov eax, ebp;
-		mov edx, VAR_TYPE_INT;
-		call interpretPushShort_;
-		popad;
-		retn;
-	}
 }
 
 static void __declspec(naked) list_as_array() {
@@ -640,26 +588,82 @@ end:
 	}
 }
 
+static DWORD _stdcall ListBegin(DWORD type) {
+	std::vector<TGameObj*> vec = std::vector<TGameObj*>();
+	FillListVector(type, vec);
+	sList* list = new sList(&vec);
+	mList.push_back(list);
+	return listID;
+}
+
+static void __declspec(naked) list_begin() {
+	__asm {
+		pushad;
+		mov ebp, eax;
+		call interpretPopShort_;
+		mov edi, eax;
+		mov eax, ebp;
+		call interpretPopLong_;
+		cmp di, VAR_TYPE_INT;
+		jnz fail;
+		push eax;
+		call ListBegin;
+		mov edx, eax;
+		jmp end;
+fail:
+		xor edx, edx;
+end:
+		mov eax, ebp;
+		call interpretPushLong_;
+		mov eax, ebp;
+		mov edx, VAR_TYPE_INT;
+		call interpretPushShort_;
+		popad;
+		retn;
+	}
+}
+
+static TGameObj* _stdcall ListNext(sList* list) {
+	return (!list || list->pos == list->len) ? 0 : list->obj[list->pos++];
+}
+
 static void _stdcall list_next2() {
 	const ScriptValue &idArg = opHandler.arg(0);
+
 	if (idArg.isInt()) {
+		TGameObj* obj = nullptr;
 		DWORD id = idArg.rawValue();
-		sList* list = nullptr;
-		for (std::vector<ListId>::const_iterator it = mList.cbegin(), it_end =  mList.cend(); it != it_end; ++it) {
-			if (it->id == id) {
-				list = it->list;
-				break;
+		if (id != 0) {
+			sList* list = nullptr;
+			for (std::vector<ListId>::const_iterator it = mList.cbegin(), it_end =  mList.cend(); it != it_end; ++it) {
+				if (it->id == id) {
+					list = it->list;
+					break;
+				}
 			}
+			obj = ListNext(list);
 		}
-		opHandler.setReturn(ListNext(list));
+		opHandler.setReturn(obj);
 	} else {
 		OpcodeInvalidArgs("list_next");
-		opHandler.setReturn(-1);
+		opHandler.setReturn(0);
 	}
 }
 
 static void __declspec(naked) list_next() {
 	_WRAP_OPCODE(list_next2, 1, 1)
+}
+
+static void _stdcall ListEnd(DWORD id) {
+	if (id == 0) return;
+	for (std::vector<ListId>::const_iterator it = mList.cbegin(), it_end = mList.cend(); it != it_end; ++it) {
+		if (it->id == id) {
+			delete[] it->list->obj;
+			delete it->list;
+			mList.erase(it);
+			break;
+		}
+	}
 }
 
 static void __declspec(naked) list_end() {

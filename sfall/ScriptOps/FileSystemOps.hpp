@@ -28,9 +28,7 @@ static void fs_create2() {
 					  &sizeArg = opHandler.arg(1);
 
 	if (pathArg.isString() && sizeArg.isInt()) {
-		const char* path = pathArg.asString();
-		int size = sizeArg.asInt();
-		opHandler.setReturn(FScreate(path, size), DATATYPE_INT);
+		opHandler.setReturn(FScreate(pathArg.strValue(), sizeArg.rawValue()));
 	} else {
 		OpcodeInvalidArgs("fs_create");
 		opHandler.setReturn(-1);
@@ -46,9 +44,7 @@ static void fs_copy2() {
 					  &srcArg = opHandler.arg(1);
 
 	if (pathArg.isString() && srcArg.isString()) {
-		const char* path = pathArg.asString();
-		const char* src = srcArg.asString();
-		opHandler.setReturn(FScopy(path, src), DATATYPE_INT);
+		opHandler.setReturn(FScopy(pathArg.strValue(), srcArg.strValue()));
 	} else {
 		OpcodeInvalidArgs("fs_copy");
 		opHandler.setReturn(-1);
@@ -63,8 +59,7 @@ static void fs_find2() {
 	const ScriptValue &pathArg = opHandler.arg(0);
 
 	if (pathArg.isString()) {
-		const char* path = pathArg.asString();
-		opHandler.setReturn(FSfind(path), DATATYPE_INT);
+		opHandler.setReturn(FSfind(pathArg.strValue()));
 	} else {
 		OpcodeInvalidArgs("fs_find");
 		opHandler.setReturn(-1);
@@ -80,8 +75,7 @@ static void fs_write_byte2() {
 					  &dataArg = opHandler.arg(1);
 
 	if (idArg.isInt() && dataArg.isInt()) {
-		int id = idArg.asInt(), data = dataArg.asInt();
-		FSwrite_byte(id, data);
+		FSwrite_byte(idArg.rawValue(), dataArg.rawValue());
 	} else {
 		OpcodeInvalidArgs("fs_write_byte");
 	}
@@ -96,8 +90,7 @@ static void fs_write_short2() {
 					  &dataArg = opHandler.arg(1);
 
 	if (idArg.isInt() && dataArg.isInt()) {
-		int id = idArg.asInt(), data = dataArg.asInt();
-		FSwrite_short(id, data);
+		FSwrite_short(idArg.rawValue(), dataArg.rawValue());
 	} else {
 		OpcodeInvalidArgs("fs_write_short");
 	}
@@ -111,9 +104,8 @@ static void fs_write_int2() {
 	const ScriptValue &idArg = opHandler.arg(0),
 					  &dataArg = opHandler.arg(1);
 
-	if (idArg.isInt() && (dataArg.isInt() || dataArg.isFloat())) {
-		int id = idArg.asInt(), data = dataArg.asInt();
-		FSwrite_int(id, data);
+	if (idArg.isInt() && dataArg.isInt()) {
+		FSwrite_int(idArg.rawValue(), dataArg.rawValue());
 	} else {
 		OpcodeInvalidArgs("fs_write_int");
 	}
@@ -128,9 +120,7 @@ static void fs_write_string2() {
 					  &dataArg = opHandler.arg(1);
 
 	if (idArg.isInt() && dataArg.isString()) {
-		int id = idArg.asInt();
-		const char* data = dataArg.asString();
-		FSwrite_string(id, data);
+		FSwrite_string(idArg.rawValue(), dataArg.strValue());
 	} else {
 		OpcodeInvalidArgs("fs_write_string");
 	}
@@ -145,9 +135,7 @@ static void fs_write_bstring2() {
 					  &dataArg = opHandler.arg(1);
 
 	if (idArg.isInt() && dataArg.isString()) {
-		int id = idArg.asInt();
-		const char* data = dataArg.asString();
-		FSwrite_bstring(id, data);
+		FSwrite_bstring(idArg.rawValue(), dataArg.strValue());
 	} else {
 		OpcodeInvalidArgs("fs_write_bstring");
 	}
@@ -161,8 +149,7 @@ static void fs_read_byte2() {
 	const ScriptValue &idArg = opHandler.arg(0);
 
 	if (idArg.isInt()) {
-		int id = idArg.asInt();
-		opHandler.setReturn(FSread_byte(id), DATATYPE_INT);
+		opHandler.setReturn(FSread_byte(idArg.rawValue()));
 	} else {
 		OpcodeInvalidArgs("fs_read_byte");
 		opHandler.setReturn(0);
@@ -177,8 +164,7 @@ static void fs_read_short2() {
 	const ScriptValue &idArg = opHandler.arg(0);
 
 	if (idArg.isInt()) {
-		int id = idArg.asInt();
-		opHandler.setReturn(FSread_short(id), DATATYPE_INT);
+		opHandler.setReturn(FSread_short(idArg.rawValue()));
 	} else {
 		OpcodeInvalidArgs("fs_read_short");
 		opHandler.setReturn(0);
@@ -193,8 +179,7 @@ static void fs_read_int2() {
 	const ScriptValue &idArg = opHandler.arg(0);
 
 	if (idArg.isInt()) {
-		int id = idArg.asInt();
-		opHandler.setReturn(FSread_int(id), DATATYPE_INT);
+		opHandler.setReturn(FSread_int(idArg.rawValue()));
 	} else {
 		OpcodeInvalidArgs("fs_read_int");
 		opHandler.setReturn(0);
@@ -209,8 +194,7 @@ static void fs_read_float2() {
 	const ScriptValue &idArg = opHandler.arg(0);
 
 	if (idArg.isInt()) {
-		int id = idArg.asInt();
-		opHandler.setReturn(FSread_int(id), DATATYPE_FLOAT);
+		opHandler.setReturn(FSread_int(idArg.rawValue()), DATATYPE_FLOAT);
 	} else {
 		OpcodeInvalidArgs("fs_read_float");
 		opHandler.setReturn(0);
@@ -225,8 +209,7 @@ static void fs_delete2() {
 	const ScriptValue &idArg = opHandler.arg(0);
 
 	if (idArg.isInt()) {
-		int id = idArg.asInt();
-		FSdelete(id);
+		FSdelete(idArg.rawValue());
 	} else {
 		OpcodeInvalidArgs("fs_delete");
 	}
@@ -240,8 +223,7 @@ static void fs_size2() {
 	const ScriptValue &idArg = opHandler.arg(0);
 
 	if (idArg.isInt()) {
-		int id = idArg.asInt();
-		opHandler.setReturn(FSsize(id), DATATYPE_INT);
+		opHandler.setReturn(FSsize(idArg.rawValue()));
 	} else {
 		OpcodeInvalidArgs("fs_size");
 		opHandler.setReturn(0);
@@ -256,8 +238,7 @@ static void fs_pos2() {
 	const ScriptValue &idArg = opHandler.arg(0);
 
 	if (idArg.isInt()) {
-		int id = idArg.asInt();
-		opHandler.setReturn(FSpos(id), DATATYPE_INT);
+		opHandler.setReturn(FSpos(idArg.rawValue()));
 	} else {
 		OpcodeInvalidArgs("fs_pos");
 		opHandler.setReturn(-1);
@@ -273,8 +254,7 @@ static void fs_seek2() {
 					  &posArg = opHandler.arg(1);
 
 	if (idArg.isInt() && posArg.isInt()) {
-		int id = idArg.asInt(), pos = posArg.asInt();
-		FSseek(id, pos);
+		FSseek(idArg.rawValue(), posArg.rawValue());
 	} else {
 		OpcodeInvalidArgs("fs_seek");
 	}
@@ -289,8 +269,7 @@ static void fs_resize2() {
 					  &sizeArg = opHandler.arg(1);
 
 	if (idArg.isInt() && sizeArg.isInt()) {
-		int id = idArg.asInt(), size = sizeArg.asInt();
-		FSresize(id, size);
+		FSresize(idArg.rawValue(), sizeArg.rawValue());
 	} else {
 		OpcodeInvalidArgs("fs_resize");
 	}

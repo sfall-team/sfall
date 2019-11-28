@@ -84,7 +84,18 @@ public:
 		_type = DATATYPE_STR;
 	}
 
+	// int, long and unsigned long behave identically
 	ScriptValue(int val) {
+		_val.i = val;
+		_type = DATATYPE_INT;
+	}
+
+	ScriptValue(long val) {
+		_val.i = val;
+		_type = DATATYPE_INT;
+	}
+
+	ScriptValue(unsigned long val) {
 		_val.i = val;
 		_type = DATATYPE_INT;
 	}
@@ -109,10 +120,6 @@ public:
 
 	bool isString() const {
 		return _type == DATATYPE_STR;
-	}
-
-	unsigned long rawValue() const {
-		return _val.dw;
 	}
 
 	int asInt() const {
@@ -158,6 +165,14 @@ public:
 		return (_type == DATATYPE_INT)
 			? _val.gObj
 			: nullptr;
+	}
+
+	TGameObj* object() const {
+		return _val.gObj;
+	}
+
+	unsigned long rawValue() const {
+		return _val.dw;
 	}
 
 	const char* strValue() const {

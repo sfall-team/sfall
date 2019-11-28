@@ -251,7 +251,7 @@ static void sf_add_iface_tag() {
 static void _stdcall ShowIfaceTag2() {
 	const ScriptValue &tagArg = opHandler.arg(0);
 	if (tagArg.isInt()) {
-		int tag = tagArg.asInt();
+		int tag = tagArg.rawValue();
 		if (tag == 3 || tag == 4) {
 			__asm mov  eax, tag;
 			__asm call pc_flag_on_;
@@ -270,7 +270,7 @@ static void __declspec(naked) ShowIfaceTag() {
 static void _stdcall HideIfaceTag2() {
 	const ScriptValue &tagArg = opHandler.arg(0);
 	if (tagArg.isInt()) {
-		int tag = tagArg.asInt();
+		int tag = tagArg.rawValue();
 		if (tag == 3 || tag == 4) {
 			__asm mov  eax, tag;
 			__asm call pc_flag_off_;
@@ -290,7 +290,7 @@ static void IsIfaceTagActive2() {
 	const ScriptValue &tagArg = opHandler.arg(0);
 	if (tagArg.isInt()) {
 		bool result = false;
-		int tag = tagArg.asInt();
+		int tag = tagArg.rawValue();
 		if (tag >= 0 && tag < 5) {
 			if (tag == 1 || tag == 2) { // Poison/Radiation
 				tag += 2;
@@ -357,7 +357,7 @@ static void sf_get_cursor_mode() {
 }
 
 static void sf_set_cursor_mode() {
-	int cursorMode = opHandler.arg(0).asInt();
+	int cursorMode = opHandler.arg(0).rawValue();
 	__asm {
 		mov  eax, cursorMode;
 		call gmouse_3d_set_mode_;
@@ -372,13 +372,14 @@ static void sf_display_stats() {
 }
 
 static void sf_set_iface_tag_text() {
-	int boxTag = opHandler.arg(0).asInt();
+	int boxTag = opHandler.arg(0).rawValue();
 	int maxBox = BarBoxes_MaxBox();
 
 	if (boxTag > 4 && boxTag <= maxBox) {
-		BarBoxes_SetText(boxTag, opHandler.arg(1).strValue(), opHandler.arg(2).asInt());
+		BarBoxes_SetText(boxTag, opHandler.arg(1).strValue(), opHandler.arg(2).rawValue());
 	} else {
 		opHandler.printOpcodeError("set_iface_tag_text() - tag value must be in the range of 5 to %d.", maxBox);
+		opHandler.setReturn(-1);
 	}
 }
 
@@ -414,19 +415,17 @@ static void sf_inventory_redraw() {
 }
 
 static void sf_create_win() {
-	int flags;
-	if (opHandler.numArgs() > 5) {
-		flags = opHandler.arg(5).asInt();
-	} else {
-		flags = WIN_MoveOnTop;
-	}
+	int flags = (opHandler.numArgs() > 5)
+		? opHandler.arg(5).rawValue()
+		: WIN_MoveOnTop;
 
-	if (CreateWindowFunc(opHandler.arg(0).asString(),
-		opHandler.arg(1).asInt(), opHandler.arg(2).asInt(), // y, x
-		opHandler.arg(3).asInt(), opHandler.arg(4).asInt(), // w, h
+	if (CreateWindowFunc(opHandler.arg(0).strValue(),
+		opHandler.arg(1).rawValue(), opHandler.arg(2).rawValue(), // y, x
+		opHandler.arg(3).rawValue(), opHandler.arg(4).rawValue(), // w, h
 		256, flags) == -1)
 	{
 		opHandler.printOpcodeError("create_win() - couldn't create window.");
+		opHandler.setReturn(-1);
 	}
 }
 
@@ -509,13 +508,17 @@ static void sf_set_window_flag() {
 static void sf_draw_image() {
 	if (*(DWORD*)_currentWindow == -1) {
 		opHandler.printOpcodeError("draw_image() - no created/selected window for the image.");
+		opHandler.setReturn(0);
 		return;
 	}
 	long direction = 0;
 	const char* file = nullptr;
 	if (opHandler.arg(0).isInt()) { // art id
 		long fid = opHandler.arg(0).rawValue();
-		if (fid == -1) return;
+		if (fid == -1) {
+			opHandler.setReturn(-1);
+			return;
+		}
 		long _fid = fid & 0xFFFFFFF;
 		file = ArtGetName(_fid); // .frm
 		if (_fid >> 24 == OBJ_TYPE_CRITTER) {
@@ -525,11 +528,12 @@ static void sf_draw_image() {
 			}
 		}
 	} else {
-		file = opHandler.arg(0).strValue(); // path to frm file
+		file = opHandler.arg(0).strValue(); // path to frm/pcx file
 	}
 	FrmFile* frmPtr = nullptr;
 	if (LoadFrame(file, &frmPtr)) {
 		opHandler.printOpcodeError("draw_image() - cannot open the file: %s", file);
+		opHandler.setReturn(-1);
 		return;
 	}
 	FrmFrameData* framePtr = (FrmFrameData*)&frmPtr->width;
@@ -565,18 +569,23 @@ static void sf_draw_image() {
 		mov  eax, frmPtr;
 		call mem_free_;
 	}
+	opHandler.setReturn(1);
 }
 
 static void sf_draw_image_scaled() {
 	if (*(DWORD*)_currentWindow == -1) {
 		opHandler.printOpcodeError("draw_image_scaled() - no created/selected window for the image.");
+		opHandler.setReturn(0);
 		return;
 	}
 	long direction = 0;
 	const char* file = nullptr;
 	if (opHandler.arg(0).isInt()) { // art id
 		long fid = opHandler.arg(0).rawValue();
-		if (fid == -1) return;
+		if (fid == -1) {
+			opHandler.setReturn(-1);
+			return;
+		}
 		long _fid = fid & 0xFFFFFFF;
 		file = ArtGetName(_fid); // .frm
 		if (_fid >> 24 == OBJ_TYPE_CRITTER) {
@@ -591,6 +600,7 @@ static void sf_draw_image_scaled() {
 	FrmFile* frmPtr = nullptr;
 	if (LoadFrame(file, &frmPtr)) {
 		opHandler.printOpcodeError("draw_image_scaled() - cannot open the file: %s", file);
+		opHandler.setReturn(-1);
 		return;
 	}
 	FrmFrameData* framePtr = (FrmFrameData*)&frmPtr->width;
@@ -640,7 +650,10 @@ static void sf_draw_image_scaled() {
 		} else if (s_height <= -1 && s_width > 0) {
 			s_height = s_width * framePtr->height / framePtr->width;
 		}
-		if (s_width <= 0 || s_height <= 0) return;
+		if (s_width <= 0 || s_height <= 0) {
+			opHandler.setReturn(0);
+			return;
+		}
 
 		long w_width = WindowWidth();
 		long xy_pos = (y * w_width) + x;
@@ -650,17 +663,20 @@ static void sf_draw_image_scaled() {
 		mov  eax, frmPtr;
 		call mem_free_;
 	}
+	opHandler.setReturn(1);
 }
 
 static void sf_unwield_slot() {
 	long slot = static_cast<long>(opHandler.arg(1).rawValue());
 	if (slot < INVEN_TYPE_WORN || slot > INVEN_TYPE_LEFT_HAND) {
 		opHandler.printOpcodeError("unwield_slot() - incorrect slot number.");
+		opHandler.setReturn(-1);
 		return;
 	}
-	TGameObj* critter = opHandler.arg(0).asObject();
+	TGameObj* critter = opHandler.arg(0).object();
 	if (critter->pid >> 24 != OBJ_TYPE_CRITTER) {
 		opHandler.printOpcodeError("unwield_slot() - the object is not a critter.");
+		opHandler.setReturn(-1);
 		return;
 	}
 	bool isDude = (critter == *ptr_obj_dude);

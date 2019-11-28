@@ -122,10 +122,10 @@ static void _stdcall op_create_spatial2() {
 					  &radiusArg = opHandler.arg(3);
 
 	if (scriptIdxArg.isInt() && tileArg.isInt() && elevArg.isInt() && radiusArg.isInt()) {
-		DWORD scriptIndex = scriptIdxArg.asInt(),
-			tile = tileArg.asInt(),
-			elevation = elevArg.asInt(),
-			radius = radiusArg.asInt(),
+		DWORD scriptIndex = scriptIdxArg.rawValue(),
+			tile = tileArg.rawValue(),
+			elevation = elevArg.rawValue(),
+			radius = radiusArg.rawValue(),
 			scriptId, tmp, objectPtr,
 			scriptPtr;
 		__asm {
@@ -134,16 +134,14 @@ static void _stdcall op_create_spatial2() {
 			call scr_new_;
 			mov tmp, eax;
 		}
-		if (tmp == -1)
-			return;
+		if (tmp == -1) return;
 		__asm {
 			mov eax, scriptId;
 			lea edx, scriptPtr;
 			call scr_ptr_;
 			mov tmp, eax;
 		}
-		if (tmp == -1)
-			return;
+		if (tmp == -1) return;
 		// fill spatial script properties:
 		*(DWORD*)(scriptPtr + 0x14) = scriptIndex - 1;
 		*(DWORD*)(scriptPtr + 0x8) = (elevation << 29) & 0xE0000000 | tile;
@@ -158,7 +156,7 @@ static void _stdcall op_create_spatial2() {
 			call scr_find_obj_from_program_;
 			mov objectPtr, eax;
 		}
-		opHandler.setReturn((int)objectPtr);
+		opHandler.setReturn(objectPtr);
 	} else {
 		OpcodeInvalidArgs("create_spatial");
 		opHandler.setReturn(0);
@@ -374,13 +372,13 @@ static void _stdcall op_make_straight_path2() {
 					  &typeArg = opHandler.arg(2);
 
 	if (objFrom && tileToArg.isInt() && typeArg.isInt()) {
-		DWORD tileTo = tileToArg.asInt(),
-			  type = typeArg.asInt();
+		DWORD tileTo = tileToArg.rawValue(),
+			  type = typeArg.rawValue();
 
 		long flag = (type == BLOCKING_TYPE_SHOOT) ? 32 : 0;
 		DWORD resultObj = 0;
 		make_straight_path_func_wrapper(objFrom, objFrom->tile, tileTo, 0, &resultObj, flag, (void*)getBlockingFunc(type));
-		opHandler.setReturn(resultObj, DATATYPE_INT);
+		opHandler.setReturn(resultObj);
 	} else {
 		OpcodeInvalidArgs("obj_blocking_line");
 		opHandler.setReturn(0);
@@ -398,8 +396,8 @@ static void _stdcall op_make_path2() {
 
 	if (objFrom && tileToArg.isInt() && typeArg.isInt()) {
 		DWORD tileFrom = 0,
-			tileTo = tileToArg.asInt(),
-			type = typeArg.asInt(),
+			tileTo = tileToArg.rawValue(),
+			type = typeArg.rawValue(),
 			func = getBlockingFunc(type);
 
 		// if the object is not a critter, then there is no need to check tile (tileTo) for blocking
@@ -422,7 +420,7 @@ static void _stdcall op_make_path2() {
 		for (int i = 0; i < pathLength; i++) {
 			arrays[arrayId].val[i].set((long)pathData[i]);
 		}
-		opHandler.setReturn(arrayId, DATATYPE_INT);
+		opHandler.setReturn(arrayId);
 	} else {
 		OpcodeInvalidArgs("path_find_to");
 		opHandler.setReturn(-1);
@@ -439,16 +437,16 @@ static void _stdcall op_obj_blocking_at2() {
 					  &typeArg = opHandler.arg(2);
 
 	if (tileArg.isInt() && elevArg.isInt() && typeArg.isInt()) {
-		DWORD tile = tileArg.asInt(),
-			  elevation = elevArg.asInt(),
-			  type = typeArg.asInt();
+		DWORD tile = tileArg.rawValue(),
+			  elevation = elevArg.rawValue(),
+			  type = typeArg.rawValue();
 
 		TGameObj* resultObj = obj_blocking_at_wrapper(0, tile, elevation, (void*)getBlockingFunc(type));
 		if (resultObj && type == BLOCKING_TYPE_SHOOT && (resultObj->flags & 0x80000000)) { // don't know what this flag means, copy-pasted from the engine code
 			// this check was added because the engine always does exactly this when using shoot blocking checks
 			resultObj = nullptr;
 		}
-		opHandler.setReturn((DWORD)resultObj, DATATYPE_INT);
+		opHandler.setReturn(resultObj);
 	} else {
 		OpcodeInvalidArgs("obj_blocking_tile");
 		opHandler.setReturn(0);
@@ -464,15 +462,15 @@ static void _stdcall op_tile_get_objects2() {
 					  &elevArg = opHandler.arg(1);
 
 	if (tileArg.isInt() && elevArg.isInt()) {
-		DWORD tile = tileArg.asInt(),
-			elevation = elevArg.asInt();
+		DWORD tile = tileArg.rawValue(),
+			elevation = elevArg.rawValue();
 		DWORD arrayId = TempArray(0, 4);
 		TGameObj* obj = ObjFindFirstAtTile(elevation, tile);
 		while (obj) {
 			arrays[arrayId].push_back(reinterpret_cast<long>(obj));
 			obj = ObjFindNextAtTile();
 		}
-		opHandler.setReturn(arrayId, DATATYPE_INT);
+		opHandler.setReturn(arrayId);
 	} else {
 		OpcodeInvalidArgs("tile_get_objs");
 		opHandler.setReturn(-1);
@@ -487,7 +485,7 @@ static void _stdcall op_get_party_members2() {
 	const ScriptValue &modeArg = opHandler.arg(0);
 
 	if (modeArg.isInt()) {
-		DWORD mode = opHandler.arg(0).asInt(), isDead;
+		DWORD mode = modeArg.rawValue(), isDead;
 		int actualCount = *ptr_partyMemberCount;
 		DWORD arrayId = TempArray(0, 4);
 		DWORD* partyMemberList = *ptr_partyMemberList;
@@ -508,7 +506,7 @@ static void _stdcall op_get_party_members2() {
 			}
 			arrays[arrayId].push_back((long)obj);
 		}
-		opHandler.setReturn(arrayId, DATATYPE_INT);
+		opHandler.setReturn(arrayId);
 	} else {
 		OpcodeInvalidArgs("party_member_list");
 		opHandler.setReturn(-1);
@@ -565,7 +563,7 @@ static void sf_critter_inven_obj2() {
 	const ScriptValue &slotArg = opHandler.arg(1);
 
 	if (critter && slotArg.isInt()) {
-		int slot = slotArg.asInt();
+		int slot = slotArg.rawValue();
 		switch (slot) {
 		case 0:
 			opHandler.setReturn(InvenWorn(critter));
@@ -589,15 +587,15 @@ static void sf_critter_inven_obj2() {
 }
 
 static void sf_set_outline() {
-	TGameObj* obj = opHandler.arg(0).asObject();
-	int color = opHandler.arg(1).asInt();
+	TGameObj* obj = opHandler.arg(0).object();
+	int color = opHandler.arg(1).rawValue();
 	obj->outline = color;
 }
 
 static void sf_get_outline() {
 	TGameObj* obj = opHandler.arg(0).asObject();
 	if (obj) {
-		opHandler.setReturn(obj->outline, DATATYPE_INT);
+		opHandler.setReturn(obj->outline);
 	} else {
 		OpcodeInvalidArgs("get_outline");
 		opHandler.setReturn(0);
@@ -605,8 +603,8 @@ static void sf_get_outline() {
 }
 
 static void sf_set_flags() {
-	TGameObj* obj = opHandler.arg(0).asObject();
-	int flags = opHandler.arg(1).asInt();
+	TGameObj* obj = opHandler.arg(0).object();
+	int flags = opHandler.arg(1).rawValue();
 	obj->flags = flags;
 }
 
@@ -621,7 +619,7 @@ static void sf_get_flags() {
 }
 
 static void sf_outlined_object() {
-	opHandler.setReturn(*ptr_outlined_object, DATATYPE_INT);
+	opHandler.setReturn(*ptr_outlined_object);
 }
 
 static void sf_item_weight() {
@@ -655,7 +653,7 @@ static void sf_lock_is_jammed() {
 }
 
 static void sf_unjam_lock() {
-	TGameObj* obj = opHandler.arg(0).asObject();
+	TGameObj* obj = opHandler.arg(0).object();
 	__asm {
 		mov  eax, obj;
 		call obj_unjam_lock_;
@@ -663,9 +661,10 @@ static void sf_unjam_lock() {
 }
 
 static void sf_set_unjam_locks_time() {
-	int time = opHandler.arg(0).asInt();
+	int time = opHandler.arg(0).rawValue();
 	if (time < 0 || time > 127) {
 		opHandler.printOpcodeError("set_unjam_locks_time() - time argument must be in the range of 0 to 127.");
+		opHandler.setReturn(-1);
 	} else {
 		SetAutoUnjamLockTime(time);
 	}
@@ -674,7 +673,7 @@ static void sf_set_unjam_locks_time() {
 static void sf_get_current_inven_size() {
 	TGameObj* obj = opHandler.arg(0).asObject();
 	if (obj) {
-		opHandler.setReturn(sf_item_total_size(obj), DATATYPE_INT);
+		opHandler.setReturn(sf_item_total_size(obj));
 	} else {
 		OpcodeInvalidArgs("get_current_inven_size");
 		opHandler.setReturn(0);
@@ -682,7 +681,7 @@ static void sf_get_current_inven_size() {
 }
 
 static void sf_get_dialog_object() {
-	opHandler.setReturn(InDialog() ? *ptr_dialog_target : 0, DATATYPE_INT);
+	opHandler.setReturn(InDialog() ? *ptr_dialog_target : 0);
 }
 
 static void sf_get_obj_under_cursor() {
@@ -708,7 +707,7 @@ static void sf_get_obj_under_cursor() {
 }
 
 static void sf_get_loot_object() {
-	opHandler.setReturn((GetLoopFlags() & INTFACELOOT) ? LoadGameHook_LootTarget : 0, DATATYPE_INT);
+	opHandler.setReturn((GetLoopFlags() & INTFACELOOT) ? LoadGameHook_LootTarget : 0);
 }
 
 static const char* failedLoad = "%s() - failed to load a prototype ID: %d";
@@ -792,26 +791,27 @@ static void sf_get_object_data() {
 	} else {
 		OpcodeInvalidArgs("get_object_data");
 	}
-	opHandler.setReturn(result, DATATYPE_INT);
+	opHandler.setReturn(result);
 }
 
 static void sf_set_object_data() {
 	DWORD* object_ptr = (DWORD*)opHandler.arg(0).rawValue();
 	if (*(object_ptr - 1) != 0xFEEDFACE) {
 		opHandler.printOpcodeError("set_object_data() - invalid object pointer.");
+		opHandler.setReturn(-1);
 	} else {
 		*(long*)((BYTE*)object_ptr + opHandler.arg(1).rawValue()) = opHandler.arg(2).rawValue();
 	}
 }
 
 static void sf_set_unique_id() {
-	TGameObj* obj = opHandler.arg(0).asObject();
+	TGameObj* obj = opHandler.arg(0).object();
 	long id;
-	if (opHandler.numArgs() == 2 && opHandler.arg(1).asInt() == -1) {
+	if (opHandler.numArgs() > 1 && opHandler.arg(1).rawValue() == -1) {
 		id = NewObjId();
 		obj->ID = id;
 	} else {
 		id = SetObjectUniqueID(obj);
 	}
-	opHandler.setReturn(id, DATATYPE_INT);
+	opHandler.setReturn(id);
 }

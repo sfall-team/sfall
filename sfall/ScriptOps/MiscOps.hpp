@@ -145,7 +145,7 @@ static void __declspec(naked) SetPipBoyAvailable() {
 		jg   end;
 		mov  byte ptr ds:[_gmovie_played_list][0x3], al;
 end:
-		pop ecx;
+		pop  ecx;
 		retn;
 	}
 }
@@ -766,10 +766,10 @@ static void funcSetCriticalTable2() {
 					  &valueArg = opHandler.arg(4);
 
 	if (critterArg.isInt() && bodypartArg.isInt() && slotArg.isInt() && elementArg.isInt() && valueArg.isInt()) {
-		DWORD critter = critterArg.asInt(),
-			bodypart  = bodypartArg.asInt(),
-			slot      = slotArg.asInt(),
-			element   = elementArg.asInt();
+		DWORD critter = critterArg.rawValue(),
+			bodypart  = bodypartArg.rawValue(),
+			slot      = slotArg.rawValue(),
+			element   = elementArg.rawValue();
 
 		if (critter >= CritTableCount || bodypart >= 9 || slot >= 6 || element >= 7) {
 			opHandler.printOpcodeError(valueOutRange, "set_critical_table");
@@ -792,15 +792,15 @@ static void funcGetCriticalTable2() {
 					  &elementArg = opHandler.arg(3);
 
 	if (critterArg.isInt() && bodypartArg.isInt() && slotArg.isInt() && elementArg.isInt()) {
-		DWORD critter = critterArg.asInt(),
-			bodypart  = bodypartArg.asInt(),
-			slot      = slotArg.asInt(),
-			element   = elementArg.asInt();
+		DWORD critter = critterArg.rawValue(),
+			bodypart  = bodypartArg.rawValue(),
+			slot      = slotArg.rawValue(),
+			element   = elementArg.rawValue();
 
 		if (critter >= CritTableCount || bodypart >= 9 || slot >= 6 || element >= 7) {
 			opHandler.printOpcodeError(valueOutRange, "get_critical_table");
 		} else {
-			opHandler.setReturn(GetCriticalTable(critter, bodypart, slot, element), DATATYPE_INT);
+			opHandler.setReturn(GetCriticalTable(critter, bodypart, slot, element));
 		}
 	} else {
 		OpcodeInvalidArgs("get_critical_table");
@@ -819,10 +819,10 @@ static void funcResetCriticalTable2() {
 					  &elementArg = opHandler.arg(3);
 
 	if (critterArg.isInt() && bodypartArg.isInt() && slotArg.isInt() && elementArg.isInt()) {
-		DWORD critter = opHandler.arg(0).asInt(),
-			bodypart  = opHandler.arg(1).asInt(),
-			slot      = opHandler.arg(2).asInt(),
-			element   = opHandler.arg(3).asInt();
+		DWORD critter = critterArg.rawValue(),
+			bodypart  = bodypartArg.rawValue(),
+			slot      = slotArg.rawValue(),
+			element   = elementArg.rawValue();
 
 		if (critter >= CritTableCount || bodypart >= 9 || slot >= 6 || element >= 7) {
 			opHandler.printOpcodeError(valueOutRange, "reset_critical_table");
@@ -1337,7 +1337,10 @@ static void sf_set_ini_setting() {
 	case -1:
 		opHandler.printOpcodeError("set_ini_setting() - invalid setting argument.");
 		break;
+	default:
+		return;
 	}
+	opHandler.setReturn(-1);
 }
 
 static void sf_npc_engine_level_up() {
