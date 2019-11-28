@@ -474,43 +474,49 @@ static void __declspec(naked) IncNPCLevel() {
 
 static void _stdcall get_npc_level2() {
 	int level = -1;
-	DWORD findPid = opHandler.arg(0).asInt(); // set to 0 if passing npc name
-	const char *critterName, *name = opHandler.arg(0).asString();
+	const ScriptValue &npcArg = opHandler.arg(0);
 
-	if (findPid || name[0] != 0) {
-		DWORD pid = 0;
-		DWORD* members = *ptr_partyMemberList;
-		for (DWORD i = 0; i < *ptr_partyMemberCount; i++) {
-			if (!findPid) {
-				__asm {
-					mov  eax, members;
-					mov  eax, [eax];
-					call critter_name_;
-					mov  critterName, eax;
+	if (!npcArg.isFloat()) {
+		DWORD findPid = npcArg.asInt(); // set to 0 if passing npc name
+		const char *critterName, *name = npcArg.asString();
+
+		if (findPid || name[0] != 0) {
+			DWORD pid = 0;
+			DWORD* members = *ptr_partyMemberList;
+			for (DWORD i = 0; i < *ptr_partyMemberCount; i++) {
+				if (!findPid) {
+					__asm {
+						mov  eax, members;
+						mov  eax, [eax];
+						call critter_name_;
+						mov  critterName, eax;
+					}
+					if (!_stricmp(name, critterName)) { // found npc
+						pid = ((TGameObj*)*members)->pid;
+						break;
+					}
+				} else {
+					DWORD _pid = ((TGameObj*)*members)->pid;
+					if (findPid == _pid) {
+						pid = _pid;
+						break;
+					}
 				}
-				if (!_stricmp(name, critterName)) { // found npc
-					pid = ((TGameObj*)*members)->pid;
-					break;
-				}
-			} else {
-				DWORD _pid = ((TGameObj*)*members)->pid;
-				if (findPid == _pid) {
-					pid = _pid;
-					break;
+				members += 4;
+			}
+			if (pid) {
+				DWORD* pids = *ptr_partyMemberPidList;
+				DWORD* lvlUpInfo = *ptr_partyMemberLevelUpInfoList;
+				for (DWORD j = 0; j < *ptr_partyMemberMaxCount; j++) {
+					if (pids[j] == pid) {
+						level = lvlUpInfo[j * 3];
+						break;
+					}
 				}
 			}
-			members += 4;
 		}
-		if (pid) {
-			DWORD* pids = *ptr_partyMemberPidList;
-			DWORD* lvlUpInfo = *ptr_partyMemberLevelUpInfoList;
-			for (DWORD j = 0; j < *ptr_partyMemberMaxCount; j++) {
-				if (pids[j] == pid) {
-					level = lvlUpInfo[j * 3];
-					break;
-				}
-			}
-		}
+	} else {
+		OpcodeInvalidArgs("get_npc_level");
 	}
 	opHandler.setReturn(level);
 }
@@ -630,6 +636,7 @@ next:
 		jmp result;
 error:
 		xor edx, edx;
+		dec edx;
 		mov ebx, VAR_TYPE_INT
 result:
 		mov eax, edi;
@@ -752,15 +759,25 @@ end:
 static const char* valueOutRange = "%s() - argument values out of range.";
 
 static void funcSetCriticalTable2() {
-	DWORD critter = opHandler.arg(0).asInt(),
-		bodypart  = opHandler.arg(1).asInt(),
-		slot      = opHandler.arg(2).asInt(),
-		element   = opHandler.arg(3).asInt();
+	const ScriptValue &critterArg = opHandler.arg(0),
+					  &bodypartArg = opHandler.arg(1),
+					  &slotArg = opHandler.arg(2),
+					  &elementArg = opHandler.arg(3),
+					  &valueArg = opHandler.arg(4);
 
-	if (critter >= CritTableCount || bodypart >= 9 || slot >= 6 || element >= 7) {
-		opHandler.printOpcodeError(valueOutRange, "set_critical_table");
+	if (critterArg.isInt() && bodypartArg.isInt() && slotArg.isInt() && elementArg.isInt() && valueArg.isInt()) {
+		DWORD critter = critterArg.asInt(),
+			bodypart  = bodypartArg.asInt(),
+			slot      = slotArg.asInt(),
+			element   = elementArg.asInt();
+
+		if (critter >= CritTableCount || bodypart >= 9 || slot >= 6 || element >= 7) {
+			opHandler.printOpcodeError(valueOutRange, "set_critical_table");
+		} else {
+			SetCriticalTable(critter, bodypart, slot, element, valueArg.asInt());
+		}
 	} else {
-		SetCriticalTable(critter, bodypart, slot, element, opHandler.arg(4).asInt());
+		OpcodeInvalidArgs("set_critical_table");
 	}
 }
 
@@ -769,15 +786,25 @@ static void __declspec(naked) funcSetCriticalTable() {
 }
 
 static void funcGetCriticalTable2() {
-	DWORD critter = opHandler.arg(0).asInt(),
-		bodypart  = opHandler.arg(1).asInt(),
-		slot      = opHandler.arg(2).asInt(),
-		element   = opHandler.arg(3).asInt();
+	const ScriptValue &critterArg = opHandler.arg(0),
+					  &bodypartArg = opHandler.arg(1),
+					  &slotArg = opHandler.arg(2),
+					  &elementArg = opHandler.arg(3);
 
-	if (critter >= CritTableCount || bodypart >= 9 || slot >= 6 || element >= 7) {
-		opHandler.printOpcodeError(valueOutRange, "get_critical_table");
+	if (critterArg.isInt() && bodypartArg.isInt() && slotArg.isInt() && elementArg.isInt()) {
+		DWORD critter = critterArg.asInt(),
+			bodypart  = bodypartArg.asInt(),
+			slot      = slotArg.asInt(),
+			element   = elementArg.asInt();
+
+		if (critter >= CritTableCount || bodypart >= 9 || slot >= 6 || element >= 7) {
+			opHandler.printOpcodeError(valueOutRange, "get_critical_table");
+		} else {
+			opHandler.setReturn(GetCriticalTable(critter, bodypart, slot, element), DATATYPE_INT);
+		}
 	} else {
-		opHandler.setReturn(GetCriticalTable(critter, bodypart, slot, element), DATATYPE_INT);
+		OpcodeInvalidArgs("get_critical_table");
+		opHandler.setReturn(0);
 	}
 }
 
@@ -786,15 +813,24 @@ static void __declspec(naked) funcGetCriticalTable() {
 }
 
 static void funcResetCriticalTable2() {
-	DWORD critter = opHandler.arg(0).asInt(),
-		bodypart  = opHandler.arg(1).asInt(),
-		slot      = opHandler.arg(2).asInt(),
-		element   = opHandler.arg(3).asInt();
+	const ScriptValue &critterArg = opHandler.arg(0),
+					  &bodypartArg = opHandler.arg(1),
+					  &slotArg = opHandler.arg(2),
+					  &elementArg = opHandler.arg(3);
 
-	if (critter >= CritTableCount || bodypart >= 9 || slot >= 6 || element >= 7) {
-		opHandler.printOpcodeError(valueOutRange, "reset_critical_table");
+	if (critterArg.isInt() && bodypartArg.isInt() && slotArg.isInt() && elementArg.isInt()) {
+		DWORD critter = opHandler.arg(0).asInt(),
+			bodypart  = opHandler.arg(1).asInt(),
+			slot      = opHandler.arg(2).asInt(),
+			element   = opHandler.arg(3).asInt();
+
+		if (critter >= CritTableCount || bodypart >= 9 || slot >= 6 || element >= 7) {
+			opHandler.printOpcodeError(valueOutRange, "reset_critical_table");
+		} else {
+			ResetCriticalTable(critter, bodypart, slot, element);
+		}
 	} else {
-		ResetCriticalTable(critter, bodypart, slot, element);
+		OpcodeInvalidArgs("reset_critical_table");
 	}
 }
 
@@ -1249,13 +1285,14 @@ static void __declspec(naked) op_tile_light() {
 	_GET_ARG_R32(ebp, ebx, edi)  // arg2 - tile
 	_GET_ARG_R32(ebp, ecx, esi)  // arg1 - elevation
 	_CHECK_ARG_INT(bx, fail)
+	_CHECK_ARG_INT(cx, fail)
 	__asm {
 		mov eax, esi
 		mov edx, edi
 		call light_get_tile_
 		jmp end
 fail:
-		mov eax, 0
+		mov eax, -1
 end:
 	}
 	_RET_VAL_INT(ebp)

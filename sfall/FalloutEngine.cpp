@@ -757,6 +757,13 @@ long __stdcall ItemSize(TGameObj* item) {
 	}
 }
 
+long __stdcall ItemWeight(TGameObj* item) {
+	__asm {
+		mov  eax, item;
+		call item_weight_;
+	}
+}
+
 long __stdcall IsPartyMember(TGameObj* obj) {
 	__asm {
 		mov  eax, obj;

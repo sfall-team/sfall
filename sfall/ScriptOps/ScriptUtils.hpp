@@ -92,12 +92,23 @@ static bool _stdcall FalloutStringCompare(const char* str1, const char* str2, lo
 }
 
 static void sf_string_compare() {
-	if (opHandler.numArgs() < 3) {
-		opHandler.setReturn(
-			(_stricmp(opHandler.arg(0).strValue(), opHandler.arg(1).strValue()) ? 0 : 1)
-		);
+	const ScriptValue &str1Arg = opHandler.arg(0),
+					  &str2Arg = opHandler.arg(1);
+
+	if (str1Arg.isString() && str2Arg.isString()) {
+		if (opHandler.numArgs() < 3) {
+			opHandler.setReturn(
+				(_stricmp(str1Arg.strValue(), str2Arg.strValue()) ? 0 : 1)
+			);
+		} else {
+			const ScriptValue &codePageArg = opHandler.arg(2);
+			if (!codePageArg.isInt()) goto invalidArgs;
+			opHandler.setReturn(FalloutStringCompare(str1Arg.strValue(), str2Arg.strValue(), codePageArg.rawValue()));
+		}
 	} else {
-		opHandler.setReturn(FalloutStringCompare(opHandler.arg(0).strValue(), opHandler.arg(1).strValue(), opHandler.arg(2).rawValue()));
+invalidArgs:
+		OpcodeInvalidArgs("string_compare");
+		opHandler.setReturn(0);
 	}
 }
 
@@ -143,10 +154,16 @@ end:
 
 static void funcAbs2() {
 	const ScriptValue &value = opHandler.arg(0);
-	if (value.isInt()) {
-		opHandler.setReturn(abs((int)value.rawValue()));
+
+	if (!value.isString()) {
+		if (value.isInt()) {
+			opHandler.setReturn(abs((int)value.rawValue()));
+		} else {
+			opHandler.setReturn(abs(value.asFloat()));
+		}
 	} else {
-		opHandler.setReturn(abs(value.asFloat()));
+		OpcodeInvalidArgs("abs");
+		opHandler.setReturn(0);
 	}
 }
 
@@ -407,6 +424,7 @@ str2:
 		jmp end;
 fail:
 		xor edx, edx;
+		dec edx;
 end:
 		mov eax, ebp;
 		call interpretPushLong_;
@@ -653,6 +671,7 @@ next1:
 		jmp end;
 fail:
 		xor edx, edx;
+		dec edx;
 		mov eax, edi;
 		call interpretPushLong_;
 		mov edx, VAR_TYPE_INT;
@@ -809,8 +828,9 @@ static void __declspec(naked) op_typeof() {
 static void funcPow2() {
 	const ScriptValue &base = opHandler.arg(0),
 					  &power = opHandler.arg(1);
-	float result = 0.0;
+
 	if (!base.isString() && !power.isString()) {
+		float result = 0.0;
 		if (power.isFloat())
 			result = pow(base.asFloat(), power.floatValue());
 		else
@@ -822,6 +842,7 @@ static void funcPow2() {
 			opHandler.setReturn(result);
 		}
 	} else {
+		OpcodeInvalidArgs("power");
 		opHandler.setReturn(0);
 	}
 }
@@ -831,7 +852,14 @@ static void __declspec(naked) funcPow() {
 }
 
 static void funcLog2() {
-	opHandler.setReturn(log(opHandler.arg(0).asFloat()));
+	const ScriptValue &floatArg = opHandler.arg(0);
+
+	if (!floatArg.isString()) {
+		opHandler.setReturn(log(floatArg.asFloat()));
+	} else {
+		OpcodeInvalidArgs("log");
+		opHandler.setReturn(0);
+	}
 }
 
 static void __declspec(naked) funcLog() {
@@ -839,7 +867,14 @@ static void __declspec(naked) funcLog() {
 }
 
 static void funcExp2() {
-	opHandler.setReturn(exp(opHandler.arg(0).asFloat()));
+	const ScriptValue &floatArg = opHandler.arg(0);
+
+	if (!floatArg.isString()) {
+		opHandler.setReturn(exp(floatArg.asFloat()));
+	} else {
+		OpcodeInvalidArgs("exponent");
+		opHandler.setReturn(0);
+	}
 }
 
 static void __declspec(naked) funcExp() {
@@ -847,7 +882,14 @@ static void __declspec(naked) funcExp() {
 }
 
 static void funcCeil2() {
-	opHandler.setReturn(static_cast<int>(ceil(opHandler.arg(0).asFloat())));
+	const ScriptValue &floatArg = opHandler.arg(0);
+
+	if (!floatArg.isString()) {
+		opHandler.setReturn(static_cast<int>(ceil(floatArg.asFloat())));
+	} else {
+		OpcodeInvalidArgs("ceil");
+		opHandler.setReturn(0);
+	}
 }
 
 static void __declspec(naked) funcCeil() {
@@ -855,13 +897,20 @@ static void __declspec(naked) funcCeil() {
 }
 
 static void funcRound2() {
-	float arg = opHandler.arg(0).asFloat();
-	int argI = static_cast<int>(arg);
-	float mod = arg - static_cast<float>(argI);
-	if (abs(mod) >= 0.5) {
-		argI += (mod > 0 ? 1 : -1);
+	const ScriptValue &floatArg = opHandler.arg(0);
+
+	if (!floatArg.isString()) {
+		float arg = floatArg.asFloat();
+		int argI = static_cast<int>(arg);
+		float mod = arg - static_cast<float>(argI);
+		if (abs(mod) >= 0.5) {
+			argI += (mod > 0 ? 1 : -1);
+		}
+		opHandler.setReturn(argI);
+	} else {
+		OpcodeInvalidArgs("round");
+		opHandler.setReturn(0);
 	}
-	opHandler.setReturn(argI);
 }
 
 static void __declspec(naked) funcRound() {
@@ -920,7 +969,7 @@ static void _stdcall op_message_str_game2() {
 		opHandler.setReturn(msg);
 	} else {
 		OpcodeInvalidArgs("message_str_game");
-		opHandler.setReturn(-1);
+		opHandler.setReturn(0);
 	}
 }
 
@@ -929,9 +978,23 @@ static void __declspec(naked) op_message_str_game() {
 }
 
 static void sf_floor2() {
-	opHandler.setReturn(static_cast<int>(floor(opHandler.arg(0).asFloat())));
+	const ScriptValue &valArg = opHandler.arg(0);
+
+	if (!valArg.isString()) {
+		opHandler.setReturn(static_cast<int>(floor(valArg.asFloat())));
+	} else {
+		OpcodeInvalidArgs("floor2");
+		opHandler.setReturn(0);
+	}
 }
 
 static void sf_get_text_width() {
-	opHandler.setReturn(GetTextWidth(opHandler.arg(0).asString()), DATATYPE_INT);
+	const ScriptValue &textArg = opHandler.arg(0);
+
+	if (textArg.isString()) {
+		opHandler.setReturn(GetTextWidth(textArg.asString()), DATATYPE_INT);
+	} else {
+		OpcodeInvalidArgs("get_text_width");
+		opHandler.setReturn(0);
+	}
 }

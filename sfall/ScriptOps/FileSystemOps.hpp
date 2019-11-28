@@ -165,7 +165,7 @@ static void fs_read_byte2() {
 		opHandler.setReturn(FSread_byte(id), DATATYPE_INT);
 	} else {
 		OpcodeInvalidArgs("fs_read_byte");
-		opHandler.setReturn(-1);
+		opHandler.setReturn(0);
 	}
 }
 
@@ -181,7 +181,7 @@ static void fs_read_short2() {
 		opHandler.setReturn(FSread_short(id), DATATYPE_INT);
 	} else {
 		OpcodeInvalidArgs("fs_read_short");
-		opHandler.setReturn(-1);
+		opHandler.setReturn(0);
 	}
 }
 
@@ -197,7 +197,7 @@ static void fs_read_int2() {
 		opHandler.setReturn(FSread_int(id), DATATYPE_INT);
 	} else {
 		OpcodeInvalidArgs("fs_read_int");
-		opHandler.setReturn(-1);
+		opHandler.setReturn(0);
 	}
 }
 
@@ -213,7 +213,7 @@ static void fs_read_float2() {
 		opHandler.setReturn(FSread_int(id), DATATYPE_FLOAT);
 	} else {
 		OpcodeInvalidArgs("fs_read_float");
-		opHandler.setReturn(-1);
+		opHandler.setReturn(0);
 	}
 }
 
@@ -244,7 +244,7 @@ static void fs_size2() {
 		opHandler.setReturn(FSsize(id), DATATYPE_INT);
 	} else {
 		OpcodeInvalidArgs("fs_size");
-		opHandler.setReturn(-1);
+		opHandler.setReturn(0);
 	}
 }
 

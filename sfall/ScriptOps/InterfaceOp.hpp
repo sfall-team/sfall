@@ -314,7 +314,7 @@ static void IsIfaceTagActive2() {
 		opHandler.setReturn(result);
 	} else {
 		OpcodeInvalidArgs("is_iface_tag_active");
-		opHandler.setReturn(-1);
+		opHandler.setReturn(0);
 	}
 }
 

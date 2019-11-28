@@ -1015,6 +1015,7 @@ void DevPrintf(const char* fmt, ...);
 
 long __stdcall ItemGetType(TGameObj* item);
 long __stdcall ItemSize(TGameObj* item);
+long __stdcall ItemWeight(TGameObj* item);
 
 long __stdcall IsPartyMember(TGameObj* obj);
 long __stdcall PartyMemberGetCurrentLevel(TGameObj* obj);

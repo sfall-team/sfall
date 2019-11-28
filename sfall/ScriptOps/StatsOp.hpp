@@ -114,13 +114,12 @@ static void __declspec(naked) GetPCExtraStat() {
 }
 
 static void _stdcall SetCritterBaseStat2() {
-	const ScriptValue &objArg = opHandler.arg(0),
-					  &statArg = opHandler.arg(1),
+	TGameObj* obj = opHandler.arg(0).asObject();
+	const ScriptValue &statArg = opHandler.arg(1),
 					  &valArg = opHandler.arg(2);
 
-	if (objArg.isInt() && statArg.isInt() && valArg.isInt()) {
-		TGameObj* obj = objArg.asObject();
-		if (obj && obj->pid >> 24 == OBJ_TYPE_CRITTER) {
+	if (obj && statArg.isInt() && valArg.isInt()) {
+		if (obj->pid >> 24 == OBJ_TYPE_CRITTER) {
 			int stat = statArg.asInt();
 			if (stat >= 0 && stat < STAT_max_stat) {
 				char* proto = GetProtoPtr(obj->pid);
@@ -141,13 +140,12 @@ static void __declspec(naked) SetCritterBaseStat() {
 }
 
 static void _stdcall SetCritterExtraStat2() {
-	const ScriptValue &objArg = opHandler.arg(0),
-					  &statArg = opHandler.arg(1),
+	TGameObj* obj = opHandler.arg(0).asObject();
+	const ScriptValue &statArg = opHandler.arg(1),
 					  &valArg = opHandler.arg(2);
 
-	if (objArg.isInt() && statArg.isInt() && valArg.isInt()) {
-		TGameObj* obj = objArg.asObject();
-		if (obj && obj->pid >> 24 == OBJ_TYPE_CRITTER) {
+	if (obj && statArg.isInt() && valArg.isInt()) {
+		if (obj->pid >> 24 == OBJ_TYPE_CRITTER) {
 			int stat = statArg.asInt();
 			if (stat >= 0 && stat < STAT_max_stat) {
 				char* proto = GetProtoPtr(obj->pid);
@@ -169,12 +167,11 @@ static void __declspec(naked) SetCritterExtraStat() {
 
 static void _stdcall GetCritterBaseStat2() {
 	int result = 0;
-	const ScriptValue &objArg = opHandler.arg(0),
-					  &statArg = opHandler.arg(1);
+	TGameObj* obj = opHandler.arg(0).asObject();
+	const ScriptValue &statArg = opHandler.arg(1);
 
-	if (objArg.isInt() && statArg.isInt()) {
-		TGameObj* obj = objArg.asObject();
-		if (obj && obj->pid >> 24 == OBJ_TYPE_CRITTER) {
+	if (obj && statArg.isInt()) {
+		if (obj->pid >> 24 == OBJ_TYPE_CRITTER) {
 			int stat = statArg.asInt();
 			if (stat >= 0 && stat < STAT_max_stat) {
 				char* proto = GetProtoPtr(obj->pid);
@@ -197,12 +194,11 @@ static void __declspec(naked) GetCritterBaseStat() {
 
 static void _stdcall GetCritterExtraStat2() {
 	int result = 0;
-	const ScriptValue &objArg = opHandler.arg(0),
-					  &statArg = opHandler.arg(1);
+	TGameObj* obj = opHandler.arg(0).asObject();
+	const ScriptValue &statArg = opHandler.arg(1);
 
-	if (objArg.isInt() && statArg.isInt()) {
-		TGameObj* obj = objArg.asObject();
-		if (obj && obj->pid >> 24 == OBJ_TYPE_CRITTER) {
+	if (obj && statArg.isInt()) {
+		if (obj->pid >> 24 == OBJ_TYPE_CRITTER) {
 			int stat = statArg.asInt();
 			if (stat >= 0 && stat < STAT_max_stat) {
 				char* proto = GetProtoPtr(obj->pid);

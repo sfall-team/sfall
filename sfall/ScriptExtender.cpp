@@ -397,20 +397,10 @@ static const SfallOpcodeMetadata opcodeMetaArray[] = {
 	{sf_add_g_timer_event,      "add_g_timer_event",      {DATATYPE_MASK_INT, DATATYPE_MASK_INT}},
 	{sf_add_trait,              "add_trait",              {DATATYPE_MASK_INT}},
 	{sf_create_win,             "create_win",             {DATATYPE_MASK_STR, DATATYPE_MASK_INT, DATATYPE_MASK_INT, DATATYPE_MASK_INT, DATATYPE_MASK_INT, DATATYPE_MASK_INT}},
-	{sf_critter_inven_obj2,     "critter_inven_obj2",     {DATATYPE_MASK_VALID_OBJ, DATATYPE_MASK_INT}},
 	{sf_draw_image,             "draw_image",             {DATATYPE_MASK_INT | DATATYPE_MASK_STR, DATATYPE_MASK_INT, DATATYPE_MASK_INT, DATATYPE_MASK_INT, DATATYPE_MASK_INT}},
 	{sf_draw_image_scaled,      "draw_image_scaled",      {DATATYPE_MASK_INT | DATATYPE_MASK_STR, DATATYPE_MASK_INT, DATATYPE_MASK_INT, DATATYPE_MASK_INT, DATATYPE_MASK_INT, DATATYPE_MASK_INT}},
-	{sf_floor2,                 "floor2",                 {DATATYPE_MASK_INT | DATATYPE_MASK_FLOAT}},
-	{sf_get_current_inven_size, "get_current_inven_size", {DATATYPE_MASK_VALID_OBJ}},
-	{sf_get_flags,              "get_flags",              {DATATYPE_MASK_VALID_OBJ}},
-	{sf_get_object_data,        "get_object_data",        {DATATYPE_MASK_VALID_OBJ, DATATYPE_MASK_INT}},
-	{sf_get_outline,            "get_outline",            {DATATYPE_MASK_VALID_OBJ}},
-	{sf_get_sfall_arg_at,       "get_sfall_arg_at",       {DATATYPE_MASK_INT}},
 	{sf_hide_window,            "hide_window",            {DATATYPE_MASK_STR}},
 	{sf_inventory_redraw,       "inventory_redraw",       {DATATYPE_MASK_INT}},
-	{sf_item_weight,            "item_weight",            {DATATYPE_MASK_VALID_OBJ}},
-	{sf_lock_is_jammed,         "lock_is_jammed",         {DATATYPE_MASK_VALID_OBJ}},
-	{sf_get_obj_under_cursor,   "obj_under_cursor",       {DATATYPE_MASK_INT, DATATYPE_MASK_INT}},
 	{sf_remove_timer_event,     "remove_timer_event",     {DATATYPE_MASK_INT}},
 	{sf_set_cursor_mode,        "set_cursor_mode",        {DATATYPE_MASK_INT}},
 	{sf_set_flags,              "set_flags",              {DATATYPE_MASK_VALID_OBJ, DATATYPE_MASK_INT}},
@@ -423,8 +413,6 @@ static const SfallOpcodeMetadata opcodeMetaArray[] = {
 	{sf_set_unjam_locks_time,   "set_unjam_locks_time",   {DATATYPE_MASK_INT}},
 	{sf_set_window_flag,        "set_window_flag",        {DATATYPE_MASK_INT | DATATYPE_MASK_STR, DATATYPE_MASK_INT, DATATYPE_MASK_INT}},
 	{sf_show_window,            "show_window",            {DATATYPE_MASK_STR}},
-	{sf_spatial_radius,         "spatial_radius",         {DATATYPE_MASK_VALID_OBJ}},
-	{sf_string_compare,         "string_compare",         {DATATYPE_MASK_STR, DATATYPE_MASK_STR, DATATYPE_MASK_INT}},
 	{sf_unjam_lock,             "unjam_lock",             {DATATYPE_MASK_VALID_OBJ}},
 	{sf_unwield_slot,           "unwield_slot",           {DATATYPE_MASK_VALID_OBJ, DATATYPE_MASK_INT}},
 	#ifndef NDEBUG
@@ -613,7 +601,7 @@ static void SetGlobalVarFunc() {
 	const ScriptValue &varArg = opHandler.arg(0),
 					  &valArg = opHandler.arg(1);
 
-	if ((varArg.isInt() || varArg.isString()) && (valArg.isInt() || valArg.isFloat())) {
+	if (!varArg.isFloat() && !valArg.isString()) {
 		if (varArg.isString()) {
 			if (SetGlobalVar2(varArg.strValue(), valArg.rawValue())) {
 				opHandler.printOpcodeError("set_sfall_global() - the name of the global variable must consist of 8 characters.");
@@ -647,7 +635,7 @@ static void GetGlobalVarIntFunc() {
 	const ScriptValue &varArg = opHandler.arg(0);
 	long result = 0;
 
-	if (varArg.isInt() || varArg.isString()) {
+	if (!varArg.isFloat()) {
 		if (varArg.isString()) {
 			const char* var = varArg.strValue();
 			if (strlen(var) != 8) {
@@ -661,7 +649,7 @@ static void GetGlobalVarIntFunc() {
 		opHandler.setReturn(result, DATATYPE_INT);
 	} else {
 		opHandler.printOpcodeError("get_sfall_global_int() - argument is not an integer or a string.");
-		opHandler.setReturn(-1);
+		opHandler.setReturn(0);
 	}
 }
 
@@ -673,7 +661,7 @@ static void GetGlobalVarFloatFunc() {
 	const ScriptValue &varArg = opHandler.arg(0);
 	long result = 0;
 
-	if (varArg.isInt() || varArg.isString()) {
+	if (!varArg.isFloat()) {
 		if (varArg.isString()) {
 			const char* var = varArg.strValue();
 			if (strlen(var) != 8) {
@@ -687,7 +675,7 @@ static void GetGlobalVarFloatFunc() {
 		opHandler.setReturn(result, DATATYPE_FLOAT);
 	} else {
 		opHandler.printOpcodeError("get_sfall_global_float() - argument is not an integer or a string.");
-		opHandler.setReturn(-1);
+		opHandler.setReturn(0);
 	}
 }
 
@@ -710,11 +698,17 @@ static void __declspec(naked) GetSfallArg() {
 
 static void sf_get_sfall_arg_at() {
 	long argVal = 0;
-	long id = opHandler.arg(0).rawValue();
-	if (id >= static_cast<long>(GetHSArgCount()) || id < 0) {
-		opHandler.printOpcodeError("get_sfall_arg_at() - invalid value for argument.");
+	const ScriptValue &idArg = opHandler.arg(0);
+
+	if (idArg.isInt()) {
+		long id = opHandler.arg(0).rawValue();
+		if (id >= static_cast<long>(GetHSArgCount()) || id < 0) {
+			opHandler.printOpcodeError("get_sfall_arg_at() - invalid value for argument.");
+		} else {
+			argVal = GetHSArgAt(id);
+		}
 	} else {
-		argVal = GetHSArgAt(id);
+		OpcodeInvalidArgs("get_sfall_arg_at");
 	}
 	opHandler.setReturn(argVal);
 }

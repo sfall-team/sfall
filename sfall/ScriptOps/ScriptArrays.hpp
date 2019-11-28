@@ -43,6 +43,7 @@ static void __declspec(naked) create_array() {
 		jmp end;
 fail:
 		xor edx, edx;
+		dec edx;
 end:
 		mov eax, edi;
 		call interpretPushLong_;
@@ -297,6 +298,7 @@ static void __declspec(naked) temp_array() {
 		jmp end;
 fail:
 		xor edx, edx;
+		dec edx;
 end:
 		mov eax, edi;
 		call interpretPushLong_;
