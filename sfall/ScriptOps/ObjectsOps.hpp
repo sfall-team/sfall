@@ -539,13 +539,11 @@ static void _stdcall op_obj_is_carrying_obj2() {
 
 	TGameObj *invenObj = invenObjArg.asObject(),
 			 *itemObj = itemObjArg.asObject();
-	if (invenObj && itemObj) {
-		if (invenObj != nullptr && itemObj != nullptr) {
-			for (int i = 0; i < invenObj->invenCount; i++) {
-				if (invenObj->invenTablePtr[i].object == itemObj) {
-					num = invenObj->invenTablePtr[i].count;
-					break;
-				}
+	if (invenObj != nullptr && itemObj != nullptr) {
+		for (int i = 0; i < invenObj->invenCount; i++) {
+			if (invenObj->invenTablePtr[i].object == itemObj) {
+				num = invenObj->invenTablePtr[i].count;
+				break;
 			}
 		}
 	} else {

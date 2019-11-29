@@ -30,7 +30,7 @@ static void __declspec(naked) InputFuncsAvailable() {
 	__asm {
 		push ecx;
 		mov  edx, 1; // They're always available from 2.9 on
-		_RET_VAL_INT2(ecx);
+		_RET_VAL_INT2;
 		pop  ecx;
 		retn;
 	}
@@ -89,7 +89,7 @@ static void __declspec(naked) get_mouse_x() {
 		push ecx;
 		mov  edx, ds:[_mouse_x_];
 		add  edx, ds:[_mouse_hotx];
-		_RET_VAL_INT2(ecx);
+		_RET_VAL_INT2;
 		pop  ecx;
 		retn;
 	}
@@ -101,7 +101,7 @@ static void __declspec(naked) get_mouse_y() {
 		push ecx;
 		mov  edx, ds:[_mouse_y_];
 		add  edx, ds:[_mouse_hoty];
-		_RET_VAL_INT2(ecx);
+		_RET_VAL_INT2;
 		pop  ecx;
 		retn;
 	}
@@ -135,7 +135,7 @@ static void __declspec(naked) get_window_under_mouse() {
 	__asm {
 		push ecx;
 		mov  edx, ds:[_last_button_winID];
-		_RET_VAL_INT2(ecx);
+		_RET_VAL_INT2;
 		pop  ecx;
 		retn;
 	}
@@ -148,7 +148,7 @@ static void __declspec(naked) get_screen_width() {
 		mov  edx, ds:[_scr_size + 8]; // _scr_size.offx
 		sub  edx, ds:[_scr_size];     // _scr_size.x
 		inc  edx;
-		_RET_VAL_INT2(ecx);
+		_RET_VAL_INT2;
 		pop  ecx;
 		retn;
 	}
@@ -161,7 +161,7 @@ static void __declspec(naked) get_screen_height() {
 		mov  edx, ds:[_scr_size + 12]; // _scr_size.offy
 		sub  edx, ds:[_scr_size + 4];  // _scr_size.y
 		inc  edx;
-		_RET_VAL_INT2(ecx);
+		_RET_VAL_INT2;
 		pop  ecx;
 		retn;
 	}
@@ -204,7 +204,7 @@ static void __declspec(naked) GetViewportX() {
 	__asm {
 		push ecx;
 		mov  edx, ds:[_wmWorldOffsetX];
-		_RET_VAL_INT2(ecx);
+		_RET_VAL_INT2;
 		pop  ecx;
 		retn;
 	}
@@ -214,7 +214,7 @@ static void __declspec(naked) GetViewportY() {
 	__asm {
 		push ecx;
 		mov  edx, ds:[_wmWorldOffsetY];
-		_RET_VAL_INT2(ecx);
+		_RET_VAL_INT2;
 		pop  ecx;
 		retn;
 	}
@@ -595,7 +595,7 @@ static void sf_draw_image_scaled() {
 			}
 		}
 	} else {
-		file = opHandler.arg(0).strValue(); // path to frm file
+		file = opHandler.arg(0).strValue(); // path to frm/pcx file
 	}
 	FrmFile* frmPtr = nullptr;
 	if (LoadFrame(file, &frmPtr)) {

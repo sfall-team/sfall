@@ -35,9 +35,9 @@ static void _stdcall SetPCBaseStat2() {
 					  &valArg = opHandler.arg(1);
 
 	if (statArg.isInt() && valArg.isInt()) {
-		int stat = statArg.asInt();
+		int stat = statArg.rawValue();
 		if (stat >= 0 && stat < STAT_max_stat) {
-			((long*)_pc_proto)[9 + stat] = valArg.asInt();
+			((long*)_pc_proto)[9 + stat] = valArg.rawValue();
 		} else {
 			opHandler.printOpcodeError(invalidStat, "set_pc_base_stat");
 		}
@@ -55,9 +55,9 @@ static void _stdcall SetPCExtraStat2() {
 					  &valArg = opHandler.arg(1);
 
 	if (statArg.isInt() && valArg.isInt()) {
-		int stat = statArg.asInt();
+		int stat = statArg.rawValue();
 		if (stat >= 0 && stat < STAT_max_stat) {
-			((long*)_pc_proto)[44 + stat] = valArg.asInt();
+			((long*)_pc_proto)[44 + stat] = valArg.rawValue();
 		} else {
 			opHandler.printOpcodeError(invalidStat, "set_pc_extra_stat");
 		}
@@ -75,7 +75,7 @@ static void _stdcall GetPCBaseStat2() {
 	const ScriptValue &statArg = opHandler.arg(0);
 
 	if (statArg.isInt()) {
-		int stat = statArg.asInt();
+		int stat = statArg.rawValue();
 		if (stat >= 0 && stat < STAT_max_stat) {
 			value = ((long*)_pc_proto)[9 + stat];
 		} else {
@@ -97,7 +97,7 @@ static void _stdcall GetPCExtraStat2() {
 	const ScriptValue &statArg = opHandler.arg(0);
 
 	if (statArg.isInt()) {
-		int stat = statArg.asInt();
+		int stat = statArg.rawValue();
 		if (stat >= 0 && stat < STAT_max_stat) {
 			value = ((long*)_pc_proto)[44 + stat];
 		} else {
@@ -120,10 +120,10 @@ static void _stdcall SetCritterBaseStat2() {
 
 	if (obj && statArg.isInt() && valArg.isInt()) {
 		if (obj->pid >> 24 == OBJ_TYPE_CRITTER) {
-			int stat = statArg.asInt();
+			int stat = statArg.rawValue();
 			if (stat >= 0 && stat < STAT_max_stat) {
 				char* proto = GetProtoPtr(obj->pid);
-				if (proto != nullptr) ((long*)proto)[9 + stat] = valArg.asInt();
+				if (proto != nullptr) ((long*)proto)[9 + stat] = valArg.rawValue();
 			} else {
 				opHandler.printOpcodeError(invalidStat, "set_critter_base_stat");
 			}
@@ -146,10 +146,10 @@ static void _stdcall SetCritterExtraStat2() {
 
 	if (obj && statArg.isInt() && valArg.isInt()) {
 		if (obj->pid >> 24 == OBJ_TYPE_CRITTER) {
-			int stat = statArg.asInt();
+			int stat = statArg.rawValue();
 			if (stat >= 0 && stat < STAT_max_stat) {
 				char* proto = GetProtoPtr(obj->pid);
-				if (proto != nullptr) ((long*)proto)[44 + stat] = valArg.asInt();
+				if (proto != nullptr) ((long*)proto)[44 + stat] = valArg.rawValue();
 			} else {
 				opHandler.printOpcodeError(invalidStat, "set_critter_extra_stat");
 			}
@@ -172,7 +172,7 @@ static void _stdcall GetCritterBaseStat2() {
 
 	if (obj && statArg.isInt()) {
 		if (obj->pid >> 24 == OBJ_TYPE_CRITTER) {
-			int stat = statArg.asInt();
+			int stat = statArg.rawValue();
 			if (stat >= 0 && stat < STAT_max_stat) {
 				char* proto = GetProtoPtr(obj->pid);
 				if (proto != nullptr) result = ((long*)proto)[9 + stat];
@@ -199,7 +199,7 @@ static void _stdcall GetCritterExtraStat2() {
 
 	if (obj && statArg.isInt()) {
 		if (obj->pid >> 24 == OBJ_TYPE_CRITTER) {
-			int stat = statArg.asInt();
+			int stat = statArg.rawValue();
 			if (stat >= 0 && stat < STAT_max_stat) {
 				char* proto = GetProtoPtr(obj->pid);
 				if (proto != nullptr) result = ((long*)proto)[44 + stat];
@@ -334,7 +334,7 @@ static void __declspec(naked) get_available_skill_points() {
 	__asm {
 		push ecx;
 		mov  edx, dword ptr ds:[_curr_pc_stat];
-		_RET_VAL_INT2(ecx);
+		_RET_VAL_INT2;
 		pop  ecx;
 		retn;
 	}

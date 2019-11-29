@@ -69,11 +69,16 @@ static void _stdcall ForceEncounter2() {
 		ForceEncounterMapID = mapID;
 		DWORD flags = 0;
 		if (opHandler.numArgs() > 1) {
-			flags = opHandler.arg(1).asInt(); // no arg check
-			if (flags & 2) { // _Lock flag
-				flags |= (1 << 31); // set bit 31
+			const ScriptValue &flagsArg = opHandler.arg(1);
+			if (flagsArg.isInt()) {
+				flags = opHandler.arg(1).rawValue();
+				if (flags & 2) { // _Lock flag
+					flags |= (1 << 31); // set bit 31
+				} else {
+					flags &= ~(1 << 31);
+				}
 			} else {
-				flags &= ~(1 << 31);
+				opHandler.printOpcodeError("force_encounter_with_flags() - invalid flags.");
 			}
 		}
 		ForceEncounterFlags = flags;
@@ -94,11 +99,10 @@ static void __declspec(naked) ForceEncounterWithFlags() {
 static void __declspec(naked) funcInWorldMap() {
 	__asm {
 		push ecx;
-		push eax;
 		call InWorldMap;
 		mov  edx, eax;
-		pop  eax;
-		_RET_VAL_INT2(ecx);
+		mov  eax, ebx;
+		_RET_VAL_INT2;
 		pop  ecx;
 		retn;
 	}
@@ -107,11 +111,10 @@ static void __declspec(naked) funcInWorldMap() {
 static void __declspec(naked) GetGameMode() {
 	__asm {
 		push ecx;
-		push eax;
 		call GetLoopFlags;
 		mov  edx, eax;
-		pop  eax;
-		_RET_VAL_INT2(ecx);
+		mov  eax, ebx;
+		_RET_VAL_INT2;
 		pop  ecx;
 		retn;
 	}
@@ -121,7 +124,7 @@ static void __declspec(naked) GetWorldMapXPos() {
 	__asm {
 		push ecx;
 		mov  edx, ds:[_world_xpos];
-		_RET_VAL_INT2(ecx);
+		_RET_VAL_INT2;
 		pop  ecx;
 		retn;
 	}
@@ -131,7 +134,7 @@ static void __declspec(naked) GetWorldMapYPos() {
 	__asm {
 		push ecx;
 		mov  edx, ds:[_world_ypos];
-		_RET_VAL_INT2(ecx);
+		_RET_VAL_INT2;
 		pop  ecx;
 		retn;
 	}
@@ -202,9 +205,9 @@ fail:
 }
 
 static void sf_set_map_enter_position() {
-	int tile = opHandler.arg(0).asInt();
-	int elev = opHandler.arg(1).asInt();
-	int rot = opHandler.arg(2).asInt();
+	int tile = opHandler.arg(0).rawValue();
+	int elev = opHandler.arg(1).rawValue();
+	int rot = opHandler.arg(2).rawValue();
 
 	if (tile > -1 && tile < 40000) {
 		*ptr_tile = tile;

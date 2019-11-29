@@ -197,7 +197,7 @@ private:
 	} _val;
 
 	SfallDataType _type; // TODO: replace with enum class
-} ;
+};
 
 typedef struct {
 	union Value {
@@ -581,7 +581,7 @@ static void __declspec(naked) GetGlobalScriptTypes() {
 	__asm {
 		push ecx;
 		mov  edx, AvailableGlobalScriptTypes;
-		_RET_VAL_INT2(ecx);
+		_RET_VAL_INT2;
 		pop  ecx;
 		retn;
 	}
@@ -701,11 +701,10 @@ static void __declspec(naked) GetGlobalVarFloat() {
 static void __declspec(naked) GetSfallArg() {
 	__asm {
 		push ecx;
-		push eax;
 		call GetHSArg;
 		mov  edx, eax;
-		pop  eax;
-		_RET_VAL_INT2(ecx);
+		mov  eax, ebx;
+		_RET_VAL_INT2;
 		pop  ecx;
 		retn;
 	}
@@ -742,11 +741,10 @@ static void __declspec(naked) GetSfallArgs() {
 	__asm {
 		push ecx;
 		push edx;
-		push eax;
 		call GetSfallArgs2;
 		mov  edx, eax;
-		pop  eax;
-		_RET_VAL_INT2(ecx);
+		mov  eax, ebx;
+		_RET_VAL_INT2;
 		pop  edx;
 		pop  ecx;
 		retn;
@@ -796,7 +794,7 @@ static void __declspec(naked) InitHook() {
 	__asm {
 		push ecx;
 		mov  edx, InitingHookScripts;
-		_RET_VAL_INT2(ecx);
+		_RET_VAL_INT2;
 		pop  ecx;
 		retn;
 	}

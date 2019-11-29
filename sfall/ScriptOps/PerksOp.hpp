@@ -26,7 +26,7 @@ static void __declspec(naked) GetPerkOwed() {
 	__asm {
 		push ecx;
 		movzx edx, byte ptr ds:[_free_perk];
-		_RET_VAL_INT2(ecx);
+		_RET_VAL_INT2;
 		pop  ecx;
 		retn;
 	}

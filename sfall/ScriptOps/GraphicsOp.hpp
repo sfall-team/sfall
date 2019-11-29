@@ -30,7 +30,7 @@ static void __declspec(naked) GraphicsFuncsAvailable() {
 		cmp  GraphicsMode, 3;
 		seta dl;
 		and  edx, 0xFF;
-		_RET_VAL_INT2(ecx);
+		_RET_VAL_INT2;
 		pop  ecx;
 		retn;
 	}
@@ -396,11 +396,10 @@ end:
 static void __declspec(naked) funcGetShaderVersion() {
 	__asm {
 		push ecx;
-		push eax;
 		call GetShaderVersion;
 		mov  edx, eax;
-		pop  eax;
-		_RET_VAL_INT2(ecx);
+		mov  eax, ebx;
+		_RET_VAL_INT2;
 		pop ecx;
 		retn;
 	}

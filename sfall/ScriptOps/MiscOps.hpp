@@ -124,13 +124,12 @@ static void __declspec(naked) GetYear() {
 static void __declspec(naked) GameLoaded() {
 	__asm {
 		push ecx;
-		push eax;
 		push eax; // script
 		call ScriptHasLoaded;
 		movzx edx, al;
-		pop  eax;
-		_RET_VAL_INT2(ecx);
-		pop ecx;
+		mov  eax, ebx;
+		_RET_VAL_INT2;
+		pop  ecx;
 		retn;
 	}
 }
@@ -389,7 +388,7 @@ static void __declspec(naked) GetActiveHand() {
 	__asm {
 		push ecx;
 		mov  edx, dword ptr ds:[_itemCurrentItem];
-		_RET_VAL_INT2(ecx);
+		_RET_VAL_INT2;
 		pop  ecx;
 		retn;
 	}
@@ -406,7 +405,7 @@ static void __declspec(naked) EaxAvailable() {
 	__asm {
 		push ecx;
 		xor  edx, edx
-		_RET_VAL_INT2(ecx);
+		_RET_VAL_INT2;
 		pop  ecx;
 		retn;
 	}
@@ -659,11 +658,10 @@ static DWORD _stdcall GetTickCount2() {
 static void __declspec(naked) funcGetTickCount() {
 	__asm {
 		push ecx;
-		push eax;
 		call GetTickCount2;
 		mov  edx, eax;
-		pop  eax;
-		_RET_VAL_INT2(ecx);
+		mov  eax, ebx;
+		_RET_VAL_INT2;
 		pop  ecx;
 		retn;
 	}
@@ -774,7 +772,7 @@ static void funcSetCriticalTable2() {
 		if (critter >= CritTableCount || bodypart >= 9 || slot >= 6 || element >= 7) {
 			opHandler.printOpcodeError(valueOutRange, "set_critical_table");
 		} else {
-			SetCriticalTable(critter, bodypart, slot, element, valueArg.asInt());
+			SetCriticalTable(critter, bodypart, slot, element, valueArg.rawValue());
 		}
 	} else {
 		OpcodeInvalidArgs("set_critical_table");
@@ -853,7 +851,7 @@ static void __declspec(naked) GetApAcBonus() {
 	__asm {
 		push ecx;
 		mov  edx, StandardApAcBonus;
-		_RET_VAL_INT2(ecx);
+		_RET_VAL_INT2;
 		pop  ecx;
 		retn;
 	}
@@ -874,7 +872,7 @@ static void __declspec(naked) GetApAcEBonus() {
 	__asm {
 		push ecx;
 		mov  edx, ExtraApAcBonus;
-		_RET_VAL_INT2(ecx);
+		_RET_VAL_INT2;
 		pop  ecx;
 		retn;
 	}
@@ -958,7 +956,7 @@ static void __declspec(naked) get_light_level() {
 	__asm {
 		push ecx;
 		mov  edx, ds:[_ambient_light];
-		_RET_VAL_INT2(ecx);
+		_RET_VAL_INT2;
 		pop  ecx;
 		retn;
 	}
@@ -1107,7 +1105,7 @@ static void __declspec(naked) modified_ini() {
 	__asm {
 		push ecx;
 		mov  edx, modifiedIni;
-		_RET_VAL_INT2(ecx);
+		_RET_VAL_INT2;
 		pop  ecx;
 		retn;
 	}
@@ -1249,7 +1247,7 @@ static void __declspec(naked) gdialog_get_barter_mod() {
 	__asm {
 		push ecx;
 		mov  edx, dword ptr ds:[_gdBarterMod];
-		_RET_VAL_INT2(ecx);
+		_RET_VAL_INT2;
 		pop  ecx;
 		retn;
 	}
