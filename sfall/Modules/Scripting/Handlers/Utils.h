@@ -23,7 +23,7 @@ namespace sfall
 namespace script
 {
 
-char* Substring(const char* str, int pos, int length);
+char* Substring(const char* str, int startPos, int length);
 
 class OpcodeContext;
 

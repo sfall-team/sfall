@@ -190,29 +190,40 @@ void sf_string_split(OpcodeContext& ctx) {
 	ctx.setReturn(StringSplit(ctx.arg(0).strValue(), ctx.arg(1).strValue()));
 }
 
-char* Substring(const char* str, int pos, int length) {
-	char* newstr;
-	int srclen;
-	srclen = strlen(str);
-	if (pos < 0)
-		pos = srclen + pos;
-	if (length < 0)
-		length = srclen - pos + length;
-	if (pos >= srclen)
-		length = 0;
-	else if (length + pos > srclen)
-		length = srclen - pos;
-	newstr = new char[length + 1]; // memory leak!!!
-	if (length > 0)
-		memcpy(newstr, &str[pos], length);
-	newstr[length] = '\0';
-	return newstr;
+static char* tempTextBuf = nullptr;
+
+char* Substring(const char* str, int startPos, int length) {
+	int len = strlen(str);
+
+	if (startPos < 0) {
+		startPos += len; // start from end
+		if (startPos < 0) startPos = 0;
+	}
+	if (length < 0) {
+		length += len - startPos; // cutoff at end
+		if (length == 0) {
+			return "";
+		} else if (length < 0) {
+			length = -length; // length can't be negative
+		}
+	}
+	// check position
+	if (startPos >= len) return ""; // start position is out of string length, return empty string
+	if (length == 0 || length + startPos > len) {
+		length = len - startPos; // set the correct length, the length of characters goes beyond the end of the string
+	}
+
+	if (tempTextBuf) delete[] tempTextBuf;
+	tempTextBuf = new char[length + 1];
+	memcpy(tempTextBuf, &str[startPos], length);
+	tempTextBuf[length] = '\0';
+	return tempTextBuf;
 }
 
 void sf_substr(OpcodeContext& ctx) {
-	ctx.setReturn(
-		Substring(ctx.arg(0).strValue(), ctx.arg(1).rawValue(), ctx.arg(2).rawValue())
-	);
+	const char* str = ctx.arg(0).strValue();
+	if (*str != '\0') str = Substring(str, ctx.arg(1).rawValue(), ctx.arg(2).rawValue());
+	ctx.setReturn(str);
 }
 
 void sf_string_compare(OpcodeContext& ctx) {
@@ -225,7 +236,6 @@ void sf_string_compare(OpcodeContext& ctx) {
 	}
 }
 
-static char* sprintfbuf = nullptr;
 // A safer version of sprintf for using in user scripts.
 static char* _stdcall sprintf_lite(const char* format, ScriptValue value) {
 	int fmtlen = strlen(format);
@@ -290,18 +300,18 @@ static char* _stdcall sprintf_lite(const char* format, ScriptValue value) {
 	} else {
 		buflen = j + 30; // numbers
 	}
-	if (sprintfbuf) {
-		delete[] sprintfbuf;
+	if (tempTextBuf) {
+		delete[] tempTextBuf;
 	}
-	sprintfbuf = new char[buflen + 1];
+	tempTextBuf = new char[buflen + 1];
 	if (value.isFloat()) {
-		_snprintf(sprintfbuf, buflen, newfmt, value.floatValue());
+		_snprintf(tempTextBuf, buflen, newfmt, value.floatValue());
 	} else {
-		_snprintf(sprintfbuf, buflen, newfmt, value.rawValue());
+		_snprintf(tempTextBuf, buflen, newfmt, value.rawValue());
 	}
-	sprintfbuf[buflen] = '\0'; // just in case
+	tempTextBuf[buflen] = '\0'; // just in case
 	delete[] newfmt;
-	return sprintfbuf;
+	return tempTextBuf;
 }
 
 void sf_sprintf(OpcodeContext& ctx) {

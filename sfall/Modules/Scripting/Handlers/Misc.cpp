@@ -92,7 +92,7 @@ void __declspec(naked) op_game_loaded() {
 		movzx edx, al;
 		mov  eax, ebx;
 		_RET_VAL_INT;
-		pop ecx;
+		pop  ecx;
 		retn;
 	}
 }

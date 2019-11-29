@@ -321,12 +321,15 @@ artNotExist:
 		push eax;
 		push artDbgMsg;
 		call fo::funcoffs::debug_printf_;
-		add  esp, 8;
-		cmp  isDebug, 0;
-		jz   skip;
-		int  3; // break program
-skip:
-		retn;
+		mov  eax, [esp + 0x124 - 0x1C + 12]; // filename
+		push eax;
+		push artDbgMsg;
+		lea  eax, [esp + 0x124 - 0x124 + 20]; // buf
+		push eax;
+		call fo::funcoffs::sprintf_;
+		add  esp, 20;
+		lea  eax, [esp + 4];
+		jmp  fo::funcoffs::display_print_;
 	}
 }
 
@@ -365,7 +368,7 @@ static void DebugModePatch() {
 		if (iniGetInt("Debugging", "HideObjIsNullMsg", 0, ::sfall::ddrawIni)) {
 			MakeJump(0x453FD2, dbg_error_hack);
 		}
-		// prints a debug message about missing art file for critters and interrupts game execution
+		// prints a debug message about missing art file for critters to debug.log and the message window
 		HookCall(0x419B65, art_data_size_hook);
 
 		dlogr(" Done", DL_INIT);

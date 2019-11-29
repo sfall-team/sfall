@@ -31,7 +31,7 @@ namespace script
 
 void sf_create_array(OpcodeContext& ctx) {
 	auto arrayId = CreateArray(ctx.arg(0).rawValue(), ctx.arg(1).rawValue());
-	ctx.setReturn(arrayId, DataType::INT);
+	ctx.setReturn(arrayId);
 }
 
 void sf_set_array(OpcodeContext& ctx) {
@@ -55,7 +55,7 @@ void sf_get_array(OpcodeContext& ctx) {
 		);
 	} else if (ctx.arg(0).isString()) {
 		if (ctx.arg(1).isInt()) {
-			auto str = Substring(ctx.arg(0).strValue(), ctx.arg(1).rawValue(), 1);
+			const char* str = Substring(ctx.arg(0).strValue(), ctx.arg(1).rawValue(), 1);
 			ctx.setReturn(str); // returns char of string
 		} else {
 			ctx.printOpcodeError("%s() - index must be numeric when used on a string.", ctx.getOpcodeName());
@@ -83,7 +83,7 @@ void sf_resize_array(OpcodeContext& ctx) {
 
 void sf_temp_array(OpcodeContext& ctx) {
 	auto arrayId = TempArray(ctx.arg(0).rawValue(), ctx.arg(1).rawValue());
-	ctx.setReturn(arrayId, DataType::INT);
+	ctx.setReturn(arrayId);
 }
 
 void sf_fix_array(OpcodeContext& ctx) {
@@ -200,7 +200,7 @@ static DWORD ListAsArray(DWORD type) {
 
 void sf_list_as_array(OpcodeContext& ctx) {
 	auto arrayId = ListAsArray(ctx.arg(0).rawValue());
-	ctx.setReturn(arrayId, DataType::INT);
+	ctx.setReturn(arrayId);
 }
 
 static DWORD ListBegin(DWORD type) {
@@ -212,7 +212,7 @@ static DWORD ListBegin(DWORD type) {
 }
 
 void sf_list_begin(OpcodeContext& ctx) {
-	ctx.setReturn(ListBegin(ctx.arg(0).rawValue()), DataType::INT);
+	ctx.setReturn(ListBegin(ctx.arg(0).rawValue()));
 }
 
 static fo::GameObject* ListNext(sList* list) {
