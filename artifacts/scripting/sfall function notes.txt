@@ -248,7 +248,10 @@ Some utility/math functions are available:
 - you can use this to search for a substring in a string like this: strlen(get_array(string_split(haystack, needle), 0))
 
 > string substr(string, start, length)
-- cuts a substring from a string starting at "start" up to "length" characters. If start is negative - it indicates starting position from the end of the string (for example substr("test", -2, 2) will return last 2 charactes: "st"). If length is negative - it means so many characters will be omitted from the end of string (example: substr("test", 0, -2) will return string without last 2 characters: "te")
+- cuts a substring from a string starting at "start" up to "length" characters. The first character position starts with 0 (zero).
+- If start is negative - it indicates starting position from the end of the string (for example substr("test", -2, 2) will return last 2 charactes: "st").
+- If length is negative - it means so many characters will be omitted from the end of string (example: substr("test", 0, -2) will return string without last 2 characters: "te").
+- If length is zero - it will return a string from the starting position to the end of the string **New behavior** for sfall 4.2.2/3.8.22
 
 > int strlen(string string)
 - returns string length

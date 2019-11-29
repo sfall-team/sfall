@@ -513,30 +513,40 @@ end:
 	}
 }
 
-char* _stdcall mysubstr(const char* str, int pos, int length) {
-	char* newstr;
-	int srclen;
-	srclen = strlen(str);
-	if (pos < 0)
-		pos = srclen + pos;
-	if (length < 0)
-		length = srclen - pos + length;
-	if (pos >= srclen)
-		length = 0;
-	else if (length + pos > srclen)
-		length = srclen - pos;
-	newstr = new char[length + 1];
-	if (length > 0)
-		memcpy(newstr, &str[pos], length);
-	newstr[length] = '\0';
-	return newstr;
+static char* tempTextBuf = nullptr;
+
+char* _stdcall Substring(const char* str, int startPos, int length) {
+	int len = strlen(str);
+
+	if (startPos < 0) {
+		startPos += len; // start from end
+		if (startPos < 0) startPos = 0;
+	}
+	if (length < 0) {
+		length += len - startPos; // cutoff at end
+		if (length == 0) {
+			return "";
+		} else if (length < 0) {
+			length = -length; // length can't be negative
+		}
+	}
+	// check position
+	if (startPos >= len) return ""; // start position is out of string length, return empty string
+	if (length == 0 || length + startPos > len) {
+		length = len - startPos; // set the correct length, the length of characters goes beyond the end of the string
+	}
+
+	if (tempTextBuf) delete[] tempTextBuf;
+	tempTextBuf = new char[length + 1];
+	memcpy(tempTextBuf, &str[startPos], length);
+	tempTextBuf[length] = '\0';
+	return tempTextBuf;
 }
 
 static DWORD _stdcall mystrlen(const char* str) {
 	return strlen(str);
 }
 
-static char* sprintfbuf = nullptr;
 static char* _stdcall mysprintf(const char* format, DWORD value, DWORD valueType) {
 	valueType = valueType & 0xFFFF; // use lower 2 bytes
 	int fmtlen = strlen(format);
@@ -601,87 +611,37 @@ static char* _stdcall mysprintf(const char* format, DWORD value, DWORD valueType
 	} else {
 		buflen = j + 30; // numbers
 	}
-	if (sprintfbuf) {
-		delete[] sprintfbuf;
+	if (tempTextBuf) {
+		delete[] tempTextBuf;
 	}
-	sprintfbuf = new char[buflen + 1];
+	tempTextBuf = new char[buflen + 1];
 	if (valueType == VAR_TYPE_FLOAT) {
-		_snprintf(sprintfbuf, buflen, newfmt, *(float*)(&value));
+		_snprintf(tempTextBuf, buflen, newfmt, *(float*)(&value));
 	} else {
-		_snprintf(sprintfbuf, buflen, newfmt, value);
+		_snprintf(tempTextBuf, buflen, newfmt, value);
 	}
-	sprintfbuf[buflen] = '\0'; // just in case
+	tempTextBuf[buflen] = '\0'; // just in case
 	delete[] newfmt;
-	return sprintfbuf;
+	return tempTextBuf;
+}
+
+static void _stdcall op_substr2() {
+	const ScriptValue &strArg = opHandler.arg(0),
+					  &startArg = opHandler.arg(1),
+					  &lenArg = opHandler.arg(2);
+
+	if (strArg.isString() && startArg.isInt() && lenArg.isInt()) {
+		const char* str = strArg.strValue();
+		if (*str != '\0') str = Substring(str, startArg.rawValue(), lenArg.rawValue());
+		opHandler.setReturn(str);
+	} else {
+		OpcodeInvalidArgs("substr");
+		opHandler.setReturn(-1);
+	}
 }
 
 static void __declspec(naked) op_substr() {
-	__asm {
-		pushad;
-		mov edi, eax;
-		call interpretPopShort_;
-		push eax;
-		mov eax, edi;
-		call interpretPopLong_; // length
-		push eax;
-		mov eax, edi;
-		call interpretPopShort_;
-		push eax;
-		mov eax, edi;
-		call interpretPopLong_; // position
-		push eax;
-		mov eax, edi;
-		call interpretPopShort_;
-		push eax;
-		mov eax, edi;
-		call interpretPopLong_; // string
-		push eax;
-
-		movzx eax, word ptr [esp+12];
-		cmp eax, VAR_TYPE_INT;
-		jne fail;
-		movzx eax, word ptr [esp+20];
-		cmp eax, VAR_TYPE_INT;
-		jne fail;
-		movzx eax, word ptr [esp+4];
-		cmp eax, VAR_TYPE_STR2;
-		je next1;
-		cmp eax, VAR_TYPE_STR;
-		jne fail;
-next1:
-		mov eax, edi;
-		mov edx, [esp+4];
-		mov ebx, [esp];
-		call interpretGetString_;
-		mov ebx, [esp+16];
-		mov edx, [esp+8];
-		push ebx;
-		push edx;
-		push eax;
-		call mysubstr;
-		mov edx, eax;
-		mov eax, edi;
-		call interpretAddString_;
-		mov edx, eax;
-		mov eax, edi;
-		call interpretPushLong_;
-		mov edx, VAR_TYPE_STR;
-		mov eax, edi;
-		call interpretPushShort_;
-		jmp end;
-fail:
-		xor edx, edx;
-		dec edx;
-		mov eax, edi;
-		call interpretPushLong_;
-		mov edx, VAR_TYPE_INT;
-		mov eax, edi;
-		call interpretPushShort_;
-end:
-		add esp, 24;
-		popad;
-		retn;
-	}
+	_WRAP_OPCODE(op_substr2, 3, 1)
 }
 
 static void __declspec(naked) op_strlen() {

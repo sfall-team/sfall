@@ -472,9 +472,9 @@ end:
 
 static void __declspec(naked) DialogHook() {
 	__asm {
-		cmp dword ptr [esp + 0x14], 0x45A5C9; // call from op_gsay_end_
-		je  changeMode;
-		jmp gdProcess_;
+		test inLoop, DIALOG; // check bit flag
+		jz   changeMode;
+		jmp  gdProcess_;
 changeMode:
 		or inLoop, DIALOG;
 		call gdProcess_;
