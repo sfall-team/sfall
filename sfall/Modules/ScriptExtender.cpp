@@ -51,6 +51,8 @@ static DWORD _stdcall HandleMapUpdateForScripts(const DWORD procId);
 
 static int idle;
 
+char ScriptExtender::gTextBuffer[5120]; // used as global temp text buffer for script functions
+
 std::string ScriptExtender::iniConfigFolder;
 
 struct GlobalScript {

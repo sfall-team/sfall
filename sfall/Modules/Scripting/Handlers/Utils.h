@@ -53,6 +53,8 @@ void sf_string_compare(OpcodeContext&);
 
 void sf_sprintf(OpcodeContext&);
 
+void sf_string_format(OpcodeContext&);
+
 void sf_ord(OpcodeContext&);
 
 void sf_typeof(OpcodeContext&);

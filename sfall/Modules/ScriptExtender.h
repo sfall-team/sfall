@@ -40,6 +40,11 @@ public:
 
 	static std::string iniConfigFolder;
 
+	static char gTextBuffer[5120];
+
+	// returns the size of the global text buffer
+	inline static const long TextBufferSize() { return sizeof(gTextBuffer); }
+
 	static long GetScriptReturnValue();
 	static long GetResetScriptReturnValue();
 

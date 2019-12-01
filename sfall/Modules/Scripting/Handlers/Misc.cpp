@@ -42,7 +42,7 @@ namespace sfall
 namespace script
 {
 
-const char* stringTooLong = "%s() - the string length exceeds maximum of 64 characters.";
+const char* stringTooLong = "%s() - the string exceeds maximum length of 64 characters.";
 
 void sf_set_dm_model(OpcodeContext& ctx) {
 	auto model = ctx.arg(0).strValue();
@@ -453,7 +453,6 @@ specialIni:
 	return 1;
 }
 
-static char IniStrBuffer[256];
 static DWORD GetIniSetting(const char* str, bool isString) {
 	const char* key;
 	char section[33], file[128];
@@ -462,9 +461,9 @@ static DWORD GetIniSetting(const char* str, bool isString) {
 		return -1;
 	}
 	if (isString) {
-		IniStrBuffer[0] = 0;
-		iniGetString(section, key, "", IniStrBuffer, 256, file);
-		return (DWORD)&IniStrBuffer[0];
+		ScriptExtender::gTextBuffer[0] = 0;
+		iniGetString(section, key, "", ScriptExtender::gTextBuffer, 256, file);
+		return (DWORD)&ScriptExtender::gTextBuffer[0];
 	} else {
 		return iniGetInt(section, key, -1, file);
 	}
@@ -1037,8 +1036,8 @@ void sf_set_ini_setting(OpcodeContext& ctx) {
 
 	const char* saveValue;
 	if (argVal.isInt()) {
-		_itoa_s(argVal.rawValue(), IniStrBuffer, 10);
-		saveValue = IniStrBuffer;
+		_itoa_s(argVal.rawValue(), ScriptExtender::gTextBuffer, 10);
+		saveValue = ScriptExtender::gTextBuffer;
 	} else {
 		saveValue = argVal.strValue();
 	}
@@ -1075,12 +1074,10 @@ static std::string GetIniFilePath(const ScriptValue& arg) {
 	return fileName;
 }
 
-char getIniSectionBuf[5120];
-
 void sf_get_ini_sections(OpcodeContext& ctx) {
-	GetPrivateProfileSectionNamesA(getIniSectionBuf, 5120, GetIniFilePath(ctx.arg(0)).data());
+	GetPrivateProfileSectionNamesA(ScriptExtender::gTextBuffer, ScriptExtender::TextBufferSize(), GetIniFilePath(ctx.arg(0)).data());
 	std::vector<char*> sections;
-	char* section = getIniSectionBuf;
+	char* section = ScriptExtender::gTextBuffer;
 	while (*section != 0) {
 		sections.push_back(section); // position
 		section += std::strlen(section) + 1;
@@ -1099,10 +1096,10 @@ void sf_get_ini_sections(OpcodeContext& ctx) {
 
 void sf_get_ini_section(OpcodeContext& ctx) {
 	auto section = ctx.arg(1).strValue();
-	GetPrivateProfileSectionA(section, getIniSectionBuf, 5120, GetIniFilePath(ctx.arg(0)).data());
+	GetPrivateProfileSectionA(section, ScriptExtender::gTextBuffer, ScriptExtender::TextBufferSize(), GetIniFilePath(ctx.arg(0)).data());
 	int arrayId = TempArray(-1, 0); // associative
 	auto& arr = arrays[arrayId];
-	char *key = getIniSectionBuf, *val = nullptr;
+	char *key = ScriptExtender::gTextBuffer, *val = nullptr;
 	while (*key != 0) {
 		char* val = std::strpbrk(key, "=");
 		if (val != nullptr) {

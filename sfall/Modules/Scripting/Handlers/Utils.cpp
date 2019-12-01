@@ -190,8 +190,6 @@ void sf_string_split(OpcodeContext& ctx) {
 	ctx.setReturn(StringSplit(ctx.arg(0).strValue(), ctx.arg(1).strValue()));
 }
 
-static char* tempTextBuf = nullptr;
-
 char* Substring(const char* str, int startPos, int length) {
 	int len = strlen(str);
 
@@ -201,11 +199,8 @@ char* Substring(const char* str, int startPos, int length) {
 	}
 	if (length < 0) {
 		length += len - startPos; // cutoff at end
-		if (length == 0) {
-			return "";
-		} else if (length < 0) {
-			length = -length; // length can't be negative
-		}
+		if (length == 0) return "";
+		abs(length); // length can't be negative
 	}
 	// check position
 	if (startPos >= len) return ""; // start position is out of string length, return empty string
@@ -213,11 +208,12 @@ char* Substring(const char* str, int startPos, int length) {
 		length = len - startPos; // set the correct length, the length of characters goes beyond the end of the string
 	}
 
-	if (tempTextBuf) delete[] tempTextBuf;
-	tempTextBuf = new char[length + 1];
-	memcpy(tempTextBuf, &str[startPos], length);
-	tempTextBuf[length] = '\0';
-	return tempTextBuf;
+	const int bufMax = ScriptExtender::TextBufferSize() - 1;
+	if (length > bufMax) length = bufMax;
+
+	memcpy(ScriptExtender::gTextBuffer, &str[startPos], length);
+	ScriptExtender::gTextBuffer[length] = '\0';
+	return ScriptExtender::gTextBuffer;
 }
 
 void sf_substr(OpcodeContext& ctx) {
@@ -241,8 +237,7 @@ static char* _stdcall sprintf_lite(const char* format, ScriptValue value) {
 	int fmtlen = strlen(format);
 	int buflen = fmtlen + 1;
 	for (int i = 0; i < fmtlen; i++) {
-		if (format[i] == '%')
-			buflen++; // will possibly be escaped, need space for that
+		if (format[i] == '%') buflen++; // will possibly be escaped, need space for that
 	}
 	// parse format to make it safe
 	char* newfmt = new char[buflen];
@@ -290,7 +285,8 @@ static char* _stdcall sprintf_lite(const char* format, ScriptValue value) {
 		newfmt[j++] = c;
 	}
 	newfmt[j] = '\0';
-	// calculate required memory
+
+	// calculate required length
 	if (hasDigits) {
 		buflen = 254;
 	} else if (specifier == 'c') {
@@ -300,24 +296,71 @@ static char* _stdcall sprintf_lite(const char* format, ScriptValue value) {
 	} else {
 		buflen = j + 30; // numbers
 	}
-	if (tempTextBuf) {
-		delete[] tempTextBuf;
-	}
-	tempTextBuf = new char[buflen + 1];
+
+	const long bufMaxLen = ScriptExtender::TextBufferSize() - 1;
+	if (buflen > bufMaxLen - 1) buflen = bufMaxLen - 1;
+	ScriptExtender::gTextBuffer[bufMaxLen] = '\0';
+
 	if (value.isFloat()) {
-		_snprintf(tempTextBuf, buflen, newfmt, value.floatValue());
+		_snprintf(ScriptExtender::gTextBuffer, buflen, newfmt, value.floatValue());
 	} else {
-		_snprintf(tempTextBuf, buflen, newfmt, value.rawValue());
+		_snprintf(ScriptExtender::gTextBuffer, buflen, newfmt, value.rawValue());
 	}
-	tempTextBuf[buflen] = '\0'; // just in case
 	delete[] newfmt;
-	return tempTextBuf;
+	return ScriptExtender::gTextBuffer;
 }
 
 void sf_sprintf(OpcodeContext& ctx) {
 	ctx.setReturn(
 		sprintf_lite(ctx.arg(0).strValue(), ctx.arg(1))
 	);
+}
+
+void sf_string_format(OpcodeContext& ctx) {
+	const char* format = ctx.arg(0).strValue();
+
+	int fmtLen = strlen(format);
+	if (fmtLen == 0) {
+		ctx.setReturn(format);
+		return;
+	}
+	if (fmtLen > 1024) {
+		ctx.printOpcodeError("%s() - the format string exceeds maximum length of 1024 characters.", ctx.getMetaruleName());
+		ctx.setReturn("Error");
+	} else {
+		char* newFmt = new char[fmtLen + 1];
+		newFmt[fmtLen] = '\0';
+		// parse format to make it safe
+		int i = 0;
+		do {
+			char c = format[i];
+			if (c == '%') {
+				char cf = format[i + 1];
+				if (cf != 's' && cf != 'd' && cf != '%') c = ' '; // unsupported format
+			}
+			newFmt[i] = c;
+		} while (++i < fmtLen);
+
+		const long bufMaxLen = ScriptExtender::TextBufferSize() - 1;
+
+		switch (ctx.numArgs()) {
+		case 2 :
+			_snprintf(ScriptExtender::gTextBuffer, bufMaxLen, newFmt, ctx.arg(1).rawValue());
+			break;
+		case 3 :
+			_snprintf(ScriptExtender::gTextBuffer, bufMaxLen, newFmt, ctx.arg(1).rawValue(), ctx.arg(2).rawValue());
+			break;
+		case 4 :
+			_snprintf(ScriptExtender::gTextBuffer, bufMaxLen, newFmt, ctx.arg(1).rawValue(), ctx.arg(2).rawValue(), ctx.arg(3).rawValue());
+			break;
+		case 5 :
+			_snprintf(ScriptExtender::gTextBuffer, bufMaxLen, newFmt, ctx.arg(1).rawValue(), ctx.arg(2).rawValue(), ctx.arg(3).rawValue(), ctx.arg(4).rawValue());
+		}
+		ScriptExtender::gTextBuffer[bufMaxLen] = '\0'; // just in case
+
+		delete[] newFmt;
+		ctx.setReturn(ScriptExtender::gTextBuffer);
+	}
 }
 
 void sf_power(OpcodeContext& ctx) {
