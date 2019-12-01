@@ -302,19 +302,18 @@ hide:
 	}
 }
 
-static char* artDbgMsg = "\nError: file not found: %s\n";
+static char* artDbgMsg = "\nERROR: File not found: %s\n";
 static void __declspec(naked) art_data_size_hook() {
 	__asm {
 		test edi, edi;
 		jz   artNotExist;
 		retn;
 artNotExist:
-		mov  eax, [esp + 0x124 - 0x1C + 4]; // filename
-		push eax;
+		mov  edx, [esp + 0x124 - 0x1C + 4]; // filename
+		push edx;
 		push artDbgMsg;
 		call debug_printf_;
-		mov  eax, [esp + 0x124 - 0x1C + 12]; // filename
-		push eax;
+		push edx; // filename
 		push artDbgMsg;
 		lea  eax, [esp + 0x124 - 0x124 + 20]; // buf
 		push eax;
@@ -360,7 +359,7 @@ static void DebugModePatch() {
 		if (iniGetInt("Debugging", "HideObjIsNullMsg", 0, ddrawIniDef)) {
 			MakeJump(0x453FD2, dbg_error_hack);
 		}
-		// prints a debug message about missing art file for critters to debug.log and the message window
+		// prints a debug message about missing art file for critters to both debug.log and the message window
 		HookCall(0x419B65, art_data_size_hook);
 
 		dlogr(" Done", DL_INIT);

@@ -32,7 +32,7 @@
  *	Misc operators
  */
 
-const char* stringTooLong = "%s() - the string length exceeds maximum of 64 characters.";
+const char* stringTooLong = "%s() - the string exceeds maximum length of 64 characters.";
 
 static void _stdcall SetDMModel2() {
 	const ScriptValue &modelArg = opHandler.arg(0);
@@ -549,7 +549,6 @@ static int ParseIniSetting(const char* iniString, const char* &key, char section
 	return 1;
 }
 
-static char IniStrBuffer[256];
 static DWORD _stdcall GetIniSetting2(const char* str, DWORD isString) {
 	const char* key;
 	char section[33], file[67];
@@ -558,9 +557,9 @@ static DWORD _stdcall GetIniSetting2(const char* str, DWORD isString) {
 		return -1;
 	}
 	if (isString) {
-		IniStrBuffer[0] = 0;
-		iniGetString(section, key, "", IniStrBuffer, 256, file);
-		return (DWORD)&IniStrBuffer[0];
+		gTextBuffer[0] = 0;
+		iniGetString(section, key, "", gTextBuffer, 256, file);
+		return (DWORD)&gTextBuffer[0];
 	} else {
 		return iniGetInt(section, key, -1, file);
 	}
@@ -1316,8 +1315,8 @@ static void sf_set_ini_setting() {
 
 	const char* saveValue;
 	if (argVal.isInt()) {
-		_itoa_s(argVal.rawValue(), IniStrBuffer, 10);
-		saveValue = IniStrBuffer;
+		_itoa_s(argVal.rawValue(), gTextBuffer, 10);
+		saveValue = gTextBuffer;
 	} else {
 		saveValue = argVal.strValue();
 	}

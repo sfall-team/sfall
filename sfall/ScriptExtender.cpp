@@ -42,6 +42,11 @@ static void sf_get_sfall_arg_at();
 static void sf_add_g_timer_event();
 static void sf_remove_timer_event();
 
+static char gTextBuffer[5120]; // used as global temp text buffer for script functions
+
+// returns the size of the global text buffer
+inline static const long GlblTextBufferSize() { return sizeof(gTextBuffer); }
+
 // variables for new opcodes
 #define OP_MAX_ARGUMENTS	(8)
 
@@ -740,12 +745,10 @@ static DWORD _stdcall GetSfallArgs2() {
 static void __declspec(naked) GetSfallArgs() {
 	__asm {
 		push ecx;
-		push edx;
 		call GetSfallArgs2;
 		mov  edx, eax;
 		mov  eax, ebx;
 		_RET_VAL_INT2;
-		pop  edx;
 		pop  ecx;
 		retn;
 	}

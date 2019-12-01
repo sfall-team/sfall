@@ -472,7 +472,7 @@ end:
 
 static void __declspec(naked) DialogHook() {
 	__asm {
-		test inLoop, DIALOG; // check bit flag
+		test inLoop, DIALOG; // check byte flag
 		jz   changeMode;
 		jmp  gdProcess_;
 changeMode:

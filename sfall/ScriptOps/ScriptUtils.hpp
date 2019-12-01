@@ -91,27 +91,6 @@ static bool _stdcall FalloutStringCompare(const char* str1, const char* str2, lo
 	}
 }
 
-static void sf_string_compare() {
-	const ScriptValue &str1Arg = opHandler.arg(0),
-					  &str2Arg = opHandler.arg(1);
-
-	if (str1Arg.isString() && str2Arg.isString()) {
-		if (opHandler.numArgs() < 3) {
-			opHandler.setReturn(
-				(_stricmp(str1Arg.strValue(), str2Arg.strValue()) ? 0 : 1)
-			);
-		} else {
-			const ScriptValue &codePageArg = opHandler.arg(2);
-			if (!codePageArg.isInt()) goto invalidArgs;
-			opHandler.setReturn(FalloutStringCompare(str1Arg.strValue(), str2Arg.strValue(), codePageArg.rawValue()));
-		}
-	} else {
-invalidArgs:
-		OpcodeInvalidArgs("string_compare");
-		opHandler.setReturn(0);
-	}
-}
-
 static void __declspec(naked) funcSqrt() {
 	__asm {
 		pushad;
@@ -351,6 +330,172 @@ end:
 	}
 }
 
+static DWORD _stdcall mystrlen(const char* str) {
+	return strlen(str);
+}
+
+static void __declspec(naked) op_strlen() {
+	__asm {
+		pushad;
+		mov edi, eax;
+		call interpretPopShort_;
+		mov edx, eax;
+		mov eax, edi;
+		call interpretPopLong_; // string
+		cmp dx, VAR_TYPE_STR2;
+		je next;
+		cmp dx, VAR_TYPE_STR;
+		jne fail;
+next:
+		mov ebx, eax;
+		mov eax, edi;
+		call interpretGetString_;
+		push eax;
+		call mystrlen;
+		jmp end;
+fail:
+		xor eax, eax; // return 0
+end:
+		mov edx, eax;
+		mov eax, edi;
+		call interpretPushLong_;
+		mov edx, VAR_TYPE_INT;
+		mov eax, edi;
+		call interpretPushShort_;
+		popad;
+		retn;
+	}
+}
+
+static int _stdcall str_to_int_internal(const char* str) {
+	return static_cast<int>(strtol(str, (char**)nullptr, 0)); // auto-determine radix
+}
+
+static DWORD _stdcall str_to_flt_internal(const char* str) {
+	float f = static_cast<float>(atof(str));
+	return *(DWORD*)&f;
+}
+
+static void __declspec(naked) str_to_int() {
+	__asm {
+		pushad;
+		mov ebp, eax;
+		call interpretPopShort_;
+		mov ebx, eax;
+		mov eax, ebp;
+		call interpretPopLong_;
+		cmp bx, VAR_TYPE_STR2;
+		jz str1;
+		cmp bx, VAR_TYPE_STR;
+		jnz fail;
+str1:
+		mov edx, ebx;
+		mov ebx, eax;
+		mov eax, ebp;
+		call interpretGetString_;
+		push eax;
+		call str_to_int_internal;
+		mov edx, eax;
+		jmp end;
+fail:
+		xor edx, edx;
+end:
+		mov eax, ebp;
+		call interpretPushLong_;
+		mov edx, VAR_TYPE_INT;
+		mov eax, ebp;
+		call interpretPushShort_;
+		popad;
+		retn;
+	}
+}
+
+static void __declspec(naked) str_to_flt() {
+	__asm {
+		pushad;
+		mov ebp, eax;
+		call interpretPopShort_;
+		mov ebx, eax;
+		mov eax, ebp;
+		call interpretPopLong_;
+		cmp bx, VAR_TYPE_STR2;
+		jz str1;
+		cmp bx, VAR_TYPE_STR;
+		jnz fail;
+str1:
+		mov edx, ebx;
+		mov ebx, eax;
+		mov eax, ebp;
+		call interpretGetString_;
+		push eax;
+		call str_to_flt_internal;
+		mov edx, eax;
+		jmp end;
+fail:
+		xor edx, edx;
+end:
+		mov eax, ebp;
+		call interpretPushLong_;
+		mov edx, VAR_TYPE_FLOAT;
+		mov eax, ebp;
+		call interpretPushShort_;
+		popad;
+		retn;
+	}
+}
+
+static void __declspec(naked) op_ord() {
+	_OP_BEGIN(ebp)
+	_GET_ARG_R32(ebp, ebx, esi)
+	_PARSE_STR_ARG(1, ebp, bx, esi, notstring)
+	__asm {
+		mov eax, 0;
+		mov al, [esi]; // first character
+		jmp done;
+notstring:
+		mov eax, 0;
+	done:
+	}
+	_RET_VAL_INT(ebp)
+	_OP_END
+}
+
+static DWORD _stdcall GetValueType(DWORD datatype) {
+	datatype &= 0xFFFF;
+	switch (datatype) {
+	case VAR_TYPE_STR:
+	case VAR_TYPE_STR2:
+		return DATATYPE_STR;
+	case VAR_TYPE_INT:
+		return DATATYPE_INT;
+	case VAR_TYPE_FLOAT:
+		return DATATYPE_FLOAT;
+	default:
+		return DATATYPE_NONE; // just in case
+	}
+}
+
+static void __declspec(naked) op_typeof() {
+	__asm {
+		pushad;
+		mov edi, eax;
+		call interpretPopShort_;
+		mov edx, eax;
+		mov eax, edi;
+		call interpretPopLong_; // call just in case (not used)
+		push edx;
+		call GetValueType;
+		mov edx, eax;
+		mov eax, edi;
+		call interpretPushLong_;
+		mov edx, VAR_TYPE_INT;
+		mov eax, edi;
+		call interpretPushShort_;
+		popad;
+		retn;
+	}
+}
+
 static int _stdcall StringSplit(const char* str, const char* split) {
 	int id;
 	size_t count, splitLen = strlen(split);
@@ -436,85 +581,6 @@ end:
 	}
 }
 
-static int _stdcall str_to_int_internal(const char* str) {
-	return static_cast<int>(strtol(str, (char**)nullptr, 0)); // auto-determine radix
-}
-
-static DWORD _stdcall str_to_flt_internal(const char* str) {
-	float f = static_cast<float>(atof(str));
-	return *(DWORD*)&f;
-}
-
-static void __declspec(naked) str_to_int() {
-	__asm {
-		pushad;
-		mov ebp, eax;
-		call interpretPopShort_;
-		mov ebx, eax;
-		mov eax, ebp;
-		call interpretPopLong_;
-		cmp bx, VAR_TYPE_STR2;
-		jz str1;
-		cmp bx, VAR_TYPE_STR;
-		jnz fail;
-str1:
-		mov edx, ebx;
-		mov ebx, eax;
-		mov eax, ebp;
-		call interpretGetString_;
-		push eax;
-		call str_to_int_internal;
-		mov edx, eax;
-		jmp end;
-fail:
-		xor edx, edx;
-end:
-		mov eax, ebp;
-		call interpretPushLong_;
-		mov edx, VAR_TYPE_INT;
-		mov eax, ebp;
-		call interpretPushShort_;
-		popad;
-		retn;
-	}
-}
-
-static void __declspec(naked) str_to_flt() {
-	__asm {
-		pushad;
-		mov ebp, eax;
-		call interpretPopShort_;
-		mov ebx, eax;
-		mov eax, ebp;
-		call interpretPopLong_;
-		cmp bx, VAR_TYPE_STR2;
-		jz str1;
-		cmp bx, VAR_TYPE_STR;
-		jnz fail;
-str1:
-		mov edx, ebx;
-		mov ebx, eax;
-		mov eax, ebp;
-		call interpretGetString_;
-		push eax;
-		call str_to_flt_internal;
-		mov edx, eax;
-		jmp end;
-fail:
-		xor edx, edx;
-end:
-		mov eax, ebp;
-		call interpretPushLong_;
-		mov edx, VAR_TYPE_FLOAT;
-		mov eax, ebp;
-		call interpretPushShort_;
-		popad;
-		retn;
-	}
-}
-
-static char* tempTextBuf = nullptr;
-
 char* _stdcall Substring(const char* str, int startPos, int length) {
 	int len = strlen(str);
 
@@ -524,11 +590,8 @@ char* _stdcall Substring(const char* str, int startPos, int length) {
 	}
 	if (length < 0) {
 		length += len - startPos; // cutoff at end
-		if (length == 0) {
-			return "";
-		} else if (length < 0) {
-			length = -length; // length can't be negative
-		}
+		if (length == 0) return "";
+		abs(length); // length can't be negative
 	}
 	// check position
 	if (startPos >= len) return ""; // start position is out of string length, return empty string
@@ -536,24 +599,61 @@ char* _stdcall Substring(const char* str, int startPos, int length) {
 		length = len - startPos; // set the correct length, the length of characters goes beyond the end of the string
 	}
 
-	if (tempTextBuf) delete[] tempTextBuf;
-	tempTextBuf = new char[length + 1];
-	memcpy(tempTextBuf, &str[startPos], length);
-	tempTextBuf[length] = '\0';
-	return tempTextBuf;
+	const int bufMax = GlblTextBufferSize() - 1;
+	if (length > bufMax) length = bufMax;
+
+	memcpy(gTextBuffer, &str[startPos], length);
+	gTextBuffer[length] = '\0';
+	return gTextBuffer;
 }
 
-static DWORD _stdcall mystrlen(const char* str) {
-	return strlen(str);
+static void _stdcall op_substr2() {
+	const ScriptValue &strArg = opHandler.arg(0),
+					  &startArg = opHandler.arg(1),
+					  &lenArg = opHandler.arg(2);
+
+	if (strArg.isString() && startArg.isInt() && lenArg.isInt()) {
+		const char* str = strArg.strValue();
+		if (*str != '\0') str = Substring(str, startArg.rawValue(), lenArg.rawValue());
+		opHandler.setReturn(str);
+	} else {
+		OpcodeInvalidArgs("substr");
+		opHandler.setReturn(-1);
+	}
 }
 
+static void __declspec(naked) op_substr() {
+	_WRAP_OPCODE(op_substr2, 3, 1)
+}
+
+static void sf_string_compare() {
+	const ScriptValue &str1Arg = opHandler.arg(0),
+					  &str2Arg = opHandler.arg(1);
+
+	if (str1Arg.isString() && str2Arg.isString()) {
+		if (opHandler.numArgs() < 3) {
+			opHandler.setReturn(
+				(_stricmp(str1Arg.strValue(), str2Arg.strValue()) ? 0 : 1)
+			);
+		} else {
+			const ScriptValue &codePageArg = opHandler.arg(2);
+			if (!codePageArg.isInt()) goto invalidArgs;
+			opHandler.setReturn(FalloutStringCompare(str1Arg.strValue(), str2Arg.strValue(), codePageArg.rawValue()));
+		}
+	} else {
+invalidArgs:
+		OpcodeInvalidArgs("string_compare");
+		opHandler.setReturn(0);
+	}
+}
+
+// A safer version of sprintf for using in user scripts.
 static char* _stdcall mysprintf(const char* format, DWORD value, DWORD valueType) {
 	valueType = valueType & 0xFFFF; // use lower 2 bytes
 	int fmtlen = strlen(format);
 	int buflen = fmtlen + 1;
 	for (int i = 0; i < fmtlen; i++) {
-		if (format[i] == '%')
-			buflen++; // will possibly be escaped, need space for that
+		if (format[i] == '%') buflen++; // will possibly be escaped, need space for that
 	}
 	// parse format to make it safe
 	char* newfmt = new char[buflen];
@@ -601,7 +701,8 @@ static char* _stdcall mysprintf(const char* format, DWORD value, DWORD valueType
 		newfmt[j++] = c;
 	}
 	newfmt[j] = '\0';
-	// calculate required memory
+
+	// calculate required length
 	if (hasDigits) {
 		buflen = 254;
 	} else if (specifier == 'c') {
@@ -611,70 +712,18 @@ static char* _stdcall mysprintf(const char* format, DWORD value, DWORD valueType
 	} else {
 		buflen = j + 30; // numbers
 	}
-	if (tempTextBuf) {
-		delete[] tempTextBuf;
-	}
-	tempTextBuf = new char[buflen + 1];
+
+	const long bufMaxLen = GlblTextBufferSize() - 1;
+	if (buflen > bufMaxLen - 1) buflen = bufMaxLen - 1;
+	gTextBuffer[bufMaxLen] = '\0';
+
 	if (valueType == VAR_TYPE_FLOAT) {
-		_snprintf(tempTextBuf, buflen, newfmt, *(float*)(&value));
+		_snprintf(gTextBuffer, buflen, newfmt, *(float*)(&value));
 	} else {
-		_snprintf(tempTextBuf, buflen, newfmt, value);
+		_snprintf(gTextBuffer, buflen, newfmt, value);
 	}
-	tempTextBuf[buflen] = '\0'; // just in case
 	delete[] newfmt;
-	return tempTextBuf;
-}
-
-static void _stdcall op_substr2() {
-	const ScriptValue &strArg = opHandler.arg(0),
-					  &startArg = opHandler.arg(1),
-					  &lenArg = opHandler.arg(2);
-
-	if (strArg.isString() && startArg.isInt() && lenArg.isInt()) {
-		const char* str = strArg.strValue();
-		if (*str != '\0') str = Substring(str, startArg.rawValue(), lenArg.rawValue());
-		opHandler.setReturn(str);
-	} else {
-		OpcodeInvalidArgs("substr");
-		opHandler.setReturn(-1);
-	}
-}
-
-static void __declspec(naked) op_substr() {
-	_WRAP_OPCODE(op_substr2, 3, 1)
-}
-
-static void __declspec(naked) op_strlen() {
-	__asm {
-		pushad;
-		mov edi, eax;
-		call interpretPopShort_;
-		mov edx, eax;
-		mov eax, edi;
-		call interpretPopLong_; // string
-		cmp dx, VAR_TYPE_STR2;
-		je next;
-		cmp dx, VAR_TYPE_STR;
-		jne fail;
-next:
-		mov ebx, eax;
-		mov eax, edi;
-		call interpretGetString_;
-		push eax;
-		call mystrlen;
-		jmp end;
-fail:
-		xor eax, eax; // return 0
-end:
-		mov edx, eax;
-		mov eax, edi;
-		call interpretPushLong_;
-		mov edx, VAR_TYPE_INT;
-		mov eax, edi;
-		call interpretPushShort_;
-		popad;
-		retn;
-	}
+	return gTextBuffer;
 }
 
 static void __declspec(naked) op_sprintf() {
@@ -728,58 +777,6 @@ notstring:
 		mov eax, edi;
 		call interpretPushShort_;
 fail:
-		popad;
-		retn;
-	}
-}
-
-static void __declspec(naked) op_ord() {
-	_OP_BEGIN(ebp)
-	_GET_ARG_R32(ebp, ebx, esi)
-	_PARSE_STR_ARG(1, ebp, bx, esi, notstring)
-	__asm {
-		mov eax, 0;
-		mov al, [esi]; // first character
-		jmp done;
-notstring:
-		mov eax, 0;
-	done:
-	}
-	_RET_VAL_INT(ebp)
-	_OP_END
-}
-
-static DWORD _stdcall GetValueType(DWORD datatype) {
-	datatype &= 0xFFFF;
-	switch (datatype) {
-	case VAR_TYPE_STR:
-	case VAR_TYPE_STR2:
-		return DATATYPE_STR;
-	case VAR_TYPE_INT:
-		return DATATYPE_INT;
-	case VAR_TYPE_FLOAT:
-		return DATATYPE_FLOAT;
-	default:
-		return DATATYPE_NONE; // just in case
-	}
-}
-
-static void __declspec(naked) op_typeof() {
-	__asm {
-		pushad;
-		mov edi, eax;
-		call interpretPopShort_;
-		mov edx, eax;
-		mov eax, edi;
-		call interpretPopLong_; // call just in case (not used)
-		push edx;
-		call GetValueType;
-		mov edx, eax;
-		mov eax, edi;
-		call interpretPushLong_;
-		mov edx, VAR_TYPE_INT;
-		mov eax, edi;
-		call interpretPushShort_;
 		popad;
 		retn;
 	}
