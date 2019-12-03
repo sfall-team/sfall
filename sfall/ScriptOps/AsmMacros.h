@@ -5,7 +5,7 @@
 
 	Notes:
 	- DO NOT add any comments within macros
-	- every macro should contain __asm {} block 
+	- every macro should contain __asm {} block
 	- every assembly line should start with __asm and should NOT have semicolon in the end!
 	- use this macros outside of other __asm {} blocks (obviously)
 */
@@ -42,6 +42,7 @@
 	Gets argument from stack to eax and puts its type to edx register
 	eax register must contain the script_ptr
 	jlabel - name of the jump label in case the value type is not INT
+	return: eax - arg value
 */
 #define _GET_ARG_INT(jlabel) __asm {		\
 	__asm mov  edx, eax						\
@@ -71,7 +72,7 @@
 	checks argument (which may be any type) if it's a string and retrieves it (overwrites value in rval)
 	num - any number, but it must be unique (used for label names)
 	r16type - 16bit register where value type is stored
-	rval - r32 where value is stored 
+	rval - r32 where value is stored
 */
 #define _CHECK_PARSE_STR(num, rscript, r16type, rval) __asm { \
 	__asm cmp r16type, VAR_TYPE_STR2	\
@@ -131,7 +132,14 @@ notstring##num:
 	__asm call interpretPushShort_		\
 }
 
-/* 
+#define _J_RET_VAL_TYPE(type) __asm {	\
+	__asm call interpretPushLong_		\
+	__asm mov  edx, type				\
+	__asm mov  eax, ebx					\
+	__asm jmp  interpretPushShort_		\
+}
+
+/*
 	handle return value which may be of any type
 	num - any unique number
 	type - register or other expression (like memory address) where value type is stored (usually [esp])
@@ -154,8 +162,8 @@ __asm resultnotstr##num:				\
 	__asm call interpretPushShort_		\
 }
 
-/* 
-	better way of handling new opcodes: 
+/*
+	better way of handling new opcodes:
 	- no ASM code required
 	- all type checks should be done in the wrapped C-function
 	- use opArgs, opArgTypes to access arguments

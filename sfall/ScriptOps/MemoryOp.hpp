@@ -1,6 +1,6 @@
 /*
  *    sfall
- *    Copyright (C) 2008, 2009, 2010, 2012  The sfall team
+ *    Copyright (C) 2008-2016  The sfall team
  *
  *    This program is free software: you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
@@ -19,303 +19,236 @@
 #pragma once
 
 #include "main.h"
-#include "ScriptExtender.h"
+//#include "ScriptExtender.h"
+
+#define START_VALID_ADDR	0x410000
+#define END_VALID_ADDR		0x6B403F
 
 // memory_reading_funcs
 static void __declspec(naked) ReadByte() {
 	__asm {
-		push ebx;
-		push ecx;
-		push edx;
-		mov ecx, eax;
-		call interpretPopShort_;
-		mov edx, eax;
-		mov eax, ecx;
-		call interpretPopLong_;
-		cmp dx, VAR_TYPE_INT;
-		jnz error;
-		movzx edx, byte ptr ds:[eax];
-		jmp result;
-error:
-		mov edx, 0;
+		_GET_ARG_INT(error);
+		test eax, eax;
+		jz   error;
+		movzx edx, byte ptr ds:[eax]; // read memory
 result:
-		mov eax, ecx;
-		call interpretPushLong_;
-		mov edx, VAR_TYPE_INT;
-		mov eax, ecx;
-		call interpretPushShort_;
-		pop edx;
-		pop ecx;
-		pop ebx;
-		retn;
+		mov  eax, ebx;
+		_J_RET_VAL_TYPE(VAR_TYPE_INT);
+//		retn;
+error:
+		xor  edx, edx;
+		jmp result;
 	}
 }
+
 static void __declspec(naked) ReadShort() {
 	__asm {
-		push ebx;
-		push ecx;
-		push edx;
-		mov ecx, eax;
-		call interpretPopShort_;
-		mov edx, eax;
-		mov eax, ecx;
-		call interpretPopLong_;
-		cmp dx, VAR_TYPE_INT;
-		jnz error;
-		movzx edx, word ptr ds:[eax];
-		jmp result;
-error:
-		mov edx, 0;
+		_GET_ARG_INT(error);
+		test eax, eax;
+		jz   error;
+		movzx edx, word ptr ds:[eax]; // read memory
 result:
-		mov eax, ecx;
-		call interpretPushLong_;
-		mov edx, VAR_TYPE_INT;
-		mov eax, ecx;
-		call interpretPushShort_;
-		pop edx;
-		pop ecx;
-		pop ebx;
-		retn;
+		mov  eax, ebx;
+		_J_RET_VAL_TYPE(VAR_TYPE_INT);
+//		retn;
+error:
+		xor  edx, edx;
+		jmp result;
 	}
 }
+
 static void __declspec(naked) ReadInt() {
 	__asm {
-		push ebx;
-		push ecx;
-		push edx;
-		mov ecx, eax;
-		call interpretPopShort_;
-		mov edx, eax;
-		mov eax, ecx;
-		call interpretPopLong_;
-		cmp dx, VAR_TYPE_INT;
-		jnz error;
-		mov edx, dword ptr ds:[eax];
-		jmp result;
-error:
-		mov edx, 0;
+		_GET_ARG_INT(error);
+		test eax, eax;
+		jz   error;
+		mov  edx, dword ptr ds:[eax]; // read memory
 result:
-		mov eax, ecx;
-		call interpretPushLong_;
-		mov edx, VAR_TYPE_INT;
-		mov eax, ecx;
-		call interpretPushShort_;
-		pop edx;
-		pop ecx;
-		pop ebx;
-		retn;
+		mov  eax, ebx;
+		_J_RET_VAL_TYPE(VAR_TYPE_INT);
+//		retn;
+error:
+		xor  edx, edx;
+		jmp result;
 	}
 }
+
 static void __declspec(naked) ReadString() {
 	__asm {
-		push ebx;
-		push ecx;
-		push edx;
-		mov ecx, eax;
-		call interpretPopShort_;
-		mov edx, eax;
-		mov eax, ecx;
-		call interpretPopLong_;
-		cmp dx, VAR_TYPE_INT;
-		jnz error;
-		mov edx, eax;
-		jmp result;
-error:
-		mov edx, 0;
+		_GET_ARG_INT(error);
+		test eax, eax;
+		jz   error;
+		mov  edx, eax;
 result:
-		mov eax, ecx;
-		call interpretPushLong_;
-		mov edx, VAR_TYPE_STR;
-		mov eax, ecx;
-		call interpretPushShort_;
-		pop edx;
-		pop ecx;
-		pop ebx;
-		retn;
+		mov  eax, ebx;
+		_J_RET_VAL_TYPE(VAR_TYPE_STR);
+//		retn;
+error:
+		xor  edx, edx;
+		jmp  result;
 	}
 }
+
 static void __declspec(naked) WriteByte() {
 	__asm {
-		pushad
-		mov ecx, eax;
+		push ecx;
 		call interpretPopShort_;
-		mov esi, eax;
-		mov eax, ecx;
+		mov  ecx, eax; // type
+		mov  eax, ebx;
 		call interpretPopLong_;
-		mov edx, eax;
-		mov eax, ecx;
-		call interpretPopShort_;
-		mov edi, eax;
-		mov eax, ecx;
-		call interpretPopLong_;
-		cmp di, VAR_TYPE_INT;
-		jnz end;
-		cmp si, VAR_TYPE_INT;
-		jnz end;
-		//mov byte ptr ds:[eax], dl;
-		and edx, 0xff;
-		push edx;
+		mov  esi, eax; // write value
+		mov  eax, ebx;
+		_GET_ARG_INT(end);
+		cmp  cx, VAR_TYPE_INT;
+		jnz  end;
+		// check valid addr
+		cmp  eax, START_VALID_ADDR;
+		jb   end;
+		cmp  eax, END_VALID_ADDR;
+		ja   end;
+		and  esi, 0xFF;
+		push esi;
 		push eax;
 		call SafeWrite8;
 end:
-		popad;
+		pop  ecx;
 		retn;
 	}
 }
+
 static void __declspec(naked) WriteShort() {
 	__asm {
-		pushad;
-		mov ecx, eax;
+		push ecx;
 		call interpretPopShort_;
-		mov esi, eax;
-		mov eax, ecx;
+		mov  ecx, eax; // type
+		mov  eax, ebx;
 		call interpretPopLong_;
-		mov edx, eax;
-		mov eax, ecx;
-		call interpretPopShort_;
-		mov edi, eax;
-		mov eax, ecx;
-		call interpretPopLong_;
-		cmp di, VAR_TYPE_INT;
-		jnz end;
-		cmp si, VAR_TYPE_INT;
-		jnz end;
-		//mov word ptr ds:[eax], dx;
-		and edx, 0xffff;
-		push edx;
+		mov  esi, eax; // write value
+		mov  eax, ebx;
+		_GET_ARG_INT(end);
+		cmp  cx, VAR_TYPE_INT;
+		jnz  end;
+		// check valid addr
+		cmp  eax, START_VALID_ADDR;
+		jb   end;
+		cmp  eax, END_VALID_ADDR;
+		ja   end;
+		and  esi, 0xFFFF;
+		push esi;
 		push eax;
 		call SafeWrite16;
 end:
-		popad;
+		pop  ecx;
 		retn;
 	}
 }
+
 static void __declspec(naked) WriteInt() {
 	__asm {
-		pushad
-		mov ecx, eax;
+		push ecx;
 		call interpretPopShort_;
-		mov esi, eax;
-		mov eax, ecx;
+		mov  ecx, eax; // type
+		mov  eax, ebx;
 		call interpretPopLong_;
-		mov edx, eax;
-		mov eax, ecx;
-		call interpretPopShort_;
-		mov edi, eax;
-		mov eax, ecx;
-		call interpretPopLong_;
-		cmp di, VAR_TYPE_INT;
-		jnz end;
-		cmp si, VAR_TYPE_INT;
-		jnz end;
-		//mov dword ptr ds:[eax], edx;
-		push edx;
+		mov  esi, eax; // write value
+		mov  eax, ebx;
+		_GET_ARG_INT(end);
+		cmp  cx, VAR_TYPE_INT;
+		jnz  end;
+		// check valid addr
+		cmp  eax, START_VALID_ADDR;
+		jb   end;
+		cmp  eax, END_VALID_ADDR;
+		ja   end;
+		push esi;
 		push eax;
 		call SafeWrite32;
 end:
-		popad
+		pop  ecx;
 		retn;
 	}
 }
-static void _stdcall WriteStringInternal(const char* str, char* addr) {
-	bool hitnull = false;
+
+static void __fastcall WriteStringInternal(char* addr, long type, long strID, TProgram* script) {
+	const char* str = InterpretGetString(script, type, strID);
 	while (*str) {
-		if (!*addr) hitnull = true;
-		if (hitnull && addr[1]) break;
-		*addr = *str;
-		addr++;
-		str++;
+		if (!addr[0] && addr[1]) break; // addr[1] as *(addr + 1)
+		*addr++ = *str++;
 	}
 	*addr = 0;
 }
+
 static void __declspec(naked) WriteString() {
 	__asm {
-		pushad;
-		mov ecx, eax;
+		push ecx;
 		call interpretPopShort_;
-		mov esi, eax;
-		mov eax, ecx;
+		mov  ecx, eax; // type
+		mov  eax, ebx;
 		call interpretPopLong_;
-		mov edi, eax;
-		mov eax, ecx;
-		call interpretPopShort_;
-		mov edx, eax;
-		mov eax, ecx;
-		call interpretPopLong_;
-		cmp dx, VAR_TYPE_INT;
-		jnz end;
-		cmp si, VAR_TYPE_STR2;
-		jz next;
-		cmp si, VAR_TYPE_STR;
-		jnz end;
+		mov  esi, eax; // str value
+		mov  eax, ebx;
+		_GET_ARG_INT(end);
+		cmp  cx, VAR_TYPE_STR2;
+		je   next;
+		cmp  cx, VAR_TYPE_STR;
+		jnz  end;
 next:
-		mov ebx, edi;
-		mov edx, esi;
-		mov esi, eax;
-		mov eax, ecx;
-		call interpretGetString_;
-		push esi;
-		push eax;
+		// ecx - type, esi - value
+		// edx - type, eax - addr
+		// check valid address
+		cmp  eax, START_VALID_ADDR;
+		jb   end;
+		cmp  eax, END_VALID_ADDR;
+		ja   end;
+		push ebx; // script
+		push esi; // str value
+		mov  edx, ecx; // type
+		mov  ecx, eax; // addr
 		call WriteStringInternal;
-		jmp end;
 end:
-		popad;
+		pop  ecx;
 		retn;
 	}
 }
-static void _stdcall CallOffsetInternal(DWORD func, DWORD script) {
-	func = (func >> 2) - 0x1d2;
-	bool ret = func >= 5;
-	int argcount = func % 5;
-	DWORD args[5];
-	DWORD illegalarg = 0;
-	for (int i = argcount * 4; i >= 0; i -= 4) {
-		__asm {
-			mov eax, script;
-			call interpretPopShort_;
-			cmp ax, VAR_TYPE_INT;
-			jz legal;
-			inc illegalarg;
-legal:
-			mov eax, script;
-			call interpretPopLong_;
-			lea ecx, args;
-			add ecx, i;
-			mov [ecx], eax;
-		}
-	}
 
-	if (illegalarg) {
+static void __fastcall CallOffsetInternal(TProgram* script, DWORD func) {
+	func = (func >> 2) - 0x1d2;
+	DWORD args[5];
+	DWORD illegalArg = 0;
+	int argCount = func % 5;
+
+	for (int i = argCount; i >= 0; i--) {
+		if ((short)InterpretPopShort(script) != (short)VAR_TYPE_INT) illegalArg++;
+		args[i] = InterpretPopLong(script);
+	}
+	if (illegalArg || args[0] < 0x410010 || args[0] > 0x4FCE34) {
 		args[0] = 0;
 	} else {
 		__asm {
-			mov eax, args[4];  // args[1]
-			mov edx, args[8];  // args[2]
-			mov ebx, args[12]; // args[3]
-			mov ecx, args[16]; // args[4]
-			mov edi, args[0];  // args[0]
-			call edi;
-			mov args[0], eax;
+			mov  eax, args[4];
+			mov  edx, args[8];
+			mov  ebx, args[12];
+			mov  ecx, args[16];
+			call args[0];
+			mov  args[0], eax;
 		}
 	}
-	if (ret) {
+	if (func >= 5) { // has return
 		__asm {
 			mov eax, script;
 			mov edx, args[0];
-			call interpretPushLong_;
-			mov eax, script;
-			mov edx, VAR_TYPE_INT;
-			call interpretPushShort_;
+			mov ebx, eax;
+			_RET_VAL_INT2;
 		}
 	}
 }
+
 static void __declspec(naked) CallOffset() {
 	__asm {
-		pushad;
-		push eax;
-		push edx;
-		call CallOffsetInternal;
-		popad;
+		push ecx;
+		mov  ecx, eax;
+		call CallOffsetInternal; // edx - func
+		pop  ecx;
 		retn;
 	}
 }

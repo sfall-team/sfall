@@ -268,6 +268,7 @@ end:
 		retn;
 	}
 }
+
 static void __declspec(naked) get_critter_skill_points() {
 	__asm {
 		pushad;

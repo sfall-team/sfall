@@ -591,7 +591,7 @@ char* _stdcall Substring(const char* str, int startPos, int length) {
 	if (length < 0) {
 		length += len - startPos; // cutoff at end
 		if (length == 0) return "";
-		abs(length); // length can't be negative
+		length = abs(length); // length can't be negative
 	}
 	// check position
 	if (startPos >= len) return ""; // start position is out of string length, return empty string
@@ -779,6 +779,76 @@ notstring:
 fail:
 		popad;
 		retn;
+	}
+}
+
+static void sf_string_format() {
+	const ScriptValue &fmtArg = opHandler.arg(0);
+
+	if (!fmtArg.isString()) {
+		OpcodeInvalidArgs("string_format");
+		opHandler.setReturn(0);
+		return;
+	}
+
+	const char* format = fmtArg.strValue();
+
+	int fmtLen = strlen(format);
+	if (fmtLen == 0) {
+		opHandler.setReturn(format);
+		return;
+	}
+	if (fmtLen > 1024) {
+		opHandler.printOpcodeError("string_format() - the format string exceeds maximum length of 1024 characters.");
+		opHandler.setReturn("Error");
+	} else {
+		char* newFmt = new char[fmtLen + 1];
+		newFmt[fmtLen] = '\0';
+		// parse format to make it safe
+		int i = 0, arg = 0, totalArg = opHandler.numArgs(); // total passed args
+		do {
+			char c = format[i];
+			if (c == '%') {
+				char cf = format[i + 1];
+				if (cf != '%') {
+					if (arg >= 0) {
+						arg++;
+						if (arg == totalArg) arg = -1; // format '%' prefixes in the format string exceed the number of passed value args
+					}
+					if (arg < 0) { // have % more than passed value args
+						c = '^';   // delete %
+					}
+					// check string is valid or replace unsupported format
+					else if ((cf == 's' && (arg > 0 && !opHandler.arg(arg).isString())) || (cf != 's' && cf != 'd')) {
+						newFmt[i++] = c;
+						c = 'd'; // replace with %d
+					}
+				} else {
+					newFmt[i++] = cf; // skip %%
+				}
+			}
+			newFmt[i] = c;
+		} while (++i < fmtLen);
+
+		const long bufMaxLen = GlblTextBufferSize() - 1;
+
+		switch (totalArg) {
+		case 2 :
+			_snprintf(gTextBuffer, bufMaxLen, newFmt, opHandler.arg(1).rawValue());
+			break;
+		case 3 :
+			_snprintf(gTextBuffer, bufMaxLen, newFmt, opHandler.arg(1).rawValue(), opHandler.arg(2).rawValue());
+			break;
+		case 4 :
+			_snprintf(gTextBuffer, bufMaxLen, newFmt, opHandler.arg(1).rawValue(), opHandler.arg(2).rawValue(), opHandler.arg(3).rawValue());
+			break;
+		case 5 :
+			_snprintf(gTextBuffer, bufMaxLen, newFmt, opHandler.arg(1).rawValue(), opHandler.arg(2).rawValue(), opHandler.arg(3).rawValue(), opHandler.arg(4).rawValue());
+		}
+		gTextBuffer[bufMaxLen] = '\0'; // just in case
+
+		delete[] newFmt;
+		opHandler.setReturn(gTextBuffer);
 	}
 }
 

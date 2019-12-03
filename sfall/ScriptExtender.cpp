@@ -337,7 +337,7 @@ public:
 
 			// retrieve string argument
 			if (type == DATATYPE_STR) {
-				_args[i] = InterpretGetString(program, rawValue, rawValueType);
+				_args[i] = InterpretGetString(program, rawValueType, rawValue);
 			} else {
 				_args[i] = ScriptValue(type, rawValue);
 			}

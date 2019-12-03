@@ -1084,7 +1084,7 @@ void __stdcall InterpretPushLong(TProgram* scriptPtr, DWORD val);
 // pushes value type to Data stack (must be preceded by InterpretPushLong)
 void __stdcall InterpretPushShort(TProgram* scriptPtr, DWORD valType);
 
-const char* __stdcall InterpretGetString(TProgram* scriptPtr, DWORD strId, DWORD dataType);
+const char* __fastcall InterpretGetString(TProgram* scriptPtr, DWORD dataType, DWORD strId);
 
 DWORD __stdcall InterpretAddString(TProgram* scriptPtr, const char* str);
 

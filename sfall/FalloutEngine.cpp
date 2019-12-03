@@ -979,11 +979,10 @@ DWORD __stdcall InterpretAddString(TProgram* scriptPtr, const char* strval) {
 	}
 }
 
-const char* __stdcall InterpretGetString(TProgram* scriptPtr, DWORD strId, DWORD dataType) {
+const char* __fastcall InterpretGetString(TProgram* scriptPtr, DWORD dataType, DWORD strId) {
 	__asm {
-		mov  edx, dataType;
 		mov  ebx, strId;
-		mov  eax, scriptPtr;
+		mov  eax, ecx;
 		call interpretGetString_;
 	}
 }
