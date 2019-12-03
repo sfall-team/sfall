@@ -584,7 +584,7 @@ void __declspec(naked) op_set_base_skill_mod() { // same as set_skill_max
 		push 0xFFFFFFFF;
 		call SetSkillMax;
 end:
-		pop ecx;
+		pop  ecx;
 		retn;
 	}
 }

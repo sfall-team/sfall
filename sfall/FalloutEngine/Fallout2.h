@@ -17,7 +17,7 @@
 */
 #pragma once
 
-/* 
+/*
 * FALLOUT2.EXE structs, function offsets and wrappers are included from here.
 */
 
@@ -55,6 +55,7 @@
 	Gets argument from stack to eax and puts its type to edx register
 	eax register must contain the script_ptr
 	jlabel - name of the jump label in case the value type is not INT
+	return: eax - arg value
 */
 #define _GET_ARG_INT(jlabel) __asm {				\
 	__asm mov  edx, eax								\
@@ -75,4 +76,11 @@
 	__asm mov  edx, VAR_TYPE_INT					\
 	__asm mov  eax, ebx								\
 	__asm call fo::funcoffs::interpretPushShort_	\
+}
+
+#define _J_RET_VAL_TYPE(type) __asm {				\
+	__asm call fo::funcoffs::interpretPushLong_		\
+	__asm mov  edx, type							\
+	__asm mov  eax, ebx								\
+	__asm jmp  fo::funcoffs::interpretPushShort_	\
 }

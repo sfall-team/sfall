@@ -122,7 +122,7 @@ void __stdcall interpretPushLong(Program* scriptPtr, DWORD val);
 // pushes value type to Data stack (must be preceded by InterpretPushLong)
 void __stdcall interpretPushShort(Program* scriptPtr, DWORD valType);
 
-const char* __stdcall interpretGetString(Program* scriptPtr, DWORD dataType, DWORD strId);
+const char* __fastcall interpretGetString(Program* scriptPtr, DWORD dataType, DWORD strId);
 
 DWORD __stdcall interpretAddString(Program* scriptPtr, const char* str);
 

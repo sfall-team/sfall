@@ -242,8 +242,8 @@ DWORD __stdcall interpretAddString(Program* scriptPtr, const char* strval) {
 	WRAP_WATCOM_CALL2(interpretAddString_, scriptPtr, strval)
 }
 
-const char* __stdcall interpretGetString(Program* scriptPtr, DWORD dataType, DWORD strId) {
-	WRAP_WATCOM_CALL3(interpretGetString_, scriptPtr, dataType, strId)
+const char* __fastcall interpretGetString(Program* scriptPtr, DWORD dataType, DWORD strId) {
+	WRAP_WATCOM_FCALL3(interpretGetString_, scriptPtr, dataType, strId)
 }
 
 // prints scripting error in debug.log and stops current script execution by performing longjmp

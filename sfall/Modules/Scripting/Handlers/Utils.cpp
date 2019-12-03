@@ -200,7 +200,7 @@ char* Substring(const char* str, int startPos, int length) {
 	if (length < 0) {
 		length += len - startPos; // cutoff at end
 		if (length == 0) return "";
-		abs(length); // length can't be negative
+		length = abs(length); // length can't be negative
 	}
 	// check position
 	if (startPos >= len) return ""; // start position is out of string length, return empty string
@@ -331,19 +331,34 @@ void sf_string_format(OpcodeContext& ctx) {
 		char* newFmt = new char[fmtLen + 1];
 		newFmt[fmtLen] = '\0';
 		// parse format to make it safe
-		int i = 0;
+		int i = 0, arg = 0, totalArg = ctx.numArgs(); // total passed args
 		do {
 			char c = format[i];
 			if (c == '%') {
 				char cf = format[i + 1];
-				if (cf != 's' && cf != 'd' && cf != '%') c = ' '; // unsupported format
+				if (cf != '%') {
+					if (arg >= 0) {
+						arg++;
+						if (arg == totalArg) arg = -1; // format '%' prefixes in the format string exceed the number of passed value args
+					}
+					if (arg < 0) { // have % more than passed value args
+						c = '^';   // delete %
+					}
+					// check string is valid or replace unsupported format
+					else if ((cf == 's' && (arg > 0 && !ctx.arg(arg).isString())) || (cf != 's' && cf != 'd')) {
+						newFmt[i++] = c;
+						c = 'd'; // replace with %d
+					}
+				} else {
+					newFmt[i++] = cf; // skip %%
+				}
 			}
 			newFmt[i] = c;
 		} while (++i < fmtLen);
 
 		const long bufMaxLen = ScriptExtender::TextBufferSize() - 1;
 
-		switch (ctx.numArgs()) {
+		switch (totalArg) {
 		case 2 :
 			_snprintf(ScriptExtender::gTextBuffer, bufMaxLen, newFmt, ctx.arg(1).rawValue());
 			break;
