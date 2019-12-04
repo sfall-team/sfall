@@ -123,20 +123,19 @@ static void __declspec(naked) GetYear() {
 
 static void __declspec(naked) GameLoaded() {
 	__asm {
-		push ecx;
+		mov  esi, ecx;
 		push eax; // script
 		call ScriptHasLoaded;
 		movzx edx, al;
 		mov  eax, ebx;
 		_RET_VAL_INT2;
-		pop  ecx;
+		mov  ecx, esi;
 		retn;
 	}
 }
 
 static void __declspec(naked) SetPipBoyAvailable() {
 	__asm {
-		push ecx;
 		_GET_ARG_INT(end);
 		cmp  eax, 0;
 		jl   end;
@@ -144,7 +143,6 @@ static void __declspec(naked) SetPipBoyAvailable() {
 		jg   end;
 		mov  byte ptr ds:[_gmovie_played_list][0x3], al;
 end:
-		pop  ecx;
 		retn;
 	}
 }
@@ -180,6 +178,7 @@ end:
 		retn;
 	}
 }
+
 static void __declspec(naked) ModKillCounter() {
 	__asm {
 		push ebx;
@@ -214,6 +213,7 @@ end:
 		retn;
 	}
 }
+
 //Knockback
 static void __declspec(naked) SetKnockback() {
 	__asm {
@@ -258,6 +258,7 @@ end:
 		retn;
 	}
 }
+
 static void __declspec(naked) SetWeaponKnockback() {
 	__asm {
 		pushad;
@@ -265,6 +266,7 @@ static void __declspec(naked) SetWeaponKnockback() {
 		jmp SetKnockback;
 	}
 }
+
 static void __declspec(naked) SetTargetKnockback() {
 	__asm {
 		pushad;
@@ -272,6 +274,7 @@ static void __declspec(naked) SetTargetKnockback() {
 		jmp SetKnockback;
 	}
 }
+
 static void __declspec(naked) SetAttackerKnockback() {
 	__asm {
 		pushad;
@@ -279,6 +282,7 @@ static void __declspec(naked) SetAttackerKnockback() {
 		jmp SetKnockback;
 	}
 }
+
 static void __declspec(naked) RemoveKnockback() {
 	__asm {
 		mov ecx, eax;
@@ -298,6 +302,7 @@ end:
 		retn;
 	}
 }
+
 static void __declspec(naked) RemoveWeaponKnockback() {
 	__asm {
 		pushad;
@@ -305,6 +310,7 @@ static void __declspec(naked) RemoveWeaponKnockback() {
 		jmp RemoveKnockback;
 	}
 }
+
 static void __declspec(naked) RemoveTargetKnockback() {
 	__asm {
 		pushad;
@@ -312,6 +318,7 @@ static void __declspec(naked) RemoveTargetKnockback() {
 		jmp RemoveKnockback;
 	}
 }
+
 static void __declspec(naked) RemoveAttackerKnockback() {
 	__asm {
 		pushad;
@@ -319,6 +326,7 @@ static void __declspec(naked) RemoveAttackerKnockback() {
 		jmp RemoveKnockback;
 	}
 }
+
 static void __declspec(naked) GetKillCounter2() {
 	__asm {
 		push ebx;
@@ -349,6 +357,7 @@ end:
 		retn;
 	}
 }
+
 static void __declspec(naked) ModKillCounter2() {
 	__asm {
 		push ebx;
@@ -386,11 +395,9 @@ end:
 
 static void __declspec(naked) GetActiveHand() {
 	__asm {
-		push ecx;
 		mov  edx, dword ptr ds:[_itemCurrentItem];
-		_RET_VAL_INT2;
-		pop  ecx;
-		retn;
+		_J_RET_VAL_TYPE(VAR_TYPE_INT);
+//		retn;
 	}
 }
 
@@ -403,11 +410,9 @@ static void __declspec(naked) ToggleActiveHand() {
 
 static void __declspec(naked) EaxAvailable() {
 	__asm {
-		push ecx;
 		xor  edx, edx
-		_RET_VAL_INT2;
-		pop  ecx;
-		retn;
+		_J_RET_VAL_TYPE(VAR_TYPE_INT);
+//		retn;
 	}
 }
 
@@ -656,36 +661,34 @@ static DWORD _stdcall GetTickCount2() {
 
 static void __declspec(naked) funcGetTickCount() {
 	__asm {
-		push ecx;
+		mov  esi, ecx;
 		call GetTickCount2;
 		mov  edx, eax;
 		mov  eax, ebx;
 		_RET_VAL_INT2;
-		pop  ecx;
+		mov  ecx, esi;
 		retn;
 	}
 }
 
 static void __declspec(naked) SetCarTown() {
 	__asm {
-		push ecx;
 		_GET_ARG_INT(end);
 		mov  ds:[_CarCurrArea], eax;
 end:
-		pop  ecx;
 		retn;
 	}
 }
 
 static void __declspec(naked) SetLevelHPMod() {
 	__asm {
-		push ecx;
+		mov  esi, ecx;
 		_GET_ARG_INT(end);
 		push eax; // allowed -/+127
 		push 0x4AFBC1;
 		call SafeWrite8;
 end:
-		pop  ecx;
+		mov  ecx, esi;
 		retn;
 	}
 }
@@ -837,43 +840,35 @@ static void __declspec(naked) funcResetCriticalTable() {
 
 static void __declspec(naked) SetApAcBonus() {
 	__asm {
-		push ecx;
 		_GET_ARG_INT(end);
 		mov  StandardApAcBonus, eax;
 end:
-		pop ecx;
 		retn;
 	}
 }
 
 static void __declspec(naked) GetApAcBonus() {
 	__asm {
-		push ecx;
 		mov  edx, StandardApAcBonus;
-		_RET_VAL_INT2;
-		pop  ecx;
-		retn;
+		_J_RET_VAL_TYPE(VAR_TYPE_INT);
+//		retn;
 	}
 }
 
 static void __declspec(naked) SetApAcEBonus() {
 	__asm {
-		push ecx;
 		_GET_ARG_INT(end);
 		mov  ExtraApAcBonus, eax;
 end:
-		pop  ecx;
 		retn;
 	}
 }
 
 static void __declspec(naked) GetApAcEBonus() {
 	__asm {
-		push ecx;
 		mov  edx, ExtraApAcBonus;
-		_RET_VAL_INT2;
-		pop  ecx;
-		retn;
+		_J_RET_VAL_TYPE(VAR_TYPE_INT);
+//		retn;
 	}
 }
 
@@ -917,55 +912,53 @@ static void __declspec(naked) NBCreateChar() {
 
 static void __declspec(naked) funcHeroSelectWin() { // for opening the appearance selection window
 	__asm {
-		push ecx;
+		mov  esi, ecx;
 		_GET_ARG_INT(fail);
 		push eax;
 		call HeroSelectWindow;
 fail:
-		pop  ecx;
+		mov  ecx, esi;
 		retn;
 	}
 }
 
 static void __declspec(naked) funcSetHeroStyle() { // for setting the hero style/appearance takes an 1 int
 	__asm {
-		push ecx;
+		mov  esi, ecx;
 		_GET_ARG_INT(fail);
 		push eax;
 		call SetHeroStyle;
 fail:
-		pop  ecx;
+		mov  ecx, esi;
 		retn;
 	}
 }
 
 static void __declspec(naked) funcSetHeroRace() { // for setting the hero race takes an 1 int
 	__asm {
-		push ecx;
+		mov  esi, ecx;
 		_GET_ARG_INT(fail);
 		push eax;
 		call SetHeroRace;
 fail:
-		pop  ecx;
+		mov  ecx, esi;
 		retn;
 	}
 }
 
 static void __declspec(naked) get_light_level() {
 	__asm {
-		push ecx;
 		mov  edx, ds:[_ambient_light];
-		_RET_VAL_INT2;
-		pop  ecx;
-		retn;
+		_J_RET_VAL_TYPE(VAR_TYPE_INT);
+//		retn;
 	}
 }
 
 static void __declspec(naked) refresh_pc_art() {
 	__asm {
-		push ecx;
+		mov  esi, ecx;
 		call RefreshPCArt;
-		pop  ecx;
+		mov  ecx, esi;
 		retn;
 	}
 }
@@ -1056,12 +1049,12 @@ end:
 
 static void __declspec(naked) stop_sfall_sound() {
 	__asm {
-		push ecx;
+		mov  esi, ecx;
 		_GET_ARG_INT(end);
 		push eax;
 		call StopSfallSound;
 end:
-		pop  ecx;
+		mov  ecx, esi;
 		retn;
 	}
 }
@@ -1102,41 +1095,38 @@ end:
 
 static void __declspec(naked) modified_ini() {
 	__asm {
-		push ecx;
 		mov  edx, modifiedIni;
-		_RET_VAL_INT2;
-		pop  ecx;
-		retn;
+		_J_RET_VAL_TYPE(VAR_TYPE_INT);
+//		retn;
 	}
 }
 
 static void __declspec(naked) force_aimed_shots() {
 	__asm {
-		push ecx;
+		mov  esi, ecx;
 		_GET_ARG_INT(end);
 		push eax;
 		call ForceAimedShots;
 end:
-		pop  ecx;
+		mov  ecx, esi;
 		retn;
 	}
 }
 
 static void __declspec(naked) disable_aimed_shots() {
 	__asm {
-		push ecx;
+		mov  esi, ecx;
 		_GET_ARG_INT(end);
 		push eax;
 		call DisableAimedShots;
 end:
-		pop  ecx;
+		mov  ecx, esi;
 		retn;
 	}
 }
 
 static void __declspec(naked) mark_movie_played() {
 	__asm {
-		push ecx;
 		_GET_ARG_INT(end);
 		test eax, eax;
 		jl   end;
@@ -1144,7 +1134,6 @@ static void __declspec(naked) mark_movie_played() {
 		jge  end;
 		mov  byte ptr ds:[eax + _gmovie_played_list], 1;
 end:
-		pop  ecx;
 		retn;
 	}
 }
@@ -1204,12 +1193,12 @@ end:
 
 static void __declspec(naked) block_combat() {
 	__asm {
-		push ecx;
+		mov  esi, ecx;
 		_GET_ARG_INT(end);
 		push eax;
 		call AIBlockCombat;
 end:
-		pop  ecx;
+		mov  ecx, esi;
 		retn;
 	}
 }
@@ -1244,22 +1233,20 @@ static void __declspec(naked) tile_under_cursor() {
 
 static void __declspec(naked) gdialog_get_barter_mod() {
 	__asm {
-		push ecx;
 		mov  edx, dword ptr ds:[_gdBarterMod];
-		_RET_VAL_INT2;
-		pop  ecx;
-		retn;
+		_J_RET_VAL_TYPE(VAR_TYPE_INT);
+//		retn;
 	}
 }
 
 static void __declspec(naked) set_inven_ap_cost() {
 	__asm {
-		push ecx;
+		mov  esi, ecx;
 		_GET_ARG_INT(end);
 		mov  ecx, eax;
 		call SetInvenApCost;
 end:
-		pop  ecx;
+		mov  ecx, esi;
 		retn;
 	}
 }

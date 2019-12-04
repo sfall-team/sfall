@@ -24,36 +24,32 @@
 
 static void __declspec(naked) GetPerkOwed() {
 	__asm {
-		push ecx;
 		movzx edx, byte ptr ds:[_free_perk];
-		_RET_VAL_INT2;
-		pop  ecx;
-		retn;
+		_J_RET_VAL_TYPE(VAR_TYPE_INT);
+//		retn;
 	}
 }
 
 static void __declspec(naked) SetPerkOwed() {
 	__asm {
-		push ecx;
 		_GET_ARG_INT(end);
 		and  eax, 0xFF;
 		cmp  eax, 250;
 		jg   end;
 		mov  byte ptr ds:[_free_perk], al;
 end:
-		pop  ecx;
 		retn;
 	}
 }
 
 static void __declspec(naked) set_perk_freq() {
 	__asm {
-		push ecx;
+		mov  esi, ecx;
 		_GET_ARG_INT(end);
 		push eax;
 		call SetPerkFreq;
 end:
-		pop  ecx;
+		mov  ecx, esi;
 		retn;
 	}
 }
@@ -87,6 +83,7 @@ end:
 		retn;
 	}
 }
+
 static void __declspec(naked) funcSetPerkName() {
 	__asm {
 		pushad;
@@ -122,6 +119,7 @@ end:
 		retn;
 	}
 }
+
 static void __declspec(naked) funcSetPerkDesc() {
 	__asm {
 		pushad;
@@ -157,6 +155,7 @@ end:
 		retn;
 	}
 }
+
 static void __declspec(naked) funcSetPerkValue() {
 	__asm {
 		pushad;
@@ -257,6 +256,7 @@ fail:
 		retn;
 	}
 }
+
 static void __declspec(naked) fSetFakePerk() {
 	__asm {
 		pushad;
@@ -325,6 +325,7 @@ fail:
 		retn;
 	}
 }
+
 static void __declspec(naked) fSetFakeTrait() {
 	__asm {
 		push ebx;
@@ -401,6 +402,7 @@ fail:
 		retn;
 	}
 }
+
 static void __declspec(naked) fSetPerkboxTitle() {
 	__asm {
 		push ebx;
@@ -426,30 +428,34 @@ end:
 		retn;
 	}
 }
+
 static void __declspec(naked) fIgnoreDefaultPerks() {
 	__asm {
-		push ecx;
+		mov  esi, ecx;
 		call IgnoreDefaultPerks;
-		pop  ecx;
+		mov  ecx, esi;
 		retn;
 	}
 }
+
 static void __declspec(naked) fRestoreDefaultPerks() {
 	__asm {
-		push ecx;
+		mov  esi, ecx;
 		call RestoreDefaultPerks;
-		pop  ecx;
+		mov  ecx, esi;
 		retn;
 	}
 }
+
 static void __declspec(naked) fClearSelectablePerks() {
 	__asm {
-		push ecx;
+		mov  esi, ecx;
 		call ClearSelectablePerks;
-		pop  ecx;
+		mov  ecx, esi;
 		retn;
 	}
 }
+
 static void __declspec(naked) fHasFakePerk() {
 	__asm {
 		push ebx;
@@ -523,71 +529,68 @@ end:
 
 static void __declspec(naked) fAddPerkMode() {
 	__asm {
-		push ecx;
+		mov  esi, ecx;
 		_GET_ARG_INT(end);
 		push eax;
 		call AddPerkMode;
 end:
-		pop ecx;
+		mov  ecx, esi;
 		retn;
 	}
 }
 
 static void __declspec(naked) remove_trait() {
 	__asm {
-		push ecx;
 		_GET_ARG_INT(end);
 		test eax, eax;
 		jl   end;
 		mov  edx, -1;
 		cmp  eax, ds:[_pc_trait];
 		jne  next;
-		mov  ecx, ds:[_pc_trait2];
-		mov  ds:[_pc_trait], ecx;
+		mov  esi, ds:[_pc_trait2];
+		mov  ds:[_pc_trait], esi;
 		mov  ds:[_pc_trait2], edx;
-end:
-		pop  ecx;
 		retn;
 next:
 		cmp  eax, ds:[_pc_trait2];
 		jne  end;
 		mov  ds:[_pc_trait2], edx;
-		pop  ecx;
+end:
 		retn;
 	}
 }
 
 static void __declspec(naked) SetPyromaniacMod() {
 	__asm {
-		push ecx;
+		mov  esi, ecx;
 		_GET_ARG_INT(end);
 		push eax;
 		push 0x424AB6;
 		call SafeWrite8;
 end:
-		pop ecx;
+		mov  ecx, esi;
 		retn;
 	}
 }
 
 static void __declspec(naked) fApplyHeaveHoFix() {
 	__asm {
-		push ecx;
+		mov  esi, ecx;
 		call ApplyHeaveHoFix;
-		pop  ecx;
+		mov  ecx, esi;
 		retn;
 	}
 }
 
 static void __declspec(naked) SetSwiftLearnerMod() {
 	__asm {
-		push ecx;
+		mov  esi, ecx;
 		_GET_ARG_INT(end);
 		push eax;
 		push 0x4AFAE2;
 		call SafeWrite32;
 end:
-		pop  ecx;
+		mov  ecx, esi;
 		retn;
 	}
 }
@@ -616,12 +619,12 @@ static void __fastcall SetPerkLevelMod2(long mod) {
 
 static void __declspec(naked) SetPerkLevelMod() {
 	__asm {
-		push ecx;
+		mov  esi, ecx;
 		_GET_ARG_INT(end);
 		mov  ecx, eax;
 		call SetPerkLevelMod2;
 end:
-		pop  ecx;
+		mov  ecx, esi;
 		retn;
 	}
 }

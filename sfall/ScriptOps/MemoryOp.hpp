@@ -21,8 +21,8 @@
 #include "main.h"
 //#include "ScriptExtender.h"
 
-#define START_VALID_ADDR	0x410000
-#define END_VALID_ADDR		0x6B403F
+#define START_VALID_ADDR    0x410000
+#define END_VALID_ADDR      0x6B403F
 
 // memory_reading_funcs
 static void __declspec(naked) ReadByte() {
@@ -245,10 +245,10 @@ static void __fastcall CallOffsetInternal(TProgram* script, DWORD func) {
 
 static void __declspec(naked) CallOffset() {
 	__asm {
-		push ecx;
+		mov  esi, ecx;
 		mov  ecx, eax;
 		call CallOffsetInternal; // edx - func
-		pop  ecx;
+		mov  ecx, esi;
 		retn;
 	}
 }

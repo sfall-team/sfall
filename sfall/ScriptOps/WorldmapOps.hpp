@@ -98,45 +98,41 @@ static void __declspec(naked) ForceEncounterWithFlags() {
 // world_map_functions
 static void __declspec(naked) funcInWorldMap() {
 	__asm {
-		push ecx;
+		mov  esi, ecx;
 		call InWorldMap;
 		mov  edx, eax;
 		mov  eax, ebx;
 		_RET_VAL_INT2;
-		pop  ecx;
+		mov  ecx, esi;
 		retn;
 	}
 }
 
 static void __declspec(naked) GetGameMode() {
 	__asm {
-		push ecx;
+		mov  esi, ecx;
 		call GetLoopFlags;
 		mov  edx, eax;
 		mov  eax, ebx;
 		_RET_VAL_INT2;
-		pop  ecx;
+		mov  ecx, esi;
 		retn;
 	}
 }
 
 static void __declspec(naked) GetWorldMapXPos() {
 	__asm {
-		push ecx;
 		mov  edx, ds:[_world_xpos];
-		_RET_VAL_INT2;
-		pop  ecx;
-		retn;
+		_J_RET_VAL_TYPE(VAR_TYPE_INT);
+//		retn;
 	}
 }
 
 static void __declspec(naked) GetWorldMapYPos() {
 	__asm {
-		push ecx;
 		mov  edx, ds:[_world_ypos];
-		_RET_VAL_INT2;
-		pop  ecx;
-		retn;
+		_J_RET_VAL_TYPE(VAR_TYPE_INT);
+//		retn;
 	}
 }
 

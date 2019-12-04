@@ -547,13 +547,13 @@ static void __fastcall SetGlobalScriptRepeat2(DWORD script, DWORD frames) {
 
 static void __declspec(naked) SetGlobalScriptRepeat() {
 	__asm {
-		push ecx;
+		mov  esi, ecx;
 		mov  ecx, eax;
 		_GET_ARG_INT(end);
 		mov  edx, eax;               // frames
 		call SetGlobalScriptRepeat2; // ecx - script
 end:
-		pop  ecx;
+		mov  ecx, esi;
 		retn;
 	}
 }
@@ -571,24 +571,22 @@ static void __fastcall SetGlobalScriptType2(DWORD script, DWORD type) {
 
 static void __declspec(naked) SetGlobalScriptType() {
 	__asm {
-		push ecx;
+		mov  esi, ecx;
 		mov  ecx, eax;
 		_GET_ARG_INT(end);
 		mov  edx, eax;             // type
 		call SetGlobalScriptType2; // ecx - script
 end:
-		pop ecx;
+		mov  ecx, esi;
 		retn;
 	}
 }
 
 static void __declspec(naked) GetGlobalScriptTypes() {
 	__asm {
-		push ecx;
 		mov  edx, AvailableGlobalScriptTypes;
-		_RET_VAL_INT2;
-		pop  ecx;
-		retn;
+		_J_RET_VAL_TYPE(VAR_TYPE_INT);
+//		retn;
 	}
 }
 
@@ -705,12 +703,12 @@ static void __declspec(naked) GetGlobalVarFloat() {
 
 static void __declspec(naked) GetSfallArg() {
 	__asm {
-		push ecx;
+		mov  esi, ecx;
 		call GetHSArg;
 		mov  edx, eax;
 		mov  eax, ebx;
 		_RET_VAL_INT2;
-		pop  ecx;
+		mov  ecx, esi;
 		retn;
 	}
 }
@@ -744,12 +742,12 @@ static DWORD _stdcall GetSfallArgs2() {
 
 static void __declspec(naked) GetSfallArgs() {
 	__asm {
-		push ecx;
+		mov  esi, ecx;
 		call GetSfallArgs2;
 		mov  edx, eax;
 		mov  eax, ebx;
 		_RET_VAL_INT2;
-		pop  ecx;
+		mov  ecx, esi;
 		retn;
 	}
 }
@@ -783,23 +781,21 @@ end:
 
 static void __declspec(naked) SetSfallReturn() {
 	__asm {
-		push ecx;
+		mov  esi, ecx;
 		_GET_ARG_INT(end);
 		push eax;
 		call SetHSReturn;
 end:
-		pop  ecx;
+		mov  ecx, esi;
 		retn;
 	}
 }
 
 static void __declspec(naked) InitHook() {
 	__asm {
-		push ecx;
 		mov  edx, InitingHookScripts;
-		_RET_VAL_INT2;
-		pop  ecx;
-		retn;
+		_J_RET_VAL_TYPE(VAR_TYPE_INT);
+//		retn;
 	}
 }
 
@@ -827,13 +823,13 @@ static void __fastcall SetSelfObject(DWORD script, TGameObj* obj) {
 
 static void __declspec(naked) set_self() {
 	__asm {
-		push ecx;
+		mov  esi, ecx;
 		mov  ecx, eax;
 		_GET_ARG_INT(end);
 		mov  edx, eax;      // object
 		call SetSelfObject; // ecx - script
 end:
-		pop  ecx;
+		mov  ecx, esi;
 		retn;
 	}
 }

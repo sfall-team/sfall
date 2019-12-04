@@ -54,6 +54,7 @@ end:
 		retn;
 	}
 }
+
 static void __declspec(naked) set_array() {
 	__asm {
 		pushad;
@@ -113,9 +114,11 @@ end:
 		retn;
 	}
 }
+
 /*
 	used in place of [] operator when compiling in sslc
 	so it works as get_array if first argument is int and as substr(x, y, 1) if first argument is string
+	example: vartext[5]
 */
 static void __declspec(naked) get_array() {
 	__asm {
@@ -155,7 +158,6 @@ callsubstr:
 		mov edx, eax; // result substring
 		mov ebx, VAR_TYPE_STR; // result type
 		jmp end;
-
 proceedgetarray:
 		cmp cx, VAR_TYPE_INT; // only int is allowed for arrayID in this case
 		jne fail;
@@ -200,6 +202,7 @@ notstring:
 		retn;
 	}
 }
+
 static void __declspec(naked) free_array() {
 	__asm {
 		pushad;
@@ -217,6 +220,7 @@ end:
 		retn;
 	}
 }
+
 static void __declspec(naked) len_array() {
 	__asm {
 		pushad;
@@ -243,6 +247,7 @@ end:
 		retn;
 	}
 }
+
 static void __declspec(naked) resize_array() {
 	__asm {
 		pushad;
@@ -273,6 +278,7 @@ end:
 		retn;
 	}
 }
+
 static void __declspec(naked) temp_array() {
 	__asm {
 		pushad;
@@ -309,6 +315,7 @@ end:
 		retn;
 	}
 }
+
 static void __declspec(naked) fix_array() {
 	__asm {
 		pushad;
@@ -326,6 +333,7 @@ end:
 		retn;
 	}
 }
+
 static void __declspec(naked) scan_array() {
 		__asm {
 		pushad;

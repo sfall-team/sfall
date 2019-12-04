@@ -380,16 +380,20 @@ void StartingStatePatches() {
 		SafeWrite32(0x4A336C, date);
 		dlogr(" Done", DL_INIT);
 	}
-	date = GetConfigInt("Misc", "StartMonth", -1);
-	if (date >= 0) {
-		if (date > 11) date = 11;
+	int month = GetConfigInt("Misc", "StartMonth", -1);
+	if (month >= 0) {
+		if (month > 11) month = 11;
 		dlog("Applying starting month patch.", DL_INIT);
-		SafeWrite32(0x4A3382, date);
+		SafeWrite32(0x4A3382, month);
 		dlogr(" Done", DL_INIT);
 	}
 	date = GetConfigInt("Misc", "StartDay", -1);
 	if (date >= 0) {
-		if (date > 30) date = 30;
+		if (month == 1 && date > 28) { // for February
+			date = 28; // set 29th day
+		} else if (date > 30) {
+			date = 30; // set 31st day
+		}
 		dlog("Applying starting day patch.", DL_INIT);
 		SafeWrite8(0x4A3356, static_cast<BYTE>(date));
 		dlogr(" Done", DL_INIT);

@@ -28,11 +28,9 @@
 // input_functions
 static void __declspec(naked) InputFuncsAvailable() {
 	__asm {
-		push ecx;
 		mov  edx, 1; // They're always available from 2.9 on
-		_RET_VAL_INT2;
-		pop  ecx;
-		retn;
+		_J_RET_VAL_TYPE(VAR_TYPE_INT);
+//		retn;
 	}
 }
 
@@ -69,7 +67,7 @@ end:
 
 static void __declspec(naked) funcTapKey() {
 	__asm {
-		push ecx;
+		mov  esi, ecx;
 		_GET_ARG_INT(end);
 		test eax, eax;
 		jl   end;
@@ -78,7 +76,7 @@ static void __declspec(naked) funcTapKey() {
 		push eax;
 		call TapKey;
 end:
-		pop  ecx;
+		mov  ecx, esi;
 		retn;
 	}
 }
@@ -86,24 +84,20 @@ end:
 //// *** From helios *** ////
 static void __declspec(naked) get_mouse_x() {
 	__asm {
-		push ecx;
 		mov  edx, ds:[_mouse_x_];
 		add  edx, ds:[_mouse_hotx];
-		_RET_VAL_INT2;
-		pop  ecx;
-		retn;
+		_J_RET_VAL_TYPE(VAR_TYPE_INT);
+//		retn;
 	}
 }
 
 //Return mouse y position
 static void __declspec(naked) get_mouse_y() {
 	__asm {
-		push ecx;
 		mov  edx, ds:[_mouse_y_];
 		add  edx, ds:[_mouse_hoty];
-		_RET_VAL_INT2;
-		pop  ecx;
-		retn;
+		_J_RET_VAL_TYPE(VAR_TYPE_INT);
+//		retn;
 	}
 }
 
@@ -133,37 +127,31 @@ skip:
 //Return the window number under the mous
 static void __declspec(naked) get_window_under_mouse() {
 	__asm {
-		push ecx;
 		mov  edx, ds:[_last_button_winID];
-		_RET_VAL_INT2;
-		pop  ecx;
-		retn;
+		_J_RET_VAL_TYPE(VAR_TYPE_INT);
+//		retn;
 	}
 }
 
 //Return screen width
 static void __declspec(naked) get_screen_width() {
 	__asm {
-		push ecx;
 		mov  edx, ds:[_scr_size + 8]; // _scr_size.offx
 		sub  edx, ds:[_scr_size];     // _scr_size.x
 		inc  edx;
-		_RET_VAL_INT2;
-		pop  ecx;
-		retn;
+		_J_RET_VAL_TYPE(VAR_TYPE_INT);
+//		retn;
 	}
 }
 
 //Return screen height
 static void __declspec(naked) get_screen_height() {
 	__asm {
-		push ecx;
 		mov  edx, ds:[_scr_size + 12]; // _scr_size.offy
 		sub  edx, ds:[_scr_size + 4];  // _scr_size.y
 		inc  edx;
-		_RET_VAL_INT2;
-		pop  ecx;
-		retn;
+		_J_RET_VAL_TYPE(VAR_TYPE_INT);
+//		retn;
 	}
 }
 
@@ -202,42 +190,34 @@ static void __declspec(naked) create_message_window() {
 
 static void __declspec(naked) GetViewportX() {
 	__asm {
-		push ecx;
 		mov  edx, ds:[_wmWorldOffsetX];
-		_RET_VAL_INT2;
-		pop  ecx;
-		retn;
+		_J_RET_VAL_TYPE(VAR_TYPE_INT);
+//		retn;
 	}
 }
 
 static void __declspec(naked) GetViewportY() {
 	__asm {
-		push ecx;
 		mov  edx, ds:[_wmWorldOffsetY];
-		_RET_VAL_INT2;
-		pop  ecx;
-		retn;
+		_J_RET_VAL_TYPE(VAR_TYPE_INT);
+//		retn;
 	}
 }
 
 static void __declspec(naked) SetViewportX() {
 	__asm {
-		push ecx;
 		_GET_ARG_INT(end);
 		mov  ds:[_wmWorldOffsetX], eax;
 end:
-		pop  ecx;
 		retn;
 	}
 }
 
 static void __declspec(naked) SetViewportY() {
 	__asm {
-		push ecx;
 		_GET_ARG_INT(end);
 		mov  ds:[_wmWorldOffsetY], eax;
 end:
-		pop  ecx;
 		retn;
 	}
 }

@@ -320,30 +320,28 @@ end:
 
 static void __declspec(naked) set_available_skill_points() {
 	__asm {
-		push ecx;
+		mov  esi, ecx;
 		_GET_ARG_INT(end);
 		mov  edx, eax;
 		xor  eax, eax;
 		call stat_pc_set_;
 end:
-		pop  ecx;
+		mov  ecx, esi;
 		retn;
 	}
 }
 
 static void __declspec(naked) get_available_skill_points() {
 	__asm {
-		push ecx;
 		mov  edx, dword ptr ds:[_curr_pc_stat];
-		_RET_VAL_INT2;
-		pop  ecx;
-		retn;
+		_J_RET_VAL_TYPE(VAR_TYPE_INT);
+//		retn;
 	}
 }
 
 static void __declspec(naked) mod_skill_points_per_level() {
 	__asm {
-		push ecx;
+		mov  esi, ecx;
 		_GET_ARG_INT(end);
 		mov  ecx, 100;
 		cmp  eax, ecx;
@@ -356,7 +354,7 @@ static void __declspec(naked) mod_skill_points_per_level() {
 		push 0x43C27A;
 		call SafeWrite8;
 end:
-		pop  ecx;
+		mov  ecx, esi;
 		retn;
 	}
 }
@@ -440,7 +438,7 @@ end:
 
 static void __declspec(naked) fSetPickpocketMax() {
 	__asm {
-		push ecx;
+		mov  esi, ecx;
 		_GET_ARG_INT(end);
 		mov  ecx, 100;
 		cmp  eax, ecx;
@@ -450,14 +448,14 @@ static void __declspec(naked) fSetPickpocketMax() {
 		push 0xFFFFFFFF;
 		call SetPickpocketMax;
 end:
-		pop  ecx;
+		mov  ecx, esi;
 		retn;
 	}
 }
 
 static void __declspec(naked) fSetHitChanceMax() {
 	__asm {
-		push ecx;
+		mov  esi, ecx;
 		_GET_ARG_INT(end);
 		mov  ecx, 100;
 		cmp  eax, ecx;
@@ -467,7 +465,7 @@ static void __declspec(naked) fSetHitChanceMax() {
 		push 0xFFFFFFFF;
 		call SetHitChanceMax;
 end:
-		pop  ecx;
+		mov  ecx, esi;
 		retn;
 	}
 }
@@ -662,20 +660,20 @@ end:
 
 static void __declspec(naked) SetBaseSkillMod() { // same as set_skill_max
 	__asm {
-		push ecx;
+		mov  esi, ecx;
 		_GET_ARG_INT(end);
 		push eax;
 		push 0xFFFFFFFF;
 		call SetSkillMax;
 end:
-		pop  ecx;
+		mov  ecx, esi;
 		retn;
 	}
 }
 
 static void __declspec(naked) fSetSkillMax() {
 	__asm {
-		push ecx;
+		mov  esi, ecx;
 		_GET_ARG_INT(end);
 		mov  ecx, 300;
 		cmp  eax, ecx;
@@ -684,7 +682,7 @@ static void __declspec(naked) fSetSkillMax() {
 		push 0xFFFFFFFF;
 		call SetSkillMax;
 end:
-		pop  ecx;
+		mov  ecx, esi;
 		retn;
 	}
 }
