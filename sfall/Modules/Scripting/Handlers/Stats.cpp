@@ -236,30 +236,28 @@ end:
 
 void __declspec(naked) op_set_available_skill_points() {
 	__asm {
-		push ecx;
+		mov  esi, ecx;
 		_GET_ARG_INT(end);
 		mov  edx, eax;
 		xor  eax, eax;
 		call fo::funcoffs::stat_pc_set_;
 end:
-		pop  ecx;
+		mov  ecx, esi;
 		retn;
 	}
 }
 
 void __declspec(naked) op_get_available_skill_points() {
 	__asm {
-		push ecx;
 		mov  edx, dword ptr ds:[FO_VAR_curr_pc_stat];
-		_RET_VAL_INT;
-		pop  ecx;
-		retn;
+		_J_RET_VAL_TYPE(VAR_TYPE_INT);
+//		retn;
 	}
 }
 
 void __declspec(naked) op_mod_skill_points_per_level() {
 	__asm {
-		push ecx;
+		mov  esi, ecx;
 		_GET_ARG_INT(end);
 		mov  ecx, 100;
 		cmp  eax, ecx;
@@ -272,7 +270,7 @@ void __declspec(naked) op_mod_skill_points_per_level() {
 		push 0x43C27A;
 		call SafeWrite8;
 end:
-		pop  ecx;
+		mov  ecx, esi;
 		retn;
 	}
 }
@@ -356,7 +354,7 @@ end:
 
 void __declspec(naked) op_set_pickpocket_max() {
 	__asm {
-		push ecx;
+		mov  esi, ecx;
 		_GET_ARG_INT(end);
 		mov  ecx, 100;
 		cmp  eax, ecx;
@@ -366,14 +364,14 @@ void __declspec(naked) op_set_pickpocket_max() {
 		push 0xFFFFFFFF;
 		call SetPickpocketMax;
 end:
-		pop  ecx;
+		mov  ecx, esi;
 		retn;
 	}
 }
 
 void __declspec(naked) op_set_hit_chance_max() {
 	__asm {
-		push ecx;
+		mov  esi, ecx;
 		_GET_ARG_INT(end);
 		mov  ecx, 100;
 		cmp  eax, ecx;
@@ -383,7 +381,7 @@ void __declspec(naked) op_set_hit_chance_max() {
 		push 0xFFFFFFFF;
 		call SetHitChanceMax;
 end:
-		pop  ecx;
+		mov  ecx, esi;
 		retn;
 	}
 }
@@ -578,20 +576,20 @@ end:
 
 void __declspec(naked) op_set_base_skill_mod() { // same as set_skill_max
 	__asm {
-		push ecx;
+		mov  esi, ecx;
 		_GET_ARG_INT(end);
 		push eax;
 		push 0xFFFFFFFF;
 		call SetSkillMax;
 end:
-		pop  ecx;
+		mov  ecx, esi;
 		retn;
 	}
 }
 
 void __declspec(naked) op_set_skill_max() {
 	__asm {
-		push ecx;
+		mov  esi, ecx;
 		_GET_ARG_INT(end);
 		mov  ecx, 300;
 		cmp  eax, ecx;
@@ -600,7 +598,7 @@ void __declspec(naked) op_set_skill_max() {
 		push 0xFFFFFFFF;
 		call SetSkillMax;
 end:
-		pop  ecx;
+		mov  ecx, esi;
 		retn;
 	}
 }

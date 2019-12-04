@@ -39,10 +39,10 @@ typedef void(*ScriptingFunctionHandler)(OpcodeContext&);
 enum OpcodeArgumentType {
 	ARG_ANY = 0, // no validation (default)
 	ARG_INT,     // integer only
-	ARG_NUMBER,  // float OR integer
-	ARG_STRING,  // string only
 	ARG_OBJECT,  // integer that is not 0
-	ARG_INTSTR   // integer OR string
+	ARG_STRING,  // string only
+	ARG_INTSTR,  // integer OR string
+	ARG_NUMBER,  // float OR integer
 };
 
 typedef struct SfallOpcodeInfo {

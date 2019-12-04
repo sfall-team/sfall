@@ -20,7 +20,6 @@
 #include "..\..\ScriptExtender.h"
 #include "..\Arrays.h"
 #include "..\OpcodeContext.h"
-#include "Utils.h"
 
 #include "Arrays.h"
 
@@ -55,8 +54,14 @@ void sf_get_array(OpcodeContext& ctx) {
 		);
 	} else if (ctx.arg(0).isString()) {
 		if (ctx.arg(1).isInt()) {
-			const char* str = Substring(ctx.arg(0).strValue(), ctx.arg(1).rawValue(), 1);
-			ctx.setReturn(str); // returns char of string
+			size_t index = ctx.arg(1).rawValue();
+			if (index < strlen(ctx.arg(0).strValue())) {
+				wchar_t c = ((unsigned char*)ctx.arg(0).strValue())[index];
+				((wchar_t*)ScriptExtender::gTextBuffer)[0] = c;
+			} else {
+				ScriptExtender::gTextBuffer[0] = '\0';
+			}
+			ctx.setReturn(ScriptExtender::gTextBuffer); // returns char of string
 		} else {
 			ctx.printOpcodeError("%s() - index must be numeric when used on a string.", ctx.getOpcodeName());
 		}

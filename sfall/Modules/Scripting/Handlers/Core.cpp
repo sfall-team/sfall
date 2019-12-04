@@ -34,37 +34,35 @@ namespace script
 
 void __declspec(naked) op_set_global_script_repeat() {
 	__asm {
-		push ecx;
+		mov  esi, ecx;
 		mov  ecx, eax;
 		_GET_ARG_INT(end);
 		mov  edx, eax;              // frames
 		call SetGlobalScriptRepeat; // ecx - script
 end:
-		pop ecx;
+		mov  ecx, esi;
 		retn;
 	}
 }
 
 void __declspec(naked) op_set_global_script_type() {
 	__asm {
-		push ecx;
+		mov  esi, ecx;
 		mov  ecx, eax;
 		_GET_ARG_INT(end);
 		mov  edx, eax;            // type
 		call SetGlobalScriptType; // ecx - script
 end:
-		pop  ecx;
+		mov  ecx, esi;
 		retn;
 	}
 }
 
 void __declspec(naked) op_available_global_script_types() {
 	__asm {
-		push ecx;
 		mov  edx, availableGlobalScriptTypes;
-		_RET_VAL_INT;
-		pop  ecx;
-		retn;
+		_J_RET_VAL_TYPE(VAR_TYPE_INT);
+//		retn;
 	}
 }
 
@@ -107,12 +105,12 @@ void sf_get_sfall_global_float(OpcodeContext& ctx) {
 
 void __declspec(naked) op_get_sfall_arg() {
 	__asm {
-		push ecx;
+		mov  esi, ecx;
 		call HookScripts::GetHSArg;
 		mov  edx, eax;
 		mov  eax, ebx;
 		_RET_VAL_INT;
-		pop  ecx;
+		mov  ecx, esi;
 		retn;
 	}
 }
@@ -144,35 +142,33 @@ void sf_set_sfall_arg(OpcodeContext& ctx) {
 
 void __declspec(naked) op_set_sfall_return() {
 	__asm {
-		push ecx;
+		mov  esi, ecx;
 		_GET_ARG_INT(end);
 		push eax;
 		call HookScripts::SetHSReturn;
 end:
-		pop  ecx;
+		mov  ecx, esi;
 		retn;
 	}
 }
 
 void __declspec(naked) op_init_hook() {
 	__asm {
-		push ecx;
 		mov  edx, initingHookScripts;
-		_RET_VAL_INT;
-		pop  ecx;
-		retn;
+		_J_RET_VAL_TYPE(VAR_TYPE_INT);
+//		retn;
 	}
 }
 
 void __declspec(naked) op_set_self() {
 	__asm {
-		push ecx;
+		mov  esi, ecx;
 		mov  ecx, eax;
 		_GET_ARG_INT(end);
 		mov  edx, eax;      // object
 		call SetSelfObject; // ecx - script
 end:
-		pop  ecx;
+		mov  ecx, esi;
 		retn;
 	}
 }

@@ -88,45 +88,41 @@ void sf_force_encounter(OpcodeContext& cxt) {
 // world_map_functions
 void __declspec(naked) op_in_world_map() {
 	__asm {
-		push ecx;
+		mov  esi, ecx;
 		call InWorldMap;
 		mov  edx, eax;
 		mov  eax, ebx;
 		_RET_VAL_INT;
-		pop  ecx;
+		mov  ecx, esi;
 		retn;
 	}
 }
 
 void __declspec(naked) op_get_game_mode() {
 	__asm {
-		push ecx;
+		mov  esi, ecx;
 		call GetLoopFlags;
 		mov  edx, eax;
 		mov  eax, ebx;
 		_RET_VAL_INT;
-		pop  ecx;
+		mov  ecx, esi;
 		retn;
 	}
 }
 
 void __declspec(naked) op_get_world_map_x_pos() {
 	__asm {
-		push ecx;
 		mov  edx, ds:[FO_VAR_world_xpos];
-		_RET_VAL_INT;
-		pop  ecx;
-		retn;
+		_J_RET_VAL_TYPE(VAR_TYPE_INT);
+//		retn;
 	}
 }
 
 void __declspec(naked) op_get_world_map_y_pos() {
 	__asm {
-		push ecx;
 		mov  edx, ds:[FO_VAR_world_ypos];
-		_RET_VAL_INT;
-		pop  ecx;
-		retn;
+		_J_RET_VAL_TYPE(VAR_TYPE_INT);
+//		retn;
 	}
 }
 

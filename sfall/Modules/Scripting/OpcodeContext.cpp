@@ -119,22 +119,36 @@ bool OpcodeContext::validateArguments(const OpcodeArgumentType argTypes[], const
 		// exception is when type set to
 		if (actualType == DataType::NONE) break;
 		auto argType = argTypes[i];
-		if (argType == ARG_ANY) continue;
-		if ((argType == ARG_INT || argType == ARG_OBJECT) && !(actualType == DataType::INT)) {
-			printOpcodeError("%s() - argument #%d is not an integer.", opcodeName, ++i);
-			return false;
-		} else if (argType == ARG_NUMBER && !(actualType == DataType::INT || actualType == DataType::FLOAT)) {
-			printOpcodeError("%s() - argument #%d is not a number.", opcodeName, ++i);
-			return false;
-		} else if (argType == ARG_STRING && !(actualType == DataType::STR)) {
-			printOpcodeError("%s() - argument #%d is not a string.", opcodeName, ++i);
-			return false;
-		} else if (argType == ARG_OBJECT && arg(i).rawValue() == 0) {
-			printOpcodeError("%s() - argument #%d is null.", opcodeName, ++i);
-			return false;
-		} else if (argType == ARG_INTSTR && !(actualType == DataType::INT || actualType == DataType::STR)) {
-			printOpcodeError("%s() - argument #%d is not an integer or a string.", opcodeName, ++i);
-			return false;
+		switch (argType) {
+		case ARG_ANY:
+			continue;
+		case ARG_INT:
+		case ARG_OBJECT:
+			if (actualType != DataType::INT) {
+				printOpcodeError("%s() - argument #%d is not an integer.", opcodeName, ++i);
+				return false;
+			} else if (argType == ARG_OBJECT && arg(i).rawValue() == 0) {
+				printOpcodeError("%s() - argument #%d is null.", opcodeName, ++i);
+				return false;
+			}
+			break;
+		case ARG_STRING:
+			if (actualType != DataType::STR) {
+				printOpcodeError("%s() - argument #%d is not a string.", opcodeName, ++i);
+				return false;
+			}
+			break;
+		case ARG_INTSTR:
+			if (actualType != DataType::STR && actualType != DataType::INT) {
+				printOpcodeError("%s() - argument #%d is not an integer or a string.", opcodeName, ++i);
+				return false;
+			}
+			break;
+		case ARG_NUMBER:
+			if (actualType != DataType::FLOAT && actualType != DataType::INT) {
+				printOpcodeError("%s() - argument #%d is not a number.", opcodeName, ++i);
+				return false;
+			}
 		}
 	}
 	return true;

@@ -190,7 +190,7 @@ void sf_string_split(OpcodeContext& ctx) {
 	ctx.setReturn(StringSplit(ctx.arg(0).strValue(), ctx.arg(1).strValue()));
 }
 
-char* Substring(const char* str, int startPos, int length) {
+static char* SubString(const char* str, int startPos, int length) {
 	int len = strlen(str);
 
 	if (startPos < 0) {
@@ -218,7 +218,7 @@ char* Substring(const char* str, int startPos, int length) {
 
 void sf_substr(OpcodeContext& ctx) {
 	const char* str = ctx.arg(0).strValue();
-	if (*str != '\0') str = Substring(str, ctx.arg(1).rawValue(), ctx.arg(2).rawValue());
+	if (*str != '\0') str = SubString(str, ctx.arg(1).rawValue(), ctx.arg(2).rawValue());
 	ctx.setReturn(str);
 }
 
@@ -233,7 +233,7 @@ void sf_string_compare(OpcodeContext& ctx) {
 }
 
 // A safer version of sprintf for using in user scripts.
-static char* _stdcall sprintf_lite(const char* format, ScriptValue value) {
+static char* sprintf_lite(const char* format, ScriptValue value) {
 	int fmtlen = strlen(format);
 	int buflen = fmtlen + 1;
 	for (int i = 0; i < fmtlen; i++) {

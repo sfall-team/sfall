@@ -86,20 +86,19 @@ void sf_get_year(OpcodeContext& ctx) {
 
 void __declspec(naked) op_game_loaded() {
 	__asm {
-		push ecx;
+		mov  esi, ecx;
 		push eax; // script
 		call ScriptHasLoaded;
 		movzx edx, al;
 		mov  eax, ebx;
 		_RET_VAL_INT;
-		pop  ecx;
+		mov  ecx, esi;
 		retn;
 	}
 }
 
 void __declspec(naked) op_set_pipboy_available() {
 	__asm {
-		push ecx;
 		_GET_ARG_INT(end);
 		cmp  eax, 0;
 		jl   end;
@@ -107,11 +106,9 @@ void __declspec(naked) op_set_pipboy_available() {
 		jg   end;
 		mov  byte ptr ds:[FO_VAR_gmovie_played_list][0x3], al;
 end:
-		pop  ecx;
 		retn;
 	}
 }
-
 
 // Kill counters
 void __declspec(naked) op_get_kill_counter() {
@@ -131,7 +128,6 @@ void __declspec(naked) op_get_kill_counter() {
 		mov edx, ds:[FO_VAR_pc_kill_counts+eax*4];
 		jmp end;
 fail:
-
 		xor edx, edx;
 end:
 		mov eax, ecx
@@ -287,11 +283,9 @@ end:
 
 void __declspec(naked) op_active_hand() {
 	__asm {
-		push ecx;
 		mov  edx, dword ptr ds:[FO_VAR_itemCurrentItem];
-		_RET_VAL_INT;
-		pop  ecx;
-		retn;
+		_J_RET_VAL_TYPE(VAR_TYPE_INT);
+//		retn;
 	}
 }
 
@@ -304,11 +298,9 @@ void __declspec(naked) op_toggle_active_hand() {
 
 void __declspec(naked) op_eax_available() {
 	__asm {
-		push ecx;
 		xor  edx, edx
-		_RET_VAL_INT;
-		pop  ecx;
-		retn;
+		_J_RET_VAL_TYPE(VAR_TYPE_INT);
+//		retn;
 	}
 }
 
@@ -480,36 +472,34 @@ void sf_get_ini_string(OpcodeContext& ctx) {
 
 void __declspec(naked) op_get_uptime() {
 	__asm {
-		push ecx;
+		mov  esi, ecx;
 		call GetTickCount;
 		mov  edx, eax;
 		mov  eax, ebx;
 		_RET_VAL_INT;
-		pop  ecx;
+		mov  ecx, esi;
 		retn;
 	}
 }
 
 void __declspec(naked) op_set_car_current_town() {
 	__asm {
-		push ecx;
 		_GET_ARG_INT(end);
 		mov  ds:[FO_VAR_carCurrentArea], eax;
 end:
-		pop  ecx;
 		retn;
 	}
 }
 
 void __declspec(naked) op_set_hp_per_level_mod() {
 	__asm {
-		push ecx;
+		mov  esi, ecx;
 		_GET_ARG_INT(end);
 		push eax; // allowed -/+127
 		push 0x4AFBC1;
 		call SafeWrite8;
 end:
-		pop  ecx;
+		mov  ecx, esi;
 		retn;
 	}
 }
@@ -620,43 +610,35 @@ void sf_reset_critical_table(OpcodeContext& ctx) {
 
 void __declspec(naked) op_set_unspent_ap_bonus() {
 	__asm {
-		push ecx;
 		_GET_ARG_INT(end);
 		mov  Stats::standardApAcBonus, eax;
 end:
-		pop ecx;
 		retn;
 	}
 }
 
 void __declspec(naked) op_get_unspent_ap_bonus() {
 	__asm {
-		push ecx;
 		mov  edx, Stats::standardApAcBonus;
-		_RET_VAL_INT;
-		pop  ecx;
-		retn;
+		_J_RET_VAL_TYPE(VAR_TYPE_INT);
+//		retn;
 	}
 }
 
 void __declspec(naked) op_set_unspent_ap_perk_bonus() {
 	__asm {
-		push ecx;
 		_GET_ARG_INT(end);
 		mov  Stats::extraApAcBonus, eax;
 end:
-		pop  ecx;
 		retn;
 	}
 }
 
 void __declspec(naked) op_get_unspent_ap_perk_bonus() {
 	__asm {
-		push ecx;
 		mov  edx, Stats::extraApAcBonus;
-		_RET_VAL_INT;
-		pop  ecx;
-		retn;
+		_J_RET_VAL_TYPE(VAR_TYPE_INT);
+//		retn;
 	}
 }
 
@@ -700,55 +682,53 @@ void __declspec(naked) op_nb_create_char() {
 
 void __declspec(naked) op_hero_select_win() { // for opening the appearance selection window
 	__asm {
-		push ecx;
+		mov  esi, ecx;
 		_GET_ARG_INT(fail);
 		push eax;
 		call HeroSelectWindow;
 fail:
-		pop  ecx;
+		mov  ecx, esi;
 		retn;
 	}
 }
 
 void __declspec(naked) op_set_hero_style() { // for setting the hero style/appearance takes an 1 int
 	__asm {
-		push ecx;
+		mov  esi, ecx;
 		_GET_ARG_INT(fail);
 		push eax;
 		call SetHeroStyle;
 fail:
-		pop  ecx;
+		mov  ecx, esi;
 		retn;
 	}
 }
 
 void __declspec(naked) op_set_hero_race() { // for setting the hero race takes an 1 int
 	__asm {
-		push ecx;
+		mov  esi, ecx;
 		_GET_ARG_INT(fail);
 		push eax;
 		call SetHeroRace;
 fail:
-		pop  ecx;
+		mov  ecx, esi;
 		retn;
 	}
 }
 
 void __declspec(naked) op_get_light_level() {
 	__asm {
-		push ecx;
 		mov  edx, ds:[FO_VAR_ambient_light];
-		_RET_VAL_INT;
-		pop  ecx;
-		retn;
+		_J_RET_VAL_TYPE(VAR_TYPE_INT);
+//		retn;
 	}
 }
 
 void __declspec(naked) op_refresh_pc_art() {
 	__asm {
-		push ecx;
+		mov  esi, ecx;
 		call RefreshPCArt;
-		pop  ecx;
+		mov  ecx, esi;
 		retn;
 	}
 }
@@ -800,12 +780,12 @@ end:
 
 void __declspec(naked) op_stop_sfall_sound() {
 	__asm {
-		push ecx;
+		mov  esi, ecx;
 		_GET_ARG_INT(end);
 		push eax;
 		call StopSfallSound;
 end:
-		pop  ecx;
+		mov  ecx, esi;
 		retn;
 	}
 }
@@ -846,41 +826,38 @@ end:
 
 void __declspec(naked) op_modified_ini() {
 	__asm {
-		push ecx;
 		mov  edx, modifiedIni;
-		_RET_VAL_INT;
-		pop  ecx;
-		retn;
+		_J_RET_VAL_TYPE(VAR_TYPE_INT);
+//		retn;
 	}
 }
 
 void __declspec(naked) op_force_aimed_shots() {
 	__asm {
-		push ecx;
+		mov  esi, ecx;
 		_GET_ARG_INT(end);
 		push eax;
 		call ForceAimedShots;
 end:
-		pop  ecx;
+		mov  ecx, esi;
 		retn;
 	}
 }
 
 void __declspec(naked) op_disable_aimed_shots() {
 	__asm {
-		push ecx;
+		mov  esi, ecx;
 		_GET_ARG_INT(end);
 		push eax;
 		call DisableAimedShots;
 end:
-		pop  ecx;
+		mov  ecx, esi;
 		retn;
 	}
 }
 
 void __declspec(naked) op_mark_movie_played() {
 	__asm {
-		push ecx;
 		_GET_ARG_INT(end);
 		test eax, eax;
 		jl   end;
@@ -888,7 +865,6 @@ void __declspec(naked) op_mark_movie_played() {
 		jge  end;
 		mov  byte ptr ds:[eax + FO_VAR_gmovie_played_list], 1;
 end:
-		pop  ecx;
 		retn;
 	}
 }
@@ -949,12 +925,12 @@ end:
 
 void __declspec(naked) op_block_combat() {
 	__asm {
-		push ecx;
+		mov  esi, ecx;
 		_GET_ARG_INT(end);
 		push eax;
 		call AIBlockCombat;
 end:
-		pop  ecx;
+		mov  ecx, esi;
 		retn;
 	}
 }
@@ -989,22 +965,20 @@ void __declspec(naked) op_tile_under_cursor() {
 
 void __declspec(naked) op_gdialog_get_barter_mod() {
 	__asm {
-		push ecx;
 		mov  edx, dword ptr ds:[FO_VAR_gdBarterMod];
-		_RET_VAL_INT;
-		pop  ecx;
-		retn;
+		_J_RET_VAL_TYPE(VAR_TYPE_INT);
+//		retn;
 	}
 }
 
 void __declspec(naked) op_set_inven_ap_cost() {
 	__asm {
-		push ecx;
+		mov  esi, ecx;
 		_GET_ARG_INT(end);
 		mov  ecx, eax;
 		call Inventory::SetInvenApCost;
 end:
-		pop  ecx;
+		mov  ecx, esi;
 		retn;
 	}
 }
