@@ -46,6 +46,7 @@
 #define FO_VAR_curr_stack                 0x59E96C
 #define FO_VAR_currentWindow              0x51DCB8
 #define FO_VAR_cursor_line                0x664514
+#define FO_VAR_debug_func                 0x51DF04
 #define FO_VAR_dialogue_head              0x518850
 #define FO_VAR_dialogue_state             0x518714
 #define FO_VAR_dialogue_switch_mode       0x518718
