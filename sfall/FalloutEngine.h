@@ -65,6 +65,7 @@
 #define _curr_stack                 0x59E96C
 #define _currentWindow              0x51DCB8
 #define _cursor_line                0x664514
+#define _debug_func                 0x51DF04
 #define _dialog_target              0x518848
 #define _dialog_target_is_party     0x51884C
 #define _dialogue_head              0x518850
@@ -528,6 +529,7 @@ extern const DWORD combat_turn_;
 extern const DWORD combat_turn_run_;
 extern const DWORD compute_damage_;
 extern const DWORD config_get_string_;
+extern const DWORD config_get_value_;
 extern const DWORD config_set_value_;
 extern const DWORD construct_box_bar_win_;
 extern const DWORD container_exit_;

@@ -292,6 +292,7 @@ const DWORD combat_turn_ = 0x42299C;
 const DWORD combat_turn_run_ = 0x4227DC;
 const DWORD compute_damage_ = 0x4247B8;
 const DWORD config_get_string_ = 0x42BF48;
+const DWORD config_get_value_ = 0x42C05C;
 const DWORD config_set_value_ = 0x42C160;
 const DWORD construct_box_bar_win_ = 0x461134;
 const DWORD container_exit_ = 0x476394;

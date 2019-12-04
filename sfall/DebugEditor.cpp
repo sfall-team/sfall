@@ -333,6 +333,16 @@ static void __declspec(naked) win_debug_hook() {
 	}
 }
 
+static void __declspec(naked) op_display_msg_hook() {
+	__asm {
+		cmp  dword ptr ds:_debug_func, 0;
+		jne  debug;
+		retn;
+debug:
+		jmp  config_get_value_;
+	}
+}
+
 static void DebugModePatch() {
 	DWORD dbgMode = iniGetInt("Debugging", "DebugMode", 0, ddrawIniDef);
 	if (dbgMode) {
@@ -362,8 +372,14 @@ static void DebugModePatch() {
 		// prints a debug message about missing art file for critters to both debug.log and the message window
 		HookCall(0x419B65, art_data_size_hook);
 
+		// replace calling debug_printf_ with _debug_func (to prevent a crash if there is a '%' character in the printed message)
+		long long data = 0x51DF0415FFF08990; // mov eax, esi; call ds:_debug_func
+		SafeWriteBytes(0x455419, (BYTE*)&data, 8); // op_display_msg_
+
 		dlogr(" Done", DL_INIT);
 	}
+	// Just for speeding up the process
+	HookCall(0x455404, op_display_msg_hook);
 }
 
 static void DontDeleteProtosPatch() {
