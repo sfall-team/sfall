@@ -120,6 +120,16 @@ end:
 	so it works as get_array if first argument is int and as substr(x, y, 1) if first argument is string
 	example: vartext[5]
 */
+static char* _stdcall GetArraySubstr(const char* str, size_t index) {
+	if (index < strlen(str)) {
+		wchar_t c = ((unsigned char*)str)[index];
+		((wchar_t*)gTextBuffer)[0] = c;
+	} else {
+		gTextBuffer[0] = '\0';
+	}
+	return gTextBuffer; // returns char of string
+}
+
 static void __declspec(naked) get_array() {
 	__asm {
 		pushad;
@@ -151,10 +161,9 @@ callsubstr:
 		mov ebx, esi;
 		mov edx, ecx;
 		call interpretGetString_;
-		push 1;
 		push edi;
 		push eax;
-		call Substring;
+		call GetArraySubstr;
 		mov edx, eax; // result substring
 		mov ebx, VAR_TYPE_STR; // result type
 		jmp end;

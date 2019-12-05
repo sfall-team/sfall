@@ -370,6 +370,7 @@ const DWORD findCurrentProc_ = 0x467160;
 const DWORD fadeSystemPalette_ = 0x4C7320;
 const DWORD findVar_ = 0x4410AC;
 const DWORD folder_print_line_ = 0x43E3D8;
+const DWORD fprintf_ = 0x4F0D56;
 const DWORD frame_ptr_ = 0x419880;
 const DWORD game_exit_ = 0x442C34;
 const DWORD game_get_global_var_ = 0x443C68;

@@ -94,8 +94,6 @@ void _stdcall AddTimerEventScripts(DWORD script, long time, long param);
 void _stdcall RemoveTimerEventScripts(DWORD script, long param);
 void _stdcall RemoveTimerEventScripts(DWORD script);
 
-char* _stdcall Substring(const char* str, int startPos, int length);
-
 // variables
 static char reg_anim_combat_check = 1;
 extern DWORD isGlobalScriptLoading;

@@ -581,7 +581,7 @@ end:
 	}
 }
 
-char* _stdcall Substring(const char* str, int startPos, int length) {
+static char* _stdcall SubString(const char* str, int startPos, int length) {
 	int len = strlen(str);
 
 	if (startPos < 0) {
@@ -614,7 +614,7 @@ static void _stdcall op_substr2() {
 
 	if (strArg.isString() && startArg.isInt() && lenArg.isInt()) {
 		const char* str = strArg.strValue();
-		if (*str != '\0') str = Substring(str, startArg.rawValue(), lenArg.rawValue());
+		if (*str != '\0') str = SubString(str, startArg.rawValue(), lenArg.rawValue());
 		opHandler.setReturn(str);
 	} else {
 		OpcodeInvalidArgs("substr");

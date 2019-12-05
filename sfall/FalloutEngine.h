@@ -606,6 +606,7 @@ extern const DWORD executeProcedure_; // <eax> - programPtr, <edx> - procNumber
 extern const DWORD fadeSystemPalette_;
 extern const DWORD findVar_;
 extern const DWORD folder_print_line_;
+extern const DWORD fprintf_;
 extern const DWORD frame_ptr_;
 extern const DWORD game_exit_;
 extern const DWORD game_get_global_var_;
