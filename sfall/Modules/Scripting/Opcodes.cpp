@@ -51,8 +51,6 @@ static const short opcodeCount = 0x300;
 // Other half is filled by sfall here.
 static void* opcodes[opcodeCount];
 
-typedef std::unordered_map<short, const SfallOpcodeInfo*> OpcodeInfoMapType;
-
 // Opcode Table. Add additional (sfall) opcodes here.
 // Format: {
 //    opcode number,
@@ -221,16 +219,16 @@ static SfallOpcodeInfo opcodeInfoArray[] = {
 	{0x27e, "reg_anim_callback",         sf_reg_anim_callback,         1, false,  0, {ARG_INT}},
 };
 
-// A hash-table for opcode info, indexed by opcode.
+// An array for opcode info, indexed by opcode.
 // Initialized at run time from the array above.
-OpcodeInfoMapType opcodeInfoMap;
+std::array<const SfallOpcodeInfo*, opcodeCount - sfallOpcodeStart> opcodeInfoTable;
 
 // Initializes the opcode info table.
 void InitOpcodeInfoTable() {
 	int length = sizeof(opcodeInfoArray) / sizeof(opcodeInfoArray[0]);
 	for (int i = 0; i < length; ++i) {
-		// key: opcode, value: reference to opcode element in the opcodeInfoArray array
-		opcodeInfoMap[opcodeInfoArray[i].opcode] = &opcodeInfoArray[i];
+		// index: opcode, value: reference to opcode element in the opcodeInfoArray array
+		opcodeInfoTable[opcodeInfoArray[i].opcode - sfallOpcodeStart] = &opcodeInfoArray[i];
 	}
 }
 
@@ -241,11 +239,10 @@ void __fastcall defaultOpcodeHandler(fo::Program* program, DWORD opcodeOffset) {
 	__asm mov  program, ebx;
 
 	int opcode = opcodeOffset / 4;
-	auto iter = opcodeInfoMap.find(opcode);
-	if (iter != opcodeInfoMap.end()) {
-		auto info = iter->second;
-		OpcodeContext ctx(program, info);
-		ctx.handleOpcode(info->handler, info->argValidation);
+	auto opcodeInfo = opcodeInfoTable[opcode - sfallOpcodeStart];
+	if (opcodeInfo != nullptr) {
+		OpcodeContext ctx(program, opcodeInfo);
+		ctx.handleOpcode(opcodeInfo->handler, opcodeInfo->argValidation);
 	} else {
 		fo::func::interpretError("Unknown opcode: %d", opcode);
 	}
@@ -259,6 +256,15 @@ void InitNewOpcodes() {
 	SafeWrite32(0x46CE34, (DWORD)opcodes); // cmp check to make sure opcode exists
 	SafeWrite32(0x46CE6C, (DWORD)opcodes); // call that actually jumps to the opcode
 	SafeWrite32(0x46E390, (DWORD)opcodes); // mov that writes to the opcode
+
+	// see opcodeMetaArray above for additional scripting functions via "metarule"
+
+	InitOpcodeInfoTable();
+	InitMetaruleTable();
+
+	LoadGameHook::OnGameReset() += []() {
+		ForceEncounterRestore(); // restore if the encounter did not happen
+	};
 
 	if (iniGetInt("Debugging", "AllowUnsafeScripting", 0, ::sfall::ddrawIni)) {
 		dlogr("  Unsafe opcodes enabled.", DL_SCRIPT);
@@ -415,15 +421,6 @@ void InitNewOpcodes() {
 			opcodes[i] = defaultOpcodeHandler;
 		}
 	}
-
-	// see opcodeMetaArray above for additional scripting functions via "metarule"
-
-	InitOpcodeInfoTable();
-	InitMetaruleTable();
-
-	LoadGameHook::OnGameReset() += []() {
-		ForceEncounterRestore(); // restore if the encounter did not happen
-	};
 }
 
 }

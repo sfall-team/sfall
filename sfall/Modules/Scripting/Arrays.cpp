@@ -19,12 +19,13 @@ DWORD arraysBehavior = 1; // 0 - backward compatible with pre-3.4, 1 - permanent
 
 // arrays map: arrayId => arrayVar
 ArraysMap arrays;
-// auto-incremented ID
-DWORD nextArrayID = 1;
 // temp arrays: set of arrayId
-std::unordered_set<DWORD> tempArrays;
+std::unordered_set<DWORD> temporaryArrays;
 // saved arrays: arrayKey => arrayId
 ArrayKeysMap savedArrays;
+
+// auto-incremented ID
+DWORD nextArrayID = 1;
 // special array ID for array expressions
 DWORD stackArrayId;
 
@@ -405,7 +406,7 @@ DWORD CreateArray(int len, DWORD flags) {
 
 DWORD TempArray(DWORD len, DWORD flags) {
 	DWORD id = CreateArray(len, flags);
-	tempArrays.insert(id);
+	temporaryArrays.insert(id);
 	return id;
 }
 
@@ -419,11 +420,11 @@ void FreeArray(DWORD id) {
 }
 
 void DeleteAllTempArrays() {
-	if (!tempArrays.empty()) {
-		for (std::unordered_set<DWORD>::iterator it = tempArrays.begin(); it != tempArrays.end(); ++it) {
+	if (!temporaryArrays.empty()) {
+		for (std::unordered_set<DWORD>::iterator it = temporaryArrays.begin(); it != temporaryArrays.end(); ++it) {
 			FreeArray(*it);
 		}
-		tempArrays.clear();
+		temporaryArrays.clear();
 	}
 }
 
@@ -642,7 +643,7 @@ long ResizeArray(DWORD id, int newlen) {
 }
 
 void FixArray(DWORD id) {
-	tempArrays.erase(id);
+	temporaryArrays.erase(id);
 }
 
 ScriptValue ScanArray(DWORD id, const ScriptValue& val) {
