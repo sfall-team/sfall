@@ -383,7 +383,7 @@ static void DebugModePatch() {
 		// prints a debug message about missing art file for critters to both debug.log and the message window
 		HookCall(0x419B65, art_data_size_hook);
 
-		// Fix crash when there is a '%' character in the printed message
+		// Fix to prevent crashes when there is a '%' character in the printed message
 		if (dbgMode > 1) {
 			MakeCall(0x4C703F, debug_log_hack);
 			BlockCall(0x4C7044); // just nop code
