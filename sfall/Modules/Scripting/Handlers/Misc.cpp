@@ -402,6 +402,14 @@ void sf_get_npc_level(OpcodeContext& ctx) {
 	ctx.setReturn(level);
 }
 
+static bool IsSpecialIni(const char* str, const char* end) {
+	const char* pos = strfind(str, &::sfall::ddrawIni[2]);
+	if (pos && pos < end) return true;
+	pos = strfind(str, "f2_res.ini");
+	if (pos && pos < end) return true;
+	return false;
+}
+
 static int ParseIniSetting(const char* iniString, const char* &key, char section[], char file[]) {
 	key = strstr(iniString, "|");
 	if (!key) return -1;
@@ -416,28 +424,18 @@ static int ParseIniSetting(const char* iniString, const char* &key, char section
 	DWORD seclen = (DWORD)key - ((DWORD)iniString + filelen + 1);
 	if (seclen > 32) return -1;
 
+	long startAt = 2;
 	file[0] = '.';
 	file[1] = '\\';
-	if (!ScriptExtender::iniConfigFolder.empty()) {
-		const char* pos = strfind(iniString, &::sfall::ddrawIni[2]);
-		if (pos && pos < fileEnd) goto specialIni;
-		pos = strfind(iniString, "f2_res.ini");
-		if (pos && pos < fileEnd) goto specialIni;
+
+	if (!ScriptExtender::iniConfigFolder.empty() && !IsSpecialIni(iniString, fileEnd)) {
 		size_t len = ScriptExtender::iniConfigFolder.length(); // limit up to 62 characters
 		memcpy(&file[2], ScriptExtender::iniConfigFolder.c_str(), len);
-		int n = 0; // position of the beginning of the file name
-		for	(int i = filelen - 4; i > 0; i--) {
-			if (iniString[i] == '\\' || iniString[i] == '/') {
-				n = i + 1;
-				break;
-			}
-		}
-		strncpy_s(&file[2 + len], (128 - 2) - len, &iniString[n], filelen - n); // copy filename
-	} else {
-specialIni:
-		memcpy(&file[2], iniString, filelen);
-		file[filelen + 2] = 0;
+		DWORD attr = GetFileAttributesA(file);
+		if (!(attr & FILE_ATTRIBUTE_DIRECTORY) /*&& attr != INVALID_FILE_ATTRIBUTES*/) startAt += len + 1;
 	}
+	memcpy(&file[startAt], iniString, filelen);
+	file[startAt + filelen] = 0;
 	memcpy(section, &iniString[filelen + 1], seclen);
 	section[seclen] = 0;
 
@@ -1035,21 +1033,31 @@ void sf_set_ini_setting(OpcodeContext& ctx) {
 	ctx.setReturn(-1);
 }
 
-static std::string GetIniFilePath(const ScriptValue& arg) {
+static std::string GetIniFilePath(const ScriptValue &arg) {
 	std::string fileName(".\\");
 	if (ScriptExtender::iniConfigFolder.empty()) {
 		fileName += arg.strValue();
 	} else {
 		fileName += ScriptExtender::iniConfigFolder;
-		std::string name(arg.strValue());
-		int pos = name.find_last_of("\\/");
-		fileName += (pos > 0) ? name.substr(pos + 1) : name;
+		fileName += arg.strValue();
+		DWORD attr = GetFileAttributesA(fileName.c_str());
+		if ((attr & FILE_ATTRIBUTE_DIRECTORY) /*|| attr == INVALID_FILE_ATTRIBUTES*/) {
+			auto str = arg.strValue();
+			for (size_t i = 2; ; i++, str++) {
+				//if (*str == '.') str += (str[1] == '.') ? 3 : 2; // skip '.\' or '..\'
+				fileName[i] = *str;
+				if (!*str) break;
+			}
+		}
 	}
 	return fileName;
 }
 
 void sf_get_ini_sections(OpcodeContext& ctx) {
-	GetPrivateProfileSectionNamesA(ScriptExtender::gTextBuffer, ScriptExtender::TextBufferSize(), GetIniFilePath(ctx.arg(0)).data());
+	if (!GetPrivateProfileSectionNamesA(ScriptExtender::gTextBuffer, ScriptExtender::TextBufferSize(), GetIniFilePath(ctx.arg(0)).c_str())) {
+		ctx.setReturn(TempArray(0, 0));
+		return;
+	}
 	std::vector<char*> sections;
 	char* section = ScriptExtender::gTextBuffer;
 	while (*section != 0) {
@@ -1070,21 +1078,23 @@ void sf_get_ini_sections(OpcodeContext& ctx) {
 
 void sf_get_ini_section(OpcodeContext& ctx) {
 	auto section = ctx.arg(1).strValue();
-	GetPrivateProfileSectionA(section, ScriptExtender::gTextBuffer, ScriptExtender::TextBufferSize(), GetIniFilePath(ctx.arg(0)).data());
 	int arrayId = TempArray(-1, 0); // associative
-	auto& arr = arrays[arrayId];
-	char *key = ScriptExtender::gTextBuffer, *val = nullptr;
-	while (*key != 0) {
-		char* val = std::strpbrk(key, "=");
-		if (val != nullptr) {
-			*val = '\0';
-			val += 1;
 
-			SetArray(arrayId, ScriptValue(key), ScriptValue(val), false);
+	if (GetPrivateProfileSectionA(section, ScriptExtender::gTextBuffer, ScriptExtender::TextBufferSize(), GetIniFilePath(ctx.arg(0)).c_str())) {
+		auto& arr = arrays[arrayId];
+		char *key = ScriptExtender::gTextBuffer, *val = nullptr;
+		while (*key != 0) {
+			char* val = std::strpbrk(key, "=");
+			if (val != nullptr) {
+				*val = '\0';
+				val += 1;
 
-			key = val + std::strlen(val) + 1;
-		} else {
-			key += std::strlen(key) + 1;
+				SetArray(arrayId, ScriptValue(key), ScriptValue(val), false);
+
+				key = val + std::strlen(val) + 1;
+			} else {
+				key += std::strlen(key) + 1;
+			}
 		}
 	}
 	ctx.setReturn(arrayId);
