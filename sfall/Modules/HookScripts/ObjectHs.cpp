@@ -260,7 +260,7 @@ static DWORD __fastcall StdProcedureHook_Script(long numHandler, fo::ScriptInsta
 }
 
 static void __declspec(naked) ScriptStdProcedureHook() {
-	using namespace fo::ScriptProc;
+	using namespace fo::Scripts;
 	__asm {
 		mov  eax, [eax + 0x54]; // Script.procedure_table
 		test eax, eax;
@@ -286,7 +286,7 @@ end:
 }
 
 static void __declspec(naked) After_ScriptStdProcedureHook() {
-	using namespace fo::ScriptProc;
+	using namespace fo::Scripts;
 	__asm {
 		call fo::funcoffs::executeProcedure_;
 		cmp  ecx, critter_p_proc;

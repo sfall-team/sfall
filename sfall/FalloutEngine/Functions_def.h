@@ -18,7 +18,7 @@
 // because the compiler builds the better/optimized code when calling the engine functions
 WRAP_WATCOM_FFUNC4(long, _word_wrap, const char*, text, int, maxWidth, DWORD*, buf, BYTE*, count)
 WRAP_WATCOM_FFUNC3(void, correctFidForRemovedItem, GameObject*, critter, GameObject*, item, long, slotFlag)
-WRAP_WATCOM_FFUNC7(long, createWindow, const char*, winName, long, x, long, y, long, width, long, height, long, bgColorIndex, long, flags)
+WRAP_WATCOM_FFUNC7(long, createWindow, const char*, winName, DWORD, x, DWORD, y, DWORD, width, DWORD, height, long, color, long, flags)
 WRAP_WATCOM_FFUNC3(void, display_inventory, long, inventoryOffset, long, visibleOffset, long, mode)
 WRAP_WATCOM_FFUNC4(void, display_target_inventory, long, inventoryOffset, long, visibleOffset, DWORD*, targetInventory, long, mode)
 WRAP_WATCOM_FFUNC3(FrmFrameData*, frame_ptr, FrmHeaderData*, frm, long, frame, long, direction)

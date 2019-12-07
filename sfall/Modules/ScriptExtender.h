@@ -29,7 +29,7 @@ namespace sfall
 
 typedef struct {
 	fo::Program* ptr = nullptr;
-	int procLookup[fo::ScriptProc::count];
+	int procLookup[fo::Scripts::ScriptProc::count];
 	char initialized;
 } ScriptProgram;
 

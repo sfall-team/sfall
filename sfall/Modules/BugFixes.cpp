@@ -1134,7 +1134,7 @@ end:
 }
 
 static void __declspec(naked) action_explode_hack() {
-	using fo::ScriptProc::destroy_p_proc;
+	using namespace fo::Scripts;
 	__asm {
 		mov  edx, destroy_p_proc
 		mov  eax, [esi + scriptId]                // pobj.sid

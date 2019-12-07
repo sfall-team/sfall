@@ -424,18 +424,20 @@ static int ParseIniSetting(const char* iniString, const char* &key, char section
 	DWORD seclen = (DWORD)key - ((DWORD)iniString + filelen + 1);
 	if (seclen > 32) return -1;
 
-	long startAt = 2;
 	file[0] = '.';
 	file[1] = '\\';
 
 	if (!ScriptExtender::iniConfigFolder.empty() && !IsSpecialIni(iniString, fileEnd)) {
 		size_t len = ScriptExtender::iniConfigFolder.length(); // limit up to 62 characters
 		memcpy(&file[2], ScriptExtender::iniConfigFolder.c_str(), len);
-		DWORD attr = GetFileAttributesA(file);
-		if (!(attr & FILE_ATTRIBUTE_DIRECTORY) /*&& attr != INVALID_FILE_ATTRIBUTES*/) startAt += len + 1;
+		memcpy(&file[2 + len], iniString, filelen); // copy path and file
+		file[2 + len + filelen] = 0;
+		if (GetFileAttributesA(file) & FILE_ATTRIBUTE_DIRECTORY) goto defRoot; // also file not found
+	} else {
+defRoot:
+		memcpy(&file[2], iniString, filelen);
+		file[2 + filelen] = 0;
 	}
-	memcpy(&file[startAt], iniString, filelen);
-	file[startAt + filelen] = 0;
 	memcpy(section, &iniString[filelen + 1], seclen);
 	section[seclen] = 0;
 
@@ -1040,8 +1042,7 @@ static std::string GetIniFilePath(const ScriptValue &arg) {
 	} else {
 		fileName += ScriptExtender::iniConfigFolder;
 		fileName += arg.strValue();
-		DWORD attr = GetFileAttributesA(fileName.c_str());
-		if ((attr & FILE_ATTRIBUTE_DIRECTORY) /*|| attr == INVALID_FILE_ATTRIBUTES*/) {
+		if (GetFileAttributesA(fileName.c_str()) & FILE_ATTRIBUTE_DIRECTORY) {
 			auto str = arg.strValue();
 			for (size_t i = 2; ; i++, str++) {
 				//if (*str == '.') str += (str[1] == '.') ? 3 : 2; // skip '.\' or '..\'

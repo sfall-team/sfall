@@ -156,7 +156,7 @@ VAR_(pip_win,                    DWORD)
 VAR_(pipboy_message_file,        MessageList)
 VAR_(pipmesg,                    DWORD)
 VAR_(preload_list_index,         DWORD)
-VARA(procTableStrs,              const char*, (int)ScriptProc::count)  // table of procId (from define.h) => procName map
+VARA(procTableStrs,              const char*, (int)Scripts::ScriptProc::count)  // table of procId (from define.h) => procName map
 VARA(proto_msg_files,            MessageList, 6)  // array of 6 elements
 VAR_(proto_main_msg_file,        MessageList)
 VAR_(ptable,                     DWORD)

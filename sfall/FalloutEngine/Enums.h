@@ -445,15 +445,6 @@ enum class ScenerySubType : long
 	GENERIC = 5
 };
 
-enum ScriptTypes
-{
-	SCRIPT_SYSTEM = 0,
-	SCRIPT_SPATIAL = 1,
-	SCRIPT_TIME = 2,
-	SCRIPT_ITEM = 3,
-	SCRIPT_CRITTER = 4,
-};
-
 // proto.h: stats //
 
 enum Stat : long
@@ -505,8 +496,9 @@ enum Stat : long
 	STAT_real_max_stat = 38
 };
 
-namespace ScriptProc {
-	enum ScriptProc : long {
+namespace Scripts {
+	enum ScriptProc : long
+	{
 		no_p_proc = 0,
 		start = 1,
 		spatial_p_proc = 2,
@@ -536,6 +528,15 @@ namespace ScriptProc {
 		combat_is_starting_p_proc = 26,
 		combat_is_over_p_proc = 27,
 		count = 28
+	};
+
+	enum ScriptTypes : long
+	{
+		SCRIPT_SYSTEM = 0,
+		SCRIPT_SPATIAL = 1,
+		SCRIPT_TIME = 2,
+		SCRIPT_ITEM = 3,
+		SCRIPT_CRITTER = 4,
 	};
 }
 
