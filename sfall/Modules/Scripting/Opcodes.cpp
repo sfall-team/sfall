@@ -110,6 +110,8 @@ static SfallOpcodeInfo opcodeInfoArray[] = {
 	{0x1ef, "cos",                       sf_cos,                       1, true,   0, {ARG_NUMBER}},
 	{0x1f0, "tan",                       sf_tan,                       1, true,   0, {ARG_NUMBER}},
 	{0x1f1, "arctan",                    sf_arctan,                    2, true,   0, {ARG_NUMBER, ARG_NUMBER}},
+	{0x1f3, "remove_script",             sf_remove_script,             1, false,  0, {ARG_OBJECT}},
+	{0x1f4, "set_script",                sf_set_script,                2, false,  0, {ARG_OBJECT, ARG_INT}},
 	{0x1f5, "get_script",                sf_get_script,                1, true,  -1, {ARG_OBJECT}},
 
 	{0x1f7, "fs_create",                 sf_fs_create,                 2, true,  -1, {ARG_STRING, ARG_INT}},
@@ -221,10 +223,10 @@ static SfallOpcodeInfo opcodeInfoArray[] = {
 
 // An array for opcode info, indexed by opcode.
 // Initialized at run time from the array above.
-std::array<const SfallOpcodeInfo*, opcodeCount - sfallOpcodeStart> opcodeInfoTable;
+static std::array<const SfallOpcodeInfo*, opcodeCount - sfallOpcodeStart> opcodeInfoTable;
 
 // Initializes the opcode info table.
-void InitOpcodeInfoTable() {
+static void InitOpcodeInfoTable() {
 	int length = sizeof(opcodeInfoArray) / sizeof(opcodeInfoArray[0]);
 	for (int i = 0; i < length; ++i) {
 		// index: opcode, value: reference to opcode element in the opcodeInfoArray array
@@ -234,7 +236,7 @@ void InitOpcodeInfoTable() {
 
 // Default handler for Sfall Opcodes.
 // Searches current opcode in Opcode Info table and executes the appropriate handler.
-void __fastcall defaultOpcodeHandler(fo::Program* program, DWORD opcodeOffset) { // eax/ebx - program, edx - opcodeOffset
+static void __fastcall defaultOpcodeHandler(fo::Program* program, DWORD opcodeOffset) { // eax/ebx - program, edx - opcodeOffset
 	__asm push ecx;
 	__asm mov  program, ebx;
 
@@ -372,8 +374,6 @@ void InitNewOpcodes() {
 	opcodes[0x1e9] = op_get_unspent_ap_perk_bonus;
 	opcodes[0x1ea] = op_init_hook;
 	opcodes[0x1f2] = op_set_palette;
-	opcodes[0x1f3] = op_remove_script;
-	opcodes[0x1f4] = op_set_script;
 
 	opcodes[0x1f6] = op_nb_create_char;
 	opcodes[0x206] = op_set_self;
