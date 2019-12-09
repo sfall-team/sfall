@@ -36,9 +36,9 @@ namespace sfall
 namespace script
 {
 
-#define exec_script_proc(script, stype) __asm { \
+#define exec_script_proc(script, proc) __asm {  \
 	__asm mov  eax, script                      \
-	__asm mov  edx, stype                       \
+	__asm mov  edx, proc                        \
 	__asm call fo::funcoffs::exec_script_proc_  \
 }
 
@@ -56,14 +56,13 @@ void sf_set_script(OpcodeContext& ctx) {
 
 	long scriptType;
 	auto object = ctx.arg(0).object();
-	DWORD scriptIndex = ctx.arg(1).rawValue();
+	unsigned long valArg = ctx.arg(1).rawValue();
 
-	if ((scriptIndex & ~0x80000000) == 0) {
+	long scriptIndex = valArg & ~0xF0000000;
+	if (scriptIndex == 0 || valArg > 0x8FFFFFFF) { // negative values are not allowed
 		ctx.printOpcodeError("%s() - the script index number is incorrect.", ctx.getOpcodeName());
 		return;
 	}
-	bool runMapEnter = (scriptIndex & 0x80000000) == 0;
-	if (!runMapEnter) scriptIndex ^= 0x80000000;
 	scriptIndex--;
 
 	if (object->scriptId != 0xFFFFFFFF) {
@@ -79,7 +78,7 @@ void sf_set_script(OpcodeContext& ctx) {
 
 	long scriptId = object->scriptId;
 	exec_script_proc(scriptId, start);
-	if (runMapEnter) exec_script_proc(scriptId, map_enter_p_proc);
+	if ((valArg & 0x80000000) == 0) exec_script_proc(scriptId, map_enter_p_proc);
 }
 
 void sf_create_spatial(OpcodeContext& ctx) {
@@ -114,8 +113,8 @@ void sf_spatial_radius(OpcodeContext& ctx) {
 }
 
 void sf_get_script(OpcodeContext& ctx) {
-	auto obj = ctx.arg(0).object();
-	ctx.setReturn(++obj->scriptIndex);
+	auto scriptIndex = ctx.arg(0).object()->scriptIndex;
+	ctx.setReturn((scriptIndex >= 0) ? ++scriptIndex : 0);
 }
 
 void sf_set_critter_burst_disable(OpcodeContext& ctx) {
