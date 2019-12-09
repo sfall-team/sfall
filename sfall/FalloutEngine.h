@@ -1042,9 +1042,15 @@ void __stdcall CritterPcSetName(const char* newName);
 // Checks if given file exists in DB
 bool __stdcall DbAccess(const char* fileName);
 
+TGameObj* __stdcall ScrFindObjFromProgram(TProgram* program);
+
 // Saves pointer to script object into scriptPtr using scriptID.
 // Returns 0 on success, -1 on failure.
 long __stdcall ScrPtr(long scriptId, TScript** scriptPtr);
+
+long __stdcall ScrNew(long* scriptID, long sType);
+
+long __stdcall ScrRemove(long scriptID);
 
 // Returns the number of local variables of the object script
 long GetScriptLocalVars(long sid);
@@ -1099,7 +1105,7 @@ void __declspec() InterpretError(const char* fmt, ...);
 const char* __stdcall FindCurrentProc(TProgram* program);
 
 // creates a window with the name and flags
-long __fastcall CreateWindowFunc(const char* winName, long x, long y, long width, long height, long bgColorIndex, long flags);
+long __fastcall CreateWindowFunc(const char* winName, DWORD x, DWORD y, DWORD width, DWORD height, long color, long flags);
 
 // creates a button
 long __stdcall WinRegisterButton(DWORD winRef, long xPos, long yPos, long width, long height, long hoverOn, long hoverOff, long buttonDown, long buttonUp, BYTE* pictureUp, BYTE* pictureDown, long arg12, long buttonType);
@@ -1155,6 +1161,8 @@ FrmFrameData* __fastcall FramePtr(FrmHeaderData* frm, long frame, long direction
 void __stdcall MapDirErase(const char* folder, const char* ext);
 
 TGameObj* __fastcall ObjBlockingAt(TGameObj* object, long tile, long elevation);
+
+long __fastcall ObjNewSidInst(TGameObj* object, long sType, long scriptIndex);
 
 long __fastcall TileNumInDirection(long tile, long rotation, long distance);
 

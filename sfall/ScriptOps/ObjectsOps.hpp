@@ -24,95 +24,64 @@
 #include "Objects.h"
 #include "PartyControl.h"
 
-//script control functions
+#define exec_script_proc(script, proc) __asm {  \
+	__asm mov  eax, script                      \
+	__asm mov  edx, proc                        \
+	__asm call exec_script_proc_                \
+}
 
-// TODO: rewrite
-static void __declspec(naked) RemoveScript() {
-	__asm {
-		push ebx;
-		push ecx;
-		push edx;
-		mov ecx, eax;
-		call interpretPopShort_;
-		mov edx, eax;
-		mov eax, ecx;
-		call interpretPopLong_;
-		cmp dx, VAR_TYPE_INT;
-		jnz end;
-		test eax, eax;
-		jz end;
-		mov edx, eax;
-		mov eax, [eax+0x78];
-		cmp eax, 0xffffffff;
-		jz end;
-		call scr_remove_
-		mov dword ptr [edx+0x78], 0xffffffff;
-end:
-		pop edx;
-		pop ecx;
-		pop ebx;
-		retn;
+static void _stdcall RemoveScript2() {
+	TGameObj* object = opHandler.arg(0).asObject();
+	if (object) {
+		if (object->scriptID != 0xFFFFFFFF) {
+			ScrRemove(object->scriptID);
+			object->scriptID = 0xFFFFFFFF;
+		}
+	} else {
+		OpcodeInvalidArgs("remove_script");
 	}
 }
 
-// TODO: rewrite
-static void __declspec(naked) SetScript() {
-	__asm {
-		pushad;
-		mov ecx, eax;
-		call interpretPopShort_;
-		mov edx, eax;
-		mov eax, ecx;
-		call interpretPopLong_;
-		mov ebx, eax;
-		mov eax, ecx;
-		call interpretPopShort_;
-		mov edi, eax;
-		mov eax, ecx;
-		call interpretPopLong_;
-		cmp dx, VAR_TYPE_INT;
-		jnz end;
-		cmp di, VAR_TYPE_INT;
-		jnz end;
-		test eax, eax;
-		jz end;
-		mov esi, [eax+0x78];
-		cmp esi, 0xffffffff;
-		jz newscript
-		push eax;
-		mov eax, esi;
-		call scr_remove_
-		pop eax;
-		mov dword ptr [eax+0x78], 0xffffffff;
-newscript:
-		mov esi, 1;
-		test ebx, 0x80000000;
-		jz execMapEnter;
-		xor esi, esi;
-		xor ebx, 0x80000000;
-execMapEnter:
-		mov ecx, eax;
-		mov edx, 3; // script_type_item
-		mov edi, [eax+0x64];
-		shr edi, 24;
-		cmp edi, 1;
-		jnz notCritter;
-		inc edx; // 4 - "critter" type script
-notCritter:
-		dec ebx;
-		call obj_new_sid_inst_
-		mov eax, [ecx+0x78];
-		mov edx, 1; // start
-		call exec_script_proc_
-		cmp esi, 1; // run map enter?
-		jnz end;
-		mov eax, [ecx+0x78];
-		mov edx, 0xf; // map_enter_p_proc
-		call exec_script_proc_
-end:
-		popad;
-		retn;
+static void __declspec(naked) RemoveScript() {
+	_WRAP_OPCODE(RemoveScript2, 1, 0)
+}
+
+static void _stdcall SetScript2() {
+	TGameObj* object = opHandler.arg(0).asObject();
+	const ScriptValue &scriptIdxArg = opHandler.arg(1);
+
+	if (object && scriptIdxArg.isInt()) {
+		long scriptType;
+		unsigned long valArg = scriptIdxArg.rawValue();
+
+		long scriptIndex = valArg & ~0xF0000000;
+		if (scriptIndex == 0 || valArg > 0x8FFFFFFF) { // negative values are not allowed
+			opHandler.printOpcodeError("set_script() - the script index number is incorrect.");
+			return;
+		}
+		scriptIndex--;
+	
+		if (object->scriptID != 0xFFFFFFFF) {
+			ScrRemove(object->scriptID);
+			object->scriptID = 0xFFFFFFFF;
+		}
+		if (object->pid >> 24 == OBJ_TYPE_CRITTER) {
+			scriptType = SCRIPT_CRITTER;
+		} else {
+			scriptType = SCRIPT_ITEM;
+		}
+		ObjNewSidInst(object, scriptType, scriptIndex);
+	
+		long scriptId = object->scriptID;
+		exec_script_proc(scriptId, start);
+		if ((valArg & 0x80000000) == 0) exec_script_proc(scriptId, map_enter_p_proc);
+	} else {
+		OpcodeInvalidArgs("set_script");
 	}
+}
+
+static void __declspec(naked) SetScript() {
+	_WRAP_OPCODE(SetScript2, 2, 0)
 }
 
 static void _stdcall op_create_spatial2() {
@@ -125,38 +94,21 @@ static void _stdcall op_create_spatial2() {
 		DWORD scriptIndex = scriptIdxArg.rawValue(),
 			tile = tileArg.rawValue(),
 			elevation = elevArg.rawValue(),
-			radius = radiusArg.rawValue(),
-			scriptId, tmp, objectPtr,
-			scriptPtr;
-		__asm {
-			lea eax, scriptId;
-			mov edx, 1;
-			call scr_new_;
-			mov tmp, eax;
-		}
-		if (tmp == -1) return;
-		__asm {
-			mov eax, scriptId;
-			lea edx, scriptPtr;
-			call scr_ptr_;
-			mov tmp, eax;
-		}
-		if (tmp == -1) return;
-		// fill spatial script properties:
-		*(DWORD*)(scriptPtr + 0x14) = scriptIndex - 1;
-		*(DWORD*)(scriptPtr + 0x8) = (elevation << 29) & 0xE0000000 | tile;
-		*(DWORD*)(scriptPtr + 0xC) = radius;
+			radius = radiusArg.rawValue();
+
+		long scriptId;
+		TScript* scriptPtr;
+		if (ScrNew(&scriptId, SCRIPT_SPATIAL) == -1 || ScrPtr(scriptId, &scriptPtr) == -1) return;
+
+		// set spatial script properties:
+		scriptPtr->script_index = scriptIndex - 1;
+		scriptPtr->elevation_and_tile = (elevation << 29) & 0xE0000000 | tile;
+		scriptPtr->spatial_radius = radius;
+
 		// this will load appropriate script program and link it to the script instance we just created:
-		__asm {
-			mov eax, scriptId;
-			mov edx, 1; // start_p_proc
-			call exec_script_proc_;
-			mov eax, scriptPtr;
-			mov eax, [eax + 0x18]; // program pointer
-			call scr_find_obj_from_program_;
-			mov objectPtr, eax;
-		}
-		opHandler.setReturn(objectPtr);
+		exec_script_proc(scriptId, start);
+
+		opHandler.setReturn(ScrFindObjFromProgram(scriptPtr->program_ptr));
 	} else {
 		OpcodeInvalidArgs("create_spatial");
 		opHandler.setReturn(0);
@@ -180,64 +132,36 @@ static void sf_spatial_radius() {
 	}
 }
 
+static void _stdcall GetScript2() {
+	TGameObj* object = opHandler.arg(0).asObject();
+	if (object) {
+		long scriptIndex = object->script_index;
+		opHandler.setReturn((scriptIndex >= 0) ? ++scriptIndex : 0);
+	} else {
+		OpcodeInvalidArgs("get_script");
+		opHandler.setReturn(-1);
+	}
+}
+
 static void __declspec(naked) GetScript() {
-	__asm {
-		pushad;
-		mov ecx, eax;
-		mov ecx, eax;
-		call interpretPopShort_;
-		mov edx, eax;
-		mov eax, ecx;
-		call interpretPopLong_;
-		cmp dx, VAR_TYPE_INT;
-		jnz fail;
-		test eax, eax;
-		jz fail;
-		mov edx, [eax+0x80];
-		cmp edx, -1;
-		jz fail;
-		inc edx;
-		jmp end;
-fail:
-		xor edx, edx;
-		dec edx;
-end:
-		mov eax, ecx;
-		call interpretPushLong_;
-		mov eax, ecx;
-		mov edx, VAR_TYPE_INT;
-		call interpretPushShort_;
-		popad;
-		retn;
+	_WRAP_OPCODE(GetScript2, 1, 1)
+}
+
+static void _stdcall set_critter_burst_disable2() {
+	TGameObj* critter = opHandler.arg(0).asObject();
+	const ScriptValue &disableArg = opHandler.arg(1);
+
+	if (critter && disableArg.isInt()) {
+		SetNoBurstMode(critter, disableArg.asBool());
+	} else {
+		OpcodeInvalidArgs("set_critter_burst_disable");
 	}
 }
 
 static void __declspec(naked) set_critter_burst_disable() {
-	__asm {
-		pushad;
-		mov ebp, eax;
-		call interpretPopShort_;
-		mov edi, eax;
-		mov eax, ebp;
-		call interpretPopLong_;
-		mov ecx, eax;
-		mov eax, ebp;
-		call interpretPopShort_;
-		mov esi, eax;
-		mov eax, ebp;
-		call interpretPopLong_;
-		cmp di, VAR_TYPE_INT;
-		jnz end;
-		cmp si, VAR_TYPE_INT;
-		jnz end;
-		push ecx;
-		push eax;
-		call SetNoBurstMode;
-end:
-		popad;
-		retn;
-	}
+	_WRAP_OPCODE(set_critter_burst_disable2, 2, 0)
 }
+
 static void __declspec(naked) get_weapon_ammo_pid() {
 	__asm {
 		pushad;
@@ -265,6 +189,7 @@ end:
 		retn;
 	}
 }
+
 static void __declspec(naked) set_weapon_ammo_pid() {
 	__asm {
 		pushad;
@@ -291,6 +216,7 @@ end:
 		retn;
 	}
 }
+
 static void __declspec(naked) get_weapon_ammo_count() {
 	__asm {
 		pushad;
@@ -317,6 +243,7 @@ end:
 		retn;
 	}
 }
+
 static void __declspec(naked) set_weapon_ammo_count() {
 	__asm {
 		pushad;

@@ -873,13 +873,35 @@ void SkillSetTags(int* tags, DWORD num) {
 	}
 }
 
+TGameObj* __stdcall ScrFindObjFromProgram(TProgram* program) {
+	__asm {
+		mov  eax, program;
+		call scr_find_obj_from_program_;
+	}
+}
+
 // Saves pointer to script object into scriptPtr using scriptID.
 // Returns 0 on success, -1 on failure.
 long __stdcall ScrPtr(long scriptId, TScript** scriptPtr) {
 	__asm {
-		mov  eax, scriptId;
 		mov  edx, scriptPtr;
+		mov  eax, scriptId;
 		call scr_ptr_;
+	}
+}
+
+long __stdcall ScrNew(long* scriptID, long sType) {
+	__asm {
+		mov  edx, sType;
+		mov  eax, scriptID;
+		call scr_new_;
+	}
+}
+
+long __stdcall ScrRemove(long scriptID) {
+	__asm {
+		mov  eax, scriptID;
+		call scr_remove_;
 	}
 }
 
@@ -1037,10 +1059,10 @@ TGameObj* __stdcall InvenRightHand(TGameObj* critter) {
 	}
 }
 
-long __fastcall CreateWindowFunc(const char* winName, long x, long y, long width, long height, long bgColorIndex, long flags) {
+long __fastcall CreateWindowFunc(const char* winName, DWORD x, DWORD y, DWORD width, DWORD height, long color, long flags) {
 	__asm {
 		push flags;
-		push bgColorIndex;
+		push color;
 		push height;
 		mov  eax, ecx;
 		mov  ebx, y;
@@ -1297,6 +1319,14 @@ TGameObj* __fastcall ObjBlockingAt(TGameObj* object, long tile, long elevation) 
 		mov  ebx, elevation;
 		mov  eax, ecx;
 		call obj_blocking_at_;
+	}
+}
+
+long __fastcall ObjNewSidInst(TGameObj* object, long sType, long scriptIndex) {
+	__asm {
+		mov  ebx, scriptIndex;
+		mov  eax, ecx;
+		call obj_new_sid_inst_;
 	}
 }
 

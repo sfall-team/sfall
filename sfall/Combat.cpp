@@ -243,7 +243,7 @@ static void __declspec(naked) determine_to_hit_func_hack() {
 }
 
 static long __fastcall CheckDisableBurst(TGameObj* critter) {
-	for (DWORD i = 0; i < noBursts.size(); i++) {
+	for (size_t i = 0; i < noBursts.size(); i++) {
 		if (noBursts[i] == critter->ID) {
 			return 10; // Disable Burst (area_attack_mode - non-existent value)
 		}
@@ -354,7 +354,7 @@ void _stdcall SetHitChanceMax(TGameObj* critter, DWORD maximum, DWORD mod) {
 	hitChanceMods.push_back(cm);
 }
 
-void _stdcall SetNoBurstMode(TGameObj* critter, DWORD on) {
+void _stdcall SetNoBurstMode(TGameObj* critter, bool on) {
 	if (critter == *ptr_obj_dude || critter->pid >> 24 != OBJ_TYPE_CRITTER) return;
 
 	long id = SetObjectUniqueID(critter);

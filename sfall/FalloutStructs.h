@@ -128,7 +128,7 @@ struct TScript {
 };
 #pragma pack(pop)
 
-enum ScriptTypes
+enum ScriptTypes : long
 {
 	SCRIPT_SYSTEM = 0,
 	SCRIPT_SPATIAL = 1,
@@ -138,7 +138,7 @@ enum ScriptTypes
 };
 
 /*   24 */
-enum ObjectTypes
+enum ObjectTypes : char
 {
 	OBJ_TYPE_ITEM = 0,
 	OBJ_TYPE_CRITTER = 1,

@@ -529,11 +529,7 @@ static void FillListVector(DWORD type, std::vector<TGameObj*>& vec) {
 				self_obj = scriptPtr->self_obj;
 				if (self_obj == nullptr) {
 					programPtr = scriptPtr->program_ptr;
-					__asm {
-						mov eax, programPtr;
-						call scr_find_obj_from_program_;
-						mov self_obj, eax;
-					}
+					self_obj = ScrFindObjFromProgram(programPtr);
 				}
 				vec.push_back(self_obj);
 				__asm {
