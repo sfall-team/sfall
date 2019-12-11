@@ -536,7 +536,7 @@ static void __declspec(naked) SetBaseHitChance() {
 		jnz end;
 		push ecx;
 		push eax;
-		push 0xffffffff;
+		push 0xFFFFFFFF;
 		call SetHitChanceMax;
 end:
 		pop edi;

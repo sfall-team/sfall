@@ -76,7 +76,7 @@ static struct HooksPositionInfo {
 #define hookbegin(a) pushadc __asm call BeginHook popadc __asm mov argCount, a
 #define hookend pushadc __asm call EndHook popadc
 #define HookBegin pushadc __asm call BeginHook popadc
-//#define HookEnd pushadc __asm call EndHook popadc
+#define HookEnd pushadc __asm call EndHook popadc
 
 static void _stdcall BeginHook() {
 	if (callDepth && callDepth <= maxDepth) {
@@ -171,66 +171,73 @@ static void _stdcall RunHookScript(DWORD hook) {
 
 static void __declspec(naked) ToHitHook() {
 	__asm {
-		hookbegin(7);
-		mov args[4], eax; // attacker
-		mov args[8], ebx; // target
-		mov args[12], ecx; // body part
-		mov args[16], edx; // source tile
-		mov eax, [esp+4]; // attack type
-		mov args[20], eax;
-		mov eax, [esp+8]; // is ranged
-		mov args[24], eax;
-		mov eax, args[4];
-		push [esp+8];
-		push [esp+8];
+		HookBegin;
+		mov  args[4],  eax;   // attacker
+		mov  args[8],  ebx;   // target
+		mov  args[12], ecx;   // body part
+		mov  args[16], edx;   // source tile
+		mov  eax, [esp + 8];
+		mov  args[24], eax;   // is ranged
+		push eax;
+		mov  eax, [esp + 8];
+		mov  args[20], eax;   // attack type
+		push eax;
+		mov  eax, args[4];    // restore
 		call determine_to_hit_func_;
-		mov args[0], eax;
-		pushad;
-		push HOOK_TOHIT;
-		call RunHookScript;
-		popad;
-		cmp cRet, 1;
-		jl end;
-		mov eax, rets[0];
-end:
-		hookend;
+		mov  args[0], eax;
+		pushadc;
+	}
+
+	argCount = 7;
+	RunHookScript(HOOK_TOHIT);
+
+	__asm {
+		popadc;
+		cmp  cRet, 1;
+		cmovnb eax, rets[0];
+		HookEnd;
 		retn 8;
 	}
 }
 
-static const DWORD AfterHitRollAddr = 0x423898;
+// 4.x backport
+static DWORD __fastcall AfterHitRollHook_Script(TComputeAttack &ctd, DWORD hitChance, DWORD hit) {
+	BeginHook();
+	argCount = 5;
+
+	args[0] = hit;
+	args[1] = (DWORD)ctd.attacker;   // Attacker
+	args[2] = (DWORD)ctd.target;     // Target
+	args[3] = ctd.bodyPart;          // bodypart
+	args[4] = hitChance;
+
+	RunHookScript(HOOK_AFTERHITROLL);
+	if (cRet > 0) {
+		hit = rets[0];
+		if (cRet > 1) {
+			ctd.bodyPart = rets[1];
+			if (cRet > 2) ctd.target = (TGameObj*)rets[2];
+		}
+	}
+	EndHook();
+
+	return hit;
+}
+
 static void __declspec(naked) AfterHitRollHook() {
 	__asm {
-		hookbegin(5);
-		mov args[0], eax; //was it a hit?
-		mov ebx, [esi];
-		mov args[4], ebx; //Attacker
-		mov ebx, [esi+0x20];
-		mov args[8], ebx; //Target
-		mov ebx, [esi+0x28];
-		mov args[12], ebx; //bodypart
-		mov ebx, [esp+0x18];
-		mov args[16], ebx; //hit chance
-		pushad;
-		push HOOK_AFTERHITROLL;
-		call RunHookScript;
-		popad;
-		cmp cRet, 1;
-		jl end;
-		mov eax, rets[0];
-		cmp cRet, 2;
-		jl end;
-		mov ebx, rets[4];
-		mov [esi+0x28], ebx;
-		cmp cRet, 3;
-		jl end;
-		mov ebx, rets[8];
-		mov [esi+0x20], ebx;
-end:
-		mov ebx, eax;
-		hookend;
-		cmp ebx, ROLL_FAILURE;
-		jmp AfterHitRollAddr;
+		push ecx;
+		push edx;
+		mov  ecx, esi;                 // ctd
+		mov  edx, [esp + 0x18 + 12];   // hit chance
+		push eax;                      // was it a hit?
+		call AfterHitRollHook_Script;
+		pop  edx;
+		pop  ecx;
+		// engine code
+		mov  ebx, eax;
+		cmp  ebx, ROLL_FAILURE;
+		retn;
 	}
 }
 
@@ -284,7 +291,7 @@ static void __declspec(naked) CalcDeathAnimHook() {
 		test ebx, ebx;
 		jz noweap
 		mov ebx, [ebx+0x64];
-		and ebx, 0xfff;
+		and ebx, 0xFFF;
 		jmp weapend;
 noweap:
 		dec ebx;
@@ -306,7 +313,7 @@ weapend:
 		mov eax, esp;
 		call obj_pid_new_;
 		add esp, 4;
-		cmp eax, 0xffffffff;
+		cmp eax, -1;
 		jz end1;
 		mov eax, [esp-4];
 		mov args[20], 1;
@@ -559,7 +566,7 @@ static const DWORD RemoveObjHookRet = 0x477497;
 static void __declspec(naked) RemoveObjHook() {
 	__asm {
 		mov ecx, [esp + 8]; // call addr
-		hookbegin(5);
+		HookBegin;
 		mov args[0], eax;   // source
 		mov args[4], edx;   // item
 		mov args[8], ebx;   // count
@@ -567,14 +574,20 @@ static void __declspec(naked) RemoveObjHook() {
 		xor esi, esi;
 		xor ecx, 0x47761D;  // from item_move_func_
 		cmovz esi, ebp;     // target
-		mov args[16], esi;
+		mov  args[16], esi;
 		push edi;
 		push ebp;
-		pushad;
-		push HOOK_REMOVEINVENOBJ;
-		call RunHookScript;
-		popad;
-		hookend;
+		push eax;
+		push edx;
+	}
+
+	argCount = 5;
+	RunHookScript(HOOK_REMOVEINVENOBJ);
+	EndHook();
+
+	__asm {
+		pop edx;
+		pop eax;
 		sub esp, 0x0C;
 		jmp RemoveObjHookRet;
 	}
@@ -808,7 +821,7 @@ end:
 	}
 }
 
-// code backported from 4.x
+// 4.x backport
 int __fastcall AmmoCostHook_Script(DWORD hookType, TGameObj* weapon, DWORD &rounds) {
 	int result = 0;
 
@@ -1589,17 +1602,17 @@ static void HookScriptInit2() {
 	}
 
 	LoadHookScript("hs_tohit", HOOK_TOHIT);
-	HookCall(0x421686, &ToHitHook); // combat_safety_invalidate_weapon_func_
-	HookCall(0x4231D9, &ToHitHook); // check_ranged_miss_
-	HookCall(0x42331F, &ToHitHook); // shoot_along_path_
-	HookCall(0x4237FC, &ToHitHook); // compute_attack_
-	HookCall(0x424379, &ToHitHook); // determine_to_hit_
-	HookCall(0x42438D, &ToHitHook); // determine_to_hit_no_range_
-	HookCall(0x42439C, &ToHitHook); // determine_to_hit_from_tile_
-	HookCall(0x42679A, &ToHitHook); // combat_to_hit_
+	HookCall(0x421686, ToHitHook); // combat_safety_invalidate_weapon_func_
+	HookCall(0x4231D9, ToHitHook); // check_ranged_miss_
+	HookCall(0x42331F, ToHitHook); // shoot_along_path_
+	HookCall(0x4237FC, ToHitHook); // compute_attack_
+	HookCall(0x424379, ToHitHook); // determine_to_hit_
+	HookCall(0x42438D, ToHitHook); // determine_to_hit_no_range_
+	HookCall(0x42439C, ToHitHook); // determine_to_hit_from_tile_
+	HookCall(0x42679A, ToHitHook); // combat_to_hit_
 
 	LoadHookScript("hs_afterhitroll", HOOK_AFTERHITROLL);
-	MakeJump(0x423893, AfterHitRollHook);
+	MakeCall(0x423893, AfterHitRollHook);
 
 	LoadHookScript("hs_calcapcost", HOOK_CALCAPCOST);
 	HookCall(0x42307A, &CalcApCostHook);
