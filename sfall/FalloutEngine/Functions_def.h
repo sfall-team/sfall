@@ -27,6 +27,7 @@ WRAP_WATCOM_FFUNC3(long, item_add_force, GameObject*, critter, GameObject*, item
 WRAP_WATCOM_FFUNC7(void, make_straight_path_func, GameObject*, objFrom, DWORD, tileFrom, DWORD, tileTo, void*, rotationPtr, DWORD*, result, long, flags, void*, func)
 WRAP_WATCOM_FFUNC4(long, mouse_click_in, long, x, long, y, long, x_end, long, y_end)
 WRAP_WATCOM_FFUNC3(GameObject*, obj_blocking_at, GameObject*, object, long, tile, long, elevation)
+WRAP_WATCOM_FFUNC4(long, obj_move_to_tile, GameObject*, object, long, tile, long, elevation, RECT*, rect)
 WRAP_WATCOM_FFUNC3(long, obj_new_sid_inst, GameObject*, object, long, sType, long, scriptIndex)
 WRAP_WATCOM_FFUNC3(long, object_under_mouse, long, crSwitch, long, inclDude, long, elevation)
 WRAP_WATCOM_FFUNC4(void, register_object_call, long*, target, long*, source, void*, func, long, delay)
@@ -105,6 +106,7 @@ WRAP_WATCOM_FUNC6(long, make_path_func, GameObject*, objectFrom, long, tileFrom,
 WRAP_WATCOM_FUNC0(long, new_obj_id)
 // calculates bounding box (rectangle) for a given object
 WRAP_WATCOM_FUNC2(void, obj_bound, GameObject*, object, BoundRect*, boundRect)
+WRAP_WATCOM_FUNC1(long, obj_destroy, GameObject*, object)
 WRAP_WATCOM_FUNC2(long, obj_erase_object, GameObject*, object, BoundRect*, boundRect)
 WRAP_WATCOM_FUNC0(GameObject*, obj_find_first)
 WRAP_WATCOM_FUNC0(GameObject*, obj_find_next)

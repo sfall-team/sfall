@@ -92,6 +92,7 @@ static HooksInjectInfo injectHooks[] = {
 	{HOOK_SNEAK,            Inject_SneakCheckHook,       false},
 	{HOOK_STDPROCEDURE,     Inject_ScriptProcedureHook,  false},
 	{HOOK_STDPROCEDURE_END, Inject_ScriptProcedureHook2, false},
+	{HOOK_TARGETOBJ,        Inject_TargetObjectHook,     false},
 };
 
 bool HookScripts::injectAllHooks;

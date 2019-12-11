@@ -315,6 +315,12 @@ long __stdcall message_exit(MessageList *msgList) {
 	WRAP_WATCOM_CALL1(message_exit_, msgList)
 }
 
+long __fastcall tile_num(long x, long y) {
+	__asm push ebx; // don't delete (bug in tile_num_)
+	WRAP_WATCOM_FCALL2(tile_num_, x, x);
+	__asm pop  ebx;
+}
+
 GameObject* __fastcall obj_blocking_at_wrapper(GameObject* obj, DWORD tile, DWORD elevation, void* func) {
 	__asm {
 		mov  eax, ecx;

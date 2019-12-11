@@ -520,5 +520,22 @@ void sf_set_unique_id(OpcodeContext& ctx) {
 	ctx.setReturn(id);
 }
 
+void sf_get_objects_at_radius(OpcodeContext& ctx) {
+	long radius = ctx.arg(1).rawValue();
+	if (radius <= 0) radius = 1;
+	long elev = ctx.arg(2).rawValue();
+	if (elev < 0) elev = 0; else if (elev > 2) elev = 2;
+	long type = (ctx.numArgs() > 3) ? ctx.arg(3).rawValue() : -1;
+
+	std::vector<fo::GameObject*> objects;
+	fo::GetObjectsTileRadius(objects, ctx.arg(0).rawValue(), radius, elev, type);
+	size_t sz = objects.size();
+	DWORD id = TempArray(sz, 0);
+	for (size_t i = 0; i < sz; i++) {
+		arrays[id].val[i].set((long)objects[i]);
+	}
+	ctx.setReturn(id);
+}
+
 }
 }

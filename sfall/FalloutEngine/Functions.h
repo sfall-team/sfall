@@ -165,6 +165,8 @@ long __stdcall message_load(MessageList *msgList, const char *msgFilePath);
 // destroys message list
 long __stdcall message_exit(MessageList *msgList);
 
+long __fastcall tile_num(long x, long y);
+
 GameObject* __fastcall obj_blocking_at_wrapper(GameObject* obj, DWORD tile, DWORD elevation, void* func);
 
 GameObject* __stdcall obj_find_first_at_tile(long elevation, long tileNum);
