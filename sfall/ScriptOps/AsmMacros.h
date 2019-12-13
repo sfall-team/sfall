@@ -122,7 +122,7 @@ notstring##num:
 
 /*
 	Returns the value to the script
-	eax register must contain the script_ptr
+	eax and ebx register must contain the script_ptr
 	edx register must contain the returned value
 */
 #define _RET_VAL_INT2 __asm {			\

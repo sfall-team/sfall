@@ -1205,29 +1205,19 @@ end:
 
 static void __declspec(naked) tile_under_cursor() {
 	__asm {
-		push edx;
-		push ecx;
-		push ebx;
-		mov ecx, eax;
-		sub esp, 8;
-		lea edx, [esp];
-		lea eax, [esp+4];
+		mov  esi, ebx;
+		sub  esp, 8;
+		lea  edx, [esp];
+		lea  eax, [esp + 4];
 		call mouse_get_position_;
-		mov ebx, dword ptr ds:[_map_elevation];
-		mov edx, [esp];
-		mov eax, [esp+4];
-		call tile_num_;
-		mov edx, eax;
-		mov eax, ecx;
-		call interpretPushLong_;
-		mov eax, ecx;
-		mov edx, VAR_TYPE_INT;
-		call interpretPushShort_;
-		add esp, 8;
-		pop ebx;
-		pop ecx;
-		pop edx;
-		retn;
+		pop  edx;
+		pop  eax;
+		call tile_num_; // ebx - unused
+		mov  edx, eax; // tile
+		mov  ebx, esi;
+		mov  eax, esi;
+		_J_RET_VAL_TYPE(VAR_TYPE_INT);
+//		retn;
 	}
 }
 
