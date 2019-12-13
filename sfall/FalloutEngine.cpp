@@ -672,6 +672,7 @@ const DWORD text_font_ = 0x4D58DC;
 const DWORD text_object_create_ = 0x4B036C;
 const DWORD tile_coord_ = 0x4B1674;
 const DWORD tile_dir_ = 0x4B1ABC;
+const DWORD tile_dist_ = 0x4B185C;
 const DWORD tile_num_ = 0x4B1754;
 const DWORD tile_num_in_direction_ = 0x4B1A6C;
 const DWORD tile_refresh_display_ = 0x4B12D8;
@@ -925,6 +926,22 @@ long __fastcall GetTopWindowID(long xPos, long yPos) {
 		}
 	}
 	return win->wID;
+}
+
+// Returns an array of objects within the specified radius from the source tile
+void GetObjectsTileRadius(std::vector<TGameObj*> &objs, long sourceTile, long radius, long elev, long type = -1) {
+	for (long tile = 0; tile < 40000; tile++) {
+		TGameObj* obj = ObjFindFirstAtTile(elev, tile);
+		while (obj) {
+			if (type == -1 || type == obj->pid >> 24) {
+				bool multiHex = (obj->flags & 0x800) ? true : false;
+				if (TileDist(sourceTile, obj->tile) <= (radius + multiHex)) {
+					objs.push_back(obj);
+				}
+			}
+			obj = ObjFindNextAtTile();
+		}
+	}
 }
 
 void __fastcall RegisterObjectCall(long* target, long* source, void* func, long delay) {
@@ -1330,11 +1347,28 @@ long __fastcall ObjNewSidInst(TGameObj* object, long sType, long scriptIndex) {
 	}
 }
 
+long __fastcall TileNum(long x, long y) {
+	__asm {
+		push ebx; // don't delete (bug in tile_num_)
+		mov  eax, ecx;
+		call tile_num_;
+		pop  ebx;
+	}
+}
+
 long __fastcall TileNumInDirection(long tile, long rotation, long distance) {
 	__asm {
 		mov  ebx, distance;
 		mov  eax, ecx;
 		call tile_num_in_direction_;
+	}
+}
+
+long __stdcall TileDist(long scrTile, long dstTile) {
+	__asm {
+		mov  edx, dstTile;
+		mov  eax, scrTile;
+		call tile_dist_;
 	}
 }
 

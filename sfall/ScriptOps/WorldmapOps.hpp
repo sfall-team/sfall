@@ -223,3 +223,7 @@ static void sf_get_map_enter_position() {
 	arrays[id].val[2].set((long)*ptr_rotation);
 	opHandler.setReturn(id);
 }
+
+static void sf_tile_by_position() {
+	opHandler.setReturn(TileNum(opHandler.arg(0).rawValue(), opHandler.arg(1).rawValue()));
+}

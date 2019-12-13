@@ -917,6 +917,7 @@ extern const DWORD text_font_;
 extern const DWORD text_object_create_;
 extern const DWORD tile_coord_; // eax - tilenum, edx (int*) - x, ebx (int*) - y
 extern const DWORD tile_dir_;
+extern const DWORD tile_dist_;
 extern const DWORD tile_num_;
 extern const DWORD tile_num_in_direction_;
 extern const DWORD tile_refresh_display_;
@@ -1057,6 +1058,8 @@ long GetScriptLocalVars(long sid);
 
 long __fastcall GetTopWindowID(long xPos, long yPos);
 
+void GetObjectsTileRadius(std::vector<TGameObj*> &objs, long sourceTile, long radius, long elev, long type);
+
 void __fastcall RegisterObjectCall(long* target, long* source, void* func, long delay);
 
 long __fastcall ScrGetLocalVar(long sid, long varId, long* value);
@@ -1164,7 +1167,11 @@ TGameObj* __fastcall ObjBlockingAt(TGameObj* object, long tile, long elevation);
 
 long __fastcall ObjNewSidInst(TGameObj* object, long sType, long scriptIndex);
 
+long __fastcall TileNum(long x, long y);
+
 long __fastcall TileNumInDirection(long tile, long rotation, long distance);
+
+long __stdcall TileDist(long scrTile, long dstTile);
 
 long __stdcall TileDir(long scrTile, long dstTile);
 

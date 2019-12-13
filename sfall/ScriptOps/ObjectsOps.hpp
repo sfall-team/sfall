@@ -609,7 +609,7 @@ static void sf_get_dialog_object() {
 	opHandler.setReturn(InDialog() ? *ptr_dialog_target : 0);
 }
 
-static void sf_get_obj_under_cursor() {
+static void sf_obj_under_cursor() {
 	const ScriptValue &crSwitchArg = opHandler.arg(0),
 					  &inclDudeArg = opHandler.arg(1);
 
@@ -737,6 +737,39 @@ static void sf_set_unique_id() {
 		obj->ID = id;
 	} else {
 		id = SetObjectUniqueID(obj);
+	}
+	opHandler.setReturn(id);
+}
+
+void sf_objects_in_radius() {
+	const ScriptValue &tileArg = opHandler.arg(0),
+					  &radiusArg = opHandler.arg(1),
+					  &elevArg = opHandler.arg(2);
+
+	DWORD id = 0;
+	if (tileArg.isInt() && radiusArg.isInt() && elevArg.isInt()) {
+		long type = -1;
+		if (opHandler.numArgs() > 3) {
+			const ScriptValue &typeArg = opHandler.arg(3);
+			if (!typeArg.isInt()) goto invalidArgs;
+			type = typeArg.rawValue();
+		}
+		long radius = radiusArg.rawValue();
+		if (radius <= 0) radius = 1; else if (radius > 50) radius = 50;
+		long elev = elevArg.rawValue();
+		if (elev < 0) elev = 0; else if (elev > 2) elev = 2;
+
+		std::vector<TGameObj*> objects;
+		objects.reserve(25);
+		GetObjectsTileRadius(objects, tileArg.rawValue(), radius, elev, type);
+		size_t sz = objects.size();
+		id = TempArray(sz, 0);
+		for (size_t i = 0; i < sz; i++) {
+			arrays[id].val[i].set((long)objects[i]);
+		}
+	} else {
+invalidArgs:
+		OpcodeInvalidArgs("get_objects_at_radius");
 	}
 	opHandler.setReturn(id);
 }
