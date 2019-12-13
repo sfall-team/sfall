@@ -196,16 +196,18 @@ long __fastcall GetTopWindowID(long xPos, long yPos) {
 	return win->wID;
 }
 
-// Returns an array of objects within the specified tile radius, objects at the source tile will not be included in the array
-void GetObjectsTileRadius(std::vector<fo::GameObject*> &objs, long tile, long radius, long elev, long type = -1) {
-	for (; radius > 0; radius--) {
-		for (long rotation = 0; rotation < 6; rotation++) {
-			long _tile = fo::func::tile_num_in_direction(tile, rotation, radius);
-			fo::GameObject* obj = fo::func::obj_find_first_at_tile(elev, _tile);
-			while (obj) {
-				if (type == -1 || type == obj->Type()) objs.push_back(obj);
-				obj = fo::func::obj_find_next_at_tile();
+// Returns an array of objects within the specified radius from the source tile
+void GetObjectsTileRadius(std::vector<fo::GameObject*> &objs, long sourceTile, long radius, long elev, long type = -1) {
+	for (long tile = 0; tile < 40000; tile++) {
+		fo::GameObject* obj = fo::func::obj_find_first_at_tile(elev, tile);
+		while (obj) {
+			if (type == -1 || type == obj->Type()) {
+				bool multiHex = (obj->flags & fo::ObjectFlag::MultiHex) ? true : false;
+				if (fo::func::tile_dist(sourceTile, obj->tile) <= (radius + multiHex)) {
+					objs.push_back(obj);
+				}
 			}
+			obj = fo::func::obj_find_next_at_tile();
 		}
 	}
 }

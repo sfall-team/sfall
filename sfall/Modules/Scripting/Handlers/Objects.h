@@ -93,7 +93,7 @@ void sf_get_current_inven_size(OpcodeContext&);
 
 void sf_get_dialog_object(OpcodeContext&);
 
-void sf_get_obj_under_cursor(OpcodeContext&);
+void sf_obj_under_cursor(OpcodeContext&);
 
 void sf_get_loot_object(OpcodeContext&);
 
@@ -111,7 +111,7 @@ void sf_set_drugs_data(OpcodeContext&);
 
 void sf_set_unique_id(OpcodeContext&);
 
-void sf_get_objects_at_radius(OpcodeContext&);
+void sf_objects_in_radius(OpcodeContext&);
 
 }
 }

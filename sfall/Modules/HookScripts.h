@@ -68,7 +68,7 @@ enum HookType
 	HOOK_SNEAK            = 39,
 	HOOK_STDPROCEDURE     = 40,
 	HOOK_STDPROCEDURE_END = 41,
-	HOOK_TARGETOBJ        = 42,
+	HOOK_TARGETOBJECT     = 42,
 	HOOK_COUNT
 };
 

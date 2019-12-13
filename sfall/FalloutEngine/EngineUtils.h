@@ -78,7 +78,7 @@ long GetScriptLocalVars(long sid);
 
 long __fastcall GetTopWindowID(long xPos, long yPos);
 
-void GetObjectsTileRadius(std::vector<fo::GameObject*> &objs, long tile, long radius, long elev, long type);
+void GetObjectsTileRadius(std::vector<fo::GameObject*> &objs, long sourceTile, long radius, long elev, long type);
 
 // Print text to surface
 void PrintText(char *displayText, BYTE colorIndex, DWORD x, DWORD y, DWORD textWidth, DWORD destWidth, BYTE *surface);

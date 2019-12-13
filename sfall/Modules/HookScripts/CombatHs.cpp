@@ -491,34 +491,30 @@ static long __fastcall TargetObjectHook(DWORD isValid, DWORD object, long type) 
 	BeginHook();
 	argCount = 3;
 
-	args[0] = type;    // 0 - mouse hover on target, 1 - mouse click target
+	args[0] = type;    // 0 - mouse hovering over target, 1 - mouse clicking on target
 	args[1] = isValid; // 1 - target is valid
 	args[2] = object;  // target object
 
-	if (isValid == 0) object = 0;
+	if (isValid == 0) object = 0; // ???
+	if (type == 0) targetRet = 0; // unset ret from the previous execution of the hook
 
-	RunHookScript(HOOK_TARGETOBJ);
+	RunHookScript(HOOK_TARGETOBJECT);
 
-	if (type == 0) {
-		targetRet = 0;
-		if (cRet > 0) {
-			targetRet = (rets[0] != 0) ? rets[0] : object; // 0 - default object, -1 - invalid target, or object override
-			object = (targetRet != -1) ? targetRet : 0;    // object can't be -1
-		}
-	} else if (targetRet) {
-		if (targetRet != -1) object = targetRet;
-		targetRet = 0;
+	if (cRet > 0) {
+		targetRet = (rets[0] != 0) ? rets[0] : object; // 0 - default object, -1 - invalid target, or object override
+		object = (targetRet != -1) ? targetRet : 0;    // object can't be -1
+	} else if (type == 1 && targetRet != -1) {
+		object = targetRet;
 	}
 	EndHook();
-
 	return object; // null or object
 }
 
 static void __declspec(naked) gmouse_bk_process_hook() {
 	__asm {
 		push 0;        // type
-		mov  ecx, eax; // valid or object
-		mov  edx, edi; // object
+		mov  ecx, eax; // 1 - valid (object) or 0 - invalid
+		mov  edx, edi; // object under mouse
 		call TargetObjectHook;
 		mov  edi, eax;
 		retn;
@@ -527,15 +523,16 @@ static void __declspec(naked) gmouse_bk_process_hook() {
 
 static void __declspec(naked) gmouse_handle_event_hook() {
 	__asm {
-		push 1; // type
-		mov  ecx, eax;
+		push 1;        // type
+		mov  ecx, eax; // 1 - valid (object) or 0 - invalid
 		cmp  dword ptr ds:[targetRet], 0;
 		je   default;
 		// override
-		xor  edx, edx;
+		mov  ecx, 1;
+		xor  eax, eax;
 		cmp  dword ptr ds:[targetRet], -1;
-		cmovne edx, targetRet; // 0 or object
-		mov  ecx, edx;         // set valid
+		cmove  ecx, eax;       // if true - set invalid
+		cmovne edx, targetRet; // if false - set override object
 default:
 		call TargetObjectHook;
 		mov  edx, eax;
@@ -637,7 +634,7 @@ void InitCombatHookScripts() {
 	LoadHookScript("hs_combatturn", HOOK_COMBATTURN);
 	LoadHookScript("hs_onexplosion", HOOK_ONEXPLOSION);
 	LoadHookScript("hs_subcombatdmg", HOOK_SUBCOMBATDAMAGE);
-	LoadHookScript("hs_targetobj", HOOK_TARGETOBJ);
+	LoadHookScript("hs_targetobject", HOOK_TARGETOBJECT);
 }
 
 }

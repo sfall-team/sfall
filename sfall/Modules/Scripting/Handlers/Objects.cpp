@@ -371,7 +371,7 @@ void sf_get_dialog_object(OpcodeContext& ctx) {
 	ctx.setReturn(InDialog() ? fo::var::dialog_target : 0);
 }
 
-void sf_get_obj_under_cursor(OpcodeContext& ctx) {
+void sf_obj_under_cursor(OpcodeContext& ctx) {
 	ctx.setReturn(fo::func::object_under_mouse(ctx.arg(0).asBool() ? 1 : -1, ctx.arg(1).rawValue(), fo::var::map_elevation));
 }
 
@@ -520,14 +520,15 @@ void sf_set_unique_id(OpcodeContext& ctx) {
 	ctx.setReturn(id);
 }
 
-void sf_get_objects_at_radius(OpcodeContext& ctx) {
+void sf_objects_in_radius(OpcodeContext& ctx) {
 	long radius = ctx.arg(1).rawValue();
-	if (radius <= 0) radius = 1;
+	if (radius <= 0) radius = 1; else if (radius > 50) radius = 50;
 	long elev = ctx.arg(2).rawValue();
 	if (elev < 0) elev = 0; else if (elev > 2) elev = 2;
 	long type = (ctx.numArgs() > 3) ? ctx.arg(3).rawValue() : -1;
 
 	std::vector<fo::GameObject*> objects;
+	objects.reserve(25);
 	fo::GetObjectsTileRadius(objects, ctx.arg(0).rawValue(), radius, elev, type);
 	size_t sz = objects.size();
 	DWORD id = TempArray(sz, 0);

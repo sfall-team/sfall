@@ -253,7 +253,7 @@ void sf_get_rest_on_map(OpcodeContext& ctx) {
 	ctx.setReturn(result);
 }
 
-void sf_get_tile(OpcodeContext& ctx) {
+void sf_tile_by_position(OpcodeContext& ctx) {
 	ctx.setReturn(fo::func::tile_num(ctx.arg(0).rawValue(), ctx.arg(1).rawValue()));
 }
 
