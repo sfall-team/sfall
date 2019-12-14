@@ -18,6 +18,8 @@ public:
 	static void OnResetDevice();
 	static void OnLostDevice();
 	static void Release();
+
+	static void LoadGlobalShader();
 };
 
 int _stdcall LoadShader(const char*);
