@@ -410,7 +410,7 @@ extern DWORD** ptr_partyMemberLevelUpInfoList;
 extern DWORD** ptr_partyMemberList; // each struct - 4 integers, first integer - objPtr
 extern DWORD* ptr_partyMemberMaxCount;
 extern DWORD** ptr_partyMemberPidList;
-extern DWORD* ptr_patches;
+extern char** ptr_patches;
 extern PathNode** ptr_paths;
 extern DWORD* ptr_pc_crit_succ_eff;
 extern DWORD* ptr_pc_kill_counts;

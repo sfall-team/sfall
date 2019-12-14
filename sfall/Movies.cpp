@@ -268,7 +268,7 @@ static void __declspec(naked) PlayFrameHook2() {
 static DWORD __cdecl PreparePlayMovie(const DWORD id) {
 	//Get file path in unicode
 	wchar_t path[MAX_PATH];
-	char* master_patches = *(char**)_patches;
+	char* master_patches = *ptr_patches;
 	DWORD len = 0;
 	while (master_patches[len]) {
 		path[len] = master_patches[len]; len++;

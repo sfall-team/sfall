@@ -115,7 +115,7 @@ static bool LoadFrm(Frm* frm) { // backporting WIP
 		// Loading head frames textures
 		*(DWORD*)_bk_disabled = 1;
 		char buf[MAX_PATH];
-		int pathLen = sprintf_s(buf, "%s\\art\\heads\\%s\\", *(char**)_patches, frm->path);
+		int pathLen = sprintf_s(buf, "%s\\art\\heads\\%s\\", *ptr_patches, frm->path);
 		if (pathLen > 250) return false;
 		IDirect3DTexture9** textures = new IDirect3DTexture9*[frm->frames];
 		for (int i = 0; i < frm->frames; i++) {

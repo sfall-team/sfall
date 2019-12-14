@@ -42,7 +42,7 @@ static const DWORD AddPageOffset01Addrs[] = {
 void SavePageOffsets() {
 	char SavePath[MAX_PATH], buffer[6];
 
-	sprintf_s(SavePath, MAX_PATH, filename, *(char**)_patches);
+	sprintf_s(SavePath, MAX_PATH, filename, *ptr_patches);
 
 	_itoa_s(*ptr_slot_cursor, buffer, 10);
 	WritePrivateProfileString("POSITION", "ListNum", buffer, SavePath);
@@ -65,7 +65,7 @@ static void __declspec(naked) save_page_offsets(void) {
 void LoadPageOffsets() {
 	char LoadPath[MAX_PATH];
 
-	sprintf_s(LoadPath, MAX_PATH, filename, *(char**)_patches);
+	sprintf_s(LoadPath, MAX_PATH, filename, *ptr_patches);
 
 	*ptr_slot_cursor = iniGetInt("POSITION", "ListNum", 0, LoadPath);
 	if (*ptr_slot_cursor > 9) {

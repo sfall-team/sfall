@@ -218,7 +218,7 @@ int _stdcall LoadShader(const char* file) {
 
 		sprintf(buf, "texname%d", i);
 		if (FAILED(shader.Effect->GetString(buf, &name))) break;
-		sprintf_s(buf, "%s\\art\\stex\\%s", *(char**)_patches, name);
+		sprintf_s(buf, "%s\\art\\stex\\%s", *ptr_patches, name);
 		if (FAILED(D3DXCreateTextureFromFileA(d3d9Device, buf, &tex))) continue;
 		sprintf(buf, "tex%d", i);
 		shader.Effect->SetTexture(buf, tex);
