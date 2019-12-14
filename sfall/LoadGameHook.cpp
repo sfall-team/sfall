@@ -291,7 +291,6 @@ static void __stdcall game_init_hook() { // OnGameInit
 }
 
 static void __stdcall GameInitialized() { // OnAfterGameInit
-	if (GraphicsMode) rcpresInit();
 	RemoveSavFiles();
 	SetBoxMaxSlots();
 	if (Use32BitTalkingHeads) TalkingHeadsSetup();

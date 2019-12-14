@@ -236,6 +236,16 @@ public:
 } FrmHeaderData;
 #pragma pack(pop)
 
+//fallout2 path node structure
+#pragma pack(push, 1)
+struct PathNode {
+	char* path;
+	void* pDat;
+	long isDat;
+	PathNode* next;
+};
+#pragma pack(pop)
+
 //for holding window info
 #pragma pack(push, 1)
 struct WINinfo {

@@ -138,6 +138,9 @@ static float rcpres[2];
 
 static size_t shadersSize;
 
+static bool globalShaderActive = false;
+std::string gShaderFile;
+
 struct sShader {
 	ID3DXEffect* Effect;
 	D3DXHANDLE ehTicks;
@@ -181,11 +184,6 @@ int _stdcall GetShaderVersion() {
 	return ShaderVersion;
 }
 
-void rcpresInit() {
-	rcpres[0] = 1.0f / (float)Gfx_GetGameWidthRes();
-	rcpres[1] = 1.0f / (float)Gfx_GetGameHeightRes();
-}
-
 void _stdcall SetShaderMode(DWORD d, DWORD mode) {
 	if (d >= shadersSize || !shaders[d].Effect) return;
 	if (mode & 0x80000000) {
@@ -195,14 +193,18 @@ void _stdcall SetShaderMode(DWORD d, DWORD mode) {
 	}
 }
 
-int _stdcall LoadShader(const char* path) {
-	if (!GraphicsMode || strstr(path, "..") || strstr(path, ":")) return -1;
+int _stdcall LoadShader(const char* file) {
+	if (!GraphicsMode || strstr(file, "..") || strstr(file, ":")) return -1;
 	char buf[MAX_PATH];
-	sprintf_s(buf, "%s\\shaders\\%s", *(char**)_patches, path);
+	PathNode* pathsPtr = *ptr_paths;
+	sprintf_s(buf, "%s\\shaders\\%s", pathsPtr->path, file);
 	for (DWORD d = 0; d < shadersSize; d++) {
 		if (!shaders[d].Effect) {
-			if (FAILED(D3DXCreateEffectFromFile(d3d9Device, buf, 0, 0, 0, 0, &shaders[d].Effect, 0))) return -1;
-			else return d;
+			if (FAILED(D3DXCreateEffectFromFile(d3d9Device, buf, 0, 0, 0, 0, &shaders[d].Effect, 0))) {
+				return -1;
+			} else {
+				return d;
+			}
 		}
 	}
 	sShader shader = sShader();
@@ -227,6 +229,17 @@ int _stdcall LoadShader(const char* path) {
 	shaders.push_back(shader);
 	shadersSize = shaders.size();
 	return shadersSize - 1;
+}
+
+static void LoadGlobalShader() {
+	if (!globalShaderActive) return;
+	long index = LoadShader(gShaderFile.c_str());
+	if (index != -1) {
+		shaders[index].Effect->SetInt("w", Gfx_GetGameWidthRes());
+		shaders[index].Effect->SetInt("h", Gfx_GetGameHeightRes());
+		shaders[index].Active = true;
+		dlogr("Global shader file loaded.", DL_INIT);
+	}
 }
 
 void _stdcall ActivateShader(DWORD d) {
@@ -275,6 +288,13 @@ void _stdcall SetShaderVector(DWORD d, const char* param, float f1, float f2, fl
 void _stdcall SetShaderTexture(DWORD d, const char* param, DWORD value) {
 	if (d >= shadersSize || !shaders[d].Effect || value >= shaderTextures.size()) return;
 	shaders[d].Effect->SetTexture(param, shaderTextures[value]);
+}
+
+static void WindowInit() {
+	windowInit = true;
+	rcpres[0] = 1.0f / (float)Gfx_GetGameWidthRes();
+	rcpres[1] = 1.0f / (float)Gfx_GetGameHeightRes();
+	LoadGlobalShader();
 }
 
 static void ResetDevice(bool CreateNew) {
@@ -594,6 +614,7 @@ void GraphicsResetOnGameLoad() {
 	for (DWORD d = 0; d < shadersSize; d++) SAFERELEASE(shaders[d].Effect);
 	shaders.clear();
 	shadersSize = 0;
+	LoadGlobalShader();
 }
 
 class FakePalette2 : IDirectDrawPalette {
@@ -927,6 +948,7 @@ public:
 
 	ULONG _stdcall Release() {
 		if (!--Refs) {
+			globalShaderActive = false;
 			GraphicsResetOnGameLoad();
 			for (DWORD d = 0; d < shaderTextures.size(); d++) shaderTextures[d]->Release();
 			shaderTextures.clear();
@@ -1055,6 +1077,9 @@ HRESULT _stdcall FakeDirectDrawCreate2(void*, IDirectDraw** b, void*) {
 		ScrollWindowKey = GetConfigInt("Input", "WindowScrollKey", 0);
 	} else ScrollWindowKey = 0;
 
+	rcpres[0] = 1.0f / (float)gWidth;
+	rcpres[1] = 1.0f / (float)gHeight;
+
 	*b = (IDirectDraw*)new FakeDirectDraw2();
 
 	dlogr(" Done.", DL_MAIN);
@@ -1063,7 +1088,9 @@ HRESULT _stdcall FakeDirectDrawCreate2(void*, IDirectDraw** b, void*) {
 
 static __declspec(naked) void game_init_hook() {
 	__asm {
-		mov  windowInit, 1;
+		push ecx;
+		call WindowInit;
+		pop  ecx;
 		jmp  palette_init_;
 	}
 }
@@ -1085,7 +1112,7 @@ void GraphicsInit() {
 	if (GraphicsMode != 4 && GraphicsMode != 5) {
 		GraphicsMode = 0;
 	}
-	if (GraphicsMode == 4 || GraphicsMode == 5) {
+	if (GraphicsMode) {
 		dlog("Applying DX9 graphics patch.", DL_INIT);
 #ifdef WIN2K
 #define _DLL_NAME "d3dx9_42.dll"
@@ -1104,6 +1131,9 @@ void GraphicsInit() {
 		SafeWrite8(0x50FB6B, '2'); // Set call DirectDrawCreate2
 		HookCall(0x44260C, game_init_hook);
 		dlogr(" Done", DL_INIT);
+
+		gShaderFile = GetConfigString("Graphics", "GlobalShaderFile", "", MAX_PATH);
+		globalShaderActive = (gShaderFile.length() > 3);
 	}
 
 	fadeMulti = GetConfigInt("Graphics", "FadeMultiplier", 100);

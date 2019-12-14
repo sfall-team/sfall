@@ -43,18 +43,10 @@ bool raceButtons = false, styleButtons = false;
 int currentRaceVal = 0, currentStyleVal = 0;     // holds Appearance values to restore after global reset in NewGame2 function in LoadGameHooks.cpp
 DWORD critterListSize = 0, critterArraySize = 0; // Critter art list size
 
-// fallout2 path node structure
-struct sPath {
-	char* path;
-	void* pDat;
-	DWORD isDat;
-	sPath* next;
-};
-
-sPath **heroAppPaths = (sPath**)_paths;
+PathNode **heroAppPaths = ptr_paths;
 // index: 0 - only folder (w/o extension .dat), 1 - file or folder .dat
-sPath *heroPathPtr[2] = {nullptr, nullptr};
-sPath *racePathPtr[2] = {nullptr, nullptr};
+PathNode *heroPathPtr[2] = {nullptr, nullptr};
+PathNode *racePathPtr[2] = {nullptr, nullptr};
 
 // for word wrapping
 typedef struct LineNode {
@@ -757,7 +749,7 @@ static __declspec(noinline) int _stdcall LoadHeroDat(unsigned int race, unsigned
 	}
 
 	heroAppPaths = &heroPathPtr[1 - folderIsExist]; // set path for selected appearance
-	heroPathPtr[0 + heroDatIsExist]->next = *(sPath**)_paths; // heroPathPtr[] >> foPaths
+	heroPathPtr[0 + heroDatIsExist]->next = ptr_paths[0]; // heroPathPtr[] >> foPaths
 
 	if (style != 0) {
 		bool raceDatIsExist = false, folderIsExist = false;
@@ -781,7 +773,7 @@ static __declspec(noinline) int _stdcall LoadHeroDat(unsigned int race, unsigned
 		}
 
 		heroPathPtr[0 + heroDatIsExist]->next = racePathPtr[1 - folderIsExist]; // set path for selected race base appearance
-		racePathPtr[0 + raceDatIsExist]->next = *(sPath**)_paths; // insert racePathPtr in chain path: heroPathPtr[] >> racePathPtr[] >> foPaths
+		racePathPtr[0 + raceDatIsExist]->next = ptr_paths[0]; // insert racePathPtr in chain path: heroPathPtr[] >> racePathPtr[] >> foPaths
 	}
 	return 0;
 }
@@ -1995,13 +1987,13 @@ static void EnableHeroAppearanceMod() {
 	appModEnabled = true;
 
 	// setup paths
-	heroPathPtr[0] = new sPath();
-	racePathPtr[0] = new sPath();
+	heroPathPtr[0] = new PathNode();
+	racePathPtr[0] = new PathNode();
 	heroPathPtr[0]->path = new char[64];
 	racePathPtr[0]->path = new char[64];
 
-	heroPathPtr[1] = new sPath();
-	racePathPtr[1] = new sPath();
+	heroPathPtr[1] = new PathNode();
+	racePathPtr[1] = new PathNode();
 	heroPathPtr[1]->path = new char[64];
 	racePathPtr[1]->path = new char[64];
 
