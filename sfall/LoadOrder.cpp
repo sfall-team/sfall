@@ -21,37 +21,34 @@
 
 static std::vector<int> savPrototypes;
 
-static void __declspec(naked) RemoveDatabase() {
-	__asm {
-		cmp  eax, -1;
-		je   end;
-		mov  ebx, ds:[_paths];
-		mov  ecx, ebx;
-nextPath:
-		mov  edx, [esp + 0x104 + 4 + 4];          // path_patches
-		mov  eax, [ebx];                          // database.path
-		call stricmp_;
-		test eax, eax;                            // found path?
-		jz   skip;                                // Yes
-		mov  ecx, ebx;
-		mov  ebx, [ebx + 0xC];                    // database.next
-		jmp  nextPath;
-skip:
-		mov  eax, [ebx + 0xC];                    // database.next
-		mov  [ecx + 0xC], eax;                    // database.next
-		xchg ebx, eax;
-		cmp  eax, ecx;
-		jne  end;
-		mov  ds:[_paths], ebx;
-end:
-		retn;
+static PathNode* __fastcall RemoveDatabase(const char* pathPatches) {
+	PathNode* paths = *ptr_paths; // curr.node (beginning of the chain of paths)
+	PathNode* pPaths = paths;     // prev.node
+
+	while (paths) {
+		if (_stricmp(paths->path, pathPatches) == 0) { // found path
+			PathNode* nextPaths = paths->next;         // pointer to the node of the next path
+// TODO: need to check if this condition is used correctly
+			if (paths != pPaths)
+				pPaths->next = nextPaths;              // replace the pointer in the previous node, removing the current(found) path from the chain
+			else                                       // if the current node is equal to the previous node
+				*ptr_paths = nextPaths;                // set the next node at the beginning of the chain
+			return paths;                              // return the pointer of the current removed node (save the pointer)
+		}
+		pPaths = paths;      // prev.node <- curr.node
+		paths = paths->next; // take a pointer to the next path from the current node
 	}
+	return nullptr; // it's possible that this will create an exceptional situation for the game, although such a situation should not arise
 }
 
 // Remove master_patches from the chain
 static void __declspec(naked) game_init_databases_hack1() {
 	__asm {
+		cmp  eax, -1;
+		je   skip;
+		mov  ecx, [esp + 0x104 + 4]; // path_patches
 		call RemoveDatabase;
+skip:
 		mov  ds:[_master_db_handle], eax;         // the pointer of master_patches node will be saved here
 		retn;
 	}
@@ -67,7 +64,7 @@ static void __declspec(naked) game_init_databases_hack2() {
 		call xremovepath_;
 		dec  eax;                                 // remove path (critter_patches == master_patches)?
 		jz   end;                                 // Yes (jump if 0)
-		inc  eax;
+		mov  ecx, [esp + 0x104 + 4];              // path_patches
 		call RemoveDatabase;
 end:
 		mov  ds:[_critter_db_handle], eax;        // the pointer of critter_patches node will be saved here
@@ -75,20 +72,29 @@ end:
 	}
 }
 
-static void __declspec(naked) game_init_databases_hook() {
-	// eax = _master_db_handle
-	__asm {
-		mov  ecx, ds:[_critter_db_handle];
-		mov  edx, ds:[_paths];
-		test ecx, ecx;
-		jz   skip;
-		mov  [ecx + 0xC], edx;                    // critter_patches.next->_paths
-		mov  edx, ecx;
-skip:
-		mov  [eax + 0xC], edx;                    // master_patches.next
-		mov  ds:[_paths], eax;
-		retn;
+static void __fastcall game_init_databases_hook() { // eax = _master_db_handle
+	PathNode* master_patches = *ptr_master_db_handle;
+	PathNode* critter_patches = *ptr_critter_db_handle;
+	PathNode* paths = *ptr_paths; // beginning of the chain of paths
+	// insert master_patches/critter_patches at the beginning of the chain of paths
+	if (critter_patches) {
+		critter_patches->next = paths;    // critter_patches.next -> paths
+		paths = critter_patches;
 	}
+	master_patches->next = paths;         // master_patches.next -> paths
+	*ptr_paths = master_patches;          // set master_patches node at the beginning of the chain of paths
+}
+
+static void __fastcall game_init_databases_hook1() {
+	char masterPatch[MAX_PATH];
+	iniGetString("system", "master_patches", "", masterPatch, MAX_PATH - 1, (const char*)_gconfig_file_name);
+
+	PathNode* node = *ptr_paths;
+	while (node->next) {
+		if (!_stricmp(node->path, masterPatch)) break;
+		node = node->next;
+	}
+	*ptr_master_db_handle = node; // set pointer to master_patches node
 }
 
 static void MultiPatchesPatch() {
@@ -251,6 +257,8 @@ void LoadOrderInit() {
 		HookCall(0x44436D, game_init_databases_hook);
 		SafeWrite8(0x4DFAEC, 0x1D); // error correction (ecx > ebx)
 		dlogr(" Done", DL_INIT);
+	} else {
+		HookCall(0x44436D, game_init_databases_hook1);
 	}
 
 	dlog("Applying party member protos save/load patch.", DL_INIT);

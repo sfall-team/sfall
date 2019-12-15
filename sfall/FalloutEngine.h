@@ -94,6 +94,7 @@
 #define _game_global_vars           0x5186C0
 #define _game_ui_disabled           0x5186B4
 #define _game_user_wants_to_quit    0x5186CC
+#define _gconfig_file_name          0x58E978
 #define _gcsd                       0x51094C
 #define _gdBarterMod                0x51873C
 #define _gDialogMusicVol            0x5187D8
@@ -300,7 +301,7 @@ extern DWORD* ptr_combat_state;
 extern DWORD* ptr_combat_turn_running;
 extern DWORD* ptr_combatNumTurns;
 extern DWORD* ptr_crit_succ_eff;
-extern DWORD* ptr_critter_db_handle;
+extern PathNode** ptr_critter_db_handle;
 extern DWORD* ptr_critterClearObj;
 extern DWORD* ptr_crnt_func;
 extern DWORD* ptr_curr_font_num;
@@ -377,7 +378,7 @@ extern DWORD* ptr_main_ctd;
 extern DWORD* ptr_main_window;
 extern DWORD* ptr_map_elevation;
 extern DWORD* ptr_map_global_vars;
-extern DWORD* ptr_master_db_handle;
+extern PathNode** ptr_master_db_handle;
 extern DWORD* ptr_max;
 extern long*  ptr_maxScriptNum;
 extern DWORD* ptr_Meet_Frank_Horrigan;

@@ -196,8 +196,8 @@ void _stdcall SetShaderMode(DWORD d, DWORD mode) {
 int _stdcall LoadShader(const char* file) {
 	if (!GraphicsMode || strstr(file, "..") || strstr(file, ":")) return -1;
 	char buf[MAX_PATH];
-	PathNode* pathsPtr = *ptr_paths;
-	sprintf_s(buf, "%s\\shaders\\%s", pathsPtr->path, file);
+	PathNode* masterPtr = *ptr_master_db_handle;
+	sprintf_s(buf, "%s\\shaders\\%s", masterPtr->path, file); // *ptr_patches
 	for (DWORD d = 0; d < shadersSize; d++) {
 		if (!shaders[d].Effect) {
 			if (FAILED(D3DXCreateEffectFromFile(d3d9Device, buf, 0, 0, 0, 0, &shaders[d].Effect, 0))) {
@@ -218,7 +218,7 @@ int _stdcall LoadShader(const char* file) {
 
 		sprintf(buf, "texname%d", i);
 		if (FAILED(shader.Effect->GetString(buf, &name))) break;
-		sprintf_s(buf, "%s\\art\\stex\\%s", *ptr_patches, name);
+		sprintf_s(buf, "%s\\art\\stex\\%s", masterPtr->path, name); // *ptr_patches
 		if (FAILED(D3DXCreateTextureFromFileA(d3d9Device, buf, &tex))) continue;
 		sprintf(buf, "tex%d", i);
 		shader.Effect->SetTexture(buf, tex);
@@ -1123,11 +1123,11 @@ void GraphicsInit() {
 		if (!h) {
 			MessageBoxA(0, "You have selected graphics mode 4 or 5, but " _DLL_NAME " is missing.\n"
 						   "Switch back to mode 0, or install an up to date version of DirectX.", "Error", MB_TASKMODAL | MB_ICONERROR);
+#undef _DLL_NAME
 			ExitProcess(-1);
 		} else {
 			FreeLibrary(h);
 		}
-#undef _DLL_NAME
 		SafeWrite8(0x50FB6B, '2'); // Set call DirectDrawCreate2
 		HookCall(0x44260C, game_init_hook);
 		dlogr(" Done", DL_INIT);
