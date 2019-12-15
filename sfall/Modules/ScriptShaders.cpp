@@ -61,7 +61,7 @@ void _stdcall SetShaderMode(DWORD d, DWORD mode) {
 int _stdcall LoadShader(const char* file) {
 	if (!Graphics::mode || strstr(file, "..") || strstr(file, ":")) return -1;
 	char buf[MAX_PATH];
-	sprintf_s(buf, "%s\\shaders\\%s", fo::var::paths->path, file); // fo::var::patches
+	sprintf_s(buf, "%s\\shaders\\%s", fo::var::master_db_handle->path, file); // fo::var::patches
 	for (DWORD d = 0; d < shadersSize; d++) {
 		if (!shaders[d].Effect) {
 			if (FAILED(D3DXCreateEffectFromFile(d3d9Device, buf, 0, 0, 0, 0, &shaders[d].Effect, 0))) {
@@ -82,7 +82,7 @@ int _stdcall LoadShader(const char* file) {
 
 		sprintf(buf, "texname%d", i);
 		if (FAILED(shader.Effect->GetString(buf, &name))) break;
-		sprintf_s(buf, "%s\\art\\stex\\%s", fo::var::patches, name);
+		sprintf_s(buf, "%s\\art\\stex\\%s", fo::var::master_db_handle->path, name); // fo::var::patches
 		if (FAILED(D3DXCreateTextureFromFileA(d3d9Device, buf, &tex))) continue;
 		sprintf(buf, "tex%d", i);
 		shader.Effect->SetTexture(buf, tex);

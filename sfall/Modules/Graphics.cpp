@@ -1006,11 +1006,11 @@ void Graphics::init() {
 		if (!h) {
 			MessageBoxA(0, "You have selected graphics mode 4 or 5, but " _DLL_NAME " is missing.\n"
 						   "Switch back to mode 0, or install an up to date version of DirectX.", "Error", MB_TASKMODAL | MB_ICONERROR);
+#undef _DLL_NAME
 			ExitProcess(-1);
 		} else {
 			FreeLibrary(h);
 		}
-#undef _DLL_NAME
 		SafeWrite8(0x50FB6B, '2'); // Set call DirectDrawCreate2
 		HookCall(0x44260C, game_init_hook);
 		dlogr(" Done", DL_INIT);

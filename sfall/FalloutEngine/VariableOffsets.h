@@ -77,6 +77,7 @@
 #define FO_VAR_game_global_vars           0x5186C0
 #define FO_VAR_game_ui_disabled           0x5186B4
 #define FO_VAR_game_user_wants_to_quit    0x5186CC
+#define FO_VAR_gconfig_file_name          0x58E978
 #define FO_VAR_gcsd                       0x51094C
 #define FO_VAR_gdBarterMod                0x51873C
 #define FO_VAR_gDialogMusicVol            0x5187D8
