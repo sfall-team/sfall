@@ -278,7 +278,7 @@ void Drugs::init() {
 			int set = -1;
 			char section[4];
 			for (int i = 1; i <= count; i++) {
-				_itoa_s(i, section, 10);
+				_itoa(i, section, 10);
 				int pid = iniGetInt(section, "PID", 0, iniDrugs);
 				if (pid > 0) {
 					CheckEngineNumEffects(set, pid);

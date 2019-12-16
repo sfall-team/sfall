@@ -513,7 +513,7 @@ static long __fastcall TargetObjectHook(DWORD isValid, DWORD object, long type) 
 static void __declspec(naked) gmouse_bk_process_hook() {
 	__asm {
 		push 0;        // type
-		mov  ecx, eax; // 1 - valid (object) or 0 - invalid
+		mov  ecx, eax; // 1 - valid(object) or 0 - invalid
 		mov  edx, edi; // object under mouse
 		call TargetObjectHook;
 		mov  edi, eax;
@@ -524,7 +524,7 @@ static void __declspec(naked) gmouse_bk_process_hook() {
 static void __declspec(naked) gmouse_handle_event_hook() {
 	__asm {
 		push 1;        // type
-		mov  ecx, eax; // 1 - valid (object) or 0 - invalid
+		mov  ecx, eax; // 1 - valid(object) or 0 - invalid
 		cmp  dword ptr ds:[targetRet], 0;
 		je   default;
 		// override

@@ -184,7 +184,7 @@ static void __fastcall game_init_databases_hook1() {
 
 	fo::PathNode* node = fo::var::paths;
 	while (node->next) {
-		if (!_stricmp(node->path, masterPatch)) break;
+		if (!strcmp(node->path, masterPatch)) break;
 		node = node->next;
 	}
 	fo::var::master_db_handle = node; // set pointer to master_patches node
