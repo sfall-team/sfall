@@ -28,6 +28,7 @@
 
 static DWORD sizeLimitMode;
 static DWORD invSizeMaxLimit;
+
 static DWORD reloadWeaponKey = 0;
 static DWORD itemFastMoveKey = 0;
 static DWORD skipFromContainer = 0;
@@ -315,13 +316,13 @@ static const char* _stdcall SizeInfoMessage(TGameObj* item) {
 	if (size == 1) {
 		const char* message = MsgSearch(543, _proto_main_msg_file);
 		if (message == nullptr)
-			strncpy_s(SizeMsgBuf, "It occupies 1 unit.", _TRUNCATE);
+			strcpy(SizeMsgBuf, "It occupies 1 unit.");
 		else
-			_snprintf_s(SizeMsgBuf, _TRUNCATE, message, size);
+			strncpy_s(SizeMsgBuf, message, _TRUNCATE);
 	} else {
 		const char* message = MsgSearch(542, _proto_main_msg_file);
 		if (message == nullptr)
-			_snprintf_s(SizeMsgBuf, _TRUNCATE, "It occupies %d units.", size);
+			sprintf(SizeMsgBuf, "It occupies %d units.", size);
 		else
 			_snprintf_s(SizeMsgBuf, _TRUNCATE, message, size);
 	}
