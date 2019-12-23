@@ -138,7 +138,7 @@ enum ScriptTypes : long
 };
 
 /*   24 */
-enum ObjectTypes : char
+enum ObjType : char
 {
 	OBJ_TYPE_ITEM = 0,
 	OBJ_TYPE_CRITTER = 1,
