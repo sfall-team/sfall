@@ -484,7 +484,9 @@ skip:
 	}
 }
 
-DWORD targetRet = 0;
+static DWORD targetRet = 0;
+static bool targetObjHookHasRet = false;
+
 static long __fastcall TargetObjectHook(DWORD isValid, DWORD object, long type) {
 	if (isValid > 1) isValid = 1;
 
@@ -495,7 +497,7 @@ static long __fastcall TargetObjectHook(DWORD isValid, DWORD object, long type) 
 	args[1] = isValid; // 1 - target is valid
 	args[2] = object;  // target object
 
-	if (isValid == 0) object = 0; // ???
+	if (isValid == 0) object = 0; // it is necessary for the proper operation of the engine code
 	if (type == 0) targetRet = 0; // unset ret from the previous execution of the hook
 
 	RunHookScript(HOOK_TARGETOBJECT);
@@ -503,8 +505,11 @@ static long __fastcall TargetObjectHook(DWORD isValid, DWORD object, long type) 
 	if (cRet > 0) {
 		targetRet = (rets[0] != 0) ? rets[0] : object; // 0 - default object, -1 - invalid target, or object override
 		object = (targetRet != -1) ? targetRet : 0;    // object can't be -1
-	} else if (type == 1 && targetRet != -1) {
-		object = targetRet;
+		targetObjHookHasRet = true;
+	}
+	else if (targetObjHookHasRet && type == 1) {
+		targetObjHookHasRet = false;
+		if (targetRet != -1) object = targetRet;
 	}
 	EndHook();
 	return object; // null or object
