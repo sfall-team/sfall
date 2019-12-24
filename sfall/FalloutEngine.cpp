@@ -27,7 +27,7 @@ long* ptr_pc_traits                   = reinterpret_cast<long*>(_pc_trait); // 2
 
 DWORD* ptr_aiInfoList                 = reinterpret_cast<DWORD*>(_aiInfoList);
 DWORD* ptr_ambient_light              = reinterpret_cast<DWORD*>(_ambient_light);
-Art*   ptr_art                        = reinterpret_cast<Art*>(_art);
+sArt*  ptr_art                        = reinterpret_cast<sArt*>(_art);
 DWORD* ptr_art_name                   = reinterpret_cast<DWORD*>(_art_name);
 DWORD* ptr_art_vault_guy_num          = reinterpret_cast<DWORD*>(_art_vault_guy_num);
 DWORD* ptr_art_vault_person_nums      = reinterpret_cast<DWORD*>(_art_vault_person_nums);

@@ -171,7 +171,7 @@ struct TProgram {
 #pragma pack(pop)
 
 #pragma pack(push, 1)
-struct Art {
+struct sArt {
 	long flags;
 	char path[16];
 	char* names;
@@ -187,6 +187,13 @@ struct BoundRect {
 	long y;
 	long offx;
 	long offy;
+};
+#pragma pack(pop)
+
+#pragma pack(push, 1)
+struct DbFile {
+	long fileType;
+	void* handle;
 };
 #pragma pack(pop)
 

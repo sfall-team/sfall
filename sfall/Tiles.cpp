@@ -48,22 +48,6 @@ static const DWORD Tiles_C0[] = {
 	0x4B247B, 0x4B2A77, 0x4B2BD5,
 };
 
-struct sArt {
-	long flags;
-	char path[16];
-	char* names;
-	long d18;
-	long total;
-
-	sArt(char* str) {
-		flags = 0;
-		strncpy_s(path, str, 16);
-		names = 0;
-		d18 = 0;
-		total = 0;
-	}
-};
-
 struct TilesData {
 	short tile[2];
 };
@@ -204,7 +188,7 @@ static int ProcessTile(sArt* tiles, int tile, int listpos) {
 		for (int x = 0; x < xsize; x++) {
 			FrmFile frame;
 			db_fseek(art, 0);
-			db_freadByteCount(art, &frame, 0x4a);
+			db_freadByteCount(art, (BYTE*)&frame, 0x4a);
 			frame.height = ByteSwapW(36);
 			frame.width = ByteSwapW(80);
 			frame.frameSize = ByteSwapD(80 * 36);
@@ -224,7 +208,7 @@ static int ProcessTile(sArt* tiles, int tile, int listpos) {
 			sprintf_s(buf, 32, "art\\tiles\\zzz%04d.frm", listid++);
 			//FScreateFromData(buf, &frame, sizeof(frame));
 			DWORD file = db_fopen(buf, "w");
-			db_fwriteByteCount(file, &frame, sizeof(frame));
+			db_fwriteByteCount(file, (BYTE*)&frame, sizeof(frame));
 			db_fclose(file);
 		}
 	}
@@ -239,7 +223,7 @@ static int _stdcall ArtInitHook() {
 
 	CreateMask();
 
-	sArt* tiles = &((sArt*)_art)[4];
+	sArt* tiles = &ptr_art[4];
 	char buf[32];
 	DWORD listpos = tiles->total;
 	origTileCount = listpos;

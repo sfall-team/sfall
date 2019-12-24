@@ -54,7 +54,7 @@ static bool _stdcall FalloutStringCompare(const char* str1, const char* str2, lo
 		// 128 - 255 (international/extended)
 		switch (codePage) {
 		case 866:
-			if (c1 != 149 && c2 != 149) {
+			if (c1 != 149 && c2 != 149) { // code used for the 'bullet' character in Fallout font
 				// upper to lower case
 				if (c1 >= 0x80 && c1 <= 0x9F) {
 					c1 |= 32;

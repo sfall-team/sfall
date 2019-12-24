@@ -282,7 +282,7 @@ extern long* ptr_pc_traits; // 2 of them
 
 extern DWORD* ptr_aiInfoList;
 extern DWORD* ptr_ambient_light;
-extern Art*   ptr_art;
+extern sArt*  ptr_art;
 extern DWORD* ptr_art_name;
 extern DWORD* ptr_art_vault_guy_num;
 extern DWORD* ptr_art_vault_person_nums;

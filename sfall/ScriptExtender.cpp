@@ -1182,7 +1182,7 @@ static void __declspec(naked) CombatOverHook() {
 
 static void __declspec(naked) obj_outline_all_items_on() {
 	__asm {
-		pushad;
+		pushadc;
 		mov  eax, ds:[_map_elevation];
 		call obj_find_first_at_;
 loopObject:
@@ -1224,14 +1224,14 @@ nextObject:
 		jmp  loopObject;
 end:
 		call tile_refresh_display_;
-		popad;
+		popadc;
 		retn;
 	}
 }
 
 static void __declspec(naked) obj_outline_all_items_off() {
 	__asm {
-		pushad;
+		pushadc;
 		mov  eax, ds:[_map_elevation];
 		call obj_find_first_at_;
 loopObject:
@@ -1258,7 +1258,7 @@ nextObject:
 		jmp  loopObject;
 end:
 		call tile_refresh_display_;
-		popad;
+		popadc;
 		retn;
 	}
 }
