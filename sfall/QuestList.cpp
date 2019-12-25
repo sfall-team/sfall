@@ -17,9 +17,7 @@
  */
 
 #include "main.h"
-
 #include "FalloutEngine.h"
-#include "QuestList.h"
 
 #define EXITCODE_BREAK      (-1)
 #define EXITCODE_NORMAL     (0)
@@ -354,7 +352,7 @@ static void __stdcall ArtButtonFunc(DWORD buttonKey, DWORD buttonMem, DWORD inde
 		xor  ecx, ecx;
 		xor  ebx, ebx;
 		mov  edx, indexArt;          // index from intrface.lst
-		mov  eax, 6;                 // OBJ_TYPE_INTRFACE
+		mov  eax, OBJ_TYPE_INTRFACE;
 		push ecx;
 		call art_id_;
 		//

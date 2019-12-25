@@ -1,6 +1,4 @@
 #include "main.h"
-
-#include "Define.h"
 #include "FalloutEngine.h"
 #include "BugFixes.h"
 #include "HookScripts.h"

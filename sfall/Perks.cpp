@@ -19,9 +19,8 @@
 #include <vector>
 
 #include "main.h"
-
-#include "Define.h"
 #include "FalloutEngine.h"
+
 #include "Perks.h"
 
 long PerkLevelMod = 0;

@@ -25,7 +25,6 @@
 #include <vector>
 
 #include "main.h"
-#include "Define.h"
 #include "FalloutEngine.h"
 #include "HeroAppearance.h"
 #include "PartyControl.h"

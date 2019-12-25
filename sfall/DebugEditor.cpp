@@ -19,10 +19,9 @@
 #include <vector>
 
 #include "main.h"
-
+#include "FalloutEngine.h"
 #include "Arrays.h"
 #include "DebugEditor.h"
-#include "FalloutEngine.h"
 #include "ScriptExtender.h"
 
 enum DECode {

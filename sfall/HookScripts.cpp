@@ -16,12 +16,10 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "main.h"
-
 #include <string>
 #include <vector>
 
-#include "Define.h"
+#include "main.h"
 #include "FalloutEngine.h"
 #include "HookScripts.h"
 #include "Inventory.h"
@@ -29,7 +27,6 @@
 #include "Logging.h"
 #include "PartyControl.h"
 #include "ScriptExtender.h"
-
 
 static const int maxArgs = 16;
 static const int maxRets = 8;

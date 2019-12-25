@@ -19,7 +19,6 @@
 #include <stdio.h>
 
 #include "main.h"
-#include "Define.h"
 #include "FalloutEngine.h"
 #include "HeroAppearance.h"
 #include "LoadGameHook.h"
@@ -418,7 +417,7 @@ static bool LoadFrmFrame(UNLSTDframe *frame, void* frmStream) {
 }
 
 UNLSTDfrm *LoadUnlistedFrm(char *frmName, unsigned int folderRef) {
-	if (folderRef > 10) return nullptr;
+	if (folderRef > OBJ_TYPE_SKILLDEX) return nullptr;
 
 	char *artfolder = (char*)(0x51073C + folderRef * 32); // address of art type name
 	char FrmPath[MAX_PATH];
@@ -1189,7 +1188,7 @@ static void DrawCharNote(bool style, int winRef, DWORD xPosWin, DWORD yPosWin, B
 	BYTE *PadSurface = new BYTE [280 * 168];
 	sub_draw(280, 168, widthBG, heightBG, xPosBG, yPosBG, BGSurface, 280, 168, 0, 0, PadSurface, 0);
 
-	UNLSTDfrm *frm = LoadUnlistedFrm((style) ? "AppStyle.frm" : "AppRace.frm", 10);
+	UNLSTDfrm *frm = LoadUnlistedFrm((style) ? "AppStyle.frm" : "AppRace.frm", OBJ_TYPE_SKILLDEX);
 	if (frm) {
 		sub_draw(frm->frames[0].width, frm->frames[0].height, frm->frames[0].width, frm->frames[0].height, 0, 0, frm->frames[0].indexBuff, 280, 168, 136, 37, PadSurface, 0); // cover buttons pics bottom
 		delete frm;
@@ -1260,7 +1259,7 @@ static void _stdcall DrawCharNoteNewChar(bool type) {
 void _stdcall HeroSelectWindow(int raceStyleFlag) {
 	if (!appModEnabled) return;
 
-	UNLSTDfrm *frm = LoadUnlistedFrm("AppHeroWin.frm", 6);
+	UNLSTDfrm *frm = LoadUnlistedFrm("AppHeroWin.frm", OBJ_TYPE_INTRFACE);
 	if (frm == nullptr) {
 		DebugPrintf("\nApperanceMod: art\\intrface\\AppHeroWin.frm file not found.");
 		return;
@@ -1756,7 +1755,7 @@ static void __declspec(naked) FixCharScrnBack() {
 	if (charScrnBackSurface == nullptr) {
 		charScrnBackSurface = new BYTE [640 * 480];
 
-		UNLSTDfrm *frm = LoadUnlistedFrm((*ptr_glblmode) ? "AppChCrt.frm" : "AppChEdt.frm", 6);
+		UNLSTDfrm *frm = LoadUnlistedFrm((*ptr_glblmode) ? "AppChCrt.frm" : "AppChEdt.frm", OBJ_TYPE_INTRFACE);
 
 		if (frm != nullptr) {
 			sub_draw(640, 480, 640, 480, 0, 0, frm->frames[0].indexBuff, 640, 480, 0, 0, charScrnBackSurface, 0);
@@ -1779,16 +1778,16 @@ static void __declspec(naked) FixCharScrnBack() {
 			DWORD FrmObj, FrmMaskObj; // frm objects for char screen Appearance button
 			BYTE *FrmSurface, *FrmMaskSurface;
 
-			FrmSurface = GetFrmSurface(BuildFrmId(6, 113), 0, 0, &FrmObj); // "Use Item On" window
+			FrmSurface = GetFrmSurface(BuildFrmId(OBJ_TYPE_INTRFACE, 113), 0, 0, &FrmObj); // "Use Item On" window
 			sub_draw(81, 132, 292, 376, 163, 20, FrmSurface, 640, 480, 331, 63, charScrnBackSurface, 0);  // char view win
 			sub_draw(79, 31, 292, 376, 154, 228, FrmSurface, 640, 480, 331, 32, charScrnBackSurface, 0);  // upper  char view win
 			sub_draw(79, 30, 292, 376, 158, 236, FrmSurface, 640, 480, 331, 195, charScrnBackSurface, 0); // lower  char view win
 			UnloadFrm(FrmObj);
 
 			// Sexoff Frm
-			FrmSurface = GetFrmSurface(BuildFrmId(6, 188), 0, 0, &FrmObj);
+			FrmSurface = GetFrmSurface(BuildFrmId(OBJ_TYPE_INTRFACE, 188), 0, 0, &FrmObj);
 			// Sex button mask frm
-			FrmMaskSurface = GetFrmSurface(BuildFrmId(6, 187), 0, 0, &FrmMaskObj);
+			FrmMaskSurface = GetFrmSurface(BuildFrmId(OBJ_TYPE_INTRFACE, 187), 0, 0, &FrmMaskObj);
 
 			sub_draw(80, 28, 80, 32, 0, 0, FrmMaskSurface, 80, 32, 0, 0, FrmSurface, 0x39); // mask for style and race buttons
 			UnloadFrm(FrmMaskObj);
@@ -1816,7 +1815,7 @@ static void __declspec(naked) FixCharScrnBack() {
 
 			// frm background for char screen Appearance button
 			if (*ptr_glblmode && (styleButtons || raceButtons)) {
-				FrmSurface = GetFrmSurface(BuildFrmId(6, 174), 0, 0, &FrmObj); // Pickchar frm
+				FrmSurface = GetFrmSurface(BuildFrmId(OBJ_TYPE_INTRFACE, 174), 0, 0, &FrmObj); // Pickchar frm
 				if (raceButtons)  sub_draw(69, 20, 640, 480, 281, 319, FrmSurface, 640, 480, 337,  36, charScrnBackSurface, 0); // button backround top
 				if (styleButtons) sub_draw(69, 20, 640, 480, 281, 319, FrmSurface, 640, 480, 337, 198, charScrnBackSurface, 0); // button backround bottom
 				UnloadFrm(FrmObj);

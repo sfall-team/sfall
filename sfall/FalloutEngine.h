@@ -24,6 +24,7 @@
 *
 */
 
+#include "Define.h"
 #include "FalloutStructs.h"
 
 // Global variable offsets

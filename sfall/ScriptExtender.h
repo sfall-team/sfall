@@ -137,3 +137,12 @@ enum ScriptProc : long
 	combat_is_starting_p_proc = 26,
 	combat_is_over_p_proc = 27
 };
+
+enum ScriptTypes : long
+{
+	SCRIPT_SYSTEM = 0,
+	SCRIPT_SPATIAL = 1,
+	SCRIPT_TIME = 2,
+	SCRIPT_ITEM = 3,
+	SCRIPT_CRITTER = 4,
+};

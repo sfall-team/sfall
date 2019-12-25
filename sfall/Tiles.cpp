@@ -16,13 +16,12 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "main.h"
-
 #include <math.h>
 #include <stdio.h>
+
+#include "main.h"
 #include "FalloutEngine.h"
 #include "FileSystem.h"
-#include "Tiles.h"
 
 typedef int (_stdcall *functype)();
 static const functype art_init = (functype)art_init_;

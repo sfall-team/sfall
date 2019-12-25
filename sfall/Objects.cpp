@@ -17,8 +17,6 @@
  */
 
 #include "main.h"
-
-#include "Define.h"
 #include "FalloutEngine.h"
 
 #include "Objects.h"

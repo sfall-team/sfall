@@ -19,8 +19,6 @@
 #include <math.h>
 
 #include "main.h"
-
-#include "Define.h"
 #include "FalloutEngine.h"
 #include "LoadGameHook.h"
 #include "ScriptExtender.h"

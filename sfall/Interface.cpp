@@ -17,7 +17,6 @@
  */
 
 #include "main.h"
-#include "Define.h"
 #include "FalloutEngine.h"
 #include "HeroAppearance.h"
 

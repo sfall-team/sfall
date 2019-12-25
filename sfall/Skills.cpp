@@ -22,7 +22,6 @@
 
 #include "main.h"
 
-#include "Define.h"
 #include "FalloutEngine.h"
 #include "Combat.h"
 #include "Objects.h"

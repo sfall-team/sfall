@@ -16,17 +16,15 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "main.h"
-
 #include <hash_map>
 //#include <set>
 
+#include "main.h"
+#include "FalloutEngine.h"
 #include "Arrays.h"
 #include "BarBoxes.h"
 #include "Console.h"
-#include "Define.h"
 #include "Explosions.h"
-#include "FalloutEngine.h"
 #include "HookScripts.h"
 #include "input.h"
 #include "LoadGameHook.h"

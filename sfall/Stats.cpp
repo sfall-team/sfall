@@ -17,9 +17,8 @@
  */
 
 #include "main.h"
-
-#include "Define.h"
 #include "FalloutEngine.h"
+
 #include "Stats.h"
 
 static DWORD StatMaximumsPC[STAT_max_stat];

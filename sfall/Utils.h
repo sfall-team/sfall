@@ -30,3 +30,5 @@ bool isSpace(char c);
 void strtrim(char* str);
 
 const char* strfind(const char* source, const char* word);
+
+void StrNormalizePath(char* path);

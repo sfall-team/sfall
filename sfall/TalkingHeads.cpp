@@ -20,7 +20,6 @@
 #include <hash_map>
 
 #include "main.h"
-
 #include "FalloutEngine.h"
 #include "Graphics.h"
 
@@ -88,12 +87,12 @@ static bool GetHeadFrmName(char* name) {
 				? *ptr_lipsFID
 				: *ptr_fidgetFID;
 	int index = headFid & 0xFFF;
-	if (index >= ptr_art[8].total) return true; // OBJ_TYPE_HEAD
+	if (index >= ptr_art[OBJ_TYPE_HEAD].total) return true;
 	int ID2 = (*(DWORD*)_fidgetFp) ? (headFid & 0xFF0000) >> 16 : reactionID;
 	if (ID2 > 11) return true;
 	int ID1 = (ID2 == 1 || ID2 == 4 || ID2 == 7) ? (headFid & 0xF000) >> 12 : -1;
 	//if (ID1 > 3) ID1 = 3;
-	const char* headLst = ptr_art[8].names; // OBJ_TYPE_HEAD
+	const char* headLst = ptr_art[OBJ_TYPE_HEAD].names;
 	char* fmt = (ID1 != -1) ? "%s%s%d" : "%s%s";
 	_snprintf(name, 8, fmt, &headLst[13 * index], headSuffix[ID2], ID1);
 	return false;
@@ -105,7 +104,7 @@ static void StrAppend(char* buf, const char* str, int pos) {
 	buf[pos] = str[i]; // copy '\0'
 }
 
-static bool LoadFrm(Frm* frm) { // backporting WIP
+static bool LoadFrm(Frm* frm) {
 	if (!frm->key && GetHeadFrmName(frm->path)) {
 		frm->broken = 1;
 		return false;

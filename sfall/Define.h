@@ -1,5 +1,25 @@
 #pragma once
 
+enum ObjType : char
+{
+	OBJ_TYPE_ITEM = 0,
+	OBJ_TYPE_CRITTER = 1,
+	OBJ_TYPE_SCENERY = 2,
+	OBJ_TYPE_WALL = 3,
+	OBJ_TYPE_TILE = 4,
+	OBJ_TYPE_MISC = 5,
+	OBJ_TYPE_SPATIAL = 6
+};
+
+enum ArtType : char
+{
+	OBJ_TYPE_INTRFACE   = 6,
+	OBJ_TYPE_INVEN      = 7,
+	OBJ_TYPE_HEAD       = 8,
+	OBJ_TYPE_BACKGROUND = 9,
+	OBJ_TYPE_SKILLDEX   = 10
+};
+
 // Some FO2 PIDs possibly used by engine
 enum ProtoId : long
 {

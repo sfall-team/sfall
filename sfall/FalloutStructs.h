@@ -36,7 +36,7 @@ struct TInvenRec {
 };
 #pragma pack(pop)
 
-/* 15 */
+/*   15 */
 #pragma pack(push, 1)
 struct TGameObj {
 	long ID;
@@ -127,27 +127,6 @@ struct TScript {
 	long procedure_table[28];
 };
 #pragma pack(pop)
-
-enum ScriptTypes : long
-{
-	SCRIPT_SYSTEM = 0,
-	SCRIPT_SPATIAL = 1,
-	SCRIPT_TIME = 2,
-	SCRIPT_ITEM = 3,
-	SCRIPT_CRITTER = 4,
-};
-
-/*   24 */
-enum ObjType : char
-{
-	OBJ_TYPE_ITEM = 0,
-	OBJ_TYPE_CRITTER = 1,
-	OBJ_TYPE_SCENERY = 2,
-	OBJ_TYPE_WALL = 3,
-	OBJ_TYPE_TILE = 4,
-	OBJ_TYPE_MISC = 5,
-	OBJ_TYPE_SPATIAL = 6,
-};
 
 /*   25 */
 #pragma pack(push, 1)
