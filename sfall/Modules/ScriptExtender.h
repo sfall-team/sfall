@@ -27,12 +27,33 @@
 namespace sfall
 {
 
+typedef struct {
+	fo::Program* ptr = nullptr;
+	int procLookup[fo::Scripts::ScriptProc::count];
+	char initialized;
+} ScriptProgram;
+
 class ScriptExtender : public Module {
 public:
 	const char* name() { return "ScriptExtender"; }
 	void init();
 
 	static std::string iniConfigFolder;
+
+	static char gTextBuffer[5120];
+
+	// returns the size of the global text buffer
+	inline static const long TextBufferSize() { return sizeof(gTextBuffer); }
+
+	static long GetScriptReturnValue();
+	static long GetResetScriptReturnValue();
+
+	static void AddProgramToMap(ScriptProgram &prog);
+	static ScriptProgram* GetGlobalScriptProgram(fo::Program* scriptPtr);
+
+	static void AddTimerEventScripts(fo::Program* script, long time, long param);
+	static void RemoveTimerEventScripts(fo::Program* script, long param);
+	static void RemoveTimerEventScripts(fo::Program* script);
 
 	// Called before map exit (before map_exit_p_proc handlers in normal scripts)
 	static Delegate<>& OnMapExit();
@@ -45,12 +66,6 @@ struct GlobalVar {
 	__int32 unused;
 };
 #pragma pack(pop)
-
-typedef struct {
-	fo::Program* ptr = nullptr;
-	int procLookup[fo::ScriptProc::count];
-	char initialized;
-} ScriptProgram;
 
 void __fastcall SetGlobalScriptRepeat(fo::Program* script, int frames);
 void __fastcall SetGlobalScriptType(fo::Program* script, int type);
@@ -67,6 +82,7 @@ void SetGlobals(GlobalVar* globals);
 
 long SetGlobalVar(const char* var, int val);
 void SetGlobalVarInt(DWORD var, int val);
+
 long GetGlobalVar(const char* var);
 long GetGlobalVarInt(DWORD var);
 long GetGlobalVarInternal(__int64 val);
@@ -91,9 +107,6 @@ void RunScriptProc(ScriptProgram* prog, const char* procName);
 void RunScriptProc(ScriptProgram* prog, long procId);
 
 int RunScriptStartProc(ScriptProgram* prog);
-
-void AddProgramToMap(ScriptProgram &prog);
-ScriptProgram* GetGlobalScriptProgram(fo::Program* scriptPtr);
 
 // variables
 extern DWORD isGlobalScriptLoading;

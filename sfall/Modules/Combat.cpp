@@ -17,7 +17,6 @@
  */
 
 #include <math.h>
-#include <vector>
 
 #include "..\main.h"
 #include "..\FalloutEngine\Fallout2.h"

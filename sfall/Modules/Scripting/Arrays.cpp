@@ -19,12 +19,13 @@ DWORD arraysBehavior = 1; // 0 - backward compatible with pre-3.4, 1 - permanent
 
 // arrays map: arrayId => arrayVar
 ArraysMap arrays;
-// auto-incremented ID
-DWORD nextArrayID = 1;
 // temp arrays: set of arrayId
-std::unordered_set<DWORD> tempArrays;
+std::unordered_set<DWORD> temporaryArrays;
 // saved arrays: arrayKey => arrayId
 ArrayKeysMap savedArrays;
+
+// auto-incremented ID
+DWORD nextArrayID = 1;
 // special array ID for array expressions
 DWORD stackArrayId;
 
@@ -405,7 +406,7 @@ DWORD CreateArray(int len, DWORD flags) {
 
 DWORD TempArray(DWORD len, DWORD flags) {
 	DWORD id = CreateArray(len, flags);
-	tempArrays.insert(id);
+	temporaryArrays.insert(id);
 	return id;
 }
 
@@ -419,11 +420,11 @@ void FreeArray(DWORD id) {
 }
 
 void DeleteAllTempArrays() {
-	if (!tempArrays.empty()) {
-		for (std::unordered_set<DWORD>::iterator it = tempArrays.begin(); it != tempArrays.end(); ++it) {
+	if (!temporaryArrays.empty()) {
+		for (std::unordered_set<DWORD>::iterator it = temporaryArrays.begin(); it != temporaryArrays.end(); ++it) {
 			FreeArray(*it);
 		}
-		tempArrays.clear();
+		temporaryArrays.clear();
 	}
 }
 
@@ -642,7 +643,7 @@ long ResizeArray(DWORD id, int newlen) {
 }
 
 void FixArray(DWORD id) {
-	tempArrays.erase(id);
+	temporaryArrays.erase(id);
 }
 
 ScriptValue ScanArray(DWORD id, const ScriptValue& val) {
@@ -670,7 +671,7 @@ ScriptValue ScanArray(DWORD id, const ScriptValue& val) {
 }
 
 DWORD LoadArray(const ScriptValue& key) {
-	if (!key.isInt() || key.asInt() != 0) { // returns arrayId by it's key (ignoring int(0) because it is used to "unsave" array)
+	if (!key.isInt() || key.rawValue() != 0) { // returns arrayId by it's key (ignoring int(0) because it is used to "unsave" array)
 		sArrayElement keyEl = sArrayElement(key.rawValue(), key.type());
 
 		if (keyEl.type == DataType::STR && strcmp(keyEl.strVal, get_all_arrays_special_key) == 0) { // this is a special case to get temp array containing all saved arrays
@@ -698,7 +699,7 @@ DWORD LoadArray(const ScriptValue& key) {
 void SaveArray(const ScriptValue& key, DWORD id) {
 	array_itr it, itArray = arrays.find(id); // arrayId => arrayVar
 	if (itArray != arrays.end()) {
-		if (!key.isInt() || key.asInt() != 0) {
+		if (!key.isInt() || key.rawValue() != 0) {
 			// make array permanent
 			FixArray(itArray->first);
 			// if another array is saved under the same key, clear it
@@ -741,7 +742,7 @@ long StackArray(const ScriptValue& key, const ScriptValue& val) {
 		// automatically resize array to fit one new element
 		ResizeArray(id, arrays[id].size() + 1);
 	}
-	SetArray(id, key, val, 0);
+	SetArray(id, key, val, false);
 	return 0;
 }
 

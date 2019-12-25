@@ -183,9 +183,11 @@ int _stdcall GetShaderVersion() {
 	return ShaderVersion;
 }
 
-static void rcpresInit() {
+static void WindowInit() {
+	windowInit = true;
 	rcpres[0] = 1.0f / (float)Graphics::GetGameWidthRes();
 	rcpres[1] = 1.0f / (float)Graphics::GetGameHeightRes();
+	ScriptShaders::LoadGlobalShader();
 }
 
 const float* Graphics::rcpresGet() {
@@ -962,6 +964,9 @@ HRESULT _stdcall FakeDirectDrawCreate2_Init(void*, IDirectDraw** b, void*) {
 		ScrollWindowKey = GetConfigInt("Input", "WindowScrollKey", 0);
 	} else ScrollWindowKey = 0;
 
+	rcpres[0] = 1.0f / (float)gWidth;
+	rcpres[1] = 1.0f / (float)gHeight;
+
 	*b = (IDirectDraw*)new FakeDirectDraw2();
 
 	dlogr(" Done.", DL_MAIN);
@@ -970,7 +975,9 @@ HRESULT _stdcall FakeDirectDrawCreate2_Init(void*, IDirectDraw** b, void*) {
 
 static __declspec(naked) void game_init_hook() {
 	__asm {
-		mov  windowInit, 1;
+		push ecx;
+		call WindowInit;
+		pop  ecx;
 		jmp  fo::funcoffs::palette_init_;
 	}
 }
@@ -999,11 +1006,11 @@ void Graphics::init() {
 		if (!h) {
 			MessageBoxA(0, "You have selected graphics mode 4 or 5, but " _DLL_NAME " is missing.\n"
 						   "Switch back to mode 0, or install an up to date version of DirectX.", "Error", MB_TASKMODAL | MB_ICONERROR);
+#undef _DLL_NAME
 			ExitProcess(-1);
 		} else {
 			FreeLibrary(h);
 		}
-#undef _DLL_NAME
 		SafeWrite8(0x50FB6B, '2'); // Set call DirectDrawCreate2
 		HookCall(0x44260C, game_init_hook);
 		dlogr(" Done", DL_INIT);
@@ -1015,10 +1022,6 @@ void Graphics::init() {
 		HookCall(0x493B16, palette_fade_to_hook);
 		fadeMulti = ((double)fadeMulti) / 100.0;
 		dlogr(" Done", DL_INIT);
-	}
-
-	if (Graphics::mode) {
-		LoadGameHook::OnAfterGameInit() += rcpresInit;
 	}
 }
 

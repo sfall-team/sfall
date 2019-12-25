@@ -399,11 +399,9 @@ void UpdateHeroArt() {
 
 		if (item->flags & fo::ObjectFlag::Right_Hand) {
 			fo::var::i_rhand = item;
-		}
-		else if (item->flags & fo::ObjectFlag::Left_Hand) {
+		} else if (item->flags & fo::ObjectFlag::Left_Hand) {
 			fo::var::i_lhand = item;
-		}
-		else if (item->flags & fo::ObjectFlag::Worn) {
+		} else if (item->flags & fo::ObjectFlag::Worn) {
 			fo::var::i_worn = item;
 		}
 	}

@@ -32,13 +32,11 @@ namespace script
 
 void __declspec(naked) op_graphics_funcs_available() {
 	__asm {
-		push ecx;
 		cmp  Graphics::mode, 3;
 		seta dl;
 		and  edx, 0xFF;
-		_RET_VAL_INT(ecx);
-		pop  ecx;
-		retn;
+		_J_RET_VAL_TYPE(VAR_TYPE_INT);
+//		retn;
 	}
 }
 
@@ -83,36 +81,36 @@ result:
 
 void __declspec(naked) op_free_shader() {
 	__asm {
-		push ecx;
+		mov  esi, ecx;
 		_GET_ARG_INT(end);
 		push eax;
 		call FreeShader;
 end:
-		pop  ecx;
+		mov  ecx, esi;
 		retn;
 	}
 }
 
 void __declspec(naked) op_activate_shader() {
 	__asm {
-		push ecx;
+		mov  esi, ecx;
 		_GET_ARG_INT(end);
 		push eax;
 		call ActivateShader;
 end:
-		pop  ecx;
+		mov  ecx, esi;
 		retn;
 	}
 }
 
 void __declspec(naked) op_deactivate_shader() {
 	__asm {
-		push ecx;
+		mov  esi, ecx;
 		_GET_ARG_INT(end);
 		push eax;
 		call DeactivateShader;
 end:
-		pop ecx;
+		mov  ecx, esi;
 		retn;
 	}
 }
@@ -405,13 +403,12 @@ end:
 
 void __declspec(naked) op_get_shader_version() {
 	__asm {
-		push ecx;
-		push eax;
+		mov  esi, ecx;
 		call GetShaderVersion;
 		mov  edx, eax;
-		pop  eax;
-		_RET_VAL_INT(ecx);
-		pop ecx;
+		mov  eax, ebx;
+		_RET_VAL_INT;
+		mov  ecx, esi;
 		retn;
 	}
 }
@@ -453,12 +450,12 @@ end:
 
 void __declspec(naked) op_force_graphics_refresh() {
 	__asm {
-		push ecx;
+		mov  esi, ecx;
 		_GET_ARG_INT(end);
 		push eax;
 		call ForceGraphicsRefresh;
 end:
-		pop ecx;
+		mov  ecx, esi;
 		retn;
 	}
 }

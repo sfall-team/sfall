@@ -466,6 +466,13 @@ void AlwaysReloadMsgs() {
 	}
 }
 
+void RemoveWindowRoundingPatch() {
+	if (GetConfigInt("Misc", "RemoveWindowRounding", 1)) {
+		SafeWriteBatch<BYTE>(0xEB, {0x4D6EDD, 0x4D6F12});
+		//SafeWrite16(0x4B8090, 0x04EB); // jmps 0x4B8096 (old)
+	}
+}
+
 void InventoryCharacterRotationSpeedPatch() {
 	DWORD setting = GetConfigInt("Misc", "SpeedInventoryPCRotation", 166);
 	if (setting != 166 && setting <= 1000) {
@@ -562,7 +569,7 @@ void SkipLoadingGameSettingsPatch() {
 }
 
 void InterfaceDontMoveOnTopPatch() {
-	if (GetConfigInt("Misc", "InterfaceDontMoveOnTop", 0)) {
+	if (GetConfigInt("Misc", "InterfaceDontMoveOnTop", 0)) { // TODO: remove option? (obsolete)
 		dlog("Applying InterfaceDontMoveOnTop patch.", DL_INIT);
 		SafeWrite8(0x46ECE9, fo::WinFlags::Exclusive); // Player Inventory/Loot/UseOn
 		SafeWrite8(0x41B966, fo::WinFlags::Exclusive); // Automap
@@ -666,6 +673,7 @@ void MiscPatches::init() {
 	PlayIdleAnimOnReloadPatch();
 
 	SkilldexImagesPatch();
+	RemoveWindowRoundingPatch();
 
 	ScienceOnCrittersPatch();
 	InventoryCharacterRotationSpeedPatch();

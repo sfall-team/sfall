@@ -28,15 +28,16 @@ namespace script
 {
 
 OpcodeContext::OpcodeContext(fo::Program* program, DWORD opcode, int argNum, bool hasReturn)
-		: _program(program), _opcode(opcode), _numArgs(argNum), _hasReturn(hasReturn), _argShift(0)
+		: _program(program), _opcode(opcode), _numArgs(argNum), _hasReturn(hasReturn), _errorVal(-1), _argShift(0)
 {
 	assert(argNum < OP_MAX_ARGUMENTS);
 }
 
-OpcodeContext::OpcodeContext(fo::Program* program, DWORD opcode, int argNum, bool hasReturn, const char* opcodeName)
-		: OpcodeContext::OpcodeContext(program, opcode, argNum, hasReturn)
+OpcodeContext::OpcodeContext(fo::Program* program, const SfallOpcodeInfo* info)
+		: _program(program), _opcode(info->opcode), _numArgs(info->argNum), _hasReturn(info->hasReturn),
+		  _opcodeName(info->name), _errorVal(info->errValue), _argShift(0)
 {
-	_opcodeName = opcodeName;
+	assert(_numArgs < OP_MAX_ARGUMENTS);
 }
 
 const char* OpcodeContext::getOpcodeName() const {
@@ -44,7 +45,15 @@ const char* OpcodeContext::getOpcodeName() const {
 }
 
 const char* OpcodeContext::getMetaruleName() const {
-	return metarule->name;
+	return _metarule->name;
+}
+
+const SfallMetarule* OpcodeContext::getMetarule() const {
+	return _metarule;
+}
+
+void OpcodeContext::setMetarule(const SfallMetarule* metarule) {
+	_metarule = metarule;
 }
 
 int OpcodeContext::numArgs() const {
@@ -110,22 +119,37 @@ bool OpcodeContext::validateArguments(const OpcodeArgumentType argTypes[], const
 		// exception is when type set to
 		if (actualType == DataType::NONE) break;
 		auto argType = argTypes[i];
-		if (argType == ARG_ANY) continue;
-		if ((argType == ARG_INT || argType == ARG_OBJECT) && !(actualType == DataType::INT)) {
-			printOpcodeError("%s() - argument #%d is not an integer.", opcodeName, ++i);
-			return false;
-		} else if (argType == ARG_NUMBER && !(actualType == DataType::INT || actualType == DataType::FLOAT)) {
-			printOpcodeError("%s() - argument #%d is not a number.", opcodeName, ++i);
-			return false;
-		} else if (argType == ARG_STRING && !(actualType == DataType::STR)) {
-			printOpcodeError("%s() - argument #%d is not a string.", opcodeName, ++i);
-			return false;
-		} else if (argType == ARG_OBJECT && arg(i).rawValue() == 0) {
-			printOpcodeError("%s() - argument #%d is null.", opcodeName, ++i);
-			return false;
-		} else if (argType == ARG_INTSTR && !(actualType == DataType::INT || actualType == DataType::STR)) {
-			printOpcodeError("%s() - argument #%d is not an integer or a string.", opcodeName, ++i);
-			return false;
+		switch (argType) {
+		case ARG_ANY:
+			continue;
+		case ARG_INT:
+		case ARG_OBJECT:
+			if (actualType != DataType::INT) {
+				printOpcodeError("%s() - argument #%d is not an integer.", opcodeName, ++i);
+				return false;
+			}
+			if (argType == ARG_OBJECT && arg(i).rawValue() == 0) {
+				printOpcodeError("%s() - argument #%d is null.", opcodeName, ++i);
+				return false;
+			}
+			break;
+		case ARG_STRING:
+			if (actualType != DataType::STR) {
+				printOpcodeError("%s() - argument #%d is not a string.", opcodeName, ++i);
+				return false;
+			}
+			break;
+		case ARG_INTSTR:
+			if (actualType != DataType::STR && actualType != DataType::INT) {
+				printOpcodeError("%s() - argument #%d is not an integer or a string.", opcodeName, ++i);
+				return false;
+			}
+			break;
+		case ARG_NUMBER:
+			if (actualType != DataType::FLOAT && actualType != DataType::INT) {
+				printOpcodeError("%s() - argument #%d is not a number.", opcodeName, ++i);
+				return false;
+			}
 		}
 	}
 	return true;
@@ -145,7 +169,7 @@ void OpcodeContext::handleOpcode(ScriptingFunctionHandler func, const OpcodeArgu
 	if (!_numArgs || validateArguments(argTypes, _opcodeName)) {
 		func(*this);
 	} else if (_hasReturn) {
-		setReturn(-1); // is a common practice to return -1 in case of errors in fallout engine
+		setReturn(_errorVal); // is a common practice to return -1 in case of errors in fallout engine
 	}
 
 	if (_hasReturn) _pushReturnValue();

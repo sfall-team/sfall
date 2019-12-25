@@ -72,7 +72,7 @@ static void __declspec(naked) UseObjHook() {
 		mov args[4], edx; // object
 		pushad;
 	}
-	
+
 	argCount = 2;
 	RunHookScript(HOOK_USEOBJ);
 
@@ -237,23 +237,30 @@ skip:
 
 static DWORD __fastcall StdProcedureHook_Script(long numHandler, fo::ScriptInstance* script, DWORD procTable) {
 	BeginHook();
-	argCount = 3;
+	argCount = 4;
 
 	args[0] = numHandler;
 	args[1] = (DWORD)script->selfObject;
 	args[2] = (DWORD)script->sourceObject;
-	RunHookScript(HOOK_STDPROCEDURE);
 
-	if (cRet > 0) {
-		long retval = rets[0];
-		if (retval == -1) procTable = retval;
+	if (procTable) {
+		args[3] = 0;
+		RunHookScript(HOOK_STDPROCEDURE);
+
+		if (cRet > 0) {
+			long retval = rets[0];
+			if (retval == -1) procTable = retval;
+		}
+	} else {
+		args[3] = 1;
+		RunHookScript(HOOK_STDPROCEDURE_END);
 	}
 	EndHook();
 	return procTable;
 }
 
 static void __declspec(naked) ScriptStdProcedureHook() {
-	using namespace fo::ScriptProc;
+	using namespace fo::Scripts;
 	__asm {
 		mov  eax, [eax + 0x54]; // Script.procedure_table
 		test eax, eax;
@@ -274,6 +281,26 @@ static void __declspec(naked) ScriptStdProcedureHook() {
 skip:
 		test eax, eax;
 end:
+		retn;
+	}
+}
+
+static void __declspec(naked) After_ScriptStdProcedureHook() {
+	using namespace fo::Scripts;
+	__asm {
+		call fo::funcoffs::executeProcedure_;
+		cmp  ecx, critter_p_proc;
+		je   skip;
+		cmp  ecx, timed_event_p_proc;
+		je   skip;
+		cmp  ecx, map_update_p_proc;
+		je   skip;
+		cmp  ecx, start;
+		jle  skip;
+		mov  edx, [esp + 0x28 - 0x18 + 4]; // script
+		push 0;                            // procTable
+		call StdProcedureHook_Script;      // ecx - numHandler
+skip:
 		retn;
 	}
 }
@@ -311,6 +338,10 @@ void Inject_ScriptProcedureHook() {
 	MakeCall(0x4A491F, ScriptStdProcedureHook);
 }
 
+void Inject_ScriptProcedureHook2() {
+	HookCall(0x4A49A7, After_ScriptStdProcedureHook);
+}
+
 void InitObjectHookScripts() {
 
 	LoadHookScript("hs_useobjon", HOOK_USEOBJON);
@@ -318,7 +349,8 @@ void InitObjectHookScripts() {
 	LoadHookScript("hs_useanimobj", HOOK_USEANIMOBJ);
 	LoadHookScript("hs_descriptionobj", HOOK_DESCRIPTIONOBJ);
 	LoadHookScript("hs_setlighting", HOOK_SETLIGHTING);
-	LoadHookScript("hs_stdprocedure", HOOK_STDPROCEDURE);
+	LoadHookScript("hs_stdprocedure", HOOK_STDPROCEDURE); // combo hook
+	LoadHookScript("hs_stdprocedure", HOOK_STDPROCEDURE_END);
 }
 
 }

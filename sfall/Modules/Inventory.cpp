@@ -33,12 +33,12 @@ static Delegate<DWORD> onAdjustFid;
 
 static DWORD sizeLimitMode;
 static DWORD invSizeMaxLimit;
+
 static DWORD reloadWeaponKey = 0;
 static DWORD itemFastMoveKey = 0;
 static DWORD skipFromContainer = 0;
 
 void InventoryKeyPressedHook(DWORD dxKey, bool pressed) {
-	// TODO: move this out into a script
 	if (pressed && reloadWeaponKey && dxKey == reloadWeaponKey && IsMapLoaded() && (GetLoopFlags() & ~(COMBAT | PCOMBAT)) == 0) {
 		DWORD maxAmmo, curAmmo;
 		fo::GameObject* item = fo::GetActiveItem();
@@ -282,13 +282,13 @@ static const char* _stdcall SizeInfoMessage(fo::GameObject* item) {
 	if (size == 1) {
 		const char* message = fo::MessageSearch(&fo::var::proto_main_msg_file, 543);
 		if (message == nullptr)
-			strncpy_s(SizeMsgBuf, "It occupies 1 unit.", _TRUNCATE);
+			strcpy(SizeMsgBuf, "It occupies 1 unit.");
 		else
-			_snprintf_s(SizeMsgBuf, _TRUNCATE, message, size);
+			strncpy_s(SizeMsgBuf, message, _TRUNCATE);
 	} else {
 		const char* message = fo::MessageSearch(&fo::var::proto_main_msg_file, 542);
 		if (message == nullptr)
-			_snprintf_s(SizeMsgBuf, _TRUNCATE, "It occupies %d units.", size);
+			sprintf(SizeMsgBuf, "It occupies %d units.", size);
 		else
 			_snprintf_s(SizeMsgBuf, _TRUNCATE, message, size);
 	}

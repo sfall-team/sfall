@@ -26,7 +26,7 @@ namespace fo
 namespace func
 {
 
-// prints debug message to debug.log file for develop build
+// Prints debug message to debug.log file for develop build
 #ifndef NDEBUG
 void __declspec(naked) dev_printf(const char* fmt, ...) {
 	__asm jmp fo::funcoffs::debug_printf_;
@@ -181,7 +181,7 @@ long __stdcall db_dir_entry(const char *fileName, DWORD *sizeOut) {
 
 // prints message to debug.log file
 void __declspec(naked) debug_printf(const char* fmt, ...) {
-	__asm jmp fo::funcoffs::debug_printf_
+	__asm jmp fo::funcoffs::debug_printf_;
 }
 
 // Displays message in main UI console window
@@ -242,8 +242,8 @@ DWORD __stdcall interpretAddString(Program* scriptPtr, const char* strval) {
 	WRAP_WATCOM_CALL2(interpretAddString_, scriptPtr, strval)
 }
 
-const char* __stdcall interpretGetString(Program* scriptPtr, DWORD dataType, DWORD strId) {
-	WRAP_WATCOM_CALL3(interpretGetString_, scriptPtr, dataType, strId)
+const char* __fastcall interpretGetString(Program* scriptPtr, DWORD dataType, DWORD strId) {
+	WRAP_WATCOM_FCALL3(interpretGetString_, scriptPtr, dataType, strId)
 }
 
 // prints scripting error in debug.log and stops current script execution by performing longjmp
@@ -313,6 +313,12 @@ long __stdcall message_load(MessageList *msgList, const char *msgFilePath) {
 
 long __stdcall message_exit(MessageList *msgList) {
 	WRAP_WATCOM_CALL1(message_exit_, msgList)
+}
+
+long __fastcall tile_num(long x, long y) {
+	__asm push ebx; // don't delete (bug in tile_num_)
+	WRAP_WATCOM_FCALL2(tile_num_, x, x);
+	__asm pop  ebx;
 }
 
 GameObject* __fastcall obj_blocking_at_wrapper(GameObject* obj, DWORD tile, DWORD elevation, void* func) {

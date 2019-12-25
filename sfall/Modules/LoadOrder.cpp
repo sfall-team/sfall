@@ -153,7 +153,7 @@ end:
 	}
 }
 
-static void __stdcall InitExtraPatches() {
+static void InitExtraPatches() {
 	for (auto it = patchFiles.begin(); it != patchFiles.end(); it++) {
 		if (!it->empty()) fo::func::db_init(it->c_str(), 0);
 	}
@@ -163,11 +163,11 @@ static void __stdcall InitExtraPatches() {
 }
 
 static void __fastcall game_init_databases_hook() { // eax = _master_db_handle
-	fo::PathNode* master_patches = (fo::PathNode*)fo::var::master_db_handle;
+	fo::PathNode* master_patches = fo::var::master_db_handle;
 
-	if (!patchFiles.empty()) InitExtraPatches();
+	/*if (!patchFiles.empty())*/ InitExtraPatches();
 
-	fo::PathNode* critter_patches = (fo::PathNode*)fo::var::critter_db_handle;
+	fo::PathNode* critter_patches = fo::var::critter_db_handle;
 	fo::PathNode* paths = fo::var::paths; // beginning of the chain of paths
 	// insert master_patches/critter_patches at the beginning of the chain of paths
 	if (critter_patches) {
@@ -176,6 +176,20 @@ static void __fastcall game_init_databases_hook() { // eax = _master_db_handle
 	}
 	master_patches->next = paths;         // master_patches.next -> paths
 	fo::var::paths = master_patches;      // set master_patches node at the beginning of the chain of paths
+}
+
+static void __fastcall game_init_databases_hook1() {
+	char masterPatch[MAX_PATH];
+	iniGetString("system", "master_patches", "", masterPatch, MAX_PATH - 1, (const char*)FO_VAR_gconfig_file_name);
+
+	fo::PathNode* node = fo::var::paths;
+	while (node->next) {
+		if (!strcmp(node->path, masterPatch)) break;
+		node = node->next;
+	}
+	fo::var::master_db_handle = node; // set pointer to master_patches node
+
+	InitExtraPatches();
 }
 
 static bool NormalizePath(std::string &path) {
@@ -388,8 +402,8 @@ void LoadOrder::init() {
 		HookCall(0x44436D, game_init_databases_hook);
 		SafeWrite8(0x4DFAEC, 0x1D); // error correction (ecx > ebx)
 		dlogr(" Done", DL_INIT);
-	} else if (!patchFiles.empty()) {
-		HookCall(0x44436D, InitExtraPatches);
+	} else /*if (!patchFiles.empty())*/ {
+		HookCall(0x44436D, game_init_databases_hook1);
 	}
 
 	femaleMsgs = GetConfigInt("Misc", "FemaleDialogMsgs", 0);

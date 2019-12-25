@@ -181,6 +181,37 @@ long GetScriptLocalVars(long sid) {
 	return (script) ? script->numLocalVars : 0;
 }
 
+// Returns window ID by x/y coordinate (hidden windows are ignored)
+long __fastcall GetTopWindowID(long xPos, long yPos) {
+	fo::Window* win = nullptr;
+	long countWin = *(DWORD*)FO_VAR_num_windows - 1;
+	for (int n = countWin; n >= 0; n--) {
+		win = fo::var::window[n];
+		if (xPos >= win->wRect.left && xPos <= win->wRect.right && yPos >= win->wRect.top && yPos <= win->wRect.bottom) {
+			if (!(win->flags & fo::WinFlags::Hidden)) {
+				break;
+			}
+		}
+	}
+	return win->wID;
+}
+
+// Returns an array of objects within the specified radius from the source tile
+void GetObjectsTileRadius(std::vector<fo::GameObject*> &objs, long sourceTile, long radius, long elev, long type = -1) {
+	for (long tile = 0; tile < 40000; tile++) {
+		fo::GameObject* obj = fo::func::obj_find_first_at_tile(elev, tile);
+		while (obj) {
+			if (type == -1 || type == obj->Type()) {
+				bool multiHex = (obj->flags & fo::ObjectFlag::MultiHex) ? true : false;
+				if (fo::func::tile_dist(sourceTile, obj->tile) <= (radius + multiHex)) {
+					objs.push_back(obj);
+				}
+			}
+			obj = fo::func::obj_find_next_at_tile();
+		}
+	}
+}
+
 //---------------------------------------------------------
 //print text to surface
 void PrintText(char *DisplayText, BYTE ColourIndex, DWORD Xpos, DWORD Ypos, DWORD TxtWidth, DWORD ToWidth, BYTE *ToSurface) {
@@ -211,14 +242,11 @@ DWORD GetTextHeight() {
 
 //---------------------------------------------------------
 //gets the length of a string using the currently selected font
-DWORD GetTextWidth(char *TextMsg) {
-	DWORD TxtWidth;
+DWORD GetTextWidth(const char *TextMsg) {
 	__asm {
 		mov  eax, TextMsg;
 		call dword ptr ds:[FO_VAR_text_width]; //get text width
-		mov  TxtWidth, eax;
 	}
-	return TxtWidth;
 }
 
 //---------------------------------------------------------

@@ -36,6 +36,7 @@ void sf_reg_anim_light(OpcodeContext&);
 void sf_reg_anim_change_fid(OpcodeContext&);
 void sf_reg_anim_take_out(OpcodeContext&);
 void sf_reg_anim_turn_towards(OpcodeContext&);
+void sf_reg_anim_callback(OpcodeContext&);
 
 void sf_explosions_metarule(OpcodeContext&);
 

@@ -45,7 +45,7 @@ const char* __stdcall critter_name(GameObject* critter);
 // Change the name of playable character
 void critter_pc_set_name(const char* newName);
 
-// Checks if given file exist in DB
+// Checks if given file exists in DB
 bool __stdcall db_access(const char* fileName);
 
 long __stdcall db_fclose(DbFile* file);
@@ -122,7 +122,7 @@ void __stdcall interpretPushLong(Program* scriptPtr, DWORD val);
 // pushes value type to Data stack (must be preceded by InterpretPushLong)
 void __stdcall interpretPushShort(Program* scriptPtr, DWORD valType);
 
-const char* __stdcall interpretGetString(Program* scriptPtr, DWORD dataType, DWORD strId);
+const char* __fastcall interpretGetString(Program* scriptPtr, DWORD dataType, DWORD strId);
 
 DWORD __stdcall interpretAddString(Program* scriptPtr, const char* str);
 
@@ -164,6 +164,8 @@ long __stdcall message_load(MessageList *msgList, const char *msgFilePath);
 
 // destroys message list
 long __stdcall message_exit(MessageList *msgList);
+
+long __fastcall tile_num(long x, long y);
 
 GameObject* __fastcall obj_blocking_at_wrapper(GameObject* obj, DWORD tile, DWORD elevation, void* func);
 

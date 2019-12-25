@@ -120,6 +120,7 @@ static void __declspec(naked) queue_add_hack() {
 	__asm {
 		mov  [edx + 8], edi; // queue.object
 		mov  [edx], esi;     // queue.time
+		//
 		test edi, edi;
 		jnz  fix;
 		retn;
@@ -152,9 +153,7 @@ end:
 }
 
 void Objects::SetAutoUnjamLockTime(DWORD time) {
-	if (!unjamTimeState) {
-		BlockCall(0x4A364A); // disable auto unjam at midnight
-	}
+	if (!unjamTimeState) BlockCall(0x4A364A); // disable auto unjam at midnight
 
 	if (time > 0) {
 		SafeWrite8(0x4831D9, (BYTE)time);

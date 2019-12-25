@@ -16,9 +16,7 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <cassert>
 //#include <unordered_set>
-#include <string>
 #include <unordered_map>
 #include <map>
 
@@ -53,6 +51,8 @@ static DWORD _stdcall HandleMapUpdateForScripts(const DWORD procId);
 
 static int idle;
 
+char ScriptExtender::gTextBuffer[5120]; // used as global temp text buffer for script functions
+
 std::string ScriptExtender::iniConfigFolder;
 
 struct GlobalScript {
@@ -84,6 +84,18 @@ struct SelfOverrideObj {
 	}
 };
 
+struct TimedEvent {
+	ScriptProgram* script;
+	long time;
+	long fixed_param;
+
+	bool operator() (const TimedEvent &a, const TimedEvent &b) {
+		return a.time < b.time;
+	}
+} *timedEvent = nullptr;
+
+static std::list<TimedEvent> timerEventScripts;
+
 static std::vector<std::string> globalScriptPathList;
 static std::map<std::string, std::string> globalScriptFilesList;
 
@@ -112,11 +124,17 @@ bool alwaysFindScripts;
 
 fo::ScriptInstance overrideScriptStruct = {0};
 
-static const DWORD scr_ptr_back = fo::funcoffs::scr_ptr_ + 5;
-static const DWORD scr_find_sid_from_program = fo::funcoffs::scr_find_sid_from_program_ + 5;
-static const DWORD scr_find_obj_from_program = fo::funcoffs::scr_find_obj_from_program_ + 7;
+long ScriptExtender::GetScriptReturnValue() {
+	return overrideScriptStruct.returnValue;
+}
 
-static DWORD _stdcall FindSid(fo::Program* script) {
+long ScriptExtender::GetResetScriptReturnValue() {
+	long val = GetScriptReturnValue();
+	overrideScriptStruct.returnValue = 0;
+	return val;
+}
+
+static DWORD __stdcall FindSid(fo::Program* script) {
 	std::unordered_map<fo::Program*, SelfOverrideObj>::iterator overrideIt = selfOverrideMap.find(script);
 	if (overrideIt != selfOverrideMap.end()) {
 		DWORD scriptId = overrideIt->second.object->scriptId; // script
@@ -132,11 +150,22 @@ static DWORD _stdcall FindSid(fo::Program* script) {
 	}
 	// this will allow to use functions like roll_vs_skill, etc without calling set_self (they don't really need self object)
 	if (sfallProgsMap.find(script) != sfallProgsMap.end()) {
-		overrideScriptStruct.targetObject = overrideScriptStruct.selfObject = 0;
+		if (timedEvent && timedEvent->script->ptr == script) {
+			overrideScriptStruct.fixedParam = timedEvent->fixed_param;
+		} else {
+			overrideScriptStruct.fixedParam = 0;
+		}
+		overrideScriptStruct.targetObject = 0;
+		overrideScriptStruct.selfObject = 0;
+		overrideScriptStruct.returnValue = 0;
 		return -2; // override struct
 	}
 	return -1; // change nothing
 }
+
+static const DWORD scr_ptr_back = fo::funcoffs::scr_ptr_ + 5;
+static const DWORD scr_find_sid_from_program = fo::funcoffs::scr_find_sid_from_program_ + 5;
+//static const DWORD scr_find_obj_from_program = fo::funcoffs::scr_find_obj_from_program_ + 7;
 
 static void __declspec(naked) FindSidHack() {
 	__asm {
@@ -295,7 +324,7 @@ static void __declspec(naked) FreeProgramHook() {
 }
 
 static void __declspec(naked) CombatBeginHook() {
-	using fo::ScriptProc::combat_is_starting_p_proc;
+	using namespace fo::Scripts;
 	__asm {
 		push eax;
 		call fo::funcoffs::scr_set_ext_param_;
@@ -306,7 +335,7 @@ static void __declspec(naked) CombatBeginHook() {
 }
 
 static void __declspec(naked) CombatOverHook() {
-	using fo::ScriptProc::combat_is_over_p_proc;
+	using namespace fo::Scripts;
 	__asm {
 		push eax;
 		call fo::funcoffs::scr_set_ext_param_;
@@ -407,7 +436,7 @@ void LoadScriptProgram(ScriptProgram &prog, const char* fileName, bool fullPath)
 		const char** procTable = fo::var::procTableStrs;
 		prog.ptr = scriptPtr;
 		// fill lookup table
-		for (int i = 0; i < fo::ScriptProc::count; ++i) {
+		for (int i = 0; i < fo::Scripts::ScriptProc::count; ++i) {
 			prog.procLookup[i] = fo::func::interpretFindProcedure(prog.ptr, procTable[i]);
 		}
 		prog.initialized = 0;
@@ -424,11 +453,11 @@ void InitScriptProgram(ScriptProgram &prog) {
 	}
 }
 
-void AddProgramToMap(ScriptProgram &prog) {
+void ScriptExtender::AddProgramToMap(ScriptProgram &prog) {
 	sfallProgsMap[prog.ptr] = prog;
 }
 
-ScriptProgram* GetGlobalScriptProgram(fo::Program* scriptPtr) {
+ScriptProgram* ScriptExtender::GetGlobalScriptProgram(fo::Program* scriptPtr) {
 	SfallProgsMap::iterator it = sfallProgsMap.find(scriptPtr);
 	return (it == sfallProgsMap.end()) ? nullptr : &it->second ; // prog
 }
@@ -452,9 +481,9 @@ static void LoadGlobalScriptsList() {
 		if (prog.ptr) {
 			dlogr(" Done", DL_SCRIPT);
 			GlobalScript gscript = GlobalScript(prog);
-			gscript.startProc = prog.procLookup[fo::ScriptProc::start]; // get 'start' procedure position
+			gscript.startProc = prog.procLookup[fo::Scripts::ScriptProc::start]; // get 'start' procedure position
 			globalScripts.push_back(gscript);
-			AddProgramToMap(prog);
+			ScriptExtender::AddProgramToMap(prog);
 			// initialize script (start proc will be executed for the first time) -- this needs to be after script is added to "globalScripts" array
 			InitScriptProgram(prog);
 		} else {
@@ -499,7 +528,9 @@ static void PrepareGlobalScriptsListByMask() {
 static void LoadGlobalScripts() {
 	static bool listIsPrepared = false;
 	isGameLoading = false;
+
 	LoadHookScripts();
+
 	dlogr("Loading global scripts:", DL_SCRIPT|DL_INIT);
 	if (!listIsPrepared) { // only once
 		PrepareGlobalScriptsListByMask();
@@ -528,6 +559,7 @@ static void ClearGlobalScripts() {
 	globalScripts.clear();
 	selfOverrideMap.clear();
 	globalExportedVars.clear();
+	timerEventScripts.clear();
 	HookScriptClear();
 }
 
@@ -540,20 +572,18 @@ void RunScriptProc(ScriptProgram* prog, const char* procName) {
 }
 
 void RunScriptProc(ScriptProgram* prog, long procId) {
-	if (procId > 0 && procId < fo::ScriptProc::count) {
-		fo::Program* sptr = prog->ptr;
+	if (procId > 0 && procId < fo::Scripts::ScriptProc::count) {
 		int procNum = prog->procLookup[procId];
 		if (procNum != -1) {
-			fo::func::executeProcedure(sptr, procNum);
+			fo::func::executeProcedure(prog->ptr, procNum);
 		}
 	}
 }
 
 int RunScriptStartProc(ScriptProgram* prog) {
-	fo::Program* sptr = prog->ptr;
-	int procNum = prog->procLookup[fo::ScriptProc::start];
+	int procNum = prog->procLookup[fo::Scripts::ScriptProc::start];
 	if (procNum != -1) {
-		fo::func::executeProcedure(sptr, procNum);
+		fo::func::executeProcedure(prog->ptr, procNum);
 	}
 	return procNum;
 }
@@ -576,9 +606,8 @@ static void ResetStateAfterFrame() {
 }
 
 static inline void RunGlobalScripts(int mode1, int mode2) {
-	if (idle > -1 && idle <= 127) {
-		Sleep(idle);
-	}
+	if (idle > -1) Sleep(idle);
+
 	for (DWORD d = 0; d < globalScripts.size(); d++) {
 		if (globalScripts[d].repeat
 			&& (globalScripts[d].mode == mode1 || globalScripts[d].mode == mode2)
@@ -604,17 +633,65 @@ static void RunGlobalScriptsOnWorldMap() {
 }
 
 static DWORD _stdcall HandleMapUpdateForScripts(const DWORD procId) {
-	if (procId == fo::ScriptProc::map_enter_p_proc) {
+	if (procId == fo::Scripts::ScriptProc::map_enter_p_proc) {
 		// map changed, all game objects were destroyed and scripts detached, need to re-insert global scripts into the game
 		for (std::vector<GlobalScript>::const_iterator it = globalScripts.cbegin(); it != globalScripts.cend(); it++) {
 			fo::func::runProgram(it->prog.ptr);
 		}
-	} else if (procId == fo::ScriptProc::map_exit_p_proc) onMapExit.invoke();
+	} else if (procId == fo::Scripts::ScriptProc::map_exit_p_proc) onMapExit.invoke();
 
 	RunGlobalScriptsAtProc(procId); // gl* scripts of types 0 and 3
 	RunHookScriptsAtProc(procId);   // all hs_ scripts
 
 	return procId; // restore eax (don't delete)
+}
+
+static long HandleTimedEventScripts() {
+	long currentTime = fo::var::fallout_game_time;
+	bool wereRunning = false;
+	auto timerIt = timerEventScripts.cbegin();
+	for (; timerIt != timerEventScripts.cend(); timerIt++) {
+		if (currentTime >= timerIt->time) {
+			timedEvent = const_cast<TimedEvent*>(&(*timerIt));
+			fo::func::dev_printf("\n[TimedEventScripts] run event: %d", timerIt->time);
+			RunScriptProc(timerIt->script, fo::Scripts::ScriptProc::timed_event_p_proc);
+			wereRunning = true;
+		} else {
+			break;
+		}
+	}
+	if (wereRunning) {
+		for (auto _it = timerEventScripts.cbegin(); _it != timerIt; _it++) {
+			fo::func::dev_printf("\n[TimedEventScripts] delete event: %d", _it->time);
+		}
+		timerEventScripts.erase(timerEventScripts.cbegin(), timerIt);
+	}
+	timedEvent = nullptr;
+	return currentTime;
+}
+
+void ScriptExtender::AddTimerEventScripts(fo::Program* script, long time, long param) {
+	ScriptProgram* scriptProg = &(sfallProgsMap.find(script)->second);
+	TimedEvent timer;
+	timer.script = scriptProg;
+	timer.fixed_param = param;
+	timer.time = fo::var::fallout_game_time + time;
+	timerEventScripts.push_back(std::move(timer));
+	timerEventScripts.sort(TimedEvent());
+}
+
+void ScriptExtender::RemoveTimerEventScripts(fo::Program* script, long param) {
+	ScriptProgram* scriptProg = &(sfallProgsMap.find(script)->second);
+	timerEventScripts.remove_if([scriptProg, param] (TimedEvent timer) {
+		return timer.script == scriptProg && timer.fixed_param == param;
+	});
+}
+
+void ScriptExtender::RemoveTimerEventScripts(fo::Program* script) {
+	ScriptProgram* scriptProg = &(sfallProgsMap.find(script)->second);
+	timerEventScripts.remove_if([scriptProg] (TimedEvent timer) {
+		return timer.script == scriptProg;
+	});
 }
 
 // run all global scripts of types 0 and 3 at specific procedure (if exist)
@@ -724,9 +801,10 @@ void ScriptExtender::init() {
 	}
 
 	idle = GetConfigInt("Misc", "ProcessorIdle", -1);
-	if (idle > -1 && idle <= 127) {
+	if (idle > -1) {
+		if (idle > 127) idle = 127;
 		fo::var::idle_func = reinterpret_cast<DWORD>(Sleep);
-		SafeWrite8(0x4C9F12, 0x6A); // push
+		SafeWrite8(0x4C9F12, 0x6A); // push idle
 		SafeWrite8(0x4C9F13, idle);
 	}
 
@@ -745,7 +823,7 @@ void ScriptExtender::init() {
 		bool pathSeparator = (c == '\\' || c == '/');
 		if (len > 62 || (len == 62 && !pathSeparator)) {
 			iniConfigFolder.clear();
-			dlogr("Error: IniConfigFolder path is too long.", DL_SCRIPT);
+			dlogr("Error: IniConfigFolder path is too long.", DL_INIT|DL_SCRIPT);
 		} else if (!pathSeparator) {
 			iniConfigFolder += '\\';
 		}
@@ -754,9 +832,9 @@ void ScriptExtender::init() {
 	alwaysFindScripts = isDebug && (iniGetInt("Debugging", "AlwaysFindScripts", 0, ::sfall::ddrawIni) != 0);
 	if (alwaysFindScripts) dlogr("Always searching for global scripts behavior enabled.", DL_SCRIPT);
 
-	MakeJump(0x4A390C, FindSidHack);
+	MakeJump(0x4A390C, FindSidHack); // scr_find_sid_from_program_
 	MakeJump(0x4A5E34, ScrPtrHack);
-
+	HookCall(0x4A26D6, HandleTimedEventScripts); // queue_process_
 	MakeJump(0x4A67F0, ExecMapScriptsHack);
 
 	// this patch makes it possible to export variables from sfall global scripts

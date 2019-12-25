@@ -489,7 +489,7 @@ static void __fastcall PartyMemberPrintStat(BYTE* surface, DWORD toWidth) {
 	const char* fmt = "%s %d";
 	char lvlMsg[16], acMsg[16];
 
-	fo::GameObject* partyMember = (fo::GameObject*)fo::var::dialog_target;
+	fo::GameObject* partyMember = fo::var::dialog_target;
 	int xPos = 350;
 
 	int level = fo::func::partyMemberGetCurLevel(partyMember);

@@ -24,7 +24,7 @@ The input functions are only available if the user has the input hook turned on 
 
 The graphics functions are only available if the user is using graphics mode 4 or 5. Use graphics_funcs_available to check; it returns 1 if you can use them or 0 if you can't. Calling graphics functions when graphics_funcs_available returns 0 will do nothing.
 
-load_shader takes a path relative to the data\shaders\ directory as an argument and returns a shader ID. That ID should be passed as the first argument to all other shader functions, and is valid until free_shader is called on the ID, the player loads a saved game or the player quits to the main menu.
+load_shader takes a path relative to the <GameRoot>\<master_patches>\shaders\ directory as an argument and returns a shader ID. That ID should be passed as the first argument to all other shader functions, and is valid until free_shader is called on the ID, the player loads a saved game or the player quits to the main menu.
 
 get_shader_version gives you the highest shader version supported by the player's graphics cards. Possible return values are 11, 12, 13, 14, 20, 21 and 30.
 
@@ -153,12 +153,13 @@ array - array ID to be used with array-related functions (actually an integer)
 - accepts a pointer to an object and will remove the script from that object.
 
 > void set_script(object, int scriptid)
-- accepts a pointer to an object and scriptID, and applies the given script to an object (scriptID accept the same values as create_object_sid from sfall 3.6)
+- accepts a pointer to an object and scriptID, and applies the given script to an object (scriptID accepts the same values as create_object_sid)
 - If used on an object that is already scripted, it will remove the existing script first; you cannot have multiple scripts attached to a single object. Calling set_script on self_obj will have all sorts of wacky side effects, and should be avoided.
 - if you add 0x80000000 to the sid when calling set_script, map_enter_p_proc will be SKIPPED. The start proc will always be run.
 
 > int get_script(object)
-- accepts a pointer to an object and returns its scriptID (line number in scripts.lst), or -1 if the object is unscripted.
+- accepts a pointer to an object and returns its scriptID (line number in scripts.lst), or 0 if the object is unscripted.
+- returns -1 on argument error.
 
 > void set_self(int obj)
 - overrides the scripts self_obj for the next function call.
@@ -218,6 +219,9 @@ Some additional reg_anim_* functions were introduced. They all work in the same 
 > void reg_anim_turn_towards(object, tile/target, delay)
 - makes object change its direction to face given tile num or target object.
 
+> void reg_anim_callback(procedure proc)
+- adds the given procedure to an animation sequence-list and executes it in the registered sequence.
+
 > int/array metarule2_explosions(int arg1, int arg2, int arg3)
 was made as a dirty easy hack to allow dynamically change some explosion parameters (ranged attack). All changed parameters are reset to vanilla state automatically after each attack action. Following macros are available in sfall.h:
 
@@ -259,7 +263,10 @@ Some utility/math functions are available:
 - you can use this to search for a substring in a string like this: strlen(get_array(string_split(haystack, needle), 0))
 
 > string substr(string, start, length)
-- cuts a substring from a string starting at "start" up to "length" characters. If start is negative - it indicates starting position from the end of the string (for example substr("test", -2, 2) will return last 2 charactes: "st"). If length is negative - it means so many characters will be omitted from the end of string (example: substr("test", 0, -2) will return string without last 2 characters: "te")
+- cuts a substring from a string starting at "start" up to "length" characters. The first character position is 0 (zero).
+- If start is negative - it indicates starting position from the end of the string (for example substr("test", -2, 2) will return last 2 charactes: "st").
+- If length is negative - it means so many characters will be omitted from the end of string (example: substr("test", 0, -2) will return string without last 2 characters: "te").
+- If length is zero - it will return a string from the starting position to the end of the string **New behavior** for sfall 4.2.2/3.8.22
 
 > int strlen(string string)
 - returns string length
@@ -449,6 +456,7 @@ Some utility/math functions are available:
 
 > array sfall_func2("get_ini_section", string fileName, string section)
 - returns an associative array of keys and values for a given INI file and section
+- NOTE: all keys and their values will be of String type
 
 > int sfall_func0("car_gas_amount")
 - returns current amount of fuel in player's car (between 0 and 80000)
@@ -514,9 +522,10 @@ Some utility/math functions are available:
 - adds one custom box to the current boxes, and returns the number of the added tag (-1 if the tags limit is exceeded)
 - The maximum number of boxes is limited to 126 tags
 
+> void sfall_func0("inventory_redraw")
 > void sfall_func1("inventory_redraw", int invSide)
 - redraws inventory list in the inventory/use inventory item on/loot/barter screens
-- invSide specifies which side needs to be redrawn: 0 - the player, 1 - target (container/NPC in loot/barter screens)
+- invSide specifies which side needs to be redrawn: 0 - the player, 1 - target (container/NPC in loot/barter screens), -1 - both sides (same as without argument)
 
 > void sfall_func3("item_make_explosive", int pid, int activePid, int damage)
 > void sfall_func4("item_make_explosive", int pid, int activePid, int min, int max)
@@ -555,10 +564,11 @@ Some utility/math functions are available:
 > object sfall_func0("dialog_obj")
 - returns a pointer to the object (critter) the player is having a conversation or bartering with
 
-> object sfall_func2("obj_under_cursor", bool crSwitch, bool inclDude)
+> object sfall_func2("obj_under_cursor", bool onlyCritter, bool includeDude)
 - returns the object under the cursor on the main game screen
-- crSwitch: True - only checks critters and ignores their cover (roof tiles, walls, scenery, etc.), False - checks all objects (can't check critters under objects)
-- passing False to the inclDude argument will ignore dude_obj
+- onlyCritter: True - only checks critters and ignores their cover (roof tiles, walls, scenery, etc.)
+               False - checks all objects (can't check critters under objects)
+- passing False to the includeDude argument will ignore dude_obj
 
 > object sfall_func0("loot_obj")
 - returns a pointer to the target object (container or critter) of the loot screen
@@ -596,8 +606,8 @@ Some utility/math functions are available:
 
 > void sfall_func5("draw_image", string/int pathFile/artId, int frame, int x, int y, bool noTransparent)
 > void sfall_func6("draw_image_scaled", string/int pathFile/artId, int frame, int x, int y, int width, int height)
-- displays the specified FRM image in the active window created by vanilla CreateWin or sfall's create_win script function
-- pathFile/artId: path to the FRM file (e.g. "art\\inven\\5mmap.frm"), or its FRM ID number (e.g. 117440550, see specification of the FID format)
+- displays the specified PCX or FRM image in the active window created by vanilla CreateWin or sfall's create_win script function
+- pathFile/artId: path to the PCX/FRM file (e.g. "art\\inven\\5mmap.frm"), or its FRM ID number (e.g. 117440550, see specification of the FID format)
 optional arguments:
 - frame: frame number, the first frame starts from zero
 - x/y: offset relative to the top-left corner of the window
@@ -627,11 +637,65 @@ optional argument:
 - can take off player's equipped item when the inventory is opened, or the player is in the barter screen
 - slot: 0 - armor slot, 1 - right slot, 2 - left slot (see INVEN_TYPE_* in define.h)
 
-> void sfall_func1("add_trait", int traitId)
+> void sfall_func1("add_trait", int traitID)
 - adds the specified trait to the player
 
 > int sfall_func0("get_inven_ap_cost")
 - returns the current AP cost to access the inventory in combat
+
+> void sfall_func2("add_g_timer_event", int time, int fixedParam)
+- adds a timer event that calls the timed_event_p_proc procedure in the current global script
+- time: the number of ticks after which the event timer is triggered
+- fixedParam: the value that is passed to the timed_event_p_proc procedure for the fixed_param function
+
+> void sfall_func0("remove_timer_event")
+- clears all set timer events for the current global script
+
+> void sfall_func1("remove_timer_event", int fixedParam)
+- removes all timer events with the specified 'fixedParam' value for the current global script
+
+> mixed sfall_func1("get_sfall_arg_at", int argNum)
+- gets the value of hook argument with the specified argument number (first argument of hook starts from 0)
+
+> void sfall_func0("hide_window")
+> void sfall_func1("hide_window", string winName)
+- hides the specified or currently active (selected) script window
+- winName: the window name, assigned to the window by the CreateWin/create_win function
+
+> void sfall_func0("show_window")
+> void sfall_func1("show_window", string winName)
+- displays the specified hidden script window or the one previously hidden with the sfall_func0("hide_window") function
+- winName: the window name, assigned to the window by the CreateWin/create_win function
+
+> void sfall_func3("set_window_flag", string/int winName/winID, int flag, bool value)
+- changes the specified flag for the created script or game interface window
+- winName: the window name, assigned to the window by the CreateWin/create_win function
+- winID: the ID number of the interface or script window obtained with the get_window_under_mouse function, or 0 for the current game interface
+- flag: the flag to change (see WIN_FLAG_* constants in define_extra.h)
+- value: true - set the flag, false - unset the flag
+
+> int sfall_func1("get_text_width", string text)
+- returns the text width in pixels for the currently set font
+
+> bool sfall_func2("string_compare", string str1, string str2)
+> bool sfall_func3("string_compare", string str1, string str2, int codePage)
+- compares two strings case-insensitive, and returns True if the two strings are matched
+- codePage: code page number to properly compare national characters in the range 128-255 of the ASCII code table
+  available encodings: 1250-1252, 866
+
+> string sfall_func3("string_format", string format, any val1, any val2, ...)
+- formats given value using standard syntax of C printf function (google "printf" for format details). However it is limited to formatting up to 4 values
+- formatting is only supported for %s and %d, and the format string is limited to 1024 characters
+
+> array sfall_func3("objects_in_radius", int tile, int radius, int elevation)
+> array sfall_func4("objects_in_radius", int tile, int radius, int elevation, int type)
+- returns an array of objects of a type (see OBJ_TYPE_* constants in define_extra.h) within the specified radius from the given tile
+- passing -1 to the type argument or not specifying it will return all objects within the radius
+- the radius is limited to 50 hexes
+
+> int sfall_func2("tile_by_position", int x, int y)
+- returns the tile number at the x, y position relative to the top-left corner of the screen
+- if the position is outside of the range of tiles, it will return -1
 
 ------------------------
 ------ MORE INFO -------

@@ -689,7 +689,7 @@ normalPerk:
 		pop  edx;
 		test eax, eax;
 		jnz  end;
-		// fix gain perks
+		// fix gain perks (add to base stats instead of bonus stats)
 		cmp  edx, PERK_gain_strength_perk;
 		jl   end;
 		cmp  edx, PERK_gain_luck_perk;
@@ -868,7 +868,7 @@ static void PerkSetup() {
 	if (perksEnable) {
 		char num[4];
 		for (int i = 0; i < PERK_count; i++) {
-			_itoa_s(i, num, 10);
+			_itoa(i, num, 10);
 			if (iniGetString(num, "Name", "", &Name[i * maxNameLen], maxNameLen - 1, perksFile)) {
 				perks[i].name = &Name[i * maxNameLen];
 			}
@@ -1450,10 +1450,11 @@ void Perks::init() {
 
 	FastShotTraitFix();
 
+	// Disable gain perks for bonus stats
 	for (int i = STAT_st; i <= STAT_lu; i++) SafeWrite8(GainStatPerks[i][0], (BYTE)GainStatPerks[i][1]);
 
 	PerkEngineInit();
-	HookCall(0x442729, PerkInitWrapper);      // game_init_
+	HookCall(0x442729, PerkInitWrapper); // game_init_
 
 	if (GetConfigString("Misc", "PerksFile", "", &perksFile[2], MAX_PATH - 3)) {
 		perksFile[0] = '.';

@@ -19,6 +19,7 @@
 #include <cmath>
 
 #include "..\..\..\FalloutEngine\Fallout2.h"
+#include "..\..\..\FalloutEngine\EngineUtils.h"
 #include "..\..\ScriptExtender.h"
 #include "..\..\FileSystem.h"
 #include "..\..\Message.h"
@@ -32,6 +33,69 @@ namespace sfall
 {
 namespace script
 {
+
+// compares strings case-insensitive with specifics for Fallout
+static bool FalloutStringCompare(const char* str1, const char* str2, long codePage) {
+	while (true) {
+		unsigned char c1 = *str1;
+		unsigned char c2 = *str2;
+		if (c1 == 0 && c2 == 0) return true;  // end - strings are equal
+		if (c1 == 0 || c2 == 0) return false; // strings are not equal
+		str1++;
+		str2++;
+		if (c1 == c2) continue;
+		if (codePage == 866) {
+			// replace Russian 'x' to English (Fallout specific)
+			if (c1 == 229) c1 -= 229 - 'x';
+			if (c2 == 229) c2 -= 229 - 'x';
+		}
+
+		// 0 - 127 (standard ASCII)
+		// upper to lower case
+		if (c1 >= 'A' && c1 <= 'Z') c1 |= 32;
+		if (c2 >= 'A' && c2 <= 'Z') c2 |= 32;
+		if (c1 == c2) continue;
+		if (c1 < 128 || c2 < 128) return false;
+
+		// 128 - 255 (international/extended)
+		switch (codePage) {
+		case 866:
+			if (c1 != 149 && c2 != 149) { // code used for the 'bullet' character in Fallout font
+				// upper to lower case
+				if (c1 >= 0x80 && c1 <= 0x9F) {
+					c1 |= 32;
+				} else if (c1 >= 224 && c1 <= 239) {
+					c1 -= 48; // shift lower range
+				} else if (c1 == 240) {
+					c1++;
+				}
+				if (c2 >= 0x80 && c2 <= 0x9F) {
+					c2 |= 32;
+				} else if (c2 >= 224 && c2 <= 239) {
+					c2 -= 48; // shift lower range
+				} else if (c2 == 240) {
+					c2++;
+				}
+			}
+			break;
+		case 1251:
+			// upper to lower case
+			if (c1 >= 0xC0 && c1 <= 0xDF) c1 |= 32;
+			if (c2 >= 0xC0 && c2 <= 0xDF) c2 |= 32;
+			if (c1 == 0xA8) c1 += 16;
+			if (c2 == 0xA8) c2 += 16;
+			break;
+		case 1250:
+		case 1252:
+			if (c1 != 0xD7 && c1 != 0xF7 && c2 != 0xD7 && c2 != 0xF7) {
+				if (c1 >= 0xC0 && c1 <= 0xDE) c1 |= 32;
+				if (c2 >= 0xC0 && c2 <= 0xDE) c2 |= 32;
+			}
+			break;
+		}
+		if (c1 != c2) return false; // strings are not equal
+	}
+}
 
 void sf_sqrt(OpcodeContext& ctx) {
 	ctx.setReturn(sqrt(ctx.arg(0).asFloat()));
@@ -63,27 +127,27 @@ void sf_arctan(OpcodeContext& ctx) {
 
 void sf_strlen(OpcodeContext& ctx) {
 	ctx.setReturn(
-		static_cast<int>(strlen(ctx.arg(0).asString()))
+		static_cast<int>(strlen(ctx.arg(0).strValue()))
 	);
 }
 
 void sf_atoi(OpcodeContext& ctx) {
-	auto str = ctx.arg(0).asString();
+	auto str = ctx.arg(0).strValue();
 	ctx.setReturn(
 		static_cast<int>(strtol(str, (char**)nullptr, 0)) // auto-determine radix
 	);
 }
 
 void sf_atof(OpcodeContext& ctx) {
-	auto str = ctx.arg(0).asString();
+	auto str = ctx.arg(0).strValue();
 	ctx.setReturn(
 		static_cast<float>(atof(str))
 	);
 }
 
 void sf_ord(OpcodeContext& ctx) {
-	char firstChar = ctx.arg(0).asString()[0];
-	ctx.setReturn(static_cast<int>(firstChar));
+	unsigned char firstChar = ctx.arg(0).strValue()[0];
+	ctx.setReturn(static_cast<unsigned long>(firstChar));
 }
 
 void sf_typeof(OpcodeContext& ctx) {
@@ -123,42 +187,57 @@ static int _stdcall StringSplit(const char* str, const char* split) {
 }
 
 void sf_string_split(OpcodeContext& ctx) {
-	ctx.setReturn(StringSplit(ctx.arg(0).asString(), ctx.arg(1).asString()));
+	ctx.setReturn(StringSplit(ctx.arg(0).strValue(), ctx.arg(1).strValue()));
 }
 
-char* _stdcall Substring(const char* str, int pos, int length) {
-	char* newstr;
-	int srclen;
-	srclen = strlen(str);
-	if (pos < 0)
-		pos = srclen + pos;
-	if (length < 0)
-		length = srclen - pos + length;
-	if (pos >= srclen)
-		length = 0;
-	else if (length + pos > srclen)
-		length = srclen - pos;
-	newstr = new char[length + 1];
-	if (length > 0)
-		memcpy(newstr, &str[pos], length);
-	newstr[length] = '\0';
-	return newstr;
+static char* SubString(const char* str, int startPos, int length) {
+	int len = strlen(str);
+
+	if (startPos < 0) {
+		startPos += len; // start from end
+		if (startPos < 0) startPos = 0;
+	}
+	if (length < 0) {
+		length += len - startPos; // cutoff at end
+		if (length == 0) return "";
+		length = abs(length); // length can't be negative
+	}
+	// check position
+	if (startPos >= len) return ""; // start position is out of string length, return empty string
+	if (length == 0 || length + startPos > len) {
+		length = len - startPos; // set the correct length, the length of characters goes beyond the end of the string
+	}
+
+	const int bufMax = ScriptExtender::TextBufferSize() - 1;
+	if (length > bufMax) length = bufMax;
+
+	memcpy(ScriptExtender::gTextBuffer, &str[startPos], length);
+	ScriptExtender::gTextBuffer[length] = '\0';
+	return ScriptExtender::gTextBuffer;
 }
 
 void sf_substr(OpcodeContext& ctx) {
-	ctx.setReturn(
-		Substring(ctx.arg(0).asString(), ctx.arg(1).asInt(), ctx.arg(2).asInt())
-	);
+	const char* str = ctx.arg(0).strValue();
+	if (*str != '\0') str = SubString(str, ctx.arg(1).rawValue(), ctx.arg(2).rawValue());
+	ctx.setReturn(str);
 }
 
-static char* sprintfbuf = nullptr;
+void sf_string_compare(OpcodeContext& ctx) {
+	if (ctx.numArgs() < 3) {
+		ctx.setReturn(
+			(_stricmp(ctx.arg(0).strValue(), ctx.arg(1).strValue()) ? 0 : 1)
+		);
+	} else {
+		ctx.setReturn(FalloutStringCompare(ctx.arg(0).strValue(), ctx.arg(1).strValue(), ctx.arg(2).rawValue()));
+	}
+}
+
 // A safer version of sprintf for using in user scripts.
-static char* _stdcall sprintf_lite(const char* format, ScriptValue value) {
+static char* sprintf_lite(const char* format, ScriptValue value) {
 	int fmtlen = strlen(format);
 	int buflen = fmtlen + 1;
 	for (int i = 0; i < fmtlen; i++) {
-		if (format[i] == '%')
-			buflen++; // will possibly be escaped, need space for that
+		if (format[i] == '%') buflen++; // will possibly be escaped, need space for that
 	}
 	// parse format to make it safe
 	char* newfmt = new char[buflen];
@@ -206,34 +285,97 @@ static char* _stdcall sprintf_lite(const char* format, ScriptValue value) {
 		newfmt[j++] = c;
 	}
 	newfmt[j] = '\0';
-	// calculate required memory
+
+	// calculate required length
 	if (hasDigits) {
 		buflen = 254;
 	} else if (specifier == 'c') {
 		buflen = j;
 	} else if (specifier == 's') {
-		buflen = j + strlen(value.asString());
+		buflen = j + strlen(value.strValue());
 	} else {
 		buflen = j + 30; // numbers
 	}
-	if (sprintfbuf) {
-		delete[] sprintfbuf;
-	}
-	sprintfbuf = new char[buflen + 1];
+
+	const long bufMaxLen = ScriptExtender::TextBufferSize() - 1;
+	if (buflen > bufMaxLen - 1) buflen = bufMaxLen - 1;
+	ScriptExtender::gTextBuffer[bufMaxLen] = '\0';
+
 	if (value.isFloat()) {
-		_snprintf(sprintfbuf, buflen, newfmt, value.floatValue());
+		_snprintf(ScriptExtender::gTextBuffer, buflen, newfmt, value.floatValue());
 	} else {
-		_snprintf(sprintfbuf, buflen, newfmt, value.rawValue());
+		_snprintf(ScriptExtender::gTextBuffer, buflen, newfmt, value.rawValue());
 	}
-	sprintfbuf[buflen] = '\0'; // just in case
 	delete[] newfmt;
-	return sprintfbuf;
+	return ScriptExtender::gTextBuffer;
 }
 
 void sf_sprintf(OpcodeContext& ctx) {
 	ctx.setReturn(
-		sprintf_lite(ctx.arg(0).asString(), ctx.arg(1))
+		sprintf_lite(ctx.arg(0).strValue(), ctx.arg(1))
 	);
+}
+
+void sf_string_format(OpcodeContext& ctx) {
+	const char* format = ctx.arg(0).strValue();
+
+	int fmtLen = strlen(format);
+	if (fmtLen == 0) {
+		ctx.setReturn(format);
+		return;
+	}
+	if (fmtLen > 1024) {
+		ctx.printOpcodeError("%s() - the format string exceeds maximum length of 1024 characters.", ctx.getMetaruleName());
+		ctx.setReturn("Error");
+	} else {
+		char* newFmt = new char[fmtLen + 1];
+		newFmt[fmtLen] = '\0';
+		// parse format to make it safe
+		int i = 0, arg = 0, totalArg = ctx.numArgs(); // total passed args
+		do {
+			char c = format[i];
+			if (c == '%') {
+				char cf = format[i + 1];
+				if (cf != '%') {
+					if (arg >= 0) {
+						arg++;
+						if (arg == totalArg) arg = -1; // format '%' prefixes in the format string exceed the number of passed value args
+					}
+					if (arg < 0) { // have % more than passed value args
+						c = '^';   // delete %
+					}
+					// check string is valid or replace unsupported format
+					else if ((cf == 's' && (arg > 0 && !ctx.arg(arg).isString())) || (cf != 's' && cf != 'd')) {
+						newFmt[i++] = c;
+						c = 'd'; // replace with %d
+					}
+				} else {
+					newFmt[i++] = cf; // skip %%
+				}
+			}
+			newFmt[i] = c;
+		} while (++i < fmtLen);
+
+		const long bufMaxLen = ScriptExtender::TextBufferSize() - 1;
+
+		switch (totalArg) {
+		case 2 :
+			_snprintf(ScriptExtender::gTextBuffer, bufMaxLen, newFmt, ctx.arg(1).rawValue());
+			break;
+		case 3 :
+			_snprintf(ScriptExtender::gTextBuffer, bufMaxLen, newFmt, ctx.arg(1).rawValue(), ctx.arg(2).rawValue());
+			break;
+		case 4 :
+			_snprintf(ScriptExtender::gTextBuffer, bufMaxLen, newFmt, ctx.arg(1).rawValue(), ctx.arg(2).rawValue(), ctx.arg(3).rawValue());
+			break;
+		case 5 :
+			_snprintf(ScriptExtender::gTextBuffer, bufMaxLen, newFmt, ctx.arg(1).rawValue(), ctx.arg(2).rawValue(), ctx.arg(3).rawValue(), ctx.arg(4).rawValue());
+		}
+		ScriptExtender::gTextBuffer[bufMaxLen] = '\0'; // just in case
+
+		delete[] newFmt;
+		ctx.setReturn(ScriptExtender::gTextBuffer);
+	}
 }
 
 void sf_power(OpcodeContext& ctx) {
@@ -243,7 +385,7 @@ void sf_power(OpcodeContext& ctx) {
 	if (power.isFloat())
 		result = pow(base.asFloat(), power.floatValue());
 	else
-		result = pow(base.asFloat(), power.asInt());
+		result = pow(base.asFloat(), (int)power.rawValue());
 
 	if (base.isInt() && power.isInt()) {
 		ctx.setReturn(static_cast<int>(result));
@@ -315,7 +457,11 @@ void sf_floor2(OpcodeContext& ctx) {
 }
 
 void sf_get_string_pointer(OpcodeContext& ctx) {
-	ctx.setReturn(reinterpret_cast<long>(ctx.arg(0).asString()), DataType::INT);
+	ctx.setReturn(reinterpret_cast<long>(ctx.arg(0).strValue()), DataType::INT);
+}
+
+void sf_get_text_width(OpcodeContext& ctx) {
+	ctx.setReturn(fo::GetTextWidth(ctx.arg(0).strValue()));
 }
 
 }

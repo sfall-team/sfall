@@ -127,11 +127,11 @@ static void LoadElevators(const char* elevFile) {
 			elevatorsFrms[i].buttons = iniGetInt(section, "ButtonsFrm", elevatorsFrms[i].buttons, elevFile);
 			char setting[32];
 			for (int j = 0; j < exitsPerElevator; j++) {
-				sprintf_s(setting, "ID%d", j + 1);
+				sprintf(setting, "ID%d", j + 1);
 				elevatorExits[i][j].id = iniGetInt(section, setting, elevatorExits[i][j].id, elevFile);
-				sprintf_s(setting, "Elevation%d", j + 1);
+				sprintf(setting, "Elevation%d", j + 1);
 				elevatorExits[i][j].elevation = iniGetInt(section, setting, elevatorExits[i][j].elevation, elevFile);
-				sprintf_s(setting, "Tile%d", j + 1);
+				sprintf(setting, "Tile%d", j + 1);
 				elevatorExits[i][j].tile = iniGetInt(section, setting, elevatorExits[i][j].tile, elevFile);
 			}
 		}

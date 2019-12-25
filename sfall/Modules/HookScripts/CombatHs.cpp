@@ -25,14 +25,14 @@ static void __declspec(naked) ToHitHook() {
 		mov  eax, args[4];    // restore
 		call fo::funcoffs::determine_to_hit_func_;
 		mov  args[0], eax;
-		pushad;
+		pushadc;
 	}
 
 	argCount = 7;
 	RunHookScript(HOOK_TOHIT);
 
 	__asm {
-		popad;
+		popadc;
 		cmp  cRet, 1;
 		cmovnb eax, rets[0];
 		HookEnd;
@@ -484,6 +484,67 @@ skip:
 	}
 }
 
+static DWORD targetRet = 0;
+static bool targetObjHookHasRet = false;
+
+static long __fastcall TargetObjectHook(DWORD isValid, DWORD object, long type) {
+	if (isValid > 1) isValid = 1;
+
+	BeginHook();
+	argCount = 3;
+
+	args[0] = type;    // 0 - mouse hovering over target, 1 - mouse clicking on target
+	args[1] = isValid; // 1 - target is valid
+	args[2] = object;  // target object
+
+	if (isValid == 0) object = 0; // it is necessary for the proper operation of the engine code
+	if (type == 0) targetRet = 0; // unset ret from the previous execution of the hook
+
+	RunHookScript(HOOK_TARGETOBJECT);
+
+	if (cRet > 0) {
+		targetRet = (rets[0] != 0) ? rets[0] : object; // 0 - default object, -1 - invalid target, or object override
+		object = (targetRet != -1) ? targetRet : 0;    // object can't be -1
+		targetObjHookHasRet = true;
+	}
+	else if (targetObjHookHasRet && type == 1) {
+		targetObjHookHasRet = false;
+		if (targetRet != -1) object = targetRet;
+	}
+	EndHook();
+	return object; // null or object
+}
+
+static void __declspec(naked) gmouse_bk_process_hook() {
+	__asm {
+		push 0;        // type
+		mov  ecx, eax; // 1 - valid(object) or 0 - invalid
+		mov  edx, edi; // object under mouse
+		call TargetObjectHook;
+		mov  edi, eax;
+		retn;
+	}
+}
+
+static void __declspec(naked) gmouse_handle_event_hook() {
+	__asm {
+		push 1;        // type
+		mov  ecx, eax; // 1 - valid(object) or 0 - invalid
+		cmp  dword ptr ds:[targetRet], 0;
+		je   default;
+		// override
+		mov  ecx, 1;
+		xor  eax, eax;
+		cmp  dword ptr ds:[targetRet], -1;
+		cmove  ecx, eax;       // if true - set invalid
+		cmovne edx, targetRet; // if false - set override object
+default:
+		call TargetObjectHook;
+		mov  edx, eax;
+		retn;
+	}
+}
+
 void Inject_ToHitHook() {
 	HookCalls(ToHitHook, {
 		0x421686, // combat_safety_invalidate_weapon_func_
@@ -559,6 +620,14 @@ void Inject_SubCombatDamageHook() {
 	MakeJump(0x42499C, SubComputeDamageHook);
 }
 
+void Inject_TargetObjectHook() {
+	MakeCall(0x44BB16, gmouse_bk_process_hook, 1);
+	SafeWrite8(0x44BB00, 0x15);
+
+	MakeCall(0x44C286, gmouse_handle_event_hook, 1);
+	SafeWrite8(0x44C26E, 0x17);
+}
+
 void InitCombatHookScripts() {
 	LoadHookScript("hs_tohit", HOOK_TOHIT);
 	LoadHookScript("hs_afterhitroll", HOOK_AFTERHITROLL);
@@ -570,6 +639,7 @@ void InitCombatHookScripts() {
 	LoadHookScript("hs_combatturn", HOOK_COMBATTURN);
 	LoadHookScript("hs_onexplosion", HOOK_ONEXPLOSION);
 	LoadHookScript("hs_subcombatdmg", HOOK_SUBCOMBATDAMAGE);
+	LoadHookScript("hs_targetobject", HOOK_TARGETOBJECT);
 }
 
 }

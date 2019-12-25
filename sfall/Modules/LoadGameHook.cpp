@@ -523,6 +523,10 @@ end:
 
 static void __declspec(naked) DialogHook() {
 	__asm {
+		test inLoop, DIALOG; // check byte flag
+		jz   changeMode;
+		jmp  fo::funcoffs::gdProcess_;
+changeMode:
 		_InLoop(1, DIALOG);
 		call fo::funcoffs::gdProcess_;
 		_InLoop(0, DIALOG);
@@ -579,6 +583,7 @@ static void __declspec(naked) LootContainerHook() {
 
 static void __declspec(naked) BarterInventoryHook() {
 	__asm {
+		and inLoop, ~SPECIAL; // unset flag
 		_InLoop(1, BARTER);
 		push [esp + 4];
 		call fo::funcoffs::barter_inventory_;
@@ -635,6 +640,30 @@ static void __declspec(naked) exit_move_timer_win_Hook() {
 		_InLoop2(0, COUNTERWIN);
 		pop  eax;
 		jmp  fo::funcoffs::win_delete_;
+	}
+}
+
+static void __declspec(naked) gdialog_bk_hook() {
+	__asm {
+		_InLoop2(1, SPECIAL);
+		jmp fo::funcoffs::gdialog_window_destroy_;
+	}
+}
+
+static void __declspec(naked) gdialogUpdatePartyStatus_hook1() {
+	__asm {
+		push edx;
+		_InLoop2(1, SPECIAL);
+		pop  edx;
+		jmp  fo::funcoffs::gdialog_window_destroy_;
+	}
+}
+
+static void __declspec(naked) gdialogUpdatePartyStatus_hook0() {
+	__asm {
+		call fo::funcoffs::gdialog_window_create_;
+		_InLoop2(0, SPECIAL);
+		retn;
 	}
 }
 
@@ -697,6 +726,11 @@ void LoadGameHook::init() {
 	HookCall(0x445D30, DialogReviewExitHook);
 	HookCall(0x476AC6, setup_move_timer_win_Hook); // before init win
 	HookCall(0x477067, exit_move_timer_win_Hook);
+
+	// Set and unset the Special flag of game mode when animating the dialog interface panel
+	HookCall(0x447A7E, gdialog_bk_hook); // set when switching from dialog mode to barter mode (unset when entering barter)
+	HookCall(0x4457B1, gdialogUpdatePartyStatus_hook1); // set when a party member joins/leaves
+	HookCall(0x4457BC, gdialogUpdatePartyStatus_hook0); // unset
 }
 
 Delegate<>& LoadGameHook::OnBeforeGameInit() {
