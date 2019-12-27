@@ -58,6 +58,29 @@ static std::vector<std::string> msgFileList;
 
 static long msgNumCounter = 0x3000;
 
+// Loads the msg file from the 'english' folder if it does not exist in the current language directory
+static void __declspec(naked) message_load_hook() {
+	__asm {
+		mov  ebx, edx; // keep mode
+		mov  ecx, eax; // keep buf
+		call fo::funcoffs::db_fopen_;
+		test eax, eax;
+		jz   noFile;
+		retn;
+noFile:
+		push ebp;      // file
+		push 0x500208; // "english"
+		push 0x50B7D0; // "text"
+		push 0x50B7D8; // "%s\%s\%s"
+		push ecx;      // buf
+		call fo::funcoffs::sprintf_;
+		add  esp, 20;
+		mov  edx, ebx;
+		mov  eax, ecx;
+		jmp  fo::funcoffs::db_fopen_;
+	}
+}
+
 fo::MessageNode *GetMsgNode(fo::MessageList *msgList, int msgRef) {
 	if (msgList != nullptr && msgList->numMsgs > 0) {
 		fo::MessageNode *msgNode = msgList->nodes;
@@ -127,11 +150,11 @@ long Message::AddExtraMsgFile(const char* msgName, long msgNumber) {
 	fo::MessageList* list = new fo::MessageList();
 	if (!fo::func::message_load(list, path.c_str())) {
 		// change current language folder
-		path.insert(0, "..\\english\\");
-		if (!fo::func::message_load(list, path.c_str())) {
+		//path.insert(0, "..\\english\\");
+		//if (!fo::func::message_load(list, path.c_str())) {
 			delete list;
 			return -2;
-		}
+		//}
 	}
 	if (msgNumber == 0) msgNumber = msgNumCounter++;
 	gExtraGameMsgLists.emplace(msgNumber, list);
@@ -150,21 +173,30 @@ static void ClearScriptAddedExtraGameMsg() { // C++11
 	msgNumCounter = 0x3000;
 }
 
+static void FallbackEnglishLoadMsgFiles() {
+	char value[128];
+	if (fo::func::get_game_config_string(value, "system", "language") && _stricmp(value, "english") != 0) {
+		HookCall(0x484B18, message_load_hook);
+	}
+}
+
 static void ClearReadExtraGameMsgFiles() {
 	for (auto it = gExtraGameMsgLists.begin(); it != gExtraGameMsgLists.end(); ++it) {
 		fo::func::message_exit(it->second.get());
 	}
-	//gExtraGameMsgLists.clear();
 }
 
 void Message::init() {
 	msgFileList = GetConfigList("Misc", "ExtraGameMsgFileList", "", 512);
+
+	LoadGameHook::OnGameInit() += FallbackEnglishLoadMsgFiles;
 	LoadGameHook::OnBeforeGameStart() += ReadExtraGameMsgFiles;
+	LoadGameHook::OnBeforeGameClose() += ClearReadExtraGameMsgFiles;
 	LoadGameHook::OnGameReset() += ClearScriptAddedExtraGameMsg;
 }
 
 void Message::exit() {
-	ClearReadExtraGameMsgFiles();
+	//gExtraGameMsgLists.clear();
 }
 
 }

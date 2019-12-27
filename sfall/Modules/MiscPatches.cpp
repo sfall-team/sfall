@@ -71,31 +71,6 @@ c15:
 	}
 }
 
-static void __declspec(naked) intface_rotate_numbers_hack() {
-	__asm {
-		push edi
-		push ebp
-		sub  esp, 0x54
-		// ebx=old value, ecx=new value
-		cmp  ebx, ecx
-		je   end
-		mov  ebx, ecx
-		jg   decrease
-		dec  ebx
-		jmp  end
-decrease:
-		test ecx, ecx
-		jl   negative
-		inc  ebx
-		jmp  end
-negative:
-		xor  ebx, ebx
-end:
-		push 0x460BA6
-		retn
-	}
-}
-
 static void __declspec(naked) register_object_take_out_hack() {
 	__asm {
 		push ecx
@@ -162,69 +137,6 @@ static void __declspec(naked) ReloadHook() {
 		pop ebx;
 		pop eax;
 		jmp fo::funcoffs::gsound_play_sfx_file_;
-	}
-}
-
-
-static const DWORD CorpseHitFix2_continue_loop1 = 0x48B99B;
-static void __declspec(naked) CorpseHitFix2() {
-	__asm {
-		push eax;
-		mov eax, [eax];
-		call fo::funcoffs::critter_is_dead_; // found some object, check if it's a dead critter
-		test eax, eax;
-		pop eax;
-		jz really_end; // if not, allow breaking the loop (will return this object)
-		jmp CorpseHitFix2_continue_loop1; // otherwise continue searching
-
-really_end:
-		mov     eax, [eax];
-		pop     ebp;
-		pop     edi;
-		pop     esi;
-		pop     ecx;
-		retn;
-	}
-}
-
-static const DWORD CorpseHitFix2_continue_loop2 = 0x48BA0B;
-// same logic as above, for different loop
-static void __declspec(naked) CorpseHitFix2b() {
-	__asm {
-		mov eax, [edx];
-		call fo::funcoffs::critter_is_dead_;
-		test eax, eax;
-		jz really_end;
-		jmp CorpseHitFix2_continue_loop2;
-
-really_end:
-		mov     eax, [edx];
-		pop     ebp;
-		pop     edi;
-		pop     esi;
-		pop     ecx;
-		retn;
-	}
-}
-
-static const DWORD NPCStage6Fix1End = 0x493D16;
-static void __declspec(naked) NPCStage6Fix1() {
-	__asm {
-		mov  eax, 204;                  // set record size to 204 bytes
-		imul eax, edx;                  // multiply by number of NPC records in party.txt
-		mov  ebx, eax;                  // copy total record size for later memset
-		call fo::funcoffs::mem_malloc_; // malloc the necessary memory
-		jmp  NPCStage6Fix1End;          // call memset to set all malloc'ed memory to 0
-	}
-}
-
-static const DWORD NPCStage6Fix2End = 0x49423A;
-static void __declspec(naked) NPCStage6Fix2() {
-	__asm {
-		mov  eax, 204;                  // record size is 204 bytes
-		imul edx, eax;                  // multiply by NPC number as listed in party.txt
-		mov  eax, dword ptr ds:[FO_VAR_partyMemberAIOptions]; // get starting offset of internal NPC table
-		jmp  NPCStage6Fix2End;          // eax+edx = offset of specific NPC record
 	}
 }
 
@@ -407,21 +319,6 @@ void SkilldexImagesPatch() {
 	dlogr(" Done", DL_INIT);
 }
 
-void SpeedInterfaceCounterAnimsPatch() {
-	switch (GetConfigInt("Misc", "SpeedInterfaceCounterAnims", 0)) {
-	case 1:
-		dlog("Applying SpeedInterfaceCounterAnims patch.", DL_INIT);
-		MakeJump(0x460BA1, intface_rotate_numbers_hack);
-		dlogr(" Done", DL_INIT);
-		break;
-	case 2:
-		dlog("Applying SpeedInterfaceCounterAnims patch. (Instant)", DL_INIT);
-		SafeWrite32(0x460BB6, 0x90DB3190); // xor ebx, ebx
-		dlogr(" Done", DL_INIT);
-		break;
-	}
-}
-
 void ScienceOnCrittersPatch() {
 	switch (GetConfigInt("Misc", "ScienceOnCritters", 0)) {
 	case 1:
@@ -486,39 +383,10 @@ void DontTurnOffSneakIfYouRunPatch() {
 	}
 }
 
-void MultiPatchesPatch() {
-	//if (GetConfigInt("Misc", "MultiPatches", 0)) {
-		dlog("Applying load multiple patches patch.", DL_INIT);
-		SafeWrite8(0x444354, 0x90); // Change step from 2 to 1
-		SafeWrite8(0x44435C, 0xC4); // Disable check
-		dlogr(" Done", DL_INIT);
-	//}
-}
-
 void PlayIdleAnimOnReloadPatch() {
 	if (GetConfigInt("Misc", "PlayIdleAnimOnReload", 0)) {
 		dlog("Applying idle anim on reload patch.", DL_INIT);
 		HookCall(0x460B8C, ReloadHook);
-		dlogr(" Done", DL_INIT);
-	}
-}
-
-void CorpseLineOfFireFix() {
-	if (GetConfigInt("Misc", "CorpseLineOfFireFix", 1)) {
-		dlog("Applying corpse line of fire patch.", DL_INIT);
-		MakeJump(0x48B994, CorpseHitFix2);
-		MakeJump(0x48BA04, CorpseHitFix2b);
-		dlogr(" Done", DL_INIT);
-	}
-}
-
-void NpcStage6Fix() {
-	if (GetConfigInt("Misc", "NPCStage6Fix", 0)) {
-		dlog("Applying NPC Stage 6 Fix.", DL_INIT);
-		MakeJump(0x493CE9, NPCStage6Fix1);
-		SafeWrite8(0x494063, 6);   // loop should look for a potential 6th stage
-		SafeWrite8(0x4940BB, 204); // move pointer by 204 bytes instead of 200
-		MakeJump(0x494224, NPCStage6Fix2);
 		dlogr(" Done", DL_INIT);
 	}
 }
@@ -598,6 +466,13 @@ void AlwaysReloadMsgs() {
 	}
 }
 
+void RemoveWindowRoundingPatch() {
+	if (GetConfigInt("Misc", "RemoveWindowRounding", 1)) {
+		SafeWriteBatch<BYTE>(0xEB, {0x4D6EDD, 0x4D6F12});
+		//SafeWrite16(0x4B8090, 0x04EB); // jmps 0x4B8096 (old)
+	}
+}
+
 void InventoryCharacterRotationSpeedPatch() {
 	DWORD setting = GetConfigInt("Misc", "SpeedInventoryPCRotation", 166);
 	if (setting != 166 && setting <= 1000) {
@@ -629,8 +504,7 @@ void PipboyAvailableAtStartPatch() {
 	switch (GetConfigInt("Misc", "PipBoyAvailableAtGameStart", 0)) {
 	case 1:
 		LoadGameHook::OnBeforeGameStart() += []() {
-			// PipBoy aquiring video
-			fo::var::gmovie_played_list[3] = true;
+			fo::var::gmovie_played_list[3] = true; // PipBoy aquiring video
 		};
 		break;
 	case 2:
@@ -695,7 +569,7 @@ void SkipLoadingGameSettingsPatch() {
 }
 
 void InterfaceDontMoveOnTopPatch() {
-	if (GetConfigInt("Misc", "InterfaceDontMoveOnTop", 0)) {
+	if (GetConfigInt("Misc", "InterfaceDontMoveOnTop", 0)) { // TODO: remove option? (obsolete)
 		dlog("Applying InterfaceDontMoveOnTop patch.", DL_INIT);
 		SafeWrite8(0x46ECE9, fo::WinFlags::Exclusive); // Player Inventory/Loot/UseOn
 		SafeWrite8(0x41B966, fo::WinFlags::Exclusive); // Automap
@@ -795,14 +669,12 @@ void MiscPatches::init() {
 	F1EngineBehaviorPatch();
 	DialogueFix();
 	AdditionalWeaponAnimsPatch();
-	MultiPatchesPatch();
 	AlwaysReloadMsgs();
 	PlayIdleAnimOnReloadPatch();
-	CorpseLineOfFireFix();
 
 	SkilldexImagesPatch();
+	RemoveWindowRoundingPatch();
 
-	SpeedInterfaceCounterAnimsPatch();
 	ScienceOnCrittersPatch();
 	InventoryCharacterRotationSpeedPatch();
 
@@ -810,7 +682,6 @@ void MiscPatches::init() {
 	BlockCall(0x4425E6);
 
 	OverrideMusicDirPatch();
-	NpcStage6Fix();
 	BoostScriptDialogLimitPatch();
 	MotionScannerFlagsPatch();
 	EncounterTableSizePatch();

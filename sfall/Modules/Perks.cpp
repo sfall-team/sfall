@@ -29,6 +29,8 @@ namespace sfall
 {
 using namespace fo;
 
+long Perks::PerkLevelMod = 0;
+
 constexpr int maxNameLen = 64;   // don't change size
 constexpr int maxDescLen = 512;  // don't change size
 static const int descLen = 256;  // maximum text length for interface
@@ -45,7 +47,9 @@ static char PerkBoxTitle[33];
 
 static const int startFakeID = 256;
 static DWORD addPerkMode = 2;
+
 static bool perksReInit = false;
+static int perksEnable = 0;
 
 static PerkInfo perks[PERK_count];
 static TraitInfo traits[TRAIT_count];
@@ -685,7 +689,7 @@ normalPerk:
 		pop  edx;
 		test eax, eax;
 		jnz  end;
-		// fix gain perks
+		// fix gain perks (add to base stats instead of bonus stats)
 		cmp  edx, PERK_gain_strength_perk;
 		jl   end;
 		cmp  edx, PERK_gain_luck_perk;
@@ -851,60 +855,60 @@ static void PerkEngineInit() {
 }
 
 static void PerkSetup() {
-	memcpy(perks, var::perk_data, sizeof(PerkInfo) * PERK_count); // copy vanilla data
-
 	if (!perksReInit) {
 		// _perk_data
 		SafeWriteBatch<DWORD>((DWORD)perks, {0x496669, 0x496837, 0x496BAD, 0x496C41, 0x496D25});
-		SafeWrite32(0x496696, (DWORD)perks + 4);
-		SafeWrite32(0x496BD1, (DWORD)perks + 4);
-		SafeWrite32(0x496BF5, (DWORD)perks + 8);
-		SafeWrite32(0x496AD4, (DWORD)perks + 12);
+		SafeWrite32(0x496696, (DWORD)&perks[0].description);
+		SafeWrite32(0x496BD1, (DWORD)&perks[0].description);
+		SafeWrite32(0x496BF5, (DWORD)&perks[0].image);
+		SafeWrite32(0x496AD4, (DWORD)&perks[0].ranks);
 	}
-	if (perksFile[0] != '\0') {
+	memcpy(perks, var::perk_data, sizeof(PerkInfo) * PERK_count); // copy vanilla data
+
+	if (perksEnable) {
 		char num[4];
 		for (int i = 0; i < PERK_count; i++) {
-			_itoa_s(i, num, 10);
-			if (GetPrivateProfileString(num, "Name", "", &Name[i * maxNameLen], maxNameLen - 1, perksFile)) {
+			_itoa(i, num, 10);
+			if (iniGetString(num, "Name", "", &Name[i * maxNameLen], maxNameLen - 1, perksFile)) {
 				perks[i].name = &Name[i * maxNameLen];
 			}
-			if (GetPrivateProfileString(num, "Desc", "", &Desc[i * descLen], descLen - 1, perksFile)) {
+			if (iniGetString(num, "Desc", "", &Desc[i * descLen], descLen - 1, perksFile)) {
 				perks[i].description = &Desc[i * descLen];
 			}
 			int value;
-			value = GetPrivateProfileInt(num, "Image", -99999, perksFile);
+			value = iniGetInt(num, "Image", -99999, perksFile);
 			if (value != -99999) perks[i].image = value;
-			value = GetPrivateProfileInt(num, "Ranks", -99999, perksFile);
+			value = iniGetInt(num, "Ranks", -99999, perksFile);
 			if (value != -99999) perks[i].ranks = value;
-			value = GetPrivateProfileInt(num, "Level", -99999, perksFile);
+			value = iniGetInt(num, "Level", -99999, perksFile);
 			if (value != -99999) perks[i].levelMin = value;
-			value = GetPrivateProfileInt(num, "Stat", -99999, perksFile);
+			value = iniGetInt(num, "Stat", -99999, perksFile);
 			if (value != -99999) perks[i].stat = value;
-			value = GetPrivateProfileInt(num, "StatMag", -99999, perksFile);
+			value = iniGetInt(num, "StatMag", -99999, perksFile);
 			if (value != -99999) perks[i].statMod = value;
-			value = GetPrivateProfileInt(num, "Skill1", -99999, perksFile);
+			value = iniGetInt(num, "Skill1", -99999, perksFile);
 			if (value != -99999) perks[i].skill1 = value;
-			value = GetPrivateProfileInt(num, "Skill1Mag", -99999, perksFile);
+			value = iniGetInt(num, "Skill1Mag", -99999, perksFile);
 			if (value != -99999) perks[i].skill1Min = value;
-			value = GetPrivateProfileInt(num, "Type", -99999, perksFile);
+			value = iniGetInt(num, "Type", -99999, perksFile);
 			if (value != -99999) perks[i].skillOperator = value;
-			value = GetPrivateProfileInt(num, "Skill2", -99999, perksFile);
+			value = iniGetInt(num, "Skill2", -99999, perksFile);
 			if (value != -99999) perks[i].skill2 = value;
-			value = GetPrivateProfileInt(num, "Skill2Mag", -99999, perksFile);
+			value = iniGetInt(num, "Skill2Mag", -99999, perksFile);
 			if (value != -99999) perks[i].skill2Min = value;
-			value = GetPrivateProfileInt(num, "STR", -99999, perksFile);
+			value = iniGetInt(num, "STR", -99999, perksFile);
 			if (value != -99999) perks[i].strengthMin = value;
-			value = GetPrivateProfileInt(num, "PER", -99999, perksFile);
+			value = iniGetInt(num, "PER", -99999, perksFile);
 			if (value != -99999) perks[i].perceptionMin = value;
-			value = GetPrivateProfileInt(num, "END", -99999, perksFile);
+			value = iniGetInt(num, "END", -99999, perksFile);
 			if (value != -99999) perks[i].enduranceMin = value;
-			value = GetPrivateProfileInt(num, "CHR", -99999, perksFile);
+			value = iniGetInt(num, "CHR", -99999, perksFile);
 			if (value != -99999) perks[i].charismaMin = value;
-			value = GetPrivateProfileInt(num, "INT", -99999, perksFile);
+			value = iniGetInt(num, "INT", -99999, perksFile);
 			if (value != -99999) perks[i].intelligenceMin = value;
-			value = GetPrivateProfileInt(num, "AGL", -99999, perksFile);
+			value = iniGetInt(num, "AGL", -99999, perksFile);
 			if (value != -99999) perks[i].agilityMin = value;
-			value = GetPrivateProfileInt(num, "LCK", -99999, perksFile);
+			value = iniGetInt(num, "LCK", -99999, perksFile);
 			if (value != -99999) perks[i].luckMin = value;
 		}
 		if (perksReInit) {
@@ -917,41 +921,41 @@ static void PerkSetup() {
 		int n = 0;
 		for (int id = PERK_count; id < startFakeID; id++) {
 			_itoa(id, num, 10);
-			int ranks = GetPrivateProfileInt(num, "Ranks", -1, perksFile);
+			int ranks = iniGetInt(num, "Ranks", -1, perksFile);
 			if (ranks == -1) continue;
 			extPerks[n].data.ranks = ranks;
-			extPerks[n].data.image = GetPrivateProfileInt(num, "Image", -1, perksFile);
-			extPerks[n].data.levelMin = GetPrivateProfileInt(num, "Level", -1, perksFile);
-			extPerks[n].data.stat = GetPrivateProfileInt(num, "Stat", -1, perksFile);
-			extPerks[n].data.statMod = GetPrivateProfileInt(num, "StatMag", 0, perksFile);
-			extPerks[n].data.skill1 = GetPrivateProfileInt(num, "Skill1", -1, perksFile);
-			extPerks[n].data.skill1Min = GetPrivateProfileInt(num, "Skill1Mag", 0, perksFile);
-			extPerks[n].data.skillOperator = GetPrivateProfileInt(num, "Type", 0, perksFile);
-			extPerks[n].data.skill2 = GetPrivateProfileInt(num, "Skill2", -1, perksFile);
-			extPerks[n].data.skill2Min = GetPrivateProfileInt(num, "Skill2Mag", 0, perksFile);
-			extPerks[n].data.strengthMin = GetPrivateProfileInt(num, "STR", 0, perksFile);
-			extPerks[n].data.perceptionMin = GetPrivateProfileInt(num, "PER", 0, perksFile);
-			extPerks[n].data.enduranceMin = GetPrivateProfileInt(num, "END", 0, perksFile);
-			extPerks[n].data.charismaMin = GetPrivateProfileInt(num, "CHR", 0, perksFile);
-			extPerks[n].data.intelligenceMin = GetPrivateProfileInt(num, "INT", 0, perksFile);
-			extPerks[n].data.agilityMin = GetPrivateProfileInt(num, "AGL", 0, perksFile);
-			extPerks[n].data.luckMin = GetPrivateProfileInt(num, "LCK", 0, perksFile);
+			extPerks[n].data.image = iniGetInt(num, "Image", -1, perksFile);
+			extPerks[n].data.levelMin = iniGetInt(num, "Level", -1, perksFile);
+			extPerks[n].data.stat = iniGetInt(num, "Stat", -1, perksFile);
+			extPerks[n].data.statMod = iniGetInt(num, "StatMag", 0, perksFile);
+			extPerks[n].data.skill1 = iniGetInt(num, "Skill1", -1, perksFile);
+			extPerks[n].data.skill1Min = iniGetInt(num, "Skill1Mag", 0, perksFile);
+			extPerks[n].data.skillOperator = iniGetInt(num, "Type", 0, perksFile);
+			extPerks[n].data.skill2 = iniGetInt(num, "Skill2", -1, perksFile);
+			extPerks[n].data.skill2Min = iniGetInt(num, "Skill2Mag", 0, perksFile);
+			extPerks[n].data.strengthMin = iniGetInt(num, "STR", 0, perksFile);
+			extPerks[n].data.perceptionMin = iniGetInt(num, "PER", 0, perksFile);
+			extPerks[n].data.enduranceMin = iniGetInt(num, "END", 0, perksFile);
+			extPerks[n].data.charismaMin = iniGetInt(num, "CHR", 0, perksFile);
+			extPerks[n].data.intelligenceMin = iniGetInt(num, "INT", 0, perksFile);
+			extPerks[n].data.agilityMin = iniGetInt(num, "AGL", 0, perksFile);
+			extPerks[n].data.luckMin = iniGetInt(num, "LCK", 0, perksFile);
 
-			GetPrivateProfileString(num, "Name", "Error", extPerks[n].Name, maxNameLen - 1, perksFile);
+			iniGetString(num, "Name", "Error", extPerks[n].Name, maxNameLen - 1, perksFile);
 			extPerks[n].data.name = extPerks[n].Name;
-			GetPrivateProfileString(num, "Desc", "Error", extPerks[n].Desc, descLen - 1, perksFile);
+			iniGetString(num, "Desc", "Error", extPerks[n].Desc, descLen - 1, perksFile);
 			extPerks[n].data.description = extPerks[n].Desc;
 
-			extPerks[n].stat1 = GetPrivateProfileInt(num, "Stat1", -1, perksFile);
-			extPerks[n].stat1Mod = GetPrivateProfileInt(num, "Stat1Mag", 0, perksFile);
-			extPerks[n].stat2 = GetPrivateProfileInt(num, "Stat2", -1, perksFile);
-			extPerks[n].stat2Mod = GetPrivateProfileInt(num, "Stat2Mag", 0, perksFile);
-			extPerks[n].skill3 = GetPrivateProfileInt(num, "Skill3", -1, perksFile);
-			extPerks[n].skill3Mod = GetPrivateProfileInt(num, "Skill3Mod", 0, perksFile);
-			extPerks[n].skill4 = GetPrivateProfileInt(num, "Skill4", -1, perksFile);
-			extPerks[n].skill4Mod = GetPrivateProfileInt(num, "Skill4Mod", 0, perksFile);
-			extPerks[n].skill5 = GetPrivateProfileInt(num, "Skill5", -1, perksFile);
-			extPerks[n].skill5Mod = GetPrivateProfileInt(num, "Skill5Mod", 0, perksFile);
+			extPerks[n].stat1 = iniGetInt(num, "Stat1", -1, perksFile);
+			extPerks[n].stat1Mod = iniGetInt(num, "Stat1Mag", 0, perksFile);
+			extPerks[n].stat2 = iniGetInt(num, "Stat2", -1, perksFile);
+			extPerks[n].stat2Mod = iniGetInt(num, "Stat2Mag", 0, perksFile);
+			extPerks[n].skill3 = iniGetInt(num, "Skill3", -1, perksFile);
+			extPerks[n].skill3Mod = iniGetInt(num, "Skill3Mod", 0, perksFile);
+			extPerks[n].skill4 = iniGetInt(num, "Skill4", -1, perksFile);
+			extPerks[n].skill4Mod = iniGetInt(num, "Skill4Mod", 0, perksFile);
+			extPerks[n].skill5 = iniGetInt(num, "Skill5", -1, perksFile);
+			extPerks[n].skill5Mod = iniGetInt(num, "Skill5Mod", 0, perksFile);
 			extPerks[n].id = id;
 			++n;
 			extPerks.resize(n + 1); // add next 'empty' perk
@@ -1117,84 +1121,82 @@ static void TraitSetup() {
 	// _trait_data
 	SafeWrite32(0x4B3A81, (DWORD)traits);
 	SafeWrite32(0x4B3B80, (DWORD)traits);
-	SafeWrite32(0x4B3AAE, (DWORD)traits + 4);
-	SafeWrite32(0x4B3BA0, (DWORD)traits + 4);
-	SafeWrite32(0x4B3BC0, (DWORD)traits + 8);
+	SafeWrite32(0x4B3AAE, (DWORD)&traits[0].description);
+	SafeWrite32(0x4B3BA0, (DWORD)&traits[0].description);
+	SafeWrite32(0x4B3BC0, (DWORD)&traits[0].image);
 
-	if (perksFile[0] != '\0') {
-		char buf[512], num[5] = {'t'};
-		char* num2 = &num[1];
-		for (int i = 0; i < TRAIT_count; i++) {
-			_itoa_s(i, num2, 4, 10);
-			if (GetPrivateProfileString(num, "Name", "", &tName[i * maxNameLen], maxNameLen - 1, perksFile)) {
-				traits[i].name = &tName[i * maxNameLen];
-			}
-			if (GetPrivateProfileString(num, "Desc", "", &tDesc[i * descLen], descLen - 1, perksFile)) {
-				traits[i].description = &tDesc[i * descLen];
-			}
-			int value;
-			value = GetPrivateProfileInt(num, "Image", -99999, perksFile);
-			if (value != -99999) traits[i].image = value;
+	char buf[512], num[5] = {'t'};
+	char* num2 = &num[1];
+	for (int i = 0; i < TRAIT_count; i++) {
+		_itoa_s(i, num2, 4, 10);
+		if (iniGetString(num, "Name", "", &tName[i * maxNameLen], maxNameLen - 1, perksFile)) {
+			traits[i].name = &tName[i * maxNameLen];
+		}
+		if (iniGetString(num, "Desc", "", &tDesc[i * descLen], descLen - 1, perksFile)) {
+			traits[i].description = &tDesc[i * descLen];
+		}
+		int value;
+		value = iniGetInt(num, "Image", -99999, perksFile);
+		if (value != -99999) traits[i].image = value;
 
-			if (GetPrivateProfileStringA(num, "StatMod", "", buf, 512, perksFile) > 0) {
-				char *stat, *mod;
-				stat = strtok(buf, "|");
+		if (iniGetString(num, "StatMod", "", buf, 512, perksFile) > 0) {
+			char *stat, *mod;
+			stat = strtok(buf, "|");
+			mod = strtok(0, "|");
+			while (stat&&mod) {
+				int _stat = atoi(stat), _mod = atoi(mod);
+				if (_stat >= 0 && _stat <= STAT_max_derived) TraitStatBonuses[_stat * TRAIT_count + i] = _mod;
+				stat = strtok(0, "|");
 				mod = strtok(0, "|");
-				while (stat&&mod) {
-					int _stat = atoi(stat), _mod = atoi(mod);
-					if (_stat >= 0 && _stat <= STAT_max_derived) TraitStatBonuses[_stat * TRAIT_count + i] = _mod;
-					stat = strtok(0, "|");
-					mod = strtok(0, "|");
-				}
 			}
+		}
 
-			if (GetPrivateProfileStringA(num, "SkillMod", "", buf, 512, perksFile) > 0) {
-				char *stat, *mod;
-				stat = strtok(buf, "|");
+		if (iniGetString(num, "SkillMod", "", buf, 512, perksFile) > 0) {
+			char *stat, *mod;
+			stat = strtok(buf, "|");
+			mod = strtok(0, "|");
+			while (stat&&mod) {
+				int _stat = atoi(stat), _mod = atoi(mod);
+				if (_stat >= 0 && _stat < 18) TraitSkillBonuses[_stat * TRAIT_count + i] = _mod;
+				stat = strtok(0, "|");
 				mod = strtok(0, "|");
-				while (stat&&mod) {
-					int _stat = atoi(stat), _mod = atoi(mod);
-					if (_stat >= 0 && _stat < 18) TraitSkillBonuses[_stat * TRAIT_count + i] = _mod;
-					stat = strtok(0, "|");
-					mod = strtok(0, "|");
-				}
 			}
+		}
 
-			if (GetPrivateProfileInt(num, "NoHardcode", 0, perksFile)) {
-				disableTraits[i] = true;
-				switch (i) {
-				case TRAIT_one_hander:
-					HookCall(0x4245E0, BlockedTrait);
-					break;
-				case TRAIT_finesse:
-					HookCall(0x4248F9, BlockedTrait);
-					break;
-				case TRAIT_fast_shot:
-					HookCall(0x478C8A, BlockedTrait); // fast shot
-					HookCall(0x478E70, BlockedTrait);
-					break;
-				case TRAIT_bloody_mess:
-					HookCall(0x410707, BlockedTrait);
-					break;
-				case TRAIT_jinxed:
-					HookCall(0x42389F, BlockedTrait);
-					break;
-				case TRAIT_drug_addict:
-					HookCall(0x47A0CD, BlockedTrait);
-					HookCall(0x47A51A, BlockedTrait);
-					break;
-				case TRAIT_drug_resistant:
-					HookCall(0x479BE1, BlockedTrait);
-					HookCall(0x47A0DD, BlockedTrait);
-					break;
-				case TRAIT_skilled:
-					HookCall(0x43C295, BlockedTrait);
-					HookCall(0x43C2F3, BlockedTrait);
-					break;
-				case TRAIT_gifted:
-					HookCall(0x43C2A4, BlockedTrait);
-					break;
-				}
+		if (iniGetInt(num, "NoHardcode", 0, perksFile)) {
+			disableTraits[i] = true;
+			switch (i) {
+			case TRAIT_one_hander:
+				HookCall(0x4245E0, BlockedTrait);
+				break;
+			case TRAIT_finesse:
+				HookCall(0x4248F9, BlockedTrait);
+				break;
+			case TRAIT_fast_shot:
+				HookCall(0x478C8A, BlockedTrait); // fast shot
+				HookCall(0x478E70, BlockedTrait);
+				break;
+			case TRAIT_bloody_mess:
+				HookCall(0x410707, BlockedTrait);
+				break;
+			case TRAIT_jinxed:
+				HookCall(0x42389F, BlockedTrait);
+				break;
+			case TRAIT_drug_addict:
+				HookCall(0x47A0CD, BlockedTrait);
+				HookCall(0x47A51A, BlockedTrait);
+				break;
+			case TRAIT_drug_resistant:
+				HookCall(0x479BE1, BlockedTrait);
+				HookCall(0x47A0DD, BlockedTrait);
+				break;
+			case TRAIT_skilled:
+				HookCall(0x43C295, BlockedTrait);
+				HookCall(0x43C2F3, BlockedTrait);
+				break;
+			case TRAIT_gifted:
+				HookCall(0x43C2A4, BlockedTrait);
+				break;
 			}
 		}
 	}
@@ -1291,9 +1293,11 @@ void PerksReset() {
 
 	// Reset some settable game values back to the defaults
 	// Perk level mod
-	SafeWrite32(0x496880, 0x019078);
+	Perks::PerkLevelMod = 0;
 	// Pyromaniac bonus
 	SafeWrite8(0x424AB6, 5);
+	// Swift Learner bonus
+	SafeWrite32(0x4AFAE2, 100);
 	// Restore 'Heave Ho' modify fix
 	if (perkHeaveHoModFix) {
 		SafeWrite8(0x478AC4, 0xBA);
@@ -1442,40 +1446,48 @@ void PerksAcceptCharScreen() {
 }
 
 void Perks::init() {
+	LoadGameHook::OnGameReset() += PerksReset;
+
 	FastShotTraitFix();
 
+	// Disable gain perks for bonus stats
 	for (int i = STAT_st; i <= STAT_lu; i++) SafeWrite8(GainStatPerks[i][0], (BYTE)GainStatPerks[i][1]);
 
 	PerkEngineInit();
-	HookCall(0x442729, PerkInitWrapper);      // game_init_
+	HookCall(0x442729, PerkInitWrapper); // game_init_
+
 	if (GetConfigString("Misc", "PerksFile", "", &perksFile[2], MAX_PATH - 3)) {
 		perksFile[0] = '.';
 		perksFile[1] = '\\';
-		HookCall(0x44272E, TraitInitWrapper); // game_init_
+		if (GetFileAttributes(perksFile) == INVALID_FILE_ATTRIBUTES) return;
+
+		perksEnable = iniGetInt("Perks", "Enable", 1, perksFile);
+		if (iniGetInt("Traits", "Enable", 1, perksFile)) {
+			HookCall(0x44272E, TraitInitWrapper); // game_init_
+		}
 
 		// Engine perks settings
-		long enginePerkMod = GetPrivateProfileIntA("PerksTweak", "WeaponScopeRangePenalty", -1, perksFile);
+		long enginePerkMod = iniGetInt("PerksTweak", "WeaponScopeRangePenalty", -1, perksFile);
 		if (enginePerkMod >= 0 && enginePerkMod != 8) SafeWrite32(0x42448E, enginePerkMod);
-		enginePerkMod = GetPrivateProfileIntA("PerksTweak", "WeaponScopeRangeBonus", -1, perksFile);
+		enginePerkMod = iniGetInt("PerksTweak", "WeaponScopeRangeBonus", -1, perksFile);
 		if (enginePerkMod >= 2 && enginePerkMod != 5) SafeWrite32(0x424489, enginePerkMod);
 
-		enginePerkMod = GetPrivateProfileIntA("PerksTweak", "WeaponLongRangeBonus", -1, perksFile);
+		enginePerkMod = iniGetInt("PerksTweak", "WeaponLongRangeBonus", -1, perksFile);
 		if (enginePerkMod >= 2 && enginePerkMod != 4) SafeWrite32(0x424474, enginePerkMod);
 
-		enginePerkMod = GetPrivateProfileIntA("PerksTweak", "WeaponAccurateBonus", -1, perksFile);
+		enginePerkMod = iniGetInt("PerksTweak", "WeaponAccurateBonus", -1, perksFile);
 		if (enginePerkMod >= 0 && enginePerkMod != 20) {
 			if (enginePerkMod > 200) enginePerkMod = 200;
 			SafeWrite8(0x42465D, static_cast<BYTE>(enginePerkMod));
 		}
 
-		enginePerkMod = GetPrivateProfileIntA("PerksTweak", "WeaponHandlingBonus", -1, perksFile);
+		enginePerkMod = iniGetInt("PerksTweak", "WeaponHandlingBonus", -1, perksFile);
 		if (enginePerkMod >= 0 && enginePerkMod != 3) {
 			if (enginePerkMod > 10) enginePerkMod = 10;
 			SafeWrite8(0x424636, static_cast<char>(enginePerkMod));
 			SafeWrite8(0x4251CE, static_cast<signed char>(-enginePerkMod));
 		}
 	}
-	LoadGameHook::OnGameReset() += PerksReset;
 }
 
 }

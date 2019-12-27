@@ -331,17 +331,21 @@ void Skills::init() {
 	// 0x00000400 - Energy Weapon (forces weapon to use Energy Weapons skill)
 	HookCall(0x47831E, item_w_skill_hook);
 
+	LoadGameHook::OnGameReset() += Skills_OnGameLoad;
+
 	char buf[512], key[16];
 	auto skillsFile = GetConfigString("Misc", "SkillsFile", "", MAX_PATH);
 	if (!skillsFile.empty()) {
 		fo::SkillInfo *skills = fo::var::skill_data;
 
 		const char* file = skillsFile.insert(0, ".\\").c_str();
+		if (GetFileAttributes(file) == INVALID_FILE_ATTRIBUTES) return;
+
 		multipliers = new double[7 * fo::SKILL_count]();
 
 		for (int i = 0; i < fo::SKILL_count; i++) {
 			sprintf(key, "Skill%d", i);
-			if (GetPrivateProfileStringA("Skills", key, "", buf, 64, file)) {
+			if (iniGetString("Skills", key, "", buf, 64, file)) {
 				char* tok = strtok(buf, "|");
 				while (tok) {
 					if (strlen(tok) >= 2) {
@@ -365,7 +369,7 @@ void Skills::init() {
 				if (skills[i].statB >= 0) multipliers[i * 7 + skills[i].statB] = skills[i].statMulti;
 			}
 			sprintf(key, "SkillCost%d", i);
-			if (GetPrivateProfileStringA("Skills", key, "", buf, 512, file)) {
+			if (iniGetString("Skills", key, "", buf, 512, file)) {
 				char* tok = strtok(buf, "|");
 				DWORD upto = 0;
 				BYTE price = 1;
@@ -387,15 +391,15 @@ void Skills::init() {
 				for (int j = 201; j <= 512; j++) skillCosts[i * 512 + j] = 6;
 			}
 			sprintf(key, "SkillBase%d", i);
-			skills[i].base = GetPrivateProfileIntA("Skills", key, skills[i].base, file);
+			skills[i].base = iniGetInt("Skills", key, skills[i].base, file);
 
 			sprintf(key, "SkillMulti%d", i);
-			int multi = GetPrivateProfileIntA("Skills", key, skills[i].skillPointMulti, file);
+			int multi = iniGetInt("Skills", key, skills[i].skillPointMulti, file);
 			if (multi < 1) multi = 1; else if (multi > 10) multi = 10;
 			skills[i].skillPointMulti = multi;
 
 			sprintf(key, "SkillImage%d", i);
-			skills[i].image = GetPrivateProfileIntA("Skills", key, skills[i].image, file);
+			skills[i].image = iniGetInt("Skills", key, skills[i].image, file);
 		}
 
 		MakeJump(0x4AA59D, skill_level_hack_bonus, 1);
@@ -403,11 +407,12 @@ void Skills::init() {
 		MakeJump(0x4AA940, skill_dec_point_hack_cost, 1);
 		HookCalls(skill_dec_point_hook_cost, {0x4AA9E1, 0x4AA9F1});
 
-		basedOnPoints = GetPrivateProfileIntA("Skills", "BasedOnPoints", 0, file);
+		basedOnPoints = iniGetInt("Skills", "BasedOnPoints", 0, file);
 		if (basedOnPoints) HookCall(0x4AA9EC, (void*)fo::funcoffs::skill_points_); // skill_dec_point_
 	}
-
-	LoadGameHook::OnGameReset() += Skills_OnGameLoad;
 }
 
+void Skills::exit() {
+	delete[] multipliers;
+}
 }

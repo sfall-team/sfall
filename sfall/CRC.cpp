@@ -19,9 +19,9 @@
 #include <algorithm>
 #include <stdio.h>
 
-#include "..\main.h"
-#include "..\Version.h"
-#include "..\Logging.h"
+#include "main.h"
+#include "Version.h"
+#include "Logging.h"
 
 #include "CRC.h"
 
@@ -31,7 +31,7 @@ namespace sfall
 static const DWORD ExpectedSize = 0x00122800;
 static const DWORD ExpectedCRC[] = {0xe1680293, 0xef34f989};
 
-static void inline Fail(const char* a) { MessageBoxA(0, a, "Error", MB_TASKMODAL); ExitProcess(1); }
+static void inline Fail(const char* a) { MessageBoxA(0, a, "Error", MB_TASKMODAL | MB_ICONERROR); ExitProcess(1); }
 
 static const DWORD CRC_table[256] = {
 	0x00000000, 0x0A5F4D75, 0x14BE9AEA, 0x1EE1D79F, 0x14C5EB57, 0x1E9AA622, 0x007B71BD, 0x0A243CC8,
@@ -79,16 +79,18 @@ static DWORD crcInternal(BYTE* data, DWORD size) {
 void CRC(const char* filepath) {
 	char buf[512];
 	HANDLE h = CreateFileA(filepath, GENERIC_READ, FILE_SHARE_READ, 0, OPEN_EXISTING, 0, 0);
-	if (h == INVALID_HANDLE_VALUE) Fail("Cannot open fallout2.exe for CRC check");
+	if (h == INVALID_HANDLE_VALUE) Fail("Cannot open fallout2.exe for CRC check.");
 	DWORD size = GetFileSize(h, 0), crc;
 	bool sizeMatch = (size == ExpectedSize);
 
-	if (!sizeMatch && GetPrivateProfileIntA("Debugging", "SkipSizeCheck", 0, ::sfall::ddrawIni)) {
+	if (!sizeMatch && iniGetInt("Debugging", "SkipSizeCheck", 0, ::sfall::ddrawIni)) {
 		sizeMatch = true;
 	}
 
 	if (!sizeMatch) {
-		sprintf_s(buf, "You're trying to use sfall with an incompatible version of fallout\nWas expecting '" TARGETVERSION "'\n\nfallout2.exe was an unexpected size. Expected 0x%x but got 0x%x", ExpectedSize, size);
+		sprintf_s(buf, "You're trying to use sfall with an incompatible version of Fallout.\n"
+					   "Was expecting '" TARGETVERSION "'.\n\n"
+					   "fallout2.exe has an unexpected size. Expected %d bytes but got %d bytes.", ExpectedSize, size);
 		Fail(buf);
 	}
 	BYTE* bytes = new BYTE[size];
@@ -98,7 +100,7 @@ void CRC(const char* filepath) {
 	bool matchedCRC = false;
 
 	auto extraCrcList = GetIniList("Debugging", "ExtraCRC", "", 512, ',', ::sfall::ddrawIni);
-	if (extraCrcList.size() > 0) {
+	if (!extraCrcList.empty()) {
 		matchedCRC = std::any_of(extraCrcList.begin(), extraCrcList.end(), [crc](const std::string& testCrcStr) {
 			auto testedCrc = strtoul(testCrcStr.c_str(), 0, 16);
 			return testedCrc && crc == testedCrc;
@@ -109,7 +111,9 @@ void CRC(const char* filepath) {
 		if (crc == ExpectedCRC[i]) matchedCRC = true;
 	}
 	if (!matchedCRC) {
-		sprintf_s(buf, "You're trying to use sfall with an incompatible version of fallout\nWas expecting '" TARGETVERSION "'\n\nfallout2.exe had an unexpected crc. Expected 0x%x but got 0x%x", ExpectedCRC[0], crc);
+		sprintf_s(buf, "You're trying to use sfall with an incompatible version of Fallout.\n"
+					   "Was expecting '" TARGETVERSION "'.\n\n"
+					   "fallout2.exe has an unexpected CRC. Expected 0x%x but got 0x%x.", ExpectedCRC[0], crc);
 		Fail(buf);
 	}
 

@@ -28,12 +28,10 @@
 #include "..\..\KillCounter.h"
 //#include "..\..\MiscPatches.h"
 #include "..\..\Movies.h"
-#include "..\..\Objects.h"
 #include "..\..\PartyControl.h"
 #include "..\..\PlayerModel.h"
 #include "..\..\ScriptExtender.h"
 #include "..\..\Stats.h"
-//#include "..\..\Worldmap.h"
 #include "..\Arrays.h"
 #include "..\OpcodeContext.h"
 
@@ -44,129 +42,35 @@ namespace sfall
 namespace script
 {
 
-static DWORD defaultMaleModelNamePtr = (DWORD)defaultMaleModelName;
-static DWORD defaultFemaleModelNamePtr = (DWORD)defaultFemaleModelName;
-static DWORD movieNamesPtr = (DWORD)MoviePaths;
+const char* stringTooLong = "%s() - the string exceeds maximum length of 64 characters.";
 
-
-//// *** End Helios *** ///
-static void _stdcall strcpy_p(char* to, const char* from) {
-	strcpy_s(to, 64, from);
+void sf_set_dm_model(OpcodeContext& ctx) {
+	auto model = ctx.arg(0).strValue();
+	if (strlen(model) > 64) {
+		ctx.printOpcodeError(stringTooLong, ctx.getOpcodeName());
+		return;
+	}
+	strcpy(defaultMaleModelName, model);
 }
 
-/************************************************************************/
-/* TODO: Rewrite these raw handlers using OpcodeContext                 */
-/************************************************************************/
-
-void __declspec(naked) op_set_dm_model() {
-	__asm {
-		push ebx;
-		push ecx;
-		push edx;
-		push edi;
-		mov edi, eax;
-		call fo::funcoffs::interpretPopShort_;
-		mov edx, eax;
-		mov eax, edi;
-		call fo::funcoffs::interpretPopLong_;
-		cmp dx, VAR_TYPE_STR2;
-		jz next;
-		cmp dx, VAR_TYPE_STR;
-		jnz end;
-next:
-		mov ebx, eax;
-		mov eax, edi;
-		call fo::funcoffs::interpretGetString_;
-		push eax;
-		push defaultMaleModelNamePtr;
-		call strcpy_p;
-end:
-		pop edi;
-		pop edx;
-		pop ecx;
-		pop ebx;
-		retn;
+void sf_set_df_model(OpcodeContext& ctx) {
+	auto model = ctx.arg(0).strValue();
+	if (strlen(model) > 64) {
+		ctx.printOpcodeError(stringTooLong, ctx.getOpcodeName());
+		return;
 	}
+	strcpy(defaultFemaleModelName, model);
 }
 
-void __declspec(naked) op_set_df_model() {
-	__asm {
-		push ebx;
-		push ecx;
-		push edx;
-		push edi;
-		mov edi, eax;
-		call fo::funcoffs::interpretPopShort_;
-		mov edx, eax;
-		mov eax, edi;
-		call fo::funcoffs::interpretPopLong_;
-		cmp dx, VAR_TYPE_STR2;
-		jz next;
-		cmp dx, VAR_TYPE_STR;
-		jnz end;
-next:
-		mov ebx, eax;
-		mov eax, edi;
-		call fo::funcoffs::interpretGetString_;
-		push eax;
-		push defaultFemaleModelNamePtr;
-		call strcpy_p;
-end:
-		pop edi;
-		pop edx;
-		pop ecx;
-		pop ebx;
-		retn;
+void sf_set_movie_path(OpcodeContext& ctx) {
+	long movieID = ctx.arg(1).rawValue();
+	if (movieID < 0 || movieID >= MaxMovies) return;
+	auto fileName = ctx.arg(0).strValue();
+	if (strlen(fileName) > 64) {
+		ctx.printOpcodeError(stringTooLong, ctx.getOpcodeName());
+		return;
 	}
-}
-
-void __declspec(naked) op_set_movie_path() {
-	__asm {
-		push ebx;
-		push ecx;
-		push edx;
-		push edi;
-		push esi;
-		mov edi, eax;
-		call fo::funcoffs::interpretPopShort_;
-		mov ebx, eax;
-		mov eax, edi;
-		call fo::funcoffs::interpretPopLong_;
-		mov esi, eax;
-		mov eax, edi;
-		call fo::funcoffs::interpretPopShort_;
-		mov edx, eax;
-		mov eax, edi;
-		call fo::funcoffs::interpretPopLong_;
-		cmp dx, VAR_TYPE_STR2;
-		jz next;
-		cmp dx, VAR_TYPE_STR;
-		jnz end;
-next:
-		cmp bx, VAR_TYPE_INT;
-		jnz end;
-		cmp esi, 0;
-		jl end;
-		cmp esi, MaxMovies;
-		jge end;
-		mov ebx, eax;
-		mov eax, edi;
-		call fo::funcoffs::interpretGetString_;
-		push eax;
-		mov eax, esi;
-		mov esi, 65;
-		mul si;
-		add eax, movieNamesPtr;
-		push eax;
-		call strcpy_p;
-end:
-		pop esi;
-		pop edi;
-		pop edx;
-		pop ecx;
-		pop ebx;
-		retn;
-	}
+	strcpy(&MoviePaths[movieID * 65], fileName);
 }
 
 void sf_get_year(OpcodeContext& ctx) {
@@ -182,37 +86,29 @@ void sf_get_year(OpcodeContext& ctx) {
 
 void __declspec(naked) op_game_loaded() {
 	__asm {
-		push ecx;
-		push edx;
-		push eax;
+		mov  esi, ecx;
 		push eax; // script
 		call ScriptHasLoaded;
 		movzx edx, al;
-		pop  eax;
-		_RET_VAL_INT(ecx);
-		pop edx;
-		pop ecx;
+		mov  eax, ebx;
+		_RET_VAL_INT;
+		mov  ecx, esi;
 		retn;
 	}
 }
 
 void __declspec(naked) op_set_pipboy_available() {
 	__asm {
-		push ecx;
-		push edx;
 		_GET_ARG_INT(end);
 		cmp  eax, 0;
 		jl   end;
 		cmp  eax, 1;
 		jg   end;
-		mov  byte ptr ds:[FO_VAR_gmovie_played_list + 0x3], al;
+		mov  byte ptr ds:[FO_VAR_gmovie_played_list][0x3], al;
 end:
-		pop edx;
-		pop ecx;
 		retn;
 	}
 }
-
 
 // Kill counters
 void __declspec(naked) op_get_kill_counter() {
@@ -232,7 +128,6 @@ void __declspec(naked) op_get_kill_counter() {
 		mov edx, ds:[FO_VAR_pc_kill_counts+eax*4];
 		jmp end;
 fail:
-
 		xor edx, edx;
 end:
 		mov eax, ecx
@@ -291,10 +186,8 @@ void sf_set_object_knockback(OpcodeContext& ctx) {
 	case 0x197:
 		mode = 2;
 		break;
-	default:
-		break;
 	}
-	fo::GameObject* object = ctx.arg(0).asObject();
+	fo::GameObject* object = ctx.arg(0).object();
 	if (mode) {
 		if (object->Type() != fo::OBJ_TYPE_CRITTER) {
 			ctx.printOpcodeError("%s() - the object is not a critter.", ctx.getOpcodeName());
@@ -318,10 +211,8 @@ void sf_remove_object_knockback(OpcodeContext& ctx) {
 	case 0x19a:
 		mode = 2;
 		break;
-	default:
-		break;
 	}
-	KnockbackRemoveMod(ctx.arg(0).asObject(), mode);
+	KnockbackRemoveMod(ctx.arg(0).object(), mode);
 }
 
 void __declspec(naked) op_get_kill_counter2() {
@@ -392,13 +283,9 @@ end:
 
 void __declspec(naked) op_active_hand() {
 	__asm {
-		push edx;
-		push ecx;
 		mov  edx, dword ptr ds:[FO_VAR_itemCurrentItem];
-		_RET_VAL_INT(ecx);
-		pop  ecx;
-		pop  edx;
-		retn;
+		_J_RET_VAL_TYPE(VAR_TYPE_INT);
+//		retn;
 	}
 }
 
@@ -411,13 +298,9 @@ void __declspec(naked) op_toggle_active_hand() {
 
 void __declspec(naked) op_eax_available() {
 	__asm {
-		push edx;
-		push ecx;
 		xor  edx, edx
-		_RET_VAL_INT(ecx);
-		pop  ecx;
-		pop  edx;
-		retn;
+		_J_RET_VAL_TYPE(VAR_TYPE_INT);
+//		retn;
 	}
 }
 
@@ -519,6 +402,14 @@ void sf_get_npc_level(OpcodeContext& ctx) {
 	ctx.setReturn(level);
 }
 
+static bool IsSpecialIni(const char* str, const char* end) {
+	const char* pos = strfind(str, &::sfall::ddrawIni[2]);
+	if (pos && pos < end) return true;
+	pos = strfind(str, "f2_res.ini");
+	if (pos && pos < end) return true;
+	return false;
+}
+
 static int ParseIniSetting(const char* iniString, const char* &key, char section[], char file[]) {
 	key = strstr(iniString, "|");
 	if (!key) return -1;
@@ -535,25 +426,17 @@ static int ParseIniSetting(const char* iniString, const char* &key, char section
 
 	file[0] = '.';
 	file[1] = '\\';
-	if (!ScriptExtender::iniConfigFolder.empty()) {
-		const char* pos = strfind(iniString, &::sfall::ddrawIni[2]);
-		if (pos && pos < fileEnd) goto specialIni;
-		pos = strfind(iniString, "f2_res.ini");
-		if (pos && pos < fileEnd) goto specialIni;
+
+	if (!ScriptExtender::iniConfigFolder.empty() && !IsSpecialIni(iniString, fileEnd)) {
 		size_t len = ScriptExtender::iniConfigFolder.length(); // limit up to 62 characters
 		memcpy(&file[2], ScriptExtender::iniConfigFolder.c_str(), len);
-		int n = 0; // position of the beginning of the file name
-		for	(int i = filelen - 4; i > 0; i--) {
-			if (iniString[i] == '\\' || iniString[i] == '/') {
-				n = i + 1;
-				break;
-			}
-		}
-		strncpy_s(&file[2 + len], (128 - 2) - len, &iniString[n], filelen - n); // copy filename
+		memcpy(&file[2 + len], iniString, filelen); // copy path and file
+		file[2 + len + filelen] = 0;
+		if (GetFileAttributesA(file) & FILE_ATTRIBUTE_DIRECTORY) goto defRoot; // also file not found
 	} else {
-specialIni:
+defRoot:
 		memcpy(&file[2], iniString, filelen);
-		file[filelen + 2] = 0;
+		file[2 + filelen] = 0;
 	}
 	memcpy(section, &iniString[filelen + 1], seclen);
 	section[seclen] = 0;
@@ -562,7 +445,6 @@ specialIni:
 	return 1;
 }
 
-static char IniStrBuffer[256];
 static DWORD GetIniSetting(const char* str, bool isString) {
 	const char* key;
 	char section[33], file[128];
@@ -571,11 +453,11 @@ static DWORD GetIniSetting(const char* str, bool isString) {
 		return -1;
 	}
 	if (isString) {
-		IniStrBuffer[0] = 0;
-		GetPrivateProfileStringA(section, key, "", IniStrBuffer, 256, file);
-		return (DWORD)&IniStrBuffer[0];
+		ScriptExtender::gTextBuffer[0] = 0;
+		iniGetString(section, key, "", ScriptExtender::gTextBuffer, 256, file);
+		return (DWORD)&ScriptExtender::gTextBuffer[0];
 	} else {
-		return GetPrivateProfileIntA(section, key, -1, file);
+		return iniGetInt(section, key, -1, file);
 	}
 }
 
@@ -590,43 +472,34 @@ void sf_get_ini_string(OpcodeContext& ctx) {
 
 void __declspec(naked) op_get_uptime() {
 	__asm {
-		push ecx;
-		push edx;
-		push eax;
+		mov  esi, ecx;
 		call GetTickCount;
 		mov  edx, eax;
-		pop  eax;
-		_RET_VAL_INT(ecx);
-		pop  edx;
-		pop  ecx;
+		mov  eax, ebx;
+		_RET_VAL_INT;
+		mov  ecx, esi;
 		retn;
 	}
 }
 
 void __declspec(naked) op_set_car_current_town() {
 	__asm {
-		push ecx;
-		push edx;
 		_GET_ARG_INT(end);
 		mov  ds:[FO_VAR_carCurrentArea], eax;
 end:
-		pop  edx;
-		pop  ecx;
 		retn;
 	}
 }
 
-void __declspec(naked) op_set_hp_per_level_mod() { // rewrite to c++
+void __declspec(naked) op_set_hp_per_level_mod() {
 	__asm {
-		push ecx;
-		push edx;
+		mov  esi, ecx;
 		_GET_ARG_INT(end);
 		push eax; // allowed -/+127
 		push 0x4AFBC1;
 		call SafeWrite8;
 end:
-		pop  edx;
-		pop  ecx;
+		mov  ecx, esi;
 		retn;
 	}
 }
@@ -694,26 +567,26 @@ end:
 	}
 }
 
-static char* valueOutRange = "%s() - argument values out of range.";
+static const char* valueOutRange = "%s() - argument values out of range.";
 
 void sf_set_critical_table(OpcodeContext& ctx) {
-	DWORD critter = ctx.arg(0).asInt(),
-		bodypart  = ctx.arg(1).asInt(),
-		slot      = ctx.arg(2).asInt(),
-		element   = ctx.arg(3).asInt();
+	DWORD critter = ctx.arg(0).rawValue(),
+		bodypart  = ctx.arg(1).rawValue(),
+		slot      = ctx.arg(2).rawValue(),
+		element   = ctx.arg(3).rawValue();
 
 	if (critter >= Criticals::critTableCount || bodypart >= 9 || slot >= 6 || element >= 7) {
 		ctx.printOpcodeError(valueOutRange, ctx.getOpcodeName());
 	} else {
-		Criticals::SetCriticalTable(critter, bodypart, slot, element, ctx.arg(4).asInt());
+		Criticals::SetCriticalTable(critter, bodypart, slot, element, ctx.arg(4).rawValue());
 	}
 }
 
 void sf_get_critical_table(OpcodeContext& ctx) {
-	DWORD critter = ctx.arg(0).asInt(),
-		bodypart  = ctx.arg(1).asInt(),
-		slot      = ctx.arg(2).asInt(),
-		element   = ctx.arg(3).asInt();
+	DWORD critter = ctx.arg(0).rawValue(),
+		bodypart  = ctx.arg(1).rawValue(),
+		slot      = ctx.arg(2).rawValue(),
+		element   = ctx.arg(3).rawValue();
 
 	if (critter >= Criticals::critTableCount || bodypart >= 9 || slot >= 6 || element >= 7) {
 		ctx.printOpcodeError(valueOutRange, ctx.getOpcodeName());
@@ -723,10 +596,10 @@ void sf_get_critical_table(OpcodeContext& ctx) {
 }
 
 void sf_reset_critical_table(OpcodeContext& ctx) {
-	DWORD critter = ctx.arg(0).asInt(),
-		bodypart  = ctx.arg(1).asInt(),
-		slot      = ctx.arg(2).asInt(),
-		element   = ctx.arg(3).asInt();
+	DWORD critter = ctx.arg(0).rawValue(),
+		bodypart  = ctx.arg(1).rawValue(),
+		slot      = ctx.arg(2).rawValue(),
+		element   = ctx.arg(3).rawValue();
 
 	if (critter >= Criticals::critTableCount || bodypart >= 9 || slot >= 6 || element >= 7) {
 		ctx.printOpcodeError(valueOutRange, ctx.getOpcodeName());
@@ -737,51 +610,35 @@ void sf_reset_critical_table(OpcodeContext& ctx) {
 
 void __declspec(naked) op_set_unspent_ap_bonus() {
 	__asm {
-		push ecx;
-		push edx;
 		_GET_ARG_INT(end);
-		mov  standardApAcBonus, eax;
+		mov  Stats::standardApAcBonus, eax;
 end:
-		pop edx;
-		pop ecx;
 		retn;
 	}
 }
 
 void __declspec(naked) op_get_unspent_ap_bonus() {
 	__asm {
-		push edx;
-		push ecx;
-		mov  edx, standardApAcBonus;
-		_RET_VAL_INT(ecx);
-		pop  ecx;
-		pop  edx;
-		retn;
+		mov  edx, Stats::standardApAcBonus;
+		_J_RET_VAL_TYPE(VAR_TYPE_INT);
+//		retn;
 	}
 }
 
 void __declspec(naked) op_set_unspent_ap_perk_bonus() {
 	__asm {
-		push ecx;
-		push edx;
 		_GET_ARG_INT(end);
-		mov  extraApAcBonus, eax;
+		mov  Stats::extraApAcBonus, eax;
 end:
-		pop  edx;
-		pop  ecx;
 		retn;
 	}
 }
 
 void __declspec(naked) op_get_unspent_ap_perk_bonus() {
 	__asm {
-		push edx;
-		push ecx;
-		mov  edx, extraApAcBonus;
-		_RET_VAL_INT(ecx);
-		pop  ecx;
-		pop  edx;
-		retn;
+		mov  edx, Stats::extraApAcBonus;
+		_J_RET_VAL_TYPE(VAR_TYPE_INT);
+//		retn;
 	}
 }
 
@@ -819,109 +676,59 @@ end:
 //numbers subgame functions
 void __declspec(naked) op_nb_create_char() {
 	__asm {
-		/*pushad;
-		push eax;
-		call NumbersCreateChar;
-		mov edx, eax;
-		pop eax;
-		mov ecx, eax;
-		call fo::funcoffs::interpretPushLong_;
-		mov eax, ecx;
-		mov edx, VAR_TYPE_INT;
-		call fo::funcoffs::interpretPushShort_;
-		popad;*/
 		retn;
-	}
-}
-
-static const char* failedLoad = "%s() - failed to load a prototype id: %d";
-static bool protoMaxLimitPatch = false;
-
-void sf_get_proto_data(OpcodeContext& ctx) {
-	fo::Proto* protoPtr;
-	int pid = ctx.arg(0).rawValue();
-	int result = fo::func::proto_ptr(pid, &protoPtr);
-	if (result != -1) {
-		result = *(long*)((BYTE*)protoPtr + ctx.arg(1).rawValue());
-	} else {
-		ctx.printOpcodeError(failedLoad, ctx.getOpcodeName(), pid);
-	}
-	ctx.setReturn(result);
-}
-
-void sf_set_proto_data(OpcodeContext& ctx) {
-	int pid = ctx.arg(0).rawValue();
-	if (Stats::SetProtoData(pid, ctx.arg(1).rawValue(), ctx.arg(2).rawValue()) != -1) {
-		if (!protoMaxLimitPatch) {
-			Objects::LoadProtoAutoMaxLimit();
-			protoMaxLimitPatch = true;
-		}
-	} else {
-		ctx.printOpcodeError(failedLoad, ctx.getOpcodeName(), pid);
 	}
 }
 
 void __declspec(naked) op_hero_select_win() { // for opening the appearance selection window
 	__asm {
-		push ecx;
-		push edx;
+		mov  esi, ecx;
 		_GET_ARG_INT(fail);
 		push eax;
 		call HeroSelectWindow;
 fail:
-		pop  edx;
-		pop  ecx;
+		mov  ecx, esi;
 		retn;
 	}
 }
 
 void __declspec(naked) op_set_hero_style() { // for setting the hero style/appearance takes an 1 int
 	__asm {
-		push ecx;
-		push edx;
+		mov  esi, ecx;
 		_GET_ARG_INT(fail);
 		push eax;
 		call SetHeroStyle;
 fail:
-		pop  edx;
-		pop  ecx;
+		mov  ecx, esi;
 		retn;
 	}
 }
 
 void __declspec(naked) op_set_hero_race() { // for setting the hero race takes an 1 int
 	__asm {
-		push ecx;
-		push edx;
+		mov  esi, ecx;
 		_GET_ARG_INT(fail);
 		push eax;
 		call SetHeroRace;
 fail:
-		pop  edx;
-		pop  ecx;
+		mov  ecx, esi;
 		retn;
 	}
 }
 
 void __declspec(naked) op_get_light_level() {
 	__asm {
-		push edx;
-		push ecx;
 		mov  edx, ds:[FO_VAR_ambient_light];
-		_RET_VAL_INT(ecx);
-		pop  ecx;
-		pop  edx;
-		retn;
+		_J_RET_VAL_TYPE(VAR_TYPE_INT);
+//		retn;
 	}
 }
 
 void __declspec(naked) op_refresh_pc_art() {
 	__asm {
-		push ecx;
-		push edx;
+		mov  esi, ecx;
 		call RefreshPCArt;
-		pop  edx;
-		pop  ecx;
+		mov  ecx, esi;
 		retn;
 	}
 }
@@ -973,14 +780,12 @@ end:
 
 void __declspec(naked) op_stop_sfall_sound() {
 	__asm {
-		push ecx;
-		push edx;
+		mov  esi, ecx;
 		_GET_ARG_INT(end);
 		push eax;
 		call StopSfallSound;
 end:
-		pop  edx;
-		pop  ecx;
+		mov  ecx, esi;
 		retn;
 	}
 }
@@ -1021,48 +826,38 @@ end:
 
 void __declspec(naked) op_modified_ini() {
 	__asm {
-		push edx;
-		push ecx;
-		mov edx, modifiedIni;
-		_RET_VAL_INT(ecx);
-		pop  ecx;
-		pop  edx;
-		retn;
+		mov  edx, modifiedIni;
+		_J_RET_VAL_TYPE(VAR_TYPE_INT);
+//		retn;
 	}
 }
 
 void __declspec(naked) op_force_aimed_shots() {
 	__asm {
-		push ecx;
-		push edx;
+		mov  esi, ecx;
 		_GET_ARG_INT(end);
 		push eax;
 		call ForceAimedShots;
 end:
-		pop  edx;
-		pop  ecx;
+		mov  ecx, esi;
 		retn;
 	}
 }
 
 void __declspec(naked) op_disable_aimed_shots() {
 	__asm {
-		push ecx;
-		push edx;
+		mov  esi, ecx;
 		_GET_ARG_INT(end);
 		push eax;
 		call DisableAimedShots;
 end:
-		pop  edx;
-		pop  ecx;
+		mov  ecx, esi;
 		retn;
 	}
 }
 
 void __declspec(naked) op_mark_movie_played() {
 	__asm {
-		push ecx;
-		push edx;
 		_GET_ARG_INT(end);
 		test eax, eax;
 		jl   end;
@@ -1070,8 +865,6 @@ void __declspec(naked) op_mark_movie_played() {
 		jge  end;
 		mov  byte ptr ds:[eax + FO_VAR_gmovie_played_list], 1;
 end:
-		pop  edx;
-		pop  ecx;
 		retn;
 	}
 }
@@ -1132,70 +925,56 @@ end:
 
 void __declspec(naked) op_block_combat() {
 	__asm {
-		push ecx;
-		push edx;
+		mov  esi, ecx;
 		_GET_ARG_INT(end);
 		push eax;
 		call AIBlockCombat;
 end:
-		pop  edx;
-		pop  ecx;
+		mov  ecx, esi;
 		retn;
 	}
 }
 
 void __declspec(naked) op_tile_under_cursor() {
 	__asm {
-		push edx;
-		push ecx;
-		push ebx;
-		mov ecx, eax;
-		sub esp, 8;
-		lea edx, [esp];
-		lea eax, [esp+4];
+		mov  esi, ebx;
+		sub  esp, 8;
+		lea  edx, [esp];
+		lea  eax, [esp + 4];
 		call fo::funcoffs::mouse_get_position_;
-		mov ebx, dword ptr ds:[FO_VAR_map_elevation];
-		mov edx, [esp];
-		mov eax, [esp+4];
-		call fo::funcoffs::tile_num_;
-		mov edx, eax;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPushLong_;
-		mov eax, ecx;
-		mov edx, VAR_TYPE_INT;
-		call fo::funcoffs::interpretPushShort_;
-		add esp, 8;
-		pop ebx;
-		pop ecx;
-		pop edx;
-		retn;
+		pop  edx;
+		pop  eax;
+		call fo::funcoffs::tile_num_; // ebx - unused
+		mov  edx, eax; // tile
+		mov  ebx, esi;
+		mov  eax, esi;
+		_J_RET_VAL_TYPE(VAR_TYPE_INT);
+//		retn;
 	}
 }
 
 void __declspec(naked) op_gdialog_get_barter_mod() {
 	__asm {
-		push edx;
-		push ecx;
 		mov  edx, dword ptr ds:[FO_VAR_gdBarterMod];
-		_RET_VAL_INT(ecx);
-		pop  ecx;
-		pop  edx;
-		retn;
+		_J_RET_VAL_TYPE(VAR_TYPE_INT);
+//		retn;
 	}
 }
 
 void __declspec(naked) op_set_inven_ap_cost() {
 	__asm {
-		push ecx;
-		push edx;
+		mov  esi, ecx;
 		_GET_ARG_INT(end);
-		push eax;
-		call SetInvenApCost;
+		mov  ecx, eax;
+		call Inventory::SetInvenApCost;
 end:
-		pop  edx;
-		pop  ecx;
+		mov  ecx, esi;
 		retn;
 	}
+}
+
+void sf_get_inven_ap_cost(OpcodeContext& ctx) {
+	ctx.setReturn(Inventory::GetInvenApCost());
 }
 
 void sf_attack_is_aimed(OpcodeContext& ctx) {
@@ -1208,7 +987,7 @@ void sf_sneak_success(OpcodeContext& ctx) {
 }
 
 void sf_tile_light(OpcodeContext& ctx) {
-	int lightLevel = fo::func::light_get_tile(ctx.arg(0).asInt(), ctx.arg(1).asInt());
+	int lightLevel = fo::func::light_get_tile(ctx.arg(0).rawValue(), ctx.arg(1).rawValue());
 	ctx.setReturn(lightLevel);
 }
 
@@ -1221,8 +1000,8 @@ void sf_set_ini_setting(OpcodeContext& ctx) {
 
 	const char* saveValue;
 	if (argVal.isInt()) {
-		_itoa_s(argVal.rawValue(), IniStrBuffer, 10);
-		saveValue = IniStrBuffer;
+		_itoa_s(argVal.rawValue(), ScriptExtender::gTextBuffer, 10);
+		saveValue = ScriptExtender::gTextBuffer;
 	} else {
 		saveValue = argVal.strValue();
 	}
@@ -1240,28 +1019,38 @@ void sf_set_ini_setting(OpcodeContext& ctx) {
 	case -1:
 		ctx.printOpcodeError("%s() - invalid setting argument.", ctx.getMetaruleName());
 		break;
+	default:
+		return;
 	}
+	ctx.setReturn(-1);
 }
 
-static std::string GetIniFilePath(const ScriptValue& arg) {
+static std::string GetIniFilePath(const ScriptValue &arg) {
 	std::string fileName(".\\");
 	if (ScriptExtender::iniConfigFolder.empty()) {
 		fileName += arg.strValue();
 	} else {
 		fileName += ScriptExtender::iniConfigFolder;
-		std::string name(arg.strValue());
-		int pos = name.find_last_of("\\/");
-		fileName += (pos > 0) ? name.substr(pos + 1) : name;
+		fileName += arg.strValue();
+		if (GetFileAttributesA(fileName.c_str()) & FILE_ATTRIBUTE_DIRECTORY) {
+			auto str = arg.strValue();
+			for (size_t i = 2; ; i++, str++) {
+				//if (*str == '.') str += (str[1] == '.') ? 3 : 2; // skip '.\' or '..\'
+				fileName[i] = *str;
+				if (!*str) break;
+			}
+		}
 	}
 	return fileName;
 }
 
-char getIniSectionBuf[5120];
-
 void sf_get_ini_sections(OpcodeContext& ctx) {
-	GetPrivateProfileSectionNamesA(getIniSectionBuf, 5120, GetIniFilePath(ctx.arg(0)).data());
+	if (!GetPrivateProfileSectionNamesA(ScriptExtender::gTextBuffer, ScriptExtender::TextBufferSize(), GetIniFilePath(ctx.arg(0)).c_str())) {
+		ctx.setReturn(TempArray(0, 0));
+		return;
+	}
 	std::vector<char*> sections;
-	char* section = getIniSectionBuf;
+	char* section = ScriptExtender::gTextBuffer;
 	while (*section != 0) {
 		sections.push_back(section); // position
 		section += std::strlen(section) + 1;
@@ -1279,22 +1068,24 @@ void sf_get_ini_sections(OpcodeContext& ctx) {
 }
 
 void sf_get_ini_section(OpcodeContext& ctx) {
-	auto section = ctx.arg(1).asString();
-	GetPrivateProfileSectionA(section, getIniSectionBuf, 5120, GetIniFilePath(ctx.arg(0)).data());
+	auto section = ctx.arg(1).strValue();
 	int arrayId = TempArray(-1, 0); // associative
-	auto& arr = arrays[arrayId];
-	char *key = getIniSectionBuf, *val = nullptr;
-	while (*key != 0) {
-		char* val = std::strpbrk(key, "=");
-		if (val != nullptr) {
-			*val = '\0';
-			val += 1;
 
-			SetArray(arrayId, ScriptValue(key), ScriptValue(val), false);
+	if (GetPrivateProfileSectionA(section, ScriptExtender::gTextBuffer, ScriptExtender::TextBufferSize(), GetIniFilePath(ctx.arg(0)).c_str())) {
+		auto& arr = arrays[arrayId];
+		char *key = ScriptExtender::gTextBuffer, *val = nullptr;
+		while (*key != 0) {
+			char* val = std::strpbrk(key, "=");
+			if (val != nullptr) {
+				*val = '\0';
+				val += 1;
 
-			key = val + std::strlen(val) + 1;
-		} else {
-			key += std::strlen(key) + 1;
+				SetArray(arrayId, ScriptValue(key), ScriptValue(val), false);
+
+				key = val + std::strlen(val) + 1;
+			} else {
+				key += std::strlen(key) + 1;
+			}
 		}
 	}
 	ctx.setReturn(arrayId);

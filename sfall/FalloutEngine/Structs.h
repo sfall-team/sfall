@@ -199,17 +199,18 @@ struct ScriptInstance {
 struct Program {
 	const char* fileName;
 	long *codeStackPtr;
-	char gap_8[8];
+	long gap_8;
+	long gap_9;
 	long *codePtr;
 	long field_14;
-	char gap_18[4];
+	long gap_18;
 	long *dStackPtr;
 	long *aStackPtr;
 	long *dStackOffs;
 	long *aStackOffs;
-	char gap_2C[4];
+	long gap_2C;
 	long *stringRefPtr;
-	char gap_34[4];
+	long gap_34;
 	long *procTablePtr;
 };
 
@@ -519,8 +520,8 @@ struct Proto {
 			// for each DamageType
 			long damageThreshold[7];
 			long perk;
-			long maleFrameNum;
-			long femaleFrameNum;
+			long maleFID;
+			long femaleFID;
 		};
 
 		struct Container {
@@ -696,20 +697,39 @@ struct ScriptListInfoItem {
 //for holding window info
 #pragma pack(1)
 struct Window {
-	long ref;
+	long wID;
 	long flags;
 	RECT wRect;
 	long width;
 	long height;
 	long clearColour;
+	long rand1;
+	long rand2;
+	BYTE *surface; // bytes frame data ref to palette
+	long *buttonsList;
+	long unknown5; // buttonptr?
+	long unknown6;
+	long *menuBar;
+	long *drawFunc;
+};
+
+struct sWindow {
+	char name[32];
+	long wID;
+	long width;
+	long height;
+	long unknown1;
 	long unknown2;
 	long unknown3;
-	BYTE *surface; // bytes frame data ref to palette
-	long buttonListP;
-	long unknown5;//buttonptr?
+	long unknown4;
+	long *buttons;
+	long numButtons;
+	long unknown5;
 	long unknown6;
+	long clearColour;
+	long flags;
 	long unknown7;
-	long drawFuncP;
+	long unknown8;
 };
 
 #pragma pack(1)

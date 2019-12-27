@@ -17,6 +17,7 @@
 */
 
 #include "FunctionOffsets.h"
+#include "VariableOffsets.h"
 
 #include "Functions.h"
 
@@ -24,6 +25,15 @@ namespace fo
 {
 namespace func
 {
+
+// Prints debug message to debug.log file for develop build
+#ifndef NDEBUG
+void __declspec(naked) dev_printf(const char* fmt, ...) {
+	__asm jmp fo::funcoffs::debug_printf_;
+}
+#else
+void dev_printf(const char* fmt, ...) {}
+#endif
 
 // Fallout2.exe was compiled using WATCOM compiler, which uses Watcom register calling convention.
 // In this convention, up to 4 arguments are passed via registers in this order: EAX, EDX, EBX, ECX.
@@ -171,7 +181,7 @@ long __stdcall db_dir_entry(const char *fileName, DWORD *sizeOut) {
 
 // prints message to debug.log file
 void __declspec(naked) debug_printf(const char* fmt, ...) {
-	__asm jmp fo::funcoffs::debug_printf_
+	__asm jmp fo::funcoffs::debug_printf_;
 }
 
 // Displays message in main UI console window
@@ -232,8 +242,8 @@ DWORD __stdcall interpretAddString(Program* scriptPtr, const char* strval) {
 	WRAP_WATCOM_CALL2(interpretAddString_, scriptPtr, strval)
 }
 
-const char* __stdcall interpretGetString(Program* scriptPtr, DWORD dataType, DWORD strId) {
-	WRAP_WATCOM_CALL3(interpretGetString_, scriptPtr, dataType, strId)
+const char* __fastcall interpretGetString(Program* scriptPtr, DWORD dataType, DWORD strId) {
+	WRAP_WATCOM_FCALL3(interpretGetString_, scriptPtr, dataType, strId)
 }
 
 // prints scripting error in debug.log and stops current script execution by performing longjmp
@@ -303,6 +313,12 @@ long __stdcall message_load(MessageList *msgList, const char *msgFilePath) {
 
 long __stdcall message_exit(MessageList *msgList) {
 	WRAP_WATCOM_CALL1(message_exit_, msgList)
+}
+
+long __fastcall tile_num(long x, long y) {
+	__asm push ebx; // don't delete (bug in tile_num_)
+	WRAP_WATCOM_FCALL2(tile_num_, x, x);
+	__asm pop  ebx;
 }
 
 GameObject* __fastcall obj_blocking_at_wrapper(GameObject* obj, DWORD tile, DWORD elevation, void* func) {
@@ -455,7 +471,21 @@ void __fastcall trans_cscale(long i_width, long i_height, long s_width, long s_h
 	}
 }
 
+//void __declspec(naked) __stdcall buf_to_buf(void* to_buf, long to_width, void* from_buf, long from_width, long width, long height) {
+//	__asm jmp fo::funcoffs::srcCopy_;
+//}
 
+long __fastcall get_game_config_string(const char* outValue, const char* section, const char* param) {
+	__asm {
+		mov  ebx, param;
+		mov  eax, FO_VAR_game_config;
+		call fo::funcoffs::config_get_string_; // section<edx>, outValue<ecx>
+	}
+}
+
+////////////////////////////////////
+// X-Macro for wrapper functions. //
+////////////////////////////////////
 #define WRAP_WATCOM_FUNC0(retType, name) \
 	retType __stdcall name() { \
 		WRAP_WATCOM_CALL0(name##_) \

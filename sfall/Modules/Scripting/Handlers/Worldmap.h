@@ -56,5 +56,7 @@ void sf_set_rest_on_map(OpcodeContext&);
 
 void sf_get_rest_on_map(OpcodeContext&);
 
+void sf_tile_by_position(OpcodeContext&);
+
 }
 }

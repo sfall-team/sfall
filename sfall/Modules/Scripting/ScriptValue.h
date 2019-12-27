@@ -61,6 +61,8 @@ public:
 
 	const char* strValue() const;
 
+	fo::GameObject* object() const;
+
 	// returns value as integer, converting if needed
 	int asInt() const;
 
@@ -87,7 +89,7 @@ private:
 		fo::GameObject* gObj;
 	} _val;
 
-	DataType _type; // TODO: replace with enum class
+	DataType _type;
 };
 
 }

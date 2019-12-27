@@ -30,42 +30,32 @@ namespace script
 
 void __declspec(naked) op_get_perk_owed() {
 	__asm {
-		push edx;
-		push ecx;
 		movzx edx, byte ptr ds:[FO_VAR_free_perk];
-		_RET_VAL_INT(ecx);
-		pop  ecx;
-		pop  edx;
-		retn;
+		_J_RET_VAL_TYPE(VAR_TYPE_INT);
+//		retn;
 	}
 }
 
 void __declspec(naked) op_set_perk_owed() {
 	__asm {
-		push ecx;
-		push edx;
 		_GET_ARG_INT(end);
 		and  eax, 0xFF;
 		cmp  eax, 250;
 		jg   end;
 		mov  byte ptr ds:[FO_VAR_free_perk], al;
 end:
-		pop  edx;
-		pop  ecx;
 		retn;
 	}
 }
 
 void __declspec(naked) op_set_perk_freq() {
 	__asm {
-		push ecx;
-		push edx;
+		mov  esi, ecx;
 		_GET_ARG_INT(end);
 		push eax;
 		call SetPerkFreq;
 end:
-		pop  edx;
-		pop  ecx;
+		mov  ecx, esi;
 		retn;
 	}
 }
@@ -197,29 +187,32 @@ void sf_set_fake_trait(OpcodeContext& ctx) {
 const char* notPartyMemberErr = "%s() - the object is not a party member.";
 
 void sf_set_selectable_perk_npc(OpcodeContext& ctx) {
-	auto obj = ctx.arg(0).asObject();
+	auto obj = ctx.arg(0).object();
 	if (obj->Type() == fo::ObjType::OBJ_TYPE_CRITTER && fo::func::isPartyMember(obj)) {
 		Perks::SetSelectablePerk(ctx.arg(1).strValue(), ctx.arg(2).rawValue(), ctx.arg(3).rawValue(), ctx.arg(4).strValue(), (obj->id != PLAYER_ID) ? obj->id : 0);
 	} else {
 		ctx.printOpcodeError(notPartyMemberErr, ctx.getMetaruleName());
+		ctx.setReturn(-1);
 	}
 }
 
 void sf_set_fake_perk_npc(OpcodeContext& ctx) {
-	auto obj = ctx.arg(0).asObject();
+	auto obj = ctx.arg(0).object();
 	if (obj->Type() == fo::ObjType::OBJ_TYPE_CRITTER && fo::func::isPartyMember(obj)) {
 		Perks::SetFakePerk(ctx.arg(1).strValue(), ctx.arg(2).rawValue(), ctx.arg(3).rawValue(), ctx.arg(4).strValue(), (obj->id != PLAYER_ID) ? obj->id : 0);
 	} else {
 		ctx.printOpcodeError(notPartyMemberErr, ctx.getMetaruleName());
+		ctx.setReturn(-1);
 	}
 }
 
 void sf_set_fake_trait_npc(OpcodeContext& ctx) {
-	auto obj = ctx.arg(0).asObject();
+	auto obj = ctx.arg(0).object();
 	if (obj->Type() == fo::ObjType::OBJ_TYPE_CRITTER && fo::func::isPartyMember(obj)) {
 		Perks::SetFakeTrait(ctx.arg(1).strValue(), ctx.arg(2).rawValue(), ctx.arg(3).rawValue(), ctx.arg(4).strValue(), (obj->id != PLAYER_ID) ? obj->id : 0);
 	} else {
 		ctx.printOpcodeError(notPartyMemberErr, ctx.getMetaruleName());
+		ctx.setReturn(-1);
 	}
 }
 
@@ -251,27 +244,27 @@ end:
 
 void __declspec(naked) op_hide_real_perks() {
 	__asm {
-		push ecx;
+		mov  esi, ecx;
 		call IgnoreDefaultPerks;
-		pop  ecx;
+		mov  ecx, esi;
 		retn;
 	}
 }
 
 void __declspec(naked) op_show_real_perks() {
 	__asm {
-		push ecx;
+		mov  esi, ecx;
 		call RestoreDefaultPerks;
-		pop  ecx;
+		mov  ecx, esi;
 		retn;
 	}
 }
 
 void __declspec(naked) op_clear_selectable_perks() {
 	__asm {
-		push ecx;
+		mov  esi, ecx;
 		call ClearSelectablePerks;
-		pop  ecx;
+		mov  ecx, esi;
 		retn;
 	}
 }
@@ -286,7 +279,7 @@ void sf_has_fake_trait(OpcodeContext& ctx) {
 
 void sf_has_fake_perk_npc(OpcodeContext& ctx) {
 	long result = 0;
-	auto obj = ctx.arg(0).asObject();
+	auto obj = ctx.arg(0).object();
 	if (obj->Type() == fo::ObjType::OBJ_TYPE_CRITTER && fo::func::isPartyMember(obj)) {
 		result = Perks::HasFakePerkOwner(ctx.arg(1).strValue(), (obj->id != PLAYER_ID) ? obj->id : 0);
 	} else {
@@ -297,7 +290,7 @@ void sf_has_fake_perk_npc(OpcodeContext& ctx) {
 
 void sf_has_fake_trait_npc(OpcodeContext& ctx) {
 	long result = 0;
-	auto obj = ctx.arg(0).asObject();
+	auto obj = ctx.arg(0).object();
 	if (obj->Type() == fo::ObjType::OBJ_TYPE_CRITTER && fo::func::isPartyMember(obj)) {
 		result = Perks::HasFakeTraitOwner(ctx.arg(1).strValue(), (obj->id != PLAYER_ID) ? obj->id : 0);
 	} else {
@@ -308,78 +301,123 @@ void sf_has_fake_trait_npc(OpcodeContext& ctx) {
 
 void __declspec(naked) op_perk_add_mode() {
 	__asm {
-		push ecx;
-		push edx;
+		mov  esi, ecx;
 		_GET_ARG_INT(end);
 		push eax;
 		call AddPerkMode;
 end:
-		pop edx;
-		pop ecx;
+		mov  ecx, esi;
 		retn;
 	}
 }
 
 void __declspec(naked) op_remove_trait() {
 	__asm {
-		push ecx;
 		_GET_ARG_INT(end);
 		test eax, eax;
 		jl   end;
 		mov  edx, -1;
 		cmp  eax, ds:[FO_VAR_pc_trait];
 		jne  next;
-		mov  ecx, ds:[FO_VAR_pc_trait2];
-		mov  ds:[FO_VAR_pc_trait], ecx;
+		mov  esi, ds:[FO_VAR_pc_trait2];
+		mov  ds:[FO_VAR_pc_trait], esi;
 		mov  ds:[FO_VAR_pc_trait2], edx;
-end:
-		pop  ecx;
 		retn;
 next:
 		cmp  eax, ds:[FO_VAR_pc_trait2];
 		jne  end;
 		mov  ds:[FO_VAR_pc_trait2], edx;
-		pop  ecx;
+end:
 		retn;
 	}
 }
 
 void __declspec(naked) op_set_pyromaniac_mod() {
 	__asm {
-		push ecx;
-		push edx;
+		mov  esi, ecx;
 		_GET_ARG_INT(end);
 		push eax;
 		push 0x424AB6;
 		call SafeWrite8;
 end:
-		pop edx;
-		pop ecx;
+		mov  ecx, esi;
 		retn;
 	}
 }
 
 void __declspec(naked) op_apply_heaveho_fix() {
 	__asm {
-		push ecx;
+		mov  esi, ecx;
 		call ApplyHeaveHoFix;
-		pop  ecx;
+		mov  ecx, esi;
 		retn;
 	}
 }
 
 void __declspec(naked) op_set_swiftlearner_mod() {
 	__asm {
-		push ecx;
-		push edx;
+		mov  esi, ecx;
 		_GET_ARG_INT(end);
 		push eax;
 		push 0x4AFAE2;
 		call SafeWrite32;
 end:
-		pop  edx;
-		pop  ecx;
+		mov  ecx, esi;
 		retn;
+	}
+}
+
+static void __declspec(naked) perk_can_add_hook() {
+	__asm {
+		call fo::funcoffs::stat_pc_get_;
+		add  eax, Perks::PerkLevelMod;
+		js   jneg; // level < 0
+		retn;
+jneg:
+		xor  eax, eax;
+		retn;
+	}
+}
+
+static void __fastcall SetPerkLevelMod(long mod) {
+	static bool perkLevelModPatch = false;
+	if (mod < -25 || mod > 25) return;
+	Perks::PerkLevelMod = mod;
+
+	if (perkLevelModPatch) return;
+	perkLevelModPatch = true;
+	HookCall(0x49687F, perk_can_add_hook);
+}
+
+void __declspec(naked) op_set_perk_level_mod() {
+	__asm {
+		mov  esi, ecx;
+		_GET_ARG_INT(end);
+		mov  ecx, eax;
+		call SetPerkLevelMod;
+end:
+		mov  ecx, esi;
+		retn;
+	}
+}
+
+void sf_add_trait(OpcodeContext& ctx) {
+	if (fo::var::obj_dude->protoId != fo::PID_Player) {
+		ctx.printOpcodeError("%s() - traits can be added only to the player.", ctx.getMetaruleName());
+		ctx.setReturn(-1);
+		return;
+	}
+	long traitId = ctx.arg(0).rawValue();
+	if (traitId >= fo::TRAIT_fast_metabolism && traitId <= fo::TRAIT_gifted) {
+		if (fo::var::pc_trait[0] == -1) {
+			fo::var::pc_trait[0] = traitId;
+		} else if (fo::var::pc_trait[0] != traitId && fo::var::pc_trait[1] == -1) {
+			fo::var::pc_trait[1] = traitId;
+		} else {
+			ctx.printOpcodeError("%s() - cannot add the trait ID: %d", ctx.getMetaruleName(), traitId);
+		}
+	} else {
+		ctx.printOpcodeError("%s() - invalid trait ID.", ctx.getMetaruleName());
 	}
 }
 

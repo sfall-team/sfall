@@ -37,12 +37,12 @@ typedef void(*ScriptingFunctionHandler)(OpcodeContext&);
 
 // The type of argument, not the same as actual data type. Useful for validation.
 enum OpcodeArgumentType {
-	ARG_ANY = 0, // no validation
+	ARG_ANY = 0, // no validation (default)
 	ARG_INT,     // integer only
-	ARG_NUMBER,  // float OR integer
-	ARG_STRING,  // string only
 	ARG_OBJECT,  // integer that is not 0
-	ARG_INTSTR   // integer OR string
+	ARG_STRING,  // string only
+	ARG_INTSTR,  // integer OR string
+	ARG_NUMBER,  // float OR integer
 };
 
 typedef struct SfallOpcodeInfo {
@@ -60,6 +60,9 @@ typedef struct SfallOpcodeInfo {
 
 	// has return value or not
 	bool hasReturn;
+
+	// default return value when an error occurs during validation of function arguments
+	long errValue;
 
 	// argument validation settings
 	OpcodeArgumentType argValidation[OP_MAX_ARGUMENTS];
@@ -79,6 +82,9 @@ typedef struct SfallMetarule {
 	// maximum number of arguments
 	short maxArgs;
 
+	// default return value when an error occurs during validation of function arguments
+	long errValue;
+
 	// argument validation settings
 	OpcodeArgumentType argValidation[OP_MAX_ARGUMENTS];
 } SfallMetarule;
@@ -90,15 +96,15 @@ public:
 	// opcode - opcode number
 	// argNum - number of arguments for this opcode
 	// hasReturn - true if opcode has return value (is expression)
-	// opcodeName - name of a function (for logging)
 	OpcodeContext(fo::Program* program, DWORD opcode, int argNum, bool hasReturn);
-	OpcodeContext(fo::Program* program, DWORD opcode, int argNum, bool hasReturn, const char* opcodeName);
+	OpcodeContext(fo::Program* program, const SfallOpcodeInfo* info);
 
-	const char* getOpcodeName() const; 
+	const char* getOpcodeName() const;
 	const char* getMetaruleName() const;
 
-	// currently executed metarule func
-	const SfallMetarule* metarule;
+	// currently executed metarule function
+	void setMetarule(const SfallMetarule* metarule);
+	const SfallMetarule* getMetarule() const;
 
 	// number of arguments, possibly reduced by argShift
 	int numArgs() const;
@@ -115,7 +121,7 @@ public:
 
 	// returns argument with given index, possible shifted by argShift
 	const ScriptValue& arg(int index) const;
-	
+
 	// current return value
 	const ScriptValue& returnValue() const;
 
@@ -124,13 +130,13 @@ public:
 
 	// current opcode number
 	DWORD opcode() const;
-	
+
 	// set return value for current opcode
 	void setReturn(unsigned long value, DataType type);
-	
+
 	// set return value for current opcode
 	void setReturn(const ScriptValue& val);
-	
+
 	// writes error message to debug.log along with the name of script & procedure
 	void printOpcodeError(const char* fmt, ...) const;
 
@@ -145,7 +151,6 @@ public:
 	// Handle opcodes with argument validation
 	// func - opcode handler
 	// argTypes - argument types for validation
-	// opcodeName - name of a function (for logging)
 	void handleOpcode(ScriptingFunctionHandler func, const OpcodeArgumentType argTypes[]);
 
 	// handles opcode using default instance
@@ -165,14 +170,16 @@ private:
 
 	fo::Program* _program;
 	DWORD _opcode;
+	const char* _opcodeName; // name of opcode function (for error logging)
 
-	const char* _opcodeName;
+	const SfallMetarule* _metarule;
 
 	int _numArgs;
 	bool _hasReturn;
 	int _argShift;
 	std::array<ScriptValue, OP_MAX_ARGUMENTS> _args;
 	ScriptValue _ret;
+	long _errorVal; // error value for incorrect arguments
 };
 
 }

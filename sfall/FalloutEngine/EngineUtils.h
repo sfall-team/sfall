@@ -76,12 +76,16 @@ bool IsPartyMember(fo::GameObject* critter);
 // Returns the number of local variables of the object script
 long GetScriptLocalVars(long sid);
 
+long __fastcall GetTopWindowID(long xPos, long yPos);
+
+void GetObjectsTileRadius(std::vector<fo::GameObject*> &objs, long sourceTile, long radius, long elev, long type);
+
 // Print text to surface
 void PrintText(char *displayText, BYTE colorIndex, DWORD x, DWORD y, DWORD textWidth, DWORD destWidth, BYTE *surface);
 // gets the height of the currently selected font
 DWORD GetTextHeight();
 // gets the length of a string using the currently selected font
-DWORD GetTextWidth(char *textMsg);
+DWORD GetTextWidth(const char *textMsg);
 // get width of Char for current font
 DWORD GetCharWidth(char charVal);
 // get maximum string length for current font - if all characters were maximum width

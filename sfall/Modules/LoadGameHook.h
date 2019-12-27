@@ -28,8 +28,11 @@ class LoadGameHook : public Module {
 public:
 	const char* name() { return "LoadGameHook"; }
 	void init();
-	
-	// Invoked before game initialization (game_init_ was called).
+
+	// Invoked before game initialization (main_init_system_ was called)
+	static Delegate<>& OnBeforeGameInit();
+
+	// Invoked during game initialization (game_init_ was called).
 	static Delegate<>& OnGameInit();
 
 	// Invoked when the game has been initialized
@@ -68,9 +71,9 @@ DWORD InCombat();
 
 DWORD InDialog();
 
-enum LoopFlag : unsigned long {
+enum LoopFlag : long {
 	WORLDMAP    = 1 << 0, // 0x1
-	LOCALMAP    = 1 << 1, // 0x2 No point hooking this: would always be 1 at any point at which scripts are running
+//	RESERVED    = 1 << 1, // 0x2 (unused)
 	DIALOG      = 1 << 2, // 0x4
 	ESCMENU     = 1 << 3, // 0x8
 	SAVEGAME    = 1 << 4, // 0x10
@@ -91,7 +94,7 @@ enum LoopFlag : unsigned long {
 	DIALOGVIEW  = 1 << 19, // 0x80000
 	COUNTERWIN  = 1 << 20, // 0x100000 Counter window for moving multiple items or setting a timer
 
-	// RESERVED    = 1 << 31
+	SPECIAL     = 1 << 31  // 0x80000000 Additional special flag for all modes
 };
 
 DWORD GetLoopFlags();

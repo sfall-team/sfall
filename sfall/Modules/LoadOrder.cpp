@@ -1,20 +1,20 @@
 /*
-*    sfall
-*    Copyright (C) 2008-2017  The sfall team
-*
-*    This program is free software: you can redistribute it and/or modify
-*    it under the terms of the GNU General Public License as published by
-*    the Free Software Foundation, either version 3 of the License, or
-*    (at your option) any later version.
-*
-*    This program is distributed in the hope that it will be useful,
-*    but WITHOUT ANY WARRANTY; without even the implied warranty of
-*    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-*    GNU General Public License for more details.
-*
-*    You should have received a copy of the GNU General Public License
-*    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
+ *    sfall
+ *    Copyright (C) 2008-2017  The sfall team
+ *
+ *    This program is free software: you can redistribute it and/or modify
+ *    it under the terms of the GNU General Public License as published by
+ *    the Free Software Foundation, either version 3 of the License, or
+ *    (at your option) any later version.
+ *
+ *    This program is distributed in the hope that it will be useful,
+ *    but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *    GNU General Public License for more details.
+ *
+ *    You should have received a copy of the GNU General Public License
+ *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 
 #include "..\main.h"
 #include "..\FalloutEngine\Fallout2.h"
@@ -153,7 +153,7 @@ end:
 	}
 }
 
-static void __stdcall InitExtraPatches() {
+static void InitExtraPatches() {
 	for (auto it = patchFiles.begin(); it != patchFiles.end(); it++) {
 		if (!it->empty()) fo::func::db_init(it->c_str(), 0);
 	}
@@ -162,13 +162,12 @@ static void __stdcall InitExtraPatches() {
 	patchFiles.shrink_to_fit();
 }
 
-static void __fastcall game_init_databases_hook() {
-	fo::PathNode* master_patches;
-	__asm mov master_patches, eax;        // eax = _master_db_handle
+static void __fastcall game_init_databases_hook() { // eax = _master_db_handle
+	fo::PathNode* master_patches = fo::var::master_db_handle;
 
-	if (!patchFiles.empty()) InitExtraPatches();
+	/*if (!patchFiles.empty())*/ InitExtraPatches();
 
-	fo::PathNode* critter_patches = (fo::PathNode*)fo::var::critter_db_handle;
+	fo::PathNode* critter_patches = fo::var::critter_db_handle;
 	fo::PathNode* paths = fo::var::paths; // beginning of the chain of paths
 	// insert master_patches/critter_patches at the beginning of the chain of paths
 	if (critter_patches) {
@@ -177,6 +176,20 @@ static void __fastcall game_init_databases_hook() {
 	}
 	master_patches->next = paths;         // master_patches.next -> paths
 	fo::var::paths = master_patches;      // set master_patches node at the beginning of the chain of paths
+}
+
+static void __fastcall game_init_databases_hook1() {
+	char masterPatch[MAX_PATH];
+	iniGetString("system", "master_patches", "", masterPatch, MAX_PATH - 1, (const char*)FO_VAR_gconfig_file_name);
+
+	fo::PathNode* node = fo::var::paths;
+	while (node->next) {
+		if (!strcmp(node->path, masterPatch)) break;
+		node = node->next;
+	}
+	fo::var::master_db_handle = node; // set pointer to master_patches node
+
+	InitExtraPatches();
 }
 
 static bool NormalizePath(std::string &path) {
@@ -226,6 +239,15 @@ static void GetExtraPatches() {
 			}
 		}
 	}
+}
+
+static void MultiPatchesPatch() {
+	//if (GetConfigInt("Misc", "MultiPatches", 0)) {
+		dlog("Applying load multiple patches patch.", DL_INIT);
+		SafeWrite8(0x444354, 0x90); // Change step from 2 to 1
+		SafeWrite8(0x44435C, 0xC4); // Disable check
+		dlogr(" Done", DL_INIT);
+	//}
 }
 
 ////////////////////////////// SAVE PARTY MEMBER PROTOTYPES //////////////////////////////
@@ -371,6 +393,7 @@ void LoadOrder::init() {
 	patchFiles.push_back("sfall.dat");
 
 	GetExtraPatches();
+	MultiPatchesPatch();
 
 	if (GetConfigInt("Misc", "DataLoadOrderPatch", 1)) {
 		dlog("Applying data load order patch.", DL_INIT);
@@ -379,8 +402,8 @@ void LoadOrder::init() {
 		HookCall(0x44436D, game_init_databases_hook);
 		SafeWrite8(0x4DFAEC, 0x1D); // error correction (ecx > ebx)
 		dlogr(" Done", DL_INIT);
-	} else if (!patchFiles.empty()) {
-		HookCall(0x44436D, InitExtraPatches);
+	} else /*if (!patchFiles.empty())*/ {
+		HookCall(0x44436D, game_init_databases_hook1);
 	}
 
 	femaleMsgs = GetConfigInt("Misc", "FemaleDialogMsgs", 0);

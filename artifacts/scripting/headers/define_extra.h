@@ -87,7 +87,6 @@
 #define FLAG_SEEN         (0x40000000)
 #define FLAG_SHOOTTHRU    (0x80000000)
 
-
 /* Critter Flags */
 #define CFLG_BARTER             2  // 0x00000002 - Barter (can trade with)
 #define CFLG_NOSTEAL           32  // 0x00000020 - Steal (cannot steal from)
@@ -100,6 +99,13 @@
 #define CFLG_SPECIAL         4096  // 0x00001000 - Special (there is a special type of death)
 #define CFLG_RANGED          8192  // 0x00002000 - Range (melee attack is possible at a distance)
 #define CFLG_NOKNOCKDOWN    16384  // 0x00004000 - Knock (cannot be knocked down)
+
+/* Window Flags */
+#define WIN_FLAG_MOVEONTOP          (0x4)
+#define WIN_FLAG_HIDDEN             (0x8)
+#define WIN_FLAG_EXCLUSIVE         (0x10)
+#define WIN_FLAG_TRANSPARENT       (0x20)
+
 
 //remove inven obj defines
 #define RMOBJ_CONSUME_DRUG        4666772
@@ -120,7 +126,7 @@
 #define RMOBJ_RM_MULT_OBJS        4563866
 #define RMOBJ_REPLACE_WEAPON      4658526
 #define RMOBJ_THROW               4266040
-#define RMOBJ_SUB_CONTAINER       4683191  // search and remove the item from a container inside of an inventory
+#define RMOBJ_SUB_CONTAINER       4683191  // search and remove the item from nested containers in the inventory
 
 // common prototype offsets for get/set_proto_data
 #define PROTO_PID             (1)
@@ -385,10 +391,11 @@
 #define OBJ_DATA_FID                (0x20)
 #define OBJ_DATA_ELEVATION          (0x28)
 #define OBJ_DATA_PID                (0x64)
-#define OBJ_DATA_CID                (0x68) // combat id, used for savegame
-#define OBJ_DATA_SID                (0x78)
+#define OBJ_DATA_CID                (0x68) // combat ID, used for savegame
+#define OBJ_DATA_SID                (0x78) // script ID
+#define OBJ_DATA_SCRIPT_INDEX       (0x80) // script index number in scripts.lst
 // items
-#define OBJ_DATA_CUR_CHARGES        (0x3C)
+#define OBJ_DATA_CUR_CHARGES        (0x3C) // for key items it's the key code
 // critters
 #define OBJ_DATA_COMBAT_STATE       (0x3C) // flags: 1 - combat, 2 - target is out of range, 4 - flee
 #define OBJ_DATA_CUR_ACTION_POINT   (0x40)

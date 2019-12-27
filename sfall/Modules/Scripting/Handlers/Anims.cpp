@@ -19,6 +19,7 @@
 #include "..\..\..\FalloutEngine\Fallout2.h"
 #include "..\..\..\SafeWrite.h"
 #include "..\..\Explosions.h"
+#include "..\..\ScriptExtender.h"
 #include "..\OpcodeContext.h"
 
 #include "Anims.h"
@@ -51,21 +52,21 @@ bool checkCombatMode() {
 }
 
 void sf_reg_anim_combat_check(OpcodeContext& ctx) {
-	RegAnimCombatCheck(ctx.arg(0).asInt());
+	RegAnimCombatCheck(ctx.arg(0).rawValue());
 }
 
 void sf_reg_anim_destroy(OpcodeContext& ctx) {
 	if (!checkCombatMode()) {
-		auto obj = ctx.arg(0).asObject();
+		auto obj = ctx.arg(0).object();
 		fo::func::register_object_must_erase(obj);
 	}
 }
 
 void sf_reg_anim_animate_and_hide(OpcodeContext& ctx) {
 	if (!checkCombatMode()) {
-		auto obj = ctx.arg(0).asObject();
-		int animId = ctx.arg(1).asInt(),
-			delay = ctx.arg(2).asInt();
+		auto obj = ctx.arg(0).object();
+		int animId = ctx.arg(1).rawValue(),
+			delay = ctx.arg(2).rawValue();
 
 		fo::func::register_object_animate_and_hide(obj, animId, delay);
 	}
@@ -73,9 +74,9 @@ void sf_reg_anim_animate_and_hide(OpcodeContext& ctx) {
 
 void sf_reg_anim_light(OpcodeContext& ctx) {
 	if (!checkCombatMode()) {
-		auto obj = ctx.arg(0).asObject();
-		int radius = ctx.arg(1).asInt(),
-			delay = ctx.arg(2).asInt();
+		auto obj = ctx.arg(0).object();
+		int radius = ctx.arg(1).rawValue(),
+			delay = ctx.arg(2).rawValue();
 
 		if (radius < 0) {
 			radius = 0;
@@ -88,9 +89,9 @@ void sf_reg_anim_light(OpcodeContext& ctx) {
 
 void sf_reg_anim_change_fid(OpcodeContext& ctx) {
 	if (!checkCombatMode()) {
-		auto obj = ctx.arg(0).asObject();
-		int fid = ctx.arg(1).asInt(),
-			delay = ctx.arg(2).asInt();
+		auto obj = ctx.arg(0).object();
+		int fid = ctx.arg(1).rawValue(),
+			delay = ctx.arg(2).rawValue();
 
 		fo::func::register_object_change_fid(obj, fid, delay);
 	}
@@ -98,9 +99,9 @@ void sf_reg_anim_change_fid(OpcodeContext& ctx) {
 
 void sf_reg_anim_take_out(OpcodeContext& ctx) {
 	if (!checkCombatMode()) {
-		auto obj = ctx.arg(0).asObject();
-		int holdFrame = ctx.arg(1).asInt(),
-			nothing = ctx.arg(2).asInt(); // not used by engine
+		auto obj = ctx.arg(0).object();
+		int holdFrame = ctx.arg(1).rawValue(),
+			nothing = ctx.arg(2).rawValue(); // not used by engine
 
 		fo::func::register_object_take_out(obj, holdFrame, nothing);
 	}
@@ -108,17 +109,33 @@ void sf_reg_anim_take_out(OpcodeContext& ctx) {
 
 void sf_reg_anim_turn_towards(OpcodeContext& ctx) {
 	if (!checkCombatMode()) {
-		auto obj = ctx.arg(0).asObject();
-		int tile = ctx.arg(1).asInt(),
-			nothing = ctx.arg(2).asInt();
+		auto obj = ctx.arg(0).object();
+		int tile = ctx.arg(1).rawValue(),
+			nothing = ctx.arg(2).rawValue();
 
 		fo::func::register_object_turn_towards(obj, tile, nothing);
 	}
 }
 
+static void __declspec(naked) ExecuteCallback() {
+	__asm {
+		call fo::funcoffs::executeProcedure_;
+		jmp  ScriptExtender::GetResetScriptReturnValue; // return callback result from scr_return script function: -1 - break registered sequence
+	}
+}
+
+void sf_reg_anim_callback(OpcodeContext& ctx) {
+	fo::func::register_object_call(
+		reinterpret_cast<long*>(ctx.program()),
+		reinterpret_cast<long*>(ctx.arg(0).rawValue()), // callback procedure
+		reinterpret_cast<void*>(ExecuteCallback),
+		-1
+	);
+}
+
 void sf_explosions_metarule(OpcodeContext& ctx) {
-	int mode = ctx.arg(0).asInt(),
-		result = ExplosionsMetaruleFunc(mode, ctx.arg(1).asInt(), ctx.arg(2).asInt());
+	int mode = ctx.arg(0).rawValue(),
+		result = ExplosionsMetaruleFunc(mode, ctx.arg(1).rawValue(), ctx.arg(2).rawValue());
 
 	if (result == -1) {
 		ctx.printOpcodeError("%s() - mode (%d) is not supported for the function.", ctx.getOpcodeName(), mode);

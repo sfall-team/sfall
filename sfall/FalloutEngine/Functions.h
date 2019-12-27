@@ -29,6 +29,9 @@ namespace fo
 namespace func
 {
 
+// Prints debug message to debug.log file for develop build
+void dev_printf(const char* fmt, ...);
+
 /*
 	Add functions here if they have non-trivial wrapper implementation (like vararg functions or too many arguments, etc.)
 	Otherwise use Functions_def.h file (much easier).
@@ -42,7 +45,7 @@ const char* __stdcall critter_name(GameObject* critter);
 // Change the name of playable character
 void critter_pc_set_name(const char* newName);
 
-// Checks if given file exist in DB
+// Checks if given file exists in DB
 bool __stdcall db_access(const char* fileName);
 
 long __stdcall db_fclose(DbFile* file);
@@ -119,7 +122,7 @@ void __stdcall interpretPushLong(Program* scriptPtr, DWORD val);
 // pushes value type to Data stack (must be preceded by InterpretPushLong)
 void __stdcall interpretPushShort(Program* scriptPtr, DWORD valType);
 
-const char* __stdcall interpretGetString(Program* scriptPtr, DWORD dataType, DWORD strId);
+const char* __fastcall interpretGetString(Program* scriptPtr, DWORD dataType, DWORD strId);
 
 DWORD __stdcall interpretAddString(Program* scriptPtr, const char* str);
 
@@ -161,6 +164,8 @@ long __stdcall message_load(MessageList *msgList, const char *msgFilePath);
 
 // destroys message list
 long __stdcall message_exit(MessageList *msgList);
+
+long __fastcall tile_num(long x, long y);
 
 GameObject* __fastcall obj_blocking_at_wrapper(GameObject* obj, DWORD tile, DWORD elevation, void* func);
 
@@ -207,9 +212,11 @@ void __fastcall displayInWindow(long w_here, long width, long height, void* data
 
 void __fastcall trans_cscale(long i_width, long i_height, long s_width, long s_height, long xy_shift, long w_width, void* data);
 
+//void __declspec() __stdcall buf_to_buf(void* to_buf, long to_width, void* from_buf, long from_width, long width, long height);
+
+long __fastcall get_game_config_string(const char* outValue, const char* section, const char* param);
 
 // X-Macro for wrapper functions.
-
 #define WRAP_WATCOM_FUNC0(retType, name) \
 	retType __stdcall name();
 

@@ -88,55 +88,41 @@ void sf_force_encounter(OpcodeContext& cxt) {
 // world_map_functions
 void __declspec(naked) op_in_world_map() {
 	__asm {
-		push ecx;
-		push edx;
-		push eax;
+		mov  esi, ecx;
 		call InWorldMap;
 		mov  edx, eax;
-		pop  eax;
-		_RET_VAL_INT(ecx);
-		pop  edx;
-		pop  ecx;
+		mov  eax, ebx;
+		_RET_VAL_INT;
+		mov  ecx, esi;
 		retn;
 	}
 }
 
 void __declspec(naked) op_get_game_mode() {
 	__asm {
-		push ecx;
-		push edx;
-		push eax;
+		mov  esi, ecx;
 		call GetLoopFlags;
 		mov  edx, eax;
-		pop  eax;
-		_RET_VAL_INT(ecx);
-		pop  edx;
-		pop  ecx;
+		mov  eax, ebx;
+		_RET_VAL_INT;
+		mov  ecx, esi;
 		retn;
 	}
 }
 
 void __declspec(naked) op_get_world_map_x_pos() {
 	__asm {
-		push edx;
-		push ecx;
 		mov  edx, ds:[FO_VAR_world_xpos];
-		_RET_VAL_INT(ecx);
-		pop  ecx;
-		pop  edx;
-		retn;
+		_J_RET_VAL_TYPE(VAR_TYPE_INT);
+//		retn;
 	}
 }
 
 void __declspec(naked) op_get_world_map_y_pos() {
 	__asm {
-		push edx;
-		push ecx;
 		mov  edx, ds:[FO_VAR_world_ypos];
-		_RET_VAL_INT(ecx);
-		pop  ecx;
-		pop  edx;
-		retn;
+		_J_RET_VAL_TYPE(VAR_TYPE_INT);
+//		retn;
 	}
 }
 
@@ -205,13 +191,13 @@ fail:
 }
 
 void sf_set_car_intface_art(OpcodeContext& ctx) {
-	Worldmap::SetCarInterfaceArt(ctx.arg(0).asInt());
+	Worldmap::SetCarInterfaceArt(ctx.arg(0).rawValue());
 }
 
 void sf_set_map_enter_position(OpcodeContext& ctx) {
-	int tile = ctx.arg(0).asInt();
-	int elev = ctx.arg(1).asInt();
-	int rot = ctx.arg(2).asInt();
+	int tile = ctx.arg(0).rawValue();
+	int elev = ctx.arg(1).rawValue();
+	int rot = ctx.arg(2).rawValue();
 
 	if (tile > -1 && tile < 40000) {
 		fo::var::tile = tile;
@@ -229,38 +215,46 @@ void sf_get_map_enter_position(OpcodeContext& ctx) {
 	arrays[id].val[0].set((long)fo::var::tile);
 	arrays[id].val[1].set((long)fo::var::elevation);
 	arrays[id].val[2].set((long)fo::var::rotation);
-	ctx.setReturn(id, DataType::INT);
+	ctx.setReturn(id);
 }
 
 void sf_set_rest_heal_time(OpcodeContext& ctx) {
-	Worldmap::SetRestHealTime(ctx.arg(0).asInt());
+	Worldmap::SetRestHealTime(ctx.arg(0).rawValue());
 }
 
 void sf_set_rest_mode(OpcodeContext& ctx) {
-	Worldmap::SetRestMode(ctx.arg(0).asInt());
+	Worldmap::SetRestMode(ctx.arg(0).rawValue());
 }
 
 void sf_set_rest_on_map(OpcodeContext& ctx) {
-	long mapId = ctx.arg(0).asInt();
+	long mapId = ctx.arg(0).rawValue();
 	if (mapId < 0) {
 		ctx.printOpcodeError("%s() - invalid map number argument.", ctx.getMetaruleName());
+		ctx.setReturn(-1);
 		return;
 	}
-	long elev = ctx.arg(1).asInt();
+	long elev = ctx.arg(1).rawValue();
 	if (elev < -1 || elev > 2) {
 		ctx.printOpcodeError("%s() - invalid map elevation argument.", ctx.getMetaruleName());
+		ctx.setReturn(-1);
 	} else {
 		Worldmap::SetRestMapLevel(mapId, elev, ctx.arg(2).asBool());
 	}
 }
 
 void sf_get_rest_on_map(OpcodeContext& ctx) {
-	long elev = ctx.arg(1).asInt();
+	long result = -1;
+	long elev = ctx.arg(1).rawValue();
 	if (elev < 0 || elev > 2) {
 		ctx.printOpcodeError("%s() - invalid map elevation argument.", ctx.getMetaruleName());
 	} else {
-		ctx.setReturn(Worldmap::GetRestMapLevel(elev, ctx.arg(0).asInt()));
+		result = Worldmap::GetRestMapLevel(elev, ctx.arg(0).rawValue());
 	}
+	ctx.setReturn(result);
+}
+
+void sf_tile_by_position(OpcodeContext& ctx) {
+	ctx.setReturn(fo::func::tile_num(ctx.arg(0).rawValue(), ctx.arg(1).rawValue()));
 }
 
 }

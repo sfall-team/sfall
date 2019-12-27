@@ -20,7 +20,6 @@
 #include "..\..\ScriptExtender.h"
 #include "..\Arrays.h"
 #include "..\OpcodeContext.h"
-#include "Utils.h"
 
 #include "Arrays.h"
 
@@ -30,13 +29,13 @@ namespace script
 {
 
 void sf_create_array(OpcodeContext& ctx) {
-	auto arrayId = CreateArray(ctx.arg(0).asInt(), ctx.arg(1).asInt());
-	ctx.setReturn(arrayId, DataType::INT);
+	auto arrayId = CreateArray(ctx.arg(0).rawValue(), ctx.arg(1).rawValue());
+	ctx.setReturn(arrayId);
 }
 
 void sf_set_array(OpcodeContext& ctx) {
 	SetArray(
-		ctx.arg(0).asInt(),
+		ctx.arg(0).rawValue(),
 		ctx.arg(1),
 		ctx.arg(2),
 		true
@@ -46,6 +45,7 @@ void sf_set_array(OpcodeContext& ctx) {
 /*
 	used in place of [] operator when compiling in sslc
 	so it works as get_array if first argument is int and as substr(x, y, 1) if first argument is string
+	example: vartext[5]
 */
 void sf_get_array(OpcodeContext& ctx) {
 	if  (ctx.arg(0).isInt()) {
@@ -54,8 +54,14 @@ void sf_get_array(OpcodeContext& ctx) {
 		);
 	} else if (ctx.arg(0).isString()) {
 		if (ctx.arg(1).isInt()) {
-			auto str = Substring(ctx.arg(0).strValue(), ctx.arg(1).rawValue(), 1);
-			ctx.setReturn(str);
+			size_t index = ctx.arg(1).rawValue();
+			if (index < strlen(ctx.arg(0).strValue())) {
+				wchar_t c = ((unsigned char*)ctx.arg(0).strValue())[index];
+				((wchar_t*)ScriptExtender::gTextBuffer)[0] = c;
+			} else {
+				ScriptExtender::gTextBuffer[0] = '\0';
+			}
+			ctx.setReturn(ScriptExtender::gTextBuffer); // returns char of string
 		} else {
 			ctx.printOpcodeError("%s() - index must be numeric when used on a string.", ctx.getOpcodeName());
 		}
@@ -65,55 +71,55 @@ void sf_get_array(OpcodeContext& ctx) {
 }
 
 void sf_free_array(OpcodeContext& ctx) {
-	FreeArray(ctx.arg(0).asInt());
+	FreeArray(ctx.arg(0).rawValue());
 }
 
 void sf_len_array(OpcodeContext& ctx) {
 	ctx.setReturn(
-		LenArray(ctx.arg(0).asInt())
+		LenArray(ctx.arg(0).rawValue())
 	);
 }
 
 void sf_resize_array(OpcodeContext& ctx) {
-	if (ResizeArray(ctx.arg(0).asInt(), ctx.arg(1).asInt())) {
+	if (ResizeArray(ctx.arg(0).rawValue(), ctx.arg(1).rawValue())) {
 		ctx.printOpcodeError("%s() - array sorting error.", ctx.getOpcodeName());
 	}
 }
 
 void sf_temp_array(OpcodeContext& ctx) {
-	auto arrayId = TempArray(ctx.arg(0).asInt(), ctx.arg(1).asInt());
-	ctx.setReturn(arrayId, DataType::INT);
+	auto arrayId = TempArray(ctx.arg(0).rawValue(), ctx.arg(1).rawValue());
+	ctx.setReturn(arrayId);
 }
 
 void sf_fix_array(OpcodeContext& ctx) {
-	FixArray(ctx.arg(0).asInt());
+	FixArray(ctx.arg(0).rawValue());
 }
 
 void sf_scan_array(OpcodeContext& ctx) {
 	ctx.setReturn(
-		ScanArray(ctx.arg(0).asInt(), ctx.arg(1))
+		ScanArray(ctx.arg(0).rawValue(), ctx.arg(1))
 	);
 }
 
 void sf_save_array(OpcodeContext& ctx) {
-	SaveArray(ctx.arg(0), ctx.arg(1).asInt());
+	SaveArray(ctx.arg(0), ctx.arg(1).rawValue());
 }
 
 void sf_load_array(OpcodeContext& ctx) {
 	ctx.setReturn(
-		static_cast<int>(LoadArray(ctx.arg(0)))
+		LoadArray(ctx.arg(0))
 	);
 }
 
 void sf_get_array_key(OpcodeContext& ctx) {
 	ctx.setReturn(
-		GetArrayKey(ctx.arg(0).asInt(), ctx.arg(1).asInt())
+		GetArrayKey(ctx.arg(0).rawValue(), ctx.arg(1).rawValue())
 	);
 }
 
 void sf_stack_array(OpcodeContext& ctx) {
 	ctx.setReturn(
-		static_cast<int>(StackArray(ctx.arg(0), ctx.arg(1)))
+		StackArray(ctx.arg(0), ctx.arg(1))
 	);
 }
 
@@ -132,7 +138,7 @@ struct sList {
 	}
 };
 
-static DWORD listID = 0xCCCCCC;
+static DWORD listID = 0xCCCCCC; // start ID
 
 struct ListId {
 	sList* list;
@@ -186,14 +192,6 @@ static void FillListVector(DWORD type, std::vector<fo::GameObject*>& vec) {
 	}
 }
 
-static DWORD ListBegin(DWORD type) {
-	std::vector<fo::GameObject*> vec = std::vector<fo::GameObject*>();
-	FillListVector(type, vec);
-	sList* list = new sList(&vec);
-	mList.emplace_back(list);
-	return listID;
-}
-
 static DWORD ListAsArray(DWORD type) {
 	std::vector<fo::GameObject*> vec = std::vector<fo::GameObject*>();
 	FillListVector(type, vec);
@@ -205,12 +203,45 @@ static DWORD ListAsArray(DWORD type) {
 	return id;
 }
 
+void sf_list_as_array(OpcodeContext& ctx) {
+	auto arrayId = ListAsArray(ctx.arg(0).rawValue());
+	ctx.setReturn(arrayId);
+}
+
+static DWORD ListBegin(DWORD type) {
+	std::vector<fo::GameObject*> vec = std::vector<fo::GameObject*>();
+	FillListVector(type, vec);
+	sList* list = new sList(&vec);
+	mList.emplace_back(list);
+	return listID;
+}
+
+void sf_list_begin(OpcodeContext& ctx) {
+	ctx.setReturn(ListBegin(ctx.arg(0).rawValue()));
+}
+
 static fo::GameObject* ListNext(sList* list) {
-	if (!list || list->pos == list->len) return 0;
-	else return list->obj[list->pos++];
+	return (!list || list->pos == list->len) ? 0 : list->obj[list->pos++];
+}
+
+void sf_list_next(OpcodeContext& ctx) {
+	fo::GameObject* obj = nullptr;
+	auto id = ctx.arg(0).rawValue();
+	if (id != 0) {
+		sList* list = nullptr;
+		for (std::vector<ListId>::const_iterator it = mList.cbegin(), it_end =  mList.cend(); it != it_end; ++it) {
+			if (it->id == id) {
+				list = it->list;
+				break;
+			}
+		}
+		obj = ListNext(list);
+	}
+	ctx.setReturn(obj);
 }
 
 static void ListEnd(DWORD id) {
+	if (id == 0) return;
 	for (std::vector<ListId>::const_iterator it = mList.cbegin(), it_end = mList.cend(); it != it_end; ++it) {
 		if (it->id == id) {
 			delete[] it->list->obj;
@@ -219,27 +250,6 @@ static void ListEnd(DWORD id) {
 			break;
 		}
 	}
-}
-
-void sf_list_begin(OpcodeContext& ctx) {
-	ctx.setReturn(ListBegin(ctx.arg(0).rawValue()), DataType::INT);
-}
-
-void sf_list_as_array(OpcodeContext& ctx) {
-	auto arrayId = ListAsArray(ctx.arg(0).rawValue());
-	ctx.setReturn(arrayId, DataType::INT);
-}
-
-void sf_list_next(OpcodeContext& ctx) {
-	auto id = ctx.arg(0).rawValue();
-	sList* list = nullptr;
-	for (std::vector<ListId>::const_iterator it = mList.cbegin(), it_end =  mList.cend(); it != it_end; ++it) {
-		if (it->id == id) {
-			list = it->list;
-			break;
-		}
-	}
-	ctx.setReturn(ListNext(list));
 }
 
 void sf_list_end(OpcodeContext& ctx) {

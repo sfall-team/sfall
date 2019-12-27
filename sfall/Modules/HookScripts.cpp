@@ -91,6 +91,8 @@ static HooksInjectInfo injectHooks[] = {
 	{HOOK_SETLIGHTING,      Inject_SetLightingHook,      false},
 	{HOOK_SNEAK,            Inject_SneakCheckHook,       false},
 	{HOOK_STDPROCEDURE,     Inject_ScriptProcedureHook,  false},
+	{HOOK_STDPROCEDURE_END, Inject_ScriptProcedureHook2, false},
+	{HOOK_TARGETOBJECT,     Inject_TargetObjectHook,     false},
 };
 
 bool HookScripts::injectAllHooks;
@@ -123,33 +125,42 @@ void _stdcall MouseClickHook(DWORD button, bool pressed) {
 	EndHook();
 }
 
+static unsigned long previousGameMode = 0;
+
 void HookScripts::GameModeChangeHook(DWORD exit) {
-	if (!HookHasScript(HOOK_GAMEMODECHANGE)) return;
-	BeginHook();
-	argCount = 1;
-	args[0] = exit;
-	RunHookScript(HOOK_GAMEMODECHANGE);
-	EndHook();
+	if (HookHasScript(HOOK_GAMEMODECHANGE)) {
+		BeginHook();
+		argCount = 2;
+		args[0] = exit;
+		args[1] = previousGameMode;
+		RunHookScript(HOOK_GAMEMODECHANGE);
+		EndHook();
+	}
+	previousGameMode = GetLoopFlags();
 }
 // END HOOKS
 
-DWORD _stdcall GetHSArgCount() {
+DWORD HookScripts::GetHSArgCount() {
 	return argCount;
 }
 
-DWORD _stdcall GetHSArg() {
+DWORD HookScripts::GetHSArg() {
 	return (cArg == argCount) ? 0 : args[cArg++];
 }
 
-void _stdcall SetHSArg(DWORD id, DWORD value) {
+void HookScripts::SetHSArg(DWORD id, DWORD value) {
 	if (id < argCount) args[id] = value;
 }
 
-DWORD* _stdcall GetHSArgs() {
+DWORD* HookScripts::GetHSArgs() {
 	return args;
 }
 
-void _stdcall SetHSReturn(DWORD value) {
+DWORD HookScripts::GetHSArgAt(DWORD id) {
+	return args[id];
+}
+
+void __stdcall HookScripts::SetHSReturn(DWORD value) {
 	if (cRetTmp < maxRets) {
 		rets[cRetTmp++] = value;
 	}
@@ -183,9 +194,9 @@ void RegisterHook(fo::Program* script, int id, int procNum, bool specReg) {
 	}
 	if (procNum == 0) return; // prevent registration to first location in procedure when reusing "unregister" method
 
-	ScriptProgram *prog = GetGlobalScriptProgram(script);
+	ScriptProgram *prog = ScriptExtender::GetGlobalScriptProgram(script);
 	if (prog) {
-		dlog_f("Global script %08x registered as hook ID %d\n", DL_HOOK, script, id);
+		dlog_f("Global script: %08x registered as hook ID %d\n", DL_HOOK, script, id);
 		HookScript hook;
 		hook.prog = *prog;
 		hook.callback = procNum;
@@ -232,6 +243,7 @@ void HookScriptClear() {
 		hooks[i].clear();
 	}
 	memset(hooksInfo, 0, HOOK_COUNT * sizeof(HooksPositionInfo));
+	previousGameMode = 0;
 }
 
 void LoadHookScripts() {
@@ -262,8 +274,8 @@ void HookScripts::init() {
 	LoadGameHook::OnGameModeChange() += GameModeChangeHook;
 	LoadGameHook::OnAfterGameStarted() += SourceUseSkillOnInit;
 
-	HookScripts::injectAllHooks = isDebug && (GetPrivateProfileIntA("Debugging", "InjectAllGameHooks", 0, ::sfall::ddrawIni) != 0);
-	if (HookScripts::injectAllHooks) dlogr("Injecting all game hooks", DL_HOOK);
+	HookScripts::injectAllHooks = isDebug && (iniGetInt("Debugging", "InjectAllGameHooks", 0, ::sfall::ddrawIni) != 0);
+	if (HookScripts::injectAllHooks) dlogr("Injecting all game hooks", DL_HOOK|DL_INIT);
 }
 
 }

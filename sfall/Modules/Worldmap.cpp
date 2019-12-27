@@ -339,12 +339,12 @@ void WorldLimitsPatches() {
 		dlogr(" Done", DL_INIT);
 	}
 
-	//if(GetConfigInt("Misc", "CitiesLimitFix", 0)) {
-	dlog("Applying cities limit patch.", DL_INIT);
-	if (*((BYTE*)0x4BF3BB) != 0xEB) {
-		SafeWrite8(0x4BF3BB, 0xEB);
-	}
-	dlogr(" Done", DL_INIT);
+	//if (GetConfigInt("Misc", "CitiesLimitFix", 0)) {
+		dlog("Applying cities limit patch.", DL_INIT);
+		if (*((BYTE*)0x4BF3BB) != 0xEB) {
+			SafeWrite8(0x4BF3BB, 0xEB);
+		}
+		dlogr(" Done", DL_INIT);
 	//}
 }
 
@@ -418,12 +418,12 @@ void WorldmapFpsPatch() {
 }
 
 void PathfinderFixInit() {
-	//if(GetConfigInt("Misc", "PathfinderFix", 0)) {
-	dlog("Applying Pathfinder patch.", DL_INIT);
-	SafeWrite16(0x4C1FF6, 0x9090);     // wmPartyWalkingStep_
-	HookCall(0x4C1C78, PathfinderFix); // wmGameTimeIncrement_
-	mapMultiMod = (double)GetConfigInt("Misc", "WorldMapTimeMod", 100) / 100.0;
-	dlogr(" Done", DL_INIT);
+	//if (GetConfigInt("Misc", "PathfinderFix", 0)) {
+		dlog("Applying Pathfinder patch.", DL_INIT);
+		SafeWrite16(0x4C1FF6, 0x9090);     // wmPartyWalkingStep_
+		HookCall(0x4C1C78, PathfinderFix); // wmGameTimeIncrement_
+		mapMultiMod = (double)GetConfigInt("Misc", "WorldMapTimeMod", 100) / 100.0;
+		dlogr(" Done", DL_INIT);
 	//}
 }
 
@@ -434,16 +434,20 @@ void StartingStatePatches() {
 		SafeWrite32(0x4A336C, date);
 		dlogr(" Done", DL_INIT);
 	}
-	date = GetConfigInt("Misc", "StartMonth", -1);
-	if (date >= 0) {
-		if (date > 11) date = 11;
+	int month = GetConfigInt("Misc", "StartMonth", -1);
+	if (month >= 0) {
+		if (month > 11) month = 11;
 		dlog("Applying starting month patch.", DL_INIT);
-		SafeWrite32(0x4A3382, date);
+		SafeWrite32(0x4A3382, month);
 		dlogr(" Done", DL_INIT);
 	}
 	date = GetConfigInt("Misc", "StartDay", -1);
 	if (date >= 0) {
-		if (date > 30) date = 30;
+		if (month == 1 && date > 28) { // for February
+			date = 28; // set 29th day
+		} else if (date > 30) {
+			date = 30; // set 31st day
+		}
 		dlog("Applying starting day patch.", DL_INIT);
 		SafeWrite8(0x4A3356, static_cast<BYTE>(date));
 		dlogr(" Done", DL_INIT);

@@ -1,6 +1,5 @@
 #include "main.h"
-
-#pragma warning(disable:4996)
+#include "CheckAddress.h"
 
 namespace sfall
 {
@@ -10,47 +9,6 @@ enum CodeType : BYTE {
 	Jump = 0xE9,
 	Nop  = 0x90
 };
-
-#ifndef NDEBUG
-std::multimap<long, long> writeAddress;
-
-/* Checking for conflicts requires all options in ddraw.ini to be enabled */
-void PrintAddrList() {
-	bool level = (GetPrivateProfileIntA("Debugging", "Enable", 0, ::sfall::ddrawIni) > 1);
-	unsigned long pa = 0, pl = 0;
-	for (const auto &wa : writeAddress) {
-		unsigned long diff = (pa) ? (wa.first - pa) : -1; // length between two addresses
-		if (diff == 0) {
-			dlog_f("0x%x L:%d [Overwriting]\n", DL_MAIN, wa.first, wa.second);
-		} else if (diff < pl) {
-			dlog_f("0x%x L:%d [Conflict] with 0x%x L:%d\n", DL_MAIN, wa.first, wa.second, pa, pl);
-		} else if (level && diff == pl) {
-			dlog_f("0x%x L:%d [Warning] PL:%d\n", DL_MAIN, wa.first, wa.second, pl);
-		} else if (level) {
-			dlog_f("0x%x L:%d\n", DL_MAIN, wa.first, wa.second);
-		}
-		pa = wa.first;
-		pl = wa.second;
-	}
-}
-
-void CheckConflict(DWORD addr, long len) {
-	if (writeAddress.find(addr) !=  writeAddress.cend()) {
-			char buf[64];
-			sprintf_s(buf, "Memory writing conflict at address 0x%x.", addr);
-			//dlogr(buf, DL_MAIN);
-			MessageBoxA(0, buf, "", MB_TASKMODAL);
-	}
-	writeAddress.emplace(addr, len);
-}
-
-void AddrAddToList(DWORD addr, long len) {
-	writeAddress.emplace(addr, len);
-}
-#else
-void CheckConflict(DWORD addr, long len) {}
-void AddrAddToList(DWORD addr, long len) {}
-#endif
 
 static void _stdcall SafeWriteFunc(BYTE code, DWORD addr, void* func) {
 	DWORD oldProtect, data = (DWORD)func - (addr + 5);

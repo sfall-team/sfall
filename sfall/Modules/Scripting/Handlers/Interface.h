@@ -99,9 +99,17 @@ void sf_dialog_message(OpcodeContext&);
 
 void sf_create_win(OpcodeContext&);
 
+void sf_show_window(OpcodeContext&);
+
+void sf_hide_window(OpcodeContext&);
+
+void sf_set_window_flag(OpcodeContext&);
+
 void sf_draw_image(OpcodeContext&);
 
 void sf_draw_image_scaled(OpcodeContext&);
+
+void sf_unwield_slot(OpcodeContext&);
 
 }
 }

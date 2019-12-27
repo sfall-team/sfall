@@ -34,43 +34,35 @@ namespace script
 
 void __declspec(naked) op_set_global_script_repeat() {
 	__asm {
-		push ecx;
-		push edx;
+		mov  esi, ecx;
 		mov  ecx, eax;
 		_GET_ARG_INT(end);
 		mov  edx, eax;              // frames
 		call SetGlobalScriptRepeat; // ecx - script
 end:
-		pop edx;
-		pop ecx;
+		mov  ecx, esi;
 		retn;
 	}
 }
 
 void __declspec(naked) op_set_global_script_type() {
 	__asm {
-		push ecx;
-		push edx;
+		mov  esi, ecx;
 		mov  ecx, eax;
 		_GET_ARG_INT(end);
 		mov  edx, eax;            // type
 		call SetGlobalScriptType; // ecx - script
 end:
-		pop  edx;
-		pop  ecx;
+		mov  ecx, esi;
 		retn;
 	}
 }
 
 void __declspec(naked) op_available_global_script_types() {
 	__asm {
-		push ecx;
-		push edx;
 		mov  edx, availableGlobalScriptTypes;
-		_RET_VAL_INT(ecx);
-		pop  edx;
-		pop  ecx;
-		retn;
+		_J_RET_VAL_TYPE(VAR_TYPE_INT);
+//		retn;
 	}
 }
 
@@ -113,108 +105,70 @@ void sf_get_sfall_global_float(OpcodeContext& ctx) {
 
 void __declspec(naked) op_get_sfall_arg() {
 	__asm {
-		push ecx;
-		push edx;
-		push eax;
-		call GetHSArg;
+		mov  esi, ecx;
+		call HookScripts::GetHSArg;
 		mov  edx, eax;
-		pop  eax;
-		_RET_VAL_INT(ecx);
-		pop  edx;
-		pop  ecx;
+		mov  eax, ebx;
+		_RET_VAL_INT;
+		mov  ecx, esi;
 		retn;
 	}
 }
 
-static DWORD _stdcall GetSfallArgs() {
-	DWORD argCount = GetHSArgCount();
+void sf_get_sfall_arg_at(OpcodeContext& ctx) {
+	long argVal = 0;
+	long id = ctx.arg(0).rawValue();
+	if (id >= static_cast<long>(HookScripts::GetHSArgCount()) || id < 0) {
+		ctx.printOpcodeError("%s() - invalid value for argument.", ctx.getMetaruleName());
+	} else {
+		argVal = HookScripts::GetHSArgAt(id);
+	}
+	ctx.setReturn(argVal);
+}
+
+void sf_get_sfall_args(OpcodeContext& ctx) {
+	DWORD argCount = HookScripts::GetHSArgCount();
 	DWORD id = TempArray(argCount, 0);
-	DWORD* args = GetHSArgs();
+	DWORD* args = HookScripts::GetHSArgs();
 	for (DWORD i = 0; i < argCount; i++) {
 		arrays[id].val[i].set(*(long*)&args[i]);
 	}
-	return id;
+	ctx.setReturn(id);
 }
 
-void __declspec(naked) op_get_sfall_args() { // rewrite to c++
-	__asm {
-		push ecx;
-		push edx;
-		push eax;
-		call GetSfallArgs;
-		mov  edx, eax;
-		pop  eax;
-		_RET_VAL_INT(ecx);
-		pop  edx;
-		pop  ecx;
-		retn;
-	}
-}
-
-void __declspec(naked) op_set_sfall_arg() {
-	__asm {
-		pushad;
-		mov ecx, eax;
-		call fo::funcoffs::interpretPopShort_;
-		mov edi, eax;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPopLong_;
-		mov edx, eax;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPopShort_;
-		mov esi, eax;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPopLong_;
-		cmp di, VAR_TYPE_INT;
-		jnz end;
-		cmp si, VAR_TYPE_INT;
-		jnz end;
-		push edx;
-		push eax;
-		call SetHSArg;
-end:
-		popad;
-		retn;
-	}
+void sf_set_sfall_arg(OpcodeContext& ctx) {
+	HookScripts::SetHSArg(ctx.arg(0).rawValue(), ctx.arg(1).rawValue());
 }
 
 void __declspec(naked) op_set_sfall_return() {
 	__asm {
-		push ecx;
-		push edx;
+		mov  esi, ecx;
 		_GET_ARG_INT(end);
 		push eax;
-		call SetHSReturn;
+		call HookScripts::SetHSReturn;
 end:
-		pop  edx;
-		pop  ecx;
+		mov  ecx, esi;
 		retn;
 	}
 }
 
 void __declspec(naked) op_init_hook() {
 	__asm {
-		push edx;
-		push ecx;
 		mov  edx, initingHookScripts;
-		_RET_VAL_INT(ecx);
-		pop  ecx;
-		pop  edx;
-		retn;
+		_J_RET_VAL_TYPE(VAR_TYPE_INT);
+//		retn;
 	}
 }
 
-void __declspec(naked) op_set_self() { // rewrite to c++
+void __declspec(naked) op_set_self() {
 	__asm {
-		push ecx;
-		push edx;
+		mov  esi, ecx;
 		mov  ecx, eax;
 		_GET_ARG_INT(end);
 		mov  edx, eax;      // object
 		call SetSelfObject; // ecx - script
 end:
-		pop  edx;
-		pop  ecx;
+		mov  ecx, esi;
 		retn;
 	}
 }
@@ -234,6 +188,18 @@ void sf_register_hook(OpcodeContext& ctx) {
 		proc = -1;
 	}
 	RegisterHook(ctx.program(), ctx.arg(0).rawValue(), proc, specReg);
+}
+
+void sf_add_g_timer_event(OpcodeContext& ctx) {
+	ScriptExtender::AddTimerEventScripts(ctx.program(), ctx.arg(0).rawValue(), ctx.arg(1).rawValue());
+}
+
+void sf_remove_timer_event(OpcodeContext& ctx) {
+	if (ctx.numArgs() > 0) {
+		ScriptExtender::RemoveTimerEventScripts(ctx.program(), ctx.arg(0).rawValue());
+	} else {
+		ScriptExtender::RemoveTimerEventScripts(ctx.program()); // remove all
+	}
 }
 
 void sf_sfall_ver_major(OpcodeContext& ctx) {

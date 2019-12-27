@@ -67,6 +67,8 @@ enum HookType
 	HOOK_SETLIGHTING      = 38,
 	HOOK_SNEAK            = 39,
 	HOOK_STDPROCEDURE     = 40,
+	HOOK_STDPROCEDURE_END = 41,
+	HOOK_TARGETOBJECT     = 42,
 	HOOK_COUNT
 };
 
@@ -84,13 +86,14 @@ public:
 
 	static void GameModeChangeHook(DWORD exit);
 	static void KeyPressHook(DWORD* dxKey, bool pressed, DWORD vKey);
-};
 
-DWORD _stdcall GetHSArgCount();
-DWORD _stdcall GetHSArg();
-DWORD* _stdcall GetHSArgs();
-void _stdcall SetHSArg(DWORD id, DWORD value);
-void _stdcall SetHSReturn(DWORD d);
+	static DWORD GetHSArgCount();
+	static DWORD GetHSArg();
+	static DWORD GetHSArgAt(DWORD id);
+	static DWORD* GetHSArgs();
+	static void SetHSArg(DWORD id, DWORD value);
+	static void __stdcall SetHSReturn(DWORD d);
+};
 
 // register hook by proc num (special values: -1 - use default (start) procedure, 0 - unregister)
 void RegisterHook(fo::Program* script, int id, int procNum, bool specReg);

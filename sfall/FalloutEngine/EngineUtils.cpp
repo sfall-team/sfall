@@ -17,6 +17,7 @@
 */
 
 #include <cassert>
+#include <stdint.h>
 
 #include "Functions.h"
 #include "FunctionOffsets.h"
@@ -64,23 +65,22 @@ Proto* GetProto(long pid) {
 
 bool CritterCopyProto(long pid, long* &proto_dst) {
 	fo::Proto* protoPtr;
-	if (fo::func::proto_ptr(pid, &protoPtr) == -1) return false;
-	/*if (!proto_dst)*/ proto_dst = new long[104];
+	if (fo::func::proto_ptr(pid, &protoPtr) == -1) {
+		proto_dst = nullptr;
+		return false;
+	}
+	proto_dst = reinterpret_cast<long*>(new int32_t[104]);
 	memcpy(proto_dst, protoPtr, 416);
 	return true;
 }
 
 void SkillGetTags(long* result, long num) {
-	if (num > 4) {
-		num = 4;
-	}
+	if (num > 4) num = 4;
 	fo::func::skill_get_tags(result, num);
 }
 
 void SkillSetTags(long* tags, long num) {
-	if (num > 4) {
-		num = 4;
-	}
+	if (num > 4) num = 4;
 	fo::func::skill_set_tags(tags, num);
 }
 
@@ -181,6 +181,37 @@ long GetScriptLocalVars(long sid) {
 	return (script) ? script->numLocalVars : 0;
 }
 
+// Returns window ID by x/y coordinate (hidden windows are ignored)
+long __fastcall GetTopWindowID(long xPos, long yPos) {
+	fo::Window* win = nullptr;
+	long countWin = *(DWORD*)FO_VAR_num_windows - 1;
+	for (int n = countWin; n >= 0; n--) {
+		win = fo::var::window[n];
+		if (xPos >= win->wRect.left && xPos <= win->wRect.right && yPos >= win->wRect.top && yPos <= win->wRect.bottom) {
+			if (!(win->flags & fo::WinFlags::Hidden)) {
+				break;
+			}
+		}
+	}
+	return win->wID;
+}
+
+// Returns an array of objects within the specified radius from the source tile
+void GetObjectsTileRadius(std::vector<fo::GameObject*> &objs, long sourceTile, long radius, long elev, long type = -1) {
+	for (long tile = 0; tile < 40000; tile++) {
+		fo::GameObject* obj = fo::func::obj_find_first_at_tile(elev, tile);
+		while (obj) {
+			if (type == -1 || type == obj->Type()) {
+				bool multiHex = (obj->flags & fo::ObjectFlag::MultiHex) ? true : false;
+				if (fo::func::tile_dist(sourceTile, obj->tile) <= (radius + multiHex)) {
+					objs.push_back(obj);
+				}
+			}
+			obj = fo::func::obj_find_next_at_tile();
+		}
+	}
+}
+
 //---------------------------------------------------------
 //print text to surface
 void PrintText(char *DisplayText, BYTE ColourIndex, DWORD Xpos, DWORD Ypos, DWORD TxtWidth, DWORD ToWidth, BYTE *ToSurface) {
@@ -211,14 +242,11 @@ DWORD GetTextHeight() {
 
 //---------------------------------------------------------
 //gets the length of a string using the currently selected font
-DWORD GetTextWidth(char *TextMsg) {
-	DWORD TxtWidth;
+DWORD GetTextWidth(const char *TextMsg) {
 	__asm {
 		mov  eax, TextMsg;
 		call dword ptr ds:[FO_VAR_text_width]; //get text width
-		mov  TxtWidth, eax;
 	}
-	return TxtWidth;
 }
 
 //---------------------------------------------------------

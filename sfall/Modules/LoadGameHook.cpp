@@ -25,6 +25,7 @@
 
 #include "AI.h"
 #include "BugFixes.h"
+#include "CritterStats.h"
 #include "ExtraSaveSlots.h"
 #include "FileSystem.h"
 #include "HeroAppearance.h"
@@ -34,7 +35,6 @@
 #include "Perks.h"
 #include "ScriptExtender.h"
 #include "Scripting\Arrays.h"
-#include "Stats.h"
 #include "Worldmap.h"
 
 #include "LoadGameHook.h"
@@ -53,6 +53,7 @@ namespace sfall
 	popadc                           \
 }
 
+static Delegate<> onBeforeGameInit;
 static Delegate<> onGameInit;
 static Delegate<> onAfterGameInit;
 static Delegate<> onGameExit;
@@ -142,7 +143,7 @@ static void _stdcall SaveGame2() {
 	h = CreateFileA(buf, GENERIC_WRITE, 0, 0, CREATE_ALWAYS, 0, 0);
 	if (h != INVALID_HANDLE_VALUE) {
 		Worldmap::SaveData(h);
-		Stats::SaveStatData(h);
+		CritterStats::SaveStatData(h);
 		CloseHandle(h);
 	} else {
 		goto errorSave;
@@ -241,7 +242,7 @@ static bool LoadGame_Before() {
 	dlogr("Loading data from sfalldb.sav...", DL_MAIN);
 	h = CreateFileA(buf, GENERIC_READ, FILE_SHARE_READ, 0, OPEN_EXISTING, 0, 0);
 	if (h != INVALID_HANDLE_VALUE) {
-		if (Worldmap::LoadData(h) || Stats::LoadStatData(h)) goto errorLoad;
+		if (Worldmap::LoadData(h) || CritterStats::LoadStatData(h)) goto errorLoad;
 		CloseHandle(h);
 	} else {
 		dlogr("Cannot open sfalldb.sav.", DL_MAIN);
@@ -331,6 +332,10 @@ static void __declspec(naked) main_load_new_hook() {
 }
 
 static void __stdcall GameInitialization() {
+	onBeforeGameInit.invoke();
+}
+
+static void __stdcall game_init_hook() {
 	onGameInit.invoke();
 }
 
@@ -518,6 +523,10 @@ end:
 
 static void __declspec(naked) DialogHook() {
 	__asm {
+		test inLoop, DIALOG; // check byte flag
+		jz   changeMode;
+		jmp  fo::funcoffs::gdProcess_;
+changeMode:
 		_InLoop(1, DIALOG);
 		call fo::funcoffs::gdProcess_;
 		_InLoop(0, DIALOG);
@@ -574,6 +583,7 @@ static void __declspec(naked) LootContainerHook() {
 
 static void __declspec(naked) BarterInventoryHook() {
 	__asm {
+		and inLoop, ~SPECIAL; // unset flag
 		_InLoop(1, BARTER);
 		push [esp + 4];
 		call fo::funcoffs::barter_inventory_;
@@ -633,6 +643,30 @@ static void __declspec(naked) exit_move_timer_win_Hook() {
 	}
 }
 
+static void __declspec(naked) gdialog_bk_hook() {
+	__asm {
+		_InLoop2(1, SPECIAL);
+		jmp fo::funcoffs::gdialog_window_destroy_;
+	}
+}
+
+static void __declspec(naked) gdialogUpdatePartyStatus_hook1() {
+	__asm {
+		push edx;
+		_InLoop2(1, SPECIAL);
+		pop  edx;
+		jmp  fo::funcoffs::gdialog_window_destroy_;
+	}
+}
+
+static void __declspec(naked) gdialogUpdatePartyStatus_hook0() {
+	__asm {
+		call fo::funcoffs::gdialog_window_create_;
+		_InLoop2(0, SPECIAL);
+		retn;
+	}
+}
+
 void LoadGameHook::init() {
 	saveInCombatFix = GetConfigInt("Misc", "SaveInCombatFix", 1);
 	if (saveInCombatFix > 2) saveInCombatFix = 0;
@@ -640,8 +674,9 @@ void LoadGameHook::init() {
 	saveSfallDataFailMsg = Translate("sfall", "SaveSfallDataFail",
 		"ERROR saving extended savegame information! Check if other programs interfere with savegame files/folders and try again!");
 
-	HookCalls(main_init_system_hook, {0x4809BA});
-	HookCalls(main_load_new_hook, {0x480AAE});
+	HookCall(0x4809BA, main_init_system_hook);
+	HookCall(0x4426A6, game_init_hook);
+	HookCall(0x480AAE, main_load_new_hook);
 	HookCalls(LoadGame_hook, {0x443AE4, 0x443B89, 0x480B77, 0x48FD35});
 	SafeWrite32(0x5194C0, (DWORD)&EndLoadHook);
 	HookCalls(SaveGame_hook, {0x443AAC, 0x443B1C, 0x48FCFF});
@@ -663,7 +698,7 @@ void LoadGameHook::init() {
 	HookCalls(before_game_exit_hook, {0x480ACE, 0x480BC7});
 	HookCalls(after_game_exit_hook, {0x480AEB, 0x480BE4});
 	HookCalls(game_close_hook, {
-				0x480CA7, // gnw_main_
+				0x480CA7,  // gnw_main_
 				//0x480D45 // main_exit_system_ (never called)
 			});
 	// game modes
@@ -691,6 +726,15 @@ void LoadGameHook::init() {
 	HookCall(0x445D30, DialogReviewExitHook);
 	HookCall(0x476AC6, setup_move_timer_win_Hook); // before init win
 	HookCall(0x477067, exit_move_timer_win_Hook);
+
+	// Set and unset the Special flag of game mode when animating the dialog interface panel
+	HookCall(0x447A7E, gdialog_bk_hook); // set when switching from dialog mode to barter mode (unset when entering barter)
+	HookCall(0x4457B1, gdialogUpdatePartyStatus_hook1); // set when a party member joins/leaves
+	HookCall(0x4457BC, gdialogUpdatePartyStatus_hook0); // unset
+}
+
+Delegate<>& LoadGameHook::OnBeforeGameInit() {
+	return onBeforeGameInit;
 }
 
 Delegate<>& LoadGameHook::OnGameInit() {

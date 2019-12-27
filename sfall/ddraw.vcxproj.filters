@@ -22,7 +22,7 @@
     <ClInclude Include="Modules\AI.h">
       <Filter>Modules</Filter>
     </ClInclude>
-    <ClInclude Include="Modules\AnimationsAtOnceLimit.h">
+    <ClInclude Include="Modules\Animations.h">
       <Filter>Modules</Filter>
     </ClInclude>
     <ClInclude Include="Modules\BarBoxes.h">
@@ -35,9 +35,6 @@
       <Filter>Modules</Filter>
     </ClInclude>
     <ClInclude Include="Modules\Console.h">
-      <Filter>Modules</Filter>
-    </ClInclude>
-    <ClInclude Include="Modules\CRC.h">
       <Filter>Modules</Filter>
     </ClInclude>
     <ClInclude Include="Modules\Credits.h">
@@ -284,13 +281,18 @@
     <ClInclude Include="Modules\Interface.h">
       <Filter>Modules</Filter>
     </ClInclude>
+    <ClInclude Include="Modules\CritterStats.h">
+      <Filter>Modules</Filter>
+    </ClInclude>
+    <ClInclude Include="CRC.h" />
+    <ClInclude Include="CheckAddress.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Modules\AI.cpp">
       <Filter>Modules</Filter>
     </ClCompile>
-    <ClCompile Include="Modules\AnimationsAtOnceLimit.cpp">
+    <ClCompile Include="Modules\Animations.cpp">
       <Filter>Modules</Filter>
     </ClCompile>
     <ClCompile Include="Modules\BarBoxes.cpp">
@@ -303,9 +305,6 @@
       <Filter>Modules</Filter>
     </ClCompile>
     <ClCompile Include="Modules\Console.cpp">
-      <Filter>Modules</Filter>
-    </ClCompile>
-    <ClCompile Include="Modules\CRC.cpp">
       <Filter>Modules</Filter>
     </ClCompile>
     <ClCompile Include="Modules\Credits.cpp">
@@ -528,13 +527,17 @@
     <ClCompile Include="Modules\Interface.cpp">
       <Filter>Modules</Filter>
     </ClCompile>
+    <ClCompile Include="Modules\CritterStats.cpp">
+      <Filter>Modules</Filter>
+    </ClCompile>
+    <ClCompile Include="CRC.cpp" />
+    <ClCompile Include="CheckAddress.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="version.rc" />
   </ItemGroup>
   <ItemGroup>
     <None Include="exports.def" />
-    <None Include="postbuild.cmd.template" />
     <None Include="FalloutEngine\Variables_def.h">
       <Filter>FalloutEngine</Filter>
     </None>
