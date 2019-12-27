@@ -125,9 +125,11 @@
 - name: FindTarget
   id: HOOK_FINDTARGET
   doc: |
-    Runs when the ai is trying to pick a target in combat. Fallout first chooses a list of 4 likely suspects, then normally sorts them in order of weakness/distance/etc depending on the ai caps of the attacker. This hook replaces that sorting function, allowing you to sort the targets in some arbitrary way. Use sfall_return to give the 4 targets, in order of preference. If you want to specify less than 4 targets, fill in the extra spaces with 0's. Pass -1 to skip the return value.
+    Runs when the ai is trying to pick a target in combat. Fallout first chooses a list of 4 likely suspects, then normally sorts them in order of weakness/distance/etc depending on the ai caps of the attacker.
+    This hook replaces that sorting function, allowing you to sort the targets in some arbitrary way.
 
     The return values can include critters that weren't in the list of possible targets, but the additional targets may still be discarded later on in the combat turn if they are out of the attackers perception or the chance of a successful hit is too low. The list of possible targets often includes duplicated entries.
+    Use `sfall_return` to give the 4 targets, in order of preference. If you want to specify less than 4 targets, fill in the extra spaces with 0's or pass -1 to skip the return value.
 
     ```
     critter arg1 - The attacker
@@ -383,9 +385,9 @@
     ```
 
 - name: InvenWield
-  id: HOOK_INVEWIELD
+  id: HOOK_INVENWIELD
   doc: |
-    Runs before wielding or unwielding an armor or a weapon by a critter (except when using inventory by PC).
+    Runs before causing a critter or the player to wield/unwield an armor or a weapon (except when using the inventory by PC).
     An example usage would be to change critter art depending on armor being used or to dynamically customize weapon animations.
     NOTE: when replacing a previously wielded armor or weapon, the unwielding hook will not be executed.
     If you need to rely on this, try checking if armor/weapon is already equipped when wielding hook is executed.
@@ -395,6 +397,7 @@
     Obj     arg2 - item being wielded or unwielded (weapon/armor)
     int     arg3 - slot (INVEN_TYPE_*)
     int     arg4 - 1 when wielding, 0 when unwielding
+    int     arg5 - 1 when removing an equipped item from inventory, 0 otherwise
 
     int     ret1 - overrides hard-coded handler (-1 - use engine handler, any other value - override) - NOT RECOMMENDED
     ```
@@ -438,6 +441,17 @@
     Obj     arg3 - the object that called this handler (source_obj, can be 0)
 
     int     ret1 - pass -1 to cancel the execution of the handler
+    ```
+- name: StdProcedureEnd
+  id: HOOK_STDPROCEDURE_END
+  doc: |
+    Runs after Fallout executes a standard procedure (handler) in any script of any object.
+    NOTE: this hook will not be executed for `start`, `critter_p_proc`, `timed_event_p_proc`, and `map_update_p_proc` procedures.
+    ```
+    int     arg1 - the number of the standard script handler (see define.h)
+    Obj     arg2 - the object that owns this handler (self_obj)
+    Obj     arg3 - the object that called this handler (source_obj, can be 0)
+    int     arg4 - 1 after procedure execution
     ```
 
 - name: CarTravel
@@ -485,6 +499,7 @@
     Runs once every time when the game mode was changed, like opening/closing the inventory, character screen, pipboy, etc.
     ```
     int     arg1 - event type: 1 - when the player exits the game, 0 - otherwise
+    int     arg2 - the previous game mode
     ```
 
 - name: UseAnimObj
@@ -533,8 +548,8 @@
     __NOTE:__ the user critter can't be overridden when using Steal skill.
 
     ```
-    Critter arg1 - The user critter (usually dude_obj)
-    Obj     arg2 - The target object/critter
+    Critter arg1 - the user critter (usually dude_obj)
+    Obj     arg2 - the target object/critter
     int     arg3 - skill being used
 
     int     ret1 - a new critter to override the user critter. Pass -1 to cancel the skill use, pass 0 to skip this return value
@@ -570,20 +585,20 @@
     Does not run for misses, non-combat damage like dynamite explosions, or if one of the damage formulas is selected in ddraw.ini.
 
     ```
-    Critter arg1 - The attacker
-    Critter arg2 - The target
-    Obj     arg3 - The weapon used in the attack
-    int     arg4 - Attack Type (see ATKTYPE_* constants)
-    int     arg5 - Number of bullets actually hit the target (1 for melee attacks)
-    int     arg6 - Target's Damage Resistance (DR) value (affected by critical hit effects, perks, traits, and special unarmed attacks)
-    int     arg7 - Target's Damage Threshold (DT) value (affected by critical hit effects, perks, traits, and special unarmed attacks)
-    int     arg8 - Bonus ranged damage from the perk
-    int     arg9 - Damage Multiplier (this is divided by 2, so a value of 3 does 1.5x damage, and 8 does 4x damage. Usually it's 2; for critical hits, the value is taken from the critical table; with Silent Death perk and the corresponding attack conditions, the value will be doubled)
-    int     arg10 - Combat Difficulty multiplier (125 - rough, 100 - normal, 75 - wimpy; for player or party members it's always 100)
-    int     arg11 - The calculated amount of damage (usually 0, required when using multiple hook scripts to calculate damage and using the set_sfall_arg function)
-    mixed   arg12 - Computed attack results (see C_ATTACK_* for offsets and use get/set_object_data functions to get/set the data)
+    Critter arg1 - the attacker
+    Critter arg2 - the target
+    Obj     arg3 - the weapon used in the attack
+    int     arg4 - attack Type (see ATKTYPE_* constants)
+    int     arg5 - number of bullets actually hit the target (1 for melee attacks)
+    int     arg6 - target's Damage Resistance (DR) value (affected by critical hit effects, perks, traits, and special unarmed attacks)
+    int     arg7 - target's Damage Threshold (DT) value (affected by critical hit effects, perks, traits, and special unarmed attacks)
+    int     arg8 - bonus ranged damage from the perk
+    int     arg9 - damage Multiplier (this is divided by 2, so a value of 3 does 1.5x damage, and 8 does 4x damage. Usually it's 2; for critical hits, the value is taken from the critical table; with Silent Death perk and the corresponding attack conditions, the value will be doubled)
+    int     arg10 - combat Difficulty multiplier (125 - rough, 100 - normal, 75 - wimpy; for player or party members it's always 100)
+    int     arg11 - the calculated amount of damage (usually 0, required when using multiple hook scripts to calculate damage and using the set_sfall_arg function)
+    mixed   arg12 - computed attack results (see C_ATTACK_* for offsets and use get/set_object_data functions to get/set the data)
 
-    int     ret1 - The returned amount of damage
+    int     ret1 - the returned amount of damage
     ```
 
 - name: SetLighting
@@ -613,4 +628,17 @@
 
     int     ret1 - overrides the result of the Sneak check
     int     ret2 - overrides the duration time for the current result
+    ```
+
+- name: TargetObject
+  id: HOOK_TARGETOBJECT
+  doc: |
+    Runs when the targeting cursor hovers over an object, or when the player tries to attack the target object.
+    You can override the target object or prevent the player from attacking the chosen target.
+    ```
+    int     arg1 - event type: 0 - when the targeting cursor hovers over the object, 1 - when trying to attack the target object
+    int     arg2 - 1 when the target object is valid to attack, 0 otherwise
+    Obj     arg3 - the target object
+
+    mixed   ret1 - overrides the target object, or pass -1 to prevent the player from attacking the object
     ```
