@@ -30,7 +30,7 @@ sArt*  ptr_art                        = reinterpret_cast<sArt*>(_art);
 DWORD* ptr_art_name                   = reinterpret_cast<DWORD*>(_art_name);
 DWORD* ptr_art_vault_guy_num          = reinterpret_cast<DWORD*>(_art_vault_guy_num);
 DWORD* ptr_art_vault_person_nums      = reinterpret_cast<DWORD*>(_art_vault_person_nums);
-DWORD* ptr_bckgnd                     = reinterpret_cast<DWORD*>(_bckgnd);
+BYTE** ptr_bckgnd                     = reinterpret_cast<BYTE**>(_bckgnd);
 DWORD* ptr_black_palette              = reinterpret_cast<DWORD*>(_black_palette);
 BYTE*  ptr_BlueColor                  = reinterpret_cast<BYTE*>(_BlueColor);
 DWORD* ptr_bottom_line                = reinterpret_cast<DWORD*>(_bottom_line);
@@ -893,6 +893,79 @@ bool __stdcall DbAccess(const char* fileName) {
 	WRAP_WATCOM_CALL1(db_access_, fileName)
 }
 
+long __stdcall DbFClose(DbFile* file) {
+	WRAP_WATCOM_CALL1(db_fclose_, file)
+}
+
+DbFile* __stdcall DbFOpen(const char* path, const char* mode) {
+	WRAP_WATCOM_CALL2(db_fopen_, path, mode)
+}
+
+long __stdcall DbFGetc(DbFile* file) {
+	WRAP_WATCOM_CALL1(db_fgetc_, file)
+}
+
+char* __stdcall DbFGets(char* buf, long max_count, DbFile* file) {
+	WRAP_WATCOM_CALL3(db_fgets_, buf, max_count, file)
+}
+
+long __stdcall DbFRead(void* buf, long elsize, long count, DbFile* file) {
+	WRAP_WATCOM_CALL4(db_fread_, buf, elsize, count, file)
+}
+
+long __stdcall DbFSeek(DbFile* file, long pos, long origin) {
+	WRAP_WATCOM_CALL3(db_fseek_, file, pos, origin)
+}
+
+long __stdcall DbFReadByte(DbFile* file, BYTE* rout) {
+	WRAP_WATCOM_CALL2(db_freadByte_, file, rout)
+}
+
+long __stdcall DbFReadByteCount(DbFile* file, BYTE* cptr, long count) {
+	WRAP_WATCOM_CALL3(db_freadByteCount_, file, cptr, count)
+}
+
+long __stdcall DbFReadShort(DbFile* file, WORD* rout) {
+	WRAP_WATCOM_CALL2(db_freadShort_, file, rout)
+}
+
+long __stdcall DbFReadShortCount(DbFile* file, WORD* dest, long count) {
+	WRAP_WATCOM_CALL3(db_freadShortCount_, file, dest, count)
+}
+
+long __stdcall DbFReadInt(DbFile* file, DWORD* rout) {
+	WRAP_WATCOM_CALL2(db_freadInt_, file, rout)
+}
+
+long __stdcall DbFReadIntCount(DbFile* file, DWORD* dest, long count) {
+	WRAP_WATCOM_CALL3(db_freadIntCount_, file, dest, count)
+}
+
+long __stdcall DbFWriteByte(DbFile* file, long value) {
+	WRAP_WATCOM_CALL2(db_fwriteByte_, file, value)
+}
+
+long __stdcall DbFWriteByteCount(DbFile* file, const BYTE* cptr, long count) {
+	WRAP_WATCOM_CALL3(db_fwriteByteCount_, file, cptr, count)
+}
+
+long __stdcall DbFWriteInt(DbFile* file, long value) {
+	WRAP_WATCOM_CALL2(db_fwriteInt_, file, value)
+}
+
+// Check fallout file and get file size (result 0 - file exists)
+long __stdcall DbDirEntry(const char *fileName, DWORD *sizeOut) {
+	WRAP_WATCOM_CALL2(db_dir_entry_, fileName, sizeOut)
+}
+
+DbFile* __stdcall XFOpen(const char* fileName, const char* flags) {
+	WRAP_WATCOM_CALL2(xfopen_, fileName, flags)
+}
+
+long __stdcall XFSeek(DbFile* file, long fOffset, long origin) {
+	WRAP_WATCOM_CALL3(xfseek_, file, fOffset, origin)
+}
+
 void SkillGetTags(long* result, long num) {
 	if (num > 4) num = 4;
 	WRAP_WATCOM_CALL2(skill_get_tags_, result, num)
@@ -1050,6 +1123,10 @@ __declspec(noinline) TGameObj* __stdcall GetItemPtrSlot(TGameObj* critter, long 
 	return itemPtr;
 }
 
+void* __stdcall MemRealloc(void* lpmem, DWORD msize) {
+	WRAP_WATCOM_CALL2(mem_realloc_, lpmem, msize)
+}
+
 long __fastcall CreateWindowFunc(const char* winName, DWORD x, DWORD y, DWORD width, DWORD height, long color, long flags) {
 	WRAP_WATCOM_FCALL7(createWindow_, winName, x, y, width, height, color, flags)
 }
@@ -1087,6 +1164,20 @@ void __stdcall DialogOut(const char* text) {
 		xor  ebx, ebx;   // ?
 		xor  edx, edx;   // ?
 		call dialog_out_;
+	}
+}
+
+void __fastcall DrawWinLine(int winRef, DWORD startXPos, DWORD endXPos, DWORD startYPos, DWORD endYPos, BYTE colour) {
+	__asm {
+		xor  eax, eax;
+		mov  al, colour;
+		push eax;
+		push endYPos;
+		mov  eax, ecx; // winRef
+		mov  ecx, endXPos;
+		mov  ebx, startYPos;
+		//mov  edx, xStartPos;
+		call win_line_;
 	}
 }
 

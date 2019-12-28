@@ -59,8 +59,9 @@ typedef struct LineNode {
 } LineNode;
 
 // structures for loading unlisted frms
+#pragma pack(push, 1)
 typedef class UNLSTDframe {
-	public:
+public:
 	WORD width;
 	WORD height;
 	DWORD size;
@@ -82,7 +83,7 @@ typedef class UNLSTDframe {
 } UNLSTDframe;
 
 typedef class UNLSTDfrm {
-	public:
+public:
 	DWORD version;
 	WORD FPS;
 	WORD actionFrame;
@@ -110,134 +111,7 @@ typedef class UNLSTDfrm {
 			delete[] frames;
 	}
 } UNLSTDfrm;
-
-/////////////////////////////////////////////////////////////////FILE FUNCTIONS//////////////////////////////////////////////////////////////////////
-
-void* FOpenFile(char *FileName, char *flags) {
-	void *retVal;
-	__asm {
-		mov  edx, flags;
-		mov  eax, FileName;
-		call xfopen_;
-		mov retVal, eax;
-	}
-	return retVal;
-}
-
-int FCloseFile(void *FileStream) {
-	int retVal;
-	__asm {
-		mov  eax, FileStream;
-		call db_fclose_;
-		mov  retVal, eax;
-	}
-	return retVal;
-}
-
-int Ffseek(void *FileStream, long fOffset, int origin) {
-	int retVal;
-	__asm {
-		mov  ebx, origin;
-		mov  edx, fOffset;
-		mov  eax, FileStream;
-		call xfseek_;
-		mov  retVal, eax;
-	}
-	return retVal;
-}
-
-int FReadByte(void *FileStream, BYTE *toMem) {
-	int retVal;
-	__asm {
-		mov  edx, toMem;
-		mov  eax, FileStream;
-		call db_freadByte_;
-		mov  retVal, eax;
-	}
-	return retVal;
-}
-
-int FReadWord(void *FileStream, WORD *toMem) {
-	int retVal;
-	__asm {
-		mov  edx, toMem;
-		mov  eax, FileStream;
-		call db_freadShort_;
-		mov  retVal, eax;
-	}
-	return retVal;
-}
-
-int FReadDword(void *FileStream, DWORD *toMem) {
-	int retVal;
-	__asm {
-		mov  edx, toMem;
-		mov  eax, FileStream;
-		call db_freadInt_;
-		mov  retVal, eax;
-	}
-	return retVal;
-}
-
-int FReadWordArray(void *FileStream, WORD *toMem, DWORD NumElements) {
-	int retVal;
-	__asm {
-		mov  ebx, NumElements;
-		mov  edx, toMem;
-		mov  eax, FileStream;
-		call db_freadShortCount_;
-		mov  retVal, eax;
-	}
-	return retVal;
-}
-
-int FReadDwordArray(void *FileStream, DWORD *toMem, DWORD NumElements) {
-	int retVal;
-	__asm {
-		mov  ebx, NumElements;
-		mov  edx, toMem;
-		mov  eax, FileStream;
-		call db_freadIntCount_;
-		mov  retVal, eax;
-	}
-	return retVal;
-}
-
-int FReadString(void *FileStream, char *toMem, DWORD charLength, DWORD NumStrings) {
-	int retVal;
-	__asm {
-		mov  ecx, FileStream;
-		mov  ebx, NumStrings;
-		mov  edx, charLength;
-		mov  eax, toMem;
-		call db_fread_;
-		mov  retVal, eax;
-	}
-	return retVal;
-}
-
-int FWriteByte(void *FileStream, BYTE bVal) {
-	int retVal;
-	__asm {
-		xor  edx, edx;
-		mov  dl, bVal;
-		mov  eax, FileStream;
-		call db_fwriteByte_;
-		mov  retVal, eax;
-	}
-	return retVal;
-}
-
-int FWriteDword(void *FileStream, DWORD bVal) {
-	int retVal;
-	__asm {
-		mov  edx, bVal;
-		mov  eax, FileStream;
-		call db_fwriteInt_;
-		mov  retVal, eax;
-	}
-	return retVal;
-}
+#pragma pack(pop)
 
 /////////////////////////////////////////////////////////////////MOUSE FUNCTIONS/////////////////////////////////////////////////////////////////////
 
@@ -373,44 +247,44 @@ BYTE* GetFrmFrameSurface(FrmHeaderData* Frm,  DWORD FrameNum, DWORD Ori) {
 
 /////////////////////////////////////////////////////////////////UNLISTED FRM FUNCTIONS//////////////////////////////////////////////////////////////
 
-static bool LoadFrmHeader(UNLSTDfrm *frmHeader, void* frmStream) {
-	if (FReadDword(frmStream, &frmHeader->version) == -1)
+static bool LoadFrmHeader(UNLSTDfrm *frmHeader, DbFile* frmStream) {
+	if (DbFReadInt(frmStream, &frmHeader->version) == -1)
 		return false;
-	else if (FReadWord(frmStream, &frmHeader->FPS) == -1)
+	else if (DbFReadShort(frmStream, &frmHeader->FPS) == -1)
 		return false;
-	else if (FReadWord(frmStream, &frmHeader->actionFrame) == -1)
+	else if (DbFReadShort(frmStream, &frmHeader->actionFrame) == -1)
 		return false;
-	else if (FReadWord(frmStream, &frmHeader->numFrames) == -1)
+	else if (DbFReadShort(frmStream, &frmHeader->numFrames) == -1)
 		return false;
-	else if (FReadWordArray(frmStream, frmHeader->xCentreShift, 6) == -1)
+	else if (DbFReadShortCount(frmStream, frmHeader->xCentreShift, 6) == -1)
 		return false;
-	else if (FReadWordArray(frmStream, frmHeader->yCentreShift, 6) == -1)
+	else if (DbFReadShortCount(frmStream, frmHeader->yCentreShift, 6) == -1)
 		return false;
-	else if (FReadDwordArray(frmStream, frmHeader->oriOffset, 6) == -1)
+	else if (DbFReadIntCount(frmStream, frmHeader->oriOffset, 6) == -1)
 		return false;
-	else if (FReadDword(frmStream, &frmHeader->frameAreaSize) == -1)
+	else if (DbFReadInt(frmStream, &frmHeader->frameAreaSize) == -1)
 		return false;
 
 	return true;
 }
 
-static bool LoadFrmFrame(UNLSTDframe *frame, void* frmStream) {
+static bool LoadFrmFrame(UNLSTDframe *frame, DbFile* frmStream) {
 	//FRMframe *frameHeader = (FRMframe*)frameMEM;
 	//BYTE* frameBuff = frame + sizeof(FRMframe);
 
-	if (FReadWord(frmStream, &frame->width) == -1)
+	if (DbFReadShort(frmStream, &frame->width) == -1)
 		return false;
-	else if (FReadWord(frmStream, &frame->height) == -1)
+	else if (DbFReadShort(frmStream, &frame->height) == -1)
 		return false;
-	else if (FReadDword(frmStream, &frame->size) == -1)
+	else if (DbFReadInt(frmStream, &frame->size) == -1)
 		return false;
-	else if (FReadWord(frmStream, &frame->x) == -1)
+	else if (DbFReadShort(frmStream, &frame->x) == -1)
 		return false;
-	else if (FReadWord(frmStream, &frame->y) == -1)
+	else if (DbFReadShort(frmStream, &frame->y) == -1)
 		return false;
 
 	frame->indexBuff = new BYTE[frame->size];
-	if (FReadString(frmStream, (char*)frame->indexBuff, frame->size, 1) != 1)
+	if (DbFRead(frame->indexBuff, frame->size, 1, frmStream) != 1)
 		return false;
 
 	return true;
@@ -419,18 +293,18 @@ static bool LoadFrmFrame(UNLSTDframe *frame, void* frmStream) {
 UNLSTDfrm *LoadUnlistedFrm(char *frmName, unsigned int folderRef) {
 	if (folderRef > OBJ_TYPE_SKILLDEX) return nullptr;
 
-	char *artfolder = (char*)(0x51073C + folderRef * 32); // address of art type name
+	char *artfolder = ptr_art[folderRef].path; // address of art type name
 	char FrmPath[MAX_PATH];
 
 	sprintf_s(FrmPath, MAX_PATH, "art\\%s\\%s", artfolder, frmName);
 
 	UNLSTDfrm *frm = new UNLSTDfrm;
 
-	void *frmStream = FOpenFile(FrmPath, "rb");
+	DbFile* frmStream = XFOpen(FrmPath, "rb");
 
-	if (frmStream) {
+	if (frmStream != nullptr) {
 		if (!LoadFrmHeader(frm, frmStream)) {
-			FCloseFile(frmStream);
+			DbFClose(frmStream);
 			delete frm;
 			return nullptr;
 		}
@@ -443,7 +317,7 @@ UNLSTDfrm *LoadUnlistedFrm(char *frmName, unsigned int folderRef) {
 				frm->oriOffset[ori] = oriOffset_new;
 				for (int fNum = 0; fNum < frm->numFrames; fNum++) {
 					if (!LoadFrmFrame(&frm->frames[oriOffset_new + fNum], frmStream)) {
-						FCloseFile(frmStream);
+						DbFClose(frmStream);
 						delete frm;
 						return nullptr;
 					}
@@ -454,7 +328,7 @@ UNLSTDfrm *LoadUnlistedFrm(char *frmName, unsigned int folderRef) {
 			}
 		}
 
-		FCloseFile(frmStream);
+		DbFClose(frmStream);
 	} else {
 		delete frm;
 		return nullptr;
@@ -647,22 +521,6 @@ static void UnloadDat(void *dat) {
 
 /////////////////////////////////////////////////////////////////OTHER FUNCTIONS/////////////////////////////////////////////////////////////////////
 
-/*
-void __fastcall DrawWinLine(int winRef, DWORD startXPos, DWORD endXPos, DWORD startYPos, DWORD endYPos, BYTE colour) {
-	__asm {
-		xor  eax, eax;
-		mov  al, colour;
-		push eax;
-		push endYPos;
-		mov  eax, ecx; // winRef
-		mov  ecx, endXPos;
-		mov  ebx, startYPos;
-		//mov  edx, xStartPos;
-		call win_line_;
-	}
-}
-*/
-
 static void PlayAcm(char *acmName) {
 	__asm {
 		mov  eax, acmName;
@@ -681,17 +539,6 @@ void _stdcall RefreshHeroBaseArt() {
 		call proto_dude_update_gender_;
 	}
 }
-
-/*
-// Check fallout file and get file size (result 0 - file exists)
-long __stdcall DbDirEntry(const char *fileName, DWORD *sizeOut) {
-	__asm {
-		mov  edx, sizeOut;
-		mov  eax, fileName;
-		call db_dir_entry_;
-	}
-}
-*/
 
 /////////////////////////////////////////////////////////////////APP MOD FUNCTIONS///////////////////////////////////////////////////////////////////
 
@@ -1761,7 +1608,7 @@ static void __declspec(naked) FixCharScrnBack() {
 			sub_draw(640, 480, 640, 480, 0, 0, frm->frames[0].indexBuff, 640, 480, 0, 0, charScrnBackSurface, 0);
 			delete frm;
 		} else {
-			BYTE *OldCharScrnBackSurface = *(BYTE**)_bckgnd; // char screen background frm surface
+			BYTE *OldCharScrnBackSurface = *ptr_bckgnd; // char screen background frm surface
 
 			// copy old charscrn surface to new
 			sub_draw(640, 480, 640, 480, 0, 0, OldCharScrnBackSurface, 640, 480, 0, 0, charScrnBackSurface, 0);
@@ -1841,7 +1688,7 @@ static void __declspec(naked) FixCharScrnBack() {
 		SetFont(oldFont);
 	}
 
-	*(BYTE**)_bckgnd = charScrnBackSurface; // surface ptr for char scrn back
+	*ptr_bckgnd = charScrnBackSurface; // surface ptr for char scrn back
 
 	__asm {
 		mov esp, ebp; // epilog
@@ -1951,17 +1798,17 @@ skip:
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // Load Appearance data from GCD file
-static void __fastcall LoadGCDAppearance(void *fileStream) {
+static void __fastcall LoadGCDAppearance(DbFile* fileStream) {
 	currentRaceVal = 0;
 	currentStyleVal = 0;
 	DWORD temp;
-	if (FReadDword(fileStream, &temp) != -1 && temp < 100) {
+	if (DbFReadInt(fileStream, &temp) != -1 && temp < 100) {
 		currentRaceVal = (int)temp;
-		if (FReadDword(fileStream, &temp) != -1 && temp < 100) {
+		if (DbFReadInt(fileStream, &temp) != -1 && temp < 100) {
 			currentStyleVal = (int)temp;
 		}
 	}
-	FCloseFile(fileStream);
+	DbFClose(fileStream);
 
 	// load hero appearance
 	if (LoadHeroDat(currentRaceVal, currentStyleVal, true) != 0) { // if load fails
@@ -1975,11 +1822,11 @@ static void __fastcall LoadGCDAppearance(void *fileStream) {
 }
 
 // Save Appearance data to GCD file
-static void __fastcall SaveGCDAppearance(void *FileStream) {
-	if (FWriteDword(FileStream, (DWORD)currentRaceVal) != -1) {
-		FWriteDword(FileStream, (DWORD)currentStyleVal);
+static void __fastcall SaveGCDAppearance(DbFile *FileStream) {
+	if (DbFWriteInt(FileStream, (DWORD)currentRaceVal) != -1) {
+		DbFWriteInt(FileStream, (DWORD)currentStyleVal);
 	}
-	FCloseFile(FileStream);
+	DbFClose(FileStream);
 }
 
 static void EnableHeroAppearanceMod() {

@@ -287,7 +287,7 @@ extern sArt*  ptr_art;
 extern DWORD* ptr_art_name;
 extern DWORD* ptr_art_vault_guy_num;
 extern DWORD* ptr_art_vault_person_nums;
-extern DWORD* ptr_bckgnd;
+extern BYTE** ptr_bckgnd;
 extern DWORD* ptr_black_palette;
 extern BYTE*  ptr_BlueColor;
 extern DWORD* ptr_bottom_line;
@@ -1045,6 +1045,43 @@ void __stdcall CritterPcSetName(const char* newName);
 // Checks if given file exists in DB
 bool __stdcall DbAccess(const char* fileName);
 
+long __stdcall DbFClose(DbFile* file);
+
+DbFile* __stdcall DbFOpen(const char* path, const char* mode);
+
+long __stdcall DbFGetc(DbFile* file);
+
+char* __stdcall DbFGets(char* buf, long max_count, DbFile* file);
+
+long __stdcall DbFRead(void* buf, long elsize, long count, DbFile* file);
+
+long __stdcall DbFSeek(DbFile* file, long pos, long origin);
+
+long __stdcall DbFReadByte(DbFile* file, BYTE* rout);
+
+long __stdcall DbFReadByteCount(DbFile* file, BYTE* cptr, long count);
+
+long __stdcall DbFReadShort(DbFile* file, WORD* rout);
+
+long __stdcall DbFReadShortCount(DbFile* file, WORD* dest, long count);
+
+long __stdcall DbFReadInt(DbFile* file, DWORD* rout);
+
+long __stdcall DbFReadIntCount(DbFile* file, DWORD* dest, long count);
+
+long __stdcall DbFWriteByte(DbFile* file, long value);
+
+long __stdcall DbFWriteByteCount(DbFile* file, const BYTE* cptr, long count);
+
+long __stdcall DbFWriteInt(DbFile* file, long value);
+
+// Check fallout file and get file size (result 0 - file exists)
+long __stdcall DbDirEntry(const char *fileName, DWORD *sizeOut);
+
+DbFile* __stdcall XFOpen(const char* fileName, const char* flags);
+
+long __stdcall XFSeek(DbFile* file, long fOffset, long origin);
+
 TGameObj* __stdcall ScrFindObjFromProgram(TProgram* program);
 
 // Saves pointer to script object into scriptPtr using scriptID.
@@ -1111,6 +1148,8 @@ void __declspec() InterpretError(const char* fmt, ...);
 
 // returns the name of current procedure by program pointer
 const char* __stdcall FindCurrentProc(TProgram* program);
+
+void* __stdcall MemRealloc(void* lpmem, DWORD msize);
 
 // creates a window with the name and flags
 long __fastcall CreateWindowFunc(const char* winName, DWORD x, DWORD y, DWORD width, DWORD height, long color, long flags);
