@@ -20,4 +20,4 @@
 
 extern DWORD LSPageOffset;
 
-void EnableSuperSaving();
+void ExtraSaveSlotsInit();

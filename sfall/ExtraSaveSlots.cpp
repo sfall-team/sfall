@@ -16,10 +16,11 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "main.h"
-
 #include <stdio.h>
+
+#include "main.h"
 #include "FalloutEngine.h"
+
 #include "ExtraSaveSlots.h"
 #include "HeroAppearance.h"
 
@@ -91,6 +92,7 @@ static void __declspec(naked) load_page_offsets(void) {
 //------------------------------------------
 static void CreateButtons() {
 	DWORD winRef = *ptr_lsgwin;
+
 	// left button -10       | X | Y | W | H |HOn |HOff |BDown |BUp |PicUp |PicDown |? |ButType
 	WinRegisterButton(winRef, 100, 60, 24, 20, -1, 0x500, 0x54B, 0x14B, 0, 0, 0, 32);
 	// left button -100
@@ -259,11 +261,10 @@ CheckUp:
 
 //------------------------------------------
 void DrawPageText() {
-	DWORD winRef = *ptr_lsgwin; // load/save winref
-	if (winRef == 0) {
+	if (*ptr_lsgwin == 0) {
 		return;
 	}
-	WINinfo *SaveLoadWin = GetWinStruct(winRef);
+	WINinfo *SaveLoadWin = GetWinStruct(*ptr_lsgwin);
 	if (SaveLoadWin->surface == nullptr) {
 		return;
 	}
@@ -388,7 +389,7 @@ void EnableSuperSaving() {
 	// load saved page and list positions from file
 	MakeCall(0x47B82B, load_page_offsets);
 
-	// Add Load/Save page offset to Load/Save folder number/////////////////
+	// Add Load/Save page offset to Load/Save folder number
 	for (int i = 0; i < sizeof(AddPageOffset01Addrs) / 4; i++) {
 		MakeCall(AddPageOffset01Addrs[i], AddPageOffset01);
 	}
@@ -396,4 +397,115 @@ void EnableSuperSaving() {
 	MakeJump(0x47E5E1, AddPageOffset02);
 
 	MakeCall(0x47E756, AddPageOffset03);
+}
+
+static void GetSaveFileTime(char* filename, FILETIME* ftSlot) {
+	char fname[65];
+	sprintf_s(fname, "%s\\%s", *ptr_patches, filename);
+
+	HANDLE hFile = CreateFile(fname, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+	if (hFile != INVALID_HANDLE_VALUE) {
+		GetFileTime(hFile, NULL, NULL, ftSlot);
+		CloseHandle(hFile);
+	} else {
+		ftSlot->dwHighDateTime = 0;
+		ftSlot->dwLowDateTime = 0;
+	};
+}
+
+static const char* commentFmt = "%02d/%02d/%d - %02d:%02d:%02d";
+static void CreateSaveComment(char* bufstr) {
+	SYSTEMTIME stUTC, stLocal;
+	GetSystemTime(&stUTC);
+	SystemTimeToTzSpecificLocalTime(NULL, &stUTC, &stLocal);
+
+	char buf[30];
+	sprintf_s(buf, commentFmt, stLocal.wDay, stLocal.wMonth, stLocal.wYear, stLocal.wHour, stLocal.wMinute, stLocal.wSecond);
+	strcpy(bufstr, buf);
+}
+
+static long autoQuickSave = 0;
+static long quickSavePage = 0;
+
+static FILETIME ftPrevSlot;
+
+static DWORD __stdcall QuickSaveGame(DbFile* file, char* filename) {
+	long currSlot = *ptr_slot_cursor;
+
+	if (file) { // This slot is not empty
+		DbFClose(file);
+
+		FILETIME ftCurrSlot;
+		GetSaveFileTime(filename, &ftCurrSlot);
+		if (currSlot == 0 || ftCurrSlot.dwHighDateTime > ftPrevSlot.dwHighDateTime
+			|| (ftCurrSlot.dwHighDateTime == ftPrevSlot.dwHighDateTime && ftCurrSlot.dwLowDateTime > ftPrevSlot.dwLowDateTime)) {
+			ftPrevSlot.dwHighDateTime = ftCurrSlot.dwHighDateTime;
+			ftPrevSlot.dwLowDateTime  = ftCurrSlot.dwLowDateTime;
+
+			if (++currSlot > autoQuickSave) {
+				currSlot = 0;
+			} else {
+				*ptr_slot_cursor = currSlot;
+				return 0x47B929; // check next slot
+			}
+		}
+	}
+
+	// Save to slot
+	*ptr_slot_cursor = currSlot;
+	LSData* saveData = (LSData*)_LSData;
+	CreateSaveComment(saveData[currSlot].comment);
+	*ptr_quick_done = 1;
+
+	return 0x47B9A4; // normal return
+}
+
+static void __declspec(naked) SaveGame_hack0() {
+	__asm {
+		mov  ds:[_flptr], eax;
+		push ecx;
+		push edi;
+		push eax;
+		call QuickSaveGame;
+		pop  ecx;
+		jmp  eax;
+	}
+}
+
+static void __declspec(naked) SaveGame_hack1() {
+	__asm {
+		mov ds:[_slot_cursor], 0;
+		mov eax, quickSavePage;
+		mov LSPageOffset, eax;
+		retn;
+	}
+}
+
+void ExtraSaveSlotsInit() {
+	bool extraSaveSlots = (GetConfigInt("Misc", "ExtraSaveSlots", 0) != 0);
+	if (extraSaveSlots) {
+		dlog("Applying extra save slots patch.", DL_INIT);
+		EnableSuperSaving();
+		dlogr(" Done", DL_INIT);
+	}
+
+	autoQuickSave = GetConfigInt("Misc", "AutoQuickSave", 0);
+	if (autoQuickSave > 0) {
+		dlog("Applying auto quick save patch.", DL_INIT);
+		if (autoQuickSave > 10) autoQuickSave = 10;
+		autoQuickSave--; // reserved slot count
+
+		quickSavePage = GetConfigInt("Misc", "AutoQuickSavePage", 0);
+		if (quickSavePage > 1000) quickSavePage = 1000;
+
+		if (extraSaveSlots && quickSavePage > 0) {
+			quickSavePage = (quickSavePage - 1) * 10;
+			MakeCall(0x47B923, SaveGame_hack1, 1);
+		} else {
+			SafeWrite8(0x47B923, 0x89);
+			SafeWrite32(0x47B924, 0x5193B83D); // mov [slot_cursor], edi = 0
+		}
+		MakeJump(0x47B984, SaveGame_hack0);
+		dlogr(" Done", DL_INIT);
+	}
 }

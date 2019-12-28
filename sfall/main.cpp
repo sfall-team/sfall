@@ -418,11 +418,8 @@ static void DllMain2() {
 	dlogr("Running ConsoleInit().", DL_INIT);
 	ConsoleInit();
 
-	if (GetConfigInt("Misc", "ExtraSaveSlots", 0)) {
-		dlog("Applying extra save slots patch.", DL_INIT);
-		EnableSuperSaving();
-		dlogr(" Done", DL_INIT);
-	}
+	dlogr("Running ExtraSaveSlotsInit().", DL_INIT);
+	ExtraSaveSlotsInit();
 
 	dlogr("Running InventoryInit().", DL_INIT);
 	InventoryInit();
