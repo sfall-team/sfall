@@ -317,7 +317,7 @@ long __stdcall message_exit(MessageList *msgList) {
 
 long __fastcall tile_num(long x, long y) {
 	__asm push ebx; // don't delete (bug in tile_num_)
-	WRAP_WATCOM_FCALL2(tile_num_, x, x);
+	WRAP_WATCOM_FCALL2(tile_num_, x, y)
 	__asm pop  ebx;
 }
 

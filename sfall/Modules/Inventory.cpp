@@ -737,8 +737,6 @@ void Inventory::init() {
 		SafeWrite8(0x47260F, 0x20);
 		SafeWrite32(0x4725F9, 0x9C + 0x0C);
 		SafeWrite8(0x472606, 0x10 + 0x0C);
-		SafeWrite32(0x472632, 150); // width
-		SafeWrite8(0x472638, 0);    // x offset position
 
 		// Display item size when examining
 		HookCall(0x472FFE, inven_obj_examine_func_hook);
@@ -755,6 +753,9 @@ void Inventory::init() {
 			SafeWrite8(0x449150, 0x10 + 0x08);
 		}
 	}
+	// Adjust the max text width of the total weight display in the inventory
+	SafeWrite32(0x472632, 150);
+	SafeWrite8(0x472638, 0); // x offset position
 
 	if (GetConfigInt("Misc", "SuperStimExploitFix", 0)) {
 		superStimMsg = Translate("sfall", "SuperStimExploitMsg", "You cannot use a super stim on someone who is not injured!");
