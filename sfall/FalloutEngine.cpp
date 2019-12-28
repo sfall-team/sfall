@@ -745,39 +745,89 @@ void __declspec(naked) DevPrintf(const char* fmt, ...) {
 void DevPrintf(const char* fmt, ...) {}
 #endif
 
+// Fallout2.exe was compiled using WATCOM compiler, which uses Watcom register calling convention.
+// In this convention, up to 4 arguments are passed via registers in this order: EAX, EDX, EBX, ECX.
+
+#define WRAP_WATCOM_CALL0(offs) \
+	__asm call offs
+
+#define WRAP_WATCOM_CALL1(offs, arg1) \
+	__asm mov eax, arg1				\
+	WRAP_WATCOM_CALL0(offs)
+
+#define WRAP_WATCOM_CALL2(offs, arg1, arg2) \
+	__asm mov edx, arg2				\
+	WRAP_WATCOM_CALL1(offs, arg1)
+
+#define WRAP_WATCOM_CALL3(offs, arg1, arg2, arg3) \
+	__asm mov ebx, arg3				\
+	WRAP_WATCOM_CALL2(offs, arg1, arg2)
+
+#define WRAP_WATCOM_CALL4(offs, arg1, arg2, arg3, arg4) \
+	__asm mov ecx, arg4				\
+	WRAP_WATCOM_CALL3(offs, arg1, arg2, arg3)
+
+#define WRAP_WATCOM_CALL5(offs, arg1, arg2, arg3, arg4, arg5) \
+	__asm push arg5				\
+	WRAP_WATCOM_CALL4(offs, arg1, arg2, arg3, arg4)
+
+#define WRAP_WATCOM_CALL6(offs, arg1, arg2, arg3, arg4, arg5, arg6) \
+	__asm push arg6				\
+	WRAP_WATCOM_CALL5(offs, arg1, arg2, arg3, arg4, arg5)
+
+#define WRAP_WATCOM_CALL7(offs, arg1, arg2, arg3, arg4, arg5, arg6, arg7) \
+	__asm push arg7				\
+	WRAP_WATCOM_CALL6(offs, arg1, arg2, arg3, arg4, arg5, arg6)
+
+// defines wrappers for __fastcall
+#define WRAP_WATCOM_FCALL1(offs, arg1) \
+	__asm mov eax, ecx				\
+	WRAP_WATCOM_CALL0(offs)
+
+#define WRAP_WATCOM_FCALL2(offs, arg1, arg2) \
+	WRAP_WATCOM_FCALL1(offs, arg1)
+
+#define WRAP_WATCOM_FCALL3(offs, arg1, arg2, arg3) \
+	__asm mov ebx, arg3				\
+	WRAP_WATCOM_FCALL1(offs, arg1)
+
+#define WRAP_WATCOM_FCALL4(offs, arg1, arg2, arg3, arg4) \
+	__asm mov eax, ecx				\
+	__asm mov ebx, arg3				\
+	__asm mov ecx, arg4				\
+	WRAP_WATCOM_CALL0(offs)
+
+#define WRAP_WATCOM_FCALL5(offs, arg1, arg2, arg3, arg4, arg5) \
+	__asm push arg5				\
+	WRAP_WATCOM_FCALL4(offs, arg1, arg2, arg3, arg4)
+
+#define WRAP_WATCOM_FCALL6(offs, arg1, arg2, arg3, arg4, arg5, arg6) \
+	__asm push arg6				\
+	WRAP_WATCOM_FCALL5(offs, arg1, arg2, arg3, arg4, arg5)
+
+#define WRAP_WATCOM_FCALL7(offs, arg1, arg2, arg3, arg4, arg5, arg6, arg7) \
+	__asm push arg7				\
+	WRAP_WATCOM_FCALL6(offs, arg1, arg2, arg3, arg4, arg5, arg6)
+
+
 long __stdcall ItemGetType(TGameObj* item) {
-	__asm {
-		mov  eax, item;
-		call item_get_type_;
-	}
+	WRAP_WATCOM_CALL1(item_get_type_, item)
 }
 
 long __stdcall ItemSize(TGameObj* item) {
-	__asm {
-		mov  eax, item;
-		call item_size_;
-	}
+	WRAP_WATCOM_CALL1(item_size_, item)
 }
 
 long __stdcall ItemWeight(TGameObj* item) {
-	__asm {
-		mov  eax, item;
-		call item_weight_;
-	}
+	WRAP_WATCOM_CALL1(item_weight_, item)
 }
 
 long __stdcall IsPartyMember(TGameObj* obj) {
-	__asm {
-		mov  eax, obj;
-		call isPartyMember_;
-	}
+	WRAP_WATCOM_CALL1(isPartyMember_, obj)
 }
 
 long __stdcall PartyMemberGetCurrentLevel(TGameObj* obj) {
-	__asm {
-		mov  eax, obj;
-		call partyMemberGetCurLevel_;
-	}
+	WRAP_WATCOM_CALL1(partyMemberGetCurLevel_, obj)
 }
 
 char* GetProtoPtr(long pid) {
@@ -812,10 +862,7 @@ void __declspec(naked) DebugPrintf(const char* fmt, ...) {
 
 // Displays message in main UI console window
 void __stdcall DisplayConsoleMessage(const char* msg) {
-	__asm {
-		mov  eax, msg;
-		call display_print_;
-	}
+	WRAP_WATCOM_CALL1(display_print_, msg)
 }
 
 static DWORD mesg_buf[4] = {0, 0, 0, 0};
@@ -834,75 +881,44 @@ const char* __stdcall GetMessageStr(DWORD fileAddr, DWORD messageId) {
 
 // Returns the name of the critter
 const char* __stdcall CritterName(TGameObj* critter) {
-	__asm {
-		mov  eax, critter;
-		call critter_name_;
-	}
+	WRAP_WATCOM_CALL1(critter_name_, critter)
 }
 
 // Change the name of playable character
 void __stdcall CritterPcSetName(const char* newName) {
-	__asm {
-		mov  eax, newName;
-		call critter_pc_set_name_;
-	}
+	WRAP_WATCOM_CALL1(critter_pc_set_name_, newName)
 }
 
 bool __stdcall DbAccess(const char* fileName) {
-	__asm {
-		mov  eax, fileName;
-		call db_access_;
-	}
+	WRAP_WATCOM_CALL1(db_access_, fileName)
 }
 
-void SkillGetTags(int* result, DWORD num) {
+void SkillGetTags(long* result, long num) {
 	if (num > 4) num = 4;
-	__asm {
-		mov  eax, result;
-		mov  edx, num;
-		call skill_get_tags_;
-	}
+	WRAP_WATCOM_CALL2(skill_get_tags_, result, num)
 }
 
-void SkillSetTags(int* tags, DWORD num) {
+void SkillSetTags(long* tags, long num) {
 	if (num > 4) num = 4;
-	__asm {
-		mov  eax, tags;
-		mov  edx, num;
-		call skill_set_tags_;
-	}
+	WRAP_WATCOM_CALL2(skill_set_tags_, tags, num)
 }
 
 TGameObj* __stdcall ScrFindObjFromProgram(TProgram* program) {
-	__asm {
-		mov  eax, program;
-		call scr_find_obj_from_program_;
-	}
+	WRAP_WATCOM_CALL1(scr_find_obj_from_program_, program)
 }
 
 // Saves pointer to script object into scriptPtr using scriptID.
 // Returns 0 on success, -1 on failure.
 long __stdcall ScrPtr(long scriptId, TScript** scriptPtr) {
-	__asm {
-		mov  edx, scriptPtr;
-		mov  eax, scriptId;
-		call scr_ptr_;
-	}
+	WRAP_WATCOM_CALL2(scr_ptr_, scriptId, scriptPtr)
 }
 
 long __stdcall ScrNew(long* scriptID, long sType) {
-	__asm {
-		mov  edx, sType;
-		mov  eax, scriptID;
-		call scr_new_;
-	}
+	WRAP_WATCOM_CALL2(scr_new_, scriptID, sType)
 }
 
 long __stdcall ScrRemove(long scriptID) {
-	__asm {
-		mov  eax, scriptID;
-		call scr_remove_;
-	}
+	WRAP_WATCOM_CALL1(scr_remove_, scriptID)
 }
 
 // Returns the number of local variables of the object script
@@ -944,105 +960,78 @@ void GetObjectsTileRadius(std::vector<TGameObj*> &objs, long sourceTile, long ra
 }
 
 void __fastcall RegisterObjectCall(long* target, long* source, void* func, long delay) {
-	__asm {
-		mov  eax, ecx;
-		mov  ebx, func;
-		mov  ecx, delay;
-		call register_object_call_;
-	}
+	WRAP_WATCOM_FCALL4(register_object_call_, target, source, func, delay)
 }
 
 long __fastcall ScrGetLocalVar(long sid, long varId, long* value) {
-	__asm {
-		mov  ebx, value;
-		mov  eax, ecx;
-		call scr_get_local_var_;
-	}
+	WRAP_WATCOM_FCALL3(scr_get_local_var_, sid, varId, value)
 }
 
 long __fastcall ScrSetLocalVar(long sid, long varId, long value) {
-	__asm {
-		mov  ebx, value;
-		mov  eax, ecx;
-		call scr_set_local_var_;
-	}
+	WRAP_WATCOM_FCALL3(scr_set_local_var_, sid, varId, value)
 }
 
 // redraws the main game interface windows (useful after changing some data like active hand, etc.)
 void __stdcall InterfaceRedraw() {
-	__asm call intface_redraw_;
+	WRAP_WATCOM_CALL0(intface_redraw_)
 }
 
 void __stdcall ProcessBk() {
-	__asm call process_bk_;
+	WRAP_WATCOM_CALL0(process_bk_)
 }
 
 // pops value type from Data stack (must be followed by InterpretPopLong)
 DWORD __stdcall InterpretPopShort(TProgram* scriptPtr) {
-	__asm {
-		mov  eax, scriptPtr;
-		call interpretPopShort_;
-	}
+	WRAP_WATCOM_CALL1(interpretPopShort_, scriptPtr)
 }
 
 // pops value from Data stack (must be preceded by InterpretPopShort)
 DWORD __stdcall InterpretPopLong(TProgram* scriptPtr) {
-	__asm {
-		mov  eax, scriptPtr;
-		call interpretPopLong_;
-	}
+	WRAP_WATCOM_CALL1(interpretPopLong_, scriptPtr)
 }
 
 // pushes value to Data stack (must be followed by InterpretPushShort)
 void __stdcall InterpretPushLong(TProgram* scriptPtr, DWORD val) {
-	__asm {
-		mov  edx, val;
-		mov  eax, scriptPtr;
-		call interpretPushLong_;
-	}
+	WRAP_WATCOM_CALL2(interpretPushLong_, scriptPtr, val)
 }
 
 // pushes value type to Data stack (must be preceded by InterpretPushLong)
 void __stdcall InterpretPushShort(TProgram* scriptPtr, DWORD valType) {
-	__asm {
-		mov  edx, valType;
-		mov  eax, scriptPtr;
-		call interpretPushShort_;
-	}
+	WRAP_WATCOM_CALL2(interpretPushShort_, scriptPtr, valType)
 }
 
 DWORD __stdcall InterpretAddString(TProgram* scriptPtr, const char* strval) {
-	__asm {
-		mov  edx, strval;
-		mov  eax, scriptPtr;
-		call interpretAddString_;
-	}
+	WRAP_WATCOM_CALL2(interpretAddString_, scriptPtr, strval)
 }
 
 const char* __fastcall InterpretGetString(TProgram* scriptPtr, DWORD dataType, DWORD strId) {
-	__asm {
-		mov  ebx, strId;
-		mov  eax, ecx;
-		call interpretGetString_;
-	}
+	WRAP_WATCOM_FCALL3(interpretGetString_, scriptPtr, dataType, strId)
 }
 
+// prints scripting error in debug.log and stops current script execution by performing longjmp
+// USE WITH CAUTION
 void __declspec(naked) InterpretError(const char* fmt, ...) {
 	__asm jmp interpretError_;
 }
 
+// returns the name of current procedure by program pointer
 const char* __stdcall FindCurrentProc(TProgram* program) {
-	__asm {
-		mov  eax, program;
-		call findCurrentProc_;
-	}
+	WRAP_WATCOM_CALL1(findCurrentProc_, program)
 }
 
+// critter worn item (armor)
 TGameObj* __stdcall InvenWorn(TGameObj* critter) {
-	__asm {
-		mov  eax, critter;
-		call inven_worn_;
-	}
+	WRAP_WATCOM_CALL1(inven_worn_, critter)
+}
+
+// item in critter's left hand slot
+TGameObj* __stdcall InvenLeftHand(TGameObj* critter) {
+	WRAP_WATCOM_CALL1(inven_left_hand_, critter)
+}
+
+// item in critter's right hand slot
+TGameObj* __stdcall InvenRightHand(TGameObj* critter) {
+	WRAP_WATCOM_CALL1(inven_right_hand_, critter)
 }
 
 __declspec(noinline) TGameObj* __stdcall GetItemPtrSlot(TGameObj* critter, long slot) {
@@ -1061,30 +1050,8 @@ __declspec(noinline) TGameObj* __stdcall GetItemPtrSlot(TGameObj* critter, long 
 	return itemPtr;
 }
 
-TGameObj* __stdcall InvenLeftHand(TGameObj* critter) {
-	__asm {
-		mov  eax, critter;
-		call inven_left_hand_;
-	}
-}
-
-TGameObj* __stdcall InvenRightHand(TGameObj* critter) {
-	__asm {
-		mov  eax, critter;
-		call inven_right_hand_;
-	}
-}
-
 long __fastcall CreateWindowFunc(const char* winName, DWORD x, DWORD y, DWORD width, DWORD height, long color, long flags) {
-	__asm {
-		push flags;
-		push color;
-		push height;
-		mov  eax, ecx;
-		mov  ebx, y;
-		mov  ecx, width;
-		call createWindow_;
-	}
+	WRAP_WATCOM_FCALL7(createWindow_, winName, x, y, width, height, color, flags)
 }
 
 long __stdcall WinRegisterButton(DWORD winRef, long xPos, long yPos, long width, long height, long hoverOn, long hoverOff, long buttonDown, long buttonUp, BYTE* pictureUp, BYTE* pictureDown, long arg12, long buttonType) {
@@ -1170,108 +1137,55 @@ long __fastcall GetGameConfigString(const char* outValue, const char* section, c
 }
 
 long __fastcall WordWrap(const char* text, int maxWidth, DWORD* buf, BYTE* count) {
-	__asm {
-		mov  eax, ecx;
-		mov  ebx, buf;
-		mov  ecx, count;
-		call _word_wrap_;
-	}
+	WRAP_WATCOM_FCALL4(_word_wrap_, text, maxWidth, buf, count)
 }
 
 DWORD __stdcall AddWin(long x, long y, long width, long height, long bgColorIndex, long flags) {
-	__asm {
-		push flags;
-		push bgColorIndex;
-		mov  ecx, height;
-		mov  ebx, width;
-		mov  edx, y;
-		mov  eax, x;
-		call win_add_;
-	}
+	WRAP_WATCOM_CALL6(win_add_, x, y, width, height, bgColorIndex, flags)
 }
 
 void __stdcall ShowWin(DWORD winRef) {
-	__asm {
-		mov  eax, winRef;
-		call win_show_;
-	}
+	WRAP_WATCOM_CALL1(win_show_, winRef)
 }
 
 void __stdcall HideWin(DWORD winRef) {
-	__asm {
-		mov  eax, winRef;
-		call win_hide_;
-	}
+	WRAP_WATCOM_CALL1(win_hide_, winRef)
 }
 
 void __stdcall RedrawWin(DWORD winRef) {
-	__asm {
-		mov  eax, winRef;
-		call win_draw_;
-	}
+	WRAP_WATCOM_CALL1(win_draw_, winRef)
 }
 
 void __stdcall DestroyWin(DWORD winRef) {
-	__asm {
-		mov  eax, winRef;
-		call win_delete_;
-	}
+	WRAP_WATCOM_CALL1(win_delete_, winRef)
 }
 
 long __stdcall WindowWidth() {
-	__asm call windowWidth_;
+	WRAP_WATCOM_CALL0(windowWidth_)
 }
 
 void __fastcall DisplayInventory(long inventoryOffset, long visibleOffset, long mode) {
-	__asm {
-		mov  ebx, mode;
-		mov  eax, ecx;
-		call display_inventory_;
-	}
+	WRAP_WATCOM_FCALL3(display_inventory_, inventoryOffset, visibleOffset, mode)
 }
 
 void __fastcall DisplayTargetInventory(long inventoryOffset, long visibleOffset, DWORD* targetInventory, long mode) {
-	__asm {
-		mov  eax, ecx;
-		mov  ebx, targetInventory;
-		mov  ecx, mode;
-		call display_target_inventory_;
-	}
+	WRAP_WATCOM_FCALL4(display_target_inventory_, inventoryOffset, visibleOffset, targetInventory, mode)
 }
 
 long __stdcall StatLevel(TGameObj* critter, long statId) {
-	__asm {
-		mov  edx, statId;
-		mov  eax, critter;
-		call stat_level_;
-	}
+	WRAP_WATCOM_CALL2(stat_level_, critter, statId)
 }
 
 long __stdcall PerkLevel(TGameObj* critter, long perkId) {
-	__asm {
-		mov  edx, perkId;
-		mov  eax, critter;
-		call perk_level_;
-	}
+	WRAP_WATCOM_CALL2(perk_level_, critter, perkId)
 }
 
 long __stdcall TraitLevel(long traitID) {
-	__asm {
-		mov  eax, traitID;
-		call trait_level_;
-	}
+	WRAP_WATCOM_CALL1(trait_level_, traitID)
 }
 
 void __fastcall make_straight_path_func_wrapper(TGameObj* objFrom, DWORD tileFrom, DWORD tileTo, void* rotationPtr, DWORD* result, long flags, void* func) {
-	__asm {
-		push func;
-		push flags;
-		push result;
-		mov  eax, ecx;
-		mov  ebx, tileTo;
-		mov  ecx, rotationPtr;
-		call make_straight_path_func_;
-	}
+	WRAP_WATCOM_FCALL7(make_straight_path_func_, objFrom, tileFrom, tileTo, rotationPtr, result, flags, func)
 }
 
 TGameObj* __fastcall obj_blocking_at_wrapper(TGameObj* obj, DWORD tile, DWORD elevation, void* func) {
@@ -1282,221 +1196,124 @@ TGameObj* __fastcall obj_blocking_at_wrapper(TGameObj* obj, DWORD tile, DWORD el
 	}
 }
 
-long __stdcall QueueFindFirst(TGameObj* object, long qType) {
-	__asm {
-		mov  edx, qType;
-		mov  eax, object;
-		call queue_find_first_;
-	}
+long* __stdcall QueueFindFirst(TGameObj* object, long qType) {
+	WRAP_WATCOM_CALL2(queue_find_first_, object, qType)
 }
 
 TGameObj* __stdcall ObjFindFirst() {
-	__asm call obj_find_first_;
+	WRAP_WATCOM_CALL0(obj_find_first_)
 }
 
 TGameObj* __stdcall ObjFindFirstAtTile(long elevation, long tileNum) {
-	__asm {
-		mov  edx, tileNum;
-		mov  eax, elevation;
-		call obj_find_first_at_tile_;
-	}
+	WRAP_WATCOM_CALL2(obj_find_first_at_tile_, elevation, tileNum)
 }
 
 TGameObj* __stdcall ObjFindNext() {
-	__asm call obj_find_next_;
+	WRAP_WATCOM_CALL0(obj_find_next_)
 }
 
 TGameObj* __stdcall ObjFindNextAtTile() {
-	__asm call obj_find_next_at_tile_;
+	WRAP_WATCOM_CALL0(obj_find_next_at_tile_)
 }
 
 long __stdcall NewObjId() {
-	__asm call new_obj_id_;
+	WRAP_WATCOM_CALL0(new_obj_id_)
 }
 
 FrmFrameData* __fastcall FramePtr(FrmHeaderData* frm, long frame, long direction) {
-	__asm {
-		mov  ebx, direction;
-		mov  eax, ecx;
-		call frame_ptr_;
-	}
+	WRAP_WATCOM_FCALL3(frame_ptr_, frm, frame, direction)
 }
 
 void __stdcall MapDirErase(const char* folder, const char* ext) {
-	__asm {
-		mov  edx, ext;
-		mov  eax, folder;
-		call MapDirErase_;
-	}
+	WRAP_WATCOM_CALL2(MapDirErase_, folder, ext)
 }
 
 TGameObj* __fastcall ObjBlockingAt(TGameObj* object, long tile, long elevation) {
-	__asm {
-		mov  ebx, elevation;
-		mov  eax, ecx;
-		call obj_blocking_at_;
-	}
+	WRAP_WATCOM_FCALL3(obj_blocking_at_, object, tile, elevation)
 }
 
 long __fastcall ObjNewSidInst(TGameObj* object, long sType, long scriptIndex) {
-	__asm {
-		mov  ebx, scriptIndex;
-		mov  eax, ecx;
-		call obj_new_sid_inst_;
-	}
+	WRAP_WATCOM_FCALL3(obj_new_sid_inst_, object, sType, scriptIndex)
 }
 
 long __fastcall TileNum(long x, long y) {
-	__asm {
-		push ebx; // don't delete (bug in tile_num_)
-		mov  eax, ecx;
-		call tile_num_;
-		pop  ebx;
-	}
+	__asm push ebx; // don't delete (bug in tile_num_)
+	WRAP_WATCOM_FCALL2(tile_num_, x, y)
+	__asm pop  ebx;
 }
 
 long __fastcall TileNumInDirection(long tile, long rotation, long distance) {
-	__asm {
-		mov  ebx, distance;
-		mov  eax, ecx;
-		call tile_num_in_direction_;
-	}
+	WRAP_WATCOM_FCALL3(tile_num_in_direction_, tile, rotation, distance)
 }
 
 long __stdcall TileDist(long scrTile, long dstTile) {
-	__asm {
-		mov  edx, dstTile;
-		mov  eax, scrTile;
-		call tile_dist_;
-	}
+	WRAP_WATCOM_CALL2(tile_dist_, scrTile, dstTile)
 }
 
 long __stdcall TileDir(long scrTile, long dstTile) {
-	__asm {
-		mov  edx, dstTile;
-		mov  eax, scrTile;
-		call tile_dir_;
-	}
+	WRAP_WATCOM_CALL2(tile_dir_, scrTile, dstTile)
 }
 
 long __stdcall ItemWAnimWeap(TGameObj* item, DWORD hitMode) {
-	__asm {
-		mov  edx, hitMode;
-		mov  eax, item;
-		call item_w_anim_weap_;
-	}
+	WRAP_WATCOM_CALL2(item_w_anim_weap_, item, hitMode)
 }
 
 long __stdcall ItemWComputeAmmoCost(TGameObj* item, DWORD* rounds) {
-	__asm {
-		mov  edx, rounds;
-		mov  eax, item;
-		call item_w_compute_ammo_cost_;
-	}
+	WRAP_WATCOM_CALL2(item_w_compute_ammo_cost_, item, rounds)
 }
 
 long __stdcall ItemWCurrAmmo(TGameObj* item) {
-	__asm {
-		mov  eax, item;
-		call item_w_curr_ammo_;
-	}
+	WRAP_WATCOM_CALL1(item_w_curr_ammo_, item)
 }
 
 long __stdcall ItemWRounds(TGameObj* item) {
-	__asm {
-		mov  eax, item;
-		call item_w_rounds_;
-	}
+	WRAP_WATCOM_CALL1(item_w_rounds_, item)
 }
 
 long __stdcall BarterComputeValue(TGameObj* source, TGameObj* target) {
-	__asm {
-		mov  edx, target;
-		mov  eax, source;
-		call barter_compute_value_;
-	}
+	WRAP_WATCOM_CALL2(barter_compute_value_, source, target)
 }
 
 long __stdcall ItemCapsTotal(TGameObj* object) {
-	__asm {
-		mov  eax, object;
-		call item_caps_total_;
-	}
+	WRAP_WATCOM_CALL1(item_caps_total_, object)
 }
 
 long __stdcall ItemTotalCost(TGameObj* object) {
-	__asm {
-		mov  eax, object;
-		call item_total_cost_;
-	}
+	WRAP_WATCOM_CALL1(item_total_cost_, object)
 }
 
 long __stdcall ItemTotalWeight(TGameObj* object) {
-	__asm {
-		mov  eax, object;
-		call item_total_weight_;
-	}
+	WRAP_WATCOM_CALL1(item_total_weight_, object)
 }
 
 void __fastcall CorrectFidForRemovedItemFunc(TGameObj* critter, TGameObj* item, long slotFlag) {
-	__asm {
-		mov  ebx, slotFlag;
-		mov  eax, ecx;
-		call correctFidForRemovedItem_;
-	}
+	WRAP_WATCOM_FCALL3(correctFidForRemovedItem_, critter, item, slotFlag)
 }
 
 void __stdcall IntfaceUpdateAc(long animate) {
-	__asm {
-		mov  eax, animate;
-		call intface_update_ac_;
-	}
+	WRAP_WATCOM_CALL1(intface_update_ac_, animate)
 }
 
 void __fastcall IntfaceUpdateItems(long animate, long modeLeft, long modeRight) {
-	__asm {
-		mov  ebx, modeRight;
-		mov  eax, ecx;
-		call intface_update_items_;
-	}
+	WRAP_WATCOM_FCALL3(intface_update_items_, animate, modeLeft, modeRight)
 }
 
 long __stdcall InvenUnwield(TGameObj* critter, long slot) {
-	__asm {
-		mov  edx, slot;
-		mov  eax, critter;
-		call inven_unwield_;
-	}
+	WRAP_WATCOM_CALL2(inven_unwield_, critter, slot)
 }
 
 long __fastcall ItemAddForce(TGameObj* critter, TGameObj* item, long count) {
-	__asm {
-		mov  ebx, count;
-		mov  eax, ecx;
-		call item_add_force_;
-	}
+	WRAP_WATCOM_FCALL3(item_add_force_, critter, item, count)
 }
 
 long __fastcall MouseClickIn(long x, long y, long x_end, long y_end) {
-	__asm {
-		mov  eax, ecx;
-		mov  ebx, x_end;
-		mov  ecx, y_end;
-		call mouse_click_in_;
-	}
+	WRAP_WATCOM_FCALL4(mouse_click_in_, x, y, x_end, y_end)
 }
 
 const char* __stdcall ArtGetName(long artFID) {
-	__asm {
-		mov  eax, artFID;
-		call art_get_name_;
-	}
+	WRAP_WATCOM_CALL1(art_get_name_, artFID)
 }
 
 long __stdcall LoadFrame(const char* filename, FrmFile** frmPtr) {
-	__asm {
-		mov  edx, frmPtr;
-		mov  eax, filename;
-		call load_frame_;
-	}
+	WRAP_WATCOM_CALL2(load_frame_, filename, frmPtr)
 }

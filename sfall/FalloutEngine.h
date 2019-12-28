@@ -1067,8 +1067,11 @@ void __fastcall RegisterObjectCall(long* target, long* source, void* func, long 
 long __fastcall ScrGetLocalVar(long sid, long varId, long* value);
 long __fastcall ScrSetLocalVar(long sid, long varId, long value);
 
-void SkillGetTags(int* result, DWORD num);
-void SkillSetTags(int* tags, DWORD num);
+// wrapper for skill_get_tags with bounds checking
+void SkillGetTags(long* result, long num);
+
+// wrapper for skill_set_tags with bounds checking
+void SkillSetTags(long* tags, long num);
 
 // redraws the main game interface windows (useful after changing some data like active hand, etc.)
 void __stdcall InterfaceRedraw();
@@ -1145,7 +1148,7 @@ long __stdcall PerkLevel(TGameObj* critter, long perkId);
 
 long __stdcall TraitLevel(long traitID);
 
-long __stdcall QueueFindFirst(TGameObj* object, long qType);
+long* __stdcall QueueFindFirst(TGameObj* object, long qType);
 
 void __fastcall make_straight_path_func_wrapper(TGameObj* objFrom, DWORD tileFrom, DWORD tileTo, void* rotationPtr, DWORD* result, long flags, void* func);
 

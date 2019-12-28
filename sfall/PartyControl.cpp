@@ -54,7 +54,7 @@ static DWORD real_itemButtonItems[6 * 2];
 static DWORD real_perkLevelDataList[PERK_count];
 //static DWORD real_drug_gvar[6];
 //static DWORD real_jet_gvar;
-static int real_tag_skill[4];
+static long real_tag_skill[4];
 //static DWORD real_bbox_sneak;
 
 static const DWORD* list_com = ptr_list_com;
@@ -115,7 +115,7 @@ static void TakeControlOfNPC(TGameObj* npc) {
 	if (isDebug) DebugPrintf("\n[SFALL] Take control of critter.");
 
 	// remove skill tags
-	int tagSkill[4];
+	long tagSkill[4];
 	std::fill(std::begin(tagSkill), std::end(tagSkill), -1);
 	SkillSetTags(tagSkill, 4);
 
