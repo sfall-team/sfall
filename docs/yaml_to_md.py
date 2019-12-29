@@ -119,7 +119,7 @@ with open(hooks_yaml) as yf:
   for h in hooks:
     name = h['name']
     doc = h['doc']
-    codename = "HOOK_" + name.upper()
+    hid = h['id']
     if 'filename' in h: # overriden filename?
       filename = h['filename']
     else:
@@ -127,7 +127,7 @@ with open(hooks_yaml) as yf:
 
     text += "\n## {}\n\n".format(name) # header
     if filename != "": # if not skip
-      text += "`{}` ({})\n\n".format(codename, filename) # `HOOK_SETLIGHTING` (hs_setlighting.int)
+      text += "`{}` ({})\n\n".format(hid, filename) # `HOOK_SETLIGHTING` (hs_setlighting.int)
     text += doc # actual documentation
 
     md_path = os.path.join(md_dir, "hook-types.md")

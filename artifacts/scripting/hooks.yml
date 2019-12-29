@@ -444,6 +444,7 @@
     ```
 - name: StdProcedureEnd
   id: HOOK_STDPROCEDURE_END
+  filename: hs_stdprocedure.int
   doc: |
     Runs after Fallout executes a standard procedure (handler) in any script of any object.
     NOTE: this hook will not be executed for `start`, `critter_p_proc`, `timed_event_p_proc`, and `map_update_p_proc` procedures.
