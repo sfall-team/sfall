@@ -1119,8 +1119,8 @@
     detail: int get_sfall_args()
     doc: Returns all hook arguments as a new temp array.
     opcode: 0x823c
-  - name: get_sfall_arg_at(int argNum)
-    detail: mixed sfall_func1("get_sfall_arg_at", int argNum)
+  - name: get_sfall_arg_at
+    detail: mixed get_sfall_arg_at(int argNum)
     doc: Gets the value of hook argument with the specified argument number (first argument of hook starts from 0)
     macro: sfall.h
   - name: set_sfall_return
