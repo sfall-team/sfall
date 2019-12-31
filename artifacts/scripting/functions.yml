@@ -799,6 +799,13 @@
     doc: Returns first object blocking given tile using given blocking function or 0 if tile is clear.
     opcode: 0x826f
 
+  - name: tile_by_position
+    detail: int tile_by_position(int x, int y)
+    doc: |
+      - returns the tile number at the x, y position relative to the top-left corner of the screen
+      - if the position is outside of the range of tiles, it will return -1
+    macro: sfall.h
+
   - name: obj_blocking_line
     detail: ObjectPtr obj_blocking_line(ObjectPtr objFrom, int tileTo, int blockingType)
     doc: Returns first object which blocks direct linear path from `objFrom` to `tileTo` using selected blocking function (see `BLOCKING_TYPE_*` constants in `sfall.h`). If path is clear (no blocker was encountered by selected function) - returns 0. `objFrom` is always excluded from calculations, but is required to be a valid object.
@@ -1051,6 +1058,12 @@
     detail: int get_string_pointer(string text)
     doc: Returns a pointer to a string variable or to a text.
     macro: sfall.h
+  - name: string_format
+    detail: string string_format(string format, any val1, any val2, ...)
+    doc: |
+      Formats given value using standard syntax of C printf function (google "printf" for format details). However it is limited to formatting up to 4 values.
+      - formatting is only supported for %s and %d, and the format string is limited to 1024 characters
+    macro: sfall.h
 
 
 - name: Interface
@@ -1106,6 +1119,10 @@
     detail: int get_sfall_args()
     doc: Returns all hook arguments as a new temp array.
     opcode: 0x823c
+  - name: get_sfall_arg_at(int argNum)
+    detail: mixed sfall_func1("get_sfall_arg_at", int argNum)
+    doc: Gets the value of hook argument with the specified argument number (first argument of hook starts from 0)
+    macro: sfall.h
   - name: set_sfall_return
     detail: void set_sfall_return(int value)
     doc: Used to return the new values from the script. Each time it's called it sets the next value, or if you've already set all return values it does nothing.
@@ -1391,10 +1408,6 @@
     detail: void sfall_func1("remove_timer_event", int fixedParam) 
     doc: Removes all timer events with the specified `fixedParam` value for the current global script.
     macro: sfall.h
-  - name: get_sfall_arg_at(int argNum)
-    detail: mixed sfall_func1("get_sfall_arg_at", int argNum)
-    doc: Gets the value of hook argument with the specified argument number (first argument of hook starts from 0)
-    macro: sfall.h
 
   - name: sfall_func0("hide_window")
     detail: void sfall_func0("hide_window")
@@ -1417,8 +1430,8 @@
       `winName`: the window name, assigned to the window by the `CreateWin/create_win` function
     macro: sfall.h
 
-  - name: set_window_flag(string/int winName/winID, int flag, bool value)
-    detail: void sfall_func3("set_window_flag", string/int winName/winID, int flag, bool value)
+  - name: set_window_flag
+    detail: void set_window_flag(string/int winName/winID, int flag, bool value)
     doc: |
       Changes the specified flag for the created script or game interface window.
       - winName: the window name, assigned to the window by the `CreateWin/create_win` function
@@ -1427,8 +1440,8 @@
       - value: `true` - set the flag, `false` - unset the flag
     macro: sfall.h
 
-  - name: get_text_width(string text)
-    detail: int sfall_func1("get_text_width", string text)
+  - name: get_text_width
+    detail: int get_text_width(string text)
     doc: Returns the text width in pixels for the currently set font.
     macro: sfall.h
 
@@ -1444,13 +1457,6 @@
       available encodings: 1250-1252, 866
     macro: sfall.h
 
-  - name: string_format(string format, any val1, any val2, ...)
-    detail: string sfall_func3("string_format", string format, any val1, any val2, ...)
-    doc: |
-      Formats given value using standard syntax of C printf function (google "printf" for format details). However it is limited to formatting up to 4 values.
-      - formatting is only supported for %s and %d, and the format string is limited to 1024 characters
-    macro: sfall.h
-
   - name: sfall_func3("objects_in_radius", int tile, int radius, int elevation)
     detail: array sfall_func3("objects_in_radius", int tile, int radius, int elevation)
     doc: |
@@ -1463,13 +1469,6 @@
       - returns an array of objects of a type (see `OBJ_TYPE_*` constants in `define_extra.h`) within the specified radius from the given tile
       - passing -1 to the type argument or not specifying it will return all objects within the radius
       - the radius is limited to 50 hexes
-    macro: sfall.h
-
-  - name: tile_by_position(int x, int y)
-    detail: int sfall_func2("tile_by_position", int x, int y)
-    doc: |
-      - returns the tile number at the x, y position relative to the top-left corner of the screen
-      - if the position is outside of the range of tiles, it will return -1
     macro: sfall.h
 
 - name: NPC perks
