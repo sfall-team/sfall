@@ -119,7 +119,10 @@ with open(hooks_yaml) as yf:
   for h in hooks:
     name = h['name']
     doc = h['doc']
-    hid = h['id']
+    try:
+      hid = h['id']
+    except:
+      hid = "HOOK_" + name.upper()
     if 'filename' in h: # overriden filename?
       filename = h['filename']
     else:
