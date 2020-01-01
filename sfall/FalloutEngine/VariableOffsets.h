@@ -239,6 +239,7 @@
 #define FO_VAR_wd_obj                     0x59E98C
 #define FO_VAR_window                     0x6ADE58
 #define FO_VAR_wmAreaInfoList             0x51DDF8
+#define FO_VAR_wmBkWinBuf                 0x51DE24
 #define FO_VAR_wmLastRndTime              0x51DEA0
 #define FO_VAR_wmMaxMapNum                0x51DE10
 #define FO_VAR_wmMaxTileNum               0x51DDF0

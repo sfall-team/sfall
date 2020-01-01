@@ -186,6 +186,8 @@ static void __declspec(naked) wmInterfaceInit_text_font_hook() {
 static DWORD wmTownMapSubButtonIds[WMAP_TOWN_BUTTONS + 1]; // replace _wmTownMapSubButtonIds (index 0 - unused element)
 static int worldmapInterface;
 static long wmapWinWidth = 640;
+static long wmapViewPortWidth = 450;
+static long wmapViewPortHeight = 443;
 
 // Window width
 static const DWORD wmWinWidth[] = {
@@ -400,9 +402,11 @@ static void WorldmapViewportPatch() {
 		0x4C4157, 0x4C415F, // wmInterfaceDrawSubTileList_
 	});
 	// right limit of the viewport (450)
-	SafeWriteBatch<DWORD>(WMAP_WIN_WIDTH - (640 - 450), wmViewportEndRight);   // 890 - 190 = 700 + 22 = 722
+	wmapViewPortWidth = WMAP_WIN_WIDTH - (640 - 450); // 890 - 190 = 700 + 22 = 722
+	SafeWriteBatch<DWORD>(wmapViewPortWidth, wmViewportEndRight);
 	// bottom limit of the viewport (443)
-	SafeWriteBatch<DWORD>(WMAP_WIN_HEIGHT - (480 - 443), wmViewportEndBottom); // 720 - 37 = 683 + 21 = 704
+	wmapViewPortHeight = WMAP_WIN_HEIGHT - (480 - 443); // 720 - 37 = 683 + 21 = 704
+	SafeWriteBatch<DWORD>(wmapViewPortHeight, wmViewportEndBottom);
 
 	// Night/Day frm (wmRefreshInterfaceDial_)
 	SafeWrite32(0x4C577F, WMAP_WIN_WIDTH - (640 - 532));                 // X offset (532)
@@ -455,6 +459,84 @@ static void WorldmapViewportPatch() {
 	dlogr(" Done", DL_INIT);
 }
 
+struct DotPosition {
+	long x;
+	long y;
+};
+static std::vector<DotPosition> dots;
+
+static long spaceLen = 2;
+static long dotLen = 1;
+static long dot_xpos = 0;
+static long dot_ypos = 0;
+
+static void AddNewDot() {
+	dot_xpos = fo::var::world_xpos;
+	dot_ypos = fo::var::world_ypos;
+
+	if (dotLen <= 0 && spaceLen) {
+		spaceLen--;
+		if (!spaceLen) dotLen = 1; // set dot length
+		return;
+	}
+	dotLen--;
+
+	DotPosition dot;
+	dot.x = dot_xpos;
+	dot.y = dot_ypos;
+	dots.push_back(std::move(dot));
+
+	spaceLen = 2;
+}
+
+static void __declspec(naked) wmInterfaceRefresh_hook() {
+	long x_offset,  y_offset;
+	__asm {
+		pushad;
+		mov ebp, esp; // prolog
+		sub esp, __LOCAL_SIZE;
+	}
+
+	if ((fo::var::target_xpos || fo::var::target_ypos) && (dot_xpos != fo::var::world_xpos || dot_ypos != fo::var::world_ypos)) {
+		AddNewDot();
+	}
+	x_offset = 22 - fo::var::wmWorldOffsetX;
+	y_offset = 21 - fo::var::wmWorldOffsetY;
+
+	for (const auto &dot : dots) { // redraws all dots
+		if (dot.x < fo::var::wmWorldOffsetX || dot.y < fo::var::wmWorldOffsetY) continue; // the pixel is out of viewport
+		if (dot.x > fo::var::wmWorldOffsetX + wmapViewPortWidth || dot.y > fo::var::wmWorldOffsetY + wmapViewPortHeight) continue;
+
+		long wmPixelX = (dot.x + x_offset);
+		long wmPixelY = (dot.y + y_offset);
+
+		wmPixelY *= wmapWinWidth;
+
+		BYTE* wmWinBuf = *(BYTE**)FO_VAR_wmBkWinBuf;
+		BYTE* wmWinBuf_xy = (wmPixelY + wmPixelX) + wmWinBuf;
+
+		// put pixel to interface window buffer
+		if (wmWinBuf_xy > wmWinBuf) *wmWinBuf_xy = 133; // index color in palette: R = 252, G = 0, B = 0
+
+		// TODO: fix dots for car travel
+	}
+
+	__asm {
+		mov esp, ebp; // epilog
+		popad;
+		jmp fo::funcoffs::wmInterfaceDrawSubTileList_;
+	}
+}
+
+static void __declspec(naked) wmInterfaceRefresh_hook_stop() {
+	if (!fo::var::target_xpos && !fo::var::target_ypos) {
+		dots.clear();
+		dotLen = 1;
+		spaceLen = 2;
+	}
+	__asm jmp fo::funcoffs::wmDrawCursorStopped_;
+}
+
 static void __declspec(naked) wmInterfaceRefreshCarFuel_hack_empty() {
 	__asm {
 		mov byte ptr [eax - 1], 13;
@@ -481,6 +563,8 @@ static void __declspec(naked) wmInterfaceRefreshCarFuel_hack() {
 }
 
 static void WorldMapInterfacePatch() {
+	BlockCall(0x4C2380); // Remove disabling palette animations (can be used as a place to call a hack function in wmInterfaceInit_)
+
 	if (GetConfigInt("Misc", "WorldMapFontPatch", 0)) {
 		dlog("Applying world map font patch.", DL_INIT);
 		HookCall(0x4C2343, wmInterfaceInit_text_font_hook);
@@ -514,6 +598,16 @@ static void WorldMapInterfacePatch() {
 			LoadGameHook::OnAfterGameInit() += WorldmapViewportPatch; // Note: must be applied after WorldMapSlots patch
 		}
 	}
+
+	if (GetConfigInt("Interface", "WorldTravelMarkers", 0)) {
+		HookCall(0x4C3BE6, wmInterfaceRefresh_hook); // when calling wmInterfaceDrawSubTileList_
+		HookCall(0x4C3C7E, wmInterfaceRefresh_hook_stop);
+		dots.reserve(512);
+		LoadGameHook::OnGameReset() += []() {
+			dots.clear();
+		};
+	}
+
 	// Car fuel gauge graphics patch
 	MakeCall(0x4C528A, wmInterfaceRefreshCarFuel_hack_empty);
 	MakeCall(0x4C529E, wmInterfaceRefreshCarFuel_hack);

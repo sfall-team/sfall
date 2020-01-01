@@ -410,7 +410,7 @@ void WorldmapFpsPatch() {
 	if (GetConfigInt("Misc", "WorldMapEncounterFix", 0)) {
 		dlog("Applying world map encounter patch.", DL_INIT);
 		WorldMapEncounterRate = GetConfigInt("Misc", "WorldMapEncounterRate", 5);
-		SafeWrite32(0x4C232D, 0x01EBC031); // xor eax, eax; jmps 0x4C2332 (wmInterfaceInit_)
+		SafeWrite32(0x4C232D, 0xB8); // mov eax, 0; (wmInterfaceInit_)
 		HookCall(0x4BFEE0, wmWorldMapFunc_hook);
 		MakeCall(0x4C0667, wmRndEncounterOccurred_hack);
 		dlogr(" Done", DL_INIT);
