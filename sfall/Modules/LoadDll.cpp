@@ -1,0 +1,46 @@
+/*
+ *    sfall
+ *    Copyright (C) 2020  The sfall team
+ *
+ *    This program is free software: you can redistribute it and/or modify
+ *    it under the terms of the GNU General Public License as published by
+ *    the Free Software Foundation, either version 3 of the License, or
+ *    (at your option) any later version.
+ *
+ *    This program is distributed in the hope that it will be useful,
+ *    but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *    GNU General Public License for more details.
+ *
+ *    You should have received a copy of the GNU General Public License
+ *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#include <string>
+#include <vector>
+
+#include "..\main.h"
+#include "LoadDll.h"
+
+namespace sfall
+{
+
+void LoadDll::init() {
+	std::vector<std::string> names = GetIniList("Debugging", "LoadDll", "", 512, ',', ddrawIni);
+
+	for (const auto& name : names) {
+		if (name.empty())
+			continue;
+
+		dlog_f("Loading %s... ", DL_INIT, name.c_str());
+
+		HMODULE dll = LoadLibraryA(name.c_str());
+
+		if (!dll || dll == INVALID_HANDLE_VALUE)
+			dlogr("ERROR", DL_INIT);
+		else
+			dlogr("OK", DL_INIT);
+	}
+}
+
+}

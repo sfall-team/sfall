@@ -34,6 +34,7 @@
 #include "Modules\Credits.h"
 #include "Modules\Criticals.h"
 #include "Modules\CritterStats.h"
+#include "Modules\LoadDll.h"
 #include "Modules\DamageMod.h"
 #include "Modules\DebugEditor.h"
 #include "Modules\Drugs.h"
@@ -210,6 +211,9 @@ static void InitModules() {
 	manager.add<ScriptExtender>();
 
 	manager.add<DebugEditor>();
+
+	// custom libraries should be loaded after applying all changes
+	manager.add<LoadDll>();
 
 	manager.initAll();
 

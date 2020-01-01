@@ -376,6 +376,7 @@
     <ClInclude Include="Logging.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="Modules\ExtraSaveSlots.h" />
+    <ClInclude Include="Modules\LoadDll.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CheckAddress.cpp" />
@@ -464,6 +465,7 @@
     <ClCompile Include="Logging.cpp" />
     <ClCompile Include="Modules\ExtraSaveSlots.cpp" />
     <ClCompile Include="Modules\ScriptShaders.cpp" />
+    <ClCompile Include="Modules\LoadDll.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>

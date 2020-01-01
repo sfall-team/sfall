@@ -284,6 +284,9 @@
     <ClInclude Include="Modules\CritterStats.h">
       <Filter>Modules</Filter>
     </ClInclude>
+    <ClInclude Include="Modules\LoadDll.h">
+      <Filter>Modules</Filter>
+    </ClInclude>
     <ClInclude Include="CRC.h" />
     <ClInclude Include="CheckAddress.h" />
   </ItemGroup>
@@ -528,6 +531,9 @@
       <Filter>Modules</Filter>
     </ClCompile>
     <ClCompile Include="Modules\CritterStats.cpp">
+      <Filter>Modules</Filter>
+    </ClCompile>
+    <ClCompile Include="Modules\LoadDll.cpp">
       <Filter>Modules</Filter>
     </ClCompile>
     <ClCompile Include="CRC.cpp" />
