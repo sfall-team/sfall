@@ -738,8 +738,8 @@ static void DllMain2() {
 	}
 
 	// Increase the max text width of the information card in the character screen
-	SafeWrite8(0x43ACD5, 144); // 136
-	SafeWrite8(0x43DD37, 144); // 133
+	SafeWrite8(0x43ACD5, 145); // 136
+	SafeWrite8(0x43DD37, 145); // 133
 
 	dlogr("Running TalkingHeadsInit().", DL_INIT);
 	TalkingHeadsInit();
