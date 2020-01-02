@@ -26,7 +26,7 @@ namespace sfall
 {
 
 void LoadDll::init() {
-	std::vector<std::string> names = GetIniList("Debugging", "LoadDll", "", 512, ',', ddrawIni);
+	std::vector<std::string> names = GetIniList("Main", "LoadDll", "", 512, ',', ddrawIni);
 
 	for (const auto& name : names) {
 		if (name.empty())
