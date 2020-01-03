@@ -212,20 +212,74 @@ void GetObjectsTileRadius(std::vector<fo::GameObject*> &objs, long sourceTile, l
 	}
 }
 
+// Returns the name of the terrain type in the position of the player's marker on the world map
+const char* wmGetCurrentTerrainName() {
+	long* terrainId = *(long**)FO_VAR_world_subtile;
+	if (terrainId == nullptr) {
+		__asm {
+			lea  ebx, terrainId;
+			mov  edx, dword ptr ds:[FO_VAR_world_ypos];
+			mov  eax, dword ptr ds:[FO_VAR_world_xpos];
+			call fo::funcoffs::wmFindCurSubTileFromPos_;
+		}
+	}
+	return GetMessageStr(&fo::var::wmMsgFile, 1000 + *terrainId);
+}
+
 //---------------------------------------------------------
-//print text to surface
-void PrintText(char *DisplayText, BYTE ColourIndex, DWORD Xpos, DWORD Ypos, DWORD TxtWidth, DWORD ToWidth, BYTE *ToSurface) {
-	DWORD posOffset = Ypos * ToWidth + Xpos;
+// copy the area from the interface buffer to the data array
+void RectCopyToMemory(long fromX, long fromY, long width, long height, long fromWidth, BYTE* fromBuff, BYTE* toMem) {
+	fromBuff += fromY * fromWidth + fromX;
+	long i = 0;
+	for (long h = 0; h < height; h++) {
+		for (long w = 0; w < width; w++) {
+			toMem[i++] = fromBuff[w];
+		}
+		fromBuff += fromWidth;
+	}
+}
+
+// copy data from memory to the area of the interface buffer
+void MemCopyToWinBuffer(long toX, long toY, long width, long height, long toWidth, BYTE* toBuff, BYTE* fromMem) {
+	toBuff += toY * toWidth + toX;
+	long i = 0;
+	for (long h = 0; h < height; h++) {
+		for (long w = 0; w < width; w++) {
+			toBuff[w] = fromMem[i++];
+		}
+		toBuff += toWidth;
+	}
+}
+
+//---------------------------------------------------------
+// print text to surface
+void PrintText(char* displayText, BYTE colourIndex, DWORD xPos, DWORD yPos, DWORD txtWidth, DWORD toWidth, BYTE* toSurface) {
+	DWORD posOffset = yPos * toWidth + xPos;
 	__asm {
 		xor  eax, eax;
-		mov  al, ColourIndex;
+		mov  al, colourIndex;
+		mov  edx, displayText;
 		push eax;
-		mov  edx, DisplayText;
-		mov  ebx, TxtWidth;
-		mov  ecx, ToWidth;
-		mov  eax, ToSurface;
+		mov  ebx, txtWidth;
+		mov  eax, toSurface;
+		mov  ecx, toWidth;
 		add  eax, posOffset;
 		call dword ptr ds:[FO_VAR_text_to_buf];
+	}
+}
+
+void PrintTextFM(char* displayText, BYTE colorIndex, DWORD xPos, DWORD yPos, DWORD txtWidth, DWORD toWidth, BYTE* toSurface) {
+	DWORD posOffset = yPos * toWidth + xPos;
+	__asm {
+		xor  eax, eax;
+		mov  al, colorIndex;
+		mov  edx, displayText;
+		push eax;
+		mov  ebx, txtWidth;
+		mov  eax, toSurface;
+		mov  ecx, toWidth;
+		add  eax, posOffset;
+		call fo::funcoffs::FMtext_to_buf_;
 	}
 }
 
@@ -246,6 +300,13 @@ DWORD GetTextWidth(const char *TextMsg) {
 	__asm {
 		mov  eax, TextMsg;
 		call dword ptr ds:[FO_VAR_text_width]; //get text width
+	}
+}
+
+DWORD GetTextWidthFM(const char *TextMsg) {
+	__asm {
+		mov  eax, TextMsg;
+		call fo::funcoffs::FMtext_width_; //get text width
 	}
 }
 

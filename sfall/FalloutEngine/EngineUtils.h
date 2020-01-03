@@ -80,12 +80,20 @@ long __fastcall GetTopWindowID(long xPos, long yPos);
 
 void GetObjectsTileRadius(std::vector<fo::GameObject*> &objs, long sourceTile, long radius, long elev, long type);
 
+const char* wmGetCurrentTerrainName();
+
+void RectCopyToMemory(long fromX, long fromY, long width, long height, long fromWidth, BYTE* fromBuff, BYTE* toMem);
+
+void MemCopyToWinBuffer(long toX, long toY, long width, long height, long toWidth, BYTE* toBuff, BYTE* fromMem);
+
 // Print text to surface
-void PrintText(char *displayText, BYTE colorIndex, DWORD x, DWORD y, DWORD textWidth, DWORD destWidth, BYTE *surface);
+void PrintText(char* displayText, BYTE colorIndex, DWORD x, DWORD y, DWORD textWidth, DWORD destWidth, BYTE* surface);
+void PrintTextFM(char* displayText, BYTE colorIndex, DWORD x, DWORD y, DWORD textWidth, DWORD destWidth, BYTE* surface);
 // gets the height of the currently selected font
 DWORD GetTextHeight();
 // gets the length of a string using the currently selected font
 DWORD GetTextWidth(const char *textMsg);
+DWORD GetTextWidthFM(const char *textMsg);
 // get width of Char for current font
 DWORD GetCharWidth(char charVal);
 // get maximum string length for current font - if all characters were maximum width

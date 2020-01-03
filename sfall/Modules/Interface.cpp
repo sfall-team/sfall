@@ -16,10 +16,14 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <array>
+
 #include "..\main.h"
 #include "..\FalloutEngine\Fallout2.h"
+#include "..\FalloutEngine\EngineUtils.h"
 #include "Graphics.h"
 #include "LoadGameHook.h"
+//#include "Worldmap.h"
 
 #include "Interface.h"
 
@@ -459,6 +463,8 @@ static void WorldmapViewportPatch() {
 	dlogr(" Done", DL_INIT);
 }
 
+////////////////////////////// FALLOUT 1 FEATURES //////////////////////////////
+
 struct DotPosition {
 	long x;
 	long y;
@@ -468,7 +474,7 @@ static std::vector<DotPosition> dots;
 static long optionLenDot = 1;
 static long optionSpaceDot = 2;
 
-static unsigned char colorDot = 133; // color index in palette: R = 252, G = 0, B = 0
+static unsigned char colorDot = 0; // color index in palette: R = 252, G = 0, B = 0
 static long spaceLen = 2;
 static long dotLen = 1;
 static long dot_xpos = 0;
@@ -529,8 +535,31 @@ static void __declspec(naked) DrawingDots() {
 	}
 }
 
+static std::array<unsigned char, 15 * 100> wmTmpBuffer;
+static bool hoveringHotspot = false;
+static bool backImageIsCopy = false;
+
+static void PrintTerrainType(long x, long y) {
+	char* terrainText = (char*)fo::wmGetCurrentTerrainName();
+	long txtWidth = fo::GetTextWidthFM(terrainText);
+	if (txtWidth > 100) txtWidth = 100;
+
+	// offset position
+	y += 4;
+	x += 25 - (txtWidth / 2);
+
+	fo::PrintTextFM(terrainText, 228, x, y, txtWidth, wmapWinWidth, *(BYTE**)FO_VAR_wmBkWinBuf); // text shadow
+	fo::PrintTextFM(terrainText, 215, x - 1, y - 1, txtWidth, wmapWinWidth, *(BYTE**)FO_VAR_wmBkWinBuf);
+}
+
+static void PrintTerrainType() {
+	long y = fo::var::world_ypos - fo::var::wmWorldOffsetY;
+	long x = fo::var::world_xpos - fo::var::wmWorldOffsetX;
+	PrintTerrainType(x,  y);
+}
+
 static void __declspec(naked) wmInterfaceRefresh_hook() {
-	if (fo::var::target_xpos != -1) {
+	if (colorDot && fo::var::target_xpos != -1) {
 		if (fo::var::In_WorldMap) {
 			DrawingDots();
 		} else if (!fo::var::target_xpos && !fo::var::target_ypos) {
@@ -540,8 +569,62 @@ static void __declspec(naked) wmInterfaceRefresh_hook() {
 			spaceLen = optionSpaceDot;
 		}
 	}
+	if (hoveringHotspot && !fo::var::In_WorldMap) {
+		PrintTerrainType();
+		hoveringHotspot = backImageIsCopy = false;
+	}
 	__asm jmp fo::funcoffs::wmDrawCursorStopped_;
 }
+
+static long __fastcall wmDetectHotspotHover(long wmMouseX, long wmMouseY) {
+	long deltaX = abs((long)fo::var::world_xpos - (wmMouseX - 20 + fo::var::wmWorldOffsetX));
+	long deltaY = abs((long)fo::var::world_ypos - (wmMouseY - 20 + fo::var::wmWorldOffsetY));
+
+	bool hovered = hoveringHotspot;
+	hoveringHotspot = deltaX < 6 && deltaY < 6;
+	if (hoveringHotspot != hovered) { // if value has changed
+		// upper left corner
+		long y = fo::var::world_ypos - fo::var::wmWorldOffsetY;
+		long x = fo::var::world_xpos - fo::var::wmWorldOffsetX;
+		long x_offset = x - 25;
+		if (!backImageIsCopy) {
+			backImageIsCopy = true;
+			// copy image to memory (size 100 x 15)
+			fo::RectCopyToMemory(x_offset, y, 100, 15, wmapWinWidth, *(BYTE**)FO_VAR_wmBkWinBuf, wmTmpBuffer.data());
+			PrintTerrainType(x, y);
+		} else {
+			// restore saved image
+			fo::MemCopyToWinBuffer(x_offset, y, 100, 15, wmapWinWidth, *(BYTE**)FO_VAR_wmBkWinBuf, wmTmpBuffer.data());
+			backImageIsCopy = false;
+		}
+		// redraw worldmap interface rectangle
+		RECT rect;
+		rect.top = y;
+		rect.left = x_offset;
+		rect.right = x + 100;
+		rect.bottom = y + 15;
+		fo::func::win_draw_rect(*(long*)FO_VAR_wmBkWin, &rect);
+	}
+	return fo::var::wmWorldOffsetY; // overwritten code
+}
+
+static void __declspec(naked) wmWorldMap_hack() {
+	__asm {
+		cmp  ds:[FO_VAR_In_WorldMap], 1; // player is moving
+		jne  checkHover;
+		mov  eax, dword ptr ds:[FO_VAR_wmWorldOffsetY];
+		retn;
+checkHover:
+		push ecx;
+		mov  ecx, [esp + 0x38 - 0x30 + 8]; // x
+		mov  edx, [esp + 0x38 - 0x34 + 8]; // y
+		call wmDetectHotspotHover;
+		pop  ecx;
+		retn;
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////////
 
 static void __declspec(naked) wmInterfaceRefreshCarFuel_hack_empty() {
 	__asm {
@@ -606,21 +689,23 @@ static void WorldMapInterfacePatch() {
 	}
 
 	if (GetConfigInt("Interface", "WorldTravelMarkers", 0)) {
-		optionLenDot = GetConfigInt("Interface", "MarkerLength", optionLenDot);
-		optionSpaceDot = GetConfigInt("Interface", "MarkerSpaces", optionSpaceDot);
-		int color = GetConfigInt("Interface", "MarkerColor", colorDot);
+		optionLenDot = GetConfigInt("Interface", "TravelMarkerLength", optionLenDot);
+		optionSpaceDot = GetConfigInt("Interface", "TravelMarkerSpaces", optionSpaceDot);
+		int color = GetConfigInt("Interface", "TravelMarkerColor", 133);
 
 		if (color > 255) color = 255; else if (color < 1) color = 1;
 		colorDot = color;
 		if (optionLenDot > 10) optionLenDot = 10; else if (optionLenDot < 1) optionLenDot = 1;
 		if (optionSpaceDot > 10) optionSpaceDot = 10; else if (optionSpaceDot < 1) optionSpaceDot = 1;
 
-		HookCall(0x4C3C7E, wmInterfaceRefresh_hook); // when calling wmDrawCursorStopped_
 		dots.reserve(512);
 		LoadGameHook::OnGameReset() += []() {
 			dots.clear();
 		};
 	}
+	// Fallout 1 features, travel markers and displaying terrain type
+	HookCall(0x4C3C7E, wmInterfaceRefresh_hook); // when calling wmDrawCursorStopped_
+	MakeCall(0x4BFE84, wmWorldMap_hack);
 
 	// Car fuel gauge graphics patch
 	MakeCall(0x4C528A, wmInterfaceRefreshCarFuel_hack_empty);

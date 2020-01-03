@@ -58,6 +58,10 @@ static float scriptMapMulti = 1.0;
 static bool addYear = false; // used as additional years indicator
 static DWORD addedYears = 0;
 
+static void __stdcall WorldmapLoopHook() {
+	onWorldmapLoop.invoke();
+}
+
 static __declspec(naked) void TimeDateFix() {
 	__asm {
 		test edi, edi; // year buf
@@ -120,10 +124,6 @@ end:
 	}
 }
 
-static void __stdcall WorldmapLoopHook() {
-	onWorldmapLoop.invoke();
-}
-
 static void __declspec(naked) WorldMapFpsPatch() {
 	__asm {
 		push dword ptr ds:[FO_VAR_last_buttons];
@@ -177,9 +177,9 @@ subLoop:
 // Only used if the world map speed patch is disabled, so that world map scripts are still run
 static void __declspec(naked) wmWorldMap_hook() {
 	__asm {
-		pushadc;
+		//pushadc;
 		call WorldmapLoopHook;
-		popadc;
+		//popadc;
 		jmp  fo::funcoffs::get_input_;
 	}
 }
@@ -223,7 +223,7 @@ static void __declspec(naked) wmTownMapFunc_hack() {
 		mov  [esi], edx
 		retn;
 end:
-		add  esp, 4;                           // destroy the return address
+		add  esp, 4; // destroy the return address
 		mov  eax, 0x4C4976;
 		jmp  eax;
 	}
@@ -315,8 +315,8 @@ end:
 
 static void RestRestore() {
 	if (!restMode) return;
-
 	restMode = false;
+
 	SafeWrite8(0x49952C, 0x85);
 	SafeWrite8(0x497557, 0x85);
 	SafeWrite8(0x42E587, 0xC7);
