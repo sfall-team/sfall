@@ -252,7 +252,7 @@ skip:
 }
 
 static void __stdcall DisplayCantDoThat() {
-	DisplayConsoleMessage(GetMessageStr(MSG_FILE_PROTO, 675)); // I Can't do that
+	DisplayConsoleMessage(GetMessageStr(ptr_proto_main_msg_file, 675)); // I Can't do that
 }
 
 // 1 skip handler, -1 don't skip

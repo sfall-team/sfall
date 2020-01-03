@@ -31,24 +31,6 @@ static DWORD reloadWeaponKey = 0;
 static DWORD itemFastMoveKey = 0;
 static DWORD skipFromContainer = 0;
 
-struct sMessage {
-	long number;
-	long flags;
-	char* audio;
-	char* message;
-};
-
-static const char* MsgSearch(long msgno, DWORD file) {
-	if (!file) return 0;
-	sMessage msg = { msgno, 0, 0, 0 };
-	__asm {
-		lea edx, msg;
-		mov eax, file;
-		call message_search_;
-	}
-	return msg.message;
-}
-
 DWORD& GetActiveItemMode() {
 	return ptr_itemButtonItems[(*ptr_itemCurrentItem * 6) + 4];
 }
@@ -284,7 +266,7 @@ static void __cdecl DisplaySizeStats(TGameObj* critter, const char* &message, DW
 	sizeMax = limitMax;
 	size = sf_item_total_size(critter);
 
-	const char* msg = MsgSearch(35, _inventry_message_file);
+	const char* msg = MsgSearch(ptr_inventry_message_file, 35);
 	message = (msg != nullptr) ? msg : "";
 
 	strcpy(InvenFmt, InvenFmt1);
@@ -312,13 +294,13 @@ static char SizeMsgBuf[32];
 static const char* _stdcall SizeInfoMessage(TGameObj* item) {
 	int size = ItemSize(item);
 	if (size == 1) {
-		const char* message = MsgSearch(543, _proto_main_msg_file);
+		const char* message = MsgSearch(ptr_proto_main_msg_file, 543);
 		if (message == nullptr)
 			strcpy(SizeMsgBuf, "It occupies 1 unit.");
 		else
 			strncpy_s(SizeMsgBuf, message, _TRUNCATE);
 	} else {
-		const char* message = MsgSearch(542, _proto_main_msg_file);
+		const char* message = MsgSearch(ptr_proto_main_msg_file, 542);
 		if (message == nullptr)
 			sprintf(SizeMsgBuf, "It occupies %d units.", size);
 		else

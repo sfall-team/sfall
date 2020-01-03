@@ -944,34 +944,6 @@ static void __declspec(naked) funcRound() {
 	_WRAP_OPCODE(funcRound2, 1, 1)
 }
 
-/*
-
-*/
-
-// TODO: move to FalloutEngine module
-static const DWORD game_msg_files[] = {
-	0x56D368, // COMBAT
-	0x56D510, // AI
-	0x56D754, // SCRNAME
-	0x58E940, // MISC
-	0x58EA98, // CUSTOM
-	0x59E814, // INVENTRY
-	0x59E980, // ITEM
-	0x613D28, // LSGAME
-	0x631D48, // MAP
-	0x6637E8, // OPTIONS
-	0x6642D4, // PERK
-	0x664348, // PIPBOY
-	0x664410, // QUESTS
-	0x6647FC, // PROTO
-	0x667724, // SCRIPT
-	0x668080, // SKILL
-	0x6680F8, // SKILLDEX
-	0x66817C, // STAT
-	0x66BE38, // TRAIT
-	0x672FB0, // WORLDMAP
-};
-
 static void _stdcall op_message_str_game2() {
 	const char* msg = nullptr;
 	const ScriptValue &fileIdArg = opHandler.arg(0),
@@ -982,9 +954,9 @@ static void _stdcall op_message_str_game2() {
 		if (fileId >= 0) {
 			int msgId = msgIdArg.rawValue();
 			if (fileId < 20) { // main msg files
-				msg = GetMessageStr(game_msg_files[fileId], msgId);
+				msg = GetMessageStr(gameMsgFiles[fileId], msgId);
 			} else if (fileId >= 0x1000 && fileId <= 0x1005) { // proto msg files
-				msg = GetMessageStr((DWORD)&ptr_proto_msg_files[2 * (fileId - 0x1000)], msgId);
+				msg = GetMessageStr((MSGList*)&ptr_proto_msg_files[2 * (fileId - 0x1000)], msgId);
 			} else if (fileId >= 0x2000) { // Extra game message files.
 				ExtraGameMessageListsMap::iterator it = gExtraGameMsgLists.find(fileId);
 				if (it != gExtraGameMsgLists.end()) {

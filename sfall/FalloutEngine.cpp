@@ -93,7 +93,7 @@ TGameObj** ptr_i_rhand                = reinterpret_cast<TGameObj**>(_i_rhand);
 DWORD* ptr_i_wid                      = reinterpret_cast<DWORD*>(_i_wid);
 TGameObj** ptr_i_worn                 = reinterpret_cast<TGameObj**>(_i_worn);
 DWORD* ptr_idle_func                  = reinterpret_cast<DWORD*>(_idle_func);
-DWORD* ptr_In_WorldMap                = reinterpret_cast<DWORD*>(_In_WorldMap);
+DWORD* ptr_In_WorldMap                = reinterpret_cast<DWORD*>(_In_WorldMap); // moving in WorldMap
 DWORD* ptr_info_line                  = reinterpret_cast<DWORD*>(_info_line);
 DWORD* ptr_interfaceWindow            = reinterpret_cast<DWORD*>(_interfaceWindow);
 DWORD* ptr_intfaceEnabled             = reinterpret_cast<DWORD*>(_intfaceEnabled);
@@ -102,7 +102,7 @@ TGameObj** ptr_inven_dude             = reinterpret_cast<TGameObj**>(_inven_dude
 DWORD* ptr_inven_pid                  = reinterpret_cast<DWORD*>(_inven_pid);
 DWORD* ptr_inven_scroll_dn_bid        = reinterpret_cast<DWORD*>(_inven_scroll_dn_bid);
 DWORD* ptr_inven_scroll_up_bid        = reinterpret_cast<DWORD*>(_inven_scroll_up_bid);
-DWORD* ptr_inventry_message_file      = reinterpret_cast<DWORD*>(_inventry_message_file);
+MSGList* ptr_inventry_message_file    = reinterpret_cast<MSGList*>(_inventry_message_file);
 DWORD* ptr_itemButtonItems            = reinterpret_cast<DWORD*>(_itemButtonItems);
 long*  ptr_itemCurrentItem            = reinterpret_cast<long*>(_itemCurrentItem); // 0 - left, 1 - right
 DWORD* ptr_kb_lock_flags              = reinterpret_cast<DWORD*>(_kb_lock_flags);
@@ -169,8 +169,8 @@ DWORD* ptr_pipboy_message_file        = reinterpret_cast<DWORD*>(_pipboy_message
 DWORD* ptr_pipmesg                    = reinterpret_cast<DWORD*>(_pipmesg);
 DWORD* ptr_preload_list_index         = reinterpret_cast<DWORD*>(_preload_list_index);
 DWORD* ptr_procTableStrs              = reinterpret_cast<DWORD*>(_procTableStrs);  // table of procId (from define.h) => procName map
-DWORD* ptr_proto_main_msg_file        = reinterpret_cast<DWORD*>(_proto_main_msg_file);
-DWORD* ptr_proto_msg_files            = reinterpret_cast<DWORD*>(_proto_msg_files);
+MSGList* ptr_proto_main_msg_file      = reinterpret_cast<MSGList*>(_proto_main_msg_file);
+DWORD* ptr_proto_msg_files            = reinterpret_cast<DWORD*>(_proto_msg_files); // array of 6 MSGList elements
 DWORD* ptr_ptable                     = reinterpret_cast<DWORD*>(_ptable);
 DWORD* ptr_pud                        = reinterpret_cast<DWORD*>(_pud);
 DWORD* ptr_queue                      = reinterpret_cast<DWORD*>(_queue);
@@ -865,18 +865,30 @@ void __stdcall DisplayConsoleMessage(const char* msg) {
 	WRAP_WATCOM_CALL1(display_print_, msg)
 }
 
-static DWORD mesg_buf[4] = {0, 0, 0, 0};
-const char* __stdcall GetMessageStr(DWORD fileAddr, DWORD messageId) {
-	DWORD buf = (DWORD)mesg_buf;
+static MSGNode messageBuf;
+
+const char* __stdcall GetMessageStr(const MSGList* fileAddr, long messageId) {
 	const char* result;
 	__asm {
-		mov  eax, fileAddr;
+		lea  edx, messageBuf;
 		mov  ebx, messageId;
-		mov  edx, buf;
+		mov  eax, fileAddr;
 		call getmsg_;
-		mov result, eax;
+		mov  result, eax;
 	}
 	return result;
+}
+
+const char* __stdcall MsgSearch(const MSGList* fileAddr, long messageId) {
+	messageBuf.number = messageId;
+	long result;
+	__asm {
+		lea  edx, messageBuf;
+		mov  eax, fileAddr;
+		call message_search_;
+		mov  result, eax;
+	}
+	return (result == 1) ? messageBuf.message : nullptr;
 }
 
 // Returns the name of the critter

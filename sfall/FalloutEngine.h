@@ -359,7 +359,7 @@ extern TGameObj** ptr_inven_dude;
 extern DWORD* ptr_inven_pid;
 extern DWORD* ptr_inven_scroll_dn_bid;
 extern DWORD* ptr_inven_scroll_up_bid;
-extern DWORD* ptr_inventry_message_file;
+extern MSGList* ptr_inventry_message_file;
 extern DWORD* ptr_itemButtonItems;
 extern long*  ptr_itemCurrentItem; // 0 - left, 1 - right
 extern DWORD* ptr_kb_lock_flags;
@@ -426,7 +426,7 @@ extern DWORD* ptr_pipboy_message_file;
 extern DWORD* ptr_pipmesg;
 extern DWORD* ptr_preload_list_index;
 extern DWORD* ptr_procTableStrs;  // table of procId (from define.h) => procName map
-extern DWORD* ptr_proto_main_msg_file;
+extern MSGList* ptr_proto_main_msg_file;
 extern DWORD* ptr_proto_msg_files;
 extern DWORD* ptr_ptable;
 extern DWORD* ptr_pud;
@@ -1034,7 +1034,10 @@ void __declspec() DebugPrintf(const char* fmt, ...);
 
 // Displays message in main UI console window
 void __stdcall DisplayConsoleMessage(const char* msg);
-const char* __stdcall GetMessageStr(DWORD fileAddr, DWORD messageId);
+
+const char* __stdcall GetMessageStr(const MSGList* fileAddr, long messageId);
+
+const char* __stdcall MsgSearch(const MSGList* fileAddr, long messageId);
 
 // Returns the name of the critter
 const char* __stdcall CritterName(TGameObj* critter);

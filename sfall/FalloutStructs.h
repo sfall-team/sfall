@@ -222,6 +222,36 @@ public:
 } FrmHeaderData;
 #pragma pack(pop)
 
+//for holding a message
+#pragma pack(push, 1)
+typedef struct MSGNode {
+	long number;
+	long flags;
+	char* audio;
+	char* message;
+
+	MSGNode() {
+		number = 0;
+		flags = 0;
+		audio = nullptr;
+		message = nullptr;
+	}
+} MSGNode;
+#pragma pack(pop)
+
+//for holding msg array
+#pragma pack(push, 1)
+typedef struct MSGList {
+	long numMsgs;
+	MSGNode *nodes;
+
+	MSGList() {
+		nodes = nullptr;
+		numMsgs = 0;
+	}
+} MSGList;
+#pragma pack(pop)
+
 //fallout2 path node structure
 #pragma pack(push, 1)
 struct PathNode {
