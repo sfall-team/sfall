@@ -465,6 +465,16 @@ static void WorldmapViewportPatch() {
 
 ////////////////////////////// FALLOUT 1 FEATURES //////////////////////////////
 
+enum TerrainHoverImage {
+	width = 100,
+	height = 15,
+	size = width * height
+};
+
+static std::array<unsigned char, TerrainHoverImage::size> wmTmpBuffer;
+static bool isHoveringHotspot = false;
+static bool backImageIsCopy = false;
+
 struct DotPosition {
 	long x;
 	long y;
@@ -535,14 +545,10 @@ static void __declspec(naked) DrawingDots() {
 	}
 }
 
-static std::array<unsigned char, 15 * 100> wmTmpBuffer;
-static bool hoveringHotspot = false;
-static bool backImageIsCopy = false;
-
 static void PrintTerrainType(long x, long y) {
 	char* terrainText = (char*)fo::wmGetCurrentTerrainName();
 	long txtWidth = fo::GetTextWidthFM(terrainText);
-	if (txtWidth > 100) txtWidth = 100;
+	if (txtWidth > TerrainHoverImage::width) txtWidth = TerrainHoverImage::width;
 
 	// offset position
 	y += 4;
@@ -552,26 +558,20 @@ static void PrintTerrainType(long x, long y) {
 	fo::PrintTextFM(terrainText, 215, x - 1, y - 1, txtWidth, wmapWinWidth, *(BYTE**)FO_VAR_wmBkWinBuf);
 }
 
-static void PrintTerrainType() {
-	long y = fo::var::world_ypos - fo::var::wmWorldOffsetY;
-	long x = fo::var::world_xpos - fo::var::wmWorldOffsetX;
-	PrintTerrainType(x,  y);
-}
-
 static void __declspec(naked) wmInterfaceRefresh_hook() {
 	if (colorDot && fo::var::target_xpos != -1) {
 		if (fo::var::In_WorldMap) {
 			DrawingDots();
 		} else if (!fo::var::target_xpos && !fo::var::target_ypos) {
-			// on stop move
+			// player stops moving
 			dots.clear();
 			dotLen = optionLenDot;
 			spaceLen = optionSpaceDot;
 		}
 	}
-	if (hoveringHotspot && !fo::var::In_WorldMap) {
-		PrintTerrainType();
-		hoveringHotspot = backImageIsCopy = false;
+	if (isHoveringHotspot && !fo::var::In_WorldMap) {
+		PrintTerrainType(fo::var::world_xpos - fo::var::wmWorldOffsetX, fo::var::world_ypos - fo::var::wmWorldOffsetY);
+		isHoveringHotspot = backImageIsCopy = false;
 	}
 	__asm jmp fo::funcoffs::wmDrawCursorStopped_;
 }
@@ -580,9 +580,9 @@ static long __fastcall wmDetectHotspotHover(long wmMouseX, long wmMouseY) {
 	long deltaX = abs((long)fo::var::world_xpos - (wmMouseX - 20 + fo::var::wmWorldOffsetX));
 	long deltaY = abs((long)fo::var::world_ypos - (wmMouseY - 20 + fo::var::wmWorldOffsetY));
 
-	bool hovered = hoveringHotspot;
-	hoveringHotspot = deltaX < 6 && deltaY < 6;
-	if (hoveringHotspot != hovered) { // if value has changed
+	bool isHovered = isHoveringHotspot;
+	isHoveringHotspot = deltaX < 8 && deltaY < 6;
+	if (isHoveringHotspot != isHovered) { // if value has changed
 		// upper left corner
 		long y = fo::var::world_ypos - fo::var::wmWorldOffsetY;
 		long x = fo::var::world_xpos - fo::var::wmWorldOffsetX;
@@ -590,19 +590,19 @@ static long __fastcall wmDetectHotspotHover(long wmMouseX, long wmMouseY) {
 		if (!backImageIsCopy) {
 			backImageIsCopy = true;
 			// copy image to memory (size 100 x 15)
-			fo::RectCopyToMemory(x_offset, y, 100, 15, wmapWinWidth, *(BYTE**)FO_VAR_wmBkWinBuf, wmTmpBuffer.data());
+			fo::RectCopyToMemory(x_offset, y, TerrainHoverImage::width, TerrainHoverImage::height, wmapWinWidth, *(BYTE**)FO_VAR_wmBkWinBuf, wmTmpBuffer.data());
 			PrintTerrainType(x, y);
 		} else {
 			// restore saved image
-			fo::MemCopyToWinBuffer(x_offset, y, 100, 15, wmapWinWidth, *(BYTE**)FO_VAR_wmBkWinBuf, wmTmpBuffer.data());
+			fo::MemCopyToWinBuffer(x_offset, y, TerrainHoverImage::width, TerrainHoverImage::height, wmapWinWidth, *(BYTE**)FO_VAR_wmBkWinBuf, wmTmpBuffer.data());
 			backImageIsCopy = false;
 		}
 		// redraw worldmap interface rectangle
 		RECT rect;
 		rect.top = y;
 		rect.left = x_offset;
-		rect.right = x + 100;
-		rect.bottom = y + 15;
+		rect.right = x + TerrainHoverImage::width;
+		rect.bottom = y + TerrainHoverImage::height;
 		fo::func::win_draw_rect(*(long*)FO_VAR_wmBkWin, &rect);
 	}
 	return fo::var::wmWorldOffsetY; // overwritten code
@@ -612,9 +612,12 @@ static void __declspec(naked) wmWorldMap_hack() {
 	__asm {
 		cmp  ds:[FO_VAR_In_WorldMap], 1; // player is moving
 		jne  checkHover;
+end:
 		mov  eax, dword ptr ds:[FO_VAR_wmWorldOffsetY];
 		retn;
 checkHover:
+		cmp  dword ptr ds:[FO_VAR_WorldMapCurrArea], -1;
+		jne  end; // player is in a location circle
 		push ecx;
 		mov  ecx, [esp + 0x38 - 0x30 + 8]; // x
 		mov  edx, [esp + 0x38 - 0x34 + 8]; // y

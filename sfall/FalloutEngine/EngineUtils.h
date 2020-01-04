@@ -87,8 +87,8 @@ void RectCopyToMemory(long fromX, long fromY, long width, long height, long from
 void MemCopyToWinBuffer(long toX, long toY, long width, long height, long toWidth, BYTE* toBuff, BYTE* fromMem);
 
 // Print text to surface
-void PrintText(char* displayText, BYTE colorIndex, DWORD x, DWORD y, DWORD textWidth, DWORD destWidth, BYTE* surface);
-void PrintTextFM(char* displayText, BYTE colorIndex, DWORD x, DWORD y, DWORD textWidth, DWORD destWidth, BYTE* surface);
+void PrintText(char* displayText, BYTE colorIndex, DWORD xPos, DWORD yPos, DWORD txtWidth, DWORD toWidth, BYTE* toSurface);
+void PrintTextFM(char* displayText, BYTE colorIndex, DWORD xPos, DWORD yPos, DWORD txtWidth, DWORD toWidth, BYTE* toSurface);
 // gets the height of the currently selected font
 DWORD GetTextHeight();
 // gets the length of a string using the currently selected font

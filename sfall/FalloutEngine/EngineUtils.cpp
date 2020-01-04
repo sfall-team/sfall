@@ -253,11 +253,11 @@ void MemCopyToWinBuffer(long toX, long toY, long width, long height, long toWidt
 
 //---------------------------------------------------------
 // print text to surface
-void PrintText(char* displayText, BYTE colourIndex, DWORD xPos, DWORD yPos, DWORD txtWidth, DWORD toWidth, BYTE* toSurface) {
+void PrintText(char* displayText, BYTE colorIndex, DWORD xPos, DWORD yPos, DWORD txtWidth, DWORD toWidth, BYTE* toSurface) {
 	DWORD posOffset = yPos * toWidth + xPos;
 	__asm {
 		xor  eax, eax;
-		mov  al, colourIndex;
+		mov  al, colorIndex;
 		mov  edx, displayText;
 		push eax;
 		mov  ebx, txtWidth;

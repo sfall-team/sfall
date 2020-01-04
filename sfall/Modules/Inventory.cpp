@@ -706,6 +706,8 @@ void Inventory::init() {
 
 	MakeJump(fo::funcoffs::adjust_fid_, adjust_fid_hack_replacement);
 
+	long weightWidth = 135;
+
 	sizeLimitMode = GetConfigInt("Misc", "CritterInvSizeLimitMode", 0);
 	if (sizeLimitMode > 0 && sizeLimitMode <= 7) {
 		if (sizeLimitMode >= 4) {
@@ -737,8 +739,8 @@ void Inventory::init() {
 		SafeWrite8(0x47260F, 0x20);
 		SafeWrite32(0x4725F9, 0x9C + 0x0C);
 		SafeWrite8(0x472606, 0x10 + 0x0C);
-		SafeWrite32(0x472632, 150); // width
-		SafeWrite8(0x472638, 0);    // x offset position
+		SafeWrite8(0x472638, 0); // x offset position
+		weightWidth = 150;
 
 		// Display item size when examining
 		HookCall(0x472FFE, inven_obj_examine_func_hook);
@@ -754,10 +756,9 @@ void Inventory::init() {
 			SafeWrite8(0x449145, 0x0C + 0x08);
 			SafeWrite8(0x449150, 0x10 + 0x08);
 		}
-	} else {
-		// Adjust the max text width of the total weight display in the inventory
-		SafeWrite32(0x472632, 135);
 	}
+	// Adjust the max text width of the total weight display on the inventory screen
+	SafeWrite32(0x472632, weightWidth);
 
 	if (GetConfigInt("Misc", "SuperStimExploitFix", 0)) {
 		superStimMsg = Translate("sfall", "SuperStimExploitMsg", "You cannot use a super stim on someone who is not injured!");
