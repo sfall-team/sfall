@@ -41,7 +41,7 @@ public:
 	static long AddExtraMsgFile(const char* msgName, long msgNumber);
 };
 
-fo::MessageNode *GetMsgNode(fo::MessageList *msgList, int msgRef);
-char* GetMsg(fo::MessageList *MsgList, int msgRef, int msgNum);
+fo::MessageNode* GetMsgNode(fo::MessageList* msgList, int msgRef);
+char* GetMsg(fo::MessageList* msgList, int msgRef, int msgNum);
 
 }
