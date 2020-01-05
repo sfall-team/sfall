@@ -381,6 +381,7 @@ const DWORD gdialog_barter_cleanup_tables_ = 0x448660;
 const DWORD gdialog_barter_pressed_ = 0x44A52C;
 const DWORD gdialogActive_ = 0x444D2C;
 const DWORD gdialogDisplayMsg_ = 0x445448;
+const DWORD gdialogFreeSpeech_ = 0x4450C4;
 const DWORD gdProcess_ = 0x4465C0;
 const DWORD gdReviewExit_ = 0x445C18;
 const DWORD gdReviewInit_ = 0x445938;

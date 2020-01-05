@@ -475,16 +475,10 @@ static void __declspec(naked) DialogHookStart() {
 	}
 }
 
-static void __declspec(naked) DialogHook() {
+static void __declspec(naked) DialogHookEnd() {
 	__asm {
-		test inLoop, DIALOG; // check byte flag
-		jz   changeMode;
-		jmp  gdProcess_;
-changeMode:
-		or inLoop, DIALOG;
-		call gdProcess_;
 		and inLoop, (-1 ^ DIALOG);
-		retn;
+		jmp gdialogFreeSpeech_;
 	}
 }
 
@@ -652,7 +646,7 @@ void LoadGameHookInit() {
 	//HookCall(0x4A73EB, CharacterHook); // character creation
 	//HookCall(0x4A740A, CharacterHook); // character creation
 	MakeCall(0x445285, DialogHookStart); // gdialogInitFromScript_
-	HookCall(0x445748, DialogHook);
+	HookCall(0x4452CD, DialogHookEnd);   // gdialogExitFromScript_ (old 0x445748)
 	HookCall(0x443463, PipboyHook);
 	HookCall(0x443605, PipboyHook);
 	HookCall(0x4434AC, SkilldexHook);

@@ -620,6 +620,7 @@ extern const DWORD gdialog_barter_cleanup_tables_;
 extern const DWORD gdialog_barter_pressed_;
 extern const DWORD gdialogActive_;
 extern const DWORD gdialogDisplayMsg_;
+extern const DWORD gdialogFreeSpeech_;
 extern const DWORD gdProcess_;
 extern const DWORD gdReviewExit_;
 extern const DWORD gdReviewInit_;
