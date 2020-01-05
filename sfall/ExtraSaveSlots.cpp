@@ -164,7 +164,7 @@ void SetPageNum() {
 			}
 
 			PrintText(TempText, ConsoleGold, 170 - TxtWidth / 2, 64, TxtWidth, SaveLoadWin->width, SaveLoadWin->surface);
-			RedrawWin(winRef);
+			WinDraw(winRef);
 		}
 
 		button = check_buttons();

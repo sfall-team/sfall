@@ -154,9 +154,9 @@ subLoop:
 // Only used if the world map speed patch is disabled, so that world map scripts are still run
 static void __declspec(naked) wmWorldMap_hook() {
 	__asm {
-		pushadc;
+		//pushadc;
 		call RunGlobalScripts3;
-		popadc;
+		//popadc;
 		jmp  get_input_;
 	}
 }
@@ -200,7 +200,7 @@ static void __declspec(naked) wmTownMapFunc_hack() {
 		mov  [esi], edx
 		retn;
 end:
-		add  esp, 4;                           // destroy the return address
+		add  esp, 4; // destroy the return address
 		mov  eax, 0x4C4976;
 		jmp  eax;
 	}

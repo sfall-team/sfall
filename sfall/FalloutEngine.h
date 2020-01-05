@@ -477,8 +477,8 @@ extern DWORD* ptr_window; // total 50 WINinfo*
 extern BYTE*  ptr_WhiteColor;
 extern DWORD* ptr_wmAreaInfoList;
 extern DWORD* ptr_wmLastRndTime;
-extern DWORD* ptr_wmWorldOffsetX;
-extern DWORD* ptr_wmWorldOffsetY;
+extern long*  ptr_wmWorldOffsetX;
+extern long*  ptr_wmWorldOffsetY;
 extern DWORD* ptr_world_xpos;
 extern DWORD* ptr_world_ypos;
 extern DWORD* ptr_WorldMapCurrArea;
@@ -1172,11 +1172,11 @@ long __fastcall GetGameConfigString(const char* outValue, const char* section, c
 
 long __fastcall WordWrap(const char* text, int maxWidth, DWORD* buf, BYTE* count);
 
-DWORD __stdcall AddWin(long x, long y, long width, long height, long bgColorIndex, long flags);
-void __stdcall ShowWin(DWORD winRef);
-void __stdcall HideWin(DWORD winRef);
-void __stdcall RedrawWin(DWORD winRef);
-void __stdcall DestroyWin(DWORD winRef);
+DWORD __stdcall WinAdd(long x, long y, long width, long height, long bgColorIndex, long flags);
+void __stdcall WinShow(DWORD winRef);
+void __stdcall WinHide(DWORD winRef);
+void __stdcall WinDraw(DWORD winRef);
+void __stdcall WinDelete(DWORD winRef);
 
 long __stdcall WindowWidth();
 

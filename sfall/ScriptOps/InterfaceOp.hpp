@@ -390,7 +390,7 @@ static void sf_inventory_redraw() {
 	if (redrawSide && mode >= 2) {
 		ptr_target_stack_offset[*ptr_target_curr_stack] = 0;
 		DisplayTargetInventory(0, -1, *ptr_target_pud, mode);
-		RedrawWin(*ptr_i_wid);
+		WinDraw(*ptr_i_wid);
 	}
 }
 
@@ -416,7 +416,7 @@ static void sf_show_window() {
 		for (size_t i = 0; i < 16; i++) {
 			sWin = *(sWindow*)&ptr_sWindows[i * 23]; // sWindow struct = 92 bytes
 			if (_stricmp(name, sWin.name) == 0) {
-				ShowWin(sWin.wID);
+				WinShow(sWin.wID);
 				return;
 			}
 		}
@@ -433,7 +433,7 @@ static void sf_hide_window() {
 		for (size_t i = 0; i < 16; i++) {
 			sWin = *(sWindow*)&ptr_sWindows[i * 23]; // sWindow struct = 92 bytes
 			if (_stricmp(name, sWin.name) == 0) {
-				HideWin(sWin.wID);
+				WinHide(sWin.wID);
 				return;
 			}
 		}

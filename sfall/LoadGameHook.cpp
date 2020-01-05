@@ -467,6 +467,14 @@ end:
 	}
 }
 
+static void __declspec(naked) DialogHookStart() {
+	__asm {
+		or inLoop, DIALOG;
+		mov ebx, 1;
+		retn;
+	}
+}
+
 static void __declspec(naked) DialogHook() {
 	__asm {
 		test inLoop, DIALOG; // check byte flag
@@ -643,6 +651,7 @@ void LoadGameHookInit() {
 	HookCall(0x443320, CharacterHook);
 	//HookCall(0x4A73EB, CharacterHook); // character creation
 	//HookCall(0x4A740A, CharacterHook); // character creation
+	MakeCall(0x445285, DialogHookStart); // gdialogInitFromScript_
 	HookCall(0x445748, DialogHook);
 	HookCall(0x443463, PipboyHook);
 	HookCall(0x443605, PipboyHook);

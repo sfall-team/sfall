@@ -372,16 +372,16 @@ static long GetFont() {
 }
 
 // print text to surface
-void PrintText(char *DisplayText, BYTE ColourIndex, DWORD Xpos, DWORD Ypos, DWORD TxtWidth, DWORD ToWidth, BYTE *ToSurface) {
-	DWORD posOffset = Ypos * ToWidth + Xpos;
+void PrintText(char* displayText, BYTE colorIndex, DWORD xPos, DWORD yPos, DWORD txtWidth, DWORD toWidth, BYTE* toSurface) {
+	DWORD posOffset = yPos * toWidth + xPos;
 	__asm {
 		xor  eax, eax;
-		mov  al, ColourIndex;
+		mov  al, colorIndex;
+		mov  edx, displayText;
 		push eax;
-		mov  edx, DisplayText;
-		mov  ebx, TxtWidth;
-		mov  ecx, ToWidth;
-		mov  eax, ToSurface;
+		mov  ebx, txtWidth;
+		mov  eax, toSurface;
+		mov  ecx, toWidth;
 		add  eax, posOffset;
 		call dword ptr ds:[_text_to_buf];
 	}
@@ -1002,7 +1002,7 @@ static void DrawPCConsole() {
 		delete[] ConSurface;
 		WinInfo = nullptr;
 
-		RedrawWin(WinRef);
+		WinDraw(WinRef);
 	}
 }
 
@@ -1116,7 +1116,7 @@ void _stdcall HeroSelectWindow(int raceStyleFlag) {
 	DWORD resWidth = *(DWORD*)0x4CAD6B;
 	DWORD resHeight = *(DWORD*)0x4CAD66;
 
-	int winRef = AddWin(resWidth / 2 - 242, (resHeight - 100) / 2 - 65, 484, 230, 100, 0x4);
+	int winRef = WinAdd(resWidth / 2 - 242, (resHeight - 100) / 2 - 65, 484, 230, 100, 0x4);
 	if (winRef == -1) {
 		delete frm;
 		return;
@@ -1168,7 +1168,7 @@ void _stdcall HeroSelectWindow(int raceStyleFlag) {
 	PrintText(titleText, textColour, 80 - titleTextWidth / 2, 185, titleTextWidth, 484, mainSurface);
 
 	sub_draw(484, 230, 484, 230, 0, 0, mainSurface, 484, 230, 0, 0, winSurface, 0);
-	ShowWin(winRef);
+	WinShow(winRef);
 
 	SetFont(0x65);
 
@@ -1213,7 +1213,7 @@ void _stdcall HeroSelectWindow(int raceStyleFlag) {
 				DrawCharNote(isStyle, winRef, 190, 29, mainSurface, 190, 29, 484, 230);
 				drawFlag = false;
 			}
-			RedrawWin(winRef);
+			WinDraw(winRef);
 		}
 
 		button = check_buttons();
@@ -1277,7 +1277,7 @@ void _stdcall HeroSelectWindow(int raceStyleFlag) {
 	LoadHeroDat(currentRaceVal, currentStyleVal, true);
 	SetAppearanceGlobals(currentRaceVal, currentStyleVal);
 
-	DestroyWin(winRef);
+	WinDelete(winRef);
 	delete[]mainSurface;
 	delete[]ConDraw;
 

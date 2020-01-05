@@ -219,8 +219,8 @@ DWORD* ptr_window                     = reinterpret_cast<DWORD*>(_window); // to
 BYTE*  ptr_WhiteColor                 = reinterpret_cast<BYTE*>(_WhiteColor);
 DWORD* ptr_wmAreaInfoList             = reinterpret_cast<DWORD*>(_wmAreaInfoList);
 DWORD* ptr_wmLastRndTime              = reinterpret_cast<DWORD*>(_wmLastRndTime);
-DWORD* ptr_wmWorldOffsetX             = reinterpret_cast<DWORD*>(_wmWorldOffsetX);
-DWORD* ptr_wmWorldOffsetY             = reinterpret_cast<DWORD*>(_wmWorldOffsetY);
+long*  ptr_wmWorldOffsetX             = reinterpret_cast<long*>(_wmWorldOffsetX);
+long*  ptr_wmWorldOffsetY             = reinterpret_cast<long*>(_wmWorldOffsetY);
 DWORD* ptr_world_xpos                 = reinterpret_cast<DWORD*>(_world_xpos);
 DWORD* ptr_world_ypos                 = reinterpret_cast<DWORD*>(_world_ypos);
 DWORD* ptr_WorldMapCurrArea           = reinterpret_cast<DWORD*>(_WorldMapCurrArea);
@@ -1243,23 +1243,23 @@ long __fastcall WordWrap(const char* text, int maxWidth, DWORD* buf, BYTE* count
 	WRAP_WATCOM_FCALL4(_word_wrap_, text, maxWidth, buf, count)
 }
 
-DWORD __stdcall AddWin(long x, long y, long width, long height, long bgColorIndex, long flags) {
+DWORD __stdcall WinAdd(long x, long y, long width, long height, long bgColorIndex, long flags) {
 	WRAP_WATCOM_CALL6(win_add_, x, y, width, height, bgColorIndex, flags)
 }
 
-void __stdcall ShowWin(DWORD winRef) {
+void __stdcall WinShow(DWORD winRef) {
 	WRAP_WATCOM_CALL1(win_show_, winRef)
 }
 
-void __stdcall HideWin(DWORD winRef) {
+void __stdcall WinHide(DWORD winRef) {
 	WRAP_WATCOM_CALL1(win_hide_, winRef)
 }
 
-void __stdcall RedrawWin(DWORD winRef) {
+void __stdcall WinDraw(DWORD winRef) {
 	WRAP_WATCOM_CALL1(win_draw_, winRef)
 }
 
-void __stdcall DestroyWin(DWORD winRef) {
+void __stdcall WinDelete(DWORD winRef) {
 	WRAP_WATCOM_CALL1(win_delete_, winRef)
 }
 
