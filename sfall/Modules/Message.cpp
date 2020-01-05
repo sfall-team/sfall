@@ -60,8 +60,8 @@ static long msgNumCounter = 0x3000;
 
 static long heroIsFemale = -1;
 
-// Searches the special character in the text and removes the word depending on the player's gender
-// example: MaleWord^FemaleWord
+// Searches the special character in the text and removes the text depending on the player's gender
+// example: <MaleText^FemaleText>
 static long __fastcall ReplaceGenderWord(fo::MessageNode* msgData, DWORD* msgFile) {
 	if (!InDialog() || msgData->flags & MSG_GENDER_CHECK_FLG) return 1;
 	if (heroIsFemale < 0) heroIsFemale = fo::HeroIsFemale();
@@ -69,27 +69,40 @@ static long __fastcall ReplaceGenderWord(fo::MessageNode* msgData, DWORD* msgFil
 	unsigned char* _pos = (u_char*)msgData->message;
 	unsigned char* pos;
 	while ((pos = (u_char*)std::strchr((char*)_pos, '^')) != 0) { // pos - pointer to the character position
-		_pos = pos + 1; // next start position
-		if (heroIsFemale) {
-			// keep the right word
-			for (u_char* n = pos - 1; ; n--) {
-				if (*n == ' ' || n < (u_char*)msgData->message) {
-					_pos = n + 1;
-					do *++n = *++pos; while (*pos); // shift all chars to the left
-					break; // exit for
+		_pos = pos; // next find position
+		for (u_char* n = pos - 1; ; n--) {
+			if (n < (u_char*)msgData->message) {
+				_pos++; // error, open char not found
+				break;
+			} else if (*n == '<') {
+				if (heroIsFemale) { // remove left(male) side
+					pos++;
+					// shift all chars to the left
+					do {
+						*n++ = *pos++;
+						if (*pos == '>') { // skip close char
+							_pos = n; // set next find position
+							do *n++ = *++pos; while (*pos); // continue shift (with '\0')
+							break;
+						}
+					} while (*pos);
+				} else { // remove right(female) side
+					pos = n;
+					pos++;
+					// shift all chars to the left
+					do {
+						*n++ = *pos++;
+						if (pos == _pos) { // skip '^' char
+							while (*++pos && *pos != '>');  // skip female side
+							do *n++ = *++pos; while (*pos); // continue shift (with '\0')
+							break;
+						}
+					} while (*pos);
 				}
+				break; // exit for
 			}
-		} else {
-			// keep the left word
-			for (u_char* n = pos + 1; *n; n++) {
-				if (*n == ' ') {
-					do *pos++ = *n++; while (*n); // shift all chars to the left
-					break; // exit for
-				}
-			}
-			*pos = '\0';
-			if (_pos > pos) break;
 		}
+		if (_pos > pos) break;
 	}
 	// set flag
 	unsigned long outValue;
