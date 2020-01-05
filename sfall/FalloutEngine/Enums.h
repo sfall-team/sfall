@@ -646,6 +646,30 @@ enum BodyType : long
 	Robotic                   = 2
 };
 
+enum KillType : long
+{
+	men_type                  = 0,
+	women_type                = 1,
+	children_type             = 2,
+	super_mutant_type         = 3,
+	ghoul_type                = 4,
+	brahmin_type              = 5,
+	radscorpion_type          = 6,
+	rat_type                  = 7,
+	floater_type              = 8,
+	centaur_type              = 9,
+	robot_type                = 10,
+	dog_type                  = 11,
+	manti_type                = 12,
+	deathclaw_type            = 13,
+	plant_type                = 14,
+	gecko_type                = 15,
+	alien_type                = 16,
+	giant_ant_type            = 17,
+	big_boss_type             = 18,
+	count
+};
+
 #define PLAYER_ID             (18000)
 
 #define OBJFLAG_CAN_WEAR_ITEMS (0xF000000)
@@ -661,6 +685,8 @@ enum BodyType : long
 #define WEAPON_TWO_HANDED     (0x200)
 
 #define AUTOMAP_MAX           (160)
+
+#define MSG_GENDER_CHECK_FLG  (0x80) // bit 8
 
 enum TicksTime : unsigned long
 {

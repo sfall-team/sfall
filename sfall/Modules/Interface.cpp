@@ -478,13 +478,15 @@ static bool backImageIsCopy = false;
 struct DotPosition {
 	long x;
 	long y;
+
+	DotPosition(long x, long y) : x(x), y(y) {}
 };
 static std::vector<DotPosition> dots;
 
 static long optionLenDot = 1;
 static long optionSpaceDot = 2;
 
-static unsigned char colorDot = 0; // color index in palette: R = 252, G = 0, B = 0
+static unsigned char colorDot = 0;
 static long spaceLen = 2;
 static long dotLen = 1;
 static long dot_xpos = 0;
@@ -500,13 +502,9 @@ static void AddNewDot() {
 		return;
 	}
 	dotLen--;
-
-	DotPosition dot;
-	dot.x = dot_xpos;
-	dot.y = dot_ypos;
-	dots.push_back(std::move(dot));
-
 	spaceLen = optionSpaceDot;
+
+	dots.emplace_back(dot_xpos, dot_ypos);
 }
 
 static void __declspec(naked) DrawingDots() {
@@ -692,9 +690,10 @@ static void WorldMapInterfacePatch() {
 	}
 
 	if (GetConfigInt("Interface", "WorldTravelMarkers", 0)) {
+		dlog("Applying world map travel markers patch.", DL_INIT);
 		optionLenDot = GetConfigInt("Interface", "TravelMarkerLength", optionLenDot);
 		optionSpaceDot = GetConfigInt("Interface", "TravelMarkerSpaces", optionSpaceDot);
-		int color = GetConfigInt("Interface", "TravelMarkerColor", 133);
+		int color = GetConfigInt("Interface", "TravelMarkerColor", 133); // color index in palette: R = 252, G = 0, B = 0
 
 		if (color > 255) color = 255; else if (color < 1) color = 1;
 		colorDot = color;
@@ -705,6 +704,7 @@ static void WorldMapInterfacePatch() {
 		LoadGameHook::OnGameReset() += []() {
 			dots.clear();
 		};
+		dlogr(" Done", DL_INIT);
 	}
 	// Fallout 1 features, travel markers and displaying terrain type
 	HookCall(0x4C3C7E, wmInterfaceRefresh_hook); // when calling wmDrawCursorStopped_

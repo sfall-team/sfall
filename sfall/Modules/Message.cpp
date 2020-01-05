@@ -60,8 +60,6 @@ static long msgNumCounter = 0x3000;
 
 static long heroIsFemale = -1;
 
-#define MSG_GENDER_CHECK_FLG (0x8)
-
 // Searches the special character in the text and removes the word depending on the player's gender
 // example: MaleWord^FemaleWord
 static long __fastcall ReplaceGenderWord(fo::MessageNode* msgData, DWORD* msgFile) {
