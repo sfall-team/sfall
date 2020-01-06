@@ -60,6 +60,7 @@ static const char* ExtraLines[] = {
 	"Vennor",
 	"Oppen",
 	"Mr.Stalin",
+	"Ghosthack",
 	"",
 	"@Additional thanks to",
 	"Nirran",
