@@ -135,15 +135,15 @@ size_t Translate(const char* section, const char* setting, const char* defaultVa
 	return iniGetString(section, setting, defaultValue, buffer, bufSize, translationIni);
 }
 
-static char mapName[65];
-static char configName[65];
-static char patchName[65];
-static char versionString[65];
+static char mapName[65]       = {};
+static char configName[65]    = {};
+static char patchName[65]     = {};
+static char versionString[65] = {};
 
-static char startMaleModelName[65];
-char defaultMaleModelName[65];
-static char startFemaleModelName[65];
-char defaultFemaleModelName[65];
+static char startMaleModelName[65]   = {};
+char defaultMaleModelName[65]        = {};
+static char startFemaleModelName[65] = {};
+char defaultFemaleModelName[65]      = {};
 
 static const char* musicOverridePath = "data\\sound\\music\\";
 
@@ -186,34 +186,32 @@ c15:
 	}
 }
 
-static void __declspec(naked) ReloadHook() {
+static void __declspec(naked) intface_item_reload_hook() {
 	__asm {
 		push eax;
-		push ebx;
-		push edx;
-		mov eax, dword ptr ds:[_obj_dude];
+		mov  eax, dword ptr ds:[_obj_dude];
 		call register_clear_;
-		xor eax, eax;
-		inc eax;
+		test eax, eax;
+		jnz  fail;
+		inc  eax;
 		call register_begin_;
-		xor edx, edx;
-		xor ebx, ebx;
-		mov eax, dword ptr ds:[_obj_dude];
-		dec ebx;
+		xor  edx, edx;
+		xor  ebx, ebx;
+		mov  eax, dword ptr ds:[_obj_dude];
+		dec  ebx;
 		call register_object_animate_;
 		call register_end_;
-		pop edx;
-		pop ebx;
-		pop eax;
-		jmp gsound_play_sfx_file_;
+fail:
+		pop  eax;
+		jmp  gsound_play_sfx_file_;
 	}
 }
 
-static void __declspec(naked) ScienceCritterCheckHook() {
+static void __declspec(naked) action_use_skill_on_hook_science() {
 	__asm {
 		cmp esi, ds:[_obj_dude];
 		jne end;
-		mov eax, 10;
+		mov eax, KILL_TYPE_robot;
 		retn;
 end:
 		jmp critter_kill_count_type_;
@@ -250,36 +248,36 @@ static void __declspec(naked) op_obj_can_see_obj_hook() {
 
 static void __declspec(naked) register_object_take_out_hack() {
 	__asm {
-		push ecx
-		push eax
-		mov  ecx, edx                             // ID1
-		mov  edx, [eax+0x1C]                      // cur_rot
-		inc  edx
-		push edx                                  // ID3
-		xor  ebx, ebx                             // ID2
-		mov  edx, [eax+0x20]                      // fid
-		and  edx, 0xFFF                           // Index
-		xor  eax, eax
-		inc  eax                                  // Obj_Type
-		call art_id_
-		xor  ebx, ebx
-		dec  ebx
-		xchg edx, eax
-		pop  eax
-		call register_object_change_fid_
-		pop  ecx
-		xor  eax, eax
-		retn
+		push ecx;
+		push eax;
+		mov  ecx, edx;                            // ID1
+		mov  edx, [eax + 0x1C];                   // cur_rot
+		inc  edx;
+		push edx;                                 // ID3
+		xor  ebx, ebx;                            // ID2
+		mov  edx, [eax + 0x20];                   // fid
+		and  edx, 0xFFF;                          // Index
+		xor  eax, eax;
+		inc  eax;                                 // Obj_Type CRITTER
+		call art_id_;
+		mov  edx, eax;
+		xor  ebx, ebx;
+		dec  ebx;                                 // delay -1
+		pop  eax;                                 // critter
+		call register_object_change_fid_;
+		pop  ecx;
+		xor  eax, eax;
+		retn;
 	}
 }
 
 static void __declspec(naked) gdAddOptionStr_hack() {
 	__asm {
-		mov  ecx, ds:[_gdNumOptions]
-		add  ecx, '1'
-		push ecx
-		push 0x4458FA
-		retn
+		mov  ecx, ds:[_gdNumOptions];
+		add  ecx, '1';
+		push ecx;
+		mov  ecx, 0x4458FA;
+		jmp  ecx;
 	}
 }
 
@@ -299,17 +297,17 @@ static void __declspec(naked) display_stats_hook() {
 	__asm {
 		push eax;
 		push ecx;
-		mov ecx, ds:[esp + edi + 0xA8 + 0xC];   // get itemPtr
-		call GetWeaponSlotMode;                 // ecx - itemPtr, edx - mode;
-		mov edx, eax;
-		pop ecx;
-		pop eax;
-		jmp item_w_range_;
+		mov  ecx, ds:[esp + edi + 0xA8 + 0xC]; // get itemPtr
+		call GetWeaponSlotMode;                // ecx - itemPtr, edx - mode;
+		mov  edx, eax;
+		pop  ecx;
+		pop  eax;
+		jmp  item_w_range_;
 	}
 }
 
 static void DllMain2() {
-	DWORD tmp;
+	long tmp;
 	dlogr("In DllMain2", DL_MAIN);
 
 	dlogr("Running BugFixesInit().", DL_INIT);
@@ -347,27 +345,23 @@ static void DllMain2() {
 	dlogr("Running SpeedPatchInit().", DL_INIT);
 	SpeedPatchInit();
 
-	startMaleModelName[64] = 0;
 	if (GetConfigString("Misc", "MaleStartModel", "", startMaleModelName, 64)) {
 		dlog("Applying male start model patch.", DL_INIT);
 		SafeWrite32(0x418B88, (DWORD)&startMaleModelName);
 		dlogr(" Done", DL_INIT);
 	}
 
-	startFemaleModelName[64] = 0;
 	if (GetConfigString("Misc", "FemaleStartModel", "", startFemaleModelName, 64)) {
 		dlog("Applying female start model patch.", DL_INIT);
 		SafeWrite32(0x418BAB, (DWORD)&startFemaleModelName);
 		dlogr(" Done", DL_INIT);
 	}
 
-	defaultMaleModelName[64] = 0;
 	GetConfigString("Misc", "MaleDefaultModel", "hmjmps", defaultMaleModelName, 64);
 	dlog("Applying male model patch.", DL_INIT);
 	SafeWrite32(0x418B50, (DWORD)&defaultMaleModelName);
 	dlogr(" Done", DL_INIT);
 
-	defaultFemaleModelName[64] = 0;
 	GetConfigString("Misc", "FemaleDefaultModel", "hfjmps", defaultFemaleModelName, 64);
 	dlog("Applying female model patch.", DL_INIT);
 	SafeWrite32(0x418B6D, (DWORD)&defaultFemaleModelName);
@@ -465,21 +459,18 @@ static void DllMain2() {
 	dlogr("Running HeroAppearanceModInit().", DL_INIT);
 	HeroAppearanceModInit();
 
-	mapName[64] = 0;
 	if (GetConfigString("Misc", "StartingMap", "", mapName, 64)) {
 		dlog("Applying starting map patch.", DL_INIT);
 		SafeWrite32(0x480AAA, (DWORD)&mapName);
 		dlogr(" Done", DL_INIT);
 	}
 
-	versionString[64] = 0;
 	if (GetConfigString("Misc", "VersionString", "", versionString, 64)) {
 		dlog("Applying version string patch.", DL_INIT);
 		SafeWrite32(0x4B4588, (DWORD)&versionString);
 		dlogr(" Done", DL_INIT);
 	}
 
-	configName[64] = 0;
 	if (GetConfigString("Misc", "ConfigFile", "", configName, 64)) {
 		dlog("Applying config file patch.", DL_INIT);
 		SafeWrite32(0x444BA5, (DWORD)&configName);
@@ -487,7 +478,6 @@ static void DllMain2() {
 		dlogr(" Done", DL_INIT);
 	}
 
-	patchName[64] = 0;
 	if (GetConfigString("Misc", "PatchFile", "", patchName, 64)) {
 		dlog("Applying patch file patch.", DL_INIT);
 		SafeWrite32(0x444323, (DWORD)&patchName);
@@ -524,9 +514,9 @@ static void DllMain2() {
 
 	if (GetConfigInt("Misc", "AdditionalWeaponAnims", 0)) {
 		dlog("Applying additional weapon animations patch.", DL_INIT);
-		SafeWrite8(0x419320, 0x12);
-		HookCall(0x4194CC, WeaponAnimHook);
-		HookCall(0x451648, WeaponAnimHook);
+		SafeWrite8(0x419320, 18); // art_get_code_
+		HookCall(0x4194CC, WeaponAnimHook); // art_get_name_
+		HookCall(0x451648, WeaponAnimHook); // gsnd_build_character_sfx_name_
 		HookCall(0x451671, WeaponAnimHook);
 		dlogr(" Done", DL_INIT);
 	}
@@ -539,7 +529,7 @@ static void DllMain2() {
 
 	if (GetConfigInt("Misc", "PlayIdleAnimOnReload", 0)) {
 		dlog("Applying idle anim on reload patch.", DL_INIT);
-		HookCall(0x460B8C, ReloadHook);
+		HookCall(0x460B8C, intface_item_reload_hook);
 		dlogr(" Done", DL_INIT);
 	}
 
@@ -568,7 +558,7 @@ static void DllMain2() {
 
 	switch (GetConfigInt("Misc", "ScienceOnCritters", 0)) {
 	case 1:
-		HookCall(0x41276E, ScienceCritterCheckHook);
+		HookCall(0x41276E, action_use_skill_on_hook_science);
 		break;
 	case 2:
 		SafeWrite8(0x41276A, 0xEB);
@@ -645,16 +635,18 @@ static void DllMain2() {
 	}
 
 	// phobos2077:
-	DWORD addrs[2] = {0x45F9DE, 0x45FB33};
+	DWORD addrs[] = {
+		0x45F9DE, 0x45FB33,
+		0x447DF4, 0x447EB6,
+		0x499B99, 0x499DA8
+	};
 	SimplePatch<WORD>(addrs, 2, "Misc", "CombatPanelAnimDelay", 1000, 0, 65535);
-	addrs[0] = 0x447DF4; addrs[1] = 0x447EB6;
-	SimplePatch<BYTE>(addrs, 2, "Misc", "DialogPanelAnimDelay", 33, 0, 255);
-	addrs[0] = 0x499B99; addrs[1] = 0x499DA8;
-	SimplePatch<BYTE>(addrs, 2, "Misc", "PipboyTimeAnimDelay", 50, 0, 127);
+	SimplePatch<BYTE>(&addrs[2], 2, "Misc", "DialogPanelAnimDelay", 33, 0, 255);
+	SimplePatch<BYTE>(&addrs[4], 2, "Misc", "PipboyTimeAnimDelay", 50, 0, 127);
 
 	if (GetConfigInt("Misc", "EnableMusicInDialogue", 0)) {
 		dlog("Applying music in dialogue patch.", DL_INIT);
-		SafeWrite8(0x44525B, 0x0);
+		SafeWrite8(0x44525B, 0);
 		//BlockCall(0x450627);
 		dlogr(" Done", DL_INIT);
 	}
@@ -669,11 +661,11 @@ static void DllMain2() {
 		//Skip weapon equip/unequip animations
 		dlog("Applying instant weapon equip patch.", DL_INIT);
 		for (int i = 0; i < sizeof(PutAwayWeapon) / 4; i++) {
-			SafeWrite8(PutAwayWeapon[i], 0xEB);   // jmps
+			SafeWrite8(PutAwayWeapon[i], 0xEB); // jmps
 		}
-		BlockCall(0x472AD5);                      //
-		BlockCall(0x472AE0);                      // invenUnwieldFunc_
-		BlockCall(0x472AF0);                      //
+		BlockCall(0x472AD5); //
+		BlockCall(0x472AE0); // invenUnwieldFunc_
+		BlockCall(0x472AF0); //
 		MakeJump(0x415238, register_object_take_out_hack);
 		dlogr(" Done", DL_INIT);
 	}
@@ -713,8 +705,7 @@ static void DllMain2() {
 		dlogr(" Done", DL_INIT);
 	}
 
-	int time = GetConfigInt("Misc", "CorpseDeleteTime", 6); // time in days
-	if (time != 6) {
+	if (int time = GetConfigInt("Misc", "CorpseDeleteTime", 6) != 6) { // time in days
 		dlog("Applying corpse deletion time patch.", DL_INIT);
 		if (time <= 0) {
 			time = 12; // hours
@@ -755,9 +746,7 @@ static void DllMain2() {
 }
 
 static void _stdcall OnExit() {
-	if (scriptDialog != nullptr) {
-		delete[] scriptDialog;
-	}
+	if (scriptDialog) delete[] scriptDialog;
 	GraphicsExit();
 	MoviesExit();
 	SpeedPatchExit();

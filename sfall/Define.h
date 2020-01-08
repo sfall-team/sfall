@@ -360,6 +360,30 @@ enum AttackType : long
 	ATKTYPE_PIERCINGKICK      = 19
 };
 
+enum KillType : long
+{
+	KILL_TYPE_men             = 0,
+	KILL_TYPE_women           = 1,
+	KILL_TYPE_children        = 2,
+	KILL_TYPE_super_mutant    = 3,
+	KILL_TYPE_ghoul           = 4,
+	KILL_TYPE_brahmin         = 5,
+	KILL_TYPE_radscorpion     = 6,
+	KILL_TYPE_rat             = 7,
+	KILL_TYPE_floater         = 8,
+	KILL_TYPE_centaur         = 9,
+	KILL_TYPE_robot           = 10,
+	KILL_TYPE_dog             = 11,
+	KILL_TYPE_manti           = 12,
+	KILL_TYPE_deathclaw       = 13,
+	KILL_TYPE_plant           = 14,
+	KILL_TYPE_gecko           = 15,
+	KILL_TYPE_alien           = 16,
+	KILL_TYPE_giant_ant       = 17,
+	KILL_TYPE_big_bad_boss    = 18,
+	KILL_TYPE_count
+};
+
 #define PLAYER_ID             (18000)
 
 #define OBJFLAG_CAN_WEAR_ITEMS (0xF000000)
