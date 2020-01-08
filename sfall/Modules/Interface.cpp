@@ -23,7 +23,6 @@
 #include "..\FalloutEngine\EngineUtils.h"
 #include "Graphics.h"
 #include "LoadGameHook.h"
-//#include "Worldmap.h"
 
 #include "Interface.h"
 
@@ -463,7 +462,7 @@ static void WorldmapViewportPatch() {
 	dlogr(" Done", DL_INIT);
 }
 
-////////////////////////////// FALLOUT 1 FEATURES //////////////////////////////
+///////////////////////// FALLOUT 1 WORLDMAP FEATURES //////////////////////////
 
 enum TerrainHoverImage {
 	width = 100,
@@ -595,7 +594,7 @@ static long __fastcall wmDetectHotspotHover(long wmMouseX, long wmMouseY) {
 			fo::MemCopyToWinBuffer(x_offset, y, TerrainHoverImage::width, TerrainHoverImage::height, wmapWinWidth, *(BYTE**)FO_VAR_wmBkWinBuf, wmTmpBuffer.data());
 			backImageIsCopy = false;
 		}
-		// redraw worldmap interface rectangle
+		// redraw rectangle on worldmap interface
 		RECT rect;
 		rect.top = y;
 		rect.left = x_offset;
@@ -689,7 +688,9 @@ static void WorldMapInterfacePatch() {
 		}
 	}
 
-	if (GetConfigInt("Interface", "WorldTravelMarkers", 0)) {
+	// Fallout 1 features, travel markers and displaying terrain types
+	bool showTravelMarkers, showTerrainType;
+	if (showTravelMarkers = GetConfigInt("Interface", "WorldMapTravelMarkers", 0) != 0) {
 		dlog("Applying world map travel markers patch.", DL_INIT);
 		optionLenDot = GetConfigInt("Interface", "TravelMarkerLength", optionLenDot);
 		optionSpaceDot = GetConfigInt("Interface", "TravelMarkerSpaces", optionSpaceDot);
@@ -706,9 +707,12 @@ static void WorldMapInterfacePatch() {
 		};
 		dlogr(" Done", DL_INIT);
 	}
-	// Fallout 1 features, travel markers and displaying terrain type
-	HookCall(0x4C3C7E, wmInterfaceRefresh_hook); // when calling wmDrawCursorStopped_
-	MakeCall(0x4BFE84, wmWorldMap_hack);
+	if (showTerrainType = GetConfigInt("Interface", "WorldMapTerrainInfo", 0) != 0) {
+		dlog("Applying display terrain types patch.", DL_INIT);
+		MakeCall(0x4BFE84, wmWorldMap_hack);
+		dlogr(" Done", DL_INIT);
+	}
+	if (showTravelMarkers || showTerrainType) HookCall(0x4C3C7E, wmInterfaceRefresh_hook); // when calling wmDrawCursorStopped_
 
 	// Car fuel gauge graphics patch
 	MakeCall(0x4C528A, wmInterfaceRefreshCarFuel_hack_empty);

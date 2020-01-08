@@ -16,13 +16,9 @@
 *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <math.h>
-#include <stdio.h>
-
 #include "..\main.h"
 #include "..\FalloutEngine\Fallout2.h"
 #include "..\SimplePatch.h"
-#include "ScriptExtender.h"
 #include "LoadGameHook.h"
 
 #include "MiscPatches.h"
@@ -30,30 +26,12 @@
 namespace sfall
 {
 
-// TODO: split this into smaller files
-
-static char mapName[65];
-static char configName[65];
-static char patchName[65];
-static char versionString[65];
+static char mapName[65]       = {};
+static char configName[65]    = {};
+static char patchName[65]     = {};
+static char versionString[65] = {};
 
 static int* scriptDialog = nullptr;
-
-static const DWORD PutAwayWeapon[] = {
-	0x411EA2, // action_climb_ladder_
-	0x412046, // action_use_an_item_on_object_
-	0x41224A, // action_get_an_object_
-	0x4606A5, // intface_change_fid_animate_
-	0x472996, // invenWieldFunc_
-};
-
-static const DWORD script_dialog_msgs[] = {
-	0x4A50C2, 0x4A5169, 0x4A52FA, 0x4A5302, 0x4A6B86, 0x4A6BE0, 0x4A6C37,
-};
-
-static const DWORD walkDistanceAddr[] = {
-	0x411FF0, 0x4121C4, 0x412475, 0x412906,
-};
 
 static void __declspec(naked) WeaponAnimHook() {
 	__asm {
@@ -72,88 +50,88 @@ c15:
 }
 
 static void __declspec(naked) register_object_take_out_hack() {
+	using namespace fo::Fields;
 	__asm {
-		push ecx
-		push eax
-		mov  ecx, edx                             // ID1
-		mov  edx, [eax + 0x1C]                    // cur_rot
-		inc  edx
-		push edx                                  // ID3
-		xor  ebx, ebx                             // ID2
-		mov  edx, [eax + 0x20]                    // fid
-		and  edx, 0xFFF                           // Index
-		xor  eax, eax
-		inc  eax                                  // Obj_Type
-		call fo::funcoffs::art_id_
-		xor  ebx, ebx
-		dec  ebx
-		xchg edx, eax
-		pop  eax
-		call fo::funcoffs::register_object_change_fid_
-		pop  ecx
-		xor  eax, eax
-		retn
+		push ecx;
+		push eax;
+		mov  ecx, edx;                            // ID1
+		mov  edx, [eax + rotation];               // cur_rot
+		inc  edx;
+		push edx;                                 // ID3
+		xor  ebx, ebx;                            // ID2
+		mov  edx, [eax + artFid];                 // fid
+		and  edx, 0xFFF;                          // Index
+		xor  eax, eax;
+		inc  eax;                                 // Obj_Type CRITTER
+		call fo::funcoffs::art_id_;
+		mov  edx, eax;
+		xor  ebx, ebx;
+		dec  ebx;                                 // delay -1
+		pop  eax;                                 // critter
+		call fo::funcoffs::register_object_change_fid_;
+		pop  ecx;
+		xor  eax, eax;
+		retn;
 	}
 }
 
 static void __declspec(naked) gdAddOptionStr_hack() {
 	__asm {
-		mov  ecx, ds:[FO_VAR_gdNumOptions]
-		add  ecx, '1'
-		push ecx
-		push 0x4458FA
-		retn
+		mov  ecx, ds:[FO_VAR_gdNumOptions];
+		add  ecx, '1';
+		push ecx;
+		mov  ecx, 0x4458FA;
+		jmp  ecx;
 	}
 }
 
-static void __declspec(naked) ScienceCritterCheckHook() {
+static void __declspec(naked) action_use_skill_on_hook_science() {
+	using namespace fo;
 	__asm {
 		cmp esi, ds:[FO_VAR_obj_dude];
 		jne end;
-		mov eax, 10;
+		mov eax, robot_type; // KillType
 		retn;
 end:
 		jmp fo::funcoffs::critter_kill_count_type_;
 	}
 }
 
-static void __declspec(naked) ReloadHook() {
+static void __declspec(naked) intface_item_reload_hook() {
 	__asm {
 		push eax;
-		push ebx;
-		push edx;
-		mov eax, dword ptr ds:[FO_VAR_obj_dude];
+		mov  eax, dword ptr ds:[FO_VAR_obj_dude];
 		call fo::funcoffs::register_clear_;
-		xor eax, eax;
-		inc eax;
+		test eax, eax;
+		jnz  fail;
+		inc  eax;
 		call fo::funcoffs::register_begin_;
-		xor edx, edx;
-		xor ebx, ebx;
-		mov eax, dword ptr ds:[FO_VAR_obj_dude];
-		dec ebx;
+		xor  edx, edx;
+		xor  ebx, ebx;
+		mov  eax, dword ptr ds:[FO_VAR_obj_dude];
+		dec  ebx;
 		call fo::funcoffs::register_object_animate_;
 		call fo::funcoffs::register_end_;
-		pop edx;
-		pop ebx;
-		pop eax;
-		jmp fo::funcoffs::gsound_play_sfx_file_;
+fail:
+		pop  eax;
+		jmp  fo::funcoffs::gsound_play_sfx_file_;
 	}
 }
 
-static const DWORD ScannerHookRet = 0x41BC1D;
+static const DWORD ScannerHookRet  = 0x41BC1D;
 static const DWORD ScannerHookFail = 0x41BC65;
-static void __declspec(naked) ScannerAutomapHook() {
+static void __declspec(naked) automap_hack() {
 	using fo::PID_MOTION_SENSOR;
 	__asm {
-		mov eax, ds:[FO_VAR_obj_dude];
-		mov edx, PID_MOTION_SENSOR;
+		mov  eax, ds:[FO_VAR_obj_dude];
+		mov  edx, PID_MOTION_SENSOR;
 		call fo::funcoffs::inven_pid_is_carried_ptr_;
 		test eax, eax;
-		jz fail;
-		mov edx, eax;
-		jmp ScannerHookRet;
+		jz   fail;
+		mov  edx, eax;
+		jmp  ScannerHookRet;
 fail:
-		jmp ScannerHookFail;
+		jmp  ScannerHookFail;
 	}
 }
 
@@ -185,12 +163,12 @@ static void __declspec(naked) display_stats_hook() {
 	__asm {
 		push eax;
 		push ecx;
-		mov ecx, ds:[esp + edi + 0xA8 + 0xC];   // get itemPtr
-		call GetWeaponSlotMode;                 // ecx - itemPtr, edx - mode;
-		mov edx, eax;
-		pop ecx;
-		pop eax;
-		jmp fo::funcoffs::item_w_range_;
+		mov  ecx, ds:[esp + edi + 0xA8 + 0xC]; // get itemPtr
+		call GetWeaponSlotMode;                // ecx - itemPtr, edx - mode;
+		mov  edx, eax;
+		pop  ecx;
+		pop  eax;
+		jmp  fo::funcoffs::item_w_range_;
 	}
 }
 
@@ -234,19 +212,19 @@ static void __declspec(naked) switch_hand_hack() {
 	__asm {
 		pushfd;
 		test ebx, ebx;
-		jz skip;
-		cmp ebx, edx;
-		jz skip;
+		jz   skip;
+		cmp  ebx, edx;
+		jz   skip;
 		push ecx;
-		mov ecx, eax;
+		mov  ecx, eax;
 		call SwapHandSlots;
-		pop ecx;
+		pop  ecx;
 skip:
 		popfd;
-		jz end;
+		jz   end;
 		retn;
 end:
-		mov dword ptr [esp], 0x4715B7;
+		mov  dword ptr [esp], 0x4715B7;
 		retn;
 	}
 }
@@ -269,26 +247,21 @@ end:
 	}
 }
 
-static const DWORD EncounterTableSize[] = {
-	0x4BD1A3, 0x4BD1D9, 0x4BD270, 0x4BD604, 0x4BDA14, 0x4BDA44, 0x4BE707,
-	0x4C0815, 0x4C0D4A, 0x4C0FD4,
-};
-
 void AdditionalWeaponAnimsPatch() {
 	if (GetConfigInt("Misc", "AdditionalWeaponAnims", 0)) {
 		dlog("Applying additional weapon animations patch.", DL_INIT);
-		SafeWrite8(0x419320, 0x12);
-		HookCall(0x4194CC, WeaponAnimHook);
-		HookCall(0x451648, WeaponAnimHook);
-		HookCall(0x451671, WeaponAnimHook);
+		SafeWrite8(0x419320, 18); // art_get_code_
+		HookCalls(WeaponAnimHook, {
+			0x451648, 0x451671, // gsnd_build_character_sfx_name_
+			0x4194CC            // art_get_name_
+		});
 		dlogr(" Done", DL_INIT);
 	}
 }
 
 void SkilldexImagesPatch() {
-	DWORD tmp;
 	dlog("Checking for changed skilldex images.", DL_INIT);
-	tmp = GetConfigInt("Misc", "Lockpick", 293);
+	long tmp = GetConfigInt("Misc", "Lockpick", 293);
 	if (tmp != 293) {
 		SafeWrite32(0x518D54, tmp);
 	}
@@ -322,15 +295,19 @@ void SkilldexImagesPatch() {
 void ScienceOnCrittersPatch() {
 	switch (GetConfigInt("Misc", "ScienceOnCritters", 0)) {
 	case 1:
-		HookCall(0x41276E, ScienceCritterCheckHook);
+		HookCall(0x41276E, action_use_skill_on_hook_science);
 		break;
 	case 2:
-		SafeWrite8(0x41276A, 0xeb);
+		SafeWrite8(0x41276A, 0xEB);
 		break;
 	}
 }
 
 void BoostScriptDialogLimitPatch() {
+	const DWORD script_dialog_msgs[] = {
+		0x4A50C2, 0x4A5169, 0x4A52FA, 0x4A5302, 0x4A6B86, 0x4A6BE0, 0x4A6C37,
+	};
+
 	if (GetConfigInt("Misc", "BoostScriptDialogLimit", 0)) {
 		const int scriptDialogCount = 10000;
 		dlog("Applying script dialog limit patch.", DL_INIT);
@@ -338,9 +315,7 @@ void BoostScriptDialogLimitPatch() {
 		SafeWrite32(0x4A50E3, scriptDialogCount); // scr_init
 		SafeWrite32(0x4A519F, scriptDialogCount); // scr_game_init
 		SafeWrite32(0x4A534F, scriptDialogCount * 8); // scr_message_free
-		for (int i = 0; i < sizeof(script_dialog_msgs) / 4; i++) {
-			SafeWrite32(script_dialog_msgs[i], (DWORD)scriptDialog); // scr_get_dialog_msg_file
-		}
+		SafeWriteBatch<DWORD>((DWORD)scriptDialog, script_dialog_msgs); // scr_get_dialog_msg_file
 		dlogr(" Done", DL_INIT);
 	}
 }
@@ -361,15 +336,21 @@ void NumbersInDialoguePatch() {
 }
 
 void InstantWeaponEquipPatch() {
+	const DWORD PutAwayWeapon[] = {
+		0x411EA2, // action_climb_ladder_
+		0x412046, // action_use_an_item_on_object_
+		0x41224A, // action_get_an_object_
+		0x4606A5, // intface_change_fid_animate_
+		0x472996, // invenWieldFunc_
+	};
+
 	if (GetConfigInt("Misc", "InstantWeaponEquip", 0)) {
 		//Skip weapon equip/unequip animations
 		dlog("Applying instant weapon equip patch.", DL_INIT);
-		for (int i = 0; i < sizeof(PutAwayWeapon) / 4; i++) {
-			SafeWrite8(PutAwayWeapon[i], 0xEB);   // jmps
-		}
-		BlockCall(0x472AD5);                      //
-		BlockCall(0x472AE0);                      // invenUnwieldFunc_
-		BlockCall(0x472AF0);                      //
+		SafeWriteBatch<BYTE>(0xEB, PutAwayWeapon); // jmps
+		BlockCall(0x472AD5); //
+		BlockCall(0x472AE0); // invenUnwieldFunc_
+		BlockCall(0x472AF0); //
 		MakeJump(0x415238, register_object_take_out_hack);
 		dlogr(" Done", DL_INIT);
 	}
@@ -386,16 +367,15 @@ void DontTurnOffSneakIfYouRunPatch() {
 void PlayIdleAnimOnReloadPatch() {
 	if (GetConfigInt("Misc", "PlayIdleAnimOnReload", 0)) {
 		dlog("Applying idle anim on reload patch.", DL_INIT);
-		HookCall(0x460B8C, ReloadHook);
+		HookCall(0x460B8C, intface_item_reload_hook);
 		dlogr(" Done", DL_INIT);
 	}
 }
 
 void MotionScannerFlagsPatch() {
-	DWORD flags;
-	if (flags = GetConfigInt("Misc", "MotionScannerFlags", 1)) {
+	if (long flags = GetConfigInt("Misc", "MotionScannerFlags", 1)) {
 		dlog("Applying MotionScannerFlags patch.", DL_INIT);
-		if (flags & 1) MakeJump(0x41BBE9, ScannerAutomapHook);
+		if (flags & 1) MakeJump(0x41BBE9, automap_hack);
 		if (flags & 2) {
 			// automap_
 			SafeWrite16(0x41BC24, 0x9090);
@@ -408,14 +388,17 @@ void MotionScannerFlagsPatch() {
 }
 
 void EncounterTableSizePatch() {
+	const DWORD EncounterTableSize[] = {
+		0x4BD1A3, 0x4BD1D9, 0x4BD270, 0x4BD604, 0x4BDA14, 0x4BDA44, 0x4BE707,
+		0x4C0815, 0x4C0D4A, 0x4C0FD4,
+	};
+
 	DWORD tableSize = GetConfigInt("Misc", "EncounterTableSize", 0);
 	if (tableSize > 40 && tableSize <= 127) {
 		dlog("Applying EncounterTableSize patch.", DL_INIT);
 		SafeWrite8(0x4BDB17, (BYTE)tableSize);
 		DWORD nsize = (tableSize + 1) * 180 + 0x50;
-		for (int i = 0; i < sizeof(EncounterTableSize) / 4; i++) {
-			SafeWrite32(EncounterTableSize[i], nsize);
-		}
+		SafeWriteBatch<DWORD>(nsize, EncounterTableSize);
 		dlogr(" Done", DL_INIT);
 	}
 }
@@ -439,13 +422,10 @@ void ObjCanSeeShootThroughPatch() {
 
 static const char* musicOverridePath = "data\\sound\\music\\";
 void OverrideMusicDirPatch() {
-	DWORD overrideMode;
-	if (overrideMode = GetConfigInt("Sound", "OverrideMusicDir", 0)) {
-		SafeWrite32(0x4449C2, (DWORD)musicOverridePath);
-		SafeWrite32(0x4449DB, (DWORD)musicOverridePath);
+	if (long overrideMode = GetConfigInt("Sound", "OverrideMusicDir", 0)) {
+		SafeWriteBatch<DWORD>((DWORD)musicOverridePath, {0x4449C2, 0x4449DB});
 		if (overrideMode == 2) {
-			SafeWrite32(0x518E78, (DWORD)musicOverridePath);
-			SafeWrite32(0x518E7C, (DWORD)musicOverridePath);
+			SafeWriteBatch<DWORD>((DWORD)musicOverridePath, {0x518E78, 0x518E7C});
 		}
 	}
 }
@@ -474,7 +454,7 @@ void RemoveWindowRoundingPatch() {
 }
 
 void InventoryCharacterRotationSpeedPatch() {
-	DWORD setting = GetConfigInt("Misc", "SpeedInventoryPCRotation", 166);
+	long setting = GetConfigInt("Misc", "SpeedInventoryPCRotation", 166);
 	if (setting != 166 && setting <= 1000) {
 		dlog("Applying SpeedInventoryPCRotation patch.", DL_INIT);
 		SafeWrite32(0x47066B, setting);
@@ -483,18 +463,20 @@ void InventoryCharacterRotationSpeedPatch() {
 }
 
 void UIAnimationSpeedPatch() {
-	DWORD addrs[2] = {0x45F9DE, 0x45FB33};
+	DWORD addrs[] = {
+		0x45F9DE, 0x45FB33,
+		0x447DF4, 0x447EB6,
+		0x499B99, 0x499DA8
+	};
 	SimplePatch<WORD>(addrs, 2, "Misc", "CombatPanelAnimDelay", 1000, 0, 65535);
-	addrs[0] = 0x447DF4; addrs[1] = 0x447EB6;
-	SimplePatch<BYTE>(addrs, 2, "Misc", "DialogPanelAnimDelay", 33, 0, 255);
-	addrs[0] = 0x499B99; addrs[1] = 0x499DA8;
-	SimplePatch<BYTE>(addrs, 2, "Misc", "PipboyTimeAnimDelay", 50, 0, 127);
+	SimplePatch<BYTE>(&addrs[2], 2, "Misc", "DialogPanelAnimDelay", 33, 0, 255);
+	SimplePatch<BYTE>(&addrs[4], 2, "Misc", "PipboyTimeAnimDelay", 50, 0, 127);
 }
 
 void MusicInDialoguePatch() {
 	if (GetConfigInt("Misc", "EnableMusicInDialogue", 0)) {
 		dlog("Applying music in dialogue patch.", DL_INIT);
-		SafeWrite8(0x44525B, 0x0);
+		SafeWrite8(0x44525B, 0);
 		//BlockCall(0x450627);
 		dlogr(" Done", DL_INIT);
 	}
@@ -523,7 +505,7 @@ void DisableHorriganPatch() {
 }
 
 void DisplaySecondWeaponRangePatch() {
-	if (GetConfigInt("Misc", "DisplaySecondWeaponRange", 1)) {
+	if (GetConfigInt("Misc", "DisplaySecondWeaponRange", 1)) { // TODO: remove option?
 		dlog("Applying display second weapon range patch.", DL_INIT);
 		HookCall(0x472201, display_stats_hook);
 		dlogr(" Done", DL_INIT);
@@ -581,7 +563,7 @@ void UseWalkDistancePatch() {
 	int distance = GetConfigInt("Misc", "UseWalkDistance", 3) + 2;
 	if (distance > 1 && distance < 5) {
 		dlog("Applying walk distance for using objects patch.", DL_INIT);
-		SafeWriteBatch<BYTE>(distance, walkDistanceAddr); // default is 5
+		SafeWriteBatch<BYTE>(distance, {0x411FF0, 0x4121C4, 0x412475, 0x412906}); // default is 5
 		dlogr(" Done", DL_INIT);
 	}
 }
@@ -596,29 +578,24 @@ void F1EngineBehaviorPatch() {
 }
 
 void MiscPatches::init() {
-	mapName[64] = 0;
 	if (GetConfigString("Misc", "StartingMap", "", mapName, 64)) {
 		dlog("Applying starting map patch.", DL_INIT);
 		SafeWrite32(0x480AAA, (DWORD)&mapName);
 		dlogr(" Done", DL_INIT);
 	}
 
-	versionString[64] = 0;
 	if (GetConfigString("Misc", "VersionString", "", versionString, 64)) {
 		dlog("Applying version string patch.", DL_INIT);
 		SafeWrite32(0x4B4588, (DWORD)&versionString);
 		dlogr(" Done", DL_INIT);
 	}
 
-	configName[64] = 0;
 	if (GetConfigString("Misc", "ConfigFile", "", configName, 64)) {
 		dlog("Applying config file patch.", DL_INIT);
-		SafeWrite32(0x444BA5, (DWORD)&configName);
-		SafeWrite32(0x444BCA, (DWORD)&configName);
+		SafeWriteBatch<DWORD>((DWORD)&configName, {0x444BA5, 0x444BCA});
 		dlogr(" Done", DL_INIT);
 	}
 
-	patchName[64] = 0;
 	if (GetConfigString("Misc", "PatchFile", "", patchName, 64)) {
 		dlog("Applying patch file patch.", DL_INIT);
 		SafeWrite32(0x444323, (DWORD)&patchName);
@@ -640,8 +617,7 @@ void MiscPatches::init() {
 		dlogr(" Done", DL_INIT);
 	}
 
-	int time = GetConfigInt("Misc", "CorpseDeleteTime", 6); // time in days
-	if (time != 6) {
+	if (int time = GetConfigInt("Misc", "CorpseDeleteTime", 6) != 6) { // time in days
 		dlog("Applying corpse deletion time patch.", DL_INIT);
 		if (time <= 0) {
 			time = 12; // hours
@@ -710,9 +686,7 @@ void MiscPatches::init() {
 }
 
 void MiscPatches::exit() {
-	if (scriptDialog != nullptr) {
-		delete[] scriptDialog;
-	}
+	if (scriptDialog) delete[] scriptDialog;
 }
 
 }
