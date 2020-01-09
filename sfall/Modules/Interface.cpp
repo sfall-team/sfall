@@ -462,7 +462,7 @@ static void WorldmapViewportPatch() {
 	dlogr(" Done", DL_INIT);
 }
 
-///////////////////////// FALLOUT 1 WORLDMAP FEATURES //////////////////////////
+///////////////////////// FALLOUT 1 WORLD MAP FEATURES /////////////////////////
 
 enum TerrainHoverImage {
 	width = 100,
@@ -482,12 +482,12 @@ struct DotPosition {
 };
 static std::vector<DotPosition> dots;
 
-static long optionLenDot = 1;
+static long optionLenDot = 2;
 static long optionSpaceDot = 2;
 
 static unsigned char colorDot = 0;
 static long spaceLen = 2;
-static long dotLen = 1;
+static long dotLen = 2;
 static long dot_xpos = 0;
 static long dot_ypos = 0;
 
@@ -694,7 +694,7 @@ static void WorldMapInterfacePatch() {
 		dlog("Applying world map travel markers patch.", DL_INIT);
 		optionLenDot = GetConfigInt("Interface", "TravelMarkerLength", optionLenDot);
 		optionSpaceDot = GetConfigInt("Interface", "TravelMarkerSpaces", optionSpaceDot);
-		int color = GetConfigInt("Interface", "TravelMarkerColor", 133); // color index in palette: R = 252, G = 0, B = 0
+		int color = GetConfigInt("Interface", "TravelMarkerColor", 134); // color index in palette: R = 224, G = 0, B = 0
 
 		if (color > 255) color = 255; else if (color < 1) color = 1;
 		colorDot = color;

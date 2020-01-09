@@ -90,7 +90,7 @@ static void __declspec(naked) action_use_skill_on_hook_science() {
 	__asm {
 		cmp esi, ds:[FO_VAR_obj_dude];
 		jne end;
-		mov eax, robot_type; // KillType
+		mov eax, KILL_TYPE_robot;
 		retn;
 end:
 		jmp fo::funcoffs::critter_kill_count_type_;

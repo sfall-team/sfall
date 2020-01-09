@@ -648,26 +648,26 @@ enum BodyType : long
 
 enum KillType : long
 {
-	men_type                  = 0,
-	women_type                = 1,
-	children_type             = 2,
-	super_mutant_type         = 3,
-	ghoul_type                = 4,
-	brahmin_type              = 5,
-	radscorpion_type          = 6,
-	rat_type                  = 7,
-	floater_type              = 8,
-	centaur_type              = 9,
-	robot_type                = 10,
-	dog_type                  = 11,
-	manti_type                = 12,
-	deathclaw_type            = 13,
-	plant_type                = 14,
-	gecko_type                = 15,
-	alien_type                = 16,
-	giant_ant_type            = 17,
-	big_boss_type             = 18,
-	count
+	KILL_TYPE_men             = 0,
+	KILL_TYPE_women           = 1,
+	KILL_TYPE_children        = 2,
+	KILL_TYPE_super_mutant    = 3,
+	KILL_TYPE_ghoul           = 4,
+	KILL_TYPE_brahmin         = 5,
+	KILL_TYPE_radscorpion     = 6,
+	KILL_TYPE_rat             = 7,
+	KILL_TYPE_floater         = 8,
+	KILL_TYPE_centaur         = 9,
+	KILL_TYPE_robot           = 10,
+	KILL_TYPE_dog             = 11,
+	KILL_TYPE_manti           = 12,
+	KILL_TYPE_deathclaw       = 13,
+	KILL_TYPE_plant           = 14,
+	KILL_TYPE_gecko           = 15,
+	KILL_TYPE_alien           = 16,
+	KILL_TYPE_giant_ant       = 17,
+	KILL_TYPE_big_bad_boss    = 18,
+	KILL_TYPE_count
 };
 
 #define PLAYER_ID             (18000)

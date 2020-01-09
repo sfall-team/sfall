@@ -26,13 +26,14 @@
 
 namespace sfall
 {
+
 using namespace fo;
 using namespace Fields;
 
-typedef std::unordered_map<DWORD, DWORD>::const_iterator iter;
+typedef std::unordered_map<fo::GameObject*, fo::GameObject*>::const_iterator iter;
 
-static std::unordered_map<DWORD, DWORD> targets;
-static std::unordered_map<DWORD, DWORD> sources;
+static std::unordered_map<fo::GameObject*, fo::GameObject*> targets;
+static std::unordered_map<fo::GameObject*, fo::GameObject*> sources;
 
 static void __declspec(naked) ai_try_attack_hook_FleeFix() {
 	__asm {
@@ -85,11 +86,80 @@ static void __declspec(naked) ai_check_drugs_hook() {
 	}
 }
 
+static bool __fastcall TargetExistInList(fo::GameObject* target, fo::GameObject** targetList) {
+	char i = 4;
+	do {
+		if (*targetList == target) return true;
+		targetList++;
+	} while (--i);
+	return false;
+}
+
+static void __declspec(naked) ai_find_attackers_hack_target2() {
+	__asm {
+		mov  edi, [esp + 0x24 - 0x24 + 4] // critter (target)
+		pushadc;
+		lea  edx, [ebp - 4]; // start list of targets
+		mov  ecx, edi;
+		call TargetExistInList;
+		test al, al;
+		popadc;
+		jnz  skip;
+		inc  edx;
+		mov  [ebp], edi;
+skip:
+		retn;
+	}
+}
+
+static void __declspec(naked) ai_find_attackers_hack_target3() {
+	__asm {
+		mov  edi, [esp + 0x24 - 0x20 + 4] // critter (target)
+		push eax;
+		push edx;
+		mov  eax, 4; // count targets
+		lea  edx, [ebp - 4 * 2]; // start list of targets
+continue:
+		cmp  edi, [edx];
+		je   break;          // target == targetList
+		lea  edx, [edx + 4]; // next target in list
+		dec  al;
+		jnz  continue;
+break:
+		test al, al;
+		pop  edx;
+		pop  eax;
+		jz   skip;
+		xor  edi, edi;
+		retn;
+skip:
+		inc  edx;
+		retn;
+	}
+}
+
+static void __declspec(naked) ai_find_attackers_hack_target4() {
+	__asm {
+		mov  eax, [ecx + eax]; // critter (target)
+		pushadc;
+		lea  edx, [esi - 4 * 3]; // start list of targets
+		mov  ecx, eax;
+		call TargetExistInList;
+		test al, al;
+		popadc;
+		jnz  skip;
+		inc  edx;
+		mov  [esi], eax;
+skip:
+		retn;
+	}
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 
-static DWORD RetryCombatLastAP;
 static DWORD RetryCombatMinAP;
 static void __declspec(naked) RetryCombatHook() {
+	static DWORD RetryCombatLastAP = 0;
 	__asm {
 		mov  RetryCombatLastAP, 0;
 retry:
@@ -116,13 +186,13 @@ end:
 
 ////////////////////////////////////////////////////////////////////////////////
 
-static void __fastcall CombatAttackHook(DWORD source, DWORD target) {
-	sources[target] = source;
-	targets[source] = target;
+static void __fastcall CombatAttackHook(fo::GameObject* source, fo::GameObject* target) {
+	sources[target] = source; // who attacked the 'target' from the last time
+	targets[source] = target; // who was attacked by the 'source' from the last time
 }
 
 static void __declspec(naked) combat_attack_hook() {
-	_asm {
+	__asm {
 		push ecx;
 		push edx;
 		push eax;
@@ -136,7 +206,7 @@ static void __declspec(naked) combat_attack_hook() {
 }
 
 static DWORD combatDisabled;
-void _stdcall AIBlockCombat(DWORD i) {
+void __stdcall AIBlockCombat(DWORD i) {
 	combatDisabled = i ? 1 : 0;
 }
 
@@ -183,10 +253,10 @@ end:
 }
 
 void AI::init() {
-	//HookCall(0x42AE1D, ai_attack_hook);
-	//HookCall(0x42AE5C, ai_attack_hook);
-	HookCall(0x426A95, combat_attack_hook);  // combat_attack_this_
-	HookCall(0x42A796, combat_attack_hook);  // ai_attack_
+	HookCalls(combat_attack_hook, {
+		0x426A95, // combat_attack_this_
+		0x42A796  // ai_attack_
+	});
 
 	MakeJump(0x45F6AF, BlockCombatHook1);    // intface_use_item_
 	HookCall(0x4432A6, BlockCombatHook2);    // game_handle_input_
@@ -211,14 +281,19 @@ void AI::init() {
 	HookCalls(ai_try_attack_hook_FleeFix, {0x42ABA8, 0x42ACE5});
 	// Disable fleeing when NPC cannot move closer to target
 	BlockCall(0x42ADF6); // ai_try_attack_
+
+	// Fix for duplicate critters being added to the list of potential targets for AI
+	MakeCall(0x428E75, ai_find_attackers_hack_target2, 2);
+	MakeCall(0x428EB5, ai_find_attackers_hack_target3);
+	MakeCall(0x428EE5, ai_find_attackers_hack_target4, 1);
 }
 
-DWORD _stdcall AIGetLastAttacker(DWORD target) {
+fo::GameObject* _stdcall AIGetLastAttacker(fo::GameObject* target) {
 	iter itr = sources.find(target);
-	return (itr != sources.end()) ? itr->second: 0;
+	return (itr != sources.end()) ? itr->second : 0;
 }
 
-DWORD _stdcall AIGetLastTarget(DWORD source) {
+fo::GameObject* _stdcall AIGetLastTarget(fo::GameObject* source) {
 	iter itr = targets.find(source);
 	return (itr != targets.end()) ? itr->second : 0;
 }

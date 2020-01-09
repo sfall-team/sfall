@@ -36,10 +36,10 @@ inline void DisplayPrint(const std::string& str) {
 }
 
 // returns message string from given file or "Error" when not found
-const char* _stdcall GetMessageStr(const MessageList* fileAddr, long messageId);
+const char* GetMessageStr(const MessageList* fileAddr, long messageId);
 
 // similar to GetMessageStr, but returns nullptr when no message is found
-const char* _stdcall MessageSearch(const MessageList* fileAddr, long messageId);
+const char* MessageSearch(const MessageList* fileAddr, long messageId);
 
 // returns pointer to prototype by PID, or nullptr on failure
 Proto* GetProto(long pid);
@@ -79,6 +79,8 @@ long GetScriptLocalVars(long sid);
 long __fastcall GetTopWindowID(long xPos, long yPos);
 
 void GetObjectsTileRadius(std::vector<fo::GameObject*> &objs, long sourceTile, long radius, long elev, long type);
+
+long wmGetCurrentTerrainType();
 
 const char* wmGetCurrentTerrainName();
 

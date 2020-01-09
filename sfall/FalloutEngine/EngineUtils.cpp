@@ -16,7 +16,6 @@
 * along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <cassert>
 #include <stdint.h>
 
 #include "Functions.h"
@@ -33,11 +32,11 @@ namespace fo
 
 static MessageNode messageBuf;
 
-const char* _stdcall GetMessageStr(const MessageList* fileAddr, long messageId) {
+const char* GetMessageStr(const MessageList* fileAddr, long messageId) {
 	return fo::func::getmsg(fileAddr, &messageBuf, messageId);
 }
 
-const char* _stdcall MessageSearch(const MessageList* fileAddr, long messageId) {
+const char* MessageSearch(const MessageList* fileAddr, long messageId) {
 	messageBuf.number = messageId;
 	if (fo::func::message_search(fileAddr, &messageBuf) == 1) {
 		return messageBuf.message;
@@ -212,8 +211,8 @@ void GetObjectsTileRadius(std::vector<fo::GameObject*> &objs, long sourceTile, l
 	}
 }
 
-// Returns the name of the terrain type in the position of the player's marker on the world map
-const char* wmGetCurrentTerrainName() {
+// Returns the type of the terrain sub tile at the the player's position on the world map
+long wmGetCurrentTerrainType() {
 	long* terrainId = *(long**)FO_VAR_world_subtile;
 	if (terrainId == nullptr) {
 		__asm {
@@ -223,7 +222,12 @@ const char* wmGetCurrentTerrainName() {
 			call fo::funcoffs::wmFindCurSubTileFromPos_;
 		}
 	}
-	return GetMessageStr(&fo::var::wmMsgFile, 1000 + *terrainId);
+	return *terrainId;
+}
+
+// Returns the name of the terrain type at the the player's position on the world map
+const char* wmGetCurrentTerrainName() {
+	return GetMessageStr(&fo::var::wmMsgFile, 1000 + wmGetCurrentTerrainType());
 }
 
 //---------------------------------------------------------
