@@ -16,11 +16,15 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#pragma once
+
+#include "FalloutEngine.h"
+
 void AIInit();
 void _stdcall AICombatStart();
 void _stdcall AICombatEnd();
 
-DWORD _stdcall AIGetLastAttacker(DWORD target);
-DWORD _stdcall AIGetLastTarget(DWORD source);
+TGameObj* _stdcall AIGetLastAttacker(TGameObj* target);
+TGameObj* _stdcall AIGetLastTarget(TGameObj* source);
 
 void _stdcall AIBlockCombat(DWORD i);

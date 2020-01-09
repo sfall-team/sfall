@@ -743,7 +743,7 @@ void __declspec(naked) DevPrintf(const char* fmt, ...) {
 	__asm jmp debug_printf_;
 }
 #else
-void DevPrintf(const char* fmt, ...) {}
+void DevPrintf(...) {}
 #endif
 
 // Fallout2.exe was compiled using WATCOM compiler, which uses Watcom register calling convention.

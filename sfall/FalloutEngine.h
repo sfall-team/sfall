@@ -1018,7 +1018,11 @@ extern const DWORD xvfprintf_;
 // TODO: move these to different namespace
 
 // Prints debug message to debug.log file for develop build
+#ifndef NDEBUG
 void DevPrintf(const char* fmt, ...);
+#else
+void DevPrintf(...);
+#endif
 
 long __stdcall ItemGetType(TGameObj* item);
 long __stdcall ItemSize(TGameObj* item);

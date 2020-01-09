@@ -57,7 +57,7 @@ struct TGameObj {
 	long itemCharges;
 	long critterAP_weaponAmmoPid;
 	char gap_44[16];
-	long whoHitMe;
+	TGameObj* whoHitMe;
 	char gap_58[12];
 	DWORD pid;
 	long cid;
