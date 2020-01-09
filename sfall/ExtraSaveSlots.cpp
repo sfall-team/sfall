@@ -22,7 +22,6 @@
 #include "FalloutEngine.h"
 
 #include "ExtraSaveSlots.h"
-#include "HeroAppearance.h"
 
 //extern
 DWORD LSPageOffset = 0;
@@ -120,7 +119,7 @@ void SetPageNum() {
 	if (winRef == 0) {
 		return;
 	}
-	WINinfo *SaveLoadWin = GetWinStruct(winRef);
+	WINinfo *SaveLoadWin = GNWFind(winRef);
 	if (SaveLoadWin->surface == nullptr) {
 		return;
 	}
@@ -167,7 +166,7 @@ void SetPageNum() {
 			WinDraw(winRef);
 		}
 
-		button = check_buttons();
+		button = GetInputBtn();
 		if (button >= '0' && button <= '9') {
 			if (numpos < 4) {
 				Number[numpos] = button;
@@ -264,7 +263,7 @@ void DrawPageText() {
 	if (*ptr_lsgwin == 0) {
 		return;
 	}
-	WINinfo *SaveLoadWin = GetWinStruct(*ptr_lsgwin);
+	WINinfo *SaveLoadWin = GNWFind(*ptr_lsgwin);
 	if (SaveLoadWin->surface == nullptr) {
 		return;
 	}

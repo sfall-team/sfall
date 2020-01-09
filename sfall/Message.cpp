@@ -49,21 +49,6 @@ const MSGList* gameMsgFiles[] = {
 
 ExtraGameMessageListsMap gExtraGameMsgLists;
 
-long __stdcall LoadMsgList(MSGList *msgList, const char *msgFilePath) {
-	__asm {
-		mov  edx, msgFilePath;
-		mov  eax, msgList;
-		call message_load_;
-	}
-}
-
-long __stdcall DestroyMsgList(MSGList *msgList) {
-	__asm {
-		mov  eax, msgList;
-		call message_exit_;
-	}
-}
-
 // Loads the msg file from the 'english' folder if it does not exist in the current language directory
 static void __declspec(naked) message_load_hook() {
 	__asm {

@@ -18,12 +18,6 @@
 
 #pragma once
 
-WINinfo* __stdcall GetWinStruct(long winRef);
-void PrintText(char* displayText, BYTE colorIndex, DWORD xPos, DWORD yPos, DWORD txtWidth, DWORD toWidth, BYTE* toSurface);
-DWORD __stdcall GetTextWidth(const char *TextMsg);
-DWORD GetMaxCharWidth();
-long __stdcall check_buttons();
-
 void HeroAppearanceModInit();
 void HeroAppearanceModExit();
 

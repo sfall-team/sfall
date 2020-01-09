@@ -1031,18 +1031,16 @@ long __stdcall ItemWeight(TGameObj* item);
 long __stdcall IsPartyMember(TGameObj* obj);
 long __stdcall PartyMemberGetCurrentLevel(TGameObj* obj);
 
-char* GetProtoPtr(long pid);
-char AnimCodeByWeapon(TGameObj* weapon);
-
 // prints message to debug.log file
 void __declspec() DebugPrintf(const char* fmt, ...);
 
 // Displays message in main UI console window
 void __stdcall DisplayConsoleMessage(const char* msg);
 
-const char* __stdcall GetMessageStr(const MSGList* fileAddr, long messageId);
+long __stdcall GetInputBtn();
 
-const char* __stdcall MsgSearch(const MSGList* fileAddr, long messageId);
+// plays SFX sound with given name
+void __stdcall PlaySfx(const char* name);
 
 // Returns the name of the critter
 const char* __stdcall CritterName(TGameObj* critter);
@@ -1100,23 +1098,10 @@ long __stdcall ScrNew(long* scriptID, long sType);
 
 long __stdcall ScrRemove(long scriptID);
 
-// Returns the number of local variables of the object script
-long GetScriptLocalVars(long sid);
-
-long __fastcall GetTopWindowID(long xPos, long yPos);
-
-void GetObjectsTileRadius(std::vector<TGameObj*> &objs, long sourceTile, long radius, long elev, long type);
-
 void __fastcall RegisterObjectCall(long* target, long* source, void* func, long delay);
 
 long __fastcall ScrGetLocalVar(long sid, long varId, long* value);
 long __fastcall ScrSetLocalVar(long sid, long varId, long value);
-
-// wrapper for skill_get_tags with bounds checking
-void SkillGetTags(long* result, long num);
-
-// wrapper for skill_set_tags with bounds checking
-void SkillSetTags(long* tags, long num);
 
 // redraws the main game interface windows (useful after changing some data like active hand, etc.)
 void __stdcall InterfaceRedraw();
@@ -1131,8 +1116,6 @@ TGameObj* __stdcall InvenLeftHand(TGameObj* critter);
 
 // item in critter's right hand slot
 TGameObj* __stdcall InvenRightHand(TGameObj* critter);
-
-__declspec(noinline) TGameObj* __stdcall GetItemPtrSlot(TGameObj* critter, long slot);
 
 // pops value type from Data stack (must be followed by InterpretPopLong)
 DWORD __stdcall InterpretPopShort(TProgram* scriptPtr);
@@ -1177,9 +1160,12 @@ long __fastcall GetGameConfigString(const char* outValue, const char* section, c
 
 long __fastcall WordWrap(const char* text, int maxWidth, DWORD* buf, BYTE* count);
 
+WINinfo* __stdcall GNWFind(long winRef);
+
 DWORD __stdcall WinAdd(long x, long y, long width, long height, long bgColorIndex, long flags);
 void __stdcall WinShow(DWORD winRef);
 void __stdcall WinHide(DWORD winRef);
+BYTE* __stdcall WinGetBuf(DWORD winRef);
 void __stdcall WinDraw(DWORD winRef);
 void __stdcall WinDelete(DWORD winRef);
 
@@ -1219,6 +1205,10 @@ TGameObj* __fastcall ObjBlockingAt(TGameObj* object, long tile, long elevation);
 
 long __fastcall ObjNewSidInst(TGameObj* object, long sType, long scriptIndex);
 
+long __stdcall LoadMsgList(MSGList *msgList, const char *msgFilePath);
+
+long __stdcall DestroyMsgList(MSGList *msgList);
+
 long __fastcall TileNum(long x, long y);
 
 long __fastcall TileNumInDirection(long tile, long rotation, long distance);
@@ -1254,3 +1244,47 @@ long __fastcall MouseClickIn(long x, long y, long x_end, long y_end);
 const char* __stdcall ArtGetName(long artFID);
 
 long __stdcall LoadFrame(const char* filename, FrmFile** frmPtr);
+
+///////////////////////////////// ENGINE UTILS /////////////////////////////////
+
+// returns message string from given file or "Error" when not found
+const char* __stdcall GetMessageStr(const MSGList* fileAddr, long messageId);
+
+// similar to GetMessageStr, but returns nullptr when no message is found
+const char* __stdcall MsgSearch(const MSGList* fileAddr, long messageId);
+
+// returns pointer to prototype by PID, or nullptr on failure
+char* GetProtoPtr(long pid);
+
+// returns weapon animation code
+char AnimCodeByWeapon(TGameObj* weapon);
+
+// wrapper for skill_get_tags with bounds checking
+void SkillGetTags(long* result, long num);
+
+// wrapper for skill_set_tags with bounds checking
+void SkillSetTags(long* tags, long num);
+
+__declspec(noinline) TGameObj* __stdcall GetItemPtrSlot(TGameObj* critter, long slot);
+
+// Returns the number of local variables of the object script
+long GetScriptLocalVars(long sid);
+
+long __fastcall GetTopWindowID(long xPos, long yPos);
+
+void GetObjectsTileRadius(std::vector<TGameObj*> &objs, long sourceTile, long radius, long elev, long type);
+
+// Print text to surface
+void PrintText(char* displayText, BYTE colorIndex, DWORD xPos, DWORD yPos, DWORD txtWidth, DWORD toWidth, BYTE* toSurface);
+// gets the height of the currently selected font
+DWORD GetTextHeight();
+// gets the length of a string using the currently selected font
+DWORD __stdcall GetTextWidth(const char *TextMsg);
+// get width of Char for current font
+DWORD GetCharWidth(char charVal);
+// get maximum string length for current font - if all characters were maximum width
+DWORD GetMaxTextWidth(char *textMsg);
+// get number of pixels between characters for current font
+DWORD GetCharGapWidth();
+// get maximum character width for current font
+DWORD GetMaxCharWidth();

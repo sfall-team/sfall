@@ -25,9 +25,6 @@ typedef std::tr1::unordered_map<int, MSGList*> ExtraGameMessageListsMap;
 extern ExtraGameMessageListsMap gExtraGameMsgLists;
 extern const MSGList* gameMsgFiles[];
 
-long __stdcall LoadMsgList(MSGList *msgList, const char *msgFilePath);
-long __stdcall DestroyMsgList(MSGList *msgList);
-
 MSGNode* GetMsgNode(MSGList* msgList, int msgRef);
 char* GetMsg(MSGList* msgList, int msgRef, int msgNum);
 

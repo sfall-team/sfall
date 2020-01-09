@@ -25,7 +25,6 @@
 #include "ScriptExtender.h"
 #include "ScriptArrays.hpp"
 #include "Arrays.h"
-#include "HeroAppearance.h"
 #include "Message.h"
 
 // compares strings case-insensitive with specifics for Fallout

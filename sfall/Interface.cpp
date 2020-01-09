@@ -18,7 +18,6 @@
 
 #include "main.h"
 #include "FalloutEngine.h"
-#include "HeroAppearance.h"
 
 static long costAP = -1;
 static void __declspec(naked) intface_redraw_items_hack0() {
@@ -222,7 +221,7 @@ static long __stdcall gmouse_handle_event_hook() {
 	}
 	if (IFACE_BAR_MODE) return 1;
 	// if IFACE_BAR_MODE is not enabled, check the display_win window area
-	win = GetWinStruct(*(DWORD*)_display_win);
+	win = GNWFind(*(DWORD*)_display_win);
 	RECT *rect = &win->wRect;
 	return MouseClickIn(rect->left, rect->top, rect->right, rect->bottom); // 1 - click in the display_win area
 }

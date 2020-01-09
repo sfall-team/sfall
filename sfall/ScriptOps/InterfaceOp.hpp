@@ -20,7 +20,6 @@
 
 #include "main.h"
 
-#include "HeroAppearance.h"
 #include "input.h"
 #include "LoadGameHook.h"
 #include "ScriptExtender.h"
@@ -461,7 +460,7 @@ static void sf_set_window_flag() {
 		for (size_t i = 0; i < 16; i++) {
 			sWin = *(sWindow*)&ptr_sWindows[i * 23]; // sWindow struct = 92 bytes
 			if (_stricmp(name, sWin.name) == 0) {
-				WINinfo* win = GetWinStruct(sWin.wID);
+				WINinfo* win = GNWFind(sWin.wID);
 				if (mode) {
 					sWin.flags |= bitFlag;
 					win->flags |= bitFlag;
@@ -475,7 +474,7 @@ static void sf_set_window_flag() {
 		opHandler.printOpcodeError("set_window_flag() - window '%s' is not found.", name);
 	} else {
 		long wid = opHandler.arg(0).rawValue();
-		WINinfo* win = GetWinStruct((wid > 0) ? wid : *ptr_i_wid); // i_wid - set flag to current game interface window
+		WINinfo* win = GNWFind((wid > 0) ? wid : *ptr_i_wid); // i_wid - set flag to current game interface window
 		if (win == nullptr) return;
 		if (mode) {
 			win->flags |= bitFlag;

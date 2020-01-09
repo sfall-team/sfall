@@ -43,7 +43,6 @@
 #include "Perks.h"
 #include "ScriptExtender.h"
 #include "Skills.h"
-#include "Sound.h"
 #include "Stats.h"
 #include "TalkingHeads.h"
 #include "version.h"

@@ -831,31 +831,6 @@ long __stdcall PartyMemberGetCurrentLevel(TGameObj* obj) {
 	WRAP_WATCOM_CALL1(partyMemberGetCurLevel_, obj)
 }
 
-char* GetProtoPtr(long pid) {
-	char* proto;
-	long result;
-	__asm {
-		mov  eax, pid;
-		lea  edx, proto;
-		call proto_ptr_;
-		mov  result, eax;
-	}
-	if (result != -1) {
-		return proto;
-	}
-	return nullptr;
-}
-
-char AnimCodeByWeapon(TGameObj* weapon) {
-	if (weapon != nullptr) {
-		char* proto = GetProtoPtr(weapon->pid);
-		if (proto != nullptr && *(int*)(proto + 32) == item_type_weapon) {
-			return (char)(*(int*)(proto + 36));
-		}
-	}
-	return 0;
-}
-
 // prints message to debug.log file
 void __declspec(naked) DebugPrintf(const char* fmt, ...) {
 	__asm jmp debug_printf_;
@@ -866,30 +841,12 @@ void __stdcall DisplayConsoleMessage(const char* msg) {
 	WRAP_WATCOM_CALL1(display_print_, msg)
 }
 
-static MSGNode messageBuf;
-
-const char* __stdcall GetMessageStr(const MSGList* fileAddr, long messageId) {
-	const char* result;
-	__asm {
-		lea  edx, messageBuf;
-		mov  ebx, messageId;
-		mov  eax, fileAddr;
-		call getmsg_;
-		mov  result, eax;
-	}
-	return result;
+long __stdcall GetInputBtn() {
+	WRAP_WATCOM_CALL0(get_input_)
 }
 
-const char* __stdcall MsgSearch(const MSGList* fileAddr, long messageId) {
-	messageBuf.number = messageId;
-	long result;
-	__asm {
-		lea  edx, messageBuf;
-		mov  eax, fileAddr;
-		call message_search_;
-		mov  result, eax;
-	}
-	return (result == 1) ? messageBuf.message : nullptr;
+void __stdcall PlaySfx(const char* name) {
+	WRAP_WATCOM_CALL1(gsound_play_sfx_file_, name)
 }
 
 // Returns the name of the critter
@@ -979,16 +936,6 @@ long __stdcall XFSeek(DbFile* file, long fOffset, long origin) {
 	WRAP_WATCOM_CALL3(xfseek_, file, fOffset, origin)
 }
 
-void SkillGetTags(long* result, long num) {
-	if (num > 4) num = 4;
-	WRAP_WATCOM_CALL2(skill_get_tags_, result, num)
-}
-
-void SkillSetTags(long* tags, long num) {
-	if (num > 4) num = 4;
-	WRAP_WATCOM_CALL2(skill_set_tags_, tags, num)
-}
-
 TGameObj* __stdcall ScrFindObjFromProgram(TProgram* program) {
 	WRAP_WATCOM_CALL1(scr_find_obj_from_program_, program)
 }
@@ -1005,44 +952,6 @@ long __stdcall ScrNew(long* scriptID, long sType) {
 
 long __stdcall ScrRemove(long scriptID) {
 	WRAP_WATCOM_CALL1(scr_remove_, scriptID)
-}
-
-// Returns the number of local variables of the object script
-long GetScriptLocalVars(long sid) {
-	TScript* script = nullptr;
-	ScrPtr(sid, &script);
-	return (script) ? script->num_local_vars : 0;
-}
-
-// Returns window ID by x/y coordinate (hidden windows are ignored)
-long __fastcall GetTopWindowID(long xPos, long yPos) {
-	WINinfo* win = nullptr;
-	long countWin = *(DWORD*)_num_windows - 1;
-	for (int n = countWin; n >= 0; n--) {
-		win = (WINinfo*)ptr_window[n];
-		if (xPos >= win->wRect.left && xPos <= win->wRect.right && yPos >= win->wRect.top && yPos <= win->wRect.bottom) {
-			if (!(win->flags & WIN_Hidden)) {
-				break;
-			}
-		}
-	}
-	return win->wID;
-}
-
-// Returns an array of objects within the specified radius from the source tile
-void GetObjectsTileRadius(std::vector<TGameObj*> &objs, long sourceTile, long radius, long elev, long type = -1) {
-	for (long tile = 0; tile < 40000; tile++) {
-		TGameObj* obj = ObjFindFirstAtTile(elev, tile);
-		while (obj) {
-			if (type == -1 || type == obj->pid >> 24) {
-				bool multiHex = (obj->flags & 0x800) ? true : false;
-				if (TileDist(sourceTile, obj->tile) <= (radius + multiHex)) {
-					objs.push_back(obj);
-				}
-			}
-			obj = ObjFindNextAtTile();
-		}
-	}
 }
 
 void __fastcall RegisterObjectCall(long* target, long* source, void* func, long delay) {
@@ -1118,22 +1027,6 @@ TGameObj* __stdcall InvenLeftHand(TGameObj* critter) {
 // item in critter's right hand slot
 TGameObj* __stdcall InvenRightHand(TGameObj* critter) {
 	WRAP_WATCOM_CALL1(inven_right_hand_, critter)
-}
-
-__declspec(noinline) TGameObj* __stdcall GetItemPtrSlot(TGameObj* critter, long slot) {
-	TGameObj* itemPtr = nullptr;
-	switch (slot) {
-		case INVEN_TYPE_LEFT_HAND:
-			itemPtr = InvenLeftHand(critter);
-			break;
-		case INVEN_TYPE_RIGHT_HAND:
-			itemPtr = InvenRightHand(critter);
-			break;
-		case INVEN_TYPE_WORN:
-			itemPtr = InvenWorn(critter);
-			break;
-	}
-	return itemPtr;
 }
 
 void* __stdcall MemRealloc(void* lpmem, DWORD msize) {
@@ -1244,6 +1137,10 @@ long __fastcall WordWrap(const char* text, int maxWidth, DWORD* buf, BYTE* count
 	WRAP_WATCOM_FCALL4(_word_wrap_, text, maxWidth, buf, count)
 }
 
+WINinfo* __stdcall GNWFind(long winRef) {
+	WRAP_WATCOM_CALL1(GNW_find_, winRef)
+}
+
 DWORD __stdcall WinAdd(long x, long y, long width, long height, long bgColorIndex, long flags) {
 	WRAP_WATCOM_CALL6(win_add_, x, y, width, height, bgColorIndex, flags)
 }
@@ -1254,6 +1151,10 @@ void __stdcall WinShow(DWORD winRef) {
 
 void __stdcall WinHide(DWORD winRef) {
 	WRAP_WATCOM_CALL1(win_hide_, winRef)
+}
+
+BYTE* __stdcall WinGetBuf(DWORD winRef) {
+	WRAP_WATCOM_CALL1(win_get_buf_, winRef)
 }
 
 void __stdcall WinDraw(DWORD winRef) {
@@ -1340,6 +1241,14 @@ long __fastcall ObjNewSidInst(TGameObj* object, long sType, long scriptIndex) {
 	WRAP_WATCOM_FCALL3(obj_new_sid_inst_, object, sType, scriptIndex)
 }
 
+long __stdcall LoadMsgList(MSGList *msgList, const char *msgFilePath) {
+	WRAP_WATCOM_CALL2(message_load_, msgList, msgFilePath)
+}
+
+long __stdcall DestroyMsgList(MSGList *msgList) {
+	WRAP_WATCOM_CALL1(message_exit_, msgList)
+}
+
 long __fastcall TileNum(long x, long y) {
 	__asm push ebx; // don't delete (bug in tile_num_)
 	WRAP_WATCOM_FCALL2(tile_num_, x, y)
@@ -1420,4 +1329,204 @@ const char* __stdcall ArtGetName(long artFID) {
 
 long __stdcall LoadFrame(const char* filename, FrmFile** frmPtr) {
 	WRAP_WATCOM_CALL2(load_frame_, filename, frmPtr)
+}
+
+///////////////////////////////// ENGINE UTILS /////////////////////////////////
+
+static MSGNode messageBuf;
+
+const char* __stdcall GetMessageStr(const MSGList* fileAddr, long messageId) {
+	const char* result;
+	__asm {
+		mov  ebx, messageId;
+		lea  edx, messageBuf;
+		mov  eax, fileAddr;
+		call getmsg_;
+		mov  result, eax;
+	}
+	return result;
+}
+
+const char* __stdcall MsgSearch(const MSGList* fileAddr, long messageId) {
+	messageBuf.number = messageId;
+	long result;
+	__asm {
+		lea  edx, messageBuf;
+		mov  eax, fileAddr;
+		call message_search_;
+		mov  result, eax;
+	}
+	return (result == 1) ? messageBuf.message : nullptr;
+}
+
+char* GetProtoPtr(long pid) {
+	char* proto;
+	long result;
+	__asm {
+		mov  eax, pid;
+		lea  edx, proto;
+		call proto_ptr_;
+		mov  result, eax;
+	}
+	if (result != -1) {
+		return proto;
+	}
+	return nullptr;
+}
+
+char AnimCodeByWeapon(TGameObj* weapon) {
+	if (weapon != nullptr) {
+		char* proto = GetProtoPtr(weapon->pid);
+		if (proto != nullptr && *(int*)(proto + 32) == item_type_weapon) {
+			return (char)(*(int*)(proto + 36));
+		}
+	}
+	return 0;
+}
+
+void SkillGetTags(long* result, long num) {
+	if (num > 4) num = 4;
+	WRAP_WATCOM_CALL2(skill_get_tags_, result, num)
+}
+
+void SkillSetTags(long* tags, long num) {
+	if (num > 4) num = 4;
+	WRAP_WATCOM_CALL2(skill_set_tags_, tags, num)
+}
+
+__declspec(noinline) TGameObj* __stdcall GetItemPtrSlot(TGameObj* critter, long slot) {
+	TGameObj* itemPtr = nullptr;
+	switch (slot) {
+		case INVEN_TYPE_LEFT_HAND:
+			itemPtr = InvenLeftHand(critter);
+			break;
+		case INVEN_TYPE_RIGHT_HAND:
+			itemPtr = InvenRightHand(critter);
+			break;
+		case INVEN_TYPE_WORN:
+			itemPtr = InvenWorn(critter);
+			break;
+	}
+	return itemPtr;
+}
+
+// Returns the number of local variables of the object script
+long GetScriptLocalVars(long sid) {
+	TScript* script = nullptr;
+	ScrPtr(sid, &script);
+	return (script) ? script->num_local_vars : 0;
+}
+
+// Returns window ID by x/y coordinate (hidden windows are ignored)
+long __fastcall GetTopWindowID(long xPos, long yPos) {
+	WINinfo* win = nullptr;
+	long countWin = *(DWORD*)_num_windows - 1;
+	for (int n = countWin; n >= 0; n--) {
+		win = (WINinfo*)ptr_window[n];
+		if (xPos >= win->wRect.left && xPos <= win->wRect.right && yPos >= win->wRect.top && yPos <= win->wRect.bottom) {
+			if (!(win->flags & WIN_Hidden)) {
+				break;
+			}
+		}
+	}
+	return win->wID;
+}
+
+// Returns an array of objects within the specified radius from the source tile
+void GetObjectsTileRadius(std::vector<TGameObj*> &objs, long sourceTile, long radius, long elev, long type = -1) {
+	for (long tile = 0; tile < 40000; tile++) {
+		TGameObj* obj = ObjFindFirstAtTile(elev, tile);
+		while (obj) {
+			if (type == -1 || type == obj->pid >> 24) {
+				bool multiHex = (obj->flags & 0x800) ? true : false;
+				if (TileDist(sourceTile, obj->tile) <= (radius + multiHex)) {
+					objs.push_back(obj);
+				}
+			}
+			obj = ObjFindNextAtTile();
+		}
+	}
+}
+
+//---------------------------------------------------------
+// print text to surface
+void PrintText(char* displayText, BYTE colorIndex, DWORD xPos, DWORD yPos, DWORD txtWidth, DWORD toWidth, BYTE* toSurface) {
+	DWORD posOffset = yPos * toWidth + xPos;
+	__asm {
+		xor  eax, eax;
+		mov  al, colorIndex;
+		mov  edx, displayText;
+		push eax;
+		mov  ebx, txtWidth;
+		mov  eax, toSurface;
+		mov  ecx, toWidth;
+		add  eax, posOffset;
+		call dword ptr ds:[_text_to_buf];
+	}
+}
+
+//---------------------------------------------------------
+//gets the height of the currently selected font
+DWORD GetTextHeight() {
+	DWORD TxtHeight;
+	__asm {
+		call dword ptr ds:[_text_height]; //get text height
+		mov  TxtHeight, eax;
+	}
+	return TxtHeight;
+}
+
+//---------------------------------------------------------
+//gets the length of a string using the currently selected font
+DWORD __stdcall GetTextWidth(const char *TextMsg) {
+	__asm {
+		mov  eax, TextMsg;
+		call dword ptr ds:[_text_width]; //get text width
+	}
+}
+
+//---------------------------------------------------------
+//get width of Char for current font
+DWORD GetCharWidth(char CharVal) {
+	DWORD charWidth;
+	__asm {
+		mov  al, CharVal;
+		call dword ptr ds:[_text_char_width];
+		mov  charWidth, eax;
+	}
+	return charWidth;
+}
+
+//---------------------------------------------------------
+//get maximum string length for current font - if all characters were maximum width
+DWORD GetMaxTextWidth(char *TextMsg) {
+	DWORD msgWidth;
+	__asm {
+		mov  eax, TextMsg;
+		call dword ptr ds:[_text_mono_width];
+		mov  msgWidth, eax;
+	}
+	return msgWidth;
+}
+
+//---------------------------------------------------------
+//get number of pixels between characters for current font
+DWORD GetCharGapWidth() {
+	DWORD gapWidth;
+	__asm {
+		call dword ptr ds:[_text_spacing];
+		mov  gapWidth, eax;
+	}
+	return gapWidth;
+}
+
+//---------------------------------------------------------
+//get maximum character width for current font
+DWORD GetMaxCharWidth() {
+	DWORD charWidth = 0;
+	__asm {
+		call dword ptr ds:[_text_max];
+		mov  charWidth, eax;
+	}
+	return charWidth;
 }

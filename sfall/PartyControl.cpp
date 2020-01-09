@@ -22,11 +22,9 @@
 	- doesn't work with NPC's wearing armor mod, armor won't change when you change it from critter's inventory
 */
 
-#include <vector>
-
 #include "main.h"
 #include "FalloutEngine.h"
-#include "HeroAppearance.h"
+
 #include "PartyControl.h"
 
 bool npcAutoLevelEnabled;

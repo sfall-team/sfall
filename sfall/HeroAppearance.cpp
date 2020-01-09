@@ -20,11 +20,12 @@
 
 #include "main.h"
 #include "FalloutEngine.h"
-#include "HeroAppearance.h"
 #include "LoadGameHook.h"
 #include "Message.h"
 #include "PartyControl.h"
 #include "ScriptExtender.h"
+
+#include "HeroAppearance.h"
 
 bool appModEnabled = false; // check if Appearance mod enabled for script fuctions
 
@@ -336,28 +337,6 @@ UNLSTDfrm *LoadUnlistedFrm(char *frmName, unsigned int folderRef) {
 	return frm;
 }
 
-/////////////////////////////////////////////////////////////////WINDOW FUNCTIONS////////////////////////////////////////////////////////////////////
-
-WINinfo* __stdcall GetWinStruct(long winRef) {
-	__asm {
-		mov  eax, winRef;
-		call GNW_find_;
-	}
-}
-
-BYTE* __stdcall GetWinSurface(DWORD winRef) {
-	__asm {
-		mov  eax, winRef;
-		call win_get_buf_;
-	}
-}
-
-/////////////////////////////////////////////////////////////////BUTTON FUNCTIONS////////////////////////////////////////////////////////////////////
-
-long __stdcall check_buttons() {
-	__asm call get_input_;
-}
-
 /////////////////////////////////////////////////////////////////TEXT FUNCTIONS//////////////////////////////////////////////////////////////////////
 
 static void SetFont(long ref) {
@@ -369,82 +348,6 @@ static void SetFont(long ref) {
 
 static long GetFont() {
 	return *ptr_curr_font_num;
-}
-
-// print text to surface
-void PrintText(char* displayText, BYTE colorIndex, DWORD xPos, DWORD yPos, DWORD txtWidth, DWORD toWidth, BYTE* toSurface) {
-	DWORD posOffset = yPos * toWidth + xPos;
-	__asm {
-		xor  eax, eax;
-		mov  al, colorIndex;
-		mov  edx, displayText;
-		push eax;
-		mov  ebx, txtWidth;
-		mov  eax, toSurface;
-		mov  ecx, toWidth;
-		add  eax, posOffset;
-		call dword ptr ds:[_text_to_buf];
-	}
-}
-
-// gets the height of the currently selected font
-DWORD GetTextHeight() {
-	DWORD TxtHeight;
-	__asm {
-		call dword ptr ds:[_text_height]; // get text height
-		mov  TxtHeight, eax;
-	}
-	return TxtHeight;
-}
-
-// gets the length of a string using the currently selected font
-DWORD __stdcall GetTextWidth(const char *TextMsg) {
-	__asm {
-		mov  eax, TextMsg;
-		call dword ptr ds:[_text_width]; // get text width
-	}
-}
-
-// get width of Char for current font
-DWORD GetCharWidth(char CharVal) {
-	DWORD charWidth;
-	__asm {
-		mov  al, CharVal;
-		call dword ptr ds:[_text_char_width];
-		mov  charWidth, eax;
-	}
-	return charWidth;
-}
-
-// get maximum string length for current font - if all characters were maximum width
-DWORD GetMaxTextWidth(char *TextMsg) {
-	DWORD msgWidth;
-	__asm {
-		mov  eax, TextMsg;
-		call dword ptr ds:[_text_mono_width];
-		mov  msgWidth, eax;
-	}
-	return msgWidth;
-}
-
-// get number of pixels between characters for current font
-DWORD GetCharGapWidth() {
-	DWORD gapWidth;
-	__asm {
-		call dword ptr ds:[_text_spacing];
-		mov  gapWidth, eax;
-	}
-	return gapWidth;
-}
-
-// get maximum character width for current font
-DWORD GetMaxCharWidth() {
-	DWORD charWidth = 0;
-	__asm {
-		call dword ptr ds:[_text_max];
-		mov  charWidth, eax;
-	}
-	return charWidth;
 }
 
 static bool CreateWordWrapList(char *TextMsg, DWORD WrapWidth, DWORD *lineNum, LineNode *StartLine) {
@@ -988,7 +891,7 @@ static void DrawPCConsole() {
 		int WinRef = *ptr_edit_win; // char screen window ref
 		//BYTE *WinSurface = GetWinSurface(WinRef);
 
-		WINinfo *WinInfo = GetWinStruct(WinRef);
+		WINinfo *WinInfo = GNWFind(WinRef);
 
 		BYTE *ConSurface = new BYTE [70 * 102];
 		sub_draw(70, 102, 640, 480, 338, 78, charScrnBackSurface, 70, 102, 0, 0, ConSurface, 0);
@@ -1030,7 +933,7 @@ static void DrawCharNote(bool style, int winRef, DWORD xPosWin, DWORD yPosWin, B
 		InfoMsg = GetMsg(&MsgList, 101, 2);
 	}
 
-	WINinfo *winInfo = GetWinStruct(winRef);
+	WINinfo *winInfo = GNWFind(winRef);
 
 	BYTE *PadSurface = new BYTE [280 * 168];
 	sub_draw(280, 168, widthBG, heightBG, xPosBG, yPosBG, BGSurface, 280, 168, 0, 0, PadSurface, 0);
@@ -1127,7 +1030,7 @@ void _stdcall HeroSelectWindow(int raceStyleFlag) {
 	int oldMouse = *ptr_gmouse_current_cursor;
 	SetMousePic(1);
 
-	BYTE *winSurface = GetWinSurface(winRef);
+	BYTE *winSurface = WinGetBuf(winRef);
 	BYTE *mainSurface = new BYTE [484 * 230];
 
 	sub_draw(484, 230, 484, 230, 0, 0, frm->frames[0].indexBuff, 484, 230, 0, 0, mainSurface, 0);
@@ -1216,7 +1119,7 @@ void _stdcall HeroSelectWindow(int raceStyleFlag) {
 			WinDraw(winRef);
 		}
 
-		button = check_buttons();
+		button = GetInputBtn();
 		if (button == 0x148) { // previous style/race - up arrow button pushed
 			PlayAcm("ib1p1xx1");
 
@@ -1326,7 +1229,7 @@ static void FixTextHighLight() {
 }
 
 static int _stdcall CheckCharButtons() {
-	int button = check_buttons();
+	int button = GetInputBtn();
 
 	int drawFlag = -1;
 

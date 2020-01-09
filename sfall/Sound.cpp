@@ -50,13 +50,6 @@ end:
 	}
 }
 
-void PlaySfx(const char* name) {
-	__asm {
-		mov  eax, name;
-		call gsound_play_sfx_file_;
-	}
-}
-
 void SoundInit() {
 	if (int sBuff = GetConfigInt("Sound", "NumSoundBuffers", 0)) {
 		SafeWrite8(0x451129, (BYTE)sBuff);
