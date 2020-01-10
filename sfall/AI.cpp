@@ -187,72 +187,21 @@ static void __fastcall CombatAttackHook(TGameObj* source, TGameObj* target) {
 
 static void __declspec(naked) combat_attack_hook() {
 	__asm {
+		push eax;
 		push ecx;
 		push edx;
-		push eax;
 		mov  ecx, eax;         // source
 		call CombatAttackHook; // edx - target
+		pop  edx;
+		pop  ecx;
 		pop  eax;
-		pop  edx;
-		pop  ecx;
 		jmp  combat_attack_;
-	}
-}
-
-static DWORD combatDisabled;
-void __stdcall AIBlockCombat(DWORD i) {
-	combatDisabled = i ? 1 : 0;
-}
-
-static char combatBlockedMessage[128];
-static void _stdcall CombatBlocked() {
-	DisplayConsoleMessage(combatBlockedMessage);
-}
-
-static const DWORD BlockCombatHook1Ret1 = 0x45F6B4;
-static const DWORD BlockCombatHook1Ret2 = 0x45F6D7;
-static void __declspec(naked) BlockCombatHook1() {
-	__asm {
-		mov  eax, combatDisabled;
-		test eax, eax;
-		jz   end;
-		call CombatBlocked;
-		jmp  BlockCombatHook1Ret2;
-end:
-		mov  eax, 0x14;
-		jmp  BlockCombatHook1Ret1;
-	}
-}
-
-static void __declspec(naked) BlockCombatHook2() {
-	__asm {
-		mov  eax, dword ptr ds:[_intfaceEnabled];
-		test eax, eax;
-		jz   end;
-		mov  eax, combatDisabled;
-		test eax, eax;
-		jz   succeed;
-		push ecx;
-		push edx;
-		call CombatBlocked;
-		pop  edx;
-		pop  ecx;
-		xor  eax, eax;
-		retn;
-succeed:
-		inc  eax;
-end:
-		retn;
 	}
 }
 
 void AIInit() {
 	HookCall(0x426A95, combat_attack_hook);  // combat_attack_this_
 	HookCall(0x42A796, combat_attack_hook);  // ai_attack_
-
-	MakeJump(0x45F6AF, BlockCombatHook1);    // intface_use_item_
-	HookCall(0x4432A6, BlockCombatHook2);    // game_handle_input_
-	Translate("sfall", "BlockedCombat", "You cannot enter combat at this time.", combatBlockedMessage);
 
 	RetryCombatMinAP = GetConfigInt("Misc", "NPCsTryToSpendExtraAP", 0);
 	if (RetryCombatMinAP > 0) {

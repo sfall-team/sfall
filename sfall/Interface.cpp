@@ -126,8 +126,6 @@ static void __declspec(naked) wmInterfaceRefreshCarFuel_hack() {
 }
 
 static void WorldMapInterfacePatch() {
-	BlockCall(0x4C2380); // Remove disabling palette animations (can be used as a place to call a hack function in wmInterfaceInit_)
-
 	if (GetConfigInt("Misc", "WorldMapFontPatch", 0)) {
 		dlog("Applying world map font patch.", DL_INIT);
 		HookCall(0x4C2343, wmInterfaceInit_text_font_hook);

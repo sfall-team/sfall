@@ -77,6 +77,47 @@ static bool hookedAimedShot;
 static std::vector<DWORD> disabledAS;
 static std::vector<DWORD> forcedAS;
 
+
+static bool combatDisabled;
+static char combatBlockedMessage[128];
+
+static void _stdcall CombatBlocked() {
+	DisplayConsoleMessage(combatBlockedMessage);
+}
+
+static const DWORD BlockCombatHook1Ret1 = 0x45F6AF;
+static const DWORD BlockCombatHook1Ret2 = 0x45F6D7;
+static void __declspec(naked) intface_use_item_hook() {
+	__asm {
+		cmp  combatDisabled, 0;
+		jne  block;
+		jmp  BlockCombatHook1Ret1;
+block:
+		call CombatBlocked;
+		jmp  BlockCombatHook1Ret2;
+	}
+}
+
+static void __declspec(naked) game_handle_input_hook() {
+	__asm {
+		mov  eax, dword ptr ds:[_intfaceEnabled];
+		test eax, eax;
+		jz   end;
+		cmp  combatDisabled, 0; // eax = 1
+		je   end; // no blocked
+		push edx;
+		call CombatBlocked;
+		pop  edx;
+		xor  eax, eax;
+end:
+		retn;
+	}
+}
+
+void __stdcall SetBlockCombat(long toggle) {
+	combatDisabled = toggle != 0;
+}
+
 static DWORD __fastcall add_check_for_item_ammo_cost(register TGameObj* weapon, DWORD hitMode) {
 	DWORD rounds = 1;
 
@@ -485,6 +526,10 @@ void Combat_OnGameLoad() {
 }
 
 void CombatInit() {
+	HookCall(0x45F626, intface_use_item_hook); // jnz hook
+	HookCall(0x4432A6, game_handle_input_hook);
+	Translate("sfall", "BlockedCombat", "You cannot enter combat at this time.", combatBlockedMessage);
+
 	CombatProcFix();
 
 	MakeCall(0x424B76, compute_damage_hack, 2);     // KnockbackMod

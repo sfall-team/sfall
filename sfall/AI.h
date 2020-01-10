@@ -26,5 +26,3 @@ void _stdcall AICombatEnd();
 
 TGameObj* _stdcall AIGetLastAttacker(TGameObj* target);
 TGameObj* _stdcall AIGetLastTarget(TGameObj* source);
-
-void _stdcall AIBlockCombat(DWORD i);

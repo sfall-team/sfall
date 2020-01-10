@@ -24,6 +24,8 @@ struct ChanceModifier {
 	int mod;
 };
 
+void __stdcall SetBlockCombat(long toggle);
+
 void _stdcall SetHitChanceMax(TGameObj* critter, DWORD maximum, DWORD mod);
 void _stdcall KnockbackSetMod(TGameObj* object, DWORD type, float val, DWORD mode);
 void _stdcall KnockbackRemoveMod(TGameObj* object, DWORD mode);

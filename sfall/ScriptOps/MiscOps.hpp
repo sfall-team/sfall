@@ -1196,7 +1196,7 @@ static void __declspec(naked) block_combat() {
 		mov  esi, ecx;
 		_GET_ARG_INT(end);
 		push eax;
-		call AIBlockCombat;
+		call SetBlockCombat;
 end:
 		mov  ecx, esi;
 		retn;
