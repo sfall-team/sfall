@@ -16,7 +16,7 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <hash_map>
+#include <unordered_map>
 
 #include "main.h"
 
@@ -24,10 +24,10 @@
 #include "FalloutEngine.h"
 #include "SafeWrite.h"
 
-typedef stdext::hash_map<TGameObj*, TGameObj*>::const_iterator iter;
+typedef std::tr1::unordered_map<TGameObj*, TGameObj*>::const_iterator iter;
 
-static stdext::hash_map<TGameObj*, TGameObj*> targets;
-static stdext::hash_map<TGameObj*, TGameObj*> sources;
+static std::tr1::unordered_map<TGameObj*, TGameObj*> targets;
+static std::tr1::unordered_map<TGameObj*, TGameObj*> sources;
 
 static void __declspec(naked) ai_try_attack_hook_FleeFix() {
 	__asm {

@@ -2,7 +2,6 @@
 
 #include <algorithm>
 #include <functional>
-#include <hash_map>
 #include <vector>
 #include <unordered_map>
 #include <string>

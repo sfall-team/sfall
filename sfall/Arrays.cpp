@@ -1,4 +1,4 @@
-#include <set>
+#include <unordered_set>
 #include <algorithm>
 
 #include "Arrays.h"
@@ -13,7 +13,7 @@ DWORD arraysBehavior = 1; // 0 - backward compatible with pre-3.4, 1 - permanent
 // arrays map: arrayId => arrayVar
 ArraysMap arrays;
 // temp arrays: set of arrayId
-std::set<DWORD> temporaryArrays;
+std::tr1::unordered_set<DWORD> temporaryArrays;
 // saved arrays: arrayKey => arrayId
 ArrayKeysMap savedArrays;
 
@@ -454,7 +454,7 @@ void _stdcall FreeArray(DWORD id) {
 
 void DeleteAllTempArrays() {
 	if (!temporaryArrays.empty()) {
-		for (std::set<DWORD>::iterator it = temporaryArrays.begin(); it != temporaryArrays.end(); ++it) {
+		for (std::tr1::unordered_set<DWORD>::iterator it = temporaryArrays.begin(); it != temporaryArrays.end(); ++it) {
 			FreeArray(*it);
 		}
 		temporaryArrays.clear();

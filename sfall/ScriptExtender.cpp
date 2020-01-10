@@ -16,8 +16,8 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <hash_map>
-//#include <set>
+//#include <unordered_set>
+#include <unordered_map>
 
 #include "main.h"
 #include "FalloutEngine.h"
@@ -471,8 +471,8 @@ struct sGlobalScript {
 };
 
 struct sExportedVar {
-	DWORD type; // in scripting engine terms, eg. VAR_TYPE_*
-	DWORD val;
+	int type; // in scripting engine terms, eg. VAR_TYPE_*
+	int val;
 	sExportedVar() : val(0), type(VAR_TYPE_INT) {}
 };
 
@@ -502,19 +502,19 @@ static std::vector<DWORD> checkedScripts;
 static std::vector<sGlobalScript> globalScripts;
 
 // a map of all sfall programs (global and hook scripts) by thier scriptPtr
-typedef stdext::hash_map<DWORD, sScriptProgram> SfallProgsMap;
+typedef std::tr1::unordered_map<DWORD, sScriptProgram> SfallProgsMap;
 static SfallProgsMap sfallProgsMap;
 
 // a map scriptPtr => self_obj  to override self_obj for all script types using set_self
-stdext::hash_map<DWORD, SelfOverrideObj> selfOverrideMap;
+std::tr1::unordered_map<DWORD, SelfOverrideObj> selfOverrideMap;
 
 typedef std::tr1::unordered_map<std::string, sExportedVar> ExportedVarsMap;
 static ExportedVarsMap globalExportedVars;
 DWORD isGlobalScriptLoading = 0;
 
-stdext::hash_map<__int64, int> globalVars;
-typedef stdext::hash_map<__int64, int> :: iterator glob_itr;
-typedef stdext::hash_map<__int64, int> :: const_iterator glob_citr;
+std::tr1::unordered_map<__int64, int> globalVars;
+typedef std::tr1::unordered_map<__int64, int> :: iterator glob_itr;
+typedef std::tr1::unordered_map<__int64, int> :: const_iterator glob_citr;
 typedef std::pair<__int64, int> glob_pair;
 
 static void* opcodes[0x300];
@@ -800,7 +800,7 @@ static void __declspec(naked) InitHook() {
 }
 
 static void __fastcall SetSelfObject(DWORD script, TGameObj* obj) {
-	stdext::hash_map<DWORD, SelfOverrideObj>::iterator it = selfOverrideMap.find(script);
+	std::tr1::unordered_map<DWORD, SelfOverrideObj>::iterator it = selfOverrideMap.find(script);
 	bool isFind = (it != selfOverrideMap.end());
 	if (obj) {
 		if (isFind) {
@@ -931,7 +931,7 @@ long __stdcall GetResetScriptReturnValue() {
 }
 
 static DWORD __stdcall FindSid(DWORD script) {
-	stdext::hash_map<DWORD, SelfOverrideObj>::iterator overrideIt = selfOverrideMap.find(script);
+	std::tr1::unordered_map<DWORD, SelfOverrideObj>::iterator overrideIt = selfOverrideMap.find(script);
 	if (overrideIt != selfOverrideMap.end()) {
 		DWORD scriptId = overrideIt->second.object->scriptID; // script
 		OverrideScriptStruct.script_id = scriptId;
