@@ -70,6 +70,7 @@ static const char* ExtraLines[] = {
 	"Continuum",
 	"Drobovik",
 	"Burn",
+	"Lexx",
 	"Anyone who has used sfall in their own mods",
 	"The bug reporters and feature requesters",
 	"",

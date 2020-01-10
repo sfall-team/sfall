@@ -35,6 +35,8 @@
 #include "..\Arrays.h"
 #include "..\OpcodeContext.h"
 
+#include "..\..\SubModules\CombatBlock.h"
+
 #include "Misc.h"
 
 namespace sfall
@@ -928,7 +930,7 @@ void __declspec(naked) op_block_combat() {
 		mov  esi, ecx;
 		_GET_ARG_INT(end);
 		push eax;
-		call AIBlockCombat;
+		call SetBlockCombat;
 end:
 		mov  ecx, esi;
 		retn;

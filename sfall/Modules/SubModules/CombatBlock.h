@@ -1,6 +1,6 @@
 /*
  *    sfall
- *    Copyright (C) 2012  The sfall team
+ *    Copyright (C) 2008-2020  The sfall team
  *
  *    This program is free software: you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
@@ -18,24 +18,11 @@
 
 #pragma once
 
-#include "..\FalloutEngine\Fallout2.h"
-
-#include "Module.h"
-
-namespace sfall
+namespace sfall 
 {
 
-class AI : public Module {
-public:
-	const char* name() { return "AI"; }
-	void init();
-};
+void CombatBlockedInit();
 
-// TODO: use subscription instead
-void _stdcall AICombatStart();
-void _stdcall AICombatEnd();
-
-fo::GameObject* _stdcall AIGetLastAttacker(fo::GameObject* target);
-fo::GameObject* _stdcall AIGetLastTarget(fo::GameObject* source);
+void __stdcall SetBlockCombat(long toggle);
 
 }
