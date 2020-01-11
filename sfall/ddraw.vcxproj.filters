@@ -16,6 +16,15 @@
     <Filter Include="Modules\HookScripts">
       <UniqueIdentifier>{1e66856c-4830-4ca0-a998-15b697208223}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Modules\SubModules">
+      <UniqueIdentifier>{023f674e-f534-4889-af91-c5f1ef3a8913}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Modules\Features">
+      <UniqueIdentifier>{f35af494-a226-4c24-9ac2-9876f46b7a6b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Modules\SimplePatches">
+      <UniqueIdentifier>{66d430dc-ddd0-41e3-a13d-bf1d5a1a1064}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="main.h" />
@@ -29,15 +38,6 @@
       <Filter>Modules</Filter>
     </ClInclude>
     <ClInclude Include="Modules\Books.h">
-      <Filter>Modules</Filter>
-    </ClInclude>
-    <ClInclude Include="Modules\BurstMods.h">
-      <Filter>Modules</Filter>
-    </ClInclude>
-    <ClInclude Include="Modules\Console.h">
-      <Filter>Modules</Filter>
-    </ClInclude>
-    <ClInclude Include="Modules\Credits.h">
       <Filter>Modules</Filter>
     </ClInclude>
     <ClInclude Include="Modules\Criticals.h">
@@ -55,22 +55,13 @@
     <ClInclude Include="Modules\FileSystem.h">
       <Filter>Modules</Filter>
     </ClInclude>
-    <ClInclude Include="Modules\HeroAppearance.h">
-      <Filter>Modules</Filter>
-    </ClInclude>
     <ClInclude Include="Modules\HookScripts.h">
       <Filter>Modules</Filter>
     </ClInclude>
     <ClInclude Include="Modules\Inventory.h">
       <Filter>Modules</Filter>
     </ClInclude>
-    <ClInclude Include="Modules\KillCounter.h">
-      <Filter>Modules</Filter>
-    </ClInclude>
     <ClInclude Include="Modules\LoadGameHook.h">
-      <Filter>Modules</Filter>
-    </ClInclude>
-    <ClInclude Include="Modules\MainMenu.h">
       <Filter>Modules</Filter>
     </ClInclude>
     <ClInclude Include="Modules\Message.h">
@@ -82,19 +73,7 @@
     <ClInclude Include="Modules\Perks.h">
       <Filter>Modules</Filter>
     </ClInclude>
-    <ClInclude Include="Modules\Premade.h">
-      <Filter>Modules</Filter>
-    </ClInclude>
-    <ClInclude Include="Modules\QuestList.h">
-      <Filter>Modules</Filter>
-    </ClInclude>
-    <ClInclude Include="Modules\Reputations.h">
-      <Filter>Modules</Filter>
-    </ClInclude>
     <ClInclude Include="Modules\Stats.h">
-      <Filter>Modules</Filter>
-    </ClInclude>
-    <ClInclude Include="Modules\Tiles.h">
       <Filter>Modules</Filter>
     </ClInclude>
     <ClInclude Include="resource.h" />
@@ -107,9 +86,6 @@
       <Filter>Modules</Filter>
     </ClInclude>
     <ClInclude Include="Modules\Skills.h">
-      <Filter>Modules</Filter>
-    </ClInclude>
-    <ClInclude Include="Modules\Sound.h">
       <Filter>Modules</Filter>
     </ClInclude>
     <ClInclude Include="Modules\ScriptExtender.h">
@@ -192,28 +168,13 @@
     <ClInclude Include="SimplePatch.h" />
     <ClInclude Include="ModuleManager.h" />
     <ClInclude Include="Delegate.h" />
-    <ClInclude Include="Modules\Karma.h">
-      <Filter>Modules</Filter>
-    </ClInclude>
     <ClInclude Include="Modules\LoadOrder.h">
-      <Filter>Modules</Filter>
-    </ClInclude>
-    <ClInclude Include="Modules\SpeedPatch.h">
       <Filter>Modules</Filter>
     </ClInclude>
     <ClInclude Include="Modules\Worldmap.h">
       <Filter>Modules</Filter>
     </ClInclude>
     <ClInclude Include="Modules\BugFixes.h">
-      <Filter>Modules</Filter>
-    </ClInclude>
-    <ClInclude Include="Modules\TalkingHeads.h">
-      <Filter>Modules</Filter>
-    </ClInclude>
-    <ClInclude Include="Modules\PlayerModel.h">
-      <Filter>Modules</Filter>
-    </ClInclude>
-    <ClInclude Include="Modules\ExtraSaveSlots.h">
       <Filter>Modules</Filter>
     </ClInclude>
     <ClInclude Include="Modules\Input.h">
@@ -286,6 +247,57 @@
     </ClInclude>
     <ClInclude Include="CRC.h" />
     <ClInclude Include="CheckAddress.h" />
+    <ClInclude Include="Modules\SubModules\CombatBlock.h">
+      <Filter>Modules\SubModules</Filter>
+    </ClInclude>
+    <ClInclude Include="Modules\PlayerModel.h">
+      <Filter>Modules\SimplePatches</Filter>
+    </ClInclude>
+    <ClInclude Include="Modules\Premade.h">
+      <Filter>Modules\SimplePatches</Filter>
+    </ClInclude>
+    <ClInclude Include="Modules\Reputations.h">
+      <Filter>Modules\SimplePatches</Filter>
+    </ClInclude>
+    <ClInclude Include="Modules\Tiles.h">
+      <Filter>Modules\SimplePatches</Filter>
+    </ClInclude>
+    <ClInclude Include="Modules\SpeedPatch.h">
+      <Filter>Modules\SimplePatches</Filter>
+    </ClInclude>
+    <ClInclude Include="Modules\Sound.h">
+      <Filter>Modules\SimplePatches</Filter>
+    </ClInclude>
+    <ClInclude Include="Modules\BurstMods.h">
+      <Filter>Modules\SimplePatches</Filter>
+    </ClInclude>
+    <ClInclude Include="Modules\Console.h">
+      <Filter>Modules\SimplePatches</Filter>
+    </ClInclude>
+    <ClInclude Include="Modules\Credits.h">
+      <Filter>Modules\SimplePatches</Filter>
+    </ClInclude>
+    <ClInclude Include="Modules\Karma.h">
+      <Filter>Modules\SimplePatches</Filter>
+    </ClInclude>
+    <ClInclude Include="Modules\KillCounter.h">
+      <Filter>Modules\SimplePatches</Filter>
+    </ClInclude>
+    <ClInclude Include="Modules\MainMenu.h">
+      <Filter>Modules\SimplePatches</Filter>
+    </ClInclude>
+    <ClInclude Include="Modules\HeroAppearance.h">
+      <Filter>Modules\Features</Filter>
+    </ClInclude>
+    <ClInclude Include="Modules\ExtraSaveSlots.h">
+      <Filter>Modules\Features</Filter>
+    </ClInclude>
+    <ClInclude Include="Modules\QuestList.h">
+      <Filter>Modules\Features</Filter>
+    </ClInclude>
+    <ClInclude Include="Modules\TalkingHeads.h">
+      <Filter>Modules\Features</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
@@ -299,15 +311,6 @@
       <Filter>Modules</Filter>
     </ClCompile>
     <ClCompile Include="Modules\Books.cpp">
-      <Filter>Modules</Filter>
-    </ClCompile>
-    <ClCompile Include="Modules\BurstMods.cpp">
-      <Filter>Modules</Filter>
-    </ClCompile>
-    <ClCompile Include="Modules\Console.cpp">
-      <Filter>Modules</Filter>
-    </ClCompile>
-    <ClCompile Include="Modules\Credits.cpp">
       <Filter>Modules</Filter>
     </ClCompile>
     <ClCompile Include="Modules\Criticals.cpp">
@@ -325,22 +328,13 @@
     <ClCompile Include="Modules\FileSystem.cpp">
       <Filter>Modules</Filter>
     </ClCompile>
-    <ClCompile Include="Modules\HeroAppearance.cpp">
-      <Filter>Modules</Filter>
-    </ClCompile>
     <ClCompile Include="Modules\HookScripts.cpp">
       <Filter>Modules</Filter>
     </ClCompile>
     <ClCompile Include="Modules\Inventory.cpp">
       <Filter>Modules</Filter>
     </ClCompile>
-    <ClCompile Include="Modules\KillCounter.cpp">
-      <Filter>Modules</Filter>
-    </ClCompile>
     <ClCompile Include="Modules\LoadGameHook.cpp">
-      <Filter>Modules</Filter>
-    </ClCompile>
-    <ClCompile Include="Modules\MainMenu.cpp">
       <Filter>Modules</Filter>
     </ClCompile>
     <ClCompile Include="Modules\Message.cpp">
@@ -352,19 +346,7 @@
     <ClCompile Include="Modules\Perks.cpp">
       <Filter>Modules</Filter>
     </ClCompile>
-    <ClCompile Include="Modules\Premade.cpp">
-      <Filter>Modules</Filter>
-    </ClCompile>
-    <ClCompile Include="Modules\QuestList.cpp">
-      <Filter>Modules</Filter>
-    </ClCompile>
-    <ClCompile Include="Modules\Reputations.cpp">
-      <Filter>Modules</Filter>
-    </ClCompile>
     <ClCompile Include="Modules\Stats.cpp">
-      <Filter>Modules</Filter>
-    </ClCompile>
-    <ClCompile Include="Modules\Tiles.cpp">
       <Filter>Modules</Filter>
     </ClCompile>
     <ClCompile Include="ddraw.cpp" />
@@ -377,9 +359,6 @@
       <Filter>Modules</Filter>
     </ClCompile>
     <ClCompile Include="Modules\Skills.cpp">
-      <Filter>Modules</Filter>
-    </ClCompile>
-    <ClCompile Include="Modules\Sound.cpp">
       <Filter>Modules</Filter>
     </ClCompile>
     <ClCompile Include="Modules\ScriptExtender.cpp">
@@ -447,28 +426,13 @@
       <Filter>Modules</Filter>
     </ClCompile>
     <ClCompile Include="ModuleManager.cpp" />
-    <ClCompile Include="Modules\Karma.cpp">
-      <Filter>Modules</Filter>
-    </ClCompile>
     <ClCompile Include="Modules\LoadOrder.cpp">
-      <Filter>Modules</Filter>
-    </ClCompile>
-    <ClCompile Include="Modules\SpeedPatch.cpp">
       <Filter>Modules</Filter>
     </ClCompile>
     <ClCompile Include="Modules\Worldmap.cpp">
       <Filter>Modules</Filter>
     </ClCompile>
     <ClCompile Include="Modules\BugFixes.cpp">
-      <Filter>Modules</Filter>
-    </ClCompile>
-    <ClCompile Include="Modules\TalkingHeads.cpp">
-      <Filter>Modules</Filter>
-    </ClCompile>
-    <ClCompile Include="Modules\PlayerModel.cpp">
-      <Filter>Modules</Filter>
-    </ClCompile>
-    <ClCompile Include="Modules\ExtraSaveSlots.cpp">
       <Filter>Modules</Filter>
     </ClCompile>
     <ClCompile Include="Modules\Input.cpp">
@@ -532,6 +496,57 @@
     </ClCompile>
     <ClCompile Include="CRC.cpp" />
     <ClCompile Include="CheckAddress.cpp" />
+    <ClCompile Include="Modules\PlayerModel.cpp">
+      <Filter>Modules\SimplePatches</Filter>
+    </ClCompile>
+    <ClCompile Include="Modules\Premade.cpp">
+      <Filter>Modules\SimplePatches</Filter>
+    </ClCompile>
+    <ClCompile Include="Modules\Reputations.cpp">
+      <Filter>Modules\SimplePatches</Filter>
+    </ClCompile>
+    <ClCompile Include="Modules\Tiles.cpp">
+      <Filter>Modules\SimplePatches</Filter>
+    </ClCompile>
+    <ClCompile Include="Modules\SpeedPatch.cpp">
+      <Filter>Modules\SimplePatches</Filter>
+    </ClCompile>
+    <ClCompile Include="Modules\Sound.cpp">
+      <Filter>Modules\SimplePatches</Filter>
+    </ClCompile>
+    <ClCompile Include="Modules\BurstMods.cpp">
+      <Filter>Modules\SimplePatches</Filter>
+    </ClCompile>
+    <ClCompile Include="Modules\Console.cpp">
+      <Filter>Modules\SimplePatches</Filter>
+    </ClCompile>
+    <ClCompile Include="Modules\Credits.cpp">
+      <Filter>Modules\SimplePatches</Filter>
+    </ClCompile>
+    <ClCompile Include="Modules\Karma.cpp">
+      <Filter>Modules\SimplePatches</Filter>
+    </ClCompile>
+    <ClCompile Include="Modules\KillCounter.cpp">
+      <Filter>Modules\SimplePatches</Filter>
+    </ClCompile>
+    <ClCompile Include="Modules\MainMenu.cpp">
+      <Filter>Modules\SimplePatches</Filter>
+    </ClCompile>
+    <ClCompile Include="Modules\HeroAppearance.cpp">
+      <Filter>Modules\Features</Filter>
+    </ClCompile>
+    <ClCompile Include="Modules\ExtraSaveSlots.cpp">
+      <Filter>Modules\Features</Filter>
+    </ClCompile>
+    <ClCompile Include="Modules\QuestList.cpp">
+      <Filter>Modules\Features</Filter>
+    </ClCompile>
+    <ClCompile Include="Modules\TalkingHeads.cpp">
+      <Filter>Modules\Features</Filter>
+    </ClCompile>
+    <ClCompile Include="Modules\SubModules\CombatBlock.cpp">
+      <Filter>Modules\SubModules</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="version.rc" />

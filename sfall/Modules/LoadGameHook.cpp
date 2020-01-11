@@ -521,16 +521,18 @@ end:
 	}
 }
 
-static void __declspec(naked) DialogHook() {
+static void __declspec(naked) DialogHookStart() {
 	__asm {
-		test inLoop, DIALOG; // check byte flag
-		jz   changeMode;
-		jmp  fo::funcoffs::gdProcess_;
-changeMode:
-		_InLoop(1, DIALOG);
-		call fo::funcoffs::gdProcess_;
-		_InLoop(0, DIALOG);
+		_InLoop2(1, DIALOG);
+		mov ebx, 1;
 		retn;
+	}
+}
+
+static void __declspec(naked) DialogHookEnd() {
+	__asm {
+		_InLoop2(0, DIALOG);
+		jmp fo::funcoffs::gdialogFreeSpeech_;
 	}
 }
 
@@ -711,7 +713,8 @@ void LoadGameHook::init() {
 	HookCalls(OptionsMenuHook, {0x48FCE4, 0x48FD17, 0x48FD4D, 0x48FD6A, 0x48FD87, 0x48FDB3});
 	HookCalls(HelpMenuHook, {0x443A50});
 	HookCalls(CharacterHook, {0x443320}); // 0x4A73EB, 0x4A740A for character creation
-	HookCalls(DialogHook, {0x445748});
+	MakeCall(0x445285, DialogHookStart);  // gdialogInitFromScript_
+	HookCall(0x4452CD, DialogHookEnd);    // gdialogExitFromScript_ (old 0x445748)
 	HookCalls(PipboyHook, {0x443463, 0x443605});
 	HookCalls(SkilldexHook, {0x4434AC, 0x44C7BD});
 	HookCalls(HandleInventoryHook, {0x443357});

@@ -32,7 +32,7 @@ void __declspec(naked) dev_printf(const char* fmt, ...) {
 	__asm jmp fo::funcoffs::debug_printf_;
 }
 #else
-void dev_printf(const char* fmt, ...) {}
+void dev_printf(...) {}
 #endif
 
 // Fallout2.exe was compiled using WATCOM compiler, which uses Watcom register calling convention.
@@ -317,7 +317,7 @@ long __stdcall message_exit(MessageList *msgList) {
 
 long __fastcall tile_num(long x, long y) {
 	__asm push ebx; // don't delete (bug in tile_num_)
-	WRAP_WATCOM_FCALL2(tile_num_, x, x);
+	WRAP_WATCOM_FCALL2(tile_num_, x, y)
 	__asm pop  ebx;
 }
 

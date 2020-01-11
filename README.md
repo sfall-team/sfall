@@ -3,7 +3,7 @@
 
 A set of engine modifications for the classic game Fallout 2 in form of a DLL, which modifies executable in memory without changing anything in EXE file itself.
 
-Engine modifications include:
+**Engine modifications include:**
 - Better support for modern operating systems
 - Externalizing many settings like starting map and game time, skills, perks, critical hit tables, books, etc.
 - Bug fixes

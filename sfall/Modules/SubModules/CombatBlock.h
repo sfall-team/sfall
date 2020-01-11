@@ -1,6 +1,6 @@
 /*
  *    sfall
- *    Copyright (C) 2008-2016  The sfall team
+ *    Copyright (C) 2008-2020  The sfall team
  *
  *    This program is free software: you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
@@ -18,30 +18,11 @@
 
 #pragma once
 
-#include <memory>
-#include <unordered_map>
-
-#include "..\main.h"
-
-#include "Module.h"
-
-namespace sfall
+namespace sfall 
 {
 
-typedef std::unordered_map<int, std::unique_ptr<fo::MessageList>> ExtraGameMessageListsMap;
-extern ExtraGameMessageListsMap gExtraGameMsgLists;
-extern const fo::MessageList* gameMsgFiles[];
+void CombatBlockedInit();
 
-class Message : public Module {
-public:
-	const char* name() { return "Message"; }
-	void init();
-	void exit() override;
-
-	static long AddExtraMsgFile(const char* msgName, long msgNumber);
-};
-
-fo::MessageNode* GetMsgNode(fo::MessageList* msgList, int msgRef);
-char* GetMsg(fo::MessageList* msgList, int msgRef, int msgNum);
+void __stdcall SetBlockCombat(long toggle);
 
 }

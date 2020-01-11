@@ -39,11 +39,13 @@ static bool FalloutStringCompare(const char* str1, const char* str2, long codePa
 	while (true) {
 		unsigned char c1 = *str1;
 		unsigned char c2 = *str2;
+
 		if (c1 == 0 && c2 == 0) return true;  // end - strings are equal
 		if (c1 == 0 || c2 == 0) return false; // strings are not equal
 		str1++;
 		str2++;
 		if (c1 == c2) continue;
+
 		if (codePage == 866) {
 			// replace Russian 'x' to English (Fallout specific)
 			if (c1 == 229) c1 -= 229 - 'x';
@@ -60,16 +62,16 @@ static bool FalloutStringCompare(const char* str1, const char* str2, long codePa
 		// 128 - 255 (international/extended)
 		switch (codePage) {
 		case 866:
-			if (c1 != 149 && c2 != 149) { // code used for the 'bullet' character in Fallout font
+			if (c1 != 149 && c2 != 149) { // code used for the 'bullet' character in Fallout font (the Russian letter 'X' uses Latin letter)
 				// upper to lower case
-				if (c1 >= 0x80 && c1 <= 0x9F) {
+				if (c1 >= 128 && c1 <= 159) {
 					c1 |= 32;
 				} else if (c1 >= 224 && c1 <= 239) {
 					c1 -= 48; // shift lower range
 				} else if (c1 == 240) {
 					c1++;
 				}
-				if (c2 >= 0x80 && c2 <= 0x9F) {
+				if (c2 >= 128 && c2 <= 159) {
 					c2 |= 32;
 				} else if (c2 >= 224 && c2 <= 239) {
 					c2 -= 48; // shift lower range

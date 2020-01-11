@@ -58,6 +58,10 @@ static float scriptMapMulti = 1.0;
 static bool addYear = false; // used as additional years indicator
 static DWORD addedYears = 0;
 
+static void __stdcall WorldmapLoopHook() {
+	onWorldmapLoop.invoke();
+}
+
 static __declspec(naked) void TimeDateFix() {
 	__asm {
 		test edi, edi; // year buf
@@ -120,10 +124,6 @@ end:
 	}
 }
 
-static void __stdcall WorldmapLoopHook() {
-	onWorldmapLoop.invoke();
-}
-
 static void __declspec(naked) WorldMapFpsPatch() {
 	__asm {
 		push dword ptr ds:[FO_VAR_last_buttons];
@@ -177,9 +177,9 @@ subLoop:
 // Only used if the world map speed patch is disabled, so that world map scripts are still run
 static void __declspec(naked) wmWorldMap_hook() {
 	__asm {
-		pushadc;
+		//pushadc;
 		call WorldmapLoopHook;
-		popadc;
+		//popadc;
 		jmp  fo::funcoffs::get_input_;
 	}
 }
@@ -223,7 +223,7 @@ static void __declspec(naked) wmTownMapFunc_hack() {
 		mov  [esi], edx
 		retn;
 end:
-		add  esp, 4;                           // destroy the return address
+		add  esp, 4; // destroy the return address
 		mov  eax, 0x4C4976;
 		jmp  eax;
 	}
@@ -315,8 +315,8 @@ end:
 
 static void RestRestore() {
 	if (!restMode) return;
-
 	restMode = false;
+
 	SafeWrite8(0x49952C, 0x85);
 	SafeWrite8(0x497557, 0x85);
 	SafeWrite8(0x42E587, 0xC7);
@@ -410,7 +410,7 @@ void WorldmapFpsPatch() {
 	if (GetConfigInt("Misc", "WorldMapEncounterFix", 0)) {
 		dlog("Applying world map encounter patch.", DL_INIT);
 		WorldMapEncounterRate = GetConfigInt("Misc", "WorldMapEncounterRate", 5);
-		SafeWrite32(0x4C232D, 0x01EBC031); // xor eax, eax; jmps 0x4C2332 (wmInterfaceInit_)
+		SafeWrite32(0x4C232D, 0xB8); // mov eax, 0; (wmInterfaceInit_)
 		HookCall(0x4BFEE0, wmWorldMapFunc_hook);
 		MakeCall(0x4C0667, wmRndEncounterOccurred_hack);
 		dlogr(" Done", DL_INIT);
