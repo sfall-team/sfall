@@ -21,6 +21,7 @@
 #include "..\main.h"
 #include "..\FalloutEngine\Fallout2.h"
 #include "..\FalloutEngine\EngineUtils.h"
+#include "..\Utils.h"
 #include "Graphics.h"
 #include "LoadGameHook.h"
 
@@ -470,6 +471,9 @@ enum TerrainHoverImage {
 	size = width * height
 };
 
+#define WMAP_DEFAULT_SPACE_LEN  (2)
+#define WMAP_DEFAULT_DOT_LEN    (2)
+
 static std::array<unsigned char, TerrainHoverImage::size> wmTmpBuffer;
 static bool isHoveringHotspot = false;
 static bool backImageIsCopy = false;
@@ -482,26 +486,46 @@ struct DotPosition {
 };
 static std::vector<DotPosition> dots;
 
-static long optionLenDot = 2;
-static long optionSpaceDot = 2;
-
 static unsigned char colorDot = 0;
-static long spaceLen = 2;
-static long dotLen = 2;
+static long spaceLen = WMAP_DEFAULT_SPACE_LEN;
+static long dotLen = WMAP_DEFAULT_DOT_LEN;
 static long dot_xpos = 0;
 static long dot_ypos = 0;
+static long terrCount = 0;
+
+static int* optionTerrainDotLen = nullptr;
+static int* optionTerrainSpaceLen = nullptr;
 
 static void AddNewDot() {
 	dot_xpos = fo::var::world_xpos;
 	dot_ypos = fo::var::world_ypos;
 
+	long* terrainId = *(long**)FO_VAR_world_subtile;
+
+	// Reinitialize if current terrain has smaller values than previous
+	if (*terrainId < terrCount) {
+		if (dotLen > optionTerrainDotLen[*terrainId])
+			dotLen = optionTerrainDotLen[*terrainId];
+		if(spaceLen > optionTerrainSpaceLen[*terrainId])
+			spaceLen = optionTerrainSpaceLen[*terrainId];
+	}
+
 	if (dotLen <= 0 && spaceLen) {
 		spaceLen--;
-		if (!spaceLen) dotLen = optionLenDot; // set dot length
+		if (!spaceLen) { // set dot length
+			if (*terrainId < terrCount)
+				dotLen = optionTerrainDotLen[*terrainId];
+			else
+				dotLen = WMAP_DEFAULT_DOT_LEN;
+		};
 		return;
 	}
 	dotLen--;
-	spaceLen = optionSpaceDot;
+
+	if (*terrainId < terrCount)
+		spaceLen = optionTerrainSpaceLen[*terrainId];
+	else
+		spaceLen = WMAP_DEFAULT_SPACE_LEN;
 
 	dots.emplace_back(dot_xpos, dot_ypos);
 }
@@ -562,8 +586,8 @@ static void __declspec(naked) wmInterfaceRefresh_hook() {
 		} else if (!fo::var::target_xpos && !fo::var::target_ypos) {
 			// player stops moving
 			dots.clear();
-			dotLen = optionLenDot;
-			spaceLen = optionSpaceDot;
+			dotLen = optionTerrainDotLen[**(long**)FO_VAR_world_subtile];
+			spaceLen = optionTerrainSpaceLen[**(long**)FO_VAR_world_subtile];
 		}
 	}
 	if (isHoveringHotspot && !fo::var::In_WorldMap) {
@@ -692,14 +716,39 @@ static void WorldMapInterfacePatch() {
 	bool showTravelMarkers, showTerrainType;
 	if (showTravelMarkers = GetConfigInt("Interface", "WorldMapTravelMarkers", 0) != 0) {
 		dlog("Applying world map travel markers patch.", DL_INIT);
-		optionLenDot = GetConfigInt("Interface", "TravelMarkerLength", optionLenDot);
-		optionSpaceDot = GetConfigInt("Interface", "TravelMarkerSpaces", optionSpaceDot);
 		int color = GetConfigInt("Interface", "TravelMarkerColor", 134); // color index in palette: R = 224, G = 0, B = 0
 
 		if (color > 255) color = 255; else if (color < 1) color = 1;
 		colorDot = color;
-		if (optionLenDot > 10) optionLenDot = 10; else if (optionLenDot < 1) optionLenDot = 1;
-		if (optionSpaceDot > 10) optionSpaceDot = 10; else if (optionSpaceDot < 1) optionSpaceDot = 1;
+
+		auto dotList = GetConfigList("Interface", "TravelMarkerDots", "", 512);
+		size_t count = dotList.size();
+		if (count) {
+			optionTerrainSpaceLen = new int[count];
+			optionTerrainDotLen = new int[count];
+			terrCount = count;
+			std::vector<std::string> pair;
+			pair.reserve(2);
+			for (size_t i = 0; i < count; i++) {
+				split(dotList[i], ':', std::back_inserter(pair), 2);
+				if (pair.size() >= 2) {
+					optionTerrainDotLen[i] = atoi(pair[0].c_str());
+					optionTerrainSpaceLen[i] = atoi(pair[1].c_str());
+					if (optionTerrainDotLen[i] < 1)
+						optionTerrainDotLen[i] = 1;
+					else if (optionTerrainDotLen[i] > 10)
+						optionTerrainDotLen[i] = 10;
+					if (optionTerrainSpaceLen[i] < 1)
+						optionTerrainSpaceLen[i] = 1;
+					else if (optionTerrainSpaceLen[i] > 10)
+						optionTerrainSpaceLen[i] = 10;
+				} else {
+					optionTerrainDotLen[i] = WMAP_DEFAULT_DOT_LEN;
+					optionTerrainSpaceLen[i] = WMAP_DEFAULT_SPACE_LEN;
+				}
+				pair.clear();
+			}
+		}
 
 		dots.reserve(512);
 		LoadGameHook::OnGameReset() += []() {
@@ -809,6 +858,8 @@ void Interface::init() {
 
 void Interface::exit() {
 	if (ifaceFrm) delete ifaceFrm;
+	if (optionTerrainDotLen) delete optionTerrainDotLen;
+	if (optionTerrainSpaceLen) delete optionTerrainSpaceLen;
 }
 
 }
