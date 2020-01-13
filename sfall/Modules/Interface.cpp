@@ -500,21 +500,23 @@ static void AddNewDot() {
 	dot_xpos = fo::var::world_xpos;
 	dot_ypos = fo::var::world_ypos;
 
-	long* terrainId = *(long**)FO_VAR_world_subtile;
+	long terrainId = 0;
+	if (*(long**)FO_VAR_world_subtile)
+		terrainId = **(long**)FO_VAR_world_subtile;
 
 	// Reinitialize if current terrain has smaller values than previous
-	if (*terrainId < terrCount) {
-		if (dotLen > optionTerrainDotLen[*terrainId])
-			dotLen = optionTerrainDotLen[*terrainId];
-		if(spaceLen > optionTerrainSpaceLen[*terrainId])
-			spaceLen = optionTerrainSpaceLen[*terrainId];
+	if (terrainId < terrCount) {
+		if (dotLen > optionTerrainDotLen[terrainId])
+			dotLen = optionTerrainDotLen[terrainId];
+		if(spaceLen > optionTerrainSpaceLen[terrainId])
+			spaceLen = optionTerrainSpaceLen[terrainId];
 	}
 
 	if (dotLen <= 0 && spaceLen) {
 		spaceLen--;
 		if (!spaceLen) { // set dot length
-			if (*terrainId < terrCount)
-				dotLen = optionTerrainDotLen[*terrainId];
+			if (terrainId < terrCount)
+				dotLen = optionTerrainDotLen[terrainId];
 			else
 				dotLen = WMAP_DEFAULT_DOT_LEN;
 		};
@@ -522,8 +524,8 @@ static void AddNewDot() {
 	}
 	dotLen--;
 
-	if (*terrainId < terrCount)
-		spaceLen = optionTerrainSpaceLen[*terrainId];
+	if (terrainId < terrCount)
+		spaceLen = optionTerrainSpaceLen[terrainId];
 	else
 		spaceLen = WMAP_DEFAULT_SPACE_LEN;
 
@@ -586,8 +588,9 @@ static void __declspec(naked) wmInterfaceRefresh_hook() {
 		} else if (!fo::var::target_xpos && !fo::var::target_ypos) {
 			// player stops moving
 			dots.clear();
-			dotLen = optionTerrainDotLen[**(long**)FO_VAR_world_subtile];
-			spaceLen = optionTerrainSpaceLen[**(long**)FO_VAR_world_subtile];
+			// Reinitialize on next AddNewDot
+			dotLen = 9999;
+			spaceLen = 9999;
 		}
 	}
 	if (isHoveringHotspot && !fo::var::In_WorldMap) {
@@ -858,8 +861,8 @@ void Interface::init() {
 
 void Interface::exit() {
 	if (ifaceFrm) delete ifaceFrm;
-	if (optionTerrainDotLen) delete optionTerrainDotLen;
-	if (optionTerrainSpaceLen) delete optionTerrainSpaceLen;
+	if (optionTerrainDotLen) delete[] optionTerrainDotLen;
+	if (optionTerrainSpaceLen) delete[] optionTerrainSpaceLen;
 }
 
 }
