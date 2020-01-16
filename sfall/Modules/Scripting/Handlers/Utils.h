@@ -77,5 +77,9 @@ void sf_get_string_pointer(OpcodeContext&);
 
 void sf_get_text_width(OpcodeContext&);
 
+void sf_tolower(OpcodeContext&);
+
+void sf_toupper(OpcodeContext&);
+
 }
 }

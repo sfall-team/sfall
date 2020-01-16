@@ -466,5 +466,30 @@ void sf_get_text_width(OpcodeContext& ctx) {
 	ctx.setReturn(fo::GetTextWidth(ctx.arg(0).strValue()));
 }
 
+static char* cstrdup(const char* str) {
+	size_t len = strlen(str);
+	const size_t bufMaxLen = ScriptExtender::TextBufferSize() - 1;
+	if (len > bufMaxLen) len = bufMaxLen;
+
+	if (len) memcpy(ScriptExtender::gTextBuffer, str, len);
+	ScriptExtender::gTextBuffer[len] = '\0';
+
+	return ScriptExtender::gTextBuffer;
+}
+
+void sf_tolower(OpcodeContext& ctx) {
+	auto str = std::string(ctx.arg(0).strValue());
+	std::transform(str.begin(), str.end(), str.begin(), ::tolower);
+
+	ctx.setReturn(cstrdup(str.c_str()));
+}
+
+void sf_toupper(OpcodeContext& ctx) {
+	auto str = std::string(ctx.arg(0).strValue());
+	std::transform(str.begin(), str.end(), str.begin(), ::toupper);
+
+	ctx.setReturn(cstrdup(str.c_str()));
+}
+
 }
 }

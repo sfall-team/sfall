@@ -724,7 +724,7 @@ static void WorldMapInterfacePatch() {
 		if (color > 255) color = 255; else if (color < 1) color = 1;
 		colorDot = color;
 
-		auto dotList = GetConfigList("Interface", "TravelMarkerDots", "", 512);
+		auto dotList = GetConfigList("Interface", "TravelMarkerStyles", "", 512);
 		size_t count = dotList.size();
 		if (count) {
 			optionTerrainSpaceLen = new int[count];
