@@ -697,13 +697,9 @@ optional argument:
 - returns the tile number at the x, y position relative to the top-left corner of the screen
 - if the position is outside of the range of tiles, it will return -1
 
-> string sfall_func1("tolower", string text)
-- converts all uppercase letters in the given string to lowercase
-- returns -1 on argument error
-
-> string sfall_func1("toupper", string text)
-- converts all lowercase letters in the given string to uppercase
-- returns -1 on argument error
+> string sfall_func2("string_to_case", string text, int toCase)
+- converts all letters in the given string to the specified case
+- toCase: 0 - lowercase, 1 - uppercase
 
 ------------------------
 ------ MORE INFO -------
