@@ -173,6 +173,8 @@ static const SfallMetarule metaruleArray[] = {
 	{"string_format",           sf_string_format,           2, 5},
 	{"tile_by_position",        sf_tile_by_position,        2, 2},
 	{"tile_refresh_display",    sf_tile_refresh_display,    0, 0},
+	{"tolower",                 sf_tolower,                 1, 1},
+	{"toupper",                 sf_toupper,                 1, 1},
 	{"unjam_lock",              sf_unjam_lock,              1, 1},
 	{"unwield_slot",            sf_unwield_slot,            2, 2},
 	#ifndef NDEBUG

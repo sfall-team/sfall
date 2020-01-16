@@ -281,6 +281,8 @@
 #define string_format(format, a1, a2)                   sfall_func3("string_format", format, a1, a2)
 #define tile_by_position(x, y)                          sfall_func2("tile_by_position", x, y)
 #define tile_refresh_display                            sfall_func0("tile_refresh_display")
+#define tolower(text)                                   sfall_func1("tolower", text)
+#define toupper(text)                                   sfall_func1("toupper", text)
 #define unjam_lock(obj)                                 sfall_func1("unjam_lock", obj)
 #define unset_unique_id(obj)                            sfall_func2("set_unique_id", obj, -1)
 #define unwield_slot(critter, slot)                     sfall_func2("unwield_slot", critter, slot)

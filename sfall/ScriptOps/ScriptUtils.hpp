@@ -998,3 +998,28 @@ static void sf_get_text_width() {
 		opHandler.setReturn(0);
 	}
 }
+
+static char* _stdcall cstrdup(const char* str) {
+	size_t len = strlen(str);
+	const size_t bufMaxLen = GlblTextBufferSize() - 1;
+	if (len > bufMaxLen) len = bufMaxLen;
+
+	if (len) memcpy(gTextBuffer, str, len);
+	gTextBuffer[len] = '\0';
+
+	return gTextBuffer;
+}
+
+static void sf_tolower() {
+	std::string str = std::string(opHandler.arg(0).strValue());
+	std::transform(str.begin(), str.end(), str.begin(), ::tolower);
+
+	opHandler.setReturn(cstrdup(str.c_str()));
+}
+
+static void sf_toupper() {
+	std::string str = std::string(opHandler.arg(0).strValue());
+	std::transform(str.begin(), str.end(), str.begin(), ::toupper);
+
+	opHandler.setReturn(cstrdup(str.c_str()));
+}

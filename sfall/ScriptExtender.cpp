@@ -432,6 +432,8 @@ static const SfallOpcodeMetadata opcodeMetaArray[] = {
 	{sf_set_window_flag,        "set_window_flag",        {DATATYPE_MASK_INT | DATATYPE_MASK_STR, DATATYPE_MASK_INT, DATATYPE_MASK_INT}},
 	{sf_show_window,            "show_window",            {DATATYPE_MASK_STR}},
 	{sf_tile_by_position,       "tile_by_position",       {DATATYPE_MASK_INT, DATATYPE_MASK_INT}},
+	{sf_tolower,                "tolower",                {DATATYPE_MASK_STR}},
+	{sf_toupper,                "toupper",                {DATATYPE_MASK_STR}},
 	{sf_unjam_lock,             "unjam_lock",             {DATATYPE_MASK_VALID_OBJ}},
 	{sf_unwield_slot,           "unwield_slot",           {DATATYPE_MASK_VALID_OBJ, DATATYPE_MASK_INT}},
 	#ifndef NDEBUG
