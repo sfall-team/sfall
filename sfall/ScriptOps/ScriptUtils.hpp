@@ -999,27 +999,14 @@ static void sf_get_text_width() {
 	}
 }
 
-static char* _stdcall cstrdup(const char* str) {
-	size_t len = strlen(str);
-	const size_t bufMaxLen = GlblTextBufferSize() - 1;
-	if (len > bufMaxLen) len = bufMaxLen;
+static std::string strToCase;
 
-	if (len) memcpy(gTextBuffer, str, len);
-	gTextBuffer[len] = '\0';
+static void sf_string_to_case() {
+	strToCase = opHandler.arg(0).strValue();
+	if (opHandler.arg(1).rawValue())
+		std::transform(strToCase.begin(), strToCase.end(), strToCase.begin(), ::toupper);
+	else
+		std::transform(strToCase.begin(), strToCase.end(), strToCase.begin(), ::tolower);
 
-	return gTextBuffer;
-}
-
-static void sf_tolower() {
-	std::string str = std::string(opHandler.arg(0).strValue());
-	std::transform(str.begin(), str.end(), str.begin(), ::tolower);
-
-	opHandler.setReturn(cstrdup(str.c_str()));
-}
-
-static void sf_toupper() {
-	std::string str = std::string(opHandler.arg(0).strValue());
-	std::transform(str.begin(), str.end(), str.begin(), ::toupper);
-
-	opHandler.setReturn(cstrdup(str.c_str()));
+	opHandler.setReturn(strToCase.c_str());
 }
