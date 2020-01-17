@@ -34,6 +34,7 @@ void dlog(const char* a, int type) {
 		Log.flush();
 	}
 }
+
 void dlogr(const char* a, int type) {
 	if (isDebug && (type == DL_MAIN || (type & DebugTypes))) {
 		Log << a << "\n";

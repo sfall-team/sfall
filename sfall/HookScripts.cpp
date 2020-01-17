@@ -1770,7 +1770,7 @@ void HookScriptClear() {
 	for (int i = 0; i < numHooks; i++) {
 		hooks[i].clear();
 	}
-	memset(hooksInfo, 0, HOOK_COUNT * sizeof(HooksPositionInfo));
+	std::memset(hooksInfo, 0, HOOK_COUNT * sizeof(HooksPositionInfo));
 }
 
 void HookScriptInit() {
