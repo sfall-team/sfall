@@ -214,6 +214,7 @@
 #define FO_VAR_stack_offset               0x59E844
 #define FO_VAR_stat_data                  0x51D53C
 #define FO_VAR_stat_flag                  0x66452A
+#define FO_VAR_subtitles                  0x663974
 #define FO_VAR_sWindows                   0x6727B0
 #define FO_VAR_Tag_                       0x5708B0
 #define FO_VAR_tag_skill                  0x668070

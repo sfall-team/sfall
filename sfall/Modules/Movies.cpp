@@ -16,8 +16,6 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-//#include <vector> // should be above DX SDK includes to avoid warning 4995
-
 #include <d3d9.h>
 #include <dshow.h>
 #include <Vmr9.h>
@@ -37,42 +35,31 @@ namespace sfall
 static DWORD MoviePtrs[MaxMovies];
 char MoviePaths[MaxMovies * 65];
 
+static bool aviIsReadyToPlay = false;
+
 class CAllocator : public IVMRSurfaceAllocator9, IVMRImagePresenter9 {
 private:
-	IDirect3DSurface9* surface;
-	IVMRSurfaceAllocatorNotify9 *pAllocNotify;
 	ULONG RefCount;
-	IDirect3DTexture9* ptex;
+	IVMRSurfaceAllocatorNotify9 *pAllocNotify;
 
-public:
-	IDirect3DTexture9* tex;
+	std::vector<IDirect3DSurface9*> surfaces;
+	IDirect3DTexture9* pTex;
+	IDirect3DTexture9* mTex;
 
-	CAllocator() {
-		RefCount = 1;
-		surface = nullptr;
-		pAllocNotify = nullptr;
-		tex = nullptr;
-		ptex = nullptr;
+	HRESULT __stdcall TerminateDevice(DWORD_PTR dwID) {
+		dlog_f("\nTerminate Device id: %d\n", DL_INIT, dwID);
+
+		SAFERELEASE(pTex);
+		SAFERELEASE(mTex);
+
+		for (auto &surface : surfaces) SAFERELEASE(surface);
+		surfaces.clear();
+
+		return S_OK;
 	}
 
-	ULONG _stdcall AddRef() {
-		return ++RefCount;
-	}
-
-	ULONG _stdcall Release() {
-		if (--RefCount == 0) {
-			TerminateDevice(0);
-			if (pAllocNotify) {
-				pAllocNotify->Release();
-				pAllocNotify = nullptr;
-			}
-		}
-		return RefCount;
-	}
-
-	HRESULT _stdcall QueryInterface(const IID &riid, void** ppvObject) {
+	HRESULT __stdcall QueryInterface(const IID &riid, void** ppvObject) {
 		HRESULT hr = E_NOINTERFACE;
-
 		if (ppvObject == nullptr) {
 			hr = E_POINTER;
 		} else if (riid == IID_IVMRSurfaceAllocator9) {
@@ -88,84 +75,121 @@ public:
 			AddRef();
 			hr = S_OK;
 		}
+		return hr;
+	}
+
+	HRESULT __stdcall InitializeDevice(DWORD_PTR dwUserID, VMR9AllocationInfo *lpAllocInfo, DWORD *lpNumBuffers) {
+		dlog("\nInitialize Device:", DL_INIT);
+
+		lpAllocInfo->dwFlags |= VMR9AllocFlag_TextureSurface;
+		lpAllocInfo->Pool = D3DPOOL_SYSTEMMEM;
+
+		// Ask the VMR-9 to allocate the surfaces for us.
+		for (auto &surface : surfaces) SAFERELEASE(surface);
+		surfaces.resize(*lpNumBuffers);
+
+		HRESULT hr = pAllocNotify->AllocateSurfaceHelper(lpAllocInfo, lpNumBuffers, &surfaces[0]);
+		if (FAILED(hr)) return hr;
+
+		dlog_f(" Height: %d,", DL_INIT, lpAllocInfo->dwHeight);
+		dlog_f(" Width: %d,", DL_INIT, lpAllocInfo->dwWidth);
+		dlog_f(" Format: %d", DL_INIT, lpAllocInfo->Format);
+
+		hr = surfaces[0]->GetContainer(IID_IDirect3DTexture9, (void**)&pTex);
+		if (FAILED(hr)) {
+			TerminateDevice(-1);
+			return hr;
+		}
+
+		if (d3d9Device->CreateTexture(lpAllocInfo->dwWidth, lpAllocInfo->dwHeight, 1, 0, lpAllocInfo->Format, D3DPOOL_DEFAULT, &mTex, nullptr) != D3D_OK) {
+			dlog(" Failed to create movie texture!", DL_INIT);
+		}
+		return S_OK;
+	}
+
+	HRESULT __stdcall GetSurface(DWORD_PTR dwUserID, DWORD surfaceIndex, DWORD surfaceFlags, IDirect3DSurface9 **lplpSurface) {
+		dlog_f("\nGet Surface index: %d", DL_INIT, surfaceIndex);
+		if (surfaceIndex >= surfaces.size()) return E_FAIL;
+
+		*lplpSurface = surfaces[surfaceIndex];
+		(*lplpSurface)->AddRef();
+
+		dlog(" OK.", DL_INIT);
+		return S_OK;
+	}
+
+	HRESULT __stdcall StartPresenting(DWORD_PTR dwUserID) {
+		dlog("\nStart Presenting.", DL_INIT);
+		Graphics::SetMovieTexture(mTex);
+		return S_OK;
+	}
+
+	HRESULT __stdcall StopPresenting(DWORD_PTR dwUserID) {
+		dlog("\nStop Presenting.", DL_INIT);
+		return S_OK;
+	}
+
+	HRESULT __stdcall PresentImage(DWORD_PTR dwUserID, VMR9PresentationInfo *lpPresInfo) {
+		#ifndef NDEBUG
+		dlog("\nPresent Image.", DL_INIT);
+		#endif
+		d3d9Device->UpdateTexture(pTex, mTex);
+		return S_OK;
+	}
+
+public:
+	CAllocator() {
+		RefCount = 1;
+		pAllocNotify = nullptr;
+		mTex = nullptr;
+		pTex = nullptr;
+	}
+
+	ULONG __stdcall AddRef() {
+		return ++RefCount;
+	}
+
+	ULONG _stdcall Release() {
+		if (--RefCount == 0) {
+			TerminateDevice(-2);
+			if (pAllocNotify) {
+				pAllocNotify->Release();
+				pAllocNotify = nullptr;
+			}
+		}
+		return RefCount;
+	}
+
+	HRESULT __stdcall AdviseNotify(IVMRSurfaceAllocatorNotify9 *lpIVMRSurfAllocNotify) {
+		if (!lpIVMRSurfAllocNotify) return E_FAIL;
+
+		pAllocNotify = lpIVMRSurfAllocNotify;
+		pAllocNotify->AddRef();
+
+		// Set the device
+		HMONITOR hMonitor = d3d9->GetAdapterMonitor(D3DADAPTER_DEFAULT);
+		HRESULT hr = pAllocNotify->SetD3DDevice(d3d9Device, hMonitor);
 
 		return hr;
 	}
 
-	HRESULT _stdcall InitializeDevice(DWORD_PTR dwUserID, VMR9AllocationInfo *lpAllocInfo, DWORD *lpNumBuffers) {
-		HRESULT hr;
-		//Set the device
-		hr = pAllocNotify->SetD3DDevice(d3d9Device, d3d9->GetAdapterMonitor(0));
-		//if (hr != S_OK) return hr;
-
-		lpAllocInfo->dwFlags |= VMR9AllocFlag_TextureSurface;
-		lpAllocInfo->Pool = D3DPOOL_SYSTEMMEM;
-		// Ask the VMR-9 to allocate the surfaces for us.
-		hr = pAllocNotify->AllocateSurfaceHelper(lpAllocInfo, lpNumBuffers, &surface);
-		if (FAILED(hr)) return hr;
-
-		hr = surface->GetContainer(IID_IDirect3DTexture9, (void**)&ptex);
-		if (FAILED(hr)) {
-			TerminateDevice(0);
-			return hr;
-		}
-
-		d3d9Device->CreateTexture(lpAllocInfo->dwWidth, lpAllocInfo->dwHeight, 1, 0, lpAllocInfo->Format, D3DPOOL_DEFAULT, &tex, nullptr);
-
-		return S_OK;
-	}
-
-	HRESULT _stdcall TerminateDevice(DWORD_PTR dwID) {
-		SAFERELEASE(ptex);
-		SAFERELEASE(surface);
-		SAFERELEASE(tex);
-		return S_OK;
-	}
-
-	HRESULT _stdcall GetSurface(DWORD_PTR dwUserID, DWORD SurfaceIndex, DWORD SurfaceFlags, IDirect3DSurface9 **lplpSurface) {
-		if (SurfaceIndex != 0) return E_FAIL;
-		*lplpSurface = surface;
-		surface->AddRef();
-		return S_OK;
-	}
-
-	HRESULT _stdcall AdviseNotify(IVMRSurfaceAllocatorNotify9 *lpIVMRSurfAllocNotify) {
-		if (lpIVMRSurfAllocNotify) {
-			pAllocNotify = lpIVMRSurfAllocNotify;
-			pAllocNotify->AddRef();
-			return S_OK;
-		} else {
-			return E_FAIL;
-		}
-	}
-
-	HRESULT _stdcall StartPresenting(DWORD_PTR dwUserID) {
-		return S_OK;
-	}
-	HRESULT _stdcall StopPresenting(DWORD_PTR dwUserID) {
-		return S_OK;
-	}
-	HRESULT _stdcall PresentImage(DWORD_PTR dwUserID, VMR9PresentationInfo *lpPresInfo) {
-		d3d9Device->UpdateTexture(ptex, tex);
-		return S_OK;
+	IDirect3DTexture9* GetMovieTexture() {
+		return mTex;
 	}
 };
 
 struct sDSTexture {
+	CAllocator *pMyAlloc;
 	IGraphBuilder *pGraph;
-	ICaptureGraphBuilder2 *pBuild;
+	//ICaptureGraphBuilder2 *pBuild;
 	IBaseFilter *pVmr;
 	IVMRFilterConfig9 *pConfig;
 	IVMRSurfaceAllocatorNotify9 *pAlloc;
 	IMediaControl *pControl;
-	CAllocator *pMyAlloc;
 	IMediaSeeking *pSeek;
-};
+} movieInterface;
 
-static IDirect3DTexture9* tex;
-static sDSTexture info;
-
-void ResumeMovie(sDSTexture* movie) {
+void PlayMovie(sDSTexture* movie) {
 	movie->pControl->Run();
 }
 
@@ -176,7 +200,7 @@ void PauseMovie(sDSTexture* movie) {
 void StopMovie(sDSTexture* movie) {
 	movie->pControl->Stop();
 }
-
+/*
 void RewindMovie(sDSTexture* movie) {
 	LONGLONG time = 0;
 	movie->pSeek->SetPositions(&time, AM_SEEKING_AbsolutePositioning, nullptr, AM_SEEKING_NoPositioning);
@@ -186,92 +210,135 @@ void SeekMovie(sDSTexture* movie, DWORD shortTime) {
 	LONGLONG time = shortTime * 10000;
 	movie->pSeek->SetPositions(&time, AM_SEEKING_AbsolutePositioning, nullptr, AM_SEEKING_NoPositioning);
 }
-
-DWORD FreeMovie(sDSTexture* info) {
-	if (info->pControl) info->pControl->Release();
-	if (info->pSeek) info->pSeek->Release();
-	if (info->pAlloc) info->pAlloc->Release();
-	if (info->pMyAlloc) info->pMyAlloc->Release();
-	if (info->pConfig) info->pConfig->Release();
-	if (info->pVmr) info->pVmr->Release();
-	if (info->pGraph) info->pGraph->Release();
-	if (info->pBuild) info->pBuild->Release();
+*/
+DWORD FreeMovie(sDSTexture* movie) {
+	#ifndef NDEBUG
+	dlog("\nRelease movie interfaces.", DL_INIT);
+	#endif
+	if (movie->pControl) movie->pControl->Release();
+	if (movie->pSeek) movie->pSeek->Release();
+	if (movie->pAlloc) movie->pAlloc->Release();
+	if (movie->pMyAlloc) movie->pMyAlloc->Release();
+	if (movie->pConfig) movie->pConfig->Release();
+	if (movie->pVmr) movie->pVmr->Release();
+	if (movie->pGraph) movie->pGraph->Release();
+	//if (movie->pBuild) movie->pBuild->Release();
 	return 0;
 }
 
-DWORD CreateDSGraph(wchar_t* path, IDirect3DTexture9** tex, sDSTexture* result) {
-	memset(result, 0, sizeof(sDSTexture));
+DWORD CreateDSGraph(wchar_t* path, sDSTexture* movie) {
+	dlog("\nCreating DirectShow graph...", DL_INIT);
+
+	ZeroMemory(movie, sizeof(sDSTexture));
 
 	// Create the Capture Graph Builder.
-	HRESULT hr = CoCreateInstance(CLSID_CaptureGraphBuilder2, 0, CLSCTX_INPROC_SERVER, IID_ICaptureGraphBuilder2, (void**)&result->pBuild);
-	if (hr != S_OK) return FreeMovie(result);
+	//HRESULT hr = CoCreateInstance(CLSID_CaptureGraphBuilder2, 0, CLSCTX_INPROC_SERVER, IID_ICaptureGraphBuilder2, (void**)&movie->pBuild);
+	//if (hr != S_OK) return FreeMovie(movie);
 
 	// Create the Filter Graph Manager.
-	hr = CoCreateInstance(CLSID_FilterGraph, 0, CLSCTX_INPROC_SERVER, IID_IGraphBuilder, (void**)&result->pGraph);
-	if (hr != S_OK) return FreeMovie(result);
+	HRESULT hr = CoCreateInstance(CLSID_FilterGraph, 0, CLSCTX_INPROC_SERVER, IID_IGraphBuilder, (void**)&movie->pGraph);
+	if (hr != S_OK) return FreeMovie(movie);
 
 	// Initialize the Capture Graph Builder.
-	hr = result->pBuild->SetFiltergraph(result->pGraph);
-	if (hr != S_OK) return FreeMovie(result);
+	//hr = movie->pBuild->SetFiltergraph(movie->pGraph);
+	//if (hr != S_OK) return FreeMovie(movie);
 
-	hr = CoCreateInstance(CLSID_VideoMixingRenderer9, 0, CLSCTX_INPROC_SERVER, IID_IBaseFilter, (void**)&result->pVmr);
-	if (hr != S_OK) return FreeMovie(result);
+	hr = CoCreateInstance(CLSID_VideoMixingRenderer9, 0, CLSCTX_INPROC_SERVER, IID_IBaseFilter, (void**)&movie->pVmr);
+	if (hr != S_OK) return FreeMovie(movie);
 
-	hr = result->pGraph->AddFilter(result->pVmr, L"VMR9");
-	if (hr != S_OK) return FreeMovie(result);
+	hr = movie->pGraph->QueryInterface(IID_IMediaControl, (void**)&movie->pControl);
+	hr |= movie->pGraph->QueryInterface(IID_IMediaSeeking, (void**)&movie->pSeek);
+	if (hr != S_OK) return FreeMovie(movie);
 
-	result->pVmr->QueryInterface(IID_IVMRFilterConfig9, (void**)&result->pConfig);
-	result->pConfig->SetRenderingMode(VMR9Mode_Renderless);
-	result->pVmr->QueryInterface(IID_IVMRSurfaceAllocatorNotify9, (void**)&result->pAlloc);
+	hr = movie->pVmr->QueryInterface(IID_IVMRFilterConfig9, (void**)&movie->pConfig);
+	if (hr != S_OK) return FreeMovie(movie);
 
-	result->pMyAlloc = new CAllocator();
+	hr = movie->pConfig->SetRenderingMode(VMR9Mode_Renderless);
+	if (hr != S_OK) return FreeMovie(movie);
 
-	result->pMyAlloc->AdviseNotify(result->pAlloc);
-	result->pAlloc->AdviseSurfaceAllocator(0, (IVMRSurfaceAllocator9*)result->pMyAlloc);
+	/*
+		Custom Allocator-Presenter for VMR-9:
+		https://docs.microsoft.com/en-us/windows/win32/directshow/supplying-a-custom-allocator-presenter-for-vmr-9
+	*/
+	movie->pMyAlloc = new CAllocator();
 
-	hr = result->pGraph->QueryInterface(IID_IMediaControl, (void**)&result->pControl);
-	hr |= result->pGraph->QueryInterface(IID_IMediaSeeking, (void**)&result->pSeek);
-	if (hr != S_OK) return FreeMovie(result);
+	hr = movie->pVmr->QueryInterface(IID_IVMRSurfaceAllocatorNotify9, (void**)&movie->pAlloc);
+	if (hr != S_OK) return FreeMovie(movie);
 
-	result->pGraph->RenderFile(path, nullptr);
-	result->pControl->Run();
+	hr = movie->pAlloc->AdviseSurfaceAllocator(0, (IVMRSurfaceAllocator9*)movie->pMyAlloc);
+	if (hr != S_OK) return FreeMovie(movie);
 
-	*tex = result->pMyAlloc->tex;
-	return 1;
+	hr = movie->pMyAlloc->AdviseNotify(movie->pAlloc);
+	if (hr != S_OK) return FreeMovie(movie);
+	/****************************************************/
+
+	hr = movie->pGraph->AddFilter(movie->pVmr, L"VMR9");
+	if (hr != S_OK) return FreeMovie(movie);
+
+	dlog_f("\nStart rendering file.", DL_INIT);
+	hr = movie->pGraph->RenderFile(path, nullptr);
+	if (hr != S_OK) dlog_f(" ERROR: %d", DL_INIT, hr);
+
+	#ifndef NDEBUG
+	if (movie->pMyAlloc->GetMovieTexture()) dlog_f("\nMovieTex: %d", DL_INIT, *(DWORD*)movie->pMyAlloc->GetMovieTexture());
+	#endif
+	return (movie->pMyAlloc->GetMovieTexture()) ? 1 : 0;
 }
 
-static DWORD PlayFrameHook3() {
-	PlayMovieFrame();
-	if (GetAsyncKeyState(VK_ESCAPE)) return 0;
+// Movie play looping
+static DWORD PlayMovieLoop() {
+	Graphics::ShowMovieFrame();
+
+	if (GetAsyncKeyState(VK_ESCAPE)) {
+		StopMovie(&movieInterface);
+		return 0; // break play
+	}
 
 	_int64 pos, end;
-	info.pSeek->GetCurrentPosition(&pos);
-	info.pSeek->GetStopPosition(&end);
+	movieInterface.pSeek->GetCurrentPosition(&pos);
+	movieInterface.pSeek->GetStopPosition(&end);
 
-	return (end == pos) ? 0 : 1;
+	bool isPlayEnd = (end == pos);
+	if (isPlayEnd) StopMovie(&movieInterface);
+
+	return !isPlayEnd; // 0 - for breaking play
 }
 
-static void __declspec(naked) PlayFrameHook1() {
+static void __declspec(naked) gmovie_play_hook() {
 	__asm {
 		push ecx;
 		xor  eax, eax;
-		call fo::funcoffs::GNW95_process_message_; //windows message pump
-		call PlayFrameHook3;
+		call fo::funcoffs::GNW95_process_message_; // windows message pump
+		call PlayMovieLoop;
 		pop  ecx;
 		retn;
 	}
 }
 
-static void __declspec(naked) PlayFrameHook2() {
+static void __declspec(naked) gmovie_play_hook_wsub() {
 	__asm {
-		xor eax,eax;
-		dec eax;
+		push ecx;
+		xor  eax, eax;
+		call fo::funcoffs::GNW95_process_message_; // windows message pump
+		call fo::funcoffs::movieUpdate_; // for playing mve
+		call PlayMovieLoop;
+		pop  ecx;
 		retn;
 	}
 }
 
-static DWORD __cdecl PreparePlayMovie(const DWORD id) {
-	//Get file path in unicode
+static void __declspec(naked) gmovie_play_hook_input() {
+	__asm {
+		xor eax,eax;
+		dec eax;
+		retn; // return -1
+	}
+}
+
+static DWORD backgroundVolume = 0;
+
+static DWORD __fastcall PreparePlayMovie(const DWORD id) {
+	// Get file path in unicode
 	wchar_t path[MAX_PATH];
 	char* master_patches = fo::var::patches;
 	DWORD len = 0;
@@ -287,26 +354,57 @@ static DWORD __cdecl PreparePlayMovie(const DWORD id) {
 	}
 	wcscpy_s(&path[len - 3], 5, L"avi");
 
-	//Check for existance of file
-	HANDLE h = CreateFileW(path, GENERIC_READ, 0, 0, OPEN_EXISTING, 0, 0);
-	if (h == INVALID_HANDLE_VALUE) return 0;
-	CloseHandle(h);
+	// Check for existance of file
+	if (GetFileAttributesW(path) & FILE_ATTRIBUTE_DIRECTORY) return 0; // also file not found
 
-	//Create texture and dshow info
-	if (!CreateDSGraph(path, &tex, &info)) return 0;
+	// Create texture and graph filter
+	if (!CreateDSGraph(path, &movieInterface)) return FreeMovie(&movieInterface);
 
-	GetAsyncKeyState(VK_ESCAPE);
-	SetMovieTexture(tex);
-	HookCall(0x44E937, PlayFrameHook1);
-	HookCall(0x44E949, PlayFrameHook2);
+	HookCall(0x44E949,gmovie_play_hook_input); // block get_input_ (if subtitles are disabled then mve videos will not be played)
+	// patching gmovie_play_ for disabled game subtitles
+	if (*(DWORD*)FO_VAR_subtitles == 0) {
+		HookCall(0x44E937, gmovie_play_hook); // looping call moviePlaying_
+		SafeWrite8(0x4CB850, 0xC3); // GNW95_ShowRect_ blocking image rendering from the 'descSurface' surface when subtitles are disabled (optional)
+	} else {
+		HookCall(0x44E937, gmovie_play_hook_wsub); // looping call moviePlaying_
+		//SafeWrite8(0x486654, 0xC3); // blocking movie_MVE_ShowFrame_
+		//SafeWrite8(0x486900, 0xC3); // blocking movieShowFrame_
+		SafeWrite8(0x4F5F40, 0xC3); // blocking sfShowFrame_ for disabling the display of mve video frames
 
-	return 1;
+		#ifdef NDEBUG // mute sound because mve file is still being played to get subtitles
+		backgroundVolume = fo::func::gsound_background_volume_get_set(0);
+		#endif
+	}
+
+	//WIP
+	//SafeWrite32(0x4C73B2, 0x2E);
+	//BlockCall(0x48827E);
+	//BlockCall(0x44E92B);
+	//aviIsReadyToPlay = true;
+
+	PlayMovie(&movieInterface);
+
+	return 1; // play AVI
 }
 
 static void _stdcall PlayMovieRestore() {
-	SafeWrite32(0x44E938, 0x3934C);
-	SafeWrite32(0x44E94A, 0x7A22A);
-	FreeMovie(&info);
+	#ifndef NDEBUG
+	dlog("\nPlay Movie Restore.", DL_INIT);
+	#endif
+
+	SafeWrite32(0x44E938, 0x3934C); // call moviePlaying_
+	SafeWrite32(0x44E94A, 0x7A22A); // call get_input_
+
+	if (*(DWORD*)FO_VAR_subtitles == 0) {
+		SafeWrite8(0x4CB850, 0x53); // GNW95_ShowRect_
+	} else {
+		SafeWrite8(0x4F5F40, 0x53); // push ebx
+		if (backgroundVolume) backgroundVolume = fo::func::gsound_background_volume_get_set(backgroundVolume); // restore volume
+	}
+
+	Graphics::SetMovieTexture(0);
+	FreeMovie(&movieInterface);
+	//aviIsReadyToPlay = false;
 }
 
 static const DWORD gmovie_play_addr = 0x44E695;
@@ -317,6 +415,7 @@ static void __declspec(naked) gmovie_play_hack() {
 		push ecx;
 		push edx;
 		push eax;
+		mov  ecx, eax;
 		call PreparePlayMovie;
 		test eax,eax;
 		pop  eax;
@@ -339,7 +438,8 @@ return:
 		retn;
 	}
 }
-/////////////////////////////////////////////////////////////////////////////
+
+///////////////////////////////////////////////////////////////////////////////
 
 struct sDSSound {
 	DWORD id;
@@ -362,11 +462,11 @@ static void* musicLoopPtr = nullptr;
 
 static void FreeSound(sDSSound* sound) {
 	sound->pEvent->SetNotifyWindow(0, WM_APP, 0);
+	SAFERELEASE(sound->pAudio);
 	SAFERELEASE(sound->pEvent);
 	SAFERELEASE(sound->pSeek);
 	SAFERELEASE(sound->pControl);
 	SAFERELEASE(sound->pGraph);
-	SAFERELEASE(sound->pAudio);
 	delete sound;
 }
 
@@ -424,7 +524,7 @@ LRESULT CALLBACK SoundWndProc(HWND wnd, UINT msg, WPARAM w, LPARAM l) {
 }
 
 static void CreateSndWnd() {
-	dlog("Creating sfall sound windows.", DL_INIT);
+	dlog("Creating sfall sound callback windows.", DL_INIT);
 	if (Graphics::mode == 0) CoInitialize(0);
 
 	WNDCLASSEX wcx;
@@ -432,10 +532,10 @@ static void CreateSndWnd() {
 	wcx.cbSize = sizeof(wcx);
 	wcx.lpfnWndProc = SoundWndProc;
 	wcx.hInstance = GetModuleHandleA(0);
-	wcx.lpszClassName = "SfallSndWnd";
+	wcx.lpszClassName = "sfallSndWnd";
 
 	RegisterClassEx(&wcx);
-	soundwindow = CreateWindow("SfallSndWnd", "SndWnd", 0, 0, 0, 0, 0, HWND_MESSAGE, 0, GetModuleHandleA(0), 0);
+	soundwindow = CreateWindow("sfallSndWnd", "SndWnd", 0, 0, 0, 0, 0, HWND_MESSAGE, 0, GetModuleHandleA(0), 0);
 	dlogr(" Done", DL_INIT);
 }
 
@@ -524,6 +624,7 @@ static sDSSound* PlayingSound(wchar_t* path, bool loop) {
 
 	result->pGraph->QueryInterface(IID_IMediaEventEx, (void**)&result->pEvent);
 	result->pEvent->SetNotifyWindow((OAHWND)soundwindow, WM_APP, id);
+
 	result->pGraph->QueryInterface(IID_IBasicAudio, (void**)&result->pAudio);
 
 	result->pControl->RenderFile(path);
@@ -545,16 +646,13 @@ static bool __cdecl SoundFileLoad(DWORD called, const char* path) {
 	wchar_t buf[256];
 	mbstowcs_s(0, buf, path, 256);
 
-	bool found = false;
+	bool isExist = false;
 	int len = wcslen(buf) - 3;
 	for (int i = 0; i < 3; i++) {
 		buf[len] = 0;
 		wcscat_s(buf, SoundExtensions[i]);
-
-		HANDLE h = CreateFileW(buf, GENERIC_READ, FILE_SHARE_READ, 0, OPEN_EXISTING, 0, 0);
-		if (h == INVALID_HANDLE_VALUE) continue;
-		CloseHandle(h);
-		found = true;
+		if (GetFileAttributesW(buf) & FILE_ATTRIBUTE_DIRECTORY) continue; // also file not found
+		isExist = true;
 		break;
 	}
 
@@ -564,7 +662,7 @@ static bool __cdecl SoundFileLoad(DWORD called, const char* path) {
 		StopSfallSound(musicLoopPtr);
 		musicLoopPtr = nullptr;
 	}
-	if (!found) return false;
+	if (!isExist) return false;
 
 	if (music) {
 		//strcpy_s(playingMusicFile, path);
@@ -761,7 +859,7 @@ void Movies::init() {
 	LoadGameHook::OnBeforeGameClose() += WipeSounds;
 
 	if (*((DWORD*)0x00518DA0) != 0x00503300) {
-		dlog("Error: The value at address 0x00518DA0 is not equal to 0x00503300.", DL_INIT);
+		dlog("Error: The value at address 0x001073A0 is not equal to 0x00503300.", DL_INIT);
 	}
 	for (int i = 0; i < MaxMovies; i++) {
 		MoviePtrs[i] = (DWORD)&MoviePaths[65 * i];
@@ -781,8 +879,16 @@ void Movies::init() {
 	SafeWrite32(0x44E75E, (DWORD)MoviePtrs);
 	SafeWrite32(0x44E78A, (DWORD)MoviePtrs);
 	dlog(".", DL_INIT);
-	if (Graphics::mode != 0 && GetConfigInt("Graphics", "AllowDShowMovies", 0)) { // TODO: implementation not working
+	/*
+		WIP: Task
+		Necessary to implement setting the volume according to the volume control in Fallout settings.
+		Add fade effects and brightness adjustment for videos.
+		Implement subtitle output from the need to play an mve file in the background.
+		Fix minor bugs.
+	*/
+	if (Graphics::mode != 0 && GetConfigInt("Graphics", "AllowDShowMovies", 0)) {
 		MakeJump(0x44E690, gmovie_play_hack);
+		/* NOTE: At this address 0x487781, HRP changes the callback procedure to display mve frames. */
 	}
 	dlogr(" Done", DL_INIT);
 
