@@ -228,6 +228,7 @@
 #define _stack_offset               0x59E844
 #define _stat_data                  0x51D53C
 #define _stat_flag                  0x66452A
+#define _subtitles                  0x663974
 #define _sWindows                   0x6727B0
 #define _Tag_                       0x5708B0
 #define _tag_skill                  0x668070
@@ -638,6 +639,7 @@ extern const DWORD gsnd_build_weapon_sfx_name_;
 extern const DWORD gsound_background_pause_;
 extern const DWORD gsound_background_stop_;
 extern const DWORD gsound_background_unpause_;
+extern const DWORD gsound_background_volume_get_set_;
 extern const DWORD gsound_play_sfx_file_;
 extern const DWORD gsound_red_butt_press_;
 extern const DWORD gsound_red_butt_release_;
@@ -763,6 +765,7 @@ extern const DWORD mouse_hide_;
 extern const DWORD mouse_in_;
 extern const DWORD mouse_show_;
 extern const DWORD move_inventory_;
+extern const DWORD movieUpdate_;
 extern const DWORD new_obj_id_;
 extern const DWORD NixHotLines_;
 extern const DWORD nrealloc_;
@@ -1159,6 +1162,8 @@ void __fastcall TransCscale(long i_width, long i_height, long s_width, long s_he
 long __fastcall GetGameConfigString(const char* outValue, const char* section, const char* param);
 
 long __fastcall WordWrap(const char* text, int maxWidth, DWORD* buf, BYTE* count);
+
+long __stdcall GSoundBackgroundVolumeGetSet(long setVolume);
 
 WINinfo* __stdcall GNWFind(long winRef);
 

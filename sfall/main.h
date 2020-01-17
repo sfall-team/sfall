@@ -51,12 +51,13 @@ struct ddrawDll {
 	FARPROC DirectDrawEnumerateA;
 	FARPROC DirectDrawEnumerateExW;
 	FARPROC DirectDrawEnumerateW;
-	//FARPROC DllCanUnloadNow;
-	//FARPROC DllGetClassObject;
+	FARPROC DllCanUnloadNow;
+	FARPROC DllGetClassObject;
 	FARPROC GetDDSurfaceLocal;
 	FARPROC GetOLEThunkData;
 	FARPROC GetSurfaceFromDC;
 	FARPROC RegisterSpecialCase;
+	FARPROC SetAppCompatData;
 };
 
 // global flag, indicating that debugging features of Sfall are enabled

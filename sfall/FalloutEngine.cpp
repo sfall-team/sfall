@@ -399,6 +399,7 @@ const DWORD gsnd_build_weapon_sfx_name_ = 0x451760;
 const DWORD gsound_background_pause_ = 0x450B50;
 const DWORD gsound_background_stop_ = 0x450AB4;
 const DWORD gsound_background_unpause_ = 0x450B64;
+const DWORD gsound_background_volume_get_set_ = 0x450620;
 const DWORD gsound_play_sfx_file_ = 0x4519A8;
 const DWORD gsound_red_butt_press_ = 0x451970;
 const DWORD gsound_red_butt_release_ = 0x451978;
@@ -518,6 +519,7 @@ const DWORD mouse_hide_ = 0x4CA534;
 const DWORD mouse_in_ = 0x4CA8C8;
 const DWORD mouse_show_ = 0x4CA34C;
 const DWORD move_inventory_ = 0x474708;
+const DWORD movieUpdate_ = 0x487BEC;
 const DWORD new_obj_id_ = 0x4A386C;
 const DWORD NixHotLines_ = 0x4999C0;
 const DWORD nrealloc_ = 0x4F1669;
@@ -1135,6 +1137,10 @@ long __fastcall GetGameConfigString(const char* outValue, const char* section, c
 
 long __fastcall WordWrap(const char* text, int maxWidth, DWORD* buf, BYTE* count) {
 	WRAP_WATCOM_FCALL4(_word_wrap_, text, maxWidth, buf, count)
+}
+
+long __stdcall GSoundBackgroundVolumeGetSet(long setVolume) {
+	WRAP_WATCOM_CALL1(gsound_background_volume_get_set_, setVolume)
 }
 
 WINinfo* __stdcall GNWFind(long winRef) {

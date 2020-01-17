@@ -27,6 +27,8 @@
 extern DWORD GraphicsMode;
 extern DWORD GPUBlt;
 
+extern bool PlayAviMovie;
+
 extern IDirect3D9* d3d9;
 extern IDirect3DDevice9* d3d9Device;
 
@@ -55,7 +57,7 @@ int _stdcall GetShaderTexture(DWORD d, DWORD id);
 void _stdcall SetShaderTexture(DWORD d, const char* param, DWORD value);
 
 void RefreshGraphics();
-void GetFalloutWindowInfo(DWORD* width, DWORD* height, HWND* window);
+HWND GetFalloutWindowInfo(RECT* rect);
 
-void SetMovieTexture(void* tex);
-void _stdcall PlayMovieFrame();
+void Gfx_SetMovieTexture(IDirect3DTexture9* tex);
+void Gfx_ShowMovieFrame();
