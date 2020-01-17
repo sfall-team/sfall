@@ -470,10 +470,7 @@ static std::string strToCase;
 
 void sf_string_to_case(OpcodeContext& ctx) {
 	strToCase = ctx.arg(0).strValue();
-	if (ctx.arg(1).rawValue())
-		std::transform(strToCase.begin(), strToCase.end(), strToCase.begin(), ::toupper);
-	else
-		std::transform(strToCase.begin(), strToCase.end(), strToCase.begin(), ::tolower);
+	std::transform(strToCase.begin(), strToCase.end(), strToCase.begin(), ctx.arg(1).rawValue() ? ::toupper : ::tolower);
 
 	ctx.setReturn(strToCase.c_str());
 }

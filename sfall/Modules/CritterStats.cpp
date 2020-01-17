@@ -46,7 +46,7 @@ struct ProtoMem {
 
 	void CreateProtoMem(long* srcProto) {
 		this->proto = reinterpret_cast<long*>(new int32_t[104]); // 416 bytes
-		memcpy(this->proto, srcProto, 416);
+		std::memcpy(this->proto, srcProto, 416);
 	}
 
 	~ProtoMem() { delete[] proto; }

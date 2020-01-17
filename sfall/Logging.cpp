@@ -37,6 +37,7 @@ void dlog(const std::string& a, int type) {
 		Log.flush();
 	}
 }
+
 void dlogr(const std::string& a, int type) {
 	if (isDebug && (type == DL_MAIN || (type & DebugTypes))) {
 		Log << a << "\n";

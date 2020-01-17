@@ -10,7 +10,8 @@ namespace sfall
 std::multimap<long, long> writeAddress;
 
 static std::vector<long> excludeAddr = {
-	0x42a14f, 0x42a178,
+	0x42A14F, 0x42A178,
+	0x44E949, 0x44E94A, 0x44E937, 0x4F5F40, 0x4CB850, // from movies.cpp
 };
 
 struct HackPair {
@@ -72,6 +73,7 @@ static std::vector<HackPair> hackAddr = {
 	{0x484B18, 1}, {0x484B19, 4}, // hookcall
 	// module: Movies
 	{0x44E937, 1}, {0x44E938, 4}, {0x44E949, 1}, {0x44E94A, 4}, // hookcalls
+	{0x4F5F40, 1}, {0x4CB850, 1},
 	// module: Objects
 	{0x4A364A, 5}, {0x4831D9, 1}, {0x4831DA, 1},
 	{0x4841D6, 1}, {0x4841D7, 4}, // hookcall
