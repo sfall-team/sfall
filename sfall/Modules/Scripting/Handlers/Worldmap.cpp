@@ -257,5 +257,9 @@ void sf_tile_by_position(OpcodeContext& ctx) {
 	ctx.setReturn(fo::func::tile_num(ctx.arg(0).rawValue(), ctx.arg(1).rawValue()));
 }
 
+void sf_set_terrain_name(OpcodeContext& ctx) {
+	Worldmap::SetTerrainTypeName(ctx.arg(0).rawValue(), ctx.arg(1).rawValue(), ctx.arg(2).strValue());
+}
+
 }
 }

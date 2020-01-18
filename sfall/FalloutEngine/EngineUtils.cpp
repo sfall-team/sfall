@@ -225,11 +225,6 @@ long wmGetCurrentTerrainType() {
 	return *terrainId;
 }
 
-// Returns the name of the terrain type at the the player's position on the world map
-const char* wmGetCurrentTerrainName() {
-	return GetMessageStr(&fo::var::wmMsgFile, 1000 + wmGetCurrentTerrainType());
-}
-
 //---------------------------------------------------------
 // copy the area from the interface buffer to the data array
 void RectCopyToMemory(long fromX, long fromY, long width, long height, long fromWidth, BYTE* fromBuff, BYTE* toMem) {

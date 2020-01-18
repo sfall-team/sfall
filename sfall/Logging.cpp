@@ -26,10 +26,8 @@
 namespace sfall 
 {
 
-using namespace std;
-
-static int DebugTypes=0;
-static ofstream Log;
+static int DebugTypes = 0;
+static std::ofstream Log;
 
 void dlog(const std::string& a, int type) {
 	if (isDebug && (type == DL_MAIN || (type & DebugTypes))) {
@@ -58,7 +56,7 @@ void dlog_f(const char *fmt, int type, ...) {
 }
 
 void LoggingInit() {
-	Log.open("sfall-log.txt", ios_base::out | ios_base::trunc);
+	Log.open("sfall-log.txt", std::ios_base::out | std::ios_base::trunc);
 	if (iniGetInt("Debugging", "Init", 0, ::sfall::ddrawIni)) {
 		DebugTypes |= DL_INIT;
 	}

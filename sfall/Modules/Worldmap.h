@@ -42,6 +42,10 @@ public:
 
 	static DWORD GetAddedYears(bool isCheck = true);
 	static void SetAddedYears(DWORD years);
+
+	static void SetTerrainTypeName(long x, long y, const char* name);
+	static const char* GetTerrainTypeName(long x, long y);
+	static const char* GetCurrentTerrainName();
 };
 
 void _stdcall SetMapMulti(float d);

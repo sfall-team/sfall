@@ -24,6 +24,7 @@
 #include "..\Utils.h"
 #include "Graphics.h"
 #include "LoadGameHook.h"
+#include "Worldmap.h"
 
 #include "Interface.h"
 
@@ -471,9 +472,10 @@ enum DotStyleDefault {
 };
 
 enum TerrainHoverImage {
-	width  = 100,
+	width  = 200,
 	height = 15,
-	size = width * height
+	size = width * height,
+	x_shift = (width / 4 ) + 25 // adjust x position
 };
 
 static std::array<unsigned char, TerrainHoverImage::size> wmTmpBuffer;
@@ -563,7 +565,7 @@ static void __declspec(naked) DrawingDots() {
 }
 
 static void PrintTerrainType(long x, long y) {
-	char* terrainText = (char*)fo::wmGetCurrentTerrainName();
+	char* terrainText = (char*)Worldmap::GetCurrentTerrainName();
 	long txtWidth = fo::GetTextWidthFM(terrainText);
 	if (txtWidth > TerrainHoverImage::width) txtWidth = TerrainHoverImage::width;
 
@@ -583,7 +585,12 @@ static void __declspec(naked) wmInterfaceRefresh_hook() {
 			// player stops moving
 			dots.clear();
 			// Reinitialize on next AddNewDot
-			dotLen = spaceLen = 99;
+			if (terrainCount)
+				dotLen = spaceLen = 99;
+			else {
+				dotLen = DotStyleDefault::DotLen;
+				spaceLen = DotStyleDefault::SpaceLen;
+			}
 		}
 	}
 	if (isHoveringHotspot && !fo::var::In_WorldMap) {
@@ -594,8 +601,13 @@ static void __declspec(naked) wmInterfaceRefresh_hook() {
 }
 
 static long __fastcall wmDetectHotspotHover(long wmMouseX, long wmMouseY) {
-	long deltaX = abs((long)fo::var::world_xpos - (wmMouseX - 20 + fo::var::wmWorldOffsetX));
-	long deltaY = abs((long)fo::var::world_ypos - (wmMouseY - 20 + fo::var::wmWorldOffsetY));
+	long deltaX = 20, deltaY = 20;
+
+	// mouse cursor is out of viewport area (the zero values of wmMouseX and wmMouseY correspond to the top-left corner of the worldmap interface)
+	if ((wmMouseX < 25 || wmMouseY < 30 || wmMouseX > wmapViewPortWidth + 15 || wmMouseY > wmapViewPortHeight + 15) == false) {
+		deltaX = abs((long)fo::var::world_xpos - (wmMouseX - deltaX + fo::var::wmWorldOffsetX));
+		deltaY = abs((long)fo::var::world_ypos - (wmMouseY - deltaY + fo::var::wmWorldOffsetY));
+	}
 
 	bool isHovered = isHoveringHotspot;
 	isHoveringHotspot = deltaX < 8 && deltaY < 6;
@@ -603,12 +615,12 @@ static long __fastcall wmDetectHotspotHover(long wmMouseX, long wmMouseY) {
 		// upper left corner
 		long y = fo::var::world_ypos - fo::var::wmWorldOffsetY;
 		long x = fo::var::world_xpos - fo::var::wmWorldOffsetX;
-		long x_offset = x - 25;
+		long x_offset = x - TerrainHoverImage::x_shift;
 		if (!backImageIsCopy) {
 			backImageIsCopy = true;
 			// copy image to memory (size 100 x 15)
 			fo::RectCopyToMemory(x_offset, y, TerrainHoverImage::width, TerrainHoverImage::height, wmapWinWidth, *(BYTE**)FO_VAR_wmBkWinBuf, wmTmpBuffer.data());
-			PrintTerrainType(x, y);
+			PrintTerrainType(x, y); // TODO: fix text being printed over the interface
 		} else {
 			// restore saved image
 			fo::MemCopyToWinBuffer(x_offset, y, TerrainHoverImage::width, TerrainHoverImage::height, wmapWinWidth, *(BYTE**)FO_VAR_wmBkWinBuf, wmTmpBuffer.data());
@@ -635,11 +647,24 @@ end:
 checkHover:
 		cmp  dword ptr ds:[FO_VAR_WorldMapCurrArea], -1;
 		jne  end; // player is in a location circle
+		cmp  esi, 328;
+		je   isScroll;
+		cmp  esi, 331;
+		je   isScroll;
+		cmp  esi, 333;
+		je   isScroll;
+		cmp  esi, 336;
+		je   isScroll;
 		push ecx;
 		mov  ecx, [esp + 0x38 - 0x30 + 8]; // x
 		mov  edx, [esp + 0x38 - 0x34 + 8]; // y
 		call wmDetectHotspotHover;
 		pop  ecx;
+		retn;
+isScroll:
+		mov  isHoveringHotspot, 0;
+		mov  backImageIsCopy, 0;
+		mov  eax, dword ptr ds:[FO_VAR_wmWorldOffsetY];
 		retn;
 	}
 }

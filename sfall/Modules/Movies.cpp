@@ -91,8 +91,8 @@ private:
 		HRESULT hr = pAllocNotify->AllocateSurfaceHelper(lpAllocInfo, lpNumBuffers, &surfaces[0]);
 		if (FAILED(hr)) return hr;
 
-		dlog_f(" Height: %d,", DL_INIT, lpAllocInfo->dwHeight);
 		dlog_f(" Width: %d,", DL_INIT, lpAllocInfo->dwWidth);
+		dlog_f(" Height: %d,", DL_INIT, lpAllocInfo->dwHeight);
 		dlog_f(" Format: %d", DL_INIT, lpAllocInfo->Format);
 
 		hr = surfaces[0]->GetContainer(IID_IDirect3DTexture9, (void**)&pTex);

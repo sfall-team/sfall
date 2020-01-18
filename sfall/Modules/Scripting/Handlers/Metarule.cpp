@@ -127,6 +127,7 @@ static const SfallMetarule metarules[] = {
 	{"set_rest_heal_time",      sf_set_rest_heal_time,      1, 1, -1, {ARG_INT}},
 	{"set_rest_mode",           sf_set_rest_mode,           1, 1, -1, {ARG_INT}},
 	{"set_selectable_perk_npc", sf_set_selectable_perk_npc, 5, 5, -1, {ARG_OBJECT, ARG_STRING, ARG_INT, ARG_INT, ARG_STRING}},
+	{"set_terrain_name",        sf_set_terrain_name,        3, 3, -1, {ARG_INT, ARG_INT, ARG_STRING}},
 	{"set_unique_id",           sf_set_unique_id,           1, 2, -1, {ARG_OBJECT, ARG_INT}},
 	{"set_unjam_locks_time",    sf_set_unjam_locks_time,    1, 1, -1, {ARG_INT}},
 	{"set_window_flag",         sf_set_window_flag,         3, 3, -1, {ARG_INTSTR, ARG_INT, ARG_INT}},

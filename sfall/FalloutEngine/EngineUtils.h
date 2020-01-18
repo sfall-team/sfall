@@ -82,8 +82,6 @@ void GetObjectsTileRadius(std::vector<fo::GameObject*> &objs, long sourceTile, l
 
 long wmGetCurrentTerrainType();
 
-const char* wmGetCurrentTerrainName();
-
 void RectCopyToMemory(long fromX, long fromY, long width, long height, long fromWidth, BYTE* fromBuff, BYTE* toMem);
 
 void MemCopyToWinBuffer(long toX, long toY, long width, long height, long toWidth, BYTE* toBuff, BYTE* fromMem);
