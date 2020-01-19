@@ -22,12 +22,10 @@
 
 #include "Console.h"
 
-using namespace std;
+static std::ofstream consoleFile;
 
-static ofstream consolefile;
-
-static void _stdcall ConsoleFilePrint(const char* msg) {
-	consolefile << msg << endl;
+static void __stdcall ConsoleFilePrint(const char* msg) {
+	consoleFile << msg << std::endl;
 }
 
 static const DWORD ConsoleHookRet = 0x431871;
@@ -49,15 +47,15 @@ static void __declspec(naked) ConsoleHook() {
 void ConsoleInit() {
 	std::string path = GetConfigString("Misc", "ConsoleOutputPath", "", MAX_PATH);
 	if (!path.empty()) {
-		consolefile.open(path);
-		if (consolefile.is_open()) {
+		consoleFile.open(path);
+		if (consoleFile.is_open()) {
 			MakeJump(0x43186C, ConsoleHook);
 		}
 	}
 }
 
 void ConsoleExit() {
-	if (consolefile.is_open()) {
-		consolefile.close();
+	if (consoleFile.is_open()) {
+		consoleFile.close();
 	}
 }
