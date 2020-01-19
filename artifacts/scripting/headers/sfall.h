@@ -65,6 +65,7 @@
 #define HOOK_STDPROCEDURE     (40)
 #define HOOK_STDPROCEDURE_END (41)
 #define HOOK_TARGETOBJECT     (42)
+#define HOOK_ENCOUNTER        (43)
 
 //Valid arguments to list_begin
 #define LIST_CRITTERS    (0)

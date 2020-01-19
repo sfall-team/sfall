@@ -60,6 +60,7 @@
 #define FO_VAR_edit_win                   0x57060C
 #define FO_VAR_Educated                   0x57082C
 #define FO_VAR_elevation                  0x631D2C
+#define FO_VAR_EncounterMapID             0x672E4C
 #define FO_VAR_Experience_                0x6681B4
 #define FO_VAR_fade_steps                 0x6642D0
 #define FO_VAR_fallout_game_time          0x51C720
@@ -158,6 +159,8 @@
 #define FO_VAR_obj_seen_check             0x6610BC
 #define FO_VAR_objectTable                0x639DA0
 #define FO_VAR_objItemOutlineState        0x519798
+#define FO_VAR_old_world_xpos             0x672E5C
+#define FO_VAR_old_world_ypos             0x672E60
 #define FO_VAR_optionRect                 0x58ECC0
 #define FO_VAR_optionsButtonDown          0x59D400
 #define FO_VAR_optionsButtonDown1         0x570518

@@ -15,4 +15,5 @@ namespace sfall
 	void Inject_SetGlobalVarHook();
 	void Inject_RestTimerHook();
 	void Inject_ExplosiveTimerHook();
+	void Inject_EncounterHook();
 }

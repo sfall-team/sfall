@@ -525,6 +525,98 @@ end:
 	}
 }
 
+// hook does not work for scripted encounters and meeting Horrigan
+static long __fastcall EncounterHook_Script(long encounterMapID, long eventType, long encType) {
+	BeginHook();
+	argCount = 3;
+
+	args[0] = eventType; // 1 - enter local map from the world map
+	args[1] = encounterMapID;
+	args[2] = (encType == 3); // 1 - special random encounter (not verified)
+
+	RunHookScript(HOOK_ENCOUNTER);
+
+	if (cRet) {
+		encounterMapID = rets[0];
+		if (encounterMapID < -1) encounterMapID = -1;
+		if (eventType == 0 && cRet > 1 && encounterMapID != -1 && rets[1] == 1) { // 1 - cancel the encounter and load the specified map
+			encounterMapID = -encounterMapID - 2; // map number in negative value
+		}
+		if (encounterMapID < 0) {
+			// set the coordinates of the last encounter
+			*(DWORD*)FO_VAR_old_world_xpos = fo::var::world_xpos;
+			*(DWORD*)FO_VAR_old_world_ypos = fo::var::world_ypos;
+		}
+	}
+	EndHook();
+	return encounterMapID;
+}
+
+static void __declspec(naked) wmWorldMap_hook() {
+	__asm {
+		mov  ebx, eax; // keep map id
+		mov  edx, 1;
+		mov  ecx, eax;
+		push 0;
+		call EncounterHook_Script;
+		test eax, eax;
+		cmovl eax, ebx; // restore map if map < 0
+		jmp  fo::funcoffs::map_load_idx_; // eax - map id
+	}
+}
+
+static void __declspec(naked) wmRndEncounterOccurred_hook() {
+	static long hkEncounterMapID = -1;
+	__asm {
+		cmp  hkEncounterMapID, -1;
+		jnz  blinkIcon;
+		test edx, edx;
+		jz   hookRun;
+		jmp  fo::funcoffs::wmInterfaceRefresh_;
+hookRun: /////////////////////////////////
+		push edx;
+		push ecx;
+		push ecx; // encType
+		xor  edx, edx;
+		mov  ecx, dword ptr ds:[FO_VAR_EncounterMapID];
+		call EncounterHook_Script;
+		pop  ecx;
+		pop  edx;
+		mov  dword ptr ds:[FO_VAR_EncounterMapID], eax;
+		cmp  eax, -1;
+		je   cancelEnc;
+		jl   clearEnc;
+		jmp  fo::funcoffs::wmInterfaceRefresh_;
+clearEnc: /////////////////////////////////
+		mov  dword ptr ds:[FO_VAR_EncounterMapID], -1;
+		neg  eax;
+		sub  eax, 2; // recover correct map number from negative value
+		mov  hkEncounterMapID, eax;
+		dec  edx;
+blinkIcon:
+		cmp  edx, 6; // counter of blinking
+		je   break;
+		jmp  fo::funcoffs::wmInterfaceRefresh_;
+break:
+		mov  eax, hkEncounterMapID;
+		cmp  ds:[FO_VAR_Move_on_Car], 1;
+		jne  noCar;
+		mov  edx, FO_VAR_carCurrentArea;
+		call fo::funcoffs::wmMatchAreaContainingMapIdx_;
+		mov  eax, hkEncounterMapID;
+noCar:
+		call fo::funcoffs::map_load_idx_;
+		xor  eax, eax;
+		//mov  ds:[0x672E48], eax; // _wmUnkVar00
+		mov  hkEncounterMapID, -1;
+cancelEnc:
+		inc  eax; // 0 - continue movement, 1 - interrupt
+		add  esp, 4;
+		mov  ebx, 0x4C0BC7;
+		jmp  ebx;
+	}
+}
+
 void Inject_BarterPriceHook() {
 	HookCalls(BarterPriceHook, {
 		0x474D4C, // barter_attempt_transaction_ (offers button)
@@ -587,6 +679,11 @@ void Inject_UseSkillOnHook() {
 	SafeWriteBatch<DWORD>((DWORD)&sourceSkillOn, {0x4AB0EF, 0x4AB5C0, 0x4ABAF2}); // fix for time
 }
 
+void Inject_EncounterHook() {
+	HookCall(0x4C02AF, wmWorldMap_hook);
+	HookCall(0x4C095C, wmRndEncounterOccurred_hook);
+}
+
 void InitMiscHookScripts() {
 	LoadHookScript("hs_barterprice", HOOK_BARTERPRICE);
 	LoadHookScript("hs_useskillon", HOOK_USESKILLON);
@@ -598,6 +695,7 @@ void InitMiscHookScripts() {
 	LoadHookScript("hs_setglobalvar", HOOK_SETGLOBALVAR);
 	LoadHookScript("hs_resttimer", HOOK_RESTTIMER);
 	LoadHookScript("hs_explosivetimer", HOOK_EXPLOSIVETIMER);
+	LoadHookScript("hs_encounter", HOOK_ENCOUNTER);
 }
 
 }
