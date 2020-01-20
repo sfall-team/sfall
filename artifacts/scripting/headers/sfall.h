@@ -61,6 +61,7 @@
 //Valid flags for force_encounter_with_flags
 #define ENCOUNTER_FLAG_NO_CAR   (1)
 #define ENCOUNTER_FLAG_LOCK     (2) // block new forced encounter by the next function call until the current specified encounter occurs
+#define ENCOUNTER_FLAG_SPECIAL  (4) // special blinking icon
 
 //The attack types returned by get_attack_type
 #define ATKTYPE_LWEP1           (0)

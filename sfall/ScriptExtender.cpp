@@ -1286,7 +1286,7 @@ skip:
 	}
 }
 
-static void _stdcall ClearEventsOnMapExit() {
+static void ClearEventsOnMapExit() {
 	__asm {
 		mov  eax, explode_event; // type
 		mov  edx, queue_explode_exit_; // func

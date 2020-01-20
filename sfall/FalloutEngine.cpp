@@ -276,6 +276,7 @@ const DWORD attack_crit_success_ = 0x423EB4;
 const DWORD automap_ = 0x41B8BC;
 const DWORD barter_compute_value_ = 0x474B2C;
 const DWORD barter_inventory_ = 0x4757F0;
+const DWORD block_for_tocks_ = 0x4C93B8;
 const DWORD buf_to_buf_ = 0x4D36D4;
 const DWORD cai_attempt_w_reload_ = 0x42AECC;
 const DWORD check_death_ = 0x410814;
@@ -709,6 +710,7 @@ const DWORD windowHide_ = 0x4B7610;
 const DWORD windowShow_ = 0x4B7648;
 const DWORD windowWidth_ = 0x4B7734;
 const DWORD wmFindCurSubTileFromPos_ = 0x4C0C00;
+const DWORD wmInterfaceRefresh_ = 0x4C3830;
 const DWORD wmInterfaceScrollTabsStart_ = 0x4C219C;
 const DWORD wmMapIsSaveable_ = 0x4BFA64;
 const DWORD wmMarkSubTileRadiusVisited_ = 0x4C3550;
@@ -1173,6 +1175,10 @@ void __stdcall WinDelete(DWORD winRef) {
 
 long __stdcall WindowWidth() {
 	WRAP_WATCOM_CALL0(windowWidth_)
+}
+
+long __stdcall BlockForTocks(long ticks) {
+	WRAP_WATCOM_CALL1(block_for_tocks_, ticks)
 }
 
 void __fastcall DisplayInventory(long inventoryOffset, long visibleOffset, long mode) {

@@ -254,8 +254,10 @@
 #define _wd_obj                     0x59E98C
 #define _window                     0x6ADE58
 #define _wmAreaInfoList             0x51DDF8
+#define _wmEncounterIconShow        0x672E48
 #define _wmLastRndTime              0x51DEA0
 #define _wmMaxMapNum                0x51DE10
+#define _wmRndCursorFid             0x672E58
 #define _wmWorldOffsetX             0x51DE2C
 #define _wmWorldOffsetY             0x51DE30
 #define _wmYesNoStrs                0x51DD90
@@ -517,6 +519,7 @@ extern const DWORD attack_crit_success_;
 extern const DWORD automap_;
 extern const DWORD barter_compute_value_;
 extern const DWORD barter_inventory_;
+extern const DWORD block_for_tocks_;
 extern const DWORD buf_to_buf_;
 extern const DWORD cai_attempt_w_reload_;
 extern const DWORD check_death_;
@@ -958,6 +961,7 @@ extern const DWORD windowHide_;
 extern const DWORD windowShow_;
 extern const DWORD windowWidth_;
 extern const DWORD wmFindCurSubTileFromPos_;
+extern const DWORD wmInterfaceRefresh_;
 extern const DWORD wmInterfaceScrollTabsStart_;
 extern const DWORD wmMapIsSaveable_;
 extern const DWORD wmMarkSubTileRadiusVisited_;
@@ -1175,6 +1179,8 @@ void __stdcall WinDraw(DWORD winRef);
 void __stdcall WinDelete(DWORD winRef);
 
 long __stdcall WindowWidth();
+
+long __stdcall BlockForTocks(long ticks);
 
 void __fastcall DisplayInventory(long inventoryOffset, long visibleOffset, long mode);
 

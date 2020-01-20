@@ -11,7 +11,7 @@
 #define below_equal(a, b)  (unsigned_comp(a, b) <= 0)
 
 procedure unsigned_comp(variable a, variable b) begin
-   if (a bwxor b) then return 0;
+   if ((a bwxor b) == 0) then return 0; // a == b
    if (b == 0) then return 1;
    return 1 if (a / b) else -1;
 end

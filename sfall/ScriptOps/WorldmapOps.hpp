@@ -26,13 +26,27 @@
 static DWORD ForceEncounterMapID = -1;
 static DWORD ForceEncounterFlags;
 
-DWORD _stdcall ForceEncounterRestore() {
+DWORD ForceEncounterRestore() {
 	long long data = 0x672E043D83; // cmp ds:_Meet_Frank_Horrigan, 0
 	SafeWriteBytes(0x4C06D1, (BYTE*)&data, 5);
 	ForceEncounterFlags = 0;
 	DWORD mapID = ForceEncounterMapID;
 	ForceEncounterMapID = -1;
 	return mapID;
+}
+
+// implements a blinking encounter icon
+static void ForceEncounterIcon() {
+	long iconType = (ForceEncounterFlags & 4) ? 3 : 1; // icon type flag (special: 0-3, normal: 0-1)
+	*(DWORD*)_wmEncounterIconShow = 1;
+	*(DWORD*)_wmRndCursorFid = 0;
+	for (size_t n = 0; n < 7; ++n) {
+		long iconFidIndex = iconType - *(DWORD*)_wmRndCursorFid;
+		*(DWORD*)_wmRndCursorFid = iconFidIndex;
+		__asm call wmInterfaceRefresh_;
+		BlockForTocks(200);
+	}
+	*(DWORD*)_wmEncounterIconShow = 0;
 }
 
 static void __declspec(naked) wmRndEncounterOccurred_hack() {
@@ -45,10 +59,8 @@ static void __declspec(naked) wmRndEncounterOccurred_hack() {
 		mov  eax, ForceEncounterMapID;
 		call wmMatchAreaContainingMapIdx_;
 noCar:
-		//push ecx;
-		// TODO: implement a blinking red icon
+		call ForceEncounterIcon;
 		call ForceEncounterRestore;
-		//pop  ecx;
 		push 0x4C0721; // return addr
 		jmp  map_load_idx_; // eax - mapID
 	}
