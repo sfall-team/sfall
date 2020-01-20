@@ -245,11 +245,13 @@
 #define FO_VAR_wmAreaInfoList             0x51DDF8
 #define FO_VAR_wmBkWin                    0x51DE14
 #define FO_VAR_wmBkWinBuf                 0x51DE24
+#define FO_VAR_wmEncounterIconShow        0x672E48
 #define FO_VAR_wmLastRndTime              0x51DEA0
 #define FO_VAR_wmMaxMapNum                0x51DE10
 #define FO_VAR_wmMaxTileNum               0x51DDF0
 #define FO_VAR_wmMsgFile                  0x672FB0
 #define FO_VAR_wmNumHorizontalTiles       0x51DDF4
+#define FO_VAR_wmRndCursorFid             0x672E58
 #define FO_VAR_wmViewportRightScrlLimit   0x672EFC
 #define FO_VAR_wmViewportBottomtScrlLimit 0x672F00
 #define FO_VAR_wmWorldOffsetX             0x51DE2C

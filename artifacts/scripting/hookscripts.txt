@@ -681,5 +681,5 @@ int     arg1 - event type: 0 - when a random encounter occurs, 1 - when the play
 int     arg2 - the map ID that the encounter will load (see MAPS.h or Maps.txt)
 int     arg3 - 1 when the encounter occurs is a special encounter, 0 otherwise
 
-int     ret1 - overrides the map ID, or pass -1 to cancel the encounter and continue traveling (only for event type 0)
+int     ret1 - overrides the map ID, or pass -1 for event type 0 to cancel the encounter and continue traveling
 int     ret2 - pass 1 to cancel the encounter and load the specified map from the ret1 (only for event type 0)

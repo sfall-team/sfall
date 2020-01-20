@@ -43,6 +43,20 @@ DWORD ForceEncounterRestore() {
 	return mapID;
 }
 
+// implements a blinking encounter icon
+static void ForceEncounterIcon() {
+	long iconType = (ForceEncounterFlags & 4) ? 3 : 1; // icon type flag (special: 0-3, normal: 0-1)
+	*(DWORD*)FO_VAR_wmEncounterIconShow = 1;
+	*(DWORD*)FO_VAR_wmRndCursorFid = 0;
+	for (size_t n = 0; n < 7; ++n) {
+		long iconFidIndex = iconType - *(DWORD*)FO_VAR_wmRndCursorFid;
+		*(DWORD*)FO_VAR_wmRndCursorFid = iconFidIndex;
+		__asm call fo::funcoffs::wmInterfaceRefresh_;
+		fo::func::block_for_tocks(200);
+	}
+	*(DWORD*)FO_VAR_wmEncounterIconShow = 0;
+}
+
 static void __declspec(naked) wmRndEncounterOccurred_hack() {
 	__asm {
 		test ForceEncounterFlags, 0x1; // _NoCar flag
@@ -53,10 +67,8 @@ static void __declspec(naked) wmRndEncounterOccurred_hack() {
 		mov  eax, ForceEncounterMapID;
 		call fo::funcoffs::wmMatchAreaContainingMapIdx_;
 noCar:
-		//push ecx;
-		// TODO: implement a blinking red icon
+		call ForceEncounterIcon;
 		call ForceEncounterRestore;
-		//pop  ecx;
 		push 0x4C0721; // return addr
 		jmp  fo::funcoffs::map_load_idx_; // eax - mapID
 	}
