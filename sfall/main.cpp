@@ -218,9 +218,9 @@ end:
 	}
 }
 
-static const DWORD ScannerHookRet = 0x41BC1D;
+static const DWORD ScannerHookRet  = 0x41BC1D;
 static const DWORD ScannerHookFail = 0x41BC65;
-static void __declspec(naked) ScannerAutomapHook() {
+static void __declspec(naked) automap_hack() {
 	__asm {
 		mov eax, ds:[_obj_dude];
 		mov edx, PID_MOTION_SENSOR;
@@ -303,6 +303,23 @@ static void __declspec(naked) display_stats_hook() {
 		pop  ecx;
 		pop  eax;
 		jmp  item_w_range_;
+	}
+}
+
+static void __declspec(naked) endgame_movie_hook() {
+	__asm {
+		cmp  [esp + 16], 0x45C563; // call from op_endgame_movie_
+		je   playWalkMovie;
+		retn;
+playWalkMovie:
+		call stat_level_;
+		xor  edx, edx;
+		add  eax, 10;
+		mov  ecx, eax;
+		mov  eax, 1500;
+		call pause_for_tocks_;
+		mov  eax, ecx;
+		jmp  gmovie_play_;
 	}
 }
 
@@ -503,6 +520,7 @@ static void DllMain2() {
 		dlog("Applying Fallout 1 engine behavior patch.", DL_INIT);
 		BlockCall(0x4A4343); // disable playing the final movie/credits after the endgame slideshow
 		SafeWrite8(0x477C71, 0xEB); // disable halving the weight for power armor items
+		HookCall(0x43F872, endgame_movie_hook); // play movie 10 or 11 based on the player's gender before the credits
 		dlogr(" Done", DL_INIT);
 	}
 
@@ -599,7 +617,7 @@ static void DllMain2() {
 
 	if (tmp = GetConfigInt("Misc", "MotionScannerFlags", 1)) {
 		dlog("Applying MotionScannerFlags patch.", DL_INIT);
-		if (tmp & 1) MakeJump(0x41BBE9, ScannerAutomapHook);
+		if (tmp & 1) MakeJump(0x41BBE9, automap_hack);
 		if (tmp & 2) {
 			// automap_
 			SafeWrite16(0x41BC24, 0x9090);

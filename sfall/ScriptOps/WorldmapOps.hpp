@@ -27,6 +27,7 @@ static DWORD ForceEncounterMapID = -1;
 static DWORD ForceEncounterFlags;
 
 DWORD ForceEncounterRestore() {
+	if (ForceEncounterMapID == -1) return 0;
 	long long data = 0x672E043D83; // cmp ds:_Meet_Frank_Horrigan, 0
 	SafeWriteBytes(0x4C06D1, (BYTE*)&data, 5);
 	ForceEncounterFlags = 0;
@@ -35,12 +36,21 @@ DWORD ForceEncounterRestore() {
 	return mapID;
 }
 
-// implements a blinking encounter icon
-static void ForceEncounterIcon() {
-	long iconType = (ForceEncounterFlags & 4) ? 3 : 1; // icon type flag (special: 0-3, normal: 0-1)
+static void ForceEncounterEffects() {
+	if (ForceEncounterFlags & 0x10) { // _FadeOut flag
+		__asm mov  eax, _black_palette;
+		__asm call palette_fade_to_;
+		return;
+	};
+
+	// implements a flashing encounter icon
+	if (ForceEncounterFlags & 4) return; // _NoIcon flag
+	long iconType = (ForceEncounterFlags & 8) ? 3 : 1; // icon type flag (special: 0-3, normal: 0-1)
+
 	*(DWORD*)_wmEncounterIconShow = 1;
 	*(DWORD*)_wmRndCursorFid = 0;
-	for (size_t n = 0; n < 7; ++n) {
+
+	for (size_t n = 8; n > 0; --n) {
 		long iconFidIndex = iconType - *(DWORD*)_wmRndCursorFid;
 		*(DWORD*)_wmRndCursorFid = iconFidIndex;
 		__asm call wmInterfaceRefresh_;
@@ -59,7 +69,7 @@ static void __declspec(naked) wmRndEncounterOccurred_hack() {
 		mov  eax, ForceEncounterMapID;
 		call wmMatchAreaContainingMapIdx_;
 noCar:
-		call ForceEncounterIcon;
+		call ForceEncounterEffects;
 		call ForceEncounterRestore;
 		push 0x4C0721; // return addr
 		jmp  map_load_idx_; // eax - mapID
