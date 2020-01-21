@@ -247,6 +247,23 @@ end:
 	}
 }
 
+static void __declspec(naked) endgame_movie_hook() {
+	__asm {
+		cmp  [esp + 16], 0x45C563; // call from op_endgame_movie_
+		je   playWalkMovie;
+		retn;
+playWalkMovie:
+		call fo::funcoffs::stat_level_;
+		xor  edx, edx;
+		add  eax, 10;
+		mov  ecx, eax;
+		mov  eax, 1500;
+		call fo::funcoffs::pause_for_tocks_;
+		mov  eax, ecx;
+		jmp  fo::funcoffs::gmovie_play_;
+	}
+}
+
 void AdditionalWeaponAnimsPatch() {
 	if (GetConfigInt("Misc", "AdditionalWeaponAnims", 0)) {
 		dlog("Applying additional weapon animations patch.", DL_INIT);
@@ -573,6 +590,7 @@ void F1EngineBehaviorPatch() {
 		dlog("Applying Fallout 1 engine behavior patch.", DL_INIT);
 		BlockCall(0x4A4343); // disable playing the final movie/credits after the endgame slideshow
 		SafeWrite8(0x477C71, 0xEB); // disable halving the weight for power armor items
+		HookCall(0x43F872, endgame_movie_hook); // play Movie11 or Movie12 depending on the player's gender before the credits
 		dlogr(" Done", DL_INIT);
 	}
 }
