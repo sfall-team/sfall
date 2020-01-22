@@ -475,7 +475,7 @@ enum TerrainHoverImage {
 	width  = 200,
 	height = 15,
 	size = width * height,
-	x_shift = (width / 4 ) + 25 // adjust x position
+	x_shift = (width / 4) + 25 // adjust x position
 };
 
 static std::array<unsigned char, TerrainHoverImage::size> wmTmpBuffer;

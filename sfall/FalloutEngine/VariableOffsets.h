@@ -47,11 +47,12 @@
 #define FO_VAR_currentWindow              0x51DCB8
 #define FO_VAR_cursor_line                0x664514
 #define FO_VAR_debug_func                 0x51DF04
+#define FO_VAR_dialog_target              0x518848
+#define FO_VAR_dialog_target_is_party     0x51884C
 #define FO_VAR_dialogue_head              0x518850
 #define FO_VAR_dialogue_state             0x518714
 #define FO_VAR_dialogue_switch_mode       0x518718
-#define FO_VAR_dialog_target              0x518848
-#define FO_VAR_dialog_target_is_party     0x51884C
+#define FO_VAR_dialogueBackWindow         0x518740
 #define FO_VAR_display_win                0x631E4C
 #define FO_VAR_displayMapList             0x41B560
 #define FO_VAR_dropped_explosive          0x5190E0
@@ -168,6 +169,7 @@
 #define FO_VAR_optionsButtonUp            0x59D3FC
 #define FO_VAR_optionsButtonUp1           0x570514
 #define FO_VAR_optionsButtonUpKey         0x518F28
+#define FO_VAR_optnwin                    0x663900
 #define FO_VAR_outlined_object            0x518D94
 #define FO_VAR_partyMemberAIOptions       0x519DB8
 #define FO_VAR_partyMemberCount           0x519DAC
@@ -206,6 +208,7 @@
 #define FO_VAR_script_path_base           0x51C710
 #define FO_VAR_scriptListInfo             0x51C7C8
 #define FO_VAR_skill_data                 0x51D118
+#define FO_VAR_skldxwin                   0x668140
 #define FO_VAR_slot_cursor                0x5193B8
 #define FO_VAR_sndfx_volume               0x518E90
 #define FO_VAR_sneak_working              0x56D77C // DWORD var

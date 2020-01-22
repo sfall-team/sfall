@@ -315,6 +315,28 @@ end:
 	}
 }
 
+static void __declspec(naked) wmRndEncounterOccurred_hook() {
+	__asm {
+		push eax;
+		mov  edx, 1;
+		mov  dword ptr ds:[FO_VAR_wmRndCursorFid], 0;
+		mov  ds:[FO_VAR_wmEncounterIconShow], edx;
+		mov  ecx, 7;
+jLoop:
+		mov  eax, edx;
+		sub  eax, ds:[FO_VAR_wmRndCursorFid];
+		mov  ds:[FO_VAR_wmRndCursorFid], eax;
+		call fo::funcoffs::wmInterfaceRefresh_;
+		mov  eax, 200;
+		call fo::funcoffs::block_for_tocks_;
+		dec  ecx;
+		jnz  jLoop;
+		mov  ds:[FO_VAR_wmEncounterIconShow], ecx;
+		pop  eax; // map id
+		jmp  fo::funcoffs::map_load_idx_;
+	}
+}
+
 static void RestRestore() {
 	if (!restMode) return;
 	restMode = false;
@@ -642,6 +664,9 @@ void Worldmap::init() {
 	WorldLimitsPatches();
 	WorldmapFpsPatch();
 	PipBoyAutomapsPatch();
+
+	// Add a flashing icon to the Horrigan encounter
+	HookCall(0x4C071C, wmRndEncounterOccurred_hook);
 
 	LoadGameHook::OnGameReset() += []() {
 		SetCarInterfaceArt(433); // set index
