@@ -706,3 +706,33 @@ static void sf_unwield_slot() {
 	}
 	if (update) IntfaceUpdateItems(0, -1, -1);
 }
+
+void sf_get_window_attribute() {
+	const ScriptValue &winArg = opHandler.arg(0),
+					  &attrArg = opHandler.arg(1);
+
+	if (winArg.isInt() && attrArg.isInt()) {
+		WINinfo* win = GetUIWindow(winArg.rawValue());
+		if (win == nullptr) {
+			opHandler.printOpcodeError("get_window_attribute() - failed to get the interface window.");
+			return;
+		}
+		if ((long)win == -1) {
+			opHandler.printOpcodeError("get_window_attribute() - invalid window type number.");
+			return;
+		}
+		long pos = 0;
+		switch (attrArg.rawValue()) {
+		case 0 : // x
+			pos = win->wRect.left;
+			break;
+		case 1 : // y
+			pos = win->wRect.top;
+			break;
+		}
+		opHandler.setReturn(pos);
+	} else {
+		OpcodeInvalidArgs("get_window_attribute");
+		opHandler.setReturn(0);
+	}
+}
