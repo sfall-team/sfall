@@ -92,6 +92,7 @@ static const SfallMetarule metarules[] = {
 	{"get_sfall_arg_at",        sf_get_sfall_arg_at,        1, 1,  0, {ARG_INT}},
 	{"get_string_pointer",      sf_get_string_pointer,      1, 1,  0, {ARG_STRING}},
 	{"get_text_width",          sf_get_text_width,          1, 1,  0, {ARG_STRING}},
+	{"get_window_attribute",    sf_get_window_attribute,    2, 2,  0, {ARG_INT, ARG_INT}},
 	{"has_fake_perk_npc",       sf_has_fake_perk_npc,       2, 2,  0, {ARG_OBJECT, ARG_STRING}},
 	{"has_fake_trait_npc",      sf_has_fake_trait_npc,      2, 2,  0, {ARG_OBJECT, ARG_STRING}},
 	{"hide_window",             sf_hide_window,             0, 1, -1, {ARG_STRING}},

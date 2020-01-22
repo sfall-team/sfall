@@ -195,6 +195,50 @@ long __fastcall GetTopWindowID(long xPos, long yPos) {
 	return win->wID;
 }
 
+enum WinNameType {
+	Inventory = 0, // any inventory window
+	Dialog    = 1,
+	PipBoy    = 2,
+	WorldMap  = 3,
+	MainIface = 4, // the interface bar
+	Character = 5,
+	Skilldex  = 6,
+	EscMenu   = 7, // escape menu
+};
+
+fo::Window* GetWindow(long winType) {
+	long winID = -1;
+	switch (winType) {
+	case WinNameType::Inventory:
+		winID = fo::var::i_wid;
+		break;
+	case WinNameType::Dialog:
+		winID = *(DWORD*)FO_VAR_dialogueBackWindow;
+		break;
+	case WinNameType::PipBoy:
+		winID = fo::var::pip_win;
+		break;
+	case WinNameType::WorldMap:
+		winID = *(DWORD*)FO_VAR_wmBkWin;
+		break;
+	case WinNameType::MainIface:
+		winID = fo::var::interfaceWindow;
+		break;
+	case WinNameType::Character:
+		winID = fo::var::edit_win;
+		break;
+	case WinNameType::Skilldex:
+		winID = *(DWORD*)FO_VAR_skldxwin;
+		break;
+	case WinNameType::EscMenu:
+		winID = *(DWORD*)FO_VAR_optnwin;
+		break;
+	default:
+		return (fo::Window*)-1;
+	}
+	return (winID != -1) ? fo::func::GNW_find(winID) : nullptr;
+}
+
 // Returns an array of objects within the specified radius from the source tile
 void GetObjectsTileRadius(std::vector<fo::GameObject*> &objs, long sourceTile, long radius, long elev, long type = -1) {
 	for (long tile = 0; tile < 40000; tile++) {

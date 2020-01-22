@@ -541,5 +541,27 @@ void sf_unwield_slot(OpcodeContext& ctx) {
 	if (update) fo::func::intface_update_items(0, -1, -1);
 }
 
+void sf_get_window_attribute(OpcodeContext& ctx) {
+	fo::Window* win = fo::GetWindow(ctx.arg(0).rawValue());
+	if (win == nullptr) {
+		ctx.printOpcodeError("%s() - failed to get the interface window.", ctx.getMetaruleName());
+		return;
+	}
+	if ((long)win == -1) {
+		ctx.printOpcodeError("%s() - invalid window type number.", ctx.getMetaruleName());
+		return;
+	}
+	long pos = 0;
+	switch (ctx.arg(1).rawValue()) {
+	case 0 : // x
+		pos = win->wRect.left;
+		break;
+	case 1 : // y
+		pos = win->wRect.top;
+		break;
+	}
+	ctx.setReturn(pos);
+}
+
 }
 }
