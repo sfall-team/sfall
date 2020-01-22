@@ -72,6 +72,7 @@
 #define _dialogue_head              0x518850
 #define _dialogue_state             0x518714
 #define _dialogue_switch_mode       0x518718
+#define _dialogueBackWindow         0x518740
 #define _display_win                0x631E4C
 #define _displayMapList             0x41B560
 #define _dropped_explosive          0x5190E0
@@ -180,6 +181,7 @@
 #define _optionsButtonUp            0x59D3FC
 #define _optionsButtonUp1           0x570514
 #define _optionsButtonUpKey         0x518F28
+#define _optnwin                    0x663900
 #define _outlined_object            0x518D94
 #define _partyMemberAIOptions       0x519DB8
 #define _partyMemberCount           0x519DAC
@@ -217,6 +219,7 @@
 #define _script_engine_running      0x51C714
 #define _scriptListInfo             0x51C7C8
 #define _skill_data                 0x51D118
+#define _skldxwin                   0x668140
 #define _slot_cursor                0x5193B8
 #define _sndfx_volume               0x518E90
 #define _sneak_working              0x56D77C // DWORD var
@@ -254,6 +257,8 @@
 #define _wd_obj                     0x59E98C
 #define _window                     0x6ADE58
 #define _wmAreaInfoList             0x51DDF8
+#define _wmBkWin                    0x51DE14
+#define _wmBkWinBuf                 0x51DE24
 #define _wmEncounterIconShow        0x672E48
 #define _wmLastRndTime              0x51DEA0
 #define _wmMaxMapNum                0x51DE10

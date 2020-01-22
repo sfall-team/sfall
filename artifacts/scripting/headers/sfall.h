@@ -53,7 +53,7 @@
 #define LIST_GROUNDITEMS (1)
 #define LIST_SCENERY     (2)
 #define LIST_WALLS       (3)
-//#define LIST_TILES       (4) //Not listable via sfall list functions
+//#define LIST_TILES     (4) //Not listable via sfall list functions
 #define LIST_MISC        (5)
 #define LIST_SPATIAL     (6)
 #define LIST_ALL         (9)

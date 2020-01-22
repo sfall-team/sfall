@@ -271,6 +271,28 @@ end:
 	}
 }
 
+static void __declspec(naked) wmRndEncounterOccurred_hook() {
+	__asm {
+		push eax;
+		mov  edx, 1;
+		mov  dword ptr ds:[_wmRndCursorFid], 0;
+		mov  ds:[_wmEncounterIconShow], edx;
+		mov  ecx, 7;
+jLoop:
+		mov  eax, edx;
+		sub  eax, ds:[_wmRndCursorFid];
+		mov  ds:[_wmRndCursorFid], eax;
+		call wmInterfaceRefresh_;
+		mov  eax, 200;
+		call block_for_tocks_;
+		dec  ecx;
+		jnz  jLoop;
+		mov  ds:[_wmEncounterIconShow], ecx;
+		pop  eax; // map id
+		jmp  map_load_idx_;
+	}
+}
+
 void WorldLimitsPatches() {
 	DWORD data = GetConfigInt("Misc", "LocalMapXLimit", 0);
 	if (data) {
@@ -455,4 +477,7 @@ void WorldmapInit() {
 	WorldLimitsPatches();
 	WorldmapFpsPatch();
 	PipBoyAutomapsPatch();
+
+	// Add a flashing icon to the Horrigan encounter
+	HookCall(0x4C071C, wmRndEncounterOccurred_hook);
 }
