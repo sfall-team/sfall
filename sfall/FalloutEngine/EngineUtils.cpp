@@ -200,7 +200,7 @@ enum WinNameType {
 	Dialog    = 1,
 	PipBoy    = 2,
 	WorldMap  = 3,
-	MainIface = 4, // the interface bar
+	IfaceBar  = 4, // the interface bar
 	Character = 5,
 	Skilldex  = 6,
 	EscMenu   = 7, // escape menu
@@ -221,7 +221,7 @@ fo::Window* GetWindow(long winType) {
 	case WinNameType::WorldMap:
 		winID = *(DWORD*)FO_VAR_wmBkWin;
 		break;
-	case WinNameType::MainIface:
+	case WinNameType::IfaceBar:
 		winID = fo::var::interfaceWindow;
 		break;
 	case WinNameType::Character:

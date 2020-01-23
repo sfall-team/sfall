@@ -101,7 +101,7 @@ isFloat:
 }
 
 static const DWORD UnarmedAttacksFixEnd = 0x423A0D;
-static void __declspec(naked) UnarmedAttacksFix() {
+static void __declspec(naked) compute_attack_hack() {
 	__asm {
 		mov  ecx, 5;                        // 5% chance of critical hit
 		cmp  edx, ATKTYPE_POWERKICK;        // Power Kick
@@ -2490,7 +2490,7 @@ void BugFixes::init()
 
 	//if (GetConfigInt("Misc", "SpecialUnarmedAttacksFix", 1)) {
 		dlog("Applying Special Unarmed Attacks fix.", DL_INIT);
-		MakeJump(0x42394D, UnarmedAttacksFix);
+		MakeJump(0x42394D, compute_attack_hack);
 		dlogr(" Done", DL_INIT);
 	//}
 

@@ -553,10 +553,10 @@ void sf_get_window_attribute(OpcodeContext& ctx) {
 	}
 	long pos = 0;
 	switch (ctx.arg(1).rawValue()) {
-	case 0 : // x
+	case 0: // x
 		pos = win->wRect.left;
 		break;
-	case 1 : // y
+	case 1: // y
 		pos = win->wRect.top;
 		break;
 	}
