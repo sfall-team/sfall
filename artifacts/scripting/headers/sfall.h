@@ -70,7 +70,7 @@
 #define WINTYPE_DIALOG       (1)
 #define WINTYPE_PIPBOY       (2)
 #define WINTYPE_WORLDMAP     (3)
-#define WINTYPE_MAINIFACE    (4) // the interface bar
+#define WINTYPE_IFACEBAR     (4) // the interface bar
 #define WINTYPE_CHARACTER    (5)
 #define WINTYPE_SKILLDEX     (6)
 #define WINTYPE_ESCMENU      (7) // escape menu
@@ -253,8 +253,8 @@
 #define get_current_inven_size(obj)                     sfall_func1("get_current_inven_size", obj)
 #define get_cursor_mode                                 sfall_func0("get_cursor_mode")
 #define get_flags(obj)                                  sfall_func1("get_flags", obj)
-#define get_interface_xpos(winType)                     sfall_func2("get_window_attribute", winType, 0)
-#define get_interface_ypos(winType)                     sfall_func2("get_window_attribute", winType, 1)
+#define get_interface_x(winType)                        sfall_func2("get_window_attribute", winType, 0)
+#define get_interface_y(winType)                        sfall_func2("get_window_attribute", winType, 1)
 #define get_inven_ap_cost                               sfall_func0("get_inven_ap_cost")
 #define get_map_enter_position                          sfall_func0("get_map_enter_position")
 #define get_metarule_table                              sfall_func0("get_metarule_table")

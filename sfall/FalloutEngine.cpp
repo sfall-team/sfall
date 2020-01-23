@@ -1452,7 +1452,7 @@ enum WinNameType {
 	WINTYPE_Dialog    = 1,
 	WINTYPE_PipBoy    = 2,
 	WINTYPE_WorldMap  = 3,
-	WINTYPE_MainIface = 4, // the interface bar
+	WINTYPE_IfaceBar  = 4, // the interface bar
 	WINTYPE_Character = 5,
 	WINTYPE_Skilldex  = 6,
 	WINTYPE_EscMenu   = 7, // escape menu
@@ -1473,7 +1473,7 @@ WINinfo* GetUIWindow(long winType) {
 	case WINTYPE_WorldMap:
 		winID = *(DWORD*)_wmBkWin;
 		break;
-	case WINTYPE_MainIface:
+	case WINTYPE_IfaceBar:
 		winID = *ptr_interfaceWindow;
 		break;
 	case WINTYPE_Character:
