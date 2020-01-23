@@ -2327,6 +2327,25 @@ largeLoc:
 	}
 }
 
+static void __declspec(naked) wmTownMapFunc_hack() {
+	__asm {
+		cmp  dword ptr [edi][eax * 4 + 0], 0;  // Visited
+		je   end;
+		cmp  dword ptr [edi][eax * 4 + 4], -1; // Xpos
+		je   end;
+		cmp  dword ptr [edi][eax * 4 + 8], -1; // Ypos
+		je   end;
+		// engine code
+		mov  edx, [edi][eax * 4 + 0xC];
+		mov  [esi], edx
+		retn;
+end:
+		add  esp, 4; // destroy the return address
+		mov  eax, 0x4C4976;
+		jmp  eax;
+	}
+}
+
 static const DWORD combat_should_end_break = 0x422D00;
 static void __declspec(naked) combat_should_end_hack() {
 	__asm { // ecx = dude.team_num
@@ -3055,6 +3074,13 @@ void BugFixesInit()
 
 	// Fix the position of the target marker for small/medium location circles
 	MakeCall(0x4C03AA, wmWorldMap_hack, 2);
+
+	// Fix to prevent using number keys to enter unvisited areas on a town map
+	//if (GetConfigInt("Misc", "TownMapHotkeysFix", 1)) {
+		dlog("Applying town map hotkeys patch.", DL_INIT);
+		MakeCall(0x4C495A, wmTownMapFunc_hack, 1);
+		dlogr(" Done", DL_INIT);
+	//}
 
 	// Fix for combat not ending automatically when there are no hostile critters
 	MakeCall(0x422CF3, combat_should_end_hack);

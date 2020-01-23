@@ -187,25 +187,6 @@ static void __declspec(naked) ViewportHook() {
 	}
 }
 
-static void __declspec(naked) wmTownMapFunc_hack() {
-	__asm {
-		cmp  dword ptr [edi][eax * 4 + 0], 0;  // Visited
-		je   end;
-		cmp  dword ptr [edi][eax * 4 + 4], -1; // Xpos
-		je   end;
-		cmp  dword ptr [edi][eax * 4 + 8], -1; // Ypos
-		je   end;
-		// engine code
-		mov  edx, [edi][eax * 4 + 0xC];
-		mov  [esi], edx
-		retn;
-end:
-		add  esp, 4; // destroy the return address
-		mov  eax, 0x4C4976;
-		jmp  eax;
-	}
-}
-
 static DWORD _stdcall PathfinderCalc(DWORD perkLevel, DWORD ticks) {
 	double multi = mapMultiMod * scriptMapMulti;
 
@@ -340,14 +321,6 @@ void TimeLimitPatch() {
 	}
 }
 
-void TownMapsHotkeyFix() {
-	if (GetConfigInt("Misc", "TownMapHotkeysFix", 1)) {
-		dlog("Applying town map hotkeys patch.", DL_INIT);
-		MakeCall(0x4C495A, wmTownMapFunc_hack, 1);
-		dlogr(" Done", DL_INIT);
-	}
-}
-
 void WorldmapFpsPatch() {
 	bool fpsPatchOK = (*(DWORD*)0x4BFE5E == 0x8D16);
 	if (GetConfigInt("Misc", "WorldMapFPSPatch", 0)) {
@@ -473,7 +446,6 @@ void WorldmapInit() {
 	PathfinderFixInit();
 	StartingStatePatches();
 	TimeLimitPatch();
-	TownMapsHotkeyFix();
 	WorldLimitsPatches();
 	WorldmapFpsPatch();
 	PipBoyAutomapsPatch();
