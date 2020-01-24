@@ -57,6 +57,7 @@ BYTE*  ptr_DarkGreenColor             = reinterpret_cast<BYTE*>(_DarkGreenColor)
 BYTE*  ptr_DarkGreenGreyColor         = reinterpret_cast<BYTE*>(_DarkGreenGreyColor);
 TGameObj** ptr_dialog_target          = reinterpret_cast<TGameObj**>(_dialog_target);
 DWORD* ptr_dialog_target_is_party     = reinterpret_cast<DWORD*>(_dialog_target_is_party);
+DWORD* ptr_dialogueBackWindow         = reinterpret_cast<DWORD*>(_dialogueBackWindow);
 DWORD* ptr_drugInfoList               = reinterpret_cast<DWORD*>(_drugInfoList);
 DWORD* ptr_edit_win                   = reinterpret_cast<DWORD*>(_edit_win);
 DWORD* ptr_Educated                   = reinterpret_cast<DWORD*>(_Educated);
@@ -148,6 +149,7 @@ DWORD* ptr_optionsButtonDownKey       = reinterpret_cast<DWORD*>(_optionsButtonD
 DWORD* ptr_optionsButtonUp            = reinterpret_cast<DWORD*>(_optionsButtonUp);
 DWORD* ptr_optionsButtonUp1           = reinterpret_cast<DWORD*>(_optionsButtonUp1);
 DWORD* ptr_optionsButtonUpKey         = reinterpret_cast<DWORD*>(_optionsButtonUpKey);
+DWORD* ptr_optnwin                    = reinterpret_cast<DWORD*>(_optnwin);
 DWORD* ptr_outlined_object            = reinterpret_cast<DWORD*>(_outlined_object);
 DWORD* ptr_partyMemberAIOptions       = reinterpret_cast<DWORD*>(_partyMemberAIOptions);
 DWORD* ptr_partyMemberCount           = reinterpret_cast<DWORD*>(_partyMemberCount);
@@ -182,6 +184,7 @@ DWORD* ptr_rotation                   = reinterpret_cast<DWORD*>(_rotation);
 BoundRect* ptr_scr_size               = reinterpret_cast<BoundRect*>(_scr_size);
 DWORD* ptr_scriptListInfo             = reinterpret_cast<DWORD*>(_scriptListInfo);
 DWORD* ptr_skill_data                 = reinterpret_cast<DWORD*>(_skill_data);
+DWORD* ptr_skldxwin                   = reinterpret_cast<DWORD*>(_skldxwin);
 DWORD* ptr_slot_cursor                = reinterpret_cast<DWORD*>(_slot_cursor);
 DWORD* ptr_sneak_working              = reinterpret_cast<DWORD*>(_sneak_working); // DWORD var
 char** ptr_sound_music_path1          = reinterpret_cast<char**>(_sound_music_path1);
@@ -218,6 +221,8 @@ DWORD* ptr_wd_obj                     = reinterpret_cast<DWORD*>(_wd_obj);
 DWORD* ptr_window                     = reinterpret_cast<DWORD*>(_window); // total 50 WINinfo*
 BYTE*  ptr_WhiteColor                 = reinterpret_cast<BYTE*>(_WhiteColor);
 DWORD* ptr_wmAreaInfoList             = reinterpret_cast<DWORD*>(_wmAreaInfoList);
+DWORD* ptr_wmBkWin                    = reinterpret_cast<DWORD*>(_wmBkWin);
+BYTE** ptr_wmBkWinBuf                 = reinterpret_cast<BYTE**>(_wmBkWinBuf);
 DWORD* ptr_wmLastRndTime              = reinterpret_cast<DWORD*>(_wmLastRndTime);
 long*  ptr_wmWorldOffsetX             = reinterpret_cast<long*>(_wmWorldOffsetX);
 long*  ptr_wmWorldOffsetY             = reinterpret_cast<long*>(_wmWorldOffsetY);
@@ -852,7 +857,7 @@ long __stdcall GetInputBtn() {
 	WRAP_WATCOM_CALL0(get_input_)
 }
 
-void __stdcall PlaySfx(const char* name) {
+void __stdcall GSoundPlaySfxFile(const char* name) {
 	WRAP_WATCOM_CALL1(gsound_play_sfx_file_, name)
 }
 
@@ -1465,13 +1470,13 @@ WINinfo* GetUIWindow(long winType) {
 		winID = *ptr_i_wid;
 		break;
 	case WINTYPE_Dialog:
-		winID = *(DWORD*)_dialogueBackWindow;
+		winID = *ptr_dialogueBackWindow;
 		break;
 	case WINTYPE_PipBoy:
 		winID = *ptr_pip_win;
 		break;
 	case WINTYPE_WorldMap:
-		winID = *(DWORD*)_wmBkWin;
+		winID = *ptr_wmBkWin;
 		break;
 	case WINTYPE_IfaceBar:
 		winID = *ptr_interfaceWindow;
@@ -1480,10 +1485,10 @@ WINinfo* GetUIWindow(long winType) {
 		winID = *ptr_edit_win;
 		break;
 	case WINTYPE_Skilldex:
-		winID = *(DWORD*)_skldxwin;
+		winID = *ptr_skldxwin;
 		break;
 	case WINTYPE_EscMenu:
-		winID = *(DWORD*)_optnwin;
+		winID = *ptr_optnwin;
 		break;
 	default:
 		return (WINinfo*)-1;

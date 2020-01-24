@@ -424,13 +424,6 @@ static void UnloadDat(void *dat) {
 
 /////////////////////////////////////////////////////////////////OTHER FUNCTIONS/////////////////////////////////////////////////////////////////////
 
-static void PlayAcm(char *acmName) {
-	__asm {
-		mov  eax, acmName;
-		call gsound_play_sfx_file_;
-	}
-}
-
 void _stdcall RefreshArtCache() {
 	__asm {
 		call art_flush_;
@@ -1121,7 +1114,7 @@ void _stdcall HeroSelectWindow(int raceStyleFlag) {
 
 		button = GetInputBtn();
 		if (button == 0x148) { // previous style/race - up arrow button pushed
-			PlayAcm("ib1p1xx1");
+			GSoundPlaySfxFile("ib1p1xx1");
 
 			if (isStyle) {
 				if (styleVal == 0) continue;
@@ -1142,7 +1135,7 @@ void _stdcall HeroSelectWindow(int raceStyleFlag) {
 				drawFlag = true;
 			}
 		} else if (button == 0x150) { // Next style/race - down arrow button pushed
-			PlayAcm("ib1p1xx1");
+			GSoundPlaySfxFile("ib1p1xx1");
 
 			if (isStyle) {
 				styleVal++;
@@ -1163,7 +1156,7 @@ void _stdcall HeroSelectWindow(int raceStyleFlag) {
 				}
 			}
 		} else if (button == 0x0D) { // save and exit - Enter button pushed
-			PlayAcm("ib1p1xx1");
+			GSoundPlaySfxFile("ib1p1xx1");
 			if (!isStyle && currentRaceVal == raceVal) { // return style to previous value if no race change
 				styleVal = currentStyleVal;
 			}
@@ -1349,15 +1342,15 @@ static int _stdcall CheckCharButtons() {
 		case 1:
 			*ptr_info_line = 0x501;
 		play:
-			PlayAcm("ib3p1xx1");
+			GSoundPlaySfxFile("ib3p1xx1");
 			break;
 		case 2:
 			style = true;
 		case 3:
-			PlayAcm("ISDXXXX1");
+			GSoundPlaySfxFile("ISDXXXX1");
 			break;
 		default:
-			PlayAcm("IB3LU1X1");
+			GSoundPlaySfxFile("IB3LU1X1");
 			return button;
 		}
 		FixTextHighLight();

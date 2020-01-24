@@ -322,6 +322,7 @@ extern BYTE*  ptr_DarkGreenColor;
 extern BYTE*  ptr_DarkGreenGreyColor;
 extern TGameObj** ptr_dialog_target;
 extern DWORD* ptr_dialog_target_is_party;
+extern DWORD* ptr_dialogueBackWindow;
 extern DWORD* ptr_drugInfoList;
 extern DWORD* ptr_edit_win;
 extern DWORD* ptr_Educated;
@@ -413,6 +414,7 @@ extern DWORD* ptr_optionsButtonDownKey;
 extern DWORD* ptr_optionsButtonUp;
 extern DWORD* ptr_optionsButtonUp1;
 extern DWORD* ptr_optionsButtonUpKey;
+extern DWORD* ptr_optnwin;
 extern DWORD* ptr_outlined_object;
 extern DWORD* ptr_partyMemberAIOptions;
 extern DWORD* ptr_partyMemberCount;
@@ -448,6 +450,7 @@ extern DWORD* ptr_sad;
 extern BoundRect* ptr_scr_size;
 extern DWORD* ptr_scriptListInfo;
 extern DWORD* ptr_skill_data;
+extern DWORD* ptr_skldxwin;
 extern DWORD* ptr_slot_cursor;
 extern DWORD* ptr_sneak_working; // DWORD var
 extern char** ptr_sound_music_path1;
@@ -484,6 +487,8 @@ extern DWORD* ptr_wd_obj;
 extern DWORD* ptr_window; // total 50 WINinfo*
 extern BYTE*  ptr_WhiteColor;
 extern DWORD* ptr_wmAreaInfoList;
+extern DWORD* ptr_wmBkWin;
+extern BYTE** ptr_wmBkWinBuf;
 extern DWORD* ptr_wmLastRndTime;
 extern long*  ptr_wmWorldOffsetX;
 extern long*  ptr_wmWorldOffsetY;
@@ -1055,7 +1060,7 @@ void __stdcall DisplayConsoleMessage(const char* msg);
 long __stdcall GetInputBtn();
 
 // plays SFX sound with given name
-void __stdcall PlaySfx(const char* name);
+void __stdcall GSoundPlaySfxFile(const char* name);
 
 // Returns the name of the critter
 const char* __stdcall CritterName(TGameObj* critter);
