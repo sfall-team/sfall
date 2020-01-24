@@ -45,9 +45,9 @@ struct sGlobalVar {
 #pragma pack(pop)
 
 void ScriptExtenderInit();
+void ScriptExtender_OnGameLoad();
 bool _stdcall IsGameScript(const char* filename);
 void LoadGlobalScripts();
-void ClearGlobalScripts();
 
 void RunGlobalScripts2();
 void RunGlobalScripts3();
@@ -56,7 +56,6 @@ void AfterAttackCleanup();
 
 bool LoadGlobals(HANDLE h);
 void SaveGlobals(HANDLE h);
-void ClearGlobals();
 
 int GetNumGlobals();
 void GetGlobals(sGlobalVar* globals);
@@ -64,9 +63,6 @@ void SetGlobals(sGlobalVar* globals);
 
 void SetAppearanceGlobals(int race, int style);
 void GetAppearanceGlobals(int *race, int *style);
-
-void _stdcall RegAnimCombatCheck(DWORD newValue);
-DWORD ForceEncounterRestore();
 
 bool _stdcall ScriptHasLoaded(DWORD script);
 // finds procedure ID for given script program pointer and procedure name

@@ -206,14 +206,15 @@ allow:
 	}
 }
 
-void StatsReset() {
+static void StatsReset() {
 	for (int i = 0; i < STAT_max_stat; i++) {
 		StatMaximumsPC[i] = StatMaximumsNPC[i] = *(DWORD*)(_stat_data + 16 + i * 24);
 		StatMinimumsPC[i] = StatMinimumsNPC[i] = *(DWORD*)(_stat_data + 12 + i * 24);
 	}
 }
 
-void StatsResetMiscValues() {
+void Stats_OnGameLoad() {
+	StatsReset();
 	// Reset some settable game values back to the defaults
 	StandardApAcBonus = 4;
 	ExtraApAcBonus = 4;

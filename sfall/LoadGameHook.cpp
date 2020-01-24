@@ -85,28 +85,22 @@ void ClearLoopFlag(LoopFlag flag) {
 }
 
 static void _stdcall ResetState(DWORD onLoad) {
-	if (!onLoad) FileSystemReset();
-	ClearGlobalScripts();
-	ClearGlobals();
+	if (GraphicsMode > 3) Graphics_OnGameLoad();
 	ForceGraphicsRefresh(0); // disable refresh
+	LoadOrder_OnGameLoad();
 	WipeSounds();
-	if (GraphicsMode > 3) GraphicsResetOnGameLoad();
-	StatsReset();
-	StatsResetMiscValues();
+	RestoreObjUnjamAllLocks();
+	Stats_OnGameLoad();
 	PerksReset();
 	Combat_OnGameLoad();
 	Skills_OnGameLoad();
-	inLoop = 0;
-	ClearSavPrototypes();
+	if (!onLoad) FileSystemReset();
 	InventoryReset();
-	RegAnimCombatCheck(1);
-	ForceEncounterRestore(); // restore if the encounter did not happen
+	PartyControl_OnGameLoad();
 	ResetExplosionRadius();
-	PartyControlReset();
-	NpcEngineLevelUpReset();
-	RestoreObjUnjamAllLocks();
-	ResetBoxes();
-	ResetBoxCount();
+	BarBoxes_OnGameLoad();
+	ScriptExtender_OnGameLoad();
+	inLoop = 0;
 }
 
 void GetSavePath(char* buf, char* ftype) {

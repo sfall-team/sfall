@@ -18,8 +18,7 @@
 
 #pragma once
 
-void StatsReset();
-void StatsResetMiscValues();
+void Stats_OnGameLoad();
 void StatsInit();
 void _stdcall SetPCStatMax(int stat, int i);
 void _stdcall SetPCStatMin(int stat, int i);

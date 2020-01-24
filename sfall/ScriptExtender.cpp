@@ -35,6 +35,8 @@
 static DWORD _stdcall HandleMapUpdateForScripts(const DWORD procId);
 static long _stdcall HandleTimedEventScripts();
 
+static void ClearGlobalScripts();
+static void ClearGlobals();
 static void RunGlobalScripts1();
 static void sf_get_sfall_arg_at();
 static void sf_add_g_timer_event();
@@ -1297,6 +1299,13 @@ static void ClearEventsOnMapExit() {
 	}
 }
 
+void ScriptExtender_OnGameLoad() {
+	ClearGlobalScripts();
+	ClearGlobals();
+	RegAnimCombatCheck(1);
+	ForceEncounterRestore(); // restore if the encounter did not happen
+}
+
 void ScriptExtenderInit() {
 	toggleHighlightsKey = GetConfigInt("Input", "ToggleItemHighlightsKey", 0);
 	if (toggleHighlightsKey) {
@@ -1792,7 +1801,7 @@ static bool _stdcall ScriptHasLoaded(DWORD script) {
 }
 
 // this runs before actually loading/starting the game
-void ClearGlobalScripts() {
+static void ClearGlobalScripts() {
 	isGameLoading = true;
 	checkedScripts.clear();
 	sfallProgsMap.clear();
@@ -2033,7 +2042,7 @@ void SaveGlobals(HANDLE h) {
 	}
 }
 
-void ClearGlobals() {
+static void ClearGlobals() {
 	globalVars.clear();
 	for (array_itr it = arrays.begin(); it != arrays.end(); ++it) {
 		it->second.clearArrayVar();

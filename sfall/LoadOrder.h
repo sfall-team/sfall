@@ -19,5 +19,5 @@
 #pragma once
 
 void LoadOrderInit();
+void LoadOrder_OnGameLoad();
 void RemoveSavFiles();
-void ClearSavPrototypes();

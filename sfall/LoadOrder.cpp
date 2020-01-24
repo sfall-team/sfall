@@ -242,7 +242,7 @@ void RemoveSavFiles() {
 	MapDirErase(_F_PROTO_CRITTERS, _F_SAV);
 }
 
-void ClearSavPrototypes() {
+void LoadOrder_OnGameLoad() {
 	savPrototypes.clear();
 	RemoveSavFiles();
 }

@@ -391,7 +391,7 @@ pcName:
 	}
 }
 
-void __stdcall PartyControlReset() {
+static void PartyControlReset() {
 	if (real_dude != nullptr && isControllingNPC) {
 		RestoreRealDudeState(false);
 	}
@@ -455,7 +455,8 @@ static void NpcAutoLevelPatch() {
 	}
 }
 
-void NpcEngineLevelUpReset() {
+void PartyControl_OnGameLoad() {
+	PartyControlReset();
 	if (!npcEngineLevelUp) {
 		npcEngineLevelUp = true;
 		SafeWrite16(0x4AFC1C, 0x840F);

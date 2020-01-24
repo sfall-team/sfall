@@ -669,7 +669,7 @@ void Gfx_SetDefaultTechnique() {
 	gpuBltEffect->SetTechnique("T0");
 }
 
-void GraphicsResetOnGameLoad() {
+void Graphics_OnGameLoad() {
 	for (DWORD d = 0; d < shadersSize; d++) SAFERELEASE(shaders[d].Effect);
 	shaders.clear();
 	shadersSize = 0;
@@ -1033,7 +1033,7 @@ public:
 	ULONG _stdcall Release() { // called from game on exit
 		if (!--Refs) {
 			globalShaderActive = false;
-			GraphicsResetOnGameLoad();
+			Graphics_OnGameLoad();
 			for (DWORD d = 0; d < shaderTextures.size(); d++) shaderTextures[d]->Release();
 			shaderTextures.clear();
 			SAFERELEASE(backbuffer);

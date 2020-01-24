@@ -2,8 +2,7 @@
 
 void BarBoxesInit();
 void BarBoxesExit();
-void ResetBoxes();
-void ResetBoxCount();
+void BarBoxes_OnGameLoad();
 long SetBoxMaxSlots();
 
 int  __stdcall BarBoxes_MaxBox();

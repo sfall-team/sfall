@@ -141,7 +141,7 @@ static void ReconstructBarBoxes(int count) {
 }
 
 //static BYTE restoreData[] = {0x31, 0xD2, 0x89, 0x94, 0x24}; // xor edx, edx; mov...
-void ResetBoxes() {
+static void ResetBoxes() {
 	for (int i = 0; i < actualBoxCount; i++) {
 		boxText[i].isActive = false;
 		boxText[i].hasText = false;
@@ -154,13 +154,6 @@ void ResetBoxes() {
 	//SafeWrite32(0x461343, 0x00023D05); // call getmsg_
 	ReconstructBarBoxes(totalBoxCount);
 	//SafeWriteBytes(0x461243, restoreData, 5);
-}
-
-void ResetBoxCount() {
-	if (initCount != totalBoxCount) {
-		boxCount = initCount;
-		actualBoxCount = initCount - 5;
-	}
 }
 
 int __stdcall BarBoxes_MaxBox() {
@@ -261,6 +254,14 @@ static void __declspec(naked) refresh_box_bar_win_hack() {
 		pop  ecx;
 		mov  edx, 358;   // y position
 		retn;
+	}
+}
+
+void BarBoxes_OnGameLoad() {
+	ResetBoxes();
+	if (initCount != totalBoxCount) {
+		boxCount = initCount;
+		actualBoxCount = initCount - 5;
 	}
 }
 
