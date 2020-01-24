@@ -159,13 +159,6 @@ static DWORD BuildFrmId(DWORD lstRef, DWORD lstNum) {
 	return fo::func::art_id(lstRef, lstNum, 0, 0, 0);
 }
 
-static void PlayAcm(char *acmName) {
-	__asm {
-		mov  eax, acmName;
-		call fo::funcoffs::gsound_play_sfx_file_;
-	}
-}
-
 /////////////////////////////////////////////////////////////////APP MOD FUNCTIONS///////////////////////////////////////////////////////////////////
 
 static char GetSex() {
@@ -779,7 +772,7 @@ void _stdcall HeroSelectWindow(int raceStyleFlag) {
 
 		button = fo::func::get_input();
 		if (button == 0x148) { // previous style/race - up arrow button pushed
-			PlayAcm("ib1p1xx1");
+			fo::func::gsound_play_sfx_file("ib1p1xx1");
 
 			if (isStyle) {
 				if (styleVal == 0) continue;
@@ -800,7 +793,7 @@ void _stdcall HeroSelectWindow(int raceStyleFlag) {
 				drawFlag = true;
 			}
 		} else if (button == 0x150) { // Next style/race - down arrow button pushed
-			PlayAcm("ib1p1xx1");
+			fo::func::gsound_play_sfx_file("ib1p1xx1");
 
 			if (isStyle) {
 				styleVal++;
@@ -821,7 +814,7 @@ void _stdcall HeroSelectWindow(int raceStyleFlag) {
 				}
 			}
 		} else if (button == 0x0D) { // save and exit - Enter button pushed
-			PlayAcm("ib1p1xx1");
+			fo::func::gsound_play_sfx_file("ib1p1xx1");
 			if (!isStyle && currentRaceVal == raceVal) { // return style to previous value if no race change
 				styleVal = currentStyleVal;
 			}
@@ -1007,15 +1000,15 @@ static int _stdcall CheckCharButtons() {
 		case 1:
 			fo::var::info_line = 0x501;
 		play:
-			PlayAcm("ib3p1xx1");
+			fo::func::gsound_play_sfx_file("ib3p1xx1");
 			break;
 		case 2:
 			style = true;
 		case 3:
-			PlayAcm("ISDXXXX1");
+			fo::func::gsound_play_sfx_file("ISDXXXX1");
 			break;
 		default:
-			PlayAcm("IB3LU1X1");
+			fo::func::gsound_play_sfx_file("IB3LU1X1");
 			return button;
 		}
 		FixTextHighLight();

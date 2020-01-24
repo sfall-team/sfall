@@ -550,7 +550,7 @@ static void __declspec(naked) DrawingDots() {
 
 		wmPixelY *= wmapWinWidth;
 
-		BYTE* wmWinBuf = *(BYTE**)FO_VAR_wmBkWinBuf;
+		BYTE* wmWinBuf = fo::var::wmBkWinBuf;
 		BYTE* wmWinBuf_xy = (wmPixelY + wmPixelX) + wmWinBuf;
 
 		// put pixel to interface window buffer
@@ -573,8 +573,8 @@ static void PrintTerrainType(long x, long y) {
 	y += 4;
 	x += 25 - (txtWidth / 2);
 
-	fo::PrintTextFM(terrainText, 228, x, y, txtWidth, wmapWinWidth, *(BYTE**)FO_VAR_wmBkWinBuf); // text shadow
-	fo::PrintTextFM(terrainText, 215, x - 1, y - 1, txtWidth, wmapWinWidth, *(BYTE**)FO_VAR_wmBkWinBuf);
+	fo::PrintTextFM(terrainText, 228, x, y, txtWidth, wmapWinWidth, fo::var::wmBkWinBuf); // text shadow
+	fo::PrintTextFM(terrainText, 215, x - 1, y - 1, txtWidth, wmapWinWidth, fo::var::wmBkWinBuf);
 }
 
 static void __declspec(naked) wmInterfaceRefresh_hook() {
@@ -619,11 +619,11 @@ static long __fastcall wmDetectHotspotHover(long wmMouseX, long wmMouseY) {
 		if (!backImageIsCopy) {
 			backImageIsCopy = true;
 			// copy image to memory (size 100 x 15)
-			fo::RectCopyToMemory(x_offset, y, TerrainHoverImage::width, TerrainHoverImage::height, wmapWinWidth, *(BYTE**)FO_VAR_wmBkWinBuf, wmTmpBuffer.data());
+			fo::RectCopyToMemory(x_offset, y, TerrainHoverImage::width, TerrainHoverImage::height, wmapWinWidth, fo::var::wmBkWinBuf, wmTmpBuffer.data());
 			PrintTerrainType(x, y); // TODO: fix text being printed over the interface
 		} else {
 			// restore saved image
-			fo::MemCopyToWinBuffer(x_offset, y, TerrainHoverImage::width, TerrainHoverImage::height, wmapWinWidth, *(BYTE**)FO_VAR_wmBkWinBuf, wmTmpBuffer.data());
+			fo::MemCopyToWinBuffer(x_offset, y, TerrainHoverImage::width, TerrainHoverImage::height, wmapWinWidth, fo::var::wmBkWinBuf, wmTmpBuffer.data());
 			backImageIsCopy = false;
 		}
 		// redraw rectangle on worldmap interface
@@ -632,7 +632,7 @@ static long __fastcall wmDetectHotspotHover(long wmMouseX, long wmMouseY) {
 		rect.left = x_offset;
 		rect.right = x + TerrainHoverImage::width;
 		rect.bottom = y + TerrainHoverImage::height;
-		fo::func::win_draw_rect(*(long*)FO_VAR_wmBkWin, &rect);
+		fo::func::win_draw_rect(fo::var::wmBkWin, &rect);
 	}
 	return fo::var::wmWorldOffsetY; // overwritten code
 }

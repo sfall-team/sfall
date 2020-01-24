@@ -213,13 +213,13 @@ fo::Window* GetWindow(long winType) {
 		winID = fo::var::i_wid;
 		break;
 	case WinNameType::Dialog:
-		winID = *(DWORD*)FO_VAR_dialogueBackWindow;
+		winID = fo::var::dialogueBackWindow;
 		break;
 	case WinNameType::PipBoy:
 		winID = fo::var::pip_win;
 		break;
 	case WinNameType::WorldMap:
-		winID = *(DWORD*)FO_VAR_wmBkWin;
+		winID = fo::var::wmBkWin;
 		break;
 	case WinNameType::IfaceBar:
 		winID = fo::var::interfaceWindow;
@@ -228,10 +228,10 @@ fo::Window* GetWindow(long winType) {
 		winID = fo::var::edit_win;
 		break;
 	case WinNameType::Skilldex:
-		winID = *(DWORD*)FO_VAR_skldxwin;
+		winID = fo::var::skldxwin;
 		break;
 	case WinNameType::EscMenu:
-		winID = *(DWORD*)FO_VAR_optnwin;
+		winID = fo::var::optnwin;
 		break;
 	default:
 		return (fo::Window*)-1;
