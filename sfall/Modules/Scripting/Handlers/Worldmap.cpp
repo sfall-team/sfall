@@ -283,5 +283,9 @@ void sf_set_terrain_name(OpcodeContext& ctx) {
 	Worldmap::SetTerrainTypeName(ctx.arg(0).rawValue(), ctx.arg(1).rawValue(), ctx.arg(2).strValue());
 }
 
+void sf_set_town_title(OpcodeContext& ctx) {
+	Worldmap::SetCustomAreaTitle(ctx.arg(0).rawValue(), ctx.arg(1).strValue());
+}
+
 }
 }

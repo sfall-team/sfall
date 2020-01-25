@@ -55,6 +55,9 @@ struct ArrayWrapper {
 #define VAR_(name, type)	\
 	extern type& name;
 
+#define VARC(name, type)	\
+	extern const type& name;
+
 // defines reference to static array
 #define VARA(name, type, size)	\
 	extern ArrayWrapper<type, size> &name;

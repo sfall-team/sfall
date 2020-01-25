@@ -191,6 +191,7 @@ static void __declspec(naked) wmInterfaceInit_text_font_hook() {
 static DWORD wmTownMapSubButtonIds[WMAP_TOWN_BUTTONS + 1]; // replace _wmTownMapSubButtonIds (index 0 - unused element)
 static int worldmapInterface;
 static long wmapWinWidth = 640;
+static long wmapWinHeight = 480;
 static long wmapViewPortWidth = 450;
 static long wmapViewPortHeight = 443;
 
@@ -353,6 +354,7 @@ static void WorldmapViewportPatch() {
 	dlog("Applying expanded world map interface patch.", DL_INIT);
 
 	wmapWinWidth = WMAP_WIN_WIDTH;
+	wmapWinHeight = WMAP_WIN_HEIGHT;
 	mapSlotsScrollMax -= 216;
 	if (mapSlotsScrollMax < 0) mapSlotsScrollMax = 0;
 
@@ -465,6 +467,7 @@ static void WorldmapViewportPatch() {
 }
 
 ///////////////////////// FALLOUT 1 WORLD MAP FEATURES /////////////////////////
+static bool showTerrainType = false;
 
 enum DotStyleDefault {
 	DotLen   = 2,
@@ -564,17 +567,40 @@ static void __declspec(naked) DrawingDots() {
 	}
 }
 
-static void PrintTerrainType(long x, long y) {
-	char* terrainText = (char*)Worldmap::GetCurrentTerrainName();
-	long txtWidth = fo::GetTextWidthFM(terrainText);
+static bool PrintHotspotText(long x, long y, bool backgroundCopy = false) {
+	long area = fo::var::WorldMapCurrArea;
+	char* text = (area != -1 || !showTerrainType) ? (char*)Worldmap::GetCustomAreaTitle(area) : (char*)Worldmap::GetCurrentTerrainName();
+	if (!text) return false;
+
+	if (backgroundCopy) { // copy background image to memory (size 200 x 15)
+		backImageIsCopy = true;
+		fo::SurfaceCopyToMem(x - TerrainHoverImage::x_shift, y, TerrainHoverImage::width, TerrainHoverImage::height, wmapWinWidth, fo::var::wmBkWinBuf, wmTmpBuffer.data());
+	}
+
+	long txtWidth = fo::GetTextWidthFM(text);
 	if (txtWidth > TerrainHoverImage::width) txtWidth = TerrainHoverImage::width;
 
-	// offset position
+	// offset text position
 	y += 4;
 	x += 25 - (txtWidth / 2);
 
-	fo::PrintTextFM(terrainText, 228, x, y, txtWidth, wmapWinWidth, fo::var::wmBkWinBuf); // text shadow
-	fo::PrintTextFM(terrainText, 215, x - 1, y - 1, txtWidth, wmapWinWidth, fo::var::wmBkWinBuf);
+	// prevent printing text outside of viewport
+	/*if ((x + txtWidth) > wmapViewPortWidth - 20) {
+		txtWidth -= (x + txtWidth) - wmapViewPortWidth - 20;
+	} else if (x < 20) {
+		long x_cut = abs(20 - x);
+		long width = 0;
+		do {
+			width += fo::GetCharWidthFM(*text++);
+		} while (width < x_cut);
+		x += x_cut;
+	}*/
+
+	fo::PrintTextFM(text, 228, x, y, txtWidth, wmapWinWidth, fo::var::wmBkWinBuf); // shadow
+	fo::PrintTextFM(text, 215, x - 1, y - 1, txtWidth, wmapWinWidth, fo::var::wmBkWinBuf);
+
+	if (backgroundCopy) fo::func::wmRefreshInterfaceOverlay(0); // prevent printing text over the interface
+	return true;
 }
 
 static void __declspec(naked) wmInterfaceRefresh_hook() {
@@ -594,17 +620,19 @@ static void __declspec(naked) wmInterfaceRefresh_hook() {
 		}
 	}
 	if (isHoveringHotspot && !fo::var::In_WorldMap) {
-		PrintTerrainType(fo::var::world_xpos - fo::var::wmWorldOffsetX, fo::var::world_ypos - fo::var::wmWorldOffsetY);
+		PrintHotspotText(fo::var::world_xpos - fo::var::wmWorldOffsetX, fo::var::world_ypos - fo::var::wmWorldOffsetY);
 		isHoveringHotspot = backImageIsCopy = false;
 	}
 	__asm jmp fo::funcoffs::wmDrawCursorStopped_;
 }
 
-static long __fastcall wmDetectHotspotHover(long wmMouseX, long wmMouseY) {
+static void __fastcall wmDetectHotspotHover(long wmMouseX, long wmMouseY) {
+	if (!showTerrainType && Worldmap::AreaTitlesIsEmpty()) return;
+
 	long deltaX = 20, deltaY = 20;
 
 	// mouse cursor is out of viewport area (the zero values of wmMouseX and wmMouseY correspond to the top-left corner of the worldmap interface)
-	if ((wmMouseX < 25 || wmMouseY < 30 || wmMouseX > wmapViewPortWidth + 15 || wmMouseY > wmapViewPortHeight + 15) == false) {
+	if ((wmMouseX < 20 || wmMouseY < 20 || wmMouseX > wmapViewPortWidth + 15 || wmMouseY > wmapViewPortHeight + 20) == false) {
 		deltaX = abs((long)fo::var::world_xpos - (wmMouseX - deltaX + fo::var::wmWorldOffsetX));
 		deltaY = abs((long)fo::var::world_ypos - (wmMouseY - deltaY + fo::var::wmWorldOffsetY));
 	}
@@ -617,13 +645,10 @@ static long __fastcall wmDetectHotspotHover(long wmMouseX, long wmMouseY) {
 		long x = fo::var::world_xpos - fo::var::wmWorldOffsetX;
 		long x_offset = x - TerrainHoverImage::x_shift;
 		if (!backImageIsCopy) {
-			backImageIsCopy = true;
-			// copy image to memory (size 100 x 15)
-			fo::RectCopyToMemory(x_offset, y, TerrainHoverImage::width, TerrainHoverImage::height, wmapWinWidth, fo::var::wmBkWinBuf, wmTmpBuffer.data());
-			PrintTerrainType(x, y); // TODO: fix text being printed over the interface
+			if (!PrintHotspotText(x, y, true)) return;
 		} else {
-			// restore saved image
-			fo::MemCopyToWinBuffer(x_offset, y, TerrainHoverImage::width, TerrainHoverImage::height, wmapWinWidth, fo::var::wmBkWinBuf, wmTmpBuffer.data());
+			// restore background image
+			fo::DrawToSurface(x_offset, y, TerrainHoverImage::width, TerrainHoverImage::height, wmapWinWidth, wmapWinHeight, fo::var::wmBkWinBuf, wmTmpBuffer.data());
 			backImageIsCopy = false;
 		}
 		// redraw rectangle on worldmap interface
@@ -634,19 +659,15 @@ static long __fastcall wmDetectHotspotHover(long wmMouseX, long wmMouseY) {
 		rect.bottom = y + TerrainHoverImage::height;
 		fo::func::win_draw_rect(fo::var::wmBkWin, &rect);
 	}
-	return fo::var::wmWorldOffsetY; // overwritten code
 }
 
 static void __declspec(naked) wmWorldMap_hack() {
 	__asm {
 		cmp  ds:[FO_VAR_In_WorldMap], 1; // player is moving
 		jne  checkHover;
-end:
-		mov  eax, dword ptr ds:[FO_VAR_wmWorldOffsetY];
+		mov  eax, dword ptr ds:[FO_VAR_wmWorldOffsetY]; // overwritten code
 		retn;
 checkHover:
-		cmp  dword ptr ds:[FO_VAR_WorldMapCurrArea], -1;
-		jne  end; // player is in a location circle
 		cmp  esi, 328;
 		je   isScroll;
 		cmp  esi, 331;
@@ -660,6 +681,7 @@ checkHover:
 		mov  edx, [esp + 0x38 - 0x34 + 8]; // y
 		call wmDetectHotspotHover;
 		pop  ecx;
+		mov  eax, dword ptr ds:[FO_VAR_wmWorldOffsetY];
 		retn;
 isScroll:
 		mov  isHoveringHotspot, 0;
@@ -733,9 +755,8 @@ static void WorldMapInterfacePatch() {
 		}
 	}
 
-	// Fallout 1 features, travel markers and displaying terrain types
-	bool showTravelMarkers, showTerrainType;
-	if (showTravelMarkers = GetConfigInt("Interface", "WorldMapTravelMarkers", 0) != 0) {
+	// Fallout 1 features, travel markers and displaying terrain types or town titles
+	if (GetConfigInt("Interface", "WorldMapTravelMarkers", 0)) {
 		dlog("Applying world map travel markers patch.", DL_INIT);
 
 		int color = GetConfigInt("Interface", "TravelMarkerColor", 134); // color index in palette: R = 224, G = 0, B = 0
@@ -769,12 +790,9 @@ static void WorldMapInterfacePatch() {
 		};
 		dlogr(" Done", DL_INIT);
 	}
-	if (showTerrainType = GetConfigInt("Interface", "WorldMapTerrainInfo", 0) != 0) {
-		dlog("Applying display terrain types patch.", DL_INIT);
-		MakeCall(0x4BFE84, wmWorldMap_hack);
-		dlogr(" Done", DL_INIT);
-	}
-	if (showTravelMarkers || showTerrainType) HookCall(0x4C3C7E, wmInterfaceRefresh_hook); // when calling wmDrawCursorStopped_
+	showTerrainType = (GetConfigInt("Interface", "WorldMapTerrainInfo", 0) != 0);
+	HookCall(0x4C3C7E, wmInterfaceRefresh_hook); // when calling wmDrawCursorStopped_
+	MakeCall(0x4BFE84, wmWorldMap_hack);
 
 	// Car fuel gauge graphics patch
 	MakeCall(0x4C528A, wmInterfaceRefreshCarFuel_hack_empty);
@@ -841,7 +859,7 @@ static long gmouse_handle_event_hook() {
 	// if IFACE_BAR_MODE is not enabled, check the display_win window area
 	win = fo::func::GNW_find(*(DWORD*)FO_VAR_display_win);
 	RECT *rect = &win->wRect;
-	return fo::func::mouse_click_in(rect->left, rect->top, rect->right, rect->bottom); // 1 - click in the display_win area
+	return fo::func::mouse_click_in(rect->left, rect->top, rect->right, rect->bottom); // 1 - click in the display window area
 }
 
 static void __declspec(naked) gmouse_bk_process_hook() {
