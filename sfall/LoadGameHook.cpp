@@ -144,7 +144,7 @@ static void _stdcall SaveGame2() {
 errorSave:
 	dlog_f("ERROR creating: %s\n", DL_MAIN, buf);
 	DisplayConsoleMessage(SaveSfallDataFailMsg);
-	GSoundPlaySfxFile("IISXXXX1");
+	GsoundPlaySfxFile("IISXXXX1");
 }
 
 static char SaveFailMsg[128];

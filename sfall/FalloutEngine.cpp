@@ -57,9 +57,9 @@ BYTE*  ptr_DarkGreenColor             = reinterpret_cast<BYTE*>(_DarkGreenColor)
 BYTE*  ptr_DarkGreenGreyColor         = reinterpret_cast<BYTE*>(_DarkGreenGreyColor);
 TGameObj** ptr_dialog_target          = reinterpret_cast<TGameObj**>(_dialog_target);
 DWORD* ptr_dialog_target_is_party     = reinterpret_cast<DWORD*>(_dialog_target_is_party);
-DWORD* ptr_dialogueBackWindow         = reinterpret_cast<DWORD*>(_dialogueBackWindow);
+const DWORD* ptr_dialogueBackWindow   = reinterpret_cast<DWORD*>(_dialogueBackWindow);
 DWORD* ptr_drugInfoList               = reinterpret_cast<DWORD*>(_drugInfoList);
-DWORD* ptr_edit_win                   = reinterpret_cast<DWORD*>(_edit_win);
+const DWORD* ptr_edit_win             = reinterpret_cast<DWORD*>(_edit_win);
 DWORD* ptr_Educated                   = reinterpret_cast<DWORD*>(_Educated);
 DWORD* ptr_elevation                  = reinterpret_cast<DWORD*>(_elevation);
 DWORD* ptr_Experience_                = reinterpret_cast<DWORD*>(_Experience_);
@@ -91,12 +91,12 @@ DWORD* ptr_hot_line_count             = reinterpret_cast<DWORD*>(_hot_line_count
 DWORD* ptr_i_fid                      = reinterpret_cast<DWORD*>(_i_fid);
 TGameObj** ptr_i_lhand                = reinterpret_cast<TGameObj**>(_i_lhand);
 TGameObj** ptr_i_rhand                = reinterpret_cast<TGameObj**>(_i_rhand);
-DWORD* ptr_i_wid                      = reinterpret_cast<DWORD*>(_i_wid);
+const DWORD* ptr_i_wid                = reinterpret_cast<DWORD*>(_i_wid);
 TGameObj** ptr_i_worn                 = reinterpret_cast<TGameObj**>(_i_worn);
 DWORD* ptr_idle_func                  = reinterpret_cast<DWORD*>(_idle_func);
 DWORD* ptr_In_WorldMap                = reinterpret_cast<DWORD*>(_In_WorldMap); // moving in WorldMap
 DWORD* ptr_info_line                  = reinterpret_cast<DWORD*>(_info_line);
-DWORD* ptr_interfaceWindow            = reinterpret_cast<DWORD*>(_interfaceWindow);
+const DWORD* ptr_interfaceWindow      = reinterpret_cast<DWORD*>(_interfaceWindow);
 DWORD* ptr_intfaceEnabled             = reinterpret_cast<DWORD*>(_intfaceEnabled);
 DWORD* ptr_intotal                    = reinterpret_cast<DWORD*>(_intotal);
 TGameObj** ptr_inven_dude             = reinterpret_cast<TGameObj**>(_inven_dude);
@@ -149,7 +149,7 @@ DWORD* ptr_optionsButtonDownKey       = reinterpret_cast<DWORD*>(_optionsButtonD
 DWORD* ptr_optionsButtonUp            = reinterpret_cast<DWORD*>(_optionsButtonUp);
 DWORD* ptr_optionsButtonUp1           = reinterpret_cast<DWORD*>(_optionsButtonUp1);
 DWORD* ptr_optionsButtonUpKey         = reinterpret_cast<DWORD*>(_optionsButtonUpKey);
-DWORD* ptr_optnwin                    = reinterpret_cast<DWORD*>(_optnwin);
+const DWORD* ptr_optnwin              = reinterpret_cast<DWORD*>(_optnwin);
 DWORD* ptr_outlined_object            = reinterpret_cast<DWORD*>(_outlined_object);
 DWORD* ptr_partyMemberAIOptions       = reinterpret_cast<DWORD*>(_partyMemberAIOptions);
 DWORD* ptr_partyMemberCount           = reinterpret_cast<DWORD*>(_partyMemberCount);
@@ -166,7 +166,7 @@ DWORD* ptr_pc_proto                   = reinterpret_cast<DWORD*>(_pc_proto);
 BYTE*  ptr_PeanutButter               = reinterpret_cast<BYTE*>(_PeanutButter);
 DWORD* ptr_perk_data                  = reinterpret_cast<DWORD*>(_perk_data);
 int**  ptr_perkLevelDataList          = reinterpret_cast<int**>(_perkLevelDataList);
-DWORD* ptr_pip_win                    = reinterpret_cast<DWORD*>(_pip_win);
+const DWORD* ptr_pip_win              = reinterpret_cast<DWORD*>(_pip_win);
 DWORD* ptr_pipboy_message_file        = reinterpret_cast<DWORD*>(_pipboy_message_file);
 DWORD* ptr_pipmesg                    = reinterpret_cast<DWORD*>(_pipmesg);
 DWORD* ptr_preload_list_index         = reinterpret_cast<DWORD*>(_preload_list_index);
@@ -184,7 +184,7 @@ DWORD* ptr_rotation                   = reinterpret_cast<DWORD*>(_rotation);
 BoundRect* ptr_scr_size               = reinterpret_cast<BoundRect*>(_scr_size);
 DWORD* ptr_scriptListInfo             = reinterpret_cast<DWORD*>(_scriptListInfo);
 DWORD* ptr_skill_data                 = reinterpret_cast<DWORD*>(_skill_data);
-DWORD* ptr_skldxwin                   = reinterpret_cast<DWORD*>(_skldxwin);
+const DWORD* ptr_skldxwin             = reinterpret_cast<DWORD*>(_skldxwin);
 DWORD* ptr_slot_cursor                = reinterpret_cast<DWORD*>(_slot_cursor);
 DWORD* ptr_sneak_working              = reinterpret_cast<DWORD*>(_sneak_working); // DWORD var
 char** ptr_sound_music_path1          = reinterpret_cast<char**>(_sound_music_path1);
@@ -221,7 +221,7 @@ DWORD* ptr_wd_obj                     = reinterpret_cast<DWORD*>(_wd_obj);
 DWORD* ptr_window                     = reinterpret_cast<DWORD*>(_window); // total 50 WINinfo*
 BYTE*  ptr_WhiteColor                 = reinterpret_cast<BYTE*>(_WhiteColor);
 DWORD* ptr_wmAreaInfoList             = reinterpret_cast<DWORD*>(_wmAreaInfoList);
-DWORD* ptr_wmBkWin                    = reinterpret_cast<DWORD*>(_wmBkWin);
+const DWORD* ptr_wmBkWin              = reinterpret_cast<DWORD*>(_wmBkWin);
 BYTE** ptr_wmBkWinBuf                 = reinterpret_cast<BYTE**>(_wmBkWinBuf);
 DWORD* ptr_wmLastRndTime              = reinterpret_cast<DWORD*>(_wmLastRndTime);
 long*  ptr_wmWorldOffsetX             = reinterpret_cast<long*>(_wmWorldOffsetX);
@@ -857,7 +857,7 @@ long __stdcall GetInputBtn() {
 	WRAP_WATCOM_CALL0(get_input_)
 }
 
-void __stdcall GSoundPlaySfxFile(const char* name) {
+void __stdcall GsoundPlaySfxFile(const char* name) {
 	WRAP_WATCOM_CALL1(gsound_play_sfx_file_, name)
 }
 
@@ -1149,7 +1149,7 @@ long __fastcall WordWrap(const char* text, int maxWidth, DWORD* buf, BYTE* count
 	WRAP_WATCOM_FCALL4(_word_wrap_, text, maxWidth, buf, count)
 }
 
-long __stdcall GSoundBackgroundVolumeGetSet(long setVolume) {
+long __stdcall GsoundBackgroundVolumeGetSet(long setVolume) {
 	WRAP_WATCOM_CALL1(gsound_background_volume_get_set_, setVolume)
 }
 
@@ -1355,7 +1355,7 @@ long __stdcall LoadFrame(const char* filename, FrmFile** frmPtr) {
 
 static MSGNode messageBuf;
 
-const char* __stdcall GetMessageStr(const MSGList* fileAddr, long messageId) {
+const char* GetMessageStr(const MSGList* fileAddr, long messageId) {
 	const char* result;
 	__asm {
 		mov  ebx, messageId;
@@ -1367,7 +1367,7 @@ const char* __stdcall GetMessageStr(const MSGList* fileAddr, long messageId) {
 	return result;
 }
 
-const char* __stdcall MsgSearch(const MSGList* fileAddr, long messageId) {
+const char* MsgSearch(const MSGList* fileAddr, long messageId) {
 	messageBuf.number = messageId;
 	long result;
 	__asm {
@@ -1464,7 +1464,7 @@ enum WinNameType {
 };
 
 WINinfo* GetUIWindow(long winType) {
-	long winID = -1;
+	long winID = 0;
 	switch (winType) {
 	case WINTYPE_Inventory:
 		winID = *ptr_i_wid;
@@ -1493,7 +1493,7 @@ WINinfo* GetUIWindow(long winType) {
 	default:
 		return (WINinfo*)-1;
 	}
-	return (winID != -1) ? GNWFind(winID) : nullptr;
+	return (winID > 0) ? GNWFind(winID) : nullptr;
 }
 
 // Returns an array of objects within the specified radius from the source tile
@@ -1514,7 +1514,7 @@ void GetObjectsTileRadius(std::vector<TGameObj*> &objs, long sourceTile, long ra
 
 //---------------------------------------------------------
 // print text to surface
-void PrintText(char* displayText, BYTE colorIndex, DWORD xPos, DWORD yPos, DWORD txtWidth, DWORD toWidth, BYTE* toSurface) {
+void __stdcall PrintText(char* displayText, BYTE colorIndex, DWORD xPos, DWORD yPos, DWORD txtWidth, DWORD toWidth, BYTE* toSurface) {
 	DWORD posOffset = yPos * toWidth + xPos;
 	__asm {
 		xor  eax, eax;
@@ -1531,18 +1531,18 @@ void PrintText(char* displayText, BYTE colorIndex, DWORD xPos, DWORD yPos, DWORD
 
 //---------------------------------------------------------
 //gets the height of the currently selected font
-DWORD GetTextHeight() {
-	DWORD TxtHeight;
+DWORD __stdcall GetTextHeight() {
+//	DWORD TxtHeight;
 	__asm {
 		call dword ptr ds:[_text_height]; //get text height
-		mov  TxtHeight, eax;
+//		mov  TxtHeight, eax;
 	}
-	return TxtHeight;
+//	return TxtHeight;
 }
 
 //---------------------------------------------------------
 //gets the length of a string using the currently selected font
-DWORD __stdcall GetTextWidth(const char *TextMsg) {
+DWORD __stdcall GetTextWidth(const char* TextMsg) {
 	__asm {
 		mov  eax, TextMsg;
 		call dword ptr ds:[_text_width]; //get text width
@@ -1551,46 +1551,43 @@ DWORD __stdcall GetTextWidth(const char *TextMsg) {
 
 //---------------------------------------------------------
 //get width of Char for current font
-DWORD GetCharWidth(char CharVal) {
-	DWORD charWidth;
+DWORD __stdcall GetCharWidth(char charVal) {
 	__asm {
-		mov  al, CharVal;
+		mov  al, charVal;
 		call dword ptr ds:[_text_char_width];
-		mov  charWidth, eax;
 	}
-	return charWidth;
 }
 
 //---------------------------------------------------------
 //get maximum string length for current font - if all characters were maximum width
-DWORD GetMaxTextWidth(char *TextMsg) {
-	DWORD msgWidth;
+DWORD __stdcall GetMaxTextWidth(const char* TextMsg) {
+//	DWORD msgWidth;
 	__asm {
 		mov  eax, TextMsg;
 		call dword ptr ds:[_text_mono_width];
-		mov  msgWidth, eax;
+//		mov  msgWidth, eax;
 	}
-	return msgWidth;
+//	return msgWidth;
 }
 
 //---------------------------------------------------------
 //get number of pixels between characters for current font
-DWORD GetCharGapWidth() {
-	DWORD gapWidth;
+DWORD __stdcall GetCharGapWidth() {
+//	DWORD gapWidth;
 	__asm {
 		call dword ptr ds:[_text_spacing];
-		mov  gapWidth, eax;
+//		mov  gapWidth, eax;
 	}
-	return gapWidth;
+//	return gapWidth;
 }
 
 //---------------------------------------------------------
 //get maximum character width for current font
-DWORD GetMaxCharWidth() {
-	DWORD charWidth = 0;
+DWORD __stdcall GetMaxCharWidth() {
+//	DWORD charWidth = 0;
 	__asm {
 		call dword ptr ds:[_text_max];
-		mov  charWidth, eax;
+//		mov  charWidth, eax;
 	}
-	return charWidth;
+//	return charWidth;
 }

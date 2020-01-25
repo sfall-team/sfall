@@ -221,7 +221,7 @@ static long gmouse_handle_event_hook() {
 	// if IFACE_BAR_MODE is not enabled, check the display_win window area
 	win = GNWFind(*(DWORD*)_display_win);
 	RECT *rect = &win->wRect;
-	return MouseClickIn(rect->left, rect->top, rect->right, rect->bottom); // 1 - click in the display_win area
+	return MouseClickIn(rect->left, rect->top, rect->right, rect->bottom); // 1 - click in the display window area
 }
 
 static void __declspec(naked) gmouse_bk_process_hook() {

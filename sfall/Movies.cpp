@@ -371,7 +371,7 @@ static DWORD __fastcall PreparePlayMovie(const DWORD id) {
 		SafeWrite8(0x4F5F40, 0xC3); // blocking sfShowFrame_ for disabling the display of mve video frames
 
 		#ifdef NDEBUG // mute sound because mve file is still being played to get subtitles
-		backgroundVolume = GSoundBackgroundVolumeGetSet(0);
+		backgroundVolume = GsoundBackgroundVolumeGetSet(0);
 		#endif
 	}
 
@@ -398,7 +398,7 @@ static void _stdcall PlayMovieRestore() {
 		SafeWrite8(0x4CB850, 0x53); // GNW95_ShowRect_
 	} else {
 		SafeWrite8(0x4F5F40, 0x53); // push ebx
-		if (backgroundVolume) backgroundVolume = GSoundBackgroundVolumeGetSet(backgroundVolume); // restore volume
+		if (backgroundVolume) backgroundVolume = GsoundBackgroundVolumeGetSet(backgroundVolume); // restore volume
 	}
 
 	Gfx_SetMovieTexture(0);

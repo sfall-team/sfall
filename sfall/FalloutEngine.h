@@ -322,9 +322,9 @@ extern BYTE*  ptr_DarkGreenColor;
 extern BYTE*  ptr_DarkGreenGreyColor;
 extern TGameObj** ptr_dialog_target;
 extern DWORD* ptr_dialog_target_is_party;
-extern DWORD* ptr_dialogueBackWindow;
+extern const DWORD* ptr_dialogueBackWindow;
 extern DWORD* ptr_drugInfoList;
-extern DWORD* ptr_edit_win;
+extern const DWORD* ptr_edit_win;
 extern DWORD* ptr_Educated;
 extern DWORD* ptr_elevation;
 extern DWORD* ptr_Experience_;
@@ -356,12 +356,12 @@ extern DWORD* ptr_hot_line_count;
 extern DWORD* ptr_i_fid;
 extern TGameObj** ptr_i_lhand;
 extern TGameObj** ptr_i_rhand;
-extern DWORD* ptr_i_wid;
+extern const DWORD* ptr_i_wid;
 extern TGameObj** ptr_i_worn;
 extern DWORD* ptr_idle_func;
 extern DWORD* ptr_In_WorldMap;
 extern DWORD* ptr_info_line;
-extern DWORD* ptr_interfaceWindow;
+extern const DWORD* ptr_interfaceWindow;
 extern DWORD* ptr_intfaceEnabled;
 extern DWORD* ptr_intotal;
 extern TGameObj** ptr_inven_dude;
@@ -414,7 +414,7 @@ extern DWORD* ptr_optionsButtonDownKey;
 extern DWORD* ptr_optionsButtonUp;
 extern DWORD* ptr_optionsButtonUp1;
 extern DWORD* ptr_optionsButtonUpKey;
-extern DWORD* ptr_optnwin;
+extern const DWORD* ptr_optnwin;
 extern DWORD* ptr_outlined_object;
 extern DWORD* ptr_partyMemberAIOptions;
 extern DWORD* ptr_partyMemberCount;
@@ -431,7 +431,7 @@ extern DWORD* ptr_pc_proto;
 extern BYTE*  ptr_PeanutButter;
 extern DWORD* ptr_perk_data;
 extern int**  ptr_perkLevelDataList; // limited to PERK_Count
-extern DWORD* ptr_pip_win;
+extern const DWORD* ptr_pip_win;
 extern DWORD* ptr_pipboy_message_file;
 extern DWORD* ptr_pipmesg;
 extern DWORD* ptr_preload_list_index;
@@ -450,7 +450,7 @@ extern DWORD* ptr_sad;
 extern BoundRect* ptr_scr_size;
 extern DWORD* ptr_scriptListInfo;
 extern DWORD* ptr_skill_data;
-extern DWORD* ptr_skldxwin;
+extern const DWORD* ptr_skldxwin;
 extern DWORD* ptr_slot_cursor;
 extern DWORD* ptr_sneak_working; // DWORD var
 extern char** ptr_sound_music_path1;
@@ -487,7 +487,7 @@ extern DWORD* ptr_wd_obj;
 extern DWORD* ptr_window; // total 50 WINinfo*
 extern BYTE*  ptr_WhiteColor;
 extern DWORD* ptr_wmAreaInfoList;
-extern DWORD* ptr_wmBkWin;
+extern const DWORD* ptr_wmBkWin;
 extern BYTE** ptr_wmBkWinBuf;
 extern DWORD* ptr_wmLastRndTime;
 extern long*  ptr_wmWorldOffsetX;
@@ -1060,7 +1060,7 @@ void __stdcall DisplayConsoleMessage(const char* msg);
 long __stdcall GetInputBtn();
 
 // plays SFX sound with given name
-void __stdcall GSoundPlaySfxFile(const char* name);
+void __stdcall GsoundPlaySfxFile(const char* name);
 
 // Returns the name of the critter
 const char* __stdcall CritterName(TGameObj* critter);
@@ -1180,7 +1180,7 @@ long __fastcall GetGameConfigString(const char* outValue, const char* section, c
 
 long __fastcall WordWrap(const char* text, int maxWidth, DWORD* buf, BYTE* count);
 
-long __stdcall GSoundBackgroundVolumeGetSet(long setVolume);
+long __stdcall GsoundBackgroundVolumeGetSet(long setVolume);
 
 WINinfo* __stdcall GNWFind(long winRef);
 
@@ -1272,10 +1272,10 @@ long __stdcall LoadFrame(const char* filename, FrmFile** frmPtr);
 ///////////////////////////////// ENGINE UTILS /////////////////////////////////
 
 // returns message string from given file or "Error" when not found
-const char* __stdcall GetMessageStr(const MSGList* fileAddr, long messageId);
+const char* GetMessageStr(const MSGList* fileAddr, long messageId);
 
 // similar to GetMessageStr, but returns nullptr when no message is found
-const char* __stdcall MsgSearch(const MSGList* fileAddr, long messageId);
+const char* MsgSearch(const MSGList* fileAddr, long messageId);
 
 // returns pointer to prototype by PID, or nullptr on failure
 char* GetProtoPtr(long pid);
@@ -1301,16 +1301,22 @@ WINinfo* GetUIWindow(long winType);
 void GetObjectsTileRadius(std::vector<TGameObj*> &objs, long sourceTile, long radius, long elev, long type);
 
 // Print text to surface
-void PrintText(char* displayText, BYTE colorIndex, DWORD xPos, DWORD yPos, DWORD txtWidth, DWORD toWidth, BYTE* toSurface);
+void __stdcall PrintText(char* displayText, BYTE colorIndex, DWORD xPos, DWORD yPos, DWORD txtWidth, DWORD toWidth, BYTE* toSurface);
+
 // gets the height of the currently selected font
-DWORD GetTextHeight();
+DWORD __stdcall GetTextHeight();
+
 // gets the length of a string using the currently selected font
-DWORD __stdcall GetTextWidth(const char *TextMsg);
+DWORD __stdcall GetTextWidth(const char* textMsg);
+
 // get width of Char for current font
-DWORD GetCharWidth(char charVal);
+DWORD __stdcall GetCharWidth(char charVal);
+
 // get maximum string length for current font - if all characters were maximum width
-DWORD GetMaxTextWidth(char *textMsg);
+DWORD __stdcall GetMaxTextWidth(const char* textMsg);
+
 // get number of pixels between characters for current font
-DWORD GetCharGapWidth();
+DWORD __stdcall GetCharGapWidth();
+
 // get maximum character width for current font
-DWORD GetMaxCharWidth();
+DWORD __stdcall GetMaxCharWidth();
