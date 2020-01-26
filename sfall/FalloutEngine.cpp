@@ -224,6 +224,8 @@ DWORD* ptr_wmAreaInfoList             = reinterpret_cast<DWORD*>(_wmAreaInfoList
 const DWORD* ptr_wmBkWin              = reinterpret_cast<DWORD*>(_wmBkWin);
 BYTE** ptr_wmBkWinBuf                 = reinterpret_cast<BYTE**>(_wmBkWinBuf);
 DWORD* ptr_wmLastRndTime              = reinterpret_cast<DWORD*>(_wmLastRndTime);
+MSGList* ptr_wmMsgFile                = reinterpret_cast<MSGList*>(_wmMsgFile);
+DWORD* ptr_wmNumHorizontalTiles       = reinterpret_cast<DWORD*>(_wmNumHorizontalTiles);
 long*  ptr_wmWorldOffsetX             = reinterpret_cast<long*>(_wmWorldOffsetX);
 long*  ptr_wmWorldOffsetY             = reinterpret_cast<long*>(_wmWorldOffsetY);
 DWORD* ptr_world_xpos                 = reinterpret_cast<DWORD*>(_world_xpos);
@@ -374,6 +376,9 @@ const DWORD executeProcedure_ = 0x46DD2C;
 const DWORD findCurrentProc_ = 0x467160;
 const DWORD fadeSystemPalette_ = 0x4C7320;
 const DWORD findVar_ = 0x4410AC;
+const DWORD FMtext_char_width_ = 0x4421DC;
+const DWORD FMtext_to_buf_ = 0x4422B4;
+const DWORD FMtext_width_ = 0x442188;
 const DWORD folder_print_line_ = 0x43E3D8;
 const DWORD fprintf_ = 0x4F0D56;
 const DWORD frame_ptr_ = 0x419880;
@@ -717,6 +722,7 @@ const DWORD windowGetBuffer_ = 0x4B82DC;
 const DWORD windowHide_ = 0x4B7610;
 const DWORD windowShow_ = 0x4B7648;
 const DWORD windowWidth_ = 0x4B7734;
+const DWORD wmDrawCursorStopped_ = 0x4C41EC;
 const DWORD wmFindCurSubTileFromPos_ = 0x4C0C00;
 const DWORD wmInterfaceRefresh_ = 0x4C3830;
 const DWORD wmInterfaceScrollTabsStart_ = 0x4C219C;
@@ -725,6 +731,7 @@ const DWORD wmMarkSubTileRadiusVisited_ = 0x4C3550;
 const DWORD wmMatchAreaContainingMapIdx_ = 0x4C59A4;
 const DWORD wmPartyInitWalking_ = 0x4C1E54;
 const DWORD wmPartyWalkingStep_ = 0x4C1F90;
+const DWORD wmRefreshInterfaceOverlay_ = 0x4C50F4;
 const DWORD wmSubTileMarkRadiusVisited_ = 0x4C35A8;
 const DWORD wmWorldMapFunc_ = 0x4BFE10;
 const DWORD wmWorldMapLoadTempData_ = 0x4BD6B4;
@@ -1177,6 +1184,10 @@ void __stdcall WinDraw(DWORD winRef) {
 	WRAP_WATCOM_CALL1(win_draw_, winRef)
 }
 
+void __stdcall WinDrawRect(DWORD winRef, RECT* rect) {
+	WRAP_WATCOM_CALL2(win_draw_rect_, winRef, rect)
+}
+
 void __stdcall WinDelete(DWORD winRef) {
 	WRAP_WATCOM_CALL1(win_delete_, winRef)
 }
@@ -1339,6 +1350,10 @@ long __fastcall ItemAddForce(TGameObj* critter, TGameObj* item, long count) {
 	WRAP_WATCOM_FCALL3(item_add_force_, critter, item, count)
 }
 
+long __fastcall MessageFind(DWORD* msgFile, long msgNumber, DWORD* outBuf) {
+	WRAP_WATCOM_FCALL3(message_find_, msgFile, msgNumber, outBuf)
+}
+
 long __fastcall MouseClickIn(long x, long y, long x_end, long y_end) {
 	WRAP_WATCOM_FCALL4(mouse_click_in_, x, y, x_end, y_end)
 }
@@ -1349,6 +1364,14 @@ const char* __stdcall ArtGetName(long artFID) {
 
 long __stdcall LoadFrame(const char* filename, FrmFile** frmPtr) {
 	WRAP_WATCOM_CALL2(load_frame_, filename, frmPtr)
+}
+
+long __stdcall FMtextWidth(const char* text) {
+	WRAP_WATCOM_CALL1(FMtext_width_, text)
+}
+
+void __stdcall WmRefreshInterfaceOverlay(long isRedraw) {
+	WRAP_WATCOM_CALL1(wmRefreshInterfaceOverlay_, isRedraw)
 }
 
 ///////////////////////////////// ENGINE UTILS /////////////////////////////////
@@ -1512,6 +1535,81 @@ void GetObjectsTileRadius(std::vector<TGameObj*> &objs, long sourceTile, long ra
 	}
 }
 
+// Returns the type of the terrain sub tile at the the player's position on the world map
+long wmGetCurrentTerrainType() {
+	long* terrainId = *(long**)_world_subtile;
+	if (terrainId == nullptr) {
+		__asm {
+			lea  ebx, terrainId;
+			mov  edx, dword ptr ds:[_world_ypos];
+			mov  eax, dword ptr ds:[_world_xpos];
+			call wmFindCurSubTileFromPos_;
+		}
+	}
+	return *terrainId;
+}
+
+//---------------------------------------------------------
+// copy the area from the interface buffer to the data array
+void SurfaceCopyToMem(long fromX, long fromY, long width, long height, long fromWidth, BYTE* fromSurface, BYTE* toMem) {
+	fromSurface += fromY * fromWidth + fromX;
+	long i = 0;
+	for (long h = 0; h < height; h++) {
+		for (long w = 0; w < width; w++) {
+			toMem[i++] = fromSurface[w];
+		}
+		fromSurface += fromWidth;
+	}
+}
+
+// copy data from memory to the area of the interface buffer
+void DrawToSurface(long toX, long toY, long width, long height, long toWidth, long toHeight, BYTE* toSurface, BYTE* fromMem) {
+	BYTE* _toSurface = toSurface + (toY * toWidth + toX);
+	BYTE* endToSurf = (toWidth * toHeight) + toSurface;
+	long i = 0;
+	for (long h = 0; h < height; h++) {
+		for (long w = 0; w < width; w++) {
+			if (_toSurface + w > endToSurf) return;
+			if (_toSurface >= toSurface) _toSurface[w] = fromMem[i++];
+		}
+		_toSurface += toWidth;
+	}
+}
+
+void DrawToSurface(long width, long height, long fromX, long fromY, long fromWidth, BYTE* fromSurf,
+				   long toX, long toY, long toWidth, long toHeight, BYTE* toSurf, int maskRef)
+{
+	BYTE* _fromSurf = fromSurf + (fromY * fromWidth + fromX);
+	BYTE* _toSurf =  toSurf + (toY * toWidth + toX);
+	BYTE* endToSurf = (toWidth * toHeight) + toSurf;
+
+	for (long h = 0; h < height; h++) {
+		for (long w = 0; w < width; w++) {
+			if (_toSurf + w > endToSurf) return;
+			if (_toSurf >= toSurf && _fromSurf[w] != maskRef) _toSurf[w] = _fromSurf[w];
+		}
+		_fromSurf += fromWidth;
+		_toSurf += toWidth;
+	}
+}
+
+void DrawToSurface(long width, long height, long fromX, long fromY, long fromWidth, BYTE* fromSurf,
+				   long toX, long toY, long toWidth, long toHeight, BYTE* toSurf)
+{
+	BYTE* _fromSurf = fromSurf + (fromY * fromWidth + fromX);
+	BYTE* _toSurf = toSurf + (toY * toWidth + toX);
+	BYTE* endToSurf = (toWidth * toHeight) + toSurf;
+
+	for (long h = 0; h < height; h++) {
+		for (long w = 0; w < width; w++) {
+			if (_toSurf + w > endToSurf) return;
+			if (_toSurf >= toSurf) _toSurf[w] = _fromSurf[w];
+		}
+		_fromSurf += fromWidth;
+		_toSurf += toWidth;
+	}
+}
+
 //---------------------------------------------------------
 // print text to surface
 void __stdcall PrintText(char* displayText, BYTE colorIndex, DWORD xPos, DWORD yPos, DWORD txtWidth, DWORD toWidth, BYTE* toSurface) {
@@ -1526,6 +1624,21 @@ void __stdcall PrintText(char* displayText, BYTE colorIndex, DWORD xPos, DWORD y
 		mov  ecx, toWidth;
 		add  eax, posOffset;
 		call dword ptr ds:[_text_to_buf];
+	}
+}
+
+void __stdcall PrintTextFM(char* displayText, BYTE colorIndex, DWORD xPos, DWORD yPos, DWORD txtWidth, DWORD toWidth, BYTE* toSurface) {
+	DWORD posOffset = yPos * toWidth + xPos;
+	__asm {
+		xor  eax, eax;
+		mov  al, colorIndex;
+		mov  edx, displayText;
+		push eax;
+		mov  ebx, txtWidth;
+		mov  eax, toSurface;
+		mov  ecx, toWidth;
+		add  eax, posOffset;
+		call FMtext_to_buf_;
 	}
 }
 
@@ -1549,12 +1662,23 @@ DWORD __stdcall GetTextWidth(const char* TextMsg) {
 	}
 }
 
+DWORD __stdcall GetTextWidthFM(const char* TextMsg) {
+	return FMtextWidth(TextMsg); //get text width
+}
+
 //---------------------------------------------------------
 //get width of Char for current font
 DWORD __stdcall GetCharWidth(char charVal) {
 	__asm {
 		mov  al, charVal;
 		call dword ptr ds:[_text_char_width];
+	}
+}
+
+DWORD __stdcall GetCharWidthFM(char charVal) {
+	__asm {
+		mov  al, charVal;
+		call FMtext_char_width_;
 	}
 }
 

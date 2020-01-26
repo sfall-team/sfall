@@ -262,10 +262,13 @@
 #define _wmEncounterIconShow        0x672E48
 #define _wmLastRndTime              0x51DEA0
 #define _wmMaxMapNum                0x51DE10
+#define _wmMsgFile                  0x672FB0
+#define _wmNumHorizontalTiles       0x51DDF4
 #define _wmRndCursorFid             0x672E58
 #define _wmWorldOffsetX             0x51DE2C
 #define _wmWorldOffsetY             0x51DE30
 #define _wmYesNoStrs                0x51DD90
+#define _world_subtile              0x672E14
 #define _world_xpos                 0x672E0C
 #define _world_ypos                 0x672E10
 #define _WorldMapCurrArea           0x672E08
@@ -490,6 +493,8 @@ extern DWORD* ptr_wmAreaInfoList;
 extern const DWORD* ptr_wmBkWin;
 extern BYTE** ptr_wmBkWinBuf;
 extern DWORD* ptr_wmLastRndTime;
+extern MSGList* ptr_wmMsgFile;
+extern DWORD* ptr_wmNumHorizontalTiles;
 extern long*  ptr_wmWorldOffsetX;
 extern long*  ptr_wmWorldOffsetY;
 extern DWORD* ptr_world_xpos;
@@ -621,6 +626,9 @@ extern const DWORD exec_script_proc_; // unsigned int aScriptID<eax>, int aProcI
 extern const DWORD executeProcedure_; // <eax> - programPtr, <edx> - procNumber
 extern const DWORD fadeSystemPalette_;
 extern const DWORD findVar_;
+extern const DWORD FMtext_char_width_;
+extern const DWORD FMtext_to_buf_;
+extern const DWORD FMtext_width_;
 extern const DWORD folder_print_line_;
 extern const DWORD fprintf_;
 extern const DWORD frame_ptr_;
@@ -973,6 +981,7 @@ extern const DWORD windowGetBuffer_;
 extern const DWORD windowHide_;
 extern const DWORD windowShow_;
 extern const DWORD windowWidth_;
+extern const DWORD wmDrawCursorStopped_;
 extern const DWORD wmFindCurSubTileFromPos_;
 extern const DWORD wmInterfaceRefresh_;
 extern const DWORD wmInterfaceScrollTabsStart_;
@@ -981,6 +990,7 @@ extern const DWORD wmMarkSubTileRadiusVisited_;
 extern const DWORD wmMatchAreaContainingMapIdx_;
 extern const DWORD wmPartyInitWalking_;
 extern const DWORD wmPartyWalkingStep_;
+extern const DWORD wmRefreshInterfaceOverlay_;
 extern const DWORD wmSubTileMarkRadiusVisited_;
 extern const DWORD wmWorldMapFunc_;
 extern const DWORD wmWorldMapLoadTempData_;
@@ -1189,6 +1199,7 @@ void __stdcall WinShow(DWORD winRef);
 void __stdcall WinHide(DWORD winRef);
 BYTE* __stdcall WinGetBuf(DWORD winRef);
 void __stdcall WinDraw(DWORD winRef);
+void __stdcall WinDrawRect(DWORD winRef, RECT* rect);
 void __stdcall WinDelete(DWORD winRef);
 
 long __stdcall WindowWidth();
@@ -1263,11 +1274,17 @@ long __stdcall InvenUnwield(TGameObj* critter, long slot);
 
 long __fastcall ItemAddForce(TGameObj* critter, TGameObj* item, long count);
 
+long __fastcall MessageFind(DWORD* msgFile, long msgNumber, DWORD* outBuf);
+
 long __fastcall MouseClickIn(long x, long y, long x_end, long y_end);
 
 const char* __stdcall ArtGetName(long artFID);
 
 long __stdcall LoadFrame(const char* filename, FrmFile** frmPtr);
+
+long __stdcall FMtextWidth(const char* text);
+
+void __stdcall WmRefreshInterfaceOverlay(long isRedraw);
 
 ///////////////////////////////// ENGINE UTILS /////////////////////////////////
 
@@ -1300,17 +1317,30 @@ WINinfo* GetUIWindow(long winType);
 
 void GetObjectsTileRadius(std::vector<TGameObj*> &objs, long sourceTile, long radius, long elev, long type);
 
+long wmGetCurrentTerrainType();
+
+void SurfaceCopyToMem(long fromX, long fromY, long width, long height, long fromWidth, BYTE* fromSurface, BYTE* toMem);
+
+void DrawToSurface(long toX, long toY, long width, long height, long toWidth, long toHeight, BYTE* toSurface, BYTE* fromMem);
+
+void DrawToSurface(long width, long height, long fromX, long fromY, long fromWidth, BYTE* fromSurf, long toX, long toY, long toWidth, long toHeight, BYTE* toSurf, int maskRef);
+
+void DrawToSurface(long width, long height, long fromX, long fromY, long fromWidth, BYTE* fromSurf, long toX, long toY, long toWidth, long toHeight, BYTE* toSurf);
+
 // Print text to surface
 void __stdcall PrintText(char* displayText, BYTE colorIndex, DWORD xPos, DWORD yPos, DWORD txtWidth, DWORD toWidth, BYTE* toSurface);
+void __stdcall PrintTextFM(char* displayText, BYTE colorIndex, DWORD xPos, DWORD yPos, DWORD txtWidth, DWORD toWidth, BYTE* toSurface);
 
 // gets the height of the currently selected font
 DWORD __stdcall GetTextHeight();
 
 // gets the length of a string using the currently selected font
 DWORD __stdcall GetTextWidth(const char* textMsg);
+DWORD __stdcall GetTextWidthFM(const char* textMsg);
 
 // get width of Char for current font
 DWORD __stdcall GetCharWidth(char charVal);
+DWORD __stdcall GetCharWidthFM(char charVal);
 
 // get maximum string length for current font - if all characters were maximum width
 DWORD __stdcall GetMaxTextWidth(const char* textMsg);

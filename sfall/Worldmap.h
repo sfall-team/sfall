@@ -19,8 +19,17 @@
 #pragma once
 
 void WorldmapInit();
+void Worldmap_OnGameLoad();
 
 DWORD GetAddedYears(bool isCheck = true);
 void SetAddedYears(DWORD years);
+
+void Wmap_SetTerrainTypeName(long x, long y, const char* name);
+//const char* Wmap_GetTerrainTypeName(long x, long y);
+const char* Wmap_GetCurrentTerrainName();
+
+bool Wmap_AreaTitlesIsEmpty();
+const char* Wmap_GetCustomAreaTitle(long areaID);
+void Wmap_SetCustomAreaTitle(long areaID, const char* msg);
 
 void _stdcall SetMapMulti(float value);

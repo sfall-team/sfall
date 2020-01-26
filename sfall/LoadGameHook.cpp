@@ -89,7 +89,9 @@ static void _stdcall ResetState(DWORD onLoad) {
 	ForceGraphicsRefresh(0); // disable refresh
 	LoadOrder_OnGameLoad();
 	WipeSounds();
+	Interface_OnGameLoad();
 	RestoreObjUnjamAllLocks();
+	Worldmap_OnGameLoad();
 	Stats_OnGameLoad();
 	PerksReset();
 	Combat_OnGameLoad();

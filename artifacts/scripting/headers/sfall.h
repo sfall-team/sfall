@@ -286,6 +286,8 @@
 #define set_map_enter_position(tile, elev, rot)         sfall_func3("set_map_enter_position", tile, elev, rot)
 #define set_object_data(obj, offset, value)             sfall_func3("set_object_data", obj, offset, value)
 #define set_outline(obj, color)                         sfall_func2("set_outline", obj, color)
+#define set_terrain_name(x, y, name)                    sfall_func3("set_terrain_name", x, y, name)
+#define set_town_title(areaID, title)                   sfall_func2("set_town_title", areaID, title)
 #define set_unique_id(obj)                              sfall_func1("set_unique_id", obj)
 #define set_unjam_locks_time(time)                      sfall_func1("set_unjam_locks_time", time)
 #define set_window_flag(winID, flag, value)             sfall_func3("set_window_flag", winID, flag, value)

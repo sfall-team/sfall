@@ -249,3 +249,11 @@ static void sf_get_map_enter_position() {
 static void sf_tile_by_position() {
 	opHandler.setReturn(TileNum(opHandler.arg(0).rawValue(), opHandler.arg(1).rawValue()));
 }
+
+static void sf_set_terrain_name() {
+	Wmap_SetTerrainTypeName(opHandler.arg(0).rawValue(), opHandler.arg(1).rawValue(), opHandler.arg(2).strValue());
+}
+
+static void sf_set_town_title() {
+	Wmap_SetCustomAreaTitle(opHandler.arg(0).rawValue(), opHandler.arg(1).strValue());
+}

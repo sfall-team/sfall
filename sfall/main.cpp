@@ -768,6 +768,7 @@ static void _stdcall OnExit() {
 	if (scriptDialog) delete[] scriptDialog;
 	GraphicsExit();
 	MoviesExit();
+	InterfaceExit();
 	SpeedPatchExit();
 	SkillsExit();
 	ReputationsExit();

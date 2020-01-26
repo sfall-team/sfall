@@ -608,10 +608,17 @@ optional arguments:
 - toCase: 0 - lowercase, 1 - uppercase
 - NOTE: this function works only for English letters of A-Z/a-z
 
+> void sfall_func3("set_terrain_name", int x, int y, string name)
+- overrides the terrain type name for the sub-tile on the world map by the specified coordinates
+
 int sfall_func2("get_window_attribute", int winType, int attrType)
 - returns the attribute of the specified interface window by the attrType argument
 - winType: the type number of the interface window (see WINTYPE_* constants in sfall.h)
 - attrType: 0 - X position, 1 - Y position (relative to the top-left corner of the game screen)
+
+> void sfall_func2("set_town_title", int areaID, string title)
+- sets a floating text for a town on the world map when hovering the cursor over the player's marker
+- areaID: the ID number of the town from city.txt
 
 ------------------------
 ------ MORE INFO -------

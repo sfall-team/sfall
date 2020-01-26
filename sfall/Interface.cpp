@@ -16,8 +16,12 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <array>
+
 #include "main.h"
 #include "FalloutEngine.h"
+#include "Utils.h"
+#include "Worldmap.h"
 
 static long costAP = -1;
 static void __declspec(naked) intface_redraw_items_hack0() {
@@ -100,16 +104,250 @@ static void __declspec(naked) wmInterfaceInit_text_font_hook() {
 	}
 }
 
+// const because no expanded world map patch
+static const long wmapWinWidth = 640;
+static const long wmapWinHeight = 480;
+static const long wmapViewPortWidth = 450;
+static const long wmapViewPortHeight = 443;
+
+///////////////////////// FALLOUT 1 WORLD MAP FEATURES /////////////////////////
+static bool showTerrainType = false;
+
+enum DotStyleDefault {
+	STYDEF_DotLen   = 2,
+	STYDEF_SpaceLen = 2
+};
+
+enum TerrainHoverImage {
+	HVRIMG_width  = 200,
+	HVRIMG_height = 15,
+	HVRIMG_size = HVRIMG_width * HVRIMG_height,
+	HVRIMG_x_shift = (HVRIMG_width / 4) + 25 // adjust x position
+};
+
+static std::array<unsigned char, HVRIMG_size> wmTmpBuffer;
+static bool isHoveringHotspot = false;
+static bool backImageIsCopy = false;
+
+struct DotPosition {
+	long x;
+	long y;
+};
+static std::vector<DotPosition> dots;
+
+static unsigned char colorDot = 0;
+static long spaceLen = STYDEF_SpaceLen;
+static long dotLen   = STYDEF_DotLen;
+static long dot_xpos = 0;
+static long dot_ypos = 0;
+static size_t terrainCount = 0;
+
+static struct DotStyle {
+	long dotLen;
+	long spaceLen;
+} *dotStyle = nullptr;
+
+static void AddNewDot() {
+	dot_xpos = *ptr_world_xpos;
+	dot_ypos = *ptr_world_ypos;
+
+	long* terrain = *(long**)_world_subtile;
+	size_t id = (terrain) ? *terrain : 0;
+
+	// Reinitialize if current terrain has smaller values than previous
+	if (id < terrainCount) {
+		if (dotLen > dotStyle[id].dotLen) dotLen = dotStyle[id].dotLen;
+		if (spaceLen > dotStyle[id].spaceLen) spaceLen = dotStyle[id].spaceLen;
+	}
+
+	if (dotLen <= 0 && spaceLen) {
+		spaceLen--;
+		if (!spaceLen) { // set dot length
+			dotLen = (id < terrainCount) ? dotStyle[id].dotLen : STYDEF_DotLen;
+		};
+		return;
+	}
+	dotLen--;
+	spaceLen = (id < terrainCount) ? dotStyle[id].spaceLen : STYDEF_SpaceLen;
+
+	DotPosition dot;
+	dot.x = dot_xpos;
+	dot.y = dot_ypos;
+	dots.push_back(std::move(dot));
+}
+
+static void __declspec(naked) DrawingDots() {
+	long x_offset,  y_offset;
+	__asm {
+		mov ebp, esp; // prolog
+		sub esp, __LOCAL_SIZE;
+	}
+
+	if (dot_xpos != *ptr_world_xpos || dot_ypos != *ptr_world_ypos) {
+		AddNewDot();
+	}
+	x_offset = 22 - *ptr_wmWorldOffsetX;
+	y_offset = 21 - *ptr_wmWorldOffsetY;
+
+	for (std::vector<DotPosition>::const_iterator it = dots.begin(); it != dots.end(); ++it) { // redraws all dots
+		if (it->x < *ptr_wmWorldOffsetX || it->y < *ptr_wmWorldOffsetY) continue; // the pixel is out of viewport
+		if (it->x > *ptr_wmWorldOffsetX + wmapViewPortWidth || it->y > *ptr_wmWorldOffsetY + wmapViewPortHeight) continue;
+
+		long wmPixelX = (it->x + x_offset);
+		long wmPixelY = (it->y + y_offset);
+
+		wmPixelY *= wmapWinWidth;
+
+		BYTE* wmWinBuf = *ptr_wmBkWinBuf;
+		BYTE* wmWinBuf_xy = (wmPixelY + wmPixelX) + wmWinBuf;
+
+		// put pixel to interface window buffer
+		if (wmWinBuf_xy > wmWinBuf) *wmWinBuf_xy = colorDot;
+
+		// TODO: fix dots for car travel
+	}
+	__asm {
+		mov esp, ebp; // epilog
+		retn;
+	}
+}
+
+static bool PrintHotspotText(long x, long y, bool backgroundCopy = false) {
+	long area = *ptr_WorldMapCurrArea;
+	char* text = (area != -1 || !showTerrainType) ? (char*)Wmap_GetCustomAreaTitle(area) : (char*)Wmap_GetCurrentTerrainName();
+	if (!text) return false;
+
+	if (backgroundCopy) { // copy background image to memory (size 200 x 15)
+		backImageIsCopy = true;
+		SurfaceCopyToMem(x - HVRIMG_x_shift, y, HVRIMG_width, HVRIMG_height, wmapWinWidth, *ptr_wmBkWinBuf, wmTmpBuffer.data());
+	}
+
+	long txtWidth = GetTextWidthFM(text);
+	if (txtWidth > HVRIMG_width) txtWidth = HVRIMG_width;
+
+	// offset text position
+	y += 4;
+	x += 25 - (txtWidth / 2);
+
+	// prevent printing text outside of viewport
+	/*if ((x + txtWidth) > wmapViewPortWidth - 20) {
+		txtWidth -= (x + txtWidth) - wmapViewPortWidth - 20;
+	} else if (x < 20) {
+		long x_cut = abs(20 - x);
+		long width = 0;
+		do {
+			width += GetCharWidthFM(*text++);
+		} while (width < x_cut);
+		x += x_cut;
+	}*/
+
+	PrintTextFM(text, 228, x, y, txtWidth, wmapWinWidth, *ptr_wmBkWinBuf); // shadow
+	PrintTextFM(text, 215, x - 1, y - 1, txtWidth, wmapWinWidth, *ptr_wmBkWinBuf);
+
+	if (backgroundCopy) WmRefreshInterfaceOverlay(0); // prevent printing text over the interface
+	return true;
+}
+
+static void __declspec(naked) wmInterfaceRefresh_hook() {
+	if (colorDot && *ptr_target_xpos != -1) {
+		if (*ptr_In_WorldMap) {
+			DrawingDots();
+		} else if (!*ptr_target_xpos && !*ptr_target_ypos) {
+			// player stops moving
+			dots.clear();
+			// Reinitialize on next AddNewDot
+			if (terrainCount)
+				dotLen = spaceLen = 99;
+			else {
+				dotLen = STYDEF_DotLen;
+				spaceLen = STYDEF_SpaceLen;
+			}
+		}
+	}
+	if (isHoveringHotspot && !*ptr_In_WorldMap) {
+		PrintHotspotText(*ptr_world_xpos - *ptr_wmWorldOffsetX, *ptr_world_ypos - *ptr_wmWorldOffsetY);
+		isHoveringHotspot = backImageIsCopy = false;
+	}
+	__asm jmp wmDrawCursorStopped_;
+}
+
+static void __fastcall wmDetectHotspotHover(long wmMouseX, long wmMouseY) {
+	if (!showTerrainType && Wmap_AreaTitlesIsEmpty()) return;
+
+	long deltaX = 20, deltaY = 20;
+
+	// mouse cursor is out of viewport area (the zero values of wmMouseX and wmMouseY correspond to the top-left corner of the worldmap interface)
+	if ((wmMouseX < 20 || wmMouseY < 20 || wmMouseX > wmapViewPortWidth + 15 || wmMouseY > wmapViewPortHeight + 20) == false) {
+		deltaX = abs((long)*ptr_world_xpos - (wmMouseX - deltaX + *ptr_wmWorldOffsetX));
+		deltaY = abs((long)*ptr_world_ypos - (wmMouseY - deltaY + *ptr_wmWorldOffsetY));
+	}
+
+	bool isHovered = isHoveringHotspot;
+	isHoveringHotspot = deltaX < 8 && deltaY < 6;
+	if (isHoveringHotspot != isHovered) { // if value has changed
+		// upper left corner
+		long y = *ptr_world_ypos - *ptr_wmWorldOffsetY;
+		long x = *ptr_world_xpos - *ptr_wmWorldOffsetX;
+		long x_offset = x - HVRIMG_x_shift;
+		if (!backImageIsCopy) {
+			if (!PrintHotspotText(x, y, true)) return;
+		} else {
+			// restore background image
+			DrawToSurface(x_offset, y, HVRIMG_width, HVRIMG_height, wmapWinWidth, wmapWinHeight, *ptr_wmBkWinBuf, wmTmpBuffer.data());
+			backImageIsCopy = false;
+		}
+		// redraw rectangle on worldmap interface
+		RECT rect;
+		rect.top = y;
+		rect.left = x_offset;
+		rect.right = x + HVRIMG_width;
+		rect.bottom = y + HVRIMG_height;
+		WinDrawRect(*ptr_wmBkWin, &rect);
+	}
+}
+
+static void __declspec(naked) wmWorldMap_hack() {
+	__asm {
+		cmp  ds:[_In_WorldMap], 1; // player is moving
+		jne  checkHover;
+		mov  eax, dword ptr ds:[_wmWorldOffsetY]; // overwritten code
+		retn;
+checkHover:
+		cmp  esi, 328;
+		je   isScroll;
+		cmp  esi, 331;
+		je   isScroll;
+		cmp  esi, 333;
+		je   isScroll;
+		cmp  esi, 336;
+		je   isScroll;
+		push ecx;
+		mov  ecx, [esp + 0x38 - 0x30 + 8]; // x
+		mov  edx, [esp + 0x38 - 0x34 + 8]; // y
+		call wmDetectHotspotHover;
+		pop  ecx;
+		mov  eax, dword ptr ds:[_wmWorldOffsetY];
+		retn;
+isScroll:
+		mov  isHoveringHotspot, 0;
+		mov  backImageIsCopy, 0;
+		mov  eax, dword ptr ds:[_wmWorldOffsetY];
+		retn;
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
 static void __declspec(naked) wmInterfaceRefreshCarFuel_hack_empty() {
 	__asm {
 		mov byte ptr [eax - 1], 13;
 		mov byte ptr [eax + 1], 13;
-		add eax, 640;
+		add eax, wmapWinWidth;
 		dec ebx;
 		mov byte ptr [eax], 14;
 		mov byte ptr [eax - 1], 15;
 		mov byte ptr [eax + 1], 15;
-		add eax, 640;
+		add eax, wmapWinWidth;
 		retn;
 	}
 }
@@ -118,7 +356,7 @@ static void __declspec(naked) wmInterfaceRefreshCarFuel_hack() {
 	__asm {
 		mov byte ptr [eax - 1], 196;
 		mov byte ptr [eax + 1], 196;
-		add eax, 640;
+		add eax, wmapWinWidth;
 		mov byte ptr [eax - 1], 200;
 		mov byte ptr [eax + 1], 200;
 		retn;
@@ -155,6 +393,43 @@ static void WorldMapInterfacePatch() {
 		SafeWrite32(0x4C21F1, (DWORD)&mapSlotsScrollLimit);
 		dlogr(" Done", DL_INIT);
 	}
+
+	// Fallout 1 features, travel markers and displaying terrain types or town titles
+	if (GetConfigInt("Interface", "WorldMapTravelMarkers", 0)) {
+		dlog("Applying world map travel markers patch.", DL_INIT);
+
+		int color = GetConfigInt("Interface", "TravelMarkerColor", 134); // color index in palette: R = 224, G = 0, B = 0
+		if (color > 228) color = 228; else if (color < 1) color = 1; // no palette animation colors
+		colorDot = color;
+
+		std::vector<std::string> dotList = GetConfigList("Interface", "TravelMarkerStyles", "", 512);
+		if (!dotList.empty()) {
+			terrainCount = dotList.size();
+			dotStyle = new DotStyle[terrainCount];
+
+			std::vector<std::string> pair;
+			for (size_t i = 0; i < terrainCount; i++) {
+				split(dotList[i], ':', std::back_inserter(pair), 2);
+				if (pair.size() >= 2) {
+					int len = atoi(pair[0].c_str());
+					if (len < 1) len = 1; else if (len > 10) len = 10;
+					dotStyle[i].dotLen = len;
+					len = atoi(pair[1].c_str());
+					if (len < 1) len = 1; else if (len > 10) len = 10;
+					dotStyle[i].spaceLen = len;
+				} else {
+					dotStyle[i].dotLen = STYDEF_DotLen;
+					dotStyle[i].spaceLen = STYDEF_SpaceLen;
+				}
+				pair.clear();
+			}
+		}
+		dots.reserve(512);
+		dlogr(" Done", DL_INIT);
+	}
+	showTerrainType = (GetConfigInt("Interface", "WorldMapTerrainInfo", 0) != 0);
+	HookCall(0x4C3C7E, wmInterfaceRefresh_hook); // when calling wmDrawCursorStopped_
+	MakeCall(0x4BFE84, wmWorldMap_hack);
 
 	// Car fuel gauge graphics patch
 	MakeCall(0x4C528A, wmInterfaceRefreshCarFuel_hack_empty);
@@ -236,6 +511,10 @@ void InterfaceGmouseHandleHook() {
 	HookCall(0x44C018, gmouse_handle_event_hook); // replaces hack function from HRP
 }
 
+void Interface_OnGameLoad() {
+	dots.clear();
+}
+
 void InterfaceInit() {
 	DrawActionPointsNumber();
 	WorldMapInterfacePatch();
@@ -246,4 +525,8 @@ void InterfaceInit() {
 	// ScriptWindow - prevents the player from moving when clicking on the window if the 'Transparent' flag is not set
 	HookCall(0x44B737, gmouse_bk_process_hook);
 	// InterfaceGmouseHandleHook will be run before game initialization
+}
+
+void InterfaceExit() {
+	if (dotStyle) delete[] dotStyle;
 }

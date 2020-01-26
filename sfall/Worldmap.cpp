@@ -29,6 +29,9 @@ static DWORD AutomapPipboyList[AUTOMAP_MAX];
 static DWORD ViewportX;
 static DWORD ViewportY;
 
+std::vector<std::pair<long, std::string>> wmTerrainTypeNames; // pair first: x + y * number of horizontal sub-tiles
+std::vector<std::pair<long, std::string>> wmAreaHotSpotTitle;
+
 static DWORD worldMapDelay;
 static DWORD worldMapTicks;
 
@@ -440,6 +443,59 @@ void SetAddedYears(DWORD years) {
 
 DWORD GetAddedYears(bool isCheck) {
 	return (isCheck && !addYear) ? 0 : addedYears;
+}
+
+static const char* GetOverrideTerrainName(long x, long y) {
+	if (wmTerrainTypeNames.empty()) return nullptr;
+
+	long subTileID = x + y * (*ptr_wmNumHorizontalTiles * 7);
+	auto it = std::find_if(wmTerrainTypeNames.crbegin(), wmTerrainTypeNames.crend(),
+						  [=](const std::pair<long, std::string> &el)
+						  { return el.first == subTileID; }
+	);
+	return (it != wmTerrainTypeNames.crend()) ? it->second.c_str() : nullptr;
+}
+
+// x, y - position of the sub-tile on the world map
+void Wmap_SetTerrainTypeName(long x, long y, const char* name) {
+	long subTileID = x + y * (*ptr_wmNumHorizontalTiles * 7);
+	wmTerrainTypeNames.push_back(std::make_pair(subTileID, name));
+}
+/*
+// TODO: someone might need to know the name of a terrain type?
+const char* Wmap_GetTerrainTypeName(long x, long y) {
+	//const char* name = GetOverrideTerrainName(x, y);
+	//return (name) ? name : fo::GetMessageStr(&fo::var::wmMsgFile, 1000 + fo::wmGetTerrainType(x, y));
+	return nullptr;
+}
+*/
+// Returns the name of the terrain type in the position of the player's marker on the world map
+const char* Wmap_GetCurrentTerrainName() {
+	const char* name = GetOverrideTerrainName(*ptr_world_xpos / 50, *ptr_world_ypos / 50);
+	return (name) ? name : GetMessageStr(ptr_wmMsgFile, 1000 + wmGetCurrentTerrainType());
+}
+
+bool Wmap_AreaTitlesIsEmpty() {
+	return wmAreaHotSpotTitle.empty();
+}
+
+void Wmap_SetCustomAreaTitle(long areaID, const char* msg) {
+	wmAreaHotSpotTitle.push_back(std::make_pair(areaID, msg));
+}
+
+const char* Wmap_GetCustomAreaTitle(long areaID) {
+	if (wmAreaHotSpotTitle.empty()) return nullptr;
+
+	auto it = std::find_if(wmAreaHotSpotTitle.crbegin(), wmAreaHotSpotTitle.crend(),
+						  [=](const std::pair<long, std::string> &el)
+						  { return el.first == areaID; }
+	);
+	return (it != wmAreaHotSpotTitle.crend()) ? it->second.c_str() : nullptr;
+}
+
+void Worldmap_OnGameLoad() {
+	wmTerrainTypeNames.clear();
+	wmAreaHotSpotTitle.clear();
 }
 
 void WorldmapInit() {
