@@ -167,7 +167,7 @@ static DWORD _stdcall CombatSaveTest() {
 	return 1;
 }
 
-static void __declspec(naked) SaveGame() {
+static void __declspec(naked) SaveGame_hook() {
 	__asm {
 		push ecx;
 		push edx;
@@ -246,7 +246,7 @@ errorLoad:
 	}
 }
 
-static void __declspec(naked) LoadGame() {
+static void __declspec(naked) LoadGame_hook() {
 	__asm {
 		push ecx;
 		push edx;
@@ -360,22 +360,25 @@ static void __declspec(naked) game_close_hook() {
 	}
 }
 
-static void __declspec(naked) WorldMapHook() {
+static void __declspec(naked) WorldMapHook_Start() {
 	__asm {
+		call wmInterfaceInit_;
+		test eax, eax;
+		jl   skip;
+		push eax;
 		or inLoop, WORLDMAP;
-		xor  eax, eax; // unused
-		call wmWorldMapFunc_;
-		and inLoop, (-1 ^ WORLDMAP);
+		pop  eax;
+skip:
 		retn;
 	}
 }
 
-static void __declspec(naked) WorldMapHook2() {
+static void __declspec(naked) WorldMapHook_End() {
 	__asm {
-		or inLoop, WORLDMAP;
-		call wmWorldMapFunc_;
+		push eax;
 		and inLoop, (-1 ^ WORLDMAP);
-		retn;
+		pop  eax;
+		jmp  remove_bk_process_;
 	}
 }
 
@@ -413,7 +416,6 @@ static void __declspec(naked) EscMenuHook() {
 }
 
 static void __declspec(naked) EscMenuHook2() {
-	//Bloody stupid watcom compiler optimizations...
 	__asm {
 		or inLoop, ESCMENU;
 		call do_options_;
@@ -442,27 +444,26 @@ static void __declspec(naked) HelpMenuHook() {
 
 static void __declspec(naked) CharacterHook() {
 	__asm {
-		pushadc;
+		push edx;
 		or inLoop, CHARSCREEN;
 		call PerksEnterCharScreen;
-		popadc;
+		xor  eax, eax;
 		call editor_design_;
-		pushadc;
 		test eax, eax;
-		jz success;
+		jz   success;
 		call PerksCancelCharScreen;
-		jmp end;
+		jmp  end;
 success:
 		call PerksAcceptCharScreen;
 end:
 		and inLoop, (-1 ^ CHARSCREEN);
-		mov tagSkill4LevelBase, -1; // for fixing Tag! perk exploit
-		popadc;
+		mov  tagSkill4LevelBase, -1; // for fixing Tag! perk exploit
+		pop  edx;
 		retn;
 	}
 }
 
-static void __declspec(naked) DialogHookStart() {
+static void __declspec(naked) DialogHook_Start() {
 	__asm {
 		or inLoop, DIALOG;
 		mov ebx, 1;
@@ -470,19 +471,28 @@ static void __declspec(naked) DialogHookStart() {
 	}
 }
 
-static void __declspec(naked) DialogHookEnd() {
+static void __declspec(naked) DialogHook_End() {
 	__asm {
 		and inLoop, (-1 ^ DIALOG);
 		jmp gdialogFreeSpeech_;
 	}
 }
 
-static void __declspec(naked) PipboyHook() {
+static void __declspec(naked) PipboyHook_Start() {
 	__asm {
+		push eax;
 		or inLoop, PIPBOY;
-		call pipboy_;
+		pop  eax;
+		jmp  win_draw_;
+	}
+}
+
+static void __declspec(naked) PipboyHook_End() {
+	__asm {
+		push eax;
 		and inLoop, (-1 ^ PIPBOY);
-		retn;
+		pop  eax;
+		jmp  win_delete_;
 	}
 }
 
@@ -495,32 +505,56 @@ static void __declspec(naked) SkilldexHook() {
 	}
 }
 
-static void __declspec(naked) HandleInventoryHook() {
+static void __declspec(naked) HandleInventoryHook_Start() {
 	__asm {
 		or inLoop, INVENTORY;
-		call handle_inventory_;
-		and inLoop, (-1 ^ INVENTORY);
-		retn;
+		xor eax, eax;
+		jmp inven_set_mouse_;
 	}
 }
 
-static void __declspec(naked) UseInventoryOnHook() {
+static void __declspec(naked) HandleInventoryHook_End() {
+	__asm {
+		and inLoop, (-1 ^ INVENTORY);
+		mov eax, esi;
+		jmp exit_inventory_;
+	}
+}
+
+static void __declspec(naked) UseInventoryOnHook_Start() {
 	__asm {
 		or inLoop, INTFACEUSE;
-		call use_inventory_on_;
-		and inLoop, (-1 ^ INTFACEUSE);
-		retn;
+		xor eax, eax;
+		jmp inven_set_mouse_;
 	}
 }
 
-static void __declspec(naked) LootContainerHook() {
+static void __declspec(naked) UseInventoryOnHook_End() {
 	__asm {
-		mov  LoadGameHook_LootTarget, edx;
+		and inLoop, (-1 ^ INTFACEUSE);
+		mov eax, edi;
+		jmp exit_inventory_;
+	}
+}
+
+static void __declspec(naked) LootContainerHook_Start() {
+	__asm {
+		mov LoadGameHook_LootTarget, ebp; // _target_stack
 		or inLoop, INTFACELOOT;
-		call loot_container_;
+		xor eax, eax;
+		jmp inven_set_mouse_;
+	}
+}
+
+static void __declspec(naked) LootContainerHook_End() {
+	__asm {
+		cmp  dword ptr [esp + 0x150 - 0x58 + 4], 0; // JESSE_CONTAINER
+		jz   skip; // container is not created
 		and inLoop, (-1 ^ INTFACELOOT);
-		jmp  ResetBodyState; // reset object pointer used in calculating the weight/size of equipped and hidden items on NPCs after exiting loot/barter screens
-		//retn;
+		xor  eax,eax;
+skip:
+		call ResetBodyState; // reset object pointer used in calculating the weight/size of equipped and hidden items on NPCs after exiting loot/barter screens
+		retn 0x13C;
 	}
 }
 
@@ -604,58 +638,70 @@ void LoadGameHookInit() {
 	HookCall(0x480AB3, NewGame);
 	HookCall(0x47C72C, LoadSlot);
 	HookCall(0x47D1C9, LoadSlot);
-	HookCall(0x443AE4, LoadGame);
-	HookCall(0x443B89, LoadGame);
-	HookCall(0x480B77, LoadGame);
-	HookCall(0x48FD35, LoadGame);
+	HookCall(0x443AE4, LoadGame_hook);
+	HookCall(0x443B89, LoadGame_hook);
+	HookCall(0x480B77, LoadGame_hook);
+	HookCall(0x48FD35, LoadGame_hook);
 	SafeWrite32(0x5194C0, (DWORD)&EndLoadHook);
-	HookCall(0x443AAC, SaveGame);
-	HookCall(0x443B1C, SaveGame);
-	HookCall(0x48FCFF, SaveGame);
+	HookCall(0x443AAC, SaveGame_hook);
+	HookCall(0x443B1C, SaveGame_hook);
+	HookCall(0x48FCFF, SaveGame_hook);
 
 	HookCall(0x480A28, MainMenuHook);
 	// 4.x backport
 	HookCall(0x480CA7, game_close_hook); // gnw_main_
 	//HookCall(0x480D45, game_close_hook); // main_exit_system_ (never called)
 
-	// game modes
-	HookCall(0x483668, WorldMapHook);
-	HookCall(0x4A4073, WorldMapHook);
-	HookCall(0x4C4855, WorldMapHook2);
+	/////////////// GAME MODES ///////////////
+	HookCall(0x4BFE33, WorldMapHook_Start); // wmTownMap_ (old 0x483668, 0x4A4073)
+	HookCall(0x4C2E4F, WorldMapHook_End);   // wmInterfaceExit_ (old 0x4C4855)
+
 	HookCall(0x426A29, CombatHook);
 	HookCall(0x4432BE, CombatHook);
 	HookCall(0x45F6D2, CombatHook);
 	HookCall(0x4A4020, CombatHook);
 	HookCall(0x4A403D, CombatHook);
 	HookCall(0x422B09, PlayerCombatHook);
-	HookCall(0x480C16, EscMenuHook);
-	HookCall(0x4433BE, EscMenuHook2);
+
+	HookCall(0x480C16, EscMenuHook);   // gnw_main_
+	HookCall(0x4433BE, EscMenuHook2);  // game_handle_input_
 	HookCall(0x48FCE4, OptionsMenuHook);
 	HookCall(0x48FD17, OptionsMenuHook);
 	HookCall(0x48FD4D, OptionsMenuHook);
 	HookCall(0x48FD6A, OptionsMenuHook);
 	HookCall(0x48FD87, OptionsMenuHook);
 	HookCall(0x48FDB3, OptionsMenuHook);
-	HookCall(0x443A50, HelpMenuHook);
-	HookCall(0x443320, CharacterHook);
-	//HookCall(0x4A73EB, CharacterHook); // character creation
-	//HookCall(0x4A740A, CharacterHook); // character creation
-	MakeCall(0x445285, DialogHookStart); // gdialogInitFromScript_
-	HookCall(0x4452CD, DialogHookEnd);   // gdialogExitFromScript_ (old 0x445748)
-	HookCall(0x443463, PipboyHook);
-	HookCall(0x443605, PipboyHook);
+	HookCall(0x443A50, HelpMenuHook);  // game_handle_input_
+	HookCall(0x443320, CharacterHook); // 0x4A73EB, 0x4A740A for character creation
+
+	MakeCall(0x445285, DialogHook_Start); // gdialogInitFromScript_
+	HookCall(0x4452CD, DialogHook_End);   // gdialogExitFromScript_ (old 0x445748)
+
+	HookCall(0x49767F, PipboyHook_Start); // StartPipboy_ (old 0x443463, 0x443605)
+	HookCall(0x4977EF, PipboyHook_Start);
+	HookCall(0x49780D, PipboyHook_Start);
+	HookCall(0x497868, PipboyHook_End); // EndPipboy_
+
 	HookCall(0x4434AC, SkilldexHook);
 	HookCall(0x44C7BD, SkilldexHook);
-	HookCall(0x443357, HandleInventoryHook);
-	HookCall(0x44C6FB, UseInventoryOnHook);
-	HookCall(0x4746EC, LootContainerHook);
-	HookCall(0x4A4369, LootContainerHook);
-	HookCall(0x4A4565, LootContainerHook);
-	HookCall(0x4466C7, BarterInventoryHook);
+
+	HookCall(0x46E8F3, HandleInventoryHook_Start); // handle_inventory_ (old 0x443357)
+	HookCall(0x46EC2D, HandleInventoryHook_End);
+
+	HookCall(0x471823, UseInventoryOnHook_Start); // use_inventory_on_ (old 0x44C6FB)
+	HookCall(0x471B2C, UseInventoryOnHook_End);
+
+	HookCall(0x473E0D, LootContainerHook_Start); // loot_container_ (old 0x4746EC, 0x4A4369, 0x4A4565)
+	MakeCall(0x474692, LootContainerHook_End, 1);
+
+	HookCall(0x4466C7, BarterInventoryHook); // gdProcess_
+
 	HookCall(0x44396D, AutomapHook);
 	HookCall(0x479519, AutomapHook);
+
 	HookCall(0x445CA7, DialogReviewInitHook);
 	HookCall(0x445D30, DialogReviewExitHook);
+
 	HookCall(0x476AC6, setup_move_timer_win_Hook); // before init win
 	HookCall(0x477067, exit_move_timer_win_Hook);
 }

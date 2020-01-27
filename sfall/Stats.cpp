@@ -207,7 +207,7 @@ allow:
 }
 
 static void StatsReset() {
-	for (int i = 0; i < STAT_max_stat; i++) {
+	for (size_t i = 0; i < STAT_max_stat; i++) {
 		StatMaximumsPC[i] = StatMaximumsNPC[i] = *(DWORD*)(_stat_data + 16 + i * 24);
 		StatMinimumsPC[i] = StatMinimumsNPC[i] = *(DWORD*)(_stat_data + 12 + i * 24);
 	}

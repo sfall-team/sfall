@@ -24,6 +24,8 @@
 *
 */
 
+#include <stdint.h>
+
 #include "Define.h"
 #include "FalloutStructs.h"
 
@@ -624,6 +626,7 @@ extern const DWORD EndLoad_;
 extern const DWORD EndPipboy_;
 extern const DWORD exec_script_proc_; // unsigned int aScriptID<eax>, int aProcId<edx>
 extern const DWORD executeProcedure_; // <eax> - programPtr, <edx> - procNumber
+extern const DWORD exit_inventory_;
 extern const DWORD fadeSystemPalette_;
 extern const DWORD findVar_;
 extern const DWORD FMtext_char_width_;
@@ -701,6 +704,7 @@ extern const DWORD inven_find_id_;
 extern const DWORD inven_left_hand_; // eax - object
 extern const DWORD inven_pid_is_carried_ptr_;
 extern const DWORD inven_right_hand_; // eax - object
+extern const DWORD inven_set_mouse_;
 extern const DWORD inven_unwield_;
 extern const DWORD inven_wield_;
 extern const DWORD inven_worn_;
@@ -891,6 +895,7 @@ extern const DWORD register_object_light_; // <eax>(int aObj<eax>, int aRadius<e
 extern const DWORD register_object_must_erase_; // int aObj<eax>
 extern const DWORD register_object_take_out_; // int aObj<eax>, int aHoldFrame<edx> - hold frame ID (1 - spear, 2 - club, etc.)
 extern const DWORD register_object_turn_towards_; // int aObj<eax>, int aTile<edx>
+extern const DWORD remove_bk_process_;
 extern const DWORD report_explosion_;
 extern const DWORD reset_box_bar_win_;
 extern const DWORD RestorePlayer_;
@@ -983,6 +988,7 @@ extern const DWORD windowShow_;
 extern const DWORD windowWidth_;
 extern const DWORD wmDrawCursorStopped_;
 extern const DWORD wmFindCurSubTileFromPos_;
+extern const DWORD wmInterfaceInit_;
 extern const DWORD wmInterfaceRefresh_;
 extern const DWORD wmInterfaceScrollTabsStart_;
 extern const DWORD wmMapIsSaveable_;

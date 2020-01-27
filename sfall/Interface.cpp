@@ -173,7 +173,7 @@ static void AddNewDot() {
 	DotPosition dot;
 	dot.x = dot_xpos;
 	dot.y = dot_ypos;
-	dots.push_back(std::move(dot));
+	dots.push_back(dot);
 }
 
 static void __declspec(naked) DrawingDots() {
