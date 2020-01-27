@@ -105,12 +105,13 @@ static void __stdcall GameModeChange(DWORD state) {
 }
 
 void _stdcall SetInLoop(DWORD mode, LoopFlag flag) {
+	unsigned long _inLoop = inLoop;
 	if (mode) {
 		SetLoopFlag(flag);
 	} else {
 		ClearLoopFlag(flag);
 	}
-	GameModeChange(0);
+	if (_inLoop ^ inLoop) GameModeChange(0);
 }
 
 void GetSavePath(char* buf, char* ftype) {
@@ -419,22 +420,25 @@ static void __declspec(naked) game_close_hook() {
 	}
 }
 
-static void __declspec(naked) WorldMapHook() {
+static void __declspec(naked) WorldMapHook_Start() {
 	__asm {
-		_InLoop(1, WORLDMAP);
-		xor  eax, eax; // unused
-		call fo::funcoffs::wmWorldMapFunc_;
-		_InLoop(0, WORLDMAP);
+		call fo::funcoffs::wmInterfaceInit_;
+		test eax, eax;
+		jl   skip;
+		push eax;
+		_InLoop2(1, WORLDMAP);
+		pop  eax;
+skip:
 		retn;
 	}
 }
 
-static void __declspec(naked) WorldMapHook2() {
+static void __declspec(naked) WorldMapHook_End() {
 	__asm {
-		_InLoop(1, WORLDMAP);
-		call fo::funcoffs::wmWorldMapFunc_;
-		_InLoop(0, WORLDMAP);
-		retn;
+		push eax;
+		_InLoop2(0, WORLDMAP);
+		pop  eax;
+		jmp  fo::funcoffs::remove_bk_process_;
 	}
 }
 
@@ -472,7 +476,6 @@ static void __declspec(naked) EscMenuHook() {
 }
 
 static void __declspec(naked) EscMenuHook2() {
-	//Bloody stupid watcom compiler optimizations...
 	__asm {
 		_InLoop(1, ESCMENU);
 		call fo::funcoffs::do_options_;
@@ -501,27 +504,26 @@ static void __declspec(naked) HelpMenuHook() {
 
 static void __declspec(naked) CharacterHook() {
 	__asm {
-		pushadc;
+		push edx;
 		_InLoop2(1, CHARSCREEN);
 		call PerksEnterCharScreen;
-		popadc;
+		xor  eax, eax;
 		call fo::funcoffs::editor_design_;
-		pushadc;
 		test eax, eax;
-		jz success;
+		jz   success;
 		call PerksCancelCharScreen;
-		jmp end;
+		jmp  end;
 success:
 		call PerksAcceptCharScreen;
 end:
 		_InLoop2(0, CHARSCREEN);
-		mov tagSkill4LevelBase, -1; // for fixing Tag! perk exploit
-		popadc;
+		mov  tagSkill4LevelBase, -1; // for fixing Tag! perk exploit
+		pop  edx;
 		retn;
 	}
 }
 
-static void __declspec(naked) DialogHookStart() {
+static void __declspec(naked) DialogHook_Start() {
 	__asm {
 		_InLoop2(1, DIALOG);
 		mov ebx, 1;
@@ -529,19 +531,28 @@ static void __declspec(naked) DialogHookStart() {
 	}
 }
 
-static void __declspec(naked) DialogHookEnd() {
+static void __declspec(naked) DialogHook_End() {
 	__asm {
 		_InLoop2(0, DIALOG);
 		jmp fo::funcoffs::gdialogFreeSpeech_;
 	}
 }
 
-static void __declspec(naked) PipboyHook() {
+static void __declspec(naked) PipboyHook_Start() {
 	__asm {
-		_InLoop(1, PIPBOY);
-		call fo::funcoffs::pipboy_;
-		_InLoop(0, PIPBOY);
-		retn;
+		push eax;
+		_InLoop2(1, PIPBOY);
+		pop  eax;
+		jmp  fo::funcoffs::win_draw_;
+	}
+}
+
+static void __declspec(naked) PipboyHook_End() {
+	__asm {
+		push eax;
+		_InLoop2(0, PIPBOY);
+		pop  eax;
+		jmp  fo::funcoffs::win_delete_;
 	}
 }
 
@@ -554,32 +565,56 @@ static void __declspec(naked) SkilldexHook() {
 	}
 }
 
-static void __declspec(naked) HandleInventoryHook() {
+static void __declspec(naked) HandleInventoryHook_Start() {
 	__asm {
-		_InLoop(1, INVENTORY);
-		call fo::funcoffs::handle_inventory_;
-		_InLoop(0, INVENTORY);
-		retn;
+		_InLoop2(1, INVENTORY);
+		xor eax, eax;
+		jmp fo::funcoffs::inven_set_mouse_;
 	}
 }
 
-static void __declspec(naked) UseInventoryOnHook() {
+static void __declspec(naked) HandleInventoryHook_End() {
 	__asm {
-		_InLoop(1, INTFACEUSE);
-		call fo::funcoffs::use_inventory_on_;
-		_InLoop(0, INTFACEUSE);
-		retn;
+		_InLoop2(0, INVENTORY);
+		mov eax, esi;
+		jmp fo::funcoffs::exit_inventory_;
 	}
 }
 
-static void __declspec(naked) LootContainerHook() {
+static void __declspec(naked) UseInventoryOnHook_Start() {
 	__asm {
-		mov  LoadGameHook::LootTarget, edx;
-		_InLoop(1, INTFACELOOT);
-		call fo::funcoffs::loot_container_;
-		_InLoop(0, INTFACELOOT);
-		jmp  ResetBodyState; // reset object pointer used in calculating the weight/size of equipped and hidden items on NPCs after exiting loot/barter screens
-		//retn;
+		_InLoop2(1, INTFACEUSE);
+		xor eax, eax;
+		jmp fo::funcoffs::inven_set_mouse_;
+	}
+}
+
+static void __declspec(naked) UseInventoryOnHook_End() {
+	__asm {
+		_InLoop2(0, INTFACEUSE);
+		mov eax, edi;
+		jmp fo::funcoffs::exit_inventory_;
+	}
+}
+
+static void __declspec(naked) LootContainerHook_Start() {
+	__asm {
+		mov LoadGameHook::LootTarget, ebp; // _target_stack
+		_InLoop2(1, INTFACELOOT);
+		xor eax, eax;
+		jmp fo::funcoffs::inven_set_mouse_;
+	}
+}
+
+static void __declspec(naked) LootContainerHook_End() {
+	__asm {
+		cmp  dword ptr [esp + 0x150 - 0x58 + 4], 0; // JESSE_CONTAINER
+		jz   skip; // container is not created
+		_InLoop2(0, INTFACELOOT);
+		xor  eax,eax;
+skip:
+		call ResetBodyState; // reset object pointer used in calculating the weight/size of equipped and hidden items on NPCs after exiting loot/barter screens
+		retn 0x13C;
 	}
 }
 
@@ -703,30 +738,44 @@ void LoadGameHook::init() {
 				0x480CA7,  // gnw_main_
 				//0x480D45 // main_exit_system_ (never called)
 			});
-	// game modes
-	HookCalls(WorldMapHook, {0x483668, 0x4A4073});
-	HookCalls(WorldMapHook2, {0x4C4855});
+
+	/////////////// GAME MODES ///////////////
+	HookCall(0x4BFE33, WorldMapHook_Start); // wmTownMap_ (old 0x483668, 0x4A4073)
+	HookCall(0x4C2E4F, WorldMapHook_End);   // wmInterfaceExit_ (old 0x4C4855)
+
 	HookCalls(CombatHook, {0x426A29, 0x4432BE, 0x45F6D2, 0x4A4020, 0x4A403D});
-	HookCalls(PlayerCombatHook, {0x422B09});
-	HookCalls(EscMenuHook, {0x480C16});
-	HookCalls(EscMenuHook2, {0x4433BE});
+	HookCall(0x422B09, PlayerCombatHook);
+
+	HookCall(0x480C16, EscMenuHook);   // gnw_main_
+	HookCall(0x4433BE, EscMenuHook2);  // game_handle_input_
 	HookCalls(OptionsMenuHook, {0x48FCE4, 0x48FD17, 0x48FD4D, 0x48FD6A, 0x48FD87, 0x48FDB3});
-	HookCalls(HelpMenuHook, {0x443A50});
-	HookCalls(CharacterHook, {0x443320}); // 0x4A73EB, 0x4A740A for character creation
-	MakeCall(0x445285, DialogHookStart);  // gdialogInitFromScript_
-	HookCall(0x4452CD, DialogHookEnd);    // gdialogExitFromScript_ (old 0x445748)
-	HookCalls(PipboyHook, {0x443463, 0x443605});
+	HookCall(0x443A50, HelpMenuHook);  // game_handle_input_
+	HookCall(0x443320, CharacterHook); // 0x4A73EB, 0x4A740A for character creation
+
+	MakeCall(0x445285, DialogHook_Start); // gdialogInitFromScript_
+	HookCall(0x4452CD, DialogHook_End);   // gdialogExitFromScript_ (old 0x445748)
+
+	HookCalls(PipboyHook_Start, {0x49767F, 0x4977EF, 0x49780D}); // StartPipboy_ (old 0x443463, 0x443605)
+	HookCall(0x497868, PipboyHook_End); // EndPipboy_
+
 	HookCalls(SkilldexHook, {0x4434AC, 0x44C7BD});
-	HookCalls(HandleInventoryHook, {0x443357});
-	HookCalls(UseInventoryOnHook, {0x44C6FB});
-	HookCalls(LootContainerHook, {
-			0x4746EC,
-			0x4A4369,
-			0x4A4565});
-	HookCalls(BarterInventoryHook, {0x4466C7});
-	HookCalls(AutomapHook, {0x44396D, 0x479519});
+
+	HookCall(0x46E8F3, HandleInventoryHook_Start); // handle_inventory_ (old 0x443357)
+	HookCall(0x46EC2D, HandleInventoryHook_End);
+
+	HookCall(0x471823, UseInventoryOnHook_Start); // use_inventory_on_ (old 0x44C6FB)
+	HookCall(0x471B2C, UseInventoryOnHook_End);
+
+	HookCall(0x473E0D, LootContainerHook_Start); // loot_container_ (old 0x4746EC, 0x4A4369, 0x4A4565)
+	MakeCall(0x474692, LootContainerHook_End, 1);
+
+	HookCall(0x4466C7, BarterInventoryHook); // gdProcess_
+
+	HookCalls(AutomapHook, {0x44396D, 0x479519}); // TODO
+
 	HookCall(0x445CA7, DialogReviewInitHook);
 	HookCall(0x445D30, DialogReviewExitHook);
+
 	HookCall(0x476AC6, setup_move_timer_win_Hook); // before init win
 	HookCall(0x477067, exit_move_timer_win_Hook);
 
