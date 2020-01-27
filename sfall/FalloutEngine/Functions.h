@@ -208,6 +208,8 @@ long __stdcall win_register_button(DWORD winRef, long xPos, long yPos, long widt
 
 void __stdcall DialogOut(const char* text);
 
+long __fastcall DialogOutEx(const char* text, const char** textEx, long count, long flags);
+
 // draws an image to the buffer without scaling and with transparency display toggle
 void __fastcall windowDisplayBuf(long x, long width, long y, long height, void* data, long noTrans);
 

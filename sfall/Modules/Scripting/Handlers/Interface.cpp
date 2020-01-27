@@ -127,14 +127,36 @@ void __declspec(naked) op_resume_game() {
 	}
 }
 
-static bool dialogShow = false;
 void sf_create_message_window(OpcodeContext &ctx) {
+	static bool dialogShow = false;
 	if (dialogShow) return;
+
 	const char* str = ctx.arg(0).strValue();
 	if (!str || str[0] == 0) return;
+
 	dialogShow = true;
 	fo::func::DialogOut(str);
 	dialogShow = false;
+}
+
+void sf_dialog_box(OpcodeContext &ctx) {
+	const char* str = ctx.arg(0).strValue();
+	if (!str || str[0] == 0) return;
+
+	const char* str2[2];
+	long lines = 0;
+	if (ctx.numArgs() > 1) {
+		++lines;
+		str2[0] = ctx.arg(1).strValue();
+	}
+	if (ctx.numArgs() > 2) {
+		++lines;
+		str2[1] = ctx.arg(2).strValue();
+	}
+	*(DWORD*)FO_VAR_script_engine_running = 0;
+	long result = fo::func::DialogOutEx(str, str2, lines, fo::DIALOGOUT_NORMAL | fo::DIALOGOUT_YESNO);
+	*(DWORD*)FO_VAR_script_engine_running = 1;
+	ctx.setReturn(result);
 }
 
 void __declspec(naked) op_get_viewport_x() {
@@ -544,23 +566,30 @@ void sf_unwield_slot(OpcodeContext& ctx) {
 void sf_get_window_attribute(OpcodeContext& ctx) {
 	fo::Window* win = fo::GetWindow(ctx.arg(0).rawValue());
 	if (win == nullptr) {
-		ctx.printOpcodeError("%s() - failed to get the interface window.", ctx.getMetaruleName());
+		if (ctx.arg(1).rawValue() != 0) {
+			ctx.printOpcodeError("%s() - failed to get the interface window.", ctx.getMetaruleName());
+			ctx.setReturn(-1);
+		}
 		return;
 	}
 	if ((long)win == -1) {
 		ctx.printOpcodeError("%s() - invalid window type number.", ctx.getMetaruleName());
+		ctx.setReturn(-1);
 		return;
 	}
-	long pos = 0;
+	long result = 0;
 	switch (ctx.arg(1).rawValue()) {
-	case 0: // x
-		pos = win->wRect.left;
+	case 0: // check if window exists
+		result = 1;
 		break;
-	case 1: // y
-		pos = win->wRect.top;
+	case 1: // x
+		result = win->wRect.left;
+		break;
+	case 2: // y
+		result = win->wRect.top;
 		break;
 	}
-	ctx.setReturn(pos);
+	ctx.setReturn(result);
 }
 
 }

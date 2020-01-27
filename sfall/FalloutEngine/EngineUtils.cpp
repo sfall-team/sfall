@@ -196,7 +196,7 @@ long __fastcall GetTopWindowID(long xPos, long yPos) {
 }
 
 enum WinNameType {
-	Inventory = 0, // any inventory window
+	Inventory = 0, // any inventory window (player/loot/use/barter)
 	Dialog    = 1,
 	PipBoy    = 2,
 	WorldMap  = 3,

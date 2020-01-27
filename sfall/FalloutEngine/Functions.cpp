@@ -404,18 +404,33 @@ long __stdcall win_register_button(DWORD winRef, long xPos, long yPos, long widt
 
 void __stdcall DialogOut(const char* text) {
 	__asm {
-		push 1;          // flag
+		push 1;          // DIALOGOUT_NORMAL flag
 		xor  eax, eax;
 		push eax;        // ColorMsg
-		push eax;        // DisplayMsg
+		push eax;        // DisplayMsg (unknown)
 		mov  al, byte ptr ds:[0x6AB718];
 		push eax;        // ColorIndex
 		push 116;        // y
 		mov  ecx, 192;   // x
 		mov  eax, text;  // DisplayText
-		xor  ebx, ebx;   // ?
-		xor  edx, edx;   // ?
+		xor  ebx, ebx;
+		xor  edx, edx;
 		call fo::funcoffs::dialog_out_;
+	}
+}
+
+long __fastcall DialogOutEx(const char* text, const char** textEx, long count, long flags) {
+	__asm {
+		mov  eax, 145;   // Color index
+		push flags;      // flag
+		push eax;        // ColorMsg2
+		push 0;          // DisplayMsg (unknown)
+		push eax;        // ColorMsg1
+		mov  eax, ecx;   // DisplayText first line
+		push 116;        // y
+		mov  ecx, 192;   // x
+		mov  ebx, count; // count text lines 0-2
+		call fo::funcoffs::dialog_out_; // edx - DisplayText second/third line
 	}
 }
 
