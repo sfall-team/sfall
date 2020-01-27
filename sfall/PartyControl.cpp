@@ -160,7 +160,7 @@ static void TakeControlOfNPC(TGameObj* npc) {
 	delayedExperience = 0;
 	SetInventoryCheck(true);
 
-	InterfaceRedraw();
+	IntfaceRedraw();
 }
 
 // restores the real dude state
@@ -195,7 +195,7 @@ static void RestoreRealDudeState(bool redraw = true) {
 		SafeWrite8(0x422BDE, 1);
 	}
 
-	if (redraw) InterfaceRedraw();
+	if (redraw) IntfaceRedraw();
 
 	SetInventoryCheck(false);
 	isControllingNPC = false;

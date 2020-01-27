@@ -989,8 +989,12 @@ long __fastcall ScrSetLocalVar(long sid, long varId, long value) {
 	WRAP_WATCOM_FCALL3(scr_set_local_var_, sid, varId, value)
 }
 
+long __stdcall IntfaceIsHidden() {
+	WRAP_WATCOM_CALL0(intface_is_hidden_)
+}
+
 // redraws the main game interface windows (useful after changing some data like active hand, etc.)
-void __stdcall InterfaceRedraw() {
+void __stdcall IntfaceRedraw() {
 	WRAP_WATCOM_CALL0(intface_redraw_)
 }
 
@@ -1081,18 +1085,33 @@ long __stdcall WinRegisterButton(DWORD winRef, long xPos, long yPos, long width,
 
 void __stdcall DialogOut(const char* text) {
 	__asm {
-		push 1;          // flag
+		push 1;          // DIALOGOUT_NORMAL flag
 		xor  eax, eax;
 		push eax;        // ColorMsg
-		push eax;        // DisplayMsg
+		push eax;        // DisplayMsg (unknown)
 		mov  al, byte ptr ds:[0x6AB718];
 		push eax;        // ColorIndex
 		push 116;        // y
 		mov  ecx, 192;   // x
 		mov  eax, text;  // DisplayText
-		xor  ebx, ebx;   // ?
-		xor  edx, edx;   // ?
+		xor  ebx, ebx;
+		xor  edx, edx;
 		call dialog_out_;
+	}
+}
+
+long __fastcall DialogOutEx(const char* text, const char** textEx, long count, long flags) {
+	__asm {
+		mov  eax, 145;   // Color index
+		push flags;      // flag
+		push eax;        // ColorMsg2
+		push 0;          // DisplayMsg (unknown)
+		push eax;        // ColorMsg1
+		mov  eax, ecx;   // DisplayText first line
+		push 116;        // y
+		mov  ecx, 192;   // x
+		mov  ebx, count; // count text lines 0-2
+		call dialog_out_; // edx - DisplayText second/third line
 	}
 }
 
@@ -1158,6 +1177,14 @@ long __fastcall GetGameConfigString(const char* outValue, const char* section, c
 
 long __fastcall WordWrap(const char* text, int maxWidth, DWORD* buf, BYTE* count) {
 	WRAP_WATCOM_FCALL4(_word_wrap_, text, maxWidth, buf, count)
+}
+
+long __stdcall Gmouse3dGetMode() {
+	WRAP_WATCOM_CALL0(gmouse_3d_get_mode_)
+}
+
+void __stdcall Gmouse3dSetMode(long mode) {
+	WRAP_WATCOM_CALL1(gmouse_3d_set_mode_, mode)
 }
 
 long __stdcall GsoundBackgroundVolumeGetSet(long setVolume) {
@@ -1480,7 +1507,7 @@ long __fastcall GetTopWindowID(long xPos, long yPos) {
 }
 
 enum WinNameType {
-	WINTYPE_Inventory = 0, // any inventory window
+	WINTYPE_Inventory = 0, // any inventory window (player/loot/use/barter)
 	WINTYPE_Dialog    = 1,
 	WINTYPE_PipBoy    = 2,
 	WINTYPE_WorldMap  = 3,

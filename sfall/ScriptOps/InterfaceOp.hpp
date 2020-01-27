@@ -168,13 +168,15 @@ static void __declspec(naked) resume_game() {
 	}
 }
 
-static bool dialogShow = false;
 static void _stdcall create_message_window2() {
 	const ScriptValue &strArg = opHandler.arg(0);
 	if (strArg.isString()) {
+		static bool dialogShow = false;
 		if (dialogShow) return;
+
 		const char* str = strArg.strValue();
 		if (!str || str[0] == 0) return;
+
 		dialogShow = true;
 		DialogOut(str);
 		dialogShow = false;
@@ -185,6 +187,26 @@ static void _stdcall create_message_window2() {
 
 static void __declspec(naked) create_message_window() {
 	_WRAP_OPCODE(create_message_window2, 1, 0)
+}
+
+static void sf_dialog_box() {
+	const char* str = opHandler.arg(0).strValue();
+	if (!str || str[0] == 0) return;
+
+	const char* str2[2];
+	long lines = 0;
+	if (opHandler.numArgs() > 1) {
+		++lines;
+		str2[0] = opHandler.arg(1).strValue();
+	}
+	if (opHandler.numArgs() > 2) {
+		++lines;
+		str2[1] = opHandler.arg(2).strValue();
+	}
+	*(DWORD*)_script_engine_running = 0;
+	long result = DialogOutEx(str, str2, lines, DIALOGOUT_NORMAL | DIALOGOUT_YESNO);
+	*(DWORD*)_script_engine_running = 1;
+	opHandler.setReturn(result);
 }
 
 static void __declspec(naked) GetViewportX() {
@@ -302,7 +324,7 @@ static void __declspec(naked) IsIfaceTagActive() {
 }
 
 static void sf_intface_redraw() {
-	InterfaceRedraw();
+	IntfaceRedraw();
 }
 
 static void sf_intface_show() {
@@ -314,12 +336,7 @@ static void sf_intface_hide() {
 }
 
 static void sf_intface_is_hidden() {
-	int isHidden;
-	__asm {
-		call intface_is_hidden_;
-		mov isHidden, eax;
-	}
-	opHandler.setReturn(isHidden);
+	opHandler.setReturn(IntfaceIsHidden());
 }
 
 static void sf_tile_refresh_display() {
@@ -327,20 +344,11 @@ static void sf_tile_refresh_display() {
 }
 
 static void sf_get_cursor_mode() {
-	int cursorMode;
-	__asm {
-		call gmouse_3d_get_mode_;
-		mov  cursorMode, eax;
-	}
-	opHandler.setReturn(cursorMode);
+	opHandler.setReturn(Gmouse3dGetMode());
 }
 
 static void sf_set_cursor_mode() {
-	int cursorMode = opHandler.arg(0).rawValue();
-	__asm {
-		mov  eax, cursorMode;
-		call gmouse_3d_set_mode_;
-	}
+	Gmouse3dSetMode(opHandler.arg(0).rawValue());
 }
 
 static void sf_display_stats() {
@@ -590,8 +598,7 @@ static void sf_draw_image_scaled() {
 	}
 	// initialize other args
 	int frameno = 0, x = 0, y = 0, wsize = 0;
-	const int argNums = opHandler.numArgs();
-	switch (argNums) {
+	switch (opHandler.numArgs()) {
 		case 6:
 		case 5:
 			wsize = opHandler.arg(4).rawValue();
@@ -611,17 +618,17 @@ static void sf_draw_image_scaled() {
 			framePtr = (FrmFrameData*)offsFrame;
 		}
 	}
-	if (argNums < 3) {
+	if (opHandler.numArgs() < 3) {
 		DisplayInWindow(framePtr->width, framePtr->width, framePtr->height, framePtr->data); // scaled to window size (w/o transparent)
 	} else {
 		// draw to scale
 		long s_width, s_height;
-		if (argNums < 5) {
+		if (opHandler.numArgs() < 5) {
 			s_width = framePtr->width;
 			s_height = framePtr->height;
 		} else {
 			s_width = wsize;
-			s_height = (argNums > 5) ? opHandler.arg(5).rawValue() : -1;
+			s_height = (opHandler.numArgs() > 5) ? opHandler.arg(5).rawValue() : -1;
 		}
 		// scale with aspect ratio if w or h is set to -1
 		if (s_width <= -1 && s_height > 0) {
@@ -708,30 +715,42 @@ static void sf_unwield_slot() {
 }
 
 void sf_get_window_attribute() {
-	const ScriptValue &winArg = opHandler.arg(0),
-					  &attrArg = opHandler.arg(1);
-
-	if (winArg.isInt() && attrArg.isInt()) {
+	const ScriptValue &winArg = opHandler.arg(0);
+	if (winArg.isInt()) {
+		long attr = 0;
+		if (opHandler.numArgs() > 1) {
+			const ScriptValue &attrArg = opHandler.arg(1);
+			if (!attrArg.isInt()) goto invalidArgs;
+			attr = attrArg.rawValue();
+		}
 		WINinfo* win = GetUIWindow(winArg.rawValue());
 		if (win == nullptr) {
-			opHandler.printOpcodeError("get_window_attribute() - failed to get the interface window.");
+			if (attr != 0) {
+				opHandler.printOpcodeError("get_window_attribute() - failed to get the interface window.");
+				opHandler.setReturn(-1);
+			}
 			return;
 		}
 		if ((long)win == -1) {
 			opHandler.printOpcodeError("get_window_attribute() - invalid window type number.");
+			opHandler.setReturn(-1);
 			return;
 		}
-		long pos = 0;
-		switch (attrArg.rawValue()) {
-		case 0: // x
-			pos = win->wRect.left;
+		long result = 0;
+		switch (attr) {
+		case 0: // check if window exists
+			result = 1;
 			break;
-		case 1: // y
-			pos = win->wRect.top;
+		case 1: // x
+			result = win->wRect.left;
+			break;
+		case 2: // y
+			result = win->wRect.top;
 			break;
 		}
-		opHandler.setReturn(pos);
+		opHandler.setReturn(result);
 	} else {
+invalidArgs:
 		OpcodeInvalidArgs("get_window_attribute");
 		opHandler.setReturn(0);
 	}

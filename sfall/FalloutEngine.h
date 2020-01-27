@@ -1139,8 +1139,10 @@ void __fastcall RegisterObjectCall(long* target, long* source, void* func, long 
 long __fastcall ScrGetLocalVar(long sid, long varId, long* value);
 long __fastcall ScrSetLocalVar(long sid, long varId, long value);
 
+long __stdcall IntfaceIsHidden();
+
 // redraws the main game interface windows (useful after changing some data like active hand, etc.)
-void __stdcall InterfaceRedraw();
+void __stdcall IntfaceRedraw();
 
 void __stdcall ProcessBk();
 
@@ -1186,6 +1188,8 @@ long __stdcall WinRegisterButton(DWORD winRef, long xPos, long yPos, long width,
 
 void __stdcall DialogOut(const char* text);
 
+long __fastcall DialogOutEx(const char* text, const char** textEx, long count, long flags);
+
 void __fastcall WindowDisplayBuf(long x, long width, long y, long height, void* data, long noTrans);
 
 void __fastcall DisplayInWindow(long w_here, long width, long height, void* data);
@@ -1195,6 +1199,10 @@ void __fastcall TransCscale(long i_width, long i_height, long s_width, long s_he
 long __fastcall GetGameConfigString(const char* outValue, const char* section, const char* param);
 
 long __fastcall WordWrap(const char* text, int maxWidth, DWORD* buf, BYTE* count);
+
+long __stdcall Gmouse3dGetMode();
+
+void __stdcall Gmouse3dSetMode(long mode);
 
 long __stdcall GsoundBackgroundVolumeGetSet(long setVolume);
 

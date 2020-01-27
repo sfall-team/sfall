@@ -126,6 +126,7 @@ static const SfallMetarule metaruleArray[] = {
 	{"create_win",              sf_create_win,              5, 6},
 	{"critter_inven_obj2",      sf_critter_inven_obj2,      2, 2},
 	{"dialog_obj",              sf_get_dialog_object,       0, 0},
+	{"dialog_box",              sf_dialog_box,              1, 3},
 	{"display_stats",           sf_display_stats,           0, 0}, // refresh
 	{"draw_image",              sf_draw_image,              1, 5},
 	{"draw_image_scaled",       sf_draw_image_scaled,       1, 6},
@@ -141,7 +142,7 @@ static const SfallMetarule metaruleArray[] = {
 	{"get_outline",             sf_get_outline,             1, 1},
 	{"get_sfall_arg_at",        sf_get_sfall_arg_at,        1, 1},
 	{"get_text_width",          sf_get_text_width,          1, 1},
-	{"get_window_attribute",    sf_get_window_attribute,    2, 2},
+	{"get_window_attribute",    sf_get_window_attribute,    1, 2},
 	{"hide_window",             sf_hide_window,             0, 1},
 	{"intface_hide",            sf_intface_hide,            0, 0},
 	{"intface_is_hidden",       sf_intface_is_hidden,       0, 0},

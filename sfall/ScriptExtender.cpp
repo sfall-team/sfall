@@ -417,6 +417,7 @@ static const SfallOpcodeMetadata opcodeMetaArray[] = {
 	{sf_add_g_timer_event,      "add_g_timer_event",      {DATATYPE_MASK_INT, DATATYPE_MASK_INT}},
 	{sf_add_trait,              "add_trait",              {DATATYPE_MASK_INT}},
 	{sf_create_win,             "create_win",             {DATATYPE_MASK_STR, DATATYPE_MASK_INT, DATATYPE_MASK_INT, DATATYPE_MASK_INT, DATATYPE_MASK_INT, DATATYPE_MASK_INT}},
+	{sf_dialog_box,             "dialog_box",             {DATATYPE_MASK_STR, DATATYPE_MASK_STR, DATATYPE_MASK_STR}},
 	{sf_draw_image,             "draw_image",             {DATATYPE_MASK_INT | DATATYPE_MASK_STR, DATATYPE_MASK_INT, DATATYPE_MASK_INT, DATATYPE_MASK_INT, DATATYPE_MASK_INT}},
 	{sf_draw_image_scaled,      "draw_image_scaled",      {DATATYPE_MASK_INT | DATATYPE_MASK_STR, DATATYPE_MASK_INT, DATATYPE_MASK_INT, DATATYPE_MASK_INT, DATATYPE_MASK_INT, DATATYPE_MASK_INT}},
 	{sf_hide_window,            "hide_window",            {DATATYPE_MASK_STR}},

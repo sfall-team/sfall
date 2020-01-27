@@ -81,31 +81,29 @@ static void _stdcall ForceEncounter2() {
 
 	const ScriptValue &mapIDArg = opHandler.arg(0);
 	if (mapIDArg.isInt()) {
+		DWORD flags = 0;
+		if (opHandler.numArgs() > 1) {
+			const ScriptValue &flagsArg = opHandler.arg(1);
+			if (!flagsArg.isInt()) goto invalidArgs;
+			flags = flagsArg.rawValue();
+			if (flags & 2) { // _Lock flag
+				flags |= (1 << 31); // set bit 31
+			} else {
+				flags &= ~(1 << 31);
+			}
+		}
 		DWORD mapID = mapIDArg.rawValue();
 		if (mapID < 0) {
-			opHandler.printOpcodeError("force_encounter() - invalid map number.");
+			opHandler.printOpcodeError("force_encounter/force_encounter_with_flags() - invalid map number.");
 			return;
 		}
 		if (ForceEncounterMapID == -1) MakeJump(0x4C06D1, wmRndEncounterOccurred_hack);
 
 		ForceEncounterMapID = mapID;
-		DWORD flags = 0;
-		if (opHandler.numArgs() > 1) {
-			const ScriptValue &flagsArg = opHandler.arg(1);
-			if (flagsArg.isInt()) {
-				flags = opHandler.arg(1).rawValue();
-				if (flags & 2) { // _Lock flag
-					flags |= (1 << 31); // set bit 31
-				} else {
-					flags &= ~(1 << 31);
-				}
-			} else {
-				opHandler.printOpcodeError("force_encounter_with_flags() - invalid flags.");
-			}
-		}
 		ForceEncounterFlags = flags;
 	} else {
-		OpcodeInvalidArgs("force_encounter");
+invalidArgs:
+		OpcodeInvalidArgs("force_encounter/force_encounter_with_flags");
 	}
 }
 
