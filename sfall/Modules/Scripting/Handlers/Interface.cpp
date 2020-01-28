@@ -127,6 +127,20 @@ void __declspec(naked) op_resume_game() {
 	}
 }
 
+// copy and split
+static void SplitToBuffer(const char* str, const char** str_ptr, long &lines) {
+	size_t i = 0;
+	do {
+		if (str[i] == '\n' && lines < 4) {
+			ScriptExtender::gTextBuffer[i] = '\0';
+			str_ptr[lines++] = &ScriptExtender::gTextBuffer[++i];
+		} else {
+			ScriptExtender::gTextBuffer[i] = str[i++];
+		}
+	} while (str[i]);
+	ScriptExtender::gTextBuffer[i] = '\0';
+}
+
 void sf_create_message_window(OpcodeContext &ctx) {
 	static bool dialogShow = false;
 	if (dialogShow) return;
@@ -134,28 +148,37 @@ void sf_create_message_window(OpcodeContext &ctx) {
 	const char* str = ctx.arg(0).strValue();
 	if (!str || str[0] == 0) return;
 
+	long lines = 0;
+	const char* str_ptr[4];
+	SplitToBuffer(str, str_ptr, lines);
+
 	dialogShow = true;
-	fo::func::DialogOut(str);
+	fo::func::DialogOut(ScriptExtender::gTextBuffer, str_ptr, lines);
 	dialogShow = false;
 }
 
-void sf_dialog_box(OpcodeContext &ctx) {
-	const char* str = ctx.arg(0).strValue();
-	if (!str || str[0] == 0) return;
+void sf_message_box(OpcodeContext &ctx) {
+	static u_short dialogShowCount = 0;
 
-	const char* str2[2];
 	long lines = 0;
-	if (ctx.numArgs() > 1) {
-		++lines;
-		str2[0] = ctx.arg(1).strValue();
-	}
+	const char* str_ptr[4];
+	SplitToBuffer(ctx.arg(0).asString(), str_ptr, lines);
+
+	long colors = 0x9191, flags = fo::DIALOGOUT_NORMAL | fo::DIALOGOUT_YESNO;
+	if (ctx.numArgs() > 1 && ctx.arg(1).rawValue() != -1) flags = ctx.arg(1).rawValue();
 	if (ctx.numArgs() > 2) {
-		++lines;
-		str2[1] = ctx.arg(2).strValue();
+		colors &= 0xFF00;
+		colors |= (ctx.arg(2).rawValue() & 0xFF);
 	}
+	if (ctx.numArgs() > 3) {
+		colors &= 0xFF;
+		colors |= (ctx.arg(3).rawValue() & 0xFF) << 8;
+	}
+	dialogShowCount++;
 	*(DWORD*)FO_VAR_script_engine_running = 0;
-	long result = fo::func::DialogOutEx(str, str2, lines, fo::DIALOGOUT_NORMAL | fo::DIALOGOUT_YESNO);
-	*(DWORD*)FO_VAR_script_engine_running = 1;
+	long result = fo::func::DialogOutEx(ScriptExtender::gTextBuffer, str_ptr, lines, flags, colors);
+	if (--dialogShowCount == 0) *(DWORD*)FO_VAR_script_engine_running = 1;
+
 	ctx.setReturn(result);
 }
 

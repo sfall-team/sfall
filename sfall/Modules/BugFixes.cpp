@@ -2487,6 +2487,14 @@ endLoop:
 	}
 }
 
+static void __declspec(naked) main_death_scene_hook() {
+	__asm {
+		mov  eax, 100;
+		call fo::funcoffs::block_for_tocks_;
+		jmp  fo::funcoffs::get_time_;
+	}
+}
+
 void BugFixes::init()
 {
 	#ifndef NDEBUG
@@ -3134,6 +3142,9 @@ void BugFixes::init()
 
 	// Fix for party member's equipped weapon being placed in the incorrect item slot after leveling up
 	MakeCall(0x495FD9, partyMemberCopyLevelInfo_hack, 1);
+
+	// Fix the playback of the speech sound file for the death screen
+	HookCall(0x481409, main_death_scene_hook);
 }
 
 }

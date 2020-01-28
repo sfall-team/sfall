@@ -206,9 +206,9 @@ long __stdcall stat_level(GameObject* critter, long statId);
 // pictureUp/pictureDown - pointers to a surface
 long __stdcall win_register_button(DWORD winRef, long xPos, long yPos, long width, long height, long hoverOn, long hoverOff, long buttonDown, long buttonUp, BYTE* pictureUp, BYTE* pictureDown, long arg12, long buttonType);
 
-void __stdcall DialogOut(const char* text);
+void __fastcall DialogOut(const char* text, const char** textEx, long lines);
 
-long __fastcall DialogOutEx(const char* text, const char** textEx, long count, long flags);
+long __fastcall DialogOutEx(const char* text, const char** textEx, long lines, long flags, long colors);
 
 // draws an image to the buffer without scaling and with transparency display toggle
 void __fastcall windowDisplayBuf(long x, long width, long y, long height, void* data, long noTrans);
