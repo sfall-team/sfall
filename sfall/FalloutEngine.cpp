@@ -1083,35 +1083,37 @@ long __stdcall WinRegisterButton(DWORD winRef, long xPos, long yPos, long width,
 	}
 }
 
-void __stdcall DialogOut(const char* text) {
+void __fastcall DialogOut(const char* text, const char** textEx, long lines) {
 	__asm {
 		push 1;          // DIALOGOUT_NORMAL flag
 		xor  eax, eax;
-		push eax;        // ColorMsg
-		push eax;        // DisplayMsg (unknown)
 		mov  al, byte ptr ds:[0x6AB718];
+		push eax;        // ColorMsg
+		push 0;          // DisplayMsg (unknown)
 		push eax;        // ColorIndex
+		mov  eax, ecx;   // DisplayText
 		push 116;        // y
 		mov  ecx, 192;   // x
-		mov  eax, text;  // DisplayText
-		xor  ebx, ebx;
-		xor  edx, edx;
+		mov  ebx, lines; // count text lines 0-5
 		call dialog_out_;
 	}
 }
 
-long __fastcall DialogOutEx(const char* text, const char** textEx, long count, long flags) {
+long __fastcall DialogOutEx(const char* text, const char** textEx, long lines, long flags, long colors) {
 	__asm {
-		mov  eax, 145;   // Color index
+		xor  eax, eax;
+		mov  ebx, colors;// Color index
+		mov  al, bh;
 		push flags;      // flag
+		and  ebx, 0xFF
 		push eax;        // ColorMsg2
 		push 0;          // DisplayMsg (unknown)
-		push eax;        // ColorMsg1
 		mov  eax, ecx;   // DisplayText first line
-		push 116;        // y
+		push ebx;        // ColorMsg1
 		mov  ecx, 192;   // x
-		mov  ebx, count; // count text lines 0-2
-		call dialog_out_; // edx - DisplayText second/third line
+		push 116;        // y
+		mov  ebx, lines; // count text lines 0-5
+		call dialog_out_; // edx - DisplayText second and later lines
 	}
 }
 

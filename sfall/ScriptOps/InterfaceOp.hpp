@@ -168,6 +168,20 @@ static void __declspec(naked) resume_game() {
 	}
 }
 
+// copy and split
+static void _stdcall SplitToBuffer(const char* str, const char** str_ptr, long &lines) {
+	size_t i = 0;
+	do {
+		if (str[i] == '\n' && lines < 4) {
+			gTextBuffer[i] = '\0';
+			str_ptr[lines++] = &gTextBuffer[++i];
+		} else {
+			gTextBuffer[i] = str[i++];
+		}
+	} while (str[i]);
+	gTextBuffer[i] = '\0';
+}
+
 static void _stdcall create_message_window2() {
 	const ScriptValue &strArg = opHandler.arg(0);
 	if (strArg.isString()) {
@@ -177,8 +191,12 @@ static void _stdcall create_message_window2() {
 		const char* str = strArg.strValue();
 		if (!str || str[0] == 0) return;
 
+		long lines = 0;
+		const char* str_ptr[4];
+		SplitToBuffer(str, str_ptr, lines);
+
 		dialogShow = true;
-		DialogOut(str);
+		DialogOut(gTextBuffer, str_ptr, lines);
 		dialogShow = false;
 	} else {
 		OpcodeInvalidArgs("create_message_window");
@@ -189,23 +207,28 @@ static void __declspec(naked) create_message_window() {
 	_WRAP_OPCODE(create_message_window2, 1, 0)
 }
 
-static void sf_dialog_box() {
-	const char* str = opHandler.arg(0).strValue();
-	if (!str || str[0] == 0) return;
+static void sf_message_box() {
+	static u_short dialogShowCount = 0;
 
-	const char* str2[2];
 	long lines = 0;
-	if (opHandler.numArgs() > 1) {
-		++lines;
-		str2[0] = opHandler.arg(1).strValue();
-	}
+	const char* str_ptr[4];
+	SplitToBuffer(opHandler.arg(0).asString(), str_ptr, lines);
+
+	long colors = 0x9191, flags = DIALOGOUT_NORMAL | DIALOGOUT_YESNO;
+	if (opHandler.numArgs() > 1 && opHandler.arg(1).rawValue() != -1) flags = opHandler.arg(1).rawValue();
 	if (opHandler.numArgs() > 2) {
-		++lines;
-		str2[1] = opHandler.arg(2).strValue();
+		colors &= 0xFF00;
+		colors |= (opHandler.arg(2).rawValue() & 0xFF);
 	}
+	if (opHandler.numArgs() > 3) {
+		colors &= 0xFF;
+		colors |= (opHandler.arg(3).rawValue() & 0xFF) << 8;
+	}
+	dialogShowCount++;
 	*(DWORD*)_script_engine_running = 0;
-	long result = DialogOutEx(str, str2, lines, DIALOGOUT_NORMAL | DIALOGOUT_YESNO);
-	*(DWORD*)_script_engine_running = 1;
+	long result = DialogOutEx(gTextBuffer, str_ptr, lines, flags, colors);
+	if (--dialogShowCount == 0) *(DWORD*)_script_engine_running = 1;
+
 	opHandler.setReturn(result);
 }
 
@@ -715,43 +738,33 @@ static void sf_unwield_slot() {
 }
 
 void sf_get_window_attribute() {
-	const ScriptValue &winArg = opHandler.arg(0);
-	if (winArg.isInt()) {
-		long attr = 0;
-		if (opHandler.numArgs() > 1) {
-			const ScriptValue &attrArg = opHandler.arg(1);
-			if (!attrArg.isInt()) goto invalidArgs;
-			attr = attrArg.rawValue();
-		}
-		WINinfo* win = GetUIWindow(winArg.rawValue());
-		if (win == nullptr) {
-			if (attr != 0) {
-				opHandler.printOpcodeError("get_window_attribute() - failed to get the interface window.");
-				opHandler.setReturn(-1);
-			}
-			return;
-		}
-		if ((long)win == -1) {
-			opHandler.printOpcodeError("get_window_attribute() - invalid window type number.");
+	long attr = 0;
+	if (opHandler.numArgs() > 1) attr = opHandler.arg(1).rawValue();
+
+	WINinfo* win = GetUIWindow(opHandler.arg(0).rawValue());
+	if (win == nullptr) {
+		if (attr != 0) {
+			opHandler.printOpcodeError("get_window_attribute() - failed to get the interface window.");
 			opHandler.setReturn(-1);
-			return;
 		}
-		long result = 0;
-		switch (attr) {
-		case 0: // check if window exists
-			result = 1;
-			break;
-		case 1: // x
-			result = win->wRect.left;
-			break;
-		case 2: // y
-			result = win->wRect.top;
-			break;
-		}
-		opHandler.setReturn(result);
-	} else {
-invalidArgs:
-		OpcodeInvalidArgs("get_window_attribute");
-		opHandler.setReturn(0);
+		return;
 	}
+	if ((long)win == -1) {
+		opHandler.printOpcodeError("get_window_attribute() - invalid window type number.");
+		opHandler.setReturn(-1);
+		return;
+	}
+	long result = 0;
+	switch (attr) {
+	case 0: // check if window exists
+		result = 1;
+		break;
+	case 1: // x
+		result = win->wRect.left;
+		break;
+	case 2: // y
+		result = win->wRect.top;
+		break;
+	}
+	opHandler.setReturn(result);
 }
