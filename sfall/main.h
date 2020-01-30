@@ -29,6 +29,7 @@
 #include <Windows.h>
 #include <string>
 #include <vector>
+#include <cstdint>
 
 #include "SafeWrite.h"
 #include "Logging.h"
