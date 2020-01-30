@@ -795,7 +795,7 @@ enum DialogOutFlags : long
 	DIALOGOUT_SMALL      = 0x02, // uses smaller graphic
 	DIALOGOUT_ALIGN_LEFT = 0x04, // text aligned to left
 	DIALOGOUT_ALIGN_TOP  = 0x08, // text aligned to top
-	DIALOGOUT_YESNO      = 0x10, // DONE button replaced by YES/NO buttons - WIP: currently useless in scripts
+	DIALOGOUT_YESNO      = 0x10, // DONE button replaced by YES/NO buttons
 	DIALOGOUT_CLEAN      = 0x20  // no buttons
 };
 

@@ -43,7 +43,7 @@ struct levelRest {
 std::unordered_map<int, levelRest> mapRestInfo;
 
 std::vector<std::pair<long, std::string>> wmTerrainTypeNames; // pair first: x + y * number of horizontal sub-tiles
-std::vector<std::pair<long, std::string>> wmAreaHotSpotTitle;
+std::unordered_map<long, std::string> wmAreaHotSpotTitle;
 
 static bool restMap;
 static bool restMode;
@@ -616,14 +616,13 @@ void Worldmap::SetTerrainTypeName(long x, long y, const char* name) {
 	long subTileID = x + y * (fo::var::wmNumHorizontalTiles * 7);
 	wmTerrainTypeNames.push_back(std::make_pair(subTileID, name));
 }
-/*
+
 // TODO: someone might need to know the name of a terrain type?
-const char* Worldmap::GetTerrainTypeName(long x, long y) {
-	//const char* name = GetOverrideTerrainName(x, y);
-	//return (name) ? name : fo::GetMessageStr(&fo::var::wmMsgFile, 1000 + fo::wmGetTerrainType(x, y));
-	return nullptr;
-}
-*/
+/*const char* Worldmap::GetTerrainTypeName(long x, long y) {
+	const char* name = GetOverrideTerrainName(x, y);
+	return (name) ? name : fo::GetMessageStr(&fo::var::wmMsgFile, 1000 + fo::wmGetTerrainType(x, y));
+}*/
+
 // Returns the name of the terrain type in the position of the player's marker on the world map
 const char* Worldmap::GetCurrentTerrainName() {
 	const char* name = GetOverrideTerrainName(fo::var::world_xpos / 50, fo::var::world_ypos / 50);
@@ -635,17 +634,13 @@ bool Worldmap::AreaTitlesIsEmpty() {
 }
 
 void Worldmap::SetCustomAreaTitle(long areaID, const char* msg) {
-	wmAreaHotSpotTitle.push_back(std::make_pair(areaID, msg));
+	wmAreaHotSpotTitle[areaID] = msg;
 }
 
 const char* Worldmap::GetCustomAreaTitle(long areaID) {
-	if (wmAreaHotSpotTitle.empty()) return nullptr;
-
-	auto it = std::find_if(wmAreaHotSpotTitle.crbegin(), wmAreaHotSpotTitle.crend(),
-						  [=](const std::pair<long, std::string> &el)
-						  { return el.first == areaID; }
-	);
-	return (it != wmAreaHotSpotTitle.crend()) ? it->second.c_str() : nullptr;
+	if (AreaTitlesIsEmpty()) return nullptr;
+	const auto &it = wmAreaHotSpotTitle.find(areaID);
+	return (it != wmAreaHotSpotTitle.cend()) ? it->second.c_str() : nullptr;
 }
 
 void Worldmap::init() {

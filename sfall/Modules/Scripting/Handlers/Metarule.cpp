@@ -163,12 +163,8 @@ static void sf_metarule_exist(OpcodeContext& ctx) {
 	bool result = false;
 	auto funcXName = ctx.arg(0).asString();
 	if (funcXName[0] != '\0') {
-		for (auto it = metaruleTable.begin(); it != metaruleTable.end(); it++) {
-			if (it->first == funcXName) {
-				result = true;
-				break;
-			}
-		}
+		const auto &it = metaruleTable.find(funcXName);
+		if (it != metaruleTable.cend()) result = true;
 	}
 	ctx.setReturn(result);
 }

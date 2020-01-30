@@ -130,14 +130,14 @@ void __declspec(naked) op_resume_game() {
 // copy and split
 static void SplitToBuffer(const char* str, const char** str_ptr, long &lines) {
 	size_t i = 0;
-	do {
+	while (str[i]) {
 		if (str[i] == '\n' && lines < 4) {
 			ScriptExtender::gTextBuffer[i] = '\0';
 			str_ptr[lines++] = &ScriptExtender::gTextBuffer[++i];
 		} else {
 			ScriptExtender::gTextBuffer[i] = str[i++];
 		}
-	} while (str[i]);
+	};
 	ScriptExtender::gTextBuffer[i] = '\0';
 }
 
@@ -153,7 +153,7 @@ void sf_create_message_window(OpcodeContext &ctx) {
 	SplitToBuffer(str, str_ptr, lines);
 
 	dialogShow = true;
-	fo::func::DialogOut(ScriptExtender::gTextBuffer, str_ptr, lines);
+	fo::func::DialogOutEx(ScriptExtender::gTextBuffer, str_ptr, lines, fo::DIALOGOUT_NORMAL);
 	dialogShow = false;
 }
 

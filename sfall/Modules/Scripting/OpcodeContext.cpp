@@ -228,16 +228,9 @@ void OpcodeContext::_popArguments() {
 	// process arguments on stack (reverse order)
 	for (int i = _numArgs - 1; i >= 0; i--) {
 		// get argument from stack
-		DWORD rawValueType = fo::func::interpretPopShort(_program);
-		DWORD rawValue = fo::func::interpretPopLong(_program);
-		DataType type = getSfallTypeByScriptType(rawValueType);
-
-		// retrieve string argument
-		if (type == DataType::STR) {
-			_args[i] = fo::func::interpretGetString(_program, rawValueType, rawValue);
-		} else {
-			_args[i] = ScriptValue(type, rawValue);
-		}
+		DWORD rawValueType;
+		DWORD rawValue = fo::func::interpretGetValue(_program, rawValueType);
+		_args[i] = ScriptValue(getSfallTypeByScriptType(rawValueType), rawValue);
 	}
 }
 
@@ -245,12 +238,7 @@ void OpcodeContext::_pushReturnValue() {
 	if (_ret.type() == DataType::NONE) {
 		_ret = ScriptValue(0); // if no value was set in handler, force return 0 to avoid stack error
 	}
-	DWORD rawResult = _ret.rawValue();
-	if (_ret.type() == DataType::STR) {
-		rawResult = fo::func::interpretAddString(_program, _ret.strValue());
-	}
-	fo::func::interpretPushLong(_program, rawResult);
-	fo::func::interpretPushShort(_program, getScriptTypeBySfallType(_ret.type()));
+	fo::func::interpretReturnValue(_program, _ret.rawValue(), getScriptTypeBySfallType(_ret.type()));
 }
 
 }

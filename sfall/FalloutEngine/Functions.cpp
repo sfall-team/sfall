@@ -228,22 +228,46 @@ DWORD __stdcall interpretPopLong(Program* scriptPtr) {
 	WRAP_WATCOM_CALL1(interpretPopLong_, scriptPtr)
 }
 
-// pushes value to Data stack (must be followed by InterpretPushShort)
-void __stdcall interpretPushLong(Program* scriptPtr, DWORD val) {
-	WRAP_WATCOM_CALL2(interpretPushLong_, scriptPtr, val)
-}
-
-// pushes value type to Data stack (must be preceded by InterpretPushLong)
-void __stdcall interpretPushShort(Program* scriptPtr, DWORD valType) {
-	WRAP_WATCOM_CALL2(interpretPushShort_, scriptPtr, valType)
-}
-
-DWORD __stdcall interpretAddString(Program* scriptPtr, const char* strval) {
-	WRAP_WATCOM_CALL2(interpretAddString_, scriptPtr, strval)
-}
-
 const char* __fastcall interpretGetString(Program* scriptPtr, DWORD dataType, DWORD strId) {
 	WRAP_WATCOM_FCALL3(interpretGetString_, scriptPtr, dataType, strId)
+}
+
+void interpretReturnValue(Program* scriptPtr, DWORD val, DWORD valType) {
+	__asm {
+		mov  esi, scriptPtr;
+		mov  edx, val;
+		cmp  valType, VAR_TYPE_STR;
+		jne  isNotStr;
+		mov  eax, esi;
+		call fo::funcoffs::interpretAddString_;
+		mov  edx, eax;
+isNotStr:
+		mov  eax, esi;
+		call fo::funcoffs::interpretPushLong_;  // pushes value to Data stack (must be followed by InterpretPushShort)
+		mov  edx, valType;
+		mov  eax, esi;
+		call fo::funcoffs::interpretPushShort_; // pushes value type to Data stack (must be preceded by InterpretPushLong)
+	}
+}
+
+DWORD __fastcall interpretGetValue(Program* scriptPtr, DWORD &outType) {
+	__asm {
+		mov  eax, ecx;
+		call fo::funcoffs::interpretPopShort_; // pops value type from Data stack (must be followed by InterpretPopLong)
+		mov  [edx], eax; // out type
+		mov  edx, eax;
+		mov  eax, ecx;
+		call fo::funcoffs::interpretPopLong_; // pops value from Data stack (must be preceded by InterpretPopShort)
+		cmp  dx, VAR_TYPE_STR2;
+		je   getStr;
+		cmp  dx, VAR_TYPE_STR;
+		jne  isNotStr;
+getStr:
+		mov  ebx, eax;
+		mov  eax, ecx;
+		call fo::funcoffs::interpretGetString_; // retrieve string argument
+isNotStr:
+	}
 }
 
 // prints scripting error in debug.log and stops current script execution by performing longjmp
@@ -402,37 +426,44 @@ long __stdcall win_register_button(DWORD winRef, long xPos, long yPos, long widt
 	}
 }
 
-void __fastcall DialogOut(const char* text, const char** textEx, long lines) {
+void __stdcall DialogOut(const char* text) {
 	__asm {
 		push 1;          // DIALOGOUT_NORMAL flag
-		xor  eax, eax;
-		mov  al, byte ptr ds:[0x6AB718];
-		push eax;        // ColorMsg
-		push 0;          // DisplayMsg (unknown)
-		push eax;        // ColorIndex
-		mov  eax, ecx;   // DisplayText
-		push 116;        // y
+		xor  edx, edx;
+		push edx;
+		push edx;
+		mov  dl, byte ptr ds:[0x6AB718];
+		push edx;        // ColorMsg
 		mov  ecx, 192;   // x
-		mov  ebx, lines; // count text lines 0-5
+		push 116;        // y
+		mov  eax, text;  // DisplayText
+		xor  ebx, ebx;
 		call fo::funcoffs::dialog_out_;
 	}
 }
 
 long __fastcall DialogOutEx(const char* text, const char** textEx, long lines, long flags, long colors) {
 	__asm {
+		mov  ebx, colors; // Color index
 		xor  eax, eax;
-		mov  ebx, colors;// Color index
+		push flags;
+		test ebx, ebx;
+		jnz  cColor;
+		mov  al, byte ptr ds:[0x6AB718];
+		mov  bl, al;
+		jmp  skip;
+cColor:
 		mov  al, bh;
-		push flags;      // flag
 		and  ebx, 0xFF
+skip:
 		push eax;        // ColorMsg2
 		push 0;          // DisplayMsg (unknown)
-		mov  eax, ecx;   // DisplayText first line
+		mov  eax, ecx;   // DisplayText (first line)
 		push ebx;        // ColorMsg1
 		mov  ecx, 192;   // x
 		push 116;        // y
-		mov  ebx, lines; // count text lines 0-5
-		call fo::funcoffs::dialog_out_; // edx - DisplayText second and later lines
+		mov  ebx, lines; // count second lines
+		call fo::funcoffs::dialog_out_; // edx - DisplayText (seconds lines)
 	}
 }
 
