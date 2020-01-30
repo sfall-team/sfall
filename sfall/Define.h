@@ -247,6 +247,12 @@ enum Stat : long
 #define STAT_max_derived   STAT_poison_resist
 #define STAT_max_stat  STAT_current_hp
 
+// Script data types
+#define VAR_TYPE_INT    (0xC001)
+#define VAR_TYPE_FLOAT  (0xA001)
+#define VAR_TYPE_STR    (0x9801)
+#define VAR_TYPE_STR2   (0x9001)
+
 // extra stat-like values that are treated specially
 enum PCStat : long
 {
@@ -451,6 +457,6 @@ enum DialogOutFlags : long
 	DIALOGOUT_SMALL      = 0x02, // uses smaller graphic
 	DIALOGOUT_ALIGN_LEFT = 0x04, // text aligned to left
 	DIALOGOUT_ALIGN_TOP  = 0x08, // text aligned to top
-	DIALOGOUT_YESNO      = 0x10, // DONE button replaced by YES/NO buttons - WIP: currently useless in scripts
+	DIALOGOUT_YESNO      = 0x10, // DONE button replaced by YES/NO buttons
 	DIALOGOUT_CLEAN      = 0x20  // no buttons
 };

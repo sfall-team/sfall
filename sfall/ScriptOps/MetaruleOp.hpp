@@ -94,14 +94,10 @@ static void sf_get_metarule_table() {
 
 static void sf_metarule_exist() {
 	bool result = false;
-	const char *funcXName = opHandler.arg(0).asString();
+	const char* funcXName = opHandler.arg(0).asString();
 	if (funcXName[0] != '\0') {
-		for (MetaruleTableType::iterator it = metaruleTable.begin(); it != metaruleTable.end(); it++) {
-			if (it->first == funcXName) {
-				result = true;
-				break;
-			}
-		}
+		const auto &it = metaruleTable.find(funcXName);
+		if (it != metaruleTable.cend()) result = true;
 	}
 	opHandler.setReturn(result);
 }

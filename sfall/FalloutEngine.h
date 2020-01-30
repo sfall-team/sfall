@@ -1186,9 +1186,9 @@ long __fastcall CreateWindowFunc(const char* winName, DWORD x, DWORD y, DWORD wi
 // creates a button
 long __stdcall WinRegisterButton(DWORD winRef, long xPos, long yPos, long width, long height, long hoverOn, long hoverOff, long buttonDown, long buttonUp, BYTE* pictureUp, BYTE* pictureDown, long arg12, long buttonType);
 
-void __fastcall DialogOut(const char* text, const char** textEx, long lines);
+void __stdcall DialogOut(const char* text);;
 
-long __fastcall DialogOutEx(const char* text, const char** textEx, long lines, long flags, long colors);
+long __fastcall DialogOutEx(const char* text, const char** textEx, long lines, long flags, long colors = 0);
 
 void __fastcall WindowDisplayBuf(long x, long width, long y, long height, void* data, long noTrans);
 

@@ -171,14 +171,14 @@ static void __declspec(naked) resume_game() {
 // copy and split
 static void _stdcall SplitToBuffer(const char* str, const char** str_ptr, long &lines) {
 	size_t i = 0;
-	do {
+	while (str[i]) {
 		if (str[i] == '\n' && lines < 4) {
 			gTextBuffer[i] = '\0';
 			str_ptr[lines++] = &gTextBuffer[++i];
 		} else {
 			gTextBuffer[i] = str[i++];
 		}
-	} while (str[i]);
+	};
 	gTextBuffer[i] = '\0';
 }
 
@@ -196,7 +196,7 @@ static void _stdcall create_message_window2() {
 		SplitToBuffer(str, str_ptr, lines);
 
 		dialogShow = true;
-		DialogOut(gTextBuffer, str_ptr, lines);
+		DialogOutEx(gTextBuffer, str_ptr, lines, DIALOGOUT_NORMAL);
 		dialogShow = false;
 	} else {
 		OpcodeInvalidArgs("create_message_window");

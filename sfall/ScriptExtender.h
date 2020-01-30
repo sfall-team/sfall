@@ -95,12 +95,6 @@ static char reg_anim_combat_check = 1;
 extern DWORD isGlobalScriptLoading;
 extern DWORD AvailableGlobalScriptTypes;
 
-// Script data types
-#define VAR_TYPE_INT    (0xC001)
-#define VAR_TYPE_FLOAT  (0xA001)
-#define VAR_TYPE_STR    (0x9801)
-#define VAR_TYPE_STR2   (0x9001)
-
 // Script procedure types
 enum ScriptProc : long
 {
