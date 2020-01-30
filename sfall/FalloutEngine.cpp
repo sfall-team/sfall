@@ -620,6 +620,7 @@ const DWORD queue_find_ = 0x4A26A8;
 const DWORD queue_find_first_ = 0x4A295C;
 const DWORD queue_find_next_ = 0x4A2994;
 const DWORD queue_leaving_map_ = 0x4A2920;
+const DWORD queue_next_time_ = 0x4A2808;
 const DWORD queue_remove_this_ = 0x4A264C;
 const DWORD refresh_box_bar_win_ = 0x4614CC;
 const DWORD register_begin_ = 0x413AF4;
@@ -1524,6 +1525,7 @@ enum WinNameType {
 	WINTYPE_Character = 5,
 	WINTYPE_Skilldex  = 6,
 	WINTYPE_EscMenu   = 7, // escape menu
+//	WINTYPE_Automap   = 8  // for this window there is no global variable
 };
 
 WINinfo* GetUIWindow(long winType) {

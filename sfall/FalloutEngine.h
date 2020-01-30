@@ -881,6 +881,7 @@ extern const DWORD queue_find_;
 extern const DWORD queue_find_first_;
 extern const DWORD queue_find_next_;
 extern const DWORD queue_leaving_map_;
+extern const DWORD queue_next_time_;
 extern const DWORD queue_remove_this_;
 extern const DWORD refresh_box_bar_win_;
 extern const DWORD register_begin_;

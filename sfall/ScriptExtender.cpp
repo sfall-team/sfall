@@ -33,7 +33,9 @@
 #include "version.h"
 
 static DWORD _stdcall HandleMapUpdateForScripts(const DWORD procId);
-static long _stdcall HandleTimedEventScripts();
+static u_long HandleTimedEventScripts();
+static u_long TimedEventNextTime();
+static long script_chk_timed_events_hook();
 
 static void ClearGlobalScripts();
 static void ClearGlobals();
@@ -495,7 +497,7 @@ struct SelfOverrideObj {
 
 struct TimedEvent {
 	sScriptProgram* script;
-	long time;
+	unsigned long time;
 	long fixed_param;
 
 	bool operator() (const TimedEvent &a, const TimedEvent &b) {
@@ -1344,8 +1346,16 @@ void ScriptExtenderInit() {
 
 	MakeJump(0x4A390C, FindSidHack); // scr_find_sid_from_program_
 	MakeJump(0x4A5E34, ScrPtrHack);
-	HookCall(0x4A26D6, HandleTimedEventScripts); // queue_process_
+
 	MakeJump(0x4A67F0, ExecMapScriptsHack);
+
+	HookCall(0x4A26D6, HandleTimedEventScripts); // queue_process_
+	MakeCall(0x4C1C67, TimedEventNextTime); // wmGameTimeIncrement_
+	MakeCall(0x4A3E1C, TimedEventNextTime); // script_chk_timed_events_
+	MakeCall(0x499AFA, TimedEventNextTime); // TimedRest_
+	MakeCall(0x499CD7, TimedEventNextTime);
+	MakeCall(0x499E2B, TimedEventNextTime);
+	HookCall(0x4A3E08, script_chk_timed_events_hook);
 
 	// this patch makes it possible to export variables from sfall global scripts
 	HookCall(0x4414C8, Export_Export_FindVar_Hook);
@@ -1729,8 +1739,8 @@ sScriptProgram* GetGlobalScriptProgram(DWORD scriptPtr) {
 	return (it == sfallProgsMap.end()) ? nullptr : &it->second ; // prog
 }
 
-bool _stdcall IsGameScript(const char* filename) {
-	if (strlen(filename) > 8) return false;
+bool __stdcall IsGameScript(const char* filename) {
+	for (int i = 0; filename[i]; ++i) if (i > 8) return false;
 	for (int i = 0; i < *ptr_maxScriptNum; i++) {
 		if (strcmp(filename, (char*)(*ptr_scriptListInfo + i * 20)) == 0) return true;
 	}
@@ -1964,21 +1974,21 @@ static DWORD _stdcall HandleMapUpdateForScripts(const DWORD procId) {
 	return procId; // restore eax (don't delete)
 }
 
-static long _stdcall HandleTimedEventScripts() {
-	long currentTime = *ptr_fallout_game_time;
-	bool wereRunning = false;
+static u_long HandleTimedEventScripts() {
+	u_long currentTime = *ptr_fallout_game_time;
+	bool wasRunning = false;
 	auto timerIt = timerEventScripts.cbegin();
 	for (; timerIt != timerEventScripts.cend(); timerIt++) {
 		if (currentTime >= timerIt->time) {
 			timedEvent = const_cast<TimedEvent*>(&(*timerIt));
 			DevPrintf("\n[TimedEventScripts] run event: %d", timerIt->time);
 			RunScriptProc(timerIt->script, timed_event_p_proc);
-			wereRunning = true;
+			wasRunning = true;
 		} else {
 			break;
 		}
 	}
-	if (wereRunning) {
+	if (wasRunning) {
 		for (auto _it = timerEventScripts.cbegin(); _it != timerIt; _it++) {
 			DevPrintf("\n[TimedEventScripts] delete event: %d", _it->time);
 		}
@@ -1986,6 +1996,27 @@ static long _stdcall HandleTimedEventScripts() {
 	}
 	timedEvent = nullptr;
 	return currentTime;
+}
+
+static u_long TimedEventNextTime() {
+	u_long nextTime;
+	__asm {
+		push ecx;
+		call queue_next_time_;
+		mov  nextTime, eax;
+		push edx;
+	}
+	if (!timerEventScripts.empty()) {
+		u_long time = timerEventScripts.front().time;
+		if (!nextTime || time < nextTime) nextTime = time;
+	}
+	__asm pop edx;
+	__asm pop ecx;
+	return nextTime;
+}
+
+static long script_chk_timed_events_hook() {
+	return (!*ptr_queue && timerEventScripts.empty());
 }
 
 void _stdcall AddTimerEventScripts(DWORD script, long time, long param) {
