@@ -18,8 +18,8 @@
 
 #pragma once
 
-extern bool UseScrollWheel;
-extern bool MiddleMouseDown;
+extern bool useScrollWheel;
+extern bool middleMouseDown;
 
 void SetMPMode(bool active);
 void SetMDown(bool down, bool right);

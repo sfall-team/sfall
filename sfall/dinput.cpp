@@ -33,34 +33,34 @@
 
 typedef HRESULT (_stdcall *DInputCreateProc)(HINSTANCE a,DWORD b,IDirectInputA** c,IUnknown* d);
 
-bool UseScrollWheel = true;
-static DWORD WheelMod;
+bool useScrollWheel = true;
+static DWORD wheelMod;
 
-static bool ReverseMouse;
+static bool reverseMouse;
 
-bool MiddleMouseDown;
-static DWORD MiddleMouseKey;
+bool middleMouseDown;
+static DWORD middleMouseKey;
 
-static bool BackgroundKeyboard;
-static bool BackgroundMouse;
+static bool backgroundKeyboard;
+static bool backgroundMouse;
 
-static bool AdjustMouseSpeed;
-static double MouseSpeedMod;
-static double MousePartX;
-static double MousePartY;
+static bool adjustMouseSpeed;
+static double mouseSpeedMod;
+static double mousePartX;
+static double mousePartY;
 
 #define MAX_KEYS (264)
-static DWORD KeysDown[MAX_KEYS] = {0};
+static DWORD keysDown[MAX_KEYS] = {0};
 
 static int mouseX;
 static int mouseY;
 
-static DWORD ForcingGraphicsRefresh = 0;
+static DWORD forcingGraphicsRefresh = 0;
 
-static DWORD DebugEditorKey = 0;
+static DWORD debugEditorKey = 0;
 
 void _stdcall ForceGraphicsRefresh(DWORD d) {
-	ForcingGraphicsRefresh = (d == 0) ? 0 : 1;
+	forcingGraphicsRefresh = (d == 0) ? 0 : 1;
 }
 
 void GetMouse(int* x, int* y) {
@@ -99,11 +99,11 @@ DWORD _stdcall KeyDown(DWORD key) {
 		return 0;
 	} else {
 		DWORD keyVK = 0;
-		if (KeysDown[key]) { // confirm pressed state
+		if (keysDown[key]) { // confirm pressed state
 			keyVK = MapVirtualKeyEx(key, MAPVK_VSC_TO_VK, keyboardLayout);
-			if (keyVK) KeysDown[key] = (GetAsyncKeyState(keyVK) & 0x8000);
+			if (keyVK) keysDown[key] = (GetAsyncKeyState(keyVK) & 0x8000);
 		}
-		return (KeysDown[key] > 0);
+		return (keysDown[key] > 0);
 	}
 }
 
@@ -125,6 +125,7 @@ private:
 	ULONG Refs;
 	bool formatLock;
 	DIDATAFORMAT oldFormat;
+
 public:
 	/*** Constructor and misc functions ***/
 	FakeDirectInputDevice(IDirectInputDevice* device,DWORD type) {
@@ -181,7 +182,7 @@ public:
 
 	// Only called for the mouse
 	HRESULT _stdcall GetDeviceState(DWORD a, LPVOID b) {
-		if (ForcingGraphicsRefresh) RefreshGraphics();
+		if (forcingGraphicsRefresh) RefreshGraphics();
 		if (DeviceType != kDeviceType_MOUSE) {
 			return RealDevice->GetDeviceState(a, b);
 		}
@@ -192,20 +193,20 @@ public:
 		if (formatLock) hr = RealDevice->GetDeviceState(sizeof(DIMOUSESTATE2), &MouseState);
 		else hr = RealDevice->GetDeviceState(sizeof(DIMOUSESTATE), &MouseState);
 		if (FAILED(hr)) return hr;
-		if (ReverseMouse) {
+		if (reverseMouse) {
 			BYTE tmp = MouseState.rgbButtons[0];
 			MouseState.rgbButtons[0] = MouseState.rgbButtons[1];
 			MouseState.rgbButtons[1] = tmp;
 		}
-		if (AdjustMouseSpeed) {
-			double d = ((double)MouseState.lX) * MouseSpeedMod + MousePartX;
-			MousePartX = modf(d, &d);
+		if (adjustMouseSpeed) {
+			double d = ((double)MouseState.lX) * mouseSpeedMod + mousePartX;
+			mousePartX = modf(d, &d);
 			MouseState.lX = (LONG)d;
-			d = ((double)MouseState.lY) * MouseSpeedMod + MousePartY;
-			MousePartY = modf(d, &d);
+			d = ((double)MouseState.lY) * mouseSpeedMod + mousePartY;
+			mousePartY = modf(d, &d);
 			MouseState.lY = (LONG)d;
 		}
-		if (UseScrollWheel) {
+		if (useScrollWheel) {
 			int count = 1;
 			if (MouseState.lZ > 0) {
 				if (*ptr_gmouse_current_cursor == 2 || *ptr_gmouse_current_cursor == 3) {
@@ -213,7 +214,7 @@ public:
 						call display_scroll_up_;
 					}
 				} else {
-					if (WheelMod) count = MouseState.lZ / WheelMod;
+					if (wheelMod) count = MouseState.lZ / wheelMod;
 					if (count < 1) count = 1;
 					while (count--) TapKey(DIK_UP);
 				}
@@ -223,27 +224,27 @@ public:
 						call display_scroll_down_;
 					}
 				} else {
-					if (WheelMod) count = (-MouseState.lZ) / WheelMod;
+					if (wheelMod) count = (-MouseState.lZ) / wheelMod;
 					if (count < 1) count = 1;
 					while (count--) TapKey(DIK_DOWN);
 				}
 			}
 		}
-		if (MiddleMouseKey && MouseState.rgbButtons[2]) {
-			if (!MiddleMouseDown) {
-				TapKey(MiddleMouseKey);
-				MiddleMouseDown = true;
+		if (middleMouseKey && MouseState.rgbButtons[2]) {
+			if (!middleMouseDown) {
+				TapKey(middleMouseKey);
+				middleMouseDown = true;
 			}
-		} else MiddleMouseDown = false;
+		} else middleMouseDown = false;
 		mouseX = MouseState.lX;
 		mouseY = MouseState.lY;
 
 		numButtons = formatLock ? 8 : 4;
 		for (int i = 0; i < numButtons; i++) {
-			if ((MouseState.rgbButtons[i] & 0x80) != (KeysDown[256 + i] & 0x80)) { // state changed
+			if ((MouseState.rgbButtons[i] & 0x80) != (keysDown[256 + i] & 0x80)) { // state changed
 				MouseClickHook(i, (MouseState.rgbButtons[i] & 0x80) > 0);
 			}
-			KeysDown[256 + i] = MouseState.rgbButtons[i];
+			keysDown[256 + i] = MouseState.rgbButtons[i];
 		}
 		memcpy(b, &MouseState, sizeof(DIMOUSESTATE));
 		return 0;
@@ -260,18 +261,20 @@ public:
 		if (!buf || bufferedPresses.empty() || (d & DIGDD_PEEK)) {
 			HRESULT hr = RealDevice->GetDeviceData(a, buf, count, d);
 			if (FAILED(hr) || !buf || !(*count)) return hr;
-			DWORD keyOverride, oldState;
+			DWORD keyOverride;
 			for (DWORD i = 0; i < *count; i++) {
-				oldState = KeysDown[buf[i].dwOfs];
-				KeysDown[buf[i].dwOfs] = buf[i].dwData & 0x80;
-				keyOverride = KeyPressHook(buf[i].dwOfs, (buf[i].dwData & 0x80) > 0, MapVirtualKeyEx(buf[i].dwOfs, MAPVK_VSC_TO_VK, keyboardLayout));
+				DWORD dxKey = buf[i].dwOfs;
+				DWORD state = buf[i].dwData & 0x80;
+				DWORD oldState = keysDown[dxKey];
+				keysDown[dxKey] = state;
+				keyOverride = KeyPressHook(dxKey, (state > 0), MapVirtualKeyEx(dxKey, MAPVK_VSC_TO_VK, keyboardLayout));
 				if (keyOverride != 0) {
-					KeysDown[buf[i].dwOfs] = oldState;
+					keysDown[buf[i].dwOfs] = oldState;
 					buf[i].dwOfs = keyOverride;
-					KeysDown[buf[i].dwOfs] = buf[i].dwData & 0x80;
+					keysDown[buf[i].dwOfs] = state;
 				}
 			}
-			if (KeysDown[DebugEditorKey]) RunDebugEditor();
+			if (keysDown[debugEditorKey]) RunDebugEditor();
 			return hr;
 		}
 		//Despite passing an array of 32 data objects, fallout cant seem to cope with a key being pressed and released in the same frame...
@@ -295,8 +298,8 @@ public:
 	}
 
 	HRESULT _stdcall SetCooperativeLevel(HWND a, DWORD b) {
-		if (DeviceType == kDeviceType_KEYBOARD && BackgroundKeyboard) b = DISCL_BACKGROUND | DISCL_NONEXCLUSIVE;
-		if (DeviceType == kDeviceType_MOUSE && BackgroundMouse) b = DISCL_BACKGROUND | DISCL_NONEXCLUSIVE;
+		if (DeviceType == kDeviceType_KEYBOARD && backgroundKeyboard) b = DISCL_BACKGROUND | DISCL_NONEXCLUSIVE;
+		if (DeviceType == kDeviceType_MOUSE && backgroundMouse) b = DISCL_BACKGROUND | DISCL_NONEXCLUSIVE;
 		return RealDevice->SetCooperativeLevel(a, b);
 	}
 
@@ -404,25 +407,25 @@ HRESULT _stdcall FakeDirectInputCreate(HINSTANCE a, DWORD b, IDirectInputA** c, 
 	HRESULT hr = proc(a, b, c, d);
 	if (FAILED(hr)) return hr;
 
-	ReverseMouse = GetConfigInt("Input", "ReverseMouseButtons", 0) != 0;
+	reverseMouse = GetConfigInt("Input", "ReverseMouseButtons", 0) != 0;
 
-	UseScrollWheel = GetConfigInt("Input", "UseScrollWheel", 1) != 0;
-	WheelMod = GetConfigInt("Input", "ScrollMod", 0);
+	useScrollWheel = GetConfigInt("Input", "UseScrollWheel", 1) != 0;
+	wheelMod = GetConfigInt("Input", "ScrollMod", 0);
 	LONG MouseSpeed = GetConfigInt("Input", "MouseSensitivity", 100);
 	if (MouseSpeed != 100) {
-		AdjustMouseSpeed = true;
-		MouseSpeedMod = ((double)MouseSpeed) / 100.0;
-		MousePartX = 0;
-		MousePartY = 0;
-	} else AdjustMouseSpeed = false;
+		adjustMouseSpeed = true;
+		mouseSpeedMod = ((double)MouseSpeed) / 100.0;
+		mousePartX = 0;
+		mousePartY = 0;
+	} else adjustMouseSpeed = false;
 
-	MiddleMouseKey = GetConfigInt("Input", "MiddleMouse", 0x30);
-	MiddleMouseDown = false;
+	middleMouseKey = GetConfigInt("Input", "MiddleMouse", 0x30);
+	middleMouseDown = false;
 
-	BackgroundKeyboard = GetConfigInt("Input", "BackgroundKeyboard", 0) != 0;
-	BackgroundMouse = GetConfigInt("Input", "BackgroundMouse", 0) != 0;
+	backgroundKeyboard = GetConfigInt("Input", "BackgroundKeyboard", 0) != 0;
+	backgroundMouse = GetConfigInt("Input", "BackgroundMouse", 0) != 0;
 
-	if (isDebug) DebugEditorKey = GetConfigInt("Input", "DebugEditorKey", 0);
+	if (isDebug) debugEditorKey = GetConfigInt("Input", "DebugEditorKey", 0);
 
 	*c = (IDirectInputA*)new FakeDirectInput(*c);
 

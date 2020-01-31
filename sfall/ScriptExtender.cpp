@@ -333,16 +333,9 @@ public:
 		// process arguments on stack (reverse order)
 		for (int i = argNum - 1; i >= 0; i--) {
 			// get argument from stack
-			DWORD rawValueType = InterpretPopShort(program);
-			DWORD rawValue = InterpretPopLong(program);
-			SfallDataType type = static_cast<SfallDataType>(getSfallTypeByScriptType(rawValueType));
-
-			// retrieve string argument
-			if (type == DATATYPE_STR) {
-				_args[i] = InterpretGetString(program, rawValueType, rawValue);
-			} else {
-				_args[i] = ScriptValue(type, rawValue);
-			}
+			DWORD rawValueType;
+			DWORD rawValue = InterpretGetValue(program, rawValueType);
+			_args[i] = ScriptValue(static_cast<SfallDataType>(getSfallTypeByScriptType(rawValueType)), rawValue);
 		}
 		// flag that arguments passed are valid
 		bool argumentsValid = true;
@@ -366,12 +359,7 @@ public:
 			if (_ret.type() == DATATYPE_NONE) {
 				_ret = ScriptValue(0); // if no value was set in handler, force return 0 to avoid stack error
 			}
-			DWORD rawResult = _ret.rawValue();
-			if (_ret.type() == DATATYPE_STR) {
-				rawResult = InterpretAddString(program, _ret.strValue());
-			}
-			InterpretPushLong(program, rawResult);
-			InterpretPushShort(program, getScriptTypeBySfallType(_ret.type()));
+			InterpretReturnValue(program, _ret.rawValue(), getScriptTypeBySfallType(_ret.type()));
 		}
 	}
 

@@ -1162,15 +1162,11 @@ DWORD __stdcall InterpretPopShort(TProgram* scriptPtr);
 // pops value from Data stack (must be preceded by InterpretPopShort)
 DWORD __stdcall InterpretPopLong(TProgram* scriptPtr);
 
-// pushes value to Data stack (must be followed by InterpretPushShort)
-void __stdcall InterpretPushLong(TProgram* scriptPtr, DWORD val);
-
-// pushes value type to Data stack (must be preceded by InterpretPushLong)
-void __stdcall InterpretPushShort(TProgram* scriptPtr, DWORD valType);
-
 const char* __fastcall InterpretGetString(TProgram* scriptPtr, DWORD dataType, DWORD strId);
 
-DWORD __stdcall InterpretAddString(TProgram* scriptPtr, const char* str);
+void __stdcall InterpretReturnValue(TProgram* scriptPtr, DWORD val, DWORD valType);
+
+DWORD __fastcall InterpretGetValue(TProgram* scriptPtr, DWORD &outType);
 
 // prints scripting error in debug.log and stops current script execution by performing longjmp
 // USE WITH CAUTION

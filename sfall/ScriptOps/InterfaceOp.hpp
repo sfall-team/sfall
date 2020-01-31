@@ -108,7 +108,7 @@ static void __declspec(naked) get_mouse_buttons() {
 		mov edx, ds:[_last_buttons];
 		test edx, edx;
 		jnz skip;
-		cmp byte ptr MiddleMouseDown, 0;
+		cmp byte ptr middleMouseDown, 0;
 		jz skip;
 		mov edx, 4;
 skip:

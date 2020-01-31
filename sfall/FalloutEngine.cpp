@@ -1013,22 +1013,46 @@ DWORD __stdcall InterpretPopLong(TProgram* scriptPtr) {
 	WRAP_WATCOM_CALL1(interpretPopLong_, scriptPtr)
 }
 
-// pushes value to Data stack (must be followed by InterpretPushShort)
-void __stdcall InterpretPushLong(TProgram* scriptPtr, DWORD val) {
-	WRAP_WATCOM_CALL2(interpretPushLong_, scriptPtr, val)
-}
-
-// pushes value type to Data stack (must be preceded by InterpretPushLong)
-void __stdcall InterpretPushShort(TProgram* scriptPtr, DWORD valType) {
-	WRAP_WATCOM_CALL2(interpretPushShort_, scriptPtr, valType)
-}
-
-DWORD __stdcall InterpretAddString(TProgram* scriptPtr, const char* strval) {
-	WRAP_WATCOM_CALL2(interpretAddString_, scriptPtr, strval)
-}
-
 const char* __fastcall InterpretGetString(TProgram* scriptPtr, DWORD dataType, DWORD strId) {
 	WRAP_WATCOM_FCALL3(interpretGetString_, scriptPtr, dataType, strId)
+}
+
+void __stdcall InterpretReturnValue(TProgram* scriptPtr, DWORD val, DWORD valType) {
+	__asm {
+		mov  esi, scriptPtr;
+		mov  edx, val;
+		cmp  valType, VAR_TYPE_STR;
+		jne  isNotStr;
+		mov  eax, esi;
+		call interpretAddString_;
+		mov  edx, eax;
+isNotStr:
+		mov  eax, esi;
+		call interpretPushLong_;  // pushes value to Data stack (must be followed by InterpretPushShort)
+		mov  edx, valType;
+		mov  eax, esi;
+		call interpretPushShort_; // pushes value type to Data stack (must be preceded by InterpretPushLong)
+	}
+}
+
+DWORD __fastcall InterpretGetValue(TProgram* scriptPtr, DWORD &outType) {
+	__asm {
+		mov  eax, ecx;
+		call interpretPopShort_; // pops value type from Data stack (must be followed by InterpretPopLong)
+		mov  [edx], eax; // out type
+		mov  edx, eax;
+		mov  eax, ecx;
+		call interpretPopLong_; // pops value from Data stack (must be preceded by InterpretPopShort)
+		cmp  dx, VAR_TYPE_STR2;
+		je   getStr;
+		cmp  dx, VAR_TYPE_STR;
+		jne  isNotStr;
+getStr:
+		mov  ebx, eax;
+		mov  eax, ecx;
+		call interpretGetString_; // retrieve string argument
+isNotStr:
+	}
 }
 
 // prints scripting error in debug.log and stops current script execution by performing longjmp

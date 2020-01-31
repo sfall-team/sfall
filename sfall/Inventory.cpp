@@ -748,7 +748,7 @@ void InventoryInit() {
 	SafeWrite32(0x475CF2, _stack);
 
 	// Enable mouse scroll control in barter and loot screens when the cursor is hovering over other lists
-	if (UseScrollWheel) {
+	if (useScrollWheel) {
 		MakeCall(0x473E66, loot_container_hack_scroll);
 		MakeCall(0x4759F1, barter_inventory_hack_scroll);
 		*ptr_max = 100;
