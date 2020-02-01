@@ -204,6 +204,7 @@ enum WinNameType {
 	Character = 5,
 	Skilldex  = 6,
 	EscMenu   = 7, // escape menu
+//	Automap   = 8  // for this window there is no global variable
 };
 
 fo::Window* GetWindow(long winType) {

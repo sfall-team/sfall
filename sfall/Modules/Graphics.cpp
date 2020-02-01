@@ -103,7 +103,7 @@ static const char* gpuEffect =
 	"texture head;"
 	"texture highlight;"
 	"sampler s0 = sampler_state { texture=<image>; };"
-	"sampler s1 = sampler_state { texture=<palette>; };"
+	"sampler s1 = sampler_state { texture=<palette>; minFilter=none; magFilter=none; addressU=clamp; addressV=clamp; };"
 	"sampler s2 = sampler_state { texture=<head>; minFilter=linear; magFilter=linear; addressU=clamp; addressV=clamp; };"
 	"sampler s3 = sampler_state { texture=<highlight>; minFilter=linear; magFilter=linear; addressU=clamp; addressV=clamp; };"
 	"float2 size;"
@@ -137,7 +137,7 @@ static const char* gpuEffect =
 
 	"float4 P0( in float2 Tex : TEXCOORD0 ) : COLOR0 {"
 	  "float3 result = tex1D(s1, tex2D(s0, Tex).a);"
-	  "return float4(result.b, result.g, result.r, 1);"
+	  "return float4(result.b, result.g, result.r, 1);" // GPU swap R <> B
 	"}"
 
 	"technique T0"
@@ -238,12 +238,14 @@ static void ResetDevice(bool createNew) {
 			software = true;
 			d3d9->CreateDevice(D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, window, D3DCREATE_SOFTWARE_VERTEXPROCESSING | D3DCREATE_MULTITHREADED | D3DCREATE_FPU_PRESERVE, &params, &d3d9Device);
 		}
-		D3DCAPS9 caps;
-		d3d9Device->GetDeviceCaps(&caps);
-		ShaderVersion = ((caps.PixelShaderVersion & 0x0000FF00) >> 8) * 10 + (caps.PixelShaderVersion & 0xFF);
 
-		if (Graphics::GPUBlt == 2 && ShaderVersion < 20) Graphics::GPUBlt = 0;
-
+		// Use: 0 - only CPU, 1 - force GPU, 2 - Auto mode (GPU or swith to CPU)
+		if (Graphics::GPUBlt == 2) {
+			D3DCAPS9 caps;
+			d3d9Device->GetDeviceCaps(&caps);
+			ShaderVersion = ((caps.PixelShaderVersion & 0x0000FF00) >> 8) * 10 + (caps.PixelShaderVersion & 0xFF);
+			if (ShaderVersion < 20) Graphics::GPUBlt = 0;
+		}
 		if (Graphics::GPUBlt) {
 			D3DXCreateEffect(d3d9Device, gpuEffect, strlen(gpuEffect), 0, 0, 0, 0, &gpuBltEffect, 0);
 			gpuBltBuf = gpuBltEffect->GetParameterByName(0, "image");
@@ -403,14 +405,15 @@ void RefreshGraphics() {
 	d3d9Device->SetStreamSource(0, vBuffer, 0, sizeof(VertexFormat));
 	d3d9Device->SetRenderTarget(0, sSurf1);
 
+	UINT unused;
 	if (Graphics::GPUBlt && ScriptShaders::Count()) {
-		UINT unused;
 		gpuBltEffect->Begin(&unused, 0);
 		gpuBltEffect->BeginPass(0);
 		d3d9Device->DrawPrimitive(D3DPT_TRIANGLESTRIP, 0, 2);
 		gpuBltEffect->EndPass();
 		gpuBltEffect->End();
-		d3d9Device->StretchRect(sSurf1, 0, sSurf2, 0, D3DTEXF_NONE);
+
+		d3d9Device->StretchRect(sSurf1, 0, sSurf2, 0, D3DTEXF_NONE); // copy: sSurf1 to sSurf2
 		d3d9Device->SetTexture(0, sTex2);
 	} else {
 		d3d9Device->SetTexture(0, Tex);
@@ -420,7 +423,6 @@ void RefreshGraphics() {
 	d3d9Device->SetStreamSource(0, vBuffer2, 0, sizeof(VertexFormat));
 	d3d9Device->SetRenderTarget(0, backbuffer);
 	if (Graphics::GPUBlt && !ScriptShaders::Count()) {
-		UINT unused;
 		gpuBltEffect->Begin(&unused, 0);
 		gpuBltEffect->BeginPass(0);
 	}
