@@ -69,6 +69,10 @@
 #define _currentWindow              0x51DCB8
 #define _cursor_line                0x664514
 #define _debug_func                 0x51DF04
+#define _dialog_red_button_down_buf 0x58F4A4
+#define _dialog_red_button_down_key 0x58F4BC
+#define _dialog_red_button_up_buf   0x58F4AC
+#define _dialog_red_button_up_key   0x58F46C
 #define _dialog_target              0x518848
 #define _dialog_target_is_party     0x51884C
 #define _dialogue_head              0x518850
@@ -1290,6 +1294,8 @@ long __fastcall MessageFind(DWORD* msgFile, long msgNumber, DWORD* outBuf);
 long __fastcall MouseClickIn(long x, long y, long x_end, long y_end);
 
 const char* __stdcall ArtGetName(long artFID);
+
+BYTE* __stdcall ArtPtrLockData(long frmId, long frameNum, long rotation, DWORD* lockPtr);
 
 long __stdcall LoadFrame(const char* filename, FrmFile** frmPtr);
 

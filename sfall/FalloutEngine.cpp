@@ -1427,6 +1427,10 @@ const char* __stdcall ArtGetName(long artFID) {
 	WRAP_WATCOM_CALL1(art_get_name_, artFID)
 }
 
+BYTE* __stdcall ArtPtrLockData(long frmId, long frameNum, long rotation, DWORD* lockPtr) {
+	WRAP_WATCOM_CALL4(art_ptr_lock_data_, frmId, frameNum, rotation, lockPtr)
+}
+
 long __stdcall LoadFrame(const char* filename, FrmFile** frmPtr) {
 	WRAP_WATCOM_CALL2(load_frame_, filename, frmPtr)
 }

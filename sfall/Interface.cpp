@@ -511,6 +511,21 @@ void InterfaceGmouseHandleHook() {
 	HookCall(0x44C018, gmouse_handle_event_hook); // replaces hack function from HRP
 }
 
+static void FixCreateBarterButton() {
+	const long artID = OBJ_TYPE_INTRFACE << 24;
+	*(BYTE**)_dialog_red_button_up_buf = ArtPtrLockData(artID | 96, 0 ,0, (DWORD*)_dialog_red_button_up_key);
+	*(BYTE**)_dialog_red_button_down_buf = ArtPtrLockData(artID | 95, 0 ,0, (DWORD*)_dialog_red_button_down_key);
+}
+
+static void __declspec(naked) gdialog_window_create_hook() {
+	__asm {
+		call art_ptr_unlock_;
+		cmp  dword ptr ds:[_dialog_red_button_down_buf], 0;
+		jz   FixCreateBarterButton;
+		retn;
+	}
+}
+
 void Interface_OnGameLoad() {
 	dots.clear();
 }
@@ -525,6 +540,9 @@ void InterfaceInit() {
 	// ScriptWindow - prevents the player from moving when clicking on the window if the 'Transparent' flag is not set
 	HookCall(0x44B737, gmouse_bk_process_hook);
 	// InterfaceGmouseHandleHook will be run before game initialization
+
+	// Fix for the barter button on the dialog window not animating until after leaving the barter screen
+	HookCall(0x44A77C, gdialog_window_create_hook);
 }
 
 void InterfaceExit() {
