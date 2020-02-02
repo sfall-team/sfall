@@ -130,13 +130,13 @@
     <ClInclude Include="BurstMods.h">
       <Filter>Headers</Filter>
     </ClInclude>
-    <ClInclude Include="ScriptOps\GraphicsOp.hpp">
+    <ClInclude Include="ScriptOps\GraphicsOps.hpp">
       <Filter>Headers\ScriptOps</Filter>
     </ClInclude>
-    <ClInclude Include="ScriptOps\InterfaceOp.hpp">
+    <ClInclude Include="ScriptOps\InterfaceOps.hpp">
       <Filter>Headers\ScriptOps</Filter>
     </ClInclude>
-    <ClInclude Include="ScriptOps\MemoryOp.hpp">
+    <ClInclude Include="ScriptOps\MemoryOps.hpp">
       <Filter>Headers\ScriptOps</Filter>
     </ClInclude>
     <ClInclude Include="ScriptOps\ScriptArrays.hpp">
@@ -145,13 +145,13 @@
     <ClInclude Include="ScriptOps\ScriptUtils.hpp">
       <Filter>Headers\ScriptOps</Filter>
     </ClInclude>
-    <ClInclude Include="ScriptOps\StatsOp.hpp">
+    <ClInclude Include="ScriptOps\StatsOps.hpp">
       <Filter>Headers\ScriptOps</Filter>
     </ClInclude>
     <ClInclude Include="ScriptOps\FileSystemOps.hpp">
       <Filter>Headers\ScriptOps</Filter>
     </ClInclude>
-    <ClInclude Include="ScriptOps\PerksOp.hpp">
+    <ClInclude Include="ScriptOps\PerksOps.hpp">
       <Filter>Headers\ScriptOps</Filter>
     </ClInclude>
     <ClInclude Include="ScriptOps\ObjectsOps.hpp">
@@ -187,7 +187,7 @@
     <ClInclude Include="Message.h">
       <Filter>Headers</Filter>
     </ClInclude>
-    <ClInclude Include="ScriptOps\MetaruleOp.hpp">
+    <ClInclude Include="ScriptOps\MetaruleOps.hpp">
       <Filter>Headers\ScriptOps</Filter>
     </ClInclude>
     <ClInclude Include="DamageMod.h">

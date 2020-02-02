@@ -384,16 +384,16 @@ static void OpcodeInvalidArgs(const char* opcodeName) {
 
 #include "ScriptOps\AnimOps.hpp"
 #include "ScriptOps\FileSystemOps.hpp"
-#include "ScriptOps\GraphicsOp.hpp"
-#include "ScriptOps\InterfaceOp.hpp"
+#include "ScriptOps\GraphicsOps.hpp"
+#include "ScriptOps\InterfaceOps.hpp"
 #include "ScriptOps\MathOps.hpp"
-#include "ScriptOps\MemoryOp.hpp"
+#include "ScriptOps\MemoryOps.hpp"
 #include "ScriptOps\MiscOps.hpp"
 #include "ScriptOps\ObjectsOps.hpp"
-#include "ScriptOps\PerksOp.hpp"
-#include "ScriptOps\StatsOp.hpp"
+#include "ScriptOps\PerksOps.hpp"
+#include "ScriptOps\StatsOps.hpp"
 #include "ScriptOps\WorldmapOps.hpp"
-#include "ScriptOps\MetaruleOp.hpp"
+#include "ScriptOps\MetaruleOps.hpp"
 
 /*
 	Array for opcodes metadata.
