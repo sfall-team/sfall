@@ -47,6 +47,10 @@
 #define FO_VAR_currentWindow              0x51DCB8
 #define FO_VAR_cursor_line                0x664514
 #define FO_VAR_debug_func                 0x51DF04
+#define FO_VAR_dialog_red_button_down_buf 0x58F4A4
+#define FO_VAR_dialog_red_button_down_key 0x58F4BC
+#define FO_VAR_dialog_red_button_up_buf   0x58F4AC
+#define FO_VAR_dialog_red_button_up_key   0x58F46C
 #define FO_VAR_dialog_target              0x518848
 #define FO_VAR_dialog_target_is_party     0x51884C
 #define FO_VAR_dialogue_head              0x518850

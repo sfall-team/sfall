@@ -869,6 +869,21 @@ static void __declspec(naked) gmouse_bk_process_hook() {
 	}
 }
 
+static void FixCreateBarterButton() {
+	const long artID = fo::OBJ_TYPE_INTRFACE << 24;
+	*(BYTE**)FO_VAR_dialog_red_button_up_buf = fo::func::art_ptr_lock_data(artID | 96, 0 ,0, (DWORD*)FO_VAR_dialog_red_button_up_key);
+	*(BYTE**)FO_VAR_dialog_red_button_down_buf = fo::func::art_ptr_lock_data(artID | 95, 0 ,0, (DWORD*)FO_VAR_dialog_red_button_down_key);
+}
+
+static void __declspec(naked) gdialog_window_create_hook() {
+	__asm {
+		call fo::funcoffs::art_ptr_unlock_;
+		cmp  dword ptr ds:[FO_VAR_dialog_red_button_down_buf], 0;
+		jz   FixCreateBarterButton;
+		retn;
+	}
+}
+
 void Interface::init() {
 	if (GetConfigInt("Interface", "ActionPointsBar", 0)) {
 		ActionPointsBarPatch();
@@ -885,6 +900,9 @@ void Interface::init() {
 		if (hrpVersionValid) IFACE_BAR_MODE = *(BYTE*)HRPAddress(0x1006EB0C) != 0;
 		HookCall(0x44C018, gmouse_handle_event_hook); // replaces hack function from HRP
 	};
+
+	// Fix for the barter button on the dialog window not animating until after leaving the barter screen
+	HookCall(0x44A77C, gdialog_window_create_hook);
 }
 
 void Interface::exit() {
