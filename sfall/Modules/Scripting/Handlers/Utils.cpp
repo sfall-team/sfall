@@ -16,16 +16,12 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <cmath>
-
 #include "..\..\..\FalloutEngine\Fallout2.h"
 #include "..\..\..\FalloutEngine\EngineUtils.h"
 #include "..\..\ScriptExtender.h"
-#include "..\..\FileSystem.h"
 #include "..\..\Message.h"
 #include "..\Arrays.h"
 #include "..\OpcodeContext.h"
-#include "..\ScriptValue.h"
 
 #include "Utils.h"
 
@@ -99,34 +95,6 @@ static bool FalloutStringCompare(const char* str1, const char* str2, long codePa
 	}
 }
 
-void sf_sqrt(OpcodeContext& ctx) {
-	ctx.setReturn(sqrt(ctx.arg(0).asFloat()));
-}
-
-void sf_abs(OpcodeContext& ctx) {
-	if (ctx.arg(0).isInt()) {
-		ctx.setReturn(abs((int)ctx.arg(0).rawValue()));
-	} else {
-		ctx.setReturn(abs(ctx.arg(0).asFloat()));
-	}
-}
-
-void sf_sin(OpcodeContext& ctx) {
-	ctx.setReturn(sin(ctx.arg(0).asFloat()));
-}
-
-void sf_cos(OpcodeContext& ctx) {
-	ctx.setReturn(cos(ctx.arg(0).asFloat()));
-}
-
-void sf_tan(OpcodeContext& ctx) {
-	ctx.setReturn(tan(ctx.arg(0).asFloat()));
-}
-
-void sf_arctan(OpcodeContext& ctx) {
-	ctx.setReturn(atan2(ctx.arg(0).asFloat(), ctx.arg(1).asFloat()));
-}
-
 void sf_strlen(OpcodeContext& ctx) {
 	ctx.setReturn(
 		static_cast<int>(strlen(ctx.arg(0).strValue()))
@@ -150,10 +118,6 @@ void sf_atof(OpcodeContext& ctx) {
 void sf_ord(OpcodeContext& ctx) {
 	unsigned char firstChar = ctx.arg(0).strValue()[0];
 	ctx.setReturn(static_cast<unsigned long>(firstChar));
-}
-
-void sf_typeof(OpcodeContext& ctx) {
-	ctx.setReturn(static_cast<int>(ctx.arg(0).type()));
 }
 
 static int _stdcall StringSplit(const char* str, const char* split) {
@@ -380,44 +344,6 @@ void sf_string_format(OpcodeContext& ctx) {
 	}
 }
 
-void sf_power(OpcodeContext& ctx) {
-	const ScriptValue &base = ctx.arg(0),
-					  &power = ctx.arg(1);
-	float result = 0.0;
-	if (power.isFloat())
-		result = pow(base.asFloat(), power.floatValue());
-	else
-		result = pow(base.asFloat(), (int)power.rawValue());
-
-	if (base.isInt() && power.isInt()) {
-		ctx.setReturn(static_cast<int>(result));
-	} else {
-		ctx.setReturn(result);
-	}
-}
-
-void sf_log(OpcodeContext& ctx) {
-	ctx.setReturn(log(ctx.arg(0).asFloat()));
-}
-
-void sf_exponent(OpcodeContext& ctx) {
-	ctx.setReturn(exp(ctx.arg(0).asFloat()));
-}
-
-void sf_ceil(OpcodeContext& ctx) {
-	ctx.setReturn(static_cast<int>(ceil(ctx.arg(0).asFloat())));
-}
-
-void sf_round(OpcodeContext& ctx) {
-	float arg = ctx.arg(0).asFloat();
-	int argI = static_cast<int>(arg);
-	float mod = arg - static_cast<float>(argI);
-	if (abs(mod) >= 0.5) {
-		argI += (mod > 0 ? 1 : -1);
-	}
-	ctx.setReturn(argI);
-}
-
 void sf_message_str_game(OpcodeContext& ctx) {
 	const char* msg = nullptr;
 
@@ -452,10 +378,6 @@ void sf_add_extra_msg_file(OpcodeContext& ctx) {
 		ctx.printOpcodeError("%s() - the limit of adding message files has been exceeded.", ctx.getMetaruleName());
 	}
 	ctx.setReturn(result);
-}
-
-void sf_floor2(OpcodeContext& ctx) {
-	ctx.setReturn(static_cast<int>(floor(ctx.arg(0).asFloat())));
 }
 
 void sf_get_string_pointer(OpcodeContext& ctx) {

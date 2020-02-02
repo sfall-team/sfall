@@ -18,14 +18,14 @@
 
 #pragma once
 
-/*
-	Opcodes for core sfall features.
- */
+/* Opcodes for core sfall features. */
 
 namespace sfall
 {
 namespace script
 {
+
+void sf_typeof(OpcodeContext&);
 
 void __declspec() op_set_global_script_repeat();
 

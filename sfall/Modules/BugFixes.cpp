@@ -2505,7 +2505,7 @@ void BugFixes::init()
 	// Missing game initialization
 	LoadGameHook::OnBeforeGameInit() += Initialization;
 
-	// Fix vanilla negate operator on float values
+	// Fix vanilla negate operator for float values
 	MakeCall(0x46AB68, NegateFixHack);
 	// Fix incorrect int-to-float conversion
 	// op_mult:
@@ -2514,6 +2514,12 @@ void BugFixes::init()
 	// op_div:
 	SafeWrite16(0x46A566, 0x04DB);
 	SafeWrite16(0x46A4E7, 0x04DB);
+	// Fix for vanilla division operator treating negative integers as unsigned
+	if (GetConfigInt("Misc", "DivisionOperatorFix", 1)) {
+		dlog("Applying division operator fix.", DL_INIT);
+		SafeWrite32(0x46A51D, 0xFBF79990); // xor edx, edx; div ebx > cdq; idiv ebx
+		dlogr(" Done", DL_INIT);
+	}
 
 	//if (GetConfigInt("Misc", "SpecialUnarmedAttacksFix", 1)) {
 		dlog("Applying Special Unarmed Attacks fix.", DL_INIT);

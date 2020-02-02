@@ -23,6 +23,7 @@
 #include "Anims.h"
 #include "Core.h"
 #include "Interface.h"
+#include "Math.h"
 #include "Misc.h"
 #include "Objects.h"
 #include "Perks.h"
