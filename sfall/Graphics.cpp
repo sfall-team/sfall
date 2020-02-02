@@ -342,13 +342,13 @@ static void ResetDevice(bool createNew) {
 			d3d9->CreateDevice(D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, window, D3DCREATE_SOFTWARE_VERTEXPROCESSING | D3DCREATE_MULTITHREADED | D3DCREATE_FPU_PRESERVE, &params, &d3d9Device);
 		}
 
-		// Use: 0 - only CPU, 1 - force GPU, 2 - Auto mode (GPU or swith to CPU)
-		if (GPUBlt == 2) {
-			D3DCAPS9 caps;
-			d3d9Device->GetDeviceCaps(&caps);
-			ShaderVersion = ((caps.PixelShaderVersion & 0x0000FF00) >> 8) * 10 + (caps.PixelShaderVersion & 0xFF);
-			if (ShaderVersion < 20) GPUBlt = 0;
-		}
+		D3DCAPS9 caps;
+		d3d9Device->GetDeviceCaps(&caps);
+		ShaderVersion = ((caps.PixelShaderVersion & 0x0000FF00) >> 8) * 10 + (caps.PixelShaderVersion & 0xFF);
+
+		// Use: 0 - only CPU, 1 - force GPU, 2 - Auto Mode (GPU or switch to CPU)
+		if (GPUBlt == 2 && ShaderVersion < 20) GPUBlt = 0;
+
 		if (GPUBlt) {
 			D3DXCreateEffect(d3d9Device, gpuEffect, strlen(gpuEffect), 0, 0, 0, 0, &gpuBltEffect, 0);
 			gpuBltBuf = gpuBltEffect->GetParameterByName(0, "image");
@@ -1159,7 +1159,8 @@ HRESULT _stdcall FakeDirectDrawCreate2(void*, IDirectDraw** b, void*) {
 		gWidth = ResWidth;
 		gHeight = ResHeight;
 	}
-	GPUBlt = GetConfigInt("Graphics", "GPUBlt", 0);
+
+	GPUBlt = GetConfigInt("Graphics", "GPUBlt", 0); // 0 - auto, 1 - GPU, 2 - CPU
 	if (!GPUBlt || GPUBlt > 2)
 		GPUBlt = 2; // Swap them around to keep compatibility with old ddraw.ini
 	else if (GPUBlt == 2) GPUBlt = 0; // Use CPU
