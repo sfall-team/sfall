@@ -20,6 +20,7 @@
 
 #include "main.h"
 
+#include "Combat.h"
 #include "Inventory.h"
 #include "Objects.h"
 #include "PartyControl.h"

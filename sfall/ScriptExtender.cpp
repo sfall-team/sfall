@@ -382,16 +382,17 @@ static void OpcodeInvalidArgs(const char* opcodeName) {
 #include "ScriptOps\ScriptArrays.hpp"
 #include "ScriptOps\ScriptUtils.hpp"
 
-#include "ScriptOps\WorldmapOps.hpp"
-#include "ScriptOps\PerksOp.hpp"
-#include "ScriptOps\MemoryOp.hpp"
-#include "ScriptOps\StatsOp.hpp"
-#include "ScriptOps\InterfaceOp.hpp"
-#include "ScriptOps\GraphicsOp.hpp"
-#include "ScriptOps\FileSystemOps.hpp"
-#include "ScriptOps\ObjectsOps.hpp"
 #include "ScriptOps\AnimOps.hpp"
+#include "ScriptOps\FileSystemOps.hpp"
+#include "ScriptOps\GraphicsOp.hpp"
+#include "ScriptOps\InterfaceOp.hpp"
+#include "ScriptOps\MathOps.hpp"
+#include "ScriptOps\MemoryOp.hpp"
 #include "ScriptOps\MiscOps.hpp"
+#include "ScriptOps\ObjectsOps.hpp"
+#include "ScriptOps\PerksOp.hpp"
+#include "ScriptOps\StatsOp.hpp"
+#include "ScriptOps\WorldmapOps.hpp"
 #include "ScriptOps\MetaruleOp.hpp"
 
 /*
@@ -1636,7 +1637,7 @@ void ScriptExtenderInit() {
 	opcodes[0x260] = op_reg_anim_turn_towards;
 	opcodes[0x261] = op_explosions_metarule;
 	opcodes[0x262] = register_hook_proc;
-	opcodes[0x263] = funcPow;
+	opcodes[0x263] = funcPow; // '^' operator
 	opcodes[0x264] = funcLog;
 	opcodes[0x265] = funcExp;
 	opcodes[0x266] = funcCeil;
@@ -1666,6 +1667,7 @@ void ScriptExtenderInit() {
 
 	opcodes[0x27d] = register_hook_proc_spec;
 	opcodes[0x27e] = op_reg_anim_callback;
+	opcodes[0x27f] = funcDiv; // div operator
 
 	InitOpcodeMetaTable();
 	InitMetaruleTable();

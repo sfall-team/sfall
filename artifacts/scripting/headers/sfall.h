@@ -1,3 +1,6 @@
+#ifndef SFALL_H
+#define SFALL_H
+
 //Recognised modes for set_shader_mode and get_game_mode
 #define WORLDMAP    (0x1)
 #define DIALOG      (0x4)
@@ -305,3 +308,5 @@
 #define unjam_lock(obj)                                 sfall_func1("unjam_lock", obj)
 #define unset_unique_id(obj)                            sfall_func2("set_unique_id", obj, -1)
 #define unwield_slot(critter, slot)                     sfall_func2("unwield_slot", critter, slot)
+
+#endif

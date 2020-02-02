@@ -214,6 +214,9 @@
     <ClInclude Include="Interface.h">
       <Filter>Headers</Filter>
     </ClInclude>
+    <ClInclude Include="ScriptOps\MathOps.hpp">
+      <Filter>Headers\ScriptOps</Filter>
+    </ClInclude>
     <ClInclude Include="stdafx.h">
       <Filter>Headers</Filter>
     </ClInclude>

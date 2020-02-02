@@ -22,11 +22,14 @@
 
 #include "AI.h"
 #include "Combat.h"
+#include "Criticals.h"
 #include "HeroAppearance.h"
+#include "Inventory.h"
 #include "KillCounter.h"
 #include "Movies.h"
 #include "PartyControl.h"
 #include "ScriptExtender.h"
+#include "Stats.h"
 
 /*
  *	Misc operators
