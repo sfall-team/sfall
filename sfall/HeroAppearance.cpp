@@ -151,17 +151,7 @@ void HideMouse() {
 /////////////////////////////////////////////////////////////////FRM FUNCTIONS///////////////////////////////////////////////////////////////////////
 
 static DWORD BuildFrmId(DWORD lstRef, DWORD lstNum) {
-	DWORD frmID;
-	__asm {
-		push 0;
-		xor  ecx, ecx;
-		xor  ebx, ebx;
-		mov  edx, lstNum;
-		mov  eax, lstRef;
-		call art_id_;
-		mov  frmID, eax;
-	}
-	return frmID;
+	return (lstRef << 24) | lstNum;
 }
 
 void UnloadFrm(DWORD FrmObj) {
@@ -405,8 +395,8 @@ static void DeleteWordWrapList(LineNode *CurrentLine) {
 
 /////////////////////////////////////////////////////////////////DAT FUNCTIONS///////////////////////////////////////////////////////////////////////
 
-static void* LoadDat(char*fileName) {
-	void *dat = nullptr;
+static void* LoadDat(const char* fileName) {
+	void* dat = nullptr;
 	__asm {
 		mov  eax, fileName;
 		call dbase_open_;
@@ -415,7 +405,7 @@ static void* LoadDat(char*fileName) {
 	return dat;
 }
 
-static void UnloadDat(void *dat) {
+static void UnloadDat(void* dat) {
 	__asm {
 		mov  eax, dat;
 		call dbase_close_;
@@ -838,33 +828,47 @@ endFunc:
 
 /////////////////////////////////////////////////////////////////INTERFACE FUNCTIONS/////////////////////////////////////////////////////////////////
 
-static void sub_draw(long subWidth, long subHeight, long fromWidth, long fromHeight, long fromX, long fromY, BYTE *fromBuff,
-					 long toWidth, long toHeight, long toX, long toY, BYTE *toBuff, int maskRef) {
+static void surface_draw(long width, long height, long fromWidth, long fromX, long fromY, BYTE *fromBuff,
+						 long toWidth, long toX, long toY, BYTE *toBuff, int maskRef) {
 
 	fromBuff += fromY * fromWidth + fromX;
 	toBuff += toY * toWidth + toX;
 
-	for (long h = 0; h < subHeight; h++) {
-		for (long w = 0; w < subWidth; w++) {
-			if (fromBuff[w] != maskRef)
-				toBuff[w] = fromBuff[w];
+	for (long h = 0; h < height; h++) {
+		for (long w = 0; w < width; w++) {
+			if (fromBuff[w] != maskRef) toBuff[w] = fromBuff[w];
 		}
 		fromBuff += fromWidth;
 		toBuff += toWidth;
 	}
 }
 
-static void DrawBody(DWORD critNum, BYTE* surface) {
+static void surface_draw(long width, long height, long fromWidth, long fromX, long fromY, BYTE *fromBuff,
+						 long toWidth, long toX, long toY, BYTE *toBuff) {
+
+	fromBuff += fromY * fromWidth + fromX;
+	toBuff += toY * toWidth + toX;
+
+	for (long h = 0; h < height; h++) {
+		for (long w = 0; w < width; w++) toBuff[w] = fromBuff[w];
+		fromBuff += fromWidth;
+		toBuff += toWidth;
+	}
+}
+
+static void DrawBody(long critNum, BYTE* surface, long x, long y, long toWidth) {
 	DWORD critFrmLock;
 
 	FrmHeaderData *critFrm = GetFrm(BuildFrmId(1, critNum), &critFrmLock);
 	DWORD critWidth = GetFrmFrameWidth(critFrm, 0, charRotOri);
 	DWORD critHeight = GetFrmFrameHeight(critFrm, 0, charRotOri);
 	BYTE *critSurface = GetFrmFrameSurface(critFrm, 0, charRotOri);
-	sub_draw(critWidth, critHeight, critWidth, critHeight, 0, 0, critSurface, 70, 102, 35 - critWidth / 2, 51 - critHeight / 2, surface, 0);
+
+	long xOffset = x + (35 - (critWidth / 2));
+	long yOffset = y + (51 - (critHeight / 2));
+	surface_draw(critWidth, critHeight, critWidth, 0, 0, critSurface, toWidth, xOffset, yOffset, surface, 0);
 
 	UnloadFrm(critFrmLock);
-	critSurface = nullptr;
 }
 
 static void DrawPCConsole() {
@@ -882,21 +886,13 @@ static void DrawPCConsole() {
 		}
 
 		int WinRef = *ptr_edit_win; // char screen window ref
-		//BYTE *WinSurface = GetWinSurface(WinRef);
-
 		WINinfo *WinInfo = GNWFind(WinRef);
-
-		BYTE *ConSurface = new BYTE [70 * 102];
-		sub_draw(70, 102, 640, 480, 338, 78, charScrnBackSurface, 70, 102, 0, 0, ConSurface, 0);
 
 		//DWORD critNum = *ptr_art_vault_guy_num; // pointer to current base hero critter FrmId
 		DWORD critNum = *(DWORD*)(*(DWORD*)_obj_dude + 0x20); // pointer to current armored hero critter FrmId
-		DrawBody(critNum, ConSurface);
 
-		sub_draw(70, 102, 70, 102, 0, 0, ConSurface, WinInfo->width, WinInfo->height, 338, 78, WinInfo->surface, 0);
-
-		delete[] ConSurface;
-		WinInfo = nullptr;
+		surface_draw(70, 102, 640, 338, 78, charScrnBackSurface, WinInfo->width, 338, 78, WinInfo->surface); // restore background image
+		DrawBody(critNum, WinInfo->surface, 338, 78, WinInfo->width);
 
 		WinDraw(WinRef);
 	}
@@ -929,11 +925,11 @@ static void DrawCharNote(bool style, int winRef, DWORD xPosWin, DWORD yPosWin, B
 	WINinfo *winInfo = GNWFind(winRef);
 
 	BYTE *PadSurface = new BYTE [280 * 168];
-	sub_draw(280, 168, widthBG, heightBG, xPosBG, yPosBG, BGSurface, 280, 168, 0, 0, PadSurface, 0);
+	surface_draw(280, 168, widthBG, xPosBG, yPosBG, BGSurface, 280, 0, 0, PadSurface);
 
 	UNLSTDfrm *frm = LoadUnlistedFrm((style) ? "AppStyle.frm" : "AppRace.frm", OBJ_TYPE_SKILLDEX);
 	if (frm) {
-		sub_draw(frm->frames[0].width, frm->frames[0].height, frm->frames[0].width, frm->frames[0].height, 0, 0, frm->frames[0].indexBuff, 280, 168, 136, 37, PadSurface, 0); // cover buttons pics bottom
+		DrawToSurface(frm->frames[0].width, frm->frames[0].height, 0, 0, frm->frames[0].width, frm->frames[0].indexBuff, 136, 37, 280, 168, PadSurface, 0); // cover buttons pics bottom
 		delete frm;
 	}
 
@@ -980,7 +976,7 @@ static void DrawCharNote(bool style, int winRef, DWORD xPosWin, DWORD yPosWin, B
 			}
 		}
 	}
-	sub_draw(280, 168, 280, 168, 0, 0, PadSurface, winInfo->width, winInfo->height, xPosWin, yPosWin, winInfo->surface, 0);
+	surface_draw(280, 168, 280, 0, 0, PadSurface, winInfo->width, xPosWin, yPosWin, winInfo->surface);
 
 	SetFont(oldFont); // restore previous font
 	DestroyMsgList(&MsgList);
@@ -988,10 +984,7 @@ static void DrawCharNote(bool style, int winRef, DWORD xPosWin, DWORD yPosWin, B
 	*(long*)_card_old_fid1 = -1; // reset fid
 
 	DeleteWordWrapList(StartLine);
-	delete[]PadSurface;
-	CurrentLine = nullptr;
-	NextLine = nullptr;
-	winInfo = nullptr;
+	delete[] PadSurface;
 }
 
 static void _stdcall DrawCharNoteNewChar(bool type) {
@@ -1026,7 +1019,7 @@ void _stdcall HeroSelectWindow(int raceStyleFlag) {
 	BYTE *winSurface = WinGetBuf(winRef);
 	BYTE *mainSurface = new BYTE [484 * 230];
 
-	sub_draw(484, 230, 484, 230, 0, 0, frm->frames[0].indexBuff, 484, 230, 0, 0, mainSurface, 0);
+	surface_draw(484, 230, 484, 0, 0, frm->frames[0].indexBuff, 484, 0, 0, mainSurface);
 	delete frm;
 
 	DWORD MenuUObj, MenuDObj;
@@ -1063,12 +1056,10 @@ void _stdcall HeroSelectWindow(int raceStyleFlag) {
 	titleTextWidth = GetTextWidth(titleText);
 	PrintText(titleText, textColour, 80 - titleTextWidth / 2, 185, titleTextWidth, 484, mainSurface);
 
-	sub_draw(484, 230, 484, 230, 0, 0, mainSurface, 484, 230, 0, 0, winSurface, 0);
+	surface_draw(484, 230, 484, 0, 0, mainSurface, 484, 0, 0, winSurface);
 	WinShow(winRef);
 
 	SetFont(0x65);
-
-	BYTE *ConDraw = new BYTE [70 * 102];
 
 	int button = 0;
 	bool drawFlag = true;               // redraw flag for char note pad
@@ -1101,9 +1092,8 @@ void _stdcall HeroSelectWindow(int raceStyleFlag) {
 		if (NewTick - RedrawTick > 60) { // time to redraw
 			RedrawTick = NewTick;
 
-			sub_draw(70, 102, 484, 230, 66, 53, mainSurface, 70, 102, 0, 0, ConDraw, 0);
-			DrawBody(critNum, ConDraw);
-			sub_draw(70, 102, 70, 102, 0, 0, ConDraw, 484, 230, 66, 53, winSurface, 0);
+			surface_draw(70, 102, 484, 66, 53, mainSurface, 484, 66, 53, winSurface); // restore background image
+			DrawBody(critNum, winSurface, 66, 53, 484);
 
 			if (drawFlag) {
 				DrawCharNote(isStyle, winRef, 190, 29, mainSurface, 190, 29, 484, 230);
@@ -1174,23 +1164,16 @@ void _stdcall HeroSelectWindow(int raceStyleFlag) {
 	SetAppearanceGlobals(currentRaceVal, currentStyleVal);
 
 	WinDelete(winRef);
-	delete[]mainSurface;
-	delete[]ConDraw;
+	delete[] mainSurface;
 
 	UnloadFrm(MenuUObj);
 	UnloadFrm(MenuDObj);
-	MenuUSurface = nullptr;
-	MenuDSurface = nullptr;
 
 	UnloadFrm(DidownUObj);
 	UnloadFrm(DidownDObj);
-	DidownUSurface = nullptr;
-	DidownDSurface = nullptr;
 
 	UnloadFrm(DiupUObj);
 	UnloadFrm(DiupDObj);
-	DiupUSurface = nullptr;
-	DiupDSurface = nullptr;
 
 	SetFont(oldFont);
 	SetMousePic(oldMouse);
@@ -1444,25 +1427,23 @@ static void __declspec(naked) AddCharScrnButtons() {
 			newButtonSurface = new BYTE [20 * 18 * 4];
 
 			DWORD frmLock; // frm objects for char screen Appearance button
-			BYTE *frmSurface;
+			BYTE* frmSurface;
 
 			frmSurface = GetFrmSurface(BuildFrmId(6, 122), 0, 0, &frmLock); //SLUFrm
-			sub_draw(20, 18, 20, 18, 0, 0, frmSurface, 20, 18 * 4, 0, 0, newButtonSurface, 0);
+			surface_draw(20, 18, 20, 0, 0, frmSurface, 20, 0, 0, newButtonSurface);
 			UnloadFrm(frmLock);
 
 			frmSurface = GetFrmSurface(BuildFrmId(6, 123), 0, 0, &frmLock); //SLDFrm
-			sub_draw(20, 18, 20, 18, 0, 0, frmSurface, 20, 18 * 4, 0, 18, newButtonSurface, 0);
+			surface_draw(20, 18, 20, 0, 0, frmSurface, 20, 0, 18, newButtonSurface);
 			UnloadFrm(frmLock);
 
 			frmSurface = GetFrmSurface(BuildFrmId(6, 124), 0, 0, &frmLock); //SRUFrm
-			sub_draw(20, 18, 20, 18, 0, 0, frmSurface, 20, 18 * 4, 0, 18 * 2, newButtonSurface, 0);
+			surface_draw(20, 18, 20, 0, 0, frmSurface, 20, 0, 18 * 2, newButtonSurface);
 			UnloadFrm(frmLock);
 
 			frmSurface = GetFrmSurface(BuildFrmId(6, 125), 0, 0, &frmLock); //SRDFrm
-			sub_draw(20, 18, 20, 18, 0, 0, frmSurface, 20, 18 * 4, 0, 18 * 3, newButtonSurface, 0);
+			surface_draw(20, 18, 20, 0, 0, frmSurface, 20, 0, 18 * 3, newButtonSurface);
 			UnloadFrm(frmLock);
-
-			frmSurface = nullptr;
 		}
 		if (raceButtons) { // race selection buttons
 			WinRegisterButton(WinRef, 348, 37, 20, 18, -1, -1, -1, 0x511, newButtonSurface, newButtonSurface + (20 * 18), 0, 0x20);
@@ -1501,69 +1482,73 @@ static void __declspec(naked) FixCharScrnBack() {
 		UNLSTDfrm *frm = LoadUnlistedFrm((*ptr_glblmode) ? "AppChCrt.frm" : "AppChEdt.frm", OBJ_TYPE_INTRFACE);
 
 		if (frm != nullptr) {
-			sub_draw(640, 480, 640, 480, 0, 0, frm->frames[0].indexBuff, 640, 480, 0, 0, charScrnBackSurface, 0);
+			surface_draw(640, 480, 640, 0, 0, frm->frames[0].indexBuff, 640, 0, 0, charScrnBackSurface);
 			delete frm;
 		} else {
-			BYTE *OldCharScrnBackSurface = *ptr_bckgnd; // char screen background frm surface
+			BYTE* oldCharScrnBackSurface = *ptr_bckgnd; // char screen background frm surface
 
 			// copy old charscrn surface to new
-			sub_draw(640, 480, 640, 480, 0, 0, OldCharScrnBackSurface, 640, 480, 0, 0, charScrnBackSurface, 0);
+			surface_draw(640, 480, 640, 0, 0, oldCharScrnBackSurface, 640, 0, 0, charScrnBackSurface);
 
 			// copy Tag Skill Counter background to the right
-			sub_draw(38, 26, 640, 480, 519, 228, OldCharScrnBackSurface, 640, 480, 519 + 36, 228, charScrnBackSurface, 0);
+			surface_draw(38, 26, 640, 519, 228, oldCharScrnBackSurface, 640, 519 + 36, 228, charScrnBackSurface);
 
 			// copy a blank part of the Tag Skill Bar hiding the old counter
-			sub_draw(38, 26, 640, 480, 460, 228, OldCharScrnBackSurface, 640, 480, 519, 228, charScrnBackSurface, 0);
+			surface_draw(38, 26, 640, 460, 228, oldCharScrnBackSurface, 640, 519, 228, charScrnBackSurface);
 
-			sub_draw(36, 258, 640, 480, 332, 0, OldCharScrnBackSurface, 640, 480, 408, 0, charScrnBackSurface, 0); // shift behind button rail
-			sub_draw(6, 32, 640, 480, 331, 233, OldCharScrnBackSurface, 640, 480, 330, 6, charScrnBackSurface, 0); // shadow for style/race button
+			surface_draw(36, 258, 640, 332, 0, oldCharScrnBackSurface, 640, 408, 0, charScrnBackSurface); // shift behind button rail
+			surface_draw(6, 32, 640, 331, 233, oldCharScrnBackSurface, 640, 330, 6, charScrnBackSurface); // shadow for style/race button
 
 			DWORD FrmObj, FrmMaskObj; // frm objects for char screen Appearance button
 			BYTE *FrmSurface, *FrmMaskSurface;
 
 			FrmSurface = GetFrmSurface(BuildFrmId(OBJ_TYPE_INTRFACE, 113), 0, 0, &FrmObj); // "Use Item On" window
-			sub_draw(81, 132, 292, 376, 163, 20, FrmSurface, 640, 480, 331, 63, charScrnBackSurface, 0);  // char view win
-			sub_draw(79, 31, 292, 376, 154, 228, FrmSurface, 640, 480, 331, 32, charScrnBackSurface, 0);  // upper  char view win
-			sub_draw(79, 30, 292, 376, 158, 236, FrmSurface, 640, 480, 331, 195, charScrnBackSurface, 0); // lower  char view win
+
+			surface_draw(81, 132, 292, 163, 20, FrmSurface, 640, 331, 63, charScrnBackSurface);  // char view win
+			surface_draw(79, 31, 292, 154, 228, FrmSurface, 640, 331, 32, charScrnBackSurface);  // upper  char view win
+			surface_draw(79, 30, 292, 158, 236, FrmSurface, 640, 331, 195, charScrnBackSurface); // lower  char view win
+
 			UnloadFrm(FrmObj);
 
 			// Sexoff Frm
 			FrmSurface = GetFrmSurface(BuildFrmId(OBJ_TYPE_INTRFACE, 188), 0, 0, &FrmObj);
+			BYTE* newFrmSurface = new BYTE [80 * 32];
+			surface_draw(80, 32, 80, 0, 0, FrmSurface, 80, 0, 0, newFrmSurface);
+			UnloadFrm(FrmObj);
+
 			// Sex button mask frm
 			FrmMaskSurface = GetFrmSurface(BuildFrmId(OBJ_TYPE_INTRFACE, 187), 0, 0, &FrmMaskObj);
-
-			sub_draw(80, 28, 80, 32, 0, 0, FrmMaskSurface, 80, 32, 0, 0, FrmSurface, 0x39); // mask for style and race buttons
+			// crop the Sexoff image by mask
+			surface_draw(80, 28, 80, 0, 0, FrmMaskSurface, 80, 0, 0, newFrmSurface, 0x39); // mask for style and race buttons
 			UnloadFrm(FrmMaskObj);
-			FrmMaskSurface = nullptr;
 
-			FrmSurface[80 * 32 - 1] = 0;
-			FrmSurface[80 * 31 - 1] = 0;
-			FrmSurface[80 * 30 - 1] = 0;
+			newFrmSurface[80 * 32 - 1] = 0;
+			newFrmSurface[80 * 31 - 1] = 0;
+			newFrmSurface[80 * 30 - 1] = 0;
 
-			FrmSurface[80 * 32 - 2] = 0;
-			FrmSurface[80 * 31 - 2] = 0;
-			FrmSurface[80 * 30 - 2] = 0;
+			newFrmSurface[80 * 32 - 2] = 0;
+			newFrmSurface[80 * 31 - 2] = 0;
+			newFrmSurface[80 * 30 - 2] = 0;
 
-			FrmSurface[80 * 32 - 3] = 0;
-			FrmSurface[80 * 31 - 3] = 0;
-			FrmSurface[80 * 30 - 3] = 0;
+			newFrmSurface[80 * 32 - 3] = 0;
+			newFrmSurface[80 * 31 - 3] = 0;
+			newFrmSurface[80 * 30 - 3] = 0;
 
-			FrmSurface[80 * 32 - 4] = 0;
-			FrmSurface[80 * 31 - 4] = 0;
-			FrmSurface[80 * 30 - 4] = 0;
+			newFrmSurface[80 * 32 - 4] = 0;
+			newFrmSurface[80 * 31 - 4] = 0;
+			newFrmSurface[80 * 30 - 4] = 0;
 
-			sub_draw(80, 32, 80, 32, 0, 0, FrmSurface, 640, 480, 332, 0, charScrnBackSurface, 0);   // style and race buttons
-			sub_draw(80, 32, 80, 32, 0, 0, FrmSurface, 640, 480, 332, 225, charScrnBackSurface, 0); // style and race buttons
-			UnloadFrm(FrmObj);
+			surface_draw(80, 32, 80, 0, 0, newFrmSurface, 640, 332,   0, charScrnBackSurface, 0); // race buttons
+			surface_draw(80, 32, 80, 0, 0, newFrmSurface, 640, 332, 225, charScrnBackSurface, 0); // style buttons
+			delete[] newFrmSurface;
 
 			// frm background for char screen Appearance button
 			if (*ptr_glblmode && (styleButtons || raceButtons)) {
 				FrmSurface = GetFrmSurface(BuildFrmId(OBJ_TYPE_INTRFACE, 174), 0, 0, &FrmObj); // Pickchar frm
-				if (raceButtons)  sub_draw(69, 20, 640, 480, 281, 319, FrmSurface, 640, 480, 337,  36, charScrnBackSurface, 0); // button backround top
-				if (styleButtons) sub_draw(69, 20, 640, 480, 281, 319, FrmSurface, 640, 480, 337, 198, charScrnBackSurface, 0); // button backround bottom
+				if (raceButtons)  surface_draw(69, 20, 640, 281, 319, FrmSurface, 640, 337,  36, charScrnBackSurface); // button backround top
+				if (styleButtons) surface_draw(69, 20, 640, 281, 319, FrmSurface, 640, 337, 198, charScrnBackSurface); // button backround bottom
 				UnloadFrm(FrmObj);
 			}
-			FrmSurface = nullptr;
 		}
 
 		int oldFont = GetFont();

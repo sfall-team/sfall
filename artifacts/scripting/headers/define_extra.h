@@ -334,6 +334,6 @@
 #define OBJ_DATA_COMBAT_STATE       (0x3C) // flags: 1 - combat, 2 - target is out of range, 4 - flee
 #define OBJ_DATA_CUR_ACTION_POINT   (0x40)
 #define OBJ_DATA_DAMAGE_LAST_TURN   (0x48)
-#define OBJ_DATA_WHO_HIT_ME         (0x54)
+#define OBJ_DATA_WHO_HIT_ME         (0x54) // current target of the critter
 
 #endif // DEFINE_EXTRA_H
