@@ -45,7 +45,7 @@ void sf_sqrt(OpcodeContext& ctx) {
 
 void sf_abs(OpcodeContext& ctx) {
 	if (ctx.arg(0).isInt()) {
-		ctx.setReturn(abs((int)ctx.arg(0).rawValue()));
+		ctx.setReturn(abs(static_cast<int>(ctx.arg(0).rawValue())));
 	} else {
 		ctx.setReturn(abs(ctx.arg(0).asFloat()));
 	}
@@ -74,7 +74,7 @@ void sf_power(OpcodeContext& ctx) {
 	if (power.isFloat())
 		result = pow(base.asFloat(), power.floatValue());
 	else
-		result = pow(base.asFloat(), (int)power.rawValue());
+		result = pow(base.asFloat(), static_cast<int>(power.rawValue()));
 
 	if (base.isInt() && power.isInt()) {
 		ctx.setReturn(static_cast<int>(result));
