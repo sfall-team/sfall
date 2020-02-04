@@ -21,3 +21,4 @@
 extern DWORD LSPageOffset;
 
 void ExtraSaveSlotsInit();
+void ExtraSaveSlotsExit();

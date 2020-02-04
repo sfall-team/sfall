@@ -773,6 +773,7 @@ static void _stdcall OnExit() {
 	SkillsExit();
 	ReputationsExit();
 	ConsoleExit();
+	ExtraSaveSlotsExit();
 	BooksExit();
 	//gExtraGameMsgLists.clear();
 	AnimationsExit();
