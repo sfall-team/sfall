@@ -1122,6 +1122,10 @@ long __stdcall DbFWriteByteCount(DbFile* file, const BYTE* cptr, long count);
 
 long __stdcall DbFWriteInt(DbFile* file, long value);
 
+void* __stdcall DbaseOpen(const char* fileName);
+
+void __stdcall DbaseClose(void* dbPtr);
+
 // Check fallout file and get file size (result 0 - file exists)
 long __stdcall DbDirEntry(const char *fileName, DWORD *sizeOut);
 
@@ -1150,6 +1154,8 @@ long __stdcall IntfaceIsHidden();
 void __stdcall IntfaceRedraw();
 
 void __stdcall ProcessBk();
+
+void __stdcall ProtoDudeUpdateGender();
 
 // critter worn item (armor)
 TGameObj* __stdcall InvenWorn(TGameObj* critter);
@@ -1205,6 +1211,8 @@ long __stdcall Gmouse3dGetMode();
 
 void __stdcall Gmouse3dSetMode(long mode);
 
+long __stdcall GmouseSetCursor(long picNum);
+
 long __stdcall GsoundBackgroundVolumeGetSet(long setVolume);
 
 WINinfo* __stdcall GNWFind(long winRef);
@@ -1251,13 +1259,23 @@ FrmFrameData* __fastcall FramePtr(FrmHeaderData* frm, long frame, long direction
 
 void __stdcall MapDirErase(const char* folder, const char* ext);
 
+void __stdcall MouseGetPosition(long* outX, long* outY);
+
+void __stdcall MouseShow();
+
+void __stdcall MouseHide();
+
 TGameObj* __fastcall ObjBlockingAt(TGameObj* object, long tile, long elevation);
 
 long __fastcall ObjNewSidInst(TGameObj* object, long sType, long scriptIndex);
 
-long __stdcall LoadMsgList(MSGList *msgList, const char *msgFilePath);
+// loads MSG file into given MessageList
+long __stdcall MessageLoad(MSGList *msgList, const char *msgFilePath);
 
-long __stdcall DestroyMsgList(MSGList *msgList);
+// destroys message list
+long __stdcall MessageExit(MSGList *msgList);
+
+long __stdcall TextFont(long fontNum);
 
 long __fastcall TileNum(long x, long y);
 
@@ -1293,9 +1311,25 @@ long __fastcall MessageFind(DWORD* msgFile, long msgNumber, DWORD* outBuf);
 
 long __fastcall MouseClickIn(long x, long y, long x_end, long y_end);
 
+void __stdcall ArtFlush();
+
 const char* __stdcall ArtGetName(long artFID);
 
+long __stdcall ArtId(long artType, long lstIndex, long animCode, long weaponCode, long directionCode);
+
+BYTE* __stdcall ArtFrameData(FrmHeaderData* frm, long frameNum, long rotation);
+
+long __stdcall ArtFrameWidth(FrmHeaderData* frm, long frameNum, long rotation);
+
+long __stdcall ArtFrameLength(FrmHeaderData* frm, long frameNum, long rotation);
+
+FrmHeaderData* __stdcall ArtPtrLock(long frmId, DWORD* lockPtr);
+
 BYTE* __stdcall ArtPtrLockData(long frmId, long frameNum, long rotation, DWORD* lockPtr);
+
+BYTE* __stdcall ArtLock(long frmId, DWORD* lockPtr, long* widthOut, long* heightOut);
+
+long __stdcall ArtPtrUnlock(DWORD lockId);
 
 long __stdcall LoadFrame(const char* filename, FrmFile** frmPtr);
 

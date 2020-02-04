@@ -131,7 +131,7 @@ void ReadExtraGameMsgFiles() {
 		if (length > 0) {
 			std::string path = "game\\" + names.substr(begin, length) + ".msg";
 			MSGList* list = new MSGList;
-			if (LoadMsgList(list, path.c_str()) == 1) {
+			if (MessageLoad(list, path.c_str()) == 1) {
 				gExtraGameMsgLists.insert(std::make_pair(0x2000 + number, list));
 			} else {
 				delete list;
@@ -152,7 +152,7 @@ void FallbackEnglishLoadMsgFiles() {
 
 void ClearReadExtraGameMsgFiles() {
 	for (ExtraGameMessageListsMap::iterator it = gExtraGameMsgLists.begin(); it != gExtraGameMsgLists.end(); ++it) {
-		DestroyMsgList(it->second);
+		MessageExit(it->second);
 		delete it->second;
 	}
 }

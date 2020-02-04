@@ -1,6 +1,7 @@
 #pragma once
 
-template<typename T> void _stdcall SafeWrite(DWORD addr, T data) {
+template <typename T>
+void _stdcall SafeWrite(DWORD addr, T data) {
 	DWORD oldProtect;
 	VirtualProtect((void*)addr, sizeof(T), PAGE_EXECUTE_READWRITE, &oldProtect);
 	*((T*)addr) = data;

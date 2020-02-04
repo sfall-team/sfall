@@ -947,6 +947,14 @@ long __stdcall DbFWriteInt(DbFile* file, long value) {
 	WRAP_WATCOM_CALL2(db_fwriteInt_, file, value)
 }
 
+void* __stdcall DbaseOpen(const char* fileName) {
+	WRAP_WATCOM_CALL1(dbase_open_, fileName)
+}
+
+void __stdcall DbaseClose(void* dbPtr) {
+	WRAP_WATCOM_CALL1(dbase_close_, dbPtr)
+}
+
 // Check fallout file and get file size (result 0 - file exists)
 long __stdcall DbDirEntry(const char *fileName, DWORD *sizeOut) {
 	WRAP_WATCOM_CALL2(db_dir_entry_, fileName, sizeOut)
@@ -1001,6 +1009,10 @@ void __stdcall IntfaceRedraw() {
 
 void __stdcall ProcessBk() {
 	WRAP_WATCOM_CALL0(process_bk_)
+}
+
+void __stdcall ProtoDudeUpdateGender() {
+	WRAP_WATCOM_CALL0(proto_dude_update_gender_)
 }
 
 // pops value type from Data stack (must be followed by InterpretPopLong)
@@ -1221,6 +1233,10 @@ void __stdcall Gmouse3dSetMode(long mode) {
 	WRAP_WATCOM_CALL1(gmouse_3d_set_mode_, mode)
 }
 
+long __stdcall GmouseSetCursor(long picNum) {
+	WRAP_WATCOM_CALL1(gmouse_set_cursor_, picNum)
+}
+
 long __stdcall GsoundBackgroundVolumeGetSet(long setVolume) {
 	WRAP_WATCOM_CALL1(gsound_background_volume_get_set_, setVolume)
 }
@@ -1329,6 +1345,18 @@ void __stdcall MapDirErase(const char* folder, const char* ext) {
 	WRAP_WATCOM_CALL2(MapDirErase_, folder, ext)
 }
 
+void __stdcall MouseGetPosition(long* outX, long* outY) {
+	WRAP_WATCOM_CALL2(mouse_get_position_, outX, outY)
+}
+
+void __stdcall MouseShow() {
+	WRAP_WATCOM_CALL0(mouse_show_)
+}
+
+void __stdcall MouseHide() {
+	WRAP_WATCOM_CALL0(mouse_hide_)
+}
+
 TGameObj* __fastcall ObjBlockingAt(TGameObj* object, long tile, long elevation) {
 	WRAP_WATCOM_FCALL3(obj_blocking_at_, object, tile, elevation)
 }
@@ -1337,12 +1365,16 @@ long __fastcall ObjNewSidInst(TGameObj* object, long sType, long scriptIndex) {
 	WRAP_WATCOM_FCALL3(obj_new_sid_inst_, object, sType, scriptIndex)
 }
 
-long __stdcall LoadMsgList(MSGList *msgList, const char *msgFilePath) {
+long __stdcall MessageLoad(MSGList *msgList, const char *msgFilePath) {
 	WRAP_WATCOM_CALL2(message_load_, msgList, msgFilePath)
 }
 
-long __stdcall DestroyMsgList(MSGList *msgList) {
+long __stdcall MessageExit(MSGList *msgList) {
 	WRAP_WATCOM_CALL1(message_exit_, msgList)
+}
+
+long __stdcall TextFont(long fontNum) {
+	WRAP_WATCOM_CALL1(text_font_, fontNum)
 }
 
 long __fastcall TileNum(long x, long y) {
@@ -1423,12 +1455,44 @@ long __fastcall MouseClickIn(long x, long y, long x_end, long y_end) {
 	WRAP_WATCOM_FCALL4(mouse_click_in_, x, y, x_end, y_end)
 }
 
+void __stdcall ArtFlush() {
+	WRAP_WATCOM_CALL0(art_flush_)
+}
+
 const char* __stdcall ArtGetName(long artFID) {
 	WRAP_WATCOM_CALL1(art_get_name_, artFID)
 }
 
+long __stdcall ArtId(long artType, long lstIndex, long animCode, long weaponCode, long directionCode) {
+	WRAP_WATCOM_CALL5(art_id_, artType, lstIndex, animCode, weaponCode, directionCode)
+}
+
+BYTE* __stdcall ArtFrameData(FrmHeaderData* frm, long frameNum, long rotation) {
+	WRAP_WATCOM_CALL3(art_frame_data_, frm, frameNum, rotation)
+}
+
+long __stdcall ArtFrameWidth(FrmHeaderData* frm, long frameNum, long rotation) {
+	WRAP_WATCOM_CALL3(art_frame_width_, frm, frameNum, rotation)
+}
+
+long __stdcall ArtFrameLength(FrmHeaderData* frm, long frameNum, long rotation) {
+	WRAP_WATCOM_CALL3(art_frame_length_, frm, frameNum, rotation)
+}
+
+FrmHeaderData* __stdcall ArtPtrLock(long frmId, DWORD* lockPtr) {
+	WRAP_WATCOM_CALL2(art_ptr_lock_, frmId, lockPtr)
+}
+
 BYTE* __stdcall ArtPtrLockData(long frmId, long frameNum, long rotation, DWORD* lockPtr) {
 	WRAP_WATCOM_CALL4(art_ptr_lock_data_, frmId, frameNum, rotation, lockPtr)
+}
+
+BYTE* __stdcall ArtLock(long frmId, DWORD* lockPtr, long* widthOut, long* heightOut) {
+	WRAP_WATCOM_CALL4(art_lock_, frmId, lockPtr, widthOut, heightOut)
+}
+
+long __stdcall ArtPtrUnlock(DWORD lockId) {
+	WRAP_WATCOM_CALL1(art_ptr_unlock_, lockId)
 }
 
 long __stdcall LoadFrame(const char* filename, FrmFile** frmPtr) {
