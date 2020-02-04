@@ -76,21 +76,6 @@ static long GetFont() {
 	return fo::var::curr_font_num;
 }
 
-/*
-int WordWrap(char *TextMsg, DWORD lineLength, WORD *lineNum, WORD *lineOffsets) {
-	int retVal;
-	__asm {
-		mov ebx, lineOffsets
-		mov ecx, lineNum
-		mov edx, lineLength
-		mov eax, TextMsg
-		call fo::funcoffs::_word_wrap_
-		mov retVal, eax
-	}
-	return retVal;
-}
-*/
-
 static bool CreateWordWrapList(char *TextMsg, DWORD WrapWidth, DWORD *lineNum, LineNode *StartLine) {
 	*lineNum = 1;
 
