@@ -19,10 +19,12 @@
 #include "main.h"
 #include "FalloutEngine.h"
 
-#define EXITCODE_BREAK      (-1)
-#define EXITCODE_NORMAL     (0)
-#define EXITCODE_ERROR      (1)
-#define EXITCODE_NEXTQUEST  (2)
+enum ExitCode : int {
+	EXITCODE_Break = -1,
+	EXITCODE_Normal,
+	EXITCODE_Error,
+	EXITCODE_NextQuest
+};
 
 static int questsButtonsType;
 static int questsScrollButtonsX;
@@ -41,7 +43,7 @@ static DWORD curent_quest_page = 0;
 static DWORD look_quests = 0;         // check current quests
 
 static DWORD first_quest_page = 0;
-static DWORD last_quest_page = MAXINT;
+static DWORD last_quest_page = INT_MAX;
 
 static std::vector<int> pageQuest;
 
@@ -98,7 +100,7 @@ static void ResetPageValues() {
 	curent_quest_page = 0;
 	total_quests_pages = 0;
 	first_quest_page = 0;
-	last_quest_page = MAXINT;
+	last_quest_page = INT_MAX;
 }
 
 // Event of entering the quest list and up/down keystrokes
@@ -175,7 +177,7 @@ static long __fastcall QuestsPrint(const char* text, int width, DWORD* buf, BYTE
 	look_quests++; // quests counter
 
 	if (outRangeFlag) {
-		if (pageFlag) return EXITCODE_BREAK; // pages are already counted
+		if (pageFlag) return EXITCODE_Break; // pages are already counted
 		// count the number of pages
 		WordWrap(text, width, buf, count);
 
@@ -186,28 +188,28 @@ static long __fastcall QuestsPrint(const char* text, int width, DWORD* buf, BYTE
 		} else {
 			*ptr_cursor_line += lines;
 		}
-		return EXITCODE_NEXTQUEST;
+		return EXITCODE_NextQuest;
 	}
 
 	// check if current quest is in range
 	if (look_quests < first_quest_page) { // check lower range
-		return EXITCODE_NEXTQUEST;
+		return EXITCODE_NextQuest;
 	}
 	if (look_quests > last_quest_page) {  // check upper range
-		return EXITCODE_BREAK;           // exit from quests loop
+		return EXITCODE_Break;           // exit from quests loop
 	}
 
-	if (WordWrap(text, width, buf, count) == -1) return EXITCODE_ERROR; // error wrap
+	if (WordWrap(text, width, buf, count) == -1) return EXITCODE_Error; // error wrap
 
-	if (!pageFlag || last_quest_page == MAXINT) {        // pages have not been calculated yet
+	if (!pageFlag || last_quest_page == INT_MAX) {        // pages have not been calculated yet
 		// check whether the text of the quest leaves the current page
 		int lines = 2 * ((int)*count - 1);
 		if (*ptr_cursor_line + lines >= *ptr_bottom_line) {
 			AddPage(lines); // quest does not fit in the current page, we add a page
-			return EXITCODE_NEXTQUEST;
+			return EXITCODE_NextQuest;
 		}
 	}
-	return EXITCODE_NORMAL;
+	return EXITCODE_Normal;
 }
 
 static const DWORD PipStatus_NormalRet = 0x49818B;
@@ -311,7 +313,7 @@ static DWORD __fastcall ActionButtons(register DWORD key) {
 			first_quest_page = pageQuest[curent_quest_page];
 			last_quest_page  = ((pageQuest.size() - 1) > curent_quest_page)
 							? pageQuest[curent_quest_page + 1] - 1
-							: MAXINT;
+							: INT_MAX;
 			buttonsPressed = true;
 			return called_quest_number;
 		}
