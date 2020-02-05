@@ -140,6 +140,8 @@
 #define _last_buttons               0x51E2AC
 #define _last_button_winID          0x51E404
 #define _last_level                 0x5707B4
+#define _lastMovieH                 0x638E64
+#define _lastMovieW                 0x638E68
 #define _Level_                     0x6681B0
 #define _Lifegiver                  0x570854
 #define _lips_draw_head             0x519248
