@@ -121,6 +121,8 @@
 #define FO_VAR_last_buttons               0x51E2AC
 #define FO_VAR_last_button_winID          0x51E404
 #define FO_VAR_last_level                 0x5707B4
+#define FO_VAR_lastMovieH                 0x638E64
+#define FO_VAR_lastMovieW                 0x638E68
 #define FO_VAR_Level_                     0x6681B0
 #define FO_VAR_Lifegiver                  0x570854
 #define FO_VAR_lips_draw_head             0x519248
