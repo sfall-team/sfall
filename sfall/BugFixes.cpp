@@ -2482,6 +2482,30 @@ static void __declspec(naked) main_death_scene_hook() {
 	}
 }
 
+static void __declspec(naked) action_loot_container_hack() {
+	__asm {
+		cmp dword ptr [esp + 0x10 + 4], 0x44C1D9 + 5;
+		je  fix;
+		xor eax, eax; // set ZF
+		retn;
+fix:
+		sub  esp, 4;
+		mov  edx, esp;
+		call proto_ptr_;
+		mov  edx, [esp];
+		add  esp, 4;
+		test [edx + 0x20], CFLG_NoSteal; // critter flags
+		jnz  look;
+		retn;
+look:
+		mov  eax, esi;
+		mov  edx, edi;
+		call obj_examine_;
+		or   eax, 1; // unset ZF
+		retn;
+	}
+}
+
 void BugFixesInit()
 {
 	#ifndef NDEBUG
@@ -3132,4 +3156,9 @@ void BugFixesInit()
 
 	// Fix the playback of the speech sound file for the death screen
 	HookCall(0x481409, main_death_scene_hook);
+
+	// Fix for trying to loot corpses with the "NoSteal" flag
+	SafeWrite8(0x4123F2, 0x64); // protoId
+	BlockCall(0x4123F3);
+	MakeCall(0x4123F8, action_loot_container_hack, 1);
 }

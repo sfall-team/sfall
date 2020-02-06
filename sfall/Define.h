@@ -287,6 +287,24 @@ enum Skill : long
 	SKILL_count = 18
 };
 
+enum CritterFlags : long
+{
+	CFLG_Sneak        = 0x01,   // Can sneak ?
+	CFLG_Barter       = 0x02,   // Can trade with
+	CFLG_Level        = 0x04,   // Level received ?
+	CFLG_Addict       = 0x08,   // Drug addiction ?
+	CFLG_NoSteal      = 0x20,   // Can't be stolen from
+	CFLG_NoDrop       = 0x40,   // Doesn't drop items
+	CFLG_NoLimbs      = 0x80,   // Can't lose limbs
+	CFLG_DeadAges     = 0x100,  // Dead body does not disappear
+	CFLG_NoHeal       = 0x200,  // Damage is not healed with time
+	CFLG_Invlunerable = 0x400,  // Is Invlunerable (cannot be hurt)
+	CFLG_NotFlattens  = 0x800,  // Doesn't flatten on death (leaves no dead body)
+	CFLG_SpecialDeath = 0x1000, // Has a special type of death
+	CFLG_RangeHth     = 0x2000, // Has extra hand-to-hand range
+	CFLG_NoKnockBack  = 0x4000, // Can't be knocked back
+};
+
 //XXXXXXXXXXXXXXXXXXXXXXXXXX
 //XX Combat Flags defines XX
 //XXXXXXXXXXXXXXXXXXXXXXXXXX

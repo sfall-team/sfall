@@ -811,6 +811,7 @@ extern const DWORD obj_dist_;
 extern const DWORD obj_dist_with_tile_;
 extern const DWORD obj_drop_;
 extern const DWORD obj_erase_object_;
+extern const DWORD obj_examine_;
 extern const DWORD obj_find_first_;
 extern const DWORD obj_find_first_at_;
 extern const DWORD obj_find_first_at_tile_; //  <eax>(int elevation<eax>, int tile<edx>)

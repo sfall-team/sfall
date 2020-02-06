@@ -547,6 +547,7 @@ const DWORD obj_dist_ = 0x48BBD4;
 const DWORD obj_dist_with_tile_ = 0x48BC08;
 const DWORD obj_drop_ = 0x49B8B0;
 const DWORD obj_erase_object_ = 0x48B0FC;
+const DWORD obj_examine_ = 0x49AD78;
 const DWORD obj_find_first_ = 0x48B3A8;
 const DWORD obj_find_first_at_ = 0x48B48C;
 const DWORD obj_find_first_at_tile_ = 0x48B5A8;
@@ -1055,11 +1056,8 @@ DWORD __fastcall InterpretGetValue(TProgram* scriptPtr, DWORD &outType) {
 		mov  edx, eax;
 		mov  eax, ecx;
 		call interpretPopLong_; // pops value from Data stack (must be preceded by InterpretPopShort)
-		cmp  dx, VAR_TYPE_STR2;
-		je   getStr;
 		cmp  dx, VAR_TYPE_STR;
-		jne  isNotStr;
-getStr:
+		ja   isNotStr;
 		mov  ebx, eax;
 		mov  eax, ecx;
 		call interpretGetString_; // retrieve string argument
