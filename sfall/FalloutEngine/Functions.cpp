@@ -258,11 +258,8 @@ DWORD __fastcall interpretGetValue(Program* scriptPtr, DWORD &outType) {
 		mov  edx, eax;
 		mov  eax, ecx;
 		call fo::funcoffs::interpretPopLong_; // pops value from Data stack (must be preceded by InterpretPopShort)
-		cmp  dx, VAR_TYPE_STR2;
-		je   getStr;
 		cmp  dx, VAR_TYPE_STR;
-		jne  isNotStr;
-getStr:
+		ja   isNotStr;
 		mov  ebx, eax;
 		mov  eax, ecx;
 		call fo::funcoffs::interpretGetString_; // retrieve string argument
