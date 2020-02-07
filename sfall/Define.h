@@ -294,14 +294,14 @@ enum CritterFlags : long
 	CFLG_Level        = 0x04,   // Level received ?
 	CFLG_Addict       = 0x08,   // Drug addiction ?
 	CFLG_NoSteal      = 0x20,   // Can't be stolen from
-	CFLG_NoDrop       = 0x40,   // Can't Drop items
+	CFLG_NoDrop       = 0x40,   // Doesn't drop items
 	CFLG_NoLimbs      = 0x80,   // Can't lose limbs
-	CFLG_NoAges       = 0x100,  // Dead Bodies Can't Age
-	CFLG_NoHeal       = 0x200,  // Can't Heal by Aging
+	CFLG_NoAges       = 0x100,  // Dead body does not disappear
+	CFLG_NoHeal       = 0x200,  // Damage is not healed with time
 	CFLG_Invulnerable = 0x400,  // Is Invulnerable (cannot be hurt)
-	CFLG_NoFlatten    = 0x800,  // Can't Flatten on Death (leaves no dead body)
-	CFLG_SpecialDeath = 0x1000, // Has Special Death
-	CFLG_RangeHth     = 0x2000, // Has Extra Hand-To-Hand Range
+	CFLG_NoFlatten    = 0x800,  // Doesn't flatten on death (leaves no dead body)
+	CFLG_SpecialDeath = 0x1000, // Has a special type of death
+	CFLG_RangeHth     = 0x2000, // Has extra hand-to-hand range
 	CFLG_NoKnockBack  = 0x4000, // Can't be knocked back
 };
 
