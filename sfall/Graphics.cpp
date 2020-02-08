@@ -32,7 +32,7 @@
 
 #include "FalloutEngine.h"
 #include "Graphics.h"
-#include "input.h"
+#include "InputFuncs.h"
 #include "LoadGameHook.h"
 #include "TalkingHeads.h"
 #include "Version.h"

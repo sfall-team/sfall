@@ -1,7 +1,10 @@
 #pragma once
+
 #include "main.h"
+
 #include <functional>
 #include <unordered_map>
+#include <Windows.h>
 
 #define ARRAY_MAX_STRING        (255)  // maximum length of string to be stored as array key or value
 #define ARRAY_MAX_SIZE       (100000)  // maximum number of array elements,

@@ -18,10 +18,11 @@
 
 #pragma once
 
+#include <Windows.h>
+
 extern bool useScrollWheel;
 extern bool middleMouseDown;
 
-void SetMPMode(bool active);
 void SetMDown(bool down, bool right);
 void SetMPos(int x, int y);
 

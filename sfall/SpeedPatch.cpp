@@ -21,7 +21,7 @@
 #include "main.h"
 
 #include "FalloutEngine.h"
-#include "input.h"
+#include "InputFuncs.h"
 #include "LoadGameHook.h"
 
 static const DWORD offsets[] = {

@@ -30,7 +30,7 @@
 #include "FileSystem.h"
 #include "Graphics.h"
 #include "HeroAppearance.h"
-#include "input.h"
+#include "InputFuncs.h"
 #include "Interface.h"
 #include "Inventory.h"
 #include "LoadGameHook.h"

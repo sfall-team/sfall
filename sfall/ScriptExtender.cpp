@@ -26,7 +26,7 @@
 #include "Console.h"
 #include "Explosions.h"
 #include "HookScripts.h"
-#include "input.h"
+#include "InputFuncs.h"
 #include "LoadGameHook.h"
 #include "Logging.h"
 #include "ScriptExtender.h"

@@ -20,7 +20,7 @@
 
 #include "main.h"
 #include "FalloutEngine.h"
-#include "input.h"
+#include "InputFuncs.h"
 #include "Inventory.h"
 #include "LoadGameHook.h"
 

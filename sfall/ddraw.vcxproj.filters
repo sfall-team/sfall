@@ -45,7 +45,7 @@
     <ClInclude Include="HookScripts.h">
       <Filter>Headers</Filter>
     </ClInclude>
-    <ClInclude Include="input.h">
+    <ClInclude Include="InputFuncs.h">
       <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="KillCounter.h">
@@ -240,7 +240,7 @@
     <ClCompile Include="DebugEditor.cpp">
       <Filter>Source</Filter>
     </ClCompile>
-    <ClCompile Include="dinput.cpp">
+    <ClCompile Include="InputFuncs.cpp">
       <Filter>Source</Filter>
     </ClCompile>
     <ClCompile Include="Elevators.cpp">

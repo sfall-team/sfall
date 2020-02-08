@@ -20,7 +20,7 @@
 
 #include "main.h"
 
-#include "input.h"
+#include "InputFuncs.h"
 #include "LoadGameHook.h"
 #include "ScriptExtender.h"
 

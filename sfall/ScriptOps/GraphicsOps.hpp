@@ -20,7 +20,7 @@
 
 #include "main.h"
 #include "Graphics.h"
-#include "input.h"
+#include "InputFuncs.h"
 #include "ScriptExtender.h"
 
 // graphics_functions

@@ -27,7 +27,7 @@
 #include "Graphics.h"
 #include "ScriptExtender.h"
 #include "HookScripts.h"
-#include "input.h"
+#include "InputFuncs.h"
 #include "DebugEditor.h"
 #include "Logging.h"
 

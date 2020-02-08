@@ -18,11 +18,11 @@
 
 #pragma once
 
+#include <Windows.h>
 
 /******************************************************************************/
 /* FALLOUT2.EXE structs, function offsets and wrappers should be placed here  */
 /******************************************************************************/
-
 
 struct TGameObj;
 struct TProgram;

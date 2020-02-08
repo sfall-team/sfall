@@ -300,7 +300,7 @@
     <ClInclude Include="TalkingHeads.h" />
     <ClInclude Include="HeroAppearance.h" />
     <ClInclude Include="HookScripts.h" />
-    <ClInclude Include="input.h" />
+    <ClInclude Include="InputFuncs.h" />
     <ClInclude Include="Inventory.h" />
     <ClInclude Include="KillCounter.h" />
     <ClInclude Include="Combat.h" />
@@ -361,7 +361,7 @@
     <ClCompile Include="ddraw.cpp" />
     <ClCompile Include="Graphics.cpp" />
     <ClCompile Include="DebugEditor.cpp" />
-    <ClCompile Include="dinput.cpp" />
+    <ClCompile Include="InputFuncs.cpp" />
     <ClCompile Include="Elevators.cpp" />
     <ClCompile Include="Explosions.cpp" />
     <ClCompile Include="FalloutEngine.cpp" />
