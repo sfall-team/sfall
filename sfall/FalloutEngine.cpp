@@ -1615,7 +1615,7 @@ enum WinNameType {
 	WINTYPE_Character = 5,
 	WINTYPE_Skilldex  = 6,
 	WINTYPE_EscMenu   = 7, // escape menu
-//	WINTYPE_Automap   = 8  // for this window there is no global variable
+	//WINTYPE_Automap   = 8  // for this window there is no global variable
 };
 
 WINinfo* GetUIWindow(long winType) {

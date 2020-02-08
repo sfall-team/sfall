@@ -17,16 +17,12 @@
  */
 
 #pragma once
-
 #pragma warning(disable:4996)
-
 #ifdef NDEBUG
 #pragma warning(disable:4414)
 #endif
 
-#include <assert.h>
-//#define WIN32_LEAN_AND_MEAN
-#include <Windows.h>
+#include <cassert>
 #include <string>
 #include <vector>
 #include <cstdint>

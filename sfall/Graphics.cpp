@@ -42,7 +42,7 @@ typedef IDirect3D9* (_stdcall *D3DCreateProc)(UINT version);
 
 #define UNUSEDFUNCTION { DEBUGMESS("\n[SFALL] Unused function called: %s", __FUNCTION__); return DDERR_GENERIC; }
 
-IDirectDrawSurface* primaryDDSurface = nullptr;
+static IDirectDrawSurface* primaryDDSurface = nullptr;
 
 static DWORD ResWidth;
 static DWORD ResHeight;
@@ -655,7 +655,7 @@ void Gfx_SetHeadTex(IDirect3DTexture9* tex, int width, int height, int xoff, int
 
 	// adjust head texture position for HRP 4.1.8
 	int h = Gfx_GetGameHeightRes();
-	if (h > 480) yoff += ((h - 480) / 2) - 47;
+	if (h > 480) yoff += ((h - 480) / 2) - 47; // TODO: get dialog interface position
 	xoff += ((Gfx_GetGameWidthRes() - 640) / 2);
 
 	size[0] = (126.0f + xoff + ((388 - width) / 2)) * rcpres[0];
@@ -727,7 +727,7 @@ public:
 			}
 		} else {
 			// X8B8G8R8 format
-			for (DWORD i = b; i < b + c; i++) { // swap color R <> B
+			for (DWORD i = b; i < b + c; i++) { // swap color B <> R
 				BYTE clr = *(BYTE*)((DWORD)&palette[i]); // B
 				*(BYTE*)((DWORD)&palette[i]) = *(BYTE*)((DWORD)&palette[i] + 2); // R
 				*(BYTE*)((DWORD)&palette[i] + 2) = clr;
