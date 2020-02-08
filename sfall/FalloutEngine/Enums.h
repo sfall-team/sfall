@@ -90,6 +90,24 @@ enum Animation : long
 	ANIM_called_shot_pic = 64,
 };
 
+enum CritterFlags : long
+{
+	Sneak        = 0x01,   // Can sneak ?
+	Barter       = 0x02,   // Can trade with
+	Level        = 0x04,   // Level received ?
+	Addict       = 0x08,   // Drug addiction ?
+	NoSteal      = 0x20,   // Can't be stolen from
+	NoDrop       = 0x40,   // Doesn't drop items
+	NoLimbs      = 0x80,   // Can't lose limbs
+	NoAges       = 0x100,  // Dead body does not disappear
+	NoHeal       = 0x200,  // Damage is not healed with time
+	Invulnerable = 0x400,  // Is Invulnerable (cannot be hurt)
+	NoFlatten    = 0x800,  // Doesn't flatten on death (leaves no dead body)
+	SpecialDeath = 0x1000, // Has a special type of death
+	RangeHtH     = 0x2000, // Has extra hand-to-hand range
+	NoKnockBack  = 0x4000, // Can't be knocked back
+};
+
 enum DamageFlag : long
 {
 	DAM_KNOCKED_OUT = 0x1,
@@ -646,6 +664,30 @@ enum BodyType : long
 	Robotic                   = 2
 };
 
+enum KillType : long
+{
+	KILL_TYPE_men             = 0,
+	KILL_TYPE_women           = 1,
+	KILL_TYPE_children        = 2,
+	KILL_TYPE_super_mutant    = 3,
+	KILL_TYPE_ghoul           = 4,
+	KILL_TYPE_brahmin         = 5,
+	KILL_TYPE_radscorpion     = 6,
+	KILL_TYPE_rat             = 7,
+	KILL_TYPE_floater         = 8,
+	KILL_TYPE_centaur         = 9,
+	KILL_TYPE_robot           = 10,
+	KILL_TYPE_dog             = 11,
+	KILL_TYPE_manti           = 12,
+	KILL_TYPE_deathclaw       = 13,
+	KILL_TYPE_plant           = 14,
+	KILL_TYPE_gecko           = 15,
+	KILL_TYPE_alien           = 16,
+	KILL_TYPE_giant_ant       = 17,
+	KILL_TYPE_big_bad_boss    = 18,
+	KILL_TYPE_count
+};
+
 #define PLAYER_ID             (18000)
 
 #define OBJFLAG_CAN_WEAR_ITEMS (0xF000000)
@@ -661,6 +703,8 @@ enum BodyType : long
 #define WEAPON_TWO_HANDED     (0x200)
 
 #define AUTOMAP_MAX           (160)
+
+#define MSG_GENDER_CHECK_FLG  (0x80) // bit 8
 
 enum TicksTime : unsigned long
 {
@@ -761,6 +805,16 @@ enum QueueType : long
 	explode_fail_event = 11, // item
 	map_update_event   = 12,
 	gsound_sfx_event   = 13  // no object
+};
+
+enum DialogOutFlags : long
+{
+	DIALOGOUT_NORMAL     = 0x01, // uses regular graphic
+	DIALOGOUT_SMALL      = 0x02, // uses smaller graphic
+	DIALOGOUT_ALIGN_LEFT = 0x04, // text aligned to left
+	DIALOGOUT_ALIGN_TOP  = 0x08, // text aligned to top
+	DIALOGOUT_YESNO      = 0x10, // DONE button replaced by YES/NO buttons
+	DIALOGOUT_CLEAN      = 0x20  // no buttons
 };
 
 }

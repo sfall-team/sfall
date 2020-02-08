@@ -23,6 +23,7 @@
 #include "Anims.h"
 #include "Core.h"
 #include "Interface.h"
+#include "Math.h"
 #include "Misc.h"
 #include "Objects.h"
 #include "Perks.h"
@@ -92,6 +93,7 @@ static const SfallMetarule metarules[] = {
 	{"get_sfall_arg_at",        sf_get_sfall_arg_at,        1, 1,  0, {ARG_INT}},
 	{"get_string_pointer",      sf_get_string_pointer,      1, 1,  0, {ARG_STRING}},
 	{"get_text_width",          sf_get_text_width,          1, 1,  0, {ARG_STRING}},
+	{"get_window_attribute",    sf_get_window_attribute,    1, 2, -1, {ARG_INT, ARG_INT}},
 	{"has_fake_perk_npc",       sf_has_fake_perk_npc,       2, 2,  0, {ARG_OBJECT, ARG_STRING}},
 	{"has_fake_trait_npc",      sf_has_fake_trait_npc,      2, 2,  0, {ARG_OBJECT, ARG_STRING}},
 	{"hide_window",             sf_hide_window,             0, 1, -1, {ARG_STRING}},
@@ -104,6 +106,7 @@ static const SfallMetarule metarules[] = {
 	{"item_weight",             sf_item_weight,             1, 1,  0, {ARG_OBJECT}},
 	{"lock_is_jammed",          sf_lock_is_jammed,          1, 1,  0, {ARG_OBJECT}},
 	{"loot_obj",                sf_get_loot_object,         0, 0},
+	{"message_box",             sf_message_box,             1, 4, -1, {ARG_STRING, ARG_INT, ARG_INT, ARG_INT}},
 	{"metarule_exist",          sf_metarule_exist,          1, 1}, // no arg check
 	{"npc_engine_level_up",     sf_npc_engine_level_up,     1, 1},
 	{"obj_under_cursor",        sf_obj_under_cursor,        2, 2,  0, {ARG_INT, ARG_INT}},
@@ -127,6 +130,8 @@ static const SfallMetarule metarules[] = {
 	{"set_rest_heal_time",      sf_set_rest_heal_time,      1, 1, -1, {ARG_INT}},
 	{"set_rest_mode",           sf_set_rest_mode,           1, 1, -1, {ARG_INT}},
 	{"set_selectable_perk_npc", sf_set_selectable_perk_npc, 5, 5, -1, {ARG_OBJECT, ARG_STRING, ARG_INT, ARG_INT, ARG_STRING}},
+	{"set_terrain_name",        sf_set_terrain_name,        3, 3, -1, {ARG_INT, ARG_INT, ARG_STRING}},
+	{"set_town_title",          sf_set_town_title,          2, 2, -1, {ARG_INT, ARG_STRING}},
 	{"set_unique_id",           sf_set_unique_id,           1, 2, -1, {ARG_OBJECT, ARG_INT}},
 	{"set_unjam_locks_time",    sf_set_unjam_locks_time,    1, 1, -1, {ARG_INT}},
 	{"set_window_flag",         sf_set_window_flag,         3, 3, -1, {ARG_INTSTR, ARG_INT, ARG_INT}},
@@ -134,6 +139,7 @@ static const SfallMetarule metarules[] = {
 	{"spatial_radius",          sf_spatial_radius,          1, 1,  0, {ARG_OBJECT}},
 	{"string_compare",          sf_string_compare,          2, 3,  0, {ARG_STRING, ARG_STRING, ARG_INT}},
 	{"string_format",           sf_string_format,           2, 5,  0, {ARG_STRING, ARG_ANY, ARG_ANY, ARG_ANY, ARG_ANY}},
+	{"string_to_case",          sf_string_to_case,          2, 2, -1, {ARG_STRING, ARG_INT}},
 	{"tile_by_position",        sf_tile_by_position,        2, 2, -1, {ARG_INT, ARG_INT}},
 	{"tile_refresh_display",    sf_tile_refresh_display,    0, 0},
 	{"unjam_lock",              sf_unjam_lock,              1, 1, -1, {ARG_OBJECT}},
@@ -158,12 +164,8 @@ static void sf_metarule_exist(OpcodeContext& ctx) {
 	bool result = false;
 	auto funcXName = ctx.arg(0).asString();
 	if (funcXName[0] != '\0') {
-		for (auto it = metaruleTable.begin(); it != metaruleTable.end(); it++) {
-			if (it->first == funcXName) {
-				result = true;
-				break;
-			}
-		}
+		const auto &it = metaruleTable.find(funcXName);
+		if (it != metaruleTable.cend()) result = true;
 	}
 	ctx.setReturn(result);
 }

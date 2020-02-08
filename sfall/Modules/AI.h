@@ -16,9 +16,13 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#pragma once
+
+#include "..\FalloutEngine\Fallout2.h"
+
 #include "Module.h"
 
-namespace sfall 
+namespace sfall
 {
 
 class AI : public Module {
@@ -31,9 +35,7 @@ public:
 void _stdcall AICombatStart();
 void _stdcall AICombatEnd();
 
-DWORD _stdcall AIGetLastAttacker(DWORD target);
-DWORD _stdcall AIGetLastTarget(DWORD source);
-
-void _stdcall AIBlockCombat(DWORD i);
+fo::GameObject* _stdcall AIGetLastAttacker(fo::GameObject* target);
+fo::GameObject* _stdcall AIGetLastTarget(fo::GameObject* source);
 
 }

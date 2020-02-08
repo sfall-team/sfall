@@ -36,10 +36,10 @@ inline void DisplayPrint(const std::string& str) {
 }
 
 // returns message string from given file or "Error" when not found
-const char* _stdcall GetMessageStr(const MessageList* fileAddr, long messageId);
+const char* GetMessageStr(const MessageList* fileAddr, long messageId);
 
 // similar to GetMessageStr, but returns nullptr when no message is found
-const char* _stdcall MessageSearch(const MessageList* fileAddr, long messageId);
+const char* MessageSearch(const MessageList* fileAddr, long messageId);
 
 // returns pointer to prototype by PID, or nullptr on failure
 Proto* GetProto(long pid);
@@ -78,20 +78,41 @@ long GetScriptLocalVars(long sid);
 
 long __fastcall GetTopWindowID(long xPos, long yPos);
 
+fo::Window* GetWindow(long winType);
+
 void GetObjectsTileRadius(std::vector<fo::GameObject*> &objs, long sourceTile, long radius, long elev, long type);
 
+long wmGetCurrentTerrainType();
+
+void SurfaceCopyToMem(long fromX, long fromY, long width, long height, long fromWidth, BYTE* fromSurface, BYTE* toMem);
+
+void DrawToSurface(long toX, long toY, long width, long height, long toWidth, long toHeight, BYTE* toSurface, BYTE* fromMem);
+
+void DrawToSurface(long width, long height, long fromX, long fromY, long fromWidth, BYTE* fromSurf, long toX, long toY, long toWidth, long toHeight, BYTE* toSurf, int maskRef);
+
+void DrawToSurface(long width, long height, long fromX, long fromY, long fromWidth, BYTE* fromSurf, long toX, long toY, long toWidth, long toHeight, BYTE* toSurf);
+
 // Print text to surface
-void PrintText(char *displayText, BYTE colorIndex, DWORD x, DWORD y, DWORD textWidth, DWORD destWidth, BYTE *surface);
+void PrintText(char* displayText, BYTE colorIndex, DWORD xPos, DWORD yPos, DWORD txtWidth, DWORD toWidth, BYTE* toSurface);
+void PrintTextFM(char* displayText, BYTE colorIndex, DWORD xPos, DWORD yPos, DWORD txtWidth, DWORD toWidth, BYTE* toSurface);
+
 // gets the height of the currently selected font
 DWORD GetTextHeight();
+
 // gets the length of a string using the currently selected font
-DWORD GetTextWidth(const char *textMsg);
+DWORD GetTextWidth(const char* textMsg);
+DWORD GetTextWidthFM(const char* textMsg);
+
 // get width of Char for current font
 DWORD GetCharWidth(char charVal);
+DWORD GetCharWidthFM(char charVal);
+
 // get maximum string length for current font - if all characters were maximum width
-DWORD GetMaxTextWidth(char *textMsg);
+DWORD GetMaxTextWidth(const char* textMsg);
+
 // get number of pixels between characters for current font
 DWORD GetCharGapWidth();
+
 // get maximum character width for current font
 DWORD GetMaxCharWidth();
 

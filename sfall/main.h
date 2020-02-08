@@ -17,18 +17,15 @@
  */
 
 #pragma once
-
 #pragma warning(disable:4996)
-
 #ifdef NDEBUG
 #pragma warning(disable:4414)
 #endif
 
-#include <assert.h>
-//#define WIN32_LEAN_AND_MEAN
-#include <Windows.h>
+#include <cassert>
 #include <string>
 #include <vector>
+#include <cstdint>
 
 #include "SafeWrite.h"
 #include "Logging.h"
@@ -51,12 +48,13 @@ struct ddrawDll {
 	FARPROC DirectDrawEnumerateA;
 	FARPROC DirectDrawEnumerateExW;
 	FARPROC DirectDrawEnumerateW;
-	//FARPROC DllCanUnloadNow;
-	//FARPROC DllGetClassObject;
+	FARPROC DllCanUnloadNow;
+	FARPROC DllGetClassObject;
 	FARPROC GetDDSurfaceLocal;
 	FARPROC GetOLEThunkData;
 	FARPROC GetSurfaceFromDC;
 	FARPROC RegisterSpecialCase;
+	FARPROC SetAppCompatData;
 };
 
 namespace sfall

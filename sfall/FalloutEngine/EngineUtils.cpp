@@ -16,8 +16,7 @@
 * along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <cassert>
-#include <stdint.h>
+#include <cstdint>
 
 #include "Functions.h"
 #include "FunctionOffsets.h"
@@ -33,11 +32,11 @@ namespace fo
 
 static MessageNode messageBuf;
 
-const char* _stdcall GetMessageStr(const MessageList* fileAddr, long messageId) {
+const char* GetMessageStr(const MessageList* fileAddr, long messageId) {
 	return fo::func::getmsg(fileAddr, &messageBuf, messageId);
 }
 
-const char* _stdcall MessageSearch(const MessageList* fileAddr, long messageId) {
+const char* MessageSearch(const MessageList* fileAddr, long messageId) {
 	messageBuf.number = messageId;
 	if (fo::func::message_search(fileAddr, &messageBuf) == 1) {
 		return messageBuf.message;
@@ -118,11 +117,11 @@ long GetCurrentAttackMode() {
 		long activeHand = fo::var::itemCurrentItem; // 0 - left, 1 - right
 		switch (fo::var::itemButtonItems[activeHand].mode) {
 		case 1:
-		case 2: // 2 - called shot
+		case 2: // called shot
 			hitMode = fo::var::itemButtonItems[activeHand].primaryAttack;
 			break;
 		case 3:
-		case 4: // 4 - called shot
+		case 4: // called shot
 			hitMode = fo::var::itemButtonItems[activeHand].secondaryAttack;
 			break;
 		case 5: // reload mode
@@ -196,6 +195,51 @@ long __fastcall GetTopWindowID(long xPos, long yPos) {
 	return win->wID;
 }
 
+enum WinNameType {
+	Inventory = 0, // any inventory window (player/loot/use/barter)
+	Dialog    = 1,
+	PipBoy    = 2,
+	WorldMap  = 3,
+	IfaceBar  = 4, // the interface bar
+	Character = 5,
+	Skilldex  = 6,
+	EscMenu   = 7, // escape menu
+	//Automap   = 8  // for this window there is no global variable
+};
+
+fo::Window* GetWindow(long winType) {
+	long winID = 0;
+	switch (winType) {
+	case WinNameType::Inventory:
+		winID = fo::var::i_wid;
+		break;
+	case WinNameType::Dialog:
+		winID = fo::var::dialogueBackWindow;
+		break;
+	case WinNameType::PipBoy:
+		winID = fo::var::pip_win;
+		break;
+	case WinNameType::WorldMap:
+		winID = fo::var::wmBkWin;
+		break;
+	case WinNameType::IfaceBar:
+		winID = fo::var::interfaceWindow;
+		break;
+	case WinNameType::Character:
+		winID = fo::var::edit_win;
+		break;
+	case WinNameType::Skilldex:
+		winID = fo::var::skldxwin;
+		break;
+	case WinNameType::EscMenu:
+		winID = fo::var::optnwin;
+		break;
+	default:
+		return (fo::Window*)-1;
+	}
+	return (winID > 0) ? fo::func::GNW_find(winID) : nullptr;
+}
+
 // Returns an array of objects within the specified radius from the source tile
 void GetObjectsTileRadius(std::vector<fo::GameObject*> &objs, long sourceTile, long radius, long elev, long type = -1) {
 	for (long tile = 0; tile < 40000; tile++) {
@@ -212,87 +256,187 @@ void GetObjectsTileRadius(std::vector<fo::GameObject*> &objs, long sourceTile, l
 	}
 }
 
+// Returns the type of the terrain sub tile at the the player's position on the world map
+long wmGetCurrentTerrainType() {
+	long* terrainId = *(long**)FO_VAR_world_subtile;
+	if (terrainId == nullptr) {
+		__asm {
+			lea  ebx, terrainId;
+			mov  edx, dword ptr ds:[FO_VAR_world_ypos];
+			mov  eax, dword ptr ds:[FO_VAR_world_xpos];
+			call fo::funcoffs::wmFindCurSubTileFromPos_;
+		}
+	}
+	return *terrainId;
+}
+
 //---------------------------------------------------------
-//print text to surface
-void PrintText(char *DisplayText, BYTE ColourIndex, DWORD Xpos, DWORD Ypos, DWORD TxtWidth, DWORD ToWidth, BYTE *ToSurface) {
-	DWORD posOffset = Ypos * ToWidth + Xpos;
+// copy the area from the interface buffer to the data array
+void SurfaceCopyToMem(long fromX, long fromY, long width, long height, long fromWidth, BYTE* fromSurface, BYTE* toMem) {
+	fromSurface += fromY * fromWidth + fromX;
+	long i = 0;
+	for (long h = 0; h < height; h++) {
+		for (long w = 0; w < width; w++) {
+			toMem[i++] = fromSurface[w];
+		}
+		fromSurface += fromWidth;
+	}
+}
+
+// safe copy data from memory to the area of the interface buffer
+void DrawToSurface(long toX, long toY, long width, long height, long toWidth, long toHeight, BYTE* toSurface, BYTE* fromMem) {
+	BYTE* _toSurface = toSurface + (toY * toWidth + toX);
+	BYTE* endToSurf = (toWidth * toHeight) + toSurface;
+	long i = 0;
+	for (long h = 0; h < height; h++) {
+		for (long w = 0; w < width; w++) {
+			if (_toSurface + w > endToSurf) return;
+			if (_toSurface >= toSurface) _toSurface[w] = fromMem[i++];
+		}
+		_toSurface += toWidth;
+	}
+}
+
+// safe copy data from surface to surface with mask
+void DrawToSurface(long width, long height, long fromX, long fromY, long fromWidth, BYTE* fromSurf,
+				   long toX, long toY, long toWidth, long toHeight, BYTE* toSurf, int maskRef)
+{
+	BYTE* _fromSurf = fromSurf + (fromY * fromWidth + fromX);
+	BYTE* _toSurf =  toSurf + (toY * toWidth + toX);
+	BYTE* endToSurf = (toWidth * toHeight) + toSurf;
+
+	for (long h = 0; h < height; h++) {
+		for (long w = 0; w < width; w++) {
+			if (_toSurf + w > endToSurf) return;
+			if (_toSurf >= toSurf && _fromSurf[w] != maskRef) _toSurf[w] = _fromSurf[w];
+		}
+		_fromSurf += fromWidth;
+		_toSurf += toWidth;
+	}
+}
+
+// safe copy data from surface to surface
+void DrawToSurface(long width, long height, long fromX, long fromY, long fromWidth, BYTE* fromSurf,
+				   long toX, long toY, long toWidth, long toHeight, BYTE* toSurf)
+{
+	BYTE* _fromSurf = fromSurf + (fromY * fromWidth + fromX);
+	BYTE* _toSurf = toSurf + (toY * toWidth + toX);
+	BYTE* endToSurf = (toWidth * toHeight) + toSurf;
+
+	for (long h = 0; h < height; h++) {
+		for (long w = 0; w < width; w++) {
+			if (_toSurf + w > endToSurf) return;
+			if (_toSurf >= toSurf) _toSurf[w] = _fromSurf[w];
+		}
+		_fromSurf += fromWidth;
+		_toSurf += toWidth;
+	}
+}
+
+//---------------------------------------------------------
+// print text to surface
+void PrintText(char* displayText, BYTE colorIndex, DWORD xPos, DWORD yPos, DWORD txtWidth, DWORD toWidth, BYTE* toSurface) {
+	DWORD posOffset = yPos * toWidth + xPos;
 	__asm {
 		xor  eax, eax;
-		mov  al, ColourIndex;
+		mov  al, colorIndex;
+		mov  edx, displayText;
 		push eax;
-		mov  edx, DisplayText;
-		mov  ebx, TxtWidth;
-		mov  ecx, ToWidth;
-		mov  eax, ToSurface;
+		mov  ebx, txtWidth;
+		mov  eax, toSurface;
+		mov  ecx, toWidth;
 		add  eax, posOffset;
 		call dword ptr ds:[FO_VAR_text_to_buf];
+	}
+}
+
+void PrintTextFM(char* displayText, BYTE colorIndex, DWORD xPos, DWORD yPos, DWORD txtWidth, DWORD toWidth, BYTE* toSurface) {
+	DWORD posOffset = yPos * toWidth + xPos;
+	__asm {
+		xor  eax, eax;
+		mov  al, colorIndex;
+		mov  edx, displayText;
+		push eax;
+		mov  ebx, txtWidth;
+		mov  eax, toSurface;
+		mov  ecx, toWidth;
+		add  eax, posOffset;
+		call fo::funcoffs::FMtext_to_buf_;
 	}
 }
 
 //---------------------------------------------------------
 //gets the height of the currently selected font
 DWORD GetTextHeight() {
-	DWORD TxtHeight;
+//	DWORD TxtHeight;
 	__asm {
 		call dword ptr ds:[FO_VAR_text_height]; //get text height
-		mov  TxtHeight, eax;
+//		mov  TxtHeight, eax;
 	}
-	return TxtHeight;
+//	return TxtHeight;
 }
 
 //---------------------------------------------------------
 //gets the length of a string using the currently selected font
-DWORD GetTextWidth(const char *TextMsg) {
+DWORD GetTextWidth(const char* TextMsg) {
 	__asm {
 		mov  eax, TextMsg;
 		call dword ptr ds:[FO_VAR_text_width]; //get text width
 	}
 }
 
+DWORD GetTextWidthFM(const char* TextMsg) {
+	return fo::func::FMtext_width(TextMsg); //get text width
+}
+
 //---------------------------------------------------------
 //get width of Char for current font
-DWORD GetCharWidth(char CharVal) {
-	DWORD charWidth;
+DWORD GetCharWidth(char charVal) {
 	__asm {
-		mov  al, CharVal;
+		mov  al, charVal;
 		call dword ptr ds:[FO_VAR_text_char_width];
-		mov  charWidth, eax;
 	}
-	return charWidth;
+}
+
+DWORD GetCharWidthFM(char charVal) {
+	__asm {
+		mov  al, charVal;
+		call fo::funcoffs::FMtext_char_width_;
+	}
 }
 
 //---------------------------------------------------------
 //get maximum string length for current font - if all characters were maximum width
-DWORD GetMaxTextWidth(char *TextMsg) {
-	DWORD msgWidth;
+DWORD GetMaxTextWidth(const char* TextMsg) {
+//	DWORD msgWidth;
 	__asm {
 		mov  eax, TextMsg;
 		call dword ptr ds:[FO_VAR_text_mono_width];
-		mov  msgWidth, eax;
+//		mov  msgWidth, eax;
 	}
-	return msgWidth;
+//	return msgWidth;
 }
 
 //---------------------------------------------------------
 //get number of pixels between characters for current font
 DWORD GetCharGapWidth() {
-	DWORD gapWidth;
+//	DWORD gapWidth;
 	__asm {
 		call dword ptr ds:[FO_VAR_text_spacing];
-		mov  gapWidth, eax;
+//		mov  gapWidth, eax;
 	}
-	return gapWidth;
+//	return gapWidth;
 }
 
 //---------------------------------------------------------
 //get maximum character width for current font
 DWORD GetMaxCharWidth() {
-	DWORD charWidth = 0;
+//	DWORD charWidth = 0;
 	__asm {
 		call dword ptr ds:[FO_VAR_text_max];
-		mov  charWidth, eax;
+//		mov  charWidth, eax;
 	}
-	return charWidth;
+//	return charWidth;
 }
 
 void RedrawObject(GameObject* obj) {

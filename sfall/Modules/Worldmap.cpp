@@ -42,6 +42,9 @@ struct levelRest {
 };
 std::unordered_map<int, levelRest> mapRestInfo;
 
+std::vector<std::pair<long, std::string>> wmTerrainTypeNames; // pair first: x + y * number of horizontal sub-tiles
+std::unordered_map<long, std::string> wmAreaHotSpotTitle;
+
 static bool restMap;
 static bool restMode;
 static bool restTime;
@@ -57,6 +60,10 @@ static float scriptMapMulti = 1.0;
 
 static bool addYear = false; // used as additional years indicator
 static DWORD addedYears = 0;
+
+static void __stdcall WorldmapLoopHook() {
+	onWorldmapLoop.invoke();
+}
 
 static __declspec(naked) void TimeDateFix() {
 	__asm {
@@ -120,10 +127,6 @@ end:
 	}
 }
 
-static void __stdcall WorldmapLoopHook() {
-	onWorldmapLoop.invoke();
-}
-
 static void __declspec(naked) WorldMapFpsPatch() {
 	__asm {
 		push dword ptr ds:[FO_VAR_last_buttons];
@@ -177,9 +180,9 @@ subLoop:
 // Only used if the world map speed patch is disabled, so that world map scripts are still run
 static void __declspec(naked) wmWorldMap_hook() {
 	__asm {
-		pushadc;
+		//pushadc;
 		call WorldmapLoopHook;
-		popadc;
+		//popadc;
 		jmp  fo::funcoffs::get_input_;
 	}
 }
@@ -207,25 +210,6 @@ static void __declspec(naked) ViewportHook() {
 		mov  eax, ViewportY;
 		mov  ds:[FO_VAR_wmWorldOffsetY], eax;
 		retn;
-	}
-}
-
-static void __declspec(naked) wmTownMapFunc_hack() {
-	__asm {
-		cmp  dword ptr [edi][eax * 4 + 0], 0;  // Visited
-		je   end;
-		cmp  dword ptr [edi][eax * 4 + 4], -1; // Xpos
-		je   end;
-		cmp  dword ptr [edi][eax * 4 + 8], -1; // Ypos
-		je   end;
-		// engine code
-		mov  edx, [edi][eax * 4 + 0xC];
-		mov  [esi], edx
-		retn;
-end:
-		add  esp, 4;                           // destroy the return address
-		mov  eax, 0x4C4976;
-		jmp  eax;
 	}
 }
 
@@ -313,10 +297,32 @@ end:
 	}
 }
 
+static void __declspec(naked) wmRndEncounterOccurred_hook() {
+	__asm {
+		push eax;
+		mov  edx, 1;
+		mov  dword ptr ds:[FO_VAR_wmRndCursorFid], 0;
+		mov  ds:[FO_VAR_wmEncounterIconShow], edx;
+		mov  ecx, 7;
+jLoop:
+		mov  eax, edx;
+		sub  eax, ds:[FO_VAR_wmRndCursorFid];
+		mov  ds:[FO_VAR_wmRndCursorFid], eax;
+		call fo::funcoffs::wmInterfaceRefresh_;
+		mov  eax, 200;
+		call fo::funcoffs::block_for_tocks_;
+		dec  ecx;
+		jnz  jLoop;
+		mov  ds:[FO_VAR_wmEncounterIconShow], ecx;
+		pop  eax; // map id
+		jmp  fo::funcoffs::map_load_idx_;
+	}
+}
+
 static void RestRestore() {
 	if (!restMode) return;
-
 	restMode = false;
+
 	SafeWrite8(0x49952C, 0x85);
 	SafeWrite8(0x497557, 0x85);
 	SafeWrite8(0x42E587, 0xC7);
@@ -374,14 +380,6 @@ void TimeLimitPatch() {
 	}
 }
 
-void TownMapsHotkeyFix() {
-	if (GetConfigInt("Misc", "TownMapHotkeysFix", 1)) {
-		dlog("Applying town map hotkeys patch.", DL_INIT);
-		MakeCall(0x4C495A, wmTownMapFunc_hack, 1);
-		dlogr(" Done", DL_INIT);
-	}
-}
-
 void WorldmapFpsPatch() {
 	bool fpsPatchOK = (*(DWORD*)0x4BFE5E == 0x8D16);
 	if (GetConfigInt("Misc", "WorldMapFPSPatch", 0)) {
@@ -410,7 +408,7 @@ void WorldmapFpsPatch() {
 	if (GetConfigInt("Misc", "WorldMapEncounterFix", 0)) {
 		dlog("Applying world map encounter patch.", DL_INIT);
 		WorldMapEncounterRate = GetConfigInt("Misc", "WorldMapEncounterRate", 5);
-		SafeWrite32(0x4C232D, 0x01EBC031); // xor eax, eax; jmps 0x4C2332 (wmInterfaceInit_)
+		SafeWrite32(0x4C232D, 0xB8); // mov eax, 0; (wmInterfaceInit_)
 		HookCall(0x4BFEE0, wmWorldMapFunc_hook);
 		MakeCall(0x4C0667, wmRndEncounterOccurred_hack);
 		dlogr(" Done", DL_INIT);
@@ -602,20 +600,67 @@ long __fastcall Worldmap::GetRestMapLevel(long elev, int mapId) {
 	return -1;
 }
 
+static const char* GetOverrideTerrainName(long x, long y) {
+	if (wmTerrainTypeNames.empty()) return nullptr;
+
+	long subTileID = x + y * (fo::var::wmNumHorizontalTiles * 7);
+	auto it = std::find_if(wmTerrainTypeNames.crbegin(), wmTerrainTypeNames.crend(),
+						  [=](const std::pair<long, std::string> &el)
+						  { return el.first == subTileID; }
+	);
+	return (it != wmTerrainTypeNames.crend()) ? it->second.c_str() : nullptr;
+}
+
+// x, y - position of the sub-tile on the world map
+void Worldmap::SetTerrainTypeName(long x, long y, const char* name) {
+	long subTileID = x + y * (fo::var::wmNumHorizontalTiles * 7);
+	wmTerrainTypeNames.push_back(std::make_pair(subTileID, name));
+}
+
+// TODO: someone might need to know the name of a terrain type?
+/*const char* Worldmap::GetTerrainTypeName(long x, long y) {
+	const char* name = GetOverrideTerrainName(x, y);
+	return (name) ? name : fo::GetMessageStr(&fo::var::wmMsgFile, 1000 + fo::wmGetTerrainType(x, y));
+}*/
+
+// Returns the name of the terrain type in the position of the player's marker on the world map
+const char* Worldmap::GetCurrentTerrainName() {
+	const char* name = GetOverrideTerrainName(fo::var::world_xpos / 50, fo::var::world_ypos / 50);
+	return (name) ? name : fo::GetMessageStr(&fo::var::wmMsgFile, 1000 + fo::wmGetCurrentTerrainType());
+}
+
+bool Worldmap::AreaTitlesIsEmpty() {
+	return wmAreaHotSpotTitle.empty();
+}
+
+void Worldmap::SetCustomAreaTitle(long areaID, const char* msg) {
+	wmAreaHotSpotTitle[areaID] = msg;
+}
+
+const char* Worldmap::GetCustomAreaTitle(long areaID) {
+	if (AreaTitlesIsEmpty()) return nullptr;
+	const auto &it = wmAreaHotSpotTitle.find(areaID);
+	return (it != wmAreaHotSpotTitle.cend()) ? it->second.c_str() : nullptr;
+}
+
 void Worldmap::init() {
 	PathfinderFixInit();
 	StartingStatePatches();
 	TimeLimitPatch();
-	TownMapsHotkeyFix();
 	WorldLimitsPatches();
 	WorldmapFpsPatch();
 	PipBoyAutomapsPatch();
+
+	// Add a flashing icon to the Horrigan encounter
+	HookCall(0x4C071C, wmRndEncounterOccurred_hook);
 
 	LoadGameHook::OnGameReset() += []() {
 		SetCarInterfaceArt(433); // set index
 		if (restTime) SetRestHealTime(180);
 		RestRestore();
 		mapRestInfo.clear();
+		wmTerrainTypeNames.clear();
+		wmAreaHotSpotTitle.clear();
 	};
 }
 

@@ -25,18 +25,6 @@ namespace script
 
 class OpcodeContext;
 
-void sf_sqrt(OpcodeContext&);
-
-void sf_abs(OpcodeContext&);
-
-void sf_sin(OpcodeContext&);
-
-void sf_cos(OpcodeContext&);
-
-void sf_tan(OpcodeContext&);
-
-void sf_arctan(OpcodeContext&);
-
 void sf_string_split(OpcodeContext&);
 
 void sf_atoi(OpcodeContext&);
@@ -55,27 +43,15 @@ void sf_string_format(OpcodeContext&);
 
 void sf_ord(OpcodeContext&);
 
-void sf_typeof(OpcodeContext&);
-
-void sf_power(OpcodeContext&);
-
-void sf_log(OpcodeContext&);
-
-void sf_exponent(OpcodeContext&);
-
-void sf_ceil(OpcodeContext&);
-
-void sf_round(OpcodeContext&);
-
 void sf_message_str_game(OpcodeContext&);
 
 void sf_add_extra_msg_file(OpcodeContext&);
 
-void sf_floor2(OpcodeContext&);
-
 void sf_get_string_pointer(OpcodeContext&);
 
 void sf_get_text_width(OpcodeContext&);
+
+void sf_string_to_case(OpcodeContext&);
 
 }
 }

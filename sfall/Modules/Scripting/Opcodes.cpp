@@ -26,6 +26,7 @@
 #include "Handlers\FileSystem.h"
 #include "Handlers\Graphics.h"
 #include "Handlers\Interface.h"
+#include "Handlers\Math.h"
 #include "Handlers\Memory.h"
 #include "Handlers\Misc.h"
 #include "Handlers\Objects.h"
@@ -189,7 +190,7 @@ static SfallOpcodeInfo opcodeInfoArray[] = {
 	{0x260, "reg_anim_turn_towards",     sf_reg_anim_turn_towards,     3, false,  0, {ARG_OBJECT, ARG_INT, ARG_INT}},
 	{0x261, "metarule2_explosions",      sf_explosions_metarule,       3, true,  -1, {ARG_INT, ARG_INT, ARG_INT}},
 	{0x262, "register_hook_proc",        sf_register_hook,             2, false,  0, {ARG_INT, ARG_INT}},
-	{0x263, "power",                     sf_power,                     2, true,   0, {ARG_NUMBER, ARG_NUMBER}},
+	{0x263, "power",                     sf_power,                     2, true,   0, {ARG_NUMBER, ARG_NUMBER}}, // '^' operator
 	{0x264, "log",                       sf_log,                       1, true,   0, {ARG_NUMBER}},
 	{0x265, "exponent",                  sf_exponent,                  1, true,   0, {ARG_NUMBER}},
 	{0x266, "ceil",                      sf_ceil,                      1, true,   0, {ARG_NUMBER}},
@@ -219,6 +220,7 @@ static SfallOpcodeInfo opcodeInfoArray[] = {
 
 	{0x27d, "register_hook_proc_spec",   sf_register_hook,             2, false,  0, {ARG_INT, ARG_INT}},
 	{0x27e, "reg_anim_callback",         sf_reg_anim_callback,         1, false,  0, {ARG_INT}},
+	{0x27f, "div",                       sf_div,                       2, true,   0, {ARG_NUMBER, ARG_NUMBER}}, // div operator 
 };
 
 // An array for opcode info, indexed by opcode.

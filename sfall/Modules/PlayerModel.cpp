@@ -26,33 +26,29 @@
 namespace sfall
 {
 
-static char startMaleModelName[65];
-char defaultMaleModelName[65];
-static char startFemaleModelName[65];
-char defaultFemaleModelName[65];
+static char startMaleModelName[65]   = {};
+char defaultMaleModelName[65]        = {};
+static char startFemaleModelName[65] = {};
+char defaultFemaleModelName[65]      = {};
 
 void PlayerModel::init() {
-	startMaleModelName[64] = 0;
 	if (GetConfigString("Misc", "MaleStartModel", "", startMaleModelName, 64)) {
 		dlog("Applying male start model patch.", DL_INIT);
 		SafeWrite32(0x418B88, (DWORD)&startMaleModelName);
 		dlogr(" Done", DL_INIT);
 	}
 
-	startFemaleModelName[64] = 0;
 	if (GetConfigString("Misc", "FemaleStartModel", "", startFemaleModelName, 64)) {
 		dlog("Applying female start model patch.", DL_INIT);
 		SafeWrite32(0x418BAB, (DWORD)&startFemaleModelName);
 		dlogr(" Done", DL_INIT);
 	}
 
-	defaultMaleModelName[64] = 0;
 	GetConfigString("Misc", "MaleDefaultModel", "hmjmps", defaultMaleModelName, 64);
 	dlog("Applying male model patch.", DL_INIT);
 	SafeWrite32(0x418B50, (DWORD)&defaultMaleModelName);
 	dlogr(" Done", DL_INIT);
 
-	defaultFemaleModelName[64] = 0;
 	GetConfigString("Misc", "FemaleDefaultModel", "hfjmps", defaultFemaleModelName, 64);
 	dlog("Applying female model patch.", DL_INIT);
 	SafeWrite32(0x418B6D, (DWORD)&defaultFemaleModelName);

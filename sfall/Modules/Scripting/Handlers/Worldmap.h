@@ -58,5 +58,9 @@ void sf_get_rest_on_map(OpcodeContext&);
 
 void sf_tile_by_position(OpcodeContext&);
 
+void sf_set_terrain_name(OpcodeContext&);
+
+void sf_set_town_title(OpcodeContext&);
+
 }
 }

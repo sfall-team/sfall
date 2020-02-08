@@ -48,7 +48,7 @@ static DWORD curent_quest_page = 0;
 static DWORD look_quests = 0;         // check current quests
 
 static DWORD first_quest_page = 0;
-static DWORD last_quest_page = MAXINT;
+static DWORD last_quest_page = INT_MAX;
 
 static std::vector<int> pageQuest;
 
@@ -105,7 +105,7 @@ static void ResetPageValues() {
 	curent_quest_page = 0;
 	total_quests_pages = 0;
 	first_quest_page = 0;
-	last_quest_page = MAXINT;
+	last_quest_page = INT_MAX;
 }
 
 // Event of entering the quest list and up/down keystrokes
@@ -206,7 +206,7 @@ static long __fastcall QuestsPrint(const char* text, int width, DWORD* buf, BYTE
 
 	if (fo::func::_word_wrap(text, width, buf, count) == -1) return ExitCode::Error; // error wrap
 
-	if (!pageFlag || last_quest_page == MAXINT) {        // pages have not been calculated yet
+	if (!pageFlag || last_quest_page == INT_MAX) {        // pages have not been calculated yet
 		// check whether the text of the quest leaves the current page
 		int lines = 2 * ((int)*count - 1);
 		if (fo::var::cursor_line + lines >= fo::var::bottom_line) {
@@ -318,7 +318,7 @@ static DWORD __fastcall ActionButtons(register DWORD key) {
 			first_quest_page = pageQuest[curent_quest_page];
 			last_quest_page  = ((pageQuest.size() - 1) > curent_quest_page)
 							? pageQuest[curent_quest_page + 1] - 1
-							: MAXINT;
+							: INT_MAX;
 			buttonsPressed = true;
 			return called_quest_number;
 		}

@@ -17,9 +17,7 @@
  */
 
 #include "..\..\..\FalloutEngine\Fallout2.h"
-#include "..\..\..\SafeWrite.h"
 #include "..\..\..\Version.h"
-#include "..\..\KillCounter.h"
 #include "..\..\HookScripts.h"
 #include "..\..\ScriptExtender.h"
 #include "..\Arrays.h"
@@ -31,6 +29,10 @@ namespace sfall
 {
 namespace script
 {
+
+void sf_typeof(OpcodeContext& ctx) {
+	ctx.setReturn(static_cast<int>(ctx.arg(0).type()));
+}
 
 void __declspec(naked) op_set_global_script_repeat() {
 	__asm {

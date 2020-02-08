@@ -101,7 +101,7 @@ isFloat:
 }
 
 static const DWORD UnarmedAttacksFixEnd = 0x423A0D;
-static void __declspec(naked) UnarmedAttacksFix() {
+static void __declspec(naked) compute_attack_hack() {
 	__asm {
 		mov  ecx, 5;                        // 5% chance of critical hit
 		cmp  edx, ATKTYPE_POWERKICK;        // Power Kick
@@ -2340,6 +2340,25 @@ largeLoc:
 	}
 }
 
+static void __declspec(naked) wmTownMapFunc_hack() {
+	__asm {
+		cmp  dword ptr [edi][eax * 4 + 0], 0;  // Visited
+		je   end;
+		cmp  dword ptr [edi][eax * 4 + 4], -1; // Xpos
+		je   end;
+		cmp  dword ptr [edi][eax * 4 + 8], -1; // Ypos
+		je   end;
+		// engine code
+		mov  edx, [edi][eax * 4 + 0xC];
+		mov  [esi], edx
+		retn;
+end:
+		add  esp, 4; // destroy the return address
+		mov  eax, 0x4C4976;
+		jmp  eax;
+	}
+}
+
 static const DWORD combat_should_end_break = 0x422D00;
 static void __declspec(naked) combat_should_end_hack() {
 	__asm { // ecx = dude.team_num
@@ -2468,6 +2487,38 @@ endLoop:
 	}
 }
 
+static void __declspec(naked) main_death_scene_hook() {
+	__asm {
+		mov  eax, 100;
+		call fo::funcoffs::block_for_tocks_;
+		jmp  fo::funcoffs::get_time_;
+	}
+}
+
+static void __declspec(naked) action_loot_container_hack() {
+	__asm {
+		cmp dword ptr [esp + 0x10 + 4], 0x44C1D9 + 5;
+		je  fix;
+		xor eax, eax; // set ZF
+		retn;
+fix:
+		sub  esp, 4;
+		mov  edx, esp;
+		call fo::funcoffs::proto_ptr_;
+		mov  edx, [esp];
+		add  esp, 4;
+		test [edx + 0x20], NoSteal; // critter flags
+		jnz  look;
+		retn;
+look:
+		mov  eax, esi;
+		mov  edx, edi;
+		call fo::funcoffs::obj_examine_;
+		or   eax, 1; // unset ZF
+		retn;
+	}
+}
+
 void BugFixes::init()
 {
 	#ifndef NDEBUG
@@ -2478,7 +2529,7 @@ void BugFixes::init()
 	// Missing game initialization
 	LoadGameHook::OnBeforeGameInit() += Initialization;
 
-	// Fix vanilla negate operator on float values
+	// Fix vanilla negate operator for float values
 	MakeCall(0x46AB68, NegateFixHack);
 	// Fix incorrect int-to-float conversion
 	// op_mult:
@@ -2487,10 +2538,16 @@ void BugFixes::init()
 	// op_div:
 	SafeWrite16(0x46A566, 0x04DB);
 	SafeWrite16(0x46A4E7, 0x04DB);
+	// Fix for vanilla division operator treating negative integers as unsigned
+	if (GetConfigInt("Misc", "DivisionOperatorFix", 1)) {
+		dlog("Applying division operator fix.", DL_INIT);
+		SafeWrite32(0x46A51D, 0xFBF79990); // xor edx, edx; div ebx > cdq; idiv ebx
+		dlogr(" Done", DL_INIT);
+	}
 
 	//if (GetConfigInt("Misc", "SpecialUnarmedAttacksFix", 1)) {
 		dlog("Applying Special Unarmed Attacks fix.", DL_INIT);
-		MakeJump(0x42394D, UnarmedAttacksFix);
+		MakeJump(0x42394D, compute_attack_hack);
 		dlogr(" Done", DL_INIT);
 	//}
 
@@ -3075,6 +3132,13 @@ void BugFixes::init()
 	// Fix the position of the target marker for small/medium location circles
 	MakeCall(0x4C03AA, wmWorldMap_hack, 2);
 
+	// Fix to prevent using number keys to enter unvisited areas on a town map
+	//if (GetConfigInt("Misc", "TownMapHotkeysFix", 1)) {
+		dlog("Applying town map hotkeys patch.", DL_INIT);
+		MakeCall(0x4C495A, wmTownMapFunc_hack, 1);
+		dlogr(" Done", DL_INIT);
+	//}
+
 	// Fix for combat not ending automatically when there are no hostile critters
 	MakeCall(0x422CF3, combat_should_end_hack);
 	SafeWrite16(0x422CEA, 0x0C74); // jz 0x422CF8 (skip party members)
@@ -3108,6 +3172,14 @@ void BugFixes::init()
 
 	// Fix for party member's equipped weapon being placed in the incorrect item slot after leveling up
 	MakeCall(0x495FD9, partyMemberCopyLevelInfo_hack, 1);
+
+	// Fix the playback of the speech sound file for the death screen
+	HookCall(0x481409, main_death_scene_hook);
+
+	// Fix for trying to loot corpses with the "NoSteal" flag
+	SafeWrite8(0x4123F2, CommonObj::protoId);
+	BlockCall(0x4123F3);
+	MakeCall(0x4123F8, action_loot_container_hack, 1);
 }
 
 }
