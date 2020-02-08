@@ -104,7 +104,7 @@ enum CritterFlags : long
 	Invulnerable = 0x400,  // Is Invulnerable (cannot be hurt)
 	NoFlatten    = 0x800,  // Doesn't flatten on death (leaves no dead body)
 	SpecialDeath = 0x1000, // Has a special type of death
-	RangeHth     = 0x2000, // Has extra hand-to-hand range
+	RangeHtH     = 0x2000, // Has extra hand-to-hand range
 	NoKnockBack  = 0x4000, // Can't be knocked back
 };
 

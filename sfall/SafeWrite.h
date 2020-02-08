@@ -1,7 +1,6 @@
 #pragma once
 
 #include <initializer_list>
-#include <Windows.h>
 
 #include "CheckAddress.h"
 

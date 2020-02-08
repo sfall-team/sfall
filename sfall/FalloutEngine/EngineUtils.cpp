@@ -117,11 +117,11 @@ long GetCurrentAttackMode() {
 		long activeHand = fo::var::itemCurrentItem; // 0 - left, 1 - right
 		switch (fo::var::itemButtonItems[activeHand].mode) {
 		case 1:
-		case 2: // 2 - called shot
+		case 2: // called shot
 			hitMode = fo::var::itemButtonItems[activeHand].primaryAttack;
 			break;
 		case 3:
-		case 4: // 4 - called shot
+		case 4: // called shot
 			hitMode = fo::var::itemButtonItems[activeHand].secondaryAttack;
 			break;
 		case 5: // reload mode
@@ -204,7 +204,7 @@ enum WinNameType {
 	Character = 5,
 	Skilldex  = 6,
 	EscMenu   = 7, // escape menu
-//	Automap   = 8  // for this window there is no global variable
+	//Automap   = 8  // for this window there is no global variable
 };
 
 fo::Window* GetWindow(long winType) {
