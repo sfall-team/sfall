@@ -299,7 +299,7 @@ void DrawToSurface(long toX, long toY, long width, long height, long toWidth, lo
 
 // safe copy data from surface to surface with mask
 void DrawToSurface(long width, long height, long fromX, long fromY, long fromWidth, BYTE* fromSurf,
-				   long toX, long toY, long toWidth, long toHeight, BYTE* toSurf, int maskRef)
+                   long toX, long toY, long toWidth, long toHeight, BYTE* toSurf, int maskRef)
 {
 	BYTE* _fromSurf = fromSurf + (fromY * fromWidth + fromX);
 	BYTE* _toSurf =  toSurf + (toY * toWidth + toX);
@@ -317,7 +317,7 @@ void DrawToSurface(long width, long height, long fromX, long fromY, long fromWid
 
 // safe copy data from surface to surface
 void DrawToSurface(long width, long height, long fromX, long fromY, long fromWidth, BYTE* fromSurf,
-				   long toX, long toY, long toWidth, long toHeight, BYTE* toSurf)
+                   long toX, long toY, long toWidth, long toHeight, BYTE* toSurf)
 {
 	BYTE* _fromSurf = fromSurf + (fromY * fromWidth + fromX);
 	BYTE* _toSurf = toSurf + (toY * toWidth + toX);

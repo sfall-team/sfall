@@ -71,7 +71,7 @@ static DWORD palette[256];
 static DWORD gWidth;
 static DWORD gHeight;
 
-static int ScrollWindowKey;
+static short moveWindowKey[2];
 
 static bool windowInit = false;
 static DWORD windowLeft = 0;
@@ -329,10 +329,8 @@ static void ResetDevice(bool createNew) {
 }
 
 static void Present() {
-	if (ScrollWindowKey != 0 && ((ScrollWindowKey > 0 && KeyDown((BYTE)ScrollWindowKey))
-		|| (ScrollWindowKey == -1 && (KeyDown(DIK_LCONTROL) || KeyDown(DIK_RCONTROL)))
-		|| (ScrollWindowKey == -2 && (KeyDown(DIK_LMENU)    || KeyDown(DIK_RMENU)))
-		|| (ScrollWindowKey == -3 && (KeyDown(DIK_LSHIFT)   || KeyDown(DIK_RSHIFT)))))
+	if ((moveWindowKey[0] != 0 && KeyDown(moveWindowKey[0])) ||
+	    (moveWindowKey[1] != 0 && KeyDown(moveWindowKey[1])))
 	{
 		int winx, winy;
 		GetMouse(&winx, &winy);
@@ -1088,8 +1086,26 @@ HRESULT _stdcall FakeDirectDrawCreate2_Init(void*, IDirectDraw** b, void*) {
 	else if (Graphics::GPUBlt == 2) Graphics::GPUBlt = 0; // Use CPU
 
 	if (Graphics::mode == 5) {
-		ScrollWindowKey = GetConfigInt("Input", "WindowScrollKey", 0);
-	} else ScrollWindowKey = 0;
+		moveWindowKey[0] = (short)GetConfigInt("Input", "WindowScrollKey", 0);
+		if (moveWindowKey[0] < 0) {
+			switch (moveWindowKey[0]) {
+			case -1:
+				moveWindowKey[0] = DIK_LCONTROL;
+				moveWindowKey[1] = DIK_RCONTROL;
+				break;
+			case -2:
+				moveWindowKey[0] = DIK_LMENU;
+				moveWindowKey[1] = DIK_RMENU;
+				break;
+			case -3:
+				moveWindowKey[0] = DIK_LSHIFT;
+				moveWindowKey[1] = DIK_RSHIFT;
+				break;
+			default:
+				moveWindowKey[0] = 0;
+			}
+		}
+	}
 
 	rcpres[0] = 1.0f / (float)gWidth;
 	rcpres[1] = 1.0f / (float)gHeight;

@@ -98,7 +98,7 @@ static void __declspec(naked) OverrideCost_BarterPriceHook() {
 static fo::GameObject* sourceSkillOn = nullptr;
 void SourceUseSkillOnInit() { sourceSkillOn = fo::var::obj_dude; }
 
-static char resultSkillOn;
+static char resultSkillOn; // -1 - cancel handler, 1 - replace user
 static long bakupCombatState;
 static void __fastcall UseSkillOnHook_Script(DWORD source, DWORD target, register DWORD skillId) {
 	BeginHook();
@@ -157,7 +157,7 @@ static void __declspec(naked) UseSkillOnHack() {
 skip:
 		cmp resultSkillOn, 0;
 		jz  default;
-		mov edi, sourceSkillOn;
+		mov edi, sourceSkillOn; // skill user (override from hook)
 		retn;  // flag ZF = 0
 default:
 		// engine code
@@ -674,7 +674,7 @@ void Inject_UseSkillOnHook() {
 	MakeCall(0x4127BA, UseSkillOnHack, 1);
 	MakeCalls(skill_use_hack, {0x4AB05D, 0x4AB558, 0x4ABA60}); // fix checking obj_dude's target
 
-	// replace source skill user
+	// replace _obj_dude with source skill user (skill_use_ function)
 	SafeWriteBatch<DWORD>((DWORD)&sourceSkillOn, {0x4AAF47, 0x4AB051, 0x4AB3FB, 0x4AB550, 0x4AB8FA, 0x4ABA54});
 	SafeWriteBatch<DWORD>((DWORD)&sourceSkillOn, {0x4AB0EF, 0x4AB5C0, 0x4ABAF2}); // fix for time
 }
