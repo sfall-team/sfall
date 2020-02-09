@@ -687,8 +687,8 @@ endFunc:
 /////////////////////////////////////////////////////////////////INTERFACE FUNCTIONS/////////////////////////////////////////////////////////////////
 
 static void surface_draw(long width, long height, long fromWidth, long fromX, long fromY, BYTE *fromBuff,
-						 long toWidth, long toX, long toY, BYTE *toBuff, int maskRef) {
-
+                         long toWidth, long toX, long toY, BYTE *toBuff, int maskRef)
+{
 	fromBuff += fromY * fromWidth + fromX;
 	toBuff += toY * toWidth + toX;
 
@@ -702,8 +702,8 @@ static void surface_draw(long width, long height, long fromWidth, long fromX, lo
 }
 
 static void surface_draw(long width, long height, long fromWidth, long fromX, long fromY, BYTE *fromBuff,
-						 long toWidth, long toX, long toY, BYTE *toBuff) {
-
+                         long toWidth, long toX, long toY, BYTE *toBuff)
+{
 	fromBuff += fromY * fromWidth + fromX;
 	toBuff += toY * toWidth + toX;
 
@@ -1507,7 +1507,7 @@ static void __declspec(naked) op_obj_art_fid_hack() {
 		cmp  eax, PID_Player;
 		jne  skip;
 		mov  eax, esi;
-		and  eax, 0xFFF; // LST index
+		and  eax, 0xFFF; // index in .LST
 		cmp  eax, critterListSize;
 		jle  skip;
 		sub  esi, critterListSize; // fix hero FrmID
