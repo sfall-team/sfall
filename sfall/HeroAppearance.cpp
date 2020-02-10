@@ -303,6 +303,17 @@ endFunc:
 	return sex;
 }
 
+// functions to load and save appearance globals
+static void SetAppearanceGlobals(int race, int style) {
+	SetGlobalVar("HAp_Race", race);
+	SetGlobalVar("HApStyle", style);
+}
+
+static void GetAppearanceGlobals(int *race, int *style) {
+	*race = GetGlobalVar("HAp_Race");
+	*style = GetGlobalVar("HApStyle");
+}
+
 static __declspec(noinline) int _stdcall LoadHeroDat(unsigned int race, unsigned int style, bool flush = false) {
 	if (flush) ArtFlush();
 

@@ -61,18 +61,21 @@ int GetNumGlobals();
 void GetGlobals(sGlobalVar* globals);
 void SetGlobals(sGlobalVar* globals);
 
-void SetAppearanceGlobals(int race, int style);
-void GetAppearanceGlobals(int *race, int *style);
+long SetGlobalVar(const char* var, int val);
+void SetGlobalVarInt(DWORD var, int val);
+
+long GetGlobalVar(const char* var);
+long GetGlobalVarInt(DWORD var);
 
 bool _stdcall ScriptHasLoaded(DWORD script);
 // finds procedure ID for given script program pointer and procedure name
-DWORD GetScriptProcByName(DWORD scriptPtr, const char* procName);
+DWORD __stdcall GetScriptProcByName(DWORD scriptPtr, const char* procName);
 // loads script from .int file into scripting engine, fill scriptPtr and proc table
 void LoadScriptProgram(sScriptProgram &prog, const char* fileName);
 // init program after load, needs to be called once
 void InitScriptProgram(sScriptProgram &prog);
 // execute script proc by internal proc number (from script's proc table, basically a sequential number of a procedure as defined in code, starting from 1)
-void RunScriptProcByNum(DWORD sptr, DWORD procNum);
+void __stdcall RunScriptProcByNum(DWORD sptr, DWORD procNum);
 // execute script by specific proc name
 void RunScriptProc(sScriptProgram* prog, const char* procName);
 // execute script proc by procId from define.h
@@ -80,8 +83,8 @@ void RunScriptProc(sScriptProgram* prog, DWORD procId);
 
 int RunScriptStartProc(sScriptProgram* prog);
 
-long __stdcall GetScriptReturnValue();
-long __stdcall GetResetScriptReturnValue();
+long GetScriptReturnValue();
+long GetResetScriptReturnValue();
 
 void AddProgramToMap(sScriptProgram &prog);
 sScriptProgram* GetGlobalScriptProgram(DWORD scriptPtr);
