@@ -71,7 +71,7 @@ static DWORD palette[256];
 static DWORD gWidth;
 static DWORD gHeight;
 
-static short moveWindowKey[2];
+static long moveWindowKey[2];
 
 static bool windowInit = false;
 static DWORD windowLeft = 0;
@@ -1086,7 +1086,7 @@ HRESULT _stdcall FakeDirectDrawCreate2_Init(void*, IDirectDraw** b, void*) {
 	else if (Graphics::GPUBlt == 2) Graphics::GPUBlt = 0; // Use CPU
 
 	if (Graphics::mode == 5) {
-		moveWindowKey[0] = (short)GetConfigInt("Input", "WindowScrollKey", 0);
+		moveWindowKey[0] = GetConfigInt("Input", "WindowScrollKey", 0);
 		if (moveWindowKey[0] < 0) {
 			switch (moveWindowKey[0]) {
 			case -1:
@@ -1104,6 +1104,8 @@ HRESULT _stdcall FakeDirectDrawCreate2_Init(void*, IDirectDraw** b, void*) {
 			default:
 				moveWindowKey[0] = 0;
 			}
+		} else {
+			moveWindowKey[0] &= 0xFF;
 		}
 	}
 
