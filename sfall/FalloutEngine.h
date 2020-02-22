@@ -79,6 +79,7 @@
 #define _dialogue_state             0x518714
 #define _dialogue_switch_mode       0x518718
 #define _dialogueBackWindow         0x518740
+#define _dialogueWindow             0x518744
 #define _display_win                0x631E4C
 #define _displayMapList             0x41B560
 #define _dropped_explosive          0x5190E0

@@ -2506,10 +2506,70 @@ look:
 	}
 }
 
+static void FixCreateBarterButton() {
+	const long artID = OBJ_TYPE_INTRFACE << 24;
+	*(BYTE**)_dialog_red_button_up_buf = ArtPtrLockData(artID | 96, 0 ,0, (DWORD*)_dialog_red_button_up_key);
+	*(BYTE**)_dialog_red_button_down_buf = ArtPtrLockData(artID | 95, 0 ,0, (DWORD*)_dialog_red_button_down_key);
+}
+
+static void __declspec(naked) gdialog_window_create_hook() {
+	__asm {
+		call art_ptr_unlock_;
+		cmp  dword ptr ds:[_dialog_red_button_down_buf], 0;
+		jz   FixCreateBarterButton;
+		retn;
+	}
+}
+
+static void __declspec(naked) gdialog_bk_hook() {
+	__asm {
+		xor  ebp, ebp;
+		mov  eax, ds:[_curr_font_num];
+		cmp  eax, 101;
+		je   skip0;
+		mov  ebp, eax;
+		mov  eax, 101; // set font
+		call text_font_;
+skip0:
+		mov  eax, ds:[_obj_dude];
+		call item_caps_total_;
+		push eax;      // caps
+		push 0x502B1C; // fmt: $%d
+		lea  eax, textBuf;
+		push eax;
+		call sprintf_;
+		add  esp, 3 * 4;
+		lea  eax, textBuf;
+		call ds:[_text_width];
+		mov  edx, 60;  // max width
+		mov  ebx, eax; // ebx - textWidth
+		cmp  eax, edx;
+		cmova ebx, edx;
+		movzx eax, ds:[_GreenColor];
+		or   eax, 0x7000000; // print flags
+		push eax;
+		mov  eax, ebx;
+		mov  ecx, 38;  // x
+		push 36;       // y
+		sar  eax, 1;
+		sub  ecx, eax; // x shift
+		lea  edx, textBuf;
+		mov  eax, ds:[_dialogueWindow];
+		call win_print_;
+		test ebp, ebp;
+		jz   skip1;
+		mov  eax, ebp;
+		call text_font_;
+skip1:
+		mov  eax, edi;
+		jmp  win_show_;
+	}
+}
+
 void BugFixesInit()
 {
 	#ifndef NDEBUG
-		if (isDebug && (iniGetInt("Debugging", "BugFixes", 1, ddrawIniDef) == 0)) return;
+		if (iniGetInt("Debugging", "BugFixes", 1, ddrawIniDef) == 0) return;
 	#endif
 
 	// Fix vanilla negate operator for float values
@@ -3114,11 +3174,11 @@ void BugFixesInit()
 	MakeCall(0x4C03AA, wmWorldMap_hack, 2);
 
 	// Fix to prevent using number keys to enter unvisited areas on a town map
-	//if (GetConfigInt("Misc", "TownMapHotkeysFix", 1)) {
+	if (GetConfigInt("Misc", "TownMapHotkeysFix", 1)) {
 		dlog("Applying town map hotkeys patch.", DL_INIT);
 		MakeCall(0x4C495A, wmTownMapFunc_hack, 1);
 		dlogr(" Done", DL_INIT);
-	//}
+	}
 
 	// Fix for combat not ending automatically when there are no hostile critters
 	MakeCall(0x422CF3, combat_should_end_hack);
@@ -3161,4 +3221,10 @@ void BugFixesInit()
 	SafeWrite8(0x4123F2, 0x64); // protoId
 	BlockCall(0x4123F3);
 	MakeCall(0x4123F8, action_loot_container_hack, 1);
+
+	// Fix for the barter button on the dialog window not animating until after leaving the barter screen
+	HookCall(0x44A77C, gdialog_window_create_hook);
+
+	// Fix for the player's money not being displayed in the dialog window after leaving the barter/combat control interface
+	HookCall(0x447ACD, gdialog_bk_hook);
 }
