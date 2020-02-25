@@ -9,7 +9,7 @@ static DWORD critterBody = 0;
 static DWORD sizeOnBody = 0;
 static DWORD weightOnBody = 0;
 
-static char textBuf[355];
+static char tempBuffer[355];
 
 static const DWORD ScriptTargetAddr[] = {
 	0x456554, // op_pickup_obj_
@@ -1564,27 +1564,27 @@ static int currDescLen = 0;
 static bool showItemDescription = false;
 static void __stdcall AppendText(const char* text, const char* desc) {
 	if (showItemDescription && currDescLen == 0) {
-		strncpy_s(textBuf, desc, 161);
-		int len = strlen(textBuf);
+		strncpy_s(tempBuffer, desc, 161);
+		int len = strlen(tempBuffer);
 		if (len > 160) {
 			len = 158;
-			textBuf[len++] = '.';
-			textBuf[len++] = '.';
-			textBuf[len++] = '.';
+			tempBuffer[len++] = '.';
+			tempBuffer[len++] = '.';
+			tempBuffer[len++] = '.';
 		}
-		textBuf[len++] = ' ';
-		textBuf[len] = 0;
+		tempBuffer[len++] = ' ';
+		tempBuffer[len] = 0;
 		currDescLen  = len;
 	} else if (currDescLen == 0) {
-		textBuf[0] = 0;
+		tempBuffer[0] = 0;
 	}
 
-	strncat(textBuf, text, 64);
+	strncat(tempBuffer, text, 64);
 	currDescLen += strlen(text);
 	if (currDescLen < 300) {
-		textBuf[currDescLen++] = '.';
-		textBuf[currDescLen++] = ' ';
-		textBuf[currDescLen] = 0;
+		tempBuffer[currDescLen++] = '.';
+		tempBuffer[currDescLen++] = ' ';
+		tempBuffer[currDescLen] = 0;
 	}
 }
 
@@ -1609,7 +1609,7 @@ static void __declspec(naked) obj_examine_func_hack_ammo1() {
 		push eax;
 		call AppendText;
 		mov  currDescLen, 0;
-		lea  eax, [textBuf];
+		lea  eax, [tempBuffer];
 		jmp  gdialogDisplayMsg_;
 skip:
 		jmp  dword ptr [esp + 0x1AC - 0x14 + 4];
@@ -1626,9 +1626,9 @@ static void __declspec(naked) obj_examine_func_hack_weapon() {
 		call AppendText;
 		mov  eax, currDescLen;
 		sub  eax, 2;
-		mov  byte ptr textBuf[eax], 0; // cutoff last character
+		mov  byte ptr tempBuffer[eax], 0; // cutoff last character
 		mov  currDescLen, 0;
-		lea  eax, [textBuf];
+		lea  eax, [tempBuffer];
 skip:
 		jmp  ObjExamineFuncWeapon_Ret;
 	}
@@ -1731,7 +1731,7 @@ static void __declspec(naked) wmSetupRandomEncounter_hook() {
 		push eax;                  // text 2
 		push edi;                  // text 1
 		push 0x500B64;             // fmt '%s %s'
-		lea  edi, textBuf;
+		lea  edi, tempBuffer;
 		push edi;                  // buf
 		call sprintf_;
 		add  esp, 16;
@@ -2183,8 +2183,8 @@ static const char* __fastcall GetPickupMessage(const char* name) {
 	if (pickupMessageBuf[0] == 0) {
 		Translate("sfall", "NPCPickupFail", "%s cannot pick up the item.", pickupMessageBuf, 64);
 	}
-	sprintf(textBuf, pickupMessageBuf, name);
-	return textBuf;
+	sprintf(tempBuffer, pickupMessageBuf, name);
+	return tempBuffer;
 }
 
 static void __declspec(naked) obj_pickup_hook_message() {
@@ -2535,11 +2535,11 @@ skip0:
 		call item_caps_total_;
 		push eax;      // caps
 		push 0x502B1C; // fmt: $%d
-		lea  eax, textBuf;
+		lea  eax, tempBuffer;
 		push eax;
 		call sprintf_;
 		add  esp, 3 * 4;
-		lea  eax, textBuf;
+		lea  eax, tempBuffer;
 		call ds:[_text_width];
 		mov  edx, 60;  // max width
 		mov  ebx, eax; // ebx - textWidth
@@ -2553,7 +2553,7 @@ skip0:
 		push 36;       // y
 		sar  eax, 1;
 		sub  ecx, eax; // x shift
-		lea  edx, textBuf;
+		lea  edx, tempBuffer;
 		mov  eax, ds:[_dialogueWindow];
 		call win_print_;
 		test ebp, ebp;
@@ -2563,6 +2563,23 @@ skip0:
 skip1:
 		mov  eax, edi;
 		jmp  win_show_;
+	}
+}
+
+static void __declspec(naked) combat_ai_hook() {
+	__asm {
+		call combat_should_end_;
+		test eax, eax;
+		jnz  skip;
+		cmp  ds:[_game_user_wants_to_quit], 2;
+		je   skip;
+		//cmp  ds:[_script_engine_running], 1;
+		//jne  skip;
+		call GNW_do_bk_process_;
+		call combat_turn_run_;
+		xor  eax, eax;
+skip:
+		retn;
 	}
 }
 
@@ -3012,12 +3029,10 @@ void BugFixesInit()
 	MakeCall(0x472F5F, inven_obj_examine_func_hack, 1);
 
 	// Fix for the exploit that allows you to gain excessive skill points from Tag! perk before leaving the character screen
-	//if (GetConfigInt("Misc", "TagPerkFix", 1)) {
-		dlog("Applying fix for Tag! exploit.", DL_INIT);
-		HookCall(0x43B463, SliderBtn_hook_down);
-		HookCall(0x43D7DD, Add4thTagSkill_hook);
-		dlogr(" Done", DL_INIT);
-	//}
+	dlog("Applying fix for Tag! exploit.", DL_INIT);
+	HookCall(0x43B463, SliderBtn_hook_down);
+	HookCall(0x43D7DD, Add4thTagSkill_hook);
+	dlogr(" Done", DL_INIT);
 
 	// Fix for ai_retrieve_object_ engine function not returning the requested object when there are different objects
 	// with the same ID
@@ -3227,4 +3242,9 @@ void BugFixesInit()
 
 	// Fix for the player's money not being displayed in the dialog window after leaving the barter/combat control interface
 	HookCall(0x447ACD, gdialog_bk_hook);
+
+	// Fix crash or animation glitch of the critter in combat when an explosion from explosives
+	// and the AI attack animation are performed simultaneously
+	// Note: all events in combat will occur before the AI attack
+	HookCall(0x422E5F, combat_ai_hook); // execute all events after the end of the combat sequence
 }
