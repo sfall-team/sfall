@@ -1002,6 +1002,7 @@ extern const DWORD wmInterfaceInit_;
 extern const DWORD wmInterfaceRefresh_;
 extern const DWORD wmInterfaceScrollTabsStart_;
 extern const DWORD wmMapIsSaveable_;
+extern const DWORD wmMarkSubTileOffsetVisitedFunc_;
 extern const DWORD wmMarkSubTileRadiusVisited_;
 extern const DWORD wmMatchAreaContainingMapIdx_;
 extern const DWORD wmPartyInitWalking_;

@@ -734,6 +734,7 @@ const DWORD wmInterfaceInit_ = 0x4C2324;
 const DWORD wmInterfaceRefresh_ = 0x4C3830;
 const DWORD wmInterfaceScrollTabsStart_ = 0x4C219C;
 const DWORD wmMapIsSaveable_ = 0x4BFA64;
+const DWORD wmMarkSubTileOffsetVisitedFunc_ = 0x4C3434;
 const DWORD wmMarkSubTileRadiusVisited_ = 0x4C3550;
 const DWORD wmMatchAreaContainingMapIdx_ = 0x4C59A4;
 const DWORD wmPartyInitWalking_ = 0x4C1E54;
