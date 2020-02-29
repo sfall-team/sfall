@@ -319,6 +319,20 @@ jLoop:
 	}
 }
 
+// Fallout 1 behavior: No radius for uncovered locations on the world map
+// for the mark_area_known script function when the mark_state argument of the function is set to 3
+long __declspec(naked) Worldmap::AreaMarkStateIsNoRadius() {
+	__asm {
+		xor  eax, eax;
+		cmp  esi, 3; // esi - mark_state value
+		jne  skip;
+		mov  esi, 1; // revert value to town known state
+skip:
+		cmove eax, esi; // eax: 1 for Fallout 1 behavior
+		retn;
+	}
+}
+
 static void RestRestore() {
 	if (!restMode) return;
 	restMode = false;
