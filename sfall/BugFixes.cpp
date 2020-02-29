@@ -4,6 +4,7 @@
 #include "HookScripts.h"
 #include "LoadGameHook.h"
 #include "ScriptExtender.h"
+#include "Worldmap.h"
 
 static DWORD critterBody = 0;
 static DWORD sizeOnBody = 0;
@@ -2256,13 +2257,16 @@ static void __declspec(naked) action_climb_ladder_hack() {
 	}
 }
 
-//static const DWORD wmAreaMarkVisitedState_Error = 0x4C4698;
-static const DWORD wmAreaMarkVisitedState_Ret = 0x4C46A2;
 static void __declspec(naked) wmAreaMarkVisitedState_hack() {
+	static const DWORD wmAreaMarkVisitedState_Ret = 0x4C46A2;
+	//static const DWORD wmAreaMarkVisitedState_Error = 0x4C4698;
+	static long isNoRadius;
+
+	isNoRadius = Wmap_AreaMarkStateIsNoRadius(); // F1 behavior radius
 	__asm {
 		mov  [ecx + 0x40], esi; // wmAreaInfoList.visited
 		test esi, esi;          // mark "unknown" state
-		jz   skip;
+		jz   noRadius;
 		mov  eax, [ecx + 0x2C]; // wmAreaInfoList.world_posx
 		mov  edx, [ecx + 0x30]; // wmAreaInfoList.world_posy
 		// fix loc coordinates
@@ -2270,13 +2274,13 @@ static void __declspec(naked) wmAreaMarkVisitedState_hack() {
 		jg   largeLoc;
 		je   mediumLoc;
 //smallLoc:
-		sub eax, 5;
-		lea edx, [edx - 5];
+		sub  eax, 5;
+		lea  edx, [edx - 5];
 mediumLoc:
-		sub eax, 10;
-		lea edx, [edx - 10];
+		sub  eax, 10;
+		lea  edx, [edx - 10];
 largeLoc:
-		mov  ebx, esp; // ppSubTile out
+		lea  ebx, [esp]; // ppSubTile out
 		push edx;
 		push eax;
 		call wmFindCurSubTileFromPos_;
@@ -2285,19 +2289,23 @@ largeLoc:
 		pop  eax;
 		pop  edx;
 		mov  ebx, [esp];
-		mov  ebx, [ebx + 0x18]; // sub-tile state
+		mov  ebx, [ebx + 0x18]; // sub-tile state: 0 - black, 1 - uncovered, 2 - visited
 		test ebx, ebx;
 		jnz  skip;
-		inc  ebx; // 1
+		inc  ebx; // set 1
 skip:
-		cmp  [ecx + 0x38], 1;   // wmAreaInfoList.start_state
-		jne  hideLoc;
-		cmp  esi, 2; // mark visited state
-		jne  fix;
+		///////// check F1 behavior radius result /////////
+		cmp isNoRadius, 1;
+		je  noRadius;
+		///////////////////////////////////////////////////
+		cmp  [ecx + 0x38], 1; // wmAreaInfoList.start_state
+		jne  noRadius;        // hidden location
+		cmp  esi, 2;          // mark visited state
+		jne  fixRadius;
 		call wmMarkSubTileRadiusVisited_;
-hideLoc:
+noRadius:
 		jmp  wmAreaMarkVisitedState_Ret;
-fix:
+fixRadius:
 		push ebx;
 		mov  ebx, 1; // radius (fix w/o PERK_scout)
 		call wmSubTileMarkRadiusVisited_;
@@ -2346,8 +2354,8 @@ end:
 	}
 }
 
-static const DWORD combat_should_end_break = 0x422D00;
 static void __declspec(naked) combat_should_end_hack() {
+	static const DWORD combat_should_end_break = 0x422D00;
 	__asm { // ecx = dude.team_num
 		cmp  ecx, [ebp + 0x50]; // npc who_hit_me.team_num
 		je   break;
@@ -2583,8 +2591,8 @@ skip:
 	}
 }
 
-static const DWORD wmSubTileMarkRadiusVisited_Ret = 0x4C3730;
 static void __declspec(naked) wmSubTileMarkRadiusVisited_hack() {
+	static const DWORD wmSubTileMarkRadiusVisited_Ret = 0x4C3730;
 	__asm {
 		call wmMarkSubTileOffsetVisitedFunc_;
 		cmp  ebp, 7; // count of horizontal sub-tiles
