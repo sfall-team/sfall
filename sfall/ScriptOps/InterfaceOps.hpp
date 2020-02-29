@@ -208,7 +208,7 @@ static void __declspec(naked) create_message_window() {
 }
 
 static void sf_message_box() {
-	static u_short dialogShowCount = 0;
+	static WORD dialogShowCount = 0;
 
 	long lines = 0;
 	const char* str_ptr[4];

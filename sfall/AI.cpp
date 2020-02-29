@@ -19,10 +19,9 @@
 #include <unordered_map>
 
 #include "main.h"
+#include "FalloutEngine.h"
 
 #include "AI.h"
-#include "FalloutEngine.h"
-#include "SafeWrite.h"
 
 typedef std::tr1::unordered_map<TGameObj*, TGameObj*>::const_iterator iter;
 
