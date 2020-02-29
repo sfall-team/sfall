@@ -158,7 +158,7 @@ void sf_create_message_window(OpcodeContext &ctx) {
 }
 
 void sf_message_box(OpcodeContext &ctx) {
-	static u_short dialogShowCount = 0;
+	static WORD dialogShowCount = 0;
 
 	long lines = 0;
 	const char* str_ptr[4];

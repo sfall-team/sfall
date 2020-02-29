@@ -646,8 +646,8 @@ static DWORD _stdcall HandleMapUpdateForScripts(const DWORD procId) {
 	return procId; // restore eax (don't delete)
 }
 
-static u_long HandleTimedEventScripts() {
-	u_long currentTime = fo::var::fallout_game_time;
+static DWORD HandleTimedEventScripts() {
+	DWORD currentTime = fo::var::fallout_game_time;
 	bool wasRunning = false;
 	auto timerIt = timerEventScripts.cbegin();
 	for (; timerIt != timerEventScripts.cend(); timerIt++) {
@@ -670,8 +670,8 @@ static u_long HandleTimedEventScripts() {
 	return currentTime;
 }
 
-static u_long TimedEventNextTime() {
-	u_long nextTime;
+static DWORD TimedEventNextTime() {
+	DWORD nextTime;
 	__asm {
 		push ecx;
 		call fo::funcoffs::queue_next_time_;
@@ -679,7 +679,7 @@ static u_long TimedEventNextTime() {
 		push edx;
 	}
 	if (!timerEventScripts.empty()) {
-		u_long time = timerEventScripts.front().time;
+		DWORD time = timerEventScripts.front().time;
 		if (!nextTime || time < nextTime) nextTime = time;
 	}
 	__asm pop edx;

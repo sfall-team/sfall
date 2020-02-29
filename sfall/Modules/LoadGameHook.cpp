@@ -445,12 +445,12 @@ static void __declspec(naked) WorldMapHook_End() {
 static void __declspec(naked) CombatHook() {
 	__asm {
 		pushadc;
-		call AICombatStart;
+		call AI::AICombatStart;
 		_InLoop2(1, COMBAT);
 		popadc;
 		call fo::funcoffs::combat_;
 		pushadc;
-		call AICombatEnd;
+		call AI::AICombatEnd;
 		_InLoop2(0, COMBAT);
 		popadc;
 		retn;

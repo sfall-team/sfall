@@ -882,7 +882,7 @@ void __declspec(naked) op_get_last_attacker() {
 		cmp di, VAR_TYPE_INT;
 		jnz fail;
 		push eax;
-		call AIGetLastAttacker;
+		call AI::AIGetLastAttacker;
 		mov edx, eax;
 		jmp end;
 fail:
@@ -909,7 +909,7 @@ void __declspec(naked) op_get_last_target() {
 		cmp di, VAR_TYPE_INT;
 		jnz fail;
 		push eax;
-		call AIGetLastTarget;
+		call AI::AIGetLastTarget;
 		mov edx, eax;
 		jmp end;
 fail:
