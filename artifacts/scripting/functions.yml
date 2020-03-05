@@ -467,14 +467,16 @@
   - name: force_encounter_with_flags
     detail: void force_encounter_with_flags(int map, int flags)
     opcode: 0x8229
-    doc: Does the same thing as `force_encounter`, but allows the specification of some extra options. Forcing a random encounter on a map that is not normally used for random encounters may cause the player to lose the car, if they have it. In this case use `force_encounter_with_flags` with the `ENCOUNTER_FLAG_NO_CAR` flag set.
+    doc: |
+      Does the same thing as force_encounter, but allows the specification of some extra options (see `sfall.h` for available flags).
+      Forcing a random encounter on a map that is not normally used for random encounters may cause the player to lose the car, if they have it. In this case use `force_encounter_with_flags` with the `ENCOUNTER_FLAG_NO_CAR` flag set.
   - name: set_map_time_multi
     detail: void set_map_time_multi(float multi)
     opcode: 0x822a
     doc: Adjusts how fast time passes while you're on the world map. It takes a single float as an argument, where 1 is the normal speed. This function works in addition to the `WorldMapTimeMod` setting in `ddraw.ini` and the Pathfinder perk, rather than overriding it, so calling `set_map_time_multi(0.5)` when the player has 2 levels of Pathfinder would result in time passing at 25% the normal speed on the world map.
   - name: set_map_enter_position
     detail: void set_map_enter_position(int tile, int elevation, int rotation)
-    doc: "Overrides the players entry position when entering the map through exit grids. Setting the tile to 0 will put the player on the start hex (default tile and elevation) of the map. Works only in `map_enter_p_proc` procedure."
+    doc: Overrides the players entry position when entering the map through exit grids. Setting the tile to 0 will put the player on the start hex (default tile and elevation) of the map. Works only in `map_enter_p_proc` procedure.
   - name: get_map_enter_position
     detail: array get_map_enter_position()
     doc: "Returns an array of the player's position data (index: 0 - tile, 1 - elevation, 2 - rotation) when entering the map through exit grids. If entering from the world map, the tile value will be -1. Should be called in `map_enter_p_proc` procedure to get the correct position data."
@@ -482,6 +484,16 @@
     detail: void exec_map_update_scripts()
     doc: Executes `map_update_p_proc` for all objects on map and global/hook scripts as well.
     macro: sfall.h
+  - name: set_terrain_name
+    detail: void sfall_func3("set_terrain_name", int x, int y, string name)
+    doc: Overrides the terrain type name for the sub-tile on the world map by the specified coordinates.
+  - name: set_town_title
+    detail: void sfall_func2("set_town_title", int areaID, string title)
+    doc: |
+      Sets a floating text for a town on the world map when hovering the cursor over the player's marker.
+      ```
+      - areaID: the ID number of the town from city.txt
+      ```
 
 - name: Rest
   parent: Maps and encounters
@@ -608,11 +620,21 @@
     doc: Round x to the nearest integer that is not less than x.
   - name: ^
     detail: x^y
-    doc: Exponentiation. Use as any other arithmetic operator, like 5^(1/3). If exponent is integer, you can use negative base, otherwise you will get "nan" with negative base. If both arguments are integers, result will be integer.
+    doc: |
+      Exponentiation. Use as any other arithmetic operator, like `5^(1/3)`.
+      If exponent is an integer, you can use a negative base, otherwise you will get "NaN" with a negative base.
+      If both arguments are integers, the result will be an integer.
   - name: floor2
     detail: int sfall_func1("floor2", int/float value)
     doc: Works just like vanilla floor function, but returns correct integers for negative values (vanilla floor function works exactly the same as `ceil` for negative values, much like `trunc` in C/C++).
     macro: sfall.h
+  - name: div
+    detail: div(x, y)
+    doc: |
+      Unsigned integer division. Use as a division operator, like `3 + (20 div 5)`.
+      If both dividend and divisor are integers, they will be treated as unsigned integers.
+      If one of them is a float, div will perform the signed division just like vanilla division operator.
+    opcode: 0x827f
 
 - name: Keyboard and mouse
   items:
@@ -1064,7 +1086,14 @@
       Formats given value using standard syntax of C printf function (google "printf" for format details). However it is limited to formatting up to 4 values.
       - formatting is only supported for %s and %d, and the format string is limited to 1024 characters
     macro: sfall.h
-
+  - name: string_to_case
+    detail: string sfall_func2("string_to_case", string text, int toCase)
+    doc: |
+      Converts all letters in the given string to the specified case.
+      ```
+      toCase: 0 - lowercase, 1 - uppercase
+      ```
+      NOTE: this function works only for English letters of A-Z/a-z.
 
 - name: Interface
 
@@ -1358,6 +1387,29 @@
     detail: void create_win(string winName, int x, int y, int width, int height, int flags)
     doc: "`flags` argument is optional. Works just like vanilla `CreateWin` function, but creates a window with `MoveOnTop` flag if the flags argument is not specified, and allows to set additional flags for the created window. `MoveOnTop` flag allows the created window to be placed on top of the game interface."
     macro: sfall.h
+
+  - name: get_window_attribute
+    detail: int sfall_func1("get_window_attribute", int winType)
+    doc: |
+      Alternative form: `int sfall_func2("get_window_attribute", int winType, int attrType)`
+      Returns the attribute of the specified interface window by the attrType argument.
+      ```
+      - winType: the type number of the interface window (see `WINTYPE_*` constants in `sfall.h`)
+      - attrType: 0 - checks and returns a value of 1 if the specified interface window is created by the game (same as without the argument)
+                  1 - X position, 2 - Y position (relative to the top-left corner of the game screen)
+      - returns -1 if the specified attribute cannot be obtained
+      ```
+  - name: message_box
+    detail: int sfall_func4("message_box", string message, int flags, int color1, int color2)
+    doc: |
+      Creates a dialog box with text and returns the result of pressing the button: 0 - No (Escape), 1 - Yes/Done (Enter). Returns -1 if for some reason the dialog box cannot be created.
+      ```
+      - message: the text in the dialog box. Use the \n control character to move text to a new line (example: "Hello\nWorld!")
+      optional arguments:
+      - flags: mode flags (see MSGBOX_* constants in define_extra.h). Pass -1 to skip setting the flags (default flags are NORMAL and YESNO)
+      - color1/2: the color index in Fallout palette. color1 sets the text color for the first line, and color2 for all subsequent lines of text (default color is 145)
+      ```
+
 
   - name: draw_image
     detail: void draw_image(string/int pathFile/artId, int frame, int x, int y, bool noTransparent)

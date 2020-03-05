@@ -60,6 +60,8 @@
   doc: |
     Runs before Fallout tries to calculate the death animation. Lets you switch out which weapon Fallout sees.
 
+    Does not run for critters in the knockdown/out state.
+
     ```
     int     arg1 - The pid of the weapon performing the attack. (May be -1 if the attack is unarmed)
     critter arg2 - The attacker
@@ -72,7 +74,9 @@
 - name: DeathAnim2
   id: HOOK_DEATHANIM2
   doc: |
-    Runs after Fallout has calculated the death animation. Lets you set your own custom frame id, so more powerful than hs_deathanim1, but performs no validation. When using `critter_dmg` function, this script will also run. In that case weapon pid will be -1 and target will point to an object with `obj_art_fid == 0x20001F5`.
+    Runs after Fallout has calculated the death animation. Lets you set your own custom frame id, so more powerful than hs_deathanim1, but performs no validation.
+    When using `critter_dmg` function, this script will also run. In that case weapon pid will be `-1` and attacker will point to an object with `obj_art_fid == 0x20001F5`.
+    Does not run for critters in the knockdown/out state.
 
     ```
     item    arg1 - The pid of the weapon performing the attack. (May be -1 if the attack is unarmed)
@@ -642,4 +646,18 @@
     Obj     arg3 - the target object
 
     mixed   ret1 - overrides the target object, or pass -1 to prevent the player from attacking the object
+    ```
+
+- name: Encounter
+  id: HOOK_ENCOUNTER
+  doc: |
+    Runs whenever a random encounter occurs (except the Horrigan meeting and scripted encounters), or when the player enters a local map from the world map.
+    You can override the map for loading or the encounter.
+    ```
+    int     arg1 - event type: 0 - when a random encounter occurs, 1 - when the player enters from the world map
+    int     arg2 - the map ID that the encounter will load (see MAPS.h or Maps.txt)
+    int     arg3 - 1 when the encounter occurs is a special encounter, 0 otherwise
+
+    int     ret1 - overrides the map ID, or pass -1 for event type 0 to cancel the encounter and continue traveling
+    int     ret2 - pass 1 to cancel the encounter and load the specified map from the ret1 (only for event type 0)
     ```
