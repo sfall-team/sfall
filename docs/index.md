@@ -32,7 +32,7 @@ To get started with sfall, first familiarize yourself with new concepts:
 * [Data types]({{ site.baseurl }}/data-types/).
 * [Object and script manipulation]({{ site.baseurl }}/objects-and-scripts/).
 
-Pay special attention to the [best practices]({{ site.baseurl }}/best-practices/) page.
+Pay special attention to the [best practices]({{ site.baseurl }}/best-practices/) page. Also, take a look at [SSLC features]({{ site.baseurl }}/sslc/) and [optimization guide]({{ site.baseurl }}/optimization/).
 
 Next, proceed to discover new functions. They are categorized, use the menu to find the one you need. If you can't, check [uncategorized functions]({{ site.baseurl }}/other/) list and [sfall macros]({{ site.baseurl }}/sfall-funcx-macros/). Also, there's search at the top of the page.
 
