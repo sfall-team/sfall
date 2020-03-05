@@ -29,6 +29,10 @@ namespace var
 #define VAR_(name, type)	\
 	type &name = *reinterpret_cast<type*>(FO_VAR_##name);
 
+// defines reference to a constant variable (value can't be changed from sfall)
+#define VARC(name, type)	\
+	const type& name = *reinterpret_cast<type*>(FO_VAR_##name);
+
 // defines reference to static array
 #define VARA(name, type, size)	\
 	ArrayWrapper<type, size> &name = *reinterpret_cast<ArrayWrapper<type, size>*>(FO_VAR_##name);

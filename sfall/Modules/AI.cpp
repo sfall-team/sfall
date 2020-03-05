@@ -19,10 +19,9 @@
 #include <unordered_map>
 
 #include "..\main.h"
+#include "..\FalloutEngine\Fallout2.h"
 
 #include "AI.h"
-#include "..\FalloutEngine\Fallout2.h"
-#include "..\SafeWrite.h"
 
 namespace sfall
 {
@@ -235,22 +234,22 @@ void AI::init() {
 	MakeCall(0x428EE5, ai_find_attackers_hack_target4, 1);
 }
 
-fo::GameObject* _stdcall AIGetLastAttacker(fo::GameObject* target) {
+fo::GameObject* _stdcall AI::AIGetLastAttacker(fo::GameObject* target) {
 	const auto itr = sources.find(target);
 	return (itr != sources.end()) ? itr->second : 0;
 }
 
-fo::GameObject* _stdcall AIGetLastTarget(fo::GameObject* source) {
+fo::GameObject* _stdcall AI::AIGetLastTarget(fo::GameObject* source) {
 	const auto itr = targets.find(source);
 	return (itr != targets.end()) ? itr->second : 0;
 }
 
-void _stdcall AICombatStart() {
+void _stdcall AI::AICombatStart() {
 	targets.clear();
 	sources.clear();
 }
 
-void _stdcall AICombatEnd() {
+void _stdcall AI::AICombatEnd() {
 	targets.clear();
 	sources.clear();
 }

@@ -1,6 +1,6 @@
 /*
  *    sfall
- *    Copyright (C) 2009  Mash (Matt Wells, mashw at bigpond dot net dot au)
+ *    Copyright (C) 2008-2020  The sfall team
  *
  *    This program is free software: you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
@@ -18,18 +18,38 @@
 
 #pragma once
 
-#include "Module.h"
-
 namespace sfall
 {
+namespace script
+{
 
-extern DWORD LSPageOffset;
+class OpcodeContext;
 
-class ExtraSaveSlots : public Module {
-public:
-	const char* name() { return "SuperSave"; }
-	void init();
-	void exit() override;
-};
+void sf_div(OpcodeContext&);
 
+void sf_sqrt(OpcodeContext&);
+
+void sf_abs(OpcodeContext&);
+
+void sf_sin(OpcodeContext&);
+
+void sf_cos(OpcodeContext&);
+
+void sf_tan(OpcodeContext&);
+
+void sf_arctan(OpcodeContext&);
+
+void sf_power(OpcodeContext&);
+
+void sf_log(OpcodeContext&);
+
+void sf_exponent(OpcodeContext&);
+
+void sf_ceil(OpcodeContext&);
+
+void sf_round(OpcodeContext&);
+
+void sf_floor2(OpcodeContext&);
+
+}
 }

@@ -18,7 +18,7 @@
 
 #pragma once
 
-namespace sfall 
+namespace sfall
 {
 
 void CombatBlockedInit();

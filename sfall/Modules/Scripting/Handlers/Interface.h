@@ -59,6 +59,8 @@ void __declspec() op_resume_game();
 //Create a message window with given string
 void sf_create_message_window(OpcodeContext&);
 
+void sf_message_box(OpcodeContext&);
+
 void __declspec() op_get_viewport_x();
 
 void __declspec() op_get_viewport_y();
@@ -110,6 +112,8 @@ void sf_draw_image(OpcodeContext&);
 void sf_draw_image_scaled(OpcodeContext&);
 
 void sf_unwield_slot(OpcodeContext&);
+
+void sf_get_window_attribute(OpcodeContext&);
 
 }
 }

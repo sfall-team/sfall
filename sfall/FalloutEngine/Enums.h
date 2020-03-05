@@ -90,6 +90,24 @@ enum Animation : long
 	ANIM_called_shot_pic = 64,
 };
 
+enum CritterFlags : long
+{
+	Sneak        = 0x01,   // Can sneak ?
+	Barter       = 0x02,   // Can trade with
+	Level        = 0x04,   // Level received ?
+	Addict       = 0x08,   // Drug addiction ?
+	NoSteal      = 0x20,   // Can't be stolen from
+	NoDrop       = 0x40,   // Doesn't drop items
+	NoLimbs      = 0x80,   // Can't lose limbs
+	NoAges       = 0x100,  // Dead body does not disappear
+	NoHeal       = 0x200,  // Damage is not healed with time
+	Invulnerable = 0x400,  // Is Invulnerable (cannot be hurt)
+	NoFlatten    = 0x800,  // Doesn't flatten on death (leaves no dead body)
+	SpecialDeath = 0x1000, // Has a special type of death
+	RangeHtH     = 0x2000, // Has extra hand-to-hand range
+	NoKnockBack  = 0x4000, // Can't be knocked back
+};
+
 enum DamageFlag : long
 {
 	DAM_KNOCKED_OUT = 0x1,
@@ -787,6 +805,16 @@ enum QueueType : long
 	explode_fail_event = 11, // item
 	map_update_event   = 12,
 	gsound_sfx_event   = 13  // no object
+};
+
+enum DialogOutFlags : long
+{
+	DIALOGOUT_NORMAL     = 0x01, // uses regular graphic
+	DIALOGOUT_SMALL      = 0x02, // uses smaller graphic
+	DIALOGOUT_ALIGN_LEFT = 0x04, // text aligned to left
+	DIALOGOUT_ALIGN_TOP  = 0x08, // text aligned to top
+	DIALOGOUT_YESNO      = 0x10, // DONE button replaced by YES/NO buttons
+	DIALOGOUT_CLEAN      = 0x20  // no buttons
 };
 
 }

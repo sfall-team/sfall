@@ -16,13 +16,15 @@ DirectDrawEnumerateA        = FakeDirectDrawEnumerateA           @12
 DirectDrawEnumerateExA      = FakeDirectDrawEnumerateExA         @13
 DirectDrawEnumerateExW      = FakeDirectDrawEnumerateExW         @14
 DirectDrawEnumerateW        = FakeDirectDrawEnumerateW           @15
-;DllCanUnloadNow            = FakeDllCanUnloadNow                @16
-;DllGetClassObject          = FakeDllGetClassObject              @17
+DllCanUnloadNow             = FakeDllCanUnloadNow                PRIVATE
+DllGetClassObject           = FakeDllGetClassObject              PRIVATE
 GetDDSurfaceLocal           = FakeGetDDSurfaceLocal              @18
 GetOLEThunkData             = FakeGetOLEThunkData                @19
 GetSurfaceFromDC            = FakeGetSurfaceFromDC               @20
 RegisterSpecialCase         = FakeRegisterSpecialCase            @21
 ReleaseDDThreadLock         = FakeReleaseDDThreadLock            @22
+SetAppCompatData            = FakeSetAppCompatData               @23
 
-DirectDrawCreat2            = FakeDirectDrawCreate2
-DirectInputCreateA          = FakeDirectInputCreate
+; sfall override
+DirectDrawCreat2            = FakeDirectDrawCreate2              @24
+DirectInputCreateA          = FakeDirectInputCreate              @25

@@ -42,6 +42,9 @@ struct levelRest {
 };
 std::unordered_map<int, levelRest> mapRestInfo;
 
+std::vector<std::pair<long, std::string>> wmTerrainTypeNames; // pair first: x + y * number of horizontal sub-tiles
+std::unordered_map<long, std::string> wmAreaHotSpotTitle;
+
 static bool restMap;
 static bool restMode;
 static bool restTime;
@@ -210,25 +213,6 @@ static void __declspec(naked) ViewportHook() {
 	}
 }
 
-static void __declspec(naked) wmTownMapFunc_hack() {
-	__asm {
-		cmp  dword ptr [edi][eax * 4 + 0], 0;  // Visited
-		je   end;
-		cmp  dword ptr [edi][eax * 4 + 4], -1; // Xpos
-		je   end;
-		cmp  dword ptr [edi][eax * 4 + 8], -1; // Ypos
-		je   end;
-		// engine code
-		mov  edx, [edi][eax * 4 + 0xC];
-		mov  [esi], edx
-		retn;
-end:
-		add  esp, 4; // destroy the return address
-		mov  eax, 0x4C4976;
-		jmp  eax;
-	}
-}
-
 static DWORD _stdcall PathfinderCalc(DWORD perkLevel, DWORD ticks) {
 	double multi = mapMultiMod * scriptMapMulti;
 
@@ -313,6 +297,42 @@ end:
 	}
 }
 
+static void __declspec(naked) wmRndEncounterOccurred_hook() {
+	__asm {
+		push eax;
+		mov  edx, 1;
+		mov  dword ptr ds:[FO_VAR_wmRndCursorFid], 0;
+		mov  ds:[FO_VAR_wmEncounterIconShow], edx;
+		mov  ecx, 7;
+jLoop:
+		mov  eax, edx;
+		sub  eax, ds:[FO_VAR_wmRndCursorFid];
+		mov  ds:[FO_VAR_wmRndCursorFid], eax;
+		call fo::funcoffs::wmInterfaceRefresh_;
+		mov  eax, 200;
+		call fo::funcoffs::block_for_tocks_;
+		dec  ecx;
+		jnz  jLoop;
+		mov  ds:[FO_VAR_wmEncounterIconShow], ecx;
+		pop  eax; // map id
+		jmp  fo::funcoffs::map_load_idx_;
+	}
+}
+
+// Fallout 1 behavior: No radius for uncovered locations on the world map
+// for the mark_area_known script function when the mark_state argument of the function is set to 3
+long __declspec(naked) Worldmap::AreaMarkStateIsNoRadius() {
+	__asm {
+		xor  eax, eax;
+		cmp  esi, 3; // esi - mark_state value
+		jne  skip;
+		mov  esi, 1; // revert value to town known state
+skip:
+		cmove eax, esi; // eax: 1 for Fallout 1 behavior
+		retn;
+	}
+}
+
 static void RestRestore() {
 	if (!restMode) return;
 	restMode = false;
@@ -370,14 +390,6 @@ void TimeLimitPatch() {
 			SafeWrite8(0x4A34EC, limit);
 			SafeWrite8(0x4A3544, limit);
 		}
-		dlogr(" Done", DL_INIT);
-	}
-}
-
-void TownMapsHotkeyFix() {
-	if (GetConfigInt("Misc", "TownMapHotkeysFix", 1)) {
-		dlog("Applying town map hotkeys patch.", DL_INIT);
-		MakeCall(0x4C495A, wmTownMapFunc_hack, 1);
 		dlogr(" Done", DL_INIT);
 	}
 }
@@ -602,20 +614,67 @@ long __fastcall Worldmap::GetRestMapLevel(long elev, int mapId) {
 	return -1;
 }
 
+static const char* GetOverrideTerrainName(long x, long y) {
+	if (wmTerrainTypeNames.empty()) return nullptr;
+
+	long subTileID = x + y * (fo::var::wmNumHorizontalTiles * 7);
+	auto it = std::find_if(wmTerrainTypeNames.crbegin(), wmTerrainTypeNames.crend(),
+						  [=](const std::pair<long, std::string> &el)
+						  { return el.first == subTileID; }
+	);
+	return (it != wmTerrainTypeNames.crend()) ? it->second.c_str() : nullptr;
+}
+
+// x, y - position of the sub-tile on the world map
+void Worldmap::SetTerrainTypeName(long x, long y, const char* name) {
+	long subTileID = x + y * (fo::var::wmNumHorizontalTiles * 7);
+	wmTerrainTypeNames.push_back(std::make_pair(subTileID, name));
+}
+
+// TODO: someone might need to know the name of a terrain type?
+/*const char* Worldmap::GetTerrainTypeName(long x, long y) {
+	const char* name = GetOverrideTerrainName(x, y);
+	return (name) ? name : fo::GetMessageStr(&fo::var::wmMsgFile, 1000 + fo::wmGetTerrainType(x, y));
+}*/
+
+// Returns the name of the terrain type in the position of the player's marker on the world map
+const char* Worldmap::GetCurrentTerrainName() {
+	const char* name = GetOverrideTerrainName(fo::var::world_xpos / 50, fo::var::world_ypos / 50);
+	return (name) ? name : fo::GetMessageStr(&fo::var::wmMsgFile, 1000 + fo::wmGetCurrentTerrainType());
+}
+
+bool Worldmap::AreaTitlesIsEmpty() {
+	return wmAreaHotSpotTitle.empty();
+}
+
+void Worldmap::SetCustomAreaTitle(long areaID, const char* msg) {
+	wmAreaHotSpotTitle[areaID] = msg;
+}
+
+const char* Worldmap::GetCustomAreaTitle(long areaID) {
+	if (AreaTitlesIsEmpty()) return nullptr;
+	const auto &it = wmAreaHotSpotTitle.find(areaID);
+	return (it != wmAreaHotSpotTitle.cend()) ? it->second.c_str() : nullptr;
+}
+
 void Worldmap::init() {
 	PathfinderFixInit();
 	StartingStatePatches();
 	TimeLimitPatch();
-	TownMapsHotkeyFix();
 	WorldLimitsPatches();
 	WorldmapFpsPatch();
 	PipBoyAutomapsPatch();
+
+	// Add a flashing icon to the Horrigan encounter
+	HookCall(0x4C071C, wmRndEncounterOccurred_hook);
 
 	LoadGameHook::OnGameReset() += []() {
 		SetCarInterfaceArt(433); // set index
 		if (restTime) SetRestHealTime(180);
 		RestRestore();
 		mapRestInfo.clear();
+		wmTerrainTypeNames.clear();
+		wmAreaHotSpotTitle.clear();
 	};
 }
 

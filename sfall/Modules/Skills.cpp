@@ -18,7 +18,6 @@
 
 #include <math.h>
 #include <stdio.h>
-#include <vector>
 
 #include "..\main.h"
 
@@ -382,13 +381,13 @@ void Skills::init() {
 					tok = strtok(0, "|");
 				}
 				while (upto < 512) skillCosts[i * 512 + upto++] = price;
-			} else {
-				for (int j = 0;   j <= 100; j++) skillCosts[i * 512 + j] = 1;
-				for (int j = 101; j <= 125; j++) skillCosts[i * 512 + j] = 2;
-				for (int j = 126; j <= 150; j++) skillCosts[i * 512 + j] = 3;
-				for (int j = 151; j <= 175; j++) skillCosts[i * 512 + j] = 4;
-				for (int j = 176; j <= 200; j++) skillCosts[i * 512 + j] = 5;
-				for (int j = 201; j <= 512; j++) skillCosts[i * 512 + j] = 6;
+			} else { // set default cost values
+				for (int j = 0;   j <= 100; j++) skillCosts[i * 512 + j] = 1; // 101
+				for (int j = 101; j <= 125; j++) skillCosts[i * 512 + j] = 2; // 25
+				for (int j = 126; j <= 150; j++) skillCosts[i * 512 + j] = 3; // 25
+				for (int j = 151; j <= 175; j++) skillCosts[i * 512 + j] = 4; // 25
+				for (int j = 176; j <= 200; j++) skillCosts[i * 512 + j] = 5; // 25
+				for (int j = 201; j <= 511; j++) skillCosts[i * 512 + j] = 6; // 311
 			}
 			sprintf(key, "SkillBase%d", i);
 			skills[i].base = iniGetInt("Skills", key, skills[i].base, file);

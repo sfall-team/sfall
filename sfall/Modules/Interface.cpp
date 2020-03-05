@@ -21,8 +21,10 @@
 #include "..\main.h"
 #include "..\FalloutEngine\Fallout2.h"
 #include "..\FalloutEngine\EngineUtils.h"
+#include "..\Utils.h"
 #include "Graphics.h"
 #include "LoadGameHook.h"
+#include "Worldmap.h"
 
 #include "Interface.h"
 
@@ -189,6 +191,7 @@ static void __declspec(naked) wmInterfaceInit_text_font_hook() {
 static DWORD wmTownMapSubButtonIds[WMAP_TOWN_BUTTONS + 1]; // replace _wmTownMapSubButtonIds (index 0 - unused element)
 static int worldmapInterface;
 static long wmapWinWidth = 640;
+static long wmapWinHeight = 480;
 static long wmapViewPortWidth = 450;
 static long wmapViewPortHeight = 443;
 
@@ -351,6 +354,7 @@ static void WorldmapViewportPatch() {
 	dlog("Applying expanded world map interface patch.", DL_INIT);
 
 	wmapWinWidth = WMAP_WIN_WIDTH;
+	wmapWinHeight = WMAP_WIN_HEIGHT;
 	mapSlotsScrollMax -= 216;
 	if (mapSlotsScrollMax < 0) mapSlotsScrollMax = 0;
 
@@ -463,11 +467,18 @@ static void WorldmapViewportPatch() {
 }
 
 ///////////////////////// FALLOUT 1 WORLD MAP FEATURES /////////////////////////
+static bool showTerrainType = false;
+
+enum DotStyleDefault {
+	DotLen   = 2,
+	SpaceLen = 2
+};
 
 enum TerrainHoverImage {
-	width = 100,
+	width  = 200,
 	height = 15,
-	size = width * height
+	size = width * height,
+	x_shift = (width / 4) + 25 // adjust x position
 };
 
 static std::array<unsigned char, TerrainHoverImage::size> wmTmpBuffer;
@@ -482,26 +493,40 @@ struct DotPosition {
 };
 static std::vector<DotPosition> dots;
 
-static long optionLenDot = 2;
-static long optionSpaceDot = 2;
-
 static unsigned char colorDot = 0;
-static long spaceLen = 2;
-static long dotLen = 2;
+static long spaceLen = DotStyleDefault::SpaceLen;
+static long dotLen   = DotStyleDefault::DotLen;
 static long dot_xpos = 0;
 static long dot_ypos = 0;
+static size_t terrainCount = 0;
+
+static struct DotStyle {
+	long dotLen;
+	long spaceLen;
+} *dotStyle = nullptr;
 
 static void AddNewDot() {
 	dot_xpos = fo::var::world_xpos;
 	dot_ypos = fo::var::world_ypos;
 
+	long* terrain = *(long**)FO_VAR_world_subtile;
+	size_t id = (terrain) ? *terrain : 0;
+
+	// Reinitialize if current terrain has smaller values than previous
+	if (id < terrainCount) {
+		if (dotLen > dotStyle[id].dotLen) dotLen = dotStyle[id].dotLen;
+		if (spaceLen > dotStyle[id].spaceLen) spaceLen = dotStyle[id].spaceLen;
+	}
+
 	if (dotLen <= 0 && spaceLen) {
 		spaceLen--;
-		if (!spaceLen) dotLen = optionLenDot; // set dot length
+		if (!spaceLen) { // set dot length
+			dotLen = (id < terrainCount) ? dotStyle[id].dotLen : DotStyleDefault::DotLen;
+		};
 		return;
 	}
 	dotLen--;
-	spaceLen = optionSpaceDot;
+	spaceLen = (id < terrainCount) ? dotStyle[id].spaceLen : DotStyleDefault::SpaceLen;
 
 	dots.emplace_back(dot_xpos, dot_ypos);
 }
@@ -528,7 +553,7 @@ static void __declspec(naked) DrawingDots() {
 
 		wmPixelY *= wmapWinWidth;
 
-		BYTE* wmWinBuf = *(BYTE**)FO_VAR_wmBkWinBuf;
+		BYTE* wmWinBuf = fo::var::wmBkWinBuf;
 		BYTE* wmWinBuf_xy = (wmPixelY + wmPixelX) + wmWinBuf;
 
 		// put pixel to interface window buffer
@@ -542,17 +567,40 @@ static void __declspec(naked) DrawingDots() {
 	}
 }
 
-static void PrintTerrainType(long x, long y) {
-	char* terrainText = (char*)fo::wmGetCurrentTerrainName();
-	long txtWidth = fo::GetTextWidthFM(terrainText);
+static bool PrintHotspotText(long x, long y, bool backgroundCopy = false) {
+	long area = fo::var::WorldMapCurrArea;
+	char* text = (area != -1 || !showTerrainType) ? (char*)Worldmap::GetCustomAreaTitle(area) : (char*)Worldmap::GetCurrentTerrainName();
+	if (!text) return false;
+
+	if (backgroundCopy) { // copy background image to memory (size 200 x 15)
+		backImageIsCopy = true;
+		fo::SurfaceCopyToMem(x - TerrainHoverImage::x_shift, y, TerrainHoverImage::width, TerrainHoverImage::height, wmapWinWidth, fo::var::wmBkWinBuf, wmTmpBuffer.data());
+	}
+
+	long txtWidth = fo::GetTextWidthFM(text);
 	if (txtWidth > TerrainHoverImage::width) txtWidth = TerrainHoverImage::width;
 
-	// offset position
+	// offset text position
 	y += 4;
 	x += 25 - (txtWidth / 2);
 
-	fo::PrintTextFM(terrainText, 228, x, y, txtWidth, wmapWinWidth, *(BYTE**)FO_VAR_wmBkWinBuf); // text shadow
-	fo::PrintTextFM(terrainText, 215, x - 1, y - 1, txtWidth, wmapWinWidth, *(BYTE**)FO_VAR_wmBkWinBuf);
+	// prevent printing text outside of viewport
+	/*if ((x + txtWidth) > wmapViewPortWidth - 20) {
+		txtWidth -= (x + txtWidth) - wmapViewPortWidth - 20;
+	} else if (x < 20) {
+		long x_cut = abs(20 - x);
+		long width = 0;
+		do {
+			width += fo::GetCharWidthFM(*text++);
+		} while (width < x_cut);
+		x += x_cut;
+	}*/
+
+	fo::PrintTextFM(text, 228, x, y, txtWidth, wmapWinWidth, fo::var::wmBkWinBuf); // shadow
+	fo::PrintTextFM(text, 215, x - 1, y - 1, txtWidth, wmapWinWidth, fo::var::wmBkWinBuf);
+
+	if (backgroundCopy) fo::func::wmRefreshInterfaceOverlay(0); // prevent printing text over the interface
+	return true;
 }
 
 static void __declspec(naked) wmInterfaceRefresh_hook() {
@@ -562,20 +610,32 @@ static void __declspec(naked) wmInterfaceRefresh_hook() {
 		} else if (!fo::var::target_xpos && !fo::var::target_ypos) {
 			// player stops moving
 			dots.clear();
-			dotLen = optionLenDot;
-			spaceLen = optionSpaceDot;
+			// Reinitialize on next AddNewDot
+			if (terrainCount)
+				dotLen = spaceLen = 99;
+			else {
+				dotLen = DotStyleDefault::DotLen;
+				spaceLen = DotStyleDefault::SpaceLen;
+			}
 		}
 	}
 	if (isHoveringHotspot && !fo::var::In_WorldMap) {
-		PrintTerrainType(fo::var::world_xpos - fo::var::wmWorldOffsetX, fo::var::world_ypos - fo::var::wmWorldOffsetY);
+		PrintHotspotText(fo::var::world_xpos - fo::var::wmWorldOffsetX, fo::var::world_ypos - fo::var::wmWorldOffsetY);
 		isHoveringHotspot = backImageIsCopy = false;
 	}
 	__asm jmp fo::funcoffs::wmDrawCursorStopped_;
 }
 
-static long __fastcall wmDetectHotspotHover(long wmMouseX, long wmMouseY) {
-	long deltaX = abs((long)fo::var::world_xpos - (wmMouseX - 20 + fo::var::wmWorldOffsetX));
-	long deltaY = abs((long)fo::var::world_ypos - (wmMouseY - 20 + fo::var::wmWorldOffsetY));
+static void __fastcall wmDetectHotspotHover(long wmMouseX, long wmMouseY) {
+	if (!showTerrainType && Worldmap::AreaTitlesIsEmpty()) return;
+
+	long deltaX = 20, deltaY = 20;
+
+	// mouse cursor is out of viewport area (the zero values of wmMouseX and wmMouseY correspond to the top-left corner of the worldmap interface)
+	if ((wmMouseX < 20 || wmMouseY < 20 || wmMouseX > wmapViewPortWidth + 15 || wmMouseY > wmapViewPortHeight + 20) == false) {
+		deltaX = abs((long)fo::var::world_xpos - (wmMouseX - deltaX + fo::var::wmWorldOffsetX));
+		deltaY = abs((long)fo::var::world_ypos - (wmMouseY - deltaY + fo::var::wmWorldOffsetY));
+	}
 
 	bool isHovered = isHoveringHotspot;
 	isHoveringHotspot = deltaX < 8 && deltaY < 6;
@@ -583,15 +643,12 @@ static long __fastcall wmDetectHotspotHover(long wmMouseX, long wmMouseY) {
 		// upper left corner
 		long y = fo::var::world_ypos - fo::var::wmWorldOffsetY;
 		long x = fo::var::world_xpos - fo::var::wmWorldOffsetX;
-		long x_offset = x - 25;
+		long x_offset = x - TerrainHoverImage::x_shift;
 		if (!backImageIsCopy) {
-			backImageIsCopy = true;
-			// copy image to memory (size 100 x 15)
-			fo::RectCopyToMemory(x_offset, y, TerrainHoverImage::width, TerrainHoverImage::height, wmapWinWidth, *(BYTE**)FO_VAR_wmBkWinBuf, wmTmpBuffer.data());
-			PrintTerrainType(x, y);
+			if (!PrintHotspotText(x, y, true)) return;
 		} else {
-			// restore saved image
-			fo::MemCopyToWinBuffer(x_offset, y, TerrainHoverImage::width, TerrainHoverImage::height, wmapWinWidth, *(BYTE**)FO_VAR_wmBkWinBuf, wmTmpBuffer.data());
+			// restore background image
+			fo::DrawToSurface(x_offset, y, TerrainHoverImage::width, TerrainHoverImage::height, wmapWinWidth, wmapWinHeight, fo::var::wmBkWinBuf, wmTmpBuffer.data());
 			backImageIsCopy = false;
 		}
 		// redraw rectangle on worldmap interface
@@ -600,26 +657,36 @@ static long __fastcall wmDetectHotspotHover(long wmMouseX, long wmMouseY) {
 		rect.left = x_offset;
 		rect.right = x + TerrainHoverImage::width;
 		rect.bottom = y + TerrainHoverImage::height;
-		fo::func::win_draw_rect(*(long*)FO_VAR_wmBkWin, &rect);
+		fo::func::win_draw_rect(fo::var::wmBkWin, &rect);
 	}
-	return fo::var::wmWorldOffsetY; // overwritten code
 }
 
 static void __declspec(naked) wmWorldMap_hack() {
 	__asm {
 		cmp  ds:[FO_VAR_In_WorldMap], 1; // player is moving
 		jne  checkHover;
-end:
-		mov  eax, dword ptr ds:[FO_VAR_wmWorldOffsetY];
+		mov  eax, dword ptr ds:[FO_VAR_wmWorldOffsetY]; // overwritten code
 		retn;
 checkHover:
-		cmp  dword ptr ds:[FO_VAR_WorldMapCurrArea], -1;
-		jne  end; // player is in a location circle
+		cmp  esi, 328;
+		je   isScroll;
+		cmp  esi, 331;
+		je   isScroll;
+		cmp  esi, 333;
+		je   isScroll;
+		cmp  esi, 336;
+		je   isScroll;
 		push ecx;
 		mov  ecx, [esp + 0x38 - 0x30 + 8]; // x
 		mov  edx, [esp + 0x38 - 0x34 + 8]; // y
 		call wmDetectHotspotHover;
 		pop  ecx;
+		mov  eax, dword ptr ds:[FO_VAR_wmWorldOffsetY];
+		retn;
+isScroll:
+		mov  isHoveringHotspot, 0;
+		mov  backImageIsCopy, 0;
+		mov  eax, dword ptr ds:[FO_VAR_wmWorldOffsetY];
 		retn;
 	}
 }
@@ -688,31 +755,44 @@ static void WorldMapInterfacePatch() {
 		}
 	}
 
-	// Fallout 1 features, travel markers and displaying terrain types
-	bool showTravelMarkers, showTerrainType;
-	if (showTravelMarkers = GetConfigInt("Interface", "WorldMapTravelMarkers", 0) != 0) {
+	// Fallout 1 features, travel markers and displaying terrain types or town titles
+	if (GetConfigInt("Interface", "WorldMapTravelMarkers", 0)) {
 		dlog("Applying world map travel markers patch.", DL_INIT);
-		optionLenDot = GetConfigInt("Interface", "TravelMarkerLength", optionLenDot);
-		optionSpaceDot = GetConfigInt("Interface", "TravelMarkerSpaces", optionSpaceDot);
-		int color = GetConfigInt("Interface", "TravelMarkerColor", 134); // color index in palette: R = 224, G = 0, B = 0
 
+		int color = GetConfigInt("Interface", "TravelMarkerColor", 134); // color index in palette: R = 224, G = 0, B = 0
 		if (color > 255) color = 255; else if (color < 1) color = 1;
 		colorDot = color;
-		if (optionLenDot > 10) optionLenDot = 10; else if (optionLenDot < 1) optionLenDot = 1;
-		if (optionSpaceDot > 10) optionSpaceDot = 10; else if (optionSpaceDot < 1) optionSpaceDot = 1;
 
+		auto dotList = GetConfigList("Interface", "TravelMarkerStyles", "", 512);
+		if (!dotList.empty()) {
+			terrainCount = dotList.size();
+			dotStyle = new DotStyle[terrainCount];
+
+			std::vector<std::string> pair;
+			for (size_t i = 0; i < terrainCount; i++) {
+				split(dotList[i], ':', std::back_inserter(pair), 2);
+				if (pair.size() >= 2) {
+					int len = atoi(pair[0].c_str());
+					if (len < 1) len = 1; else if (len > 10) len = 10;
+					dotStyle[i].dotLen = len;
+					len = atoi(pair[1].c_str());
+					if (len < 1) len = 1; else if (len > 10) len = 10;
+					dotStyle[i].spaceLen = len;
+				} else {
+					dotStyle[i] = {DotStyleDefault::DotLen, DotStyleDefault::SpaceLen};
+				}
+				pair.clear();
+			}
+		}
 		dots.reserve(512);
 		LoadGameHook::OnGameReset() += []() {
 			dots.clear();
 		};
 		dlogr(" Done", DL_INIT);
 	}
-	if (showTerrainType = GetConfigInt("Interface", "WorldMapTerrainInfo", 0) != 0) {
-		dlog("Applying display terrain types patch.", DL_INIT);
-		MakeCall(0x4BFE84, wmWorldMap_hack);
-		dlogr(" Done", DL_INIT);
-	}
-	if (showTravelMarkers || showTerrainType) HookCall(0x4C3C7E, wmInterfaceRefresh_hook); // when calling wmDrawCursorStopped_
+	showTerrainType = (GetConfigInt("Interface", "WorldMapTerrainInfo", 0) != 0);
+	HookCall(0x4C3C7E, wmInterfaceRefresh_hook); // when calling wmDrawCursorStopped_
+	MakeCall(0x4BFE84, wmWorldMap_hack);
 
 	// Car fuel gauge graphics patch
 	MakeCall(0x4C528A, wmInterfaceRefreshCarFuel_hack_empty);
@@ -779,7 +859,7 @@ static long gmouse_handle_event_hook() {
 	// if IFACE_BAR_MODE is not enabled, check the display_win window area
 	win = fo::func::GNW_find(*(DWORD*)FO_VAR_display_win);
 	RECT *rect = &win->wRect;
-	return fo::func::mouse_click_in(rect->left, rect->top, rect->right, rect->bottom); // 1 - click in the display_win area
+	return fo::func::mouse_click_in(rect->left, rect->top, rect->right, rect->bottom); // 1 - click in the display window area
 }
 
 static void __declspec(naked) gmouse_bk_process_hook() {
@@ -809,6 +889,7 @@ void Interface::init() {
 
 void Interface::exit() {
 	if (ifaceFrm) delete ifaceFrm;
+	if (dotStyle) delete[] dotStyle;
 }
 
 }

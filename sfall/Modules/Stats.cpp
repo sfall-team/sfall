@@ -211,7 +211,7 @@ allow:
 }
 
 static void StatsReset() {
-	for (int i = 0; i < fo::STAT_max_stat; i++) {
+	for (size_t i = 0; i < fo::STAT_max_stat; i++) {
 		statMaximumsPC[i] = statMaximumsNPC[i] = fo::var::stat_data[i].maxValue;
 		statMinimumsPC[i] = statMinimumsNPC[i] = fo::var::stat_data[i].minValue;
 	}

@@ -16,8 +16,6 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <stdint.h>
-
 #include "..\main.h"
 #include "..\FalloutEngine\Fallout2.h"
 #include "LoadGameHook.h"
@@ -46,7 +44,7 @@ struct ProtoMem {
 
 	void CreateProtoMem(long* srcProto) {
 		this->proto = reinterpret_cast<long*>(new int32_t[104]); // 416 bytes
-		memcpy(this->proto, srcProto, 416);
+		std::memcpy(this->proto, srcProto, 416);
 	}
 
 	~ProtoMem() { delete[] proto; }

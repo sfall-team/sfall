@@ -93,6 +93,7 @@ static HooksInjectInfo injectHooks[] = {
 	{HOOK_STDPROCEDURE,     Inject_ScriptProcedureHook,  false},
 	{HOOK_STDPROCEDURE_END, Inject_ScriptProcedureHook2, false},
 	{HOOK_TARGETOBJECT,     Inject_TargetObjectHook,     false},
+	{HOOK_ENCOUNTER,        Inject_EncounterHook,        false},
 };
 
 bool HookScripts::injectAllHooks;
@@ -242,7 +243,7 @@ void HookScriptClear() {
 	for(int i = 0; i < numHooks; i++) {
 		hooks[i].clear();
 	}
-	memset(hooksInfo, 0, HOOK_COUNT * sizeof(HooksPositionInfo));
+	std::memset(hooksInfo, 0, HOOK_COUNT * sizeof(HooksPositionInfo));
 	previousGameMode = 0;
 }
 

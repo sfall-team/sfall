@@ -30,6 +30,7 @@ namespace sfall
 DWORD LSPageOffset = 0;
 
 int LSButtDN = 0;
+BYTE* SaveLoadSurface = nullptr;
 
 static const char* filename = "%s\\savegame\\slotdat.ini";
 
@@ -123,6 +124,7 @@ void SetPageNum() {
 
 	char TempText[32];
 	unsigned int TxtMaxWidth = fo::GetMaxCharWidth() * 8; // GetTextWidth(TempText);
+	unsigned int HalfMaxWidth = TxtMaxWidth / 2;
 	unsigned int TxtWidth = 0;
 
 	DWORD NewTick = 0, OldTick = 0;
@@ -130,6 +132,9 @@ void SetPageNum() {
 	char Number[5], blip = '_';
 
 	DWORD tempPageOffset = -1;
+
+	char* EndBracket = "]";
+	int width = fo::GetTextWidth(EndBracket);
 
 	while (!exitFlag) {
 		NewTick = GetTickCount(); // timer for redraw
@@ -141,23 +146,29 @@ void SetPageNum() {
 
 			blip = (blip == '_') ? ' ' : '_';
 
-			sprintf_s(TempText, 32, "#%d%c", tempPageOffset / 10 + 1, '_');
 			if (tempPageOffset == -1) {
-				sprintf_s(TempText, 32, "#%c", '_');
+				sprintf_s(TempText, 32, "[ %c ]", '_');
+			} else {
+				sprintf_s(TempText, 32, "[ %d%c ]", tempPageOffset / 10 + 1, '_');
 			}
 			TxtWidth = fo::GetTextWidth(TempText);
 
-			sprintf_s(TempText, 32, "#%d%c", tempPageOffset / 10 + 1, blip);
 			if (tempPageOffset == -1) {
-				sprintf_s(TempText, 32, "#%c", blip);
+				sprintf_s(TempText, 32, "[ %c", blip);
+			} else {
+				sprintf_s(TempText, 32, "[ %d%c", tempPageOffset / 10 + 1, blip);
 			}
 
-			// fill over text area with consol black colour
-			for (int y = SaveLoadWin->width * 52; y < SaveLoadWin->width * 82; y = y + SaveLoadWin->width) {
-				memset(SaveLoadWin->surface + y + 170 - TxtMaxWidth / 2, 0xCF, TxtMaxWidth);
+			int z = 0;
+			// paste image part from buffer into text area
+			for (int y = SaveLoadWin->width * 60; y < SaveLoadWin->width * 75; y += SaveLoadWin->width) {
+				memcpy(SaveLoadWin->surface + y + (170 - HalfMaxWidth), SaveLoadSurface + (100 - HalfMaxWidth) + (200 * z++), TxtMaxWidth);
 			}
 
-			fo::PrintText(TempText, ConsoleGold, 170 - TxtWidth / 2, 64, TxtWidth, SaveLoadWin->width, SaveLoadWin->surface);
+			int HalfTxtWidth = TxtWidth / 2;
+
+			fo::PrintText(TempText, ConsoleGold, 170 - HalfTxtWidth, 64, TxtWidth, SaveLoadWin->width, SaveLoadWin->surface);
+			fo::PrintText(EndBracket, ConsoleGold, (170 - HalfTxtWidth) + TxtWidth - width, 64, width, SaveLoadWin->width, SaveLoadWin->surface);
 			fo::func::win_draw(winRef);
 		}
 
@@ -263,9 +274,18 @@ void DrawPageText() {
 		return;
 	}
 
-	// fill over text area with consol black colour
-	for (int y = SaveLoadWin->width * 52; y < SaveLoadWin->width * 82; y = y + SaveLoadWin->width) {
-		memset(SaveLoadWin->surface + 50 + y, 0xCF, 240);
+	int z = 0;
+	if (SaveLoadSurface == nullptr) {
+		SaveLoadSurface = new BYTE[3000];
+		// save part of original image to buffer
+		for (int y = SaveLoadWin->width * 60; y < SaveLoadWin->width * 75; y += SaveLoadWin->width) {
+			memcpy(SaveLoadSurface + (200 * z++), SaveLoadWin->surface + 70 + y, 200);
+		}
+	} else {
+		// paste image from buffer into text area
+		for (int y = SaveLoadWin->width * 60; y < SaveLoadWin->width * 75; y += SaveLoadWin->width) {
+			memcpy(SaveLoadWin->surface + 70 + y, SaveLoadSurface + (200 * z++), 200);
+		}
 	}
 
 	BYTE ConsoleGreen = fo::var::GreenColor; // palette offset stored in mem - text colour
@@ -503,6 +523,10 @@ void ExtraSaveSlots::init() {
 		MakeJump(0x47B984, SaveGame_hack0);
 		dlogr(" Done", DL_INIT);
 	}
+}
+
+void ExtraSaveSlots::exit() {
+	if (SaveLoadSurface) delete[] SaveLoadSurface;
 }
 
 }

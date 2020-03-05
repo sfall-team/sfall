@@ -247,6 +247,23 @@ end:
 	}
 }
 
+static void __declspec(naked) endgame_movie_hook() {
+	__asm {
+		cmp  [esp + 16], 0x45C563; // call from op_endgame_movie_
+		je   playWalkMovie;
+		retn;
+playWalkMovie:
+		call fo::funcoffs::stat_level_;
+		xor  edx, edx;
+		add  eax, 10;
+		mov  ecx, eax;
+		mov  eax, 1500;
+		call fo::funcoffs::pause_for_tocks_;
+		mov  eax, ecx;
+		jmp  fo::funcoffs::gmovie_play_;
+	}
+}
+
 void AdditionalWeaponAnimsPatch() {
 	if (GetConfigInt("Misc", "AdditionalWeaponAnims", 0)) {
 		dlog("Applying additional weapon animations patch.", DL_INIT);
@@ -505,11 +522,12 @@ void DisableHorriganPatch() {
 }
 
 void DisplaySecondWeaponRangePatch() {
-	if (GetConfigInt("Misc", "DisplaySecondWeaponRange", 1)) { // TODO: remove option?
+	// Display the range of the second attack mode in the inventory when you switch weapon modes in active item slots
+	//if (GetConfigInt("Misc", "DisplaySecondWeaponRange", 1)) {
 		dlog("Applying display second weapon range patch.", DL_INIT);
 		HookCall(0x472201, display_stats_hook);
 		dlogr(" Done", DL_INIT);
-	}
+	//}
 }
 
 void KeepWeaponSelectModePatch() {
@@ -552,7 +570,7 @@ void SkipLoadingGameSettingsPatch() {
 
 void InterfaceDontMoveOnTopPatch() {
 	if (GetConfigInt("Misc", "InterfaceDontMoveOnTop", 0)) { // TODO: remove option? (obsolete)
-		dlog("Applying InterfaceDontMoveOnTop patch.", DL_INIT);
+		dlog("Applying no MoveOnTop flag for interface patch.", DL_INIT);
 		SafeWrite8(0x46ECE9, fo::WinFlags::Exclusive); // Player Inventory/Loot/UseOn
 		SafeWrite8(0x41B966, fo::WinFlags::Exclusive); // Automap
 		dlogr(" Done", DL_INIT);
@@ -573,6 +591,7 @@ void F1EngineBehaviorPatch() {
 		dlog("Applying Fallout 1 engine behavior patch.", DL_INIT);
 		BlockCall(0x4A4343); // disable playing the final movie/credits after the endgame slideshow
 		SafeWrite8(0x477C71, 0xEB); // disable halving the weight for power armor items
+		HookCall(0x43F872, endgame_movie_hook); // play movie 10 or 11 based on the player's gender before the credits
 		dlogr(" Done", DL_INIT);
 	}
 }

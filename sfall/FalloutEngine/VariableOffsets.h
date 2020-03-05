@@ -47,11 +47,17 @@
 #define FO_VAR_currentWindow              0x51DCB8
 #define FO_VAR_cursor_line                0x664514
 #define FO_VAR_debug_func                 0x51DF04
+#define FO_VAR_dialog_red_button_down_buf 0x58F4A4
+#define FO_VAR_dialog_red_button_down_key 0x58F4BC
+#define FO_VAR_dialog_red_button_up_buf   0x58F4AC
+#define FO_VAR_dialog_red_button_up_key   0x58F46C
+#define FO_VAR_dialog_target              0x518848
+#define FO_VAR_dialog_target_is_party     0x51884C
 #define FO_VAR_dialogue_head              0x518850
 #define FO_VAR_dialogue_state             0x518714
 #define FO_VAR_dialogue_switch_mode       0x518718
-#define FO_VAR_dialog_target              0x518848
-#define FO_VAR_dialog_target_is_party     0x51884C
+#define FO_VAR_dialogueBackWindow         0x518740
+#define FO_VAR_dialogueWindow             0x518744
 #define FO_VAR_display_win                0x631E4C
 #define FO_VAR_displayMapList             0x41B560
 #define FO_VAR_dropped_explosive          0x5190E0
@@ -60,6 +66,7 @@
 #define FO_VAR_edit_win                   0x57060C
 #define FO_VAR_Educated                   0x57082C
 #define FO_VAR_elevation                  0x631D2C
+#define FO_VAR_EncounterMapID             0x672E4C
 #define FO_VAR_Experience_                0x6681B4
 #define FO_VAR_fade_steps                 0x6642D0
 #define FO_VAR_fallout_game_time          0x51C720
@@ -115,6 +122,8 @@
 #define FO_VAR_last_buttons               0x51E2AC
 #define FO_VAR_last_button_winID          0x51E404
 #define FO_VAR_last_level                 0x5707B4
+#define FO_VAR_lastMovieH                 0x638E64
+#define FO_VAR_lastMovieW                 0x638E68
 #define FO_VAR_Level_                     0x6681B0
 #define FO_VAR_Lifegiver                  0x570854
 #define FO_VAR_lips_draw_head             0x519248
@@ -158,6 +167,8 @@
 #define FO_VAR_obj_seen_check             0x6610BC
 #define FO_VAR_objectTable                0x639DA0
 #define FO_VAR_objItemOutlineState        0x519798
+#define FO_VAR_old_world_xpos             0x672E5C
+#define FO_VAR_old_world_ypos             0x672E60
 #define FO_VAR_optionRect                 0x58ECC0
 #define FO_VAR_optionsButtonDown          0x59D400
 #define FO_VAR_optionsButtonDown1         0x570518
@@ -165,6 +176,7 @@
 #define FO_VAR_optionsButtonUp            0x59D3FC
 #define FO_VAR_optionsButtonUp1           0x570514
 #define FO_VAR_optionsButtonUpKey         0x518F28
+#define FO_VAR_optnwin                    0x663900
 #define FO_VAR_outlined_object            0x518D94
 #define FO_VAR_partyMemberAIOptions       0x519DB8
 #define FO_VAR_partyMemberCount           0x519DAC
@@ -203,6 +215,7 @@
 #define FO_VAR_script_path_base           0x51C710
 #define FO_VAR_scriptListInfo             0x51C7C8
 #define FO_VAR_skill_data                 0x51D118
+#define FO_VAR_skldxwin                   0x668140
 #define FO_VAR_slot_cursor                0x5193B8
 #define FO_VAR_sndfx_volume               0x518E90
 #define FO_VAR_sneak_working              0x56D77C // DWORD var
@@ -214,6 +227,7 @@
 #define FO_VAR_stack_offset               0x59E844
 #define FO_VAR_stat_data                  0x51D53C
 #define FO_VAR_stat_flag                  0x66452A
+#define FO_VAR_subtitles                  0x663974
 #define FO_VAR_sWindows                   0x6727B0
 #define FO_VAR_Tag_                       0x5708B0
 #define FO_VAR_tag_skill                  0x668070
@@ -241,11 +255,13 @@
 #define FO_VAR_wmAreaInfoList             0x51DDF8
 #define FO_VAR_wmBkWin                    0x51DE14
 #define FO_VAR_wmBkWinBuf                 0x51DE24
+#define FO_VAR_wmEncounterIconShow        0x672E48
 #define FO_VAR_wmLastRndTime              0x51DEA0
 #define FO_VAR_wmMaxMapNum                0x51DE10
 #define FO_VAR_wmMaxTileNum               0x51DDF0
 #define FO_VAR_wmMsgFile                  0x672FB0
 #define FO_VAR_wmNumHorizontalTiles       0x51DDF4
+#define FO_VAR_wmRndCursorFid             0x672E58
 #define FO_VAR_wmViewportRightScrlLimit   0x672EFC
 #define FO_VAR_wmViewportBottomtScrlLimit 0x672F00
 #define FO_VAR_wmWorldOffsetX             0x51DE2C

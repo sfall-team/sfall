@@ -4,6 +4,7 @@
 #include "Drugs.h"
 #include "LoadGameHook.h"
 #include "ScriptExtender.h"
+#include "Worldmap.h"
 
 #include "BugFixes.h"
 
@@ -17,7 +18,7 @@ static DWORD critterBody = 0;
 static DWORD sizeOnBody = 0;
 static DWORD weightOnBody = 0;
 
-static char textBuf[355];
+static char tempBuffer[355];
 
 /*
 	Saving a list of PIDs for saved drug effects
@@ -101,7 +102,7 @@ isFloat:
 }
 
 static const DWORD UnarmedAttacksFixEnd = 0x423A0D;
-static void __declspec(naked) UnarmedAttacksFix() {
+static void __declspec(naked) compute_attack_hack() {
 	__asm {
 		mov  ecx, 5;                        // 5% chance of critical hit
 		cmp  edx, ATKTYPE_POWERKICK;        // Power Kick
@@ -1577,27 +1578,27 @@ static int currDescLen = 0;
 static bool showItemDescription = false;
 static void __stdcall AppendText(const char* text, const char* desc) {
 	if (showItemDescription && currDescLen == 0) {
-		strncpy_s(textBuf, desc, 161);
-		int len = strlen(textBuf);
+		strncpy_s(tempBuffer, desc, 161);
+		int len = strlen(tempBuffer);
 		if (len > 160) {
 			len = 158;
-			textBuf[len++] = '.';
-			textBuf[len++] = '.';
-			textBuf[len++] = '.';
+			tempBuffer[len++] = '.';
+			tempBuffer[len++] = '.';
+			tempBuffer[len++] = '.';
 		}
-		textBuf[len++] = ' ';
-		textBuf[len] = 0;
+		tempBuffer[len++] = ' ';
+		tempBuffer[len] = 0;
 		currDescLen  = len;
 	} else if (currDescLen == 0) {
-		textBuf[0] = 0;
+		tempBuffer[0] = 0;
 	}
 
-	strncat(textBuf, text, 64);
+	strncat(tempBuffer, text, 64);
 	currDescLen += strlen(text);
 	if (currDescLen < 300) {
-		textBuf[currDescLen++] = '.';
-		textBuf[currDescLen++] = ' ';
-		textBuf[currDescLen] = 0;
+		tempBuffer[currDescLen++] = '.';
+		tempBuffer[currDescLen++] = ' ';
+		tempBuffer[currDescLen] = 0;
 	}
 }
 
@@ -1622,7 +1623,7 @@ static void __declspec(naked) obj_examine_func_hack_ammo1() {
 		push eax;
 		call AppendText;
 		mov  currDescLen, 0;
-		lea  eax, [textBuf];
+		lea  eax, [tempBuffer];
 		jmp  fo::funcoffs::gdialogDisplayMsg_;
 skip:
 		jmp  dword ptr [esp + 0x1AC - 0x14 + 4];
@@ -1639,9 +1640,9 @@ static void __declspec(naked) obj_examine_func_hack_weapon() {
 		call AppendText;
 		mov  eax, currDescLen;
 		sub  eax, 2;
-		mov  byte ptr textBuf[eax], 0; // cutoff last character
+		mov  byte ptr tempBuffer[eax], 0; // cutoff last character
 		mov  currDescLen, 0;
-		lea  eax, [textBuf];
+		lea  eax, [tempBuffer];
 skip:
 		jmp  ObjExamineFuncWeapon_Ret;
 	}
@@ -1744,7 +1745,7 @@ static void __declspec(naked) wmSetupRandomEncounter_hook() {
 		push eax;                  // text 2
 		push edi;                  // text 1
 		push 0x500B64;             // fmt '%s %s'
-		lea  edi, textBuf;
+		lea  edi, tempBuffer;
 		push edi;                  // buf
 		call fo::funcoffs::sprintf_;
 		add  esp, 16;
@@ -2196,8 +2197,8 @@ static const char* __fastcall GetPickupMessage(const char* name) {
 	if (pickupMessageBuf[0] == 0) {
 		Translate("sfall", "NPCPickupFail", "%s cannot pick up the item.", pickupMessageBuf, 64);
 	}
-	sprintf(textBuf, pickupMessageBuf, name);
-	return textBuf;
+	sprintf(tempBuffer, pickupMessageBuf, name);
+	return tempBuffer;
 }
 
 static void __declspec(naked) obj_pickup_hook_message() {
@@ -2269,13 +2270,16 @@ static void __declspec(naked) action_climb_ladder_hack() {
 	}
 }
 
-//static const DWORD wmAreaMarkVisitedState_Error = 0x4C4698;
-static const DWORD wmAreaMarkVisitedState_Ret = 0x4C46A2;
 static void __declspec(naked) wmAreaMarkVisitedState_hack() {
+	static const DWORD wmAreaMarkVisitedState_Ret = 0x4C46A2;
+	//static const DWORD wmAreaMarkVisitedState_Error = 0x4C4698;
+	static long isNoRadius;
+
+	isNoRadius = Worldmap::AreaMarkStateIsNoRadius(); // F1 behavior radius
 	__asm {
 		mov  [ecx + 0x40], esi; // wmAreaInfoList.visited
 		test esi, esi;          // mark "unknown" state
-		jz   skip;
+		jz   noRadius;
 		mov  eax, [ecx + 0x2C]; // wmAreaInfoList.world_posx
 		mov  edx, [ecx + 0x30]; // wmAreaInfoList.world_posy
 		// fix loc coordinates
@@ -2283,13 +2287,13 @@ static void __declspec(naked) wmAreaMarkVisitedState_hack() {
 		jg   largeLoc;
 		je   mediumLoc;
 //smallLoc:
-		sub eax, 5;
-		lea edx, [edx - 5];
+		sub  eax, 5;
+		lea  edx, [edx - 5];
 mediumLoc:
-		sub eax, 10;
-		lea edx, [edx - 10];
+		sub  eax, 10;
+		lea  edx, [edx - 10];
 largeLoc:
-		mov  ebx, esp; // ppSubTile out
+		lea  ebx, [esp]; // ppSubTile out
 		push edx;
 		push eax;
 		call fo::funcoffs::wmFindCurSubTileFromPos_;
@@ -2298,19 +2302,23 @@ largeLoc:
 		pop  eax;
 		pop  edx;
 		mov  ebx, [esp];
-		mov  ebx, [ebx + 0x18]; // sub-tile state
+		mov  ebx, [ebx + 0x18]; // sub-tile state: 0 - black, 1 - uncovered, 2 - visited
 		test ebx, ebx;
 		jnz  skip;
-		inc  ebx; // 1
+		inc  ebx; // set 1
 skip:
-		cmp  [ecx + 0x38], 1;   // wmAreaInfoList.start_state
-		jne  hideLoc;
-		cmp  esi, 2; // mark visited state
-		jne  fix;
+		///////// check F1 behavior radius result /////////
+		cmp isNoRadius, 1;
+		je  noRadius;
+		///////////////////////////////////////////////////
+		cmp  [ecx + 0x38], 1; // wmAreaInfoList.start_state
+		jne  noRadius;        // hidden location
+		cmp  esi, 2;          // mark visited state
+		jne  fixRadius;
 		call fo::funcoffs::wmMarkSubTileRadiusVisited_;
-hideLoc:
+noRadius:
 		jmp  wmAreaMarkVisitedState_Ret;
-fix:
+fixRadius:
 		push ebx;
 		mov  ebx, 1; // radius (fix w/o PERK_scout)
 		call fo::funcoffs::wmSubTileMarkRadiusVisited_;
@@ -2340,8 +2348,27 @@ largeLoc:
 	}
 }
 
-static const DWORD combat_should_end_break = 0x422D00;
+static void __declspec(naked) wmTownMapFunc_hack() {
+	__asm {
+		cmp  dword ptr [edi][eax * 4 + 0], 0;  // Visited
+		je   end;
+		cmp  dword ptr [edi][eax * 4 + 4], -1; // Xpos
+		je   end;
+		cmp  dword ptr [edi][eax * 4 + 8], -1; // Ypos
+		je   end;
+		// engine code
+		mov  edx, [edi][eax * 4 + 0xC];
+		mov  [esi], edx
+		retn;
+end:
+		add  esp, 4; // destroy the return address
+		mov  eax, 0x4C4976;
+		jmp  eax;
+	}
+}
+
 static void __declspec(naked) combat_should_end_hack() {
+	static const DWORD combat_should_end_break = 0x422D00;
 	__asm { // ecx = dude.team_num
 		cmp  ecx, [ebp + 0x50]; // npc who_hit_me.team_num
 		je   break;
@@ -2468,17 +2495,154 @@ endLoop:
 	}
 }
 
+static void __declspec(naked) main_death_scene_hook() {
+	__asm {
+		mov  eax, 100;
+		call fo::funcoffs::block_for_tocks_;
+		jmp  fo::funcoffs::get_time_;
+	}
+}
+
+static void __declspec(naked) action_loot_container_hack() {
+	__asm {
+		cmp dword ptr [esp + 0x10 + 4], 0x44C1D9 + 5;
+		je  fix;
+		xor eax, eax; // set ZF
+		retn;
+fix:
+		sub  esp, 4;
+		mov  edx, esp;
+		call fo::funcoffs::proto_ptr_;
+		mov  edx, [esp];
+		add  esp, 4;
+		test [edx + 0x20], NoSteal; // critter flags
+		jnz  look;
+		retn;
+look:
+		mov  eax, esi;
+		mov  edx, edi;
+		call fo::funcoffs::obj_examine_;
+		or   eax, 1; // unset ZF
+		retn;
+	}
+}
+
+static void FixCreateBarterButton() {
+	const long artID = fo::OBJ_TYPE_INTRFACE << 24;
+	*(BYTE**)FO_VAR_dialog_red_button_up_buf = fo::func::art_ptr_lock_data(artID | 96, 0 ,0, (DWORD*)FO_VAR_dialog_red_button_up_key);
+	*(BYTE**)FO_VAR_dialog_red_button_down_buf = fo::func::art_ptr_lock_data(artID | 95, 0 ,0, (DWORD*)FO_VAR_dialog_red_button_down_key);
+}
+
+static void __declspec(naked) gdialog_window_create_hook() {
+	__asm {
+		call fo::funcoffs::art_ptr_unlock_;
+		cmp  dword ptr ds:[FO_VAR_dialog_red_button_down_buf], 0;
+		jz   FixCreateBarterButton;
+		retn;
+	}
+}
+
+static void __declspec(naked) gdialog_bk_hook() {
+	__asm {
+		xor  ebp, ebp;
+		mov  eax, ds:[FO_VAR_curr_font_num];
+		cmp  eax, 101;
+		je   skip0;
+		mov  ebp, eax;
+		mov  eax, 101; // set font
+		call fo::funcoffs::text_font_;
+skip0:
+		mov  eax, ds:[FO_VAR_obj_dude];
+		call fo::funcoffs::item_caps_total_;
+		push eax;      // caps
+		push 0x502B1C; // fmt: $%d
+		lea  eax, tempBuffer;
+		push eax;
+		call fo::funcoffs::sprintf_;
+		add  esp, 3 * 4;
+		lea  eax, tempBuffer;
+		call ds:[FO_VAR_text_width];
+		mov  edx, 60;  // max width
+		mov  ebx, eax; // ebx - textWidth
+		cmp  eax, edx;
+		cmova ebx, edx;
+		movzx eax, ds:[FO_VAR_GreenColor];
+		or   eax, 0x7000000; // print flags
+		push eax;
+		mov  eax, ebx;
+		mov  ecx, 38;  // x
+		push 36;       // y
+		sar  eax, 1;
+		sub  ecx, eax; // x shift
+		lea  edx, tempBuffer;
+		mov  eax, ds:[FO_VAR_dialogueWindow];
+		call fo::funcoffs::win_print_;
+		test ebp, ebp;
+		jz   skip1;
+		mov  eax, ebp;
+		call fo::funcoffs::text_font_;
+skip1:
+		mov  eax, edi;
+		jmp  fo::funcoffs::win_show_;
+	}
+}
+
+static void __declspec(naked) combat_ai_hook() {
+	__asm {
+		call fo::funcoffs::combat_should_end_;
+		test eax, eax;
+		jnz  skip;
+		cmp  ds:[FO_VAR_game_user_wants_to_quit], 2;
+		je   skip;
+		//cmp  ds:[FO_VAR_script_engine_running], 1;
+		//jne  skip;
+		call fo::funcoffs::GNW_do_bk_process_;
+		call fo::funcoffs::combat_turn_run_;
+		xor  eax, eax;
+skip:
+		retn;
+	}
+}
+
+static void __declspec(naked) wmSubTileMarkRadiusVisited_hack() {
+	static const DWORD wmSubTileMarkRadiusVisited_Ret = 0x4C3730;
+	__asm {
+		call fo::funcoffs::wmMarkSubTileOffsetVisitedFunc_;
+		cmp  ebp, 7; // count of horizontal sub-tiles
+		je   fix;
+		jmp  wmSubTileMarkRadiusVisited_Ret;
+fix:
+		test esi, esi; // if this is zero, then need to apply the fix
+		jz   checkTiles;
+jback:
+		xor  ecx, ecx;
+		dec  esi;
+		cmovnz ebp, ecx; // ebp=0 to continue uncovering sub-tiles
+		dec  dword ptr [esp + 0x1C - 0x14]; // subtract one tile from the left
+		jmp  wmSubTileMarkRadiusVisited_Ret;
+checkTiles:
+		mov  eax, ds:[FO_VAR_world_xpos]; // player's X position
+		mov  ecx, 350;
+		xor  edx, edx;
+		div  ecx; // eax: count of tiles on the left of the player's position
+		mov  esi, eax;
+		cmp  eax, 1;
+		jg   jback;
+		jmp  wmSubTileMarkRadiusVisited_Ret;
+	}
+}
+
 void BugFixes::init()
 {
 	#ifndef NDEBUG
 		LoadGameHook::OnBeforeGameClose() += PrintAddrList;
-		if (isDebug && (iniGetInt("Debugging", "BugFixes", 1, ::sfall::ddrawIni) == 0)) return;
+		if (iniGetInt("Debugging", "BugFixes", 1, ::sfall::ddrawIni) == 0) return;
 	#endif
 
 	// Missing game initialization
 	LoadGameHook::OnBeforeGameInit() += Initialization;
 
-	// Fix vanilla negate operator on float values
+	// Fix vanilla negate operator for float values
 	MakeCall(0x46AB68, NegateFixHack);
 	// Fix incorrect int-to-float conversion
 	// op_mult:
@@ -2487,10 +2651,16 @@ void BugFixes::init()
 	// op_div:
 	SafeWrite16(0x46A566, 0x04DB);
 	SafeWrite16(0x46A4E7, 0x04DB);
+	// Fix for vanilla division operator treating negative integers as unsigned
+	if (GetConfigInt("Misc", "DivisionOperatorFix", 1)) {
+		dlog("Applying division operator fix.", DL_INIT);
+		SafeWrite32(0x46A51D, 0xFBF79990); // xor edx, edx; div ebx > cdq; idiv ebx
+		dlogr(" Done", DL_INIT);
+	}
 
 	//if (GetConfigInt("Misc", "SpecialUnarmedAttacksFix", 1)) {
 		dlog("Applying Special Unarmed Attacks fix.", DL_INIT);
-		MakeJump(0x42394D, UnarmedAttacksFix);
+		MakeJump(0x42394D, compute_attack_hack);
 		dlogr(" Done", DL_INIT);
 	//}
 
@@ -2910,12 +3080,10 @@ void BugFixes::init()
 	MakeCall(0x472F5F, inven_obj_examine_func_hack, 1);
 
 	// Fix for the exploit that allows you to gain excessive skill points from Tag! perk before leaving the character screen
-	//if (GetConfigInt("Misc", "TagPerkFix", 1)) {
-		dlog("Applying fix for Tag! exploit.", DL_INIT);
-		HookCall(0x43B463, SliderBtn_hook_down);
-		HookCall(0x43D7DD, Add4thTagSkill_hook);
-		dlogr(" Done", DL_INIT);
-	//}
+	dlog("Applying fix for Tag! exploit.", DL_INIT);
+	HookCall(0x43B463, SliderBtn_hook_down);
+	HookCall(0x43D7DD, Add4thTagSkill_hook);
+	dlogr(" Done", DL_INIT);
 
 	// Fix for ai_retrieve_object_ engine function not returning the requested object when there are different objects
 	// with the same ID
@@ -3075,6 +3243,13 @@ void BugFixes::init()
 	// Fix the position of the target marker for small/medium location circles
 	MakeCall(0x4C03AA, wmWorldMap_hack, 2);
 
+	// Fix to prevent using number keys to enter unvisited areas on a town map
+	if (GetConfigInt("Misc", "TownMapHotkeysFix", 1)) {
+		dlog("Applying town map hotkeys patch.", DL_INIT);
+		MakeCall(0x4C495A, wmTownMapFunc_hack, 1);
+		dlogr(" Done", DL_INIT);
+	}
+
 	// Fix for combat not ending automatically when there are no hostile critters
 	MakeCall(0x422CF3, combat_should_end_hack);
 	SafeWrite16(0x422CEA, 0x0C74); // jz 0x422CF8 (skip party members)
@@ -3108,6 +3283,30 @@ void BugFixes::init()
 
 	// Fix for party member's equipped weapon being placed in the incorrect item slot after leveling up
 	MakeCall(0x495FD9, partyMemberCopyLevelInfo_hack, 1);
+
+	// Fix the playback of the speech sound file for the death screen
+	HookCall(0x481409, main_death_scene_hook);
+
+	// Fix for trying to loot corpses with the "NoSteal" flag
+	SafeWrite8(0x4123F2, CommonObj::protoId);
+	BlockCall(0x4123F3);
+	MakeCall(0x4123F8, action_loot_container_hack, 1);
+
+	// Fix for the barter button on the dialog window not animating until after leaving the barter screen
+	HookCall(0x44A77C, gdialog_window_create_hook);
+
+	// Fix for the player's money not being displayed in the dialog window after leaving the barter/combat control interface
+	HookCall(0x447ACD, gdialog_bk_hook);
+
+	// Fix crash or animation glitch of the critter in combat when an explosion from explosives
+	// and the AI attack animation are performed simultaneously
+	// Note: all events in combat will occur before the AI attack
+	HookCall(0x422E5F, combat_ai_hook); // execute all events after the end of the combat sequence
+
+	// Fix for the "Fill_W" flag in worldmap.txt not uncovering all tiles to the left edge of the world map
+	MakeJump(0x4C372B, wmSubTileMarkRadiusVisited_hack);
+	SafeWrite16(0x4C3723, 0xC931); // mov ecx, esi > xor ecx, ecx
+	SafeWrite8(0x4C3727, 0x51);    // push esi > push ecx
 }
 
 }

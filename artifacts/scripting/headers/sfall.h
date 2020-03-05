@@ -1,3 +1,6 @@
+#ifndef SFALL_H
+#define SFALL_H
+
 //Recognised modes for set_shader_mode and get_game_mode
 #define WORLDMAP    (0x1)
 #define DIALOG      (0x4)
@@ -65,20 +68,34 @@
 #define HOOK_STDPROCEDURE     (40)
 #define HOOK_STDPROCEDURE_END (41)
 #define HOOK_TARGETOBJECT     (42)
+#define HOOK_ENCOUNTER        (43)
 
 //Valid arguments to list_begin
 #define LIST_CRITTERS    (0)
 #define LIST_GROUNDITEMS (1)
 #define LIST_SCENERY     (2)
 #define LIST_WALLS       (3)
-//#define LIST_TILES       (4) //Not listable via sfall list functions
+//#define LIST_TILES     (4) //Not listable via sfall list functions
 #define LIST_MISC        (5)
 #define LIST_SPATIAL     (6)
 #define LIST_ALL         (9)
 
+//Valid window types for get_window_attribute
+#define WINTYPE_INVENTORY    (0) // any inventory window (player/loot/use/barter)
+#define WINTYPE_DIALOG       (1)
+#define WINTYPE_PIPBOY       (2)
+#define WINTYPE_WORLDMAP     (3)
+#define WINTYPE_IFACEBAR     (4) // the interface bar
+#define WINTYPE_CHARACTER    (5)
+#define WINTYPE_SKILLDEX     (6)
+#define WINTYPE_ESCMENU      (7) // escape menu
+
 //Valid flags for force_encounter_with_flags
-#define ENCOUNTER_FLAG_NO_CAR   (1)
-#define ENCOUNTER_FLAG_LOCK     (2) // block new forced encounter by the next function call until the current specified encounter occurs
+#define ENCOUNTER_FLAG_NO_CAR   (0x1)
+#define ENCOUNTER_FLAG_LOCK     (0x2)  // block new forced encounter by the next function call until the current specified encounter occurs
+#define ENCOUNTER_FLAG_NO_ICON  (0x4)  // disable displaying the flashing icon
+#define ENCOUNTER_FLAG_ICON_SP  (0x8)  // use special encounter icon
+#define ENCOUNTER_FLAG_FADEOUT  (0x10) // fade out the screen on encounter (Note: you yourself should restore the fade screen when entering the encounter)
 
 //The attack types returned by get_attack_type
 #define ATKTYPE_LWEP1           (0)
@@ -247,7 +264,7 @@
 // fake perks/traits add mode flags
 #define ADD_PERK_MODE_TRAIT     (1)  // add to the player's traits
 #define ADD_PERK_MODE_PERK      (2)  // add to the player's perks
-#define ADD_PERK_MODE_REMOVE    (4)  // remove from the list of selectable perks
+#define ADD_PERK_MODE_REMOVE    (4)  // remove from the list of selectable perks (after added to the player)
 
 // sfall_funcX macros
 #define add_extra_msg_file(name)                        sfall_func1("add_extra_msg_file", name)
@@ -273,6 +290,8 @@
 #define get_flags(obj)                                  sfall_func1("get_flags", obj)
 #define get_ini_section(file, sect)                     sfall_func2("get_ini_section", file, sect)
 #define get_ini_sections(file)                          sfall_func1("get_ini_sections", file)
+#define get_interface_x(winType)                        sfall_func2("get_window_attribute", winType, 1)
+#define get_interface_y(winType)                        sfall_func2("get_window_attribute", winType, 2)
 #define get_inven_ap_cost                               sfall_func0("get_inven_ap_cost")
 #define get_map_enter_position                          sfall_func0("get_map_enter_position")
 #define get_metarule_table                              sfall_func0("get_metarule_table")
@@ -287,6 +306,7 @@
 #define hide_window(winName)                            sfall_func1("hide_window", winName)
 #define intface_hide                                    sfall_func0("intface_hide")
 #define intface_is_hidden                               sfall_func0("intface_is_hidden")
+#define intface_is_shown(winType)                       sfall_func1("get_window_attribute", winType)
 #define intface_redraw                                  sfall_func0("intface_redraw")
 #define intface_show                                    sfall_func0("intface_show")
 #define inventory_redraw(invSide)                       sfall_func1("inventory_redraw", invSide)
@@ -294,6 +314,7 @@
 #define item_weight(obj)                                sfall_func1("item_weight", obj)
 #define lock_is_jammed(obj)                             sfall_func1("lock_is_jammed", obj)
 #define loot_obj                                        sfall_func0("loot_obj")
+#define message_box(text)                               sfall_func1("message_box", text)
 #define metarule_exist(metaruleName)                    sfall_func1("metarule_exist", metaruleName)
 #define npc_engine_level_up(toggle)                     sfall_func1("npc_engine_level_up", toggle)
 #define obj_under_cursor(onlyCritter, includeDude)      sfall_func2("obj_under_cursor", onlyCritter, includeDude)
@@ -315,6 +336,8 @@
 #define set_outline(obj, color)                         sfall_func2("set_outline", obj, color)
 #define set_rest_heal_time(time)                        sfall_func1("set_rest_heal_time", time)
 #define set_rest_mode(mode)                             sfall_func1("set_rest_mode", mode)
+#define set_terrain_name(x, y, name)                    sfall_func3("set_terrain_name", x, y, name)
+#define set_town_title(areaID, title)                   sfall_func2("set_town_title", areaID, title)
 #define set_unique_id(obj)                              sfall_func1("set_unique_id", obj)
 #define set_unjam_locks_time(time)                      sfall_func1("set_unjam_locks_time", time)
 #define set_window_flag(winID, flag, value)             sfall_func3("set_window_flag", winID, flag, value)
@@ -323,6 +346,8 @@
 #define string_compare(str1, str2)                      sfall_func2("string_compare", str1, str2)
 #define string_compare_locale(str1, str2, codePage)     sfall_func3("string_compare", str1, str2, codePage)
 #define string_format(format, a1, a2)                   sfall_func3("string_format", format, a1, a2)
+#define string_tolower(text)                            sfall_func2("string_to_case", text, 0)
+#define string_toupper(text)                            sfall_func2("string_to_case", text, 1)
 #define tile_by_position(x, y)                          sfall_func2("tile_by_position", x, y)
 #define tile_refresh_display                            sfall_func0("tile_refresh_display")
 #define unjam_lock(obj)                                 sfall_func1("unjam_lock", obj)
@@ -332,3 +357,5 @@
 #define set_fake_perk_npc(npc, perk, level, image, desc)        sfall_func5("set_fake_perk_npc", npc, perk, level, image, desc)
 #define set_fake_trait_npc(npc, trait, active, image, desc)     sfall_func5("set_fake_trait_npc", npc, trait, active, image, desc)
 #define set_selectable_perk_npc(npc, perk, active, image, desc) sfall_func5("set_selectable_perk_npc", npc, perk, active, image, desc)
+
+#endif

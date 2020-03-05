@@ -298,6 +298,9 @@
     <ClInclude Include="Modules\TalkingHeads.h">
       <Filter>Modules\Features</Filter>
     </ClInclude>
+    <ClInclude Include="Modules\Scripting\Handlers\Math.h">
+      <Filter>Modules\Scripting\Handlers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
@@ -496,6 +499,9 @@
     </ClCompile>
     <ClCompile Include="CRC.cpp" />
     <ClCompile Include="CheckAddress.cpp" />
+    <ClCompile Include="Modules\SubModules\CombatBlock.cpp">
+      <Filter>Modules\SubModules</Filter>
+    </ClCompile>
     <ClCompile Include="Modules\PlayerModel.cpp">
       <Filter>Modules\SimplePatches</Filter>
     </ClCompile>
@@ -544,8 +550,8 @@
     <ClCompile Include="Modules\TalkingHeads.cpp">
       <Filter>Modules\Features</Filter>
     </ClCompile>
-    <ClCompile Include="Modules\SubModules\CombatBlock.cpp">
-      <Filter>Modules\SubModules</Filter>
+    <ClCompile Include="Modules\Scripting\Handlers\Math.cpp">
+      <Filter>Modules\Scripting\Handlers</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

@@ -47,6 +47,11 @@ public:
 	static void SetHeadTex(IDirect3DTexture9* tex, int width, int height, int xoff, int yoff, int showHighlight);
 	static void SetHeadTechnique();
 	static void SetDefaultTechnique();
+
+	static void ShowMovieFrame();
+	static void SetMovieTexture(IDirect3DTexture9* tex);
+
+	static bool PlayAviMovie;
 };
 
 extern IDirect3D9* d3d9;
@@ -55,9 +60,6 @@ extern IDirect3DDevice9* d3d9Device;
 int _stdcall GetShaderVersion();
 
 void RefreshGraphics();
-void GetFalloutWindowInfo(DWORD* width, DWORD* height, HWND* window);
-
-void SetMovieTexture(void* tex);
-void _stdcall PlayMovieFrame();
+HWND GetFalloutWindowInfo(RECT* rect);
 
 }
