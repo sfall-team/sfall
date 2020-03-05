@@ -11,7 +11,7 @@ md_dir = sys.argv[3]
 function_header_template = '''---
 layout: page
 title: '{name}' # quote just in case
-nav_order: 3
+nav_order: 5
 has_children: true
 # parent - could be empty
 {parent}
@@ -25,7 +25,7 @@ permalink: {permalink}
 function_header_template_noname = '''---
 layout: page
 title: '{name}' # quote just in case
-nav_order: 3
+nav_order: 5
 has_children: true # setting for all pages, just in case
 # parent - could be empty
 {parent}
@@ -40,7 +40,7 @@ function_header_name = '''
 hooks_header = '''---
 layout: page
 title: Hook types
-nav_order: 3
+nav_order: 5
 parent: Hooks
 permalink: /hook-types/
 ---
