@@ -42,6 +42,8 @@ void __declspec() op_game_loaded();
 void __declspec() op_set_pipboy_available();
 
 // Kill counters
+void SetExtraKillCounter(bool value);
+
 void __declspec() op_get_kill_counter();
 
 void __declspec() op_mod_kill_counter();
@@ -49,10 +51,6 @@ void __declspec() op_mod_kill_counter();
 void sf_set_object_knockback(OpcodeContext&);
 
 void sf_remove_object_knockback(OpcodeContext&);
-
-void __declspec() op_get_kill_counter2();
-
-void __declspec() op_mod_kill_counter2();
 
 void __declspec() op_active_hand();
 
@@ -92,7 +90,7 @@ void __declspec() op_set_unspent_ap_perk_bonus();
 
 void __declspec() op_get_unspent_ap_perk_bonus();
 
-void __declspec() op_set_palette();
+void sf_set_palette(OpcodeContext&);
 
 //numbers subgame functions
 void __declspec() op_nb_create_char();
@@ -109,7 +107,7 @@ void __declspec() op_refresh_pc_art();
 
 void sf_get_attack_type(OpcodeContext&);
 
-void __declspec() op_play_sfall_sound();
+void sf_play_sfall_sound(OpcodeContext&);
 
 void __declspec() op_stop_sfall_sound();
 

@@ -69,7 +69,7 @@ struct GlobalVar {
 
 void __fastcall SetGlobalScriptRepeat(fo::Program* script, int frames);
 void __fastcall SetGlobalScriptType(fo::Program* script, int type);
-bool _stdcall IsGameScript(const char* filename);
+bool IsGameScript(const char* filename);
 
 void RunGlobalScriptsAtProc(DWORD procId);
 
@@ -89,7 +89,7 @@ long GetGlobalVarInternal(__int64 val);
 
 void __fastcall SetSelfObject(fo::Program* script, fo::GameObject* obj);
 
-bool _stdcall ScriptHasLoaded(fo::Program* script);
+bool __stdcall ScriptHasLoaded(fo::Program* script);
 
 // loads script from .int file into a sScriptProgram struct, filling script pointer and proc lookup table
 // prog - reference to program structure

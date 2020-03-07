@@ -111,6 +111,7 @@ static SfallOpcodeInfo opcodeInfoArray[] = {
 	{0x1ef, "cos",                       sf_cos,                       1, true,   0, {ARG_NUMBER}},
 	{0x1f0, "tan",                       sf_tan,                       1, true,   0, {ARG_NUMBER}},
 	{0x1f1, "arctan",                    sf_arctan,                    2, true,   0, {ARG_NUMBER, ARG_NUMBER}},
+	{0x1f2, "set_palette",               sf_set_palette,               1, false,  0, {ARG_STRING}},
 	{0x1f3, "remove_script",             sf_remove_script,             1, false,  0, {ARG_OBJECT}},
 	{0x1f4, "set_script",                sf_set_script,                2, false,  0, {ARG_OBJECT, ARG_INT}},
 	{0x1f5, "get_script",                sf_get_script,                1, true,  -1, {ARG_OBJECT}},
@@ -152,6 +153,7 @@ static SfallOpcodeInfo opcodeInfoArray[] = {
 	{0x224, "create_message_window",     sf_create_message_window,     1, false,  0, {ARG_STRING}},
 	{0x228, "get_attack_type",           sf_get_attack_type,           0, true},
 	{0x229, "force_encounter_with_flags", sf_force_encounter,          2, false,  0, {ARG_INT, ARG_INT}},
+	{0x22b, "play_sfall_sound",          sf_play_sfall_sound,          2, true,   0, {ARG_STRING, ARG_INT}},
 	{0x22d, "create_array",              sf_create_array,              2, true,  -1, {ARG_INT, ARG_INT}},
 	{0x22e, "set_array",                 sf_set_array,                 3, false,  0, {ARG_OBJECT, ARG_ANY, ARG_ANY}},
 	{0x22f, "get_array",                 sf_get_array,                 2, true},  // can also be used on strings
@@ -220,7 +222,7 @@ static SfallOpcodeInfo opcodeInfoArray[] = {
 
 	{0x27d, "register_hook_proc_spec",   sf_register_hook,             2, false,  0, {ARG_INT, ARG_INT}},
 	{0x27e, "reg_anim_callback",         sf_reg_anim_callback,         1, false,  0, {ARG_INT}},
-	{0x27f, "div",                       sf_div,                       2, true,   0, {ARG_NUMBER, ARG_NUMBER}}, // div operator 
+	{0x27f, "div",                       sf_div,                       2, true,   0, {ARG_NUMBER, ARG_NUMBER}}, // div operator
 };
 
 // An array for opcode info, indexed by opcode.
@@ -265,6 +267,8 @@ void InitNewOpcodes() {
 
 	InitOpcodeInfoTable();
 	InitMetaruleTable();
+
+	SetExtraKillCounter(KillCounter::UsingExtraKillTypes());
 
 	LoadGameHook::OnGameReset() += []() {
 		ForceEncounterRestore(); // restore if the encounter did not happen
@@ -311,13 +315,8 @@ void InitNewOpcodes() {
 	opcodes[0x189] = op_set_perk_name;
 	opcodes[0x18a] = op_set_perk_desc;
 	opcodes[0x18b] = op_set_pipboy_available;
-	if (UsingExtraKillTypes()) {
-		opcodes[0x18c] = op_get_kill_counter2;
-		opcodes[0x18d] = op_mod_kill_counter2;
-	} else {
-		opcodes[0x18c] = op_get_kill_counter;
-		opcodes[0x18d] = op_mod_kill_counter;
-	}
+	opcodes[0x18c] = op_get_kill_counter;
+	opcodes[0x18d] = op_mod_kill_counter;
 	opcodes[0x18e] = op_get_perk_owed;
 	opcodes[0x18f] = op_set_perk_owed;
 	opcodes[0x191] = op_get_critter_current_ap;
@@ -375,7 +374,6 @@ void InitNewOpcodes() {
 	opcodes[0x1e8] = op_set_unspent_ap_perk_bonus;
 	opcodes[0x1e9] = op_get_unspent_ap_perk_bonus;
 	opcodes[0x1ea] = op_init_hook;
-	opcodes[0x1f2] = op_set_palette;
 
 	opcodes[0x1f6] = op_nb_create_char;
 	opcodes[0x206] = op_set_self;
@@ -394,7 +392,6 @@ void InitNewOpcodes() {
 	opcodes[0x226] = op_get_light_level;
 	opcodes[0x227] = op_refresh_pc_art;
 	opcodes[0x22a] = op_set_map_time_multi;
-	opcodes[0x22b] = op_play_sfall_sound;
 	opcodes[0x22c] = op_stop_sfall_sound;
 
 	opcodes[0x23a] = op_get_tile_fid;

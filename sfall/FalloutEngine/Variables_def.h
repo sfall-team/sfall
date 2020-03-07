@@ -79,7 +79,7 @@ VAR_(i_lhand,                    GameObject*)
 VAR_(i_rhand,                    GameObject*)
 VARC(i_wid,                      DWORD)
 VAR_(i_worn,                     GameObject*)
-VAR_(idle_func,                  DWORD)
+VAR_(idle_func,                  void*)
 VAR_(In_WorldMap,                DWORD) // moving on WorldMap
 VAR_(info_line,                  DWORD)
 VARC(interfaceWindow,            DWORD)

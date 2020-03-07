@@ -397,7 +397,7 @@ static void DebugModePatch() {
 			BlockCall(0x4C7044); // just nop code
 		}
 		// replace calling debug_printf_ with _debug_func
-		long long data = 0x51DF0415FFF08990; // mov eax, esi; call ds:_debug_func
+		__int64 data = 0x51DF0415FFF08990; // mov eax, esi; call ds:_debug_func
 		SafeWriteBytes(0x455419, (BYTE*)&data, 8); // op_display_msg_
 
 		dlogr(" Done", DL_INIT);
