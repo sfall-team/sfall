@@ -360,7 +360,7 @@ void WorldmapFpsPatch() {
 			func = WorldMapFpsPatch2;
 		}
 		HookCall(0x4BFE5D, func);
-		AvailableGlobalScriptTypes |= 2;
+		availableGlobalScriptTypes |= 2;
 	}
 
 	if (GetConfigInt("Misc", "WorldMapEncounterFix", 0)) {

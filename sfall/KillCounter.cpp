@@ -17,25 +17,10 @@
  */
 
 #include "main.h"
-
 #include "FalloutEngine.h"
 #include "version.h"
 
-static const DWORD extraKillTypesCountAddr[] = {
-	0x42D8AF, // critter_kill_count_
-	0x42D881, // critter_kill_count_inc_
-	0x42D980, // GetKillTypeName
-	0x42D990,
-	0x42D9C0, // GetKillTypeDesc
-	0x42D9D0,
-	0x4344E4, // Change char sheet to loop through the extra kill types
-};
-
 static bool usingExtraKillTypes = false;
-
-bool UsingExtraKillTypes() {
-	return usingExtraKillTypes;
-}
 
 static DWORD __declspec(naked) ReadKillCounter() {
 	__asm {
@@ -63,9 +48,23 @@ void KillCounterInit() {
 	SafeWrite8(0x42D88E, 0x45); // lea edx, [eax * 2]
 	SafeWrite8(0x42D899, 0x90); // inc ebx > nop
 
+	static const DWORD extraKillTypesCountAddr[] = {
+		0x42D8AF, // critter_kill_count_
+		0x42D881, // critter_kill_count_inc_
+		0x42D980, // GetKillTypeName
+		0x42D990,
+		0x42D9C0, // GetKillTypeDesc
+		0x42D9D0,
+		0x4344E4, // Change char sheet to loop through the extra kill types
+	};
+
 	// Edit the functions to accept kill types over 19
 	for (int i = 0; i < sizeof(extraKillTypesCountAddr) / 4; i++) {
 		SafeWrite8(extraKillTypesCountAddr[i], 38);
 	}
 	SafeWrite32(0x42D9DD, 1488); // critter_kill_info_
+}
+
+bool UsingExtraKillTypes() {
+	return usingExtraKillTypes;
 }

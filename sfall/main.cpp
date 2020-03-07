@@ -336,7 +336,7 @@ static void DllMain2() {
 	//if (GetConfigInt("Input", "Enable", 0)) {
 		dlog("Applying input patch.", DL_INIT);
 		SafeWriteStr(0x50FB70, "ddraw.dll");
-		AvailableGlobalScriptTypes |= 1;
+		availableGlobalScriptTypes |= 1;
 		dlogr(" Done", DL_INIT);
 	//}
 

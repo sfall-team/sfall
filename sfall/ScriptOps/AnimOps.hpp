@@ -18,18 +18,20 @@
 
 #pragma once
 
-void _stdcall RegAnimCombatCheck(DWORD newValue) {
-	char oldValue = reg_anim_combat_check;
-	reg_anim_combat_check = (newValue > 0);
-	if (oldValue != reg_anim_combat_check) {
-		SafeWrite8(0x459C97, reg_anim_combat_check); // reg_anim_func
-		SafeWrite8(0x459D4B, reg_anim_combat_check); // reg_anim_animate
-		SafeWrite8(0x459E3B, reg_anim_combat_check); // reg_anim_animate_reverse
-		SafeWrite8(0x459EEB, reg_anim_combat_check); // reg_anim_obj_move_to_obj
-		SafeWrite8(0x459F9F, reg_anim_combat_check); // reg_anim_obj_run_to_obj
-		SafeWrite8(0x45A053, reg_anim_combat_check); // reg_anim_obj_move_to_tile
-		SafeWrite8(0x45A10B, reg_anim_combat_check); // reg_anim_obj_run_to_tile
-		SafeWrite8(0x45AE53, reg_anim_combat_check); // reg_anim_animate_forever
+static char regAnimCombatCheck = 1;
+
+void __stdcall RegAnimCombatCheck(DWORD newValue) {
+	char oldValue = regAnimCombatCheck;
+	regAnimCombatCheck = (newValue > 0);
+	if (oldValue != regAnimCombatCheck) {
+		SafeWrite8(0x459C97, regAnimCombatCheck); // reg_anim_func
+		SafeWrite8(0x459D4B, regAnimCombatCheck); // reg_anim_animate
+		SafeWrite8(0x459E3B, regAnimCombatCheck); // reg_anim_animate_reverse
+		SafeWrite8(0x459EEB, regAnimCombatCheck); // reg_anim_obj_move_to_obj
+		SafeWrite8(0x459F9F, regAnimCombatCheck); // reg_anim_obj_run_to_obj
+		SafeWrite8(0x45A053, regAnimCombatCheck); // reg_anim_obj_move_to_tile
+		SafeWrite8(0x45A10B, regAnimCombatCheck); // reg_anim_obj_run_to_tile
+		SafeWrite8(0x45AE53, regAnimCombatCheck); // reg_anim_animate_forever
 	}
 }
 
@@ -47,9 +49,9 @@ end1:
 
 // new reg_anim functions (all using existing engine code)
 
-// checks if combat mode is enabled (using R8 8-bit register) and jumps to GOTOFAIL if it is (does nothing if reg_anim_combat_check is 0)
+// checks if combat mode is enabled (using R8 8-bit register) and jumps to GOTOFAIL if it is (does nothing if regAnimCombatCheck is 0)
 #define _CHECK_COMBAT_MODE(R8, GOTOFAIL) __asm { \
-	__asm mov R8, reg_anim_combat_check          \
+	__asm mov R8, regAnimCombatCheck             \
 	__asm test byte ptr ds:_combat_state, R8     \
 	__asm jnz GOTOFAIL }
 

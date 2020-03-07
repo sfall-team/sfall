@@ -34,7 +34,7 @@
 
 #include "ScriptOps\AsmMacros.h"
 
-static DWORD _stdcall HandleMapUpdateForScripts(const DWORD procId);
+static DWORD __stdcall HandleMapUpdateForScripts(const DWORD procId);
 
 static void RunGlobalScripts1();
 static void ClearEventsOnMapExit();
@@ -436,12 +436,12 @@ static ExportedVarsMap globalExportedVars;
 DWORD isGlobalScriptLoading = 0;
 
 std::tr1::unordered_map<__int64, int> globalVars;
-typedef std::tr1::unordered_map<__int64, int> :: iterator glob_itr;
-typedef std::tr1::unordered_map<__int64, int> :: const_iterator glob_citr;
+typedef std::tr1::unordered_map<__int64, int>::iterator glob_itr;
+typedef std::tr1::unordered_map<__int64, int>::const_iterator glob_citr;
 typedef std::pair<__int64, int> glob_pair;
 
 static void* opcodes[0x300];
-DWORD AvailableGlobalScriptTypes = 0;
+DWORD availableGlobalScriptTypes = 0;
 bool isGameLoading;
 
 TScript OverrideScriptStruct = {0};
@@ -455,13 +455,13 @@ TScript OverrideScriptStruct = {0};
 //mov the value type to edx, mov the script pointer to eax, call interpretPushShort_
 
 
-static void __fastcall SetGlobalScriptRepeat2(DWORD script, DWORD frames) {
-	for (DWORD d = 0; d < globalScripts.size(); d++) {
-		if (globalScripts[d].prog.ptr == script) {
-			if (frames == 0xFFFFFFFF) {
-				globalScripts[d].mode = !globalScripts[d].mode;
+static void __fastcall SetGlobalScriptRepeat2(DWORD script, int frames) {
+	for (size_t i = 0; i < globalScripts.size(); i++) {
+		if (globalScripts[i].prog.ptr == script) {
+			if (frames == -1) {
+				globalScripts[i].mode = !globalScripts[i].mode;
 			} else {
-				globalScripts[d].repeat = frames;
+				globalScripts[i].repeat = frames;
 			}
 			break;
 		}
@@ -481,11 +481,11 @@ end:
 	}
 }
 
-static void __fastcall SetGlobalScriptType2(DWORD script, DWORD type) {
+static void __fastcall SetGlobalScriptType2(DWORD script, int type) {
 	if (type <= 3) {
-		for (size_t d = 0; d < globalScripts.size(); d++) {
-			if (globalScripts[d].prog.ptr == script) {
-				globalScripts[d].mode = type;
+		for (size_t i = 0; i < globalScripts.size(); i++) {
+			if (globalScripts[i].prog.ptr == script) {
+				globalScripts[i].mode = type;
 				break;
 			}
 		}
@@ -507,7 +507,7 @@ end:
 
 static void __declspec(naked) GetGlobalScriptTypes() {
 	__asm {
-		mov  edx, AvailableGlobalScriptTypes;
+		mov  edx, availableGlobalScriptTypes;
 		_J_RET_VAL_TYPE(VAR_TYPE_INT);
 //		retn;
 	}
@@ -527,7 +527,7 @@ static void SetGlobalVarInternal(__int64 var, int val) {
 }
 
 void SetGlobalVarInt(DWORD var, int val) {
-	SetGlobalVarInternal(var, val);
+	SetGlobalVarInternal(static_cast<__int64>(var), val);
 }
 
 long SetGlobalVar(const char* var, int val) {
@@ -569,7 +569,7 @@ long GetGlobalVar(const char* var) {
 }
 
 long GetGlobalVarInt(DWORD var) {
-	return GetGlobalVarInternal(var);
+	return GetGlobalVarInternal(static_cast<__int64>(var));
 }
 
 static void funcGetGlobalVarInt2() {
@@ -1052,8 +1052,8 @@ static void __declspec(naked) AfterCombatAttackHook() {
 	}
 }
 
-static const DWORD ExecMapScriptsRet = 0x4A67F5;
 static void __declspec(naked) ExecMapScriptsHack() {
+	static const DWORD ExecMapScriptsRet = 0x4A67F5;
 	__asm {
 		push edi;
 		push ebp;
@@ -1065,15 +1065,15 @@ static void __declspec(naked) ExecMapScriptsHack() {
 	}
 }
 
-static DWORD __fastcall GetGlobalExportedVarPtr(const char* name) {
+static sExportedVar* __fastcall GetGlobalExportedVarPtr(const char* name) {
 	std::string str(name);
 	ExportedVarsMap::iterator it = globalExportedVars.find(str);
 	//dlog_f("\n Trying to find exported var %s... ", DL_MAIN, name);
 	if (it != globalExportedVars.end()) {
 		sExportedVar *ptr = &it->second;
-		return (DWORD)ptr;
+		return ptr;
 	}
-	return 0;
+	return nullptr;
 }
 
 static void __stdcall CreateGlobalExportedVar(DWORD scr, const char* name) {
@@ -1108,8 +1108,8 @@ proceedNormal:
 	}
 }
 
-static const DWORD Export_Export_FindVar_back = 0x4414AE;
 static void __declspec(naked) Export_Export_FindVar_Hook() {
+	static const DWORD Export_Export_FindVar_back = 0x4414AE;
 	__asm {
 		cmp  isGlobalScriptLoading, 0;
 		jz   proceedNormal;
@@ -1125,7 +1125,7 @@ proceedNormal:
 }
 
 // this hook prevents sfall scripts from being removed after switching to another map, since normal script engine re-loads completely
-static void _stdcall FreeProgram(DWORD progPtr) {
+static void __stdcall FreeProgram(DWORD progPtr) {
 	if (isGameLoading || (sfallProgsMap.find(progPtr) == sfallProgsMap.end())) { // only delete non-sfall scripts or when actually loading the game
 		__asm {
 			mov  eax, progPtr;
@@ -1380,9 +1380,9 @@ void LoadGlobalScripts() {
 	dlogr("Finished loading global scripts.", DL_SCRIPT|DL_INIT);
 }
 
-static bool _stdcall ScriptHasLoaded(DWORD script) {
-	for (size_t d = 0; d < checkedScripts.size(); d++) {
-		if (checkedScripts[d] == script) {
+static bool __stdcall ScriptHasLoaded(DWORD script) {
+	for (size_t i = 0; i < checkedScripts.size(); i++) {
+		if (checkedScripts[i] == script) {
 			return false;
 		}
 	}
@@ -1497,10 +1497,10 @@ static void RunGlobalScripts1() {
 			highlightingToggled = 0;
 		}
 	}
-	for (DWORD d = 0; d < globalScripts.size(); d++) {
-		if (!globalScripts[d].repeat || (globalScripts[d].mode != 0 && globalScripts[d].mode != 3)) continue;
-		if (++globalScripts[d].count >= globalScripts[d].repeat) {
-			RunScript(&globalScripts[d]);
+	for (size_t i = 0; i < globalScripts.size(); i++) {
+		if (!globalScripts[i].repeat || (globalScripts[i].mode != 0 && globalScripts[i].mode != 3)) continue;
+		if (++globalScripts[i].count >= globalScripts[i].repeat) {
+			RunScript(&globalScripts[i]);
 		}
 	}
 	ResetStateAfterFrame();
@@ -1509,10 +1509,10 @@ static void RunGlobalScripts1() {
 void RunGlobalScripts2() {
 	if (idle > -1) Sleep(idle);
 
-	for (DWORD d = 0; d < globalScripts.size(); d++) {
-		if (!globalScripts[d].repeat || globalScripts[d].mode != 1) continue;
-		if (++globalScripts[d].count >= globalScripts[d].repeat) {
-			RunScript(&globalScripts[d]);
+	for (size_t i = 0; i < globalScripts.size(); i++) {
+		if (!globalScripts[i].repeat || globalScripts[i].mode != 1) continue;
+		if (++globalScripts[i].count >= globalScripts[i].repeat) {
+			RunScript(&globalScripts[i]);
 		}
 	}
 	ResetStateAfterFrame();
@@ -1521,16 +1521,16 @@ void RunGlobalScripts2() {
 void RunGlobalScripts3() {
 	if (idle > -1) Sleep(idle);
 
-	for (DWORD d = 0; d < globalScripts.size(); d++) {
-		if (!globalScripts[d].repeat || (globalScripts[d].mode != 2 && globalScripts[d].mode != 3)) continue;
-		if (++globalScripts[d].count >= globalScripts[d].repeat) {
-			RunScript(&globalScripts[d]);
+	for (size_t i = 0; i < globalScripts.size(); i++) {
+		if (!globalScripts[i].repeat || (globalScripts[i].mode != 2 && globalScripts[i].mode != 3)) continue;
+		if (++globalScripts[i].count >= globalScripts[i].repeat) {
+			RunScript(&globalScripts[i]);
 		}
 	}
 	ResetStateAfterFrame();
 }
 
-static DWORD _stdcall HandleMapUpdateForScripts(const DWORD procId) {
+static DWORD __stdcall HandleMapUpdateForScripts(const DWORD procId) {
 	if (procId == map_enter_p_proc) {
 		// map changed, all game objects were destroyed and scripts detached, need to re-insert global scripts into the game
 		for (std::vector<sGlobalScript>::const_iterator it = globalScripts.cbegin(); it != globalScripts.cend(); it++) {
@@ -1591,7 +1591,7 @@ static DWORD TimedEventNextTime() {
 	return nextTime;
 }
 
-static long script_chk_timed_events_hook() {
+static DWORD script_chk_timed_events_hook() {
 	return (!*ptr_queue && timerEventScripts.empty());
 }
 
@@ -1620,10 +1620,10 @@ void _stdcall RemoveTimerEventScripts(DWORD script) {
 }
 
 // run all global scripts of types 0 and 3 at specific procedure (if exist)
-void _stdcall RunGlobalScriptsAtProc(DWORD procId) {
-	for (DWORD d = 0; d < globalScripts.size(); d++) {
-		if (globalScripts[d].mode != 0 && globalScripts[d].mode != 3) continue;
-		RunScriptProc(&globalScripts[d].prog, procId);
+void __stdcall RunGlobalScriptsAtProc(DWORD procId) {
+	for (size_t i = 0; i < globalScripts.size(); i++) {
+		if (globalScripts[i].mode != 0 && globalScripts[i].mode != 3) continue;
+		RunScriptProc(&globalScripts[i].prog, procId);
 	}
 }
 
@@ -1730,7 +1730,7 @@ void ScriptExtenderInit() {
 	idle = GetConfigInt("Misc", "ProcessorIdle", -1);
 	if (idle > -1) {
 		if (idle > 127) idle = 127;
-		*ptr_idle_func = reinterpret_cast<DWORD>(Sleep);
+		*ptr_idle_func = reinterpret_cast<void*>(Sleep);
 		SafeWrite8(0x4C9F12, 0x6A); // push idle
 		SafeWrite8(0x4C9F13, idle);
 	}
@@ -1789,6 +1789,8 @@ void ScriptExtenderInit() {
 	SafeWrite32(0x46CE6C, (DWORD)opcodes); // call that actually jumps to the opcode
 	SafeWrite32(0x46E390, (DWORD)opcodes); // mov that writes to the opcode
 
+	SetExtraKillCounter(UsingExtraKillTypes());
+
 	if (iniGetInt("Debugging", "AllowUnsafeScripting", 0, ddrawIniDef)) {
 		dlogr("  Unsafe opcodes enabled.", DL_SCRIPT);
 		opcodes[0x1cf] = WriteByte;
@@ -1841,13 +1843,8 @@ void ScriptExtenderInit() {
 	opcodes[0x189] = funcSetPerkName;
 	opcodes[0x18a] = funcSetPerkDesc;
 	opcodes[0x18b] = SetPipBoyAvailable;
-	if (UsingExtraKillTypes()) {
-		opcodes[0x18c] = GetKillCounter2;
-		opcodes[0x18d] = ModKillCounter2;
-	} else {
-		opcodes[0x18c] = GetKillCounter;
-		opcodes[0x18d] = ModKillCounter;
-	}
+	opcodes[0x18c] = GetKillCounter;
+	opcodes[0x18d] = ModKillCounter;
 	opcodes[0x18e] = GetPerkOwed;
 	opcodes[0x18f] = SetPerkOwed;
 	opcodes[0x190] = GetPerkAvailable;
@@ -2008,7 +2005,7 @@ void ScriptExtenderInit() {
 	opcodes[0x237] = str_to_int;
 	opcodes[0x238] = str_to_flt;
 	opcodes[0x239] = scan_array;
-	opcodes[0x23a] = get_tile_pid;
+	opcodes[0x23a] = get_tile_fid;
 	opcodes[0x23b] = modified_ini;
 	opcodes[0x23c] = GetSfallArgs;
 	opcodes[0x23d] = SetSfallArg;

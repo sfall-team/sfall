@@ -370,7 +370,7 @@ extern TGameObj** ptr_i_lhand;
 extern TGameObj** ptr_i_rhand;
 extern const DWORD* ptr_i_wid;
 extern TGameObj** ptr_i_worn;
-extern DWORD* ptr_idle_func;
+extern void** ptr_idle_func;
 extern DWORD* ptr_In_WorldMap;
 extern DWORD* ptr_info_line;
 extern const DWORD* ptr_interfaceWindow;
@@ -1153,6 +1153,8 @@ void __fastcall RegisterObjectCall(long* target, long* source, void* func, long 
 
 long __fastcall ScrGetLocalVar(long sid, long varId, long* value);
 long __fastcall ScrSetLocalVar(long sid, long varId, long value);
+
+long __stdcall IntfaceGetAttack(DWORD* hitMode, DWORD* isSecondary);
 
 long __stdcall IntfaceIsHidden();
 

@@ -93,7 +93,7 @@ TGameObj** ptr_i_lhand                = reinterpret_cast<TGameObj**>(_i_lhand);
 TGameObj** ptr_i_rhand                = reinterpret_cast<TGameObj**>(_i_rhand);
 const DWORD* ptr_i_wid                = reinterpret_cast<DWORD*>(_i_wid);
 TGameObj** ptr_i_worn                 = reinterpret_cast<TGameObj**>(_i_worn);
-DWORD* ptr_idle_func                  = reinterpret_cast<DWORD*>(_idle_func);
+void** ptr_idle_func                  = reinterpret_cast<void**>(_idle_func);
 DWORD* ptr_In_WorldMap                = reinterpret_cast<DWORD*>(_In_WorldMap); // moving in WorldMap
 DWORD* ptr_info_line                  = reinterpret_cast<DWORD*>(_info_line);
 const DWORD* ptr_interfaceWindow      = reinterpret_cast<DWORD*>(_interfaceWindow);
@@ -999,6 +999,10 @@ long __fastcall ScrGetLocalVar(long sid, long varId, long* value) {
 
 long __fastcall ScrSetLocalVar(long sid, long varId, long value) {
 	WRAP_WATCOM_FCALL3(scr_set_local_var_, sid, varId, value)
+}
+
+long __stdcall IntfaceGetAttack(DWORD* hitMode, DWORD* isSecondary) {
+	WRAP_WATCOM_CALL2(intface_get_attack_, hitMode, isSecondary)
 }
 
 long __stdcall IntfaceIsHidden() {

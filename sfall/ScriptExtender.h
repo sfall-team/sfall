@@ -46,12 +46,12 @@ struct sGlobalVar {
 
 void ScriptExtenderInit();
 void ScriptExtender_OnGameLoad();
-bool _stdcall IsGameScript(const char* filename);
+bool __stdcall IsGameScript(const char* filename);
 void LoadGlobalScripts();
 
 void RunGlobalScripts2();
 void RunGlobalScripts3();
-void _stdcall RunGlobalScriptsAtProc(DWORD procId);
+void __stdcall RunGlobalScriptsAtProc(DWORD procId);
 void AfterAttackCleanup();
 
 bool LoadGlobals(HANDLE h);
@@ -67,7 +67,7 @@ void SetGlobalVarInt(DWORD var, int val);
 long GetGlobalVar(const char* var);
 long GetGlobalVarInt(DWORD var);
 
-bool _stdcall ScriptHasLoaded(DWORD script);
+bool __stdcall ScriptHasLoaded(DWORD script);
 // finds procedure ID for given script program pointer and procedure name
 DWORD __stdcall GetScriptProcByName(DWORD scriptPtr, const char* procName);
 // loads script from .int file into scripting engine, fill scriptPtr and proc table
@@ -94,9 +94,8 @@ void _stdcall RemoveTimerEventScripts(DWORD script, long param);
 void _stdcall RemoveTimerEventScripts(DWORD script);
 
 // variables
-static char reg_anim_combat_check = 1;
 extern DWORD isGlobalScriptLoading;
-extern DWORD AvailableGlobalScriptTypes;
+extern DWORD availableGlobalScriptTypes;
 
 // Script procedure types
 enum ScriptProc : long
