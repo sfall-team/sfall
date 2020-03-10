@@ -773,6 +773,7 @@ static void __declspec(naked) GetApAcEBonus() {
 
 static void __declspec(naked) SetPalette() {
 	__asm {
+		push ebx;
 		push ecx;
 		push edx;
 		mov ecx, eax;
@@ -785,6 +786,7 @@ static void __declspec(naked) SetPalette() {
 		cmp dx, VAR_TYPE_STR;
 		jnz end;
 next:
+		mov ebx, eax;
 		mov eax, ecx;
 		call interpretGetString_;
 		call loadColorTable_;
@@ -793,6 +795,7 @@ next:
 end:
 		pop edx;
 		pop ecx;
+		pop ebx;
 		retn;
 	}
 }
