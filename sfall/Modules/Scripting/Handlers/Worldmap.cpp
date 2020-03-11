@@ -36,7 +36,7 @@ static DWORD ForceEncounterFlags;
 
 DWORD ForceEncounterRestore() {
 	if (ForceEncounterMapID == -1) return 0;
-	long long data = 0x672E043D83; // cmp ds:_Meet_Frank_Horrigan, 0
+	__int64 data = 0x672E043D83; // cmp ds:_Meet_Frank_Horrigan, 0
 	SafeWriteBytes(0x4C06D1, (BYTE*)&data, 5);
 	ForceEncounterFlags = 0;
 	DWORD mapID = ForceEncounterMapID;
