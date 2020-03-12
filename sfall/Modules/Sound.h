@@ -29,8 +29,8 @@ public:
 	void init();
 	void exit() override;
 
-	static void* PlaySfallSound(const char* path, bool loop);
-	static void __stdcall StopSfallSound(void* ptr);
+	static DWORD PlaySfallSound(const char* path, bool loop);
+	static void __stdcall StopSfallSound(DWORD id);
 };
 
 }

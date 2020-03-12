@@ -31,14 +31,15 @@
 namespace sfall
 {
 
-#define SAFERELEASE(a) { if (a) { a->Release(); a = 0; } }
-
 static DWORD MoviePtrs[MaxMovies];
 char MoviePaths[MaxMovies * 65];
 
 static bool aviIsReadyToPlay = false;
 
 class CAllocator : public IVMRSurfaceAllocator9, IVMRImagePresenter9 {
+
+#define SAFERELEASE(a) { if (a) { a->Release(); a = nullptr; } }
+
 private:
 	ULONG RefCount;
 	IVMRSurfaceAllocatorNotify9 *pAllocNotify;

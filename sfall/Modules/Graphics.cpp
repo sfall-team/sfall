@@ -40,12 +40,11 @@
 namespace sfall
 {
 
-#define SAFERELEASE(a) { if (a) { a->Release(); a = 0; } }
+#define UNUSEDFUNCTION { DEBUGMESS("\n[SFALL] Unused function called: %s", __FUNCTION__); return DDERR_GENERIC; }
+#define SAFERELEASE(a) { if (a) { a->Release(); a = nullptr; } }
 
 typedef HRESULT (_stdcall *DDrawCreateProc)(void*, IDirectDraw**, void*);
 typedef IDirect3D9* (_stdcall *D3DCreateProc)(UINT version);
-
-#define UNUSEDFUNCTION { DEBUGMESS("\n[SFALL] Unused function called: %s", __FUNCTION__); return DDERR_GENERIC; }
 
 static IDirectDrawSurface* primaryDDSurface = nullptr;
 
