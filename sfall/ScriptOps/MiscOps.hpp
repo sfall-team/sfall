@@ -29,6 +29,7 @@
 #include "Movies.h"
 #include "PartyControl.h"
 #include "ScriptExtender.h"
+#include "Sound.h"
 #include "Stats.h"
 
 /*
