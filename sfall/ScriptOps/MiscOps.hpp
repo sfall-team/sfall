@@ -907,7 +907,7 @@ static void _stdcall play_sfall_sound2() {
 					  &loopArg = opHandler.arg(1);
 
 	if (fileArg.isString() && loopArg.isInt()) {
-		long soundID = (long)PlaySfallSound(fileArg.strValue(), loopArg.asBool());
+		DWORD soundID = PlaySfallSound(fileArg.strValue(), loopArg.asBool());
 		opHandler.setReturn(soundID);
 	} else {
 		OpcodeInvalidArgs("play_sfall_sound");

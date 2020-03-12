@@ -21,6 +21,6 @@
 void SoundInit();
 void SoundExit();
 
-void* __stdcall PlaySfallSound(const char* path, bool loop);
-void __stdcall StopSfallSound(void* ptr);
+DWORD __stdcall PlaySfallSound(const char* path, bool loop);
+void __stdcall StopSfallSound(DWORD id);
 void WipeSounds();
