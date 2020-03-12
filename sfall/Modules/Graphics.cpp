@@ -40,6 +40,8 @@
 namespace sfall
 {
 
+#define SAFERELEASE(a) { if (a) { a->Release(); a = 0; } }
+
 typedef HRESULT (_stdcall *DDrawCreateProc)(void*, IDirectDraw**, void*);
 typedef IDirect3D9* (_stdcall *D3DCreateProc)(UINT version);
 

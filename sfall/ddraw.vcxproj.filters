@@ -265,9 +265,6 @@
     <ClInclude Include="Modules\SpeedPatch.h">
       <Filter>Modules\SimplePatches</Filter>
     </ClInclude>
-    <ClInclude Include="Modules\Sound.h">
-      <Filter>Modules\SimplePatches</Filter>
-    </ClInclude>
     <ClInclude Include="Modules\BurstMods.h">
       <Filter>Modules\SimplePatches</Filter>
     </ClInclude>
@@ -300,6 +297,9 @@
     </ClInclude>
     <ClInclude Include="Modules\Scripting\Handlers\Math.h">
       <Filter>Modules\Scripting\Handlers</Filter>
+    </ClInclude>
+    <ClInclude Include="Modules\Sound.h">
+      <Filter>Modules</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -517,9 +517,6 @@
     <ClCompile Include="Modules\SpeedPatch.cpp">
       <Filter>Modules\SimplePatches</Filter>
     </ClCompile>
-    <ClCompile Include="Modules\Sound.cpp">
-      <Filter>Modules\SimplePatches</Filter>
-    </ClCompile>
     <ClCompile Include="Modules\BurstMods.cpp">
       <Filter>Modules\SimplePatches</Filter>
     </ClCompile>
@@ -552,6 +549,9 @@
     </ClCompile>
     <ClCompile Include="Modules\Scripting\Handlers\Math.cpp">
       <Filter>Modules\Scripting\Handlers</Filter>
+    </ClCompile>
+    <ClCompile Include="Modules\Sound.cpp">
+      <Filter>Modules</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
