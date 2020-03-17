@@ -154,22 +154,26 @@ void __stdcall ResumeSfallSound(sDSSound* sound) {
 
 void __stdcall PauseAllSfallSound() {
 	std::vector<sDSSound*>::iterator it;
-	sDSSound* sound = *it;
+	sDSSound* sound = nullptr;
 	for (it = loopingSounds.begin(); it != loopingSounds.end(); ++it) {
+		sound = *it;
 		sound->pControl->Pause();
 	}
 	for (it = playingSounds.begin(); it != playingSounds.end(); ++it) {
+		sound = *it;
 		sound->pControl->Pause();
 	}
 }
 
 void __stdcall ResumeAllSfallSound() {
 	std::vector<sDSSound*>::iterator it;
-	sDSSound* sound = *it;
+	sDSSound* sound = nullptr;
 	for (it = loopingSounds.begin(); it != loopingSounds.end(); ++it) {
+		sound = *it;
 		sound->pControl->Run();
 	}
 	for (it = playingSounds.begin(); it != playingSounds.end(); ++it) {
+		sound = *it;
 		sound->pControl->Run();
 	}
 }
@@ -564,7 +568,7 @@ void SoundInit() {
 	MakeCall(0x45042C, gsound_set_sfx_volume_hack);
 
 	// Pause and resume sound playback when the game loses focus
-	//SetFocusFunc(SoundLostFocus);
+	SetFocusFunc(SoundLostFocus);
 
 	if (int allowDShowSound = GetConfigInt("Sound", "AllowDShowSound", 0) > 0) {
 		MakeJump(0x4AD499, soundLoad_hack);
