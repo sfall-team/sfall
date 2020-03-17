@@ -1791,7 +1791,8 @@ void ScriptExtenderInit() {
 
 	SetExtraKillCounter(UsingExtraKillTypes());
 
-	if (iniGetInt("Debugging", "AllowUnsafeScripting", 0, ddrawIniDef)) {
+	if (int unsafe = iniGetInt("Debugging", "AllowUnsafeScripting", 0, ddrawIniDef)) {
+		if (unsafe == 2) checkValidMemAddr = false;
 		dlogr("  Unsafe opcodes enabled.", DL_SCRIPT);
 		opcodes[0x1cf] = WriteByte;
 		opcodes[0x1d0] = WriteShort;

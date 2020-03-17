@@ -24,6 +24,8 @@
 #define START_VALID_ADDR    0x410000
 #define END_VALID_ADDR      0x6B403F
 
+bool checkValidMemAddr = true;
+
 // memory_reading_funcs
 static void __declspec(naked) ReadByte() {
 	__asm {
@@ -102,10 +104,13 @@ static void __declspec(naked) WriteByte() {
 		cmp  cx, VAR_TYPE_INT;
 		jnz  end;
 		// check valid addr
+		cmp  checkValidMemAddr, 0;
+		jz   noCheck;
 		cmp  eax, START_VALID_ADDR;
 		jb   end;
 		cmp  eax, END_VALID_ADDR;
 		ja   end;
+noCheck:
 		and  esi, 0xFF;
 		push esi;
 		push eax;
@@ -129,10 +134,13 @@ static void __declspec(naked) WriteShort() {
 		cmp  cx, VAR_TYPE_INT;
 		jnz  end;
 		// check valid addr
+		cmp  checkValidMemAddr, 0;
+		jz   noCheck;
 		cmp  eax, START_VALID_ADDR;
 		jb   end;
 		cmp  eax, END_VALID_ADDR;
 		ja   end;
+noCheck:
 		and  esi, 0xFFFF;
 		push esi;
 		push eax;
@@ -156,10 +164,13 @@ static void __declspec(naked) WriteInt() {
 		cmp  cx, VAR_TYPE_INT;
 		jnz  end;
 		// check valid addr
+		cmp  checkValidMemAddr, 0;
+		jz   noCheck;
 		cmp  eax, START_VALID_ADDR;
 		jb   end;
 		cmp  eax, END_VALID_ADDR;
 		ja   end;
+noCheck:
 		push esi;
 		push eax;
 		call SafeWrite32;
@@ -196,10 +207,13 @@ next:
 		// ecx - type, esi - value
 		// edx - type, eax - addr
 		// check valid address
+		cmp  checkValidMemAddr, 0;
+		jz   noCheck;
 		cmp  eax, START_VALID_ADDR;
 		jb   end;
 		cmp  eax, END_VALID_ADDR;
 		ja   end;
+noCheck:
 		push ebx; // script
 		push esi; // str value
 		mov  edx, ecx; // type
