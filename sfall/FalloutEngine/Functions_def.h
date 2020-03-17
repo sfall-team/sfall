@@ -154,6 +154,7 @@ WRAP_WATCOM_FUNC3(long, register_object_turn_towards, GameObject*, object, long,
 WRAP_WATCOM_FUNC2(long, roll_random, long, minValue, long, maxValue)
 WRAP_WATCOM_FUNC2(long, scr_new, long*, scriptID, long, sType)
 WRAP_WATCOM_FUNC1(long, scr_remove, long, scriptID)
+WRAP_WATCOM_FUNC1(void, set_focus_func, void*, func)
 WRAP_WATCOM_FUNC2(long, skill_dec_point_force, GameObject*, critter, long, skill)
 WRAP_WATCOM_FUNC2(long, skill_inc_point_force, GameObject*, critter, long, skill)
 WRAP_WATCOM_FUNC1(long, skill_is_tagged, long, skill)

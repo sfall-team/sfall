@@ -616,7 +616,9 @@ void sf_get_attack_type(OpcodeContext& ctx) {
 }
 
 void sf_play_sfall_sound(OpcodeContext& ctx) {
-	DWORD soundID = Sound::PlaySfallSound(ctx.arg(0).strValue(), ctx.arg(1).asBool());
+	DWORD soundID = 0;
+	long mode = ctx.arg(1).rawValue();
+	if (mode >= 0) soundID = Sound::PlaySfallSound(ctx.arg(0).strValue(), mode);
 	ctx.setReturn(soundID);
 }
 

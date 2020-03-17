@@ -29,7 +29,7 @@ public:
 	void init();
 	void exit() override;
 
-	static DWORD PlaySfallSound(const char* path, bool loop);
+	static DWORD PlaySfallSound(const char* path, long mode);
 	static void __stdcall StopSfallSound(DWORD id);
 };
 
