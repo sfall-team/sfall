@@ -274,7 +274,8 @@ void InitNewOpcodes() {
 		ForceEncounterRestore(); // restore if the encounter did not happen
 	};
 
-	if (iniGetInt("Debugging", "AllowUnsafeScripting", 0, ::sfall::ddrawIni)) {
+	if (int unsafe = iniGetInt("Debugging", "AllowUnsafeScripting", 0, ::sfall::ddrawIni)) {
+		if (unsafe == 2) checkValidMemAddr = false;
 		dlogr("  Unsafe opcodes enabled.", DL_SCRIPT);
 		opcodes[0x1cf] = op_write_byte;
 		opcodes[0x1d0] = op_write_short;
