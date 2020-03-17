@@ -904,10 +904,12 @@ skip:
 
 static void _stdcall play_sfall_sound2() {
 	const ScriptValue &fileArg = opHandler.arg(0),
-					  &loopArg = opHandler.arg(1);
+					  &modeArg = opHandler.arg(1);
 
-	if (fileArg.isString() && loopArg.isInt()) {
-		DWORD soundID = PlaySfallSound(fileArg.strValue(), loopArg.asBool());
+	if (fileArg.isString() && modeArg.isInt()) {
+		DWORD soundID = 0;
+		long mode = modeArg.rawValue();
+		if (mode >= 0) soundID = PlaySfallSound(fileArg.strValue(), mode);
 		opHandler.setReturn(soundID);
 	} else {
 		OpcodeInvalidArgs("play_sfall_sound");

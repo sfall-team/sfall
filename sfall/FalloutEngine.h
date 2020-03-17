@@ -307,6 +307,7 @@ extern sArt*  ptr_art;
 extern DWORD* ptr_art_name;
 extern DWORD* ptr_art_vault_guy_num;
 extern DWORD* ptr_art_vault_person_nums;
+extern DWORD* ptr_background_volume;
 extern BYTE** ptr_bckgnd;
 extern DWORD* ptr_black_palette;
 extern BYTE*  ptr_BlueColor;
@@ -401,6 +402,7 @@ extern DWORD* ptr_main_window;
 extern DWORD* ptr_map_elevation;
 extern DWORD* ptr_map_global_vars;
 extern PathNode** ptr_master_db_handle;
+extern DWORD* ptr_master_volume;
 extern DWORD* ptr_max;
 extern long*  ptr_maxScriptNum;
 extern DWORD* ptr_Meet_Frank_Horrigan;
@@ -464,6 +466,7 @@ extern DWORD* ptr_scriptListInfo;
 extern DWORD* ptr_skill_data;
 extern const DWORD* ptr_skldxwin;
 extern DWORD* ptr_slot_cursor;
+extern DWORD* ptr_sndfx_volume;
 extern DWORD* ptr_sneak_working; // DWORD var
 extern char** ptr_sound_music_path1;
 extern char** ptr_sound_music_path2;
@@ -670,6 +673,7 @@ extern const DWORD GNW_find_;
 extern const DWORD GNW95_process_message_;
 extern const DWORD gsnd_build_weapon_sfx_name_;
 extern const DWORD gsound_background_pause_;
+extern const DWORD gsound_background_restart_last_;
 extern const DWORD gsound_background_stop_;
 extern const DWORD gsound_background_unpause_;
 extern const DWORD gsound_background_volume_get_set_;
@@ -927,6 +931,7 @@ extern const DWORD scr_set_ext_param_;
 extern const DWORD scr_set_local_var_;
 extern const DWORD scr_set_objs_;
 extern const DWORD scr_write_ScriptNode_;
+extern const DWORD set_focus_func_;
 extern const DWORD set_game_time_;
 extern const DWORD setup_move_timer_win_;
 extern const DWORD SexWindow_;
@@ -1148,6 +1153,8 @@ long __stdcall ScrPtr(long scriptId, TScript** scriptPtr);
 long __stdcall ScrNew(long* scriptID, long sType);
 
 long __stdcall ScrRemove(long scriptID);
+
+void __stdcall SetFocusFunc(void* func);
 
 void __fastcall RegisterObjectCall(long* target, long* source, void* func, long delay);
 

@@ -30,6 +30,7 @@ sArt*  ptr_art                        = reinterpret_cast<sArt*>(_art);
 DWORD* ptr_art_name                   = reinterpret_cast<DWORD*>(_art_name);
 DWORD* ptr_art_vault_guy_num          = reinterpret_cast<DWORD*>(_art_vault_guy_num);
 DWORD* ptr_art_vault_person_nums      = reinterpret_cast<DWORD*>(_art_vault_person_nums);
+DWORD* ptr_background_volume          = reinterpret_cast<DWORD*>(_background_volume);
 BYTE** ptr_bckgnd                     = reinterpret_cast<BYTE**>(_bckgnd);
 DWORD* ptr_black_palette              = reinterpret_cast<DWORD*>(_black_palette);
 BYTE*  ptr_BlueColor                  = reinterpret_cast<BYTE*>(_BlueColor);
@@ -124,6 +125,7 @@ DWORD* ptr_main_window                = reinterpret_cast<DWORD*>(_main_window);
 DWORD* ptr_map_elevation              = reinterpret_cast<DWORD*>(_map_elevation);
 DWORD* ptr_map_global_vars            = reinterpret_cast<DWORD*>(_map_global_vars);
 PathNode** ptr_master_db_handle       = reinterpret_cast<PathNode**>(_master_db_handle);
+DWORD* ptr_master_volume              = reinterpret_cast<DWORD*>(_master_volume);
 DWORD* ptr_max                        = reinterpret_cast<DWORD*>(_max);
 long*  ptr_maxScriptNum               = reinterpret_cast<long*>(_maxScriptNum);
 DWORD* ptr_Meet_Frank_Horrigan        = reinterpret_cast<DWORD*>(_Meet_Frank_Horrigan);
@@ -186,6 +188,7 @@ DWORD* ptr_scriptListInfo             = reinterpret_cast<DWORD*>(_scriptListInfo
 DWORD* ptr_skill_data                 = reinterpret_cast<DWORD*>(_skill_data);
 const DWORD* ptr_skldxwin             = reinterpret_cast<DWORD*>(_skldxwin);
 DWORD* ptr_slot_cursor                = reinterpret_cast<DWORD*>(_slot_cursor);
+DWORD* ptr_sndfx_volume               = reinterpret_cast<DWORD*>(_sndfx_volume);
 DWORD* ptr_sneak_working              = reinterpret_cast<DWORD*>(_sneak_working); // DWORD var
 char** ptr_sound_music_path1          = reinterpret_cast<char**>(_sound_music_path1);
 char** ptr_sound_music_path2          = reinterpret_cast<char**>(_sound_music_path2);
@@ -411,6 +414,7 @@ const DWORD GNW_find_ = 0x4D7888;
 const DWORD GNW95_process_message_ = 0x4C9CF0;
 const DWORD gsnd_build_weapon_sfx_name_ = 0x451760;
 const DWORD gsound_background_pause_ = 0x450B50;
+const DWORD gsound_background_restart_last_ = 0x450B0C;
 const DWORD gsound_background_stop_ = 0x450AB4;
 const DWORD gsound_background_unpause_ = 0x450B64;
 const DWORD gsound_background_volume_get_set_ = 0x450620;
@@ -659,6 +663,7 @@ const DWORD scr_set_ext_param_ = 0x4A3B34;
 const DWORD scr_set_local_var_ = 0x4A6E58;
 const DWORD scr_set_objs_ = 0x4A3B0C;
 const DWORD scr_write_ScriptNode_ = 0x4A5704;
+const DWORD set_focus_func_ = 0x4C9438;
 const DWORD set_game_time_ = 0x4A347C;
 const DWORD setup_move_timer_win_ = 0x476AB8;
 const DWORD SexWindow_ = 0x437664;
@@ -987,6 +992,10 @@ long __stdcall ScrNew(long* scriptID, long sType) {
 
 long __stdcall ScrRemove(long scriptID) {
 	WRAP_WATCOM_CALL1(scr_remove_, scriptID)
+}
+
+void __stdcall SetFocusFunc(void* func) {
+	WRAP_WATCOM_CALL1(set_focus_func_, func)
 }
 
 void __fastcall RegisterObjectCall(long* target, long* source, void* func, long delay) {
