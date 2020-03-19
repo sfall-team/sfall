@@ -29,11 +29,11 @@ void PerksAcceptCharScreen();
 
 void _stdcall ApplyHeaveHoFix();
 
-void _stdcall SetPerkValue(int id, int value, DWORD offset);
-void _stdcall SetPerkName(int id, char* value);
-void _stdcall SetPerkDesc(int id, char* value);
+void __fastcall SetPerkValue(int id, int param, int value);
+void __stdcall SetPerkName(int id, const char* value);
+void __stdcall SetPerkDesc(int id, const char* value);
 
-void _stdcall SetPerkboxTitle(char* title);
+void __fastcall SetPerkboxTitle(const char* name);
 void _stdcall SetSelectablePerk(const char* name, int active, int image, const char* desc);
 void _stdcall SetFakePerk(const char* name, int level, int image, const char* desc);
 void _stdcall SetFakeTrait(const char* name, int active, int image, const char* desc);

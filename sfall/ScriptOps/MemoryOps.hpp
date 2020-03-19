@@ -19,7 +19,6 @@
 #pragma once
 
 #include "main.h"
-//#include "ScriptExtender.h"
 
 #define START_VALID_ADDR    0x410000
 #define END_VALID_ADDR      0x6B403F
@@ -228,14 +227,14 @@ end:
 static void __fastcall CallOffsetInternal(TProgram* script, DWORD func) {
 	func = (func >> 2) - 0x1d2;
 	DWORD args[5];
-	DWORD illegalArg = 0;
+	long illegalArg = 0;
 	int argCount = func % 5;
 
 	for (int i = argCount; i >= 0; i--) {
 		if ((short)InterpretPopShort(script) != (short)VAR_TYPE_INT) illegalArg++;
 		args[i] = InterpretPopLong(script);
 	}
-	if (illegalArg || args[0] < 0x410010 || args[0] > 0x4FCE34) {
+	if (illegalArg || (checkValidMemAddr && (args[0] < 0x410010 || args[0] > 0x4FCE34))) {
 		args[0] = 0;
 	} else {
 		__asm {

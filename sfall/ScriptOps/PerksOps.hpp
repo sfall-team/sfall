@@ -157,33 +157,23 @@ end:
 }
 
 static void __declspec(naked) funcSetPerkValue() {
-	__asm {
-		pushad;
-		sub edx, 0x5e0 - 8; // offset of value into perk struct; edx = ((edx/4) - 0x178 + 0x8) * 4
-		push edx;
-		mov ecx, eax;
-		call interpretPopShort_;
-		mov esi, eax;
-		mov eax, ecx;
-		call interpretPopLong_;
-		mov edi, eax;
-		mov eax, ecx;
-		call interpretPopShort_;
-		mov edx, eax;
-		mov eax, ecx;
-		call interpretPopLong_;
-		cmp dx, VAR_TYPE_INT;
-		jnz fail;
-		cmp si, VAR_TYPE_INT;
-		jnz fail;
+	__asm { // edx - opcode
 		push edi;
-		push eax;
+		push ecx;
+		sub  edx, 0x5E0 - 8; // offset of value into perk struct: edx = ((edx/4) - 0x178 + 0x8) * 4
+		mov  edi, edx;
+		_GET_ARG(ecx, esi);
+		mov  eax, ebx;
+		_GET_ARG_INT(end);
+		cmp  si, VAR_TYPE_INT;
+		jne  end;
+		push ecx;      // value
+		mov  edx, edi; // param (offset)
+		mov  ecx, eax; // perk id
 		call SetPerkValue;
-		jmp end;
-fail:
-		add esp, 4;
 end:
-		popad;
+		pop  ecx;
+		pop  edi;
 		retn;
 	}
 }
@@ -405,25 +395,21 @@ fail:
 
 static void __declspec(naked) fSetPerkboxTitle() {
 	__asm {
+		mov  esi, ecx;
 		push ebx;
-		push ecx;
-		mov  ecx, eax;
-		call interpretPopShort_;
-		mov  edx, eax;
-		mov  eax, ecx;
-		call interpretPopLong_;
+		mov  ecx, eax; // keep script
+		_GET_ARG(ebx, edx);
 		cmp  dx, VAR_TYPE_STR2;
 		jz   next;
 		cmp  dx, VAR_TYPE_STR;
 		jnz  end;
 next:
-		mov  ebx, eax;
-		mov  eax, ecx;
+		mov  eax, ecx; // script
 		call interpretGetString_;
-		push eax;
+		mov  ecx, eax;
 		call SetPerkboxTitle;
 end:
-		pop  ecx;
+		mov  ecx, esi;
 		pop  ebx;
 		retn;
 	}

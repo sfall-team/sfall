@@ -335,7 +335,6 @@ static void __declspec(naked) get_available_skill_points() {
 	__asm {
 		mov  edx, dword ptr ds:[_curr_pc_stat];
 		_J_RET_VAL_TYPE(VAR_TYPE_INT);
-//		retn;
 	}
 }
 
@@ -361,35 +360,20 @@ end:
 
 static void __declspec(naked) GetCritterAP() {
 	__asm {
-		//Store registers
-		push ecx;
-		push edx;
-		push edi;
-		//Get function args
-		mov ecx, eax;
-		call interpretPopShort_;
-		mov edi, eax;
-		mov eax, ecx;
-		call interpretPopLong_;
-		//Check args are valid
-		cmp di, VAR_TYPE_INT;
-		jnz fail;
-		mov edx, [eax + 0x40];
-		jmp end;
-fail:
-		xor edx, edx;
+		_GET_ARG_INT(fail); // Get function arg and check if valid
+		test eax, eax;
+		jz   fail;
+		mov  edx, [eax + 0x64]; // protoId
+		shr  edx, 24;
+		cmp  edx, OBJ_TYPE_CRITTER;
+		jnz  fail;
+		mov  edx, [eax + 0x40];
 end:
-		//Pass back the result
-		mov eax, ecx;
-		call interpretPushLong_;
-		mov edx, VAR_TYPE_INT;
-		mov eax, ecx;
-		call interpretPushShort_;
-		//Restore registers and return
-		pop edi;
-		pop edx;
-		pop ecx;
-		retn;
+		mov  eax, ebx;
+		_J_RET_VAL_TYPE(VAR_TYPE_INT); // Pass back the result
+fail:
+		xor  edx, edx;
+		jmp  end;
 	}
 }
 
@@ -470,192 +454,99 @@ end:
 	}
 }
 
-static void __declspec(naked) SetCritterHitChance() {
-	__asm {
-		push ebx;
-		push ecx;
-		push edx;
-		push edi;
-		mov edi, eax;
-		xor ebx, ebx
-		call interpretPopShort_;
-		cmp ax, VAR_TYPE_INT;
-		cmovne ebx, edi;
-		mov eax, edi;
-		call interpretPopLong_;
-		mov ecx, eax;
-		mov eax, edi;
-		call interpretPopShort_;
-		cmp ax, VAR_TYPE_INT;
-		cmovne ebx, edi;
-		mov eax, edi;
-		call interpretPopLong_;
-		mov edx, eax;
-		mov eax, edi;
-		call interpretPopShort_;
-		cmp ax, VAR_TYPE_INT;
-		cmovne ebx, edi;
-		mov eax, edi;
-		call interpretPopLong_;
-		test ebx, ebx;
-		jnz end;
-		push ecx;
-		push edx;
-		push eax;
-		call SetHitChanceMax;
-end:
-		pop edi;
-		pop edx;
-		pop ecx;
-		pop ebx;
-		retn;
+static void _stdcall SetCritterHitChance2() {
+	TGameObj* obj = opHandler.arg(0).asObject();
+	const ScriptValue &maxArg = opHandler.arg(1),
+					  &modArg = opHandler.arg(2);
+
+	if (obj && maxArg.isInt() && modArg.isInt()) {
+		if (obj->pid >> 24 == OBJ_TYPE_CRITTER) {
+			SetHitChanceMax(obj, maxArg.rawValue(), modArg.rawValue());
+		} else {
+			opHandler.printOpcodeError(objNotCritter, "set_critter_hit_chance_mod");
+		}
+	} else {
+		OpcodeInvalidArgs("set_critter_hit_chance_mod");
 	}
+}
+
+static void __declspec(naked) SetCritterHitChance() {
+	_WRAP_OPCODE(SetCritterHitChance2, 3, 0)
 }
 
 static void __declspec(naked) SetBaseHitChance() {
 	__asm {
-		push ebx;
 		push ecx;
-		push edx;
-		push edi;
-		mov edi, eax;
-		xor ebx, ebx
-		call interpretPopShort_;
-		cmp ax, VAR_TYPE_INT;
-		cmovne ebx, edi;
-		mov eax, edi;
-		call interpretPopLong_;
-		mov ecx, eax;
-		mov eax, edi;
-		call interpretPopShort_;
-		cmp ax, VAR_TYPE_INT;
-		cmovne ebx, edi;
-		mov eax, edi;
-		call interpretPopLong_;
-		test ebx, ebx;
-		jnz end;
+		_GET_ARG(ecx, esi);
+		mov  eax, ebx;
+		_GET_ARG_INT(end);
+		cmp  si, VAR_TYPE_INT;
+		jne  end;
 		push ecx;
 		push eax;
 		push 0xFFFFFFFF;
 		call SetHitChanceMax;
 end:
-		pop edi;
-		pop edx;
-		pop ecx;
-		pop ebx;
+		pop  ecx;
 		retn;
+	}
+}
+
+static void _stdcall SetCritterPickpocket2() {
+	TGameObj* obj = opHandler.arg(0).asObject();
+	const ScriptValue &maxArg = opHandler.arg(1),
+					  &modArg = opHandler.arg(2);
+
+	if (obj && maxArg.isInt() && modArg.isInt()) {
+		if (obj->pid >> 24 == OBJ_TYPE_CRITTER) {
+			SetPickpocketMax(obj, maxArg.rawValue(), modArg.rawValue());
+		} else {
+			opHandler.printOpcodeError(objNotCritter, "set_critter_pickpocket_mod");
+		}
+	} else {
+		OpcodeInvalidArgs("set_critter_pickpocket_mod");
 	}
 }
 
 static void __declspec(naked) SetCritterPickpocket() {
-	__asm {
-		push ebx;
-		push ecx;
-		push edx;
-		push edi;
-		mov edi, eax;
-		xor ebx, ebx
-		call interpretPopShort_;
-		cmp ax, VAR_TYPE_INT;
-		cmovne ebx, edi;
-		mov eax, edi;
-		call interpretPopLong_;
-		mov ecx, eax;
-		mov eax, edi;
-		call interpretPopShort_;
-		cmp ax, VAR_TYPE_INT;
-		cmovne ebx, edi;
-		mov eax, edi;
-		call interpretPopLong_;
-		mov edx, eax;
-		mov eax, edi;
-		call interpretPopShort_;
-		cmp ax, VAR_TYPE_INT;
-		cmovne ebx, edi;
-		mov eax, edi;
-		call interpretPopLong_;
-		test ebx, ebx;
-		jnz end;
-		push ecx;
-		push edx;
-		push eax;
-		call SetPickpocketMax;
-end:
-		pop edi;
-		pop edx;
-		pop ecx;
-		pop ebx;
-		retn;
-	}
+	_WRAP_OPCODE(SetCritterPickpocket2, 3, 0)
 }
 
 static void __declspec(naked) SetBasePickpocket() {
 	__asm {
-		push ebx;
 		push ecx;
-		push edx;
-		push edi;
-		mov edi, eax;
-		xor ebx, ebx
-		call interpretPopShort_;
-		cmp ax, VAR_TYPE_INT;
-		cmovne ebx, edi;
-		mov eax, edi;
-		call interpretPopLong_;
-		mov ecx, eax;
-		mov eax, edi;
-		call interpretPopShort_;
-		cmp ax, VAR_TYPE_INT;
-		cmovne ebx, edi;
-		mov eax, edi;
-		call interpretPopLong_;
-		test ebx, ebx;
-		jnz end;
+		_GET_ARG(ecx, esi);
+		mov  eax, ebx;
+		_GET_ARG_INT(end);
+		cmp  si, VAR_TYPE_INT;
+		jne  end;
 		push ecx;
 		push eax;
 		push 0xFFFFFFFF;
 		call SetPickpocketMax;
 end:
-		pop edi;
-		pop edx;
-		pop ecx;
-		pop ebx;
+		pop  ecx;
 		retn;
 	}
 }
 
-static void __declspec(naked) SetCritterSkillMod() {
-	__asm {
-		push ebx;
-		push ecx;
-		push edx;
-		push edi;
-		mov edi, eax;
-		xor ebx, ebx
-		call interpretPopShort_;
-		cmp ax, VAR_TYPE_INT;
-		cmovne ebx, edi;
-		mov eax, edi;
-		call interpretPopLong_;
-		mov ecx, eax;
-		mov eax, edi;
-		call interpretPopShort_;
-		cmp ax, VAR_TYPE_INT;
-		cmovne ebx, edi;
-		mov eax, edi;
-		call interpretPopLong_;
-		test ebx, ebx;
-		jnz end;
-		push ecx;
-		push eax;
-		call SetSkillMax;
-end:
-		pop edi;
-		pop edx;
-		pop ecx;
-		pop ebx;
-		retn;
+static void _stdcall SetCritterSkillMod2() {
+	TGameObj* obj = opHandler.arg(0).asObject();
+	const ScriptValue &maxArg = opHandler.arg(1);
+
+	if (obj && maxArg.isInt()) {
+		if (obj->pid >> 24 == OBJ_TYPE_CRITTER) {
+			SetSkillMax(obj, maxArg.rawValue());
+		} else {
+			opHandler.printOpcodeError(objNotCritter, "set_critter_skill_mod");
+		}
+	} else {
+		OpcodeInvalidArgs("set_critter_skill_mod");
 	}
+}
+
+static void __declspec(naked) SetCritterSkillMod() {
+	_WRAP_OPCODE(SetCritterSkillMod2, 2, 0)
 }
 
 static void __declspec(naked) SetBaseSkillMod() { // same as set_skill_max
@@ -689,222 +580,114 @@ end:
 
 static void __declspec(naked) SetStatMax() {
 	__asm {
-		push ebx;
 		push ecx;
-		push edx;
-		push edi;
-		push esi;
-		mov ecx, eax;
-		call interpretPopShort_;
-		mov esi, eax;
-		mov eax, ecx;
-		call interpretPopLong_;
-		mov edi, eax;
-		mov eax, ecx;
-		call interpretPopShort_;
-		mov edx, eax;
-		mov eax, ecx;
-		call interpretPopLong_;
-		cmp dx, VAR_TYPE_INT;
-		jnz end;
-		cmp si, VAR_TYPE_INT;
-		jnz end;
-		push edi;
+		_GET_ARG(ecx, esi);
+		mov  eax, ebx;
+		_GET_ARG_INT(end);
+		cmp  si, VAR_TYPE_INT;
+		jne  end;
+		push ecx;
 		push eax;
-		push edi;
+		push ecx;
 		push eax;
 		call SetPCStatMax;
 		call SetNPCStatMax;
 end:
-		pop esi;
-		pop edi;
-		pop edx;
-		pop ecx;
-		pop ebx;
+		pop  ecx;
 		retn;
 	}
 }
 
 static void __declspec(naked) SetStatMin() {
 	__asm {
-		push ebx;
 		push ecx;
-		push edx;
-		push edi;
-		push esi;
-		mov ecx, eax;
-		call interpretPopShort_;
-		mov esi, eax;
-		mov eax, ecx;
-		call interpretPopLong_;
-		mov edi, eax;
-		mov eax, ecx;
-		call interpretPopShort_;
-		mov edx, eax;
-		mov eax, ecx;
-		call interpretPopLong_;
-		cmp dx, VAR_TYPE_INT;
-		jnz end;
-		cmp si, VAR_TYPE_INT;
-		jnz end;
-		push edi;
+		_GET_ARG(ecx, esi);
+		mov  eax, ebx;
+		_GET_ARG_INT(end);
+		cmp  si, VAR_TYPE_INT;
+		jne  end;
+		push ecx;
 		push eax;
-		push edi;
+		push ecx;
 		push eax;
 		call SetPCStatMin;
 		call SetNPCStatMin;
 end:
-		pop esi;
-		pop edi;
-		pop edx;
-		pop ecx;
-		pop ebx;
+		pop  ecx;
 		retn;
 	}
 }
 
 static void __declspec(naked) fSetPCStatMax() {
 	__asm {
-		push ebx;
 		push ecx;
-		push edx;
-		push edi;
-		push esi;
-		mov ecx, eax;
-		call interpretPopShort_;
-		mov esi, eax;
-		mov eax, ecx;
-		call interpretPopLong_;
-		mov edi, eax;
-		mov eax, ecx;
-		call interpretPopShort_;
-		mov edx, eax;
-		mov eax, ecx;
-		call interpretPopLong_;
-		cmp dx, VAR_TYPE_INT;
-		jnz end;
-		cmp si, VAR_TYPE_INT;
-		jnz end;
-		push edi;
+		_GET_ARG(ecx, esi);
+		mov  eax, ebx;
+		_GET_ARG_INT(end);
+		cmp  si, VAR_TYPE_INT;
+		jne  end;
+		push ecx;
 		push eax;
 		call SetPCStatMax;
 end:
-		pop esi;
-		pop edi;
-		pop edx;
-		pop ecx;
-		pop ebx;
+		pop  ecx;
 		retn;
 	}
 }
 
 static void __declspec(naked) fSetPCStatMin() {
 	__asm {
-		push ebx;
 		push ecx;
-		push edx;
-		push edi;
-		push esi;
-		mov ecx, eax;
-		call interpretPopShort_;
-		mov esi, eax;
-		mov eax, ecx;
-		call interpretPopLong_;
-		mov edi, eax;
-		mov eax, ecx;
-		call interpretPopShort_;
-		mov edx, eax;
-		mov eax, ecx;
-		call interpretPopLong_;
-		cmp dx, VAR_TYPE_INT;
-		jnz end;
-		cmp si, VAR_TYPE_INT;
-		jnz end;
-		push edi;
+		_GET_ARG(ecx, esi);
+		mov  eax, ebx;
+		_GET_ARG_INT(end);
+		cmp  si, VAR_TYPE_INT;
+		jne  end;
+		push ecx;
 		push eax;
 		call SetPCStatMin;
 end:
-		pop esi;
-		pop edi;
-		pop edx;
-		pop ecx;
-		pop ebx;
+		pop  ecx;
 		retn;
 	}
 }
 
 static void __declspec(naked) fSetNPCStatMax() {
 	__asm {
-		push ebx;
 		push ecx;
-		push edx;
-		push edi;
-		push esi;
-		mov ecx, eax;
-		call interpretPopShort_;
-		mov esi, eax;
-		mov eax, ecx;
-		call interpretPopLong_;
-		mov edi, eax;
-		mov eax, ecx;
-		call interpretPopShort_;
-		mov edx, eax;
-		mov eax, ecx;
-		call interpretPopLong_;
-		cmp dx, VAR_TYPE_INT;
-		jnz end;
-		cmp si, VAR_TYPE_INT;
-		jnz end;
-		push edi;
+		_GET_ARG(ecx, esi);
+		mov  eax, ebx;
+		_GET_ARG_INT(end);
+		cmp  si, VAR_TYPE_INT;
+		jne  end;
+		push ecx;
 		push eax;
 		call SetNPCStatMax;
 end:
-		pop esi;
-		pop edi;
-		pop edx;
-		pop ecx;
-		pop ebx;
+		pop  ecx;
 		retn;
 	}
 }
 
 static void __declspec(naked) fSetNPCStatMin() {
 	__asm {
-		push ebx;
 		push ecx;
-		push edx;
-		push edi;
-		push esi;
-		mov ecx, eax;
-		call interpretPopShort_;
-		mov esi, eax;
-		mov eax, ecx;
-		call interpretPopLong_;
-		mov edi, eax;
-		mov eax, ecx;
-		call interpretPopShort_;
-		mov edx, eax;
-		mov eax, ecx;
-		call interpretPopLong_;
-		cmp dx, VAR_TYPE_INT;
-		jnz end;
-		cmp si, VAR_TYPE_INT;
-		jnz end;
-		push edi;
+		_GET_ARG(ecx, esi);
+		mov  eax, ebx;
+		_GET_ARG_INT(end);
+		cmp  si, VAR_TYPE_INT;
+		jne  end;
+		push ecx;
 		push eax;
 		call SetNPCStatMin;
 end:
-		pop esi;
-		pop edi;
-		pop edx;
-		pop ecx;
-		pop ebx;
+		pop  ecx;
 		retn;
 	}
 }
 
-static DWORD xpTemp;
 static void __declspec(naked) statPCAddExperienceCheckPMs_hack() {
+	static DWORD xpTemp;
 	__asm {
 		mov  ebp, [esp];  // return addr
 		mov  xpTemp, eax; // experience
@@ -923,8 +706,8 @@ static void _stdcall SetXpMod2() {
 
 	if (pctArg.isInt()) {
 		static bool xpModPatch = false;
-		DWORD percent = pctArg.rawValue() & 0xFFFF;
-		ExperienceMod = (float)percent / 100.0f;
+		long percent = pctArg.rawValue() & 0xFFFF;
+		ExperienceMod = percent / 100.0f;
 
 		if (xpModPatch) return;
 		xpModPatch = true;

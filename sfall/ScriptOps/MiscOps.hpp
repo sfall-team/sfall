@@ -181,13 +181,9 @@ fail:
 static void __declspec(naked) ModKillCounter() {
 	__asm {
 		push ecx;
-		call interpretPopShort_;
-		mov  esi, eax; // type
+		_GET_ARG(ecx, esi); // get mod value
 		mov  eax, ebx;
-		call interpretPopLong_;
-		mov  ecx, eax; // mod value
-		mov  eax, ebx;
-		_GET_ARG_INT(end); // get kill type value
+		_GET_ARG_INT(end);  // get kill type value
 		cmp  si, VAR_TYPE_INT;
 		jnz  end;
 		cmp  extraKillCounter, 1;
@@ -638,13 +634,9 @@ fail:
 static void __declspec(naked) SetBodypartHitModifier() {
 	__asm {
 		push ecx;
-		call interpretPopShort_;
-		mov  esi, eax; // type
+		_GET_ARG(ecx, esi); // get body value
 		mov  eax, ebx;
-		call interpretPopLong_;
-		mov  ecx, eax; // body value
-		mov  eax, ebx;
-		_GET_ARG_INT(end); // get modifier value
+		_GET_ARG_INT(end);  // get modifier value
 		cmp  si, VAR_TYPE_INT;
 		jnz  end;
 		cmp  eax, 8; // Body_Head - Body_Uncalled

@@ -153,7 +153,7 @@ void __stdcall ResumeSfallSound(sDSSound* sound) {
 }
 
 void __stdcall PauseAllSfallSound() {
-	std::vector<sDSSound*>::iterator it;
+	std::vector<sDSSound*>::const_iterator it;
 	sDSSound* sound = nullptr;
 	for (it = loopingSounds.begin(); it != loopingSounds.end(); ++it) {
 		sound = *it;
@@ -166,7 +166,7 @@ void __stdcall PauseAllSfallSound() {
 }
 
 void __stdcall ResumeAllSfallSound() {
-	std::vector<sDSSound*>::iterator it;
+	std::vector<sDSSound*>::const_iterator it;
 	sDSSound* sound = nullptr;
 	for (it = loopingSounds.begin(); it != loopingSounds.end(); ++it) {
 		sound = *it;

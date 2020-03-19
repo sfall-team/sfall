@@ -158,34 +158,16 @@ static void __declspec(naked) GetWorldMapYPos() {
 
 static void __declspec(naked) SetWorldMapPos() {
 	__asm {
-		push ebx;
 		push ecx;
-		push edx;
-		push edi;
-		push esi;
-		mov ecx, eax;
-		call interpretPopShort_;
-		mov esi, eax;
-		mov eax, ecx;
-		call interpretPopLong_;
-		mov edi, eax;
-		mov eax, ecx;
-		call interpretPopShort_;
-		mov edx, eax;
-		mov eax, ecx;
-		call interpretPopLong_;
-		cmp dx, VAR_TYPE_INT;
-		jnz end;
-		cmp si, VAR_TYPE_INT;
-		jnz end;
-		mov ds:[_world_xpos], eax;
-		mov ds:[_world_ypos], edi;
+		_GET_ARG(ecx, esi); // get y value
+		mov  eax, ebx;
+		_GET_ARG_INT(end);  // get x value
+		cmp  si, VAR_TYPE_INT;
+		jne  end;
+		mov  ds:[_world_xpos], eax;
+		mov  ds:[_world_ypos], ecx;
 end:
-		pop esi;
-		pop edi;
-		pop edx;
-		pop ecx;
-		pop ebx;
+		pop  ecx;
 		retn;
 	}
 }
