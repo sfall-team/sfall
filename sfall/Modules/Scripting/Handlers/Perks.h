@@ -31,9 +31,9 @@ void __declspec() op_set_perk_freq();
 
 void sf_get_perk_available(OpcodeContext&);
 
-void __declspec() op_set_perk_name();
+void sf_set_perk_name(OpcodeContext&);
 
-void __declspec() op_set_perk_desc();
+void sf_set_perk_desc(OpcodeContext&);
 
 void __declspec() op_set_perk_value();
 

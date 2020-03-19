@@ -534,7 +534,7 @@ bool Worldmap::LoadData(HANDLE file) {
 	return false;
 }
 
-void _stdcall SetMapMulti(float value) {
+void Worldmap::SetMapMulti(float value) {
 	scriptMapMulti = value;
 }
 

@@ -301,6 +301,9 @@
     <ClInclude Include="Modules\Sound.h">
       <Filter>Modules</Filter>
     </ClInclude>
+    <ClInclude Include="FalloutEngine\AsmMacros.h">
+      <Filter>FalloutEngine</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />

@@ -16,9 +16,11 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "..\..\..\FalloutEngine\AsmMacros.h"
+#include "..\..\..\FalloutEngine\Fallout2.h"
+
 #include "..\..\..\main.h"
 #include "..\..\..\InputFuncs.h"
-#include "..\..\..\FalloutEngine\Fallout2.h"
 #include "..\..\Graphics.h"
 #include "..\..\ScriptExtender.h"
 #include "..\..\ScriptShaders.h"

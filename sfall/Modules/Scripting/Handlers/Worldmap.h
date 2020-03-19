@@ -40,7 +40,7 @@ void __declspec() op_get_world_map_y_pos();
 
 void __declspec() op_set_world_map_pos();
 
-void __declspec() op_set_map_time_multi();
+void sf_set_map_time_multi(OpcodeContext&);
 
 void sf_set_car_intface_art(OpcodeContext&);
 

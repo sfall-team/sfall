@@ -688,7 +688,9 @@ enum KillType : long
 	KILL_TYPE_count
 };
 
-#define PLAYER_ID             (18000)
+enum {
+	PLAYER_ID                 = 18000
+};
 
 #define OBJFLAG_CAN_WEAR_ITEMS (0xF000000)
 

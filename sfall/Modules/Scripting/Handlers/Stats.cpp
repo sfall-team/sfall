@@ -16,7 +16,9 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "..\..\..\FalloutEngine\AsmMacros.h"
 #include "..\..\..\FalloutEngine\Fallout2.h"
+
 #include "..\..\Combat.h"
 #include "..\..\Criticals.h"
 #include "..\..\CritterStats.h"
@@ -135,102 +137,35 @@ void sf_get_critter_extra_stat(OpcodeContext& ctx) {
 	ctx.setReturn(result);
 }
 
-void __declspec(naked) op_set_critter_skill_points() {
-	__asm {
-		pushad;
-		//Get function args
-		mov ecx, eax;
-		call fo::funcoffs::interpretPopShort_;
-		push eax;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPopLong_;
-		mov edi, eax;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPopShort_;
-		push eax;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPopLong_;
-		mov esi, eax;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPopShort_;
-		push eax;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPopLong_;
-		//eax now contains the critter ID, esi the skill ID, and edi the new value
-		//Check args are valid
-		mov ebx, [esp];
-		cmp bx, VAR_TYPE_INT;
-		jnz end;
-		mov ebx, [esp + 4];
-		cmp bx, VAR_TYPE_INT;
-		jnz end;
-		mov ebx, [esp + 8];
-		cmp bx, VAR_TYPE_INT;
-		jnz end;
-		test esi, esi;
-		jl end;
-		cmp esi, 18;
-		jge end;
-		//set the new value
-		mov eax, [eax + 0x64];
-		mov edx, esp;
-		call fo::funcoffs::proto_ptr_;
-		mov eax, [esp];
-		mov [eax + 0x13C + esi * 4], edi;
-end:
-		//Restore registers and return
-		add esp, 12;
-		popad
-		retn;
+void sf_set_critter_skill_points(OpcodeContext& ctx) {
+	unsigned long skill = ctx.arg(1).rawValue();
+	if (skill > 17) {
+		ctx.printOpcodeError("%s() - incorrect skill number.", ctx.getOpcodeName());
+		return;
+	}
+
+	fo::GameObject* obj = ctx.arg(0).object();
+	if (obj->Type() == fo::OBJ_TYPE_CRITTER) {
+		fo::Proto* proto = fo::GetProto(obj->protoId);
+		if (proto) proto->critter.skills[skill] = ctx.arg(2).rawValue();
+	} else {
+		ctx.printOpcodeError(objNotCritter, ctx.getOpcodeName());
 	}
 }
 
-void __declspec(naked) op_get_critter_skill_points() {
-	__asm {
-		pushad;
-		//Get function args
-		mov ecx, eax;
-		call fo::funcoffs::interpretPopShort_;
-		push eax;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPopLong_;
-		mov esi, eax;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPopShort_;
-		push eax;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPopLong_;
-		//eax now contains the critter ID, esi the skill ID
-		//Check args are valid
-		mov ebx, [esp];
-		cmp bx, VAR_TYPE_INT;
-		jnz fail;
-		mov ebx, [esp + 4];
-		cmp bx, VAR_TYPE_INT;
-		jnz fail;
-		test esi, esi;
-		jl fail;
-		cmp esi, 18;
-		jge fail;
-		//get the value
-		mov eax, [eax + 0x64];
-		mov edx, esp;
-		call fo::funcoffs::proto_ptr_;
-		mov eax, [esp];
-		mov edx, [eax + 0x13C + esi * 4];
-		jmp end;
-fail:
-		xor edx, edx;
-end:
-		mov eax, ecx;
-		call fo::funcoffs::interpretPushLong_;
-		mov edx, VAR_TYPE_INT;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPushShort_;
-		//Restore registers and return
-		add esp, 8;
-		popad
-		retn;
+void sf_get_critter_skill_points(OpcodeContext& ctx) {
+	unsigned long skill = ctx.arg(1).rawValue();
+	if (skill > 17) {
+		ctx.printOpcodeError("%s() - incorrect skill number.", ctx.getOpcodeName());
+		return;
+	}
+
+	fo::GameObject* obj = ctx.arg(0).object();
+	if (obj->Type() == fo::OBJ_TYPE_CRITTER) {
+		fo::Proto* proto = fo::GetProto(obj->protoId);
+		if (proto) ctx.setReturn(proto->critter.skills[skill]);
+	} else {
+		ctx.printOpcodeError(objNotCritter, ctx.getOpcodeName());
 	}
 }
 
@@ -251,7 +186,6 @@ void __declspec(naked) op_get_available_skill_points() {
 	__asm {
 		mov  edx, dword ptr ds:[FO_VAR_curr_pc_stat];
 		_J_RET_VAL_TYPE(VAR_TYPE_INT);
-//		retn;
 	}
 }
 
@@ -276,79 +210,36 @@ end:
 }
 
 void __declspec(naked) op_get_critter_current_ap() {
+	using namespace fo;
+	using namespace Fields;
 	__asm {
-		//Store registers
-		push ecx;
-		push edx;
-		push edi;
-		//Get function args
-		mov ecx, eax;
-		call fo::funcoffs::interpretPopShort_;
-		mov edi, eax;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPopLong_;
-		//Check args are valid
-		cmp di, VAR_TYPE_INT;
-		jnz fail;
-		mov edx, [eax + 0x40];
-		jmp end;
-fail:
-		xor edx, edx;
+		_GET_ARG_INT(fail); // Get function arg and check if valid
+		test eax, eax;
+		jz   fail;
+		mov  edx, [eax + protoId];
+		shr  edx, 24;
+		cmp  edx, OBJ_TYPE_CRITTER;
+		jnz  fail;
+		mov  edx, [eax + movePoints];
 end:
-		//Pass back the result
-		mov eax, ecx;
-		call fo::funcoffs::interpretPushLong_;
-		mov edx, VAR_TYPE_INT;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPushShort_;
-		//Restore registers and return
-		pop edi;
-		pop edx;
-		pop ecx;
-		retn;
+		mov  eax, ebx;
+		_J_RET_VAL_TYPE(VAR_TYPE_INT); // Pass back the result
+fail:
+		xor  edx, edx;
+		jmp  end;
 	}
 }
 
-void __declspec(naked) op_set_critter_current_ap() {
-	__asm {
-		//Store registers
-		push ebx;
-		push ecx;
-		push edx;
-		push edi;
-		push esi;
-		//Get function args
-		mov ecx, eax;
-		call fo::funcoffs::interpretPopShort_;
-		mov edi, eax;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPopLong_;
-		mov ebx, eax;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPopShort_;
-		mov esi, eax;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPopLong_;
-		//Check args are valid
-		cmp di, VAR_TYPE_INT;
-		jnz end;
-		cmp si, VAR_TYPE_INT;
-		jnz end;
-		mov [eax + 0x40], ebx;
-		mov ecx, ds:[FO_VAR_obj_dude]
-		cmp ecx, eax;
-		jne end;
-		mov eax, ebx;
-		mov edx, ds:[FO_VAR_combat_free_move]
-		call fo::funcoffs::intface_update_move_points_;
-end:
-		//Restore registers and return
-		pop esi;
-		pop edi;
-		pop edx;
-		pop ecx;
-		pop ebx;
-		retn;
+void sf_set_critter_current_ap(OpcodeContext& ctx) {
+	fo::GameObject* obj = ctx.arg(0).object();
+	if (obj->Type() == fo::OBJ_TYPE_CRITTER) {
+		long ap = ctx.arg(1).rawValue();
+		if (ap < 0) ap = 0;
+		obj->critter.movePoints = ap;
+
+		if (obj == fo::var::obj_dude) fo::func::intface_update_move_points(ap, *(DWORD*)FO_VAR_combat_free_move);
+	} else {
+		ctx.printOpcodeError(objNotCritter, ctx.getOpcodeName());
 	}
 }
 
@@ -386,191 +277,66 @@ end:
 	}
 }
 
-void __declspec(naked) op_set_critter_hit_chance_mod() {
-	__asm {
-		push ebx;
-		push ecx;
-		push edx;
-		push edi;
-		mov edi, eax;
-		xor ebx, ebx
-		call fo::funcoffs::interpretPopShort_;
-		cmp ax, VAR_TYPE_INT;
-		cmovne ebx, edi;
-		mov eax, edi;
-		call fo::funcoffs::interpretPopLong_;
-		mov ecx, eax;
-		mov eax, edi;
-		call fo::funcoffs::interpretPopShort_;
-		cmp ax, VAR_TYPE_INT;
-		cmovne ebx, edi;
-		mov eax, edi;
-		call fo::funcoffs::interpretPopLong_;
-		mov edx, eax;
-		mov eax, edi;
-		call fo::funcoffs::interpretPopShort_;
-		cmp ax, VAR_TYPE_INT;
-		cmovne ebx, edi;
-		mov eax, edi;
-		call fo::funcoffs::interpretPopLong_;
-		test ebx, ebx;
-		jnz end;
-		push ecx;
-		push edx;
-		push eax;
-		call SetHitChanceMax;
-end:
-		pop edi;
-		pop edx;
-		pop ecx;
-		pop ebx;
-		retn;
+void sf_set_critter_hit_chance_mod(OpcodeContext& ctx) {
+	fo::GameObject* obj = ctx.arg(0).object();
+	if (obj->Type() == fo::OBJ_TYPE_CRITTER) {
+		SetHitChanceMax(obj, ctx.arg(1).rawValue(), ctx.arg(2).rawValue());
+	} else {
+		ctx.printOpcodeError(objNotCritter, ctx.getOpcodeName());
 	}
 }
 
 void __declspec(naked) op_set_base_hit_chance_mod() {
 	__asm {
-		push ebx;
 		push ecx;
-		push edx;
-		push edi;
-		mov edi, eax;
-		xor ebx, ebx
-		call fo::funcoffs::interpretPopShort_;
-		cmp ax, VAR_TYPE_INT;
-		cmovne ebx, edi;
-		mov eax, edi;
-		call fo::funcoffs::interpretPopLong_;
-		mov ecx, eax;
-		mov eax, edi;
-		call fo::funcoffs::interpretPopShort_;
-		cmp ax, VAR_TYPE_INT;
-		cmovne ebx, edi;
-		mov eax, edi;
-		call fo::funcoffs::interpretPopLong_;
-		test ebx, ebx;
-		jnz end;
+		_GET_ARG(ecx, esi);
+		mov  eax, ebx;
+		_GET_ARG_INT(end);
+		cmp  si, VAR_TYPE_INT;
+		jne  end;
 		push ecx;
 		push eax;
 		push 0xFFFFFFFF;
 		call SetHitChanceMax;
 end:
-		pop edi;
-		pop edx;
-		pop ecx;
-		pop ebx;
+		pop  ecx;
 		retn;
 	}
 }
 
-void __declspec(naked) op_set_critter_pickpocket_mod() {
-	__asm {
-		push ebx;
-		push ecx;
-		push edx;
-		push edi;
-		mov edi, eax;
-		xor ebx, ebx
-		call fo::funcoffs::interpretPopShort_;
-		cmp ax, VAR_TYPE_INT;
-		cmovne ebx, edi;
-		mov eax, edi;
-		call fo::funcoffs::interpretPopLong_;
-		mov ecx, eax;
-		mov eax, edi;
-		call fo::funcoffs::interpretPopShort_;
-		cmp ax, VAR_TYPE_INT;
-		cmovne ebx, edi;
-		mov eax, edi;
-		call fo::funcoffs::interpretPopLong_;
-		mov edx, eax;
-		mov eax, edi;
-		call fo::funcoffs::interpretPopShort_;
-		cmp ax, VAR_TYPE_INT;
-		cmovne ebx, edi;
-		mov eax, edi;
-		call fo::funcoffs::interpretPopLong_;
-		test ebx, ebx;
-		jnz end;
-		push ecx;
-		push edx;
-		push eax;
-		call SetPickpocketMax;
-end:
-		pop edi;
-		pop edx;
-		pop ecx;
-		pop ebx;
-		retn;
+void sf_set_critter_pickpocket_mod(OpcodeContext& ctx) {
+	fo::GameObject* obj = ctx.arg(0).object();
+	if (obj->Type() == fo::OBJ_TYPE_CRITTER) {
+		SetPickpocketMax(obj, ctx.arg(1).rawValue(), ctx.arg(2).rawValue());
+	} else {
+		ctx.printOpcodeError(objNotCritter, ctx.getOpcodeName());
 	}
 }
 
 void __declspec(naked) op_set_base_pickpocket_mod() {
 	__asm {
-		push ebx;
 		push ecx;
-		push edx;
-		push edi;
-		mov edi, eax;
-		xor ebx, ebx
-		call fo::funcoffs::interpretPopShort_;
-		cmp ax, VAR_TYPE_INT;
-		cmovne ebx, edi;
-		mov eax, edi;
-		call fo::funcoffs::interpretPopLong_;
-		mov ecx, eax;
-		mov eax, edi;
-		call fo::funcoffs::interpretPopShort_;
-		cmp ax, VAR_TYPE_INT;
-		cmovne ebx, edi;
-		mov eax, edi;
-		call fo::funcoffs::interpretPopLong_;
-		test ebx, ebx;
-		jnz end;
+		_GET_ARG(ecx, esi);
+		mov  eax, ebx;
+		_GET_ARG_INT(end);
+		cmp  si, VAR_TYPE_INT;
+		jne  end;
 		push ecx;
 		push eax;
 		push 0xFFFFFFFF;
 		call SetPickpocketMax;
 end:
-		pop edi;
-		pop edx;
-		pop ecx;
-		pop ebx;
+		pop  ecx;
 		retn;
 	}
 }
 
-void __declspec(naked) op_set_critter_skill_mod() {
-	__asm {
-		push ebx;
-		push ecx;
-		push edx;
-		push edi;
-		mov edi, eax;
-		xor ebx, ebx
-		call fo::funcoffs::interpretPopShort_;
-		cmp ax, VAR_TYPE_INT;
-		cmovne ebx, edi;
-		mov eax, edi;
-		call fo::funcoffs::interpretPopLong_;
-		mov ecx, eax;
-		mov eax, edi;
-		call fo::funcoffs::interpretPopShort_;
-		cmp ax, VAR_TYPE_INT;
-		cmovne ebx, edi;
-		mov eax, edi;
-		call fo::funcoffs::interpretPopLong_;
-		test ebx, ebx;
-		jnz end;
-		push ecx;
-		push eax;
-		call SetSkillMax;
-end:
-		pop edi;
-		pop edx;
-		pop ecx;
-		pop ebx;
-		retn;
+void sf_set_critter_skill_mod(OpcodeContext& ctx) {
+	fo::GameObject* obj = ctx.arg(0).object();
+	if (obj->Type() == fo::OBJ_TYPE_CRITTER) {
+		SetSkillMax(obj, ctx.arg(1).rawValue());
+	} else {
+		ctx.printOpcodeError(objNotCritter, ctx.getOpcodeName());
 	}
 }
 
@@ -605,222 +371,114 @@ end:
 
 void __declspec(naked) op_set_stat_max() {
 	__asm {
-		push ebx;
 		push ecx;
-		push edx;
-		push edi;
-		push esi;
-		mov ecx, eax;
-		call fo::funcoffs::interpretPopShort_;
-		mov esi, eax;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPopLong_;
-		mov edi, eax;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPopShort_;
-		mov edx, eax;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPopLong_;
-		cmp dx, VAR_TYPE_INT;
-		jnz end;
-		cmp si, VAR_TYPE_INT;
-		jnz end;
-		push edi;
+		_GET_ARG(ecx, esi);
+		mov  eax, ebx;
+		_GET_ARG_INT(end);
+		cmp  si, VAR_TYPE_INT;
+		jne  end;
+		push ecx;
 		push eax;
-		push edi;
+		push ecx;
 		push eax;
 		call SetPCStatMax;
 		call SetNPCStatMax;
 end:
-		pop esi;
-		pop edi;
-		pop edx;
-		pop ecx;
-		pop ebx;
+		pop  ecx;
 		retn;
 	}
 }
 
 void __declspec(naked) op_set_stat_min() {
 	__asm {
-		push ebx;
 		push ecx;
-		push edx;
-		push edi;
-		push esi;
-		mov ecx, eax;
-		call fo::funcoffs::interpretPopShort_;
-		mov esi, eax;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPopLong_;
-		mov edi, eax;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPopShort_;
-		mov edx, eax;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPopLong_;
-		cmp dx, VAR_TYPE_INT;
-		jnz end;
-		cmp si, VAR_TYPE_INT;
-		jnz end;
-		push edi;
+		_GET_ARG(ecx, esi);
+		mov  eax, ebx;
+		_GET_ARG_INT(end);
+		cmp  si, VAR_TYPE_INT;
+		jne  end;
+		push ecx;
 		push eax;
-		push edi;
+		push ecx;
 		push eax;
 		call SetPCStatMin;
 		call SetNPCStatMin;
 end:
-		pop esi;
-		pop edi;
-		pop edx;
-		pop ecx;
-		pop ebx;
+		pop  ecx;
 		retn;
 	}
 }
 
 void __declspec(naked) op_set_pc_stat_max() {
 	__asm {
-		push ebx;
 		push ecx;
-		push edx;
-		push edi;
-		push esi;
-		mov ecx, eax;
-		call fo::funcoffs::interpretPopShort_;
-		mov esi, eax;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPopLong_;
-		mov edi, eax;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPopShort_;
-		mov edx, eax;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPopLong_;
-		cmp dx, VAR_TYPE_INT;
-		jnz end;
-		cmp si, VAR_TYPE_INT;
-		jnz end;
-		push edi;
+		_GET_ARG(ecx, esi);
+		mov  eax, ebx;
+		_GET_ARG_INT(end);
+		cmp  si, VAR_TYPE_INT;
+		jne  end;
+		push ecx;
 		push eax;
 		call SetPCStatMax;
 end:
-		pop esi;
-		pop edi;
-		pop edx;
-		pop ecx;
-		pop ebx;
+		pop  ecx;
 		retn;
 	}
 }
 
 void __declspec(naked) op_set_pc_stat_min() {
 	__asm {
-		push ebx;
 		push ecx;
-		push edx;
-		push edi;
-		push esi;
-		mov ecx, eax;
-		call fo::funcoffs::interpretPopShort_;
-		mov esi, eax;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPopLong_;
-		mov edi, eax;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPopShort_;
-		mov edx, eax;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPopLong_;
-		cmp dx, VAR_TYPE_INT;
-		jnz end;
-		cmp si, VAR_TYPE_INT;
-		jnz end;
-		push edi;
+		_GET_ARG(ecx, esi);
+		mov  eax, ebx;
+		_GET_ARG_INT(end);
+		cmp  si, VAR_TYPE_INT;
+		jne  end;
+		push ecx;
 		push eax;
 		call SetPCStatMin;
 end:
-		pop esi;
-		pop edi;
-		pop edx;
-		pop ecx;
-		pop ebx;
+		pop  ecx;
 		retn;
 	}
 }
 
 void __declspec(naked) op_set_npc_stat_max() {
 	__asm {
-		push ebx;
 		push ecx;
-		push edx;
-		push edi;
-		push esi;
-		mov ecx, eax;
-		call fo::funcoffs::interpretPopShort_;
-		mov esi, eax;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPopLong_;
-		mov edi, eax;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPopShort_;
-		mov edx, eax;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPopLong_;
-		cmp dx, VAR_TYPE_INT;
-		jnz end;
-		cmp si, VAR_TYPE_INT;
-		jnz end;
-		push edi;
+		_GET_ARG(ecx, esi);
+		mov  eax, ebx;
+		_GET_ARG_INT(end);
+		cmp  si, VAR_TYPE_INT;
+		jne  end;
+		push ecx;
 		push eax;
 		call SetNPCStatMax;
 end:
-		pop esi;
-		pop edi;
-		pop edx;
-		pop ecx;
-		pop ebx;
+		pop  ecx;
 		retn;
 	}
 }
 
 void __declspec(naked) op_set_npc_stat_min() {
 	__asm {
-		push ebx;
 		push ecx;
-		push edx;
-		push edi;
-		push esi;
-		mov ecx, eax;
-		call fo::funcoffs::interpretPopShort_;
-		mov esi, eax;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPopLong_;
-		mov edi, eax;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPopShort_;
-		mov edx, eax;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPopLong_;
-		cmp dx, VAR_TYPE_INT;
-		jnz end;
-		cmp si, VAR_TYPE_INT;
-		jnz end;
-		push edi;
+		_GET_ARG(ecx, esi);
+		mov  eax, ebx;
+		_GET_ARG_INT(end);
+		cmp  si, VAR_TYPE_INT;
+		jne  end;
+		push ecx;
 		push eax;
 		call SetNPCStatMin;
 end:
-		pop esi;
-		pop edi;
-		pop edx;
-		pop ecx;
-		pop ebx;
+		pop  ecx;
 		retn;
 	}
 }
 
-static DWORD xpTemp;
 static void __declspec(naked) statPCAddExperienceCheckPMs_hack() {
+	static DWORD xpTemp;
 	__asm {
 		mov  ebp, [esp];  // return addr
 		mov  xpTemp, eax; // experience
@@ -836,8 +494,8 @@ static void __declspec(naked) statPCAddExperienceCheckPMs_hack() {
 
 void sf_set_xp_mod(OpcodeContext& ctx) {
 	static bool xpModPatch = false;
-	DWORD percent = ctx.arg(0).rawValue() & 0xFFFF;
-	Stats::experienceMod = (float)percent / 100.0f;
+	long percent = ctx.arg(0).rawValue() & 0xFFFF;
+	Stats::experienceMod = percent / 100.0f;
 
 	if (xpModPatch) return;
 	xpModPatch = true;
