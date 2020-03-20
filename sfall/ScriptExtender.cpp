@@ -814,30 +814,24 @@ static void sf_remove_timer_event() {
 }
 
 static void __declspec(naked) sfall_ver_major() {
-	_OP_BEGIN(ebp)
 	__asm {
-		mov eax, VERSION_MAJOR;
+		mov  edx, VERSION_MAJOR;
+		_J_RET_VAL_TYPE(VAR_TYPE_INT);
 	}
-	_RET_VAL_INT(ebp)
-	_OP_END
 }
 
 static void __declspec(naked) sfall_ver_minor() {
-	_OP_BEGIN(ebp)
 	__asm {
-		mov eax, VERSION_MINOR;
+		mov  edx, VERSION_MINOR;
+		_J_RET_VAL_TYPE(VAR_TYPE_INT);
 	}
-	_RET_VAL_INT(ebp)
-	_OP_END
 }
 
 static void __declspec(naked) sfall_ver_build() {
-	_OP_BEGIN(ebp)
 	__asm {
-		mov eax, VERSION_BUILD;
+		mov  edx, VERSION_BUILD;
+		_J_RET_VAL_TYPE(VAR_TYPE_INT);
 	}
-	_RET_VAL_INT(ebp)
-	_OP_END
 }
 
 #include "ScriptOps\ScriptArrays.hpp"

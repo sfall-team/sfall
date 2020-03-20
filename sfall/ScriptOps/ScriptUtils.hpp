@@ -203,20 +203,20 @@ end:
 	}
 }
 
-static void __declspec(naked) op_ord() {
-	_OP_BEGIN(ebp)
-	_GET_ARG_R32(ebp, ebx, esi)
-	_PARSE_STR_ARG(1, ebp, bx, esi, notstring)
-	__asm {
-		mov eax, 0;
-		mov al, [esi]; // first character
-		jmp done;
-notstring:
-		mov eax, 0;
-	done:
+static void _stdcall op_ord2() {
+	const ScriptValue &strArg = opHandler.arg(0);
+
+	if (strArg.isString()) {
+		unsigned char firstChar = strArg.strValue()[0];
+		opHandler.setReturn(static_cast<unsigned long>(firstChar));
+	} else {
+		OpcodeInvalidArgs("charcode");
+		opHandler.setReturn(0);
 	}
-	_RET_VAL_INT(ebp)
-	_OP_END
+}
+
+static void __declspec(naked) op_ord() {
+	_WRAP_OPCODE(op_ord2, 1, 1)
 }
 
 static DWORD _stdcall GetValueType(DWORD datatype) {

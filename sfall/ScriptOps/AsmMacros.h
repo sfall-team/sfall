@@ -93,7 +93,6 @@
 	__asm cmp r16type, VAR_TYPE_FLOAT		\
 	__asm jne GOTOFAIL }
 
-
 /*
 	checks argument (which may be any type) if it's a string and retrieves it (overwrites value in rval)
 	num - any number, but it must be unique (used for label names)
@@ -112,19 +111,6 @@ __asm skipgetstr##num:					\
 	__asm call interpretGetString_		\
 	__asm mov rval, eax	} \
 notstring##num:
-
-#define _PARSE_STR_ARG(num, rscript, r16type, rval, GOTOFAIL) __asm { \
-	__asm cmp r16type, VAR_TYPE_STR2	\
-	__asm jz skipgetstr##num			\
-	__asm cmp r16type, VAR_TYPE_STR		\
-	__asm jnz GOTOFAIL					\
-	__asm skipgetstr##num:				\
-	__asm mov edx, e##r16type			\
-	__asm mov ebx, rval					\
-	__asm mov eax, rscript				\
-	__asm call interpretGetString_		\
-	__asm mov rval, eax	}
-
 
 // must be immediately after C function call
 #define _RET_VAL_INT(rscript) __asm {		\
@@ -210,4 +196,3 @@ __asm resultnotstr##num:				\
 	__asm popad						\
 	__asm retn						\
 }
-
