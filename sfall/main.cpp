@@ -151,6 +151,14 @@ size_t Translate(const char* section, const char* setting, const char* defaultVa
 	return iniGetString(section, setting, defaultValue, buffer, bufSize, translationIni);
 }
 
+int SetConfigInt(const char* section, const char* setting, int value) {
+	char* buf = new char[128];
+	_itoa_s(value, buf, 128, 10);
+	int result = WritePrivateProfileStringA(section, setting, buf, ini);
+	delete[] buf;
+	return result;
+}
+
 static void InitModules() {
 	dlogr("In InitModules", DL_MAIN);
 
