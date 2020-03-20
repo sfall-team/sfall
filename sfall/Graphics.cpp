@@ -75,6 +75,7 @@ static bool windowInit = false;
 static DWORD windowLeft = 0;
 static DWORD windowTop = 0;
 static HWND window;
+static DWORD windowStyle = WS_CAPTION | WS_BORDER | WS_MINIMIZEBOX;
 
 static DWORD ShaderVersion;
 
@@ -324,13 +325,13 @@ static void ResetDevice(bool createNew) {
 	GetDisplayMode(dispMode);
 
 	params.BackBufferCount = 1;
-	params.BackBufferFormat = dispMode.Format; // (GraphicsMode == 5) ? D3DFMT_UNKNOWN : D3DFMT_X8R8G8B8;
+	params.BackBufferFormat = dispMode.Format; // (GraphicsMode == 4) ? D3DFMT_UNKNOWN : D3DFMT_X8R8G8B8;
 	params.BackBufferWidth = gWidth;
 	params.BackBufferHeight = gHeight;
 	params.EnableAutoDepthStencil = false;
 	//params.MultiSampleQuality = 0;
 	//params.MultiSampleType = D3DMULTISAMPLE_NONE;
-	params.Windowed = (GraphicsMode == 5);
+	params.Windowed = (GraphicsMode != 4);
 	params.SwapEffect = D3DSWAPEFFECT_DISCARD;
 	params.hDeviceWindow = window;
 	params.PresentationInterval = D3DPRESENT_INTERVAL_IMMEDIATE;
@@ -434,49 +435,46 @@ static void Present() {
 	if ((moveWindowKey[0] != 0 && KeyDown(moveWindowKey[0])) ||
 	    (moveWindowKey[1] != 0 && KeyDown(moveWindowKey[1])))
 	{
-		int winx, winy;
-		GetMouse(&winx, &winy);
-		windowLeft += winx;
-		windowTop += winy;
+		int winX, winY;
+		GetMouse(&winX, &winY);
+		windowLeft += winX;
+		windowTop += winY;
 
 		RECT r, r2;
 		r.left = windowLeft;
-		r.right = windowLeft + gWidth;
+		r.right = r.left + gWidth;
 		r.top = windowTop;
-		r.bottom = windowTop + gHeight;
-		AdjustWindowRect(&r, WS_OVERLAPPED | WS_CAPTION | WS_BORDER, false);
+		r.bottom = r.top + gHeight;
+		AdjustWindowRect(&r, WS_CAPTION | WS_BORDER, false);
 
 		r.right -= (r.left - windowLeft);
 		r.left = windowLeft;
 		r.bottom -= (r.top - windowTop);
 		r.top = windowTop;
+
 		if (GetWindowRect(GetShellWindow(), &r2)) {
 			if (r.right > r2.right) {
 				DWORD move = r.right - r2.right;
-				r.left -= move;
-				r.right -= move;
 				windowLeft -= move;
+				r.right -= move;
 			}
-			if (r.left < r2.left) {
+			else if (r.left < r2.left) {
 				DWORD move = r2.left - r.left;
-				r.left += move;
-				r.right += move;
 				windowLeft += move;
+				r.right += move;
 			}
 			if (r.bottom > r2.bottom) {
 				DWORD move = r.bottom - r2.bottom;
-				r.top -= move;
-				r.bottom -= move;
 				windowTop -= move;
+				r.bottom -= move;
 			}
-			if (r.top < r2.top) {
+			else if (r.top < r2.top) {
 				DWORD move = r2.top - r.top;
-				r.top += move;
-				r.bottom += move;
 				windowTop += move;
+				r.bottom += move;
 			}
 		}
-		MoveWindow(window, r.left, r.top, r.right - r.left, r.bottom - r.top, true);
+		MoveWindow(window, windowLeft, windowTop, r.right - windowLeft, r.bottom - windowTop, true);
 	}
 
 	if (d3d9Device->Present(0, 0, 0, 0) == D3DERR_DEVICELOST) {
@@ -1133,19 +1131,17 @@ public:
 		}
 		dlog("Creating D3D9 Device window...", DL_MAIN);
 
-		if (GraphicsMode == 5) {
-			SetWindowLong(a, GWL_STYLE, WS_OVERLAPPED | WS_CAPTION | WS_BORDER | WS_MINIMIZEBOX);
+		if (GraphicsMode >= 5) {
+			SetWindowLong(a, GWL_STYLE, windowStyle);
 			RECT r;
 			r.left = 0;
 			r.right = gWidth;
 			r.top = 0;
 			r.bottom = gHeight;
-			AdjustWindowRect(&r, WS_OVERLAPPED | WS_CAPTION | WS_BORDER, false);
+			AdjustWindowRect(&r, windowStyle, false);
 			r.right -= r.left;
-			r.left = 0;
 			r.bottom -= r.top;
-			r.top = 0;
-			SetWindowPos(a, HWND_NOTOPMOST, r.left, r.top, r.right, r.bottom, SWP_DRAWFRAME | SWP_FRAMECHANGED | SWP_SHOWWINDOW);
+			SetWindowPos(a, HWND_NOTOPMOST, windowLeft, windowTop, r.right, r.bottom, SWP_DRAWFRAME | SWP_FRAMECHANGED | SWP_SHOWWINDOW);
 		}
 
 		dlogr(" Done", DL_MAIN);
@@ -1187,11 +1183,18 @@ HRESULT _stdcall FakeDirectDrawCreate2(void*, IDirectDraw** b, void*) {
 	movieDesc.dwWidth = 640;
 	movieDesc.dwHeight = 480;
 
-	gWidth = GetConfigInt("Graphics", "GraphicsWidth", 0);
-	gHeight = GetConfigInt("Graphics", "GraphicsHeight", 0);
-	if (!gWidth || !gHeight) {
-		gWidth = ResWidth;
-		gHeight = ResHeight;
+	if (GraphicsMode == 6) {
+		D3DDISPLAYMODE dispMode;
+		GetDisplayMode(dispMode);
+		gWidth  = dispMode.Width;
+		gHeight = dispMode.Height;
+	} else {
+		gWidth = GetConfigInt("Graphics", "GraphicsWidth", 0);
+		gHeight = GetConfigInt("Graphics", "GraphicsHeight", 0);
+		if (!gWidth || !gHeight) {
+			gWidth = ResWidth;
+			gHeight = ResHeight;
+		}
 	}
 
 	GPUBlt = GetConfigInt("Graphics", "GPUBlt", 0); // 0 - auto, 1 - GPU, 2 - CPU
@@ -1221,6 +1224,9 @@ HRESULT _stdcall FakeDirectDrawCreate2(void*, IDirectDraw** b, void*) {
 		} else {
 			moveWindowKey[0] &= 0xFF;
 		}
+		int data = GetConfigInt("Graphics", "WindowData", 0);
+		windowLeft = data >> 16;
+		windowTop = data & 0xFFFF;
 	}
 
 	rcpres[0] = 1.0f / (float)gWidth;
@@ -1255,9 +1261,12 @@ static __declspec(naked) void palette_fade_to_hook() {
 
 void GraphicsInit() {
 	GraphicsMode = GetConfigInt("Graphics", "Mode", 0);
-	if (GraphicsMode != 4 && GraphicsMode != 5) {
+	if (GraphicsMode == 6) {
+		windowStyle = WS_OVERLAPPED;
+	} else if (GraphicsMode != 4 && GraphicsMode != 5) {
 		GraphicsMode = 0;
 	}
+
 	if (GraphicsMode) {
 		dlog("Applying DX9 graphics patch.", DL_INIT);
 #ifdef WIN2K
@@ -1293,6 +1302,9 @@ void GraphicsInit() {
 
 void GraphicsExit() {
 	if (GraphicsMode) {
+		if (GraphicsMode == 5) {
+			SetConfigInt("Graphics", "WindowData", windowTop | (windowLeft << 16));
+		}
 		if (titlesBuffer) delete[] titlesBuffer;
 		CoUninitialize();
 	}
