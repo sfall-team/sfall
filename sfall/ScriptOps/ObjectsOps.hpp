@@ -456,7 +456,7 @@ fail:
 		xor eax, eax;
 end:
 	}
-	_RET_VAL_INT(ebp)
+	_RET_VAL_INT32(ebp)
 	_OP_END
 }
 

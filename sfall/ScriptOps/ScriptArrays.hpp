@@ -432,7 +432,7 @@ static void __declspec(naked) op_load_array() {
 		push ecx; // arg 1: key
 		call LoadArray;
 	}
-	_RET_VAL_INT(ebp)
+	_RET_VAL_INT32(ebp)
 	_OP_END
 }
 
@@ -457,7 +457,7 @@ static void __declspec(naked) op_get_array_key() {
 wrongarg:
 		xor eax, eax; // return 0 on wrong arguments
 	}
-	_RET_VAL_INT(ebp)
+	_RET_VAL_INT32(ebp)
 end:
 	_OP_END
 }
@@ -482,7 +482,7 @@ static void __declspec(naked) op_stack_array() {
 		push edi // arg 1: key
 		call StackArray
 	}
-	_RET_VAL_INT(ebp)
+	_RET_VAL_INT32(ebp)
 	_OP_END
 }
 

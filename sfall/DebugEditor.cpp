@@ -343,16 +343,6 @@ static void __declspec(naked) debug_log_hack() {
 	}
 }
 
-static void __declspec(naked) op_display_msg_hook() {
-	__asm {
-		cmp  dword ptr ds:_debug_func, 0;
-		jne  debug;
-		retn;
-debug:
-		jmp  config_get_value_;
-	}
-}
-
 static void DebugModePatch() {
 	int dbgMode = iniGetInt("Debugging", "DebugMode", 0, ddrawIniDef);
 	if (dbgMode > 0) {
@@ -393,8 +383,6 @@ static void DebugModePatch() {
 
 		dlogr(" Done", DL_INIT);
 	}
-	// Just for speeding up display_msg function (optional)
-	HookCall(0x455404, op_display_msg_hook);
 }
 
 static void DontDeleteProtosPatch() {

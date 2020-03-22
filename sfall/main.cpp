@@ -331,6 +331,16 @@ playWalkMovie:
 	}
 }
 
+static void __declspec(naked) op_display_msg_hook() {
+	__asm {
+		cmp  dword ptr ds:_debug_func, 0;
+		jne  debug;
+		retn;
+debug:
+		jmp  config_get_value_;
+	}
+}
+
 static void DllMain2() {
 	long tmp;
 	dlogr("In DllMain2", DL_MAIN);
@@ -483,6 +493,27 @@ static void DllMain2() {
 
 	dlogr("Running HeroAppearanceModInit().", DL_INIT);
 	HeroAppearanceModInit();
+
+	/////////////////// Engine Optimization Patches ////////////////////
+
+	// Speed up display_msg script function
+	HookCall(0x455404, op_display_msg_hook);
+
+	// Remove duplicate code from intface_redraw_ engine function
+	BlockCall(0x45EBBF);
+
+	// Improve performance of the data conversion of script interpreter
+	// mov eax, [edx+eax]; bswap eax; ret;
+	SafeWrite32(0x4672A4, 0x0F02048B);
+	SafeWrite16(0x4672A8, 0xC3C8);
+	// mov eax, [edx+eax]; bswap eax;
+	SafeWrite32(0x4673E5, 0x0F02048B);
+	SafeWrite8(0x4673E9, 0xC8);
+	// mov ax, [eax]; rol ax, 8; ret;
+	SafeWrite32(0x467292, 0x66008B66);
+	SafeWrite32(0x467296, 0xC308C0C1);
+
+	////////////////////////////////////////////////////////////////////
 
 	if (GetConfigString("Misc", "StartingMap", "", mapName, 64)) {
 		dlog("Applying starting map patch.", DL_INIT);

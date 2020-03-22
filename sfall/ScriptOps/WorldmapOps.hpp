@@ -122,7 +122,7 @@ static void __declspec(naked) funcInWorldMap() {
 		call InWorldMap;
 		mov  edx, eax;
 		mov  eax, ebx;
-		_RET_VAL_INT2;
+		_RET_VAL_INT;
 		mov  ecx, esi;
 		retn;
 	}
@@ -134,7 +134,7 @@ static void __declspec(naked) GetGameMode() {
 		call GetLoopFlags;
 		mov  edx, eax;
 		mov  eax, ebx;
-		_RET_VAL_INT2;
+		_RET_VAL_INT;
 		mov  ecx, esi;
 		retn;
 	}

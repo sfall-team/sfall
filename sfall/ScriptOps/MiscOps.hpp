@@ -132,7 +132,7 @@ static void __declspec(naked) GameLoaded() {
 		call ScriptHasLoaded;
 		movzx edx, al;
 		mov  eax, ebx;
-		_RET_VAL_INT2;
+		_RET_VAL_INT;
 		mov  ecx, esi;
 		retn;
 	}
@@ -170,7 +170,7 @@ skip:
 		mov  edx, ds:[_pc_kill_counts][eax * 4];
 end:
 		mov  eax, ebx; // script
-		_RET_VAL_INT2;
+		_RET_VAL_INT;
 		retn;
 fail:
 		xor  edx, edx; // return 0
@@ -588,7 +588,7 @@ static void __declspec(naked) funcGetTickCount() {
 		call GetTickCount2;
 		mov  edx, eax;
 		mov  eax, ebx;
-		_RET_VAL_INT2;
+		_RET_VAL_INT;
 		mov  ecx, esi;
 		retn;
 	}
@@ -943,7 +943,7 @@ static void __declspec(naked) get_tile_fid() {
 		mov  ebx, esi; // script
 end:
 		mov  eax, ebx;
-		_RET_VAL_INT2;
+		_RET_VAL_INT;
 		pop  ecx;
 		retn;
 fail:
@@ -1095,27 +1095,25 @@ static void __declspec(naked) op_sneak_success() {
 	__asm {
 		call is_pc_sneak_working_
 	}
-	_RET_VAL_INT(ebp)
+	_RET_VAL_INT32(ebp)
 	_OP_END
 }
 
-static void __declspec(naked) op_tile_light() {
-	_OP_BEGIN(ebp)
-	_GET_ARG_R32(ebp, ebx, edi)  // arg2 - tile
-	_GET_ARG_R32(ebp, ecx, esi)  // arg1 - elevation
-	_CHECK_ARG_INT(bx, fail)
-	_CHECK_ARG_INT(cx, fail)
-	__asm {
-		mov eax, esi
-		mov edx, edi
-		call light_get_tile_
-		jmp end
-fail:
-		mov eax, -1
-end:
+static void _stdcall op_tile_light2() {
+	const ScriptValue &elevArg = opHandler.arg(0),
+					  &tileArg = opHandler.arg(1);
+
+	if (elevArg.isInt() && tileArg.isInt()) {
+		int lightLevel = LightGetTile(elevArg.rawValue(), tileArg.rawValue());
+		opHandler.setReturn(lightLevel);
+	} else {
+		OpcodeInvalidArgs("tile_light");
+		opHandler.setReturn(-1);
 	}
-	_RET_VAL_INT(ebp)
-	_OP_END
+}
+
+static void __declspec(naked) op_tile_light() {
+	_WRAP_OPCODE(op_tile_light2, 2, 1)
 }
 
 static void sf_exec_map_update_scripts() {

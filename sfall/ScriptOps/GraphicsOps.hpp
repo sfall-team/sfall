@@ -397,7 +397,7 @@ static void __declspec(naked) funcGetShaderVersion() {
 		call GetShaderVersion;
 		mov  edx, eax;
 		mov  eax, ebx;
-		_RET_VAL_INT2;
+		_RET_VAL_INT;
 		mov  ecx, esi;
 		retn;
 	}

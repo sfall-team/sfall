@@ -199,29 +199,27 @@ static void __declspec(naked) op_reg_anim_callback() {
 	_WRAP_OPCODE(op_reg_anim_callback2, 1, 0)
 }
 
+static void _stdcall op_explosions_metarule2() {
+	const ScriptValue &modeArg = opHandler.arg(0),
+					  &arg1Arg = opHandler.arg(1),
+					  &arg2Arg = opHandler.arg(2);
+
+	if (modeArg.isInt() && arg1Arg.isInt() && arg2Arg.isInt()) {
+		int mode = modeArg.rawValue(),
+			result = ExplosionsMetaruleFunc(mode, arg1Arg.rawValue(), arg2Arg.rawValue());
+
+		if (result == -1) {
+			opHandler.printOpcodeError("metarule2_explosions() - mode (%d) is not supported for the function.", mode);
+		}
+		opHandler.setReturn(result);
+	} else {
+		OpcodeInvalidArgs("metarule2_explosions");
+		opHandler.setReturn(-1);
+	}
+}
+
 static void __declspec(naked) op_explosions_metarule() {
-	_OP_BEGIN(ebp)
-	_GET_ARG_R32(ebp, ebx, esi) // arg3
-	_GET_ARG_R32(ebp, ecx, edi) // arg2
-	_GET_ARG_R32(ebp, edx, eax) // arg1
-	// eax should not change until function call
-	_CHECK_ARG_INT(bx, fail)
-	_CHECK_ARG_INT(cx, fail)
-	_CHECK_ARG_INT(dx, fail)
-	__asm {
-		push esi
-		push edi
-		push eax
-		call ExplosionsMetaruleFunc;
-		jmp end;
-	}
-fail:
-	__asm {
-		mov eax, -1
-	}
-end:
-	_RET_VAL_INT(ebp)
-	_OP_END
+	_WRAP_OPCODE(op_explosions_metarule2, 3, 1)
 }
 
 static void sf_art_cache_flush() {

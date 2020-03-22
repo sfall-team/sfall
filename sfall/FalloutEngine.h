@@ -1073,6 +1073,8 @@ long __stdcall GetInputBtn();
 // plays SFX sound with given name
 void __stdcall GsoundPlaySfxFile(const char* name);
 
+bool __stdcall ArtExists(long artFid);
+
 // Returns the name of the critter
 const char* __stdcall CritterName(TGameObj* critter);
 
@@ -1324,6 +1326,9 @@ BYTE* __stdcall ArtPtrLockData(long frmId, long frameNum, long rotation, DWORD* 
 BYTE* __stdcall ArtLock(long frmId, DWORD* lockPtr, long* widthOut, long* heightOut);
 
 long __stdcall ArtPtrUnlock(DWORD lockId);
+
+// returns light level at given tile
+long __stdcall LightGetTile(long elevation, long tileNum);
 
 long __stdcall LoadFrame(const char* filename, FrmFile** frmPtr);
 

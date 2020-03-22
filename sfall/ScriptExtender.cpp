@@ -630,7 +630,7 @@ static void __declspec(naked) GetSfallArg() {
 		call GetHSArg;
 		mov  edx, eax;
 		mov  eax, ebx;
-		_RET_VAL_INT2;
+		_RET_VAL_INT;
 		mov  ecx, esi;
 		retn;
 	}
@@ -669,7 +669,7 @@ static void __declspec(naked) GetSfallArgs() {
 		call GetSfallArgs2;
 		mov  edx, eax;
 		mov  eax, ebx;
-		_RET_VAL_INT2;
+		_RET_VAL_INT;
 		mov  ecx, esi;
 		retn;
 	}

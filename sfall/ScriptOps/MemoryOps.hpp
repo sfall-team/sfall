@@ -38,7 +38,7 @@ result:
 //		retn;
 error:
 		xor  edx, edx;
-		jmp result;
+		jmp  result;
 	}
 }
 
@@ -54,7 +54,7 @@ result:
 //		retn;
 error:
 		xor  edx, edx;
-		jmp result;
+		jmp  result;
 	}
 }
 
@@ -70,7 +70,7 @@ result:
 //		retn;
 error:
 		xor  edx, edx;
-		jmp result;
+		jmp  result;
 	}
 }
 
@@ -251,7 +251,7 @@ static void __fastcall CallOffsetInternal(TProgram* script, DWORD func) {
 			mov eax, script;
 			mov edx, args[0];
 			mov ebx, eax;
-			_RET_VAL_INT2;
+			_RET_VAL_INT;
 		}
 	}
 }

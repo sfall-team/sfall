@@ -260,14 +260,7 @@ int __fastcall PartyControl_SwitchHandHook(TGameObj* item) {
 		int fId = *ptr_i_fid; //(*ptr_obj_dude)->artFid;
 		char weaponCode = AnimCodeByWeapon(item);
 		fId = (fId & 0xFFFF0FFF) | (weaponCode << 12);
-		// check if art with this weapon exists
-		int canUse;
-		__asm {
-			mov eax, fId;
-			call art_exists_;
-			mov canUse, eax;
-		}
-		if (!canUse) {
+		if (!ArtExists(fId)) {
 			DisplayCantDoThat();
 			return 1;
 		}
@@ -313,8 +306,8 @@ gonormal:
 }
 
 // hack to exit from this function safely when you load game during NPC turn
-static const DWORD CombatHack_add_noncoms_back = 0x422359;
 static void __declspec(naked) CombatHack_add_noncoms_() {
+	static const DWORD CombatHack_add_noncoms_back = 0x422359;
 	__asm {
 		call CombatWrapper_v2;
 		cmp eax, -1;

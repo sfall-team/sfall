@@ -881,6 +881,10 @@ void __stdcall GsoundPlaySfxFile(const char* name) {
 	WRAP_WATCOM_CALL1(gsound_play_sfx_file_, name)
 }
 
+bool __stdcall ArtExists(long artFid) {
+	WRAP_WATCOM_CALL1(art_exists_, artFid)
+}
+
 // Returns the name of the critter
 const char* __stdcall CritterName(TGameObj* critter) {
 	WRAP_WATCOM_CALL1(critter_name_, critter)
@@ -1506,6 +1510,10 @@ BYTE* __stdcall ArtLock(long frmId, DWORD* lockPtr, long* widthOut, long* height
 
 long __stdcall ArtPtrUnlock(DWORD lockId) {
 	WRAP_WATCOM_CALL1(art_ptr_unlock_, lockId)
+}
+
+long __stdcall LightGetTile(long elevation, long tileNum) {
+	WRAP_WATCOM_CALL2(light_get_tile_, elevation, tileNum)
 }
 
 long __stdcall LoadFrame(const char* filename, FrmFile** frmPtr) {
