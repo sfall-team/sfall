@@ -44,7 +44,7 @@ result:
 //		retn;
 error:
 		xor  edx, edx;
-		jmp result;
+		jmp  result;
 	}
 }
 
@@ -60,7 +60,7 @@ result:
 //		retn;
 error:
 		xor  edx, edx;
-		jmp result;
+		jmp  result;
 	}
 }
 
@@ -76,7 +76,7 @@ result:
 //		retn;
 error:
 		xor  edx, edx;
-		jmp result;
+		jmp  result;
 	}
 }
 
