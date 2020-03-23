@@ -377,47 +377,27 @@ fail:
 	}
 }
 
-static void __declspec(naked) SetCritterAP() {
-	__asm {
-		//Store registers
-		push ebx;
-		push ecx;
-		push edx;
-		push edi;
-		push esi;
-		//Get function args
-		mov ecx, eax;
-		call interpretPopShort_;
-		mov edi, eax;
-		mov eax, ecx;
-		call interpretPopLong_;
-		mov ebx, eax;
-		mov eax, ecx;
-		call interpretPopShort_;
-		mov esi, eax;
-		mov eax, ecx;
-		call interpretPopLong_;
-		//Check args are valid
-		cmp di, VAR_TYPE_INT;
-		jnz end;
-		cmp si, VAR_TYPE_INT;
-		jnz end;
-		mov [eax + 0x40], ebx;
-		mov ecx, ds:[_obj_dude]
-		cmp ecx, eax;
-		jne end;
-		mov eax, ebx;
-		mov edx, ds:[_combat_free_move]
-		call intface_update_move_points_;
-end:
-		//Restore registers and return
-		pop esi;
-		pop edi;
-		pop edx;
-		pop ecx;
-		pop ebx;
-		retn;
+static void _stdcall SetCritterAP2() {
+	TGameObj* obj = opHandler.arg(0).asObject();
+	const ScriptValue &apArg = opHandler.arg(1);
+
+	if (obj && apArg.isInt()) {
+		if (obj->pid >> 24 == OBJ_TYPE_CRITTER) {
+			long ap = apArg.rawValue();
+			if (ap < 0) ap = 0;
+			obj->critterAP_weaponAmmoPid = ap;
+
+			if (obj == *ptr_obj_dude) IntfaceUpdateMovePoints(ap, *ptr_combat_free_move);
+		} else {
+			opHandler.printOpcodeError(objNotCritter, "set_critter_current_ap");
+		}
+	} else {
+		OpcodeInvalidArgs("set_critter_current_ap");
 	}
+}
+
+static void __declspec(naked) SetCritterAP() {
+	_WRAP_OPCODE(SetCritterAP2, 2, 0)
 }
 
 static void __declspec(naked) fSetPickpocketMax() {

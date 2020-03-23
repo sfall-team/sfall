@@ -1297,6 +1297,8 @@ void __fastcall CorrectFidForRemovedItemFunc(TGameObj* critter, TGameObj* item, 
 
 void __stdcall IntfaceUpdateAc(long animate);
 
+void __stdcall IntfaceUpdateMovePoints(long ap, long freeAP);
+
 void __fastcall IntfaceUpdateItems(long animate, long modeLeft, long modeRight);
 
 long __stdcall InvenUnwield(TGameObj* critter, long slot);

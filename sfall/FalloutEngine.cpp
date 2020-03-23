@@ -1452,6 +1452,10 @@ void __stdcall IntfaceUpdateAc(long animate) {
 	WRAP_WATCOM_CALL1(intface_update_ac_, animate)
 }
 
+void __stdcall IntfaceUpdateMovePoints(long ap, long freeAP) {
+	WRAP_WATCOM_CALL2(intface_update_move_points_, ap, freeAP)
+}
+
 void __fastcall IntfaceUpdateItems(long animate, long modeLeft, long modeRight) {
 	WRAP_WATCOM_FCALL3(intface_update_items_, animate, modeLeft, modeRight)
 }

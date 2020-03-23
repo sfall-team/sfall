@@ -1091,12 +1091,12 @@ static void sf_attack_is_aimed() {
 }
 
 static void __declspec(naked) op_sneak_success() {
-	_OP_BEGIN(ebp)
 	__asm {
-		call is_pc_sneak_working_
+		call is_pc_sneak_working_;
+		mov  edx, eax;
+		mov  eax, ebx;
+		_J_RET_VAL_TYPE(VAR_TYPE_INT);
 	}
-	_RET_VAL_INT32(ebp)
-	_OP_END
 }
 
 static void _stdcall op_tile_light2() {

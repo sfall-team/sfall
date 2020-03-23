@@ -675,31 +675,19 @@ static void __declspec(naked) GetSfallArgs() {
 	}
 }
 
-static void __declspec(naked) SetSfallArg() {
-	__asm {
-		pushad;
-		mov ecx, eax;
-		call interpretPopShort_;
-		mov edi, eax;
-		mov eax, ecx;
-		call interpretPopLong_;
-		mov edx, eax;
-		mov eax, ecx;
-		call interpretPopShort_;
-		mov esi, eax;
-		mov eax, ecx;
-		call interpretPopLong_;
-		cmp di, VAR_TYPE_INT;
-		jnz end;
-		cmp si, VAR_TYPE_INT;
-		jnz end;
-		push edx;
-		push eax;
-		call SetHSArg;
-end:
-		popad;
-		retn;
+static void _stdcall SetSfallArg2() {
+	const ScriptValue &argNumArg = opHandler.arg(0),
+					  &valArg = opHandler.arg(1);
+
+	if (argNumArg.isInt() && valArg.isInt()) {
+		SetHSArg(argNumArg.rawValue(), valArg.rawValue());
+	} else {
+		OpcodeInvalidArgs("set_sfall_arg");
 	}
+}
+
+static void __declspec(naked) SetSfallArg() {
+	_WRAP_OPCODE(SetSfallArg2, 2, 0)
 }
 
 static void __declspec(naked) SetSfallReturn() {

@@ -186,13 +186,13 @@ __asm resultnotstr##num:				\
 	isExpression - 1 if opcode has return value, 0 otherwise
 */
 #define _WRAP_OPCODE(func, argnum, isExpression) __asm { \
-	__asm pushad					\
+	__asm push ecx					\
 	__asm push isExpression			\
 	__asm push argnum				\
 	__asm push func					\
 	__asm push eax					\
-	__asm lea ecx, opHandler		\
+	__asm lea  ecx, opHandler		\
 	__asm call OpcodeHandler::handleOpcode	\
-	__asm popad						\
+	__asm pop  ecx					\
 	__asm retn						\
 }

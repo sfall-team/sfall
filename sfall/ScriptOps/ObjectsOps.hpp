@@ -446,18 +446,17 @@ static void __declspec(naked) op_get_party_members() {
 }
 
 static void __declspec(naked) op_art_exists() {
-	_OP_BEGIN(ebp)
-	_GET_ARG_R32(ebp, ecx, eax)
-	_CHECK_ARG_INT(cx, fail)
 	__asm {
+		_GET_ARG_INT(fail);
 		call art_exists_;
-		jmp end;
-fail:
-		xor eax, eax;
+		mov  edx, eax;
 end:
+		mov  eax, ebx;
+		_J_RET_VAL_TYPE(VAR_TYPE_INT);
+fail:
+		xor  edx, edx; // return 0
+		jmp  end;
 	}
-	_RET_VAL_INT32(ebp)
-	_OP_END
 }
 
 static void _stdcall op_obj_is_carrying_obj2() {
