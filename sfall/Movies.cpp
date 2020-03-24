@@ -26,11 +26,6 @@
 
 #include "Movies.h"
 
-static DWORD MoviePtrs[MaxMovies];
-char MoviePaths[MaxMovies * 65];
-
-static bool aviIsReadyToPlay = false;
-
 class CAllocator : public IVMRSurfaceAllocator9, IVMRImagePresenter9 {
 
 #define SAFERELEASE(a) { if (a) { a->Release(); a = nullptr; } }
@@ -40,13 +35,15 @@ private:
 	IVMRSurfaceAllocatorNotify9 *pAllocNotify;
 
 	std::vector<IDirect3DSurface9*> surfaces;
-	IDirect3DTexture9* pTex;
+	//IDirect3DTexture9* pTex;
 	IDirect3DTexture9* mTex;
+
+	bool isStartPresenting;
 
 	HRESULT __stdcall TerminateDevice(DWORD_PTR dwID) {
 		dlog_f("\nTerminate Device id: %d\n", DL_INIT, dwID);
 
-		SAFERELEASE(pTex);
+		//SAFERELEASE(pTex);
 		SAFERELEASE(mTex);
 
 		for (std::vector<IDirect3DSurface9*>::iterator it = surfaces.begin(); it != surfaces.end(); ++it) {
@@ -80,7 +77,7 @@ private:
 	HRESULT __stdcall InitializeDevice(DWORD_PTR dwUserID, VMR9AllocationInfo *lpAllocInfo, DWORD *lpNumBuffers) {
 		dlog("\nInitialize Device:", DL_INIT);
 
-		lpAllocInfo->dwFlags |= VMR9AllocFlag_TextureSurface;
+		lpAllocInfo->dwFlags |= VMR9AllocFlag_TextureSurface; // | VMR9AllocFlag_DXVATarget;
 		lpAllocInfo->Pool = D3DPOOL_SYSTEMMEM;
 
 		// Ask the VMR-9 to allocate the surfaces for us.
@@ -92,15 +89,17 @@ private:
 		HRESULT hr = pAllocNotify->AllocateSurfaceHelper(lpAllocInfo, lpNumBuffers, &surfaces[0]);
 		if (FAILED(hr)) return hr;
 
+		#ifndef NDEBUG
 		dlog_f(" Width: %d,", DL_INIT, lpAllocInfo->dwWidth);
 		dlog_f(" Height: %d,", DL_INIT, lpAllocInfo->dwHeight);
 		dlog_f(" Format: %d", DL_INIT, lpAllocInfo->Format);
+		#endif
 
-		hr = surfaces[0]->GetContainer(IID_IDirect3DTexture9, (void**)&pTex);
-		if (FAILED(hr)) {
-			TerminateDevice(-1);
-			return hr;
-		}
+		//hr = surfaces[0]->GetContainer(IID_IDirect3DTexture9, (void**)&pTex);
+		//if (FAILED(hr)) {
+		//	TerminateDevice(-1);
+		//	return hr;
+		//}
 
 		if (d3d9Device->CreateTexture(lpAllocInfo->dwWidth, lpAllocInfo->dwHeight, 1, 0, lpAllocInfo->Format, D3DPOOL_DEFAULT, &mTex, nullptr) != D3D_OK) {
 			dlog(" Failed to create movie texture!", DL_INIT);
@@ -122,19 +121,24 @@ private:
 	HRESULT __stdcall StartPresenting(DWORD_PTR dwUserID) {
 		dlog("\nStart Presenting.", DL_INIT);
 		Gfx_SetMovieTexture(mTex);
+		isStartPresenting = true;
 		return S_OK;
 	}
 
 	HRESULT __stdcall StopPresenting(DWORD_PTR dwUserID) {
 		dlog("\nStop Presenting.", DL_INIT);
+		isStartPresenting = false;
 		return S_OK;
 	}
 
 	HRESULT __stdcall PresentImage(DWORD_PTR dwUserID, VMR9PresentationInfo *lpPresInfo) {
-		#ifndef NDEBUG
-		dlog("\nPresent Image.", DL_INIT);
-		#endif
-		d3d9Device->UpdateTexture(pTex, mTex);
+		//dlog_f("\nPresent Image %d", DL_INIT, isStartPresenting);
+		if (isStartPresenting) {
+			IDirect3DTexture9* tex;
+			lpPresInfo->lpSurf->GetContainer(IID_IDirect3DTexture9, (LPVOID*)&tex);
+			d3d9Device->UpdateTexture(tex, mTex);
+			Gfx_ShowMovieFrame();
+		}
 		return S_OK;
 	}
 
@@ -143,14 +147,15 @@ public:
 		RefCount = 1;
 		pAllocNotify = nullptr;
 		mTex = nullptr;
-		pTex = nullptr;
+		//pTex = nullptr;
+		isStartPresenting = false;
 	}
 
 	ULONG __stdcall AddRef() {
 		return ++RefCount;
 	}
 
-	ULONG _stdcall Release() {
+	ULONG __stdcall Release() {
 		if (--RefCount == 0) {
 			TerminateDevice(-2);
 			if (pAllocNotify) {
@@ -180,9 +185,8 @@ public:
 };
 
 struct sDSTexture {
-	CAllocator *pMyAlloc;
+	CAllocator *pSFAlloc;
 	IGraphBuilder *pGraph;
-	//ICaptureGraphBuilder2 *pBuild;
 	IBaseFilter *pVmr;
 	IVMRFilterConfig9 *pConfig;
 	IVMRSurfaceAllocatorNotify9 *pAlloc;
@@ -219,11 +223,10 @@ DWORD FreeMovie(sDSTexture* movie) {
 	if (movie->pControl) movie->pControl->Release();
 	if (movie->pSeek) movie->pSeek->Release();
 	if (movie->pAlloc) movie->pAlloc->Release();
-	if (movie->pMyAlloc) movie->pMyAlloc->Release();
+	if (movie->pSFAlloc) movie->pSFAlloc->Release();
 	if (movie->pConfig) movie->pConfig->Release();
 	if (movie->pVmr) movie->pVmr->Release();
 	if (movie->pGraph) movie->pGraph->Release();
-	//if (movie->pBuild) movie->pBuild->Release();
 	return 0;
 }
 
@@ -232,17 +235,9 @@ DWORD CreateDSGraph(wchar_t* path, sDSTexture* movie) {
 
 	ZeroMemory(movie, sizeof(sDSTexture));
 
-	// Create the Capture Graph Builder.
-	//HRESULT hr = CoCreateInstance(CLSID_CaptureGraphBuilder2, 0, CLSCTX_INPROC_SERVER, IID_ICaptureGraphBuilder2, (void**)&movie->pBuild);
-	//if (hr != S_OK) return FreeMovie(movie);
-
 	// Create the Filter Graph Manager.
 	HRESULT hr = CoCreateInstance(CLSID_FilterGraph, 0, CLSCTX_INPROC_SERVER, IID_IGraphBuilder, (void**)&movie->pGraph);
 	if (hr != S_OK) return FreeMovie(movie);
-
-	// Initialize the Capture Graph Builder.
-	//hr = movie->pBuild->SetFiltergraph(movie->pGraph);
-	//if (hr != S_OK) return FreeMovie(movie);
 
 	hr = CoCreateInstance(CLSID_VideoMixingRenderer9, 0, CLSCTX_INPROC_SERVER, IID_IBaseFilter, (void**)&movie->pVmr);
 	if (hr != S_OK) return FreeMovie(movie);
@@ -261,45 +256,47 @@ DWORD CreateDSGraph(wchar_t* path, sDSTexture* movie) {
 		Custom Allocator-Presenter for VMR-9:
 		https://docs.microsoft.com/en-us/windows/win32/directshow/supplying-a-custom-allocator-presenter-for-vmr-9
 	*/
-	movie->pMyAlloc = new CAllocator();
+	movie->pSFAlloc = new CAllocator();
 
 	hr = movie->pVmr->QueryInterface(IID_IVMRSurfaceAllocatorNotify9, (void**)&movie->pAlloc);
 	if (hr != S_OK) return FreeMovie(movie);
 
-	hr = movie->pAlloc->AdviseSurfaceAllocator(0, (IVMRSurfaceAllocator9*)movie->pMyAlloc);
+	hr = movie->pAlloc->AdviseSurfaceAllocator(0, (IVMRSurfaceAllocator9*)movie->pSFAlloc);
 	if (hr != S_OK) return FreeMovie(movie);
 
-	hr = movie->pMyAlloc->AdviseNotify(movie->pAlloc);
+	hr = movie->pSFAlloc->AdviseNotify(movie->pAlloc);
 	if (hr != S_OK) return FreeMovie(movie);
 	/****************************************************/
 
 	hr = movie->pGraph->AddFilter(movie->pVmr, L"VMR9");
 	if (hr != S_OK) return FreeMovie(movie);
 
-	dlog_f("\nStart rendering file.", DL_INIT);
+	dlog("\nStart rendering file.", DL_INIT);
 	hr = movie->pGraph->RenderFile(path, nullptr);
 	if (hr != S_OK) dlog_f(" ERROR: %d", DL_INIT, hr);
 
-	#ifndef NDEBUG
-	if (movie->pMyAlloc->GetMovieTexture()) dlog_f("\nMovieTex: %d", DL_INIT, *(DWORD*)movie->pMyAlloc->GetMovieTexture());
-	#endif
-	return (movie->pMyAlloc->GetMovieTexture()) ? 1 : 0;
+	return (hr == S_OK && movie->pSFAlloc->GetMovieTexture()) ? 1 : 0;
 }
+
+static __int64 endMoviePosition;
 
 // Movie play looping
 static DWORD PlayMovieLoop() {
-	Gfx_ShowMovieFrame();
+	//dlog("\nPlay Movie Loop.", DL_INIT);
+
+	if (*(DWORD*)_subtitles) __asm call movieUpdate_; // for reading subtitles when playing mve
 
 	if (GetAsyncKeyState(VK_ESCAPE)) {
 		StopMovie(&movieInterface);
 		return 0; // break play
 	}
 
-	_int64 pos, end;
-	movieInterface.pSeek->GetCurrentPosition(&pos);
-	movieInterface.pSeek->GetStopPosition(&end);
+	Sleep(10); // idle delay
 
-	bool isPlayEnd = (end == pos);
+	__int64 pos;
+	movieInterface.pSeek->GetCurrentPosition(&pos);
+
+	bool isPlayEnd = (endMoviePosition == pos);
 	if (isPlayEnd) StopMovie(&movieInterface);
 
 	return !isPlayEnd; // 0 - for breaking play
@@ -308,20 +305,7 @@ static DWORD PlayMovieLoop() {
 static void __declspec(naked) gmovie_play_hook() {
 	__asm {
 		push ecx;
-		xor  eax, eax;
 		call GNW95_process_message_; // windows message pump
-		call PlayMovieLoop;
-		pop  ecx;
-		retn;
-	}
-}
-
-static void __declspec(naked) gmovie_play_hook_wsub() {
-	__asm {
-		push ecx;
-		xor  eax, eax;
-		call GNW95_process_message_; // windows message pump
-		call movieUpdate_; // for playing mve
 		call PlayMovieLoop;
 		pop  ecx;
 		retn;
@@ -339,6 +323,20 @@ static void __declspec(naked) gmovie_play_hook_input() {
 static DWORD backgroundVolume = 0;
 
 static DWORD __fastcall PreparePlayMovie(const DWORD id) {
+	static long isNotWMR = -1;
+	// Verify that the VMR exists on this system
+	if (isNotWMR == -1) {
+		IBaseFilter* pBF = nullptr;
+		if (SUCCEEDED(CoCreateInstance(CLSID_VideoMixingRenderer9, 0, CLSCTX_INPROC, IID_IBaseFilter, (LPVOID*)&pBF))) {
+			pBF->Release();
+			isNotWMR = 0;
+		} else {
+			dlogr("Error: Video Mixing Renderer (VMR9) capabilities are required.", DL_MAIN);
+			isNotWMR = 1;
+		}
+	}
+	if (isNotWMR) return 0;
+
 	// Get file path in unicode
 	wchar_t path[MAX_PATH];
 	char* master_patches = *ptr_patches;
@@ -361,13 +359,13 @@ static DWORD __fastcall PreparePlayMovie(const DWORD id) {
 	// Create texture and graph filter
 	if (!CreateDSGraph(path, &movieInterface)) return FreeMovie(&movieInterface);
 
-	HookCall(0x44E949,gmovie_play_hook_input); // block get_input_ (if subtitles are disabled then mve videos will not be played)
+	HookCall(0x44E949, gmovie_play_hook_input); // block get_input_ (if subtitles are disabled then mve videos will not be played)
+	HookCall(0x44E937, gmovie_play_hook);       // looping call moviePlaying_
+
 	// patching gmovie_play_ for disabled game subtitles
 	if (*(DWORD*)_subtitles == 0) {
-		HookCall(0x44E937, gmovie_play_hook); // looping call moviePlaying_
 		SafeWrite8(0x4CB850, 0xC3); // GNW95_ShowRect_ blocking image rendering from the 'descSurface' surface when subtitles are disabled (optional)
 	} else {
-		HookCall(0x44E937, gmovie_play_hook_wsub); // looping call moviePlaying_
 		//SafeWrite8(0x486654, 0xC3); // blocking movie_MVE_ShowFrame_
 		//SafeWrite8(0x486900, 0xC3); // blocking movieShowFrame_
 		SafeWrite8(0x4F5F40, 0xC3); // blocking sfShowFrame_ for disabling the display of mve video frames
@@ -381,14 +379,14 @@ static DWORD __fastcall PreparePlayMovie(const DWORD id) {
 	//SafeWrite32(0x4C73B2, 0x2E);
 	//BlockCall(0x48827E);
 	//BlockCall(0x44E92B);
-	//aviIsReadyToPlay = true;
 
+	movieInterface.pSeek->GetStopPosition(&endMoviePosition);
 	PlayMovie(&movieInterface);
 
 	return 1; // play AVI
 }
 
-static void _stdcall PlayMovieRestore() {
+static void __stdcall PlayMovieRestore() {
 	#ifndef NDEBUG
 	dlog("\nPlay Movie Restore.", DL_INIT);
 	#endif
@@ -405,11 +403,10 @@ static void _stdcall PlayMovieRestore() {
 
 	Gfx_SetMovieTexture(0);
 	FreeMovie(&movieInterface);
-	//aviIsReadyToPlay = false;
 }
 
-static const DWORD gmovie_play_addr = 0x44E695;
 static void __declspec(naked) gmovie_play_hack() {
+	static const DWORD gmovie_play_addr = 0x44E695;
 	__asm {
 		cmp  eax, MaxMovies;
 		jge  failPlayAvi;
@@ -423,7 +420,7 @@ static void __declspec(naked) gmovie_play_hack() {
 		pop  edx;
 		pop  ecx;
 		jz   failPlayAvi;
-		push offset return; // return here
+		push offset return; // return to here label
 failPlayAvi:
 		push ebx;
 		push ecx;
@@ -442,10 +439,14 @@ return:
 
 ///////////////////////////////////////////////////////////////////////////////
 
-static const DWORD Artimer1DaysCheckJmp = 0x4A3790;
-static const DWORD Artimer1DaysCheckJmpLess = 0x4A37A9;
+char MoviePaths[MaxMovies * 65];
+
+static DWORD MoviePtrs[MaxMovies];
 static DWORD Artimer1DaysCheckTimer;
+
 static void __declspec(naked) Artimer1DaysCheckHack() {
+	static const DWORD Artimer1DaysCheckJmp = 0x4A3790;
+	static const DWORD Artimer1DaysCheckJmpLess = 0x4A37A9;
 	__asm {
 		cmp edx, Artimer1DaysCheckTimer;
 		jl  less;
