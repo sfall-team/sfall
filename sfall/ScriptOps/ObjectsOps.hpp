@@ -163,113 +163,62 @@ static void __declspec(naked) set_critter_burst_disable() {
 	_WRAP_OPCODE(set_critter_burst_disable2, 2, 0)
 }
 
+static void _stdcall get_weapon_ammo_pid2() {
+	TGameObj* obj = opHandler.arg(0).asObject();
+	if (obj) {
+		opHandler.setReturn(obj->critterAP_weaponAmmoPid);
+	} else {
+		OpcodeInvalidArgs("get_weapon_ammo_pid");
+		opHandler.setReturn(-1);
+	}
+}
+
 static void __declspec(naked) get_weapon_ammo_pid() {
-	__asm {
-		pushad;
-		mov ebp, eax;
-		call interpretPopShort_;
-		mov edi, eax;
-		mov eax, ebp;
-		call interpretPopLong_;
-		cmp di, VAR_TYPE_INT;
-		jnz fail;
-		test eax, eax;
-		jz fail;
-		mov edx, [eax+0x40];
-		jmp end;
-fail:
-		xor edx, edx;
-		dec edx;
-end:
-		mov eax, ebp;
-		call interpretPushLong_;
-		mov eax, ebp;
-		mov edx, VAR_TYPE_INT;
-		call interpretPushShort_;
-		popad;
-		retn;
+	_WRAP_OPCODE(get_weapon_ammo_pid2, 1, 1)
+}
+
+static void _stdcall set_weapon_ammo_pid2() {
+	TGameObj* obj = opHandler.arg(0).asObject();
+	const ScriptValue &pidArg = opHandler.arg(1);
+
+	if (obj && pidArg.isInt()) {
+		obj->critterAP_weaponAmmoPid = pidArg.rawValue();
+	} else {
+		OpcodeInvalidArgs("set_weapon_ammo_pid");
 	}
 }
 
 static void __declspec(naked) set_weapon_ammo_pid() {
-	__asm {
-		pushad;
-		mov ebp, eax;
-		call interpretPopShort_;
-		mov edi, eax;
-		mov eax, ebp;
-		call interpretPopLong_;
-		mov ecx, eax;
-		mov eax, ebp;
-		call interpretPopShort_;
-		mov esi, eax;
-		mov eax, ebp;
-		call interpretPopLong_;
-		cmp di, VAR_TYPE_INT;
-		jnz end;
-		cmp si, VAR_TYPE_INT;
-		jnz end;
-		test eax, eax;
-		jz end;
-		mov [eax+0x40], ecx;
-end:
-		popad;
-		retn;
+	_WRAP_OPCODE(set_weapon_ammo_pid2, 2, 0)
+}
+
+static void _stdcall get_weapon_ammo_count2() {
+	TGameObj* obj = opHandler.arg(0).asObject();
+	if (obj) {
+		opHandler.setReturn(obj->itemCharges);
+	} else {
+		OpcodeInvalidArgs("get_weapon_ammo_count");
+		opHandler.setReturn(0);
 	}
 }
 
 static void __declspec(naked) get_weapon_ammo_count() {
-	__asm {
-		pushad;
-		mov ebp, eax;
-		call interpretPopShort_;
-		mov edi, eax;
-		mov eax, ebp;
-		call interpretPopLong_;
-		cmp di, VAR_TYPE_INT;
-		jnz fail;
-		test eax, eax;
-		jz fail;
-		mov edx, [eax+0x3c];
-		jmp end;
-fail:
-		xor edx, edx;
-end:
-		mov eax, ebp;
-		call interpretPushLong_;
-		mov eax, ebp;
-		mov edx, VAR_TYPE_INT;
-		call interpretPushShort_;
-		popad;
-		retn;
+	_WRAP_OPCODE(get_weapon_ammo_count2, 1, 1)
+}
+
+static void _stdcall set_weapon_ammo_count2() {
+	TGameObj* obj = opHandler.arg(0).asObject();
+	const ScriptValue &countArg = opHandler.arg(1);
+
+	if (obj && countArg.isInt()) {
+		obj->itemCharges = countArg.rawValue();
+	} else {
+		OpcodeInvalidArgs("set_weapon_ammo_count");
 	}
 }
 
 static void __declspec(naked) set_weapon_ammo_count() {
-	__asm {
-		pushad;
-		mov ebp, eax;
-		call interpretPopShort_;
-		mov edi, eax;
-		mov eax, ebp;
-		call interpretPopLong_;
-		mov ecx, eax;
-		mov eax, ebp;
-		call interpretPopShort_;
-		mov esi, eax;
-		mov eax, ebp;
-		call interpretPopLong_;
-		cmp di, VAR_TYPE_INT;
-		jnz end;
-		cmp si, VAR_TYPE_INT;
-		jnz end;
-		test eax, eax;
-		jz end;
-		mov [eax+0x3c], ecx;
-end:
-		popad;
-		retn;
-	}
+	_WRAP_OPCODE(set_weapon_ammo_count2, 2, 0)
 }
 
 #define BLOCKING_TYPE_BLOCK		(0)
@@ -741,7 +690,7 @@ static void sf_set_unique_id() {
 	opHandler.setReturn(id);
 }
 
-void sf_objects_in_radius() {
+static void sf_objects_in_radius() {
 	const ScriptValue &tileArg = opHandler.arg(0),
 					  &radiusArg = opHandler.arg(1),
 					  &elevArg = opHandler.arg(2);

@@ -538,7 +538,7 @@ long SetGlobalVar(const char* var, int val) {
 	return 0;
 }
 
-static void funcSetGlobalVar2() {
+static void _stdcall funcSetGlobalVar2() {
 	const ScriptValue &varArg = opHandler.arg(0),
 					  &valArg = opHandler.arg(1);
 
@@ -572,7 +572,7 @@ long GetGlobalVarInt(DWORD var) {
 	return GetGlobalVarInternal(static_cast<__int64>(var));
 }
 
-static void funcGetGlobalVarInt2() {
+static void _stdcall funcGetGlobalVarInt2() {
 	const ScriptValue &varArg = opHandler.arg(0);
 	long result = 0;
 
@@ -598,7 +598,7 @@ static void __declspec(naked) funcGetGlobalVarInt() {
 	_WRAP_OPCODE(funcGetGlobalVarInt2, 1, 1)
 }
 
-static void funcGetGlobalVarFloat2() {
+static void _stdcall funcGetGlobalVarFloat2() {
 	const ScriptValue &varArg = opHandler.arg(0);
 	long result = 0;
 

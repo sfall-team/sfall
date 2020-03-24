@@ -35,142 +35,148 @@ void __stdcall RegAnimCombatCheck(DWORD newValue) {
 	}
 }
 
-static void __declspec(naked) op_reg_anim_combat_check() {
-	_OP_BEGIN(ebp)
-	_GET_ARG_R32(ebp, ecx, edx) // new value
-	_CHECK_ARG_INT(cx, end1)
-	__asm {
-		push edx
-		call RegAnimCombatCheck
-	}
-end1:
-	_OP_END
+// true if combat mode is active and combat check was not disabled
+static bool checkCombatMode() {
+	return (regAnimCombatCheck & *ptr_combat_state) != 0;
 }
 
-// new reg_anim functions (all using existing engine code)
+static void _stdcall op_reg_anim_combat_check2() {
+	const ScriptValue &newValArg = opHandler.arg(0);
 
-// checks if combat mode is enabled (using R8 8-bit register) and jumps to GOTOFAIL if it is (does nothing if regAnimCombatCheck is 0)
-#define _CHECK_COMBAT_MODE(R8, GOTOFAIL) __asm { \
-	__asm mov R8, regAnimCombatCheck             \
-	__asm test byte ptr ds:_combat_state, R8     \
-	__asm jnz GOTOFAIL }
+	if (newValArg.isInt()) {
+		RegAnimCombatCheck(newValArg.rawValue());
+	} else {
+		OpcodeInvalidArgs("reg_anim_combat_check");
+	}
+}
+
+static void __declspec(naked) op_reg_anim_combat_check() {
+	_WRAP_OPCODE(op_reg_anim_combat_check2, 1, 0)
+}
+
+static void _stdcall op_reg_anim_destroy2() {
+	TGameObj* obj = opHandler.arg(0).asObject();
+	if (obj) {
+		if (!checkCombatMode()) {
+			RegisterObjectMustErase(obj);
+		}
+	} else {
+		OpcodeInvalidArgs("reg_anim_destroy");
+	}
+}
 
 static void __declspec(naked) op_reg_anim_destroy() {
-	_OP_BEGIN(ebp)
-	_GET_ARG_R32(ebp, edx, esi) // object
-	_CHECK_ARG_INT(dx, end1)
-	_CHECK_COMBAT_MODE(al, end1)
-	__asm {
-		mov eax, esi // object
-		call register_object_must_erase_;
+	_WRAP_OPCODE(op_reg_anim_destroy2, 1, 0)
+}
+
+static void _stdcall op_reg_anim_animate_and_hide2() {
+	TGameObj* obj = opHandler.arg(0).asObject();
+	const ScriptValue &animIdArg = opHandler.arg(1),
+					  &delayArg = opHandler.arg(2);
+
+	if (obj && animIdArg.isInt() && delayArg.isInt()) {
+		if (!checkCombatMode()) {
+			int animId = animIdArg.rawValue(),
+				delay = delayArg.rawValue();
+
+			RegisterObjectAnimateAndHide(obj, animId, delay);
+		}
+	} else {
+		OpcodeInvalidArgs("reg_anim_animate_and_hide");
 	}
-end1:
-	_OP_END
 }
 
 static void __declspec(naked) op_reg_anim_animate_and_hide() {
-	_OP_BEGIN(ebp)
-	_GET_ARG_R32(ebp, ebx, esi) // delay
-	_GET_ARG_R32(ebp, ecx, edi) // animID
-	_GET_ARG_R32(ebp, edx, eax) // object
-	// eax should not change until function call
-	_CHECK_ARG_INT(bx, end)
-	_CHECK_ARG_INT(cx, end)
-	_CHECK_ARG_INT(dx, end)
-	__asm {
-		_CHECK_COMBAT_MODE(bl, end)
-		mov ebx, esi // delay
-		mov edx, edi // animID
-		call register_object_animate_and_hide_;
+	_WRAP_OPCODE(op_reg_anim_animate_and_hide2, 3, 0)
+}
+
+static void _stdcall op_reg_anim_light2() {
+	TGameObj* obj = opHandler.arg(0).asObject();
+	const ScriptValue &radiusArg = opHandler.arg(1),
+					  &delayArg = opHandler.arg(2);
+
+	if (obj && radiusArg.isInt() && delayArg.isInt()) {
+		if (!checkCombatMode()) {
+			int radius = radiusArg.rawValue(),
+				delay = delayArg.rawValue();
+
+			if (radius < 0) {
+				radius = 0;
+			} else if (radius > 8) {
+				radius = 8;
+			}
+			RegisterObjectLight(obj, radius, delay);
+		}
+	} else {
+		OpcodeInvalidArgs("reg_anim_light");
 	}
-end:
-	_OP_END
 }
 
 static void __declspec(naked) op_reg_anim_light() {
-	_OP_BEGIN(ebp)
-	_GET_ARG_R32(ebp, ebx, esi) // delay
-	_GET_ARG_R32(ebp, ecx, edi) // light radius
-	_GET_ARG_R32(ebp, edx, eax) // object
-	// eax should not change until function call
-	_CHECK_ARG_INT(bx, end)
-	_CHECK_ARG_INT(cx, end)
-	_CHECK_ARG_INT(dx, end)
-	__asm {
-		// check for valid radius
-		cmp di, 0
-		jge dontfixMin
-		mov di, 0
-		jmp dontfixMax
-dontfixMin:
-		cmp di, 8
-		jle dontfixMax
-		mov di, 8
-dontfixMax:
-		_CHECK_COMBAT_MODE(bl, end)
-		mov ebx, esi // delay
-		mov edx, edi // light radius
-		call register_object_light_;
+	_WRAP_OPCODE(op_reg_anim_light2, 3, 0)
+}
+
+static void _stdcall op_reg_anim_change_fid2() {
+	TGameObj* obj = opHandler.arg(0).asObject();
+	const ScriptValue &fidArg = opHandler.arg(1),
+					  &delayArg = opHandler.arg(2);
+
+	if (obj && fidArg.isInt() && delayArg.isInt()) {
+		if (!checkCombatMode()) {
+			int fid = fidArg.rawValue(),
+				delay = delayArg.rawValue();
+
+			RegisterObjectChangeFid(obj, fid, delay);
+		}
+	} else {
+		OpcodeInvalidArgs("reg_anim_change_fid");
 	}
-end:
-	_OP_END
 }
 
 static void __declspec(naked) op_reg_anim_change_fid() {
-	_OP_BEGIN(ebp)
-	_GET_ARG_R32(ebp, ebx, esi) // delay
-	_GET_ARG_R32(ebp, ecx, edi) // FID
-	_GET_ARG_R32(ebp, edx, eax) // object
-	// eax should not change until function call
-	_CHECK_ARG_INT(bx, end)
-	_CHECK_ARG_INT(cx, end)
-	_CHECK_ARG_INT(dx, end)
-	__asm {
-		_CHECK_COMBAT_MODE(bl, end)
-		mov ebx, esi // delay
-		mov edx, edi // FID
-		call register_object_change_fid_
+	_WRAP_OPCODE(op_reg_anim_change_fid2, 3, 0)
+}
+
+static void _stdcall op_reg_anim_take_out2() {
+	TGameObj* obj = opHandler.arg(0).asObject();
+	const ScriptValue &holdFrameArg = opHandler.arg(1),
+					  &nothingArg = opHandler.arg(2);
+
+	if (obj && holdFrameArg.isInt() && nothingArg.isInt()) {
+		if (!checkCombatMode()) {
+			int holdFrame = holdFrameArg.rawValue(),
+				nothing = nothingArg.rawValue(); // not used by engine
+
+			RegisterObjectTakeOut(obj, holdFrame, nothing);
+		}
+	} else {
+		OpcodeInvalidArgs("reg_anim_take_out");
 	}
-end:
-	_OP_END
 }
 
 static void __declspec(naked) op_reg_anim_take_out() {
-	_OP_BEGIN(ebp)
-	_GET_ARG_R32(ebp, ebx, esi) // delay - not used
-	_GET_ARG_R32(ebp, ecx, edi) // weapon hold frame ID
-	_GET_ARG_R32(ebp, edx, eax) // object
-	// eax should not change until function call
-	_CHECK_ARG_INT(bx, end)
-	_CHECK_ARG_INT(cx, end)
-	_CHECK_ARG_INT(dx, end)
-	__asm {
-		_CHECK_COMBAT_MODE(bl, end)
-		//mov ebx, esi // delay - not used
-		mov edx, edi // holdFrame
-		call register_object_take_out_;
+	_WRAP_OPCODE(op_reg_anim_take_out2, 3, 0)
+}
+
+static void _stdcall op_reg_anim_turn_towards2() {
+	TGameObj* obj = opHandler.arg(0).asObject();
+	const ScriptValue &tileArg = opHandler.arg(1),
+					  &nothingArg = opHandler.arg(2);
+
+	if (obj && tileArg.isInt() && nothingArg.isInt()) {
+		if (!checkCombatMode()) {
+			int tile = tileArg.rawValue(),
+				nothing = nothingArg.rawValue(); // not used by engine
+
+			RegisterObjectTurnTowards(obj, tile, nothing);
+		}
+	} else {
+		OpcodeInvalidArgs("reg_anim_turn_towards");
 	}
-end:
-	_OP_END
 }
 
 static void __declspec(naked) op_reg_anim_turn_towards() {
-	_OP_BEGIN(ebp)
-	_GET_ARG_R32(ebp, ebx, esi) // delay - not used
-	_GET_ARG_R32(ebp, ecx, edi) // tile
-	_GET_ARG_R32(ebp, edx, eax) // object
-	// eax should not change until function call
-	_CHECK_ARG_INT(bx, end)
-	_CHECK_ARG_INT(cx, end)
-	_CHECK_ARG_INT(dx, end)
-	__asm {
-		_CHECK_COMBAT_MODE(bl, end)
-		// mov ebx, esi // delay - not used
-		mov edx, edi // tile
-		call register_object_turn_towards_;
-	}
-end:
-	_OP_END
+	_WRAP_OPCODE(op_reg_anim_turn_towards2, 3, 0)
 }
 
 static void __declspec(naked) ExecuteCallback() {

@@ -310,7 +310,7 @@ static void __declspec(naked) HideIfaceTag() {
 	_WRAP_OPCODE(HideIfaceTag2, 1, 0)
 }
 
-static void IsIfaceTagActive2() {
+static void _stdcall IsIfaceTagActive2() {
 	const ScriptValue &tagArg = opHandler.arg(0);
 	if (tagArg.isInt()) {
 		bool result = false;

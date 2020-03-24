@@ -990,6 +990,30 @@ long __stdcall ScrPtr(long scriptId, TScript** scriptPtr) {
 	WRAP_WATCOM_CALL2(scr_ptr_, scriptId, scriptPtr)
 }
 
+long __stdcall RegisterObjectAnimateAndHide(TGameObj* object, long anim, long delay) {
+	WRAP_WATCOM_CALL3(register_object_animate_and_hide_, object, anim, delay)
+}
+
+long __stdcall RegisterObjectChangeFid(TGameObj* object, long artFid, long delay) {
+	WRAP_WATCOM_CALL3(register_object_change_fid_, object, artFid, delay)
+}
+
+long __stdcall RegisterObjectLight(TGameObj* object, long lightRadius, long delay) {
+	WRAP_WATCOM_CALL3(register_object_light_, object, lightRadius, delay)
+}
+
+long __stdcall RegisterObjectMustErase(TGameObj* object) {
+	WRAP_WATCOM_CALL1(register_object_must_erase_, object)
+}
+
+long __stdcall RegisterObjectTakeOut(TGameObj* object, long holdFrameId, long nothing) {
+	WRAP_WATCOM_CALL3(register_object_take_out_, object, holdFrameId, nothing)
+}
+
+long __stdcall RegisterObjectTurnTowards(TGameObj* object, long tileNum, long nothing) {
+	WRAP_WATCOM_CALL3(register_object_turn_towards_, object, tileNum, nothing)
+}
+
 long __stdcall ScrNew(long* scriptID, long sType) {
 	WRAP_WATCOM_CALL2(scr_new_, scriptID, sType)
 }

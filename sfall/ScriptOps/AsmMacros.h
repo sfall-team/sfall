@@ -80,20 +80,6 @@
 }
 
 /*
-	checks argument to be integer, and jumps to GOTOFAIL if it's not
-*/
-#define _CHECK_ARG_INT(r16type, GOTOFAIL) __asm { \
-	__asm cmp r16type, VAR_TYPE_INT		\
-	__asm jne GOTOFAIL }
-
-/*
-	checks argument to be float, and jumps to GOTOFAIL if it's not
-*/
-#define _CHECK_ARG_FLOAT(r16type, GOTOFAIL) __asm { \
-	__asm cmp r16type, VAR_TYPE_FLOAT		\
-	__asm jne GOTOFAIL }
-
-/*
 	checks argument (which may be any type) if it's a string and retrieves it (overwrites value in rval)
 	num - any number, but it must be unique (used for label names)
 	r16type - 16bit register where value type is stored
@@ -118,16 +104,6 @@ notstring##num:
 	__asm mov eax, rscript				\
 	__asm call interpretPushLong_		\
 	__asm mov edx, VAR_TYPE_INT			\
-	__asm mov eax, rscript				\
-	__asm call interpretPushShort_		\
-}
-
-// return value stored in EAX as float
-#define _RET_VAL_FLOAT(rscript) __asm {		\
-	__asm mov edx, eax					\
-	__asm mov eax, rscript				\
-	__asm call interpretPushLong_		\
-	__asm mov edx, VAR_TYPE_FLOAT		\
 	__asm mov eax, rscript				\
 	__asm call interpretPushShort_		\
 }

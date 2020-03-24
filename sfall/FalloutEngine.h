@@ -1131,6 +1131,13 @@ TGameObj* __stdcall ScrFindObjFromProgram(TProgram* program);
 // Returns 0 on success, -1 on failure.
 long __stdcall ScrPtr(long scriptId, TScript** scriptPtr);
 
+long __stdcall RegisterObjectAnimateAndHide(TGameObj* object, long anim, long delay);
+long __stdcall RegisterObjectChangeFid(TGameObj* object, long artFid, long delay);
+long __stdcall RegisterObjectLight(TGameObj* object, long lightRadius, long delay);
+long __stdcall RegisterObjectMustErase(TGameObj* object);
+long __stdcall RegisterObjectTakeOut(TGameObj* object, long holdFrameId, long nothing);
+long __stdcall RegisterObjectTurnTowards(TGameObj* object, long tileNum, long nothing);
+
 long __stdcall ScrNew(long* scriptID, long sType);
 
 long __stdcall ScrRemove(long scriptID);

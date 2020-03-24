@@ -23,7 +23,7 @@
 #include "ScriptExtender.h"
 
 //file system functions
-static void fs_create2() {
+static void _stdcall fs_create2() {
 	const ScriptValue &pathArg = opHandler.arg(0),
 					  &sizeArg = opHandler.arg(1);
 
@@ -39,7 +39,7 @@ static void __declspec(naked) fs_create() {
 	_WRAP_OPCODE(fs_create2, 2, 1)
 }
 
-static void fs_copy2() {
+static void _stdcall fs_copy2() {
 	const ScriptValue &pathArg = opHandler.arg(0),
 					  &srcArg = opHandler.arg(1);
 
@@ -55,7 +55,7 @@ static void __declspec(naked) fs_copy() {
 	_WRAP_OPCODE(fs_copy2, 2, 1)
 }
 
-static void fs_find2() {
+static void _stdcall fs_find2() {
 	const ScriptValue &pathArg = opHandler.arg(0);
 
 	if (pathArg.isString()) {
@@ -70,7 +70,7 @@ static void __declspec(naked) fs_find() {
 	_WRAP_OPCODE(fs_find2, 1, 1)
 }
 
-static void fs_write_byte2() {
+static void _stdcall fs_write_byte2() {
 	const ScriptValue &idArg = opHandler.arg(0),
 					  &dataArg = opHandler.arg(1);
 
@@ -85,7 +85,7 @@ static void __declspec(naked) fs_write_byte() {
 	_WRAP_OPCODE(fs_write_byte2, 2, 0)
 }
 
-static void fs_write_short2() {
+static void _stdcall fs_write_short2() {
 	const ScriptValue &idArg = opHandler.arg(0),
 					  &dataArg = opHandler.arg(1);
 
@@ -100,7 +100,7 @@ static void __declspec(naked) fs_write_short() {
 	_WRAP_OPCODE(fs_write_short2, 2, 0)
 }
 
-static void fs_write_int2() {
+static void _stdcall fs_write_int2() {
 	const ScriptValue &idArg = opHandler.arg(0),
 					  &dataArg = opHandler.arg(1);
 
@@ -115,7 +115,7 @@ static void __declspec(naked) fs_write_int() {
 	_WRAP_OPCODE(fs_write_int2, 2, 0)
 }
 
-static void fs_write_string2() {
+static void _stdcall fs_write_string2() {
 	const ScriptValue &idArg = opHandler.arg(0),
 					  &dataArg = opHandler.arg(1);
 
@@ -130,7 +130,7 @@ static void __declspec(naked) fs_write_string() {
 	_WRAP_OPCODE(fs_write_string2, 2, 0)
 }
 
-static void fs_write_bstring2() {
+static void _stdcall fs_write_bstring2() {
 	const ScriptValue &idArg = opHandler.arg(0),
 					  &dataArg = opHandler.arg(1);
 
@@ -145,7 +145,7 @@ static void __declspec(naked) fs_write_bstring() {
 	_WRAP_OPCODE(fs_write_bstring2, 2, 0)
 }
 
-static void fs_read_byte2() {
+static void _stdcall fs_read_byte2() {
 	const ScriptValue &idArg = opHandler.arg(0);
 
 	if (idArg.isInt()) {
@@ -160,7 +160,7 @@ static void __declspec(naked) fs_read_byte() {
 	_WRAP_OPCODE(fs_read_byte2, 1, 1)
 }
 
-static void fs_read_short2() {
+static void _stdcall fs_read_short2() {
 	const ScriptValue &idArg = opHandler.arg(0);
 
 	if (idArg.isInt()) {
@@ -175,7 +175,7 @@ static void __declspec(naked) fs_read_short() {
 	_WRAP_OPCODE(fs_read_short2, 1, 1)
 }
 
-static void fs_read_int2() {
+static void _stdcall fs_read_int2() {
 	const ScriptValue &idArg = opHandler.arg(0);
 
 	if (idArg.isInt()) {
@@ -190,7 +190,7 @@ static void __declspec(naked) fs_read_int() {
 	_WRAP_OPCODE(fs_read_int2, 1, 1)
 }
 
-static void fs_read_float2() {
+static void _stdcall fs_read_float2() {
 	const ScriptValue &idArg = opHandler.arg(0);
 
 	if (idArg.isInt()) {
@@ -205,7 +205,7 @@ static void __declspec(naked) fs_read_float() {
 	_WRAP_OPCODE(fs_read_float2, 1, 1)
 }
 
-static void fs_delete2() {
+static void _stdcall fs_delete2() {
 	const ScriptValue &idArg = opHandler.arg(0);
 
 	if (idArg.isInt()) {
@@ -219,7 +219,7 @@ static void __declspec(naked) fs_delete() {
 	_WRAP_OPCODE(fs_delete2, 1, 0)
 }
 
-static void fs_size2() {
+static void _stdcall fs_size2() {
 	const ScriptValue &idArg = opHandler.arg(0);
 
 	if (idArg.isInt()) {
@@ -234,7 +234,7 @@ static void __declspec(naked) fs_size() {
 	_WRAP_OPCODE(fs_size2, 1, 1)
 }
 
-static void fs_pos2() {
+static void _stdcall fs_pos2() {
 	const ScriptValue &idArg = opHandler.arg(0);
 
 	if (idArg.isInt()) {
@@ -249,7 +249,7 @@ static void __declspec(naked) fs_pos() {
 	_WRAP_OPCODE(fs_pos2, 1, 1)
 }
 
-static void fs_seek2() {
+static void _stdcall fs_seek2() {
 	const ScriptValue &idArg = opHandler.arg(0),
 					  &posArg = opHandler.arg(1);
 
@@ -264,7 +264,7 @@ static void __declspec(naked) fs_seek() {
 	_WRAP_OPCODE(fs_seek2, 2, 0)
 }
 
-static void fs_resize2() {
+static void _stdcall fs_resize2() {
 	const ScriptValue &idArg = opHandler.arg(0),
 					  &sizeArg = opHandler.arg(1);
 

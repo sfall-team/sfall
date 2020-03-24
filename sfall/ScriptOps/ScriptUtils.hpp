@@ -89,118 +89,57 @@ static bool _stdcall FalloutStringCompare(const char* str1, const char* str2, lo
 	}
 }
 
-static DWORD _stdcall mystrlen(const char* str) {
-	return strlen(str);
-}
+static void _stdcall op_strlen2() {
+	const ScriptValue &strArg = opHandler.arg(0);
 
-static void __declspec(naked) op_strlen() {
-	__asm {
-		pushad;
-		mov edi, eax;
-		call interpretPopShort_;
-		mov edx, eax;
-		mov eax, edi;
-		call interpretPopLong_; // string
-		cmp dx, VAR_TYPE_STR2;
-		je next;
-		cmp dx, VAR_TYPE_STR;
-		jne fail;
-next:
-		mov ebx, eax;
-		mov eax, edi;
-		call interpretGetString_;
-		push eax;
-		call mystrlen;
-		jmp end;
-fail:
-		xor eax, eax; // return 0
-end:
-		mov edx, eax;
-		mov eax, edi;
-		call interpretPushLong_;
-		mov edx, VAR_TYPE_INT;
-		mov eax, edi;
-		call interpretPushShort_;
-		popad;
-		retn;
+	if (strArg.isString()) {
+		opHandler.setReturn(
+			static_cast<int>(strlen(strArg.strValue()))
+		);
+	} else {
+		OpcodeInvalidArgs("strlen");
+		opHandler.setReturn(0);
 	}
 }
 
-static int _stdcall str_to_int_internal(const char* str) {
-	return static_cast<int>(strtol(str, (char**)nullptr, 0)); // auto-determine radix
+static void __declspec(naked) op_strlen() {
+	_WRAP_OPCODE(op_strlen2, 1, 1)
 }
 
-static DWORD _stdcall str_to_flt_internal(const char* str) {
-	float f = static_cast<float>(atof(str));
-	return *(DWORD*)&f;
+static void _stdcall str_to_int2() {
+	const ScriptValue &strArg = opHandler.arg(0);
+
+	if (strArg.isString()) {
+		const char* str = strArg.strValue();
+		opHandler.setReturn(
+			static_cast<int>(strtol(str, (char**)nullptr, 0)) // auto-determine radix
+		);
+	} else {
+		OpcodeInvalidArgs("atoi");
+		opHandler.setReturn(0);
+	}
 }
 
 static void __declspec(naked) str_to_int() {
-	__asm {
-		pushad;
-		mov ebp, eax;
-		call interpretPopShort_;
-		mov ebx, eax;
-		mov eax, ebp;
-		call interpretPopLong_;
-		cmp bx, VAR_TYPE_STR2;
-		jz str1;
-		cmp bx, VAR_TYPE_STR;
-		jnz fail;
-str1:
-		mov edx, ebx;
-		mov ebx, eax;
-		mov eax, ebp;
-		call interpretGetString_;
-		push eax;
-		call str_to_int_internal;
-		mov edx, eax;
-		jmp end;
-fail:
-		xor edx, edx;
-end:
-		mov eax, ebp;
-		call interpretPushLong_;
-		mov edx, VAR_TYPE_INT;
-		mov eax, ebp;
-		call interpretPushShort_;
-		popad;
-		retn;
+	_WRAP_OPCODE(str_to_int2, 1, 1)
+}
+
+static void _stdcall str_to_flt2() {
+	const ScriptValue &strArg = opHandler.arg(0);
+
+	if (strArg.isString()) {
+		const char* str = strArg.strValue();
+		opHandler.setReturn(
+			static_cast<float>(atof(str))
+		);
+	} else {
+		OpcodeInvalidArgs("atof");
+		opHandler.setReturn(0);
 	}
 }
 
 static void __declspec(naked) str_to_flt() {
-	__asm {
-		pushad;
-		mov ebp, eax;
-		call interpretPopShort_;
-		mov ebx, eax;
-		mov eax, ebp;
-		call interpretPopLong_;
-		cmp bx, VAR_TYPE_STR2;
-		jz str1;
-		cmp bx, VAR_TYPE_STR;
-		jnz fail;
-str1:
-		mov edx, ebx;
-		mov ebx, eax;
-		mov eax, ebp;
-		call interpretGetString_;
-		push eax;
-		call str_to_flt_internal;
-		mov edx, eax;
-		jmp end;
-fail:
-		xor edx, edx;
-end:
-		mov eax, ebp;
-		call interpretPushLong_;
-		mov edx, VAR_TYPE_FLOAT;
-		mov eax, ebp;
-		call interpretPushShort_;
-		popad;
-		retn;
-	}
+	_WRAP_OPCODE(str_to_flt2, 1, 1)
 }
 
 static void _stdcall op_ord2() {
@@ -219,40 +158,12 @@ static void __declspec(naked) op_ord() {
 	_WRAP_OPCODE(op_ord2, 1, 1)
 }
 
-static DWORD _stdcall GetValueType(DWORD datatype) {
-	datatype &= 0xFFFF;
-	switch (datatype) {
-	case VAR_TYPE_STR:
-	case VAR_TYPE_STR2:
-		return DATATYPE_STR;
-	case VAR_TYPE_INT:
-		return DATATYPE_INT;
-	case VAR_TYPE_FLOAT:
-		return DATATYPE_FLOAT;
-	default:
-		return DATATYPE_NONE; // just in case
-	}
+static void _stdcall op_typeof2() {
+	opHandler.setReturn(static_cast<int>(opHandler.arg(0).type()));
 }
 
 static void __declspec(naked) op_typeof() {
-	__asm {
-		pushad;
-		mov edi, eax;
-		call interpretPopShort_;
-		mov edx, eax;
-		mov eax, edi;
-		call interpretPopLong_; // call just in case (not used)
-		push edx;
-		call GetValueType;
-		mov edx, eax;
-		mov eax, edi;
-		call interpretPushLong_;
-		mov edx, VAR_TYPE_INT;
-		mov eax, edi;
-		call interpretPushShort_;
-		popad;
-		retn;
-	}
+	_WRAP_OPCODE(op_typeof2, 1, 1)
 }
 
 static int _stdcall StringSplit(const char* str, const char* split) {
@@ -287,57 +198,20 @@ static int _stdcall StringSplit(const char* str, const char* split) {
 	return id;
 }
 
-static void __declspec(naked) string_split() {
-	__asm {
-		pushad;
-		mov ebp, eax;
-		call interpretPopShort_;
-		mov ebx, eax;
-		mov eax, ebp;
-		call interpretPopLong_;
-		mov edi, eax;
-		mov eax, ebp;
-		call interpretPopShort_;
-		mov ecx, eax;
-		mov eax, ebp;
-		call interpretPopLong_;
-		mov esi, eax;
-		cmp bx, VAR_TYPE_STR2;
-		jz str1;
-		cmp bx, VAR_TYPE_STR;
-		jnz fail;
-str1:
-		cmp cx, VAR_TYPE_STR2;
-		jz str2;
-		cmp cx, VAR_TYPE_STR;
-		jnz fail;
-str2:
-		mov eax, ebp;
-		mov edx, ebx;
-		mov ebx, edi;
-		call interpretGetString_;
-		mov edi, eax;
-		mov eax, ebp;
-		mov edx, ecx;
-		mov ebx, esi;
-		call interpretGetString_;
-		push edi;
-		push eax;
-		call StringSplit;
-		mov edx, eax;
-		jmp end;
-fail:
-		xor edx, edx;
-		dec edx;
-end:
-		mov eax, ebp;
-		call interpretPushLong_;
-		mov edx, VAR_TYPE_INT;
-		mov eax, ebp;
-		call interpretPushShort_;
-		popad;
-		retn;
+static void _stdcall string_split2() {
+	const ScriptValue &strArg = opHandler.arg(0),
+					  &splitArg = opHandler.arg(1);
+
+	if (strArg.isString() && splitArg.isString()) {
+		opHandler.setReturn(StringSplit(strArg.strValue(), splitArg.strValue()));
+	} else {
+		OpcodeInvalidArgs("string_split");
+		opHandler.setReturn(-1);
 	}
+}
+
+static void __declspec(naked) string_split() {
+	_WRAP_OPCODE(string_split2, 2, 1)
 }
 
 static char* _stdcall SubString(const char* str, int startPos, int length) {

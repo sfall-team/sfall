@@ -573,32 +573,20 @@ static DWORD _stdcall ListAsArray(DWORD type) {
 	return id;
 }
 
-static void __declspec(naked) list_as_array() {
-	__asm {
-		pushad;
-		mov ebp, eax;
-		call interpretPopShort_;
-		mov edi, eax;
-		mov eax, ebp;
-		call interpretPopLong_;
-		cmp di, VAR_TYPE_INT;
-		jnz fail;
-		push eax;
-		call ListAsArray;
-		mov edx, eax;
-		jmp end;
-fail:
-		xor edx, edx;
-		dec edx;
-end:
-		mov eax, ebp;
-		call interpretPushLong_;
-		mov eax, ebp;
-		mov edx, VAR_TYPE_INT;
-		call interpretPushShort_;
-		popad;
-		retn;
+static void _stdcall list_as_array2() {
+	const ScriptValue &typeArg = opHandler.arg(0);
+
+	if (typeArg.isInt()) {
+		DWORD arrayId = ListAsArray(typeArg.rawValue());
+		opHandler.setReturn(arrayId);
+	} else {
+		OpcodeInvalidArgs("list_as_array");
+		opHandler.setReturn(-1);
 	}
+}
+
+static void __declspec(naked) list_as_array() {
+	_WRAP_OPCODE(list_as_array2, 1, 1)
 }
 
 static DWORD _stdcall ListBegin(DWORD type) {
@@ -609,31 +597,19 @@ static DWORD _stdcall ListBegin(DWORD type) {
 	return listID;
 }
 
-static void __declspec(naked) list_begin() {
-	__asm {
-		pushad;
-		mov ebp, eax;
-		call interpretPopShort_;
-		mov edi, eax;
-		mov eax, ebp;
-		call interpretPopLong_;
-		cmp di, VAR_TYPE_INT;
-		jnz fail;
-		push eax;
-		call ListBegin;
-		mov edx, eax;
-		jmp end;
-fail:
-		xor edx, edx;
-end:
-		mov eax, ebp;
-		call interpretPushLong_;
-		mov eax, ebp;
-		mov edx, VAR_TYPE_INT;
-		call interpretPushShort_;
-		popad;
-		retn;
+static void _stdcall list_begin2() {
+	const ScriptValue &typeArg = opHandler.arg(0);
+
+	if (typeArg.isInt()) {
+		opHandler.setReturn(ListBegin(typeArg.rawValue()));
+	} else {
+		OpcodeInvalidArgs("list_begin");
+		opHandler.setReturn(0);
 	}
+}
+
+static void __declspec(naked) list_begin() {
+	_WRAP_OPCODE(list_begin2, 1, 1)
 }
 
 static TGameObj* _stdcall ListNext(sList* list) {
@@ -679,20 +655,16 @@ static void _stdcall ListEnd(DWORD id) {
 	}
 }
 
-static void __declspec(naked) list_end() {
-	__asm {
-		pushad;
-		mov ebp, eax;
-		call interpretPopShort_;
-		mov edi, eax;
-		mov eax, ebp;
-		call interpretPopLong_;
-		cmp di, VAR_TYPE_INT;
-		jnz end;
-		push eax;
-		call ListEnd;
-end:
-		popad;
-		retn;
+static void _stdcall list_end2() {
+	const ScriptValue &idArg = opHandler.arg(0);
+
+	if (idArg.isInt()) {
+		ListEnd(idArg.rawValue());
+	} else {
+		OpcodeInvalidArgs("list_end");
 	}
+}
+
+static void __declspec(naked) list_end() {
+	_WRAP_OPCODE(list_end2, 1, 0)
 }

@@ -49,44 +49,19 @@ static void __declspec(naked) funcDiv() {
 	_WRAP_OPCODE(funcDiv2, 2, 1)
 }
 
-static void __declspec(naked) funcSqrt() {
-	__asm {
-		pushad;
-		sub esp, 4;
-		mov ecx, eax;
-		call interpretPopShort_;
-		mov ebx, eax;
-		mov eax, ecx;
-		call interpretPopLong_;
-		cmp bx, VAR_TYPE_INT;
-		jnz arg1l2;
-		mov [esp], eax;
-		fild [esp];
-		jmp calc;
-arg1l2:
-		cmp bx, VAR_TYPE_FLOAT;
-		jnz fail;
-		mov [esp], eax;
-		fld [esp];
-calc:
-		fsqrt;
-		fstp [esp];
-		mov edx, [esp];
-		jmp end;
-fail:
-		fldz;
-		fstp [esp];
-		mov edx, [esp];
-end:
-		mov eax, ecx;
-		call interpretPushLong_;
-		mov edx, VAR_TYPE_FLOAT;
-		mov eax, ecx;
-		call interpretPushShort_;
-		add esp, 4;
-		popad;
-		retn;
+static void _stdcall funcSqrt2() {
+	const ScriptValue &floatArg = opHandler.arg(0);
+
+	if (!floatArg.isString()) {
+		opHandler.setReturn(sqrt(floatArg.asFloat()));
+	} else {
+		OpcodeInvalidArgs("sqrt");
+		opHandler.setReturn(0);
 	}
+}
+
+static void __declspec(naked) funcSqrt() {
+	_WRAP_OPCODE(funcSqrt2, 1, 1)
 }
 
 static void _stdcall funcAbs2() {
@@ -108,184 +83,65 @@ static void __declspec(naked) funcAbs() {
 	_WRAP_OPCODE(funcAbs2, 1, 1)
 }
 
+static void _stdcall funcSin2() {
+	const ScriptValue &floatArg = opHandler.arg(0);
+
+	if (!floatArg.isString()) {
+		opHandler.setReturn(sin(floatArg.asFloat()));
+	} else {
+		OpcodeInvalidArgs("sin");
+		opHandler.setReturn(0);
+	}
+}
+
 static void __declspec(naked) funcSin() {
-	__asm {
-		pushad;
-		sub esp, 4;
-		mov ecx, eax;
-		call interpretPopShort_;
-		mov ebx, eax;
-		mov eax, ecx;
-		call interpretPopLong_;
-		cmp bx, VAR_TYPE_INT;
-		jnz arg1l2;
-		mov [esp], eax;
-		fild [esp];
-		jmp calc;
-arg1l2:
-		cmp bx, VAR_TYPE_FLOAT;
-		jnz fail;
-		mov [esp], eax;
-		fld [esp];
-calc:
-		fsin;
-		fstp [esp];
-		mov edx, [esp];
-		jmp end;
-fail:
-		fldz;
-		fstp [esp];
-		mov edx, [esp];
-end:
-		mov eax, ecx;
-		call interpretPushLong_;
-		mov edx, VAR_TYPE_FLOAT;
-		mov eax, ecx;
-		call interpretPushShort_;
-		add esp, 4;
-		popad;
-		retn;
+	_WRAP_OPCODE(funcSin2, 1, 1)
+}
+
+static void _stdcall funcCos2() {
+	const ScriptValue &floatArg = opHandler.arg(0);
+
+	if (!floatArg.isString()) {
+		opHandler.setReturn(cos(floatArg.asFloat()));
+	} else {
+		OpcodeInvalidArgs("cos");
+		opHandler.setReturn(0);
 	}
 }
 
 static void __declspec(naked) funcCos() {
-	__asm {
-		pushad;
-		sub esp, 4;
-		mov ecx, eax;
-		call interpretPopShort_;
-		mov ebx, eax;
-		mov eax, ecx;
-		call interpretPopLong_;
-		cmp bx, VAR_TYPE_INT;
-		jnz arg1l2;
-		mov [esp], eax;
-		fild [esp];
-		jmp calc;
-arg1l2:
-		cmp bx, VAR_TYPE_FLOAT;
-		jnz fail;
-		mov [esp], eax;
-		fld [esp];
-calc:
-		fcos;
-		fstp [esp];
-		mov edx, [esp];
-		jmp end;
-fail:
-		fldz;
-		fstp [esp];
-		mov edx, [esp];
-end:
-		mov eax, ecx;
-		call interpretPushLong_;
-		mov edx, VAR_TYPE_FLOAT;
-		mov eax, ecx;
-		call interpretPushShort_;
-		add esp, 4;
-		popad;
-		retn;
+	_WRAP_OPCODE(funcCos2, 1, 1)
+}
+
+static void _stdcall funcTan2() {
+	const ScriptValue &floatArg = opHandler.arg(0);
+
+	if (!floatArg.isString()) {
+		opHandler.setReturn(tan(floatArg.asFloat()));
+	} else {
+		OpcodeInvalidArgs("tan");
+		opHandler.setReturn(0);
 	}
 }
 
 static void __declspec(naked) funcTan() {
-	__asm {
-		pushad;
-		sub esp, 4;
-		mov ecx, eax;
-		call interpretPopShort_;
-		mov ebx, eax;
-		mov eax, ecx;
-		call interpretPopLong_;
-		cmp bx, VAR_TYPE_INT;
-		jnz arg1l2;
-		mov [esp], eax;
-		fild [esp];
-		jmp calc;
-arg1l2:
-		cmp bx, VAR_TYPE_FLOAT;
-		jnz fail;
-		mov [esp], eax;
-		fld [esp];
-calc:
-		fptan;
-		fstp [esp];
-		fstp [esp];
-		mov edx, [esp];
-		jmp end;
-fail:
-		fldz;
-		fstp [esp];
-		mov edx, [esp];
-end:
-		mov eax, ecx;
-		call interpretPushLong_;
-		mov edx, VAR_TYPE_FLOAT;
-		mov eax, ecx;
-		call interpretPushShort_;
-		add esp, 4;
-		popad;
-		retn;
+	_WRAP_OPCODE(funcTan2, 1, 1)
+}
+
+static void _stdcall funcATan2() {
+	const ScriptValue &xFltArg = opHandler.arg(0),
+					  &yFltArg = opHandler.arg(1);
+
+	if (!xFltArg.isString() && !yFltArg.isString()) {
+		opHandler.setReturn(atan2(xFltArg.asFloat(), yFltArg.asFloat()));
+	} else {
+		OpcodeInvalidArgs("arctan");
+		opHandler.setReturn(0);
 	}
 }
 
 static void __declspec(naked) funcATan() {
-	__asm {
-		pushad;
-		sub esp, 4;
-		mov ecx, eax;
-		call interpretPopShort_;
-		mov ebx, eax;
-		mov eax, ecx;
-		call interpretPopLong_;
-		mov edi, eax;
-		mov eax, ecx;
-		call interpretPopShort_;
-		mov edx, eax;
-		mov eax, ecx;
-		call interpretPopLong_;
-		cmp bx, VAR_TYPE_INT;
-		jnz arg1l2;
-		mov [esp], eax;
-		fild [esp];
-		jmp arg2l1;
-arg1l2:
-		cmp bx, VAR_TYPE_FLOAT;
-		jnz fail;
-		mov [esp], eax;
-		fld [esp];
-arg2l1:
-		cmp dx, VAR_TYPE_INT;
-		jnz arg2l2;
-		mov [esp], edi;
-		fild [esp];
-		jmp calc;
-arg2l2:
-		cmp dx, VAR_TYPE_FLOAT;
-		jnz fail2;
-		mov [esp], edi;
-		fld [esp];
-calc:
-		fpatan;
-		fstp [esp];
-		mov edx, [esp];
-		jmp end;
-fail2:
-		fstp [esp];
-fail:
-		fldz;
-		fstp [esp];
-		mov edx, [esp];
-end:
-		mov eax, ecx;
-		call interpretPushLong_;
-		mov edx, VAR_TYPE_FLOAT;
-		mov eax, ecx;
-		call interpretPushShort_;
-		add esp, 4;
-		popad;
-		retn;
-	}
+	_WRAP_OPCODE(funcATan2, 2, 1)
 }
 
 static void _stdcall funcPow2() {
