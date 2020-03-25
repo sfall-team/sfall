@@ -361,7 +361,7 @@ static char* _stdcall mysprintf(const char* format, DWORD value, DWORD valueType
 
 static void __declspec(naked) op_sprintf() {
 	__asm {
-		pushad;
+		pushaop;
 		mov edi, eax;
 		call interpretPopShort_;
 		mov edx, eax;
@@ -369,7 +369,6 @@ static void __declspec(naked) op_sprintf() {
 		call interpretPopLong_; // any value
 		mov ebx, eax;
 		mov eax, edi;
-
 		call interpretPopShort_;
 		mov ecx, eax;
 		mov eax, edi;
@@ -410,7 +409,7 @@ notstring:
 		mov eax, edi;
 		call interpretPushShort_;
 fail:
-		popad;
+		popaop;
 		retn;
 	}
 }

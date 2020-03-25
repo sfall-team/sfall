@@ -28,16 +28,18 @@
 	- use this macros outside of other __asm {} blocks (obviously)
 */
 
+// Macros for quick replacement of pushad/popad in script opcodes
+#define pushaop __asm push ebx __asm push ecx __asm push edx __asm push esi __asm push edi __asm push ebp
+#define popaop __asm pop ebp __asm pop edi __asm pop esi __asm pop edx __asm pop ecx __asm pop ebx
+
 // rscript - 32-bit register where script pointer will be put (it is used for several related functions)
-#define _OP_BEGIN(rscript) __asm \
-{							\
-	__asm pushad			\
+#define _OP_BEGIN(rscript) __asm { \
+	pushaop					\
 	__asm mov rscript, eax	\
 }
 
-#define _OP_END  __asm \
-{							\
-	__asm popad				\
+#define _OP_END __asm {		\
+	popaop					\
 	__asm retn				\
 }
 
@@ -46,14 +48,13 @@
 	arguments come in reverse order (from last to first)
 	all arguments should be valid r32 registers
 */
-#define _GET_ARG_R32(rscript, rtype, rval) __asm \
-{	\
+#define _GET_ARG_R32(rscript, rtype, rval) __asm { \
 	__asm mov eax, rscript					\
 	__asm call interpretPopShort_			\
 	__asm mov rtype, eax					\
 	__asm mov eax, rscript					\
 	__asm call interpretPopLong_			\
-	__asm mov rval, eax \
+	__asm mov rval, eax						\
 }
 
 /*

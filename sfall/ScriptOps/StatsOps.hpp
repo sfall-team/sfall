@@ -221,7 +221,7 @@ static void __declspec(naked) GetCritterExtraStat() {
 
 static void __declspec(naked) set_critter_skill_points() {
 	__asm {
-		pushad;
+		pushaop;
 		//Get function args
 		mov ecx, eax;
 		call interpretPopShort_;
@@ -264,14 +264,14 @@ static void __declspec(naked) set_critter_skill_points() {
 end:
 		//Restore registers and return
 		add esp, 12;
-		popad
+		popaop;
 		retn;
 	}
 }
 
 static void __declspec(naked) get_critter_skill_points() {
 	__asm {
-		pushad;
+		pushaop;
 		//Get function args
 		mov ecx, eax;
 		call interpretPopShort_;
@@ -313,7 +313,7 @@ end:
 		call interpretPushShort_;
 		//Restore registers and return
 		add esp, 8;
-		popad
+		popaop;
 		retn;
 	}
 }

@@ -243,14 +243,14 @@ paramWasFloat:
 fail:
 		add esp, 0x10;
 end:
-		popad;
+		popaop;
 		retn;
 	}
 }
 
 static void __declspec(naked) SetWeaponKnockback() {
 	__asm {
-		pushad;
+		pushaop;
 		push 0;
 		jmp SetKnockback;
 	}
@@ -258,7 +258,7 @@ static void __declspec(naked) SetWeaponKnockback() {
 
 static void __declspec(naked) SetTargetKnockback() {
 	__asm {
-		pushad;
+		pushaop;
 		push 1;
 		jmp SetKnockback;
 	}
@@ -266,7 +266,7 @@ static void __declspec(naked) SetTargetKnockback() {
 
 static void __declspec(naked) SetAttackerKnockback() {
 	__asm {
-		pushad;
+		pushaop;
 		push 2;
 		jmp SetKnockback;
 	}
@@ -287,14 +287,14 @@ static void __declspec(naked) RemoveKnockback() {
 fail:
 		add esp, 4;
 end:
-		popad;
+		popaop;
 		retn;
 	}
 }
 
 static void __declspec(naked) RemoveWeaponKnockback() {
 	__asm {
-		pushad;
+		pushaop;
 		push 0;
 		jmp RemoveKnockback;
 	}
@@ -302,7 +302,7 @@ static void __declspec(naked) RemoveWeaponKnockback() {
 
 static void __declspec(naked) RemoveTargetKnockback() {
 	__asm {
-		pushad;
+		pushaop;
 		push 1;
 		jmp RemoveKnockback;
 	}
@@ -310,7 +310,7 @@ static void __declspec(naked) RemoveTargetKnockback() {
 
 static void __declspec(naked) RemoveAttackerKnockback() {
 	__asm {
-		pushad;
+		pushaop;
 		push 2;
 		jmp RemoveKnockback;
 	}

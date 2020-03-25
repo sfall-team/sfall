@@ -20,9 +20,9 @@
 
 static void __declspec(naked) create_array() {
 	__asm {
-		pushad;
+		pushaop;
 		mov edi, eax;
-		call interpretPopShort_
+		call interpretPopShort_;
 		mov ebx, eax;
 		mov eax, edi;
 		call interpretPopLong_;
@@ -50,29 +50,29 @@ end:
 		mov edx, VAR_TYPE_INT;
 		mov eax, edi;
 		call interpretPushShort_;
-		popad;
+		popaop;
 		retn;
 	}
 }
 
 static void __declspec(naked) set_array() {
 	__asm {
-		pushad;
+		pushaop;
 		mov ebp, eax;
 		//Get args
-		call interpretPopShort_
+		call interpretPopShort_;
 		mov edx, eax;
 		mov eax, ebp;
 		call interpretPopLong_;
 		mov edi, eax; // value
 		mov eax, ebp;
-		call interpretPopShort_
+		call interpretPopShort_;
 		mov ecx, eax;
 		mov eax, ebp;
 		call interpretPopLong_;
 		mov esi, eax; // key
 		mov eax, ebp;
-		call interpretPopShort_
+		call interpretPopShort_;
 		mov ebx, eax;
 		mov eax, ebp;
 		call interpretPopLong_;
@@ -110,7 +110,7 @@ notstring1:
 		push edi; // arg 1: arrayID
 		call SetArray
 end:
-		popad;
+		popaop;
 		retn;
 	}
 }
@@ -132,16 +132,16 @@ static char* _stdcall GetArraySubstr(const char* str, size_t index) {
 
 static void __declspec(naked) get_array() {
 	__asm {
-		pushad;
+		pushaop;
 		mov ebp, eax;
 		//Get args
-		call interpretPopShort_
+		call interpretPopShort_;
 		mov ebx, eax;
 		mov eax, ebp;
 		call interpretPopLong_;
 		mov edi, eax;
 		mov eax, ebp;
-		call interpretPopShort_
+		call interpretPopShort_;
 		mov ecx, eax;
 		mov eax, ebp;
 		call interpretPopLong_;
@@ -207,14 +207,14 @@ notstring:
 		mov edx, ebx;
 		mov eax, ebp;
 		call interpretPushShort_;
-		popad;
+		popaop;
 		retn;
 	}
 }
 
 static void __declspec(naked) free_array() {
 	__asm {
-		pushad;
+		pushaop;
 		mov edi, eax;
 		call interpretPopShort_;
 		mov ebx, eax;
@@ -225,14 +225,14 @@ static void __declspec(naked) free_array() {
 		push eax;
 		call FreeArray;
 end:
-		popad;
+		popaop;
 		retn;
 	}
 }
 
 static void __declspec(naked) len_array() {
 	__asm {
-		pushad;
+		pushaop;
 		mov edi, eax;
 		call interpretPopShort_;
 		mov ebx, eax;
@@ -252,23 +252,23 @@ end:
 		mov edx, VAR_TYPE_INT;
 		mov eax, edi;
 		call interpretPushShort_;
-		popad;
+		popaop;
 		retn;
 	}
 }
 
 static void __declspec(naked) resize_array() {
 	__asm {
-		pushad;
+		pushaop;
 		mov ebp, eax;
 		//Get args
-		call interpretPopShort_
+		call interpretPopShort_;
 		mov ebx, eax;
 		mov eax, ebp;
 		call interpretPopLong_;
 		mov edi, eax;
 		mov eax, ebp;
-		call interpretPopShort_
+		call interpretPopShort_;
 		mov ecx, eax;
 		mov eax, ebp;
 		call interpretPopLong_;
@@ -283,16 +283,16 @@ static void __declspec(naked) resize_array() {
 		push esi;
 		call ResizeArray;
 end:
-		popad;
+		popaop;
 		retn;
 	}
 }
 
 static void __declspec(naked) temp_array() {
 	__asm {
-		pushad;
+		pushaop;
 		mov edi, eax;
-		call interpretPopShort_
+		call interpretPopShort_;
 		mov ebx, eax;
 		mov eax, edi;
 		call interpretPopLong_;
@@ -320,14 +320,14 @@ end:
 		mov edx, VAR_TYPE_INT;
 		mov eax, edi;
 		call interpretPushShort_;
-		popad;
+		popaop;
 		retn;
 	}
 }
 
 static void __declspec(naked) fix_array() {
 	__asm {
-		pushad;
+		pushaop;
 		mov edi, eax;
 		call interpretPopShort_;
 		mov ebx, eax;
@@ -338,23 +338,23 @@ static void __declspec(naked) fix_array() {
 		push eax;
 		call FixArray;
 end:
-		popad;
+		popaop;
 		retn;
 	}
 }
 
 static void __declspec(naked) scan_array() {
 		__asm {
-		pushad;
+		pushaop;
 		mov ebp, eax;
 		//Get args
-		call interpretPopShort_
+		call interpretPopShort_;
 		mov edx, eax;
 		mov eax, ebp;
 		call interpretPopLong_;
 		mov edi, eax; // value (needle)
 		mov eax, ebp;
-		call interpretPopShort_
+		call interpretPopShort_;
 		mov ecx, eax;
 		mov eax, ebp;
 		call interpretPopLong_;
@@ -397,49 +397,49 @@ resultnotstr:
 		mov edx, ebx;
 		mov eax, ebp;
 		call interpretPushShort_;
-		popad;
+		popaop;
 		retn;
 	}
 }
 
 static void __declspec(naked) op_save_array() {
-	_OP_BEGIN(ebp)
+	_OP_BEGIN(ebp);
 		// Get args
-	_GET_ARG_R32(ebp, ebx, edi)
-	_GET_ARG_R32(ebp, edx, ecx)
+	_GET_ARG_R32(ebp, ebx, edi);
+	_GET_ARG_R32(ebp, edx, ecx);
 	__asm {
 		// arg check:
-		cmp bx, VAR_TYPE_INT
-		jne end
+		cmp bx, VAR_TYPE_INT;
+		jne end;
 	}
-	_CHECK_PARSE_STR(1, ebp, dx, ecx)
+	_CHECK_PARSE_STR(1, ebp, dx, ecx);
 	__asm {
-		push edi // arg 3: arrayID
-		push edx // arg 2: keyType
-		push ecx // arg 1: key
-		call SaveArray
+		push edi; // arg 3: arrayID
+		push edx; // arg 2: keyType
+		push ecx; // arg 1: key
+		call SaveArray;
 	}
 end:
-	_OP_END
+	_OP_END;
 }
 
 static void __declspec(naked) op_load_array() {
-	_OP_BEGIN(ebp)
-	_GET_ARG_R32(ebp, edx, ecx)
-	_CHECK_PARSE_STR(1, ebp, dx, ecx)
+	_OP_BEGIN(ebp);
+	_GET_ARG_R32(ebp, edx, ecx);
+	_CHECK_PARSE_STR(1, ebp, dx, ecx);
 	__asm {
 		push edx; // arg 2: keyType
 		push ecx; // arg 1: key
 		call LoadArray;
 	}
-	_RET_VAL_INT32(ebp)
-	_OP_END
+	_RET_VAL_INT32(ebp);
+	_OP_END;
 }
 
 static void __declspec(naked) op_get_array_key() {
-	_OP_BEGIN(ebp)
-	_GET_ARG_R32(ebp, edx, ecx) // index
-	_GET_ARG_R32(ebp, ebx, edi) // arrayID
+	_OP_BEGIN(ebp);
+	_GET_ARG_R32(ebp, edx, ecx); // index
+	_GET_ARG_R32(ebp, ebx, edi); // arrayID
 	__asm {
 		// arg check:
 		cmp bx, VAR_TYPE_INT;
@@ -451,39 +451,39 @@ static void __declspec(naked) op_get_array_key() {
 		push edi; // arg 1: arrayID
 		call GetArrayKey;
 	}
-	_RET_VAL_POSSIBLY_STR(1, ebp, [esp])
+	_RET_VAL_POSSIBLY_STR(1, ebp, [esp]);
 	goto end;
 	__asm {
 wrongarg:
 		xor eax, eax; // return 0 on wrong arguments
 	}
-	_RET_VAL_INT32(ebp)
+	_RET_VAL_INT32(ebp);
 end:
-	_OP_END
+	_OP_END;
 }
 
 static void __declspec(naked) op_stack_array() {
-	_OP_BEGIN(ebp)
-	_GET_ARG_R32(ebp, edx, esi) // value
-	_GET_ARG_R32(ebp, ebx, edi) // key
+	_OP_BEGIN(ebp);
+	_GET_ARG_R32(ebp, edx, esi); // value
+	_GET_ARG_R32(ebp, ebx, edi); // key
 	__asm {
-		push edx // arg 4: valueType
-		push ebx
+		push edx; // arg 4: valueType
+		push ebx;
 	}
-	_CHECK_PARSE_STR(1, ebp, dx, esi)
+	_CHECK_PARSE_STR(1, ebp, dx, esi);
 	__asm {
-		pop ebx
-		mov ecx, ebx
+		pop ebx;
+		mov ecx, ebx;
 	}
-	_CHECK_PARSE_STR(2, ebp, bx, edi)
+	_CHECK_PARSE_STR(2, ebp, bx, edi);
 	__asm {
-		push esi // arg 3: value
-		push ecx // arg 2: keyType
-		push edi // arg 1: key
-		call StackArray
+		push esi; // arg 3: value
+		push ecx; // arg 2: keyType
+		push edi; // arg 1: key
+		call StackArray;
 	}
-	_RET_VAL_INT32(ebp)
-	_OP_END
+	_RET_VAL_INT32(ebp);
+	_OP_END;
 }
 
 // object LISTS
