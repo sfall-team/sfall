@@ -563,7 +563,7 @@ next:
 error:
 		xor edx, edx;
 		dec edx;
-		mov ebx, VAR_TYPE_INT
+		mov ebx, VAR_TYPE_INT;
 result:
 		mov eax, edi;
 		call interpretPushLong_;

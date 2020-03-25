@@ -1238,6 +1238,8 @@ void __fastcall DisplayTargetInventory(long inventoryOffset, long visibleOffset,
 
 long __stdcall StatLevel(TGameObj* critter, long statId);
 
+long __stdcall PerkCanAdd(TGameObj* critter, long perkId);
+
 long __stdcall PerkLevel(TGameObj* critter, long perkId);
 
 long __stdcall TraitLevel(long traitID);
@@ -1256,6 +1258,10 @@ TGameObj* __stdcall ObjFindNext();
 
 TGameObj* __stdcall ObjFindNextAtTile();
 
+// checks/unjams jammed locks
+long __stdcall ObjLockIsJammed(TGameObj* object);
+void __stdcall ObjUnjamLock(TGameObj* object);
+
 long __stdcall NewObjId();
 
 FrmFrameData* __fastcall FramePtr(FrmHeaderData* frm, long frame, long direction);
@@ -1271,6 +1277,8 @@ void __stdcall MouseHide();
 TGameObj* __fastcall ObjBlockingAt(TGameObj* object, long tile, long elevation);
 
 long __fastcall ObjNewSidInst(TGameObj* object, long sType, long scriptIndex);
+
+long __fastcall ObjectUnderMouse(long crSwitch, long inclDude, long elevation);
 
 // loads MSG file into given MessageList
 long __stdcall MessageLoad(MSGList *msgList, const char *msgFilePath);

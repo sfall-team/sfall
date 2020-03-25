@@ -513,25 +513,16 @@ static void sf_real_dude_obj() {
 
 static void sf_lock_is_jammed() {
 	TGameObj* obj = opHandler.arg(0).asObject();
-	int result = 0;
 	if (obj) {
-		__asm {
-			mov  eax, obj;
-			call obj_lock_is_jammed_;
-			mov  result, eax;
-		}
+		opHandler.setReturn(ObjLockIsJammed(obj));
 	} else {
 		OpcodeInvalidArgs("lock_is_jammed");
+		opHandler.setReturn(0);
 	}
-	opHandler.setReturn(result);
 }
 
 static void sf_unjam_lock() {
-	TGameObj* obj = opHandler.arg(0).object();
-	__asm {
-		mov  eax, obj;
-		call obj_unjam_lock_;
-	}
+	ObjUnjamLock(opHandler.arg(0).object());
 }
 
 static void sf_set_unjam_locks_time() {
@@ -562,22 +553,12 @@ static void sf_obj_under_cursor() {
 	const ScriptValue &crSwitchArg = opHandler.arg(0),
 					  &inclDudeArg = opHandler.arg(1);
 
-	long obj = 0;
 	if (crSwitchArg.isInt() && inclDudeArg.isInt()) {
-		int crSwitch = crSwitchArg.asBool() ? 1 : -1,
-			inclDude = inclDudeArg.rawValue();
-
-		__asm {
-			mov  ebx, dword ptr ds:[_map_elevation];
-			mov  edx, inclDude;
-			mov  eax, crSwitch;
-			call object_under_mouse_;
-			mov  obj, eax;
-		}
+		opHandler.setReturn(ObjectUnderMouse(crSwitchArg.asBool() ? 1 : -1, inclDudeArg.rawValue(), *ptr_map_elevation));
 	} else {
 		OpcodeInvalidArgs("obj_under_cursor");
+		opHandler.setReturn(0);
 	}
-	opHandler.setReturn(obj);
 }
 
 static void sf_get_loot_object() {

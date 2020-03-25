@@ -125,7 +125,7 @@ static void __declspec(naked) funcGetShaderTexture() {
 		mov edi, eax;
 		mov eax, ecx;
 		call interpretPopShort_;
-		push eax
+		push eax;
 		mov eax, ecx;
 		call interpretPopLong_;
 		mov ebx, [esp];
@@ -160,6 +160,7 @@ end:
 		retn;
 	}
 }
+
 static void __declspec(naked) funcSetShaderInt() {
 	__asm {
 		push ebx;
@@ -216,6 +217,7 @@ end:
 		retn;
 	}
 }
+
 static void __declspec(naked) funcSetShaderTexture() {
 	__asm {
 		push ebx;
@@ -272,6 +274,7 @@ end:
 		retn;
 	}
 }
+
 static void __declspec(naked) funcSetShaderFloat() {
 	__asm {
 		push ebx;
@@ -333,6 +336,7 @@ end:
 		retn;
 	}
 }
+
 static void __declspec(naked) funcSetShaderVector() {
 	__asm {
 		push ebx;
@@ -426,7 +430,7 @@ static void __declspec(naked) funcSetShaderMode() {
 		jnz fail;
 		push eax;
 		call SetShaderMode;
-		jmp end
+		jmp end;
 fail:
 		pop eax;
 end:

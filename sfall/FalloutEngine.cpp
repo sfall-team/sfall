@@ -1334,6 +1334,10 @@ long __stdcall StatLevel(TGameObj* critter, long statId) {
 	WRAP_WATCOM_CALL2(stat_level_, critter, statId)
 }
 
+long __stdcall PerkCanAdd(TGameObj* critter, long perkId) {
+	WRAP_WATCOM_CALL2(perk_can_add_, critter, perkId)
+}
+
 long __stdcall PerkLevel(TGameObj* critter, long perkId) {
 	WRAP_WATCOM_CALL2(perk_level_, critter, perkId)
 }
@@ -1374,6 +1378,14 @@ TGameObj* __stdcall ObjFindNextAtTile() {
 	WRAP_WATCOM_CALL0(obj_find_next_at_tile_)
 }
 
+long __stdcall ObjLockIsJammed(TGameObj* object) {
+	WRAP_WATCOM_CALL1(obj_lock_is_jammed_, object)
+}
+
+void __stdcall ObjUnjamLock(TGameObj* object) {
+	WRAP_WATCOM_CALL1(obj_unjam_lock_, object)
+}
+
 long __stdcall NewObjId() {
 	WRAP_WATCOM_CALL0(new_obj_id_)
 }
@@ -1404,6 +1416,10 @@ TGameObj* __fastcall ObjBlockingAt(TGameObj* object, long tile, long elevation) 
 
 long __fastcall ObjNewSidInst(TGameObj* object, long sType, long scriptIndex) {
 	WRAP_WATCOM_FCALL3(obj_new_sid_inst_, object, sType, scriptIndex)
+}
+
+long __fastcall ObjectUnderMouse(long crSwitch, long inclDude, long elevation) {
+	WRAP_WATCOM_FCALL3(object_under_mouse_, crSwitch, inclDude, elevation)
 }
 
 long __stdcall MessageLoad(MSGList *msgList, const char *msgFilePath) {

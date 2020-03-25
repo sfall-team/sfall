@@ -54,106 +54,53 @@ end:
 	}
 }
 
+static void _stdcall GetPerkAvailable2() {
+	const ScriptValue &perkIdArg = opHandler.arg(0);
+
+	int result = 0;
+	if (perkIdArg.isInt()) {
+		int perkId = perkIdArg.rawValue();
+		if (perkId >= 0 && perkId < PERK_count) {
+			result = PerkCanAdd(*ptr_obj_dude, perkId);
+		}
+	} else {
+		OpcodeInvalidArgs("get_perk_available");
+	}
+	opHandler.setReturn(result);
+}
+
 static void __declspec(naked) GetPerkAvailable() {
-	__asm {
-		pushad;
-		mov ecx, eax;
-		call interpretPopShort_;
-		mov edx, eax;
-		mov eax, ecx;
-		call interpretPopLong_;
-		cmp dx, VAR_TYPE_INT;
-		jnz fail;
-		cmp eax, PERK_count;
-		jge fail;
-		mov edx, eax;
-		mov eax, ds:[_obj_dude];
-		call perk_can_add_;
-		mov edx, eax;
-		jmp end;
-fail:
-		xor edx, edx;
-end:
-		mov eax, ecx
-		call interpretPushLong_;
-		mov edx, VAR_TYPE_INT;
-		mov eax, ecx;
-		call interpretPushShort_;
-		popad;
-		retn;
+	_WRAP_OPCODE(GetPerkAvailable2, 1, 1)
+}
+
+static void _stdcall funcSetPerkName2() {
+	const ScriptValue &perkIdArg = opHandler.arg(0),
+					  &stringArg = opHandler.arg(1);
+
+	if (perkIdArg.isInt() && stringArg.isString()) {
+		SetPerkName(perkIdArg.rawValue(), stringArg.strValue());
+	} else {
+		OpcodeInvalidArgs("set_perk_name");
 	}
 }
 
 static void __declspec(naked) funcSetPerkName() {
-	__asm {
-		pushad;
-		mov ecx, eax;
-		call interpretPopShort_;
-		mov esi, eax;
-		mov eax, ecx;
-		call interpretPopLong_;
-		mov edi, eax;
-		mov eax, ecx;
-		call interpretPopShort_;
-		mov edx, eax;
-		mov eax, ecx;
-		call interpretPopLong_;
-		cmp dx, VAR_TYPE_INT;
-		jnz end;
-		cmp si, VAR_TYPE_STR2;
-		jz next;
-		cmp si, VAR_TYPE_STR;
-		jnz end;
-next:
-		mov ebx, edi;
-		mov edx, esi;
-		mov esi, eax;
-		mov eax, ecx;
-		call interpretGetString_;
-		push eax;
-		push esi;
-		call SetPerkName;
-		jmp end;
-end:
-		popad;
-		retn;
+	_WRAP_OPCODE(funcSetPerkName2, 2, 0)
+}
+
+static void _stdcall funcSetPerkDesc2() {
+	const ScriptValue &perkIdArg = opHandler.arg(0),
+					  &stringArg = opHandler.arg(1);
+
+	if (perkIdArg.isInt() && stringArg.isString()) {
+		SetPerkDesc(perkIdArg.rawValue(), stringArg.strValue());
+	} else {
+		OpcodeInvalidArgs("set_perk_desc");
 	}
 }
 
 static void __declspec(naked) funcSetPerkDesc() {
-	__asm {
-		pushad;
-		mov ecx, eax;
-		call interpretPopShort_;
-		mov esi, eax;
-		mov eax, ecx;
-		call interpretPopLong_;
-		mov edi, eax;
-		mov eax, ecx;
-		call interpretPopShort_;
-		mov edx, eax;
-		mov eax, ecx;
-		call interpretPopLong_;
-		cmp dx, VAR_TYPE_INT;
-		jnz end;
-		cmp si, VAR_TYPE_STR2;
-		jz next;
-		cmp si, VAR_TYPE_STR;
-		jnz end;
-next:
-		mov ebx, edi;
-		mov edx, esi;
-		mov esi, eax;
-		mov eax, ecx;
-		call interpretGetString_;
-		push eax;
-		push esi;
-		call SetPerkDesc;
-		jmp end;
-end:
-		popad;
-		retn;
-	}
+	_WRAP_OPCODE(funcSetPerkDesc2, 2, 0)
 }
 
 static void __declspec(naked) funcSetPerkValue() {
@@ -178,219 +125,55 @@ end:
 	}
 }
 
+static void _stdcall fSetSelectablePerk2() {
+	const ScriptValue &nameArg = opHandler.arg(0),
+					  &activeArg = opHandler.arg(1),
+					  &imageArg = opHandler.arg(2),
+					  &descArg = opHandler.arg(3);
+
+	if (nameArg.isString() && activeArg.isInt() && imageArg.isInt() && descArg.isString()) {
+		SetSelectablePerk(nameArg.strValue(), activeArg.rawValue(), imageArg.rawValue(), descArg.strValue());
+	} else {
+		OpcodeInvalidArgs("set_selectable_perk");
+	}
+}
+
 static void __declspec(naked) fSetSelectablePerk() {
-	__asm {
-		pushad;
-		mov ecx, eax;
-		call interpretPopShort_;
-		push eax;
-		mov eax, ecx;
-		call interpretPopLong_;
-		push eax;
-		mov eax, ecx;
-		call interpretPopShort_;
-		push eax;
-		mov eax, ecx;
-		call interpretPopLong_;
-		push eax;
-		mov eax, ecx;
-		call interpretPopShort_;
-		push eax;
-		mov eax, ecx;
-		call interpretPopLong_;
-		push eax;
-		mov eax, ecx;
-		call interpretPopShort_;
-		push eax;
-		mov eax, ecx;
-		call interpretPopLong_;
-		push eax;
+	_WRAP_OPCODE(fSetSelectablePerk2, 4, 0)
+}
 
-		movzx eax, word ptr [esp + 12];
-		cmp eax, VAR_TYPE_INT;
-		jne fail;
-		movzx eax, word ptr [esp + 20];
-		cmp eax, VAR_TYPE_INT;
-		jne fail;
-		movzx eax, word ptr ds:[esp + 4];
-		cmp eax, VAR_TYPE_STR2;
-		je next1;
-		cmp eax, VAR_TYPE_STR;
-		jne fail;
-next1:
-		movzx eax, word ptr ds:[esp + 28];
-		cmp eax, VAR_TYPE_STR2;
-		je next2;
-		cmp eax, VAR_TYPE_STR;
-		jne fail;
-next2:
-		mov eax, ecx;
-		mov edx, [esp + 28];
-		mov ebx, [esp + 24];
-		call interpretGetString_;
-		push eax;
-		mov eax, [esp + 20];
-		push eax;
-		mov eax, [esp + 16];
-		push eax;
-		mov eax, ecx;
-		mov edx, [esp + 16];
-		mov ebx, [esp + 12];
-		call interpretGetString_;
-		push eax;
+static void _stdcall fSetFakePerk2() {
+	const ScriptValue &nameArg = opHandler.arg(0),
+					  &levelArg = opHandler.arg(1),
+					  &imageArg = opHandler.arg(2),
+					  &descArg = opHandler.arg(3);
 
-		call SetSelectablePerk;
-fail:
-		add esp, 32;
-		popad;
-		retn;
+	if (nameArg.isString() && levelArg.isInt() && imageArg.isInt() && descArg.isString()) {
+		SetFakePerk(nameArg.strValue(), levelArg.rawValue(), imageArg.rawValue(), descArg.strValue());
+	} else {
+		OpcodeInvalidArgs("set_fake_perk");
 	}
 }
 
 static void __declspec(naked) fSetFakePerk() {
-	__asm {
-		pushad;
-		mov ecx, eax;
-		call interpretPopShort_;
-		push eax;
-		mov eax, ecx;
-		call interpretPopLong_;
-		push eax;
-		mov eax, ecx;
-		call interpretPopShort_;
-		push eax;
-		mov eax, ecx;
-		call interpretPopLong_;
-		push eax;
-		mov eax, ecx;
-		call interpretPopShort_;
-		push eax;
-		mov eax, ecx;
-		call interpretPopLong_;
-		push eax;
-		mov eax, ecx;
-		call interpretPopShort_;
-		push eax;
-		mov eax, ecx;
-		call interpretPopLong_;
-		push eax;
+	_WRAP_OPCODE(fSetFakePerk2, 4, 0)
+}
 
-		movzx eax, word ptr [esp + 12];
-		cmp eax, VAR_TYPE_INT;
-		jne fail;
-		movzx eax, word ptr [esp + 20];
-		cmp eax, VAR_TYPE_INT;
-		jne fail;
-		movzx eax, word ptr ds:[esp + 4];
-		cmp eax, VAR_TYPE_STR2;
-		je next1;
-		cmp eax, VAR_TYPE_STR;
-		jne fail;
-next1:
-		movzx eax, word ptr ds:[esp + 28];
-		cmp eax, VAR_TYPE_STR2;
-		je next2;
-		cmp eax, VAR_TYPE_STR;
-		jne fail;
-next2:
-		mov eax, ecx;
-		mov edx, [esp + 28];
-		mov ebx, [esp + 24];
-		call interpretGetString_;
-		push eax;
-		mov eax, [esp + 20];
-		push eax;
-		mov eax, [esp + 16];
-		push eax;
-		mov eax, ecx;
-		mov edx, [esp + 16];
-		mov ebx, [esp + 12];
-		call interpretGetString_;
-		push eax;
+static void _stdcall fSetFakeTrait2() {
+	const ScriptValue &nameArg = opHandler.arg(0),
+					  &activeArg = opHandler.arg(1),
+					  &imageArg = opHandler.arg(2),
+					  &descArg = opHandler.arg(3);
 
-		call SetFakePerk;
-fail:
-		add esp, 32;
-		popad;
-		retn;
+	if (nameArg.isString() && activeArg.isInt() && imageArg.isInt() && descArg.isString()) {
+		SetFakeTrait(nameArg.strValue(), activeArg.rawValue(), imageArg.rawValue(), descArg.strValue());
+	} else {
+		OpcodeInvalidArgs("set_fake_trait");
 	}
 }
 
 static void __declspec(naked) fSetFakeTrait() {
-	__asm {
-		push ebx;
-		push ecx;
-		push edx;
-		push edi;
-		push esi;
-		mov ecx, eax;
-		call interpretPopShort_;
-		push eax;
-		mov eax, ecx;
-		call interpretPopLong_;
-		push eax;
-		mov eax, ecx;
-		call interpretPopShort_;
-		push eax;
-		mov eax, ecx;
-		call interpretPopLong_;
-		push eax;
-		mov eax, ecx;
-		call interpretPopShort_;
-		push eax;
-		mov eax, ecx;
-		call interpretPopLong_;
-		push eax;
-		mov eax, ecx;
-		call interpretPopShort_;
-		push eax;
-		mov eax, ecx;
-		call interpretPopLong_;
-		push eax;
-
-		movzx eax, word ptr [esp + 12];
-		cmp eax, VAR_TYPE_INT;
-		jne fail;
-		movzx eax, word ptr [esp + 20];
-		cmp eax, VAR_TYPE_INT;
-		jne fail;
-		movzx eax, word ptr ds:[esp + 4];
-		cmp eax, VAR_TYPE_STR2;
-		je next1;
-		cmp eax, VAR_TYPE_STR;
-		jne fail;
-next1:
-		movzx eax, word ptr ds:[esp + 28];
-		cmp eax, VAR_TYPE_STR2;
-		je next2;
-		cmp eax, VAR_TYPE_STR;
-		jne fail;
-next2:
-		mov eax, ecx;
-		mov edx, [esp + 28];
-		mov ebx, [esp + 24];
-		call interpretGetString_;
-		push eax;
-		mov eax, [esp + 20];
-		push eax;
-		mov eax, [esp + 16];
-		push eax;
-		mov eax, ecx;
-		mov edx, [esp + 16];
-		mov ebx, [esp + 12];
-		call interpretGetString_;
-		push eax;
-
-		call SetFakeTrait;
-fail:
-		add esp, 32;
-		pop esi;
-		pop edi;
-		pop edx;
-		pop ecx;
-		pop ebx;
-		retn;
-	}
+	_WRAP_OPCODE(fSetFakeTrait2, 4, 0)
 }
 
 static void __declspec(naked) fSetPerkboxTitle() {
@@ -477,6 +260,7 @@ end:
 		retn;
 	}
 }
+
 static void __declspec(naked) fHasFakeTrait() {
 	__asm {
 		push ebx;
