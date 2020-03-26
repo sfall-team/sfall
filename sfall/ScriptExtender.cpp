@@ -1013,12 +1013,13 @@ static void __declspec(naked) CombatLoopHook() {
 	__asm {
 		push ecx;
 		push edx;
-		push eax;
+		//push eax;
 		call RunGlobalScripts1;
-		pop  eax;
+		//pop  eax;
 		pop  edx;
-		pop  ecx;
-		jmp  get_input_;
+		call get_input_;
+		pop  ecx; // prevent the combat turn from being skipped after pressing Alt-Tab
+		retn;
 	}
 }
 
@@ -1480,8 +1481,9 @@ static void RunGlobalScripts1() {
 		}
 	}
 	for (size_t i = 0; i < globalScripts.size(); i++) {
-		if (!globalScripts[i].repeat || (globalScripts[i].mode != 0 && globalScripts[i].mode != 3)) continue;
-		if (++globalScripts[i].count >= globalScripts[i].repeat) {
+		if (globalScripts[i].repeat
+			&& (globalScripts[i].mode == 0 || globalScripts[i].mode == 3)
+			&& ++globalScripts[i].count >= globalScripts[i].repeat) {
 			RunScript(&globalScripts[i]);
 		}
 	}
@@ -1492,8 +1494,9 @@ void RunGlobalScripts2() {
 	if (idle > -1) Sleep(idle);
 
 	for (size_t i = 0; i < globalScripts.size(); i++) {
-		if (!globalScripts[i].repeat || globalScripts[i].mode != 1) continue;
-		if (++globalScripts[i].count >= globalScripts[i].repeat) {
+		if (globalScripts[i].repeat
+			&& globalScripts[i].mode == 1
+			&& ++globalScripts[i].count >= globalScripts[i].repeat) {
 			RunScript(&globalScripts[i]);
 		}
 	}
@@ -1504,8 +1507,9 @@ void RunGlobalScripts3() {
 	if (idle > -1) Sleep(idle);
 
 	for (size_t i = 0; i < globalScripts.size(); i++) {
-		if (!globalScripts[i].repeat || (globalScripts[i].mode != 2 && globalScripts[i].mode != 3)) continue;
-		if (++globalScripts[i].count >= globalScripts[i].repeat) {
+		if (globalScripts[i].repeat
+			&& (globalScripts[i].mode == 2 || globalScripts[i].mode == 3)
+			&& ++globalScripts[i].count >= globalScripts[i].repeat) {
 			RunScript(&globalScripts[i]);
 		}
 	}

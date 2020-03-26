@@ -72,6 +72,7 @@ static struct HooksPositionInfo {
 
 #define hookbegin(a) pushadc __asm call BeginHook popadc __asm mov argCount, a
 #define hookend pushadc __asm call EndHook popadc
+
 #define HookBegin pushadc __asm call BeginHook popadc
 #define HookEnd pushadc __asm call EndHook popadc
 
@@ -430,30 +431,38 @@ static void __declspec(naked) ComputeDamageHook() {
 
 static void __declspec(naked) OnDeathHook() {
 	__asm {
-		hookbegin(1);
-		mov args[0], eax;
-		call critter_kill_;
-		pushad;
-		push HOOK_ONDEATH;
-		call RunHookScript;
-		popad;
-		hookend;
+		push edx;
+		call BeginHook;
+		mov  args[0], esi;
+	}
+
+	argCount = 1;
+	RunHookScript(HOOK_ONDEATH);
+	EndHook();
+
+	__asm {
+		pop edx;
+		// engine code
+		mov eax, [esi + 0x64]; // protoId
+		mov ebp, ebx;
 		retn;
 	}
 }
 
 static void __declspec(naked) OnDeathHook2() {
 	__asm {
-		hookbegin(1);
-		mov args[0], esi;
+		HookBegin;
+		mov  args[0], esi;
 		call partyMemberRemove_;
 		pushad;
-		push HOOK_ONDEATH;
-		call RunHookScript;
-		popad;
-		hookend;
-		retn;
 	}
+
+	argCount = 1;
+	RunHookScript(HOOK_ONDEATH);
+	EndHook();
+
+	__asm popad;
+	__asm retn;
 }
 
 // 4.x backport
@@ -1626,10 +1635,10 @@ static void HookScriptInit2() {
 
 	LoadHookScript("hs_deathanim1", HOOK_DEATHANIM1);
 	LoadHookScript("hs_deathanim2", HOOK_DEATHANIM2);
-	HookCall(0x4109DE, &CalcDeathAnimHook);
-	HookCall(0x410981, &CalcDeathAnimHook2);
-	HookCall(0x4109A1, &CalcDeathAnimHook2);
-	HookCall(0x4109BF, &CalcDeathAnimHook2);
+	HookCall(0x4109DE, &CalcDeathAnimHook);  // show_damage_to_object_
+	HookCall(0x410981, &CalcDeathAnimHook2); // show_damage_to_object_
+	HookCall(0x4109A1, &CalcDeathAnimHook2); // show_damage_to_object_
+	HookCall(0x4109BF, &CalcDeathAnimHook2); // show_damage_to_object_
 
 	LoadHookScript("hs_combatdamage", HOOK_COMBATDAMAGE);
 	HookCall(0x42326C, ComputeDamageHook); // check_ranged_miss()
@@ -1643,17 +1652,8 @@ static void HookScriptInit2() {
 	MakeCall(0x423DEB, ComputeDamageHook); // compute_explosion_on_extras() - for the attacker
 
 	LoadHookScript("hs_ondeath", HOOK_ONDEATH);
-	HookCall(0x4130CC, &OnDeathHook);
-	HookCall(0x4130EF, &OnDeathHook);
-	HookCall(0x413603, &OnDeathHook);
-	HookCall(0x426EF0, &OnDeathHook);
-	HookCall(0x42D1EC, &OnDeathHook);
-	HookCall(0x42D6F9, &OnDeathHook);
-	HookCall(0x457BC5, &OnDeathHook);
-	HookCall(0x457E3A, &OnDeathHook);
-	HookCall(0x457E54, &OnDeathHook);
-	HookCall(0x4C14F9, &OnDeathHook);
-	HookCall(0x425161, &OnDeathHook2);
+	MakeCall(0x42DA6D, OnDeathHook);  // critter_kill_
+	HookCall(0x425161, OnDeathHook2); // damage_object_
 
 	LoadHookScript("hs_findtarget", HOOK_FINDTARGET);
 	HookCall(0x429143, FindTargetHook);
