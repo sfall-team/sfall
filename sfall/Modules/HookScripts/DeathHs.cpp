@@ -74,7 +74,7 @@ static void __declspec(naked) CalcDeathAnim2Hook() {
 	__asm {
 		call fo::funcoffs::check_death_; // call original function
 		HookBegin;
-		mov	ebx, [esp + 60];
+		mov ebx, [esp + 60];
 		mov args[4], ebx;    // attacker
 		mov args[8], esi;    // target
 		mov ebx, [esp + 12];
@@ -97,19 +97,24 @@ static void __declspec(naked) CalcDeathAnim2Hook() {
 }
 
 static void __declspec(naked) OnDeathHook() {
+	using namespace fo::Fields;
 	__asm {
-		HookBegin;
-		mov  args[0], eax;
-		call fo::funcoffs::critter_kill_;
-		pushad;
+		push edx;
+		call BeginHook;
+		mov  args[0], esi;
 	}
 
 	argCount = 1;
 	RunHookScript(HOOK_ONDEATH);
 	EndHook();
 
-	_asm popad;
-	_asm retn;
+	__asm {
+		pop edx;
+		// engine code
+		mov eax, [esi + protoId];
+		mov ebp, ebx;
+		retn;
+	}
 }
 
 static void __declspec(naked) OnDeathHook2() {
@@ -137,30 +142,19 @@ void Inject_DeathAnim1Hook() {
 
 void Inject_DeathAnim2Hook() {
 	HookCalls(CalcDeathAnim2Hook, {
-		0x410981,
-		0x4109A1,
-		0x4109BF
+		0x410981, // show_damage_to_object_
+		0x4109A1, // show_damage_to_object_
+		0x4109BF  // show_damage_to_object_
 	});
 	registerHookDeathAnim2 = true;
 	if (!registerHookDeathAnim1) {
-		HookCall(0x4109DE, CalcDeathAnimHook);
+		HookCall(0x4109DE, CalcDeathAnimHook); // show_damage_to_object_
 	}
 }
 
 void Inject_OnDeathHook() {
-	HookCalls(OnDeathHook, {
-		0x4130CC,
-		0x4130EF,
-		0x413603,
-		0x426EF0,
-		0x42D1EC,
-		0x42D6F9,
-		0x457BC5,
-		0x457E3A,
-		0x457E54,
-		0x4C14F9
-	});
-	HookCall(0x425161, OnDeathHook2);
+	MakeCall(0x42DA6D, OnDeathHook);  // critter_kill_
+	HookCall(0x425161, OnDeathHook2); // damage_object_
 }
 
 void InitDeathHookScripts() {

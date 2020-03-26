@@ -70,8 +70,6 @@ void ResetBodyState() {
 }
 
 static void Initialization() {
-	*(DWORD*)FO_VAR_gDialogMusicVol = *(DWORD*)FO_VAR_background_volume; // fix dialog music
-
 	// Restore calling original engine functions from HRP hacks (there is no difference in HRP functions)
 	__int64 data = 0xC189565153;
 	SafeWriteBytes(0x4D78CC, (BYTE*)&data, 5); // win_get_top_win_
@@ -3289,6 +3287,9 @@ void BugFixes::init()
 	BlockCall(0x4123F3);
 	MakeCall(0x4123F8, action_loot_container_hack, 1);
 
+	// Fix the music volume when entering the dialog
+	SafeWrite32(0x44525D, (DWORD)FO_VAR_background_volume);
+
 	// Fix for the barter button on the dialog window not animating until after leaving the barter screen
 	HookCall(0x44A77C, gdialog_window_create_hook);
 
@@ -3297,7 +3298,7 @@ void BugFixes::init()
 
 	// Fix crash or animation glitch of the critter in combat when an explosion from explosives
 	// and the AI attack animation are performed simultaneously
-	// Note: all events in combat will occur before the AI attack
+	// Note: all events in combat will occur before the AI (party member) attack
 	HookCall(0x422E5F, combat_ai_hook); // execute all events after the end of the combat sequence
 
 	// Fix for the "Fill_W" flag in worldmap.txt not uncovering all tiles to the left edge of the world map

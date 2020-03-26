@@ -393,7 +393,7 @@ static void __declspec(naked) CombatTurnHook_End() {
 	__asm jmp  fo::funcoffs::combat_over_;
 }
 
-// hack to exit from combat_add_noncoms function without crashing when you load game during NPC turn
+// hack to exit from combat_add_noncoms function without crashing when you load game during PM/NPC turn
 static long countCombat = 0;
 static void __declspec(naked) CombatTurnHook_AddNoncoms() {
 	__asm {
@@ -414,7 +414,7 @@ endCombat:
 		jz   skip;
 		mov  countCombat, eax;
 skip:
-		mov  ds:[FO_VAR_list_com], edx;
+		mov  ds:[FO_VAR_list_com], edx; // edx = 0
 		retn;
 	}
 }
@@ -589,7 +589,7 @@ void Inject_CombatDamageHook() {
 		0x424220, // attack_crit_failure()
 		0x4242FB, // attack_crit_failure()
 	});
-	MakeCall(0x423DEB, ComputeDamageHook); // compute_explosion_on_extras() - for the attacker
+	MakeCall(0x423DEB, ComputeDamageHook); // compute_explosion_on_extras() - fix for the attacker
 }
 
 void Inject_FindTargetHook() {
@@ -607,7 +607,10 @@ void Inject_AmmoCostHook() {
 void Inject_CombatTurnHook() {
 	HookCall(0x422354, CombatTurnHook_AddNoncoms);
 	HookCalls(CombatTurnHook, { 0x422D87, 0x422E20 });
-	HookCall(0x422E85, CombatTurnHook_End);
+	HookCalls(CombatTurnHook_End, {
+		0x422E85, // combat_
+		0x422196  // combat_over_from_load_
+	});
 
 	HookCall(0x422E4D, combat_hook_fix_load);
 }

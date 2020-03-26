@@ -489,13 +489,17 @@ static void __declspec(naked) gsound_set_sfx_volume_hack() {
 
 static void SoundLostFocus() {
 	long isActive;
-	__asm mov isActive, eax;
+	__asm push ecx;
+	__asm mov  isActive, eax;
 
-	if (isActive) {
-		ResumeAllSfallSound();
-	} else {
-		PauseAllSfallSound();
+	if (!loopingSounds.empty() || !playingSounds.empty()) {
+		if (isActive) {
+			ResumeAllSfallSound();
+		} else {
+			PauseAllSfallSound();
+		}
 	}
+	__asm pop ecx;
 }
 
 ///////////////////////////////////////////////////////////////////////////////

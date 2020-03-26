@@ -16,6 +16,10 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#pragma comment(lib, "psapi.lib")
+
+#include <psapi.h>
+
 #include <algorithm>
 #include <stdio.h>
 #include <memory>
@@ -152,8 +156,8 @@ size_t Translate(const char* section, const char* setting, const char* defaultVa
 }
 
 int SetConfigInt(const char* section, const char* setting, int value) {
-	char* buf = new char[128];
-	_itoa_s(value, buf, 128, 10);
+	char* buf = new char[33];
+	_itoa_s(value, buf, 33, 10);
 	int result = WritePrivateProfileStringA(section, setting, buf, ini);
 	delete[] buf;
 	return result;
@@ -224,8 +228,8 @@ static void InitModules() {
 	dlogr("Leave InitModules", DL_MAIN);
 }
 
-static const DWORD loadFunc = 0x4FE1D0;
 static void LoadHRPModule() {
+	static const DWORD loadFunc = 0x4FE1D0;
 	HMODULE dll;
 	__asm call loadFunc; // get HRP loading address
 	__asm mov  dll, eax;
@@ -331,7 +335,12 @@ defaultIni:
 	hrpIsEnabled = (*(DWORD*)0x4E4480 != 0x278805C7); // check if HRP is enabled
 	if (hrpIsEnabled) {
 		LoadHRPModule();
-		if (strncmp((const char*)HRPAddress(0x10039940), "4.1.8", 5) == 0) hrpVersionValid = true;
+		MODULEINFO info;
+		if (GetModuleInformation(GetCurrentProcess(), (HMODULE)hrpDLLBaseAddr, &info, sizeof(info)) && info.SizeOfImage >= 0x39940 + 7) {
+			if (*(BYTE*)HRPAddress(0x10039940 + 7) == 0 && strncmp((const char*)HRPAddress(0x10039940), "4.1.8", 5) == 0) {
+				hrpVersionValid = true;
+			}
+		}
 	}
 
 	InitModules();

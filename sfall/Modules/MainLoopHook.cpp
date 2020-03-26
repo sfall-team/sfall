@@ -40,12 +40,13 @@ static void __declspec(naked) CombatLoopHook() {
 	__asm {
 		push ecx;
 		push edx;
-		push eax;
+		//push eax;
 		call CombatLoopHook2;
-		pop  eax;
+		//pop  eax;
 		pop  edx;
-		pop  ecx;
-		jmp  fo::funcoffs::get_input_;
+		call fo::funcoffs::get_input_;
+		pop  ecx; // prevent the combat turn from being skipped after pressing Alt-Tab
+		retn;
 	}
 }
 
