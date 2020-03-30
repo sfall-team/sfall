@@ -315,6 +315,7 @@ const DWORD critter_can_obj_dude_rest_ = 0x42E564;
 const DWORD critter_compute_ap_from_distance_ = 0x42E62C;
 const DWORD critter_flag_check_ = 0x42E6AC;
 const DWORD critter_get_hits_ = 0x42D18C;
+const DWORD critter_get_rads_ = 0x42D38C;
 const DWORD critter_is_dead_ = 0x42DD18;
 const DWORD critter_kill_ = 0x42DA64;
 const DWORD critter_kill_count_type_ = 0x42D920;
@@ -990,30 +991,6 @@ long __stdcall ScrPtr(long scriptId, TScript** scriptPtr) {
 	WRAP_WATCOM_CALL2(scr_ptr_, scriptId, scriptPtr)
 }
 
-long __stdcall RegisterObjectAnimateAndHide(TGameObj* object, long anim, long delay) {
-	WRAP_WATCOM_CALL3(register_object_animate_and_hide_, object, anim, delay)
-}
-
-long __stdcall RegisterObjectChangeFid(TGameObj* object, long artFid, long delay) {
-	WRAP_WATCOM_CALL3(register_object_change_fid_, object, artFid, delay)
-}
-
-long __stdcall RegisterObjectLight(TGameObj* object, long lightRadius, long delay) {
-	WRAP_WATCOM_CALL3(register_object_light_, object, lightRadius, delay)
-}
-
-long __stdcall RegisterObjectMustErase(TGameObj* object) {
-	WRAP_WATCOM_CALL1(register_object_must_erase_, object)
-}
-
-long __stdcall RegisterObjectTakeOut(TGameObj* object, long holdFrameId, long nothing) {
-	WRAP_WATCOM_CALL3(register_object_take_out_, object, holdFrameId, nothing)
-}
-
-long __stdcall RegisterObjectTurnTowards(TGameObj* object, long tileNum, long nothing) {
-	WRAP_WATCOM_CALL3(register_object_turn_towards_, object, tileNum, nothing)
-}
-
 long __stdcall ScrNew(long* scriptID, long sType) {
 	WRAP_WATCOM_CALL2(scr_new_, scriptID, sType)
 }
@@ -1051,12 +1028,48 @@ void __stdcall IntfaceRedraw() {
 	WRAP_WATCOM_CALL0(intface_redraw_)
 }
 
+long __stdcall PickDeath(TGameObj* attacker, TGameObj* target, TGameObj* weapon, long amount, long anim, long hitFromBack) {
+	WRAP_WATCOM_CALL6(pick_death_, attacker, target, weapon, amount, anim, hitFromBack)
+}
+
 void __stdcall ProcessBk() {
 	WRAP_WATCOM_CALL0(process_bk_)
 }
 
 void __stdcall ProtoDudeUpdateGender() {
 	WRAP_WATCOM_CALL0(proto_dude_update_gender_)
+}
+
+long* __stdcall QueueFindFirst(TGameObj* object, long qType) {
+	WRAP_WATCOM_CALL2(queue_find_first_, object, qType)
+}
+
+long* __stdcall QueueFindNext(TGameObj* object, long qType) {
+	WRAP_WATCOM_CALL2(queue_find_next_, object, qType)
+}
+
+long __stdcall RegisterObjectAnimateAndHide(TGameObj* object, long anim, long delay) {
+	WRAP_WATCOM_CALL3(register_object_animate_and_hide_, object, anim, delay)
+}
+
+long __stdcall RegisterObjectChangeFid(TGameObj* object, long artFid, long delay) {
+	WRAP_WATCOM_CALL3(register_object_change_fid_, object, artFid, delay)
+}
+
+long __stdcall RegisterObjectLight(TGameObj* object, long lightRadius, long delay) {
+	WRAP_WATCOM_CALL3(register_object_light_, object, lightRadius, delay)
+}
+
+long __stdcall RegisterObjectMustErase(TGameObj* object) {
+	WRAP_WATCOM_CALL1(register_object_must_erase_, object)
+}
+
+long __stdcall RegisterObjectTakeOut(TGameObj* object, long holdFrameId, long nothing) {
+	WRAP_WATCOM_CALL3(register_object_take_out_, object, holdFrameId, nothing)
+}
+
+long __stdcall RegisterObjectTurnTowards(TGameObj* object, long tileNum, long nothing) {
+	WRAP_WATCOM_CALL3(register_object_turn_towards_, object, tileNum, nothing)
 }
 
 // pops value type from Data stack (must be followed by InterpretPopLong)
@@ -1358,8 +1371,8 @@ TGameObj* __fastcall obj_blocking_at_wrapper(TGameObj* obj, DWORD tile, DWORD el
 	}
 }
 
-long* __stdcall QueueFindFirst(TGameObj* object, long qType) {
-	WRAP_WATCOM_CALL2(queue_find_first_, object, qType)
+long __stdcall ObjEraseObject(TGameObj* object, BoundRect* boundRect) {
+	WRAP_WATCOM_CALL2(obj_erase_object_, object, boundRect)
 }
 
 TGameObj* __stdcall ObjFindFirst() {
@@ -1376,6 +1389,10 @@ TGameObj* __stdcall ObjFindNext() {
 
 TGameObj* __stdcall ObjFindNextAtTile() {
 	WRAP_WATCOM_CALL0(obj_find_next_at_tile_)
+}
+
+long __stdcall ObjPidNew(TGameObj* object, long pid) {
+	WRAP_WATCOM_CALL2(obj_pid_new_, object, pid)
 }
 
 long __stdcall ObjLockIsJammed(TGameObj* object) {
@@ -1649,6 +1666,16 @@ __declspec(noinline) TGameObj* __stdcall GetItemPtrSlot(TGameObj* critter, long 
 			break;
 	}
 	return itemPtr;
+}
+
+// Checks whether the player is under the influence of negative effects of radiation
+long __fastcall IsRadInfluence() {
+	QueueRadiation* queue = (QueueRadiation*)QueueFindFirst(*ptr_obj_dude, radiation_event);
+	while (queue) {
+		if (queue->init && queue->level >= 2) return 1;
+		queue = (QueueRadiation*)QueueFindNext(*ptr_obj_dude, radiation_event);
+	}
+	return 0;
 }
 
 // Returns the number of local variables of the object script

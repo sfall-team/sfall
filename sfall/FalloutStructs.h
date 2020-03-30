@@ -333,7 +333,12 @@ struct Queue {
 	DWORD time;
 	long type;
 	TGameObj* object;
-	long data;
+	DWORD* data;
 	Queue* next;
+};
+
+struct QueueRadiation {
+	long level;
+	long init; // 1 - for removing effect
 };
 #pragma pack(pop)

@@ -70,11 +70,10 @@ static struct HooksPositionInfo {
 	bool hasHsScript;
 } hooksInfo[HOOK_COUNT];
 
-#define hookbegin(a) pushadc __asm call BeginHook popadc __asm mov argCount, a
-#define hookend pushadc __asm call EndHook popadc
-
 #define HookBegin pushadc __asm call BeginHook popadc
 #define HookEnd pushadc __asm call EndHook popadc
+
+#define HookBeginArgs(a) HookBegin __asm mov argCount, a
 
 static void _stdcall BeginHook() {
 	if (callDepth && callDepth <= maxDepth) {
@@ -241,7 +240,7 @@ static void __declspec(naked) AfterHitRollHook() {
 
 static void __declspec(naked) CalcApCostHook() {
 	__asm {
-		hookbegin(4);
+		HookBeginArgs(4);
 		mov args[0], eax;
 		mov args[4], edx;
 		mov args[8], ebx;
@@ -255,7 +254,7 @@ static void __declspec(naked) CalcApCostHook() {
 		jl end;
 		mov eax, rets[0];
 end:
-		hookend;
+		HookEnd;
 		retn;
 	}
 }
@@ -263,7 +262,7 @@ end:
 // this is for using non-weapon items, always 2 AP in vanilla
 static void __declspec(naked) CalcApCostHook2() {
 	__asm {
-		hookbegin(4);
+		HookBeginArgs(4);
 		mov args[0], ecx; // critter
 		mov args[4], edx; // attack type (to determine hand)
 		mov args[8], ebx;
@@ -277,18 +276,18 @@ static void __declspec(naked) CalcApCostHook2() {
 		jl end;
 		mov eax, rets[0];
 end:
-		hookend;
+		HookEnd;
 		retn;
 	}
 }
 
 static void __declspec(naked) CalcDeathAnimHook() {
 	__asm {
-		hookbegin(4);
+		HookBeginArgs(4);
 		mov args[24], ebx;
 		test ebx, ebx;
 		jz noweap
-		mov ebx, [ebx+0x64];
+		mov ebx, [ebx + 0x64];
 		and ebx, 0xFFF;
 		jmp weapend;
 noweap:
@@ -318,8 +317,8 @@ weapend:
 		mov args[24], eax;
 end1:
 		popad;
-		mov eax, [esp+8];
-		mov ebx, [esp+4];
+		mov eax, [esp + 8];
+		mov ebx, [esp + 4];
 		push eax;
 		push ebx;
 		mov eax, args[4];
@@ -347,20 +346,20 @@ skip2:
 		call obj_erase_object_;
 aend:
 		pop eax;
-		hookend;
+		HookEnd;
 		retn 8;
 	}
 }
 
 static void __declspec(naked) CalcDeathAnimHook2() {
 	__asm {
-		hookbegin(5);
+		HookBeginArgs(5);
 		call check_death_; // call original function
 		mov args[0], -1; // weaponPid, -1
-		mov ebx, [esp+60];
+		mov ebx, [esp + 60];
 		mov args[4], ebx; // attacker
 		mov args[8], esi; // target
-		mov ebx, [esp+12]
+		mov ebx, [esp + 12]
 		mov args[12], ebx; // dmgAmount
 		mov args[16], eax; // calculated animID
 		pushad;
@@ -373,7 +372,7 @@ static void __declspec(naked) CalcDeathAnimHook2() {
 		mov args[16], eax;
 skip:
 		mov eax, args[16];
-		hookend;
+		HookEnd;
 		retn;
 	}
 }
@@ -499,7 +498,7 @@ static void __declspec(naked) FindTargetHook() {
 
 static void __declspec(naked) UseObjOnHook() {
 	__asm {
-		hookbegin(3);
+		HookBeginArgs(3);
 		mov args[0], edx; // target
 		mov args[4], eax; // user
 		mov args[8], ebx; // object
@@ -516,14 +515,14 @@ static void __declspec(naked) UseObjOnHook() {
 defaulthandler:
 		call protinst_use_item_on_;
 end:
-		hookend;
+		HookEnd;
 		retn;
 	}
 }
 
 static void __declspec(naked) UseObjOnHook_item_d_take_drug() {
 	__asm {
-		hookbegin(3);
+		HookBeginArgs(3);
 		mov args[0], eax; // target
 		mov args[4], eax; // user
 		mov args[8], edx; // object
@@ -540,14 +539,14 @@ static void __declspec(naked) UseObjOnHook_item_d_take_drug() {
 defaulthandler:
 		call item_d_take_drug_;
 end:
-		hookend;
+		HookEnd;
 		retn;
 	}
 }
 
 static void __declspec(naked) UseObjHook() {
 	__asm {
-		hookbegin(2);
+		HookBeginArgs(2);
 		mov args[0], eax; // user
 		mov args[4], edx; // object
 		pushad;
@@ -563,7 +562,7 @@ static void __declspec(naked) UseObjHook() {
 defaulthandler:
 		call protinst_use_item_;
 end:
-		hookend;
+		HookEnd;
 		retn;
 	}
 }
@@ -686,7 +685,7 @@ static void __declspec(naked) OverrideCost_BarterPriceHook() {
 
 static void __declspec(naked) MoveCostHook() {
 	__asm {
-		hookbegin(3);
+		HookBeginArgs(3);
 		mov args[0], eax;
 		mov args[4], edx;
 		call critter_compute_ap_from_distance_;
@@ -699,7 +698,7 @@ static void __declspec(naked) MoveCostHook() {
 		jl end;
 		mov eax, rets[0];
 end:
-		hookend;
+		HookEnd;
 		retn;
 	}
 }
@@ -707,7 +706,7 @@ end:
 static const DWORD _obj_blocking_at = 0x48B84E;
 static void __declspec(naked) HexMBlockingHook() {
 	__asm {
-		hookbegin(4);
+		HookBeginArgs(4);
 		mov args[0], eax;
 		mov args[4], edx;
 		mov args[8], ebx;
@@ -728,14 +727,14 @@ next:
 		jl end;
 		mov eax, rets[0];
 end:
-		hookend;
+		HookEnd;
 		retn;
 	}
 }
 
 static void __declspec(naked) HexABlockingHook() {
 	__asm {
-		hookbegin(4);
+		HookBeginArgs(4);
 		mov args[0], eax;
 		mov args[4], edx;
 		mov args[8], ebx;
@@ -749,14 +748,14 @@ static void __declspec(naked) HexABlockingHook() {
 		jl end;
 		mov eax, rets[0];
 end:
-		hookend;
+		HookEnd;
 		retn;
 	}
 }
 
 static void __declspec(naked) HexShootBlockingHook() {
 	__asm {
-		hookbegin(4);
+		HookBeginArgs(4);
 		mov args[0], eax;
 		mov args[4], edx;
 		mov args[8], ebx;
@@ -770,14 +769,14 @@ static void __declspec(naked) HexShootBlockingHook() {
 		jl end;
 		mov eax, rets[0];
 end:
-		hookend;
+		HookEnd;
 		retn;
 	}
 }
 
 static void __declspec(naked) HexSightBlockingHook() {
 	__asm {
-		hookbegin(4);
+		HookBeginArgs(4);
 		mov args[0], eax;
 		mov args[4], edx;
 		mov args[8], ebx;
@@ -791,14 +790,14 @@ static void __declspec(naked) HexSightBlockingHook() {
 		jl end;
 		mov eax, rets[0];
 end:
-		hookend;
+		HookEnd;
 		retn;
 	}
 }
 
 static void __declspec(naked) ItemDamageHook() {
 	__asm {
-		hookbegin(6);
+		HookBeginArgs(6);
 		mov args[0], eax; //min
 		mov args[4], edx; //max
 		mov args[8], edi; //weapon
@@ -822,7 +821,7 @@ skip:
 runrandom:
 		call roll_random_;
 end:
-		hookend;
+		HookEnd;
 		retn;
 	}
 }
@@ -902,7 +901,7 @@ void _stdcall MouseClickHook(DWORD button, bool pressed) {
 
 static void __declspec(naked) UseSkillHook() {
 	__asm {
-		hookbegin(4);
+		HookBeginArgs(4);
 		mov args[0], eax; // user
 		mov args[4], edx; // target
 		mov args[8], ebx; // skill id
@@ -920,14 +919,14 @@ static void __declspec(naked) UseSkillHook() {
 defaulthandler:
 		call skill_use_;
 end:
-		hookend;
+		HookEnd;
 		retn;
 	}
 }
 
 static void __declspec(naked) StealCheckHook() {
 	__asm {
-		hookbegin(4);
+		HookBeginArgs(4);
 		mov args[0], eax; // thief
 		mov args[4], edx; // target
 		mov args[8], ebx; // item
@@ -945,7 +944,7 @@ static void __declspec(naked) StealCheckHook() {
 defaulthandler:
 		call skill_check_stealing_;
 end:
-		hookend;
+		HookEnd;
 		retn;
 	}
 }

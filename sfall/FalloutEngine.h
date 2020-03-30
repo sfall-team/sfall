@@ -291,6 +291,7 @@
 #define _GoodColor                  0x6AB4EF
 #define _GreenColor                 0x6A3CB0
 #define _LIGHT_GREY_Color           0x6A76BF
+#define _LIGHT_RED_Color            0x6AB61A
 #define _PeanutButter               0x6A82F3
 #define _RedColor                   0x6AB4D0
 #define _WhiteColor                 0x6AB8CF
@@ -575,6 +576,7 @@ extern const DWORD critter_can_obj_dude_rest_;
 extern const DWORD critter_compute_ap_from_distance_;
 extern const DWORD critter_flag_check_;
 extern const DWORD critter_get_hits_;
+extern const DWORD critter_get_rads_;
 extern const DWORD critter_is_dead_; // eax - critter
 extern const DWORD critter_kill_;
 extern const DWORD critter_kill_count_type_;
@@ -1131,13 +1133,6 @@ TGameObj* __stdcall ScrFindObjFromProgram(TProgram* program);
 // Returns 0 on success, -1 on failure.
 long __stdcall ScrPtr(long scriptId, TScript** scriptPtr);
 
-long __stdcall RegisterObjectAnimateAndHide(TGameObj* object, long anim, long delay);
-long __stdcall RegisterObjectChangeFid(TGameObj* object, long artFid, long delay);
-long __stdcall RegisterObjectLight(TGameObj* object, long lightRadius, long delay);
-long __stdcall RegisterObjectMustErase(TGameObj* object);
-long __stdcall RegisterObjectTakeOut(TGameObj* object, long holdFrameId, long nothing);
-long __stdcall RegisterObjectTurnTowards(TGameObj* object, long tileNum, long nothing);
-
 long __stdcall ScrNew(long* scriptID, long sType);
 
 long __stdcall ScrRemove(long scriptID);
@@ -1156,9 +1151,21 @@ long __stdcall IntfaceIsHidden();
 // redraws the main game interface windows (useful after changing some data like active hand, etc.)
 void __stdcall IntfaceRedraw();
 
+long __stdcall PickDeath(TGameObj* attacker, TGameObj* target, TGameObj* weapon, long amount, long anim, long hitFromBack);
+
 void __stdcall ProcessBk();
 
 void __stdcall ProtoDudeUpdateGender();
+
+long* __stdcall QueueFindFirst(TGameObj* object, long qType);
+long* __stdcall QueueFindNext(TGameObj* object, long qType);
+
+long __stdcall RegisterObjectAnimateAndHide(TGameObj* object, long anim, long delay);
+long __stdcall RegisterObjectChangeFid(TGameObj* object, long artFid, long delay);
+long __stdcall RegisterObjectLight(TGameObj* object, long lightRadius, long delay);
+long __stdcall RegisterObjectMustErase(TGameObj* object);
+long __stdcall RegisterObjectTakeOut(TGameObj* object, long holdFrameId, long nothing);
+long __stdcall RegisterObjectTurnTowards(TGameObj* object, long tileNum, long nothing);
 
 // critter worn item (armor)
 TGameObj* __stdcall InvenWorn(TGameObj* critter);
@@ -1244,11 +1251,11 @@ long __stdcall PerkLevel(TGameObj* critter, long perkId);
 
 long __stdcall TraitLevel(long traitID);
 
-long* __stdcall QueueFindFirst(TGameObj* object, long qType);
-
 void __fastcall make_straight_path_func_wrapper(TGameObj* objFrom, DWORD tileFrom, DWORD tileTo, void* rotationPtr, DWORD* result, long flags, void* func);
 
 TGameObj* __fastcall obj_blocking_at_wrapper(TGameObj* obj, DWORD tile, DWORD elevation, void* func);
+
+long __stdcall ObjEraseObject(TGameObj* object, BoundRect* boundRect);
 
 TGameObj* __stdcall ObjFindFirst();
 
@@ -1257,6 +1264,8 @@ TGameObj* __stdcall ObjFindFirstAtTile(long elevation, long tileNum);
 TGameObj* __stdcall ObjFindNext();
 
 TGameObj* __stdcall ObjFindNextAtTile();
+
+long __stdcall ObjPidNew(TGameObj* object, long pid);
 
 // checks/unjams jammed locks
 long __stdcall ObjLockIsJammed(TGameObj* object);
@@ -1374,6 +1383,9 @@ void SkillGetTags(long* result, long num);
 void SkillSetTags(long* tags, long num);
 
 __declspec(noinline) TGameObj* __stdcall GetItemPtrSlot(TGameObj* critter, long slot);
+
+// Checks whether the player is under the influence of negative effects of radiation
+long __fastcall IsRadInfluence();
 
 // Returns the number of local variables of the object script
 long GetScriptLocalVars(long sid);

@@ -1018,7 +1018,7 @@ static void __declspec(naked) CombatLoopHook() {
 		//pop  eax;
 		pop  edx;
 		call get_input_;
-		pop  ecx; // prevent the combat turn from being skipped after pressing Alt-Tab
+		pop  ecx; // fix to prevent the combat turn from being skipped after using Alt+Tab
 		retn;
 	}
 }

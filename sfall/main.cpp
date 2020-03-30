@@ -335,6 +335,26 @@ playWalkMovie:
 	}
 }
 
+static void __declspec(naked) ListDrvdStats_hook() {
+	static const DWORD ListDrvdStats_Ret = 0x4354D9;
+	__asm {
+		call IsRadInfluence;
+		test eax, eax;
+		jnz  influence;
+		mov  eax, ds:[_obj_dude];
+		jmp  critter_get_rads_;
+influence:
+		xor  ecx, ecx;
+		mov  cl, ds:[_RedColor];
+		cmp  dword ptr [esp], 0x4354BE + 5;
+		jne  skip;
+		mov  cl, 131; // color index for selected
+skip:
+		add  esp, 4;
+		jmp  ListDrvdStats_Ret;
+	}
+}
+
 static void __declspec(naked) op_display_msg_hook() {
 	__asm {
 		cmp  dword ptr ds:_debug_func, 0;
@@ -790,6 +810,10 @@ static void DllMain2() {
 		dlogr(" Done", DL_INIT);
 	}
 
+	// Highlight "Radiated" in red color when the player is under the influence of negative effects of radiation
+	HookCall(0x43549C, ListDrvdStats_hook);
+	HookCall(0x4354BE, ListDrvdStats_hook);
+
 	// Increase the max text width of the information card in the character screen
 	SafeWrite8(0x43ACD5, 145); // 136
 	SafeWrite8(0x43DD37, 145); // 133
@@ -834,8 +858,8 @@ static void __declspec(naked) OnExitFunc() {
 	}
 }
 
-static const DWORD loadFunc = 0x4FE1D0;
 static void LoadHRPModule() {
+	static const DWORD loadFunc = 0x4FE1D0;
 	HMODULE dll;
 	__asm call loadFunc; // get HRP loading address
 	__asm mov  dll, eax;
