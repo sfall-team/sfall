@@ -18,6 +18,7 @@
 #pragma once
 
 #include <string>
+#include <vector>
 
 #include "Functions.h"
 
@@ -65,6 +66,9 @@ long GetCurrentAttackMode();
 bool HeroIsFemale();
 
 long CheckAddictByPid(fo::GameObject* critter, long pid);
+
+// Checks whether the player is under the influence of negative effects of radiation
+long __fastcall IsRadInfluence();
 
 void ToggleNpcFlag(fo::GameObject* npc, long flag, bool set);
 

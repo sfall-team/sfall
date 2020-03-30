@@ -144,6 +144,16 @@ long CheckAddictByPid(fo::GameObject* critter, long pid) {
 	/* keyword 'return' is not needed, the compiler will do everything correctly */
 }
 
+// Checks whether the player is under the influence of negative effects of radiation
+long __fastcall IsRadInfluence() {
+	fo::QueueRadiation* queue = (fo::QueueRadiation*)fo::func::queue_find_first(fo::var::obj_dude, fo::radiation_event);
+	while (queue) {
+		if (queue->init && queue->level >= 2) return 1;
+		queue = (fo::QueueRadiation*)fo::func::queue_find_next(fo::var::obj_dude, fo::radiation_event);
+	}
+	return 0;
+}
+
 void ToggleNpcFlag(fo::GameObject* npc, long flag, bool set) {
 	Proto* protoPtr;
 	if (fo::func::proto_ptr(npc->protoId, &protoPtr) != -1) {

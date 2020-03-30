@@ -1098,37 +1098,31 @@ skip:
 }
 
 static void __declspec(naked) combat_ctd_init_hack() {
+	static const DWORD combat_ctd_init_Ret = 0x422F11;
 	__asm {
-		mov  [esi+0x24], eax                      // ctd.targetTile
-		mov  eax, [ebx + whoHitMe]                // pobj.who_hit_me
-		inc  eax
-		jnz  end
-		mov  [ebx + whoHitMe], eax                // pobj.who_hit_me
+		mov  [esi + 0x24], eax;                   // ctd.targetTile
+		mov  eax, [ebx + whoHitMe];               // pobj.who_hit_me
+		inc  eax;
+		jnz  end;                                 // jump if whoHitMe != -1
+		mov  [ebx + whoHitMe], eax;               // pobj.who_hit_me = 0
 end:
-		push 0x422F11
-		retn
+		jmp  combat_ctd_init_Ret;
 	}
 }
 
 static void __declspec(naked) obj_save_hack() {
-	__asm {
-		inc  eax
-		jz   end
-		dec  eax
-		mov  edx, [esp+0x1C]                      // combat_data
-		mov  eax, [eax + cid]                     // pobj.who_hit_me.cid
-		test byte ptr ds:[FO_VAR_combat_state], 1 // in combat?
-		jz   clear                                // No
-		cmp  dword ptr [edx], 0                   // in combat?
-		jne  skip                                 // Yes
+	__asm { // edx - combat_data
+		mov  eax, [eax + cid];                     // pobj.who_hit_me.cid
+		test byte ptr ds:[FO_VAR_combat_state], 1; // in combat?
+		jz   clear;                                // No
+		cmp  dword ptr [edx], 0;                   // in combat?
+		jne  skip;                                 // Yes
 clear:
-		xor  eax, eax
-		dec  eax
+		xor  eax, eax;
+		dec  eax; // -1
 skip:
-		mov  [edx+0x18], eax                      // combat_data.who_hit_me
-end:
-		push 0x489422
-		retn
+		mov  [edx + 0x18], eax;                    // combat_data.who_hit_me
+		retn;
 	}
 }
 
@@ -1511,11 +1505,14 @@ static void __declspec(naked) ResetPlayer_hook() {
 	}
 }
 
-static const DWORD obj_move_to_tile_Ret = 0x48A74E;
 static void __declspec(naked) obj_move_to_tile_hack() {
+	static const DWORD obj_move_to_tile_Ret = 0x48A74E;
 	__asm {
-		cmp  dword ptr ds:[FO_VAR_map_state], 0; // map number, -1 exit to worldmap
+		cmp  ds:[FO_VAR_loadingGame], 0;
+		jnz  skip;
+		cmp  dword ptr ds:[FO_VAR_map_state], 0; // map number, -1 exit to worldmap (probably redundant)
 		jz   mapLeave;
+skip:
 		add  esp, 4;
 		jmp  obj_move_to_tile_Ret;
 mapLeave:
@@ -1868,7 +1865,32 @@ noRange:
 	}
 }
 
+static void __declspec(naked) process_rads_hack() {
+	static const DWORD process_rads_Ret = 0x42D708;
+	__asm {
+		test ebp, ebp;
+		jl   fix;
+		test byte ptr [ecx + damageFlags], DAM_DEAD;
+		jnz  fix;
+		retn;
+fix:
+		add  esp, 4;
+		jmp  process_rads_Ret;
+	}
+}
+
 static void __declspec(naked) process_rads_hook() {
+	__asm {
+		test ebp, ebp;
+		jg   skip;
+		mov  esi, 999; // msg number
+		mov  [esp + 0x20 - 0x20 + 4], esi;
+skip:
+		jmp  fo::funcoffs::message_search_;
+	}
+}
+
+static void __declspec(naked) process_rads_hook_msg() {
 	__asm {
 		push eax; // death message for DialogOut
 		call fo::funcoffs::display_print_;
@@ -2789,6 +2811,16 @@ void BugFixes::init()
 		dlogr(" Done", DL_INIT);
 	//}
 
+	// Enable party members with level 6 protos to reach level 6
+	//if (GetConfigInt("Misc", "NPCStage6Fix", 1)) {
+		dlog("Applying NPC Stage 6 Fix.", DL_INIT);
+		MakeJump(0x493CE9, NPCStage6Fix1); // partyMember_init_
+		MakeJump(0x494224, NPCStage6Fix2); // partyMemberGetAIOptions_
+		SafeWrite8(0x494063, 6);   // loop should look for a potential 6th stage (partyMember_init_)
+		SafeWrite8(0x4940BB, 204); // move pointer by 204 bytes instead of 200
+		dlogr(" Done", DL_INIT);
+	//}
+
 	//if (GetConfigInt("Misc", "NPCLevelFix", 1)) {
 		dlog("Applying NPC level fix.", DL_INIT);
 		HookCall(0x495BC9, (void*)0x495E51); // jz 0x495E7F > jz 0x495E51
@@ -2849,16 +2881,6 @@ void BugFixes::init()
 		dlogr(" Done", DL_INIT);
 	//}
 
-	// Enable party members with level 6 protos to reach level 6
-	//if (GetConfigInt("Misc", "NPCStage6Fix", 1)) {
-		dlog("Applying NPC Stage 6 Fix.", DL_INIT);
-		MakeJump(0x493CE9, NPCStage6Fix1); // partyMember_init_
-		MakeJump(0x494224, NPCStage6Fix2); // partyMemberGetAIOptions_
-		SafeWrite8(0x494063, 6);   // loop should look for a potential 6th stage (partyMember_init_)
-		SafeWrite8(0x4940BB, 204); // move pointer by 204 bytes instead of 200
-		dlogr(" Done", DL_INIT);
-	//}
-
 	//if (GetConfigInt("Misc", "MultiHexPathingFix", 1)) {
 		dlog("Applying MultiHex Pathing Fix.", DL_INIT);
 		MakeCalls(MultiHexFix, {0x42901F, 0x429170});
@@ -2893,7 +2915,7 @@ void BugFixes::init()
 	dlog("Applying fix for explosives bugs.", DL_INIT);
 	// Fix crashes when killing critters with explosives
 	MakeJump(0x422F05, combat_ctd_init_hack);
-	MakeJump(0x489413, obj_save_hack);
+	MakeCall(0x48941C, obj_save_hack, 1);
 	// Fix for destroy_p_proc not being called if the critter is killed by explosives when you leave the map
 	MakeCall(0x4130C3, action_explode_hack);
 	MakeCall(0x4130E5, action_explode_hack1);
@@ -3105,8 +3127,17 @@ void BugFixes::init()
 	// Fix for determine_to_hit_func_ engine function taking distance into account when called from determine_to_hit_no_range_
 	HookCall(0x4244C3, determine_to_hit_func_hook);
 
-	// Display a pop-up messages box about death from radiation
-	HookCall(0x42D733, process_rads_hook);
+	// Radiation fixes
+	MakeCall(0x42D6C3, process_rads_hack, 1); // prevents player's death if a stat is less than 1 when removing radiation effects
+	HookCall(0x42D67A, process_rads_hook);    // fix for the same message being displayed when removing radiation effects
+	// Display messages about radiation for the active geiger counter
+	if (GetConfigInt("Misc", "ActiveGeigerMsgs", 1)) {
+		dlog("Applying active geiger counter messages patch.", DL_INIT);
+		SafeWriteBatch<BYTE>(0x74, {0x42D424, 0x42D444}); // jnz > jz
+		dlogr(" Done", DL_INIT);
+	}
+	// Display a pop-up message box about death from radiation
+	HookCall(0x42D733, process_rads_hook_msg);
 
 	// Fix for AI not taking chem_primary_desire in AI.txt as drug use preference when using drugs in their inventory
 	if (GetConfigInt("Misc", "AIDrugUsePerfFix", 0)) {
