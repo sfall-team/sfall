@@ -11,48 +11,47 @@ namespace sfall
 static bool registerHookDeathAnim1 = false;
 static bool registerHookDeathAnim2 = false;
 
-static DWORD __fastcall CalcDeathAnimHook_Script(register DWORD damage, fo::GameObject* target, fo::GameObject* attacker, fo::GameObject* weapon, int animation, int hitBack) {
-
+static DWORD __fastcall CalcDeathAnimHook_Script(DWORD damage, fo::GameObject* target, fo::GameObject* attacker, fo::GameObject* weapon, int animation, int hitBack) {
 	BeginHook();
 	argCount = 5; // was 4
 
 	args[1] = (DWORD)attacker;
 	args[2] = (DWORD)target;
 	args[3] = damage;
-	args[4] = -1;
 
 	// weapon_ptr
 	args[0] = (weapon) ? weapon->protoId : -1; // attack is unarmed
 
 	bool createNewObj = false;
 	if (registerHookDeathAnim1) {
+		args[4] = -1; // set 'no anim' for combined hooks use
 		RunHookScript(HOOK_DEATHANIM1);
 		if (cRet > 0) {
-			register DWORD pid = rets[0];
-			args[0] = pid;
+			DWORD pid = rets[0];
+			args[0] = pid; // replace for HOOK_DEATHANIM2
 			fo::GameObject* object = nullptr;
 			if (fo::func::obj_pid_new((fo::GameObject*)&object, pid) != -1) { // create new object
 				createNewObj = true;
-				weapon = object;  // replace pointer to created object
+				weapon = object; // replace pointer with newly created weapon object
 			}
 			cRet = 0; // reset rets from HOOK_DEATHANIM1
 		}
 	}
 
-	long animDeath = fo::func::pick_death(attacker, target, weapon, damage, animation, hitBack); // vanilla pick death
+	DWORD animDeath = fo::func::pick_death(attacker, target, weapon, damage, animation, hitBack); // vanilla pick death
 
 	if (registerHookDeathAnim2) {
 		//argCount = 5;
 		args[4] = animDeath;
 		RunHookScript(HOOK_DEATHANIM2);
-	}
 
-	DWORD result = (cRet > 0) ? rets[0] : animDeath;
+		if (cRet > 0) animDeath = rets[0];
+	}
 	EndHook();
 
 	if (createNewObj) fo::func::obj_erase_object(weapon, 0); // delete created object
 
-	return result;
+	return animDeath;
 }
 
 static void __declspec(naked) CalcDeathAnimHook() {

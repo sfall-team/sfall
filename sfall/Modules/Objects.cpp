@@ -118,11 +118,15 @@ static void __declspec(naked) queue_add_hack() {
 	using namespace fo;
 	using namespace Fields;
 	__asm {
+		// engine code
 		mov  [edx + 8], edi; // queue.object
 		mov  [edx], esi;     // queue.time
-		//
+		//---
+		cmp  ds:[FO_VAR_loadingGame], 1; // don't change the object ID when loading a saved game (e.g. fix: NPC turns into a container)
+		je   skip;
 		test edi, edi;
 		jnz  fix;
+skip:
 		retn;
 fix:
 		mov  eax, [edi + protoId];
