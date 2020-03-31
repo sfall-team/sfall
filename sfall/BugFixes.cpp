@@ -1865,11 +1865,13 @@ fix:
 	}
 }
 
+static long radEffectsMsgNum = 3003; // "You feel better" for removing effects
+
 static void __declspec(naked) process_rads_hook() {
 	__asm {
 		test ebp, ebp;
 		jg   skip;
-		mov  esi, 999; // msg number
+		mov  esi, radEffectsMsgNum;
 		mov  [esp + 0x20 - 0x20 + 4], esi;
 skip:
 		jmp  message_search_;
@@ -3114,6 +3116,7 @@ void BugFixesInit()
 	// Radiation fixes
 	MakeCall(0x42D6C3, process_rads_hack, 1); // prevents player's death if a stat is less than 1 when removing radiation effects
 	HookCall(0x42D67A, process_rads_hook);    // fix for the same message being displayed when removing radiation effects
+	radEffectsMsgNum = GetConfigInt("Misc", "RadEffectsRemovalMsg", radEffectsMsgNum);
 	// Display messages about radiation for the active geiger counter
 	if (GetConfigInt("Misc", "ActiveGeigerMsgs", 1)) {
 		dlog("Applying active geiger counter messages patch.", DL_INIT);
@@ -3121,7 +3124,7 @@ void BugFixesInit()
 		SafeWrite8(0x42D444, 0x74);
 		dlogr(" Done", DL_INIT);
 	}
-	// Display a pop-up messages box about death from radiation
+	// Display a pop-up message box about death from radiation
 	HookCall(0x42D733, process_rads_hook_msg);
 
 	// Fix for AI not taking chem_primary_desire in AI.txt as drug use preference when using drugs in their inventory

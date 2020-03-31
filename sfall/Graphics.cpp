@@ -77,6 +77,8 @@ static DWORD windowTop = 0;
 static HWND window;
 static DWORD windowStyle = WS_CAPTION | WS_BORDER | WS_MINIMIZEBOX;
 
+static unsigned int windowData;
+
 static DWORD ShaderVersion;
 
 IDirect3D9* d3d9 = 0;
@@ -1221,9 +1223,9 @@ HRESULT _stdcall FakeDirectDrawCreate2(void*, IDirectDraw** b, void*) {
 		} else {
 			moveWindowKey[0] &= 0xFF;
 		}
-		int data = GetConfigInt("Graphics", "WindowData", 0);
-		windowLeft = data >> 16;
-		windowTop = data & 0xFFFF;
+		windowData = GetConfigInt("Graphics", "WindowData", 0);
+		windowLeft = windowData >> 16;
+		windowTop = windowData & 0xFFFF;
 	}
 
 	rcpres[0] = 1.0f / (float)gWidth;
@@ -1300,7 +1302,8 @@ void GraphicsInit() {
 void GraphicsExit() {
 	if (GraphicsMode) {
 		if (GraphicsMode == 5) {
-			SetConfigInt("Graphics", "WindowData", windowTop | (windowLeft << 16));
+			unsigned int data = windowTop | (windowLeft << 16);
+			if (data != windowData) SetConfigInt("Graphics", "WindowData", data);
 		}
 		if (titlesBuffer) delete[] titlesBuffer;
 		CoUninitialize();
