@@ -3131,7 +3131,7 @@ void BugFixes::init()
 
 	// Radiation fixes
 	MakeCall(0x42D6C3, process_rads_hack, 1); // prevents player's death if a stat is less than 1 when removing radiation effects
-	HookCall(0x42D67A, process_rads_hook);    // fix for the same message being displayed when removing radiation effects
+	HookCall(0x42D67A, process_rads_hook);    // fix for the same effect message being displayed when removing radiation effects
 	radEffectsMsgNum = GetConfigInt("Misc", "RadEffectsRemovalMsg", radEffectsMsgNum);
 	// Display messages about radiation for the active geiger counter
 	if (GetConfigInt("Misc", "ActiveGeigerMsgs", 1)) {
