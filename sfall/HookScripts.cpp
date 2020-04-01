@@ -281,97 +281,82 @@ end:
 	}
 }
 
+// 4.x backport
+static DWORD __fastcall CalcDeathAnimHook_Script(DWORD damage, TGameObj* target, TGameObj* attacker, TGameObj* weapon, int animation, int hitBack) {
+	BeginHook();
+	argCount = 5; // was 4
+
+	args[1] = (DWORD)attacker;
+	args[2] = (DWORD)target;
+	args[3] = damage;
+
+	// weapon_ptr
+	args[0] = (weapon) ? weapon->pid : -1; // attack is unarmed
+
+	bool createNewObj = false;
+	args[4] = -1; // set 'no anim' for combined hooks use
+	RunHookScript(HOOK_DEATHANIM1);
+	if (cRet > 0) {
+		DWORD pid = rets[0];
+		args[0] = pid; // replace for HOOK_DEATHANIM2
+		TGameObj* object = nullptr;
+		if (ObjPidNew((TGameObj*)&object, pid) != -1) { // create new object
+			createNewObj = true;
+			weapon = object; // replace pointer with newly created weapon object
+		}
+		cRet = 0; // reset rets from HOOK_DEATHANIM1
+	}
+
+	DWORD animDeath = PickDeath(attacker, target, weapon, damage, animation, hitBack); // vanilla pick death
+
+	//argCount = 5;
+	args[4] = animDeath;
+	RunHookScript(HOOK_DEATHANIM2);
+
+	if (cRet > 0) animDeath = rets[0];
+	EndHook();
+
+	if (createNewObj) ObjEraseObject(weapon, 0); // delete created object
+
+	return animDeath;
+}
+
 static void __declspec(naked) CalcDeathAnimHook() {
 	__asm {
-		HookBeginArgs(4);
-		mov args[24], ebx;
-		test ebx, ebx;
-		jz noweap
-		mov ebx, [ebx + 0x64];
-		and ebx, 0xFFF;
-		jmp weapend;
-noweap:
-		dec ebx;
-weapend:
-		mov args[0], ebx;
-		mov ebx, args[24];
-		mov args[4], eax;
-		mov args[8], edx;
-		mov args[12], ecx;
-		mov args[20], 0;
-		pushad;
-		push HOOK_DEATHANIM1;
-		call RunHookScript;
-		cmp cRet, 1;
-		jl end1;
-		sub esp, 4;
-		mov edx, rets[0];
-		mov args[0], edx;
-		mov eax, esp;
-		call obj_pid_new_;
-		add esp, 4;
-		cmp eax, -1;
-		jz end1;
-		mov eax, [esp-4];
-		mov args[20], 1;
-		mov args[24], eax;
-end1:
-		popad;
-		mov eax, [esp + 8];
-		mov ebx, [esp + 4];
-		push eax;
-		push ebx;
-		mov eax, args[4];
-		mov ebx, args[24];
-		call pick_death_;
-		mov args[16], eax;
-		mov eax, args[16];
-		mov argCount, 5;
-		pushad;
-		push HOOK_DEATHANIM2;
-		call RunHookScript;
-		popad;
-		cmp cRet, 1;
-		jl skip2;
-		mov eax, rets[0];
-		mov args[16], eax;
-skip2:
-		mov eax, args[16];
-		push eax;
-		mov eax, args[20];
-		test eax, eax;
-		jz aend;
-		mov eax, args[24];
-		xor edx, edx;
-		call obj_erase_object_;
-aend:
-		pop eax;
-		HookEnd;
+		push ecx;
+		push edx;
+		push [esp + 4 + 12]; // hit_from_back
+		push [esp + 4 + 12]; // animation
+		push ebx;            // weapon_ptr
+		push eax;            // attacker
+		call CalcDeathAnimHook_Script; // ecx - damage, edx - target
+		pop  edx;
+		pop  ecx;
 		retn 8;
 	}
 }
 
-static void __declspec(naked) CalcDeathAnimHook2() {
+static void __declspec(naked) CalcDeathAnim2Hook() {
 	__asm {
-		HookBeginArgs(5);
 		call check_death_; // call original function
-		mov args[0], -1; // weaponPid, -1
+		HookBegin;
 		mov ebx, [esp + 60];
-		mov args[4], ebx; // attacker
-		mov args[8], esi; // target
-		mov ebx, [esp + 12]
-		mov args[12], ebx; // dmgAmount
-		mov args[16], eax; // calculated animID
+		mov args[4], ebx;    // attacker
+		mov args[8], esi;    // target
+		mov ebx, [esp + 12];
+		mov args[12], ebx;   // dmgAmount
+		mov args[16], eax;   // calculated animID
 		pushad;
-		push HOOK_DEATHANIM2;
-		call RunHookScript;
+	}
+
+	argCount = 5;
+	args[0] = -1;     // weaponPid
+	RunHookScript(HOOK_DEATHANIM2);
+
+	__asm {
 		popad;
 		cmp cRet, 1;
-		jl skip;
-		mov eax, rets[0];
-		mov args[16], eax;
-skip:
-		mov eax, args[16];
+		cmovnb eax, rets[0];
 		HookEnd;
 		retn;
 	}
@@ -1634,10 +1619,10 @@ static void HookScriptInit2() {
 
 	LoadHookScript("hs_deathanim1", HOOK_DEATHANIM1);
 	LoadHookScript("hs_deathanim2", HOOK_DEATHANIM2);
-	HookCall(0x4109DE, &CalcDeathAnimHook);  // show_damage_to_object_
-	HookCall(0x410981, &CalcDeathAnimHook2); // show_damage_to_object_
-	HookCall(0x4109A1, &CalcDeathAnimHook2); // show_damage_to_object_
-	HookCall(0x4109BF, &CalcDeathAnimHook2); // show_damage_to_object_
+	HookCall(0x4109DE, CalcDeathAnimHook);  // show_damage_to_object_
+	HookCall(0x410981, CalcDeathAnim2Hook); // show_damage_to_object_
+	HookCall(0x4109A1, CalcDeathAnim2Hook); // show_damage_to_object_
+	HookCall(0x4109BF, CalcDeathAnim2Hook); // show_damage_to_object_
 
 	LoadHookScript("hs_combatdamage", HOOK_COMBATDAMAGE);
 	HookCall(0x42326C, ComputeDamageHook); // check_ranged_miss()
