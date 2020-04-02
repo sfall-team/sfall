@@ -1491,16 +1491,18 @@ static void RunGlobalScripts1() {
 }
 
 void RunGlobalScripts2() {
-	if (idle > -1) Sleep(idle);
+	if (IsGameLoaded()) {
+		if (idle > -1) Sleep(idle);
 
-	for (size_t i = 0; i < globalScripts.size(); i++) {
-		if (globalScripts[i].repeat
-			&& globalScripts[i].mode == 1
-			&& ++globalScripts[i].count >= globalScripts[i].repeat) {
-			RunScript(&globalScripts[i]);
+		for (size_t i = 0; i < globalScripts.size(); i++) {
+			if (globalScripts[i].repeat
+				&& globalScripts[i].mode == 1
+				&& ++globalScripts[i].count >= globalScripts[i].repeat) {
+				RunScript(&globalScripts[i]);
+			}
 		}
+		ResetStateAfterFrame();
 	}
-	ResetStateAfterFrame();
 }
 
 void RunGlobalScripts3() {

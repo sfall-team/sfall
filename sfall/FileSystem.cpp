@@ -462,7 +462,6 @@ void FileSystemSave(HANDLE h) {
 }
 
 static void FileSystemLoad() {
-	FileSystemReset();
 	char buf[MAX_PATH];
 	GetSavePath(buf, "fs");
 
