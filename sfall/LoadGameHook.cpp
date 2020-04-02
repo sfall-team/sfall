@@ -55,10 +55,11 @@ DWORD LoadGameHook_LootTarget = 0;
 
 static DWORD inLoop = 0;
 static DWORD saveInCombatFix;
-static bool mapLoaded = false;
+static bool gameLoaded = false;
 
-bool IsMapLoaded() {
-	return mapLoaded;
+// True if game was started, false when on the main menu
+bool IsGameLoaded() {
+	return gameLoaded;
 }
 
 DWORD InWorldMap() {
@@ -230,7 +231,7 @@ errorLoad:
 static void _stdcall LoadGame2_After() {
 	CritLoad();
 	LoadGlobalScripts();
-	mapLoaded = true;
+	gameLoaded = true;
 }
 
 static void __declspec(naked) LoadSlot() {
@@ -313,7 +314,7 @@ static void NewGame2() {
 	CritLoad();
 	LoadGlobalScripts();
 	LoadHeroAppearance();
-	mapLoaded = true;
+	gameLoaded = true;
 }
 
 static bool DisableHorrigan = false;

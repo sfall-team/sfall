@@ -856,7 +856,7 @@ skip:
 }
 
 DWORD _stdcall KeyPressHook(DWORD dxKey, bool pressed, DWORD vKey) {
-	if (!IsMapLoaded()) {
+	if (!IsGameLoaded()) {
 		return 0;
 	}
 	DWORD result = 0;
@@ -873,7 +873,7 @@ DWORD _stdcall KeyPressHook(DWORD dxKey, bool pressed, DWORD vKey) {
 }
 
 void _stdcall MouseClickHook(DWORD button, bool pressed) {
-	if (!IsMapLoaded()) {
+	if (!IsGameLoaded()) {
 		return;
 	}
 	BeginHook();

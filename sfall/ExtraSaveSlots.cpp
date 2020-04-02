@@ -46,9 +46,9 @@ void SavePageOffsets() {
 	sprintf_s(SavePath, MAX_PATH, filename, *ptr_patches);
 
 	_itoa_s(*ptr_slot_cursor, buffer, 10);
-	WritePrivateProfileString("POSITION", "ListNum", buffer, SavePath);
+	WritePrivateProfileStringA("POSITION", "ListNum", buffer, SavePath);
 	_itoa_s(LSPageOffset, buffer, 10);
-	WritePrivateProfileString("POSITION", "PageOffset", buffer, SavePath);
+	WritePrivateProfileStringA("POSITION", "PageOffset", buffer, SavePath);
 }
 
 //------------------------------------------

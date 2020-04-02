@@ -1134,7 +1134,7 @@ static void sf_set_ini_setting() {
 	char section[33], file[67];
 	int result = ParseIniSetting(opHandler.arg(0).strValue(), key, section, file);
 	if (result > 0) {
-		result = WritePrivateProfileString(section, key, saveValue, file);
+		result = WritePrivateProfileStringA(section, key, saveValue, file);
 	}
 
 	switch (result) {

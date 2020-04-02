@@ -92,7 +92,7 @@ static __declspec(naked) void set_game_time_hack() {
 	__asm {
 		mov  dword ptr ds:[_fallout_game_time], eax;
 		mov  edx, eax;
-		call IsMapLoaded;
+		call IsGameLoaded;
 		test al, al;
 		jz   end;
 		cmp  edx, ONE_GAME_YEAR * 13;

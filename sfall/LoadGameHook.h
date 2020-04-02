@@ -22,7 +22,9 @@ extern DWORD LoadGameHook_LootTarget;
 
 void LoadGameHookInit();
 
-bool IsMapLoaded();
+// True if game was started, false when on the main menu
+bool IsGameLoaded();
+
 DWORD InWorldMap();
 DWORD InCombat();
 DWORD InDialog();

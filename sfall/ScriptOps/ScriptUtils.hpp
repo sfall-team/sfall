@@ -285,17 +285,20 @@ static char* _stdcall mysprintf(const char* format, DWORD value, DWORD valueType
 	valueType = valueType & 0xFFFF; // use lower 2 bytes
 	int fmtlen = strlen(format);
 	int buflen = fmtlen + 1;
+
 	for (int i = 0; i < fmtlen; i++) {
 		if (format[i] == '%') buflen++; // will possibly be escaped, need space for that
 	}
+
 	// parse format to make it safe
 	char* newfmt = new char[buflen];
-	byte mode = 0;
-	int j = 0;
-	char c, specifier;
+	unsigned char mode = 0;
+	char specifier = 0;
 	bool hasDigits = false;
+	int j = 0;
+
 	for (int i = 0; i < fmtlen; i++) {
-		c = format[i];
+		char c = format[i];
 		switch (mode) {
 		case 0: // prefix
 			if (c == '%') {
@@ -304,12 +307,11 @@ static char* _stdcall mysprintf(const char* format, DWORD value, DWORD valueType
 			break;
 		case 1: // definition
 			if ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z')) {
-				if (c == 'h' || c == 'l' || c == 'j' || c == 'z' || c == 't' || c == 'L') { // ignore sub-specifiers
-					continue;
-				}
-				if (c == 's' && valueType != VAR_TYPE_STR2 && valueType != VAR_TYPE_STR) { // don't allow to treat non-string values as string pointers
-					c = 'd';
-				} else if (c == 'n') { // don't allow "n" specifier
+				if (c == 'h' || c == 'l' || c == 'j' || c == 'z' || c == 't' || c == 'L') continue; // ignore sub-specifiers
+
+				if (c == 's' && !(valueType == VAR_TYPE_STR2 || valueType == VAR_TYPE_STR) || // don't allow to treat non-string values as string pointers
+					c == 'n') // don't allow "n" specifier
+				{
 					c = 'd';
 				}
 				specifier = c;
@@ -322,12 +324,9 @@ static char* _stdcall mysprintf(const char* format, DWORD value, DWORD valueType
 			}
 			break;
 		case 2: // postfix
-		default:
 			if (c == '%') { // don't allow more than one specifier
 				newfmt[j++] = '%'; // escape it
-				if (format[i + 1] == '%') {
-					i++; // skip already escaped
-				}
+				if (format[i + 1] == '%') i++; // skip already escaped
 			}
 			break;
 		}
