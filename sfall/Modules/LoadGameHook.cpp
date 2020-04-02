@@ -70,10 +70,11 @@ static DWORD inLoop = 0;
 static DWORD saveInCombatFix;
 static bool disableHorrigan = false;
 static bool pipBoyAvailableAtGameStart = false;
-static bool mapLoaded = false;
+static bool gameLoaded = false;
 
-bool IsMapLoaded() {
-	return mapLoaded;
+// True if game was started, false when on the main menu
+bool IsGameLoaded() {
+	return gameLoaded;
 }
 
 DWORD InWorldMap() {
@@ -260,7 +261,7 @@ errorLoad:
 
 // called whenever game is being reset (prior to loading a save or when returning to main menu)
 static bool _stdcall GameReset(DWORD isGameLoad) {
-	if (mapLoaded) { // prevent resetting when a new game has not been started (loading saved game from main menu)
+	if (gameLoaded) { // prevent resetting when a new game has not been started (loading saved game from main menu)
 		onGameReset.invoke();
 		if (isDebug) {
 			char* str = (isGameLoad) ? "on Load" : "on Exit";
@@ -268,7 +269,7 @@ static bool _stdcall GameReset(DWORD isGameLoad) {
 		}
 	}
 	inLoop = 0;
-	mapLoaded = false;
+	gameLoaded = false;
 
 	return (isGameLoad) ? LoadGame_Before() : false;
 }
@@ -276,7 +277,7 @@ static bool _stdcall GameReset(DWORD isGameLoad) {
 // Called after game was loaded from a save
 static void _stdcall LoadGame_After() {
 	onAfterGameStarted.invoke();
-	mapLoaded = true;
+	gameLoaded = true;
 }
 
 static void __declspec(naked) LoadGame_hook() {
@@ -318,7 +319,7 @@ static void __stdcall NewGame_After() {
 
 	dlogr("New Game started.", DL_MAIN);
 
-	mapLoaded = true;
+	gameLoaded = true;
 }
 
 static void __declspec(naked) main_load_new_hook() {
@@ -718,8 +719,8 @@ void LoadGameHook::init() {
 	SafeWrite32(0x5194C0, (DWORD)&EndLoadHook);
 	HookCalls(SaveGame_hook, {0x443AAC, 0x443B1C, 0x48FCFF});
 	HookCalls(game_reset_hook, {
-				0x47DD6B, // LoadSlot_ (on error)
-				0x47DDF3, // LoadSlot_ (on error)
+				0x47DD6B, // LoadSlot_ (on load error)
+				0x47DDF3, // LoadSlot_ (on load error)
 				//0x480708, // RestoreLoad_ (never called)
 				0x480AD3, // gnw_main_ (game ended after playing via New Game)
 				0x480BCC, // gnw_main_ (game ended after playing via Load Game)

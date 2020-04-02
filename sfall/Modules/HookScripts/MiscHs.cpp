@@ -371,7 +371,7 @@ static void __declspec(naked) CarTravelHack() {
 static long __fastcall GlobalVarHook_Script(register DWORD number, register int value) {
 	int old = fo::var::game_global_vars[number];
 
-	if (IsMapLoaded() && HookScripts::HookHasScript(HOOK_SETGLOBALVAR)) { // IsMapLoaded - don't execute hook until loading sfall scripts
+	if (IsGameLoaded() && HookScripts::HookHasScript(HOOK_SETGLOBALVAR)) { // IsGameLoaded - don't execute hook until loading sfall scripts
 		BeginHook();
 		argCount = 2;
 		args[0] = number;

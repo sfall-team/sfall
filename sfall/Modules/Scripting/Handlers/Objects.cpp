@@ -141,11 +141,13 @@ void sf_set_weapon_ammo_count(OpcodeContext& ctx) {
 	obj->item.charges = ctx.arg(1).rawValue();
 }
 
-#define BLOCKING_TYPE_BLOCK		(0)
-#define BLOCKING_TYPE_SHOOT		(1)
-#define BLOCKING_TYPE_AI		(2)
-#define BLOCKING_TYPE_SIGHT		(3)
-#define BLOCKING_TYPE_SCROLL	(4)
+enum {
+	BLOCKING_TYPE_BLOCK  = 0,
+	BLOCKING_TYPE_SHOOT  = 1,
+	BLOCKING_TYPE_AI     = 2,
+	BLOCKING_TYPE_SIGHT  = 3,
+	BLOCKING_TYPE_SCROLL = 4
+};
 
 static DWORD getBlockingFunc(DWORD type) {
 	switch (type) {
@@ -159,7 +161,6 @@ static DWORD getBlockingFunc(DWORD type) {
 		return fo::funcoffs::obj_sight_blocking_at_;
 	//case 4:
 	//	return obj_scroll_blocking_at_;
-
 	}
 }
 

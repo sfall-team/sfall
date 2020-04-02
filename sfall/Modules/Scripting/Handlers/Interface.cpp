@@ -80,7 +80,8 @@ void __declspec(naked) op_get_mouse_y() {
 	}
 }
 
-#define MOUSE_MIDDLE_BTN        (4)
+enum { MOUSE_MIDDLE_BTN = 4 };
+
 void sf_get_mouse_buttons(OpcodeContext& ctx) {
 	DWORD button = fo::var::last_buttons;
 	if (button == 0 && middleMouseDown) {

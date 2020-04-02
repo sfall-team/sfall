@@ -99,11 +99,7 @@ error:
 void __declspec(naked) op_write_byte() {
 	__asm {
 		push ecx;
-		call fo::funcoffs::interpretPopShort_;
-		mov  ecx, eax; // type
-		mov  eax, ebx;
-		call fo::funcoffs::interpretPopLong_;
-		mov  esi, eax; // write value
+		_GET_ARG(esi, ecx); // write value
 		mov  eax, ebx;
 		_GET_ARG_INT(end);
 		cmp  cx, VAR_TYPE_INT;
@@ -129,11 +125,7 @@ end:
 void __declspec(naked) op_write_short() {
 	__asm {
 		push ecx;
-		call fo::funcoffs::interpretPopShort_;
-		mov  ecx, eax; // type
-		mov  eax, ebx;
-		call fo::funcoffs::interpretPopLong_;
-		mov  esi, eax; // write value
+		_GET_ARG(esi, ecx); // write value
 		mov  eax, ebx;
 		_GET_ARG_INT(end);
 		cmp  cx, VAR_TYPE_INT;
@@ -159,11 +151,7 @@ end:
 void __declspec(naked) op_write_int() {
 	__asm {
 		push ecx;
-		call fo::funcoffs::interpretPopShort_;
-		mov  ecx, eax; // type
-		mov  eax, ebx;
-		call fo::funcoffs::interpretPopLong_;
-		mov  esi, eax; // write value
+		_GET_ARG(esi, ecx); // write value
 		mov  eax, ebx;
 		_GET_ARG_INT(end);
 		cmp  cx, VAR_TYPE_INT;
@@ -197,11 +185,7 @@ static void __fastcall WriteStringInternal(char* addr, long type, long strID, fo
 void __declspec(naked) op_write_string() {
 	__asm {
 		push ecx;
-		call fo::funcoffs::interpretPopShort_;
-		mov  ecx, eax; // type
-		mov  eax, ebx;
-		call fo::funcoffs::interpretPopLong_;
-		mov  esi, eax; // str value
+		_GET_ARG(esi, ecx); // str value
 		mov  eax, ebx;
 		_GET_ARG_INT(end);
 		cmp  cx, VAR_TYPE_STR2;

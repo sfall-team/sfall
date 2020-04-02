@@ -819,7 +819,7 @@ void sf_set_ini_setting(OpcodeContext& ctx) {
 	char section[33], file[128];
 	int result = ParseIniSetting(ctx.arg(0).strValue(), key, section, file);
 	if (result > 0) {
-		result = WritePrivateProfileString(section, key, saveValue, file);
+		result = WritePrivateProfileStringA(section, key, saveValue, file);
 	}
 
 	switch (result) {
