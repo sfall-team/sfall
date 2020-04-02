@@ -1509,17 +1509,11 @@
       available encodings: 1250-1252, 866
     macro: sfall.h
 
-  - name: sfall_func3("objects_in_radius", int tile, int radius, int elevation)
-    detail: array sfall_func3("objects_in_radius", int tile, int radius, int elevation)
+  - name: objects_in_radius
+    detail: objects_in_radius", int tile, int radius, int elevation, int type)
     doc: |
       - returns an array of objects of a type (see `OBJ_TYPE_*` constants in `define_extra.h`) within the specified radius from the given tile
-      - the radius is limited to 50 hexes
-    macro: sfall.h
-  - name: sfall_func4("objects_in_radius", int tile, int radius, int elevation, int type)
-    detail: array sfall_func4("objects_in_radius", int tile, int radius, int elevation, int type)
-    doc: |
-      - returns an array of objects of a type (see `OBJ_TYPE_*` constants in `define_extra.h`) within the specified radius from the given tile
-      - passing -1 to the type argument or not specifying it will return all objects within the radius
+      - passing -1 to the `type` argument or _not specifying it_ will return all objects within the radius
       - the radius is limited to 50 hexes
     macro: sfall.h
 
