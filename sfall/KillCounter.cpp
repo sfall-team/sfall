@@ -48,7 +48,7 @@ void KillCounterInit() {
 	SafeWrite8(0x42D88E, 0x45); // lea edx, [eax * 2]
 	SafeWrite8(0x42D899, 0x90); // inc ebx > nop
 
-	static const DWORD extraKillTypesCountAddr[] = {
+	const DWORD extraKillTypesCountAddr[] = {
 		0x42D8AF, // critter_kill_count_
 		0x42D881, // critter_kill_count_inc_
 		0x42D980, // GetKillTypeName

@@ -161,27 +161,6 @@ static const char* musicOverridePath = "data\\sound\\music\\";
 
 static int* scriptDialog = nullptr;
 
-static const DWORD script_dialog_msgs[] = {
-	0x4A50C2, 0x4A5169, 0x4A52FA, 0x4A5302, 0x4A6B86, 0x4A6BE0, 0x4A6C37,
-};
-
-static const DWORD EncounterTableSize[] = {
-	0x4BD1A3, 0x4BD1D9, 0x4BD270, 0x4BD604, 0x4BDA14, 0x4BDA44, 0x4BE707,
-	0x4C0815, 0x4C0D4A, 0x4C0FD4,
-};
-
-static const DWORD PutAwayWeapon[] = {
-	0x411EA2, // action_climb_ladder_
-	0x412046, // action_use_an_item_on_object_
-	0x41224A, // action_get_an_object_
-	0x4606A5, // intface_change_fid_animate_
-	0x472996, // invenWieldFunc_
-};
-
-static const DWORD WalkDistanceAddr[] = {
-	0x411FF0, 0x4121C4, 0x412475, 0x412906,
-};
-
 static void __declspec(naked) WeaponAnimHook() {
 	__asm {
 		cmp edx, 11;
@@ -230,9 +209,9 @@ end:
 	}
 }
 
-static const DWORD ScannerHookRet  = 0x41BC1D;
-static const DWORD ScannerHookFail = 0x41BC65;
 static void __declspec(naked) automap_hack() {
+	static const DWORD ScannerHookRet  = 0x41BC1D;
+	static const DWORD ScannerHookFail = 0x41BC65;
 	__asm {
 		mov eax, ds:[_obj_dude];
 		mov edx, PID_MOTION_SENSOR;
@@ -665,6 +644,10 @@ static void DllMain2() {
 		}
 	}
 
+	const DWORD script_dialog_msgs[] = {
+		0x4A50C2, 0x4A5169, 0x4A52FA, 0x4A5302, 0x4A6B86, 0x4A6BE0, 0x4A6C37,
+	};
+
 	if (GetConfigInt("Misc", "BoostScriptDialogLimit", 0)) {
 		const int scriptDialogCount = 10000;
 		dlog("Applying script dialog limit patch.", DL_INIT);
@@ -690,6 +673,11 @@ static void DllMain2() {
 		}
 		dlogr(" Done", DL_INIT);
 	}
+
+	const DWORD EncounterTableSize[] = {
+		0x4BD1A3, 0x4BD1D9, 0x4BD270, 0x4BD604, 0x4BDA14, 0x4BDA44, 0x4BE707,
+		0x4C0815, 0x4C0D4A, 0x4C0FD4,
+	};
 
 	tmp = GetConfigInt("Misc", "EncounterTableSize", 0);
 	if (tmp > 40 && tmp <= 127) {
@@ -738,6 +726,14 @@ static void DllMain2() {
 		dlogr(" Done", DL_INIT);
 	}
 
+	const DWORD PutAwayWeapon[] = {
+		0x411EA2, // action_climb_ladder_
+		0x412046, // action_use_an_item_on_object_
+		0x41224A, // action_get_an_object_
+		0x4606A5, // intface_change_fid_animate_
+		0x472996, // invenWieldFunc_
+	};
+
 	if (GetConfigInt("Misc", "InstantWeaponEquip", 0)) {
 		//Skip weapon equip/unequip animations
 		dlog("Applying instant weapon equip patch.", DL_INIT);
@@ -777,6 +773,10 @@ static void DllMain2() {
 		SafeWrite8(0x41B966, WIN_Exclusive); // Automap
 		dlogr(" Done", DL_INIT);
 	}
+
+	const DWORD WalkDistanceAddr[] = {
+		0x411FF0, 0x4121C4, 0x412475, 0x412906,
+	};
 
 	int distance = GetConfigInt("Misc", "UseWalkDistance", 3) + 2;
 	if (distance > 1 && distance < 5) {
