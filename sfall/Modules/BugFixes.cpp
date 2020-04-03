@@ -186,24 +186,23 @@ static void __declspec(naked) PipStatus_hook() {
 // corrects saving script blocks (to *.sav file) by properly accounting for actual number of scripts to be saved
 static void __declspec(naked) scr_write_ScriptNode_hook() {
 	__asm {
-		mov  ecx, 16
-		cmp  dword ptr [esp+0xEC+4], ecx          // number_of_scripts
-		jg   skip
-		mov  ecx, dword ptr [esp+0xEC+4]
-		cmp  ecx, 0
-		jg   skip
-		xor  eax, eax
-		retn
-skip:
-		sub  dword ptr [esp+0xEC+4], ecx          // number_of_scripts
-		push dword ptr [ebp+0xE00]                // num
-		mov  dword ptr [ebp+0xE00], ecx           // num
-		xor  ecx, ecx
-		xchg dword ptr [ebp+0xE04], ecx           // NextBlock
-		call fo::funcoffs::scr_write_ScriptNode_
-		xchg dword ptr [ebp+0xE04], ecx           // NextBlock
-		pop  dword ptr [ebp+0xE00]                // num
-		retn
+		mov  ecx, 16;                             // maximum number of scripts in block
+		cmp  dword ptr [esp + 0xEC + 4], ecx;     // number_of_scripts (total scripts)
+		jg   writeBlock;
+		mov  ecx, dword ptr [esp + 0xEC + 4];
+		test ecx, ecx;
+		jg   writeBlock; // > 0
+		xor  eax, eax;
+		retn;                                     // don't save the current ScriptBlock
+writeBlock:
+		sub  dword ptr [esp + 0xEC + 4], ecx;     // number_of_scripts (reduce number [e.g. 24-16=8] or set it to 0)
+		xchg dword ptr [ebp + 0xE00], ecx;        // ScriptBlocks.num (keep and set correct value: 16 or previous value of number_of_scripts)
+		xor  esi, esi;
+		xchg dword ptr [ebp + 0xE04], esi;        // ScriptBlocks.NextBlock (keep pointer and set it to 0)
+		call fo::funcoffs::scr_write_ScriptNode_;
+		mov  dword ptr [ebp + 0xE04], esi;        // restore ScriptBlocks.NextBlock
+		mov  dword ptr [ebp + 0xE00], ecx;        // restore ScriptBlocks.num
+		retn;
 	}
 }
 
@@ -1037,7 +1036,7 @@ end:
 static const DWORD obj_load_func_Ret = 0x488F14;
 static void __declspec(naked) obj_load_func_hack() {
 	__asm {
-		test byte ptr [eax + (flags + 1)], 0x4; // Temp_
+		test word ptr [eax + flags], Temp; // engine code
 		jz   fix;
 		retn;
 fix:
@@ -1045,6 +1044,8 @@ fix:
 		and  edi, 0x0F000000;
 		cmp  edi, OBJ_TYPE_CRITTER << 24;
 		jne  skip;
+		test byte ptr [eax + damageFlags], DAM_DEAD;
+		jnz  skip;     // is dead
 		test byte ptr [eax + damageFlags], DAM_KNOCKED_OUT;
 		jnz  clear;    // Yes
 		test byte ptr [eax + damageFlags], DAM_KNOCKED_DOWN;
@@ -1508,9 +1509,9 @@ static void __declspec(naked) ResetPlayer_hook() {
 static void __declspec(naked) obj_move_to_tile_hack() {
 	static const DWORD obj_move_to_tile_Ret = 0x48A74E;
 	__asm {
-		cmp  ds:[FO_VAR_loadingGame], 0;
+		cmp  ds:[FO_VAR_loadingGame], 0; // prevents leaving the map right after loading a saved game if last time the player died on another map
 		jnz  skip;
-		cmp  dword ptr ds:[FO_VAR_map_state], 0; // map number, -1 exit to worldmap (probably redundant)
+		cmp  dword ptr ds:[FO_VAR_map_state], 0; // map number, -1 exit to worldmap
 		jz   mapLeave;
 skip:
 		add  esp, 4;
@@ -2709,10 +2710,10 @@ void BugFixes::init()
 	dlogr(" Done", DL_INIT);
 
 	// Fix for "Too Many Items" bug
+	// http://fforum.kochegarov.com/index.php?showtopic=29288&view=findpost&p=332242
 	//if (GetConfigInt("Misc", "TooManyItemsBugFix", 1)) {
 		dlog("Applying preventive patch for \"Too Many Items\" bug.", DL_INIT);
-		HookCall(0x4A596A, scr_write_ScriptNode_hook);
-		HookCall(0x4A59C1, scr_write_ScriptNode_hook);
+		HookCalls(scr_write_ScriptNode_hook, {0x4A596A, 0x4A59C1});
 		dlogr(" Done", DL_INIT);
 	//}
 
@@ -3030,7 +3031,7 @@ void BugFixes::init()
 
 	// Fix for critters killed in combat by scripting still being able to move in their combat turn if the distance parameter
 	// in their AI packages is set to stay_close/charge, or NPCsTryToSpendExtraAP is enabled
-	HookCall(0x42A1A8, ai_move_steps_closer_hook); // 0x42B24D
+	HookCall(0x42A1A8, ai_move_steps_closer_hook); // old 0x42B24D
 
 	// Fix instant death critical
 	dlog("Applying instant death fix.", DL_INIT);
