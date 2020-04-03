@@ -118,9 +118,9 @@ fail:
 	}
 }
 
-static const DWORD ScannerHookRet  = 0x41BC1D;
-static const DWORD ScannerHookFail = 0x41BC65;
 static void __declspec(naked) automap_hack() {
+	static const DWORD ScannerHookRet  = 0x41BC1D;
+	static const DWORD ScannerHookFail = 0x41BC65;
 	using fo::PID_MOTION_SENSOR;
 	__asm {
 		mov  eax, ds:[FO_VAR_obj_dude];

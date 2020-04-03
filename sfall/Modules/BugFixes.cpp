@@ -78,8 +78,8 @@ static void Initialization() {
 }
 
 // fix for vanilla negate operator not working on floats
-static const DWORD NegateFixHack_Back = 0x46AB77;
 static void __declspec(naked) NegateFixHack() {
+	static const DWORD NegateFixHack_Back = 0x46AB77;
 	__asm {
 		mov  eax, [ecx + 0x1C];
 		cmp  si, VAR_TYPE_FLOAT;
@@ -99,8 +99,8 @@ isFloat:
 	}
 }
 
-static const DWORD UnarmedAttacksFixEnd = 0x423A0D;
 static void __declspec(naked) compute_attack_hack() {
+	static const DWORD UnarmedAttacksFixEnd = 0x423A0D;
 	__asm {
 		mov  ecx, 5;                        // 5% chance of critical hit
 		cmp  edx, ATKTYPE_POWERKICK;        // Power Kick
@@ -900,8 +900,8 @@ static void __declspec(naked) op_wield_obj_critter_adjust_ac_hook() {
 	}
 }
 
-static const DWORD partyMember_init_End = 0x493D16;
 static void __declspec(naked) NPCStage6Fix1() {
+	static const DWORD partyMember_init_End = 0x493D16;
 	__asm {
 		imul eax, edx, 204;                 // multiply record size 204 bytes by number of NPC records in party.txt
 		mov  ebx, eax;                      // copy total record size for later memset
@@ -910,8 +910,8 @@ static void __declspec(naked) NPCStage6Fix1() {
 	}
 }
 
-static const DWORD partyMemberGetAIOptions_End = 0x49423A;
 static void __declspec(naked) NPCStage6Fix2() {
+	static const DWORD partyMemberGetAIOptions_End = 0x49423A;
 	__asm {
 		imul edx, 204;                      // multiply record size 204 bytes by NPC number as listed in party.txt
 		mov  eax, dword ptr ds:[FO_VAR_partyMemberAIOptions]; // get starting offset of internal NPC table
@@ -932,8 +932,8 @@ end:
 	}
 }
 
-static const DWORD ai_move_steps_closer_move_object_ret = 0x42A192;
 static void __declspec(naked) MultiHexCombatMoveFix() {
+	static const DWORD ai_move_steps_closer_move_object_ret = 0x42A192;
 	__asm {
 		test [edi + flags + 1], 0x08; // is target multihex?
 		jnz  multiHex;
@@ -950,8 +950,8 @@ moveTile:
 	}
 }
 
-static const DWORD ai_move_steps_closer_run_object_ret = 0x42A169;
 static void __declspec(naked) MultiHexCombatRunFix() {
+	static const DWORD ai_move_steps_closer_run_object_ret = 0x42A169;
 	__asm {
 		test [edi + flags + 1], 0x08; // is target multihex?
 		jnz  multiHex;
@@ -1033,8 +1033,8 @@ end:
 	}
 }
 
-static const DWORD obj_load_func_Ret = 0x488F14;
 static void __declspec(naked) obj_load_func_hack() {
+	static const DWORD obj_load_func_Ret = 0x488F14;
 	__asm {
 		test word ptr [eax + flags], Temp; // engine code
 		jz   fix;
@@ -1509,8 +1509,8 @@ static void __declspec(naked) ResetPlayer_hook() {
 static void __declspec(naked) obj_move_to_tile_hack() {
 	static const DWORD obj_move_to_tile_Ret = 0x48A74E;
 	__asm {
-		cmp  ds:[FO_VAR_loadingGame], 0; // prevents leaving the map right after loading a saved game if last time the player died on another map
-		jnz  skip;
+		cmp  ds:[FO_VAR_loadingGame], 0; // prevents leaving the map after reloading a saved game if the player died
+		jnz  skip;                       // on the world map from radiation (or in some cases on another map)
 		cmp  dword ptr ds:[FO_VAR_map_state], 0; // map number, -1 exit to worldmap
 		jz   mapLeave;
 skip:
@@ -1557,8 +1557,8 @@ static void __fastcall InstantDeathFix(fo::ComputeAttackResult &ctd) {
 	}
 }
 
-static const DWORD ComputeDamageRet = 0x424BA7;
 static void __declspec(naked) compute_damage_hack() {
+	static const DWORD ComputeDamageRet = 0x424BA7;
 	__asm {
 		mov  ecx, esi; // ctd
 		call InstantDeathFix;
@@ -1626,8 +1626,8 @@ skip:
 	}
 }
 
-static const DWORD ObjExamineFuncWeapon_Ret = 0x49B63C;
 static void __declspec(naked) obj_examine_func_hack_weapon() {
+	static const DWORD ObjExamineFuncWeapon_Ret = 0x49B63C;
 	__asm {
 		cmp  dword ptr [esp + 0x1AC - 0x14], 0x445448; // gdialogDisplayMsg_
 		jnz  skip;
@@ -1661,8 +1661,8 @@ static void __declspec(naked) combat_give_exps_hook() {
 	}
 }
 
-static const DWORD LootContainerExp_Ret = 0x4745E3;
 static void __declspec(naked) loot_container_exp_hack() {
+	static const DWORD LootContainerExp_Ret = 0x4745E3;
 	__asm {
 		mov  edx, [esp + 0x150 - 0x18];  // experience
 		xchg edx, eax;
@@ -1912,8 +1912,8 @@ skip:
 }
 
 static DWORD firstItemDrug = -1;
-static const DWORD ai_check_drugs_hack_Ret = 0x42878B;
 static void __declspec(naked) ai_check_drugs_hack_break() {
+	static const DWORD ai_check_drugs_hack_Ret = 0x42878B;
 	__asm {
 		mov  eax, -1;
 		cmp  firstItemDrug, eax;
@@ -1944,8 +1944,8 @@ checkDrugs:
 	}
 }
 
-static const DWORD ai_check_drugs_hack_Loop = 0x428675;
 static void __declspec(naked) ai_check_drugs_hack_use() {
+	static const DWORD ai_check_drugs_hack_Loop = 0x428675;
 	__asm {
 		cmp  eax, 3;
 		jge  beginLoop;
@@ -1960,10 +1960,10 @@ skip:
 	}
 }
 
-static const DWORD config_get_values_hack_Get = 0x42C13F;
-static const DWORD config_get_values_hack_OK = 0x42C14D;
-static const DWORD config_get_values_hack_Fail = 0x42C131;
 static void __declspec(naked) config_get_values_hack() {
+	static const DWORD config_get_values_hack_Get = 0x42C13F;
+	static const DWORD config_get_values_hack_OK = 0x42C14D;
+	static const DWORD config_get_values_hack_Fail = 0x42C131;
 	__asm {
 		cmp ebp, 1;                        // counter value
 		jl  getOK;
@@ -2049,9 +2049,9 @@ fail:
 	}
 }
 
-static const DWORD combat_End = 0x422E45;
-static const DWORD combat_Load = 0x422E91;
 static void __declspec(naked) combat_hack_load() {
+	static const DWORD combat_End = 0x422E45;
+	static const DWORD combat_Load = 0x422E91;
 	__asm {
 		cmp  eax, -1;
 		je   skip;
@@ -2241,8 +2241,8 @@ dude:
 }
 
 static long blockingTileObj = 0;
-static const DWORD anim_move_to_tile_jmp = 0x416D91;
 static void __declspec(naked) anim_move_to_tile_hook() {
+	static const DWORD anim_move_to_tile_jmp = 0x416D91;
 	__asm {
 		call fo::funcoffs::obj_blocking_at_;
 		mov  blockingTileObj, eax;
