@@ -3168,16 +3168,15 @@ void BugFixesInit()
 	MakeCall(0x45C376, op_use_obj_on_obj_hack, 1);
 	MakeCall(0x456A92, op_use_obj_hack, 1);
 
+	// Fix pickup_obj/drop_obj/use_obj functions, change them to get pointer from script.self instead of script.target
+	// script.target contains an incorrect pointer, which may vary depending on the situations in the game
+	dlog("Applying pickup_obj/drop_obj/use_obj fix.", DL_INIT);
 	const DWORD ScriptTargetAddr[] = {
 		0x456554, // op_pickup_obj_
 		0x456600, // op_drop_obj_
 		0x456A6D, // op_use_obj_
 		0x456AA4  // op_use_obj_
 	};
-
-	// Fix pickup_obj/drop_obj/use_obj functions, change them to get pointer from script.self instead of script.target
-	// script.target contains an incorrect pointer, which may vary depending on the situations in the game
-	dlog("Applying pickup_obj/drop_obj/use_obj fix.", DL_INIT);
 	for (int i = 0; i < sizeof(ScriptTargetAddr) / 4; i++) {
 		SafeWrite8(ScriptTargetAddr[i], 0x34); // script.target > script.self
 	}

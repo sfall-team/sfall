@@ -22,6 +22,19 @@ struct ChanceModifier {
 	long id;
 	int maximum;
 	int mod;
+
+	ChanceModifier() : id(0), maximum(95), mod(0) {}
+
+	ChanceModifier(long _id, int max, int _mod) {
+		id = _id;
+		maximum = max;
+		mod = _mod;
+	}
+
+	void SetDefault() {
+		maximum = 95;
+		mod = 0;
+	}
 };
 
 void __stdcall SetBlockCombat(long toggle);

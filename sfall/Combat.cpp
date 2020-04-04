@@ -512,8 +512,7 @@ static void CombatProcFix() {
 }
 
 void Combat_OnGameLoad() {
-	baseHitChance.maximum = 95;
-	baseHitChance.mod = 0;
+	baseHitChance.SetDefault();
 	mTargets.clear();
 	mAttackers.clear();
 	mWeapons.clear();

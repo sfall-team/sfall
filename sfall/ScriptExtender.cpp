@@ -1739,11 +1739,14 @@ void ScriptExtenderInit() {
 	MakeJump(0x4A67F0, ExecMapScriptsHack);
 
 	HookCall(0x4A26D6, HandleTimedEventScripts); // queue_process_
-	MakeCall(0x4C1C67, TimedEventNextTime); // wmGameTimeIncrement_
-	MakeCall(0x4A3E1C, TimedEventNextTime); // script_chk_timed_events_
-	MakeCall(0x499AFA, TimedEventNextTime); // TimedRest_
-	MakeCall(0x499CD7, TimedEventNextTime);
-	MakeCall(0x499E2B, TimedEventNextTime);
+	const DWORD qNextTimeAddr[] = {
+		0x4C1C67, // wmGameTimeIncrement_
+		0x4A3E1C, // script_chk_timed_events_
+		0x499AFA, 0x499CD7, 0x499E2B // TimedRest_
+	};
+	for (int i = 0; i < sizeof(qNextTimeAddr) / 4; i++) {
+		MakeCall(qNextTimeAddr[i], TimedEventNextTime);
+	}
 	HookCall(0x4A3E08, script_chk_timed_events_hook);
 
 	// this patch makes it possible to export variables from sfall global scripts

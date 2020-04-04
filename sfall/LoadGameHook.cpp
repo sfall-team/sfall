@@ -86,32 +86,29 @@ void ClearLoopFlag(LoopFlag flag) {
 	inLoop &= ~flag;
 }
 
-static void _stdcall ResetState(DWORD onLoad) { // OnGameReset
-	if (gameLoaded) { // prevent resetting when a new game has not been started (loading saved games from main menu)
-		if (GraphicsMode > 3) Graphics_OnGameLoad();
-		ForceGraphicsRefresh(0); // disable refresh
-		LoadOrder_OnGameLoad();
-		Interface_OnGameLoad();
-		RestoreObjUnjamAllLocks();
-		Worldmap_OnGameLoad();
-		Stats_OnGameLoad();
-		PerksReset();
-		Combat_OnGameLoad();
-		Skills_OnGameLoad();
-		FileSystemReset();
-		WipeSounds();
-		InventoryReset();
-		PartyControl_OnGameLoad();
-		ResetExplosionRadius();
-		BarBoxes_OnGameLoad();
-		ScriptExtender_OnGameLoad();
-		if (isDebug) {
-			char* str = (onLoad) ? "on Load" : "on Exit";
-			DebugPrintf("\n[SFALL: State reset %s]", str);
-		}
-	}
+static void _stdcall ResetState(DWORD onLoad) { // OnGameReset & OnBeforeGameStart
+	if (GraphicsMode > 3) Graphics_OnGameLoad();
+	ForceGraphicsRefresh(0); // disable refresh
+	LoadOrder_OnGameLoad();
+	Interface_OnGameLoad();
+	RestoreObjUnjamAllLocks();
+	Worldmap_OnGameLoad();
+	Stats_OnGameLoad();
+	PerksReset();
+	Combat_OnGameLoad();
+	Skills_OnGameLoad();
+	FileSystemReset();
+	WipeSounds();
+	InventoryReset();
+	PartyControl_OnGameLoad();
+	ResetExplosionRadius();
+	BarBoxes_OnGameLoad();
+	ScriptExtender_OnGameLoad();
 	inLoop = 0;
-	gameLoaded = false;
+	if (isDebug) {
+		char* str = (onLoad) ? "on Load" : "on Exit";
+		DebugPrintf("\n[SFALL: State reset %s]", str);
+	}
 }
 
 void GetSavePath(char* buf, char* ftype) {

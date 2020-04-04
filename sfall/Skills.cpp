@@ -46,7 +46,20 @@ struct SkillInfo {
 struct SkillModifier {
 	long id;
 	int maximum;
-	int mod;
+	//int mod;
+
+	SkillModifier() : id(0), maximum(300)/*, mod(0)*/ {}
+
+	SkillModifier(long id, int max) {
+		this->id = id;
+		maximum = max;
+		//mod = _mod;
+	}
+
+	void SetDefault() {
+		maximum = 300;
+		//mod = 0;
+	}
 };
 
 static std::vector<SkillModifier> skillMaxMods;
@@ -283,11 +296,11 @@ void _stdcall SetSkillMax(TGameObj* critter, int maximum) {
 			return;
 		}
 	}
-	SkillModifier cm;
-	cm.id = id;
-	cm.maximum = maximum;
-	cm.mod = 0;
-	skillMaxMods.push_back(cm);
+	SkillModifier sm;
+	sm.id = id;
+	sm.maximum = maximum;
+	//sm.mod = 0;
+	skillMaxMods.push_back(sm);
 }
 
 void _stdcall SetPickpocketMax(TGameObj* critter, DWORD maximum, DWORD mod) {
@@ -314,12 +327,10 @@ void _stdcall SetPickpocketMax(TGameObj* critter, DWORD maximum, DWORD mod) {
 
 void Skills_OnGameLoad() {
 	pickpocketMods.clear();
-	basePickpocket.maximum = 95;
-	basePickpocket.mod = 0;
+	basePickpocket.SetDefault();
 
 	skillMaxMods.clear();
-	baseSkillMax.maximum = 300;
-	baseSkillMax.mod = 0;
+	baseSkillMax.SetDefault();
 }
 
 void SkillsInit() {
