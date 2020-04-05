@@ -31,11 +31,11 @@ public:
 	void init();
 
 	// TODO: use subscription instead
-	static void _stdcall AICombatStart();
-	static void _stdcall AICombatEnd();
+	static void __stdcall AICombatStart();
+	static void __stdcall AICombatEnd();
 
-	static fo::GameObject* _stdcall AIGetLastAttacker(fo::GameObject* target);
-	static fo::GameObject* _stdcall AIGetLastTarget(fo::GameObject* source);
+	static fo::GameObject* __stdcall AIGetLastAttacker(fo::GameObject* target);
+	static fo::GameObject* __stdcall AIGetLastTarget(fo::GameObject* source);
 };
 
 }
