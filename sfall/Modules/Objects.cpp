@@ -35,7 +35,7 @@ long Objects::uniqueID = UniqueID::Start; // current counter id, saving to sfall
 // player ID = 18000, all party members have ID = 18000 + its pid (file number of prototype)
 long __fastcall Objects::SetObjectUniqueID(fo::GameObject* obj) {
 	long id = obj->id;
-	if (id > UniqueID::Start || (id >= PLAYER_ID && id < 83536)) return id; // 65535 maximum possible number of prototypes
+	if (id > UniqueID::Start || (id >= fo::PLAYER_ID && id < 83536)) return id; // 65535 maximum possible number of prototypes
 
 	if ((DWORD)uniqueID >= (DWORD)UniqueID::End) uniqueID = UniqueID::Start;
 	obj->id = ++uniqueID;
@@ -88,7 +88,7 @@ static void map_fix_critter_id() {
 	long npcStartID = 4096;
 	fo::GameObject* obj = fo::func::obj_find_first();
 	while (obj) {
-		if (obj->Type() == fo::OBJ_TYPE_CRITTER && obj->id < PLAYER_ID) {
+		if (obj->Type() == fo::OBJ_TYPE_CRITTER && obj->id < fo::PLAYER_ID) {
 			obj->id = npcStartID++;
 		}
 		obj = fo::func::obj_find_next();
@@ -118,11 +118,15 @@ static void __declspec(naked) queue_add_hack() {
 	using namespace fo;
 	using namespace Fields;
 	__asm {
+		// engine code
 		mov  [edx + 8], edi; // queue.object
 		mov  [edx], esi;     // queue.time
-		//
+		//---
+		cmp  ds:[FO_VAR_loadingGame], 1; // don't change the object ID when loading a saved game (e.g. fix: NPC turns into a container)
+		je   skip;
 		test edi, edi;
 		jnz  fix;
+skip:
 		retn;
 fix:
 		mov  eax, [edi + protoId];

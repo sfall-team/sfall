@@ -217,7 +217,7 @@ static long LoadArraysOld(HANDLE h) {
 		varN.flags = 0;
 		varN.val.resize(var.len);
 		for (size_t j = 0; j < var.len; j++) {
-			switch (var.types[j]) {
+			switch ((DataType)var.types[j]) {
 			case DataType::INT:
 				varN.val[j].set(*(long*)(&var.data[var.datalen * j]));
 				break;

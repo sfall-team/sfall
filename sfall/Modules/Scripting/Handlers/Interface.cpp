@@ -16,7 +16,9 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "..\..\..\FalloutEngine\AsmMacros.h"
 #include "..\..\..\FalloutEngine\Fallout2.h"
+
 #include "..\..\..\InputFuncs.h"
 #include "..\..\BarBoxes.h"
 #include "..\..\LoadGameHook.h"
@@ -78,7 +80,8 @@ void __declspec(naked) op_get_mouse_y() {
 	}
 }
 
-#define MOUSE_MIDDLE_BTN        (4)
+enum { MOUSE_MIDDLE_BTN = 4 };
+
 void sf_get_mouse_buttons(OpcodeContext& ctx) {
 	DWORD button = fo::var::last_buttons;
 	if (button == 0 && middleMouseDown) {
@@ -158,7 +161,7 @@ void sf_create_message_window(OpcodeContext &ctx) {
 }
 
 void sf_message_box(OpcodeContext &ctx) {
-	static u_short dialogShowCount = 0;
+	static int dialogShowCount = 0;
 
 	long lines = 0;
 	const char* str_ptr[4];

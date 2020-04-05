@@ -115,7 +115,7 @@ static __declspec(naked) void set_game_time_hack() {
 	__asm {
 		mov  dword ptr ds:[FO_VAR_fallout_game_time], eax;
 		mov  edx, eax;
-		call IsMapLoaded;
+		call IsGameLoaded;
 		test al, al;
 		jz   end;
 		cmp  edx, ONE_GAME_YEAR * 13;
@@ -316,6 +316,20 @@ jLoop:
 		mov  ds:[FO_VAR_wmEncounterIconShow], ecx;
 		pop  eax; // map id
 		jmp  fo::funcoffs::map_load_idx_;
+	}
+}
+
+// Fallout 1 behavior: No radius for uncovered locations on the world map
+// for the mark_area_known script function when the mark_state argument of the function is set to 3
+long __declspec(naked) Worldmap::AreaMarkStateIsNoRadius() {
+	__asm {
+		xor  eax, eax;
+		cmp  esi, 3; // esi - mark_state value
+		jne  skip;
+		mov  esi, 1; // revert value to town known state
+skip:
+		cmove eax, esi; // eax: 1 for Fallout 1 behavior
+		retn;
 	}
 }
 
@@ -520,7 +534,7 @@ bool Worldmap::LoadData(HANDLE file) {
 	return false;
 }
 
-void _stdcall SetMapMulti(float value) {
+void Worldmap::SetMapMulti(float value) {
 	scriptMapMulti = value;
 }
 

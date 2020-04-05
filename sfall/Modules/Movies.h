@@ -33,7 +33,4 @@ public:
 static const int MaxMovies = 32;
 extern char MoviePaths[MaxMovies * 65];
 
-void* _stdcall PlaySfallSound(const char* path, bool loop);
-void _stdcall StopSfallSound(void* ptr);
-
 }

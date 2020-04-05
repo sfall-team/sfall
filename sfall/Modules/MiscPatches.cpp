@@ -118,9 +118,9 @@ fail:
 	}
 }
 
-static const DWORD ScannerHookRet  = 0x41BC1D;
-static const DWORD ScannerHookFail = 0x41BC65;
 static void __declspec(naked) automap_hack() {
+	static const DWORD ScannerHookRet  = 0x41BC1D;
+	static const DWORD ScannerHookFail = 0x41BC65;
 	using fo::PID_MOTION_SENSOR;
 	__asm {
 		mov  eax, ds:[FO_VAR_obj_dude];
@@ -261,6 +261,26 @@ playWalkMovie:
 		call fo::funcoffs::pause_for_tocks_;
 		mov  eax, ecx;
 		jmp  fo::funcoffs::gmovie_play_;
+	}
+}
+
+static void __declspec(naked) ListDrvdStats_hook() {
+	static const DWORD ListDrvdStats_Ret = 0x4354D9;
+	__asm {
+		call fo::IsRadInfluence;
+		test eax, eax;
+		jnz  influence;
+		mov  eax, ds:[FO_VAR_obj_dude];
+		jmp  fo::funcoffs::critter_get_rads_;
+influence:
+		xor  ecx, ecx;
+		mov  cl, ds:[FO_VAR_RedColor];
+		cmp  dword ptr [esp], 0x4354BE + 5;
+		jne  skip;
+		mov  cl, 131; // color index for selected
+skip:
+		add  esp, 4;
+		jmp  ListDrvdStats_Ret;
 	}
 }
 
@@ -596,7 +616,38 @@ void F1EngineBehaviorPatch() {
 	}
 }
 
+static void __declspec(naked) op_display_msg_hook() {
+	__asm {
+		cmp  dword ptr ds:FO_VAR_debug_func, 0;
+		jne  debug;
+		retn;
+debug:
+		jmp  fo::funcoffs::config_get_value_;
+	}
+}
+
+void EngineOptimizationPatches() {
+	// Speed up display_msg script function
+	HookCall(0x455404, op_display_msg_hook);
+
+	// Remove duplicate code from intface_redraw_ engine function
+	BlockCall(0x45EBBF);
+
+	// Improve performance of the data conversion of script interpreter
+	// mov eax, [edx+eax]; bswap eax; ret;
+	SafeWrite32(0x4672A4, 0x0F02048B);
+	SafeWrite16(0x4672A8, 0xC3C8);
+	// mov eax, [edx+eax]; bswap eax;
+	SafeWrite32(0x4673E5, 0x0F02048B);
+	SafeWrite8(0x4673E9, 0xC8);
+	// mov ax, [eax]; rol ax, 8; ret;
+	SafeWrite32(0x467292, 0x66008B66);
+	SafeWrite32(0x467296, 0xC308C0C1);
+}
+
 void MiscPatches::init() {
+	EngineOptimizationPatches();
+
 	if (GetConfigString("Misc", "StartingMap", "", mapName, 64)) {
 		dlog("Applying starting map patch.", DL_INIT);
 		SafeWrite32(0x480AAA, (DWORD)&mapName);
@@ -657,6 +708,9 @@ void MiscPatches::init() {
 		SafeWriteBatch<BYTE>(0, {0x4836D6, 0x4836DB});
 		dlogr(" Done", DL_INIT);
 	}
+
+	// Highlight "Radiated" in red color when the player is under the influence of negative effects of radiation
+	HookCalls(ListDrvdStats_hook, { 0x43549C, 0x4354BE });
 
 	// Increase the max text width of the information card in the character screen
 	SafeWriteBatch<BYTE>(145, {0x43ACD5, 0x43DD37}); // 136, 133

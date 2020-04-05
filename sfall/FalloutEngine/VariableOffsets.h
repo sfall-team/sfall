@@ -57,6 +57,7 @@
 #define FO_VAR_dialogue_state             0x518714
 #define FO_VAR_dialogue_switch_mode       0x518718
 #define FO_VAR_dialogueBackWindow         0x518740
+#define FO_VAR_dialogueWindow             0x518744
 #define FO_VAR_display_win                0x631E4C
 #define FO_VAR_displayMapList             0x41B560
 #define FO_VAR_dropped_explosive          0x5190E0
@@ -280,6 +281,7 @@
 #define FO_VAR_GoodColor                  0x6AB4EF
 #define FO_VAR_GreenColor                 0x6A3CB0
 #define FO_VAR_LIGHT_GREY_Color           0x6A76BF
+#define FO_VAR_LIGHT_RED_Color            0x6AB61A
 #define FO_VAR_PeanutButter               0x6A82F3
 #define FO_VAR_RedColor                   0x6AB4D0
 #define FO_VAR_WhiteColor                 0x6AB8CF

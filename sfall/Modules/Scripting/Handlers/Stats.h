@@ -40,9 +40,9 @@ void sf_get_critter_base_stat(OpcodeContext&);
 
 void sf_get_critter_extra_stat(OpcodeContext&);
 
-void __declspec() op_set_critter_skill_points();
+void sf_set_critter_skill_points(OpcodeContext&);
 
-void __declspec() op_get_critter_skill_points();
+void sf_get_critter_skill_points(OpcodeContext&);
 
 void __declspec() op_set_available_skill_points();
 
@@ -52,21 +52,21 @@ void __declspec() op_mod_skill_points_per_level();
 
 void __declspec() op_get_critter_current_ap();
 
-void __declspec() op_set_critter_current_ap();
+void sf_set_critter_current_ap(OpcodeContext&);
 
 void __declspec() op_set_pickpocket_max();
 
 void __declspec() op_set_hit_chance_max();
 
-void __declspec() op_set_critter_hit_chance_mod();
+void sf_set_critter_hit_chance_mod(OpcodeContext&);
 
 void __declspec() op_set_base_hit_chance_mod();
 
-void __declspec() op_set_critter_pickpocket_mod();
+void sf_set_critter_pickpocket_mod(OpcodeContext&);
 
 void __declspec() op_set_base_pickpocket_mod();
 
-void __declspec() op_set_critter_skill_mod();
+void sf_set_critter_skill_mod(OpcodeContext&);
 
 void __declspec() op_set_base_skill_mod();
 

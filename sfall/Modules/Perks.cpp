@@ -187,7 +187,7 @@ void _stdcall RestoreDefaultPerks() {
 	IgnoringDefaultPerks = 0;
 }
 
-void _stdcall SetPerkboxTitle(char* name) {
+void __fastcall Perks::SetPerkboxTitle(const char* name) {
 	if (name[0] == '\0') {
 		PerkBoxTitle[0] = 0;
 		SafeWrite32(0x43C77D, 0x488CB);
@@ -1258,20 +1258,20 @@ static void FastShotTraitFix() {
 
 ///////////////////////////////////////////////////////////////////////////////
 
-void _stdcall SetPerkValue(int id, int value, DWORD offset) {
+void __fastcall Perks::SetPerkValue(int id, int param, int value) {
 	if (id < 0 || id >= PERK_count) return;
-	*(DWORD*)((DWORD)(&perks[id]) + offset) = value;
+	*(DWORD*)((DWORD)(&perks[id]) + param) = value;
 	perksReInit = true;
 }
 
-void _stdcall SetPerkName(int id, char* value) {
+void Perks::SetPerkName(int id, const char* value) {
 	if (id < 0 || id >= PERK_count) return;
 	strncpy_s(&Name[id * maxNameLen], maxNameLen, value, _TRUNCATE);
 	perks[id].name = &Name[maxNameLen * id];
 	perksReInit = true;
 }
 
-void _stdcall SetPerkDesc(int id, char* value) {
+void Perks::SetPerkDesc(int id, const char* value) {
 	if (id < 0 || id >= PERK_count) return;
 	strncpy_s(&Desc[id * descLen], descLen, value, _TRUNCATE);
 	perks[id].description = &Desc[descLen * id];

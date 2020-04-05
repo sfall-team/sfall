@@ -16,7 +16,9 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "..\..\..\FalloutEngine\AsmMacros.h"
 #include "..\..\..\FalloutEngine\Fallout2.h"
+
 #include "..\..\..\Version.h"
 #include "..\..\HookScripts.h"
 #include "..\..\ScriptExtender.h"

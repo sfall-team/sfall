@@ -27,6 +27,8 @@
 namespace sfall
 {
 
+#define SAFERELEASE(a) { if (a) { a->Release(); a = nullptr; } }
+
 static size_t shadersSize;
 
 static bool globalShaderActive = false;

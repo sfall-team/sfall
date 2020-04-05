@@ -280,7 +280,7 @@ void TalkingHeads::exit() {
 			delete[] frm.second.textures;
 		}
 	}
-	if (texHighlight) texHighlight->Release();
+	//if (texHighlight) texHighlight->Release(); // it seems that it is released in Graphics.cpp at code line: SAFERELEASE(gpuBltEffect)
 }
 
 }

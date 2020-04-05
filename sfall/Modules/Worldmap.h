@@ -50,8 +50,9 @@ public:
 	static bool AreaTitlesIsEmpty();
 	static const char* GetCustomAreaTitle(long areaId);
 	static void SetCustomAreaTitle(long areaId, const char* msg);
-};
 
-void _stdcall SetMapMulti(float value);
+	static long AreaMarkStateIsNoRadius();
+	static void SetMapMulti(float value);
+};
 
 }

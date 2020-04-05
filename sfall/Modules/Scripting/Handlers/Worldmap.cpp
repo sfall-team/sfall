@@ -16,7 +16,9 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "..\..\..\FalloutEngine\AsmMacros.h"
 #include "..\..\..\FalloutEngine\Fallout2.h"
+
 #include "..\..\..\SafeWrite.h"
 #include "..\..\LoadGameHook.h"
 #include "..\..\ScriptExtender.h"
@@ -36,7 +38,7 @@ static DWORD ForceEncounterFlags;
 
 DWORD ForceEncounterRestore() {
 	if (ForceEncounterMapID == -1) return 0;
-	long long data = 0x672E043D83; // cmp ds:_Meet_Frank_Horrigan, 0
+	__int64 data = 0x672E043D83; // cmp ds:_Meet_Frank_Horrigan, 0
 	SafeWriteBytes(0x4C06D1, (BYTE*)&data, 5);
 	ForceEncounterFlags = 0;
 	DWORD mapID = ForceEncounterMapID;
@@ -150,66 +152,22 @@ void __declspec(naked) op_get_world_map_y_pos() {
 
 void __declspec(naked) op_set_world_map_pos() {
 	__asm {
-		push ebx;
 		push ecx;
-		push edx;
-		push edi;
-		push esi;
-		mov ecx, eax;
-		call fo::funcoffs::interpretPopShort_;
-		mov esi, eax;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPopLong_;
-		mov edi, eax;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPopShort_;
-		mov edx, eax;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPopLong_;
-		cmp dx, VAR_TYPE_INT;
-		jnz end;
-		cmp si, VAR_TYPE_INT;
-		jnz end;
-		mov ds:[FO_VAR_world_xpos], eax;
-		mov ds:[FO_VAR_world_ypos], edi;
+		_GET_ARG(ecx, esi); // get y value
+		mov  eax, ebx;
+		_GET_ARG_INT(end);  // get x value
+		cmp  si, VAR_TYPE_INT;
+		jne  end;
+		mov  ds:[FO_VAR_world_xpos], eax;
+		mov  ds:[FO_VAR_world_ypos], ecx;
 end:
-		pop esi;
-		pop edi;
-		pop edx;
-		pop ecx;
-		pop ebx;
+		pop  ecx;
 		retn;
 	}
 }
 
-void __declspec(naked) op_set_map_time_multi() {
-	__asm {
-		push ebx;
-		push ecx;
-		push edx;
-		mov ecx, eax;
-		call fo::funcoffs::interpretPopShort_;
-		mov edx, eax;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPopLong_;
-		cmp dx, VAR_TYPE_FLOAT;
-		jz paramWasFloat;
-		cmp dx, VAR_TYPE_INT;
-		jnz fail;
-		push eax;
-		fild dword ptr [esp];
-		fstp dword ptr [esp];
-		jmp end;
-paramWasFloat:
-		push eax;
-end:
-		call SetMapMulti;
-fail:
-		pop edx;
-		pop ecx;
-		pop ebx;
-		retn;
-	}
+void sf_set_map_time_multi(OpcodeContext& ctx) {
+	Worldmap::SetMapMulti(ctx.arg(0).asFloat());
 }
 
 void sf_set_car_intface_art(OpcodeContext& ctx) {

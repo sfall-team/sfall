@@ -27,8 +27,8 @@ class KillCounter : public Module {
 public:
 	const char* name() { return "KillCounter"; }
 	void init();
-};
 
-bool UsingExtraKillTypes();
+	static bool UsingExtraKillTypes();
+};
 
 }

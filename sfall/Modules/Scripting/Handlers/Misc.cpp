@@ -18,8 +18,10 @@
 
 #include <cstring>
 
-#include "..\..\..\Utils.h"
+#include "..\..\..\FalloutEngine\AsmMacros.h"
 #include "..\..\..\FalloutEngine\Fallout2.h"
+
+#include "..\..\..\Utils.h"
 #include "..\..\AI.h"
 #include "..\..\Combat.h"
 #include "..\..\Criticals.h"
@@ -31,7 +33,9 @@
 #include "..\..\PartyControl.h"
 #include "..\..\PlayerModel.h"
 #include "..\..\ScriptExtender.h"
+#include "..\..\Sound.h"
 #include "..\..\Stats.h"
+
 #include "..\Arrays.h"
 #include "..\OpcodeContext.h"
 
@@ -113,68 +117,53 @@ end:
 }
 
 // Kill counters
+static bool extraKillCounter;
+void SetExtraKillCounter(bool value) { extraKillCounter = value; }
+
 void __declspec(naked) op_get_kill_counter() {
 	__asm {
-		push ebx;
-		push ecx;
-		push edx;
-		mov ecx, eax;
-		call fo::funcoffs::interpretPopShort_;
-		mov edx, eax;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPopLong_;
-		cmp dx, VAR_TYPE_INT;
-		jnz fail;
-		cmp eax, 19;
-		jge fail;
-		mov edx, ds:[FO_VAR_pc_kill_counts+eax*4];
-		jmp end;
-fail:
-		xor edx, edx;
+		_GET_ARG_INT(fail); // get kill type value
+		cmp  extraKillCounter, 1;
+		jne  skip;
+		cmp  eax, 38;
+		jae  fail;
+		movzx edx, word ptr ds:[FO_VAR_pc_kill_counts][eax * 2];
+		jmp  end;
+skip:
+		cmp  eax, 19;
+		jae  fail;
+		mov  edx, ds:[FO_VAR_pc_kill_counts][eax * 4];
 end:
-		mov eax, ecx
-		call fo::funcoffs::interpretPushLong_;
-		mov edx, VAR_TYPE_INT;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPushShort_;
-		pop edx;
-		pop ecx;
-		pop ebx;
+		mov  eax, ebx; // script
+		_RET_VAL_INT;
 		retn;
+fail:
+		xor  edx, edx; // return 0
+		jmp  end;
 	}
 }
 
 void __declspec(naked) op_mod_kill_counter() {
 	__asm {
-		push ebx;
 		push ecx;
-		push edx;
-		push edi;
-		push esi;
-		mov ecx, eax;
-		call fo::funcoffs::interpretPopShort_;
-		mov esi, eax;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPopLong_;
-		mov edi, eax;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPopShort_;
-		mov edx, eax;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPopLong_;
-		cmp dx, VAR_TYPE_INT;
-		jnz end;
-		cmp si, VAR_TYPE_INT;
-		jnz end;
-		cmp eax, 19;
-		jge end;
-		add ds:[FO_VAR_pc_kill_counts+eax*4], edi;
+		_GET_ARG(ecx, esi); // get mod value
+		mov  eax, ebx;
+		_GET_ARG_INT(end);  // get kill type value
+		cmp  si, VAR_TYPE_INT;
+		jnz  end;
+		cmp  extraKillCounter, 1;
+		je   skip;
+		cmp  eax, 19;
+		jae  end;
+		add  ds:[FO_VAR_pc_kill_counts][eax * 4], ecx;
+		pop  ecx;
+		retn;
+skip:
+		cmp  eax, 38;
+		jae  end;
+		add  word ptr ds:[FO_VAR_pc_kill_counts][eax * 2], cx;
 end:
-		pop esi;
-		pop edi;
-		pop edx;
-		pop ecx;
-		pop ebx;
+		pop  ecx;
 		retn;
 	}
 }
@@ -215,72 +204,6 @@ void sf_remove_object_knockback(OpcodeContext& ctx) {
 		break;
 	}
 	KnockbackRemoveMod(ctx.arg(0).object(), mode);
-}
-
-void __declspec(naked) op_get_kill_counter2() {
-	__asm {
-		push ebx;
-		push ecx;
-		push edx;
-		mov ecx, eax;
-		call fo::funcoffs::interpretPopShort_;
-		mov edx, eax;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPopLong_;
-		cmp dx, VAR_TYPE_INT;
-		jnz fail;
-		cmp eax, 38;
-		jge fail;
-		movzx edx, word ptr ds:[FO_VAR_pc_kill_counts+eax*2];
-		jmp end;
-fail:
-		xor edx, edx;
-end:
-		mov eax, ecx
-		call fo::funcoffs::interpretPushLong_;
-		mov edx, VAR_TYPE_INT;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPushShort_;
-		pop edx;
-		pop ecx;
-		pop ebx;
-		retn;
-	}
-}
-
-void __declspec(naked) op_mod_kill_counter2() {
-	__asm {
-		push ebx;
-		push ecx;
-		push edx;
-		push edi;
-		push esi;
-		mov ecx, eax;
-		call fo::funcoffs::interpretPopShort_;
-		mov esi, eax;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPopLong_;
-		mov edi, eax;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPopShort_;
-		mov edx, eax;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPopLong_;
-		cmp dx, VAR_TYPE_INT;
-		jnz end;
-		cmp si, VAR_TYPE_INT;
-		jnz end;
-		cmp eax, 38;
-		jge end;
-		add word ptr ds:[FO_VAR_pc_kill_counts+eax*2], di;
-end:
-		pop esi;
-		pop edi;
-		pop edx;
-		pop ecx;
-		pop ebx;
-		retn;
-	}
 }
 
 void __declspec(naked) op_active_hand() {
@@ -351,7 +274,7 @@ void sf_inc_npc_level(OpcodeContext& ctx) {
 
 	// restore code
 	SafeWrite32(0x495C50, 0x01FB840F);
-	long long data = 0x01D48C0F;
+	__int64 data = 0x01D48C0F;
 	SafeWriteBytes(0x495C77, (BYTE*)&data, 6);
 	//SafeWrite16(0x495C8C, 0x8D0F);
 	//SafeWrite32(0x495C8E, 0x000001BF);
@@ -508,64 +431,33 @@ end:
 
 void __declspec(naked) op_get_bodypart_hit_modifier() {
 	__asm {
-		push ecx
-		push edx
-		mov  ecx, eax
-		call fo::funcoffs::interpretPopShort_
-		mov  edx, eax
-		mov  eax, ecx
-		call fo::funcoffs::interpretPopLong_
-		cmp  dx, VAR_TYPE_INT
-		jnz  fail
-		test eax, eax
-		jl   fail
-		cmp  eax, 8                               // Body_Uncalled?
-		jg   fail
-		mov  edx, ds:[FO_VAR_hit_location_penalty+eax*4]
-		jmp  end
-fail:
-		xor  edx, edx
+		_GET_ARG_INT(fail); // get body value
+		cmp  eax, 8; // Body_Head - Body_Uncalled
+		ja   fail;
+		mov  edx, ds:[FO_VAR_hit_location_penalty][eax * 4];
 end:
-		mov  eax, ecx
-		call fo::funcoffs::interpretPushLong_
-		mov  eax, ecx
-		mov  edx, VAR_TYPE_INT
-		call fo::funcoffs::interpretPushShort_
-		pop  edx
-		pop  ecx
-		retn
+		mov  eax, ebx; // script
+		_J_RET_VAL_TYPE(VAR_TYPE_INT);
+fail:
+		xor  edx, edx; // return 0
+		jmp  end;
 	}
 }
 
 void __declspec(naked) op_set_bodypart_hit_modifier() {
 	__asm {
-		push ebx
-		push ecx
-		push edx
-		mov  ecx, eax
-		call fo::funcoffs::interpretPopShort_
-		mov  edx, eax
-		mov  eax, ecx
-		call fo::funcoffs::interpretPopLong_
-		mov  ebx, eax
-		mov  eax, ecx
-		call fo::funcoffs::interpretPopShort_
-		xchg eax, ecx
-		call fo::funcoffs::interpretPopLong_
-		cmp  dx, VAR_TYPE_INT
-		jnz  end
-		cmp  cx, VAR_TYPE_INT
-		jnz  end
-		test eax, eax
-		jl   end
-		cmp  eax, 8                               // Body_Uncalled?
-		jg   end
-		mov  ds:[FO_VAR_hit_location_penalty+eax*4], ebx
+		push ecx;
+		_GET_ARG(ecx, esi); // get body value
+		mov  eax, ebx;
+		_GET_ARG_INT(end);  // get modifier value
+		cmp  si, VAR_TYPE_INT;
+		jnz  end;
+		cmp  eax, 8; // Body_Head - Body_Uncalled
+		ja   end;
+		mov  ds:[FO_VAR_hit_location_penalty][eax * 4], ecx;
 end:
-		pop  edx
-		pop  ecx
-		pop  ebx
-		retn
+		pop  ecx;
+		retn;
 	}
 }
 
@@ -644,42 +536,19 @@ void __declspec(naked) op_get_unspent_ap_perk_bonus() {
 	}
 }
 
-void __declspec(naked) op_set_palette() {
+void sf_set_palette(OpcodeContext& ctx) {
+	const char* palette = ctx.arg(0).strValue();
 	__asm {
-		push ebx;
-		push ecx;
-		push edx;
-		mov ecx, eax;
-		call fo::funcoffs::interpretPopShort_;
-		mov edx, eax;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPopLong_;
-		cmp dx, VAR_TYPE_STR2;
-		jz next;
-		cmp dx, VAR_TYPE_STR;
-		jnz end;
-next:
-		mov ebx, eax;
-		//mov eax, _black_palette;
-		//call fo::funcoffs::palette_set_to_;
-		mov eax, ecx;
-		call fo::funcoffs::interpretGetString_;
+		mov  eax, palette;
 		call fo::funcoffs::loadColorTable_;
-		mov eax, FO_VAR_cmap;
+		mov  eax, FO_VAR_cmap;
 		call fo::funcoffs::palette_set_to_;
-end:
-		pop edx;
-		pop ecx;
-		pop ebx;
-		retn;
 	}
 }
 
 //numbers subgame functions
 void __declspec(naked) op_nb_create_char() {
-	__asm {
-		retn;
-	}
+	__asm retn;
 }
 
 void __declspec(naked) op_hero_select_win() { // for opening the appearance selection window
@@ -739,45 +608,11 @@ void sf_get_attack_type(OpcodeContext& ctx) {
 	ctx.setReturn(fo::GetCurrentAttackMode());
 }
 
-void __declspec(naked) op_play_sfall_sound() {
-	__asm {
-		pushad
-		mov edi, eax;
-		call fo::funcoffs::interpretPopShort_;
-		mov ebx, eax;
-		mov eax, edi;
-		call fo::funcoffs::interpretPopLong_;
-		mov esi, eax;
-		mov eax, edi;
-		call fo::funcoffs::interpretPopShort_;
-		mov edx, eax;
-		mov eax, edi;
-		call fo::funcoffs::interpretPopLong_;
-		cmp dx, VAR_TYPE_STR2;
-		jz next;
-		cmp dx, VAR_TYPE_STR;
-		jnz end;
-next:
-		cmp bx, VAR_TYPE_INT;
-		jnz end;
-		mov ebx, eax;
-		mov eax, edi;
-		call fo::funcoffs::interpretGetString_;
-		push esi;
-		push eax;
-		mov eax, esi;
-		mov esi, 65;
-		call PlaySfallSound;
-		mov edx, eax;
-		mov eax, edi;
-		call fo::funcoffs::interpretPushLong_;
-		mov eax, edi;
-		mov edx, VAR_TYPE_INT;
-		call fo::funcoffs::interpretPushShort_;
-end:
-		popad
-		retn;
-	}
+void sf_play_sfall_sound(OpcodeContext& ctx) {
+	DWORD soundID = 0;
+	long mode = ctx.arg(1).rawValue();
+	if (mode >= 0) soundID = Sound::PlaySfallSound(ctx.arg(0).strValue(), mode);
+	ctx.setReturn(soundID);
 }
 
 void __declspec(naked) op_stop_sfall_sound() {
@@ -785,44 +620,37 @@ void __declspec(naked) op_stop_sfall_sound() {
 		mov  esi, ecx;
 		_GET_ARG_INT(end);
 		push eax;
-		call StopSfallSound;
+		call Sound::StopSfallSound;
 end:
 		mov  ecx, esi;
 		retn;
 	}
 }
 
+// TODO: It seems that this function does not work...
 void __declspec(naked) op_get_tile_fid() {
 	__asm {
-		pushad;
-		mov ebp, eax;
-		call fo::funcoffs::interpretPopShort_;
-		mov edi, eax;
-		mov eax, ebp;
-		call fo::funcoffs::interpretPopLong_;
-		cmp di, VAR_TYPE_INT;
-		jnz fail;
-		sub esp, 8;
-		lea edx, [esp];
-		lea ebx, [esp+4];
+		push ecx;
+		_GET_ARG_INT(fail); // get tile value
+		mov  esi, ebx;      // keep script
+		sub  esp, 8;        // x/y buf
+		lea  edx, [esp];
+		lea  ebx, [esp + 4];
 		call fo::funcoffs::tile_coord_;
-		mov eax, [esp];
-		mov edx, [esp+4];
+		pop  eax; // x
+		pop  edx; // y
 		call fo::funcoffs::square_num_;
-		mov edx, ds:[FO_VAR_square];
-		movzx edx, word ptr ds:[edx+eax*4];
-		add esp, 8;
-		jmp end;
-fail:
-		xor edx, edx;
+		mov  edx, ds:[FO_VAR_square];
+		movzx edx, word ptr ds:[edx + eax * 4];
+		mov  ebx, esi; // script
 end:
-		mov eax, ebp;
-		call fo::funcoffs::interpretPushLong_;
-		mov eax, ebp;
-		mov edx, VAR_TYPE_INT;
-		call fo::funcoffs::interpretPushShort_;
-		popad;
+		mov  eax, ebx;
+		_RET_VAL_INT;
+		pop  ecx;
 		retn;
+fail:
+		xor  edx, edx; // return 0
+		jmp  end;
 	}
 }
 
@@ -873,55 +701,35 @@ end:
 
 void __declspec(naked) op_get_last_attacker() {
 	__asm {
-		pushad;
-		mov ebp, eax;
-		call fo::funcoffs::interpretPopShort_;
-		mov edi, eax;
-		mov eax, ebp;
-		call fo::funcoffs::interpretPopLong_;
-		cmp di, VAR_TYPE_INT;
-		jnz fail;
+		_GET_ARG_INT(fail);
+		mov  esi, ecx;
 		push eax;
-		call AIGetLastAttacker;
-		mov edx, eax;
-		jmp end;
-fail:
-		xor edx, edx;
+		call AI::AIGetLastAttacker;
+		mov  edx, eax;
+		mov  ecx, esi;
 end:
-		mov eax, ebp;
-		call fo::funcoffs::interpretPushLong_;
-		mov eax, ebp;
-		mov edx, VAR_TYPE_INT;
-		call fo::funcoffs::interpretPushShort_;
-		popad;
-		retn;
+		mov  eax, ebx;
+		_J_RET_VAL_TYPE(VAR_TYPE_INT);
+fail:
+		xor  edx, edx; // return 0
+		jmp  end;
 	}
 }
 
 void __declspec(naked) op_get_last_target() {
 	__asm {
-		pushad;
-		mov ebp, eax;
-		call fo::funcoffs::interpretPopShort_;
-		mov edi, eax;
-		mov eax, ebp;
-		call fo::funcoffs::interpretPopLong_;
-		cmp di, VAR_TYPE_INT;
-		jnz fail;
+		_GET_ARG_INT(fail);
+		mov  esi, ecx;
 		push eax;
-		call AIGetLastTarget;
-		mov edx, eax;
-		jmp end;
-fail:
-		xor edx, edx;
+		call AI::AIGetLastTarget;
+		mov  edx, eax;
+		mov  ecx, esi;
 end:
-		mov eax, ebp;
-		call fo::funcoffs::interpretPushLong_;
-		mov eax, ebp;
-		mov edx, VAR_TYPE_INT;
-		call fo::funcoffs::interpretPushShort_;
-		popad;
-		retn;
+		mov  eax, ebx;
+		_J_RET_VAL_TYPE(VAR_TYPE_INT);
+fail:
+		xor  edx, edx; // return 0
+		jmp  end;
 	}
 }
 
@@ -1011,7 +819,7 @@ void sf_set_ini_setting(OpcodeContext& ctx) {
 	char section[33], file[128];
 	int result = ParseIniSetting(ctx.arg(0).strValue(), key, section, file);
 	if (result > 0) {
-		result = WritePrivateProfileString(section, key, saveValue, file);
+		result = WritePrivateProfileStringA(section, key, saveValue, file);
 	}
 
 	switch (result) {

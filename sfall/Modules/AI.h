@@ -29,13 +29,13 @@ class AI : public Module {
 public:
 	const char* name() { return "AI"; }
 	void init();
+
+	// TODO: use subscription instead
+	static void __stdcall AICombatStart();
+	static void __stdcall AICombatEnd();
+
+	static fo::GameObject* __stdcall AIGetLastAttacker(fo::GameObject* target);
+	static fo::GameObject* __stdcall AIGetLastTarget(fo::GameObject* source);
 };
-
-// TODO: use subscription instead
-void _stdcall AICombatStart();
-void _stdcall AICombatEnd();
-
-fo::GameObject* _stdcall AIGetLastAttacker(fo::GameObject* target);
-fo::GameObject* _stdcall AIGetLastTarget(fo::GameObject* source);
 
 }

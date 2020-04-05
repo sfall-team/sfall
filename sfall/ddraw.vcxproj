@@ -280,6 +280,7 @@
   <ItemGroup>
     <ClInclude Include="CheckAddress.h" />
     <ClInclude Include="Delegate.h" />
+    <ClInclude Include="FalloutEngine\AsmMacros.h" />
     <ClInclude Include="FalloutEngine\Enums.h" />
     <ClInclude Include="FalloutEngine\Fallout2.h" />
     <ClInclude Include="FalloutEngine\FunctionOffsets.h" />

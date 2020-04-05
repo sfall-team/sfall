@@ -40,10 +40,11 @@
 namespace sfall
 {
 
+#define UNUSEDFUNCTION { DEBUGMESS("\n[SFALL] Unused function called: %s", __FUNCTION__); return DDERR_GENERIC; }
+#define SAFERELEASE(a) { if (a) { a->Release(); a = nullptr; } }
+
 typedef HRESULT (_stdcall *DDrawCreateProc)(void*, IDirectDraw**, void*);
 typedef IDirect3D9* (_stdcall *D3DCreateProc)(UINT version);
-
-#define UNUSEDFUNCTION { DEBUGMESS("\n[SFALL] Unused function called: %s", __FUNCTION__); return DDERR_GENERIC; }
 
 static IDirectDrawSurface* primaryDDSurface = nullptr;
 
@@ -57,8 +58,8 @@ bool Graphics::PlayAviMovie = false;
 
 static BYTE* titlesBuffer = nullptr;
 
-static DWORD yoffset, movieHeight = 0;
-//static DWORD xoffset, movieWidth = 0;
+static DWORD yoffset;
+//static DWORD xoffset;
 
 static bool DeviceLost = false;
 
@@ -71,12 +72,15 @@ static DWORD palette[256];
 static DWORD gWidth;
 static DWORD gHeight;
 
-static int ScrollWindowKey;
+static long moveWindowKey[2];
 
 static bool windowInit = false;
 static DWORD windowLeft = 0;
 static DWORD windowTop = 0;
 static HWND window;
+static DWORD windowStyle = WS_CAPTION | WS_BORDER | WS_MINIMIZEBOX;
+
+static unsigned int windowData;
 
 static DWORD ShaderVersion;
 
@@ -220,13 +224,13 @@ static void ResetDevice(bool createNew) {
 	GetDisplayMode(dispMode);
 
 	params.BackBufferCount = 1;
-	params.BackBufferFormat = dispMode.Format; // (Graphics::mode == 5) ? D3DFMT_UNKNOWN : D3DFMT_X8R8G8B8;
+	params.BackBufferFormat = dispMode.Format; // (Graphics::mode != 4) ? D3DFMT_UNKNOWN : D3DFMT_X8R8G8B8;
 	params.BackBufferWidth = gWidth;
 	params.BackBufferHeight = gHeight;
 	params.EnableAutoDepthStencil = false;
 	//params.MultiSampleQuality = 0;
 	//params.MultiSampleType = D3DMULTISAMPLE_NONE;
-	params.Windowed = (Graphics::mode == 5);
+	params.Windowed = (Graphics::mode != 4);
 	params.SwapEffect = D3DSWAPEFFECT_DISCARD;
 	params.hDeviceWindow = window;
 	params.PresentationInterval = D3DPRESENT_INTERVAL_IMMEDIATE;
@@ -329,54 +333,49 @@ static void ResetDevice(bool createNew) {
 }
 
 static void Present() {
-	if (ScrollWindowKey != 0 && ((ScrollWindowKey > 0 && KeyDown((BYTE)ScrollWindowKey))
-		|| (ScrollWindowKey == -1 && (KeyDown(DIK_LCONTROL) || KeyDown(DIK_RCONTROL)))
-		|| (ScrollWindowKey == -2 && (KeyDown(DIK_LMENU)    || KeyDown(DIK_RMENU)))
-		|| (ScrollWindowKey == -3 && (KeyDown(DIK_LSHIFT)   || KeyDown(DIK_RSHIFT)))))
+	if ((moveWindowKey[0] != 0 && KeyDown(moveWindowKey[0])) ||
+	    (moveWindowKey[1] != 0 && KeyDown(moveWindowKey[1])))
 	{
-		int winx, winy;
-		GetMouse(&winx, &winy);
-		windowLeft += winx;
-		windowTop += winy;
+		int winX, winY;
+		GetMouse(&winX, &winY);
+		windowLeft += winX;
+		windowTop += winY;
 
 		RECT r, r2;
 		r.left = windowLeft;
 		r.right = windowLeft + gWidth;
 		r.top = windowTop;
 		r.bottom = windowTop + gHeight;
-		AdjustWindowRect(&r, WS_OVERLAPPED | WS_CAPTION | WS_BORDER, false);
+		AdjustWindowRect(&r, WS_CAPTION | WS_BORDER, false);
 
 		r.right -= (r.left - windowLeft);
 		r.left = windowLeft;
 		r.bottom -= (r.top - windowTop);
 		r.top = windowTop;
+
 		if (GetWindowRect(GetShellWindow(), &r2)) {
 			if (r.right > r2.right) {
 				DWORD move = r.right - r2.right;
-				r.left -= move;
-				r.right -= move;
 				windowLeft -= move;
+				r.right -= move;
 			}
-			if (r.left < r2.left) {
+			else if (r.left < r2.left) {
 				DWORD move = r2.left - r.left;
-				r.left += move;
-				r.right += move;
 				windowLeft += move;
+				r.right += move;
 			}
 			if (r.bottom > r2.bottom) {
 				DWORD move = r.bottom - r2.bottom;
-				r.top -= move;
-				r.bottom -= move;
 				windowTop -= move;
+				r.bottom -= move;
 			}
-			if (r.top < r2.top) {
+			else if (r.top < r2.top) {
 				DWORD move = r2.top - r.top;
-				r.top += move;
-				r.bottom += move;
 				windowTop += move;
+				r.bottom += move;
 			}
 		}
-		MoveWindow(window, r.left, r.top, r.right - r.left, r.bottom - r.top, true);
+		MoveWindow(window, windowLeft, windowTop, r.right - windowLeft, r.bottom - windowTop, true);
 	}
 
 	if (d3d9Device->Present(0, 0, 0, 0) == D3DERR_DEVICELOST) {
@@ -674,24 +673,21 @@ public:
 	/*
 		0x4868DA movie_MVE_ShowFrame_
 	*/
-	HRESULT _stdcall Blt(LPRECT a, LPDIRECTDRAWSURFACE b, LPRECT c, DWORD d, LPDDBLTFX e) { // used for game movies (w/o HRP)
-		//long addrs;
-		//__asm mov eax, dword ptr [ebp + 4];
-		//__asm mov addrs, eax;
-		//dlog_f("\nBlt(0x%x)", DL_INIT, addrs);
+	HRESULT _stdcall Blt(LPRECT a, LPDIRECTDRAWSURFACE b, LPRECT c, DWORD d, LPDDBLTFX e) { // used for game movies (only for w/o HRP)
+		movieDesc.dwHeight = (a->bottom - a->top);
+		yoffset = (ResHeight - movieDesc.dwHeight) / 2;
+		movieDesc.lPitch = (a->right - a->left);
+		//xoffset = (ResWidth - movieDesc.lPitch) / 2;
+
+		//dlog_f("\nMovieDesc: w:%d, h:%d", DL_INIT, movieDesc.lPitch, movieDesc.dwHeight);
 
 		IsPlayMovie = true;
 		if (Graphics::PlayAviMovie) return DD_OK;
 
-		//movieWidth = (a->right - a->left);
-		//xoffset = (ResWidth - movieWidth) / 2;
-		//movieHeight = (a->bottom - a->top);
-		yoffset = (ResHeight - movieDesc.dwHeight) / 2;
-
 		BYTE* lockTarget = ((FakeSurface2*)b)->lockTarget;
 		D3DLOCKED_RECT dRect;
 		Tex->LockRect(0, &dRect, a, 0);
-		DWORD width = movieDesc.lPitch; // the current size of the width of the mve movie //ResWidth;
+		DWORD width = movieDesc.lPitch; // the current size of the width of the mve movie
 		int pitch = dRect.Pitch;
 		if (Graphics::GPUBlt) {
 			char* pBits = (char*)dRect.pBits;
@@ -1021,19 +1017,17 @@ public:
 		}
 		dlog("Creating D3D9 Device window...", DL_MAIN);
 
-		if (Graphics::mode == 5) {
-			SetWindowLong(a, GWL_STYLE, WS_OVERLAPPED | WS_CAPTION | WS_BORDER | WS_MINIMIZEBOX);
+		if (Graphics::mode >= 5) {
+			SetWindowLong(a, GWL_STYLE, windowStyle);
 			RECT r;
 			r.left = 0;
 			r.right = gWidth;
 			r.top = 0;
 			r.bottom = gHeight;
-			AdjustWindowRect(&r, WS_OVERLAPPED | WS_CAPTION | WS_BORDER, false);
+			AdjustWindowRect(&r, windowStyle, false);
 			r.right -= r.left;
-			r.left = 0;
 			r.bottom -= r.top;
-			r.top = 0;
-			SetWindowPos(a, HWND_NOTOPMOST, r.left, r.top, r.right, r.bottom, SWP_DRAWFRAME | SWP_FRAMECHANGED | SWP_SHOWWINDOW);
+			SetWindowPos(a, HWND_NOTOPMOST, windowLeft, windowTop, r.right, r.bottom, SWP_DRAWFRAME | SWP_FRAMECHANGED | SWP_SHOWWINDOW);
 		}
 
 		dlogr(" Done", DL_MAIN);
@@ -1075,11 +1069,18 @@ HRESULT _stdcall FakeDirectDrawCreate2_Init(void*, IDirectDraw** b, void*) {
 	movieDesc.dwWidth = 640;
 	movieDesc.dwHeight = 480;
 
-	gWidth = GetConfigInt("Graphics", "GraphicsWidth", 0);
-	gHeight = GetConfigInt("Graphics", "GraphicsHeight", 0);
-	if (!gWidth || !gHeight) {
-		gWidth = ResWidth;
-		gHeight = ResHeight;
+	if (Graphics::mode == 6) {
+		D3DDISPLAYMODE dispMode;
+		GetDisplayMode(dispMode);
+		gWidth  = dispMode.Width;
+		gHeight = dispMode.Height;
+	} else {
+		gWidth = GetConfigInt("Graphics", "GraphicsWidth", 0);
+		gHeight = GetConfigInt("Graphics", "GraphicsHeight", 0);
+		if (!gWidth || !gHeight) {
+			gWidth = ResWidth;
+			gHeight = ResHeight;
+		}
 	}
 
 	Graphics::GPUBlt = GetConfigInt("Graphics", "GPUBlt", 0); // 0 - auto, 1 - GPU, 2 - CPU
@@ -1088,8 +1089,31 @@ HRESULT _stdcall FakeDirectDrawCreate2_Init(void*, IDirectDraw** b, void*) {
 	else if (Graphics::GPUBlt == 2) Graphics::GPUBlt = 0; // Use CPU
 
 	if (Graphics::mode == 5) {
-		ScrollWindowKey = GetConfigInt("Input", "WindowScrollKey", 0);
-	} else ScrollWindowKey = 0;
+		moveWindowKey[0] = GetConfigInt("Input", "WindowScrollKey", 0);
+		if (moveWindowKey[0] < 0) {
+			switch (moveWindowKey[0]) {
+			case -1:
+				moveWindowKey[0] = DIK_LCONTROL;
+				moveWindowKey[1] = DIK_RCONTROL;
+				break;
+			case -2:
+				moveWindowKey[0] = DIK_LMENU;
+				moveWindowKey[1] = DIK_RMENU;
+				break;
+			case -3:
+				moveWindowKey[0] = DIK_LSHIFT;
+				moveWindowKey[1] = DIK_RSHIFT;
+				break;
+			default:
+				moveWindowKey[0] = 0;
+			}
+		} else {
+			moveWindowKey[0] &= 0xFF;
+		}
+		windowData = GetConfigInt("Graphics", "WindowData", 0);
+		windowLeft = windowData >> 16;
+		windowTop = windowData & 0xFFFF;
+	}
 
 	rcpres[0] = 1.0f / (float)gWidth;
 	rcpres[1] = 1.0f / (float)gHeight;
@@ -1123,9 +1147,12 @@ static __declspec(naked) void palette_fade_to_hook() {
 
 void Graphics::init() {
 	Graphics::mode = GetConfigInt("Graphics", "Mode", 0);
-	if (Graphics::mode != 4 && Graphics::mode != 5) {
+	if (Graphics::mode == 6) {
+		windowStyle = WS_OVERLAPPED;
+	} else if (Graphics::mode != 4 && Graphics::mode != 5) {
 		Graphics::mode = 0;
 	}
+
 	if (Graphics::mode) {
 		dlog("Applying DX9 graphics patch.", DL_INIT);
 #define _DLL_NAME "d3dx9_43.dll"
@@ -1154,6 +1181,10 @@ void Graphics::init() {
 
 void Graphics::exit() {
 	if (Graphics::mode) {
+		if (Graphics::mode == 5) {
+			unsigned int data = windowTop | (windowLeft << 16);
+			if (data != windowData) SetConfigInt("Graphics", "WindowData", data);
+		}
 		if (titlesBuffer) delete[] titlesBuffer;
 		CoUninitialize();
 	}

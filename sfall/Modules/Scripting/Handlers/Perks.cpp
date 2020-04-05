@@ -16,7 +16,9 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "..\..\..\FalloutEngine\AsmMacros.h"
 #include "..\..\..\FalloutEngine\Fallout2.h"
+
 #include "..\..\Perks.h"
 #include "..\..\ScriptExtender.h"
 #include "..\OpcodeContext.h"
@@ -68,106 +70,32 @@ void sf_get_perk_available(OpcodeContext& ctx) {
 	ctx.setReturn(result);
 }
 
-void __declspec(naked) op_set_perk_name() {
-	__asm {
-		pushad;
-		mov ecx, eax;
-		call fo::funcoffs::interpretPopShort_;
-		mov esi, eax;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPopLong_;
-		mov edi, eax;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPopShort_;
-		mov edx, eax;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPopLong_;
-		cmp dx, VAR_TYPE_INT;
-		jnz end;
-		cmp si, VAR_TYPE_STR2;
-		jz next;
-		cmp si, VAR_TYPE_STR;
-		jnz end;
-next:
-		mov ebx, edi;
-		mov edx, esi;
-		mov esi, eax;
-		mov eax, ecx;
-		call fo::funcoffs::interpretGetString_;
-		push eax;
-		push esi;
-		call SetPerkName;
-		jmp end;
-end:
-		popad;
-		retn;
-	}
+void sf_set_perk_name(OpcodeContext& ctx) {
+	Perks::SetPerkName(ctx.arg(0).rawValue(), ctx.arg(1).strValue());
 }
 
-void __declspec(naked) op_set_perk_desc() {
-	__asm {
-		pushad;
-		mov ecx, eax;
-		call fo::funcoffs::interpretPopShort_;
-		mov esi, eax;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPopLong_;
-		mov edi, eax;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPopShort_;
-		mov edx, eax;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPopLong_;
-		cmp dx, VAR_TYPE_INT;
-		jnz end;
-		cmp si, VAR_TYPE_STR2;
-		jz next;
-		cmp si, VAR_TYPE_STR;
-		jnz end;
-next:
-		mov ebx, edi;
-		mov edx, esi;
-		mov esi, eax;
-		mov eax, ecx;
-		call fo::funcoffs::interpretGetString_;
-		push eax;
-		push esi;
-		call SetPerkDesc;
-		jmp end;
-end:
-		popad;
-		retn;
-	}
+void sf_set_perk_desc(OpcodeContext& ctx) {
+	Perks::SetPerkDesc(ctx.arg(0).rawValue(), ctx.arg(1).strValue());
 }
 
 void __declspec(naked) op_set_perk_value() {
-	__asm {
-		pushad;
-		sub edx, 0x5e0 - 8; // offset of value into perk struct; edx = ((edx/4) - 0x178 + 0x8) * 4
-		push edx;
-		mov ecx, eax;
-		call fo::funcoffs::interpretPopShort_;
-		mov esi, eax;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPopLong_;
-		mov edi, eax;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPopShort_;
-		mov edx, eax;
-		mov eax, ecx;
-		call fo::funcoffs::interpretPopLong_;
-		cmp dx, VAR_TYPE_INT;
-		jnz fail;
-		cmp si, VAR_TYPE_INT;
-		jnz fail;
+	__asm { // edx - opcode
 		push edi;
-		push eax;
-		call SetPerkValue;
-		jmp end;
-fail:
-		add esp, 4;
+		push ecx;
+		sub  edx, 0x5E0 - 8; // offset of value into perk struct: edx = ((edx/4) - 0x178 + 0x8) * 4
+		mov  edi, edx;
+		_GET_ARG(ecx, esi);
+		mov  eax, ebx;
+		_GET_ARG_INT(end);
+		cmp  si, VAR_TYPE_INT;
+		jne  end;
+		push ecx;      // value
+		mov  edx, edi; // param (offset)
+		mov  ecx, eax; // perk id
+		call Perks::SetPerkValue;
 end:
-		popad;
+		pop  ecx;
+		pop  edi;
 		retn;
 	}
 }
@@ -189,7 +117,7 @@ const char* notPartyMemberErr = "%s() - the object is not a party member.";
 void sf_set_selectable_perk_npc(OpcodeContext& ctx) {
 	auto obj = ctx.arg(0).object();
 	if (obj->Type() == fo::ObjType::OBJ_TYPE_CRITTER && fo::func::isPartyMember(obj)) {
-		Perks::SetSelectablePerk(ctx.arg(1).strValue(), ctx.arg(2).rawValue(), ctx.arg(3).rawValue(), ctx.arg(4).strValue(), (obj->id != PLAYER_ID) ? obj->id : 0);
+		Perks::SetSelectablePerk(ctx.arg(1).strValue(), ctx.arg(2).rawValue(), ctx.arg(3).rawValue(), ctx.arg(4).strValue(), (obj->id != fo::PLAYER_ID) ? obj->id : 0);
 	} else {
 		ctx.printOpcodeError(notPartyMemberErr, ctx.getMetaruleName());
 		ctx.setReturn(-1);
@@ -199,7 +127,7 @@ void sf_set_selectable_perk_npc(OpcodeContext& ctx) {
 void sf_set_fake_perk_npc(OpcodeContext& ctx) {
 	auto obj = ctx.arg(0).object();
 	if (obj->Type() == fo::ObjType::OBJ_TYPE_CRITTER && fo::func::isPartyMember(obj)) {
-		Perks::SetFakePerk(ctx.arg(1).strValue(), ctx.arg(2).rawValue(), ctx.arg(3).rawValue(), ctx.arg(4).strValue(), (obj->id != PLAYER_ID) ? obj->id : 0);
+		Perks::SetFakePerk(ctx.arg(1).strValue(), ctx.arg(2).rawValue(), ctx.arg(3).rawValue(), ctx.arg(4).strValue(), (obj->id != fo::PLAYER_ID) ? obj->id : 0);
 	} else {
 		ctx.printOpcodeError(notPartyMemberErr, ctx.getMetaruleName());
 		ctx.setReturn(-1);
@@ -209,7 +137,7 @@ void sf_set_fake_perk_npc(OpcodeContext& ctx) {
 void sf_set_fake_trait_npc(OpcodeContext& ctx) {
 	auto obj = ctx.arg(0).object();
 	if (obj->Type() == fo::ObjType::OBJ_TYPE_CRITTER && fo::func::isPartyMember(obj)) {
-		Perks::SetFakeTrait(ctx.arg(1).strValue(), ctx.arg(2).rawValue(), ctx.arg(3).rawValue(), ctx.arg(4).strValue(), (obj->id != PLAYER_ID) ? obj->id : 0);
+		Perks::SetFakeTrait(ctx.arg(1).strValue(), ctx.arg(2).rawValue(), ctx.arg(3).rawValue(), ctx.arg(4).strValue(), (obj->id != fo::PLAYER_ID) ? obj->id : 0);
 	} else {
 		ctx.printOpcodeError(notPartyMemberErr, ctx.getMetaruleName());
 		ctx.setReturn(-1);
@@ -218,25 +146,21 @@ void sf_set_fake_trait_npc(OpcodeContext& ctx) {
 
 void __declspec(naked) op_set_perkbox_title() {
 	__asm {
+		mov  esi, ecx;
 		push ebx;
-		push ecx;
-		mov  ecx, eax;
-		call fo::funcoffs::interpretPopShort_;
-		mov  edx, eax;
-		mov  eax, ecx;
-		call fo::funcoffs::interpretPopLong_;
+		mov  ecx, eax; // keep script
+		_GET_ARG(ebx, edx);
 		cmp  dx, VAR_TYPE_STR2;
 		jz   next;
 		cmp  dx, VAR_TYPE_STR;
 		jnz  end;
 next:
-		mov  ebx, eax;
-		mov  eax, ecx;
+		mov  eax, ecx; // script
 		call fo::funcoffs::interpretGetString_;
-		push eax;
-		call SetPerkboxTitle;
+		mov  ecx, eax;
+		call Perks::SetPerkboxTitle;
 end:
-		pop  ecx;
+		mov  ecx, esi;
 		pop  ebx;
 		retn;
 	}
@@ -281,7 +205,7 @@ void sf_has_fake_perk_npc(OpcodeContext& ctx) {
 	long result = 0;
 	auto obj = ctx.arg(0).object();
 	if (obj->Type() == fo::ObjType::OBJ_TYPE_CRITTER && fo::func::isPartyMember(obj)) {
-		result = Perks::HasFakePerkOwner(ctx.arg(1).strValue(), (obj->id != PLAYER_ID) ? obj->id : 0);
+		result = Perks::HasFakePerkOwner(ctx.arg(1).strValue(), (obj->id != fo::PLAYER_ID) ? obj->id : 0);
 	} else {
 		ctx.printOpcodeError(notPartyMemberErr, ctx.getMetaruleName());
 	}
@@ -292,7 +216,7 @@ void sf_has_fake_trait_npc(OpcodeContext& ctx) {
 	long result = 0;
 	auto obj = ctx.arg(0).object();
 	if (obj->Type() == fo::ObjType::OBJ_TYPE_CRITTER && fo::func::isPartyMember(obj)) {
-		result = Perks::HasFakeTraitOwner(ctx.arg(1).strValue(), (obj->id != PLAYER_ID) ? obj->id : 0);
+		result = Perks::HasFakeTraitOwner(ctx.arg(1).strValue(), (obj->id != fo::PLAYER_ID) ? obj->id : 0);
 	} else {
 		ctx.printOpcodeError(notPartyMemberErr, ctx.getMetaruleName());
 	}

@@ -27,8 +27,6 @@
 namespace sfall
 {
 
-#define SAFERELEASE(a) { if (a) { a->Release(); a = 0; } }
-
 class Graphics : public Module {
 public:
 	const char* name() { return "Graphics"; }

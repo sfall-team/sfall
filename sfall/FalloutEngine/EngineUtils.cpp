@@ -144,6 +144,16 @@ long CheckAddictByPid(fo::GameObject* critter, long pid) {
 	/* keyword 'return' is not needed, the compiler will do everything correctly */
 }
 
+// Checks whether the player is under the influence of negative effects of radiation
+long __fastcall IsRadInfluence() {
+	fo::QueueRadiation* queue = (fo::QueueRadiation*)fo::func::queue_find_first(fo::var::obj_dude, fo::radiation_event);
+	while (queue) {
+		if (queue->init && queue->level >= 2) return 1;
+		queue = (fo::QueueRadiation*)fo::func::queue_find_next(fo::var::obj_dude, fo::radiation_event);
+	}
+	return 0;
+}
+
 void ToggleNpcFlag(fo::GameObject* npc, long flag, bool set) {
 	Proto* protoPtr;
 	if (fo::func::proto_ptr(npc->protoId, &protoPtr) != -1) {
@@ -299,7 +309,7 @@ void DrawToSurface(long toX, long toY, long width, long height, long toWidth, lo
 
 // safe copy data from surface to surface with mask
 void DrawToSurface(long width, long height, long fromX, long fromY, long fromWidth, BYTE* fromSurf,
-				   long toX, long toY, long toWidth, long toHeight, BYTE* toSurf, int maskRef)
+                   long toX, long toY, long toWidth, long toHeight, BYTE* toSurf, int maskRef)
 {
 	BYTE* _fromSurf = fromSurf + (fromY * fromWidth + fromX);
 	BYTE* _toSurf =  toSurf + (toY * toWidth + toX);
@@ -317,7 +327,7 @@ void DrawToSurface(long width, long height, long fromX, long fromY, long fromWid
 
 // safe copy data from surface to surface
 void DrawToSurface(long width, long height, long fromX, long fromY, long fromWidth, BYTE* fromSurf,
-				   long toX, long toY, long toWidth, long toHeight, BYTE* toSurf)
+                   long toX, long toY, long toWidth, long toHeight, BYTE* toSurf)
 {
 	BYTE* _fromSurf = fromSurf + (fromY * fromWidth + fromX);
 	BYTE* _toSurf = toSurf + (toY * toWidth + toX);

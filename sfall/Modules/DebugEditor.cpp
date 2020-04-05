@@ -352,16 +352,6 @@ static void __declspec(naked) debug_log_hack() {
 	}
 }
 
-static void __declspec(naked) op_display_msg_hook() {
-	__asm {
-		cmp  dword ptr ds:FO_VAR_debug_func, 0;
-		jne  debug;
-		retn;
-debug:
-		jmp  fo::funcoffs::config_get_value_;
-	}
-}
-
 static void DebugModePatch() {
 	int dbgMode = iniGetInt("Debugging", "DebugMode", 0, ::sfall::ddrawIni);
 	if (dbgMode > 0) {
@@ -397,13 +387,11 @@ static void DebugModePatch() {
 			BlockCall(0x4C7044); // just nop code
 		}
 		// replace calling debug_printf_ with _debug_func
-		long long data = 0x51DF0415FFF08990; // mov eax, esi; call ds:_debug_func
+		__int64 data = 0x51DF0415FFF08990; // mov eax, esi; call ds:_debug_func
 		SafeWriteBytes(0x455419, (BYTE*)&data, 8); // op_display_msg_
 
 		dlogr(" Done", DL_INIT);
 	}
-	// Just for speeding up display_msg function (optional)
-	HookCall(0x455404, op_display_msg_hook);
 }
 
 static void DontDeleteProtosPatch() {
@@ -423,7 +411,7 @@ void DebugEditor::init() {
 	debugEditorKey = GetConfigInt("Input", "DebugEditorKey", 0);
 	if (debugEditorKey != 0) {
 		OnKeyPressed() += [](DWORD scanCode, bool pressed) {
-			if (scanCode == debugEditorKey && pressed && IsMapLoaded()) {
+			if (scanCode == debugEditorKey && pressed && IsGameLoaded()) {
 				RunDebugEditor();
 			}
 		};

@@ -288,6 +288,7 @@ enum ProtoId : long
 	PID_JET_ANTIDOTE = 260,
 	PID_DECK_OF_TRAGIC_CARDS = 306,
 	PID_GECK = 366,
+	PID_SOLAR_SCORCHER = 390,
 	PID_CAR_TRUNK = 455,
 	PID_JESSE_CONTAINER = 467,
 
@@ -688,7 +689,9 @@ enum KillType : long
 	KILL_TYPE_count
 };
 
-#define PLAYER_ID             (18000)
+enum {
+	PLAYER_ID                 = 18000
+};
 
 #define OBJFLAG_CAN_WEAR_ITEMS (0xF000000)
 
