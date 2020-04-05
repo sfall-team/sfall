@@ -452,6 +452,7 @@ const DWORD invenUnwieldFunc_ = 0x472A64;
 const DWORD invenWieldFunc_ = 0x472768;
 const DWORD inven_display_msg_ = 0x472D24;
 const DWORD inven_find_id_ = 0x4726EC;
+const DWORD inven_find_type_ = 0x472698;
 const DWORD inven_left_hand_ = 0x471BBC;
 const DWORD inven_pid_is_carried_ptr_ = 0x471CA0;
 const DWORD inven_right_hand_ = 0x471B70;
@@ -496,6 +497,7 @@ const DWORD item_w_max_ammo_ = 0x478674;
 const DWORD item_w_mp_cost_ = 0x478B24;
 const DWORD item_w_perk_ = 0x478D58;
 const DWORD item_w_range_ = 0x478A1C;
+const DWORD item_w_reload_ = 0x478918;
 const DWORD item_w_rounds_ = 0x478D80;
 const DWORD item_w_subtype_ = 0x478280;
 const DWORD item_w_try_reload_ = 0x478768;
@@ -1371,6 +1373,10 @@ TGameObj* __fastcall obj_blocking_at_wrapper(TGameObj* obj, DWORD tile, DWORD el
 	}
 }
 
+long __stdcall ObjDestroy(TGameObj* object) {
+	WRAP_WATCOM_CALL1(obj_destroy_, object)
+}
+
 long __stdcall ObjEraseObject(TGameObj* object, BoundRect* boundRect) {
 	WRAP_WATCOM_CALL2(obj_erase_object_, object, boundRect)
 }
@@ -1481,6 +1487,10 @@ long __stdcall ItemWCurrAmmo(TGameObj* item) {
 	WRAP_WATCOM_CALL1(item_w_curr_ammo_, item)
 }
 
+long __stdcall ItemWReload(TGameObj* weapon, TGameObj* ammo) {
+	WRAP_WATCOM_CALL2(item_w_reload_, weapon, ammo)
+}
+
 long __stdcall ItemWRounds(TGameObj* item) {
 	WRAP_WATCOM_CALL1(item_w_rounds_, item)
 }
@@ -1515,6 +1525,10 @@ void __stdcall IntfaceUpdateMovePoints(long ap, long freeAP) {
 
 void __fastcall IntfaceUpdateItems(long animate, long modeLeft, long modeRight) {
 	WRAP_WATCOM_FCALL3(intface_update_items_, animate, modeLeft, modeRight)
+}
+
+TGameObj* __fastcall InvenFindType(TGameObj* critter, long itemType, DWORD* buf) {
+	WRAP_WATCOM_FCALL3(inven_find_type_, critter, itemType, buf)
 }
 
 long __stdcall InvenUnwield(TGameObj* critter, long slot) {

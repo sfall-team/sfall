@@ -21,8 +21,8 @@
 #include "FalloutEngine.h"
 
 void AIInit();
-void _stdcall AICombatStart();
-void _stdcall AICombatEnd();
+void __stdcall AICombatStart();
+void __stdcall AICombatEnd();
 
-TGameObj* _stdcall AIGetLastAttacker(TGameObj* target);
-TGameObj* _stdcall AIGetLastTarget(TGameObj* source);
+TGameObj* __stdcall AIGetLastAttacker(TGameObj* target);
+TGameObj* __stdcall AIGetLastTarget(TGameObj* source);

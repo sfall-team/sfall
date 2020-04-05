@@ -715,6 +715,7 @@ extern const DWORD invenUnwieldFunc_; // (int critter@<eax>, int slot@<edx>, int
 extern const DWORD invenWieldFunc_; // (int who@<eax>, int item@<edx>, int a3@<ecx>, int slot@<ebx>) - int result (-1 on error, 0 on success)
 extern const DWORD inven_display_msg_;
 extern const DWORD inven_find_id_;
+extern const DWORD inven_find_type_;
 extern const DWORD inven_left_hand_; // eax - object
 extern const DWORD inven_pid_is_carried_ptr_;
 extern const DWORD inven_right_hand_; // eax - object
@@ -759,6 +760,7 @@ extern const DWORD item_w_max_ammo_; // eax - object
 extern const DWORD item_w_mp_cost_;
 extern const DWORD item_w_perk_;
 extern const DWORD item_w_range_;
+extern const DWORD item_w_reload_;
 extern const DWORD item_w_rounds_;
 extern const DWORD item_w_subtype_;
 extern const DWORD item_w_try_reload_;
@@ -1255,6 +1257,8 @@ void __fastcall make_straight_path_func_wrapper(TGameObj* objFrom, DWORD tileFro
 
 TGameObj* __fastcall obj_blocking_at_wrapper(TGameObj* obj, DWORD tile, DWORD elevation, void* func);
 
+long __stdcall ObjDestroy(TGameObj* object);
+
 long __stdcall ObjEraseObject(TGameObj* object, BoundRect* boundRect);
 
 TGameObj* __stdcall ObjFindFirst();
@@ -1309,6 +1313,7 @@ long __stdcall TileDir(long scrTile, long dstTile);
 long __stdcall ItemWAnimWeap(TGameObj* item, DWORD hitMode);
 long __stdcall ItemWComputeAmmoCost(TGameObj* item, DWORD* rounds);
 long __stdcall ItemWCurrAmmo(TGameObj* item);
+long __stdcall ItemWReload(TGameObj* weapon, TGameObj* ammo);
 long __stdcall ItemWRounds(TGameObj* item);
 
 // for the backported BarterPriceHook from 4.x
@@ -1324,6 +1329,8 @@ void __stdcall IntfaceUpdateAc(long animate);
 void __stdcall IntfaceUpdateMovePoints(long ap, long freeAP);
 
 void __fastcall IntfaceUpdateItems(long animate, long modeLeft, long modeRight);
+
+TGameObj* __fastcall InvenFindType(TGameObj* critter, long itemType, DWORD* buf);
 
 long __stdcall InvenUnwield(TGameObj* critter, long slot);
 

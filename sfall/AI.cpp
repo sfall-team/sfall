@@ -35,8 +35,8 @@ static void __declspec(naked) ai_try_attack_hook_FleeFix() {
 	}
 }
 
-static const DWORD combat_ai_hook_flee_Ret = 0x42B22F;
 static void __declspec(naked) combat_ai_hook_FleeFix() {
+	static const DWORD combat_ai_hook_flee_Ret = 0x42B22F;
 	__asm {
 		test byte ptr [ebp], 8; // 'ReTarget' flag (critter.combat_state)
 		jnz  reTarget;
@@ -50,8 +50,8 @@ reTarget:
 	}
 }
 
-static const DWORD combat_ai_hack_Ret = 0x42B204;
 static void __declspec(naked) combat_ai_hack() {
+	static const DWORD combat_ai_hack_Ret = 0x42B204;
 	__asm {
 		mov  edx, [ebx + 0x10]; // cap.min_hp
 		cmp  eax, edx;
@@ -148,9 +148,8 @@ skip:
 	}
 }
 
-////////////////////////////////////////////////////////////////////////////////
-
 static DWORD RetryCombatMinAP;
+
 static void __declspec(naked) RetryCombatHook() {
 	static DWORD RetryCombatLastAP = 0;
 	__asm {
@@ -174,6 +173,57 @@ next:
 		jmp  retry;
 end:
 		retn;
+	}
+}
+
+static long __fastcall sf_ai_weapon_reload(TGameObj* weapon, TGameObj* ammo, TGameObj* critter) {
+	char* proto = nullptr;
+	long result = -1;
+	long maxAmmo;
+
+	TGameObj* _ammo = ammo;
+
+	while (ammo) {
+		result = ItemWReload(weapon, ammo);
+		if (result != 0) break; // 1 - reload done, -1 - can't reload
+
+		if (!proto) {
+			proto = GetProtoPtr(weapon->pid);
+			maxAmmo = *(long*)(proto + 96); // item.weapon.maxAmmo
+		}
+		if (weapon->itemCharges >= maxAmmo) break; // magazine is full
+
+		long pidAmmo = ammo->pid;
+		ObjDestroy(ammo);
+		ammo = nullptr;
+
+		DWORD currentSlot = -1; // begin find at first slot
+		while (TGameObj* ammoFind = InvenFindType(critter, item_type_ammo, &currentSlot)) {
+			if (ammoFind->pid == pidAmmo) {
+				ammo = ammoFind;
+				break;
+			}
+		}
+	}
+	if (!result && _ammo != ammo) {
+		ObjDestroy(ammo);
+		return 1; // notifies the engine that the ammo has already been destroyed
+	}
+	return result;
+}
+
+static void __declspec(naked) item_w_reload_hook() {
+	__asm {
+		cmp  dword ptr [eax + 0x64], PID_SOLAR_SCORCHER;
+		je   skip;
+		push ecx;
+		push esi;      // source
+		mov  ecx, eax; // weapon
+		call sf_ai_weapon_reload; // edx - ammo
+		pop  ecx;
+		retn;
+skip:
+		jmp  item_w_reload_;
 	}
 }
 
@@ -209,6 +259,15 @@ void AIInit() {
 		dlogr(" Done", DL_INIT);
 	}
 
+	// Fix for NPCs not fully reloading a weapon if it has more ammo capacity than a box of ammo
+	const DWORD itemWReloadAddr[] = {
+		0x42AF15,           // cai_attempt_w_reload_
+		0x42A970, 0x42AA56, // ai_try_attack_
+	};
+	for (int i = 0; i < sizeof(itemWReloadAddr) / 4; i++) {
+		HookCall(itemWReloadAddr[i], item_w_reload_hook);
+	}
+
 	/////////////////////// Combat AI behavior fixes ///////////////////////
 
 	// Fix to allow fleeing NPC to use drugs
@@ -229,22 +288,22 @@ void AIInit() {
 	MakeCall(0x428EE5, ai_find_attackers_hack_target4, 1);
 }
 
-TGameObj* _stdcall AIGetLastAttacker(TGameObj* target) {
+TGameObj* __stdcall AIGetLastAttacker(TGameObj* target) {
 	iter itr = sources.find(target);
 	return (itr != sources.end()) ? itr->second : 0;
 }
 
-TGameObj* _stdcall AIGetLastTarget(TGameObj* source) {
+TGameObj* __stdcall AIGetLastTarget(TGameObj* source) {
 	iter itr = targets.find(source);
 	return (itr != targets.end()) ? itr->second : 0;
 }
 
-void _stdcall AICombatStart() {
+void __stdcall AICombatStart() {
 	targets.clear();
 	sources.clear();
 }
 
-void _stdcall AICombatEnd() {
+void __stdcall AICombatEnd() {
 	targets.clear();
 	sources.clear();
 }

@@ -575,9 +575,13 @@ static void DllMain2() {
 	if (GetConfigInt("Misc", "AdditionalWeaponAnims", 0)) {
 		dlog("Applying additional weapon animations patch.", DL_INIT);
 		SafeWrite8(0x419320, 18); // art_get_code_
-		HookCall(0x4194CC, WeaponAnimHook); // art_get_name_
-		HookCall(0x451648, WeaponAnimHook); // gsnd_build_character_sfx_name_
-		HookCall(0x451671, WeaponAnimHook);
+		const DWORD artGetCodeAddr[] = {
+			0x451648, 0x451671, // gsnd_build_character_sfx_name_
+			0x4194CC            // art_get_name_
+		};
+		for (int i = 0; i < sizeof(artGetCodeAddr) / 4; i++) {
+			HookCall(artGetCodeAddr[i], WeaponAnimHook);
+		};
 		dlogr(" Done", DL_INIT);
 	}
 
@@ -774,13 +778,12 @@ static void DllMain2() {
 		dlogr(" Done", DL_INIT);
 	}
 
-	const DWORD WalkDistanceAddr[] = {
-		0x411FF0, 0x4121C4, 0x412475, 0x412906,
-	};
-
 	int distance = GetConfigInt("Misc", "UseWalkDistance", 3) + 2;
 	if (distance > 1 && distance < 5) {
 		dlog("Applying walk distance for using objects patch.", DL_INIT);
+		const DWORD WalkDistanceAddr[] = {
+			0x411FF0, 0x4121C4, 0x412475, 0x412906,
+		};
 		for (int i = 0; i < sizeof(WalkDistanceAddr) / 4; i++) {
 			SafeWrite8(WalkDistanceAddr[i], static_cast<BYTE>(distance)); // default is 5
 		}
